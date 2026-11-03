@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="apple-mobile-web-app-capable" content="yes"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
+</head><body>
+<title>The Hollow: Model Review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Spectral:wght@400;600&display=swap">
+<style>
+/* Layout: full-screen turntable, a strip of animation buttons along the bottom. Single dark look by design. */
+:root{color-scheme:dark;--ink:#0a0c0c;--panel:rgba(18,15,12,.78);--line:rgba(233,223,198,.18);--bone:#e9dfc6;--dim:#a89f8a;--ember:#e8923f;
+  --display:"IM Fell English SC",Georgia,serif;--body:"Spectral",Georgia,serif}
+html,body{height:100%;margin:0;background:var(--ink);color:var(--bone);overflow:hidden;font-family:var(--body)}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+header{position:fixed;left:0;right:0;top:0;padding-top:calc(env(safe-area-inset-top,0px) + 12px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));pointer-events:none}
+h1{font-family:var(--display);font-weight:400;font-size:26px;margin:0;letter-spacing:.03em}
+header p{margin:2px 0 0;color:var(--dim);font-size:13px;max-width:44ch}
+#bar{position:fixed;left:0;right:0;bottom:0;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding-block:12px calc(env(safe-area-inset-bottom,0px) + 14px);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:linear-gradient(transparent,rgba(0,0,0,.7))}
+button{font:inherit;font-size:14px;color:var(--bone);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:9px 15px;cursor:pointer}
+button[aria-pressed="true"]{border-color:var(--ember);color:#fff;background:rgba(232,146,63,.25)}
+button:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+#status{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--dim);font-size:14px}
+</style>
+<canvas id="c"></canvas>
+<header><h1>The Hollow</h1><p>Built in Blender: one skinned mesh on a 47-bone skeleton, baked textures, keyframed clips. Drag to orbit, pinch to zoom.</p></header>
+<div id="status">Loading model…</div>
+<div id="bar"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const canvas=document.getElementById('c');const r=new THREE.WebGLRenderer({canvas,antialias:true});r.setPixelRatio(Math.min(devicePixelRatio,2));
+r.outputEncoding=THREE.sRGBEncoding;r.toneMapping=THREE.ACESFilmicToneMapping;r.toneMappingExposure=1.15;r.shadowMap.enabled=true;r.shadowMap.type=THREE.PCFSoftShadowMap;
+const sc=new THREE.Scene();sc.background=new THREE.Color(0x07090b);sc.fog=new THREE.FogExp2(0x07090b,.09);
+const cam=new THREE.PerspectiveCamera(40,1,.05,60);cam.position.set(1.6,1.9,4.6);
+const ctl=new THREE.OrbitControls(cam,canvas);ctl.target.set(0,1.45,0);ctl.enableDamping=true;ctl.minDistance=.6;ctl.maxDistance=9;ctl.maxPolarAngle=Math.PI*.55;
+sc.add(new THREE.HemisphereLight(0x8090b0,0x151008,.45));
+const key=new THREE.SpotLight(0xffd8a8,5,18,.5,.6,1.4);key.position.set(2.2,4,3);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.bias=-.0004;sc.add(key);sc.add(key.target);key.target.position.set(0,1.4,0);
+const rim=new THREE.DirectionalLight(0x6a86c8,1.4);rim.position.set(-3,3,-4);sc.add(rim);
+const gnd=new THREE.Mesh(new THREE.CircleGeometry(8,48).rotateX(-Math.PI/2),new THREE.MeshStandardMaterial({color:0x17140f,roughness:1}));gnd.receiveShadow=true;sc.add(gnd);
+let mixer,actions={},cur;const bar=document.getElementById('bar');
+function loadModel(url,ok,bad){fetch(url).then(r=>{if(!r.ok)throw 0;return r.json();}).then(js=>{const u=js.buffers[0].uri;const b64=u.slice(u.indexOf(',')+1);const bin=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));delete js.buffers[0].uri;js.buffers[0].byteLength=bin.length;
+  const enc=new TextEncoder().encode(JSON.stringify(js));const jl=(enc.length+3)&~3,bl=(bin.length+3)&~3;const out=new Uint8Array(12+8+jl+8+bl);const dv=new DataView(out.buffer);
+  dv.setUint32(0,0x46546C67,true);dv.setUint32(4,2,true);dv.setUint32(8,out.length,true);dv.setUint32(12,jl,true);dv.setUint32(16,0x4E4F534A,true);out.fill(32,20,20+jl);out.set(enc,20);
+  dv.setUint32(20+jl,bl,true);dv.setUint32(24+jl,0x004E4942,true);out.set(bin,28+jl);new THREE.GLTFLoader().parse(out.buffer,'',ok,bad);}).catch(bad);}
+loadModel('hollow.json',g=>{document.getElementById('status').remove();const m=g.scene;m.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.frustumCulled=false;}});sc.add(m);
+  mixer=new THREE.AnimationMixer(m);const order=['idle','walk','crawl','lunge','scream','headsnap','frozen'];
+  g.animations.sort((a,b)=>order.indexOf(a.name)-order.indexOf(b.name)).forEach(clip=>{const a=mixer.clipAction(clip);if(['lunge','scream','headsnap'].includes(clip.name)){a.setLoop(THREE.LoopOnce);a.clampWhenFinished=true;}
+    actions[clip.name]=a;const b=document.createElement('button');b.textContent=clip.name[0].toUpperCase()+clip.name.slice(1);b.setAttribute('aria-pressed','false');b.onclick=()=>play(clip.name);bar.appendChild(b);});
+  play('idle');},e=>{document.getElementById('status').textContent='Could not load the model.';});
+function play(n){const a=actions[n];if(!a)return;if(cur&&cur!==a){a.reset().play();cur.crossFadeTo(a,.35,false);}else a.reset().play();cur=a;
+  [...bar.children].forEach(b=>b.setAttribute('aria-pressed',String(b.textContent.toLowerCase()===n)));}
+function size(){r.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();const d=cam.aspect<1?8.2:5.2;cam.position.set(d*.3,1.9,d);ctl.update();}addEventListener('resize',size);size();
+const clock=new THREE.Clock();(function loop(){requestAnimationFrame(loop);const dt=clock.getDelta();if(mixer)mixer.update(dt);ctl.update();key.intensity=5*(.92+.08*Math.sin(performance.now()*.02));r.render(sc,cam);})();
+window.__v={actions,play};
+</script>
+
+</body></html>
