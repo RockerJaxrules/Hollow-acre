@@ -35,8 +35,8 @@ function blackout(){if(S.mode!=='play'&&S.mode!=='scare')return;S.mode='trans';f
   const btn=document.createElement('button');btn.className='btn';btn.id='btnBag';btn.textContent='Bag';btn.addEventListener('click',()=>{if(S.mode==='play'&&!S.paused)openBag();});$('buttons').prepend(btn);}
 const ICON={};const ICON_ALIAS={twig:'wood',rock_0:'stone',weeds_0:'fiber',ore_copper:'copper',ore_iron:'iron',ore_coal:'coal',ore_gem:'gem',in_shelf_tools:'hoe',in_keg:'can',stump:'axe'};
 function iconOf(spr){if(ICON[spr])return ICON[spr];const c=document.createElement('canvas');c.width=32;c.height=32;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
-  const key=SPR['icon_'+spr]?'icon_'+spr:SPR['icon_'+(ICON_ALIAS[spr]||'')]?'icon_'+ICON_ALIAS[spr]:SPR[spr]?spr:null;const m=key&&SPR[key],im=m&&IMG[m.src];
-  if(im){if(key.startsWith('icon_'))g.drawImage(im,0,0,m.fw,m.fh,0,0,32,32);else{const f=Math.max(1,Math.ceil(Math.max(m.fw,m.fh)/32));const w=Math.floor(m.fw/f),h=Math.floor(m.fh/f);g.drawImage(im,0,0,m.fw,m.fh,(32-w)>>1,(32-h)>>1,w,h);}}
+  const key=SPR['icon32_'+spr]?'icon32_'+spr:SPR['icon_'+spr]?'icon_'+spr:SPR['icon_'+(ICON_ALIAS[spr]||'')]?'icon_'+ICON_ALIAS[spr]:SPR[spr]?spr:null;const m=key&&SPR[key],im=m&&IMG[m.src];
+  if(im){if(key.startsWith('icon'))g.drawImage(im,0,0,m.fw,m.fh,0,0,32,32);else{const f=Math.max(1,Math.ceil(Math.max(m.fw,m.fh)/32));const w=Math.floor(m.fw/f),h=Math.floor(m.fh/f);g.drawImage(im,0,0,m.fw,m.fh,(32-w)>>1,(32-h)>>1,w,h);}}
   return ICON[spr]=c.toDataURL();}
 function openBag(){S.paused=true;const B=$('bagBody');const T=S.tools;
   $('bagSub').textContent=`Energy ${Math.round(S.energy)}/${S.energyMax} · Health ${Math.round(S.hp)}/${S.hpMax}${S.mineDeep?` · Deepest mine floor ${S.mineDeep}`:''}`;
@@ -158,7 +158,7 @@ function hotbarUse(k){if(S.mode!=='play'||S.paused)return;const T=S.tools;
   if(k==='food'){const best=Object.keys(ITEMS).filter(q=>ITEMS[q].food&&inv(q)>0).sort((a,b)=>ITEMS[a].food[0]-ITEMS[b].food[0])[0];if(best){takeInv(best);eat(ITEMS[best].food[0],ITEMS[best].food[1],ITEMS[best].name);}else{const raw=Object.keys(RAW).find(q=>basketCount(q)>0);if(raw){takeBasket(raw,1);eat(RAW[raw][0],RAW[raw][1],'A raw '+raw);}else toast('Nothing to eat.',1.4);}updateHud();return;}
   const nm={hoe:`${T.hoe>1?'Copper':'Rusty'} hoe — till soil`,can:`${S.waterMax>10?'Copper':'Tin'} can — ${S.water}/${S.waterMax}`,pick:`${T.pick>1?'Steel':'Grandpa’s'} pickaxe — break stone`,axe:`${T.axe>1?'Steel':'Old'} axe — chop stumps`}[k];toast(nm,1.4);}
 setInterval(()=>{const hb=$('hotbar');if(!hb)return;hb.style.display=(S.mode!=='play'||$('hud').hidden||S.paused)?'none':'flex';
-  for(const im of hb.querySelectorAll('img'))if(!im.src&&SPR['icon_'+im.dataset.ic]&&IMG[SPR['icon_'+im.dataset.ic].src])im.src=iconOf(im.dataset.ic);
+  for(const im of hb.querySelectorAll('img'))if(!im.src&&(SPR['icon32_'+im.dataset.ic]||SPR['icon_'+im.dataset.ic])&&IMG[(SPR['icon32_'+im.dataset.ic]||SPR['icon_'+im.dataset.ic]).src])im.src=iconOf(im.dataset.ic);
   $('hb_seed').textContent=S.seeds[S.sel]||0;$('hb_can').textContent=S.water;const fc=Object.keys(ITEMS).filter(q=>ITEMS[q].food).reduce((a,q)=>a+inv(q),0);$('hb_food').textContent=fc||'';
   const L=($('btnAct').textContent||'');const on=/Till/.test(L)?'hoe':/Water/.test(L)?'can':/Mine|Break/.test(L)?'pick':/Chop/.test(L)?'axe':/Plant/.test(L)?'seed':null;
   for(const b of hb.children)b.classList.toggle('on',b.dataset.k===on);},120);
@@ -168,7 +168,7 @@ const TREE_COL={maple_orange:['#a8441a','#ec9a34'],maple_red:['#8c2222','#d8623a
 function treeChop(){for(const o of OBJ){if(o.hide||(o.kind!=='tree'&&o.kind!=='pine'))continue;if(o.x<-13||o.x>25||o.z<-16||o.z>13)continue;if(o.spr==='deadtree')continue;
   o.col=circles.find(c=>Math.hypot(c.x-o.x,c.z-(o.z-.1))<.35)||null;
   interact.push({x:o.x,z:o.z+.2,r:1.2,on:()=>!o.hide,label:()=>'Chop',ok:()=>true,act(){if(P.anim)return;if(!spend(S.tools.axe>1?2:4))return;
-    {if(!o.trunkW){const sk=makeStump(o.spr);o.trunkW=sk?Math.round((SPR[sk].foot[2]||.2)*PPM)-1:6;}const side=P.x<o.x?-1:1,d=(15+o.trunkW)/PPM;P.x=o.x+side*d;P.z=o.z+.06;}faceTo(o.x,o.z);
+    {if(!o.trunkW){const sk=makeStump(o.spr);o.trunkW=sk?Math.round((SPR[sk].foot[2]||.2)*PPM)-1:6;}const vert=Math.abs(P.z-o.z)>Math.abs(P.x-o.x)*1.1;if(vert){P.x=o.x+.04;P.z=P.z>o.z?o.z+.55:o.z-.62;}else{const side=P.x<o.x?-1:1,d=(15+o.trunkW)/PPM;P.x=o.x+side*d;P.z=o.z+.06;}}faceTo(o.x,o.z);
     startAnim('axe',.55,null,()=>{o.hits=(o.hits||0)+1;SFX.thud(0,.45);cam.shake=Math.max(cam.shake,.14);const cc=TREE_COL[o.spr]||['#1d4129','#356538'];
       // the trunk takes a bite on your side, the tree rocks away from you on its base, chips fly from the cut, a few leaves come down
       o.notch=o.hits;o.notchSide=P.x<o.x?-1:1;if(!o.trunkW){const sk=makeStump(o.spr);o.trunkW=sk?Math.round((SPR[sk].foot[2]||.2)*PPM)-1:6;}o.rock={t:0,dir:P.x<o.x?1:-1};

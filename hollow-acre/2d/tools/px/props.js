@@ -263,6 +263,23 @@ if(K==='furnace'){const cx=W/2|0,base=H-3,w=26,top=10;   // a fieldstone furnace
   for(let y=0;y<8;y++)for(let x=-6;x<=5;x++)P(A,cx+x,top-8+y,ST[x<-3?4:x>3?1:2]);rect(A,cx-7,top-10,14,3,ST[4]);hl(A,cx-7,top-10,14,ST[5]);
   for(let y=0;y<10;y++)for(let x=-6;x<6;x++){const dy=Math.max(0,4-y);if(y<4&&x*x+dy*dy*2.2>36)continue;P(A,cx+x,base-14+y,y<3?[60,20,10]:[(240-y*8)|0,(140-y*8)|0,40]);}
   hl(A,cx-8,base-4,16,ST[4]);hl(A,cx-w/2,top,w,ST[5]);for(let x=-w/2-1;x<=w/2+1;x++)P(SHD,cx+x,base+1,PAL.out[0],150);}
+if(K==='icon32'){const I=CFG.icon;   // 32x32 hotbar icons: the same tool art the farmer swings, plus detailed seed pouch and meal
+  if(TOOLART[I]){stampTool(I,9,27,-45,false,1,(x,y,c)=>P(A,x,y,c),1.42);}
+  if(I==='can'){const G=[[26,58,34],[44,94,52],[70,136,74],[118,186,108],[176,222,160]];
+    for(let y=-8;y<=8;y++)for(let x=-10;x<=10;x++){const d=x*x/100+y*y/64;if(d>1)continue;const l=-x/10*.55-y/8*.65+.15;let k=l>.55?4:l>.2?3:l>-.2?2:l>-.55?1:0;if(d>.86)k=Math.max(0,k-1);P(A,13+x,20+y,G[k]);}
+    for(let x=-9;x<=9;x++){P(A,13+x,12,G[3]);P(A,13+x,13,G[1]);}for(let i=0;i<11;i++){const a=Math.PI+i/10*Math.PI;for(let t=0;t<2;t++)P(A,13+Math.round(Math.cos(a)*(7+t)),11+Math.round(Math.sin(a)*(6+t)),G[t?0:2]);}
+    for(let i=0;i<9;i++){for(let t=0;t<3;t++)P(A,21+i,18-i+t,G[t===0?3:t===1?2:0]);}for(let y=-3;y<=3;y++)for(let x=0;x<3;x++)P(A,29+x,8+y,[x===0?150:200,x===0?150:200,x===0?140:190]);for(let y=-2;y<=2;y+=2)P(A,31,8+y,[90,90,84]);
+    for(let i=0;i<3;i++){P(A,6+i*3,19,G[4]);}P(A,7,16,[255,255,255]);P(A,8,16,G[4]);}
+  if(I==='seed'){const C=[[90,72,50],[138,114,82],[184,160,120],[222,206,168],[242,232,206]];
+    for(let y=0;y<18;y++){const w=Math.round(4+Math.min(y,7)*1.1-(y>14?(y-14)*.8:0));for(let x=-w;x<=w;x++){const l=-x/w*.6+(.3-y/18*.4);P(A,16+x,11+y,C[l>.45?4:l>.1?3:l>-.25?2:1]);}}
+    for(let x=-8;x<=8;x++)P(A,16+x,28,C[0]);for(let x=-5;x<=5;x++){P(A,16+x,10,C[3]);P(A,16+x,11,C[1]);}rect(A,12,9,9,2,PAL.bark[2]);hl(A,12,9,9,PAL.bark[4]);
+    for(let i=0;i<4;i++){P(A,16,8-i,PAL.moss[2]);}for(const [x,y] of [[14,5],[13,4],[18,5],[19,4],[18,6]])P(A,x,y,PAL.moss[3]);P(A,12,4,PAL.moss[2]);
+    for(const [x,y] of [[13,17],[18,20],[15,23],[19,15],[12,21]]){P(A,x,y,PAL.bark[1]);P(A,x+1,y,PAL.bark[2]);}}
+  if(I==='food'){const R=[[110,52,22],[168,92,48],[214,132,72],[240,176,104],[250,212,150]];
+    for(let y=0;y<8;y++){const w=13-Math.round(y*.4);for(let x=-w;x<=w;x++){const l=-x/w*.4;P(A,16+x,22+y,y===7?R[0]:y<1?R[4]:l>.2?R[3]:R[2]);}}
+    for(let y=-6;y<=0;y++)for(let x=-12;x<=12;x++){if(x*x/144+y*y/36>1)continue;const l=-x/12*.5-y/6*.6;P(A,16+x,22+y,l>.4?PAL.mustard[5]:l>0?PAL.mustard[4]:PAL.mustard[3]);}
+    for(const [x0,x1] of [[-9,-3],[-1,5],[7,11]])for(let x=x0;x<=x1;x++){P(A,16+x,18+Math.round(Math.abs(x-(x0+x1)/2)*.3),PAL.rust[2]);}
+    for(let i=0;i<5;i++){P(A,10+i*3,15,PAL.cream[3]);P(A,10+i*3,14,PAL.cream[3]);}for(let x=-14;x<=14;x++){P(A,16+x,30,[210,210,206]);P(A,16+x,31,[150,150,146]);}}}
 if(K==='ladder'){for(let y=2;y<H-4;y++){P(A,4,y,WD[4]);P(A,5,y,WD[2]);P(A,W-6,y,WD[3]);P(A,W-5,y,WD[1]);}for(let y=6;y<H-4;y+=6){hl(A,5,y,W-10,WD[4]);hl(A,5,y+1,W-10,WD[1]);}
   ell(A,W/2|0,H-4,W/2-2|0,3,PAL.ink[0]);}
 const ART=[SHD,A,B];const flat=flatten([A,B],W,H);const O=outline(flat);const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=(CFG.thin||/^fence|^picket|^icon/.test(K))?0:150;}

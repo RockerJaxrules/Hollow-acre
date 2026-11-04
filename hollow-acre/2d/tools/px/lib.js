@@ -62,3 +62,19 @@ function hipify(L,rx0,rx1,y0,eaveY,hw,RF,keep){const inset=y=>Math.round(hw*(1-(
     if(G(L,rx0+k,y)){P(L,rx0+k,y,RF[5]);P(L,rx0+k+1,y,RF[4]);}if(G(L,rx1-k,y)){P(L,rx1-k,y,RF[0]);P(L,rx1-k-1,y,RF[1]);}}
   const bk=Math.round((eaveY-y0)*.42);for(let y=y0;y<y0+bk;y++){const e=Math.round(hw*(1-(y-y0)/bk));for(let x=rx0-1;x<=rx1+1;x++)if(x<rx0+e||x>rx1-e)clr(x,y);
     if(G(L,rx0+e,y))P(L,rx0+e,y,RF[1]);if(G(L,rx1-e,y))P(L,rx1-e,y,RF[0]);}}
+// ---- hand-drawn tool art (upright: head at the top, grip near the bottom). K outline, D/M/L wood, s/b/m/l steel, e cutting edge
+const TOOLART={
+ axe:{px:5,art:["....KKK.......","...KDLK.KKK...","...KDLKKmllK..","...KDLKmmmleK.","...KDLKmmmmleK","..KsDLsmmmmmeK","..KsbbsmmmmmeK","..KsDLsmmmmmeK","...KDLKmmmmleK","...KDLKmmmleK.","...KDLKKmllK..","...KDLK.KKK...",
+   "...KDLK.......","...KDMK.......","...KDLK.......","...KDLK.......","...KDMK.......","...KDLK.......","...KDLK.......","...KDMK.......","...KDLK.......","...KDLK.......","...KKKK......."]},
+ pick:{px:8,art:[".K.............K.","KlK...........KmK","KllKK.......KKmmK",".KlmmKKKKKKKmmmK.","..KKmmmmbbmmmKK..","....KKsmbbmsKK...","......KsbbsK.....",
+   "......KDLK.......","......KDLK.......","......KDMK.......","......KDLK.......","......KDLK.......","......KDMK.......","......KDLK.......","......KDLK.......","......KDMK.......","......KDLK.......","......KDLK.......","......KDLK.......","......KKKK......."]},
+ hoe:{px:5,art:["....KK.......","...KDLKKKKKK.","...KDLKmmmllK","...KsbbmmmmlK","...KDLKKKmmeK","...KDLK..KmeK","...KDLK...KeK","...KDLK....K.","...KDMK.....","...KDLK.....","...KDLK.....","...KDMK.....","...KDLK.....","...KDLK.....",
+   "...KDMK.....","...KDLK.....","...KDLK.....","...KDMK.....","...KDLK.....","...KDLK.....","...KDLK.....","...KDLK.....","...KDLK.....","...KKKK....."]}};
+const TOOLPAL={K:[26,16,12],D:[84,52,28],M:[124,82,46],L:[176,126,76],s:[60,64,76],b:[92,98,112],m:[150,156,170],l:[204,210,222],e:[244,248,252]};
+// rotate pixel art cleanly: 3x3 supersampled nearest with a majority vote, around the grip; k foreshortens along the haft
+function stampTool(kind,gx,gy,angDeg,mirror,k,put,sc){sc=sc||1;const T=TOOLART[kind],A=T.art,h=A.length,w=A[0].length,px0=T.px,py0=h-3.5;
+  const th=(angDeg+90)*Math.PI/180,c=Math.cos(th),s=Math.sin(th),R=Math.ceil(Math.hypot(w,h)*sc)+2;k=k||1;
+  for(let dy=-R;dy<=R;dy++)for(let dx=-R;dx<=R;dx++){const cnt={};let empty=0;
+    for(let i=0;i<3;i++)for(let j=0;j<3;j++){const x=dx+(i-1)/3,y=dy+(j-1)/3;let u=(x*c+y*s)/sc,v=(-x*s+y*c)/(k*sc);if(mirror)u=-u;const ax=Math.floor(px0+u),ay=Math.floor(py0+v);
+      const ch=(ay>=0&&ay<h&&ax>=0&&ax<w)?A[ay][ax]:'.';if(ch==='.')empty++;else cnt[ch]=(cnt[ch]||0)+1;}
+    if(empty>=5)continue;let best=null,bn=0;for(const ch in cnt)if(cnt[ch]>bn||(cnt[ch]===bn&&ch==='K')){best=ch;bn=cnt[ch];}put(gx+dx,gy+dy,TOOLPAL[best]);}}

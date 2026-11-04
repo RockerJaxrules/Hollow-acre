@@ -117,34 +117,28 @@ const HOE=(hx,ay,dir,fl,t)=>{};
 // Side view (facing east, mirrored for west): screen angle of the haft, grip relative to the shoulder, and whether the tool is behind the head.
 const SWING={axe:[40,-105,-150,-170,-20,10,16,-25],pick:[45,-105,-150,-170,-10,45,48,-20],hoe:[45,-105,-150,-170,-10,48,50,-20]};
 const GRIP={axe:[[5,6],[-1,-10],[-3,-14],[-4,-15],[6,0],[7,4],[7,5],[4,1]],pick:[[5,6],[-1,-10],[-3,-14],[-4,-15],[6,1],[6,5],[6,6],[4,2]],hoe:[[5,6],[-1,-10],[-3,-14],[-4,-15],[6,1],[6,5],[6,6],[4,2]]};
-const FGRIP=[[2,6],[1,-12],[1,-16],[1,-17],[2,-4],[2,5],[2,6],[2,2]];
-const BACK=[0,1,1,1,0,0,0,0];
+const FGRIP=[[3,6],[2,-12],[1,-16],[1,-17],[2,-6],[2,3],[2,4],[3,2]];
+// seen from the front: raised overhead, then brought down toward you to the ground in front (foreshortened); from the back: over the shoulder and down into the distance
+const FANG_S=[115,-100,-92,-84,58,88,86,120],FK_S=[.9,1,1,1,.8,.62,.62,.85];
+const FANG_N=[-60,-95,-92,-86,-70,-76,-74,-55],FK_N=[.8,1,1,1,.9,.7,.7,.8];
+const BACK=[0,1,1,1,0,0,0,0];   // side/front: tool behind the head while raised
 const TLEN={hoe:20,pick:18,axe:18};
 function gripOf(kind,f,front){return front?FGRIP[f]:GRIP[kind][f];}
 function toolFor(kind,f,dir){if(!kind)return null;return (hx,ay,dir,fl)=>{const side=dir==='E'||dir==='W';
   const WOOD=[[52,32,18],[92,58,32],[134,88,50],[170,122,74]],STEEL=[[44,48,58],[86,92,106],[150,156,170],[212,218,228]];
-  if(kind==='hoe'||kind==='pick'||kind==='axe'){const a=SWING[kind][f]*Math.PI/180,front=!side;let L=TLEN[kind];const [gdx,gdy]=gripOf(kind,f,front);
-    const gx=hx+(front?gdx:fl*gdx),gy=ay+gdy;
-    let dx,dy;if(side){dx=Math.cos(a)*fl;dy=Math.sin(a);}else{dx=.2;dy=(f>=1&&f<=3)?-1:1;const n=Math.hypot(dx,dy);dx/=n;dy/=n;}
-    const px=-dy*(side?fl:1),py=dx*(side?fl:1);const hd=front&&dy>0?1.25:1;if(front&&dy>0)L=Math.round(L*.62);
-    const inHead=(u,v)=>{
-      if(kind==='hoe')return u>L-2.5&&u<L+.6&&v>-.8&&v<6.5*hd;
-      if(kind==='pick'){const c=Math.abs(v)*.28;const th=Math.abs(v)>5?1.1:1.8;return Math.abs(v)<7.5*hd&&u>L-th-c&&u<L+.6-c;}
-      if(kind==='axe'){if(v<-2.5||v>6.5*hd)return false;if(v<=1)return u>L-3&&u<L+.6;const t=v-1;const lo=L-3-t*.7,hi=L+.6+t*.35;const edge=6.5*hd-Math.pow(u-(L-1.2),2)*.12;return u>lo&&u<hi&&v<edge;}return false;};
-    const M=new Map();const R=L+10;
-    for(let y=-R;y<=R;y++)for(let x=-R;x<=R;x++){const u=x*dx+y*dy,v=x*px+y*py;let k=null;if(inHead(u,v))k='s';else if(u>-2.5&&u<L-1&&Math.abs(v)<1.15)k='w';if(k)M.set(x+','+y,k);}
-    // the swing trail: a clean double arc from the wind-up to here, kept behind the head
-    if(f===4&&side){const a0=SWING[kind][3]*Math.PI/180;for(let i=0;i<=24;i++){const aa=a0+(a-a0)*i/24;for(const [rr,c] of [[L+1,[244,238,222]],[L,[206,198,180]]]){const X=Math.round(gx+Math.cos(aa)*fl*rr),Y=Math.round(gy+Math.sin(aa)*rr);if(i>3&&Math.hypot(X-hx,Y-(ay-14))>14)p(X,Y,c);}}}
-    for(const [key,k] of M){const [x,y]=key.split(',').map(Number);const up=!M.has(x+','+(y-1)),lf=!M.has((x-1)+','+y),dn=!M.has(x+','+(y+1)),rt=!M.has((x+1)+','+y);
-      const R2=k==='s'?STEEL:WOOD;let c=R2[2];if(up||lf)c=R2[3];if(dn||rt)c=R2[1];if(dn&&rt)c=R2[0];
-      if(k==='s'){const v=x*px+y*py;if(kind!=='pick'&&v>(kind==='hoe'?5.5:5.4)*hd)c=[238,242,248];}
-      p(gx+x,gy+y,c);}
-    for(let t=-1;t<=1;t++)p(Math.round(gx+dx*(L-3)+px*t),Math.round(gy+dy*(L-3)+py*t),STEEL[0]);
-    // both hands on the haft when it's in front of you: one at the butt, one a little up the handle
-    if(!BACK[f]||!side){for(const u of [-1,4]){const hxp=Math.round(gx+dx*u),hyp=Math.round(gy+dy*u);blob(hxp,hyp,2,2,SK);}}
-    // chips at the moment of impact
-    if(f===5){const hx2=Math.round(gx+dx*L+px*3),hy2=Math.round(gy+dy*L+py*3);const col=kind==='hoe'?[[96,62,36],[140,98,60]]:kind==='pick'?[[128,124,136],[196,192,204]]:[[160,118,66],[214,174,112]];
-      for(let i=0;i<7;i++)p(hx2+(i-3)*2*(side?fl:1)+(i%2),hy2-1-(i%3)-(i>4?2:0),col[i%2]);}}
+  if(kind==='hoe'||kind==='pick'||kind==='axe'){const front=!side,back=dir==='N';const [gdx,gdy]=gripOf(kind,f,front);
+    let gx=hx+(front?gdx:fl*gdx),gy=ay+gdy;let ang,mir=false,k=1;
+    if(side){const a=SWING[kind][f];if(fl>0)ang=a;else{ang=180-a;mir=true;}}
+    else if(!back){ang=FANG_S[f];k=FK_S[f];}
+    else{ang=FANG_N[f];k=FK_N[f];gx+=5;}
+    const rad=ang*Math.PI/180,dx=Math.cos(rad),dy=Math.sin(rad);
+    // a clean swing trail on the fast frame, kept clear of the face
+    if(f===4){const a0=(side?(fl>0?SWING[kind][3]:180-SWING[kind][3]):back?FANG_N[3]:FANG_S[3])*Math.PI/180;let a1=rad;if(side&&fl<0&&a1>a0)a1-=2*Math.PI;if(side&&fl>0&&a1<a0)a1+=2*Math.PI;
+      for(let i=4;i<=24;i++){const aa=a0+(a1-a0)*i/24;for(const [rr,c] of [[19,[244,238,222]],[18,[206,198,180]]]){const X=Math.round(gx+Math.cos(aa)*rr*k),Y=Math.round(gy+Math.sin(aa)*rr*k);if(Math.hypot(X-hx,Y-(ay-14))>14)p(X,Y,c);}}}
+    stampTool(kind,gx,gy,ang,mir,k,(x,y,c)=>p(x,y,c));
+    if(!BACK[f]&&!back){for(const u of [-1,4]){blob(Math.round(gx+dx*u*k),Math.round(gy+dy*u*k),2,2,SK);}}
+    if(f===5){const hx2=Math.round(gx+dx*18*k),hy2=Math.round(gy+dy*18*k);const col=kind==='hoe'?[[96,62,36],[140,98,60]]:kind==='pick'?[[128,124,136],[196,192,204]]:[[160,118,66],[214,174,112]];
+      for(let i=0;i<7;i++)p(hx2+(i-3)*2+(i%2),hy2-1-(i%3)-(i>4?2:0),col[i%2]);}}
   if(kind==='can'){const G2=[[30,66,40],[50,104,58],[78,146,80],[132,196,122]];const tilt=f>=3&&f<=6;const cx=hx+(side?fl*10:9),cy=ay+5-(f>=1?2:0);
     for(let y=-5;y<=5;y++)for(let x=-6;x<=6;x++){const d=x*x/36+y*y/25;if(d>1)continue;const l=-x/6*.5-y/5*.7;p(cx+x,cy+y,G2[d>.8?(l>0?2:0):l>.3?3:l>-.3?2:1]);}
     for(let x=-5;x<=5;x++)p(cx+x,cy-6,G2[x<0?3:2]);for(let i=0;i<9;i++){const aa=Math.PI+i/8*Math.PI;p(cx+Math.round(Math.cos(aa)*5),cy-7+Math.round(Math.sin(aa)*4),G2[1]);}

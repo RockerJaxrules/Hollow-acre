@@ -1252,6 +1252,84 @@
 0
 ]
 },
+"icon32_hoe": {
+"src": "spr/lpc/obj/icon32_hoe.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"icon32_pick": {
+"src": "spr/lpc/obj/icon32_pick.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"icon32_axe": {
+"src": "spr/lpc/obj/icon32_axe.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"icon32_can": {
+"src": "spr/lpc/obj/icon32_can.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"icon32_seed": {
+"src": "spr/lpc/obj/icon32_seed.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"icon32_food": {
+"src": "spr/lpc/obj/icon32_food.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
 "icon_can": {
 "src": "spr/lpc/obj/icon_can.png",
 "fw": 16,
