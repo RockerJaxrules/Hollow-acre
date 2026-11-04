@@ -1283,7 +1283,7 @@ function boot(){resize();addEventListener('resize',()=>{resize();vig=null;});mak
   const list=[...new Set(Object.values(SPR).map(m=>m.src))].concat(Object.values(TS).map(t=>t[0]));
   const lb=$('loadBar'),lt=$('loadTxt');
   loadImages([...new Set(list)],(d,n)=>{lb.style.width=(d/n*100)+'%';lt.textContent='Loading the valley… '+d+' / '+n;}).then(()=>{
-    buildWorld();econBoot();buildInteriors();farmDebris();S.autoCol=autoCollide();placeScarecrow(1);spawnMushrooms();resetCat();placeNPCs();
+    buildWorld();econBoot();buildInteriors();farmDebris();S.autoCol=autoCollide();treeChop();placeScarecrow(1);spawnMushrooms();resetCat();placeNPCs();
     for(const [cx,cz] of[[-6.3,2.2],[1.2,9.4],[48,-9.6],[57,-24],[-14.5,-9]])crows.push({x:cx,z:cz,hx:cx,hz:cz,y:0,state:'perch',t:0,vx:0,vz:0});
     applyLook();S.mode='title';$('loadScr').style.opacity=0;setTimeout(()=>$('loadScr').remove(),800);requestAnimationFrame(loop);});
   $('begin').addEventListener('click',()=>{A.init&&A.init();startCine('intro');});
@@ -1940,11 +1940,6 @@ vendors.cook={name:'Grandpa’s stove',sub:'The recipe cards are in his handwrit
 {const add=farmDebris;farmDebris=function(){add();for(const it of interact){if(!it.act||!it.label)continue;const o=OBJ.find(q=>q.debris&&Math.abs(q.x-it.x)<.001&&Math.abs(q.z-it.z)<.001);if(!o)continue;const orig=it.act;
     it.act=function(){if(P.anim)return;const cost=o.debris==='rock'?(S.tools.pick>1?2:3):o.debris==='weeds'?1:0;if(cost&&!spend(cost))return;faceTo(o.x,o.z);startAnim(o.debris==='rock'?'pick':'grab',o.debris==='rock'?.55:.45,null,()=>{orig.call(it);
       if(o.debris==='rock')addInv('stone',1+(rand()<.3?1:0));if(o.debris==='weeds')addInv('fiber');if(o.debris==='twig')addInv('wood');});};}
-  // stumps scattered at the edge of the farm
-  let n=0;for(let i=0;i<900&&n<10;i++){const x=lerp(-12,24,rand()),z=lerp(-14,12,rand());if(terr(x,z)!=='grass'||!clearSpot(x,z,.4)||!bushOK(x,z))continue;if(x>FIELD.x0-1.5&&x<FIELD.x0+FIELD.w+1.5&&z>FIELD.z0-1.5&&z<FIELD.z0+FIELD.h+1.5)continue;
-    const o=obj('stump',x,z,{kind:'prop',debris:'stump'});o.col={x,z:z-.1,r:.38};circles.push(o.col);
-    interact.push({x,z,r:.85,on:()=>!o.hide,label:()=>'Chop',ok:()=>true,act(){if(P.anim)return;if(!spend(S.tools.axe>1?2:4))return;faceTo(o.x,o.z);startAnim('axe',.55,null,()=>{o.hits=(o.hits||0)+1;SFX.thud(0,.4);burst(o.x,o.z,10,'#7d5636',1.4,.7,2);cam.shake=Math.max(cam.shake,.1);
-      if(o.hits>=(S.tools.axe>1?1:2)){o.hide=true;const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);addInv('wood',3);toast('+3 wood.',1.2);}});}});n++;}
   fieldDebris();};}
 // ---- the old Marrow mine, cut into the cliff behind the farm
 const MINE={x:-6,z:0,mobs:[],ores:[],ladder:null};
@@ -2005,7 +2000,7 @@ function makeDebris(spr,x,z,tile){const kind=spr.split('_')[0];const o=obj(spr,x
       o.hide=true;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}
       if(kind==='rock')addInv('stone',1+(rand()<.3?1:0));if(kind==='weeds'){addInv('fiber');if(rand()<.15){S.seeds.turnip++;toast('A turnip seed was tangled in the roots.',1.6);}}if(kind==='twig')addInv('wood');if(kind==='stump')addInv('wood',3);updateHud();});}});return o;}
 function fieldDebris(){for(const t of tiles){if(t.gh)continue;const inStart=t.i>=FSTART.i0&&t.i<FSTART.i0+FSTART.w&&t.j>=FSTART.j0&&t.j<FSTART.j0+FSTART.h;if(inStart)continue;
-  const r=rand();if(r>.82)continue;const spr=r<.36?'weeds_'+((rand()*2)|0):r<.6?'rock_'+((rand()*2)|0):r<.7?'stump':'twig';makeDebris(spr,t.x+(rand()-.5)*.25,t.z+.2+(rand()-.5)*.15,t);}}
+  const r=rand();if(r>.82)continue;const spr=r<.4?'weeds_'+((rand()*2)|0):r<.66?'rock_'+((rand()*2)|0):'twig';makeDebris(spr,t.x+(rand()-.5)*.25,t.z+.2+(rand()-.5)*.15,t);}}
 // a tile with something still on it can't be tilled
 {const _tt2=targetTile;targetTile=function(){const t=_tt2();if(t&&t.debris&&!t.debris.hide)return null;return t;};}
 // the note nailed to Grandpa's door, until you read it
@@ -2030,6 +2025,34 @@ setInterval(()=>{const hb=$('hotbar');if(!hb)return;hb.style.display=(S.mode!=='
   $('hb_seed').textContent=S.seeds[S.sel]||0;$('hb_can').textContent=S.water;const fc=Object.keys(ITEMS).filter(q=>ITEMS[q].food).reduce((a,q)=>a+inv(q),0);$('hb_food').textContent=fc||'';
   const L=($('btnAct').textContent||'');const on=/Till/.test(L)?'hoe':/Water/.test(L)?'can':/Mine|Break/.test(L)?'pick':/Chop/.test(L)?'axe':/Plant/.test(L)?'seed':null;
   for(const b of hb.children)b.classList.toggle('on',b.dataset.k===on);},120);
+
+// ---- trees on the farm can be felled with the axe: that's where wood comes from. Each one leaves a stump to grub out.
+const TREE_COL={maple_orange:['#a8441a','#ec9a34'],maple_red:['#8c2222','#d8623a'],maple_gold:['#9c7818','#e4c84a'],maple_green:['#235a26','#52983a']};
+function treeChop(){for(const o of OBJ){if(o.hide||(o.kind!=='tree'&&o.kind!=='pine'))continue;if(o.x<-13||o.x>25||o.z<-16||o.z>13)continue;if(o.spr==='deadtree')continue;
+  o.col=circles.find(c=>Math.hypot(c.x-o.x,c.z-(o.z-.1))<.35)||null;
+  interact.push({x:o.x,z:o.z+.2,r:1,on:()=>!o.hide,label:()=>'Chop',ok:()=>true,act(){if(P.anim)return;if(!spend(S.tools.axe>1?2:4))return;faceTo(o.x,o.z);
+    startAnim('axe',.55,null,()=>{o.hits=(o.hits||0)+1;SFX.thud(0,.45);cam.shake=Math.max(cam.shake,.12);o.shake=.35;const cc=TREE_COL[o.spr]||['#1d4129','#356538'];
+      burst(o.x,o.z-.6,8,cc[o.hits%2],1.2,1.4,3);burst(o.x+.2,o.z,6,'#9e7146',1,.6,2);
+      if(o.hits<(S.tools.axe>1?3:5))return;
+      // it comes down
+      o.hide=true;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}SFX.crash&&SFX.crash();cam.shake=.4;for(let i=0;i<4;i++)burst(o.x+(i-1.5)*.6,o.z-.8-i*.3,14,cc[i%2],2,1.8,4);
+      const w=o.kind==='pine'?6:8;addInv('wood',w);toast(`Timber. +${w} wood.`,1.6);updateHud();
+      if(rand()<.08)setTimeout(()=>toast('Carved into the heartwood, where no one could have reached it: your initials.',3,true),900);
+      const st=obj('stump',o.x,o.z,{kind:'prop',debris:'stump'});st.col={x:o.x,z:o.z-.1,r:.38};circles.push(st.col);
+      interact.push({x:o.x,z:o.z+.2,r:.85,on:()=>!st.hide,label:()=>'Chop',ok:()=>true,act(){if(P.anim)return;if(!spend(S.tools.axe>1?2:4))return;faceTo(st.x,st.z);
+        startAnim('axe',.55,null,()=>{st.hits=(st.hits||0)+1;SFX.thud(0,.4);burst(st.x,st.z,10,'#7d5636',1.4,.7,2);if(st.hits<(S.tools.axe>1?1:2))return;
+          st.hide=true;const k=circles.indexOf(st.col);if(k>=0)circles.splice(k,1);addInv('wood',3);toast('The stump comes out. +3 wood.',1.4);});}});});}});}}
+// trees shake when hit
+{const _u3=update;update=function(dt){_u3(dt);for(const o of OBJ)if(o.shake>0){o.shake-=dt;if(o.bx===undefined)o.bx=o.x;o.x=o.bx+Math.sin(o.shake*60)*.05*(o.shake/.35);if(o.shake<=0){o.x=o.bx;}}};}
+// ---- crafting from what you gather: wood, stone, fiber, ore
+const CRAFT=[['flask','Lamp oil flask',{coal:2,fiber:2},'Refills your lantern once when it runs dry.',()=>{S.flasks++;}],
+  ['sprinkler','Brass sprinkler',{copper:3,iron:1,wood:2},'Waters a patch of field every morning (up to 4).',()=>{S.sprinklers=Math.min(4,(S.sprinklers||0)+1);},()=>(S.sprinklers||0)<4],
+  ['scare','Straw charm',{fiber:6,wood:2},'Hang it by the field. The crows keep away. Something else does not.',()=>{S.charm=(S.charm||0)+1;toast('You tie the charm to the fence. It turns to face the cornfield on its own.',3,true);}],
+  ['candle','Tallow candle',{fiber:3,coal:1},'For the altars in the woods.',()=>{S.candles++;}]];
+vendors.craft={name:'Crafting',sub:'Grandpa’s workbench. Everything you gather is good for something.',rows:()=>CRAFT.map(([k,name,need,desc,fn,can])=>({k,name,desc,price:0,can:can?can():true,need,btn:'Craft',buy(){fn();SFX.refill();}}))};
+{const bb=$('bagClose');const c=document.createElement('button');c.className='close hot';c.textContent='Craft';c.addEventListener('click',()=>{$('bag').hidden=true;S.paused=false;openShop('craft');});bb.after(c);}
+// building now costs timber and stone too
+{const _pl2=vendors.plans.rows;vendors.plans.rows=()=>_pl2().map(r=>r.k==='coop'?Object.assign(r,{need:{wood:30,stone:12}}):r.k==='lamps'?Object.assign(r,{need:{wood:10,copper:2}}):r);}
 
 /* ================= the farmer you play: hairstyle, hair, skin, shirt and trousers, chosen before the drive ================= */
 const LOOK_BASE={skin:'#e8b48c',hair:'#6a4224',shirt:'#b8402c',pants:'#3a4e7a'};

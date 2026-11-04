@@ -140,7 +140,7 @@ if(K==='well'){const cx=W/2|0,base=H-3,top=6;
   for(let y=0;y<14;y++){const w=58-(13-y)*0;for(let x=0;x<w;x++){const j=y%5;P(A,cx-29+x,top+y,j===4?PAL.rust[0]:j===0?PAL.rust[4]:PAL.rust[2+((x+y*3)%11===0?1:0)]);}}
   hl(A,cx-29,top,58,PAL.rust[5]);hl(A,cx-29,top+14,58,PAL.wood[1]);groundShadow(cx,base,24,3,70);}
 // ---- faceted stone: an irregular outline, a lit top plane, a mid left face, a shadowed right face, a dark rim where it meets the ground
-function facetRock(cx,base,rx,ry,seed,R,vein){const pts=[];const n=9;for(let i=0;i<n;i++){const a=i/n*Math.PI*2,r=.82+hsh(i,seed,2)*.3;pts.push([Math.cos(a)*rx*r,Math.sin(a)*ry*r*(Math.sin(a)>0?.9:1.15)]);}
+function facetRock(cx,base,rx,ry,seed,R,vein){const pts=[];const n=9;for(let i=0;i<n;i++){const a=i/n*Math.PI*2,r=.82+hsh(i,seed,2)*.3;pts.push([Math.cos(a)*rx*r*(Math.sin(a)>.3?1.08:1),Math.min(ry*.62,Math.sin(a)*ry*r*(Math.sin(a)>0?.9:1.15))]);}
   const inside=(x,y,Q)=>{let c=false;for(let i=0,j=Q.length-1;i<Q.length;j=i++){const [xi,yi]=Q[i],[xj,yj]=Q[j];if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)c=!c;}return c;};
   const top=pts.map(([x,y])=>[x*.62-rx*.08,y*.5-ry*.42]);const cy=base-ry-1;
   for(let y=-Math.ceil(ry*1.3);y<=ry*1.1;y++)for(let x=-rx-1;x<=rx+1;x++){if(!inside(x,y,pts))continue;let k;
@@ -151,7 +151,9 @@ function facetRock(cx,base,rx,ry,seed,R,vein){const pts=[];const n=9;for(let i=0
   if(vein)for(let i=0;i<8;i++){const x=Math.round((hsh(i,seed,7)-.5)*rx*1.3),y=Math.round((hsh(i,seed,8)-.35)*ry*1.1);if(!inside(x,y,pts))continue;P(A,cx+x,cy+y,vein[0]);P(A,cx+x+1,cy+y,vein[1]);P(A,cx+x,cy+y-1,vein[1]);if(i%3===0)P(B,cx+x+1,cy+y-1,[255,255,240]);}
   for(let x=-rx;x<=rx;x++){if(inside(x,ry*.85,pts))P(A,cx+x,cy+Math.round(ry*.85)+1,R[0]);}
   for(let i=0;i<3;i++)P(A,cx-rx+3+i,cy+Math.round(-ry*.35)+i,PAL.moss[2+(i%2)]);
-  groundShadow(cx+2,base,rx+2,2,90);}
+  const gy=cy+Math.round(ry*.62)+1;for(let x=-rx-2;x<=rx+2;x++){P(SHD,cx+x,gy,PAL.out[0],150);P(SHD,cx+x+1,gy+1,PAL.out[0],90);}
+  if(!vein){const GG=['#1f4420','#2f6428','#438232','#62a03e'].map(HEX);for(let i=0;i<9;i++){const x=cx-rx+1+Math.round(hsh(i,seed,9)*(rx*2-2)),h=2+(hsh(i,seed,10)*3|0);for(let k=0;k<h;k++)P(A,x+(k===h-1&&i%2?1:0),gy-k,GG[k===h-1?3:k?2:1]);}}
+  else{for(let i=0;i<6;i++){const x=cx-rx+Math.round(hsh(i,seed,9)*rx*2);P(A,x,gy,ST[1]);P(A,x+1,gy,ST[2]);}}}
 const RS=[ST[0],ST[1],ST[2],ST[3],ST[4],ST[5]];
 if(K==='rock'){const v=CFG.v||0;facetRock(W/2|0,H-3,(W/2|0)-3,(H/2|0)-4,7+v*5,RS);}
 if(K==='ore'){const O={copper:[[168,92,48],[230,150,80]],iron:[[150,160,178],[236,240,248]],coal:[[18,16,20],[70,66,78]],gem:[[60,200,190],[200,255,250]],stone:null}[CFG.ore];
@@ -161,18 +163,20 @@ if(K==='weeds'){const cx=W/2|0,base=H-3;const G_=['#132c16','#1f4420','#2f6428',
     for(let t=0;t<len;t++){const bend=t*t*.012*(i<cnt/2?-1:1);const x=cx+Math.round(Math.cos(a)*t*.8+bend*6),y=base-1+Math.round(Math.sin(a)*t);const w=t<len*.5?2:1;
       for(let q=0;q<w;q++)P(A,x+q,y,G_[Math.max(0,Math.min(5,k0+(t>len-3?2:t>len*.5?1:0)-(q?1:0)))]);}}
   if((CFG.v||0)%2){for(const [x,y] of [[cx-4,base-11],[cx+5,base-12],[cx,base-14]]){P(A,x,y,PAL.mustard[5]);P(A,x+1,y,PAL.mustard[4]);P(A,x,y+1,PAL.mustard[3]);P(A,x+1,y+1,PAL.rust[3]);}}
-  ell(A,cx,base-1,6,2,G_[0]);groundShadow(cx+2,base,8,2,80);}
+  ell(A,cx,base-1,6,2,G_[0]);for(let x=-8;x<=8;x++)P(SHD,cx+x,base,PAL.out[0],120);}
 if(K==='twig'){const base=H-4;
   const line=(x0,y0,x1,y1,w)=>{const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0));for(let i=0;i<=n;i++){const x=Math.round(x0+(x1-x0)*i/n),y=Math.round(y0+(y1-y0)*i/n);for(let q=0;q<w;q++)P(A,x,y+q,q===0?WD[4]:q===w-1?WD[0]:WD[2]);}};
   line(3,base-3,W-5,base-6,3);line(10,base-4,15,base-9,2);line(16,base-5,20,base-1,2);
   P(A,W-5,base-6,PAL.cream[2]);P(A,W-5,base-5,PAL.cream[1]);P(A,W-4,base-6,WD[1]);P(A,3,base-3,PAL.cream[2]);
   P(A,15,base-10,PAL.rust[4]);P(A,16,base-10,PAL.rust[3]);P(A,16,base-11,PAL.rust[4]);
-  groundShadow(W/2|0,base+1,W/2-3|0,2,80);}
+  for(let x=3;x<W-4;x++)P(SHD,x,base-2+Math.round((x-3)*-3/(W-8))+3,PAL.out[0],120);}
 if(K==='stump'){const cx=W/2|0,base=H-4,r=9,top=base-14;
-  for(const [dx,l] of [[-1,6],[1,7],[-1,3]]){for(let i=0;i<l;i++){P(A,cx+dx*(r-1+i),base-3+(i>>1),WD[2]);P(A,cx+dx*(r-1+i),base-2+(i>>1),WD[0]);}}
+  for(const [dx,l] of [[-1,6],[1,7]]){for(let i=0;i<l;i++){const y=base-3+Math.min(2,i>>1);P(A,cx+dx*(r-1+i),y,WD[3]);P(A,cx+dx*(r-1+i),y+1,WD[1]);}}
   for(let y=top;y<base;y++)for(let x=-r;x<=r;x++){const u=(x+r)/(2*r);let c=WD[u<.25?3:u<.6?2:1];if((x*3+y)%5===0)c=WD[0];P(A,cx+x,y,c);}
   for(let y=-4;y<=4;y++)for(let x=-r;x<=r;x++){const d=x*x/(r*r)+y*y/16;if(d>1)continue;const ring=Math.floor(Math.sqrt(d)*4);P(A,cx+x,top+y,d>.8?WD[3]:ring%2?PAL.mustard[4]:PAL.mustard[3]);}
-  P(A,cx,top,WD[2]);for(let i=0;i<4;i++)P(A,cx+1+i,top-1+(i>>1),WD[1]);groundShadow(cx+2,base,r+4,2,90);}
+  P(A,cx,top,WD[2]);for(let i=0;i<4;i++)P(A,cx+1+i,top-1+(i>>1),WD[1]);
+  for(let x=-r-5;x<=r+6;x++){P(SHD,cx+x,base,PAL.out[0],150);P(SHD,cx+x,base+1,PAL.out[0],80);}
+  const GG=['#1f4420','#2f6428','#438232','#62a03e'].map(HEX);for(let i=0;i<11;i++){const x=cx-r-3+Math.round(hsh(i,4,9)*(r*2+6)),h=2+(hsh(i,5,9)*3|0);for(let k=0;k<h;k++)P(A,x,base-k,GG[k===h-1?3:k?2:1]);}}
 if(K==='deer'){ // a deer dead on its side across the lane: long stiff legs, pale belly and rump, neck thrown back, ears, dark blood
   const cx=W/2|0,base=H-4,BR=[[40,26,18],[84,54,32],[124,82,48],[160,112,66],[190,146,94]];
   for(let y=-3;y<=3;y++)for(let x=-26;x<=22;x++)if(x*x/676+y*y/9<1)P(A,cx+x,base-1+y,[58,8,10]);
