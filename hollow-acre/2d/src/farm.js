@@ -47,3 +47,16 @@ const _doHarvest=doHarvest;doHarvest=function(t){const type=t.crop&&t.crop.type;
 function holdDraw(){if(!P.hold||P.hold.t<=0)return;const X=Math.round(sx(P.x)),Y=Math.round(sz(P.z));const m=SPR[P.hold.spr];if(!m)return;
   drawSpr(P.hold.spr,X,Y-48+Math.round(Math.sin(P.hold.t*9)),null,null,0,{scale:.7});}
 const _upd=update;update=function(dt){_upd(dt);if(P.hold&&P.hold.t>0){P.hold.t-=dt;if(P.spd>.2)P.hold.t=0;}};
+
+// ---- the farm has gone wild since Grandpa stopped: weeds, field stones and fallen twigs to clear, Stardew-style
+function farmDebris(){let n=0;for(let i=0;i<4000&&n<56;i++){const x=lerp(-12,24,rand()),z=lerp(-14,12,rand());
+    if(terr(x,z)!=='grass'||!clearSpot(x,z,.3)||!bushOK(x,z))continue;if(x>FIELD.x0-1.2&&x<FIELD.x0+FIELD.w+1.2&&z>FIELD.z0-1.2&&z<FIELD.z0+FIELD.h+1.2)continue;
+    if(OBJ.some(o=>o.debris&&Math.hypot(o.x-x,o.z-z)<1.3))continue;
+    const r=rand(),spr=r<.42?'weeds_'+((rand()*2)|0):r<.72?'rock_'+((rand()*2)|0):'twig';const o=obj(spr,x,z,{kind:'prop',debris:spr.split('_')[0]});
+    if(o.debris==='rock'){o.col={x,z:z-.1,r:spr==='rock_1'?.42:.3};circles.push(o.col);}
+    interact.push({x,z,r:.75,on:()=>!o.hide,label:()=>o.debris==='rock'?'Break':o.debris==='weeds'?'Pull':'Pick up',ok:()=>true,act(){o.hide=true;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}
+      burst(o.x,o.z,o.debris==='rock'?14:8,o.debris==='rock'?'#8a8690':o.debris==='weeds'?'#4a8a32':'#7d5636',1.2,.6,2);SFX.thud(0,o.debris==='rock'?.35:.15);
+      const q=rand();if(o.debris==='weeds'&&q<.22){S.seeds.turnip++;toast('A turnip seed was tangled in the roots.',1.8);}
+      else if(o.debris==='rock'&&q<.18){S.coins++;toast('A coin under the stone. Old. The date has been scratched off.',2);}
+      else if(o.debris==='rock'&&q<.24){toast('Under the stone, a child’s milk tooth. You put the stone back. It isn’t there anymore.',2.8,true);mindHit&&mindHit(2);}
+      updateHud();}});n++;}}

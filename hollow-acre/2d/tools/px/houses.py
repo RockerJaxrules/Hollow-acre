@@ -12,7 +12,7 @@ HOUSES = {
   'cabin': dict(bw=6, siding='bark', roof='slate', trim='cream', door='wood', shutter='bark', wins=[1, 4], chimney=1.6, seed=21, moss=True, porch=True, wallH=82, winY=10, boarded=[4], dormers=[2.5], curtain='cream'),
   'store': dict(bw=7, siding='red', roof='bark', trim='cream', door='teal', shutters=False, wins=[1, 5], chimney=-2.2, seed=31, kind='brick', awning=True, sign='GENERAL STORE', wallH=74, winY=18),
   'garage': dict(bw=8, siding='stone', roof='slate', trim='stone', door='wood', shutters=False, wins=[0.15], chimney=None, seed=41, kind='stone', bigdoor=True, bigdoorX=-1.2, doorX=2.3, sign='GARAGE  REPAIRS', wallH=70, winY=14),
-  'church': dict(bw=10, siding='white', roof='slate', trim='white', door='wood', shutters=False, wins=[1, 2.6, 6.4, 8], chimney=None, seed=51, arched=True, steeple=True, wallH=96, winY=22, top=150, roofH=74, moss=True),
+  'church': dict(hip=False, bw=10, siding='white', roof='slate', trim='white', door='wood', shutters=False, wins=[1, 2.6, 6.4, 8], chimney=None, seed=51, arched=True, steeple=True, wallH=96, winY=22, top=150, roofH=74, moss=True),
   'coop': dict(bw=3, siding='red', roof='slate', trim='white', door='wood', shutters=False, wins=[], chimney=None, seed=61, wallH=46, roofH=52, doorH=30),
 }
 only = sys.argv[1:] or list(HOUSES)

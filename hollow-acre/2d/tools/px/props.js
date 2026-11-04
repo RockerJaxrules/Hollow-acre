@@ -20,10 +20,10 @@ if(K==='picket_h'){           // white picket fence, 2 m: rails behind, pointed 
   for(const ry of [7,16])rail(A,0,ry,W,TR);
   for(let x=1;x<W-2;x+=6){rect(A,x,3,4,20,TR[3]);vl(A,x,3,20,TR[5]);vl(A,x+3,3,20,TR[1]);P(A,x+1,1,TR[4]);P(A,x+2,1,TR[3]);hl(A,x,2,4,TR[4]);if(hsh(x,1)>.7)P(A,x+2,10,PAL.moss[1]);}
   for(let x=0;x<W;x++)P(SHD,x,23,PAL.out[0],60);}
-if(K==='picket_v'){            // a picket run seen end-on: a narrow wall of overlapping pickets with their tips stepping away
-  for(let y=4;y<64;y++){const k=(y-4)%5;for(let x=4;x<10;x++){let c=TR[3];if(x===4)c=TR[5];if(x===9)c=TR[1];if(k===0)c=TR[x<7?5:4];if(k===4)c=TR[2];P(A,x,y,c);}}
-  for(let y=4;y<64;y+=5){P(A,5,y-1,TR[4]);P(A,6,y-2,TR[5]);P(A,7,y-1,TR[3]);}
-  rect(A,3,44,8,22,TR[3]);vl(A,3,44,22,TR[5]);vl(A,10,44,22,TR[1]);hl(A,3,44,8,TR[5]);groundShadow(7,65,5,2,60);}
+if(K==='picket_v'){            // a picket run seen end-on: two thin rails receding, the pickets crossing them like rungs, each with a pointed lit top
+  for(const [rx,ry] of [[2,0],[9,-7]])for(let y=10+ry;y<60+ry;y++){P(A,rx,y,TR[4]);P(A,rx+1,y,TR[2]);}
+  for(let y=8;y<62;y+=6){hl(A,1,y,11,TR[5]);hl(A,1,y+1,11,TR[3]);hl(A,1,y+2,11,TR[1]);P(A,6,y-1,TR[5]);P(A,0,y+1,TR[2]);}
+  rect(A,3,44,7,21,TR[3]);vl(A,3,44,21,TR[5]);vl(A,9,44,21,TR[1]);P(A,6,43,TR[5]);hl(A,4,44,5,TR[4]);groundShadow(8,65,6,2,60);}
 if(K==='lamp'){               // cast-iron street lamp with a four-pane lantern
   const cx=W/2|0,base=H-3,iron=PAL.slate;
   rect(A,cx-5,base-4,10,4,iron[2]);hl(A,cx-5,base-4,10,iron[4]);hl(A,cx-5,base-1,10,iron[0]);rect(A,cx-3,base-8,6,4,iron[2]);hl(A,cx-3,base-8,6,iron[3]);
@@ -139,5 +139,16 @@ if(K==='well'){const cx=W/2|0,base=H-3,top=6;
   rect(A,cx-4,top+38,8,7,WD[2]);hl(A,cx-4,top+38,8,WD[4]);hl(A,cx-5,top+38,10,PAL.slate[3]);
   for(let y=0;y<14;y++){const w=58-(13-y)*0;for(let x=0;x<w;x++){const j=y%5;P(A,cx-29+x,top+y,j===4?PAL.rust[0]:j===0?PAL.rust[4]:PAL.rust[2+((x+y*3)%11===0?1:0)]);}}
   hl(A,cx-29,top,58,PAL.rust[5]);hl(A,cx-29,top+14,58,PAL.wood[1]);groundShadow(cx,base,24,3,70);}
+if(K==='rock'){const cx=W/2|0,base=H-3,rx=(W/2|0)-3,ry=(H/2|0)-3,v=CFG.v||0;
+  // a field stone: rounded top face catching the light, a darker flank, a crack, moss on the shaded side
+  for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){const sq=y<0?1:1+(y/ry)*.08;const d=x*x/(rx*rx)+y*y/(ry*ry)*sq;const wob=hsh(Math.round(Math.atan2(y,x)*5)+20,v,3)*.18;if(d>1-wob)continue;
+    const nx=x/rx,ny=y/ry;const l=-.55*nx-.85*ny+.25;let k=l>.55?5:l>.2?4:l>-.2?3:l>-.55?2:1;if(y>ry*.35)k=Math.min(k,2);P(A,cx+x,base-ry-1+y,ST[k]);}
+  for(let i=0;i<5;i++)P(A,cx-2+i,base-ry-2+(i>>1),ST[1]);for(let i=0;i<4;i++)P(A,cx+rx-3-i,base-3-(i%2),PAL.moss[2]);groundShadow(cx+2,base,rx+1,2,80);}
+if(K==='weeds'){const cx=W/2|0,base=H-3;const G_=['#1b3a1c','#2a5a26','#3e7a2e','#5a9a3a','#82b84c'].map(HEX);
+  for(let i=0;i<9;i++){const a=-Math.PI/2+(i-4)*.32,len=7+(hsh(i,CFG.v||0,2)*6|0);for(let t=0;t<len;t++){const x=cx+Math.round(Math.cos(a)*t*.9),y=base-2+Math.round(Math.sin(a)*t);P(A,x,y,G_[t<2?1:t>len-3?4:(i%2?2:3)]);P(A,x+1,y,G_[1]);}
+    const tx=cx+Math.round(Math.cos(a)*len*.9),ty=base-2+Math.round(Math.sin(a)*len);P(A,tx,ty-1,G_[4]);P(A,tx-1,ty,G_[3]);}
+  if((CFG.v||0)%2){for(const [x,y] of [[cx-4,base-9],[cx+4,base-11]]){P(A,x,y,PAL.mustard[5]);P(A,x+1,y,PAL.mustard[4]);P(A,x,y+1,PAL.mustard[3]);}}groundShadow(cx+1,base,7,2,70);}
+if(K==='twig'){const base=H-3;for(let i=0;i<W-6;i++){const y=base-4-Math.round(i*.18);P(A,3+i,y,WD[3]);P(A,3+i,y+1,WD[1]);}for(const [x,l] of [[8,4],[14,3]])for(let j=0;j<l;j++){P(A,x+j,base-6-j-Math.round(x*.18),WD[3]);}
+  groundShadow(W/2|0,base,W/2-3|0,1,60);}
 const ART=[SHD,A,B];const flat=flatten([A,B],W,H);const O=outline(flat);
 emit([SHD,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));

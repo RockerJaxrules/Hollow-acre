@@ -133,11 +133,12 @@ if(K==='footbridge'){ // plank footbridge, spans east-west over the creek
   rect(A,6,top+dh,W-12,4,WD[0]);gs(W/2|0,top+dh+6,W/2-6|0,2,50);
 }
 if(K==='barn'){   // gambrel-roof barn: red boards, white trim, X-braced doors, hay loft
-  const ox=6,ww=W-12,roofTop=4,brk=34,roofH=70,wy=roofTop+roofH-4,wh=H-wy-8;
+  const ox=6,ww=W-12,roofTop=34,brk=34,roofH=70,wy=roofTop+roofH-4,wh=H-wy-8;
   shingles(A,ox-4,roofTop,ww+8,brk,PAL.slate,5);for(let y=roofTop;y<roofTop+brk;y++)for(let x=ox-4;x<ox+ww+4;x++){const c=G(A,x,y);if(c)P(A,x,y,shade(c,1.12));}
   shingles(A,ox-6,roofTop+brk,ww+12,roofH-brk,PAL.slate,5);for(let y=roofTop+brk;y<roofTop+roofH;y++)for(let x=ox-6;x<ox+ww+6;x++){const c=G(A,x,y);if(c)P(A,x,y,shade(c,.82));}
   hl(A,ox-6,roofTop+brk,ww+12,PAL.slate[5]);rect(A,ox-4,roofTop,ww+8,4,PAL.slate[4]);hl(A,ox-4,roofTop,ww+8,PAL.slate[5]);
   rect(A,ox-6,roofTop+roofH-4,ww+12,4,TR[3]);hl(A,ox-6,roofTop+roofH-4,ww+12,TR[4]);hl(A,ox-6,roofTop+roofH-1,ww+12,TR[1]);
+  hipify(A,ox-6,ox+ww+5,roofTop,roofTop+roofH-4,Math.round(roofH*.75),PAL.slate);
   // cupola on the ridge
   {const cx=W/2|0;rect(A,cx-9,roofTop-14,18,14,TR[3]);for(let i=0;i<3;i++)rect(A,cx-6+i*5,roofTop-11,3,8,PAL.ink[1]);for(let y=0;y<8;y++)hl(A,cx-11+y/2|0,roofTop-22+y,22-y,PAL.slate[3-(y>5?1:0)]);vl(A,cx,roofTop-30,8,PAL.slate[1]);
     for(let x=-5;x<6;x++)P(A,cx+x,roofTop-29+(Math.abs(x)>3?1:0),PAL.slate[2]);}

@@ -33,9 +33,19 @@ function render(dt,now){const t=now/1000;
   if(onScreen(pond.x,pond.z,260))for(let i=0;i<26;i++){const a=hash(i,7)*6.28,r=hash(i,9)*pond.r*.85;const x=pond.x+Math.cos(a)*r,z=pond.z+Math.sin(a)*r*.9;
     const k=(Math.sin(t*1.7+i)+1)/2;if(k>.6){ctx2.fillStyle=`rgba(200,230,240,${(k-.6)*1.6})`;ctx2.fillRect(Math.round(sx(x)),Math.round(sz(z)),4,1);}}
   // tilled soil (dual grid autotile) + wet darkening
-  const til=(x,z)=>{const t_=tileAt(Math.floor(x-FIELD.x0),Math.floor(z-FIELD.z0));return !!(t_&&t_.tilled);};
-  for(let j=-1;j<FIELD.h;j++)for(let i=-1;i<FIELD.w;i++){const X=FIELD.x0+i+.5,Z=FIELD.z0+j+.5;const m=maskAt(til,X,Z);if(m)drawAuto(ctx2,'plowed',m,Math.round(sx(X)),Math.round(sz(Z)),hash(i,j));}
-  for(const tl of tiles){if(tl.tilled&&tl.crop&&tl.crop.watered){ctx2.fillStyle='rgba(30,16,8,.32)';ctx2.fillRect(Math.round(sx(tl.x-.5)),Math.round(sz(tl.z-.5)),32,32);}}
+  // tilled beds, Stardew-style: each bed is raised above the farm soil, lit along its top lip, with a dark drop on its lower edge
+  {const T=(i,j)=>{const t_=tileAt(i,j);return !!(t_&&t_.tilled);};
+   for(const tl of tiles){if(!tl.tilled)continue;const X=Math.round(sx(tl.x-.5)),Y=Math.round(sz(tl.z-.5));if(X<-40||X>VW+40||Y<-40||Y>VH+40)continue;
+     const wet=tl.crop&&tl.crop.watered;const up=T(tl.i,tl.j-1),dn=T(tl.i,tl.j+1),lf=T(tl.i-1,tl.j),rt=T(tl.i+1,tl.j);
+     if(!dn){ctx2.fillStyle='rgba(28,14,6,.55)';ctx2.fillRect(X+(lf?0:1),Y+32,32-(lf?0:1)-(rt?0:1),3);}
+     ctx2.fillStyle=wet?'#43291a':'#6a4428';ctx2.fillRect(X+(lf?0:1),Y+(up?0:1),32-(lf?0:1)-(rt?0:1),32-(up?0:1));
+     // furrows: two shallow rows per bed, each with a lit ridge and a dark trough
+     for(const fy of [8,22]){ctx2.fillStyle=wet?'#58381f':'#83573a';ctx2.fillRect(X+(lf?0:3),Y+fy,32-(lf?0:3)-(rt?0:3),2);ctx2.fillStyle=wet?'#2f1c10':'#4e321e';ctx2.fillRect(X+(lf?0:3),Y+fy+2,32-(lf?0:3)-(rt?0:3),2);}
+     const h=hash(tl.i*7,tl.j*3);ctx2.fillStyle=wet?'#5d3d24':'#8d6040';for(let k=0;k<5;k++)ctx2.fillRect(X+3+((h*97+k*53)%26|0),Y+3+((h*61+k*37)%26|0),2,1);
+     if(!up){ctx2.fillStyle=wet?'#6e4a2c':'#a87a4c';ctx2.fillRect(X+(lf?0:2),Y,32-(lf?0:2)-(rt?0:2),2);ctx2.fillStyle=wet?'#56371f':'#8a603a';ctx2.fillRect(X+(lf?0:2),Y+2,32-(lf?0:2)-(rt?0:2),1);}
+     if(!lf){ctx2.fillStyle=wet?'#5d3d24':'#90643c';ctx2.fillRect(X,Y+(up?0:2),2,32-(up?0:2));}
+     if(!rt){ctx2.fillStyle=wet?'#2c190c':'#4a2e1a';ctx2.fillRect(X+30,Y+(up?0:2),2,32-(up?0:2));}
+     if(!dn){ctx2.fillStyle=wet?'#2a170b':'#45291a';ctx2.fillRect(X+(lf?0:1),Y+29,32-(lf?0:1)-(rt?0:1),3);}}}
   if(hlTile&&S.mode==='play'){ctx2.strokeStyle='rgba(255,240,200,.75)';ctx2.lineWidth=1;ctx2.strokeRect(Math.round(sx(hlTile.x-.5))+.5,Math.round(sz(hlTile.z-.5))+.5,31,31);}
   // skid marks & blood at the crash site
   if(!S.introDrive&&onScreen(-56,-5,200)){ctx2.fillStyle='rgba(0,0,0,.3)';for(let k=0;k<2;k++){ctx2.save();ctx2.translate(sx(-58.6+k*.9),sz(-1.6+k*.25));ctx2.rotate(.42);ctx2.fillRect(-200,0,200,3);ctx2.restore();}}
@@ -66,7 +76,7 @@ function render(dt,now){const t=now/1000;
       else drawSpr(o.spr,X,Y,null,null,0,{alpha:a});
       if(o.night&&SPR[o.night]&&nightK>0)drawSpr(o.night,X,Y,null,null,0,{alpha:(a||1)*nightK});
       if(o.kind==='bld'){const h=HOUSES.find(q=>q.e===o);if(h&&h.faceT>0){const w=(h.w||6)/2;const fx=Math.round(X-w*PPM+48),fy=Math.round(Y-74);ctx2.fillStyle='#d8d4c8';ctx2.fillRect(fx,fy,8,10);ctx2.fillStyle='#000';ctx2.fillRect(fx+1,fy+3,2,2);ctx2.fillRect(fx+5,fy+3,2,2);ctx2.fillRect(fx+2,fy+7,4,2);}}}
-    else if(d.crop){const tl=d.crop,c=tl.crop;const nm=c.type+'_'+c.stage;const s=c.pop<1?.6+.4*c.pop:1;drawSpr(nm,sx(tl.x),sz(tl.z+.2),null,null,0,{scale:s});mindCropOver(tl,sx(tl.x),sz(tl.z+.2));}
+    else if(d.crop){const tl=d.crop,c=tl.crop;const nm=c.type+'_'+c.stage;const s=c.pop<1?.6+.4*c.pop:1;if(c.stage>0)shadow(sx(tl.x)+2,sz(tl.z+.2),4+c.stage*2);drawSpr(nm,sx(tl.x),sz(tl.z+.2),null,null,0,{scale:s});mindCropOver(tl,sx(tl.x),sz(tl.z+.2));}
     else if(d.npc){const n=d.npc;const X=sx(n.x),Y=sz(n.z);shadow(X,Y,9);drawSpr(n.def.id,X,Y,'walk',n.dir,n.clip==='walk'?frameOf(n.def.id,'walk',n.t):0);mindNPCOver(n,X,Y);
       if(n.clip==='stand'&&S.day>=2&&nightK>.5){ctx2.fillStyle='#ff2a14';const ey=Math.round(Y-35);ctx2.fillRect(Math.round(X)-3,ey,1,1);ctx2.fillRect(Math.round(X)+2,ey,1,1);}}
     else if(d.player){const X=sx(P.x),Y=sz(P.z);shadow(X,Y,9);let nm='farmer',clip=P.clip,f;
@@ -239,7 +249,7 @@ function boot(){resize();addEventListener('resize',()=>{resize();vig=null;});mak
   const list=[...new Set(Object.values(SPR).map(m=>m.src))].concat(Object.values(TS).map(t=>t[0]));
   const lb=$('loadBar'),lt=$('loadTxt');
   loadImages([...new Set(list)],(d,n)=>{lb.style.width=(d/n*100)+'%';lt.textContent='Loading the valley… '+d+' / '+n;}).then(()=>{
-    buildWorld();buildInteriors();placeScarecrow(1);spawnMushrooms();resetCat();placeNPCs();
+    buildWorld();buildInteriors();farmDebris();placeScarecrow(1);spawnMushrooms();resetCat();placeNPCs();
     for(const [cx,cz] of[[-6.3,2.2],[1.2,9.4],[48,-9.6],[57,-24],[-14.5,-9]])crows.push({x:cx,z:cz,hx:cx,hz:cz,y:0,state:'perch',t:0,vx:0,vz:0});
     applyLook();S.mode='title';$('loadScr').style.opacity=0;setTimeout(()=>$('loadScr').remove(),800);requestAnimationFrame(loop);});
   $('begin').addEventListener('click',()=>{A.init&&A.init();startCine('intro');});

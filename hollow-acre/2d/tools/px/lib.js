@@ -54,3 +54,11 @@ const FONT={A:'010101111101101',B:'110101110101110',C:'011100100100011',D:'11010
 J:'001001001101010',K:'101101110101101',L:'100100100100111',M:'101111111101101',N:'110101101101101',O:'010101101101010',P:'110101110100100',Q:'010101101110011',R:'110101110101101',S:'011100010001110',
 T:'111010010010010',U:'101101101101111',V:'101101101101010',W:'101101111111101',X:'101101010101101',Y:'101101010010010',Z:'111001010100111',' ':'000000000000000','.':'000000000000010','0':'111101101101111','9':'111101111001111','1':'010110010010111','2':'111001111100111','3':'111001011001111','4':'101101111001001','5':'111100111001111','6':'111100111101111','7':'111001010010010','8':'111101111101111'};
 function drawText(L,t,x,y,c,sh){for(const ch of t.toUpperCase()){const f=FONT[ch]||FONT[' '];for(let j=0;j<5;j++)for(let i=0;i<3;i++)if(f[j*3+i]==='1'){if(sh)P(L,x+i+1,y+j+1,sh);P(L,x+i,y+j,c);}x+=4;}}
+
+// hip roof in 3/4 view: end planes slope away from you (left lit, right shaded), the front plane narrows to a short ridge, corners above the back hips are sky
+function hipify(L,rx0,rx1,y0,eaveY,hw,RF,keep){const inset=y=>Math.round(hw*(1-(y-y0)/(eaveY-y0))),clr=(x,y)=>{if(x<0||y<0||x>=L.w||y>=L.h)return;if(keep&&keep(x,y))return;L.d[(y*L.w+x)*4+3]=0;};
+  for(let y=y0;y<eaveY;y++){const k=inset(y);for(let x=rx0;x<=rx1;x++){const lft=x<rx0+k,rgt=x>rx1-k;if(!lft&&!rgt)continue;const c=G(L,x,y);if(!c)continue;
+      P(L,x,y,lft?[Math.min(255,c[0]*1.2+10),Math.min(255,c[1]*1.18+8),Math.min(255,c[2]*1.06+4)]:[c[0]*.6,c[1]*.6,c[2]*.7]);}
+    if(G(L,rx0+k,y)){P(L,rx0+k,y,RF[5]);P(L,rx0+k+1,y,RF[4]);}if(G(L,rx1-k,y)){P(L,rx1-k,y,RF[0]);P(L,rx1-k-1,y,RF[1]);}}
+  const bk=Math.round((eaveY-y0)*.42);for(let y=y0;y<y0+bk;y++){const e=Math.round(hw*(1-(y-y0)/bk));for(let x=rx0-1;x<=rx1+1;x++)if(x<rx0+e||x>rx1-e)clr(x,y);
+    if(G(L,rx0+e,y))P(L,rx0+e,y,RF[1]);if(G(L,rx1-e,y))P(L,rx1-e,y,RF[0]);}}

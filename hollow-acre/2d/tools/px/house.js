@@ -4,6 +4,7 @@ const bw=CFG.bw, WW=bw*32, OV=8, ox=OV+2, roofH=CFG.roofH||82, y0=CFG.top||22;
 const W=WW+OV*2+4, yW=y0+roofH-5, wallH=CFG.wallH||66, yB=yW+wallH, H=yB+9;
 const S_=PAL[CFG.siding], RF=PAL[CFG.roof], TR=PAL[CFG.trim||'white'], DR=PAL[CFG.door||'wood'], SH=PAL[CFG.shutter||'slate'];
 const Lroof=layer('roof',W,H), Lwall=layer('walls',W,H), Ltrim=layer('trim',W,H), Lwin=layer('windows',W,H), Ldoor=layer('door',W,H), Ldet=layer('details',W,H), Lchim=layer('chimney',W,H), Lsh=layer('shadow',W,H);
+function clr(L,x,y){if(x<0||y<0||x>=L.w||y>=L.h)return;L.d[(y*L.w+x)*4+3]=0;}
 // ===== walls: clapboard, 5px courses, lit lip on top of each board, shadow under it
 const wx0=ox, wx1=ox+WW-1;
 if(CFG.kind==='brick'){
@@ -70,6 +71,30 @@ rect(Lroof,rx0,y0,rx1-rx0+1,6,RF[3]);hl(Lroof,rx0,y0,rx1-rx0+1,RF[5]);hl(Lroof,r
 for(const [bx,lt] of [[rx0,true],[rx1-3,false]]){rect(Ltrim,bx,y0,4,roofH,TR[3]);vl(Ltrim,bx+(lt?0:3),y0,roofH,TR[lt?4:1]);vl(Ltrim,bx+(lt?3:0),y0,roofH,TR[2]);}
 rect(Ltrim,rx0,y0+roofH-6,rx1-rx0+1,6,TR[3]);hl(Ltrim,rx0,y0+roofH-6,rx1-rx0+1,TR[5]);hl(Ltrim,rx0,y0+roofH-5,rx1-rx0+1,TR[4]);hl(Ltrim,rx0,y0+roofH-2,rx1-rx0+1,TR[1]);hl(Ltrim,rx0,y0+roofH-1,rx1-rx0+1,TR[0]);
 for(let y=y0+4;y<y0+roofH;y++){P(Ltrim,rx1+1,y,shade(RF[0],.8));P(Ltrim,rx1+2,y,shade(RF[0],.6));}   // the far gable end shows its thickness
+// hip roof: the two end planes slope away from you, so the front plane narrows to a short ridge. Left end catches the light, right end is in shade.
+if(CFG.hip!==false){const eaveY=y0+roofH-6,hw=Math.min(Math.round((roofH-6)*.8),Math.round(WW*.3));
+  const inset=y=>Math.round(hw*(1-(y-y0)/(eaveY-y0)));
+  for(let y=y0;y<eaveY;y++){const k=inset(y);
+    for(let x=rx0;x<=rx1+2;x++){const L=x<rx0+k,R=x>rx1-k;if(!L&&!R)continue;
+      for(const Lz of [Lroof,Ltrim]){const c=G(Lz,x,y);if(!c)continue;
+        if(Lz===Ltrim){const rc=G(Lroof,x,y)||RF[2];clr(Ltrim,x,y);if(!G(Lroof,x,y))P(Lroof,x,y,rc);continue;}
+        const t=(x-(L?rx0:rx1-k))/Math.max(1,k);P(Lroof,x,y,L?[Math.min(255,c[0]*1.2+10),Math.min(255,c[1]*1.18+8),Math.min(255,c[2]*1.06+4)]:[c[0]*.6,c[1]*.6,c[2]*.7]);}}
+    // hip ridges: a bright line on the lit side, a dark crease on the shaded side
+    P(Lroof,rx0+k,y,RF[5]);P(Lroof,rx0+k+1,y,RF[4]);P(Lroof,rx1-k,y,RF[0]);P(Lroof,rx1-k-1,y,RF[1]);
+    // the end planes carry their own diagonal courses
+    for(let x=rx0;x<rx0+k;x++)if(((x-rx0)+(y-y0))%6===0)P(Lroof,x,y,RF[2]);
+    for(let x=rx1-k+1;x<=rx1;x++)if(((rx1-x)+(y-y0))%6===0)P(Lroof,x,y,shade(RF[0],.8));}
+  // ridge cap only over the short ridge
+  for(let x=rx0;x<=rx1;x++){if(x>=rx0+hw&&x<=rx1-hw)continue;for(let j=0;j<6;j++){const c=G(Lroof,x,y0+j);if(c&&(x<rx0+hw?x<rx0+inset(y0+j):x>rx1-inset(y0+j)))continue;}}
+  for(let y=y0;y<y0+6;y++)for(let x=rx0;x<=rx1;x++){if(x<rx0+inset(y)||x>rx1-inset(y)){/*already end plane*/}}
+  // clear the far-end thickness strip above the hip line and redraw it along the slope
+  for(let y=y0;y<eaveY;y++){for(const dx of [1,2]){const x=rx1+dx;const k=inset(y);if(G(Ltrim,x,y))clr(Ltrim,x,y);}}
+  for(let y=y0;y<eaveY;y++){const k=inset(y);P(Ltrim,rx1+1,y,shade(RF[0],.7));if(y>y0+2)P(Lsh,rx1+3,y,PAL.out[0],60);}
+  // the top of the roof above the ridge is open sky: knock out the corners above each hip
+  {const bk=Math.round((eaveY-y0)*.42);for(let y=y0;y<y0+bk;y++){const e=Math.round(hw*(1-(y-y0)/bk));for(let x=rx0-1;x<=rx1+3;x++){if(x<rx0+e||x>rx1-e){clr(Lroof,x,y);clr(Ltrim,x,y);}}
+      // the back hip edge: a dark line where the end plane meets the sky
+      P(Lroof,rx0+e,y,RF[1]);P(Lroof,rx1-e,y,RF[0]);P(Lroof,rx1-e+1,y,shade(RF[0],.7));}}
+}
 }
 // ===== windows: trim frame, sill, mullions, curtains, shutters; lit at night
 function archWindow(cx,wy,night){const ww=20,wh=46,x=cx-ww/2|0,r=ww/2;
@@ -178,6 +203,6 @@ if(CFG.sign){const sw=CFG.sign.length*4+7,sx=(ox+WW/2-sw/2)|0,sy=yW+4;rect(Ldet,
 // ===== ground contact shadow
 for(let x=wx0-2;x<=wx1+4;x++)for(let j=0;j<2;j++)P(Lsh,x,yB+7+j,PAL.out[0],j?40:80);
 const ART=[Lsh,Lroof,Lwall,Ltrim,Lwin,Ldoor,Ldet,Lchim];
-const flat=flatten(ART,W,H);const Lout=outline(flat);
-emit([Lsh,Lout,Lroof,Lwall,Ltrim,Lwin,Ldoor,Ldet,Lchim],CFG.out);
+const flat=flatten(ART,W,H);const Lout=outline(flat);const Lout2=outline(flatten([Lout,flat],W,H),'outline2');for(let i=0;i<Lout2.d.length;i+=4)if(Lout2.d[i+3]){Lout2.d[i]*=.7;Lout2.d[i+1]*=.7;Lout2.d[i+2]*=.7;Lout2.d[i+3]=200;}
+emit([Lsh,Lout2,Lout,Lroof,Lwall,Ltrim,Lwin,Ldoor,Ldet,Lchim],CFG.out);
 console.log('META '+JSON.stringify({w:W,h:H,ax:W/2,ay:yB+6,bw:bw,chim:CHIM}));

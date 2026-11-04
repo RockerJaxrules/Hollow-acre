@@ -154,7 +154,7 @@ for _n in ('house_a', 'house_b', 'house_c', 'house_d', 'cabin', 'store', 'garage
 
 # ---- props + fences drawn in LibreSprite (px/props.js)
 _PROPS = {'fence_h': (0, 22), 'fence_v': (7, 66), 'picket_h': (0, 23), 'picket_v': (7, 66), 'lamp': None, 'phone_booth': None, 'board': None, 'gas_pump': None,
-          'signpost': None, 'barrel': None, 'crate': None, 'hay': None, 'sacks': None, 'cart': None, 'well': None, 'firewood': None}
+          'signpost': None, 'barrel': None, 'crate': None, 'hay': None, 'sacks': None, 'cart': None, 'well': None, 'firewood': None, 'rock_0': None, 'rock_1': None, 'weeds_0': None, 'weeds_1': None, 'twig': None}
 for _n, _a in _PROPS.items():
     _d = Image.open(f'px/out/{_n}.png').convert('RGBA'); _nf = f'px/out/{_n}_n.png'
     _old = META.get(_n, {}); _foot = _old.get('foot', [0, 0, 0, 0])
