@@ -1,6 +1,6 @@
 // ---- house builder. CFG is prepended by the driver: {name,bw,siding,roof,trim,door,shutter,wins,chimney,porch,night,out,seed,sign,kind}
 SEED=CFG.seed||7;let CHIM=null;
-const bw=CFG.bw, WW=bw*32, OV=8, ox=OV+2, roofH=CFG.roofH||64, y0=CFG.top||22;
+const bw=CFG.bw, WW=bw*32, OV=8, ox=OV+2, roofH=CFG.roofH||82, y0=CFG.top||22;
 const W=WW+OV*2+4, yW=y0+roofH-5, wallH=CFG.wallH||66, yB=yW+wallH, H=yB+9;
 const S_=PAL[CFG.siding], RF=PAL[CFG.roof], TR=PAL[CFG.trim||'white'], DR=PAL[CFG.door||'wood'], SH=PAL[CFG.shutter||'slate'];
 const Lroof=layer('roof',W,H), Lwall=layer('walls',W,H), Ltrim=layer('trim',W,H), Lwin=layer('windows',W,H), Ldoor=layer('door',W,H), Ldet=layer('details',W,H), Lchim=layer('chimney',W,H), Lsh=layer('shadow',W,H);
@@ -24,12 +24,13 @@ if(CFG.kind==='brick'){
 
 }
 // shadow the roof throws on the wall top
-for(let j=0;j<6;j++)for(let x=wx0;x<=wx1;x++){const c=G(Lwall,x,yW+5+j);if(c)P(Lwall,x,yW+5+j,shade(c,.55+j*.07));}
+for(let j=0;j<10;j++)for(let x=wx0;x<=wx1;x++){const c=G(Lwall,x,yW+5+j);if(c)P(Lwall,x,yW+5+j,shade(c,.42+j*.058));}
+for(let y=yW;y<yB;y++){const k=1.04-.14*Math.pow((y-yW)/wallH,2);for(let x=wx0;x<=wx1;x++){const c=G(Lwall,x,y);if(c)P(Lwall,x,y,shade(c,k));}}
 // corner boards
 for(const cx of [wx0,wx1-4]){rect(Ltrim,cx,yW,5,wallH,TR[3]);vl(Ltrim,cx,yW,wallH,TR[4]);vl(Ltrim,cx+4,yW,wallH,TR[1]);for(let j=0;j<6;j++)hl(Ltrim,cx,yW+5+j,5,shade(TR[3],.6+j*.06));}
 // foundation: fieldstone
 {const fy=yB;rect(Lwall,wx0-1,fy,WW+2,7,PAL.stone[1]);let x=wx0;let i=0;while(x<wx1){const w=7+(hsh(i,9)*6|0);const c=PAL.stone[2+(hsh(i,4)*2|0)];rect(Lwall,x+1,fy+1,Math.min(w-1,wx1-x),4,c);hl(Lwall,x+1,fy+1,Math.min(w-2,wx1-x),PAL.stone[4]);x+=w;i++;}
-  hl(Lwall,wx0-1,fy+6,WW+2,PAL.stone[0]);}
+  hl(Lwall,wx0-2,fy,WW+4,PAL.stone[5]);hl(Lwall,wx0-2,fy+1,WW+4,PAL.stone[4]);hl(Lwall,wx0-1,fy+6,WW+2,PAL.stone[0]);}
 // ===== roof
 const rx0=ox-OV, rx1=ox+WW+OV-1;
 if(CFG.gable){
@@ -67,7 +68,8 @@ for(let y=y0+6;y<y0+roofH;y++){const k=1.08-.16*(y-y0)/roofH;for(let x=rx0;x<=rx
 rect(Lroof,rx0,y0,rx1-rx0+1,6,RF[3]);hl(Lroof,rx0,y0,rx1-rx0+1,RF[5]);hl(Lroof,rx0,y0+1,rx1-rx0+1,RF[4]);hl(Lroof,rx0,y0+5,rx1-rx0+1,RF[1]);for(let x=rx0+5;x<rx1;x+=7)vl(Lroof,x,y0+2,3,RF[2]);
 // bargeboards on the gable ends and the eave fascia
 for(const [bx,lt] of [[rx0,true],[rx1-3,false]]){rect(Ltrim,bx,y0,4,roofH,TR[3]);vl(Ltrim,bx+(lt?0:3),y0,roofH,TR[lt?4:1]);vl(Ltrim,bx+(lt?3:0),y0,roofH,TR[2]);}
-rect(Ltrim,rx0,y0+roofH-4,rx1-rx0+1,4,TR[3]);hl(Ltrim,rx0,y0+roofH-4,rx1-rx0+1,TR[4]);hl(Ltrim,rx0,y0+roofH-1,rx1-rx0+1,TR[1]);
+rect(Ltrim,rx0,y0+roofH-6,rx1-rx0+1,6,TR[3]);hl(Ltrim,rx0,y0+roofH-6,rx1-rx0+1,TR[5]);hl(Ltrim,rx0,y0+roofH-5,rx1-rx0+1,TR[4]);hl(Ltrim,rx0,y0+roofH-2,rx1-rx0+1,TR[1]);hl(Ltrim,rx0,y0+roofH-1,rx1-rx0+1,TR[0]);
+for(let y=y0+4;y<y0+roofH;y++){P(Ltrim,rx1+1,y,shade(RF[0],.8));P(Ltrim,rx1+2,y,shade(RF[0],.6));}   // the far gable end shows its thickness
 }
 // ===== windows: trim frame, sill, mullions, curtains, shutters; lit at night
 function archWindow(cx,wy,night){const ww=20,wh=46,x=cx-ww/2|0,r=ww/2;
@@ -90,7 +92,10 @@ function windowAt(cx,wy,night){if(CFG.arched)return archWindow(cx,wy,night);cons
   for(let j=0;j<gh-2;j++){const w1=3+(j>gh*.55?1:0);for(let i=0;i<w1;i++){P(Lwin,gx+i,gy+j,night?shade(cu[2],.85):cu[(i===w1-1)?1:2]);P(Lwin,gx+gw-1-i,gy+j,night?shade(cu[2],.85):cu[i===0?3:2]);}}
   vl(Lwin,cx,gy,gh,TR[2]);hl(Lwin,gx,gy+(gh/2|0),gw,TR[2]);
   if(night&&CFG.watcher&&cx===CFG.watcher){ell(Lwin,cx+3,gy+6,2,3,PAL.ink[0]);rect(Lwin,cx+1,gy+9,5,gh-10,PAL.ink[0]);}
-  rect(Lwin,x-2,wy+wh-1,ww+4,3,TR[4]);hl(Lwin,x-2,wy+wh+1,ww+4,TR[1]);hl(Lwin,x-1,wy+wh+2,ww+2,shade(S_[1],.7));}
+  for(let i=0;i<gw;i++){const c=G(Lwin,gx+i,gy);if(c)P(Lwin,gx+i,gy,shade(c,.55));const c2=G(Lwin,gx+i,gy+1);if(c2)P(Lwin,gx+i,gy+1,shade(c2,.75));}
+  for(let j=0;j<gh;j++){const c=G(Lwin,gx,gy+j);if(c)P(Lwin,gx,gy+j,shade(c,.6));}
+  rect(Lwin,x-3,wy+wh-1,ww+6,4,TR[3]);hl(Lwin,x-3,wy+wh-1,ww+6,TR[5]);hl(Lwin,x-3,wy+wh,ww+6,TR[4]);hl(Lwin,x-3,wy+wh+2,ww+6,TR[1]);
+  for(let k=0;k<3;k++)hl(Lwin,x-2,wy+wh+3+k,ww+4,[0,0,0]);for(let k=0;k<3;k++)for(let i=0;i<ww+4;i++){const c=G(Lwall,x-2+i,wy+wh+3+k);if(c)P(Lwin,x-2+i,wy+wh+3+k,shade(c,.62+k*.12));}}
 const winY=yW+CFG.winY||yW+16;
 for(const c of CFG.wins)windowAt(ox+c*32+16,winY,CFG.night&&!(CFG.boarded||[]).includes(c));
 for(const c of (CFG.boarded||[])){const cx=ox+c*32+16;for(const [dy,ang] of [[5,-1],[12,1],[18,-1]]){for(let i=-12;i<12;i++){const y=winY+dy+Math.round(i*ang*.18);P(Lwin,cx+i,y,PAL.wood[3]);P(Lwin,cx+i,y+1,PAL.wood[3]);P(Lwin,cx+i,y+2,PAL.wood[1]);}
@@ -106,9 +111,11 @@ if(CFG.bigdoor){const dw=60,dh=50,dx=(ox+WW/2-dw/2+(CFG.bigdoorX||0)*32)|0,dy=yB
   rect(Ldoor,dx,dy,dw,dh,DR[2]);vl(Ldoor,dx,dy,dh,DR[1]);hl(Ldoor,dx,dy,dw,DR[1]);
   for(const [px,py,pw,ph] of [[3,4,6,13],[11,4,6,13],[3,21,6,dh-25],[11,21,6,dh-25]]){rect(Ldoor,dx+px,dy+py,pw,ph,DR[3]);frame(Ldoor,dx+px,dy+py,pw,ph,DR[1],DR[4]);}
   if(CFG.night){rect(Ldoor,dx+3,dy+4,14,4,PAL.lit[4]);}
+  for(let i=0;i<dw;i++){for(let k=0;k<3;k++){const c=G(Ldoor,dx+i,dy+k);if(c)P(Ldoor,dx+i,dy+k,shade(c,.5+k*.15));}}for(let j=0;j<dh;j++){const c=G(Ldoor,dx,dy+j);if(c)P(Ldoor,dx,dy+j,shade(c,.55));const c2=G(Ldoor,dx+1,dy+j);if(c2)P(Ldoor,dx+1,dy+j,shade(c2,.75));}
   rect(Ldoor,dx+dw-5,dy+dh/2|0,2,2,PAL.brass[3]);P(Ldoor,dx+dw-4,(dy+dh/2|0)+1,PAL.brass[1]);
-  rect(Ldet,dx-6,yB,dw+12,5,PAL.stone[3]);hl(Ldet,dx-6,yB,dw+12,PAL.stone[5]);hl(Ldet,dx-6,yB+4,dw+12,PAL.stone[1]);
-  rect(Ldet,dx-3,yB+5,dw+6,3,PAL.stone[2]);hl(Ldet,dx-3,yB+5,dw+6,PAL.stone[4]);hl(Ldet,dx-3,yB+7,dw+6,PAL.stone[0]);
+  rect(Ldet,dx-5,yB-1,dw+10,3,PAL.stone[4]);hl(Ldet,dx-5,yB-1,dw+10,PAL.stone[5]);rect(Ldet,dx-5,yB+2,dw+10,3,PAL.stone[2]);hl(Ldet,dx-5,yB+4,dw+10,PAL.stone[1]);
+  rect(Ldet,dx-8,yB+5,dw+16,2,PAL.stone[4]);hl(Ldet,dx-8,yB+5,dw+16,PAL.stone[5]);rect(Ldet,dx-8,yB+7,dw+16,2,PAL.stone[2]);hl(Ldet,dx-8,yB+8,dw+16,PAL.stone[0]);
+  vl(Ldet,dx+dw+4,yB-1,6,PAL.stone[1]);vl(Ldet,dx+dw+7,yB+5,4,PAL.stone[1]);
   if(CFG.porchLamp){rect(Ldet,dx-8,dy+2,3,5,PAL.brass[1]);P(Ldet,dx-7,dy+3,CFG.night?PAL.lit[5]:PAL.brass[3]);}}
 // ===== dormers (on the side-gable roof)
 if(!CFG.gable&&CFG.dormers)for(const dc of CFG.dormers){const dw=28,dx=(ox+dc*32+16-dw/2)|0,db=y0+roofH-14,dt=db-20;
@@ -139,7 +146,8 @@ if(CFG.porch){const p0=wx0-6,p1=wx1+6,pr=yB-48,ph=10;
 // ===== chimney
 if(CFG.chimney!==undefined&&CFG.chimney!==null){const cw=16,cx=(ox+WW/2+CFG.chimney*32-cw/2)|0,ct=6,cb=y0+18;CHIM=[cx+cw/2-W/2,ct-3];
   for(let y=ct;y<cb;y++)for(let x=cx;x<cx+cw;x++){const row=(y-ct)/4|0,off=row%2?4:0;const mort=(y-ct)%4===3||((x-cx+off)%8===7);P(Lchim,x,y,mort?PAL.red[1]:PAL.red[(x-cx)<3?4:(x-cx)>cw-4?2:3]);}
-  rect(Lchim,cx-2,ct-3,cw+4,4,PAL.stone[3]);hl(Lchim,cx-2,ct-3,cw+4,PAL.stone[5]);hl(Lchim,cx-2,ct,cw+4,PAL.stone[1]);rect(Lchim,cx+3,ct-3,cw-6,2,PAL.ink[0]);
+  for(let y=ct;y<cb;y++)for(let x=cx+cw-4;x<cx+cw;x++){const c=G(Lchim,x,y);if(c)P(Lchim,x,y,shade(c,.7));}
+  rect(Lchim,cx-2,ct-6,cw+4,4,PAL.stone[4]);hl(Lchim,cx-2,ct-6,cw+4,PAL.stone[5]);rect(Lchim,cx+2,ct-5,cw-4,2,PAL.ink[0]);rect(Lchim,cx-2,ct-2,cw+4,3,PAL.stone[2]);hl(Lchim,cx-2,ct,cw+4,PAL.stone[1]);
   for(let x=cx;x<cx+cw;x++)P(Lchim,x,cb,PAL.red[0]);
   for(let y=cb-10;y<cb+3;y++)for(let x=cx+cw;x<cx+cw+5;x++){const c=G(Lroof,x,y);if(c)P(Lroof,x,y,shade(c,.62));}}
 // ===== steeple: clapboard tower in front, louvred belfry with a bell, shaded spire and cross

@@ -2,7 +2,7 @@ import sys, json
 sys.path.insert(0, '.')
 from run import run
 def size(c):
-    y0 = c.get('top', 22); roofH = c.get('roofH', 64); wallH = c.get('wallH', 66)
+    y0 = c.get('top', 22); roofH = c.get('roofH', 82); wallH = c.get('wallH', 66)
     return (c['bw'] * 32 + 20, y0 + roofH - 5 + wallH + 9)
 HOUSES = {
   'house_a': dict(bw=6, siding='white', roof='slate', trim='white', door='red', shutter='slate', wins=[1, 4], chimney=-1.5, seed=3, moss=True, porch=True, dormers=[1, 4], wallH=82, winY=10),

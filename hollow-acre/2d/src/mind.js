@@ -111,9 +111,9 @@ function mindInput(mx,mz){if(M.invert>0)return [-mx*.8,-mz*.8];return [mx,mz];}
 
 // ---------- drawing
 function mindDrawables(D){
-  for(const f of M.figs)D.push({z:f.z,mind:1,draw(){const a=Math.min(1,f.t*2)*.6;drawSpr('hollow',sx(f.x),sz(f.z),'walk','S',0,{scale:2,alpha:a});}});
+  for(const f of M.figs)D.push({z:f.z,mind:1,draw(){const a=Math.min(1,f.t*2)*.6;drawSpr('hollow',sx(f.x),sz(f.z),'walk','S',0,{alpha:a});}});
   if(M.dop){const d=M.dop;D.push({z:d.z,mind:1,draw(){drawSpr('farmer',sx(d.x),sz(d.z),'walk',P.dir==='E'?'W':P.dir==='W'?'E':P.dir==='N'?'S':'N',P.spd>.2?frameOf('farmer','walk',P.t):0);}});}
-  if(M.rush){const q=M.rush;D.push({z:q.z,mind:1,draw(){drawSpr('hollow',sx(q.x),sz(q.z),'walk',q.dir||'S',frameOf('hollow','walk',q.t*2),{scale:2});}});}
+  if(M.rush){const q=M.rush;D.push({z:q.z,mind:1,draw(){drawSpr('hollow',sx(q.x),sz(q.z),'walk',q.dir||'S',frameOf('hollow','walk',q.t*2));}});}
 }
 function mindGround(){if(!M.prints.length)return;ctx2.fillStyle='rgba(14,8,6,.55)';
   for(const p of M.prints){const a=clamp(1-p.t/18,0,1);if(a<=0)continue;ctx2.globalAlpha=a;const X=Math.round(sx(p.x)),Y=Math.round(sz(p.z));ctx2.fillRect(X-1,Y-2,3,4);ctx2.fillRect(X-1,Y+3,3,2);}

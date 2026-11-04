@@ -67,7 +67,7 @@ function render(dt,now){const t=now/1000;
       if(o.kind==='bld'){const h=HOUSES.find(q=>q.e===o);if(h&&h.faceT>0){const w=(h.w||6)/2;const fx=Math.round(X-w*PPM+48),fy=Math.round(Y-74);ctx2.fillStyle='#d8d4c8';ctx2.fillRect(fx,fy,8,10);ctx2.fillStyle='#000';ctx2.fillRect(fx+1,fy+3,2,2);ctx2.fillRect(fx+5,fy+3,2,2);ctx2.fillRect(fx+2,fy+7,4,2);}}}
     else if(d.crop){const tl=d.crop,c=tl.crop;const nm=c.type+'_'+c.stage;const s=c.pop<1?.6+.4*c.pop:1;drawSpr(nm,sx(tl.x),sz(tl.z+.2),null,null,0,{scale:s});}
     else if(d.npc){const n=d.npc;const X=sx(n.x),Y=sz(n.z);shadow(X,Y,9);drawSpr(n.def.id,X,Y,'walk',n.dir,n.clip==='walk'?frameOf(n.def.id,'walk',n.t):0);
-      if(n.clip==='stand'&&S.day>=2&&nightK>.5){ctx2.fillStyle='#ff2a14';const ey=Math.round(Y-44);ctx2.fillRect(Math.round(X)-3,ey,1,1);ctx2.fillRect(Math.round(X)+2,ey,1,1);}}
+      if(n.clip==='stand'&&S.day>=2&&nightK>.5){ctx2.fillStyle='#ff2a14';const ey=Math.round(Y-35);ctx2.fillRect(Math.round(X)-3,ey,1,1);ctx2.fillRect(Math.round(X)+2,ey,1,1);}}
     else if(d.player){const X=sx(P.x),Y=sz(P.z);shadow(X,Y,9);let nm='farmer',clip=P.clip,f;
       if(P.anim){const a=P.anim;if(a.clip==='hoe'){nm='farmer_hoe';clip='thrust';}else if(a.clip==='water'){nm='farmer_can';clip='thrust';}else clip='slash';f=frameOf(nm,clip,a.t,a.dur);}
       else{if(clip==='idle'){clip='walk';f=0;}else f=frameOf(nm,clip,P.t);}
@@ -78,18 +78,20 @@ function render(dt,now){const t=now/1000;
       const f=clip==='hurt'?(Math.random()<.3?1:0):H.clip==='idle'?0:frameOf('hollow',clip,H.ft*(H.clip==='crawl'?1.6:1));
       const jit=H.clip==='frozen'?(Math.random()-.5)*2:0;const rise=(1-H.rise)*40;
       ctx2.save();ctx2.beginPath();ctx2.rect(0,0,VW,Math.round(Y));ctx2.clip();
-      shadow(X,Y,16);drawSpr('hollow',X+jit,Y+rise+(H.clip==='crawl'?18:0),clip,clip==='hurt'?'S':H.dir,f,{scale:H.clip==='crawl'?1.55:2,alpha:H.alpha});ctx2.restore();
-      const ey=Y+rise-(H.clip==='crawl'?66:94);const fl=.7+Math.random()*.3;ctx2.fillStyle=`rgba(255,40,20,${fl*H.alpha})`;
+      shadow(X,Y,16);drawSpr('hollow',X+jit,Y+rise+(H.clip==='crawl'?18:0),clip,clip==='hurt'?'S':H.dir,f,{scale:H.clip==='crawl'?.8:1,alpha:H.alpha});ctx2.restore();
+      const ey=Y+rise-(H.clip==='crawl'?57:94);const fl=.7+Math.random()*.3;ctx2.fillStyle=`rgba(255,40,20,${fl*H.alpha})`;
       if(H.dir!=='N'){ctx2.fillRect(Math.round(X)-5,Math.round(ey),2,2);ctx2.fillRect(Math.round(X)+3,Math.round(ey),2,2);}}
     else if(d.ruth){const X=sx(ruth.x),Y=sz(ruth.z);drawSpr('ruth',X,Y,'walk',ruth.dir,0,{alpha:.45+Math.random()*.15});}
     else if(d.cat){drawSpr('cat',sx(cat.x),sz(cat.z),cat.clip,cat.dir,frameOf('cat',cat.clip,cat.t));}
-    else if(d.scare){const X=sx(scare.x),Y=sz(scare.z);shadow(X,Y,8);ctx2.fillStyle='#4a3020';ctx2.fillRect(Math.round(X)-1,Math.round(Y)-70,3,70);ctx2.fillRect(Math.round(X)-22,Math.round(Y)-56,45,3);drawSpr('hollow',X,Y-14,'walk','S',0);}
+    else if(d.scare){const X=sx(scare.x),Y=sz(scare.z);shadow(X,Y,8);ctx2.fillStyle='#4a3020';ctx2.fillRect(Math.round(X)-1,Math.round(Y)-70,3,70);ctx2.fillRect(Math.round(X)-22,Math.round(Y)-56,45,3);drawSpr('hollow',X,Y-6,'walk','S',0,{scale:.62});}
     else if(d.mush){drawSpr('mushroom',sx(d.mush.x),sz(d.mush.z));}
-    else if(d.page){const X=sx(d.page.x),Y=sz(d.page.z);ctx2.fillStyle='#4a3020';ctx2.fillRect(Math.round(X),Math.round(Y)-16,2,16);ctx2.fillStyle='#e8dcc0';ctx2.fillRect(Math.round(X)-5,Math.round(Y)-24+Math.round(Math.sin(t*2+d.page.i)),12,10);ctx2.fillStyle='#8a7a5a';ctx2.fillRect(Math.round(X)-3,Math.round(Y)-21,8,1);ctx2.fillRect(Math.round(X)-3,Math.round(Y)-18,6,1);}
+    else if(d.page){const X=Math.round(sx(d.page.x)),Y=Math.round(sz(d.page.z));const fl=Math.round(Math.sin(t*3+d.page.i)*1);
+      ctx2.fillStyle='rgba(8,16,6,.3)';ctx2.fillRect(X-6,Y-1,14,3);ctx2.fillStyle='#d8ccb0';ctx2.fillRect(X-6,Y-7+fl,12,7-fl);ctx2.fillStyle='#efe6d0';ctx2.fillRect(X-6,Y-8+fl,11,6-fl);
+      ctx2.fillStyle='#8a7a5a';for(let k=0;k<3;k++)ctx2.fillRect(X-4,Y-6+fl+k*2,7-k,1);ctx2.fillStyle='#6a6670';ctx2.fillRect(X+2,Y-4,5,4);ctx2.fillStyle='#9a96a0';ctx2.fillRect(X+3,Y-4,3,1);}
     else if(d.altar){const a=d.altar,X=sx(a.x),Y=sz(a.z);drawSpr('grave_0',X,Y);if(a.lit){ctx2.fillStyle=Math.random()<.5?'#ffd060':'#ff9a30';ctx2.fillRect(Math.round(X)-1,Math.round(Y)-40,3,4);}else{ctx2.fillStyle='#2a2220';ctx2.fillRect(Math.round(X)-1,Math.round(Y)-37,3,3);}}
     else if(d.peddler){const X=sx(crossPos.x+.6),Y=sz(crossPos.z+2.6);shadow(X,Y,9);drawSpr('hale',X,Y,'idle','S',0,{alpha:.0});ctx2.fillStyle='#120e16';ctx2.beginPath();ctx2.moveTo(X-11,Y);ctx2.lineTo(X+11,Y);ctx2.lineTo(X+6,Y-40);ctx2.lineTo(X,Y-50);ctx2.lineTo(X-6,Y-40);ctx2.closePath();ctx2.fill();
       ctx2.fillStyle='#ffd25a';ctx2.fillRect(Math.round(X)-3,Math.round(Y)-42,1,1);ctx2.fillRect(Math.round(X)+2,Math.round(Y)-42,1,1);ctx2.fillStyle='#6aff90';ctx2.fillRect(Math.round(X)+10,Math.round(Y)-24,4,5);}
-    else if(d.ghost){drawSpr('hollow',sx(d.ghost.x),sz(d.ghost.z),'walk','S',0,{scale:2,alpha:d.ghost.t*2});}
+    else if(d.ghost){drawSpr('hollow',sx(d.ghost.x),sz(d.ghost.z),'walk','S',0,{alpha:d.ghost.t*2});}
     else if(d.mind){d.draw();}
     else if(d.hat){drawSpr('pumpkin',sx(ritual.hat.x),sz(ritual.hat.z));}
   }
@@ -214,12 +216,12 @@ function drawRoad(g,st,t,dt){const W=VW,H_=VH,base=Math.round(H_*.7),cxs=(W>>1)-
     if(d.car){const f=Math.max(0,Math.min(6,Math.round(st.yaw/.15)));drawSpr('car_drive',X(st.carX),Y(st.carZ),'yaw','S',f);}
     else if(d.post){const x=X(d.x),y=Y(d.z);g.fillStyle='#1a1a1a';g.fillRect(x-1,y-14,3,15);g.fillStyle='#d8d8d0';g.fillRect(x-1,y-14,3,11);g.fillStyle='#f2c230';g.fillRect(x-1,y-12,3,2);}
     else if(d.deer){g.save();g.translate(X(.8),Y(d.z));g.rotate(Math.PI/2);drawSpr('deer',0,0);g.restore();}
-    else if(d.fig){drawSpr('hollow',X(.15),Y(d.z),'walk','S',0,{scale:2});}
-    else if(d.mir){drawSpr('hollow',X(.1),Y(d.z),'walk','N',0,{scale:2,alpha:Math.min(1,st.mirror)});}
+    else if(d.fig){drawSpr('hollow',X(.15),Y(d.z),'walk','S',0);}
+    else if(d.mir){drawSpr('hollow',X(.1),Y(d.z),'walk','N',0,{alpha:Math.min(1,st.mirror)});}
     else{drawSpr(d.spr,X(d.x),Y(d.z),null,null,0,d.big?{scale:1.3}:undefined);if(d.night)drawSpr(d.night,X(d.x),Y(d.z));}}
   const inBridge=st.carZ<-60.3&&st.carZ>-67.5;
   // a lightning flash shows it standing in the tree line
-  if(st.flash>0){const f=st.flash;if(f>.55)drawSpr('hollow',X(-6.2),Y(st.carZ-9),'walk','S',0,{scale:2});st.flash=Math.max(0,f-dt*2.6);}
+  if(st.flash>0){const f=st.flash;if(f>.55)drawSpr('hollow',X(-6.2),Y(st.carZ-9),'walk','S',0);st.flash=Math.max(0,f-dt*2.6);}
   if(st.mirror>0)st.mirror-=dt;
   // light: night ambient, twin headlight beams, tail lights
   const amb=st.flash>.5?[200,205,235]:st.flash>0?[40+st.flash*120,44+st.flash*120,70+st.flash*120]:[36,42,70];

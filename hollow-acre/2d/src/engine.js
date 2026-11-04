@@ -33,7 +33,7 @@ function chunk(cx,cz){const k=cx+','+cz;let c=chunks.get(k);if(c)return c;
   c=document.createElement('canvas');c.width=CH;c.height=CH;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
   const N=CH/32,x0=cx*N,z0=cz*N;
   for(let j=0;j<N;j++)for(let i=0;i<N;i++){const X=x0+i,Z=z0+j,h=hash(X*3+1,Z*7+2);
-    drawAuto(g,h>.86?'flowers':'grass',15,i*32,j*32,h);}
+    drawAuto(g,h>.975?'flowers':'grass',15,i*32,j*32,h);}
   const HW=(x,z)=>Math.abs(z+6)<2.6&&x<-12.5;
   for(const L of ['dark','dirt','stone','water']){const fn=L==='stone'?(x,z)=>LAYERS.stone(x,z)&&!HW(x,z):LAYERS[L];
     for(let j=0;j<N;j++)for(let i=0;i<N;i++){const X=x0+i,Z=z0+j;drawAuto(g,L,maskAt(fn,X,Z),i*32,j*32,hash(X+11,Z+5));}}
@@ -53,7 +53,9 @@ function chunk(cx,cz){const k=cx+','+cz;let c=chunks.get(k);if(c)return c;
     og.putImageData(id,0,0);g.imageSmoothingEnabled=true;g.drawImage(oc,0,0,CH,CH);g.imageSmoothingEnabled=false;}
   // ground clutter: tufts, stones, wildflowers, twigs on open grass
   const dec=SPR.decor&&IMG[SPR.decor.src];
-  if(dec)for(let j=0;j<N;j++)for(let i=0;i<N;i++){const X=x0+i,Z=z0+j,h=hash(X*7+3,Z*5+1);if(h<.42)continue;if(terr(X+.5,Z+.5)!=='grass'||onPlateau(X+.5,Z+1)&&h<.8)continue;
+  if(dec)for(let j=0;j<N;j++)for(let i=0;i<N;i++){const X=x0+i,Z=z0+j,h=hash(X*7+3,Z*5+1);if(terr(X+.5,Z+.5)!=='grass')continue;
+    const edge=terr(X+.5,Z-.5)!=='grass'||terr(X+.5,Z+1.5)!=='grass'||terr(X-.5,Z+.5)!=='grass'||terr(X+1.5,Z+.5)!=='grass',woods=LAYERS.dark(X+.5,Z+.5)||LAYERS.dark(X+.5,Z+2),cliff=ridgeH(X)>.3&&Z>ridgeZ(X)+RIDGE.h-1&&Z<ridgeZ(X)+RIDGE.h+2;
+    if(!(edge&&h>.35||woods&&h>.45||cliff&&h>.3||h>.94))continue;
     const r=hash(X+2,Z+9);const v=r<.45?(r*6.6|0)%3:r<.62?3+(r*10|0)%2:r<.82?5+(r*10|0)%2:7;const ox=(hash(X,Z+3)*16)|0,oy=(hash(X+5,Z)*16)|0;g.drawImage(dec,v*16,0,16,16,i*32+ox,j*32+oy,16,16);}
   // the ridge: a cliff face drawn column by column, with ambient occlusion at its foot
   const cl=SPR.cliff&&IMG[SPR.cliff.src];
