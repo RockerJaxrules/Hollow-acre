@@ -1067,19 +1067,25 @@ function render(dt,now){const t=now/1000;
   if(onScreen(pond.x,pond.z,260))for(let i=0;i<26;i++){const a=hash(i,7)*6.28,r=hash(i,9)*pond.r*.85;const x=pond.x+Math.cos(a)*r,z=pond.z+Math.sin(a)*r*.9;
     const k=(Math.sin(t*1.7+i)+1)/2;if(k>.6){ctx2.fillStyle=`rgba(200,230,240,${(k-.6)*1.6})`;ctx2.fillRect(Math.round(sx(x)),Math.round(sz(z)),4,1);}}
   // tilled soil (dual grid autotile) + wet darkening
-  // tilled beds, Stardew-style: each bed is raised above the farm soil, lit along its top lip, with a dark drop on its lower edge
+  // tilled soil: dug into the ground, not sitting on it. A darker patch with ragged edges, the shade of the bank along its top inside edge,
+  // a faint lighter crumb rim on the bottom edge, shallow furrows across it and loose clods. Watered soil is darker and a little glossy.
   {const T=(i,j)=>{const t_=tileAt(i,j);return !!(t_&&t_.tilled);};
    for(const tl of tiles){if(!tl.tilled)continue;const X=Math.round(sx(tl.x-.5)),Y=Math.round(sz(tl.z-.5));if(X<-40||X>VW+40||Y<-40||Y>VH+40)continue;
      const wet=tl.crop&&tl.crop.watered;const up=T(tl.i,tl.j-1),dn=T(tl.i,tl.j+1),lf=T(tl.i-1,tl.j),rt=T(tl.i+1,tl.j);
-     if(!dn){ctx2.fillStyle='rgba(28,14,6,.55)';ctx2.fillRect(X+(lf?0:1),Y+32,32-(lf?0:1)-(rt?0:1),3);}
-     ctx2.fillStyle=wet?'#43291a':'#6a4428';ctx2.fillRect(X+(lf?0:1),Y+(up?0:1),32-(lf?0:1)-(rt?0:1),32-(up?0:1));
-     // furrows: two shallow rows per bed, each with a lit ridge and a dark trough
-     for(const fy of [8,22]){ctx2.fillStyle=wet?'#58381f':'#83573a';ctx2.fillRect(X+(lf?0:3),Y+fy,32-(lf?0:3)-(rt?0:3),2);ctx2.fillStyle=wet?'#2f1c10':'#4e321e';ctx2.fillRect(X+(lf?0:3),Y+fy+2,32-(lf?0:3)-(rt?0:3),2);}
-     const h=hash(tl.i*7,tl.j*3);ctx2.fillStyle=wet?'#5d3d24':'#8d6040';for(let k=0;k<5;k++)ctx2.fillRect(X+3+((h*97+k*53)%26|0),Y+3+((h*61+k*37)%26|0),2,1);
-     if(!up){ctx2.fillStyle=wet?'#6e4a2c':'#a87a4c';ctx2.fillRect(X+(lf?0:2),Y,32-(lf?0:2)-(rt?0:2),2);ctx2.fillStyle=wet?'#56371f':'#8a603a';ctx2.fillRect(X+(lf?0:2),Y+2,32-(lf?0:2)-(rt?0:2),1);}
-     if(!lf){ctx2.fillStyle=wet?'#5d3d24':'#90643c';ctx2.fillRect(X,Y+(up?0:2),2,32-(up?0:2));}
-     if(!rt){ctx2.fillStyle=wet?'#2c190c':'#4a2e1a';ctx2.fillRect(X+30,Y+(up?0:2),2,32-(up?0:2));}
-     if(!dn){ctx2.fillStyle=wet?'#2a170b':'#45291a';ctx2.fillRect(X+(lf?0:1),Y+29,32-(lf?0:1)-(rt?0:1),3);}}}
+     const base=wet?[74,46,30]:[112,74,46],dark=wet?[52,32,20]:[84,54,32],light=wet?[96,64,42]:[140,98,62];
+     const rgb=c=>`rgb(${c[0]},${c[1]},${c[2]})`;
+     // ragged edge: each side eats 0-2 px in or out, decided per pixel so neighbouring tiles stay seamless
+     for(let y=0;y<32;y++)for(let x=0;x<32;x++){const wx=tl.i*32+x,wy=tl.j*32+y;const e=(hash(wx,wy*3)*3)|0;
+       if(!up&&y<e)continue;if(!dn&&y>31-e)continue;if(!lf&&x<e)continue;if(!rt&&x>31-e)continue;
+       let c=base;const n=hash(wx>>1,wy>>1);if(n>.82)c=light;else if(n<.18)c=dark;
+       const fy=(wy+((wx>>3)&1))%11;if(fy===0)c=dark;else if(fy===1)c=[c[0]*.92,c[1]*.92,c[2]*.92];else if(fy===2)c=light;
+       if(!up&&y<e+4)c=[c[0]*(.62+.09*(y-e)),c[1]*(.62+.09*(y-e)),c[2]*(.62+.09*(y-e))];   // the bank above shades the dug soil
+       if(!lf&&x<e+2)c=[c[0]*.82,c[1]*.82,c[2]*.82];
+       if(!dn&&y>31-e-2)c=[Math.min(255,c[0]*1.12+8),Math.min(255,c[1]*1.1+6),Math.min(255,c[2]*1.08+4)];  // the lip you dug up, catching light
+       ctx2.fillStyle=rgb(c);ctx2.fillRect(X+x,Y+y,1,1);}
+     // a few loose clods with a lit top and a dark underside
+     for(let k=0;k<4;k++){const h=hash(tl.i*13+k,tl.j*7+k*3);const cx=X+3+((h*97)%26|0),cy=Y+4+((h*61)%23|0);ctx2.fillStyle=rgb(light);ctx2.fillRect(cx,cy,2,1);ctx2.fillStyle=rgb(dark);ctx2.fillRect(cx,cy+1,2,1);}
+     if(wet&&((tl.i+tl.j)&1)){ctx2.fillStyle='rgba(180,200,220,.18)';ctx2.fillRect(X+8,Y+12,3,1);ctx2.fillRect(X+20,Y+22,2,1);}}}
   if(hlTile&&S.mode==='play'){ctx2.strokeStyle='rgba(255,240,200,.75)';ctx2.lineWidth=1;ctx2.strokeRect(Math.round(sx(hlTile.x-.5))+.5,Math.round(sz(hlTile.z-.5))+.5,31,31);}
   // skid marks & blood at the crash site
   if(!S.introDrive&&onScreen(-56,-5,200)){ctx2.fillStyle='rgba(0,0,0,.3)';for(let k=0;k<2;k++){ctx2.save();ctx2.translate(sx(-58.6+k*.9),sz(-1.6+k*.25));ctx2.rotate(.42);ctx2.fillRect(-200,0,200,3);ctx2.restore();}}
