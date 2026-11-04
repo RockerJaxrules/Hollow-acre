@@ -40,6 +40,16 @@ function chunk(cx,cz){const k=cx+','+cz;let c=chunks.get(k);if(c)return c;
   // Route 9: the Blender-rendered asphalt strip (rotated to run east-west), ending where the farm lane begins
   const rs=roadStripH();if(rs&&z0*32<(-6+5.2)*32&&(z0+N)*32>(-6-5.2)*32&&x0<-12.5){g.save();g.beginPath();{const ex=(-12.5-x0)*32;g.moveTo(0,0);for(let y=0;y<=CH;y+=4)g.lineTo(ex-Math.round(hash(y+z0*CH,7)*10+fbm(y*.05,z0)*26),y);g.lineTo(0,CH);g.closePath();}g.clip();
     for(let wx=-120;wx<-12.5;wx+=12){const dx=(wx-x0)*32;if(dx>CH||dx+rs.width<0)continue;g.drawImage(rs,dx,(-6-5-z0)*32);}g.restore();}
+  // ground clutter: tufts, stones, wildflowers, twigs on open grass
+  const dec=SPR.decor&&IMG[SPR.decor.src];
+  if(dec)for(let j=0;j<N;j++)for(let i=0;i<N;i++){const X=x0+i,Z=z0+j,h=hash(X*7+3,Z*5+1);if(h<.62)continue;if(terr(X+.5,Z+.5)!=='grass'||onPlateau(X+.5,Z+1)&&h<.8)continue;
+    const r=hash(X+2,Z+9);const v=r<.45?(r*6.6|0)%3:r<.62?3+(r*10|0)%2:r<.82?5+(r*10|0)%2:7;const ox=(hash(X,Z+3)*16)|0,oy=(hash(X+5,Z)*16)|0;g.drawImage(dec,v*16,0,16,16,i*32+ox,j*32+oy,16,16);}
+  // the ridge: a cliff face drawn column by column, with ambient occlusion at its foot
+  const cl=SPR.cliff&&IMG[SPR.cliff.src];
+  if(cl&&x0+N>RIDGE.x0&&x0<RIDGE.x1)for(let px=0;px<CH;px++){const wx=x0+px/32,hh=ridgeH(wx);if(hh<=0)continue;const top=Math.round(ridgeZ(wx)*32)-z0*32,hp=Math.round(hh*32);
+    if(top+hp+8<0||top>CH)continue;const sc=((Math.round(wx*32)%64)+64)%64;
+    g.drawImage(cl,sc,0,1,8,px,top,1,8);if(hp>8)g.drawImage(cl,sc,60-(hp-8),1,hp-8,px,top+8,1,hp-8);
+    for(let k=0;k<6;k++){g.fillStyle=`rgba(0,18,10,${.34-k*.055})`;g.fillRect(px,top+hp+k,1,1);}}
   chunks.set(k,c);return c;}
 let _rsH=null;function roadStripH(){if(_rsH)return _rsH;const m=SPR.road,im=m&&IMG[m.src];if(!im)return null;
   const c=document.createElement('canvas');c.width=im.height;c.height=im.width;const g=c.getContext('2d');g.translate(0,im.width);g.rotate(-Math.PI/2);g.drawImage(im,0,0);return _rsH=c;}

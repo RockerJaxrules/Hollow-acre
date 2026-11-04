@@ -1,5 +1,5 @@
 // ---- house builder. CFG is prepended by the driver: {name,bw,siding,roof,trim,door,shutter,wins,chimney,porch,night,out,seed,sign,kind}
-SEED=CFG.seed||7;
+SEED=CFG.seed||7;let CHIM=null;
 const bw=CFG.bw, WW=bw*32, OV=8, ox=OV+2, roofH=CFG.roofH||64, y0=CFG.top||22;
 const W=WW+OV*2+4, yW=y0+roofH-5, wallH=CFG.wallH||66, yB=yW+wallH, H=yB+9;
 const S_=PAL[CFG.siding], RF=PAL[CFG.roof], TR=PAL[CFG.trim||'white'], DR=PAL[CFG.door||'wood'], SH=PAL[CFG.shutter||'slate'];
@@ -137,7 +137,7 @@ if(CFG.porch){const p0=wx0-6,p1=wx1+6,pr=yB-48,ph=10;
   rect(Ldet,p0-1,yB,p1-p0+3,6,PAL.wood[3]);for(let x=p0;x<p1;x+=9)vl(Ldet,x,yB,6,PAL.wood[1]);hl(Ldet,p0-1,yB,p1-p0+3,PAL.wood[5]);hl(Ldet,p0-1,yB+5,p1-p0+3,PAL.wood[0]);
   rect(Ldet,doorX-14,yB+6,28,3,PAL.wood[2]);hl(Ldet,doorX-14,yB+6,28,PAL.wood[4]);}
 // ===== chimney
-if(CFG.chimney!==undefined&&CFG.chimney!==null){const cw=16,cx=(ox+WW/2+CFG.chimney*32-cw/2)|0,ct=6,cb=y0+18;
+if(CFG.chimney!==undefined&&CFG.chimney!==null){const cw=16,cx=(ox+WW/2+CFG.chimney*32-cw/2)|0,ct=6,cb=y0+18;CHIM=[cx+cw/2-W/2,ct-3];
   for(let y=ct;y<cb;y++)for(let x=cx;x<cx+cw;x++){const row=(y-ct)/4|0,off=row%2?4:0;const mort=(y-ct)%4===3||((x-cx+off)%8===7);P(Lchim,x,y,mort?PAL.red[1]:PAL.red[(x-cx)<3?4:(x-cx)>cw-4?2:3]);}
   rect(Lchim,cx-2,ct-3,cw+4,4,PAL.stone[3]);hl(Lchim,cx-2,ct-3,cw+4,PAL.stone[5]);hl(Lchim,cx-2,ct,cw+4,PAL.stone[1]);rect(Lchim,cx+3,ct-3,cw-6,2,PAL.ink[0]);
   for(let x=cx;x<cx+cw;x++)P(Lchim,x,cb,PAL.red[0]);
@@ -172,4 +172,4 @@ for(let x=wx0-2;x<=wx1+4;x++)for(let j=0;j<2;j++)P(Lsh,x,yB+7+j,PAL.out[0],j?40:
 const ART=[Lsh,Lroof,Lwall,Ltrim,Lwin,Ldoor,Ldet,Lchim];
 const flat=flatten(ART,W,H);const Lout=outline(flat);
 emit([Lsh,Lout,Lroof,Lwall,Ltrim,Lwin,Ldoor,Ldet,Lchim],CFG.out);
-console.log('META '+JSON.stringify({w:W,h:H,ax:W/2,ay:yB+6,bw:bw}));
+console.log('META '+JSON.stringify({w:W,h:H,ax:W/2,ay:yB+6,bw:bw,chim:CHIM}));

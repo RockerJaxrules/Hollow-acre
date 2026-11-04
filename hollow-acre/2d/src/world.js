@@ -10,8 +10,19 @@ const crossPos={x:20,z:19},boardPos={x:52,z:-9.4},tsPos={x:27.5,z:-8.4},farmSign
 const fishSpot={x:pond.x,z:pond.z-pond.r+3.6};
 const ALTAR_POS=[[-27,8,'west woods'],[-2,29,'cornfield'],[64,-32,'churchyard']];
 const SCARE_SPOTS=[[6.9,4],[9.8,-1.2],[2.2,-7.6]];
-const ROADS=[[-12.5,-6,70,-6,3],[0,-8.6,0,-1,2],[20,-6,20,19,2],[20,19,4,19,1.6],[48,-18,48,-6,2.4],[26,5,70,5,2],[26,-6,26,5,2],[70,-6,70,5,2],[-46,-6,-46,-9,1.8],[-36,-6,-36,-10.6,2],[2,-9,6,-9,1.4]];
+const ROADS=[[-12.5,-6,70,-6,3],[16,-9.4,16,-6,2.8],[0,-8.6,0,-1,2],[20,-6,20,19,2],[20,19,4,19,1.6],[48,-18,48,-6,2.4],[26,5,70,5,2],[26,-6,26,5,2],[70,-6,70,5,2],[-46,-6,-46,-9,1.8],[-36,-6,-36,-10.6,2],[2,-9,6,-9,1.4]];
 const SIDEWALKS=[];
+// ---------- the north ridge: a cliff face you see from the front, plateau behind it
+const RIDGE={x0:-50,x1:30,h:1.85};
+const ridgeZ=x=>-21.5+1.5*Math.sin(x*.13)+.8*Math.sin(x*.31);
+const ridgeH=x=>x<RIDGE.x0||x>RIDGE.x1?0:RIDGE.h*clamp(Math.min(x-RIDGE.x0,RIDGE.x1-x)/4,0,1);
+const onPlateau=(x,z)=>ridgeH(x)>.2&&z<ridgeZ(x);
+// ---------- Marrow Creek: falls off the ridge, under the covered bridge on Route 9, down to the pond
+const CREEK=[[-19,-30],[-19.2,-22.3],[-21,-17],[-23,-12],[-24,-6],[-27,-1],[-33,4],[-35,10],[-35,15],[-33.4,18.2],[-31.6,20.6]];
+const BRIDGE={x:-24,z:-2.8},FOOT={x:-35,z:12.4};
+function creekDist(x,z){let d=1e9;for(let i=0;i<CREEK.length-1;i++){const a=CREEK[i],b=CREEK[i+1];d=Math.min(d,segDist(x,z,a[0],a[1],b[0],b[1]));}return d;}
+const creekW=(x,z)=>1.15+(fbm(x*.4+9,z*.4)-.5)*.7;
+const inCreek=(x,z)=>creekDist(x,z)<creekW(x,z)&&!(onPlateau(x,z)&&z>ridgeZ(x)-.6);
 const rand=(()=>{let a=0x9e3779b9;return ()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};})();
 const clamp=(v,a,b)=>v<a?a:v>b?b:v,lerp=(a,b,t)=>a+(b-a)*t,smooth=t=>t*t*(3-2*t);
 function hash(x,z){let h=Math.imul((x|0)*374761393+(z|0)*668265263,1274126177);h^=h>>>13;h=Math.imul(h,1103515245);return ((h>>>0)&0xffff)/65535;}
@@ -26,7 +37,7 @@ const LAYERS={
     ||(x>CORN.x0-.6&&x<CORN.x1+.6&&z>CORN.z0-.6&&z<CORN.z1+.6)
     ||(Math.hypot(x+60.6,z-1.2)<3.0+j)||(x>-7+j&&x<7-j&&z>-9.6&&z<-7.2+j*.5);},
   stone:(x,z)=>(Math.abs(z+6)<2.6&&x<-12.5)||Math.hypot(x-48,z+6)<6.6||(Math.abs(z+6)<2.1&&x>24&&x<72)||(Math.abs(x-48)<1.4&&z>-18.6&&z<-6),
-  water:(x,z)=>Math.hypot(x-pond.x,z-pond.z)<pond.r+(fbm(x*.8,z*.8)-.5)*.9&&!(x>pond.x-1.1&&x<pond.x+1.1&&z<pond.z-pond.r+4.2),
+  water:(x,z)=>(Math.hypot(x-pond.x,z-pond.z)<pond.r+(fbm(x*.8,z*.8)-.5)*.9&&!(x>pond.x-1.1&&x<pond.x+1.1&&z<pond.z-pond.r+4.2))||inCreek(x,z),
   dark:(x,z)=>Math.max(B.x0-x,x-B.x1,B.z0-z,z-B.z1)>-1||((x<-16&&z>6)||(z>28))&&fbm(x*.22+70,z*.22)>.5,
 };
 function terr(x,z){if(LAYERS.water(x,z))return 'water';if(LAYERS.stone(x,z))return 'stone';if(LAYERS.dirt(x,z))return 'dirt';return 'grass';}
@@ -50,6 +61,8 @@ function reserve(x0,z0,x1,z1){BLOCK.push([Math.min(x0,x1),Math.min(z0,z1),Math.m
 function clearSpot(x,z,m){m=m||0;
   for(const r of BLOCK)if(x>r[0]-m&&x<r[2]+m&&z>r[1]-m&&z<r[3]+m)return false;
   if(Math.hypot(x-pond.x,z-pond.z)<pond.r+2.5+m)return false;
+  if(creekDist(x,z)<2+m)return false;
+  if(ridgeH(x)>0&&z>ridgeZ(x)-1.4-m&&z<ridgeZ(x)+RIDGE.h+1.4+m)return false;
   if(Math.hypot(x-48,z+6)<8.5+m)return false;
   if(Math.abs(z+6)<3.5+m&&x<-12)return false;
   if(Math.hypot(x-crossPos.x,z-crossPos.z)<4.5+m)return false;
@@ -113,6 +126,20 @@ function buildWorld(){
   building('house_a',-46,-9.6,{jack:1});
   // crossroads shrine
   put('signpost',crossPos.x-1.6,crossPos.z-1.2,.2,{label:'FARM'});
+  // ---------- Marrow Creek: covered bridge on Route 9, footbridge in the west woods, falls off the ridge
+  put('cbridge',BRIDGE.x,BRIDGE.z,0,{night:'cbridge_n',kind:'bld'});addSeg(BRIDGE.x-2.9,-9.1,BRIDGE.x+2.9,-9.1,.15);addSeg(BRIDGE.x-2.9,-2.9,BRIDGE.x+2.9,-2.9,.15);
+  put('footbridge',FOOT.x,FOOT.z,0,{kind:'flat'});
+  obj('falls',-19.2,ridgeZ(-19.2)+RIDGE.h+.15,{kind:'anim',fps:8});
+  {const skip=(x,z)=>(Math.abs(z+6)<3.1&&Math.abs(x-BRIDGE.x)<3.4)||(Math.abs(z-FOOT.z)<.75&&Math.abs(x-FOOT.x)<2);
+    for(let i=0;i<CREEK.length-1;i++){const a=CREEK[i],b=CREEK[i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.ceil(L/.8);
+      for(let k=0;k<n;k++){const x1=lerp(a[0],b[0],k/n),z1=lerp(a[1],b[1],k/n),x2=lerp(a[0],b[0],(k+1)/n),z2=lerp(a[1],b[1],(k+1)/n);if(skip(x1,z1)||skip(x2,z2))continue;addSeg(x1,z1,x2,z2,.95);}}}
+  // the ridge face blocks the way north
+  for(let x=RIDGE.x0;x<RIDGE.x1;x+=.8){if(ridgeH(x)<.3)continue;addSeg(x,ridgeZ(x)+.9,x+.8,ridgeZ(x+.8)+.9,.5);}
+  // ---------- the farm: red barn + silo east of the field, windpump, mailbox, hens
+  building('barn',16,-9.6,{porch:false});put('silo',20.6,-12.6,.8);reserve(11.5,-15,22,-8.6);
+  fenceLine(8.5,-3.9,13.5,-3.9);fenceLine(8.5,-3.9,8.5,-.2);fenceLine(13.5,-3.9,13.5,-.2);fenceLine(8.5,-.2,10,-.2);fenceLine(12,-.2,13.5,-.2);reserve(8,-4.4,14,.4);
+  put('windpump',-9.4,2.6,.45);obj('blades',-9.4,2.62,{kind:'anim',fps:6,yoff:135});
+  put('mailbox',-9.9,-8.3,.15);
   // ---------- woods & trees: thick pines outside the valley and in the west/south woods, autumn trees in the open
   scatter(560,2.2,()=>{const r=rand();return r<.36?'pine_0':r<.72?'pine_1':r<.86?'pine_o0':'pine_o1';},(x,z)=>{const out=Math.max(B.x0-x,x-B.x1,B.z0-z,z-B.z1);
     const woods=(x<-14&&z>4)||(z>26&&x<30)||(x>10&&x<26&&z>8&&z<16)||(z<-20&&x<26);return (out>-2||woods)&&clearSpot(x,z,.8);},.35);

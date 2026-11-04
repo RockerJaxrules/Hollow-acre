@@ -5,6 +5,12 @@ function frameOf(name,clip,t,dur){const m=SPR[name];if(!m||!m.clips)return 0;con
   if(dur)return a+Math.min(b-a,Math.floor(clamp(t/dur,0,.999)*(b-a+1)));
   if(clip==='idle')return Math.floor(t*f[2])%nf;return a+Math.floor(t*f[2])%(b-a+1);}
 function charSprite(e,name){const clip=e.clip||'idle';return [name,clip];}
+// shadows: light from the upper left, so everything that stands up throws its shadow down and to the right
+function castShadow(o,X,Y){const m=SPR[o.spr];if(!m||o.kind==='fence'||o.kind==='anim')return;ctx2.fillStyle='rgba(8,16,6,.26)';
+  if(o.kind==='bld'){const f=m.foot||[-3,0,3,0];const x0=X+f[0]*PPM,x1=X+f[2]*PPM,h=Math.min(64,m.fh*.42),d=h*.55;
+    ctx2.beginPath();ctx2.moveTo(x1,Y-h);ctx2.lineTo(x1+d,Y-h+d*.8);ctx2.lineTo(x1+d,Y+5);ctx2.lineTo(x0+10,Y+5);ctx2.lineTo(x0,Y);ctx2.lineTo(x1,Y);ctx2.closePath();ctx2.fill();return;}
+  if(o.kind==='tree'||o.kind==='pine'){ctx2.beginPath();ctx2.ellipse(X+8,Y+2,o.kind==='pine'?17:22,7,0,0,Math.PI*2);ctx2.fill();return;}
+  const w=Math.max(5,Math.min(26,m.fw*.42));ctx2.beginPath();ctx2.ellipse(X+w*.35,Y+1,w,w*.32,0,0,Math.PI*2);ctx2.fill();}
 function shadow(x,y,w){ctx2.fillStyle='rgba(10,14,8,.32)';ctx2.beginPath();ctx2.ellipse(x,y,w,w*.38,0,0,Math.PI*2);ctx2.fill();}
 let nightK=0,camT={x:0,z:0},titleT=0;
 function render(dt,now){const t=now/1000;
@@ -35,7 +41,7 @@ function render(dt,now){const t=now/1000;
   // collect drawables
   const D=[];const pad=200;
   for(const o of OBJ){if(o.hide)continue;const X=sx(o.x),Y=sz(o.z);if(X<-pad||X>VW+pad||Y<-60||Y>VH+pad+260)continue;
-    if(o.kind==='deco'){drawSpr('leaves_'+o.v,X,Y);continue;}D.push({z:o.z,o});}
+    if(o.kind==='deco'){drawSpr('leaves_'+o.v,X,Y);continue;}if(o.kind==='flat'){drawSpr(o.spr,X,Y);continue;}castShadow(o,X,Y);D.push({z:o.z,o});}
   for(const tl of tiles)if(tl.crop){const c=tl.crop;D.push({z:tl.z+.2,crop:tl});}
   for(const n of npcs)if(n.vis)D.push({z:n.z,npc:n});
   if(S.mode!=='title'&&!(cine&&cine.hidePlayer))D.push({z:P.z,player:true});
@@ -49,11 +55,10 @@ function render(dt,now){const t=now/1000;
   if(S.hour>=19.5&&!S.bound)D.push({z:crossPos.z+2.6,peddler:true});
   for(const g of ghosts)if(g.t>0)D.push({z:g.z,ghost:g});
   if(ritual&&ritual.hat)D.push({z:ritual.hat.z,hat:true});
-  mindDrawables(D);D.sort((a,b)=>a.z-b.z);
+  mindDrawables(D);lifeDrawables(D,t);D.sort((a,b)=>a.z-b.z);
   for(const d of D){
-    if(d.o){const o=d.o;const X=sx(o.x),Y=sz(o.z);let a;
+    if(d.o){const o=d.o;const X=sx(o.x),Y=sz(o.z);let a;if(o.kind==='anim'){drawSpr(o.spr,X,Y-(o.yoff||0),'a','S',Math.floor(t*o.fps));continue;}
       if((o.kind==='tree'||o.kind==='pine'||o.kind==='bld')&&P.z<o.z-.2){const m=SPR[o.spr];if(m){const px=sx(P.x),py=sz(P.z)-30;const f=m.foot||[0,0,0,0];const x0=o.kind==='bld'?X+f[0]*PPM:X-m.fw*.35,x1=o.kind==='bld'?X+f[2]*PPM:X+m.fw*.35;if(px>x0&&px<x1&&py>Y-m.ay&&py<Y&&P.z>o.z-(o.kind==='bld'?8:4))a=.55;}}
-      if(o.kind==='tree'||o.kind==='pine')shadow(X,Y,14);
       if(o.clipw&&o.clipw<1.99){const m=SPR[o.spr],im=IMG[m.src];if(im){const w=Math.round(o.clipw*PPM),dx=Math.round(X-m.ax),dy=Math.round(Y-m.ay);ctx2.drawImage(im,0,0,w,m.fh,dx,dy,w,m.fh);ctx2.drawImage(im,m.fw-9,0,9,m.fh,dx+w-1,dy,9,m.fh);}}
       else drawSpr(o.spr,X,Y,null,null,0,{alpha:a});
       if(o.night&&SPR[o.night]&&nightK>0)drawSpr(o.night,X,Y,null,null,0,{alpha:(a||1)*nightK});
@@ -86,7 +91,7 @@ function render(dt,now){const t=now/1000;
     else if(d.mind){d.draw();}
     else if(d.hat){drawSpr('pumpkin',sx(ritual.hat.x),sz(ritual.hat.z));}
   }
-  partsDraw();
+  partsDraw();lifeOver(t);
   // weather: falling leaves (day), rain (storm), fog (night)
   if(nightK<.8){for(let i=0;i<24;i++){const s=hash(i,3);const x=((s*977+t*14*(.5+s))%(VW+40))-20,y=((hash(i,5)*VH+t*(18+s*20))%(VH+20))-10;ctx2.fillStyle=['#d0702a','#b8521c','#e0a040','#8a3a18'][i%4];ctx2.globalAlpha=1-nightK;ctx2.fillRect(Math.round(x+Math.sin(t*2+i)*6),Math.round(y),2,1);}ctx2.globalAlpha=1;}
   if(S.storm&&isNight()){ctx2.strokeStyle='rgba(170,190,220,.35)';ctx2.beginPath();for(let i=0;i<90;i++){const x=(hash(i,1)*VW+t*40)%VW,y=(hash(i,2)*VH+t*620)%VH;ctx2.moveTo(Math.round(x),Math.round(y));ctx2.lineTo(Math.round(x-2),Math.round(y+7));}ctx2.stroke();}
@@ -106,6 +111,7 @@ function render(dt,now){const t=now/1000;
     if(S.mode!=='title'){const on=lanternOn()?1:0;const sput=sputT>0?(Math.random()<.5?.15:.6):1;const fuel=S.fuel<15?(.6+.4*Math.random()):1;const k=L*fl*sput*fuel*(on?1:.12);
       const X=sx(P.x),Y=sz(P.z)-22;glowAt(X,Y,S.flashlight?92:78,[255,196,120],.95*k);
       const ang=Math.atan2(P.fz,P.fx);coneAt(X,Y,ang,S.flashlight?.62:.5,(S.flashlight?11:8.5)*PPM,[255,214,150],.8*k);}
+    lifeLight(t,L);
     if(H.vis&&H.dir!=='N'){glowAt(sx(H.x),sz(H.z)-94,10,[255,40,20],.9*H.alpha);}
     for(const g of ghosts)if(g.t>0)glowAt(sx(g.x),sz(g.z)-94,8,[255,40,20],g.t*2);}
   if(flashT>0){lctx.globalCompositeOperation='lighter';lctx.fillStyle=`rgba(210,220,255,${clamp(flashT,0,1)})`;lctx.fillRect(0,0,VW,VH);}
@@ -151,7 +157,9 @@ function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true
   const props=[];const PINES=['pine_0','pine_1','pine_o0','pine_o1'];
   for(let i=0;i<340;i++){const side=i%2?1:-1,z=-i*.95+hash(i,9)*.8,x=side*(4.9+Math.pow(hash(i,1),1.6)*9);
     const k=hash(i,3);props.push({x,z,spr:k<.08?'deadtree':k<.16?'tree_green':PINES[(hash(i,4)*4)|0]});}
-  for(let z=-20;z>-330;z-=31)props.push({x:4.7,z,post:1},{x:-4.7,z:z-15,post:1});
+  for(let i=props.length-1;i>=0;i--)if(props[i].z<-55&&props[i].z>-72)props.splice(i,1);
+  for(let z=-20;z>-330;z-=31)if(z>-52||z<-75)props.push({x:4.7,z,post:1},{x:-4.7,z:z-15,post:1});
+  props.push({x:0,z:-60,spr:'cportal',bridge:1},{x:4.9,z:-34,spr:'mailbox'},{x:-5.2,z:-138,spr:'mailbox'},{x:-15.5,z:-118,spr:'cabin',night:'cabin_n'});
   props.push({x:5.4,z:-48,spr:'signpost'});
   const st={t:0,carX:1.7,carZ:0,yaw:0,spd:13,deerZ:null,figZ:null,mirror:0,flash:0,crashZ:null,done:{},props};SFX.engine(true);
   const once=k=>st.done[k]?false:(st.done[k]=true);
@@ -182,16 +190,20 @@ function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true
 function drawRoad(g,st,t,dt){const W=VW,H_=VH,base=Math.round(H_*.7),cxs=(W>>1)-Math.round((st.carX-1.7)*PPM*.7)-Math.round(1.7*PPM*.5);
   const shk=cam.shake>0?Math.round((Math.random()-.5)*cam.shake*8):0;cam.shake=Math.max(0,cam.shake-dt*1.8);
   const camZ=Math.round(st.carZ*PPM),Y=z=>Math.round(z*PPM)-camZ+base+shk,X=x=>Math.round(x*PPM)+cxs;
-  // grass: LPC tiles with dark patches, scrolling with the road
-  const z0=Math.floor((camZ-base)/32)-1,z1=z0+Math.ceil(H_/32)+2,x0=-Math.ceil(cxs/32)-1,x1=-x0;
-  const dark=(x,z)=>fbm(x*.21+3,z*.21)>.5;
+  // grass: LPC tiles with dark patches and ground clutter, scrolling with the road
+  const z0=Math.floor((camZ-base)/32)-1,z1=z0+Math.ceil(H_/32)+2,x0=-Math.ceil(cxs/32)-1,x1=Math.ceil((W-cxs)/32)+1;
+  const dark=(x,z)=>fbm(x*.21+3,z*.21)>.5,dec=SPR.decor&&IMG[SPR.decor.src];
   for(let j=z0;j<=z1;j++)for(let i=x0;i<=x1;i++){const dx=i*32+cxs,dy=j*32-camZ+base+shk;
-    drawAuto(g,'grass',15,dx,dy,hash(i*3+1,j*7+2));drawAuto(g,'dark',maskAt(dark,i,j),dx,dy,hash(i+11,j+5));}
+    drawAuto(g,'grass',15,dx,dy,hash(i*3+1,j*7+2));drawAuto(g,'dark',maskAt(dark,i,j),dx,dy,hash(i+11,j+5));
+    const h=hash(i*7+3,j*5+1);if(dec&&h>.6&&Math.abs(i+.5)>5){const r=hash(i+2,j+9),v=r<.5?(r*6|0)%3:r<.7?3+(r*10|0)%2:r<.88?5+(r*10|0)%2:7;g.drawImage(dec,v*16,0,16,16,dx+((hash(i,j+3)*16)|0),dy+((hash(i+5,j)*16)|0),16,16);}}
+  // Marrow Creek crosses under the covered bridge
+  {const cz0=-66,cz1=-61.2;if(Y(cz1)>-20&&Y(cz0)<H_+20){for(let z=cz0;z<cz1;z+=1/32){const y=Y(z),w=Math.sin((z-cz0)/(cz1-cz0)*Math.PI);
+      for(const side of [-1,1]){const xa=X(side*3.6),xb=side<0?0:W;g.fillStyle=w<.25?'#5a4a36':((Math.round(z*32+t*24)%9)<1?'#2f8bb8':'#156c99');g.fillRect(Math.min(xa,xb),y,Math.abs(xb-xa),1);}}}}
   // the road strip (Blender-rendered asphalt, seamless every 12 m)
   const R=SPR.road,rim=IMG[R.src];if(rim){const rh=R.fh;let y0=((-camZ+base+shk)%rh+rh)%rh-rh;for(let y=y0;y<H_;y+=rh)g.drawImage(rim,cxs-R.ax,y);}
-  // y-sorted world things
+  // y-sorted world things, each with a shadow on the ground first
   const D=[];const top=st.carZ-(base+60)/PPM,bot=st.carZ+(H_-base+260)/PPM;
-  for(const p of st.props)if(p.z>top-8&&p.z<bot)D.push(p);
+  for(const p of st.props)if(p.z>top-12&&p.z<bot){D.push(p);if(p.spr&&!p.bridge){g.fillStyle='rgba(6,12,6,.32)';g.beginPath();g.ellipse(X(p.x)+8,Y(p.z)+2,p.spr==='cabin'?100:p.spr==='mailbox'?6:18,p.spr==='cabin'?8:6,0,0,Math.PI*2);g.fill();}}
   if(st.deerZ!==null)D.push({z:st.deerZ,deer:1});
   if(st.figZ!==null)D.push({z:st.figZ,fig:1});
   if(st.mirror>0)D.push({z:st.carZ+5.2,mir:1});
@@ -202,7 +214,8 @@ function drawRoad(g,st,t,dt){const W=VW,H_=VH,base=Math.round(H_*.7),cxs=(W>>1)-
     else if(d.deer){g.save();g.translate(X(.8),Y(d.z));g.rotate(Math.PI/2);drawSpr('deer',0,0);g.restore();}
     else if(d.fig){drawSpr('hollow',X(.15),Y(d.z),'walk','S',0,{scale:2});}
     else if(d.mir){drawSpr('hollow',X(.1),Y(d.z),'walk','N',0,{scale:2,alpha:Math.min(1,st.mirror)});}
-    else drawSpr(d.spr,X(d.x),Y(d.z),null,null,0,d.big?{scale:1.3}:undefined);}
+    else{drawSpr(d.spr,X(d.x),Y(d.z),null,null,0,d.big?{scale:1.3}:undefined);if(d.night)drawSpr(d.night,X(d.x),Y(d.z));}}
+  const inBridge=st.carZ<-60.3&&st.carZ>-67.5;
   // a lightning flash shows it standing in the tree line
   if(st.flash>0){const f=st.flash;if(f>.55)drawSpr('hollow',X(-6.2),Y(st.carZ-9),'walk','S',0,{scale:2});st.flash=Math.max(0,f-dt*2.6);}
   if(st.mirror>0)st.mirror-=dt;
@@ -211,11 +224,17 @@ function drawRoad(g,st,t,dt){const W=VW,H_=VH,base=Math.round(H_*.7),cxs=(W>>1)-
   lctx.globalCompositeOperation='source-over';lctx.fillStyle=`rgb(${amb.map(v=>v|0).join(',')})`;lctx.fillRect(0,0,W,H_);lctx.globalCompositeOperation='lighter';
   const cx=X(st.carX),cy=Y(st.carZ),sn=Math.sin(st.yaw),cs=Math.cos(st.yaw);
   const nose=(dx,dz)=>[cx+(dx*cs+dz*sn)*PPM,cy+(dx*sn-dz*cs)*PPM];
-  for(const s of [-.62,.62]){const [hx,hy]=nose(s,2.2);coneAt(hx,hy,-Math.PI/2+st.yaw,.3,12*PPM,[255,238,196],.75);glowAt(hx,hy,10,[255,240,210],.9);}
+  for(const s of [-.62,.62]){const [hx,hy]=nose(s,2.2);coneAt(hx,hy,-Math.PI/2+st.yaw,.3,12*PPM,[255,238,196],inBridge?.2:.75);glowAt(hx,hy,10,[255,240,210],inBridge?.3:.9);}
+  if(inBridge)glowAt(X(0),Y(-60)-30,80,[255,220,170],.35);
+  {const fy=Y(-118),fx=X(-15.5);if(fy>-200&&fy<H_+60)for(const dx of [-58,58])glowAt(fx+dx,fy-60,26,[255,190,110],.9);}
   glowAt(cx,cy-20,90,[120,110,100],.35);const [tx,ty]=nose(0,-2.2);glowAt(tx,ty,46,[255,26,16],st.mirror>0?.9:.55);
   if(st.mirror>0)glowAt(X(0),Y(st.carZ+5.2)-40,70,[255,30,20],.6*Math.min(1,st.mirror));
   if(st.figZ!==null){glowAt(X(.15)-4,Y(st.figZ)-96,5,[255,40,20],1);glowAt(X(.15)+6,Y(st.figZ)-96,5,[255,40,20],1);}
   g.globalCompositeOperation='multiply';g.drawImage(lightC,0,0);g.globalCompositeOperation='source-over';
+  // foreground: overhanging branches much closer to the camera, so they slide past faster (parallax)
+  if(!st.sil){const m=SPR.pine_1,im=m&&IMG[m.src];if(im){const c=document.createElement('canvas');c.width=m.fw;c.height=m.fh;const q=c.getContext('2d');q.drawImage(im,0,0);q.globalCompositeOperation='source-in';q.fillStyle='#04060a';q.fillRect(0,0,c.width,c.height);st.sil=c;}}
+  if(st.sil){const sp=1.9,per=520;for(let k=-1;k<3;k++){const yy=((-camZ*sp)%per+per)%per+k*per-200;for(const [side,off] of [[-1,0],[1,260]]){const y=Math.round(yy+off)%(per*2)-120;
+      g.globalAlpha=.94;g.drawImage(st.sil,side<0?-st.sil.width*.55:W-st.sil.width*.45,y,st.sil.width*1.8,st.sil.height*1.8);g.globalAlpha=1;}}}
   // mist + rain + splashes
   g.strokeStyle='rgba(170,190,220,.33)';g.beginPath();for(let i=0;i<120;i++){const x=(hash(i,1)*W+t*30)%W,y=(hash(i,2)*H_+t*700)%H_;g.moveTo(Math.round(x),Math.round(y));g.lineTo(Math.round(x-2),Math.round(y+8));}g.stroke();
   g.fillStyle='rgba(200,215,240,.5)';for(let i=0;i<26;i++){const k=Math.floor(t*12+i*7.3);g.fillRect(Math.round(hash(k,i)*W),Math.round(hash(i,k)*H_),1,1);}

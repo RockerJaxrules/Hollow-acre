@@ -281,7 +281,7 @@ const dayScale=[220,261.6,293.7,329.6,392,440,523.3];
 const nightMel=[329.6,392,440,392,329.6,293.7,329.6,0,329.6,392,440,493.9,440,392,329.6,0,261.6,293.7,329.6,293.7,261.6,246.9,220,0];
 function lightning(){flashT=1;const n=2+Math.floor(rand()*3);ghosts=[];if(!S.bound)for(let i=0;i<n;i++){const a=rand()*Math.PI*2,d=5+rand()*5;ghosts.push({x:P.x+Math.cos(a)*d,z:P.z+Math.sin(a)*d*.7,t:.35});}
   setTimeout(()=>SFX.thunder(),300+rand()*900);}
-function update(dt){slamUpdate(dt);mindUpdate(dt);
+function update(dt){slamUpdate(dt);mindUpdate(dt);lifeUpdate(dt);
   const rate=S.hour<20?1/11:1/15;S.hour+=dt*rate;
   if(!S.dusk&&S.hour>=18){S.dusk=true;toast('The sun is going down. Your lantern is lit.',2.6);}
   if(!S.bellRung&&S.hour>=20){S.bellRung=true;SFX.bell();S.storm=S.day>=2&&!S.bound;placeNPCs();
