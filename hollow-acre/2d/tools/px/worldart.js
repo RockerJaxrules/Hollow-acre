@@ -156,6 +156,34 @@ if(K==='barn'){   // gambrel-roof barn: red boards, white trim, X-braced doors, 
   rect(B,ox-1,H-8,ww+2,4,ST[2]);hl(B,ox-1,H-8,ww+2,ST[4]);for(let x=ox;x<ox+ww;x+=9)vl(B,x,H-8,4,ST[1]);
   gs(W/2|0,H-3,W/2-4|0,2,70);
 }
+if(K==='greenhouse'){ // glasshouse: white frame, panes that catch the sky, a hip glass roof, plants pressing against the glass
+  const ox=8,ww=W-16,roofTop=24,roofH=58,wy=roofTop+roofH-4,wh=H-wy-10,GL=PAL.glass,FR=TR;
+  // roof panes
+  for(let y=roofTop;y<roofTop+roofH;y++)for(let x=ox-6;x<ox+ww+6;x++){const j=(y-roofTop)%14,i=(x-ox+6)%22;let c=N?PAL.ink[1]:GL[(y-roofTop)<roofH*.4?4:3];if(!N&&(x+y)%19===0)c=GL[5];if(j===0||i===0)c=FR[3];P(A,x,y,c);}
+  hipify(A,ox-6,ox+ww+5,roofTop,roofTop+roofH-4,Math.round(roofH*.8),[FR[0],FR[1],FR[2],FR[3],FR[4],FR[5]]);
+  rect(A,ox-6,roofTop+roofH-4,ww+12,4,FR[3]);hl(A,ox-6,roofTop+roofH-4,ww+12,FR[5]);hl(A,ox-6,roofTop+roofH-1,ww+12,FR[1]);
+  // walls of glass with leaves inside
+  for(let y=wy;y<wy+wh;y++)for(let x=ox;x<ox+ww;x++){const i=(x-ox)%24,j=(y-wy)%18;let c=N?PAL.lit[(y-wy)<wh/2?2:1]:GL[(y-wy)<wh*.3?3:2];
+    if(!N&&(x-y)%17===0&&(y-wy)<wh*.4)c=GL[5];if(i===0||j===0)c=FR[3];if(i===1)c=FR[1];P(B,x,y,c);}
+  // plants pressed against the glass: round leafy clumps, lit from the upper left, seen through the panes
+  for(let k=0;k<11;k++){const px=ox+8+Math.round(k*(ww-16)/10),py=wy+wh-10-(k%3)*6,r=7+(k%2)*3;for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){const d=(x*x+y*y)/(r*r);if(d>1-hsh(px+x,py+y,4)*.25)continue;const l=-.6*x/r-.7*y/r;
+      const c=G(B,px+x,py+y);if(!c||c[0]>200)continue;const G2=N?[PAL.moss[0],PAL.moss[1],PAL.moss[1]]:[PAL.moss[1],PAL.moss[2],PAL.sage[3]];P(B,px+x,py+y,G2[l>.3?2:l>-.3?1:0]);}
+    if(!N&&k%3===0){P(B,px-1,py-2,PAL.red[4]);P(B,px+2,py,PAL.mustard[5]);}}
+  for(let x=ox;x<ox+ww;x++){P(B,x,wy,FR[5]);P(B,x,wy+1,FR[2]);}
+  // door
+  {const dw=22,dx=(W/2-dw/2)|0,dh=36,dy=wy+wh-dh;rect(B,dx-2,dy-2,dw+4,dh+2,FR[4]);for(let y=0;y<dh;y++)for(let i=0;i<dw;i++)P(B,dx+i,dy+y,N?PAL.lit[3]:GL[i<dw/2?3:2]);vl(B,dx+dw/2|0,dy,dh,FR[3]);P(B,dx+dw/2+3|0,dy+dh/2|0,PAL.brass[3]);}
+  rect(B,ox-2,wy+wh,ww+4,6,ST[2]);hl(B,ox-2,wy+wh,ww+4,ST[4]);for(let x=ox;x<ox+ww;x+=10)vl(B,x,wy+wh,6,ST[1]);
+  gs(W/2|0,H-3,W/2-4|0,2,70);}
+if(K==='mineportal'){ // timber-framed mine mouth cut into the cliff, a lantern on a nail, rails running out of the dark
+  const cx=W/2|0,base=H-4,ow=46,oh=50,top=base-oh;
+  for(let y=top-6;y<base;y++)for(let x=-ow/2-10;x<ow/2+10;x++){const r=((y)/7|0),o=r%2?5:0;P(A,cx+x,y,RK[(hsh((x+o)>>3,r,4)>.5)?2:3]);}
+  for(let y=0;y<oh;y++)for(let x=-ow/2;x<ow/2;x++){const dy=Math.max(0,14-y),rr=ow/2;if(y<14&&(x*x)/(rr*rr)+(dy*dy)/(14*14)>1)continue;P(A,cx+x,top+y,y<22?PAL.ink[0]:PAL.ink[1]);}
+  for(const px of [cx-ow/2-6,cx+ow/2]){rect(B,px,top-2,6,oh+2,WD[2]);vl(B,px,top-2,oh+2,WD[4]);vl(B,px+5,top-2,oh+2,WD[0]);}
+  rect(B,cx-ow/2-10,top-8,ow+20,7,WD[3]);hl(B,cx-ow/2-10,top-8,ow+20,WD[5]);hl(B,cx-ow/2-10,top-2,ow+20,WD[0]);
+  rect(B,cx-14,top-20,28,10,WD[2]);frame(B,cx-14,top-20,28,10,WD[4],WD[0]);drawText(B,'MINE',cx-8,top-18,PAL.cream[3]);
+  rect(B,cx+ow/2+8,top+8,5,7,N?PAL.lit[5]:PAL.brass[2]);P(B,cx+ow/2+10,top+6,PAL.slate[3]);
+  for(const rx of [cx-9,cx+8])for(let y=top+24;y<base;y++){P(B,rx,y,PAL.slate[3]);P(B,rx+1,y,PAL.slate[1]);}for(let y=top+26;y<base;y+=5)hl(B,cx-12,y,24,WD[1]);
+  gs(cx,base,ow/2+8,2,60);}
 if(K==='silo'){   // grain silo: shaded cylinder, metal bands, domed cap, ladder
   const x0=4,w=W-8,top=20,base=H-4;
   for(let y=top;y<base;y++)for(let x=0;x<w;x++){const t=x/w;const k=t<.18?5:t<.4?4:t<.7?3:t<.88?2:1;let c=PAL.stone[k];if((y-top)%14===0)c=shade(c,.75);if((y-top)%14===1)c=shade(c,1.1);P(A,x0+x,y,c);}

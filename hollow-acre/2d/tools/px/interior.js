@@ -2,7 +2,7 @@
 SEED=CFG.seed||7;
 const W=CFG.w,H=CFG.h,N=!!CFG.night;
 const A=layer('art',W,H),B=layer('details',W,H),SHD=layer('shadow',W,H);
-const WD=PAL.wood,ST=PAL.stone,TR=PAL.white,RD=PAL.red,K=CFG.kind;
+const WD=PAL.wood,ST=PAL.stone,TR=PAL.white,RD=PAL.red,K=CFG.kind;const RK=['#2a2220','#3a302c','#4a3e38','#5e5048'].map(HEX);
 function gs(cx,cy,rx,ry,a){for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++)if(x*x/(rx*rx)+y*y/(ry*ry)<=1)P(SHD,cx+x,cy+y,PAL.out[0],a||70);}
 function planks(L,x0,y0,w,h,R,pw){pw=pw||8;for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const row=Math.floor((y-y0)/pw),off=(row*37)%61,seg=Math.floor((x-x0+off)/44);
   let k=2+((hsh(seg,row,3)>.6)?1:0)-((hsh(seg,row,4)>.85)?1:0);if((y-y0)%pw===0)k=0;else if((y-y0)%pw===1)k=Math.min(4,k+1);if((x-x0+off)%44===0)k=0;if(hsh(x,y,9)>.985)k=1;P(L,x,y,R[Math.max(0,Math.min(R.length-1,k))]);}}
@@ -25,6 +25,9 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   if(R.theme==='store'){brick(A,x0,8,fw,wallH,PAL.red);rect(A,x0,8+wallH-22,fw,22,WD[2]);for(let x=x0;x<x0+fw;x+=7)vl(A,x,8+wallH-22,22,WD[1]);hl(A,x0,8+wallH-22,fw,WD[4]);}
   if(R.theme==='church'){plaster(A,x0,8,fw,wallH,TR);rect(A,x0,8+wallH-26,fw,26,WD[1]);for(let x=x0;x<x0+fw;x+=24)frame(A,x+2,8+wallH-23,20,20,WD[3],WD[0]);hl(A,x0,8+wallH-26,fw,WD[3]);}
   if(R.theme==='garage'){for(let y=8;y<8+wallH;y++)for(let x=x0;x<x0+fw;x++){const r=Math.floor((y-8)/10),o=r%2?9:0,b=(x-x0+o)%18;let c=ST[(hsh(Math.floor((x-x0+o)/18),r,5)>.5)?3:2];if(b===0||(y-8)%10===9)c=ST[1];else if((y-8)%10===0)c=ST[4];P(A,x,y,c);}}
+  if(R.theme==='mine'){for(let y=8;y<8+wallH;y++)for(let x=x0;x<x0+fw;x++){const n=hsh(x>>3,(y+(x>>4))>>3,5)*.7+hsh(x,y,6)*.3;P(A,x,y,ST[n>.75?3:n<.25?0:1]);}
+    for(let x=x0;x<x0+fw;x+=40)for(let y=8;y<8+wallH;y++){P(A,x,y,WD[2]);P(A,x+1,y,WD[1]);}for(let x=x0;x<x0+fw;x++){P(A,x,14,WD[2]);P(A,x,15,WD[0]);}}
+  if(R.theme==='glass'){for(let y=8;y<8+wallH;y++)for(let x=x0;x<x0+fw;x++){const i=(x-x0)%24,j=(y-8)%20;let c=N?PAL.ink[1]:PAL.glass[(y-8)<wallH*.5?4:3];if(!N&&(x+y)%23===0)c=PAL.glass[5];if(i===0||j===0)c=TR[3];P(A,x,y,c);}}
   // ceiling beam line, crown moulding
   rect(A,x0,0,fw,8,WD[1]);hl(A,x0,7,fw,WD[3]);for(let x=x0;x<x0+fw;x+=48)rect(A,x,0,10,8,WD[2]);
   for(const w of R.windows||[]){windowW(B,x0+w[0]*32-(w[2]||28)/2|0,14+(w[3]||8),w[2]||28,w[4]||34,R.theme==='church');}
@@ -32,6 +35,9 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   if(R.theme==='cabin'||R.theme==='store')planks(A,x0,top,fw,fd,WD,8);
   if(R.theme==='church')tilesF(A,x0,top,fw,fd,ST,16);
   if(R.theme==='garage')concrete(A,x0,top,fw,fd);
+  if(R.theme==='mine'){for(let y=top;y<top+fd;y++)for(let x=x0;x<x0+fw;x++){const n=hsh(x>>4,(y+(x>>3))>>4,8)*.8+hsh(x,y,9)*.2;P(A,x,y,n>.78?RK[3]:n>.45?RK[2]:RK[1]);}
+    for(let i=0;i<40;i++){const px=x0+(hsh(i,1,4)*fw|0),py=top+(hsh(i,2,4)*fd|0);P(A,px,py,ST[3]);P(A,px+1,py,ST[2]);}}
+  if(R.theme==='glass'){tilesF(A,x0,top,fw,fd,ST,16);}
   // skirting where floor meets the back wall + ambient occlusion
   rect(A,x0,top-8,fw,8,WD[1]);hl(A,x0,top-8,fw,WD[3]);for(let y=0;y<10;y++)for(let x=x0;x<x0+fw;x++){const c=G(A,x,top+y);if(c)P(A,x,top+y,shade(c,.62+y*.038));}
   for(let y=top;y<front;y++)for(let x=0;x<14;x++){for(const xx of [x0+x,x0+fw-1-x]){const c=G(A,xx,y);if(c)P(A,xx,y,shade(c,.66+x*.024));}}

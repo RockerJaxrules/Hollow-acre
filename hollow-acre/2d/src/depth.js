@@ -52,7 +52,7 @@ function sunState(){const h=S.hour;if(S.room||h<6.2||h>19.4)return null;const t=
 function dxSil(spr){let c=DX.sil['s_'+spr];if(c)return c;const m=SPR[spr],im=m&&IMG[m.src];if(!im)return null;c=document.createElement('canvas');c.width=m.fw;c.height=m.fh;const q=c.getContext('2d');
   q.drawImage(im,0,0,m.fw,m.fh,0,0,m.fw,m.fh);q.globalCompositeOperation='source-in';q.fillStyle='#0a1206';q.fillRect(0,0,m.fw,m.fh);DX.sil['s_'+spr]=c;return c;}
 const SUN_SKIP=new Set(['deco','flat','anim','corn']);
-function sunBegin(){DX.sun=sunState();DX.lamp=null;if(!DX.sun&&!S.room&&S.mode!=='title'&&isNight()&&lanternOn()){DX.lamp={x:sx(P.x),y:sz(P.z)-6,a:.55};DX.sun={sx:0,sy:0,a:.55,lamp:1};}if(!DX.sun)return;const g=dxCanvas();g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,VW,VH);DX.sg=g;}
+function sunBegin(){DX.sun=sunState();DX.lamp=null;if(S.introDrive&&DX.carLamp&&cine){DX.lamp={x:DX.carLamp.x,y:DX.carLamp.y,a:.6};DX.sun={sx:0,sy:0,a:.6,lamp:1};}else if(!DX.sun&&!S.room&&S.mode!=='title'&&isNight()&&lanternOn()){DX.lamp={x:sx(P.x),y:sz(P.z)-6,a:.55};DX.sun={sx:0,sy:0,a:.55,lamp:1};}if(!DX.sun)return;const g=dxCanvas();g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,VW,VH);DX.sg=g;}
 // returns true when it handled the shadow (so the flat ellipse isn't needed)
 function sunShadow(o,X,Y){const s=DX.sun;if(!s||SUN_SKIP.has(o.kind))return false;const m=SPR[o.spr];if(!m)return false;const c=dxSil(o.spr);if(!c)return false;
   let shx=s.sx,shy=s.sy;if(s.lamp){const dx=X-DX.lamp.x,dy=Y-DX.lamp.y,d=Math.hypot(dx,dy);if(d>230||d<6)return true;const k=clamp(d/110,.25,1.5);shx=dx/d*k;shy=dy/d*k;}

@@ -188,6 +188,13 @@ function buildWorld(){
   for(let x=-196;x<-75;x+=1.7+rand()*1.6)for(const side of [-1,1]){if(rand()<.18)continue;const z=side<0?-11.2-rand()*5.5:-.6+rand()*5.5;const r=rand();
     const sp=r<.07?'deadtree':r<.32?['maple_orange','maple_red','maple_gold'][(rand()*3)|0]:['pine_0','pine_1','pine_o0','pine_o1'][(rand()*4)|0];obj(sp,x+(rand()-.5),z,{kind:sp.startsWith('pine')?'pine':'tree'});}
   put('mailbox',-121,-9.7);put('signpost',-88,-10.2);
+  // farms along the old road: split-rail fences with gaps, a farmstand, barrels, hay, a broken cart left in the ditch
+  for(const [x0,x1,z] of [[-190,-176,-10.9],[-166,-150,-10.9],[-140,-128,-1.3],[-118,-104,-10.9],[-98,-86,-1.3]]){fenceLine(x0,z,x1,z);for(let x=x0;x<x1;x+=1.7)for(const o of OBJ)if((o.kind==='tree'||o.kind==='pine')&&Math.abs(o.x-x)<1&&Math.abs(o.z-z)<.9)o.hide=true;}
+  for(const o of OBJ)if((o.kind==='tree'||o.kind==='pine')&&o.x>-127&&o.x<-113&&o.z<-9&&o.z>-16)o.hide=true;
+  put('crate',-124.6,-10.2,.3);put('crate',-123.8,-10.5,.3);put('sacks',-122.9,-10.1);put('jack',-124.2,-9.7,0,{glow:1});put('pumpkin',-123.3,-9.6);put('pumpkin_b',-125.1,-9.8);
+  put('board',-121.9,-10.9,0);put('hay',-119.6,-11.2);put('barrel',-118.4,-10.4,.3);put('barrel',-117.8,-10.1,.3);lamp(-120.6,-9.9);
+  put('cart',-145.5,.4);put('barrel',-147.2,.1,.3);put('hay',-160.2,-11.6);put('hay',-158.8,-11.4);put('barrel',-100.5,-.1,.3);put('crate',-99.6,-.3,.3);
+  for(const [x,z] of [[-180,-.4],[-136,-11.4],[-110,-.6],[-92,-11.1]])put('signpost',x,z);
   addRect(B.x0-20,B.z0-14,B.x0-6.5,-9);addRect(B.x0-20,-3,B.x0-6.5,B.z1+14);
 }
 const lamps=[];
@@ -197,3 +204,11 @@ function fenceLine(x1,z1,x2,z2,skip,type){const fh=(type||'fence')+'_h',fv=(type
   addSeg(x1,z1,x2,z2,.14);fenceDefs.push([x1,z1,x2,z2]);
   if(vert){const zs=Math.min(z1,z2),ze=Math.max(z1,z2);for(let z=zs+1;z<=ze+.01;z+=1)obj(fv,x1,z,{kind:'fence'});}
   else{const xs=Math.min(x1,x2),xe=Math.max(x1,x2);for(let x=xs;x<xe-.01;x+=2){obj(fh,x,z1+.1,{kind:'fence',clipw:Math.min(2,xe-x)});}}}
+// every solid thing gets a collider: anything standing that nothing blocks yet gets one sized from its footprint
+function autoCollide(){const SOLID=new Set(['tree','pine','bld','lamp','prop','bush','fence','wreck','furn','bin']);let added=0;
+  const blockedAt=(x,z)=>circles.some(c=>Math.hypot(c.x-x,c.z-z)<c.r+.05)||rects.some(r=>x>r.x0-.05&&x<r.x1+.05&&z>r.z0-.05&&z<r.z1+.05)||
+    segs.some(s=>{const dx=s.x2-s.x1,dz=s.z2-s.z1,L=dx*dx+dz*dz||1;const t=clamp(((x-s.x1)*dx+(z-s.z1)*dz)/L,0,1);return Math.hypot(s.x1+dx*t-x,s.z1+dz*t-z)<(s.r||.15)+.05;});
+  for(const o of OBJ){if(o.hide||!SOLID.has(o.kind)||o.noCol||(o.debris&&o.debris!=='rock'&&o.debris!=='stump'))continue;if(o.kind==='fence'&&o.spr.endsWith('_h')){continue;}
+    const cx=o.x,cz=o.z-.1;if(blockedAt(cx,cz))continue;const f=footBox(o);if(!f)continue;const w=f[2]-f[0],d=f[3]-f[1];
+    if(w>1.6||d>1.2)addRect(f[0]+.08,Math.max(f[1],o.z-1.2)+.05,f[2]-.08,o.z-.05);else addCircle(cx,cz,clamp(Math.min(w,d+.3)*.45,.18,.6));added++;}
+  return added;}

@@ -14,7 +14,7 @@ function castShadow(o,X,Y){if(sunShadow(o,X,Y)){if(o.kind==='tree'||o.kind==='pi
 function shadow(x,y,w){ctx2.fillStyle='rgba(10,14,8,.32)';ctx2.beginPath();ctx2.ellipse(x,y,w,w*.38,0,0,Math.PI*2);ctx2.fill();}
 let nightK=0,camT={x:0,z:0},titleT=0;
 function render(dt,now){const t=now/1000;
-  const amb=ambient(S.hour);nightK=clamp((S.hour-18.4)/1.8,0,1);if(S.hour<6.6)nightK=Math.max(nightK,clamp((6.6-S.hour)/1.6,0,1));nightAmt=nightK;
+  const amb=ambient(S.hour);nightK=clamp((S.hour-18.4)/1.8,0,1);if(S.hour<6.6)nightK=Math.max(nightK,clamp((6.6-S.hour)/1.6,0,1));if(S.room==='mine')nightK=1;nightAmt=nightK;
   // camera
   let fx=P.x,fz=P.z-.6;if(S.room){const R=ROOMS[S.room];fx=R.ox+R.w/2;fz=R.oz+R.d/2-.5;}if(S.mode==='title'){fx=Math.sin(t*.05)*8;fz=-4+Math.cos(t*.04)*4;}
   if(cine&&cine.cam){fx=cine.cam.x;fz=cine.cam.z;}
@@ -27,6 +27,7 @@ function render(dt,now){const t=now/1000;
   // ground chunks
   const left=cam.px-(VW>>1),top=cam.pz-Math.round(VH*.56);const c0=Math.floor(left/CH),c1=Math.floor((left+VW)/CH),r0=Math.floor(top/CH),r1=Math.floor((top+VH)/CH);
   for(let cz=r0;cz<=r1;cz++)for(let cx=c0;cx<=c1;cx++)ctx2.drawImage(chunk(cx,cz),cx*CH-left,cz*CH-top);
+  interiorGround();
   // build one neighbouring chunk per frame ahead of time so walking never waits on ground generation
   {let done=false;for(let cz=r0-1;cz<=r1+1&&!done;cz++)for(let cx=c0-1;cx<=c1+1&&!done;cx++)if(!chunks.has(cx+','+cz)){chunk(cx,cz);done=true;}}
   // water shimmer
@@ -49,7 +50,7 @@ function render(dt,now){const t=now/1000;
   if(hlTile&&S.mode==='play'){ctx2.strokeStyle='rgba(255,240,200,.75)';ctx2.lineWidth=1;ctx2.strokeRect(Math.round(sx(hlTile.x-.5))+.5,Math.round(sz(hlTile.z-.5))+.5,31,31);}
   // skid marks & blood at the crash site
   if(!S.introDrive&&onScreen(-56,-5,200)){ctx2.fillStyle='rgba(0,0,0,.3)';for(let k=0;k<2;k++){ctx2.save();ctx2.translate(sx(-58.6+k*.9),sz(-1.6+k*.25));ctx2.rotate(.42);ctx2.fillRect(-200,0,200,3);ctx2.restore();}}
-  interiorGround();mindGround();findsDraw(t);farmDraw();depthWater(t);mindReflection();
+  mindGround();findsDraw(t);farmDraw();depthWater(t);mindReflection();
   // collect drawables
   const D=[];const pad=200;sunBegin();
   for(const o of OBJ){if(o.hide)continue;const X=sx(o.x),Y=sz(o.z);if(X<-pad||X>VW+pad||Y<-60||Y>VH+pad+260)continue;
@@ -68,7 +69,7 @@ function render(dt,now){const t=now/1000;
   if(S.hour>=19.5&&!S.bound)D.push({z:crossPos.z+2.6,peddler:true});
   for(const g of ghosts)if(g.t>0)D.push({z:g.z,ghost:g});
   if(ritual&&ritual.hat)D.push({z:ritual.hat.z,hat:true});
-  if(cine&&cine.drawables)cine.drawables(D);mindDrawables(D);mindWatcherDraw(D);lifeDrawables(D,t);D.sort((a,b)=>a.z-b.z);
+  if(cine&&cine.drawables)cine.drawables(D);mineDrawables(D);mindDrawables(D);mindWatcherDraw(D);lifeDrawables(D,t);D.sort((a,b)=>a.z-b.z);
   for(const d of D){
     if(d.o){const o=d.o;const X=sx(o.x),Y=sz(o.z);let a;if(o.kind==='anim'){drawSpr(o.spr,X,Y-(o.yoff||0),'a','S',Math.floor(t*o.fps+(o.ph||0)+(o.grass?Math.sin(t*.7+o.x*.15)*1.2:0)));continue;}
       if((o.kind==='tree'||o.kind==='pine'||o.kind==='bld')&&P.z<o.z-.2){const m=SPR[o.spr];if(m){const px=sx(P.x),py=sz(P.z)-30;const f=m.foot||[0,0,0,0];const x0=o.kind==='bld'?X+f[0]*PPM:X-m.fw*.35,x1=o.kind==='bld'?X+f[2]*PPM:X+m.fw*.35;if(px>x0&&px<x1&&py>Y-m.ay&&py<Y&&P.z>o.z-(o.kind==='bld'?8:4))a=.55;}}
@@ -181,7 +182,7 @@ function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true
       if(!st.crashed)D.push({z:st.car.z+.2,mind:1,draw(){const f=Math.max(0,Math.min(6,Math.round(st.car.yaw/.15)));drawSpr('car_east',sx(st.car.x),sz(st.car.z)+(T>11.55&&T<11.75?-2:0),'yaw','S',f);}});
       if(st.deer)D.push({z:st.deer.z,mind:1,draw(){ctx2.save();ctx2.translate(Math.round(sx(st.deer.x)),Math.round(sz(st.deer.z)));ctx2.rotate(Math.PI/2);drawSpr('deer',0,0);ctx2.restore();}});
       if(st.fig)D.push({z:st.fig.z,mind:1,draw(){drawSpr('hollow',sx(st.fig.x),sz(st.fig.z),'walk',st.fig.dir,0,{alpha:st.fig.a});}});},
-    light(L){glowAt(VW*.5,VH*.45,Math.max(VW,VH)*.7,[34,40,62],.55);if(st.crashed)return;const c=st.car,X=sx(c.x),Y=sz(c.z)-12,a=c.yaw,cs=Math.cos(a),sn=Math.sin(a);
+    light(L){glowAt(VW*.5,VH*.45,Math.max(VW,VH)*.7,[34,40,62],.55);if(st.crashed){DX.carLamp=null;return;}const c=st.car,X=sx(c.x),Y=sz(c.z)-12,a=c.yaw,cs=Math.cos(a),sn=Math.sin(a);DX.carLamp={x:X+2.3*cs*PPM,y:Y+2.3*sn*PPM*.8+12};
       for(const s of [-.55,.55]){const hx=X+(2.1*cs-s*sn)*PPM,hy=Y+(2.1*sn+s*cs)*PPM*.8;coneAt(hx,hy,a,.28,13*PPM,[255,238,196],.8);glowAt(hx,hy,10,[255,240,210],.9);}
       glowAt(X-2.2*cs*PPM,Y-2.2*sn*PPM,40,[255,26,16],st.mir>0?.95:.55);glowAt(X,Y,70,[120,110,100],.3);
       if(st.fig&&st.fig.a>.5){const fx=sx(st.fig.x),fy=sz(st.fig.z)-94;glowAt(fx-4,fy,5,[255,40,20],1);glowAt(fx+6,fy,5,[255,40,20],1);}},
@@ -250,7 +251,7 @@ function boot(){resize();addEventListener('resize',()=>{resize();vig=null;});mak
   const list=[...new Set(Object.values(SPR).map(m=>m.src))].concat(Object.values(TS).map(t=>t[0]));
   const lb=$('loadBar'),lt=$('loadTxt');
   loadImages([...new Set(list)],(d,n)=>{lb.style.width=(d/n*100)+'%';lt.textContent='Loading the valley… '+d+' / '+n;}).then(()=>{
-    buildWorld();buildInteriors();farmDebris();placeScarecrow(1);spawnMushrooms();resetCat();placeNPCs();
+    buildWorld();econBoot();buildInteriors();farmDebris();S.autoCol=autoCollide();placeScarecrow(1);spawnMushrooms();resetCat();placeNPCs();
     for(const [cx,cz] of[[-6.3,2.2],[1.2,9.4],[48,-9.6],[57,-24],[-14.5,-9]])crows.push({x:cx,z:cz,hx:cx,hz:cz,y:0,state:'perch',t:0,vx:0,vz:0});
     applyLook();S.mode='title';$('loadScr').style.opacity=0;setTimeout(()=>$('loadScr').remove(),800);requestAnimationFrame(loop);});
   $('begin').addEventListener('click',()=>{A.init&&A.init();startCine('intro');});

@@ -154,7 +154,7 @@ for _n in ('house_a', 'house_b', 'house_c', 'house_d', 'cabin', 'store', 'garage
 
 # ---- props + fences drawn in LibreSprite (px/props.js)
 _PROPS = {'fence_h': (0, 22), 'fence_v': (7, 66), 'picket_h': (0, 23), 'picket_v': (7, 66), 'lamp': None, 'phone_booth': None, 'board': None, 'gas_pump': None,
-          'signpost': None, 'barrel': None, 'crate': None, 'hay': None, 'sacks': None, 'cart': None, 'well': None, 'firewood': None, 'rock_0': None, 'rock_1': None, 'weeds_0': None, 'weeds_1': None, 'twig': None}
+          'signpost': None, 'barrel': None, 'crate': None, 'hay': None, 'sacks': None, 'cart': None, 'well': None, 'firewood': None, 'rock_0': None, 'rock_1': None, 'weeds_0': None, 'weeds_1': None, 'twig': None, 'ore_stone': None, 'ore_copper': None, 'ore_iron': None, 'ore_coal': None, 'ore_gem': None, 'ladder': None}
 for _n, _a in _PROPS.items():
     _d = Image.open(f'px/out/{_n}.png').convert('RGBA'); _nf = f'px/out/{_n}_n.png'
     _old = META.get(_n, {}); _foot = _old.get('foot', [0, 0, 0, 0])
@@ -163,7 +163,7 @@ for _n, _a in _PROPS.items():
 
 # ---- terrain + landmarks (px/worldart.js)
 for _n, _a, _f in (('cbridge', 'B', [-4.7, -6.2, 4.7, 0]), ('barn', 'b', [-3.4, -3.4, 3.4, 0]), ('silo', 'b', [-.8, -.8, .8, 0]), ('windpump', 'b', [-.5, -.4, .5, 0]),
-                   ('mailbox', 'b', [-.15, -.1, .15, 0]), ('footbridge', 'c', [0, 0, 0, 0]), ('dock', 'c', [0, 0, 0, 0]), ('cportal', 'b', [-3.6, -7, 3.6, 0])):
+                   ('mailbox', 'b', [-.15, -.1, .15, 0]), ('footbridge', 'c', [0, 0, 0, 0]), ('dock', 'c', [0, 0, 0, 0]), ('cportal', 'b', [-3.6, -7, 3.6, 0]), ('greenhouse', 'b', [-2.6, -3.0, 2.6, 0]), ('mineportal', 'b', [-1, -.3, 1, 0])):
     _d = Image.open(f'px/out/{_n}.png').convert('RGBA'); _nf = f'px/out/{_n}_n.png'
     save(_n, _d, _f, anchor=(_d.width / 2, _d.height - 17) if _a == 'B' else (_d.width / 2, _d.height - 3) if _a == 'b' else (_d.width / 2, _d.height / 2), night=Image.open(_nf).convert('RGBA') if os.path.exists(_nf) else None)
 for _n in ('maple_orange', 'maple_red', 'maple_gold', 'maple_green', 'bush_green', 'bush_red', 'bush_gold'):

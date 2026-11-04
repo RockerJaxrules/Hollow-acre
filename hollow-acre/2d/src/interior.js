@@ -62,12 +62,15 @@ const _ap=aroundPlayer;aroundPlayer=function(a,b,d0,d1){const p=_ap(a,b,d0,d1);c
 // waking up: if you went to bed inside, you wake up inside
 const _nd=newDay;newDay=function(msg,pos){const was=S.room;_nd(msg,pos);if(was==='cabin'&&!pos){const R=ROOMS.cabin;P.x=R.ox+2.6;P.z=R.oz+2.9;P.dir='S';}else S.room=null;};
 // light: daylight through the windows, warm lamps at night
-const _amb=ambient;ambient=function(h){const a=_amb(h);if(!S.room)return a;const d=clamp((h-6)/1.5,0,1)*clamp((19.5-h)/1.5,0,1);return [lerp(64,206,d),lerp(56,192,d),lerp(66,170,d)];};
+const _amb=ambient;ambient=function(h){const a=_amb(h);if(!S.room)return a;if(S.room==='mine')return [44,40,52];const d=clamp((h-6)/1.5,0,1)*clamp((19.5-h)/1.5,0,1);return [lerp(64,206,d),lerp(56,192,d),lerp(66,170,d)];};
 function interiorGround(){const R=roomOf();if(!R)return;const m=SPR['room_'+S.room];const X=Math.round(sx(R.ox))-m.side,Y=Math.round(sz(R.oz))-m.top;const im=IMG[m.src];if(im)ctx2.drawImage(im,X,Y);
-  const n=SPR['room_'+S.room+'_n'];if(n&&nightK>0&&IMG[n.src]){ctx2.globalAlpha=nightK;ctx2.drawImage(IMG[n.src],X,Y);ctx2.globalAlpha=1;}}
+  const n=SPR['room_'+S.room+'_n'];if(n&&nightK>0&&S.room!=='mine'&&IMG[n.src]){ctx2.globalAlpha=nightK;ctx2.drawImage(IMG[n.src],X,Y);ctx2.globalAlpha=1;}
+  if(S.room==='mine')for(const lx of [1.6,5.5,9.4]){const tx=Math.round(sx(R.ox+lx)),ty=Math.round(sz(R.oz))-30;ctx2.fillStyle='#3a2a1c';ctx2.fillRect(tx-1,ty,3,10);ctx2.fillStyle='#5a4a3a';ctx2.fillRect(tx-3,ty+8,7,2);
+    const f=Math.sin(performance.now()/90+lx)>0;ctx2.fillStyle='#ffb040';ctx2.fillRect(tx-2,ty-5,5,5);ctx2.fillStyle='#fff0a0';ctx2.fillRect(tx-1,ty-(f?7:6),3,4);}}
 function interiorLight(L){const R=roomOf();if(!R)return;const fl=.94+.06*Math.sin(performance.now()/180);
   const G=(lx,lz,r,c,a)=>glowAt(sx(R.ox+lx),sz(R.oz+lz),r,c,a*L*fl);
   if(S.room==='cabin'){G(6.5,3.0,110,[255,180,100],.75);G(7.9,.6,70,[255,120,40],.8);G(5.9,.6,60,[255,200,130],.6);}
   if(S.room==='store'){G(4.55,2.0,120,[255,190,110],.7);}
   if(S.room==='church'){G(2.5,.7,80,[255,190,110],.8);G(7.5,.7,80,[255,190,110],.8);G(5,1.2,100,[255,180,100],.6);}
-  if(S.room==='garage'){G(5.3,.6,120,[220,230,255],.55);}}
+  if(S.room==='garage'){G(5.3,.6,120,[220,230,255],.55);}
+  if(S.room==='mine'){for(const lx of [1.6,5.5,9.4])G(lx,-.9,110,[255,170,80],.95);}}

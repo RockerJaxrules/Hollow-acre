@@ -6,6 +6,8 @@ ROOMS = {
   'store':  dict(w=9, d=6, door=4.5, theme='store', windows=[[1.4, 0], [7.6, 0]]),
   'church': dict(w=10, d=8, door=5, theme='church', windows=[[1.5, 0, 22, 8, 50], [3.8, 0, 22, 8, 50], [6.2, 0, 22, 8, 50], [8.5, 0, 22, 8, 50]]),
   'garage': dict(w=9, d=6, door=6.8, theme='garage', windows=[[2, 0, 30, 8, 26]]),
+  'mine': dict(w=11, d=8, door=5.5, theme='mine', windows=[]),
+  'greenhouse': dict(w=9, d=6, door=4.5, theme='glass', windows=[]),
 }
 FURN = {'bed': (56, 76), 'table': (56, 44), 'chair': (22, 38), 'stove': (44, 58), 'shelf_books': (52, 82, dict(goods='books')), 'shelf_jars': (52, 82, dict(goods='jars')),
   'shelf_cans': (64, 82, dict(goods='cans')), 'shelf_tools': (64, 66, dict(goods='tools', step=20)), 'rug': (84, 52), 'counter': (100, 48), 'crates': (46, 40), 'pew': (124, 40),

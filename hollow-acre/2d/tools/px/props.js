@@ -150,5 +150,12 @@ if(K==='weeds'){const cx=W/2|0,base=H-3;const G_=['#1b3a1c','#2a5a26','#3e7a2e',
   if((CFG.v||0)%2){for(const [x,y] of [[cx-4,base-9],[cx+4,base-11]]){P(A,x,y,PAL.mustard[5]);P(A,x+1,y,PAL.mustard[4]);P(A,x,y+1,PAL.mustard[3]);}}groundShadow(cx+1,base,7,2,70);}
 if(K==='twig'){const base=H-3;for(let i=0;i<W-6;i++){const y=base-4-Math.round(i*.18);P(A,3+i,y,WD[3]);P(A,3+i,y+1,WD[1]);}for(const [x,l] of [[8,4],[14,3]])for(let j=0;j<l;j++){P(A,x+j,base-6-j-Math.round(x*.18),WD[3]);}
   groundShadow(W/2|0,base,W/2-3|0,1,60);}
+const RKs=[ST[0],ST[1],ST[2],ST[3],ST[4]];
+if(K==='ore'){const cx=W/2|0,base=H-3,rx=(W/2|0)-3,ry=(H/2|0)-3;const O={copper:[PAL.rust[3],PAL.rust[5]],iron:[PAL.slate[4],PAL.white[5]],coal:[PAL.ink[0],PAL.slate[1]],gem:[PAL.teal[4],PAL.glass[5]],stone:[ST[3],ST[4]]}[CFG.ore];
+  for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){const d=x*x/(rx*rx)+y*y/(ry*ry);const wob=hsh(Math.round(Math.atan2(y,x)*5)+20,3,3)*.18;if(d>1-wob)continue;const l=-.55*x/rx-.85*y/ry+.25;let k=l>.55?4:l>.2?3:l>-.2?2:1;if(y>ry*.35)k=Math.min(k,2);P(A,cx+x,base-ry-1+y,RKs[k]);}
+  for(let i=0;i<7;i++){const x=cx+Math.round((hsh(i,1,5)-.5)*rx*1.4),y=base-ry-1+Math.round((hsh(i,2,5)-.6)*ry*1.2);P(A,x,y,O[0]);P(A,x+1,y,O[1]);P(A,x,y+1,O[0]);}
+  groundShadow(cx+2,base,rx+1,2,80);}
+if(K==='ladder'){for(let y=2;y<H-4;y++){P(A,4,y,WD[4]);P(A,5,y,WD[2]);P(A,W-6,y,WD[3]);P(A,W-5,y,WD[1]);}for(let y=6;y<H-4;y+=6){hl(A,5,y,W-10,WD[4]);hl(A,5,y+1,W-10,WD[1]);}
+  ell(A,W/2|0,H-4,W/2-2|0,3,PAL.ink[0]);}
 const ART=[SHD,A,B];const flat=flatten([A,B],W,H);const O=outline(flat);
 emit([SHD,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));
