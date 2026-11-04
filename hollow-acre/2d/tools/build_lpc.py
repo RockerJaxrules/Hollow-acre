@@ -154,7 +154,7 @@ for _n in ('house_a', 'house_b', 'house_c', 'house_d', 'cabin', 'store', 'garage
 
 # ---- props + fences drawn in LibreSprite (px/props.js)
 _PROPS = {'fence_h': (0, 22), 'fence_v': (7, 66), 'picket_h': (0, 23), 'picket_v': (7, 66), 'lamp': None, 'phone_booth': None, 'board': None, 'gas_pump': None,
-          'signpost': None, 'barrel': None, 'crate': None, 'hay': None, 'sacks': None, 'cart': None, 'well': None, 'firewood': None, 'rock_0': None, 'rock_1': None, 'weeds_0': None, 'weeds_1': None, 'twig': None, 'stump_maple': None, 'stump_pine': None, 'stump_oak': None, 'pumpkin': None, 'pumpkin_b': None, 'jack': None, 'jack_b': None, 'jack_c': None, 'deer_dead': None, 'doornote': None, 'icon_hoe': None, 'icon_can': None, 'icon_pick': None, 'icon_axe': None, 'icon_seed': None, 'icon_food': None, 'ore_stone': None, 'ore_copper': None, 'ore_iron': None, 'ore_coal': None, 'ore_gem': None, 'ladder': None}
+          'signpost': None, 'barrel': None, 'crate': None, 'hay': None, 'sacks': None, 'cart': None, 'well': None, 'firewood': None, 'rock_0': None, 'rock_1': None, 'weeds_0': None, 'weeds_1': None, 'twig': None, 'stump_maple': None, 'stump_pine': None, 'stump_oak': None, 'pumpkin': None, 'pumpkin_b': None, 'jack': None, 'jack_b': None, 'jack_c': None, 'deer_dead': None, 'bench_farm': None, 'bench_weapon': None, 'bench_armor': None, 'bench_furn': None, 'furnace': None, 'doornote': None, 'icon_hoe': None, 'icon_can': None, 'icon_pick': None, 'icon_axe': None, 'icon_seed': None, 'icon_food': None, 'ore_stone': None, 'ore_copper': None, 'ore_iron': None, 'ore_coal': None, 'ore_gem': None, 'ladder': None}
 for _n, _a in _PROPS.items():
     _d = Image.open(f'px/out/{_n}.png').convert('RGBA'); _nf = f'px/out/{_n}_n.png'
     _old = META.get(_n, {}); _foot = _old.get('foot', [0, 0, 0, 0])
@@ -198,7 +198,7 @@ def _volumize(path):
     out = a.copy(); out[..., :3] = _np.where(body[..., None], (a[..., :3] * k[..., None] + _np.where(up & body, 6, 0)[..., None]).clip(0, 255), a[..., :3])
     Image.fromarray(out.astype(_np.uint8), 'RGBA').save(path)
 for _n in ['barrel', 'crate', 'hay', 'sacks', 'cart', 'board', 'well', 'firewood', 'mailbox', 'signpost', 'gas_pump', 'phone_booth', 'lamp', 'picket_h', 'fence_h', 'pumpkin', 'pumpkin_b', 'jack', 'jack_b', 'jack_c',
-           'stump_maple', 'stump_pine', 'stump_oak'] + [k for k in META if k.startswith('in_') and k not in ('in_rug', 'in_cellar', 'in_mirror', 'in_mirror_n')]:
+           'stump_maple', 'stump_pine', 'stump_oak', 'bench_farm', 'bench_weapon', 'bench_armor', 'bench_furn', 'furnace'] + [k for k in META if k.startswith('in_') and k not in ('in_rug', 'in_cellar', 'in_mirror', 'in_mirror_n')]:
     if _n in META: _volumize(META[_n]['src'])
 json.dump(META, open('spr/lpc/objects.json', 'w'), indent=0)
 print(len(META), 'objects')

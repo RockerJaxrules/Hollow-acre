@@ -207,6 +207,35 @@ if(K==='pumpkin'){const cx=W/2|0,base=H-3,rx=CFG.big?10:8,ry=CFG.big?7:6,cy=base
     for(const sx of [-4,3]){for(let i=0;i<3;i++)for(let j=0;j<=i;j++)P(A,cx+sx+j-(face===2?0:0),ey-i+2,F[1]);P(A,cx+sx+1,ey+1,F[0]);}
     P(A,cx,cy+1,F[1]);for(let x=-5;x<=5;x++){const yy=cy+3+(face===3?Math.round(Math.abs(x)*.3):Math.round(-Math.abs(x)*.25+1));P(A,cx+x,yy,F[x%3===0?0:1]);if(face!==2&&x%3!==0)P(A,cx+x,yy+1,F[1]);}}
   for(let x=-rx-1;x<=rx+1;x++)P(SHD,cx+x,base+1,PAL.out[0],140);}
+// ---- workbenches: a thick plank top seen from above, a front apron, splayed legs, and the tools of each trade lying on it
+function benchBase(top,w,h,legH){const x0=(W-w)>>1,base=H-3,fy=top+h;
+  for(const lx of [x0+2,x0+w-6]){rect(A,lx,fy,4,legH,WD[2]);vl(A,lx,fy,legH,WD[4]);vl(A,lx+3,fy,legH,WD[0]);}
+  rect(A,x0+4,fy+legH-6,w-8,2,WD[1]);hl(A,x0+4,fy+legH-6,w-8,WD[3]);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const k=(y%5===0)?3:(x+((y/5|0)*13))%23===0?2:4;P(A,x0+x,top+y,WD[k]);}hl(A,x0,top,w,WD[5]);
+  rect(A,x0,fy,w,6,WD[2]);hl(A,x0,fy,w,WD[1]);hl(A,x0,fy+5,w,WD[0]);for(let x=x0+6;x<x0+w-4;x+=12)P(A,x,fy+2,PAL.slate[4]);
+  for(let x=x0-2;x<x0+w+3;x++)P(SHD,x,base,PAL.out[0],140);return {x0,fy,top};}
+if(K==='bench_farm'){const b=benchBase(14,W-8,14,18);   // seed trays, a trowel, a sack of seed, a sprinkler in pieces
+  for(let i=0;i<3;i++){const x=b.x0+4+i*9;rect(A,x,b.top+3,8,6,WD[1]);rect(A,x+1,b.top+4,6,4,[110,74,44]);P(A,x+2,b.top+4,PAL.moss[3]);P(A,x+5,b.top+5,PAL.moss[2]);}
+  ell(A,b.x0+W-22,b.top+4,5,4,PAL.cream[2]);ell(A,b.x0+W-23,b.top+3,3,2,PAL.cream[3]);rect(A,b.x0+W-18,b.top+9,6,2,PAL.slate[3]);P(A,b.x0+W-13,b.top+9,PAL.brass[2]);
+  for(let i=0;i<5;i++)P(A,b.x0+14+i,b.top+11,PAL.brass[3]);}
+if(K==='bench_weapon'){const b=benchBase(16,W-8,12,18);  // a whetstone wheel, a blade on the top, a rack of handles behind
+  for(let i=0;i<4;i++){vl(A,b.x0+5+i*6,2,15,WD[3]);vl(A,b.x0+6+i*6,2,15,WD[1]);P(A,b.x0+5+i*6,2,PAL.slate[4]);}hl(A,b.x0+2,6,24,WD[4]);
+  for(let i=0;i<16;i++){P(A,b.x0+10+i,b.top+5,PAL.white[4]);P(A,b.x0+10+i,b.top+6,PAL.white[2]);}rect(A,b.x0+6,b.top+4,4,3,WD[1]);
+  ell(A,b.x0+W-20,b.top+2,6,6,ST[3]);ell(A,b.x0+W-20,b.top+2,4,4,ST[4]);P(A,b.x0+W-20,b.top+2,ST[1]);}
+if(K==='bench_armor'){const b=benchBase(18,W-8,12,16);   // a dress form wearing a work coat, rivets and a hammer on the top
+  const cx=b.x0+10;rect(A,cx-1,b.top-2,2,6,WD[1]);for(let y=0;y<14;y++){const w2=5-Math.abs(y-6)*.3|0;for(let x=-w2;x<=w2;x++)P(A,cx+x,2+y,PAL.rust[x<-1?4:x>1?2:3]);}
+  hl(A,cx-4,2,9,PAL.rust[5]);for(let y=4;y<15;y+=3)P(A,cx,y,PAL.brass[3]);
+  rect(A,b.x0+W-26,b.top+4,10,3,PAL.slate[3]);hl(A,b.x0+W-26,b.top+4,10,PAL.slate[5]);rect(A,b.x0+W-18,b.top+2,3,8,WD[3]);
+  for(let i=0;i<6;i++)P(A,b.x0+18+i*2,b.top+8,PAL.brass[3]);}
+if(K==='bench_furn'){const b=benchBase(14,W-8,14,18);    // a half-built chair, a saw, wood shavings
+  rect(A,b.x0+5,b.top-8,10,12,WD[3]);frame(A,b.x0+5,b.top-8,10,12,WD[5],WD[1]);for(let x=b.x0+7;x<b.x0+14;x+=3)vl(A,x,b.top-6,8,WD[2]);
+  for(let i=0;i<14;i++){P(A,b.x0+W-28+i,b.top+6-(i>>2),PAL.slate[4]);if(i%2)P(A,b.x0+W-28+i,b.top+7-(i>>2),PAL.slate[2]);}rect(A,b.x0+W-14,b.top+3,4,4,WD[1]);
+  for(let i=0;i<7;i++)P(A,b.x0+20+(hsh(i,2)*12|0),b.top+9+(i%3),PAL.cream[2+(i%2)]);}
+if(K==='furnace'){const cx=W/2|0,base=H-3,w=26,top=10;   // a fieldstone furnace with a chimney and a glowing mouth
+  for(let y=top;y<base;y++)for(let x=-w/2;x<w/2;x++){const r=((y-top)/5|0),o=r%2?4:0,bk=(x+w+o)%8;let c=ST[(hsh((x+w+o)>>3,r,4)>.5)?3:2];if(bk===0||(y-top)%5===4)c=ST[1];if(x<-w/2+3)c=ST[4];if(x>w/2-4)c=ST[1];P(A,cx+x,y,c);}
+  for(let y=0;y<8;y++)for(let x=-6;x<=5;x++)P(A,cx+x,top-8+y,ST[x<-3?4:x>3?1:2]);rect(A,cx-7,top-10,14,3,ST[4]);hl(A,cx-7,top-10,14,ST[5]);
+  for(let y=0;y<10;y++)for(let x=-6;x<6;x++){const dy=Math.max(0,4-y);if(y<4&&x*x+dy*dy*2.2>36)continue;P(A,cx+x,base-14+y,y<3?[60,20,10]:[(240-y*8)|0,(140-y*8)|0,40]);}
+  hl(A,cx-8,base-4,16,ST[4]);hl(A,cx-w/2,top,w,ST[5]);for(let x=-w/2-1;x<=w/2+1;x++)P(SHD,cx+x,base+1,PAL.out[0],150);}
 if(K==='ladder'){for(let y=2;y<H-4;y++){P(A,4,y,WD[4]);P(A,5,y,WD[2]);P(A,W-6,y,WD[3]);P(A,W-5,y,WD[1]);}for(let y=6;y<H-4;y+=6){hl(A,5,y,W-10,WD[4]);hl(A,5,y+1,W-10,WD[1]);}
   ell(A,W/2|0,H-4,W/2-2|0,3,PAL.ink[0]);}
 const ART=[SHD,A,B];const flat=flatten([A,B],W,H);const O=outline(flat);const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=(CFG.thin||/^fence|^picket/.test(K))?0:150;}

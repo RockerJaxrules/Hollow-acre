@@ -110,7 +110,10 @@ function render(dt,now){const t=now/1000;
   }
   partsDraw();holdDraw();lifeOver(t);depthOver(t);
   // weather: falling leaves (day), rain (storm), fog (night)
-  if(nightK<.8&&!S.room){for(let i=0;i<24;i++){const s=hash(i,3);const x=((s*977+t*14*(.5+s))%(VW+40))-20,y=((hash(i,5)*VH+t*(18+s*20))%(VH+20))-10;ctx2.fillStyle=['#d0702a','#b8521c','#e0a040','#8a3a18'][i%4];ctx2.globalAlpha=1-nightK;ctx2.fillRect(Math.round(x+Math.sin(t*2+i)*6),Math.round(y),2,1);}ctx2.globalAlpha=1;}
+  if(nightK<.8&&!S.room){const gust=Math.max(0,Math.sin(t*.09)*.8+Math.sin(t*.031+1)*.5);const n=Math.round(gust*7);ctx2.globalAlpha=1-nightK;
+    for(let i=0;i<n;i++){const s=hash(i,3),life=14+s*8,ph=((t+s*40)%life)/life;const x=((s*977+ph*VW*.9+gust*40)%(VW+60))-30,y=ph*(VH+40)-20+Math.sin(t*1.3+i*2)*10;
+      const C=[['#d0702a','#8a3a18'],['#e0a040','#9a6018'],['#b8521c','#6a2410']][i%3],flip=Math.sin(t*2.2+i*3)>0;const X=Math.round(x),Y=Math.round(y);
+      ctx2.fillStyle=C[0];ctx2.fillRect(X,Y,flip?4:3,2);ctx2.fillRect(X+1,Y-1,2,1);ctx2.fillStyle=C[1];ctx2.fillRect(X+(flip?3:0),Y+1,1,1);ctx2.fillRect(X+1,Y+2,1,1);}ctx2.globalAlpha=1;}
   if(S.storm&&isNight()&&!S.room){ctx2.strokeStyle='rgba(170,190,220,.35)';ctx2.beginPath();for(let i=0;i<90;i++){const x=(hash(i,1)*VW+t*40)%VW,y=(hash(i,2)*VH+t*620)%VH;ctx2.moveTo(Math.round(x),Math.round(y));ctx2.lineTo(Math.round(x-2),Math.round(y+7));}ctx2.stroke();}
   if(nightK>0&&fogTex&&!S.room){ctx2.globalAlpha=nightK*.55;const ox=Math.round((-(cam.px*.7)+t*6)%256),oy=Math.round((-(cam.pz*.7))%256);for(let y=oy-256;y<VH;y+=256)for(let x=ox-256;x<VW;x+=256)ctx2.drawImage(fogTex,Math.round(x),Math.round(y));ctx2.globalAlpha=1;}
   // ---- light map (multiply)
@@ -251,7 +254,7 @@ function boot(){resize();addEventListener('resize',()=>{resize();vig=null;});mak
   const list=[...new Set(Object.values(SPR).map(m=>m.src))].concat(Object.values(TS).map(t=>t[0]));
   const lb=$('loadBar'),lt=$('loadTxt');
   loadImages([...new Set(list)],(d,n)=>{lb.style.width=(d/n*100)+'%';lt.textContent='Loading the valley… '+d+' / '+n;}).then(()=>{
-    buildWorld();econBoot();buildInteriors();farmDebris();S.autoCol=autoCollide();treeChop();placeScarecrow(1);spawnMushrooms();resetCat();placeNPCs();
+    buildWorld();econBoot();buildInteriors();farmDebris();S.autoCol=autoCollide();treeChop();benchesBoot();placeScarecrow(1);spawnMushrooms();resetCat();placeNPCs();
     for(const [cx,cz] of[[-6.3,2.2],[1.2,9.4],[48,-9.6],[57,-24],[-14.5,-9]])crows.push({x:cx,z:cz,hx:cx,hz:cz,y:0,state:'perch',t:0,vx:0,vz:0});
     applyLook();S.mode='title';$('loadScr').style.opacity=0;setTimeout(()=>$('loadScr').remove(),800);requestAnimationFrame(loop);});
   $('begin').addEventListener('click',()=>{A.init&&A.init();startCine('intro');});
