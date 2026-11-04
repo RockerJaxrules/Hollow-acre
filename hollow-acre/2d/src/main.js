@@ -6,7 +6,7 @@ function frameOf(name,clip,t,dur){const m=SPR[name];if(!m||!m.clips)return 0;con
   if(clip==='idle')return Math.floor(t*f[2])%nf;return a+Math.floor(t*f[2])%(b-a+1);}
 function charSprite(e,name){const clip=e.clip||'idle';return [name,clip];}
 // shadows: light from the upper left, so everything that stands up throws its shadow down and to the right
-function castShadow(o,X,Y){const m=SPR[o.spr];if(!m||o.kind==='fence'||o.kind==='furn'||o.kind==='anim'||o.spr.startsWith('maple')||o.kind==='bush')return;ctx2.fillStyle='rgba(8,16,6,.32)';
+function castShadow(o,X,Y){if(sunShadow(o,X,Y)){if(o.kind==='tree'||o.kind==='pine'){ctx2.fillStyle='rgba(8,16,6,.22)';ctx2.beginPath();ctx2.ellipse(X+2,Y+1,9,3,0,0,Math.PI*2);ctx2.fill();}return;}const m=SPR[o.spr];if(!m||o.kind==='fence'||o.kind==='furn'||o.kind==='anim'||o.spr.startsWith('maple')||o.kind==='bush')return;ctx2.fillStyle='rgba(8,16,6,.32)';
   if(o.kind==='bld'){const f=m.foot||[-3,0,3,0];const x0=X+f[0]*PPM,x1=X+f[2]*PPM,h=Math.min(64,m.fh*.42),d=h*.55;
     ctx2.beginPath();ctx2.moveTo(x1,Y-h);ctx2.lineTo(x1+d,Y-h+d*.8);ctx2.lineTo(x1+d,Y+5);ctx2.lineTo(x0+10,Y+5);ctx2.lineTo(x0,Y);ctx2.lineTo(x1,Y);ctx2.closePath();ctx2.fill();return;}
   if(o.kind==='tree'||o.kind==='pine'){ctx2.beginPath();ctx2.ellipse(X+8,Y+2,o.kind==='pine'?17:22,7,0,0,Math.PI*2);ctx2.fill();return;}
@@ -49,11 +49,12 @@ function render(dt,now){const t=now/1000;
   if(hlTile&&S.mode==='play'){ctx2.strokeStyle='rgba(255,240,200,.75)';ctx2.lineWidth=1;ctx2.strokeRect(Math.round(sx(hlTile.x-.5))+.5,Math.round(sz(hlTile.z-.5))+.5,31,31);}
   // skid marks & blood at the crash site
   if(!S.introDrive&&onScreen(-56,-5,200)){ctx2.fillStyle='rgba(0,0,0,.3)';for(let k=0;k<2;k++){ctx2.save();ctx2.translate(sx(-58.6+k*.9),sz(-1.6+k*.25));ctx2.rotate(.42);ctx2.fillRect(-200,0,200,3);ctx2.restore();}}
-  interiorGround();mindGround();findsDraw(t);farmDraw();mindReflection();
+  interiorGround();mindGround();findsDraw(t);farmDraw();depthWater(t);mindReflection();
   // collect drawables
-  const D=[];const pad=200;
+  const D=[];const pad=200;sunBegin();
   for(const o of OBJ){if(o.hide)continue;const X=sx(o.x),Y=sz(o.z);if(X<-pad||X>VW+pad||Y<-60||Y>VH+pad+260)continue;
     if(o.kind==='deco'){drawSpr('leaves_'+o.v,X,Y);continue;}if(o.kind==='flat'){drawSpr(o.spr,X,Y);continue;}castShadow(o,X,Y);D.push({z:o.z,o});}
+  sunEnd();
   for(const tl of tiles)if(tl.crop){const c=tl.crop;D.push({z:tl.z+.2,crop:tl});}
   for(const n of npcs)if(n.vis)D.push({z:n.z,npc:n});
   if(S.mode!=='title'&&!(cine&&cine.hidePlayer))D.push({z:P.z,player:true});
@@ -106,7 +107,7 @@ function render(dt,now){const t=now/1000;
     else if(d.mind){d.draw();}
     else if(d.hat){drawSpr('pumpkin',sx(ritual.hat.x),sz(ritual.hat.z));}
   }
-  partsDraw();holdDraw();lifeOver(t);
+  partsDraw();holdDraw();lifeOver(t);depthOver(t);
   // weather: falling leaves (day), rain (storm), fog (night)
   if(nightK<.8&&!S.room){for(let i=0;i<24;i++){const s=hash(i,3);const x=((s*977+t*14*(.5+s))%(VW+40))-20,y=((hash(i,5)*VH+t*(18+s*20))%(VH+20))-10;ctx2.fillStyle=['#d0702a','#b8521c','#e0a040','#8a3a18'][i%4];ctx2.globalAlpha=1-nightK;ctx2.fillRect(Math.round(x+Math.sin(t*2+i)*6),Math.round(y),2,1);}ctx2.globalAlpha=1;}
   if(S.storm&&isNight()&&!S.room){ctx2.strokeStyle='rgba(170,190,220,.35)';ctx2.beginPath();for(let i=0;i<90;i++){const x=(hash(i,1)*VW+t*40)%VW,y=(hash(i,2)*VH+t*620)%VH;ctx2.moveTo(Math.round(x),Math.round(y));ctx2.lineTo(Math.round(x-2),Math.round(y+7));}ctx2.stroke();}

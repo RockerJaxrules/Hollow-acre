@@ -33,7 +33,7 @@ function chunk(cx,cz){const k=cx+','+cz;let c=chunks.get(k);if(c)return c;
   c=document.createElement('canvas');c.width=CH;c.height=CH;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
   const N=CH/32,x0=cx*N,z0=cz*N;
   if(x0>=280){g.fillStyle='#0a090c';g.fillRect(0,0,CH,CH);chunks.set(k,c);return c;}
-  groundPixels(g,x0,z0,N);
+  c.wm=groundPixels(g,x0,z0,N);
   // Route 9: the Blender-rendered asphalt strip (rotated to run east-west), ending where the farm lane begins
   const rs=roadStripH();if(rs&&z0*32<(-6+5.2)*32&&(z0+N)*32>(-6-5.2)*32&&x0<-12.5){g.save();g.beginPath();{const ex=(-12.5-x0)*32;g.moveTo(0,0);for(let y=0;y<=CH;y+=4)g.lineTo(ex-Math.round(hash(y+z0*CH,7)*10+fbm(y*.05,z0)*26),y);g.lineTo(0,CH);g.closePath();}g.clip();{const bx0=(BRIDGE.x-4.4-x0)*32,bx1=(BRIDGE.x+4.4-x0)*32;g.beginPath();g.rect(-9999,-9999,bx0+9999,99999);g.rect(bx1,-9999,99999,99999);g.clip();}
     for(let wx=-216;wx<-12.5;wx+=12){const dx=(wx-x0)*32;if(dx>CH||dx+rs.width<0)continue;g.drawImage(rs,dx,(-6-5-z0)*32);}g.restore();}
@@ -66,7 +66,7 @@ function jnoise(x,y){const xi=x>>3,yi=y>>3,fx=(x&7)/8,fy=(y&7)/8;const h=(a,b)=>
   const u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;}
 function groundPixels(g,x0,z0,N){const LY=['dark','dirt','stone','water'],TX=['forest','dirt','stone','water'];const tg=texData('grass');if(!tg)return;
   const tl=TX.map(texData);const M=N+1;const corner=LY.map(l=>{const a=new Uint8Array(M*M),fn=LAYERS[l];for(let j=0;j<M;j++)for(let i=0;i<M;i++)a[j*M+i]=fn(x0+i,z0+j)?1:0;return a;});
-  const id=g.createImageData(CH,CH),D=id.data;
+  const id=g.createImageData(CH,CH),D=id.data;const wm=new Uint8Array(CH*CH);let anyW=0;
   for(let py=0;py<CH;py++){const j=py>>5,v=((py&31)+.5)/32;const wy=z0*32+py,ty=((wy%TP)+TP)%TP;
     for(let px=0;px<CH;px++){const i=px>>5,u=((px&31)+.5)/32;const wx=x0*32+px,tx=((wx%TP)+TP)%TP;let top=-1,edge=1,gx=0,gy=0;
       for(let l=0;l<4;l++){const c=corner[l];const a=c[j*M+i],b=c[j*M+i+1],cc=c[(j+1)*M+i],d=c[(j+1)*M+i+1];const s4=a+b+cc+d;if(!s4)continue;
@@ -79,8 +79,10 @@ function groundPixels(g,x0,z0,N){const LY=['dark','dirt','stone','water'],TX=['f
         else if(L==='water'){if(edge<.06){const q=GPAL.dirt[2];r=q[0];gg=q[1];bb=q[2];}else if(edge<.1){const q=GPAL.dirt[1];r=q[0];gg=q[1];bb=q[2];}
           else if(edge<.22&&gy>0){r*=.68;gg*=.72;bb*=.8;}else if(edge<.15){const q=GPAL.wet[(wx+wy)%5===0?1:0];r=q[0];gg=q[1];bb=q[2];}}
         else if(L==='dark'&&edge<.05){r*=.7;gg*=.7;bb*=.7;}}
+      if(top===3&&edge>=.1){wm[py*CH+px]=1;anyW=1;}
       D[o]=r;D[o+1]=gg;D[o+2]=bb;D[o+3]=255;}}
-  g.putImageData(id,0,0);}
+  g.putImageData(id,0,0);
+  if(!anyW)return null;const mc=document.createElement('canvas');mc.width=CH;mc.height=CH;const mg=mc.getContext('2d');const md=mg.createImageData(CH,CH);for(let i=0;i<CH*CH;i++)if(wm[i])md.data[i*4+3]=255;mg.putImageData(md,0,0);return mc;}
 // ---------- camera
 const cam={x:0,z:0,shake:0,px:0,pz:0};
 // all screen positions come from one integer-snapped camera, so ground and sprites never drift against each other
