@@ -88,7 +88,8 @@ function render(dt,now){const t=now/1000;
     else if(d.npc){const n=d.npc;const X=sx(n.x),Y=sz(n.z);shadow(X,Y,9);drawSpr(n.def.id,X,Y,'walk',n.dir,n.clip==='walk'?frameOf(n.def.id,'walk',n.t):0);mindNPCOver(n,X,Y);
       if(n.clip==='stand'&&S.day>=2&&nightK>.5){ctx2.fillStyle='#ff2a14';const ey=Math.round(Y-35);ctx2.fillRect(Math.round(X)-3,ey,1,1);ctx2.fillRect(Math.round(X)+2,ey,1,1);}}
     else if(d.player){const X=sx(P.x),Y=sz(P.z);shadow(X,Y,9);let nm='farmer',clip=P.clip,f;
-      if(P.anim){const a=P.anim;if(a.clip==='hoe'||a.clip==='pick'||a.clip==='axe'){nm='farmer_'+a.clip;clip='thrust';}else if(a.clip==='water'){nm='farmer_can';clip='thrust';}else clip='slash';f=frameOf(nm,clip,a.t,a.dur);}
+      if(P.anim){const a=P.anim;if(a.clip==='hoe'||a.clip==='pick'||a.clip==='axe'){nm='farmer_'+a.clip;clip='thrust';}else if(a.clip==='water'){nm='farmer_can';clip='thrust';}else clip='slash';f=frameOf(nm,clip,a.t,a.dur);
+        if(a.clip==='hoe'||a.clip==='pick'||a.clip==='axe'){const k=a.t/a.dur,TH=[.08,.2,.34,.48,.55,.74,.86];f=TH.findIndex(v=>k<v);if(f<0)f=7;}}
       else{if(clip==='idle'){clip='walk';f=0;}else f=frameOf(nm,clip,P.t);}
       if(S.mode==='scare')clip='hurt';P._fr=[nm,clip,clip==='hurt'?'S':P.dir,f||0];
       drawSpr(nm,X,Y,clip,clip==='hurt'?'S':P.dir,clip==='hurt'?Math.min(5,Math.floor((performance.now()/120)%6)):f);

@@ -158,7 +158,7 @@ function computeContext(){let best=null,bd=1e9;
   if(!c.watered)return S.water>0?{label:'Water',ok:true,act:()=>doWater(t)}:{label:'Can empty',ok:false};
   return {label:'Growing '+Math.floor(c.growth/(SEEDS[c.type].grow*3)*100)+'%',ok:false};}
 function faceTo(x,z){const dx=x-P.x,dz=z-P.z,d=Math.hypot(dx,dz)||1;P.fx=dx/d;P.fz=dz/d;P.dir=dirOf(dx,dz);}
-function startAnim(clip,dur,t,fire){P.anim={clip,dur,t:0,fire,fired:false};if(t)faceTo(t.x,t.z);}
+function startAnim(clip,dur,t,fire){if(clip==='hoe'||clip==='pick'||clip==='axe')dur=Math.max(dur,.72);P.anim={clip,dur,t:0,fire,fired:false};if(t)faceTo(t.x,t.z);}
 function doTill(t){startAnim('hoe',.7,t,()=>{t.tilled=true;S.everTilled=true;SFX.till();burst(t.x,t.z,14,'#6a4a30',1.6,.6,2);cam.shake=Math.max(cam.shake,.12);});}
 function doPlant(t){if(S.seeds[S.sel]<=0)return;const type=S.sel;startAnim('pick',.7,t,()=>{if(t.crop||S.seeds[type]<=0)return;S.seeds[type]--;S.everPlanted=true;t.crop={type,stage:0,growth:0,watered:false,pop:0};SFX.plant();
   burst(t.x,t.z,6,'#d8c890',.6,.5,1);if(S.seeds[S.sel]<=0){const o=S.sel==='turnip'?'pumpkin':'turnip';if(S.seeds[o]>0)S.sel=o;}});}
