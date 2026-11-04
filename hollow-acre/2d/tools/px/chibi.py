@@ -11,6 +11,12 @@ CAST = {
   'dunn':    dict(skin='#c8906c', hair='#3a2a1e', hairStyle='short', beard=True, shirt='#8a7a52', badge=True, pants='#4a3e2e', shoes='#2a1a10', hat='sheriff'),
   'ruth':    dict(kid=True, skin='#d8dce0', hair='#141018', hairStyle='long', hairLen=18, shirt='#e8e8ec', skirt='#d0d0da', shoes='#9a9aa6', hollowEyes=True, smile=False, eye='#050406'),
   'hollow':  dict(tall=True),
+  'silas':   dict(skin='#c8a890', hair='#4a4440', hairStyle='short', beard=True, shirt='#3a3e34', coat=True, pants='#2e2a26', shoes='#1e1a16', hat='cap', hatColor='#2a2a2a'),
+  'june':    dict(skin='#f0c4a0', hair='#c86a2a', hairStyle='long', hairLen=12, shirt='#3a5a8a', pants='#4a4a5a', shoes='#3a2618', hat='cap', hatColor='#3a5a8a'),
+  'otto':    dict(skin='#d8a888', hair='#e0e0dc', hairStyle='short', beard=True, shirt='#c8a030', coat=True, pants='#3a3a30', shoes='#2a2010', hat='cap', hatColor='#c8a030'),
+  'cora':    dict(skin='#e8c4a8', hair='#2a1a14', hairStyle='bun', shirt='#6a2a3a', skirt='#3a2a3a', glasses=True, shoes='#1a1012'),
+  'wes':     dict(skin='#d09a78', hair='#d8b860', hairStyle='bangs', shirt='#e8e0d0', overalls='#4a5a6a', pants='#4a5a6a', shoes='#2a1a10'),
+  'ida':     dict(skin='#ecc8b0', hair='#a88a6a', hairStyle='bun', shirt='#8aa0b8', skirt='#5a6a80', apron=True, extra='#f0ece0', shoes='#3a2a22'),
 }
 VARIANTS = {'farmer_hoe': ('farmer', 'hoe'), 'farmer_can': ('farmer', 'can'), 'farmer_pick': ('farmer', 'pick'), 'farmer_axe': ('farmer', 'axe')}
 for _st in ('long', 'bun', 'spiky', 'bangs'):

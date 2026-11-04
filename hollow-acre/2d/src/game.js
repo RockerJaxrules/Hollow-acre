@@ -160,11 +160,11 @@ function computeContext(){let best=null,bd=1e9;
 function faceTo(x,z){const dx=x-P.x,dz=z-P.z,d=Math.hypot(dx,dz)||1;P.fx=dx/d;P.fz=dz/d;P.dir=dirOf(dx,dz);}
 function startAnim(clip,dur,t,fire){if(clip==='hoe'||clip==='pick'||clip==='axe')dur=Math.max(dur,.72);P.anim={clip,dur,t:0,fire,fired:false};if(t)faceTo(t.x,t.z);}
 function doTill(t){startAnim('hoe',.7,t,()=>{t.tilled=true;S.everTilled=true;SFX.till();burst(t.x,t.z,14,'#6a4a30',1.6,.6,2);cam.shake=Math.max(cam.shake,.12);});}
-function doPlant(t){if(S.seeds[S.sel]<=0)return;const type=S.sel;startAnim('pick',.7,t,()=>{if(t.crop||S.seeds[type]<=0)return;S.seeds[type]--;S.everPlanted=true;t.crop={type,stage:0,growth:0,watered:false,pop:0};SFX.plant();
+function doPlant(t){if(S.seeds[S.sel]<=0)return;const type=S.sel;startAnim('plant',.7,t,()=>{if(t.crop||S.seeds[type]<=0)return;S.seeds[type]--;S.everPlanted=true;t.crop={type,stage:0,growth:0,watered:false,pop:0};SFX.plant();
   burst(t.x,t.z,6,'#d8c890',.6,.5,1);if(S.seeds[S.sel]<=0){const o=S.sel==='turnip'?'pumpkin':'turnip';if(S.seeds[o]>0)S.sel=o;}});}
 function doWater(t){if(S.water<=0)return;startAnim('water',1.1,t,()=>{if(!t.crop)return;S.water--;S.everWatered=true;t.crop.watered=true;SFX.water();
   for(let i=0;i<14;i++)parts.push({x:t.x+(Math.random()-.5)*.5,z:t.z+(Math.random()-.5)*.3,y:.8,vx:0,vz:0,vy:-1-Math.random(),t:0,life:.4,col:'#9cc8e8',size:1});if(S.water===0)toast('The can is empty. Refill it at the well.',2.2);});}
-function doHarvest(t){const c=t.crop;startAnim('pick',.7,t,()=>{if(t.crop!==c)return;const moon=isNight();S.basket.push({kind:c.type,value:SEEDS[c.type].sell*(moon?2:1)});t.crop=null;SFX.harvest();
+function doHarvest(t){const c=t.crop;startAnim('plant',.7,t,()=>{if(t.crop!==c)return;const moon=isNight();S.basket.push({kind:c.type,value:SEEDS[c.type].sell*(moon?2:1)});t.crop=null;SFX.harvest();
   burst(t.x,t.z,12,'#5a4030',1.4,.6,2);
   if(moon&&!S.first.moon){S.first.moon=true;toast('Moonlit harvest. These sell for double.',2.6);}
   else if(moon&&rand()<.25){A.tone&&A.tone(900,.35,'sawtooth',.06,{slide:1400,filter:['bandpass',1200,3]});toast('The turnip had a face. It was screaming.',2.4,true);}});}

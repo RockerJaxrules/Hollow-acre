@@ -7,7 +7,7 @@ const CORN={x0:-15,x1:11,z0:11.5,z1:24};
 const inCorn=(x,z)=>x>CORN.x0&&x<CORN.x1&&z>CORN.z0&&z<CORN.z1;
 const pond={x:-30,z:24.5,r:7.5};
 const wellPos={x:7.3,z:-10.5},binPos={x:-3.6,z:-8.6},doorPos={x:0,z:-8.9},carPos={x:-60.2,z:-1.4},pumpPos={x:-30.5,z:-10.3},boothPos={x:44.5,z:-9.6};
-const crossPos={x:20,z:19},boardPos={x:52,z:-9.4},tsPos={x:27.5,z:-8.4},farmSignPos={x:-13.4,z:-10.1},squarePos={x:48,z:-6};
+const crossPos={x:20,z:19},boardPos={x:52,z:-9.4},tsPos={x:22.8,z:-8.2},farmSignPos={x:-13.4,z:-10.1},squarePos={x:48,z:-6};
 const fishSpot={x:pond.x,z:pond.z-pond.r+3.6};
 const ALTAR_POS=[[-27,8,'west woods'],[-2,29,'cornfield'],[64,-32,'churchyard']];
 const SCARE_SPOTS=[[6.9,4],[9.8,-1.2],[2.2,-7.6]];
@@ -119,11 +119,11 @@ function buildWorld(){
   put('car_wreck',carPos.x-.8,carPos.z+3.2,0,{night:'car_wreck_n',kind:'wreck'});addRect(carPos.x-1.8,carPos.z-1.2,carPos.x+1.2,carPos.z+3.1);
   put('deadtree',carPos.x+.15,carPos.z+3.45,.35);reserve(-65,-8,-56,4);
   // ---------- Marrow Hollow: main street (z=-6), north row faces the street, south row faces the back lane (z=5)
-  building('store',31,-9.4,{jack:1});building('house_a',40,-9.4);building('house_b',57,-9.4,{jack:1});building('house_d',66,-9.4);
+  building('store',29.5,-9.4,{jack:1});building('house_a',40,-9.4);building('house_b',57,-9.4,{jack:1});building('house_d',66,-9.4);
   building('house_c',31,3.6);building('house_b',40,3.6);building('house_c',57,3.6,{lit:false});building('house_d',66,3.6,{lit:false});
   // side yards: picket runs between the houses, store goods stacked by the door
   fenceLine(35.6,-9.6,35.6,-13.8,0,'picket');fenceLine(61.5,-9.6,61.5,-13.8,0,'picket');fenceLine(35.6,-.6,35.6,3.4,0,'picket');fenceLine(61.5,-.6,61.5,3.4,0,'picket');
-  put('crate',34.9,-9.0,.3);put('sacks',32.55,-8.6);put('barrel',26.9,-9.3,.3);put('barrel',27.5,-8.8,.3);put('hay',26.6,-11.6);addRect(25.8,-12.8,27.4,-11.7);
+  put('crate',34.9,-9.0,.3);put('sacks',32.55,-8.6);put('barrel',23.4,-9.3,.3);put('barrel',23.9,-8.8,.3);put('hay',22.4,-11.6);addRect(21.6,-12.8,23.2,-11.7);
   // street lamps on the kerbs, never in the road
   for(const x of[27,36.4,45.8,50.2,61,70])lamp(x,-8.5);for(const x of[27,36.4,61,70])lamp(x,-3.5);for(const x of[36.4,48,61])lamp(x,6.5);
   put('phone_booth',boothPos.x,boothPos.z+.5,0,{night:'phone_booth_n',kind:'booth'});addRect(boothPos.x-.55,boothPos.z-.4,boothPos.x+.55,boothPos.z+.5);

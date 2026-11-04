@@ -22,6 +22,7 @@ function windowW(L,x,y,w,h,arched){rect(L,x-3,y-3,w+6,h+7,TR[3]);frame(L,x-3,y-3
 if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8,x0=side,front=top+fd;
   // back wall
   if(R.theme==='cabin'){wallpaper(A,x0,8,fw,wallH,PAL.sage,16);rect(A,x0,8+wallH-30,fw,30,WD[2]);planks(A,x0,8+wallH-28,fw,26,[WD[1],WD[1],WD[2],WD[3],WD[3]],13);hl(A,x0,8+wallH-30,fw,WD[4]);hl(A,x0,8+wallH-31,fw,WD[5]);}
+  if(R.theme==='home'){const PR=PAL[R.paper||'sage'];wallpaper(A,x0,8,fw,wallH,PR,14);rect(A,x0,8+wallH-30,fw,30,WD[2]);planks(A,x0,8+wallH-28,fw,26,[WD[1],WD[1],WD[2],WD[3],WD[3]],13);hl(A,x0,8+wallH-30,fw,WD[4]);hl(A,x0,8+wallH-31,fw,WD[5]);}
   if(R.theme==='store'){brick(A,x0,8,fw,wallH,PAL.red);rect(A,x0,8+wallH-22,fw,22,WD[2]);for(let x=x0;x<x0+fw;x+=7)vl(A,x,8+wallH-22,22,WD[1]);hl(A,x0,8+wallH-22,fw,WD[4]);}
   if(R.theme==='church'){plaster(A,x0,8,fw,wallH,TR);rect(A,x0,8+wallH-26,fw,26,WD[1]);for(let x=x0;x<x0+fw;x+=24)frame(A,x+2,8+wallH-23,20,20,WD[3],WD[0]);hl(A,x0,8+wallH-26,fw,WD[3]);}
   if(R.theme==='garage'){for(let y=8;y<8+wallH;y++)for(let x=x0;x<x0+fw;x++){const r=Math.floor((y-8)/10),o=r%2?9:0,b=(x-x0+o)%18;let c=ST[(hsh(Math.floor((x-x0+o)/18),r,5)>.5)?3:2];if(b===0||(y-8)%10===9)c=ST[1];else if((y-8)%10===0)c=ST[4];P(A,x,y,c);}}
@@ -32,7 +33,7 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   rect(A,x0,0,fw,8,WD[1]);hl(A,x0,7,fw,WD[3]);for(let x=x0;x<x0+fw;x+=48)rect(A,x,0,10,8,WD[2]);
   for(const w of R.windows||[]){windowW(B,x0+w[0]*32-(w[2]||28)/2|0,14+(w[3]||8),w[2]||28,w[4]||34,R.theme==='church');}
   // floor
-  if(R.theme==='cabin'||R.theme==='store')planks(A,x0,top,fw,fd,WD,8);
+  if(R.theme==='cabin'||R.theme==='store'||R.theme==='home')planks(A,x0,top,fw,fd,WD,8);
   if(R.theme==='church')tilesF(A,x0,top,fw,fd,ST,16);
   if(R.theme==='garage')concrete(A,x0,top,fw,fd);
   if(R.theme==='mine'){for(let y=top;y<top+fd;y++)for(let x=x0;x<x0+fw;x++){const n=hsh(x>>4,(y+(x>>3))>>4,8)*.8+hsh(x,y,9)*.2;P(A,x,y,n>.78?RK[3]:n>.45?RK[2]:RK[1]);}
@@ -42,8 +43,31 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   // skirting where floor meets the back wall + ambient occlusion
   rect(A,x0,top-8,fw,8,WD[1]);hl(A,x0,top-8,fw,WD[3]);for(let y=0;y<10;y++)for(let x=x0;x<x0+fw;x++){const c=G(A,x,top+y);if(c)P(A,x,top+y,shade(c,.62+y*.038));}
   for(let y=top;y<front;y++)for(let x=0;x<14;x++){for(const xx of [x0+x,x0+fw-1-x]){const c=G(A,xx,y);if(c)P(A,xx,y,shade(c,.66+x*.024));}}
+  // ---- depth: the back wall darkens toward the ceiling, the floor darkens away from the windows
+  for(let y=8;y<8+wallH;y++){const k=.7+.3*Math.min(1,(y-8)/36);for(let x=x0;x<x0+fw;x++){const c=G(A,x,y);if(c)P(A,x,y,shade(c,k));}}
+  for(let y=top;y<front;y++){const k=1-.12*((y-top)/fd);for(let x=x0;x<x0+fw;x++){const c=G(A,x,y);if(c)P(A,x,y,shade(c,k));}}
+  // ---- dressing on the walls: framed pictures, a wall shelf, a sign, a hymn board, a pegboard: each with a lit top edge and a shadow on the wall
+  const wallShadow=(x,y,w,h)=>{for(let j=0;j<3;j++)for(let i=0;i<w;i++){const c=G(A,x+2+i,y+h+j);if(c)P(A,x+2+i,y+h+j,shade(c,.7+j*.1));}for(let j=0;j<h;j++)for(let i=0;i<2;i++){const c=G(A,x+w+i,y+2+j);if(c)P(A,x+w+i,y+2+j,shade(c,.75+i*.1));}};
+  const picture=(x,y,w,h,k)=>{wallShadow(x,y,w,h);rect(B,x,y,w,h,WD[3]);frame(B,x,y,w,h,WD[5],WD[0]);const C=[[PAL.sage,PAL.mustard],[PAL.blue,PAL.cream],[PAL.rust,PAL.slate]][k%3];
+    for(let j=2;j<h-2;j++)for(let i=2;i<w-2;i++){const t=j/(h-2);P(B,x+i,y+j,t<.55?C[0][3]:C[1][2]);}hl(B,x+2,y+Math.round(h*.55),w-4,C[1][1]);if(k%2)ell(B,x+(w>>1),y+(h>>1)-1,2,3,C[1][0]);P(B,x+(w>>1),y-2,PAL.slate[4]);};
+  const wins=(R.windows||[]).map(w=>w[0]);const gapsAt=[];for(let c=1;c<R.w;c++){if(wins.every(w=>Math.abs(w-c)>1.1)&&Math.abs(c-R.door)>.5)gapsAt.push(c);}
+  if(R.theme==='cabin'||R.theme==='home'){gapsAt.slice(0,3).forEach((c,i)=>{const px=x0+c*32-9;i===1?(()=>{const sx=px-6;wallShadow(sx,40,30,3);rect(B,sx,40,30,3,WD[4]);hl(B,sx,40,30,WD[5]);
+      for(let k=0;k<4;k++){const jx=sx+3+k*7;rect(B,jx,32,5,8,[PAL.rust,PAL.sage,PAL.mustard,PAL.glass][k][3]);hl(B,jx,31,5,PAL.brass[2]);P(B,jx+1,34,PAL.white[5]);}})():picture(px,26,18,22,i+(R.paper||'').length);});}
+  if(R.theme==='store'){const sx=x0+fw/2-46;wallShadow(sx,18,92,13);rect(B,sx,18,92,13,PAL.cream[3]);frame(B,sx,18,92,13,PAL.cream[2],WD[0]);drawText(B,'COYLE GENERAL',sx+18,22,PAL.red[1]);
+    for(let x=x0+6;x<x0+fw-6;x+=4){const y=12+Math.round(Math.sin((x-x0)/18)*3+3);P(B,x,y,PAL.mustard[(x>>2)%2?3:4]);if((x>>2)%5===0){P(B,x,y+1,PAL.rust[3]);P(B,x,y+2,PAL.rust[2]);}}}
+  if(R.theme==='church'){const hx=x0+fw/2-60;wallShadow(hx,30,20,26);rect(B,hx,30,20,26,WD[1]);frame(B,hx,30,20,26,WD[3],WD[0]);for(let k=0;k<4;k++)drawText(B,['1','8','7','1'][k],hx+4+(k%2)*8,33+(k>>1)*10,PAL.cream[3]);
+    const cx2=x0+fw/2;rect(B,cx2-1,22,3,22,PAL.brass[2]);rect(B,cx2-6,28,13,3,PAL.brass[2]);hl(B,cx2-6,28,13,PAL.brass[3]);vl(B,cx2-1,22,22,PAL.brass[3]);}
+  if(R.theme==='garage'){const px=x0+fw-120;wallShadow(px,24,70,40);rect(B,px,24,70,40,WD[1]);for(let y=28;y<62;y+=5)for(let x=px+3;x<px+68;x+=5)P(B,x,y,WD[0]);
+    for(const [tx,ty,k] of [[px+8,30,0],[px+20,28,1],[px+34,30,2],[px+48,28,0],[px+60,30,1]]){if(k===0){vl(B,tx,ty,14,PAL.slate[4]);rect(B,tx-2,ty,5,4,PAL.slate[2]);}else if(k===1){vl(B,tx,ty+2,14,WD[4]);rect(B,tx-3,ty,7,3,PAL.slate[3]);}else{ell(B,tx,ty+7,5,5,PAL.slate[3]);ell(B,tx,ty+7,3,3,PAL.ink[1]);}}
+    const cx3=x0+40;wallShadow(cx3,30,18,22);rect(B,cx3,30,18,22,PAL.cream[3]);rect(B,cx3,30,18,5,PAL.red[3]);for(let j=0;j<3;j++)for(let i=0;i<4;i++)rect(B,cx3+2+i*4,37+j*5,3,3,PAL.cream[1]);P(B,cx3+10,47,PAL.red[3]);}
+  // ---- sunlight through each window, falling across the floor down and to the right (day only)
+  if(!N&&R.theme!=='mine')for(const w of R.windows||[]){const ww=w[2]||28,wx=x0+w[0]*32-ww/2;for(let y=top+2;y<Math.min(front-4,top+86);y++){const t=(y-top)/86,sk=Math.round((y-top)*.55);
+      for(let x=wx+sk;x<wx+sk+ww;x++){const e=Math.min(x-(wx+sk),wx+sk+ww-1-x);const a=(1-t)*Math.min(1,e/4);const c=G(A,x,y);if(c&&a>0)P(A,x,y,[Math.min(255,c[0]*(1+.28*a)+10*a),Math.min(255,c[1]*(1+.24*a)+8*a),Math.min(255,c[2]*(1+.12*a)+2*a)]);}}}
+  // ---- hanging lamps over the big rooms
+  if(R.theme==='store'||R.theme==='church'){for(const f of [.25,.75]){const lx=x0+Math.round(fw*f);vl(B,lx,0,18,PAL.slate[2]);ell(B,lx,22,7,4,N?PAL.lit[4]:PAL.brass[2]);hl(B,lx-7,22,15,PAL.brass[1]);ell(B,lx,25,3,1,N?PAL.lit[5]:PAL.cream[3]);}}
   // side walls: dark tops of the left and right walls
-  for(const sx of [0,x0+fw]){rect(A,sx,0,side,front+10,PAL.ink[1]);vl(A,sx+(sx?0:side-1),0,front+10,WD[2]);vl(A,sx+(sx?1:side-2),0,front+10,WD[0]);}
+  for(const sx of [0,x0+fw]){rect(A,sx,0,side,front+10,PAL.ink[1]);for(let y=0;y<front+10;y++){const inner=sx?sx:sx+side-1;P(A,inner,y,WD[2]);P(A,sx?inner+1:inner-1,y,WD[1]);P(A,sx?inner+2:inner-2,y,WD[0]);}
+    for(let y=0;y<front+10;y+=32){hl(A,sx,y,side,WD[1]);}vl(A,sx?sx+side-1:sx,0,front+10,PAL.ink[0]);}
   // cut-away front wall: a beam with a gap for the door
   const dg0=x0+R.door*32-22,dg1=x0+R.door*32+22;for(let x=0;x<W;x++){if(x>=dg0&&x<dg1)continue;rect(A,x,front,1,10,x%32===0?WD[0]:WD[2]);P(A,x,front,WD[4]);P(A,x,front+9,PAL.ink[0]);}
   for(let y=front-4;y<front+10;y++)for(const x of [dg0-1,dg1]){P(A,x,y,WD[1]);}

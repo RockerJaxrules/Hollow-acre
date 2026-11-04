@@ -1,5 +1,5 @@
 /* ================= workbenches: farming, weapons, armour, furniture, plus the furnace and the stove. All built from wood; wood and coal are fuel ================= */
-Object.assign(ITEMS,{copper_bar:{name:'Copper bar',icon:'ore_copper'},iron_bar:{name:'Iron bar',icon:'ore_iron'},fert:{name:'Bone meal',icon:'icon_seed'}});
+Object.assign(ITEMS,{copper_bar:{name:'Copper bar',icon:'cbar'},iron_bar:{name:'Iron bar',icon:'ibar'},fert:{name:'Bone meal',icon:'seed'}});
 S.benches=S.benches||{};S.gear=S.gear||{weapon:null,armor:null};S.furn=S.furn||[];
 const WEAPONS={club:['Oak club',1],sickle:['Copper sickle',2],machete:['Iron machete',3]};
 const ARMORS={jacket:['Waxed work jacket',.15,10],coat:['Copper-riveted coat',.3,25],mail:['Iron mail shirt',.45,45]};

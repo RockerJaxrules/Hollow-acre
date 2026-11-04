@@ -81,7 +81,11 @@ function render(dt,now){const t=now/1000;
       if((o.kind==='tree'||o.kind==='pine'||o.kind==='bld')&&P.z<o.z-.2){const m=SPR[o.spr];if(m){const px=sx(P.x),py=sz(P.z)-30;const f=m.foot||[0,0,0,0];const x0=o.kind==='bld'?X+f[0]*PPM:X-m.fw*.35,x1=o.kind==='bld'?X+f[2]*PPM:X+m.fw*.35;if(px>x0&&px<x1&&py>Y-m.ay&&py<Y&&P.z>o.z-(o.kind==='bld'?8:4))a=.55;}}
       if(o.spr==='cbridge'&&Math.abs(P.x-o.x)<4.6&&P.z<o.z&&P.z>o.z-6.6)a=.16;
       if(o.clipw&&o.clipw<1.99){const m=SPR[o.spr],im=IMG[m.src];if(im){const w=Math.round(o.clipw*PPM),dx=Math.round(X-m.ax),dy=Math.round(Y-m.ay);ctx2.drawImage(im,0,0,w,m.fh,dx,dy,w,m.fh);ctx2.drawImage(im,m.fw-9,0,9,m.fh,dx+w-1,dy,9,m.fh);}}
+      else if(o.tilt){ctx2.save();ctx2.translate(Math.round(X),Math.round(Y));ctx2.rotate(o.tilt);drawSpr(o.spr,0,0,null,null,0,{alpha:a});ctx2.restore();}
       else drawSpr(o.spr,X,Y,null,null,0,{alpha:a});
+      if(o.notch){const w=o.trunkW||6,side=o.notchSide||1,nx=Math.round(X+side*w),ny=Math.round(Y-12);const dpt=Math.min(w-1,1+o.notch*1.4)|0;
+        for(let j=-2-o.notch;j<=2+o.notch;j++){const k=dpt-Math.abs(j);for(let i=0;i<k;i++){ctx2.fillStyle=i===k-1?'#d8b478':'#3a2414';ctx2.fillRect(nx-side*i-(side<0?1:0),ny+j,1,1);}}
+        ctx2.fillStyle='#e8c88a';ctx2.fillRect(nx-side*(dpt-1),ny-1,1,3);}
       if(o.night&&SPR[o.night]&&nightK>0)drawSpr(o.night,X,Y,null,null,0,{alpha:(a||1)*nightK});
       if(o.kind==='bld'){const h=HOUSES.find(q=>q.e===o);if(h&&h.faceT>0){const w=(h.w||6)/2;const fx=Math.round(X-w*PPM+48),fy=Math.round(Y-74);ctx2.fillStyle='#d8d4c8';ctx2.fillRect(fx,fy,8,10);ctx2.fillStyle='#000';ctx2.fillRect(fx+1,fy+3,2,2);ctx2.fillRect(fx+5,fy+3,2,2);ctx2.fillRect(fx+2,fy+7,4,2);}}}
     else if(d.crop){const tl=d.crop,c=tl.crop;const nm=c.type+'_'+c.stage;const s=c.pop<1?.6+.4*c.pop:1;if(c.stage>0)shadow(sx(tl.x)+2,sz(tl.z+.2),4+c.stage*2);drawSpr(nm,sx(tl.x),sz(tl.z+.2),null,null,0,{scale:s});mindCropOver(tl,sx(tl.x),sz(tl.z+.2));}

@@ -189,15 +189,40 @@ if(K==='deer'){ // a deer dead on its side across the lane: long stiff legs, pal
   for(let i=0;i<5;i++){P(A,cx-21+i,base-20-i,BR[3]);P(A,cx-19+i,base-21-i,BR[2]);}P(A,cx-24,base-17,[12,8,8]);P(A,cx-23,base-17,[200,200,200]);}
 if(K==='doornote'){rect(A,1,2,W-2,H-3,PAL.cream[3]);for(let y=5;y<H-3;y+=2)hl(A,3,y,W-6-(y%4?2:0),PAL.ink[1]);vl(A,W-2,3,H-4,PAL.cream[1]);hl(A,1,H-2,W-2,PAL.cream[1]);P(A,W-3,H-3,PAL.cream[2]);P(A,W-2,H-2,PAL.cream[0]);
   P(A,W/2|0,2,PAL.slate[4]);P(A,W/2|0,3,PAL.slate[1]);P(A,(W/2|0)+1,3,PAL.rust[2]);}
-if(K==='icon'){const I=CFG.icon,c=W/2|0;const wood=WD,ir=[[52,56,66],[92,98,110],[150,156,168],[206,212,220]];
-  const handle=(x0,y0,x1,y1)=>{for(let t=0;t<=1;t+=.05){const x=Math.round(x0+(x1-x0)*t),y=Math.round(y0+(y1-y0)*t);P(A,x,y,wood[3]);P(A,x+1,y,wood[1]);}};
-  if(I==='hoe'){handle(4,16,13,5);for(let i=0;i<6;i++){P(A,12+i,4,ir[3]);P(A,12+i,5,ir[2]);P(A,13+i,6,ir[1]);}P(A,17,7,ir[0]);}
-  if(I==='pick'){handle(5,16,11,6);for(let i=-6;i<=6;i++){const y=5+Math.round(Math.abs(i)*.45);P(A,11+i,y,ir[Math.abs(i)>4?3:2]);P(A,11+i,y+1,ir[1]);}}
-  if(I==='axe'){handle(4,17,12,5);for(let j=0;j<8;j++)for(let i=0;i<6-Math.abs(j-3.5)*.6;i++)P(A,12+i,2+j,i===0?ir[1]:i>=4?ir[3]:ir[2]);}
-  if(I==='can'){const G2=[[34,70,40],[54,110,58],[80,150,80],[130,196,120]];for(let y=-5;y<=5;y++)for(let x=-6;x<=6;x++){if(x*x/36+y*y/25>1)continue;P(A,c-1+x,12+y,G2[x<-2?3:x>2?1:2]);}
-    for(let i=0;i<6;i++){P(A,c+5+i,10-i,G2[2]);P(A,c+5+i,11-i,G2[1]);}P(A,c+11,4,[200,200,190]);P(A,c+11,5,[200,200,190]);for(let i=0;i<7;i++){const a=Math.PI+i/6*Math.PI;P(A,c-1+Math.round(Math.cos(a)*5),7+Math.round(Math.sin(a)*4),G2[0]);}}
-  if(I==='seed'){for(let y=0;y<11;y++)for(let x=-6+(y<3?2:0);x<=6-(y<3?2:0);x++)P(A,c+x,7+y,PAL.cream[x<-2?3:x>3?1:2]);hl(A,c-3,6,7,PAL.bark[2]);for(let i=0;i<3;i++){P(A,c-2+i*2,12,PAL.bark[1]);P(A,c-1+i*2,14,PAL.bark[1]);}P(A,c-1,3,PAL.moss[3]);P(A,c,4,PAL.moss[2]);P(A,c+1,3,PAL.moss[3]);}
-  if(I==='food'){for(let y=-3;y<=3;y++)for(let x=-8;x<=8;x++){if(x*x/64+y*y/9>1)continue;P(A,c+x,13+y,y<0?PAL.mustard[4]:PAL.cream[1]);}for(let x=-7;x<=7;x++){P(A,c+x,11,PAL.rust[3]);P(A,c+x,10,PAL.rust[4]);}for(let i=0;i<3;i++){P(A,c-3+i*3,6-(i%2),PAL.cream[3]);P(A,c-3+i*3,8,PAL.cream[2]);}}}
+if(K==='icon'){const I=CFG.icon;   // 16x16 inventory icons, lit from the upper left, read at 2x
+  const WO=[[58,36,20],[96,62,34],[140,94,54],[184,136,84]],SL=[[46,50,60],[92,98,112],[156,162,176],[222,228,236]];
+  const line=(x0,y0,x1,y1,R)=>{const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0));for(let i=0;i<=n;i++){const x=Math.round(x0+(x1-x0)*i/n),y=Math.round(y0+(y1-y0)*i/n);P(A,x,y,R[3]);P(A,x+1,y,R[2]);P(A,x+1,y+1,R[1]);}};
+  const blob2=(cx,cy,rx,ry,R,lift)=>{for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){const d=x*x/(rx*rx+.01)+y*y/(ry*ry+.01);if(d>1)continue;const l=-x/rx*.5-y/ry*.7;P(A,cx+x,cy+y,R[d>.75&&(x>0||y>0)?0:l>.45?3:l>-.2?2:1]);}if(lift!==false)P(A,cx-Math.round(rx*.4),cy-Math.round(ry*.5),R[3]);};
+  const bowl=(top,top2)=>{for(let x=-6;x<=6;x++){const h=Math.round(Math.sqrt(Math.max(0,36-x*x))*.55);for(let y=0;y<=h;y++)P(A,8+x,9+y,y===h?WO[0]:x<-2?WO[3]:x>3?WO[1]:WO[2]);}for(let x=-6;x<=6;x++){P(A,8+x,8,top);P(A,8+x,9,WO[2]);}for(let x=-4;x<=4;x+=2)P(A,8+x,8,top2);hl(A,3,8,2,WO[3]);};
+  const rockI=(vein)=>{const R=[[40,38,44],[70,66,76],[108,104,114],[150,146,154],[196,192,198]];for(let y=-5;y<=4;y++)for(let x=-6;x<=6;x++){const d=x*x/36+y*y/(y<0?25:16);if(d>1)continue;let k=y<-1&&x<2?4:x<0?3:y>1?1:2;if(hsh(x,y,3)>.85&&k>1)k--;P(A,8+x,10+y,R[k]);}
+    if(vein)for(const [x,y] of [[-3,-1],[1,-3],[3,1],[-1,2]]){P(A,8+x,10+y,vein[0]);P(A,9+x,10+y,vein[1]);}};
+  const ingot=(R)=>{for(let y=0;y<6;y++)for(let x=-6+y*.5|0;x<=6-y*.5;x++){}for(let y=0;y<6;y++){const w=4+y;for(let x=-w;x<=w;x++)P(A,8+x,6+y,y===0?R[3]:x>w-2?R[0]:x<-w+2?R[2]:R[1+(y<2?1:0)]);}hl(A,3,12,11,R[0]);P(A,6,7,R[3]);P(A,7,7,R[3]);};
+  if(I==='hoe'){line(2,14,11,5,WO);rect(A,10,2,6,2,SL[3]);rect(A,14,4,2,4,SL[2]);P(A,15,7,SL[1]);P(A,10,3,SL[2]);P(A,11,4,SL[1]);}
+  if(I==='pick'){line(3,14,9,6,WO);for(let i=-6;i<=6;i++){const y=4+Math.round(i*i*.09);P(A,9+i,y,SL[Math.abs(i)>4?3:2]);P(A,9+i,y+1,SL[1]);}P(A,9,3,SL[3]);P(A,3,6,SL[3]);P(A,15,6,SL[2]);}
+  if(I==='axe'){line(3,14,9,4,WO);for(let j=0;j<8;j++)for(let i=0;i<5-Math.abs(j-3.5)*.5;i++)P(A,9+i,1+j,i===0?SL[1]:i>=3?SL[3]:SL[2]);P(A,13,2,SL[3]);P(A,14,4,SL[3]);P(A,8,2,WO[1]);}
+  if(I==='can'){const G=[[30,66,40],[50,104,58],[78,146,80],[132,196,122]];blob2(7,10,5,4,G);for(let i=0;i<5;i++){P(A,11+i,9-i,G[2]);P(A,11+i,10-i,G[1]);}P(A,15,4,[210,210,200]);P(A,15,5,[160,160,150]);
+    for(let i=0;i<7;i++){const a=Math.PI+i/6*Math.PI;P(A,7+Math.round(Math.cos(a)*4),6+Math.round(Math.sin(a)*3),G[1]);}}
+  if(I==='seed'){const C=PAL.cream;for(let y=0;y<9;y++){const w=3+Math.min(y,3);for(let x=-w;x<=w;x++)P(A,8+x,6+y,C[x<-1?3:x>2?1:2]);}hl(A,5,14,7,C[0]);hl(A,6,5,5,PAL.bark[2]);P(A,7,4,C[2]);P(A,9,4,C[1]);
+    P(A,8,2,PAL.moss[3]);P(A,7,1,PAL.moss[3]);P(A,9,1,PAL.moss[2]);P(A,8,3,PAL.moss[2]);for(const [x,y] of [[6,9],[9,11],[8,8]])P(A,x,y,PAL.bark[1]);}
+  if(I==='food'){for(let y=0;y<4;y++)for(let x=-6+y;x<=6-y;x++)P(A,8+x,8-y,y===3?PAL.mustard[5]:PAL.mustard[4-(x>2?1:0)]);bowl(PAL.rust[3],PAL.rust[4]);}
+  if(I==='wood'){for(let y=0;y<6;y++)for(let x=2;x<13;x++)P(A,x,6+y,WO[y<2?3:y>4?0:2]);for(let x=3;x<12;x+=4)P(A,x,8,WO[1]);for(let y=-3;y<=3;y++)for(let x=-2;x<=2;x++){if(x*x/4+y*y/9>1)continue;P(A,13+x,9+y,(x*x+y*y)%3===0?[214,176,118]:[190,148,92]);}P(A,13,9,WO[1]);}
+  if(I==='stone')rockI(null);
+  if(I==='fiber'){const G=['#1f4420','#2f6428','#438232','#62a03e','#8cc256'].map(HEX);for(let i=0;i<7;i++){const x=4+i;for(let y=2;y<15;y++)P(A,x+Math.round(Math.sin(y*.5+i)*.8),y,G[1+((i+y)%4)]);}hl(A,4,8,8,PAL.bark[2]);hl(A,4,9,8,PAL.bark[1]);}
+  if(I==='copper')rockI([[168,92,48],[236,154,84]]);if(I==='iron')rockI([[150,160,178],[238,242,250]]);
+  if(I==='coal'){for(const [cx,cy,r] of [[6,10,3],[10,9,3],[8,12,3]])blob2(cx,cy,r,r-1,[[10,10,14],[24,22,28],[44,42,50],[80,78,90]]);}
+  if(I==='gem'){const T=[[20,80,80],[40,140,136],[80,200,190],[200,255,250]];for(let y=0;y<10;y++){const w=y<3?2+y*2:Math.max(0,8-(y-3)*1.2|0);for(let x=-w;x<=w;x++)P(A,8+x,3+y,T[y<3?(x<0?3:2):x<0?2:x>w-2?0:1]);}P(A,6,5,[255,255,255]);}
+  if(I==='cbar')ingot([[110,52,22],[168,92,48],[214,132,72],[246,186,120]]);if(I==='ibar')ingot([[60,64,76],[110,118,132],[164,172,186],[226,232,240]]);
+  if(I==='bread'){for(let y=-4;y<=3;y++)for(let x=-6;x<=6;x++){const d=x*x/36+y*y/(y<0?16:9);if(d>1)continue;P(A,8+x,10+y,y<-1?PAL.mustard[x<0?5:4]:y>1?PAL.rust[2]:PAL.mustard[3]);}for(const x of [-3,0,3])for(let k=0;k<2;k++)P(A,8+x+k,8-k,PAL.cream[3]);}
+  if(I==='stew')bowl([120,70,36],[200,140,60]);if(I==='soup')bowl([214,170,96],[240,214,150]);if(I==='chowder')bowl([236,210,120],[250,236,170]);if(I==='glowstew')bowl([60,200,170],[160,255,230]);
+  if(I==='egg'||I==='egg_fried'){if(I==='egg')blob2(8,9,4,5,[[180,168,140],[214,204,180],[240,234,214],[252,250,240]]);else{blob2(8,9,6,4,[[200,196,184],[228,224,212],[244,242,234],[255,255,250]],false);blob2(8,9,2,2,[[200,120,20],[230,160,40],[250,196,70],[255,230,140]]);}}
+  if(I==='pie'){for(let y=0;y<7;y++){const w=7-y;for(let x=-7;x<=w-1;x++)P(A,8+x,12-y,y===0?PAL.rust[1]:x>w-3?PAL.mustard[3]:PAL.rust[3]);}for(let x=-7;x<0;x++)P(A,8+x,5+((x+7)>>1),PAL.mustard[5]);hl(A,1,13,13,WO[1]);}
+  if(I==='turnip'){for(let y=-4;y<=4;y++)for(let x=-5;x<=5;x++){const dd=x*x/25+y*y/16;if(dd>1)continue;const l=-x/5*.5-y/4*.7;P(A,8+x,10+y,y<-1?[200,90,150][0]&&(l>.3?[236,150,196]:[200,96,160]):(l>.3?[250,244,232]:l>-.3?[226,218,200]:[180,170,150]));}
+    for(let i=0;i<3;i++){P(A,8+i-1,13+i,[170,160,140]);}for(const [x,c] of [[-2,PAL.moss[3]],[0,PAL.moss[2]],[2,PAL.moss[3]]])for(let k=0;k<5;k++)P(A,8+x+(k>2?x>0?1:x<0?-1:0:0),5-k,c);}
+  if(I==='pumpkin'){const OR=[[110,34,14],[164,62,22],[214,98,34],[240,140,58],[252,184,96]];for(let y=-5;y<=5;y++)for(let x=-7;x<=7;x++){const dd=x*x/49+y*y/25;if(dd>1)continue;const rib=Math.abs(Math.sin(x/7*Math.PI*1.6));const l=-x/7*.5-y/5*.7-rib*.3;P(A,8+x,10+y,OR[l>.45?4:l>.05?3:l>-.35?2:1]);}vl(A,8,2,4,[74,90,36]);P(A,9,2,[110,130,52]);}
+  if(I==='corn'){for(let y=3;y<14;y++){const w=y<5||y>11?1:2;for(let x=-w;x<=w;x++)P(A,8+x,y,(x+y)%2?PAL.mustard[5]:PAL.mustard[4]);}for(let y=6;y<15;y++){P(A,5+((y>>2)&1),y,PAL.moss[2]);P(A,11-((y>>2)&1),y,PAL.moss[3]);}P(A,8,2,[220,200,140]);}
+  if(I==='mushroom'){for(let y=-3;y<=1;y++)for(let x=-6;x<=6;x++){if(x*x/36+y*y/9>1)continue;P(A,8+x,8+y,y<-1?[120,250,210]:[60,200,170]);}for(const [x,y] of [[-3,-1],[2,-2],[4,0]])P(A,8+x,8+y,[220,255,245]);rect(A,7,9,3,5,PAL.cream[3]);vl(A,9,9,5,PAL.cream[1]);}
+  if(I==='hash'){for(let x=-7;x<=7;x++){P(A,8+x,12,[200,200,196]);P(A,8+x,13,[150,150,146]);}for(const [x,y,c] of [[-3,10,PAL.rust[3]],[0,9,PAL.mustard[4]],[3,10,PAL.sage[3]],[-1,11,PAL.rust[4]],[2,11,PAL.mustard[3]]]){P(A,8+x,y,c);P(A,9+x,y,c);P(A,8+x,y-1,c);}}}
+
 if(K==='pumpkin'){const cx=W/2|0,base=H-3,rx=CFG.big?10:8,ry=CFG.big?7:6,cy=base-ry;const OR=CFG.pale?[[120,70,40],[168,112,64],[206,150,92],[230,186,128],[244,214,160]]:[[110,34,14],[164,62,22],[214,98,34],[240,140,58],[252,184,96]];
   for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){const d=x*x/(rx*rx)+y*y/(ry*ry);if(d>1)continue;const rib=Math.abs(Math.sin((x/rx)*Math.PI*1.8));const l=-.5*x/rx-.75*y/ry+.25-rib*.35;
     let k=l>.55?4:l>.15?3:l>-.25?2:1;if(rib<.12&&Math.abs(x)<rx-1)k=Math.max(0,k-1);if(y>ry*.6)k=Math.min(k,1);P(A,cx+x,cy+y,OR[k]);}
@@ -240,5 +265,5 @@ if(K==='furnace'){const cx=W/2|0,base=H-3,w=26,top=10;   // a fieldstone furnace
   hl(A,cx-8,base-4,16,ST[4]);hl(A,cx-w/2,top,w,ST[5]);for(let x=-w/2-1;x<=w/2+1;x++)P(SHD,cx+x,base+1,PAL.out[0],150);}
 if(K==='ladder'){for(let y=2;y<H-4;y++){P(A,4,y,WD[4]);P(A,5,y,WD[2]);P(A,W-6,y,WD[3]);P(A,W-5,y,WD[1]);}for(let y=6;y<H-4;y+=6){hl(A,5,y,W-10,WD[4]);hl(A,5,y+1,W-10,WD[1]);}
   ell(A,W/2|0,H-4,W/2-2|0,3,PAL.ink[0]);}
-const ART=[SHD,A,B];const flat=flatten([A,B],W,H);const O=outline(flat);const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=(CFG.thin||/^fence|^picket/.test(K))?0:150;}
+const ART=[SHD,A,B];const flat=flatten([A,B],W,H);const O=outline(flat);const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=(CFG.thin||/^fence|^picket|^icon/.test(K))?0:150;}
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));

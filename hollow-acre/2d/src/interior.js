@@ -5,9 +5,11 @@ const ROOMS={
     ['in_bed',1.3,2.6,[-.85,-2.1,.85,0]],['in_shelf_books',3.2,.62,[-.8,-.4,.8,0]],['in_clock',4.3,.55,[-.3,-.3,.3,0]],['in_desk',5.85,.95,[-.88,-.45,.88,0]],
     ['in_stove',7.9,.95,[-.68,-.5,.68,0]],['in_rug',3.9,4.1,null,'flat'],['in_table',6.3,3.5,[-.85,-.45,.85,0]],['in_chair',5.2,3.55,[-.3,-.25,.3,0]],['in_chair',7.4,3.55,[-.3,-.25,.3,0]],
     ['in_cellar',1.2,5.4,null,'flat'],['in_mirror',8.45,-.45,null,'flat'],['barrel',8.4,5.2,[-.4,-.3,.4,0]]]},
-  store:{ox:330,oz:-60,out:{x:31,z:-8.7},name:'Coyle’s General Store',furn:[
-    ['in_shelf_cans',1.1,.62,[-1,-.4,1,0]],['in_shelf_jars',2.9,.62,[-.8,-.4,.8,0]],['in_shelf_jars',6.2,.62,[-.8,-.4,.8,0]],['in_shelf_cans',7.9,.62,[-1,-.4,1,0]],
-    ['in_counter',4.55,2.5,[-1.56,-.6,1.56,0]],['in_crates',8.0,4.9,[-.7,-.4,.7,0]],['in_keg',.8,4.7,[-.4,-.3,.4,0]],['sacks',1.7,5.3,[-.55,-.3,.55,0]],['barrel',.7,3.3,[-.4,-.3,.4,0]],['in_rug',4.5,4.9,null,'flat']]},
+  store:{ox:330,oz:-62,out:{x:29.5,z:-8.7},name:'Coyle’s General Store',furn:[
+    ['in_shelf_cans',1.1,.62,[-1,-.4,1,0]],['in_shelf_jars',2.9,.62,[-.8,-.4,.8,0]],['in_shelf_cans',4.6,.62,[-1,-.4,1,0]],['in_shelf_jars',8.4,.62,[-.8,-.4,.8,0]],['in_shelf_cans',10.1,.62,[-1,-.4,1,0]],['in_shelf_jars',11.9,.62,[-.8,-.4,.8,0]],
+    ['in_counter',6.5,2.5,[-1.56,-.6,1.56,0]],['in_shelf_cans',2.4,4.7,[-1,-.4,1,0]],['in_shelf_jars',4.2,4.7,[-.8,-.4,.8,0]],['in_shelf_jars',8.8,4.7,[-.8,-.4,.8,0]],['in_shelf_cans',10.6,4.7,[-1,-.4,1,0]],
+    ['in_crates',1.2,7.0,[-.7,-.4,.7,0]],['in_crates',11.8,7.0,[-.7,-.4,.7,0]],['barrel',.6,2.8,[-.4,-.3,.4,0]],['barrel',12.4,2.8,[-.4,-.3,.4,0]],['sacks',12.1,5.9,[-.55,-.3,.55,0]],['in_keg',.7,5.9,[-.4,-.3,.4,0]],
+    ['pumpkin',3.1,7.2,[-.3,-.2,.3,0]],['pumpkin_b',3.7,7.3,[-.3,-.2,.3,0]],['in_rug',6.5,6.9,null,'flat']]},
   church:{ox:360,oz:-60,out:{x:48,z:-17.9},name:'Marrow Hollow Church',furn:[
     ['in_altar',5,1.7,[-1.15,-.65,1.15,0]],['in_candles',2.5,1.1,[-.6,-.25,.6,0]],['in_candles',7.5,1.1,[-.6,-.25,.6,0]],
     ['in_pew',2.4,3.6,[-1.95,-.45,1.95,0]],['in_pew',7.6,3.6,[-1.95,-.45,1.95,0]],['in_pew',2.4,5.0,[-1.95,-.45,1.95,0]],['in_pew',7.6,5.0,[-1.95,-.45,1.95,0]],
@@ -17,7 +19,7 @@ const ROOMS={
     ['in_crates',8.0,4.7,[-.7,-.4,.7,0]],['barrel',7.6,2.4,[-.4,-.3,.4,0]],['in_keg',.6,5.2,[-.4,-.3,.4,0]]]}};
 S.room=null;
 function roomOf(){return S.room&&ROOMS[S.room];}
-function buildInteriors(){for(const k in ROOMS){const R=ROOMS[k],m=SPR['room_'+k];R.w=m.room.w;R.d=m.room.d;R.door=m.room.door;const x0=R.ox,z0=R.oz,x1=x0+R.w,z1=z0+R.d;
+function buildInteriors(){for(const k in ROOMS){const R=ROOMS[k],m=SPR[R.shell||('room_'+k)];if(!m)continue;R.w=m.room.w;R.d=m.room.d;R.door=m.room.door;const x0=R.ox,z0=R.oz,x1=x0+R.w,z1=z0+R.d;
   addRect(x0-3,z0-4,x1+3,z0+.3);addRect(x0-3,z0-4,x0+.12,z1+3);addRect(x1-.12,z0-4,x1+3,z1+3);
   addRect(x0-3,z1,x0+R.door-.62,z1+3);addRect(x0+R.door+.62,z1,x1+3,z1+3);addRect(x0-3,z1+.5,x1+3,z1+3);
   for(const [spr,lx,lz,f,kind] of R.furn){const o=obj(spr,x0+lx,z0+lz,{kind:kind||'furn',night:SPR[spr+'_n']?spr+'_n':null,room:k});if(f)addRect(o.x+f[0],o.z+f[1],o.x+f[2],o.z+f[3]);}}}
@@ -45,7 +47,7 @@ interact.push({...rp('cabin',8.45,.3),r:.9,on:inRoom('cabin'),label:()=>'Mirror'
   const lines=['You look tired. You look like him.','You look tired. Your reflection looks more tired.','Your reflection blinks a moment after you do.','It isn’t you. It’s wearing your shirt, and it’s smiling.','There is nobody in the mirror. The room behind you is empty too. Except for the shape in the bed.'];
   toast(lines[Math.min(4,T)],3.2,T>=2);if(T>=2){SFX.stinger();mindHit&&mindHit(3);}}});
 interact.push({...rp('cabin',7.9,1.4),r:1,on:inRoom('cabin'),label:()=>'Stove',ok:()=>true,act(){M.v=Math.min(100,M.v+6);toast('You warm your hands. For a moment the house feels like his again.',2.4);}});
-interact.push({...rp('store',4.55,3.0),r:1.4,on:inRoom('store'),label:()=>'Counter',ok:()=>true,act(){toast('Mae calls from the back room: “Take what you need, dear. Leave the coins by the till.”',2.8);openShop('mae');}});
+interact.push({...rp('store',6.5,3.0),r:1.4,on:inRoom('store'),label:()=>'Counter',ok:()=>true,act(){const m=npcById('mae');if(!(m&&m.loc==='in'&&m.inWant!=='home'&&Math.abs(m.x-(ROOMS.store.ox+6.5))<1))toast('Mae calls from the back room: “Take what you need, dear. Leave the coins by the till.”',2.8);else toast('“What’ll it be, dear?”',1.6);openShop('mae');}});
 interact.push({...rp('garage',5.3,1.5),r:1.3,on:inRoom('garage'),label:()=>'Workbench',ok:()=>true,act(){openShop('hollis');}});
 interact.push({...rp('garage',3.2,4.4),r:1.6,on:inRoom('garage'),label:()=>'Cruiser',ok:()=>true,act(){toast('The sheriff’s old cruiser, up on blocks. There’s a child’s shoe on the back seat, dry as bone.',3);}});
 interact.push({...rp('church',5,2.2),r:1.4,on:inRoom('church'),label:()=>'Ledger',ok:()=>true,act(){openNote(`<p><i>The parish ledger, open on the altar. A name for every October since 1871, in the same brown ink.</i></p><p>1987 · Ruth Abernathy<br>1999 · Daniel Coyle<br>…</p><p>The last line is already written. The ink is still wet. It is your name.</p>`);mindHit&&mindHit(5);}});
@@ -63,14 +65,15 @@ const _ap=aroundPlayer;aroundPlayer=function(a,b,d0,d1){const p=_ap(a,b,d0,d1);c
 const _nd=newDay;newDay=function(msg,pos){const was=S.room;_nd(msg,pos);if(was==='cabin'&&!pos){const R=ROOMS.cabin;P.x=R.ox+2.6;P.z=R.oz+2.9;P.dir='S';}else S.room=null;};
 // light: daylight through the windows, warm lamps at night
 const _amb=ambient;ambient=function(h){const a=_amb(h);if(!S.room)return a;if(S.room==='mine')return [44,40,52];const d=clamp((h-6)/1.5,0,1)*clamp((19.5-h)/1.5,0,1);return [lerp(92,214,d),lerp(82,202,d),lerp(92,182,d)];};
-function interiorGround(){const R=roomOf();if(!R)return;const m=SPR['room_'+S.room];const X=Math.round(sx(R.ox))-m.side,Y=Math.round(sz(R.oz))-m.top;const im=IMG[m.src];if(im)ctx2.drawImage(im,X,Y);
-  const n=SPR['room_'+S.room+'_n'];if(n&&nightK>0&&S.room!=='mine'&&IMG[n.src]){ctx2.globalAlpha=nightK;ctx2.drawImage(IMG[n.src],X,Y);ctx2.globalAlpha=1;}
+function interiorGround(){const R=roomOf();if(!R)return;const m=SPR[R.shell||('room_'+S.room)];const X=Math.round(sx(R.ox))-m.side,Y=Math.round(sz(R.oz))-m.top;const im=IMG[m.src];if(im)ctx2.drawImage(im,X,Y);
+  const n=SPR[(R.shell||('room_'+S.room))+'_n'];if(n&&nightK>0&&S.room!=='mine'&&IMG[n.src]){ctx2.globalAlpha=nightK;ctx2.drawImage(IMG[n.src],X,Y);ctx2.globalAlpha=1;}
   if(S.room==='mine')for(const lx of [1.6,5.5,9.4]){const tx=Math.round(sx(R.ox+lx)),ty=Math.round(sz(R.oz))-30;ctx2.fillStyle='#3a2a1c';ctx2.fillRect(tx-1,ty,3,10);ctx2.fillStyle='#5a4a3a';ctx2.fillRect(tx-3,ty+8,7,2);
     const f=Math.sin(performance.now()/90+lx)>0;ctx2.fillStyle='#ffb040';ctx2.fillRect(tx-2,ty-5,5,5);ctx2.fillStyle='#fff0a0';ctx2.fillRect(tx-1,ty-(f?7:6),3,4);}}
 function interiorLight(L){const R=roomOf();if(!R)return;const fl=.94+.06*Math.sin(performance.now()/180);glowAt(sx(P.x),sz(P.z)-20,70,[255,214,170],.55*L);
   const G=(lx,lz,r,c,a)=>glowAt(sx(R.ox+lx),sz(R.oz+lz),r,c,a*L*fl);
   if(S.room==='cabin'){G(6.5,3.0,110,[255,180,100],.75);G(7.9,.6,70,[255,120,40],.8);G(5.9,.6,60,[255,200,130],.6);}
-  if(S.room==='store'){G(4.55,2.0,120,[255,190,110],.7);}
+  if(S.room==='store'){G(6.5,2.0,120,[255,190,110],.7);G(3.2,.6,110,[255,190,110],.6);G(9.8,.6,110,[255,190,110],.6);}
+  if(S.room&&S.room.startsWith('home_')){G(3.6,2.4,110,[255,186,110],.7);G(1.2,.6,70,[255,200,140],.5);}
   if(S.room==='church'){G(2.5,.7,80,[255,190,110],.8);G(7.5,.7,80,[255,190,110],.8);G(5,1.2,100,[255,180,100],.6);}
   if(S.room==='garage'){G(5.3,.6,120,[220,230,255],.55);}
   if(S.room==='mine'){for(const lx of [1.6,5.5,9.4])G(lx,-.9,110,[255,170,80],.95);}}

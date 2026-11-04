@@ -24,7 +24,7 @@
   #bars .bv{border-radius:0!important;background:var(--px-panel)!important;border:0!important;box-shadow:0 0 0 2px var(--px-dark),inset 0 0 0 2px var(--px-wood2)!important}#bars .bv i{border-radius:0!important}
   #bars b{font-family:'Pixelify Sans',monospace!important;text-shadow:1px 1px 0 #000}
   #joy .ring,#joy{border-radius:50%}
-  @media (min-width:900px){#hotbar{left:50%!important;transform:translateX(-50%) scale(1.25);transform-origin:bottom center;bottom:18px!important}#hotbar .slot{width:44px!important;height:44px!important}
+  @media (min-width:900px){#hotbar{left:50%!important;transform:translateX(-50%) scale(1.25);transform-origin:bottom center;bottom:18px!important}#hotbar .slot{width:48px!important;height:48px!important}#hotbar .slot img{left:8px!important;top:8px!important}
     #btnBag{bottom:24px!important;left:16px!important}#btnJournal{bottom:24px!important;left:80px!important}.sheet{width:min(560px,80vw)!important}}
   #creator .chip.sw{border:0!important;box-shadow:inset 0 0 0 2px #140a04,inset 0 0 0 4px rgba(255,255,255,.18)!important}#creator .chip.sw.on{outline:3px solid var(--ember)!important;outline-offset:2px}
   #pcHint{font-size:12px;opacity:.7;margin-top:6px}`;document.head.appendChild(css);

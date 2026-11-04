@@ -1,8 +1,8 @@
 /* ================= the farm economy: inventory, tools, energy, health, food and cooking, the mine, equipment upgrades, the greenhouse ================= */
 Object.assign(S,{energy:100,energyMax:100,hp:100,hpMax:100,inv:{},tools:{hoe:S.hoe||1,can:1,pick:1,axe:1},mineFloor:0,mineDeep:0,greenhouse:false});
 const ITEMS={
-  wood:{name:'Wood',icon:'twig'},stone:{name:'Stone',icon:'rock_0'},fiber:{name:'Fiber',icon:'weeds_0'},
-  copper:{name:'Copper ore',icon:'ore_copper'},iron:{name:'Iron ore',icon:'ore_iron'},coal:{name:'Coal',icon:'ore_coal'},gem:{name:'Hollow-glass',icon:'ore_gem',sell:40,desc:'A black gem that is warm to the touch. Sells for 40.'},
+  wood:{name:'Wood',icon:'wood'},stone:{name:'Stone',icon:'stone'},fiber:{name:'Fiber',icon:'fiber'},
+  copper:{name:'Copper ore',icon:'copper'},iron:{name:'Iron ore',icon:'iron'},coal:{name:'Coal',icon:'coal'},gem:{name:'Hollow-glass',icon:'gem',sell:40,desc:'A black gem that is warm to the touch. Sells for 40.'},
   bread:{name:'Mae’s bread',food:[30,5],desc:'Still warm. +30 energy.'},stew:{name:'Mae’s stew',food:[50,15],desc:'+50 energy, +15 health.'},
   soup:{name:'Turnip soup',food:[35,5]},egg_fried:{name:'Fried egg',food:[25,10]},pie:{name:'Pumpkin pie',food:[60,25]},chowder:{name:'Corn chowder',food:[80,30]},hash:{name:'Grandpa’s hash',food:[100,45]},
   glowstew:{name:'Glowcap stew',food:[20,40],desc:'Tastes of nothing at all. +40 health.'}};
@@ -27,23 +27,24 @@ function blackout(){if(S.mode!=='play'&&S.mode!=='scare')return;S.mode='trans';f
   #bars .bv b{position:absolute;top:-18px;left:0;right:0;text-align:center;font:600 10px/1 system-ui;color:var(--bone)}#bars .wrap{position:relative;padding-top:16px}
   #btnBag{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 140px)}
   #bag .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}#bag .it{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:rgba(233,223,198,.04)}
-  #bag .it img{width:24px;height:24px;image-rendering:pixelated}#bag .it span{flex:1;font-size:14px}#bag .it button{font:inherit;font-size:12px;padding:3px 8px;border-radius:6px;border:1px solid rgba(232,146,63,.6);background:rgba(232,146,63,.16);color:var(--bone)}
+  #bag .it img{width:32px;height:32px;image-rendering:pixelated}#bag .it span{flex:1;font-size:14px}#bag .it button{font:inherit;font-size:12px;padding:3px 8px;border-radius:6px;border:1px solid rgba(232,146,63,.6);background:rgba(232,146,63,.16);color:var(--bone)}
   #bag h3{font-family:var(--font-display);font-weight:400;margin:12px 0 6px;font-size:17px;color:var(--ember)}`;document.head.appendChild(css);
   const b=document.createElement('div');b.id='bars';b.innerHTML='<div class="wrap"><b>E</b><div class="bv"><i id="barE" style="background:#7cc04a"></i></div></div><div class="wrap"><b>H</b><div class="bv"><i id="barH" style="background:#d8483a"></i></div></div>';document.body.appendChild(b);
   const bag=document.createElement('div');bag.className='sheet';bag.id='bag';bag.hidden=true;bag.innerHTML='<h2>Bag</h2><p class="sub" id="bagSub"></p><div id="bagBody"></div><div class="acts"><button class="close" id="bagClose">Close</button></div>';$('note').after(bag);
   $('bagClose').addEventListener('click',()=>{bag.hidden=true;S.paused=false;});
   const btn=document.createElement('button');btn.className='btn';btn.id='btnBag';btn.textContent='Bag';btn.addEventListener('click',()=>{if(S.mode==='play'&&!S.paused)openBag();});$('buttons').prepend(btn);}
-const ICON={};function iconOf(spr){if(ICON[spr])return ICON[spr];const m=SPR[spr],im=m&&IMG[m.src];const c=document.createElement('canvas');c.width=24;c.height=24;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
-  if(im){const sc=Math.min(24/m.fw,24/m.fh,1.5);const w=m.fw*sc,h=m.fh*sc;g.drawImage(im,0,0,m.fw,m.fh,(24-w)/2,(24-h)/2,w,h);}
-  else{g.fillStyle='#3a2a1c';g.beginPath();g.ellipse(12,15,9,5,0,0,6.3);g.fill();g.fillStyle=spr==='pie'?'#d08a3a':spr==='egg'?'#f2ead6':'#c89a5a';g.beginPath();g.ellipse(12,13,7,3.5,0,0,6.3);g.fill();g.fillStyle='#fff6';g.fillRect(9,11,3,1);}
+const ICON={};const ICON_ALIAS={twig:'wood',rock_0:'stone',weeds_0:'fiber',ore_copper:'copper',ore_iron:'iron',ore_coal:'coal',ore_gem:'gem',in_shelf_tools:'hoe',in_keg:'can',stump:'axe'};
+function iconOf(spr){if(ICON[spr])return ICON[spr];const c=document.createElement('canvas');c.width=32;c.height=32;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+  const key=SPR['icon_'+spr]?'icon_'+spr:SPR['icon_'+(ICON_ALIAS[spr]||'')]?'icon_'+ICON_ALIAS[spr]:SPR[spr]?spr:null;const m=key&&SPR[key],im=m&&IMG[m.src];
+  if(im){if(key.startsWith('icon_'))g.drawImage(im,0,0,m.fw,m.fh,0,0,32,32);else{const f=Math.max(1,Math.ceil(Math.max(m.fw,m.fh)/32));const w=Math.floor(m.fw/f),h=Math.floor(m.fh/f);g.drawImage(im,0,0,m.fw,m.fh,(32-w)>>1,(32-h)>>1,w,h);}}
   return ICON[spr]=c.toDataURL();}
 function openBag(){S.paused=true;const B=$('bagBody');const T=S.tools;
   $('bagSub').textContent=`Energy ${Math.round(S.energy)}/${S.energyMax} · Health ${Math.round(S.hp)}/${S.hpMax}${S.mineDeep?` · Deepest mine floor ${S.mineDeep}`:''}`;
   const row=(icon,label,btn)=>`<div class="it"><img src="${iconOf(icon)}" alt=""><span>${label}</span>${btn||''}</div>`;
   let h='<h3>Tools</h3><div class="grid">';
-  h+=row('in_shelf_tools',`${T.hoe>1?'Copper':'Rusty'} hoe`)+row('in_keg',`${S.waterMax>10?'Copper':'Tin'} watering can`)+row('ore_iron',`${T.pick>1?'Steel':'Grandpa’s'} pickaxe`)+row('stump',`${T.axe>1?'Steel':'Old'} axe`);h+='</div>';
+  h+=row('hoe',`${T.hoe>1?'Copper':'Rusty'} hoe`)+row('can',`${S.waterMax>10?'Copper':'Tin'} watering can`)+row('pick',`${T.pick>1?'Steel':'Grandpa’s'} pickaxe`)+row('axe',`${T.axe>1?'Steel':'Old'} axe`);h+='</div>';
   const prod={};for(const b of S.basket)prod[b.kind]=(prod[b.kind]||0)+1;
-  if(Object.keys(prod).length){h+='<h3>Produce</h3><div class="grid">';for(const k in prod){const ic=k==='egg'?'egg':k==='mushroom'?'mushroom':k==='corn'?'corn_2':k+'_3';h+=row(ic,`${k[0].toUpperCase()+k.slice(1)} ×${prod[k]}`,RAW[k]?`<button data-raw="${k}">Eat</button>`:'');}h+='</div>';}
+  if(Object.keys(prod).length){h+='<h3>Produce</h3><div class="grid">';for(const k in prod){const ic=k;h+=row(ic,`${k[0].toUpperCase()+k.slice(1)} ×${prod[k]}`,RAW[k]?`<button data-raw="${k}">Eat</button>`:'');}h+='</div>';}
   const mats=Object.keys(ITEMS).filter(k=>!ITEMS[k].food&&inv(k)>0),foods=Object.keys(ITEMS).filter(k=>ITEMS[k].food&&inv(k)>0);
   if(mats.length){h+='<h3>Materials</h3><div class="grid">';for(const k of mats)h+=row(ITEMS[k].icon,`${ITEMS[k].name} ×${inv(k)}`);h+='</div>';}
   if(foods.length){h+='<h3>Food</h3><div class="grid">';for(const k of foods){const f=ITEMS[k].food;h+=row(k,`${ITEMS[k].name} ×${inv(k)}<br><small style="color:var(--dim)">+${f[0]}E${f[1]?` +${f[1]}H`:''}</small>`,`<button data-food="${k}">Eat</button>`);}h+='</div>';}
@@ -145,11 +146,11 @@ function noteDrawables(D){if(S.readLetter||S.room)return;D.push({z:-9.38,mind:1,
 {const _md=mineDrawables;mineDrawables=function(D){_md(D);noteDrawables(D);};}
 // ---- hotbar: your tools, the seed you're holding and a quick snack. The slot for what the big button will do lights up.
 {const css=document.createElement('style');css.textContent=`#hotbar{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;gap:4px;z-index:6}
-  #hotbar .slot{width:40px;height:40px;position:relative;padding:0;border:0;background:#3a2414;box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 4px #8a5a2a,inset 0 0 0 6px #5a3818;image-rendering:pixelated;cursor:pointer}
-  #hotbar .slot img{width:28px;height:28px;image-rendering:pixelated;position:absolute;left:6px;top:5px}#hotbar .slot.on{box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 4px #f0a040,inset 0 0 0 6px #b8602a}
+  #hotbar .slot{width:44px;height:44px;position:relative;padding:0;border:0;background:#3a2414;box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 4px #8a5a2a,inset 0 0 0 6px #5a3818;image-rendering:pixelated;cursor:pointer}
+  #hotbar .slot img{width:32px;height:32px;image-rendering:pixelated;position:absolute;left:6px;top:6px}#hotbar .slot.on{box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 4px #f0a040,inset 0 0 0 6px #b8602a}
   #hotbar .slot b{position:absolute;right:4px;bottom:2px;font:10px/1 'Pixelify Sans',monospace;color:#f4e4c0;text-shadow:1px 1px 0 #000}#hotbar .slot i{position:absolute;left:4px;top:3px;font:8px/1 monospace;color:#c8a070;font-style:normal}
   #btnSeed{display:none!important}`;document.head.appendChild(css);
-  const hb=document.createElement('div');hb.id='hotbar';const SL=[['hoe','icon_hoe'],['can','icon_can'],['pick','icon_pick'],['axe','icon_axe'],['seed','icon_seed'],['food','icon_food']];
+  const hb=document.createElement('div');hb.id='hotbar';const SL=[['hoe','hoe'],['can','can'],['pick','pick'],['axe','axe'],['seed','seed'],['food','food']];
   hb.innerHTML=SL.map(([k,ic],i)=>`<button class="slot" data-k="${k}" aria-label="${k}"><i>${i+1}</i><img data-ic="${ic}" alt=""><b id="hb_${k}"></b></button>`).join('');$('buttons').appendChild(hb);
   hb.querySelectorAll('.slot').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();hotbarUse(b.dataset.k);}));}
 function hotbarUse(k){if(S.mode!=='play'||S.paused)return;const T=S.tools;
@@ -157,7 +158,7 @@ function hotbarUse(k){if(S.mode!=='play'||S.paused)return;const T=S.tools;
   if(k==='food'){const best=Object.keys(ITEMS).filter(q=>ITEMS[q].food&&inv(q)>0).sort((a,b)=>ITEMS[a].food[0]-ITEMS[b].food[0])[0];if(best){takeInv(best);eat(ITEMS[best].food[0],ITEMS[best].food[1],ITEMS[best].name);}else{const raw=Object.keys(RAW).find(q=>basketCount(q)>0);if(raw){takeBasket(raw,1);eat(RAW[raw][0],RAW[raw][1],'A raw '+raw);}else toast('Nothing to eat.',1.4);}updateHud();return;}
   const nm={hoe:`${T.hoe>1?'Copper':'Rusty'} hoe — till soil`,can:`${S.waterMax>10?'Copper':'Tin'} can — ${S.water}/${S.waterMax}`,pick:`${T.pick>1?'Steel':'Grandpa’s'} pickaxe — break stone`,axe:`${T.axe>1?'Steel':'Old'} axe — chop stumps`}[k];toast(nm,1.4);}
 setInterval(()=>{const hb=$('hotbar');if(!hb)return;hb.style.display=(S.mode!=='play'||$('hud').hidden||S.paused)?'none':'flex';
-  for(const im of hb.querySelectorAll('img'))if(!im.src&&SPR[im.dataset.ic]&&IMG[SPR[im.dataset.ic].src])im.src=iconOf(im.dataset.ic);
+  for(const im of hb.querySelectorAll('img'))if(!im.src&&SPR['icon_'+im.dataset.ic]&&IMG[SPR['icon_'+im.dataset.ic].src])im.src=iconOf(im.dataset.ic);
   $('hb_seed').textContent=S.seeds[S.sel]||0;$('hb_can').textContent=S.water;const fc=Object.keys(ITEMS).filter(q=>ITEMS[q].food).reduce((a,q)=>a+inv(q),0);$('hb_food').textContent=fc||'';
   const L=($('btnAct').textContent||'');const on=/Till/.test(L)?'hoe':/Water/.test(L)?'can':/Mine|Break/.test(L)?'pick':/Chop/.test(L)?'axe':/Plant/.test(L)?'seed':null;
   for(const b of hb.children)b.classList.toggle('on',b.dataset.k===on);},120);
@@ -166,9 +167,13 @@ setInterval(()=>{const hb=$('hotbar');if(!hb)return;hb.style.display=(S.mode!=='
 const TREE_COL={maple_orange:['#a8441a','#ec9a34'],maple_red:['#8c2222','#d8623a'],maple_gold:['#9c7818','#e4c84a'],maple_green:['#235a26','#52983a']};
 function treeChop(){for(const o of OBJ){if(o.hide||(o.kind!=='tree'&&o.kind!=='pine'))continue;if(o.x<-13||o.x>25||o.z<-16||o.z>13)continue;if(o.spr==='deadtree')continue;
   o.col=circles.find(c=>Math.hypot(c.x-o.x,c.z-(o.z-.1))<.35)||null;
-  interact.push({x:o.x,z:o.z+.2,r:1,on:()=>!o.hide,label:()=>'Chop',ok:()=>true,act(){if(P.anim)return;if(!spend(S.tools.axe>1?2:4))return;faceTo(o.x,o.z);
-    startAnim('axe',.55,null,()=>{o.hits=(o.hits||0)+1;SFX.thud(0,.45);cam.shake=Math.max(cam.shake,.12);o.shake=.35;const cc=TREE_COL[o.spr]||['#1d4129','#356538'];
-      burst(o.x,o.z-.6,8,cc[o.hits%2],1.2,1.4,3);burst(o.x+.2,o.z,6,'#9e7146',1,.6,2);
+  interact.push({x:o.x,z:o.z+.2,r:1.2,on:()=>!o.hide,label:()=>'Chop',ok:()=>true,act(){if(P.anim)return;if(!spend(S.tools.axe>1?2:4))return;
+    {if(!o.trunkW){const sk=makeStump(o.spr);o.trunkW=sk?Math.round((SPR[sk].foot[2]||.2)*PPM)-1:6;}const side=P.x<o.x?-1:1,d=(15+o.trunkW)/PPM;P.x=o.x+side*d;P.z=o.z+.06;}faceTo(o.x,o.z);
+    startAnim('axe',.55,null,()=>{o.hits=(o.hits||0)+1;SFX.thud(0,.45);cam.shake=Math.max(cam.shake,.14);const cc=TREE_COL[o.spr]||['#1d4129','#356538'];
+      // the trunk takes a bite on your side, the tree rocks away from you on its base, chips fly from the cut, a few leaves come down
+      o.notch=o.hits;o.notchSide=P.x<o.x?-1:1;if(!o.trunkW){const sk=makeStump(o.spr);o.trunkW=sk?Math.round((SPR[sk].foot[2]||.2)*PPM)-1:6;}o.rock={t:0,dir:P.x<o.x?1:-1};
+      for(let i=0;i<9;i++)parts.push({x:o.x+o.notchSide*o.trunkW/PPM,z:o.z+.02,y:.38,vx:o.notchSide*(.8+Math.random()*1.6),vz:(Math.random()-.5)*.6,vy:1.2+Math.random()*1.4,t:0,life:.5+Math.random()*.3,col:i%3?'#d8b478':'#8a5c34',size:i%2?2:1});
+      if(o.spr.startsWith('maple')&&typeof LEAVES!=='undefined'){const C={maple_orange:['#e08a2e','#9a4a14'],maple_red:['#c8402a','#7a1c12'],maple_gold:['#e8b83a','#9a7018'],maple_green:['#6aa040','#2e5a20']}[o.spr];for(let i=0;i<3;i++)LEAVES.push({x:o.x+(Math.random()-.5)*2.2,z:o.z+(Math.random()-.3)*.6,h:60+Math.random()*30,t:0,ph:Math.random()*6,col:C,land:0});}
       if(o.hits<(S.tools.axe>1?3:5))return;
       // it leans, then comes down away from you, and the crown bursts when it hits
       o.hide=true;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}SFX.screech&&SFX.screech();FALLING.push({o,t:0,dir:P.x<o.x?1:-1,cc,landed:false});
@@ -179,7 +184,7 @@ function treeChop(){for(const o of OBJ){if(o.hide||(o.kind!=='tree'&&o.kind!=='p
         startAnim('axe',.55,null,()=>{st.hits=(st.hits||0)+1;SFX.thud(0,.4);burst(st.x,st.z,10,'#7d5636',1.4,.7,2);if(st.hits<(S.tools.axe>1?1:2))return;
           st.hide=true;const k=circles.indexOf(st.col);if(k>=0)circles.splice(k,1);addInv('wood',3);toast('The stump comes out. +3 wood.',1.4);});}});});}});}}
 // trees shake when hit
-{const _u3=update;update=function(dt){_u3(dt);for(const o of OBJ)if(o.shake>0){o.shake-=dt;if(o.bx===undefined)o.bx=o.x;o.x=o.bx+Math.sin(o.shake*60)*.05*(o.shake/.35);if(o.shake<=0){o.x=o.bx;}}};}
+{const _u3=update;update=function(dt){_u3(dt);for(const o of OBJ)if(o.rock){const r=o.rock;r.t+=dt;o.tilt=r.dir*.06*Math.exp(-r.t*5)*Math.cos(r.t*26);if(r.t>1){o.rock=null;o.tilt=0;}}};}
 // ---- crafting from what you gather: wood, stone, fiber, ore
 const CRAFT=[['flask','Lamp oil flask',{coal:2,fiber:2},'Refills your lantern once when it runs dry.',()=>{S.flasks++;}],
   ['sprinkler','Brass sprinkler',{copper:3,iron:1,wood:2},'Waters a patch of field every morning (up to 4).',()=>{S.sprinklers=Math.min(4,(S.sprinklers||0)+1);},()=>(S.sprinklers||0)<4],

@@ -162,7 +162,7 @@ ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
   if(clip==='thrust'){ // hoe: wind up over the head, chop down, crouch on impact; can: lift, tilt, pour, lower
     const k=f/(nf-1);pose.tool=toolFor(CFG.tool,f,dir);
     if(CFG.tool==='can'){pose.handL=[-1,5];pose.handR=[side?5:6,f<2?4:2];pose.handF=[6,f<2?4:2];pose.crouch=f>=3&&f<=6?1:0;}
-    else{const kind=CFG.tool;pose.crouch=[0,0,0,0,1,3,3,1][f];pose.bob=f===3?-1:0;pose.toolBack=!!BACK[f];
+    else if(CFG.tool){const kind=CFG.tool;pose.crouch=[0,0,0,0,1,3,3,1][f];pose.bob=f===3?-1:0;pose.toolBack=!!BACK[f];
       const [gx,gy]=gripOf(kind,f,!side);const a=SWING[kind][f]*Math.PI/180;
       if(side){pose.handF=[gx-3+Math.round(Math.cos(a)*4),gy+Math.round(Math.sin(a)*4)];pose.handB=[gx+2-1,gy+1];}
       else{const tx=-(15>>1);pose.handL=[gx-(tx-1)-1,gy+(BACK[f]?0:4)];pose.handR=[gx-(tx+15)+2,gy];}}}
