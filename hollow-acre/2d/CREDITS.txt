@@ -1,0 +1,528 @@
+HOLLOW ACRE — ART CREDITS
+
+Character sprites are composed from the Universal LPC Spritesheet Character Generator (https://github.com/LiberatedPixelCup/Universal-LPC-Spritesheet-Character-Generator).
+Licenses as listed per asset (CC-BY-SA 3.0/4.0, GPL 3.0, OGA-BY 3.0, CC0). Recoloured and composited for this game.
+
+- body/bodies/child: bluecarrot16, Benjamin K. Smith (BenCreating), ElizaWy, MuffinElZangano, Durrani, Nila122, kheftel, Stephen Challener (Redshrike) [OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0] https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-child-standing-template
+- body/bodies/female: Benjamin K. Smith (BenCreating), bluecarrot16, TheraHedwig, Evert, MuffinElZangano, Durrani, Pierre Vigier (pvigier), ElizaWy, Matthew Krohn (makrohn), Johannes Sjölund (wulax), Stephen Challener (Redshrike) [OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0] https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-medieval-fantasy-character-sprites
+- body/bodies/male: bluecarrot16, JaidynReiman, Benjamin K. Smith (BenCreating), Evert, Eliza Wyatt (ElizaWy), TheraHedwig, MuffinElZangano, Durrani, Johannes Sjölund (wulax), Stephen Challener (Redshrike) [OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0] https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-medieval-fantasy-character-sprites
+- body/bodies/muscular: bluecarrot16, JaidynReiman, Evert, TheraHedwig, MuffinElZangano, Durrani, Sander Frenken (castelonia), Benjamin K. Smith (BenCreating), Eliza Wyatt (ElizaWy), dalonedrau, Stephen Challener (Redshrike) [CC-BY-SA 3.0, GPL 3.0] https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-barbarian-sprite-base
+- body/bodies/pregnant: bluecarrot16, JaidynReiman, Evert, TheraHedwig, MuffinElZangano, Durrani, Benjamin K. Smith (BenCreating), Pierre Vigier (pvigier), Eliza Wyatt (ElizaWy), Matthew Krohn (makrohn), Johannes Sjölund (wulax), Stephen Challener (Redshrike) [CC-BY-SA 3.0, GPL 3.0] https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-medieval-fantasy-character-sprites
+- body/bodies/teen: bluecarrot16, Evert, TheraHedwig, Benjamin K. Smith (BenCreating), MuffinElZangano, Durrani, Pierre Vigier (pvigier), Eliza Wyatt (ElizaWy), Matthew Krohn (makrohn), Johannes Sjölund (wulax), Stephen Challener (Redshrike) [OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0] https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-medieval-fantasy-character-sprites
+- feet/boots/basic: JaidynReiman, bluecarrot16, Nila122 [OGA-BY 3.0, CC-BY-SA 3.0, GPL 2.0, GPL 3.0] https://opengameart.org/content/lpc-clothes-and-hair https://opengameart.org/content/lpc-expanded-socks-shoes
+- feet/boots/basic/thin: JaidynReiman, bluecarrot16, Nila122 [OGA-BY 3.0, CC-BY-SA 3.0, GPL 2.0, GPL 3.0] https://opengameart.org/content/lpc-clothes-and-hair https://opengameart.org/content/lpc-expanded-socks-shoes
+- hair/plain: JaidynReiman, Manuel Riecke (MrBeast), Joe White [OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0] https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/ponytail-and-plain-hairstyles
+- head/heads/human/male: bluecarrot16, Benjamin K. Smith (BenCreating), Stephen Challener (Redshrike) [OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0] https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-character-bases
+- legs/pants/male: bluecarrot16, JaidynReiman, ElizaWy, Matthew Krohn (makrohn), Johannes Sjölund (wulax), Stephen Challener (Redshrike) [OGA-BY 3.0, GPL 3.0, CC-BY-SA 3.0] https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-medieval-fantasy-character-sprites
+- legs/pants/thin: bluecarrot16, JaidynReiman, ElizaWy, Joe White, Matthew Krohn (makrohn), Johannes Sjölund (wulax), Stephen Challener (Redshrike) [OGA-BY 3.0, GPL 3.0, CC-BY-SA 3.0] https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-medieval-fantasy-character-sprites
+- tools/hoe: bluecarrot16, JaidynReiman, Pierre Vigier (pvigier), Johannes Sjölund (wulax), Inboxninja [CC-BY-SA 3.0] https://opengameart.org/content/lpc-hand-tools
+- tools/watering_can: bluecarrot16 [OGA-BY 3.0+, CC-BY 4.0+, GPL 2.0+] https://opengameart.org/content/lpc-hand-tools
+- torso/aprons/suspenders: ElizaWy, JaidynReiman [OGA-BY 3.0] https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing https://opengameart.org/content/lpc-expanded-sit-run-jump-more
+- torso/clothes/longsleeve/longsleeve/female: bluecarrot16, ElizaWy, JaidynReiman, Stephen Challener (Redshrike) [OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0] https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-7-womens-shirts
+- torso/clothes/longsleeve/longsleeve/male: JaidynReiman, Johannes Sjölund (wulax) [OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0] https://opengameart.org/content/lpc-medieval-fantasy-character-sprites http://opengameart.org/content/lpc-clothing-updates
+- torso/clothes/longsleeve/longsleeve/pregnant: bluecarrot16, ElizaWy, Stephen Challener (Redshrike), Johannes Sjölund (wulax) [CC-BY-SA 3.0, GPL 3.0] https://opengameart.org/content/lpc-7-womens-shirts http://opengameart.org/content/lpc-clothing-updates
+- torso/clothes/longsleeve/longsleeve/teen: bluecarrot16, ElizaWy, JaidynReiman, Stephen Challener (Redshrike), Johannes Sjölund (wulax) [OGA-BY 3.0, GPL 3.0] https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles https://opengameart.org/content/lpc-teen-unisex-base-clothes
+
+Tiles and objects from the LPC RPG Maker MZ Starter Kit (https://github.com/LiberatedPixelCup/RPG_Maker_MZ_LPC_Starter_Kit):
+
+License
+-------
+
+CC-BY-SA 3.0:
+
+http://creativecommons.org/licenses/by-sa/3.0/
+
+GNU GPL 3.0:
+
+http://www.gnu.org/licenses/gpl-3.0.html
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Terrain and Outside:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Lanea Zimmerman (AKA Sharm) - CC-BY-3.0 / GPL 3.0 / GPL 2.0 / OGA-BY-3.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - barrels
+ - darkishgreen water
+ - buckets
+ - bridges
+ - cement
+ - cement stairs
+ - chests
+ - cup
+ - light dirt
+ - mid dirt
+ - dungeon
+ - grass1 (leftmost)
+ - grass2 (Middle grass)
+ - hole1 (left hole near lava) 
+ - hole2 (middle hole)
+ - hole3 (black whole next to transparent water)
+ - lava
+ - lavarock (black dirt)
+ - mountains ridge (right of the water tiles)
+ - white rocks 
+ - waterfall
+ - water/grass
+ - water (transparent water beside black hole)
+
+Daniel Eddeland CC-BY-SA-3.0 / GPL 3.0
+https://opengameart.org/content/lpc-farming-tilesets-magic-animations-and-ui-elements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - Plowed Ground
+ - Water reeds
+ - Sand
+ - Sand with water
+ - Tall grass
+ - Wheat
+ - Young wheet (green wheat left of tall grass)
+
+William Thompsonj
+https://opengameart.org/content/lpc-sandrock-alt-colors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - sand (near the wheat)
+ - sand with water
+ - grey dirt left of the lava) 
+
+
+Matthew Krohn (Makrohn)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - Cave / Mountain steps originals from Lanea Zimmerman
+
+Matthew Nash
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - stone tile (purplish color beside the dirt path bottom right corner)
+
+Nushio
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - Ice tiles
+ - Snow
+ - snow/ice
+ - Snow water
+
+
+Casper Nilson 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - grass with flowers
+ - stone pattern below cement 
+ - tree stumps
+ - lily pads
+
+
+ 
+
+MISSING:
+Bricks / Paths above lillypads and left of barrels
+The recoloing of the rocks on the left
+The bigger stump
+Bottom right tiles
+Outside stone head and columns
+Green water
+Ladders
+Brown path 
+Sewer
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Outside Objects:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Lanea Zimmerman (AKA Sharm) CC-BY-3.0 / GPL 3.0 / GPL 2.0 / OGA-BY-3.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - Tree trunks (for evergreen and oak)
+ - Tree Tops (for evergreen and oak)
+
+Daniel Eddeland 
+(https://opengameart.org/content/lpc-farming-tilesets-magic-animations-and-ui-elements)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - Farming stuff including food / crops / sack of grains
+ - Logs / Anvils
+ - Fish / boats / pier
+ - Bazaar / Merchant displays
+ - Wooden Fences
+
+Caeless 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - Shadowless veggies (originally made by Daniel Eddeland)
+
+William Thompsonj
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - fallen leaves
+
+Casper Nilsson
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - Metal Fence
+ - Wheelbarrows 
+ - tent 
+ - Gravestones
+ - harbor (stone platform in water)
+ - long boat
+
+Barbara Rivera  / C Phillips
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - Leafless tree
+
+Skorpio
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - Trash / Barrel ( Top right corner)
+
+MISSING:
+Bricks bottom left
+- Mushrooms need attributions
+Bricks/tiles above pier
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Exterior:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Lanea Zimmerman (AKA Sharm) CC-BY-3.0 / GPL 3.0 / GPL 2.0 / OGA-BY-3.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - house (light red brick wall on far left and purple roof below it)
+ - house white door frame / brown door and white windows.
+ - signs under gold and drak brown brick house wall
+
+Daniel Armstrong (AKA HughSpectrum)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - castle walls
+ - castle floors
+ - castle outside
+ - castle floors outside
+
+Xenodora CC-BY-3.0 / GPL 3.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- water well
+
+Tuomo Untinen CC-BY-3.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - stone bridge
+ - silver windows
+
+Casper Nilsson
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - Asain themed shrine including red lantern
+ - foodog statue
+ - Toro
+ - Cherry blossom tree
+ - Torii
+ - Grey Roof
+ - Flag poles
+ - Fancy white and black entrance 
+ - white door
+ - green and white walls / roof / windows
+ - shrub plant in white square pot 
+ - flower box 
+Steampun-a-fy: Amaris / Krusimira
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - dark purple brick near purple roof
+ - bronze and wood house (gold and dark brick)
+ - dark wooden stairs
+ - gold and dark chimney
+ - grey door 
+ - gears 
+ - pipes
+ - dark wooden windows
+
+ Leo Villeveygoux 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - white bricks (limestone wall)
+
+Skyler Robert Collady
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - Grey home assets
+
+MISSING attributions:
+Graves bottom right
+Water filled boat
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Interior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Lanea Zimmerman (AKA Sharm) CC-BY-3.0 / GPL 3.0 / GPL 2.0 / OGA-BY-3.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - bookshelves (to the left of light brown chairs)
+ - cabinents above bookshelves
+ - counters (to the right of the kitchen table (between the white bathroom tiles) and bottom left by the rug.
+ - blue wallpaper
+ - kitchen furnace, pots and sink.
+ - country inside (blue bed and light brown chairs)
+ - red royal bed with white pillows. 
+ - Mahogany kitchen table (near the dungeon bed with a black blanket)
+ - Yellow curtains
+ - Flower pot with tall pink flower
+ - Empty flower pots
+ - Chairs with gold seats (between the fireplaces)
+ - Fireplaces
+ - White and red mahogany stairs
+ - Double Rounded doors
+ - Flower vases
+ - Purple/Blue Tiles near white brick wall
+ - White brick wall
+ - White Columns
+ - Black candle-holder stand with candles
+ - Royal rug beside cabinents
+ - White stairs with runway / platform
+ - Grandfather clock
+ - Blue wallpaper with woodem trim 
+ - Wood tiles
+ - Long painting
+ - Royal chairs ( gold seats)
+ - Rounded white windows
+ - Portrait painting
+ - small end / round tables
+ - Royal bed with red pillows
+ - white china
+
+By Sharm but Commissioned by William Thompsonj
+ - campfire
+ - skeletons
+ - dungeon beds 
+ - wood chairs and tables between the calderon and the fancy door rounded door
+ - calderon 
+ - cobwebs
+ - dungeon prison wall and door/gate (beside fancy red and gold rugs)
+ - dirt by the dungeon beds
+ - rat
+ 
+
+Daniel Armstrong (Aka HughSpectrum)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - castle light Sources (torches)
+ - red carpets
+ - grey brick top of walls
+
+Matthew Nash
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - Public Toilets 
+ - Bathroom tiles (white and black)
+
+Tuomo Untinen 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - Pots with cover (based from Sharm's pots)
+ - Yellow stone floor
+ - Short paintings
+ - royal chair modification
+ - cupboards based on Sharm's (with china)
+ - small footchair 
+ - piano
+ 
+
+MISSING attributions:
+Some bottomleft tiles
+Banners
+Sideways table
+Stacked barrels
+Stacked chess
+Things to left of the pots
+Some of the furniture below the beds
+Some of the single beds
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*Interior 2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Lanea Zimmerman (AKA Sharm)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - brown stairs with blue
+ - Fountain
+ - Pool 
+ - FLoor tiles
+ - Everything between top row (between toilet stalls and bookcases) down to the floor tiles
+
+
+Xenodora
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - Steel floor
+
+
+Tuomo Untinen
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - Armor and sheilds 
+ - Cheese and bread
+ - Ship 
+
+
+Janna - CC0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - Beds 
+ - Dressers / book shelves
+ - Wardrobe
+
+
+Casper Nilsson
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ - Red and Blue stairs
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Animated Water Tiles and Waterfall
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ZaPaper
+https://opengameart.org/content/lpc-animated-water-and-waterfalls
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+  - Waterfall animation
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Cliffs and Mountains
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Evert
+https://opengameart.org/content/lpc-cliffsmountains-with-grass-top-and-more
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+  - Cliffs, Mountains, transition to grass top
+
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Extensions Folder:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Lanea Zimmerman (AKA Sharm)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+https://opengameart.org/content/lpc-adobe-building-set
+https://opengameart.org/content/lpc-arabic-elements
+ - Adobe / Arabic  - Commissioned by William Thompsonj== /tmp/lpc/kit/LPC/img/tilesets/LPC/Final Attributions/Individual Assets/Bluecarrot16/Attribution.txt
+Cottage:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"LPC Thatched-roof Cottage" by bluecarrot16. 
+License: CC-BY-SA 3.0 / GPL 3.0+ 
+
+Based on: 
+"LPC Base Assets" by Lanea Zimmerman (AKA Sharm) and Daniel Armstrong (AKA HughSpectrum). 
+License: CC-BY-SA 3.0 / GPL 3.0+. 
+http://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles 
+
+"LPC art entry" by Casper Nilsson. License: 
+CC-BY-SA 3.0 / GPL 3.0+. 
+http://opengameart.org/content/lpc-cnilsson
+
+
+
+
+
+Doors / Windows:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"LPC Windows & Doors" by bluecarrot16, Lanea Zimmerman (AKA Sharm) and Daniel Armstrong (AKA HughSpectrum), Casper Nilsson, Anamaris and Krusmira. 
+License: CC-BY-SA 3.0 / GPL 3.0+. 
+https://opengameart.org/content/lpc-windows-doors 
+
+Based on: "LPC Base Assets" by Lanea Zimmerman (AKA Sharm) and Daniel Armstrong (AKA HughSpectrum). 
+License: CC-BY-SA 3.0 / GPL 3.0+. 
+http://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles 
+
+"LPC art entry" by Casper Nilsson. 
+License: CC-BY-SA 3.0 / GPL 3.0+. 
+http://opengameart.org/content/lpc-cnilsson 
+
+"Steampun-a-fy (with concept art)" by Anamaris and Krusmira 
+License: CC-BY-SA 3.0 / GPL 3.0+. 
+http://opengameart.org/content/steampun-a-fy-with-concept-art
+
+
+Conifers:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"Conifer Trees
+
+"[LPC] Conifer Trees Pack" by bluecarrot16, b_o, Lanea Zimmerman (Sharm), Johann Charlot, Yar, Jetrel, Zabin, Hyptosis, Surt, and KnoblePersona
+
+CC-BY-SA 3.0 / GPL 2.0 / GPL 3.0
+
+
+
+Pine Tree Tiles
+b_o
+CC-BY-SA 3.0 / GPL 2.0
+
+https://opengameart.org/content/pine-tree-tiles
+
+
+
+Liberated Pixel Cup (LPC) Base Assets 
+Lanea Zimmerman (Sharm)
+
+CC-BY-SA 3.0 / CC-BY 3.0 / GPL 3.0
+
+https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles
+
+Shoot'em up graphic kit
+
+Johann Charlot
+
+CC-BY-SA 3.0 / GPL 3.0
+
+https://opengameart.org/content/shootem-up-graphic-kit
+
+
+Isometric 64x64 Outside Tileset
+Yar
+
+CC-BY 3.0
+https://opengameart.org/content/isometric-64x64-outside-tileset
+
+Lots of trees and plants from OGA (DB32) tilesets pack 1
+
+Jetrel, Zabin, Hyptosis, Surt
+
+CC0
+
+https://opengameart.org/content/lots-of-trees-and-plants-from-oga-db32-tilesets-pack-1
+
+
+Pine Tree Pack
+KnoblePersona
+
+CC-BY 3.0
+
+https://opengameart.org/content/pine-tree-pack
+
+
+
+
+
+
+
+
+
+
+
+Colonial:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"[LPC] Colonial Buildings" by bluecarrot16, Lanea Zimmerman (Sharm), Wolthera van Hövell tot Westerflier (TheraHedwig), and Guido Bos
+
+Liberated Pixel Cup (LPC) 
+
+Base Assets 
+Lanea Zimmerman (Sharm)
+
+CC-BY-SA 3.0 / CC-BY 3.0 / GPL 3.0
+
+https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles
+
+
+
+LPC compatible Ancient Greek Architecture
+
+CC-BY-SA 3.0 / GPL 3.0
+
+Wolthera van Hövell tot Westerflier (TheraHedwig)
+
+https://opengameart.org/content/lpc-compatible-ancient-greek-architecture
+
+
+
+[LPC] Guido Bos entries cut up
+
+Guido Bos
+
+CC-BY-SA 3.0 / GPL 3.0
+
+https://opengameart.org/content/lpc-guido-bos-entries-cut-up
+
+Car wreck and deer sprites: drawn for this game. Cat sprite: rendered in Blender for this game.
