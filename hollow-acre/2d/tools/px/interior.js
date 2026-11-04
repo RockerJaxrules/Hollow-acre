@@ -37,7 +37,8 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   if(R.theme==='garage')concrete(A,x0,top,fw,fd);
   if(R.theme==='mine'){for(let y=top;y<top+fd;y++)for(let x=x0;x<x0+fw;x++){const n=hsh(x>>4,(y+(x>>3))>>4,8)*.8+hsh(x,y,9)*.2;P(A,x,y,n>.78?RK[3]:n>.45?RK[2]:RK[1]);}
     for(let i=0;i<40;i++){const px=x0+(hsh(i,1,4)*fw|0),py=top+(hsh(i,2,4)*fd|0);P(A,px,py,ST[3]);P(A,px+1,py,ST[2]);}}
-  if(R.theme==='glass'){tilesF(A,x0,top,fw,fd,ST,16);}
+  if(R.theme==='glass'){tilesF(A,x0,top,fw,fd,ST,16);const s0x=x0+32,s0y=top+38,sw=7*32,sh=4*32;for(let y=s0y-3;y<s0y+sh+3;y++)for(let x=s0x-3;x<s0x+sw+3;x++){const edge=x<s0x||y<s0y||x>=s0x+sw||y>=s0y+sh;
+    const n=hsh(x>>2,y>>2,6)*.6+hsh(x,y,7)*.4;P(A,x,y,edge?WD[y<s0y?4:1]:(n>.75?[150,104,64]:n<.25?[92,60,36]:[120,82,50]));}}
   // skirting where floor meets the back wall + ambient occlusion
   rect(A,x0,top-8,fw,8,WD[1]);hl(A,x0,top-8,fw,WD[3]);for(let y=0;y<10;y++)for(let x=x0;x<x0+fw;x++){const c=G(A,x,top+y);if(c)P(A,x,top+y,shade(c,.62+y*.038));}
   for(let y=top;y<front;y++)for(let x=0;x<14;x++){for(const xx of [x0+x,x0+fw-1-x]){const c=G(A,xx,y);if(c)P(A,xx,y,shade(c,.66+x*.024));}}

@@ -16,7 +16,7 @@ let nightK=0,camT={x:0,z:0},titleT=0;
 function render(dt,now){const t=now/1000;
   const amb=ambient(S.hour);nightK=clamp((S.hour-18.4)/1.8,0,1);if(S.hour<6.6)nightK=Math.max(nightK,clamp((6.6-S.hour)/1.6,0,1));if(S.room==='mine')nightK=1;nightAmt=nightK;
   // camera
-  let fx=P.x,fz=P.z-.6;if(S.room){const R=ROOMS[S.room];fx=R.ox+R.w/2;fz=R.oz+R.d/2-.5;}if(S.mode==='title'){fx=Math.sin(t*.05)*8;fz=-4+Math.cos(t*.04)*4;}
+  let fx=P.x,fz=P.z-.6;if(S.room){const R=ROOMS[S.room];const hw=VW/PPM/2,hh=VH/PPM/2;fx=R.w+.8<hw*2?R.ox+R.w/2:clamp(P.x,R.ox+hw-.4,R.ox+R.w-hw+.4);fz=R.d+3.5<hh*2?R.oz+R.d/2-.5:clamp(P.z-.6,R.oz-3+hh*1.12,R.oz+R.d+.6-hh*.88);}if(S.mode==='title'){fx=Math.sin(t*.05)*8;fz=-4+Math.cos(t*.04)*4;}
   if(cine&&cine.cam){fx=cine.cam.x;fz=cine.cam.z;}
   camT.x=lerp(camT.x,fx,1-Math.exp(-dt*9));camT.z=lerp(camT.z,fz,1-Math.exp(-dt*9));if(Math.abs(camT.x-fx)<.02)camT.x=fx;if(Math.abs(camT.z-fz)<.02)camT.z=fz;
   if(S.mode==='play'&&!(cine&&cine.cam)){camT.x=fx;camT.z=fz;}cam.x=camT.x;cam.z=camT.z;
@@ -82,7 +82,7 @@ function render(dt,now){const t=now/1000;
     else if(d.npc){const n=d.npc;const X=sx(n.x),Y=sz(n.z);shadow(X,Y,9);drawSpr(n.def.id,X,Y,'walk',n.dir,n.clip==='walk'?frameOf(n.def.id,'walk',n.t):0);mindNPCOver(n,X,Y);
       if(n.clip==='stand'&&S.day>=2&&nightK>.5){ctx2.fillStyle='#ff2a14';const ey=Math.round(Y-35);ctx2.fillRect(Math.round(X)-3,ey,1,1);ctx2.fillRect(Math.round(X)+2,ey,1,1);}}
     else if(d.player){const X=sx(P.x),Y=sz(P.z);shadow(X,Y,9);let nm='farmer',clip=P.clip,f;
-      if(P.anim){const a=P.anim;if(a.clip==='hoe'){nm='farmer_hoe';clip='thrust';}else if(a.clip==='water'){nm='farmer_can';clip='thrust';}else clip='slash';f=frameOf(nm,clip,a.t,a.dur);}
+      if(P.anim){const a=P.anim;if(a.clip==='hoe'||a.clip==='pick'||a.clip==='axe'){nm='farmer_'+a.clip;clip='thrust';}else if(a.clip==='water'){nm='farmer_can';clip='thrust';}else clip='slash';f=frameOf(nm,clip,a.t,a.dur);}
       else{if(clip==='idle'){clip='walk';f=0;}else f=frameOf(nm,clip,P.t);}
       if(S.mode==='scare')clip='hurt';
       drawSpr(nm,X,Y,clip,clip==='hurt'?'S':P.dir,clip==='hurt'?Math.min(5,Math.floor((performance.now()/120)%6)):f);
@@ -180,7 +180,7 @@ function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true
   cine={hidePlayer:true,cam:{x:st.car.x+4.6,z:-6.2},
     drawables(D){const T=st.t;
       if(!st.crashed)D.push({z:st.car.z+.2,mind:1,draw(){const f=Math.max(0,Math.min(6,Math.round(st.car.yaw/.15)));drawSpr('car_east',sx(st.car.x),sz(st.car.z)+(T>11.55&&T<11.75?-2:0),'yaw','S',f);}});
-      if(st.deer)D.push({z:st.deer.z,mind:1,draw(){ctx2.save();ctx2.translate(Math.round(sx(st.deer.x)),Math.round(sz(st.deer.z)));ctx2.rotate(Math.PI/2);drawSpr('deer',0,0);ctx2.restore();}});
+      if(st.deer)D.push({z:st.deer.z,mind:1,draw(){drawSpr('deer_dead',sx(st.deer.x),sz(st.deer.z));}});
       if(st.fig)D.push({z:st.fig.z,mind:1,draw(){drawSpr('hollow',sx(st.fig.x),sz(st.fig.z),'walk',st.fig.dir,0,{alpha:st.fig.a});}});},
     light(L){glowAt(VW*.5,VH*.45,Math.max(VW,VH)*.7,[34,40,62],.55);if(st.crashed){DX.carLamp=null;return;}const c=st.car,X=sx(c.x),Y=sz(c.z)-12,a=c.yaw,cs=Math.cos(a),sn=Math.sin(a);DX.carLamp={x:X+2.3*cs*PPM,y:Y+2.3*sn*PPM*.8+12};
       for(const s of [-.55,.55]){const hx=X+(2.1*cs-s*sn)*PPM,hy=Y+(2.1*sn+s*cs)*PPM*.8;coneAt(hx,hy,a,.28,13*PPM,[255,238,196],.8);glowAt(hx,hy,10,[255,240,210],.9);}

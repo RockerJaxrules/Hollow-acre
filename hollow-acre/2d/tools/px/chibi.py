@@ -12,10 +12,10 @@ CAST = {
   'ruth':    dict(kid=True, skin='#d8dce0', hair='#141018', hairStyle='long', hairLen=18, shirt='#e8e8ec', skirt='#d0d0da', shoes='#9a9aa6', hollowEyes=True, smile=False, eye='#050406'),
   'hollow':  dict(tall=True),
 }
-VARIANTS = {'farmer_hoe': ('farmer', 'hoe'), 'farmer_can': ('farmer', 'can')}
+VARIANTS = {'farmer_hoe': ('farmer', 'hoe'), 'farmer_can': ('farmer', 'can'), 'farmer_pick': ('farmer', 'pick'), 'farmer_axe': ('farmer', 'axe')}
 for _st in ('long', 'bun', 'spiky', 'bangs'):
     CAST['farmer_' + _st] = dict(CAST['farmer'], hairStyle=_st, hairLen=13)
-    VARIANTS['farmer_' + _st + '_hoe'] = ('farmer_' + _st, 'hoe'); VARIANTS['farmer_' + _st + '_can'] = ('farmer_' + _st, 'can')
+    VARIANTS['farmer_' + _st + '_hoe'] = ('farmer_' + _st, 'hoe'); VARIANTS['farmer_' + _st + '_can'] = ('farmer_' + _st, 'can'); VARIANTS['farmer_' + _st + '_pick'] = ('farmer_' + _st, 'pick'); VARIANTS['farmer_' + _st + '_axe'] = ('farmer_' + _st, 'axe')
 only = sys.argv[1:]
 meta = {}
 for n in list(CAST) + list(VARIANTS):

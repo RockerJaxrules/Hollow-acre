@@ -47,12 +47,17 @@ function depthOver(t){if(DX.off||S.room)return;const day=clamp(1-nightK*1.6,0,1)
     DX.nPar++;ctx2.globalAlpha=(.78-nightK*.25)*Math.min(1,(edge-.45)*4);ctx2.drawImage(sil,Math.round(fx-sil.width*.9),Math.round(fy-sil.height*1.1),Math.round(sil.width*1.8),Math.round(sil.height*1.8));ctx2.globalAlpha=1;}}
 // ---- sun shadows: each object throws its own silhouette across the ground, sheared by the sun's position.
 // Morning shadows fall long to the west, noon shadows are short, evening shadows stretch east. All shadows go into one buffer, so overlaps don't double up.
-function sunState(){const h=S.hour;if(S.room||h<6.2||h>19.4)return null;const t=clamp((h-12.5)/6,-1,1);const fade=clamp((h-6.2)/1.2,0,1)*clamp((19.4-h)/1.2,0,1);
+const ROOM_LAMP={cabin:[6.5,3.0],store:[4.55,2.0],church:[5,1.2],garage:[5.3,.6]};
+function sunState(){const h=S.hour;
+  if(S.room){const R=ROOMS[S.room];if(S.room!=='mine'&&!isNight()&&h>6.5&&h<19)return {sx:.12,sy:.4,a:.2};   // daylight from the back windows: soft shadows toward you
+    const L=ROOM_LAMP[S.room];if(L){DX.lamp={x:sx(R.ox+L[0]),y:sz(R.oz+L[1])-10};return {sx:0,sy:0,a:.42,lamp:1};}
+    if(lanternOn()){DX.lamp={x:sx(P.x),y:sz(P.z)-6};return {sx:0,sy:0,a:.5,lamp:1};}return null;}
+  if(h<6.2||h>19.4)return null;const t=clamp((h-12.5)/6,-1,1);const fade=clamp((h-6.2)/1.2,0,1)*clamp((19.4-h)/1.2,0,1);
   return {sx:t*1.05,sy:.32+Math.abs(t)*.22,a:.34*fade};}
 function dxSil(spr){let c=DX.sil['s_'+spr];if(c)return c;const m=SPR[spr],im=m&&IMG[m.src];if(!im)return null;c=document.createElement('canvas');c.width=m.fw;c.height=m.fh;const q=c.getContext('2d');
   q.drawImage(im,0,0,m.fw,m.fh,0,0,m.fw,m.fh);q.globalCompositeOperation='source-in';q.fillStyle='#0a1206';q.fillRect(0,0,m.fw,m.fh);DX.sil['s_'+spr]=c;return c;}
 const SUN_SKIP=new Set(['deco','flat','anim','corn']);
-function sunBegin(){DX.sun=sunState();DX.lamp=null;if(S.introDrive&&DX.carLamp&&cine){DX.lamp={x:DX.carLamp.x,y:DX.carLamp.y,a:.6};DX.sun={sx:0,sy:0,a:.6,lamp:1};}else if(!DX.sun&&!S.room&&S.mode!=='title'&&isNight()&&lanternOn()){DX.lamp={x:sx(P.x),y:sz(P.z)-6,a:.55};DX.sun={sx:0,sy:0,a:.55,lamp:1};}if(!DX.sun)return;const g=dxCanvas();g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,VW,VH);DX.sg=g;}
+function sunBegin(){DX.lamp=null;DX.sun=sunState();if(S.introDrive&&DX.carLamp&&cine){DX.lamp={x:DX.carLamp.x,y:DX.carLamp.y,a:.6};DX.sun={sx:0,sy:0,a:.6,lamp:1};}else if(!DX.sun&&!S.room&&S.mode!=='title'&&isNight()&&lanternOn()){DX.lamp={x:sx(P.x),y:sz(P.z)-6,a:.55};DX.sun={sx:0,sy:0,a:.55,lamp:1};}if(!DX.sun)return;const g=dxCanvas();g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,VW,VH);DX.sg=g;}
 // returns true when it handled the shadow (so the flat ellipse isn't needed)
 function sunShadow(o,X,Y){const s=DX.sun;if(!s||SUN_SKIP.has(o.kind))return false;const m=SPR[o.spr];if(!m)return false;const c=dxSil(o.spr);if(!c)return false;
   let shx=s.sx,shy=s.sy;if(s.lamp){const dx=X-DX.lamp.x,dy=Y-DX.lamp.y,d=Math.hypot(dx,dy);if(d>230||d<6)return true;const k=clamp(d/110,.25,1.5);shx=dx/d*k;shy=dy/d*k;}

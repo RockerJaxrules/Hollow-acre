@@ -19,7 +19,7 @@ function lookMap(look){const M=new Map();const add=(from,to)=>{for(let dr=-1;dr<
   return M;}
 const LOOK_SRC={};
 function applyLook(){const look=S.look,M=lookMap(look);
-  for(const tool of ['','_hoe','_can']){const target='farmer'+tool,src=look.style==='short'?target:'farmer_'+look.style+tool;const tm=SPR[target],sm=SPR[src]||tm;
+  for(const tool of ['','_hoe','_can','_pick','_axe']){const target='farmer'+tool,src=look.style==='short'?target:'farmer_'+look.style+tool;const tm=SPR[target],sm=SPR[src]||tm;
     if(!LOOK_SRC[sm.src])LOOK_SRC[sm.src]=IMG[sm.src];const im=LOOK_SRC[sm.src];if(!im)continue;
     const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const g=c.getContext('2d');g.drawImage(im,0,0);
     if(M.size){const d=g.getImageData(0,0,c.width,c.height),a=d.data;for(let i=0;i<a.length;i+=4){if(!a[i+3])continue;const to=M.get((a[i]<<16)|(a[i+1]<<8)|a[i+2]);if(to){a[i]=to[0];a[i+1]=to[1];a[i+2]=to[2];}}g.putImageData(d,0,0);}

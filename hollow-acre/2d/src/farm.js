@@ -24,7 +24,7 @@ onSeed=function(){if(S.mode!=='play')return;const ks=Object.keys(SEEDS);let i=ks
 const _updHud=updateHud;updateHud=function(){_updHud();ui.seed.textContent=`${SEEDS[S.sel].name} ×${S.seeds[S.sel]}`;};
 // sharpened hoe: till the tiles either side too
 const _doTill=doTill;doTill=function(t){_doTill(t);if(S.hoe<2)return;const side=Math.abs(P.fx)>Math.abs(P.fz)?[0,1]:[1,0];
-  for(const s of [-1,1]){const n=tileAt(t.i+side[0]*s,t.j+side[1]*s);if(n&&!n.tilled)setTimeout(()=>{n.tilled=true;burst(n.x,n.z,8,'#6a4a30',1.2,.5,2);},420);}};
+  for(const s of [-1,1]){const n=tileAt(t.i+side[0]*s,t.j+side[1]*s);if(n&&!n.tilled&&!(n.debris&&!n.debris.hide))setTimeout(()=>{n.tilled=true;burst(n.x,n.z,8,'#6a4a30',1.2,.5,2);},420);}};
 // sprinklers sit at fixed spots in the field and water a 3x3 patch at dawn
 const SPRINK=[[2,2],[7,2],[2,5],[7,5]];
 function sprinklerWater(){for(let k=0;k<S.sprinklers;k++){const [ci,cj]=SPRINK[k];for(let di=-1;di<=1;di++)for(let dj=-1;dj<=1;dj++){const t=tileAt(ci+di,cj+dj);if(t&&t.crop&&t.crop.stage<3)t.crop.watered=true;}}}

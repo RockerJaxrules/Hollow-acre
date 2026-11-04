@@ -111,17 +111,24 @@ function hollowBody(dir,pose){
 // ---------- tools
 const HOE=(hx,ay,dir,fl,t)=>{};
 function toolFor(kind,f,dir){if(!kind)return null;return (hx,ay,dir,fl)=>{const side=dir==='E'||dir==='W';
-  if(kind==='hoe'){const wood=ramp('#8a5a30'),iron=[[90,94,104],[150,154,164],[196,200,208]];
-    // handle angle per frame: up over the shoulder, then down in front
-    const ang=[-1.9,-2.3,-2.7,-3.0,-.2,.25,.15,-.6][f];const gx=hx+(side?fl*3:4),gy=ay+(f<=3?-6-f*2:7);
-    const L2=20,ex=Math.round(gx+Math.cos(ang)*L2*(side?fl:1)*(side?-1:1)*(f<=3?1:-1)),ey=Math.round(gy+Math.sin(ang)*L2*(f<=3?1:-1));
-    const tipx=side?Math.round(gx+fl*(f<=3?-4-f*2:12)):gx+(f<=3?-2:2),tipy=f<=3?gy-14-f*2:gy+12+(f===5?2:0);
-    limb(gx,gy,tipx,tipy,2,wood);const bx=side?fl:0;for(let i=0;i<6;i++)p(tipx+bx*i,tipy+(side?0:i)+(f<=3?-1:0),iron[i<2?2:1]);
-    if(f===5)for(let i=0;i<5;i++)p(tipx+bx*2+(i-2)*2,tipy+3+(i%2),[110,74,44]);}
-  if(kind==='can'){const G2=ramp('#4a8a4a');const tilt=f>=3&&f<=6;const cx=hx+(side?fl*10:9),cy=ay+5-(f>=1?2:0);
-    box(cx-5,cy-4,10,8,G2);for(let i=-5;i<5;i++)p(cx+i,cy-5,G2[3]);limb(cx-4,cy-7,cx+3,cy-7,1,G2);p(cx-5,cy-6,G2[1]);p(cx+4,cy-6,G2[1]);
-    const sx2=cx+(side?fl*6:6),sy2=cy-(tilt?0:3);limb(cx+(side?fl*4:4),cy-2,sx2+(side?fl*3:3),sy2-(tilt?-2:2),2,G2);
-    if(tilt)for(let i=0;i<6;i++){const dx=(side?fl*(4+(i>>1)):4+(i>>1)),dy=2+i*2+((f+i)%2);p(sx2+dx,sy2+dy,[150,205,240]);if(i%2)p(sx2+dx+1,sy2+dy,[210,236,250]);}}};}
+  const wood=[[58,36,20],[96,62,34],[138,92,52],[176,126,76]],iron=[[52,56,66],[92,98,110],[150,156,168],[206,212,220]];
+  if(kind==='hoe'||kind==='pick'||kind==='axe'){
+    // the handle swings from over the shoulder (frames 0-3) to down in front (4-7)
+    const up=f<=3,gx=hx+(side?fl*3:4),gy=ay+(up?-6-f*2:7);
+    const tipx=side?Math.round(gx+fl*(up?-4-f*2:12)):gx+(up?-2:2),tipy=up?gy-14-f*2:gy+12+(f===5?2:0);
+    // motion smear on the downswing
+    if(f===4)for(let i=0;i<9;i++){const t=i/8,ax=Math.round(gx+(tipx-gx)*1.1+(side?fl:1)*Math.sin(t*3)*4-(side?fl*t*10:0)),ay2=Math.round(tipy-18+t*18);p(ax,ay2,[232,224,200]);if(i%2)p(ax+1,ay2,[200,192,170]);}
+    limb(gx,gy,tipx,tipy,2,wood);p(gx,gy,wood[3]);
+    const dx=side?fl:1,dy=side?0:1;   // which way the head faces
+    if(kind==='hoe'){for(let i=0;i<7;i++){p(tipx+dx*i,tipy+dy*i,iron[i<2?3:2]);p(tipx+dx*i+(side?0:1),tipy+dy*i+(side?1:0),iron[1]);p(tipx+dx*i+(side?0:2),tipy+dy*i+(side?2:0),iron[0]);}p(tipx,tipy,iron[3]);p(tipx+dx,tipy+dy,[180,150,90]);}
+    if(kind==='pick'){for(let i=-5;i<=5;i++){const bend=Math.round(Math.abs(i)*.35);const x=tipx+(side?i*dx:i),y=tipy+(side?bend:0)-(side?0:-bend);p(x,y,iron[Math.abs(i)>3?3:2]);p(x,y+1,iron[1]);if(Math.abs(i)<2)p(x,y+2,iron[0]);}p(tipx,tipy-1,iron[3]);}
+    if(kind==='axe'){for(let j=0;j<7;j++)for(let i=0;i<5-Math.abs(j-3)*.5;i++){const x=tipx+dx*i,y=tipy+j-3;p(x,y,i===0?iron[1]:i>=3?iron[3]:iron[2]);}p(tipx,tipy-4,wood[2]);}
+    if(f===5){const col=kind==='hoe'?[[110,74,44],[150,104,62]]:kind==='pick'?[[130,128,140],[200,198,206]]:[[150,110,60],[210,170,110]];for(let i=0;i<7;i++)p(tipx+dx*2+(i-3)*2,tipy+3+(i%3)-1,col[i%2]);}}
+  if(kind==='can'){const G2=[[34,70,40],[54,110,58],[80,150,80],[130,196,120]];const tilt=f>=3&&f<=6;const cx=hx+(side?fl*10:9),cy=ay+5-(f>=1?2:0);
+    for(let y=-4;y<=4;y++)for(let x=-5;x<=5;x++){const d=x*x/30+y*y/20;if(d>1)continue;p(cx+x,cy+y,G2[x<-2?3:x>2?1:2]);}for(let x=-4;x<=4;x++)p(cx+x,cy-5,G2[3]);
+    for(let i=0;i<7;i++){const a=Math.PI+i/6*Math.PI;p(cx+Math.round(Math.cos(a)*4),cy-6+Math.round(Math.sin(a)*3),G2[1]);}
+    const sx2=cx+(side?fl*7:7),sy2=cy-(tilt?-1:3);limb(cx+(side?fl*4:4),cy-1,sx2,sy2,2,G2);p(sx2+(side?fl:1),sy2,[200,200,190]);p(sx2+(side?fl:1),sy2+1,[150,150,140]);
+    if(tilt)for(let i=0;i<9;i++){const ddx=(side?fl*(2+(i>>1)):2+(i>>1)),ddy=1+i*1.6+((f+i)%2);p(sx2+ddx,sy2+Math.round(ddy),[150,205,240]);if(i%2)p(sx2+ddx+(side?fl:1),sy2+Math.round(ddy),[220,240,252]);}}};}
 // ---------- render every frame of the sheet
 const draw=TALL?hollowBody:human;
 ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){

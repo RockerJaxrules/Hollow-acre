@@ -74,13 +74,14 @@ vendors.cook={name:'Grandpa’s stove',sub:'The recipe cards are in his handwrit
 {const st=interact.find(it=>it.on&&ROOMS.cabin&&Math.abs(it.x-(ROOMS.cabin.ox+7.9))<.01);if(st){st.label=()=>'Cook';st.act=()=>openShop('cook');}}
 // ---- farm debris now gives materials and costs energy; stumps need the axe
 {const add=farmDebris;farmDebris=function(){add();for(const it of interact){if(!it.act||!it.label)continue;const o=OBJ.find(q=>q.debris&&Math.abs(q.x-it.x)<.001&&Math.abs(q.z-it.z)<.001);if(!o)continue;const orig=it.act;
-    it.act=function(){const cost=o.debris==='rock'?(S.tools.pick>1?2:3):o.debris==='weeds'?1:0;if(cost&&!spend(cost))return;orig.call(it);
-      if(o.debris==='rock')addInv('stone',1+(rand()<.3?1:0));if(o.debris==='weeds')addInv('fiber');if(o.debris==='twig')addInv('wood');};}
+    it.act=function(){if(P.anim)return;const cost=o.debris==='rock'?(S.tools.pick>1?2:3):o.debris==='weeds'?1:0;if(cost&&!spend(cost))return;faceTo(o.x,o.z);startAnim(o.debris==='rock'?'pick':'grab',o.debris==='rock'?.55:.45,null,()=>{orig.call(it);
+      if(o.debris==='rock')addInv('stone',1+(rand()<.3?1:0));if(o.debris==='weeds')addInv('fiber');if(o.debris==='twig')addInv('wood');});};}
   // stumps scattered at the edge of the farm
   let n=0;for(let i=0;i<900&&n<10;i++){const x=lerp(-12,24,rand()),z=lerp(-14,12,rand());if(terr(x,z)!=='grass'||!clearSpot(x,z,.4)||!bushOK(x,z))continue;if(x>FIELD.x0-1.5&&x<FIELD.x0+FIELD.w+1.5&&z>FIELD.z0-1.5&&z<FIELD.z0+FIELD.h+1.5)continue;
     const o=obj('stump',x,z,{kind:'prop',debris:'stump'});o.col={x,z:z-.1,r:.38};circles.push(o.col);
-    interact.push({x,z,r:.85,on:()=>!o.hide,label:()=>'Chop',ok:()=>true,act(){if(!spend(S.tools.axe>1?2:4))return;o.hits=(o.hits||0)+1;SFX.thud(0,.4);burst(o.x,o.z,10,'#7d5636',1.4,.7,2);
-      if(o.hits>=(S.tools.axe>1?1:2)){o.hide=true;const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);addInv('wood',3);toast('+3 wood.',1.2);}}});n++;}};}
+    interact.push({x,z,r:.85,on:()=>!o.hide,label:()=>'Chop',ok:()=>true,act(){if(P.anim)return;if(!spend(S.tools.axe>1?2:4))return;faceTo(o.x,o.z);startAnim('axe',.55,null,()=>{o.hits=(o.hits||0)+1;SFX.thud(0,.4);burst(o.x,o.z,10,'#7d5636',1.4,.7,2);cam.shake=Math.max(cam.shake,.1);
+      if(o.hits>=(S.tools.axe>1?1:2)){o.hide=true;const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);addInv('wood',3);toast('+3 wood.',1.2);}});}});n++;}
+  fieldDebris();};}
 // ---- the old Marrow mine, cut into the cliff behind the farm
 const MINE={x:-6,z:0,mobs:[],ores:[],ladder:null};
 ROOMS.mine={ox:430,oz:-60,out:{x:0,z:0},name:'The old Marrow mine',furn:[]};
@@ -98,7 +99,7 @@ function mineFloor(f){S.mineFloor=f;S.mineDeep=Math.max(S.mineDeep,f);const R=RO
   toast(f===1?'The old Marrow mine. The air is cold and smells of pennies.':`Floor ${f}.${f%5===0?' Somebody has scratched tally marks into the wall. They stop at your age.':''}`,2.4,f>=8);}
 function mineTarget(){if(S.room!=='mine')return null;let best=null,bd=1.3;for(const o of MINE.ores){if(o.hide)continue;const d=Math.hypot(o.x-P.x,o.z-P.z);const dot=((o.x-P.x)*P.fx+(o.z-P.z)*P.fz)/(d||1);if(d<bd&&(d<.8||dot>.3)){bd=d;best=o;}}return best;}
 {const _cc=computeContext;computeContext=function(){if(S.room==='mine'){const L=MINE.ladder;if(L&&!L.hide&&Math.hypot(L.x-P.x,L.z-P.z)<1.1)return {label:'Climb down',ok:true,act(){fade(1);SFX.thud(0,.3);setTimeout(()=>{P.x=ROOMS.mine.ox+ROOMS.mine.door;P.z=ROOMS.mine.oz+ROOMS.mine.d-1;mineFloor(S.mineFloor+1);fade(0);},350);}};
-    const o=mineTarget();if(o)return {label:'Mine',ok:true,act(){if(!spend(S.tools.pick>1?2:3))return;startAnim('hoe',.55,null,()=>{o.hits++;SFX.thud(0,.35);burst(o.x,o.z,10,'#8a8690',1.4,.7,2);
+    const o=mineTarget();if(o)return {label:'Mine',ok:true,act(){if(!spend(S.tools.pick>1?2:3))return;faceTo(o.x,o.z);startAnim('pick',.55,null,()=>{o.hits++;SFX.thud(0,.35);burst(o.x,o.z,10,'#8a8690',1.4,.7,2);
       const need=Math.max(1,ORE_HITS[o.ore]-(S.tools.pick>1?1:0));if(o.ore==='iron'&&S.tools.pick<2&&o.hits>=need){toast('It won’t break. You need a steel pickaxe.',1.8);o.hits=0;return;}
       if(o.hits>=need){o.hide=true;const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);addInv('stone');if(o.ore!=='stone')addInv(o.ore,1+(rand()<.35?1:0));toast(`+${ITEMS[o.ore].name.toLowerCase()}`,1);
         if(o===MINE.ladderAt||(!MINE.ladder&&MINE.ores.every(q=>q.hide))){MINE.ladder=obj('ladder',o.x,o.z+.05,{kind:'flat'});SFX.stinger();toast('A ladder, going down.',1.4);}}});}};}
@@ -113,11 +114,11 @@ function mineDrawables(D){if(S.room!=='mine')return;for(const m of MINE.mobs)D.p
     if(m.stun<=0){ctx2.fillStyle='rgba(255,40,20,.9)';ctx2.fillRect(X-3,Y-30,2,2);ctx2.fillRect(X+2,Y-30,2,2);}}});}
 // ---- the greenhouse: built from the plans board; inside, beds that water themselves and grow faster, safe from whatever walks the field at night
 const GH={x:10.5,z:7.6};
-{const _pl=vendors.plans.rows;vendors.plans.rows=()=>{const r=_pl();r.push({k:'gh',name:'Greenhouse',desc:S.greenhouse?'Built. The beds water themselves.':'A glasshouse with twenty-one beds that water themselves and grow half again as fast.',price:150,can:!S.greenhouse,need:{wood:20,stone:30,copper:5},
+{const _pl=vendors.plans.rows;vendors.plans.rows=()=>{const r=_pl();r.push({k:'gh',name:'Greenhouse',desc:S.greenhouse?'Built.':'A second field under glass: 28 plots of soil that never dry out and grow half again as fast. Expensive, and worth it.',price:300,can:!S.greenhouse,need:{wood:50,stone:60,copper:10,iron:5},
   buy(){S.greenhouse=true;buildGreenhouse();toast('The greenhouse is up. Through the glass, the field looks very far away.',3);}});return r;};}
 function buildGreenhouse(){obj('greenhouse',GH.x,GH.z,{kind:'bld',night:'greenhouse_n'});addRect(GH.x-2.6,GH.z-3,GH.x+2.6,GH.z-.15);HOUSES.push({e:OBJ[OBJ.length-1],x:GH.x,z:GH.z,lit:false,w:5});
   interact.push({x:GH.x,z:GH.z+.3,r:1,label:()=>'Enter',ok:()=>true,act(){enterRoom('greenhouse');}});
-  const R=ROOMS.greenhouse;for(let r=0;r<3;r++)for(let c=0;c<7;c++){const t={i:100+c,j:100+r,x:R.ox+1.5+c+.5,z:R.oz+1.4+r*1.5+.5,tilled:true,crop:null,gh:true};tiles.push(t);}}
+  const R=ROOMS.greenhouse;for(let r=0;r<4;r++)for(let c=0;c<7;c++){const t={i:100+c,j:100+r,x:R.ox+1+c+.5,z:R.oz+1.2+r+.5,tilled:false,crop:null,gh:true};tiles.push(t);}}
 {const _tt=targetTile;targetTile=function(){if(S.room==='greenhouse'){let best=null,bd=1.2;for(const t of tiles){if(!t.gh)continue;const x=P.x+P.fx*.6,z=P.z+P.fz*.6+.1;const d=Math.hypot(t.x-x,t.z-z);if(d<bd){bd=d;best=t;}}return best;}if(S.room)return null;return _tt();};}
 // ---- per-frame hooks
 {const _u=update;update=function(dt){_u(dt);mineUpdate(dt);for(const t of tiles)if(t.gh&&t.crop&&t.crop.watered&&t.crop.stage<3)t.crop.growth+=dt*.5;
@@ -129,3 +130,39 @@ function econBoot(){placeMine();
   const fits=(x,z)=>{if(blocked(x,z))return false;if(x+3>FIELD.x0-1&&x-3<FIELD.x0+FIELD.w+1&&z+1.5>FIELD.z0-1&&z-4<FIELD.z0+FIELD.h+1)return false;for(let i=-3;i<=3;i+=1)for(let j=-4;j<=1.5;j+=1)if(terr(x+i,z+j)!=='grass'||!clearSpot(x+i,z+j,0))return false;return true;};
   for(const [x,z] of cand)if(fits(x,z)){GH.x=x;GH.z=z;break;}ROOMS.greenhouse.out={x:GH.x,z:GH.z+.8};reserve(GH.x-3.2,GH.z-3.8,GH.x+3.2,GH.z+1.4);
   if(S.greenhouse)buildGreenhouse();}
+
+// ---- the field has gone wild outside Grandpa's last patch: clear it plot by plot before you can till it (Stardew-style land clearing)
+function makeDebris(spr,x,z,tile){const kind=spr.split('_')[0];const o=obj(spr,x,z,{kind:'prop',debris:kind});if(tile)tile.debris=o;
+  if(kind==='rock'||kind==='stump'){o.col={x,z:z-.1,r:kind==='stump'?.36:.3};circles.push(o.col);}
+  const verb={rock:'Break',stump:'Chop',weeds:'Pull',twig:'Pick up'}[kind];
+  interact.push({x,z,r:.75,on:()=>!o.hide,label:()=>verb,ok:()=>true,act(){if(P.anim)return;const cost={rock:S.tools.pick>1?2:3,stump:S.tools.axe>1?2:4,weeds:1,twig:0}[kind];if(cost&&!spend(cost))return;faceTo(o.x,o.z);
+    startAnim(kind==='rock'?'pick':kind==='stump'?'axe':'grab',.5,null,()=>{o.hits=(o.hits||0)+1;const need=kind==='stump'?(S.tools.axe>1?1:2):1;SFX.thud(0,kind==='rock'?.35:.2);
+      burst(o.x,o.z,kind==='rock'?14:9,kind==='rock'?'#8a8690':kind==='weeds'?'#4a8a32':'#7d5636',1.3,.6,2);if(o.hits<need)return;
+      o.hide=true;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}
+      if(kind==='rock')addInv('stone',1+(rand()<.3?1:0));if(kind==='weeds'){addInv('fiber');if(rand()<.15){S.seeds.turnip++;toast('A turnip seed was tangled in the roots.',1.6);}}if(kind==='twig')addInv('wood');if(kind==='stump')addInv('wood',3);updateHud();});}});return o;}
+function fieldDebris(){for(const t of tiles){if(t.gh)continue;const inStart=t.i>=FSTART.i0&&t.i<FSTART.i0+FSTART.w&&t.j>=FSTART.j0&&t.j<FSTART.j0+FSTART.h;if(inStart)continue;
+  const r=rand();if(r>.82)continue;const spr=r<.36?'weeds_'+((rand()*2)|0):r<.6?'rock_'+((rand()*2)|0):r<.7?'stump':'twig';makeDebris(spr,t.x+(rand()-.5)*.25,t.z+.2+(rand()-.5)*.15,t);}}
+// a tile with something still on it can't be tilled
+{const _tt2=targetTile;targetTile=function(){const t=_tt2();if(t&&t.debris&&!t.debris.hide)return null;return t;};}
+// the note nailed to Grandpa's door, until you read it
+function noteDrawables(D){if(S.readLetter||S.room)return;D.push({z:-9.38,mind:1,draw(){const X=sx(doorPos.x+.18),Y=sz(-9.4)-26+Math.round(Math.sin(performance.now()/500)*.6);drawSpr('doornote',X,Y);
+  if(Math.sin(performance.now()/260)>.6){ctx2.fillStyle='rgba(255,250,220,.9)';ctx2.fillRect(X+3,Y-13,1,1);ctx2.fillRect(X+2,Y-12,3,1);ctx2.fillRect(X+3,Y-11,1,1);}}});}
+{const _md=mineDrawables;mineDrawables=function(D){_md(D);noteDrawables(D);};}
+// ---- hotbar: your tools, the seed you're holding and a quick snack. The slot for what the big button will do lights up.
+{const css=document.createElement('style');css.textContent=`#hotbar{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;gap:4px;z-index:6}
+  #hotbar .slot{width:40px;height:40px;position:relative;padding:0;border:0;background:#3a2414;box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 4px #8a5a2a,inset 0 0 0 6px #5a3818;image-rendering:pixelated;cursor:pointer}
+  #hotbar .slot img{width:28px;height:28px;image-rendering:pixelated;position:absolute;left:6px;top:5px}#hotbar .slot.on{box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 4px #f0a040,inset 0 0 0 6px #b8602a}
+  #hotbar .slot b{position:absolute;right:4px;bottom:2px;font:10px/1 'Pixelify Sans',monospace;color:#f4e4c0;text-shadow:1px 1px 0 #000}#hotbar .slot i{position:absolute;left:4px;top:3px;font:8px/1 monospace;color:#c8a070;font-style:normal}
+  #btnSeed{display:none!important}`;document.head.appendChild(css);
+  const hb=document.createElement('div');hb.id='hotbar';const SL=[['hoe','icon_hoe'],['can','icon_can'],['pick','icon_pick'],['axe','icon_axe'],['seed','icon_seed'],['food','icon_food']];
+  hb.innerHTML=SL.map(([k,ic],i)=>`<button class="slot" data-k="${k}" aria-label="${k}"><i>${i+1}</i><img data-ic="${ic}" alt=""><b id="hb_${k}"></b></button>`).join('');$('buttons').appendChild(hb);
+  hb.querySelectorAll('.slot').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();hotbarUse(b.dataset.k);}));}
+function hotbarUse(k){if(S.mode!=='play'||S.paused)return;const T=S.tools;
+  if(k==='seed'){onSeed();return;}
+  if(k==='food'){const best=Object.keys(ITEMS).filter(q=>ITEMS[q].food&&inv(q)>0).sort((a,b)=>ITEMS[a].food[0]-ITEMS[b].food[0])[0];if(best){takeInv(best);eat(ITEMS[best].food[0],ITEMS[best].food[1],ITEMS[best].name);}else{const raw=Object.keys(RAW).find(q=>basketCount(q)>0);if(raw){takeBasket(raw,1);eat(RAW[raw][0],RAW[raw][1],'A raw '+raw);}else toast('Nothing to eat.',1.4);}updateHud();return;}
+  const nm={hoe:`${T.hoe>1?'Copper':'Rusty'} hoe — till soil`,can:`${S.waterMax>10?'Copper':'Tin'} can — ${S.water}/${S.waterMax}`,pick:`${T.pick>1?'Steel':'Grandpa’s'} pickaxe — break stone`,axe:`${T.axe>1?'Steel':'Old'} axe — chop stumps`}[k];toast(nm,1.4);}
+setInterval(()=>{const hb=$('hotbar');if(!hb)return;hb.style.display=(S.mode!=='play'||$('hud').hidden||S.paused)?'none':'flex';
+  for(const im of hb.querySelectorAll('img'))if(!im.src&&SPR[im.dataset.ic]&&IMG[SPR[im.dataset.ic].src])im.src=iconOf(im.dataset.ic);
+  $('hb_seed').textContent=S.seeds[S.sel]||0;$('hb_can').textContent=S.water;const fc=Object.keys(ITEMS).filter(q=>ITEMS[q].food).reduce((a,q)=>a+inv(q),0);$('hb_food').textContent=fc||'';
+  const L=($('btnAct').textContent||'');const on=/Till/.test(L)?'hoe':/Water/.test(L)?'can':/Mine|Break/.test(L)?'pick':/Chop/.test(L)?'axe':/Plant/.test(L)?'seed':null;
+  for(const b of hb.children)b.classList.toggle('on',b.dataset.k===on);},120);
