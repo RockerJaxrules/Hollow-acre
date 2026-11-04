@@ -5,7 +5,7 @@ const FIELD={x0:-5,z0:0,w:10,h:8};
 const CORN={x0:-15,x1:11,z0:11.5,z1:24};
 const inCorn=(x,z)=>x>CORN.x0&&x<CORN.x1&&z>CORN.z0&&z<CORN.z1;
 const pond={x:-30,z:24.5,r:7.5};
-const wellPos={x:6,z:-10.5},binPos={x:-3.6,z:-8.6},doorPos={x:0,z:-8.9},carPos={x:-60.2,z:-4.6},pumpPos={x:-28,z:-10.4},boothPos={x:44.5,z:-9.6};
+const wellPos={x:6,z:-10.5},binPos={x:-3.6,z:-8.6},doorPos={x:0,z:-8.9},carPos={x:-60.2,z:-1.4},pumpPos={x:-28,z:-10.4},boothPos={x:44.5,z:-9.6};
 const crossPos={x:20,z:19},boardPos={x:52,z:-9.4},tsPos={x:27.5,z:-8.4},farmSignPos={x:-11.5,z:-8.6},squarePos={x:48,z:-6};
 const fishSpot={x:pond.x,z:pond.z-pond.r+3.6};
 const ALTAR_POS=[[-27,8,'west woods'],[-2,29,'cornfield'],[64,-32,'churchyard']];
@@ -24,7 +24,7 @@ const onRoad=(x,z,extra)=>{for(const r of ROADS)if(segDist(x,z,r[0],r[1],r[2],r[
 const LAYERS={
   dirt:(x,z)=>{const j=(fbm(x*.7,z*.7)-.5)*.8;return onRoad(x,z,j)||(Math.hypot(x-pond.x,z-pond.z)<pond.r+1.6+j&&Math.hypot(x-pond.x,z-pond.z)>pond.r-.4)
     ||(x>CORN.x0-.6&&x<CORN.x1+.6&&z>CORN.z0-.6&&z<CORN.z1+.6)
-    ||(Math.hypot(x+61,z+3)<3.2+j)||(x>-7+j&&x<7-j&&z>-9.6&&z<-7.2+j*.5);},
+    ||(Math.hypot(x+60.6,z-1.2)<3.0+j)||(x>-7+j&&x<7-j&&z>-9.6&&z<-7.2+j*.5);},
   stone:(x,z)=>(Math.abs(z+6)<2.6&&x<-12.5)||Math.hypot(x-48,z+6)<6.6||(Math.abs(z+6)<2.1&&x>24&&x<72)||(Math.abs(x-48)<1.4&&z>-18.6&&z<-6),
   water:(x,z)=>Math.hypot(x-pond.x,z-pond.z)<pond.r+(fbm(x*.8,z*.8)-.5)*.9&&!(x>pond.x-1.1&&x<pond.x+1.1&&z<pond.z-pond.r+4.2),
   dark:(x,z)=>Math.max(B.x0-x,x-B.x1,B.z0-z,z-B.z1)>-1||((x<-16&&z>6)||(z>28))&&fbm(x*.22+70,z*.22)>.5,
@@ -88,8 +88,8 @@ function buildWorld(){
   reserve(-7,-2,7,10);
   put('pumpkin',-5.3,-.3,.25);put('pumpkin_b',5.3,-.4,.25);put('hay',8.2,1.2);addRect(7.4,0,9,1.1);
   // ---------- crash site on Route 9
-  put('car_wreck',carPos.x-.8,carPos.z+3.2,0,{night:'car_wreck_n',kind:'wreck'});addRect(carPos.x-1.9,carPos.z-1.2,carPos.x+.3,carPos.z+3);
-  put('deadtree',-62.4,-1.2,.35);reserve(-65,-8,-56,0);
+  put('car_wreck',carPos.x-.8,carPos.z+3.2,0,{night:'car_wreck_n',kind:'wreck'});addRect(carPos.x-1.8,carPos.z-1.2,carPos.x+1.2,carPos.z+3.1);
+  put('deadtree',carPos.x+.15,carPos.z+3.45,.35);reserve(-65,-8,-56,4);
   // ---------- Marrow Hollow: main street (z=-6), north row faces the street, south row faces the back lane (z=5)
   building('store',33.5,-9.4,{jack:1});building('house_a',41,-9.4);building('house_b',56,-9.4,{jack:1});building('house_d',64.5,-9.4);
   building('house_c',33.5,3.6);building('house_b',41,3.6);building('house_c',56,3.6,{lit:false});building('house_d',64.5,3.6,{lit:false});

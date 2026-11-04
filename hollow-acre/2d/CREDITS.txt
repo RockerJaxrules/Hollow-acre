@@ -526,3 +526,5 @@ CC-BY-SA 3.0 / GPL 3.0
 https://opengameart.org/content/lpc-guido-bos-entries-cut-up
 
 Car wreck and deer sprites: drawn for this game. Cat sprite: rendered in Blender for this game.
+Car models: "Car Kit" by Kenney (www.kenney.nl), CC0 1.0. Rendered to pixel sprites in Blender for this game.
+Road texture: procedural, made in Blender for this game.

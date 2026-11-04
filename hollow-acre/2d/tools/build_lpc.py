@@ -139,5 +139,10 @@ for n in ('gas_pump', 'phone_booth', 'board'):
     im.save(f'{OUT}/{n}.png'); META[n] = dict(src=f'{OUT}/{n}.png', fw=im.width, fh=im.height, ax=mm['anchor'][0], ay=mm['anchor'][1], foot=mm.get('foot', [0, 0, 0, 0]))
     import os as _o
     if _o.path.exists(f'spr/px2/{n}_n.png'): shutil.copy(f'spr/px2/{n}_n.png', f'{OUT}/{n}_n.png'); META[n + '_n'] = dict(META[n], src=f'{OUT}/{n}_n.png')
+# Kenney Car Kit sedan (CC0), rendered in Blender: driving frames + side view
+_m = json.load(open('spr/px2/car_drive.json')); shutil.copy('spr/px2/car_drive.png', f'{OUT}/car_drive.png'); META['car_drive'] = dict(_m, src=f'{OUT}/car_drive.png')
+_i = Image.open('spr/px2/car_side.png'); _m = json.load(open('spr/px2/car_side.json')); _i.save(f'{OUT}/car_side.png')
+META['car_side'] = dict(src=f'{OUT}/car_side.png', fw=_i.width, fh=_i.height, ax=_m['anchor'][0], ay=_m['anchor'][1])
+_i = Image.open('spr/px2/road.png'); _i.save(f'{OUT}/road.png'); META['road'] = dict(src=f'{OUT}/road.png', fw=_i.width, fh=_i.height, ax=_i.width // 2, ay=0)
 json.dump(META, open('spr/lpc/objects.json', 'w'), indent=0)
 print(len(META), 'objects')

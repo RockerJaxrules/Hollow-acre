@@ -30,7 +30,7 @@ function render(dt,now){const t=now/1000;
   for(const tl of tiles){if(tl.tilled&&tl.crop&&tl.crop.watered){ctx2.fillStyle='rgba(30,16,8,.32)';ctx2.fillRect(Math.round(sx(tl.x-.5)),Math.round(sz(tl.z-.5)),32,32);}}
   if(hlTile&&S.mode==='play'){ctx2.strokeStyle='rgba(255,240,200,.75)';ctx2.lineWidth=1;ctx2.strokeRect(Math.round(sx(hlTile.x-.5))+.5,Math.round(sz(hlTile.z-.5))+.5,31,31);}
   // skid marks & blood at the crash site
-  if(onScreen(-56,-5,200)){ctx2.fillStyle='rgba(0,0,0,.35)';for(let k=0;k<2;k++){ctx2.save();ctx2.translate(sx(-55.5),sz(-5+k*1.3));ctx2.rotate(.4);ctx2.fillRect(-180,0,180,4);ctx2.restore();}}
+  if(onScreen(-56,-5,200)){ctx2.fillStyle='rgba(0,0,0,.3)';for(let k=0;k<2;k++){ctx2.save();ctx2.translate(sx(-58.6+k*.9),sz(-1.6+k*.25));ctx2.rotate(.42);ctx2.fillRect(-200,0,200,3);ctx2.restore();}}
   // collect drawables
   const D=[];const pad=200;
   for(const o of OBJ){if(o.hide)continue;const X=sx(o.x),Y=sz(o.z);if(X<-pad||X>VW+pad||Y<-60||Y>VH+pad+260)continue;
@@ -142,23 +142,30 @@ function sub(text){ui.subs.textContent=text||'';ui.subs.classList.toggle('show',
 function startCine(kind){if(kind==='intro')return introCine();if(kind==='escape')return escapeCine();}
 function endCine(){cine=null;sub('');$('skip').hidden=true;SFX.engine(false);}
 function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true;ui.obj.hidden=true;$('skip').hidden=false;$('title').hidden=true;
-  const trees=[];for(let i=0;i<40;i++)trees.push({x:(i%2?1:-1)*(3.2+hash(i,1)*5),z:-i*2.2-hash(i,2)*2,k:hash(i,3)});
-  const st={t:0,carX:0,carZ:0,yaw:0,spd:13,deerZ:-150,figZ:-999,mirror:0,done:{}};SFX.engine(true);
+  // the woods along Route 9: world-space props, the car drives north (-z)
+  const props=[];const PINES=['pine_0','pine_1','pine_o0','pine_o1'];
+  for(let i=0;i<340;i++){const side=i%2?1:-1,z=-i*.95+hash(i,9)*.8,x=side*(4.9+Math.pow(hash(i,1),1.6)*9);
+    const k=hash(i,3);props.push({x,z,spr:k<.08?'deadtree':k<.16?'tree_green':PINES[(hash(i,4)*4)|0]});}
+  for(let z=-20;z>-330;z-=31)props.push({x:4.7,z,post:1},{x:-4.7,z:z-15,post:1});
+  props.push({x:5.4,z:-48,spr:'signpost'});
+  const st={t:0,carX:1.7,carZ:0,yaw:0,spd:13,deerZ:null,figZ:null,mirror:0,flash:0,crashZ:null,done:{},props};SFX.engine(true);
   const once=k=>st.done[k]?false:(st.done[k]=true);
   cine={hidePlayer:true,custom(g,dt,t){st.t+=dt;const T=st.t;
     if(T<3){g.fillStyle='#000';g.fillRect(0,0,VW,VH);if(once('a'))sub('Route 9. 11:48 PM. Rain since the county line.');return;}
-    const slow=T>15.2&&T<16.6?.3:1;st.carZ-=st.spd*dt*slow;if(T>15.6&&T<17){st.yaw=lerp(st.yaw,.9,dt*3);st.carX+=st.spd*dt*.5*slow;}
-    if(T<17)drawRoad(g,st,trees,t);
+    const slow=T>15.2&&T<16.6?.3:1;if(T<17)st.carZ-=st.spd*dt*slow;
+    if(T>15.6&&T<17){st.yaw=lerp(st.yaw,.9,dt*3);st.carX+=st.spd*dt*.5*slow;}
     if(T>4&&once('b'))sub('Voicemail from Grandpa Elias. Three days old.');
     if(T>7.2&&once('c'))sub('"…it already picked you. I’m sorry, kid. Come quick, before the thirty-first."');
-    if(T>10.5&&once('d')){st.deerZ=st.carZ-14;sub('');}
+    if(T>9.4&&once('lt')){st.flash=1;SFX.thud(0,.9);cam.shake=.15;}
+    if(T>10.5&&once('d')){st.deerZ=st.carZ-15;sub('');}
     if(T>11.6&&once('e')){SFX.thud(0,.5);cam.shake=.25;sub('Something was lying in the road.');}
-    if(T>12.8&&once('f')){st.mirror=1.2;SFX.stinger();sub('Something in the mirror.');}
-    if(T>14.2&&once('g')){sub('Nothing. There’s nothing there.');st.figZ=st.carZ-16;}
-    if(T>15.2&&once('h')){SFX.shriek(0);SFX.horn();}
-    if(T>16.4&&once('i')){SFX.screech();}
+    if(T>12.8&&once('f')){st.mirror=1.4;SFX.stinger();sub('Something in the mirror.');}
+    if(T>14.2&&once('g')){sub('Nothing. There’s nothing there.');st.figZ=st.carZ-17;}
+    if(T>15.2&&once('h')){SFX.shriek(0);SFX.horn();st.crashZ=st.carZ-12.6;props.push({x:6.6,z:st.crashZ,spr:'tree_green',big:1});}
+    if(T>15.5)st.figZ=null;if(T>16.4&&once('i')){SFX.screech();}
     if(T>17&&once('j')){SFX.crash();cam.shake=1;flashT=1;SFX.engine(false);sub('');}
-    if(T>=17){g.fillStyle='#000';g.fillRect(0,0,VW,VH);if(flashT>0){g.fillStyle=`rgba(255,255,255,${flashT})`;g.fillRect(0,0,VW,VH);flashT-=dt*1.5;}
+    if(T<17.25)drawRoad(g,st,t,dt);
+    if(T>=17.25){g.fillStyle='#000';g.fillRect(0,0,VW,VH);if(flashT>0){g.fillStyle=`rgba(255,255,255,${flashT})`;g.fillRect(0,0,VW,VH);flashT-=dt*1.5;}
       if(T>19&&once('k')){SFX.heart(.6);sub('Rain on your face. Blood in your mouth.');}
       if(T>21.5&&once('l')){cine.custom=null;cine.hidePlayer=false;S.hour=4.6;P.x=-58.6;P.z=-6.4;P.dir='W';P.fx=-1;P.fz=0;H.vis=true;H.x=carPos.x-.6;H.z=carPos.z+1.6;H.state='cutscene';H.clip='crawl';H.dir='W';H.alpha=1;H.rise=1;
         cine.cam={x:-59.5,z:-5.6};sub('Something climbs off the hood.');SFX.breath(0);fade(0);}
@@ -167,23 +174,46 @@ function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true
     if(k<3.5){H.x-=dt*1.1;H.z+=dt*1.6;H.dir='S';}else if(k<6){H.clip='walk';H.dir='W';H.x-=dt*2.6;H.z+=dt*1.4;}
     if(k>2.6&&!cine.s2){cine.s2=1;sub('It crawls away into the trees. It looked back at you.');SFX.whisper(0);}
     if(k>6.2&&!cine.s3){cine.s3=1;H.vis=false;H.state='gone';fade(1);setTimeout(()=>{finishIntro();fade(0);},900);}}};}
-function drawRoad(g,st,trees,t){const W=VW,H_=VH;g.fillStyle='#0c1410';g.fillRect(0,0,W,H_);const cx=W/2+st.carX*PPM*.0,cz=st.carZ;
-  const rx=Math.round(W/2-2.6*PPM);g.fillStyle='#1c1c20';g.fillRect(rx,0,Math.round(5.2*PPM),H_);
-  g.fillStyle='#b89430';for(let y=((-cz*PPM)%64+64)%64-64;y<H_;y+=64)g.fillRect(Math.round(W/2)-1,Math.round(y),2,30);
-  g.fillStyle='#6a6a6a';g.fillRect(rx+4,0,1,H_);g.fillRect(rx+Math.round(5.2*PPM)-5,0,1,H_);
-  const base=H_*.72;
-  for(const tr of trees){let z=((tr.z-cz)%88+88)%88-70;const Y=base+z*PPM*-1*-1;const y=base-(-z)*PPM;const yy=base+((tr.z-st.carZ)%88+88)%88*PPM-60*PPM*.0;
-    const sy=(((tr.z-st.carZ)*-PPM)%(88*PPM)+88*PPM)%(88*PPM)-30*PPM;drawSpr(tr.k<.5?'pine_0':'pine_o1',W/2+tr.x*PPM,base-sy+120);}
-  if(st.deerZ>-100){const dy=base-(st.deerZ-st.carZ)*-PPM*-1;drawSpr('deer',W/2+20,base-(st.carZ-st.deerZ)*PPM*-1+60);}
-  if(st.figZ>-900){const fy=base+(st.figZ-st.carZ)*PPM;drawSpr('hollow',W/2+6,fy+40,'walk','S',0,{scale:2});g.fillStyle='#ff2a14';g.fillRect(Math.round(W/2)+1,Math.round(fy+40-94),2,2);g.fillRect(Math.round(W/2)+9,Math.round(fy+40-94),2,2);}
-  if(st.mirror>0){st.mirror-=1/60;const my=base+150;drawSpr('hollow',W/2,my,'spellcast','N',3,{scale:2,alpha:Math.min(1,st.mirror)});}
-  g.save();g.translate(Math.round(W/2+st.carX*PPM),Math.round(base));g.rotate(-st.yaw);drawSpr('car_wreck',0,70);g.restore();
-  // darkness + headlights + taillights
-  lctx.globalCompositeOperation='source-over';lctx.fillStyle='rgb(14,16,34)';lctx.fillRect(0,0,W,H_);lctx.globalCompositeOperation='lighter';
-  const hx=W/2+st.carX*PPM;coneAt(hx,base-60,-Math.PI/2-st.yaw,.42,11*PPM,[255,240,200],.95);glowAt(hx,base-40,60,[255,230,190],.4);glowAt(hx,base+60,40,[255,30,20],.6);
-  if(st.mirror>0)glowAt(W/2,base+90,90,[255,30,20],.7*Math.min(1,st.mirror));
+function drawRoad(g,st,t,dt){const W=VW,H_=VH,base=Math.round(H_*.7),cxs=(W>>1)-Math.round((st.carX-1.7)*PPM*.7)-Math.round(1.7*PPM*.5);
+  const shk=cam.shake>0?Math.round((Math.random()-.5)*cam.shake*8):0;cam.shake=Math.max(0,cam.shake-dt*1.8);
+  const camZ=Math.round(st.carZ*PPM),Y=z=>Math.round(z*PPM)-camZ+base+shk,X=x=>Math.round(x*PPM)+cxs;
+  // grass: LPC tiles with dark patches, scrolling with the road
+  const z0=Math.floor((camZ-base)/32)-1,z1=z0+Math.ceil(H_/32)+2,x0=-Math.ceil(cxs/32)-1,x1=-x0;
+  const dark=(x,z)=>fbm(x*.21+3,z*.21)>.5;
+  for(let j=z0;j<=z1;j++)for(let i=x0;i<=x1;i++){const dx=i*32+cxs,dy=j*32-camZ+base+shk;
+    drawAuto(g,'grass',15,dx,dy,hash(i*3+1,j*7+2));drawAuto(g,'dark',maskAt(dark,i,j),dx,dy,hash(i+11,j+5));}
+  // the road strip (Blender-rendered asphalt, seamless every 12 m)
+  const R=SPR.road,rim=IMG[R.src];if(rim){const rh=R.fh;let y0=((-camZ+base+shk)%rh+rh)%rh-rh;for(let y=y0;y<H_;y+=rh)g.drawImage(rim,cxs-R.ax,y);}
+  // y-sorted world things
+  const D=[];const top=st.carZ-(base+60)/PPM,bot=st.carZ+(H_-base+260)/PPM;
+  for(const p of st.props)if(p.z>top-8&&p.z<bot)D.push(p);
+  if(st.deerZ!==null)D.push({z:st.deerZ,deer:1});
+  if(st.figZ!==null)D.push({z:st.figZ,fig:1});
+  if(st.mirror>0)D.push({z:st.carZ+5.2,mir:1});
+  D.push({z:st.carZ+.1,car:1});D.sort((a,b)=>a.z-b.z);
+  for(const d of D){
+    if(d.car){const f=Math.max(0,Math.min(6,Math.round(st.yaw/.15)));drawSpr('car_drive',X(st.carX),Y(st.carZ),'yaw','S',f);}
+    else if(d.post){const x=X(d.x),y=Y(d.z);g.fillStyle='#1a1a1a';g.fillRect(x-1,y-14,3,15);g.fillStyle='#d8d8d0';g.fillRect(x-1,y-14,3,11);g.fillStyle='#f2c230';g.fillRect(x-1,y-12,3,2);}
+    else if(d.deer){g.save();g.translate(X(.8),Y(d.z));g.rotate(Math.PI/2);drawSpr('deer',0,0);g.restore();}
+    else if(d.fig){drawSpr('hollow',X(.15),Y(d.z),'walk','S',0,{scale:2});}
+    else if(d.mir){drawSpr('hollow',X(.1),Y(d.z),'walk','N',0,{scale:2,alpha:Math.min(1,st.mirror)});}
+    else drawSpr(d.spr,X(d.x),Y(d.z),null,null,0,d.big?{scale:1.3}:undefined);}
+  // a lightning flash shows it standing in the tree line
+  if(st.flash>0){const f=st.flash;if(f>.55)drawSpr('hollow',X(-6.2),Y(st.carZ-9),'walk','S',0,{scale:2});st.flash=Math.max(0,f-dt*2.6);}
+  if(st.mirror>0)st.mirror-=dt;
+  // light: night ambient, twin headlight beams, tail lights
+  const amb=st.flash>.5?[200,205,235]:st.flash>0?[40+st.flash*120,44+st.flash*120,70+st.flash*120]:[36,42,70];
+  lctx.globalCompositeOperation='source-over';lctx.fillStyle=`rgb(${amb.map(v=>v|0).join(',')})`;lctx.fillRect(0,0,W,H_);lctx.globalCompositeOperation='lighter';
+  const cx=X(st.carX),cy=Y(st.carZ),sn=Math.sin(st.yaw),cs=Math.cos(st.yaw);
+  const nose=(dx,dz)=>[cx+(dx*cs+dz*sn)*PPM,cy+(dx*sn-dz*cs)*PPM];
+  for(const s of [-.62,.62]){const [hx,hy]=nose(s,2.2);coneAt(hx,hy,-Math.PI/2+st.yaw,.3,12*PPM,[255,238,196],.75);glowAt(hx,hy,10,[255,240,210],.9);}
+  glowAt(cx,cy-20,90,[120,110,100],.35);const [tx,ty]=nose(0,-2.2);glowAt(tx,ty,46,[255,26,16],st.mirror>0?.9:.55);
+  if(st.mirror>0)glowAt(X(0),Y(st.carZ+5.2)-40,70,[255,30,20],.6*Math.min(1,st.mirror));
+  if(st.figZ!==null){glowAt(X(.15)-4,Y(st.figZ)-96,5,[255,40,20],1);glowAt(X(.15)+6,Y(st.figZ)-96,5,[255,40,20],1);}
   g.globalCompositeOperation='multiply';g.drawImage(lightC,0,0);g.globalCompositeOperation='source-over';
-  g.strokeStyle='rgba(170,190,220,.35)';g.beginPath();for(let i=0;i<110;i++){const x=(hash(i,1)*W+t*30)%W,y=(hash(i,2)*H_+t*700)%H_;g.moveTo(Math.round(x),Math.round(y));g.lineTo(Math.round(x-2),Math.round(y+8));}g.stroke();
+  // mist + rain + splashes
+  g.strokeStyle='rgba(170,190,220,.33)';g.beginPath();for(let i=0;i<120;i++){const x=(hash(i,1)*W+t*30)%W,y=(hash(i,2)*H_+t*700)%H_;g.moveTo(Math.round(x),Math.round(y));g.lineTo(Math.round(x-2),Math.round(y+8));}g.stroke();
+  g.fillStyle='rgba(200,215,240,.5)';for(let i=0;i<26;i++){const k=Math.floor(t*12+i*7.3);g.fillRect(Math.round(hash(k,i)*W),Math.round(hash(i,k)*H_),1,1);}
   if(!vig||vig.w!==VW||vig.h!==VH)makeVig();g.drawImage(vig.c,0,0);}
 function finishIntro(){endCine();S.mode='play';S.hour=6.3;H.vis=false;H.state='gone';H.timer=6;P.x=-58.6;P.z=-6.4;P.dir='E';P.fx=1;P.fz=0;
   $('hud').hidden=false;$('buttons').hidden=false;ui.obj.hidden=false;toast('Day 1. Dawn. Your car is wrapped around the oak. The farm is east.',4);}
@@ -192,7 +222,7 @@ function escapeCine(){S.mode='cine';$('skip').hidden=false;$('buttons').hidden=t
     if(st.x<-74){st.loops++;st.x=-14;fade(.8);setTimeout(()=>fade(0),300);sub(st.loops===1?'The farm sign goes by. Again.':'HOLLOW ACRE. E. Marsh, prop. 32 marks now.');SFX.whisper(0);}
     if(st.loops>=2&&st.x<-20&&!st.end){st.end=1;SFX.engine(false);fade(1);setTimeout(()=>{endCine();S.looped=true;S.mode='play';P.x=farmSignPos.x+1;P.z=farmSignPos.z+1.4;$('buttons').hidden=false;fade(0);
       toast('The engine dies in front of the farm sign. There is no road out of Marrow Hollow.',4,true);},1000);}},
-    draw(){const X=sx(st.x),Y=sz(-6);ctx2.save();ctx2.translate(Math.round(X),Math.round(Y));ctx2.rotate(-Math.PI/2);drawSpr('car_wreck',0,70);ctx2.restore();}};
+    draw(){drawSpr('car_side',sx(st.x),sz(-6));}};
   sub('The highway west. The radio plays a hymn you almost know.');}
 $('skip').addEventListener('click',()=>{if(!cine)return;if(S.mode==='cine'&&cine.update&&!cine.draw){fade(1);setTimeout(()=>{finishIntro();fade(0);},500);}else if(cine.draw){S.looped=true;endCine();S.mode='play';$('buttons').hidden=false;}});
 /* ================= controls ================= */

@@ -34,9 +34,15 @@ function chunk(cx,cz){const k=cx+','+cz;let c=chunks.get(k);if(c)return c;
   const N=CH/32,x0=cx*N,z0=cz*N;
   for(let j=0;j<N;j++)for(let i=0;i<N;i++){const X=x0+i,Z=z0+j,h=hash(X*3+1,Z*7+2);
     drawAuto(g,h>.86?'flowers':'grass',15,i*32,j*32,h);}
-  for(const L of ['dark','dirt','stone','water']){const fn=LAYERS[L];
+  const HW=(x,z)=>Math.abs(z+6)<2.6&&x<-12.5;
+  for(const L of ['dark','dirt','stone','water']){const fn=L==='stone'?(x,z)=>LAYERS.stone(x,z)&&!HW(x,z):LAYERS[L];
     for(let j=0;j<N;j++)for(let i=0;i<N;i++){const X=x0+i,Z=z0+j;drawAuto(g,L,maskAt(fn,X,Z),i*32,j*32,hash(X+11,Z+5));}}
+  // Route 9: the Blender-rendered asphalt strip (rotated to run east-west), ending where the farm lane begins
+  const rs=roadStripH();if(rs&&z0*32<(-6+5.2)*32&&(z0+N)*32>(-6-5.2)*32&&x0<-12.5){g.save();g.beginPath();g.rect(0,0,Math.max(0,(-12.5-x0)*32),CH);g.clip();
+    for(let wx=-120;wx<-12.5;wx+=12){const dx=(wx-x0)*32;if(dx>CH||dx+rs.width<0)continue;g.drawImage(rs,dx,(-6-5-z0)*32);}g.restore();}
   chunks.set(k,c);return c;}
+let _rsH=null;function roadStripH(){if(_rsH)return _rsH;const m=SPR.road,im=m&&IMG[m.src];if(!im)return null;
+  const c=document.createElement('canvas');c.width=im.height;c.height=im.width;const g=c.getContext('2d');g.translate(0,im.width);g.rotate(-Math.PI/2);g.drawImage(im,0,0);return _rsH=c;}
 // ---------- camera
 const cam={x:0,z:0,shake:0,px:0,pz:0};
 // all screen positions come from one integer-snapped camera, so ground and sprites never drift against each other
