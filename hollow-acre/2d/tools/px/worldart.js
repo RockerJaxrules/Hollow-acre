@@ -14,6 +14,43 @@ function shingles(L,x0,y0,w,h,RF,course){course=course||5;let ci=0;rect(L,x0,y0,
 function boards(L,x0,y0,w,h,R,bw){bw=bw||6;for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const k=(x-x0)%bw;let c=k===0?R[4]:k===bw-1?R[1]:R[3];if(hsh((x-x0)/bw|0,(y-y0)/23|0,4)>.86)c=shade(c,.86);P(L,x,y,c);}}
 function gs(cx,cy,rx,ry,a){for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++)if(x*x/(rx*rx)+y*y/(ry*ry)<=1)P(SHD,cx+x,cy+y,PAL.out[0],a||70);}
 
+// ---- volumetric foliage: canopy = overlapping leaf clusters, each lit from the upper left
+function leafRamp(name){return {
+  orange:['#3a160a','#6e2a0e','#a8441a','#d06a22','#ec9a34','#f8c45a'],
+  red:['#2c0c10','#5a1418','#8c2222','#b83a2a','#d8623a','#ee9052'],
+  gold:['#3a2a08','#6a4e10','#9c7818','#c8a22a','#e4c84a','#f6e486'],
+  green:['#0a2214','#143a1e','#235a26','#357a2e','#52983a','#7cb84c'],
+  dead:['#1e1612','#33261e','#4c3a2c','#64503c','#7c6850','#988266']}[name].map(HEX);}
+function canopy(L,cx,cy,rx,ry,R,seed){
+  // a few big lumpy masses (lobes); lower lobes sit in front of upper ones
+  const lobes=[[0,0,.62,.62]];const n=CFG.lobes||6;
+  for(let i=0;i<n;i++){const a=-Math.PI*.95+i/(n-1)*Math.PI*.9*2*.5+Math.PI*.05+(hsh(i,seed)-.5)*.5;const ang=i<n/2?-Math.PI+(i/(n/2))*Math.PI:(-Math.PI+((i-n/2)/(n/2))*Math.PI);
+    const rr=.42+hsh(i,seed,2)*.18;lobes.push([Math.cos(ang)*(1-rr)*.95,Math.sin(ang)*(1-rr)*.8+.08,rr,rr*.92]);}
+  lobes.push([-.25,.35,.42,.38],[.28,.38,.4,.36]);
+  lobes.sort((p,q)=>p[1]-q[1]);
+  for(const [lx,ly,lr,lry] of lobes){const bx=cx+lx*rx,by=cy+ly*ry,R1=lr*rx,R2=lry*ry;
+    for(let y=-R2-2;y<=R2+2;y++)for(let x=-R1-2;x<=R1+2;x++){const nx=x/R1,ny=y/R2,d=nx*nx+ny*ny;
+      const ang=Math.atan2(ny,nx),sc=.1*(.5+.5*Math.sin(ang*9+seed))+.06*hsh(Math.round(ang*14),seed,4);   // scalloped leafy rim
+      if(d>1-sc)continue;
+      const nz=Math.sqrt(Math.max(0,1-d));let l=-.5*nx-.7*ny+.55*nz;                                       // rounded form lit from the upper left
+      const g=(by+y-cy)/ry;let k=1.3+2.4*l-.7*g;
+      const px=bx+x|0,py=by+y|0;const clump=hsh((px+(py>>2&1)*2)>>2,py>>2,seed);k+=clump>.78?.8:clump<.2?-.8:0;  // leaf clumps
+      if(d>.82-sc&&ny>0)k-=1;                                                                             // dark underside at each lobe's lower edge
+      k=Math.max(0,Math.min(5,Math.round(k)));P(L,px,py,R[k]);}}
+  for(let i=0;i<rx*.9;i++){const x=cx+(hsh(i,seed,7)-.5)*rx*1.3,y=cy-ry*.62+(hsh(i,seed,8))*ry*.5;const c=G(L,x|0,y|0);if(c&&c[0]+c[1]>R[3][0]+R[3][1])P(L,x,y,R[5]);}}
+function trunk(L,cx,top,base,w,BK){for(let y=top;y<base;y++){const flare=y>base-10?Math.round((y-(base-10))*.8):0;for(let x=-w-flare;x<=w+flare;x++){const t=(x+w+flare)/(2*(w+flare));let c=BK[t<.3?4:t<.6?3:t<.85?2:1];if((x*3+y)%7===0)c=BK[1];P(L,cx+x,y,c);}}
+  for(let x=-w;x<=w;x++)for(let y=top;y<top+6;y++)P(L,cx+x,y,BK[0]);}
+if(K==='maple'){const R=leafRamp(CFG.leaf),cx=W/2|0,base=H-6;
+  gs(cx+10,base,W/2-14|0,8,80);
+  trunk(A,cx,base-50,base,5,PAL.bark);for(const [dx,dy] of [[-10,-40],[9,-46]])for(let i=0;i<14;i++)rect(A,cx+Math.round(dx*i/14),base-34+Math.round(dy*i/14*.4)-i,3,3,PAL.bark[2]);
+  canopy(A,cx,base-82,W/2-4|0,52,R,CFG.seed);
+  if(CFG.leaf!=='green')for(let i=0;i<10;i++){const x=cx-30+hsh(i,4)*60|0,y=base-4+(hsh(i,5)*6|0);P(B,x,y,R[3]);P(B,x+1,y,R[4]);}}
+if(K==='bush'){const R=leafRamp(CFG.leaf),cx=W/2|0,base=H-4;gs(cx+6,base,W/2-6|0,5,80);canopy(A,cx,base-16,W/2-3|0,16,R,CFG.seed);
+  if(CFG.berries)for(let i=0;i<9;i++){const x=cx-14+hsh(i,2)*28|0,y=base-26+hsh(i,3)*18|0;if(G(A,x,y)){P(B,x,y,PAL.red[4]);P(B,x+1,y,PAL.red[3]);P(B,x,y-1,PAL.red[5]);}}}
+if(K==='tallgrass'){const cx=W/2|0,base=H-2;const R=CFG.leaf==='gold'?leafRamp('gold'):GR;const sway=F===1?1:0;
+  for(let i=0;i<26;i++){const x0=4+hsh(i,1)*(W-8)|0,h=10+hsh(i,2)*12|0,bend=(hsh(i,3)-.5)*4+sway*(h/10);
+    for(let y=0;y<h;y++){const x=x0+Math.round(bend*(y/h)*(y/h));const c=y>h-3?R[5]:y>h*.6?R[4]:y>h*.3?R[3]:R[2];P(A,x,base-y,c);if(y<h*.5)P(A,x+1,base-y,R[1]);}}
+  for(let x=2;x<W-2;x++)P(SHD,x,base+1,PAL.out[0],70);}
 if(K==='cliff'){   // seamless 64px-wide cliff face: grass lip on top, layered rock, roots, darker base
   for(let x=0;x<W;x++){const lip=7+Math.round(Math.sin(x*Math.PI*2/32)*1.2+hsh(x%64,1)*2.2);
     for(let y=0;y<lip;y++)P(A,x,y,y===0?GR[5]:y===1?GR[4]:y>=lip-2?GR[2]:GR[3]);

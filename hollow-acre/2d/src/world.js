@@ -144,7 +144,14 @@ function buildWorld(){
   scatter(560,2.2,()=>{const r=rand();return r<.36?'pine_0':r<.72?'pine_1':r<.86?'pine_o0':'pine_o1';},(x,z)=>{const out=Math.max(B.x0-x,x-B.x1,B.z0-z,z-B.z1);
     const woods=(x<-14&&z>4)||(z>26&&x<30)||(x>10&&x<26&&z>8&&z<16)||(z<-20&&x<26);return (out>-2||woods)&&clearSpot(x,z,.8);},.35);
   for(const o of OBJ)if(o.kind==='tree'&&o.spr.startsWith('pine'))o.kind='pine';
-  scatter(70,3.4,()=>rand()<.75?'tree_orange':'tree_green',(x,z)=>x>B.x0+1&&x<B.x1-1&&z>B.z0+1&&z<B.z1-1&&clearSpot(x,z,1.4),.32);
+  scatter(70,3.6,()=>{const r=rand();return r<.34?'maple_orange':r<.6?'maple_red':r<.82?'maple_gold':'maple_green';},(x,z)=>x>B.x0+1&&x<B.x1-1&&z>B.z0+1&&z<B.z1-1&&clearSpot(x,z,1.4),.32);
+  // bushes hugging fences, yards and the edges of the woods; tall grass in the meadows
+  for(let i=0;i<900&&OBJ.filter(o=>o.kind==='bush').length<150;i++){const x=lerp(B.x0+2,B.x1-2,rand()),z=lerp(B.z0+2,B.z1-2,rand());if(terr(x,z)!=='grass'||!clearSpot(x,z,.2))continue;
+    const nearEdge=fbm(x*.18+4,z*.18)>.55||OBJ.some(o=>(o.kind==='fence'||o.kind==='bld')&&Math.abs(o.x-x)<3&&Math.abs(o.z-z)<2.5);if(!nearEdge)continue;
+    if(OBJ.some(o=>(o.kind==='bush'||o.kind==='tree')&&Math.hypot(o.x-x,o.z-z)<1.6))continue;const e=obj(['bush_green','bush_red','bush_gold'][(rand()*3)|0],x,z,{kind:'bush'});addCircle(x,z-.15,.55);}
+  {let n=0;for(let i=0;i<4000&&n<1500;i++){const cx=lerp(B.x0+2,B.x1-2,rand()),cz=lerp(B.z0+2,B.z1-2,rand());
+    if(fbm(cx*.22+40,cz*.22+9)<.5||terr(cx,cz)!=='grass'||!clearSpot(cx,cz,0))continue;const gold=rand()<.35,k=6+(rand()*8|0);
+    for(let j=0;j<k;j++){const x=cx+(rand()-.5)*2.6,z=cz+(rand()-.5)*1.8;if(terr(x,z)!=='grass'||!clearSpot(x,z,-.6))continue;obj(gold?'tgold':'tgrass',x,z,{kind:'anim',grass:1,fps:1.4,ph:hash(x*9|0,z*9|0)*2});n++;}}}
   for(const [x,z] of[[-24,12],[-29,5],[4,28],[-6,30],[14,4],[16,-14],[24,24]])if(clearSpot(x,z,.5))put('deadtree',x,z,.3);
   for(let i=0;i<24;i++){const x=lerp(B.x0,B.x1,rand()),z=lerp(B.z0,B.z1,rand());if(clearSpot(x,z,1)&&terr(x,z)==='grass'&&(x<-14||z>12))put('stump',x,z,.35);}
   for(let i=0;i<420;i++){const x=lerp(B.x0,B.x1,rand()),z=lerp(B.z0,B.z1,rand());if(terr(x,z)!=='grass'||!clearSpot(x,z,-.8))continue;obj('leaves',x,z,{kind:'deco',v:(rand()*4)|0});}

@@ -6,7 +6,7 @@ function frameOf(name,clip,t,dur){const m=SPR[name];if(!m||!m.clips)return 0;con
   if(clip==='idle')return Math.floor(t*f[2])%nf;return a+Math.floor(t*f[2])%(b-a+1);}
 function charSprite(e,name){const clip=e.clip||'idle';return [name,clip];}
 // shadows: light from the upper left, so everything that stands up throws its shadow down and to the right
-function castShadow(o,X,Y){const m=SPR[o.spr];if(!m||o.kind==='fence'||o.kind==='anim')return;ctx2.fillStyle='rgba(8,16,6,.26)';
+function castShadow(o,X,Y){const m=SPR[o.spr];if(!m||o.kind==='fence'||o.kind==='anim'||o.spr.startsWith('maple')||o.kind==='bush')return;ctx2.fillStyle='rgba(8,16,6,.32)';
   if(o.kind==='bld'){const f=m.foot||[-3,0,3,0];const x0=X+f[0]*PPM,x1=X+f[2]*PPM,h=Math.min(64,m.fh*.42),d=h*.55;
     ctx2.beginPath();ctx2.moveTo(x1,Y-h);ctx2.lineTo(x1+d,Y-h+d*.8);ctx2.lineTo(x1+d,Y+5);ctx2.lineTo(x0+10,Y+5);ctx2.lineTo(x0,Y);ctx2.lineTo(x1,Y);ctx2.closePath();ctx2.fill();return;}
   if(o.kind==='tree'||o.kind==='pine'){ctx2.beginPath();ctx2.ellipse(X+8,Y+2,o.kind==='pine'?17:22,7,0,0,Math.PI*2);ctx2.fill();return;}
@@ -27,6 +27,8 @@ function render(dt,now){const t=now/1000;
   // ground chunks
   const left=cam.px-(VW>>1),top=cam.pz-Math.round(VH*.56);const c0=Math.floor(left/CH),c1=Math.floor((left+VW)/CH),r0=Math.floor(top/CH),r1=Math.floor((top+VH)/CH);
   for(let cz=r0;cz<=r1;cz++)for(let cx=c0;cx<=c1;cx++)ctx2.drawImage(chunk(cx,cz),cx*CH-left,cz*CH-top);
+  // build one neighbouring chunk per frame ahead of time so walking never waits on ground generation
+  {let done=false;for(let cz=r0-1;cz<=r1+1&&!done;cz++)for(let cx=c0-1;cx<=c1+1&&!done;cx++)if(!chunks.has(cx+','+cz)){chunk(cx,cz);done=true;}}
   // water shimmer
   if(onScreen(pond.x,pond.z,260))for(let i=0;i<26;i++){const a=hash(i,7)*6.28,r=hash(i,9)*pond.r*.85;const x=pond.x+Math.cos(a)*r,z=pond.z+Math.sin(a)*r*.9;
     const k=(Math.sin(t*1.7+i)+1)/2;if(k>.6){ctx2.fillStyle=`rgba(200,230,240,${(k-.6)*1.6})`;ctx2.fillRect(Math.round(sx(x)),Math.round(sz(z)),4,1);}}
@@ -57,7 +59,7 @@ function render(dt,now){const t=now/1000;
   if(ritual&&ritual.hat)D.push({z:ritual.hat.z,hat:true});
   mindDrawables(D);lifeDrawables(D,t);D.sort((a,b)=>a.z-b.z);
   for(const d of D){
-    if(d.o){const o=d.o;const X=sx(o.x),Y=sz(o.z);let a;if(o.kind==='anim'){drawSpr(o.spr,X,Y-(o.yoff||0),'a','S',Math.floor(t*o.fps));continue;}
+    if(d.o){const o=d.o;const X=sx(o.x),Y=sz(o.z);let a;if(o.kind==='anim'){drawSpr(o.spr,X,Y-(o.yoff||0),'a','S',Math.floor(t*o.fps+(o.ph||0)+(o.grass?Math.sin(t*.7+o.x*.15)*1.2:0)));continue;}
       if((o.kind==='tree'||o.kind==='pine'||o.kind==='bld')&&P.z<o.z-.2){const m=SPR[o.spr];if(m){const px=sx(P.x),py=sz(P.z)-30;const f=m.foot||[0,0,0,0];const x0=o.kind==='bld'?X+f[0]*PPM:X-m.fw*.35,x1=o.kind==='bld'?X+f[2]*PPM:X+m.fw*.35;if(px>x0&&px<x1&&py>Y-m.ay&&py<Y&&P.z>o.z-(o.kind==='bld'?8:4))a=.55;}}
       if(o.clipw&&o.clipw<1.99){const m=SPR[o.spr],im=IMG[m.src];if(im){const w=Math.round(o.clipw*PPM),dx=Math.round(X-m.ax),dy=Math.round(Y-m.ay);ctx2.drawImage(im,0,0,w,m.fh,dx,dy,w,m.fh);ctx2.drawImage(im,m.fw-9,0,9,m.fh,dx+w-1,dy,9,m.fh);}}
       else drawSpr(o.spr,X,Y,null,null,0,{alpha:a});
@@ -156,7 +158,7 @@ function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true
   // the woods along Route 9: world-space props, the car drives north (-z)
   const props=[];const PINES=['pine_0','pine_1','pine_o0','pine_o1'];
   for(let i=0;i<340;i++){const side=i%2?1:-1,z=-i*.95+hash(i,9)*.8,x=side*(4.9+Math.pow(hash(i,1),1.6)*9);
-    const k=hash(i,3);props.push({x,z,spr:k<.08?'deadtree':k<.16?'tree_green':PINES[(hash(i,4)*4)|0]});}
+    const k=hash(i,3);props.push({x,z,spr:k<.08?'deadtree':k<.3?['maple_orange','maple_red','maple_gold'][(hash(i,6)*3)|0]:PINES[(hash(i,4)*4)|0]});}
   for(let i=props.length-1;i>=0;i--)if(props[i].z<-55&&props[i].z>-72)props.splice(i,1);
   for(let z=-20;z>-330;z-=31)if(z>-52||z<-75)props.push({x:4.7,z,post:1},{x:-4.7,z:z-15,post:1});
   props.push({x:0,z:-60,spr:'cportal',bridge:1},{x:4.9,z:-34,spr:'mailbox'},{x:-5.2,z:-138,spr:'mailbox'},{x:-15.5,z:-118,spr:'cabin',night:'cabin_n'});
@@ -174,7 +176,7 @@ function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true
     if(T>11.6&&once('e')){SFX.thud(0,.5);cam.shake=.25;sub('Something was lying in the road.');}
     if(T>12.8&&once('f')){st.mirror=1.4;SFX.stinger();sub('Something in the mirror.');}
     if(T>14.2&&once('g')){sub('Nothing. There’s nothing there.');st.figZ=st.carZ-17;}
-    if(T>15.2&&once('h')){SFX.shriek(0);SFX.horn();st.crashZ=st.carZ-12.6;props.push({x:6.6,z:st.crashZ,spr:'tree_green',big:1});}
+    if(T>15.2&&once('h')){SFX.shriek(0);SFX.horn();st.crashZ=st.carZ-12.6;props.push({x:6.6,z:st.crashZ,spr:'maple_red'});}
     if(T>15.5)st.figZ=null;if(T>16.4&&once('i')){SFX.screech();}
     if(T>17&&once('j')){SFX.crash();cam.shake=1;flashT=1;SFX.engine(false);sub('');}
     if(T<17.25)drawRoad(g,st,t,dt);
@@ -203,7 +205,7 @@ function drawRoad(g,st,t,dt){const W=VW,H_=VH,base=Math.round(H_*.7),cxs=(W>>1)-
   const R=SPR.road,rim=IMG[R.src];if(rim){const rh=R.fh;let y0=((-camZ+base+shk)%rh+rh)%rh-rh;for(let y=y0;y<H_;y+=rh)g.drawImage(rim,cxs-R.ax,y);}
   // y-sorted world things, each with a shadow on the ground first
   const D=[];const top=st.carZ-(base+60)/PPM,bot=st.carZ+(H_-base+260)/PPM;
-  for(const p of st.props)if(p.z>top-12&&p.z<bot){D.push(p);if(p.spr&&!p.bridge){g.fillStyle='rgba(6,12,6,.32)';g.beginPath();g.ellipse(X(p.x)+8,Y(p.z)+2,p.spr==='cabin'?100:p.spr==='mailbox'?6:18,p.spr==='cabin'?8:6,0,0,Math.PI*2);g.fill();}}
+  for(const p of st.props)if(p.z>top-12&&p.z<bot){D.push(p);if(p.spr&&!p.bridge&&!p.spr.startsWith('maple')){g.fillStyle='rgba(6,12,6,.32)';g.beginPath();g.ellipse(X(p.x)+8,Y(p.z)+2,p.spr==='cabin'?100:p.spr==='mailbox'?6:18,p.spr==='cabin'?8:6,0,0,Math.PI*2);g.fill();}}
   if(st.deerZ!==null)D.push({z:st.deerZ,deer:1});
   if(st.figZ!==null)D.push({z:st.figZ,fig:1});
   if(st.mirror>0)D.push({z:st.carZ+5.2,mir:1});

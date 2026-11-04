@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 const view=$('view');const ctx2=view.getContext('2d');
 let VW=320,VH=480,SCALE=3;
 function resize(){const dpr=Math.min(3,window.devicePixelRatio||1);const W=innerWidth*dpr,H=innerHeight*dpr;
-  SCALE=Math.max(1,Math.round(Math.min(W,H)/(innerWidth<innerHeight?400:380)));VW=Math.ceil(W/SCALE);VH=Math.ceil(H/SCALE);
+  SCALE=Math.max(1,Math.round(Math.min(W,H)/(innerWidth<innerHeight?300:340)));VW=Math.ceil(W/SCALE);VH=Math.ceil(H/SCALE);
   view.width=VW;view.height=VH;view.style.width=innerWidth+'px';view.style.height=innerHeight+'px';ctx2.imageSmoothingEnabled=false;
   for(const c of [lightC,fogC,fxC]){c.width=VW;c.height=VH;}lctx.imageSmoothingEnabled=false;}
 const lightC=document.createElement('canvas'),lctx=lightC.getContext('2d');
@@ -40,9 +40,20 @@ function chunk(cx,cz){const k=cx+','+cz;let c=chunks.get(k);if(c)return c;
   // Route 9: the Blender-rendered asphalt strip (rotated to run east-west), ending where the farm lane begins
   const rs=roadStripH();if(rs&&z0*32<(-6+5.2)*32&&(z0+N)*32>(-6-5.2)*32&&x0<-12.5){g.save();g.beginPath();{const ex=(-12.5-x0)*32;g.moveTo(0,0);for(let y=0;y<=CH;y+=4)g.lineTo(ex-Math.round(hash(y+z0*CH,7)*10+fbm(y*.05,z0)*26),y);g.lineTo(0,CH);g.closePath();}g.clip();
     for(let wx=-120;wx<-12.5;wx+=12){const dx=(wx-x0)*32;if(dx>CH||dx+rs.width<0)continue;g.drawImage(rs,dx,(-6-5-z0)*32);}g.restore();}
+  // soft shading overlay at 4 px resolution, blended up: meadow light/dark variation + the grass bank's shadow on lower ground
+  {const R=4,n=CH/R,oc=document.createElement('canvas');oc.width=n;oc.height=n;const og=oc.getContext('2d');const id=og.createImageData(n,n);
+    const PADT=6,PADL=3,gw=n+PADL,gh=n+PADT,low=new Uint8Array(gw*gh);
+    for(let j=0;j<gh;j++)for(let i=0;i<gw;i++){const t_=terr(x0+(i-PADL+.5)/8,z0+(j-PADT+.5)/8);low[j*gw+i]=(t_==='dirt'||t_==='stone'||t_==='water')?1:0;}
+    const L_=(i,j)=>low[(j+PADT)*gw+i+PADL];
+    for(let j=0;j<n;j++)for(let i=0;i<n;i++){const x=x0+(i+.5)/8,z=z0+(j+.5)/8,o=(j*n+i)*4;let r=0,gg=0,b=0,a=0;
+      if(!L_(i,j)){const v=fbm(x*.09+17,z*.09+3)-.5;if(v>0){r=190;gg=230;b=90;a=Math.min(.13,v*.45);}else{r=0;gg=28;b=18;a=Math.min(.2,-v*.65);}}
+      else{let sh=0;for(let k=1;k<=6;k++){if(!L_(i,j-k)){sh=Math.max(sh,(7-k)/6*.45);break;}}for(let k=1;k<=3;k++){if(!L_(i-k,j)){sh=Math.max(sh,(4-k)/3*.3);break;}}
+        r=10;gg=20;b=8;a=sh;}
+      id.data[o]=r;id.data[o+1]=gg;id.data[o+2]=b;id.data[o+3]=a*255|0;}
+    og.putImageData(id,0,0);g.imageSmoothingEnabled=true;g.drawImage(oc,0,0,CH,CH);g.imageSmoothingEnabled=false;}
   // ground clutter: tufts, stones, wildflowers, twigs on open grass
   const dec=SPR.decor&&IMG[SPR.decor.src];
-  if(dec)for(let j=0;j<N;j++)for(let i=0;i<N;i++){const X=x0+i,Z=z0+j,h=hash(X*7+3,Z*5+1);if(h<.62)continue;if(terr(X+.5,Z+.5)!=='grass'||onPlateau(X+.5,Z+1)&&h<.8)continue;
+  if(dec)for(let j=0;j<N;j++)for(let i=0;i<N;i++){const X=x0+i,Z=z0+j,h=hash(X*7+3,Z*5+1);if(h<.42)continue;if(terr(X+.5,Z+.5)!=='grass'||onPlateau(X+.5,Z+1)&&h<.8)continue;
     const r=hash(X+2,Z+9);const v=r<.45?(r*6.6|0)%3:r<.62?3+(r*10|0)%2:r<.82?5+(r*10|0)%2:7;const ox=(hash(X,Z+3)*16)|0,oy=(hash(X+5,Z)*16)|0;g.drawImage(dec,v*16,0,16,16,i*32+ox,j*32+oy,16,16);}
   // the ridge: a cliff face drawn column by column, with ambient occlusion at its foot
   const cl=SPR.cliff&&IMG[SPR.cliff.src];
