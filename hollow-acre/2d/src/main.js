@@ -31,6 +31,7 @@ function render(dt,now){const t=now/1000;
   if(hlTile&&S.mode==='play'){ctx2.strokeStyle='rgba(255,240,200,.75)';ctx2.lineWidth=1;ctx2.strokeRect(Math.round(sx(hlTile.x-.5))+.5,Math.round(sz(hlTile.z-.5))+.5,31,31);}
   // skid marks & blood at the crash site
   if(onScreen(-56,-5,200)){ctx2.fillStyle='rgba(0,0,0,.3)';for(let k=0;k<2;k++){ctx2.save();ctx2.translate(sx(-58.6+k*.9),sz(-1.6+k*.25));ctx2.rotate(.42);ctx2.fillRect(-200,0,200,3);ctx2.restore();}}
+  mindGround();
   // collect drawables
   const D=[];const pad=200;
   for(const o of OBJ){if(o.hide)continue;const X=sx(o.x),Y=sz(o.z);if(X<-pad||X>VW+pad||Y<-60||Y>VH+pad+260)continue;
@@ -48,12 +49,13 @@ function render(dt,now){const t=now/1000;
   if(S.hour>=19.5&&!S.bound)D.push({z:crossPos.z+2.6,peddler:true});
   for(const g of ghosts)if(g.t>0)D.push({z:g.z,ghost:g});
   if(ritual&&ritual.hat)D.push({z:ritual.hat.z,hat:true});
-  D.sort((a,b)=>a.z-b.z);
+  mindDrawables(D);D.sort((a,b)=>a.z-b.z);
   for(const d of D){
     if(d.o){const o=d.o;const X=sx(o.x),Y=sz(o.z);let a;
       if((o.kind==='tree'||o.kind==='pine'||o.kind==='bld')&&P.z<o.z-.2){const m=SPR[o.spr];if(m){const px=sx(P.x),py=sz(P.z)-30;const f=m.foot||[0,0,0,0];const x0=o.kind==='bld'?X+f[0]*PPM:X-m.fw*.35,x1=o.kind==='bld'?X+f[2]*PPM:X+m.fw*.35;if(px>x0&&px<x1&&py>Y-m.ay&&py<Y&&P.z>o.z-(o.kind==='bld'?8:4))a=.55;}}
       if(o.kind==='tree'||o.kind==='pine')shadow(X,Y,14);
-      drawSpr(o.spr,X,Y,null,null,0,{alpha:a});
+      if(o.clipw&&o.clipw<1.99){const m=SPR[o.spr],im=IMG[m.src];if(im){const w=Math.round(o.clipw*PPM),dx=Math.round(X-m.ax),dy=Math.round(Y-m.ay);ctx2.drawImage(im,0,0,w,m.fh,dx,dy,w,m.fh);ctx2.drawImage(im,m.fw-9,0,9,m.fh,dx+w-1,dy,9,m.fh);}}
+      else drawSpr(o.spr,X,Y,null,null,0,{alpha:a});
       if(o.night&&SPR[o.night]&&nightK>0)drawSpr(o.night,X,Y,null,null,0,{alpha:(a||1)*nightK});
       if(o.kind==='bld'){const h=HOUSES.find(q=>q.e===o);if(h&&h.faceT>0){const w=(h.w||6)/2;const fx=Math.round(X-w*PPM+48),fy=Math.round(Y-74);ctx2.fillStyle='#d8d4c8';ctx2.fillRect(fx,fy,8,10);ctx2.fillStyle='#000';ctx2.fillRect(fx+1,fy+3,2,2);ctx2.fillRect(fx+5,fy+3,2,2);ctx2.fillRect(fx+2,fy+7,4,2);}}}
     else if(d.crop){const tl=d.crop,c=tl.crop;const nm=c.type+'_'+c.stage;const s=c.pop<1?.6+.4*c.pop:1;drawSpr(nm,sx(tl.x),sz(tl.z+.2),null,null,0,{scale:s});}
@@ -81,6 +83,7 @@ function render(dt,now){const t=now/1000;
     else if(d.peddler){const X=sx(crossPos.x+.6),Y=sz(crossPos.z+2.6);shadow(X,Y,9);drawSpr('hale',X,Y,'idle','S',0,{alpha:.0});ctx2.fillStyle='#120e16';ctx2.beginPath();ctx2.moveTo(X-11,Y);ctx2.lineTo(X+11,Y);ctx2.lineTo(X+6,Y-40);ctx2.lineTo(X,Y-50);ctx2.lineTo(X-6,Y-40);ctx2.closePath();ctx2.fill();
       ctx2.fillStyle='#ffd25a';ctx2.fillRect(Math.round(X)-3,Math.round(Y)-42,1,1);ctx2.fillRect(Math.round(X)+2,Math.round(Y)-42,1,1);ctx2.fillStyle='#6aff90';ctx2.fillRect(Math.round(X)+10,Math.round(Y)-24,4,5);}
     else if(d.ghost){drawSpr('hollow',sx(d.ghost.x),sz(d.ghost.z),'walk','S',0,{scale:2,alpha:d.ghost.t*2});}
+    else if(d.mind){d.draw();}
     else if(d.hat){drawSpr('pumpkin',sx(ritual.hat.x),sz(ritual.hat.z));}
   }
   partsDraw();
@@ -109,6 +112,7 @@ function render(dt,now){const t=now/1000;
   // vignette + danger pulse + grain
   if(!vig||vig.w!==VW||vig.h!==VH)makeVig();ctx2.drawImage(vig.c,0,0);
   if(danger>.3&&!S.bound){ctx2.fillStyle=`rgba(120,0,0,${(danger-.3)*.25*(.6+.4*Math.sin(t*6))})`;ctx2.fillRect(0,0,VW,VH);}
+  mindScreen(t);
 }
 let vig=null;
 function makeVig(){const c=document.createElement('canvas');c.width=VW;c.height=VH;const g=c.getContext('2d');const gr=g.createRadialGradient(VW/2,VH*.5,Math.min(VW,VH)*.35,VW/2,VH*.5,Math.max(VW,VH)*.75);
@@ -260,5 +264,5 @@ function boot(){resize();addEventListener('resize',()=>{resize();vig=null;});mak
     for(const [cx,cz] of[[-6.3,2.2],[1.2,9.4],[48,-9.6],[57,-24],[-14.5,-9]])crows.push({x:cx,z:cz,hx:cx,hz:cz,y:0,state:'perch',t:0,vx:0,vz:0});
     S.mode='title';$('loadScr').style.opacity=0;setTimeout(()=>$('loadScr').remove(),800);requestAnimationFrame(loop);});
   $('begin').addEventListener('click',()=>{A.init&&A.init();startCine('intro');});
-  window.__game={S,P,H,tiles,npcs,act:onAct,tp:(x,z)=>{P.x=x;P.z=z;},setHour:h=>{S.hour=h;},skip:()=>{finishIntro();}};}
+  window.__game={S,P,H,tiles,npcs,act:onAct,tp:(x,z)=>{P.x=x;P.z=z;},setHour:h=>{S.hour=h;},skip:()=>{finishIntro();},get M(){return M;},big:(w,h)=>{VW=w;VH=h;view.width=w;view.height=h;for(const c of [lightC,fogC,fxC]){c.width=w;c.height=h;}vig=null;window.onresize=null;}};}
 boot();

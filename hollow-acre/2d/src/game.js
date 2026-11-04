@@ -18,7 +18,7 @@ const DIRS=['E','S','W','N'];
 const dirOf=(x,z)=>Math.abs(x)>Math.abs(z)?(x>0?'E':'W'):(z>0?'S':'N');
 /* ================= people ================= */
 //@@STORY@@
-const NPCPOS={mae:{day:[33.5,-8.4],path:[[33.5,-8.4],[30.6,-8.2],[37,-8.3]]},hale:{day:[48,-17.6],path:[[48,-17.6],[50.6,-16.6],[45.4,-16.8]]},
+const NPCPOS={mae:{day:[31,-8.5],path:[[31,-8.5],[28.6,-8.3],[34,-8.4]]},hale:{day:[48,-17.6],path:[[48,-17.6],[50.6,-16.6],[45.4,-16.8]]},
   tobias:{day:[46,-3.2],path:[[46,-3.2],[50.5,-4],[48,-1.8],[44,-5.6]]},hollis:{day:[-35,-9.6],path:[[-35,-9.6],[-30,-9.4],[-39,-9.8]]},
   agnes:{day:[-46,-8.6],path:[[-46,-8.6],[-44,-8.2],[-48,-8.4]],nightPos:[-46,-8.6]},dunn:{day:[60,-8.6],path:[[60,-8.6],[56,-8.2],[64,-8.4],[58,-4.2]]}};
 for(const d of NPCDEF)if(NPCPOS[d.id])Object.assign(d,NPCPOS[d.id]);
@@ -47,7 +47,7 @@ function updateHud(){const s=[S.day,fmtTime(S.hour),S.coins,S.seeds.turnip,S.see
   if(s!==lastHud){lastHud=s;ui.day.textContent='Day '+S.day;ui.time.textContent=fmtTime(S.hour);ui.coins.textContent=S.coins;ui.turnip.textContent=S.seeds.turnip;ui.pumpkin.textContent=S.seeds.pumpkin;
     ui.water.textContent=S.water+'/'+S.waterMax;ui.basket.textContent=S.basket.length;ui.candles.textContent=S.candles;ui.oil.textContent=Math.ceil(S.fuel)+'%'+(S.flasks?' +'+S.flasks:'');
     ui.oilChip.classList.toggle('low',S.fuel<25);ui.pages.textContent=S.pages.length+'/6';ui.parts.textContent=(S.carFixed?'4':Math.max(partsIn(),partsOwned()))+'/4';ui.seed.textContent=SEEDS[S.sel].name;}
-  ui.bar.style.width=(clamp((S.hour-6)/20,0,1)*100)+'%';}
+  ui.bar.style.width=(clamp((S.hour-6)/20,0,1)*100)+'%';mindHud();}
 function objective(){const L=lit(),np=S.pages.length;
   if(S.bound)return ['Free play','The field is quiet now. Grow whatever you like.',null];
   if(!S.foundCabin)return ['Stranded','Your car is wrecked. Walk east along the road to Grandpa’s farm.',doorPos];
@@ -281,7 +281,7 @@ const dayScale=[220,261.6,293.7,329.6,392,440,523.3];
 const nightMel=[329.6,392,440,392,329.6,293.7,329.6,0,329.6,392,440,493.9,440,392,329.6,0,261.6,293.7,329.6,293.7,261.6,246.9,220,0];
 function lightning(){flashT=1;const n=2+Math.floor(rand()*3);ghosts=[];if(!S.bound)for(let i=0;i<n;i++){const a=rand()*Math.PI*2,d=5+rand()*5;ghosts.push({x:P.x+Math.cos(a)*d,z:P.z+Math.sin(a)*d*.7,t:.35});}
   setTimeout(()=>SFX.thunder(),300+rand()*900);}
-function update(dt){slamUpdate(dt);
+function update(dt){slamUpdate(dt);mindUpdate(dt);
   const rate=S.hour<20?1/11:1/15;S.hour+=dt*rate;
   if(!S.dusk&&S.hour>=18){S.dusk=true;toast('The sun is going down. Your lantern is lit.',2.6);}
   if(!S.bellRung&&S.hour>=20){S.bellRung=true;SFX.bell();S.storm=S.day>=2&&!S.bound;placeNPCs();
@@ -294,6 +294,7 @@ function update(dt){slamUpdate(dt);
   if(sputT>0)sputT-=dt;
   // movement
   let mx=joy.x,mz=joy.y;if(keys.KeyW||keys.ArrowUp)mz-=1;if(keys.KeyS||keys.ArrowDown)mz+=1;if(keys.KeyA||keys.ArrowLeft)mx-=1;if(keys.KeyD||keys.ArrowRight)mx+=1;
+  [mx,mz]=mindInput(mx,mz);
   let mag=Math.hypot(mx,mz);if(mag>1){mx/=mag;mz/=mag;mag=1;}
   const corn=inCorn(P.x,P.z);const moving=mag>.15&&!P.anim,run=mag>.85||keys.ShiftLeft;const spd=moving?(run?5:3)*mag*(corn?.7:1):0;
   lastDir=P.dir;

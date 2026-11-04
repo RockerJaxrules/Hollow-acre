@@ -223,7 +223,7 @@ body{font-family:var(--font-body);font-size:15px;-webkit-user-select:none;user-s
 <script>
 (function(){
 "use strict";
-const SPR={"tree_orange": {"src": "spr/lpc/obj/tree_orange.png", "fw": 94, "fh": 107, "ax": 47.0, "ay": 99, "foot": [-0.3, -0.25, 0.3, 0.1]}, "tree_green": {"src": "spr/lpc/obj/tree_green.png", "fw": 94, "fh": 105, "ax": 47.0, "ay": 97, "foot": [-0.3, -0.25, 0.3, 0.1]}, "pine_0": {"src": "spr/lpc/obj/pine_0.png", "fw": 85, "fh": 91, "ax": 42.5, "ay": 89, "foot": [-0.3, -0.2, 0.3, 0.1]}, "pine_1": {"src": "spr/lpc/obj/pine_1.png", "fw": 85, "fh": 91, "ax": 42.5, "ay": 89, "foot": [-0.3, -0.2, 0.3, 0.1]}, "pine_o0": {"src": "spr/lpc/obj/pine_o0.png", "fw": 85, "fh": 91, "ax": 42.5, "ay": 89, "foot": [-0.3, -0.2, 0.3, 0.1]}, "pine_o1": {"src": "spr/lpc/obj/pine_o1.png", "fw": 85, "fh": 91, "ax": 42.5, "ay": 89, "foot": [-0.3, -0.2, 0.3, 0.1]}, "deadtree": {"src": "spr/lpc/obj/deadtree.png", "fw": 103, "fh": 95, "ax": 51.5, "ay": 93, "foot": [-0.3, -0.2, 0.3, 0.1]}, "stump": {"src": "spr/lpc/obj/stump.png", "fw": 46, "fh": 32, "ax": 23.0, "ay": 30, "foot": [-0.4, -0.3, 0.4, 0.1]}, "corn_0": {"src": "spr/lpc/obj/corn_0.png", "fw": 28, "fh": 62, "ax": 14.0, "ay": 60, "foot": [0, 0, 0, 0]}, "corn_1": {"src": "spr/lpc/obj/corn_1.png", "fw": 28, "fh": 62, "ax": 14.0, "ay": 60, "foot": [0, 0, 0, 0]}, "corn_2": {"src": "spr/lpc/obj/corn_2.png", "fw": 28, "fh": 62, "ax": 14.0, "ay": 60, "foot": [0, 0, 0, 0]}, "mushroom": {"src": "spr/lpc/obj/mushroom.png", "fw": 28, "fh": 28, "ax": 14.0, "ay": 26, "foot": [0, 0, 0, 0]}, "mushroom_b": {"src": "spr/lpc/obj/mushroom_b.png", "fw": 28, "fh": 28, "ax": 14.0, "ay": 26, "foot": [0, 0, 0, 0]}, "pumpkin": {"src": "spr/lpc/obj/pumpkin.png", "fw": 25, "fh": 22, "ax": 12.5, "ay": 20, "foot": [-0.3, -0.25, 0.3, 0.05]}, "pumpkin_b": {"src": "spr/lpc/obj/pumpkin_b.png", "fw": 25, "fh": 24, "ax": 12.5, "ay": 22, "foot": [-0.3, -0.25, 0.3, 0.05]}, "jack": {"src": "spr/lpc/obj/jack.png", "fw": 25, "fh": 22, "ax": 12.5, "ay": 20, "foot": [-0.3, -0.25, 0.3, 0.05]}, "jack_b": {"src": "spr/lpc/obj/jack_b.png", "fw": 25, "fh": 24, "ax": 12.5, "ay": 22, "foot": [-0.3, -0.25, 0.3, 0.05]}, "jack_c": {"src": "spr/lpc/obj/jack_c.png", "fw": 25, "fh": 24, "ax": 12.5, "ay": 22, "foot": [-0.3, -0.25, 0.3, 0.05]}, "hay": {"src": "spr/lpc/obj/hay.png", "fw": 57, "fh": 78, "ax": 28.5, "ay": 76, "foot": [-0.8, -1.2, 0.8, 0]}, "barrel": {"src": "spr/lpc/obj/barrel.png", "fw": 26, "fh": 36, "ax": 13.0, "ay": 34, "foot": [-0.35, -0.3, 0.35, 0]}, "firewood": {"src": "spr/lpc/obj/firewood.png", "fw": 52, "fh": 55, "ax": 26.0, "ay": 53, "foot": [-0.7, -0.5, 0.7, 0]}, "sacks": {"src": "spr/lpc/obj/sacks.png", "fw": 64, "fh": 63, "ax": 32.0, "ay": 61, "foot": [-0.9, -0.5, 0.9, 0]}, "cart": {"src": "spr/lpc/obj/cart.png", "fw": 64, "fh": 55, "ax": 32.0, "ay": 53, "foot": [-0.9, -0.4, 0.9, 0]}, "grave_0": {"src": "spr/lpc/obj/grave_0.png", "fw": 47, "fh": 44, "ax": 23.5, "ay": 42, "foot": [-0.6, -0.3, 0.6, 0]}, "grave_1": {"src": "spr/lpc/obj/grave_1.png", "fw": 28, "fh": 27, "ax": 14.0, "ay": 25, "foot": [-0.4, -0.2, 0.4, 0]}, "grave_2": {"src": "spr/lpc/obj/grave_2.png", "fw": 18, "fh": 29, "ax": 9.0, "ay": 27, "foot": [-0.2, -0.1, 0.2, 0]}, "grave_3": {"src": "spr/lpc/obj/grave_3.png", "fw": 47, "fh": 44, "ax": 23.5, "ay": 42, "foot": [-0.6, -0.3, 0.6, 0]}, "crate": {"src": "spr/lpc/obj/crate.png", "fw": 34, "fh": 33, "ax": 17.0, "ay": 31, "foot": [-0.5, -0.4, 0.5, 0]}, "signpost": {"src": "spr/lpc/obj/signpost.png", "fw": 18, "fh": 29, "ax": 9.0, "ay": 27, "foot": [-0.2, -0.1, 0.2, 0]}, "fence_h": {"src": "spr/lpc/obj/fence_h.png", "fw": 72, "fh": 23, "ax": 0, "ay": 20, "foot": [0, 0, 0, 0]}, "fence_v": {"src": "spr/lpc/obj/fence_v.png", "fw": 14, "fh": 66, "ax": 7.0, "ay": 63, "foot": [0, 0, 0, 0]}, "well": {"src": "spr/lpc/obj/well.png", "fw": 123, "fh": 128, "ax": 61.5, "ay": 126, "foot": [-1.1, -0.9, 1.1, 0.1]}, "turnip_0": {"src": "spr/lpc/obj/turnip_0.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "turnip_1": {"src": "spr/lpc/obj/turnip_1.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "turnip_2": {"src": "spr/lpc/obj/turnip_2.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "turnip_3": {"src": "spr/lpc/obj/turnip_3.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "pumpkin_0": {"src": "spr/lpc/obj/pumpkin_0.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "pumpkin_1": {"src": "spr/lpc/obj/pumpkin_1.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "pumpkin_2": {"src": "spr/lpc/obj/pumpkin_2.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "pumpkin_3": {"src": "spr/lpc/obj/pumpkin_3.png", "fw": 40, "fh": 64, "ax": 20, "ay": 58, "foot": [0, 0, 0, 0]}, "cabin_n": {"src": "spr/lpc/obj/cabin_n.png", "fw": 224, "fh": 222, "ax": 112.0, "ay": 214, "foot": [-3.0, -5.4, 3.0, 0]}, "cabin": {"src": "spr/lpc/obj/cabin.png", "fw": 224, "fh": 222, "ax": 112.0, "ay": 214, "foot": [-3.0, -5.4, 3.0, 0], "bw": 6}, "house_a_n": {"src": "spr/lpc/obj/house_a_n.png", "fw": 224, "fh": 222, "ax": 112.0, "ay": 214, "foot": [-3.0, -5.4, 3.0, 0]}, "house_a": {"src": "spr/lpc/obj/house_a.png", "fw": 224, "fh": 222, "ax": 112.0, "ay": 214, "foot": [-3.0, -5.4, 3.0, 0], "bw": 6}, "house_b_n": {"src": "spr/lpc/obj/house_b_n.png", "fw": 224, "fh": 222, "ax": 112.0, "ay": 214, "foot": [-3.0, -5.4, 3.0, 0]}, "house_b": {"src": "spr/lpc/obj/house_b.png", "fw": 224, "fh": 222, "ax": 112.0, "ay": 214, "foot": [-3.0, -5.4, 3.0, 0], "bw": 6}, "house_c_n": {"src": "spr/lpc/obj/house_c_n.png", "fw": 192, "fh": 222, "ax": 96.0, "ay": 214, "foot": [-2.5, -5.4, 2.5, 0]}, "house_c": {"src": "spr/lpc/obj/house_c.png", "fw": 192, "fh": 222, "ax": 96.0, "ay": 214, "foot": [-2.5, -5.4, 2.5, 0], "bw": 5}, "house_d_n": {"src": "spr/lpc/obj/house_d_n.png", "fw": 256, "fh": 222, "ax": 128.0, "ay": 214, "foot": [-3.5, -5.4, 3.5, 0]}, "house_d": {"src": "spr/lpc/obj/house_d.png", "fw": 256, "fh": 222, "ax": 128.0, "ay": 214, "foot": [-3.5, -5.4, 3.5, 0], "bw": 7}, "store_n": {"src": "spr/lpc/obj/store_n.png", "fw": 256, "fh": 222, "ax": 128.0, "ay": 214, "foot": [-3.5, -5.4, 3.5, 0]}, "store": {"src": "spr/lpc/obj/store.png", "fw": 256, "fh": 222, "ax": 128.0, "ay": 214, "foot": [-3.5, -5.4, 3.5, 0], "bw": 7}, "garage_n": {"src": "spr/lpc/obj/garage_n.png", "fw": 288, "fh": 222, "ax": 144.0, "ay": 214, "foot": [-4.0, -5.4, 4.0, 0]}, "garage": {"src": "spr/lpc/obj/garage.png", "fw": 288, "fh": 222, "ax": 144.0, "ay": 214, "foot": [-4.0, -5.4, 4.0, 0], "bw": 8}, "church_n": {"src": "spr/lpc/obj/church_n.png", "fw": 308, "fh": 618, "ax": 154.0, "ay": 608, "foot": [-4, -11, 4, 0]}, "church": {"src": "spr/lpc/obj/church.png", "fw": 308, "fh": 618, "ax": 154.0, "ay": 608, "foot": [-4, -11, 4, 0], "bw": 8}, "lamp": {"src": "spr/lpc/obj/lamp.png", "fw": 8, "fh": 74, "ax": 4.0, "ay": 72, "foot": [-0.1, -0.1, 0.1, 0.05]}, "leaves_0": {"src": "spr/lpc/obj/leaves_0.png", "fw": 56, "fh": 23, "ax": 28.0, "ay": 21, "foot": [0, 0, 0, 0]}, "leaves_1": {"src": "spr/lpc/obj/leaves_1.png", "fw": 54, "fh": 23, "ax": 27.0, "ay": 21, "foot": [0, 0, 0, 0]}, "leaves_2": {"src": "spr/lpc/obj/leaves_2.png", "fw": 56, "fh": 23, "ax": 28.0, "ay": 21, "foot": [0, 0, 0, 0]}, "leaves_3": {"src": "spr/lpc/obj/leaves_3.png", "fw": 56, "fh": 23, "ax": 28.0, "ay": 21, "foot": [0, 0, 0, 0]}, "car_wreck": {"src": "spr/lpc/obj/car_wreck.png", "fw": 138, "fh": 255, "ax": 62.8, "ay": 191.5, "foot": [-1.86, -4.48, 2.24, 1.27]}, "deer": {"src": "spr/lpc/obj/deer.png", "fw": 110, "fh": 50, "ax": 55, "ay": 38, "foot": [0, 0, 0, 0]}, "car_wreck_n": {"src": "spr/lpc/obj/car_wreck_n.png", "fw": 138, "fh": 255, "ax": 62.8, "ay": 191.5, "foot": [-1.86, -4.48, 2.24, 1.27]}, "gas_pump": {"src": "spr/lpc/obj/gas_pump.png", "fw": 200, "fh": 170, "ax": 100, "ay": 160, "foot": [-1, -0.4, 1, 0]}, "gas_pump_n": {"src": "spr/lpc/obj/gas_pump_n.png", "fw": 200, "fh": 170, "ax": 100, "ay": 160, "foot": [-1, -0.4, 1, 0]}, "phone_booth": {"src": "spr/lpc/obj/phone_booth.png", "fw": 44, "fh": 86, "ax": 22, "ay": 82, "foot": [-0.55, -0.5, 0.55, 0]}, "phone_booth_n": {"src": "spr/lpc/obj/phone_booth_n.png", "fw": 44, "fh": 86, "ax": 22, "ay": 82, "foot": [-0.55, -0.5, 0.55, 0]}, "board": {"src": "spr/lpc/obj/board.png", "fw": 56, "fh": 66, "ax": 28, "ay": 62, "foot": [-0.8, -0.1, 0.8, 0.05]}, "car_drive": {"fw": 173, "fh": 219, "ax": 86.5, "ay": 132.7, "clips": {"yaw": {"S": [0, 7]}}, "src": "spr/lpc/obj/car_drive.png", "foot": [0, 0, 0, 0]}, "car_side": {"src": "spr/lpc/obj/car_side.png", "fw": 160, "fh": 117, "ax": 80.0, "ay": 81.7, "foot": [0, 0, 0, 0]}, "road": {"src": "spr/lpc/obj/road.png", "fw": 320, "fh": 384, "ax": 160, "ay": 0, "foot": [0, 0, 0, 0]}, "farmer": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/farmer.png", "foot": [0, 0, 0, 0]}, "farmer_hoe": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"thrust": {"N": [0, 8], "W": [1, 8], "S": [2, 8], "E": [3, 8]}}, "src": "spr/lpc/farmer_hoe.png", "foot": [0, 0, 0, 0]}, "farmer_can": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"thrust": {"N": [0, 8], "W": [1, 8], "S": [2, 8], "E": [3, 8]}}, "src": "spr/lpc/farmer_can.png", "foot": [0, 0, 0, 0]}, "mae": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/mae.png", "foot": [0, 0, 0, 0]}, "hale": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/hale.png", "foot": [0, 0, 0, 0]}, "tobias": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "slash": {"N": [8, 6], "W": [9, 6], "S": [10, 6], "E": [11, 6]}, "hurt": {"S": [12, 6]}, "sit": {"N": [13, 3], "W": [14, 3], "S": [15, 3], "E": [16, 3]}}, "src": "spr/lpc/tobias.png", "foot": [0, 0, 0, 0]}, "hollis": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/hollis.png", "foot": [0, 0, 0, 0]}, "agnes": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/agnes.png", "foot": [0, 0, 0, 0]}, "dunn": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/dunn.png", "foot": [0, 0, 0, 0]}, "ruth": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "slash": {"N": [8, 6], "W": [9, 6], "S": [10, 6], "E": [11, 6]}, "hurt": {"S": [12, 6]}, "sit": {"N": [13, 3], "W": [14, 3], "S": [15, 3], "E": [16, 3]}}, "src": "spr/lpc/ruth.png", "foot": [0, 0, 0, 0]}, "hollow": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/hollow.png", "foot": [0, 0, 0, 0]}, "cat": {"src": "spr/out/cat.png", "fw": 29, "fh": 20, "ax": 14.5, "ay": 17.9, "clips": {"idle": {"S": [0, 4], "E": [1, 4], "N": [2, 4], "W": [3, 4]}, "walk": {"S": [4, 6], "E": [5, 6], "N": [6, 6], "W": [7, 6]}}, "foot": [0, 0, 0, 0]}};
+const SPR={"tree_orange": {"src": "spr/lpc/obj/tree_orange.png", "fw": 94, "fh": 107, "ax": 47.0, "ay": 99, "foot": [-0.3, -0.25, 0.3, 0.1]}, "tree_green": {"src": "spr/lpc/obj/tree_green.png", "fw": 94, "fh": 105, "ax": 47.0, "ay": 97, "foot": [-0.3, -0.25, 0.3, 0.1]}, "pine_0": {"src": "spr/lpc/obj/pine_0.png", "fw": 85, "fh": 91, "ax": 42.5, "ay": 89, "foot": [-0.3, -0.2, 0.3, 0.1]}, "pine_1": {"src": "spr/lpc/obj/pine_1.png", "fw": 85, "fh": 91, "ax": 42.5, "ay": 89, "foot": [-0.3, -0.2, 0.3, 0.1]}, "pine_o0": {"src": "spr/lpc/obj/pine_o0.png", "fw": 85, "fh": 91, "ax": 42.5, "ay": 89, "foot": [-0.3, -0.2, 0.3, 0.1]}, "pine_o1": {"src": "spr/lpc/obj/pine_o1.png", "fw": 85, "fh": 91, "ax": 42.5, "ay": 89, "foot": [-0.3, -0.2, 0.3, 0.1]}, "deadtree": {"src": "spr/lpc/obj/deadtree.png", "fw": 76, "fh": 95, "ax": 38.0, "ay": 93, "foot": [-0.3, -0.2, 0.3, 0.1]}, "stump": {"src": "spr/lpc/obj/stump.png", "fw": 46, "fh": 32, "ax": 23.0, "ay": 30, "foot": [-0.4, -0.3, 0.4, 0.1]}, "corn_0": {"src": "spr/lpc/obj/corn_0.png", "fw": 28, "fh": 62, "ax": 14.0, "ay": 60, "foot": [0, 0, 0, 0]}, "corn_1": {"src": "spr/lpc/obj/corn_1.png", "fw": 28, "fh": 62, "ax": 14.0, "ay": 60, "foot": [0, 0, 0, 0]}, "corn_2": {"src": "spr/lpc/obj/corn_2.png", "fw": 28, "fh": 62, "ax": 14.0, "ay": 60, "foot": [0, 0, 0, 0]}, "mushroom": {"src": "spr/lpc/obj/mushroom.png", "fw": 28, "fh": 28, "ax": 14.0, "ay": 26, "foot": [0, 0, 0, 0]}, "mushroom_b": {"src": "spr/lpc/obj/mushroom_b.png", "fw": 28, "fh": 28, "ax": 14.0, "ay": 26, "foot": [0, 0, 0, 0]}, "pumpkin": {"src": "spr/lpc/obj/pumpkin.png", "fw": 25, "fh": 22, "ax": 12.5, "ay": 20, "foot": [-0.3, -0.25, 0.3, 0.05]}, "pumpkin_b": {"src": "spr/lpc/obj/pumpkin_b.png", "fw": 25, "fh": 24, "ax": 12.5, "ay": 22, "foot": [-0.3, -0.25, 0.3, 0.05]}, "jack": {"src": "spr/lpc/obj/jack.png", "fw": 25, "fh": 22, "ax": 12.5, "ay": 20, "foot": [-0.3, -0.25, 0.3, 0.05]}, "jack_b": {"src": "spr/lpc/obj/jack_b.png", "fw": 25, "fh": 24, "ax": 12.5, "ay": 22, "foot": [-0.3, -0.25, 0.3, 0.05]}, "jack_c": {"src": "spr/lpc/obj/jack_c.png", "fw": 25, "fh": 24, "ax": 12.5, "ay": 22, "foot": [-0.3, -0.25, 0.3, 0.05]}, "hay": {"src": "spr/lpc/obj/hay.png", "fw": 57, "fh": 78, "ax": 28.5, "ay": 76, "foot": [-0.8, -1.2, 0.8, 0]}, "barrel": {"src": "spr/lpc/obj/barrel.png", "fw": 26, "fh": 36, "ax": 13.0, "ay": 34, "foot": [-0.35, -0.3, 0.35, 0]}, "firewood": {"src": "spr/lpc/obj/firewood.png", "fw": 52, "fh": 55, "ax": 26.0, "ay": 53, "foot": [-0.7, -0.5, 0.7, 0]}, "sacks": {"src": "spr/lpc/obj/sacks.png", "fw": 64, "fh": 63, "ax": 32.0, "ay": 61, "foot": [-0.9, -0.5, 0.9, 0]}, "cart": {"src": "spr/lpc/obj/cart.png", "fw": 64, "fh": 55, "ax": 32.0, "ay": 53, "foot": [-0.9, -0.4, 0.9, 0]}, "grave_0": {"src": "spr/lpc/obj/grave_0.png", "fw": 47, "fh": 44, "ax": 23.5, "ay": 42, "foot": [-0.6, -0.3, 0.6, 0]}, "grave_1": {"src": "spr/lpc/obj/grave_1.png", "fw": 28, "fh": 27, "ax": 14.0, "ay": 25, "foot": [-0.4, -0.2, 0.4, 0]}, "grave_2": {"src": "spr/lpc/obj/grave_2.png", "fw": 18, "fh": 29, "ax": 9.0, "ay": 27, "foot": [-0.2, -0.1, 0.2, 0]}, "grave_3": {"src": "spr/lpc/obj/grave_3.png", "fw": 47, "fh": 44, "ax": 23.5, "ay": 42, "foot": [-0.6, -0.3, 0.6, 0]}, "crate": {"src": "spr/lpc/obj/crate.png", "fw": 34, "fh": 33, "ax": 17.0, "ay": 31, "foot": [-0.5, -0.4, 0.5, 0]}, "signpost": {"src": "spr/lpc/obj/signpost.png", "fw": 18, "fh": 29, "ax": 9.0, "ay": 27, "foot": [-0.2, -0.1, 0.2, 0]}, "fence_h": {"src": "spr/lpc/obj/fence_h.png", "fw": 72, "fh": 23, "ax": 0, "ay": 20, "foot": [0, 0, 0, 0]}, "fence_v": {"src": "spr/lpc/obj/fence_v.png", "fw": 14, "fh": 66, "ax": 7.0, "ay": 63, "foot": [0, 0, 0, 0]}, "well": {"src": "spr/lpc/obj/well.png", "fw": 101, "fh": 126, "ax": 50.5, "ay": 124, "foot": [-1.1, -0.9, 1.1, 0.1]}, "turnip_0": {"src": "spr/lpc/obj/turnip_0.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "turnip_1": {"src": "spr/lpc/obj/turnip_1.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "turnip_2": {"src": "spr/lpc/obj/turnip_2.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "turnip_3": {"src": "spr/lpc/obj/turnip_3.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "pumpkin_0": {"src": "spr/lpc/obj/pumpkin_0.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "pumpkin_1": {"src": "spr/lpc/obj/pumpkin_1.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "pumpkin_2": {"src": "spr/lpc/obj/pumpkin_2.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "pumpkin_3": {"src": "spr/lpc/obj/pumpkin_3.png", "fw": 40, "fh": 64, "ax": 20, "ay": 58, "foot": [0, 0, 0, 0]}, "cabin_n": {"src": "spr/lpc/obj/cabin_n.png", "fw": 221, "fh": 274, "ax": 110.5, "ay": 266, "foot": [-3.0, -3.3, 3.0, 0]}, "cabin": {"src": "spr/lpc/obj/cabin.png", "fw": 221, "fh": 274, "ax": 110.5, "ay": 266, "foot": [-3.0, -3.3, 3.0, 0], "bw": 6}, "house_a_n": {"src": "spr/lpc/obj/house_a_n.png", "fw": 221, "fh": 274, "ax": 110.5, "ay": 266, "foot": [-3.0, -3.3, 3.0, 0]}, "house_a": {"src": "spr/lpc/obj/house_a.png", "fw": 221, "fh": 274, "ax": 110.5, "ay": 266, "foot": [-3.0, -3.3, 3.0, 0], "bw": 6}, "house_b_n": {"src": "spr/lpc/obj/house_b_n.png", "fw": 221, "fh": 274, "ax": 110.5, "ay": 266, "foot": [-3.0, -3.3, 3.0, 0]}, "house_b": {"src": "spr/lpc/obj/house_b.png", "fw": 221, "fh": 274, "ax": 110.5, "ay": 266, "foot": [-3.0, -3.3, 3.0, 0], "bw": 6}, "house_c_n": {"src": "spr/lpc/obj/house_c_n.png", "fw": 189, "fh": 274, "ax": 94.5, "ay": 266, "foot": [-2.5, -3.3, 2.5, 0]}, "house_c": {"src": "spr/lpc/obj/house_c.png", "fw": 189, "fh": 274, "ax": 94.5, "ay": 266, "foot": [-2.5, -3.3, 2.5, 0], "bw": 5}, "house_d_n": {"src": "spr/lpc/obj/house_d_n.png", "fw": 253, "fh": 274, "ax": 126.5, "ay": 266, "foot": [-3.5, -3.3, 3.5, 0]}, "house_d": {"src": "spr/lpc/obj/house_d.png", "fw": 253, "fh": 274, "ax": 126.5, "ay": 266, "foot": [-3.5, -3.3, 3.5, 0], "bw": 7}, "store_n": {"src": "spr/lpc/obj/store_n.png", "fw": 253, "fh": 274, "ax": 126.5, "ay": 266, "foot": [-3.5, -3.3, 3.5, 0]}, "store": {"src": "spr/lpc/obj/store.png", "fw": 253, "fh": 274, "ax": 126.5, "ay": 266, "foot": [-3.5, -3.3, 3.5, 0], "bw": 7}, "garage_n": {"src": "spr/lpc/obj/garage_n.png", "fw": 285, "fh": 257, "ax": 142.5, "ay": 249, "foot": [-4.0, -3.3, 4.0, 0]}, "garage": {"src": "spr/lpc/obj/garage.png", "fw": 285, "fh": 257, "ax": 142.5, "ay": 249, "foot": [-4.0, -3.3, 4.0, 0], "bw": 8}, "church_n": {"src": "spr/lpc/obj/church_n.png", "fw": 308, "fh": 618, "ax": 154.0, "ay": 608, "foot": [-4, -11, 4, 0]}, "church": {"src": "spr/lpc/obj/church.png", "fw": 308, "fh": 618, "ax": 154.0, "ay": 608, "foot": [-4, -11, 4, 0], "bw": 8}, "lamp": {"src": "spr/lpc/obj/lamp.png", "fw": 8, "fh": 74, "ax": 4.0, "ay": 72, "foot": [-0.1, -0.1, 0.1, 0.05]}, "leaves_0": {"src": "spr/lpc/obj/leaves_0.png", "fw": 56, "fh": 23, "ax": 28.0, "ay": 21, "foot": [0, 0, 0, 0]}, "leaves_1": {"src": "spr/lpc/obj/leaves_1.png", "fw": 54, "fh": 23, "ax": 27.0, "ay": 21, "foot": [0, 0, 0, 0]}, "leaves_2": {"src": "spr/lpc/obj/leaves_2.png", "fw": 56, "fh": 23, "ax": 28.0, "ay": 21, "foot": [0, 0, 0, 0]}, "leaves_3": {"src": "spr/lpc/obj/leaves_3.png", "fw": 56, "fh": 23, "ax": 28.0, "ay": 21, "foot": [0, 0, 0, 0]}, "car_wreck": {"src": "spr/lpc/obj/car_wreck.png", "fw": 138, "fh": 255, "ax": 62.8, "ay": 191.5, "foot": [-1.86, -4.48, 2.24, 1.27]}, "deer": {"src": "spr/lpc/obj/deer.png", "fw": 110, "fh": 50, "ax": 55, "ay": 38, "foot": [0, 0, 0, 0]}, "car_wreck_n": {"src": "spr/lpc/obj/car_wreck_n.png", "fw": 138, "fh": 255, "ax": 62.8, "ay": 191.5, "foot": [-1.86, -4.48, 2.24, 1.27]}, "gas_pump": {"src": "spr/lpc/obj/gas_pump.png", "fw": 200, "fh": 170, "ax": 100, "ay": 160, "foot": [-1, -0.4, 1, 0]}, "gas_pump_n": {"src": "spr/lpc/obj/gas_pump_n.png", "fw": 200, "fh": 170, "ax": 100, "ay": 160, "foot": [-1, -0.4, 1, 0]}, "phone_booth": {"src": "spr/lpc/obj/phone_booth.png", "fw": 44, "fh": 86, "ax": 22, "ay": 82, "foot": [-0.55, -0.5, 0.55, 0]}, "phone_booth_n": {"src": "spr/lpc/obj/phone_booth_n.png", "fw": 44, "fh": 86, "ax": 22, "ay": 82, "foot": [-0.55, -0.5, 0.55, 0]}, "board": {"src": "spr/lpc/obj/board.png", "fw": 56, "fh": 66, "ax": 28, "ay": 62, "foot": [-0.8, -0.1, 0.8, 0.05]}, "car_drive": {"fw": 173, "fh": 219, "ax": 86.5, "ay": 132.7, "clips": {"yaw": {"S": [0, 7]}}, "src": "spr/lpc/obj/car_drive.png", "foot": [0, 0, 0, 0]}, "car_side": {"src": "spr/lpc/obj/car_side.png", "fw": 160, "fh": 117, "ax": 80.0, "ay": 81.7, "foot": [0, 0, 0, 0]}, "road": {"src": "spr/lpc/obj/road.png", "fw": 320, "fh": 384, "ax": 160, "ay": 0, "foot": [0, 0, 0, 0]}, "farmer": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/farmer.png", "foot": [0, 0, 0, 0]}, "farmer_hoe": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"thrust": {"N": [0, 8], "W": [1, 8], "S": [2, 8], "E": [3, 8]}}, "src": "spr/lpc/farmer_hoe.png", "foot": [0, 0, 0, 0]}, "farmer_can": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"thrust": {"N": [0, 8], "W": [1, 8], "S": [2, 8], "E": [3, 8]}}, "src": "spr/lpc/farmer_can.png", "foot": [0, 0, 0, 0]}, "mae": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/mae.png", "foot": [0, 0, 0, 0]}, "hale": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/hale.png", "foot": [0, 0, 0, 0]}, "tobias": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "slash": {"N": [8, 6], "W": [9, 6], "S": [10, 6], "E": [11, 6]}, "hurt": {"S": [12, 6]}, "sit": {"N": [13, 3], "W": [14, 3], "S": [15, 3], "E": [16, 3]}}, "src": "spr/lpc/tobias.png", "foot": [0, 0, 0, 0]}, "hollis": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/hollis.png", "foot": [0, 0, 0, 0]}, "agnes": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/agnes.png", "foot": [0, 0, 0, 0]}, "dunn": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/dunn.png", "foot": [0, 0, 0, 0]}, "ruth": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "slash": {"N": [8, 6], "W": [9, 6], "S": [10, 6], "E": [11, 6]}, "hurt": {"S": [12, 6]}, "sit": {"N": [13, 3], "W": [14, 3], "S": [15, 3], "E": [16, 3]}}, "src": "spr/lpc/ruth.png", "foot": [0, 0, 0, 0]}, "hollow": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/hollow.png", "foot": [0, 0, 0, 0]}, "cat": {"src": "spr/out/cat.png", "fw": 29, "fh": 20, "ax": 14.5, "ay": 17.9, "clips": {"idle": {"S": [0, 4], "E": [1, 4], "N": [2, 4], "W": [3, 4]}, "walk": {"S": [4, 6], "E": [5, 6], "N": [6, 6], "W": [7, 6]}}, "foot": [0, 0, 0, 0]}};
 /* ================= audio ================= */
 const A={ctx:null,ok:false};
 A.init=function(){if(A.ctx){A.ctx.resume&&A.ctx.resume();return;}
@@ -303,7 +303,7 @@ const FIELD={x0:-5,z0:0,w:10,h:8};
 const CORN={x0:-15,x1:11,z0:11.5,z1:24};
 const inCorn=(x,z)=>x>CORN.x0&&x<CORN.x1&&z>CORN.z0&&z<CORN.z1;
 const pond={x:-30,z:24.5,r:7.5};
-const wellPos={x:6,z:-10.5},binPos={x:-3.6,z:-8.6},doorPos={x:0,z:-8.9},carPos={x:-60.2,z:-1.4},pumpPos={x:-28,z:-10.4},boothPos={x:44.5,z:-9.6};
+const wellPos={x:7.3,z:-10.5},binPos={x:-3.6,z:-8.6},doorPos={x:0,z:-8.9},carPos={x:-60.2,z:-1.4},pumpPos={x:-28,z:-10.4},boothPos={x:44.5,z:-9.6};
 const crossPos={x:20,z:19},boardPos={x:52,z:-9.4},tsPos={x:27.5,z:-8.4},farmSignPos={x:-11.5,z:-8.6},squarePos={x:48,z:-6};
 const fishSpot={x:pond.x,z:pond.z-pond.r+3.6};
 const ALTAR_POS=[[-27,8,'west woods'],[-2,29,'cornfield'],[64,-32,'churchyard']];
@@ -389,14 +389,16 @@ function buildWorld(){
   put('car_wreck',carPos.x-.8,carPos.z+3.2,0,{night:'car_wreck_n',kind:'wreck'});addRect(carPos.x-1.8,carPos.z-1.2,carPos.x+1.2,carPos.z+3.1);
   put('deadtree',carPos.x+.15,carPos.z+3.45,.35);reserve(-65,-8,-56,4);
   // ---------- Marrow Hollow: main street (z=-6), north row faces the street, south row faces the back lane (z=5)
-  building('store',33.5,-9.4,{jack:1});building('house_a',41,-9.4);building('house_b',56,-9.4,{jack:1});building('house_d',64.5,-9.4);
-  building('house_c',33.5,3.6);building('house_b',41,3.6);building('house_c',56,3.6,{lit:false});building('house_d',64.5,3.6,{lit:false});
-  put('crate',37.6,-9.2,.3);put('barrel',29.5,-9.5,.3);put('sacks',37.8,-8.5);
-  for(const x of[28,36,44,52,60,68]){lamp(x,-7.8);}for(const x of[30,38,46,54,62])lamp(x,-4.2);for(const x of[30,46,62])lamp(x,6.3);
+  building('store',31,-9.4,{jack:1});building('house_a',40,-9.4);building('house_b',57,-9.4,{jack:1});building('house_d',66,-9.4);
+  building('house_c',31,3.6);building('house_b',40,3.6);building('house_c',57,3.6,{lit:false});building('house_d',66,3.6,{lit:false});
+  // side yards: picket runs between the houses, store goods stacked by the door
+  fenceLine(35.6,-9.6,35.6,-13.8);fenceLine(61.5,-9.6,61.5,-13.8);fenceLine(35.6,-.6,35.6,3.4);fenceLine(61.5,-.6,61.5,3.4);
+  put('crate',34.9,-9.0,.3);put('sacks',34.6,-8.55);put('barrel',26.9,-9.3,.3);put('barrel',27.5,-8.8,.3);put('hay',26.6,-11.6);addRect(25.8,-12.8,27.4,-11.7);
+  // street lamps on the kerbs, never in the road
+  for(const x of[27,36.4,45.8,50.2,61,70])lamp(x,-8.5);for(const x of[27,36.4,61,70])lamp(x,-3.5);for(const x of[36.4,48,61])lamp(x,6.5);
   put('phone_booth',boothPos.x,boothPos.z+.5,0,{night:'phone_booth_n',kind:'booth'});addRect(boothPos.x-.55,boothPos.z-.4,boothPos.x+.55,boothPos.z+.5);
   put('board',boardPos.x,boardPos.z,0);addSeg(boardPos.x-.8,boardPos.z,boardPos.x+.8,boardPos.z,.12);
   put('signpost',tsPos.x,tsPos.z,.2,{label:'MARROW HOLLOW'});
-  put('hay',44.2,-2.3);addRect(43.4,-3.5,45,-2.4);put('hay',51.8,-2.3);addRect(51,-3.5,52.6,-2.4);
   // church on its own path north of the square, graveyard to the east
   building('church',48,-18.6);
   const graves=[];for(let r=0;r<3;r++)for(let c=0;c<5;c++)graves.push([56.5+c*2.2,-30+r*2.6]);
@@ -415,7 +417,7 @@ function buildWorld(){
   for(const o of OBJ)if(o.kind==='tree'&&o.spr.startsWith('pine'))o.kind='pine';
   scatter(70,3.4,()=>rand()<.75?'tree_orange':'tree_green',(x,z)=>x>B.x0+1&&x<B.x1-1&&z>B.z0+1&&z<B.z1-1&&clearSpot(x,z,1.4),.32);
   for(const [x,z] of[[-24,12],[-29,5],[4,28],[-6,30],[14,4],[16,-14],[24,24]])if(clearSpot(x,z,.5))put('deadtree',x,z,.3);
-  for(let i=0;i<24;i++){const x=lerp(B.x0,B.x1,rand()),z=lerp(B.z0,B.z1,rand());if(clearSpot(x,z,1))put('stump',x,z,.35);}
+  for(let i=0;i<24;i++){const x=lerp(B.x0,B.x1,rand()),z=lerp(B.z0,B.z1,rand());if(clearSpot(x,z,1)&&terr(x,z)==='grass'&&(x<-14||z>12))put('stump',x,z,.35);}
   for(let i=0;i<420;i++){const x=lerp(B.x0,B.x1,rand()),z=lerp(B.z0,B.z1,rand());if(terr(x,z)!=='grass'||!clearSpot(x,z,-.8))continue;obj('leaves',x,z,{kind:'deco',v:(rand()*4)|0});}
   // the cornfield in neat rows
   for(let x=CORN.x0+.5;x<CORN.x1;x+=.9)for(let z=CORN.z0+.5;z<CORN.z1;z+=.8){if(Math.abs(x+.5)<1&&z<20)continue;if(rand()<.05)continue;obj('corn_'+((rand()*3)|0),x+(rand()-.5)*.12,z,{kind:'corn'});}
@@ -471,7 +473,7 @@ function chunk(cx,cz){const k=cx+','+cz;let c=chunks.get(k);if(c)return c;
   for(const L of ['dark','dirt','stone','water']){const fn=L==='stone'?(x,z)=>LAYERS.stone(x,z)&&!HW(x,z):LAYERS[L];
     for(let j=0;j<N;j++)for(let i=0;i<N;i++){const X=x0+i,Z=z0+j;drawAuto(g,L,maskAt(fn,X,Z),i*32,j*32,hash(X+11,Z+5));}}
   // Route 9: the Blender-rendered asphalt strip (rotated to run east-west), ending where the farm lane begins
-  const rs=roadStripH();if(rs&&z0*32<(-6+5.2)*32&&(z0+N)*32>(-6-5.2)*32&&x0<-12.5){g.save();g.beginPath();g.rect(0,0,Math.max(0,(-12.5-x0)*32),CH);g.clip();
+  const rs=roadStripH();if(rs&&z0*32<(-6+5.2)*32&&(z0+N)*32>(-6-5.2)*32&&x0<-12.5){g.save();g.beginPath();{const ex=(-12.5-x0)*32;g.moveTo(0,0);for(let y=0;y<=CH;y+=4)g.lineTo(ex-Math.round(hash(y+z0*CH,7)*10+fbm(y*.05,z0)*26),y);g.lineTo(0,CH);g.closePath();}g.clip();
     for(let wx=-120;wx<-12.5;wx+=12){const dx=(wx-x0)*32;if(dx>CH||dx+rs.width<0)continue;g.drawImage(rs,dx,(-6-5-z0)*32);}g.restore();}
   chunks.set(k,c);return c;}
 let _rsH=null;function roadStripH(){if(_rsH)return _rsH;const m=SPR.road,im=m&&IMG[m.src];if(!im)return null;
@@ -589,7 +591,7 @@ const NPCDEF=[
 ];
 
 
-const NPCPOS={mae:{day:[33.5,-8.4],path:[[33.5,-8.4],[30.6,-8.2],[37,-8.3]]},hale:{day:[48,-17.6],path:[[48,-17.6],[50.6,-16.6],[45.4,-16.8]]},
+const NPCPOS={mae:{day:[31,-8.5],path:[[31,-8.5],[28.6,-8.3],[34,-8.4]]},hale:{day:[48,-17.6],path:[[48,-17.6],[50.6,-16.6],[45.4,-16.8]]},
   tobias:{day:[46,-3.2],path:[[46,-3.2],[50.5,-4],[48,-1.8],[44,-5.6]]},hollis:{day:[-35,-9.6],path:[[-35,-9.6],[-30,-9.4],[-39,-9.8]]},
   agnes:{day:[-46,-8.6],path:[[-46,-8.6],[-44,-8.2],[-48,-8.4]],nightPos:[-46,-8.6]},dunn:{day:[60,-8.6],path:[[60,-8.6],[56,-8.2],[64,-8.4],[58,-4.2]]}};
 for(const d of NPCDEF)if(NPCPOS[d.id])Object.assign(d,NPCPOS[d.id]);
@@ -618,7 +620,7 @@ function updateHud(){const s=[S.day,fmtTime(S.hour),S.coins,S.seeds.turnip,S.see
   if(s!==lastHud){lastHud=s;ui.day.textContent='Day '+S.day;ui.time.textContent=fmtTime(S.hour);ui.coins.textContent=S.coins;ui.turnip.textContent=S.seeds.turnip;ui.pumpkin.textContent=S.seeds.pumpkin;
     ui.water.textContent=S.water+'/'+S.waterMax;ui.basket.textContent=S.basket.length;ui.candles.textContent=S.candles;ui.oil.textContent=Math.ceil(S.fuel)+'%'+(S.flasks?' +'+S.flasks:'');
     ui.oilChip.classList.toggle('low',S.fuel<25);ui.pages.textContent=S.pages.length+'/6';ui.parts.textContent=(S.carFixed?'4':Math.max(partsIn(),partsOwned()))+'/4';ui.seed.textContent=SEEDS[S.sel].name;}
-  ui.bar.style.width=(clamp((S.hour-6)/20,0,1)*100)+'%';}
+  ui.bar.style.width=(clamp((S.hour-6)/20,0,1)*100)+'%';mindHud();}
 function objective(){const L=lit(),np=S.pages.length;
   if(S.bound)return ['Free play','The field is quiet now. Grow whatever you like.',null];
   if(!S.foundCabin)return ['Stranded','Your car is wrecked. Walk east along the road to Grandpa’s farm.',doorPos];
@@ -852,7 +854,7 @@ const dayScale=[220,261.6,293.7,329.6,392,440,523.3];
 const nightMel=[329.6,392,440,392,329.6,293.7,329.6,0,329.6,392,440,493.9,440,392,329.6,0,261.6,293.7,329.6,293.7,261.6,246.9,220,0];
 function lightning(){flashT=1;const n=2+Math.floor(rand()*3);ghosts=[];if(!S.bound)for(let i=0;i<n;i++){const a=rand()*Math.PI*2,d=5+rand()*5;ghosts.push({x:P.x+Math.cos(a)*d,z:P.z+Math.sin(a)*d*.7,t:.35});}
   setTimeout(()=>SFX.thunder(),300+rand()*900);}
-function update(dt){slamUpdate(dt);
+function update(dt){slamUpdate(dt);mindUpdate(dt);
   const rate=S.hour<20?1/11:1/15;S.hour+=dt*rate;
   if(!S.dusk&&S.hour>=18){S.dusk=true;toast('The sun is going down. Your lantern is lit.',2.6);}
   if(!S.bellRung&&S.hour>=20){S.bellRung=true;SFX.bell();S.storm=S.day>=2&&!S.bound;placeNPCs();
@@ -865,6 +867,7 @@ function update(dt){slamUpdate(dt);
   if(sputT>0)sputT-=dt;
   // movement
   let mx=joy.x,mz=joy.y;if(keys.KeyW||keys.ArrowUp)mz-=1;if(keys.KeyS||keys.ArrowDown)mz+=1;if(keys.KeyA||keys.ArrowLeft)mx-=1;if(keys.KeyD||keys.ArrowRight)mx+=1;
+  [mx,mz]=mindInput(mx,mz);
   let mag=Math.hypot(mx,mz);if(mag>1){mx/=mag;mz/=mag;mag=1;}
   const corn=inCorn(P.x,P.z);const moving=mag>.15&&!P.anim,run=mag>.85||keys.ShiftLeft;const spd=moving?(run?5:3)*mag*(corn?.7:1):0;
   lastDir=P.dir;
@@ -939,6 +942,7 @@ function render(dt,now){const t=now/1000;
   if(hlTile&&S.mode==='play'){ctx2.strokeStyle='rgba(255,240,200,.75)';ctx2.lineWidth=1;ctx2.strokeRect(Math.round(sx(hlTile.x-.5))+.5,Math.round(sz(hlTile.z-.5))+.5,31,31);}
   // skid marks & blood at the crash site
   if(onScreen(-56,-5,200)){ctx2.fillStyle='rgba(0,0,0,.3)';for(let k=0;k<2;k++){ctx2.save();ctx2.translate(sx(-58.6+k*.9),sz(-1.6+k*.25));ctx2.rotate(.42);ctx2.fillRect(-200,0,200,3);ctx2.restore();}}
+  mindGround();
   // collect drawables
   const D=[];const pad=200;
   for(const o of OBJ){if(o.hide)continue;const X=sx(o.x),Y=sz(o.z);if(X<-pad||X>VW+pad||Y<-60||Y>VH+pad+260)continue;
@@ -956,12 +960,13 @@ function render(dt,now){const t=now/1000;
   if(S.hour>=19.5&&!S.bound)D.push({z:crossPos.z+2.6,peddler:true});
   for(const g of ghosts)if(g.t>0)D.push({z:g.z,ghost:g});
   if(ritual&&ritual.hat)D.push({z:ritual.hat.z,hat:true});
-  D.sort((a,b)=>a.z-b.z);
+  mindDrawables(D);D.sort((a,b)=>a.z-b.z);
   for(const d of D){
     if(d.o){const o=d.o;const X=sx(o.x),Y=sz(o.z);let a;
       if((o.kind==='tree'||o.kind==='pine'||o.kind==='bld')&&P.z<o.z-.2){const m=SPR[o.spr];if(m){const px=sx(P.x),py=sz(P.z)-30;const f=m.foot||[0,0,0,0];const x0=o.kind==='bld'?X+f[0]*PPM:X-m.fw*.35,x1=o.kind==='bld'?X+f[2]*PPM:X+m.fw*.35;if(px>x0&&px<x1&&py>Y-m.ay&&py<Y&&P.z>o.z-(o.kind==='bld'?8:4))a=.55;}}
       if(o.kind==='tree'||o.kind==='pine')shadow(X,Y,14);
-      drawSpr(o.spr,X,Y,null,null,0,{alpha:a});
+      if(o.clipw&&o.clipw<1.99){const m=SPR[o.spr],im=IMG[m.src];if(im){const w=Math.round(o.clipw*PPM),dx=Math.round(X-m.ax),dy=Math.round(Y-m.ay);ctx2.drawImage(im,0,0,w,m.fh,dx,dy,w,m.fh);ctx2.drawImage(im,m.fw-9,0,9,m.fh,dx+w-1,dy,9,m.fh);}}
+      else drawSpr(o.spr,X,Y,null,null,0,{alpha:a});
       if(o.night&&SPR[o.night]&&nightK>0)drawSpr(o.night,X,Y,null,null,0,{alpha:(a||1)*nightK});
       if(o.kind==='bld'){const h=HOUSES.find(q=>q.e===o);if(h&&h.faceT>0){const w=(h.w||6)/2;const fx=Math.round(X-w*PPM+48),fy=Math.round(Y-74);ctx2.fillStyle='#d8d4c8';ctx2.fillRect(fx,fy,8,10);ctx2.fillStyle='#000';ctx2.fillRect(fx+1,fy+3,2,2);ctx2.fillRect(fx+5,fy+3,2,2);ctx2.fillRect(fx+2,fy+7,4,2);}}}
     else if(d.crop){const tl=d.crop,c=tl.crop;const nm=c.type+'_'+c.stage;const s=c.pop<1?.6+.4*c.pop:1;drawSpr(nm,sx(tl.x),sz(tl.z+.2),null,null,0,{scale:s});}
@@ -989,6 +994,7 @@ function render(dt,now){const t=now/1000;
     else if(d.peddler){const X=sx(crossPos.x+.6),Y=sz(crossPos.z+2.6);shadow(X,Y,9);drawSpr('hale',X,Y,'idle','S',0,{alpha:.0});ctx2.fillStyle='#120e16';ctx2.beginPath();ctx2.moveTo(X-11,Y);ctx2.lineTo(X+11,Y);ctx2.lineTo(X+6,Y-40);ctx2.lineTo(X,Y-50);ctx2.lineTo(X-6,Y-40);ctx2.closePath();ctx2.fill();
       ctx2.fillStyle='#ffd25a';ctx2.fillRect(Math.round(X)-3,Math.round(Y)-42,1,1);ctx2.fillRect(Math.round(X)+2,Math.round(Y)-42,1,1);ctx2.fillStyle='#6aff90';ctx2.fillRect(Math.round(X)+10,Math.round(Y)-24,4,5);}
     else if(d.ghost){drawSpr('hollow',sx(d.ghost.x),sz(d.ghost.z),'walk','S',0,{scale:2,alpha:d.ghost.t*2});}
+    else if(d.mind){d.draw();}
     else if(d.hat){drawSpr('pumpkin',sx(ritual.hat.x),sz(ritual.hat.z));}
   }
   partsDraw();
@@ -1017,6 +1023,7 @@ function render(dt,now){const t=now/1000;
   // vignette + danger pulse + grain
   if(!vig||vig.w!==VW||vig.h!==VH)makeVig();ctx2.drawImage(vig.c,0,0);
   if(danger>.3&&!S.bound){ctx2.fillStyle=`rgba(120,0,0,${(danger-.3)*.25*(.6+.4*Math.sin(t*6))})`;ctx2.fillRect(0,0,VW,VH);}
+  mindScreen(t);
 }
 let vig=null;
 function makeVig(){const c=document.createElement('canvas');c.width=VW;c.height=VH;const g=c.getContext('2d');const gr=g.createRadialGradient(VW/2,VH*.5,Math.min(VW,VH)*.35,VW/2,VH*.5,Math.max(VW,VH)*.75);
@@ -1168,8 +1175,143 @@ function boot(){resize();addEventListener('resize',()=>{resize();vig=null;});mak
     for(const [cx,cz] of[[-6.3,2.2],[1.2,9.4],[48,-9.6],[57,-24],[-14.5,-9]])crows.push({x:cx,z:cz,hx:cx,hz:cz,y:0,state:'perch',t:0,vx:0,vz:0});
     S.mode='title';$('loadScr').style.opacity=0;setTimeout(()=>$('loadScr').remove(),800);requestAnimationFrame(loop);});
   $('begin').addEventListener('click',()=>{A.init&&A.init();startCine('intro');});
-  window.__game={S,P,H,tiles,npcs,act:onAct,tp:(x,z)=>{P.x=x;P.z=z;},setHour:h=>{S.hour=h;},skip:()=>{finishIntro();}};}
+  window.__game={S,P,H,tiles,npcs,act:onAct,tp:(x,z)=>{P.x=x;P.z=z;},setHour:h=>{S.hour=h;},skip:()=>{finishIntro();},get M(){return M;},big:(w,h)=>{VW=w;VH=h;view.width=w;view.height=h;for(const c of [lightC,fogC,fxC]){c.width=w;c.height=h;}vig=null;window.onresize=null;}};}
 boot();
+
+/* ================= the mind: hidden sanity + hallucinations =================
+   Nothing on the HUD says how sane you are. You find out from what the game starts doing to you.
+   Drains: night, darkness, the Hollow watching you, scares. Recovers: daylight, lamps, people, sleep. */
+const M={v:100,tierSeen:0,invert:0,clockT:0,clockTxt:'',objT:0,obj:null,flashT:0,tearT:0,ghostT:0,figs:[],dop:null,rush:null,prints:[],printAcc:0,
+  lastSlam:0,lastFace:0,wasMoving:false,echo:[],banner:null,cd:{whisper:14,steps:10,fig:12,clock:25,obj:30,jacks:40,dop:45,invert:35,flash:22,banner:50,rush:45,tear:18,prints:20},jackSwap:[],blackout:false};
+const tierOf=v=>v<20?4:v<40?3:v<60?2:v<80?1:0;
+const pick=a=>a[(rand()*a.length)|0];
+const WHISPERS=['…{name}…','it walks where you walk','the clock is lying to you','don’t look at the corn','you can hear it breathing, can’t you','you never left the car','grandpa says hello','it likes your face','count the pumpkins again','who is wearing your coat'];
+const OBJ_LIES=[['Turn around','It is right behind you.'],['The car','You never left the car.'],['The well','Grandpa is still in the well. He can hear you.'],['Wake up','Wake up wake up wake up wake up'],['Hollow Acre','It knows your name now.'],['Stop','Put the phone down.']];
+const BANNERS=[['MESSAGES','Grandpa','why did you leave me down here'],['MESSAGES','Unknown','I can see your hands.'],['MESSAGES','Mom','where are you?? the police found your car. there was nobody in it'],
+  ['CALENDAR','Oct 31','Your funeral · All day'],['MESSAGES','You','dont go back inside the house'],['MESSAGES','Unknown','left. no, your other left.'],['PHONE','Missed call','Hollow Acre (3)']];
+const NIGHTMARES=['You dreamed you were still in the car, upside down, and something was knocking on the glass with your own hand.',
+  'You dreamed of the cornfield. Every stalk had your face. They all turned when you breathed.',
+  'You dreamed Grandpa was standing at the foot of the bed. He wasn’t wearing his face.',
+  'You dreamed you were planting seeds. They were teeth.'];
+const TIER_MSG=['','Your hands won’t stop shaking.','You keep hearing your name. Nobody is saying it.','You’re not sure what is real any more.','Something is very wrong with you.'];
+S.mind=100;
+function mindPeek(){return M.v;}
+function mindHit(n){M.v=clamp(M.v-n,0,100);}
+function mindCalm(n){M.v=clamp(M.v+n,0,100);}
+
+// ---------- the clock and the objective lie
+const _objective=objective;
+objective=function(){if(M.objT>0&&M.obj)return [M.obj[0],M.obj[1],M.obj[2]||null];return _objective();};
+function mindHud(){if(M.clockT>0){ui.time.textContent=M.clockTxt;lastHud='';}}
+
+// ---------- nightmares when you sleep badly; sleep itself heals
+const _newDay=newDay;
+newDay=function(msg,pos){const bad=M.v<55&&!S.bound;_newDay(bad?pick(NIGHTMARES):msg,pos);
+  M.v=clamp(Math.max(M.v,bad?55:70)+25,0,100);M.figs.length=0;M.dop=null;M.rush=null;};
+
+// ---------- fake phone banner, drawn over the game in the DOM
+function banner(b){let el=M.banner;if(!el){el=document.createElement('div');el.id='mindBanner';document.body.appendChild(el);M.banner=el;
+    const st=document.createElement('style');st.textContent=`#mindBanner{position:fixed;left:10px;right:10px;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:60;padding:11px 13px;border-radius:16px;
+      background:rgba(38,38,42,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#f2f2f2;font:13px/1.35 -apple-system,system-ui,sans-serif;transform:translateY(-140%);transition:transform .35s cubic-bezier(.2,.9,.3,1.2);pointer-events:none;box-shadow:0 6px 24px rgba(0,0,0,.5)}
+      #mindBanner.on{transform:none}#mindBanner .a{font-size:11px;letter-spacing:.04em;opacity:.6;display:flex;justify-content:space-between}#mindBanner .f{font-weight:600;margin-top:3px}`;document.head.appendChild(st);}
+  el.innerHTML=`<div class="a"><span>${b[0]}</span><span>now</span></div><div class="f">${b[1]}</div><div>${b[2]}</div>`;
+  requestAnimationFrame(()=>el.classList.add('on'));SFX.note(1319,.05);setTimeout(()=>SFX.note(1760,.04),120);clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),4200);}
+
+// ---------- spawn helpers
+function aroundPlayer(minA,maxA,d0,d1){const f=Math.atan2(P.fz,P.fx);const s=rand()<.5?-1:1;const a=f+s*lerp(minA,maxA,rand());const d=lerp(d0,d1,rand());return {x:P.x+Math.cos(a)*d,z:P.z+Math.sin(a)*d};}
+function facingDot(x,z){const dx=x-P.x,dz=z-P.z,d=Math.hypot(dx,dz)||1;return (dx*P.fx+dz*P.fz)/d;}
+
+function mindUpdate(dt){
+  if(S.mode!=='play'||S.paused)return;
+  const night=isNight()&&!S.bound;
+  // ---- drain / recover
+  let r=0;
+  if(night)r-=.22;if(night&&!lanternOn())r-=.8;
+  if(H.vis&&(H.state==='stalk'||H.state==='watch'))r-=.4+danger*1.8;
+  if(!night)r+=S.hour<18?.18:.05;
+  if(night){for(const lp of lamps)if(!lp.dead&&Math.hypot(P.x-lp.x,P.z-lp.z)<3.2){r+=.45;break;}
+    for(const h of HOUSES)if(h.lit&&Math.hypot(P.x-h.x,P.z-h.z+.5)<4){r+=.2;break;}
+    for(const a of altars)if(a.lit&&Math.hypot(P.x-a.x,P.z-a.z)<4){r+=.6;break;}}
+  for(const n of npcs)if(n.vis&&!night&&Math.hypot(P.x-n.x,P.z-n.z)<2.6){r+=.3;break;}
+  M.v=clamp(M.v+r*dt,0,100);
+  if(slamT>0&&M.lastSlam<=0)mindHit(11);M.lastSlam=slamT;
+  for(const h of HOUSES)if(h.faceT>.5&&M.lastFace!==h){M.lastFace=h;mindHit(6);}
+  const T=tierOf(M.v);
+  if(T>M.tierSeen){M.tierSeen=T;toast(TIER_MSG[T],3.2,T>=3);}else if(T<M.tierSeen-1)M.tierSeen=T+1;
+  for(const k in M.cd)M.cd[k]-=dt;
+  if(M.invert>0)M.invert-=dt;if(M.clockT>0)M.clockT-=dt;if(M.objT>0)M.objT-=dt;if(M.flashT>0)M.flashT-=dt;if(M.tearT>0)M.tearT-=dt;
+  const ready=(k,t,lo,hi,p)=>{if(T<t||M.cd[k]>0)return false;M.cd[k]=lerp(lo,hi,rand())*(1.25-T*.12);return rand()<(p||1);};
+  const hidden=!H.vis||H.state==='gone';
+
+  // ---- 1: whispers in the stereo field
+  if(ready('whisper',1,16,32)){const pan=rand()<.5?-.9:.9;SFX.whisper(pan);if(rand()<.55)setTimeout(()=>{if(S.mode==='play')toast(pick(WHISPERS).replace('{name}','your name'),2.4,true);},700);}
+  // ---- 1: footsteps that keep going after you stop
+  const moving=P.spd>.2;
+  if(M.wasMoving&&!moving&&T>=1&&M.cd.steps<=0&&rand()<.55){M.cd.steps=lerp(18,30,rand());const n=2+(rand()*3|0);for(let i=0;i<n;i++)setTimeout(()=>SFX.step(false),330*(i+1));}
+  M.wasMoving=moving;
+  // ---- 1: a figure at the edge of your vision that is gone when you look
+  if(hidden&&ready('fig',1,12,24,night?1:.35)){const p=aroundPlayer(1.15,1.75,6.5,9.5);M.figs.push({x:p.x,z:p.z,t:0,life:7});}
+  for(let i=M.figs.length-1;i>=0;i--){const f=M.figs[i];f.t+=dt;const d=Math.hypot(f.x-P.x,f.z-P.z);
+    if(facingDot(f.x,f.z)>.8||d<4.2||f.t>f.life){if(f.t>.4&&rand()<.4)SFX.breath(0);M.figs.splice(i,1);}}
+  // ---- 1 (night): wet footprints keep appearing beside yours
+  if(night&&T>=1){M.printAcc+=P.spd*dt;if(M.printAcc>.7){M.printAcc=0;const s=M.prints.length%2?1:-1;M.prints.push({x:P.x-P.fz*.55*s-P.fx*1.4,z:P.z+P.fx*.55*s-P.fz*1.4,t:0,a:Math.atan2(P.fz,P.fx)});if(M.prints.length>40)M.prints.shift();}}
+  for(const p of M.prints)p.t+=dt;while(M.prints.length&&M.prints[0].t>18)M.prints.shift();
+  // ---- 2: the clock lies
+  if(ready('clock',2,26,44)){M.clockT=2.2+rand()*2;M.clockTxt=pick(['3:33 AM','3:33 AM','??:??','12:00 AM','11:48 PM','—:— —']);}
+  // ---- 2: the objective lies, and the arrow points somewhere else
+  if(ready('obj',2,30,55)){const o=pick(OBJ_LIES);M.obj=[o[0],o[1],o[0]==='The car'?carPos:o[0]==='The well'?wellPos:(H.vis?{x:H.x,z:H.z}:null)];M.objT=3.4;}
+  // ---- 2 (night): every pumpkin is smiling at you
+  if(night&&ready('jacks',2,45,70)){M.jackSwap=[];for(const o of OBJ)if((o.spr==='pumpkin'||o.spr==='pumpkin_b')&&Math.hypot(o.x-P.x,o.z-P.z)<14){M.jackSwap.push([o,o.spr,o.glow]);o.spr='jack';o.glow=1;}
+    if(M.jackSwap.length){SFX.face();setTimeout(()=>{for(const [o,s,g] of M.jackSwap){o.spr=s;o.glow=g;}M.jackSwap=[];},2600+rand()*1500);}}
+  // ---- 2: a notification from someone who shouldn't be able to text you
+  if(ready('banner',2,55,95,.8))banner(pick(BANNERS));
+  // ---- 3: you, standing over there, doing what you do backwards
+  if(!M.dop&&hidden&&ready('dop',3,40,70)){const p=aroundPlayer(.0,.5,8,10);M.dop={x:p.x,z:p.z,t:0,px:P.x,pz:P.z};}
+  if(M.dop){const d=M.dop;d.t+=dt;d.x-=(P.x-d.px);d.z-=(P.z-d.pz);d.px=P.x;d.pz=P.z;if(Math.hypot(d.x-P.x,d.z-P.z)<3.5||d.t>6){M.dop=null;M.flashT=.07;SFX.tinnitus&&SFX.tinnitus();}}
+  // ---- 3: your legs stop listening
+  if(ready('invert',3,35,60,.7)){M.invert=1.2+rand()*1.2;if(!S.first.legs){S.first.legs=1;toast('Your legs don’t feel like yours.',2.2,true);}}
+  // ---- 3: the picture tears / flashes negative
+  if(ready('flash',3,20,40))M.flashT=.06+rand()*.06;
+  if(ready('tear',3,14,26))M.tearT=.25+rand()*.3;
+  // ---- 4: it runs at you out of nowhere — and isn't there
+  if(!M.rush&&hidden&&ready('rush',4,35,60)){const p=aroundPlayer(0,.35,9,11);M.rush={x:p.x,z:p.z,t:0};SFX.shriek(0);}
+  if(M.rush){const q=M.rush;q.t+=dt;const dx=P.x-q.x,dz=P.z-q.z,d=Math.hypot(dx,dz)||1;q.x+=dx/d*11*dt;q.z+=dz/d*11*dt;q.dir=dirOf(dx,dz);
+    if(d<1.3){M.rush=null;faceSlam(.3,true);cam.shake=.5;setTimeout(()=>{if(S.mode==='play')toast('There is nothing there. There was never anything there.',2.8,true);},700);}}
+  // ---- 0: you black out and wake up somewhere else
+  if(M.v<=0&&!M.blackout)blackout();
+}
+function blackout(){M.blackout=true;S.mode='trans';fade(1);SFX.tinnitus&&SFX.tinnitus();
+  const spots=[[carPos.x+1.5,carPos.z+3.6,'by the wreck of your car'],[CORN.x0+3,CORN.z0+4,'in the middle of the corn'],[58,-26,'between the graves'],[pond.x+pond.r+1.5,pond.z,'at the edge of the pond, ankle-deep']];
+  const s=pick(spots);
+  setTimeout(()=>{P.x=s[0];P.z=s[1];P.fx=0;P.fz=1;P.dir='S';S.hour=Math.min(25.5,S.hour+2.2);M.v=38;M.figs.length=0;M.dop=null;M.rush=null;M.prints.length=0;
+    H.state='gone';H.vis=false;H.timer=10;fade(0);S.mode='play';M.blackout=false;
+    toast(`You come to, ${s[2]}. You don’t remember walking here. Your hands are black with dirt.`,4.2,true);},2600);}
+// input hook: called from the movement code
+function mindInput(mx,mz){if(M.invert>0)return [-mx*.8,-mz*.8];return [mx,mz];}
+
+// ---------- drawing
+function mindDrawables(D){
+  for(const f of M.figs)D.push({z:f.z,mind:1,draw(){const a=Math.min(1,f.t*2)*.6;drawSpr('hollow',sx(f.x),sz(f.z),'walk','S',0,{scale:2,alpha:a});}});
+  if(M.dop){const d=M.dop;D.push({z:d.z,mind:1,draw(){drawSpr('farmer',sx(d.x),sz(d.z),'walk',P.dir==='E'?'W':P.dir==='W'?'E':P.dir==='N'?'S':'N',P.spd>.2?frameOf('farmer','walk',P.t):0);}});}
+  if(M.rush){const q=M.rush;D.push({z:q.z,mind:1,draw(){drawSpr('hollow',sx(q.x),sz(q.z),'walk',q.dir||'S',frameOf('hollow','walk',q.t*2),{scale:2});}});}
+}
+function mindGround(){if(!M.prints.length)return;ctx2.fillStyle='rgba(14,8,6,.55)';
+  for(const p of M.prints){const a=clamp(1-p.t/18,0,1);if(a<=0)continue;ctx2.globalAlpha=a;const X=Math.round(sx(p.x)),Y=Math.round(sz(p.z));ctx2.fillRect(X-1,Y-2,3,4);ctx2.fillRect(X-1,Y+3,3,2);}
+  ctx2.globalAlpha=1;}
+function mindScreen(t){const k=1-M.v/100;if(S.mode==='title')return;
+  // colour drains out of the world
+  if(k>.15){ctx2.globalCompositeOperation='saturation';ctx2.fillStyle=`rgba(128,128,128,${Math.min(.75,(k-.15)*1.1)})`;ctx2.fillRect(0,0,VW,VH);ctx2.globalCompositeOperation='source-over';}
+  // double vision that breathes
+  const T=tierOf(M.v);
+  if(T>=3){const o=Math.round(Math.sin(t*1.3)*(T>=4?3:2));if(o){ctx2.globalAlpha=.16;ctx2.drawImage(view,o,0);ctx2.globalAlpha=1;}}
+  // the edges close in, in time with a heartbeat
+  if(T>=2){const p=(Math.sin(t*(T>=4?7:4.4))+1)/2;const g=ctx2.createRadialGradient(VW/2,VH/2,Math.min(VW,VH)*(.42-k*.15),VW/2,VH/2,Math.max(VW,VH)*.7);
+    g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,`rgba(10,0,2,${.25+k*.35+p*.12})`);ctx2.fillStyle=g;ctx2.fillRect(0,0,VW,VH);}
+  // scanline tear
+  if(M.tearT>0){for(let i=0;i<4;i++){const y=(hash(i,(t*20)|0)*VH)|0,h=4+((hash(i+3,(t*20)|0)*14)|0),dx=Math.round((hash(i+7,(t*30)|0)-.5)*24);ctx2.drawImage(view,0,y,VW,h,dx,y,VW,h);}}
+  // one frame of negative
+  if(M.flashT>0){ctx2.globalCompositeOperation='difference';ctx2.fillStyle='#fff';ctx2.fillRect(0,0,VW,VH);ctx2.globalCompositeOperation='source-over';}
+}
 
 })();
 </script>

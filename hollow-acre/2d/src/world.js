@@ -5,7 +5,7 @@ const FIELD={x0:-5,z0:0,w:10,h:8};
 const CORN={x0:-15,x1:11,z0:11.5,z1:24};
 const inCorn=(x,z)=>x>CORN.x0&&x<CORN.x1&&z>CORN.z0&&z<CORN.z1;
 const pond={x:-30,z:24.5,r:7.5};
-const wellPos={x:6,z:-10.5},binPos={x:-3.6,z:-8.6},doorPos={x:0,z:-8.9},carPos={x:-60.2,z:-1.4},pumpPos={x:-28,z:-10.4},boothPos={x:44.5,z:-9.6};
+const wellPos={x:7.3,z:-10.5},binPos={x:-3.6,z:-8.6},doorPos={x:0,z:-8.9},carPos={x:-60.2,z:-1.4},pumpPos={x:-28,z:-10.4},boothPos={x:44.5,z:-9.6};
 const crossPos={x:20,z:19},boardPos={x:52,z:-9.4},tsPos={x:27.5,z:-8.4},farmSignPos={x:-11.5,z:-8.6},squarePos={x:48,z:-6};
 const fishSpot={x:pond.x,z:pond.z-pond.r+3.6};
 const ALTAR_POS=[[-27,8,'west woods'],[-2,29,'cornfield'],[64,-32,'churchyard']];
@@ -91,14 +91,16 @@ function buildWorld(){
   put('car_wreck',carPos.x-.8,carPos.z+3.2,0,{night:'car_wreck_n',kind:'wreck'});addRect(carPos.x-1.8,carPos.z-1.2,carPos.x+1.2,carPos.z+3.1);
   put('deadtree',carPos.x+.15,carPos.z+3.45,.35);reserve(-65,-8,-56,4);
   // ---------- Marrow Hollow: main street (z=-6), north row faces the street, south row faces the back lane (z=5)
-  building('store',33.5,-9.4,{jack:1});building('house_a',41,-9.4);building('house_b',56,-9.4,{jack:1});building('house_d',64.5,-9.4);
-  building('house_c',33.5,3.6);building('house_b',41,3.6);building('house_c',56,3.6,{lit:false});building('house_d',64.5,3.6,{lit:false});
-  put('crate',37.6,-9.2,.3);put('barrel',29.5,-9.5,.3);put('sacks',37.8,-8.5);
-  for(const x of[28,36,44,52,60,68]){lamp(x,-7.8);}for(const x of[30,38,46,54,62])lamp(x,-4.2);for(const x of[30,46,62])lamp(x,6.3);
+  building('store',31,-9.4,{jack:1});building('house_a',40,-9.4);building('house_b',57,-9.4,{jack:1});building('house_d',66,-9.4);
+  building('house_c',31,3.6);building('house_b',40,3.6);building('house_c',57,3.6,{lit:false});building('house_d',66,3.6,{lit:false});
+  // side yards: picket runs between the houses, store goods stacked by the door
+  fenceLine(35.6,-9.6,35.6,-13.8);fenceLine(61.5,-9.6,61.5,-13.8);fenceLine(35.6,-.6,35.6,3.4);fenceLine(61.5,-.6,61.5,3.4);
+  put('crate',34.9,-9.0,.3);put('sacks',34.6,-8.55);put('barrel',26.9,-9.3,.3);put('barrel',27.5,-8.8,.3);put('hay',26.6,-11.6);addRect(25.8,-12.8,27.4,-11.7);
+  // street lamps on the kerbs, never in the road
+  for(const x of[27,36.4,45.8,50.2,61,70])lamp(x,-8.5);for(const x of[27,36.4,61,70])lamp(x,-3.5);for(const x of[36.4,48,61])lamp(x,6.5);
   put('phone_booth',boothPos.x,boothPos.z+.5,0,{night:'phone_booth_n',kind:'booth'});addRect(boothPos.x-.55,boothPos.z-.4,boothPos.x+.55,boothPos.z+.5);
   put('board',boardPos.x,boardPos.z,0);addSeg(boardPos.x-.8,boardPos.z,boardPos.x+.8,boardPos.z,.12);
   put('signpost',tsPos.x,tsPos.z,.2,{label:'MARROW HOLLOW'});
-  put('hay',44.2,-2.3);addRect(43.4,-3.5,45,-2.4);put('hay',51.8,-2.3);addRect(51,-3.5,52.6,-2.4);
   // church on its own path north of the square, graveyard to the east
   building('church',48,-18.6);
   const graves=[];for(let r=0;r<3;r++)for(let c=0;c<5;c++)graves.push([56.5+c*2.2,-30+r*2.6]);
@@ -117,7 +119,7 @@ function buildWorld(){
   for(const o of OBJ)if(o.kind==='tree'&&o.spr.startsWith('pine'))o.kind='pine';
   scatter(70,3.4,()=>rand()<.75?'tree_orange':'tree_green',(x,z)=>x>B.x0+1&&x<B.x1-1&&z>B.z0+1&&z<B.z1-1&&clearSpot(x,z,1.4),.32);
   for(const [x,z] of[[-24,12],[-29,5],[4,28],[-6,30],[14,4],[16,-14],[24,24]])if(clearSpot(x,z,.5))put('deadtree',x,z,.3);
-  for(let i=0;i<24;i++){const x=lerp(B.x0,B.x1,rand()),z=lerp(B.z0,B.z1,rand());if(clearSpot(x,z,1))put('stump',x,z,.35);}
+  for(let i=0;i<24;i++){const x=lerp(B.x0,B.x1,rand()),z=lerp(B.z0,B.z1,rand());if(clearSpot(x,z,1)&&terr(x,z)==='grass'&&(x<-14||z>12))put('stump',x,z,.35);}
   for(let i=0;i<420;i++){const x=lerp(B.x0,B.x1,rand()),z=lerp(B.z0,B.z1,rand());if(terr(x,z)!=='grass'||!clearSpot(x,z,-.8))continue;obj('leaves',x,z,{kind:'deco',v:(rand()*4)|0});}
   // the cornfield in neat rows
   for(let x=CORN.x0+.5;x<CORN.x1;x+=.9)for(let z=CORN.z0+.5;z<CORN.z1;z+=.8){if(Math.abs(x+.5)<1&&z<20)continue;if(rand()<.05)continue;obj('corn_'+((rand()*3)|0),x+(rand()-.5)*.12,z,{kind:'corn'});}

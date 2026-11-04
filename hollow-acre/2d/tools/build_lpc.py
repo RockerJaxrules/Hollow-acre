@@ -31,7 +31,7 @@ def round_tree(name, canopy_box, trunk_box):
     save(name, im, [-.3, -.25, .3, .1], anchor=(W / 2, H - 8))
 round_tree('tree_orange', OBJ[94], OBJ[142]); round_tree('tree_green', OBJ[14], OBJ[143])
 for n, i in (('pine_0', 39), ('pine_1', 52), ('pine_o0', 117), ('pine_o1', 121)): save(n, crop(OS, OBJ[i]), [-.3, -.2, .3, .1])
-save('deadtree', crop(OS, (390, 255, 497, 350)), [-.3, -.2, .3, .1])
+save('deadtree', crop(OS, (390, 255, 474, 350)), [-.3, -.2, .3, .1])
 save('stump', crop(OS, OBJ[106]), [-.4, -.3, .4, .1])
 for n, i in (('corn_0', 2), ('corn_1', 3), ('corn_2', 4)): save(n, crop(OS, O95[i]))
 save('mushroom', crop(OS, O95[5])); save('mushroom_b', crop(OS, O95[6]))
@@ -44,7 +44,7 @@ save('crate', crop(OS, O95[47]), [-.5, -.4, .5, 0]); save('signpost', crop(OS, O
 fh = crop(OS, OBJ[152]); save('fence_h', fh, anchor=(0, fh.height - 3))
 b156 = OBJ[156]; fv = trim(img(OS).crop((b156[0], b156[1] + 30, b156[0] + 14, b156[1] + 30 + 70))); save('fence_v', fv, anchor=(fv.width / 2, fv.height - 3))
 # well
-wl = img(IA + 'Xenodora/lpc-well.png'); save('well', trim(wl.crop((0, 0, 128, 128))), [-1.1, -.9, 1.1, .1])
+wl = img(IA + 'Xenodora/lpc-well.png'); save('well', Image.open('spr/px2/well_c.png').convert('RGBA'), [-1.1, -.9, 1.1, .1])   # composed from Xenodora's well parts: ring, winch frame, tile roof, bucket
 # crops: growth stages from plants.png (each column a crop, rows = stages)
 P = IA + 'Daniel Eddeland (Daneeklu)/plants.png'
 def crop_stage(name, col, rows):
@@ -67,36 +67,33 @@ def nine(sheet, c0, r0, rows, W, Hrows):
             sc = c0 if c == 0 else (c0 + 2 if c == W - 1 else c0 + 1)
             out.alpha_composite(tile(sheet, sc, sr), (c * 32, r * 32))
     return out
-def building(name, W=6, wall='cream', roof='slate', wallrows=3, roofrows=4, door=0, wins=(1, 4), sign=None, chimney=True, lit=True, porch=False, tint=None):
+RMETA = json.load(open('spr/raw/roof/meta.json'))
+def roof_px(rn):
+    return Image.open(f'spr/raw/roof/px_{rn}.png').convert('RGBA'), RMETA[rn]['ax'], RMETA[rn]['ay']
+def building(name, W=6, wall='cream', roof='roof_slate', wallrows=3, roofrows=4, door=0, wins=(1, 4), sign=None, chimney=True, lit=True, porch=False, tint=None):
+    """LPC walls/doors/windows under a Blender-rendered shingle gable roof."""
     res = {}
+    roof_im, rax, ray = roof_px(roof)
     for night in (False, True):
-        roof_im = nine(*ROOFS[roof][:3], ROOFS[roof][3], W + 1, roofrows)
-        if tint:
-            from lpc_chars import recolor
-            roof_im = recolor(roof_im, tint)
         wall_im = nine(*WALLS[wall][:3], WALLS[wall][3], W, wallrows)
-        H = roof_im.height + wall_im.height - 8; Wp = roof_im.width
-        im = Image.new('RGBA', (Wp, H + 6))
-        wx = 16; wy = roof_im.height - 8
+        Wp = max(roof_im.width, W * 32 + 8); top = int(round(ray)); H = top + wall_im.height + 6
+        im = Image.new('RGBA', (Wp, H))
+        wx = (Wp - W * 32) // 2; wy = top
         im.alpha_composite(wall_im, (wx, wy))
-        # door and windows on the wall
         d = crop(DS, DOOR[door]); im.alpha_composite(d, (wx + (W * 32 - d.width) // 2, wy + wall_im.height - d.height - 4))
         for c in wins:
-            wv = crop(WS, WIN[23 if night and lit else 7]); im.alpha_composite(wv, (wx + c * 32 + (32 - wv.width) // 2, wy + 18))
-        im.alpha_composite(roof_im, (0, 0))
-        if chimney:
-            ch = tile(HS, 6, 0, 1, 2); im.alpha_composite(trim(ch), (Wp - 72, 0))
-        if sign: im.alpha_composite(sign, ((Wp - sign.width) // 2, wy + 2))
+            wv = crop(WS, WIN[23 if night and lit else 7]); im.alpha_composite(wv, (wx + c * 32 + (32 - wv.width) // 2, wy + 30))
+        im.alpha_composite(roof_im, (int(round(Wp / 2 - rax)), 0))
+        if sign: im.alpha_composite(sign, ((Wp - sign.width) // 2, wy + 22))
         res[night] = im
-    foot_w = W
-    save(name, res[False], [-foot_w / 2, -(wallrows + roofrows - 1) * .9, foot_w / 2, 0], anchor=(res[False].width / 2, res[False].height - 8), night=res[True], extra=dict(bw=W))
-building('cabin', W=6, wall='brick', roof='slate', door=0, wins=(1, 4), tint=(110, 74, 50))
-building('house_a', W=6, wall='yellow', roof='slate', door=4, wins=(1, 4), wallrows=3)
-building('house_b', W=6, wall='green', roof='slate', door=2, wins=(1, 4), tint=(120, 60, 46))
-building('house_c', W=5, wall='blue', roof='slate', door=6, wins=(1, 3), lit=False)
-building('house_d', W=7, wall='cream', roof='slate', door=7, wins=(1, 5), lit=False, tint=(70, 90, 84))
-building('store', W=7, wall='brick', roof='slate', door=3, wins=(1, 5))
-building('garage', W=8, wall='stone', roof='slate', door=7, wins=(6,), chimney=False)
+    save(name, res[False], [-W / 2, -3.3, W / 2, 0], anchor=(res[False].width / 2, res[False].height - 8), night=res[True], extra=dict(bw=W))
+building('cabin', W=6, wall='brick', roof='roof_cabin', door=0, wins=(1, 4))
+building('house_a', W=6, wall='yellow', roof='roof_slate', door=4, wins=(1, 4), wallrows=3)
+building('house_b', W=6, wall='green', roof='roof_red', door=2, wins=(1, 4))
+building('house_c', W=5, wall='blue', roof='roof_blue', door=6, wins=(1, 3), lit=False)
+building('house_d', W=7, wall='cream', roof='roof_teal', door=7, wins=(1, 5), lit=False)
+building('store', W=7, wall='brick', roof='roof_store', door=3, wins=(1, 5))
+building('garage', W=8, wall='stone', roof='roof_garage', door=7, wins=(6,), chimney=False)
 # church: stone hall + tall spire tower in front with a bronze bell
 cl = img('col_low.png')
 def church():
