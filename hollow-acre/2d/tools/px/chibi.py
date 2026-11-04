@@ -13,6 +13,9 @@ CAST = {
   'hollow':  dict(tall=True),
 }
 VARIANTS = {'farmer_hoe': ('farmer', 'hoe'), 'farmer_can': ('farmer', 'can')}
+for _st in ('long', 'bun', 'spiky', 'bangs'):
+    CAST['farmer_' + _st] = dict(CAST['farmer'], hairStyle=_st, hairLen=13)
+    VARIANTS['farmer_' + _st + '_hoe'] = ('farmer_' + _st, 'hoe'); VARIANTS['farmer_' + _st + '_can'] = ('farmer_' + _st, 'can')
 only = sys.argv[1:]
 meta = {}
 for n in list(CAST) + list(VARIANTS):

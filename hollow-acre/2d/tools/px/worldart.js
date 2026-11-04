@@ -66,16 +66,44 @@ if(K==='falls'){   // waterfall over the cliff, 4 frames
   for(let y=0;y<H;y++)for(let x=2;x<W-2;x++){const edge=x<5||x>W-6;const s=((x*7+((y-F*6+600)>>2))%9);let c=s<2?WA[5]:s<5?WA[4]:WA[3];if(edge)c=WA[2];if(y<4)c=WA[4];P(A,x,y,c);}
   for(let i=0;i<14;i++){const fx=2+((hsh(i,F)*(W-4))|0),fy=H-8+((hsh(i,F,2)*7)|0);ell(B,fx,fy,2+(i%2),1+(i%2),WA[5]);}
 }
-if(K==='cbridge'){ // red New England covered bridge seen from the south: shingled roof, board-and-batten wall, stone abutments
-  const roofH=CFG.roofH||58,wy=roofH-4,wh=60,ab=24;
-  shingles(A,0,6,W,roofH-6,PAL.slate);rect(A,0,0,W,7,PAL.slate[3]);hl(A,0,0,W,PAL.slate[5]);hl(A,0,6,W,PAL.slate[1]);
-  for(const bx of [0,W-4]){rect(A,bx,0,4,roofH,TR[2]);vl(A,bx,0,roofH,TR[bx?1:4]);}rect(A,0,roofH-4,W,4,TR[2]);hl(A,0,roofH-4,W,TR[4]);hl(A,0,roofH-1,W,TR[0]);
-  boards(B,4,wy,W-8,wh,RD,6);for(let j=0;j<6;j++)hl(B,4,wy+j,W-8,shade(RD[2],.55+j*.07));
-  for(const wx of [W*.3|0,W*.7|0]){rect(B,wx-9,wy+16,18,12,TR[3]);rect(B,wx-7,wy+18,14,8,N?PAL.lit[3]:PAL.ink[1]);hl(B,wx-9,wy+28,18,TR[1]);}
-  drawText(B,'MARROW CREEK 1871',(W/2-34)|0,wy+8,PAL.cream[3],RD[0]);
-  for(const ax of [0,W-ab]){for(let y=wy+wh-10;y<H-2;y++)for(let x=ax;x<ax+ab;x++){const r=(y/6|0),o=r%2?5:0,b=(x+o)%10;P(B,x,y,b===0||y%6===5?ST[1]:ST[(x-ax)<4?4:3]);}hl(B,ax,wy+wh-10,ab,ST[5]);}
-  for(let y=wy+wh;y<H-2;y++)for(let x=ab;x<W-ab;x++)P(B,x,y,y<wy+wh+3?PAL.ink[0]:WA[2+((x+y)%7===0?1:0)]);
-  gs(W/2|0,H-2,W/2-4|0,2,60);
+if(K==='cbridge'){ // red covered bridge seen from the south (3/4): north roof sliver, ridge, big south slope, eave, board wall, deck, stone abutments
+  const base=H-17,deck=6,wallH=72,wTop=base-deck-wallH,eave=5,slope=96,ridge=4,nTop=wTop-eave-slope-ridge-20,ov=8,x0=ov,x1=W-ov;const SL=PAL.slate;
+  // north slope: a dark foreshortened sliver
+  for(let y=nTop;y<nTop+20;y++)for(let x=2;x<W-2;x++){const j=(y-nTop)%4;P(A,x,y,j===3?SL[0]:SL[1]);if(((x+(y>>2)*5)%13)===0)P(A,x,y,SL[0]);}
+  // ridge cap
+  const rY=nTop+20;hl(A,2,rY,W-4,SL[5]);hl(A,2,rY+1,W-4,SL[4]);hl(A,2,rY+2,W-4,SL[3]);hl(A,2,rY+3,W-4,SL[0]);
+  for(let x=6;x<W-6;x+=9)P(A,x,rY+1,SL[3]);
+  // south slope: shingle courses, lighter towards the eave where the light hits, moss and a few slipped shingles
+  const sTop=rY+4;shingles(A,0,sTop,W,slope,SL,6);
+  for(let y=sTop;y<sTop+slope;y++)for(let x=0;x<W;x++){const c=G(A,x,y);if(!c)continue;const t=(y-sTop)/slope;let k=.82+t*.34-(1-x/W)*0-(x/W)*.1;if(y-sTop<7)k-=.25*(1-(y-sTop)/7);if(x<12)k+=.06;if(x>W-14)k-=.12;P(A,x,y,shade(c,k));}
+  for(let i=0;i<9;i++){const mx=(hsh(i,1,91)*(W-40)|0)+20,my=sTop+slope*.45+(hsh(i,2,91)*slope*.5|0),rw=4+(hsh(i,3,91)*7|0);
+    for(let y=-3;y<=3;y++)for(let x=-rw;x<=rw;x++){const d=x*x/(rw*rw)+y*y/9;if(d>1-hsh(mx+x,my+y,5)*.35)continue;const c=G(A,mx+x,my+y);if(!c)continue;P(A,mx+x,my+y,PAL.moss[d<.3?(y<0?3:2):(y<0?2:1)]);}}
+  for(let i=0;i<5;i++){const mx=(hsh(i,4,93)*(W-40)|0)+20,my=sTop+8+(hsh(i,5,93)*(slope-20)|0);rect(A,mx,my,12,5,SL[0]);hl(A,mx,my,12,SL[1]);}
+  // barge boards down both ends of the roof (gable overhang), with thickness on the right
+  for(const [bx,lt] of [[0,1],[W-5,0]]){rect(A,bx,nTop,5,sTop+slope-nTop,TR[lt?3:1]);vl(A,bx,nTop,sTop+slope-nTop,TR[lt?5:2]);vl(A,bx+4,nTop,sTop+slope-nTop,TR[lt?2:0]);}
+  // fascia + drip edge
+  const fY=sTop+slope;rect(A,0,fY,W,eave,TR[3]);hl(A,0,fY,W,TR[5]);hl(A,0,fY+eave-1,W,TR[1]);for(let x=0;x<W;x+=24)vl(A,x,fY+1,eave-2,TR[2]);
+  // wall: board-and-batten, darker at the ends, with the eave's shadow along the top
+  for(let y=wTop;y<wTop+wallH;y++)for(let x=x0;x<x1;x++){const k=(x-x0)%7;let c=k===0?RD[4]:k===1?RD[3]:k===6?RD[1]:RD[2+((hsh((x-x0)/7|0,(y-wTop)/29|0,4)>.8)?1:0)];
+    const e=Math.min(x-x0,x1-1-x);if(e<10)c=shade(c,.78+e*.022);const t=y-wTop;if(t<9)c=shade(c,.45+t*.06);if(t>wallH-8)c=shade(c,.86);if(hsh(x,y,6)>.985)c=RD[0];P(B,x,y,c);}
+  {const by=wTop+50;hl(B,x0,by,x1-x0,RD[4]);hl(B,x0,by+1,x1-x0,RD[3]);hl(B,x0,by+2,x1-x0,RD[0]);}
+  for(let i=0;i<26;i++){const gx=x0+8+(hsh(i,8,3)*(x1-x0-16)|0),gl=6+(hsh(i,9,3)*16|0);for(let y=0;y<gl;y++){const c=G(B,gx,wTop+wallH-gl+y);if(c)P(B,gx,wTop+wallH-gl+y,shade(c,.8));}}
+  // daylight slots along the side with a lantern glow at night, and the cream sign over the middle
+  for(const f of [.17,.37,.63,.83]){const wx=x0+((x1-x0)*f|0)-10,wy=wTop+22;rect(B,wx-2,wy-2,24,14,TR[3]);hl(B,wx-2,wy-2,24,TR[5]);hl(B,wx-2,wy+11,24,TR[0]);vl(B,wx+21,wy-2,14,TR[1]);
+    for(let y=0;y<10;y++)for(let x=0;x<20;x++)P(B,wx+x,wy+y,N?PAL.lit[y<4?3:2]:(y<3?PAL.ink[0]:PAL.ink[1]));if(!N){hl(B,wx,wy+9,20,PAL.wood[1]);}
+    hl(B,wx-3,wy+12,26,TR[4]);hl(B,wx-3,wy+13,26,TR[1]);}
+  {const sw=84,sx=(W/2|0)-sw/2,sy=wTop+11;rect(B,sx,sy,sw,11,PAL.cream[3]);frame(B,sx,sy,sw,11,PAL.cream[2],PAL.wood[0]);hl(B,sx+1,sy+10,sw-2,PAL.cream[1]);drawText(B,'MARROW CREEK 1871',sx+8,sy+3,RD[0]);
+    P(B,sx+2,sy+2,PAL.slate[2]);P(B,sx+sw-3,sy+2,PAL.slate[2]);}
+  // white corner boards
+  for(const [cx,lt] of [[x0,1],[x1-5,0]]){rect(B,cx,wTop,5,wallH,TR[lt?4:2]);vl(B,cx,wTop,wallH,TR[lt?5:3]);vl(B,cx+4,wTop,wallH,TR[lt?2:0]);}
+  // deck beam with bolt heads
+  const dY=wTop+wallH;rect(B,x0-2,dY,x1-x0+4,deck,WD[2]);hl(B,x0-2,dY,x1-x0+4,WD[4]);hl(B,x0-2,dY+deck-1,x1-x0+4,WD[0]);for(let x=x0+6;x<x1-4;x+=16)P(B,x,dY+2,PAL.slate[4]);
+  // stone abutments at both ends, stepping down to the water, and the dark gap under the deck
+  const abW=46;for(const [ax,dir] of [[x0-6,1],[x1+6-abW,-1]]){for(let y=dY-10;y<H-2;y++){const step=y>base?Math.round((y-base)*1.6):0;for(let x=0;x<abW;x++){if(dir>0&&x>abW-1-step)continue;if(dir<0&&x<step)continue;
+      const r=((y-(dY-10))/7|0),o=r%2?6:0,bk=(x+o)%12;let c=ST[bk===0||(y-(dY-10))%7===6?1:(hsh((x+o)/12|0,r,8)>.5?3:4)];if(x<3&&dir>0)c=ST[4];if(x>abW-4&&dir<0)c=ST[1];if(y>H-5)c=ST[1];P(B,ax+x,y,c);}}
+    hl(B,ax,dY-10,abW,ST[5]);}
+  for(let y=dY+deck;y<H-2;y++)for(let x=x0+abW-6;x<x1-abW+6;x++){const t=(y-dY-deck)/(H-2-dY-deck);const c=G(B,x,y);if(c)continue;P(SHD,x,y,PAL.out[0],Math.round(200-t*150));}
+  gs(W/2|0,H-2,W/2-8|0,3,50);
 }
 if(K==='cportal'){ // covered bridge seen end-on (road runs north): long ridged roof going away, gable portal facing you
   const cx=W/2|0,rw=W-6,portalH=86,gab=46,base=H-4,wallTop=base-portalH,roofTop=4;

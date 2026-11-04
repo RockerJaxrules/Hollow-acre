@@ -165,7 +165,7 @@ function mindCropOver(tl,X,Y){if(!(isNight()&&tierOf(M.v)>=2)||!tl.crop||tl.crop
   const dx=clamp(Math.round((P.x-tl.x)*1.2),-1,1);CROPGLOW.push([X+dx,Y-8]);ctx2.fillStyle='#ffb24a';ctx2.fillRect(Math.round(X)-3+dx,Math.round(Y)-9,2,2);ctx2.fillRect(Math.round(X)+1+dx,Math.round(Y)-9,2,2);ctx2.fillRect(Math.round(X)-2+dx,Math.round(Y)-5,4,1);}
 function mindWatcherDraw(D){if(!M.watcher)return;const w=M.watcher;D.push({z:w.z,mind:1,draw(){drawSpr(w.id,sx(w.x),sz(w.z),'walk',dirOf(P.x-w.x,P.z-w.z),0,{alpha:Math.min(1,w.t*1.5)});}});}
 function mindReflection(){ // your reflection in the water, a little behind you. when you're far gone it stops copying you
-  if(!onScreen(P.x,P.z,10))return;const T=tierOf(M.v);if(terr(P.x,P.z+1.1)!=='water'&&terr(P.x,P.z+1.6)!=='water')return;
+  if(!onScreen(P.x,P.z,10))return;if(Math.abs(P.x-BRIDGE.x)<4.8&&P.z<-1.5&&P.z>-10)return;const T=tierOf(M.v);if(terr(P.x,P.z+1.1)!=='water'&&terr(P.x,P.z+1.6)!=='water')return;
   const lag=T>=1?Math.min(TRAIL.length-1,4+T*5):0;const r=T>=1&&TRAIL.length>lag?TRAIL[TRAIL.length-1-lag]:{x:P.x,z:P.z,dir:P.dir,clip:P.clip,t:P.t};
   const X=Math.round(sx(r.x)),Y=Math.round(sz(P.z))+4;ctx2.save();ctx2.beginPath();ctx2.rect(0,Y,VW,VH);ctx2.clip();ctx2.translate(0,Y*2);ctx2.scale(1,-1);ctx2.globalAlpha=.32;
   const dir=T>=3?'S':r.dir;drawSpr('farmer',X,Y,'walk',dir,r.clip==='walk'&&T<3?frameOf('farmer','walk',r.t):0);ctx2.restore();ctx2.globalAlpha=1;

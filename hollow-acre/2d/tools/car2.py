@@ -130,6 +130,13 @@ if MODE=='drive':
         root.rotation_euler=(0,0,math.pi-a); meta[f'drive_{i}']=shoot(cam,f'{OUT}/drive_{i}.png',box)
     root.rotation_euler=(0,0,-math.pi/2); meta['side_W']=shoot(cam,f'{OUT}/side_W.png',(Vector((-2.4,-1.,0)),Vector((2.4,1.,1.45))))
     json.dump(meta,open(f'{OUT}/drive.json','w'))
+if MODE=='east':
+    YAWS=[0,.15,.3,.45,.6,.75,.9]
+    cam,root,objs,_=build(lights=True)
+    R=2.6; box=(Vector((-R,-R,0)),Vector((R,R,1.45)))
+    for i,a in enumerate(YAWS):
+        root.rotation_euler=(0,0,math.pi-(math.pi/2+a)); meta[f'east_{i}']=shoot(cam,f'{OUT}/east_{i}.png',box)
+    json.dump(meta,open(f'{OUT}/east.json','w'))
 if MODE=='wreck':
     for nm,lt in (('wreck',False),('wreck_n',True)):
         cam,root,objs,extra=build(lights=lt,wreck=True)

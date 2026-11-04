@@ -6,7 +6,7 @@ function frameOf(name,clip,t,dur){const m=SPR[name];if(!m||!m.clips)return 0;con
   if(clip==='idle')return Math.floor(t*f[2])%nf;return a+Math.floor(t*f[2])%(b-a+1);}
 function charSprite(e,name){const clip=e.clip||'idle';return [name,clip];}
 // shadows: light from the upper left, so everything that stands up throws its shadow down and to the right
-function castShadow(o,X,Y){const m=SPR[o.spr];if(!m||o.kind==='fence'||o.kind==='anim'||o.spr.startsWith('maple')||o.kind==='bush')return;ctx2.fillStyle='rgba(8,16,6,.32)';
+function castShadow(o,X,Y){const m=SPR[o.spr];if(!m||o.kind==='fence'||o.kind==='furn'||o.kind==='anim'||o.spr.startsWith('maple')||o.kind==='bush')return;ctx2.fillStyle='rgba(8,16,6,.32)';
   if(o.kind==='bld'){const f=m.foot||[-3,0,3,0];const x0=X+f[0]*PPM,x1=X+f[2]*PPM,h=Math.min(64,m.fh*.42),d=h*.55;
     ctx2.beginPath();ctx2.moveTo(x1,Y-h);ctx2.lineTo(x1+d,Y-h+d*.8);ctx2.lineTo(x1+d,Y+5);ctx2.lineTo(x0+10,Y+5);ctx2.lineTo(x0,Y);ctx2.lineTo(x1,Y);ctx2.closePath();ctx2.fill();return;}
   if(o.kind==='tree'||o.kind==='pine'){ctx2.beginPath();ctx2.ellipse(X+8,Y+2,o.kind==='pine'?17:22,7,0,0,Math.PI*2);ctx2.fill();return;}
@@ -16,7 +16,7 @@ let nightK=0,camT={x:0,z:0},titleT=0;
 function render(dt,now){const t=now/1000;
   const amb=ambient(S.hour);nightK=clamp((S.hour-18.4)/1.8,0,1);if(S.hour<6.6)nightK=Math.max(nightK,clamp((6.6-S.hour)/1.6,0,1));nightAmt=nightK;
   // camera
-  let fx=P.x,fz=P.z-.6;if(S.mode==='title'){fx=Math.sin(t*.05)*8;fz=-4+Math.cos(t*.04)*4;}
+  let fx=P.x,fz=P.z-.6;if(S.room){const R=ROOMS[S.room];fx=R.ox+R.w/2;fz=R.oz+R.d/2-.5;}if(S.mode==='title'){fx=Math.sin(t*.05)*8;fz=-4+Math.cos(t*.04)*4;}
   if(cine&&cine.cam){fx=cine.cam.x;fz=cine.cam.z;}
   camT.x=lerp(camT.x,fx,1-Math.exp(-dt*9));camT.z=lerp(camT.z,fz,1-Math.exp(-dt*9));if(Math.abs(camT.x-fx)<.02)camT.x=fx;if(Math.abs(camT.z-fz)<.02)camT.z=fz;
   if(S.mode==='play'&&!(cine&&cine.cam)){camT.x=fx;camT.z=fz;}cam.x=camT.x;cam.z=camT.z;
@@ -38,8 +38,8 @@ function render(dt,now){const t=now/1000;
   for(const tl of tiles){if(tl.tilled&&tl.crop&&tl.crop.watered){ctx2.fillStyle='rgba(30,16,8,.32)';ctx2.fillRect(Math.round(sx(tl.x-.5)),Math.round(sz(tl.z-.5)),32,32);}}
   if(hlTile&&S.mode==='play'){ctx2.strokeStyle='rgba(255,240,200,.75)';ctx2.lineWidth=1;ctx2.strokeRect(Math.round(sx(hlTile.x-.5))+.5,Math.round(sz(hlTile.z-.5))+.5,31,31);}
   // skid marks & blood at the crash site
-  if(onScreen(-56,-5,200)){ctx2.fillStyle='rgba(0,0,0,.3)';for(let k=0;k<2;k++){ctx2.save();ctx2.translate(sx(-58.6+k*.9),sz(-1.6+k*.25));ctx2.rotate(.42);ctx2.fillRect(-200,0,200,3);ctx2.restore();}}
-  mindGround();findsDraw(t);farmDraw();mindReflection();
+  if(!S.introDrive&&onScreen(-56,-5,200)){ctx2.fillStyle='rgba(0,0,0,.3)';for(let k=0;k<2;k++){ctx2.save();ctx2.translate(sx(-58.6+k*.9),sz(-1.6+k*.25));ctx2.rotate(.42);ctx2.fillRect(-200,0,200,3);ctx2.restore();}}
+  interiorGround();mindGround();findsDraw(t);farmDraw();mindReflection();
   // collect drawables
   const D=[];const pad=200;
   for(const o of OBJ){if(o.hide)continue;const X=sx(o.x),Y=sz(o.z);if(X<-pad||X>VW+pad||Y<-60||Y>VH+pad+260)continue;
@@ -57,10 +57,11 @@ function render(dt,now){const t=now/1000;
   if(S.hour>=19.5&&!S.bound)D.push({z:crossPos.z+2.6,peddler:true});
   for(const g of ghosts)if(g.t>0)D.push({z:g.z,ghost:g});
   if(ritual&&ritual.hat)D.push({z:ritual.hat.z,hat:true});
-  mindDrawables(D);mindWatcherDraw(D);lifeDrawables(D,t);D.sort((a,b)=>a.z-b.z);
+  if(cine&&cine.drawables)cine.drawables(D);mindDrawables(D);mindWatcherDraw(D);lifeDrawables(D,t);D.sort((a,b)=>a.z-b.z);
   for(const d of D){
     if(d.o){const o=d.o;const X=sx(o.x),Y=sz(o.z);let a;if(o.kind==='anim'){drawSpr(o.spr,X,Y-(o.yoff||0),'a','S',Math.floor(t*o.fps+(o.ph||0)+(o.grass?Math.sin(t*.7+o.x*.15)*1.2:0)));continue;}
       if((o.kind==='tree'||o.kind==='pine'||o.kind==='bld')&&P.z<o.z-.2){const m=SPR[o.spr];if(m){const px=sx(P.x),py=sz(P.z)-30;const f=m.foot||[0,0,0,0];const x0=o.kind==='bld'?X+f[0]*PPM:X-m.fw*.35,x1=o.kind==='bld'?X+f[2]*PPM:X+m.fw*.35;if(px>x0&&px<x1&&py>Y-m.ay&&py<Y&&P.z>o.z-(o.kind==='bld'?8:4))a=.55;}}
+      if(o.spr==='cbridge'&&Math.abs(P.x-o.x)<4.6&&P.z<o.z&&P.z>o.z-6.6)a=.16;
       if(o.clipw&&o.clipw<1.99){const m=SPR[o.spr],im=IMG[m.src];if(im){const w=Math.round(o.clipw*PPM),dx=Math.round(X-m.ax),dy=Math.round(Y-m.ay);ctx2.drawImage(im,0,0,w,m.fh,dx,dy,w,m.fh);ctx2.drawImage(im,m.fw-9,0,9,m.fh,dx+w-1,dy,9,m.fh);}}
       else drawSpr(o.spr,X,Y,null,null,0,{alpha:a});
       if(o.night&&SPR[o.night]&&nightK>0)drawSpr(o.night,X,Y,null,null,0,{alpha:(a||1)*nightK});
@@ -97,9 +98,9 @@ function render(dt,now){const t=now/1000;
   }
   partsDraw();holdDraw();lifeOver(t);
   // weather: falling leaves (day), rain (storm), fog (night)
-  if(nightK<.8){for(let i=0;i<24;i++){const s=hash(i,3);const x=((s*977+t*14*(.5+s))%(VW+40))-20,y=((hash(i,5)*VH+t*(18+s*20))%(VH+20))-10;ctx2.fillStyle=['#d0702a','#b8521c','#e0a040','#8a3a18'][i%4];ctx2.globalAlpha=1-nightK;ctx2.fillRect(Math.round(x+Math.sin(t*2+i)*6),Math.round(y),2,1);}ctx2.globalAlpha=1;}
-  if(S.storm&&isNight()){ctx2.strokeStyle='rgba(170,190,220,.35)';ctx2.beginPath();for(let i=0;i<90;i++){const x=(hash(i,1)*VW+t*40)%VW,y=(hash(i,2)*VH+t*620)%VH;ctx2.moveTo(Math.round(x),Math.round(y));ctx2.lineTo(Math.round(x-2),Math.round(y+7));}ctx2.stroke();}
-  if(nightK>0&&fogTex){ctx2.globalAlpha=nightK*.55;const ox=Math.round((-(cam.px*.7)+t*6)%256),oy=Math.round((-(cam.pz*.7))%256);for(let y=oy-256;y<VH;y+=256)for(let x=ox-256;x<VW;x+=256)ctx2.drawImage(fogTex,Math.round(x),Math.round(y));ctx2.globalAlpha=1;}
+  if(nightK<.8&&!S.room){for(let i=0;i<24;i++){const s=hash(i,3);const x=((s*977+t*14*(.5+s))%(VW+40))-20,y=((hash(i,5)*VH+t*(18+s*20))%(VH+20))-10;ctx2.fillStyle=['#d0702a','#b8521c','#e0a040','#8a3a18'][i%4];ctx2.globalAlpha=1-nightK;ctx2.fillRect(Math.round(x+Math.sin(t*2+i)*6),Math.round(y),2,1);}ctx2.globalAlpha=1;}
+  if(S.storm&&isNight()&&!S.room){ctx2.strokeStyle='rgba(170,190,220,.35)';ctx2.beginPath();for(let i=0;i<90;i++){const x=(hash(i,1)*VW+t*40)%VW,y=(hash(i,2)*VH+t*620)%VH;ctx2.moveTo(Math.round(x),Math.round(y));ctx2.lineTo(Math.round(x-2),Math.round(y+7));}ctx2.stroke();}
+  if(nightK>0&&fogTex&&!S.room){ctx2.globalAlpha=nightK*.55;const ox=Math.round((-(cam.px*.7)+t*6)%256),oy=Math.round((-(cam.pz*.7))%256);for(let y=oy-256;y<VH;y+=256)for(let x=ox-256;x<VW;x+=256)ctx2.drawImage(fogTex,Math.round(x),Math.round(y));ctx2.globalAlpha=1;}
   // ---- light map (multiply)
   lctx.globalCompositeOperation='source-over';lctx.fillStyle=`rgb(${amb[0]|0},${amb[1]|0},${amb[2]|0})`;lctx.fillRect(0,0,VW,VH);
   if(nightK>.02){lctx.globalCompositeOperation='lighter';const L=nightK;const fl=.95+.05*Math.sin(t*5.3);
@@ -115,7 +116,7 @@ function render(dt,now){const t=now/1000;
     if(S.mode!=='title'){const on=lanternOn()?1:0;const sput=sputT>0?(Math.random()<.5?.15:.6):1;const fuel=S.fuel<15?(.6+.4*Math.random()):1;const k=L*fl*sput*fuel*(on?1:.12);
       const X=sx(P.x),Y=sz(P.z)-22;glowAt(X,Y,S.flashlight?92:78,[255,196,120],.95*k);
       const ang=Math.atan2(P.fz,P.fx);coneAt(X,Y,ang,S.flashlight?.62:.5,(S.flashlight?11:8.5)*PPM,[255,214,150],.8*k);}
-    lifeLight(t,L);
+    lifeLight(t,L);if(cine&&cine.light)cine.light(L);interiorLight(L);
     if(H.vis&&H.dir!=='N'){glowAt(sx(H.x),sz(H.z)-94,10,[255,40,20],.9*H.alpha);}
     for(const g of ghosts)if(g.t>0)glowAt(sx(g.x),sz(g.z)-94,8,[255,40,20],g.t*2);}
   if(flashT>0){lctx.globalCompositeOperation='lighter';lctx.fillStyle=`rgba(210,220,255,${clamp(flashT,0,1)})`;lctx.fillRect(0,0,VW,VH);}
@@ -157,93 +158,47 @@ function sub(text){ui.subs.textContent=text||'';ui.subs.classList.toggle('show',
 function startCine(kind){if(kind==='intro')return introCine();if(kind==='escape')return escapeCine();}
 function endCine(){cine=null;sub('');$('skip').hidden=true;SFX.engine(false);}
 function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true;ui.obj.hidden=true;$('skip').hidden=false;$('title').hidden=true;
-  // the woods along Route 9: world-space props, the car drives north (-z)
-  const props=[];const PINES=['pine_0','pine_1','pine_o0','pine_o1'];
-  for(let i=0;i<340;i++){const side=i%2?1:-1,z=-i*.95+hash(i,9)*.8,x=side*(4.9+Math.pow(hash(i,1),1.6)*9);
-    const k=hash(i,3);props.push({x,z,spr:k<.08?'deadtree':k<.3?['maple_orange','maple_red','maple_gold'][(hash(i,6)*3)|0]:PINES[(hash(i,4)*4)|0]});}
-  for(let i=props.length-1;i>=0;i--)if(props[i].z<-55&&props[i].z>-72)props.splice(i,1);
-  for(let z=-20;z>-330;z-=31)if(z>-52||z<-75)props.push({x:4.7,z,post:1},{x:-4.7,z:z-15,post:1});
-  props.push({x:0,z:-60,spr:'cportal',bridge:1},{x:4.9,z:-34,spr:'mailbox'},{x:-5.2,z:-138,spr:'mailbox'},{x:-15.5,z:-118,spr:'cabin',night:'cabin_n'});
-  props.push({x:5.4,z:-48,spr:'signpost'});
-  const st={t:0,carX:1.7,carZ:0,yaw:0,spd:13,deerZ:null,figZ:null,mirror:0,flash:0,crashZ:null,done:{},props};SFX.engine(true);
-  const once=k=>st.done[k]?false:(st.done[k]=true);
-  cine={hidePlayer:true,custom(g,dt,t){st.t+=dt;const T=st.t;
-    if(T<3){g.fillStyle='#000';g.fillRect(0,0,VW,VH);if(once('a'))sub('Route 9. 11:48 PM. Rain since the county line.');return;}
-    const slow=T>15.2&&T<16.6?.3:1;if(T<17)st.carZ-=st.spd*dt*slow;
-    if(T>15.6&&T<17){st.yaw=lerp(st.yaw,.9,dt*3);st.carX+=st.spd*dt*.5*slow;}
-    if(T>4&&once('b'))sub('Voicemail from Grandpa Elias. Three days old.');
-    if(T>7.2&&once('c'))sub('"…it already picked you. I’m sorry, kid. Come quick, before the thirty-first."');
-    if(T>9.4&&once('lt')){st.flash=1;SFX.thud(0,.9);cam.shake=.15;}
-    if(T>10.5&&once('d')){st.deerZ=st.carZ-15;sub('');}
-    if(T>11.6&&once('e')){SFX.thud(0,.5);cam.shake=.25;sub('Something was lying in the road.');}
-    if(T>12.8&&once('f')){st.mirror=1.4;SFX.stinger();sub('Something in the mirror.');}
-    if(T>14.2&&once('g')){sub('Nothing. There’s nothing there.');st.figZ=st.carZ-17;}
-    if(T>15.2&&once('h')){SFX.shriek(0);SFX.horn();st.crashZ=st.carZ-12.6;props.push({x:6.6,z:st.crashZ,spr:'maple_red'});}
-    if(T>15.5)st.figZ=null;if(T>16.4&&once('i')){SFX.screech();}
-    if(T>17&&once('j')){SFX.crash();cam.shake=1;flashT=1;SFX.engine(false);sub('');}
-    if(T<17.25)drawRoad(g,st,t,dt);
-    if(T>=17.25){g.fillStyle='#000';g.fillRect(0,0,VW,VH);if(flashT>0){g.fillStyle=`rgba(255,255,255,${flashT})`;g.fillRect(0,0,VW,VH);flashT-=dt*1.5;}
+  // the drive happens on the real Route 9, in the real valley: east toward the farm, until the oak at the crash site
+  const TC=15.2,XS=-69.3,LANE=-4.75,HIT={x:-60.4,z:.5},V=9;
+  const carAt=T=>T<TC?{x:XS-V*(TC-T),z:LANE,yaw:0}:(()=>{const k=Math.min(1,(T-TC)/1.8),e=k*k*(3-2*k);return {x:lerp(XS,HIT.x,Math.min(1,k*1.15)),z:lerp(LANE,HIT.z,e),yaw:Math.min(.9,k*1.25)};})();
+  const wreck=OBJ.filter(o=>o.kind==='wreck');for(const o of wreck)o.hide=true;
+  for(const n of npcs)n.vis=false;H.vis=false;S.storm=true;S.hour=23.8;S.introDrive=true;fade(1);
+  const st={t:0,done:{},car:carAt(3),deer:null,fig:null,mir:0,crashed:false};const once=k=>st.done[k]?false:(st.done[k]=true);
+  sub('Route 9. 11:48 PM. Rain since the county line.');
+  cine={hidePlayer:true,cam:{x:st.car.x+4.6,z:-6.2},
+    drawables(D){const T=st.t;
+      if(!st.crashed)D.push({z:st.car.z+.2,mind:1,draw(){const f=Math.max(0,Math.min(6,Math.round(st.car.yaw/.15)));drawSpr('car_east',sx(st.car.x),sz(st.car.z)+(T>11.55&&T<11.75?-2:0),'yaw','S',f);}});
+      if(st.deer)D.push({z:st.deer.z,mind:1,draw(){ctx2.save();ctx2.translate(Math.round(sx(st.deer.x)),Math.round(sz(st.deer.z)));ctx2.rotate(Math.PI/2);drawSpr('deer',0,0);ctx2.restore();}});
+      if(st.fig)D.push({z:st.fig.z,mind:1,draw(){drawSpr('hollow',sx(st.fig.x),sz(st.fig.z),'walk',st.fig.dir,0,{alpha:st.fig.a});}});},
+    light(L){glowAt(VW*.5,VH*.45,Math.max(VW,VH)*.7,[34,40,62],.55);if(st.crashed)return;const c=st.car,X=sx(c.x),Y=sz(c.z)-12,a=c.yaw,cs=Math.cos(a),sn=Math.sin(a);
+      for(const s of [-.55,.55]){const hx=X+(2.1*cs-s*sn)*PPM,hy=Y+(2.1*sn+s*cs)*PPM*.8;coneAt(hx,hy,a,.28,13*PPM,[255,238,196],.8);glowAt(hx,hy,10,[255,240,210],.9);}
+      glowAt(X-2.2*cs*PPM,Y-2.2*sn*PPM,40,[255,26,16],st.mir>0?.95:.55);glowAt(X,Y,70,[120,110,100],.3);
+      if(st.fig&&st.fig.a>.5){const fx=sx(st.fig.x),fy=sz(st.fig.z)-94;glowAt(fx-4,fy,5,[255,40,20],1);glowAt(fx+6,fy,5,[255,40,20],1);}},
+    update(dt){st.t+=dt;const T=st.t;if(cine.phase2)return phase2(dt);
+      if(T<17)st.car=carAt(Math.max(3,T));cine.cam.x=lerp(cine.cam.x,st.car.x+(T<TC?4.6:0),1-Math.exp(-dt*(T<3.2?50:6)));cine.cam.z=lerp(cine.cam.z,T<TC?-6.2:-3,1-Math.exp(-dt*3));
+      if(T>3&&once('a0'))fade(0);
+      if(T>4&&once('b'))sub('Voicemail from Grandpa Elias. Three days old.');
+      if(T>7.2&&once('c'))sub('"…it already picked you. I’m sorry, kid. Come quick, before the thirty-first."');
+      if(T>9.4&&once('lt')){flashT=1;SFX.thud(0,.9);cam.shake=.15;st.fig={x:st.car.x+7,z:-12.6,dir:'S',a:1};}
+      if(T>9.4&&T<10.2&&st.fig)st.fig.a=flashT>.5?1:0;if(T>10.2&&once('lt2'))st.fig=null;
+      if(T>10.5&&once('d')){st.deer={x:XS-V*(TC-11.6),z:LANE+.1};sub('');}
+      if(T>11.6&&once('e')){SFX.thud(0,.5);cam.shake=.25;sub('Something was lying in the road.');}
+      if(T>12.8&&once('f')){st.mir=1.4;SFX.stinger();sub('Something in the mirror.');}
+      if(st.mir>0){st.mir-=dt;st.fig={x:st.car.x-5.5,z:LANE-.3,dir:'E',a:Math.min(1,st.mir)};if(st.mir<=0)st.fig=null;}
+      if(T>14.2&&once('g')){sub('Nothing. There’s nothing there.');st.fig={x:XS+4.2,z:LANE,dir:'W',a:1};}
+      if(T>15.2&&once('h')){SFX.shriek(0);SFX.horn();}
+      if(T>15.6&&once('h2'))st.fig=null;if(T>16.2&&once('i'))SFX.screech();
+      if(T>17&&once('j')){SFX.crash();cam.shake=1;flashT=1;SFX.engine(false);sub('');st.crashed=true;for(const o of wreck)o.hide=false;burst(HIT.x,HIT.z,26,'#9a9690',2.4,1.4,4);}
+      if(T>17.35&&once('k0'))fade(1);
       if(T>19&&once('k')){SFX.heart(.6);sub('Rain on your face. Blood in your mouth.');}
-      if(T>21.5&&once('l')){cine.custom=null;cine.hidePlayer=false;S.hour=4.6;P.x=-58.6;P.z=-6.4;P.dir='W';P.fx=-1;P.fz=0;H.vis=true;H.x=carPos.x-.6;H.z=carPos.z+1.6;H.state='cutscene';H.clip='crawl';H.dir='W';H.alpha=1;H.rise=1;
-        cine.cam={x:-59.5,z:-5.6};sub('Something climbs off the hood.');SFX.breath(0);fade(0);}
-      return;}
-  },update(dt){if(cine.custom)return;cine.t2=(cine.t2||0)+dt;const k=cine.t2;H.ft+=dt;
+      if(T>21.5&&once('l')){cine.phase2=true;cine.hidePlayer=false;S.hour=4.6;P.x=-58.6;P.z=-4.2;P.dir='S';P.fx=-.3;P.fz=1;H.vis=true;H.x=carPos.x-.6;H.z=carPos.z+1.6;H.state='cutscene';H.clip='crawl';H.dir='W';H.alpha=1;H.rise=1;H.ft=0;
+        cine.cam={x:-59.5,z:-2.6};cine.drawables=null;cine.light=()=>{glowAt(sx(carPos.x-.4),sz(carPos.z+1.2)-20,90,[255,200,140],.45);glowAt(VW*.5,VH*.45,Math.max(VW,VH)*.7,[34,40,62],.5);};sub('Something climbs off the hood.');SFX.breath(0);fade(0);}}};
+  SFX.engine(true);
+  function phase2(dt){cine.t2=(cine.t2||0)+dt;const k=cine.t2;H.ft+=dt;
     if(k<3.5){H.x-=dt*1.1;H.z+=dt*1.6;H.dir='S';}else if(k<6){H.clip='walk';H.dir='W';H.x-=dt*2.6;H.z+=dt*1.4;}
     if(k>2.6&&!cine.s2){cine.s2=1;sub('It crawls away into the trees. It looked back at you.');SFX.whisper(0);}
-    if(k>6.2&&!cine.s3){cine.s3=1;H.vis=false;H.state='gone';fade(1);setTimeout(()=>{finishIntro();fade(0);},900);}}};}
-function drawRoad(g,st,t,dt){const W=VW,H_=VH,base=Math.round(H_*.7),cxs=(W>>1)-Math.round((st.carX-1.7)*PPM*.7)-Math.round(1.7*PPM*.5);
-  const shk=cam.shake>0?Math.round((Math.random()-.5)*cam.shake*8):0;cam.shake=Math.max(0,cam.shake-dt*1.8);
-  const camZ=Math.round(st.carZ*PPM),Y=z=>Math.round(z*PPM)-camZ+base+shk,X=x=>Math.round(x*PPM)+cxs;
-  // grass: LPC tiles with dark patches and ground clutter, scrolling with the road
-  const z0=Math.floor((camZ-base)/32)-1,z1=z0+Math.ceil(H_/32)+2,x0=-Math.ceil(cxs/32)-1,x1=Math.ceil((W-cxs)/32)+1;
-  const dark=(x,z)=>fbm(x*.21+3,z*.21)>.5,dec=SPR.decor&&IMG[SPR.decor.src];
-  for(let j=z0;j<=z1;j++)for(let i=x0;i<=x1;i++){const dx=i*32+cxs,dy=j*32-camZ+base+shk;
-    drawAuto(g,'grass',15,dx,dy,hash(i*3+1,j*7+2));drawAuto(g,'dark',maskAt(dark,i,j),dx,dy,hash(i+11,j+5));
-    const h=hash(i*7+3,j*5+1);if(dec&&h>.6&&Math.abs(i+.5)>5){const r=hash(i+2,j+9),v=r<.5?(r*6|0)%3:r<.7?3+(r*10|0)%2:r<.88?5+(r*10|0)%2:7;g.drawImage(dec,v*16,0,16,16,dx+((hash(i,j+3)*16)|0),dy+((hash(i+5,j)*16)|0),16,16);}}
-  // Marrow Creek crosses under the covered bridge
-  {const cz0=-66,cz1=-61.2;if(Y(cz1)>-20&&Y(cz0)<H_+20){for(let z=cz0;z<cz1;z+=1/32){const y=Y(z),w=Math.sin((z-cz0)/(cz1-cz0)*Math.PI);
-      for(const side of [-1,1]){const xa=X(side*3.6),xb=side<0?0:W;g.fillStyle=w<.25?'#5a4a36':((Math.round(z*32+t*24)%9)<1?'#2f8bb8':'#156c99');g.fillRect(Math.min(xa,xb),y,Math.abs(xb-xa),1);}}}}
-  // the road strip (Blender-rendered asphalt, seamless every 12 m)
-  const R=SPR.road,rim=IMG[R.src];if(rim){const rh=R.fh;let y0=((-camZ+base+shk)%rh+rh)%rh-rh;for(let y=y0;y<H_;y+=rh)g.drawImage(rim,cxs-R.ax,y);}
-  // y-sorted world things, each with a shadow on the ground first
-  const D=[];const top=st.carZ-(base+60)/PPM,bot=st.carZ+(H_-base+260)/PPM;
-  for(const p of st.props)if(p.z>top-12&&p.z<bot){D.push(p);if(p.spr&&!p.bridge&&!p.spr.startsWith('maple')){g.fillStyle='rgba(6,12,6,.32)';g.beginPath();g.ellipse(X(p.x)+8,Y(p.z)+2,p.spr==='cabin'?100:p.spr==='mailbox'?6:18,p.spr==='cabin'?8:6,0,0,Math.PI*2);g.fill();}}
-  if(st.deerZ!==null)D.push({z:st.deerZ,deer:1});
-  if(st.figZ!==null)D.push({z:st.figZ,fig:1});
-  if(st.mirror>0)D.push({z:st.carZ+5.2,mir:1});
-  D.push({z:st.carZ+.1,car:1});D.sort((a,b)=>a.z-b.z);
-  for(const d of D){
-    if(d.car){const f=Math.max(0,Math.min(6,Math.round(st.yaw/.15)));drawSpr('car_drive',X(st.carX),Y(st.carZ),'yaw','S',f);}
-    else if(d.post){const x=X(d.x),y=Y(d.z);g.fillStyle='#1a1a1a';g.fillRect(x-1,y-14,3,15);g.fillStyle='#d8d8d0';g.fillRect(x-1,y-14,3,11);g.fillStyle='#f2c230';g.fillRect(x-1,y-12,3,2);}
-    else if(d.deer){g.save();g.translate(X(.8),Y(d.z));g.rotate(Math.PI/2);drawSpr('deer',0,0);g.restore();}
-    else if(d.fig){drawSpr('hollow',X(.15),Y(d.z),'walk','S',0);}
-    else if(d.mir){drawSpr('hollow',X(.1),Y(d.z),'walk','N',0,{alpha:Math.min(1,st.mirror)});}
-    else{drawSpr(d.spr,X(d.x),Y(d.z),null,null,0,d.big?{scale:1.3}:undefined);if(d.night)drawSpr(d.night,X(d.x),Y(d.z));}}
-  const inBridge=st.carZ<-60.3&&st.carZ>-67.5;
-  // a lightning flash shows it standing in the tree line
-  if(st.flash>0){const f=st.flash;if(f>.55)drawSpr('hollow',X(-6.2),Y(st.carZ-9),'walk','S',0);st.flash=Math.max(0,f-dt*2.6);}
-  if(st.mirror>0)st.mirror-=dt;
-  // light: night ambient, twin headlight beams, tail lights
-  const amb=st.flash>.5?[200,205,235]:st.flash>0?[40+st.flash*120,44+st.flash*120,70+st.flash*120]:[36,42,70];
-  lctx.globalCompositeOperation='source-over';lctx.fillStyle=`rgb(${amb.map(v=>v|0).join(',')})`;lctx.fillRect(0,0,W,H_);lctx.globalCompositeOperation='lighter';
-  const cx=X(st.carX),cy=Y(st.carZ),sn=Math.sin(st.yaw),cs=Math.cos(st.yaw);
-  const nose=(dx,dz)=>[cx+(dx*cs+dz*sn)*PPM,cy+(dx*sn-dz*cs)*PPM];
-  for(const s of [-.62,.62]){const [hx,hy]=nose(s,2.2);coneAt(hx,hy,-Math.PI/2+st.yaw,.3,12*PPM,[255,238,196],inBridge?.2:.75);glowAt(hx,hy,10,[255,240,210],inBridge?.3:.9);}
-  if(inBridge)glowAt(X(0),Y(-60)-30,80,[255,220,170],.35);
-  {const fy=Y(-118),fx=X(-15.5);if(fy>-200&&fy<H_+60)for(const dx of [-58,58])glowAt(fx+dx,fy-60,26,[255,190,110],.9);}
-  glowAt(cx,cy-20,90,[120,110,100],.35);const [tx,ty]=nose(0,-2.2);glowAt(tx,ty,46,[255,26,16],st.mirror>0?.9:.55);
-  if(st.mirror>0)glowAt(X(0),Y(st.carZ+5.2)-40,70,[255,30,20],.6*Math.min(1,st.mirror));
-  if(st.figZ!==null){glowAt(X(.15)-4,Y(st.figZ)-96,5,[255,40,20],1);glowAt(X(.15)+6,Y(st.figZ)-96,5,[255,40,20],1);}
-  g.globalCompositeOperation='multiply';g.drawImage(lightC,0,0);g.globalCompositeOperation='source-over';
-  // foreground: overhanging branches much closer to the camera, so they slide past faster (parallax)
-  if(!st.sil){const m=SPR.pine_1,im=m&&IMG[m.src];if(im){const c=document.createElement('canvas');c.width=m.fw;c.height=m.fh;const q=c.getContext('2d');q.drawImage(im,0,0);q.globalCompositeOperation='source-in';q.fillStyle='#04060a';q.fillRect(0,0,c.width,c.height);st.sil=c;}}
-  if(st.sil){const sp=1.9,per=520;for(let k=-1;k<3;k++){const yy=((-camZ*sp)%per+per)%per+k*per-200;for(const [side,off] of [[-1,0],[1,260]]){const y=Math.round(yy+off)%(per*2)-120;
-      g.globalAlpha=.94;g.drawImage(st.sil,side<0?-st.sil.width*.55:W-st.sil.width*.45,y,st.sil.width*1.8,st.sil.height*1.8);g.globalAlpha=1;}}}
-  // mist + rain + splashes
-  g.strokeStyle='rgba(170,190,220,.33)';g.beginPath();for(let i=0;i<120;i++){const x=(hash(i,1)*W+t*30)%W,y=(hash(i,2)*H_+t*700)%H_;g.moveTo(Math.round(x),Math.round(y));g.lineTo(Math.round(x-2),Math.round(y+8));}g.stroke();
-  g.fillStyle='rgba(200,215,240,.5)';for(let i=0;i<26;i++){const k=Math.floor(t*12+i*7.3);g.fillRect(Math.round(hash(k,i)*W),Math.round(hash(i,k)*H_),1,1);}
-  if(!vig||vig.w!==VW||vig.h!==VH)makeVig();g.drawImage(vig.c,0,0);}
-function finishIntro(){endCine();S.mode='play';S.hour=6.3;H.vis=false;H.state='gone';H.timer=6;P.x=-58.6;P.z=-6.4;P.dir='E';P.fx=1;P.fz=0;
+    if(k>6.2&&!cine.s3){cine.s3=1;H.vis=false;H.state='gone';fade(1);setTimeout(()=>{finishIntro();fade(0);},900);}}}
+function finishIntro(){endCine();fade(0);if($('creator'))$('creator').hidden=true;applyLook();for(const o of OBJ)if(o.kind==='wreck')o.hide=false;S.storm=false;S.introDrive=false;S.mode='play';S.hour=6.3;H.vis=false;H.state='gone';H.timer=6;P.x=-58.6;P.z=-6.4;P.dir='E';P.fx=1;P.fz=0;
   $('hud').hidden=false;$('buttons').hidden=false;ui.obj.hidden=false;toast('Day 1. Dawn. Your car is wrapped around the oak. The farm is east.',4);}
 function escapeCine(){S.mode='cine';$('skip').hidden=false;$('buttons').hidden=true;SFX.engineStart();SFX.engine(true);const st={t:0,x:carPos.x,loops:0};
   cine={hidePlayer:true,cam:{x:st.x,z:-6},custom:null,update(dt){st.t+=dt;st.x-=dt*14;cine.cam.x=st.x;cine.cam.z=-6;
@@ -252,7 +207,7 @@ function escapeCine(){S.mode='cine';$('skip').hidden=false;$('buttons').hidden=t
       toast('The engine dies in front of the farm sign. There is no road out of Marrow Hollow.',4,true);},1000);}},
     draw(){drawSpr('car_side',sx(st.x),sz(-6));}};
   sub('The highway west. The radio plays a hymn you almost know.');}
-$('skip').addEventListener('click',()=>{if(!cine)return;if(S.mode==='cine'&&cine.update&&!cine.draw){fade(1);setTimeout(()=>{finishIntro();fade(0);},500);}else if(cine.draw){S.looped=true;endCine();S.mode='play';$('buttons').hidden=false;}});
+$('skip').addEventListener('click',()=>{if(!cine)return;if(S.mode==='cine'&&cine.update&&!cine.draw){cine.update=null;fade(1);setTimeout(()=>{finishIntro();fade(0);},500);}else if(cine.draw){S.looped=true;endCine();S.mode='play';$('buttons').hidden=false;}});
 /* ================= controls ================= */
 function onAct(){A.init&&A.init();if(S.mode!=='play'||S.paused||P.anim)return;if(ctx.ok&&ctx.act)ctx.act();else if(ctx.label)SFX.deny();}
 function onSeed(){if(S.mode!=='play')return;S.sel=S.sel==='turnip'?'pumpkin':'turnip';if(S.seeds[S.sel]<=0)toast(`No ${SEEDS[S.sel].name.toLowerCase()} seeds. Mae sells them.`,1.6);updateHud();}
@@ -284,9 +239,9 @@ function boot(){resize();addEventListener('resize',()=>{resize();vig=null;});mak
   const list=[...new Set(Object.values(SPR).map(m=>m.src))].concat(Object.values(TS).map(t=>t[0]));
   const lb=$('loadBar'),lt=$('loadTxt');
   loadImages([...new Set(list)],(d,n)=>{lb.style.width=(d/n*100)+'%';lt.textContent='Loading the valley… '+d+' / '+n;}).then(()=>{
-    buildWorld();placeScarecrow(1);spawnMushrooms();resetCat();placeNPCs();
+    buildWorld();buildInteriors();placeScarecrow(1);spawnMushrooms();resetCat();placeNPCs();
     for(const [cx,cz] of[[-6.3,2.2],[1.2,9.4],[48,-9.6],[57,-24],[-14.5,-9]])crows.push({x:cx,z:cz,hx:cx,hz:cz,y:0,state:'perch',t:0,vx:0,vz:0});
-    S.mode='title';$('loadScr').style.opacity=0;setTimeout(()=>$('loadScr').remove(),800);requestAnimationFrame(loop);});
+    applyLook();S.mode='title';$('loadScr').style.opacity=0;setTimeout(()=>$('loadScr').remove(),800);requestAnimationFrame(loop);});
   $('begin').addEventListener('click',()=>{A.init&&A.init();startCine('intro');});
   window.__game={S,P,H,tiles,npcs,act:onAct,tp:(x,z)=>{P.x=x;P.z=z;},setHour:h=>{S.hour=h;},skip:()=>{finishIntro();},get M(){return M;},talk:(id)=>talk(npcById(id)),ev:(c)=>eval(c),big:(w,h)=>{VW=w;VH=h;view.width=w;view.height=h;for(const c of [lightC,fogC,fxC]){c.width=w;c.height=h;}vig=null;window.onresize=null;}};}
 boot();

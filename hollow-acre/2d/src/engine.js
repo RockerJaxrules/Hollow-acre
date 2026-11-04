@@ -32,10 +32,16 @@ function maskAt(fn,x,z){return (fn(x,z)?8:0)|(fn(x+1,z)?4:0)|(fn(x,z+1)?2:0)|(fn
 function chunk(cx,cz){const k=cx+','+cz;let c=chunks.get(k);if(c)return c;
   c=document.createElement('canvas');c.width=CH;c.height=CH;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
   const N=CH/32,x0=cx*N,z0=cz*N;
+  if(x0>=280){g.fillStyle='#0a090c';g.fillRect(0,0,CH,CH);chunks.set(k,c);return c;}
   groundPixels(g,x0,z0,N);
   // Route 9: the Blender-rendered asphalt strip (rotated to run east-west), ending where the farm lane begins
-  const rs=roadStripH();if(rs&&z0*32<(-6+5.2)*32&&(z0+N)*32>(-6-5.2)*32&&x0<-12.5){g.save();g.beginPath();{const ex=(-12.5-x0)*32;g.moveTo(0,0);for(let y=0;y<=CH;y+=4)g.lineTo(ex-Math.round(hash(y+z0*CH,7)*10+fbm(y*.05,z0)*26),y);g.lineTo(0,CH);g.closePath();}g.clip();
-    for(let wx=-120;wx<-12.5;wx+=12){const dx=(wx-x0)*32;if(dx>CH||dx+rs.width<0)continue;g.drawImage(rs,dx,(-6-5-z0)*32);}g.restore();}
+  const rs=roadStripH();if(rs&&z0*32<(-6+5.2)*32&&(z0+N)*32>(-6-5.2)*32&&x0<-12.5){g.save();g.beginPath();{const ex=(-12.5-x0)*32;g.moveTo(0,0);for(let y=0;y<=CH;y+=4)g.lineTo(ex-Math.round(hash(y+z0*CH,7)*10+fbm(y*.05,z0)*26),y);g.lineTo(0,CH);g.closePath();}g.clip();{const bx0=(BRIDGE.x-4.4-x0)*32,bx1=(BRIDGE.x+4.4-x0)*32;g.beginPath();g.rect(-9999,-9999,bx0+9999,99999);g.rect(bx1,-9999,99999,99999);g.clip();}
+    for(let wx=-216;wx<-12.5;wx+=12){const dx=(wx-x0)*32;if(dx>CH||dx+rs.width<0)continue;g.drawImage(rs,dx,(-6-5-z0)*32);}g.restore();}
+  // the bridge deck: worn planks running across, darker toward the walls
+  {const bx0=Math.round((BRIDGE.x-4.45-x0)*32),bx1=Math.round((BRIDGE.x+4.45-x0)*32),bz0=Math.round((-9.3-z0)*32),bz1=Math.round((-2.8-z0)*32);
+   if(bx1>0&&bx0<CH&&bz1>0&&bz0<CH)for(let x=bx0;x<bx1;x++){const pl=Math.floor((x-bx0)/9),k=(x-bx0)%9;for(let y=Math.max(0,bz0);y<Math.min(CH,bz1);y++){const e=Math.min(y-bz0,bz1-1-y)/18;
+     let c=k===8?[46,30,20]:k===0?[128,92,60]:[[96,66,42],[104,72,46],[88,60,38]][(pl+((y>>5)&1))%3];const n=hash(pl*31+(y>>3),x0+z0)*.18+.82;const sh=Math.min(1,.45+e*.6)*n;
+     if(((y+pl*13)%37)===0&&k>2&&k<6)c=[40,28,18];g.fillStyle=`rgb(${c[0]*sh|0},${c[1]*sh|0},${c[2]*sh|0})`;g.fillRect(x,y,1,1);}}}
   // ground clutter: tufts, stones, wildflowers, twigs on open grass
   const dec=SPR.decor&&IMG[SPR.decor.src];
   if(dec)for(let j=0;j<N;j++)for(let i=0;i<N;i++){const X=x0+i,Z=z0+j,h=hash(X*7+3,Z*5+1);if(terr(X+.5,Z+.5)!=='grass')continue;
@@ -109,7 +115,7 @@ function partsDraw(){for(const p of parts){const x=Math.round(sx(p.x)),y=Math.ro
 // ---------- fog/noise textures
 let fogTex=null,grainTex=null;
 function makeFog(){const c=document.createElement('canvas');c.width=256;c.height=256;const g=c.getContext('2d');const id=g.createImageData(256,256);
-  for(let y=0;y<256;y++)for(let x=0;x<256;x++){const v=fbm(x/38,y/38)*.8+fbm(x/12+5,y/12)*.2;const a=clamp((v-.42)*2.4,0,1);const o=(y*256+x)*4;id.data[o]=170;id.data[o+1]=176;id.data[o+2]=196;id.data[o+3]=a*140;}
+  for(let y=0;y<256;y++)for(let x=0;x<256;x++){const F=(X,Y)=>fbm(X/38,Y/38)*.8+fbm(X/12+5,Y/12)*.2,u=x/256,w=y/256;const v=F(x,y)*(1-u)*(1-w)+F(x-256,y)*u*(1-w)+F(x,y-256)*(1-u)*w+F(x-256,y-256)*u*w;const a=clamp((v-.42)*2.4,0,1);const o=(y*256+x)*4;id.data[o]=170;id.data[o+1]=176;id.data[o+2]=196;id.data[o+3]=a*140;}
   g.putImageData(id,0,0);fogTex=c;
   const n=document.createElement('canvas');n.width=128;n.height=128;const ng=n.getContext('2d');const nd=ng.createImageData(128,128);
   for(let i=0;i<128*128;i++){const v=Math.random()*255;nd.data[i*4]=nd.data[i*4+1]=nd.data[i*4+2]=v;nd.data[i*4+3]=22;}ng.putImageData(nd,0,0);grainTex=n;}

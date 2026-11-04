@@ -5,7 +5,7 @@ a = base.index('const LETTER='); b = base.index('/* ================= characters
 story = base[a:b]
 SPR = {}
 SPR.update(json.load(open('spr/lpc/objects.json')))
-for n in ('farmer', 'farmer_hoe', 'farmer_can', 'mae', 'hale', 'tobias', 'hollis', 'agnes', 'dunn', 'ruth', 'hollow'):
+for n in ('farmer', 'farmer_hoe', 'farmer_can', 'farmer_long', 'farmer_long_hoe', 'farmer_long_can', 'farmer_bun', 'farmer_bun_hoe', 'farmer_bun_can', 'farmer_spiky', 'farmer_spiky_hoe', 'farmer_spiky_can', 'farmer_bangs', 'farmer_bangs_hoe', 'farmer_bangs_can', 'mae', 'hale', 'tobias', 'hollis', 'agnes', 'dunn', 'ruth', 'hollow'):
     m = json.load(open(f'spr/lpc/{n}.json')); m['src'] = f'spr/lpc/{n}.png'; SPR[n] = m
 bl = json.load(open('spr/out/sprites.json'))
 for n in ('cat',):
@@ -14,6 +14,7 @@ for k, m in SPR.items():
     if 'foot' not in m: m['foot'] = [0, 0, 0, 0]
 head = head.replace('/* Layout: full-bleed 3D world;', '/* Layout: full-bleed pixel world;')
 css = '''
+[hidden]{display:none!important}
 #view{position:absolute;inset:0;image-rendering:pixelated;image-rendering:crisp-edges;display:block}
 #joy{opacity:0;transition:opacity .15s}#joy.on{opacity:1}
 #scare{image-rendering:pixelated}
@@ -32,6 +33,6 @@ head = head.replace('<div class="small">Headphones on, silent mode off.</div>', 
 head = head.replace('<div><b>Right thumb</b> drag to look. Your lantern follows your eyes.</div>', '<div><b>Your lantern</b> shines where you walk. Point it at what hunts you.</div>')
 head = head.replace('<div><b>Left thumb</b> walk. Push far to run.</div>', '<div><b>Drag anywhere</b> to walk. Push far to run.</div>')
 loader = '<div id="loadScr" role="status" aria-live="polite"><div class="lt">Hollow Acre</div><div class="lb"><i id="loadBar"></i></div><div class="ls" id="loadTxt">Loading the valley…</div></div>\n'
-js = 'const SPR=' + json.dumps(SPR) + ';\n' + open('g2d/audio.js').read() + '\n' + open('g2d/world.js').read() + '\n' + open('g2d/engine.js').read() + '\n' + open('g2d/game.js').read().replace('//@@STORY@@', story) + '\n' + open('g2d/main.js').read() + '\n' + open('g2d/mind.js').read() + '\n' + open('g2d/life.js').read() + '\n' + open('g2d/social.js').read() + '\n' + open('g2d/farm.js').read()
-out = loader + head + '\n<script>\n(function(){\n"use strict";\n' + js + '\n})();\n</script>\n'
+js = 'const SPR=' + json.dumps(SPR) + ';\n' + open('g2d/audio.js').read() + '\n' + open('g2d/world.js').read() + '\n' + open('g2d/engine.js').read() + '\n' + open('g2d/game.js').read().replace('//@@STORY@@', story) + '\n' + open('g2d/main.js').read() + '\n' + open('g2d/mind.js').read() + '\n' + open('g2d/life.js').read() + '\n' + open('g2d/social.js').read() + '\n' + open('g2d/farm.js').read() + '\n' + open('g2d/interior.js').read() + '\n' + open('g2d/custom.js').read()
+out = '<meta charset="utf-8">\n' + loader + head + '\n<script>\n(function(){\n"use strict";\n' + js + '\n})();\n</script>\n'
 open('hollow-acre-2d.html', 'w').write(out); print(len(out))

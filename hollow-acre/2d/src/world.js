@@ -5,7 +5,7 @@ const FIELD={x0:-5,z0:0,w:10,h:8};
 const CORN={x0:-15,x1:11,z0:11.5,z1:24};
 const inCorn=(x,z)=>x>CORN.x0&&x<CORN.x1&&z>CORN.z0&&z<CORN.z1;
 const pond={x:-30,z:24.5,r:7.5};
-const wellPos={x:7.3,z:-10.5},binPos={x:-3.6,z:-8.6},doorPos={x:0,z:-8.9},carPos={x:-60.2,z:-1.4},pumpPos={x:-28,z:-10.4},boothPos={x:44.5,z:-9.6};
+const wellPos={x:7.3,z:-10.5},binPos={x:-3.6,z:-8.6},doorPos={x:0,z:-8.9},carPos={x:-60.2,z:-1.4},pumpPos={x:-30.5,z:-10.3},boothPos={x:44.5,z:-9.6};
 const crossPos={x:20,z:19},boardPos={x:52,z:-9.4},tsPos={x:27.5,z:-8.4},farmSignPos={x:-13.4,z:-10.1},squarePos={x:48,z:-6};
 const fishSpot={x:pond.x,z:pond.z-pond.r+3.6};
 const ALTAR_POS=[[-27,8,'west woods'],[-2,29,'cornfield'],[64,-32,'churchyard']];
@@ -19,7 +19,7 @@ const ridgeH=x=>x<RIDGE.x0||x>RIDGE.x1?0:RIDGE.h*clamp(Math.min(x-RIDGE.x0,RIDGE
 const onPlateau=(x,z)=>ridgeH(x)>.2&&z<ridgeZ(x);
 // ---------- Marrow Creek: falls off the ridge, under the covered bridge on Route 9, down to the pond
 const CREEK=[[-19,-30],[-19.2,-22.3],[-21,-17],[-23,-12],[-24,-6],[-27,-1],[-33,4],[-35,10],[-35,15],[-33.4,18.2],[-31.6,20.6]];
-const BRIDGE={x:-24,z:-2.8},FOOT={x:-35,z:12.4};
+const BRIDGE={x:-24.5,z:-2.8},FOOT={x:-35,z:12.4};
 function creekDist(x,z){let d=1e9;for(let i=0;i<CREEK.length-1;i++){const a=CREEK[i],b=CREEK[i+1];d=Math.min(d,segDist(x,z,a[0],a[1],b[0],b[1]));}return d;}
 const creekW=(x,z)=>1.15+(fbm(x*.4+9,z*.4)-.5)*.7;
 const inCreek=(x,z)=>creekDist(x,z)<creekW(x,z)&&!(onPlateau(x,z)&&z>ridgeZ(x)-.6);
@@ -73,6 +73,13 @@ function clearSpot(x,z,m){m=m||0;
   return true;}
 // ---------- world objects: {spr, x, z, flip?, night?, kind?, alpha?, hide?}
 const OBJ=[];
+// a bush may not sit on anything solid: fences, trees, props, buildings
+function footBox(o){const m=SPR[o.spr];if(!m)return null;let f=m.foot&&(m.foot[0]||m.foot[2])?m.foot:null;
+  if(!f){const hw=Math.min(1.2,m.fw/PPM*.35);f=[-hw,-Math.min(.6,hw*.6),hw,.05];}
+  if(o.kind==='tree'||o.kind==='pine')f=[-.5,-.4,.5,.2];if(o.kind==='fence')f=o.spr.endsWith('_h')?[-.1,-.25,(o.clipw||2)+.1,.15]:[-.25,-1.1,.25,.1];
+  return [o.x+f[0],o.z+f[1],o.x+f[2],o.z+f[3]];}
+function bushOK(x,z){const A=[x-.6,z-.45,x+.6,z+.15];for(const o of OBJ){if(['deco','anim','flat','corn','grass'].includes(o.kind))continue;if(Math.abs(o.x-x)>6||Math.abs(o.z-z)>8)continue;const C=footBox(o);if(!C)continue;
+  if(Math.min(A[2],C[2])>Math.max(A[0],C[0])&&Math.min(A[3],C[3])>Math.max(A[1],C[1]))return false;}return true;}
 function obj(spr,x,z,o){const e=Object.assign({spr,x,z},o||{});OBJ.push(e);return e;}
 function solid(e,shrink){const m=SPR[e.spr];if(!m||!m.foot)return;const f=m.foot;const s=shrink===undefined?.05:shrink;
   if(f[2]-f[0]<.05&&f[3]-f[1]<.05)return;addRect(e.x+f[0]+s,e.z+f[1]+s,e.x+f[2]-s,e.z+f[3]-s);}
@@ -91,7 +98,7 @@ function buildWorld(){
   put('jack_b',-1.6,-8.85,.25,{glow:1});
   // porch-side: shipping crate by the door, rain barrels at the left corner, firewood + chopping block at the right
   put('crate',binPos.x,binPos.z,0,{kind:'bin'});addRect(binPos.x-.5,binPos.z-.6,binPos.x+.5,binPos.z);
-  put('barrel',-4.1,-9.55,.33);put('barrel',-4.75,-9.95,.33);put('sacks',-4.5,-8.85);
+  put('barrel',-4.1,-9.55,.33);put('barrel',-4.75,-9.95,.33);put('sacks',-5.35,-8.8);
   put('firewood',4.5,-9.7);addRect(3.8,-10.2,5.2,-9.6);
   put('well',wellPos.x,wellPos.z+.9);addCircle(wellPos.x,wellPos.z+.4,1.05);reserve(wellPos.x-1.6,wellPos.z-1.3,wellPos.x+1.6,wellPos.z+1.6);
   // two old trees framing the house, a grove behind it under the ridge
@@ -115,7 +122,7 @@ function buildWorld(){
   building('house_c',31,3.6);building('house_b',40,3.6);building('house_c',57,3.6,{lit:false});building('house_d',66,3.6,{lit:false});
   // side yards: picket runs between the houses, store goods stacked by the door
   fenceLine(35.6,-9.6,35.6,-13.8,0,'picket');fenceLine(61.5,-9.6,61.5,-13.8,0,'picket');fenceLine(35.6,-.6,35.6,3.4,0,'picket');fenceLine(61.5,-.6,61.5,3.4,0,'picket');
-  put('crate',34.9,-9.0,.3);put('sacks',34.6,-8.55);put('barrel',26.9,-9.3,.3);put('barrel',27.5,-8.8,.3);put('hay',26.6,-11.6);addRect(25.8,-12.8,27.4,-11.7);
+  put('crate',34.9,-9.0,.3);put('sacks',32.55,-8.6);put('barrel',26.9,-9.3,.3);put('barrel',27.5,-8.8,.3);put('hay',26.6,-11.6);addRect(25.8,-12.8,27.4,-11.7);
   // street lamps on the kerbs, never in the road
   for(const x of[27,36.4,45.8,50.2,61,70])lamp(x,-8.5);for(const x of[27,36.4,61,70])lamp(x,-3.5);for(const x of[36.4,48,61])lamp(x,6.5);
   put('phone_booth',boothPos.x,boothPos.z+.5,0,{night:'phone_booth_n',kind:'booth'});addRect(boothPos.x-.55,boothPos.z-.4,boothPos.x+.55,boothPos.z+.5);
@@ -129,22 +136,22 @@ function buildWorld(){
   reserve(53.5,-34,70,-20.5);
   // garage + pump on the west road, the widow's house north of the highway
   building('garage',-36,-10.6,{lit:true});put('gas_pump',pumpPos.x,pumpPos.z+1.6,0,{night:'gas_pump_n'});addCircle(pumpPos.x-.4,pumpPos.z,.35);addCircle(pumpPos.x+.4,pumpPos.z,.35);
-  put('barrel',-31.8,-11.2,.3);put('barrel',-31,-10.8,.3);put('crate',-40.8,-10.9,.3);put('firewood',-41.6,-12);
+  put('barrel',-31.6,-11.9,.3);put('barrel',-31.1,-11.5,.3);put('crate',-40.8,-10.9,.3);put('firewood',-41.6,-12);
   building('house_a',-46,-9.6,{jack:1});
   // crossroads shrine
   put('signpost',crossPos.x-1.6,crossPos.z-1.2,.2,{label:'FARM'});
   // ---------- Marrow Creek: covered bridge on Route 9, footbridge in the west woods, falls off the ridge
-  put('cbridge',BRIDGE.x,BRIDGE.z,0,{night:'cbridge_n',kind:'bld'});addSeg(BRIDGE.x-2.9,-9.1,BRIDGE.x+2.9,-9.1,.15);addSeg(BRIDGE.x-2.9,-2.9,BRIDGE.x+2.9,-2.9,.15);
+  put('cbridge',BRIDGE.x,BRIDGE.z,0,{night:'cbridge_n',kind:'bld'});addSeg(BRIDGE.x-4.7,-9.1,BRIDGE.x+4.7,-9.1,.15);addSeg(BRIDGE.x-4.7,-2.9,BRIDGE.x+4.7,-2.9,.15);
   put('footbridge',FOOT.x,FOOT.z,0,{kind:'flat'});put('dock',pond.x,pond.z-pond.r+1.85,0,{kind:'flat'});
   obj('falls',-19.2,ridgeZ(-19.2)+RIDGE.h+.15,{kind:'anim',fps:8});
-  {const skip=(x,z)=>(Math.abs(z+6)<3.1&&Math.abs(x-BRIDGE.x)<3.4)||(Math.abs(z-FOOT.z)<.75&&Math.abs(x-FOOT.x)<2);
+  {const skip=(x,z)=>(Math.abs(z+6)<3.1&&Math.abs(x-BRIDGE.x)<5.2)||(Math.abs(z-FOOT.z)<.75&&Math.abs(x-FOOT.x)<2);
     for(let i=0;i<CREEK.length-1;i++){const a=CREEK[i],b=CREEK[i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.ceil(L/.8);
       for(let k=0;k<n;k++){const x1=lerp(a[0],b[0],k/n),z1=lerp(a[1],b[1],k/n),x2=lerp(a[0],b[0],(k+1)/n),z2=lerp(a[1],b[1],(k+1)/n);if(skip(x1,z1)||skip(x2,z2))continue;addSeg(x1,z1,x2,z2,.95);}}}
   // the ridge face blocks the way north
   for(let x=RIDGE.x0;x<RIDGE.x1;x+=.8){if(ridgeH(x)<.3)continue;addSeg(x,ridgeZ(x)+.9,x+.8,ridgeZ(x+.8)+.9,.5);}
   // ---------- the farm: red barn + silo east of the field, windpump, mailbox, hens
   building('barn',16,-9.6,{porch:false});put('silo',20.6,-12.6,.8);reserve(11.5,-15,22,-8.6);
-  put('hay',11.5,-10.4);addRect(10.8,-11.6,12.3,-10.4);put('hay',11.5,-8.9);addRect(10.8,-10.1,12.3,-9);put('cart',21.4,-8.7);addRect(20.6,-9.3,22.2,-8.7);put('hay',12.2,-1.0);
+  put('hay',11.5,-10.4);addRect(10.8,-11.6,12.3,-10.4);put('hay',11.5,-8.9);addRect(10.8,-10.1,12.3,-9);put('cart',21.4,-8.7);addRect(20.2,-9.3,22.6,-8.7);put('hay',12.2,-1.0);
   fenceLine(8.5,-3.9,13.5,-3.9);fenceLine(8.5,-3.9,8.5,-.2);fenceLine(13.5,-3.9,13.5,-.2);fenceLine(8.5,-.2,10,-.2);fenceLine(12,-.2,13.5,-.2);reserve(8,-4.4,14,.4);
   // ---------- planted trees: an avenue along the lane into town, the church walk, the crossroads, the pond's east bank
   {let k=0;for(const [x,z] of [[23.2,-2.6],[23.6,-9.6]]){const n=['maple_red','maple_orange','maple_gold'][k++%3];obj(n,x,z,{kind:'tree',solid:1});addCircle(x,z,.4);}}
@@ -156,12 +163,12 @@ function buildWorld(){
   scatter(45,3.6,()=>{const r=rand();return r<.34?'maple_orange':r<.6?'maple_red':r<.82?'maple_gold':'maple_green';},(x,z)=>{const woods=(x<-14&&z>4)||(z>26&&x<30)||(x>10&&x<26&&z>8&&z<16)||onPlateau(x,z);return woods&&x>B.x0+1&&x<B.x1-1&&z>B.z0+1&&z<B.z1-1&&clearSpot(x,z,1.4);},.32);
   // bushes hugging fences, yards and the edges of the woods; tall grass in the meadows
   for(const h of OBJ.filter(o=>o.kind==='bld')){const m=SPR[h.spr];if(!m||!m.foot)continue;for(const side of [-1,1]){if(rand()<.25)continue;
-      const x=h.x+(side<0?m.foot[0]-.7:m.foot[2]+.7),z=h.z-.4-rand()*1.2;if(terr(x,z)!=='grass')continue;obj(['bush_green','bush_red','bush_gold'][(rand()*3)|0],x,z,{kind:'bush'});addCircle(x,z-.15,.55);}}
+      const x=h.x+(side<0?m.foot[0]-.7:m.foot[2]+.7),z=h.z-.4-rand()*1.2;if(terr(x,z)!=='grass')continue;if(bushOK(x,z)){obj(['bush_green','bush_red','bush_gold'][(rand()*3)|0],x,z,{kind:'bush'});addCircle(x,z-.15,.55);}}}
   for(const f of OBJ.filter(o=>o.kind==='fence'))if(rand()<.16){const x=f.x+(rand()-.5)*1.2,z=f.z+.7;if(terr(x,z)!=='grass'||!clearSpot(x,z,-.3)||OBJ.some(o=>o.kind==='bush'&&Math.hypot(o.x-x,o.z-z)<2))continue;
-      obj(['bush_green','bush_red','bush_gold'][(rand()*3)|0],x,z,{kind:'bush'});addCircle(x,z-.15,.55);}
+      if(bushOK(x,z)){obj(['bush_green','bush_red','bush_gold'][(rand()*3)|0],x,z,{kind:'bush'});addCircle(x,z-.15,.55);}}
   for(let i=0;i<2500&&OBJ.filter(o=>o.kind==='bush').length<130;i++){const x=lerp(B.x0+2,B.x1-2,rand()),z=lerp(B.z0+2,B.z1-2,rand());
     if(terr(x,z)!=='grass'||!LAYERS.dark(x,z+1)||!clearSpot(x,z,.2)||OBJ.some(o=>(o.kind==='bush'||o.kind==='tree')&&Math.hypot(o.x-x,o.z-z)<1.8))continue;
-    obj(['bush_green','bush_red','bush_gold'][(rand()*3)|0],x,z,{kind:'bush'});addCircle(x,z-.15,.55);}
+    if(bushOK(x,z)){obj(['bush_green','bush_red','bush_gold'][(rand()*3)|0],x,z,{kind:'bush'});addCircle(x,z-.15,.55);}}
   {const FENCES=OBJ.filter(o=>o.kind==='fence'),edgeOK=(x,z)=>{
       if(creekDist(x,z)<2.6&&creekDist(x,z)>1.3)return true;                                   // creek banks
       if(ridgeH(x)>.3&&z>ridgeZ(x)+RIDGE.h&&z<ridgeZ(x)+RIDGE.h+1.6)return true;               // foot of the cliff
@@ -177,6 +184,10 @@ function buildWorld(){
   for(let x=CORN.x0+.5;x<CORN.x1;x+=.9)for(let z=CORN.z0+.5;z<CORN.z1;z+=.8){if(Math.abs(x+.5)<1&&z<20)continue;if(rand()<.05)continue;obj('corn_'+((rand()*3)|0),x+(rand()-.5)*.12,z,{kind:'corn'});}
   addSeg(pond.x-.95,pond.z-pond.r-.6,pond.x-.95,pond.z-pond.r+4.2,.1);addSeg(pond.x+.95,pond.z-pond.r-.6,pond.x+.95,pond.z-pond.r+4.2,.1);addSeg(pond.x-.95,pond.z-pond.r+4.2,pond.x+.95,pond.z-pond.r+4.2,.1);
   addRect(B.x0-12,B.z0-14,B.x1+12,B.z0-.5);addRect(B.x0-12,B.z1+.5,B.x1+12,B.z1+14);addRect(B.x1+2.5,B.z0-14,B.x1+14,B.z1+14);
+  // Route 9 west of the valley: only ever seen from the car on the night you arrive
+  for(let x=-196;x<-75;x+=1.7+rand()*1.6)for(const side of [-1,1]){if(rand()<.18)continue;const z=side<0?-11.2-rand()*5.5:-.6+rand()*5.5;const r=rand();
+    const sp=r<.07?'deadtree':r<.32?['maple_orange','maple_red','maple_gold'][(rand()*3)|0]:['pine_0','pine_1','pine_o0','pine_o1'][(rand()*4)|0];obj(sp,x+(rand()-.5),z,{kind:sp.startsWith('pine')?'pine':'tree'});}
+  put('mailbox',-121,-9.7);put('signpost',-88,-10.2);
   addRect(B.x0-20,B.z0-14,B.x0-6.5,-9);addRect(B.x0-20,-3,B.x0-6.5,B.z1+14);
 }
 const lamps=[];

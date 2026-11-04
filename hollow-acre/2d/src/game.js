@@ -30,7 +30,7 @@ const crows=[];
 const scare={x:6.9,z:4,vis:true};
 const pageEnts=PAGES.map((pg,i)=>({x:pg.x,z:pg.z,i}));
 const mushrooms=[];for(let i=0;i<12;i++)mushrooms.push({x:0,z:0,taken:true});
-function spawnMushrooms(){for(const m of mushrooms){let x,z,k=0;do{x=lerp(-70,-16,rand());z=lerp(6,38,rand());k++;}while(k<60&&(!clearSpot(x,z,.5)||Math.hypot(x-pond.x,z-pond.z)<pond.r+2));m.x=x;m.z=z;m.taken=false;}}
+function spawnMushrooms(){for(const m of mushrooms){let x,z,k=0;do{x=lerp(-70,-16,rand());z=lerp(6,38,rand());k++;}while(k<60&&(!clearSpot(x,z,.5)||!bushOK(x,z)||Math.hypot(x-pond.x,z-pond.z)<pond.r+2));m.x=x;m.z=z;m.taken=false;}}
 function placeScarecrow(day){const sp=SCARE_SPOTS[Math.min(day-1,SCARE_SPOTS.length-1)];scare.x=sp[0];scare.z=sp[1];}
 function resetCat(){cat.vis=true;cat.x=lerp(CORN.x0+1,CORN.x1-1,rand());cat.z=lerp(CORN.z0+1,CORN.z1-1,rand());}
 function placeNPCs(){const night=S.hour>=20&&!S.bound;for(const n of npcs){const d=n.def;

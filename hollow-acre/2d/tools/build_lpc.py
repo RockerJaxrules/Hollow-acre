@@ -137,6 +137,7 @@ for n in ('gas_pump', 'phone_booth', 'board'):
     import os as _o
     if _o.path.exists(f'spr/px2/{n}_n.png'): shutil.copy(f'spr/px2/{n}_n.png', f'{OUT}/{n}_n.png'); META[n + '_n'] = dict(META[n], src=f'{OUT}/{n}_n.png')
 # Kenney Car Kit sedan (CC0), rendered in Blender: driving frames + side view
+_m = json.load(open('spr/px2/car_east.json')); META['car_east'] = _m
 _m = json.load(open('spr/px2/car_drive.json')); shutil.copy('spr/px2/car_drive.png', f'{OUT}/car_drive.png'); META['car_drive'] = dict(_m, src=f'{OUT}/car_drive.png')
 _i = Image.open('spr/px2/car_side.png'); _m = json.load(open('spr/px2/car_side.json')); _i.save(f'{OUT}/car_side.png')
 META['car_side'] = dict(src=f'{OUT}/car_side.png', fw=_i.width, fh=_i.height, ax=_m['anchor'][0], ay=_m['anchor'][1])
@@ -153,17 +154,18 @@ for _n in ('house_a', 'house_b', 'house_c', 'house_d', 'cabin', 'store', 'garage
 
 # ---- props + fences drawn in LibreSprite (px/props.js)
 _PROPS = {'fence_h': (0, 22), 'fence_v': (7, 66), 'picket_h': (0, 23), 'picket_v': (7, 66), 'lamp': None, 'phone_booth': None, 'board': None, 'gas_pump': None,
-          'signpost': None, 'barrel': None, 'crate': None, 'hay': None, 'sacks': None, 'cart': None, 'well': None}
+          'signpost': None, 'barrel': None, 'crate': None, 'hay': None, 'sacks': None, 'cart': None, 'well': None, 'firewood': None}
 for _n, _a in _PROPS.items():
     _d = Image.open(f'px/out/{_n}.png').convert('RGBA'); _nf = f'px/out/{_n}_n.png'
     _old = META.get(_n, {}); _foot = _old.get('foot', [0, 0, 0, 0])
+    if _n == 'cart': _foot = [-1.2, -.5, 1.2, 0]
     save(_n, _d, _foot, anchor=_a or (_d.width / 2, _d.height - 3), night=Image.open(_nf).convert('RGBA') if os.path.exists(_nf) else None)
 
 # ---- terrain + landmarks (px/worldart.js)
-for _n, _a, _f in (('cbridge', 'b', [-2.9, -6.2, 2.9, 0]), ('barn', 'b', [-3.4, -3.4, 3.4, 0]), ('silo', 'b', [-.8, -.8, .8, 0]), ('windpump', 'b', [-.5, -.4, .5, 0]),
+for _n, _a, _f in (('cbridge', 'B', [-4.7, -6.2, 4.7, 0]), ('barn', 'b', [-3.4, -3.4, 3.4, 0]), ('silo', 'b', [-.8, -.8, .8, 0]), ('windpump', 'b', [-.5, -.4, .5, 0]),
                    ('mailbox', 'b', [-.15, -.1, .15, 0]), ('footbridge', 'c', [0, 0, 0, 0]), ('dock', 'c', [0, 0, 0, 0]), ('cportal', 'b', [-3.6, -7, 3.6, 0])):
     _d = Image.open(f'px/out/{_n}.png').convert('RGBA'); _nf = f'px/out/{_n}_n.png'
-    save(_n, _d, _f, anchor=(_d.width / 2, _d.height - 3) if _a == 'b' else (_d.width / 2, _d.height / 2), night=Image.open(_nf).convert('RGBA') if os.path.exists(_nf) else None)
+    save(_n, _d, _f, anchor=(_d.width / 2, _d.height - 17) if _a == 'B' else (_d.width / 2, _d.height - 3) if _a == 'b' else (_d.width / 2, _d.height / 2), night=Image.open(_nf).convert('RGBA') if os.path.exists(_nf) else None)
 for _n in ('maple_orange', 'maple_red', 'maple_gold', 'maple_green', 'bush_green', 'bush_red', 'bush_gold'):
     _d = Image.open(f'px/out/{_n}.png').convert('RGBA'); save(_n, _d, [-.4, -.3, .4, .1], anchor=(_d.width / 2, _d.height - (6 if _n.startswith('maple') else 4)))
 for _n, _nf in (('falls', 4), ('blades', 4), ('chicken', 3), ('butterfly', 2), ('tgrass', 2), ('tgold', 2)):
@@ -171,5 +173,11 @@ for _n, _nf in (('falls', 4), ('blades', 4), ('chicken', 3), ('butterfly', 2), (
     _d.save(f'{OUT}/{_n}.png'); META[_n] = dict(src=f'{OUT}/{_n}.png', fw=_fw, fh=_d.height, ax=_fw / 2, ay=_d.height - (1 if _n in ('chicken', 'butterfly') else 2), clips={'a': {'S': [0, _nf]}}, foot=[0, 0, 0, 0])
 for _n in ('cliff', 'decor', 'tex_grass', 'tex_forest', 'tex_dirt', 'tex_stone', 'tex_water'):
     _d = Image.open(f'px/out/{_n}.png').convert('RGBA'); _d.save(f'{OUT}/{_n}.png'); META[_n] = dict(src=f'{OUT}/{_n}.png', fw=_d.width, fh=_d.height, ax=0, ay=0, foot=[0, 0, 0, 0])
+# ---- interiors (px/interior.js)
+_im = json.load(open('px/out/interior_meta.json'))
+for _n, _m in _im.items():
+    _d = Image.open(f'px/out/{_n}.png').convert('RGBA'); _d.save(f'{OUT}/{_n}.png')
+    if _n.startswith('room_'): META[_n] = dict(src=f'{OUT}/{_n}.png', fw=_d.width, fh=_d.height, ax=0, ay=0, foot=[0, 0, 0, 0], side=_m['side'], top=_m['top'], room=_m['room'])
+    else: META[_n] = dict(src=f'{OUT}/{_n}.png', fw=_d.width, fh=_d.height, ax=_d.width / 2, ay=_d.height - 3, foot=[0, 0, 0, 0])
 json.dump(META, open('spr/lpc/objects.json', 'w'), indent=0)
 print(len(META), 'objects')
