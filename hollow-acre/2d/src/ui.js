@@ -13,7 +13,7 @@
   .sheet::before,.sheet::after{content:'';position:absolute;width:22px;height:22px;background:url(${L1}) 0 0/22px 22px;image-rendering:pixelated;top:-8px;left:-8px;transform:rotate(-20deg)}
   .sheet::after{background-image:url(${L2});left:auto;right:-8px;top:-8px;transform:rotate(25deg)}
   .sheet h2,.screen h1{font-family:'Pixelify Sans',monospace!important;letter-spacing:.04em;color:var(--ember)!important;text-shadow:2px 2px 0 var(--px-dark)}
-  .btn,.close,.buy,#hotbar .slot,.chip{background:var(--px-wood)!important;color:var(--bone)!important;border:0!important;box-shadow:inset 0 0 0 2px var(--px-dark),inset 0 0 0 4px var(--px-wood2),inset 0 -6px 0 0 rgba(0,0,0,.25)!important;text-shadow:1px 1px 0 #000}
+  .btn,.close,.buy,#hotbar .slot,.chip:not(.sw){background:var(--px-wood)!important;color:var(--bone)!important;border:0!important;box-shadow:inset 0 0 0 2px var(--px-dark),inset 0 0 0 4px var(--px-wood2),inset 0 -6px 0 0 rgba(0,0,0,.25)!important;text-shadow:1px 1px 0 #000}
   .close.hot,.btn.hot,.begin,#btnAct.hot{background:#a8502a!important;box-shadow:inset 0 0 0 2px var(--px-dark),inset 0 0 0 4px #e8903a,inset 0 -6px 0 0 rgba(0,0,0,.25)!important}
   .begin{color:var(--bone)!important;border:0!important;font-family:'Pixelify Sans',monospace!important;letter-spacing:.08em}
   .buy:disabled,.close:disabled{opacity:.45}
@@ -26,6 +26,7 @@
   #joy .ring,#joy{border-radius:50%}
   @media (min-width:900px){#hotbar{left:50%!important;transform:translateX(-50%) scale(1.25);transform-origin:bottom center;bottom:18px!important}#hotbar .slot{width:44px!important;height:44px!important}
     #btnBag{bottom:24px!important;left:16px!important}#btnJournal{bottom:24px!important;left:80px!important}.sheet{width:min(560px,80vw)!important}}
+  #creator .chip.sw{border:0!important;box-shadow:inset 0 0 0 2px #140a04,inset 0 0 0 4px rgba(255,255,255,.18)!important}#creator .chip.sw.on{outline:3px solid var(--ember)!important;outline-offset:2px}
   #pcHint{font-size:12px;opacity:.7;margin-top:6px}`;document.head.appendChild(css);
   // a little falling leaf drifting across the title screen
   const ts=$('title');if(ts){const h=document.createElement('div');h.id='pcHint';h.className='small';h.textContent='On a computer: WASD or arrows to walk · Space / E / click to act · 1-6 hotbar · B bag · J journal · F fullscreen';ts.appendChild(h);}}

@@ -154,7 +154,7 @@ for _n in ('house_a', 'house_b', 'house_c', 'house_d', 'cabin', 'store', 'garage
 
 # ---- props + fences drawn in LibreSprite (px/props.js)
 _PROPS = {'fence_h': (0, 22), 'fence_v': (7, 66), 'picket_h': (0, 23), 'picket_v': (7, 66), 'lamp': None, 'phone_booth': None, 'board': None, 'gas_pump': None,
-          'signpost': None, 'barrel': None, 'crate': None, 'hay': None, 'sacks': None, 'cart': None, 'well': None, 'firewood': None, 'rock_0': None, 'rock_1': None, 'weeds_0': None, 'weeds_1': None, 'twig': None, 'stump': None, 'deer_dead': None, 'doornote': None, 'icon_hoe': None, 'icon_can': None, 'icon_pick': None, 'icon_axe': None, 'icon_seed': None, 'icon_food': None, 'ore_stone': None, 'ore_copper': None, 'ore_iron': None, 'ore_coal': None, 'ore_gem': None, 'ladder': None}
+          'signpost': None, 'barrel': None, 'crate': None, 'hay': None, 'sacks': None, 'cart': None, 'well': None, 'firewood': None, 'rock_0': None, 'rock_1': None, 'weeds_0': None, 'weeds_1': None, 'twig': None, 'stump_maple': None, 'stump_pine': None, 'stump_oak': None, 'pumpkin': None, 'pumpkin_b': None, 'jack': None, 'jack_b': None, 'jack_c': None, 'deer_dead': None, 'doornote': None, 'icon_hoe': None, 'icon_can': None, 'icon_pick': None, 'icon_axe': None, 'icon_seed': None, 'icon_food': None, 'ore_stone': None, 'ore_copper': None, 'ore_iron': None, 'ore_coal': None, 'ore_gem': None, 'ladder': None}
 for _n, _a in _PROPS.items():
     _d = Image.open(f'px/out/{_n}.png').convert('RGBA'); _nf = f'px/out/{_n}_n.png'
     _old = META.get(_n, {}); _foot = _old.get('foot', [0, 0, 0, 0])
@@ -179,5 +179,26 @@ for _n, _m in _im.items():
     _d = Image.open(f'px/out/{_n}.png').convert('RGBA'); _d.save(f'{OUT}/{_n}.png')
     if _n.startswith('room_'): META[_n] = dict(src=f'{OUT}/{_n}.png', fw=_d.width, fh=_d.height, ax=0, ay=0, foot=[0, 0, 0, 0], side=_m['side'], top=_m['top'], room=_m['room'])
     else: META[_n] = dict(src=f'{OUT}/{_n}.png', fw=_d.width, fh=_d.height, ax=_d.width / 2, ay=_d.height - 3, foot=[0, 0, 0, 0])
+
+# ---- volume pass for props and furniture: a lit rim along every top edge, a shaded right side, shading that darkens toward the ground.
+import numpy as _np
+def _volumize(path):
+    im = Image.open(path).convert('RGBA'); a = _np.asarray(im).astype(_np.float32); H, W = a.shape[:2]; al = a[..., 3] > 0
+    lum = a[..., :3].mean(-1); body = al & (lum > 42)
+    up = _np.zeros_like(al); up[1:] = ~al[:-1]; up[0] = True
+    rt = _np.zeros_like(al); rt[:, :-1] = ~al[:, 1:]; rt[:, -1] = True
+    rt2 = _np.zeros_like(al); rt2[:, :-2] = ~al[:, 2:]
+    ys = _np.nonzero(al.any(1))[0]
+    if not len(ys): return
+    y0, y1 = ys[0], ys[-1]; t = ((_np.arange(H) - y0) / max(1, y1 - y0)).clip(0, 1)[:, None]
+    k = _np.ones((H, W), _np.float32)
+    k *= 1.06 - .2 * t ** 1.6                       # ambient occlusion toward the ground
+    k = _np.where(up & body, k * 1.22, k)          # top rims catch the light
+    k = _np.where(rt & body, k * .78, k); k = _np.where(rt2 & body & ~rt, k * .9, k)   # shaded right flank
+    out = a.copy(); out[..., :3] = _np.where(body[..., None], (a[..., :3] * k[..., None] + _np.where(up & body, 6, 0)[..., None]).clip(0, 255), a[..., :3])
+    Image.fromarray(out.astype(_np.uint8), 'RGBA').save(path)
+for _n in ['barrel', 'crate', 'hay', 'sacks', 'cart', 'board', 'well', 'firewood', 'mailbox', 'signpost', 'gas_pump', 'phone_booth', 'lamp', 'picket_h', 'fence_h', 'pumpkin', 'pumpkin_b', 'jack', 'jack_b', 'jack_c',
+           'stump_maple', 'stump_pine', 'stump_oak'] + [k for k in META if k.startswith('in_') and k not in ('in_rug', 'in_cellar', 'in_mirror', 'in_mirror_n')]:
+    if _n in META: _volumize(META[_n]['src'])
 json.dump(META, open('spr/lpc/objects.json', 'w'), indent=0)
 print(len(META), 'objects')

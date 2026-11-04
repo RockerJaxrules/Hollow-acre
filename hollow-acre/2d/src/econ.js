@@ -170,11 +170,11 @@ function treeChop(){for(const o of OBJ){if(o.hide||(o.kind!=='tree'&&o.kind!=='p
     startAnim('axe',.55,null,()=>{o.hits=(o.hits||0)+1;SFX.thud(0,.45);cam.shake=Math.max(cam.shake,.12);o.shake=.35;const cc=TREE_COL[o.spr]||['#1d4129','#356538'];
       burst(o.x,o.z-.6,8,cc[o.hits%2],1.2,1.4,3);burst(o.x+.2,o.z,6,'#9e7146',1,.6,2);
       if(o.hits<(S.tools.axe>1?3:5))return;
-      // it comes down
-      o.hide=true;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}SFX.crash&&SFX.crash();cam.shake=.4;for(let i=0;i<4;i++)burst(o.x+(i-1.5)*.6,o.z-.8-i*.3,14,cc[i%2],2,1.8,4);
+      // it leans, then comes down away from you, and the crown bursts when it hits
+      o.hide=true;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}SFX.screech&&SFX.screech();FALLING.push({o,t:0,dir:P.x<o.x?1:-1,cc,landed:false});
       const w=o.kind==='pine'?6:8;addInv('wood',w);toast(`Timber. +${w} wood.`,1.6);updateHud();
       if(rand()<.08)setTimeout(()=>toast('Carved into the heartwood, where no one could have reached it: your initials.',3,true),900);
-      const st=obj('stump',o.x,o.z,{kind:'prop',debris:'stump'});st.col={x:o.x,z:o.z-.1,r:.38};circles.push(st.col);
+      const st=obj(o.spr.startsWith('maple')?'stump_maple':o.spr.startsWith('pine')?'stump_pine':'stump_oak',o.x,o.z,{kind:'prop',debris:'stump'});st.col={x:o.x,z:o.z-.1,r:.38};circles.push(st.col);
       interact.push({x:o.x,z:o.z+.2,r:.85,on:()=>!st.hide,label:()=>'Chop',ok:()=>true,act(){if(P.anim)return;if(!spend(S.tools.axe>1?2:4))return;faceTo(st.x,st.z);
         startAnim('axe',.55,null,()=>{st.hits=(st.hits||0)+1;SFX.thud(0,.4);burst(st.x,st.z,10,'#7d5636',1.4,.7,2);if(st.hits<(S.tools.axe>1?1:2))return;
           st.hide=true;const k=circles.indexOf(st.col);if(k>=0)circles.splice(k,1);addInv('wood',3);toast('The stump comes out. +3 wood.',1.4);});}});});}});}}
@@ -189,3 +189,12 @@ vendors.craft={name:'Crafting',sub:'Grandpa’s workbench. Everything you gather
 {const bb=$('bagClose');const c=document.createElement('button');c.className='close hot';c.textContent='Craft';c.addEventListener('click',()=>{$('bag').hidden=true;S.paused=false;openShop('craft');});bb.after(c);}
 // building now costs timber and stone too
 {const _pl2=vendors.plans.rows;vendors.plans.rows=()=>_pl2().map(r=>r.k==='coop'?Object.assign(r,{need:{wood:30,stone:12}}):r.k==='lamps'?Object.assign(r,{need:{wood:10,copper:2}}):r);}
+
+// falling trees: they tip slowly, then fast, then the crown bursts and fades
+const FALLING=[];
+function fallUpdate(dt){for(let i=FALLING.length-1;i>=0;i--){const f=FALLING[i];f.t+=dt;if(f.t>.85&&!f.landed){f.landed=true;SFX.crash&&SFX.crash();cam.shake=.45;const o=f.o;
+      for(let k=0;k<5;k++)burst(o.x+f.dir*(1+k*.7),o.z-.2,12,f.cc[k%2],2.2,1.2,4);burst(o.x+f.dir*2,o.z,10,'#9e7146',1.4,.5,2);}
+    if(f.t>1.5)FALLING.splice(i,1);}}
+function fallDrawables(D){for(const f of FALLING){const o=f.o;D.push({z:o.z+.05,mind:1,draw(){const k=Math.min(1,f.t/.85),ang=f.dir*1.45*k*k,a=f.t<.85?1:Math.max(0,1-(f.t-.85)/.6);
+  ctx2.save();ctx2.translate(Math.round(sx(o.bx!==undefined?o.bx:o.x)),Math.round(sz(o.z)));ctx2.rotate(ang);drawSpr(o.spr,0,0,null,null,0,{alpha:a});ctx2.restore();}});}}
+{const _md2=mineDrawables;mineDrawables=function(D){_md2(D);fallDrawables(D);};const _u4=update;update=function(dt){_u4(dt);fallUpdate(dt);};}

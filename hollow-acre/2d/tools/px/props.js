@@ -8,14 +8,14 @@ function post(L,x,y,w,h,ramp){rect(L,x,y,w,h,ramp[2]);vl(L,x,y,h,ramp[4]);vl(L,x
 function rail(L,x,y,w,ramp){hl(L,x,y,w,ramp[4]);hl(L,x,y+1,w,ramp[3]);hl(L,x,y+2,w,ramp[1]);for(let i=5;i<w;i+=11)P(L,x+i,y+1,ramp[2]);}
 function groundShadow(cx,cy,rx,ry,a){for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++)if(x*x/(rx*rx)+y*y/(ry*ry)<=1)P(SHD,cx+x,cy+y,PAL.out[0],a||70);}
 const K=CFG.kind;
-if(K==='fence_h'){            // two 1 m bays of split-rail fence + end post; posts at 0,32,64
-  for(const x of [3,35])for(const ry of [6,14])rail(A,x,ry,30,WD);
-  for(const x of [0,32,64])post(A,x,0,7,22,WD);
-  for(let x=0;x<W;x++)P(SHD,x,22,PAL.out[0],60);}
-if(K==='fence_v'){            // one 1 m bay running away from you: post in front, two thin rails receding up to the next post, grass showing between them
-  for(const [rx,ry] of [[1,-2],[10,-10]]){for(let y=14+ry;y<52+ry;y++){P(A,rx,y,WD[4]);P(A,rx+1,y,WD[2]);P(A,rx+2,y,WD[0]);}}
-  post(A,3,40,8,25,WD);rect(A,3,37,8,4,WD[4]);hl(A,3,37,8,WD[5]);hl(A,4,40,6,WD[1]);P(A,6,44,PAL.slate[3]);P(A,6,50,PAL.slate[3]);
-  groundShadow(8,65,6,2,70);}
+if(K==='fence_h'){            // two 1 m bays: square posts with a lit cap and a shaded side, two rails with a lit top edge, shadows under the rails
+  for(const x of [5,37])for(const ry of [7,14]){hl(A,x,ry,28,WD[5]);hl(A,x,ry+1,28,WD[3]);hl(A,x,ry+2,28,WD[2]);hl(A,x,ry+3,28,WD[0]);for(let i=6;i<28;i+=9)P(A,x+i,ry+2,WD[1]);for(let i=0;i<28;i++)P(SHD,x+i,22,PAL.out[0],50);}
+  for(const x of [0,32,64]){rect(A,x+1,2,6,20,WD[2]);vl(A,x+1,2,20,WD[4]);vl(A,x+2,2,20,WD[3]);vl(A,x+6,2,20,WD[0]);vl(A,x+5,2,20,WD[1]);rect(A,x,0,8,3,WD[4]);hl(A,x,0,8,WD[5]);hl(A,x,2,8,WD[1]);
+    for(let i=0;i<8;i++)P(SHD,x+i,22,PAL.out[0],90);}}
+if(K==='fence_v'){            // a 1 m bay going away: the post you see, and a single rail climbing to the next post
+  rect(A,5,12,4,34,WD[2]);vl(A,5,12,34,WD[4]);vl(A,8,12,34,WD[0]);for(let y=16;y<46;y+=8)hl(A,6,y,2,WD[1]);
+  rect(A,3,44,8,20,WD[2]);vl(A,3,44,20,WD[4]);vl(A,4,44,20,WD[3]);vl(A,10,44,20,WD[0]);vl(A,9,44,20,WD[1]);rect(A,2,42,10,3,WD[4]);hl(A,2,42,10,WD[5]);hl(A,2,44,10,WD[1]);
+  for(let i=0;i<10;i++)P(SHD,2+i,64,PAL.out[0],100);}
 if(K==='picket_h'){           // white picket fence, 2 m: rails behind, pointed pickets
   for(const ry of [7,16])rail(A,0,ry,W,TR);
   for(let x=1;x<W-2;x+=6){rect(A,x,3,4,20,TR[3]);vl(A,x,3,20,TR[5]);vl(A,x+3,3,20,TR[1]);P(A,x+1,1,TR[4]);P(A,x+2,1,TR[3]);hl(A,x,2,4,TR[4]);if(hsh(x,1)>.7)P(A,x+2,10,PAL.moss[1]);}
@@ -140,18 +140,19 @@ if(K==='well'){const cx=W/2|0,base=H-3,top=6;
   for(let y=0;y<14;y++){const w=58-(13-y)*0;for(let x=0;x<w;x++){const j=y%5;P(A,cx-29+x,top+y,j===4?PAL.rust[0]:j===0?PAL.rust[4]:PAL.rust[2+((x+y*3)%11===0?1:0)]);}}
   hl(A,cx-29,top,58,PAL.rust[5]);hl(A,cx-29,top+14,58,PAL.wood[1]);groundShadow(cx,base,24,3,70);}
 // ---- faceted stone: an irregular outline, a lit top plane, a mid left face, a shadowed right face, a dark rim where it meets the ground
-function facetRock(cx,base,rx,ry,seed,R,vein){const pts=[];const n=9;for(let i=0;i<n;i++){const a=i/n*Math.PI*2,r=.82+hsh(i,seed,2)*.3;pts.push([Math.cos(a)*rx*r*(Math.sin(a)>.3?1.08:1),Math.min(ry*.62,Math.sin(a)*ry*r*(Math.sin(a)>0?.9:1.15))]);}
+function facetRock(cx,base,rx,ry,seed,R,vein){const pts=[];const n=9;for(let i=0;i<n;i++){const a=i/n*Math.PI*2,r=.82+hsh(i,seed,2)*.3;pts.push([Math.cos(a)*rx*r*(Math.sin(a)>.2?1.12:.96),Math.min(ry*.55,Math.sin(a)*ry*r*(Math.sin(a)>0?1:1.15))]);}
+  pts.push([rx*.98,ry*.55],[-rx*.98,ry*.55]);pts.sort((p,q)=>Math.atan2(p[1],p[0])-Math.atan2(q[1],q[0]));
   const inside=(x,y,Q)=>{let c=false;for(let i=0,j=Q.length-1;i<Q.length;j=i++){const [xi,yi]=Q[i],[xj,yj]=Q[j];if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)c=!c;}return c;};
-  const top=pts.map(([x,y])=>[x*.62-rx*.08,y*.5-ry*.42]);const cy=base-ry-1;
+  const top=pts.map(([x,y])=>[x*.62-rx*.08,y*.5-ry*.42]);const cy=base-Math.round(ry*.55)-1;
   for(let y=-Math.ceil(ry*1.3);y<=ry*1.1;y++)for(let x=-rx-1;x<=rx+1;x++){if(!inside(x,y,pts))continue;let k;
     if(inside(x,y,top))k=(x+y*.6)<-rx*.25?5:4;else if(x<-rx*.15+y*.3)k=y>ry*.5?1:2;else k=y>ry*.3?0:1;
     if(hsh(x+cx,y+cy,seed)>.92&&k>1)k--;P(A,cx+x,cy+y,R[k]);}
   for(let i=0;i<top.length;i++){const [x0,y0]=top[i],[x1,y1]=top[(i+1)%top.length];if(y0>-ry*.3&&y1>-ry*.3)continue;for(let t=0;t<1;t+=.2)P(A,cx+Math.round(x0+(x1-x0)*t),cy+Math.round(y0+(y1-y0)*t),R[5]);}
   for(let j=0;j<ry*.9;j++)P(A,cx+Math.round(rx*.2+Math.sin(j*.9)*1.2),cy+Math.round(-ry*.1+j),R[1]);
   if(vein)for(let i=0;i<8;i++){const x=Math.round((hsh(i,seed,7)-.5)*rx*1.3),y=Math.round((hsh(i,seed,8)-.35)*ry*1.1);if(!inside(x,y,pts))continue;P(A,cx+x,cy+y,vein[0]);P(A,cx+x+1,cy+y,vein[1]);P(A,cx+x,cy+y-1,vein[1]);if(i%3===0)P(B,cx+x+1,cy+y-1,[255,255,240]);}
-  for(let x=-rx;x<=rx;x++){if(inside(x,ry*.85,pts))P(A,cx+x,cy+Math.round(ry*.85)+1,R[0]);}
+  for(let x=-rx;x<=rx;x++){if(inside(x,ry*.5,pts))P(A,cx+x,cy+Math.round(ry*.55),R[0]);}
   for(let i=0;i<3;i++)P(A,cx-rx+3+i,cy+Math.round(-ry*.35)+i,PAL.moss[2+(i%2)]);
-  const gy=cy+Math.round(ry*.62)+1;for(let x=-rx-2;x<=rx+2;x++){P(SHD,cx+x,gy,PAL.out[0],150);P(SHD,cx+x+1,gy+1,PAL.out[0],90);}
+  const gy=base;for(let x=-rx-2;x<=rx+2;x++){P(SHD,cx+x,gy,PAL.out[0],150);P(SHD,cx+x+1,gy+1,PAL.out[0],90);}
   if(!vein){const GG=['#1f4420','#2f6428','#438232','#62a03e'].map(HEX);for(let i=0;i<9;i++){const x=cx-rx+1+Math.round(hsh(i,seed,9)*(rx*2-2)),h=2+(hsh(i,seed,10)*3|0);for(let k=0;k<h;k++)P(A,x+(k===h-1&&i%2?1:0),gy-k,GG[k===h-1?3:k?2:1]);}}
   else{for(let i=0;i<6;i++){const x=cx-rx+Math.round(hsh(i,seed,9)*rx*2);P(A,x,gy,ST[1]);P(A,x+1,gy,ST[2]);}}}
 const RS=[ST[0],ST[1],ST[2],ST[3],ST[4],ST[5]];
@@ -170,13 +171,13 @@ if(K==='twig'){const base=H-4;
   P(A,W-5,base-6,PAL.cream[2]);P(A,W-5,base-5,PAL.cream[1]);P(A,W-4,base-6,WD[1]);P(A,3,base-3,PAL.cream[2]);
   P(A,15,base-10,PAL.rust[4]);P(A,16,base-10,PAL.rust[3]);P(A,16,base-11,PAL.rust[4]);
   for(let x=3;x<W-4;x++)P(SHD,x,base-2+Math.round((x-3)*-3/(W-8))+3,PAL.out[0],120);}
-if(K==='stump'){const cx=W/2|0,base=H-4,r=9,top=base-14;
-  for(const [dx,l] of [[-1,6],[1,7]]){for(let i=0;i<l;i++){const y=base-3+Math.min(2,i>>1);P(A,cx+dx*(r-1+i),y,WD[3]);P(A,cx+dx*(r-1+i),y+1,WD[1]);}}
-  for(let y=top;y<base;y++)for(let x=-r;x<=r;x++){const u=(x+r)/(2*r);let c=WD[u<.25?3:u<.6?2:1];if((x*3+y)%5===0)c=WD[0];P(A,cx+x,y,c);}
-  for(let y=-4;y<=4;y++)for(let x=-r;x<=r;x++){const d=x*x/(r*r)+y*y/16;if(d>1)continue;const ring=Math.floor(Math.sqrt(d)*4);P(A,cx+x,top+y,d>.8?WD[3]:ring%2?PAL.mustard[4]:PAL.mustard[3]);}
-  P(A,cx,top,WD[2]);for(let i=0;i<4;i++)P(A,cx+1+i,top-1+(i>>1),WD[1]);
-  for(let x=-r-5;x<=r+6;x++){P(SHD,cx+x,base,PAL.out[0],150);P(SHD,cx+x,base+1,PAL.out[0],80);}
-  const GG=['#1f4420','#2f6428','#438232','#62a03e'].map(HEX);for(let i=0;i<11;i++){const x=cx-r-3+Math.round(hsh(i,4,9)*(r*2+6)),h=2+(hsh(i,5,9)*3|0);for(let k=0;k<h;k++)P(A,x,base-k,GG[k===h-1?3:k?2:1]);}}
+if(K==='stump'){const cx=W/2|0,base=H-3,r=CFG.r||6,top=base-10,BK=CFG.bark.map(HEX);
+  for(const [dx,l] of [[-1,4],[1,5]]){for(let i=0;i<l;i++){const y=base-2+Math.min(1,i>>1);P(A,cx+dx*(r-1+i),y,BK[3]);P(A,cx+dx*(r-1+i),y+1,BK[1]);}}
+  for(let y=top;y<=base;y++){const fl=y>base-3?1:0;for(let x=-r-fl;x<=r+fl;x++){const u=(x+r)/(2*r);let c=BK[u<.22?4:u<.5?3:u<.8?2:1];if((x*5+y*3)%7===0)c=BK[1];if(y===base)c=BK[0];P(A,cx+x,y,c);}}
+  for(let y=-3;y<=3;y++)for(let x=-r;x<=r;x++){const d=x*x/(r*r)+y*y/9;if(d>1)continue;const ring=Math.floor(Math.sqrt(d)*3.5);P(A,cx+x,top+y,d>.72?BK[4]:ring%2?[214,176,118]:[190,148,92]);}
+  P(A,cx,top,[150,110,66]);for(let i=0;i<3;i++)P(A,cx+1+i,top-1+(i>>1),[120,84,50]);if(CFG.resin)P(A,cx+r-1,top+4,[230,190,90]);
+  for(let x=-r-4;x<=r+5;x++){P(SHD,cx+x,base+1,PAL.out[0],150);}
+  const GG=['#1f4420','#2f6428','#438232','#62a03e'].map(HEX);for(let i=0;i<9;i++){const x=cx-r-3+Math.round(hsh(i,4,9)*(r*2+6)),h=2+(hsh(i,5,9)*2|0);for(let k=0;k<h;k++)P(A,x,base+1-k,GG[k===h-1?3:k?2:1]);}}
 if(K==='deer'){ // a deer dead on its side across the lane: long stiff legs, pale belly and rump, neck thrown back, ears, dark blood
   const cx=W/2|0,base=H-4,BR=[[40,26,18],[84,54,32],[124,82,48],[160,112,66],[190,146,94]];
   for(let y=-3;y<=3;y++)for(let x=-26;x<=22;x++)if(x*x/676+y*y/9<1)P(A,cx+x,base-1+y,[58,8,10]);
@@ -197,7 +198,16 @@ if(K==='icon'){const I=CFG.icon,c=W/2|0;const wood=WD,ir=[[52,56,66],[92,98,110]
     for(let i=0;i<6;i++){P(A,c+5+i,10-i,G2[2]);P(A,c+5+i,11-i,G2[1]);}P(A,c+11,4,[200,200,190]);P(A,c+11,5,[200,200,190]);for(let i=0;i<7;i++){const a=Math.PI+i/6*Math.PI;P(A,c-1+Math.round(Math.cos(a)*5),7+Math.round(Math.sin(a)*4),G2[0]);}}
   if(I==='seed'){for(let y=0;y<11;y++)for(let x=-6+(y<3?2:0);x<=6-(y<3?2:0);x++)P(A,c+x,7+y,PAL.cream[x<-2?3:x>3?1:2]);hl(A,c-3,6,7,PAL.bark[2]);for(let i=0;i<3;i++){P(A,c-2+i*2,12,PAL.bark[1]);P(A,c-1+i*2,14,PAL.bark[1]);}P(A,c-1,3,PAL.moss[3]);P(A,c,4,PAL.moss[2]);P(A,c+1,3,PAL.moss[3]);}
   if(I==='food'){for(let y=-3;y<=3;y++)for(let x=-8;x<=8;x++){if(x*x/64+y*y/9>1)continue;P(A,c+x,13+y,y<0?PAL.mustard[4]:PAL.cream[1]);}for(let x=-7;x<=7;x++){P(A,c+x,11,PAL.rust[3]);P(A,c+x,10,PAL.rust[4]);}for(let i=0;i<3;i++){P(A,c-3+i*3,6-(i%2),PAL.cream[3]);P(A,c-3+i*3,8,PAL.cream[2]);}}}
+if(K==='pumpkin'){const cx=W/2|0,base=H-3,rx=CFG.big?10:8,ry=CFG.big?7:6,cy=base-ry;const OR=CFG.pale?[[120,70,40],[168,112,64],[206,150,92],[230,186,128],[244,214,160]]:[[110,34,14],[164,62,22],[214,98,34],[240,140,58],[252,184,96]];
+  for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){const d=x*x/(rx*rx)+y*y/(ry*ry);if(d>1)continue;const rib=Math.abs(Math.sin((x/rx)*Math.PI*1.8));const l=-.5*x/rx-.75*y/ry+.25-rib*.35;
+    let k=l>.55?4:l>.15?3:l>-.25?2:1;if(rib<.12&&Math.abs(x)<rx-1)k=Math.max(0,k-1);if(y>ry*.6)k=Math.min(k,1);P(A,cx+x,cy+y,OR[k]);}
+  for(let x=-rx+2;x<=rx-2;x++)P(A,cx+x,base,OR[0]);P(A,cx-3,cy-ry+2,OR[4]);P(A,cx-2,cy-ry+2,OR[4]);
+  vl(A,cx,cy-ry-3,4,[74,90,36]);P(A,cx+1,cy-ry-3,[110,130,52]);P(A,cx+2,cy-ry-4,[74,90,36]);P(A,cx+3,cy-ry-4,[110,130,52]);
+  if(CFG.face){const F=[[255,214,110],[255,170,60]],face=CFG.face;const ey=cy-2;
+    for(const sx of [-4,3]){for(let i=0;i<3;i++)for(let j=0;j<=i;j++)P(A,cx+sx+j-(face===2?0:0),ey-i+2,F[1]);P(A,cx+sx+1,ey+1,F[0]);}
+    P(A,cx,cy+1,F[1]);for(let x=-5;x<=5;x++){const yy=cy+3+(face===3?Math.round(Math.abs(x)*.3):Math.round(-Math.abs(x)*.25+1));P(A,cx+x,yy,F[x%3===0?0:1]);if(face!==2&&x%3!==0)P(A,cx+x,yy+1,F[1]);}}
+  for(let x=-rx-1;x<=rx+1;x++)P(SHD,cx+x,base+1,PAL.out[0],140);}
 if(K==='ladder'){for(let y=2;y<H-4;y++){P(A,4,y,WD[4]);P(A,5,y,WD[2]);P(A,W-6,y,WD[3]);P(A,W-5,y,WD[1]);}for(let y=6;y<H-4;y+=6){hl(A,5,y,W-10,WD[4]);hl(A,5,y+1,W-10,WD[1]);}
   ell(A,W/2|0,H-4,W/2-2|0,3,PAL.ink[0]);}
-const ART=[SHD,A,B];const flat=flatten([A,B],W,H);const O=outline(flat);const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=CFG.thin?0:150;}
+const ART=[SHD,A,B];const flat=flatten([A,B],W,H);const O=outline(flat);const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=(CFG.thin||/^fence|^picket/.test(K))?0:150;}
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));
