@@ -66,8 +66,7 @@ function hipify(L,rx0,rx1,y0,eaveY,hw,RF,keep){const inset=y=>Math.round(hw*(1-(
 const TOOLART={
  axe:{px:5,art:["....KKK.......","...KDLK.KKK...","...KDLKKmllK..","...KDLKmmmleK.","...KDLKmmmmleK","..KsDLsmmmmmeK","..KsbbsmmmmmeK","..KsDLsmmmmmeK","...KDLKmmmmleK","...KDLKmmmleK.","...KDLKKmllK..","...KDLK.KKK...",
    "...KDLK.......","...KDMK.......","...KDLK.......","...KDLK.......","...KDMK.......","...KDLK.......","...KDLK.......","...KDMK.......","...KDLK.......","...KDLK.......","...KKKK......."]},
- pick:{px:8,art:[".K.............K.","KlK...........KmK","KllKK.......KKmmK",".KlmmKKKKKKKmmmK.","..KKmmmmbbmmmKK..","....KKsmbbmsKK...","......KsbbsK.....",
-   "......KDLK.......","......KDLK.......","......KDMK.......","......KDLK.......","......KDLK.......","......KDMK.......","......KDLK.......","......KDLK.......","......KDMK.......","......KDLK.......","......KDLK.......","......KDLK.......","......KKKK......."]},
+ pick:{px:9,art:["......KKKKKK......","....KKllmmmmKK....","..KKllmmbbmmmmKK..",".KllmmKKbbKKmmmsK.","KllmK..KDLK..KmmsK","KlmK...KDLK...KmsK","KlK....KDLK....KsK",".K.....KDLK.....K.",".......KDMK.......",".......KDLK.......",".......KDLK.......",".......KDMK.......",".......KDLK.......",".......KDLK.......",".......KDMK.......",".......KDLK.......",".......KDLK.......",".......KDMK.......",".......KDLK.......",".......KDLK.......",".......KKKK......."]},
  hoe:{px:5,art:["....KK.......","...KDLKKKKKK.","...KDLKmmmllK","...KsbbmmmmlK","...KDLKKKmmeK","...KDLK..KmeK","...KDLK...KeK","...KDLK....K.","...KDMK.....","...KDLK.....","...KDLK.....","...KDMK.....","...KDLK.....","...KDLK.....",
    "...KDMK.....","...KDLK.....","...KDLK.....","...KDMK.....","...KDLK.....","...KDLK.....","...KDLK.....","...KDLK.....","...KDLK.....","...KKKK....."]}};
 const TOOLPAL={K:[26,16,12],D:[84,52,28],M:[124,82,46],L:[176,126,76],s:[60,64,76],b:[92,98,112],m:[150,156,170],l:[204,210,222],e:[244,248,252]};

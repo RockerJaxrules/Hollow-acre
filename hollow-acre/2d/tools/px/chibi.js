@@ -31,6 +31,7 @@ function human(dir,pose){
   const arm=(sx,swing,up,hand)=>{let ex=sx+(up?swing*.4:swing*.3),ey=up?armY-9:armY+8+(pose.crouch?-2:0);if(hand){ex=sx+hand[0];ey=armY+hand[1];}limb(sx,armY,ex,ey,3,SHT);blob(Math.round(ex),Math.round(ey)+1,2,2,SK);};
   const back=dir==='N';
   // order: back arm, legs, torso, front arm, head
+  if(pose.tool&&dir==='N')pose.tool(hx,armY,dir,fl);   // facing away, the tool is in front of you: behind your body from where we stand
   if(side)arm(hx-fl*2,-(pose.swing||0)*fl,pose.up,pose.handB&&[pose.handB[0]*fl,pose.handB[1]]);
   drawLegs();
   // torso (with skirt / coat / overalls)
@@ -45,7 +46,7 @@ function human(dir,pose){
   if(!side){arm(tx-1,-(pose.swing||0),pose.up,pose.handL);arm(tx+tw,(pose.swing||0),pose.up,pose.handR);}
   else arm(hx+fl*3,(pose.swing||0)*fl,pose.up,pose.handF&&[pose.handF[0]*fl,pose.handF[1]]);
   pose.toolArgs=[hx,armY,dir,fl];
-  if(pose.tool&&(dir==='N'||pose.toolBack))pose.tool(hx,armY,dir,fl);
+  if(pose.tool&&dir!=='N'&&pose.toolBack)pose.tool(hx,armY,dir,fl);
   // head: soft-shaded skin, then face, then hair framing it
   const R=kid?11:12,RY=kid?10:11;
   for(let y=-RY;y<=RY;y++)for(let x=-R;x<=R;x++){const d=(x*x)/(R*R)+(y*y)/(RY*RY);if(d>1)continue;
@@ -120,7 +121,7 @@ const GRIP={axe:[[5,6],[-1,-10],[-3,-14],[-4,-15],[6,0],[7,4],[7,5],[4,1]],pick:
 const FGRIP=[[3,6],[2,-12],[1,-16],[1,-17],[2,-6],[2,3],[2,4],[3,2]];
 // seen from the front: raised overhead, then brought down toward you to the ground in front (foreshortened); from the back: over the shoulder and down into the distance
 const FANG_S=[115,-100,-92,-84,58,88,86,120],FK_S=[.9,1,1,1,.8,.62,.62,.85];
-const FANG_N=[-60,-95,-92,-86,-70,-76,-74,-55],FK_N=[.8,1,1,1,.9,.7,.7,.8];
+const FANG_N=[-80,-95,-92,-86,-84,-90,-90,-84],FK_N=[.55,1,1,1,.85,.5,.5,.7];
 const BACK=[0,1,1,1,0,0,0,0];   // side/front: tool behind the head while raised
 const TLEN={hoe:20,pick:18,axe:18};
 function gripOf(kind,f,front){return front?FGRIP[f]:GRIP[kind][f];}
@@ -130,7 +131,7 @@ function toolFor(kind,f,dir){if(!kind)return null;return (hx,ay,dir,fl)=>{const 
     let gx=hx+(front?gdx:fl*gdx),gy=ay+gdy;let ang,mir=false,k=1;
     if(side){const a=SWING[kind][f];if(fl>0)ang=a;else{ang=180-a;mir=true;}}
     else if(!back){ang=FANG_S[f];k=FK_S[f];}
-    else{ang=FANG_N[f];k=FK_N[f];gx+=5;}
+    else{ang=FANG_N[f];k=FK_N[f];gx+=BACK[f]?1:-4;}
     const rad=ang*Math.PI/180,dx=Math.cos(rad),dy=Math.sin(rad);
     // a clean swing trail on the fast frame, kept clear of the face
     if(f===4){const a0=(side?(fl>0?SWING[kind][3]:180-SWING[kind][3]):back?FANG_N[3]:FANG_S[3])*Math.PI/180;let a1=rad;if(side&&fl<0&&a1>a0)a1-=2*Math.PI;if(side&&fl>0&&a1<a0)a1+=2*Math.PI;
@@ -159,6 +160,7 @@ ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
     else if(CFG.tool){const kind=CFG.tool;pose.crouch=[0,0,0,0,1,3,3,1][f];pose.bob=f===3?-1:0;pose.toolBack=!!BACK[f];
       const [gx,gy]=gripOf(kind,f,!side);const a=SWING[kind][f]*Math.PI/180;
       if(side){pose.handF=[gx-3+Math.round(Math.cos(a)*4),gy+Math.round(Math.sin(a)*4)];pose.handB=[gx+2-1,gy+1];}
+      else if(dir==='N'){if(BACK[f]){pose.handL=[3,-12];pose.handR=[-3,-12];}else{pose.handL=[2,3];pose.handR=[-2,3];}}
       else{const tx=-(15>>1);pose.handL=[gx-(tx-1)-1,gy+(BACK[f]?0:4)];pose.handR=[gx-(tx+15)+2,gy];}}}
   if(clip==='slash'){ // pick: crouch, reach down, grab, stand and lift the crop overhead
     const cr=[0,3,5,4,1,0][f];pose.crouch=cr;const reach=f>=1&&f<=3;const lift=f>=4;
