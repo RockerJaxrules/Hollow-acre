@@ -93,6 +93,11 @@ if(K==='cportal'){ // covered bridge seen end-on (road runs north): long ridged 
   rect(B,cx-34,wallTop-20,68,11,PAL.cream[3]);frame(B,cx-34,wallTop-20,68,11,PAL.cream[2],PAL.wood[0]);drawText(B,'MARROW CREEK',cx-23,wallTop-17,RD[1]);
   for(const ax of [3,W-16])for(let y=base-26;y<base;y++)for(let x=ax;x<ax+13;x++){const r=(y/6|0),o=r%2?5:0;P(B,x,y,(x+o)%10===0||y%6===5?ST[1]:ST[3]);}
 }
+if(K==='dock'){   // fishing pier running north-south into the pond: cross planks, side beams, posts in the water
+  const x0=6,x1=W-7;for(let y=4;y<H-6;y++){const k=(y-4)%6;for(let x=x0;x<=x1;x++){let c=k===0?WD[5]:k===5?WD[1]:WD[3+((hsh((y-4)/6|0,x>>4,2)>.75)?1:0)];if((x-x0)%17===8&&k>0&&k<5&&hsh(x,y,3)>.5)c=WD[2];P(A,x,y,c);}}
+  for(const bx of [x0-2,x1+1]){rect(A,bx,2,2,H-8,WD[1]);vl(A,bx,2,H-8,WD[bx<x0?4:0]);}
+  for(const [px,py] of [[x0-3,H-14],[x1,H-14],[x0-3,H/2|0],[x1,H/2|0]]){rect(A,px,py,4,10,WD[2]);vl(A,px,py,10,WD[4]);hl(A,px,py+9,4,PAL.glass[3]);}
+  rect(A,x0,H-6,x1-x0+1,3,WD[0]);gs(W/2|0,H-3,(x1-x0)/2|0,2,60);}
 if(K==='footbridge'){ // plank footbridge, spans east-west over the creek
   const top=10,dh=30;for(let y=top;y<top+dh;y++)for(let x=6;x<W-6;x++){const k=(x-6)%6;P(A,x,y,k===0?WD[1]:k===5?WD[2]:WD[3+((hsh((x-6)/6|0,1)>.7)?1:0)]);}
   hl(A,6,top,W-12,WD[5]);hl(A,6,top+dh-1,W-12,WD[0]);

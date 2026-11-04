@@ -6,7 +6,7 @@ J = [  # name, kind, w, h, extra
   ('cliff', 'cliff', 64, 60, dict(noOutline=True)),
   *[(f'falls_{f}', 'falls', 40, 64, dict(f=f, noOutline=True)) for f in range(4)],
   ('cbridge', 'cbridge', 190, 196, dict(roofH=104)), ('cbridge_n', 'cbridge', 190, 196, dict(roofH=104, night=True)),
-  ('footbridge', 'footbridge', 100, 50, {}), ('cportal', 'cportal', 236, 300, {}),
+  ('footbridge', 'footbridge', 100, 50, {}), ('dock', 'dock', 70, 140, {}), ('cportal', 'cportal', 236, 300, {}),
   ('barn', 'barn', 230, 190, {}), ('barn_n', 'barn', 230, 190, dict(night=True)), ('silo', 'silo', 56, 190, {}),
   ('windpump', 'windpump', 48, 170, {}), *[(f'blades_{f}', 'blades', 44, 44, dict(f=f)) for f in range(4)],
   *[(f'chicken_{f}', 'chicken', 16, 16, dict(f=f)) for f in range(3)], *[(f'butterfly_{f}', 'butterfly', 10, 7, dict(f=f, noOutline=True)) for f in range(2)],

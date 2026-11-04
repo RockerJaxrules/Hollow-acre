@@ -161,7 +161,7 @@ for _n, _a in _PROPS.items():
 
 # ---- terrain + landmarks (px/worldart.js)
 for _n, _a, _f in (('cbridge', 'b', [-2.9, -6.2, 2.9, 0]), ('barn', 'b', [-3.4, -3.4, 3.4, 0]), ('silo', 'b', [-.8, -.8, .8, 0]), ('windpump', 'b', [-.5, -.4, .5, 0]),
-                   ('mailbox', 'b', [-.15, -.1, .15, 0]), ('footbridge', 'c', [0, 0, 0, 0]), ('cportal', 'b', [-3.6, -7, 3.6, 0])):
+                   ('mailbox', 'b', [-.15, -.1, .15, 0]), ('footbridge', 'c', [0, 0, 0, 0]), ('dock', 'c', [0, 0, 0, 0]), ('cportal', 'b', [-3.6, -7, 3.6, 0])):
     _d = Image.open(f'px/out/{_n}.png').convert('RGBA'); _nf = f'px/out/{_n}_n.png'
     save(_n, _d, _f, anchor=(_d.width / 2, _d.height - 3) if _a == 'b' else (_d.width / 2, _d.height / 2), night=Image.open(_nf).convert('RGBA') if os.path.exists(_nf) else None)
 for _n in ('maple_orange', 'maple_red', 'maple_gold', 'maple_green', 'bush_green', 'bush_red', 'bush_gold'):
@@ -169,7 +169,7 @@ for _n in ('maple_orange', 'maple_red', 'maple_gold', 'maple_green', 'bush_green
 for _n, _nf in (('falls', 4), ('blades', 4), ('chicken', 3), ('butterfly', 2), ('tgrass', 2), ('tgold', 2)):
     _d = Image.open(f'px/out/{_n}.png').convert('RGBA'); _fw = _d.width // _nf
     _d.save(f'{OUT}/{_n}.png'); META[_n] = dict(src=f'{OUT}/{_n}.png', fw=_fw, fh=_d.height, ax=_fw / 2, ay=_d.height - (1 if _n in ('chicken', 'butterfly') else 2), clips={'a': {'S': [0, _nf]}}, foot=[0, 0, 0, 0])
-for _n in ('cliff', 'decor'):
+for _n in ('cliff', 'decor', 'tex_grass', 'tex_forest', 'tex_dirt', 'tex_stone', 'tex_water'):
     _d = Image.open(f'px/out/{_n}.png').convert('RGBA'); _d.save(f'{OUT}/{_n}.png'); META[_n] = dict(src=f'{OUT}/{_n}.png', fw=_d.width, fh=_d.height, ax=0, ay=0, foot=[0, 0, 0, 0])
 json.dump(META, open('spr/lpc/objects.json', 'w'), indent=0)
 print(len(META), 'objects')

@@ -6,7 +6,7 @@ const CORN={x0:-15,x1:11,z0:11.5,z1:24};
 const inCorn=(x,z)=>x>CORN.x0&&x<CORN.x1&&z>CORN.z0&&z<CORN.z1;
 const pond={x:-30,z:24.5,r:7.5};
 const wellPos={x:7.3,z:-10.5},binPos={x:-3.6,z:-8.6},doorPos={x:0,z:-8.9},carPos={x:-60.2,z:-1.4},pumpPos={x:-28,z:-10.4},boothPos={x:44.5,z:-9.6};
-const crossPos={x:20,z:19},boardPos={x:52,z:-9.4},tsPos={x:27.5,z:-8.4},farmSignPos={x:-11.5,z:-8.6},squarePos={x:48,z:-6};
+const crossPos={x:20,z:19},boardPos={x:52,z:-9.4},tsPos={x:27.5,z:-8.4},farmSignPos={x:-13.4,z:-10.1},squarePos={x:48,z:-6};
 const fishSpot={x:pond.x,z:pond.z-pond.r+3.6};
 const ALTAR_POS=[[-27,8,'west woods'],[-2,29,'cornfield'],[64,-32,'churchyard']];
 const SCARE_SPOTS=[[6.9,4],[9.8,-1.2],[2.2,-7.6]];
@@ -86,20 +86,27 @@ const put=(spr,x,z,r,o)=>{const e=obj(spr,x,z,o);if(r)addCircle(x,z-.1,r);return
 function scatter(n,spacing,pick,test,rad){const placed=[];let tries=0;while(placed.length<n&&tries<n*60){tries++;const x=Math.round(lerp(B.x0-14,B.x1+12,rand())*2)/2,z=Math.round(lerp(B.z0-10,B.z1+12,rand())*2)/2;
     if(!test(x,z))continue;if(OBJ.some(o=>o.solid&&Math.hypot(o.x-x,(o.z-z)*1.3)<spacing))continue;const e=obj(pick(),x,z,{kind:'tree',solid:1});if(rad)addCircle(x,z,rad);placed.push(e);}}
 function buildWorld(){
-  // ---------- Grandpa's farm
+  // ---------- Grandpa's farm (laid out by hand)
   building('cabin',0,-9.4,{jack:1});
   put('jack_b',-1.6,-8.85,.25,{glow:1});
-  put('well',wellPos.x,wellPos.z+.9);addCircle(wellPos.x,wellPos.z+.4,1.05);reserve(wellPos.x-1.5,wellPos.z-1.2,wellPos.x+1.5,wellPos.z+1.5);
+  // porch-side: shipping crate by the door, rain barrels at the left corner, firewood + chopping block at the right
   put('crate',binPos.x,binPos.z,0,{kind:'bin'});addRect(binPos.x-.5,binPos.z-.6,binPos.x+.5,binPos.z);
-  put('barrel',-4.6,-9.5,.33);put('barrel',-5.3,-9.9,.33);put('firewood',4.6,-9.6);addRect(3.9,-10.1,5.3,-9.5);
-  put('hay',-7.6,-10.3);addRect(-8.4,-11.5,-6.8,-10.4);put('hay',-7.6,-8.6);addRect(-8.4,-9.8,-6.8,-8.7);
-  put('cart',-9.6,-12.2);addRect(-10.4,-12.8,-8.8,-12.2);put('sacks',-4.4,-8.7);
-  put('signpost',farmSignPos.x,farmSignPos.z,.2,{label:'HOLLOW ACRE'});
-  reserve(-11,-15,11,-7.5);
-  // the field, fenced with a gate at the top
+  put('barrel',-4.1,-9.55,.33);put('barrel',-4.75,-9.95,.33);put('sacks',-4.5,-8.85);
+  put('firewood',4.5,-9.7);addRect(3.8,-10.2,5.2,-9.6);
+  put('well',wellPos.x,wellPos.z+.9);addCircle(wellPos.x,wellPos.z+.4,1.05);reserve(wellPos.x-1.6,wellPos.z-1.3,wellPos.x+1.6,wellPos.z+1.6);
+  // two old trees framing the house, a grove behind it under the ridge
+  for(const [n,x,z] of [['maple_orange',-6.6,-12.6],['maple_gold',6.8,-14.2],['maple_red',-1.5,-16.2],['maple_green',3.6,-17.4],['maple_orange',9.5,-17.6]]){obj(n,x,z,{kind:'tree',solid:1});addCircle(x,z,.4);}
+  for(const [x,z] of [[-8.3,-12.2],[8.4,-13.6],[-3.4,-15.5]]){obj('bush_green',x,z,{kind:'bush'});addCircle(x,z-.15,.55);}
+  reserve(-11,-19,12,-7.5);
+  // the farm gate: fence along the west edge, an open gate where the lane comes in, the sign and mailbox outside it
+  fenceLine(-12.6,-17,-12.6,-7.6);fenceLine(-12.6,-4.4,-12.6,4);
+  put('signpost',-13.4,-10.1,.2,{label:'HOLLOW ACRE'});put('mailbox',-13.6,-1.9,.15);
+  // the field, fenced with a gate at the top; scarecrow inside, pumpkins at the corners
   fenceLine(-6,-1,-1,-1);fenceLine(1,-1,6,-1);fenceLine(-6,-1,-6,9);fenceLine(6,-1,6,9);fenceLine(-6,9,6,9);
   reserve(-7,-2,7,10);
-  put('pumpkin',-5.3,-.3,.25);put('pumpkin_b',5.3,-.4,.25);put('hay',8.2,1.2);addRect(7.4,0,9,1.1);
+  put('pumpkin',-5.3,-.3,.25);put('pumpkin_b',5.3,-.4,.25);put('pumpkin',-5.3,8.3,.25);put('pumpkin',5.3,8.2,.25);
+  // windpump on its own patch west of the field, a water trough at its foot
+  put('windpump',-9.2,1.4,.45);obj('blades',-9.2,1.42,{kind:'anim',fps:6,yoff:135});put('barrel',-8.2,1.6,.3);reserve(-11.5,-1.5,-7,3.5);
   // ---------- crash site on Route 9
   put('car_wreck',carPos.x-.8,carPos.z+3.2,0,{night:'car_wreck_n',kind:'wreck'});addRect(carPos.x-1.8,carPos.z-1.2,carPos.x+1.2,carPos.z+3.1);
   put('deadtree',carPos.x+.15,carPos.z+3.45,.35);reserve(-65,-8,-56,4);
@@ -128,7 +135,7 @@ function buildWorld(){
   put('signpost',crossPos.x-1.6,crossPos.z-1.2,.2,{label:'FARM'});
   // ---------- Marrow Creek: covered bridge on Route 9, footbridge in the west woods, falls off the ridge
   put('cbridge',BRIDGE.x,BRIDGE.z,0,{night:'cbridge_n',kind:'bld'});addSeg(BRIDGE.x-2.9,-9.1,BRIDGE.x+2.9,-9.1,.15);addSeg(BRIDGE.x-2.9,-2.9,BRIDGE.x+2.9,-2.9,.15);
-  put('footbridge',FOOT.x,FOOT.z,0,{kind:'flat'});
+  put('footbridge',FOOT.x,FOOT.z,0,{kind:'flat'});put('dock',pond.x,pond.z-pond.r+1.85,0,{kind:'flat'});
   obj('falls',-19.2,ridgeZ(-19.2)+RIDGE.h+.15,{kind:'anim',fps:8});
   {const skip=(x,z)=>(Math.abs(z+6)<3.1&&Math.abs(x-BRIDGE.x)<3.4)||(Math.abs(z-FOOT.z)<.75&&Math.abs(x-FOOT.x)<2);
     for(let i=0;i<CREEK.length-1;i++){const a=CREEK[i],b=CREEK[i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.ceil(L/.8);
@@ -137,14 +144,16 @@ function buildWorld(){
   for(let x=RIDGE.x0;x<RIDGE.x1;x+=.8){if(ridgeH(x)<.3)continue;addSeg(x,ridgeZ(x)+.9,x+.8,ridgeZ(x+.8)+.9,.5);}
   // ---------- the farm: red barn + silo east of the field, windpump, mailbox, hens
   building('barn',16,-9.6,{porch:false});put('silo',20.6,-12.6,.8);reserve(11.5,-15,22,-8.6);
+  put('hay',11.5,-10.4);addRect(10.8,-11.6,12.3,-10.4);put('hay',11.5,-8.9);addRect(10.8,-10.1,12.3,-9);put('cart',21.4,-8.7);addRect(20.6,-9.3,22.2,-8.7);put('hay',12.2,-1.0);
   fenceLine(8.5,-3.9,13.5,-3.9);fenceLine(8.5,-3.9,8.5,-.2);fenceLine(13.5,-3.9,13.5,-.2);fenceLine(8.5,-.2,10,-.2);fenceLine(12,-.2,13.5,-.2);reserve(8,-4.4,14,.4);
-  put('windpump',-9.4,2.6,.45);obj('blades',-9.4,2.62,{kind:'anim',fps:6,yoff:135});
-  put('mailbox',-9.9,-8.3,.15);
+  // ---------- planted trees: an avenue along the lane into town, the church walk, the crossroads, the pond's east bank
+  {let k=0;for(const [x,z] of [[23.2,-2.6],[23.6,-9.6]]){const n=['maple_red','maple_orange','maple_gold'][k++%3];obj(n,x,z,{kind:'tree',solid:1});addCircle(x,z,.4);}}
+  for(const [n,x,z] of [['maple_red',45.2,-14.6],['maple_gold',50.8,-14.6],['maple_orange',23.5,16.4],['maple_red',17,21.6],['maple_gold',-21.5,21],['maple_orange',-21.8,27.5],['maple_green',-24,31.5]]){obj(n,x,z,{kind:'tree',solid:1});addCircle(x,z,.4);}
   // ---------- woods & trees: thick pines outside the valley and in the west/south woods, autumn trees in the open
   scatter(560,2.2,()=>{const r=rand();return r<.36?'pine_0':r<.72?'pine_1':r<.86?'pine_o0':'pine_o1';},(x,z)=>{const out=Math.max(B.x0-x,x-B.x1,B.z0-z,z-B.z1);
     const woods=(x<-14&&z>4)||(z>26&&x<30)||(x>10&&x<26&&z>8&&z<16)||(z<-20&&x<26);return (out>-2||woods)&&clearSpot(x,z,.8);},.35);
   for(const o of OBJ)if(o.kind==='tree'&&o.spr.startsWith('pine'))o.kind='pine';
-  scatter(70,3.6,()=>{const r=rand();return r<.34?'maple_orange':r<.6?'maple_red':r<.82?'maple_gold':'maple_green';},(x,z)=>x>B.x0+1&&x<B.x1-1&&z>B.z0+1&&z<B.z1-1&&clearSpot(x,z,1.4),.32);
+  scatter(45,3.6,()=>{const r=rand();return r<.34?'maple_orange':r<.6?'maple_red':r<.82?'maple_gold':'maple_green';},(x,z)=>{const woods=(x<-14&&z>4)||(z>26&&x<30)||(x>10&&x<26&&z>8&&z<16)||onPlateau(x,z);return woods&&x>B.x0+1&&x<B.x1-1&&z>B.z0+1&&z<B.z1-1&&clearSpot(x,z,1.4);},.32);
   // bushes hugging fences, yards and the edges of the woods; tall grass in the meadows
   for(const h of OBJ.filter(o=>o.kind==='bld')){const m=SPR[h.spr];if(!m||!m.foot)continue;for(const side of [-1,1]){if(rand()<.25)continue;
       const x=h.x+(side<0?m.foot[0]-.7:m.foot[2]+.7),z=h.z-.4-rand()*1.2;if(terr(x,z)!=='grass')continue;obj(['bush_green','bush_red','bush_gold'][(rand()*3)|0],x,z,{kind:'bush'});addCircle(x,z-.15,.55);}}
