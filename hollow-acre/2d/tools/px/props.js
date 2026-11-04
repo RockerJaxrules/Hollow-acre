@@ -198,7 +198,7 @@ if(K==='icon'){const I=CFG.icon;   // 16x16 inventory icons, lit from the upper 
     if(vein)for(const [x,y] of [[-3,-1],[1,-3],[3,1],[-1,2]]){P(A,8+x,10+y,vein[0]);P(A,9+x,10+y,vein[1]);}};
   const ingot=(R)=>{for(let y=0;y<6;y++)for(let x=-6+y*.5|0;x<=6-y*.5;x++){}for(let y=0;y<6;y++){const w=4+y;for(let x=-w;x<=w;x++)P(A,8+x,6+y,y===0?R[3]:x>w-2?R[0]:x<-w+2?R[2]:R[1+(y<2?1:0)]);}hl(A,3,12,11,R[0]);P(A,6,7,R[3]);P(A,7,7,R[3]);};
   if(I==='hoe'){line(2,14,11,5,WO);rect(A,10,2,6,2,SL[3]);rect(A,14,4,2,4,SL[2]);P(A,15,7,SL[1]);P(A,10,3,SL[2]);P(A,11,4,SL[1]);}
-  if(I==='pick'){line(3,14,9,6,WO);for(let i=-6;i<=6;i++){const y=4+Math.round(i*i*.09);P(A,9+i,y,SL[Math.abs(i)>4?3:2]);P(A,9+i,y+1,SL[1]);}P(A,9,3,SL[3]);P(A,3,6,SL[3]);P(A,15,6,SL[2]);}
+  if(I==='pick'){line(3,14,9,6,WO);for(let i=-6;i<=6;i++){const y=3+Math.round(6*.09*36/36)-Math.round(-(i*i)*.0)+Math.round(i*i*.0);P(A,9+i,y,SL[Math.abs(i)>4?3:2]);P(A,9+i,y+1,SL[1]);}P(A,9,3,SL[3]);P(A,3,6,SL[3]);P(A,15,6,SL[2]);}
   if(I==='axe'){line(3,14,9,4,WO);for(let j=0;j<8;j++)for(let i=0;i<5-Math.abs(j-3.5)*.5;i++)P(A,9+i,1+j,i===0?SL[1]:i>=3?SL[3]:SL[2]);P(A,13,2,SL[3]);P(A,14,4,SL[3]);P(A,8,2,WO[1]);}
   if(I==='can'){const G=[[30,66,40],[50,104,58],[78,146,80],[132,196,122]];blob2(7,10,5,4,G);for(let i=0;i<5;i++){P(A,11+i,9-i,G[2]);P(A,11+i,10-i,G[1]);}P(A,15,4,[210,210,200]);P(A,15,5,[160,160,150]);
     for(let i=0;i<7;i++){const a=Math.PI+i/6*Math.PI;P(A,7+Math.round(Math.cos(a)*4),6+Math.round(Math.sin(a)*3),G[1]);}}
@@ -264,7 +264,14 @@ if(K==='furnace'){const cx=W/2|0,base=H-3,w=26,top=10;   // a fieldstone furnace
   for(let y=0;y<10;y++)for(let x=-6;x<6;x++){const dy=Math.max(0,4-y);if(y<4&&x*x+dy*dy*2.2>36)continue;P(A,cx+x,base-14+y,y<3?[60,20,10]:[(240-y*8)|0,(140-y*8)|0,40]);}
   hl(A,cx-8,base-4,16,ST[4]);hl(A,cx-w/2,top,w,ST[5]);for(let x=-w/2-1;x<=w/2+1;x++)P(SHD,cx+x,base+1,PAL.out[0],150);}
 if(K==='icon32'){const I=CFG.icon;   // 32x32 hotbar icons: the same tool art the farmer swings, plus detailed seed pouch and meal
-  if(TOOLART[I]){stampTool(I,9,27,-45,false,1,(x,y,c)=>P(A,x,y,c),1.42);}
+  if(I==='pick'){   // hand-drawn: haft from the lower left, a symmetric head across its top, both points curving back toward the hands
+    const WO=[[52,32,18],[96,62,34],[140,94,54],[184,136,84]],SLV=[[46,50,60],[92,98,112],[156,162,176],[214,220,230],[244,248,252]];
+    for(let t=0;t<=1;t+=.02){const x=4+t*15,y=28-t*15;for(let o=-1.6;o<=1.6;o+=.5){const X=Math.round(x+o*.707),Y=Math.round(y+o*.707);P(A,X,Y,WO[o<-.6?3:o>.8?1:2]);}}
+    const C=[19.5,10.5],pp=[.707,.707],hh=[.707,-.707];
+    for(let t=-12;t<=12;t+=.2){const bend=t*t*.05,cx=C[0]+pp[0]*t-hh[0]*bend,cy=C[1]+pp[1]*t-hh[1]*bend,th=Math.max(.8,2.3-Math.abs(t)*.12);
+      for(let o=-th;o<=th;o+=.35){const X=Math.round(cx+hh[0]*o),Y=Math.round(cy+hh[1]*o);P(A,X,Y,SLV[o>th*.4?4:o>-.2?3:o>-th*.6?2:1]);}}
+    for(let o=-2;o<=2;o++){P(A,Math.round(C[0]+pp[0]*o),Math.round(C[1]+pp[1]*o),SLV[1]);P(A,Math.round(C[0]+pp[0]*o-.7),Math.round(C[1]+pp[1]*o+.7),SLV[0]);}}
+  else if(TOOLART[I]){stampTool(I,9,27,-45,false,1,(x,y,c)=>P(A,x,y,c),1.42);}
   if(I==='can'){const G=[[26,58,34],[44,94,52],[70,136,74],[118,186,108],[176,222,160]];
     for(let y=-8;y<=8;y++)for(let x=-10;x<=10;x++){const d=x*x/100+y*y/64;if(d>1)continue;const l=-x/10*.55-y/8*.65+.15;let k=l>.55?4:l>.2?3:l>-.2?2:l>-.55?1:0;if(d>.86)k=Math.max(0,k-1);P(A,13+x,20+y,G[k]);}
     for(let x=-9;x<=9;x++){P(A,13+x,12,G[3]);P(A,13+x,13,G[1]);}for(let i=0;i<11;i++){const a=Math.PI+i/10*Math.PI;for(let t=0;t<2;t++)P(A,13+Math.round(Math.cos(a)*(7+t)),11+Math.round(Math.sin(a)*(6+t)),G[t?0:2]);}
