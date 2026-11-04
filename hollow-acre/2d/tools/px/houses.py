@@ -13,6 +13,7 @@ HOUSES = {
   'store': dict(bw=7, siding='red', roof='bark', trim='cream', door='teal', shutters=False, wins=[1, 5], chimney=-2.2, seed=31, kind='brick', awning=True, sign='GENERAL STORE', wallH=74, winY=18),
   'garage': dict(bw=8, siding='stone', roof='slate', trim='stone', door='wood', shutters=False, wins=[0.15], chimney=None, seed=41, kind='stone', bigdoor=True, bigdoorX=-1.2, doorX=2.3, sign='GARAGE  REPAIRS', wallH=70, winY=14),
   'church': dict(bw=10, siding='white', roof='slate', trim='white', door='wood', shutters=False, wins=[1, 2.6, 6.4, 8], chimney=None, seed=51, arched=True, steeple=True, wallH=96, winY=22, top=150, roofH=74, moss=True),
+  'coop': dict(bw=3, siding='red', roof='slate', trim='white', door='wood', shutters=False, wins=[], chimney=None, seed=61, wallH=46, roofH=52, doorH=30),
 }
 only = sys.argv[1:] or list(HOUSES)
 meta = {}
@@ -20,4 +21,6 @@ for n in only:
     for night in (False, True):
         c = dict(HOUSES[n], name=n + ('_n' if night else ''), night=night)
         m = run('house.js', c, size(c)); print(c['name'], m); meta[c['name']] = m
-json.dump(meta, open('out/houses_meta.json', 'w'))
+try: _old = json.load(open('out/houses_meta.json'))
+except Exception: _old = {}
+_old.update(meta); json.dump(_old, open('out/houses_meta.json', 'w'))

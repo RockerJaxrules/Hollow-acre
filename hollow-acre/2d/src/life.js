@@ -21,6 +21,7 @@ function lifeDrawables(D,t){const day=!isNight();
 function lifeOver(t){ // smoke rises above the roofs, drifting with the wind
   for(const p of PUFFS){const k=p.t/3.2;const X=sx(p.hx)+p.ox+p.dx*k*6+k*k*14,Y=sz(p.hz)+p.oy-p.t*13;const r=p.r+k*6;
     ctx2.fillStyle=`rgba(${isNight()?'70,72,86':'196,196,204'},${(1-k)*.42})`;ctx2.beginPath();ctx2.arc(Math.round(X),Math.round(Y),r,0,Math.PI*2);ctx2.fill();}}
-function lifeLight(t,L){ // fireflies over the pond, the corn and the creek
+function lifeLight(t,L){ // fireflies over the pond, the corn and the creek; the faces in the field
+  for(const [x,y] of CROPGLOW)glowAt(x,y,10,[255,150,50],.9);CROPGLOW.length=0;
   if(L<.4)return;for(const b of BUGS){const x=b.cx+Math.sin(t*b.sp+b.ph)*1.6,z=b.cz+Math.cos(t*b.sp*.7+b.ph)*1.2;if(!onScreen(x,z,40))continue;
     const on=(Math.sin(t*2.3+b.ph*3)+1)/2;if(on<.35)continue;glowAt(sx(x),sz(z)-14-Math.sin(t+b.ph)*6,9,[200,255,120],on*.9*L);}}

@@ -25,13 +25,13 @@ function human(dir,pose){
   // legs + shoes
   const legs=side?[[-2+(pose.legA||0),0],[2+(pose.legB||0),0]]:[[-3,pose.liftA||0],[3,pose.liftB||0]];
   const drawLegs=()=>{for(const [lx,lift] of legs){const x=hx+lx*fl-2;const top=legTop+(pose.crouch||0);const len=footY-top-2+(lift?-1:0)-(pose.sit?4:0);
-      if(C.skirt&&!side)continue;box(x,top,4,Math.max(2,len),PNT);box(x-(side?(fl>0?0:1):0),top+len,side?5:5,3,SHO);}};
+      if(C.skirt&&!side)continue;const lift2=(side&&lx*fl<0&&pose.kneeB)?2:(side&&lx*fl>0&&pose.kneeA)?2:0;box(x,top,4,Math.max(2,len-lift2),PNT);box(x-(side?(fl>0?0:1):0),top+len-lift2,5,3,SHO);}};
   // arms
   const armY=torsoTop+2+(pose.crouch||0)+bob;
-  const arm=(sx,swing,up)=>{const ex=sx+(up?swing*.4:swing*.3),ey=up?armY-9:armY+8+(pose.crouch?-2:0);limb(sx,armY,ex,ey,3,SHT);blob(Math.round(ex),Math.round(ey)+(up?-1:1),2,2,SK);};
+  const arm=(sx,swing,up,hand)=>{let ex=sx+(up?swing*.4:swing*.3),ey=up?armY-9:armY+8+(pose.crouch?-2:0);if(hand){ex=sx+hand[0];ey=armY+hand[1];}limb(sx,armY,ex,ey,3,SHT);blob(Math.round(ex),Math.round(ey)+1,2,2,SK);};
   const back=dir==='N';
   // order: back arm, legs, torso, front arm, head
-  if(side)arm(hx-fl*2,-(pose.swing||0)*fl,pose.up);
+  if(side)arm(hx-fl*2,-(pose.swing||0)*fl,pose.up,pose.handB);
   drawLegs();
   // torso (with skirt / coat / overalls)
   const ty=torsoTop+bob+(pose.crouch||0);box(tx,ty,tw,torsoH,SHT);
@@ -42,8 +42,8 @@ function human(dir,pose){
   if(C.collar&&!back){for(let i=-2;i<=2;i++)p(hx+i,ty,[240,240,236]);}
   if(C.badge&&!back&&!side){p(tx+3,ty+3,[240,200,80]);p(tx+4,ty+3,[255,226,120]);p(tx+3,ty+4,[200,150,40]);}
   if(C.plaid&&!back){for(let j=0;j<torsoH;j++)for(let i=0;i<tw;i++)if((i+j)%4===0&&g(tx+i,ty+j))p(tx+i,ty+j,shade(SHT[2],.75));}
-  if(!side){arm(tx-1,-(pose.swing||0),pose.up);arm(tx+tw,(pose.swing||0),pose.up);}
-  else arm(hx+fl*3,(pose.swing||0)*fl,pose.up);
+  if(!side){arm(tx-1,-(pose.swing||0),pose.up,pose.handL);arm(tx+tw,(pose.swing||0),pose.up,pose.handR);}
+  else arm(hx+fl*3,(pose.swing||0)*fl,pose.up,pose.handF&&[pose.handF[0]*fl,pose.handF[1]]);
   if(pose.tool)pose.tool(hx,armY,dir,fl);
   // head: soft-shaded skin, then face, then hair framing it
   const R=kid?11:12,RY=kid?10:11;
@@ -110,19 +110,34 @@ function hollowBody(dir,pose){
 }
 // ---------- tools
 const HOE=(hx,ay,dir,fl,t)=>{};
-function toolFor(kind,t,dir){if(!kind)return null;return (hx,ay,dir,fl)=>{const up=t<.5;const a=up?-1.2+t*2*.3:-.9+(t-.5)*2*2.0;
-    const len=18,bx=hx+(dir==='W'?-6:dir==='E'?6:5),by=ay-2;const ex=Math.round(bx+Math.cos(a)*len*(dir==='W'?-1:1)),ey=Math.round(by+Math.sin(a)*len);
-    if(kind==='hoe'){limb(bx,by,ex,ey,2,ramp('#8a5a30'));for(let i=0;i<5;i++)p(ex+(dir==='W'?-i:i)*(dir==='N'||dir==='S'?0:1),ey+(dir==='N'||dir==='S'?i:0),[150,154,160]);}
-    if(kind==='can'){const cx=hx+(dir==='W'?-9:9),cy=ay+4-(up?0:-2);box(cx-4,cy-4,9,7,ramp('#4a8a4a'));limb(cx+(dir==='W'?-4:4),cy-2,cx+(dir==='W'?-9:9),cy+(up?-1:3),2,ramp('#4a8a4a'));
-      if(!up)for(let i=0;i<4;i++)p(cx+(dir==='W'?-10:10)+(i%2),cy+4+i*2,[140,200,240]);}};}
+function toolFor(kind,f,dir){if(!kind)return null;return (hx,ay,dir,fl)=>{const side=dir==='E'||dir==='W';
+  if(kind==='hoe'){const wood=ramp('#8a5a30'),iron=[[90,94,104],[150,154,164],[196,200,208]];
+    // handle angle per frame: up over the shoulder, then down in front
+    const ang=[-1.9,-2.3,-2.7,-3.0,-.2,.25,.15,-.6][f];const gx=hx+(side?fl*3:4),gy=ay+(f<=3?-6-f*2:7);
+    const L2=20,ex=Math.round(gx+Math.cos(ang)*L2*(side?fl:1)*(side?-1:1)*(f<=3?1:-1)),ey=Math.round(gy+Math.sin(ang)*L2*(f<=3?1:-1));
+    const tipx=side?Math.round(gx+fl*(f<=3?-4-f*2:12)):gx+(f<=3?-2:2),tipy=f<=3?gy-14-f*2:gy+12+(f===5?2:0);
+    limb(gx,gy,tipx,tipy,2,wood);const bx=side?fl:0;for(let i=0;i<6;i++)p(tipx+bx*i,tipy+(side?0:i)+(f<=3?-1:0),iron[i<2?2:1]);
+    if(f===5)for(let i=0;i<5;i++)p(tipx+bx*2+(i-2)*2,tipy+3+(i%2),[110,74,44]);}
+  if(kind==='can'){const G2=ramp('#4a8a4a');const tilt=f>=3&&f<=6;const cx=hx+(side?fl*10:9),cy=ay+5-(f>=1?2:0);
+    box(cx-5,cy-4,10,8,G2);for(let i=-5;i<5;i++)p(cx+i,cy-5,G2[3]);limb(cx-4,cy-7,cx+3,cy-7,1,G2);p(cx-5,cy-6,G2[1]);p(cx+4,cy-6,G2[1]);
+    const sx2=cx+(side?fl*6:6),sy2=cy-(tilt?0:3);limb(cx+(side?fl*4:4),cy-2,sx2+(side?fl*3:3),sy2-(tilt?-2:2),2,G2);
+    if(tilt)for(let i=0;i<6;i++){const dx=(side?fl*(4+(i>>1)):4+(i>>1)),dy=2+i*2+((f+i)%2);p(sx2+dx,sy2+dy,[150,205,240]);if(i%2)p(sx2+dx+1,sy2+dy,[210,236,250]);}}};}
 // ---------- render every frame of the sheet
 const draw=TALL?hollowBody:human;
 ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
   const Lf=layer('f',FW,FH);L=Lf;OX=0;OY=0;const pose={};const ph=(f-1)/8*Math.PI*2;
-  if(clip==='walk'&&f>0){const s=Math.sin(ph);pose.bob=(f%4===2||f%4===0)?-1:0;pose.swing=Math.round(s*3);if(dir==='E'||dir==='W'){pose.legA=Math.round(s*2);pose.legB=-Math.round(s*2);}else{pose.liftA=s>.3?1:0;pose.liftB=s<-.3?1:0;}}
-  if(clip==='idle')pose.bob=f?0:0;
-  if(clip==='thrust'){const t=f/(nf-1);pose.up=t<.5;pose.swing=t<.5?2:4;pose.tool=toolFor(CFG.tool,t,dir);pose.crouch=t>.6?1:0;}
-  if(clip==='slash'){pose.swing=[-3,-1,2,5,4,2][f];pose.up=f<2;}
+  const side=dir==='E'||dir==='W';
+  if(clip==='walk'&&f>0){const s_=Math.sin(ph),c_=Math.cos(ph);pose.bob=Math.abs(s_)>.7?0:-1;pose.swing=Math.round(s_*3);
+    if(side){pose.legA=Math.round(s_*3);pose.legB=-Math.round(s_*3);pose.kneeA=c_>.5;pose.kneeB=c_<-.5;pose.handF=[Math.round(-s_*3),8];pose.handB=[Math.round(s_*3),7];}
+    else{pose.liftA=s_>.35?1:0;pose.liftB=s_<-.35?1:0;pose.handL=[-1,8+Math.round(-s_*1.5)];pose.handR=[1,8+Math.round(s_*1.5)];}}
+  if(clip==='idle'){pose.bob=f?-1:0;}
+  if(clip==='thrust'){ // hoe: wind up over the head, chop down, crouch on impact; can: lift, tilt, pour, lower
+    const k=f/(nf-1);pose.tool=toolFor(CFG.tool,f,dir);
+    if(CFG.tool==='can'){pose.handL=[-1,5];pose.handR=[side?5:6,f<2?4:2];pose.handF=[6,f<2?4:2];pose.crouch=f>=3&&f<=6?1:0;}
+    else{const up=f<=3;pose.handL=up?[1,-4-f*2]:[3,8];pose.handR=up?[-1,-4-f*2]:[3,8];pose.handF=up?[1,-5-f*2]:[7,7];pose.handB=up?[0,-4-f*2]:[5,7];pose.crouch=f===4||f===5?2:f===6?1:0;}}
+  if(clip==='slash'){ // pick: crouch, reach down, grab, stand and lift the crop overhead
+    const cr=[0,3,5,4,1,0][f];pose.crouch=cr;const reach=f>=1&&f<=3;const lift=f>=4;
+    pose.handL=reach?[1,10]:lift?[2,-10]:[-1,8];pose.handR=reach?[-1,10]:lift?[-2,-10]:[1,8];pose.handF=reach?[7,9]:lift?[2,-11]:[1,8];pose.handB=reach?[5,9]:lift?[0,-10]:[0,7];}
   if(clip==='hurt'){pose.crouch=Math.min(8,f*2);pose.swing=4;}
   if(clip==='spellcast'){pose.up=f>1;pose.swing=f>1?5:1;}
   if(clip==='sit'){pose.crouch=6;pose.sit=true;}

@@ -145,7 +145,7 @@ _i = Image.open('spr/px2/road.png'); _i.save(f'{OUT}/road.png'); META['road'] = 
 # ---- buildings drawn in LibreSprite (px/house.js); .ase sources live in px/out
 import json as _j
 _PM = _j.load(open('px/out/houses_meta.json'))
-for _n in ('house_a', 'house_b', 'house_c', 'house_d', 'cabin', 'store', 'garage', 'church'):
+for _n in ('house_a', 'house_b', 'house_c', 'house_d', 'cabin', 'store', 'garage', 'church', 'coop'):
     _m = _PM[_n]; _d = Image.open(f'px/out/{_n}.png').convert('RGBA'); _nt = Image.open(f'px/out/{_n}_n.png').convert('RGBA')
     _top = min(_d.getbbox()[1], _nt.getbbox()[1]); _d = _d.crop((0, _top, _d.width, _d.height)); _nt = _nt.crop((0, _top, _nt.width, _nt.height))
     _foot = [-_m['bw'] / 2, -3.3 if _n != 'church' else -4.2, _m['bw'] / 2, 0]

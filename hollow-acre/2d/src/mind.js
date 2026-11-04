@@ -132,3 +132,43 @@ function mindScreen(t){const k=1-M.v/100;if(S.mode==='title')return;
   // one frame of negative
   if(M.flashT>0){ctx2.globalCompositeOperation='difference';ctx2.fillStyle='#fff';ctx2.fillRect(0,0,VW,VH);ctx2.globalCompositeOperation='source-over';}
 }
+
+/* ---------- more ways to lose it ---------- */
+const TRAIL=[];let trailT=0;const CROPGLOW=[];   // where you were, for a reflection that lags behind you
+M.cd.mimic=60;M.cd.watcher=40;M.cd.death=200;M.cd.hud=30;M.watcher=null;M.deathT=0;M.hudLie=0;
+const MIMIC={mae:'Dear? Dear, come here. I have oil for you. Come into the corn, it’s warmer.',tobias:'I found a glowcap! It’s really big! Come see, it’s just past the trees!',
+  hale:'Child. The bell. I need your help with the bell. This way.',agnes:'Ruth? Ruth, baby, is that you? Come back to the house.',hollis:'Got your part. Left it in the field. Don’t make me walk out there.',dunn:'Over here, kid. Over here. That’s it.'};
+function mindUpdate2(dt){if(S.mode!=='play'||S.paused)return;const T=tierOf(M.v),night=isNight()&&!S.bound;
+  trailT+=dt;if(trailT>.1){trailT=0;TRAIL.push({x:P.x,z:P.z,dir:P.dir,clip:P.clip,t:P.t});if(TRAIL.length>40)TRAIL.shift();}
+  if(M.hudLie>0)M.hudLie-=dt;
+  const ready=(k,t,lo,hi,p)=>{if(T<t||M.cd[k]>0)return false;M.cd[k]=lerp(lo,hi,rand())*(1.25-T*.12);return rand()<(p||1);};
+  // a friend's voice from the dark, and something waiting where it came from
+  if(night&&ready('mimic',2,55,90)){const ids=Object.keys(MIMIC);const id=pick(ids);const n=npcById(id);toast(`${n?n.def.name:'Someone'}, from the dark: “${MIMIC[id]}”`,4,true);
+    SFX.whisper(rand()<.5?-.8:.8);if(H.state==='gone'&&rand()<.6)H.timer=Math.min(H.timer,2);}
+  // someone you know, standing very still, watching
+  if(!M.watcher&&ready('watcher',2,40,70,.8)){const ids=npcs.filter(n=>n.vis).map(n=>n.def.id);if(ids.length){const p=aroundPlayer(.6,1.2,3.8,4.8);M.watcher={id:pick(ids),x:p.x,z:p.z,t:0};}}
+  if(M.watcher){const w=M.watcher;w.t+=dt;if(Math.hypot(w.x-P.x,w.z-P.z)<2.6||w.t>9||facingDot(w.x,w.z)>.93&&w.t>1.2){M.watcher=null;if(w.t>1)SFX.breath(0);}}
+  // the HUD lies about the day
+  if(ready('hud',2,35,60,.7)){M.hudLie=1.8;}
+  if(M.hudLie>0)ui.day.textContent=pick(['Day 31','Day 0','Day 1','Day 1','Day 7']);else if(ui.day.textContent!=='Day '+S.day)ui.day.textContent='Day '+S.day;
+  // you die. you don't.
+  if(night&&T>=4&&ready('death',4,160,260,.6))fakeDeath();}
+function fakeDeath(){S.mode='trans';const d=document.createElement('div');d.style.cssText='position:fixed;inset:0;background:#000;z-index:80;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#b01818;font:700 42px Georgia,serif;letter-spacing:.12em;opacity:0;transition:opacity .2s';
+  d.innerHTML='<div>YOU DIED</div><div id="fd2" style="font:400 15px Georgia,serif;color:#888;margin-top:18px;letter-spacing:.04em;opacity:0;transition:opacity 1s">Day '+S.day+'. Taken in the corn.</div>';document.body.appendChild(d);
+  SFX.boom&&SFX.boom();requestAnimationFrame(()=>d.style.opacity=1);setTimeout(()=>{d.querySelector('#fd2').style.opacity=1;},700);
+  setTimeout(()=>{d.firstChild.textContent='no.';d.firstChild.style.color='#ddd';d.querySelector('#fd2').textContent='not yet.';SFX.whisper(0);},2600);
+  setTimeout(()=>{d.style.opacity=0;S.hour=Math.min(25.6,S.hour+.7);S.mode='play';mindHit(6);setTimeout(()=>d.remove(),400);},4200);}
+const _mu=mindUpdate;mindUpdate=function(dt){_mu(dt);mindUpdate2(dt);};
+// drawing hooks used by the renderer
+function mindNPCOver(n,X,Y){if(!(isNight()&&tierOf(M.v)>=3))return;if(hash(n.def.id.length*7,S.day)>.6)return;ctx2.fillStyle='#d8c4ae';ctx2.fillRect(Math.round(X)-6,Math.round(Y)-40,12,9);ctx2.fillStyle='#c4ae98';ctx2.fillRect(Math.round(X)-6,Math.round(Y)-32,12,1);}
+function mindCropOver(tl,X,Y){if(!(isNight()&&tierOf(M.v)>=2)||!tl.crop||tl.crop.stage<2)return;if(hash(tl.i*5+1,tl.j*3+S.day)>.55)return;
+  const dx=clamp(Math.round((P.x-tl.x)*1.2),-1,1);CROPGLOW.push([X+dx,Y-8]);ctx2.fillStyle='#ffb24a';ctx2.fillRect(Math.round(X)-3+dx,Math.round(Y)-9,2,2);ctx2.fillRect(Math.round(X)+1+dx,Math.round(Y)-9,2,2);ctx2.fillRect(Math.round(X)-2+dx,Math.round(Y)-5,4,1);}
+function mindWatcherDraw(D){if(!M.watcher)return;const w=M.watcher;D.push({z:w.z,mind:1,draw(){drawSpr(w.id,sx(w.x),sz(w.z),'walk',dirOf(P.x-w.x,P.z-w.z),0,{alpha:Math.min(1,w.t*1.5)});}});}
+function mindReflection(){ // your reflection in the water, a little behind you. when you're far gone it stops copying you
+  if(!onScreen(P.x,P.z,10))return;const T=tierOf(M.v);if(terr(P.x,P.z+1.1)!=='water'&&terr(P.x,P.z+1.6)!=='water')return;
+  const lag=T>=1?Math.min(TRAIL.length-1,4+T*5):0;const r=T>=1&&TRAIL.length>lag?TRAIL[TRAIL.length-1-lag]:{x:P.x,z:P.z,dir:P.dir,clip:P.clip,t:P.t};
+  const X=Math.round(sx(r.x)),Y=Math.round(sz(P.z))+4;ctx2.save();ctx2.beginPath();ctx2.rect(0,Y,VW,VH);ctx2.clip();ctx2.translate(0,Y*2);ctx2.scale(1,-1);ctx2.globalAlpha=.32;
+  const dir=T>=3?'S':r.dir;drawSpr('farmer',X,Y,'walk',dir,r.clip==='walk'&&T<3?frameOf('farmer','walk',r.t):0);ctx2.restore();ctx2.globalAlpha=1;
+  if(T>=3){ctx2.fillStyle='rgba(10,4,4,.6)';ctx2.fillRect(X-3,Y+26,6,1);}}
+// shipping lies too
+{const bin=interact.find(e=>e.x===binPos.x&&e.z===binPos.z);if(bin){const _a=bin.act;bin.act=function(){const n=S.basket.length;_a.call(this);if(tierOf(M.v)>=3&&n){toast(`Shipped ${n} teeth for 0 coins.`,1.2,true);setTimeout(()=>toast('No. You shipped crops. You shipped crops.',2),1300);}};}}

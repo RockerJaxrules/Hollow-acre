@@ -39,7 +39,7 @@ function render(dt,now){const t=now/1000;
   if(hlTile&&S.mode==='play'){ctx2.strokeStyle='rgba(255,240,200,.75)';ctx2.lineWidth=1;ctx2.strokeRect(Math.round(sx(hlTile.x-.5))+.5,Math.round(sz(hlTile.z-.5))+.5,31,31);}
   // skid marks & blood at the crash site
   if(onScreen(-56,-5,200)){ctx2.fillStyle='rgba(0,0,0,.3)';for(let k=0;k<2;k++){ctx2.save();ctx2.translate(sx(-58.6+k*.9),sz(-1.6+k*.25));ctx2.rotate(.42);ctx2.fillRect(-200,0,200,3);ctx2.restore();}}
-  mindGround();
+  mindGround();findsDraw(t);farmDraw();mindReflection();
   // collect drawables
   const D=[];const pad=200;
   for(const o of OBJ){if(o.hide)continue;const X=sx(o.x),Y=sz(o.z);if(X<-pad||X>VW+pad||Y<-60||Y>VH+pad+260)continue;
@@ -57,7 +57,7 @@ function render(dt,now){const t=now/1000;
   if(S.hour>=19.5&&!S.bound)D.push({z:crossPos.z+2.6,peddler:true});
   for(const g of ghosts)if(g.t>0)D.push({z:g.z,ghost:g});
   if(ritual&&ritual.hat)D.push({z:ritual.hat.z,hat:true});
-  mindDrawables(D);lifeDrawables(D,t);D.sort((a,b)=>a.z-b.z);
+  mindDrawables(D);mindWatcherDraw(D);lifeDrawables(D,t);D.sort((a,b)=>a.z-b.z);
   for(const d of D){
     if(d.o){const o=d.o;const X=sx(o.x),Y=sz(o.z);let a;if(o.kind==='anim'){drawSpr(o.spr,X,Y-(o.yoff||0),'a','S',Math.floor(t*o.fps+(o.ph||0)+(o.grass?Math.sin(t*.7+o.x*.15)*1.2:0)));continue;}
       if((o.kind==='tree'||o.kind==='pine'||o.kind==='bld')&&P.z<o.z-.2){const m=SPR[o.spr];if(m){const px=sx(P.x),py=sz(P.z)-30;const f=m.foot||[0,0,0,0];const x0=o.kind==='bld'?X+f[0]*PPM:X-m.fw*.35,x1=o.kind==='bld'?X+f[2]*PPM:X+m.fw*.35;if(px>x0&&px<x1&&py>Y-m.ay&&py<Y&&P.z>o.z-(o.kind==='bld'?8:4))a=.55;}}
@@ -65,8 +65,8 @@ function render(dt,now){const t=now/1000;
       else drawSpr(o.spr,X,Y,null,null,0,{alpha:a});
       if(o.night&&SPR[o.night]&&nightK>0)drawSpr(o.night,X,Y,null,null,0,{alpha:(a||1)*nightK});
       if(o.kind==='bld'){const h=HOUSES.find(q=>q.e===o);if(h&&h.faceT>0){const w=(h.w||6)/2;const fx=Math.round(X-w*PPM+48),fy=Math.round(Y-74);ctx2.fillStyle='#d8d4c8';ctx2.fillRect(fx,fy,8,10);ctx2.fillStyle='#000';ctx2.fillRect(fx+1,fy+3,2,2);ctx2.fillRect(fx+5,fy+3,2,2);ctx2.fillRect(fx+2,fy+7,4,2);}}}
-    else if(d.crop){const tl=d.crop,c=tl.crop;const nm=c.type+'_'+c.stage;const s=c.pop<1?.6+.4*c.pop:1;drawSpr(nm,sx(tl.x),sz(tl.z+.2),null,null,0,{scale:s});}
-    else if(d.npc){const n=d.npc;const X=sx(n.x),Y=sz(n.z);shadow(X,Y,9);drawSpr(n.def.id,X,Y,'walk',n.dir,n.clip==='walk'?frameOf(n.def.id,'walk',n.t):0);
+    else if(d.crop){const tl=d.crop,c=tl.crop;const nm=c.type+'_'+c.stage;const s=c.pop<1?.6+.4*c.pop:1;drawSpr(nm,sx(tl.x),sz(tl.z+.2),null,null,0,{scale:s});mindCropOver(tl,sx(tl.x),sz(tl.z+.2));}
+    else if(d.npc){const n=d.npc;const X=sx(n.x),Y=sz(n.z);shadow(X,Y,9);drawSpr(n.def.id,X,Y,'walk',n.dir,n.clip==='walk'?frameOf(n.def.id,'walk',n.t):0);mindNPCOver(n,X,Y);
       if(n.clip==='stand'&&S.day>=2&&nightK>.5){ctx2.fillStyle='#ff2a14';const ey=Math.round(Y-35);ctx2.fillRect(Math.round(X)-3,ey,1,1);ctx2.fillRect(Math.round(X)+2,ey,1,1);}}
     else if(d.player){const X=sx(P.x),Y=sz(P.z);shadow(X,Y,9);let nm='farmer',clip=P.clip,f;
       if(P.anim){const a=P.anim;if(a.clip==='hoe'){nm='farmer_hoe';clip='thrust';}else if(a.clip==='water'){nm='farmer_can';clip='thrust';}else clip='slash';f=frameOf(nm,clip,a.t,a.dur);}
@@ -95,7 +95,7 @@ function render(dt,now){const t=now/1000;
     else if(d.mind){d.draw();}
     else if(d.hat){drawSpr('pumpkin',sx(ritual.hat.x),sz(ritual.hat.z));}
   }
-  partsDraw();lifeOver(t);
+  partsDraw();holdDraw();lifeOver(t);
   // weather: falling leaves (day), rain (storm), fog (night)
   if(nightK<.8){for(let i=0;i<24;i++){const s=hash(i,3);const x=((s*977+t*14*(.5+s))%(VW+40))-20,y=((hash(i,5)*VH+t*(18+s*20))%(VH+20))-10;ctx2.fillStyle=['#d0702a','#b8521c','#e0a040','#8a3a18'][i%4];ctx2.globalAlpha=1-nightK;ctx2.fillRect(Math.round(x+Math.sin(t*2+i)*6),Math.round(y),2,1);}ctx2.globalAlpha=1;}
   if(S.storm&&isNight()){ctx2.strokeStyle='rgba(170,190,220,.35)';ctx2.beginPath();for(let i=0;i<90;i++){const x=(hash(i,1)*VW+t*40)%VW,y=(hash(i,2)*VH+t*620)%VH;ctx2.moveTo(Math.round(x),Math.round(y));ctx2.lineTo(Math.round(x-2),Math.round(y+7));}ctx2.stroke();}
@@ -280,7 +280,7 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/
 }
 /* ================= boot ================= */
 function boot(){resize();addEventListener('resize',()=>{resize();vig=null;});makeFog();setupTouch();
-  press($('btnAct'),onAct);press($('btnSeed'),onSeed);$('btnTurn').hidden=true;
+  press($('btnAct'),onAct);press($('btnSeed'),()=>onSeed());$('btnTurn').hidden=true;
   const list=[...new Set(Object.values(SPR).map(m=>m.src))].concat(Object.values(TS).map(t=>t[0]));
   const lb=$('loadBar'),lt=$('loadTxt');
   loadImages([...new Set(list)],(d,n)=>{lb.style.width=(d/n*100)+'%';lt.textContent='Loading the valley… '+d+' / '+n;}).then(()=>{
@@ -288,5 +288,5 @@ function boot(){resize();addEventListener('resize',()=>{resize();vig=null;});mak
     for(const [cx,cz] of[[-6.3,2.2],[1.2,9.4],[48,-9.6],[57,-24],[-14.5,-9]])crows.push({x:cx,z:cz,hx:cx,hz:cz,y:0,state:'perch',t:0,vx:0,vz:0});
     S.mode='title';$('loadScr').style.opacity=0;setTimeout(()=>$('loadScr').remove(),800);requestAnimationFrame(loop);});
   $('begin').addEventListener('click',()=>{A.init&&A.init();startCine('intro');});
-  window.__game={S,P,H,tiles,npcs,act:onAct,tp:(x,z)=>{P.x=x;P.z=z;},setHour:h=>{S.hour=h;},skip:()=>{finishIntro();},get M(){return M;},big:(w,h)=>{VW=w;VH=h;view.width=w;view.height=h;for(const c of [lightC,fogC,fxC]){c.width=w;c.height=h;}vig=null;window.onresize=null;}};}
+  window.__game={S,P,H,tiles,npcs,act:onAct,tp:(x,z)=>{P.x=x;P.z=z;},setHour:h=>{S.hour=h;},skip:()=>{finishIntro();},get M(){return M;},talk:(id)=>talk(npcById(id)),ev:(c)=>eval(c),big:(w,h)=>{VW=w;VH=h;view.width=w;view.height=h;for(const c of [lightC,fogC,fxC]){c.width=w;c.height=h;}vig=null;window.onresize=null;}};}
 boot();
