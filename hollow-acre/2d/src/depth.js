@@ -33,10 +33,7 @@ function depthOver(t){if(DX.off||S.room)return;const day=clamp(1-nightK*1.6,0,1)
   if(day>0){if(!DX.cloudBig){const ct=cloudTex();const b=document.createElement('canvas');b.width=b.height=ct.width*4;const q=b.getContext('2d');q.imageSmoothingEnabled=true;q.drawImage(ct,0,0,b.width,b.height);DX.cloudBig=b;}
     const T=DX.cloudBig.width;ctx2.globalAlpha=.3*day;
     const ox=((-(cam.px)+t*9)%T+T)%T-T,oy=((-(cam.pz)+t*4)%T+T)%T-T;for(let y=oy;y<VH;y+=T)for(let x=ox;x<VW;x+=T)ctx2.drawImage(DX.cloudBig,Math.round(x),Math.round(y));
-    ctx2.globalAlpha=1;
-    // dust and pollen hanging in the sunlight
-    for(let i=0;i<10;i++){const h=hash(i,77),wx=(h*VW*1.6+t*(3+h*5))%(VW+60)-30,wy=(hash(i,78)*VH+Math.sin(t*.6+i)*14-t*(2+h*3))%(VH+40);const Y=wy<0?wy+VH+40:wy;
-      const tw=.5+.5*Math.sin(t*2.2+i*1.7);ctx2.fillStyle=`rgba(255,240,190,${.3*tw*day})`;ctx2.fillRect(Math.round(wx),Math.round(Y),1,1);if(h>.75){ctx2.fillStyle=`rgba(255,250,220,${.25*tw*day})`;ctx2.fillRect(Math.round(wx)-1,Math.round(Y),3,1);}}}
+    ctx2.globalAlpha=1;}
   // parallax: branches much closer to the camera than the ground, sliding past faster, only at the edges of the woods
   const P1=1.45;DX.nPar=0;if(!DX.par)DX.par=OBJ.filter(o=>(o.kind==='tree'||o.kind==='pine')&&hash(Math.round(o.x*3),Math.round(o.z*3))<=.4&&LAYERS.dark(o.x,o.z));
   for(const o of DX.par){if(o.hide)continue;

@@ -51,7 +51,9 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   console.log('META '+JSON.stringify({w:W,h:H,top,side,front}));}
 // ---------------- furniture
 const cx=W>>1,base=H-3;
-function topBox(x,y,w,tH,fH,R,face){plk(x,y,w,tH,R,1);const fy=y+tH;rect(A,x,fy,w,fH,face||R[2]);hl(A,x,fy,w,R[0]);vl(A,x,fy,fH,R[3]);vl(A,x+w-1,fy,fH,R[0]);hl(A,x,fy+fH-1,w,R[0]);}
+function topBox(x,y,w,tH,fH,R,face){plk(x,y,w,tH,R,1);const fy=y+tH;rect(A,x,fy,w,fH,face||R[2]);hl(A,x,fy,w,R[0]);vl(A,x,fy,fH,R[3]);vl(A,x+w-1,fy,fH,R[0]);hl(A,x,fy+fH-1,w,R[0]);
+  for(let yy=fy+fH;yy<H-2;yy++)for(let xx=x+2;xx<x+w-2;xx++)P(SHD,xx,yy,PAL.out[0],Math.round(70+(yy-fy-fH)*6));for(let xx=x-1;xx<x+w+2;xx++)P(SHD,xx,H-3,PAL.out[0],150);
+  for(let yy=fy;yy<fy+fH;yy++)for(let xx=x+w-3;xx<x+w;xx++){const c=G(A,xx,yy);if(c)P(A,xx,yy,shade(c,.75));}}
 function plk(x,y,w,h,R,dir){for(let j=0;j<h;j++)for(let i=0;i<w;i++){let c=R[4];if(dir?(i%7===0):(j%5===0))c=R[3];if(j===0)c=R[5]||R[4];P(A,x+i,y+j,c);}}
 if(K==='bed'){ // quilted bed, headboard against the wall, pillow, a dark stain grandpa never washed out
   const x0=4,w=W-8;post(A,x0,6,5,40);post(A,x0+w-5,6,5,40);rect(A,x0,8,w,18,WD[2]);frame(A,x0,8,w,18,WD[4],WD[0]);for(let i=x0+8;i<x0+w-8;i+=8)vl(A,i,10,14,WD[1]);

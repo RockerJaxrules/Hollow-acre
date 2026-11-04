@@ -84,7 +84,7 @@ function render(dt,now){const t=now/1000;
     else if(d.player){const X=sx(P.x),Y=sz(P.z);shadow(X,Y,9);let nm='farmer',clip=P.clip,f;
       if(P.anim){const a=P.anim;if(a.clip==='hoe'||a.clip==='pick'||a.clip==='axe'){nm='farmer_'+a.clip;clip='thrust';}else if(a.clip==='water'){nm='farmer_can';clip='thrust';}else clip='slash';f=frameOf(nm,clip,a.t,a.dur);}
       else{if(clip==='idle'){clip='walk';f=0;}else f=frameOf(nm,clip,P.t);}
-      if(S.mode==='scare')clip='hurt';
+      if(S.mode==='scare')clip='hurt';P._fr=[nm,clip,clip==='hurt'?'S':P.dir,f||0];
       drawSpr(nm,X,Y,clip,clip==='hurt'?'S':P.dir,clip==='hurt'?Math.min(5,Math.floor((performance.now()/120)%6)):f);
       if(fish.state!=='off'){ctx2.strokeStyle='rgba(230,230,230,.7)';ctx2.beginPath();ctx2.moveTo(X+8,Y-36);ctx2.lineTo(sx(fish.bx),sz(fish.bz));ctx2.stroke();ctx2.fillStyle=fish.state==='bite'?'#ff4030':'#e83020';ctx2.fillRect(Math.round(sx(fish.bx))-1,Math.round(sz(fish.bz))-1+(fish.state==='bite'?Math.round(Math.sin(t*30)):0),3,3);}}
     else if(d.hollow){const X=sx(H.x),Y=sz(H.z);const clip=H.clip==='walk'||H.clip==='crawl'||H.clip==='idle'?'walk':H.clip==='scream'||H.clip==='lunge'?'spellcast':'hurt';
@@ -108,12 +108,9 @@ function render(dt,now){const t=now/1000;
     else if(d.mind){d.draw();}
     else if(d.hat){drawSpr('pumpkin',sx(ritual.hat.x),sz(ritual.hat.z));}
   }
-  partsDraw();holdDraw();lifeOver(t);depthOver(t);
+  partsDraw();holdDraw();lifeOver(t);depthOver(t);leavesDraw();placeDraw();
   // weather: falling leaves (day), rain (storm), fog (night)
-  if(nightK<.8&&!S.room){const gust=Math.max(0,Math.sin(t*.09)*.8+Math.sin(t*.031+1)*.5);const n=Math.round(gust*7);ctx2.globalAlpha=1-nightK;
-    for(let i=0;i<n;i++){const s=hash(i,3),life=14+s*8,ph=((t+s*40)%life)/life;const x=((s*977+ph*VW*.9+gust*40)%(VW+60))-30,y=ph*(VH+40)-20+Math.sin(t*1.3+i*2)*10;
-      const C=[['#d0702a','#8a3a18'],['#e0a040','#9a6018'],['#b8521c','#6a2410']][i%3],flip=Math.sin(t*2.2+i*3)>0;const X=Math.round(x),Y=Math.round(y);
-      ctx2.fillStyle=C[0];ctx2.fillRect(X,Y,flip?4:3,2);ctx2.fillRect(X+1,Y-1,2,1);ctx2.fillStyle=C[1];ctx2.fillRect(X+(flip?3:0),Y+1,1,1);ctx2.fillRect(X+1,Y+2,1,1);}ctx2.globalAlpha=1;}
+
   if(S.storm&&isNight()&&!S.room){ctx2.strokeStyle='rgba(170,190,220,.35)';ctx2.beginPath();for(let i=0;i<90;i++){const x=(hash(i,1)*VW+t*40)%VW,y=(hash(i,2)*VH+t*620)%VH;ctx2.moveTo(Math.round(x),Math.round(y));ctx2.lineTo(Math.round(x-2),Math.round(y+7));}ctx2.stroke();}
   if(nightK>0&&fogTex&&!S.room){ctx2.globalAlpha=nightK*.55;const ox=Math.round((-(cam.px*.7)+t*6)%256),oy=Math.round((-(cam.pz*.7))%256);for(let y=oy-256;y<VH;y+=256)for(let x=ox-256;x<VW;x+=256)ctx2.drawImage(fogTex,Math.round(x),Math.round(y));ctx2.globalAlpha=1;}
   // ---- light map (multiply)

@@ -213,7 +213,9 @@ function benchBase(top,w,h,legH){const x0=(W-w)>>1,base=H-3,fy=top+h;
   rect(A,x0+4,fy+legH-6,w-8,2,WD[1]);hl(A,x0+4,fy+legH-6,w-8,WD[3]);
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){const k=(y%5===0)?3:(x+((y/5|0)*13))%23===0?2:4;P(A,x0+x,top+y,WD[k]);}hl(A,x0,top,w,WD[5]);
   rect(A,x0,fy,w,6,WD[2]);hl(A,x0,fy,w,WD[1]);hl(A,x0,fy+5,w,WD[0]);for(let x=x0+6;x<x0+w-4;x+=12)P(A,x,fy+2,PAL.slate[4]);
-  for(let x=x0-2;x<x0+w+3;x++)P(SHD,x,base,PAL.out[0],140);return {x0,fy,top};}
+  for(let y=fy+6;y<=base;y++)for(let x=x0+1;x<x0+w-1;x++){const c=G(A,x,y);if(!c)P(SHD,x,y,PAL.out[0],Math.round(60+(y-fy)*5));}
+  for(let x=x0-2;x<x0+w+3;x++)P(SHD,x,base,PAL.out[0],150);for(const lx of [x0+2,x0+w-6])for(let i=-1;i<6;i++)P(SHD,lx+i,base-1,PAL.out[0],170);
+  for(let x=x0;x<x0+w;x++){const c=G(A,x,top+h-1);if(c)P(A,x,top+h-1,shade(c,.8));}return {x0,fy,top};}
 if(K==='bench_farm'){const b=benchBase(14,W-8,14,18);   // seed trays, a trowel, a sack of seed, a sprinkler in pieces
   for(let i=0;i<3;i++){const x=b.x0+4+i*9;rect(A,x,b.top+3,8,6,WD[1]);rect(A,x+1,b.top+4,6,4,[110,74,44]);P(A,x+2,b.top+4,PAL.moss[3]);P(A,x+5,b.top+5,PAL.moss[2]);}
   ell(A,b.x0+W-22,b.top+4,5,4,PAL.cream[2]);ell(A,b.x0+W-23,b.top+3,3,2,PAL.cream[3]);rect(A,b.x0+W-18,b.top+9,6,2,PAL.slate[3]);P(A,b.x0+W-13,b.top+9,PAL.brass[2]);

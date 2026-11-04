@@ -174,7 +174,7 @@ function treeChop(){for(const o of OBJ){if(o.hide||(o.kind!=='tree'&&o.kind!=='p
       o.hide=true;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}SFX.screech&&SFX.screech();FALLING.push({o,t:0,dir:P.x<o.x?1:-1,cc,landed:false});
       const w=o.kind==='pine'?6:8;addInv('wood',w);toast(`Timber. +${w} wood.`,1.6);updateHud();
       if(rand()<.08)setTimeout(()=>toast('Carved into the heartwood, where no one could have reached it: your initials.',3,true),900);
-      const st=obj(o.spr.startsWith('maple')?'stump_maple':o.spr.startsWith('pine')?'stump_pine':'stump_oak',o.x,o.z,{kind:'prop',debris:'stump'});st.col={x:o.x,z:o.z-.1,r:.38};circles.push(st.col);
+      const sk=makeStump(o.spr)||'stump_maple';const st=obj(sk,o.x,o.z,{kind:'prop',debris:'stump'});st.col={x:o.x,z:o.z-.1,r:Math.max(.3,(SPR[sk].foot[2]||.4)*.85)};circles.push(st.col);
       interact.push({x:o.x,z:o.z+.2,r:.85,on:()=>!st.hide,label:()=>'Chop',ok:()=>true,act(){if(P.anim)return;if(!spend(S.tools.axe>1?2:4))return;faceTo(st.x,st.z);
         startAnim('axe',.55,null,()=>{st.hits=(st.hits||0)+1;SFX.thud(0,.4);burst(st.x,st.z,10,'#7d5636',1.4,.7,2);if(st.hits<(S.tools.axe>1?1:2))return;
           st.hide=true;const k=circles.indexOf(st.col);if(k>=0)circles.splice(k,1);addInv('wood',3);toast('The stump comes out. +3 wood.',1.4);});}});});}});}}
