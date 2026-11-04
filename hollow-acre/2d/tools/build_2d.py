@@ -17,6 +17,8 @@ css = '''
 #view{position:absolute;inset:0;image-rendering:pixelated;image-rendering:crisp-edges;display:block}
 #joy{opacity:0;transition:opacity .15s}#joy.on{opacity:1}
 #scare{image-rendering:pixelated}
+#scare.slam{animation:slam .34s steps(5) forwards, shake .06s linear infinite}
+@keyframes slam{0%{transform:scale(.35);opacity:.2}40%{transform:scale(1.15);opacity:1}100%{transform:scale(1.05);opacity:1}}
 #btnAct.off{opacity:.55}
 #loadScr{position:fixed;inset:0;z-index:999;background:#07070a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:#cdbf9f;font-family:Georgia,serif;transition:opacity .8s}
 #loadScr .lt{font-size:30px;letter-spacing:.12em;text-transform:uppercase;color:#e8dcc0}

@@ -38,8 +38,9 @@ function chunk(cx,cz){const k=cx+','+cz;let c=chunks.get(k);if(c)return c;
     for(let j=0;j<N;j++)for(let i=0;i<N;i++){const X=x0+i,Z=z0+j;drawAuto(g,L,maskAt(fn,X,Z),i*32,j*32,hash(X+11,Z+5));}}
   chunks.set(k,c);return c;}
 // ---------- camera
-const cam={x:0,z:0,shake:0};
-const sx=x=>x*PPM-cam.x*PPM+VW/2, sz=z=>z*PPM-cam.z*PPM+VH*.56;
+const cam={x:0,z:0,shake:0,px:0,pz:0};
+// all screen positions come from one integer-snapped camera, so ground and sprites never drift against each other
+const sx=x=>Math.round(x*PPM)-cam.px+(VW>>1), sz=z=>Math.round(z*PPM)-cam.pz+Math.round(VH*.56);
 // ---------- input
 const keys={};addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='Space'||e.code==='KeyE'){e.preventDefault();onAct();}if(e.code==='KeyQ')onSeed();});addEventListener('keyup',e=>keys[e.code]=false);
 const joy={x:0,y:0,id:null,ox:0,oy:0};

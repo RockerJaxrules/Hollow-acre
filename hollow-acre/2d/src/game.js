@@ -18,6 +18,10 @@ const DIRS=['E','S','W','N'];
 const dirOf=(x,z)=>Math.abs(x)>Math.abs(z)?(x>0?'E':'W'):(z>0?'S':'N');
 /* ================= people ================= */
 //@@STORY@@
+const NPCPOS={mae:{day:[33.5,-8.4],path:[[33.5,-8.4],[30.6,-8.2],[37,-8.3]]},hale:{day:[48,-17.6],path:[[48,-17.6],[50.6,-16.6],[45.4,-16.8]]},
+  tobias:{day:[46,-3.2],path:[[46,-3.2],[50.5,-4],[48,-1.8],[44,-5.6]]},hollis:{day:[-35,-9.6],path:[[-35,-9.6],[-30,-9.4],[-39,-9.8]]},
+  agnes:{day:[-46,-8.6],path:[[-46,-8.6],[-44,-8.2],[-48,-8.4]],nightPos:[-46,-8.6]},dunn:{day:[60,-8.6],path:[[60,-8.6],[56,-8.2],[64,-8.4],[58,-4.2]]}};
+for(const d of NPCDEF)if(NPCPOS[d.id])Object.assign(d,NPCPOS[d.id]);
 const npcs=NPCDEF.map(d=>({def:d,x:d.day[0],z:d.day[1],dir:'S',clip:'idle',t:Math.random()*4,wp:0,wait:Math.random()*4,vis:true,spd:0}));
 const npcById=id=>npcs.find(n=>n.def.id===id);
 const ruth={x:0,z:0,vis:false,t:0,on:false,done:false};
@@ -94,7 +98,7 @@ function questLine(n){const id=n.def.id,q=S.q;
   if(id==='hollis'){if(!q.hollis){q.hollis=1;return 'That your car out by the big oak? Hell of a thing. I can fix it. I need four parts: a tire, Mae sells one in town. A battery, I’ve got one, but I want three pumpkins for it. A fan belt, Agnes has her husband’s old truck rotting in the yard. And gas, from my pump. Twenty in the honor box.';}
     if(!S.parts.battery){if(basketCount('pumpkin')>=3){takeBasket('pumpkin',3);S.parts.battery=1;SFX.coin();return 'Now those are pumpkins. Here’s your battery. Don’t ask whose car it came out of.';}return 'Three pumpkins for the battery. Grow ’em yourself. Nobody else here will sell you any.';}
     if(S.carFixed&&!S.looped)return 'She’ll run. Whether the road lets you go is another thing.';if(S.looped)return 'Came back, huh? They all come back. I’m sorry, friend.';}
-  if(id==='agnes'){if(S.cat==='carried'){S.cat='home';S.parts.belt=1;cat.vis=true;cat.x=-46.5;cat.z=1.8;SFX.meow();return 'Whiskers! Oh, you found her. Here. Harold’s fan belt, off his truck. He won’t be driving it. Nobody drives out of here.';}
+  if(id==='agnes'){if(S.cat==='carried'){S.cat='home';S.parts.belt=1;cat.vis=true;cat.x=-44.6;cat.z=-8.2;SFX.meow();return 'Whiskers! Oh, you found her. Here. Harold’s fan belt, off his truck. He won’t be driving it. Nobody drives out of here.';}
     if(!q.agnes&&S.cat==='lost'){q.agnes=1;return 'You need a belt? Harold’s truck has one. I’ll trade it, but find my Whiskers first. She ran into the corn by Elias’s farm. She always runs to the corn.';}
     if(S.cat==='lost')return 'Whiskers is in the corn. Please. I can hear her at night, and sometimes I hear something answer.';}
   if(id==='dunn'){if(!S.flashlight){if(!q.dunn){q.dunn=1;return 'Want something for that dark? I’ll trade my old service flashlight for three fish from the pond. Department budget. Don’t fish after dark.';}
@@ -204,6 +208,7 @@ function onScreen(x,z,m){const X=sx(x),Y=sz(z);m=m||0;return X>-m&&X<VW+m&&Y>-m&
 function hollowUpdate(dt){H.t+=dt;H.ft+=dt;if(H.grace>0)H.grace-=dt;
   if(S.bound||!isNight()){if(H.state!=='gone'&&!S.bound){H.state='gone';H.vis=false;}return 99;}
   if(H.state==='gone'){H.timer-=dt;if(H.timer<=0){spawnHollow(false,!S.first['watch'+S.day]);if(H.state==='watch')S.first['watch'+S.day]=1;}return 99;}
+  if(H.state==='lunge'){H.lungeT-=dt;H.clip='scream';if(H.lungeT<=0){H.state='flee';H.fleeT=.9;H.grace=3;}return 2;}
   if(H.state==='flee'){H.fleeT-=dt;H.alpha=clamp(H.fleeT/.9,0,1);if(H.fleeT<=0){H.state='gone';H.timer=8+rand()*6;H.vis=false;}return 99;}
   const dx=P.x-H.x,dz=P.z-H.z,d=Math.hypot(dx,dz)||.01;const dot=(-dx*P.fx-dz*P.fz)/d;
   const range=S.flashlight?11:8.5,cone=S.flashlight?.72:.6;
@@ -223,7 +228,11 @@ function hollowUpdate(dt){H.t+=dt;H.ft+=dt;if(H.grace>0)H.grace-=dt;
     H.stepT-=dt*lurch*(1+H.crawl);if(H.stepT<=0&&d<15){H.stepT=.55;SFX.thud(clamp(-dx/10,-1,1),.06+.25*(1-d/15));}
     H.whisperT-=dt;if(H.whisperT<=0&&d<14&&dot<.2){SFX.whisper(clamp(-dx/10,-1,1));H.whisperT=4+rand()*4;}
     H.breathT-=dt;if(H.breathT<=0&&d<5&&dot<0){SFX.breath(0);H.breathT=2.6;}
-    sputCD-=dt;if(sputCD<=0&&d<8&&S.fuel>0){sputCD=9+rand()*8;sputT=1.1+rand()*.6;SFX.sputter();}}
+    sputCD-=dt;if(sputCD<=0&&d<9&&S.fuel>0){sputCD=10+rand()*8;sputT=1.1+rand()*.6;SFX.sputter();H.ambush=sputT-.15;}
+    if(H.ambush>0){H.ambush-=dt;if(H.ambush<=0&&H.grace<=0){H.ambush=0;jumpScare('dark');return 2;}}
+    const back=(-dx*P.fx-dz*P.fz)/d<-.5;
+    if(P.dir!==lastDir&&d<7&&back===false&&H.grace<=0&&S.day>=1&&!S.night.turn&&dot>.7){S.night.turn=1;jumpScare('turn');return 2;}
+    peekCD-=dt;if(peekCD<=0&&H.grace<=0&&d<14){peekCD=35+rand()*30;jumpScare('lunge');return 2;}}
   if(d<1.1&&H.rise>=1&&H.state==='stalk'&&H.grace<=0)caught();
   return d;}
 function ruthUpdate(dt){
@@ -236,11 +245,19 @@ function catUpdate(dt){cat.vis=S.cat!=='carried';if(S.cat!=='lost'){cat.clip='id
   if(d<.3||cat.tt<=0){cat.tx=lerp(CORN.x0+1,CORN.x1-1,rand());cat.tz=lerp(CORN.z0+1,CORN.z1-1,rand());cat.tt=6+rand()*6;}
   const sp=Math.hypot(P.x-cat.x,P.z-cat.z)<3?0:.7;if(d>.3&&sp){cat.x+=dx/d*sp*dt;cat.z+=dz/d*sp*dt;cat.dir=dirOf(dx,dz);cat.clip='walk';}else cat.clip='idle';cat.t+=dt;
   cat.meow-=dt;if(cat.meow<=0&&Math.hypot(P.x-cat.x,P.z-cat.z)<14){SFX.meow(clamp((cat.x-P.x)/10,-1,1));cat.meow=4+rand()*3;}}
+/* ================= sudden scares ================= */
+let slamT=0,peekCD=30,lastDir='S';
+function faceSlam(dur,loud){drawScare();const c=$('scare');c.hidden=false;c.classList.remove('slam');void c.offsetWidth;c.classList.add('slam','on');slamT=dur||.38;
+  if(loud!==false){SFX.scream();SFX.stinger();}cam.shake=Math.max(cam.shake,.7);flashT=Math.max(flashT,.55);try{navigator.vibrate&&navigator.vibrate([120,40,180]);}catch(e){}}
+function slamUpdate(dt){if(slamT>0){slamT-=dt;if(slamT<=0&&S.mode!=='scare'){const c=$('scare');c.hidden=true;c.classList.remove('slam','on');}}}
+function popInFront(d){H.x=P.x+P.fx*d;H.z=P.z+P.fz*d;collide(H,.4);H.vis=true;H.alpha=1;H.rise=1;H.crawl=0;H.dir=dirOf(P.x-H.x,P.z-H.z);H.clip='scream';H.ft=0;}
+function jumpScare(kind){popInFront(1.3);H.state='lunge';H.lungeT=.75;H.burn=0;faceSlam(.38);
+  toast(kind==='turn'?'It was right behind you.':kind==='dark'?'When the light came back, it was there.':'It came out of the dark.',2.4,true);}
 /* ================= caught / ending ================= */
 function caught(){if(S.mode!=='play')return;S.mode='scare';S.caught++;SFX.scream();cam.shake=.8;fish.state='off';
   try{navigator.vibrate&&navigator.vibrate([200,60,300]);}catch(e){}
   const dx=H.x-P.x,dz=H.z-P.z,d=Math.hypot(dx,dz)||1;P.fx=dx/d;P.fz=dz/d;P.dir=dirOf(dx,dz);H.clip='lunge';H.ft=0;
-  setTimeout(()=>{drawScare();$('scare').hidden=false;$('scare').classList.add('on');},600);
+  faceSlam(3,false);
   setTimeout(()=>fade(1),1500);
   setTimeout(()=>{$('scare').hidden=true;$('scare').classList.remove('on');const lost=Math.floor(S.coins/2);S.coins-=lost;S.basket=[];if(S.cat==='carried'){S.cat='lost';resetCat();}
     newDay(`You wake in your bed with straw in your mouth. ${lost?lost+' coins are gone.':'Your pockets are empty.'} Someone left the door open.`);fade(0);S.mode='play';},2800);}
@@ -264,7 +281,7 @@ const dayScale=[220,261.6,293.7,329.6,392,440,523.3];
 const nightMel=[329.6,392,440,392,329.6,293.7,329.6,0,329.6,392,440,493.9,440,392,329.6,0,261.6,293.7,329.6,293.7,261.6,246.9,220,0];
 function lightning(){flashT=1;const n=2+Math.floor(rand()*3);ghosts=[];if(!S.bound)for(let i=0;i<n;i++){const a=rand()*Math.PI*2,d=5+rand()*5;ghosts.push({x:P.x+Math.cos(a)*d,z:P.z+Math.sin(a)*d*.7,t:.35});}
   setTimeout(()=>SFX.thunder(),300+rand()*900);}
-function update(dt){
+function update(dt){slamUpdate(dt);
   const rate=S.hour<20?1/11:1/15;S.hour+=dt*rate;
   if(!S.dusk&&S.hour>=18){S.dusk=true;toast('The sun is going down. Your lantern is lit.',2.6);}
   if(!S.bellRung&&S.hour>=20){S.bellRung=true;SFX.bell();S.storm=S.day>=2&&!S.bound;placeNPCs();
@@ -279,6 +296,7 @@ function update(dt){
   let mx=joy.x,mz=joy.y;if(keys.KeyW||keys.ArrowUp)mz-=1;if(keys.KeyS||keys.ArrowDown)mz+=1;if(keys.KeyA||keys.ArrowLeft)mx-=1;if(keys.KeyD||keys.ArrowRight)mx+=1;
   let mag=Math.hypot(mx,mz);if(mag>1){mx/=mag;mz/=mag;mag=1;}
   const corn=inCorn(P.x,P.z);const moving=mag>.15&&!P.anim,run=mag>.85||keys.ShiftLeft;const spd=moving?(run?5:3)*mag*(corn?.7:1):0;
+  lastDir=P.dir;
   if(moving){P.fx=mx/mag;P.fz=mz/mag;P.dir=dirOf(mx,mz);P.x+=P.fx*spd*dt;P.z+=P.fz*spd*dt;collide(P,.3);if(fish.state!=='off')fish.state='off';}
   P.spd=spd;
   if(P.anim){const a=P.anim;a.t+=dt;P.clip=a.clip;if(!a.fired&&a.t>a.dur*.55){a.fired=true;a.fire&&a.fire();}if(a.t>=a.dur)P.anim=null;}
@@ -299,6 +317,8 @@ function update(dt){
     else{const path=n.def.path;if(n.wait>0){n.wait-=dt;n.clip='idle';}else{const tg=path[n.wp];const tx=tg[0]-n.x,tz=tg[1]-n.z,td=Math.hypot(tx,tz);
         if(td<.3){n.wp=(n.wp+1)%path.length;n.wait=4+rand()*7;}else{sp=n.def.id==='tobias'?1.5:1.1;n.x+=tx/td*sp*dt;n.z+=tz/td*sp*dt;collide(n,.3);n.dir=dirOf(tx,tz);n.clip='walk';}}}}
   ruthUpdate(dt);catUpdate(dt);
+  if(isNight()&&!S.bound)for(const h of HOUSES){if(h.faceDone===S.day||!h.lit)continue;if(Math.hypot(P.x-h.x,P.z-h.z)<4.5){h.faceDone=S.day;h.faceT=.55;SFX.face();}}
+  for(const h of HOUSES)if(h.faceT>0)h.faceT-=dt;
   if(isNight()&&!S.bound&&S.day>=2&&!S.night.phone&&Math.hypot(P.x-boothPos.x,P.z-boothPos.z)<22){S.night.phone=1;phone.ring=true;phone.t=0;}
   if(phone.ring){phone.t-=dt;if(phone.t<=0){phone.t=3;SFX.ring(clamp((boothPos.x-P.x)/15,-1,1),clamp(1-Math.hypot(P.x-boothPos.x,P.z-boothPos.z)/36,.1,1));}}
   if(isNight()&&!S.bound&&S.day>=2&&!S.night.horn&&Math.hypot(P.x-carPos.x,P.z-carPos.z)<24){S.night.horn=1;hornT=2.2;SFX.horn();}

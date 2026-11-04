@@ -12,13 +12,15 @@ function render(dt,now){const t=now/1000;
   // camera
   let fx=P.x,fz=P.z-.6;if(S.mode==='title'){fx=Math.sin(t*.05)*8;fz=-4+Math.cos(t*.04)*4;}
   if(cine&&cine.cam){fx=cine.cam.x;fz=cine.cam.z;}
-  camT.x=lerp(camT.x,fx,1-Math.exp(-dt*6));camT.z=lerp(camT.z,fz,1-Math.exp(-dt*6));cam.x=camT.x;cam.z=camT.z;
-  if(cam.shake>0){cam.shake=Math.max(0,cam.shake-dt);cam.x+=(Math.random()-.5)*cam.shake*.3;cam.z+=(Math.random()-.5)*cam.shake*.3;}
+  camT.x=lerp(camT.x,fx,1-Math.exp(-dt*9));camT.z=lerp(camT.z,fz,1-Math.exp(-dt*9));if(Math.abs(camT.x-fx)<.02)camT.x=fx;if(Math.abs(camT.z-fz)<.02)camT.z=fz;
+  if(S.mode==='play'&&!(cine&&cine.cam)){camT.x=fx;camT.z=fz;}cam.x=camT.x;cam.z=camT.z;
+  cam.px=Math.round(cam.x*PPM);cam.pz=Math.round(cam.z*PPM);
+  if(cam.shake>0){cam.shake=Math.max(0,cam.shake-dt);const k=Math.round(cam.shake*10);cam.px+=((Math.random()*2-1)*k)|0;cam.pz+=((Math.random()*2-1)*k)|0;}
   if(cine&&cine.custom){cine.custom(ctx2,dt,t);return;}
   ctx2.fillStyle='#22301a';ctx2.fillRect(0,0,VW,VH);
   // ground chunks
-  const left=cam.x*PPM-VW/2,top=cam.z*PPM-VH*.56;const c0=Math.floor(left/CH),c1=Math.floor((left+VW)/CH),r0=Math.floor(top/CH),r1=Math.floor((top+VH)/CH);
-  for(let cz=r0;cz<=r1;cz++)for(let cx=c0;cx<=c1;cx++)ctx2.drawImage(chunk(cx,cz),Math.round(cx*CH-left),Math.round(cz*CH-top));
+  const left=cam.px-(VW>>1),top=cam.pz-Math.round(VH*.56);const c0=Math.floor(left/CH),c1=Math.floor((left+VW)/CH),r0=Math.floor(top/CH),r1=Math.floor((top+VH)/CH);
+  for(let cz=r0;cz<=r1;cz++)for(let cx=c0;cx<=c1;cx++)ctx2.drawImage(chunk(cx,cz),cx*CH-left,cz*CH-top);
   // water shimmer
   if(onScreen(pond.x,pond.z,260))for(let i=0;i<26;i++){const a=hash(i,7)*6.28,r=hash(i,9)*pond.r*.85;const x=pond.x+Math.cos(a)*r,z=pond.z+Math.sin(a)*r*.9;
     const k=(Math.sin(t*1.7+i)+1)/2;if(k>.6){ctx2.fillStyle=`rgba(200,230,240,${(k-.6)*1.6})`;ctx2.fillRect(Math.round(sx(x)),Math.round(sz(z)),4,1);}}
@@ -49,10 +51,11 @@ function render(dt,now){const t=now/1000;
   D.sort((a,b)=>a.z-b.z);
   for(const d of D){
     if(d.o){const o=d.o;const X=sx(o.x),Y=sz(o.z);let a;
-      if((o.kind==='tree'||o.kind==='pine'||o.kind==='bld')&&P.z<o.z-.2){const m=SPR[o.spr];if(m){const px=sx(P.x),py=sz(P.z)-30;if(px>X-m.ax&&px<X-m.ax+m.fw&&py>Y-m.ay&&py<Y-m.ay+m.fh&&P.z>o.z-(o.kind==='bld'?8:4))a=.55;}}
+      if((o.kind==='tree'||o.kind==='pine'||o.kind==='bld')&&P.z<o.z-.2){const m=SPR[o.spr];if(m){const px=sx(P.x),py=sz(P.z)-30;const f=m.foot||[0,0,0,0];const x0=o.kind==='bld'?X+f[0]*PPM:X-m.fw*.35,x1=o.kind==='bld'?X+f[2]*PPM:X+m.fw*.35;if(px>x0&&px<x1&&py>Y-m.ay&&py<Y&&P.z>o.z-(o.kind==='bld'?8:4))a=.55;}}
       if(o.kind==='tree'||o.kind==='pine')shadow(X,Y,14);
       drawSpr(o.spr,X,Y,null,null,0,{alpha:a});
-      if(o.night&&SPR[o.night]&&nightK>0)drawSpr(o.night,X,Y,null,null,0,{alpha:(a||1)*nightK});}
+      if(o.night&&SPR[o.night]&&nightK>0)drawSpr(o.night,X,Y,null,null,0,{alpha:(a||1)*nightK});
+      if(o.kind==='bld'){const h=HOUSES.find(q=>q.e===o);if(h&&h.faceT>0){const w=(h.w||6)/2;const fx=Math.round(X-w*PPM+48),fy=Math.round(Y-74);ctx2.fillStyle='#d8d4c8';ctx2.fillRect(fx,fy,8,10);ctx2.fillStyle='#000';ctx2.fillRect(fx+1,fy+3,2,2);ctx2.fillRect(fx+5,fy+3,2,2);ctx2.fillRect(fx+2,fy+7,4,2);}}}
     else if(d.crop){const tl=d.crop,c=tl.crop;const nm=c.type+'_'+c.stage;const s=c.pop<1?.6+.4*c.pop:1;drawSpr(nm,sx(tl.x),sz(tl.z+.2),null,null,0,{scale:s});}
     else if(d.npc){const n=d.npc;const X=sx(n.x),Y=sz(n.z);shadow(X,Y,9);drawSpr(n.def.id,X,Y,'walk',n.dir,n.clip==='walk'?frameOf(n.def.id,'walk',n.t):0);
       if(n.clip==='stand'&&S.day>=2&&nightK>.5){ctx2.fillStyle='#ff2a14';const ey=Math.round(Y-44);ctx2.fillRect(Math.round(X)-3,ey,1,1);ctx2.fillRect(Math.round(X)+2,ey,1,1);}}
@@ -84,10 +87,10 @@ function render(dt,now){const t=now/1000;
   // weather: falling leaves (day), rain (storm), fog (night)
   if(nightK<.8){for(let i=0;i<24;i++){const s=hash(i,3);const x=((s*977+t*14*(.5+s))%(VW+40))-20,y=((hash(i,5)*VH+t*(18+s*20))%(VH+20))-10;ctx2.fillStyle=['#d0702a','#b8521c','#e0a040','#8a3a18'][i%4];ctx2.globalAlpha=1-nightK;ctx2.fillRect(Math.round(x+Math.sin(t*2+i)*6),Math.round(y),2,1);}ctx2.globalAlpha=1;}
   if(S.storm&&isNight()){ctx2.strokeStyle='rgba(170,190,220,.35)';ctx2.beginPath();for(let i=0;i<90;i++){const x=(hash(i,1)*VW+t*40)%VW,y=(hash(i,2)*VH+t*620)%VH;ctx2.moveTo(Math.round(x),Math.round(y));ctx2.lineTo(Math.round(x-2),Math.round(y+7));}ctx2.stroke();}
-  if(nightK>0&&fogTex){ctx2.globalAlpha=nightK*.55;const ox=(-(cam.x*PPM*.7)+t*6)%256,oy=(-(cam.z*PPM*.7))%256;for(let y=oy-256;y<VH;y+=256)for(let x=ox-256;x<VW;x+=256)ctx2.drawImage(fogTex,Math.round(x),Math.round(y));ctx2.globalAlpha=1;}
+  if(nightK>0&&fogTex){ctx2.globalAlpha=nightK*.55;const ox=Math.round((-(cam.px*.7)+t*6)%256),oy=Math.round((-(cam.pz*.7))%256);for(let y=oy-256;y<VH;y+=256)for(let x=ox-256;x<VW;x+=256)ctx2.drawImage(fogTex,Math.round(x),Math.round(y));ctx2.globalAlpha=1;}
   // ---- light map (multiply)
   lctx.globalCompositeOperation='source-over';lctx.fillStyle=`rgb(${amb[0]|0},${amb[1]|0},${amb[2]|0})`;lctx.fillRect(0,0,VW,VH);
-  if(nightK>.02){lctx.globalCompositeOperation='lighter';const L=nightK;const fl=.88+.12*Math.sin(t*23)*Math.sin(t*7.3);
+  if(nightK>.02){lctx.globalCompositeOperation='lighter';const L=nightK;const fl=.95+.05*Math.sin(t*5.3);
     for(const h of HOUSES){if(!h.lit)continue;const X=sx(h.x),Y=sz(h.z)-40;if(X<-200||X>VW+200||Y<-200||Y>VH+200)continue;glowAt(X,Y,110,[255,170,80],.5*L);}
     for(const lp of lamps){if(lp.dead&&Math.sin(t*9+lp.ph)>.2)continue;const X=sx(lp.x),Y=sz(lp.z)-66;if(X<-150||X>VW+150||Y<-150||Y>VH+150)continue;glowAt(X,Y+50,100,[255,180,90],.75*L*fl);glowAt(X,Y,16,[255,230,170],.9*L);}
     for(const o of OBJ){if(!o.glow)continue;const X=sx(o.x),Y=sz(o.z)-8;if(X<-60||X>VW+60||Y<-60||Y>VH+60)continue;glowAt(X,Y,30,[255,140,40],.6*L*fl);}
@@ -106,18 +109,32 @@ function render(dt,now){const t=now/1000;
   // vignette + danger pulse + grain
   if(!vig||vig.w!==VW||vig.h!==VH)makeVig();ctx2.drawImage(vig.c,0,0);
   if(danger>.3&&!S.bound){ctx2.fillStyle=`rgba(120,0,0,${(danger-.3)*.25*(.6+.4*Math.sin(t*6))})`;ctx2.fillRect(0,0,VW,VH);}
-  if(grainTex){ctx2.globalAlpha=.5;ctx2.drawImage(grainTex,(Math.random()*-64)|0,(Math.random()*-64)|0,VW+128,VH+128);ctx2.globalAlpha=1;}
 }
 let vig=null;
 function makeVig(){const c=document.createElement('canvas');c.width=VW;c.height=VH;const g=c.getContext('2d');const gr=g.createRadialGradient(VW/2,VH*.5,Math.min(VW,VH)*.35,VW/2,VH*.5,Math.max(VW,VH)*.75);
   gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(6,4,10,.55)');g.fillStyle=gr;g.fillRect(0,0,VW,VH);vig={c,w:VW,h:VH};}
 /* ================= jumpscare (pixel) ================= */
-function drawScare(){const c=$('scare');c.width=96;c.height=128;const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.fillStyle='#080102';g.fillRect(0,0,96,128);
-  const m=SPR.hollow,im=IMG[m.src];const r=m.clips.walk.S[0];g.drawImage(im,16,r*64+2,32,30,-8,2,112,105);
-  g.fillStyle='#000';g.fillRect(28,48,12,10);g.fillRect(56,46,12,11);
-  g.fillStyle='#ff2010';g.fillRect(32,51,4,4);g.fillRect(60,50,4,4);g.fillStyle='#ffe0c0';g.fillRect(33,52,1,1);g.fillRect(61,51,1,1);
-  g.fillStyle='#120000';g.beginPath();g.ellipse(48,86,22,16,0,0,7);g.fill();g.fillStyle='#e8dcc0';for(let i=0;i<11;i++){g.fillRect(28+i*4,72+(i%2),2,6+(i%3));g.fillRect(29+i*4,96-(i%2),2,-5-(i%2));}
-  g.fillStyle='rgba(90,0,0,.6)';for(let i=0;i<5;i++)g.fillRect(30+i*9,58,1,8+i%3);
+function drawScare(){const c=$('scare');const W=96,Hh=128;c.width=W;c.height=Hh;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+  g.fillStyle='#050102';g.fillRect(0,0,W,Hh);
+  // the pumpkin skull: ribbed, rotten, lit from inside
+  const cx=48,cy=62;
+  for(let y=0;y<Hh;y++)for(let x=0;x<W;x++){const dx=(x-cx)/42,dy=(y-cy)/46;const d=dx*dx+dy*dy;if(d>1)continue;
+    const rib=Math.cos(Math.atan2(dy,dx*1.2)*7);const sh=(1-d)*.7+(-dx*.25-dy*.2)+rib*.12;const n=hash(x>>1,y>>1)*.25;
+    let r=150+sh*90+n*40,gg=58+sh*50+n*20,bb=14+sh*12;if(hash(x>>2,(y>>2)+9)>.86){r*=.45;gg*=.4;bb*=.5;}
+    g.fillStyle=`rgb(${r|0},${gg|0},${bb|0})`;g.fillRect(x,y,1,1);}
+  g.fillStyle='#3a2a10';g.fillRect(44,12,8,8);g.fillRect(46,8,5,5);
+  // carved eye holes with a burning core
+  const eye=(x0,y0,flip)=>{for(let k=0;k<16;k++){const w=18-k;g.fillStyle='#090102';g.fillRect(flip?x0+k-2:x0+k*.2,y0+k,w,1);}
+    g.fillStyle='#ff3a10';g.fillRect(x0+5,y0+5,6,6);g.fillStyle='#ffd070';g.fillRect(x0+7,y0+7,2,2);};
+  eye(22,40,false);eye(56,40,true);
+  // torn mouth full of needle teeth
+  g.fillStyle='#070102';g.beginPath();g.moveTo(18,78);for(let i=0;i<=12;i++){const x=18+i*5,y=78+(i%2?-5:3)+Math.sin(i)*2;g.lineTo(x,y);}g.lineTo(78,98);
+  for(let i=12;i>=0;i--){const x=18+i*5,y=104+(i%2?4:-2);g.lineTo(x,y);}g.closePath();g.fill();
+  g.fillStyle='#ff5a1a';g.fillRect(30,88,36,3);
+  g.fillStyle='#efe4c4';for(let i=0;i<13;i++){const x=20+i*4.6;g.fillRect(x|0,80+(i%2),2,8+(i%3)*2);g.fillRect((x+2)|0,102-(i%2),2,-7-(i%2)*2);}
+  // drips
+  g.fillStyle='#1a0402';for(let i=0;i<9;i++){const x=24+i*6+(i%2)*2;g.fillRect(x,56,2,6+((i*7)%9));}
+  g.fillStyle='rgba(0,0,0,.55)';g.fillRect(0,0,W,6);g.fillRect(0,Hh-8,W,8);
   c.style.imageRendering='pixelated';}
 /* ================= cutscenes ================= */
 let cine=null;

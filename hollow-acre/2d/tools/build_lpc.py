@@ -41,7 +41,8 @@ save('firewood', crop(OS, OBJ[146]), [-.7, -.5, .7, 0]); save('sacks', crop(OS, 
 save('grave_0', crop(OS, O95[75]), [-.6, -.3, .6, 0]); save('grave_1', crop(OS, O95[72]), [-.4, -.2, .4, 0]); save('grave_2', crop(OS, O95[76]), [-.2, -.1, .2, 0]); save('grave_3', crop(OS, OBJ[162]), [-.6, -.3, .6, 0])
 save('crate', crop(OS, O95[47]), [-.5, -.4, .5, 0]); save('signpost', crop(OS, OBJ[168]), [-.2, -.1, .2, 0])
 # fences: horizontal segment (2 tiles) and vertical post+rails
-save('fence_h', crop(OS, OBJ[150]), anchor=(0, crop(OS, OBJ[150]).height - 4)); save('fence_v', crop(OS, OBJ[156]))
+fh = crop(OS, OBJ[152]); save('fence_h', fh, anchor=(0, fh.height - 3))
+b156 = OBJ[156]; fv = trim(img(OS).crop((b156[0], b156[1] + 30, b156[0] + 14, b156[1] + 30 + 70))); save('fence_v', fv, anchor=(fv.width / 2, fv.height - 3))
 # well
 wl = img(IA + 'Xenodora/lpc-well.png'); save('well', trim(wl.crop((0, 0, 128, 128))), [-1.1, -.9, 1.1, .1])
 # crops: growth stages from plants.png (each column a crop, rows = stages)
@@ -133,5 +134,10 @@ for n in ('car_wreck', 'deer'):
     im.save(f'{OUT}/{n}.png'); META[n] = dict(src=f'{OUT}/{n}.png', fw=im.width, fh=im.height, ax=mm['anchor'][0], ay=mm['anchor'][1], foot=mm.get('foot', [0, 0, 0, 0]))
 import shutil
 shutil.copy('spr/px2/car_wreck_n.png', f'{OUT}/car_wreck_n.png'); META['car_wreck_n'] = dict(META['car_wreck'], src=f'{OUT}/car_wreck_n.png')
+for n in ('gas_pump', 'phone_booth', 'board'):
+    im = Image.open(f'spr/px2/{n}.png'); mm = json.load(open(f'spr/px2/{n}.json'))
+    im.save(f'{OUT}/{n}.png'); META[n] = dict(src=f'{OUT}/{n}.png', fw=im.width, fh=im.height, ax=mm['anchor'][0], ay=mm['anchor'][1], foot=mm.get('foot', [0, 0, 0, 0]))
+    import os as _o
+    if _o.path.exists(f'spr/px2/{n}_n.png'): shutil.copy(f'spr/px2/{n}_n.png', f'{OUT}/{n}_n.png'); META[n + '_n'] = dict(META[n], src=f'{OUT}/{n}_n.png')
 json.dump(META, open('spr/lpc/objects.json', 'w'), indent=0)
 print(len(META), 'objects')

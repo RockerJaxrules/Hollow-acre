@@ -1,6 +1,3 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="apple-mobile-web-app-capable" content="yes"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
-</head><body>
 <div id="loadScr" role="status" aria-live="polite"><div class="lt">Hollow Acre</div><div class="lb"><i id="loadBar"></i></div><div class="ls" id="loadTxt">Loading the valley…</div></div>
 <title>Hollow Acre</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -126,6 +123,8 @@ body{font-family:var(--font-body);font-size:15px;-webkit-user-select:none;user-s
 #view{position:absolute;inset:0;image-rendering:pixelated;image-rendering:crisp-edges;display:block}
 #joy{opacity:0;transition:opacity .15s}#joy.on{opacity:1}
 #scare{image-rendering:pixelated}
+#scare.slam{animation:slam .34s steps(5) forwards, shake .06s linear infinite}
+@keyframes slam{0%{transform:scale(.35);opacity:.2}40%{transform:scale(1.15);opacity:1}100%{transform:scale(1.05);opacity:1}}
 #btnAct.off{opacity:.55}
 #loadScr{position:fixed;inset:0;z-index:999;background:#07070a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:#cdbf9f;font-family:Georgia,serif;transition:opacity .8s}
 #loadScr .lt{font-size:30px;letter-spacing:.12em;text-transform:uppercase;color:#e8dcc0}
@@ -200,7 +199,7 @@ body{font-family:var(--font-body);font-size:15px;-webkit-user-select:none;user-s
       <div><b>At night</b> it only moves when you are not looking.</div>
     </div>
     <div class="small">Headphones on, silent mode off.</div>
-    <div class="small" id="credits">Pixel art from the Liberated Pixel Cup (CC-BY-SA 3.0 / GPL 3.0) by Lanea Zimmerman (Sharm), Daniel Eddeland, bluecarrot16, Casper Nilsson, Xenodora, Daniel Armstrong, Eliza Wyatt, Johannes Sjölund, Stephen Challener and many more. Full list in <a href="CREDITS.txt" target="_blank">CREDITS</a>.</div>
+    <div class="small" id="credits">Pixel art from the Liberated Pixel Cup (CC-BY-SA 3.0 / GPL 3.0) by Lanea Zimmerman (Sharm), Daniel Eddeland, bluecarrot16, Casper Nilsson, Xenodora, Daniel Armstrong, Eliza Wyatt, Johannes Sjölund, Stephen Challener and many more. Full list in CREDITS.</div>
   </div>
 
   <div class="screen" id="end" hidden>
@@ -224,7 +223,7 @@ body{font-family:var(--font-body);font-size:15px;-webkit-user-select:none;user-s
 <script>
 (function(){
 "use strict";
-const SPR={"tree_orange": {"src": "spr/lpc/obj/tree_orange.png", "fw": 94, "fh": 107, "ax": 47.0, "ay": 99, "foot": [-0.3, -0.25, 0.3, 0.1]}, "tree_green": {"src": "spr/lpc/obj/tree_green.png", "fw": 94, "fh": 105, "ax": 47.0, "ay": 97, "foot": [-0.3, -0.25, 0.3, 0.1]}, "pine_0": {"src": "spr/lpc/obj/pine_0.png", "fw": 85, "fh": 91, "ax": 42.5, "ay": 89, "foot": [-0.3, -0.2, 0.3, 0.1]}, "pine_1": {"src": "spr/lpc/obj/pine_1.png", "fw": 85, "fh": 91, "ax": 42.5, "ay": 89, "foot": [-0.3, -0.2, 0.3, 0.1]}, "pine_o0": {"src": "spr/lpc/obj/pine_o0.png", "fw": 85, "fh": 91, "ax": 42.5, "ay": 89, "foot": [-0.3, -0.2, 0.3, 0.1]}, "pine_o1": {"src": "spr/lpc/obj/pine_o1.png", "fw": 85, "fh": 91, "ax": 42.5, "ay": 89, "foot": [-0.3, -0.2, 0.3, 0.1]}, "deadtree": {"src": "spr/lpc/obj/deadtree.png", "fw": 103, "fh": 95, "ax": 51.5, "ay": 93, "foot": [-0.3, -0.2, 0.3, 0.1]}, "stump": {"src": "spr/lpc/obj/stump.png", "fw": 46, "fh": 32, "ax": 23.0, "ay": 30, "foot": [-0.4, -0.3, 0.4, 0.1]}, "corn_0": {"src": "spr/lpc/obj/corn_0.png", "fw": 28, "fh": 62, "ax": 14.0, "ay": 60, "foot": [0, 0, 0, 0]}, "corn_1": {"src": "spr/lpc/obj/corn_1.png", "fw": 28, "fh": 62, "ax": 14.0, "ay": 60, "foot": [0, 0, 0, 0]}, "corn_2": {"src": "spr/lpc/obj/corn_2.png", "fw": 28, "fh": 62, "ax": 14.0, "ay": 60, "foot": [0, 0, 0, 0]}, "mushroom": {"src": "spr/lpc/obj/mushroom.png", "fw": 28, "fh": 28, "ax": 14.0, "ay": 26, "foot": [0, 0, 0, 0]}, "mushroom_b": {"src": "spr/lpc/obj/mushroom_b.png", "fw": 28, "fh": 28, "ax": 14.0, "ay": 26, "foot": [0, 0, 0, 0]}, "pumpkin": {"src": "spr/lpc/obj/pumpkin.png", "fw": 25, "fh": 22, "ax": 12.5, "ay": 20, "foot": [-0.3, -0.25, 0.3, 0.05]}, "pumpkin_b": {"src": "spr/lpc/obj/pumpkin_b.png", "fw": 25, "fh": 24, "ax": 12.5, "ay": 22, "foot": [-0.3, -0.25, 0.3, 0.05]}, "jack": {"src": "spr/lpc/obj/jack.png", "fw": 25, "fh": 22, "ax": 12.5, "ay": 20, "foot": [-0.3, -0.25, 0.3, 0.05]}, "jack_b": {"src": "spr/lpc/obj/jack_b.png", "fw": 25, "fh": 24, "ax": 12.5, "ay": 22, "foot": [-0.3, -0.25, 0.3, 0.05]}, "jack_c": {"src": "spr/lpc/obj/jack_c.png", "fw": 25, "fh": 24, "ax": 12.5, "ay": 22, "foot": [-0.3, -0.25, 0.3, 0.05]}, "hay": {"src": "spr/lpc/obj/hay.png", "fw": 57, "fh": 78, "ax": 28.5, "ay": 76, "foot": [-0.8, -1.2, 0.8, 0]}, "barrel": {"src": "spr/lpc/obj/barrel.png", "fw": 26, "fh": 36, "ax": 13.0, "ay": 34, "foot": [-0.35, -0.3, 0.35, 0]}, "firewood": {"src": "spr/lpc/obj/firewood.png", "fw": 52, "fh": 55, "ax": 26.0, "ay": 53, "foot": [-0.7, -0.5, 0.7, 0]}, "sacks": {"src": "spr/lpc/obj/sacks.png", "fw": 64, "fh": 63, "ax": 32.0, "ay": 61, "foot": [-0.9, -0.5, 0.9, 0]}, "cart": {"src": "spr/lpc/obj/cart.png", "fw": 64, "fh": 55, "ax": 32.0, "ay": 53, "foot": [-0.9, -0.4, 0.9, 0]}, "grave_0": {"src": "spr/lpc/obj/grave_0.png", "fw": 47, "fh": 44, "ax": 23.5, "ay": 42, "foot": [-0.6, -0.3, 0.6, 0]}, "grave_1": {"src": "spr/lpc/obj/grave_1.png", "fw": 28, "fh": 27, "ax": 14.0, "ay": 25, "foot": [-0.4, -0.2, 0.4, 0]}, "grave_2": {"src": "spr/lpc/obj/grave_2.png", "fw": 18, "fh": 29, "ax": 9.0, "ay": 27, "foot": [-0.2, -0.1, 0.2, 0]}, "grave_3": {"src": "spr/lpc/obj/grave_3.png", "fw": 47, "fh": 44, "ax": 23.5, "ay": 42, "foot": [-0.6, -0.3, 0.6, 0]}, "crate": {"src": "spr/lpc/obj/crate.png", "fw": 34, "fh": 33, "ax": 17.0, "ay": 31, "foot": [-0.5, -0.4, 0.5, 0]}, "signpost": {"src": "spr/lpc/obj/signpost.png", "fw": 18, "fh": 29, "ax": 9.0, "ay": 27, "foot": [-0.2, -0.1, 0.2, 0]}, "fence_h": {"src": "spr/lpc/obj/fence_h.png", "fw": 72, "fh": 25, "ax": 0, "ay": 21, "foot": [0, 0, 0, 0]}, "fence_v": {"src": "spr/lpc/obj/fence_v.png", "fw": 72, "fh": 121, "ax": 36.0, "ay": 119, "foot": [0, 0, 0, 0]}, "well": {"src": "spr/lpc/obj/well.png", "fw": 123, "fh": 128, "ax": 61.5, "ay": 126, "foot": [-1.1, -0.9, 1.1, 0.1]}, "turnip_0": {"src": "spr/lpc/obj/turnip_0.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "turnip_1": {"src": "spr/lpc/obj/turnip_1.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "turnip_2": {"src": "spr/lpc/obj/turnip_2.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "turnip_3": {"src": "spr/lpc/obj/turnip_3.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "pumpkin_0": {"src": "spr/lpc/obj/pumpkin_0.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "pumpkin_1": {"src": "spr/lpc/obj/pumpkin_1.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "pumpkin_2": {"src": "spr/lpc/obj/pumpkin_2.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "pumpkin_3": {"src": "spr/lpc/obj/pumpkin_3.png", "fw": 40, "fh": 64, "ax": 20, "ay": 58, "foot": [0, 0, 0, 0]}, "cabin_n": {"src": "spr/lpc/obj/cabin_n.png", "fw": 224, "fh": 222, "ax": 112.0, "ay": 214, "foot": [-3.0, -5.4, 3.0, 0]}, "cabin": {"src": "spr/lpc/obj/cabin.png", "fw": 224, "fh": 222, "ax": 112.0, "ay": 214, "foot": [-3.0, -5.4, 3.0, 0], "bw": 6}, "house_a_n": {"src": "spr/lpc/obj/house_a_n.png", "fw": 224, "fh": 222, "ax": 112.0, "ay": 214, "foot": [-3.0, -5.4, 3.0, 0]}, "house_a": {"src": "spr/lpc/obj/house_a.png", "fw": 224, "fh": 222, "ax": 112.0, "ay": 214, "foot": [-3.0, -5.4, 3.0, 0], "bw": 6}, "house_b_n": {"src": "spr/lpc/obj/house_b_n.png", "fw": 224, "fh": 222, "ax": 112.0, "ay": 214, "foot": [-3.0, -5.4, 3.0, 0]}, "house_b": {"src": "spr/lpc/obj/house_b.png", "fw": 224, "fh": 222, "ax": 112.0, "ay": 214, "foot": [-3.0, -5.4, 3.0, 0], "bw": 6}, "house_c_n": {"src": "spr/lpc/obj/house_c_n.png", "fw": 192, "fh": 222, "ax": 96.0, "ay": 214, "foot": [-2.5, -5.4, 2.5, 0]}, "house_c": {"src": "spr/lpc/obj/house_c.png", "fw": 192, "fh": 222, "ax": 96.0, "ay": 214, "foot": [-2.5, -5.4, 2.5, 0], "bw": 5}, "house_d_n": {"src": "spr/lpc/obj/house_d_n.png", "fw": 256, "fh": 222, "ax": 128.0, "ay": 214, "foot": [-3.5, -5.4, 3.5, 0]}, "house_d": {"src": "spr/lpc/obj/house_d.png", "fw": 256, "fh": 222, "ax": 128.0, "ay": 214, "foot": [-3.5, -5.4, 3.5, 0], "bw": 7}, "store_n": {"src": "spr/lpc/obj/store_n.png", "fw": 256, "fh": 222, "ax": 128.0, "ay": 214, "foot": [-3.5, -5.4, 3.5, 0]}, "store": {"src": "spr/lpc/obj/store.png", "fw": 256, "fh": 222, "ax": 128.0, "ay": 214, "foot": [-3.5, -5.4, 3.5, 0], "bw": 7}, "garage_n": {"src": "spr/lpc/obj/garage_n.png", "fw": 288, "fh": 222, "ax": 144.0, "ay": 214, "foot": [-4.0, -5.4, 4.0, 0]}, "garage": {"src": "spr/lpc/obj/garage.png", "fw": 288, "fh": 222, "ax": 144.0, "ay": 214, "foot": [-4.0, -5.4, 4.0, 0], "bw": 8}, "church_n": {"src": "spr/lpc/obj/church_n.png", "fw": 308, "fh": 618, "ax": 154.0, "ay": 608, "foot": [-4, -11, 4, 0]}, "church": {"src": "spr/lpc/obj/church.png", "fw": 308, "fh": 618, "ax": 154.0, "ay": 608, "foot": [-4, -11, 4, 0], "bw": 8}, "lamp": {"src": "spr/lpc/obj/lamp.png", "fw": 8, "fh": 74, "ax": 4.0, "ay": 72, "foot": [-0.1, -0.1, 0.1, 0.05]}, "leaves_0": {"src": "spr/lpc/obj/leaves_0.png", "fw": 56, "fh": 23, "ax": 28.0, "ay": 21, "foot": [0, 0, 0, 0]}, "leaves_1": {"src": "spr/lpc/obj/leaves_1.png", "fw": 54, "fh": 23, "ax": 27.0, "ay": 21, "foot": [0, 0, 0, 0]}, "leaves_2": {"src": "spr/lpc/obj/leaves_2.png", "fw": 56, "fh": 23, "ax": 28.0, "ay": 21, "foot": [0, 0, 0, 0]}, "leaves_3": {"src": "spr/lpc/obj/leaves_3.png", "fw": 56, "fh": 23, "ax": 28.0, "ay": 21, "foot": [0, 0, 0, 0]}, "car_wreck": {"src": "spr/lpc/obj/car_wreck.png", "fw": 92, "fh": 150, "ax": 46, "ay": 144, "foot": [-1.1, -4.2, 1.1, -0.2]}, "deer": {"src": "spr/lpc/obj/deer.png", "fw": 110, "fh": 50, "ax": 55, "ay": 38, "foot": [0, 0, 0, 0]}, "car_wreck_n": {"src": "spr/lpc/obj/car_wreck_n.png", "fw": 92, "fh": 150, "ax": 46, "ay": 144, "foot": [-1.1, -4.2, 1.1, -0.2]}, "farmer": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/farmer.png", "foot": [0, 0, 0, 0]}, "farmer_hoe": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"thrust": {"N": [0, 8], "W": [1, 8], "S": [2, 8], "E": [3, 8]}}, "src": "spr/lpc/farmer_hoe.png", "foot": [0, 0, 0, 0]}, "farmer_can": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"thrust": {"N": [0, 8], "W": [1, 8], "S": [2, 8], "E": [3, 8]}}, "src": "spr/lpc/farmer_can.png", "foot": [0, 0, 0, 0]}, "mae": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/mae.png", "foot": [0, 0, 0, 0]}, "hale": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/hale.png", "foot": [0, 0, 0, 0]}, "tobias": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "slash": {"N": [8, 6], "W": [9, 6], "S": [10, 6], "E": [11, 6]}, "hurt": {"S": [12, 6]}, "sit": {"N": [13, 3], "W": [14, 3], "S": [15, 3], "E": [16, 3]}}, "src": "spr/lpc/tobias.png", "foot": [0, 0, 0, 0]}, "hollis": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/hollis.png", "foot": [0, 0, 0, 0]}, "agnes": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/agnes.png", "foot": [0, 0, 0, 0]}, "dunn": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/dunn.png", "foot": [0, 0, 0, 0]}, "ruth": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "slash": {"N": [8, 6], "W": [9, 6], "S": [10, 6], "E": [11, 6]}, "hurt": {"S": [12, 6]}, "sit": {"N": [13, 3], "W": [14, 3], "S": [15, 3], "E": [16, 3]}}, "src": "spr/lpc/ruth.png", "foot": [0, 0, 0, 0]}, "hollow": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/hollow.png", "foot": [0, 0, 0, 0]}, "cat": {"src": "spr/out/cat.png", "fw": 29, "fh": 20, "ax": 14.5, "ay": 17.9, "clips": {"idle": {"S": [0, 4], "E": [1, 4], "N": [2, 4], "W": [3, 4]}, "walk": {"S": [4, 6], "E": [5, 6], "N": [6, 6], "W": [7, 6]}}, "foot": [0, 0, 0, 0]}};
+const SPR={"tree_orange": {"src": "spr/lpc/obj/tree_orange.png", "fw": 94, "fh": 107, "ax": 47.0, "ay": 99, "foot": [-0.3, -0.25, 0.3, 0.1]}, "tree_green": {"src": "spr/lpc/obj/tree_green.png", "fw": 94, "fh": 105, "ax": 47.0, "ay": 97, "foot": [-0.3, -0.25, 0.3, 0.1]}, "pine_0": {"src": "spr/lpc/obj/pine_0.png", "fw": 85, "fh": 91, "ax": 42.5, "ay": 89, "foot": [-0.3, -0.2, 0.3, 0.1]}, "pine_1": {"src": "spr/lpc/obj/pine_1.png", "fw": 85, "fh": 91, "ax": 42.5, "ay": 89, "foot": [-0.3, -0.2, 0.3, 0.1]}, "pine_o0": {"src": "spr/lpc/obj/pine_o0.png", "fw": 85, "fh": 91, "ax": 42.5, "ay": 89, "foot": [-0.3, -0.2, 0.3, 0.1]}, "pine_o1": {"src": "spr/lpc/obj/pine_o1.png", "fw": 85, "fh": 91, "ax": 42.5, "ay": 89, "foot": [-0.3, -0.2, 0.3, 0.1]}, "deadtree": {"src": "spr/lpc/obj/deadtree.png", "fw": 103, "fh": 95, "ax": 51.5, "ay": 93, "foot": [-0.3, -0.2, 0.3, 0.1]}, "stump": {"src": "spr/lpc/obj/stump.png", "fw": 46, "fh": 32, "ax": 23.0, "ay": 30, "foot": [-0.4, -0.3, 0.4, 0.1]}, "corn_0": {"src": "spr/lpc/obj/corn_0.png", "fw": 28, "fh": 62, "ax": 14.0, "ay": 60, "foot": [0, 0, 0, 0]}, "corn_1": {"src": "spr/lpc/obj/corn_1.png", "fw": 28, "fh": 62, "ax": 14.0, "ay": 60, "foot": [0, 0, 0, 0]}, "corn_2": {"src": "spr/lpc/obj/corn_2.png", "fw": 28, "fh": 62, "ax": 14.0, "ay": 60, "foot": [0, 0, 0, 0]}, "mushroom": {"src": "spr/lpc/obj/mushroom.png", "fw": 28, "fh": 28, "ax": 14.0, "ay": 26, "foot": [0, 0, 0, 0]}, "mushroom_b": {"src": "spr/lpc/obj/mushroom_b.png", "fw": 28, "fh": 28, "ax": 14.0, "ay": 26, "foot": [0, 0, 0, 0]}, "pumpkin": {"src": "spr/lpc/obj/pumpkin.png", "fw": 25, "fh": 22, "ax": 12.5, "ay": 20, "foot": [-0.3, -0.25, 0.3, 0.05]}, "pumpkin_b": {"src": "spr/lpc/obj/pumpkin_b.png", "fw": 25, "fh": 24, "ax": 12.5, "ay": 22, "foot": [-0.3, -0.25, 0.3, 0.05]}, "jack": {"src": "spr/lpc/obj/jack.png", "fw": 25, "fh": 22, "ax": 12.5, "ay": 20, "foot": [-0.3, -0.25, 0.3, 0.05]}, "jack_b": {"src": "spr/lpc/obj/jack_b.png", "fw": 25, "fh": 24, "ax": 12.5, "ay": 22, "foot": [-0.3, -0.25, 0.3, 0.05]}, "jack_c": {"src": "spr/lpc/obj/jack_c.png", "fw": 25, "fh": 24, "ax": 12.5, "ay": 22, "foot": [-0.3, -0.25, 0.3, 0.05]}, "hay": {"src": "spr/lpc/obj/hay.png", "fw": 57, "fh": 78, "ax": 28.5, "ay": 76, "foot": [-0.8, -1.2, 0.8, 0]}, "barrel": {"src": "spr/lpc/obj/barrel.png", "fw": 26, "fh": 36, "ax": 13.0, "ay": 34, "foot": [-0.35, -0.3, 0.35, 0]}, "firewood": {"src": "spr/lpc/obj/firewood.png", "fw": 52, "fh": 55, "ax": 26.0, "ay": 53, "foot": [-0.7, -0.5, 0.7, 0]}, "sacks": {"src": "spr/lpc/obj/sacks.png", "fw": 64, "fh": 63, "ax": 32.0, "ay": 61, "foot": [-0.9, -0.5, 0.9, 0]}, "cart": {"src": "spr/lpc/obj/cart.png", "fw": 64, "fh": 55, "ax": 32.0, "ay": 53, "foot": [-0.9, -0.4, 0.9, 0]}, "grave_0": {"src": "spr/lpc/obj/grave_0.png", "fw": 47, "fh": 44, "ax": 23.5, "ay": 42, "foot": [-0.6, -0.3, 0.6, 0]}, "grave_1": {"src": "spr/lpc/obj/grave_1.png", "fw": 28, "fh": 27, "ax": 14.0, "ay": 25, "foot": [-0.4, -0.2, 0.4, 0]}, "grave_2": {"src": "spr/lpc/obj/grave_2.png", "fw": 18, "fh": 29, "ax": 9.0, "ay": 27, "foot": [-0.2, -0.1, 0.2, 0]}, "grave_3": {"src": "spr/lpc/obj/grave_3.png", "fw": 47, "fh": 44, "ax": 23.5, "ay": 42, "foot": [-0.6, -0.3, 0.6, 0]}, "crate": {"src": "spr/lpc/obj/crate.png", "fw": 34, "fh": 33, "ax": 17.0, "ay": 31, "foot": [-0.5, -0.4, 0.5, 0]}, "signpost": {"src": "spr/lpc/obj/signpost.png", "fw": 18, "fh": 29, "ax": 9.0, "ay": 27, "foot": [-0.2, -0.1, 0.2, 0]}, "fence_h": {"src": "spr/lpc/obj/fence_h.png", "fw": 72, "fh": 23, "ax": 0, "ay": 20, "foot": [0, 0, 0, 0]}, "fence_v": {"src": "spr/lpc/obj/fence_v.png", "fw": 14, "fh": 66, "ax": 7.0, "ay": 63, "foot": [0, 0, 0, 0]}, "well": {"src": "spr/lpc/obj/well.png", "fw": 123, "fh": 128, "ax": 61.5, "ay": 126, "foot": [-1.1, -0.9, 1.1, 0.1]}, "turnip_0": {"src": "spr/lpc/obj/turnip_0.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "turnip_1": {"src": "spr/lpc/obj/turnip_1.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "turnip_2": {"src": "spr/lpc/obj/turnip_2.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "turnip_3": {"src": "spr/lpc/obj/turnip_3.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "pumpkin_0": {"src": "spr/lpc/obj/pumpkin_0.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "pumpkin_1": {"src": "spr/lpc/obj/pumpkin_1.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "pumpkin_2": {"src": "spr/lpc/obj/pumpkin_2.png", "fw": 32, "fh": 64, "ax": 16, "ay": 58, "foot": [0, 0, 0, 0]}, "pumpkin_3": {"src": "spr/lpc/obj/pumpkin_3.png", "fw": 40, "fh": 64, "ax": 20, "ay": 58, "foot": [0, 0, 0, 0]}, "cabin_n": {"src": "spr/lpc/obj/cabin_n.png", "fw": 224, "fh": 222, "ax": 112.0, "ay": 214, "foot": [-3.0, -5.4, 3.0, 0]}, "cabin": {"src": "spr/lpc/obj/cabin.png", "fw": 224, "fh": 222, "ax": 112.0, "ay": 214, "foot": [-3.0, -5.4, 3.0, 0], "bw": 6}, "house_a_n": {"src": "spr/lpc/obj/house_a_n.png", "fw": 224, "fh": 222, "ax": 112.0, "ay": 214, "foot": [-3.0, -5.4, 3.0, 0]}, "house_a": {"src": "spr/lpc/obj/house_a.png", "fw": 224, "fh": 222, "ax": 112.0, "ay": 214, "foot": [-3.0, -5.4, 3.0, 0], "bw": 6}, "house_b_n": {"src": "spr/lpc/obj/house_b_n.png", "fw": 224, "fh": 222, "ax": 112.0, "ay": 214, "foot": [-3.0, -5.4, 3.0, 0]}, "house_b": {"src": "spr/lpc/obj/house_b.png", "fw": 224, "fh": 222, "ax": 112.0, "ay": 214, "foot": [-3.0, -5.4, 3.0, 0], "bw": 6}, "house_c_n": {"src": "spr/lpc/obj/house_c_n.png", "fw": 192, "fh": 222, "ax": 96.0, "ay": 214, "foot": [-2.5, -5.4, 2.5, 0]}, "house_c": {"src": "spr/lpc/obj/house_c.png", "fw": 192, "fh": 222, "ax": 96.0, "ay": 214, "foot": [-2.5, -5.4, 2.5, 0], "bw": 5}, "house_d_n": {"src": "spr/lpc/obj/house_d_n.png", "fw": 256, "fh": 222, "ax": 128.0, "ay": 214, "foot": [-3.5, -5.4, 3.5, 0]}, "house_d": {"src": "spr/lpc/obj/house_d.png", "fw": 256, "fh": 222, "ax": 128.0, "ay": 214, "foot": [-3.5, -5.4, 3.5, 0], "bw": 7}, "store_n": {"src": "spr/lpc/obj/store_n.png", "fw": 256, "fh": 222, "ax": 128.0, "ay": 214, "foot": [-3.5, -5.4, 3.5, 0]}, "store": {"src": "spr/lpc/obj/store.png", "fw": 256, "fh": 222, "ax": 128.0, "ay": 214, "foot": [-3.5, -5.4, 3.5, 0], "bw": 7}, "garage_n": {"src": "spr/lpc/obj/garage_n.png", "fw": 288, "fh": 222, "ax": 144.0, "ay": 214, "foot": [-4.0, -5.4, 4.0, 0]}, "garage": {"src": "spr/lpc/obj/garage.png", "fw": 288, "fh": 222, "ax": 144.0, "ay": 214, "foot": [-4.0, -5.4, 4.0, 0], "bw": 8}, "church_n": {"src": "spr/lpc/obj/church_n.png", "fw": 308, "fh": 618, "ax": 154.0, "ay": 608, "foot": [-4, -11, 4, 0]}, "church": {"src": "spr/lpc/obj/church.png", "fw": 308, "fh": 618, "ax": 154.0, "ay": 608, "foot": [-4, -11, 4, 0], "bw": 8}, "lamp": {"src": "spr/lpc/obj/lamp.png", "fw": 8, "fh": 74, "ax": 4.0, "ay": 72, "foot": [-0.1, -0.1, 0.1, 0.05]}, "leaves_0": {"src": "spr/lpc/obj/leaves_0.png", "fw": 56, "fh": 23, "ax": 28.0, "ay": 21, "foot": [0, 0, 0, 0]}, "leaves_1": {"src": "spr/lpc/obj/leaves_1.png", "fw": 54, "fh": 23, "ax": 27.0, "ay": 21, "foot": [0, 0, 0, 0]}, "leaves_2": {"src": "spr/lpc/obj/leaves_2.png", "fw": 56, "fh": 23, "ax": 28.0, "ay": 21, "foot": [0, 0, 0, 0]}, "leaves_3": {"src": "spr/lpc/obj/leaves_3.png", "fw": 56, "fh": 23, "ax": 28.0, "ay": 21, "foot": [0, 0, 0, 0]}, "car_wreck": {"src": "spr/lpc/obj/car_wreck.png", "fw": 92, "fh": 150, "ax": 46, "ay": 144, "foot": [-1.1, -4.2, 1.1, -0.2]}, "deer": {"src": "spr/lpc/obj/deer.png", "fw": 110, "fh": 50, "ax": 55, "ay": 38, "foot": [0, 0, 0, 0]}, "car_wreck_n": {"src": "spr/lpc/obj/car_wreck_n.png", "fw": 92, "fh": 150, "ax": 46, "ay": 144, "foot": [-1.1, -4.2, 1.1, -0.2]}, "gas_pump": {"src": "spr/lpc/obj/gas_pump.png", "fw": 200, "fh": 170, "ax": 100, "ay": 160, "foot": [-1, -0.4, 1, 0]}, "gas_pump_n": {"src": "spr/lpc/obj/gas_pump_n.png", "fw": 200, "fh": 170, "ax": 100, "ay": 160, "foot": [-1, -0.4, 1, 0]}, "phone_booth": {"src": "spr/lpc/obj/phone_booth.png", "fw": 44, "fh": 86, "ax": 22, "ay": 82, "foot": [-0.55, -0.5, 0.55, 0]}, "phone_booth_n": {"src": "spr/lpc/obj/phone_booth_n.png", "fw": 44, "fh": 86, "ax": 22, "ay": 82, "foot": [-0.55, -0.5, 0.55, 0]}, "board": {"src": "spr/lpc/obj/board.png", "fw": 56, "fh": 66, "ax": 28, "ay": 62, "foot": [-0.8, -0.1, 0.8, 0.05]}, "farmer": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/farmer.png", "foot": [0, 0, 0, 0]}, "farmer_hoe": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"thrust": {"N": [0, 8], "W": [1, 8], "S": [2, 8], "E": [3, 8]}}, "src": "spr/lpc/farmer_hoe.png", "foot": [0, 0, 0, 0]}, "farmer_can": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"thrust": {"N": [0, 8], "W": [1, 8], "S": [2, 8], "E": [3, 8]}}, "src": "spr/lpc/farmer_can.png", "foot": [0, 0, 0, 0]}, "mae": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/mae.png", "foot": [0, 0, 0, 0]}, "hale": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/hale.png", "foot": [0, 0, 0, 0]}, "tobias": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "slash": {"N": [8, 6], "W": [9, 6], "S": [10, 6], "E": [11, 6]}, "hurt": {"S": [12, 6]}, "sit": {"N": [13, 3], "W": [14, 3], "S": [15, 3], "E": [16, 3]}}, "src": "spr/lpc/tobias.png", "foot": [0, 0, 0, 0]}, "hollis": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/hollis.png", "foot": [0, 0, 0, 0]}, "agnes": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/agnes.png", "foot": [0, 0, 0, 0]}, "dunn": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/dunn.png", "foot": [0, 0, 0, 0]}, "ruth": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "slash": {"N": [8, 6], "W": [9, 6], "S": [10, 6], "E": [11, 6]}, "hurt": {"S": [12, 6]}, "sit": {"N": [13, 3], "W": [14, 3], "S": [15, 3], "E": [16, 3]}}, "src": "spr/lpc/ruth.png", "foot": [0, 0, 0, 0]}, "hollow": {"fw": 64, "fh": 64, "ax": 32, "ay": 60, "clips": {"walk": {"N": [0, 9], "W": [1, 9], "S": [2, 9], "E": [3, 9]}, "idle": {"N": [4, 2], "W": [5, 2], "S": [6, 2], "E": [7, 2]}, "thrust": {"N": [8, 8], "W": [9, 8], "S": [10, 8], "E": [11, 8]}, "slash": {"N": [12, 6], "W": [13, 6], "S": [14, 6], "E": [15, 6]}, "hurt": {"S": [16, 6]}, "spellcast": {"N": [17, 7], "W": [18, 7], "S": [19, 7], "E": [20, 7]}, "sit": {"N": [21, 3], "W": [22, 3], "S": [23, 3], "E": [24, 3]}}, "src": "spr/lpc/hollow.png", "foot": [0, 0, 0, 0]}, "cat": {"src": "spr/out/cat.png", "fw": 29, "fh": 20, "ax": 14.5, "ay": 17.9, "clips": {"idle": {"S": [0, 4], "E": [1, 4], "N": [2, 4], "W": [3, 4]}, "walk": {"S": [4, 6], "E": [5, 6], "N": [6, 6], "W": [7, 6]}}, "foot": [0, 0, 0, 0]}};
 /* ================= audio ================= */
 const A={ctx:null,ok:false};
 A.init=function(){if(A.ctx){A.ctx.resume&&A.ctx.resume();return;}
@@ -304,13 +303,13 @@ const FIELD={x0:-5,z0:0,w:10,h:8};
 const CORN={x0:-15,x1:11,z0:11.5,z1:24};
 const inCorn=(x,z)=>x>CORN.x0&&x<CORN.x1&&z>CORN.z0&&z<CORN.z1;
 const pond={x:-30,z:24.5,r:7.5};
-const wellPos={x:8.5,z:-4},binPos={x:-3.6,z:-7.4},doorPos={x:0,z:-8.7},carPos={x:-60.2,z:-4.6},pumpPos={x:-27.5,z:-10.2},boothPos={x:44,z:-10};
-const crossPos={x:20,z:19},boardPos={x:51.5,z:-9.2},tsPos={x:31.5,z:-8.6},farmSignPos={x:-14.5,z:-9},squarePos={x:48,z:-6};
+const wellPos={x:6,z:-10.5},binPos={x:-3.6,z:-8.6},doorPos={x:0,z:-8.9},carPos={x:-60.2,z:-4.6},pumpPos={x:-28,z:-10.4},boothPos={x:44.5,z:-9.6};
+const crossPos={x:20,z:19},boardPos={x:52,z:-9.4},tsPos={x:27.5,z:-8.4},farmSignPos={x:-11.5,z:-8.6},squarePos={x:48,z:-6};
 const fishSpot={x:pond.x,z:pond.z-pond.r+3.6};
 const ALTAR_POS=[[-27,8,'west woods'],[-2,29,'cornfield'],[64,-32,'churchyard']];
 const SCARE_SPOTS=[[6.9,4],[9.8,-1.2],[2.2,-7.6]];
-const ROADS=[[-12,-6,64,-6,3],[0,-9,0,0,2.2],[20,-6,20,19,2],[20,19,4,19,1.6],[48,-28,48,14,2.6],[36,-21,36,10,2],[8,-6,8.5,-4,1.6],[-46,-6,-46,1.5,1.6],[-36,-6,-36,-10.5,2]];
-const SIDEWALKS=[[33,45.5,-2.3],[50.5,66,-2.3],[33,45.5,-9.7],[50.5,66,-9.7]];
+const ROADS=[[-12.5,-6,70,-6,3],[0,-8.6,0,-1,2],[20,-6,20,19,2],[20,19,4,19,1.6],[48,-18,48,-6,2.4],[26,5,70,5,2],[26,-6,26,5,2],[70,-6,70,5,2],[-46,-6,-46,-9,1.8],[-36,-6,-36,-10.6,2],[2,-9,6,-9,1.4]];
+const SIDEWALKS=[];
 const rand=(()=>{let a=0x9e3779b9;return ()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};})();
 const clamp=(v,a,b)=>v<a?a:v>b?b:v,lerp=(a,b,t)=>a+(b-a)*t,smooth=t=>t*t*(3-2*t);
 function hash(x,z){let h=Math.imul((x|0)*374761393+(z|0)*668265263,1274126177);h^=h>>>13;h=Math.imul(h,1103515245);return ((h>>>0)&0xffff)/65535;}
@@ -322,11 +321,11 @@ function segDist(px,pz,x1,z1,x2,z2){const dx=x2-x1,dz=z2-z1,L=dx*dx+dz*dz||1;con
 const onRoad=(x,z,extra)=>{for(const r of ROADS)if(segDist(x,z,r[0],r[1],r[2],r[3])<r[4]/2+(extra||0))return true;return false;};
 const LAYERS={
   dirt:(x,z)=>{const j=(fbm(x*.7,z*.7)-.5)*.8;return onRoad(x,z,j)||(Math.hypot(x-pond.x,z-pond.z)<pond.r+1.6+j&&Math.hypot(x-pond.x,z-pond.z)>pond.r-.4)
-    ||(x>CORN.x0-.6&&x<CORN.x1+.6&&z>CORN.z0-.6&&z<CORN.z1+.6)||(x>FIELD.x0-1&&x<FIELD.x0+FIELD.w+1&&z>FIELD.z0-1&&z<FIELD.z0+FIELD.h+1)
-    ||(Math.hypot(x+61,z+3)<3.2+j)||(x>-8&&x<8&&z>-10&&z<-6.5)||(fbm(x*.18+30,z*.18)>.72&&x>B.x0&&x<B.x1);},
-  stone:(x,z)=>(Math.abs(z+6)<2.6&&x<-12.5)||Math.hypot(x-48,z+6)<7.2+(fbm(x,z)-.5)*.6||(SIDEWALKS.some(([a,b,zz])=>x>a&&x<b&&Math.abs(z-zz)<.9)),
+    ||(x>CORN.x0-.6&&x<CORN.x1+.6&&z>CORN.z0-.6&&z<CORN.z1+.6)
+    ||(Math.hypot(x+61,z+3)<3.2+j)||(x>-7+j&&x<7-j&&z>-9.6&&z<-7.2+j*.5);},
+  stone:(x,z)=>(Math.abs(z+6)<2.6&&x<-12.5)||Math.hypot(x-48,z+6)<6.6||(Math.abs(z+6)<2.1&&x>24&&x<72)||(Math.abs(x-48)<1.4&&z>-18.6&&z<-6),
   water:(x,z)=>Math.hypot(x-pond.x,z-pond.z)<pond.r+(fbm(x*.8,z*.8)-.5)*.9&&!(x>pond.x-1.1&&x<pond.x+1.1&&z<pond.z-pond.r+4.2),
-  dark:(x,z)=>Math.max(B.x0-x,x-B.x1,B.z0-z,z-B.z1)>-1||fbm(x*.22+70,z*.22)>.68,
+  dark:(x,z)=>Math.max(B.x0-x,x-B.x1,B.z0-z,z-B.z1)>-1||((x<-16&&z>6)||(z>28))&&fbm(x*.22+70,z*.22)>.5,
 };
 function terr(x,z){if(LAYERS.water(x,z))return 'water';if(LAYERS.stone(x,z))return 'stone';if(LAYERS.dirt(x,z))return 'dirt';return 'grass';}
 // ---------- collision
@@ -344,22 +343,18 @@ function collide(p,r){
   if(Math.hypot(p.x-pond.x,p.z-pond.z)<pond.r-.3&&!(Math.abs(p.x-pond.x)<.9&&p.z<pond.z-pond.r+4.2)){const dx=p.x-pond.x,dz=p.z-pond.z,d=Math.hypot(dx,dz)||1;p.x=pond.x+dx/d*(pond.r-.3);p.z=pond.z+dz/d*(pond.r-.3);}
   p.x=clamp(p.x,B.x0-6,B.x1+3);p.z=clamp(p.z,B.z0+.5,B.z1-.5);
 }
+const BLOCK=[];   // rects reserved by buildings, the field, yards etc.
+function reserve(x0,z0,x1,z1){BLOCK.push([Math.min(x0,x1),Math.min(z0,z1),Math.max(x0,x1),Math.max(z0,z1)]);}
 function clearSpot(x,z,m){m=m||0;
-  if(x>-7.5-m&&x<12.5+m&&z>-3-m&&z<10.5+m)return false;
-  if(x>-6-m&&x<6+m&&z>-17-m&&z<-6+m)return false;
-  if(z>-10.5-m&&z<-2+m&&x>-76&&x<68)return false;
-  if(x>-43-m&&x<-24+m&&z>-20-m&&z<-7+m)return false;
-  if(x>-53-m&&x<-39+m&&z>-1-m&&z<11+m)return false;
-  if(Math.hypot(x-pond.x,z-pond.z)<10.5+m)return false;
-  if(Math.hypot(x+61,z+2.6)<5+m)return false;
-  if(x>27-m&&x<70&&z>-38&&z<16+m)return false;
-  if(Math.abs(x-48)<2.5+m&&z>-28&&z<16)return false;
-  if(Math.abs(x-20)<2.2+m&&z>-6&&z<21)return false;
-  if(z>17-m&&z<21+m&&x>3&&x<24)return false;
-  if(Math.hypot(x-crossPos.x,z-crossPos.z)<5+m)return false;
+  for(const r of BLOCK)if(x>r[0]-m&&x<r[2]+m&&z>r[1]-m&&z<r[3]+m)return false;
+  if(Math.hypot(x-pond.x,z-pond.z)<pond.r+2.5+m)return false;
+  if(Math.hypot(x-48,z+6)<8.5+m)return false;
+  if(Math.abs(z+6)<3.5+m&&x<-12)return false;
+  if(Math.hypot(x-crossPos.x,z-crossPos.z)<4.5+m)return false;
   if(x>CORN.x0-1.5&&x<CORN.x1+1.5&&z>CORN.z0-1.5&&z<CORN.z1+1.5)return false;
-  for(const a of ALTAR_POS)if(Math.hypot(x-a[0],z-a[1])<4+m)return false;
-  for(const r of ROADS)if(segDist(x,z,r[0],r[1],r[2],r[3])<r[4]/2+1+m)return false;
+  for(const a of ALTAR_POS)if(Math.hypot(x-a[0],z-a[1])<3.5+m)return false;
+  for(const r of ROADS)if(segDist(x,z,r[0],r[1],r[2],r[3])<r[4]/2+1.2+m)return false;
+  for(const pg of (typeof PAGES!=='undefined'?PAGES:[]))if(Math.hypot(x-pg.x,z-pg.z)<1.5+m)return false;
   return true;}
 // ---------- world objects: {spr, x, z, flip?, night?, kind?, alpha?, hide?}
 const OBJ=[];
@@ -367,53 +362,63 @@ function obj(spr,x,z,o){const e=Object.assign({spr,x,z},o||{});OBJ.push(e);retur
 function solid(e,shrink){const m=SPR[e.spr];if(!m||!m.foot)return;const f=m.foot;const s=shrink===undefined?.05:shrink;
   if(f[2]-f[0]<.05&&f[3]-f[1]<.05)return;addRect(e.x+f[0]+s,e.z+f[1]+s,e.x+f[2]-s,e.z+f[3]-s);}
 const HOUSES=[];
-function building(spr,cx,cz,d,o){o=o||{};const m=SPR[spr];const e=obj(spr,cx,cz+d/2+(m&&m.porchZ||0),Object.assign({night:SPR[spr+'_n']?spr+'_n':null,kind:'bld'},o));
-  const w=m?m.bw:6;addRect(cx-w/2,cz-d/2,cx+w/2,cz+d/2);HOUSES.push({e,x:cx,z:cz,lit:o.lit!==false});return e;}
-function building(spr,cx,cz,d,o){o=o||{};const e=obj(spr,cx,cz+d/2,Object.assign({night:spr+'_n',kind:'bld'},o));const m=SPR[spr];const f=m.foot;
-  addRect(cx+f[0]+.1,cz+d/2+f[1]+.3,cx+f[2]-.1,cz+d/2-.15);HOUSES.push({e,x:cx,z:cz+d/2,lit:o.lit!==false,w:m.bw||6});return e;}
+function building(spr,cx,front,o){o=o||{};const e=obj(spr,cx,front,Object.assign({night:SPR[spr+'_n']?spr+'_n':null,kind:'bld'},o));const m=SPR[spr];const f=m.foot;
+  addRect(cx+f[0]+.1,front+f[1]+.3,cx+f[2]-.1,front-.15);reserve(cx+f[0]-2,front+f[1]-3,cx+f[2]+2,front+1.6);
+  HOUSES.push({e,x:cx,z:front,lit:o.lit!==false,w:m.bw||6});
+  if(o.porch!==false&&spr!=='church'&&spr!=='garage'){const w=(m.bw||6)/2;const a=obj(rand()<.5?'pumpkin':'pumpkin_b',cx-w+.6,front+.55);const b=obj(o.jack?'jack':'pumpkin',cx+w-.6,front+.55,{glow:o.jack?1:0});addCircle(a.x,a.z,.3);addCircle(b.x,b.z,.3);}
+  return e;}
+const put=(spr,x,z,r,o)=>{const e=obj(spr,x,z,o);if(r)addCircle(x,z-.1,r);return e;};
+function scatter(n,spacing,pick,test,rad){const placed=[];let tries=0;while(placed.length<n&&tries<n*60){tries++;const x=Math.round(lerp(B.x0-14,B.x1+12,rand())*2)/2,z=Math.round(lerp(B.z0-10,B.z1+12,rand())*2)/2;
+    if(!test(x,z))continue;if(OBJ.some(o=>o.solid&&Math.hypot(o.x-x,(o.z-z)*1.3)<spacing))continue;const e=obj(pick(),x,z,{kind:'tree',solid:1});if(rad)addCircle(x,z,rad);placed.push(e);}}
 function buildWorld(){
-  // farm
-  building('cabin',0,-12,5.2);
-  obj('jack',-2.4,-8.6,{night:'jack',glow:1});obj('jack_b',2.6,-8.5,{glow:1});obj('pumpkin',-3.2,-8.3);
-  obj('well',wellPos.x,wellPos.z+1);addCircle(wellPos.x,wellPos.z+.3,1.1);
-  obj('crate',binPos.x,binPos.z+.4,{kind:'bin'});addRect(binPos.x-.5,binPos.z-.3,binPos.x+.5,binPos.z+.4);
-  obj('barrel',-4.4,-9.2);addCircle(-4.4,-9.4,.35);obj('barrel',4.4,-9.4);addCircle(4.4,-9.6,.35);obj('firewood',5.6,-9.2);addCircle(5.6,-9.4,.6);
-  for(const [x,z] of[[10,1],[11.6,2.6],[-9,-1]]){obj('hay',x,z+.6);addRect(x-.8,z-.6,x+.8,z+.5);}
-  obj('cart',-8.6,-5.6);addRect(-9.4,-6.1,-7.8,-5.4);obj('sacks',-7.6,-8.6);addRect(-8.4,-9,-6.8,-8.5);
-  obj('signpost',farmSignPos.x,farmSignPos.z,{label:'HOLLOW ACRE'});addCircle(farmSignPos.x,farmSignPos.z,.2);
-  fenceLine(-6.3,-.6,-6.3,9.4);fenceLine(-6.3,9.4,6.3,9.4,i=>i===3);
-  // town
-  building('store',40,2,6);obj('crate',43.9,-1.9);obj('barrel',36.2,-2.2);obj('sacks',44.6,-1.2);
-  building('house_a',40,-14,5.5);building('house_c',57,2,5);building('house_b',62,-14,5.5);building('house_d',57,12.5,6);
-  building('house_b',30,10,5.5);building('house_c',65,4.6,5);
-  building('church',48,-30,11);
-  building('garage',-36,-14.5,7);building('house_a',-46,4.5,5.5);
-  obj('barrel',-31.5,-11.2);obj('barrel',-32.3,-10.6);obj('crate',-40.5,-11.8);obj('firewood',-39,-10.6);
-  obj('signpost',boardPos.x,boardPos.z,{label:'NOTICES'});obj('signpost',tsPos.x,tsPos.z,{label:'MARROW HOLLOW'});
-  for(const x of[28,36,44,52,60])lamp(x,-8.4);for(const x of[32,40,56,64])lamp(x,-3.6);lamp(46,-17);lamp(50,6);lamp(22,4);lamp(21.5,15);
-  const gs=[[57,-27],[59.5,-28],[62,-27.2],[57.5,-31],[60,-31.5],[66,-27],[66.5,-31],[57,-35],[60,-35],[63.5,-35.5]];
-  gs.forEach(([x,z],i)=>{obj('grave_'+(i%4),x,z);addCircle(x,z-.2,.35);});
-  fenceLine(54,-38,54,-24,i=>i===3);fenceLine(54,-24,69,-24,i=>i===2);
-  obj('car_wreck',carPos.x-.8,carPos.z+3.2,{night:'car_wreck_n',kind:'wreck'});addRect(carPos.x-1.9,carPos.z-1.2,carPos.x+.3,carPos.z+3);
-  obj('deadtree',-61.6,.9);addCircle(-61.6,.9,.35);
-  fenceLine(-51,1.2,-48.5,1.2);fenceLine(-43.5,1.2,-41,1.2);fenceLine(-51,1.2,-51,9);fenceLine(-41,1.2,-41,9);
-  obj('signpost',crossPos.x-1.6,crossPos.z-1.2,{label:'FARM →'});
-  for(const [x,z] of[[46,-1.6],[50.5,-10.8],[38.4,-2.6],[58,-2.4],[-2,-8.6],[2.8,-8.4],[-35,-10],[-45,1.2],[28.6,-7.6],[44.6,-7.6],[52.6,-7.6]]){obj(rand()<.5?'pumpkin':'pumpkin_b',x+.4,z+.2);obj(rand()<.4?'jack_c':'pumpkin',x-.4,z+.3,{glow:1});}
-  obj('hay',46.4,-8.6);addRect(45.6,-9.8,47.2,-8.7);obj('hay',50.2,-1.8);addRect(49.4,-3,51,-1.9);
-  // trees: autumn and green broadleaf
-  const spots=[[34,-12.5],[45,-12.8],[54,-12.5],[67,-9.5],[35,6.2],[45.6,9],[61.5,8.6],[52.5,-19.5],[42,-21],[58.5,-19.5],[30,-15],[68,-1],[-9,-13],[9,-13.5],[-10.5,-3.4],[13.5,6],[-12,8],[4,-18],[-30,-15.5],[-50,-1.8],[-39.5,8],[-22,-12],[26.5,-2],[24,-11],[-66,-10.5],[-55,-11],[-45.5,-12],[16,-3],[-17,-2.6],[38,-24],[66,-20]];
-  for(let i=0;i<40;i++){const x=lerp(-70,70,rand()),z=lerp(-36,36,rand());if(clearSpot(x,z,2.5))spots.push([x,z]);}
-  spots.forEach(([x,z],i)=>{obj(i%4===3?'tree_green':'tree_orange',x,z,{kind:'tree'});addCircle(x,z,.32);});
-  for(const [x,z] of[[-24,12],[-29,5],[4,27],[-6,30],[12,12],[67,-29],[55,-36],[16,-14],[24,24]]){obj('deadtree',x,z);addCircle(x,z,.3);}
-  let n=0,tries=0;while(n<560&&tries<22000){tries++;const x=lerp(B.x0-14,B.x1+12,rand()),z=lerp(B.z0-10,B.z1+12,rand());
-    const out=Math.max(B.x0-x,x-B.x1,B.z0-z,z-B.z1);const woods=(x<-14&&z>4)||(z>24&&x<30)||(x>8&&x<27&&z>8)||(z<-20&&x<26);
-    if(out<-2&&!woods&&rand()<.9)continue;if(!clearSpot(x,z,1.2))continue;
-    if(OBJ.some(o=>o.kind==='pine'&&Math.abs(o.x-x)<2.2&&Math.abs(o.z-z)<1.7))continue;
-    const r=rand();obj(r<.36?'pine_0':r<.72?'pine_1':r<.86?'pine_o0':'pine_o1',x,z,{kind:'pine'});if(out<1)addCircle(x,z,.35);n++;}
-  for(let i=0;i<30;i++){const x=lerp(B.x0,B.x1,rand()),z=lerp(B.z0,B.z1,rand());if(!clearSpot(x,z,.8))continue;obj('stump',x,z);addCircle(x,z,.4);}
-  for(let i=0;i<500;i++){const x=lerp(B.x0,B.x1,rand()),z=lerp(B.z0,B.z1,rand());if(terr(x,z)!=='grass'||!clearSpot(x,z,0))continue;obj('leaves',x,z,{kind:'deco',flat:1,v:(rand()*4)|0});}
-  for(let x=CORN.x0+.4;x<CORN.x1;x+=.85)for(let z=CORN.z0+.4;z<CORN.z1;z+=.7){if(Math.abs(x+.5)<.9&&z<20)continue;if(rand()<.06)continue;
-    obj('corn_'+((rand()*3)|0),x+(rand()-.5)*.3,z+(rand()-.5)*.3,{kind:'corn'});}
+  // ---------- Grandpa's farm
+  building('cabin',0,-9.4,{jack:1});
+  put('jack_b',-1.6,-8.85,.25,{glow:1});
+  put('well',wellPos.x,wellPos.z+.9);addCircle(wellPos.x,wellPos.z+.4,1.05);reserve(wellPos.x-1.5,wellPos.z-1.2,wellPos.x+1.5,wellPos.z+1.5);
+  put('crate',binPos.x,binPos.z,0,{kind:'bin'});addRect(binPos.x-.5,binPos.z-.6,binPos.x+.5,binPos.z);
+  put('barrel',-4.6,-9.5,.33);put('barrel',-5.3,-9.9,.33);put('firewood',4.6,-9.6);addRect(3.9,-10.1,5.3,-9.5);
+  put('hay',-7.6,-10.3);addRect(-8.4,-11.5,-6.8,-10.4);put('hay',-7.6,-8.6);addRect(-8.4,-9.8,-6.8,-8.7);
+  put('cart',-9.6,-12.2);addRect(-10.4,-12.8,-8.8,-12.2);put('sacks',3.4,-12.6);
+  put('signpost',farmSignPos.x,farmSignPos.z,.2,{label:'HOLLOW ACRE'});
+  reserve(-11,-15,11,-7.5);
+  // the field, fenced with a gate at the top
+  fenceLine(-6,-1,-1,-1);fenceLine(1,-1,6,-1);fenceLine(-6,-1,-6,9);fenceLine(6,-1,6,9);fenceLine(-6,9,6,9);
+  reserve(-7,-2,7,10);
+  put('pumpkin',-5.3,-.3,.25);put('pumpkin_b',5.3,-.4,.25);put('hay',8.2,1.2);addRect(7.4,0,9,1.1);
+  // ---------- crash site on Route 9
+  put('car_wreck',carPos.x-.8,carPos.z+3.2,0,{night:'car_wreck_n',kind:'wreck'});addRect(carPos.x-1.9,carPos.z-1.2,carPos.x+.3,carPos.z+3);
+  put('deadtree',-62.4,-1.2,.35);reserve(-65,-8,-56,0);
+  // ---------- Marrow Hollow: main street (z=-6), north row faces the street, south row faces the back lane (z=5)
+  building('store',33.5,-9.4,{jack:1});building('house_a',41,-9.4);building('house_b',56,-9.4,{jack:1});building('house_d',64.5,-9.4);
+  building('house_c',33.5,3.6);building('house_b',41,3.6);building('house_c',56,3.6,{lit:false});building('house_d',64.5,3.6,{lit:false});
+  put('crate',37.6,-9.2,.3);put('barrel',29.5,-9.5,.3);put('sacks',37.8,-8.5);
+  for(const x of[28,36,44,52,60,68]){lamp(x,-7.8);}for(const x of[30,38,46,54,62])lamp(x,-4.2);for(const x of[30,46,62])lamp(x,6.3);
+  put('phone_booth',boothPos.x,boothPos.z+.5,0,{night:'phone_booth_n',kind:'booth'});addRect(boothPos.x-.55,boothPos.z-.4,boothPos.x+.55,boothPos.z+.5);
+  put('board',boardPos.x,boardPos.z,0);addSeg(boardPos.x-.8,boardPos.z,boardPos.x+.8,boardPos.z,.12);
+  put('signpost',tsPos.x,tsPos.z,.2,{label:'MARROW HOLLOW'});
+  put('hay',44.2,-2.3);addRect(43.4,-3.5,45,-2.4);put('hay',51.8,-2.3);addRect(51,-3.5,52.6,-2.4);
+  // church on its own path north of the square, graveyard to the east
+  building('church',48,-18.6);
+  const graves=[];for(let r=0;r<3;r++)for(let c=0;c<5;c++)graves.push([56.5+c*2.2,-30+r*2.6]);
+  graves.forEach(([x,z],i)=>{if(i===7)return;put('grave_'+((i*7)%4),x,z,.35);});
+  put('deadtree',67.5,-31,.35);fenceLine(54.5,-32.5,68.5,-32.5);fenceLine(54.5,-32.5,54.5,-21.5);fenceLine(68.5,-32.5,68.5,-21.5);fenceLine(54.5,-21.5,60.5,-21.5);fenceLine(62.5,-21.5,68.5,-21.5);
+  reserve(53.5,-34,70,-20.5);
+  // garage + pump on the west road, the widow's house north of the highway
+  building('garage',-36,-10.6,{lit:true});put('gas_pump',pumpPos.x,pumpPos.z+1.6,0,{night:'gas_pump_n'});addCircle(pumpPos.x-.4,pumpPos.z,.35);addCircle(pumpPos.x+.4,pumpPos.z,.35);
+  put('barrel',-31.8,-11.2,.3);put('barrel',-31,-10.8,.3);put('crate',-40.8,-10.9,.3);put('firewood',-41.6,-12);
+  building('house_a',-46,-9.6,{jack:1});fenceLine(-50,-9,-50,-6.8);fenceLine(-42,-9,-42,-6.8);
+  // crossroads shrine
+  put('signpost',crossPos.x-1.6,crossPos.z-1.2,.2,{label:'FARM'});
+  // ---------- woods & trees: thick pines outside the valley and in the west/south woods, autumn trees in the open
+  scatter(560,2.2,()=>{const r=rand();return r<.36?'pine_0':r<.72?'pine_1':r<.86?'pine_o0':'pine_o1';},(x,z)=>{const out=Math.max(B.x0-x,x-B.x1,B.z0-z,z-B.z1);
+    const woods=(x<-14&&z>4)||(z>26&&x<30)||(x>10&&x<26&&z>8&&z<16)||(z<-20&&x<26);return (out>-2||woods)&&clearSpot(x,z,.8);},.35);
+  for(const o of OBJ)if(o.kind==='tree'&&o.spr.startsWith('pine'))o.kind='pine';
+  scatter(70,3.4,()=>rand()<.75?'tree_orange':'tree_green',(x,z)=>x>B.x0+1&&x<B.x1-1&&z>B.z0+1&&z<B.z1-1&&clearSpot(x,z,1.4),.32);
+  for(const [x,z] of[[-24,12],[-29,5],[4,28],[-6,30],[14,4],[16,-14],[24,24]])if(clearSpot(x,z,.5))put('deadtree',x,z,.3);
+  for(let i=0;i<24;i++){const x=lerp(B.x0,B.x1,rand()),z=lerp(B.z0,B.z1,rand());if(clearSpot(x,z,1))put('stump',x,z,.35);}
+  for(let i=0;i<420;i++){const x=lerp(B.x0,B.x1,rand()),z=lerp(B.z0,B.z1,rand());if(terr(x,z)!=='grass'||!clearSpot(x,z,-.8))continue;obj('leaves',x,z,{kind:'deco',v:(rand()*4)|0});}
+  // the cornfield in neat rows
+  for(let x=CORN.x0+.5;x<CORN.x1;x+=.9)for(let z=CORN.z0+.5;z<CORN.z1;z+=.8){if(Math.abs(x+.5)<1&&z<20)continue;if(rand()<.05)continue;obj('corn_'+((rand()*3)|0),x+(rand()-.5)*.12,z,{kind:'corn'});}
   addSeg(pond.x-.95,pond.z-pond.r-.6,pond.x-.95,pond.z-pond.r+4.2,.1);addSeg(pond.x+.95,pond.z-pond.r-.6,pond.x+.95,pond.z-pond.r+4.2,.1);addSeg(pond.x-.95,pond.z-pond.r+4.2,pond.x+.95,pond.z-pond.r+4.2,.1);
   addRect(B.x0-12,B.z0-14,B.x1+12,B.z0-.5);addRect(B.x0-12,B.z1+.5,B.x1+12,B.z1+14);addRect(B.x1+2.5,B.z0-14,B.x1+14,B.z1+14);
   addRect(B.x0-20,B.z0-14,B.x0-6.5,-9);addRect(B.x0-20,-3,B.x0-6.5,B.z1+14);
@@ -421,10 +426,10 @@ function buildWorld(){
 const lamps=[];
 function lamp(x,z){const e=obj('lamp',x,z,{kind:'lamp'});lamps.push({e,x,z,dead:rand()<.25,ph:rand()*10});addCircle(x,z,.15);}
 const fenceDefs=[];
-function fenceLine(x1,z1,x2,z2,skip){const len=Math.hypot(x2-x1,z2-z1),n=Math.max(1,Math.round(len/2));const vert=Math.abs(x2-x1)<Math.abs(z2-z1);
-  for(let i=0;i<n;i++){if(skip&&skip(i))continue;const a=i/n,b=(i+1)/n;const ax=lerp(x1,x2,a),az=lerp(z1,z2,a),bx=lerp(x1,x2,b),bz=lerp(z1,z2,b);
-    fenceDefs.push([ax,az,bx,bz]);addSeg(ax,az,bx,bz,.12);
-    if(vert)obj('fence_v',ax,Math.max(az,bz),{kind:'fence'});else obj('fence_h',Math.min(ax,bx),az+.1,{kind:'fence'});}}
+function fenceLine(x1,z1,x2,z2,skip){const vert=Math.abs(x2-x1)<Math.abs(z2-z1);const len=Math.hypot(x2-x1,z2-z1);
+  addSeg(x1,z1,x2,z2,.14);fenceDefs.push([x1,z1,x2,z2]);
+  if(vert){const zs=Math.min(z1,z2),ze=Math.max(z1,z2);for(let z=zs+1;z<=ze+.01;z+=1)obj('fence_v',x1,z,{kind:'fence'});}
+  else{const xs=Math.min(x1,x2),xe=Math.max(x1,x2);for(let x=xs;x<xe-.01;x+=2){obj('fence_h',x,z1+.1,{kind:'fence',clipw:Math.min(2,xe-x)});}}}
 
 /* ================= engine: canvas, sprites, ground, lighting, input ================= */
 const $=id=>document.getElementById(id);
@@ -466,8 +471,9 @@ function chunk(cx,cz){const k=cx+','+cz;let c=chunks.get(k);if(c)return c;
     for(let j=0;j<N;j++)for(let i=0;i<N;i++){const X=x0+i,Z=z0+j;drawAuto(g,L,maskAt(fn,X,Z),i*32,j*32,hash(X+11,Z+5));}}
   chunks.set(k,c);return c;}
 // ---------- camera
-const cam={x:0,z:0,shake:0};
-const sx=x=>x*PPM-cam.x*PPM+VW/2, sz=z=>z*PPM-cam.z*PPM+VH*.56;
+const cam={x:0,z:0,shake:0,px:0,pz:0};
+// all screen positions come from one integer-snapped camera, so ground and sprites never drift against each other
+const sx=x=>Math.round(x*PPM)-cam.px+(VW>>1), sz=z=>Math.round(z*PPM)-cam.pz+Math.round(VH*.56);
 // ---------- input
 const keys={};addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='Space'||e.code==='KeyE'){e.preventDefault();onAct();}if(e.code==='KeyQ')onSeed();});addEventListener('keyup',e=>keys[e.code]=false);
 const joy={x:0,y:0,id:null,ox:0,oy:0};
@@ -577,6 +583,10 @@ const NPCDEF=[
 ];
 
 
+const NPCPOS={mae:{day:[33.5,-8.4],path:[[33.5,-8.4],[30.6,-8.2],[37,-8.3]]},hale:{day:[48,-17.6],path:[[48,-17.6],[50.6,-16.6],[45.4,-16.8]]},
+  tobias:{day:[46,-3.2],path:[[46,-3.2],[50.5,-4],[48,-1.8],[44,-5.6]]},hollis:{day:[-35,-9.6],path:[[-35,-9.6],[-30,-9.4],[-39,-9.8]]},
+  agnes:{day:[-46,-8.6],path:[[-46,-8.6],[-44,-8.2],[-48,-8.4]],nightPos:[-46,-8.6]},dunn:{day:[60,-8.6],path:[[60,-8.6],[56,-8.2],[64,-8.4],[58,-4.2]]}};
+for(const d of NPCDEF)if(NPCPOS[d.id])Object.assign(d,NPCPOS[d.id]);
 const npcs=NPCDEF.map(d=>({def:d,x:d.day[0],z:d.day[1],dir:'S',clip:'idle',t:Math.random()*4,wp:0,wait:Math.random()*4,vis:true,spd:0}));
 const npcById=id=>npcs.find(n=>n.def.id===id);
 const ruth={x:0,z:0,vis:false,t:0,on:false,done:false};
@@ -653,7 +663,7 @@ function questLine(n){const id=n.def.id,q=S.q;
   if(id==='hollis'){if(!q.hollis){q.hollis=1;return 'That your car out by the big oak? Hell of a thing. I can fix it. I need four parts: a tire, Mae sells one in town. A battery, I’ve got one, but I want three pumpkins for it. A fan belt, Agnes has her husband’s old truck rotting in the yard. And gas, from my pump. Twenty in the honor box.';}
     if(!S.parts.battery){if(basketCount('pumpkin')>=3){takeBasket('pumpkin',3);S.parts.battery=1;SFX.coin();return 'Now those are pumpkins. Here’s your battery. Don’t ask whose car it came out of.';}return 'Three pumpkins for the battery. Grow ’em yourself. Nobody else here will sell you any.';}
     if(S.carFixed&&!S.looped)return 'She’ll run. Whether the road lets you go is another thing.';if(S.looped)return 'Came back, huh? They all come back. I’m sorry, friend.';}
-  if(id==='agnes'){if(S.cat==='carried'){S.cat='home';S.parts.belt=1;cat.vis=true;cat.x=-46.5;cat.z=1.8;SFX.meow();return 'Whiskers! Oh, you found her. Here. Harold’s fan belt, off his truck. He won’t be driving it. Nobody drives out of here.';}
+  if(id==='agnes'){if(S.cat==='carried'){S.cat='home';S.parts.belt=1;cat.vis=true;cat.x=-44.6;cat.z=-8.2;SFX.meow();return 'Whiskers! Oh, you found her. Here. Harold’s fan belt, off his truck. He won’t be driving it. Nobody drives out of here.';}
     if(!q.agnes&&S.cat==='lost'){q.agnes=1;return 'You need a belt? Harold’s truck has one. I’ll trade it, but find my Whiskers first. She ran into the corn by Elias’s farm. She always runs to the corn.';}
     if(S.cat==='lost')return 'Whiskers is in the corn. Please. I can hear her at night, and sometimes I hear something answer.';}
   if(id==='dunn'){if(!S.flashlight){if(!q.dunn){q.dunn=1;return 'Want something for that dark? I’ll trade my old service flashlight for three fish from the pond. Department budget. Don’t fish after dark.';}
@@ -763,6 +773,7 @@ function onScreen(x,z,m){const X=sx(x),Y=sz(z);m=m||0;return X>-m&&X<VW+m&&Y>-m&
 function hollowUpdate(dt){H.t+=dt;H.ft+=dt;if(H.grace>0)H.grace-=dt;
   if(S.bound||!isNight()){if(H.state!=='gone'&&!S.bound){H.state='gone';H.vis=false;}return 99;}
   if(H.state==='gone'){H.timer-=dt;if(H.timer<=0){spawnHollow(false,!S.first['watch'+S.day]);if(H.state==='watch')S.first['watch'+S.day]=1;}return 99;}
+  if(H.state==='lunge'){H.lungeT-=dt;H.clip='scream';if(H.lungeT<=0){H.state='flee';H.fleeT=.9;H.grace=3;}return 2;}
   if(H.state==='flee'){H.fleeT-=dt;H.alpha=clamp(H.fleeT/.9,0,1);if(H.fleeT<=0){H.state='gone';H.timer=8+rand()*6;H.vis=false;}return 99;}
   const dx=P.x-H.x,dz=P.z-H.z,d=Math.hypot(dx,dz)||.01;const dot=(-dx*P.fx-dz*P.fz)/d;
   const range=S.flashlight?11:8.5,cone=S.flashlight?.72:.6;
@@ -782,7 +793,11 @@ function hollowUpdate(dt){H.t+=dt;H.ft+=dt;if(H.grace>0)H.grace-=dt;
     H.stepT-=dt*lurch*(1+H.crawl);if(H.stepT<=0&&d<15){H.stepT=.55;SFX.thud(clamp(-dx/10,-1,1),.06+.25*(1-d/15));}
     H.whisperT-=dt;if(H.whisperT<=0&&d<14&&dot<.2){SFX.whisper(clamp(-dx/10,-1,1));H.whisperT=4+rand()*4;}
     H.breathT-=dt;if(H.breathT<=0&&d<5&&dot<0){SFX.breath(0);H.breathT=2.6;}
-    sputCD-=dt;if(sputCD<=0&&d<8&&S.fuel>0){sputCD=9+rand()*8;sputT=1.1+rand()*.6;SFX.sputter();}}
+    sputCD-=dt;if(sputCD<=0&&d<9&&S.fuel>0){sputCD=10+rand()*8;sputT=1.1+rand()*.6;SFX.sputter();H.ambush=sputT-.15;}
+    if(H.ambush>0){H.ambush-=dt;if(H.ambush<=0&&H.grace<=0){H.ambush=0;jumpScare('dark');return 2;}}
+    const back=(-dx*P.fx-dz*P.fz)/d<-.5;
+    if(P.dir!==lastDir&&d<7&&back===false&&H.grace<=0&&S.day>=1&&!S.night.turn&&dot>.7){S.night.turn=1;jumpScare('turn');return 2;}
+    peekCD-=dt;if(peekCD<=0&&H.grace<=0&&d<14){peekCD=35+rand()*30;jumpScare('lunge');return 2;}}
   if(d<1.1&&H.rise>=1&&H.state==='stalk'&&H.grace<=0)caught();
   return d;}
 function ruthUpdate(dt){
@@ -795,11 +810,19 @@ function catUpdate(dt){cat.vis=S.cat!=='carried';if(S.cat!=='lost'){cat.clip='id
   if(d<.3||cat.tt<=0){cat.tx=lerp(CORN.x0+1,CORN.x1-1,rand());cat.tz=lerp(CORN.z0+1,CORN.z1-1,rand());cat.tt=6+rand()*6;}
   const sp=Math.hypot(P.x-cat.x,P.z-cat.z)<3?0:.7;if(d>.3&&sp){cat.x+=dx/d*sp*dt;cat.z+=dz/d*sp*dt;cat.dir=dirOf(dx,dz);cat.clip='walk';}else cat.clip='idle';cat.t+=dt;
   cat.meow-=dt;if(cat.meow<=0&&Math.hypot(P.x-cat.x,P.z-cat.z)<14){SFX.meow(clamp((cat.x-P.x)/10,-1,1));cat.meow=4+rand()*3;}}
+/* ================= sudden scares ================= */
+let slamT=0,peekCD=30,lastDir='S';
+function faceSlam(dur,loud){drawScare();const c=$('scare');c.hidden=false;c.classList.remove('slam');void c.offsetWidth;c.classList.add('slam','on');slamT=dur||.38;
+  if(loud!==false){SFX.scream();SFX.stinger();}cam.shake=Math.max(cam.shake,.7);flashT=Math.max(flashT,.55);try{navigator.vibrate&&navigator.vibrate([120,40,180]);}catch(e){}}
+function slamUpdate(dt){if(slamT>0){slamT-=dt;if(slamT<=0&&S.mode!=='scare'){const c=$('scare');c.hidden=true;c.classList.remove('slam','on');}}}
+function popInFront(d){H.x=P.x+P.fx*d;H.z=P.z+P.fz*d;collide(H,.4);H.vis=true;H.alpha=1;H.rise=1;H.crawl=0;H.dir=dirOf(P.x-H.x,P.z-H.z);H.clip='scream';H.ft=0;}
+function jumpScare(kind){popInFront(1.3);H.state='lunge';H.lungeT=.75;H.burn=0;faceSlam(.38);
+  toast(kind==='turn'?'It was right behind you.':kind==='dark'?'When the light came back, it was there.':'It came out of the dark.',2.4,true);}
 /* ================= caught / ending ================= */
 function caught(){if(S.mode!=='play')return;S.mode='scare';S.caught++;SFX.scream();cam.shake=.8;fish.state='off';
   try{navigator.vibrate&&navigator.vibrate([200,60,300]);}catch(e){}
   const dx=H.x-P.x,dz=H.z-P.z,d=Math.hypot(dx,dz)||1;P.fx=dx/d;P.fz=dz/d;P.dir=dirOf(dx,dz);H.clip='lunge';H.ft=0;
-  setTimeout(()=>{drawScare();$('scare').hidden=false;$('scare').classList.add('on');},600);
+  faceSlam(3,false);
   setTimeout(()=>fade(1),1500);
   setTimeout(()=>{$('scare').hidden=true;$('scare').classList.remove('on');const lost=Math.floor(S.coins/2);S.coins-=lost;S.basket=[];if(S.cat==='carried'){S.cat='lost';resetCat();}
     newDay(`You wake in your bed with straw in your mouth. ${lost?lost+' coins are gone.':'Your pockets are empty.'} Someone left the door open.`);fade(0);S.mode='play';},2800);}
@@ -823,7 +846,7 @@ const dayScale=[220,261.6,293.7,329.6,392,440,523.3];
 const nightMel=[329.6,392,440,392,329.6,293.7,329.6,0,329.6,392,440,493.9,440,392,329.6,0,261.6,293.7,329.6,293.7,261.6,246.9,220,0];
 function lightning(){flashT=1;const n=2+Math.floor(rand()*3);ghosts=[];if(!S.bound)for(let i=0;i<n;i++){const a=rand()*Math.PI*2,d=5+rand()*5;ghosts.push({x:P.x+Math.cos(a)*d,z:P.z+Math.sin(a)*d*.7,t:.35});}
   setTimeout(()=>SFX.thunder(),300+rand()*900);}
-function update(dt){
+function update(dt){slamUpdate(dt);
   const rate=S.hour<20?1/11:1/15;S.hour+=dt*rate;
   if(!S.dusk&&S.hour>=18){S.dusk=true;toast('The sun is going down. Your lantern is lit.',2.6);}
   if(!S.bellRung&&S.hour>=20){S.bellRung=true;SFX.bell();S.storm=S.day>=2&&!S.bound;placeNPCs();
@@ -838,6 +861,7 @@ function update(dt){
   let mx=joy.x,mz=joy.y;if(keys.KeyW||keys.ArrowUp)mz-=1;if(keys.KeyS||keys.ArrowDown)mz+=1;if(keys.KeyA||keys.ArrowLeft)mx-=1;if(keys.KeyD||keys.ArrowRight)mx+=1;
   let mag=Math.hypot(mx,mz);if(mag>1){mx/=mag;mz/=mag;mag=1;}
   const corn=inCorn(P.x,P.z);const moving=mag>.15&&!P.anim,run=mag>.85||keys.ShiftLeft;const spd=moving?(run?5:3)*mag*(corn?.7:1):0;
+  lastDir=P.dir;
   if(moving){P.fx=mx/mag;P.fz=mz/mag;P.dir=dirOf(mx,mz);P.x+=P.fx*spd*dt;P.z+=P.fz*spd*dt;collide(P,.3);if(fish.state!=='off')fish.state='off';}
   P.spd=spd;
   if(P.anim){const a=P.anim;a.t+=dt;P.clip=a.clip;if(!a.fired&&a.t>a.dur*.55){a.fired=true;a.fire&&a.fire();}if(a.t>=a.dur)P.anim=null;}
@@ -858,6 +882,8 @@ function update(dt){
     else{const path=n.def.path;if(n.wait>0){n.wait-=dt;n.clip='idle';}else{const tg=path[n.wp];const tx=tg[0]-n.x,tz=tg[1]-n.z,td=Math.hypot(tx,tz);
         if(td<.3){n.wp=(n.wp+1)%path.length;n.wait=4+rand()*7;}else{sp=n.def.id==='tobias'?1.5:1.1;n.x+=tx/td*sp*dt;n.z+=tz/td*sp*dt;collide(n,.3);n.dir=dirOf(tx,tz);n.clip='walk';}}}}
   ruthUpdate(dt);catUpdate(dt);
+  if(isNight()&&!S.bound)for(const h of HOUSES){if(h.faceDone===S.day||!h.lit)continue;if(Math.hypot(P.x-h.x,P.z-h.z)<4.5){h.faceDone=S.day;h.faceT=.55;SFX.face();}}
+  for(const h of HOUSES)if(h.faceT>0)h.faceT-=dt;
   if(isNight()&&!S.bound&&S.day>=2&&!S.night.phone&&Math.hypot(P.x-boothPos.x,P.z-boothPos.z)<22){S.night.phone=1;phone.ring=true;phone.t=0;}
   if(phone.ring){phone.t-=dt;if(phone.t<=0){phone.t=3;SFX.ring(clamp((boothPos.x-P.x)/15,-1,1),clamp(1-Math.hypot(P.x-boothPos.x,P.z-boothPos.z)/36,.1,1));}}
   if(isNight()&&!S.bound&&S.day>=2&&!S.night.horn&&Math.hypot(P.x-carPos.x,P.z-carPos.z)<24){S.night.horn=1;hornT=2.2;SFX.horn();}
@@ -888,13 +914,15 @@ function render(dt,now){const t=now/1000;
   // camera
   let fx=P.x,fz=P.z-.6;if(S.mode==='title'){fx=Math.sin(t*.05)*8;fz=-4+Math.cos(t*.04)*4;}
   if(cine&&cine.cam){fx=cine.cam.x;fz=cine.cam.z;}
-  camT.x=lerp(camT.x,fx,1-Math.exp(-dt*6));camT.z=lerp(camT.z,fz,1-Math.exp(-dt*6));cam.x=camT.x;cam.z=camT.z;
-  if(cam.shake>0){cam.shake=Math.max(0,cam.shake-dt);cam.x+=(Math.random()-.5)*cam.shake*.3;cam.z+=(Math.random()-.5)*cam.shake*.3;}
+  camT.x=lerp(camT.x,fx,1-Math.exp(-dt*9));camT.z=lerp(camT.z,fz,1-Math.exp(-dt*9));if(Math.abs(camT.x-fx)<.02)camT.x=fx;if(Math.abs(camT.z-fz)<.02)camT.z=fz;
+  if(S.mode==='play'&&!(cine&&cine.cam)){camT.x=fx;camT.z=fz;}cam.x=camT.x;cam.z=camT.z;
+  cam.px=Math.round(cam.x*PPM);cam.pz=Math.round(cam.z*PPM);
+  if(cam.shake>0){cam.shake=Math.max(0,cam.shake-dt);const k=Math.round(cam.shake*10);cam.px+=((Math.random()*2-1)*k)|0;cam.pz+=((Math.random()*2-1)*k)|0;}
   if(cine&&cine.custom){cine.custom(ctx2,dt,t);return;}
   ctx2.fillStyle='#22301a';ctx2.fillRect(0,0,VW,VH);
   // ground chunks
-  const left=cam.x*PPM-VW/2,top=cam.z*PPM-VH*.56;const c0=Math.floor(left/CH),c1=Math.floor((left+VW)/CH),r0=Math.floor(top/CH),r1=Math.floor((top+VH)/CH);
-  for(let cz=r0;cz<=r1;cz++)for(let cx=c0;cx<=c1;cx++)ctx2.drawImage(chunk(cx,cz),Math.round(cx*CH-left),Math.round(cz*CH-top));
+  const left=cam.px-(VW>>1),top=cam.pz-Math.round(VH*.56);const c0=Math.floor(left/CH),c1=Math.floor((left+VW)/CH),r0=Math.floor(top/CH),r1=Math.floor((top+VH)/CH);
+  for(let cz=r0;cz<=r1;cz++)for(let cx=c0;cx<=c1;cx++)ctx2.drawImage(chunk(cx,cz),cx*CH-left,cz*CH-top);
   // water shimmer
   if(onScreen(pond.x,pond.z,260))for(let i=0;i<26;i++){const a=hash(i,7)*6.28,r=hash(i,9)*pond.r*.85;const x=pond.x+Math.cos(a)*r,z=pond.z+Math.sin(a)*r*.9;
     const k=(Math.sin(t*1.7+i)+1)/2;if(k>.6){ctx2.fillStyle=`rgba(200,230,240,${(k-.6)*1.6})`;ctx2.fillRect(Math.round(sx(x)),Math.round(sz(z)),4,1);}}
@@ -925,10 +953,11 @@ function render(dt,now){const t=now/1000;
   D.sort((a,b)=>a.z-b.z);
   for(const d of D){
     if(d.o){const o=d.o;const X=sx(o.x),Y=sz(o.z);let a;
-      if((o.kind==='tree'||o.kind==='pine'||o.kind==='bld')&&P.z<o.z-.2){const m=SPR[o.spr];if(m){const px=sx(P.x),py=sz(P.z)-30;if(px>X-m.ax&&px<X-m.ax+m.fw&&py>Y-m.ay&&py<Y-m.ay+m.fh&&P.z>o.z-(o.kind==='bld'?8:4))a=.55;}}
+      if((o.kind==='tree'||o.kind==='pine'||o.kind==='bld')&&P.z<o.z-.2){const m=SPR[o.spr];if(m){const px=sx(P.x),py=sz(P.z)-30;const f=m.foot||[0,0,0,0];const x0=o.kind==='bld'?X+f[0]*PPM:X-m.fw*.35,x1=o.kind==='bld'?X+f[2]*PPM:X+m.fw*.35;if(px>x0&&px<x1&&py>Y-m.ay&&py<Y&&P.z>o.z-(o.kind==='bld'?8:4))a=.55;}}
       if(o.kind==='tree'||o.kind==='pine')shadow(X,Y,14);
       drawSpr(o.spr,X,Y,null,null,0,{alpha:a});
-      if(o.night&&SPR[o.night]&&nightK>0)drawSpr(o.night,X,Y,null,null,0,{alpha:(a||1)*nightK});}
+      if(o.night&&SPR[o.night]&&nightK>0)drawSpr(o.night,X,Y,null,null,0,{alpha:(a||1)*nightK});
+      if(o.kind==='bld'){const h=HOUSES.find(q=>q.e===o);if(h&&h.faceT>0){const w=(h.w||6)/2;const fx=Math.round(X-w*PPM+48),fy=Math.round(Y-74);ctx2.fillStyle='#d8d4c8';ctx2.fillRect(fx,fy,8,10);ctx2.fillStyle='#000';ctx2.fillRect(fx+1,fy+3,2,2);ctx2.fillRect(fx+5,fy+3,2,2);ctx2.fillRect(fx+2,fy+7,4,2);}}}
     else if(d.crop){const tl=d.crop,c=tl.crop;const nm=c.type+'_'+c.stage;const s=c.pop<1?.6+.4*c.pop:1;drawSpr(nm,sx(tl.x),sz(tl.z+.2),null,null,0,{scale:s});}
     else if(d.npc){const n=d.npc;const X=sx(n.x),Y=sz(n.z);shadow(X,Y,9);drawSpr(n.def.id,X,Y,'walk',n.dir,n.clip==='walk'?frameOf(n.def.id,'walk',n.t):0);
       if(n.clip==='stand'&&S.day>=2&&nightK>.5){ctx2.fillStyle='#ff2a14';const ey=Math.round(Y-44);ctx2.fillRect(Math.round(X)-3,ey,1,1);ctx2.fillRect(Math.round(X)+2,ey,1,1);}}
@@ -960,10 +989,10 @@ function render(dt,now){const t=now/1000;
   // weather: falling leaves (day), rain (storm), fog (night)
   if(nightK<.8){for(let i=0;i<24;i++){const s=hash(i,3);const x=((s*977+t*14*(.5+s))%(VW+40))-20,y=((hash(i,5)*VH+t*(18+s*20))%(VH+20))-10;ctx2.fillStyle=['#d0702a','#b8521c','#e0a040','#8a3a18'][i%4];ctx2.globalAlpha=1-nightK;ctx2.fillRect(Math.round(x+Math.sin(t*2+i)*6),Math.round(y),2,1);}ctx2.globalAlpha=1;}
   if(S.storm&&isNight()){ctx2.strokeStyle='rgba(170,190,220,.35)';ctx2.beginPath();for(let i=0;i<90;i++){const x=(hash(i,1)*VW+t*40)%VW,y=(hash(i,2)*VH+t*620)%VH;ctx2.moveTo(Math.round(x),Math.round(y));ctx2.lineTo(Math.round(x-2),Math.round(y+7));}ctx2.stroke();}
-  if(nightK>0&&fogTex){ctx2.globalAlpha=nightK*.55;const ox=(-(cam.x*PPM*.7)+t*6)%256,oy=(-(cam.z*PPM*.7))%256;for(let y=oy-256;y<VH;y+=256)for(let x=ox-256;x<VW;x+=256)ctx2.drawImage(fogTex,Math.round(x),Math.round(y));ctx2.globalAlpha=1;}
+  if(nightK>0&&fogTex){ctx2.globalAlpha=nightK*.55;const ox=Math.round((-(cam.px*.7)+t*6)%256),oy=Math.round((-(cam.pz*.7))%256);for(let y=oy-256;y<VH;y+=256)for(let x=ox-256;x<VW;x+=256)ctx2.drawImage(fogTex,Math.round(x),Math.round(y));ctx2.globalAlpha=1;}
   // ---- light map (multiply)
   lctx.globalCompositeOperation='source-over';lctx.fillStyle=`rgb(${amb[0]|0},${amb[1]|0},${amb[2]|0})`;lctx.fillRect(0,0,VW,VH);
-  if(nightK>.02){lctx.globalCompositeOperation='lighter';const L=nightK;const fl=.88+.12*Math.sin(t*23)*Math.sin(t*7.3);
+  if(nightK>.02){lctx.globalCompositeOperation='lighter';const L=nightK;const fl=.95+.05*Math.sin(t*5.3);
     for(const h of HOUSES){if(!h.lit)continue;const X=sx(h.x),Y=sz(h.z)-40;if(X<-200||X>VW+200||Y<-200||Y>VH+200)continue;glowAt(X,Y,110,[255,170,80],.5*L);}
     for(const lp of lamps){if(lp.dead&&Math.sin(t*9+lp.ph)>.2)continue;const X=sx(lp.x),Y=sz(lp.z)-66;if(X<-150||X>VW+150||Y<-150||Y>VH+150)continue;glowAt(X,Y+50,100,[255,180,90],.75*L*fl);glowAt(X,Y,16,[255,230,170],.9*L);}
     for(const o of OBJ){if(!o.glow)continue;const X=sx(o.x),Y=sz(o.z)-8;if(X<-60||X>VW+60||Y<-60||Y>VH+60)continue;glowAt(X,Y,30,[255,140,40],.6*L*fl);}
@@ -982,18 +1011,32 @@ function render(dt,now){const t=now/1000;
   // vignette + danger pulse + grain
   if(!vig||vig.w!==VW||vig.h!==VH)makeVig();ctx2.drawImage(vig.c,0,0);
   if(danger>.3&&!S.bound){ctx2.fillStyle=`rgba(120,0,0,${(danger-.3)*.25*(.6+.4*Math.sin(t*6))})`;ctx2.fillRect(0,0,VW,VH);}
-  if(grainTex){ctx2.globalAlpha=.5;ctx2.drawImage(grainTex,(Math.random()*-64)|0,(Math.random()*-64)|0,VW+128,VH+128);ctx2.globalAlpha=1;}
 }
 let vig=null;
 function makeVig(){const c=document.createElement('canvas');c.width=VW;c.height=VH;const g=c.getContext('2d');const gr=g.createRadialGradient(VW/2,VH*.5,Math.min(VW,VH)*.35,VW/2,VH*.5,Math.max(VW,VH)*.75);
   gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(6,4,10,.55)');g.fillStyle=gr;g.fillRect(0,0,VW,VH);vig={c,w:VW,h:VH};}
 /* ================= jumpscare (pixel) ================= */
-function drawScare(){const c=$('scare');c.width=96;c.height=128;const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.fillStyle='#080102';g.fillRect(0,0,96,128);
-  const m=SPR.hollow,im=IMG[m.src];const r=m.clips.walk.S[0];g.drawImage(im,16,r*64+2,32,30,-8,2,112,105);
-  g.fillStyle='#000';g.fillRect(28,48,12,10);g.fillRect(56,46,12,11);
-  g.fillStyle='#ff2010';g.fillRect(32,51,4,4);g.fillRect(60,50,4,4);g.fillStyle='#ffe0c0';g.fillRect(33,52,1,1);g.fillRect(61,51,1,1);
-  g.fillStyle='#120000';g.beginPath();g.ellipse(48,86,22,16,0,0,7);g.fill();g.fillStyle='#e8dcc0';for(let i=0;i<11;i++){g.fillRect(28+i*4,72+(i%2),2,6+(i%3));g.fillRect(29+i*4,96-(i%2),2,-5-(i%2));}
-  g.fillStyle='rgba(90,0,0,.6)';for(let i=0;i<5;i++)g.fillRect(30+i*9,58,1,8+i%3);
+function drawScare(){const c=$('scare');const W=96,Hh=128;c.width=W;c.height=Hh;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+  g.fillStyle='#050102';g.fillRect(0,0,W,Hh);
+  // the pumpkin skull: ribbed, rotten, lit from inside
+  const cx=48,cy=62;
+  for(let y=0;y<Hh;y++)for(let x=0;x<W;x++){const dx=(x-cx)/42,dy=(y-cy)/46;const d=dx*dx+dy*dy;if(d>1)continue;
+    const rib=Math.cos(Math.atan2(dy,dx*1.2)*7);const sh=(1-d)*.7+(-dx*.25-dy*.2)+rib*.12;const n=hash(x>>1,y>>1)*.25;
+    let r=150+sh*90+n*40,gg=58+sh*50+n*20,bb=14+sh*12;if(hash(x>>2,(y>>2)+9)>.86){r*=.45;gg*=.4;bb*=.5;}
+    g.fillStyle=`rgb(${r|0},${gg|0},${bb|0})`;g.fillRect(x,y,1,1);}
+  g.fillStyle='#3a2a10';g.fillRect(44,12,8,8);g.fillRect(46,8,5,5);
+  // carved eye holes with a burning core
+  const eye=(x0,y0,flip)=>{for(let k=0;k<16;k++){const w=18-k;g.fillStyle='#090102';g.fillRect(flip?x0+k-2:x0+k*.2,y0+k,w,1);}
+    g.fillStyle='#ff3a10';g.fillRect(x0+5,y0+5,6,6);g.fillStyle='#ffd070';g.fillRect(x0+7,y0+7,2,2);};
+  eye(22,40,false);eye(56,40,true);
+  // torn mouth full of needle teeth
+  g.fillStyle='#070102';g.beginPath();g.moveTo(18,78);for(let i=0;i<=12;i++){const x=18+i*5,y=78+(i%2?-5:3)+Math.sin(i)*2;g.lineTo(x,y);}g.lineTo(78,98);
+  for(let i=12;i>=0;i--){const x=18+i*5,y=104+(i%2?4:-2);g.lineTo(x,y);}g.closePath();g.fill();
+  g.fillStyle='#ff5a1a';g.fillRect(30,88,36,3);
+  g.fillStyle='#efe4c4';for(let i=0;i<13;i++){const x=20+i*4.6;g.fillRect(x|0,80+(i%2),2,8+(i%3)*2);g.fillRect((x+2)|0,102-(i%2),2,-7-(i%2)*2);}
+  // drips
+  g.fillStyle='#1a0402';for(let i=0;i<9;i++){const x=24+i*6+(i%2)*2;g.fillRect(x,56,2,6+((i*7)%9));}
+  g.fillStyle='rgba(0,0,0,.55)';g.fillRect(0,0,W,6);g.fillRect(0,Hh-8,W,8);
   c.style.imageRendering='pixelated';}
 /* ================= cutscenes ================= */
 let cine=null;
@@ -1094,5 +1137,3 @@ boot();
 
 })();
 </script>
-
-</body></html>

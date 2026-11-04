@@ -115,9 +115,8 @@ CAST = {
                       ('headwear/hats/formal/hat_formal_bowler.json', 'brown', None)]),
     'ruth': ('child', [(SKIN, None, (200, 204, 210)), (HEADS + 'heads_human_child.json', None, (200, 204, 210)), ('hair/long/hair_long_straight.json', None, (14, 12, 16)),
                        ('torso/shirts/torso_clothes_child_shirt.json', 'white', None), ('legs/pants/legs_childpants.json', 'white', None)]),
-    'hollow': ('male', [(SKIN, None, (120, 112, 96)), ('head/heads/undead/heads_zombie.json', None, (110, 96, 74)), ('torso/cape/cape_tattered.json', None, (40, 34, 30)),
-                        ('torso/jacket/torso_jacket_frock.json', 'charcoal', None), ('legs/pants/legs_pantaloons.json', None, (60, 50, 40)),
-                        ('headwear/hats/formal/hat_formal_tophat.json', 'base_brown', None)]),
+    'hollow': ('male', [(SKIN, None, (46, 40, 38)), ('head/heads/undead/heads_jack.json', 'jack', None), ('torso/shirts/torso_clothes_robe.json', 'black', None),
+                        ('torso/cape/cape_tattered.json', None, (24, 20, 22)), ('legs/pants/legs_pantaloons.json', None, (30, 26, 24))]),
 }
 if __name__ == '__main__':
     only = sys.argv[1:]
