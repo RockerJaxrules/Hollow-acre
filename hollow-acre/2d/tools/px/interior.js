@@ -36,6 +36,8 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   if(R.theme==='cabin'||R.theme==='store'||R.theme==='home')planks(A,x0,top,fw,fd,WD,8);
   if(R.theme==='church')tilesF(A,x0,top,fw,fd,ST,16);
   if(R.theme==='garage')concrete(A,x0,top,fw,fd);
+  if(R.theme==='garage'){const bx=x0+fw-150,bw=104;for(let y=14;y<8+wallH;y++)for(let x=bx;x<bx+bw;x++){const j=(y-14)%6;P(A,x,y,j===0?ST[4]:j===5?ST[1]:ST[3]);}frame(A,bx-3,12,bw+6,wallH-2,WD[3],WD[0]);rect(A,bx+bw/2-6,8+wallH-10,12,3,PAL.slate[2]);
+    for(let x=bx;x<bx+bw;x++){const k=((x-bx)>>3)%2;for(let j=0;j<4;j++)P(A,x,top+fd-60+j,k?PAL.mustard[4]:PAL.ink[0]);}}
   if(R.theme==='mine'){for(let y=top;y<top+fd;y++)for(let x=x0;x<x0+fw;x++){const n=hsh(x>>4,(y+(x>>3))>>4,8)*.8+hsh(x,y,9)*.2;P(A,x,y,n>.78?RK[3]:n>.45?RK[2]:RK[1]);}
     for(let i=0;i<40;i++){const px=x0+(hsh(i,1,4)*fw|0),py=top+(hsh(i,2,4)*fd|0);P(A,px,py,ST[3]);P(A,px+1,py,ST[2]);}}
   if(R.theme==='glass'){tilesF(A,x0,top,fw,fd,ST,16);const s0x=x0+32,s0y=top+38,sw=7*32,sh=4*32;for(let y=s0y-3;y<s0y+sh+3;y++)for(let x=s0x-3;x<s0x+sw+3;x++){const edge=x<s0x||y<s0y||x>=s0x+sw||y>=s0y+sh;
@@ -94,14 +96,78 @@ if(K==='chair'){rect(A,4,2,W-8,16,WD[2]);frame(A,4,2,W-8,16,WD[4],WD[0]);for(let
 if(K==='stove'){const ir=PAL.slate;topBox(3,14,W-6,9,H-30,ir,ir[1]);for(const x of [10,W-16]){ell(A,x+3,18,4,2,ir[0]);ell(A,x+3,18,2,1,ir[2]);}
   rect(A,cx-1,0,4,14,ir[2]);vl(A,cx-1,0,14,ir[4]);rect(A,cx-8,30,16,12,ir[0]);frame(A,cx-8,30,16,12,ir[3],ir[0]);
   for(let i=0;i<14;i+=3)rect(A,cx-7+i,33,2,6,N?PAL.lit[3]:PAL.rust[2]);rect(A,cx-4,46,8,2,PAL.brass[2]);for(const x of [5,W-9])post(A,x,H-10,4,8);gs(cx+3,base,W/2-2|0,3,80);}
-if(K==='shelf'){ // tall bookcase / pantry shelf against the wall
-  rect(A,2,2,W-4,H-6,WD[1]);frame(A,2,2,W-4,H-6,WD[4],WD[0]);const goods=CFG.goods||'books';
-  for(let sy=8;sy<H-8;sy+=CFG.step||18){hl(A,3,sy+12,W-6,WD[4]);hl(A,3,sy+13,W-6,WD[2]);let x=5;while(x<W-6){
-    if(goods==='books'){const bw=2+(hsh(x,sy,1)*3|0),bh=7+(hsh(x,sy,2)*5|0),R=[PAL.red,PAL.teal,PAL.mustard,PAL.blue,PAL.sage][hsh(x,sy,3)*5|0];rect(A,x,sy+12-bh,bw,bh,R[2]);vl(A,x,sy+12-bh,bh,R[3]);P(A,x,sy+14-bh,R[4]);x+=bw+(hsh(x,sy,4)>.85?3:0);}
-    else if(goods==='jars'){const R=[PAL.rust,PAL.sage,PAL.mustard,PAL.red][hsh(x,sy,3)*4|0];rect(A,x,sy+4,5,8,PAL.glass[3]);rect(A,x+1,sy+6,3,6,R[3]);hl(A,x,sy+3,5,PAL.brass[2]);P(A,x+1,sy+5,PAL.glass[5]);x+=7;}
-    else if(goods==='cans'){const R=[PAL.red,PAL.blue,PAL.mustard][hsh(x,sy,3)*3|0];rect(A,x,sy+5,4,7,R[2]);hl(A,x,sy+7,4,PAL.cream[3]);vl(A,x,sy+5,7,R[3]);hl(A,x,sy+5,4,TR[4]);x+=5;}
-    else if(goods==='tools'){const t=hsh(x,sy,3);if(t<.4){rect(A,x,sy+2,6,10,PAL.slate[2]);hl(A,x,sy+2,6,PAL.slate[4]);}else if(t<.7){ell(A,x+3,sy+9,3,3,PAL.rust[3]);}else{rect(A,x,sy+7,8,5,PAL.red[2]);hl(A,x,sy+7,8,PAL.red[4]);}x+=9;}}}
-  gs(cx+3,base,W/2-2|0,2,70);}
+// ---- 3/4 cabinet: a lit top you look down on, a front frame, a recessed dark back, each shelf board lit on its top edge, items shading the back behind them
+function cabinet(x0,y0,w,h,top,R,inner){rect(A,x0,y0,w,top,R[4]);hl(A,x0,y0,w,R[5]||R[4]);hl(A,x0,y0+top-1,w,R[2]);for(let i=x0+5;i<x0+w-3;i+=9)P(A,i,y0+2,R[3]);
+  rect(A,x0,y0+top,w,h-top,R[2]);vl(A,x0,y0+top,h-top,R[3]);vl(A,x0+1,y0+top,h-top,R[3]);vl(A,x0+w-2,y0+top,h-top,R[1]);vl(A,x0+w-1,y0+top,h-top,R[0]);hl(A,x0,y0+h-1,w,R[0]);
+  for(let y=y0+top+2;y<y0+h-4;y++)for(let x=x0+3;x<x0+w-3;x++){const dy=y-(y0+top+2);P(A,x,y,shade(inner||R[1],.62+Math.min(.3,(x-x0)/w*.0+dy*0)));}
+  for(let y=y0+h-4;y<y0+h-1;y++)hl(A,x0+1,y,w-2,R[1]);for(let x=x0-1;x<x0+w+2;x++){P(SHD,x,y0+h,PAL.out[0],160);P(SHD,x,y0+h+1,PAL.out[0],90);}}
+function board(x0,y,w,R){hl(A,x0+2,y,w-4,R[4]);hl(A,x0+2,y+1,w-4,R[2]);hl(A,x0+2,y+2,w-4,R[0]);for(let x=x0+3;x<x0+w-3;x++){const c=G(A,x,y-1);if(c)P(A,x,y-1,shade(c,.75));}}
+if(K==='shelf'){const goods=CFG.goods||'books',x0=2,w=W-4,top=6,h=H-4;cabinet(x0,1,w,h,top,WD,WD[1]);const step=CFG.step||17;const ys=[];for(let sy=1+top+step;sy<1+h-6;sy+=step)ys.push(sy);
+  let prev=1+top+2;for(const sy of ys){let x=x0+4;
+    while(x<x0+w-5){const room=x0+w-5-x;
+      if(goods==='books'){const bw=Math.min(room,2+(hsh(x,sy,1)*3|0)),bh=8+(hsh(x,sy,2)*5|0),R=[PAL.red,PAL.teal,PAL.mustard,PAL.blue,PAL.sage,PAL.rust][hsh(x,sy,3)*6|0];const lean=hsh(x,sy,9)>.9;
+        for(let j=0;j<bh;j++)for(let i=0;i<bw;i++){const c=i===0?R[3]:i===bw-1?R[1]:R[2];P(A,x+i+(lean&&j<bh/2?1:0),sy-bh+j,c);}hl(A,x,sy-bh+2,bw,R[4]||R[3]);hl(A,x,sy-3,bw,R[1]);P(A,x+bw,sy-bh+2,shade(WD[1],.5));x+=bw+(hsh(x,sy,4)>.85?3:0);}
+      else if(goods==='jars'){const R=[PAL.rust,PAL.sage,PAL.mustard,PAL.red][hsh(x,sy,3)*4|0];rect(A,x,sy-9,5,9,PAL.glass[2]);rect(A,x+1,sy-6,3,6,R[3]);vl(A,x+3,sy-6,6,R[2]);hl(A,x,sy-10,5,PAL.brass[2]);hl(A,x,sy-11,5,PAL.brass[3]);P(A,x+1,sy-8,PAL.glass[5]);vl(A,x+5,sy-9,9,shade(WD[1],.5));x+=7;}
+      else if(goods==='cans'){const R=[PAL.red,PAL.blue,PAL.mustard,PAL.sage][hsh(x,sy,3)*4|0];rect(A,x,sy-8,4,8,R[2]);vl(A,x,sy-8,8,R[3]);vl(A,x+3,sy-8,8,R[1]);hl(A,x,sy-5,4,PAL.cream[3]);hl(A,x,sy-8,4,TR[4]);vl(A,x+4,sy-8,8,shade(WD[1],.5));x+=5;}
+      else if(goods==='tools'||goods==='parts'){const t=hsh(x,sy,3);if(t<.35){rect(A,x,sy-10,6,10,PAL.slate[2]);hl(A,x,sy-10,6,PAL.slate[4]);vl(A,x+5,sy-10,10,PAL.slate[1]);x+=8;}
+        else if(t<.65){ell(A,x+3,sy-4,3,3,PAL.slate[3]);ell(A,x+3,sy-4,1,1,PAL.ink[0]);P(A,x+2,sy-6,PAL.slate[5]);x+=8;}else{rect(A,x,sy-6,8,6,PAL.red[2]);hl(A,x,sy-6,8,PAL.red[4]);vl(A,x+7,sy-6,6,PAL.red[1]);P(A,x+3,sy-7,PAL.slate[4]);x+=10;}}
+      else if(goods==='mail'){for(let i=0;i<5&&x<x0+w-8;i++){rect(A,x,sy-12,7,12,WD[0]);hl(A,x,sy-12,7,WD[1]);if(hsh(i,sy,5)>.3){rect(A,x+1,sy-9,5,6,PAL.cream[3]);hl(A,x+1,sy-9,5,PAL.cream[2]);P(A,x+4,sy-8,PAL.red[3]);}vl(A,x+7,sy-12,12,WD[3]);x+=8;}break;}
+      else break;}
+    board(x0,sy,w,WD);prev=sy;}
+  }
+// ---- personality furniture
+if(K==='rocker'){const R=WD;for(let y=4;y<22;y++){rect(A,5,y,W-10,1,R[(y%4)?2:1]);}frame(A,5,4,W-10,18,R[4],R[0]);for(let x=7;x<W-7;x+=4)vl(A,x,6,14,R[1]);topBox(4,22,W-8,6,3,R);
+  for(const x of [6,W-8])post(A,x,31,3,H-37);for(let i=0;i<W-2;i++){const y=H-5+Math.round(Math.pow((i-(W-2)/2)/((W-2)/2),2)*2);P(A,1+i,y,R[3]);P(A,1+i,y+1,R[1]);}
+  rect(B,7,23,W-14,4,PAL.red[3]);hl(B,7,23,W-14,PAL.red[4]);for(let x=8;x<W-8;x+=3)P(B,x,25,PAL.cream[2]);}
+if(K==='cradle'){const R=WD;for(let y=0;y<H-8;y++)for(let x=2;x<W-2;x++){const e=x===2||x===W-3||y===0;P(A,x,y+4,e?R[4]:(x%4===0?R[1]:R[3]));}rect(A,4,6,W-8,H-16,PAL.cream[3]);hl(A,4,6,W-8,PAL.cream[2]);
+  ell(B,W/2|0,10,4,3,[230,220,210]);P(B,(W/2|0)-1,10,PAL.ink[0]);P(B,(W/2|0)+1,10,PAL.ink[0]);rect(B,(W/2|0)-5,13,10,5,PAL.red[3]);for(let i=0;i<W-4;i++){const y=H-4+Math.round(Math.pow((i-(W-4)/2)/((W-4)/2),2)*2);P(A,2+i,y,R[3]);P(A,2+i,y+1,R[0]);}gs(W/2|0,H-2,W/2-3|0,2,90);}
+if(K==='piano'){const R=[[30,18,14],[52,30,22],[78,46,32],[104,64,44],[132,86,60],[160,110,80]];topBox(2,4,W-4,8,H-24,R,R[2]);rect(A,6,16,W-12,10,R[1]);frame(A,6,16,W-12,10,R[3],R[0]);
+  for(let x=6;x<W-6;x+=3){rect(A,x,24,2,8,[236,232,220]);P(A,x+2,24,PAL.ink[1]);}for(let x=7;x<W-7;x+=6)rect(A,x,24,2,4,PAL.ink[0]);hl(A,6,32,W-12,R[0]);
+  rect(B,W/2-6|0,6,12,8,PAL.cream[3]);for(let i=0;i<3;i++)hl(B,W/2-5|0,8+i*2,10,PAL.ink[1]);for(const x of [8,W-12])rect(B,x,1,3,6,PAL.cream[3]),P(B,x+1,0,N?PAL.lit[5]:PAL.lit[3]);for(const x of [4,W-8])post(A,x,H-12,4,10);}
+if(K==='chess'){topBox(4,12,W-8,12,4,WD);for(let j=0;j<4;j++)for(let i=0;i<8;i++){const c=(i+j)%2?PAL.cream[3]:WD[1];rect(A,8+i*3,13+j*2,3,2,c);}
+  for(const [x,y,c] of [[10,11,PAL.ink[0]],[14,10,PAL.ink[0]],[22,11,TR[5]],[27,10,TR[5]],[18,12,TR[5]]]){vl(B,x,y,3,c);P(B,x,y-1,c);}post(A,W/2-2|0,28,4,H-32);rect(A,W/2-7|0,H-6,14,3,WD[2]);gs(W/2|0,H-3,10,2,80);}
+if(K==='blackboard'){rect(A,1,1,W-2,H-6,WD[2]);frame(A,1,1,W-2,H-6,WD[4],WD[0]);rect(A,4,4,W-8,H-13,[34,52,44]);for(let i=0;i<30;i++)P(A,5+(hsh(i,1)*(W-10)|0),5+(hsh(i,2)*(H-15)|0),[46,66,56]);
+  drawText(A,'DAYS LEFT',7,7,[220,224,214]);drawText(A,'9',W-14,7,[240,200,190]);for(let k=0;k<4;k++)for(let i=0;i<5;i++)vl(A,8+k*12+i*2,16,6,[200,204,196]);for(let k=0;k<4;k++)for(let i=0;i<9;i++)P(A,7+k*12+i,19-((i%3)?0:0)+(i===4?0:0),[200,204,196]);
+  hl(A,3,H-6,W-6,WD[4]);hl(A,3,H-5,W-6,WD[1]);rect(A,12,H-8,6,2,[240,240,236]);}
+if(K==='schooldesk'){topBox(2,8,W-4,9,3,WD);rect(B,6,9,8,5,PAL.cream[3]);hl(B,7,11,6,PAL.ink[1]);P(B,W-8,10,PAL.slate[2]);for(const x of [3,W-6])post(A,x,20,3,H-24);rect(A,4,H-10,W-8,2,PAL.slate[2]);gs(W/2|0,H-3,W/2-3|0,2,80);}
+if(K==='globe'){ell(A,W/2|0,10,8,8,PAL.blue[3]);for(const [x,y,r] of [[-3,-2,3],[3,2,3],[-1,4,2]])ell(A,(W/2|0)+x,10+y,r,r-1,PAL.sage[3]);ell(A,(W/2|0)-3,6,2,2,PAL.blue[5]);
+  for(let a=0;a<20;a++){const t=a/20*Math.PI;P(A,(W/2|0)+Math.round(Math.cos(t+1.6)*10),10-Math.round(Math.sin(t+1.6)*10),PAL.brass[2]);}vl(A,W/2|0,19,H-24,WD[2]);rect(A,(W/2|0)-5,H-5,10,3,WD[2]);gs(W/2|0,H-2,7,2,80);}
+if(K==='mailsacks'){for(const [cx,cy,rx,ry] of [[10,H-11,9,8],[22,H-10,9,8],[16,H-17,7,6]]){for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){if(x*x/(rx*rx)+y*y/(ry*ry)>1)continue;const l=-x/rx*.5-y/ry*.7;P(A,cx+x,cy+y,PAL.slate[l>.4?4:l>-.2?3:2]);}
+    rect(A,cx-2,cy-ry-2,5,3,PAL.slate[2]);hl(A,cx-2,cy-ry,5,PAL.bark[2]);}drawText(A,'US',7,H-12,PAL.cream[3]);for(let i=0;i<4;i++){rect(B,24+i*2,H-21-i,6,4,PAL.cream[3]);hl(B,24+i*2,H-21-i,6,PAL.cream[2]);}gs(W/2|0,H-2,W/2-2|0,2,90);}
+if(K==='netwall'){for(let y=2;y<H-2;y++)for(let x=2;x<W-2;x++){if((x+y)%6===0||(x-y+60)%6===0)P(A,x,y+Math.round(Math.sin(x*.2)*2),[150,130,96]);}for(const [x,y] of [[8,6],[20,10],[34,5],[46,12],[14,22],[40,24]]){ell(A,x,y,2,2,PAL.red[3]);P(A,x-1,y-1,PAL.red[4]);}
+  for(const x of [3,W-4]){vl(A,x,0,H,WD[3]);P(A,x,0,PAL.slate[4]);}}
+if(K==='rods'){rect(A,2,H-10,W-4,6,WD[2]);hl(A,2,H-10,W-4,WD[4]);for(let i=0;i<4;i++){const x=6+i*6;for(let y=2;y<H-8;y++)P(A,x+Math.round((H-y)*.02*(i-1.5)),y,i%2?WD[4]:[60,50,40]);P(A,x,2,PAL.red[3]);rect(A,x-1,H-16,3,4,PAL.slate[3]);}
+  vl(A,3,0,H-4,WD[1]);vl(A,W-4,0,H-4,WD[1]);gs(W/2|0,H-2,W/2-2|0,2,80);}
+if(K==='coffin'){const R=[[30,20,16],[52,34,26],[78,52,38],[104,72,52],[130,94,68],[156,118,88]];for(const x of [8,W-12])post(A,x,H-12,4,10);
+  const poly=(y)=>{const t=y/(H-16);return Math.round((W/2-4)*(t<.3?.75+t*.8:1-(t-.3)*.35));};for(let y=0;y<H-16;y++){const hw=poly(y);for(let x=-hw;x<=hw;x++){const e=Math.abs(x)>hw-2;P(A,(W/2|0)+x,2+y,e?R[x<0?4:1]:R[3]);}}
+  for(let y=4;y<H-20;y++)P(B,W/2|0,y,R[1]);hl(B,(W/2|0)-4,10,9,R[1]);drawText(B,'M',(W/2|0)-1,18,PAL.brass[3]);gs(W/2|0,H-2,W/2-4|0,2,90);}
+if(K==='shovels'){rect(A,2,6,W-4,4,WD[3]);hl(A,2,6,W-4,WD[5]);for(let i=0;i<3;i++){const x=7+i*9;vl(A,x,4,H-22,WD[3]);vl(A,x+1,4,H-22,WD[1]);rect(A,x-2,H-19,6,10,PAL.slate[3]);hl(A,x-2,H-19,6,PAL.slate[4]);P(A,x,H-9,PAL.slate[2]);
+    P(A,x-1,H-10,PAL.slate[2]);P(A,x+2,H-10,PAL.slate[2]);hl(A,x-2,3,6,WD[2]);}for(let y=H-12;y<H-3;y++)P(B,5,y,[90,62,36]);gs(W/2|0,H-2,W/2-2|0,2,80);}
+if(K==='filecab'){topBox(2,2,W-4,5,H-10,PAL.slate,PAL.slate[2]);for(let k=0;k<3;k++){const y=10+k*((H-14)/3|0);frame(A,4,y,W-8,(H-14)/3-2|0,PAL.slate[4],PAL.slate[0]);rect(A,(W/2|0)-3,y+3,6,2,PAL.brass[2]);rect(B,6,y+1,6,2,PAL.cream[3]);}}
+if(K==='mapboard'){rect(A,1,1,W-2,H-2,WD[2]);frame(A,1,1,W-2,H-2,WD[4],WD[0]);rect(A,4,4,W-8,H-8,PAL.cream[2]);for(let i=0;i<14;i++)P(A,5+(hsh(i,4)*(W-10)|0),5+(hsh(i,5)*(H-10)|0),PAL.cream[1]);
+  for(let x=6;x<W-6;x++){P(A,x,(H/2|0)+Math.round(Math.sin(x*.18)*4),PAL.rust[2]);}for(const [x,y] of [[10,10],[24,16],[38,8],[46,22],[18,26]]){P(B,x,y,PAL.red[4]);P(B,x,y+1,PAL.red[2]);}
+  for(let t=0;t<1;t+=.05){P(B,Math.round(10+t*36),Math.round(10+t*12),PAL.red[3]);}for(let t=0;t<1;t+=.05)P(B,Math.round(46-t*28),Math.round(22+t*4),PAL.red[3]);}
+if(K==='photowall'){for(const [x,y,w,h,k] of [[2,2,12,14,0],[16,4,14,10,1],[32,2,10,12,2],[8,18,16,10,3],[28,16,12,12,4]]){rect(A,x,y,w,h,WD[3]);frame(A,x,y,w,h,WD[5],WD[0]);
+    rect(A,x+2,y+2,w-4,h-4,[[200,190,170],[180,170,150],[210,200,180],[170,160,140],[190,180,160]][k]);ell(A,x+(w>>1),y+(h>>1)-1,2,2,[110,96,80]);rect(A,x+(w>>1)-2,y+(h>>1)+1,5,3,[110,96,80]);P(A,x+(w>>1),y-1,PAL.slate[4]);}}
+if(K==='knit'){ell(A,W/2|0,H-7,8,5,WD[3]);ell(A,W/2|0,H-9,7,3,WD[1]);for(const [x,y,c] of [[-3,-11,PAL.red],[2,-12,PAL.teal],[0,-9,PAL.mustard]])ell(A,(W/2|0)+x,H+y,3,3,c[3]);vl(A,(W/2|0)+4,H-18,8,PAL.slate[4]);vl(A,(W/2|0)+6,H-17,8,PAL.slate[4]);gs(W/2|0,H-2,9,2,80);}
+// ---- the garage
+if(K==='tires'){for(let k=0;k<4;k++){const y=H-6-k*7;for(let yy=-4;yy<=4;yy++)for(let x=-12;x<=12;x++){const d=x*x/144+yy*yy/16;if(d>1)continue;const inner=x*x/36+yy*yy/4<1;P(A,(W/2|0)+x,y+yy,inner?[16,14,16]:d>.7?[30,28,30]:yy<0?[64,62,66]:[42,40,44]);}
+    for(let x=-11;x<=11;x+=3)P(A,(W/2|0)+x,y-3,[80,78,84]);}gs(W/2|0,H-2,13,2,100);}
+if(K==='drum'){const Rd=CFG.blue?PAL.blue:PAL.red;for(let y=6;y<H-3;y++){for(let x=-9;x<=9;x++){const u=(x+9)/18;P(A,(W/2|0)+x,y,Rd[u<.2?4:u<.55?3:u<.85?2:1]);}}for(const y of [10,(H/2|0),H-7])for(let x=-9;x<=9;x++)P(A,(W/2|0)+x,y,Rd[1]);
+  ell(A,W/2|0,6,9,3,Rd[4]);ell(A,W/2|0,6,7,2,Rd[2]);ell(A,(W/2|0)+4,6,1,1,PAL.ink[0]);for(let i=0;i<6;i++)P(B,(W/2|0)-6+i*2,H-8+(i%2),[20,18,22]);ell(SHD,(W/2|0)+3,H-1,11,2,PAL.out[0]);}
+if(K==='toolbox'){const Rr=PAL.red;topBox(2,4,W-4,6,H-16,Rr,Rr[2]);for(let k=0;k<4;k++){const y=12+k*5;hl(A,4,y,W-8,Rr[1]);hl(A,(W/2|0)-4,y+2,8,PAL.slate[4]);}for(const x of [5,W-8]){ell(A,x+1,H-4,2,2,PAL.ink[0]);}
+  rect(B,6,1,9,3,PAL.slate[3]);P(B,18,2,PAL.slate[4]);rect(B,22,2,6,2,PAL.mustard[3]);}
+if(K==='hoist'){const Y=PAL.mustard;for(let i=0;i<W-6;i++){P(A,3+i,H-6,Y[3]);P(A,3+i,H-5,Y[1]);}vl(A,8,8,H-14,Y[3]);vl(A,9,8,H-14,Y[1]);for(let i=0;i<W-12;i++){const y=8+Math.round(i*.15);P(A,8+i,y,Y[4]);P(A,8+i,y+1,Y[2]);}
+  vl(A,W-6,10,16,PAL.slate[2]);for(let y=26;y<34;y+=2){P(A,W-7,y,PAL.slate[3]);P(A,W-5,y+1,PAL.slate[3]);}rect(A,W-12,34,12,10,PAL.slate[2]);hl(A,W-12,34,12,PAL.slate[4]);for(let x=W-11;x<W-1;x+=3)vl(A,x,36,7,PAL.slate[1]);
+  for(const x of [4,W-8])ell(A,x+1,H-3,2,2,PAL.ink[0]);gs(W/2|0,H-2,W/2-2|0,2,90);}
+if(K==='car'){ // the cruiser on blocks, hood up, seen from the 3/4 view: roof and glass on top, doors along the front, wheels off
+  const B2=[[22,24,30],[40,44,54],[70,76,92],[110,118,136],[160,168,184],[214,220,232]];const x0=6,w=W-12;for(const x of [x0+14,x0+w-26])for(let y=H-14;y<H-3;y++)hl(A,x,y,12,ST[(y%3)?2:1]);
+  for(let y=24;y<H-12;y++)for(let x=x0;x<x0+w;x++){const t=(y-24)/(H-36);let c=B2[t<.1?4:t<.55?3:2];if(x<x0+3)c=B2[4];if(x>x0+w-4)c=B2[1];P(A,x,y,c);}
+  for(let x=x0+6;x<x0+w-6;x++){P(A,x,H-26,B2[1]);P(A,x,H-25,TR[4]);P(A,x,H-24,TR[3]);}drawText(A,'SHERIFF',x0+w/2-14|0,H-21,B2[0]);
+  const rx0=x0+w*.28|0,rw=w*.42|0;for(let y=6;y<24;y++){const inset=Math.round((24-y)*.3);for(let x=rx0+inset;x<rx0+rw-inset;x++){let c=y<10?B2[3]:N?PAL.ink[0]:PAL.glass[y<16?3:2];if(!N&&(x-y)%9===0&&y>=10)c=PAL.glass[5];P(A,x,y,c);}}
+  rect(A,rx0+rw/2-6|0,4,5,3,PAL.red[3]);rect(A,rx0+rw/2+1|0,4,5,3,PAL.blue[3]);
+  for(let y=0;y<22;y++)for(let x=0;x<20;x++){if(x+y<6)continue;P(A,x0+w-22+x,2+y,y<3?B2[4]:B2[2]);}rect(A,x0+w-30,22,24,6,PAL.ink[1]);for(let i=0;i<4;i++)rect(A,x0+w-28+i*6,23,4,3,PAL.slate[3]);
+  for(const x of [x0+14,x0+w-26]){ell(A,x+6,H-14,7,3,[16,14,16]);}gs(cx,base,W/2-2|0,3,110);}
 if(K==='rug'){for(let y=0;y<H;y++)for(let x=0;x<W;x++){const dx=(x-W/2)/(W/2),dy=(y-H/2)/(H/2);const d=dx*dx+dy*dy;if(d>1)continue;let c=PAL.red[2];if(d>.8)c=PAL.mustard[2];else if(d>.7)c=PAL.red[1];else if(d<.18)c=PAL.mustard[3];else if((Math.round(Math.atan2(dy,dx)*4))%2===0&&d>.35&&d<.55)c=PAL.cream[2];P(A,x,y,c);}}
 if(K==='counter'){ // shop counter with a till, a bell and a jar of candy
   topBox(2,10,W-4,10,H-24,WD,WD[2]);for(let x=6;x<W-6;x+=16)frame(A,x,24,12,H-32,WD[3],WD[0]);
@@ -128,11 +194,6 @@ if(K==='cellar'){ // a cellar door set into the floor, chained, with scratch mar
 if(K==='mirror'){rect(A,2,2,W-4,H-4,WD[3]);frame(A,2,2,W-4,H-4,WD[5],WD[0]);for(let y=5;y<H-5;y++)for(let x=5;x<W-5;x++){let c=N?PAL.ink[1]:PAL.glass[(y<H/2?3:2)];if(!N&&(x-y)%9===0)c=PAL.glass[4];P(A,x,y,c);}}
 if(K==='clock'){rect(A,cx-6,0,12,H-2,WD[1]);frame(A,cx-6,0,12,H-2,WD[3],WD[0]);ell(A,cx,9,5,5,PAL.cream[3]);P(A,cx,6,PAL.ink[0]);P(A,cx,7,PAL.ink[0]);P(A,cx+1,9,PAL.ink[0]);P(A,cx+2,9,PAL.ink[0]);
   rect(A,cx-3,20,6,H-26,PAL.ink[0]);vl(A,cx,20,H-30,PAL.brass[2]);ell(A,cx,H-10,2,2,PAL.brass[3]);gs(cx+2,base,7,2,70);}
-if(K==='car'){ // a car up on blocks in Hollis's bay: the sheriff's old cruiser, hood open
-  const x0=6,w=W-12;for(const x of [x0+10,x0+w-18])rect(A,x,base-14,10,12,ST[2]);
-  rect(A,x0,20,w,26,PAL.slate[3]);frame(A,x0,20,w,26,PAL.slate[5],PAL.slate[0]);rect(A,x0+w*.3|0,8,w*.42|0,14,PAL.slate[2]);rect(A,x0+w*.33|0,10,w*.36|0,9,N?PAL.ink[0]:PAL.glass[3]);
-  rect(A,x0+4,28,w-8,4,TR[4]);drawText(A,'SHERIFF',x0+w/2-14|0,36,TR[5]);rect(A,x0+w-14,2,14,20,PAL.slate[4]);frame(A,x0+w-14,2,14,20,PAL.slate[5],PAL.slate[1]);
-  for(const x of [x0+14,x0+w-14]){ell(A,x,48,7,5,PAL.ink[1]);ell(A,x,48,3,2,PAL.slate[3]);}rect(B,x0+w/2-6|0,14,4,6,PAL.red[3]);rect(B,x0+w/2|0,14,4,6,PAL.blue[3]);gs(cx+3,base,W/2-2|0,3,90);}
 if(K==='candles'){for(let i=0;i<7;i++){const x=4+i*5,h=6+(hsh(i,1)*8|0);rect(A,x,base-h,3,h,PAL.cream[3]);vl(A,x,base-h,h,PAL.cream[2]);P(A,x+1,base-h-1,N?PAL.lit[5]:PAL.lit[4]);P(A,x+1,base-h-2,PAL.lit[3]);}gs(cx,base,W/2-2|0,2,50);}
 if(K==='desk'){topBox(3,12,W-6,10,H-28,WD,WD[2]);frame(A,8,26,W/2-10,H-34,WD[3],WD[0]);P(A,W/4|0,30,PAL.brass[3]);
   rect(B,10,8,14,7,PAL.cream[3]);hl(B,12,10,9,PAL.ink[1]);hl(B,12,12,7,PAL.ink[1]);rect(B,W-20,4,8,10,PAL.slate[2]);ell(B,W-16,3,4,2,N?PAL.lit[4]:PAL.cream[3]);

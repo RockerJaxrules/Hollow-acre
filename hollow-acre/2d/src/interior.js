@@ -14,9 +14,7 @@ const ROOMS={
     ['in_altar',5,1.7,[-1.15,-.65,1.15,0]],['in_candles',2.5,1.1,[-.6,-.25,.6,0]],['in_candles',7.5,1.1,[-.6,-.25,.6,0]],
     ['in_pew',2.4,3.6,[-1.95,-.45,1.95,0]],['in_pew',7.6,3.6,[-1.95,-.45,1.95,0]],['in_pew',2.4,5.0,[-1.95,-.45,1.95,0]],['in_pew',7.6,5.0,[-1.95,-.45,1.95,0]],
     ['in_pew',2.4,6.4,[-1.95,-.45,1.95,0]],['in_pew',7.6,6.4,[-1.95,-.45,1.95,0]]]},
-  garage:{ox:392,oz:-60,out:{x:-33.7,z:-9.9},name:'Pruitt’s Garage',furn:[
-    ['in_shelf_tools',1.2,.62,[-1,-.4,1,0]],['in_bench',5.3,1.05,[-1.3,-.5,1.3,0]],['in_keg',8.2,1.0,[-.4,-.3,.4,0]],['in_car',3.2,4.0,[-1.85,-1.3,1.85,0]],
-    ['in_crates',8.0,4.7,[-.7,-.4,.7,0]],['barrel',7.6,2.4,[-.4,-.3,.4,0]],['in_keg',.6,5.2,[-.4,-.3,.4,0]]]}};
+  garage:{ox:392,oz:-60,out:{x:-33.7,z:-9.9},name:'Pruitt’s Garage',furn:[['in_shelf_parts',1.1,0.62,[-1.00,-0.4,1.00,0]],['in_shelf_tools',3.1,0.62,[-1.00,-0.4,1.00,0]],['in_bench',5.9,1.05,[-1.30,-0.5,1.30,0]],['in_toolbox',8.3,1.3,[-0.55,-0.35,0.55,0]],['in_car',3.3,4.4,[-1.85,-1.3,1.85,0]],['in_hoist',6.4,3.6,[-0.60,-0.3,0.60,0]],['in_tires',8.4,3.5,[-0.45,-0.3,0.45,0]],['in_tires',8.4,4.5,[-0.45,-0.3,0.45,0]],['in_drum',0.6,5.5,[-0.35,-0.3,0.35,0]],['in_drum_blue',1.4,5.7,[-0.35,-0.3,0.35,0]],['in_crates',8.2,5.6,[-0.70,-0.4,0.70,0]]]}};
 S.room=null;
 function roomOf(){return S.room&&ROOMS[S.room];}
 function buildInteriors(){for(const k in ROOMS){const R=ROOMS[k],m=SPR[R.shell||('room_'+k)];if(!m)continue;R.w=m.room.w;R.d=m.room.d;R.door=m.room.door;const x0=R.ox,z0=R.oz,x1=x0+R.w,z1=z0+R.d;
@@ -48,8 +46,8 @@ interact.push({...rp('cabin',8.45,.3),r:.9,on:inRoom('cabin'),label:()=>'Mirror'
   toast(lines[Math.min(4,T)],3.2,T>=2);if(T>=2){SFX.stinger();mindHit&&mindHit(3);}}});
 interact.push({...rp('cabin',7.9,1.4),r:1,on:inRoom('cabin'),label:()=>'Stove',ok:()=>true,act(){M.v=Math.min(100,M.v+6);toast('You warm your hands. For a moment the house feels like his again.',2.4);}});
 interact.push({...rp('store',6.5,3.0),r:1.4,on:inRoom('store'),label:()=>'Counter',ok:()=>true,act(){const m=npcById('mae');if(!(m&&m.loc==='in'&&m.inWant!=='home'&&Math.abs(m.x-(ROOMS.store.ox+6.5))<1))toast('Mae calls from the back room: “Take what you need, dear. Leave the coins by the till.”',2.8);else toast('“What’ll it be, dear?”',1.6);openShop('mae');}});
-interact.push({...rp('garage',5.3,1.5),r:1.3,on:inRoom('garage'),label:()=>'Workbench',ok:()=>true,act(){openShop('hollis');}});
-interact.push({...rp('garage',3.2,4.4),r:1.6,on:inRoom('garage'),label:()=>'Cruiser',ok:()=>true,act(){toast('The sheriff’s old cruiser, up on blocks. There’s a child’s shoe on the back seat, dry as bone.',3);}});
+interact.push({...rp('garage',5.9,1.6),r:1.3,on:inRoom('garage'),label:()=>'Workbench',ok:()=>true,act(){openShop('hollis');}});
+interact.push({...rp('garage',3.3,4.8),r:1.6,on:inRoom('garage'),label:()=>'Cruiser',ok:()=>true,act(){toast('The sheriff’s old cruiser, up on blocks. There’s a child’s shoe on the back seat, dry as bone.',3);}});
 interact.push({...rp('church',5,2.2),r:1.4,on:inRoom('church'),label:()=>'Ledger',ok:()=>true,act(){openNote(`<p><i>The parish ledger, open on the altar. A name for every October since 1871, in the same brown ink.</i></p><p>1987 · Ruth Abernathy<br>1999 · Daniel Coyle<br>…</p><p>The last line is already written. The ink is still wet. It is your name.</p>`);mindHit&&mindHit(5);}});
 interact.push({...rp('church',5,5.7),r:1.4,on:inRoom('church'),label:()=>'Pray',ok:()=>true,act(){const T=tierOf(M.v);M.v=Math.min(100,M.v+(T>=3?-4:8));toast(T>=3?'You kneel. Somebody in the back pew kneels with you. When you turn, the pew is empty.':'You sit a while. The quiet helps.',3,T>=3);}});
 // walking into the doorway takes you back out
@@ -75,5 +73,5 @@ function interiorLight(L){const R=roomOf();if(!R)return;const fl=.94+.06*Math.si
   if(S.room==='store'){G(6.5,2.0,120,[255,190,110],.7);G(3.2,.6,110,[255,190,110],.6);G(9.8,.6,110,[255,190,110],.6);}
   if(S.room&&S.room.startsWith('home_')){G(3.6,2.4,110,[255,186,110],.7);G(1.2,.6,70,[255,200,140],.5);}
   if(S.room==='church'){G(2.5,.7,80,[255,190,110],.8);G(7.5,.7,80,[255,190,110],.8);G(5,1.2,100,[255,180,100],.6);}
-  if(S.room==='garage'){G(5.3,.6,120,[220,230,255],.55);}
+  if(S.room==='garage'){G(5.9,.6,120,[220,230,255],.55);G(3.3,2.6,110,[220,230,255],.45);}
   if(S.room==='mine'){for(const lx of [1.6,5.5,9.4])G(lx,-.9,110,[255,170,80],.95);}}
