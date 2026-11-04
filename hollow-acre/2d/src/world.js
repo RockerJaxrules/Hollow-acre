@@ -80,7 +80,7 @@ function buildWorld(){
   put('crate',binPos.x,binPos.z,0,{kind:'bin'});addRect(binPos.x-.5,binPos.z-.6,binPos.x+.5,binPos.z);
   put('barrel',-4.6,-9.5,.33);put('barrel',-5.3,-9.9,.33);put('firewood',4.6,-9.6);addRect(3.9,-10.1,5.3,-9.5);
   put('hay',-7.6,-10.3);addRect(-8.4,-11.5,-6.8,-10.4);put('hay',-7.6,-8.6);addRect(-8.4,-9.8,-6.8,-8.7);
-  put('cart',-9.6,-12.2);addRect(-10.4,-12.8,-8.8,-12.2);put('sacks',3.4,-12.6);
+  put('cart',-9.6,-12.2);addRect(-10.4,-12.8,-8.8,-12.2);put('sacks',-4.4,-8.7);
   put('signpost',farmSignPos.x,farmSignPos.z,.2,{label:'HOLLOW ACRE'});
   reserve(-11,-15,11,-7.5);
   // the field, fenced with a gate at the top
@@ -94,7 +94,7 @@ function buildWorld(){
   building('store',31,-9.4,{jack:1});building('house_a',40,-9.4);building('house_b',57,-9.4,{jack:1});building('house_d',66,-9.4);
   building('house_c',31,3.6);building('house_b',40,3.6);building('house_c',57,3.6,{lit:false});building('house_d',66,3.6,{lit:false});
   // side yards: picket runs between the houses, store goods stacked by the door
-  fenceLine(35.6,-9.6,35.6,-13.8);fenceLine(61.5,-9.6,61.5,-13.8);fenceLine(35.6,-.6,35.6,3.4);fenceLine(61.5,-.6,61.5,3.4);
+  fenceLine(35.6,-9.6,35.6,-13.8,0,'picket');fenceLine(61.5,-9.6,61.5,-13.8,0,'picket');fenceLine(35.6,-.6,35.6,3.4,0,'picket');fenceLine(61.5,-.6,61.5,3.4,0,'picket');
   put('crate',34.9,-9.0,.3);put('sacks',34.6,-8.55);put('barrel',26.9,-9.3,.3);put('barrel',27.5,-8.8,.3);put('hay',26.6,-11.6);addRect(25.8,-12.8,27.4,-11.7);
   // street lamps on the kerbs, never in the road
   for(const x of[27,36.4,45.8,50.2,61,70])lamp(x,-8.5);for(const x of[27,36.4,61,70])lamp(x,-3.5);for(const x of[36.4,48,61])lamp(x,6.5);
@@ -110,7 +110,7 @@ function buildWorld(){
   // garage + pump on the west road, the widow's house north of the highway
   building('garage',-36,-10.6,{lit:true});put('gas_pump',pumpPos.x,pumpPos.z+1.6,0,{night:'gas_pump_n'});addCircle(pumpPos.x-.4,pumpPos.z,.35);addCircle(pumpPos.x+.4,pumpPos.z,.35);
   put('barrel',-31.8,-11.2,.3);put('barrel',-31,-10.8,.3);put('crate',-40.8,-10.9,.3);put('firewood',-41.6,-12);
-  building('house_a',-46,-9.6,{jack:1});fenceLine(-50,-9,-50,-6.8);fenceLine(-42,-9,-42,-6.8);
+  building('house_a',-46,-9.6,{jack:1});
   // crossroads shrine
   put('signpost',crossPos.x-1.6,crossPos.z-1.2,.2,{label:'FARM'});
   // ---------- woods & trees: thick pines outside the valley and in the west/south woods, autumn trees in the open
@@ -128,9 +128,9 @@ function buildWorld(){
   addRect(B.x0-20,B.z0-14,B.x0-6.5,-9);addRect(B.x0-20,-3,B.x0-6.5,B.z1+14);
 }
 const lamps=[];
-function lamp(x,z){const e=obj('lamp',x,z,{kind:'lamp'});lamps.push({e,x,z,dead:rand()<.25,ph:rand()*10});addCircle(x,z,.15);}
+function lamp(x,z){const e=obj('lamp',x,z,{kind:'lamp',night:'lamp_n'});lamps.push({e,x,z,dead:rand()<.25,ph:rand()*10});addCircle(x,z,.15);}
 const fenceDefs=[];
-function fenceLine(x1,z1,x2,z2,skip){const vert=Math.abs(x2-x1)<Math.abs(z2-z1);const len=Math.hypot(x2-x1,z2-z1);
+function fenceLine(x1,z1,x2,z2,skip,type){const fh=(type||'fence')+'_h',fv=(type||'fence')+'_v';const vert=Math.abs(x2-x1)<Math.abs(z2-z1);const len=Math.hypot(x2-x1,z2-z1);
   addSeg(x1,z1,x2,z2,.14);fenceDefs.push([x1,z1,x2,z2]);
-  if(vert){const zs=Math.min(z1,z2),ze=Math.max(z1,z2);for(let z=zs+1;z<=ze+.01;z+=1)obj('fence_v',x1,z,{kind:'fence'});}
-  else{const xs=Math.min(x1,x2),xe=Math.max(x1,x2);for(let x=xs;x<xe-.01;x+=2){obj('fence_h',x,z1+.1,{kind:'fence',clipw:Math.min(2,xe-x)});}}}
+  if(vert){const zs=Math.min(z1,z2),ze=Math.max(z1,z2);for(let z=zs+1;z<=ze+.01;z+=1)obj(fv,x1,z,{kind:'fence'});}
+  else{const xs=Math.min(x1,x2),xe=Math.max(x1,x2);for(let x=xs;x<xe-.01;x+=2){obj(fh,x,z1+.1,{kind:'fence',clipw:Math.min(2,xe-x)});}}}

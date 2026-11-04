@@ -141,5 +141,22 @@ _m = json.load(open('spr/px2/car_drive.json')); shutil.copy('spr/px2/car_drive.p
 _i = Image.open('spr/px2/car_side.png'); _m = json.load(open('spr/px2/car_side.json')); _i.save(f'{OUT}/car_side.png')
 META['car_side'] = dict(src=f'{OUT}/car_side.png', fw=_i.width, fh=_i.height, ax=_m['anchor'][0], ay=_m['anchor'][1])
 _i = Image.open('spr/px2/road.png'); _i.save(f'{OUT}/road.png'); META['road'] = dict(src=f'{OUT}/road.png', fw=_i.width, fh=_i.height, ax=_i.width // 2, ay=0)
+
+# ---- buildings drawn in LibreSprite (px/house.js); .ase sources live in px/out
+import json as _j
+_PM = _j.load(open('px/out/houses_meta.json'))
+for _n in ('house_a', 'house_b', 'house_c', 'house_d', 'cabin', 'store', 'garage', 'church'):
+    _m = _PM[_n]; _d = Image.open(f'px/out/{_n}.png').convert('RGBA'); _nt = Image.open(f'px/out/{_n}_n.png').convert('RGBA')
+    _top = min(_d.getbbox()[1], _nt.getbbox()[1]); _d = _d.crop((0, _top, _d.width, _d.height)); _nt = _nt.crop((0, _top, _nt.width, _nt.height))
+    _foot = [-_m['bw'] / 2, -3.3 if _n != 'church' else -4.2, _m['bw'] / 2, 0]
+    save(_n, _d, _foot, anchor=(_m['ax'], _m['ay'] - _top), night=_nt, extra=dict(bw=_m['bw']))
+
+# ---- props + fences drawn in LibreSprite (px/props.js)
+_PROPS = {'fence_h': (0, 22), 'fence_v': (7, 66), 'picket_h': (0, 23), 'picket_v': (7, 66), 'lamp': None, 'phone_booth': None, 'board': None, 'gas_pump': None,
+          'signpost': None, 'barrel': None, 'crate': None, 'hay': None, 'sacks': None, 'cart': None, 'well': None}
+for _n, _a in _PROPS.items():
+    _d = Image.open(f'px/out/{_n}.png').convert('RGBA'); _nf = f'px/out/{_n}_n.png'
+    _old = META.get(_n, {}); _foot = _old.get('foot', [0, 0, 0, 0])
+    save(_n, _d, _foot, anchor=_a or (_d.width / 2, _d.height - 3), night=Image.open(_nf).convert('RGBA') if os.path.exists(_nf) else None)
 json.dump(META, open('spr/lpc/objects.json', 'w'), indent=0)
 print(len(META), 'objects')
