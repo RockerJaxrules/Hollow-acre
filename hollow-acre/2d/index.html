@@ -1032,7 +1032,7 @@ function update(dt){slamUpdate(dt);mindUpdate(dt);lifeUpdate(dt);
 }
 
 /* ================= render + main loop ================= */
-const FPS_CLIP={walk:[1,8,11],run:[1,8,15],idle:[0,3,3],thrust:[0,7,0],slash:[0,5,0],hurt:[0,5,10],spellcast:[0,6,8],sit:[0,2,2]};
+const FPS_CLIP={walk:[1,8,13],run:[1,8,18],idle:[0,3,3],thrust:[0,7,0],slash:[0,5,0],hurt:[0,5,10],spellcast:[0,6,8],sit:[0,2,2]};
 function frameOf(name,clip,t,dur){const m=SPR[name];if(!m||!m.clips)return 0;const c=m.clips[clip]||m.clips.idle;if(!c)return 0;const nf=(c.S||Object.values(c)[0])[1];
   const f=FPS_CLIP[clip]||[0,nf-1,8];const a=f[0],b=Math.min(f[1],nf-1);
   if(dur)return a+Math.min(b-a,Math.floor(clamp(t/dur,0,.999)*(b-a+1)));
@@ -1511,7 +1511,7 @@ function lifeLight(t,L){ // fireflies over the pond, the corn and the creek; the
    The town draws lots in the church, and Sheriff Dunn decides how they fall. Ruth Abernathy was taken in 1987, Mae's son Danny in 1999.
    Elias Marsh refused this year, so the Tithe falls to his blood. The thing in the corn is not a monster from outside:
    it is made of everyone it has taken. It wears the last one. If it takes you, you will be what walks next October. */
-const FRIEND_MAX=600;   // six hearts
+const FRIEND_MAX=1000;   // ten hearts
 S.friend={};S.talkedToday={};S.gifted={};S.heartSeen={};S.lore=[];S.journal=[];
 const GIFTS={turnip:'Turnip',pumpkin:'Pumpkin',corn:'Corn',mushroom:'Glowcap',fish:'Fish',egg:'Egg'};
 const PEOPLE={
@@ -2031,7 +2031,7 @@ function hotbarUse(k){if(S.mode!=='play'||S.paused)return;const T=S.tools;
   if(k==='seed'){onSeed();return;}
   if(k==='food'){const best=Object.keys(ITEMS).filter(q=>ITEMS[q].food&&inv(q)>0).sort((a,b)=>ITEMS[a].food[0]-ITEMS[b].food[0])[0];if(best){takeInv(best);eat(ITEMS[best].food[0],ITEMS[best].food[1],ITEMS[best].name);}else{const raw=Object.keys(RAW).find(q=>basketCount(q)>0);if(raw){takeBasket(raw,1);eat(RAW[raw][0],RAW[raw][1],'A raw '+raw);}else toast('Nothing to eat.',1.4);}updateHud();return;}
   const nm={hoe:`${T.hoe>1?'Copper':'Rusty'} hoe — till soil`,can:`${S.waterMax>10?'Copper':'Tin'} can — ${S.water}/${S.waterMax}`,pick:`${T.pick>1?'Steel':'Grandpa’s'} pickaxe — break stone`,axe:`${T.axe>1?'Steel':'Old'} axe — chop stumps`}[k];toast(nm,1.4);}
-setInterval(()=>{const hb=$('hotbar');if(!hb)return;hb.style.display=(S.mode!=='play'||$('hud').hidden||S.paused)?'none':'flex';
+setInterval(()=>{const hb=$('hotbar');if(!hb)return;hb.style.display=(S.mode!=='play'||$('hud').hidden||S.paused)?'none':'flex';if(!$('hb_seed'))return;
   for(const im of hb.querySelectorAll('img'))if(!im.src&&(SPR['icon32_'+im.dataset.ic]||SPR['icon_'+im.dataset.ic])&&IMG[(SPR['icon32_'+im.dataset.ic]||SPR['icon_'+im.dataset.ic]).src])im.src=iconOf(im.dataset.ic);
   $('hb_seed').textContent=S.seeds[S.sel]||0;$('hb_can').textContent=S.water;const fc=Object.keys(ITEMS).filter(q=>ITEMS[q].food).reduce((a,q)=>a+inv(q),0);$('hb_food').textContent=fc||'';
   const L=($('btnAct').textContent||'');const on=/Till/.test(L)?'hoe':/Water/.test(L)?'can':/Mine|Break/.test(L)?'pick':/Chop/.test(L)?'axe':/Plant/.test(L)?'seed':null;
@@ -2704,6 +2704,395 @@ function applyLook(only){const look=S.look,M=lookMap(look);for(const tool of (on
 // the wardrobe: from the bag at any time
 {const _ob=openBag;openBag=function(){_ob();const B=$('bagBody');if(!B||B.querySelector('#bagWard'))return;const d=document.createElement('div');d.style.cssText='text-align:center;margin-top:10px';
   d.innerHTML='<button class="chip" id="bagWard" style="padding:8px 16px">Wardrobe</button>';B.appendChild(d);d.firstChild.addEventListener('click',()=>openWardrobe());};}
+
+/* ================= the game menu, Stardew-style: Items (a backpack of slots whose first row is your toolbar), Social, Map, Journal.
+   The slots are a view over the stores the rest of the game already uses (tools, seeds, the produce basket, materials and food,
+   furniture), so every shop, quest and recipe keeps working; the slots only remember where you put things. ================= */
+S.bagSize=S.bagSize||24;S.slots=(S.slots&&S.slots.length===36)?S.slots:new Array(36).fill(null);S.slotSel=S.slotSel||0;
+const ROD_NAMES=['Bamboo rod','Ash rod','Greenheart rod'];
+const PRODUCE_NAMES={turnip:'Turnip',pumpkin:'Pumpkin',corn:'Corn',fish:'Fish',egg:'Egg',mushroom:'Glowcap'};
+function itemInfo(key){if(!key)return null;const i=key.indexOf(':'),t=key.slice(0,i),id=key.slice(i+1);const T=S.tools||{};
+  if(t==='T'){const N={hoe:[`${T.hoe>1?'Copper':'Rusty'} hoe`,'Tills soil. Swing it at grass or dirt.'],can:[`${S.waterMax>10?'Copper':'Tin'} watering can`,`Holds ${S.waterMax} water. Refill at the well or pond. ${S.water}/${S.waterMax} now.`],
+      pick:[`${T.pick>1?'Steel':'Grandpa’s'} pickaxe`,'Breaks rocks and ore.'],axe:[`${T.axe>1?'Steel':'Old'} axe`,'Chops trees and stumps for wood.'],rod:[ROD_NAMES[Math.max(0,(S.rod||1)-1)],'Cast it at water. Keep the fish inside the green bar until it’s yours.']}[id];
+    return {key,type:t,id,name:N[0],desc:N[1],icon:id,qty:1,tool:true};}
+  if(t==='S'){const sd=SEEDS[id];if(!sd)return null;return {key,type:t,id,name:sd.name+' seeds',desc:`Plant in tilled soil and water daily. Grows in ${Math.round(sd.grow/2)}–${sd.grow} hours of care.`,icon:'seed',qty:S.seeds[id]||0};}
+  if(t==='P'){const n=basketCount(id);const v=S.basket.filter(b=>b.kind===id).reduce((a,b)=>a+b.value,0);const raw=RAW[id];
+    return {key,type:t,id,name:PRODUCE_NAMES[id]||id,desc:(raw?`Edible: +${raw[0]} energy${raw[1]?`, +${raw[1]} health`:''}. `:'')+`Ships for ${n?Math.round(v/n):'?'} each.`,icon:id,qty:n,food:raw,sell:n?Math.round(v/n):0};}
+  if(t==='I'){const d=ITEMS[id];if(!d)return null;return {key,type:t,id,name:d.name,desc:d.desc||(d.food?`+${d.food[0]} energy${d.food[1]?`, +${d.food[1]} health`:''}.`:'A material for crafting and building.'),icon:d.icon||id,qty:inv(id),food:d.food,sell:d.sell};}
+  if(t==='F'){const f=FURN[id];if(!f)return null;return {key,type:t,id,name:f[0],desc:'Furniture. Use it inside the cabin to place it.',icon:f[1],qty:S.furnBag.filter(q=>q===id).length};}
+  return null;}
+function allItemKeys(){const ks=['T:hoe','T:can','T:pick','T:axe','T:rod'];
+  for(const k in SEEDS)if((S.seeds[k]||0)>0)ks.push('S:'+k);
+  for(const k of new Set(S.basket.map(b=>b.kind)))ks.push('P:'+k);
+  for(const k in ITEMS)if(inv(k)>0)ks.push('I:'+k);
+  for(const k of new Set(S.furnBag))ks.push('F:'+k);
+  return ks;}
+let BAG_OVER=[];
+function syncSlots(){const have=new Set(allItemKeys());
+  for(let i=0;i<36;i++){const k=S.slots[i];if(!k)continue;const it=itemInfo(k);if(!have.has(k)||!it||(!it.tool&&it.qty<=0)||i>=S.bagSize)S.slots[i]=null;}
+  BAG_OVER=[];const placed=new Set(S.slots.filter(Boolean));
+  for(const k of have){if(placed.has(k))continue;const e=S.slots.findIndex((q,i)=>!q&&i<S.bagSize);if(e>=0){S.slots[e]=k;placed.add(k);}else BAG_OVER.push(k);}}
+function slotsVisible(){return innerWidth>=900?12:Math.min(12,Math.max(6,Math.floor((innerWidth-130)/38)));}
+// ---- the toolbar: the first row of the backpack
+function slotUse(i){if(S.mode!=='play'||S.paused)return;syncSlots();const k=S.slots[i];const was=S.slotSel;S.slotSel=i;const it=itemInfo(k);if(!it){renderHotbar();return;}
+  if(it.type==='S'){S.sel=it.id;toast(`${it.name} ×${it.qty}`,1.2);}
+  else if(it.type==='T')toast(it.name+(it.id==='can'?` — ${S.water}/${S.waterMax}`:''),1.2);
+  else if(it.food){if(was===i){if(it.type==='P'){takeBasket(it.id,1);eat(it.food[0],it.food[1],it.id==='mushroom'?'You eat the glowcap raw. Your teeth feel loose':'You eat a raw '+it.name.toLowerCase());}else{takeInv(it.id,1);eat(it.food[0],it.food[1],it.name);}updateHud();}
+    else toast(`${it.name} ×${it.qty} — tap again to eat`,1.4);}
+  else if(it.type==='F'){if(S.room!=='cabin')toast('Carry it into the cabin, then use it to place it.',1.8);else startFurn(it.id);}
+  else toast(`${it.name} ×${it.qty}`,1.2);
+  renderHotbar();}
+const selectedItem=()=>itemInfo(S.slots[S.slotSel]);
+hotbarUse=function(k){const i=['hoe','can','pick','axe','seed','food'].indexOf(k);if(i>=0)slotUse(i);};
+addEventListener('keydown',e=>{if(S.mode!=='play'||S.paused)return;const m=/^Digit([0-9])$/.exec(e.code);if(m){const n=+m[1];const i=n===0?9:n-1;if(i>=6){slotUse(i);e.preventDefault();}}
+  if(e.code==='Minus')slotUse(10);if(e.code==='Equal')slotUse(11);});
+addEventListener('wheel',e=>{if(S.mode!=='play'||S.paused||!$('hud')||$('hud').hidden)return;const n=slotsVisible();S.slotSel=(S.slotSel+(e.deltaY>0?1:n-1))%n;slotUse(S.slotSel);},{passive:true});
+{const css=document.createElement('style');css.textContent=`
+#hotbar .slot.sel{box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 4px #ffe08a,inset 0 0 0 6px #c88a2a!important;transform:translateY(-3px)}
+#hotbar .slot.empty img{display:none}
+#gm .tabs{display:flex;gap:4px;margin:-4px 0 10px;flex-wrap:wrap}#gm .tabs button{font:inherit;font-size:14px;padding:7px 12px;cursor:pointer;color:var(--bone);background:#3a2414;border:0;box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 4px #6a4424}
+#gm .tabs button.on{background:#8a5a2a;box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 4px #f0a040}
+.invgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:3px;max-width:540px;touch-action:none;user-select:none}
+.invgrid .is{aspect-ratio:1;position:relative;background:#c8955a;box-shadow:inset 0 0 0 2px #5a3418,inset 2px 2px 0 2px #e8b878;image-rendering:pixelated;cursor:pointer}
+.invgrid .is.row0{background:#d8a868}.invgrid .is.locked{background:#6a4a2a;box-shadow:inset 0 0 0 2px #3a2010;cursor:default}
+.invgrid .is.sel{box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 4px #ff5030}.invgrid .is img{position:absolute;inset:8%;width:84%;height:84%;image-rendering:pixelated;pointer-events:none}
+.invgrid .is b{position:absolute;right:2px;bottom:0;font:11px/1 'Pixelify Sans',monospace;color:#fff4dc;text-shadow:1px 1px 0 #2a1608,-1px 0 0 #2a1608;pointer-events:none}
+.invgrid .is.drag{opacity:.35}.invgrid .is.over{box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 4px #fff}
+#invTip{min-height:58px;margin-top:8px;padding:8px 10px;background:rgba(20,12,6,.55);box-shadow:inset 0 0 0 2px #5a3418;font-size:13px;line-height:1.35}#invTip b{color:var(--ember);font-size:15px}
+.invbar{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}.invbar .trash{width:44px;height:44px;background:#5a3a2a;box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 4px #8a3a2a;display:grid;place-items:center;font-size:20px}
+.invbar .trash.over{background:#a8402a}.invstats{font-size:13px;color:var(--dim)}
+#dragGhost{position:fixed;width:40px;height:40px;pointer-events:none;z-index:999;image-rendering:pixelated}
+.soc{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px}.soc .p{display:flex;gap:8px;align-items:center;padding:6px 8px;background:rgba(233,223,198,.05);box-shadow:inset 0 0 0 2px #3a2414;cursor:pointer}
+.soc .p canvas{width:40px;height:40px;image-rendering:pixelated;background:#c8955a;box-shadow:inset 0 0 0 2px #5a3418}.soc .p .h{color:#e8504a;letter-spacing:1px;font-size:13px}.soc .p .h i{color:#6a4a3a;font-style:normal}
+.soc .p small{display:block;color:var(--dim);font-size:11px}.soc .p .tk{font-size:11px;color:#9fc07a}
+#mapWrap{position:relative;overflow:auto;max-height:60vh;background:#1a120a;box-shadow:inset 0 0 0 3px #5a3418}#mapCv{display:block;image-rendering:pixelated;width:100%}
+#mapWrap .lbl{position:absolute;transform:translate(-50%,-50%);font:12px/1 'Pixelify Sans',monospace;color:#fff4dc;text-shadow:1px 1px 0 #000,-1px -1px 0 #000;pointer-events:none;white-space:nowrap}
+#mapWrap .you{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;background:#ff3a2a;box-shadow:0 0 0 2px #fff;border-radius:50%;animation:mapPulse .9s steps(2) infinite}
+@keyframes mapPulse{50%{transform:scale(1.5)}}`;document.head.appendChild(css);}
+function renderHotbar(){const hb=$('hotbar');if(!hb)return;syncSlots();const n=slotsVisible();
+  if(hb.children.length!==n){hb.innerHTML='';for(let i=0;i<n;i++){const b=document.createElement('button');b.className='slot';b.dataset.i=i;b.innerHTML=`<i>${i<9?i+1:i===9?0:i===10?'-':'='}</i><img alt=""><b></b>`;
+      b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();slotUse(i);});hb.appendChild(b);}}
+  const L=($('btnAct').textContent||'');const want=/Till/.test(L)?'T:hoe':/Water/.test(L)?'T:can':/Mine|Break/.test(L)?'T:pick':/Chop/.test(L)?'T:axe':/Plant/.test(L)?'S:'+S.sel:/Fish|Cast/.test(L)?'T:rod':null;
+  [...hb.children].forEach((b,i)=>{const it=itemInfo(S.slots[i]);const im=b.querySelector('img');const ct=b.querySelector('b');
+    b.classList.toggle('empty',!it);b.classList.toggle('sel',i===S.slotSel);b.classList.toggle('on',!!it&&it.key===want);b.setAttribute('aria-label',it?it.name:'empty slot');
+    if(it){const src=iconOf(it.icon);if(im.dataset.k!==it.key||!im.src){im.src=src;im.dataset.k=it.key;}ct.textContent=it.tool?(it.id==='can'?S.water:''):(it.qty>1?it.qty:'');}else{ct.textContent='';im.removeAttribute('src');im.dataset.k='';}});}
+setInterval(()=>{if($('hotbar')&&$('hotbar').style.display!=='none')renderHotbar();},150);
+// ---- the menu itself: the old bag panel grows tabs
+let GM_TAB='items';
+const _obChain=openBag;
+openBag=function(tab){GM_TAB=tab||GM_TAB||'items';S.paused=true;const bag=$('bag');bag.id='bag';
+  if(!bag.querySelector('.tabs')){bag.dataset.gm=1;const t=document.createElement('div');t.className='tabs';t.innerHTML=['items:Items','social:Social','map:Map','journal:Journal'].map(s=>{const [k,l]=s.split(':');return `<button data-t="${k}">${l}</button>`;}).join('');
+    bag.querySelector('h2').after(t);t.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.t==='journal'){bag.hidden=true;S.paused=false;openJournal();return;}openBag(b.dataset.t);}));}
+  bag.setAttribute('id','bag');document.getElementById('bag').classList.add('gmenu');bag.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===GM_TAB));
+  bag.querySelector('h2').textContent={items:'Backpack',social:'Neighbours',map:'Marrow Hollow',journal:'Journal'}[GM_TAB];
+  if(GM_TAB==='items'){_obChain();renderItems();}
+  else{$('bagSub').textContent='';$('bagBody').innerHTML='';bag.hidden=false;if(GM_TAB==='social')renderSocial();if(GM_TAB==='map')renderMap();}};
+$('bag').id='bag';
+function renderItems(){const B=$('bagBody');syncSlots();
+  // keep what other systems appended (furniture, wardrobe) and swap the old lists for the grid
+  [...B.children].forEach(el=>{if(el.tagName==='H3'||el.classList.contains('grid')||(el.tagName==='P'&&el.classList.contains('sub')))el.remove();});
+  [...B.querySelectorAll('div')].forEach(d=>{if(d.querySelector('[data-place]'))d.remove();});
+  const wrap=document.createElement('div');B.prepend(wrap);
+  let h='<div class="invgrid" id="invGrid">';for(let i=0;i<36;i++){const lock=i>=S.bagSize;h+=`<div class="is${i<12?' row0':''}${lock?' locked':''}${i===S.slotSel?' sel':''}" data-i="${i}"></div>`;}h+='</div>';
+  h+=`<div id="invTip">Tap an item to see it. Drag to move it; the top row is your toolbar.</div>`;
+  h+=`<div class="invbar"><div class="trash" id="invTrash" title="Trash">🗑</div><button class="chip" id="invSort">Sort</button><span class="invstats">${S.coins} coins · Energy ${Math.round(S.energy)}/${S.energyMax} · Health ${Math.round(S.hp)}/${S.hpMax}${S.bagSize<36?` · ${S.bagSize} slots (Mae sells a bigger pack)`:''}${BAG_OVER.length?` · <b style="color:#e8504a">${BAG_OVER.length} won’t fit</b>`:''}</span></div>`;
+  wrap.innerHTML=h;
+  const G=$('invGrid');const cells=[...G.children];
+  const paint=()=>{cells.forEach((c,i)=>{const it=itemInfo(S.slots[i]);c.innerHTML=it?`<img src="${iconOf(it.icon)}" alt=""><b>${it.tool?'':(it.qty>1?it.qty:'')}</b>`:'';c.classList.toggle('sel',i===S.slotSel);c.setAttribute('aria-label',it?`${it.name}${it.qty>1?' ×'+it.qty:''}`:'empty');});};
+  const tip=(i)=>{const it=itemInfo(S.slots[i]);const T=$('invTip');if(!it){T.innerHTML='Empty slot.';return;}
+    let act='';if(it.food)act=`<button class="chip" data-eat="${i}" style="margin-left:6px">Eat</button>`;if(it.type==='F')act=`<button class="chip" data-place="${it.id}" style="margin-left:6px">Place</button>`;
+    T.innerHTML=`<b>${it.name}</b>${it.qty>1?` ×${it.qty}`:''}${act}<br>${it.desc}`;
+    const eb=T.querySelector('[data-eat]');if(eb)eb.addEventListener('click',()=>{S.paused=false;S.slotSel=i;slotUse(i);slotUse(i);S.paused=true;renderItems();});
+    const pb=T.querySelector('[data-place]');if(pb)pb.addEventListener('click',()=>{if(S.room!=='cabin'){toast('Carry it into the cabin first.',1.6);return;}$('bag').hidden=true;S.paused=false;startFurn(pb.dataset.place);});};
+  paint();
+  // drag and drop (mouse and touch): press, move past a few pixels to drag; release on a slot to swap, on the bin to throw away
+  let drag=null;const ghost=document.createElement('img');ghost.id='dragGhost';
+  const cellAt=(x,y)=>{const el=document.elementFromPoint(x,y);return el&&el.closest?el.closest('.is,.trash'):null;};
+  G.addEventListener('pointerdown',e=>{const c=e.target.closest('.is');if(!c||c.classList.contains('locked'))return;const i=+c.dataset.i;drag={i,x:e.clientX,y:e.clientY,moved:false,c};G.setPointerCapture&&G.setPointerCapture(e.pointerId);});
+  G.addEventListener('pointermove',e=>{if(!drag)return;if(!drag.moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>6&&S.slots[drag.i]){drag.moved=true;drag.c.classList.add('drag');ghost.src=iconOf(itemInfo(S.slots[drag.i]).icon);document.body.appendChild(ghost);}
+    if(drag.moved){ghost.style.left=(e.clientX-20)+'px';ghost.style.top=(e.clientY-20)+'px';document.querySelectorAll('.invgrid .over,.trash.over').forEach(q=>q.classList.remove('over'));const t=cellAt(e.clientX,e.clientY);if(t)t.classList.add('over');}});
+  const end=e=>{if(!drag)return;const d=drag;drag=null;ghost.remove();cells.forEach(c=>c.classList.remove('drag','over'));$('invTrash').classList.remove('over');
+    if(!d.moved){S.slotSel=d.i<12?d.i:S.slotSel;tip(d.i);paint();return;}
+    const t=cellAt(e.clientX,e.clientY);if(!t)return;
+    if(t.id==='invTrash'){const it=itemInfo(S.slots[d.i]);if(!it)return;if(it.tool){toast('You can’t throw that away. Grandpa would know.',1.8);return;}
+      if(it.type==='I')takeInv(it.id,it.qty);else if(it.type==='P')takeBasket(it.id,it.qty);else if(it.type==='S')S.seeds[it.id]=0;else if(it.type==='F')S.furnBag=S.furnBag.filter(q=>q!==it.id);
+      S.slots[d.i]=null;SFX.thud&&SFX.thud(0,.2);toast(`Threw away ${it.name.toLowerCase()}.`,1.4);updateHud();renderItems();return;}
+    const j=+t.dataset.i;if(t.classList.contains('locked')||j===d.i)return;const tmp=S.slots[j];S.slots[j]=S.slots[d.i];S.slots[d.i]=tmp;SFX.click?SFX.click():0;paint();tip(j);};
+  G.addEventListener('pointerup',end);G.addEventListener('pointercancel',()=>{drag=null;ghost.remove();});
+  $('invSort').addEventListener('click',()=>{const order={T:0,S:1,P:2,I:3,F:4};const ks=S.slots.slice(0,S.bagSize).filter(Boolean).sort((a,b)=>(order[a[0]]-order[b[0]])||a.localeCompare(b));
+    for(let i=0;i<36;i++)S.slots[i]=i<ks.length?ks[i]:null;syncSlots();paint();});}
+// a bigger pack at the store, like the one in town
+{const _m=vendors.mae.rows;vendors.mae.rows=()=>{const r=_m();r.push({k:'pack',name:'Large backpack',desc:S.bagSize>=36?'You already carry the big one.':'Twelve more slots. “Your grandfather’s. He won’t be needing it.”',price:400,can:S.bagSize<36,buy(){S.bagSize=36;toast('Your backpack has 36 slots now.',2);}});return r;};}
+// ---- Social: everyone you’ve met, their hearts, whether you’ve talked or given a gift
+function headIcon(id,cv){const m=SPR[id],im=m&&IMG[m.src];const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,cv.width,cv.height);if(!im||!m.clips)return;
+  const r=(m.clips.walk.S||m.clips.idle.S)[0];g.drawImage(im,0,r*m.fh+6,m.fw,30,-4,-1,m.fw*30/30*1.0+8,38);}
+function renderSocial(){const B=$('bagBody');const list=npcs.filter(n=>PEOPLE[n.def.id]);$('bagSub').textContent='Talk every day. Two gifts a week. Hearts open new scenes.';
+  B.innerHTML='<div class="soc">'+list.map(n=>{const id=n.def.id,hh=hearts(id),max=HEART_MAX();return `<div class="p" data-id="${id}"><canvas width="40" height="40"></canvas><div style="flex:1"><b>${n.def.name}</b>
+    <div class="h">${'♥'.repeat(hh)}<i>${'♥'.repeat(Math.max(0,max-hh))}</i></div><small>${n.def.role}</small><span class="tk">${S.talkedToday[id]===S.day?'✓ talked today ':''}${(S.giftsWeek&&S.giftsWeek[id]||0)?`🎁 ${S.giftsWeek[id]}/2 this week`:''}</span></div></div>`;}).join('')+'</div><div id="socInfo" style="margin-top:8px;font-size:13px"></div>';
+  B.querySelectorAll('.p').forEach(p=>{headIcon(p.dataset.id,p.querySelector('canvas'));p.addEventListener('click',()=>{const id=p.dataset.id,P2=PEOPLE[id];const nx=(P2.events||[]).find(e=>!S.heartSeen[id+e.h]);
+    $('socInfo').innerHTML=`<b>${npcById(id).def.name}</b> loves ${P2.loves.map(k=>GIFTS[k]||k).join(', ')}; likes ${P2.likes.map(k=>GIFTS[k]||k).join(', ')}; hates ${P2.hates.map(k=>GIFTS[k]||k).join(', ')}.${nx?` Something will happen at ${nx.h} hearts.`:' You know everything they are willing to tell.'}`;});});
+  $('bag').hidden=false;}
+// ---- Map: the valley, painted from the terrain itself, with the places named and a blinking mark where you are
+const MAP_PLACES=[['Hollow Acre',0,-4],['Marrow Hollow',48,-11],['Market Lane',48,16.5],['Church',48,-21],['Graveyard',60,-31],['Route 9',-62,-8],['Pruitt’s Garage',-36,-14],['The pond',-30,25],['Covered bridge',BRIDGE.x,BRIDGE.z-2],['The corn',-2,18],['Abernathy house',-46,-13],['Feed barn',65.5,10]];
+let MAP_CV=null;
+function buildMapCanvas(){const s=3;const W=Math.round((B.x1-B.x0)*s),H=Math.round((B.z1-B.z0)*s);const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+  const img=g.createImageData(W,H);const put=(x,y,col)=>{const i=(y*W+x)*4;img.data[i]=col[0];img.data[i+1]=col[1];img.data[i+2]=col[2];img.data[i+3]=255;};
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const wx=B.x0+x/s,wz=B.z0+y/s;let col=[86,128,62];const n=hash(Math.floor(wx*2),Math.floor(wz*2));
+    if(LAYERS.dark&&LAYERS.dark(wx,wz))col=[40,64,36];if(LAYERS.dirt(wx,wz))col=[176,134,82];if(LAYERS.stone(wx,wz))col=[150,146,140];if(LAYERS.water(wx,wz))col=[70,120,176];
+    if(wx>CORN.x0&&wx<CORN.x1&&wz>CORN.z0&&wz<CORN.z1)col=[200,168,72];
+    if(n>.8)col=col.map(v=>Math.min(255,v+10));else if(n<.2)col=col.map(v=>v-8);put(x,y,col);}
+  g.putImageData(img,0,0);
+  for(const o of OBJ){if(o.room)continue;const X=(o.x-B.x0)*s,Y=(o.z-B.z0)*s;
+    if(o.kind==='tree'||o.kind==='pine'){g.fillStyle='#2a4a22';g.fillRect(X-2,Y-3,4,4);g.fillStyle='#3e6a2e';g.fillRect(X-1,Y-3,2,2);}
+    else if(o.kind==='bld'){const m=SPR[o.spr];const f=m&&m.foot;if(!f)continue;const x0=X+f[0]*s,x1=X+f[2]*s,y0=Y+(f[1]-1.2)*s,y1=Y;g.fillStyle='#2a1810';g.fillRect(x0-1,y0-1,x1-x0+2,y1-y0+2);g.fillStyle='#8a3a2a';g.fillRect(x0,y0,x1-x0,(y1-y0)*.6);g.fillStyle='#c8a878';g.fillRect(x0,y0+(y1-y0)*.6,x1-x0,(y1-y0)*.4);}
+    else if(o.kind==='fence'){g.fillStyle='#6a4a2a';g.fillRect(X,Y,2,1);}}
+  return c;}
+function renderMap(){const B2=$('bagBody');$('bagSub').textContent=S.room?'You are indoors.':'Where you are now blinks.';if(!MAP_CV)MAP_CV=buildMapCanvas();
+  B2.innerHTML='<div id="mapWrap"><canvas id="mapCv"></canvas></div>';const cv=$('mapCv');cv.width=MAP_CV.width;cv.height=MAP_CV.height;cv.getContext('2d').drawImage(MAP_CV,0,0);
+  const wrap=$('mapWrap');const pct=(x,z)=>[((x-B.x0)/(B.x1-B.x0))*100,((z-B.z0)/(B.z1-B.z0))*100];
+  for(const [n,x,z] of MAP_PLACES){const [l,t]=pct(x,z);const d=document.createElement('div');d.className='lbl';d.style.left=l+'%';d.style.top=t+'%';d.textContent=n;wrap.appendChild(d);}
+  let px=P.x,pz=P.z;const R=roomOf&&roomOf();if(R&&R.out){px=R.out.x;pz=R.out.z;}const [l,t]=pct(px,pz);const y=document.createElement('div');y.className='you';y.style.left=l+'%';y.style.top=t+'%';wrap.appendChild(y);
+  $('bag').hidden=false;requestAnimationFrame(()=>{wrap.scrollLeft=(l/100)*wrap.scrollWidth-wrap.clientWidth/2;wrap.scrollTop=(t/100)*wrap.scrollHeight-wrap.clientHeight/2;});}
+const HEART_MAX=()=>Math.round(FRIEND_MAX/100);
+addEventListener('keydown',e=>{if(S.mode!=='play')return;if(e.code==='KeyM'&&!S.paused){openBag('map');e.preventDefault();}if((e.code==='KeyE'||e.code==='Tab')&&!S.paused){openBag('items');e.preventDefault();}});
+{const bb=$('btnBag');if(bb)bb.textContent='Menu';}
+
+/* ================= fishing: cast at any water, wait for the bite, then the catch bar.
+   Hold (touch, mouse, or Space) to lift the green bar; keep the fish inside it until the reel fills. Every fish swims its own way. ================= */
+S.fishLog=S.fishLog||{};
+const FISH=[
+  // name, value, difficulty 0..1, behaviour, where ('pond' | 'creek' | 'any'), when ('day' | 'night' | 'any'), min/max length cm
+  ['Yellow perch',6,.12,'smooth','any','day',14,26],['Sunfish',8,.18,'smooth','pond','day',10,18],['Mud carp',14,.38,'sinker','pond','any',30,60],
+  ['Creek chub',7,.2,'smooth','creek','any',10,22],['Brook trout',16,.5,'dart','creek','day',20,38],['Largemouth bass',18,.48,'dart','pond','day',28,52],
+  ['Channel catfish',20,.55,'sinker','any','night',40,80],['Pale eel',26,.62,'floater','pond','night',50,110],['Eyeless pike',30,.78,'dart','any','night',60,120],
+  ['Hollow carp',40,.85,'mixed','pond','night',70,140]];
+const FISH_ODD={'Eyeless pike':'It has no eyes. Where they should be, smooth skin. It is still looking at you.','Pale eel':'It is warm. Eels are not warm.','Hollow carp':'When you lift it, it is far too light. Something inside it rattles, like teeth in a jar.'};
+const JUNK=[['A child’s sneaker',0,'Laces still tied. It’s dry.'],['A hair ribbon',0,'Blue, faded. Agnes would know it.'],['A rusted harmonica',2,'Someone has scratched E.M. into the side.'],['Your own house key',0,'It is your key. Your key is in your pocket.']];
+const waterAt=(x,z)=>LAYERS.water(x,z);
+function waterAhead(){for(const d of [1.2,1.8,2.4]){const x=P.x+P.fx*d,z=P.z+P.fz*d;if(waterAt(x,z))return [x,z];}return null;}
+const hasRod=()=>true;
+function fishWhere(x,z){return Math.hypot(x-pond.x,z-pond.z)<pond.r+3?'pond':'creek';}
+function pickFish(where,night){const pool=FISH.filter(f=>(f[4]==='any'||f[4]===where)&&(f[5]==='any'||(f[5]==='night')===night));
+  const w=pool.map(f=>Math.pow(1.05-f[2],1.6)*(S.rod>=3?1+f[2]:S.rod>=2?1+f[2]*.5:1));let r=rand()*w.reduce((a,b)=>a+b,0);for(let i=0;i<pool.length;i++){r-=w[i];if(r<=0)return pool[i];}return pool[0];}
+// ---- the cast
+fish.power=0;
+fishAct=function(){if(MG.on)return;
+  if(fish.state==='off'){const w=waterAhead()||(Math.hypot(P.x-fishSpot.x,P.z-fishSpot.z)<1.6?[fishSpot.x,fishSpot.z+3]:null);if(!w){toast('Face the water to cast.',1.4);return;}
+    if(!spend(1))return;fish.state='power';fish.t=0;fish.aim=w;fish.bx=P.x+P.fx*.8;fish.bz=P.z+P.fz*.8;toast('Tap again to cast — further is better.',1.6);return;}
+  if(fish.state==='power'){const pw=fish.power;const [wx,wz]=fish.aim;let bx=P.x+P.fx*(1.4+pw*3.2),bz=P.z+P.fz*(1.4+pw*3.2);if(!waterAt(bx,bz)){bx=wx;bz=wz;}
+    fish.bx=bx;fish.bz=bz;fish.where=fishWhere(bx,bz);fish.state='wait';fish.cast=pw;fish.t=(2+rand()*5)*(inv('bait')>0?.4:1)*(1.15-pw*.3);if(inv('bait')>0)takeInv('bait');
+    SFX.splash&&SFX.splash(.3);burst(bx,bz,6,'#9fc0e0',1.2,.5,2);return;}
+  if(fish.state==='wait'){fish.state='off';toast('You reel in too early. Nothing.',1.4);return;}
+  if(fish.state==='bite'){const night=isNight();
+    if(night&&!S.bound&&rand()<.12){fish.state='off';SFX.stinger();cam.shake=.4;mindHit&&mindHit(4);toast(pick(['A grey hand comes up with the hook in its palm. It lets go.','The line goes slack. Something below the water says your name, very politely.','You pull up a fistful of long hair. It is the same colour as yours.']),3.2,true);return;}
+    const f=rand()<(night?.07:.04)?null:pickFish(fish.where,night);startMG(f);}};
+fishUpdate=function(dt){if(fish.state==='off'||MG.on)return;
+  if(fish.state==='power'){fish.t+=dt;fish.power=.5-.5*Math.cos(fish.t*3.2);return;}
+  if(Math.hypot(P.x-fish.aim[0],P.z-fish.aim[1])>3.2){fish.state='off';return;}
+  fish.t-=dt;if(fish.state==='wait'&&fish.t<=0){fish.state='bite';fish.t=.85;SFX.splash&&SFX.splash(.45);try{navigator.vibrate&&navigator.vibrate(60);}catch(e){}toast('!',.6);}
+  else if(fish.state==='bite'&&fish.t<=0){toast('It got away.',1.2);fish.state='wait';fish.t=2+rand()*4;}};
+// fishing from any shore
+{const _cc=computeContext;computeContext=function(){const c=_cc();if((c&&c.label)||S.room)return c;
+  if(fish.state!=='off')return {label:fish.state==='power'?'Cast!':fish.state==='bite'?'Hook it!':'Waiting…',ok:true,act:fishAct};
+  if(waterAhead()&&!P.anim)return {label:'Fish',ok:true,act:fishAct};return c;};}
+{const it=interact.find(q=>q.x===fishSpot.x&&q.z===fishSpot.z);if(it){it.label=()=>fish.state==='off'?'Fish':fish.state==='power'?'Cast!':fish.state==='bite'?'Hook it!':'Waiting…';it.ok=()=>true;}}
+// the power meter over your head while you wind up
+{const _dp=typeof drawHud==='function'?drawHud:null;
+  const css=document.createElement('style');css.textContent=`#fishPow{position:fixed;left:50%;top:38%;width:16px;height:80px;margin-left:30px;background:#2a1608;box-shadow:inset 0 0 0 2px #1a0e06,0 0 0 2px #8a5a2a;display:none;z-index:7}
+#fishPow i{position:absolute;left:3px;right:3px;bottom:3px;background:linear-gradient(#e8504a,#f0c040 50%,#7cc04a)}
+#fishMG{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;touch-action:none;user-select:none;background:rgba(6,10,14,.35)}
+#fishMG .frame{position:relative;width:86px;height:min(62vh,420px);background:#5a3418;box-shadow:inset 0 0 0 3px #1a0e06,inset 0 0 0 6px #b8823c,inset 0 0 0 9px #5a3418,0 6px 0 #1a0e06}
+#fishMG .water{position:absolute;left:12px;top:12px;bottom:12px;width:36px;background:linear-gradient(#2a5a8a,#16365a);box-shadow:inset 0 0 0 2px #0a1a2a;overflow:hidden}
+#fishMG .zone{position:absolute;left:2px;right:2px;background:rgba(124,220,90,.55);box-shadow:inset 0 0 0 2px #b8f080,inset 0 0 0 4px rgba(40,90,30,.6)}
+#fishMG .zone.on{background:rgba(160,250,110,.7)}
+#fishMG .fishi{position:absolute;left:4px;width:28px;height:28px;margin-top:-14px;image-rendering:pixelated}
+#fishMG .reel{position:absolute;right:12px;top:12px;bottom:12px;width:14px;background:#1a0e06;box-shadow:inset 0 0 0 2px #0a0604}
+#fishMG .reel i{position:absolute;left:2px;right:2px;bottom:2px;background:linear-gradient(#f0c040,#e86a2a)}
+#fishMG .hint{position:absolute;bottom:-34px;left:50%;transform:translateX(-50%);white-space:nowrap;font:13px 'Pixelify Sans',monospace;color:#fff4dc;text-shadow:1px 1px 0 #000}
+#fishMG.horror .water{background:linear-gradient(#3a0a0a,#120404)}#fishMG.horror .fishi{filter:hue-rotate(160deg) brightness(.8)}`;document.head.appendChild(css);
+  const pw=document.createElement('div');pw.id='fishPow';pw.innerHTML='<i></i>';document.body.appendChild(pw);
+  setInterval(()=>{pw.style.display=fish.state==='power'?'block':'none';pw.firstChild.style.height=(fish.power*74)+'px';},33);}
+// ---- the catch bar
+const MG={on:false};
+{const el=document.createElement('div');el.id='fishMG';el.innerHTML='<div class="frame"><div class="water"><div class="zone"></div><img class="fishi" alt=""></div><div class="reel"><i></i></div><div class="hint">Hold to lift the bar</div></div>';document.body.appendChild(el);
+  const down=e=>{if(!MG.on)return;MG.hold=true;e.preventDefault&&e.preventDefault();},up=()=>{MG.hold=false;};
+  el.addEventListener('pointerdown',down);addEventListener('pointerup',up);addEventListener('pointercancel',up);
+  addEventListener('keydown',e=>{if(MG.on&&(e.code==='Space'||e.code==='Enter'||e.code==='KeyC')){MG.hold=true;e.preventDefault();e.stopPropagation();}},true);
+  addEventListener('keyup',e=>{if(e.code==='Space'||e.code==='Enter'||e.code==='KeyC')MG.hold=false;},true);}
+function startMG(f){const el=$('fishMG');Object.assign(MG,{on:true,f,hold:false,zone:.1,zv:0,fy:.3,fv:0,ft:.3,tt:0,prog:.32,
+  size:S.rod>=3?.36:S.rod>=2?.31:.26,d:f?f[2]:.25,beh:f?f[3]:'smooth',last:performance.now(),scare:false});
+  el.classList.toggle('horror',isNight()&&!!f&&f[2]>.6);el.querySelector('.fishi').src=iconOf(f?'fish':'stone');el.style.display='flex';S.paused=true;fish.state='reel';
+  requestAnimationFrame(mgStep);}
+function mgStep(now){if(!MG.on)return;const dt=Math.min(.05,(now-MG.last)/1000);MG.last=now;const el=$('fishMG');
+  // your bar: lifts while held, falls when let go, bounces off the floor
+  MG.zv+=(MG.hold?2.1:-1.9)*dt;MG.zv=clamp(MG.zv,-1.4,1.4);MG.zone+=MG.zv*dt;if(MG.zone<0){MG.zone=0;MG.zv=-MG.zv*.35;}if(MG.zone>1-MG.size){MG.zone=1-MG.size;MG.zv=0;}
+  // the fish: picks a new depth now and then and swims toward it in its own way
+  MG.tt-=dt;const d=MG.d;if(MG.tt<=0){MG.tt=(MG.beh==='dart'?.35:MG.beh==='mixed'?.5:.9)+rand()*(1.4-d);
+    let t=rand();if(MG.beh==='sinker')t=t*t;if(MG.beh==='floater')t=1-t*t;if(MG.beh==='dart'&&rand()<.5)t=MG.fy+(rand()<.5?-1:1)*(.25+d*.3);MG.ft=clamp(t,.02,.98);
+    if(isNight()&&!MG.scare&&rand()<.06&&MG.f&&MG.f[2]>.6){MG.scare=true;MG.ft=0;el.querySelector('.hint').textContent='It pulls back.';cam.shake=.3;SFX.stinger&&SFX.stinger();}}
+  const spd=(MG.beh==='dart'?2.6:MG.beh==='mixed'?2.2:1.2)*(.5+d);MG.fv+=((MG.ft-MG.fy)*spd*3-MG.fv*2.4)*dt;MG.fy=clamp(MG.fy+MG.fv*dt,0,1);
+  const inside=MG.fy>=MG.zone&&MG.fy<=MG.zone+MG.size;MG.prog+=(inside?.24:-.17*(1+d*.6))*dt;
+  const W=el.querySelector('.water'),H=W.clientHeight;const z=el.querySelector('.zone');z.style.height=(MG.size*H)+'px';z.style.top=((1-MG.zone-MG.size)*H)+'px';z.classList.toggle('on',inside);
+  el.querySelector('.fishi').style.top=((1-MG.fy)*H)+'px';el.querySelector('.reel i').style.height=(clamp(MG.prog,0,1)*100)+'%';
+  if(MG.prog>=1){endMG(true);return;}if(MG.prog<=0){endMG(false);return;}requestAnimationFrame(mgStep);}
+function endMG(ok){MG.on=false;MG.hold=false;$('fishMG').style.display='none';$('fishMG').querySelector('.hint').textContent='Hold to lift the bar';S.paused=false;fish.state='off';
+  if(!ok){toast(MG.f?`The ${MG.f[0].toLowerCase()} got away.`:'It got away.',1.6);SFX.thud&&SFX.thud(0,.2);return;}
+  if(!MG.f){const j=pick(JUNK);if(j[1])S.basket.push({kind:'fish',value:j[1]});SFX.splash&&SFX.splash();toast(`You reel in… ${j[0].toLowerCase()}. ${j[2]}`,3,true);if(/key|sneaker/.test(j[0]))mindHit&&mindHit(2);return;}
+  const f=MG.f;const len=Math.round(f[6]+rand()*(f[7]-f[6]));const big=(len-f[6])/(f[7]-f[6]);let v=Math.round(f[1]*(.8+big*.5)*(S.rod>=3?2:S.rod>=2?1.5:1));
+  S.basket.push({kind:'fish',value:v});S.fishCaught=(S.fishCaught||0)+1;S.fishLog[f[0]]=Math.max(S.fishLog[f[0]]||0,len);
+  SFX.splash&&SFX.splash();burst(fish.bx,fish.bz,16,'#9fc0e0',2,.7,3);
+  toast(`${S.fishLog[f[0]]===len&&len>0?'New! ':''}${f[0]}, ${len} cm. Worth ${v}.${FISH_ODD[f[0]]?' '+FISH_ODD[f[0]]:''}`,FISH_ODD[f[0]]?3.4:2.2,!!FISH_ODD[f[0]]);
+  if(FISH_ODD[f[0]])mindHit&&mindHit(2);updateHud();}
+
+/* ================= friendship, Stardew-style: ten hearts, a talk a day, two gifts a week, birthdays, and heart events played as scenes.
+   Every scene pulls the thread of the Tithe a little further. ================= */
+S.giftsWeek=S.giftsWeek||{};S.lastTalk=S.lastTalk||{};
+const BDAY={mae:5,hale:12,tobias:19,hollis:2,agnes:9,dunn:26,silas:16,june:7,otto:22,cora:3,wes:14,ida:24,gideon:11,nell:18,ezra:27,pip:21,ruth:31};
+const dayOfMonth=()=>((S.day-1)%28)+1;
+// ---- what each person thinks of anything you could hand them
+const UNIVERSAL={love:['gem','pie','hash','chowder'],like:['bread','stew','soup','egg_fried','milk','copper_bar','iron_bar'],hate:['stone','fiber','coal','fert','bait']};
+function prefOf(id,key){const P_=PEOPLE[id];if(!P_)return 'meh';const k=key.split(':')[1];if(P_.loves.includes(k))return 'love';if(P_.likes.includes(k))return 'like';if(P_.hates.includes(k))return 'hate';
+  if(UNIVERSAL.love.includes(k))return 'love';if(UNIVERSAL.like.includes(k))return 'like';if(UNIVERSAL.hate.includes(k))return 'hate';return 'meh';}
+// ---- more scenes: two more for everyone, late in the friendship
+const MORE_EVENTS={
+  mae:[{h:8,title:'Closing time',text:`Mae locks the store at noon. She has never done that. She pulls you behind the counter and puts a set of car keys in your hand: Walt’s truck, still in the shed.<br><br><q>Take Tobias. Not tonight. On the night of the drawing, when everyone is in the church. Nobody counts the children that night.</q><br><br>Then she laughs, too loudly, and turns the sign back to OPEN. A man is standing at the window. He has been there the whole time. When you look again it is only the scarecrow from your field, which is two miles away.`,lore:'Mae wants you to drive Tobias out on the night of the drawing, when the town is in the church and nobody counts the children.',reward:'truckkey'},
+    {h:10,title:'Danny’s last letter',text:`She gives you an envelope addressed <i>To whoever comes after me</i>, in a ten-year-old’s capitals.<br><br><q>He wrote it the night before. He knew. Children always know.</q><br><br><i>It is not a man. It is a door. Everybody it takes is still in the door, holding it shut from the inside. If enough of us push at once it will open the other way. Tell Mom I pushed.</i><br><br>Mae doesn’t cry. <q>I think he’s still pushing,</q> she says. <q>I think he’s been pushing for twenty-five years.</q>`,lore:'Danny’s letter: the Tall Man is a door, and everyone it took is still inside holding it shut. If enough push at once it opens the other way.'}],
+  hale:[{h:8,title:'The bell rope',text:`Hale shows you the bell rope. It is new, white, smooth. Under it, on the belfry floor, is a coil of old rope as long as a road, cut into one-yard pieces.<br><br><q>Each year it wears through on the night of the Tithe. Exactly through. I keep the pieces. I don’t know why.</q><br><br>You count them without meaning to. There are a hundred and fifty-three. You have been in Marrow Hollow for less than a month. You are sure you have counted them before.`,lore:'The bell rope wears through every Tithe night. Hale has kept 153 pieces. You feel you have counted them before.'},
+    {h:10,title:'What I rang for',text:`<q>I didn’t ring for the Tithe the year your grandfather refused.</q> Hale is shaking. <q>I rang for him. I rang so it would know where he was. God forgive me, I thought it would take him and spare you.</q><br><br>He gives you the belfry key. <q>The bell calls it. Whoever holds the rope chooses where it walks. Ring it from the stones and it will come to the stones. Ring it from the church and it will come for the town.</q><br><br><q>Choose better than I did.</q>`,lore:'Hale rang the bell to lead the Tall Man to Elias. Whoever rings the bell chooses where it walks. He gave you the belfry key.',reward:'bellkey'}],
+  tobias:[{h:8,title:'Hide and seek',text:`Tobias wants to play hide and seek. You count to twenty with your eyes shut by the corn.<br><br>When you open them he is standing in front of you, very close, smiling. <q>Found you.</q> Behind him, a second Tobias steps out from between the stalks, holding a jar of glowcaps, looking confused.<br><br>You blink. There is only one boy. He is holding the jar. <q>Who were you talking to?</q> he asks.`,lore:'Playing hide and seek with Tobias, you saw two of him. One came out of the corn.'},
+    {h:10,title:'A message from Ruth',text:`<q>Ruth told me to tell you something but I had to wait till you were my best friend. You are now. So.</q> Tobias takes a breath and recites, carefully:<br><br><q>“The first stone is under the dock. The second stone is in the hollow tree. The third stone is under your bed, and you have been sleeping on it the whole time.”</q><br><br>He frowns. <q>That’s not a riddle, she said. She said it’s just true.</q>`,lore:'Ruth, through Tobias: the stones are under the dock, in the hollow tree, and under your bed.'}],
+  hollis:[{h:8,title:'I built the road',text:`Hollis takes you down to the creek where Route 9 crosses it. <q>County paid me to lay the new road in ’82. I laid it. Every bend where they marked it.</q><br><br><q>Then I drove it. It came back to the farm. I dug up a mile of it and laid it again, straighter. It still came back. I laid it four times.</q><br><br>He puts his hand flat on the asphalt. It is warm, like skin. <q>I don’t think it’s a road anymore. I think it’s something lying down.</q>`,lore:'Hollis laid Route 9 four times. It always comes back to the farm. The asphalt is warm, like skin.'},
+    {h:10,title:'The right way out',text:`He hands you an old map with one route drawn on it in pencil, not ink. It goes the wrong way: east, deeper in, through the woods past the quarry.<br><br><q>Every way out comes back in. So I tried going in. Got as far as the black lake. The road ended in a gas station that wasn’t there. The pump worked.</q><br><br><q>Never had the nerve to drive past it. You might.</q>`,lore:'Hollis’s last map leads deeper in: past the quarry to a black lake and a gas station that isn’t there.'}],
+  agnes:[{h:8,title:'The music box, played',text:`Agnes winds the music box and sets it on the porch rail. She does not look at the yard.<br><br>Out by the well, a small figure in a white dress has come to stand. It doesn’t move toward the porch. It is looking at you. It lifts one arm and points down, at the well.<br><br>When the song ends it is gone. Agnes is very quiet. <q>She never pointed before,</q> she says. <q>She never did anything before. She’s been waiting for you, then.</q>`,lore:'When Agnes played the music box, Ruth stood by the well and pointed down into it.'},
+    {h:10,title:'Let her go',text:`<q>I want you to do something I can’t.</q> Agnes puts Ruth’s blue ribbon in your hand. It is damp, always damp, though it has been in a drawer for thirty-seven years.<br><br><q>When you light the stones, burn this in the flame. She’ll be able to leave. I know she’ll leave me too. I know.</q><br><br><q>Don’t tell me when you do it. I want to keep thinking she’s at the window a little longer.</q>`,lore:'Agnes gave you Ruth’s ribbon to burn at the stones, so Ruth can leave.',reward:'ribbon'}],
+  dunn:[{h:8,title:'Sixty-one slips',text:`Dunn opens the hat for you in the empty church. It is full of slips. Every one says your name in his handwriting.<br><br>Except one, at the bottom. It says DUNN, in a child’s handwriting. <q>Wes wrote that,</q> he says. <q>He was six. He thought if he put me in, I’d have to stop.</q><br><br><q>I took it out every year for eleven years. This year I can’t make my hand do it.</q>`,lore:'Among the slips with your name, one says DUNN in Wes’s childhood handwriting. This year the Sheriff can’t take it out.'},
+    {h:10,title:'His own name',text:`On the night before the drawing Dunn comes to your porch with the hat under his arm. He tips it into the stove and you watch your name burn sixty times.<br><br>Then he writes one slip at the counter, slowly, and puts it in the empty hat. He doesn’t show you. He doesn’t have to.<br><br><q>Look after my boy,</q> he says. <q>And don’t you let it wear me. I’d hate to come walking up your lane next year with a smile on.</q>`,lore:'Dunn burned the slips with your name and wrote his own instead.',reward:'dunnslip'}],
+  silas:[{h:6,title:'The fresh hole',text:`Silas is digging a grave in the rain. It is your size. He doesn’t stop when you arrive.<br><br><q>It’s not for you,</q> he says. <q>It’s for what comes back wearing you, if it comes to that. Bury it deep enough and it can’t climb out wrong.</q><br><br>He climbs out and hands you the shovel. <q>Dig the last foot yourself. It has to be your hands, or it doesn’t take.</q>`,lore:'Silas dug a grave your size for whatever comes back wearing you.'},
+    {h:9,title:'Measurements',text:`Silas opens his ledger of measurements: every person in town, every year. Heights go up, then stop. Then, the year after each Tithe, one entry begins again at a child’s height.<br><br><q>They come back small,</q> he says. <q>Born to somebody else. Same measurements to the quarter inch. I never told the mothers.</q><br><br>Your own line was started forty years before you were born.`,lore:'Silas’s ledger shows the taken come back, born again to other families, with the same measurements.'}],
+  june:[{h:6,title:'Return to sender',text:`June shows you the dead-letter box. Hundreds of letters, every one addressed to someone in Marrow Hollow, every one in the same handwriting, every one stamped RETURN TO SENDER.<br><br><q>The sender’s address is your farm,</q> she says. <q>The dates go back to 1871. The latest is postmarked tomorrow.</q><br><br>She hands it to you. It is addressed to June. You recognise the handwriting now. It is yours.`,lore:'The dead-letter box holds letters from your farm going back to 1871. The latest, in your handwriting, is postmarked tomorrow.'},
+    {h:9,title:'The route',text:`June walks you along her mail route after dark, which she never does. Every porch light on the street is on. In every window a figure stands with its back to the glass.<br><br><q>They do it on the last week,</q> she whispers. <q>So they can’t see it pass. So they can say they didn’t.</q><br><br>At the end of the street there is one more window, one more figure, facing out. It is your cabin. You are not inside it.`,lore:'In the last week the townsfolk stand with their backs to the windows so they can say they didn’t see. One figure in your cabin faces out.'}],
+  otto:[{h:6,title:'The lake below the pond',text:`Otto rows you out to the middle of the pond and drops a weighted line. It runs out, and out. Two hundred feet. The pond is eleven feet deep.<br><br><q>There’s another lake under this one,</q> he says. <q>Black water, no bottom. That’s where the things come up from. Your grandfather’s knife. Ruth’s ribbon.</q><br><br>Something tugs the line, gently, three times. Otto cuts it.`,lore:'Beneath the pond is a black lake with no bottom. Things the Tall Man took come up from it.'},
+    {h:9,title:'What I caught in ’61',text:`<q>Caught a man once.</q> Otto doesn’t look at you. <q>’61. On a night line. Pulled him up by the hook in his lip. He was smiling. He was me.</q><br><br><q>I cut him loose. Watched him sink. I’ve felt him down there every day since, waiting to swap back.</q><br><br>He gives you his best rod. <q>If you ever catch yourself, don’t let go. Pull. Whatever comes up, it’s the real one. I think.</q>`,lore:'In 1961 Otto caught a smiling copy of himself and let it go. He thinks it is still waiting to swap back.',reward:'rod3'}],
+  cora:[{h:6,title:'The countdown',text:`The number on Cora’s blackboard is not counting down to the Tithe. You do the arithmetic twice.<br><br>It is counting down to your birthday. The day you were born, and the day the lots are drawn, are the same day. They always were.<br><br><q>I teach the children to subtract,</q> Cora says, <q>so they’ll know when to stop asking where people went.</q>`,lore:'Cora’s countdown ends on your birthday, which is the day of the drawing.'},
+    {h:9,title:'Roll call',text:`Cora reads the roll to an empty classroom after dark. Twenty-six names. A voice answers to every one of them.<br><br>The last name is yours. The voice that answers is also yours, from the back desk, the empty one, with the names carved in it.<br><br>When you look, there’s only the desk. Your initials are the newest, cut so deep the wood has split.`,lore:'At Cora’s night roll call, every taken child answers. So do you, from the empty desk.'}],
+  wes:[{h:6,title:'Mile marker',text:`Wes drives you to the edge of the valley in his father’s cruiser, sirens off. At the county line the headlights show the same mile marker, again and again, MM 9, every thirty seconds, closer each time.<br><br>The last time it is right in front of the car. Someone has written on it in fresh red paint: <i>WES. GO HOME.</i><br><br>He turns around. He doesn’t speak the whole way back. When you reach town the paint is on his hands.`,lore:'On Wes’s drive out, the same mile marker kept coming back. “WES. GO HOME.” The paint was on his hands.'},
+    {h:9,title:'What Dad won’t say',text:`<q>Dad’s going to do something stupid.</q> Wes is fixing a carburettor he’s already fixed. <q>He keeps writing things and burning them. He keeps saying he’s proud of me.</q><br><br><q>If it’s him this year,</q> he says, <q>I’m going to be the one that rings the bell. So I can choose where it goes. So it doesn’t come for the town afterwards. That’s what the bell does, right? Hale said.</q>`,lore:'Wes plans to ring the bell himself if his father is taken, to lead it away from the town.'}],
+  ida:[{h:6,title:'The extra place',text:`Ida sets the table for dinner and invites you to stay. There is a place for you, and one more.<br><br>The extra chair is pulled out. The plate is served. While Hale says grace the food on it goes down, a forkful at a time, and nobody looks at it.<br><br><q>It’s only fair,</q> Ida says. <q>It eats with every family the last week. It likes to get to know us.</q>`,lore:'In the last week the Tall Man eats at every family’s table. They set a place for it.'},
+    {h:9,title:'The hymn’s last bar',text:`Ida plays you the last bar of the hymn, the one with no name in it yet. You find yourself humming the melody before she gets there.<br><br><q>Oh, dear,</q> she says, very gently, and stops. <q>Nobody knows that part. Nobody ever has. It isn’t written until it happens.</q><br><br><q>Who taught you that?</q>`,lore:'You knew the melody of the hymn’s unwritten last bar before Ida played it.'}],
+  gideon:[{h:6,title:'The nail fits',text:`Gideon fits this year’s nail into the hole in the Tithe-house door. It is long enough to go through the door, the frame, and the hand of anyone holding it shut from inside.<br><br><q>I make them longer every year,</q> he says. <q>Because every year, the morning after, the door is open.</q><br><br><q>Something lets it out. Or lets them out. I’ve never been brave enough to stay and see which.</q>`,lore:'The Tithe-house door is nailed shut each year. Every year, by morning, it is open.'},
+    {h:9,title:'A blade that remembers',text:`Gideon gives you a short iron blade, black, warm. <q>Forged from the nails. All of them, from ’71 on. Melted down the night after you came to town.</q><br><br><q>Iron remembers. It remembers every hand that was held shut by it. Cut the thing with that and it will feel every one of them at once.</q><br><br>The blade is warm all the time. Sometimes it is warmer, and points.`,lore:'Gideon forged a blade from every Tithe nail. It is always warm, and sometimes it points.',reward:'nailblade'}],
+  nell:[{h:6,title:'The box is finished',text:`The box on Nell’s bench is finished. It is beautiful: oak, dovetailed, lined with felt. She has carved a farmhouse on the lid. Your farmhouse, with a figure in the window.<br><br><q>I never carve them,</q> she says. <q>My hands did that one while I slept.</q><br><br>The figure in the window has no face. You look closer. It does. It is turned away, looking into the house, at something behind it.`,lore:'Nell’s finished box shows your farmhouse with a figure in the window, looking into the house.'},
+    {h:9,title:'A second box',text:`There are two boxes on the bench now. One is your size. One is smaller. Nell won’t say whose.<br><br><q>Silas gave me two sets of numbers this year. He’s never done that.</q> She runs her thumb along the lid. <q>Either it takes two. Or one of you isn’t going to stay dead.</q>`,lore:'This year Silas gave Nell two sets of measurements: one yours, one a child’s.'}],
+  ezra:[{h:6,title:'The cows won’t face west',text:`At dusk every animal in Ezra’s pen turns to face east, toward your farm, at the same moment. The chickens, the cows, the barn cats.<br><br><q>They’re listening,</q> Ezra says. <q>They hear it walking a week before we do. Tonight they’re hearing it walk in circles.</q><br><br><q>Round and round your house. Like it’s measuring.</q>`,lore:'At dusk every animal faces your farm. Ezra says they hear it circling your house.'},
+    {h:9,title:'Your tag',text:`Ezra has a brass ear tag in his palm. It is stamped with a number. The last number in his ledger, the one that was blank.<br><br><q>Tag goes on the night before,</q> he says. <q>That’s how it finds the right one. Always has.</q><br><br>He closes your hand around it. <q>So I’m giving it to you. Put it on something else. A scarecrow. A pumpkin. A pig. I don’t know if it’ll work. I want to see it try.</q>`,lore:'Ezra gave you the brass tag the Tall Man uses to find its Tithe. You might put it on something else.',reward:'tag'}],
+  pip:[{h:6,title:'Price check',text:`At closing, every price tag in the store reads 7. Pip is sticking new ones on as fast as he can. They change while he watches.<br><br><q>Seven days,</q> he whispers. <q>Aunt Mae says it’s a printing error. She says it every year.</q><br><br>On the till’s paper roll, printed over and over: your name. Then, at the bottom: PAID IN FULL.`,lore:'At closing every price in the store turns to 7. The till prints your name: PAID IN FULL.'},
+    {h:9,title:'The P',text:`Pip shows you under the till drawer again. The half-scratched P has become a full name. PIP.<br><br><q>I didn’t do it,</q> he says. <q>I don’t want to work the till anymore.</q><br><br>Under his name, very small, in an adult’s hand: <i>not if someone else goes first</i>.`,lore:'Pip’s name is now complete under the till, and beneath it: “not if someone else goes first.”'}],
+};
+for(const [id,evs] of Object.entries(MORE_EVENTS))if(PEOPLE[id])PEOPLE[id].events.push(...evs);
+// ---- heart scenes: fade in, portrait, the story told a beat at a time; your mind bends the telling
+{const css=document.createElement('style');css.textContent=`#scene{position:fixed;inset:0;z-index:70;display:none;background:rgba(4,3,6,.88);color:#f0e4c8;align-items:flex-end;justify-content:center;padding:0 12px calc(env(safe-area-inset-bottom,0px) + 22px);cursor:pointer}
+#scene .box{max-width:640px;width:100%;background:#2a1a0e;box-shadow:inset 0 0 0 3px #1a0e06,inset 0 0 0 6px #8a5a2a,inset 0 0 0 9px #3a2414;padding:18px 18px 14px;display:flex;gap:14px;animation:scIn .5s ease}
+#scene canvas{width:96px;height:96px;flex:none;image-rendering:pixelated;background:#c8955a;box-shadow:inset 0 0 0 3px #5a3418}#scene .tt{font-family:var(--font-display);color:var(--ember);font-size:18px;margin-bottom:6px}
+#scene .tx{font-size:15px;line-height:1.5;min-height:88px}#scene .tx q{color:#fff6dc}#scene .more{font-size:12px;color:var(--dim);text-align:right;margin-top:6px}
+#scene.glitch .box{animation:scGl .12s steps(2) 3}@keyframes scIn{from{opacity:0;transform:translateY(20px)}}@keyframes scGl{50%{transform:translate(3px,-2px);filter:invert(1) hue-rotate(160deg)}}`;document.head.appendChild(css);
+  const el=document.createElement('div');el.id='scene';el.innerHTML='<div class="box"><canvas width="48" height="48"></canvas><div style="flex:1"><div class="tt"></div><div class="tx"></div><div class="more">tap to continue</div></div></div>';document.body.appendChild(el);}
+let SCENE=null;
+function playScene(id,title,html,done){const el=$('scene');const beats=html.split(/<br>\s*<br>/).map(s=>s.trim()).filter(Boolean);SCENE={beats,i:0,done};S.paused=true;
+  el.querySelector('.tt').textContent=(npcById(id)?npcById(id).def.name+' — ':'')+title;const cv=el.querySelector('canvas');const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,48,48);
+  const m=SPR[id],im=m&&IMG[m.src];if(im){const r=(m.clips.idle?m.clips.idle.S:m.clips.walk.S)[0];g.drawImage(im,0,r*m.fh+8,m.fw,40,0,2,48,40);}
+  el.style.display='flex';fade&&fade(0);SFX.page&&SFX.page();sceneBeat();}
+function sceneBeat(){const el=$('scene');const s=SCENE;if(!s)return;let t=s.beats[s.i];const T=tierOf(M.v);
+  if(T>=2&&rand()<.25*T){el.classList.add('glitch');setTimeout(()=>el.classList.remove('glitch'),400);SFX.stinger&&SFX.stinger();
+    const real=t;el.querySelector('.tx').innerHTML=pick(['<q>You’re not listening. You never listen. You came back to listen.</q>','<q>It’s standing behind you while I tell you this.</q>','<q>Say your name. Go on. Say it. Are you sure?</q>']);setTimeout(()=>{if(SCENE===s)el.querySelector('.tx').innerHTML=real;},700);}
+  else el.querySelector('.tx').innerHTML=t;
+  el.querySelector('.more').textContent=s.i<s.beats.length-1?'tap to continue':'tap to close';}
+$('scene').addEventListener('click',()=>{const s=SCENE;if(!s)return;s.i++;if(s.i>=s.beats.length){$('scene').style.display='none';SCENE=null;S.paused=false;s.done&&s.done();return;}sceneBeat();});
+addEventListener('keydown',e=>{if(SCENE&&(e.code==='Space'||e.code==='Enter'||e.code==='KeyE')){e.preventDefault();$('scene').click();}},true);
+// ---- talking: once a day, friendship fades a little if you ignore someone
+socialTalk=function(n){const id=n.def.id,P_=PEOPLE[id];if(!P_)return;const night=isNight();
+  if(!S.talkedToday[id]){S.talkedToday[id]=1;S.lastTalk[id]=S.day;addFriend(id,night?4:16);}
+  const ev=P_.events.slice().sort((a,b)=>a.h-b.h).find(e=>hearts(id)>=e.h&&!S.heartSeen[id+e.h]);
+  if(ev&&!night&&!lastQuestLine){S.heartSeen[id+ev.h]=1;$('talk').hidden=true;talkingTo=null;
+    playScene(id,ev.title,ev.text,()=>{addLore(ev.lore);journalNote(`${n.def.name}: ${ev.title}.`);socialReward(ev.reward);});return;}
+  let line=null;
+  if(!lastQuestLine&&!night){const tier=Math.min(2,Math.floor(hearts(id)/3));const pool=P_.talk[tier];line=pool[(S.day*3+(S.talked[id]||0))%pool.length];}
+  if(dayOfMonth()===BDAY[id]&&!night)line=(line?line+' ':'')+'…It’s my birthday, you know. Nobody here remembers birthdays. It’s bad luck to be counted.';
+  if(GASLIGHT[id]&&tierOf(M.v)>=2&&rand()<(tierOf(M.v)>=3?.5:.28))line=pick(GASLIGHT[id]);
+  if(line)$('talkLine').innerHTML=`<q>${line}</q>`;
+  $('talkRole').innerHTML=`${night?'Standing in the dark, facing your farm':n.def.role} <span class="hearts">${heartStr(id)}</span>`;
+  let gb=$('talkGift');if(!gb){gb=document.createElement('button');gb.id='talkGift';gb.className='close';gb.textContent='Give';$('talkClose').after(gb);gb.addEventListener('click',()=>openGift(talkingTo));}
+  gb.hidden=night||S.gifted[id]===S.day||(S.giftsWeek[id]||0)>=2||!giftables().length;};
+heartStr=function(id){const h=hearts(id);return '♥'.repeat(h)+'♡'.repeat(Math.max(0,10-h));};
+function giftables(){syncSlots();const ks=S.slots.filter(k=>k&&k[0]!=='T'&&k[0]!=='F');for(const k of BAG_OVER)if(k[0]!=='T'&&k[0]!=='F')ks.push(k);const o={P:0,I:1,S:2};return ks.sort((a,b)=>o[a[0]]-o[b[0]]);}
+openGift=function(n){if(!n)return;const id=n.def.id,P_=PEOPLE[id];const ks=giftables();const sel=selectedItem();if(sel&&ks.includes(sel.key)){ks.splice(ks.indexOf(sel.key),1);ks.unshift(sel.key);}
+  $('talkLine').innerHTML='<span class="sub">What will you give?</span>';const acts=$('talk').querySelector('.acts');const old=$('talk').querySelector('.giftrow');if(old)old.remove();
+  const row=document.createElement('div');row.className='giftrow';row.style.cssText='display:flex;flex-wrap:wrap;gap:6px;margin:8px 0';
+  for(const k of ks.slice(0,14)){const it=itemInfo(k);if(!it||it.qty<=0)continue;const b=document.createElement('button');b.className='buy';b.style.cssText='display:flex;align-items:center;gap:6px';
+    b.innerHTML=`<img src="${iconOf(it.icon)}" style="width:24px;height:24px;image-rendering:pixelated" alt="">${it.name} ×${it.qty}`;
+    b.addEventListener('click',()=>{if(it.type==='P')takeBasket(it.id,1);else if(it.type==='I')takeInv(it.id,1);else if(it.type==='S')S.seeds[it.id]--;
+      S.gifted[id]=S.day;S.giftsWeek[id]=(S.giftsWeek[id]||0)+1;const r=prefOf(id,k);const bd=dayOfMonth()===BDAY[id];
+      addFriend(id,({love:80,like:45,hate:-30,meh:20}[r])*(bd?8:1));SFX[r==='hate'?'deny':'coin']();
+      $('talkLine').innerHTML=`<q>${bd?(r==='hate'?'On my birthday? Really?':'For my birthday? Oh… nobody does that here. Thank you.')+' ':''}${P_.gift[r]}</q>`;row.remove();$('talkGift').hidden=true;updateHud();});row.appendChild(b);}
+  if(!row.children.length)row.innerHTML='<span class="sub">You have nothing to give.</span>';acts.before(row);};
+// rewards from the new scenes
+{const _sr=socialReward;socialReward=function(r){_sr(r);const K={truckkey:'Walt’s truck key',bellkey:'The belfry key',ribbon:'Ruth’s ribbon',dunnslip:'Dunn’s slip',tag:'A brass ear tag',nailblade:'The nail blade'};
+  if(K[r]){S.keyItems=S.keyItems||[];if(!S.keyItems.includes(r))S.keyItems.push(r);toast(`${K[r]} — kept in your journal.`,2.6);}
+  if(r==='rod3'){S.rod=Math.max(S.rod||1,3);toast('Otto’s greenheart rod. The bar is wider now.',2.6);}
+  if(r==='nailblade'){S.gear&&(S.gear.weapon='machete');}};}
+// a new week clears the gift count; neglect fades friendship slowly
+{const _nd=newDay;newDay=function(m,p){_nd(m,p);if(dayOfMonth()===1)S.giftsWeek={};if((S.day-1)%7===0)S.giftsWeek={};
+  for(const id in PEOPLE){if(!S.friend[id])continue;if((S.lastTalk[id]||0)<S.day-2)S.friend[id]=Math.max(0,S.friend[id]-3);}
+  const bd=Object.entries(BDAY).find(([id,d])=>d===dayOfMonth()&&npcById(id));if(bd)setTimeout(()=>toast(`It’s ${npcById(bd[0]).def.name.split(' ')[0]}’s birthday. A gift counts for a lot today.`,3),2500);};}
+// the social tab shows birthdays
+{const _rs=renderSocial;renderSocial=function(){_rs();document.querySelectorAll('.soc .p').forEach(p=>{const id=p.dataset.id;const sm=p.querySelector('small');if(sm&&BDAY[id])sm.textContent+=` · Birthday: day ${BDAY[id]}`;});};}
+
+/* ================= the tutorial: a coach bubble that teaches by doing. Core steps come in order; the rest wait until they matter.
+   Everything can be skipped, and it reads differently on a phone and a keyboard. ================= */
+S.tut=S.tut||{done:{},off:false};
+const TOUCH=matchMedia('(pointer:coarse)').matches;
+const tutMove={x:null,z:null,d:0};
+const TUT=[
+  // core, in order
+  {id:'move',core:1,text:()=>TOUCH?'Drag anywhere on the screen to walk. Drag further to run.':'Walk with <b>WASD</b> or the arrow keys. Hold <b>Shift</b> to run.',done:()=>tutMove.d>4},
+  {id:'act',core:1,when:()=>S.foundCabin,text:()=>`The big button does whatever is in front of you: read, open, talk, till.${TOUCH?'':' On a keyboard it’s <b>Space</b> or <b>E</b>.'} Read the note on the cabin door.`,target:'#btnAct',done:()=>S.readLetter},
+  {id:'menu',core:1,when:()=>S.readLetter,text:()=>`Open the menu to see your backpack.${TOUCH?'':' Shortcut: <b>Tab</b>, or <b>M</b> for the map.'}`,target:'#btnBag',done:()=>S.tut.openedMenu},
+  {id:'drag',core:1,when:()=>S.tut.openedMenu&&!$('bag').hidden,text:()=>'The top row is your toolbar. Drag an item to move it; drop it on the bin to throw it away. Close the menu when you’re done.',target:'#invGrid',done:()=>$('bag').hidden},
+  {id:'till',core:1,when:()=>S.readLetter&&$('bag').hidden,text:()=>'Walk into the brown field. Facing soil, the button becomes <b>Till</b>. Each swing costs a little energy.',target:'#btnAct',done:()=>S.everTilled},
+  {id:'plant',core:1,when:()=>S.everTilled,text:()=>`Pick seeds in your toolbar${TOUCH?'':' (number keys)'}, then face the tilled soil and <b>Plant</b>.`,target:'#hotbar',done:()=>S.everPlanted},
+  {id:'water',core:1,when:()=>S.everPlanted,text:()=>'Seedlings need water every day. <b>Water</b> them; refill the can at the well.',target:'#btnAct',done:()=>S.everWatered},
+  {id:'bars',core:1,when:()=>S.everWatered,text:()=>'These bars are your <b>energy</b> and <b>health</b>. Work spends energy; food and sleep bring it back.',target:'#bars',done:()=>S.tut.barsT>6},
+  // contextual, once each, when they become relevant
+  {id:'talk',when:()=>npcs.some(n=>n.vis&&PEOPLE[n.def.id]&&Math.hypot(n.x-P.x,n.z-P.z)<3),text:()=>'Someone’s nearby. Talk to people once a day and they warm to you. Hearts open scenes; gifts help, two a week.',done:()=>Object.keys(S.talkedToday||{}).length>0},
+  {id:'fish',when:()=>!S.room&&typeof waterAhead==='function'&&waterAhead(),text:()=>`Face water and the button becomes <b>Fish</b>. Tap to wind up, tap to cast, then hook it when it bites. In the catch bar, hold${TOUCH?' your finger down':' <b>Space</b>'} to lift the green bar and keep the fish inside it.`,done:()=>(S.fishCaught||0)>0||S.tut.fishT>14},
+  {id:'ship',when:()=>S.basket.length>0,text:()=>'Crops and fish go in the shipping crate by the cabin. You’re paid in the morning — well, straight away. Things here are in a hurry.',done:()=>S.shipped>0},
+  {id:'dusk',when:()=>S.hour>=18&&!S.room,text:()=>'It’s getting dark. Your lantern burns oil at night. When the church bell rings at eight, don’t be out in the corn.',done:()=>S.tut.duskT>8},
+  {id:'map',when:()=>S.day>=1&&S.hour>=9&&S.everWatered,text:()=>`The <b>Map</b> tab in the menu shows the whole valley and where you are.${TOUCH?'':' Press <b>M</b>.'}`,target:'#btnBag',done:()=>S.tut.sawMap},
+  {id:'sleep',when:()=>S.hour>=21,text:()=>'It’s late. Go to bed in the cabin to save the day and wake rested. Staying out past two in the morning is a very bad idea.',done:()=>S.tut.slept},
+];
+{const css=document.createElement('style');css.textContent=`#tut{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 150px);z-index:40;width:min(400px,90vw);background:rgba(42,26,14,.94);color:#f4e6c8;
+  box-shadow:inset 0 0 0 3px #1a0e06,inset 0 0 0 6px #e8923f,0 4px 0 #1a0e06;padding:9px 12px 8px;font-size:13px;line-height:1.4;display:none;animation:tutIn .35s ease}
+#tut b{color:#ffd27a;font-weight:600}#tut .tk{font-family:var(--font-display);color:var(--ember);font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+#tut .row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}#tut .row button{font:inherit;font-size:12px;padding:4px 10px;background:#3a2414;color:var(--bone);border:0;box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 3px #6a4424;cursor:pointer}
+.tutHi{outline:3px solid #ffd27a!important;outline-offset:3px;animation:tutPulse 1s steps(2) infinite}@keyframes tutPulse{50%{outline-color:#e8923f}}@keyframes tutIn{from{opacity:0;transform:translate(-50%,-8px)}}`;document.head.appendChild(css);
+  const el=document.createElement('div');el.id='tut';el.setAttribute('role','status');el.innerHTML='<div class="tk">Tip</div><div class="tx"></div><div class="row"><span class="ct" style="font-size:12px;color:var(--dim)"></span><span><button id="tutNext">Got it</button> <button id="tutSkip">Skip tutorial</button></span></div>';document.body.appendChild(el);
+  $('tutSkip').addEventListener('click',()=>{S.tut.off=true;tutShow(null);toast('Tutorial off. Tips are in the journal if you need them.',2);});
+  $('tutNext').addEventListener('click',()=>{if(TUT_CUR)S.tut.done[TUT_CUR.id]=1;tutShow(null);});}
+let TUT_CUR=null,TUT_HI=null;
+function tutShow(step){const el=$('tut');if(TUT_HI){TUT_HI.classList.remove('tutHi');TUT_HI=null;}TUT_CUR=step;if(!step){el.style.display='none';return;}
+  el.querySelector('.tx').innerHTML=step.text();const n=TUT.filter(s=>s.core).length,k=TUT.filter(s=>s.core&&S.tut.done[s.id]).length;el.querySelector('.ct').textContent=step.core?`Step ${k+1} of ${n}`:'';
+  el.style.display='block';if(step.target){const t=document.querySelector(step.target);if(t){t.classList.add('tutHi');TUT_HI=t;}}}
+let tutLast=0;
+setInterval(()=>{if(S.tut.off||S.mode!=='play'){if(TUT_CUR)tutShow(null);return;}const dt=.25;
+  if(tutMove.x===null){tutMove.x=P.x;tutMove.z=P.z;}tutMove.d+=Math.hypot(P.x-tutMove.x,P.z-tutMove.z);tutMove.x=P.x;tutMove.z=P.z;
+  if(TUT_CUR){const id=TUT_CUR.id;if(id==='bars')S.tut.barsT=(S.tut.barsT||0)+dt;if(id==='fish')S.tut.fishT=(S.tut.fishT||0)+dt;if(id==='dusk')S.tut.duskT=(S.tut.duskT||0)+dt;
+    if(TUT_CUR.done()){S.tut.done[id]=1;tutShow(null);SFX.coin&&SFX.coin();}else if(S.paused&&!$('bag').hidden&&id!=='drag'){$('tut').style.display='none';}else $('tut').style.display='block';return;}
+  if(S.paused&&$('bag').hidden)return;
+  const core=TUT.filter(s=>s.core&&!S.tut.done[s.id]);const nxt=core[0];
+  if(nxt&&(!nxt.when||nxt.when())){if(nxt.done()){S.tut.done[nxt.id]=1;return;}tutShow(nxt);return;}
+  if(core.length&&core[0].id!=='bars'&&!S.everWatered)return;                       // stay on the farm lessons until they're learned
+  for(const s of TUT){if(s.core||S.tut.done[s.id])continue;if(s.when&&s.when()){if(s.done()){S.tut.done[s.id]=1;continue;}tutShow(s);return;}}},250);
+{const _ob=openBag;openBag=function(tab){_ob(tab);S.tut.openedMenu=true;if(tab==='map'||GM_TAB==='map')S.tut.sawMap=true;};}
+{const _sl=sleep;sleep=function(){S.tut.slept=true;_sl();};}
 
 /* ================= pixel autumn UI + desktop controls ================= */
 {const lk=document.createElement('link');lk.rel='stylesheet';lk.href='https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&display=swap';document.head.appendChild(lk);

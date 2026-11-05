@@ -4,7 +4,7 @@
    The town draws lots in the church, and Sheriff Dunn decides how they fall. Ruth Abernathy was taken in 1987, Mae's son Danny in 1999.
    Elias Marsh refused this year, so the Tithe falls to his blood. The thing in the corn is not a monster from outside:
    it is made of everyone it has taken. It wears the last one. If it takes you, you will be what walks next October. */
-const FRIEND_MAX=600;   // six hearts
+const FRIEND_MAX=1000;   // ten hearts
 S.friend={};S.talkedToday={};S.gifted={};S.heartSeen={};S.lore=[];S.journal=[];
 const GIFTS={turnip:'Turnip',pumpkin:'Pumpkin',corn:'Corn',mushroom:'Glowcap',fish:'Fish',egg:'Egg'};
 const PEOPLE={

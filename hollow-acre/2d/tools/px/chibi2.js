@@ -226,9 +226,12 @@ function hair(hx,hy,dir,fl,st){if(!st||st==='bald')return;const S=HSTY[st]||HSTY
   if(!back&&S.side){const [len,out]=S.side;if(!side){for(const s of [-1,1]){lock(s*(FX-1),-8,s*(FX+1+out),len,3.4,s>0?-1:0);lock(s*(FX-3),-7,s*(FX+.5+out*.5),len-1,2.6,s>0?0:0);}}
     else{lock(-4,-8,-4,Math.min(len,S.sb+2),3,0);}}
   // hair at the back of the head, fanning from the crown to the nape
-  if(back||side){const nape=S.nape+(S.side&&side?0:0);const tips=back?[-FX-1,-FX+2,-3,0,3,FX-2,FX+1]:[-FX-1,-FX+1,-6];
-    tips.forEach((tu,i)=>lock(back?tu*.35:tu*.7-1.5,-12,tu,nape+Math.round(jit(i,SEED+5)*2)-(Math.abs(tu)>FX-1&&back?1:0),3.4,back&&tu>2?-1:0));
-    if(back&&!buzz&&!S.curls)for(let i=0;i<4;i++)lock(-5+i*3.3,-13,-6+i*4,-6,2.6,0);}
+  if(side){const nape=S.nape;[-FX-1,-FX+1,-6].forEach((tu,i)=>lock(tu*.7-1.5,-12,tu,nape+Math.round(jit(i,SEED+5)*2),3.4,0));}
+  if(back&&!buzz&&!S.curls){const cu=1,cy=-9,N=11;
+    const reach=(a)=>{let r=0;for(;r<20;r+=.5){const u=cu+Math.cos(a)*r,y=cy+Math.sin(a)*r;if(!CRAN(u,y,FIT+.6,false)||y>capBottom(u)+1)break;}return r;};
+    for(let i=0;i<N;i++){const a=-Math.PI/2+(i/N)*Math.PI*2+.25+(jit(i,SEED)-.5)*.25;const r=reach(a);if(r<2)continue;const sw=.35;   // locks curl a little clockwise
+      const tx=cu+Math.cos(a+sw)*r*.85,ty=cy+Math.sin(a+sw)*r*.85;lock(cu+Math.cos(a)*1.2,cy+Math.sin(a)*1.2,tx,ty,Math.sin(a)>0?3.6:2.8,tx>2?-1:0);}
+    for(let i=0;i<4;i++){const tu=-FX+i*(2*FX)/3+(jit(i,SEED+2)-.5)*2;lock(tu*.8,S.nape-3,tu,S.nape+1+Math.round(jit(i,SEED+3)),2.6,tu>2?-1:0);}}
   // tufts break the round silhouette on top
   for(const [tu,ang,len] of (S.tufts||[])){if(back&&ang>-60&&ang<-120)continue;const a=ang*Math.PI/180;const u0=side?tu*.4-1:tu*.6,y0=-12.5+Math.abs(tu)*.35;lock(u0,y0,u0+Math.cos(a)*len*(side?.7:1),y0+Math.sin(a)*len,2.6,0);}
   // ---- longer styles: curtains of locks
@@ -305,7 +308,7 @@ const FANG_S=[115,-100,-92,-84,58,88,86,120],FK_S=[.9,1,1,1,.8,.62,.62,.85];
 const FANG_N=[-80,-95,-92,-86,-84,-90,-90,-84],FK_N=[.55,1,1,1,.85,.5,.5,.7];
 const BACK=[0,1,1,1,0,0,0,0];
 // body language of a swing: lean back on the wind-up, drive forward through the strike, knees give at impact
-const SW_LEAN=[0,-1,-2,-2,1,2,2,1],SW_CROUCH=[0,0,0,0,1,3,3,1],SW_BOB=[0,-1,-1,-1,0,0,0,0];
+const SW_LEAN=[0,-2,-3,-3,1,3,3,1],SW_CROUCH=[0,0,0,0,2,4,4,1],SW_BOB=[0,-1,-2,-1,0,0,0,0];
 const gripOf=(kind,f,front)=>front?FGRIP[f]:GRIP[kind][f];
 function drawTool(kind,f,hx,ay,dir,fl){const side=dir==='E'||dir==='W';
   if(kind==='hoe'||kind==='pick'||kind==='axe'){const front=!side,back=dir==='N';const [gdx,gdy]=gripOf(kind,f,front);

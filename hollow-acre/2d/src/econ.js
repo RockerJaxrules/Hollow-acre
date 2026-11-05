@@ -157,7 +157,7 @@ function hotbarUse(k){if(S.mode!=='play'||S.paused)return;const T=S.tools;
   if(k==='seed'){onSeed();return;}
   if(k==='food'){const best=Object.keys(ITEMS).filter(q=>ITEMS[q].food&&inv(q)>0).sort((a,b)=>ITEMS[a].food[0]-ITEMS[b].food[0])[0];if(best){takeInv(best);eat(ITEMS[best].food[0],ITEMS[best].food[1],ITEMS[best].name);}else{const raw=Object.keys(RAW).find(q=>basketCount(q)>0);if(raw){takeBasket(raw,1);eat(RAW[raw][0],RAW[raw][1],'A raw '+raw);}else toast('Nothing to eat.',1.4);}updateHud();return;}
   const nm={hoe:`${T.hoe>1?'Copper':'Rusty'} hoe — till soil`,can:`${S.waterMax>10?'Copper':'Tin'} can — ${S.water}/${S.waterMax}`,pick:`${T.pick>1?'Steel':'Grandpa’s'} pickaxe — break stone`,axe:`${T.axe>1?'Steel':'Old'} axe — chop stumps`}[k];toast(nm,1.4);}
-setInterval(()=>{const hb=$('hotbar');if(!hb)return;hb.style.display=(S.mode!=='play'||$('hud').hidden||S.paused)?'none':'flex';
+setInterval(()=>{const hb=$('hotbar');if(!hb)return;hb.style.display=(S.mode!=='play'||$('hud').hidden||S.paused)?'none':'flex';if(!$('hb_seed'))return;
   for(const im of hb.querySelectorAll('img'))if(!im.src&&(SPR['icon32_'+im.dataset.ic]||SPR['icon_'+im.dataset.ic])&&IMG[(SPR['icon32_'+im.dataset.ic]||SPR['icon_'+im.dataset.ic]).src])im.src=iconOf(im.dataset.ic);
   $('hb_seed').textContent=S.seeds[S.sel]||0;$('hb_can').textContent=S.water;const fc=Object.keys(ITEMS).filter(q=>ITEMS[q].food).reduce((a,q)=>a+inv(q),0);$('hb_food').textContent=fc||'';
   const L=($('btnAct').textContent||'');const on=/Till/.test(L)?'hoe':/Water/.test(L)?'can':/Mine|Break/.test(L)?'pick':/Chop/.test(L)?'axe':/Plant/.test(L)?'seed':null;
