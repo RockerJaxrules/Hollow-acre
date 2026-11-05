@@ -78,7 +78,7 @@ function applyLook(only){const look=S.look,M=lookMap(look);for(const tool of (on
   el.innerHTML=`<div class="kicker" id="cKick">Who is driving</div><div class="cwrap"><canvas id="cPrev" width="48" height="64"></canvas>
     <div class="turn"><button class="chip" id="cL" aria-label="Turn left">◀</button><button class="chip" id="cAnim" aria-label="Change animation">Walk</button><button class="chip" id="cR" aria-label="Turn right">▶</button></div>
     <div class="ctabs" id="cTabs"></div><div class="cpanel" id="cPanel"></div>
-    <div class="cbtns"><button class="chip" id="cRand">Surprise me</button><button class="begin" id="cGo">Drive</button></div></div>`;
+    <div style="margin:8px 0 4px"><input id="cName" maxlength="14" placeholder="Your name" autocomplete="off" style="font:inherit;width:100%;padding:8px 10px;background:#2a1a0e;color:#f4e6c8;border:0;box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 3px #b8521c"></div><div class="cbtns"><button class="chip" id="cRand">Surprise me</button><button class="begin" id="cGo">Drive</button></div></div>`;
   $('title').after(el);
   const TABS={Face:[['Skin','skin'],['Eyes','eye'],['Facial hair','beard']],Hair:[['Style','style'],['Colour','hair']],
     Clothes:[['Outfit','outfit'],['Pattern','pattern'],['Top','shirt'],['Bottoms','pants'],['Jacket, vest, cardigan, inner tee','extra'],['Shoes','shoes']],Extras:[['Hat','hat'],['Hat colour','hatColor'],['Glasses','glasses'],['Accessory','accessory'],['Accessory colour','acc']]};
@@ -97,11 +97,13 @@ function applyLook(only){const look=S.look,M=lookMap(look);for(const tool of (on
   let raf=0;function preview(now){if(el.hidden)return;raf=requestAnimationFrame(preview);const [,nm,clip]=ANIMS[anim];const m=SPR[nm],im=IMG[m.src];if(!im)return;const g=$('cPrev').getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,48,64);
     const c=m.clips[clip][DIRS[dirI]]||m.clips[clip].S;const nf=c[1];const fps=clip==='idle'?3:clip==='run'?14:clip==='thrust'?10:9;let f=Math.floor(now/1000*fps)%nf;if(clip==='walk'||clip==='run')f=1+f%(nf-1);
     g.fillStyle='rgba(10,14,8,.35)';g.beginPath();g.ellipse(24,60,8,2.2,0,0,Math.PI*2);g.fill();g.drawImage(im,f*m.fw,c[0]*m.fh,m.fw,m.fh,0,0,48,64);}
-  function open(edit){editing=!!edit;$('cKick').textContent=edit?'The wardrobe':'Who is driving';$('cGo').textContent=edit?'Done':'Drive';build();applyLook(['','_hoe']);$('title').hidden=true;el.hidden=false;raf=requestAnimationFrame(preview);}
+  function open(edit){editing=!!edit;$('cKick').textContent=edit?'The wardrobe':'Who is driving';$('cGo').textContent=edit?'Done':'Drive';build();applyLook(['','_hoe']);$('title').hidden=true;el.hidden=false;if($('cName'))$('cName').value=S.look.name||'';raf=requestAnimationFrame(preview);}
   window.openWardrobe=()=>{S.paused=true;$('bag')&&($('bag').hidden=true);open(true);};
   $('begin').addEventListener('click',e=>{e.stopImmediatePropagation();A.init&&A.init();open(false);},true);
-  $('cGo').addEventListener('click',()=>{try{localStorage.setItem('hollowLook',JSON.stringify(S.look));}catch(e){}el.hidden=true;cancelAnimationFrame(raf);applyLook();
+  $('cGo').addEventListener('click',()=>{if($('cName'))S.look.name=$('cName').value.trim().slice(0,14);try{localStorage.setItem('hollowLook',JSON.stringify(S.look));}catch(e){}el.hidden=true;cancelAnimationFrame(raf);applyLook();
     if(editing){S.paused=false;toast('You change in the cabin. The mirror takes a moment to catch up.',2.4);return;}A.init&&A.init();startCine('intro');});}
 // the wardrobe: from the bag at any time
 {const _ob=openBag;openBag=function(){_ob();const B=$('bagBody');if(!B||B.querySelector('#bagWard'))return;const d=document.createElement('div');d.style.cssText='text-align:center;margin-top:10px';
   d.innerHTML='<button class="chip" id="bagWard" style="padding:8px 16px">Wardrobe</button>';B.appendChild(d);d.firstChild.addEventListener('click',()=>openWardrobe());};}
+
+if($('cName'))['keydown','keyup','keypress'].forEach(t=>$('cName').addEventListener(t,e=>e.stopPropagation()));

@@ -2746,7 +2746,7 @@ function applyLook(only){const look=S.look,M=lookMap(look);for(const tool of (on
   el.innerHTML=`<div class="kicker" id="cKick">Who is driving</div><div class="cwrap"><canvas id="cPrev" width="48" height="64"></canvas>
     <div class="turn"><button class="chip" id="cL" aria-label="Turn left">◀</button><button class="chip" id="cAnim" aria-label="Change animation">Walk</button><button class="chip" id="cR" aria-label="Turn right">▶</button></div>
     <div class="ctabs" id="cTabs"></div><div class="cpanel" id="cPanel"></div>
-    <div class="cbtns"><button class="chip" id="cRand">Surprise me</button><button class="begin" id="cGo">Drive</button></div></div>`;
+    <div style="margin:8px 0 4px"><input id="cName" maxlength="14" placeholder="Your name" autocomplete="off" style="font:inherit;width:100%;padding:8px 10px;background:#2a1a0e;color:#f4e6c8;border:0;box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 3px #b8521c"></div><div class="cbtns"><button class="chip" id="cRand">Surprise me</button><button class="begin" id="cGo">Drive</button></div></div>`;
   $('title').after(el);
   const TABS={Face:[['Skin','skin'],['Eyes','eye'],['Facial hair','beard']],Hair:[['Style','style'],['Colour','hair']],
     Clothes:[['Outfit','outfit'],['Pattern','pattern'],['Top','shirt'],['Bottoms','pants'],['Jacket, vest, cardigan, inner tee','extra'],['Shoes','shoes']],Extras:[['Hat','hat'],['Hat colour','hatColor'],['Glasses','glasses'],['Accessory','accessory'],['Accessory colour','acc']]};
@@ -2765,14 +2765,16 @@ function applyLook(only){const look=S.look,M=lookMap(look);for(const tool of (on
   let raf=0;function preview(now){if(el.hidden)return;raf=requestAnimationFrame(preview);const [,nm,clip]=ANIMS[anim];const m=SPR[nm],im=IMG[m.src];if(!im)return;const g=$('cPrev').getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,48,64);
     const c=m.clips[clip][DIRS[dirI]]||m.clips[clip].S;const nf=c[1];const fps=clip==='idle'?3:clip==='run'?14:clip==='thrust'?10:9;let f=Math.floor(now/1000*fps)%nf;if(clip==='walk'||clip==='run')f=1+f%(nf-1);
     g.fillStyle='rgba(10,14,8,.35)';g.beginPath();g.ellipse(24,60,8,2.2,0,0,Math.PI*2);g.fill();g.drawImage(im,f*m.fw,c[0]*m.fh,m.fw,m.fh,0,0,48,64);}
-  function open(edit){editing=!!edit;$('cKick').textContent=edit?'The wardrobe':'Who is driving';$('cGo').textContent=edit?'Done':'Drive';build();applyLook(['','_hoe']);$('title').hidden=true;el.hidden=false;raf=requestAnimationFrame(preview);}
+  function open(edit){editing=!!edit;$('cKick').textContent=edit?'The wardrobe':'Who is driving';$('cGo').textContent=edit?'Done':'Drive';build();applyLook(['','_hoe']);$('title').hidden=true;el.hidden=false;if($('cName'))$('cName').value=S.look.name||'';raf=requestAnimationFrame(preview);}
   window.openWardrobe=()=>{S.paused=true;$('bag')&&($('bag').hidden=true);open(true);};
   $('begin').addEventListener('click',e=>{e.stopImmediatePropagation();A.init&&A.init();open(false);},true);
-  $('cGo').addEventListener('click',()=>{try{localStorage.setItem('hollowLook',JSON.stringify(S.look));}catch(e){}el.hidden=true;cancelAnimationFrame(raf);applyLook();
+  $('cGo').addEventListener('click',()=>{if($('cName'))S.look.name=$('cName').value.trim().slice(0,14);try{localStorage.setItem('hollowLook',JSON.stringify(S.look));}catch(e){}el.hidden=true;cancelAnimationFrame(raf);applyLook();
     if(editing){S.paused=false;toast('You change in the cabin. The mirror takes a moment to catch up.',2.4);return;}A.init&&A.init();startCine('intro');});}
 // the wardrobe: from the bag at any time
 {const _ob=openBag;openBag=function(){_ob();const B=$('bagBody');if(!B||B.querySelector('#bagWard'))return;const d=document.createElement('div');d.style.cssText='text-align:center;margin-top:10px';
   d.innerHTML='<button class="chip" id="bagWard" style="padding:8px 16px">Wardrobe</button>';B.appendChild(d);d.firstChild.addEventListener('click',()=>openWardrobe());};}
+
+if($('cName'))['keydown','keyup','keypress'].forEach(t=>$('cName').addEventListener(t,e=>e.stopPropagation()));
 
 /* ================= the game menu, Stardew-style: Items (a backpack of slots whose first row is your toolbar), Social, Map, Journal.
    The slots are a view over the stores the rest of the game already uses (tools, seeds, the produce basket, materials and food,
@@ -3480,7 +3482,7 @@ function stStart(){const st=S.st;st.tithe=28*Math.ceil((S.day+12)/28);st.act=2;
 
 // ---- interactions
 interact.push({x:MAILPOS.x,z:MAILPOS.z,r:1.1,on:()=>!!S.st.mail,label:()=>'Read',ok:()=>true,act(){const L=S.st.mail;S.st.mail=null;S.st.lettersRead++;SFX.page&&SFX.page();
-  const day=S.day+1;openNote(`<h3>Day ${day}</h3><p>${ST_LETTERS[L]}</p><p style="text-align:right">— you</p>`,'Keep it',()=>{mindHit(L==='first'?6:4);if(L==='first'){S.st.act=3;addLore('A letter in my handwriting: the three stones are under the dock, in the hollow tree at noon, and under my bed. Put them back.');}});}});
+  const day=S.day+1;openNote(`<h3>Day ${day}</h3><p>${ST_LETTERS[L]}</p>${L==='epi_door'?'':'<p style="text-align:right">— you</p>'}`,'Keep it',()=>{mindHit(L==='first'?6:4);if(L==='first'){S.st.act=3;addLore('A letter in my handwriting: the three stones are under the dock, in the hollow tree at noon, and under my bed. Put them back.');}});}});
 interact.push({x:LAKE.x,z:LAKE.z-LAKE.rz+1.6,r:1.6,on:()=>S.st.act>=3&&!S.st.got.dock,label:()=>'Reach under',ok:()=>true,act(){S.st.got.dock=1;SFX.thud&&SFX.thud(0,.3);mindHit(6);
   toast('You follow the cord down into the cold. Something takes your wrist. Holds it. Lets go. In your hand: a black stone, warm as skin.',4,true);}});
 interact.push({x:HOLLOW_TREE.x,z:HOLLOW_TREE.z-1.3,r:1.8,on:()=>S.st.act>=3&&!S.st.got.tree,label:()=>'Reach in',ok:()=>true,act(){
@@ -3577,11 +3579,11 @@ You sit. The door shuts. Outside, very politely, the whole town claps.`,
 function stEnding(k){const E=ST_END[k],st=S.st;if(st.done)return;st.done=true;st.ending=k;S.mode='scene';H.vis=false;M.dop=null;M.figs.length=0;
   if(!stFound.includes(k)){stFound.push(k);try{localStorage.setItem('hollowEndings',JSON.stringify(stFound));}catch(e){}}
   SFX.bell&&SFX.bell();fade(.6);
-  playScene(E.who,E.t,E.text,()=>{fade(0);S.mode='end';
+  playScene(E.who,E.t,E.text,()=>rollCredits(k,()=>{fade(0);S.mode='end';
     $('end').querySelector('.kicker').textContent=`${E.k} · ${ST_ENDS.indexOf(k)+1} of 6 · ${stFound.length} found`;
     {const h=$('end').querySelector('h1');h.textContent=E.t;h.style.fontSize='clamp(30px,8vw,58px)';h.style.lineHeight='1.08';}ui.toast.classList.remove('show');ui.toast.style.visibility='hidden';$('endStory').textContent=E.end;
     $('eDays').textContent=S.day;$('ePages').textContent=stFound.length+'/6';$('ePages').nextElementSibling.textContent='Endings';$('eCaught').textContent=S.caught;
-    $('end').hidden=false;$('hud').hidden=true;$('buttons').hidden=true;ui.obj.hidden=true;});}
+    $('end').hidden=false;$('hud').hidden=true;$('buttons').hidden=true;ui.obj.hidden=true;}));}
 $('keepFarming').addEventListener('click',()=>{const st=S.st;ui.toast.style.visibility='';if(st.done&&st.ending&&!st.epiShown){st.epiShown=true;setTimeout(()=>toast(ST_END[st.ending].epi,4.5,true),400);}});
 
 // ---- days: letters, missed drawings, the night you don't go
@@ -3628,6 +3630,188 @@ function storyUpdate(dt){const st=S.st;stHud();if(!S.bound)return;if(!st.tithe){
 {const _t=talk;talk=function(n){_t(n);if(stLast()&&rand()<.35&&$('talkLine'))setTimeout(()=>{if(!$('talk').hidden)$('talkLine').innerHTML=`<q>${pick(ST_TALK)}</q>`;},0);};}
 // ---- the map shows the Tithe House once you know
 if(typeof MAP_PLACES!=='undefined'&&!MAP_PLACES.some(p=>/Tithe/.test(p[0])))MAP_PLACES.push(['Tithe House',TITHE.x,TITHE.z]);
+
+/* ================= the horror director. Fear builds from what people expect a game to do and what it suddenly won't.
+   It escalates with the story: the drive in, the loop, the binding, the Tithe, the last week. Most of it happens once.
+   Nothing here is random noise: each scare is placed where the player has learned to feel safe (the cabin, the menus,
+   the save, the tutorial, the real clock on their own device). ================= */
+S.hz=S.hz||{once:{},crows:0,lore:0,knock:0};
+const HZ={follow:0,followStop:0,lastStep:0,silence:0,cd:{},sessionT:0,tall:null,crash:null};
+const NAME=()=>(S.look&&S.look.name||'').trim();
+// how far the story has gone: 0 the first days, 4 the last week
+const hl=()=>S.st&&S.st.done?1:!S.looped?0:!S.bound?1:S.st.act<=2?2:(stLeft()>6?3:4);
+const once=k=>{if(S.hz.once[k])return false;S.hz.once[k]=1;return true;};
+const cdReady=(k,sec)=>{const t=performance.now()/1000;if(HZ.cd[k]&&t<HZ.cd[k])return false;HZ.cd[k]=t+sec;return true;};
+const realClock=()=>{const d=new Date();let h=d.getHours(),m=d.getMinutes();const ap=h>=12?'PM':'AM';h=h%12||12;return `${h}:${String(m).padStart(2,'0')} ${ap}`;};
+function gainTo(v,t){if(!A.ok||!A.master)return;const g=A.master.gain,n=A.ctx.currentTime;g.cancelScheduledValues(n);g.setValueAtTime(g.value,n);g.linearRampToValueAtTime(v,n+(t||.3));}
+
+// ---- 1. the footsteps that follow yours, a quarter-second late. When you stop, they take one more.
+{const _st=SFX.step;SFX.step=function(c){_st.call(SFX,c);if(HZ.follow>0&&!S.room)setTimeout(()=>{A.ok&&A.hiss(c?.1:.045,.05,c?'bandpass':'lowpass',c?2300:520,{q:1});},230+rand()*40);};}
+
+// ---- 2. the scarecrows: after the binding, one more stands in your field every night, all facing the cabin
+const CROW_SPOTS=[[-4.2,8.6],[4.6,8.8],[-5.6,4.4],[6.2,3.8],[-2,9.4],[2.4,9.6],[-6.4,1.2],[7,1],[0.2,10.2],[-3.6,-0.6],[4.2,-0.4],[-7.2,6.6],[7.8,6.4],[-1,11]];
+function crowDraw(x,z){const X=sx(x),Y=sz(z);shadow(X,Y,8);ctx2.fillStyle='#4a3020';ctx2.fillRect(Math.round(X)-1,Math.round(Y)-70,3,70);ctx2.fillRect(Math.round(X)-22,Math.round(Y)-56,45,3);drawSpr('hollow',X,Y-6,'walk','N',0,{scale:.62});}
+{const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld(D,t);
+  if(!S.room&&S.bound&&!(S.st&&S.st.done)&&!(stTitheNight&&stTitheNight()))for(let i=0;i<Math.min(S.hz.crows,CROW_SPOTS.length);i++){const [x,z]=CROW_SPOTS[i];if(!onScreen(x,z,80))continue;D.push({z,mind:1,draw(){crowDraw(x,z);}});}
+  if(HZ.tall){const q=HZ.tall;D.push({z:q.z,mind:1,draw(){drawSpr('hollow',sx(q.x),sz(q.z),'walk',q.dir||'S',q.moving?frameOf('hollow','walk',q.t*1.4):0,{scale:1.35,alpha:.92});}});}};}
+
+// ---- 3. the cabin: knocking in your own voice, the mirror, the bed
+const CAB=ROOMS.cabin;
+interact.push({x:CAB.ox+8.45,z:CAB.oz+.5,r:1,on:()=>S.room==='cabin',label:()=>'Mirror',ok:()=>true,act(){const L=hl();SFX.breath&&SFX.breath();
+  const t=[`You look tired. You look like someone who has been driving all night.`,
+    `Your reflection blinks a moment after you do. You blink again to check. It doesn’t blink at all.`,
+    `Your reflection is already looking at the door. You turn. Nothing. When you look back it is looking at you again, smiling slightly, as if you missed something.`,
+    `The mirror shows the room behind you: the bed, the covers pulled up over someone. Breathing slowly. You do not turn around. You do not turn around.`,
+    `The mirror shows the cabin empty. Your coat is gone from the hook. The bed is made. It is tomorrow in there, and you aren’t in it.`][L];
+  toast(t,4.6,L>=2);if(L>=2)mindHit(3+L);if(L>=3&&once('mirrorSlam'))setTimeout(()=>faceSlam(.5,false),1400);}});
+{const _lr=leaveRoom;leaveRoom=function(a){if(S.room==='cabin'&&S.hz.knock&&performance.now()-S.hz.knock<25000){S.hz.knock=0;mindHit(8);SFX.stinger&&SFX.stinger();
+    toast('You open the door. Nobody. Wet footprints lead from the step, past your feet, across the floor. They stop at your bed.',5,true);return;}return _lr.apply(this,arguments);};}
+
+// ---- 4. the menus: a neighbour who isn't one, a journal you didn't write
+{const _rs=renderSocial;renderSocial=function(){_rs();if(hl()<2)return;const B=$('bagBody').querySelector('.soc');if(!B)return;const nm=NAME()||'You';
+  const d=document.createElement('div');d.className='p';d.innerHTML=`<canvas width="40" height="40" style="background:#000"></canvas><div style="flex:1"><b>${nm}</b><div class="h">${'♥'.repeat(HEART_MAX())}</div><small>Lives under your bed</small><span class="tk">✓ talked today · 🎂 birthday today</span></div>`;
+  B.appendChild(d);d.addEventListener('click',()=>{$('socInfo').innerHTML=`<b>${nm}</b> loves you; likes you; is you. Something will happen at ${HEART_MAX()+1} hearts.`;SFX.whisper&&SFX.whisper(0);mindHit(2);});};}
+const INTRUDE=['I sat on the end of your bed last night. You looked so peaceful I didn’t wake you.','You talk in your sleep. You said my name. I didn’t know you knew it.',
+  'I moved the scarecrow back for you. You were tired. You looked like you needed one less thing.','I’ve been practising your walk. Mae waved at me today. She thought I was you.',
+  'Your window doesn’t lock. Did you know? It never has.','I counted your breaths. You stopped for a while around three. Then you started again. I was so relieved.',
+  'Tomorrow, when you go out, I’ll stay in. Someone should keep your place warm.'];
+// ---- 5. the tips that stop being helpful
+const HTIPS=['Tip: Don’t turn around.','Tip: Hold your breath when you pass the corn. It can hear it.','Tip: If someone says your name from inside the cabin, you are not inside the cabin.',
+  'Tip: Count the people in the square. Then count them again.','Tip: You can stop playing at any time.','Tip: You can’t stop playing at any time.','Tip: It is standing where the camera doesn’t go.'];
+{const c=document.createElement('style');c.textContent=`#htip{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 150px);z-index:41;width:min(380px,88vw);background:rgba(42,26,14,.94);color:#f4e6c8;padding:10px 14px;font-size:14px;line-height:1.4;box-shadow:0 0 0 2px #1a0e06,0 0 0 4px #b8521c;display:none}
+#htip .tk{color:var(--ember);font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:3px}
+#crash{position:fixed;inset:0;z-index:998;display:none;background:#000}#crash img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(.7) brightness(.75);image-rendering:pixelated}
+#crash .dlg{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:min(340px,86vw);background:#f2f2f2;color:#111;font:14px/1.45 -apple-system,Segoe UI,Roboto,sans-serif;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.6);padding:18px 18px 12px}
+#crash .dlg b{display:block;font-size:16px;margin-bottom:6px}#crash .dlg .r{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}#crash .dlg button{font:inherit;border:0;border-radius:6px;padding:7px 14px;background:#ddd;color:#111}#crash .dlg button.p{background:#2a6fdb;color:#fff}
+#crash canvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(70vw,420px);image-rendering:pixelated;opacity:0;transition:opacity 2.8s}`;document.head.appendChild(c);
+  const t=document.createElement('div');t.id='htip';$('app').appendChild(t);const k=document.createElement('div');k.id='crash';k.innerHTML='<img alt=""><canvas width="48" height="64"></canvas><div class="dlg"></div>';document.body.appendChild(k);}
+function htip(txt){const el=$('htip');el.innerHTML=`<div class="tk">Tutorial</div>${txt}`;el.style.display='block';SFX.coin&&SFX.coin();setTimeout(()=>{el.style.display='none';},5200);}
+
+// ---- 6. the game stops responding
+function fakeCrash(){if(HZ.crash)return;HZ.crash=1;S.paused=true;let img='';try{img=$('view').toDataURL('image/jpeg',.7);}catch(e){}
+  const k=$('crash');k.querySelector('img').src=img;const dlg=k.querySelector('.dlg');const cv=k.querySelector('canvas');cv.style.opacity=0;
+  const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,48,64);const m=SPR.hollow,im=m&&IMG[m.src];if(im){const r=m.clips.walk.S[0];g.drawImage(im,0,r*m.fh,m.fw,m.fh,0,0,48,64);}
+  dlg.innerHTML='<b>“Hollow Acre” isn’t responding</b>You can wait for it to respond, or close it. You may lose unsaved progress.<div class="r"><button data-a="close">Close app</button><button class="p" data-a="wait">Wait</button></div>';
+  k.style.display='block';gainTo(0,.05);
+  const finish=()=>{setTimeout(()=>{faceSlam(.9,true);setTimeout(()=>{k.style.display='none';gainTo(.9,.4);S.paused=false;HZ.crash=null;mindHit(14);toast(NAME()?`Don’t leave, ${NAME()}. You only just got here.`:'Don’t leave. You only just got here.',4,true);},900);},300);};
+  dlg.onclick=e=>{const a=e.target.dataset&&e.target.dataset.a;if(!a)return;
+    if(a==='close'){dlg.innerHTML='<b>“Hollow Acre” isn’t responding</b>You can’t close it from in here.';setTimeout(finish,2200);}
+    else{dlg.innerHTML='<b>“Hollow Acre” isn’t responding</b>Waiting…';dlg.style.opacity=.85;setTimeout(()=>{dlg.style.display='none';cv.style.opacity=.95;SFX.breath&&SFX.breath();},1600);setTimeout(()=>{dlg.style.display='';dlg.style.opacity='';finish();},5200);}};}
+
+// ---- 7. the line under "Saved"
+function saveLine(){const L=hl();if(L>=4)return pick(['Saved. Both of you.','Saved.','Saved. One of you.']);if(L>=3&&rand()<.3)return 'Saved. (2 profiles found)';return 'Saved';}
+
+// ---- the director, every frame
+{const _mu=mindUpdate;mindUpdate=function(dt){_mu(dt);horrorUpdate(dt);};}
+function horrorUpdate(dt){if(S.mode!=='play'||S.paused)return;HZ.sessionT+=dt;const L=hl(),night=isNight(),out=!S.room;
+  const pv=HZ.pv||(HZ.pv={x:P.x,z:P.z});const mv=Math.hypot(P.x-pv.x,P.z-pv.z)/Math.max(dt,1e-3);pv.x=P.x;pv.z=P.z;HZ.pspd=mv>40?0:lerp(HZ.pspd||0,mv,.3);const moving=HZ.pspd>.4;
+  // footsteps behind you at night
+  if(L>=1&&night&&out){if(HZ.follow<=0&&moving&&cdReady('follow',150+rand()*120)&&rand()<.5)HZ.follow=18+rand()*10;}
+  if(HZ.follow>0){HZ.follow-=dt;if(moving)HZ.followStop=1;else if(HZ.followStop){HZ.followStop=0;HZ.follow=0;setTimeout(()=>{A.ok&&A.hiss(.06,.06,'lowpass',520,{q:1});},640);
+      if(once('oneMore'))setTimeout(()=>toast('Something behind you takes one more step than you do.',3.4,true),900);mindHit(3);}}
+  // the real time, on their own device
+  const rh=new Date().getHours();if(L>=1&&night&&out&&(rh>=22||rh<5)&&!HZ.cd.clock&&HZ.sessionT>120){HZ.cd.clock=1;mindHit(5);setTimeout(()=>toast(`It’s ${realClock()} where you are too. You should be asleep. It’s easier when you’re asleep.`,5,true),300);}
+  if(HZ.sessionT>35*60&&!HZ.cd.session){HZ.cd.session=1;toast(`You’ve been here ${Math.round(HZ.sessionT/60)} minutes. It has been watching for ${Math.round(HZ.sessionT/60)-1}.`,4.6,true);}
+  // the silence
+  if(L>=2&&out&&HZ.silence<=0&&cdReady('silence',360+rand()*240)&&rand()<.6){HZ.silence=9;gainTo(0,.6);}
+  if(HZ.silence>0){HZ.silence-=dt;if(HZ.silence<=0){gainTo(.9,.05);SFX.thud(0,.7);setTimeout(()=>SFX.thud(0,.7),420);setTimeout(()=>SFX.thud(0,.7),840);mindHit(4);}}
+  // knocking while you're inside at night
+  if(L>=2&&S.room==='cabin'&&night&&!S.hz.knocked&&cdReady('knockCheck',20)&&rand()<.5){S.hz.knocked=S.day;S.hz.knock=performance.now();SFX.thud(0,.6);setTimeout(()=>SFX.thud(0,.6),500);setTimeout(()=>SFX.thud(0,.6),1000);
+    setTimeout(()=>toast(NAME()?`“${NAME()}? Let me in. It’s cold. It’s me.” It is your voice.`:'“Let me in. It’s cold. It’s me.” It is your voice.',4.6,true),1500);}
+  // the game stops responding, once
+  if(L>=2&&night&&out&&HZ.sessionT>240&&!S.hz.once.crash&&cdReady('crashCheck',45)&&rand()<.25){S.hz.once.crash=1;fakeCrash();}
+  // the tips
+  if(L>=3&&!night&&out&&cdReady('tip',220+rand()*200)&&rand()<.5){const i=S.hz.tip||0;if(i<HTIPS.length){S.hz.tip=i+1;htip(HTIPS[i]);}}
+  // Tithe night: the Tall Man walks behind you down the Mill Road, as fast as you do. Never faster. Unless you turn back.
+  if(stTitheNight()&&night&&out&&!S.st.done){const onRoad=P.x>14&&P.x<26&&P.z>30&&P.z<86;
+    if(!HZ.tall&&onRoad&&P.z<50){HZ.tall={x:20,z:P.z-6.5,t:0,dir:'S',moving:false};SFX.shriek&&SFX.shriek(0);toast('Behind you, at the top of the road, something very tall has started walking. Don’t turn back.',4.4,true);mindHit(8);}
+    if(HZ.tall){const q=HZ.tall;q.t+=dt;const dx=P.x-q.x,dz=P.z-q.z,d=Math.hypot(dx,dz);q.dir=dirOf(dx,dz);
+      const want=5.2,sp=d>want?Math.min(HZ.pspd,7)+.4:0;q.moving=sp>.05;if(q.moving){q.x+=dx/d*sp*dt;q.z+=dz/d*sp*dt;}
+      if(d<2.4){HZ.tall=null;stEnding('taken');return;}
+      if(rand()<dt*.6)SFX.heart&&SFX.heart(.35);if(P.z>86)HZ.tall=null;}}
+  else if(HZ.tall)HZ.tall=null;}
+
+// ---- mornings: the scarecrows, the journal, the dreams
+{const _nd=newDay;newDay=function(msg,pos){_nd(msg,pos);const L=hl();if(!S.st||S.st.done||S.mode==='end')return;
+  if(S.bound&&S.st.act>=3){S.hz.crows++;if(S.hz.crows===1)setTimeout(()=>toast('There is a scarecrow in your field again. You burned it. You watched it burn.',4.4,true),4600);
+    else if(S.hz.crows===2)setTimeout(()=>toast('There are two scarecrows in your field now. Both of them are facing your bedroom window.',4.4,true),4600);}
+  if(L>=2&&S.hz.lore<INTRUDE.length&&rand()<.55){const t=INTRUDE[S.hz.lore++];setTimeout(()=>{addLore(t);},7000);}
+  if(L>=3&&rand()<.4&&cdReady('dream',1))setTimeout(()=>openNote(`<h3>You dreamed</h3><p>${pick(['You were standing in the field at night, facing the cabin. There was a light on inside. Someone was in your bed. You waited for them to fall asleep.','You were very tall. You had to bend your neck to fit under the sky. Everyone in town was asleep, and you knew which one was next, and you were so sorry.','You were in the Tithe House. It was full of people, pushing on the door. Someone next to you whispered: you’re not pushing. Why aren’t you pushing?','You were driving to the farm. Grandpa called and told you not to come. In the dream you listened. You turned around. You woke up here anyway.'])}</p>`,'Wake up',()=>mindHit(4)),1200);};}
+// ---- in town, the gaslighting
+const HZ_TALK=['You were standing outside my window last night. For hours. Weren’t you?','We’ve met before. You don’t remember. That’s all right. Nobody remembers the first time.',
+  'Did you just say something? You moved your mouth.','Who were you talking to at the well this morning? There was no one there. You were laughing.','You look different today. Taller. Did you sleep in the field again?'];
+{const _t=talk;talk=function(n){_t(n);const L=hl();if(L>=2&&rand()<.14&&$('talkLine'))setTimeout(()=>{if($('talk').hidden)return;let l=pick(HZ_TALK);if(NAME()&&rand()<.5)l=`Goodnight, ${NAME()}. …Oh. It’s still daytime, isn’t it.`;$('talkLine').innerHTML=`<q>${l}</q>`;},0);};}
+// ---- the title screen remembers
+{let seen=0;try{seen=+(localStorage.getItem('hollowSeen')||0);localStorage.setItem('hollowSeen',seen+1);}catch(e){}
+  const tg=$('title').querySelector('.tag'),kk=$('title').querySelector('.kicker');
+  if(stFound.length){kk.textContent='Chapter One · Again';tg.textContent='Grandpa called three days ago and told you not to come. You came anyway. You always come anyway. We kept your place.';}
+  else if(seen>=2&&readSave()){tg.textContent='You came back. The cabin light has been on the whole time you were gone.';}}
+
+/* ================= the end of the story: credits, the thing after the credits, the letter the morning after, and what changes
+   when you start again. ================= */
+const STINGS={
+  door:['Marrow Hollow. Next September.','The church is full for the drawing, out of habit.','Hale reaches into the hat. It should be empty.','His hand comes out holding a slip.','There is nothing written on it. Only a small drawing of a door, open an inch.'],
+  shore:['The Black Lake. Some years later.','A boat comes out of the fog with nobody in it.','On the seat there is a watering can, and a hand-drawn map of a farm.','The farm on the map is labelled in your handwriting: HOME. DON’T.'],
+  truck:['Route 9. Thirty years from now.','A car is parked on the shoulder with its hazards on.','A man is walking east toward a farm he has never seen.','On the seat behind him, a jar of mushrooms that glow in the daylight.'],
+  dunn:['The sheriff’s office. Next September.','There are sixty slips of paper in the stove, half burned.','Every one has a name on it.','Every one is yours.'],
+  tag:['Your field. Next October.','The pole is empty.','Something is standing on the porch instead, very still, wearing a straw hat with a faded red band.','It has a brass tag in its ear. The number on it has gone up by one.'],
+  taken:['Marrow Hollow. Next October.','A car is wrapped around the oak on Route 9, its hazards blinking.','The note on the cabin door is in handwriting you know.','“Don’t come. — {name}”'],
+};
+{const c=document.createElement('style');c.textContent=`#credits2{position:fixed;inset:0;z-index:997;background:#050506;color:#e8dcc0;display:none;overflow:hidden;font-family:var(--font-display,Georgia,serif);text-align:center;cursor:pointer}
+#credits2 .roll{position:absolute;left:0;right:0;top:100%;padding:0 24px;line-height:1.7}
+#credits2 h2{font-size:34px;letter-spacing:.1em;color:#f0b070;margin:0 0 8px}#credits2 h3{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:#b8521c;margin:38px 0 8px}
+#credits2 p{margin:2px 0;font-size:15px}#credits2 p small{opacity:.55}#credits2 .sting{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:30px;font-size:18px;line-height:1.6;opacity:0;transition:opacity 1.6s}
+#credits2 .skip{position:absolute;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);font-size:12px;opacity:.5}`;document.head.appendChild(c);
+  const d=document.createElement('div');d.id='credits2';d.innerHTML='<div class="roll"></div><div class="sting"></div><div class="skip">tap to skip</div>';document.body.appendChild(d);}
+function rollCredits(k,done){const el=$('credits2'),roll=el.querySelector('.roll'),st=el.querySelector('.sting');let fin=false,raf=0;
+  const folk=npcs.filter(n=>PEOPLE[n.def.id]).map(n=>`<p>${n.def.name} <small>· ${n.def.role||''}</small></p>`).join('');
+  roll.innerHTML=`<h2>Hollow Acre</h2><p><small>a valley that keeps what it is given</small></p><h3>The people of Marrow Hollow, the orchard, the mill, and Wickham Crossing</h3>${folk}
+    <h3>The Tithes</h3><p>one for every autumn, back to the first</p><p><small>a hundred and fifty-three names, and room for one more</small></p>
+    <h3>E. Marsh</h3><p>who called, and told you not to come</p><h3>And</h3><p>${NAME()||'you'}</p><p><small>who came anyway</small></p>
+    <h3>Pixel art</h3><p><small>Liberated Pixel Cup contributors (CC-BY-SA 3.0 / GPL 3.0), and pixels drawn for this game</small></p><h3>Thank you for staying</h3><p><small>You can stop now. You can always stop now.</small></p>`;
+  el.style.display='block';roll.style.transform='translateY(0)';st.style.opacity=0;st.innerHTML='';SFX.bell&&SFX.bell();
+  const H0=roll.scrollHeight+innerHeight;let y=0,last=performance.now();
+  const step=now=>{const dt=Math.min(.05,(now-last)/1000);last=now;y+=dt*42;roll.style.transform=`translateY(${-y}px)`;if(y>H0){sting();return;}raf=requestAnimationFrame(step);};raf=requestAnimationFrame(step);
+  const sting=()=>{cancelAnimationFrame(raf);roll.innerHTML='';const lines=(STINGS[k]||STINGS.taken).map(l=>l.replace('{name}',NAME()||'you'));let i=0;
+    const next=()=>{if(fin)return;if(i>=lines.length){setTimeout(close,2600);return;}st.style.opacity=0;setTimeout(()=>{st.textContent=lines[i++];st.style.opacity=1;if(i===1)SFX.ring&&SFX.ring(0,.5);if(i===lines.length){SFX.stinger&&SFX.stinger();}setTimeout(next,2900);},700);};next();};
+  const close=()=>{if(fin)return;fin=true;cancelAnimationFrame(raf);el.style.display='none';done&&done();};
+  el.onclick=()=>{if(roll.innerHTML)sting();else close();};}
+// the morning after: a letter
+ST_LETTERS.epi_door=`Dear one,<br><br>I don’t remember you. I’m told I should. A man at the store says I was taken twenty-five autumns ago, and that every autumn since I came back as the thing in your field, standing between that door and this house so it would find me first.<br><br>I don’t remember that either. I only remember a voice on a telephone, telling someone not to come.<br><br>If that was me, I’m glad you didn’t listen.<br><br>— E. Marsh`;
+ST_LETTERS.epi=`You made your choice. I made a different one, last year. We both ended up here, didn’t we.<br><br>Keep the field. Keep the light on. Keep your place warm.<br><br>See you next October.`;
+{const _k=()=>{const st=S.st;if(st.done&&st.ending&&!st.epiMail){st.epiMail=1;setTimeout(()=>{st.mail=st.ending==='door'?'epi_door':'epi';toast('The flag on your mailbox is up.',2.6);},5200);}};
+  $('keepFarming').addEventListener('click',_k);}
+// what changes when you start again
+if(stFound.length){const last=ST_END[stFound[stFound.length-1]];LETTER.push(`<span class="ps" style="display:block;margin-top:12px;font-style:italic">Under Grandpa’s signature, in different ink, in handwriting you know is yours: “You’ve done this before. Last time it ended with ${last?last.t:'the door'}. ${stFound.length>=6?'There is nothing left to choose. Stay anyway.':'Choose differently.'}”</span>`);}
+
+/* ================= saving, Stardew-style: the game saves every time a new day begins (sleeping, collapsing, being dragged home).
+   Continue from the title screen picks up the morning of the last saved day. ================= */
+const SAVE_KEY='hollowSave1';
+const SAVE_SKIP=new Set(['mode','paused','room','night','introDrive','storm','autoCol']);
+function saveGame(){try{const s={};for(const k of Object.keys(S)){if(SAVE_SKIP.has(k))continue;const v=S[k];if(typeof v==='function')continue;try{s[k]=JSON.parse(JSON.stringify(v));}catch(e){}}
+  const data={v:1,t:Date.now(),S:s,tiles:tiles.map(t=>[t.tilled?1:0,t.crop||null,t.debris&&t.debris.hide?1:0]),altars:altars.map(a=>a.lit?1:0),
+    bench:typeof BENCH_POS!=='undefined'?BENCH_POS:null,gh:{x:GH.x,z:GH.z},mind:M.v};
+  localStorage.setItem(SAVE_KEY,JSON.stringify(data));return true;}catch(e){return false;}}
+function readSave(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');return d&&d.v===1?d:null;}catch(e){return null;}}
+function loadGame(d){const s=d.S;for(const k of Object.keys(s)){const v=s[k];if(v&&typeof v==='object'&&!Array.isArray(v)&&S[k]&&typeof S[k]==='object'&&!Array.isArray(S[k]))S[k]=Object.assign(S[k],v);else S[k]=v;}
+  S.mode='play';S.paused=false;S.room=null;S.night={};S.storm=false;S.introDrive=false;
+  if(d.bench&&typeof BENCH_POS!=='undefined')Object.assign(BENCH_POS,d.bench);
+  if(S.greenhouse){GH.x=d.gh.x;GH.z=d.gh.z;ROOMS.greenhouse.out={x:GH.x,z:GH.z+.8};buildGreenhouse();}
+  d.tiles.forEach((a,i)=>{const t=tiles[i];if(!t)return;t.tilled=!!a[0];t.crop=a[1];if(a[2]&&t.debris){const o=t.debris;o.hide=true;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}}});
+  d.altars.forEach((l,i)=>{if(altars[i])altars[i].lit=!!l;});
+  if(S.coop||S.fieldLamps)rebuildFarm();benchesBoot();applyLook();M.v=d.mind==null?100:d.mind;
+  S.hour=6;P.x=0;P.z=-7.6;P.fx=0;P.fz=1;P.dir='S';P.anim=null;H.state='gone';H.timer=6;H.vis=false;
+  if(!S.bound){scare.vis=true;placeScarecrow(S.day);}placeNPCs();spawnMushrooms();if(S.cat==='lost')resetCat();
+  try{syncSlots&&syncSlots();renderHotbar&&renderHotbar();}catch(e){}}
+// the saved mark in the corner
+{const el=document.createElement('div');el.id='saved';el.style.cssText='position:fixed;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 118px);z-index:30;font-size:12px;letter-spacing:.08em;color:#f4e6c8;background:rgba(42,26,14,.85);padding:4px 10px;opacity:0;transition:opacity .6s;pointer-events:none';$('app').appendChild(el);}
+function savedMark(txt){const el=$('saved');el.textContent=txt;el.style.opacity=1;setTimeout(()=>el.style.opacity=0,2600);}
+{const _nd=newDay;newDay=function(msg,pos){_nd(msg,pos);setTimeout(()=>{if(S.mode==='end'||S.mode==='title')return;if(saveGame())savedMark(typeof saveLine==='function'?saveLine():'Saved');},600);};}
+// Continue on the title screen
+{const d=readSave();if(d){const b=document.createElement('button');b.className='begin';b.id='cont';b.textContent=`Continue · Day ${d.S.day}`;b.style.marginBottom='10px';
+  $('begin').before(b);$('begin').classList.add('second');$('begin').textContent='New game';
+  b.addEventListener('click',()=>{A.init&&A.init();$('title').hidden=true;finishIntro();loadGame(readSave());$('toast').classList.remove('show');
+    setTimeout(()=>toast(`Day ${S.day}. You wake in Grandpa’s bed. It is exactly as warm as you left it.`,3.6),300);});}}
 
 /* ================= pixel autumn UI + desktop controls ================= */
 {const lk=document.createElement('link');lk.rel='stylesheet';lk.href='https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&display=swap';document.head.appendChild(lk);

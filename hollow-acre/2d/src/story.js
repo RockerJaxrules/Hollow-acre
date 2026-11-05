@@ -70,7 +70,7 @@ function stStart(){const st=S.st;st.tithe=28*Math.ceil((S.day+12)/28);st.act=2;
 
 // ---- interactions
 interact.push({x:MAILPOS.x,z:MAILPOS.z,r:1.1,on:()=>!!S.st.mail,label:()=>'Read',ok:()=>true,act(){const L=S.st.mail;S.st.mail=null;S.st.lettersRead++;SFX.page&&SFX.page();
-  const day=S.day+1;openNote(`<h3>Day ${day}</h3><p>${ST_LETTERS[L]}</p><p style="text-align:right">— you</p>`,'Keep it',()=>{mindHit(L==='first'?6:4);if(L==='first'){S.st.act=3;addLore('A letter in my handwriting: the three stones are under the dock, in the hollow tree at noon, and under my bed. Put them back.');}});}});
+  const day=S.day+1;openNote(`<h3>Day ${day}</h3><p>${ST_LETTERS[L]}</p>${L==='epi_door'?'':'<p style="text-align:right">— you</p>'}`,'Keep it',()=>{mindHit(L==='first'?6:4);if(L==='first'){S.st.act=3;addLore('A letter in my handwriting: the three stones are under the dock, in the hollow tree at noon, and under my bed. Put them back.');}});}});
 interact.push({x:LAKE.x,z:LAKE.z-LAKE.rz+1.6,r:1.6,on:()=>S.st.act>=3&&!S.st.got.dock,label:()=>'Reach under',ok:()=>true,act(){S.st.got.dock=1;SFX.thud&&SFX.thud(0,.3);mindHit(6);
   toast('You follow the cord down into the cold. Something takes your wrist. Holds it. Lets go. In your hand: a black stone, warm as skin.',4,true);}});
 interact.push({x:HOLLOW_TREE.x,z:HOLLOW_TREE.z-1.3,r:1.8,on:()=>S.st.act>=3&&!S.st.got.tree,label:()=>'Reach in',ok:()=>true,act(){
@@ -167,11 +167,11 @@ You sit. The door shuts. Outside, very politely, the whole town claps.`,
 function stEnding(k){const E=ST_END[k],st=S.st;if(st.done)return;st.done=true;st.ending=k;S.mode='scene';H.vis=false;M.dop=null;M.figs.length=0;
   if(!stFound.includes(k)){stFound.push(k);try{localStorage.setItem('hollowEndings',JSON.stringify(stFound));}catch(e){}}
   SFX.bell&&SFX.bell();fade(.6);
-  playScene(E.who,E.t,E.text,()=>{fade(0);S.mode='end';
+  playScene(E.who,E.t,E.text,()=>rollCredits(k,()=>{fade(0);S.mode='end';
     $('end').querySelector('.kicker').textContent=`${E.k} · ${ST_ENDS.indexOf(k)+1} of 6 · ${stFound.length} found`;
     {const h=$('end').querySelector('h1');h.textContent=E.t;h.style.fontSize='clamp(30px,8vw,58px)';h.style.lineHeight='1.08';}ui.toast.classList.remove('show');ui.toast.style.visibility='hidden';$('endStory').textContent=E.end;
     $('eDays').textContent=S.day;$('ePages').textContent=stFound.length+'/6';$('ePages').nextElementSibling.textContent='Endings';$('eCaught').textContent=S.caught;
-    $('end').hidden=false;$('hud').hidden=true;$('buttons').hidden=true;ui.obj.hidden=true;});}
+    $('end').hidden=false;$('hud').hidden=true;$('buttons').hidden=true;ui.obj.hidden=true;}));}
 $('keepFarming').addEventListener('click',()=>{const st=S.st;ui.toast.style.visibility='';if(st.done&&st.ending&&!st.epiShown){st.epiShown=true;setTimeout(()=>toast(ST_END[st.ending].epi,4.5,true),400);}});
 
 // ---- days: letters, missed drawings, the night you don't go
