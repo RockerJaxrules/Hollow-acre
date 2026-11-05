@@ -3943,7 +3943,7 @@ let lsSeeds=null;
   l.addEventListener('click',()=>{const L=LESSONS[S.ls.i];if(!L)return;openNote(`<h3>Mae’s lesson ${S.ls.i+1}/${LESSONS.length}: ${L.t}</h3><p>${L.say}</p><p><b>${L.goal(S.ls.base)}</b></p>`,'Got it');$('noteText').insertAdjacentHTML('beforeend','<p style="font-size:12px;opacity:.7"><a href="#" id="lsSkip">Skip Mae’s lessons</a></p>');$('lsSkip').onclick=ev=>{ev.preventDefault();S.tut.off=true;$('noteClose').click();toast('Mae’s lessons skipped.',2);};});
   m.addEventListener('click',()=>{m.style.display='none';});}
 let maeT=0;
-function maeSay(txt,rw,dur){const m=$('maecard');headIcon&&headIcon('mae',m.querySelector('canvas'));m.querySelector('.tx').innerHTML=txt;m.querySelector('.rw').textContent=rw||'';m.style.display='flex';maeT=dur||6;SFX.page&&SFX.page();}
+function maeSay(txt,rw,dur){maeCome(dur||6);const m=$('maecard');headIcon&&headIcon('mae',m.querySelector('canvas'));m.querySelector('.tx').innerHTML=txt;m.querySelector('.rw').textContent=rw||'';m.style.display='flex';maeT=dur||6;SFX.page&&SFX.page();}
 function lsBegin(i){S.ls.i=i;S.ls.base={};const L=LESSONS[i];if(!L){$('lesson').style.display='none';return;}if(L.begin)L.begin(S.ls.base);
   setTimeout(()=>maeSay(L.say,`Lesson ${i+1}/${LESSONS.length}: ${L.t}`,9),i===0?200:3400);}
 function lsReward(L){const out=[];if(L.coins){S.coins+=L.coins;out.push(`+${L.coins} coins`);}
@@ -3953,7 +3953,7 @@ function lsReward(L){const out=[];if(L.coins){S.coins+=L.coins;out.push(`+${L.co
 function lessonsUpdate(dt){if(maeT>0){maeT-=dt;if(maeT<=0)$('maecard').style.display='none';}
   const el=$('lesson');if(S.mode!=='play'){el.style.display='none';return;}
   if(S.ls.i<0){if(S.readLetter&&!S.paused&&S.mode==='play'&&!S.tut.off){S.ls.i=0;const T=S.tut.done;for(const k of ['till','plant','water','bars','ship','fish','map','sleep','talk'])T[k]=1;
-      playScene('mae','Mae drops by',`A woman in a flour-dusted apron is leaning on your gate as if she has been waiting there a while.<br><br><q>You must be Elias’s grandkid. You have his walk. I’m Mae. I run the store in town.</q><br><br><q>He asked me to look in on you, if you ever came. He said you wouldn’t. I said you would.</q> She smiles. It doesn’t quite reach her eyes. <q>I win.</q><br><br><q>Let me show you how this place works. Then you’ll have a chance, at least.</q>`,()=>lsBegin(0));}
+      maeCome(14,true);playScene('mae','Mae drops by',`A woman in a flour-dusted apron is leaning on your gate as if she has been waiting there a while.<br><br><q>You must be Elias’s grandkid. You have his walk. I’m Mae. I run the store in town.</q><br><br><q>He asked me to look in on you, if you ever came. He said you wouldn’t. I said you would.</q> She smiles. It doesn’t quite reach her eyes. <q>I win.</q><br><br><q>Let me show you how this place works. Then you’ll have a chance, at least.</q>`,()=>lsBegin(0));}
     el.style.display='none';return;}
   const L=LESSONS[S.ls.i];if(!L||S.tut.off){el.style.display='none';return;}
   // a purchase at the store counts when seeds go up while Mae's shop is open
@@ -3969,6 +3969,25 @@ setInterval(()=>{if(S.paused&&$('maecard').style.display!=='none'){$('maecard').
 setInterval(()=>{const l=$('lesson');if(S.paused||S.mode!=='play'){l.style.display='none';}
   const on=l.style.display==='flex';const t=$('toast');const want=on?(Math.round(l.getBoundingClientRect().bottom+8)+'px'):'';
   if(on){t.style.top=want;t.style.transform='translate(-50%,0)';}else if(t.style.top){t.style.top='';t.style.transform='';}},150);
+
+// ---- Mae in person: when she talks you through a lesson she walks over and stands beside you, then heads off again
+const MAEV={on:false,x:0,z:0,tx:0,tz:0,dir:'S',t:0,mv:0,stay:0,room:null,leave:false};
+function maeCome(stay,instant){const v=MAEV;const side=P.fx>=0?-1:1;let tx=P.x+side*1.7,tz=P.z+.25;
+  if(S.room){const R=ROOMS[S.room];if(R){tx=clamp(tx,R.ox+.8,R.ox+(R.w||10)-.8);tz=clamp(tz,R.oz+1.2,R.oz+(R.d||7)-.6);}}
+  if(!v.on||v.room!==(S.room||null)){const a=Math.atan2(tz-P.z,tx-P.x);v.x=instant?tx:P.x+Math.cos(a)*7;v.z=instant?tz:P.z+Math.sin(a)*4.5;if(S.room){v.x=tx;v.z=tz;}}
+  Object.assign(v,{on:true,tx,tz,stay:Math.max(v.stay,stay+1.5),room:S.room||null,leave:false});}
+function maeUpdate(dt){const v=MAEV;if(!v.on)return;v.t+=dt;if((S.room||null)!==v.room){v.on=false;return;}
+  if(!S.paused)v.stay-=dt;if(v.stay<=0&&!v.leave){v.leave=true;const a=Math.atan2(v.z-P.z,v.x-P.x)||0;v.tx=v.x+Math.cos(a)*9;v.tz=v.z+Math.sin(a)*6;}
+  const dx=v.tx-v.x,dz=v.tz-v.z,d=Math.hypot(dx,dz);
+  if(d>.15){const sp=v.leave?2.2:2.8;const st=Math.min(d,sp*dt);v.x+=dx/d*st;v.z+=dz/d*st;v.dir=dirOf(dx,dz);v.mv=1;}
+  else{v.mv=0;v.dir=dirOf(P.x-v.x,P.z-v.z);if(v.leave){v.on=false;return;}}
+  if(v.leave&&(!onScreen(v.x,v.z,60)||Math.hypot(v.x-P.x,v.z-P.z)>12))v.on=false;
+  // she follows if you wander off while she's still talking
+  if(!v.leave&&Math.hypot(P.x-v.tx,P.z-v.tz)>3.2){const side=v.x<P.x?-1:1;v.tx=P.x+side*1.7;v.tz=P.z+.25;}}
+{const _lu=lifeUpdate;lifeUpdate=function(dt){_lu(dt);maeUpdate(dt);if(MAEV.on){const n=npcById('mae');if(n)n.vis=false;}};}
+{const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld(D,t);const v=MAEV;if(!v.on||(S.room||null)!==v.room||!onScreen(v.x,v.z,80))return;
+  const m=SPR.mae;if(!m)return;const clip=v.mv?'walk':(m.clips.idle?'idle':'walk');
+  D.push({z:v.z,mind:1,draw(){shadow(sx(v.x),sz(v.z),9);drawSpr('mae',sx(v.x),sz(v.z),clip,v.dir,v.mv?frameOf('mae','walk',v.t):(m.clips.idle?frameOf('mae','idle',v.t):0));}});};}
 
 /* ================= keeping the story easy to follow: every step names someone to ask, and that person tells you plainly what
    to do next. Plus Stardew-style life around you: help-wanted requests each morning, and chance encounters on the farm and roads. ================= */
