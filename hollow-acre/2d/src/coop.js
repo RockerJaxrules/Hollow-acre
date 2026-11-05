@@ -10,11 +10,13 @@ async function peerSprite(look){if(!look||typeof look!=='object')return null;con
     const src=SPR.farmer.src,prev=IMG[src];composeSheet(L,'',lookMap(L));const c=IMG[src];IMG[src]=prev;if(typeof SILF!=='undefined')for(const k in SILF)if(k.startsWith('farmer'))delete SILF[k];
     const name='peer'+Object.keys(CO.sprites).length;SPR[name]=Object.assign({},SPR.farmer,{src:'mem:'+name});IMG['mem:'+name]=c;CO.sprites[key]=name;return name;}catch(e){CO.sprites[key]=null;return null;}}
 // joining
-async function coopStart(){let room=null;try{if(typeof claude!=='undefined'&&claude.use)room=await claude.use('room');}catch(e){}if(!room){CO.status='unavailable';return;}CO.lobby=room;CO.status='connecting';
+async function coopStart(){let room=null;try{if(typeof claude!=='undefined'&&claude.use)room=await claude.use('room');}catch(e){}
+  if(!room&&typeof HollowNet!=='undefined'&&typeof RTCPeerConnection!=='undefined'){try{room=netLobby();CO.mode='p2p';}catch(e){room=null;}}else if(room)CO.mode='claude';
+  if(!room){CO.status='unavailable';return;}CO.lobby=room;CO.status='connecting';
   room.onConnection(c=>{CO.status=c?'online':'connecting';},()=>{CO.status='unavailable';});await coopJoin('');}
 async function coopJoin(code){code=(code||'').toLowerCase().replace(/[^a-z0-9_-]/g,'').slice(0,24);const lob=CO.lobby;if(!lob)return;
-  try{if(CO.room&&CO.room!==lob&&CO.room.leave)await CO.room.leave();}catch(e){}
-  try{CO.room=code?await lob.join('farm-'+code):lob;CO.code=code;}catch(e){CO.room=lob;CO.code='';toast('Couldn’t open that farm code. You’re in the shared valley.',2.6);}
+  try{if(!lob.net&&CO.room&&CO.room!==lob&&CO.room.leave)await CO.room.leave();}catch(e){}
+  try{CO.room=code?await lob.join('farm-'+code):(lob.rejoin&&CO.room?await lob.rejoin():(lob.current||lob));CO.code=code;}catch(e){CO.room=lob.current||lob;CO.code='';toast('Couldn’t open that farm code. You’re in the shared valley.',2.6);}
   CO.room.onPeers(ch=>{CO.peers=ch.peers;for(const p of ch.joined)if(!p.isMe&&p.presence&&p.presence.n)toast(`${clean(p.presence.n)} has come to the valley.`,2.4);
     for(const p of ch.left)if(!p.isMe&&p.presence&&p.presence.n)toast(`${clean(p.presence.n)} has gone home.`,2.2);if(GM_TAB==='coop'&&!$('bag').hidden)renderCoop();});
   CO.last=0;coopSend(true);}
@@ -51,7 +53,7 @@ function drawPeer(x,z,look,dir,clip,t,label,bubble,alpha){const key=look&&lookKe
 {const _mu=mindUpdate;mindUpdate=function(dt){_mu(dt);try{coopUpdate(dt);}catch(e){}};}
 // the Together tab
 function renderCoop(){const B=$('bagBody');const os=others();
-  $('bagSub').textContent=CO.status==='online'?(CO.code?`Private farm: ${CO.code}`:'The shared valley: everyone with this game open'):CO.status==='unavailable'?'Playing alone. Open the game from its shared link while signed in to play together.':'Connecting…';
+  $('bagSub').textContent=CO.status==='online'?(CO.code?`Private farm: ${CO.code}`:(CO.mode==='p2p'?'The shared valley: everyone playing online right now':'The shared valley: everyone with this game open')):CO.status==='unavailable'?'Playing alone: no connection. Check your internet, then reopen the game.':'Connecting…';
   const list=os.map(p=>{const q=p.presence;const here=(q.r||'')===(S.room||'');return `<div class="p" style="padding:6px 8px"><b>${clean(q.n)}</b>${p.guest?' <small>(guest)</small>':''}<small style="display:block;opacity:.7">Day ${+q.day||1} · ${here?'near you':'somewhere else'}</small></div>`;}).join('')||'<p class="jsub">Nobody else is here right now. Share the game’s link with a friend; when they open it, they appear in your valley.</p>';
   const chat=CO.chat.slice(-12).map(c=>`<div style="font-size:13px;margin:2px 0"><b style="color:${c.me?'#ffd27a':'#b8e07a'}">${clean(c.n)}:</b> ${String(c.t).replace(/[<>&]/g,'')}</div>`).join('');
   B.innerHTML=`<div class="soc">${list}</div>

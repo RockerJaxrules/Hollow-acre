@@ -17,3 +17,10 @@ The controls are the same in the browser and the desktop build:
 - **F:** fullscreen
 
 For Steam, add [steamworks.js](https://github.com/ceifa/steamworks.js) to the main process, then upload the `electron-builder` output with SteamPipe.
+
+## Multiplayer
+
+Multiplayer works in the desktop build and in any web browser, not only on claude.ai. Players connect directly to each other
+(WebRTC via the bundled Trystero library, MIT) and find each other through free public relays, so there is no game server to run.
+Open the menu, then **Together**: everyone online shares one valley, or type the same farm code to play privately with friends.
+Each player keeps their own farm, story and save. For Steam, the same screen can later switch to Steam's own networking.

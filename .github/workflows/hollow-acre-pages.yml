@@ -1,0 +1,26 @@
+# Publishes the game at https://<owner>.github.io/<repo>/ so anyone can play it in a browser, no Claude needed.
+# One-time setup: repository Settings > Pages > Source: "GitHub Actions".
+name: Hollow Acre web build
+on:
+  push:
+    branches: [main, master]
+    paths: ['hollow-acre/2d/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency: {group: pages, cancel-in-progress: true}
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: {name: github-pages, url: '${{ steps.deploy.outputs.page_url }}'}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect the game files
+        run: mkdir -p site && cp -r hollow-acre/2d/index.html hollow-acre/2d/spr hollow-acre/2d/CREDITS.txt hollow-acre/2d/vendor site/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with: {path: site}
+      - id: deploy
+        uses: actions/deploy-pages@v4

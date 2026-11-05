@@ -530,3 +530,5 @@ Car models: "Car Kit" by Kenney (www.kenney.nl), CC0 1.0. Rendered to pixel spri
 Road texture: procedural, made in Blender for this game.
 
 Buildings, fences and props (houses, cabin, store, garage, church, fences, lamps, well, phone booth, notice board, gas pump, signpost, barrel, crate, hay, sacks, cart): drawn for this game in LibreSprite (https://github.com/LibreSprite/LibreSprite). Layered .ase sources are in tools/px.
+
+Multiplayer networking: Trystero by Dan Motzenbecker (MIT License), bundled in index.html. See vendor/TRYSTERO_LICENSE.txt.
