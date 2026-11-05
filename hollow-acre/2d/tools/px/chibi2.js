@@ -42,7 +42,7 @@ function seg(x0,y0,x1,y1,w,R){const n=Math.max(1,Math.ceil(Math.hypot(x1-x0,y1-y
       if(vert)p(Math.round(x)+k-(w>>1),Math.round(y),R[ki]);else p(Math.round(x),Math.round(y)+k-(w>>1),R[ki]);}}}
 // ---------------------------------------------------------------- proportions after Stardew's villagers (16x32 drawn at 1.5x): head with hair ~45% of the height,
 // a narrow squared face framed by big clumped hair, a compact body, short legs and chunky shoes. Everything outlined, inside and out.
-const HIP0=KID?49:48,TH=KID?10:12,ANK=56,LT=KID?3.8:4.4,LS=KID?3.8:4.4,TW=KID?13:16,TWS=KID?9:11,HANG=KID?9:11;
+const HIP0=KID?49:48,TH=KID?10:12,ANK=56,LT=KID?3.8:4.4,LS=KID?3.8:4.4,TW=KID?12:14,TWS=KID?8:10,HANG=KID?9:11;
 const FX=KID?7:8,FY0=KID?-6:-7,FY1=KID?5:6,HW=KID?10:11,HTOP=KID?-13:-14;   // face half-width / top / chin, hair half-width / top (relative to the eye line hy)
 const HEADUP=FY1+2;                                                       // hy = shoulders - HEADUP
 const HR_X=FX,HR_Y=FY1;
@@ -83,7 +83,7 @@ function arm(sx,sy,hx2,hy2,out,far,edge){const cloth=(OUT==='jacket'||OUT==='car
   for(let j=0;j<3;j++)for(let i=-1;i<=AW-2;i++)p(hx2+i,hy2+j,S2[j===2?1:i===-1?4:i===AW-2?2:3]);}
 // ---- torso with the outfit on it
 function torso(cx,ty,dir,fl,hipY){const side=dir==='E'||dir==='W',back=dir==='N';const w=side?TWS:TW;const h=hipY-ty+1;const x0=Math.round(cx-w/2);
-  const ow=(j)=>OUT==='tank'?(j<2?w-6:w-1):j===0?w-4:j===1?w-2:w;const over=!!OVER[OUT],open=OUT==='openshirt';
+  const ow=(j)=>OUT==='tank'?(j<2?w-6:w-1):j===0?w-6:j===1?w-4:j===2?w-2:w;const over=!!OVER[OUT],open=OUT==='openshirt';
   for(let j=0;j<h;j++){const ww=ow(j);for(let i=0;i<ww;i++){const x=x0+((w-ww)>>1)+i,y=ty+j;const ii=x-x0;
       let k=i<2?4:i>=ww-1?1:i>=ww-3?2:3;if(j>=h-2)k=Math.max(1,k-1);
       let R=over?JK:shirtAt(ii,j);
@@ -166,7 +166,7 @@ function head(hx,hy0,dir,fl,pose){const side=dir==='E'||dir==='W',back=dir==='N'
     p(hx+fl*(FX-3),hy+5,LIP);p(hx+fl*(FX-4),hy+5,LIP);p(hx+fl*(FX-7),hy+4,BLUSH);p(hx+fl*(FX-6),hy+4,BLUSH);}}
 // ---- hair, built like a hand-drawn sprite: a thin cap that hugs the skull, then tapered locks swept from the crown.
 // Each lock has a lit edge and a dark edge, so neighbouring locks read as separate clumps; fringes end in points with forehead between them.
-const SQ=1.2;const CRAN=(u,y,e,side)=>Math.pow(Math.abs(side?u*SQ:u)/(FX+1.2+e),2.4)+Math.pow(Math.abs(y+3)/(10.6+e),2.2)<=1;
+const SQ=1.2;const CRAN=(u,y,e,side)=>{const uu=Math.abs(side?u*SQ:u)/(FX+1.2+e),yy=Math.abs(y+3)/(10.6+e);return y<-3?Math.pow(uu,2.05)+Math.pow(yy,1.9)<=1:Math.pow(uu,2.4)+Math.pow(yy,2.2)<=1;};   // a round crown, a fuller jaw
 const jit=(i,s)=>{const v=Math.sin(i*12.9898+s*78.233)*43758.5453;return v-Math.floor(v);};
 const HSTY={
   //        nape: back hair ends;  sb: sideburn bottom;  fr: fringe [count, sweep, tip y, spread x0..x1, width];  tufts: [u, angle, len];  hl: forehead hairline
@@ -230,7 +230,7 @@ function hair(hx,hy,dir,fl,st){if(!st||st==='bald')return;const S=HSTY[st]||HSTY
     tips.forEach((tu,i)=>lock(back?tu*.35:tu*.7-1.5,-12,tu,nape+Math.round(jit(i,SEED+5)*2)-(Math.abs(tu)>FX-1&&back?1:0),3.4,back&&tu>2?-1:0));
     if(back&&!buzz&&!S.curls)for(let i=0;i<4;i++)lock(-5+i*3.3,-13,-6+i*4,-6,2.6,0);}
   // tufts break the round silhouette on top
-  for(const [tu,ang,len] of (S.tufts||[])){if(back&&ang>-60&&ang<-120)continue;const a=ang*Math.PI/180;const u0=side?tu*.6-1:tu,y0=-12+Math.abs(tu)*.15;lock(u0,y0,u0+Math.cos(a)*len*(side?.7:1),y0+Math.sin(a)*len,2.6,0);}
+  for(const [tu,ang,len] of (S.tufts||[])){if(back&&ang>-60&&ang<-120)continue;const a=ang*Math.PI/180;const u0=side?tu*.4-1:tu*.6,y0=-12.5+Math.abs(tu)*.35;lock(u0,y0,u0+Math.cos(a)*len*(side?.7:1),y0+Math.sin(a)*len,2.6,0);}
   // ---- longer styles: curtains of locks
   if(S.side&&S.side[0]>5){const len=S.side[0];
     if(!side&&!back){for(const s of [-1,1]){for(let j=0;j<2;j++){const u0=s*(FX-1+j),u1=s*(FX+1.5+j*.5+(S.wave?((j)&1):0));lock(u0,-4,u1+(S.inward?-s*2:0),len-j*2,3.2,s>0?-1:0);}
@@ -328,7 +328,7 @@ function drawTool(kind,f,hx,ay,dir,fl){const side=dir==='E'||dir==='W';
 let SQUAT=false;
 function human(dir,pose){SQUAT=(pose.crouch||0)>=3;const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1,back=dir==='N';
   const crouch=pose.crouch||0,bob=pose.bob||0,lean=side?Math.round((pose.lean||0)*fl):0;
-  const cx=FW/2+(side?0:(pose.sway||0)),hipY=HIP0+crouch+bob,ux=cx+lean,ty=hipY-TH+(pose.slouch||0),hy=ty-HEADUP,armY=ty+2;
+  const cx=FW/2+(side?0:(pose.sway||0)),hipY=HIP0+crouch+bob,ux=cx+lean,ty=hipY-TH+(pose.slouch||0),hy=ty-HEADUP,armY=ty+3;
   const tool=pose.tool;
   // legs: [x offset along facing (side) or across (front), screen y offset, lift]
   const legs=pose.legs||(side?[[-1,0,0],[1,0,0]]:[[-3,0,0],[3,0,0]]);
@@ -337,7 +337,7 @@ function human(dir,pose){SQUAT=(pose.crouch||0)>=3;const side=dir==='E'||dir==='
     const knee=kx!==undefined?[side?cx+fl*kx:cx+kx,ANK+ky]:null;leg(hx0,hy0,fx,fy,side,fl,far,!lift,i?1:-1,knee,rev);};
   // arms: hands relative to the shoulder
   const shL=side?[ux-fl*1,armY]:[ux-Math.round(TW/2),armY],shR=side?[ux+fl*1,armY]:[ux+Math.round(TW/2)-1,armY];
-  const hands=pose.hands||(side?[[fl*-1,HANG],[fl*1,HANG]]:[[0,HANG],[0,HANG]]);
+  const hands=pose.hands||(side?[[fl*-1,HANG-2],[fl*1,HANG-2]]:[[-1,HANG-2],[1,HANG-2]]);
   const drawArm=(i,far)=>{const sh=i?shR:shL;const h=hands[i];const hx2=sh[0]+h[0],hy2=sh[1]+h[1];arm(sh[0],sh[1],hx2,hy2,side?0:(i?1:-1),far,far?0:side?-fl:(i?-1:1));};
   into('body',()=>{
     if(tool&&back)tool(ux,armY,dir,fl);
