@@ -42,12 +42,12 @@ function seg(x0,y0,x1,y1,w,R){const n=Math.max(1,Math.ceil(Math.hypot(x1-x0,y1-y
       if(vert)p(Math.round(x)+k-(w>>1),Math.round(y),R[ki]);else p(Math.round(x),Math.round(y)+k-(w>>1),R[ki]);}}}
 // ---------------------------------------------------------------- proportions after Stardew's villagers (16x32 drawn at 1.5x): head with hair ~45% of the height,
 // a narrow squared face framed by big clumped hair, a compact body, short legs and chunky shoes. Everything outlined, inside and out.
-const HIP0=KID?49:46,TH=KID?10:12,ANK=56,LT=KID?3.8:5.2,LS=KID?3.8:5.2,TW=KID?13:16,TWS=KID?9:11,HANG=KID?9:11;
+const HIP0=KID?49:48,TH=KID?10:12,ANK=56,LT=KID?3.8:4.4,LS=KID?3.8:4.4,TW=KID?13:16,TWS=KID?9:11,HANG=KID?9:11;
 const FX=KID?7:8,FY0=KID?-6:-7,FY1=KID?5:6,HW=KID?10:11,HTOP=KID?-13:-14;   // face half-width / top / chin, hair half-width / top (relative to the eye line hy)
-const HEADUP=FY1+1;                                                       // hy = shoulders - HEADUP
+const HEADUP=FY1+2;                                                       // hy = shoulders - HEADUP
 const HR_X=FX,HR_Y=FY1;
 // face: a rounded rectangle, soft top corners, a rounded chin
-const faceInset=y=>{const t=y-FY0,b=FY1-y;return t===0?2:t===1?1:b===0?4:b===1?2:b===2?1:0;};
+const faceInset=y=>{const t=y-FY0,b=FY1-y;return t===0?2:t===1?1:b===0?4:b===1?3:b===2?1:b===3?1:0;};
 const faceIn=(x,y)=>y>=FY0&&y<=FY1&&Math.abs(x)<=FX-faceInset(y);
 // ---- shirt patterns: every shirt pixel belongs to one of 8 phases (row%4, column%4===1) measured on the torso. The player's layers give each phase
 // its own base colour, so custom.js can make any top plain, plaid, striped or dotted; NPC sheets bake their pattern in.
@@ -131,37 +131,42 @@ if(OUT==='tank'&&!back&&!side){for(const sx2 of [x0+3,x0+w-4]){p(sx2,ty,S0[3]);p
 function head(hx,hy0,dir,fl,pose){const side=dir==='E'||dir==='W',back=dir==='N';let hy=hy0;
   // neck
   for(let j=FY1-1;j<=FY1+1;j++)for(let i=-2;i<=1;i++)p(hx+i-(side?fl:0),hy+j,SK[1]);
-  const fin=side?((x,y)=>faceIn(x*fl-2,y)&&x*fl>=-FX+3):faceIn;
+  const fin=side?((x,y)=>faceIn(Math.round(x*fl*SQ),y)):faceIn;
   for(let y=FY0;y<=FY1;y++)for(let x=-FX-1;x<=FX+1;x++){if(!fin(x,y))continue;const xs=side?x*fl:x;
-    let k=3;if(xs<-FX+3&&y<1&&!side)k=4;if(side&&xs<-1)k=2;if(xs>FX-3)k=2;if(y>=FY1-1)k=2;if(y===FY1&&Math.abs(x)<FX-3)k=1;p(hx+x,hy+y,SK[k]);}
+    let k=3;if(!side){if(xs<-FX+3&&y>-4&&y<4)k=4;if(xs>FX-3)k=2;if(xs>FX-2&&y>1)k=1;}else{if(xs<-4)k=2;if(xs>=FX-8&&xs<=FX-5&&y>=-3&&y<=2)k=4;if(xs>=FX-3&&y>3)k=2;}if(y>=FY1-1)k=Math.min(k,2);if(y===FY1)k=1;p(hx+x,hy+y,SK[k]);}
   // the skull above the forehead
   for(let y=-13;y<FY0+2;y++)for(let u=-FX-2;u<=FX+2;u++){if(!CRAN(u,y,0,side))continue;if(side&&u<-FX+1)continue;const sx2=hx+(side?u*fl:u);if(g(sx2,hy+y))continue;let k=3;if(u<-3&&y<-6)k=4;if(u>FX-3)k=2;p(sx2,hy+y,SK[k]);}
   // ears
   if(!side){for(const s of [-1,1]){const ex=hx+s*(FX+1);p(ex,hy,SK[s<0?3:2]);p(ex,hy+1,SK[1]);p(ex,hy+2,SK[s<0?3:2]);p(ex,hy+3,SK[2]);}}
-  else{const ex=hx-fl;p(ex,hy,SK[3]);p(ex,hy+1,SK[1]);p(ex,hy+2,SK[1]);p(ex,hy+3,SK[3]);p(ex-fl,hy+1,SK[3]);p(ex-fl,hy+2,SK[2]);}
+  else{const ex=hx-fl*3;p(ex,hy,SK[3]);p(ex,hy+1,SK[1]);p(ex,hy+2,SK[1]);p(ex,hy+3,SK[2]);p(ex-fl,hy,SK[2]);p(ex-fl,hy+1,SK[3]);p(ex-fl,hy+2,SK[3]);p(ex-fl,hy+3,SK[1]);}
   if(back)return;
   if(pose.nod)hy+=1;
   const blink=pose.blink,hollow=C.hollowEyes,EY=hollow?[[6,4,6],[10,8,10],[14,12,14],[20,18,22],[30,28,32]]:EYR,SCL=hollow?[16,12,16]:WHITE;
+  const LIP=SK[0];
   if(dir==='S'){
-    for(const s of [-1,1]){const x0=s<0?hx-5:hx+3,wx=s<0?x0:x0+2;           // 3 wide: white on the outside, iris toward the nose
-      if(blink){for(let i=0;i<3;i++)p(x0+i,hy+2,LASH);continue;}
-      for(let i=0;i<3;i++)p(x0+i,hy,LASH);p(s<0?x0-1:x0+3,hy-1+1,LASH);
-      for(let i=0;i<3;i++){const isW=(x0+i)===wx;p(x0+i,hy+1,isW?SCL:EY[1]);p(x0+i,hy+2,isW?SCL:EY[3]);}
-      if(!hollow)p(s<0?x0+1:x0+1,hy+1,EY[0]);}
-    // brows (usually under the fringe), nose, mouth
-    for(const s of [-1,1]){const bx=s<0?hx-5:hx+3;for(let i=0;i<3;i++)p(bx+i,hy-2+(s<0?(i===0?1:0):(i===2?1:0)),HR[1]);}
-    p(hx,hy+3,SK[2]);
-    if(C.smile!==false){p(hx-1,hy+6-1,SK[0]);p(hx,hy+6-1,SK[0]);p(hx-2,hy+4,SK[2]);p(hx+1,hy+4,SK[2]);}else{p(hx-1,hy+5,SK[0]);p(hx,hy+5,SK[0]);p(hx+1,hy+5,SK[1]);}
-    p(hx-7,hy+3,BLUSH);p(hx-6,hy+3,BLUSH);p(hx+5,hy+3,BLUSH);p(hx+6,hy+3,BLUSH);}
-  else{const xi=hx+fl*6,xw=hx+fl*5;
+    // eyes: a lash line, white on the outer side, a two-pixel iris that lightens toward the bottom, a glint
+    for(const s of [-1,1]){const x0=s<0?hx-6:hx+3,wx=s<0?x0:x0+2,ix=s<0?x0+1:x0;
+      if(blink){for(let i=0;i<3;i++)p(x0+i,hy+2,LASH);p(s<0?x0-1:x0+3,hy+1,LASH);continue;}
+      for(let i=0;i<3;i++)p(x0+i,hy,LASH);p(s<0?x0-1:x0+3,hy,LASH);p(s<0?x0-1:x0+3,hy-1,LASH);
+      p(wx,hy+1,SCL);p(wx,hy+2,SCL);
+      p(ix,hy+1,EY[0]);p(ix+1,hy+1,EY[0]);p(ix,hy+2,EY[1]);p(ix+1,hy+2,EY[2]);p(ix,hy+3,EY[3]);p(ix+1,hy+3,EY[2]);
+      if(!hollow)p(s<0?ix+1:ix,hy+2,[255,255,255]);
+      p(x0,hy+4,SK[2]);p(x0+1,hy+4,SK[2]);p(x0+2,hy+4,SK[2]);}
+    // brows, a little arched
+    for(const s of [-1,1]){const bx=s<0?hx-6:hx+3;p(bx+(s<0?0:2),hy-1,HR[1]);p(bx+1,hy-2,HR[1]);p(bx+(s<0?2:0),hy-2,HR[1]);p(bx+(s<0?-1:3),hy-1,HR[2]);}
+    p(hx,hy+4,SK[1]);p(hx-1,hy+3,SK[4]);                                                    // nose: a shadow and a glint
+    if(C.smile!==false){p(hx-2,hy+5,LIP);p(hx-1,hy+6-0,LIP);p(hx,hy+6,LIP);p(hx+1,hy+5,LIP);p(hx-1,hy+5,SK[2]);p(hx,hy+5,SK[2]);}
+    else{p(hx-1,hy+5,LIP);p(hx,hy+5,LIP);p(hx+1,hy+5,SK[1]);}
+    p(hx-8,hy+4,BLUSH);p(hx-7,hy+4,BLUSH);p(hx+6,hy+4,BLUSH);p(hx+7,hy+4,BLUSH);}
+  else{const xi=hx+fl*(FX-4),xw=hx+fl*(FX-5);
     if(blink){p(xw,hy+2,LASH);p(xi,hy+2,LASH);}
-    else{p(xw,hy,LASH);p(xi,hy,LASH);p(xi+fl,hy,LASH);p(xw,hy+1,SCL);p(xw,hy+2,SCL);p(xi,hy+1,EY[0]);p(xi,hy+2,EY[3]);}
-    p(xw,hy-2,HR[1]);p(xi,hy-2,HR[1]);p(xi+fl,hy-2,HR[1]);
-    p(hx+fl*(FX+2),hy+3,SK[3]);p(hx+fl*(FX+1),hy+4,SK[1]);   // nose
-    p(hx+fl*(FX),hy+5,SK[0]);p(hx+fl*(FX-1),hy+5,SK[1]);p(hx+fl*3,hy+3,BLUSH);p(hx+fl*4,hy+3,BLUSH);}}
+    else{p(xw,hy,LASH);p(xi,hy,LASH);p(xi+fl,hy,LASH);p(xi+fl,hy-1,LASH);p(xw,hy+1,SCL);p(xw,hy+2,SCL);p(xi,hy+1,EY[0]);p(xi,hy+2,EY[2]);p(xi,hy+3,EY[3]);if(!hollow)p(xi,hy+2,[255,255,255]);p(xw,hy+3,SK[2]);}
+    p(xw,hy-2,HR[1]);p(xi,hy-2,HR[1]);p(xi+fl,hy-1,HR[1]);
+    p(hx+fl*(FX-2),hy+3,SK[2]);                                                              // nose: a small shade, inside the outline
+    p(hx+fl*(FX-3),hy+5,LIP);p(hx+fl*(FX-4),hy+5,LIP);p(hx+fl*(FX-7),hy+4,BLUSH);p(hx+fl*(FX-6),hy+4,BLUSH);}}
 // ---- hair, built like a hand-drawn sprite: a thin cap that hugs the skull, then tapered locks swept from the crown.
 // Each lock has a lit edge and a dark edge, so neighbouring locks read as separate clumps; fringes end in points with forehead between them.
-const CRAN=(u,y,e,side)=>Math.pow(Math.abs(u-(side?.2:0))/((side?FX+.2:FX+1.2)+e),2.4)+Math.pow(Math.abs(y+3)/(10.6+e),2.2)<=1;
+const SQ=1.2;const CRAN=(u,y,e,side)=>Math.pow(Math.abs(side?u*SQ:u)/(FX+1.2+e),2.4)+Math.pow(Math.abs(y+3)/(10.6+e),2.2)<=1;
 const jit=(i,s)=>{const v=Math.sin(i*12.9898+s*78.233)*43758.5453;return v-Math.floor(v);};
 const HSTY={
   //        nape: back hair ends;  sb: sideburn bottom;  fr: fringe [count, sweep, tip y, spread x0..x1, width];  tufts: [u, angle, len];  hl: forehead hairline
@@ -196,7 +201,7 @@ function hair(hx,hy,dir,fl,st){if(!st||st==='bald')return;const S=HSTY[st]||HSTY
   const capBottom=(u)=>{const au=Math.abs(u);
     if(back)return S.nape-((Math.round(u)+20)%3===0?1:0);
     if(!side){if(au>=FX)return S.sb;return S.hl+(au>FX-4?1:0);}
-    if(u<-2)return Math.min(S.nape,FY1)-((Math.round(u)+20)%3===0?1:0);if(u<0)return S.sb;if(u<2)return S.hl+2;return S.hl;};
+    if(u<-4)return Math.min(S.nape,FY1)-((Math.round(u)+20)%3===0?1:0);if(u<-3)return S.sb+1;if(u<-1)return -2;if(u<0)return Math.min(S.sb,-1);if(u<3)return S.hl+1;return S.hl;};
   const buzz=S.cap==='buzz';
   const FIT=buzz?0:(S.fit!==undefined?S.fit:.9);
   for(let y=-15;y<=FY1+1;y++)for(let u=-FX-4;u<=FX+4;u++){if(!CRAN(u,y,FIT,side))continue;if(y>capBottom(u))continue;if(buzz&&!back&&!side&&Math.abs(u)<FX-1&&y>-7)continue;
@@ -216,13 +221,13 @@ function hair(hx,hy,dir,fl,st){if(!st||st==='bald')return;const S=HSTY[st]||HSTY
     if(!side){for(let i=0;i<n;i++){const b=x0+(x1-x0)*i/(n-1);let bu=b*.55,by=-11+Math.abs(b)*.2,tu=b+sweep*3+(jit(i,SEED)-.5)*1.2,ty=tipY+Math.round(jit(i,SEED+1)*2)-(Math.abs(b)>FX-3?0:0);
         if(S.part!==undefined){const s=b<S.part?-1:1;bu=S.part+s*1;by=-12;tu=b+s*2.5;ty=tipY+(Math.abs(b-S.part)<3?-1:0)+Math.round(jit(i,SEED)*1.5);}
         lock(bu,by,tu,ty,w,i%2?0:0);}}
-    else{const m=Math.max(3,Math.ceil(n/2));for(let i=0;i<m;i++){const tu=1+i*(FX+1)/(m-1)*.9,ty=tipY+Math.round(jit(i,SEED)*2)-(S.part!==undefined?1:0);lock(-2+i*.8,-12+i*.3,tu+sweep*.6,ty,w,0);}}}
+    else{const m=Math.max(3,Math.ceil(n/2));for(let i=0;i<m;i++){const tu=1+i*(FX-1)/(m-1)*.8,ty=Math.min(-2,tipY+Math.round(jit(i,SEED)*1.5))-(S.part!==undefined?1:0);lock(-2+i*.8,-12+i*.3,tu+sweep*.6,ty,w,0);}}}
   // side locks over the temples, down past the ear for longer styles
   if(!back&&S.side){const [len,out]=S.side;if(!side){for(const s of [-1,1]){lock(s*(FX-1),-8,s*(FX+1+out),len,3.4,s>0?-1:0);lock(s*(FX-3),-7,s*(FX+.5+out*.5),len-1,2.6,s>0?0:0);}}
-    else{lock(-1,-8,1,Math.min(len,S.sb+1),3,0);}}
+    else{lock(-4,-8,-4,Math.min(len,S.sb+2),3,0);}}
   // hair at the back of the head, fanning from the crown to the nape
-  if(back||side){const nape=S.nape+(S.side&&side?0:0);const tips=back?[-FX-1,-FX+2,-3,0,3,FX-2,FX+1]:[-FX-1,-FX+1,-4,-2];
-    tips.forEach((tu,i)=>lock(tu*.35,-12,tu,nape+Math.round(jit(i,SEED+5)*2)-(Math.abs(tu)>FX-1&&back?1:0),3.4,back&&tu>2?-1:0));
+  if(back||side){const nape=S.nape+(S.side&&side?0:0);const tips=back?[-FX-1,-FX+2,-3,0,3,FX-2,FX+1]:[-FX-1,-FX+1,-6];
+    tips.forEach((tu,i)=>lock(back?tu*.35:tu*.7-1.5,-12,tu,nape+Math.round(jit(i,SEED+5)*2)-(Math.abs(tu)>FX-1&&back?1:0),3.4,back&&tu>2?-1:0));
     if(back&&!buzz&&!S.curls)for(let i=0;i<4;i++)lock(-5+i*3.3,-13,-6+i*4,-6,2.6,0);}
   // tufts break the round silhouette on top
   for(const [tu,ang,len] of (S.tufts||[])){if(back&&ang>-60&&ang<-120)continue;const a=ang*Math.PI/180;const u0=side?tu*.6-1:tu,y0=-12+Math.abs(tu)*.15;lock(u0,y0,u0+Math.cos(a)*len*(side?.7:1),y0+Math.sin(a)*len,2.6,0);}
@@ -256,12 +261,12 @@ function acc(hx,hy,dir,fl,a,ty){if(!a)return;const side=dir==='E'||dir==='W',bac
   if(a==='necklace'){if(back||side){if(side)p(hx+fl*3,ty+2,R[3]);return;}for(let x=-4;x<=3;x++){const yy=ty+1+Math.round((x+.5)*(x+.5)/8);p(hx+x,yy,(x&1)?R[4]:R[2]);}p(hx-1,ty+4,[250,214,90]);p(hx,ty+4,[214,160,40]);p(hx-1,ty+5,[214,160,40]);}}
 // ---- facial hair, in the hair colour
 function beard(hx,hy,dir,fl,bt){if(!bt||dir==='N')return;const side=dir==='E'||dir==='W';
-  const jaw=(x,y)=>side?faceIn(x*fl-2,y):faceIn(x,y);
+  const jaw=(x,y)=>side?faceIn(Math.round(x*fl*SQ),y):faceIn(x,y);
   if(bt==='stubble'){for(let y=hy+3;y<=hy+FY1;y++)for(let x=-FX;x<=FX;x++){if(side&&x*fl<0)continue;if(!jaw(x,y-hy))continue;if((x+y)&1)p(hx+x,y,HR[1]);}return;}
   if(bt==='goatee'){if(dir==='S'){for(let i=-2;i<=1;i++)p(hx+i,hy+4,HR[i<0?3:2]);for(let y=hy+6;y<=hy+FY1+1;y++)for(let i=-1;i<=0;i++)p(hx+i+(y>hy+FY1?0:0),y,HR[i<0?3:1]);p(hx-2,hy+6,HR[2]);p(hx+1,hy+6,HR[1]);}else{for(let i=0;i<3;i++)p(hx+fl*(FX-3+i),hy+4,HR[2]);for(let y=hy+6;y<=hy+FY1+1;y++){p(hx+fl*(FX-2),y,HR[2]);p(hx+fl*(FX-3),y,HR[1]);}}return;}
   if(bt==='moustache'){if(dir==='S'){for(let i=-3;i<=2;i++)p(hx+i,hy+4+(i===-3||i===2?1:0),HR[i<-1?3:2]);p(hx-1,hy+4,HR[1]);p(hx,hy+4,HR[1]);}else for(let i=0;i<3;i++)p(hx+fl*(FX-3+i),hy+4,HR[2]);return;}
-  for(let y=hy+1;y<=hy+FY1+3;y++)for(let x=-FX-1;x<=FX+1;x++){const yy=y-hy;const xs=side?x*fl:x;if(side&&xs<-2)continue;
-    const inside=yy<=FY1?(side?faceIn(xs-2,yy):faceIn(x,yy)):Math.abs(side?xs-2:x)<=FX-2-(yy-FY1)*1.5;if(!inside)continue;
+  for(let y=hy+1;y<=hy+FY1+3;y++)for(let x=-FX-1;x<=FX+1;x++){const yy=y-hy;const xs=side?x*fl:x;if(side&&xs<0)continue;
+    const inside=yy<=FY1?(side?faceIn(Math.round(xs*SQ),yy):faceIn(x,yy)):Math.abs(side?xs-2:x)<=FX-2-(yy-FY1)*1.5;if(!inside)continue;
     if(!side&&yy<4&&Math.abs(x)<FX-1)continue;if(side&&yy<4&&xs>2)continue;
     let k=xs<-FX*.3?3:xs>FX*.4?1:2;if(((x+40)*3+y)%5===0)k=Math.max(1,k-1);if(yy>FY1+1)k=Math.max(1,k-1);p(hx+x,y,HR[k]);}
   if(dir==='S'){p(hx-1,hy+5,SK[0]);p(hx,hy+5,SK[0]);for(let i=-3;i<=2;i++)p(hx+i,hy+4,HR[2]);}}
@@ -271,7 +276,7 @@ function glasses(hx,hy,dir,fl,gt){if(dir==='N')return;gt=gt===true?'round':gt;co
   if(gt==='square'){if(dir==='S'){for(const x0 of [hx-6,hx+2]){for(let i=0;i<5;i++){p(x0+i,hy-1,F[1]);p(x0+i,hy+3,F[1]);}for(let j=-1;j<4;j++){p(x0,hy+j,F[1]);p(x0+4,hy+j,F[0]);}p(x0+1,hy,GL);}for(let i=-1;i<=1;i++)p(hx+i,hy,F[1]);}
     else{const x0=hx+fl*3;for(let i=0;i<4;i++){p(x0+fl*i,hy-1,F[1]);p(x0+fl*i,hy+3,F[1]);}for(let j=-1;j<4;j++)p(x0+fl*3,hy+j,F[0]);for(let i=1;i<6;i++)p(x0-fl*i,hy,F[1]);}return;}
   if(dir==='S'){for(const x0 of [hx-6,hx+2]){for(let i=0;i<5;i++){p(x0+i,hy-1,F[1]);p(x0+i,hy+3,F[0]);}for(let j=0;j<3;j++){p(x0,hy+j,F[1]);p(x0+4,hy+j,F[0]);}p(x0+1,hy,GL);}for(let i=-1;i<=1;i++)p(hx+i,hy,F[1]);}
-  else{const x0=hx+fl*3;for(let i=0;i<4;i++){p(x0+fl*i,hy-1,F[1]);p(x0+fl*i,hy+3,F[0]);}for(let j=0;j<3;j++)p(x0+fl*3,hy+j,F[0]);for(let i=1;i<6;i++)p(x0-fl*i,hy,F[1]);}}
+  else{const x0=hx+fl*(FX-6);for(let i=0;i<4;i++){p(x0+fl*i,hy-1,F[1]);p(x0+fl*i,hy+3,F[0]);}for(let j=0;j<3;j++)p(x0+fl*3,hy+j,F[0]);for(let i=1;i<7;i++)p(x0-fl*i,hy,F[1]);}}
 // ---- hats, sitting on the hair
 function hat(hx,hy,dir,fl,h){if(!h)return;const side=dir==='E'||dir==='W',back=dir==='N';const H=HAT,T0=hy+HTOP;
   const dome=(top,bot,rx,R2)=>{const ry=bot-top;for(let y=top;y<=bot;y++)for(let x=-rx;x<=rx;x++){const yy=(y-bot)/ry;if((x*x)/(rx*rx)+yy*yy>1)continue;const l=-x/rx*.55-yy*.5;p(hx+x+(side?-fl:0),y,R2[l>.6?4:l>.1?3:l>-.4?2:1]);}};
