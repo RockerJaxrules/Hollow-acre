@@ -3802,19 +3802,20 @@ if(stFound.length){const last=ST_END[stFound[stFound.length-1]];LETTER.push(`<sp
    switched away from, and at the start of each day. Continue on the title screen resumes exactly where you were. ================= */
 const SAVE_KEY='hollowSave1';
 const SAVE_SKIP=new Set(['mode','paused','room','night','introDrive','storm','autoCol']);
-function saveGame(mid){try{const s={};for(const k of Object.keys(S)){if(SAVE_SKIP.has(k))continue;const v=S[k];if(typeof v==='function')continue;try{s[k]=JSON.parse(JSON.stringify(v));}catch(e){}}
+function saveGame(mid){try{const data=saveData(mid);localStorage.setItem(SAVE_KEY,JSON.stringify(data));return true;}catch(e){return false;}}
+function saveData(mid){const s={};for(const k of Object.keys(S)){if(SAVE_SKIP.has(k))continue;const v=S[k];if(typeof v==='function')continue;try{s[k]=JSON.parse(JSON.stringify(v));}catch(e){}}
   const data={v:1,t:Date.now(),S:s,tiles:tiles.map(t=>[t.tilled?1:0,t.crop||null,t.debris&&t.debris.hide?1:0]),altars:altars.map(a=>a.lit?1:0),
     bench:typeof BENCH_POS!=='undefined'?BENCH_POS:null,gh:{x:GH.x,z:GH.z},mind:M.v,
     mid:mid?{hour:S.hour,x:P.x,z:P.z,dir:P.dir,room:S.room||null}:null};
-  localStorage.setItem(SAVE_KEY,JSON.stringify(data));return true;}catch(e){return false;}}
+  return data;}
 function readSave(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');return d&&d.v===1?d:null;}catch(e){return null;}}
 function loadGame(d){const s=d.S;for(const k of Object.keys(s)){const v=s[k];if(v&&typeof v==='object'&&!Array.isArray(v)&&S[k]&&typeof S[k]==='object'&&!Array.isArray(S[k]))S[k]=Object.assign(S[k],v);else S[k]=v;}
   S.mode='play';S.paused=false;S.room=null;S.night={};S.storm=false;S.introDrive=false;
   if(d.bench&&typeof BENCH_POS!=='undefined')Object.assign(BENCH_POS,d.bench);
-  if(S.greenhouse){GH.x=d.gh.x;GH.z=d.gh.z;ROOMS.greenhouse.out={x:GH.x,z:GH.z+.8};buildGreenhouse();}
+  if(S.greenhouse&&!loadGame.gh){loadGame.gh=1;GH.x=d.gh.x;GH.z=d.gh.z;ROOMS.greenhouse.out={x:GH.x,z:GH.z+.8};buildGreenhouse();}
   d.tiles.forEach((a,i)=>{const t=tiles[i];if(!t)return;t.tilled=!!a[0];t.crop=a[1];if(a[2]&&t.debris){const o=t.debris;o.hide=true;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}}});
   d.altars.forEach((l,i)=>{if(altars[i])altars[i].lit=!!l;});
-  if(S.coop||S.fieldLamps)rebuildFarm();benchesBoot();applyLook();M.v=d.mind==null?100:d.mind;
+  if(S.coop||S.fieldLamps)rebuildFarm();if(!loadGame.b){loadGame.b=1;benchesBoot();}applyLook();M.v=d.mind==null?100:d.mind;
   S.hour=6;P.x=0;P.z=-7.6;P.fx=0;P.fz=1;P.dir='S';P.anim=null;H.state='gone';H.timer=6;H.vis=false;
   if(d.mid){const m=d.mid;S.hour=Math.min(m.hour,25.5);const R=m.room&&ROOMS[m.room];if(R&&R.out){P.x=R.out.x;P.z=R.out.z;}else if(isFinite(m.x)&&isFinite(m.z)){P.x=m.x;P.z=m.z;collide(P,.3);}P.dir=m.dir||'S';}
   if(!S.bound){scare.vis=true;placeScarecrow(S.day);}placeNPCs();spawnMushrooms();if(S.cat==='lost')resetCat();
@@ -3822,7 +3823,7 @@ function loadGame(d){const s=d.S;for(const k of Object.keys(s)){const v=s[k];if(
 // the saved mark in the corner
 {const el=document.createElement('div');el.id='saved';el.style.cssText='position:fixed;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 118px);z-index:30;font-size:12px;letter-spacing:.08em;color:#f4e6c8;background:rgba(42,26,14,.85);padding:4px 10px;opacity:0;transition:opacity .6s;pointer-events:none';$('app').appendChild(el);}
 function savedMark(txt){const el=$('saved');el.textContent=txt;el.style.opacity=1;setTimeout(()=>el.style.opacity=0,2600);}
-{const _nd=newDay;newDay=function(msg,pos){_nd(msg,pos);setTimeout(()=>{if(S.mode==='end'||S.mode==='title')return;if(saveGame())savedMark(typeof saveLine==='function'?saveLine():'Saved');},600);};}
+{const _nd=newDay;newDay=function(msg,pos){_nd(msg,pos);setTimeout(()=>{if(S.mode==='end'||S.mode==='title')return;if(saveGame()){savedMark(typeof saveLine==='function'?saveLine():'Saved');try{localStorage.setItem(SAVE_KEY+'_morning',localStorage.getItem(SAVE_KEY));}catch(e){}}},600);};}
 // Continue on the title screen
 {const d=readSave();if(d){const b=document.createElement('button');b.className='begin';b.id='cont';b.textContent=`Continue · Day ${d.S.day}`+(d.mid?`, ${fmtTime(d.mid.hour)}`:'');b.style.marginBottom='10px';
   $('begin').before(b);$('begin').classList.add('second');$('begin').textContent='New game';
@@ -4079,10 +4080,20 @@ function encUpdate(dt){const e=encLive();for(const [k,o] of Object.entries(encOb
    desktop build, Android, Steam) the game uses direct peer-to-peer connections (WebRTC through the bundled Trystero library, MIT), finding other
    players through public relays, so no game server is needed. Claude's live room is only a fallback for a browser without WebRTC. ================= */
 const NET_APP='hollow-acre-valley-v1';
-function netRoom(name){const r=HollowNet.joinRoom({appId:NET_APP},name);let onData=()=>{};
+// Players don't need to share a network: STUN (Google, Cloudflare, built into the library) finds a direct route across the internet.
+// Some networks (many mobile carriers, school and office Wi-Fi) block direct routes, so a TURN relay carries the game for them.
+// The default is the free public Open Relay server; before launch, swap in your own (Cloudflare or Metered TURN) by setting
+// window.HOLLOW_TURN before the game loads.
+const NET_TURN=(typeof window!=='undefined'&&window.HOLLOW_TURN)||[{urls:['turn:openrelay.metered.ca:80','turn:openrelay.metered.ca:443','turn:openrelay.metered.ca:443?transport=tcp'],username:'openrelayproject',credential:'openrelayproject'}];
+function netRoom(name){const r=HollowNet.joinRoom({appId:NET_APP,turnConfig:NET_TURN},name);let onData=()=>{};
   const act=r.makeAction('pres',{onMessage:(d,ctx)=>onData(d,ctx&&ctx.peerId)});const old=Array.isArray(act);
   const send=old?(d,to)=>act[0](d,to):(d,to)=>{const p=act.send(d,to?{target:to}:undefined);if(p&&p.catch)p.catch(()=>{});};
   const get=fn=>{onData=fn;if(old)act[1](fn);};const onJoin=fn=>{if(old)r.onPeerJoin(fn);else r.onPeerJoin=fn;},onLeave=fn=>{if(old)r.onPeerLeave(fn);else r.onPeerLeave=fn;};
+  // game events (world sync for hosted farms): one more channel, any size; the library splits big messages
+  const ev=r.makeAction('evt',{onMessage:(d,ctx)=>onEvt(d,ctx&&ctx.peerId)});const evOld=Array.isArray(ev);const evh={};
+  const onEvt=(d,id)=>{if(!d||typeof d!=='object'||typeof d.t!=='string')return;for(const f of (evh[d.t]||[]))try{f({topic:d.t,data:d.d,peer:id,isMe:false});}catch(e){}};
+  if(evOld)ev[1](onEvt);
+  const evSend=(d,to)=>{if(evOld)return ev[0](d,to);const p=ev.send(d,to?{target:to}:undefined);if(p&&p.catch)p.catch(()=>{});};
   const peers=new Map();let mine={};const cbs=[];let tmr=0,dirty=false,open=true;
   const me=()=>Object.freeze({peer:'me',by:null,isMe:true,sameTab:true,kind:'viewer',guest:false,presence:mine,updatedAt:Date.now()});
   const fire=ch=>{const s=[me(),...peers.values()];for(const cb of cbs)try{cb({peers:s,joined:ch.j||[],left:ch.l||[],updated:ch.u||[]});}catch(e){}};
@@ -4095,6 +4106,8 @@ function netRoom(name){const r=HollowNet.joinRoom({appId:NET_APP},name);let onDa
     presence(patch){for(const [k,v] of Object.entries(patch||{})){if(v===null)delete mine[k];else mine[k]=v;}mine=Object.assign({},mine);dirty=true;if(!tmr)tmr=setTimeout(flush,100);return Promise.resolve();},
     onPeers(cb){cbs.push(cb);setTimeout(()=>fire({j:[me()]}),0);return ()=>{const i=cbs.indexOf(cb);if(i>=0)cbs.splice(i,1);};},
     onConnection(cb){setTimeout(()=>cb(true),0);return ()=>{};},connected:()=>true,peers:()=>[me(),...peers.values()],
+    emit(topic,data,to){if(!open)return Promise.resolve();try{evSend({t:topic,d:data},to);}catch(e){}return Promise.resolve();},
+    on(topic,fn){(evh[topic]=evh[topic]||[]).push(fn);return ()=>{const a=evh[topic],i=a?a.indexOf(fn):-1;if(i>=0)a.splice(i,1);};},
     leave(){open=false;cbs.length=0;try{const q=r.leave();if(q&&q.catch)q.catch(()=>{});}catch(e){}return Promise.resolve();}};}
 function netLobby(){let cur=netRoom('valley');const L={net:true,
   presence:p=>cur.presence(p),onPeers:cb=>cur.onPeers(cb),onConnection:cb=>cur.onConnection(cb),connected:()=>true,
@@ -4173,6 +4186,115 @@ function renderCoop(){const B=$('bagBody');const os=others();
   $('coJoin').onclick=()=>{coopJoin($('coCode').value);setTimeout(renderCoop,600);};
   const cc=$('coChat');cc.scrollTop=cc.scrollHeight;}
 coopStart();
+
+/* ================= the scarecrow can kill you. The first time it catches you at night it opens you up and lets you go, because it
+   wants you to run. If it catches you again before you've healed, you die, and you wake on the morning of the same day having lost it. ================= */
+S.deaths=S.deaths||0;
+const DEATH_LINES=['It takes its time. It wants you to see its face, so you will recognise it next year in the mirror.','The last thing you hear is your own voice, from inside the straw, saying it is sorry.',
+  'It is gentle, at the end. It folds you up very small, the way you would fold a letter.','The field drinks. The corn stands a little straighter in the morning.'];
+{const c=document.createElement('style');c.textContent=`#death{position:fixed;inset:0;z-index:996;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:radial-gradient(circle at 50% 45%,#3a0806,#050203 70%);color:#e8dcc0;text-align:center;padding:28px;font-family:var(--font-display,Georgia,serif)}
+#death h1{font-size:clamp(38px,10vw,72px);color:#d23a1e;letter-spacing:.06em;margin:0;text-shadow:0 0 24px rgba(210,40,20,.5)}#death p{max-width:520px;line-height:1.55;font-size:16px;opacity:.9}#death .k{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#b8521c}`;document.head.appendChild(c);
+  const d=document.createElement('div');d.id='death';d.innerHTML='<div class="k"></div><h1>You died</h1><p class="t"></p><button class="begin" id="deathWake">Wake up</button>';document.body.appendChild(d);}
+const armorCut=()=>{const a=S.gear&&S.gear.armor&&ARMORS[S.gear.armor];return a?a[1]:0;};
+caught=(function(){return function(){if(S.mode!=='play')return;S.caught++;fish.state='off';const dmg=Math.round(58*(1-armorCut()));
+  try{navigator.vibrate&&navigator.vibrate([200,60,300]);}catch(e){}
+  const dx=H.x-P.x,dz=H.z-P.z,d=Math.hypot(dx,dz)||1;P.fx=dx/d;P.fz=dz/d;P.dir=dirOf(dx,dz);H.clip='lunge';H.ft=0;SFX.scream();cam.shake=.9;
+  if(S.hp-dmg>0){S.mode='scare';faceSlam(1.1,true);S.hp-=dmg;mindHit(12);
+    setTimeout(()=>{$('scare').hidden=true;$('scare').classList.remove('on');S.mode='play';H.x=P.x+dx/d*7;H.z=P.z+dz/d*7;collide(H,.4);H.grace=7;flashT=Math.max(flashT,.4);
+      toast(`It opens you up from shoulder to hip, then lets go. It wants you to run. Health ${Math.round(S.hp)}. If it catches you again, you die.`,4.6,true);},1250);return;}
+  die();};})();
+function die(){S.mode='dead';S.deaths++;S.hp=0;faceSlam(2.6,true);SFX.shriek&&SFX.shriek(0);
+  setTimeout(()=>{$('scare').hidden=true;$('scare').classList.remove('on');const el=$('death');el.querySelector('.k').textContent=`Day ${S.day} · ${fmtTime(S.hour)} · death ${S.deaths}`;
+    el.querySelector('.t').textContent=pick(DEATH_LINES)+(typeof HOST!=='undefined'&&HOST.role==='guest'?' You will wake at the farm.':' You will wake on the morning of this day. Everything since then is gone.');el.style.display='flex';SFX.bell&&SFX.bell();},2300);}
+$('deathWake').addEventListener('click',()=>{$('death').style.display='none';
+  if(typeof HOST!=='undefined'&&HOST.role==='guest'){S.hp=Math.max(30,S.hpMax*.4);S.energy=Math.max(S.energy,30);S.room=null;P.x=0;P.z=-7.6;H.state='gone';H.timer=10;H.vis=false;S.mode='play';toast('You wake on the porch. Your own blood is dry on the boards. Nobody else remembers.',4.2,true);return;}
+  let m=null;try{m=JSON.parse(localStorage.getItem(SAVE_KEY+'_morning')||'null');}catch(e){}
+  if(m&&m.v===1){m.mid=null;localStorage.setItem(SAVE_KEY,JSON.stringify(m));S.mode='trans';fade(1);setTimeout(()=>{location.reload();},500);try{sessionStorage.setItem('hollowAutoCont','died');}catch(e){}return;}
+  S.hp=S.hpMax*.5;S.mode='play';newDay('You wake in your bed. You remember dying. Your body doesn’t. Somebody washed your clothes.');});
+// after a death the game reopens straight into the morning
+{let f=null;try{f=sessionStorage.getItem('hollowAutoCont');sessionStorage.removeItem('hollowAutoCont');}catch(e){}
+  if(f==='died'){const go=()=>{if($('loadScr')||S.mode!=='title'){setTimeout(go,250);return;}const b=$('cont');if(b){b.click();setTimeout(()=>toast(`Day ${S.day}. Morning. You remember dying. Nobody else does.`,4.6,true),900);}};setTimeout(go,300);}}
+
+/* ================= hosting, like Stardew: one player hosts their farm and gets a farm code; friends join with the code and play
+   inside the host's world as farmhands. Shared: the field and crops, cleared ground, money, the time of day and the day itself
+   (the day ends when the host goes to bed), and the story. Each farmhand keeps their own backpack, tools, seeds, energy, health,
+   look and friendships, and those are saved on their own device. The host's game saves the farm. ================= */
+const HOST={role:null,code:'',hostPeer:null,hostName:'',known:[],debKnown:new Set(),coins:0,applying:false,t:0,timeT:0,helloT:0,off:[],members:{}};
+const PERSONAL=['inv','slots','slotSel','tools','seeds','sel','basket','energy','energyMax','hp','hpMax','look','water','waterMax','bigCan','flasks','rod','gear',
+  'fishLog','fishCaught','bagSize','furnBag','tut','ls','friend','talkedToday','lastTalk','giftsWeek','heartSeen','lore','journal','keyItems','hz','deaths'];
+const tileSig=t=>(t.tilled?1:0)+'|'+(t.crop?[t.crop.type,t.crop.stage,t.crop.watered?1:0].join(','):'-');
+const debrisObjs=()=>OBJ.filter(o=>o.debris);
+const canHost=()=>CO.mode==='p2p'&&CO.lobby&&CO.lobby.net;
+function hostReset(){HOST.known=tiles.map(tileSig);HOST.debKnown=new Set(debrisObjs().map((o,i)=>o.hide?i:-1).filter(i=>i>=0));HOST.coins=S.coins;}
+function takePersonal(){const o={};for(const k of PERSONAL)if(S[k]!==undefined)o[k]=JSON.parse(JSON.stringify(S[k]));return o;}
+function putPersonal(o){for(const [k,v] of Object.entries(o))S[k]=v;}
+function newCode(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ';let c='';for(let i=0;i<4;i++)c+=a[Math.floor(Math.random()*a.length)];return c+(10+Math.floor(Math.random()*90));}
+function hostWire(){for(const f of HOST.off)try{f();}catch(e){}HOST.off=[];const r=CO.room;if(!r||!r.on)return;
+  const on=(t,f)=>HOST.off.push(r.on(t,m=>{if(!m||m.isMe)return;try{f(m.data,m.peer);}catch(e){}}));
+  on('hello',(d,peer)=>{if(HOST.role!=='host')return;const n=clean(d&&d.n);HOST.members[peer]=n;const hand=(S.farmhands||{})[n]||null;r.emit('snap',{data:saveData(true),host:NAME()||'The host',hand},peer);toast(`${clean(d&&d.n)} has joined your farm as a farmhand.`,3);});
+  on('snap',(d,peer)=>{if(HOST.role!=='guest'||!d||!d.data)return;HOST.hostPeer=peer;HOST.hostName=clean(d.host);applySnap(d.data,!HOST.joined,d.hand);HOST.joined=true;});
+  on('tile',d=>{if(!HOST.role||!d)return;const t=tiles[d.i|0];if(!t)return;t.tilled=!!d.t;t.crop=d.c&&typeof d.c==='object'?d.c:null;HOST.known[d.i|0]=tileSig(t);});
+  on('deb',d=>{if(!HOST.role||!d||!Array.isArray(d.ids))return;const ds=debrisObjs();for(const i of d.ids){const o=ds[i|0];if(!o||o.hide)continue;o.hide=true;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}HOST.debKnown.add(i|0);}});
+  on('coin',d=>{if(!HOST.role||!d||!isFinite(d.d))return;const n=Math.max(-100000,Math.min(100000,d.d|0));S.coins=Math.max(0,S.coins+n);HOST.coins=S.coins;updateHud&&updateHud();});
+  on('time',(d,peer)=>{if(HOST.role!=='guest'||!d)return;HOST.hostPeer=peer;if((d.day|0)!==S.day){if(performance.now()-HOST.helloT>3000){HOST.helloT=performance.now();r.emit('hello',{n:NAME()||'Farmhand'},peer);}return;}
+    if(isFinite(d.hour)&&Math.abs(S.hour-d.hour)>.08)S.hour=d.hour;});
+  on('mine',(d,peer)=>{if(HOST.role!=='host'||!d||!d.p||typeof d.p!=='object')return;const n=clean(d.n);let js='';try{js=JSON.stringify(d.p);}catch(e){return;}if(js.length>200000)return;S.farmhands=S.farmhands||{};S.farmhands[n]=JSON.parse(js);});
+  on('bye',(d,peer)=>{if(HOST.role==='guest'&&peer===HOST.hostPeer)hostGone();});}
+function applySnap(data,first,hand){const mine=first?(HOST.ownPersonal||hand||takePersonal()):takePersonal();HOST.applying=true;
+  try{for(const t of tiles){t.tilled=false;t.crop=null;}loadGame(data);}finally{HOST.applying=false;}
+  putPersonal(mine);applyLook();try{syncSlots&&syncSlots();renderHotbar&&renderHotbar();}catch(e){}
+  P.x=1.6;P.z=-6.6;P.dir='S';P.fx=0;P.fz=1;S.room=null;
+  hostReset();S.mode='play';S.paused=false;$('title').hidden=true;$('hud').hidden=false;$('buttons').hidden=false;ui.obj.hidden=false;
+  toast(first?`You’re on ${HOST.hostName}’s farm. Everything you grow here is shared. Your backpack is still yours.`:`Day ${S.day}. ${HOST.hostName} went to bed, so the night is over for everyone.`,4.2);}
+async function hostStart(){if(!canHost()){toast('Hosting needs an internet connection.',2.6);return;}HOST.role='host';HOST.code=newCode();await coopJoin('host-'+HOST.code.toLowerCase());hostWire();hostReset();
+  toast(`You’re hosting. Farm code: ${HOST.code}. Friends type it under Join a farm.`,5);if(GM_TAB==='coop'&&!$('bag').hidden)renderCoop();}
+function hostJoin(code){code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8);if(!code){toast('Type the host’s farm code first.',2.2);return;}
+  if(!canHost()){toast('Joining needs an internet connection.',2.6);return;}try{flushSave&&flushSave();sessionStorage.setItem('hollowJoin',code);}catch(e){}S.mode='trans';fade(1);setTimeout(()=>location.reload(),400);}
+async function hostJoinNow(code){HOST.role='guest';HOST.code=code;HOST.joined=false;const own=readSave();HOST.ownPersonal=own?Object.fromEntries(PERSONAL.filter(k=>own.S[k]!==undefined).map(k=>[k,own.S[k]])):null;
+  await coopJoin('host-'+code.toLowerCase());hostWire();HOST.helloT=0;toast(`Looking for farm ${code}…`,3);let tries=0;
+  const knock=setInterval(()=>{if(HOST.joined||HOST.role!=='guest'||tries++>15){clearInterval(knock);if(!HOST.joined&&HOST.role==='guest'){toast('Couldn’t find that farm. Check the code, and that the host is playing.',3.6);setTimeout(()=>{HOST.role=null;location.reload();},3600);}return;}
+    CO.room.emit('hello',{n:NAME()||'Farmhand'});},2000);CO.room.emit('hello',{n:NAME()||'Farmhand'});}
+// the title screen in join mode
+{let jc=null;try{jc=sessionStorage.getItem('hollowJoin');sessionStorage.removeItem('hollowJoin');}catch(e){}
+  if(jc){const b=document.createElement('button');b.className='begin';b.textContent=`Join farm ${jc}`;b.style.marginBottom='10px';$('begin').before(b);
+    const c=$('cont');if(c)c.style.display='none';$('begin').textContent='Cancel';
+    $('begin').addEventListener('click',e=>{e.stopImmediatePropagation();e.preventDefault();location.reload();},true);
+    b.addEventListener('click',()=>{A.init&&A.init();$('title').hidden=true;finishIntro();S.readLetter=true;S.foundCabin=true;S.tut.off=true;S.mode='paused';
+      const go=()=>{if(CO.lobby)hostJoinNow(jc);else setTimeout(go,300);};go();});}}
+function hostLeave(quiet){const was=HOST.role;try{CO.room&&CO.room.emit&&CO.room.emit('bye',{});}catch(e){}HOST.role=null;HOST.code='';for(const f of HOST.off)try{f();}catch(e){}HOST.off=[];
+  if(was==='guest'){guestPersist();if(!quiet){toast('Going home…',1.6);}setTimeout(()=>location.reload(),quiet?50:900);return;}coopJoin('');if(GM_TAB==='coop'&&!$('bag').hidden)renderCoop();}
+function hostGone(){toast(`${HOST.hostName||'The host'} has stopped hosting. You head home.`,3.4);guestPersist();HOST.role=null;setTimeout(()=>location.reload(),2600);}
+// a farmhand's own things go home with them: their backpack, tools and friendships are written into their own save
+function guestPersist(){try{if(CO.room&&CO.room.emit&&HOST.hostPeer)CO.room.emit('mine',{n:NAME()||'Farmhand',p:takePersonal()},HOST.hostPeer);}catch(e){}try{const own=readSave();if(!own)return;const mine=takePersonal();for(const [k,v] of Object.entries(mine)){if(k==='look')continue;own.S[k]=v;}localStorage.setItem(SAVE_KEY,JSON.stringify(own));}catch(e){}}
+{const _sg=saveGame;saveGame=function(mid){if(HOST.role==='guest'){guestPersist();return true;}return _sg.apply(this,arguments);};}
+// only the host's bed ends the day
+{const _sl=sleep;sleep=function(){if(HOST.role==='guest'){toast(`You get into bed. The day ends when ${HOST.hostName||'the host'} goes to sleep.`,3.2);return;}return _sl.apply(this,arguments);};}
+{const _nd=newDay;newDay=function(msg,pos){if(HOST.role==='guest'&&!HOST.applying){S.hour=Math.min(S.hour,25.9);return;}const r=_nd.apply(this,arguments);
+  if(HOST.role==='host'&&CO.room&&CO.room.emit)setTimeout(()=>{hostReset();CO.room.emit('snap',{data:saveData(true),host:NAME()||'The host'});},800);return r;};}
+// keeping everyone's world the same
+function hostSync(dt){if(!HOST.role||!CO.room||!CO.room.emit||HOST.applying)return;HOST.t+=dt;if(HOST.t<.3)return;HOST.t=0;const r=CO.room;
+  if(HOST.role==='guest'&&!HOST.joined)return;
+  for(let i=0;i<tiles.length;i++){const sg=tileSig(tiles[i]);if(sg!==HOST.known[i]){HOST.known[i]=sg;const t=tiles[i];r.emit('tile',{i,t:t.tilled?1:0,c:t.crop?JSON.parse(JSON.stringify(t.crop)):null});}}
+  const ds=debrisObjs(),nw=[];ds.forEach((o,i)=>{if(o.hide&&!HOST.debKnown.has(i)){HOST.debKnown.add(i);nw.push(i);}});if(nw.length)r.emit('deb',{ids:nw});
+  if(S.coins!==HOST.coins){r.emit('coin',{d:S.coins-HOST.coins});HOST.coins=S.coins;}
+  if(HOST.role==='host'){HOST.timeT-=.3;if(HOST.timeT<=0){HOST.timeT=2;r.emit('time',{day:S.day,hour:S.hour});}}}
+{const _mu=mindUpdate;mindUpdate=function(dt){_mu(dt);try{hostSync(dt);}catch(e){}};}
+// the host is marked in presence so farmhands can tell who it is
+{setInterval(()=>{if(!CO.room||!HOST.role)return;CO.room.presence({h:HOST.role==='host'?1:0}).catch(()=>{});},3000);}
+addEventListener('pagehide',()=>{if(HOST.role&&CO.room&&CO.room.emit)try{CO.room.emit('bye',{});}catch(e){}});
+// the co-op section of the Together tab
+{const _rc=renderCoop;renderCoop=function(){_rc();const B=$('bagBody');const box=document.createElement('div');box.style.cssText='margin-top:12px;padding:8px 10px;background:rgba(0,0,0,.18)';
+  const fh=others().filter(p=>p.presence).map(p=>clean(p.presence.n));
+  if(HOST.role==='host')box.innerHTML=`<b>Hosting your farm</b><div style="font-size:28px;letter-spacing:.18em;margin:6px 0;color:#ffd27a">${HOST.code}</div><p class="jsub" style="font-size:12px">Friends open Together, type this code under Join a farm, and arrive on your farm. Farmhands: ${fh.length?fh.join(', '):'nobody yet'}.</p><button class="btn" id="hoStop">Stop hosting</button>`;
+  else if(HOST.role==='guest')box.innerHTML=`<b>On ${HOST.hostName?HOST.hostName+'’s':'a friend’s'} farm</b> <small>(${HOST.code})</small><p class="jsub" style="font-size:12px">The field, money and the day are shared. Your backpack and tools are yours and go home with you.</p><button class="btn" id="hoLeave">Go home</button>`;
+  else box.innerHTML=`<b>Co-op farm</b><p class="jsub" style="font-size:12px;margin:4px 0">Host your farm and friends can join it as farmhands, like Stardew. Or join a friend’s farm with their code.</p>
+    <button class="btn" id="hoHost">Host my farm</button><div style="display:flex;gap:6px;margin-top:8px"><input id="hoCode" maxlength="8" placeholder="Farm code" style="flex:1;font:inherit;padding:7px 9px;background:#2a1a0e;color:#f4e6c8;border:0;box-shadow:inset 0 0 0 2px #1a0e06;text-transform:uppercase"><button class="btn" id="hoJoin">Join a farm</button></div>`;
+  B.appendChild(box);if(HOST.role)$('bagSub').textContent=HOST.role==='host'?`Hosting your farm · code ${HOST.code}`:`Farmhand on ${HOST.hostName||'a friend'}’s farm`;
+  // the old social farm-code row gives way to hosting
+  const cc=$('coCode');if(cc){const row=cc.parentElement;row.nextElementSibling&&row.nextElementSibling.remove();row.remove();}
+  const stop=e=>e.stopPropagation();if($('hoCode'))['keydown','keyup','keypress'].forEach(t=>$('hoCode').addEventListener(t,stop));
+  if($('hoHost'))$('hoHost').onclick=()=>hostStart();if($('hoJoin'))$('hoJoin').onclick=()=>hostJoin($('hoCode').value);
+  if($('hoStop'))$('hoStop').onclick=()=>{hostLeave();toast('You stopped hosting.',2);};if($('hoLeave'))$('hoLeave').onclick=()=>hostLeave();};}
 
 /* ================= pixel autumn UI + desktop controls ================= */
 {const lk=document.createElement('link');lk.rel='stylesheet';lk.href='https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&display=swap';document.head.appendChild(lk);

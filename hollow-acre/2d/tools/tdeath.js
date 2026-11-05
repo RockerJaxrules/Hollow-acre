@@ -1,0 +1,11 @@
+const {chromium,devices}=require('playwright');
+(async()=>{const b=await chromium.launch();const ctx=await b.newContext({...devices['iPhone 13']});let pg=await ctx.newPage();const errs=[];
+ const boot=async()=>{pg.on('pageerror',e=>errs.push('ERR '+e.message));await pg.route('**/fonts.googleapis.com/**',r=>r.abort());await pg.goto('http://localhost:8766/test2d.html');await pg.waitForFunction(()=>!document.getElementById('loadScr'),null,{timeout:90000});};
+ await boot();await pg.evaluate(()=>localStorage.clear());await boot();const ev=c=>pg.evaluate(c=>__game.ev(c),c);
+ await pg.evaluate(()=>{document.getElementById('begin').click();document.getElementById('cGo').click();});await pg.waitForTimeout(300);await pg.evaluate(()=>__game.skip());await pg.waitForTimeout(400);
+ await ev("S.tut.off=true;S.readLetter=true;S.foundCabin=true;S.coins=50");await ev("newDay()");await pg.waitForTimeout(1500);console.log('morning saved',await pg.evaluate(()=>!!localStorage.getItem('hollowSave1_morning')));
+ await ev("S.coins=999;S.hour=21;S.hp=100;H.x=P.x+.5;H.z=P.z");await ev("caught()");await pg.waitForTimeout(1800);console.log('wounded',await ev("S.mode+' hp '+S.hp+' | '+ui.toast.textContent.slice(0,40)"));await pg.screenshot({path:'DIE1.png'});
+ await ev("caught()");await pg.waitForTimeout(3200);console.log('dead',await ev("S.mode+' deaths '+S.deaths"),await pg.evaluate(()=>getComputedStyle(document.getElementById('death')).display));await pg.screenshot({path:'DIE2.png'});
+ await pg.click('#deathWake');await pg.waitForTimeout(1200);await pg.waitForFunction(()=>!document.getElementById('loadScr'),null,{timeout:90000});await pg.waitForTimeout(2500);
+ console.log('woke',await ev("S.mode+' day '+S.day+' '+fmtTime(S.hour)+' coins '+S.coins"));
+ console.log(errs.slice(0,4).join('\n'));await b.close();})();

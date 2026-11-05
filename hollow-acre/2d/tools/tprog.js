@@ -33,5 +33,5 @@ const {chromium,devices}=require('playwright');
  // coop
  await ev("S.hour=10;P.x=0;P.z=-6");await pg.waitForTimeout(1500);console.log('peers',await ev("others().length+' status '+CO.status+' pres '+JSON.stringify(window.__pres||{}).slice(0,80)"));await pg.screenshot({path:'PR7.png'});
  await ev("openBag('coop')");await pg.waitForTimeout(400);await pg.screenshot({path:'PR8.png'});await pg.fill('#coIn','hello Jo');await pg.click('#coSend');await pg.waitForTimeout(200);console.log('said',await ev("(window.__pres||{}).s"));
- await pg.fill('#coCode','sams-farm');await pg.click('#coJoin');await pg.waitForTimeout(400);console.log('joined',await ev("window.__joined+' '+CO.code"));
+ console.log('host box',await ev("!!$('hoHost')+' '+!!$('hoJoin')"));
  console.log(errs.slice(0,6).join('\n'));await b.close();})();
