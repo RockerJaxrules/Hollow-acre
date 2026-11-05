@@ -4,10 +4,11 @@
 // CFG: look, tool, part ('all' | 'body' | 'beard' | 'hair' | 'glasses' | 'hat' | 'toolf'), out.
 SEED=CFG.seed||3;
 const C=CFG.look,KID=!!C.kid,PART=CFG.part||'all',TOOL=CFG.tool||null;
+let EXPR=CFG.expr||'neutral',HEADY=20;const PORTRAIT=!!CFG.portraits,PEXPR=['neutral','happy','sad','angry','surprised','scared','wrong'],PW=40,PH=40;
 const FW=48,FH=64,D4=['N','W','S','E'];
 const CLIPS=[['walk',D4,9],['run',D4,9],['idle',D4,4],['thrust',D4,8],['slash',D4,6],['hurt',['S'],6],['spellcast',D4,7],['sit',D4,3]];
 const ROWS=[];for(const [n,ds,nf] of CLIPS)for(const d of ds)ROWS.push([n,d,nf]);
-const SW=FW*9,SH=FH*ROWS.length;
+const SW=PORTRAIT?PW*PEXPR.length:FW*9,SH=PORTRAIT?PH:FH*ROWS.length;
 const SHEET=layer('sheet',SW,SH);
 // ---- shared with custom.js: hue-shifted five-step ramps (deep, shadow, mid, base, light) and the outline colour
 function rgb2hsv(c){const r=c[0]/255,g=c[1]/255,b=c[2]/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let h=0;if(d){if(mx===r)h=((g-b)/d)%6;else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;if(h<0)h+=360;}return [h,mx?d/mx:0,mx];}
@@ -128,7 +129,7 @@ if(OUT==='tank'&&!back&&!side){for(const sx2 of [x0+3,x0+w-4]){p(sx2,ty,S0[3]);p
     if(C.badge){p(cx-4,ty+3,[255,228,120]);p(cx-3,ty+3,[240,200,80]);p(cx-4,ty+4,[200,150,40]);p(cx-3,ty+2,[255,228,120]);}}
   if(back){for(let i=-2;i<=1;i++)p(cx+i,ty,SK[1]);if(OUT!=='hoodie')for(let j=2;j<h-2;j++)p(cx,ty+j,(over?JK:S0)[2]);}}
 // ---- head and face
-function head(hx,hy0,dir,fl,pose){const side=dir==='E'||dir==='W',back=dir==='N';let hy=hy0;
+function head(hx,hy0,dir,fl,pose){const side=dir==='E'||dir==='W',back=dir==='N';let hy=hy0;if(dir==='S')HEADY=hy0;
   // neck
   for(let j=FY1-1;j<=FY1+1;j++)for(let i=-2;i<=1;i++)p(hx+i-(side?fl:0),hy+j,SK[1]);
   const fin=side?((x,y)=>faceIn(Math.round(x*fl*SQ),y)):faceIn;
@@ -145,19 +146,37 @@ function head(hx,hy0,dir,fl,pose){const side=dir==='E'||dir==='W',back=dir==='N'
   const LIP=SK[0];
   if(dir==='S'){
     // eyes: a lash line, white on the outer side, a two-pixel iris that lightens toward the bottom, a glint
-    for(const s of [-1,1]){const x0=s<0?hx-6:hx+3,wx=s<0?x0:x0+2,ix=s<0?x0+1:x0;
+    const E=EXPR,EE=hollow?'neutral':EXPR,DARK=[46,22,26],TEETH=[240,236,228];
+    for(const s of [-1,1]){const x0=s<0?hx-6:hx+3,wx=s<0?x0:x0+2,ix=s<0?x0+1:x0,inner=s<0?x0+2:x0,outer=s<0?x0:x0+2;
       if(blink){for(let i=0;i<3;i++)p(x0+i,hy+2,LASH);p(s<0?x0-1:x0+3,hy+1,LASH);continue;}
+      if(EE==='happy'){p(x0,hy+2,LASH);p(x0+1,hy+1,LASH);p(x0+2,hy+2,LASH);p(s<0?x0-1:x0+3,hy+2,LASH);p(x0+1,hy+2,SK[3]);continue;}
+      if(EE==='wrong'){for(let j=0;j<4;j++)for(let i=0;i<3;i++)p(x0+i,hy+j,j===0?LASH:[8,6,8]);p(s<0?x0+1:x0+1,hy+1,[150,20,20]);continue;}
+      if(EE==='sad'){for(let i=0;i<3;i++)p(x0+i,hy+1,LASH);p(outer,hy+2,LASH);p(wx,hy+2,SCL);p(ix,hy+2,EY[1]);p(ix+1,hy+2,EY[2]);p(ix,hy+3,EY[3]);p(ix+1,hy+3,EY[2]);p(s<0?ix+1:ix,hy+2,[255,255,255]);p(x0,hy+4,SK[2]);p(x0+1,hy+4,SK[2]);p(x0+2,hy+4,SK[2]);continue;}
+      if(EE==='angry'){for(let i=0;i<3;i++)p(x0+i,hy+(x0+i===inner?1:0),LASH);p(inner,hy+1,LASH);p(wx,hy+2,SCL);p(ix,hy+2,EY[0]);p(ix+1,hy+2,EY[1]);p(ix,hy+3,EY[3]);p(ix+1,hy+3,EY[2]);p(x0,hy+4,SK[2]);p(x0+1,hy+4,SK[2]);p(x0+2,hy+4,SK[2]);continue;}
+      if(EE==='surprised'||EE==='scared'){for(let i=0;i<3;i++)p(x0+i,hy-1,LASH);p(s<0?x0-1:x0+3,hy,LASH);for(let j=0;j<4;j++)for(let i=0;i<3;i++)p(x0+i,hy+j,SCL);
+        if(EE==='surprised'){p(ix,hy+1,EY[0]);p(ix+1,hy+1,EY[0]);p(ix,hy+2,EY[1]);p(ix+1,hy+2,EY[2]);p(s<0?ix+1:ix,hy+1,[255,255,255]);}else{p(x0+1,hy+2,LASH);}
+        p(x0,hy+4,SK[2]);p(x0+1,hy+4,SK[2]);p(x0+2,hy+4,SK[2]);continue;}
       for(let i=0;i<3;i++)p(x0+i,hy,LASH);p(s<0?x0-1:x0+3,hy,LASH);p(s<0?x0-1:x0+3,hy-1,LASH);
       p(wx,hy+1,SCL);p(wx,hy+2,SCL);
       p(ix,hy+1,EY[0]);p(ix+1,hy+1,EY[0]);p(ix,hy+2,EY[1]);p(ix+1,hy+2,EY[2]);p(ix,hy+3,EY[3]);p(ix+1,hy+3,EY[2]);
       if(!hollow)p(s<0?ix+1:ix,hy+2,[255,255,255]);
       p(x0,hy+4,SK[2]);p(x0+1,hy+4,SK[2]);p(x0+2,hy+4,SK[2]);}
     // brows, a little arched
-    for(const s of [-1,1]){const bx=s<0?hx-6:hx+3;p(bx+(s<0?0:2),hy-1,HR[1]);p(bx+1,hy-2,HR[1]);p(bx+(s<0?2:0),hy-2,HR[1]);p(bx+(s<0?-1:3),hy-1,HR[2]);}
+    for(const s of [-1,1]){const bx=s<0?hx-6:hx+3,ib=s<0?bx+2:bx,ob=s<0?bx:bx+2,ox=s<0?bx-1:bx+3,up=(E==='surprised'||E==='scared')?-1:0;
+      if(E==='angry'){p(ib,hy-1,HR[1]);p(bx+1,hy-2,HR[1]);p(ob,hy-3,HR[1]);p(ox,hy-3,HR[2]);p(ib+(s<0?1:-1),hy,HR[1]);}
+      else if(E==='sad'||E==='scared'){p(ib,hy-3+(up?0:0),HR[1]);p(bx+1,hy-2,HR[1]);p(ob,hy-2+(E==='scared'?-1:0),HR[1]);p(ox,hy-1,HR[2]);}
+      else if(E==='wrong'){p(ib,hy-1,HR[1]);p(bx+1,hy-1,HR[1]);p(ob,hy-1,HR[1]);}
+      else{p(bx+(s<0?0:2),hy-1+up,HR[1]);p(bx+1,hy-2+up,HR[1]);p(bx+(s<0?2:0),hy-2+up,HR[1]);p(bx+(s<0?-1:3),hy-1+up,HR[2]);}}
     p(hx,hy+4,SK[1]);p(hx-1,hy+3,SK[4]);                                                    // nose: a shadow and a glint
-    if(C.smile!==false){p(hx-2,hy+5,LIP);p(hx-1,hy+6-0,LIP);p(hx,hy+6,LIP);p(hx+1,hy+5,LIP);p(hx-1,hy+5,SK[2]);p(hx,hy+5,SK[2]);}
+    if(E==='happy'){p(hx-3,hy+5,LIP);p(hx+2,hy+5,LIP);for(let i=-2;i<=1;i++){p(hx+i,hy+5,TEETH);p(hx+i,hy+6,DARK);}p(hx-1,hy+7,LIP);p(hx,hy+7,LIP);}
+    else if(E==='sad'){p(hx-2,hy+6,LIP);p(hx-1,hy+5,LIP);p(hx,hy+5,LIP);p(hx+1,hy+6,LIP);}
+    else if(E==='angry'){for(let i=-2;i<=1;i++)p(hx+i,hy+5,LIP);p(hx-2,hy+6,SK[1]);p(hx+1,hy+6,SK[1]);}
+    else if(E==='surprised'){p(hx-1,hy+5,DARK);p(hx,hy+5,DARK);p(hx-1,hy+6,DARK);p(hx,hy+6,DARK);p(hx-2,hy+5,LIP);p(hx+1,hy+5,LIP);p(hx-2,hy+6,LIP);p(hx+1,hy+6,LIP);p(hx-1,hy+7,LIP);p(hx,hy+7,LIP);}
+    else if(E==='scared'){p(hx-2,hy+6,DARK);p(hx-1,hy+5,DARK);p(hx,hy+6,DARK);p(hx+1,hy+5,DARK);p(hx+2,hy+6,DARK);p(hx+FX-1,hy-4,[170,210,240]);p(hx+FX-1,hy-3,[120,170,220]);}
+    else if(E==='wrong'){for(let i=-5;i<=4;i++)p(hx+i,hy+5+(Math.abs(i+.5)>3.5?-1:0),DARK);for(let i=-4;i<=3;i+=2)p(hx+i,hy+5,TEETH);}
+    else if(C.smile!==false){p(hx-2,hy+5,LIP);p(hx-1,hy+6-0,LIP);p(hx,hy+6,LIP);p(hx+1,hy+5,LIP);p(hx-1,hy+5,SK[2]);p(hx,hy+5,SK[2]);}
     else{p(hx-1,hy+5,LIP);p(hx,hy+5,LIP);p(hx+1,hy+5,SK[1]);}
-    p(hx-8,hy+4,BLUSH);p(hx-7,hy+4,BLUSH);p(hx+6,hy+4,BLUSH);p(hx+7,hy+4,BLUSH);}
+    if(E!=='sad'&&E!=='scared'&&E!=='wrong'&&E!=='angry'){p(hx-8,hy+4,BLUSH);p(hx-7,hy+4,BLUSH);p(hx+6,hy+4,BLUSH);p(hx+7,hy+4,BLUSH);if(E==='happy'){p(hx-8,hy+3,BLUSH);p(hx+7,hy+3,BLUSH);}}}
   else{const xi=hx+fl*(FX-4),xw=hx+fl*(FX-5);
     if(blink){p(xw,hy+2,LASH);p(xi,hy+2,LASH);}
     else{p(xw,hy,LASH);p(xi,hy,LASH);p(xi+fl,hy,LASH);p(xi+fl,hy-1,LASH);p(xw,hy+1,SCL);p(xw,hy+2,SCL);p(xi,hy+1,EY[0]);p(xi,hy+2,EY[2]);p(xi,hy+3,EY[3]);if(!hollow)p(xi,hy+2,[255,255,255]);p(xw,hy+3,SK[2]);}
@@ -391,7 +410,15 @@ function plantPose(f,dir){const pose={},side=dir==='E'||dir==='W',back=dir==='N'
     else{pose.crouch=2;pose.hands=back?[[4,1],[-3,1]]:[[5,2],[-4,2]];pose.reach=back;}}
   return pose;}
 // ---------------------------------------------------------------- render
-ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
+if(PORTRAIT){PEXPR.forEach((ex,i)=>{EXPR=ex;LY={};for(const k of PARTS)LY[k]=layer(k,FW,FH);CUR='body';
+    human('S',{hands:[[0,HANG],[0,HANG]]});
+    const comp=flatten(PARTS.map(k=>LY[k]),FW,FH);const OL=layer('ol',FW,FH);
+    for(let y=0;y<FH;y++)for(let x=0;x<FW;x++){const c=G(comp,x,y);if(c){P(OL,x,y,c,c[3]);continue;}for(const [ddx,ddy] of [[0,1],[0,-1],[1,0],[-1,0]]){const n=G(comp,x+ddx,y+ddy);if(n&&n[3]>200){P(OL,x,y,outlineRGB(n));break;}}}
+    let top=FH;for(let y=0;y<FH&&top===FH;y++)for(let x=0;x<FW;x++)if(G(OL,x,y)){top=y;break;}
+    const y0=Math.max(0,Math.max(top-2,HEADY-21)),x0=Math.round(FW/2-PW/2);
+    for(let y=0;y<PH;y++)for(let x=0;x<PW;x++){const c=G(OL,x0+x,y0+y);if(c)P(SHEET,i*PW+x,y,c,c[3]);}});
+  emit([SHEET],CFG.out);console.log('META '+JSON.stringify({pw:PW,ph:PH,expr:PEXPR}));}
+else ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
   LY={};for(const k of PARTS)LY[k]=layer(k,FW,FH);CUR='body';
   const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1;let pose={};
   if(clip==='walk')pose=walkPose(f,dir,false);
@@ -418,6 +445,6 @@ ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
     if(n)P(LY[ow],x,y,outlineRGB(n));}
   const src=PART==='all'?flatten(PARTS.map(k=>LY[k]),FW,FH):LY[PART];
   for(let y=0;y<FH;y++)for(let x=0;x<FW;x++){const c=G(src,x,y);if(c)P(SHEET,f*FW+x,r*FH+y,c,c[3]);}}});
-emit([SHEET],CFG.out);
+if(!PORTRAIT){emit([SHEET],CFG.out);
 const clips={};let rr=0;for(const [n,ds,nf] of CLIPS){clips[n]={};for(const d of ds)clips[n][d]=[rr++,nf];}
-console.log('META '+JSON.stringify({fw:FW,fh:FH,ax:FW/2,ay:FH-4,clips}));
+console.log('META '+JSON.stringify({fw:FW,fh:FH,ax:FW/2,ay:FH-4,clips}));}
