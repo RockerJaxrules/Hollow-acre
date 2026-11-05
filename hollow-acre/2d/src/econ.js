@@ -134,7 +134,7 @@ function makeDebris(spr,x,z,tile){const kind=spr.split('_')[0];const o=obj(spr,x
   interact.push({x,z,r:.75,on:()=>!o.hide,label:()=>verb,ok:()=>true,act(){if(P.anim)return;const cost={rock:S.tools.pick>1?2:3,stump:S.tools.axe>1?2:4,weeds:1,twig:0}[kind];if(cost&&!spend(cost))return;faceTo(o.x,o.z);
     startAnim(kind==='rock'?'pick':kind==='stump'?'axe':'grab',.5,null,()=>{o.hits=(o.hits||0)+1;const need=kind==='stump'?(S.tools.axe>1?1:2):1;SFX.thud(0,kind==='rock'?.35:.2);
       burst(o.x,o.z,kind==='rock'?14:9,kind==='rock'?'#8a8690':kind==='weeds'?'#4a8a32':'#7d5636',1.3,.6,2);if(o.hits<need)return;
-      o.hide=true;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}
+      o.hide=true;o.goneDay=S.day;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}
       if(kind==='rock')addInv('stone',1+(rand()<.3?1:0));if(kind==='weeds'){addInv('fiber');if(rand()<.15){S.seeds.turnip++;toast('A turnip seed was tangled in the roots.',1.6);}}if(kind==='twig')addInv('wood');if(kind==='stump')addInv('wood',3);updateHud();});}});return o;}
 function fieldDebris(){for(const t of tiles){if(t.gh)continue;const inStart=t.i>=FSTART.i0&&t.i<FSTART.i0+FSTART.w&&t.j>=FSTART.j0&&t.j<FSTART.j0+FSTART.h;if(inStart)continue;
   const r=rand();if(r>.82)continue;const spr=r<.4?'weeds_'+((rand()*2)|0):r<.66?'rock_'+((rand()*2)|0):'twig';makeDebris(spr,t.x+(rand()-.5)*.25,t.z+.2+(rand()-.5)*.15,t);}}
@@ -165,7 +165,7 @@ setInterval(()=>{const hb=$('hotbar');if(!hb)return;hb.style.display=(S.mode!=='
 
 // ---- trees on the farm can be felled with the axe: that's where wood comes from. Each one leaves a stump to grub out.
 const TREE_COL={maple_orange:['#a8441a','#ec9a34'],maple_red:['#8c2222','#d8623a'],maple_gold:['#9c7818','#e4c84a'],maple_green:['#235a26','#52983a']};
-function treeChop(){for(const o of OBJ){if(o.hide||(o.kind!=='tree'&&o.kind!=='pine'))continue;if(o.x<-13||o.x>25||o.z<-16||o.z>13)continue;if(o.spr==='deadtree')continue;
+function treeChop(){for(const o of OBJ){if(o.hide||(o.kind!=='tree'&&o.kind!=='pine'))continue;if(o.room||o.x>=250)continue;if(o.spr==='deadtree')continue;o.choppable=1;
   o.col=circles.find(c=>Math.hypot(c.x-o.x,c.z-(o.z-.1))<.35)||null;
   interact.push({x:o.x,z:o.z+.2,r:1.2,on:()=>!o.hide,label:()=>'Chop',ok:()=>true,act(){if(P.anim)return;if(!spend(S.tools.axe>1?2:4))return;
     {if(!o.trunkW){const sk=makeStump(o.spr);o.trunkW=sk?Math.round((SPR[sk].foot[2]||.2)*PPM)-1:6;}const vert=Math.abs(P.z-o.z)>Math.abs(P.x-o.x)*1.1;if(vert){P.x=o.x+.04;P.z=P.z>o.z?o.z+.55:o.z-.62;}else{const side=P.x<o.x?-1:1,d=(15+o.trunkW)/PPM;P.x=o.x+side*d;P.z=o.z+.06;}}faceTo(o.x,o.z);
@@ -176,13 +176,13 @@ function treeChop(){for(const o of OBJ){if(o.hide||(o.kind!=='tree'&&o.kind!=='p
       if(o.spr.startsWith('maple')&&typeof LEAVES!=='undefined'){const C={maple_orange:['#e08a2e','#9a4a14'],maple_red:['#c8402a','#7a1c12'],maple_gold:['#e8b83a','#9a7018'],maple_green:['#6aa040','#2e5a20']}[o.spr];for(let i=0;i<3;i++)LEAVES.push({x:o.x+(Math.random()-.5)*2.2,z:o.z+(Math.random()-.3)*.6,h:60+Math.random()*30,t:0,ph:Math.random()*6,col:C,land:0});}
       if(o.hits<(S.tools.axe>1?3:5))return;
       // it leans, then comes down away from you, and the crown bursts when it hits
-      o.hide=true;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}SFX.screech&&SFX.screech();FALLING.push({o,t:0,dir:P.x<o.x?1:-1,cc,landed:false});
+      o.hide=true;o.goneDay=S.day;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}SFX.screech&&SFX.screech();FALLING.push({o,t:0,dir:P.x<o.x?1:-1,cc,landed:false});if(typeof onTreeFelled==='function')onTreeFelled(o);
       const w=o.kind==='pine'?6:8;addInv('wood',w);toast(`Timber. +${w} wood.`,1.6);updateHud();
       if(rand()<.08)setTimeout(()=>toast('Carved into the heartwood, where no one could have reached it: your initials.',3,true),900);
-      const sk=makeStump(o.spr)||'stump_maple';const st=obj(sk,o.x,o.z,{kind:'prop',debris:'stump'});st.col={x:o.x,z:o.z-.1,r:Math.max(.3,(SPR[sk].foot[2]||.4)*.85)};circles.push(st.col);
+      const sk=makeStump(o.spr)||'stump_maple';const st=obj(sk,o.x,o.z,{kind:'prop',debris:'stump',stumpOf:o});o.stump=st;st.col={x:o.x,z:o.z-.1,r:Math.max(.3,(SPR[sk].foot[2]||.4)*.85)};circles.push(st.col);
       interact.push({x:o.x,z:o.z+.2,r:.85,on:()=>!st.hide,label:()=>'Chop',ok:()=>true,act(){if(P.anim)return;if(!spend(S.tools.axe>1?2:4))return;faceTo(st.x,st.z);
         startAnim('axe',.55,null,()=>{st.hits=(st.hits||0)+1;SFX.thud(0,.4);burst(st.x,st.z,10,'#7d5636',1.4,.7,2);if(st.hits<(S.tools.axe>1?1:2))return;
-          st.hide=true;const k=circles.indexOf(st.col);if(k>=0)circles.splice(k,1);addInv('wood',3);toast('The stump comes out. +3 wood.',1.4);});}});});}});}}
+          st.hide=true;st.goneDay=S.day;const k=circles.indexOf(st.col);if(k>=0)circles.splice(k,1);addInv('wood',3);toast('The stump comes out. +3 wood.',1.4);});}});});}});}}
 // trees shake when hit
 {const _u3=update;update=function(dt){_u3(dt);for(const o of OBJ)if(o.rock){const r=o.rock;r.t+=dt;o.tilt=r.dir*.06*Math.exp(-r.t*5)*Math.cos(r.t*26);if(r.t>1){o.rock=null;o.tilt=0;}}};}
 // ---- crafting from what you gather: wood, stone, fiber, ore

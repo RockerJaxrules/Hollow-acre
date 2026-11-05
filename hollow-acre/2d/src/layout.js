@@ -2,12 +2,6 @@
    Landscape phones have very little height (about 320 to 430 pixels), so there the HUD shrinks and moves to the edges,
    panels become scrollable, and the title and creator screens reflow side by side. ================= */
 {const c=document.createElement('style');c.textContent=`
-/* keep everything clear of the notch, the camera cut-out and the home bar, in both orientations */
-#bars{right:calc(env(safe-area-inset-right,0px) + 10px)!important}
-#btnBag,#btnJournal{left:calc(env(safe-area-inset-left,0px) + 12px)!important}
-#hotbar{margin-left:env(safe-area-inset-left,0px)}
-html,body{background:#07070a;overscroll-behavior:none}
-:fullscreen,::backdrop{background:#07070a}
 /* fullscreen button */
 #fsBtn{position:fixed;z-index:31;top:calc(env(safe-area-inset-top,0px) + 10px);left:calc(env(safe-area-inset-left,0px) + 158px);width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;
   background:var(--px-panel,#2a1a0e);color:#f4e6c8;border:0;box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 3px #6a4a2a;cursor:pointer}
@@ -16,33 +10,13 @@ html,body{background:#07070a;overscroll-behavior:none}
 #fsTip{position:fixed;z-index:999;left:50%;top:50%;transform:translate(-50%,-50%);width:min(360px,88vw);background:#2a1a0e;color:#f4e6c8;padding:16px 18px;font-size:14px;line-height:1.5;box-shadow:0 0 0 2px #1a0e06,0 0 0 4px #b8521c,0 10px 40px rgba(0,0,0,.6);display:none}
 #fsTip b{color:#ffd27a}#fsTip button{margin-top:10px}
 :fullscreen #fsBtn .on{display:none}#fsBtn .off{display:none}:fullscreen #fsBtn .off{display:block}
-/* wide screens only for the big hotbar: never on a phone lying sideways */
-@media (min-width:900px) and (max-height:540px){#hotbar{transform:translateX(-50%) scale(1)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 8px)!important}}
-
 /* ---------- phones in landscape ---------- */
 @media (orientation:landscape) and (max-height:540px){
-  #clock{zoom:.72;left:calc(env(safe-area-inset-left,0px) + 10px)}
-  #inv{zoom:.62}
-  #fsBtn{left:calc(env(safe-area-inset-left,0px) + 108px);top:calc(env(safe-area-inset-top,0px) + 8px);width:28px;height:28px}
-  #objective{zoom:.8;max-width:calc((100vw - 380px)/.8)!important;left:50%!important;transform:translateX(-50%)!important;top:calc(env(safe-area-inset-top,0px) + 8px)!important;padding:6px 10px!important;
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  #objective[hidden]{display:none!important}
-  #lesson{zoom:.82;max-width:calc((100vw - 380px)/.82)!important}
-  #toast{zoom:.78;width:min(70vw,560px)!important}
-  #bars{zoom:.7;bottom:auto!important;top:calc((env(safe-area-inset-top,0px) + 62px)/.7)!important;right:calc(env(safe-area-inset-right,0px) + 12px)!important}
-  #hotbar{zoom:.78;left:50%!important;transform:translateX(-50%)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 4px)!important}
-  #btnAct{zoom:.78}
-  #buttons{right:calc(env(safe-area-inset-right,0px) + 8px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 6px)!important}
-  #btnBag{left:calc(env(safe-area-inset-left,0px) + 10px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 92px)!important;top:auto!important}
-  #btnJournal{left:calc(env(safe-area-inset-left,0px) + 10px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 60px)!important;top:auto!important}
-  #maecard{zoom:.82;left:calc(env(safe-area-inset-left,0px) + 12px)!important;transform:none!important;bottom:calc((env(safe-area-inset-bottom,0px) + 128px)/.82)!important;width:min(380px,48vw)!important}
-  #htip{zoom:.8;top:calc(env(safe-area-inset-top,0px) + 60px)!important}
-  #saved{bottom:calc(env(safe-area-inset-bottom,0px) + 100px)!important}
   /* panels fit the short screen and scroll */
   .sheet{max-height:calc(100vh - 24px)!important;overflow:auto!important;padding:14px 18px!important;width:min(640px,86vw)!important}
   .sheet h2{margin-top:0!important}
   #scene{align-items:center!important}#scene>div{max-height:calc(100vh - 20px);overflow:auto}
-  #tut{zoom:.8;top:calc(env(safe-area-inset-top,0px) + 64px)!important}
   /* the title screen: smaller heading, the how-to beside the buttons */
   #title{justify-content:safe center!important;padding:10px 24px!important;overflow:auto;gap:4px!important}
   #title #credits,#title .small{font-size:10px!important;margin:2px 0!important;max-width:80vw}#title #credits{display:none}
@@ -65,11 +39,9 @@ html,body{background:#07070a;overscroll-behavior:none}
 }
 /* very short landscape screens (small phones): hide the stats panel until you tap the clock */
 @media (orientation:landscape) and (max-height:380px){
-  #inv{zoom:.56}#hotbar{zoom:.7}#btnAct{zoom:.7}#objective{zoom:.74}
 }
 /* ---------- phones in portrait: keep the bottom row clear of the home bar ---------- */
 @media (orientation:portrait) and (max-width:500px){
-  #fsBtn{left:calc(env(safe-area-inset-left,0px) + 12px);top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 182px)}
   #fsBtn.title{left:auto;right:calc(env(safe-area-inset-right,0px) + 12px);top:calc(env(safe-area-inset-top,0px) + 12px);bottom:auto}
 }
 `;document.head.appendChild(c);}
