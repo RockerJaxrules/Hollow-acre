@@ -35,3 +35,25 @@ function netLobby(){let cur=netRoom('valley');const L={net:true,
   presence:p=>cur.presence(p),onPeers:cb=>cur.onPeers(cb),onConnection:cb=>cur.onConnection(cb),connected:()=>true,
   async join(n){try{await cur.leave();}catch(e){}cur=netRoom(n||'valley');return cur;},
   async rejoin(){return L.join('valley');},get current(){return cur;}};return L;}
+// ---- on claude.ai the page can't open outside connections, so there the same calls run over Claude's live room.
+// Its messages are capped at 4 KB and always go to everyone, so big ones are cut into pieces and private ones carry who they're for.
+const NET_CHUNK=3000;
+function claudeAdapt(room){let myPeer=null,seq=0;const parts={};const evh={};const subs=[];
+  const mark=ps=>{for(const p of ps)if(p.isMe&&p.sameTab)myPeer=p.peer;};
+  const deliver=(t,d,peer)=>{for(const f of (evh[t]||[]))try{f({topic:t,data:d,peer,isMe:false});}catch(e){}};
+  const listen=t=>{if(subs.includes(t))return;subs.push(t);room.on(t,m=>{if(!m||m.isMe)return;const w=m.data;if(!w||typeof w!=='object')return;if(w.to&&w.to!==myPeer)return;
+    if(t==='chunk'){const k=m.peer+':'+w.id;const e=parts[k]||(parts[k]={n:w.n,got:0,s:[],t:w.t,at:Date.now()});if(e.s[w.i]==null){e.s[w.i]=String(w.s||'');e.got++;}
+      if(e.got>=e.n){delete parts[k];let d=null;try{d=JSON.parse(e.s.join(''));}catch(x){return;}deliver(e.t,d,m.peer);}
+      for(const [kk,v] of Object.entries(parts))if(Date.now()-v.at>30000)delete parts[kk];return;}
+    deliver(t,w.d,m.peer);},()=>{});};
+  const A={claude:true,
+    presence:p=>room.presence(p),onConnection:(cb,er)=>room.onConnection(cb,er),connected:()=>room.connected(),peers:()=>room.peers(),
+    onPeers(cb,er){return room.onPeers(ch=>{mark(ch.peers);cb(ch);},er);},
+    emit(topic,data,to){let js='';try{js=JSON.stringify({to:to||null,d:data});}catch(e){return Promise.resolve();}
+      if(js.length<3800)return room.emit(topic,{to:to||null,d:data}).catch(()=>{});
+      const s=JSON.stringify(data),n=Math.ceil(s.length/NET_CHUNK),id=(++seq)+'-'+Date.now()%100000;
+      for(let i=0;i<n;i++)setTimeout(()=>room.emit('chunk',{to:to||null,id,i,n,t:topic,s:s.slice(i*NET_CHUNK,(i+1)*NET_CHUNK)}).catch(()=>{}),i*35);return Promise.resolve();},
+    on(topic,fn){(evh[topic]=evh[topic]||[]).push(fn);listen(topic);listen('chunk');return ()=>{const a=evh[topic],i=a?a.indexOf(fn):-1;if(i>=0)a.splice(i,1);};},
+    async join(n){const r=await room.join(n);const a=claudeAdapt(r);a.leave=()=>r.leave();a.name=n;return a;},
+    leave:()=>room.leave?room.leave():Promise.resolve()};
+  room.onPeers(ch=>mark(ch.peers),()=>{});return A;}

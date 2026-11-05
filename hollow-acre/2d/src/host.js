@@ -7,7 +7,7 @@ const PERSONAL=['inv','slots','slotSel','tools','seeds','sel','basket','energy',
   'fishLog','fishCaught','bagSize','furnBag','tut','ls','friend','talkedToday','lastTalk','giftsWeek','heartSeen','lore','journal','keyItems','hz','deaths'];
 const tileSig=t=>(t.tilled?1:0)+'|'+(t.crop?[t.crop.type,t.crop.stage,t.crop.watered?1:0].join(','):'-');
 const debrisObjs=()=>OBJ.filter(o=>o.debris);
-const canHost=()=>CO.mode==='p2p'&&CO.lobby&&CO.lobby.net;
+const canHost=()=>!!(CO.lobby&&(CO.lobby.net||CO.lobby.claude));
 function hostReset(){HOST.known=tiles.map(tileSig);HOST.debKnown=new Set(debrisObjs().map((o,i)=>o.hide?i:-1).filter(i=>i>=0));HOST.coins=S.coins;}
 function takePersonal(){const o={};for(const k of PERSONAL)if(S[k]!==undefined)o[k]=JSON.parse(JSON.stringify(S[k]));return o;}
 function putPersonal(o){for(const [k,v] of Object.entries(o))S[k]=v;}

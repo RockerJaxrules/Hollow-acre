@@ -11,9 +11,9 @@ async function peerSprite(look){if(!look||typeof look!=='object')return null;con
     const name='peer'+Object.keys(CO.sprites).length;SPR[name]=Object.assign({},SPR.farmer,{src:'mem:'+name});IMG['mem:'+name]=c;CO.sprites[key]=name;return name;}catch(e){CO.sprites[key]=null;return null;}}
 // joining
 async function coopStart(){let room=null;
-  // every player, on every device, joins the same peer-to-peer network; Claude's room is only a fallback for a browser without WebRTC
-  if(typeof HollowNet!=='undefined'&&typeof RTCPeerConnection!=='undefined'){try{room=netLobby();CO.mode='p2p';}catch(e){room=null;}}
-  if(!room){try{if(typeof claude!=='undefined'&&claude.use)room=await claude.use('room');}catch(e){}if(room)CO.mode='claude';}
+  // on claude.ai (where the page can't open outside connections) use Claude's live room; everywhere else, direct peer-to-peer
+  try{if(typeof claude!=='undefined'&&claude.use){const r=await claude.use('room');if(r){room=claudeAdapt(r);CO.mode='claude';}}}catch(e){room=null;}
+  if(!room&&typeof HollowNet!=='undefined'&&typeof RTCPeerConnection!=='undefined'){try{room=netLobby();CO.mode='p2p';}catch(e){room=null;}}
   if(!room){CO.status='unavailable';return;}CO.lobby=room;CO.status='connecting';
   room.onConnection(c=>{CO.status=c?'online':'connecting';},()=>{CO.status='unavailable';});await coopJoin('');}
 async function coopJoin(code){code=(code||'').toLowerCase().replace(/[^a-z0-9_-]/g,'').slice(0,24);const lob=CO.lobby;if(!lob)return;

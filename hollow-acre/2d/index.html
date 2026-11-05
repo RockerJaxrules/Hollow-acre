@@ -4113,6 +4113,28 @@ function netLobby(){let cur=netRoom('valley');const L={net:true,
   presence:p=>cur.presence(p),onPeers:cb=>cur.onPeers(cb),onConnection:cb=>cur.onConnection(cb),connected:()=>true,
   async join(n){try{await cur.leave();}catch(e){}cur=netRoom(n||'valley');return cur;},
   async rejoin(){return L.join('valley');},get current(){return cur;}};return L;}
+// ---- on claude.ai the page can't open outside connections, so there the same calls run over Claude's live room.
+// Its messages are capped at 4 KB and always go to everyone, so big ones are cut into pieces and private ones carry who they're for.
+const NET_CHUNK=3000;
+function claudeAdapt(room){let myPeer=null,seq=0;const parts={};const evh={};const subs=[];
+  const mark=ps=>{for(const p of ps)if(p.isMe&&p.sameTab)myPeer=p.peer;};
+  const deliver=(t,d,peer)=>{for(const f of (evh[t]||[]))try{f({topic:t,data:d,peer,isMe:false});}catch(e){}};
+  const listen=t=>{if(subs.includes(t))return;subs.push(t);room.on(t,m=>{if(!m||m.isMe)return;const w=m.data;if(!w||typeof w!=='object')return;if(w.to&&w.to!==myPeer)return;
+    if(t==='chunk'){const k=m.peer+':'+w.id;const e=parts[k]||(parts[k]={n:w.n,got:0,s:[],t:w.t,at:Date.now()});if(e.s[w.i]==null){e.s[w.i]=String(w.s||'');e.got++;}
+      if(e.got>=e.n){delete parts[k];let d=null;try{d=JSON.parse(e.s.join(''));}catch(x){return;}deliver(e.t,d,m.peer);}
+      for(const [kk,v] of Object.entries(parts))if(Date.now()-v.at>30000)delete parts[kk];return;}
+    deliver(t,w.d,m.peer);},()=>{});};
+  const A={claude:true,
+    presence:p=>room.presence(p),onConnection:(cb,er)=>room.onConnection(cb,er),connected:()=>room.connected(),peers:()=>room.peers(),
+    onPeers(cb,er){return room.onPeers(ch=>{mark(ch.peers);cb(ch);},er);},
+    emit(topic,data,to){let js='';try{js=JSON.stringify({to:to||null,d:data});}catch(e){return Promise.resolve();}
+      if(js.length<3800)return room.emit(topic,{to:to||null,d:data}).catch(()=>{});
+      const s=JSON.stringify(data),n=Math.ceil(s.length/NET_CHUNK),id=(++seq)+'-'+Date.now()%100000;
+      for(let i=0;i<n;i++)setTimeout(()=>room.emit('chunk',{to:to||null,id,i,n,t:topic,s:s.slice(i*NET_CHUNK,(i+1)*NET_CHUNK)}).catch(()=>{}),i*35);return Promise.resolve();},
+    on(topic,fn){(evh[topic]=evh[topic]||[]).push(fn);listen(topic);listen('chunk');return ()=>{const a=evh[topic],i=a?a.indexOf(fn):-1;if(i>=0)a.splice(i,1);};},
+    async join(n){const r=await room.join(n);const a=claudeAdapt(r);a.leave=()=>r.leave();a.name=n;return a;},
+    leave:()=>room.leave?room.leave():Promise.resolve()};
+  room.onPeers(ch=>mark(ch.peers),()=>{});return A;}
 
 /* ================= playing together. Everyone who has this game open can join the same valley through the page's live room:
    you see each other walk, work and wave, in your own looks and names, and you can talk. Each of you keeps your own farm and
@@ -4127,9 +4149,9 @@ async function peerSprite(look){if(!look||typeof look!=='object')return null;con
     const name='peer'+Object.keys(CO.sprites).length;SPR[name]=Object.assign({},SPR.farmer,{src:'mem:'+name});IMG['mem:'+name]=c;CO.sprites[key]=name;return name;}catch(e){CO.sprites[key]=null;return null;}}
 // joining
 async function coopStart(){let room=null;
-  // every player, on every device, joins the same peer-to-peer network; Claude's room is only a fallback for a browser without WebRTC
-  if(typeof HollowNet!=='undefined'&&typeof RTCPeerConnection!=='undefined'){try{room=netLobby();CO.mode='p2p';}catch(e){room=null;}}
-  if(!room){try{if(typeof claude!=='undefined'&&claude.use)room=await claude.use('room');}catch(e){}if(room)CO.mode='claude';}
+  // on claude.ai (where the page can't open outside connections) use Claude's live room; everywhere else, direct peer-to-peer
+  try{if(typeof claude!=='undefined'&&claude.use){const r=await claude.use('room');if(r){room=claudeAdapt(r);CO.mode='claude';}}}catch(e){room=null;}
+  if(!room&&typeof HollowNet!=='undefined'&&typeof RTCPeerConnection!=='undefined'){try{room=netLobby();CO.mode='p2p';}catch(e){room=null;}}
   if(!room){CO.status='unavailable';return;}CO.lobby=room;CO.status='connecting';
   room.onConnection(c=>{CO.status=c?'online':'connecting';},()=>{CO.status='unavailable';});await coopJoin('');}
 async function coopJoin(code){code=(code||'').toLowerCase().replace(/[^a-z0-9_-]/g,'').slice(0,24);const lob=CO.lobby;if(!lob)return;
@@ -4224,7 +4246,7 @@ const PERSONAL=['inv','slots','slotSel','tools','seeds','sel','basket','energy',
   'fishLog','fishCaught','bagSize','furnBag','tut','ls','friend','talkedToday','lastTalk','giftsWeek','heartSeen','lore','journal','keyItems','hz','deaths'];
 const tileSig=t=>(t.tilled?1:0)+'|'+(t.crop?[t.crop.type,t.crop.stage,t.crop.watered?1:0].join(','):'-');
 const debrisObjs=()=>OBJ.filter(o=>o.debris);
-const canHost=()=>CO.mode==='p2p'&&CO.lobby&&CO.lobby.net;
+const canHost=()=>!!(CO.lobby&&(CO.lobby.net||CO.lobby.claude));
 function hostReset(){HOST.known=tiles.map(tileSig);HOST.debKnown=new Set(debrisObjs().map((o,i)=>o.hide?i:-1).filter(i=>i>=0));HOST.coins=S.coins;}
 function takePersonal(){const o={};for(const k of PERSONAL)if(S[k]!==undefined)o[k]=JSON.parse(JSON.stringify(S[k]));return o;}
 function putPersonal(o){for(const [k,v] of Object.entries(o))S[k]=v;}
