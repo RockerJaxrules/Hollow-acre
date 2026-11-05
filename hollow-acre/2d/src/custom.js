@@ -15,7 +15,7 @@ const LOOK_BASE={skin:'#e8b48c',hair:'#6a4224',eye:'#3a5a7a',shirt:'#b8402c',pan
 const SHIRT_BASES=['#b8402c','#b8462c','#b84c2c','#b8522c','#b8582c','#b85e2c','#b8642c','#b86a2c'];
 const patShift=(pat,cls)=>{const jm=cls>>1,v=cls&1;if(pat==='plaid')return (v?1:0)+(jm===2?1:0);if(pat==='stripes')return jm<2?1:0;if(pat==='dots')return (v&&jm===1)?-1:0;return 0;};
 const LOOK_OPTS={
-  style:[['short','Swept'],['crop','Textured crop'],['sidepart','Side part'],['bangs','Fringe'],['shaggy','Shaggy'],['spiky','Spiky'],['buzz','Buzzed'],['mohawk','Mohawk'],['topknot','Top knot'],['curly','Curly'],['afro','Afro'],['wavy','Wavy'],['bob','Bob'],['long','Long'],['ponytail','Ponytail'],['pigtails','Pigtails'],['bun','Bun'],['spacebuns','Space buns'],['braids','Braids'],['bald','Bald']],
+  style:[['short','Swept'],['crop','Short & neat'],['sidepart','Side part'],['bangs','Fringe'],['shaggy','Shaggy'],['spiky','Spiky'],['buzz','Buzzed'],['mohawk','Mohawk'],['topknot','Top knot'],['curly','Curly'],['afro','Afro'],['wavy','Wavy'],['bob','Bob'],['long','Long'],['ponytail','Ponytail'],['pigtails','Pigtails'],['bun','Bun'],['spacebuns','Space buns'],['braids','Braids'],['bald','Bald']],
   beard:[['','None'],['stubble','Stubble'],['moustache','Moustache'],['goatee','Goatee'],['full','Beard']],
   outfit:[['shirt','Shirt'],['openshirt','Open shirt'],['tee','T-shirt'],['tank','Tank top'],['sweater','Sweater'],['turtleneck','Turtleneck'],['cardigan','Cardigan'],['hoodie','Hoodie'],['vest','Vest'],['overalls','Overalls'],['jacket','Jacket'],['longcoat','Long coat'],['skirt','Skirt'],['dress','Dress']],
   pattern:[['','Plain'],['plaid','Plaid'],['stripes','Stripes'],['dots','Dots']],

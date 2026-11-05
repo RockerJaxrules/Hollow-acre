@@ -134,6 +134,8 @@ function head(hx,hy0,dir,fl,pose){const side=dir==='E'||dir==='W',back=dir==='N'
   const fin=side?((x,y)=>faceIn(x*fl-2,y)&&x*fl>=-FX+3):faceIn;
   for(let y=FY0;y<=FY1;y++)for(let x=-FX-1;x<=FX+1;x++){if(!fin(x,y))continue;const xs=side?x*fl:x;
     let k=3;if(xs<-FX+3&&y<1&&!side)k=4;if(side&&xs<-1)k=2;if(xs>FX-3)k=2;if(y>=FY1-1)k=2;if(y===FY1&&Math.abs(x)<FX-3)k=1;p(hx+x,hy+y,SK[k]);}
+  // the skull above the forehead
+  for(let y=-13;y<FY0+2;y++)for(let u=-FX-2;u<=FX+2;u++){if(!CRAN(u,y,0,side))continue;if(side&&u<-FX+1)continue;const sx2=hx+(side?u*fl:u);if(g(sx2,hy+y))continue;let k=3;if(u<-3&&y<-6)k=4;if(u>FX-3)k=2;p(sx2,hy+y,SK[k]);}
   // ears
   if(!side){for(const s of [-1,1]){const ex=hx+s*(FX+1);p(ex,hy,SK[s<0?3:2]);p(ex,hy+1,SK[1]);p(ex,hy+2,SK[s<0?3:2]);p(ex,hy+3,SK[2]);}}
   else{const ex=hx-fl;p(ex,hy,SK[3]);p(ex,hy+1,SK[1]);p(ex,hy+2,SK[1]);p(ex,hy+3,SK[3]);p(ex-fl,hy+1,SK[3]);p(ex-fl,hy+2,SK[2]);}
@@ -157,67 +159,90 @@ function head(hx,hy0,dir,fl,pose){const side=dir==='E'||dir==='W',back=dir==='N'
     p(xw,hy-2,HR[1]);p(xi,hy-2,HR[1]);p(xi+fl,hy-2,HR[1]);
     p(hx+fl*(FX+2),hy+3,SK[3]);p(hx+fl*(FX+1),hy+4,SK[1]);   // nose
     p(hx+fl*(FX),hy+5,SK[0]);p(hx+fl*(FX-1),hy+5,SK[1]);p(hx+fl*3,hy+3,BLUSH);p(hx+fl*4,hy+3,BLUSH);}}
-// ---- hair: big clumped silhouette. Locks fan out from the crown; each lock has a lit strand and a dark gap; the fringe ends in points.
-function hair(hx,hy,dir,fl,st){if(!st||st==='bald')return;const BZ=st==='buzz'||st==='mohawk'||st==='topknot';const side=dir==='E'||dir==='W',back=dir==='N';
-  const CROP=st==='crop';const W=HW+(CROP?-1:st==='afro'?4:st==='curly'?1:BZ?-2:0),TOP=HTOP-(CROP?1:st==='afro'?3:st==='curly'?1:0)+(BZ?3:0);
-  const DCY=-4,DRY=DCY-TOP;                                                      // dome centre and height
-  const dome=(x,y)=>{const ax=Math.abs(side?x+fl*1:x);if(y<=DCY)return Math.pow(ax/(W+.5),2.2)+Math.pow((y-DCY)/(DRY+.5),2)<=1;return ax<=W-Math.max(0,(y-DCY))*.35;};
-  const zig=(x)=>[0,1,2,1][((x%4)+4)%4];                                         // pointed tips
-  const parted=st==='long'||st==='ponytail'||st==='bun'||st==='braids'||st==='pigtails'||st==='wavy'||st==='spacebuns';
-  let fringe;                                                                    // lowest y the hair reaches over the face, per column
-  if(st==='bangs')fringe=x=>-1+zig(x+1)*.5|0;
-  else if(st==='bob')fringe=x=>-1;
-  else if(CROP)fringe=x=>-4+[0,1,0,2,1,0,1][((x+21)%7)]-(x>2?1:0);
-  else if(st==='sidepart')fringe=x=>x<-1?1+((x+20)%3===0?1:0):-4+(zig(x)>1?1:0);
-  else if(st==='shaggy')fringe=x=>-2+zig(x)+(((x+20)%3===0)?1:0);
-  else if(st==='afro')fringe=x=>-4+(zig(x)>1?1:0);
-  else if(BZ)fringe=x=>FY0+1;
-  else if(parted)fringe=x=>Math.min(-2,FY0+Math.round(Math.abs(x+.5)*0.9))+(zig(x)>1?1:0);
-  else fringe=x=>-3+Math.round((x+FX)/(2*FX)*1.2)+zig(x)-(st==='spiky'?1:0);    // swept toward the right, ends in points
-  const lockLen=CROP?-1:st==='bob'?6:st==='shaggy'?5:st==='afro'?4:st==='sidepart'?3:st==='long'||st==='braids'||st==='wavy'||st==='pigtails'?4:st==='curly'?4:BZ?-2:2;   // how far the side locks come down beside the face
-  const cover=(x,y)=>{if(!dome(x,y))return false;
-    if(back)return y<=(CROP?FY1-3:BZ?FY1-3:st==='bob'?FY1+1:st==='shaggy'?FY1+2:FY1-1)+((x+20)%3===0?1:0);
-    if(dir==='S'){if(faceIn(x,y)||Math.abs(x)<=FX){return y<=fringe(x);}return y<=lockLen-(Math.abs(x)>W-2?2:0);}
-    const xf=x*fl;if(xf>=-1&&xf<=FX+2&&faceIn(xf-2,y))return y<=fringe(xf)-1;          // over the brow
-    if(xf>FX+2)return y<=DCY-1;
-    return y<=(xf<-2?FY1-1:lockLen)+((xf+20)%3===0?1:0);};
-  const CX=0,CY=TOP-3;
-  for(let y=TOP-1;y<=FY1+1;y++)for(let x=-W-2;x<=W+2;x++){if(!cover(x,y))continue;
-    const a=Math.atan2(y-CY,(side?x+fl*2:x)-CX);const N=st==='curly'?10:9;let u=(a/(Math.PI/N))%1;if(u<0)u+=1;
-    const xs=side?x*fl:x;let k=xs>W*.35?2:3;if(y>DCY+1)k=Math.min(k,2);
-    if(u<.26)k=xs<W*.55?4:3;else if(u<.42&&xs<0)k=Math.max(k,3);if(u>.8)k=Math.max(1,k-1);
-    if(y>=TOP+1&&y<=TOP+2&&xs>-W*.6&&xs<W*.2)k=4;                                  // shine across the crown
-    if(!cover(x,y+1)&&!(back&&y>=FY1-1))k=Math.min(k,1);                           // dark tips where hair meets skin
-    if(BZ)k=((x+y)&1)?2:3;
-    if(CROP){if(y>DCY+1||(Math.abs(side?x+fl:x)>W-2&&y>DCY-2))k=((x+y)&1)?2:1;else if(((x*7+y*3+40)%5===0))k=4;else if(((x*5+y*7+40)%6===0))k=1;}
-    if(st==='afro'&&((x*3+y*5+40)%4===0))k=Math.max(1,k-1);if(st==='afro'&&((x*5+y*3+40)%7===0))k=Math.min(4,k+1);
-    p(hx+x,hy+y,HR[k]);}
-  if(st==='spiky')for(let i=-2;i<=2;i++){const x=hx+i*4+(side?-fl:0),y=hy+TOP;p(x,y-1,HR[3]);p(x,y-2,HR[4]);p(x-1,y-1,HR[3]);p(x+1,y,HR[2]);p(x+1,y-1,HR[2]);}
-  if(st==='curly'){for(let a=0;a<13;a++){const t=Math.PI*(1.0+a/12*1.0);const ex=Math.cos(t),ey=Math.sin(t);if(side&&ex*fl>.5)continue;blob(hx+Math.round(ex*(W+1)),hy+DCY+Math.round(ey*(DRY+1)),2,2,HR);}
-    if(!back&&!side)for(const s of [-1,1])for(let j=0;j<3;j++)blob(hx+s*(W),hy+j*3,2,2,HR);}
-  if(st==='long'){const len=KID?12:15;for(let y=lockLen;y<lockLen+len;y++){const t=(y-lockLen)/len,w=t>.8?1:0;
-      if(dir==='S'){for(const s of [-1,1])for(let i=0;i<3-w;i++){const x=hx+s*(W-1-i);p(x,hy+y,HR[i===0?(s<0?3:1):i===1?(s<0?4:2):2]);}}
-      else if(back){for(let x=-W+1+w;x<=W-1-w;x++){const u=((x+20)%4);p(hx+x,hy+y,HR[Math.abs(x)>W-3?1:u===0?1:u===1?4:3]);}}
-      else for(let i=0;i<6-w*2;i++)p(hx-fl*(2+i),hy+y,HR[i===0?3:i===1?4:i>3?1:2]);}}
-  if(st==='bun'){const bx=hx+(side?-fl*6:0),by=hy+TOP-(side?-1:2);blob(bx,by,4,3,HR);p(bx-1,by-1,HR[4]);p(bx-2,by,HR[4]);}
-  if(st==='ponytail'){const tie=[[150,50,40],[200,80,60]];
-    if(back){p(hx,hy+FY1-2,tie[1]);p(hx-1,hy+FY1-2,tie[0]);for(let y=0;y<11;y++){const w=y<2?1:y<8?2:1;for(let x=-w;x<=w;x++)p(hx+x,hy+FY1-1+y,HR[x<0?4:x>0?2:3]);}}
-    else if(side){const bx=hx-fl*(W),by=hy-2;p(bx,by,tie[1]);for(let y=0;y<11;y++)for(let i=0;i<3;i++)p(bx-fl*(i+(y>>2)),by+1+y,HR[i===0?3:i===1?4:1]);}}
-  if(st==='braids'){const tie=[[60,90,140],[100,140,190]];for(const s of (side?[-fl]:[-1,1])){const bx=hx+s*(W-2);
-      for(let y=0;y<12;y++){const yy=hy+lockLen+y;const k=(y%3===0)?1:(y%3===1?4:3);p(bx,yy,HR[k]);p(bx+1,yy,HR[Math.max(1,k-1)]);p(bx-1,yy,HR[y%3===1?3:2]);}
-      p(bx,hy+lockLen+12,tie[1]);p(bx+1,hy+lockLen+12,tie[0]);}}
-  if(CROP&&!back){const tx=side?[-3,0,3].map(v=>v-fl):[-5,-2,1,4];for(const t of tx){const x=hx+t,y=hy+TOP;p(x,y,HR[(t&1)?3:4]);p(x+1,y,HR[3]);if(t===1||t===0)p(x+1,y-1,HR[3]);}}
-  if(CROP&&back)for(const t of [-4,0,3]){p(hx+t,hy+TOP,HR[3]);p(hx+t+1,hy+TOP,HR[2]);}
-  if(st==='topknot'){const by=hy+TOP-2;blob(hx+(side?-fl:0),by,3,2,HR);for(let i=-2;i<=2;i++)p(hx+i+(side?-fl:0),by+2,HR[0]);p(hx-1+(side?-fl:0),by-1,HR[4]);}
-  if(st==='spacebuns'){for(const sx of (side?[-fl]:[-1,1])){const bx=hx+sx*(W-3),by=hy+TOP+1;blob(bx,by,3,3,HR);p(bx-1,by-1,HR[4]);p(bx-2,by,HR[4]);}}
-  if(st==='mohawk'){for(let y=TOP-4;y<=DCY;y++){const w=y<TOP-1?1:2;for(let x=-w;x<=w;x++){if(side&&false)continue;const xx=side?x-fl*1:x;p(hx+xx,hy+y,HR[x<0?4:x>0?2:3]);}}
-    for(let y=TOP-5;y<TOP-1;y+=2)p(hx+(side?-fl:0),hy+y,HR[4]);}
-  if(st==='wavy'){const len=KID?7:9;for(let y=lockLen;y<lockLen+len;y++){const wv=((y>>1)&1);
-      if(dir==='S'){for(const s of [-1,1])for(let i=0;i<3;i++){const x=hx+s*(W-1-i+wv);p(x,hy+y,HR[i===0?(s<0?3:1):i===1?(s<0?4:2):2]);}}
-      else if(back){for(let x=-W+1;x<=W-1;x++){const u=((x+20)%4);p(hx+x+(Math.abs(x)>W-3?wv*Math.sign(x):0),hy+y,HR[Math.abs(x)>W-3?1:u===0?1:u===1?4:3]);}}
-      else for(let i=0;i<5;i++)p(hx-fl*(2+i+wv),hy+y,HR[i===0?3:i===1?4:i>3?1:2]);}}
-  if(st==='pigtails'){const tie=[[200,60,90],[240,110,140]];for(const s of (side?[-fl]:[-1,1])){if(back&&false)continue;const bx=hx+s*(W+1),by=hy-1;p(bx-s,by,tie[1]);p(bx-s,by+1,tie[0]);
-      for(let y=0;y<10;y++){const w=y<2?1:y<7?2:1;for(let i=0;i<=w;i++){const x=bx+s*(i+(y>>2));p(x,by+y,HR[i===0?(s<0?4:2):i===w?1:3]);}}}}
+// ---- hair, built like a hand-drawn sprite: a thin cap that hugs the skull, then tapered locks swept from the crown.
+// Each lock has a lit edge and a dark edge, so neighbouring locks read as separate clumps; fringes end in points with forehead between them.
+const CRAN=(u,y,e,side)=>Math.pow(Math.abs(u-(side?.2:0))/((side?FX+.2:FX+1.2)+e),2.4)+Math.pow(Math.abs(y+3)/(10.6+e),2.2)<=1;
+const jit=(i,s)=>{const v=Math.sin(i*12.9898+s*78.233)*43758.5453;return v-Math.floor(v);};
+const HSTY={
+  //        nape: back hair ends;  sb: sideburn bottom;  fr: fringe [count, sweep, tip y, spread x0..x1, width];  tufts: [u, angle, len];  hl: forehead hairline
+  short:    {nape:3, sb:0, hl:-6, fit:.4, fr:[6, 1.6, -3, -7, 6, 2.8], tufts:[[-5,-140,3],[1,-95,2],[5,-50,3]]},
+  crop:     {nape:2, sb:-1, hl:-6, fit:.3, fr:[7, .9, -3, -7, 6, 2.4], tufts:[[-3,-120,2],[3,-70,2]]},
+  sidepart: {nape:3, sb:0, hl:-7, fit:.4, fr:[5, 2.4, -2, -3, 7, 3], part:-4, tufts:[[-6,-130,2]]},
+  bangs:    {nape:4, sb:1, hl:-5, fit:.5, fr:[8, .2, -2, -7, 7, 2.4], tufts:[[-4,-120,2],[4,-60,2]]},
+  shaggy:   {nape:6, sb:2, hl:-6, fr:[7, 1.0, -1, -8, 7, 3], tufts:[[-6,-150,4],[-1,-100,3],[4,-60,4],[7,-20,3]], side:[3,1]},
+  spiky:    {nape:2, sb:-1, hl:-6, fit:.3, fr:[5, .8, -4, -6, 5, 2.6], tufts:[[-6,-135,5],[-3,-110,6],[0,-90,6],[3,-70,6],[6,-45,5]]},
+  buzz:     {nape:2, sb:-1, hl:-6, cap:'buzz'},
+  mohawk:   {nape:2, sb:-1, hl:-6, cap:'buzz', tufts:[[-1,-100,5],[0,-90,7],[1,-80,5]], crest:1},
+  topknot:  {nape:2, sb:-1, hl:-6, cap:'buzz', knot:1},
+  curly:    {nape:5, sb:2, hl:-5, curls:1},
+  afro:     {nape:6, sb:3, hl:-5, curls:2},
+  wavy:     {nape:9, sb:5, hl:-5, fr:[6, 1.2, -2, -7, 6, 3.2], side:[9,2], wave:1},
+  bob:      {nape:6, sb:5, hl:-4, fr:[8, .3, -1, -7, 7, 2.8], side:[5,0], inward:1},
+  long:     {nape:15, sb:5, hl:-6, part:0, fr:[6, 0, -3, -6, 6, 3], side:[15,1]},
+  ponytail: {nape:3, sb:0, hl:-6, part:0, fr:[4, 0, -4, -6, 6, 3], tail:1},
+  pigtails: {nape:3, sb:1, hl:-6, part:0, fr:[4, 0, -3, -6, 6, 3], pig:1},
+  bun:      {nape:3, sb:0, hl:-6, part:0, fr:[4, 0, -4, -6, 6, 3], bun:1},
+  spacebuns:{nape:3, sb:1, hl:-6, part:0, fr:[4, 0, -3, -6, 6, 3], sbun:1},
+  braids:   {nape:4, sb:2, hl:-6, part:0, fr:[4, 0, -3, -6, 6, 3], braid:1},
+};
+function hair(hx,hy,dir,fl,st){if(!st||st==='bald')return;const S=HSTY[st]||HSTY.short;const side=dir==='E'||dir==='W',back=dir==='N';
+  const put=(u,y,k)=>p(hx+Math.round(side?u*fl:u),hy+Math.round(y),HR[Math.max(0,Math.min(4,k))]);
+  const SEED=st.length*7+(st.charCodeAt(0)||0);
+  // a tapered lock from (u0,y0) to its tip (u1,y1)
+  const lock=(u0,y0,u1,y1,w,shade)=>{const L=Math.hypot(u1-u0,y1-y0)||1;const nx=-(y1-y0)/L,ny=(u1-u0)/L;const n=Math.ceil(L*2.2);
+    for(let i=0;i<=n;i++){const t=i/n,cx=u0+(u1-u0)*t,cy=y0+(y1-y0)*t,wt=Math.max(.7,w*Math.pow(1-t,.8));
+      for(let o=-wt/2;o<=wt/2+.01;o+=.5){const rel=o/(wt/2+.01);let k=rel<-.35?4:rel>.45?1:3;if(t>.7&&k===4)k=3;k+=shade||0;put(cx+nx*o,cy+ny*o,k);}}};
+  // ---- the cap: hair over the skull above the hairline
+  const capBottom=(u)=>{const au=Math.abs(u);
+    if(back)return S.nape-((Math.round(u)+20)%3===0?1:0);
+    if(!side){if(au>=FX)return S.sb;return S.hl+(au>FX-4?1:0);}
+    if(u<-2)return Math.min(S.nape,FY1)-((Math.round(u)+20)%3===0?1:0);if(u<0)return S.sb;if(u<2)return S.hl+2;return S.hl;};
+  const buzz=S.cap==='buzz';
+  const FIT=buzz?0:(S.fit!==undefined?S.fit:.9);
+  for(let y=-15;y<=FY1+1;y++)for(let u=-FX-4;u<=FX+4;u++){if(!CRAN(u,y,FIT,side))continue;if(y>capBottom(u))continue;if(buzz&&!back&&!side&&Math.abs(u)<FX-1&&y>-7)continue;
+    let k=u>2?2:3;if(y>-1)k=Math.min(k,2);if(!CRAN(u,y+1,FIT,side)||y===Math.floor(capBottom(u)))k=1;
+    if(y>=-13&&y<=-11&&u>-6&&u<2&&((u+y)&1))k=4;                                                   // shine across the crown
+    if(buzz)k=((u+y)&1)?2:3;put(u,y,k);}
+  // ---- curls (curly, afro): clusters of round curls, each lit on its upper left
+  if(S.curls){const big=S.curls===2,Rr=big?FX+5:FX+2,n=big?26:20;
+    for(let i=0;i<n;i++){const a=Math.PI*(.95+i/(n-1)*1.1)+(jit(i,SEED)-.5)*.2;const r=Rr*(.82+jit(i,SEED+3)*.25);
+      let u=Math.cos(a)*r,y=-4+Math.sin(a)*(Rr+1);if(side&&u>FX-1)continue;if(!back&&!side&&y>S.hl-1&&Math.abs(u)<FX-2)continue;
+      const cr=big?2.6:1.8;for(let yy=-3;yy<=3;yy++)for(let uu=-3;uu<=3;uu++){const d=(uu*uu+yy*yy)/(cr*cr);if(d>1)continue;put(u+uu,y+yy,d>.6&&(uu>0||yy>0)?1:(uu<0&&yy<0)?4:3);}}
+    if(!back&&!side)for(let i=0;i<6;i++){const u=-FX+2+i*3,y=S.hl+(i&1);for(let yy=-1;yy<=1;yy++)for(let uu=-1;uu<=1;uu++)put(u+uu,y+yy,(uu<0&&yy<0)?4:yy>0?1:3);}
+    if(big&&!side&&!back)for(const s of [-1,1])for(let j=0;j<3;j++){const u=s*(FX+3),y=-2+j*3;for(let yy=-2;yy<=2;yy++)for(let uu=-2;uu<=2;uu++)if(uu*uu+yy*yy<=5)put(u+uu,y+yy,uu*s>0?1:3);}}
+  // ---- locks
+  const T=S.fr;
+  if(T&&!back){const [n,sweep,tipY,x0,x1,w]=T;
+    if(!side){for(let i=0;i<n;i++){const b=x0+(x1-x0)*i/(n-1);let bu=b*.55,by=-11+Math.abs(b)*.2,tu=b+sweep*3+(jit(i,SEED)-.5)*1.2,ty=tipY+Math.round(jit(i,SEED+1)*2)-(Math.abs(b)>FX-3?0:0);
+        if(S.part!==undefined){const s=b<S.part?-1:1;bu=S.part+s*1;by=-12;tu=b+s*2.5;ty=tipY+(Math.abs(b-S.part)<3?-1:0)+Math.round(jit(i,SEED)*1.5);}
+        lock(bu,by,tu,ty,w,i%2?0:0);}}
+    else{const m=Math.max(3,Math.ceil(n/2));for(let i=0;i<m;i++){const tu=1+i*(FX+1)/(m-1)*.9,ty=tipY+Math.round(jit(i,SEED)*2)-(S.part!==undefined?1:0);lock(-2+i*.8,-12+i*.3,tu+sweep*.6,ty,w,0);}}}
+  // side locks over the temples, down past the ear for longer styles
+  if(!back&&S.side){const [len,out]=S.side;if(!side){for(const s of [-1,1]){lock(s*(FX-1),-8,s*(FX+1+out),len,3.4,s>0?-1:0);lock(s*(FX-3),-7,s*(FX+.5+out*.5),len-1,2.6,s>0?0:0);}}
+    else{lock(-1,-8,1,Math.min(len,S.sb+1),3,0);}}
+  // hair at the back of the head, fanning from the crown to the nape
+  if(back||side){const nape=S.nape+(S.side&&side?0:0);const tips=back?[-FX-1,-FX+2,-3,0,3,FX-2,FX+1]:[-FX-1,-FX+1,-4,-2];
+    tips.forEach((tu,i)=>lock(tu*.35,-12,tu,nape+Math.round(jit(i,SEED+5)*2)-(Math.abs(tu)>FX-1&&back?1:0),3.4,back&&tu>2?-1:0));
+    if(back&&!buzz&&!S.curls)for(let i=0;i<4;i++)lock(-5+i*3.3,-13,-6+i*4,-6,2.6,0);}
+  // tufts break the round silhouette on top
+  for(const [tu,ang,len] of (S.tufts||[])){if(back&&ang>-60&&ang<-120)continue;const a=ang*Math.PI/180;const u0=side?tu*.6-1:tu,y0=-12+Math.abs(tu)*.15;lock(u0,y0,u0+Math.cos(a)*len*(side?.7:1),y0+Math.sin(a)*len,2.6,0);}
+  // ---- longer styles: curtains of locks
+  if(S.side&&S.side[0]>5){const len=S.side[0];
+    if(!side&&!back){for(const s of [-1,1]){for(let j=0;j<2;j++){const u0=s*(FX-1+j),u1=s*(FX+1.5+j*.5+(S.wave?((j)&1):0));lock(u0,-4,u1+(S.inward?-s*2:0),len-j*2,3.2,s>0?-1:0);}
+        if(S.wave)for(let y=0;y<len;y+=3)put(s*(FX+2+((y>>1)&1)),y,4);}}
+    else if(back){for(let i=0;i<6;i++){const tu=-FX+i*(2*FX)/5;lock(tu*.4,-8,tu+(S.wave?((i&1)?1:-1):0),len+Math.round(jit(i,SEED)*2),3.6,tu>2?-1:0);}}
+    else{for(let i=0;i<3;i++)lock(-3-i,-6,-4-i*1.5+(S.wave?(i&1):0),len-i,3.4,0);}}
+  if(S.inward&&!back&&!side)for(const s of [-1,1])lock(s*(FX+1),2,s*(FX-1),5,2.4,0);
+  // ---- extras
+  if(S.crest)for(let y=-16;y<=-7;y++)for(let u=-1;u<=1;u++)put(side?u-1:u,y,u<0?4:u>0?2:3);
+  if(S.knot){const u=side?-2:0;for(let yy=-3;yy<=2;yy++)for(let uu=-3;uu<=3;uu++){const d=(uu*uu)/9+(yy*yy)/6;if(d<=1)put(u+uu,-15+yy,(uu<0&&yy<0)?4:d>.6?1:3);}for(let uu=-2;uu<=2;uu++)put(u+uu,-12,0);}
+  if(S.bun){const u=side?-6:0,y=side?-11:-15;for(let yy=-3;yy<=3;yy++)for(let uu=-4;uu<=4;uu++){const d=(uu*uu)/16+(yy*yy)/9;if(d<=1)put(u+uu,y+yy,(uu<0&&yy<0)?4:d>.6?1:3);}}
+  if(S.sbun){for(const s of (side?[-1]:[-1,1])){const u=side?-4:s*(FX-1),y=-13;for(let yy=-3;yy<=3;yy++)for(let uu=-3;uu<=3;uu++){const d=(uu*uu+yy*yy)/9;if(d<=1)put(u+uu,y+yy,(uu<0&&yy<0)?4:d>.6?1:3);}}}
+  if(S.tail){const tie=[[150,50,40],[200,80,60]];if(back){p(hx,hy+2,tie[1]);p(hx-1,hy+2,tie[0]);lock(0,3,0,13,4,0);lock(-1,3,1,12,2.4,-1);}
+    else if(side){const u=-FX-1;p(hx+u*fl,hy-3,tie[1]);lock(u,-2,u-3,9,3.6,0);}}
+  if(S.pig){const tie=[[200,60,90],[240,110,140]];for(const s of (side?[-1]:[-1,1])){const u=side?-FX:s*(FX+1);if(!side){p(hx+u,hy-1,tie[1]);p(hx+u,hy,tie[0]);}lock(u,0,u+(side?-2:s*3),10,4,0);}}
+  if(S.braid){const tie=[[60,90,140],[100,140,190]];for(const s of (side?[-1]:[-1,1])){const u=side?-3:s*(FX-1);for(let y=2;y<14;y++){const k=(y%3===0)?1:(y%3===1)?4:3;put(u,y,k);put(u+1,y,Math.max(1,k-1));put(u-1,y,y%3===1?3:2);}
+      p(hx+Math.round(side?u*fl:u),hy+14,tie[1]);p(hx+Math.round(side?(u+1)*fl:u+1),hy+14,tie[0]);}}
 }
 // ---- accessories in their own colour: bow, flower, headband in the hair; scarf, bandana, necklace at the neck
 function acc(hx,hy,dir,fl,a,ty){if(!a)return;const side=dir==='E'||dir==='W',back=dir==='N';const R=ACCR;
