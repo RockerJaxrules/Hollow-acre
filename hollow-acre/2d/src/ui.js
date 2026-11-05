@@ -33,7 +33,7 @@
 // ---- desktop controls
 addEventListener('keydown',e=>{if(e.repeat)return;const k=e.code;
   if(k==='Escape'){for(const id of ['bag','shop','note','talk']){const el=$(id);if(el&&!el.hidden){const c=el.querySelector('.close');if(c)c.click();else{el.hidden=true;S.paused=false;}e.preventDefault();return;}}const j=document.querySelector('.sheet:not([hidden]) .close');if(j)j.click();return;}
-  if(k==='KeyF'){if(!document.fullscreenElement)document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen().catch(()=>{});else document.exitFullscreen&&document.exitFullscreen();return;}
+  if(k==='KeyF'){if(typeof fsToggle==='function')fsToggle();return;}
   if(S.mode!=='play')return;
   if(/^Digit[1-6]$/.test(k)){hotbarUse(['hoe','can','pick','axe','seed','food'][+k.slice(5)-1]);return;}
   if(k==='KeyB'&&!S.paused)openBag();else if(k==='KeyB'&&!$('bag').hidden)$('bagClose').click();

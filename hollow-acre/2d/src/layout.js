@@ -2,10 +2,17 @@
    Landscape phones have very little height (about 320 to 430 pixels), so there the HUD shrinks and moves to the edges,
    panels become scrollable, and the title and creator screens reflow side by side. ================= */
 {const c=document.createElement('style');c.textContent=`
+/* keep everything clear of the notch, the camera cut-out and the home bar, in both orientations */
+#bars{right:calc(env(safe-area-inset-right,0px) + 10px)!important}
+#btnBag,#btnJournal{left:calc(env(safe-area-inset-left,0px) + 12px)!important}
+#hotbar{margin-left:env(safe-area-inset-left,0px)}
+html,body{background:#07070a;overscroll-behavior:none}
+:fullscreen,::backdrop{background:#07070a}
 /* fullscreen button */
 #fsBtn{position:fixed;z-index:31;top:calc(env(safe-area-inset-top,0px) + 10px);left:calc(env(safe-area-inset-left,0px) + 158px);width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;
   background:var(--px-panel,#2a1a0e);color:#f4e6c8;border:0;box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 3px #6a4a2a;cursor:pointer}
-#fsBtn svg{width:18px;height:18px}#fsBtn.title{left:auto;right:calc(env(safe-area-inset-right,0px) + 12px)}
+#fsBtn svg{width:18px;height:18px;flex:none}#fsBtn .lbl{display:none;font-size:13px;margin-left:7px;letter-spacing:.04em}
+#fsBtn.title{left:auto;right:calc(env(safe-area-inset-right,0px) + 12px);width:auto;padding:0 12px;height:36px}#fsBtn.title .lbl{display:inline}
 #fsTip{position:fixed;z-index:999;left:50%;top:50%;transform:translate(-50%,-50%);width:min(360px,88vw);background:#2a1a0e;color:#f4e6c8;padding:16px 18px;font-size:14px;line-height:1.5;box-shadow:0 0 0 2px #1a0e06,0 0 0 4px #b8521c,0 10px 40px rgba(0,0,0,.6);display:none}
 #fsTip b{color:#ffd27a}#fsTip button{margin-top:10px}
 :fullscreen #fsBtn .on{display:none}#fsBtn .off{display:none}:fullscreen #fsBtn .off{display:block}
@@ -77,7 +84,7 @@ function fsHelp(){const t=$('fsTip');const ios=/iPhone|iPod/.test(navigator.user
     :`<b>Full screen</b><br>This browser won’t go full screen from here. Try your browser’s menu, or press <b>F11</b> on a computer.<br><button class="btn" id="fsOk">Got it</button>`;
   t.style.display='block';$('fsOk').onclick=()=>{t.style.display='none';};}
 {const b=document.createElement('button');b.id='fsBtn';b.setAttribute('aria-label','Full screen');b.title='Full screen';
-  b.innerHTML='<svg class="on" viewBox="0 0 20 20"><path d="M2 7V2h5M13 2h5v5M18 13v5h-5M7 18H2v-5" fill="none" stroke="currentColor" stroke-width="2"/></svg><svg class="off" viewBox="0 0 20 20"><path d="M7 2v5H2M18 7h-5V2M13 18v-5h5M2 13h5v5" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+  b.innerHTML='<svg class="on" viewBox="0 0 20 20"><path d="M2 7V2h5M13 2h5v5M18 13v5h-5M7 18H2v-5" fill="none" stroke="currentColor" stroke-width="2"/></svg><svg class="off" viewBox="0 0 20 20"><path d="M7 2v5H2M18 7h-5V2M13 18v-5h5M2 13h5v5" fill="none" stroke="currentColor" stroke-width="2"/></svg><span class="lbl">Full screen</span>';
   b.addEventListener('click',e=>{e.stopPropagation();fsToggle();});b.addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});document.body.appendChild(b);
   const t=document.createElement('div');t.id='fsTip';document.body.appendChild(t);
   // already full screen as an installed app: no button needed
@@ -85,3 +92,18 @@ function fsHelp(){const t=$('fsTip');const ios=/iPhone|iPod/.test(navigator.user
   setInterval(sync,250);sync();}
 // ---- turning the phone: give the canvas a moment, then make sure nothing is left off screen
 addEventListener('orientationchange',()=>setTimeout(()=>{dispatchEvent(new Event('resize'));},350));
+
+const isTouch=()=>matchMedia('(pointer:coarse)').matches;
+function fsPref(){try{return localStorage.getItem('hollowFS');}catch(e){return null;}}
+function fsSetPref(v){try{localStorage.setItem('hollowFS',v);}catch(e){}}
+let fsByUs=false;
+document.addEventListener('fullscreenchange',()=>{const l=$('fsBtn').querySelector('.lbl');if(l)l.textContent=fsOn()?'Exit full screen':'Full screen';
+  if(!fsOn()&&fsByUs&&S.mode==='play')fsSetPref('off');if(fsOn())fsSetPref('on');fsByUs=fsOn();
+  setTimeout(()=>dispatchEvent(new Event('resize')),120);});
+document.addEventListener('webkitfullscreenchange',()=>setTimeout(()=>dispatchEvent(new Event('resize')),120));
+// on a phone, starting or continuing the game goes full screen (the tap that starts the game is what the browser needs to allow it)
+for(const id of ['begin','cont','cGo'])addEventListener('click',e=>{const t=e.target&&e.target.closest&&e.target.closest('#'+id);if(!t)return;
+  if(isTouch()&&fsOK()&&!fsOn()&&fsPref()!=='off'&&!standalone()){try{const el=document.documentElement;const p=(el.requestFullscreen||el.webkitRequestFullscreen).call(el,{navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}catch(x){}}},true);
+// a one-time tip on phones that can't go full screen from the page (iPhone)
+setTimeout(function tip(){if(S.mode!=='play'){setTimeout(tip,4000);return;}let seen=null;try{seen=localStorage.getItem('hollowFSTip');}catch(e){}
+  if(seen||standalone()||!isTouch()||fsOK())return;try{localStorage.setItem('hollowFSTip','1');}catch(e){}toast('Tip: tap the ⛶ button to learn how to play full screen.',4);},20000);
