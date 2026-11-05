@@ -52,7 +52,11 @@ function sunState(){const h=S.hour;
   if(h<6.2||h>19.4)return null;const t=clamp((h-12.5)/6,-1,1);const fade=clamp((h-6.2)/1.2,0,1)*clamp((19.4-h)/1.2,0,1);
   return {sx:t*1.05,sy:.32+Math.abs(t)*.22,a:.34*fade};}
 function dxSil(spr){let c=DX.sil['s_'+spr];if(c)return c;const m=SPR[spr],im=m&&IMG[m.src];if(!im)return null;c=document.createElement('canvas');c.width=m.fw;c.height=m.fh;const q=c.getContext('2d');
-  q.drawImage(im,0,0,m.fw,m.fh,0,0,m.fw,m.fh);q.globalCompositeOperation='source-in';q.fillStyle='#0a1206';q.fillRect(0,0,m.fw,m.fh);DX.sil['s_'+spr]=c;return c;}
+  q.drawImage(im,0,0,m.fw,m.fh,0,0,m.fw,m.fh);
+  // only the solid body casts the sun shadow: soft painted-on shadows under a sprite must not be projected again
+  try{const d=q.getImageData(0,0,m.fw,m.fh),a=d.data;for(let i=0;i<a.length;i+=4){const on=a[i+3]>=200;a[i]=10;a[i+1]=18;a[i+2]=6;a[i+3]=on?255:0;}q.putImageData(d,0,0);}
+  catch(e){q.globalCompositeOperation='source-in';q.fillStyle='#0a1206';q.fillRect(0,0,m.fw,m.fh);}
+  DX.sil['s_'+spr]=c;return c;}
 const SUN_SKIP=new Set(['deco','flat','anim','corn']);
 function sunBegin(){DX.lamp=null;DX.sun=sunState();if(S.introDrive&&DX.carLamp&&cine){DX.lamp={x:DX.carLamp.x,y:DX.carLamp.y,a:.6};DX.sun={sx:0,sy:0,a:.6,lamp:1};}else if(!DX.sun&&!S.room&&S.mode!=='title'&&isNight()&&lanternOn()){DX.lamp={x:sx(P.x),y:sz(P.z)-6,a:.55};DX.sun={sx:0,sy:0,a:.55,lamp:1};}if(!DX.sun)return;const g=dxCanvas();g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,VW,VH);DX.sg=g;}
 // returns true when it handled the shadow (so the flat ellipse isn't needed)
