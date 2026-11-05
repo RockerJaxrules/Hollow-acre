@@ -1,0 +1,292 @@
+// ---- Hollow Acre characters, second generation: villagers after Stardew's (big clumped hair framing a small squared face, compact body) with a real walk and run cycle,
+// braced tool swings, kneeling to plant, and breathing at rest. Every frame is drawn into separate part layers
+// (body+outfit, beard, hair, glasses, hat, the tool in front) so the player can be assembled from any combination at runtime.
+// CFG: look, tool, part ('all' | 'body' | 'beard' | 'hair' | 'glasses' | 'hat' | 'toolf'), out.
+SEED=CFG.seed||3;
+const C=CFG.look,KID=!!C.kid,PART=CFG.part||'all',TOOL=CFG.tool||null;
+const FW=48,FH=64,D4=['N','W','S','E'];
+const CLIPS=[['walk',D4,9],['run',D4,9],['idle',D4,4],['thrust',D4,8],['slash',D4,6],['hurt',['S'],6],['spellcast',D4,7],['sit',D4,3]];
+const ROWS=[];for(const [n,ds,nf] of CLIPS)for(const d of ds)ROWS.push([n,d,nf]);
+const SW=FW*9,SH=FH*ROWS.length;
+const SHEET=layer('sheet',SW,SH);
+// five-step ramps: deep, shadow, mid, base, light. custom.js rebuilds these exactly to recolour the player.
+const ramp=hex=>{const c=HEX(hex);const m=k=>[0,1,2].map(i=>Math.round(c[i]*k));return [m(.36),m(.6),m(.82),[c[0],c[1],c[2]],[0,1,2].map(i=>Math.min(255,Math.round(c[i]*1.12+(i===2?14:18))))];};
+const SK=ramp(C.skin||'#e8b48c'),HR=ramp(C.hair||'#6a4224'),EYR=ramp(C.eye||'#3a5a7a'),SHT=ramp(C.shirt||'#b8402c'),PNT=ramp(C.pants||'#3a4e7a'),SHO=ramp(C.shoes||'#3a2618'),
+  EX=ramp(C.extra||'#6a7a3a'),HAT=ramp(C.hatColor||'#8a5a2a'),SKR=C.skirt?ramp(C.skirt):PNT;
+const OUT=C.outfit||(C.overalls?'overalls':C.coat?'jacket':C.plaid?'flannel':(C.skirt?'dress':'tee'));
+const JK=C.coat?ramp(C.coatColor||C.shirt||'#3a3a40'):EX;        // jacket cloth
+const INNER=C.coat?ramp(C.inner||'#d8d0c0'):SHT;                 // shirt under the jacket
+const LONGSLV=OUT!=='tee'||C.longSleeves;
+const BELT=[[40,26,16],[62,40,26],[96,64,38]],BUCKLE=[[150,118,52],[222,190,96]];
+const WHITE=[238,234,226],BLUSH=[232,138,128],LASH=[34,24,26];
+// ---- part layers for the frame being drawn
+const PARTS=['body','beard','hair','glasses','hat','toolf'];
+let LY={},CUR='body';
+const p=(x,y,c)=>{if(c)P(LY[CUR],Math.round(x),Math.round(y),c);};
+const g=(x,y)=>G(LY[CUR],Math.round(x),Math.round(y));
+const into=(part,fn)=>{const o=CUR;CUR=part;fn();CUR=o;};
+const dk=(R,d)=>R.map((c,i)=>R[Math.max(0,Math.min(4,i-d))]);      // same ramp, shifted darker (far limbs)
+// ---- shapes
+function blob(cx,cy,rx,ry,R,flat){for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){const d=(x*x)/(rx*rx+.01)+(y*y)/(ry*ry+.01);if(d>1)continue;
+    const l=-x/(rx+.01)*.55-y/(ry+.01)*.7;let k=flat?3:(l>.5?4:l>0?3:l>-.5?2:1);if(d>.75&&(x>0||y>0))k=Math.max(0,k-1);p(cx+x,cy+y,R[k]);}}
+// a limb of width w along a segment, lit on its left/top edge
+function seg(x0,y0,x1,y1,w,R){const n=Math.max(1,Math.ceil(Math.hypot(x1-x0,y1-y0)*2));const vert=Math.abs(y1-y0)>=Math.abs(x1-x0);
+  for(let i=0;i<=n;i++){const x=x0+(x1-x0)*i/n,y=y0+(y1-y0)*i/n;for(let k=0;k<w;k++){const ki=w===1?3:k===0?4:k===w-1?1:(w>3&&k===w-2)?2:3;
+      if(vert)p(Math.round(x)+k-(w>>1),Math.round(y),R[ki]);else p(Math.round(x),Math.round(y)+k-(w>>1),R[ki]);}}}
+// ---------------------------------------------------------------- proportions after Stardew's villagers (16x32 drawn at 1.5x): head with hair ~45% of the height,
+// a narrow squared face framed by big clumped hair, a compact body, short legs and chunky shoes. Everything outlined, inside and out.
+const HIP0=KID?49:46,TH=KID?10:12,ANK=56,LT=KID?3.8:5.2,LS=KID?3.8:5.2,TW=KID?12:14,TWS=KID?8:10,HANG=KID?9:11;
+const FX=KID?7:8,FY0=KID?-6:-7,FY1=KID?5:6,HW=KID?10:11,HTOP=KID?-13:-14;   // face half-width / top / chin, hair half-width / top (relative to the eye line hy)
+const HEADUP=FY1+1;                                                       // hy = shoulders - HEADUP
+const HR_X=FX,HR_Y=FY1;
+// face: a rounded rectangle, soft top corners, a rounded chin
+const faceInset=y=>{const t=y-FY0,b=FY1-y;return t===0?2:t===1?1:b===0?4:b===1?2:b===2?1:0;};
+const faceIn=(x,y)=>y>=FY0&&y<=FY1&&Math.abs(x)<=FX-faceInset(y);
+// ---- legs: thigh and shin by two-bone IK (knees forward in profile, outward when squatting face-on); a chunky shoe on the end
+function leg(hx,hy,fx,fy,side,fl,far,stance,out){const R=far?dk(LEGR(),1):LEGR();const d=Math.hypot(fx-hx,fy-hy);let kx=(hx+fx)/2,ky=(hy+fy)/2;
+  if(d<LT+LS&&(side||SQUAT)){const h=Math.sqrt(Math.max(0,LT*LT-(d/2)*(d/2)));const nx=-(fy-hy)/d,ny=(fx-hx)/d;const s=side?((nx*fl>0)?1:-1):((nx*out>0)?1:-1);kx+=nx*h*s*(side?1:1.2);ky+=ny*h*s;}
+  const w=side?4:5;seg(hx,hy,kx,ky,w,R);seg(kx,ky,fx,fy,w,R);
+  if(!side){const inner=out<0?Math.round(hx)+2:Math.round(hx)-2;for(let y=Math.round(hy)+1;y<=Math.round(fy);y++)if(g(inner,y))p(inner,y,R[0]);}   // the dark seam between the legs
+  shoe(fx,fy,side,fl,far);}
+const LEGR=()=>(OUT==='dress'||C.skirt)?SK:PNT;
+function shoe(fx,fy,side,fl,far){const R=far?dk(SHO,1):SHO;const x=Math.round(fx),y=Math.round(fy)+1;
+  if(side){const len=KID?5:6;for(let i=0;i<len;i++){const xx=x+fl*(i-2);p(xx,y,R[i===0?1:3]);p(xx,y+1,R[i===len-1?3:2]);p(xx,y+2,R[0]);}p(x+fl*(len-3),y,R[4]);p(x+fl*(len-2),y,R[4]);}
+  else{const w=5;for(let i=0;i<w;i++){const k=i<=1?4:i===w-1?1:3;p(x-2+i,y,R[k]);p(x-2+i,y+1,R[Math.max(1,k-1)]);p(x-2+i,y+2,R[0]);}}}
+// ---- arms: sleeve to the elbow (tee) or wrist, outlined where they cross the body, small hands
+function arm(sx,sy,hx2,hy2,out,far,edge){const sl=OUT==='jacket'?JK:SHT;const R=far?dk(sl,1):sl,S2=far?dk(SK,1):SK;
+  const mx=(sx+hx2)/2+out*.5,my=(sy+hy2)/2;const n=Math.max(1,Math.ceil(Math.hypot(hx2-sx,hy2-sy)*2));
+  for(let i=0;i<=n;i++){const t=i/n;const x=t<.5?sx+(mx-sx)*t*2:mx+(hx2-mx)*(t-.5)*2,y=t<.5?sy+(my-sy)*t*2:my+(hy2-my)*(t-.5)*2;
+    const sleeve=LONGSLV?t<.88:t<.45;const RR=sleeve?R:S2;for(let k=0;k<3;k++)p(Math.round(x)+k-1,Math.round(y),RR[k===0?4:k===1?3:2]);
+    if(edge)p(Math.round(x)+edge*2,Math.round(y),R[0]);}
+  {const t=LONGSLV?.88:.45;const x=t<.5?sx+(mx-sx)*t*2:mx+(hx2-mx)*(t-.5)*2,y=t<.5?sy+(my-sy)*t*2:my+(hy2-my)*(t-.5)*2;for(let k=0;k<3;k++)p(Math.round(x)+k-1,Math.round(y),R[1]);}   // cuff
+  const c=S2;for(let j=0;j<3;j++)for(let i=-1;i<=1;i++)p(hx2+i,hy2+j,c[j===2?1:i===-1?4:i===1?2:3]);}
+// ---- torso
+function torso(cx,ty,dir,fl,hipY){const side=dir==='E'||dir==='W',back=dir==='N';const w=side?TWS:TW;const h=hipY-ty+1;const x0=Math.round(cx-w/2);
+  const plaid=(OUT==='flannel'),ow=(j)=>j===0?w-4:j===1?w-2:w;
+  const cloth=(i,j,R,ww)=>{let k=i<2?4:i>=ww-1?1:i>=ww-3?2:3;if(j>=h-2)k=Math.max(1,k-1);if(plaid){const vs=((i+20)%4===1),hs=((j+20)%4===2);k=Math.max(0,k-(vs?1:0)-(hs?1:0));if(vs&&hs)k=Math.max(0,k-1);}return R[k];};
+  for(let j=0;j<h;j++){const ww=ow(j);for(let i=0;i<ww;i++){const x=x0+((w-ww)>>1)+i,y=ty+j;
+      let R=OUT==='jacket'?JK:SHT;if(OUT==='jacket'&&!back&&!side&&Math.abs(x-cx)<=1&&j<h-1)R=INNER;if(OUT==='jacket'&&side&&(x-cx)*fl>w/2-3&&j<h-2)R=INNER;
+      p(x,y,cloth(i,j,R,ww));}}
+  // shadow cast by the chin across the collar
+  if(!back)for(let i=-3;i<=2;i++)p(cx+i+(side?fl*2:0),ty,(OUT==='jacket'?JK:SHT)[1]);
+  if(OUT==='overalls'){const R=PNT;const bw=side?5:8,bx=side?Math.round(cx-(bw>>1)+fl):Math.round(cx-(bw>>1));
+    for(let j=back?6:4;j<h;j++)for(let i=0;i<bw;i++)p(bx+i,ty+j,R[i===0?4:i===bw-1?1:j===4&&!back?2:3]);
+    if(!side){for(const sx2 of [x0+3,x0+w-4])for(let j=1;j<5;j++)p(sx2,ty+j,R[j===1?3:2]);if(!back){p(x0+3,ty+4,BUCKLE[1]);p(x0+w-4,ty+4,BUCKLE[1]);p(cx,ty+7,R[1]);p(cx-1,ty+7,R[1]);}}
+    else for(let j=1;j<5;j++)p(Math.round(cx),ty+j,R[2]);}
+  if(OUT==='jacket'){for(let j=h;j<h+3;j++)for(let i=0;i<w;i++){const x=x0+i;if(!back&&!side&&Math.abs(x-cx)<=1)continue;p(x,ty+j,JK[i<2?3:i>=w-2?1:2]);}
+    if(!back&&!side){for(let j=0;j<5;j++){p(cx-2,ty+j,JK[4]);p(cx+2,ty+j,JK[1]);}p(x0+2,ty+7,JK[1]);p(x0+3,ty+7,JK[1]);p(x0+w-4,ty+7,JK[1]);}}
+  if(OUT==='dress'||C.skirt){const R=C.skirt?SKR:PNT;const top=ty+h-3,len=KID?6:8;for(let j=0;j<len;j++){const ww=w+Math.round(j*.7);for(let i=0;i<ww;i++){let k=i<2?4:i>=ww-2?1:i>=ww-4?2:3;if(j===len-1)k=0;else if((i%4===1)&&j>1)k=Math.max(1,k-1);p(Math.round(cx-ww/2)+i,top+j,R[k]);}}}
+  if(C.apron&&!back){const R=EX;const aw=w-6,top=ty+3,len=h-1+(C.skirt||OUT==='dress'?5:1);for(let j=0;j<len;j++)for(let i=0;i<(side?2:aw);i++){const x=side?Math.round(cx+fl*(w/2-1))-(fl>0?i:-i):x0+3+i;p(x,top+j,R[i===0?4:i===aw-1?1:j===0?4:3]);}
+    if(!side){p(x0+2,top,R[2]);p(x0+w-3,top,R[2]);}}
+  if(OUT==='tee'||OUT==='flannel'){const y=hipY-1;for(let i=0;i<w;i++)p(x0+i,y,BELT[i<2?2:i>=w-2?0:1]);if(!back&&!side){p(cx-1,y,BUCKLE[1]);p(cx,y,BUCKLE[1]);p(cx-1,y-1,BUCKLE[0]);p(cx,y-1,BUCKLE[0]);}}
+  if(!back&&!side){
+    if(OUT==='tee'||OUT==='dress'||OUT==='overalls'){for(let i=-2;i<=1;i++)p(cx+i,ty,SK[2]);p(cx-3,ty,SHT[0]);p(cx+2,ty,SHT[0]);for(let i=-2;i<=1;i++)p(cx+i,ty+1,SHT[0]);}
+    if(OUT==='flannel'){p(cx-1,ty,SK[2]);p(cx,ty,SK[2]);p(cx-3,ty,SHT[4]);p(cx-2,ty,SHT[4]);p(cx-2,ty+1,SHT[4]);p(cx+1,ty,SHT[3]);p(cx+2,ty,SHT[3]);p(cx+1,ty+1,SHT[3]);p(cx-1,ty+1,SHT[0]);p(cx,ty+1,SHT[0]);
+      for(let j=2;j<h-2;j++)p(cx,ty+j,SHT[1]);for(let j=3;j<h-2;j+=3)p(cx-1,ty+j,WHITE);p(x0+2,ty+4,SHT[1]);p(x0+3,ty+4,SHT[1]);}
+    if(C.collar){for(let i=-2;i<=1;i++)p(cx+i,ty,WHITE);}
+    if(C.badge){p(cx-4,ty+3,[255,228,120]);p(cx-3,ty+3,[240,200,80]);p(cx-4,ty+4,[200,150,40]);p(cx-3,ty+2,[255,228,120]);}}
+  if(back){for(let i=-2;i<=1;i++)p(cx+i,ty,SK[1]);for(let j=2;j<h-2;j++)p(cx,ty+j,(OUT==='jacket'?JK:SHT)[2]);}}
+// ---- head and face
+function head(hx,hy,dir,fl,pose){const side=dir==='E'||dir==='W',back=dir==='N';
+  // neck
+  for(let j=FY1-1;j<=FY1+1;j++)for(let i=-2;i<=1;i++)p(hx+i-(side?fl:0),hy+j,SK[1]);
+  const fin=side?((x,y)=>faceIn(x*fl-2,y)&&x*fl>=-FX+3):faceIn;
+  for(let y=FY0;y<=FY1;y++)for(let x=-FX-1;x<=FX+1;x++){if(!fin(x,y))continue;const xs=side?x*fl:x;
+    let k=3;if(xs<-FX+3&&y<1&&!side)k=4;if(side&&xs<-1)k=2;if(xs>FX-3)k=2;if(y>=FY1-1)k=2;if(y===FY1&&Math.abs(x)<FX-3)k=1;p(hx+x,hy+y,SK[k]);}
+  // ears
+  if(!side){for(const s of [-1,1]){const ex=hx+s*(FX+1);p(ex,hy,SK[s<0?3:2]);p(ex,hy+1,SK[1]);p(ex,hy+2,SK[s<0?3:2]);p(ex,hy+3,SK[2]);}}
+  else{const ex=hx-fl;p(ex,hy,SK[3]);p(ex,hy+1,SK[1]);p(ex,hy+2,SK[1]);p(ex,hy+3,SK[3]);p(ex-fl,hy+1,SK[3]);p(ex-fl,hy+2,SK[2]);}
+  if(back)return;
+  const blink=pose.blink,hollow=C.hollowEyes,EY=hollow?[[6,4,6],[10,8,10],[14,12,14],[20,18,22],[30,28,32]]:EYR,SCL=hollow?[16,12,16]:WHITE;
+  if(dir==='S'){
+    for(const s of [-1,1]){const x0=s<0?hx-5:hx+3,wx=s<0?x0:x0+2;           // 3 wide: white on the outside, iris toward the nose
+      if(blink){for(let i=0;i<3;i++)p(x0+i,hy+2,LASH);continue;}
+      for(let i=0;i<3;i++)p(x0+i,hy,LASH);p(s<0?x0-1:x0+3,hy-1+1,LASH);
+      for(let i=0;i<3;i++){const isW=(x0+i)===wx;p(x0+i,hy+1,isW?SCL:EY[1]);p(x0+i,hy+2,isW?SCL:EY[3]);}
+      if(!hollow)p(s<0?x0+1:x0+1,hy+1,EY[0]);}
+    // brows (usually under the fringe), nose, mouth
+    for(const s of [-1,1]){const bx=s<0?hx-5:hx+3;for(let i=0;i<3;i++)p(bx+i,hy-2+(s<0?(i===0?1:0):(i===2?1:0)),HR[1]);}
+    p(hx,hy+4,SK[2]);p(hx-1,hy+4,SK[4]);
+    if(C.smile!==false){p(hx-1,hy+6-1,SK[0]);p(hx,hy+6-1,SK[0]);p(hx-2,hy+4,SK[2]);p(hx+1,hy+4,SK[2]);}else{p(hx-1,hy+5,SK[0]);p(hx,hy+5,SK[0]);p(hx+1,hy+5,SK[1]);}
+    p(hx-7,hy+3,BLUSH);p(hx-6,hy+3,BLUSH);p(hx+5,hy+3,BLUSH);p(hx+6,hy+3,BLUSH);}
+  else{const xi=hx+fl*6,xw=hx+fl*5;
+    if(blink){p(xw,hy+2,LASH);p(xi,hy+2,LASH);}
+    else{p(xw,hy,LASH);p(xi,hy,LASH);p(xi+fl,hy,LASH);p(xw,hy+1,SCL);p(xw,hy+2,SCL);p(xi,hy+1,EY[0]);p(xi,hy+2,EY[3]);}
+    p(xw,hy-2,HR[1]);p(xi,hy-2,HR[1]);p(xi+fl,hy-2,HR[1]);
+    p(hx+fl*(FX+3),hy+2,SK[3]);p(hx+fl*(FX+3),hy+3,SK[2]);p(hx+fl*(FX+1),hy+4,SK[1]);   // nose
+    p(hx+fl*(FX),hy+5,SK[0]);p(hx+fl*(FX-1),hy+5,SK[1]);p(hx+fl*3,hy+3,BLUSH);p(hx+fl*4,hy+3,BLUSH);}}
+// ---- hair: big clumped silhouette. Locks fan out from the crown; each lock has a lit strand and a dark gap; the fringe ends in points.
+function hair(hx,hy,dir,fl,st){if(!st||st==='bald')return;const side=dir==='E'||dir==='W',back=dir==='N';
+  const W=HW+(st==='curly'?1:st==='buzz'?-2:0),TOP=HTOP-(st==='curly'?1:st==='spiky'?0:0)+(st==='buzz'?3:0);
+  const DCY=-4,DRY=DCY-TOP;                                                      // dome centre and height
+  const dome=(x,y)=>{const ax=Math.abs(side?x+fl*1:x);if(y<=DCY)return Math.pow(ax/(W+.5),2.2)+Math.pow((y-DCY)/(DRY+.5),2)<=1;return ax<=W-Math.max(0,(y-DCY))*.35;};
+  const zig=(x)=>[0,1,2,1][((x%4)+4)%4];                                         // pointed tips
+  const parted=st==='long'||st==='ponytail'||st==='bun'||st==='braids';
+  let fringe;                                                                    // lowest y the hair reaches over the face, per column
+  if(st==='bangs')fringe=x=>-1+zig(x+1)*.5|0;
+  else if(st==='buzz')fringe=x=>FY0+1;
+  else if(parted)fringe=x=>Math.min(-2,FY0+Math.round(Math.abs(x+.5)*0.9))+(zig(x)>1?1:0);
+  else fringe=x=>-3+Math.round((x+FX)/(2*FX)*1.2)+zig(x)-(st==='spiky'?1:0);    // swept toward the right, ends in points
+  const lockLen=st==='long'||st==='braids'?4:st==='curly'?4:st==='buzz'?-2:2;   // how far the side locks come down beside the face
+  const cover=(x,y)=>{if(!dome(x,y))return false;
+    if(back)return y<=(st==='buzz'?FY1-3:FY1-1)+((x+20)%3===0?1:0);
+    if(dir==='S'){if(faceIn(x,y)||Math.abs(x)<=FX){return y<=fringe(x);}return y<=lockLen-(Math.abs(x)>W-2?2:0);}
+    const xf=x*fl;if(xf>=-1&&xf<=FX+2&&faceIn(xf-2,y))return y<=fringe(xf)-1;          // over the brow
+    if(xf>FX+2)return y<=DCY-1;
+    return y<=(xf<-2?FY1-1:lockLen)+((xf+20)%3===0?1:0);};
+  const CX=0,CY=TOP-3;
+  for(let y=TOP-1;y<=FY1+1;y++)for(let x=-W-2;x<=W+2;x++){if(!cover(x,y))continue;
+    const a=Math.atan2(y-CY,(side?x+fl*2:x)-CX);const N=st==='curly'?9:7;let u=(a/(Math.PI/N))%1;if(u<0)u+=1;
+    const xs=side?x*fl:x;let k=xs>W*.35?2:3;if(y>DCY+1)k=Math.min(k,2);
+    if(u<.22&&xs<W*.6)k=Math.min(4,k+1);if(u>.82)k=Math.max(1,k-1);
+    if(y>=TOP+1&&y<=TOP+2&&xs>-W*.6&&xs<W*.2)k=4;                                  // shine across the crown
+    if(!cover(x,y+1)&&!(back&&y>=FY1-1))k=Math.min(k,1);                           // dark tips where hair meets skin
+    if(st==='buzz')k=((x+y)&1)?2:3;
+    p(hx+x,hy+y,HR[k]);}
+  if(st==='spiky')for(let i=-2;i<=2;i++){const x=hx+i*4+(side?-fl:0),y=hy+TOP;p(x,y-1,HR[3]);p(x,y-2,HR[4]);p(x-1,y-1,HR[3]);p(x+1,y,HR[2]);p(x+1,y-1,HR[2]);}
+  if(st==='curly'){for(let a=0;a<13;a++){const t=Math.PI*(1.0+a/12*1.0);const ex=Math.cos(t),ey=Math.sin(t);if(side&&ex*fl>.5)continue;blob(hx+Math.round(ex*(W+1)),hy+DCY+Math.round(ey*(DRY+1)),2,2,HR);}
+    if(!back&&!side)for(const s of [-1,1])for(let j=0;j<3;j++)blob(hx+s*(W),hy+j*3,2,2,HR);}
+  if(st==='long'){const len=KID?12:15;for(let y=lockLen;y<lockLen+len;y++){const t=(y-lockLen)/len,w=t>.8?1:0;
+      if(dir==='S'){for(const s of [-1,1])for(let i=0;i<3-w;i++){const x=hx+s*(W-1-i);p(x,hy+y,HR[i===0?(s<0?3:1):i===1?(s<0?4:2):2]);}}
+      else if(back){for(let x=-W+1+w;x<=W-1-w;x++){const u=((x+20)%4);p(hx+x,hy+y,HR[Math.abs(x)>W-3?1:u===0?1:u===1?4:3]);}}
+      else for(let i=0;i<6-w*2;i++)p(hx-fl*(2+i),hy+y,HR[i===0?3:i===1?4:i>3?1:2]);}}
+  if(st==='bun'){const bx=hx+(side?-fl*6:0),by=hy+TOP-(side?-1:2);blob(bx,by,4,3,HR);p(bx-1,by-1,HR[4]);p(bx-2,by,HR[4]);}
+  if(st==='ponytail'){const tie=[[150,50,40],[200,80,60]];
+    if(back){p(hx,hy+FY1-2,tie[1]);p(hx-1,hy+FY1-2,tie[0]);for(let y=0;y<11;y++){const w=y<2?1:y<8?2:1;for(let x=-w;x<=w;x++)p(hx+x,hy+FY1-1+y,HR[x<0?4:x>0?2:3]);}}
+    else if(side){const bx=hx-fl*(W),by=hy-2;p(bx,by,tie[1]);for(let y=0;y<11;y++)for(let i=0;i<3;i++)p(bx-fl*(i+(y>>2)),by+1+y,HR[i===0?3:i===1?4:1]);}}
+  if(st==='braids'){const tie=[[60,90,140],[100,140,190]];for(const s of (side?[-fl]:[-1,1])){const bx=hx+s*(W-2);
+      for(let y=0;y<12;y++){const yy=hy+lockLen+y;const k=(y%3===0)?1:(y%3===1?4:3);p(bx,yy,HR[k]);p(bx+1,yy,HR[Math.max(1,k-1)]);p(bx-1,yy,HR[y%3===1?3:2]);}
+      p(bx,hy+lockLen+12,tie[1]);p(bx+1,hy+lockLen+12,tie[0]);}}}
+// ---- facial hair, in the hair colour
+function beard(hx,hy,dir,fl,bt){if(!bt||dir==='N')return;const side=dir==='E'||dir==='W';
+  const jaw=(x,y)=>side?faceIn(x*fl-2,y):faceIn(x,y);
+  if(bt==='stubble'){for(let y=hy+3;y<=hy+FY1;y++)for(let x=-FX;x<=FX;x++){if(side&&x*fl<0)continue;if(!jaw(x,y-hy))continue;if((x+y)&1)p(hx+x,y,HR[1]);}return;}
+  if(bt==='moustache'){if(dir==='S'){for(let i=-3;i<=2;i++)p(hx+i,hy+4+(i===-3||i===2?1:0),HR[i<-1?3:2]);p(hx-1,hy+4,HR[1]);p(hx,hy+4,HR[1]);}else for(let i=0;i<3;i++)p(hx+fl*(FX-3+i),hy+4,HR[2]);return;}
+  for(let y=hy+1;y<=hy+FY1+3;y++)for(let x=-FX-1;x<=FX+1;x++){const yy=y-hy;const xs=side?x*fl:x;if(side&&xs<-2)continue;
+    const inside=yy<=FY1?(side?faceIn(xs-2,yy):faceIn(x,yy)):Math.abs(side?xs-2:x)<=FX-2-(yy-FY1)*1.5;if(!inside)continue;
+    if(!side&&yy<4&&Math.abs(x)<FX-1)continue;if(side&&yy<4&&xs>2)continue;
+    let k=xs<-FX*.3?3:xs>FX*.4?1:2;if(((x+40)*3+y)%5===0)k=Math.max(1,k-1);if(yy>FY1+1)k=Math.max(1,k-1);p(hx+x,y,HR[k]);}
+  if(dir==='S'){p(hx-1,hy+5,SK[0]);p(hx,hy+5,SK[0]);for(let i=-3;i<=2;i++)p(hx+i,hy+4,HR[2]);}}
+function glasses(hx,hy,dir,fl){if(dir==='N')return;const F=[[40,34,44],[64,58,70]],GL=[196,212,224];
+  if(dir==='S'){for(const x0 of [hx-6,hx+2]){for(let i=0;i<5;i++){p(x0+i,hy-1,F[1]);p(x0+i,hy+3,F[0]);}for(let j=0;j<3;j++){p(x0,hy+j,F[1]);p(x0+4,hy+j,F[0]);}p(x0+1,hy,GL);}for(let i=-1;i<=1;i++)p(hx+i,hy,F[1]);}
+  else{const x0=hx+fl*3;for(let i=0;i<4;i++){p(x0+fl*i,hy-1,F[1]);p(x0+fl*i,hy+3,F[0]);}for(let j=0;j<3;j++)p(x0+fl*3,hy+j,F[0]);for(let i=1;i<6;i++)p(x0-fl*i,hy,F[1]);}}
+// ---- hats, sitting on the hair
+function hat(hx,hy,dir,fl,h){if(!h)return;const side=dir==='E'||dir==='W',back=dir==='N';const H=HAT,T0=hy+HTOP;
+  const dome=(top,bot,rx,R2)=>{const ry=bot-top;for(let y=top;y<=bot;y++)for(let x=-rx;x<=rx;x++){const yy=(y-bot)/ry;if((x*x)/(rx*rx)+yy*yy>1)continue;const l=-x/rx*.55-yy*.5;p(hx+x+(side?-fl:0),y,R2[l>.6?4:l>.1?3:l>-.4?2:1]);}};
+  if(h==='cap'){dome(T0-1,hy-5,HW+1,H);for(let i=-HW;i<=HW;i++)p(hx+i+(side?-fl:0),hy-5,H[1]);
+    if(dir==='S'){for(let i=-FX;i<=FX;i++){p(hx+i,hy-4,H[i<-3?3:2]);p(hx+i,hy-3,H[0]);}for(let i=-1;i<=1;i++)p(hx+i,T0+2,EX[4]);p(hx,T0-1,H[4]);}
+    else if(side){for(let i=0;i<8;i++){p(hx+fl*(FX-3+i),hy-4,H[i<6?3:2]);p(hx+fl*(FX-3+i),hy-3,H[0]);}}}
+  if(h==='beanie'){dome(T0-2,hy-4,HW+1,H);for(let i=-HW-1;i<=HW+1;i++){p(hx+i,hy-5,H[2]);p(hx+i,hy-4,H[i<0?3:2]);p(hx+i,hy-3,H[0]);}
+    for(let x=-HW+1;x<=HW-1;x+=2)for(let y=T0;y<hy-5;y++)if(g(hx+x,y))p(hx+x,y,H[2]);blob(hx,T0-3,2,2,H);}
+  if(h==='straw'){const S2=[[110,80,30],[160,124,52],[204,168,82],[232,204,118],[248,230,160]];const bY=hy-7;
+    for(let y=T0-2;y<bY;y++)for(let x=-FX+1;x<=FX-1;x++)p(hx+x,y,S2[(x+y+40)%3===0?2:x<-3?4:x>3?1:3]);for(let x=-FX+1;x<=FX-1;x++){p(hx+x,bY-2,H[2]);p(hx+x,bY-1,H[1]);}
+    const bw=side?HW+2:HW+4;for(let i=-bw;i<=bw;i++){p(hx+i,bY,S2[i<-bw/2?4:i>bw/2?1:3]);p(hx+i,bY+1,S2[(i&1)?1:2]);p(hx+i,bY+2,S2[0]);}}
+  if(h==='cowboy'||h==='sheriff'){const R2=h==='sheriff'?ramp('#a07848'):H;const bY=hy-7;
+    for(let y=T0-3;y<bY;y++){const w=y<T0-1?FX-3:FX-1;for(let x=-w;x<=w;x++){if(y===T0-3&&Math.abs(x)<2)continue;p(hx+x,y,R2[x<-2?4:x>2?1:3]);}}
+    for(let x=-FX+1;x<=FX-1;x++)p(hx+x,bY-1,[40,28,20]);
+    const bw=side?HW+2:HW+4;for(let i=-bw;i<=bw;i++){const up=Math.abs(i)>bw-3?1:0;p(hx+i,bY-up,R2[i<-bw/2?4:i>bw/2?1:3]);p(hx+i,bY+1-up,R2[0]);}
+    if(h==='sheriff'&&!back&&!side){p(hx,bY-4,[255,220,110]);p(hx-1,bY-4,[220,170,60]);p(hx+1,bY-4,[220,170,60]);p(hx,bY-5,[255,220,110]);p(hx,bY-3,[200,150,40]);}}
+  if(h==='top'){const T=ramp('#1c1a20');const bY=hy-7;for(let y=T0-6;y<bY;y++)for(let x=-FX+2;x<=FX-2;x++)p(hx+x,y,T[x<-3?4:x>3?1:3]);for(let x=-FX+2;x<=FX-2;x++){p(hx+x,bY-3,[120,30,30]);p(hx+x,bY-2,[80,20,20]);}
+    for(let i=-HW-1;i<=HW+1;i++){p(hx+i,bY,T[i<0?3:1]);p(hx+i,bY+1,T[0]);}}}
+// ---------------------------------------------------------------- tools (same swing tables the game's timings were tuned to)
+const SWING={axe:[40,-105,-150,-170,-20,10,16,-25],pick:[45,-105,-150,-170,-10,45,48,-20],hoe:[45,-105,-150,-170,-10,48,50,-20]};
+const GRIP={axe:[[5,6],[-1,-10],[-3,-14],[-4,-15],[6,0],[7,4],[7,5],[4,1]],pick:[[5,6],[-1,-10],[-3,-14],[-4,-15],[6,1],[6,5],[6,6],[4,2]],hoe:[[5,6],[-1,-10],[-3,-14],[-4,-15],[6,1],[6,5],[6,6],[4,2]]};
+const FGRIP=[[3,6],[2,-12],[1,-16],[1,-17],[2,-6],[2,3],[2,4],[3,2]];
+const FANG_S=[115,-100,-92,-84,58,88,86,120],FK_S=[.9,1,1,1,.8,.62,.62,.85];
+const FANG_N=[-80,-95,-92,-86,-84,-90,-90,-84],FK_N=[.55,1,1,1,.85,.5,.5,.7];
+const BACK=[0,1,1,1,0,0,0,0];
+// body language of a swing: lean back on the wind-up, drive forward through the strike, knees give at impact
+const SW_LEAN=[0,-1,-2,-2,1,2,2,1],SW_CROUCH=[0,0,0,0,1,3,3,1],SW_BOB=[0,-1,-1,-1,0,0,0,0];
+const gripOf=(kind,f,front)=>front?FGRIP[f]:GRIP[kind][f];
+function drawTool(kind,f,hx,ay,dir,fl){const side=dir==='E'||dir==='W';
+  if(kind==='hoe'||kind==='pick'||kind==='axe'){const front=!side,back=dir==='N';const [gdx,gdy]=gripOf(kind,f,front);
+    let gx=hx+(front?gdx:fl*gdx),gy=ay+gdy;let ang,mir=false,k=1;
+    if(side){const a=SWING[kind][f];if(fl>0)ang=a;else{ang=180-a;mir=true;}}else if(!back){ang=FANG_S[f];k=FK_S[f];}else{ang=FANG_N[f];k=FK_N[f];gx+=BACK[f]?1:-4;}
+    const rad=ang*Math.PI/180,dx=Math.cos(rad),dy=Math.sin(rad);
+    if(f===4){const a0=(side?(fl>0?SWING[kind][3]:180-SWING[kind][3]):back?FANG_N[3]:FANG_S[3])*Math.PI/180;let a1=rad;if(side&&fl<0&&a1>a0)a1-=2*Math.PI;if(side&&fl>0&&a1<a0)a1+=2*Math.PI;
+      for(let i=4;i<=24;i++){const aa=a0+(a1-a0)*i/24;for(const [rr,c] of [[19,[244,238,222]],[18,[206,198,180]]]){const X=Math.round(gx+Math.cos(aa)*rr*k),Y=Math.round(gy+Math.sin(aa)*rr*k);if(Math.hypot(X-hx,Y-(ay-14))>14)p(X,Y,c);}}}
+    stampTool(kind,gx,gy,ang,mir,k,(x,y,c)=>p(x,y,c));
+    if(!BACK[f]&&!back){for(const u of [-1,4]){blob(Math.round(gx+dx*u*k),Math.round(gy+dy*u*k),2,2,SK);}}
+    if(f===5){const hx2=Math.round(gx+dx*18*k),hy2=Math.round(gy+dy*18*k);const col=kind==='hoe'?[[96,62,36],[140,98,60]]:kind==='pick'?[[128,124,136],[196,192,204]]:[[160,118,66],[214,174,112]];
+      for(let i=0;i<7;i++)p(hx2+(i-3)*2+(i%2),hy2-1-(i%3)-(i>4?2:0),col[i%2]);}}
+  if(kind==='can'){const G2=[[30,66,40],[50,104,58],[78,146,80],[132,196,122],[180,226,168]];const tilt=f>=3&&f<=6;const cx=hx+(side?fl*10:9),cy=ay+5-(f>=1&&f<=6?3:0);
+    for(let y=-5;y<=5;y++)for(let x=-6;x<=6;x++){const d=x*x/36+y*y/25;if(d>1)continue;const l=-x/6*.5-y/5*.7;p(cx+x,cy+y,G2[d>.8?(l>0?2:0):l>.45?4:l>.1?3:l>-.3?2:1]);}
+    for(let x=-5;x<=5;x++)p(cx+x,cy-6,G2[x<0?3:2]);for(let i=0;i<9;i++){const aa=Math.PI+i/8*Math.PI;p(cx+Math.round(Math.cos(aa)*5),cy-7+Math.round(Math.sin(aa)*4),G2[1]);}
+    for(const [rx,ry] of [[-3,-1],[-2,2]])p(cx+rx,cy+ry,G2[4]);
+    const sx2=cx+(side?fl*8:8),sy2=cy-(tilt?-1:4);seg(cx+(side?fl*4:4),cy-1,sx2,sy2,2,G2);p(sx2+(side?fl:1),sy2,[210,210,200]);p(sx2+(side?fl:1),sy2+1,[150,150,140]);p(sx2+(side?fl*2:2),sy2,[180,180,170]);
+    if(tilt)for(let i=0;i<11;i++){const ddx=(side?fl*(2+(i>>1)):2+(i>>1)),ddy=1+i*1.6+((f+i)%2);p(sx2+ddx,sy2+Math.round(ddy),[150,205,240]);if(i%2)p(sx2+ddx+(side?fl:1),sy2+Math.round(ddy),[220,240,252]);}}}
+// ---------------------------------------------------------------- one figure
+let SQUAT=false;
+function human(dir,pose){SQUAT=(pose.crouch||0)>=3;const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1,back=dir==='N';
+  const crouch=pose.crouch||0,bob=pose.bob||0,lean=side?Math.round((pose.lean||0)*fl):0;
+  const cx=FW/2,hipY=HIP0+crouch+bob,ux=cx+lean,ty=hipY-TH+(pose.slouch||0),hy=ty-HEADUP,armY=ty+2;
+  const tool=pose.tool;
+  // legs: [x offset along facing (side) or across (front), screen y offset, lift]
+  const legs=pose.legs||(side?[[-1,0,0],[1,0,0]]:[[-3,0,0],[3,0,0]]);
+  const legHip=(i)=>side?[cx+Math.round(lean/2),hipY]:[cx+(i?3:-3),hipY];
+  const drawLeg=(i,far)=>{const [ox,oy,lift]=legs[i];const [hx0,hy0]=legHip(i);const fx=side?cx+fl*ox:cx+ox,fy=ANK+oy-lift;leg(hx0,hy0,fx,fy,side,fl,far,!lift,i?1:-1);};
+  // arms: hands relative to the shoulder
+  const shL=side?[ux-fl*1,armY]:[ux-Math.round(TW/2),armY],shR=side?[ux+fl*1,armY]:[ux+Math.round(TW/2)-1,armY];
+  const hands=pose.hands||(side?[[fl*-1,HANG],[fl*1,HANG]]:[[0,HANG],[0,HANG]]);
+  const drawArm=(i,far)=>{const sh=i?shR:shL;const h=hands[i];const hx2=sh[0]+h[0],hy2=sh[1]+h[1];arm(sh[0],sh[1],hx2,hy2,side?0:(i?1:-1),far,far?0:side?-fl:(i?-1:1));};
+  into('body',()=>{
+    if(tool&&back)tool(ux,armY,dir,fl);
+    if(side){drawArm(0,true);drawLeg(0,true);drawLeg(1,false);}else{drawLeg(0,false);drawLeg(1,false);}
+    torso(ux,ty,dir,fl,hipY);
+    if(side)drawArm(1,false);else{drawArm(0,false);drawArm(1,false);}
+    if(tool&&!back&&pose.toolBack)tool(ux,armY,dir,fl);
+    head(ux,hy,dir,fl,pose);});
+  into('beard',()=>beard(ux,hy,dir,fl,C.beard===true?'full':C.beard));
+  into('hair',()=>hair(ux,hy,dir,fl,C.hairStyle||'short'));
+  into('glasses',()=>{if(C.glasses)glasses(ux,hy,dir,fl);});
+  into('hat',()=>hat(ux,hy,dir,fl,C.hat));
+  into('toolf',()=>{if(tool&&!back&&!pose.toolBack)tool(ux,armY,dir,fl);});}
+// ---------------------------------------------------------------- poses per clip
+function walkPose(f,dir,run){const pose={};if(f===0)return pose;const side=dir==='E'||dir==='W',back=dir==='N';const ph=(f-1)/8*Math.PI*2;
+  const S=run?(KID?5:6):(KID?3:4),LF=run?4:2;
+  const foot=(u)=>{u=((u%(2*Math.PI))+2*Math.PI)%(2*Math.PI);const x=S*Math.cos(u);const lift=u<Math.PI?0:Math.round(LF*(-Math.sin(u)));return [x,lift];};
+  const [xa,la]=foot(ph),[xb,lb]=foot(ph+Math.PI);
+  const spread=Math.abs(Math.cos(ph));
+  pose.bob=run?(spread>.8?1:spread<.4?-1:0):(spread>.75?1:0);
+  if(run){pose.lean=2;pose.slouch=0;}
+  if(side){pose.legs=[[Math.round(xa),0,la],[Math.round(xb),0,lb]];
+    // arms swing against the legs: the near arm goes with the far leg
+    if(run){pose.hands=[[Math.round(-xa*.9),HANG-5-Math.round(Math.abs(xa)*.3)],[Math.round(xa*.9),HANG-5-Math.round(Math.abs(xb)*.3)]].map(h=>[h[0]*(dir==='W'?-1:1),h[1]]);}
+    else pose.hands=[[Math.round(-xb*.9),HANG-Math.round(Math.abs(xb)*.3)],[Math.round(-xa*.9),HANG-Math.round(Math.abs(xa)*.3)]].map(h=>[h[0]*(dir==='W'?-1:1),h[1]]);}
+  else{const s=back?-1:1;pose.legs=[[-3,Math.round(s*xa*.3),la],[3,Math.round(s*xb*.3),lb]];
+    const a=run?3:2;pose.hands=[[-(run?1:0),(run?HANG-4:HANG)+Math.round(s*xb/S*a)],[(run?1:0),(run?HANG-4:HANG)+Math.round(s*xa/S*a)]];}
+  return pose;}
+// ---------------------------------------------------------------- render
+ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
+  LY={};for(const k of PARTS)LY[k]=layer(k,FW,FH);CUR='body';
+  const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1;let pose={};
+  if(clip==='walk')pose=walkPose(f,dir,false);
+  if(clip==='run')pose=walkPose(f===0?1:f,dir,true);
+  if(clip==='idle'){pose.bob=[0,0,0,0][f];pose.slouch=[0,0,-1,0][f];pose.hands=side?[[fl*-1,HANG+(f===2?-1:0)],[fl*1,HANG+(f===2?-1:0)]]:[[0,HANG+(f===2?-1:0)],[0,HANG+(f===2?-1:0)]];}
+  if(clip==='thrust'&&TOOL){const kind=TOOL;pose.tool=(hx,ay,d,fl2)=>drawTool(kind,f,hx,ay,d,fl2);
+    if(kind==='can'){pose.crouch=f>=3&&f<=6?1:0;pose.lean=f>=3&&f<=6?1:0;pose.legs=side?[[-2,0,0],[2,0,0]]:[[-3,0,0],[3,0,0]];
+      pose.hands=side?[[fl*-1,HANG-1],[fl*7,f>=1&&f<=6?1:4]]:[[1,HANG-1],[6,f>=1&&f<=6?1:4]];}
+    else{pose.crouch=SW_CROUCH[f];pose.bob=SW_BOB[f];pose.lean=SW_LEAN[f];pose.toolBack=!!BACK[f];
+      pose.legs=side?[[-3,0,0],[4,0,0]]:[[-3,0,0],[4,0,0]];                   // braced stance: front foot forward, back foot behind
+      const [gx,gy]=gripOf(kind,f,!side);const a=SWING[kind][f]*Math.PI/180;
+      if(side){const near=[fl*(gx+Math.round(Math.cos(a)*4)),gy+Math.round(Math.sin(a)*4)],farH=[fl*(gx),gy+1];pose.hands=[[farH[0]+fl*1,farH[1]],[near[0]-fl*1,near[1]]];}
+      else if(dir==='N'){pose.hands=BACK[f]?[[5,-12],[-5,-12]]:[[4,3],[-4,3]];}
+      else{const L=Math.round(TW/2);pose.hands=[[gx+L-1,gy+(BACK[f]?0:4)],[gx-L+3,gy]];}}}
+  if(clip==='slash'){ // plant / harvest: kneel, reach to the soil, rise holding it up
+    const cr=[0,4,8,8,3,0][f];pose.crouch=cr;pose.lean=[0,2,3,3,1,0][f];const reach=f>=1&&f<=3,lift=f>=4;
+    pose.legs=side?(cr>=6?[[-4,0,0],[4,0,0]]:[[-2,0,0],[3,0,0]]):[[-4,0,0],[5,0,0]];
+    pose.hands=side?(reach?[[fl*6,HANG-1],[fl*9,HANG-1]]:lift?[[fl*2,-11],[fl*3,-12]]:[[fl*-1,HANG],[fl*1,HANG]]):(reach?[[4,HANG],[-4,HANG]]:lift?[[4,-11],[-4,-11]]:[[0,HANG],[0,HANG]]);}
+  if(clip==='hurt'){pose.crouch=[0,2,4,5,6,6][f];pose.lean=-1;pose.hands=[[4,-5],[-4,-5]];pose.blink=f>1;}
+  if(clip==='spellcast'){const up=f>1;pose.hands=up?(side?[[fl*-1,-11],[fl*3,-12]]:[[-1,-12],[1,-12]]):(side?[[fl*-1,HANG],[fl*1,HANG]]:[[0,HANG],[0,HANG]]);}
+  if(clip==='sit'){pose.crouch=6;pose.legs=side?[[3,-1,0],[5,-1,0]]:[[-2,-2,0],[3,-2,0]];pose.hands=side?[[fl*3,HANG-3],[fl*4,HANG-3]]:[[1,HANG-3],[-1,HANG-3]];}
+  human(dir,pose);
+  // outline the whole figure, and give each outline pixel to the part whose pixel it borders
+  const comp=flatten(PARTS.map(k=>LY[k]),FW,FH);
+  for(let y=0;y<FH;y++)for(let x=0;x<FW;x++){if(G(comp,x,y))continue;let n=null,ow=null;
+    for(const [ddx,ddy] of [[0,1],[0,-1],[1,0],[-1,0]]){const c=G(comp,x+ddx,y+ddy);if(c&&c[3]>200){n=c;for(let i=PARTS.length-1;i>=0;i--)if(G(LY[PARTS[i]],x+ddx,y+ddy)){ow=PARTS[i];break;}break;}}
+    if(n)P(LY[ow],x,y,[Math.max(12,n[0]*.32|0),Math.max(8,n[1]*.28|0),Math.max(14,n[2]*.34|0)]);}
+  const src=PART==='all'?flatten(PARTS.map(k=>LY[k]),FW,FH):LY[PART];
+  for(let y=0;y<FH;y++)for(let x=0;x<FW;x++){const c=G(src,x,y);if(c)P(SHEET,f*FW+x,r*FH+y,c,c[3]);}}});
+emit([SHEET],CFG.out);
+const clips={};let rr=0;for(const [n,ds,nf] of CLIPS){clips[n]={};for(const d of ds)clips[n][d]=[rr++,nf];}
+console.log('META '+JSON.stringify({fw:FW,fh:FH,ax:FW/2,ay:FH-4,clips}));

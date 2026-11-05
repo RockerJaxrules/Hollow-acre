@@ -41,9 +41,15 @@ sunActor=function(X,Y,h,who){const s=DX.sun;if(!s)return;const g=DX.sg;const fr=
   if(!sil){g.setTransform(1,0,0,1,0,0);g.fillStyle='#0a1206';g.beginPath();g.ellipse(X,Y,6,2.5,0,0,Math.PI*2);g.fill();return;}
   g.setTransform(1,0,-s.sx,-s.sy,Math.round(X),Math.round(Y));g.drawImage(sil.cv,-Math.round(sil.m.ax),-Math.round(sil.m.ay));g.setTransform(1,0,0,1,0,0);};
 sunEnd=function(){const s=DX.sun;if(!s)return;const g=DX.sg;g.setTransform(1,0,0,1,0,0);
-  if(!s.lamp){for(const n of npcs)if(n.vis){n._fr=[n.def.id,'walk',n.dir||'S',n.clip==='walk'?frameOf(n.def.id,'walk',n.t):0];sunActor(sx(n.x),sz(n.z),40,n);}
+  if(!s.lamp){for(const n of npcs)if(n.vis){if(!n._fr)n._fr=[n.def.id,'walk',n.dir||'S',0];sunActor(sx(n.x),sz(n.z),40,n);}
     if(S.mode!=='title'&&!(cine&&cine.hidePlayer))sunActor(sx(P.x),sz(P.z),40,P);}
   ctx2.globalAlpha=s.a;ctx2.drawImage(DX.rc,0,0);ctx2.globalAlpha=1;};
+// contact shadow cut from the frame itself: the figure squashed flat under the feet, so it widens with a stride, a swing or a kneel
+function footShadow(fr,X,Y){const sil=fr&&frameSil(fr[0],fr[1],fr[2],fr[3]);if(!sil){shadow(X,Y,9);return;}const m=sil.m;
+  // only the lower body: legs and feet spread the shadow, the hair doesn't
+  const top=Math.round(m.ay-22),h=22,dh=5;ctx2.save();ctx2.globalAlpha=S.room?.3:.26;
+  for(const dx of [-1,1])ctx2.drawImage(sil.cv,0,top,m.fw,h,Math.round(X-m.ax)+dx,Math.round(Y)-dh+1,m.fw,dh);
+  ctx2.globalAlpha=S.room?.3:.24;ctx2.fillStyle='#0a1206';ctx2.beginPath();ctx2.ellipse(X,Y,5.5,1.6,0,0,Math.PI*2);ctx2.fill();ctx2.restore();}
 // the soft contact shadow right under the feet stays, smaller and tighter
 shadow=function(x,y,w){ctx2.fillStyle='rgba(10,14,8,.38)';ctx2.beginPath();ctx2.ellipse(x,y,Math.max(4,w*.62),2.4,0,0,Math.PI*2);ctx2.fill();};
 

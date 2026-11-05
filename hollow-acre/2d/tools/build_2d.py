@@ -5,8 +5,12 @@ a = base.index('const LETTER='); b = base.index('/* ================= characters
 story = base[a:b]
 SPR = {}
 SPR.update(json.load(open('spr/lpc/objects.json')))
-for n in ('farmer', 'farmer_hoe', 'farmer_can', 'farmer_pick', 'farmer_axe', 'farmer_long_pick', 'farmer_long_axe', 'farmer_bun_pick', 'farmer_bun_axe', 'farmer_spiky_pick', 'farmer_spiky_axe', 'farmer_bangs_pick', 'farmer_bangs_axe', 'farmer_long', 'farmer_long_hoe', 'farmer_long_can', 'farmer_bun', 'farmer_bun_hoe', 'farmer_bun_can', 'farmer_spiky', 'farmer_spiky_hoe', 'farmer_spiky_can', 'farmer_bangs', 'farmer_bangs_hoe', 'farmer_bangs_can', 'mae', 'hale', 'tobias', 'hollis', 'agnes', 'dunn', 'ruth', 'hollow', 'silas', 'june', 'otto', 'cora', 'wes', 'ida', 'gideon', 'nell', 'ezra', 'pip'):
+import glob as _g
+for n in ('farmer', 'farmer_hoe', 'farmer_can', 'farmer_pick', 'farmer_axe', 'mae', 'hale', 'tobias', 'hollis', 'agnes', 'dunn', 'ruth', 'hollow', 'silas', 'june', 'otto', 'cora', 'wes', 'ida', 'gideon', 'nell', 'ezra', 'pip'):
     m = json.load(open(f'spr/lpc/{n}.json')); m['src'] = f'spr/lpc/{n}.png'; SPR[n] = m
+# the player's layers (body + outfit per tool, hair, facial hair, hats, glasses, the tool in front), assembled in custom.js
+for f in sorted(_g.glob('spr/lpc/pl/pl_*.json')):
+    n = os.path.basename(f)[:-5]; m = json.load(open(f)); m['src'] = f'spr/lpc/pl/{n}.png'; m['lazy'] = 1; SPR[n] = m
 bl = json.load(open('spr/out/sprites.json'))
 for n in ('cat',):
     m = bl[n]; SPR[n] = dict(src=f'spr/out/{n}.png', fw=m['fw'], fh=m['fh'], ax=m['ax'], ay=m['ay'], clips=m['clips'])
