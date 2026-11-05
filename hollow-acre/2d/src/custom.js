@@ -15,9 +15,9 @@ const LOOK_BASE={skin:'#e8b48c',hair:'#6a4224',eye:'#3a5a7a',shirt:'#b8402c',pan
 const SHIRT_BASES=['#b8402c','#b8462c','#b84c2c','#b8522c','#b8582c','#b85e2c','#b8642c','#b86a2c'];
 const patShift=(pat,cls)=>{const jm=cls>>1,v=cls&1;if(pat==='plaid')return (v?1:0)+(jm===2?1:0);if(pat==='stripes')return jm<2?1:0;if(pat==='dots')return (v&&jm===1)?-1:0;return 0;};
 const LOOK_OPTS={
-  style:[['short','Swept'],['bangs','Fringe'],['spiky','Spiky'],['buzz','Buzzed'],['mohawk','Mohawk'],['curly','Curly'],['wavy','Wavy'],['long','Long'],['ponytail','Ponytail'],['pigtails','Pigtails'],['bun','Bun'],['braids','Braids'],['bald','Bald']],
+  style:[['short','Swept'],['sidepart','Side part'],['bangs','Fringe'],['shaggy','Shaggy'],['spiky','Spiky'],['buzz','Buzzed'],['mohawk','Mohawk'],['topknot','Top knot'],['curly','Curly'],['afro','Afro'],['wavy','Wavy'],['bob','Bob'],['long','Long'],['ponytail','Ponytail'],['pigtails','Pigtails'],['bun','Bun'],['spacebuns','Space buns'],['braids','Braids'],['bald','Bald']],
   beard:[['','None'],['stubble','Stubble'],['moustache','Moustache'],['goatee','Goatee'],['full','Beard']],
-  outfit:[['shirt','Shirt'],['tee','T-shirt'],['sweater','Sweater'],['hoodie','Hoodie'],['vest','Vest'],['overalls','Overalls'],['jacket','Jacket'],['dress','Dress']],
+  outfit:[['shirt','Shirt'],['openshirt','Open shirt'],['tee','T-shirt'],['tank','Tank top'],['sweater','Sweater'],['turtleneck','Turtleneck'],['cardigan','Cardigan'],['hoodie','Hoodie'],['vest','Vest'],['overalls','Overalls'],['jacket','Jacket'],['longcoat','Long coat'],['skirt','Skirt'],['dress','Dress']],
   pattern:[['','Plain'],['plaid','Plaid'],['stripes','Stripes'],['dots','Dots']],
   hat:[['','None'],['cap','Cap'],['straw','Straw hat'],['bucket','Bucket hat'],['beanie','Beanie'],['cowboy','Cowboy hat']],
   glasses:[['','None'],['round','Round'],['square','Square'],['shades','Shades']],
@@ -81,7 +81,7 @@ function applyLook(only){const look=S.look,M=lookMap(look);for(const tool of (on
     <div class="cbtns"><button class="chip" id="cRand">Surprise me</button><button class="begin" id="cGo">Drive</button></div></div>`;
   $('title').after(el);
   const TABS={Face:[['Skin','skin'],['Eyes','eye'],['Facial hair','beard']],Hair:[['Style','style'],['Colour','hair']],
-    Clothes:[['Outfit','outfit'],['Pattern','pattern'],['Top','shirt'],['Bottoms','pants'],['Jacket / vest','extra'],['Shoes','shoes']],Extras:[['Hat','hat'],['Hat colour','hatColor'],['Glasses','glasses'],['Accessory','accessory'],['Accessory colour','acc']]};
+    Clothes:[['Outfit','outfit'],['Pattern','pattern'],['Top','shirt'],['Bottoms','pants'],['Jacket, vest, cardigan, inner tee','extra'],['Shoes','shoes']],Extras:[['Hat','hat'],['Hat colour','hatColor'],['Glasses','glasses'],['Accessory','accessory'],['Accessory colour','acc']]};
   let tab='Hair',dirI=2,anim=0,editing=false;const DIRS=['N','W','S','E'],ANIMS=[['Walk','farmer','walk'],['Run','farmer','run'],['Idle','farmer','idle'],['Hoe','farmer_hoe','thrust']];
   let pending=0;const changed=()=>{clearTimeout(pending);applyLook(['']);pending=setTimeout(()=>applyLook(['_hoe']),60);};
   function build(){const tb=$('cTabs');tb.innerHTML='';for(const k of Object.keys(TABS)){const b=document.createElement('button');b.textContent=k;if(k===tab)b.className='on';b.addEventListener('click',()=>{tab=k;build();});tb.appendChild(b);}

@@ -58,35 +58,38 @@ const SHIRT_BASES=['#b8402c','#b8462c','#b84c2c','#b8522c','#b8582c','#b85e2c','
 const PLAYER=PART!=='all';
 const SHTC=PLAYER?SHIRT_BASES.map(ramp):[0,1,2,3,4,5,6,7].map(cls=>shiftR(SHT,patShift(PAT,cls)));
 const shirtAt=(i,j)=>SHTC[((((j|0)%4)+4)%4)*2+((((i|0)%4)+4)%4===1?1:0)];
-const LONG=!['tee','dress'].includes(OUT)||C.longSleeves;
+const LONG=!['tee','dress','tank','skirt'].includes(OUT)||C.longSleeves;
+const OVER={jacket:1.5,vest:2.5,cardigan:2.5,longcoat:1.5};
 // ---- legs: thigh and shin by two-bone IK (knees forward in profile, outward when squatting face-on); a chunky shoe on the end
-function leg(hx,hy,fx,fy,side,fl,far,stance,out){const R=far?dk(LEGR(),1):LEGR();const d=Math.hypot(fx-hx,fy-hy);let kx=(hx+fx)/2,ky=(hy+fy)/2;
-  if(d<LT+LS&&(side||SQUAT)){const h=Math.sqrt(Math.max(0,LT*LT-(d/2)*(d/2)));const nx=-(fy-hy)/d,ny=(fx-hx)/d;const s=side?((nx*fl>0)?1:-1):((nx*out>0)?1:-1);kx+=nx*h*s*(side?1:1.2);ky+=ny*h*s;}
+function leg(hx,hy,fx,fy,side,fl,far,stance,out,knee,rev){const R=far?dk(LEGR(),1):LEGR();const d=Math.hypot(fx-hx,fy-hy);let kx=(hx+fx)/2,ky=(hy+fy)/2;
+  if(knee){kx=knee[0];ky=knee[1];}else if(d<LT+LS&&(side||SQUAT)){const h=Math.sqrt(Math.max(0,LT*LT-(d/2)*(d/2)));const nx=-(fy-hy)/d,ny=(fx-hx)/d;const s=side?((nx*fl>0)?1:-1):((nx*out>0)?1:-1);kx+=nx*h*s*(side?1:1.2);ky+=ny*h*s;}
   const w=side?5:(KID?5:6);seg(hx,hy,kx,ky,w,R);seg(kx,ky,fx,fy,w,R);
   if(!side){const inner=out<0?Math.round(hx)+(w>>1)-1:Math.round(hx)-(w>>1);for(let y=Math.round(hy)+1;y<=Math.round(fy);y++)if(g(inner,y))p(inner,y,R[0]);}
-  shoe(fx,fy,side,fl,far);}
-const LEGR=()=>(OUT==='dress'||C.skirt)?SK:PNT;
+  if(!(rev&&!side))shoe(fx,fy,side,rev?-fl:fl,far);
+  if(knee&&!side){p(Math.round(kx)-1,Math.round(ky),R[4]);p(Math.round(kx),Math.round(ky),R[4]);}}
+const LEGR=()=>(OUT==='dress'||OUT==='skirt'||C.skirt)?SK:PNT;
 function shoe(fx,fy,side,fl,far){const R=far?dk(SHO,1):SHO;const x=Math.round(fx),y=Math.round(fy)+1;
   if(side){const len=KID?6:7;for(let i=0;i<len;i++){const xx=x+fl*(i-2);p(xx,y,R[i===0?1:3]);p(xx,y+1,R[i===len-1?3:2]);p(xx,y+2,R[0]);}p(x+fl*(len-3),y,R[4]);p(x+fl*(len-4),y,R[4]);}
   else{const w=KID?5:6;for(let i=0;i<w;i++){const k=i<=1?4:i===w-1?1:3;p(x-3+i,y,R[k]);p(x-3+i,y+1,R[Math.max(1,k-1)]);p(x-3+i,y+2,R[0]);}}}
 // ---- arms: thick sleeves (patterned with the shirt), cuffs, small square hands
-function arm(sx,sy,hx2,hy2,out,far,edge){const cloth=OUT==='jacket'?'jk':'shirt';const S2=far?dk(SK,1):SK;
+function arm(sx,sy,hx2,hy2,out,far,edge){const cloth=(OUT==='jacket'||OUT==='cardigan'||OUT==='longcoat')?'jk':'shirt';const S2=far?dk(SK,1):SK;
   const mx=(sx+hx2)/2+out*.5,my=(sy+hy2)/2;const n=Math.max(1,Math.ceil(Math.hypot(hx2-sx,hy2-sy)*2));const AW=KID?3:4;
   const clothAt=(x,y)=>{const R=cloth==='jk'?JK:shirtAt(x,y);return far?dk(R,1):R;};
   for(let i=0;i<=n;i++){const t=i/n;const x=t<.5?sx+(mx-sx)*t*2:mx+(hx2-mx)*(t-.5)*2,y=t<.5?sy+(my-sy)*t*2:my+(hy2-my)*(t-.5)*2;
-    const sleeve=LONG?t<.86:t<.45;for(let k=0;k<AW;k++){const xx=Math.round(x)+k-(AW>>1),yy=Math.round(y);const R=sleeve?clothAt(xx,yy):S2;p(xx,yy,R[k===0?4:k===AW-1?1:k===1?3:2]);}
+    const sleeve=OUT==='tank'?false:LONG?t<.86:t<.45;for(let k=0;k<AW;k++){const xx=Math.round(x)+k-(AW>>1),yy=Math.round(y);const R=sleeve?clothAt(xx,yy):S2;p(xx,yy,R[k===0?4:k===AW-1?1:k===1?3:2]);}
     if(edge)p(Math.round(x)+edge*(AW-1),Math.round(y),(sleeve?clothAt(x,y):S2)[0]);}
-  {const t=LONG?.86:.45;const x=t<.5?sx+(mx-sx)*t*2:mx+(hx2-mx)*(t-.5)*2,y=t<.5?sy+(my-sy)*t*2:my+(hy2-my)*(t-.5)*2;const rib=OUT==='sweater'||OUT==='hoodie';
+  if(OUT!=='tank'){const t=LONG?.86:.45;const x=t<.5?sx+(mx-sx)*t*2:mx+(hx2-mx)*(t-.5)*2,y=t<.5?sy+(my-sy)*t*2:my+(hy2-my)*(t-.5)*2;const rib=OUT==='sweater'||OUT==='hoodie'||OUT==='turtleneck'||OUT==='cardigan';
     for(let k=0;k<AW;k++){const R=clothAt(x,y);p(Math.round(x)+k-(AW>>1),Math.round(y),R[rib&&(k&1)?2:1]);if(rib)p(Math.round(x)+k-(AW>>1),Math.round(y)-1,R[(k&1)?1:2]);}}
   for(let j=0;j<3;j++)for(let i=-1;i<=AW-2;i++)p(hx2+i,hy2+j,S2[j===2?1:i===-1?4:i===AW-2?2:3]);}
 // ---- torso with the outfit on it
 function torso(cx,ty,dir,fl,hipY){const side=dir==='E'||dir==='W',back=dir==='N';const w=side?TWS:TW;const h=hipY-ty+1;const x0=Math.round(cx-w/2);
-  const ow=(j)=>j===0?w-4:j===1?w-2:w;const over=OUT==='jacket'||OUT==='vest';
+  const ow=(j)=>OUT==='tank'?(j<2?w-6:w-1):j===0?w-4:j===1?w-2:w;const over=!!OVER[OUT],open=OUT==='openshirt';
   for(let j=0;j<h;j++){const ww=ow(j);for(let i=0;i<ww;i++){const x=x0+((w-ww)>>1)+i,y=ty+j;const ii=x-x0;
       let k=i<2?4:i>=ww-1?1:i>=ww-3?2:3;if(j>=h-2)k=Math.max(1,k-1);
       let R=over?JK:shirtAt(ii,j);
-      if(over&&!back&&!side&&Math.abs(x-cx+.5)<=(OUT==='vest'?2.5:1.5)&&j<h-1)R=shirtAt(ii,j);
+      if(over&&!back&&!side&&Math.abs(x-cx+.5)<=OVER[OUT]&&j<h-1)R=shirtAt(ii,j);
       if(over&&side&&(x-cx)*fl>w/2-3&&j<h-2)R=shirtAt(ii,j);
+      if(open&&!back&&!side&&Math.abs(x-cx+.5)<=2.5)R=EX;if(open&&side&&(x-cx)*fl>w/2-3)R=EX;
       p(x,y,R[k]);}}
   const S0=SHTC[0];
   if(!back)for(let i=-3;i<=2;i++)p(cx+i+(side?fl*2:0),ty,(over?JK:S0)[1]);                    // the chin's shadow on the collar
@@ -103,19 +106,29 @@ function torso(cx,ty,dir,fl,hipY){const side=dir==='E'||dir==='W',back=dir==='N'
     else for(let j=0;j<4;j++)for(let i=0;i<3;i++)p(cx-fl*(w/2-1)-fl*i*0+(fl>0?-i:i),ty+j,S0[i===0?3:2]);
     for(let i=0;i<w;i++){p(x0+i,hipY-1,S0[(i&1)?1:2]);}}
   if(OUT==='sweater'){for(let i=0;i<w;i++){p(x0+i,hipY,S0[(i&1)?1:2]);p(x0+i,hipY-1,S0[(i&1)?2:3]);}if(!back&&!side){for(let i=-2;i<=1;i++){p(cx+i,ty,SK[2]);p(cx+i,ty+1,S0[1]);}p(cx-3,ty,S0[1]);p(cx+2,ty,S0[1]);}}
+if(OUT==='tank'&&!back&&!side){for(const sx2 of [x0+3,x0+w-4]){p(sx2,ty,S0[3]);p(sx2,ty+1,S0[2]);}for(let i=4;i<w-4;i++)p(x0+i,ty+1,SK[2]);for(let i=5;i<w-5;i++)p(x0+i,ty+2,S0[1]);}
+  if(OUT==='turtleneck'){for(let j=-2;j<=1;j++)for(let i=-3;i<=2;i++){const xx=cx+i+(side?fl:0);p(xx,ty+j,S0[j===-2?4:(i&1)?2:3]);}if(!back)for(let i=-3;i<=2;i++)p(cx+i+(side?fl:0),ty+2,S0[1]);
+    for(let i=0;i<w;i++){p(x0+i,hipY,S0[(i&1)?1:2]);p(x0+i,hipY-1,S0[(i&1)?2:3]);}}
+  if(OUT==='cardigan'){for(let i=0;i<w;i++){if(!back&&!side&&Math.abs(x0+i-cx+.5)<=2.5)continue;p(x0+i,hipY,JK[(i&1)?1:2]);p(x0+i,hipY+1,JK[(i&1)?0:1]);}
+    if(!back&&!side){for(let j=1;j<h;j++){p(cx-3,ty+j,JK[4]);p(cx+2,ty+j,JK[1]);}for(let j=3;j<h;j+=3)p(cx-3,ty+j,WHITE);for(let i=-2;i<=1;i++)p(cx+i,ty,SK[2]);}}
+  if(OUT==='openshirt'&&!back&&!side){for(let j=0;j<h;j++){p(cx-3,ty+j,S0[4]);p(cx+2,ty+j,S0[1]);}p(cx-4,ty,WHITE);p(cx-3,ty+1,WHITE);p(cx+3,ty,[214,208,198]);p(cx+2,ty+1,[214,208,198]);for(let i=-2;i<=1;i++)p(cx+i,ty,SK[2]);for(let i=-2;i<=1;i++)p(cx+i,ty+1,EX[1]);}
+  if(OUT==='longcoat'){const len=KID?6:9;for(let j=h;j<h+len;j++){const ww=w+Math.round((j-h)*.35);for(let i=0;i<ww;i++){const x=Math.round(cx-ww/2)+i;if(!back&&!side&&Math.abs(x-cx+.5)<=1.5)continue;if(back&&Math.abs(x-cx+.5)<.6&&j>h+3)continue;p(x,ty+j,JK[i<2?4:i>=ww-2?1:i>=ww-4?2:3]);}}
+    for(let i=0;i<w+4;i++)p(Math.round(cx-(w+4)/2)+i,ty+h+len-1,JK[0]);
+    if(!back&&!side){for(let j=0;j<6;j++){p(cx-2,ty+j,JK[4]);p(cx+1,ty+j,JK[1]);}p(cx-3,ty,JK[4]);p(cx+2,ty,JK[1]);for(let j=4;j<h+len;j+=4)p(cx-3,ty+j,BUCKLE[0]);p(x0+2,ty+h+2,JK[1]);p(x0+w-3,ty+h+2,JK[1]);}}
+  if(OUT==='skirt'){const R=PNT;const top=hipY-1,len=KID?5:7;for(let j=0;j<len;j++){const ww=w+Math.round(j*.8);for(let i=0;i<ww;i++){let k=i<2?4:i>=ww-2?1:i>=ww-4?2:3;if(j===len-1)k=0;else if(((i+(j>>1))%3===0)&&j>0)k=Math.max(1,k-1);p(Math.round(cx-ww/2)+i,top+j,R[k]);}}for(let i=0;i<w;i++)p(x0+i,top,BELT[i<2?2:i>=w-2?0:1]);}
   if(OUT==='dress'||C.skirt){const R=C.skirt?SKR:PNT;const top=ty+h-3,len=KID?6:8;for(let j=0;j<len;j++){const ww=w+Math.round(j*.7);for(let i=0;i<ww;i++){let k=i<2?4:i>=ww-2?1:i>=ww-4?2:3;if(j===len-1)k=0;else if((i%4===1)&&j>1)k=Math.max(1,k-1);p(Math.round(cx-ww/2)+i,top+j,R[k]);}}}
   if(C.apron&&!back){const R=EX;const aw=w-6,top=ty+3,len=h-1+(C.skirt||OUT==='dress'?5:1);for(let j=0;j<len;j++)for(let i=0;i<(side?2:aw);i++){const x=side?Math.round(cx+fl*(w/2-1))-(fl>0?i:-i):x0+3+i;p(x,top+j,R[i===0?4:i===aw-1?1:j===0?4:3]);}
     if(!side){p(x0+2,top,R[2]);p(x0+w-3,top,R[2]);}}
-  if(OUT==='tee'||OUT==='flannel'||OUT==='shirt'){const y=hipY-1;for(let i=0;i<w;i++)p(x0+i,y,BELT[i<2?2:i>=w-2?0:1]);if(!back&&!side){p(cx-1,y,BUCKLE[1]);p(cx,y,BUCKLE[1]);p(cx-1,y-1,BUCKLE[0]);p(cx,y-1,BUCKLE[0]);}}
+  if(OUT==='tee'||OUT==='flannel'||OUT==='shirt'||OUT==='openshirt'){const y=hipY-1;for(let i=0;i<w;i++)p(x0+i,y,BELT[i<2?2:i>=w-2?0:1]);if(!back&&!side){p(cx-1,y,BUCKLE[1]);p(cx,y,BUCKLE[1]);p(cx-1,y-1,BUCKLE[0]);p(cx,y-1,BUCKLE[0]);}}
   if(!back&&!side){
-    if(OUT==='tee'||OUT==='dress'||OUT==='overalls'){for(let i=-2;i<=1;i++)p(cx+i,ty,SK[2]);p(cx-3,ty,S0[0]);p(cx+2,ty,S0[0]);for(let i=-2;i<=1;i++)p(cx+i,ty+1,S0[0]);}
+    if(OUT==='tee'||OUT==='dress'||OUT==='overalls'||OUT==='skirt'){for(let i=-2;i<=1;i++)p(cx+i,ty,SK[2]);p(cx-3,ty,S0[0]);p(cx+2,ty,S0[0]);for(let i=-2;i<=1;i++)p(cx+i,ty+1,S0[0]);}
     if(OUT==='flannel'||OUT==='shirt'||OUT==='vest'){p(cx-1,ty,SK[2]);p(cx,ty,SK[2]);p(cx-3,ty,WHITE);p(cx-2,ty,WHITE);p(cx-2,ty+1,WHITE);p(cx+1,ty,[214,208,198]);p(cx+2,ty,[214,208,198]);p(cx+1,ty+1,[214,208,198]);p(cx-1,ty+1,S0[0]);p(cx,ty+1,S0[0]);
       if(OUT!=='vest'){for(let j=2;j<h-2;j++)p(cx,ty+j,S0[1]);for(let j=3;j<h-2;j+=3)p(cx-1,ty+j,WHITE);p(x0+2,ty+4,S0[1]);p(x0+3,ty+4,S0[1]);}}
     if(C.collar){for(let i=-2;i<=1;i++)p(cx+i,ty,WHITE);}
     if(C.badge){p(cx-4,ty+3,[255,228,120]);p(cx-3,ty+3,[240,200,80]);p(cx-4,ty+4,[200,150,40]);p(cx-3,ty+2,[255,228,120]);}}
   if(back){for(let i=-2;i<=1;i++)p(cx+i,ty,SK[1]);if(OUT!=='hoodie')for(let j=2;j<h-2;j++)p(cx,ty+j,(over?JK:S0)[2]);}}
 // ---- head and face
-function head(hx,hy,dir,fl,pose){const side=dir==='E'||dir==='W',back=dir==='N';
+function head(hx,hy0,dir,fl,pose){const side=dir==='E'||dir==='W',back=dir==='N';let hy=hy0;
   // neck
   for(let j=FY1-1;j<=FY1+1;j++)for(let i=-2;i<=1;i++)p(hx+i-(side?fl:0),hy+j,SK[1]);
   const fin=side?((x,y)=>faceIn(x*fl-2,y)&&x*fl>=-FX+3):faceIn;
@@ -125,6 +138,7 @@ function head(hx,hy,dir,fl,pose){const side=dir==='E'||dir==='W',back=dir==='N';
   if(!side){for(const s of [-1,1]){const ex=hx+s*(FX+1);p(ex,hy,SK[s<0?3:2]);p(ex,hy+1,SK[1]);p(ex,hy+2,SK[s<0?3:2]);p(ex,hy+3,SK[2]);}}
   else{const ex=hx-fl;p(ex,hy,SK[3]);p(ex,hy+1,SK[1]);p(ex,hy+2,SK[1]);p(ex,hy+3,SK[3]);p(ex-fl,hy+1,SK[3]);p(ex-fl,hy+2,SK[2]);}
   if(back)return;
+  if(pose.nod)hy+=1;
   const blink=pose.blink,hollow=C.hollowEyes,EY=hollow?[[6,4,6],[10,8,10],[14,12,14],[20,18,22],[30,28,32]]:EYR,SCL=hollow?[16,12,16]:WHITE;
   if(dir==='S'){
     for(const s of [-1,1]){const x0=s<0?hx-5:hx+3,wx=s<0?x0:x0+2;           // 3 wide: white on the outside, iris toward the nose
@@ -134,30 +148,34 @@ function head(hx,hy,dir,fl,pose){const side=dir==='E'||dir==='W',back=dir==='N';
       if(!hollow)p(s<0?x0+1:x0+1,hy+1,EY[0]);}
     // brows (usually under the fringe), nose, mouth
     for(const s of [-1,1]){const bx=s<0?hx-5:hx+3;for(let i=0;i<3;i++)p(bx+i,hy-2+(s<0?(i===0?1:0):(i===2?1:0)),HR[1]);}
-    p(hx,hy+4,SK[2]);p(hx-1,hy+4,SK[4]);
+    p(hx,hy+3,SK[2]);
     if(C.smile!==false){p(hx-1,hy+6-1,SK[0]);p(hx,hy+6-1,SK[0]);p(hx-2,hy+4,SK[2]);p(hx+1,hy+4,SK[2]);}else{p(hx-1,hy+5,SK[0]);p(hx,hy+5,SK[0]);p(hx+1,hy+5,SK[1]);}
     p(hx-7,hy+3,BLUSH);p(hx-6,hy+3,BLUSH);p(hx+5,hy+3,BLUSH);p(hx+6,hy+3,BLUSH);}
   else{const xi=hx+fl*6,xw=hx+fl*5;
     if(blink){p(xw,hy+2,LASH);p(xi,hy+2,LASH);}
     else{p(xw,hy,LASH);p(xi,hy,LASH);p(xi+fl,hy,LASH);p(xw,hy+1,SCL);p(xw,hy+2,SCL);p(xi,hy+1,EY[0]);p(xi,hy+2,EY[3]);}
     p(xw,hy-2,HR[1]);p(xi,hy-2,HR[1]);p(xi+fl,hy-2,HR[1]);
-    p(hx+fl*(FX+3),hy+2,SK[3]);p(hx+fl*(FX+3),hy+3,SK[2]);p(hx+fl*(FX+1),hy+4,SK[1]);   // nose
+    p(hx+fl*(FX+2),hy+3,SK[3]);p(hx+fl*(FX+1),hy+4,SK[1]);   // nose
     p(hx+fl*(FX),hy+5,SK[0]);p(hx+fl*(FX-1),hy+5,SK[1]);p(hx+fl*3,hy+3,BLUSH);p(hx+fl*4,hy+3,BLUSH);}}
 // ---- hair: big clumped silhouette. Locks fan out from the crown; each lock has a lit strand and a dark gap; the fringe ends in points.
-function hair(hx,hy,dir,fl,st){if(!st||st==='bald')return;const BZ=st==='buzz'||st==='mohawk';const side=dir==='E'||dir==='W',back=dir==='N';
-  const W=HW+(st==='curly'?1:BZ?-2:0),TOP=HTOP-(st==='curly'?1:st==='spiky'?0:0)+(BZ?3:0);
+function hair(hx,hy,dir,fl,st){if(!st||st==='bald')return;const BZ=st==='buzz'||st==='mohawk'||st==='topknot';const side=dir==='E'||dir==='W',back=dir==='N';
+  const W=HW+(st==='afro'?4:st==='curly'?1:BZ?-2:0),TOP=HTOP-(st==='afro'?3:st==='curly'?1:0)+(BZ?3:0);
   const DCY=-4,DRY=DCY-TOP;                                                      // dome centre and height
   const dome=(x,y)=>{const ax=Math.abs(side?x+fl*1:x);if(y<=DCY)return Math.pow(ax/(W+.5),2.2)+Math.pow((y-DCY)/(DRY+.5),2)<=1;return ax<=W-Math.max(0,(y-DCY))*.35;};
   const zig=(x)=>[0,1,2,1][((x%4)+4)%4];                                         // pointed tips
-  const parted=st==='long'||st==='ponytail'||st==='bun'||st==='braids'||st==='pigtails'||st==='wavy';
+  const parted=st==='long'||st==='ponytail'||st==='bun'||st==='braids'||st==='pigtails'||st==='wavy'||st==='spacebuns';
   let fringe;                                                                    // lowest y the hair reaches over the face, per column
   if(st==='bangs')fringe=x=>-1+zig(x+1)*.5|0;
+  else if(st==='bob')fringe=x=>-1;
+  else if(st==='sidepart')fringe=x=>x<-1?1+((x+20)%3===0?1:0):-4+(zig(x)>1?1:0);
+  else if(st==='shaggy')fringe=x=>-2+zig(x)+(((x+20)%3===0)?1:0);
+  else if(st==='afro')fringe=x=>-4+(zig(x)>1?1:0);
   else if(BZ)fringe=x=>FY0+1;
   else if(parted)fringe=x=>Math.min(-2,FY0+Math.round(Math.abs(x+.5)*0.9))+(zig(x)>1?1:0);
   else fringe=x=>-3+Math.round((x+FX)/(2*FX)*1.2)+zig(x)-(st==='spiky'?1:0);    // swept toward the right, ends in points
-  const lockLen=st==='long'||st==='braids'||st==='wavy'||st==='pigtails'?4:st==='curly'?4:BZ?-2:2;   // how far the side locks come down beside the face
+  const lockLen=st==='bob'?6:st==='shaggy'?5:st==='afro'?4:st==='sidepart'?3:st==='long'||st==='braids'||st==='wavy'||st==='pigtails'?4:st==='curly'?4:BZ?-2:2;   // how far the side locks come down beside the face
   const cover=(x,y)=>{if(!dome(x,y))return false;
-    if(back)return y<=(BZ?FY1-3:FY1-1)+((x+20)%3===0?1:0);
+    if(back)return y<=(BZ?FY1-3:st==='bob'?FY1+1:st==='shaggy'?FY1+2:FY1-1)+((x+20)%3===0?1:0);
     if(dir==='S'){if(faceIn(x,y)||Math.abs(x)<=FX){return y<=fringe(x);}return y<=lockLen-(Math.abs(x)>W-2?2:0);}
     const xf=x*fl;if(xf>=-1&&xf<=FX+2&&faceIn(xf-2,y))return y<=fringe(xf)-1;          // over the brow
     if(xf>FX+2)return y<=DCY-1;
@@ -170,6 +188,7 @@ function hair(hx,hy,dir,fl,st){if(!st||st==='bald')return;const BZ=st==='buzz'||
     if(y>=TOP+1&&y<=TOP+2&&xs>-W*.6&&xs<W*.2)k=4;                                  // shine across the crown
     if(!cover(x,y+1)&&!(back&&y>=FY1-1))k=Math.min(k,1);                           // dark tips where hair meets skin
     if(BZ)k=((x+y)&1)?2:3;
+    if(st==='afro'&&((x*3+y*5+40)%4===0))k=Math.max(1,k-1);if(st==='afro'&&((x*5+y*3+40)%7===0))k=Math.min(4,k+1);
     p(hx+x,hy+y,HR[k]);}
   if(st==='spiky')for(let i=-2;i<=2;i++){const x=hx+i*4+(side?-fl:0),y=hy+TOP;p(x,y-1,HR[3]);p(x,y-2,HR[4]);p(x-1,y-1,HR[3]);p(x+1,y,HR[2]);p(x+1,y-1,HR[2]);}
   if(st==='curly'){for(let a=0;a<13;a++){const t=Math.PI*(1.0+a/12*1.0);const ex=Math.cos(t),ey=Math.sin(t);if(side&&ex*fl>.5)continue;blob(hx+Math.round(ex*(W+1)),hy+DCY+Math.round(ey*(DRY+1)),2,2,HR);}
@@ -185,6 +204,8 @@ function hair(hx,hy,dir,fl,st){if(!st||st==='bald')return;const BZ=st==='buzz'||
   if(st==='braids'){const tie=[[60,90,140],[100,140,190]];for(const s of (side?[-fl]:[-1,1])){const bx=hx+s*(W-2);
       for(let y=0;y<12;y++){const yy=hy+lockLen+y;const k=(y%3===0)?1:(y%3===1?4:3);p(bx,yy,HR[k]);p(bx+1,yy,HR[Math.max(1,k-1)]);p(bx-1,yy,HR[y%3===1?3:2]);}
       p(bx,hy+lockLen+12,tie[1]);p(bx+1,hy+lockLen+12,tie[0]);}}
+  if(st==='topknot'){const by=hy+TOP-2;blob(hx+(side?-fl:0),by,3,2,HR);for(let i=-2;i<=2;i++)p(hx+i+(side?-fl:0),by+2,HR[0]);p(hx-1+(side?-fl:0),by-1,HR[4]);}
+  if(st==='spacebuns'){for(const sx of (side?[-fl]:[-1,1])){const bx=hx+sx*(W-3),by=hy+TOP+1;blob(bx,by,3,3,HR);p(bx-1,by-1,HR[4]);p(bx-2,by,HR[4]);}}
   if(st==='mohawk'){for(let y=TOP-4;y<=DCY;y++){const w=y<TOP-1?1:2;for(let x=-w;x<=w;x++){if(side&&false)continue;const xx=side?x-fl*1:x;p(hx+xx,hy+y,HR[x<0?4:x>0?2:3]);}}
     for(let y=TOP-5;y<TOP-1;y+=2)p(hx+(side?-fl:0),hy+y,HR[4]);}
   if(st==='wavy'){const len=KID?7:9;for(let y=lockLen;y<lockLen+len;y++){const wv=((y>>1)&1);
@@ -273,12 +294,13 @@ function drawTool(kind,f,hx,ay,dir,fl){const side=dir==='E'||dir==='W';
 let SQUAT=false;
 function human(dir,pose){SQUAT=(pose.crouch||0)>=3;const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1,back=dir==='N';
   const crouch=pose.crouch||0,bob=pose.bob||0,lean=side?Math.round((pose.lean||0)*fl):0;
-  const cx=FW/2,hipY=HIP0+crouch+bob,ux=cx+lean,ty=hipY-TH+(pose.slouch||0),hy=ty-HEADUP,armY=ty+2;
+  const cx=FW/2+(side?0:(pose.sway||0)),hipY=HIP0+crouch+bob,ux=cx+lean,ty=hipY-TH+(pose.slouch||0),hy=ty-HEADUP,armY=ty+2;
   const tool=pose.tool;
   // legs: [x offset along facing (side) or across (front), screen y offset, lift]
   const legs=pose.legs||(side?[[-1,0,0],[1,0,0]]:[[-3,0,0],[3,0,0]]);
   const legHip=(i)=>side?[cx+Math.round(lean/2),hipY]:[cx+(i?3:-3),hipY];
-  const drawLeg=(i,far)=>{const [ox,oy,lift]=legs[i];const [hx0,hy0]=legHip(i);const fx=side?cx+fl*ox:cx+ox,fy=ANK+oy-lift;leg(hx0,hy0,fx,fy,side,fl,far,!lift,i?1:-1);};
+  const drawLeg=(i,far)=>{const [ox,oy,lift,kx,ky,rev]=legs[i];const [hx0,hy0]=legHip(i);const fx=side?cx+fl*ox:cx+ox,fy=ANK+oy-lift;
+    const knee=kx!==undefined?[side?cx+fl*kx:cx+kx,ANK+ky]:null;leg(hx0,hy0,fx,fy,side,fl,far,!lift,i?1:-1,knee,rev);};
   // arms: hands relative to the shoulder
   const shL=side?[ux-fl*1,armY]:[ux-Math.round(TW/2),armY],shR=side?[ux+fl*1,armY]:[ux+Math.round(TW/2)-1,armY];
   const hands=pose.hands||(side?[[fl*-1,HANG],[fl*1,HANG]]:[[0,HANG],[0,HANG]]);
@@ -286,8 +308,9 @@ function human(dir,pose){SQUAT=(pose.crouch||0)>=3;const side=dir==='E'||dir==='
   into('body',()=>{
     if(tool&&back)tool(ux,armY,dir,fl);
     if(side){drawArm(0,true);drawLeg(0,true);drawLeg(1,false);}else{drawLeg(0,false);drawLeg(1,false);}
+    if(back&&pose.reach){drawArm(0,false);drawArm(1,false);}
     torso(ux,ty,dir,fl,hipY);
-    if(side)drawArm(1,false);else{drawArm(0,false);drawArm(1,false);}
+    if(side)drawArm(1,false);else if(!(back&&pose.reach)){drawArm(0,false);drawArm(1,false);}
     if(tool&&!back&&pose.toolBack)tool(ux,armY,dir,fl);
     head(ux,hy,dir,fl,pose);});
   into('beard',()=>beard(ux,hy,dir,fl,C.beard===true?'full':C.beard));
@@ -297,19 +320,38 @@ function human(dir,pose){SQUAT=(pose.crouch||0)>=3;const side=dir==='E'||dir==='
   into('hat',()=>hat(ux,hy,dir,fl,C.hat));
   into('toolf',()=>{if(tool&&!back&&!pose.toolBack)tool(ux,armY,dir,fl);});}
 // ---------------------------------------------------------------- poses per clip
-function walkPose(f,dir,run){const pose={};if(f===0)return pose;const side=dir==='E'||dir==='W',back=dir==='N';const ph=(f-1)/8*Math.PI*2;
-  const S=run?(KID?5:6):(KID?3:4),LF=run?4:2;
+function walkPose(f,dir,run){const pose={};if(f===0)return pose;const side=dir==='E'||dir==='W',back=dir==='N';const ph=(f-1)/8*Math.PI*2;const fl=dir==='W'?-1:1;
+  const S=run?(KID?5:7):(KID?4:5),LF=run?4:3;
+  // a foot moves back along the ground while it carries weight, then lifts and swings forward
   const foot=(u)=>{u=((u%(2*Math.PI))+2*Math.PI)%(2*Math.PI);const x=S*Math.cos(u);const lift=u<Math.PI?0:Math.round(LF*(-Math.sin(u)));return [x,lift];};
   const [xa,la]=foot(ph),[xb,lb]=foot(ph+Math.PI);
   const spread=Math.abs(Math.cos(ph));
-  pose.bob=run?(spread>.8?1:spread<.4?-1:0):(spread>.75?1:0);
-  if(run){pose.lean=2;pose.slouch=0;}
+  pose.bob=run?(spread>.8?1:spread<.4?-2:0):(spread>.8?1:spread<.35?-1:0);         // down on contact, up as the legs pass
+  if(run)pose.lean=2;
   if(side){pose.legs=[[Math.round(xa),0,la],[Math.round(xb),0,lb]];
-    // arms swing against the legs: the near arm goes with the far leg
-    if(run){pose.hands=[[Math.round(-xa*.9),HANG-5-Math.round(Math.abs(xa)*.3)],[Math.round(xa*.9),HANG-5-Math.round(Math.abs(xb)*.3)]].map(h=>[h[0]*(dir==='W'?-1:1),h[1]]);}
-    else pose.hands=[[Math.round(-xb*.9),HANG-Math.round(Math.abs(xb)*.3)],[Math.round(-xa*.9),HANG-Math.round(Math.abs(xa)*.3)]].map(h=>[h[0]*(dir==='W'?-1:1),h[1]]);}
-  else{const s=back?-1:1;pose.legs=[[-3,Math.round(s*xa*.3),la],[3,Math.round(s*xb*.3),lb]];
-    const a=run?3:2;pose.hands=[[-(run?1:0),(run?HANG-4:HANG)+Math.round(s*xb/S*a)],[(run?1:0),(run?HANG-4:HANG)+Math.round(s*xa/S*a)]];}
+    // arms swing opposite the legs in a shallow arc: the near arm (index 1) goes with the far leg (a)
+    const A=run?.9:1.15,arc=x=>Math.round(Math.abs(x)*.35);
+    if(run)pose.hands=[[Math.round(-xb*A)*fl,HANG-5-arc(xb)],[Math.round(-xa*A)*fl,HANG-5-arc(xa)]];
+    else pose.hands=[[Math.round(-xb*A)*fl,HANG-arc(xb)],[Math.round(-xa*A)*fl,HANG-arc(xa)]];}
+  else{const s=back?-1:1;
+    // face-on: the stepping foot comes toward / away from us, the lifted leg rides higher; hips sway over the planted foot
+    pose.legs=[[-3,Math.round(s*xa*.55),la],[3,Math.round(s*xb*.55),lb]];pose.sway=Math.round(Math.sin(ph)*.9);
+    const a=run?4:3;pose.hands=[[ -(run?1:0)+Math.round(-xb/S),(run?HANG-4:HANG)+Math.round(s*xb/S*a)],[(run?1:0)+Math.round(xa/S),(run?HANG-4:HANG)+Math.round(s*xa/S*a)]];}
+  return pose;}
+// planting / harvesting: bend, drop to one knee, reach into the soil in front, press it in, rise holding it, stand
+function plantPose(f,dir){const pose={},side=dir==='E'||dir==='W',back=dir==='N',fl=dir==='W'?-1:1;
+  if(f===0||f===5)return pose;
+  const kneel=f===2||f===3;
+  if(side){
+    if(kneel){pose.crouch=6;pose.lean=2;pose.legs=[[-6,1,0,-1,1,true],[4,0,0,4,-5]];const d=f===3?1:0;pose.hands=[[fl*(4+d),12+d],[fl*(6+d),13+d]];pose.nod=1;}
+    else if(f===1){pose.crouch=3;pose.lean=2;pose.legs=[[-2,0,0],[3,0,0]];pose.hands=[[fl*3,10],[fl*5,10]];pose.nod=1;}
+    else{pose.crouch=2;pose.lean=1;pose.legs=[[-2,0,0],[3,0,0]];pose.hands=[[fl*4,3],[fl*5,2]];}}
+  else{
+    if(kneel){pose.crouch=6;const d=f===3?1:0;
+      pose.legs=back?[[-3,0,0,-3,-4],[3,1,0,3,1,true]]:[[-3,1,0,-3,1,true],[3,0,0,3,-4]];   // one knee down, one foot planted
+      pose.hands=back?[[5,9],[-4,9]]:[[6,13+d],[-5,13+d]];pose.reach=back;pose.nod=1;}
+    else if(f===1){pose.crouch=3;pose.hands=back?[[4,8],[-3,8]]:[[5,10],[-4,10]];pose.reach=back;pose.nod=1;}
+    else{pose.crouch=2;pose.hands=back?[[4,1],[-3,1]]:[[5,2],[-4,2]];pose.reach=back;}}
   return pose;}
 // ---------------------------------------------------------------- render
 ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
@@ -327,10 +369,7 @@ ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
       if(side){const near=[fl*(gx+Math.round(Math.cos(a)*4)),gy+Math.round(Math.sin(a)*4)],farH=[fl*(gx),gy+1];pose.hands=[[farH[0]+fl*1,farH[1]],[near[0]-fl*1,near[1]]];}
       else if(dir==='N'){pose.hands=BACK[f]?[[5,-12],[-5,-12]]:[[4,3],[-4,3]];}
       else{const L=Math.round(TW/2);pose.hands=[[gx+L-1,gy+(BACK[f]?0:4)],[gx-L+3,gy]];}}}
-  if(clip==='slash'){ // plant / harvest: kneel, reach to the soil, rise holding it up
-    const cr=[0,4,8,8,3,0][f];pose.crouch=cr;pose.lean=[0,2,3,3,1,0][f];const reach=f>=1&&f<=3,lift=f>=4;
-    pose.legs=side?(cr>=6?[[-4,0,0],[4,0,0]]:[[-2,0,0],[3,0,0]]):[[-4,0,0],[5,0,0]];
-    pose.hands=side?(reach?[[fl*6,HANG-1],[fl*9,HANG-1]]:lift?[[fl*2,-11],[fl*3,-12]]:[[fl*-1,HANG],[fl*1,HANG]]):(reach?[[4,HANG],[-4,HANG]]:lift?[[4,-11],[-4,-11]]:[[0,HANG],[0,HANG]]);}
+  if(clip==='slash')pose=plantPose(f,dir);
   if(clip==='hurt'){pose.crouch=[0,2,4,5,6,6][f];pose.lean=-1;pose.hands=[[4,-5],[-4,-5]];pose.blink=f>1;}
   if(clip==='spellcast'){const up=f>1;pose.hands=up?(side?[[fl*-1,-11],[fl*3,-12]]:[[-1,-12],[1,-12]]):(side?[[fl*-1,HANG],[fl*1,HANG]]:[[0,HANG],[0,HANG]]);}
   if(clip==='sit'){pose.crouch=6;pose.legs=side?[[3,-1,0],[5,-1,0]]:[[-2,-2,0],[3,-2,0]];pose.hands=side?[[fl*3,HANG-3],[fl*4,HANG-3]]:[[1,HANG-3],[-1,HANG-3]];}
