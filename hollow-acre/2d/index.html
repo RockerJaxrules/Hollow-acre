@@ -3798,13 +3798,14 @@ ST_LETTERS.epi=`You made your choice. I made a different one, last year. We both
 // what changes when you start again
 if(stFound.length){const last=ST_END[stFound[stFound.length-1]];LETTER.push(`<span class="ps" style="display:block;margin-top:12px;font-style:italic">Under Grandpa’s signature, in different ink, in handwriting you know is yours: “You’ve done this before. Last time it ended with ${last?last.t:'the door'}. ${stFound.length>=6?'There is nothing left to choose. Stay anyway.':'Choose differently.'}”</span>`);}
 
-/* ================= saving, Stardew-style: the game saves every time a new day begins (sleeping, collapsing, being dragged home).
-   Continue from the title screen picks up the morning of the last saved day. ================= */
+/* ================= saving: the game autosaves every 30 seconds of play, on going in or out of a building, whenever it is closed or
+   switched away from, and at the start of each day. Continue on the title screen resumes exactly where you were. ================= */
 const SAVE_KEY='hollowSave1';
 const SAVE_SKIP=new Set(['mode','paused','room','night','introDrive','storm','autoCol']);
-function saveGame(){try{const s={};for(const k of Object.keys(S)){if(SAVE_SKIP.has(k))continue;const v=S[k];if(typeof v==='function')continue;try{s[k]=JSON.parse(JSON.stringify(v));}catch(e){}}
+function saveGame(mid){try{const s={};for(const k of Object.keys(S)){if(SAVE_SKIP.has(k))continue;const v=S[k];if(typeof v==='function')continue;try{s[k]=JSON.parse(JSON.stringify(v));}catch(e){}}
   const data={v:1,t:Date.now(),S:s,tiles:tiles.map(t=>[t.tilled?1:0,t.crop||null,t.debris&&t.debris.hide?1:0]),altars:altars.map(a=>a.lit?1:0),
-    bench:typeof BENCH_POS!=='undefined'?BENCH_POS:null,gh:{x:GH.x,z:GH.z},mind:M.v};
+    bench:typeof BENCH_POS!=='undefined'?BENCH_POS:null,gh:{x:GH.x,z:GH.z},mind:M.v,
+    mid:mid?{hour:S.hour,x:P.x,z:P.z,dir:P.dir,room:S.room||null}:null};
   localStorage.setItem(SAVE_KEY,JSON.stringify(data));return true;}catch(e){return false;}}
 function readSave(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');return d&&d.v===1?d:null;}catch(e){return null;}}
 function loadGame(d){const s=d.S;for(const k of Object.keys(s)){const v=s[k];if(v&&typeof v==='object'&&!Array.isArray(v)&&S[k]&&typeof S[k]==='object'&&!Array.isArray(S[k]))S[k]=Object.assign(S[k],v);else S[k]=v;}
@@ -3815,6 +3816,7 @@ function loadGame(d){const s=d.S;for(const k of Object.keys(s)){const v=s[k];if(
   d.altars.forEach((l,i)=>{if(altars[i])altars[i].lit=!!l;});
   if(S.coop||S.fieldLamps)rebuildFarm();benchesBoot();applyLook();M.v=d.mind==null?100:d.mind;
   S.hour=6;P.x=0;P.z=-7.6;P.fx=0;P.fz=1;P.dir='S';P.anim=null;H.state='gone';H.timer=6;H.vis=false;
+  if(d.mid){const m=d.mid;S.hour=Math.min(m.hour,25.5);const R=m.room&&ROOMS[m.room];if(R&&R.out){P.x=R.out.x;P.z=R.out.z;}else if(isFinite(m.x)&&isFinite(m.z)){P.x=m.x;P.z=m.z;collide(P,.3);}P.dir=m.dir||'S';}
   if(!S.bound){scare.vis=true;placeScarecrow(S.day);}placeNPCs();spawnMushrooms();if(S.cat==='lost')resetCat();
   try{syncSlots&&syncSlots();renderHotbar&&renderHotbar();}catch(e){}}
 // the saved mark in the corner
@@ -3822,10 +3824,18 @@ function loadGame(d){const s=d.S;for(const k of Object.keys(s)){const v=s[k];if(
 function savedMark(txt){const el=$('saved');el.textContent=txt;el.style.opacity=1;setTimeout(()=>el.style.opacity=0,2600);}
 {const _nd=newDay;newDay=function(msg,pos){_nd(msg,pos);setTimeout(()=>{if(S.mode==='end'||S.mode==='title')return;if(saveGame())savedMark(typeof saveLine==='function'?saveLine():'Saved');},600);};}
 // Continue on the title screen
-{const d=readSave();if(d){const b=document.createElement('button');b.className='begin';b.id='cont';b.textContent=`Continue · Day ${d.S.day}`;b.style.marginBottom='10px';
+{const d=readSave();if(d){const b=document.createElement('button');b.className='begin';b.id='cont';b.textContent=`Continue · Day ${d.S.day}`+(d.mid?`, ${fmtTime(d.mid.hour)}`:'');b.style.marginBottom='10px';
   $('begin').before(b);$('begin').classList.add('second');$('begin').textContent='New game';
   b.addEventListener('click',()=>{A.init&&A.init();$('title').hidden=true;finishIntro();loadGame(readSave());$('toast').classList.remove('show');
-    setTimeout(()=>toast(`Day ${S.day}. You wake in Grandpa’s bed. It is exactly as warm as you left it.`,3.6),300);});}}
+    const dd=readSave();setTimeout(()=>toast(dd&&dd.mid?`Day ${S.day}, ${fmtTime(S.hour)}. Right where you left off. Something kept your place.`:`Day ${S.day}. You wake in Grandpa’s bed. It is exactly as warm as you left it.`,3.6),300);});}}
+
+// autosave: every 30 seconds of play, on going in or out of a building, and whenever the game is closed, hidden or switched away from
+let autoT=30;const canAuto=()=>S.mode==='play'&&!S.paused&&!(S.st&&S.st.done&&!$('end').hidden)&&S.readLetter;
+function autoSave(){if(!canAuto())return false;return saveGame(true);}
+{const _mu=mindUpdate;mindUpdate=function(dt){_mu(dt);autoT-=dt;if(autoT<=0){autoT=30;autoSave();}};}
+{const _er=enterRoom;enterRoom=function(){const r=_er.apply(this,arguments);setTimeout(autoSave,700);return r;};const _lr=leaveRoom;leaveRoom=function(){const r=_lr.apply(this,arguments);setTimeout(autoSave,700);return r;};}
+const flushSave=()=>{if(S.mode==='play'&&S.readLetter&&!(S.st&&S.st.done&&!$('end').hidden))saveGame(true);};
+addEventListener('pagehide',flushSave);addEventListener('beforeunload',flushSave);document.addEventListener('visibilitychange',()=>{if(document.hidden)flushSave();});
 
 /* ================= progression: the Ward (six bundles kept at the church that gate the story) and Mae's lessons (one long,
    guided tutorial that walks you through every system the farm has, with a reward for each). ================= */

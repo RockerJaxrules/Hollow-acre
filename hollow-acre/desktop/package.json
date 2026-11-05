@@ -1,20 +1,31 @@
 {
   "name": "hollow-acre",
   "productName": "Hollow Acre",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A psychological-horror farming game.",
+  "author": "Hollow Acre",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
-    "dist": "electron-builder --win --mac --linux"
+    "copy": "node copy-game.js",
+    "start": "node copy-game.js && electron .",
+    "dist": "node copy-game.js && electron-builder --publish never",
+    "dist:win": "node copy-game.js && electron-builder --win --publish never",
+    "dist:mac": "node copy-game.js && electron-builder --mac --publish never",
+    "dist:linux": "node copy-game.js && electron-builder --linux --publish never"
   },
   "devDependencies": {
-    "electron": "^33.0.0",
-    "electron-builder": "^25.0.0"
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8"
   },
   "build": {
     "appId": "com.hollowacre.game",
+    "productName": "Hollow Acre",
     "files": ["main.js", "game/**/*"],
-    "extraMetadata": {"main": "main.js"}
+    "directories": {"buildResources": "build", "output": "dist"},
+    "icon": "build/icon.png",
+    "win": {"target": ["nsis", "portable"]},
+    "nsis": {"oneClick": false, "allowToChangeInstallationDirectory": true, "shortcutName": "Hollow Acre"},
+    "mac": {"target": ["dmg"], "category": "public.app-category.games"},
+    "linux": {"target": ["AppImage", "deb"], "category": "Game", "maintainer": "Hollow Acre"}
   }
 }

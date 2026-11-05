@@ -1,0 +1,19 @@
+{
+  "name": "hollow-acre-mobile",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Hollow Acre for Android (and iOS), built with Capacitor.",
+  "scripts": {
+    "copy": "node copy-game.js",
+    "android": "node copy-game.js && npx cap add android || true && npx cap sync android",
+    "ios": "node copy-game.js && npx cap add ios || true && npx cap sync ios"
+  },
+  "dependencies": {
+    "@capacitor/android": "6.1.2",
+    "@capacitor/core": "6.1.2",
+    "@capacitor/ios": "6.1.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "6.1.2"
+  }
+}
