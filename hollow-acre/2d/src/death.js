@@ -24,4 +24,4 @@ $('deathWake').addEventListener('click',()=>{$('death').style.display='none';
   S.hp=S.hpMax*.5;S.mode='play';newDay('You wake in your bed. You remember dying. Your body doesn’t. Somebody washed your clothes.');});
 // after a death the game reopens straight into the morning
 {let f=null;try{f=sessionStorage.getItem('hollowAutoCont');sessionStorage.removeItem('hollowAutoCont');}catch(e){}
-  if(f==='died'){const go=()=>{if($('loadScr')||S.mode!=='title'){setTimeout(go,250);return;}const b=$('cont');if(b){b.click();setTimeout(()=>toast(`Day ${S.day}. Morning. You remember dying. Nobody else does.`,4.6,true),900);}};setTimeout(go,300);}}
+  if(f==='died'||f==='update'){const go=()=>{if($('loadScr')||S.mode!=='title'){setTimeout(go,250);return;}const b=$('cont');if(b){b.click();setTimeout(()=>f==='died'?toast(`Day ${S.day}. Morning. You remember dying. Nobody else does.`,4.6,true):toast('Updated to the newest version. Right where you left off.',3.6),900);}};setTimeout(go,300);}}

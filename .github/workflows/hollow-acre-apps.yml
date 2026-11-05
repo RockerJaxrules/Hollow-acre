@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Collect the web build
-        run: mkdir -p web && cp -r hollow-acre/2d/index.html hollow-acre/2d/spr hollow-acre/2d/CREDITS.txt hollow-acre/2d/vendor hollow-acre/2d/manifest.webmanifest hollow-acre/2d/icon-192.png hollow-acre/2d/icon-512.png web/
+        run: mkdir -p web && cp -r hollow-acre/2d/index.html hollow-acre/2d/spr hollow-acre/2d/CREDITS.txt hollow-acre/2d/vendor hollow-acre/2d/manifest.webmanifest hollow-acre/2d/icon-192.png hollow-acre/2d/icon-512.png hollow-acre/2d/sw.js hollow-acre/2d/version.json web/
       - uses: actions/upload-artifact@v4
         with:
           name: HollowAcre-web
