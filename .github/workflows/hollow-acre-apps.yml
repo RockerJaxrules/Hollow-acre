@@ -1,5 +1,5 @@
 # Builds Hollow Acre as real apps on every change: Windows (installer + portable .exe), macOS (.dmg), Linux (AppImage + .deb)
-# and Android (.apk). Download them from the run's "Artifacts" section.
+# Android (.apk) and the web version (upload to itch.io or any website). Download them from the run's "Artifacts" section.
 name: Hollow Acre apps
 on:
   push:
@@ -8,6 +8,17 @@ on:
 permissions:
   contents: read
 jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect the web build
+        run: mkdir -p web && cp -r hollow-acre/2d/index.html hollow-acre/2d/spr hollow-acre/2d/CREDITS.txt hollow-acre/2d/vendor web/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HollowAcre-web
+          path: web
+          if-no-files-found: error
   desktop:
     strategy:
       fail-fast: false
