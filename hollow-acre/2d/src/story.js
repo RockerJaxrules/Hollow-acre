@@ -46,46 +46,50 @@ const ST_TALK=['Happy birthday. Early, I know. We’re all early this week.','We
 
 // ---- the countdown on the clock
 {const el=document.createElement('div');el.className='tithe';el.id='titheCd';el.style.cssText='font-size:11px;letter-spacing:.06em;margin-top:3px;color:#d98a5a;display:none';$('clock').appendChild(el);}
-function stHud(){const el=$('titheCd');if(!S.st.tithe||S.st.done){el.style.display='none';return;}const L=stLeft();el.style.display='';
+function stHud(){const el=$('titheCd');if(!S.st.started||S.st.done){el.style.display='none';return;}el.style.display='';if(!S.st.tithe){el.textContent='The drawing: when the door is quiet';return;}const L=stLeft();
   let t=L>1?`The drawing in ${L-1} day${L-1>1?'s':''}`:L===1?'The drawing is tonight':'Tithe night';
   if(stLast()&&Math.floor(performance.now()/2300)%7===0)t=pick(['Your birthday','Happy birthday','Day 0','Stay']);el.textContent=t;}
 
 // ---- objectives
-{const _o=objective;objective=function(){if(!S.bound||!S.st.tithe||S.st.done)return _o();const st=S.st,L=stLeft();
+{const _o=objective;objective=function(){if(!S.bound||!S.st.started||S.st.done)return _o();const st=S.st,L=stLeft();
   if(stLeft()<=2&&Math.floor(performance.now()/1700)%6===0)return ['Stay','Stay. Stay. Stay. Stay. Stay. Stay.',null];
   if(L===0)return ['Tithe night',isNight()?'Walk down Mill Road to the Tithe House. They are all waiting.':'Tonight, after the bell, walk to the Tithe House at the end of Mill Road.',TITHE_DOOR];
   if(L===1&&!st.drawn)return ['The drawing','Be at the church at six. Everyone will be.',CHURCH_STEP];
   if(st.mail)return ['A letter','There is a letter in your mailbox. The handwriting is yours.',MAILPOS];
   if(st.act===2){const left=ST_PLACES.filter(p=>!st.seen[p.k]).sort((a,b)=>Math.hypot(a.x-P.x,a.z-P.z)-Math.hypot(b.x-P.x,b.z-P.z));
-    return ['The Tithe',`Learn what the valley hides. Places ${5-left.length}/5 · Things known ${Math.min(stKnown(),8)}/8`+(left.length?` · Next: ${left[0].name}`:' · Make friends, ask questions.'),left[0]||null];}
+    const wd=wardDone();if(!left.length&&stKnown()>=8&&wd<2)return ['The Ward',`Hale says the valley only answers those who keep the Ward. Offer two bundles at the church ledger. ${wd}/2`,CHURCH_STEP];
+    return ['The Tithe',`Learn what the valley hides. Places ${5-left.length}/5 · Things known ${Math.min(stKnown(),8)}/8 · Ward ${Math.min(wd,2)}/2`+(left.length?` · Next: ${left[0].name}`:' · Talk to people, ask questions.'),left[0]||null];}
   const miss=[['dock','under the Black Lake dock',{x:LAKE.x,z:LAKE.z-LAKE.rz+1.6}],['tree','in the hollow tree, at noon',HOLLOW_TREE],['bed','under your bed',doorPos]].filter(m=>!st.got[m[0]]);
-  if(miss.length)return ['Three stones',`Bring back what held the door. ${3-miss.length}/3 found. One is ${miss[0][1]}.`,miss[0][2]];
+  if(miss.length){const need={dock:S.rod<2?' You need a stronger rod (Otto sells the ash rod).':'',tree:S.tools.axe<2?' You need a steel axe (Hollis, 3 iron).':'',bed:S.tools.pick<2?' You need a steel pickaxe (Hollis, 3 copper + 4 iron).':''}[miss[0][0]];
+    return ['Three stones',`Bring back what held the door. ${3-miss.length}/3 found. One is ${miss[0][1]}.${need}`,miss[0][2]];}
   const carry=Object.keys(st.got).length-st.set;
   if(carry>0)return ['Three stones',`Set the stones on the Tithe House doorstep. ${st.set}/3`,TITHE_DOOR];
-  return ['The last days',`The drawing is in ${L-1} day${L-1>1?'s':''}. The stones are set. Make friends. Make plans. Keep what they give you.`,null];};}
+  const wd=wardDone();return ['The last days',`The drawing is in ${L-1} day${L-1>1?'s':''}. Make friends. Make plans. Keep what they give you.`+(wd<WARD.length?` Ward ${wd}/${WARD.length}: a full Ward might open another way.`:''),wd<WARD.length?CHURCH_STEP:null];};}
 
 // ---- starting Chapter Two once the Hollow is bound
-function stStart(){const st=S.st;st.tithe=28*Math.ceil((S.day+12)/28);st.act=2;
-  setTimeout(()=>openNote(`<h3>Chapter Two: The Tithe</h3><p>The bell rang on its own the night you bound it. Since then nobody in town will say your name out loud.</p><p>Mae tells you the drawing is on the ${st.tithe-1}th. She says it like you already know what that means. Cora has a number chalked on her blackboard. It goes down by one every morning.</p><p>Find out what the Tithe is.</p>`,'Find out',()=>{}),900);}
+function stStart(){const st=S.st;st.started=true;st.tithe=0;st.act=2;
+  setTimeout(()=>openNote(`<h3>Chapter Two: The Tithe</h3><p>The bell rang on its own the night you bound it. Since then nobody in town will say your name out loud.</p><p>Mae tells you there will be a drawing. Nobody will say when. <q>When the door is quiet,</q> Hale says, and won’t explain. Cora has chalked a number on her blackboard that hasn’t started counting yet.</p><p>Ask people. Mae, Hale and Della know the most. Keep the Ward at the church.</p><p>Find out what the Tithe is.</p>`,'Find out',()=>{}),900);}
 
 // ---- interactions
 interact.push({x:MAILPOS.x,z:MAILPOS.z,r:1.1,on:()=>!!S.st.mail,label:()=>'Read',ok:()=>true,act(){const L=S.st.mail;S.st.mail=null;S.st.lettersRead++;SFX.page&&SFX.page();
   const day=S.day+1;openNote(`<h3>Day ${day}</h3><p>${ST_LETTERS[L]}</p>${L==='epi_door'?'':'<p style="text-align:right">— you</p>'}`,'Keep it',()=>{mindHit(L==='first'?6:4);if(L==='first'){S.st.act=3;addLore('A letter in my handwriting: the three stones are under the dock, in the hollow tree at noon, and under my bed. Put them back.');}});}});
-interact.push({x:LAKE.x,z:LAKE.z-LAKE.rz+1.6,r:1.6,on:()=>S.st.act>=3&&!S.st.got.dock,label:()=>'Reach under',ok:()=>true,act(){S.st.got.dock=1;SFX.thud&&SFX.thud(0,.3);mindHit(6);
-  toast('You follow the cord down into the cold. Something takes your wrist. Holds it. Lets go. In your hand: a black stone, warm as skin.',4,true);}});
+interact.push({x:LAKE.x,z:LAKE.z-LAKE.rz+1.6,r:1.6,on:()=>S.st.act>=3&&!S.st.got.dock,label:()=>S.rod<2?'Cord':'Hook it',ok:()=>true,act(){if(S.rod<2){toast('The cord goes straight down into black water. Your arm isn’t long enough and your rod would snap. Otto sells an ash rod that might hook it.',4);SFX.deny();return;}S.st.got.dock=1;SFX.thud&&SFX.thud(0,.3);mindHit(6);
+  toast('You hook the cord and haul. It fights like a fish, then like a hand. Then it lets go. On the end: a black stone, warm as skin.',4,true);}});
 interact.push({x:HOLLOW_TREE.x,z:HOLLOW_TREE.z-1.3,r:1.8,on:()=>S.st.act>=3&&!S.st.got.tree,label:()=>'Reach in',ok:()=>true,act(){
   if(S.hour<11.5||S.hour>13){toast('The hollow is only dark. The carving says WHEN THE SUN IS IN. Come back at noon.',3);SFX.deny();return;}
+  if(S.tools.axe<2){toast('The light goes in, but the hollow has grown shut around something. Your axe just bounces. A steel axe would split it.',3.6);SFX.deny();return;}
   S.st.got.tree=1;mindHit(5);toast('At noon the light goes straight down into the tree. A black stone sits in the bottom, and a child’s tooth beside it. You take the stone.',4,true);}});
 {const bd=interact.find(e=>e.on===undefined?false:Math.abs(e.x-BEDPOS.x)<.01&&Math.abs(e.z-BEDPOS.z)<.01&&e.r===1.3);const _l=bd.label,_a=bd.act;const want=()=>S.st.act>=3&&!S.st.got.bed;
   bd.label=()=>want()?'Look under':_l();
-  bd.act=function(){if(!want())return _a.call(this);S.st.got.bed=1;mindHit(8);SFX.stinger&&SFX.stinger();
+  bd.act=function(){if(!want())return _a.call(this);if(S.tools.pick<2){toast('Under the bed the boards are nailed down, and something underneath is warm. Your pickaxe can’t pry them. A steel one could.',3.8);SFX.deny();return;}S.st.got.bed=1;mindHit(8);SFX.stinger&&SFX.stinger();
     toast('It was always here. Under where you sleep. The floor beneath it is worn smooth, as if someone has been lying under your bed every night, holding it.',4.2,true);};}
 // the Tithe House door: setting the stones, and the choice on Tithe night
 {const td=interact.find(e=>e.x===TITHE.x&&Math.abs(e.z-(TITHE.z-1.15))<.01);const _act=td.act;
   td.label=()=>stTitheNight()&&isNight()?'Open':(Object.keys(S.st.got).length>S.st.set?'Set stones':'Door');
   td.act=function(){const st=S.st;if(stTitheNight()&&isNight()){stChoice();return;}
     const carry=Object.keys(st.got).length-st.set;if(carry>0){st.set+=carry;SFX.thud&&SFX.thud(0,.5);mindHit(3);
-      toast(st.set>=3?'Three stones on the step. The door is quiet for the first time. Then, from inside, something knocks back. Three times.':`You set ${carry>1?'the stones':'the stone'} on the step. ${st.set}/3. The nails hum.`,3.6,true);return;}
+      if(st.set>=3&&!st.tithe){st.tithe=S.day+8;setTimeout(()=>openNote('<h3>The door is quiet</h3><p>Three stones on the step. The door is quiet for the first time in a hundred and fifty years. Then, from inside, something knocks back. Three times.</p><p>That night the church bell rings once, by itself. In the morning Cora’s blackboard says <b>7</b>.</p><p>The drawing is in seven days.</p>','Seven days',()=>mindHit(8)),400);return;}
+      toast(`You set ${carry>1?'the stones':'the stone'} on the step. ${st.set}/3. The nails hum.`,3.6,true);return;}
     if(st.tithe&&!st.done&&stLeft()<=3){toast('The nails have been pulled. Every one. Someone has swept the step for you.',3.2,true);mindHit(3);return;}
     _act.call(this);};}
 // in the last days, the Marsh place door opens into your own cabin
@@ -108,7 +112,7 @@ Hale reaches in without looking and unfolds a slip. He doesn’t need to read it
 // ---- the choice at the door
 function stChoice(){const st=S.st,danny=S.lore.some(l=>l.startsWith('Danny’s letter'));
   const opts=[
-    ['door','Push the door open from this side',st.set>=3&&stHas('shard')&&stHas('ribbon')&&danny,'Needs the three stones on the step, the fourth shard, Ruth’s ribbon, and Danny’s letter'],
+    ['door','Push the door open from this side',st.set>=3&&stHas('shard')&&stHas('ribbon')&&danny&&wardDone()>=WARD.length,'Needs the full Ward, the fourth shard, Ruth’s ribbon, and Danny’s letter'],
     ['shore','Run for the Black Lake with Vera',stHas('gascan')&&stHas('vera'),'Needs something to start the boat, and someone who won’t let go'],
     ['truck','Go back for Tobias and Walt’s truck',stHas('truckkey'),'Needs a key nobody has used in twenty-five years'],
     ['dunn','Let Dunn go in your place',stHas('dunnslip'),'Needs someone to put their own name in the hat'],
@@ -177,9 +181,8 @@ $('keepFarming').addEventListener('click',()=>{const st=S.st;ui.toast.style.visi
 // ---- days: letters, missed drawings, the night you don't go
 {const _nd=newDay;newDay=function(msg,pos){const st=S.st;
   if(stTitheNight()&&S.mode!=='end'){S.mode='play';fade(0);stEnding('taken');return;}
-  _nd(msg,pos);if(!st.tithe||st.done)return;const L=stLeft();
+  _nd(msg,pos);if(!st.started||st.done)return;const L=stLeft();
   if(L<=0&&!st.drawn){st.drawn=true;setTimeout(()=>toast('You don’t remember the drawing. Everyone says you were there. Everyone says you stood up when they read your name.',5,true),4200);}
-  if(st.act===2&&L<=8){st.act=3;st.mail='first';st.mailDay=S.day;}
   else if(L>=1&&L<=6&&ST_LETTERS[L]&&!st.mail){st.mail=L;}
   if(st.mail)setTimeout(()=>toast('The flag on your mailbox is up.',2.6),4300);
   if(L===0)setTimeout(()=>toast('Tithe night. The whole valley is quiet. Even the birds are waiting.',4,true),4300);};}
@@ -188,12 +191,12 @@ $('keepFarming').addEventListener('click',()=>{const st=S.st;ui.toast.style.visi
 
 // ---- the story each frame
 {const _mu=mindUpdate;mindUpdate=function(dt){_mu(dt);storyUpdate(dt);};}
-function storyUpdate(dt){const st=S.st;stHud();if(!S.bound)return;if(!st.tithe){if(S.mode==='play'&&!S.paused&&$('end').hidden)stStart();return;}if(st.done)return;
+function storyUpdate(dt){const st=S.st;stHud();if(!S.bound)return;if(!st.started){if(S.mode==='play'&&!S.paused&&$('end').hidden)stStart();return;}if(st.done)return;
   const L=stLeft(),out=!S.room;
   // the places
   if(out&&st.act>=2)for(const p of ST_PLACES){if(st.seen[p.k])continue;if(Math.hypot(P.x-p.x,P.z-p.z)<p.r&&!S.paused&&S.mode==='play'){st.seen[p.k]=1;SFX.page&&SFX.page();
     openNote(`<h3>${p.name}</h3><p>${p.text}</p>`,'Remember this',()=>{addLore(p.lore);mindHit(4);});break;}}
-  if(st.act===2&&ST_PLACES.every(p=>st.seen[p.k])&&stKnown()>=8){st.act=3;st.mail='first';st.mailDay=S.day;toast('Back at the farm, the flag on your mailbox goes up. Nobody walked past it.',4,true);}
+  if(st.act===2&&ST_PLACES.every(p=>st.seen[p.k])&&stKnown()>=8&&wardDone()>=2){st.act=3;st.mail='first';st.mailDay=S.day;toast('Back at the farm, the flag on your mailbox goes up. Nobody walked past it.',4,true);}
   // the drawing at six on the eve
   if(L===1&&!st.drawn&&S.hour>=18&&S.mode==='play'&&!S.paused)stDrawing();
   // the last week

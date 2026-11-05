@@ -6,7 +6,7 @@ const {chromium,devices}=require('playwright');
  const ev=c=>pg.evaluate(c=>__game.ev(c),c);const act=async()=>{await pg.evaluate(()=>__game.act());await pg.waitForTimeout(300);};
  const closeNote=()=>ev("document.getElementById('note').hidden||document.getElementById('noteClose').click()");
  const scene=async()=>{for(let i=0;i<20;i++){const on=await ev("document.getElementById('scene').style.display==='flex'");if(!on)break;await pg.click('#scene');await pg.waitForTimeout(80);}};
- await ev("S.tut.off=true;S.readLetter=true;S.foundCabin=true;S.hour=10;S.bound=true");await pg.waitForTimeout(1500);
+ await ev("S.tut.off=true;S.readLetter=true;S.foundCabin=true;S.hour=10;S.bound=true;S.ward={field:1,timber:1,deep:1,water:1,hearth:1,kin:1};S.rod=2;S.tools.axe=2;S.tools.pick=2");await pg.waitForTimeout(1500);
  console.log('start',await ev("S.st.tithe+' act'+S.st.act+' note:'+!document.getElementById('note').hidden"));await pg.screenshot({path:'ST1.png'});await closeNote();
  console.log('obj',await ev("objective().slice(0,2).join(' | ')"));
  for(const p of ['marsh','tithe','tree','lake','wick']){await ev(`const q=ST_PLACES.find(x=>x.k==='${p}');P.x=q.x;P.z=q.z`);await pg.waitForTimeout(500);if(p==='marsh')await pg.screenshot({path:'ST2.png'});await closeNote();}
@@ -18,7 +18,7 @@ const {chromium,devices}=require('playwright');
  await ev("S.hour=12;P.x=HOLLOW_TREE.x;P.z=HOLLOW_TREE.z-2.2;P.fx=0;P.fz=1;P.dir='S'");await pg.waitForTimeout(300);console.log('tree btn',await pg.evaluate(()=>document.getElementById('btnAct').textContent));await act();
  await ev("enterRoom('cabin')");await pg.waitForTimeout(900);await ev("P.x=BEDPOS.x;P.z=BEDPOS.z+.5;P.fx=0;P.fz=-1;P.dir='N'");await pg.waitForTimeout(300);console.log('bed btn',await pg.evaluate(()=>document.getElementById('btnAct').textContent));await act();await pg.screenshot({path:'ST4.png'});
  await ev("leaveRoom(1)");await pg.waitForTimeout(700);console.log('got',await ev("Object.keys(S.st.got).join(',')+' | '+objective()[1]"));
- await ev("P.x=TITHE_DOOR.x;P.z=TITHE_DOOR.z+.8;P.fx=0;P.fz=-1;P.dir='N'");await pg.waitForTimeout(300);console.log('door btn',await pg.evaluate(()=>document.getElementById('btnAct').textContent));await act();console.log('set',await ev("S.st.set"));
+ await ev("P.x=TITHE_DOOR.x;P.z=TITHE_DOOR.z+.8;P.fx=0;P.fz=-1;P.dir='N'");await pg.waitForTimeout(300);console.log('door btn',await pg.evaluate(()=>document.getElementById('btnAct').textContent));await act();await pg.waitForTimeout(700);console.log('set',await ev("S.st.set+' tithe '+S.st.tithe+' left '+stLeft()"));await closeNote();
  await pg.screenshot({path:'ST5.png'});
  // last week
  await ev("S.day=S.st.tithe-7;newDay()");await pg.waitForTimeout(300);console.log('L',await ev("stLeft()+' mail '+S.st.mail+' hud '+document.getElementById('titheCd').textContent"));

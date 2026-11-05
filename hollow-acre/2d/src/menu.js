@@ -74,12 +74,12 @@ setInterval(()=>{if($('hotbar')&&$('hotbar').style.display!=='none')renderHotbar
 let GM_TAB='items';
 const _obChain=openBag;
 openBag=function(tab){GM_TAB=tab||GM_TAB||'items';S.paused=true;const bag=$('bag');bag.id='bag';
-  if(!bag.querySelector('.tabs')){bag.dataset.gm=1;const t=document.createElement('div');t.className='tabs';t.innerHTML=['items:Items','social:Social','map:Map','journal:Journal'].map(s=>{const [k,l]=s.split(':');return `<button data-t="${k}">${l}</button>`;}).join('');
+  if(!bag.querySelector('.tabs')){bag.dataset.gm=1;const t=document.createElement('div');t.className='tabs';t.innerHTML=['items:Items','social:Social','map:Map','journal:Journal','coop:Together'].map(s=>{const [k,l]=s.split(':');return `<button data-t="${k}">${l}</button>`;}).join('');
     bag.querySelector('h2').after(t);t.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.t==='journal'){bag.hidden=true;S.paused=false;openJournal();return;}openBag(b.dataset.t);}));}
   bag.setAttribute('id','bag');document.getElementById('bag').classList.add('gmenu');bag.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===GM_TAB));
-  bag.querySelector('h2').textContent={items:'Backpack',social:'Neighbours',map:'Marrow Hollow',journal:'Journal'}[GM_TAB];
+  bag.querySelector('h2').textContent={items:'Backpack',social:'Neighbours',map:'Marrow Hollow',journal:'Journal',coop:'Together'}[GM_TAB];
   if(GM_TAB==='items'){_obChain();renderItems();}
-  else{$('bagSub').textContent='';$('bagBody').innerHTML='';bag.hidden=false;if(GM_TAB==='social')renderSocial();if(GM_TAB==='map')renderMap();}};
+  else{$('bagSub').textContent='';$('bagBody').innerHTML='';bag.hidden=false;if(GM_TAB==='social')renderSocial();if(GM_TAB==='map')renderMap();if(GM_TAB==='coop'&&typeof renderCoop==='function')renderCoop();}};
 $('bag').id='bag';
 function renderItems(){const B=$('bagBody');syncSlots();
   // keep what other systems appended (furniture, wardrobe) and swap the old lists for the grid
