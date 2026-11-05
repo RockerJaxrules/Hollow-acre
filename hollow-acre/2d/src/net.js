@@ -1,5 +1,5 @@
-/* ================= multiplayer anywhere. Everyone, on every device (a website, itch.io, the
-   desktop build, Steam) it uses direct peer-to-peer connections (WebRTC through the bundled Trystero library, MIT), finding other
+/* ================= multiplayer anywhere. On every device (a website, itch.io, the
+   desktop build, Android, Steam) the game uses direct peer-to-peer connections (WebRTC through the bundled Trystero library, MIT), finding other
    players through public relays, so no game server is needed. Claude's live room is only a fallback for a browser without WebRTC. ================= */
 const NET_APP='hollow-acre-valley-v1';
 function netRoom(name){const r=HollowNet.joinRoom({appId:NET_APP},name);let onData=()=>{};

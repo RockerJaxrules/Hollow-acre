@@ -4075,9 +4075,9 @@ function encUpdate(dt){const e=encLive();for(const [k,o] of Object.entries(encOb
   D.push({z:L.z,mind:1,draw(){shadow(sx(L.x),sz(L.z),9);drawSpr(e.who,sx(L.x),sz(L.z),clip,L.dir||e.dir||'S',L.mv?frameOf(e.who,'walk',L.t||0):0);}});};}
 {const _nd=newDay;newDay=function(msg,pos){_nd(msg,pos);for(const k in ENCX)delete ENCX[k];if(S.req&&S.day>S.req.due){toast(`${nm(S.req.id)} found someone else for the job.`,2.6);S.req=null;}postRequest();encPick();};}
 
-/* ================= multiplayer anywhere. On claude.ai the page uses Claude's live room. Everywhere else (a website, itch.io, the
-   desktop build, Steam) it uses direct peer-to-peer connections (WebRTC through the bundled Trystero library, MIT), finding other
-   players through public relays, so no game server is needed. Both look the same to coop.js. ================= */
+/* ================= multiplayer anywhere. On every device (a website, itch.io, the
+   desktop build, Android, Steam) the game uses direct peer-to-peer connections (WebRTC through the bundled Trystero library, MIT), finding other
+   players through public relays, so no game server is needed. Claude's live room is only a fallback for a browser without WebRTC. ================= */
 const NET_APP='hollow-acre-valley-v1';
 function netRoom(name){const r=HollowNet.joinRoom({appId:NET_APP},name);let onData=()=>{};
   const act=r.makeAction('pres',{onMessage:(d,ctx)=>onData(d,ctx&&ctx.peerId)});const old=Array.isArray(act);
