@@ -47,10 +47,7 @@ jobs:
       - run: npx cap sync android
       - name: App icon
         run: |
-          for d in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do n=${d%%:*}; s=${d##*:};
-            convert ../desktop/build/icon512.png -filter point -resize ${s}x${s} android/app/src/main/res/mipmap-$n/ic_launcher.png;
-            cp android/app/src/main/res/mipmap-$n/ic_launcher.png android/app/src/main/res/mipmap-$n/ic_launcher_round.png;
-            cp android/app/src/main/res/mipmap-$n/ic_launcher.png android/app/src/main/res/mipmap-$n/ic_launcher_foreground.png; done
+          cp -r icons/mipmap-* android/app/src/main/res/
           rm -rf android/app/src/main/res/mipmap-anydpi-v26
       - run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
         working-directory: hollow-acre/mobile/android
