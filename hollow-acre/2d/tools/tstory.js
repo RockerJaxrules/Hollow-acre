@@ -1,0 +1,32 @@
+const {chromium,devices}=require('playwright');
+(async()=>{const b=await chromium.launch();const pg=await b.newPage({...devices['iPhone 13']});const errs=[];pg.on('pageerror',e=>errs.push('ERR '+e.message));
+ await pg.route('**/fonts.googleapis.com/**',r=>r.abort());
+ await pg.goto('http://localhost:8766/test2d.html');await pg.waitForFunction(()=>!document.getElementById('loadScr'),null,{timeout:90000});
+ await pg.evaluate(()=>{document.getElementById('begin').click();document.getElementById('cGo').click();});await pg.waitForTimeout(300);await pg.evaluate(()=>__game.skip());await pg.waitForTimeout(400);
+ const ev=c=>pg.evaluate(c=>__game.ev(c),c);const act=async()=>{await pg.evaluate(()=>__game.act());await pg.waitForTimeout(300);};
+ const closeNote=()=>ev("document.getElementById('note').hidden||document.getElementById('noteClose').click()");
+ const scene=async()=>{for(let i=0;i<20;i++){const on=await ev("document.getElementById('scene').style.display==='flex'");if(!on)break;await pg.click('#scene');await pg.waitForTimeout(80);}};
+ await ev("S.tut.off=true;S.readLetter=true;S.foundCabin=true;S.hour=10;S.bound=true");await pg.waitForTimeout(1500);
+ console.log('start',await ev("S.st.tithe+' act'+S.st.act+' note:'+!document.getElementById('note').hidden"));await pg.screenshot({path:'ST1.png'});await closeNote();
+ console.log('obj',await ev("objective().slice(0,2).join(' | ')"));
+ for(const p of ['marsh','tithe','tree','lake','wick']){await ev(`const q=ST_PLACES.find(x=>x.k==='${p}');P.x=q.x;P.z=q.z`);await pg.waitForTimeout(500);if(p==='marsh')await pg.screenshot({path:'ST2.png'});await closeNote();}
+ console.log('seen',await ev("Object.keys(S.st.seen).join(',')+' known '+stKnown()"));
+ await ev("for(let i=0;i<4;i++)addLore('test lore '+i)");await pg.waitForTimeout(300);console.log('act',await ev("S.st.act+' mail '+S.st.mail+' | '+objective()[0]"));
+ await ev("P.x=MAILPOS.x+.6;P.z=MAILPOS.z;P.fx=-1;P.fz=0;P.dir='W'");await pg.waitForTimeout(300);console.log('btn',await pg.evaluate(()=>document.getElementById('btnAct').textContent));await act();await pg.screenshot({path:'ST3.png'});await closeNote();
+ console.log('obj',await ev("objective().slice(0,2).join(' | ')"));
+ await ev("P.x=LAKE.x;P.z=LAKE.z-LAKE.rz+.9;P.fx=0;P.fz=1;P.dir='S'");await pg.waitForTimeout(300);console.log('dock btn',await pg.evaluate(()=>document.getElementById('btnAct').textContent));await act();
+ await ev("S.hour=12;P.x=HOLLOW_TREE.x;P.z=HOLLOW_TREE.z-2.2;P.fx=0;P.fz=1;P.dir='S'");await pg.waitForTimeout(300);console.log('tree btn',await pg.evaluate(()=>document.getElementById('btnAct').textContent));await act();
+ await ev("enterRoom('cabin')");await pg.waitForTimeout(900);await ev("P.x=BEDPOS.x;P.z=BEDPOS.z+.5;P.fx=0;P.fz=-1;P.dir='N'");await pg.waitForTimeout(300);console.log('bed btn',await pg.evaluate(()=>document.getElementById('btnAct').textContent));await act();await pg.screenshot({path:'ST4.png'});
+ await ev("leaveRoom(1)");await pg.waitForTimeout(700);console.log('got',await ev("Object.keys(S.st.got).join(',')+' | '+objective()[1]"));
+ await ev("P.x=TITHE_DOOR.x;P.z=TITHE_DOOR.z+.8;P.fx=0;P.fz=-1;P.dir='N'");await pg.waitForTimeout(300);console.log('door btn',await pg.evaluate(()=>document.getElementById('btnAct').textContent));await act();console.log('set',await ev("S.st.set"));
+ await pg.screenshot({path:'ST5.png'});
+ // last week
+ await ev("S.day=S.st.tithe-7;newDay()");await pg.waitForTimeout(300);console.log('L',await ev("stLeft()+' mail '+S.st.mail+' hud '+document.getElementById('titheCd').textContent"));
+ await ev("S.hour=11;P.x=48;P.z=-6;placeNPCs()");await pg.waitForTimeout(1500);console.log('frz',await ev("S.st.frz.toFixed(1)+' near '+npcs.filter(n=>n.vis&&Math.hypot(n.x-P.x,n.z-P.z)<14).length"));await pg.screenshot({path:'ST6.png'});
+ await ev("S.day=S.st.tithe-2;newDay()");await pg.waitForTimeout(300);await ev("S.hour=17.9");await pg.waitForTimeout(3000);console.log('drawing',await ev("S.st.drawn+' '+document.getElementById('scene').style.display"));await pg.screenshot({path:'ST7.png'});await scene();
+ await ev("S.day=S.st.tithe-1;newDay()");await pg.waitForTimeout(300);await ev("S.hour=21;S.keyItems=['shard','ribbon','gascan','vera','tag'];S.lore.push('Danny’s letter: x');S.st.got.bed=1;S.st.set=3;P.x=20;P.z=40");await pg.waitForTimeout(800);await pg.screenshot({path:'ST8.png'});
+ await ev("P.x=TITHE_DOOR.x;P.z=TITHE_DOOR.z+.8;P.fx=0;P.fz=-1;P.dir='N'");await pg.waitForTimeout(300);console.log('tithe btn',await pg.evaluate(()=>document.getElementById('btnAct').textContent));await act();await pg.screenshot({path:'ST9.png'});
+ await pg.click('.endc[data-e="door"]');await pg.waitForTimeout(400);await pg.screenshot({path:'ST10.png'});await scene();await pg.waitForTimeout(400);await pg.screenshot({path:'ST11.png'});
+ console.log('end',await ev("S.st.ending+' '+document.querySelector('#end h1').textContent+' | '+document.querySelector('#end .kicker').textContent"));
+ await pg.click('#keepFarming');await pg.waitForTimeout(1500);console.log('after',await ev("S.mode+' '+objective()[0]"));
+ console.log(errs.slice(0,5).join('\n'));await b.close();})();
