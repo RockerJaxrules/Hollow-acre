@@ -3,7 +3,8 @@
   "productName": "Hollow Acre",
   "version": "0.2.0",
   "description": "A psychological-horror farming game.",
-  "author": "Hollow Acre",
+  "author": {"name": "Hollow Acre", "email": "hollowacre@users.noreply.github.com"},
+  "homepage": "https://github.com/RockerJaxrules/Minecraftbot",
   "main": "main.js",
   "scripts": {
     "copy": "node copy-game.js",
