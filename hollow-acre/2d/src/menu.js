@@ -58,8 +58,8 @@ addEventListener('wheel',e=>{if(S.mode!=='play'||S.paused||!$('hud')||$('hud').h
 .soc{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px}.soc .p{display:flex;gap:8px;align-items:center;padding:6px 8px;background:rgba(233,223,198,.05);box-shadow:inset 0 0 0 2px #3a2414;cursor:pointer}
 .soc .p canvas{width:40px;height:40px;image-rendering:pixelated;background:#c8955a;box-shadow:inset 0 0 0 2px #5a3418}.soc .p .h{color:#e8504a;letter-spacing:1px;font-size:13px}.soc .p .h i{color:#6a4a3a;font-style:normal}
 .soc .p small{display:block;color:var(--dim);font-size:11px}.soc .p .tk{font-size:11px;color:#9fc07a}
-#mapWrap{position:relative;overflow:auto;max-height:60vh;background:#1a120a;box-shadow:inset 0 0 0 3px #5a3418}#mapCv{display:block;image-rendering:pixelated;width:100%}
-#mapWrap .lbl{position:absolute;transform:translate(-50%,-50%);font:12px/1 'Pixelify Sans',monospace;color:#fff4dc;text-shadow:1px 1px 0 #000,-1px -1px 0 #000;pointer-events:none;white-space:nowrap}
+#mapWrap{position:relative;overflow:auto;max-height:62vh;-webkit-overflow-scrolling:touch;background:#1a120a;box-shadow:inset 0 0 0 3px #5a3418}#mapCv{display:block;image-rendering:pixelated;width:max(100%,1100px)}
+#mapWrap .lbl{position:absolute;transform:translate(-50%,-50%);font:11px/1 'Pixelify Sans',monospace;color:#fff4dc;text-shadow:1px 1px 0 #000,-1px -1px 0 #000;pointer-events:none;white-space:nowrap}
 #mapWrap .you{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;background:#ff3a2a;box-shadow:0 0 0 2px #fff;border-radius:50%;animation:mapPulse .9s steps(2) infinite}
 @keyframes mapPulse{50%{transform:scale(1.5)}}`;document.head.appendChild(css);}
 function renderHotbar(){const hb=$('hotbar');if(!hb)return;syncSlots();const n=slotsVisible();
@@ -142,9 +142,9 @@ function buildMapCanvas(){const s=3;const W=Math.round((B.x1-B.x0)*s),H=Math.rou
   return c;}
 function renderMap(){const B2=$('bagBody');$('bagSub').textContent=S.room?'You are indoors.':'Where you are now blinks.';if(!MAP_CV)MAP_CV=buildMapCanvas();
   B2.innerHTML='<div id="mapWrap"><canvas id="mapCv"></canvas></div>';const cv=$('mapCv');cv.width=MAP_CV.width;cv.height=MAP_CV.height;cv.getContext('2d').drawImage(MAP_CV,0,0);
-  const wrap=$('mapWrap');const pct=(x,z)=>[((x-B.x0)/(B.x1-B.x0))*100,((z-B.z0)/(B.z1-B.z0))*100];
-  for(const [n,x,z] of MAP_PLACES){const [l,t]=pct(x,z);const d=document.createElement('div');d.className='lbl';d.style.left=l+'%';d.style.top=t+'%';d.textContent=n;wrap.appendChild(d);}
-  let px=P.x,pz=P.z;const R=roomOf&&roomOf();if(R&&R.out){px=R.out.x;pz=R.out.z;}const [l,t]=pct(px,pz);const y=document.createElement('div');y.className='you';y.style.left=l+'%';y.style.top=t+'%';wrap.appendChild(y);
+  const wrap=$('mapWrap');const pct=(x,z)=>[((x-B.x0)/(B.x1-B.x0))*100,((z-B.z0)/(B.z1-B.z0))*100];const inner=document.createElement('div');inner.style.cssText='position:relative;width:max(100%,1100px)';cv.after(inner);inner.appendChild(cv);const wrap0=wrap;
+  for(const [n,x,z] of MAP_PLACES){const [l,t]=pct(x,z);const d=document.createElement('div');d.className='lbl';d.style.left=l+'%';d.style.top=t+'%';d.textContent=n;inner.appendChild(d);}
+  let px=P.x,pz=P.z;const R=roomOf&&roomOf();if(R&&R.out){px=R.out.x;pz=R.out.z;}const [l,t]=pct(px,pz);const y=document.createElement('div');y.className='you';y.style.left=l+'%';y.style.top=t+'%';inner.appendChild(y);
   $('bag').hidden=false;requestAnimationFrame(()=>{wrap.scrollLeft=(l/100)*wrap.scrollWidth-wrap.clientWidth/2;wrap.scrollTop=(t/100)*wrap.scrollHeight-wrap.clientHeight/2;});}
 const HEART_MAX=()=>Math.round(FRIEND_MAX/100);
 addEventListener('keydown',e=>{if(S.mode!=='play')return;if(e.code==='KeyM'&&!S.paused){openBag('map');e.preventDefault();}if((e.code==='KeyE'||e.code==='Tab')&&!S.paused){openBag('items');e.preventDefault();}});

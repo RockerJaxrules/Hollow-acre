@@ -16,6 +16,7 @@ HOUSES = {
   'shop_forge': dict(bw=6, siding='stone', roof='slate', trim='stone', door='wood', shutters=False, wins=[1, 4], chimney=-1.6, seed=71, kind='stone', sign='ARMOURER  SMITH', wallH=72, winY=16),
   'shop_carp': dict(bw=6, siding='mustard', roof='bark', trim='cream', door='wood', shutters=False, wins=[1, 4], chimney=None, seed=73, awning=True, sign='HARTLEY CARPENTRY', wallH=70, winY=16),
   'shop_feed': dict(bw=6, siding='red', roof='slate', trim='white', door='wood', shutters=False, wins=[1, 4], chimney=None, seed=75, sign='FEED AND STOCK', wallH=70, winY=16, bigdoor=True, bigdoorX=-.2, doorX=1.9),
+  'inn': dict(bw=10, siding='sage', roof='slate', trim='cream', door='red', shutters=True, wins=[1, 3, 6, 8], chimney=2.6, seed=53, awning=False, sign='LANTERN INN', wallH=74, winY=18),
   'shop_bait': dict(bw=5, siding='blue', roof='slate', trim='white', door='teal', shutters=False, wins=[1, 3], chimney=None, seed=77, awning=True, sign='BAIT TACKLE', wallH=66, winY=16),
   'coop': dict(bw=3, siding='red', roof='slate', trim='white', door='wood', shutters=False, wins=[], chimney=None, seed=61, wallH=46, roofH=52, doorH=30),
 }

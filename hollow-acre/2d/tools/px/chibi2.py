@@ -26,6 +26,28 @@ MORE = {
   'ida': dict(accessory='flower', acc='#e86a8a', pattern='dots'),
 }
 for k, v in MORE.items(): NPC[k].update(v)
+# Wickham Crossing
+NPC.update({
+  'tess': dict(skin='#f2cfb0', hair='#c85a24', hairStyle='bun', outfit='dress', shirt='#e8e0d0', pants='#7a3a2e', apron=True, extra='#e8e0cc', shoes='#3a2618', accessory='scarf', acc='#c89a3a'),
+  'hob': dict(skin='#d49a70', hair='#3a2416', hairStyle='crop', outfit='tee', shirt='#5a6a3e', apron=True, extra='#c8b898', pants='#4a3e2e', shoes='#2a1a10', beard='full'),
+  'lyle': dict(skin='#e8b48c', hair='#9a9aa0', hairStyle='sidepart', outfit='vest', extra='#3a3a40', shirt='#e8e0d0', pants='#2e2e34', shoes='#1e1a18', glasses='square', beard='moustache'),
+  'vera': dict(skin='#e8b48c', hair='#14100e', hairStyle='bob', outfit='hoodie', shirt='#7a4a8a', pants='#2a3a5a', shoes='#e0d8c8', accessory='necklace', acc='#e8e8f0'),
+  'quinn': dict(skin='#c98c62', hair='#2a2018', hairStyle='short', outfit='longcoat', extra='#24222a', shirt='#e8e0d0', collar=True, pants='#24222a', shoes='#141218'),
+  'nan': dict(skin='#b8784c', hair='#e8e4dc', hairStyle='braids', outfit='sweater', shirt='#3a5a4a', pattern='stripes', pants='#3a3a30', shoes='#2a2010', hat='bucket', hatColor='#3a5a8a'),
+  'finn': dict(kid=True, skin='#b8784c', hair='#2a2018', hairStyle='curly', outfit='tee', shirt='#d8a030', pattern='stripes', pants='#3e6a9a', shoes='#3a2618'),
+  'iris': dict(skin='#f6d8c0', hair='#d8c27a', hairStyle='ponytail', outfit='cardigan', extra='#c86a8a', shirt='#e8e0d0', pants='#7a4a8a', shoes='#3a2618', glasses='round', accessory='flower', acc='#e86a8a'),
+  'moss': dict(skin='#d49a70', hair='#5a2a1a', hairStyle='shaggy', outfit='jacket', extra='#4f5a3a', shirt='#8a5a3a', pattern='plaid', pants='#3a3a30', shoes='#2a1a10', beard='stubble', hat='beanie', hatColor='#7a2e26'),
+  'ada': dict(skin='#e0c4a8', hair='#e8e4dc', hairStyle='long', hairLen=12, outfit='dress', shirt='#4a4a50', pants='#3a3a40', shoes='#2a2018', hollowEyes=True, smile=False, accessory='scarf', acc='#5a2a5a'),
+})
+# out past town
+NPC.update({
+  'orla': dict(skin='#e8b48c', hair='#a8a098', hairStyle='bun', outfit='dress', shirt='#7a4a3a', pants='#5a6a3e', apron=True, extra='#e8e0cc', shoes='#3a2618', accessory='headband', acc='#c84a4a', eye='#3a6a3a'),
+  'bram': dict(kid=True, skin='#f0c8a8', hair='#8a5a2a', hairStyle='shaggy', outfit='overalls', shirt='#d8603a', pattern='stripes', pants='#3e6a9a', shoes='#3a2618', eye='#3a6a3a'),
+  'abel': dict(skin='#d49a70', hair='#6a5a4a', hairStyle='buzz', outfit='tee', shirt='#e8e0d0', apron=True, extra='#c8b898', pants='#4a3e2e', shoes='#2a1a10', beard='moustache', hat='cap', hatColor='#e0d8c8'),
+  'della': dict(skin='#b8784c', hair='#2a1a14', hairStyle='braids', outfit='cardigan', extra='#8a6a9a', shirt='#e8e0d0', pants='#4a3e4e', shoes='#3a2618', glasses='round', accessory='necklace', acc='#f0d040'),
+  'maud': dict(skin='#c98c62', hair='#5a2a1a', hairStyle='ponytail', outfit='jacket', extra='#5a4a3a', shirt='#8a8a90', pants='#3a3a40', shoes='#1e1a18', accessory='bandana', acc='#b83a2a'),
+  'corwin': dict(skin='#e0c4a8', hair='#9a9aa0', hairStyle='shaggy', outfit='longcoat', extra='#3a4a5a', shirt='#c8b060', pants='#3a3a30', shoes='#2a2010', beard='stubble', hat='cap', hatColor='#c8a030'),
+})
 # player base colours: every recolourable region has its own base ramp
 BASE = dict(skin='#e8b48c', hair='#6a4224', eye='#3a5a7a', shirt='#b8402c', pants='#3a4e7a', shoes='#3a2618', extra='#6a7a3a', hatColor='#8a5a2a', acc='#c83a5a')
 OUTFITS = ['tee', 'shirt', 'overalls', 'jacket', 'dress', 'hoodie', 'vest', 'sweater', 'tank', 'turtleneck', 'cardigan', 'openshirt', 'skirt', 'longcoat']

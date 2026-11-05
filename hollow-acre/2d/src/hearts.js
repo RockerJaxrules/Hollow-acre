@@ -89,7 +89,7 @@ openGift=function(n){if(!n)return;const id=n.def.id,P_=PEOPLE[id];const ks=gifta
       $('talkLine').innerHTML=`<q>${bd?(r==='hate'?'On my birthday? Really?':'For my birthday? Oh… nobody does that here. Thank you.')+' ':''}${P_.gift[r]}</q>`;row.remove();$('talkGift').hidden=true;updateHud();});row.appendChild(b);}
   if(!row.children.length)row.innerHTML='<span class="sub">You have nothing to give.</span>';acts.before(row);};
 // rewards from the new scenes
-{const _sr=socialReward;socialReward=function(r){_sr(r);const K={truckkey:'Walt’s truck key',bellkey:'The belfry key',ribbon:'Ruth’s ribbon',dunnslip:'Dunn’s slip',tag:'A brass ear tag',nailblade:'The nail blade'};
+{const _sr=socialReward;socialReward=function(r){_sr(r);const K={truckkey:'Walt’s truck key',bellkey:'The belfry key',ribbon:'Ruth’s ribbon',dunnslip:'Dunn’s slip',tag:'A brass ear tag',nailblade:'The nail blade',flour:'A jar of grey flour',shard:'The fourth shard',gascan:'Corwin’s gas can'};
   if(K[r]){S.keyItems=S.keyItems||[];if(!S.keyItems.includes(r))S.keyItems.push(r);toast(`${K[r]} — kept in your journal.`,2.6);}
   if(r==='rod3'){S.rod=Math.max(S.rod||1,3);toast('Otto’s greenheart rod. The bar is wider now.',2.6);}
   if(r==='nailblade'){S.gear&&(S.gear.weapon='machete');}};}

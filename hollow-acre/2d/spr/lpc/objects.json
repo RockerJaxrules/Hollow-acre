@@ -1120,6 +1120,37 @@
 "bw": 5,
 "chim": null
 },
+"inn_n": {
+"src": "spr/lpc/obj/inn_n.png",
+"fw": 340,
+"fh": 182,
+"ax": 170,
+"ay": 179,
+"foot": [
+-5.0,
+-3.3,
+5.0,
+0
+]
+},
+"inn": {
+"src": "spr/lpc/obj/inn.png",
+"fw": 340,
+"fh": 182,
+"ax": 170,
+"ay": 179,
+"foot": [
+-5.0,
+-3.3,
+5.0,
+0
+],
+"bw": 10,
+"chim": [
+83,
+-176
+]
+},
 "picket_h": {
 "src": "spr/lpc/obj/picket_h.png",
 "fw": 64,
