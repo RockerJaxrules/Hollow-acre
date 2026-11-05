@@ -146,7 +146,7 @@ _i = Image.open('spr/px2/road.png'); _i.save(f'{OUT}/road.png'); META['road'] = 
 # ---- buildings drawn in LibreSprite (px/house.js); .ase sources live in px/out
 import json as _j
 _PM = _j.load(open('px/out/houses_meta.json'))
-for _n in ('house_a', 'house_b', 'house_c', 'house_d', 'cabin', 'store', 'garage', 'church', 'coop'):
+for _n in ('house_a', 'house_b', 'house_c', 'house_d', 'cabin', 'store', 'garage', 'church', 'coop', 'shop_forge', 'shop_carp', 'shop_feed', 'shop_bait'):
     _m = _PM[_n]; _d = Image.open(f'px/out/{_n}.png').convert('RGBA'); _nt = Image.open(f'px/out/{_n}_n.png').convert('RGBA')
     _top = min(_d.getbbox()[1], _nt.getbbox()[1]); _d = _d.crop((0, _top, _d.width, _d.height)); _nt = _nt.crop((0, _top, _nt.width, _nt.height))
     _foot = [-_m['bw'] / 2, -3.3 if _n != 'church' else -4.2, _m['bw'] / 2, 0]
@@ -154,7 +154,7 @@ for _n in ('house_a', 'house_b', 'house_c', 'house_d', 'cabin', 'store', 'garage
 
 # ---- props + fences drawn in LibreSprite (px/props.js)
 _PROPS = {'fence_h': (0, 22), 'fence_v': (7, 66), 'picket_h': (0, 23), 'picket_v': (7, 66), 'lamp': None, 'phone_booth': None, 'board': None, 'gas_pump': None,
-          'signpost': None, 'barrel': None, 'crate': None, 'hay': None, 'sacks': None, 'cart': None, 'well': None, 'firewood': None, 'rock_0': None, 'rock_1': None, 'weeds_0': None, 'weeds_1': None, 'twig': None, 'stump_maple': None, 'stump_pine': None, 'stump_oak': None, 'pumpkin': None, 'pumpkin_b': None, 'jack': None, 'jack_b': None, 'jack_c': None, 'deer_dead': None, 'bench_farm': None, 'bench_weapon': None, 'bench_armor': None, 'bench_furn': None, 'furnace': None, 'doornote': None, 'icon_hoe': None, 'icon32_hoe': None, 'icon32_pick': None, 'icon32_axe': None, 'icon32_can': None, 'icon32_seed': None, 'icon32_food': None, 'icon_can': None, 'icon_pick': None, 'icon_axe': None, 'icon_seed': None, 'icon_food': None, 'icon_wood': None, 'icon_stone': None, 'icon_fiber': None, 'icon_copper': None, 'icon_iron': None, 'icon_coal': None, 'icon_gem': None, 'icon_cbar': None, 'icon_ibar': None, 'icon_bread': None, 'icon_stew': None, 'icon_soup': None, 'icon_chowder': None, 'icon_glowstew': None, 'icon_egg': None, 'icon_egg_fried': None, 'icon_pie': None, 'icon_hash': None, 'icon_turnip': None, 'icon_pumpkin': None, 'icon_corn': None, 'icon_mushroom': None, 'ore_stone': None, 'ore_copper': None, 'ore_iron': None, 'ore_coal': None, 'ore_gem': None, 'ladder': None}
+          'signpost': None, 'barrel': None, 'crate': None, 'hay': None, 'sacks': None, 'cart': None, 'well': None, 'firewood': None, 'rock_0': None, 'rock_1': None, 'weeds_0': None, 'weeds_1': None, 'twig': None, 'stump_maple': None, 'stump_pine': None, 'stump_oak': None, 'pumpkin': None, 'pumpkin_b': None, 'jack': None, 'jack_b': None, 'jack_c': None, 'deer_dead': None, 'anvil': None, 'lumber': None, 'cow_1': None, 'cow_2': None, 'bench_farm': None, 'bench_weapon': None, 'bench_armor': None, 'bench_furn': None, 'furnace': None, 'doornote': None, 'icon_hoe': None, 'icon32_hoe': None, 'icon32_pick': None, 'icon32_axe': None, 'icon32_can': None, 'icon32_seed': None, 'icon32_food': None, 'icon_can': None, 'icon_pick': None, 'icon_axe': None, 'icon_seed': None, 'icon_food': None, 'icon_wood': None, 'icon_stone': None, 'icon_fiber': None, 'icon_copper': None, 'icon_iron': None, 'icon_coal': None, 'icon_gem': None, 'icon_cbar': None, 'icon_ibar': None, 'icon_bread': None, 'icon_stew': None, 'icon_soup': None, 'icon_chowder': None, 'icon_glowstew': None, 'icon_egg': None, 'icon_milk': None, 'icon_bait': None, 'icon_rod': None, 'icon_fish': None, 'icon_egg_fried': None, 'icon_pie': None, 'icon_hash': None, 'icon_turnip': None, 'icon_pumpkin': None, 'icon_corn': None, 'icon_mushroom': None, 'ore_stone': None, 'ore_copper': None, 'ore_iron': None, 'ore_coal': None, 'ore_gem': None, 'ladder': None}
 for _n, _a in _PROPS.items():
     _d = Image.open(f'px/out/{_n}.png').convert('RGBA'); _nf = f'px/out/{_n}_n.png'
     _old = META.get(_n, {}); _foot = _old.get('foot', [0, 0, 0, 0])
@@ -198,7 +198,28 @@ def _volumize(path):
     out = a.copy(); out[..., :3] = _np.where(body[..., None], (a[..., :3] * k[..., None] + _np.where(up & body, 6, 0)[..., None]).clip(0, 255), a[..., :3])
     Image.fromarray(out.astype(_np.uint8), 'RGBA').save(path)
 for _n in ['barrel', 'crate', 'hay', 'sacks', 'cart', 'board', 'well', 'firewood', 'mailbox', 'signpost', 'gas_pump', 'phone_booth', 'lamp', 'picket_h', 'fence_h', 'pumpkin', 'pumpkin_b', 'jack', 'jack_b', 'jack_c',
-           'stump_maple', 'stump_pine', 'stump_oak', 'bench_farm', 'bench_weapon', 'bench_armor', 'bench_furn', 'furnace'] + [k for k in META if k.startswith('in_') and k not in ('in_rug', 'in_cellar', 'in_mirror', 'in_mirror_n')]:
+           'stump_maple', 'stump_pine', 'stump_oak', 'anvil', 'lumber', 'bench_farm', 'bench_weapon', 'bench_armor', 'bench_furn', 'furnace'] + [k for k in META if k.startswith('in_') and k not in ('in_rug', 'in_cellar', 'in_mirror', 'in_mirror_n')]:
     if _n in META: _volumize(META[_n]['src'])
+# ---- police cruiser (Kenney sedan repainted in blender/police.py) + the garage copy up on cinder blocks
+def _cinder(im, cx, by):
+    from PIL import ImageDraw
+    d = ImageDraw.Draw(im)
+    for k, (w, h) in enumerate(((15, 6), (13, 6))):
+        y1 = by - k * 6; y0 = y1 - h; x0 = cx - w // 2; x1 = x0 + w
+        d.rectangle((x0 - 1, y0 - 1, x1 + 1, y1 + 1), fill=(22, 20, 22, 255))      # outline
+        d.rectangle((x0, y0, x1, y0 + 2), fill=(158, 154, 146, 255))               # lit top face
+        d.rectangle((x0, y0 + 3, x1, y1), fill=(112, 108, 102, 255))               # front face
+        d.rectangle((x1 - 3, y0 + 3, x1, y1), fill=(84, 80, 76, 255))              # shaded flank
+        for hx in (x0 + 3, x0 + w // 2 + 1):                                        # the two cores
+            d.rectangle((hx, y0 + 4, hx + 3, y1 - 1), fill=(46, 42, 42, 255))
+        d.point([(x0 + 2, y1 - 1), (x1 - 5, y0 + 4)], fill=(130, 126, 118, 255))
+for _n, _src, _ax, _ay in (('police', 'px_police_s', 62, 97), ('police_blocks', 'px_police_blocks_s', 65, 102)):
+    _i = Image.open(f'spr/raw/car/{_src}.png').convert('RGBA')
+    if _n == 'police_blocks':
+        _c = Image.new('RGBA', _i.size); _cinder(_c, 93, 90); _cinder(_c, 44, 112); _cinder(_c, 30, 100)
+        _c.alpha_composite(_i); _i = _c
+    _bb = _i.getbbox(); _i = _i.crop(_bb)
+    save(_n, _i, [-2.4, -1.3, 2.4, 0], anchor=(_ax - _bb[0], _ay - _bb[1]))
 json.dump(META, open('spr/lpc/objects.json', 'w'), indent=0)
 print(len(META), 'objects')
+

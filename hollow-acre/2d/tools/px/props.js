@@ -221,6 +221,13 @@ if(K==='icon'){const I=CFG.icon;   // 16x16 inventory icons, lit from the upper 
   if(I==='pumpkin'){const OR=[[110,34,14],[164,62,22],[214,98,34],[240,140,58],[252,184,96]];for(let y=-5;y<=5;y++)for(let x=-7;x<=7;x++){const dd=x*x/49+y*y/25;if(dd>1)continue;const rib=Math.abs(Math.sin(x/7*Math.PI*1.6));const l=-x/7*.5-y/5*.7-rib*.3;P(A,8+x,10+y,OR[l>.45?4:l>.05?3:l>-.35?2:1]);}vl(A,8,2,4,[74,90,36]);P(A,9,2,[110,130,52]);}
   if(I==='corn'){for(let y=3;y<14;y++){const w=y<5||y>11?1:2;for(let x=-w;x<=w;x++)P(A,8+x,y,(x+y)%2?PAL.mustard[5]:PAL.mustard[4]);}for(let y=6;y<15;y++){P(A,5+((y>>2)&1),y,PAL.moss[2]);P(A,11-((y>>2)&1),y,PAL.moss[3]);}P(A,8,2,[220,200,140]);}
   if(I==='mushroom'){for(let y=-3;y<=1;y++)for(let x=-6;x<=6;x++){if(x*x/36+y*y/9>1)continue;P(A,8+x,8+y,y<-1?[120,250,210]:[60,200,170]);}for(const [x,y] of [[-3,-1],[2,-2],[4,0]])P(A,8+x,8+y,[220,255,245]);rect(A,7,9,3,5,PAL.cream[3]);vl(A,9,9,5,PAL.cream[1]);}
+  if(I==='milk'){const G=[[120,140,150],[170,190,198],[214,228,232],[248,252,252]];for(let y=0;y<10;y++){const w=y<2?1:y<4?2:4;for(let x=-w;x<=w;x++)P(A,8+x,4+y,y<4?G[x<0?3:x>0?1:2]:(y>4?[246,244,236]:G[2]));}
+    for(let y=5;y<14;y++){P(A,4,y,G[1]);P(A,12,y,G[0]);}for(let x=-3;x<=3;x++)P(A,8+x,14,G[0]);rect(A,7,2,3,2,[176,52,40]);P(A,7,2,[220,90,70]);vl(A,5,6,7,[255,255,255]);rect(A,6,8,5,3,[90,130,190]);P(A,7,9,[230,236,244]);P(A,9,9,[230,236,244]);}
+  if(I==='bait'){const T=[[70,74,80],[120,126,134],[170,176,184],[214,220,226]];for(let y=0;y<6;y++)for(let x=-6;x<=6;x++)P(A,8+x,8+y,y===5?T[0]:x<-3?T[3]:x>3?T[1]:T[2]);for(let x=-6;x<=6;x++)P(A,8+x,7,T[1]);
+    const W=[[150,70,70],[200,110,100],[236,150,140]];for(const [x0,ph] of [[4,0],[8,2],[11,1]])for(let i=0;i<5;i++)P(A,x0+Math.round(Math.sin(i*.9+ph)*1.2),6-i,W[(i+ph)%3]);rect(A,5,10,7,2,[214,170,80]);P(A,6,10,[250,214,120]);}
+  if(I==='rod'){line(2,15,14,1,WO);P(A,14,1,[60,50,40]);for(let i=0;i<12;i++)P(A,14,2+i,[220,220,210]);blob2(4,12,2,2,[[90,90,96],[140,140,150],[190,190,200],[240,240,246]]);P(A,14,14,[200,60,40]);P(A,14,13,[250,250,250]);}
+  if(I==='fish'){const F=[[60,80,70],[96,128,110],[140,176,150],[200,224,200]];for(let y=-3;y<=3;y++)for(let x=-6;x<=4;x++){if(x*x/36+y*y/9>1)continue;P(A,8+x,9+y,F[y<-1?3:y>1?0:x>1?1:2]);}
+    for(let y=-3;y<=3;y++)for(let x=0;x<=Math.abs(y);x++)P(A,13+x,9+y,F[1]);P(A,4,8,[20,20,24]);P(A,5,10,F[0]);for(let x=-3;x<=1;x+=2)P(A,8+x,7,F[0]);}
   if(I==='hash'){for(let x=-7;x<=7;x++){P(A,8+x,12,[200,200,196]);P(A,8+x,13,[150,150,146]);}for(const [x,y,c] of [[-3,10,PAL.rust[3]],[0,9,PAL.mustard[4]],[3,10,PAL.sage[3]],[-1,11,PAL.rust[4]],[2,11,PAL.mustard[3]]]){P(A,8+x,y,c);P(A,9+x,y,c);P(A,8+x,y-1,c);}}}
 
 if(K==='pumpkin'){const cx=W/2|0,base=H-3,rx=CFG.big?10:8,ry=CFG.big?7:6,cy=base-ry;const OR=CFG.pale?[[120,70,40],[168,112,64],[206,150,92],[230,186,128],[244,214,160]]:[[110,34,14],[164,62,22],[214,98,34],[240,140,58],[252,184,96]];
@@ -287,6 +294,18 @@ if(K==='icon32'){const I=CFG.icon;   // 32x32 hotbar icons: the same tool art th
     for(let y=-6;y<=0;y++)for(let x=-12;x<=12;x++){if(x*x/144+y*y/36>1)continue;const l=-x/12*.5-y/6*.6;P(A,16+x,22+y,l>.4?PAL.mustard[5]:l>0?PAL.mustard[4]:PAL.mustard[3]);}
     for(const [x0,x1] of [[-9,-3],[-1,5],[7,11]])for(let x=x0;x<=x1;x++){P(A,16+x,18+Math.round(Math.abs(x-(x0+x1)/2)*.3),PAL.rust[2]);}
     for(let i=0;i<5;i++){P(A,10+i*3,15,PAL.cream[3]);P(A,10+i*3,14,PAL.cream[3]);}for(let x=-14;x<=14;x++){P(A,16+x,30,[210,210,206]);P(A,16+x,31,[150,150,146]);}}}
+if(K==='anvil'){const IR=[[30,32,38],[54,58,68],[86,92,106],[130,136,150],[180,186,198]];const cx=W/2|0,base=H-3;
+  rect(A,cx-6,base-12,12,12,WD[2]);vl(A,cx-6,base-12,12,WD[4]);vl(A,cx+5,base-12,12,WD[0]);hl(A,cx-7,base-1,14,WD[1]);
+  for(let y=0;y<5;y++)for(let x=-12;x<=10;x++){if(x<-8&&y>2-(x+12)*.6)continue;P(A,cx+x,base-19+y,y===0?IR[4]:x>7?IR[1]:IR[2+(y<2?1:0)]);}rect(A,cx-4,base-14,8,2,IR[1]);hl(A,cx-12,base-19,23,IR[4]);P(A,cx+6,base-18,[240,140,60]);
+  for(let x=-8;x<=8;x++)P(SHD,cx+x+1,base+1,PAL.out[0],150);}
+if(K==='lumber'){const base=H-3;for(let r=0;r<4;r++){const y=base-4-r*5;for(let x=2+r;x<W-2-r;x++){P(A,x,y,WD[4]);P(A,x,y+1,WD[3]);P(A,x,y+2,WD[2]);P(A,x,y+3,WD[0]);}for(const ex of [2+r,W-3-r]){vl(A,ex,y,4,PAL.mustard[4]);}}
+  for(let x=1;x<W-1;x++)P(SHD,x,base+1,PAL.out[0],140);}
+if(K==='cow'){const base=H-3,cx=W/2|0;const Wt=[[60,56,54],[150,144,138],[214,208,200],[240,236,230]],Bk=[[16,14,14],[34,30,30],[54,50,50]];
+  for(let y=-7;y<=6;y++)for(let x=-14;x<=12;x++){const dd=x*x/196+y*y/49;if(dd>1)continue;const spot=hsh((x+20)>>2,(y+10)>>2,CFG.v||1)>.62;const l=-x/14*.4-y/7*.7;P(A,cx+x,base-13+y,spot?Bk[l>.2?2:1]:Wt[l>.4?3:l>-.2?2:1]);}
+  for(const lx of [-10,-5,5,9])for(let y=0;y<8;y++){P(A,cx+lx,base-7+y,y>5?Bk[0]:Wt[1]);P(A,cx+lx+1,base-7+y,y>5?Bk[0]:Wt[2]);}
+  for(let y=-4;y<=4;y++)for(let x=-4;x<=4;x++){if(x*x/16+y*y/16>1)continue;P(A,cx-16+x,base-15+y,Wt[x<0?3:2]);}rect(A,cx-21,base-14,5,4,[220,160,150]);P(A,cx-20,base-13,Bk[0]);P(A,cx-18,base-13,Bk[0]);
+  P(A,cx-17,base-17,Bk[0]);P(A,cx-13,base-18,Wt[1]);P(A,cx-12,base-19,Wt[2]);P(A,cx-19,base-18,Wt[2]);P(A,cx-20,base-19,Wt[1]);for(let y=0;y<6;y++)P(A,cx+13,base-15+y,Wt[1]);P(A,cx+13,base-9,Bk[0]);
+  rect(A,cx-1,base-6,4,2,[230,170,170]);groundShadow(cx+1,base,14,2,90);}
 if(K==='ladder'){for(let y=2;y<H-4;y++){P(A,4,y,WD[4]);P(A,5,y,WD[2]);P(A,W-6,y,WD[3]);P(A,W-5,y,WD[1]);}for(let y=6;y<H-4;y+=6){hl(A,5,y,W-10,WD[4]);hl(A,5,y+1,W-10,WD[1]);}
   ell(A,W/2|0,H-4,W/2-2|0,3,PAL.ink[0]);}
 const ART=[SHD,A,B];const flat=flatten([A,B],W,H);const O=outline(flat);const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=(CFG.thin||/^fence|^picket|^icon/.test(K))?0:150;}

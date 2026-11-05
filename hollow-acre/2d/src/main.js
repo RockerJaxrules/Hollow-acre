@@ -82,7 +82,7 @@ function render(dt,now){const t=now/1000;
       if(o.spr==='cbridge'&&Math.abs(P.x-o.x)<4.6&&P.z<o.z&&P.z>o.z-6.6)a=.16;
       if(o.clipw&&o.clipw<1.99){const m=SPR[o.spr],im=IMG[m.src];if(im){const w=Math.round(o.clipw*PPM),dx=Math.round(X-m.ax),dy=Math.round(Y-m.ay);ctx2.drawImage(im,0,0,w,m.fh,dx,dy,w,m.fh);ctx2.drawImage(im,m.fw-9,0,9,m.fh,dx+w-1,dy,9,m.fh);}}
       else if(o.tilt){ctx2.save();ctx2.translate(Math.round(X),Math.round(Y));ctx2.rotate(o.tilt);drawSpr(o.spr,0,0,null,null,0,{alpha:a});ctx2.restore();}
-      else drawSpr(o.spr,X,Y,null,null,0,{alpha:a});
+      else drawSpr(o.spr,X,Y,null,null,0,{alpha:a,flip:o.flip});
       if(o.notch){const w=o.trunkW||6,side=o.notchSide||1,nx=Math.round(X+side*w),ny=Math.round(Y-12);const dpt=Math.min(w-1,1+o.notch*1.4)|0;
         for(let j=-2-o.notch;j<=2+o.notch;j++){const k=dpt-Math.abs(j);for(let i=0;i<k;i++){ctx2.fillStyle=i===k-1?'#d8b478':'#3a2414';ctx2.fillRect(nx-side*i-(side<0?1:0),ny+j,1,1);}}
         ctx2.fillStyle='#e8c88a';ctx2.fillRect(nx-side*(dpt-1),ny-1,1,3);}

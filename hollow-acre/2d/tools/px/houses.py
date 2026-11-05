@@ -13,6 +13,10 @@ HOUSES = {
   'store': dict(bw=10, siding='red', roof='bark', trim='cream', door='teal', shutters=False, wins=[1, 3, 6, 8], chimney=-2.2, seed=31, kind='brick', awning=True, sign='GENERAL STORE', wallH=74, winY=18),
   'garage': dict(bw=8, siding='stone', roof='slate', trim='stone', door='wood', shutters=False, wins=[0.15], chimney=None, seed=41, kind='stone', bigdoor=True, bigdoorX=-1.2, doorX=2.3, sign='GARAGE  REPAIRS', wallH=70, winY=14),
   'church': dict(hip=False, bw=10, siding='white', roof='slate', trim='white', door='wood', shutters=False, wins=[1, 2.6, 6.4, 8], chimney=None, seed=51, arched=True, steeple=True, wallH=96, winY=22, top=150, roofH=74, moss=True),
+  'shop_forge': dict(bw=6, siding='stone', roof='slate', trim='stone', door='wood', shutters=False, wins=[1, 4], chimney=-1.6, seed=71, kind='stone', sign='ARMOURER  SMITH', wallH=72, winY=16),
+  'shop_carp': dict(bw=6, siding='mustard', roof='bark', trim='cream', door='wood', shutters=False, wins=[1, 4], chimney=None, seed=73, awning=True, sign='HARTLEY CARPENTRY', wallH=70, winY=16),
+  'shop_feed': dict(bw=6, siding='red', roof='slate', trim='white', door='wood', shutters=False, wins=[1, 4], chimney=None, seed=75, sign='FEED AND STOCK', wallH=70, winY=16, bigdoor=True, bigdoorX=-.2, doorX=1.9),
+  'shop_bait': dict(bw=5, siding='blue', roof='slate', trim='white', door='teal', shutters=False, wins=[1, 3], chimney=None, seed=77, awning=True, sign='BAIT TACKLE', wallH=66, winY=16),
   'coop': dict(bw=3, siding='red', roof='slate', trim='white', door='wood', shutters=False, wins=[], chimney=None, seed=61, wallH=46, roofH=52, doorH=30),
 }
 only = sys.argv[1:] or list(HOUSES)
