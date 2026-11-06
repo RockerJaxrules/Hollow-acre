@@ -5,7 +5,7 @@
 const HOST={role:null,code:'',hostPeer:null,hostName:'',known:[],debKnown:new Set(),coins:0,applying:false,t:0,timeT:0,helloT:0,off:[],members:{}};
 const PERSONAL=['inv','slots','slotSel','tools','seeds','sel','basket','energy','energyMax','hp','hpMax','look','water','waterMax','bigCan','flasks','rod','gear',
   'fishLog','fishCaught','bagSize','furnBag','tut','ls','friend','talkedToday','lastTalk','giftsWeek','heartSeen','lore','journal','keyItems','hz','deaths'];
-const tileSig=t=>(t.tilled?1:0)+'|'+(t.crop?[t.crop.type,t.crop.stage,t.crop.watered?1:0].join(','):'-');
+const tileSig=t=>(t.tilled?1:0)+(t.wet?'w':'')+'|'+(t.crop?[t.crop.type,t.crop.stage,t.crop.watered?1:0].join(','):'-');
 const debrisObjs=()=>OBJ.filter(o=>o.debris);const dKey=o=>o.x.toFixed(2)+','+o.z.toFixed(2)+','+o.debris;
 const canHost=()=>!!(CO.lobby&&(CO.lobby.net||CO.lobby.claude));
 function hostReset(){HOST.known=tiles.map(tileSig);HOST.debKnown=new Set(debrisObjs().filter(o=>o.hide).map(dKey));HOST.coins=S.coins;}
@@ -16,7 +16,7 @@ function hostWire(){for(const f of HOST.off)try{f();}catch(e){}HOST.off=[];const
   const on=(t,f)=>HOST.off.push(r.on(t,m=>{if(!m||m.isMe)return;try{f(m.data,m.peer);}catch(e){}}));
   on('hello',(d,peer)=>{if(HOST.role!=='host')return;const n=clean(d&&d.n);HOST.members[peer]=n;const hand=(S.farmhands||{})[n]||null;r.emit('snap',{data:saveData(true),host:NAME()||'The host',hand},peer);toast(`${clean(d&&d.n)} has joined your farm as a farmhand.`,3);});
   on('snap',(d,peer)=>{if(HOST.role!=='guest'||!d||!d.data)return;HOST.hostPeer=peer;HOST.hostName=clean(d.host);applySnap(d.data,!HOST.joined,d.hand);HOST.joined=true;});
-  on('tile',d=>{if(!HOST.role||!d)return;const t=tiles[d.i|0];if(!t)return;t.tilled=!!d.t;t.crop=d.c&&typeof d.c==='object'?d.c:null;HOST.known[d.i|0]=tileSig(t);});
+  on('tile',d=>{if(!HOST.role||!d)return;const t=tiles[d.i|0];if(!t)return;t.tilled=!!d.t;t.wet=!!d.w;t.crop=d.c&&typeof d.c==='object'?d.c:null;HOST.known[d.i|0]=tileSig(t);});
   on('deb',d=>{if(!HOST.role||!d||!Array.isArray(d.ids))return;const want=new Set(d.ids.map(String));for(const o of debrisObjs()){const k=dKey(o);if(!want.has(k)||o.hide)continue;o.hide=true;o.goneDay=S.day;if(o.col){const q=circles.indexOf(o.col);if(q>=0)circles.splice(q,1);}HOST.debKnown.add(k);}});
   on('tree',d=>{if(!HOST.role||!d||typeof d.k!=='string')return;fellRemote(d.k);});
   on('coin',d=>{if(!HOST.role||!d||!isFinite(d.d))return;const n=Math.max(-100000,Math.min(100000,d.d|0));S.coins=Math.max(0,S.coins+n);HOST.coins=S.coins;updateHud&&updateHud();});
@@ -58,7 +58,7 @@ function guestPersist(){try{if(CO.room&&CO.room.emit&&HOST.hostPeer)CO.room.emit
 // keeping everyone's world the same
 function hostSync(dt){if(!HOST.role||!CO.room||!CO.room.emit||HOST.applying)return;HOST.t+=dt;if(HOST.t<.3)return;HOST.t=0;const r=CO.room;
   if(HOST.role==='guest'&&!HOST.joined)return;
-  for(let i=0;i<tiles.length;i++){const sg=tileSig(tiles[i]);if(sg!==HOST.known[i]){HOST.known[i]=sg;const t=tiles[i];r.emit('tile',{i,t:t.tilled?1:0,c:t.crop?JSON.parse(JSON.stringify(t.crop)):null});}}
+  for(let i=0;i<tiles.length;i++){const sg=tileSig(tiles[i]);if(sg!==HOST.known[i]){HOST.known[i]=sg;const t=tiles[i];r.emit('tile',{i,t:t.tilled?1:0,w:t.wet?1:0,c:t.crop?JSON.parse(JSON.stringify(t.crop)):null});}}
   const nw=[];for(const o of debrisObjs()){if(!o.hide)continue;const k=dKey(o);if(!HOST.debKnown.has(k)){HOST.debKnown.add(k);nw.push(k);}}if(nw.length)r.emit('deb',{ids:nw.slice(0,200)});
   if(S.coins!==HOST.coins){r.emit('coin',{d:S.coins-HOST.coins});HOST.coins=S.coins;}
   if(HOST.role==='host'){HOST.timeT-=.3;if(HOST.timeT<=0){HOST.timeT=2;r.emit('time',{day:S.day,hour:S.hour});}}}

@@ -4,7 +4,7 @@ const SAVE_KEY='hollowSave1';
 const SAVE_SKIP=new Set(['mode','paused','room','night','introDrive','storm','autoCol']);
 function saveGame(mid){try{const data=saveData(mid);localStorage.setItem(SAVE_KEY,JSON.stringify(data));return true;}catch(e){return false;}}
 function saveData(mid){const s={};for(const k of Object.keys(S)){if(SAVE_SKIP.has(k))continue;const v=S[k];if(typeof v==='function')continue;try{s[k]=JSON.parse(JSON.stringify(v));}catch(e){}}
-  const data={v:1,t:Date.now(),S:s,tiles:tiles.map(t=>[t.tilled?1:0,t.crop||null,t.debris&&t.debris.hide?1:0]),altars:altars.map(a=>a.lit?1:0),
+  const data={v:1,t:Date.now(),S:s,tiles:tiles.map(t=>[t.tilled?1:0,t.crop||null,t.debris&&t.debris.hide?1:0,t.wet?1:0]),altars:altars.map(a=>a.lit?1:0),
     bench:typeof BENCH_POS!=='undefined'?BENCH_POS:null,gh:{x:GH.x,z:GH.z},mind:M.v,
     mid:mid?{hour:S.hour,x:P.x,z:P.z,dir:P.dir,room:S.room||null}:null};
   return data;}
@@ -13,7 +13,7 @@ function loadGame(d){const s=d.S;for(const k of Object.keys(s)){const v=s[k];if(
   S.mode='play';S.paused=false;S.room=null;S.night={};S.storm=false;S.introDrive=false;
   if(d.bench&&typeof BENCH_POS!=='undefined')Object.assign(BENCH_POS,d.bench);
   if(S.greenhouse&&!loadGame.gh){loadGame.gh=1;GH.x=d.gh.x;GH.z=d.gh.z;ROOMS.greenhouse.out={x:GH.x,z:GH.z+.8};buildGreenhouse();}
-  d.tiles.forEach((a,i)=>{const t=tiles[i];if(!t)return;t.tilled=!!a[0];t.crop=a[1];if(a[2]&&t.debris){const o=t.debris;o.hide=true;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}}});
+  d.tiles.forEach((a,i)=>{const t=tiles[i];if(!t)return;t.tilled=!!a[0];t.crop=a[1];t.wet=!!a[3];if(a[2]&&t.debris){const o=t.debris;o.hide=true;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}}});
   d.altars.forEach((l,i)=>{if(altars[i])altars[i].lit=!!l;});
   if(S.coop||S.fieldLamps)rebuildFarm();if(!loadGame.b){loadGame.b=1;benchesBoot();}applyLook();M.v=d.mind==null?100:d.mind;
   S.hour=6;P.x=0;P.z=-7.6;P.fx=0;P.fz=1;P.dir='S';P.anim=null;H.state='gone';H.timer=6;H.vis=false;

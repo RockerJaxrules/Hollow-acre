@@ -38,7 +38,7 @@ function render(dt,now){const t=now/1000;
   // a faint lighter crumb rim on the bottom edge, shallow furrows across it and loose clods. Watered soil is darker and a little glossy.
   {const T=(i,j)=>{const t_=tileAt(i,j);return !!(t_&&t_.tilled);};
    for(const tl of tiles){if(!tl.tilled)continue;const X=Math.round(sx(tl.x-.5)),Y=Math.round(sz(tl.z-.5));if(X<-40||X>VW+40||Y<-40||Y>VH+40)continue;
-     const wet=tl.crop&&tl.crop.watered;const up=T(tl.i,tl.j-1),dn=T(tl.i,tl.j+1),lf=T(tl.i-1,tl.j),rt=T(tl.i+1,tl.j);
+     const wet=(tl.crop&&tl.crop.watered)||tl.wet;const up=T(tl.i,tl.j-1),dn=T(tl.i,tl.j+1),lf=T(tl.i-1,tl.j),rt=T(tl.i+1,tl.j);
      const base=wet?[74,46,30]:[112,74,46],dark=wet?[52,32,20]:[84,54,32],light=wet?[96,64,42]:[140,98,62];
      const rgb=c=>`rgb(${c[0]},${c[1]},${c[2]})`;
      // ragged edge: each side eats 0-2 px in or out, decided per pixel so neighbouring tiles stay seamless
@@ -53,7 +53,7 @@ function render(dt,now){const t=now/1000;
      // a few loose clods with a lit top and a dark underside
      for(let k=0;k<4;k++){const h=hash(tl.i*13+k,tl.j*7+k*3);const cx=X+3+((h*97)%26|0),cy=Y+4+((h*61)%23|0);ctx2.fillStyle=rgb(light);ctx2.fillRect(cx,cy,2,1);ctx2.fillStyle=rgb(dark);ctx2.fillRect(cx,cy+1,2,1);}
      if(wet&&((tl.i+tl.j)&1)){ctx2.fillStyle='rgba(180,200,220,.18)';ctx2.fillRect(X+8,Y+12,3,1);ctx2.fillRect(X+20,Y+22,2,1);}}}
-  if(hlTile&&S.mode==='play'){ctx2.strokeStyle='rgba(255,240,200,.75)';ctx2.lineWidth=1;ctx2.strokeRect(Math.round(sx(hlTile.x-.5))+.5,Math.round(sz(hlTile.z-.5))+.5,31,31);}
+  if(hlTile&&S.mode==='play'){{const X=Math.round(sx(hlTile.x-.5)),Y=Math.round(sz(hlTile.z-.5));ctx2.strokeStyle='rgba(0,0,0,.35)';ctx2.lineWidth=1;ctx2.strokeRect(X+1.5,Y+1.5,29,29);ctx2.strokeStyle=TAP.hlCol||'rgba(255,240,200,.75)';ctx2.strokeRect(X+.5,Y+.5,31,31);ctx2.fillStyle=TAP.hlCol||'rgba(255,240,200,.75)';for(const [a,b] of [[0,0],[28,0],[0,28],[28,28]]){ctx2.fillRect(X+a,Y+b,4,1);ctx2.fillRect(X+a+(a?3:0),Y+b,1,4);ctx2.fillRect(X+a,Y+b+(b?3:0),4,1);}}}
   // skid marks & blood at the crash site
   if(!S.introDrive&&onScreen(-56,-5,200)){ctx2.fillStyle='rgba(0,0,0,.3)';for(let k=0;k<2;k++){ctx2.save();ctx2.translate(sx(-58.6+k*.9),sz(-1.6+k*.25));ctx2.rotate(.42);ctx2.fillRect(-200,0,200,3);ctx2.restore();}}
   mindGround();findsDraw(t);farmDraw();depthWater(t);mindReflection();

@@ -65,7 +65,7 @@ addEventListener('wheel',e=>{if(S.mode!=='play'||S.paused||!$('hud')||$('hud').h
 function renderHotbar(){const hb=$('hotbar');if(!hb)return;syncSlots();const n=slotsVisible();
   if(hb.children.length!==n){hb.innerHTML='';for(let i=0;i<n;i++){const b=document.createElement('button');b.className='slot';b.dataset.i=i;b.innerHTML=`<i>${i<9?i+1:i===9?0:i===10?'-':'='}</i><img alt=""><b></b>`;
       b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();slotUse(i);});hb.appendChild(b);}}
-  const L=($('btnAct').textContent||'');const want=/Till/.test(L)?'T:hoe':/Water/.test(L)?'T:can':/Mine|Break/.test(L)?'T:pick':/Chop/.test(L)?'T:axe':/Plant/.test(L)?'S:'+S.sel:/Fish|Cast/.test(L)?'T:rod':null;
+  const want=null;
   [...hb.children].forEach((b,i)=>{const it=itemInfo(S.slots[i]);const im=b.querySelector('img');const ct=b.querySelector('b');
     b.classList.toggle('empty',!it);b.classList.toggle('sel',i===S.slotSel);b.classList.toggle('on',!!it&&it.key===want);b.setAttribute('aria-label',it?it.name:'empty slot');
     if(it){const src=iconOf(it.icon);if(im.dataset.k!==it.key||!im.src){im.src=src;im.dataset.k=it.key;}ct.textContent=it.tool?(it.id==='can'?S.water:''):(it.qty>1?it.qty:'');}else{ct.textContent='';im.removeAttribute('src');im.dataset.k='';}});}

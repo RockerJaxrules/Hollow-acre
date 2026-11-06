@@ -56,7 +56,7 @@ function objective(){const L=lit(),np=S.pages.length;
   if(!S.foundCabin)return ['Stranded','Your car is wrecked. Walk east along the road to Grandpa’s farm.',doorPos];
   if(!S.readLetter)return ['The farm','Read the note nailed to the cabin door.',doorPos];
   if(!S.everTilled)return ['Farm','Walk into the brown field and tap Till. Crops are how you earn coins here.',{x:0,z:3}];
-  if(!S.everPlanted)return ['Plant','Plant seeds in the tilled soil. Switch seeds with the small button.',null];
+  if(!S.everPlanted)return ['Plant','Hold your seeds (toolbar), then tap a tilled square to plant.',null];
   if(!S.everWatered)return ['Water','Water your seedlings. Refill the can at the well.',null];
   if(S.shipped===0)return ['Sell','Harvest ripe crops and drop them in the bin by the cabin.',S.basket.length?binPos:null];
   if(!S.q.hollis)return ['The car','Find someone to fix your car. Hollis’s garage is west on Route 9.',npcById('hollis')];
@@ -193,7 +193,7 @@ function answerPhone(){phone.ring=false;S.night.phone=2;A.hiss&&A.hiss(1.2,.1,'b
   setTimeout(()=>{if(S.mode!=='play'||S.bound)return;H.x=P.x-P.fx*3.2;H.z=P.z-P.fz*3.2;collide(H,.4);H.state='stalk';H.rise=1;H.burn=0;H.stung=false;H.grace=1.6;H.crawl=0;H.vis=true;SFX.stinger();cam.shake=.5;SFX.breath(0);},2200);}
 /* ================= day cycle ================= */
 function newDay(msg,pos){S.day++;S.hour=6;S.bellRung=false;S.dusk=false;S.storm=false;S.night={};H.state='gone';H.timer=6;H.vis=false;H.spd=[1.4,1.95,2.45][Math.min(S.day-1,2)]+lit()*.4;
-  for(const t of tiles)if(t.crop&&t.crop.stage<3)t.crop.watered=false;phone.ring=false;ruth.done=false;ruth.vis=false;
+  for(const t of tiles){if(t.crop&&t.crop.stage<3)t.crop.watered=false;t.wet=false;}phone.ring=false;ruth.done=false;ruth.vis=false;
   const sp=pos||[0,-7.6];P.x=sp[0];P.z=sp[1];P.fx=0;P.fz=1;P.dir='S';P.anim=null;fish.state='off';
   if(!S.bound){scare.vis=true;placeScarecrow(S.day);}S.fuel=100;placeNPCs();spawnMushrooms();if(S.cat==='lost')resetCat();
   toast(msg||(S.day===3&&!S.bound?`Day ${S.day}. The scarecrow is standing at your porch now. Facing the door.`:S.day===2&&!S.bound?`Day ${S.day}. The scarecrow has moved. It is by the well.`:`Day ${S.day}. The soil is dry again.`),3.8);}
