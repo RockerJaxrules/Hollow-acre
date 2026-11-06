@@ -91,14 +91,14 @@ const sx=x=>Math.round(x*PPM)-cam.px+(VW>>1), sz=z=>Math.round(z*PPM)-cam.pz+Mat
 const keys={};addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='Space'||e.code==='KeyE'){e.preventDefault();onAct();}if(e.code==='KeyQ')onSeed();});addEventListener('keyup',e=>keys[e.code]=false);
 const joy={x:0,y:0,id:null,ox:0,oy:0};
 function setupTouch(){const J=$('joy'),K=$('knob');
-  const down=e=>{for(const t of e.changedTouches){if(joy.id!==null)continue;if(t.target.closest&&t.target.closest('button,.sheet,.screen'))continue;
+  const down=e=>{if(typeof PLACE!=='undefined'&&PLACE.on)return;for(const t of e.changedTouches){if(joy.id!==null)continue;if(t.target.closest&&t.target.closest('button,.sheet,.screen'))continue;
       if(t.clientX>innerWidth*.62&&t.clientY>innerHeight*.55)continue;joy.id=t.identifier;joy.ox=t.clientX;joy.oy=t.clientY;J.style.left=t.clientX+'px';J.style.top=t.clientY+'px';J.classList.add('on');K.style.transform='translate(0,0)';}};
   const move=e=>{for(const t of e.changedTouches){if(t.identifier!==joy.id)continue;let dx=t.clientX-joy.ox,dy=t.clientY-joy.oy;const d=Math.hypot(dx,dy),m=52;if(d>m){dx*=m/d;dy*=m/d;}
       joy.x=dx/m;joy.y=dy/m;K.style.transform=`translate(${dx}px,${dy}px)`;e.preventDefault();}};
   const up=e=>{for(const t of e.changedTouches){if(t.identifier!==joy.id)continue;joy.id=null;joy.x=joy.y=0;J.classList.remove('on');}};
   addEventListener('touchstart',down,{passive:true});addEventListener('touchmove',move,{passive:false});addEventListener('touchend',up);addEventListener('touchcancel',up);
   // mouse drag fallback
-  let md=false;addEventListener('mousedown',e=>{if(e.target!==view)return;md=true;joy.ox=e.clientX;joy.oy=e.clientY;});
+  let md=false;addEventListener('mousedown',e=>{if(e.target!==view&&!(e.target&&e.target.id==='c'))return;if(typeof PLACE!=='undefined'&&PLACE.on)return;md=true;joy.ox=e.clientX;joy.oy=e.clientY;});
   addEventListener('mousemove',e=>{if(!md)return;let dx=e.clientX-joy.ox,dy=e.clientY-joy.oy;const d=Math.hypot(dx,dy),m=60;if(d>m){dx*=m/d;dy*=m/d;}joy.x=dx/m;joy.y=dy/m;});
   addEventListener('mouseup',()=>{md=false;joy.x=joy.y=0;});}
 // ---------- lighting

@@ -71,7 +71,7 @@ const PLACE={on:false};
   $('placeOk').addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();placeConfirm();});$('placeNo').addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();placeCancel();});}
 // spec: {spr, w, d (footprint in metres), room (null = outdoors, or a room key), name, refund:{item:n}, coins, done(x,z)}
 function startPlace(spec){if(PLACE.on)placeCancel();Object.assign(PLACE,{on:true,spec,x:null,z:null,manual:false});['shop','bag'].forEach(id=>{const el=$(id);if(el&&!el.hidden){el.hidden=true;}});S.paused=false;
-  $('placeHint').textContent=matchMedia('(pointer:fine)').matches?`${spec.name[0].toUpperCase()+spec.name.slice(1)}: point and click. Esc cancels.`:`${spec.name[0].toUpperCase()+spec.name.slice(1)}: tap the ground, or walk.`;$('placeBar').style.display='flex';}
+  {const N=spec.name[0].toUpperCase()+spec.name.slice(1);$('placeHint').innerHTML=matchMedia('(pointer:fine)').matches?`<b>${N}</b>: click where it goes, or drag it. Then <b>Place</b> (or Enter, or double-click). Esc cancels.`:`<b>${N}</b>: tap where it goes, or drag it. Then <b>Place</b> (or tap it twice).`;}$('placeBar').style.display='flex';}
 function placeCancel(){if(!PLACE.on)return;const sp=PLACE.spec;for(const [k,n] of Object.entries(sp.refund||{}))addInv(k,n);if(sp.coins)S.coins+=sp.coins;if(sp.cancel)sp.cancel();PLACE.on=false;$('placeBar').style.display='none';toast('Put away.',1);updateHud();}
 function placeSpot(){const sp=PLACE.spec;if(!PLACE.manual){PLACE.x=Math.round((P.x+P.fx*1.6)*2)/2;PLACE.z=Math.round((P.z+P.fz*1.4+(P.fz<0?0:sp.d*.5))*2)/2;}return [PLACE.x,PLACE.z];}
 function placeValid(x,z){const sp=PLACE.spec,x0=x-sp.w/2,x1=x+sp.w/2,z0=z-sp.d,z1=z;
@@ -91,13 +91,18 @@ function placeDraw(){if(!PLACE.on)return;const [x,z]=placeSpot();const sp=PLACE.
   ctx2.fillStyle=bad?'rgba(220,60,40,.35)':'rgba(110,220,90,.32)';ctx2.fillRect(X0,Y0,W,H);ctx2.strokeStyle=bad?'rgba(255,110,90,.9)':'rgba(170,255,150,.9)';ctx2.lineWidth=1;ctx2.strokeRect(X0+.5,Y0+.5,W-1,H-1);
   for(let i=0;i<=sp.w*2;i++)for(let j=0;j<=sp.d*2;j++){ctx2.fillStyle=bad?'rgba(255,140,120,.5)':'rgba(200,255,190,.5)';ctx2.fillRect(X0+Math.round(i*PPM/2),Y0+Math.round(j*PPM/2),1,1);}
   drawSpr(sp.spr,sx(x),sz(z),null,null,0,{alpha:.7});}
-// picking a spot: mouse hover on desktop, a short tap on a touch screen
+// picking a spot: press anywhere to move the building there, drag to slide it around, then press Place (or Enter, or tap it twice).
+// The same on a touch screen and with a mouse. While placing, dragging moves the building, not you.
 {const toWorld=(e)=>{const r=view.getBoundingClientRect();const X=(e.clientX-r.left)*VW/r.width,Y=(e.clientY-r.top)*VH/r.height;
     const sp=PLACE.spec;return [Math.round(((X+cam.px-(VW>>1))/PPM)*2)/2,Math.round(((Y+cam.pz-Math.round(VH*.56))/PPM+sp.d/2)*2)/2];};
-  let down=null;
-  view.addEventListener('pointermove',e=>{if(!PLACE.on||e.pointerType!=='mouse')return;[PLACE.x,PLACE.z]=toWorld(e);PLACE.manual=true;});
-  view.addEventListener('pointerdown',e=>{if(!PLACE.on)return;down={x:e.clientX,y:e.clientY,t:performance.now()};if(e.pointerType==='mouse'&&e.button===0){[PLACE.x,PLACE.z]=toWorld(e);PLACE.manual=true;placeConfirm();e.stopImmediatePropagation();}},true);
-  view.addEventListener('pointerup',e=>{if(!PLACE.on||!down||e.pointerType==='mouse')return;if(Math.hypot(e.clientX-down.x,e.clientY-down.y)<12&&performance.now()-down.t<350){[PLACE.x,PLACE.z]=toWorld(e);PLACE.manual=true;}down=null;});
+  let drag=null,lastTap={t:0,x:0,y:0};const onWorld=e=>e.target===view||(e.target&&e.target.id==='c');
+  addEventListener('pointerdown',e=>{if(!PLACE.on||!onWorld(e))return;if(e.pointerType==='mouse'&&e.button!==0)return;e.stopImmediatePropagation();e.preventDefault();
+    const now=performance.now();const again=now-lastTap.t<380&&Math.hypot(e.clientX-lastTap.x,e.clientY-lastTap.y)<28;lastTap={t:now,x:e.clientX,y:e.clientY};
+    if(again){placeConfirm();drag=null;return;}
+    [PLACE.x,PLACE.z]=toWorld(e);PLACE.manual=true;drag={id:e.pointerId};SFX.page&&SFX.page();},true);
+  addEventListener('pointermove',e=>{if(!PLACE.on||!drag||e.pointerId!==drag.id)return;const [x,z]=toWorld(e);if(x!==PLACE.x||z!==PLACE.z){PLACE.x=x;PLACE.z=z;PLACE.manual=true;}},true);
+  const end=e=>{if(drag&&e.pointerId===drag.id){drag=null;}};
+  addEventListener('pointerup',end,true);addEventListener('pointercancel',end,true);
   addEventListener('keydown',e=>{if(!PLACE.on)return;if(e.code==='Escape'){placeCancel();e.stopImmediatePropagation();}if(e.code==='Enter'){placeConfirm();e.stopImmediatePropagation();}
     if(/^Arrow|^Key[WASD]$/.test(e.code))PLACE.manual=false;},true);}
 // the big button places while you're in placement mode
