@@ -11,11 +11,11 @@ const TOOL_ART={
  can:{px:5,py:1,art:["...KKKKK........","..KlmmmbK.......","..Km...Kb.......",".KKKKKKKKK....KK","KleelllmmbK..KeK","KelllllmmbK.KlK.","KllllllmmbKKmK..","KlllllmmmbbmbK..","KmllllmmmbbbK...","KmmmmmmmbbsK....",".KbbbbbbbsK.....","..KKKKKKKK......"]}};
 const TOOL_PAL={K:[26,16,12],D:[84,52,28],M:[124,82,46],L:[176,126,76],s:[60,64,76],b:[92,98,112],m:[150,156,170],l:[204,210,222],e:[244,248,252]};
 // metal by grade: what upgrades look like
-const METAL={rust:{s:[66,40,28],b:[108,60,36],m:[148,86,50],l:[184,122,74],e:[212,160,110]},iron:{},
+const METAL={rust:{s:[54,42,40],b:[86,66,56],m:[120,92,74],l:[150,120,98],e:[176,150,126]},iron:{},
   copper:{s:[88,42,24],b:[138,68,34],m:[194,104,52],l:[230,148,84],e:[252,204,150]},
-  steel:{s:[46,58,82],b:[76,98,130],m:[126,154,190],l:[184,208,234],e:[236,246,255]},
+  steel:{s:[38,54,92],b:[66,96,148],m:[112,150,206],l:[172,204,242],e:[232,246,255]},
   gold:{s:[110,72,14],b:[168,118,24],m:[220,170,40],l:[248,214,90],e:[255,244,180]},
-  tin:{s:[70,84,78],b:[104,124,114],m:[148,170,156],l:[192,212,198],e:[232,244,236]}};
+  tin:{s:[26,58,34],b:[44,94,52],m:[70,136,74],l:[118,186,108],e:[176,222,160]}};
 function toolGrade(kind){const T=S.tools||{};
   if(kind==='hoe')return (S.hoe||T.hoe||1)>1?'copper':'rust';if(kind==='pick')return (T.pick||1)>2?'gold':(T.pick||1)>1?'steel':'iron';
   if(kind==='axe')return (T.axe||1)>2?'gold':(T.axe||1)>1?'steel':'iron';if(kind==='can')return S.waterMax>10?'copper':'tin';return 'iron';}
@@ -77,3 +77,29 @@ function rodFrame(){if(typeof fish==='undefined')return -1;const mg=typeof MG!==
 // the line hangs in a soft curve while you wait, and snaps straight when something pulls
 function fishLine(g,from,to,taut,t){const [x0,y0]=from,[x1,y1]=to;const n=Math.max(8,Math.ceil(Math.hypot(x1-x0,y1-y0)));const sag=taut?0:Math.min(10,Math.hypot(x1-x0,y1-y0)*.12);
   g.fillStyle=taut?'rgba(250,250,250,.9)':'rgba(236,236,236,.7)';for(let i=0;i<=n;i++){const u=i/n;g.fillRect(Math.round(x0+(x1-x0)*u),Math.round(y0+(y1-y0)*u+Math.sin(u*Math.PI)*sag),1,1);}}
+
+// ---- upgraded tools look upgraded on the toolbar too: the metal (or the can, or the rod's shaft) takes the grade's colours
+const ROD_RAMP=lvl=>{const [lt,dk]=ROD_COL[Math.max(0,Math.min(2,(lvl||1)-1))];const mix=(a,b,t)=>a.map((v,i)=>Math.round(v+(b[i]-v)*t));
+  return [mix(dk,[0,0,0],.45),dk,mix(dk,lt,.5),lt,mix(lt,[255,255,255],.35)];};
+const GRADE_ICON={};
+function rgbHsv(r,g,b){const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let h=0;if(d){if(mx===r)h=((g-b)/d)%6;else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;if(h<0)h+=360;}return [h,mx?d/mx:0,mx/255];}
+function gradeIcon(kind){const grade=kind==='rod'?'rod'+(S.rod||1):toolGrade(kind);const key=kind+'@'+grade;if(GRADE_ICON[key])return GRADE_ICON[key];
+  const sk=SPR['icon32_'+kind]?'icon32_'+kind:'icon_'+kind;const m=SPR[sk],im=m&&IMG[m.src];if(!im||!im.complete&&im.complete!==undefined)return null;
+  const c=document.createElement('canvas');c.width=32;c.height=32;const g=c.getContext('2d',{willReadFrequently:true});g.imageSmoothingEnabled=false;g.drawImage(im,0,0,m.fw,m.fh,0,0,32,32);
+  const d=g.getImageData(0,0,32,32),D=d.data;
+  // which pixels change: metal (grey) for blades and heads, green for the can, the wood of the rod
+  const pick=(r,gg,b)=>{const [h,sat,v]=rgbHsv(r,gg,b);if(kind==='can')return h>80&&h<160&&sat>.2&&v>.2;if(kind==='rod')return h>15&&h<45&&sat>.3&&v>.2;return sat<.21&&v>.28;};
+  const cols=new Map();for(let i=0;i<D.length;i+=4){if(!D[i+3])continue;if(!pick(D[i],D[i+1],D[i+2]))continue;const k=(D[i]<<16)|(D[i+1]<<8)|D[i+2];cols.set(k,.3*D[i]+.59*D[i+1]+.11*D[i+2]);}
+  const sorted=[...cols.entries()].sort((a,b)=>a[1]-b[1]);const lo=sorted.length?sorted[0][1]:0,hi=sorted.length?sorted[sorted.length-1][1]:1;
+  const M=METAL[grade]||{};const ramp=kind==='rod'?ROD_RAMP(S.rod||1):[M.s||TOOL_PAL.s,M.b||TOOL_PAL.b,M.m||TOOL_PAL.m,M.l||TOOL_PAL.l,M.e||TOOL_PAL.e];
+  const map=new Map(sorted.map(([k,L])=>[k,ramp[Math.max(0,Math.min(4,Math.round((L-lo)/Math.max(1,hi-lo)*4)))]]));
+  if(grade!=='iron'&&!(kind==='can'&&grade==='tin')&&!(kind==='rod'&&(S.rod||1)===1))for(let i=0;i<D.length;i+=4){if(!D[i+3])continue;const to=map.get((D[i]<<16)|(D[i+1]<<8)|D[i+2]);if(to){D[i]=to[0];D[i+1]=to[1];D[i+2]=to[2];}}
+  g.putImageData(d,0,0);return GRADE_ICON[key]=c.toDataURL();}
+{const _io=iconOf;iconOf=function(spr){if(spr==='hoe'||spr==='can'||spr==='pick'||spr==='axe'||spr==='rod'){const u=gradeIcon(spr);if(u)return u;}return _io.apply(this,arguments);};}
+
+// ---- when a tool comes back upgraded, say so, and make its slot shine
+{const NAME={hoe:'hoe',can:'watering can',pick:'pickaxe',axe:'axe',rod:'rod'};const LOOK={copper:'a copper blade',steel:'a blue steel head',gold:'a gold head'};let last=null;
+  setInterval(()=>{if(S.mode!=='play')return;const now={hoe:toolGrade('hoe'),can:toolGrade('can'),pick:toolGrade('pick'),axe:toolGrade('axe'),rod:'r'+(S.rod||1)};
+    if(last)for(const k in now)if(now[k]!==last[k]){const i=typeof slotOf==='function'?slotOf(k):-1;const b=i>=0&&$('hotbar')&&$('hotbar').children[i];if(b){b.classList.remove('hint');void b.offsetWidth;b.classList.add('hint');}
+      toast(k==='rod'?`Your new rod is in your toolbar.`:k==='can'?'Your watering can is copper now, and holds twice as much.':`Your ${NAME[k]} has ${LOOK[now[k]]||'a new head'} now.`,2.2);}
+    last=now;},700);}

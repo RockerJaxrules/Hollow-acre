@@ -68,7 +68,7 @@ function renderHotbar(){const hb=$('hotbar');if(!hb)return;syncSlots();const n=s
   const want=null;
   [...hb.children].forEach((b,i)=>{const it=itemInfo(S.slots[i]);const im=b.querySelector('img');const ct=b.querySelector('b');
     b.classList.toggle('empty',!it);b.classList.toggle('sel',i===S.slotSel);b.classList.toggle('on',!!it&&it.key===want);b.setAttribute('aria-label',it?it.name:'empty slot');
-    if(it){const src=iconOf(it.icon);if(im.dataset.k!==it.key||!im.src){im.src=src;im.dataset.k=it.key;}ct.textContent=it.tool?(it.id==='can'?S.water:''):(it.qty>1?it.qty:'');}else{ct.textContent='';im.removeAttribute('src');im.dataset.k='';}});}
+    if(it){const src=iconOf(it.icon);if(im._src!==src){im.src=src;im._src=src;im.dataset.k=it.key;}ct.textContent=it.tool?(it.id==='can'?S.water:''):(it.qty>1?it.qty:'');}else{ct.textContent='';im.removeAttribute('src');im.dataset.k='';}});}
 setInterval(()=>{if($('hotbar')&&$('hotbar').style.display!=='none')renderHotbar();},150);
 // ---- the menu itself: the old bag panel grows tabs
 let GM_TAB='items';

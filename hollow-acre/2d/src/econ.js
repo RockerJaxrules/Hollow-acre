@@ -37,7 +37,7 @@ const ICON={};const ICON_ALIAS={twig:'wood',rock_0:'stone',weeds_0:'fiber',ore_c
 function iconOf(spr){if(ICON[spr])return ICON[spr];const c=document.createElement('canvas');c.width=32;c.height=32;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
   const key=SPR['icon32_'+spr]?'icon32_'+spr:SPR['icon_'+spr]?'icon_'+spr:SPR['icon_'+(ICON_ALIAS[spr]||'')]?'icon_'+ICON_ALIAS[spr]:SPR[spr]?spr:null;const m=key&&SPR[key],im=m&&IMG[m.src];
   if(im){if(key.startsWith('icon'))g.drawImage(im,0,0,m.fw,m.fh,0,0,32,32);else{const f=Math.max(1,Math.ceil(Math.max(m.fw,m.fh)/32));const w=Math.floor(m.fw/f),h=Math.floor(m.fh/f);g.drawImage(im,0,0,m.fw,m.fh,(32-w)>>1,(32-h)>>1,w,h);}}
-  return ICON[spr]=c.toDataURL();}
+  const u=c.toDataURL();if(im&&im.complete!==false)ICON[spr]=u;return u;}   // don't remember a blank icon from before the image loaded
 function openBag(){S.paused=true;const B=$('bagBody');const T=S.tools;
   $('bagSub').textContent=`Energy ${Math.round(S.energy)}/${S.energyMax} · Health ${Math.round(S.hp)}/${S.hpMax}${S.mineDeep?` · Deepest mine floor ${S.mineDeep}`:''}`;
   const row=(icon,label,btn)=>`<div class="it"><img src="${iconOf(icon)}" alt=""><span>${label}</span>${btn||''}</div>`;
