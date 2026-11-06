@@ -117,7 +117,7 @@ function buildGreenhouse(){obj('greenhouse',GH.x,GH.z,{kind:'bld',night:'greenho
   const R=ROOMS.greenhouse;for(let r=0;r<4;r++)for(let c=0;c<7;c++){const t={i:100+c,j:100+r,x:R.ox+1+c+.5,z:R.oz+1.2+r+.5,tilled:false,crop:null,gh:true};tiles.push(t);}}
 {const _tt=targetTile;targetTile=function(){if(S.room==='greenhouse'){let best=null,bd=1.2;for(const t of tiles){if(!t.gh)continue;const x=P.x+P.fx*.6,z=P.z+P.fz*.6+.1;const d=Math.hypot(t.x-x,t.z-z);if(d<bd){bd=d;best=t;}}return best;}if(S.room)return null;return _tt();};}
 // ---- per-frame hooks
-{const _u=update;update=function(dt){_u(dt);mineUpdate(dt);for(const t of tiles)if(t.gh&&t.crop&&t.crop.watered&&t.crop.stage<3)t.crop.growth+=dt*.5;
+{const _u=update;update=function(dt){_u(dt);mineUpdate(dt);for(const t of tiles)if(t.gh&&t.crop&&t.crop.watered&&t.crop.stage<3)t.crop.growth+=dt*.5*TIME_K();
 };}
 setInterval(()=>{const b=$('bars');if(!b)return;b.style.display=(S.mode!=='play'||$('hud').hidden||S.paused)?'none':'flex';$('barE').style.height=Math.max(0,S.energy/S.energyMax*100-3)+'%';$('barH').style.height=Math.max(0,S.hp/S.hpMax*100-3)+'%';$('barE').style.background=S.energy<20?'#d8a43a':'#7cc04a';},150);
 function econBoot(){placeMine();

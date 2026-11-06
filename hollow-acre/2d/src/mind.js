@@ -47,13 +47,13 @@ function mindUpdate(dt){
   // ---- drain / recover
   let r=0;
   if(night)r-=.22;if(night&&!lanternOn())r-=.8;
-  if(H.vis&&(H.state==='stalk'||H.state==='watch'))r-=.4+danger*1.8;
+  let rThreat=0;if(H.vis&&(H.state==='stalk'||H.state==='watch'))rThreat-=.4+danger*1.8;
   if(!night)r+=S.hour<18?.18:.05;
   if(night){for(const lp of lamps)if(!lp.dead&&Math.hypot(P.x-lp.x,P.z-lp.z)<3.2){r+=.45;break;}
     for(const h of HOUSES)if(h.lit&&Math.hypot(P.x-h.x,P.z-h.z+.5)<4){r+=.2;break;}
     for(const a of altars)if(a.lit&&Math.hypot(P.x-a.x,P.z-a.z)<4){r+=.6;break;}}
   for(const n of npcs)if(n.vis&&!night&&Math.hypot(P.x-n.x,P.z-n.z)<2.6){r+=.3;break;}
-  M.v=clamp(M.v+r*dt,0,100);
+  M.v=clamp(M.v+(r*TIME_K()+rThreat)*dt,0,100);   // the hour drains you, at the same pace per game hour; the thing in the dark drains you per second
   if(slamT>0&&M.lastSlam<=0)mindHit(11);M.lastSlam=slamT;
   for(const h of HOUSES)if(h.faceT>.5&&M.lastFace!==h){M.lastFace=h;mindHit(6);}
   const T=tierOf(M.v);

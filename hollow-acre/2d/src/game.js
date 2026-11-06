@@ -6,6 +6,9 @@ const S={mode:'load',day:1,hour:6.3,coins:10,seeds:{turnip:6,pumpkin:2},sel:'tur
 const tiles=[];for(let i=0;i<FIELD.w;i++)for(let j=0;j<FIELD.h;j++)tiles.push({i,j,x:FIELD.x0+i+.5,z:FIELD.z0+j+.5,tilled:false,crop:null});
 const tileAt=(i,j)=>(i<0||j<0||i>=FIELD.w||j>=FIELD.h)?null:tiles[i*FIELD.h+j];
 const isNight=()=>S.hour>=20.25;
+const DAY_SEC=42,NIGHT_SEC=36;const clockRate=()=>1/(S.hour<20?DAY_SEC:NIGHT_SEC);
+// things tuned to the old, fast clock (11 s/hour by day, 15 at night) keep the same pace per game hour
+const TIME_K=()=>clockRate()/(S.hour<20?1/11:1/15);
 const P={x:-58.6,z:-6.4,fx:1,fz:0,dir:'E',clip:'idle',t:0,anim:null,spd:0};
 const H={state:'gone',timer:6,burn:0,x:0,z:0,spd:1.4,stung:false,whisperT:3,fleeT:0,t:0,lit:false,watchT:0,stepT:0,breathT:0,rise:1,crawl:0,grace:0,dir:'S',ft:0,vis:false,alpha:1,skipT:5};
 const altars=ALTAR_POS.map(([x,z,name])=>({x,z,name,lit:false}));
@@ -282,7 +285,7 @@ const nightMel=[329.6,392,440,392,329.6,293.7,329.6,0,329.6,392,440,493.9,440,39
 function lightning(){flashT=1;const n=2+Math.floor(rand()*3);ghosts=[];if(!S.bound)for(let i=0;i<n;i++){const a=rand()*Math.PI*2,d=5+rand()*5;ghosts.push({x:P.x+Math.cos(a)*d,z:P.z+Math.sin(a)*d*.7,t:.35});}
   setTimeout(()=>SFX.thunder(),300+rand()*900);}
 function update(dt){slamUpdate(dt);mindUpdate(dt);lifeUpdate(dt);
-  const rate=S.hour<20?1/11:1/15;S.hour+=dt*rate;
+  const rate=clockRate();S.hour+=dt*rate;
   if(!S.dusk&&S.hour>=18){S.dusk=true;toast('The sun is going down. Your lantern is lit.',2.6);}
   if(!S.bellRung&&S.hour>=20){S.bellRung=true;SFX.bell();S.storm=S.day>=2&&!S.bound;placeNPCs();
     if(!S.bound){scare.vis=false;toast(S.day===1?'The church bell tolls. The scarecrow’s post is empty.':S.day===2?'The bell. The post is empty again. And the town has come out to watch.':'The bell. It is already walking.',3.8,true);}}
@@ -305,7 +308,7 @@ function update(dt){slamUpdate(dt);mindUpdate(dt);lifeUpdate(dt);
   P.t+=dt*(moving?spd/2.6:1);
   if(moving){stepT-=dt*(run?1.5:1);if(stepT<=0){stepT=.33;SFX.step(corn);if(rand()<.5&&!corn)burst(P.x,P.z+.05,2,'#6a5a46',.5,.4,.6);}}
   fishUpdate(dt);
-  for(const t of tiles){const c=t.crop;if(!c)continue;c.pop=Math.min(1,c.pop+dt*3);if(c.stage>=3||!c.watered)continue;c.growth+=dt;const ns=Math.min(3,Math.floor(c.growth/SEEDS[c.type].grow));
+  for(const t of tiles){const c=t.crop;if(!c)continue;c.pop=Math.min(1,c.pop+dt*3);if(c.stage>=3||!c.watered)continue;c.growth+=dt*TIME_K();const ns=Math.min(3,Math.floor(c.growth/SEEDS[c.type].grow));
     if(ns!==c.stage){c.stage=ns;c.pop=0;burst(t.x,t.z,5,'#bfe08a',.8,.6,1.5);if(ns===3)c.watered=false;}}
   const d=hollowUpdate(dt);
   danger=H.state==='stalk'||H.state==='watch'?clamp((11-d)/9,0,1):0;
