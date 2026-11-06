@@ -98,9 +98,10 @@ function mindUpdate(dt){
   if(M.rush){const q=M.rush;q.t+=dt;const dx=P.x-q.x,dz=P.z-q.z,d=Math.hypot(dx,dz)||1;q.x+=dx/d*11*dt;q.z+=dz/d*11*dt;q.dir=dirOf(dx,dz);
     if(d<1.3){M.rush=null;faceSlam(.3,true);cam.shake=.5;setTimeout(()=>{if(S.mode==='play')toast('There is nothing there. There was never anything there.',2.8,true);},700);}}
   // ---- 0: you black out and wake up somewhere else
-  if(M.v<=0&&!M.blackout)blackout();
+  if(M.v<=0&&!M.blackout)mindBlackout();
 }
-function blackout(){M.blackout=true;S.mode='trans';fade(1);SFX.tinnitus&&SFX.tinnitus();
+// (named apart from econ.js's blackout, which is passing out from exhaustion: one replaced the other and the screen stayed black)
+function mindBlackout(){if(S.mode!=='play'){return;}M.blackout=true;S.mode='trans';fade(1);SFX.tinnitus&&SFX.tinnitus();
   const spots=[[carPos.x+1.5,carPos.z+3.6,'by the wreck of your car'],[CORN.x0+3,CORN.z0+4,'in the middle of the corn'],[58,-26,'between the graves'],[pond.x+pond.r+1.5,pond.z,'at the edge of the pond, ankle-deep']];
   const s=pick(spots);
   setTimeout(()=>{P.x=s[0];P.z=s[1];P.fx=0;P.fz=1;P.dir='S';S.hour=Math.min(25.5,S.hour+2.2);M.v=38;M.figs.length=0;M.dop=null;M.rush=null;M.prints.length=0;

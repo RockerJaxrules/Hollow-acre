@@ -13,7 +13,7 @@ function eat(e,h,name){S.energy=Math.min(S.energyMax,S.energy+e);S.hp=Math.min(S
 function hurt(n,why){S.hp=Math.max(0,S.hp-n);cam.shake=Math.max(cam.shake,.35);flashT=Math.max(flashT,.25);if(why)toast(why,2.2,true);if(S.hp<=0)setTimeout(blackout,400);}
 function blackout(){if(S.mode!=='play'&&S.mode!=='scare')return;S.mode='trans';fade(1);setTimeout(()=>{const lost=Math.min(S.coins,Math.ceil(S.coins*.2));S.coins-=lost;
   S.room='cabin';const R=ROOMS.cabin;P.x=R.ox+2.6;P.z=R.oz+2.9;P.dir='S';S.hp=Math.round(S.hpMax*.5);S.energy=Math.round(S.energyMax*.5);S.hour=Math.min(25.5,S.hour+2);S.mineFloor=0;
-  S.mode='play';fade(0);toast(`You wake in Grandpa’s bed. You don’t remember walking home. Your boots are muddy to the knee.${lost?' '+lost+' coins are gone.':''}`,4.2,true);},1300);}
+  if(typeof M!=='undefined'){M.v=Math.max(M.v,40);M.blackout=false;}S.mode='play';fade(0);toast(`You wake in Grandpa’s bed. You don’t remember walking home. Your boots are muddy to the knee.${lost?' '+lost+' coins are gone.':''}`,4.2,true);},1300);}
 // ---- energy costs on the farm
 {const _t=doTill;doTill=function(t){if(!spend(S.hoe>1?3:2))return;_t(t);};const _w=doWater;doWater=function(t){if(!spend(1))return;_w(t);};}
 // sleeping refills you; collapsing in the dirt only half
