@@ -141,9 +141,7 @@ rebuildFarm=(function(){return function(){for(const o of farmObjs)o.hide=true;fa
 {const _lr=leaveRoom;let since=0;leaveRoom=function(force){if(!force&&(performance.now()-since<700||P.fz<=0))return;_lr();};const _er=enterRoom;enterRoom=function(k){since=performance.now()+400;_er(k);};}
 
 // ---------- desktop: scale the HTML interface up with the window so it isn't tiny on a monitor
-function uiScale(){const k=matchMedia('(pointer:fine)').matches?clamp(Math.min(innerWidth/1100,innerHeight/680),1,2.2):1;
-  for(const id of ['hud','objective','buttons','bars','hotbar','toast','placeBar','subs'])if($(id))$(id).style.zoom=k;for(const el of document.querySelectorAll('.sheet'))el.style.zoom=k;}
-addEventListener('resize',uiScale);setTimeout(uiScale,0);setInterval(uiScale,2000);
+function uiScale(){}   // desktop scaling lives in hud2.js now (one scale, --u, for everything)
 
 // ---------- per-frame hooks
 {const _u6=update;update=function(dt){_u6(dt);leavesUpdate(dt);};}

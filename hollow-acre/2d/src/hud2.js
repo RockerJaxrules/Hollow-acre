@@ -42,6 +42,11 @@
 /* portrait phones: the hotbar gets the whole bottom row, Menu and the act button sit above its ends */
 @media (orientation:portrait) and (max-width:699px){
   #btnBag,#buttons{bottom:calc(var(--gb) + var(--slot) + 12px)!important}}
+/* panels, screens and scenes scale with the screen too, and stay centred: scale by transform, not zoom */
+.sheet{transform:translate(-50%,-50%) scale(var(--su,1))!important;transform-origin:50% 50%;max-height:calc(88vh / var(--su,1))!important;max-width:calc(94vw / var(--su,1))!important;overflow:auto!important}
+#title>*,#creator>.cwrap{zoom:var(--tu,1)}#end>*,#death>*{zoom:var(--su,1)}
+#scene .box{zoom:var(--su,1)}#credits2 .roll,#credits2 .sting{zoom:var(--su,1)}
+#fsTip,#crash .dlg{zoom:var(--su,1)}#fsBtn.title{zoom:var(--tu,1)}
 /* things that float over the world */
 #toast{left:50%!important;transform:translateX(-50%)!important;top:var(--toastTop,30%)!important;width:min(560px,calc(100vw - 2*var(--g) - 20px))!important;zoom:var(--u)}
 #maecard{left:50%!important;transform:translateX(-50%)!important;width:min(420px,calc(100vw - 2*var(--g) - 16px))!important;bottom:var(--floatBottom,140px)!important;zoom:var(--u)!important}
@@ -66,6 +71,7 @@ body.maeTalking #hudC>#lesson{display:none!important}
 uiScale=function(){for(const id of ['hud','objective','buttons','bars','hotbar','toast','placeBar','subs'])if($(id))$(id).style.zoom='';for(const el of document.querySelectorAll('.sheet'))el.style.zoom='';};
 function hudLayout(){const W=innerWidth,H=innerHeight,fine=matchMedia('(pointer:fine)').matches;const r=document.documentElement.style;
   let u=1;if(fine)u=clamp(Math.min(W/1150,H/720),1,1.8);else if(Math.min(W,H)>=700)u=1.15;r.setProperty('--u',u.toFixed(3));
+  const su=fine?clamp(Math.min(W/1000,H/680),1,1.9):(Math.min(W,H)>=700?1.2:1);r.setProperty('--su',su.toFixed(3));const tu=fine?clamp(Math.min(W/760,H/620),1,2.1):(Math.min(W,H)>=700?1.25:1);r.setProperty('--tu',tu.toFixed(3));
   const port=H>W&&W<700;const short=H<480;const btn=short?54:port?60:66;r.setProperty('--btn',btn+'px');
   // how many hotbar slots fit, and how big
   const vw=W/u,gut=20;let avail=port?vw-gut:vw-gut-2*(btn+14);const n=clamp(Math.floor(avail/50),6,12);const slot=clamp(Math.floor(avail/n)-4,34,52);
