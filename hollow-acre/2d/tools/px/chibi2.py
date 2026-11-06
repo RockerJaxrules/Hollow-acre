@@ -56,7 +56,7 @@ BEARDS = ['stubble', 'moustache', 'goatee', 'full']
 HATS = ['cap', 'straw', 'beanie', 'cowboy', 'bucket']
 GLASSES = ['round', 'square', 'shades']
 ACCS = ['bow', 'flower', 'headband', 'scarf', 'bandana', 'necklace']
-TOOLS = ['', 'hoe', 'can', 'pick', 'axe']
+TOOLS = ['', 'hoe', 'can', 'pick', 'axe', 'rod']
 JOBS = []
 for n, look in NPC.items(): JOBS.append((n, dict(look), None, 'all'))
 for t in TOOLS:

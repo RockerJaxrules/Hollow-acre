@@ -95,9 +95,17 @@ function render(dt,now){const t=now/1000;
       if(P.anim){const a=P.anim;if(a.clip==='hoe'||a.clip==='pick'||a.clip==='axe'){nm='farmer_'+a.clip;clip='thrust';}else if(a.clip==='water'){nm='farmer_can';clip='thrust';}else clip='slash';f=frameOf(nm,clip,a.t,a.dur);
         if(a.clip==='hoe'||a.clip==='pick'||a.clip==='axe'){const k=a.t/a.dur,TH=[.08,.2,.34,.48,.55,.74,.86];f=TH.findIndex(v=>k<v);if(f<0)f=7;}}
       else{if(clip==='walk'&&P.spd>3.6&&SPR[nm].clips.run)clip='run';if(clip==='idle'){if(SPR[nm].clips.idle)f=frameOf(nm,'idle',performance.now()/1000);else{clip='walk';f=0;}}else f=frameOf(nm,clip,P.t);}
+      // the rod comes out whenever a line is in the water
+      if(!P.anim&&S.mode!=='scare'&&typeof rodFrame==='function'){const rf=rodFrame();if(rf>=0){nm='farmer_rod';clip='thrust';f=rf;}}
       if(S.mode==='scare')clip='hurt';P._fr=[nm,clip,clip==='hurt'?'S':P.dir,f||0];footShadow(P._fr,X,Y);
+      const tm=clip==='thrust'&&SPR[nm]&&SPR[nm].tool?SPR[nm]:null;const ox=tm?Math.round(X-tm.ax):0,oy=tm?Math.round(Y-tm.ay):0;let tip=null;
+      // water from the can lands on the square you're watering
+      const pour=tm&&tm.toolKind==='can'&&f>=3&&f<=6;const wto=pour?(()=>{const a=P.anim,tg=a&&a.tgt;const wx=tg?tg.x:P.x+P.fx*.9,wz=tg?tg.z:P.z+P.fz*.9+.1;return P.dir==='N'?[sx(wx)+9,sz(wz)+12]:[sx(wx),sz(wz)+4];})():null;
+      if(tm){tip=toolOverlay(ctx2,nm,P.dir,f|0,ox,oy,'back')||tip;if(tip&&pour)waterStream(ctx2,tip,wto,t);}
       drawSpr(nm,X,Y,clip,clip==='hurt'?'S':P.dir,clip==='hurt'?Math.min(5,Math.floor((performance.now()/120)%6)):f);
-      if(fish.state!=='off'){ctx2.strokeStyle='rgba(230,230,230,.7)';ctx2.beginPath();ctx2.moveTo(X+8,Y-36);ctx2.lineTo(sx(fish.bx),sz(fish.bz));ctx2.stroke();ctx2.fillStyle=fish.state==='bite'?'#ff4030':'#e83020';ctx2.fillRect(Math.round(sx(fish.bx))-1,Math.round(sz(fish.bz))-1+(fish.state==='bite'?Math.round(Math.sin(t*30)):0),3,3);}}
+      if(tm){const t2=toolOverlay(ctx2,nm,P.dir,f|0,ox,oy,'front');if(t2){tip=t2;if(pour)waterStream(ctx2,tip,wto,t);}fistOverlay(ctx2,nm,P.dir,f|0,ox,oy);}
+      if(fish.state!=='off'){const from=tip&&tm&&tm.toolKind==='rod'?tip:[X+8,Y-36];fishLine(ctx2,from,[sx(fish.bx),sz(fish.bz)],fish.state==='bite'||(typeof MG!=='undefined'&&MG.on),t);
+        ctx2.fillStyle=fish.state==='bite'?'#ff4030':'#e83020';ctx2.fillRect(Math.round(sx(fish.bx))-1,Math.round(sz(fish.bz))-1+(fish.state==='bite'?Math.round(Math.sin(t*30)):0),3,3);ctx2.fillStyle='#f4f0e8';ctx2.fillRect(Math.round(sx(fish.bx))-1,Math.round(sz(fish.bz))-2+(fish.state==='bite'?Math.round(Math.sin(t*30)):0),3,1);}}
     else if(d.hollow){const X=sx(H.x),Y=sz(H.z);const clip=H.clip==='walk'||H.clip==='crawl'||H.clip==='idle'?'walk':H.clip==='scream'||H.clip==='lunge'?'spellcast':'hurt';
       const f=clip==='hurt'?(Math.random()<.3?1:0):H.clip==='idle'?0:frameOf('hollow',clip,H.ft*(H.clip==='crawl'?1.6:1));
       const jit=H.clip==='frozen'?(Math.random()-.5)*2:0;const rise=(1-H.rise)*40;

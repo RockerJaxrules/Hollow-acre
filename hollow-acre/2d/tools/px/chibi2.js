@@ -319,33 +319,36 @@ function hat(hx,hy,dir,fl,h){if(!h)return;const side=dir==='E'||dir==='W',back=d
     if(h==='sheriff'&&!back&&!side){p(hx,bY-4,[255,220,110]);p(hx-1,bY-4,[220,170,60]);p(hx+1,bY-4,[220,170,60]);p(hx,bY-5,[255,220,110]);p(hx,bY-3,[200,150,40]);}}
   if(h==='top'){const T=ramp('#1c1a20');const bY=hy-7;for(let y=T0-6;y<bY;y++)for(let x=-FX+2;x<=FX-2;x++)p(hx+x,y,T[x<-3?4:x>3?1:3]);for(let x=-FX+2;x<=FX-2;x++){p(hx+x,bY-3,[120,30,30]);p(hx+x,bY-2,[80,20,20]);}
     for(let i=-HW-1;i<=HW+1;i++){p(hx+i,bY,T[i<0?3:1]);p(hx+i,bY+1,T[0]);}}}
-// ---------------------------------------------------------------- tools (same swing tables the game's timings were tuned to)
-const SWING={axe:[40,-105,-150,-170,-20,10,16,-25],pick:[45,-105,-150,-170,-10,45,48,-20],hoe:[45,-105,-150,-170,-10,48,50,-20]};
-const GRIP={axe:[[5,6],[-1,-10],[-3,-14],[-4,-15],[6,0],[7,4],[7,5],[4,1]],pick:[[5,6],[-1,-10],[-3,-14],[-4,-15],[6,1],[6,5],[6,6],[4,2]],hoe:[[5,6],[-1,-10],[-3,-14],[-4,-15],[6,1],[6,5],[6,6],[4,2]]};
-const FGRIP=[[3,6],[2,-12],[1,-16],[1,-17],[2,-6],[2,3],[2,4],[3,2]];
-const FANG_S=[115,-100,-92,-84,58,88,86,120],FK_S=[.9,1,1,1,.8,.62,.62,.85];
-const FANG_N=[-80,-95,-92,-86,-84,-90,-90,-84],FK_N=[.55,1,1,1,.85,.5,.5,.7];
-const BACK=[0,1,1,1,0,0,0,0];
-// body language of a swing: lean back on the wind-up, drive forward through the strike, knees give at impact
+// ---------------------------------------------------------------- tools. The game draws the tool itself, so it can reach the square you aim at, sit in front of
+// or behind you, and change when you upgrade it. The sheets carry the arms and the fists over the handle; META.tool says, frame by frame,
+// where the grip is (sheet pixels), the angle (0 = screen right, 90 = straight down), how foreshortened it is, and whether it's behind the body.
+// Swing (hoe, pickaxe, axe): ready, lift, overhead, wound back, the swing, impact, impact, recover. Rod: ready, back, back, behind the head, whip, out, out, hold.
+const TP={
+ swing:{E:[[6,7,55,1,0],[3,-4,-60,1,1],[0,-11,-115,1,1],[-2,-12,-160,1,1],[5,-4,-15,1,0],[10,6,28,1,0],[10,7,32,1,0],[6,6,50,1,0]],
+        S:[[3,7,100,.7,0],[5,-6,-70,1,1],[2,-13,-88,1,1],[1,-14,-95,.9,1],[2,-2,90,.35,0],[2,11,91,1,0],[2,12,91,.95,0],[3,7,98,.7,0]],
+        N:[[3,6,95,.5,1],[4,-6,-75,1,1],[2,-13,-92,1,1],[2,-14,-100,.55,0],[2,-12,-86,1.1,1],[3,-8,-72,1.1,1],[3,-7,-70,1.08,1],[4,5,95,.5,1]]},
+ rod:{E:[[6,3,-35,1,0],[3,-5,-100,1,1],[1,-9,-135,1,1],[0,-10,-150,1,1],[5,-3,-50,1,0],[8,2,-15,1,0],[8,3,-10,1,0],[7,3,-25,1,0]],
+      S:[[5,4,70,.75,0],[5,-4,-70,1,1],[3,-9,-95,1,1],[2,-10,-110,.8,1],[4,0,60,.6,0],[5,4,75,.7,0],[5,5,78,.7,0],[5,4,72,.75,0]],
+      N:[[5,2,-75,.8,1],[5,-3,-85,1,1],[4,-9,-100,.7,0],[3,-11,-110,.5,0],[5,-4,-80,1,1],[5,1,-72,.9,1],[5,2,-70,.9,1],[5,2,-75,.85,1]]},
+ // the watering can: [hand dx, hand dy, tilt, -, behind]. Held at your side, lifted, tipped to pour onto the square in front, lowered.
+ can:{E:[[8,5,0,1,0],[9,2,10,1,0],[10,1,20,1,0],[11,1,40,1,0],[11,1,48,1,0],[11,1,48,1,0],[11,1,40,1,0],[9,3,10,1,0]],
+      S:[[6,6,0,1,0],[5,4,10,1,0],[4,3,20,1,0],[3,3,42,1,0],[3,3,50,1,0],[3,3,50,1,0],[3,3,42,1,0],[5,5,10,1,0]],
+      N:[[7,4,0,1,1],[7,2,10,1,1],[7,0,20,1,1],[7,-1,42,1,1],[7,-1,50,1,1],[7,-1,50,1,1],[7,-1,42,1,1],[7,3,10,1,1]]}};
+const TOOLMETA={N:[],W:[],S:[],E:[]};
 const SW_LEAN=[0,-2,-3,-3,1,3,3,1],SW_CROUCH=[0,0,0,0,2,4,4,1],SW_BOB=[0,-1,-2,-1,0,0,0,0];
-const gripOf=(kind,f,front)=>front?FGRIP[f]:GRIP[kind][f];
-function drawTool(kind,f,hx,ay,dir,fl){const side=dir==='E'||dir==='W';
-  if(kind==='hoe'||kind==='pick'||kind==='axe'){const front=!side,back=dir==='N';const [gdx,gdy]=gripOf(kind,f,front);
-    let gx=hx+(front?gdx:fl*gdx),gy=ay+gdy;let ang,mir=false,k=1;
-    if(side){const a=SWING[kind][f];if(fl>0)ang=a;else{ang=180-a;mir=true;}}else if(!back){ang=FANG_S[f];k=FK_S[f];}else{ang=FANG_N[f];k=FK_N[f];gx+=BACK[f]?1:-4;}
-    const rad=ang*Math.PI/180,dx=Math.cos(rad),dy=Math.sin(rad);
-    if(f===4){const a0=(side?(fl>0?SWING[kind][3]:180-SWING[kind][3]):back?FANG_N[3]:FANG_S[3])*Math.PI/180;let a1=rad;if(side&&fl<0&&a1>a0)a1-=2*Math.PI;if(side&&fl>0&&a1<a0)a1+=2*Math.PI;
-      for(let i=4;i<=24;i++){const aa=a0+(a1-a0)*i/24;for(const [rr,c] of [[19,[244,238,222]],[18,[206,198,180]]]){const X=Math.round(gx+Math.cos(aa)*rr*k),Y=Math.round(gy+Math.sin(aa)*rr*k);if(Math.hypot(X-hx,Y-(ay-14))>14)p(X,Y,c);}}}
-    stampTool(kind,gx,gy,ang,mir,k,(x,y,c)=>p(x,y,c));
-    if(!BACK[f]&&!back){for(const u of [-1,4]){blob(Math.round(gx+dx*u*k),Math.round(gy+dy*u*k),2,2,SK);}}
-    if(f===5){const hx2=Math.round(gx+dx*18*k),hy2=Math.round(gy+dy*18*k);const col=kind==='hoe'?[[96,62,36],[140,98,60]]:kind==='pick'?[[128,124,136],[196,192,204]]:[[160,118,66],[214,174,112]];
-      for(let i=0;i<7;i++)p(hx2+(i-3)*2+(i%2),hy2-1-(i%3)-(i>4?2:0),col[i%2]);}}
-  if(kind==='can'){const G2=[[30,66,40],[50,104,58],[78,146,80],[132,196,122],[180,226,168]];const tilt=f>=3&&f<=6;const cx=hx+(side?fl*10:9),cy=ay+5-(f>=1&&f<=6?3:0);
-    for(let y=-5;y<=5;y++)for(let x=-6;x<=6;x++){const d=x*x/36+y*y/25;if(d>1)continue;const l=-x/6*.5-y/5*.7;p(cx+x,cy+y,G2[d>.8?(l>0?2:0):l>.45?4:l>.1?3:l>-.3?2:1]);}
-    for(let x=-5;x<=5;x++)p(cx+x,cy-6,G2[x<0?3:2]);for(let i=0;i<9;i++){const aa=Math.PI+i/8*Math.PI;p(cx+Math.round(Math.cos(aa)*5),cy-7+Math.round(Math.sin(aa)*4),G2[1]);}
-    for(const [rx,ry] of [[-3,-1],[-2,2]])p(cx+rx,cy+ry,G2[4]);
-    const sx2=cx+(side?fl*8:8),sy2=cy-(tilt?-1:4);seg(cx+(side?fl*4:4),cy-1,sx2,sy2,2,G2);p(sx2+(side?fl:1),sy2,[210,210,200]);p(sx2+(side?fl:1),sy2+1,[150,150,140]);p(sx2+(side?fl*2:2),sy2,[180,180,170]);
-    if(tilt)for(let i=0;i<11;i++){const ddx=(side?fl*(2+(i>>1)):2+(i>>1)),ddy=1+i*1.6+((f+i)%2);p(sx2+ddx,sy2+Math.round(ddy),[150,205,240]);if(i%2)p(sx2+ddx+(side?fl:1),sy2+Math.round(ddy),[220,240,252]);}}}
+// the entry for this frame, mirrored for the west
+function toolEntry(kind,dir,f){const fam=kind==='rod'?'rod':kind==='can'?'can':'swing';const e=TP[fam][dir==='W'?'E':dir][f];if(dir!=='W')return e.slice();return [-e[0],e[1],180-e[2],e[3],e[4]];}
+// a fist over the handle: the same 4x3 block the arm ends in
+function fist(hx2,hy2){for(let j=0;j<3;j++)for(let i=-1;i<=(KID?1:2);i++)p(hx2+i,hy2+j,SK[j===2?1:i===-1?4:i===(KID?1:2)?2:3]);}
+// where the hands go for a grip: one at the grip, one a little way up the handle (or both on the can's handle)
+function toolHands(kind,dir,f){const [gx,gy,ang,k]=toolEntry(kind,dir,f);const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1;const a=ang*Math.PI/180;
+  const q1=[gx,gy],q2=kind==='can'?[gx-(side?fl*9:5),gy-2]:[gx+Math.cos(a)*5*k,gy+Math.sin(a)*5*k];
+  const shL=side?[-fl,0]:[-Math.round(TW/2),0],shR=side?[fl,0]:[Math.round(TW/2)-1,0];
+  const rel=(q,sh)=>[Math.round(q[0]-.5-sh[0]),Math.round(q[1]-1-sh[1])];
+  if(kind==='can'){// the near hand holds the can, the other hangs or steadies it
+    if(side)return {hands:[[fl*-1,HANG-1],rel(q1,shR)],pts:[q1]};return {hands:[rel(q2,shL),rel(q1,shR)],pts:[q1]};}
+  if(side)return {hands:[rel(q2,shL),rel(q1,shR)],pts:[q1,q2]};
+  const L=q1[0]<=q2[0]?[q1,q2]:[q2,q1];return {hands:[rel(L[0],shL),rel(L[1],shR)],pts:[q1,q2]};}
 // ---------------------------------------------------------------- one figure
 let SQUAT=false;
 function human(dir,pose){SQUAT=(pose.crouch||0)>=3;const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1,back=dir==='N';
@@ -362,19 +365,17 @@ function human(dir,pose){SQUAT=(pose.crouch||0)>=3;const side=dir==='E'||dir==='
   const hands=pose.hands||(side?[[fl*-1,HANG-2],[fl*1,HANG-2]]:[[-1,HANG-2],[1,HANG-2]]);
   const drawArm=(i,far)=>{const sh=i?shR:shL;const h=hands[i];const hx2=sh[0]+h[0],hy2=sh[1]+h[1];arm(sh[0],sh[1],hx2,hy2,side?0:(i?1:-1),far,far?0:side?-fl:(i?-1:1));};
   into('body',()=>{
-    if(tool&&back)tool(ux,armY,dir,fl);
     if(side){drawArm(0,true);drawLeg(0,true);drawLeg(1,false);}else{drawLeg(0,false);drawLeg(1,false);}
     if(back&&pose.reach){drawArm(0,false);drawArm(1,false);}
     torso(ux,ty,dir,fl,hipY);
     if(side)drawArm(1,false);else if(!(back&&pose.reach)){drawArm(0,false);drawArm(1,false);}
-    if(tool&&!back&&pose.toolBack)tool(ux,armY,dir,fl);
     head(ux,hy,dir,fl,pose);});
   into('beard',()=>beard(ux,hy,dir,fl,C.beard===true?'full':C.beard));
   into('hair',()=>hair(ux,hy,dir,fl,C.hairStyle||'short'));
   into('acc',()=>acc(ux,hy,dir,fl,C.accessory,ty));
   into('glasses',()=>{if(C.glasses)glasses(ux,hy,dir,fl,C.glasses);});
   into('hat',()=>hat(ux,hy,dir,fl,C.hat));
-  into('toolf',()=>{if(tool&&!back&&!pose.toolBack)tool(ux,armY,dir,fl);});}
+  into('toolf',()=>{if(tool)tool(ux,armY,dir,fl);});}
 // ---------------------------------------------------------------- poses per clip
 function walkPose(f,dir,run){const pose={};if(f===0)return pose;const side=dir==='E'||dir==='W',back=dir==='N';const ph=(f-1)/8*Math.PI*2;const fl=dir==='W'?-1:1;
   const S=run?(KID?5:7):(KID?4:5),LF=run?4:3;
@@ -424,15 +425,13 @@ else ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
   if(clip==='walk')pose=walkPose(f,dir,false);
   if(clip==='run')pose=walkPose(f===0?1:f,dir,true);
   if(clip==='idle'){pose.bob=[0,0,0,0][f];pose.slouch=[0,0,-1,0][f];pose.hands=side?[[fl*-1,HANG+(f===2?-1:0)],[fl*1,HANG+(f===2?-1:0)]]:[[0,HANG+(f===2?-1:0)],[0,HANG+(f===2?-1:0)]];}
-  if(clip==='thrust'&&TOOL){const kind=TOOL;pose.tool=(hx,ay,d,fl2)=>drawTool(kind,f,hx,ay,d,fl2);
-    if(kind==='can'){pose.crouch=f>=3&&f<=6?1:0;pose.lean=f>=3&&f<=6?1:0;pose.legs=side?[[-2,0,0],[2,0,0]]:[[-3,0,0],[3,0,0]];
-      pose.hands=side?[[fl*-1,HANG-1],[fl*7,f>=1&&f<=6?1:4]]:[[1,HANG-1],[6,f>=1&&f<=6?1:4]];}
-    else{pose.crouch=SW_CROUCH[f];pose.bob=SW_BOB[f];pose.lean=SW_LEAN[f];pose.toolBack=!!BACK[f];
-      pose.legs=side?[[-3,0,0],[4,0,0]]:[[-3,0,0],[4,0,0]];                   // braced stance: front foot forward, back foot behind
-      const [gx,gy]=gripOf(kind,f,!side);const a=SWING[kind][f]*Math.PI/180;
-      if(side){const near=[fl*(gx+Math.round(Math.cos(a)*4)),gy+Math.round(Math.sin(a)*4)],farH=[fl*(gx),gy+1];pose.hands=[[farH[0]+fl*1,farH[1]],[near[0]-fl*1,near[1]]];}
-      else if(dir==='N'){pose.hands=BACK[f]?[[5,-12],[-5,-12]]:[[4,3],[-4,3]];}
-      else{const L=Math.round(TW/2);pose.hands=[[gx+L-1,gy+(BACK[f]?0:4)],[gx-L+3,gy]];}}}
+  if(clip==='thrust'&&TOOL){const kind=TOOL;const e=toolEntry(kind,dir,f);const H=toolHands(kind,dir,f);pose.hands=H.hands;
+    if(kind==='can'){pose.crouch=f>=3&&f<=6?1:0;pose.lean=f>=3&&f<=6?1:0;pose.legs=side?[[-2,0,0],[2,0,0]]:[[-3,0,0],[3,0,0]];}
+    else{pose.crouch=SW_CROUCH[f];pose.bob=SW_BOB[f];pose.lean=SW_LEAN[f];pose.legs=[[-3,0,0],[4,0,0]];}
+    // in a back view, hands held low in front of you are hidden by your body
+    if(dir==='N'&&(e[1]>-8))pose.reach=true;
+    pose.tool=(ux,ay)=>{TOOLMETA[dir][f]=[ux+e[0],ay+e[1],e[2],e[3],e[4]];
+      if(!e[4]&&dir!=='N')for(const q of H.pts)fist(Math.round(ux+q[0]-.5),Math.round(ay+q[1]-1));};}
   if(clip==='slash')pose=plantPose(f,dir);
   if(clip==='hurt'){pose.crouch=[0,2,4,5,6,6][f];pose.lean=-1;pose.hands=[[4,-5],[-4,-5]];pose.blink=f>1;}
   if(clip==='spellcast'){const up=f>1;pose.hands=up?(side?[[fl*-1,-11],[fl*3,-12]]:[[-1,-12],[1,-12]]):(side?[[fl*-1,HANG],[fl*1,HANG]]:[[0,HANG],[0,HANG]]);}
@@ -447,4 +446,4 @@ else ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
   for(let y=0;y<FH;y++)for(let x=0;x<FW;x++){const c=G(src,x,y);if(c)P(SHEET,f*FW+x,r*FH+y,c,c[3]);}}});
 if(!PORTRAIT){emit([SHEET],CFG.out);
 const clips={};let rr=0;for(const [n,ds,nf] of CLIPS){clips[n]={};for(const d of ds)clips[n][d]=[rr++,nf];}
-console.log('META '+JSON.stringify({fw:FW,fh:FH,ax:FW/2,ay:FH-4,clips}));}
+console.log('META '+JSON.stringify(Object.assign({fw:FW,fh:FH,ax:FW/2,ay:FH-4,clips},TOOL?{tool:TOOLMETA,toolKind:TOOL}:{})));}

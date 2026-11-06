@@ -54,15 +54,18 @@ function composeSheet(look,tool,M){const tm=SPR['farmer'+tool];if(!tm)return;con
   let hatTop=null;
   if(look.hat){const im=LAYER_IMG('pl_hat_'+look.hat+(tool==='_can'?'_can':''));if(im){tg.clearRect(0,0,W,H);tg.drawImage(im,0,0);const a=tg.getImageData(0,0,W,H).data;
     hatTop=new Int16Array(W*Math.ceil(H/FH)).fill(-1);for(let y=0;y<H;y++){const band=(y/FH)|0;for(let x=0;x<W;x++){const i=band*W+x;if(hatTop[i]<0&&a[(y*W+x)*4+3])hatTop[i]=y;}}}}
+  // the fists over a tool's handle go on their own sheet: the game draws them after the tool
+  const fc=document.createElement('canvas');fc.width=W;fc.height=H;const fg=fc.getContext('2d');
   for(const n of ls){const im=LAYER_IMG(n);if(!im)continue;tg.clearRect(0,0,W,H);tg.drawImage(im,0,0);const d=tg.getImageData(0,0,W,H),a=d.data;
     const isHair=n.startsWith('pl_hair_');
     for(let i=0;i<a.length;i+=4){if(!a[i+3])continue;
       if(isHair&&hatTop){const p=i>>2,x=p%W,y=(p/W)|0,ht=hatTop[((y/FH)|0)*W+x];if(ht>=0&&y<ht+2){a[i+3]=0;continue;}}   // hair stays under the hat
       if(M.size){const to=M.get((a[i]<<16)|(a[i+1]<<8)|a[i+2]);if(to){a[i]=to[0];a[i+1]=to[1];a[i+2]=to[2];}}}
-    tg.putImageData(d,0,0);g.drawImage(tmp,0,0);}
+    tg.putImageData(d,0,0);(n.startsWith('pl_toolf')?fg:g).drawImage(tmp,0,0);}
+  if(tool)FISTS['farmer'+tool]=fc;
   if(!LOOK_ORIG[tm.src])LOOK_ORIG[tm.src]=IMG[tm.src];IMG[tm.src]=c;
   if(typeof SILF!=='undefined')for(const k in SILF)if(k.startsWith('farmer'))delete SILF[k];}
-function applyLook(only){const look=S.look,M=lookMap(look);for(const tool of (only||['','_hoe','_can','_pick','_axe']))composeSheet(look,tool,M);}
+function applyLook(only){const look=S.look,M=lookMap(look);for(const tool of (only||['','_hoe','_can','_pick','_axe','_rod']))composeSheet(look,tool,M);}
 // ---- the creator: tabs of options, a turning preview that walks, idles and works the hoe
 {const css=document.createElement('style');css.textContent=`
 #creator{gap:0;justify-content:flex-start;padding-top:max(18px,env(safe-area-inset-top))}#creator .cwrap{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(460px,94vw)}
@@ -96,7 +99,7 @@ function applyLook(only){const look=S.look,M=lookMap(look);for(const tool of (on
     if(Math.random()<.5)S.look.hat='';if(Math.random()<.6)S.look.beard='';if(Math.random()<.7)S.look.glasses='';if(Math.random()<.4)S.look.accessory='';if(Math.random()<.4)S.look.pattern='';changed();build();});
   let raf=0;function preview(now){if(el.hidden)return;raf=requestAnimationFrame(preview);const [,nm,clip]=ANIMS[anim];const m=SPR[nm],im=IMG[m.src];if(!im)return;const g=$('cPrev').getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,48,64);
     const c=m.clips[clip][DIRS[dirI]]||m.clips[clip].S;const nf=c[1];const fps=clip==='idle'?3:clip==='run'?14:clip==='thrust'?10:9;let f=Math.floor(now/1000*fps)%nf;if(clip==='walk'||clip==='run')f=1+f%(nf-1);
-    g.fillStyle='rgba(10,14,8,.35)';g.beginPath();g.ellipse(24,60,8,2.2,0,0,Math.PI*2);g.fill();g.drawImage(im,f*m.fw,c[0]*m.fh,m.fw,m.fh,0,0,48,64);}
+    g.fillStyle='rgba(10,14,8,.35)';g.beginPath();g.ellipse(24,60,8,2.2,0,0,Math.PI*2);g.fill();const d=DIRS[dirI];if(clip==='thrust')toolOverlay(g,nm,d,f,0,0,'back');g.drawImage(im,f*m.fw,c[0]*m.fh,m.fw,m.fh,0,0,48,64);if(clip==='thrust'){toolOverlay(g,nm,d,f,0,0,'front');fistOverlay(g,nm,d,f,0,0);}}
   function open(edit){editing=!!edit;$('cKick').textContent=edit?'The wardrobe':'Who is driving';$('cGo').textContent=edit?'Done':'Drive';build();applyLook(['','_hoe']);$('title').hidden=true;el.hidden=false;if($('cName'))$('cName').value=S.look.name||'';raf=requestAnimationFrame(preview);}
   window.openWardrobe=()=>{S.paused=true;$('bag')&&($('bag').hidden=true);open(true);};
   $('begin').addEventListener('click',e=>{e.stopImmediatePropagation();A.init&&A.init();open(false);},true);
