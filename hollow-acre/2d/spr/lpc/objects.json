@@ -4331,5 +4331,18 @@
 0,
 0
 ]
+},
+"icon32_blade": {
+"src": "spr/lpc/obj/icon32_blade.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
 }
 }

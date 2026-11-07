@@ -2,6 +2,7 @@ import sys, json
 sys.path.insert(0, '.')
 from run import run
 PROPS = {  # name: (kind, w, h, night_variant)
+  'icon32_blade': ('icon32', 32, 32, False),
   'icon32_seed_turnip': ('icon32', 32, 32, False),
   'icon32_seed_pumpkin': ('icon32', 32, 32, False),
   'icon32_seed_corn': ('icon32', 32, 32, False),

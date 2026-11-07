@@ -348,6 +348,13 @@ if(K==='icon32'){const I=CFG.icon;const pick=(R,l)=>R[Math.max(0,Math.min(R.leng
     for(let x=10;x<=17;x++)P(A,x,9+(x>13?0:1),F[1]);P(A,11,10,F[1]);for(let x=12;x<=16;x++)P(A,x,10,F[2]);
     for(let i=0;i<3;i++)P(A,13+i,20+i%2,F[1]);P(A,6,14,[16,18,20]);P(A,6,13,[240,240,236]);for(let x=8;x<=9;x++)P(A,x,17,F[0]);
     for(let x=11;x<=22;x+=3)for(let y=13;y<=17;y+=2)P(A,x+(y%4?1:0),y,shade(pick(F,y<15?3:2),.85));}
+  // a short blade for combat: a steel blade from the upper right, a brass guard, a wrapped grip and a pommel
+  if(I==='blade'){const SL=[[46,50,60],[92,98,112],[156,162,176],[214,220,230],[244,248,252]],BR=PAL.brass;
+    for(let t=0;t<=1;t+=.02){const x=27-t*15,y=4+t*15;for(let o=-1.8;o<=1.8;o+=.45){const X=Math.round(x+o*.707),Y=Math.round(y+o*.707);P(A,X,Y,SL[o<-.9?1:o<0?2:o<.9?3:4]);}}
+    P(A,28,3,SL[4]);P(A,27,3,SL[3]);for(let t=0;t<=1;t+=.05)P(A,Math.round(27-t*14),Math.round(4+t*14),SL[2]);
+    for(let i=-4;i<=4;i++){P(A,12+i,19+i,BR[2]);P(A,13+i,19+i,BR[3]);P(A,12+i,20+i,BR[1]);}
+    for(let t=0;t<=1;t+=.1){const x=Math.round(10-t*5),y=Math.round(22+t*5);P(A,x,y,(t*10|0)%2?WD[1]:WD[3]);P(A,x+1,y,WD[2]);}
+    ell(A,4,28,2,2,BR[2]);P(A,3,27,BR[3]);}
   // furniture: the rocking chair, an oil lamp, the bookshelf, the braided rug, the crates
   if(I==='in_chair'){const R=WD;for(let y=3;y<=17;y++)for(let x=10;x<=21;x++)P(A,x,y,x===10?R[4]:x===21?R[1]:(x-10)%3===0?R[1]:R[3]);hl(A,10,3,12,R[5]);
     for(let y=17;y<=21;y++)for(let x=8;x<=23;x++)P(A,x,y,y<20?R[y===17?5:4]:R[2]);rect(A,10,18,12,2,PAL.red[3]);hl(A,10,18,12,PAL.red[4]);
