@@ -42,7 +42,7 @@ vendors.b_armor={name:'Armour bench',sub:'The dress form has your measurements p
   buy(){S.gear.armor=k;S.hpMax=100+hp;S.hp=Math.min(S.hpMax,S.hp+hp);}}))};
 {const _h=hurt;hurt=function(n,why){const a=S.gear.armor&&ARMORS[S.gear.armor];_h(Math.round(n*(1-(a?a[1]:0))),why);};}
 // ---- furniture bench: each piece goes into the cabin
-const FURN={chair:['Rocking chair','in_chair',{wood:8},[2.4,4.4],'flat'],lamp:['Oil lamp','lamp',{wood:4,copper_bar:1},[.7,1.2],null],shelf:['Bookshelf','in_shelf_jars',{wood:12},[7.0,.62],null],
+const FURN={chair:['Rocking chair','in_rockS',{wood:8},[2.4,4.4],null],lamp:['Oil lamp','in_oillamp',{wood:4,copper_bar:1},[.7,1.2],null],shelf:['Bookshelf','in_shelf_jars',{wood:12},[7.0,.62],null],
   rug:['Braided rug','in_rug',{fiber:12},[6.4,5.2],'flat'],pumpkin:['Carved pumpkin','jack_b',{wood:1},[8.5,2.8],null],crates:['Storage crates','in_crates',{wood:10},[8.0,4.9],null]};
 vendors.b_furn={name:'Furniture bench',sub:'The cabin will feel less like his and more like yours.',rows:()=>Object.entries(FURN).map(([k,[name,spr,need]])=>({k,name,desc:S.furn.includes(k)?'In the cabin.':'Goes straight into Grandpa’s cabin.',price:0,can:!S.furn.includes(k)&&(k!=='pumpkin'||basketCount('pumpkin')>0),need,btn:'Make',
   buy(){if(k==='pumpkin')takeBasket('pumpkin',1);S.furn.push(k);placeFurn(k);toast(`You carry the ${name.toLowerCase()} into the cabin.`,2);}}))};

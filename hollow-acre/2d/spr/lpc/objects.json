@@ -4357,5 +4357,70 @@
 0,
 0
 ]
+},
+"in_rockS": {
+"src": "spr/lpc/obj/in_rockS.png",
+"fw": 32,
+"fh": 48,
+"ax": 16.0,
+"ay": 45,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"in_rockE": {
+"src": "spr/lpc/obj/in_rockE.png",
+"fw": 44,
+"fh": 46,
+"ax": 22.0,
+"ay": 43,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"in_rockN": {
+"src": "spr/lpc/obj/in_rockN.png",
+"fw": 32,
+"fh": 48,
+"ax": 16.0,
+"ay": 45,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"in_oillamp": {
+"src": "spr/lpc/obj/in_oillamp.png",
+"fw": 22,
+"fh": 42,
+"ax": 11.0,
+"ay": 39,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"in_oillamp_n": {
+"src": "spr/lpc/obj/in_oillamp_n.png",
+"fw": 22,
+"fh": 42,
+"ax": 11.0,
+"ay": 39,
+"foot": [
+0,
+0,
+0,
+0
+]
 }
 }

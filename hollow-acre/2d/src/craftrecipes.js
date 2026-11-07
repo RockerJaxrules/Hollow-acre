@@ -165,12 +165,12 @@ CG3K['b_armor:mail']={scene:'forge',reveal:K=>{for(let r=0;r<6;r++)for(let c=0;c
   {m:'rhythm',n:10,t:'Link the rings',art:(K,t,st)=>{K.leather(40,40,160,60,CA_P.leather);for(let i=0;i<12;i++){const x=56+(i%6)*22+((i/6)|0)*11,y=58+((i/6)|0)*16;K.g.strokeStyle=i<st.good?CA_P.iron[7]:'rgba(180,188,202,.25)';K.g.lineWidth=2;K.g.beginPath();K.g.ellipse(x,y,7,5,0,0,Math.PI*2);K.g.stroke();}}}]};
 // ---- the furniture bench (workshop)
 const sawBoard=(label,P,seed)=>({m:'saw',t:label,seed:seed||1,x0:20,y0:53,w:200,h:24,art:(K,t,st)=>RK.sawScene(K,t,st,P,seed)});
-CG3K['b_furn:chair']={scene:'workshop',reveal:K=>K.sprite('in_chair',109,30,{scale:1.5})||K.icon('in_chair',88,26,2),steps:[sawBoard('Saw the legs from the board',CA_P.oak,2),
+CG3K['b_furn:chair']={scene:'workshop',reveal:K=>K.sprite('in_rockS',96,24,{scale:1.5}),steps:[sawBoard('Saw the legs from the board',CA_P.oak,2),
   {m:'fill',t:'Steam-bend the rockers to the template',hint:'Hold to bend the steamed board. Let go when it matches the template.',rate:.34,art:(K,t,st)=>{RK.benchTop(K,20,86,200,10,CA_P.oak,4);const sag=st.line*30;for(let x=-70;x<=70;x+=2){const y=78-sag*(1-(x/70)*(x/70));K.px(120+x,y,1,1,'#9be07a');}
     const c=Math.min(1.1,st.f)*30;for(let x=-70;x<=70;x++){const y=78-c*(1-(x/70)*(x/70));K.px(120+x,y-2,1,5,CA_P.oak[4]);K.px(120+x,y-2,1,1,CA_P.oak[7]);}for(let i=0;i<5;i++)K.pa(70+i*25+Math.sin(t*2+i)*4,50-((t*14+i*7)%26),6,4,'#e8e4dc',.35);if(st.over)K.px(118,40,4,10,'#c04a2a');}},
   {m:'hammer',t:'Nail it together',pos:[[90,66],[120,60],[150,66]],art:(K,t,st)=>{RK.benchTop(K,20,86,200,10,CA_P.oak,4);K.plank(80,62,80,6,CA_P.oak,5);K.plank(84,68,4,18,CA_P.oak,6,true);K.plank(152,68,4,18,CA_P.oak,7,true);for(let x=-50;x<=50;x++)K.px(120+x,86-8*(1-(x/50)*(x/50))-2,1,3,CA_P.oak[4]);
     K.plank(86,30,68,30,CA_P.oak,8,true);st.pos.forEach(([x,y],i)=>RK.nail(K,x,y,st.driven[i]===undefined?0:Math.max(.3,st.driven[i])));const k=Math.min(st.k,st.pos.length-1),[hx,hy]=st.pos[k];RK.hammerTool(K,hx,hy-10,st.anim>0,.8);}}]};
-CG3K['b_furn:lamp']={scene:'workshop',reveal:K=>K.icon('lamp',88,26,2),steps:[
+CG3K['b_furn:lamp']={scene:'workshop',reveal:K=>K.sprite('in_oillamp_n',98,10,{scale:2}),steps:[
   {m:'gauge',t:'Set the chimney glass on straight',zone:.09,art:(K,t,st)=>{RK.benchTop(K,20,86,200,10,CA_P.oak,4);K.ell(120,82,16,4,CA_P.brass[3]);K.ball(120,74,12,CA_P.brass,7);K.px(112,62,16,4,CA_P.brass[5]);const gx=st.res.length?120:120+Math.sin(t*2.2)*30,gy=st.res.length?34:20;
     for(let y=0;y<28;y++){const w=y<4?5:y<20?8:6;K.pa(gx-w,gy+y,w*2,1,'#c8e2f0',.45);K.px(gx-w,gy+y,1,1,'#ffffff');}}},
   {m:'fill',t:'Fill the font with oil',hint:'Hold to pour. Let go at the line.',rate:.3,art:(K,t,st)=>{RK.benchTop(K,20,86,200,10,CA_P.oak,4);const x=96,y=56,w=48,h=28;K.px(x,y,w,h,'rgba(200,226,240,.35)');K.px(x,y,2,h,'#ffffff');const fh=Math.min(1,st.f)*h;K.px(x+2,y+h-fh,w-4,fh,'#c8a040');K.px(x+2,y+h-fh,w-4,1,'#f0d27a');

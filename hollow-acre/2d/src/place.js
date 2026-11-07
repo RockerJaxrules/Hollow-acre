@@ -117,7 +117,7 @@ placeBench=function(k,x,z){const d=BENCHES.find(b=>b[0]===k);BENCH_POS[k]={x,z};
 benchesBoot=function(){for(const [k] of BENCHES)if(S.benches[k]&&BENCH_POS[k])placeBench(k,BENCH_POS[k].x,BENCH_POS[k].z);for(const f of S.furnPlaced||[])placeFurnAt(f.k,f.x,f.z);};
 // furniture: made at the bench, carried in your bag, placed anywhere inside the cabin
 S.furnBag=S.furnBag||[];S.furnPlaced=S.furnPlaced||[];
-const FURN_FP={chair:[.7,.5],lamp:[.5,.4],shelf:[1.6,.45],rug:[2.4,1.4],pumpkin:[.7,.5],crates:[1.3,.7]};
+const FURN_FP={chair:[.85,.55],lamp:[.6,.4],shelf:[1.6,.45],rug:[2.4,1.4],pumpkin:[.7,.5],crates:[1.3,.7]};
 function placeFurnAt(k,x,z){const [name,spr,need,pos,kind]=FURN[k];const o=obj(spr,x,z,{kind:kind||'furn',room:'cabin',glow:k==='pumpkin'?1:0,night:SPR[spr+'_n']?spr+'_n':null});
   if(!kind){const [w,d]=FURN_FP[k];addRect(x-w/2,z-d,x+w/2,z-.02);}if(k==='lamp'){S.cabinLamp={x,z};}if(!S.furn.includes(k))S.furn.push(k);}
 vendors.b_furn.rows=()=>Object.entries(FURN).map(([k,[name,spr,need]])=>({k,name,desc:S.furn.includes(k)?'Already in the cabin.':S.furnBag.includes(k)?'In your bag. Place it inside the cabin.':'Made here, placed wherever you like inside the cabin.',price:0,

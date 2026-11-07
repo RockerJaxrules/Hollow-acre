@@ -243,5 +243,56 @@ if(K==='shelfN'){const x0=2,w=W-4,top=6,fh=H-4-top;topBox(x0,1,w,top,fh,WD,WD[2]
   for(let x=x0+2;x<x0+w-2;x++){const seam=(x-x0)%9===0;for(let y=1+top+1;y<1+top+fh-1;y++){let c=seam?WD[0]:WD[(hsh(Math.floor((x-x0)/9),y>>4,5)>.6)?3:2];if(!seam&&(x-x0)%9===1)c=WD[3];P(A,x,y,c);}}
   for(let sy=1+top+17;sy<1+top+fh-6;sy+=17)for(let x=x0+4;x<x0+w-4;x+=9){P(A,x,sy,WD[0]);P(A,x,sy-1,WD[4]);}
   for(let y=1+top+fh-6;y<1+top+fh-1;y++)hl(A,x0+1,y,w-2,shade(WD[1],.85));for(let x=x0-1;x<x0+w+2;x++){P(SHD,x,H-3,PAL.out[0],160);P(SHD,x,H-2,PAL.out[0],90);}}
+// ---- Grandpa's rocking chair in three views, and an oil lamp on a little side table (spliced into interior.js before the flatten)
+function ln(L,x0,y0,x1,y1,c,t){t=t||1;const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0))*2+1;for(let i=0;i<=n;i++){const u=i/n,x=Math.round(x0+(x1-x0)*u),y=Math.round(y0+(y1-y0)*u);for(let a=0;a<t;a++)for(let b=0;b<t;b++)P(L,x+a,y+b,c);}}
+function stile(x,y0,y1,w,R){for(let y=y0;y<y1;y++){P(A,x,y,R[4]);for(let i=1;i<w-1;i++)P(A,x+i,y,R[3]);P(A,x+w-1,y,R[1]);}}
+function plaid(x0,y0,w,h,top){for(let j=0;j<h;j++)for(let i=0;i<w;i++){const a=(Math.floor(i/3)+Math.floor(j/3))%2;let c=a?RD[3]:RD[4];if(i%3===1&&j%3===1)c=PAL.cream[2];if(j<top)c=shade(c,1.12);if(j===h-1)c=RD[1];P(A,x0+i,y0+j,c);}}
+if(K==='rockS'){const R=WD;
+  // rockers first: two curved runners coming toward you, toes curling up at the front
+  for(const s of [-1,1]){const bx=cx+s*8,fx=cx+s*12;for(let k=0;k<=12;k++){const u=k/12,x=Math.round(bx+(fx-bx)*u),y=Math.round(36+u*8-(u>.85?(u-.85)*14:0));P(A,x,y,R[4]);P(A,x,y+1,R[2]);P(A,x+(s>0?1:-1),y+1,R[1]);}}
+  // back legs (half hidden), front legs
+  stile(cx-9,31,38,2,R);stile(cx+7,31,38,2,R);stile(cx-12,30,42,3,R);stile(cx+9,30,42,3,R);
+  // the tall back: arched top rail, two stiles, five spindles
+  stile(cx-11,3,30,3,R);stile(cx+8,3,30,3,R);for(let x=cx-11;x<cx+11;x++){const d=Math.abs(x-cx+.5)/11,y=Math.round(2+d*d*3);P(A,x,y,R[5]);P(A,x,y+1,R[4]);P(A,x,y+2,R[3]);P(A,x,y+3,R[1]);}
+  for(let i=0;i<5;i++){const x=cx-7+i*3;for(let y=7;y<23;y++){P(A,x,y,R[4]);P(A,x+1,y,R[2]);}}hl(A,cx-8,22,17,R[3]);hl(A,cx-8,23,17,R[1]);
+  // the seat seen from above, wider at the front, a plaid cushion on it
+  for(let j=0;j<7;j++){const w=Math.round(20+j*1.2),x0=cx-(w>>1);for(let i=0;i<w;i++)P(A,x0+i,24+j,(i%6===0)?R[3]:R[4]);P(A,x0,24+j,R[5]);}
+  plaid(cx-8,22,17,6,2);rect(A,cx-13,31,27,2,R[2]);hl(A,cx-13,31,27,R[4]);hl(A,cx-13,33,27,R[0]);
+  // arms reaching forward from the back, on turned front posts
+  for(const s of [-1,1]){const x0=s<0?cx-11:cx+10,x1=s<0?cx-14:cx+12;ln(A,x0,14,x1,23,R[4],2);ln(A,x0+(s<0?1:0),16,x1+(s<0?1:0),25,R[2]);stile(s<0?cx-14:cx+11,24,31,3,R);P(A,(s<0?cx-14:cx+11)+1,26,R[5]);}
+  gs(cx,base-1,13,2,80);}
+if(K==='rockE'){const R=WD;
+  // a long curved runner under it all
+  for(let x=3;x<W-3;x++){const u=(x-W/2)/(W/2-3),y=Math.round(41-u*u*5);P(A,x,y,R[4]);P(A,x,y+1,R[3]);P(A,x,y+2,R[1]);}
+  // legs down to the runner
+  ln(A,13,39,15,26,R[3],2);ln(A,30,38,29,26,R[3],2);ln(A,14,39,16,26,R[1]);
+  // the seat edge and cushion
+  rect(A,13,25,20,3,R[3]);hl(A,13,25,20,R[5]);hl(A,13,27,20,R[1]);plaid(14,21,17,4,1);
+  // the back leans away
+  for(let y=2;y<26;y++){const x=Math.round(8+(y-2)*.25);P(A,x,y,R[5]);P(A,x+1,y,R[4]);P(A,x+2,y,R[2]);P(A,x+3,y,R[1]);}rect(A,6,1,6,3,R[4]);hl(A,6,1,6,R[5]);
+  // the arm and its front post
+  ln(A,11,13,31,15,R[4],2);hl(A,12,13,19,R[5]);stile(29,16,25,3,R);
+  gs(W/2|0,base-1,18,2,80);}
+if(K==='rockN'){const R=WD;
+  for(const s of [-1,1]){const bx=cx+s*12,fx=cx+s*8;for(let k=0;k<=12;k++){const u=k/12,x=Math.round(bx+(fx-bx)*u),y=Math.round(44-u*8+(u<.15?(.15-u)*12:0));P(A,x,y,R[3]);P(A,x,y+1,R[1]);}}
+  stile(cx-12,30,42,3,R);stile(cx+9,30,42,3,R);stile(cx-9,30,37,2,R);stile(cx+7,30,37,2,R);
+  for(const s of [-1,1]){const x0=s<0?cx-11:cx+10,x1=s<0?cx-14:cx+12;ln(A,x0,14,x1,23,R[3],2);stile(s<0?cx-14:cx+11,24,30,3,R);}
+  rect(A,cx-13,29,27,3,R[2]);hl(A,cx-13,29,27,R[3]);hl(A,cx-13,31,27,R[0]);
+  stile(cx-11,3,31,3,R);stile(cx+8,3,31,3,R);for(let x=cx-11;x<cx+11;x++){const d=Math.abs(x-cx+.5)/11,y=Math.round(2+d*d*3);P(A,x,y,R[4]);P(A,x,y+1,R[3]);P(A,x,y+2,R[2]);P(A,x,y+3,R[0]);}
+  for(let i=0;i<5;i++){const x=cx-7+i*3;for(let y=7;y<26;y++){P(A,x,y,R[3]);P(A,x+1,y,R[1]);}}hl(A,cx-8,25,17,R[2]);hl(A,cx-8,26,17,R[0]);
+  gs(cx,base-1,13,2,80);}
+if(K==='oillamp'){const R=WD;
+  // a round side table on one turned leg and three feet
+  ell(A,cx,21,9,3,R[4]);ell(A,cx,20,9,2,R[5]);for(let x=-9;x<=9;x++)P(A,cx+x,23+(Math.abs(x)>7?-1:0),R[2]);
+  for(let y=24;y<36;y++){const w=y<27||y>32?2:1;rect(A,cx-w,y,w*2,1,R[3]);P(A,cx-w,y,R[4]);P(A,cx+w-1,y,R[1]);}ell(A,cx,29,2,1,R[4]);
+  ln(A,cx-1,35,cx-6,base,R[3]);ln(A,cx,35,cx+6,base,R[2]);ln(A,cx,36,cx,base,R[1]);
+  // a lace doily, then the lamp: brass font, collar, glass chimney, the flame
+  ell(A,cx,19,6,1,PAL.cream[3]);for(let x=-6;x<=6;x+=2)P(A,cx+x,20,PAL.cream[2]);
+  ell(A,cx,16,5,3,PAL.brass[2]);ell(A,cx-1,15,3,1,PAL.brass[3]);hl(A,cx-4,18,9,PAL.brass[1]);rect(A,cx-2,12,5,2,PAL.brass[1]);hl(A,cx-2,12,5,PAL.brass[3]);
+  for(let y=2;y<12;y++){const w=y<4?2:y<9?3:2;for(let x=-w;x<=w;x++){const edge=Math.abs(x)===w;P(A,cx+x,y,N?(edge?PAL.lit[3]:PAL.lit[4]):(edge?PAL.glass[4]:PAL.glass[5]),N?255:edge?230:95);}}
+  P(A,cx-2,4,PAL.glass[5]);P(A,cx-2,5,PAL.glass[5]);hl(A,cx-2,1,5,PAL.brass[2]);
+  if(N){P(A,cx,8,PAL.lit[5]);P(A,cx,7,PAL.lit[5]);P(A,cx,9,PAL.lit[4]);P(A,cx-1,8,PAL.lit[5]);P(A,cx+1,8,PAL.lit[4]);}else{P(A,cx,9,PAL.lit[3]);P(A,cx,8,PAL.lit[4]);}
+  P(A,cx,10,PAL.ink?PAL.ink[0]:R[0]);
+  gs(cx,base,8,2,70);}
 const flat=flatten([A,B],W,H);const O=K==='room'||K==='rug'?layer('o',W,H):outline(flat);
 emit([SHD,O,A,B],CFG.out);if(K!=='room')console.log('META '+JSON.stringify({w:W,h:H}));

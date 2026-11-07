@@ -2,7 +2,7 @@
    its own art (west is the east art flipped). Placed pieces can be picked up again to move or turn them: click one twice. ================= */
 // facing -> [sprite, flipped]. A missing entry means the piece looks the same from every side (the lamp).
 const FURN_VIEWS={
-  chair:{S:['in_chair'],W:['in_chairE',1],N:['in_chairN'],E:['in_chairE']},
+  chair:{S:['in_rockS'],W:['in_rockE',1],N:['in_rockN'],E:['in_rockE']},
   shelf:{S:['in_shelf_jars'],W:['in_shelfE',1],N:['in_shelfN'],E:['in_shelfE']},
   pumpkin:{S:['jack_b'],W:['jack_b_e',1],N:['pumpkin'],E:['jack_b_e']},
   rug:{S:['in_rug'],W:['in_rug_r'],N:['in_rug'],E:['in_rug_r']},
