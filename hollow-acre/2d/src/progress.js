@@ -57,7 +57,7 @@ const LESSONS=[
    goal:()=>'Eat something from your bag',ok:()=>S.ls.ev.eat,coins:5,done:'There. Never let that bar run dry out here. People who faint in the fields wake up in strange places.'},
   {id:'sleep',t:'Sleep',say:'When it gets late, go to bed in the cabin. Sleeping saves your day and gives you your energy back. And don’t stay out past two. Please.',
    goal:b=>'Go to bed in the cabin',ok:b=>S.day>b.day,begin:b=>{b.day=S.day;},coins:20,done:'Morning! See? You made it through a night. That’s the hardest part. Well. One of them.'},
-  {id:'ship',t:'Harvest and ship',at:()=>binPos,say:'When a crop is ripe, harvest it, then drop it in the wooden shipping bin just left of the cabin door. That’s how you get paid.',
+  {id:'ship',t:'Harvest and ship',at:()=>binPos,say:'When a crop is ripe, harvest it, then drop it in the wooden shipping bin just left of the cabin door. It’s sold overnight and you’re paid in the morning.',
    goal:b=>`Ship crops ${Math.min(S.shipped-b.shipped,3)}/3`,ok:b=>S.shipped-b.shipped>=3,begin:b=>{b.shipped=S.shipped;},coins:30,done:'Your first coins. Spend them on seeds and they’ll come back to you twice over.'},
   {id:'store',t:'Visit the store',at:()=>ROOMS.store&&ROOMS.store.out,say:'Come see me at the store: Coyle’s General Store, east along Route 9, the first shop past the MARROW HOLLOW sign. Buy some seeds. I’ll show you the shelves.',
    goal:()=>'Buy seeds at Mae’s store',ok:()=>S.ls.ev.buy,seeds:{pumpkin:2},done:'A customer! Here, two pumpkin seeds extra. Don’t tell Hollis I play favourites.'},

@@ -16,7 +16,7 @@ const TUT=[
   // contextual, once each, when they become relevant
   {id:'talk',when:()=>npcs.some(n=>n.vis&&PEOPLE[n.def.id]&&Math.hypot(n.x-P.x,n.z-P.z)<3),text:()=>'Someone’s nearby. Talk to people once a day and they warm to you. Hearts open scenes; gifts help, two a week.',done:()=>Object.keys(S.talkedToday||{}).length>0},
   {id:'fish',when:()=>!S.room&&typeof waterAhead==='function'&&waterAhead(),text:()=>`Pick your <b>rod</b> and ${TOUCH?'tap':'click'} the water. ${TOUCH?'Tap':'Click'} again to cast — wait for the splash, then ${TOUCH?'tap':'click'} to hook it. In the catch bar, hold${TOUCH?' your finger down':' <b>Space</b>'} to lift the green bar and keep the fish inside it.`,done:()=>(S.fishCaught||0)>0||S.tut.fishT>14},
-  {id:'ship',when:()=>S.basket.length>0,text:()=>'Crops and fish go in the shipping crate by the cabin. You’re paid in the morning — well, straight away. Things here are in a hurry.',done:()=>S.shipped>0},
+  {id:'ship',when:()=>S.basket.length>0,text:()=>'Crops and fish go in the shipping bin by the cabin: drag them in, or tap them. The truck takes it all overnight and you’re paid in the morning.',done:()=>S.shipped>0},
   {id:'dusk',when:()=>S.hour>=18&&!S.room,text:()=>'It’s getting dark. Your lantern burns oil at night. When the church bell rings at eight, don’t be out in the corn.',done:()=>S.tut.duskT>8},
   {id:'map',when:()=>S.day>=1&&S.hour>=9&&S.everWatered,text:()=>`The <b>Map</b> tab in the menu shows the whole valley and where you are.${TOUCH?'':' Press <b>M</b>.'}`,target:'#btnBag',done:()=>S.tut.sawMap},
   {id:'sleep',when:()=>S.hour>=21,text:()=>'It’s late. Go to bed in the cabin to save the day and wake rested. Staying out past two in the morning is a very bad idea.',done:()=>S.tut.slept},
