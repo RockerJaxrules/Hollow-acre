@@ -10,7 +10,7 @@ ROADS.push([70,-6,212,-6,3],[146,-6,146,-24,2],[190,-6,190,1.5,2],[108,-4,108,9,
 const riverD=(x,z)=>{let best=1e9;for(let i=0;i<RIVER.length-1;i++){const [a,b]=RIVER[i],[c,d]=RIVER[i+1];best=Math.min(best,segDist(x,z,a,b,c,d));}return best;};
 const BRIDGE2={x:MILLX,z:104};
 const inLake=(x,z)=>{const dx=(x-LAKE.x)/LAKE.rx,dz=(z-LAKE.z)/LAKE.rz;return dx*dx+dz*dz<1+(fbm(x*.25,z*.25)-.5)*.35;};
-const inRiver=(x,z)=>riverD(x,z)<2.1+(fbm(x*.3,z*.3)-.5)*.9&&!(Math.abs(x-BRIDGE2.x)<2&&Math.abs(z-BRIDGE2.z)<5);
+const inRiver=(x,z)=>riverD(x,z)<2.1+(fbm(x*.3,z*.3)-.5)*.9&&!(Math.abs(x-BRIDGE2.x)<1.2&&z>BRIDGE2.z-3.7&&z<BRIDGE2.z+3.5);
 const newWater=(x,z)=>(x>OLD.x1||z>OLD.z1)&&(inLake(x,z)||inRiver(x,z));
 const inQuarry=(x,z)=>x>QUARRY.x0+(fbm(x*.3,z*.3)-.5)*4&&x<QUARRY.x1&&z>QUARRY.z0&&z<QUARRY.z1+(fbm(x*.2,z*.2)-.5)*3;
 const hollowWoods=(x,z)=>x>78&&x<136&&Math.abs(z+6)>3.2&&Math.hypot(x-HOLLOW_TREE.x,z-HOLLOW_TREE.z)>6&&!(Math.abs(x-108)<1.6&&z>-6&&z<10);
@@ -37,7 +37,9 @@ const NEWHOUSES={quill:{spr:'house_c',x:40,z:LANE_E-2},fenn:{spr:'house_b',x:6,z
   for(const [k,h] of Object.entries(NEWHOUSES)){if(k==='lusk')building(h.spr,h.x,h.z,{lit:true});else building(h.spr,h.x,h.z,{lit:k!=='marsh'&&k!=='tithe',jack:k==='quill',porch:k!=='marsh'&&k!=='tithe'});}
   put('gas_pump',196,-7.6,0,{night:'gas_pump_n'});addCircle(195.6,-7.9,.35);addCircle(196.4,-7.9,.35);put('signpost',204,-5,.2,{label:'GAS'});
   building('barn',32,99,{porch:false});obj('blades',38.2,98.2,{kind:'anim',fps:3,yoff:135});put('windpump',38.2,98.2,.45);
-  put('footbridge',BRIDGE2.x,BRIDGE2.z,0,{kind:'flat'});
+  // Mill Road's timber bridge over the river (the deck is the only dry way across)
+  obj('millbridge',BRIDGE2.x,BRIDGE2.z+3.6,{kind:'flat'});
+  for(const sd of [-1,1])addSeg(BRIDGE2.x+sd*1.45,BRIDGE2.z-3.7,BRIDGE2.x+sd*1.45,BRIDGE2.z+3.45,.1);   // the railings: on and off only at the ends
   // the orchard: rows of maples, crates of windfalls
   for(let r=0;r<4;r++)for(let c=0;c<7;c++){const x=30+c*5.4+(r&1)*2.7,z=52+r*4.4;const n=['maple_red','maple_orange','maple_gold'][(r+c)%3];obj(n,x,z,{kind:'tree',solid:1});addCircle(x,z,.4);}
   put('crate',34,49.2,.3);put('crate',35,49.6,.3);put('cart',52,49.5,0);addRect(50.8,48.8,53.2,50);put('hay',58,49.3);addRect(57.2,48.6,58.8,49.6);

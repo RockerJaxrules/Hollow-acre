@@ -126,6 +126,24 @@ if(K==='dock'){   // fishing pier running north-south into the pond: cross plank
   for(const bx of [x0-2,x1+1]){rect(A,bx,2,2,H-8,WD[1]);vl(A,bx,2,H-8,WD[bx<x0?4:0]);}
   for(const [px,py] of [[x0-3,H-14],[x1,H-14],[x0-3,H/2|0],[x1,H/2|0]]){rect(A,px,py,4,10,WD[2]);vl(A,px,py,10,WD[4]);hl(A,px,py+9,4,PAL.glass[3]);}
   rect(A,x0,H-6,x1-x0+1,3,WD[0]);gs(W/2|0,H-3,(x1-x0)/2|0,2,60);}
+if(K==='millbridge'){ // Mill Road's timber bridge, running north-south over the river: cross planks, stringers, a railing each side, piles in the water
+  const top=22,deck=CFG.deck||230,x0=24,x1=W-25,cx=W>>1;
+  for(let y=top;y<top+deck;y++){const k=(y-top)%7;for(let x=x0;x<=x1;x++){let c=k===0?WD[5]:k===6?WD[1]:WD[3+((hsh((y-top)/7|0,x>>4,4)>.72)?1:0)];
+      if(k>0&&k<6&&((x-x0)%23===11)&&hsh(x,(y-top)/7|0,5)>.45)c=WD[2];if(Math.abs(x-cx)<16&&k>0&&k<6&&hsh((y-top)/7|0,1,8)>.55)c=shade(c,.9);P(A,x,y,c);}
+    if(k===3){P(A,x0+3,y,WD[0]);P(A,x1-3,y,WD[0]);}}
+  // stringers and the railings: a lit top rail on each edge with posts every metre
+  for(const [bx,side] of [[x0-4,-1],[x1+1,1]]){rect(A,bx,top-2,4,deck+4,WD[1]);vl(A,bx+(side<0?0:3),top-2,deck+4,WD[side<0?4:0]);
+    const rx=side<0?bx-3:bx+4;rect(A,rx,top-14,3,deck+10,WD[3]);vl(A,rx,top-14,deck+10,WD[5]);vl(A,rx+2,top-14,deck+10,WD[1]);
+    for(let y=top-14;y<top+deck;y+=32){rect(A,rx-1,y,5,6,WD[2]);hl(A,rx-1,y,5,WD[5]);hl(A,rx-1,y+5,5,WD[0]);}}
+  // heavy end posts at all four corners
+  for(const py of [top-18,top+deck-14])for(const px of [x0-9,x1+3]){rect(A,px,py,7,20,WD[2]);vl(A,px,py,20,WD[4]);vl(A,px+6,py,20,WD[0]);rect(A,px-1,py-2,9,3,WD[4]);hl(A,px-1,py-2,9,WD[5]);}
+  // the near end: the deck's thick front face and the last cross beam
+  rect(A,x0-4,top+deck,x1-x0+9,6,WD[1]);hl(A,x0-4,top+deck,x1-x0+9,WD[3]);hl(A,x0-4,top+deck+5,x1-x0+9,WD[0]);
+  // piles standing in the river beside the deck, with rings in the water round them
+  for(const pz of (CFG.piles||[96,173]))for(const px of [x0-14,x1+8]){const py=top+pz;rect(A,px,py-12,6,14,WD[2]);vl(A,px,py-12,14,WD[4]);vl(A,px+5,py-12,14,WD[0]);ell(A,px+3,py-12,3,1,WD[4]);
+    for(let i=-6;i<=11;i++){P(B,px+i,py+2,PAL.glass[5],i%3?170:230);}for(let i=-3;i<=8;i++)P(B,px+i,py+4,PAL.glass[4],150);}
+  gs(cx,top+deck+8,(x1-x0)/2|0,2,60);
+}
 if(K==='footbridge'){ // plank footbridge, spans east-west over the creek
   const top=10,dh=30;for(let y=top;y<top+dh;y++)for(let x=6;x<W-6;x++){const k=(x-6)%6;P(A,x,y,k===0?WD[1]:k===5?WD[2]:WD[3+((hsh((x-6)/6|0,1)>.7)?1:0)]);}
   hl(A,6,top,W-12,WD[5]);hl(A,6,top+dh-1,W-12,WD[0]);

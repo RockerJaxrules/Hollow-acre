@@ -4318,5 +4318,18 @@
 0,
 0
 ]
+},
+"millbridge": {
+"src": "spr/lpc/obj/millbridge.png",
+"fw": 164,
+"fh": 270,
+"ax": 82.0,
+"ay": 258,
+"foot": [
+0,
+0,
+0,
+0
+]
 }
 }
