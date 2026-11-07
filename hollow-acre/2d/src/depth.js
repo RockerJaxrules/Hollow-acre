@@ -35,7 +35,7 @@ function depthOver(t){if(DX.off||S.room)return;const day=clamp(1-nightK*1.6,0,1)
     const ox=((-(cam.px)+t*9)%T+T)%T-T,oy=((-(cam.pz)+t*4)%T+T)%T-T;for(let y=oy;y<VH;y+=T)for(let x=ox;x<VW;x+=T)ctx2.drawImage(DX.cloudBig,Math.round(x),Math.round(y));
     ctx2.globalAlpha=1;}
   // parallax: branches much closer to the camera than the ground, sliding past faster, only at the edges of the woods
-  const P1=1.45;DX.nPar=0;if(!DX.par)DX.par=OBJ.filter(o=>(o.kind==='tree'||o.kind==='pine')&&hash(Math.round(o.x*3),Math.round(o.z*3))<=.4&&LAYERS.dark(o.x,o.z));
+  const P1=1.45;DX.nPar=0;if(!DX.par)DX.par=[];   // the near-branch silhouettes read as random hard shadows on the ground, so there are none
   for(const o of DX.par){if(o.hide)continue;
     const X=sx(o.x),Y=sz(o.z);const fx=(X-VW/2)*P1+VW/2,fy=(Y-VH*.5)*P1+VH*.5-40;if(fx<-160||fx>VW+160||fy<-200||fy>VH+60)continue;
     const edge=Math.min(Math.abs(fx-VW/2)/(VW*.5),1);if(edge<.45)continue;const m=SPR[o.spr];if(!m)continue;
@@ -58,11 +58,19 @@ function dxSil(spr){let c=DX.sil['s_'+spr];if(c)return c;const m=SPR[spr],im=m&&
   catch(e){q.globalCompositeOperation='source-in';q.fillStyle='#0a1206';q.fillRect(0,0,m.fw,m.fh);}
   DX.sil['s_'+spr]=c;return c;}
 const SUN_SKIP=new Set(['deco','flat','anim','corn']);
+// trees and bushes throw soft shade: the silhouette blurred a little and fading toward the far end of the crown, so neighbouring
+// crowns don't merge into one hard-edged slab of shadow
+function dxSilSoft(spr){const k='ss_'+spr;if(DX.sil[k])return DX.sil[k];const base=dxSil(spr);if(!base)return null;const m=SPR[spr];const c=document.createElement('canvas');c.width=m.fw+8;c.height=m.fh+8;const g=c.getContext('2d');
+  try{g.filter='blur(1.6px)';}catch(e){}g.drawImage(base,4,4);g.filter='none';g.globalCompositeOperation='destination-in';const gr=g.createLinearGradient(0,0,0,c.height);
+  gr.addColorStop(0,'rgba(0,0,0,.22)');gr.addColorStop(.55,'rgba(0,0,0,.6)');gr.addColorStop(.85,'rgba(0,0,0,.9)');gr.addColorStop(1,'rgba(0,0,0,1)');g.fillStyle=gr;g.fillRect(0,0,c.width,c.height);return DX.sil[k]=c;}
 function sunBegin(){DX.lamp=null;DX.sun=sunState();if(S.introDrive&&DX.carLamp&&cine){DX.lamp={x:DX.carLamp.x,y:DX.carLamp.y,a:.6};DX.sun={sx:0,sy:0,a:.6,lamp:1};}else if(!DX.sun&&!S.room&&S.mode!=='title'&&isNight()&&lanternOn()){DX.lamp={x:sx(P.x),y:sz(P.z)-6,a:.55};DX.sun={sx:0,sy:0,a:.55,lamp:1};}if(!DX.sun)return;const g=dxCanvas();g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,VW,VH);DX.sg=g;}
 // returns true when it handled the shadow (so the flat ellipse isn't needed)
 function sunShadow(o,X,Y){const s=DX.sun;if(!s||SUN_SKIP.has(o.kind))return false;const m=SPR[o.spr];if(!m)return false;const c=dxSil(o.spr);if(!c)return false;
   let shx=s.sx,shy=s.sy;if(s.lamp){const dx=X-DX.lamp.x,dy=Y-DX.lamp.y,d=Math.hypot(dx,dy);if(d>230||d<6)return true;const k=clamp(d/110,.25,1.5);shx=dx/d*k;shy=dy/d*k;}
-  const g=DX.sg;g.setTransform(1,0,-shx,-shy,Math.round(X),Math.round(Y));g.drawImage(c,-Math.round(m.ax),-Math.round(m.ay));return true;}
+  // trees and bushes are tall: a long low-sun shadow of the whole crown thrown down the screen reads as a dark blob, so theirs stay short
+  if(!s.lamp&&(o.kind==='tree'||o.kind==='pine'||o.kind==='bush')){shx=clamp(shx,-.5,.5);shy=clamp(shy,.06,.3);}
+  const g=DX.sg;g.setTransform(1,0,-shx,-shy,Math.round(X),Math.round(Y));const soft=(o.kind==='tree'||o.kind==='pine'||o.kind==='bush')&&dxSilSoft(o.spr);
+  if(soft)g.drawImage(soft,-Math.round(m.ax)-4,-Math.round(m.ay)-4);else g.drawImage(c,-Math.round(m.ax),-Math.round(m.ay));return true;}
 function sunActor(X,Y,h){const s=DX.sun;if(!s)return;const g=DX.sg;g.setTransform(1,0,0,1,0,0);g.fillStyle='#0a1206';g.beginPath();
   const L=h*s.sy,dx=h*s.sx;g.ellipse(X+dx*.5,Y+L*.5,7+Math.abs(dx)*.5,3+L*.4,Math.atan2(L,dx||.001)-Math.PI/2,0,Math.PI*2);g.fill();}
 function sunEnd(){const s=DX.sun;if(!s)return;const g=DX.sg;g.setTransform(1,0,0,1,0,0);
