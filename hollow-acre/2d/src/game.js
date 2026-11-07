@@ -64,7 +64,7 @@ function objective(){const L=lit(),np=S.pages.length;
   if(!S.q.hollis)return ['The car','Get your car fixed at Hollis’s garage, west on Route 9.',ROOMS.garage&&ROOMS.garage.out||npcById('hollis')];
   if(!S.carFixed){const miss=Object.keys(S.parts).filter(k=>!S.parts[k]);
     if(!miss.length)return ['The car','You have every part. Install them at your wrecked car.',carPos];
-    const where={tire:'a tire from Mae (Coyle’s store, east on Route 9)',battery:'a battery (bring Hollis 3 pumpkins)',belt:'a fan belt (ask Agnes: the last house west, near your car)',gas:'gas from the pump outside Hollis’s garage'};
+    const where={tire:'a tire from Caitlyn (Coyle’s store, east on Route 9)',battery:'a battery (bring Hollis 3 pumpkins)',belt:'a fan belt (ask Agnes: the last house west, near your car)',gas:'gas from the pump outside Hollis’s garage'};
     const tgt={tire:npcById('mae'),battery:npcById('hollis'),belt:npcById('agnes'),gas:pumpPos}[miss[0]];
     return ['The car',`Car parts ${4-miss.length}/4. Still need: ${miss.map(k=>where[k]).join(', ')}.`,tgt];}
   if(!S.looped)return ['Leave','The car runs. It’s parked on the shoulder by the crash site, far west on Route 9. Get in and drive away.',typeof CAR_SPOTS!=='undefined'?CAR_SPOTS.crash:carPos];
@@ -75,7 +75,7 @@ function objective(){const L=lit(),np=S.pages.length;
   return ['The rite',`Light the ${next.name} stone. ${L}/3 lit. Keep your light on it.`,next];}
 /* ================= sheets ================= */
 const vendors={
-  mae:{name:'Mae’s Goods',sub:'"Everything fair, dear. Everything fair."',rows:()=>[
+  mae:{name:'Coyle’s General',sub:'"Fair prices. Weird hours. Don’t ask about the hours."',rows:()=>[
     {k:'turnip',name:'Turnip seeds ×3',desc:'Quick to grow. Sells for 6.',price:6,can:true},
     {k:'pumpkin',name:'Pumpkin seeds ×2',desc:'Slow and heavy. Sells for 18.',price:14,can:true},
     {k:'tire',name:'Tire, used',desc:S.parts.tire?'Already yours.':'"Off a hearse, but it’ll fit." A car part.',price:35,can:!S.parts.tire},
@@ -100,7 +100,7 @@ function openNote(html,btn,cb){S.paused=true;$('noteText').innerHTML=html;$('not
 $('noteClose').addEventListener('click',()=>{$('note').hidden=true;S.paused=false;const cb=noteCb;noteCb=null;if(cb)cb();});
 let talkingTo=null;
 function questLine(n){const id=n.def.id,q=S.q;
-  if(id==='hollis'){if(!q.hollis){q.hollis=1;return 'That your car out by the big oak? Hell of a thing. I can fix it. I need four parts: a tire, Mae sells one in town. A battery, I’ve got one, but I want three pumpkins for it. A fan belt, Agnes has her husband’s old truck rotting in the yard. And gas, from my pump. Twenty in the honor box.';}
+  if(id==='hollis'){if(!q.hollis){q.hollis=1;return 'That your car out by the big oak? Hell of a thing. I can fix it. I need four parts: a tire, Caitlyn sells one at the store in town. A battery, I’ve got one, but I want three pumpkins for it. A fan belt, Agnes has her husband’s old truck rotting in the yard. And gas, from my pump. Twenty in the honor box.';}
     if(!S.parts.battery){if(basketCount('pumpkin')>=3){takeBasket('pumpkin',3);S.parts.battery=1;SFX.coin();return 'Now those are pumpkins. Here’s your battery. Don’t ask whose car it came out of.';}return 'Three pumpkins for the battery. Grow ’em yourself. Nobody else here will sell you any.';}
     if(S.carFixed&&!S.looped)return 'She’ll run. Whether the road lets you go is another thing.';if(S.looped)return 'Came back, huh? They all come back. I’m sorry, friend.';}
   if(id==='agnes'){if(S.cat==='carried'){S.cat='home';S.parts.belt=1;cat.vis=true;cat.x=-44.6;cat.z=-8.2;SFX.meow();return 'Whiskers! Oh, you found her. Here. Harold’s fan belt, off his truck. He won’t be driving it. Nobody drives out of here.';}
@@ -111,13 +111,13 @@ function questLine(n){const id=n.def.id,q=S.q;
   if(id==='tobias'){if(!q.tobias){q.tobias=1;return 'Can you bring me a glowcap? The glowing mushrooms in the west woods. Mama won’t let me go past the road.';}
     if(q.tobias===1&&basketCount('mushroom')>=1){takeBasket('mushroom',1);q.tobias=2;S.coins+=12;SFX.coin();return 'Thanks! Here’s twelve coins. Can I tell you a secret? Ruth Abernathy was the Tithe last year. She still comes to your well when the sun goes down. She’s looking for her mama.';}}
   if(id==='hale'&&!q.hale&&S.pages.length>=3){q.hale=1;S.candles++;return 'You’ve been reading his diary. I can see it on you. He left this with me. One Ward Candle. Don’t tell anyone where you got it.';}
-  if(id==='mae'&&S.parts.tire===0&&S.q.hollis)return 'A tire? I have one. Off a hearse, but it’ll fit. Thirty-five coins.';
+  if(id==='mae'&&S.parts.tire===0&&S.q.hollis)return 'A tire? Yeah, I’ve got one. It came off a hearse. Don’t ask. Thirty-five coins.';
   return null;}
 function talk(n){const d=n.def,night=isNight();S.paused=true;talkingTo=n;$('talkName').textContent=d.name;$('talkRole').textContent=night?'Standing in the dark, facing your farm':d.role;
   let line=null;if(!night)line=questLine(n);
   if(!line)line=night?d.night[(S.day+((S.talked[d.id]||0)))%d.night.length]:d.lines[Math.min(S.day,d.lines.length)-1];S.talked[d.id]=(S.talked[d.id]||0)+1;
   $('talkLine').innerHTML=`<q>${line}</q>`;$('talkTrade').hidden=!(d.id==='mae'&&!night);$('talk').hidden=false;
-  if(d.id==='mae'&&!night&&S.day===2&&!S.first.maeOil){S.first.maeOil=true;S.flasks=Math.min(3,S.flasks+1);toast('Mae pressed a flask of oil into your hand.',2.4);}
+  if(d.id==='mae'&&!night&&S.day===2&&!S.first.maeOil){S.first.maeOil=true;S.flasks=Math.min(3,S.flasks+1);toast('Caitlyn slides a flask of lamp oil across the counter. “On the house. Don’t make it weird.”',3);}
   if(night)A.hiss&&A.hiss(1,.06,'bandpass',1800,{q:5,wobble:true,verb:true});}
 $('talkClose').addEventListener('click',()=>{$('talk').hidden=true;S.paused=false;talkingTo=null;});
 $('talkTrade').addEventListener('click',()=>{$('talk').hidden=true;talkingTo=null;openShop('mae');});
@@ -275,7 +275,7 @@ function ritualUpdate(dt){ritual.t+=dt;const t=ritual.t;cam.shake=Math.max(cam.s
   if(t>1&&!ritual.s2){ritual.s2=true;SFX.shriek(0);toast(S.pages.length>=6?'It screams in Grandpa’s voice.':'For a moment it sounds like a man.',2.6,true);}
   if(t>3.6&&!ritual.flash){ritual.flash=true;flashT=1.2;SFX.boom();H.vis=false;S.bound=true;H.state='gone';ritual.hat={x:H.x,z:H.z};scare.vis=true;SFX.bell();}
   if(t>6){S.mode='end';const full=S.pages.length>=6;
-    $('endStory').textContent=full?'In the ash lies a straw hat with a faded red band. Grandpa’s. You lit the stones anyway, like he asked. In town the church bell rings on its own, and Mae is standing at the end of your road, smiling. "Next autumn, then."'
+    $('endStory').textContent=full?'In the ash lies a straw hat with a faded red band. Grandpa’s. You lit the stones anyway, like he asked. In town the church bell rings on its own, and Caitlyn is standing at the end of your road, smiling. "Next autumn, then."'
       :`In the ash lies a straw hat with a faded red band. You have seen it before, but where? You found ${S.pages.length} of Grandpa’s 6 pages. In town the church bell rings on its own, and someone is standing at the end of your road, smiling.`;
     $('eDays').textContent=S.day;$('ePages').textContent=S.pages.length+'/6';$('eCaught').textContent=S.caught;$('end').hidden=false;$('hud').hidden=true;$('buttons').hidden=true;ui.obj.hidden=true;}}
 $('keepFarming').addEventListener('click',()=>{$('end').hidden=true;$('hud').hidden=false;$('buttons').hidden=false;ui.obj.hidden=false;S.mode='play';newDay('Day '+(S.day+1)+'. Birdsong, for the first time.');});

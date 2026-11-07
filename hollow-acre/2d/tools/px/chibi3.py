@@ -49,6 +49,9 @@ NPC.update({
   'corwin': dict(skin='#e0c4a8', hair='#9a9aa0', hairStyle='shaggy', outfit='longcoat', extra='#3a4a5a', shirt='#c8b060', pants='#3a3a30', shoes='#2a2010', beard='stubble', hat='cap', hatColor='#c8a030'),
 })
 
+# Caitlyn runs the store now (id 'mae' so saves and scripts keep working): blonde with pink lengths, square black glasses, black tee, jeans, white sneakers
+NPC['mae'] = dict(skin='#f3d2b8', hair='#e2c27e', hairTip='#e58fb0', tipDy=7, hairStyle='long', outfit='tee', shirt='#24222a', pants='#7a96bc', shoes='#e8e4dc',
+                  glasses='square', accessory='necklace', acc='#d8dce4', eye='#6a8aa4')
 # the young adult women: fitted low-cut tops (no scarves over the neckline), lashes, lipstick
 ALLURE = {'nell': dict(outfit='tee', overalls=False, pants='#4a3e2e'), 'june': dict(accessory='necklace', acc='#e8c860'), 'cora': dict(accessory='necklace', acc='#e8e0f0'), 'ida': dict(),
           'tess': dict(accessory='necklace', acc='#e8c860'), 'iris': dict(), 'della': dict(), 'maud': dict(accessory='headband')}

@@ -137,7 +137,7 @@ function mindScreen(t){const k=1-M.v/100;if(S.mode==='title')return;
 /* ---------- more ways to lose it ---------- */
 const TRAIL=[];let trailT=0;const CROPGLOW=[];   // where you were, for a reflection that lags behind you
 M.cd.mimic=60;M.cd.watcher=40;M.cd.death=200;M.cd.hud=30;M.watcher=null;M.deathT=0;M.hudLie=0;
-const MIMIC={mae:'Dear? Dear, come here. I have oil for you. Come into the corn, it’s warmer.',tobias:'I found a glowcap! It’s really big! Come see, it’s just past the trees!',
+const MIMIC={mae:'Hey. Hey, it’s me. I brought you oil. Come into the corn, it’s warmer in here.',tobias:'I found a glowcap! It’s really big! Come see, it’s just past the trees!',
   hale:'Child. The bell. I need your help with the bell. This way.',agnes:'Ruth? Ruth, baby, is that you? Come back to the house.',hollis:'Got your part. Left it in the field. Don’t make me walk out there.',dunn:'Over here, kid. Over here. That’s it.'};
 function mindUpdate2(dt){if(S.mode!=='play'||S.paused)return;const T=tierOf(M.v),night=isNight()&&!S.bound;
   trailT+=dt;if(trailT>.1){trailT=0;TRAIL.push({x:P.x,z:P.z,dir:P.dir,clip:P.clip,t:P.t});if(TRAIL.length>40)TRAIL.shift();}

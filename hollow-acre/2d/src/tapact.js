@@ -22,7 +22,7 @@ const slotKey=i=>i<9?String(i+1):i===9?'0':i===10?'-':'=';
 function needHint(kind,why){if(TAP.quiet)return;SFX.deny&&SFX.deny();const i=slotOf(kind);const n=slotsVisible();
   if(i>=0&&i<n){const b=$('hotbar')&&$('hotbar').children[i];if(b){b.classList.remove('hint');void b.offsetWidth;b.classList.add('hint');clearTimeout(b._ht);b._ht=setTimeout(()=>b.classList.remove('hint'),1700);}}
   const now=performance.now();if(now-TAP.hint<1100)return;TAP.hint=now;
-  const where=i<0?(kind==='seed'?' You have no seeds. Mae sells them.':kind==='fert'?' Make bone meal at the farming bench.':''):i<n?(fineP()?` Press <b>${slotKey(i)}</b>.`:' It’s blinking on your toolbar.'):' It’s in your backpack: drag it to the top row.';
+  const where=i<0?(kind==='seed'?' You have no seeds. Caitlyn sells them.':kind==='fert'?' Make bone meal at the farming bench.':''):i<n?(fineP()?` Press <b>${slotKey(i)}</b>.`:' It’s blinking on your toolbar.'):' It’s in your backpack: drag it to the top row.';
   toast(`${why?why+' ':''}Hold your <b>${TOOL_NAME[kind]}</b>.${where}`,2.2);}
 // ---- the targets: what is under the cursor or finger
 function debrisItem(o){return interact.find(q=>q.x===o.x&&q.z===o.z&&(!q.on||q.on()));}
@@ -65,7 +65,7 @@ function tileUse(t,kind,mode){const c=t.crop;faceAt(t.x,t.z);
   if(kind==='hoe'){if(t.tilled||c)return false;doTill(t);return true;}
   if(kind==='can'){if(!t.tilled&&!c){tSay('Water tilled soil or crops.',1.2);return false;}if(S.water<=0){tDeny();tSay('The can is empty. Refill it at the well, or dip it in the pond.',2);return false;}
     if(c){if(c.watered)return false;doWater(t);return true;}if(t.wet)return false;waterSoil(t);return true;}
-  if(kind==='seed'){const it=selectedItem();if(c)return false;if(!t.tilled){needHint('hoe','Till the soil first.');return false;}if(!it||it.qty<=0){tSay('Out of those seeds. Mae sells more.',1.6);return false;}S.sel=it.id;doPlant(t);return true;}
+  if(kind==='seed'){const it=selectedItem();if(c)return false;if(!t.tilled){needHint('hoe','Till the soil first.');return false;}if(!it||it.qty<=0){tSay('Out of those seeds. Caitlyn sells more.',1.6);return false;}S.sel=it.id;doPlant(t);return true;}
   if(kind==='fert'){if(!c){tSay('Bone meal goes on a growing crop.',1.4);return false;}boneMeal(t);return true;}
   if(kind==='pick'){if(t.tilled&&!c){untill(t);return true;}return false;}
   // holding something that doesn't work here: say what would

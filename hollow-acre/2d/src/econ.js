@@ -3,7 +3,7 @@ Object.assign(S,{energy:100,energyMax:100,hp:100,hpMax:100,inv:{},tools:{hoe:S.h
 const ITEMS={
   wood:{name:'Wood',icon:'wood'},stone:{name:'Stone',icon:'stone'},fiber:{name:'Fiber',icon:'fiber'},
   copper:{name:'Copper ore',icon:'copper'},iron:{name:'Iron ore',icon:'iron'},coal:{name:'Coal',icon:'coal'},gem:{name:'Hollow-glass',icon:'gem',sell:40,desc:'A black gem that is warm to the touch. Sells for 40.'},
-  bread:{name:'Mae’s bread',food:[30,5],desc:'Still warm. +30 energy.'},stew:{name:'Mae’s stew',food:[50,15],desc:'+50 energy, +15 health.'},
+  bread:{name:'Caitlyn’s bread',food:[30,5],desc:'Still warm. +30 energy.'},stew:{name:'Caitlyn’s stew',food:[50,15],desc:'+50 energy, +15 health.'},
   soup:{name:'Turnip soup',food:[35,5]},egg_fried:{name:'Fried egg',food:[25,10]},pie:{name:'Pumpkin pie',food:[60,25]},chowder:{name:'Corn chowder',food:[80,30]},hash:{name:'Grandpa’s hash',food:[100,45]},
   glowstew:{name:'Glowcap stew',food:[20,40],desc:'Tastes of nothing at all. +40 health.'}};
 const RAW={turnip:[8,0],pumpkin:[12,0],corn:[10,0],egg:[6,2],mushroom:[4,8]};       // eating crops straight from the basket
@@ -67,7 +67,7 @@ vendors.hollis.rows=()=>{const fr=S.freeUpgrades,T=S.tools;return [
   {k:'spr',name:'Brass sprinkler',desc:S.sprinklers>=4?'Your field has all it can use.':`Waters a patch of field every morning. You have ${S.sprinklers}/4.`,price:fr?0:45,can:S.sprinklers<4,need:{copper:2,iron:1},buy(){S.sprinklers++;}},
   {k:'hood',name:'Lantern hood',desc:S.flashlight?'Your light is already focused.':'A reflector for your lantern. Throws the light much further.',price:fr?0:60,can:!S.flashlight,need:{iron:2},buy(){S.flashlight=true;}}];};
 {const _mae=vendors.mae.rows;vendors.mae.rows=()=>{const r=_mae();r.push({k:'bread',name:'Loaf of bread',desc:'+30 energy.',price:10,can:true,buy(){addInv('bread');}},{k:'stew',name:'Bowl of stew',desc:'+50 energy, +15 health. “You look peaky, dear.”',price:25,can:true,buy(){addInv('stew');}},
-  {k:'sellgem',name:'Sell Hollow-glass',desc:`Mae buys them without looking at them. You have ${inv('gem')}.`,price:0,can:inv('gem')>0,btn:'Sell 40',buy(){takeInv('gem');S.coins+=40;}});return r;};}
+  {k:'sellgem',name:'Sell Hollow-glass',desc:`Caitlyn buys them without looking at them. You have ${inv('gem')}.`,price:0,can:inv('gem')>0,btn:'Sell 40',buy(){takeInv('gem');S.coins+=40;}});return r;};}
 // ---- cooking at Grandpa's stove
 const RECIPES=[['soup',{turnip:2},'Turnip soup'],['egg_fried',{egg:1},'Fried egg'],['pie',{pumpkin:1,egg:1},'Pumpkin pie'],['chowder',{corn:2,egg:1},'Corn chowder'],['hash',{turnip:1,pumpkin:1,corn:1},'Grandpa’s hash'],['glowstew',{mushroom:2},'Glowcap stew']];
 vendors.cook={name:'Grandpa’s stove',sub:'The recipe cards are in his handwriting. One of them is in yours.',rows:()=>RECIPES.map(([k,need,name])=>{const f=ITEMS[k].food;const ok=Object.entries(need).every(([q,n])=>basketCount(q)>=n);

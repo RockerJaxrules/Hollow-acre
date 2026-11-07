@@ -260,7 +260,7 @@ function escapeCine(){S.mode='cine';$('skip').hidden=false;$('buttons').hidden=t
 $('skip').addEventListener('click',()=>{if(!cine)return;if(cine.escape){cine.finish&&cine.finish();S.looped=true;endCine();S.mode='play';P.x=farmSignPos.x+1;P.z=farmSignPos.z+1.4;$('buttons').hidden=false;fade(0);return;}if(S.mode==='cine'&&cine.update){cine.update=null;fade(1);setTimeout(()=>{finishIntro();fade(0);},500);}});
 /* ================= controls ================= */
 function onAct(){A.init&&A.init();if(S.mode!=='play'||S.paused||P.anim)return;if(ctx.ok&&ctx.act)ctx.act();else if(ctx.label)SFX.deny();}
-function onSeed(){if(S.mode!=='play')return;S.sel=S.sel==='turnip'?'pumpkin':'turnip';if(S.seeds[S.sel]<=0)toast(`No ${SEEDS[S.sel].name.toLowerCase()} seeds. Mae sells them.`,1.6);updateHud();}
+function onSeed(){if(S.mode!=='play')return;S.sel=S.sel==='turnip'?'pumpkin':'turnip';if(S.seeds[S.sel]<=0)toast(`No ${SEEDS[S.sel].name.toLowerCase()} seeds. Caitlyn sells them.`,1.6);updateHud();}
 function press(el,fn){el.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();A.init&&A.init();fn();});}
 /* ================= loop ================= */
 let last=performance.now(),acc=0;

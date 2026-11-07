@@ -24,7 +24,7 @@ const ROUTES={
   'Plant':'The field is just south of the cabin. Seeds go on the dug squares.',
   'Water':'The stone well stands just east of the cabin. Tap it to fill the can, then tap each seedling with the can.',
   'Sell':'The wooden shipping bin stands just left of the cabin door. Tap it with crops in your bag.',
-  'The car':'Hollis’s garage: walk west on Route 9 past the HOLLOW ACRE sign, cross the covered bridge, and it’s on the right with a gas pump outside. Mae’s store (Coyle’s General Store) is the other way, east on Route 9, the first shop past the MARROW HOLLOW sign. Agnes lives in the last house west, just before your wrecked car.',
+  'The car':'Hollis’s garage: walk west on Route 9 past the HOLLOW ACRE sign, cross the covered bridge, and it’s on the right with a gas pump outside. Caitlyn’s store (Coyle’s General Store) is the other way, east on Route 9, the first shop past the MARROW HOLLOW sign. Agnes lives in the last house west, just before your wrecked car.',
   'Leave':'Your car is where you crashed: far west on Route 9, past Agnes’s house.',
   'Candles':'The crossroads: walk east on Route 9 past the barn. Just past it a sign reads CROSSROADS; turn south there and follow the dirt road along the cornfield to its end, where it meets the lane and the Mill Road. The peddler comes after 7:30 pm. You can also make tallow candles at Grandpa’s workbench (3 fiber and 1 coal each).',
   'Wait':'Three stones: one in the west woods, one in the cornfield south of your farm, one in the churchyard behind the church in town. Light all three after the bell, the same night.',

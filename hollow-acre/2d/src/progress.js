@@ -60,9 +60,9 @@ const LESSONS=[
   {id:'ship',t:'Harvest and ship',at:()=>binPos,say:'When a crop is ripe, harvest it, then drop it in the wooden shipping bin just left of the cabin door. It’s sold overnight and you’re paid in the morning.',
    goal:b=>`Ship crops ${Math.min(S.shipped-b.shipped,3)}/3`,ok:b=>S.shipped-b.shipped>=3,begin:b=>{b.shipped=S.shipped;},coins:30,done:'Your first coins. Spend them on seeds and they’ll come back to you twice over.'},
   {id:'store',t:'Visit the store',at:()=>ROOMS.store&&ROOMS.store.out,say:'Come see me at the store: Coyle’s General Store, east along Route 9, the first shop past the MARROW HOLLOW sign. Buy some seeds. I’ll show you the shelves.',
-   goal:()=>'Buy seeds at Mae’s store',ok:()=>S.ls.ev.buy,seeds:{pumpkin:2},done:'A customer! Here, two pumpkin seeds extra. Don’t tell Hollis I play favourites.'},
+   goal:()=>'Buy seeds at Caitlyn’s store',ok:()=>S.ls.ev.buy,seeds:{pumpkin:2},done:'A customer! Here, two pumpkin seeds extra. Don’t tell Hollis I play favourites.'},
   {id:'gather',t:'Wood and stone',say:'You’ll need wood and stone for everything. Hold the axe and tap a tree to chop it; hold the pickaxe and tap a rock to break it. Stumps need two swings.',
-   goal:b=>`Gather wood ${Math.min(inv('wood')-b.wood,15)}/15 · stone ${Math.min(inv('stone')-b.stone,15)}/15`,ok:b=>inv('wood')-b.wood>=15&&inv('stone')-b.stone>=15,begin:b=>{b.wood=inv('wood');b.stone=inv('stone');},coins:25,done:'Strong arms. Elias had strong arms. He could split a log with one swing.'},
+   goal:b=>`Gather wood ${Math.min(inv('wood')-b.wood,15)}/15 · stone ${Math.min(inv('stone')-b.stone,15)}/15`,ok:b=>inv('wood')-b.wood>=15&&inv('stone')-b.stone>=15,begin:b=>{b.wood=inv('wood');b.stone=inv('stone');},coins:25,done:'Strong arms. Elias had strong arms. He taught me to split kindling when I was nine and never once let me win.'},
   {id:'build',t:'Build a workbench',at:()=>({x:12.6,z:-5.2}),say:'Elias left his building plans pinned on the board by the woodpile, east of the cabin near the road. Look at them and build the Farming bench. You choose where it goes.',
    goal:()=>'Build a workbench from Grandpa’s plans',ok:()=>Object.values(S.benches||{}).some(Boolean),coins:20,done:'Look at that. It’s even level. You’re better at this than he was.'},
   {id:'craft',t:'Craft something',say:'Open your bag and press Craft, or use a bench. Everything you gather makes something. Try a straw charm or a lamp oil flask.',
@@ -103,8 +103,8 @@ let lsSeeds=null;
 #maecard{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 150px);z-index:24;width:min(380px,86vw);display:none;gap:10px;align-items:flex-start;background:rgba(42,26,14,.93);color:#f4e6c8;padding:8px 10px;font-size:13px;line-height:1.4;box-shadow:0 0 0 2px #1a0e06,0 0 0 4px #6a8a3a}
 #maecard canvas{width:48px;height:48px;image-rendering:pixelated;background:#d9b27a;flex:none}#maecard .nm{color:#b8e07a;font-size:12px;letter-spacing:.12em;text-transform:uppercase}#maecard .rw{color:#ffd27a;font-size:12.5px;margin-top:4px}`;document.head.appendChild(c);
   const l=document.createElement('div');l.id='lesson';l.innerHTML='<canvas width="40" height="40"></canvas><div class="tx"></div>';$('app').appendChild(l);
-  const m=document.createElement('div');m.id='maecard';m.innerHTML='<canvas width="40" height="40"></canvas><div><div class="nm">Mae</div><div class="tx"></div><div class="rw"></div></div>';$('app').appendChild(m);
-  l.addEventListener('click',()=>{const L=LESSONS[S.ls.i];if(!L)return;openNote(`<h3>Mae’s lesson ${S.ls.i+1}/${LESSONS.length}: ${L.t}</h3><p>${L.say}</p><p><b>${L.goal(S.ls.base)}</b></p>`,'Got it');$('noteText').insertAdjacentHTML('beforeend','<p style="font-size:12px;opacity:.7"><a href="#" id="lsSkip">Skip Mae’s lessons</a></p>');$('lsSkip').onclick=ev=>{ev.preventDefault();S.tut.off=true;$('noteClose').click();toast('Mae’s lessons skipped.',2);};});
+  const m=document.createElement('div');m.id='maecard';m.innerHTML='<canvas width="40" height="40"></canvas><div><div class="nm">Caitlyn</div><div class="tx"></div><div class="rw"></div></div>';$('app').appendChild(m);
+  l.addEventListener('click',()=>{const L=LESSONS[S.ls.i];if(!L)return;openNote(`<h3>Caitlyn’s lesson ${S.ls.i+1}/${LESSONS.length}: ${L.t}</h3><p>${L.say}</p><p><b>${L.goal(S.ls.base)}</b></p>`,'Got it');$('noteText').insertAdjacentHTML('beforeend','<p style="font-size:12px;opacity:.7"><a href="#" id="lsSkip">Skip Mae’s lessons</a></p>');$('lsSkip').onclick=ev=>{ev.preventDefault();S.tut.off=true;$('noteClose').click();toast('Mae’s lessons skipped.',2);};});
   m.addEventListener('click',()=>{m.style.display='none';});}
 let maeT=0;
 function maeSay(txt,rw,dur){maeCome(dur||6);const m=$('maecard');headIcon&&headIcon('mae',m.querySelector('canvas'));m.querySelector('.tx').innerHTML=txt;m.querySelector('.rw').textContent=rw||'';m.style.display='flex';maeT=dur||6;SFX.page&&SFX.page();}
@@ -117,14 +117,14 @@ function lsReward(L){const out=[];if(L.coins){S.coins+=L.coins;out.push(`+${L.co
 function lessonsUpdate(dt){if(maeT>0){maeT-=dt;if(maeT<=0)$('maecard').style.display='none';}
   const el=$('lesson');if(S.mode!=='play'){el.style.display='none';return;}
   if(S.ls.i<0){if(S.readLetter&&!S.paused&&S.mode==='play'&&!S.tut.off){S.ls.i=0;const T=S.tut.done;for(const k of ['till','plant','water','bars','ship','fish','map','sleep','talk'])T[k]=1;
-      maeCome(14,true);playScene('mae','Mae drops by',`A woman in a flour-dusted apron is leaning on your gate as if she has been waiting there a while.<br><br><q>You must be Elias’s grandkid. You have his walk. I’m Mae. I run the store in town.</q><br><br><q>He asked me to look in on you, if you ever came. He said you wouldn’t. I said you would.</q> She smiles. It doesn’t quite reach her eyes. <q>I win.</q><br><br><q>Let me show you how this place works. Then you’ll have a chance, at least.</q>`,()=>lsBegin(0));}
+      maeCome(14,true);playScene('mae','Caitlyn drops by',`A young woman in a black tee and square glasses is leaning on your gate, holding up a phone that has no signal out here, as if she has been waiting a while.<br><br><q>Oh. Hi. You must be Elias’s grandkid. You have his walk. I’m Caitlyn. I run the store in town. Coyle’s.</q><br><br><q>He asked me to look in on you, if you ever came. He said you wouldn’t. I said you would.</q> She smiles. It doesn’t quite reach her eyes. <q>I win.</q><br><br><q>Let me show you how this place works. Then you’ll have a chance, at least.</q>`,()=>lsBegin(0));}
     el.style.display='none';return;}
   const L=LESSONS[S.ls.i];if(!L||S.tut.off){el.style.display='none';return;}
   // a purchase at the store counts when seeds go up while Mae's shop is open
   const st=seedsTotal();if(lsSeeds!==null&&st>lsSeeds&&!$('shop').hidden&&shopV==='mae')S.ls.ev.buy=1;lsSeeds=st;
   const ob=$('objective');const r=ob&&!ob.hidden?ob.getBoundingClientRect():null;if(r)el.style.setProperty('--lessonTop',Math.round(r.bottom+4)+'px');
   el.style.display=S.paused||$('bag').hidden===false?'none':'flex';
-  const tx=`<b>Mae</b>${L.goal(S.ls.base)}${L.at&&typeof wayChip==='function'?wayChip(L.at()):''}`;if(el.dataset.tx!==tx){el.dataset.tx=tx;el.querySelector('.tx').innerHTML=tx;headIcon&&headIcon('mae',el.querySelector('canvas'));}
+  const tx=`<b>Caitlyn</b>${L.goal(S.ls.base)}${L.at&&typeof wayChip==='function'?wayChip(L.at()):''}`;if(el.dataset.tx!==tx){el.dataset.tx=tx;el.querySelector('.tx').innerHTML=tx;headIcon&&headIcon('mae',el.querySelector('canvas'));}
   if(L.ok(S.ls.base)&&!S.paused){const rw=lsReward(L);maeSay(L.done,rw,6);SFX.coin&&SFX.coin();lsBegin(S.ls.i+1);}}
 {const _mu=mindUpdate;mindUpdate=function(dt){_mu(dt);lessonsUpdate(dt);};}
 // candles cost more: the rite has to be earned

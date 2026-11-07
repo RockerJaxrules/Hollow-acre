@@ -37,12 +37,12 @@ const ST_LETTERS={
   5:`Count the chairs at the table tonight. Then sit down and count them again.`,
   4:`If you see yourself walking away from you, don’t follow. I did. That’s how I got here. I’m writing this from the other end of the week.`,
   3:`The Marsh place is your house. Not like your house. Your house. It’s just later there. Try the door.`,
-  2:`They will clap. Don’t look at Mae when they clap. She’ll be the only one crying, and you’ll want to stay for her.`,
+  2:`They will clap. Don’t look at Caitlyn when they clap. She’ll be the only one crying, and you’ll want to stay for her.`,
   1:`I’ve written this letter twenty-nine times. Every year I forget. Every year you read it anyway.<br><br>Please. This time, open the door from the inside.`,
 };
 const ST_TALK=['Happy birthday. Early, I know. We’re all early this week.','We’ll set a place for you. We always set a place.','You’ve got your grandfather’s height now. Did you notice? You’re taller than this morning.',
   'Don’t worry. It doesn’t hurt. That’s what they all say afterwards.','What was your name again? No, don’t tell me. It’s bad luck to know it this week.','I already miss you. Isn’t that funny?',
-  'The children have been practising their clapping.','Mae’s baking for Sunday. Your favourite. How does she know your favourite?'];
+  'The children have been practising their clapping.','Caitlyn’s baking for Sunday. Your favourite. How does she know your favourite?'];
 
 // ---- the countdown on the clock
 {const el=document.createElement('div');el.className='tithe';el.id='titheCd';el.style.cssText='font-size:11px;letter-spacing:.06em;margin-top:3px;color:#d98a5a;display:none';$('clock').appendChild(el);}
@@ -68,7 +68,7 @@ function stHud(){const el=$('titheCd');if(!S.st.started||S.st.done){el.style.dis
 
 // ---- starting Chapter Two once the Hollow is bound
 function stStart(){const st=S.st;st.started=true;st.tithe=0;st.act=2;
-  setTimeout(()=>openNote(`<h3>Chapter Two: The Tithe</h3><p>The bell rang on its own the night you bound it. Since then nobody in town will say your name out loud.</p><p>Mae tells you there will be a drawing. Nobody will say when. <q>When the door is quiet,</q> Hale says, and won’t explain. Cora has chalked a number on her blackboard that hasn’t started counting yet.</p><p>Ask people. Mae, Hale and Della know the most. Keep the Ward at the church.</p><p>Find out what the Tithe is.</p>`,'Find out',()=>{}),900);}
+  setTimeout(()=>openNote(`<h3>Chapter Two: The Tithe</h3><p>The bell rang on its own the night you bound it. Since then nobody in town will say your name out loud.</p><p>Caitlyn tells you there will be a drawing. Nobody will say when. <q>When the door is quiet,</q> Hale says, and won’t explain. Cora has chalked a number on her blackboard that hasn’t started counting yet.</p><p>Ask people. Caitlyn, Hale and Della know the most. Keep the Ward at the church.</p><p>Find out what the Tithe is.</p>`,'Find out',()=>{}),900);}
 
 // ---- interactions
 interact.push({x:MAILPOS.x,z:MAILPOS.z,r:1.1,on:()=>!!S.st.mail,label:()=>'Read',ok:()=>true,act(){const L=S.st.mail;S.st.mail=null;S.st.lettersRead++;SFX.page&&SFX.page();
@@ -106,7 +106,7 @@ Hale holds up the hat. It is Grandpa’s straw hat with the faded red band. You 
 Nobody speaks. The children are counting under their breath. Backwards.<br><br>
 Hale reaches in without looking and unfolds a slip. He doesn’t need to read it. He reads it anyway.<br><br>`+
 (dunn?`<q>${dn}.</q><br><br>Dunn is on his feet before Hale finishes. He looks at you and touches the brim of his hat. Every slip in that hat had your name on it. He burned sixty. He wrote one.<br><br>Nobody claps. Then, slowly, everybody does.`
-     :`It is your name. Spelled the way Grandpa spelled it, which is not the way you spell it, and is somehow more right.<br><br>They clap. Politely, all together, like at a recital. Mae is the only one crying. A hand rests on your shoulder and stays there, and when you turn around, nobody is close enough to have done it.`)+
+     :`It is your name. Spelled the way Grandpa spelled it, which is not the way you spell it, and is somehow more right.<br><br>They clap. Politely, all together, like at a recital. Caitlyn is the only one crying. A hand rests on your shoulder and stays there, and when you turn around, nobody is close enough to have done it.`)+
 `<br><br><q>Tomorrow night,</q> Hale says. <q>Down the Mill Road. You’ll know the house. You’ve always known the house.</q>`,()=>{fade(0);mindHit(10);addLore(dunn?`At the drawing Hale read out ${dn}’s name. Every other slip had mine.`:'At the drawing Hale read out my name, in Grandpa’s spelling. Tomorrow night I walk to the Tithe House.');});},700);}
 
 // ---- the choice at the door
@@ -146,7 +146,7 @@ Mill Road. Route 9. The sign for the county line. The headlights find it, and th
 He runs. You watch his little torch cross the line, and keep going, and keep going, and go out.<br><br>
 The passenger door opens. Something folds itself into the seat beside you. It is very tall. It has been very patient. It puts its seatbelt on.`,
     end:'Years from now a man with a jar of dead mushrooms on his dashboard drives a long way toward a valley he doesn’t remember, because he keeps dreaming about a farm. His car breaks down on Route 9.',
-    epi:'Tobias’s bed is made. Mae has set the table for one fewer. She is smiling.'},
+    epi:'Tobias’s bed is made. Caitlyn has set the table for one fewer. She is smiling.'},
   dunn:{t:'Dunn’s Name',who:'dunn',k:'An ending',text:`Dunn is already on the step of the Tithe House when you arrive, in his good coat. The nails are pulled. The door is open an inch.<br><br>
 <q>Sixty times I burned it,</q> he says. <q>Your name. Then I wrote mine on the last slip. Steady hand. First time in years.</q><br><br>
 He takes off his hat and puts it on your head. <q>Somebody has to be sheriff.</q><br><br>

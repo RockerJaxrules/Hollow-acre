@@ -9,18 +9,18 @@ S.friend={};S.talkedToday={};S.gifted={};S.heartSeen={};S.lore=[];S.journal=[];
 const GIFTS={turnip:'Turnip',pumpkin:'Pumpkin',corn:'Corn',mushroom:'Glowcap',fish:'Fish',egg:'Egg'};
 const PEOPLE={
   mae:{voice:'warm',loves:['pumpkin','egg'],likes:['turnip','corn'],hates:['fish'],
-    talk:[['Oh! Come in, come in, dear, you’re letting the cold in. Did you eat? You didn’t eat.','My pumpkin bread wins the fair every year. Every year! Nobody else is allowed to enter, but still.',
-            'Tobias, stop touching that. Sorry, dear. Boys.'],
-          ['You have Elias’s hands. Big knuckles. He fixed my roof once and wouldn’t take a cent.','I keep the porch light on all night. Old habit. Waiting for someone.',
-           'If you ever hear me calling from the corn, dear, it isn’t me. I don’t go in the corn.'],
-          ['You’re family now. Don’t argue. I’ve decided.','I sleep in Tobias’s room some nights. On the floor. He thinks it’s silly.']],
-    gift:{love:'Oh, you sweetheart! I’ll make something with this. Something for you.',like:'Well, aren’t you thoughtful.',hate:'Oh. Oh, that smell. Thank you, dear. Truly.',meh:'For me? You didn’t have to.'},
-    events:[{h:2,title:'The photo behind the counter',text:`Mae turns the little frame around so you can see it. A boy, nine or ten, gap-toothed, holding a fish too big for him.<br><br>
-      <q>That’s Danny. My first. He’d be about your age now.</q><br><br>She puts it back face-down, the way it was. <q>Don’t mention him to Tobias. He thinks he’s an only child, and that is a kindness I am still able to give.</q>`,lore:'Mae had a son before Tobias. Danny. She keeps his photo face-down.'},
-      {h:4,title:'The lots',text:`<q>Every September we go to the church after dark. Everyone. Hale reads the names and Dunn draws from the hat.</q> Her hands keep folding the same dish towel.<br><br>
-      <q>Danny’s name came out in ’99. It came out in Dunn’s handwriting. I never said that out loud before. I don’t know why I’m saying it to you.</q>`,lore:'The town draws lots for the Tithe every September. In 1999 Danny Coyle’s name came out of the hat in the Sheriff’s handwriting.'},
+    talk:[['Hey, farm kid. Shut the door, you’re letting the cold in. Did you eat? You didn’t eat.','I took first at the fair with Mom’s pumpkin bread. Nobody else entered. It still counts.',
+            'Tobias, put that down. …Sorry. Little brothers.','Mom ran this store for thirty years. Two autumns ago she walked into the corn in her apron. So now it’s me.'],
+          ['You have Elias’s hands. Big knuckles. He fixed our roof once and wouldn’t take a cent. He let me hold the nails.','I keep the porch light on all night. Mom did. I can’t make myself switch it off.',
+           'If you ever hear me calling from the corn, it isn’t me. That’s the last thing Mom ever told me. I don’t go in the corn.'],
+          ['You’re kind of a regular now. Don’t let it go to your head.','Some nights I sleep on Tobias’s floor. He thinks it’s silly. I let him think that.','I saved you the good bread. Don’t tell Pip.']],
+    gift:{love:'Oh, you didn’t. You did. Okay, I’m making something with this, and you’re eating it.',like:'Huh. You were thinking about me. That’s… nice.',hate:'Oh. Oh, that smell. Thank you. Truly. Please take it back outside.',meh:'For me? You didn’t have to.'},
+    events:[{h:2,title:'The photo behind the counter',text:`Caitlyn turns the little frame around so you can see it. A boy, nine or ten, gap-toothed, holding a fish too big for him.<br><br>
+      <q>That’s Danny. My big brother. I was a baby when he went, so I only know him from this, and from Mom.</q><br><br>She puts it back face-down, the way it was. <q>Don’t mention him to Tobias. He doesn’t know. Mom never told him, and that’s a kindness I can still give.</q>`,lore:'Caitlyn had a big brother, Danny. She keeps his photo face-down so Tobias never asks.'},
+      {h:4,title:'The lots',text:`<q>Every September the whole town goes to the church after dark. Hale reads the names and Dunn draws from the hat.</q> Her hands keep folding the same dish towel.<br><br>
+      <q>Danny’s name came out in ’99. In Dunn’s handwriting. Mom told me that once, and never again. I’ve never said it out loud before. I don’t know why I’m telling you.</q>`,lore:'The town draws lots for the Tithe every September. In 1999 Danny Coyle’s name came out of the hat in the Sheriff’s handwriting.'},
       {h:6,title:'Walt’s lantern',text:`She presses a heavy brass lantern into your arms. It has been polished until the engraving is almost gone: <i>W. Coyle</i>.<br><br>
-      <q>My husband carried it the night he went looking for Danny. It burns brighter than that tin thing of yours. Take it.</q> Then, very quietly: <q>If it comes to it, don’t let them choose Tobias.</q>`,lore:'Walt Coyle went into the corn looking for his son and did not come back. His lantern burns brighter than any other.',reward:'lantern'}]},
+      <q>My dad’s. He carried it the night he went looking for Danny. I was eight months old. It burns brighter than that tin thing of yours. Take it.</q> Then, very quietly: <q>If it comes to it, don’t let them choose Tobias.</q>`,lore:'Walt Coyle, Caitlyn’s father, went into the corn looking for his son and did not come back. His lantern burns brighter than any other.',reward:'lantern'}]},
   hale:{voice:'grave',loves:['turnip'],likes:['corn','egg'],hates:['pumpkin'],
     talk:[['The bell rings at eight. When it does, be indoors. That is the whole of my sermon now.','I was a good preacher once. People cried. Now they just look at their shoes.',
             'Don’t bring gourds into my church. I will not explain that.'],
@@ -46,7 +46,7 @@ const PEOPLE={
       {h:4,title:'The girl by the corn',text:`<q>Her name’s Ruth. She told me, kind of. She writes it in the dirt.</q> Tobias digs his shoe into the ground.<br><br>
       <q>She says she’s not scared of the tall man anymore because she’s already inside it. I don’t get it. She says I will.</q>`,lore:'Ruth Abernathy writes her name in the dirt for Tobias. She says she is already inside the Tall Man.'},
       {h:6,title:'Danny’s slingshot',text:`He gives you a slingshot with <i>D.C.</i> carved in the handle. <q>I found it in Mom’s closet. In a box with my name on it except it isn’t my name.</q><br><br>
-      <q>I think I had a brother. I think everybody knows except me.</q> He doesn’t cry. He looks at the corn.`,lore:'Tobias found Danny’s slingshot in a box in Mae’s closet. He has worked out that he had a brother.'}]},
+      <q>I think I had a brother. I think everybody knows except me.</q> He doesn’t cry. He looks at the corn.`,lore:'Tobias found Danny’s slingshot in a box in his mother’s old closet. He has worked out that he had a brother.'}]},
   hollis:{voice:'gruff',loves:['fish'],likes:['pumpkin','corn'],hates:['mushroom'],
     talk:[['Yep.','Car’s a wreck. I can make it a slightly better wreck. Bring parts.','Don’t eat the glowing mushrooms. Don’t ask me how I know.'],
           ['Route 9 goes in a circle. Not like a road. Like a thought you can’t stop having.','I’ve rebuilt that same Buick four times. Every time somebody new drives in, I think, maybe this one.',
@@ -105,7 +105,7 @@ function journalNote(text){S.journal.push({day:S.day,text});}
 // ---------- talking: personality first, quests still take priority
 let lastQuestLine=null;
 const _questLine=questLine;questLine=function(n){const r=_questLine(n);lastQuestLine=r;return r;};
-const GASLIGHT={mae:['Elias! You’re back early. Did you find the boy?','We’ve never met, dear. I’d remember a face like that. Wouldn’t I?','You already bought that. You bought it yesterday. You stood right there and cried.'],
+const GASLIGHT={mae:['Elias! You’re back early. Did you find the boy?','We’ve never met. I’d remember a face like that. Wouldn’t I?','You already bought that. You bought it yesterday. You stood right there and cried.'],
   hale:['You rang the bell yourself last night. Don’t you remember? You rang it and rang it.','I buried you in the spring. I read the words. I am so tired, child.','Which one are you today?'],
   tobias:['Why do you keep coming back? You came back yesterday and yesterday and yesterday.','Ruth says you’re not really here yet. She says you’re early.','Your shadow’s on the wrong side.'],
   hollis:['You fixed that car already. Twice. You don’t remember either time.','Who’s that behind you? ...Never mind.','Stop writing on my maps.'],

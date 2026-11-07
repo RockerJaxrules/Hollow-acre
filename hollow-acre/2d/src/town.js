@@ -55,7 +55,7 @@ const PL={store:[29.5,-8.3,1.6],square:[48,-5.6,2.4],church:[48,-17.2,1.4],grave
   farmgate:[-12.2,-6,.8],road_w:[-68,-5.4,1.4],porch_agnes:[-46,-8.6,.6],school:[46,-3.8,1.6],bake:[43.6,-7.4,.6],corn:[-2,10.6,2.4],farmlane:[-6,-6,1.2],bridge:[-24.5,-5.8,.6]};
 // homes: door outside, which side the door faces, and a home room
 const HOMES={
-  coyle:{door:[29.5,-9.05],face:'N',room:'store',name:'Coyle’s General Store'},  // Mae and Tobias live above the shop
+  coyle:{door:[29.5,-9.05],face:'N',room:'store',name:'Coyle’s General Store'},  // Caitlyn and Tobias live above the shop
   pruitt:{door:[-33.7,-10.25],face:'N',room:'garage',name:'Pruitt’s Garage'},
   abernathy:{door:[-46,-9.25],face:'N',room:'home_agnes',name:'the Abernathy house'},
   hale:{door:[57,-9.05],face:'N',room:'home_hale',name:'the parsonage'},
@@ -65,7 +65,7 @@ const HOMES={
   lindqvist:{door:[57,3.95],face:'S',room:'home_otto',name:'the Lindqvist house'},
   crane:{door:[66,3.95],face:'S',room:'home_silas',name:'the Crane house'}};
 const LIFE={
-  mae:{home:'coyle',job:'Runs the general store',personality:'Warm, fussing, a mother to everyone. Never says Danny’s name.',day:[[6,'home'],[7,'store'],[12,'square'],[13,'store'],[18.5,'home']]},
+  mae:{home:'coyle',job:'Runs the general store',personality:'Twenty-five. Took over the store when her mother walked into the corn. Raising her little brother. Dry, warm, tired, funny. Never says Danny’s name.',day:[[6,'home'],[7,'store'],[12,'square'],[13,'store'],[18.5,'home']]},
   tobias:{home:'coyle',job:'Goes to school, gets into the corn',personality:'Nine, nosy, fearless. Sings the rhyme nobody lets him finish.',day:[[6,'home'],[8,'school'],[12,'corn'],[14.5,'square'],[16,'store'],[18,'home']]},
   hale:{home:'hale',job:'Pastor; rings the bell at eight',personality:'Grave, guilty, still kind underneath. Plays chess with the dead.',day:[[6,'home'],[8.5,'church'],[12,'graves'],[13.5,'church'],[17.5,'square'],[19,'church']]},
   hollis:{home:'pruitt',job:'Mechanic, Route 9 garage',personality:'Few words, steady hands. Fixes things so he doesn’t have to talk about them.',day:[[6,'home'],[7,'garage'],[18,'store'],[19,'home']]},

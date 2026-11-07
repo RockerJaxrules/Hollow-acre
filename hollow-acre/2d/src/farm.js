@@ -20,7 +20,7 @@ vendors.plans={name:'Farm Plans',sub:'Grandpa’s plans, pinned up in his carefu
   const _t=talk;talk=function(n){_t(n);$('talkShop2').hidden=!(n.def.id==='hollis'&&!isNight());};}
 // seed button cycles every crop you have
 onSeed=function(){if(S.mode!=='play')return;const ks=Object.keys(SEEDS);let i=ks.indexOf(S.sel);for(let k=0;k<ks.length;k++){i=(i+1)%ks.length;if(S.seeds[ks[i]]>0)break;}S.sel=ks[i];
-  if(S.seeds[S.sel]<=0)toast(`No ${SEEDS[S.sel].name.toLowerCase()} seeds. Mae sells them.`,1.6);updateHud();};
+  if(S.seeds[S.sel]<=0)toast(`No ${SEEDS[S.sel].name.toLowerCase()} seeds. Caitlyn sells them.`,1.6);updateHud();};
 const _updHud=updateHud;updateHud=function(){_updHud();ui.seed.textContent=`${SEEDS[S.sel].name} ×${S.seeds[S.sel]}`;};
 // sharpened hoe: till the tiles either side too
 const _doTill=doTill;doTill=function(t){_doTill(t);if(S.hoe<2)return;const side=Math.abs(P.fx)>Math.abs(P.fz)?[0,1]:[1,0];

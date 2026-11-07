@@ -30,7 +30,8 @@ const WHITE=[238,234,226],BLUSH=[232,138,128],LASH=[34,24,26],TEETH=[240,236,228
 // ---- part layers for the frame being drawn
 const PARTS=['body','beard','hair','acc','glasses','hat','toolf'];
 let LY={},CUR='body';
-const p=(x,y,c)=>{if(c)P(LY[CUR],Math.round(x),Math.round(y),c);};
+const TIPR=C.hairTip?ramp(C.hairTip):null;let TIPY=1e9;   // two-tone hair: the lengths below TIPY take the tip colour
+const p=(x,y,c)=>{if(!c)return;if(TIPR&&CUR==='hair'&&y>=TIPY-1){const k=HR.indexOf(c);if(k>=0&&(y>=TIPY||((Math.round(x)+Math.round(y))&1)))c=TIPR[k];}P(LY[CUR],Math.round(x),Math.round(y),c);};
 const g=(x,y)=>G(LY[CUR],Math.round(x),Math.round(y));
 const into=(part,fn)=>{const o=CUR;CUR=part;fn();CUR=o;};
 const dk=(R,d)=>R.map((c,i)=>R[Math.max(0,Math.min(4,i-d))]);
@@ -391,7 +392,7 @@ function human(dir,pose){const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1,back=
       headFront(ux,hy,back,pose);
       if(!up&&!(back&&pose.reach))arms();}});
   into('beard',()=>beard(ux,hy+(pose.nod?1:0),side?(fl>0?'E':'W'):dir,fl,C.beard===true?'full':C.beard));
-  into('hair',()=>{hairInfo=side?hairSide(ux,hy,fl,C.hairStyle||'short',pose):hairFront(ux,hy,back,C.hairStyle||'short',pose);});
+  into('hair',()=>{TIPY=hy+(C.tipDy||6);hairInfo=side?hairSide(ux,hy,fl,C.hairStyle||'short',pose):hairFront(ux,hy,back,C.hairStyle||'short',pose);});
   const hairTop=hairInfo?hairInfo.top:null;
   into('acc',()=>acc(ux,hy,side?(fl>0?'E':'W'):dir,fl,C.accessory,top,hairTop));
   into('glasses',()=>{if(C.glasses)glasses(ux,hy+(pose.nod?1:0),side?(fl>0?'E':'W'):dir,fl,C.glasses);});

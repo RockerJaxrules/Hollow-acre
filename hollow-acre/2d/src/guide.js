@@ -4,8 +4,8 @@ const nm=id=>{const n=npcById(id);return n?n.def.name.split(' ')[0]:id;};
 // ---------- who to ask, and what they say
 function stepGuide(){const ob=objective(),t=ob[0];const st=S.st||{};
   switch(t){
-    case 'The car':return ['hollis','Your car needs four parts: a tire from Mae’s store, a battery (I’ll trade one for three pumpkins), a fan belt (Agnes keeps her late husband’s), and gas from the pump on Route 9. Bring them, then fix it at the wreck.'];
-    case 'Leave':return ['mae','Your car runs? Then drive, dear. West, the way you came. …Come and tell me what you see.'];
+    case 'The car':return ['hollis','Your car needs four parts: a tire from Caitlyn’s store, a battery (I’ll trade one for three pumpkins), a fan belt (Agnes keeps her late husband’s), and gas from the pump on Route 9. Bring them, then fix it at the wreck.'];
+    case 'Leave':return ['mae','Your car runs? Then drive. West, the way you came. …And come back and tell me what you see. Promise.'];
     case 'Candles':return ['hale','The stones need Ward candles. The peddler sells them at the crossroads after dark: east past the barn, then south down the dirt road to its end. Or make tallow candles at your grandfather’s bench: three fiber and a lump of coal each.'];
     case 'Wait':case 'The rite':return ['hale','Three stones: the west woods, the cornfield, and my churchyard. Light all three after the bell, the same night. And keep your lantern pointed at whatever comes.'];
     case 'The Tithe':return ['della','Walk the valley. The Marsh place on the west lane, the Tithe House at the end of Mill Road, the hollow tree in the east woods, the Black Lake, and Wickham across the river. Ask people. Every friend tells you something.'];
@@ -40,7 +40,7 @@ function postRequest(){if(S.req||S.day<2||rand()<.4)return;const c=REQ_POOL.filt
 // ---------- chance encounters
 const ENC=[
   {id:'mae_basket',who:'mae',x:-11,z:-6.6,dir:'E',h:[6.5,10.5],when:()=>S.day>=2&&S.day<=8,
-   act(e){addInv('bread',3);addFriend('mae',30);say(e,'Mae is at your gate with a basket. “You look thin. Eat. Don’t argue.” Three loaves of bread, still warm.');}},
+   act(e){addInv('bread',3);addFriend('mae',30);say(e,'Caitlyn is at your gate with a basket. “I overbaked. Again. Take these before I eat all of them.” Three loaves of bread, still warm.');}},
   {id:'tobias',who:'tobias',x:-6.5,z:-3.6,dir:'E',h:[8,12],when:()=>S.day>=2,
    act(e){if(basketCount('turnip')>0){takeBasket('turnip',1);S.basket.push({kind:'mushroom',value:5},{kind:'mushroom',value:5});addFriend('tobias',50);say(e,'Tobias trades you two glowcaps for a turnip. “Is it true your scarecrow walks? Don’t tell me. Yes, tell me.”');}
      else{addFriend('tobias',15);say(e,'Tobias is poking at your fence with a stick. “Mom says don’t talk to you. Got a turnip? Next time bring a turnip.”');}}},

@@ -39,7 +39,7 @@ interact.push({x:CAB.ox+8.45,z:CAB.oz+.5,r:1,on:()=>S.room==='cabin',label:()=>'
   const d=document.createElement('div');d.className='p';d.innerHTML=`<canvas width="40" height="40" style="background:#000"></canvas><div style="flex:1"><b>${nm}</b><div class="h">${'♥'.repeat(HEART_MAX())}</div><small>Lives under your bed</small><span class="tk">✓ talked today · 🎂 birthday today</span></div>`;
   B.appendChild(d);d.addEventListener('click',()=>{$('socInfo').innerHTML=`<b>${nm}</b> loves you; likes you; is you. Something will happen at ${HEART_MAX()+1} hearts.`;SFX.whisper&&SFX.whisper(0);mindHit(2);});};}
 const INTRUDE=['I sat on the end of your bed last night. You looked so peaceful I didn’t wake you.','You talk in your sleep. You said my name. I didn’t know you knew it.',
-  'I moved the scarecrow back for you. You were tired. You looked like you needed one less thing.','I’ve been practising your walk. Mae waved at me today. She thought I was you.',
+  'I moved the scarecrow back for you. You were tired. You looked like you needed one less thing.','I’ve been practising your walk. Caitlyn waved at me today. She thought I was you.',
   'Your window doesn’t lock. Did you know? It never has.','I counted your breaths. You stopped for a while around three. Then you started again. I was so relieved.',
   'Tomorrow, when you go out, I’ll stay in. Someone should keep your place warm.'];
 // ---- 5. the tips that stop being helpful

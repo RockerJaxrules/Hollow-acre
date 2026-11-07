@@ -46,9 +46,9 @@ const LANEFOLK=[
   {id:'ezra',name:'Ezra Bell',role:'Keeps the animals, runs the feed barn',nightPos:[-11,-3.6],
     lines:['Animals know before we do. The cows won’t face west since September.','Hens laid nothing but shells last week. Empty. Neat little holes in the top.','You want stock? I’ll sell you stock. Treat ’em kind. They’re all that sleeps easy here.'],
     night:['Cows are lowing.','Something’s in the pasture.','They count heads too, you know.']},
-  {id:'pip',name:'Pip Coyle',role:'Store clerk, Mae’s nephew',nightPos:[28,-5],
-    lines:['Aunt Mae lets me work the till! Mostly. Sometimes. When she’s on her lunch.','You’re the one with the farm! Is it true the scarecrow moves? Tobias says it moves.','Want to know a secret? The price tags change by themselves after dark. They all say the same number.'],
-    night:['I’m not supposed to be out.','Aunt Mae says don’t look.','Seven. The tags all say seven.']}];
+  {id:'pip',name:'Pip Coyle',role:'Store clerk, Caitlyn’s cousin',nightPos:[28,-5],
+    lines:['Cait lets me work the till! Mostly. Sometimes. When she’s on her lunch.','You’re the one with the farm! Is it true the scarecrow moves? Tobias says it moves.','Want to know a secret? The price tags change by themselves after dark. They all say the same number.'],
+    night:['I’m not supposed to be out.','Cait says don’t look.','Seven. The tags all say seven.']}];
 for(const d of LANEFOLK){d.day=[0,0];d.path=[[0,0]];NPCDEF.push(d);const n={def:d,x:0,z:0,dir:'S',clip:'idle',t:Math.random()*4,wp:0,wait:0,vis:true,spd:0};npcs.push(n);
   const i=npcs.length-1;interact.push({npc:i,x:0,z:0,r:1.7,on:()=>npcs[i].vis,label:()=>'Talk',ok:()=>true,act(){talk(npcs[i]);}});S.friend[d.id]=S.friend[d.id]||0;}
 Object.assign(PEOPLE,{
@@ -65,11 +65,11 @@ Object.assign(PEOPLE,{
     gift:{love:'Well now. Thank you kindly.',like:'Good of you.',hate:'Cows won’t touch it and neither will I.',meh:'Mm-hm.'},
     events:[{h:3,title:'The tagged ear',text:`Ezra’s ledger lists every animal he’s sold since 1950. Each row has a buyer and a date. Some rows have a third column: a tag number, and a name that isn’t an animal’s.<br><br>The last tag number is blank. The name beside it is yours.`,lore:'Ezra’s stock ledger tags the Tithe like livestock. The last row has your name and no number yet.'}]},
   pip:{voice:'bright',loves:['egg','pumpkin'],likes:['corn','turnip'],hates:['fish'],
-    talk:[['Aunt Mae says I count change like a banker. I think that’s good?','Tobias is my cousin. He’s braver than me. That’s what worries Aunt Mae.'],['Danny used to work the till. Before me. He left his name scratched under the counter.','Uncle Danny… I mean, Danny. Aunt Mae says not to say uncle.'],['I counted everyone in town. There’s one more than there should be. There always is in October.']],
+    talk:[['Cait says I count change like a banker. I think that’s good?','Tobias is my cousin. He’s braver than me. That’s what worries Cait.'],['Danny used to work the till. Before me. He left his name scratched under the counter.','Cousin Danny… I mean, Danny. Cait says not to say cousin. Tobias might hear.'],['I counted everyone in town. There’s one more than there should be. There always is in October.']],
     gift:{love:'For me?! I’m putting it in the window!',like:'Thanks!',hate:'Eugh, the eyes.',meh:'Oh. Okay!'},
-    events:[{h:3,title:'Under the counter',text:`Pip lifts the till drawer out. Scratched into the wood beneath it, one name per line, in different children’s hands: everyone who has ever worked the store counter.<br><br>The last name is Danny’s. Under it, freshly scratched, half a letter: the start of a P.`,lore:'Under Mae’s till are the names of every child who worked it. Someone has begun to scratch a P.'}]}});
+    events:[{h:3,title:'Under the counter',text:`Pip lifts the till drawer out. Scratched into the wood beneath it, one name per line, in different children’s hands: everyone who has ever worked the store counter.<br><br>The last name is Danny’s. Under it, freshly scratched, half a letter: the start of a P.`,lore:'Under the Coyles’ till are the names of every child who worked it. Someone has begun to scratch a P.'}]}});
 
-// ---- homes and routines (Pip lives over the store with Mae and Tobias; the other three live behind their shops)
+// ---- homes and routines (Pip lives over the store with Caitlyn and Tobias; the other three live behind their shops)
 const LROOM=(ox,shell,name,out,furn)=>({ox,oz:-60,shell,name,out,furn,paper:shell.slice(10)});
 Object.assign(ROOMS,{
   shop_forge:LROOM(724,'room_garage','Brannock’s Forge',{x:39,z:14.3},[['furnace',1.3,1.25,[-0.70,-0.5,0.70,0]],['in_shelf_tools',3.4,0.62,[-1.00,-0.4,1.00,0]],['bench_weapon',5.6,1.15,[-1.10,-0.45,1.10,0]],['bench_armor',8.0,1.3,[-0.70,-0.45,0.70,0]],
@@ -97,7 +97,7 @@ Object.assign(LIFE,{
   gideon:{home:'brannock',job:'Armourer and blacksmith, Brannock’s Forge',personality:'Huge, quiet, exact. Talks to metal more than people. Forges the nails for the Tithe’s door.',day:[[6,'home'],[7,'forge'],[10.5,'forge_yard'],[11.5,'forge'],[12.5,'square'],[13.5,'forge'],[18,'store'],[19,'home']]},
   nell:{home:'hartley',job:'Carpenter, Hartley Carpentry',personality:'Cheerful, blunt, sawdust in her hair. Builds the box every year and never asks whose it is.',day:[[6,'home'],[7.5,'carp'],[10,'lumber'],[11,'carp'],[12.5,'square'],[13.5,'carp'],[17.5,'board'],[18.8,'home']]},
   ezra:{home:'bell',job:'Keeps the animals; Bell’s Feed & Stock',personality:'Weathered, patient, kinder to cows than to people. Reads the animals like a barometer.',day:[[5.5,'pen'],[9,'feed'],[12,'pen'],[14,'feed'],[17,'pen'],[18.5,'home']]},
-  pip:{home:'coyle',job:'Clerk at Coyle’s General Store',personality:'Twelve, eager, counts everything. Works Mae’s till and wants to be trusted with it.',day:[[6,'home'],[8,'store'],[12,'lane'],[13,'store'],[16,'pen'],[17,'store'],[18.5,'home']]}});
+  pip:{home:'coyle',job:'Clerk at Coyle’s General Store',personality:'Twelve, eager, counts everything. Works Caitlyn’s till and wants to be trusted with it.',day:[[6,'home'],[8,'store'],[12,'lane'],[13,'store'],[16,'pen'],[17,'store'],[18.5,'home']]}});
 LIFE.otto.job='Fisherman; runs the bait & tackle shop afternoons';LIFE.otto.day=[[5.5,'dock'],[10.5,'bait'],[12.5,'dock'],[15.5,'bait'],[18,'home']];
 for(const n of npcs){const L=LIFE[n.def.id];if(L)n.def.role=L.job;}
 
@@ -114,7 +114,7 @@ for(const [job,s] of Object.entries(SHOPS_AT)){const R='shop_'+job;
     openShop('v_'+job);}});}
 // the store counter knows about Pip now
 {const it=interact.find(q=>q.x===ROOMS.store.ox+6.5&&q.z===ROOMS.store.oz+3.0);if(it){it.act=function(){const m=npcById('mae'),p=npcById('pip');const at=n=>n&&n.loc==='in'&&n.inWant==='store';
-  if(at(m)&&Math.abs(m.x-(ROOMS.store.ox+6.5))<1)toast('“What’ll it be, dear?”',1.6);else if(at(p))toast('Pip stands on a crate to reach the till. “I can do it! I can totally do it.”',2.4);else toast('Mae calls from the back room: “Take what you need, dear. Leave the coins by the till.”',2.8);openShop('mae');};}}
+  if(at(m)&&Math.abs(m.x-(ROOMS.store.ox+6.5))<1)toast('“What’ll it be, farm kid?”',1.6);else if(at(p))toast('Pip stands on a crate to reach the till. “I can do it! I can totally do it.”',2.4);else toast('Caitlyn calls from the back room: “Take what you need. Leave the coins by the till. I trust you. Mostly.”',2.8);openShop('mae');};}}
 
 // ---- what they sell
 Object.assign(ITEMS,{milk:{name:'Milk',icon:'milk',food:[20,8],sell:14,desc:'Fresh from the barn. +20 energy. Sells for 14.'},bait:{name:'Bait',icon:'bait',desc:'A tin of worms. Fish bite three times as fast while you have some.'},
