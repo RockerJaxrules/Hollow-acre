@@ -143,9 +143,10 @@ function buildWorld(){
   put('signpost',crossPos.x-1.6,crossPos.z-1.2,.2,{label:'FARM'});
   // ---------- Marrow Creek: covered bridge on Route 9, footbridge in the west woods, falls off the ridge
   put('cbridge',BRIDGE.x,BRIDGE.z,0,{night:'cbridge_n',kind:'bld'});addSeg(BRIDGE.x-4.7,-9.1,BRIDGE.x+4.7,-9.1,.15);addSeg(BRIDGE.x-4.7,-2.9,BRIDGE.x+4.7,-2.9,.15);
-  put('footbridge',FOOT.x,FOOT.z,0,{kind:'flat'});put('dock',pond.x,pond.z-pond.r+1.85,0,{kind:'flat'});
+  put('footbridge',FOOT.x,FOOT.z,0,{kind:'flat'});put('footbridge_rail',FOOT.x,FOOT.z+.5,0,{kind:'prop',noCol:true});put('dock',pond.x,pond.z-pond.r+1.85,0,{kind:'flat'});
   obj('falls',-19.2,ridgeZ(-19.2)+RIDGE.h+.15,{kind:'anim',fps:8});
-  {const skip=(x,z)=>(Math.abs(z+6)<3.1&&Math.abs(x-BRIDGE.x)<5.2)||(Math.abs(z-FOOT.z)<.75&&Math.abs(x-FOOT.x)<2);
+  {const skip=(x,z)=>(Math.abs(z+6)<3.1&&Math.abs(x-BRIDGE.x)<5.2)||(Math.abs(z-FOOT.z)<1.6&&Math.abs(x-FOOT.x)<3);
+    for(const s of [-1,1])addSeg(FOOT.x-2.3,FOOT.z+s*.95,FOOT.x+2.3,FOOT.z+s*.95,.12);
     for(let i=0;i<CREEK.length-1;i++){const a=CREEK[i],b=CREEK[i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.ceil(L/.8);
       for(let k=0;k<n;k++){const x1=lerp(a[0],b[0],k/n),z1=lerp(a[1],b[1],k/n),x2=lerp(a[0],b[0],(k+1)/n),z2=lerp(a[1],b[1],(k+1)/n);if(skip(x1,z1)||skip(x2,z2))continue;addSeg(x1,z1,x2,z2,.95);}}}
   // the ridge face blocks the way north
