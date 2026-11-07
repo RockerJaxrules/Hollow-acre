@@ -96,7 +96,7 @@ function mineFloor(f){S.mineFloor=f;S.mineDeep=Math.max(S.mineDeep,f);const R=RO
 function mineTarget(){if(S.room!=='mine')return null;let best=null,bd=1.3;for(const o of MINE.ores){if(o.hide)continue;const d=Math.hypot(o.x-P.x,o.z-P.z);const dot=((o.x-P.x)*P.fx+(o.z-P.z)*P.fz)/(d||1);if(d<bd&&(d<.8||dot>.3)){bd=d;best=o;}}return best;}
 {const _cc=computeContext;computeContext=function(){if(S.room==='mine'){const L=MINE.ladder;if(L&&!L.hide&&Math.hypot(L.x-P.x,L.z-P.z)<1.1)return {label:'Climb down',ok:true,act(){fade(1);SFX.thud(0,.3);setTimeout(()=>{P.x=ROOMS.mine.ox+ROOMS.mine.door;P.z=ROOMS.mine.oz+ROOMS.mine.d-1;mineFloor(S.mineFloor+1);fade(0);},350);}};
     const o=mineTarget();if(o)return {label:'Mine',ok:true,act(){if(!spend(S.tools.pick>1?2:3))return;faceTo(o.x,o.z);startAnim('pick',.55,null,()=>{o.hits++;SFX.thud(0,.35);burst(o.x,o.z,10,'#8a8690',1.4,.7,2);
-      const need=Math.max(1,ORE_HITS[o.ore]-(S.tools.pick>1?1:0));if(o.ore==='iron'&&S.tools.pick<2&&o.hits>=need){toast('It won’t break. You need a steel pickaxe.',1.8);o.hits=0;return;}
+      const need=Math.max(1,ORE_HITS[o.ore]-(S.tools.pick>1?1:0))+(o.ore==='iron'&&S.tools.pick<2?3:0);if(o.ore==='iron'&&S.tools.pick<2&&o.hits===1&&!S.first.ironSlow){S.first.ironSlow=1;toast('Iron is hard on Grandpa’s old pick. Keep at it. A steel pickaxe would go straight through.',3);}
       if(o.hits>=need){o.hide=true;const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);addInv('stone');if(o.ore!=='stone')addInv(o.ore,1+(rand()<.35?1:0));toast(`+${ITEMS[o.ore].name.toLowerCase()}`,1);
         if(o===MINE.ladderAt||(!MINE.ladder&&MINE.ores.every(q=>q.hide))){MINE.ladder=obj('ladder',o.x,o.z+.05,{kind:'flat'});SFX.stinger();toast('A ladder, going down.',1.4);}}});}};}
   return _cc();};}

@@ -4344,5 +4344,18 @@
 0,
 0
 ]
+},
+"icon32_fish_fried": {
+"src": "spr/lpc/obj/icon32_fish_fried.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
 }
 }
