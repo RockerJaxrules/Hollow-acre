@@ -7,6 +7,10 @@ const TOOL_ART={
  pick:{px:9,art:["......KKKKKK......","....KKllmmmmKK....","..KKllmmbbmmmmKK..",".KllmmKKbbKKmmmsK.","KllmK..KDLK..KmmsK","KlmK...KDLK...KmsK","KlK....KDLK....KsK",".K.....KDLK.....K.",".......KDMK.......",".......KDLK.......",".......KDLK.......",".......KDMK.......",".......KDLK.......",".......KDLK.......",".......KDMK.......",".......KDLK.......",".......KDLK.......",".......KDMK.......",".......KDLK.......",".......KDLK.......",".......KKKK......."]},
  hoe:{px:5,art:["....KK.......","...KDLKKKKKK.","...KDLKmmmllK","...KsbbmmmmlK","...KDLKKKmmeK","...KDLK..KmeK","...KDLK...KeK","...KDLK....K.","...KDMK.....","...KDLK.....","...KDLK.....","...KDMK.....","...KDLK.....","...KDLK.....",
    "...KDMK.....","...KDLK.....","...KDLK.....","...KDMK.....","...KDLK.....","...KDLK.....","...KDLK.....","...KDLK.....","...KDLK.....","...KKKK....."]},
+ // the same tools seen from the front, for swings straight up and down: the hoe's blade face-on, the pickaxe's head across, the axe's blade edge-on
+ hoe_f:{px:5,art:["..KKKKKKK..", ".KlleeellK.", ".KmmlllmmK.", "..KKKsKKK..", "....KsK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KKKK...."]},
+ pick_f:{px:8,art:["...KKKKKKKKK...", ".KKllmmmmmmmKK.", "KllmKKKDLKKKmmK", "KlmK..KDLK..KmK", "KlK...KDLK...KK", ".K....KDMK.....", "......KDLK.....", "......KDLK.....", "......KDLK.....", "......KDLK.....", "......KDLK.....", "......KDLK.....", "......KDLK.....", "......KDLK.....", "......KDLK.....", "......KDLK.....", "......KDLK.....", "......KDLK.....", "......KDLK.....", "......KKKK....."]},
+ axe_f:{px:4,art:["...KK...", "..KleK..", "..KleK..", ".KmleK..", ".KmleK..", ".KmlbK..", "..KsbK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KKKK.."]},
  // a watering can seen from the side, spout to the right; the hand holds the top of the handle
  can:{px:5,py:1,art:["...KKKKK........","..KlmmmbK.......","..Km...Kb.......",".KKKKKKKKK....KK","KleelllmmbK..KeK","KelllllmmbK.KlK.","KllllllmmbKKmK..","KlllllmmmbbmbK..","KmllllmmmbbbK...","KmmmmmmmbbsK....",".KbbbbbbbsK.....","..KKKKKKKK......"]}};
 const TOOL_PAL={K:[26,16,12],D:[84,52,28],M:[124,82,46],L:[176,126,76],s:[60,64,76],b:[92,98,112],m:[150,156,170],l:[204,210,222],e:[244,248,252]};
@@ -51,12 +55,13 @@ function drawSmear(g,gx,gy,a0,a1,k,r){a0*=Math.PI/180;a1*=Math.PI/180;for(let i=
 function toolOverlay(g,nm,dir,f,ox,oy,layer,o){const m=SPR[nm];const T=m&&m.tool&&m.tool[dir]&&m.tool[dir][f];if(!T)return null;const [gx0,gy0,ang,k,behind]=T;
   if((layer==='back')!==!!behind)return null;const kind=m.toolKind;const gx=ox+gx0,gy=oy+gy0;const fl=dir==='W'?-1:1;o=o||{};
   if(kind==='rod')return drawRod(g,gx,gy,ang,k,S.rod||1,fl);
-  if(kind==='can'){const tilt=(dir==='W'?-1:1)*ang;const st=toolStamp('can',toolGrade('can'),tilt-90,1,dir==='W');g.drawImage(st.cv,gx-st.R,gy-st.R);
+  if(kind==='can'){const tilt=dir==='W'?-(180-ang):ang;   // the sheet stores the west angle mirrored (180-a); undo that, then tip the other way
+    const st=toolStamp('can',toolGrade('can'),tilt-90,1,dir==='W');g.drawImage(st.cv,gx-st.R,gy-st.R);
     // the spout's tip, turned with the can
     const sx0=(dir==='W'?-1:1)*(14.5-5),sy0=4.5-1.5,r=tilt*Math.PI/180;return [gx+sx0*Math.cos(r)-sy0*Math.sin(r),gy+sx0*Math.sin(r)+sy0*Math.cos(r)];}
   const grade=o.grade||toolGrade(kind);
   if(f===4&&m.tool[dir][3]){const a0=m.tool[dir][3][2];let a1=ang;if(dir==='W'&&a1>a0)a1-=360;if(dir!=='W'&&a1<a0)a1+=360;if(dir==='E'||dir==='W')drawSmear(g,gx,gy,a0,a1,1,19);}
-  const st=toolStamp(kind,grade,ang,k,dir==='W');g.drawImage(st.cv,gx-st.R,gy-st.R);
+  const front=(dir==='S'||dir==='N')&&TOOL_ART[kind+'_f'];const st=toolStamp(front?kind+'_f':kind,grade,ang,k,dir==='W');g.drawImage(st.cv,gx-st.R,gy-st.R);
   const r=ang*Math.PI/180;return [gx+Math.cos(r)*18*k,gy+Math.sin(r)*18*k];}
 // the player's fists over the handle, drawn after the tool (from the look's own colours: see custom.js)
 const FISTS={};
