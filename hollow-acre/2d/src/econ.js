@@ -62,7 +62,7 @@ renderShop=(function(prev){return function(){prev();const rows=vendors[shopV].ro
 vendors.hollis.rows=()=>{const fr=S.freeUpgrades,T=S.tools;return [
   {k:'hoe',name:'Copper hoe',desc:S.hoe>1?'Already done.':'Tills three tiles in a row with each swing.',price:fr?0:40,can:S.hoe<2,need:{copper:5},buy(){S.hoe=2;T.hoe=2;}},
   {k:'can',name:'Copper watering can',desc:S.waterMax>10?'Already done.':'Holds twice the water.',price:fr?0:30,can:S.waterMax<=10,need:{copper:4},buy(){S.waterMax=20;S.water=20;S.bigCan=true;}},
-  {k:'pick',name:'Steel pickaxe',desc:T.pick>1?'Already done.':'Breaks rock in fewer swings, for less effort. Iron needs it.',price:fr?0:60,can:T.pick<2,need:{copper:3,iron:4},buy(){T.pick=2;}},
+  {k:'pick',name:'Steel pickaxe',desc:T.pick>1?'Already done.':'Breaks rock and iron in fewer swings, for less effort.',price:fr?0:60,can:T.pick<2,need:{copper:3,iron:4},buy(){T.pick=2;}},
   {k:'axe',name:'Steel axe',desc:T.axe>1?'Already done.':'Splits stumps in one swing.',price:fr?0:40,can:T.axe<2,need:{iron:3},buy(){T.axe=2;}},
   {k:'spr',name:'Brass sprinkler',desc:S.sprinklers>=4?'Your field has all it can use.':`Waters a patch of field every morning. You have ${S.sprinklers}/4.`,price:fr?0:45,can:S.sprinklers<4,need:{copper:2,iron:1},buy(){S.sprinklers++;}},
   {k:'hood',name:'Lantern hood',desc:S.flashlight?'Your light is already focused.':'A reflector for your lantern. Throws the light much further.',price:fr?0:60,can:!S.flashlight,need:{iron:2},buy(){S.flashlight=true;}}];};
@@ -96,7 +96,8 @@ function mineFloor(f){S.mineFloor=f;S.mineDeep=Math.max(S.mineDeep,f);const R=RO
 function mineTarget(){if(S.room!=='mine')return null;let best=null,bd=1.3;for(const o of MINE.ores){if(o.hide)continue;const d=Math.hypot(o.x-P.x,o.z-P.z);const dot=((o.x-P.x)*P.fx+(o.z-P.z)*P.fz)/(d||1);if(d<bd&&(d<.8||dot>.3)){bd=d;best=o;}}return best;}
 {const _cc=computeContext;computeContext=function(){if(S.room==='mine'){const L=MINE.ladder;if(L&&!L.hide&&Math.hypot(L.x-P.x,L.z-P.z)<1.1)return {label:'Climb down',ok:true,act(){fade(1);SFX.thud(0,.3);setTimeout(()=>{P.x=ROOMS.mine.ox+ROOMS.mine.door;P.z=ROOMS.mine.oz+ROOMS.mine.d-1;mineFloor(S.mineFloor+1);fade(0);},350);}};
     const o=mineTarget();if(o)return {label:'Mine',ok:true,act(){if(!spend(S.tools.pick>1?2:3))return;faceTo(o.x,o.z);startAnim('pick',.55,null,()=>{o.hits++;SFX.thud(0,.35);burst(o.x,o.z,10,'#8a8690',1.4,.7,2);
-      const need=Math.max(1,ORE_HITS[o.ore]-(S.tools.pick>1?1:0))+(o.ore==='iron'&&S.tools.pick<2?3:0);if(o.ore==='iron'&&S.tools.pick<2&&o.hits===1&&!S.first.ironSlow){S.first.ironSlow=1;toast('Iron is hard on Grandpa’s old pick. Keep at it. A steel pickaxe would go straight through.',3);}
+      const need=Math.max(1,ORE_HITS[o.ore]-(S.tools.pick>1?1:0))+(o.ore==='iron'&&S.tools.pick<2?1:0);if(o.ore==='iron'&&S.tools.pick<2&&o.hits===1&&!S.first.ironSlow){S.first.ironSlow=1;toast('Iron is tough on Grandpa’s old pick: four good swings. A steel pickaxe takes it in two.',3);}
+      if(o.hits<need&&need>2)toast(`${ITEMS[o.ore].name}: cracking ${o.hits}/${need}`,.7);
       if(o.hits>=need){o.hide=true;const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);addInv('stone');if(o.ore!=='stone')addInv(o.ore,1+(rand()<.35?1:0));toast(`+${ITEMS[o.ore].name.toLowerCase()}`,1);
         if(o===MINE.ladderAt||(!MINE.ladder&&MINE.ores.every(q=>q.hide))){MINE.ladder=obj('ladder',o.x,o.z+.05,{kind:'flat'});SFX.stinger();toast('A ladder, going down.',1.4);}}});}};}
   return _cc();};}

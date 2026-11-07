@@ -344,8 +344,11 @@ class Painter:
         L = np.where(s.bust_m, s.bust_lit, cv.lit)
         cv.put(s.bust_m & cv.where('skin'), 'skin', L)
         top = cy - b * .94
-        cv.add(s.bust_m, 'skin', -.34 * np.exp(-((X - CX - .3) / 2.3) ** 2) * sstep(top + 2, top + 7, Y))
+        cv.add(s.bust_m, 'skin', -.4 * np.exp(-((X - CX - .3) / 2.4) ** 2) * sstep(top + 2, top + 7, Y))
         cv.put(stroke(bez([(CX + .25, top + 5.5), (CX - .15, top + 10), (CX + .3, 129 + BO)], 20), [.3, .8, 1.0]), 'cleave', .5)
+        for sg in (-1, 1):   # the inner curve of each breast, meeting in a soft Y
+            cv.put(stroke(bez([(CX + sg * .4, top + 7.5), (CX + sg * 2.2, top + 9.2), (CX + sg * 4.2, top + 12.6)], 12), [.6, .5, .2]), 'cleave', .5)
+            cv.add(ell(CX + sg * (sep - 3.5), top + 4.5, 4.2, 2.2) & s.bust_m, 'skin', .07)
         for sg in (-1, 1):
             cv.add(ribbon(bez([(CX + sg * 3, top + 5.2), (CX + sg * (sep - 3), top - .4), (CX + sg * (sep + 8), top + 3.5)], 30), [.2, 1.0, .3])[0] & s.bust_m, 'skin', .07)
 
@@ -363,7 +366,7 @@ class Painter:
         elif t == 'deepscoop':
             half = bez([(0, 119.5 + o), (9, 118.5 + o), (19.5, 111 + o), (23, 92 + o)], 30)
         elif t == 'tank':   # a tank top: a scoop at the front, straps, bare shoulders and arms
-            half = bez([(0, 118.5 + o), (9, 117.5 + o), (18.5, 110 + o), (21.5, 92 + o)], 30)
+            half = bez([(0, 122 + o), (9, 121 + o), (20, 110 + o), (22.5, 92 + o)], 30)
             pts = [(CX - x, y) for x, y in half[::-1]] + [(CX + x, y) for x, y in half] + [(CX + half[-1][0], 60), (CX - half[-1][0], 60)]
             s.neck_half = half; bare = poly(pts)
             for sg in (-1, 1):

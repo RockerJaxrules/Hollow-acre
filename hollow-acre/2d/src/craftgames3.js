@@ -92,15 +92,20 @@ CG3M.spin=(sp,K)=>{const [lo,hi]=sp.band;const st={v:.2,prog:0,inb:0,total:0,ang
 const CG3_STAR=['.....#.....','....#*#....','....#*#....','.###***###.','#****o****#','.#*******#.','..#*****#..','..#**#**#..','.#**#.#**#.','.##.....##.'];
 function cg3Star(K,x,y,on){CG3_STAR.forEach((r,j)=>{for(let i=0;i<r.length;i++){const c=r[i];if(c==='.')continue;K.px(x+i,y+j,1,1,c==='#'?(on?'#7a4a10':'#2a1a0c'):c==='o'?(on?'#fff4c0':'#5a4430'):on?(j<4?'#ffe9a0':'#ffd27a'):'#4a3420');}});}
 // ---------- running one: a recipe is {scene, steps, reveal}; each step is {m, t, art(K,t,st,run), ...mechanic options}
-function cg3Run(def,name,done){const box=$('cgame'),cv=$('cgC'),g=cv.getContext('2d');g.imageSmoothingEnabled=false;const W=240,H=120;
+function cg3Run(def,name,done,icon){const box=$('cgame'),cv=$('cgC'),g=cv.getContext('2d');g.imageSmoothingEnabled=false;const W=240,H=120;
   const K=caKit(g,W,H);K.g=g;K.fine=matchMedia('(pointer:fine)').matches;K.parts=[];
-  K.text=(t,x,y,c)=>{t=String(t).toUpperCase();let X=Math.round(x-t.length*2);for(const ch of t){const f=PXFONT[ch]||PXFONT[' '];for(let j=0;j<5;j++)for(let i=0;i<3;i++)if(f[j*3+i]==='1'){K.px(X+i+1,y+j+1,1,1,'#1a0e06');K.px(X+i,y+j,1,1,c);}X+=4;}};
+  // gauges and markers drawn by the mechanics come out carved: a dark rim, a lit top edge, a shaded bottom edge
+  {const _px=K.px;const sh=(c,k)=>{const n=parseInt(c.slice(1,7),16);const f=v=>Math.max(0,Math.min(255,Math.round(k>0?v+(255-v)*k:v*(1+k))));return '#'+[n>>16,(n>>8)&255,n&255].map(v=>f(v).toString(16).padStart(2,'0')).join('');};
+    K.px=(x,y,w,h,c)=>{if(K.inUI&&typeof c==='string'&&/^#[0-9a-f]{6}$/i.test(c)&&w*h>=4){_px(x-1,y-1,w+2,h+2,'#1a0e06');_px(x,y,w,h,c);if(h>=3)_px(x,y,w,1,sh(c,.35));if(h>=4&&w>=2)_px(x,y+h-1,w,1,sh(c,-.35));if(w>=4&&h>=4)_px(x,y,1,h,sh(c,.18));return;}_px(x,y,w,h,c);};}
+  K.text=(t,x,y,c)=>{const ui=K.inUI;K.inUI=false;K.text0(t,x,y,c);K.inUI=ui;};
+  K.text0=(t,x,y,c)=>{t=String(t).toUpperCase();let X=Math.round(x-t.length*2);for(const ch of t){const f=PXFONT[ch]||PXFONT[' '];for(let j=0;j<5;j++)for(let i=0;i<3;i++)if(f[j*3+i]==='1'){K.px(X+i+1,y+j+1,1,1,'#1a0e06');K.px(X+i,y+j,1,1,c);}X+=4;}};
   K.burst=(x,y,n,c,sp)=>{for(let i=0;i<n;i++)K.parts.push({x,y,vx:(Math.random()-.5)*(sp||70),vy:-20-Math.random()*(sp||50),t:0,c});};
   const steps=def.steps;const run={i:0,scores:[],states:[],name};let cur=null,wait=0,last=performance.now(),result=null,banner=null,reveal=0;
   box.style.display='flex';CG.on=true;$('cgT').textContent=name;
-  const start=()=>{const sp=steps[run.i];cur=CG3M[sp.m](sp,K,run);cur.hold=false;run.states[run.i]=cur.st;$('cgH').innerHTML=`<b>${steps.length>1?`${run.i+1}/${steps.length} · `:''}${sp.t}.</b> ${cur.hint}`;};
+  const start=()=>{const sp=steps[run.i];cur=CG3M[sp.m](sp,K,run);cur.hold=false;{const u=cur.ui;cur.ui=t=>{K.inUI=true;try{u.call(cur,t);}finally{K.inUI=false;}};}run.states[run.i]=cur.st;$('cgH').innerHTML=`<b>${steps.length>1?`${run.i+1}/${steps.length} · `:''}${sp.t}.</b> ${cur.hint}`;};
   const finish=()=>{if(result!==null)return;result=run.scores.reduce((a,b)=>a+b,0)/run.scores.length;reveal=.001;
     $('cgH').innerHTML=`<b>${result>.9?'Beautifully made.':result>.65?'Well made.':result>.35?'It’ll do.':'Rough, but it works.'}</b>`;
+    cg3Card(name,icon,result);
     setTimeout(()=>{box.style.display='none';CG.on=false;removeEventListener('keydown',kd,true);removeEventListener('keyup',ku,true);cv.onpointerdown=cv.onpointerup=cv.onpointercancel=null;done(result);},1700);};
   const down=x=>{if(!cur||cur.done||wait>0||result!==null)return;A.init&&A.init();if(cur.side&&x!==undefined&&!cur.down){cur.side(x<W/2?-1:1);return;}if(cur.side&&x!==undefined&&(steps[run.i].m==='rhythm'||steps[run.i].m==='level'||steps[run.i].alt)){cur.side(x<W/2?-1:1);return;}cur.hold=true;cur.down&&cur.down();};
   const up=()=>{if(cur)cur.hold=false;};
@@ -117,14 +122,41 @@ function cg3Run(def,name,done){const box=$('cgame'),cv=$('cgC'),g=cv.getContext(
       if(run.i<steps.length-1)wait=.9;else setTimeout(finish,500);}
     if(wait>0){wait-=dt;if(wait<=0){run.i++;start();}}
     g.clearRect(0,0,W,H);K.scene(reveal>0?(def.revealScene||def.scene):(steps[run.i].scene||def.scene),t);
-    if(reveal>0){reveal+=dt;const q=result;K.pa(0,0,W,H,'#000',.45);K.glow(120,62,60,'255,220,140',.35+Math.sin(t*4)*.05);def.reveal(K,t);
+    if(reveal>0){reveal+=dt;const q=result;K.light(def.revealScene||def.scene,t);K.pa(0,0,W,H,'#000',.45);K.glow(120,62,60,'255,220,140',.35+Math.sin(t*4)*.05);def.reveal(K,t);
       for(let i=0;i<10;i++){const a=t*1.5+i*.63,r2=38+Math.sin(t*3+i)*4;K.px(120+Math.cos(a)*r2,60+Math.sin(a)*r2*.6,2,2,'#fff4c0');}
       const stars=q>.9?3:q>.6?2:q>.3?1:0;K.pa(84,93,72,17,'#140c06',.75);for(let i=0;i<3;i++){const on=i<stars,pop=on?Math.min(1,Math.max(0,(reveal-.25-i*.22)*5)):1;if(on&&pop<=0)continue;cg3Star(K,100+i*20-5,95+(on?Math.round((1-pop)*-4):0),on);}}
-    else{const sp=steps[run.i];if(sp.dy){g.save();g.translate(0,sp.dy);}sp.art(K,t,cur.st,run);if(sp.dy)g.restore();cur.ui(t);}
+    else{const sp=steps[run.i];if(sp.dy){g.save();g.translate(0,sp.dy);}sp.art(K,t,cur.st,run);if(sp.dy)g.restore();K.light(sp.scene||def.scene,t);cur.ui(t);}
     for(let k=K.parts.length-1;k>=0;k--){const p=K.parts[k];p.t+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=160*dt;if(p.t>.8){K.parts.splice(k,1);continue;}K.px(p.x,p.y,2,2,p.c);}
-    if(banner&&reveal===0){banner.t+=dt;if(banner.t<1.1){K.pa(80,50,80,16,'#140c06',.85);K.text(banner.txt,120,55,banner.c);}}
-    if(reveal===0)for(let k=0;k<steps.length;k++)K.px(W-10-(steps.length-k)*8,H-7,6,3,k<run.scores.length?(run.scores[k]>.65?'#9be07a':run.scores[k]>.35?'#e8c070':'#c04a2a'):k===run.i?'#f4ecd8':'#4a3420');
+    if(banner&&reveal===0){banner.t+=dt;if(banner.t<1.1){const dy=Math.round(Math.max(0,1-banner.t*6)*-14+Math.sin(Math.min(1,banner.t*6)*Math.PI)*-2);const bx=78,by=46+dy,bw=84,bh=20;
+      K.pa(bx+2,by+3,bw,bh,'#000',.35);K.px(bx-1,by-1,bw+2,bh+2,'#1a0e06');K.px(bx,by,bw,bh,'#7a4a20');for(let x=2;x<bw;x+=5)K.px(bx+x,by,1,bh,'#6a3e1a');K.px(bx,by,bw,1,'#b8823c');K.px(bx,by+bh-1,bw,1,'#4a2a10');
+      for(const [cx,cy] of [[bx+2,by+2],[bx+bw-4,by+2],[bx+2,by+bh-4],[bx+bw-4,by+bh-4]]){K.px(cx,cy,2,2,'#e8c060');K.px(cx,cy,1,1,'#fff2c8');}
+      K.px(bx+6,by+4,bw-12,bh-8,'#2a1608');K.text(banner.txt,120,by+7,banner.c);
+      if(banner.txt==='Perfect')for(let k=0;k<6;k++){const a=banner.t*4+k;K.px(120+Math.cos(a)*48,by+10+Math.sin(a)*14,2,2,'#fff4c0');}}}
+    if(reveal===0)for(let k=0;k<steps.length;k++){const x=W-12-(steps.length-k)*10,y=H-11;const done_=k<run.scores.length,c=done_?(run.scores[k]>.65?'#7cc04a':run.scores[k]>.35?'#e8b030':'#d84a2a'):null;
+      K.px(x-1,y-1,9,9,'#1a0e06');K.px(x,y,7,7,'#8e621c');K.px(x,y,7,1,'#e8c060');K.px(x,y,1,7,'#d4a03c');K.px(x+6,y,1,7,'#664412');K.px(x,y+6,7,1,'#664412');
+      if(c){K.px(x+2,y+2,3,3,c);K.px(x+2,y+2,1,1,'#ffffff');}else if(k===run.i){K.px(x+2,y+2,3,3,(Math.floor(t*3)%2)?'#fff2c8':'#e8c060');}else K.px(x+2,y+2,3,3,'#3a2608');}
     requestAnimationFrame(frame);};requestAnimationFrame(frame);}
+// ---- what you made, on a parchment card like a fresh catch
+{const css=document.createElement('style');css.textContent=`#craftCard{position:fixed;left:50%;top:9%;transform:translateX(-50%) scale(.6);opacity:0;z-index:62;display:flex;gap:10px;align-items:center;padding:8px 14px 8px 8px;background:#f2e2bc;color:#3a2410;font:14px 'Pixelify Sans',monospace;
+  box-shadow:0 0 0 3px #5a3418,0 0 0 6px #b8823c,0 0 0 9px #3a2410,0 8px 0 9px rgba(0,0,0,.35);transition:transform .22s cubic-bezier(.3,1.6,.5,1),opacity .2s;pointer-events:none}
+#craftCard.on{transform:translateX(-50%) scale(1);opacity:1}#craftCard img{width:64px;height:64px;image-rendering:pixelated;background:#d8c49a;box-shadow:inset 0 0 0 2px #a8865a}
+#craftCard b{font-size:17px;display:block}#craftCard .q{color:#8a6a2a}#craftCard .new{display:inline-block;background:#d84a2a;color:#fff4dc;padding:0 5px;margin-left:6px;font-size:12px;vertical-align:2px}`;document.head.appendChild(css);
+  const c=document.createElement('div');c.id='craftCard';c.innerHTML='<img alt=""><div class="t"></div>';document.body.appendChild(c);}
+// the making-game window: carved wood and brass like the fishing gauge, a parchment plaque for the name
+{const css=document.createElement('style');css.textContent=`
+#cgame{background:radial-gradient(ellipse at 50% 45%,rgba(20,10,4,.35),rgba(6,3,1,.78))}
+#cgame .box{background:radial-gradient(circle at 9px 9px,#fff2c8 0 1px,#e8c060 1px 3px,#5a3418 3px 4px,transparent 4px),radial-gradient(circle at calc(100% - 9px) 9px,#fff2c8 0 1px,#e8c060 1px 3px,#5a3418 3px 4px,transparent 4px),
+  radial-gradient(circle at 9px calc(100% - 9px),#fff2c8 0 1px,#e8c060 1px 3px,#5a3418 3px 4px,transparent 4px),radial-gradient(circle at calc(100% - 9px) calc(100% - 9px),#fff2c8 0 1px,#e8c060 1px 3px,#5a3418 3px 4px,transparent 4px),
+  repeating-linear-gradient(90deg,#7a4a20 0 4px,#6a3e1a 4px 5px,#7e4e22 5px 9px,#6a3e1a 9px 10px)!important;
+  box-shadow:0 0 0 3px #1a0e06,0 0 0 6px #b8823c,0 0 0 9px #3a2410,0 12px 0 9px rgba(0,0,0,.4),inset 0 2px 0 #b8823c,inset 0 -2px 0 #4a2a10,inset 2px 0 0 #a8763a,inset -2px 0 0 #4a2a10!important;padding:16px 18px 14px!important;gap:10px!important}
+#cgame canvas{width:min(88vw,560px)!important;box-shadow:0 0 0 2px #1a0e06,0 0 0 4px #4a2a10,0 0 0 6px #b8823c,0 0 0 8px #1a0e06!important}
+#cgame .t{background:#f2e2bc;color:#3a2410!important;font-size:18px!important;padding:3px 16px;box-shadow:0 0 0 2px #5a3418,0 0 0 4px #b8823c,0 0 0 6px #3a2410,0 4px 0 6px rgba(0,0,0,.3);letter-spacing:.04em}
+#cgame .h{color:#fff4dc!important;text-shadow:1px 1px 0 #000;background:rgba(26,14,6,.6);padding:4px 12px;box-shadow:0 0 0 1px #4a2a10;font-size:13px}
+#cgame .h b{color:#ffd27a}`;document.head.appendChild(css);}
+function cg3Card(name,icon,q){const c=$('craftCard');if(!c)return;S.madeLog=S.madeLog||{};const nm=String(name).replace(/^Building: /,'');const isNew=!S.madeLog[nm];S.madeLog[nm]=Math.max(S.madeLog[nm]||0,q);
+  const img=c.querySelector('img');img.src=iconOf(icon||'wood');const stars=q>.9?3:q>.6?2:q>.3?1:0;
+  c.querySelector('.t').innerHTML=`<b>${nm}${isNew?'<span class="new">NEW</span>':''}</b><span class="q">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</span> ${q>.9?'Beautifully made.':q>.65?'Well made.':q>.35?'It’ll do.':'Rough, but it works.'}`;
+  c.classList.add('on');clearTimeout(cg3Card.t);cg3Card.t=setTimeout(()=>c.classList.remove('on'),2600);}
 // every recipe with its own making game uses it
 const CG3_RECIPES={};
-{const _cg=craftGame;craftGame=function(type,r,done){const v=typeof CR!=='undefined'&&CR.v;const def=CG3_RECIPES[v+':'+r.k];if(def)return cg3Run(def,r.name,done);return _cg.apply(this,arguments);};}
+{const _cg=craftGame;craftGame=function(type,r,done){const v=typeof CR!=='undefined'&&CR.v;const def=CG3_RECIPES[v+':'+r.k];if(def)return cg3Run(def,r.name,done,typeof craftIcon==='function'?craftIcon(v,r):null);return _cg.apply(this,arguments);};}
