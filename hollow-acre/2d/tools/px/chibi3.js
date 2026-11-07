@@ -397,6 +397,8 @@ function human(dir,pose){const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1,back=
   into('acc',()=>acc(ux,hy,side?(fl>0?'E':'W'):dir,fl,C.accessory,top,hairTop));
   into('glasses',()=>{if(C.glasses)glasses(ux,hy+(pose.nod?1:0),side?(fl>0?'E':'W'):dir,fl,C.glasses);});
   into('hat',()=>hat(ux,hy,side?(fl>0?'E':'W'):dir,fl,C.hat,hairTop));
+  // under a hat, the hair above the brim is hidden by the hat (it used to peek round the crown)
+  if(C.hat){const L=LY.hair,by=hy-4+(pose.nod?1:0);for(let y=0;y<by;y++)for(let x=0;x<L.w;x++){const i=(y*L.w+x)*4;if(L.d[i+3]){const hl=LY.hat;if(!(hl.d[i+3])||y<by-1)L.d[i+3]=0;}}}
   into('toolf',()=>{if(pose.tool)pose.tool(ux,top);});}
 // ---------------------------------------------------------------- poses per clip
 // the walk: Stardew's four beats (contact, pass, contact, pass) spread over our eight frames
