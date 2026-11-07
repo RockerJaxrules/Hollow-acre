@@ -235,9 +235,14 @@ if(K==='pumpkin'){const cx=W/2|0,base=H-3,rx=CFG.big?10:8,ry=CFG.big?7:6,cy=base
     let k=l>.55?4:l>.15?3:l>-.25?2:1;if(rib<.12&&Math.abs(x)<rx-1)k=Math.max(0,k-1);if(y>ry*.6)k=Math.min(k,1);P(A,cx+x,cy+y,OR[k]);}
   for(let x=-rx+2;x<=rx-2;x++)P(A,cx+x,base,OR[0]);P(A,cx-3,cy-ry+2,OR[4]);P(A,cx-2,cy-ry+2,OR[4]);
   vl(A,cx,cy-ry-3,4,[74,90,36]);P(A,cx+1,cy-ry-3,[110,130,52]);P(A,cx+2,cy-ry-4,[74,90,36]);P(A,cx+3,cy-ry-4,[110,130,52]);
-  if(CFG.face){const F=[[255,214,110],[255,170,60]],face=CFG.face;const ey=cy-2;
+  if(CFG.face&&!CFG.side){const F=[[255,214,110],[255,170,60]],face=CFG.face;const ey=cy-2;
     for(const sx of [-4,3]){for(let i=0;i<3;i++)for(let j=0;j<=i;j++)P(A,cx+sx+j-(face===2?0:0),ey-i+2,F[1]);P(A,cx+sx+1,ey+1,F[0]);}
     P(A,cx,cy+1,F[1]);for(let x=-5;x<=5;x++){const yy=cy+3+(face===3?Math.round(Math.abs(x)*.3):Math.round(-Math.abs(x)*.25+1));P(A,cx+x,yy,F[x%3===0?0:1]);if(face!==2&&x%3!==0)P(A,cx+x,yy+1,F[1]);}}
+  // the same face turned to the east: it sits toward the right edge, narrower, the far eye smaller, the grin curving round the side
+  if(CFG.face&&CFG.side){const F=[[255,214,110],[255,170,60]],ey=cy-2,fx=cx+5;
+    for(let i=0;i<3;i++)for(let j=0;j<=i;j++)P(A,fx-3+j,ey-i+2,F[1]);P(A,fx-2,ey+1,F[0]);
+    for(let i=0;i<2;i++)for(let j=0;j<=i;j++)P(A,fx+2+j,ey-i+2,F[1]);
+    P(A,fx,cy+1,F[1]);for(let x=-4;x<=3;x++){const yy=cy+3+Math.round(-Math.abs(x+.5)*.25+1)+(x>1?-1:0);P(A,fx+x,yy,F[x%3===0?0:1]);}}
   for(let x=-rx-1;x<=rx+1;x++)P(SHD,cx+x,base+1,PAL.out[0],140);}
 // ---- workbenches: a thick plank top seen from above, a front apron, splayed legs, and the tools of each trade lying on it
 function benchBase(top,w,h,legH){const x0=(W-w)>>1,base=H-3,fy=top+h;

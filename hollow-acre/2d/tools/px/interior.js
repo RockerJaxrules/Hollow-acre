@@ -200,5 +200,30 @@ if(K==='desk'){topBox(3,12,W-6,10,H-28,WD,WD[2]);frame(A,8,26,W/2-10,H-34,WD[3],
   for(const x of [5,W-9])post(A,x,H-8,4,6);gs(cx+3,base,W/2-2|0,3,70);}
 if(K==='keg'){const x0=4,w=W-8;for(let y=6;y<base;y++){const t=(y-6)/(base-6),half=w/2+Math.round(Math.sin(t*Math.PI)*1.5);for(let x=-half;x<half;x++){const u=(x+half)/(2*half);P(A,cx+x,y,PAL.red[u<.2?4:u<.6?3:u<.85?2:1]);}}
   for(const y of [10,base-6])for(let x=-w/2;x<w/2;x++)P(A,cx+x,y,PAL.slate[3]);ell(A,cx,6,w/2,3,PAL.red[4]);ell(A,cx,6,3,1,PAL.ink[1]);gs(cx+2,base,w/2+1|0,2,70);}
+// ---- the cabin furniture turned, for placing it facing another way. These are the east-facing views; west is the same art flipped.
+// chair from its side: the back upright on the left (a post from the floor to the top rail), the seat running toward where it faces
+if(K==='chairE'){post(A,4,27,3,H-30);post(A,W-7,27,3,H-30);rect(A,6,H-11,W-12,2,WD[1]);hl(A,6,H-11,W-12,WD[3]);
+  for(let y=2;y<27;y++){const lean=y<8?0:y<16?0:0;rect(A,4+lean,y,4,1,WD[2]);P(A,4+lean,y,WD[4]);P(A,7+lean,y,WD[0]);}
+  rect(A,3,1,6,3,WD[3]);hl(A,3,1,6,WD[5]);hl(A,3,3,6,WD[1]);for(const y of [9,15])hl(A,5,y,2,WD[1]);
+  topBox(5,18,W-8,6,3,WD);gs(cx+1,base,W/2-2|0,2,70);}
+// chair from behind: the back of the backrest is nearest you and hides the seat; its back legs stand in front
+if(K==='chairN'){for(const x of [4,W-7])post(A,x,27,3,H-30);rect(A,3,24,W-6,3,WD[2]);hl(A,3,24,W-6,WD[3]);hl(A,3,26,W-6,WD[0]);
+  rect(A,4,6,W-8,18,WD[1]);frame(A,4,6,W-8,18,WD[3],WD[0]);for(let x=7;x<W-7;x+=4)vl(A,x,8,14,WD[2]);hl(A,4,6,W-8,WD[4]);hl(A,5,7,W-10,WD[2]);
+  gs(cx+2,base,W/2-2|0,2,70);}
+// bookshelf from its side: a long top you look down on (it runs back into the room) and the plain side panel, the shelf boards showing as pegs
+if(K==='shelfE'){const x0=2,sw=5,w=W-4-sw,top=CFG.top||22,fh=H-4-top,fx=x0+w;topBox(x0,1,w+sw,top,fh,WD,WD[2]);
+  // the side panel
+  for(let y=1+top+2;y<1+top+fh-2;y++){P(A,x0+(w>>1),y,WD[1]);if(hsh(x0,y,3)>.92)P(A,x0+3,y,WD[1]);}
+  // a slim strip of the open front, seen at an angle on the side it faces: dark shelf bays, book spines, the board ends lit
+  const BK=[PAL.red,PAL.teal,PAL.mustard,PAL.blue,PAL.sage,PAL.rust];
+  for(let y=1+top;y<1+top+fh-1;y++){P(A,fx,y,WD[0]);for(let i=1;i<sw;i++)P(A,fx+i,y,shade(WD[1],.55));P(A,fx+sw-1,y,WD[3]);}
+  for(let n=0,sy=1+top+17;n<3;n++,sy+=17){for(let y=sy-12;y<sy;y++){const R=BK[hsh(y>>1,sy,3)*6|0];for(let i=1;i<sw-1;i++)P(A,fx+i,y,R[i===1?3:2]);if((y-sy)%3===0)P(A,fx+1,y,R[1]);}
+    for(let i=0;i<sw;i++){P(A,fx+i,sy,WD[4]);P(A,fx+i,sy+1,WD[1]);}P(A,x0+3,sy,WD[0]);P(A,x0+3,sy-1,WD[4]);}
+  for(let y=1+top+fh-6;y<1+top+fh-1;y++)hl(A,x0+1,y,w+sw-2,WD[1]);for(let x=x0-1;x<x0+w+sw+2;x++){P(SHD,x,H-3,PAL.out[0],160);P(SHD,x,H-2,PAL.out[0],90);}}
+// bookshelf from behind: the plank back panel, nails along the boards, the top edge lit
+if(K==='shelfN'){const x0=2,w=W-4,top=6,fh=H-4-top;topBox(x0,1,w,top,fh,WD,WD[2]);
+  for(let x=x0+2;x<x0+w-2;x++){const seam=(x-x0)%9===0;for(let y=1+top+1;y<1+top+fh-1;y++){let c=seam?WD[0]:WD[(hsh(Math.floor((x-x0)/9),y>>4,5)>.6)?3:2];if(!seam&&(x-x0)%9===1)c=WD[3];P(A,x,y,c);}}
+  for(let sy=1+top+17;sy<1+top+fh-6;sy+=17)for(let x=x0+4;x<x0+w-4;x+=9){P(A,x,sy,WD[0]);P(A,x,sy-1,WD[4]);}
+  for(let y=1+top+fh-6;y<1+top+fh-1;y++)hl(A,x0+1,y,w-2,shade(WD[1],.85));for(let x=x0-1;x<x0+w+2;x++){P(SHD,x,H-3,PAL.out[0],160);P(SHD,x,H-2,PAL.out[0],90);}}
 const flat=flatten([A,B],W,H);const O=K==='room'||K==='rug'?layer('o',W,H):outline(flat);
 emit([SHD,O,A,B],CFG.out);if(K!=='room')console.log('META '+JSON.stringify({w:W,h:H}));
