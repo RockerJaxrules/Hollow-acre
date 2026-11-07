@@ -65,7 +65,7 @@ function objective(){const L=lit(),np=S.pages.length;
     const where={tire:'a tire from Mae (Coyle’s store, east on Route 9)',battery:'a battery (bring Hollis 3 pumpkins)',belt:'a fan belt (ask Agnes: the last house west, near your car)',gas:'gas from the pump outside Hollis’s garage'};
     const tgt={tire:npcById('mae'),battery:npcById('hollis'),belt:npcById('agnes'),gas:pumpPos}[miss[0]];
     return ['The car',`Car parts ${4-miss.length}/4. Still need: ${miss.map(k=>where[k]).join(', ')}.`,tgt];}
-  if(!S.looped)return ['Leave','The car runs. Get in at the crash site, far west on Route 9, and drive away.',carPos];
+  if(!S.looped)return ['Leave','The car runs. It’s parked on the shoulder by the crash site, far west on Route 9. Get in and drive away.',typeof CAR_SPOTS!=='undefined'?CAR_SPOTS.crash:carPos];
   if(S.candles+L<3){if(isNight())return ['Candles',`Buy Ward Candles from the peddler at the crossroads. ${S.candles+L}/3`,crossPos];
     return ['Candles',`There is no road out. Buy 3 Ward Candles from the peddler at the crossroads (after 7:30 pm). ${S.candles+L}/3`+(np<6?` · Diary ${np}/6`:''),crossPos];}
   const next=altars.filter(a=>!a.lit).sort((a,b)=>Math.hypot(a.x-P.x,a.z-P.z)-Math.hypot(b.x-P.x,b.z-P.z))[0];

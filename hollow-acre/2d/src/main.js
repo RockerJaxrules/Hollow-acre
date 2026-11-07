@@ -240,16 +240,16 @@ function finishIntro(){endCine();fade(0);if($('creator'))$('creator').hidden=tru
 function escapeCine(){S.mode='cine';$('skip').hidden=false;$('buttons').hidden=true;$('hud').hidden=true;ui.obj.hidden=true;SFX.engineStart();SFX.engine(true);
   // the car pulls out on the westbound lane of Route 9 and drives for the county line; the road loops it back past the farm sign, twice.
   // It is drawn in the world, sorted with everything else, so it goes under the covered bridge's roof and past people, not over them.
-  const LANE=-7.1,V=11;const st={t:0,x:carPos.x+1.5,loops:0,bob:0};
+  const LANE=-7.1,V=11;const P0=typeof CAR_SPOTS!=='undefined'?CAR_SPOTS.crash:{x:carPos.x+1.5,z:LANE};const st={t:0,x:P0.x,z:P0.z,z0:P0.z,loops:0,bob:0};
   const moved=[];for(const n of npcs)if(n.vis&&!n.room&&Math.abs(n.z+6)<3.4&&n.x>-90&&n.x<0){moved.push([n,n.vis]);n.vis=false;}
   const wreck=OBJ.filter(o=>o.kind==='wreck');for(const o of wreck)o.hide=true;if(typeof BEATEN!=='undefined'&&BEATEN.o)BEATEN.o.hide=true;
   const done=()=>{for(const [n,v] of moved)n.vis=v;for(const o of wreck)o.hide=false;$('hud').hidden=false;ui.obj.hidden=false;if(typeof carShow==='function')setTimeout(carShow,0);};
   fade(1);setTimeout(()=>fade(0),350);
   cine={hidePlayer:true,escape:true,cam:{x:st.x-3,z:-6.4},
-    drawables(D){D.push({z:LANE+.25,mind:1,draw(){const X=sx(st.x),Y=sz(LANE)+Math.round(st.bob);ctx2.fillStyle='rgba(10,8,14,.35)';ctx2.beginPath();ctx2.ellipse(X,Y+2,58,9,0,0,Math.PI*2);ctx2.fill();
+    drawables(D){D.push({z:st.z+.25,mind:1,draw(){const X=sx(st.x),Y=sz(st.z)+Math.round(st.bob);ctx2.fillStyle='rgba(10,8,14,.35)';ctx2.beginPath();ctx2.ellipse(X,Y+2,58,9,0,0,Math.PI*2);ctx2.fill();
       drawSpr('car_beaten',X,Y,'yaw','S',0,{flip:true});}});},
-    light(L){const X=sx(st.x),Y=sz(LANE)-12;if(L>.25)for(const s2 of [-.5,.5]){const hx=X-2.1*PPM,hy=Y+s2*PPM*.8;coneAt(hx,hy,Math.PI,.28,12*PPM,[255,238,196],.8*L);glowAt(hx,hy,9,[255,240,210],.85*L);}glowAt(X+2.2*PPM,Y,36,[255,26,16],.5*Math.max(.3,L));},
-    update(dt){st.t+=dt;const acc=Math.min(1,st.t/1.6);st.x-=dt*V*acc*acc;st.bob=Math.sin(st.t*22)*.6;
+    light(L){const X=sx(st.x),Y=sz(st.z)-12;if(L>.25)for(const s2 of [-.5,.5]){const hx=X-2.1*PPM,hy=Y+s2*PPM*.8;coneAt(hx,hy,Math.PI,.28,12*PPM,[255,238,196],.8*L);glowAt(hx,hy,9,[255,240,210],.85*L);}glowAt(X+2.2*PPM,Y,36,[255,26,16],.5*Math.max(.3,L));},
+    update(dt){st.t+=dt;const acc=Math.min(1,st.t/1.6);st.x-=dt*V*acc*acc;{const k=Math.min(1,st.t/1.5);st.z=st.z0+(LANE-st.z0)*k*k*(3-2*k);}st.bob=Math.sin(st.t*22)*.6;
       cine.cam.x=lerp(cine.cam.x,st.x-3,1-Math.exp(-dt*4));cine.cam.z=lerp(cine.cam.z,-6.4,1-Math.exp(-dt*3));
       // dust and exhaust behind
       if(Math.random()<.6)parts.push({x:st.x+2.3,z:LANE+.1,y:.15,vx:1+Math.random(),vz:(Math.random()-.5)*.6,vy:.4+Math.random()*.4,t:0,life:.6,col:Math.random()<.5?'#8a7a64':'#5a5250',size:2});
