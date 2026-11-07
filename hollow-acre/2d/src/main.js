@@ -105,8 +105,7 @@ function render(dt,now){const t=now/1000;
       drawSpr(nm,X,Y,clip,clip==='hurt'?'S':P.dir,clip==='hurt'?Math.min(5,Math.floor((performance.now()/120)%6)):f);
       if(typeof lanternDraw==='function')lanternDraw(ctx2,clip,t);
       if(tm){const t2=toolOverlay(ctx2,nm,P.dir,f|0,ox,oy,'front');if(t2){tip=t2;if(pour)waterStream(ctx2,tip,wto,t);}fistOverlay(ctx2,nm,P.dir,f|0,ox,oy);}
-      if(fish.state!=='off'){const from=tip&&tm&&tm.toolKind==='rod'?tip:[X+8,Y-36];fishLine(ctx2,from,[sx(fish.bx),sz(fish.bz)],fish.state==='bite'||(typeof MG!=='undefined'&&MG.on),t);
-        ctx2.fillStyle=fish.state==='bite'?'#ff4030':'#e83020';ctx2.fillRect(Math.round(sx(fish.bx))-1,Math.round(sz(fish.bz))-1+(fish.state==='bite'?Math.round(Math.sin(t*30)):0),3,3);ctx2.fillStyle='#f4f0e8';ctx2.fillRect(Math.round(sx(fish.bx))-1,Math.round(sz(fish.bz))-2+(fish.state==='bite'?Math.round(Math.sin(t*30)):0),3,1);}}
+      fishDraw(ctx2,tip&&tm&&tm.toolKind==='rod'?tip:null,X,Y,t);}
     else if(d.hollow){const X=sx(H.x),Y=sz(H.z);const clip=H.clip==='walk'||H.clip==='crawl'||H.clip==='idle'?'walk':H.clip==='scream'||H.clip==='lunge'?'spellcast':'hurt';
       const f=clip==='hurt'?(Math.random()<.3?1:0):H.clip==='idle'?0:frameOf('hollow',clip,H.ft*(H.clip==='crawl'?1.6:1));
       const jit=H.clip==='frozen'?(Math.random()-.5)*2:0;const rise=(1-H.rise)*40;

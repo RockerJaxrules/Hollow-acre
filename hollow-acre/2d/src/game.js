@@ -15,8 +15,10 @@ const altars=ALTAR_POS.map(([x,z,name])=>({x,z,name,lit:false}));
 const lit=()=>altars.filter(a=>a.lit).length;
 const partsOwned=()=>Object.values(S.parts).filter(v=>v>0).length;
 const partsIn=()=>Object.values(S.parts).filter(v=>v===2).length;
-const basketCount=k=>S.basket.filter(b=>b.kind===k).length;
-function takeBasket(k,n){for(let i=0;i<n;i++){const idx=S.basket.findIndex(b=>b.kind===k);if(idx>=0)S.basket.splice(idx,1);}}
+// 'fish' means any fish; 'fish~perch' means that kind of fish
+function bMatch(b,k){return b.kind===k||(b.sp!==undefined&&k===b.kind+'~'+b.sp);}
+const basketCount=k=>S.basket.filter(b=>bMatch(b,k)).length;
+function takeBasket(k,n){for(let i=0;i<n;i++){const idx=S.basket.findIndex(b=>bMatch(b,k));if(idx>=0)S.basket.splice(idx,1);}}
 const DIRS=['E','S','W','N'];
 const dirOf=(x,z)=>Math.abs(x)>Math.abs(z)?(x>0?'E':'W'):(z>0?'S':'N');
 /* ================= people ================= */
