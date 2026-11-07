@@ -103,6 +103,7 @@ function render(dt,now){const t=now/1000;
       const pour=tm&&tm.toolKind==='can'&&f>=3&&f<=6;const wto=pour?(()=>{const a=P.anim,tg=a&&a.tgt;const wx=tg?tg.x:P.x+P.fx*.9,wz=tg?tg.z:P.z+P.fz*.9+.1;return P.dir==='N'?[sx(wx)+9,sz(wz)+12]:[sx(wx),sz(wz)+4];})():null;
       if(tm){tip=toolOverlay(ctx2,nm,P.dir,f|0,ox,oy,'back')||tip;if(tip&&pour)waterStream(ctx2,tip,wto,t);}
       drawSpr(nm,X,Y,clip,clip==='hurt'?'S':P.dir,clip==='hurt'?Math.min(5,Math.floor((performance.now()/120)%6)):f);
+      if(typeof lanternDraw==='function')lanternDraw(ctx2,clip,t);
       if(tm){const t2=toolOverlay(ctx2,nm,P.dir,f|0,ox,oy,'front');if(t2){tip=t2;if(pour)waterStream(ctx2,tip,wto,t);}fistOverlay(ctx2,nm,P.dir,f|0,ox,oy);}
       if(fish.state!=='off'){const from=tip&&tm&&tm.toolKind==='rod'?tip:[X+8,Y-36];fishLine(ctx2,from,[sx(fish.bx),sz(fish.bz)],fish.state==='bite'||(typeof MG!=='undefined'&&MG.on),t);
         ctx2.fillStyle=fish.state==='bite'?'#ff4030':'#e83020';ctx2.fillRect(Math.round(sx(fish.bx))-1,Math.round(sz(fish.bz))-1+(fish.state==='bite'?Math.round(Math.sin(t*30)):0),3,3);ctx2.fillStyle='#f4f0e8';ctx2.fillRect(Math.round(sx(fish.bx))-1,Math.round(sz(fish.bz))-2+(fish.state==='bite'?Math.round(Math.sin(t*30)):0),3,1);}}
@@ -143,10 +144,15 @@ function render(dt,now){const t=now/1000;
     for(const m of mushrooms)if(!m.taken)glowAt(sx(m.x),sz(m.z)-6,26,[90,255,200],.55*L);
     if(S.hour>=19.5&&!S.bound)glowAt(sx(crossPos.x+.6)+12,sz(crossPos.z+2.6)-22,46,[110,255,150],.7*L);
     if(phone.ring&&Math.sin(t*20)>0)glowAt(sx(boothPos.x),sz(boothPos.z),60,[200,230,255],.7);
-    // the player's lantern: warm halo + a cone where you face
-    if(S.mode!=='title'){const on=lanternOn()?1:0;const sput=sputT>0?(Math.random()<.5?.15:.6):1;const fuel=S.fuel<15?(.6+.4*Math.random()):1;const k=L*fl*sput*fuel*(on?1:.12);
-      const X=sx(P.x),Y=sz(P.z)-22;glowAt(X,Y,S.flashlight?92:78,[255,196,120],.95*k);
-      const ang=Math.atan2(P.fz,P.fx);coneAt(X,Y,ang,S.flashlight?.62:.5,(S.flashlight?11:8.5)*PPM,[255,214,150],.8*k);}
+    // the player's lantern: a round, warm pool of light that flickers with the flame (no beam; it's a lantern, not a torch)
+    if(S.mode!=='title'){const on=lanternOn()?1:0;const sput=sputT>0?(Math.random()<.5?.15:.6):1;const fuel=S.fuel<15?(.6+.4*Math.random()):1;const k=L*sput*fuel*(on?1:.12);
+      const lp=lanternPos();const fk=lanternFlicker(t);const R=(S.flashlight?11:8.5)*PPM*(.97+.03*fk);
+      // the pool sits on the ground under the lantern, leaning a little the way you face
+      lanternPool(lp.gx+P.fx*.6*PPM,lp.gy+P.fz*.5*PPM,R,[255,186,104],.95*k*(.92+.08*fk));
+      // the hood throws a soft lobe forward, still round-edged
+      if(S.flashlight)lanternPool(lp.gx+P.fx*3*PPM,lp.gy+P.fz*2.4*PPM,4.2*PPM,[255,206,140],.42*k);
+      // the flame and the glass
+      glowAt(lp.x,lp.y,18+2*fk,[255,232,170],.95*k);glowAt(lp.x,lp.y,46,[255,170,80],.55*k*(.85+.15*fk));}
     lifeLight(t,L);if(cine&&cine.light)cine.light(L);interiorLight(L);
     if(H.vis&&H.dir!=='N'){glowAt(sx(H.x),sz(H.z)-94,10,[255,40,20],.9*H.alpha);}
     for(const g of ghosts)if(g.t>0)glowAt(sx(g.x),sz(g.z)-94,8,[255,40,20],g.t*2);}

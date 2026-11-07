@@ -217,10 +217,10 @@ function hollowUpdate(dt){H.t+=dt;H.ft+=dt;if(H.grace>0)H.grace-=dt;
   const range=S.flashlight?11:8.5,cone=S.flashlight?.72:.6;
   H.lit=lanternOn()&&d<range&&dot>Math.cos(cone);H.rise=Math.min(1,H.rise+dt*1.2);H.dir=dirOf(dx,dz);
   if(H.state==='watch'){H.watchT-=dt;H.clip=H.lit?'frozen':'idle';
-    if(H.lit&&!H.stung&&d<range){H.stung=true;SFX.stinger();cam.shake=.3;if(!S.first.seen){S.first.seen=true;toast('It is standing there. Keep the light on it. It cannot move while seen.',3.6,true);}}
+    if(H.lit&&!H.stung&&d<range){H.stung=true;SFX.stinger();cam.shake=.3;if(!S.first.seen){S.first.seen=true;toast('It is standing there. Turn and hold the lantern toward it. It cannot move while you look at it.',3.6,true);}}
     if(H.watchT<=0||d<6||(H.stung&&!H.lit&&H.watchT<6)){H.state='stalk';if(!H.lit){H.x=P.x-P.fx*(9+rand()*3);H.z=P.z-P.fz*(9+rand()*3);collide(H,.4);H.rise=.4;}}
   }else if(H.lit){H.burn+=dt*(S.flashlight?1.3:1);H.crawl=Math.max(0,H.crawl-dt*.6);H.clip='frozen';
-    if(!H.stung&&d<range){H.stung=true;SFX.stinger();cam.shake=.35;if(!S.first.seen){S.first.seen=true;toast('Keep the light on it. It cannot move while seen.',3.2,true);}}
+    if(!H.stung&&d<range){H.stung=true;SFX.stinger();cam.shake=.35;if(!S.first.seen){S.first.seen=true;toast('Face it with the lantern. It cannot move while you look at it.',3.2,true);}}
     if(H.burn>2.2){H.state='flee';H.fleeT=.9;H.clip='scream';H.ft=0;SFX.shriek(0);burst(H.x,H.z,30,'#ff5020',2,.9,4);}
   }else{H.burn=Math.max(0,H.burn-dt*.4);const wantCrawl=(d<8&&S.day>=2)||d>14?1:0;
     if(wantCrawl&&H.crawl<.1&&d<8&&!S.night.crawl){S.night.crawl=1;SFX.shriek(0);toast('It drops onto all fours.',2.2,true);}
