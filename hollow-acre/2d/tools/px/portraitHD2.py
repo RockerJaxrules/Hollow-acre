@@ -42,18 +42,18 @@ def render(name, C, ex):
     wrong = ex == 'wrong'
     if wrong: SK = [mix(c, (140, 150, 160), .4) for c in SK]
     # ---------------------------------------------------------------- the head: turned a little to the viewer's right
-    AX, CHIN = 66, 90
-    def xl(y):   # the near (left) contour of the face
-        if y < 62: return 37 + max(0, 44 - y) * .4
-        return 37 + (AX - 1 - 37) * ((y - 62) / (CHIN - 62)) ** 1.55
-    def xr(y):   # the far (right) contour: the cheek closer to the nose, the jaw shorter
-        if y < 58: return 92 - max(0, 44 - y) * .34
-        return 92 - (92 - (AX + 3)) * ((y - 58) / (CHIN - 58)) ** 1.25
+    AX, CHIN = 65, 88
+    def hwf(y):  # the face's half-width: forehead, cheeks, then a soft rounded jaw to the chin
+        if y < 44: return 24.5 - max(0, 44 - y) * .4
+        if y < 62: return 25.5
+        return 25.5 * (1 - ((y - 62) / (CHIN - 62)) ** 1.8 * .82)
+    def xl(y): return AX - hwf(y)
+    def xr(y): return AX + hwf(y)
     # ---------------------------------------------------------------- hair: locks fanning out from a source, a dark seam between them, a sheen
-    def lock_tone(x, y, src, n, base=3, wave=0.0, sheen=None):
+    def lock_tone(x, y, src, n, base=3, wave=0.0, sheen=None, soft=False):
         th = math.atan2(x - src[0], y - src[1]) + (math.sin(y * .2 + x * .04) * wave)
         f = (th * n / math.pi) % 1; k = base
-        if f < .1: k = base - 2
+        if f < .1: k = base - (1 if soft else 2)
         elif f < .32: k = base - 1
         elif f > .74: k = base + 1
         if sheen:
@@ -61,37 +61,35 @@ def render(name, C, ex):
             if j < r < j + 6 and f > .2 and y < 52: k = min(5, k + 2 if r < j + 3 else k + 1)
         if x > AX + 18: k -= 1
         return HR[clamp(k, 0, 5)]
-    skull = lambda x, y: ((x - 65) / 34) ** 2 + ((y - 46) / 33) ** 2 <= 1
-    SHEEN = (60, 54, 24)
+    skull = lambda x, y: ((x - 65) / 35) ** 2 + ((y - 46) / 33) ** 2 <= 1
+    SHEEN = (58, 54, 24)
     def hair_back():
         for y in range(H):
             for x in range(W):
                 m = False
                 if skull(x, y) and y < 64: m = True
                 if st in ('long', 'wavy'):
-                    l = 25 - (y - 44) * .05 + 3 * math.sin(y * .21); r = 106 + (y - 44) * .06 + 3 * math.sin(y * .21 + 1)
+                    l = 23 - (y - 44) * .06 + 3 * math.sin(y * .21); r = 107 + (y - 44) * .06 + 3 * math.sin(y * .21 + 1)
                     tip = 124 - 5 * abs(math.sin(x * .4))
                     if 44 <= y < tip and l < x < r: m = True
-                if st == 'bun' and ((x - 66) / 15) ** 2 + ((y - 13) / 12) ** 2 <= 1: m = True
-                if st == 'ponytail':
-                    pcx = 100 + math.sin((y - 40) / 70 * 2.0) * 5; pw = 9 - abs(y - 70) / 10
-                    if 34 < y < 112 and abs(x - pcx) < pw: m = True
+                if st == 'bun' and ((x - 65) / 15) ** 2 + ((y - 13) / 12) ** 2 <= 1: m = True
+                if st == 'ponytail' and 40 <= y < 70 and (xl(y) - 8 < x < xl(y) - 1 or xr(y) + 1 < x < xr(y) + 8): m = True   # side volume
                 if m:
-                    src = (78, 12) if st in ('long', 'wavy') else (66, 13) if st == 'bun' else (52, 14) if st == 'ponytail' else (66, 16)
+                    src = (60, 10) if st in ('long', 'wavy') else (65, 13) if st == 'bun' else (52, 14) if st == 'ponytail' else (65, 16)
                     P(x, y, lock_tone(x, y, src, 7 if st == 'wavy' else 9, 2 if not skull(x, y) else 3, .07 if st == 'wavy' else 0, SHEEN))
     def hair_front():
         for y in range(4, 100):
             for x in range(W):
                 m = False; src = (66, 14)
                 if st in ('long', 'wavy'):
-                    src = (78, 12)
-                    fringe = (27 + (78 - x) * .3 + 2 * math.sin(x * .6)) if x < 78 else (28 + (x - 78) * .7)
+                    src = (60, 10)
+                    fringe = 25 + abs(x - 60) * .4 + 2 * math.sin(x * .6)          # curtain bangs parted a little off centre
                     if skull(x, y) and y < fringe: m = True
-                    if 42 <= y < 98 and xl(y) - 7 < x < xl(y) + 1: m = True
-                    if 42 <= y < 92 and xr(y) - 2 < x < xr(y) + 6: m = True
+                    if 40 <= y < 98 and xl(y) - 7 < x < xl(y) + 1: m = True
+                    if 40 <= y < 98 and xr(y) - 1 < x < xr(y) + 7: m = True
                 elif st == 'bun':
-                    src = (66, 13)
-                    hl = 29 + ((x - 66) / 30) ** 2 * 20
+                    src = (65, 13)
+                    hl = 29 + ((x - 65) / 30) ** 2 * 20
                     if skull(x, y) and y < hl: m = True
                     if 40 <= y < 62 and (xl(y) - 5 < x < xl(y) + 2 or xr(y) - 1 < x < xr(y) + 5): m = True
                 elif st == 'ponytail':
@@ -100,41 +98,39 @@ def render(name, C, ex):
                     if skull(x, y) and y < fringe: m = True
                     if 40 <= y < 64 and (xl(y) - 5 < x < xl(y) + 2 or xr(y) - 1 < x < xr(y) + 5): m = True
                 else:   # braids: a centre parting, smooth over the ears
-                    src = (66, 16)
-                    hl = 28 + ((x - 66) / 28) ** 2 * 22
+                    src = (65, 16)
+                    hl = 28 + ((x - 65) / 28) ** 2 * 22
                     if skull(x, y) and y < hl: m = True
                     if 40 <= y < 66 and (xl(y) - 5 < x < xl(y) + 2 or xr(y) - 1 < x < xr(y) + 5): m = True
-                if m: P(x, y, lock_tone(x, y, src, 9, 3, .07 if st == 'wavy' else 0, SHEEN))
+                if m: P(x, y, lock_tone(x, y, src, 14 if st in ('bun', 'braids', 'ponytail') else 9, 3, .07 if st == 'wavy' else 0, SHEEN, st in ('bun', 'braids', 'ponytail')))
         if st == 'bun':   # loose strands at the temples
             for s in (-1, 1):
-                pts = [(66 + s * (25 + math.sin(j * .5) * 2), 34 + j * 2.6) for j in range(16)]
+                pts = [(65 + s * (25 + math.sin(j * .5) * 2), 34 + j * 2.6) for j in range(16)]
                 for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
                     for x, y in seg(x0, y0, x1, y1): P(x, y, HR[4 if s < 0 else 3]); P(x + s, y, HR[1])
     def hair_over_shoulders():
         if st in ('long', 'wavy'):   # the ends fall in front of the shoulders
             for y in range(84, 126):
                 for x in range(W):
-                    for (a, b) in ((14, 30), (100, 114)):
+                    for (a, b) in ((12, 29), (101, 118)):
                         aa = a + 3 * math.sin(y * .21); bb = b + 3 * math.sin(y * .21 + 1) - (y - 84) * .05
                         tip = 124 - 6 * abs(math.sin(x * .45))
-                        if aa < x < bb and y < tip: P(x, y, lock_tone(x, y, (78, 12), 9, 3, .07 if st == 'wavy' else 0))
-        if st == 'ponytail':
-            for x in range(94, 106): P(x, 44, AC[3]); P(x, 45, AC[2])
+                        if aa < x < bb and y < tip: P(x, y, lock_tone(x, y, (60, 10), 9, 3, .07 if st == 'wavy' else 0))
         if st == 'braids':
             for s in (-1, 1):
                 for y in range(58, 128):
-                    cx = 66 + s * (31 + (y - 58) * .06); lobe = (y // 7) % 2; f = (y % 7) / 7
+                    cx = 65 + s * (31 + (y - 58) * .06); lobe = (y // 7) % 2; f = (y % 7) / 7
                     w = 5.5 - abs(f - .5) * 3
                     for x in range(int(cx - w), int(cx + w) + 1):
                         u = (x - cx) / w; k = 3 + (1 if (u < 0) == bool(lobe) else -1) - (1 if abs(u) > .75 else 0)
                         if f < .12: k = 1
                         P(x, y, HR[clamp(k, 0, 5)])
     # ---------------------------------------------------------------- the body: neck, soft sloping shoulders, chest, the bust's soft curves
-    BN, BF = (49, 128, 17.5), (84, 128, 16)       # near and far breast: centre x, y, radius (the lower halves are out of frame)
+    BN, BF = (47.5, 119, 18), (82.5, 119, 18)     # the breasts: centre x, y, radius
     def body():
         for y in range(CHIN - 10, H):
-            nl = 57 if y < 95 else 57 - 45 * min(1, ((y - 95) / 19)) ** .6
-            nr = 76 if y < 96 else 76 + 43 * min(1, ((y - 96) / 20)) ** .6
+            nl = 56 if y < 95 else 56 - 45 * min(1, ((y - 95) / 19)) ** .6
+            nr = 74 if y < 95 else 74 + 45 * min(1, ((y - 95) / 19)) ** .6
             for x in range(int(nl), int(nr) + 1):
                 k = 3
                 if y < 97:
@@ -149,27 +145,28 @@ def render(name, C, ex):
                             l = -.55 * dx - .8 * dy + .4 * math.sqrt(1 - d2)
                             k = 5 if l > .72 else 4 if l > .42 else 3 if l > .12 else 2
                             if d2 > .8 and dx > .2: k = 1
-                    if abs(x - 67 + (y - 112) * .06) < 1.2 and y > 112: k = 0 if y > 117 else 1        # the cleavage
-                    elif abs(x - 67 + (y - 112) * .06) < 2.6 and y > 110: k = min(k, 2)
+                    if abs(x - 65) < 1.2 and y > 107: k = 0 if y > 113 else 1                          # the cleavage
+                    elif abs(x - 65) < 2.6 and y > 105: k = min(k, 2)
+                    elif abs(x - 65) < 4 and y > 108: k = min(k, 3)
                 P(x, y, SK[k])
-        for (x0, y0, x1, y1) in ((60, 101, 32, 106), (74, 101, 99, 105)):    # collarbones
+        for (x0, y0, x1, y1) in ((59, 99, 32, 104), (71, 99, 98, 104)):     # collarbones
             for x, y in seg(x0, y0, x1, y1): P(x, y, SK[4]); P(x, y + 1, SK[2])
     def neckline_y(x):
-        cn = BN[1] - math.sqrt(max(0, BN[2] ** 2 - (x - BN[0]) ** 2)) * .62 + 1
-        cf = BF[1] - math.sqrt(max(0, BF[2] ** 2 - (x - BF[0]) ** 2)) * .62 + 1
-        if x < BN[0] - BN[2] + 3: return 117 - (BN[0] - BN[2] + 3 - x) * .95
-        if x > BF[0] + BF[2] - 3: return 118 - (x - (BF[0] + BF[2] - 3)) * .95
+        cn = BN[1] - math.sqrt(max(0, BN[2] ** 2 - (x - BN[0]) ** 2)) * .32 + 4
+        cf = BF[1] - math.sqrt(max(0, BF[2] ** 2 - (x - BF[0]) ** 2)) * .32 + 4
+        if x < BN[0] - BN[2] + 3: return 118 - (BN[0] - BN[2] + 3 - x) * 1.05
+        if x > BF[0] + BF[2] - 3: return 118 - (x - (BF[0] + BF[2] - 3)) * 1.05
         return min(cn if abs(x - BN[0]) <= BN[2] else 200, cf if abs(x - BF[0]) <= BF[2] else 200)
     def clothes():
         layer = OUT in ('cardigan', 'jacket', 'longcoat')
         for y in range(94, H):
-            nl = 57 - 45 * min(1, max(0, (y - 95) / 19)) ** .6; nr = 76 + 43 * min(1, max(0, (y - 96) / 20)) ** .6
+            nl = 56 - 45 * min(1, max(0, (y - 95) / 19)) ** .6; nr = 74 + 45 * min(1, max(0, (y - 95) / 19)) ** .6
             for x in range(int(nl) - 1, int(nr) + 2):
                 cy = neckline_y(x)
                 if y < cy: continue
                 R = SH; k = 3
-                if x < 52: k = 4
-                if x > 90: k = 2
+                if x < 50: k = 4
+                if x > 92: k = 2
                 for (cx, cyy, r) in (BN, BF):
                     dx, dy = (x - cx) / (r + 2), (y - cyy) / (r + 2); d2 = dx * dx + dy * dy
                     if d2 < 1:
@@ -202,22 +199,23 @@ def render(name, C, ex):
         for y in range(22, CHIN + 1):
             a, b = xl(y), xr(y)
             for x in range(int(math.ceil(a)), int(b) + 1):
-                k = 3
-                if ((x - (a + 8)) / 13) ** 2 + ((y - 54) / 22) ** 2 < 1: k = 4      # the lit cheek and temple
-                if ((x - (a + 7)) / 5) ** 2 + ((y - 54) / 6) ** 2 < 1: k = 5
-                if x > b - 4: k = 2
-                if y > CHIN - 4: k = 2 if x > AX - 2 else 3
-                if AX + 2 < x < AX + 6 and 70 < y < 74: k = 2                          # under the nose
+                k = 4
+                if x < a + 2.5 or x > b - 3.5: k = 3
+                if x > b - 1.5: k = 2
+                if y > CHIN - 4: k = 3 if x < AX + 4 else 2
+                if y > CHIN - 1: k = 2
+                if 55 <= y <= 57 and a + 5 <= x <= a + 9: k = 5                       # cheekbone highlights
+                if y == 56 and b - 9 <= x <= b - 6: k = 5
+                if AX + 1 < x < AX + 5 and 70 < y < 73: k = 3                          # under the nose
                 P(x, y, SK[k])
-            P(b, y, SK[1] if y > 60 else None)                       # the far jaw, drawn as a line
-        for (cx, cy, rx, ry, t) in ((48, 70, 7, 3.2, .42), (84, 67, 4, 2.6, .32)):   # blush
+        for (cx, cy, rx, ry, t) in ((49, 71, 7, 3.2, .42), (81, 71, 7, 3.2, .36)):   # blush
             for y in range(int(cy - ry), int(cy + ry) + 1):
                 for x in range(int(cx - rx), int(cx + rx) + 1):
                     d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2
                     if d < 1 and G(x, y): P(x, y, mix(G(x, y), (240, 120, 128), t * (1 - d) + (.15 if ex == 'happy' else 0)))
         # the nose: a lit bridge, the tip, a shadow below and to the right
-        for y in range(58, 68): P(AX, y, SK[4] if y < 66 else None)
-        for x, y, k in ((AX + 1, 68, 2), (AX + 2, 68, 2), (AX + 3, 67, 2), (AX, 69, 2), (AX - 1, 68, 3), (AX + 1, 69, 1), (AX - 2, 69, 3)): P(x, y, SK[k])
+        for y in range(60, 67): P(AX - 1, y, SK[4])
+        for x, y, k in ((AX + 1, 66, 2), (AX + 1, 67, 2), (AX, 68, 2), (AX - 1, 68, 3), (AX + 2, 68, 2), (AX - 2, 68, 3)): P(x, y, SK[k])
     LASH = (36, 18, 30); WHITE = (250, 246, 242); WHITE2 = (214, 204, 214)
     def eye(ecx, ecy, A, s):
         if wrong:
@@ -239,7 +237,7 @@ def render(name, C, ex):
             U[x] = round(top + t * t * (2.5 if narrow else 4) - s * t * 1.3); L[x] = round(bot - t * t * 2.6)
         for x in U:
             for y in range(U[x] + 1, L[x] + 1): P(x, y, WHITE2 if y <= U[x] + 1 else WHITE)
-        ir = (3.4 if wide else 4.8) * (A / 7); icx = ecx + (1 if s > 0 else 0); icy = ecy + (1 if ex == 'sad' else 0)
+        ir = (3.4 if wide else 4.8) * (A / 7); icx = ecx; icy = ecy + (1 if ex == 'sad' else 0)
         for y in range(int(icy - 6), int(icy + 7)):
             for x in range(int(icx - 6), int(icx + 7)):
                 if x not in U or y <= U[x] or y > L[x]: continue
@@ -266,7 +264,7 @@ def render(name, C, ex):
         if ex == 'scared':
             for j in range(5): P(98, 34 + j, (180, 220, 250))
     def brows():
-        for (x0, x1, y0, s) in ((41, 59, 46, -1), (72, 87, 45, 1)):
+        for (x0, x1, y0, s) in ((40, 58, 46, -1), (72, 90, 46, 1)):
             for i in range(17):
                 t = i / 16; x = x0 + (x1 - x0) * t if s < 0 else x0 + (x1 - x0) * t
                 inner = (1 - t) if s < 0 else t
@@ -277,7 +275,7 @@ def render(name, C, ex):
                 P(x, y, HR[0]); P(x, y + 1, HR[1] if (inner > .3) else None)
     L1, L2, L3, LH = (130, 24, 50), (186, 50, 78), (220, 94, 112), (255, 186, 194)
     def mouth():
-        mx, my = AX + 1, 78
+        mx, my = AX, 78
         if wrong:
             for i in range(-12, 12):
                 yy = my + round((i / 12) ** 2 * -5) + 1
@@ -309,12 +307,12 @@ def render(name, C, ex):
     def extras():
         acc = C.get('accessory')
         if acc == 'necklace':
-            pts = curve([(58, 99), (60, 106), (66, 111), (73, 106), (75, 99)])
+            pts = curve([(57, 98), (59, 105), (65, 110), (71, 105), (73, 98)])
             for x, y in pts: P(x, y, AC[4])
-            for y in range(111, 118):
-                for x in range(63, 70):
-                    if ((x - 66) / 2.8) ** 2 + ((y - 114) / 3.4) ** 2 <= 1: P(x, y, AC[5] if x < 66 else AC[3])
-            P(65, 112, (255, 255, 255))
+            for y in range(110, 117):
+                for x in range(62, 69):
+                    if ((x - 65) / 2.8) ** 2 + ((y - 113) / 3.4) ** 2 <= 1: P(x, y, AC[5] if x < 65 else AC[3])
+            P(64, 111, (255, 255, 255))
         if acc == 'headband':
             for i in range(-32, 33):
                 y = 27 + (i / 32) ** 2 * 13
@@ -329,12 +327,13 @@ def render(name, C, ex):
                 for dy in (-1, 0, 1): P(fx + dx, fy + dy, (250, 220, 90))
         if C.get('glasses'):
             FR = (64, 42, 58)
-            for (gx, gy, rx, ry) in ((51, 57, 10, 8), (79, 56, 8, 8)):
+            for (gx, gy, rx, ry) in ((51, 57, 10, 8), (79, 57, 10, 8)):
                 for a in range(0, 360, 3):
                     an = math.radians(a); P(gx + math.cos(an) * rx, gy + math.sin(an) * ry, FR)
                 P(gx - rx + 3, gy - ry + 3, (255, 255, 255)); P(gx - rx + 4, gy - ry + 3, (230, 240, 250))
-            for x in range(61, 71): P(x, 54, FR)
+            for x in range(61, 70): P(x, 55, FR)
             for x, y in seg(41, 56, 34, 58): P(x, y, FR)
+            for x, y in seg(89, 56, 96, 58): P(x, y, FR)
         if C.get('hat') == 'cap':
             HC = ramp(C.get('hatColor', '#3a5a8a'))
             for y in range(4, 36):
@@ -346,7 +345,7 @@ def render(name, C, ex):
             for x in range(30, 104):
                 for j in range(4): P(x, 33 + j - (1 if 40 < x < 92 else 0), HC[1 if j > 1 else 2])
     # ---------------------------------------------------------------- draw in order, then outline in a dark tone of whatever it borders
-    hair_back(); body(); clothes(); face(); eye(52, 57, 8, -1); eye(79, 56, 6, 1); brows(); mouth(); hair_front(); extras(); hair_over_shoulders()
+    hair_back(); body(); clothes(); face(); eye(51, 57, 7, -1); eye(79, 57, 7, 1); brows(); mouth(); hair_front(); extras(); hair_over_shoulders()
     out = Image.new('RGBA', (W, H), (0, 0, 0, 0)); o = out.load()
     for y in range(H):
         for x in range(W):
