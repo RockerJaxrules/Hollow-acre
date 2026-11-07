@@ -18,11 +18,39 @@ function windowW(L,x,y,w,h,arched){rect(L,x-3,y-3,w+6,h+7,TR[3]);frame(L,x-3,y-3
     let c=N?(j<h*.5?PAL.ink[0]:PAL.ink[1]):(j<h*.45?PAL.glass[4]:PAL.glass[3]);if(!N&&(i-j)%11===0)c=PAL.glass[5];P(L,x+i,y+j,c);}
   vl(L,x+(w>>1),y,h,TR[2]);hl(L,x,y+(h>>1),w,TR[2]);hl(L,x-4,y+h+3,w+8,TR[4]);hl(L,x-4,y+h+4,w+8,TR[1]);
   if(!N)for(let j=0;j<h;j++)P(SHD,x+w+3,y+j,PAL.out[0],40);}
+// ---- every house its own walls, floor and doors (spliced into interior.js before the room shells)
+function damask(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const u=(x-x0)%16,v=(y-y0)%20,dx=Math.abs(u-8),dy=Math.abs(v-10);let k=2;
+  if(dx+dy*.8<6&&dx+dy*.8>3.5)k=3;if(dx+dy*.8<2)k=3;if((u===0||u===15)&&v%4<2)k=1;if(hsh(x,y,3)>.97)k=1;P(L,x,y,R[k]);}}
+function panelWall(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const u=(x-x0)%40,v=(y-y0)%46;let c=R[2];if(u<3||v<3)c=R[3];if(u===0||v===0)c=R[4];if(u===39||v===45)c=R[1];
+  if(u>5&&u<35&&v>5&&v<41){c=R[2];if(u===6||v===6)c=R[1];if(u===34||v===40)c=R[3];if(hsh(x>>1,y>>3,4)>.8)c=R[1];}P(L,x,y,c);}}
+function logWall(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++){const r=Math.floor((y-y0)/11),v=(y-y0)%11;for(let x=x0;x<x0+w;x++){let c=v<2?R[4]:v<5?R[3]:v<9?R[2]:v<10?R[1]:PAL.cream[0];
+  if(hsh(x>>2,r,6)>.86&&v>2&&v<9)c=R[1];if(hsh(x,r,7)>.985)c=R[0];P(L,x,y,c);}}}
+function beadWains(L,x0,y,w,h,C){for(let j=0;j<h;j++)for(let i=0;i<w;i++){let c=C[2];if(i%5===0)c=C[1];if(i%5===1)c=C[3];if(j<3)c=j===0?C[3]:C[2];P(L,x0+i,y+j,c);}hl(L,x0,y-1,w,WD[3]);hl(L,x0,y-2,w,WD[4]);}
+function parquet(L,x0,y0,w,h){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const a=x-x0+y-y0,b=x-x0-(y-y0);const cell=Math.floor(a/12)+Math.floor(b/12);const dir=cell%2;const t=dir?(a%12):(((b%12)+12)%12);
+  let c=WD[dir?3:4];if(t===0)c=WD[1];if(t===1)c=WD[dir?4:5];if(hsh(Math.floor(a/12),Math.floor(b/12),5)>.7)c=shade(c,.92);P(L,x,y,c);}}
+function checker(L,x0,y0,w,h,A2,B2){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const i=Math.floor((x-x0)/16),j=Math.floor((y-y0)/16),u=(x-x0)%16,v=(y-y0)%16;let c=(i+j)%2?A2[3]:B2[3];
+  if(u===0||v===0)c=shade(c,.85);if(hsh(x>>2,y>>2,8)>.93)c=shade(c,.92);P(L,x,y,c);}}
+function flagstone(L,x0,y0,w,h){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=Math.floor((y-y0)/18),o=(r*13)%27,s=Math.floor((x-x0+o)/(22+(r%3)*4));const u=(x-x0+o)%(22+(r%3)*4),v=(y-y0)%18;
+  const n=hsh(s,r,9);let c=ST[n>.66?4:n>.33?3:2];if(u<2||v<2)c=ST[1];if(u===2||v===2)c=ST[n>.5?5:4];if(hsh(x,y,10)>.96)c=ST[1];P(L,x,y,c);}}
+function painted(L,x0,y0,w,h,C){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const row=Math.floor((y-y0)/9),v=(y-y0)%9;let c=C[3];if(v===0)c=C[1];if(v===1)c=C[4];
+  const wear=Math.exp(-Math.pow((x-x0-w*.5)/(w*.18),2))*Math.exp(-Math.pow((y-y0-h*.55)/(h*.4),2));if(hsh(x>>2,row,11)<wear*.55-.12)c=hsh(x>>3,row,12)>.5?shade(C[3],.84):WD[4];P(L,x,y,c);}}
+function hexTile(L,x0,y0,w,h,C){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=Math.floor((y-y0)/7),o=r%2?5:0,u=(x-x0+o)%10,v=(y-y0)%7;let c=C[3];
+  if(v===0||u===0)c=C[1];if(hsh(Math.floor((x-x0+o)/10),r,13)>.88)c=C[2];if(hsh(Math.floor((x-x0+o)/10),r,14)>.988)c=PAL.slate[3];P(L,x,y,c);}}
+function wideBoards(L,x0,y0,w,h){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const row=Math.floor((y-y0)/14),v=(y-y0)%14,off=(row*53)%97,seg=Math.floor((x-x0+off)/97);let c=PAL.bark[hsh(seg,row,15)>.5?3:2];
+  if(v===0)c=PAL.bark[0];if(v===1)c=PAL.bark[4];if((x-x0+off)%97===0)c=PAL.bark[1];if(hsh(x>>3,y,16)>.9)c=PAL.bark[1];if(hsh(x,y,17)>.985)c=PAL.ink[0];P(L,x,y,c);}}
+// a closed panelled door on the back wall, with its frame, knob, a strip of light under it (or dark, at night)
+function backDoor(L,cx,floorY,C,knob){const w=26,h=56,x=Math.round(cx-w/2),y=floorY-h;rect(L,x-4,y-4,w+8,h+4,TR[4]);frame(L,x-4,y-4,w+8,h+4,TR[5],TR[2]);rect(L,x-2,y-2,w+4,2,TR[3]);
+  rect(L,x,y,w,h,C[3]);frame(L,x,y,w,h,C[4],C[1]);for(const [px,py,pw,ph] of [[x+4,y+5,8,18],[x+14,y+5,8,18],[x+4,y+29,8,22],[x+14,y+29,8,22]]){frame(L,px,py,pw,ph,C[1],C[4]);rect(L,px+1,py+1,pw-2,ph-2,C[2]);}
+  ell(L,x+w-5,y+31,1,1,(knob||PAL.brass)[2]);P(L,x+w-6,y+30,(knob||PAL.brass)[3]);P(L,x+w-5,y+34,PAL.ink[0]);hl(L,x+1,floorY-1,w-2,N?PAL.ink[0]:PAL.lit[3]);
+  for(let j=0;j<4;j++)for(let i=0;i<w;i++){const c=G(A,x+i,floorY+j);if(c)P(A,x+i,floorY+j,N?shade(c,.85):[Math.min(255,c[0]+18-j*4),Math.min(255,c[1]+14-j*3),Math.min(255,c[2]+6-j)]);}}
+// a doormat inside the front door
+function doormat(L,cx,y,C){for(let j=0;j<9;j++)for(let i=0;i<38;i++){let c=(i+j)%3===0?C[2]:C[3];if(i<2||i>35||j===0||j===8)c=C[1];P(L,cx-19+i,y+j,c);}}
 // ---------------- room shells: CFG.room has the floor size in metres
 if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8,x0=side,front=top+fd;
   // back wall
   if(R.theme==='cabin'){wallpaper(A,x0,8,fw,wallH,PAL.sage,16);rect(A,x0,8+wallH-30,fw,30,WD[2]);planks(A,x0,8+wallH-28,fw,26,[WD[1],WD[1],WD[2],WD[3],WD[3]],13);hl(A,x0,8+wallH-30,fw,WD[4]);hl(A,x0,8+wallH-31,fw,WD[5]);}
-  if(R.theme==='home'){const PR=PAL[R.paper||'sage'];wallpaper(A,x0,8,fw,wallH,PR,14);rect(A,x0,8+wallH-30,fw,30,WD[2]);planks(A,x0,8+wallH-28,fw,26,[WD[1],WD[1],WD[2],WD[3],WD[3]],13);hl(A,x0,8+wallH-30,fw,WD[4]);hl(A,x0,8+wallH-31,fw,WD[5]);}
+  if(R.theme==='home'){const PR=PAL[R.paper||'sage'],wl=R.wall||'stripe';if(wl==='stripe')wallpaper(A,x0,8,fw,wallH,PR,14);if(wl==='damask')damask(A,x0,8,fw,wallH,PR);if(wl==='plaster')plaster(A,x0,8,fw,wallH,R.paper?PR:TR);if(wl==='panel')panelWall(A,x0,8,fw,wallH,WD);if(wl==='log')logWall(A,x0,8,fw,wallH,PAL.bark);
+    const ws=R.wains||(wl==='panel'||wl==='log'?'none':'planks');if(ws==='planks'){rect(A,x0,8+wallH-30,fw,30,WD[2]);planks(A,x0,8+wallH-28,fw,26,[WD[1],WD[1],WD[2],WD[3],WD[3]],13);hl(A,x0,8+wallH-30,fw,WD[4]);hl(A,x0,8+wallH-31,fw,WD[5]);}if(ws==='bead')beadWains(A,x0,8+wallH-30,fw,30,PAL[R.beadc||'cream']);}
   if(R.theme==='store'){brick(A,x0,8,fw,wallH,PAL.red);rect(A,x0,8+wallH-22,fw,22,WD[2]);for(let x=x0;x<x0+fw;x+=7)vl(A,x,8+wallH-22,22,WD[1]);hl(A,x0,8+wallH-22,fw,WD[4]);}
   if(R.theme==='church'){plaster(A,x0,8,fw,wallH,TR);rect(A,x0,8+wallH-26,fw,26,WD[1]);for(let x=x0;x<x0+fw;x+=24)frame(A,x+2,8+wallH-23,20,20,WD[3],WD[0]);hl(A,x0,8+wallH-26,fw,WD[3]);}
   if(R.theme==='garage'){for(let y=8;y<8+wallH;y++)for(let x=x0;x<x0+fw;x++){const r=Math.floor((y-8)/10),o=r%2?9:0,b=(x-x0+o)%18;let c=ST[(hsh(Math.floor((x-x0+o)/18),r,5)>.5)?3:2];if(b===0||(y-8)%10===9)c=ST[1];else if((y-8)%10===0)c=ST[4];P(A,x,y,c);}}
@@ -33,7 +61,8 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   rect(A,x0,0,fw,8,WD[1]);hl(A,x0,7,fw,WD[3]);for(let x=x0;x<x0+fw;x+=48)rect(A,x,0,10,8,WD[2]);
   for(const w of R.windows||[]){windowW(B,x0+w[0]*32-(w[2]||28)/2|0,14+(w[3]||8),w[2]||28,w[4]||34,R.theme==='church');}
   // floor
-  if(R.theme==='cabin'||R.theme==='store'||R.theme==='home')planks(A,x0,top,fw,fd,WD,8);
+  if(R.theme==='cabin'||R.theme==='store'||(R.theme==='home'&&(!R.floor||R.floor==='planks')))planks(A,x0,top,fw,fd,WD,8);
+  if(R.theme==='home'){const fl=R.floor;if(fl==='parquet')parquet(A,x0,top,fw,fd);if(fl==='checker')checker(A,x0,top,fw,fd,PAL[R.chk||'slate'],PAL.cream);if(fl==='flag')flagstone(A,x0,top,fw,fd);if(fl==='painted')painted(A,x0,top,fw,fd,PAL[R.paint||'teal']);if(fl==='hex')hexTile(A,x0,top,fw,fd,TR);if(fl==='wide')wideBoards(A,x0,top,fw,fd);}
   if(R.theme==='church')tilesF(A,x0,top,fw,fd,ST,16);
   if(R.theme==='garage')concrete(A,x0,top,fw,fd);
   if(R.theme==='garage'){const bx=x0+fw-150,bw=104;for(let y=14;y<8+wallH;y++)for(let x=bx;x<bx+bw;x++){const j=(y-14)%6;P(A,x,y,j===0?ST[4]:j===5?ST[1]:ST[3]);}frame(A,bx-3,12,bw+6,wallH-2,WD[3],WD[0]);rect(A,bx+bw/2-6,8+wallH-10,12,3,PAL.slate[2]);
@@ -52,7 +81,7 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   const wallShadow=(x,y,w,h)=>{for(let j=0;j<3;j++)for(let i=0;i<w;i++){const c=G(A,x+2+i,y+h+j);if(c)P(A,x+2+i,y+h+j,shade(c,.7+j*.1));}for(let j=0;j<h;j++)for(let i=0;i<2;i++){const c=G(A,x+w+i,y+2+j);if(c)P(A,x+w+i,y+2+j,shade(c,.75+i*.1));}};
   const picture=(x,y,w,h,k)=>{wallShadow(x,y,w,h);rect(B,x,y,w,h,WD[3]);frame(B,x,y,w,h,WD[5],WD[0]);const C=[[PAL.sage,PAL.mustard],[PAL.blue,PAL.cream],[PAL.rust,PAL.slate]][k%3];
     for(let j=2;j<h-2;j++)for(let i=2;i<w-2;i++){const t=j/(h-2);P(B,x+i,y+j,t<.55?C[0][3]:C[1][2]);}hl(B,x+2,y+Math.round(h*.55),w-4,C[1][1]);if(k%2)ell(B,x+(w>>1),y+(h>>1)-1,2,3,C[1][0]);P(B,x+(w>>1),y-2,PAL.slate[4]);};
-  const wins=(R.windows||[]).map(w=>w[0]);const gapsAt=[];for(let c=1;c<R.w;c++){if(wins.every(w=>Math.abs(w-c)>1.1)&&Math.abs(c-R.door)>.5)gapsAt.push(c);}
+  const wins=(R.windows||[]).map(w=>w[0]);const gapsAt=[];for(let c=1;c<R.w;c++){if(wins.every(w=>Math.abs(w-c)>1.1)&&Math.abs(c-R.door)>.5&&(R.doors||[]).every(d=>Math.abs(d[0]-c)>1.3))gapsAt.push(c);}
   if(R.theme==='cabin'||R.theme==='home'){gapsAt.slice(0,3).forEach((c,i)=>{const px=x0+c*32-9;i===1?(()=>{const sx=px-6;wallShadow(sx,40,30,3);rect(B,sx,40,30,3,WD[4]);hl(B,sx,40,30,WD[5]);
       for(let k=0;k<4;k++){const jx=sx+3+k*7;rect(B,jx,32,5,8,[PAL.rust,PAL.sage,PAL.mustard,PAL.glass][k][3]);hl(B,jx,31,5,PAL.brass[2]);P(B,jx+1,34,PAL.white[5]);}})():picture(px,26,18,22,i+(R.paper||'').length);});}
   if(R.theme==='store'){const sx=x0+fw/2-46;wallShadow(sx,18,92,13);rect(B,sx,18,92,13,PAL.cream[3]);frame(B,sx,18,92,13,PAL.cream[2],WD[0]);drawText(B,'COYLE GENERAL',sx+18,22,PAL.red[1]);
@@ -62,6 +91,7 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   if(R.theme==='garage'){const px=x0+fw-120;wallShadow(px,24,70,40);rect(B,px,24,70,40,WD[1]);for(let y=28;y<62;y+=5)for(let x=px+3;x<px+68;x+=5)P(B,x,y,WD[0]);
     for(const [tx,ty,k] of [[px+8,30,0],[px+20,28,1],[px+34,30,2],[px+48,28,0],[px+60,30,1]]){if(k===0){vl(B,tx,ty,14,PAL.slate[4]);rect(B,tx-2,ty,5,4,PAL.slate[2]);}else if(k===1){vl(B,tx,ty+2,14,WD[4]);rect(B,tx-3,ty,7,3,PAL.slate[3]);}else{ell(B,tx,ty+7,5,5,PAL.slate[3]);ell(B,tx,ty+7,3,3,PAL.ink[1]);}}
     const cx3=x0+40;wallShadow(cx3,30,18,22);rect(B,cx3,30,18,22,PAL.cream[3]);rect(B,cx3,30,18,5,PAL.red[3]);for(let j=0;j<3;j++)for(let i=0;i<4;i++)rect(B,cx3+2+i*4,37+j*5,3,3,PAL.cream[1]);P(B,cx3+10,47,PAL.red[3]);}
+  if(R.theme==='home'){for(const d of R.doors||[])backDoor(B,x0+d[0]*32,top,PAL[d[1]||'bark'],d[2]&&PAL[d[2]]);if(R.mat)doormat(A,x0+R.door*32,front-11,PAL[R.mat]);}
   // ---- sunlight through each window, falling across the floor down and to the right (day only)
   if(!N&&R.theme!=='mine')for(const w of R.windows||[]){const ww=w[2]||28,wx=x0+w[0]*32-ww/2;for(let y=top+2;y<Math.min(front-4,top+86);y++){const t=(y-top)/86,sk=Math.round((y-top)*.55);
       for(let x=wx+sk;x<wx+sk+ww;x++){const e=Math.min(x-(wx+sk),wx+sk+ww-1-x);const a=(1-t)*Math.min(1,e/4);const c=G(A,x,y);if(c&&a>0)P(A,x,y,[Math.min(255,c[0]*(1+.28*a)+10*a),Math.min(255,c[1]*(1+.24*a)+8*a),Math.min(255,c[2]*(1+.12*a)+2*a)]);}}}

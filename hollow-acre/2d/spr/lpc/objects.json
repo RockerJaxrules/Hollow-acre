@@ -4422,5 +4422,1239 @@
 0,
 0
 ]
+},
+"room_home_agnes": {
+"src": "spr/lpc/obj/room_home_agnes.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "damask",
+"paper": "rust",
+"floor": "painted",
+"paint": "slate",
+"wains": "bead",
+"doors": [
+[
+8.35,
+"bark"
+]
+],
+"mat": "red"
+}
+},
+"room_home_agnes_n": {
+"src": "spr/lpc/obj/room_home_agnes_n.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "damask",
+"paper": "rust",
+"floor": "painted",
+"paint": "slate",
+"wains": "bead",
+"doors": [
+[
+8.35,
+"bark"
+]
+],
+"mat": "red"
+}
+},
+"room_home_hale": {
+"src": "spr/lpc/obj/room_home_hale.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "panel",
+"floor": "parquet",
+"doors": [
+[
+8.35,
+"bark"
+]
+],
+"mat": "curtain"
+}
+},
+"room_home_hale_n": {
+"src": "spr/lpc/obj/room_home_hale_n.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "panel",
+"floor": "parquet",
+"doors": [
+[
+8.35,
+"bark"
+]
+],
+"mat": "curtain"
+}
+},
+"room_home_dunn": {
+"src": "spr/lpc/obj/room_home_dunn.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "plaster",
+"paper": "mustard",
+"floor": "wide",
+"doors": [
+[
+8.35,
+"slate"
+]
+],
+"mat": "sage"
+}
+},
+"room_home_dunn_n": {
+"src": "spr/lpc/obj/room_home_dunn_n.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "plaster",
+"paper": "mustard",
+"floor": "wide",
+"doors": [
+[
+8.35,
+"slate"
+]
+],
+"mat": "sage"
+}
+},
+"room_home_cora": {
+"src": "spr/lpc/obj/room_home_cora.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "stripe",
+"paper": "sage",
+"floor": "checker",
+"chk": "sage",
+"wains": "bead",
+"doors": [
+[
+8.35,
+"teal"
+]
+],
+"mat": "blue"
+}
+},
+"room_home_cora_n": {
+"src": "spr/lpc/obj/room_home_cora_n.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "stripe",
+"paper": "sage",
+"floor": "checker",
+"chk": "sage",
+"wains": "bead",
+"doors": [
+[
+8.35,
+"teal"
+]
+],
+"mat": "blue"
+}
+},
+"room_home_june": {
+"src": "spr/lpc/obj/room_home_june.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "stripe",
+"paper": "rust",
+"floor": "hex",
+"doors": [
+[
+8.35,
+"red"
+]
+],
+"mat": "mustard"
+}
+},
+"room_home_june_n": {
+"src": "spr/lpc/obj/room_home_june_n.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "stripe",
+"paper": "rust",
+"floor": "hex",
+"doors": [
+[
+8.35,
+"red"
+]
+],
+"mat": "mustard"
+}
+},
+"room_home_otto": {
+"src": "spr/lpc/obj/room_home_otto.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "panel",
+"floor": "wide",
+"doors": [
+[
+8.35,
+"teal"
+]
+],
+"mat": "blue"
+}
+},
+"room_home_otto_n": {
+"src": "spr/lpc/obj/room_home_otto_n.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "panel",
+"floor": "wide",
+"doors": [
+[
+8.35,
+"teal"
+]
+],
+"mat": "blue"
+}
+},
+"room_home_silas": {
+"src": "spr/lpc/obj/room_home_silas.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "damask",
+"paper": "slate",
+"floor": "flag",
+"doors": [
+[
+8.35,
+"slate"
+]
+],
+"mat": "red"
+}
+},
+"room_home_silas_n": {
+"src": "spr/lpc/obj/room_home_silas_n.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "damask",
+"paper": "slate",
+"floor": "flag",
+"doors": [
+[
+8.35,
+"slate"
+]
+],
+"mat": "red"
+}
+},
+"room_home_quill": {
+"src": "spr/lpc/obj/room_home_quill.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "stripe",
+"paper": "sage",
+"floor": "planks",
+"wains": "bead",
+"doors": [
+[
+8.35,
+"sage"
+]
+],
+"mat": "rust"
+}
+},
+"room_home_quill_n": {
+"src": "spr/lpc/obj/room_home_quill_n.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "stripe",
+"paper": "sage",
+"floor": "planks",
+"wains": "bead",
+"doors": [
+[
+8.35,
+"sage"
+]
+],
+"mat": "rust"
+}
+},
+"room_home_fenn": {
+"src": "spr/lpc/obj/room_home_fenn.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "plaster",
+"floor": "flag",
+"doors": [
+[
+8.35,
+"bark"
+]
+],
+"mat": "mustard"
+}
+},
+"room_home_fenn_n": {
+"src": "spr/lpc/obj/room_home_fenn_n.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "plaster",
+"floor": "flag",
+"doors": [
+[
+8.35,
+"bark"
+]
+],
+"mat": "mustard"
+}
+},
+"room_home_thorne": {
+"src": "spr/lpc/obj/room_home_thorne.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "log",
+"floor": "wide",
+"doors": [
+[
+8.35,
+"bark"
+]
+],
+"mat": "rust"
+}
+},
+"room_home_thorne_n": {
+"src": "spr/lpc/obj/room_home_thorne_n.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "log",
+"floor": "wide",
+"doors": [
+[
+8.35,
+"bark"
+]
+],
+"mat": "rust"
+}
+},
+"room_home_ashby": {
+"src": "spr/lpc/obj/room_home_ashby.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "stripe",
+"paper": "blue",
+"floor": "checker",
+"chk": "blue",
+"doors": [
+[
+8.35,
+"slate"
+]
+],
+"mat": "red"
+}
+},
+"room_home_ashby_n": {
+"src": "spr/lpc/obj/room_home_ashby_n.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "stripe",
+"paper": "blue",
+"floor": "checker",
+"chk": "blue",
+"doors": [
+[
+8.35,
+"slate"
+]
+],
+"mat": "red"
+}
+},
+"room_home_vale": {
+"src": "spr/lpc/obj/room_home_vale.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "damask",
+"paper": "sage",
+"floor": "hex",
+"wains": "bead",
+"doors": [
+[
+8.35,
+"sage"
+]
+],
+"mat": "rust"
+}
+},
+"room_home_vale_n": {
+"src": "spr/lpc/obj/room_home_vale_n.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "damask",
+"paper": "sage",
+"floor": "hex",
+"wains": "bead",
+"doors": [
+[
+8.35,
+"sage"
+]
+],
+"mat": "rust"
+}
+},
+"room_home_kerrigan": {
+"src": "spr/lpc/obj/room_home_kerrigan.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "panel",
+"floor": "painted",
+"paint": "rust",
+"doors": [
+[
+8.35,
+"bark"
+]
+],
+"mat": "mustard"
+}
+},
+"room_home_kerrigan_n": {
+"src": "spr/lpc/obj/room_home_kerrigan_n.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "panel",
+"floor": "painted",
+"paint": "rust",
+"doors": [
+[
+8.35,
+"bark"
+]
+],
+"mat": "mustard"
+}
+},
+"room_home_pike": {
+"src": "spr/lpc/obj/room_home_pike.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "log",
+"floor": "wide",
+"doors": [
+[
+8.35,
+"teal"
+]
+],
+"mat": "blue"
+}
+},
+"room_home_pike_n": {
+"src": "spr/lpc/obj/room_home_pike_n.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "log",
+"floor": "wide",
+"doors": [
+[
+8.35,
+"teal"
+]
+],
+"mat": "blue"
+}
+},
+"room_home_ward": {
+"src": "spr/lpc/obj/room_home_ward.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "plaster",
+"paper": "mustard",
+"floor": "parquet",
+"doors": [
+[
+8.35,
+"red"
+]
+],
+"mat": "sage"
+}
+},
+"room_home_ward_n": {
+"src": "spr/lpc/obj/room_home_ward_n.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"windows": [
+[
+2,
+0
+],
+[
+6,
+0
+]
+],
+"w": 9,
+"d": 6,
+"door": 4,
+"theme": "home",
+"wall": "plaster",
+"paper": "mustard",
+"floor": "parquet",
+"doors": [
+[
+8.35,
+"red"
+]
+],
+"mat": "sage"
+}
 }
 }
