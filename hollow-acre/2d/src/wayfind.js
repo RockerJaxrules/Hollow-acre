@@ -11,7 +11,7 @@ function wayChip(t){if(!t||S.mode!=='play')return '';const o=outsidePoint(t);if(
 {const css=document.createElement('style');css.textContent='.odir{color:#ffd27a;white-space:nowrap;margin-left:4px}#note .odir{color:#8a4a10;font-weight:600}';document.head.appendChild(css);}
 {const _o=objective;objective=function(){const r=_o();if(!r||!r[2])return r;return [r[0],r[1]+wayChip(r[2]),r[2]];};}
 // the map names more of the places you're sent to
-for(const p of [['Crossroads',crossPos.x,crossPos.z+5],['Coyle’s store',29.5,-12.2],['Old mine',MINE.x,MINE.z-6],['Your car',carPos.x,carPos.z+3],['Footbridge',FOOT.x,FOOT.z-2]])
+for(const p of [['Crossroads',crossPos.x,crossPos.z+5],['Coyle’s store',29.5,-12.2],['Old mine',MINE.x,MINE.z-6],['Your car',carPos.x,carPos.z+3],['Footbridge',FOOT.x,FOOT.z-2],['Hartley Carpentry',57,SHOP_DOOR+2.2],['Forge',39,SHOP_DOOR+2.2],['Bait & Tackle',31,SHOP_DOOR+3.6],['Feed & Stock',65.5,SHOP_DOOR+3.6]])
   if(!MAP_PLACES.some(q=>q[0]===p[0]))MAP_PLACES.push(p);
 // a signpost where the dirt road leaves Route 9 for the crossroads
 put('signpost',21.8,-3.6,.2,{label:'CROSSROADS'});

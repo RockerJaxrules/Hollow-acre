@@ -55,13 +55,14 @@ function houseApply(){const t=houseTier();houseExterior(t);if(t!==(HCAB.built||0
 {const _il=interiorLight;interiorLight=function(L){_il(L);if(houseTier()>=3&&S.room==='cabin'){const R=ROOMS.cabin,t=performance.now()/1000;const fl=.85+.1*Math.sin(t*7)+.05*Math.sin(t*13);
   glowAt(sx(R.ox+3.3),sz(R.oz+.85)-20,150*fl,[255,150,60],Math.max(.35,L)*.9);glowAt(sx(R.ox+3.3),sz(R.oz+.85)-14,40,[255,210,120],.9);}};}
 
-// ---- ordering it at Nell's counter
-{const _carp=vendors.v_carp.rows;vendors.v_carp.rows=()=>{const r=_carp();const t=houseTier(),B=S.house.build;let row;
-  if(B){const T=HOUSE_TIERS[B.tier];const left=Math.max(0,B.done-S.day);row={k:'house',name:T.name,desc:`Nell’s working on it. ${left<=1?'Done tomorrow morning.':`Done in ${left} days.`}`,price:0,can:false,btn:'Building'};}
-  else if(t<3){const T=HOUSE_TIERS[t+1];row={k:'house',name:`Cabin: ${T.name.toLowerCase()}`,desc:`${T.desc} Takes ${T.days} days.`,price:T.cost,need:T.need,can:true,btn:'Order',
-    buy(){S.house.build={tier:t+1,done:S.day+T.days};toast(`Nell writes it in her book. “I’ll start in the morning. Don’t mind the hammering.”`,3);}};}
-  else row={k:'house',name:'The cabin',desc:'“That’s as good as I can make it,” Nell says. “Better than it was. Better than he ever let me.”',price:0,can:false,btn:'Done'};
-  r.splice(1,0,row);return r;};}
+// ---- ordering it: at Nell's counter in Hartley Carpentry, or from the Farm Plans (board by the field or Nell's "Look"), which sends her the order
+function houseRow(where){const t=houseTier(),B=S.house.build;
+  if(B){const T=HOUSE_TIERS[B.tier];const left=Math.max(0,B.done-S.day);return {k:'house',name:`Cabin: ${T.name.toLowerCase()}`,desc:`Nell’s working on it. ${left<=1?'Done tomorrow morning.':`Done in ${left} days.`}`,price:0,can:false,btn:'Building',why:'Nell’s already building it. One job at a time.'};}
+  if(t>=3)return {k:'house',name:'The cabin',desc:'“That’s as good as I can make it,” Nell says. “Better than it was. Better than he ever let me.”',price:0,can:false,btn:'Done',why:'The cabin is finished.'};
+  const T=HOUSE_TIERS[t+1];return {k:'house',name:`Cabin: ${T.name.toLowerCase()}`,desc:`${where==='plans'?'Nell Hartley builds it (Hartley Carpentry on Market Lane, just east of the crossroads).':''}${T.desc} Takes ${T.days} days.`,price:T.cost,need:T.need,can:true,btn:'Order',
+    buy(){S.house.build={tier:t+1,done:S.day+T.days};toast(where==='plans'?'You pin the order to the board. By evening Nell has taken it: “Morning, then. Don’t mind the hammering.”':'Nell writes it in her book. “I’ll start in the morning. Don’t mind the hammering.”',3);}};}
+{const _carp=vendors.v_carp.rows;vendors.v_carp.rows=()=>{const r=_carp();r.splice(1,0,houseRow('carp'));return r;};}
+{const _pl=vendors.plans.rows;vendors.plans.rows=()=>{const r=_pl();r.unshift(houseRow('plans'));return r;};}
 if(typeof CRAFT_ICON!=='undefined')CRAFT_ICON.house='lumber';
 
 // ---- building days: scaffolding round the cabin; the morning it's finished, the change and Nell's note
@@ -82,3 +83,13 @@ if(typeof CRAFT_ICON!=='undefined')CRAFT_ICON.house='lumber';
     const lx=X1+6;ctx2.fillStyle=WDc[1];ctx2.fillRect(lx,Y-Math.round(H*.74),2,Math.round(H*.74));ctx2.fillRect(lx+9,Y-Math.round(H*.74),2,Math.round(H*.74));ctx2.fillStyle=WDc[3];for(let y=Y-6;y>Y-H*.74;y-=7)ctx2.fillRect(lx,y,11,2);}});};}
 // put everything back when a save is loaded
 {const _lg=loadGame;loadGame=function(d){_lg(d);S.house=S.house||{tier:0,build:null};houseApply();};}
+
+// ---- a greyed-out button says what's missing instead of doing nothing. It's swapped for a copy with no purchase on it, so nothing can be bought by accident.
+{const css=document.createElement('style');css.textContent='#shopRows button.nope{opacity:.55;filter:grayscale(.5);cursor:help}';document.head.appendChild(css);}
+function whyNot(r){const out=[];if(r.need)for(const [k,n] of Object.entries(r.need)){const h=inv(k);if(h<n)out.push(`${n-h} more ${((ITEMS[k]||{name:k}).name).toLowerCase()}`);}
+  if(r.price&&S.coins<r.price)out.push(`${r.price-S.coins} more coins`);
+  if(out.length)return 'You need '+(out.length>1?out.slice(0,-1).join(', ')+' and '+out[out.length-1]:out[0])+'.';
+  return r.why||String(r.desc||'Not right now.').replace(/<[^>]+>/g,'');}
+renderShop=(function(prev){return function(){prev();const rows=vendors[shopV].rows();const els=[...$('shopRows').children];
+  rows.forEach((r,i)=>{const b=els[i]&&els[i].querySelector('button');if(!b||!b.disabled)return;const nb=b.cloneNode(true);nb.disabled=false;nb.classList.add('nope');
+    nb.addEventListener('click',()=>{SFX.deny&&SFX.deny();toast(whyNot(r),2.8);});b.replaceWith(nb);});};})(renderShop);
