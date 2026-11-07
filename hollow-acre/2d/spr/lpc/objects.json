@@ -1361,10 +1361,10 @@
 },
 "bench_farm": {
 "src": "spr/lpc/obj/bench_farm.png",
-"fw": 56,
-"fh": 52,
-"ax": 28.0,
-"ay": 49,
+"fw": 64,
+"fh": 64,
+"ax": 32.0,
+"ay": 61,
 "foot": [
 0,
 0,
@@ -1374,10 +1374,10 @@
 },
 "bench_weapon": {
 "src": "spr/lpc/obj/bench_weapon.png",
-"fw": 56,
-"fh": 52,
-"ax": 28.0,
-"ay": 49,
+"fw": 64,
+"fh": 66,
+"ax": 32.0,
+"ay": 63,
 "foot": [
 0,
 0,
@@ -1387,10 +1387,10 @@
 },
 "bench_armor": {
 "src": "spr/lpc/obj/bench_armor.png",
-"fw": 56,
-"fh": 52,
-"ax": 28.0,
-"ay": 49,
+"fw": 72,
+"fh": 62,
+"ax": 36.0,
+"ay": 59,
 "foot": [
 0,
 0,
@@ -1400,10 +1400,10 @@
 },
 "bench_furn": {
 "src": "spr/lpc/obj/bench_furn.png",
-"fw": 56,
-"fh": 52,
-"ax": 28.0,
-"ay": 49,
+"fw": 64,
+"fh": 62,
+"ax": 32.0,
+"ay": 59,
 "foot": [
 0,
 0,
@@ -1413,10 +1413,10 @@
 },
 "furnace": {
 "src": "spr/lpc/obj/furnace.png",
-"fw": 40,
-"fh": 56,
-"ax": 20.0,
-"ay": 53,
+"fw": 48,
+"fh": 68,
+"ax": 24.0,
+"ay": 65,
 "foot": [
 0,
 0,

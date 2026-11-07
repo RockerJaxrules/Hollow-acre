@@ -18,8 +18,8 @@ function pickFish(where,night){const pool=FISH.filter(f=>(f[4]==='any'||f[4]===w
 // ---- the cast
 fish.power=0;
 fishAct=function(){if(MG.on)return;
-  if(fish.state==='off'){const w=waterAhead()||(Math.hypot(P.x-fishSpot.x,P.z-fishSpot.z)<1.6?[fishSpot.x,fishSpot.z+3]:null);if(!w){toast('Face the water to cast.',1.4);return;}
-    if(!spend(1))return;fish.state='power';fish.t=0;fish.aim=w;fish.bx=P.x+P.fx*.8;fish.bz=P.z+P.fz*.8;toast('Tap again to cast — further is better.',1.6);return;}
+  if(fish.state==='off'){const w=waterAhead()||(Math.hypot(P.x-fishSpot.x,P.z-fishSpot.z)<1.6?[fishSpot.x,fishSpot.z+3]:null);if(!w){toast('Stand at the water’s edge, then tap the water with your rod.',1.8);return;}
+    if(!spend(1))return;fish.state='power';fish.t=0;fish.aim=w;fish.bx=P.x+P.fx*.8;fish.bz=P.z+P.fz*.8;toast((matchMedia('(pointer:fine)').matches?'Click':'Tap')+' again to cast. The longer you wait, the further it goes.',1.8);return;}
   if(fish.state==='power'){const pw=fish.power;const [wx,wz]=fish.aim;let bx=P.x+P.fx*(1.4+pw*3.2),bz=P.z+P.fz*(1.4+pw*3.2);if(!waterAt(bx,bz)){bx=wx;bz=wz;}
     fish.bx=bx;fish.bz=bz;fish.where=fishWhere(bx,bz);fish.state='wait';fish.cast=pw;fish.t=(2+rand()*5)*(inv('bait')>0?.4:1)*(1.15-pw*.3);if(inv('bait')>0)takeInv('bait');
     SFX.splash&&SFX.splash(.3);burst(bx,bz,6,'#9fc0e0',1.2,.5,2);return;}
