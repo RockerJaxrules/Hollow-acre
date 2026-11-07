@@ -27,14 +27,14 @@ function emotionOf(id,text,ctx){const t=String(text||'').replace(/<[^>]+>/g,' ')
 // ---- the talk box gets a portrait on the right, with the name under it
 {const c=document.createElement('style');c.textContent=`
 #talkPortrait{float:right;margin:0 0 8px 14px;display:flex;flex-direction:column;align-items:center;gap:4px}
-#talkPortrait canvas{width:132px;height:132px;image-rendering:pixelated;background:linear-gradient(#d9a868,#b8814a);box-shadow:inset 0 0 0 3px #5a3418,inset 0 0 0 5px #e8c08a,0 0 0 2px #1a0e06}
-#talkPortrait .nm{font-size:12px;letter-spacing:.06em;color:#f4e6c8;background:#3a2414;padding:2px 8px;box-shadow:0 0 0 2px #1a0e06;max-width:140px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#talkPortrait canvas{width:128px;height:128px;image-rendering:pixelated;background:linear-gradient(#d9a868,#b8814a);box-shadow:inset 0 0 0 3px #5a3418,inset 0 0 0 5px #e8c08a,0 0 0 2px #1a0e06}
+#talkPortrait .nm{font-size:12px;letter-spacing:.06em;color:#f4e6c8;background:#3a2414;padding:2px 8px;box-shadow:0 0 0 2px #1a0e06;max-width:136px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #talk .acts{clear:both}
 #talkPortrait.wrong canvas{animation:ptWrong .9s steps(2) infinite}@keyframes ptWrong{50%{filter:contrast(1.4) saturate(.4) hue-rotate(-20deg);transform:translate(1px,0)}}
 @media (orientation:landscape) and (max-height:540px){#talkPortrait canvas{width:96px;height:96px}}
-@media (max-width:380px){#talkPortrait canvas{width:104px;height:104px}}
+@media (max-width:380px){#talkPortrait canvas{width:96px;height:96px}}
 #scene canvas{background:linear-gradient(#d9a868,#b8814a)!important}`;document.head.appendChild(c);
-  const box=document.createElement('div');box.id='talkPortrait';box.innerHTML='<canvas width="40" height="40"></canvas><div class="nm"></div>';
+  const box=document.createElement('div');box.id='talkPortrait';box.innerHTML='<canvas width="64" height="64"></canvas><div class="nm"></div>';
   const t=$('talk');t.insertBefore(box,t.firstChild);}
 let talkWho=null,talkCtx=null;
 function talkFace(){const n=talkWho;const box=$('talkPortrait');if(!n||!hasPortrait(n.def.id)){box.style.display='none';return;}box.style.display='';

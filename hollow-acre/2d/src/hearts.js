@@ -49,7 +49,7 @@ for(const [id,evs] of Object.entries(MORE_EVENTS))if(PEOPLE[id])PEOPLE[id].event
 #scene canvas{width:96px;height:96px;flex:none;image-rendering:pixelated;background:#c8955a;box-shadow:inset 0 0 0 3px #5a3418}#scene .tt{font-family:var(--font-display);color:var(--ember);font-size:18px;margin-bottom:6px}
 #scene .tx{font-size:15px;line-height:1.5;min-height:88px}#scene .tx q{color:#fff6dc}#scene .more{font-size:12px;color:var(--dim);text-align:right;margin-top:6px}
 #scene.glitch .box{animation:scGl .12s steps(2) 3}@keyframes scIn{from{opacity:0;transform:translateY(20px)}}@keyframes scGl{50%{transform:translate(3px,-2px);filter:invert(1) hue-rotate(160deg)}}`;document.head.appendChild(css);
-  const el=document.createElement('div');el.id='scene';el.innerHTML='<div class="box"><canvas width="48" height="48"></canvas><div style="flex:1"><div class="tt"></div><div class="tx"></div><div class="more">tap to continue</div></div></div>';document.body.appendChild(el);}
+  const el=document.createElement('div');el.id='scene';el.innerHTML='<div class="box"><canvas width="64" height="64"></canvas><div style="flex:1"><div class="tt"></div><div class="tx"></div><div class="more">tap to continue</div></div></div>';document.body.appendChild(el);}
 let SCENE=null;
 function playScene(id,title,html,done){const el=$('scene');const beats=html.split(/<br>\s*<br>/).map(s=>s.trim()).filter(Boolean);SCENE={beats,i:0,done};S.paused=true;
   el.querySelector('.tt').textContent=(npcById(id)?npcById(id).def.name+' — ':'')+title;const cv=el.querySelector('canvas');const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,48,48);
