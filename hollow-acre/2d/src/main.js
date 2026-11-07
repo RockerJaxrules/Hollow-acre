@@ -231,14 +231,28 @@ function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true
     if(k>6.2&&!cine.s3){cine.s3=1;H.vis=false;H.state='gone';fade(1);setTimeout(()=>{finishIntro();fade(0);},900);}}}
 function finishIntro(){endCine();fade(0);if($('creator'))$('creator').hidden=true;applyLook();for(const o of OBJ)if(o.kind==='wreck')o.hide=false;S.storm=false;S.introDrive=false;S.mode='play';S.hour=6.3;H.vis=false;H.state='gone';H.timer=6;P.x=-58.6;P.z=-6.4;P.dir='E';P.fx=1;P.fz=0;
   $('hud').hidden=false;$('buttons').hidden=false;ui.obj.hidden=false;toast('Day 1. Dawn. Your car is wrapped around the oak. The farm is east.',4);}
-function escapeCine(){S.mode='cine';$('skip').hidden=false;$('buttons').hidden=true;SFX.engineStart();SFX.engine(true);const st={t:0,x:carPos.x,loops:0};
-  cine={hidePlayer:true,cam:{x:st.x,z:-6},custom:null,update(dt){st.t+=dt;st.x-=dt*14;cine.cam.x=st.x;cine.cam.z=-6;
-    if(st.x<-74){st.loops++;st.x=-14;fade(.8);setTimeout(()=>fade(0),300);sub(st.loops===1?'The farm sign goes by. Again.':'HOLLOW ACRE. E. Marsh, prop. 32 marks now.');SFX.whisper(0);}
-    if(st.loops>=2&&st.x<-20&&!st.end){st.end=1;SFX.engine(false);fade(1);setTimeout(()=>{endCine();S.looped=true;S.mode='play';P.x=farmSignPos.x+1;P.z=farmSignPos.z+1.4;$('buttons').hidden=false;fade(0);
-      toast('The engine dies in front of the farm sign. There is no road out of Marrow Hollow.',4,true);},1000);}},
-    draw(){drawSpr('car_side',sx(st.x),sz(-6));}};
+function escapeCine(){S.mode='cine';$('skip').hidden=false;$('buttons').hidden=true;$('hud').hidden=true;ui.obj.hidden=true;SFX.engineStart();SFX.engine(true);
+  // the car pulls out on the westbound lane of Route 9 and drives for the county line; the road loops it back past the farm sign, twice.
+  // It is drawn in the world, sorted with everything else, so it goes under the covered bridge's roof and past people, not over them.
+  const LANE=-7.1,V=11;const st={t:0,x:carPos.x+1.5,loops:0,bob:0};
+  const moved=[];for(const n of npcs)if(n.vis&&!n.room&&Math.abs(n.z+6)<3.4&&n.x>-90&&n.x<0){moved.push([n,n.vis]);n.vis=false;}
+  const wreck=OBJ.filter(o=>o.kind==='wreck');for(const o of wreck)o.hide=true;if(typeof BEATEN!=='undefined'&&BEATEN.o)BEATEN.o.hide=true;
+  const done=()=>{for(const [n,v] of moved)n.vis=v;for(const o of wreck)o.hide=false;$('hud').hidden=false;ui.obj.hidden=false;if(typeof carShow==='function')setTimeout(carShow,0);};
+  fade(1);setTimeout(()=>fade(0),350);
+  cine={hidePlayer:true,escape:true,cam:{x:st.x-3,z:-6.4},
+    drawables(D){D.push({z:LANE+.25,mind:1,draw(){const X=sx(st.x),Y=sz(LANE)+Math.round(st.bob);ctx2.fillStyle='rgba(10,8,14,.35)';ctx2.beginPath();ctx2.ellipse(X,Y+2,58,9,0,0,Math.PI*2);ctx2.fill();
+      drawSpr('car_beaten',X,Y,'yaw','S',0,{flip:true});}});},
+    light(L){const X=sx(st.x),Y=sz(LANE)-12;if(L>.25)for(const s2 of [-.5,.5]){const hx=X-2.1*PPM,hy=Y+s2*PPM*.8;coneAt(hx,hy,Math.PI,.28,12*PPM,[255,238,196],.8*L);glowAt(hx,hy,9,[255,240,210],.85*L);}glowAt(X+2.2*PPM,Y,36,[255,26,16],.5*Math.max(.3,L));},
+    update(dt){st.t+=dt;const acc=Math.min(1,st.t/1.6);st.x-=dt*V*acc*acc;st.bob=Math.sin(st.t*22)*.6;
+      cine.cam.x=lerp(cine.cam.x,st.x-3,1-Math.exp(-dt*4));cine.cam.z=lerp(cine.cam.z,-6.4,1-Math.exp(-dt*3));
+      // dust and exhaust behind
+      if(Math.random()<.6)parts.push({x:st.x+2.3,z:LANE+.1,y:.15,vx:1+Math.random(),vz:(Math.random()-.5)*.6,vy:.4+Math.random()*.4,t:0,life:.6,col:Math.random()<.5?'#8a7a64':'#5a5250',size:2});
+      if(st.x<-76){st.loops++;st.x=-12;cine.cam.x=st.x-3;fade(.85);setTimeout(()=>fade(0),320);sub(st.loops===1?'The farm sign goes by. Again.':'HOLLOW ACRE. E. Marsh, prop. 32 marks now.');SFX.whisper(0);}
+      if(st.loops>=2&&st.x<farmSignPos.x+3&&!st.end){st.end=1;SFX.engine(false);fade(1);setTimeout(()=>{done();endCine();S.looped=true;S.mode='play';P.x=farmSignPos.x+1;P.z=farmSignPos.z+1.4;$('buttons').hidden=false;fade(0);
+        toast('The engine dies in front of the farm sign. There is no road out of Marrow Hollow.',4,true);},1000);}}};
+  cine.finish=()=>{done();};
   sub('The highway west. The radio plays a hymn you almost know.');}
-$('skip').addEventListener('click',()=>{if(!cine)return;if(S.mode==='cine'&&cine.update&&!cine.draw){cine.update=null;fade(1);setTimeout(()=>{finishIntro();fade(0);},500);}else if(cine.draw){S.looped=true;endCine();S.mode='play';$('buttons').hidden=false;}});
+$('skip').addEventListener('click',()=>{if(!cine)return;if(cine.escape){cine.finish&&cine.finish();S.looped=true;endCine();S.mode='play';P.x=farmSignPos.x+1;P.z=farmSignPos.z+1.4;$('buttons').hidden=false;fade(0);return;}if(S.mode==='cine'&&cine.update){cine.update=null;fade(1);setTimeout(()=>{finishIntro();fade(0);},500);}});
 /* ================= controls ================= */
 function onAct(){A.init&&A.init();if(S.mode!=='play'||S.paused||P.anim)return;if(ctx.ok&&ctx.act)ctx.act();else if(ctx.label)SFX.deny();}
 function onSeed(){if(S.mode!=='play')return;S.sel=S.sel==='turnip'?'pumpkin':'turnip';if(S.seeds[S.sel]<=0)toast(`No ${SEEDS[S.sel].name.toLowerCase()} seeds. Mae sells them.`,1.6);updateHud();}

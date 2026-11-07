@@ -53,21 +53,21 @@ function updateHud(){const s=[S.day,fmtTime(S.hour),S.coins,S.seeds.turnip,S.see
   ui.bar.style.width=(clamp((S.hour-6)/20,0,1)*100)+'%';mindHud();}
 function objective(){const L=lit(),np=S.pages.length;
   if(S.bound)return ['Free play','The field is quiet now. Grow whatever you like.',null];
-  if(!S.foundCabin)return ['Stranded','Your car is wrecked. Walk east along the road to Grandpa’s farm.',doorPos];
-  if(!S.readLetter)return ['The farm','Read the note nailed to the cabin door.',doorPos];
+  if(!S.foundCabin)return ['Stranded','Your car is wrecked. Walk east along Route 9 to Grandpa’s farm; the HOLLOW ACRE sign marks his lane.',doorPos];
+  if(!S.readLetter)return ['The farm','Read the note nailed to Grandpa’s cabin door.',doorPos];
   if(!S.everTilled)return ['Farm','Pick the hoe on your toolbar, then tap the brown field beside the cabin to dig it.',{x:0,z:3}];
-  if(!S.everPlanted)return ['Plant','Hold your seeds (toolbar), then tap a tilled square to plant.',null];
-  if(!S.everWatered)return ['Water','Pick the watering can and tap each seedling. Refill it at the stone well by the cabin.',wellPos];
-  if(S.shipped===0)return ['Sell','Harvest ripe crops and drop them in the bin by the cabin.',S.basket.length?binPos:null];
-  if(!S.q.hollis)return ['The car','Find someone to fix your car. Hollis’s garage is west on Route 9.',npcById('hollis')];
+  if(!S.everPlanted)return ['Plant','Pick your seeds on the toolbar, then tap a dug square of the field to plant them.',{x:0,z:3}];
+  if(!S.everWatered)return ['Water','Pick the watering can and tap each seedling. Refill it at the stone well just east of the cabin.',wellPos];
+  if(S.shipped===0)return ['Sell','Harvest ripe crops, then drop them in the wooden shipping bin just left of the cabin door.',binPos];
+  if(!S.q.hollis)return ['The car','Get your car fixed at Hollis’s garage, west on Route 9.',ROOMS.garage&&ROOMS.garage.out||npcById('hollis')];
   if(!S.carFixed){const miss=Object.keys(S.parts).filter(k=>!S.parts[k]);
     if(!miss.length)return ['The car','You have every part. Install them at your wrecked car.',carPos];
-    const where={tire:'tire from Mae',battery:'battery (3 pumpkins to Hollis)',belt:'fan belt (ask Agnes)',gas:'gas from the pump'};
+    const where={tire:'a tire from Mae (Coyle’s store, east on Route 9)',battery:'a battery (bring Hollis 3 pumpkins)',belt:'a fan belt (ask Agnes: the last house west, near your car)',gas:'gas from the pump outside Hollis’s garage'};
     const tgt={tire:npcById('mae'),battery:npcById('hollis'),belt:npcById('agnes'),gas:pumpPos}[miss[0]];
     return ['The car',`Car parts ${4-miss.length}/4. Still need: ${miss.map(k=>where[k]).join(', ')}.`,tgt];}
-  if(!S.looped)return ['Leave','The car runs. Get in and drive away from Marrow Hollow.',carPos];
-  if(S.candles+L<3){if(isNight())return ['Candles',`There is no road out. Buy Ward Candles at the crossroads after dark. ${S.candles+L}/3`,crossPos];
-    return ['Candles',`There is no road out. Save coins, then buy 3 Ward Candles at the crossroads after dark. ${S.candles+L}/3`+(np<6?` · Diary ${np}/6`:''),null];}
+  if(!S.looped)return ['Leave','The car runs. Get in at the crash site, far west on Route 9, and drive away.',carPos];
+  if(S.candles+L<3){if(isNight())return ['Candles',`Buy Ward Candles from the peddler at the crossroads. ${S.candles+L}/3`,crossPos];
+    return ['Candles',`There is no road out. Buy 3 Ward Candles from the peddler at the crossroads (after 7:30 pm). ${S.candles+L}/3`+(np<6?` · Diary ${np}/6`:''),crossPos];}
   const next=altars.filter(a=>!a.lit).sort((a,b)=>Math.hypot(a.x-P.x,a.z-P.z)-Math.hypot(b.x-P.x,b.z-P.z))[0];
   if(!isNight())return ['Wait','Wait for the bell, then light the three stones. '+L+'/3 lit',next];
   return ['The rite',`Light the ${next.name} stone. ${L}/3 lit. Keep your light on it.`,next];}

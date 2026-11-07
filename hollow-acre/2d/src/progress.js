@@ -28,11 +28,14 @@ function openWard(){const rows=WARD.map(w=>{const done=S.ward[w.k],ok=!done&&war
     return `<div style="margin:8px 0;padding:8px 10px;background:rgba(0,0,0,.06);${done?'opacity:.55':''}"><b>${w.name}</b>${done?' ✓ kept':''}<div style="font-size:13px;margin:3px 0">${req}</div>
       ${done?'':`<div style="font-size:12px;opacity:.75">Reward: ${w.coins} coins</div>`}${ok?`<button class="btn wardb" data-w="${w.k}" style="margin-top:5px">Offer</button>`:''}</div>`;}).join('');
   $('noteText').style.maxHeight='62vh';$('noteText').style.overflowY='auto';
-  openNote(`<h3>The Ward ledger</h3><p style="font-size:13px">Every family in the valley used to keep the Ward. The pages for Hollow Acre stop the year your grandfather died. ${wardDone()}/${WARD.length} kept.</p>${rows}`,'Close',()=>{$('noteText').style.maxHeight='';$('noteText').style.overflowY='';});}
+  const first=!S.parishRead;S.parishRead=1;
+  const parish=first?`<p style="font-size:13px"><i>Beside it, the parish ledger lies open: a name for every October since 1871, in the same brown ink. 1987 · Ruth Abernathy. 1999 · Daniel Coyle. The last line is already written. The ink is still wet. It is your name.</i></p>`:'';
+  if(first)setTimeout(()=>mindHit&&mindHit(5),400);
+  openNote(`<h3>The Ward ledger</h3>${parish}<p style="font-size:13px">Every family in the valley used to keep the Ward. The pages for Hollow Acre stop the year your grandfather died. ${wardDone()}/${WARD.length} kept.</p>${rows}`,'Close',()=>{$('noteText').style.maxHeight='';$('noteText').style.overflowY='';});}
 $('noteText').addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.wardb');if(!b)return;const w=WARD.find(x=>x.k===b.dataset.w);if(!w||S.ward[w.k]||!wardReady(w))return;
   wardTake(w);S.ward[w.k]=1;S.coins+=w.coins;SFX.bell&&SFX.bell();updateHud&&updateHud();$('note').hidden=true;noteCb=null;S.paused=false;$('noteText').style.maxHeight='';$('noteText').style.overflowY='';
   setTimeout(()=>openNote(`<h3>${w.name} is kept</h3><p>${w.text}</p><p style="font-size:13px">+${w.coins} coins · The Ward ${wardDone()}/${WARD.length}</p>`,'Good',()=>{mindHit(3);}),200);});
-{const R=ROOMS.church;interact.push({x:R.ox+5,z:R.oz+2.75,r:1.2,on:()=>S.room==='church',label:()=>'Ward ledger',ok:()=>true,act(){openWard();}});}
+{const R=ROOMS.church;interact.push({x:R.ox+5,z:R.oz+2.5,r:1.4,on:()=>S.room==='church',label:()=>'Ward ledger',ok:()=>true,act(){openWard();}});}
 
 // ---------- Mae's lessons
 S.ls=S.ls||{i:-1,base:{},ev:{}};
@@ -54,13 +57,13 @@ const LESSONS=[
    goal:()=>'Eat something from your bag',ok:()=>S.ls.ev.eat,coins:5,done:'There. Never let that bar run dry out here. People who faint in the fields wake up in strange places.'},
   {id:'sleep',t:'Sleep',say:'When it gets late, go to bed in the cabin. Sleeping saves your day and gives you your energy back. And don’t stay out past two. Please.',
    goal:b=>'Go to bed in the cabin',ok:b=>S.day>b.day,begin:b=>{b.day=S.day;},coins:20,done:'Morning! See? You made it through a night. That’s the hardest part. Well. One of them.'},
-  {id:'ship',t:'Harvest and ship',say:'When a crop is ripe, harvest it, then drop it in the shipping crate by the cabin door. That’s how you get paid.',
+  {id:'ship',t:'Harvest and ship',at:()=>binPos,say:'When a crop is ripe, harvest it, then drop it in the wooden shipping bin just left of the cabin door. That’s how you get paid.',
    goal:b=>`Ship crops ${Math.min(S.shipped-b.shipped,3)}/3`,ok:b=>S.shipped-b.shipped>=3,begin:b=>{b.shipped=S.shipped;},coins:30,done:'Your first coins. Spend them on seeds and they’ll come back to you twice over.'},
-  {id:'store',t:'Visit the store',say:'Come see me at the store in town, east along the road past the bridge. Buy some seeds. I’ll show you the shelves.',
+  {id:'store',t:'Visit the store',at:()=>ROOMS.store&&ROOMS.store.out,say:'Come see me at the store: Coyle’s General Store, east along Route 9, the first shop past the MARROW HOLLOW sign. Buy some seeds. I’ll show you the shelves.',
    goal:()=>'Buy seeds at Mae’s store',ok:()=>S.ls.ev.buy,seeds:{pumpkin:2},done:'A customer! Here, two pumpkin seeds extra. Don’t tell Hollis I play favourites.'},
   {id:'gather',t:'Wood and stone',say:'You’ll need wood and stone for everything. Hold the axe and tap a tree to chop it; hold the pickaxe and tap a rock to break it. Stumps need two swings.',
    goal:b=>`Gather wood ${Math.min(inv('wood')-b.wood,15)}/15 · stone ${Math.min(inv('stone')-b.stone,15)}/15`,ok:b=>inv('wood')-b.wood>=15&&inv('stone')-b.stone>=15,begin:b=>{b.wood=inv('wood');b.stone=inv('stone');},coins:25,done:'Strong arms. Elias had strong arms. He could split a log with one swing.'},
-  {id:'build',t:'Build a workbench',say:'Elias left his building plans pinned on the board by the woodpile, just east of the cabin. Look at them and build the Farming bench. You choose where it goes.',
+  {id:'build',t:'Build a workbench',at:()=>({x:12.6,z:-5.2}),say:'Elias left his building plans pinned on the board by the woodpile, east of the cabin near the road. Look at them and build the Farming bench. You choose where it goes.',
    goal:()=>'Build a workbench from Grandpa’s plans',ok:()=>Object.values(S.benches||{}).some(Boolean),coins:20,done:'Look at that. It’s even level. You’re better at this than he was.'},
   {id:'craft',t:'Craft something',say:'Open your bag and press Craft, or use a bench. Everything you gather makes something. Try a straw charm or a lamp oil flask.',
    goal:()=>'Craft anything',ok:()=>S.ls.ev.craft,items:{fiber:5},done:'There’s nothing on a farm that isn’t good for something. Here, more fiber.'},
@@ -72,7 +75,7 @@ const LESSONS=[
    goal:b=>`Talk to people ${Math.min(talkedCount(),5)}/5 · Give a gift ${Math.min(giftsGiven()-b.gifts,1)}/1`,ok:b=>talkedCount()>=5&&giftsGiven()>b.gifts,begin:b=>{b.gifts=giftsGiven();},coins:25,done:'They like you. I can tell. They’ve started not saying your name, and they only do that for people they want to keep.'},
   {id:'map',t:'The map and journal',say:'Open the menu. The Map shows the whole valley. The Journal keeps what you learn. Check both.',
    goal:()=>`Open the Map ${S.ls.ev.map?'✓':''} · Open the Journal ${S.ls.ev.journal?'✓':''}`,ok:()=>S.ls.ev.map&&S.ls.ev.journal,coins:10,done:'If you ever get lost out there, look at the map. If the map looks wrong, come straight back.'},
-  {id:'mine',t:'The old mine',say:'There’s ore under the farm: copper, iron, coal. The old Marrow mine opens at the west corner of your field. Go down a few floors. Take food.',
+  {id:'mine',t:'The old mine',at:()=>({x:MINE.x,z:MINE.z+.6}),say:'There’s ore under the farm: copper, iron, coal. The old Marrow mine is cut into the cliff just north of your cabin; walk round behind it. Go down a few floors. Take food.',
    goal:()=>`Reach mine floor ${Math.min(S.mineDeep||0,3)}/3`,ok:()=>(S.mineDeep||0)>=3,coins:40,done:'You came back up. Good. Some don’t, you know. Not from that mine. Other mines. Somewhere.'},
   {id:'smelt',t:'Smelt a bar',say:'Ore is no good raw. Build a furnace from the plans, then smelt copper into bars. Bars make tools, sprinklers, everything.',
    goal:()=>`Smelt a copper bar ${Math.min(inv('copper_bar'),1)}/1`,ok:()=>inv('copper_bar')>=1,coins:30,done:'Hollis can turn bars like that into better tools. Ask him. You’ll need them.'},
@@ -121,7 +124,7 @@ function lessonsUpdate(dt){if(maeT>0){maeT-=dt;if(maeT<=0)$('maecard').style.dis
   const st=seedsTotal();if(lsSeeds!==null&&st>lsSeeds&&!$('shop').hidden&&shopV==='mae')S.ls.ev.buy=1;lsSeeds=st;
   const ob=$('objective');const r=ob&&!ob.hidden?ob.getBoundingClientRect():null;if(r)el.style.setProperty('--lessonTop',Math.round(r.bottom+4)+'px');
   el.style.display=S.paused||$('bag').hidden===false?'none':'flex';
-  const tx=`<b>Mae</b>${L.goal(S.ls.base)}`;if(el.dataset.tx!==tx){el.dataset.tx=tx;el.querySelector('.tx').innerHTML=tx;headIcon&&headIcon('mae',el.querySelector('canvas'));}
+  const tx=`<b>Mae</b>${L.goal(S.ls.base)}${L.at&&typeof wayChip==='function'?wayChip(L.at()):''}`;if(el.dataset.tx!==tx){el.dataset.tx=tx;el.querySelector('.tx').innerHTML=tx;headIcon&&headIcon('mae',el.querySelector('canvas'));}
   if(L.ok(S.ls.base)&&!S.paused){const rw=lsReward(L);maeSay(L.done,rw,6);SFX.coin&&SFX.coin();lsBegin(S.ls.i+1);}}
 {const _mu=mindUpdate;mindUpdate=function(dt){_mu(dt);lessonsUpdate(dt);};}
 // candles cost more: the rite has to be earned

@@ -48,7 +48,7 @@ interact.push({...rp('cabin',7.9,1.4),r:1,on:inRoom('cabin'),label:()=>'Stove',o
 interact.push({...rp('store',6.5,3.0),r:1.4,on:inRoom('store'),label:()=>'Counter',ok:()=>true,act(){const m=npcById('mae');if(!(m&&m.loc==='in'&&m.inWant!=='home'&&Math.abs(m.x-(ROOMS.store.ox+6.5))<1))toast('Mae calls from the back room: “Take what you need, dear. Leave the coins by the till.”',2.8);else toast('“What’ll it be, dear?”',1.6);openShop('mae');}});
 interact.push({...rp('garage',5.9,1.6),r:1.3,on:inRoom('garage'),label:()=>'Workbench',ok:()=>true,act(){openShop('hollis');}});
 interact.push({...rp('garage',3.3,4.8),r:1.6,on:inRoom('garage'),label:()=>'Cruiser',ok:()=>true,act(){toast('The sheriff’s old cruiser, up on blocks. There’s a child’s shoe on the back seat, dry as bone.',3);}});
-interact.push({...rp('church',5,2.2),r:1.4,on:inRoom('church'),label:()=>'Ledger',ok:()=>true,act(){openNote(`<p><i>The parish ledger, open on the altar. A name for every October since 1871, in the same brown ink.</i></p><p>1987 · Ruth Abernathy<br>1999 · Daniel Coyle<br>…</p><p>The last line is already written. The ink is still wet. It is your name.</p>`);mindHit&&mindHit(5);}});
+// the altar ledger is one interaction now: the Ward ledger in progress.js (it shows the parish names the first time)
 interact.push({...rp('church',5,5.7),r:1.4,on:inRoom('church'),label:()=>'Pray',ok:()=>true,act(){const T=tierOf(M.v);M.v=Math.min(100,M.v+(T>=3?-4:8));toast(T>=3?'You kneel. Somebody in the back pew kneels with you. When you turn, the pew is empty.':'You sit a while. The quiet helps.',3,T>=3);}});
 // walking into the doorway takes you back out
 const _upd2=update;update=function(dt){_upd2(dt);const R=roomOf();if(!R||S.mode!=='play')return;

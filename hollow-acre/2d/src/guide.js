@@ -6,7 +6,7 @@ function stepGuide(){const ob=objective(),t=ob[0];const st=S.st||{};
   switch(t){
     case 'The car':return ['hollis','Your car needs four parts: a tire from Mae’s store, a battery (I’ll trade one for three pumpkins), a fan belt (Agnes keeps her late husband’s), and gas from the pump on Route 9. Bring them, then fix it at the wreck.'];
     case 'Leave':return ['mae','Your car runs? Then drive, dear. West, the way you came. …Come and tell me what you see.'];
-    case 'Candles':return ['hale','The stones need Ward candles. The peddler sells them at the crossroads after dark. Or make tallow candles at your grandfather’s bench: three fiber and a lump of coal each.'];
+    case 'Candles':return ['hale','The stones need Ward candles. The peddler sells them at the crossroads after dark: east past the barn, then south down the dirt road to its end. Or make tallow candles at your grandfather’s bench: three fiber and a lump of coal each.'];
     case 'Wait':case 'The rite':return ['hale','Three stones: the west woods, the cornfield, and my churchyard. Light all three after the bell, the same night. And keep your lantern pointed at whatever comes.'];
     case 'The Tithe':return ['della','Walk the valley. The Marsh place on the west lane, the Tithe House at the end of Mill Road, the hollow tree in the east woods, the Black Lake, and Wickham across the river. Ask people. Every friend tells you something.'];
     case 'The Ward':return ['hale','The ledger is by my altar. Two bundles and the valley will start to answer you. Crops, timber, ore, fish, food, friends: it takes all kinds.'];

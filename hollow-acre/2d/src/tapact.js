@@ -33,8 +33,8 @@ function tapTarget(wx,wz){
     const L=MINE.ladder;if(L&&!L.hide&&Math.hypot(L.x-wx,L.z-wz)<.7)return {kind:'ladder',x:L.x,z:L.z,r:.7};
     let bo=null,bd=.62;for(const o of MINE.ores||[]){if(o.hide)continue;const d=Math.hypot(o.x-wx,(o.z-.2)-wz);if(d<bd){bd=d;bo=o;}}if(bo)return {kind:'ore',o:bo,x:bo.x,z:bo.z,r:.85};}
   let best=null,bd=1e9;for(const it of interact){if(it.on&&!it.on())continue;if(it.npc!==undefined&&npcs[it.npc]){it.x=npcs[it.npc].x;it.z=npcs[it.npc].z;}
-    if(!isFinite(it.x)||!isFinite(it.z))continue;const d=Math.hypot(it.x-wx,(it.z-.3)-wz);if(d<Math.max(.75,(it.r||1)*.6)&&d<bd){bd=d;best=it;}}
-  if(best)return {kind:'item',it:best,x:best.x,z:best.z,r:Math.min(1.1,(best.r||1)*.8)};
+    if(!isFinite(it.x)||!isFinite(it.z))continue;const up=(it.z-.3)-wz;const d=Math.hypot(it.x-wx,up>0?up*.55:up);if(d<Math.max(.75,(it.r||1)*.6)&&d<bd){bd=d;best=it;}}
+  if(best)return {kind:'item',it:best,x:best.x,z:best.z,r:Math.min(1.1,(best.r||1)*.8),reach:(best.r||1)+.3};
   const t=tileAtW(wx,wz);if(t){if(t.debris&&!t.debris.hide){const q=debrisItem(t.debris);if(q)return {kind:'item',it:q,x:q.x,z:q.z,r:.8};}return {kind:'tile',t,x:t.x,z:t.z,r:.85};}
   if(!S.room&&typeof waterAt==='function'&&waterAt(wx,wz)){// stand on the nearest dry ground between you and where you clicked
     let x=wx,z=wz;const dx=P.x-wx,dz=P.z-wz,d=Math.hypot(dx,dz)||1;for(let s=0;s<d;s+=.25){x=wx+dx/d*s;z=wz+dz/d*s;if(!waterAt(x,z))break;}
@@ -111,15 +111,15 @@ function tapDo(T){TAP.mark=null;if(busy())return;if(fishing()&&T.mode==='tool'){
 function waterNear(T){const dx=T.x-P.x,dz=T.z-P.z,d=Math.hypot(dx,dz)||1;for(const k of [.9,1.4,1.9,2.4]){if(waterAt(P.x+dx/d*k,P.z+dz/d*k))return true;}return false;}
 function tapGo(T){const sxp=T.sx!=null?T.sx:T.x,szp=T.sz!=null?T.sz:T.z;const dx=P.x-sxp,dz=P.z-szp,d=Math.hypot(dx,dz);
   if(T.kind==='water'){if(waterNear(T)){tapDo(T);return;}TAP.auto={x:T.sx,z:T.sz,T,t:0};TAP.mark={x:T.x,z:T.z,t:0};return;}
-  if(d<=T.r+.35){tapDo(T);return;}
+  const reach=T.reach||T.r+.35;if(d<=reach){tapDo(T);return;}
   // stand just short of it, on the side you're coming from
   const k=(T.r)/(d||1);TAP.auto={x:T.x+dx*k,z:T.z+dz*k,T,t:0};TAP.mark={x:T.x,z:T.z,t:0};}
 {const _mi=mindInput;mindInput=function(mx,mz){const a=TAP.auto;if(a){if(Math.hypot(mx,mz)>.15||S.paused||S.mode!=='play'||P.anim){if(Math.hypot(mx,mz)>.15)TAP.auto=null;}
     else{a.t+=1/60;if(a.T.kind==='mob'){a.x=a.T.m.x;a.z=a.T.m.z;}const dx=a.x-P.x,dz=a.z-P.z,d=Math.hypot(dx,dz);
       // stuck against something? (a fence, the pond's edge)
       if(!a.lp||a.t-a.lt>.5){const mv=a.lp?Math.hypot(P.x-a.lp[0],P.z-a.lp[1]):1;a.lp=[P.x,P.z];a.lt=a.t;if(mv<.05&&a.t>.6)a.stuck=1;}
-      const dT=Math.hypot(P.x-a.T.x,P.z-a.T.z);const near=a.T.kind==='water'?(d<.35||waterNear(a.T)):(d<.22||dT<a.T.r+.3);
-      if(near||a.t>7||a.stuck){TAP.auto=null;if(near||dT<a.T.r+.6)tapDo(a.T);else{TAP.mark=null;if(a.stuck)tSay('Can’t get there from here.',1);}}
+      const dT=Math.hypot(P.x-a.T.x,P.z-a.T.z);const reach=a.T.reach||a.T.r+.3;const near=a.T.kind==='water'?(d<.35||waterNear(a.T)):(d<.22||dT<reach);
+      if(near||a.t>7||a.stuck){TAP.auto=null;if(near||dT<(a.T.reach||a.T.r)+(a.T.kind==='item'&&a.stuck?1.3:.6))tapDo(a.T);else{TAP.mark=null;if(a.stuck)tSay('Can’t get there from here.',1);}}
       else{const k=Math.min(1,d*1.6)*.82;return _mi(dx/d*k,dz/d*k);}}}return _mi(mx,mz);};}
 // a little ring where you clicked
 {const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld(D,t);const m=TAP.mark;if(!m)return;m.t+=1/60;if(m.t>.9&&!TAP.auto){TAP.mark=null;return;}
