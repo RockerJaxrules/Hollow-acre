@@ -40,6 +40,17 @@ loader = '<div id="loadScr" role="status" aria-live="polite"><div class="lt">Hol
 import base64
 _pm = json.load(open('px/out/portraits.json')); _pm['src'] = 'data:image/png;base64,' + base64.b64encode(open('px/out/portraits.png','rb').read()).decode()
 import time as _t
+# the player's sheets for the axe, hoe and pick are pixel-for-pixel the same picture (the tool head is drawn on top in toolfx.js):
+# point them all at one file, so each is downloaded (and published) once
+import hashlib as _hl
+_seen = {}
+for _n in sorted(SPR):
+    if not (_n.startswith('farmer') or _n.startswith('pl_')): continue
+    _s = SPR[_n].get('src')
+    if not _s or not _s.endswith('.png') or not os.path.exists(_s): continue
+    _d = _hl.md5(open(_s, 'rb').read()).hexdigest()
+    if _d in _seen and _seen[_d] != _s: SPR[_n]['src'] = _seen[_d]
+    else: _seen.setdefault(_d, _s)
 BUILD_ID = str(int(_t.time()))
 open('version.json','w').write(json.dumps({'id': BUILD_ID}))
 js = 'const BUILD_ID=' + json.dumps(BUILD_ID) + ';\nconst SPR=' + json.dumps(SPR) + ';\nconst PORTRAITS=' + json.dumps(_pm) + ';\n' + open('g2d/audio.js').read() + '\n' + open('g2d/world.js').read() + '\n' + open('g2d/expand.js').read() + '\n' + open('g2d/engine.js').read() + '\n' + open('g2d/game.js').read().replace('//@@STORY@@', story) + '\n' + open('g2d/main.js').read() + '\n' + open('g2d/mind.js').read() + '\n' + open('g2d/life.js').read() + '\n' + open('g2d/social.js').read() + '\n' + open('g2d/farm.js').read() + '\n' + open('g2d/interior.js').read() + '\n' + open('g2d/depth.js').read() + '\n' + open('g2d/econ.js').read() + '\n' + open('g2d/regen.js').read() + '\n' + open('g2d/benches.js').read() + '\n' + open('g2d/place.js').read() + '\n' + open('g2d/furnrot.js').read() + '\n' + open('g2d/town.js').read() + '\n' + open('g2d/shops.js').read() + '\n' + open('g2d/custom.js').read() + '\n' + open('g2d/toolfx.js').read() + '\n' + open('g2d/lantern.js').read() + '\n' + open('g2d/craftui.js').read() + '\n' + open('g2d/craftart.js').read() + '\n' + open('g2d/craftgames.js').read() + '\n' + open('g2d/craftgames3.js').read() + '\n' + open('g2d/craftrecipes.js').read() + '\n' + open('g2d/menu.js').read() + '\n' + open('g2d/fishing.js').read() + '\n' + open('g2d/hearts.js').read() + '\n' + open('g2d/tutorial.js').read() + '\n' + open('g2d/folk2.js').read() + '\n' + open('g2d/wickham.js').read() + '\n' + open('g2d/story.js').read() + '\n' + open('g2d/horror.js').read() + '\n' + open('g2d/finale.js').read() + '\n' + open('g2d/save.js').read() + '\n' + open('g2d/progress.js').read() + '\n' + open('g2d/guide.js').read() + '\n' + open('g2d/net.js').read() + '\n' + open('g2d/coop.js').read() + '\n' + open('g2d/death.js').read() + '\n' + open('g2d/host.js').read() + '\n' + open('g2d/portraits.js').read() + '\n' + open('g2d/mapx.js').read() + '\n' + open('g2d/wayfind.js').read() + '\n' + open('g2d/carfix.js').read() + '\n' + open('g2d/tapact.js').read() + '\n' + open('g2d/ui.js').read() + '\n' + open('g2d/layout.js').read() + '\n' + open('g2d/hud2.js').read() + '\n' + open('g2d/update.js').read() + '\n' + open('g2d/houseup.js').read() + '\n' + open('g2d/shipbin.js').read() + '\n' + open('g2d/skills.js').read() + '\n' + open('g2d/quarry.js').read() + '\n' + open('g2d/fish2.js').read() + '\n' + open('g2d/craftico.js').read() + '\n' + open('g2d/homes2.js').read() + '\n' + open('g2d/safety.js').read()
