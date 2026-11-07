@@ -134,7 +134,7 @@ def outline(img, bid, pal):
     for i in np.unique(bid[edge]):
         if not pal.outline[i]: continue
         m = edge & (bid == i); c = pal.ramps[i][0]
-        img[m, :3] = np.array(mix(c, (26, 12, 20), .45))
+        img[m, :3] = np.array(mix(c, (30, 10, 18), .62))
     hid = [pal.names.index(n) for n in ('hair', 'hairtip') if n in pal.names]
     sid = [pal.names.index(n) for n in ('skin', 'blush', 'shadow') if n in pal.names]
     hm = np.isin(bid, hid); sm = np.isin(bid, sid)
@@ -160,7 +160,8 @@ def G(cx, cy, sx, sy): return np.exp(-(((X - cx) / sx) ** 2 + ((Y - cy) / sy) **
 
 CX = 64
 BO = 4.0     # how much lower than the old layout the shoulders sit
-EXPRS = ['neutral', 'happy', 'sad', 'angry', 'surprised', 'scared', 'wrong']
+EXPRS = ['neutral', 'happy', 'sad', 'angry', 'surprised', 'scared', 'wrong', 'love', 'laugh', 'cry', 'smug', 'think']
+VARIANTS = ['day', 'night', 'wet']
 
 def wave_pts(pts, amp, freq, phase=0.0, axis=0):
     if not amp: return pts
@@ -169,8 +170,13 @@ def wave_pts(pts, amp, freq, phase=0.0, axis=0):
     return q
 
 class Painter:
-    def __init__(s, C, ex):
-        s.C = C; s.ex = ex; s.pal = Palette(); s.cv = Canvas(s.pal); s.rng = np.random.RandomState(C.get('seed', 7))
+    def __init__(s, C, ex, var='day'):
+        global LV
+        L0 = {'night': (-.5, -.25, .82)}.get(var, (-.5, -.62, .6)); LV = np.array(L0) / np.linalg.norm(L0)
+        D = dict(face_w=25.0, chin=86.0, jaw_p=1.85, jaw_q=.5, jaw_taper=.26, eye_a=6.2, iris=4.1, eye_y=59.3, lash_w=1.12)
+        C = dict(D, **C)
+        if var == 'wet': C['vol'] = C.get('vol', 0) - 2.5
+        s.C = C; s.ex = ex; s.var = var; s.pal = Palette(); s.cv = Canvas(s.pal); s.rng = np.random.RandomState(C.get('seed', 7))
         s.mk_palette()
     # ------------------------------------------------------------ colours
     def mk_palette(s):
@@ -185,7 +191,7 @@ class Painter:
         P.define('cleave', [s.SK[0], s.SK[0], s.SK[1], s.SK[1], s.SK[1], s.SK[1]], prio=2.4, outline=False)
         mk = C.get('makeup')
         if mk: P.define('shadow', skin_ramp(mix(hexc(skin) if isinstance(skin, str) else skin, hexc(mk), .4)), outline=False)
-        H = C['hair']; s.HR = ramp(H, 6, dark=.34, light=1.42, shade_hue=.8 if C.get('cool_hair') else .99, shade_amt=.3, lit_amt=.3, sat=1.2)
+        H = C['hair']; s.HR = ramp(H, 6, dark=.34, light=1.42, shade_hue=.8 if C.get('cool_hair') else .99, shade_amt=.3, lit_amt=.3, sat=1.32)
         P.define('hair', s.HR, thr=[.17, .31, .45, .62, .8])
         if C.get('tip'): P.define('hairtip', ramp(C['tip'], 6, dark=.38, light=1.3, shade_hue=.9, shade_amt=.25), thr=[.17, .31, .45, .62, .8])
         bc = C.get('brow') or mix(hexc(H), (30, 20, 20), .45)
@@ -210,9 +216,13 @@ class Painter:
         P.define('teeth', [(214, 206, 204), (240, 236, 232), (252, 250, 246)], prio=1.8, thr=[.4, .7], outline=False)
         P.define('tooth_gap', [(150, 120, 120)], prio=3.0, thr=[], outline=False)
         P.define('tear', [(120, 170, 220), (190, 224, 250), (255, 255, 255)], prio=3.0, thr=[.4, .75], outline=False)
-        for k in ('top', 'top2', 'top3', 'acc', 'acc2', 'frame', 'metal', 'cord'):
-            if C.get(k): P.define(k, ramp(C[k], 6, dark=.36, light=1.3, shade_hue=.75 if k.startswith('top') else .97, shade_amt=.2, lit_amt=.18),
+        for k in ('top', 'top2', 'top3', 'acc', 'acc2', 'frame', 'metal', 'cord', 'dot'):
+            if C.get(k): P.define(k, ramp(C[k], 6, dark=.36, light=1.24, shade_hue=.75 if k.startswith('top') else .97, shade_amt=.2, lit_amt=.18, sat=1.12),
                                   prio=(4.0 if k in ('frame', 'cord') else 2.6 if k == 'metal' else 1.0), outline=k not in ('cord', 'metal'))
+        P.define('blushline', [(214, 92, 108)], prio=3.0, thr=[], outline=False)
+        P.define('vein', [(150, 20, 30), (220, 50, 50)], prio=3.4, thr=[.5], outline=False)
+        P.define('rain', [(178, 206, 232)], prio=5.0, thr=[], outline=False)
+        P.define('tongue', [(170, 60, 72), (214, 96, 104)], prio=1.6, thr=[.5], outline=False)
         P.define('freckle', [mix(s.SK[2], (170, 90, 60), .25)], prio=1.6, thr=[], outline=False)
         P.define('glass', [(255, 255, 255)], prio=2.0, thr=[], outline=False)
 
@@ -347,7 +357,28 @@ class Painter:
         elif t == 'v':
             half = bez([(0, 118 + o), (5, 110 + o), (10, 100 + o), (13.5, 90 + o)], 24)
         elif t == 'square':
-            half = np.array([(0, 110.5 + o), (4, 110.3 + o), (17, 110 + o), (19, 103 + o), (20.5, 92 + o)])
+            half = np.array([(0, 113 + o), (4, 112.8 + o), (17, 112.4 + o), (19.5, 104 + o), (21, 92 + o)])
+        elif t == 'plunge':
+            half = bez([(0, 122 + o), (5, 112 + o), (11, 100 + o), (14.5, 90 + o)], 24)
+        elif t == 'deepscoop':
+            half = bez([(0, 119.5 + o), (9, 118.5 + o), (19.5, 111 + o), (23, 92 + o)], 30)
+        elif t == 'tank':   # a tank top: a scoop at the front, straps, bare shoulders and arms
+            half = bez([(0, 118.5 + o), (9, 117.5 + o), (18.5, 110 + o), (21.5, 92 + o)], 30)
+            pts = [(CX - x, y) for x, y in half[::-1]] + [(CX + x, y) for x, y in half] + [(CX + half[-1][0], 60), (CX - half[-1][0], 60)]
+            s.neck_half = half; bare = poly(pts)
+            for sg in (-1, 1):
+                bare |= poly([(CX + sg * 28.5, 60), (CX + sg * 28.5, 92 + o), (CX + sg * 31, 104 + o), (CX + sg * 38, 113 + o), (CX + sg * 64, 114 + o), (CX + sg * 64, 60)])
+            return bare
+        elif t in ('tube', 'cami', 'offshoulder'):
+            # strapless edges run right across the chest; the shoulders stay bare
+            cen = {'tube': 114.5, 'cami': 116.5, 'offshoulder': 115}[t] + o; side = {'tube': 110, 'cami': 109.5, 'offshoulder': 107.5}[t] + o
+            far = {'tube': 111, 'cami': 111, 'offshoulder': 106.5}[t] + o
+            half = np.vstack([bez([(0, cen), (3, cen - 3.2), (7, side + .6), (13, side)], 14), bez([(13, side), (24, side - .4), (40, far), (62, far + (2 if t == 'offshoulder' else 6))], 20)])
+            pts = [(CX - x, y) for x, y in half[::-1]] + [(CX + x, y) for x, y in half] + [(CX + 62, 40), (CX - 62, 40)]
+            s.neck_half = half; bare = poly(pts)
+            if t == 'cami':
+                for sg in (-1, 1): bare &= ~stroke(bez([(CX + sg * 16.5, 92 + o), (CX + sg * 16, 101 + o), (CX + sg * 14.8, side + 1)], 12), [1.9, 1.9, 2.1])
+            return bare
         elif t == 'sweetheart':
             half = np.vstack([bez([(0, 116.5 + o), (2.5, 113 + o), (5, 109.5 + o), (9, 108.5 + o)], 12), bez([(9, 108.5 + o), (15, 107.6 + o), (19, 108.5 + o), (20.5, 101 + o)], 14), [(21, 93 + o)]])
         else:
@@ -376,10 +407,14 @@ class Painter:
                 f2 = stroke(bez([(CX + sg * 40, 109 + o), (CX + sg * 36, 116 + o), (CX + sg * 37, 124 + o)], 20), [.3, .9, .3])
                 lit = np.where(f2, lit - .08, lit)
         cv.put(cloth, 'top', lit)
+        cv.add(cloth & ~shift(cloth, 0, 1.0), 'top', -.2)
+        if C.get('pattern') == 'dots':
+            dm = (((X + 1.5) % 6 - 3) ** 2 + ((Y + 1.5 + 3 * (np.floor((X + 1.5) / 6) % 2)) % 6 - 3) ** 2) < 1.1
+            cv.put(cloth & dm, 'dot', lit)
         edge_sh = bare & shift(cloth, 0, -1.2) & ~cloth
         cv.add(edge_sh & tor, 'skin', -.12)
         sw = C.get('shoulder', 55.0)
-        if C.get('sleeve', True):
+        if C.get('sleeve', True) and C.get('neck') not in ('tube', 'cami', 'tank'):
             for sg in (-1, 1):
                 hem = stroke(bez([(CX + sg * (sw - 7), 125 + o), (CX + sg * (sw - 3), 122 + o), (CX + sg * (sw + 2), 121.5 + o)], 16), [.6, 1.4, 1.2])
                 cv.add(hem & tor, 'top', -.18)
@@ -407,6 +442,7 @@ class Painter:
                 inner = bez([(CX + sg * 13, 88 + o), (CX + sg * 19.5, 100 + o), (CX + sg * 25, 113 + o), (CX + sg * 28, 129 + o)], 30)
                 pts = [(x, y) for x, y in inner] + [(CX + sg * (sw + 4), 129 + o), (CX + sg * (sw + 4), 86 + o)]
                 m = poly(pts) & tor
+                if C.get('cardi_off'): m &= Y > (107 + o + 5 * sstep(30, 50, np.abs(X - CX)))
                 lit = .58 - .2 * (X - CX) / 55 - .1 * sstep(40, 58, np.abs(X - CX)) + .06 * G(CX - 34, 104 + o, 12, 5)
                 cv.put(m, 'top2', lit)
                 e = ribbon(inner, [1.8] * 4)[0] & tor
@@ -445,7 +481,7 @@ class Painter:
             s.ear_m |= e
         fm = poly(s.face_poly())
         lit = sphere_lit(61.5, 52, 27, 50, flat=.72, amb=.44, k=.32)
-        lit += .12 * G(55, 35, 9, 6)                                  # forehead
+        lit += .07 * G(55, 37, 8, 5)                                  # forehead
         lit += .1 * G(50, 64.5, 5, 3) + .04 * G(78, 64.5, 4, 3)       # cheekbones
         lit -= .07 * G(52, 56.5, 7, 2.6) + .09 * G(76.5, 56.5, 7, 2.6)  # under the brow ridge
         # the nose: a lit bridge, its right side and underside in shadow, a lit tip
@@ -467,11 +503,14 @@ class Painter:
         jaw_sh = shift(fm, 1.0, 3.0) & ~fm & s.skin_body
         cv.add(jaw_sh, 'skin', -.2)
         # blush
-        bl = C.get('blush', .5) + (.35 if s.ex == 'happy' else 0) - (.4 if s.ex in ('scared', 'wrong') else 0)
+        bl = C.get('blush', .5) + {'happy': .35, 'love': .7, 'laugh': .45, 'cry': .3}.get(s.ex, 0) - (.4 if s.ex in ('scared', 'wrong') else 0)
         if bl > .2:
             for sg in (-1, 1):
                 bm = ell(CX + sg * 14.5, 67.5, 4.6 * min(1.3, bl + .4), 2.4 * min(1.3, bl + .4)) & fm
                 cv.put(bm, 'blush', lit)
+                if s.ex == 'love':
+                    for k in range(3):
+                        bx = CX + sg * (11.5 + k * 2.6); cv.put(stroke([(bx + 1.0, 66.2), (bx - .6, 69.2)], [.7, .7]) & fm, 'blushline', .5)
         if C.get('freckles'):
             r = np.random.RandomState(11)
             for _ in range(C['freckles']):
@@ -490,11 +529,21 @@ class Painter:
         elif ex == 'surprised': up, lo, iris_r, pup = 4.4, 2.7, iris_r * .86, 1.15
         elif ex == 'scared': up, lo, iris_r, pup, look = 4.6, 2.8, iris_r * .74, .85, (1.1, 0)
         elif ex == 'wrong': up, lo, iris_r, pup = 4.0, 2.6, 1.9, 0
+        elif ex == 'love': up, lo, iris_r, pup = 2.8, 1.0, iris_r * 1.08, 1.2
+        elif ex == 'cry': up, lo, tilt, look = 2.4, 1.9, -.7, (0, .9)
+        elif ex == 'smug': up, lo, look = 2.2, 1.9, (-1.1, .2)
+        elif ex == 'think': up, lo, look = 3.3, 1.9, (1.3, -1.2)
+        if ex == 'laugh':   # squeezed shut: a thick upward arc and a small flick
+            u = np.linspace(-1, 1, 30); xs = ecx + sg * u * a; ys = ecy + 1.4 - 3.0 * (1 - u * u) ** .8 - tilt * (u + 1) / 2 * .6
+            cv.put(ribbon(np.stack([xs, ys], 1), [.9, 1.7, 1.9, 1.3])[0], 'lash', .3)
+            cv.put(stroke([(xs[-1], ys[-1]), (xs[-1] + sg * 1.6, ys[-1] - .7)], [1.3, .3]), 'lash', .3)
+            cv.add(ribbon(np.stack([xs, ys + 2.4], 1), [.3, 1.0, .5])[0], 'skin', .08)
+            return
         u = np.linspace(-1, 1, 41)
         xs = ecx + sg * u * a
         yu = ecy - up * (1 - u * u) ** .72 * (1 - .14 * u) - tilt * (u + 1) / 2 + inner_drop * np.clip(-u, 0, 1) * .9 + inner_drop * .25
         yl = ecy + lo * (1 - u * u) ** .85 - tilt * .55 * (u + 1) / 2
-        if ex == 'happy': yl = ecy + lo * (1 - u * u) ** .85 - tilt * .55 * (u + 1) / 2 - .9 * (1 - u * u)
+        if ex in ('happy', 'love'): yl = ecy + lo * (1 - u * u) ** .85 - tilt * .55 * (u + 1) / 2 - .9 * (1 - u * u)
         pts = list(zip(xs, yu)) + list(zip(xs[::-1], yl[::-1]))
         scl = poly(pts)
         order = np.argsort(xs); yux = np.interp(X, xs[order], yu[order])
@@ -515,6 +564,8 @@ class Painter:
         else:
             cv.put(ell(icx - 1.35, icy - 1.25, 1.1, 1.0) & scl, 'glint', 1)
             cv.put(ell(icx + 1.5, icy + 1.6, .6, .55) & scl, 'glint2', 1)
+            if ex == 'love': cv.put((ell(icx + 1.3, icy - 1.5, .45, 1.3) | ell(icx + 1.3, icy - 1.5, 1.3, .45)) & scl, 'glint', 1)
+            if ex == 'cry': cv.put(ribbon(np.stack([xs, yl - .5], 1), [.3, .8, .3])[0] & scl, 'glint2', 1)
         # the upper lash line, thicker toward the outer corner, with a short flick
         lw = C.get('lash_w', 1.0)
         lu = np.linspace(-.98, 1.0, 30); lx = ecx + sg * lu * a
@@ -530,13 +581,16 @@ class Painter:
         # the lower lid: a soft line on the outer two thirds, and the crease above
         lu2 = np.linspace(-.1, 1.0, 20); lx2 = ecx + sg * lu2 * a
         ly2 = ecy + lo * (1 - lu2 * lu2) ** .85 - tilt * .55 * (lu2 + 1) / 2 + .45
-        if ex == 'happy': ly2 = ly2 - .9 * (1 - lu2 * lu2)
+        if ex in ('happy', 'love'): ly2 = ly2 - .9 * (1 - lu2 * lu2)
         cv.put(ribbon(np.stack([lx2, ly2], 1), [.2, .65, .8, .5])[0] & ~scl, 'lidlow', .4)
         cu = np.linspace(-.65, .95, 24); cxs = ecx + sg * cu * a * 1.02
         cys = ecy - up * (1 - cu * cu) ** .72 - tilt * (cu + 1) / 2 - 2.5 - .3 * (1 - cu * cu) + inner_drop * .6
         cv.put(ribbon(np.stack([cxs, cys], 1), [.2, .65, .6, .3])[0], 'crease', .5)
         if ex == 'happy':   # the cheek lifts under a smiling eye
             cv.add(ribbon(np.stack([lx2, ly2 + 1.6], 1), [.3, 1.0, .5])[0], 'skin', .08)
+        if ex == 'cry':
+            tx0 = ecx + sg * a * .25
+            cv.put(stroke([(tx0, ecy + lo + .8), (tx0 + sg * .6, ecy + lo + 5), (tx0 + sg * .2, ecy + lo + 9), (tx0 + sg * .9, ecy + lo + 13)], [1.2, 1.0, .9, .5]), 'tear', .65)
         if ex == 'sad' and sg < 0:
             cv.put(ell(ecx - sg * -a * .6, ecy + lo + 2.6, .9, 1.3) | ell(ecx - sg * -a * .6, ecy + lo + 4.8, .7, 1.0), 'tear', .7)
 
@@ -550,7 +604,12 @@ class Painter:
         elif ex == 'scared': di, dp, do = -3.0, -2.0, -.6
         elif ex == 'happy': di, dp, do = -.8, -1.0, -.6
         elif ex == 'wrong': di, dp, do = -1.4, -1.6, -1.2
+        elif ex == 'love': di, dp, do = -.9, -1.1, -.6
+        elif ex == 'laugh': di, dp, do = -1.6, -1.6, -1.0
+        elif ex == 'cry': di, dp, do = -2.8, -.4, 1.0
+        side = {'smug': {-1: (-1.6, -2.4, -1.2), 1: (.8, .6, .2)}, 'think': {-1: (-1.2, -1.8, -.9), 1: (.6, .2, 0)}}.get(ex)
         for sg in (-1, 1):
+            if side: di, dp, do = side[sg]
             ar = C.get('brow_arch', 1.0)
             P = [(CX + sg * 5.2, by + di), (CX + sg * 10, by - 2.4 * ar + (di + dp) / 2), (CX + sg * 15, by - 2.6 * ar + dp), (CX + sg * 20.2, by - .4 + do)]
             pts = bez(P, 40)
@@ -568,15 +627,16 @@ class Painter:
         C, cv, ex = s.C, s.cv, s.ex
         mx, my = CX + .3, C.get('mouth_y', 76.5); hw = C.get('lip_w', 6.6); uh = C.get('lip_up', 2.2); lh = C.get('lip_lo', 2.9)
         u = np.linspace(-1, 1, 41); xs = mx + u * hw
-        corner = {'neutral': .7, 'happy': 1.8, 'sad': -1.1, 'angry': -.7, 'surprised': 0, 'scared': -.9, 'wrong': 2.6}[ex]
+        corner = {'neutral': .7, 'happy': 1.8, 'sad': -1.1, 'angry': -.7, 'surprised': 0, 'scared': -.9, 'wrong': 2.6, 'love': 1.3, 'laugh': 2.0, 'cry': -1.5, 'smug': .5, 'think': -.1}[ex]
+        if ex == 'think': hw = hw * .6; mx = mx + 1.8; xs = mx + u * hw
         if ex == 'wrong': hw = hw * 1.55; xs = mx + u * hw
-        line = my - corner * u * u + .15 * np.exp(-(u / .2) ** 2) - C.get('smirk', 0) * np.clip(u, 0, 1) ** 2 * (0 if ex in ('sad', 'scared', 'wrong') else 1)
+        line = my - corner * u * u + .15 * np.exp(-(u / .2) ** 2) - (C.get('smirk', 0) + (1.8 if ex == 'smug' else 0)) * np.clip(u, 0, 1) ** 2 * (0 if ex in ('sad', 'scared', 'wrong', 'cry') else 1)
         top = line - uh * (1 - u * u) ** .55 + .7 * np.exp(-(u / .16) ** 2) - .25 * np.exp(-((np.abs(u) - .32) / .14) ** 2)
-        if ex in ('happy', 'scared', 'wrong'):
-            op = {'happy': 2.7, 'scared': 2.6, 'wrong': 4.2}[ex]
+        if ex in ('happy', 'scared', 'wrong', 'laugh', 'cry'):
+            op = {'happy': 2.7, 'scared': 2.6, 'wrong': 4.2, 'laugh': 4.0, 'cry': 2.2}[ex]
             o_top = line - .2 * (1 - u * u)
             o_bot = line + op * (1 - u * u) ** .8
-            if ex == 'scared': o_bot = line + op * (1 - u * u) ** .9 + .6 * np.sin(u * 7) * (1 - u * u)
+            if ex in ('scared', 'cry'): o_bot = line + op * (1 - u * u) ** .9 + .6 * np.sin(u * 7) * (1 - u * u)
             bot = o_bot + lh * .85 * (1 - u * u) ** .7
             up_lip = poly(list(zip(xs, top)) + list(zip(xs[::-1], o_top[::-1])))
             lo_lip = poly(list(zip(xs, o_bot)) + list(zip(xs[::-1], bot[::-1])))
@@ -584,6 +644,7 @@ class Painter:
             cv.put(opening, 'mouth', .4 + .3 * sstep(my + op * .6, my + op, Y))
             th = poly(list(zip(xs * 0 + xs, o_top)) + list(zip(xs[::-1], (o_top + 1.5 + (1.4 if ex == 'wrong' else 0) * (1 - u * u))[::-1])))
             cv.put(th & opening & (np.abs(X - mx) < hw * .82), 'teeth', .75 - .3 * sstep(hw * .4, hw * .8, np.abs(X - mx)))
+            if ex == 'laugh': cv.put(ell(mx, my + op - .4, hw * .42, 1.5) & opening, 'tongue', .6)
             if ex == 'wrong':
                 lo_t = poly(list(zip(xs, o_bot - 1.4 * (1 - u * u))) + list(zip(xs[::-1], o_bot[::-1])))
                 cv.put(lo_t & opening & (np.abs(X - mx) < hw * .75), 'teeth', .6)
@@ -630,6 +691,10 @@ class Painter:
                                [5, 6.5, 6.5, 3], back, tone=-.1 + .03 * (j % 2), wave=W(j + 3))
             else:
                 s.mass(ell(CX, 49, fw + 4.5, 32.5) & (Y < 66), back)
+            # a hairline under everything, so no part of the crown shows skin
+            dh = 3.2 if st == 'braids' else 0
+            s.hairline_cap(front, [(CX - fw - .5, 60), (CX - fw + .6, 48 + dh * .5), (CX - fw + 3.6, 40 + dh), (CX - 15, 34 + dh), (CX - 8, 30.6 + dh), (CX, 29.6 + dh + (.8 if dh else 0)), (CX + 8, 30.6 + dh),
+                                   (CX + 15, 34 + dh), (CX + fw - 3.6, 40 + dh), (CX + fw - .6, 48 + dh * .5), (CX + fw + .5, 60)])
             # the crown: locks fanning from the part over the skull
             for sg in (-1, 1):
                 for j in (6, 5, 4, 3, 2, 1, 0):
@@ -787,6 +852,22 @@ class Painter:
             pts = bez([(CX - 9.0, 89 + BO), (CX - 5.5, 103.5 + BO), (CX + 5.5, 103.5 + BO), (CX + 9.0, 89 + BO)], 40)
             cv.put(ribbon(pts, [.6, .7, .7, .6])[0], 'cord', .4)
             cv.put(ell(CX, 105.4 + BO, 1.1, 1.4), 'metal', .7)
+    def vein(s):
+        vx, vy = CX + s.C.get('face_w', 25) + 1, 27
+        for k in range(4):   # four bent bars around an empty centre: the cartoon mark for a throbbing temple
+            a = k * math.pi / 2 + math.pi / 4; cx_, cy_ = vx + math.cos(a) * 3.2, vy + math.sin(a) * 3.2
+            b = a + math.pi / 2
+            s.cv.put(stroke([(cx_ + math.cos(b) * 2.6, cy_ + math.sin(b) * 2.6), (cx_ + math.cos(a) * 1.3, cy_ + math.sin(a) * 1.3), (cx_ - math.cos(b) * 2.6, cy_ - math.sin(b) * 2.6)], [1.3, 1.7, 1.3]), 'vein', .4)
+    def rain(s):
+        r = np.random.RandomState(5)
+        m = np.zeros((NS, NS), bool)
+        for _ in range(26):
+            x0, y0, L = r.uniform(-10, 128), r.uniform(-10, 128), r.uniform(5, 11)
+            m |= stroke([(x0, y0), (x0 + L * .32, y0 + L)], [.55, .55])
+        s.cv.put(m, 'rain', 1)
+        for _ in range(9):
+            fx, fy = r.uniform(CX - 20, CX + 20), r.uniform(60, 82)
+            s.cv.put(ell(fx, fy, .55, .7) & s.face_m, 'glint2', 1)
     def sweat(s):
         fw = s.C.get('face_w', 24.5)
         s.cv.put(ell(CX + fw - 4, 44, 1.2, 1.8) | poly([(CX + fw - 5.1, 43.6), (CX + fw - 4, 40.2), (CX + fw - 2.9, 43.6)]), 'tear', .7)
@@ -808,6 +889,7 @@ class Painter:
         if C.get('print') == 'moon': s.print_moon()
         s.necklace()
         s.face()
+        cv.add(s.face_m & ~shift(s.face_m, 0, -1.0) & (Y > 68), 'skin', -.24)      # the jaw line
         s.earrings()
         for sg in (-1, 1): s.eye(sg)
         s.brows(); s.nose(); s.mouth()
@@ -822,8 +904,24 @@ class Painter:
         if C.get('flower_at'): s.flower(*C['flower_at'])
         s.glasses()
         if s.ex == 'scared': s.sweat()
+        if s.ex == 'angry': s.vein()
+        # the arms part from the body
+        sw = C.get('shoulder', 55.0)
+        for sg in (-1, 1):
+            am = stroke(bez([(CX + sg * (sw - 12), 112 + BO), (CX + sg * (sw - 10.5), 120 + BO), (CX + sg * (sw - 9.5), 129 + BO)], 16), [.4, 1.0, 1.1])
+            for m_ in ('skin', 'top', 'top2', 'dot'):
+                if m_ in s.pal.names: cv.add(am, m_, -.17)
+        if s.var == 'wet':
+            for m_ in ('hair', 'hairtip'):
+                if m_ in s.pal.names: cv.add(np.ones((NS, NS), bool), m_, -.1)
+            for m_ in ('top', 'top2', 'top3', 'dot'):
+                if m_ in s.pal.names: cv.add(np.ones((NS, NS), bool), m_, -.06)
+            s.rain()
+        if s.var == 'night':
+            keep = np.isin(cv.mat, [s.pal.id(n) for n in ('glint', 'glint2', 'pupil', 'sclera', 'iris', 'lash', 'rain') if n in s.pal.names])
+            cv.lit[~keep] = cv.lit[~keep] * .8 - .03 + .1 * G(CX - 34, 96, 26, 30)[~keep]   # a lantern held low on the left
         img, bid, blit = reduce(cv)
         img = outline(img, bid, s.pal)
         return img
 
-def portrait(C, ex): return Painter(C, ex).paint()
+def portrait(C, ex, var='day'): return Painter(C, ex, var).paint()
