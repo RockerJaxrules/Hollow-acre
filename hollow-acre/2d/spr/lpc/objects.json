@@ -3855,5 +3855,200 @@
 0.3,
 0.05
 ]
+},
+"icon32_seed_turnip": {
+"src": "spr/lpc/obj/icon32_seed_turnip.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"icon32_seed_pumpkin": {
+"src": "spr/lpc/obj/icon32_seed_pumpkin.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"icon32_seed_corn": {
+"src": "spr/lpc/obj/icon32_seed_corn.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"icon32_bonemeal": {
+"src": "spr/lpc/obj/icon32_bonemeal.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"icon32_soup": {
+"src": "spr/lpc/obj/icon32_soup.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"icon32_stew": {
+"src": "spr/lpc/obj/icon32_stew.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"icon32_chowder": {
+"src": "spr/lpc/obj/icon32_chowder.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"icon32_glowstew": {
+"src": "spr/lpc/obj/icon32_glowstew.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"icon32_hash": {
+"src": "spr/lpc/obj/icon32_hash.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"icon32_fish": {
+"src": "spr/lpc/obj/icon32_fish.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"icon32_in_chair": {
+"src": "spr/lpc/obj/icon32_in_chair.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"icon32_lamp": {
+"src": "spr/lpc/obj/icon32_lamp.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"icon32_in_shelf_jars": {
+"src": "spr/lpc/obj/icon32_in_shelf_jars.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"icon32_in_rug": {
+"src": "spr/lpc/obj/icon32_in_rug.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"icon32_in_crates": {
+"src": "spr/lpc/obj/icon32_in_crates.png",
+"fw": 32,
+"fh": 32,
+"ax": 16.0,
+"ay": 29,
+"foot": [
+0,
+0,
+0,
+0
+]
 }
 }

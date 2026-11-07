@@ -299,6 +299,73 @@ if(K==='icon32'){const I=CFG.icon;   // 32x32 hotbar icons: the same tool art th
     for(let y=-6;y<=0;y++)for(let x=-12;x<=12;x++){if(x*x/144+y*y/36>1)continue;const l=-x/12*.5-y/6*.6;P(A,16+x,22+y,l>.4?PAL.mustard[5]:l>0?PAL.mustard[4]:PAL.mustard[3]);}
     for(const [x0,x1] of [[-9,-3],[-1,5],[7,11]])for(let x=x0;x<=x1;x++){P(A,16+x,18+Math.round(Math.abs(x-(x0+x1)/2)*.3),PAL.rust[2]);}
     for(let i=0;i<5;i++){P(A,10+i*3,15,PAL.cream[3]);P(A,10+i*3,14,PAL.cream[3]);}for(let x=-14;x<=14;x++){P(A,16+x,30,[210,210,206]);P(A,16+x,31,[150,150,146]);}}}
+// ---- more 32px icons: a seed packet for each crop, bone meal, every dish seen from above, the fish whole, and the furniture
+if(K==='icon32'){const I=CFG.icon;const pick=(R,l)=>R[Math.max(0,Math.min(R.length-1,Math.round(l)))];
+  const ellF=(cx,cy,rx,ry,fn)=>{for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){const d=x*x/(rx*rx)+y*y/(ry*ry);if(d<=1)fn(cx+x,cy+y,x,y,d);}};
+  // seed packets: crimped paper, a coloured band, the crop on the front, two seeds spilt beside it
+  const CROP={turnip:{band:[[60,26,70],[98,44,112],[140,74,152],[176,112,186]]},pumpkin:{band:[[120,44,14],[180,84,28],[222,128,52],[244,170,90]]},corn:{band:[[120,88,16],[176,138,36],[220,184,64],[244,218,120]]}};
+  if(/^seed_/.test(I)){const c=I.slice(5),B=CROP[c].band,PA=[[150,128,94],[194,174,134],[226,210,172],[244,236,210]];
+    for(let y=6;y<=28;y++)for(let x=8;x<=23;x++){let l=x<10?3:x>21?1:2;if(y>26)l=Math.min(l,1);P(A,x,y,pick(PA,l));}
+    for(let x=8;x<=23;x++){P(A,x,5,(x%2)?PA[2]:PA[1]);P(A,x,6,PA[3]);P(A,x,7,PA[1]);}
+    for(let y=9;y<=11;y++)for(let x=9;x<=22;x++)P(A,x,y,pick(B,y===9?3:x>20?1:2));
+    if(c==='turnip'){ellF(16,20,4,4,(X,Y,x,y)=>P(A,X,Y,y<-1?PAL.curtain[x<0?3:2]:[x<-1?248:x>1?200:232,x<-1?246:x>1?196:228,x<-1?240:x>1?190:222]));P(A,16,25,[200,196,190]);
+      for(const [x,y] of [[15,15],[14,14],[16,14],[17,15],[18,14],[13,13]])P(A,x,y,PAL.moss[3]);P(A,16,13,PAL.moss[2]);}
+    if(c==='pumpkin'){ellF(16,20,5,4,(X,Y,x,y)=>{const rib=Math.abs(Math.sin(x/5*Math.PI*1.4));P(A,X,Y,pick(CROP.pumpkin.band,3-(x>1?1:0)-(y>1?1:0)-(rib<.2?1:0)));});P(A,16,15,PAL.moss[2]);P(A,17,14,PAL.moss[3]);P(A,15,17,[250,200,130]);}
+    if(c==='corn'){for(let y=14;y<=25;y++){const w=y<16||y>23?1:2;for(let x=-w;x<=w;x++)P(A,16+x,y,(x+y)%2?[236,196,60]:[250,224,110]);}
+      for(let y=17;y<=26;y++){P(A,13+(y>22?1:0),y,PAL.moss[y%3?2:3]);P(A,19-(y>22?1:0),y,PAL.moss[2]);}}
+    for(const [x,y] of [[26,26],[28,27],[25,28]]){P(A,x,y,[200,170,110]);P(A,x+1,y,[150,120,70]);}}
+  // bone meal: an open sack of white powder, a bone on the front
+  if(I==='bonemeal'){const SK=[[84,62,40],[122,94,62],[160,128,88],[194,164,118],[218,192,148]],RP=[66,42,22];
+    for(let y=12;y<=29;y++){const t=(y-12)/17,w=Math.round(5+Math.sin(Math.min(1,t*1.2)*Math.PI*.5)*5.5-(y>27?(y-27)*2:0));for(let x=-w;x<=w;x++){let l=-x/w*1.3+2.2-(y>25?.7:0);if(hsh(x+20,y,7)>.8)l-=.7;P(A,16+x,y,pick(SK,l));}}
+    for(let x=-6;x<=6;x++){P(A,16+x,10,SK[x<2?4:3]);P(A,16+x,11,SK[2]);}for(let x=-5;x<=5;x++)P(A,16+x,13,RP);P(A,21,14,RP);P(A,22,15,RP);P(A,22,16,RP);
+    ellF(16,8,6,3,(X,Y,x,y)=>P(A,X,Y,y<-1?[255,255,252]:x>3?[214,212,206]:[240,238,232]));P(A,13,6,[255,255,255]);
+    const bone=new Set();for(let x=12;x<=20;x++){bone.add(x+','+20);bone.add(x+','+21);}for(const [x,y] of [[11,19],[11,22],[10,19],[10,22],[21,19],[21,22],[22,19],[22,22],[10,20],[10,21],[22,20],[22,21],[11,20],[11,21],[21,20],[21,21]])bone.add(x+','+y);
+    for(const k of bone){const [x,y]=k.split(',').map(Number);for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]])if(!bone.has((x+dx)+','+(y+dy)))P(A,x+dx,y+dy,[60,40,24]);}
+    for(const k of bone){const [x,y]=k.split(',').map(Number);P(A,x,y,y<=20?[248,246,238]:[206,200,186]);}
+    for(const [x,y,c] of [[24,28,[236,234,228]],[25,28,[214,212,206]],[26,29,[236,234,228]],[23,29,[214,212,206]]])P(A,x,y,c);}
+  // dishes in a bowl seen from above: the rim, what's in it, the bowl's side and its foot
+  const BOWL={soup:{body:[[120,104,80],[170,154,124],[214,200,170],[240,232,210]],band:PAL.blue,food:[[150,104,30],[200,150,56],[228,190,96],[246,220,140]],bits:[[[248,246,236],2],[[94,140,60],1]]},
+    stew:{body:[[54,34,20],[92,60,36],[130,88,54],[164,118,74]],food:[[70,36,18],[104,58,30],[138,82,44],[170,110,62]],bits:[[[214,120,44],2],[[226,214,170],2],[[94,140,60],1]]},
+    chowder:{body:[[120,104,80],[170,154,124],[214,200,170],[240,232,210]],band:PAL.red,food:[[190,170,120],[218,200,152],[238,226,186],[250,244,220]],bits:[[[238,190,50],1],[[238,190,50],1],[[120,150,70],1]]},
+    glowstew:{body:[[36,40,48],[60,66,78],[88,96,110],[120,128,142]],food:[[20,90,84],[40,150,136],[90,214,192],[170,255,232]],bits:[[[220,255,244],1],[[60,200,170],2]]}};
+  if(BOWL[I]){const D=BOWL[I],cx=16,cy=15;
+    for(let y=0;y<=11;y++){const hw=Math.round(14*Math.sqrt(Math.max(0,1-(y/12)*(y/12))));for(let x=-hw;x<=hw;x++){const l=-x/hw*1.3+1.8-y*.08;P(A,cx+x,cy+y,pick(D.body,l));}}
+    if(D.band)for(let x=-12;x<=12;x++){const y=4+Math.round((x*x)/72);P(A,cx+x,cy+y,D.band[3]);P(A,cx+x,cy+y+1,D.band[2]);}
+    for(let x=-5;x<=5;x++){P(A,cx+x,cy+12,D.body[1]);P(A,cx+x,cy+13,D.body[0]);}
+    ellF(cx,cy,14,6,(X,Y,x,y,d)=>{if(d>.72)P(A,X,Y,pick(D.body,y<0?3:2));});
+    ellF(cx,cy,11,4,(X,Y,x,y)=>{const l=-x/11*1.1-y/4*.8+1.6+(hsh(x,y,3)>.8?.6:0);P(A,X,Y,pick(D.food,l));});
+    let k=0;for(const [col,sz] of D.bits)for(let i=0;i<4;i++){const a=(k++)*2.399,r=.35+((k*37)%10)/16,x=Math.round(Math.cos(a)*r*8),y=Math.round(Math.sin(a)*r*3);for(let j=0;j<sz;j++)for(let q=0;q<sz;q++)P(A,cx+x+j,cy+y+q,col);}
+    P(A,cx-6,cy-2,D.food[3]);P(A,cx-5,cy-2,D.food[3]);if(I==='glowstew')for(const [x,y] of [[-8,-7],[6,-8],[-2,-9],[9,-5]])P(A,cx+x,cy+y,[190,255,236]);}
+  // Grandpa's hash: a black skillet of turnip, pumpkin and corn, browned
+  if(I==='hash'){const IR=[[22,22,26],[40,40,46],[62,62,70],[90,90,100]];ellF(14,17,12,8,(X,Y,x,y,d)=>P(A,X,Y,d>.7?pick(IR,y<0?3:2):IR[1]));
+    for(let i=0;i<7;i++){P(A,25+i,16-Math.round(i*.4),IR[2]);P(A,25+i,17-Math.round(i*.4),IR[0]);}
+    ellF(14,17,9,5,(X,Y,x,y)=>P(A,X,Y,hsh(x,y,4)>.5?[120,70,32]:[146,90,44]));
+    for(let i=0;i<12;i++){const a=i*2.399,r=.2+(i%5)/6,x=Math.round(14+Math.cos(a)*r*8),y=Math.round(17+Math.sin(a)*r*4);const col=[[240,232,210],[226,128,48],[236,196,60]][i%3];P(A,x,y,col);P(A,x+1,y,shade(col,.8));}}
+  // the fish, whole: tail and all
+  if(I==='fish'){const F=[[50,68,62],[80,110,96],[120,156,136],[172,204,180],[220,236,222]];
+    ellF(14,16,11,6,(X,Y,x,y)=>{const l=-y/6*1.6+1.8-(x>6?.5:0)+(y>2?1.2:0);P(A,X,Y,pick(F,l));});
+    for(let y=-5;y<=5;y++){const w=Math.abs(y);for(let x=0;x<=Math.max(1,Math.round(5-w*.5));x++)P(A,25+x+Math.round(w*.25),16+y,pick(F,y<0?2:1));}
+    for(let x=10;x<=17;x++)P(A,x,9+(x>13?0:1),F[1]);P(A,11,10,F[1]);for(let x=12;x<=16;x++)P(A,x,10,F[2]);
+    for(let i=0;i<3;i++)P(A,13+i,20+i%2,F[1]);P(A,6,14,[16,18,20]);P(A,6,13,[240,240,236]);for(let x=8;x<=9;x++)P(A,x,17,F[0]);
+    for(let x=11;x<=22;x+=3)for(let y=13;y<=17;y+=2)P(A,x+(y%4?1:0),y,shade(pick(F,y<15?3:2),.85));}
+  // furniture: the rocking chair, an oil lamp, the bookshelf, the braided rug, the crates
+  if(I==='in_chair'){const R=WD;for(let y=3;y<=17;y++)for(let x=10;x<=21;x++)P(A,x,y,x===10?R[4]:x===21?R[1]:(x-10)%3===0?R[1]:R[3]);hl(A,10,3,12,R[5]);
+    for(let y=17;y<=21;y++)for(let x=8;x<=23;x++)P(A,x,y,y<20?R[y===17?5:4]:R[2]);rect(A,10,18,12,2,PAL.red[3]);hl(A,10,18,12,PAL.red[4]);
+    for(const lx of [9,21])for(let y=22;y<=26;y++){P(A,lx,y,R[3]);P(A,lx+1,y,R[1]);}
+    for(let x=5;x<=27;x++){const y=27+Math.round(((x-16)/11)*((x-16)/11)*-2.5+2.5)-2;P(A,x,y,R[4]);P(A,x,y+1,R[1]);}}
+  if(I==='lamp'){const BR=PAL.brass;ellF(16,27,7,2,(X,Y,x,y)=>P(A,X,Y,pick(BR,y<0?3:1)));ellF(16,23,6,3,(X,Y,x,y)=>P(A,X,Y,pick(BR,-x/6*1.4+1.6)));
+    for(let x=-3;x<=3;x++){P(A,16+x,20,BR[2]);P(A,16+x,19,BR[3]);}
+    for(let y=6;y<=18;y++){const w=y<9?2:y<15?4:3;for(let x=-w;x<=w;x++){const edge=Math.abs(x)===w;P(A,16+x,y,edge?PAL.glass[3]:x<-1?[226,238,244]:[200,222,234]);}}
+    for(let y=10;y<=16;y++){const w=y<12?0:y<15?1:0;for(let x=-w;x<=w;x++)P(A,16+x,y,y<12?[255,246,200]:x===0?[255,220,110]:[250,160,50]);}P(A,16,17,BR[2]);
+    for(let i=0;i<7;i++){const a=-Math.PI/2+i/6*Math.PI;P(A,23+Math.round(Math.cos(a)*3),23+Math.round(Math.sin(a)*3),BR[1]);}hl(A,14,5,5,BR[1]);P(A,13,9,[255,255,255]);}
+  if(I==='in_shelf_jars'){const R=WD;for(let y=3;y<=29;y++)for(let x=7;x<=25;x++)P(A,x,y,x<9?R[3]:x>23?R[1]:R[0]);for(let y=3;y<=5;y++)hl(A,7,y,19,R[y===3?5:4]);
+    const BK=[PAL.red,PAL.teal,PAL.mustard,PAL.blue,PAL.sage,PAL.rust];
+    for(const [r,sy] of [[0,12],[1,19],[2,26]]){let x=9;let i=0;while(x<23){const bw=1+((hsh(x,sy,1)*2)|0),bh=4+((hsh(x,sy,2)*3)|0),C=BK[(hsh(x,sy,3)*6)|0];for(let j=0;j<bh;j++)for(let q=0;q<bw;q++)P(A,x+q,sy-bh+j,C[q===0?4:2]);P(A,x,sy-bh,C[5]);x+=bw+(i++%4===3?1:0);}
+      hl(A,8,sy,17,R[4]);hl(A,8,sy+1,17,R[2]);}hl(A,7,29,19,R[1]);}
+  if(I==='in_rug'){ellF(16,17,14,10,(X,Y,x,y,d)=>{const ring=Math.floor(Math.sqrt(d)*6);const C=[PAL.mustard,PAL.red,PAL.cream,PAL.red,PAL.mustard,PAL.red][Math.min(5,ring)];const braid=((x+y*2)&3)<2;P(A,X,Y,C[Math.min(C.length-1,(braid?3:2)-(y>5?1:0))]);});}
+  if(I==='in_crates'){const R=WD;const box=(x0,y0,w,h,top)=>{for(let y=0;y<top;y++)hl(A,x0,y0+y,w,R[y===0?5:4]);for(let y=top;y<h;y++)for(let x=0;x<w;x++)P(A,x0+x,y0+y,x===0?R[4]:x===w-1?R[1]:(y-top)%5===0?R[2]:R[3]);
+      for(let i=0;i<w-2;i++)P(A,x0+1+i,y0+top+1+Math.round(i*(h-top-3)/(w-2)),R[5]);hl(A,x0,y0+h-1,w,R[1]);};
+    box(4,8,15,20,4);box(15,15,13,14,3);for(let x=6;x<=16;x+=3)for(let y=5;y<=7;y++)P(A,x,y,PAL.red[y===5?4:3]);}}
 if(K==='anvil'){const IR=[[30,32,38],[54,58,68],[86,92,106],[130,136,150],[180,186,198]];const cx=W/2|0,base=H-3;
   rect(A,cx-6,base-12,12,12,WD[2]);vl(A,cx-6,base-12,12,WD[4]);vl(A,cx+5,base-12,12,WD[0]);hl(A,cx-7,base-1,14,WD[1]);
   for(let y=0;y<5;y++)for(let x=-12;x<=10;x++){if(x<-8&&y>2-(x+12)*.6)continue;P(A,cx+x,base-19+y,y===0?IR[4]:x>7?IR[1]:IR[2+(y<2?1:0)]);}rect(A,cx-4,base-14,8,2,IR[1]);hl(A,cx-12,base-19,23,IR[4]);P(A,cx+6,base-18,[240,140,60]);

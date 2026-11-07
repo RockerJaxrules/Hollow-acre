@@ -2,6 +2,21 @@ import sys, json
 sys.path.insert(0, '.')
 from run import run
 PROPS = {  # name: (kind, w, h, night_variant)
+  'icon32_seed_turnip': ('icon32', 32, 32, False),
+  'icon32_seed_pumpkin': ('icon32', 32, 32, False),
+  'icon32_seed_corn': ('icon32', 32, 32, False),
+  'icon32_bonemeal': ('icon32', 32, 32, False),
+  'icon32_soup': ('icon32', 32, 32, False),
+  'icon32_stew': ('icon32', 32, 32, False),
+  'icon32_chowder': ('icon32', 32, 32, False),
+  'icon32_glowstew': ('icon32', 32, 32, False),
+  'icon32_hash': ('icon32', 32, 32, False),
+  'icon32_fish': ('icon32', 32, 32, False),
+  'icon32_in_chair': ('icon32', 32, 32, False),
+  'icon32_lamp': ('icon32', 32, 32, False),
+  'icon32_in_shelf_jars': ('icon32', 32, 32, False),
+  'icon32_in_rug': ('icon32', 32, 32, False),
+  'icon32_in_crates': ('icon32', 32, 32, False),
   'jack_b_e': ('pumpkin', 26, 22, False),
   'fence_h': ('fence_h', 72, 24, False), 'fence_v': ('fence_v', 14, 68, False),
   'picket_h': ('picket_h', 64, 25, False), 'picket_v': ('picket_v', 14, 68, False),

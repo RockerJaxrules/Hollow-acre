@@ -8,7 +8,7 @@ const CRAFT_VENDORS=new Set(['craft','cook','b_farm','b_furnace','b_weapon','b_a
 const CRAFT_ART={b_farm:'bench_farm',b_furn:'bench_furn',b_weapon:'bench_weapon',b_armor:'bench_armor',b_furnace:'furnace',cook:'in_stove',craft:'in_bench'};
 const CRAFT_GAME=v=>v==='cook'?'cook':v==='b_furnace'?'smelt':'craft';
 // what each recipe looks like on its card (dedicated icons where they exist, the nearest thing where they don't)
-const CRAFT_ICON={cb:'cbar',ib:'ibar',ch:'coal',spr:'can',fert:'seed',ts:'turnip',ps:'pumpkin',charm:'hay',scare:'hay',flask:'lamp',sprinkler:'can',candle:'in_candles',
+const CRAFT_ICON={cb:'cbar',ib:'ibar',ch:'coal',spr:'can',fert:'bonemeal',ts:'seed_turnip',ps:'seed_pumpkin',charm:'hay',scare:'hay',flask:'lamp',sprinkler:'can',candle:'in_candles',
   club:'wood',sickle:'copper',machete:'iron',jacket:'fiber',coat:'cbar',mail:'ibar'};
 function craftIcon(v,r){if(v==='b_furn'&&typeof FURN!=='undefined'&&FURN[r.k])return FURN[r.k][1];if(ITEMS[r.k]&&ITEMS[r.k].icon)return ITEMS[r.k].icon;return CRAFT_ICON[r.k]||r.k;}
 // what a recipe needs, with how many you have
