@@ -33,6 +33,7 @@ const CG2_STEPS={
   'craft:scare':[{m:'rhythm',kind:'straw',n:6,t:'Braid the straw'}],
   'craft:flask':[{m:'pour',liquid:'oil',t:'Fill the flask to the line'}],
   'craft:candle':[{m:'gauge',art:'dip',n:3,t:'Dip the wick when the tallow’s just warm',zone:.11}]};
+const CG2_MORE={};   // more mechanics, added by craftgames2.js: (step, helpers) => mechanic
 const CG2_SCENE={cook:'kitchen',b_furnace:'forge',b_weapon:'forge',b_armor:'sewing',b_furn:'bench',b_farm:'bench',craft:'bench'};
 
 function craftGame2(v,r,steps,done){const box=$('cgame'),cv=$('cgC'),g=cv.getContext('2d');g.imageSmoothingEnabled=false;const W=240,H=120;
@@ -82,6 +83,7 @@ function craftGame2(v,r,steps,done){const box=$('cgame'),cv=$('cgC'),g=cv.getCon
             for(let i=0;i<5;i++){g.globalAlpha=.3;px(70+i*20+Math.sin(t*3+i)*3,60-((t*20+i*9)%20),4,3,'#e8e4dc');g.globalAlpha=1;}}
           else if(sp.art==='dip'){px(90,82,60,22,'#8a7a60');px(92,82,56,4,'#efe2b8');for(let i=0;i<res.length+1;i++){}const cw=2+res.length*2;px(120-cw/2,46+anim*10,cw,24+res.length*4,'#f4ecd0');px(119,40+anim*10,1,6,'#2a1a10');}
           else if(sp.art==='glass'){px(96,88,48,14,'#c89a3a');px(96,88,48,2,'#f0d27a');px(104,84,32,4,'#a07a2a');const gx=120+Math.sin(t*2.2)*30*(res.length?0:1);px(gx-9,44+(res.length?30:0),18,30,'rgba(200,226,240,.55)');px(gx-9,44+(res.length?30:0),2,30,'#ffffff');}
+          if(sp.artFn)sp.artFn(HLP,t,{res,anim,nd});
           // the gauge (the quench one is a colour strip, hottest on the right)
           const x=24,y=14,w=192;px(x-3,y-3,w+6,14,'#4a3410');px(x-2,y-2,w+4,12,'#a8822c');px(x,y,w,8,'#1a1008');
           if(sp.art==='quench'){for(let i=0;i<w;i++){const h=i/w;px(x+i,y+1,1,6,h>.8?'#fff4c0':h>.6?'#ffd27a':h>.45?'#e8a040':h>.3?'#c05a2a':'#5a3a3a');}}
@@ -114,6 +116,7 @@ function craftGame2(v,r,steps,done){const box=$('cgame'),cv=$('cgC'),g=cv.getCon
         update(dt){if(stopped)return;if(this.hold){pouring=true;fill+=dt*(.32+fill*.25);}else if(pouring){stopped=true;const d=Math.abs(fill-line);this.score=fill>1.02?.15:d<.03?1:d<.07?.7:d<.13?.4:.15;SFX.coin&&SFX.coin();setTimeout(()=>{this.done=true;},450);}
           if(fill>1.08&&!stopped){stopped=true;this.score=.1;setTimeout(()=>{this.done=true;},450);}},
         draw(t){const mx=96,my=60,mw=48,mh=44;
+          if(sp.artFn)sp.artFn(HLP,t,{fill,mx,my,mw,mh});
           if(sp.liquid==='oil'){px(mx+6,my-6,mw-12,mh+6,'rgba(200,226,240,.35)');px(mx+6,my-6,2,mh+6,'#ffffff');px(mx+16,my-14,mw-32,8,'#a07a2a');}else{px(mx-6,my,mw+12,mh+6,'#4a4c54');px(mx-6,my,mw+12,2,'#8a8c94');}
           const fh=Math.min(1,fill)*mh;px(mx,my+mh-fh,mw,fh,col[0]);px(mx,my+mh-fh,mw,1,col[1]);if(fill>1)px(mx-6,my-2,mw+12,3,col[0]);
           const ly=my+mh-line*mh;for(let x=mx-8;x<mx+mw+8;x+=4)px(x,ly,2,1,'#9be07a');
@@ -128,12 +131,13 @@ function craftGame2(v,r,steps,done){const box=$('cgame'),cv=$('cgC'),g=cv.getCon
           for(let s=0;s<1;s+=.01){const yy=30+line(s)*70;px(20+s*200,yy,(s*100|0)%3?1:0,1,'#2a1a10');}for(const [kx,ky,ok] of kerf)px(20+kx*200,30+ky*70,1,1,ok?'#3a2010':'#a03020');
           const sx_=20+x*200,sy=30+y*70,sh=Math.sin(t*30)*2;px(sx_-26+sh,sy-3,28,6,'#cfd6dc');px(sx_-26+sh,sy-3,28,1,'#ffffff');for(let k=0;k<28;k+=3)px(sx_-26+sh+k,sy+3,2,1,'#8a9098');px(sx_-38+sh,sy-6,12,12,'#7a4a24');px(sx_-36+sh,sy-3,6,6,'#3a2010');}};},
     // a ring shrinks round the nail head: strike as it closes on it
-    hammer(sp){const n=sp.n,res=[];let r=1,k=0,anim=0,driven=[];const xs=Array.from({length:n},(_,i)=>40+i*(160/Math.max(1,n-1)));
+    hammer(sp){const n=sp.n,res=[];let r=1,k=0,anim=0,driven=[];const xs=sp.pos?sp.pos.map(p=>p[0]-10):Array.from({length:n},(_,i)=>40+i*(160/Math.max(1,n-1)));const ys=sp.pos?sp.pos.map(p=>p[1]):xs.map(()=>74);
       return {hint:`${fine?'Click':'Tap'} as the ring closes on the ${sp.what==='anvil'?'hot spot':sp.what==='rivet'?'rivet':'nail'}.`,
         update(dt){if(this.done)return;r-=dt*(.9+k*.12);anim=Math.max(0,anim-dt*4);if(r<-.15){res.push(0);driven[k]=.3;k++;r=1;SFX.deny&&SFX.deny();if(k>=n)this.end();}},
         end(){setTimeout(()=>{this.done=true;this.score=res.reduce((a,b)=>a+b,0)/n;},400);},
         down(){if(this.done||k>=n)return;const d=Math.abs(r-.12);const s=d<.05?1:d<.12?.65:d<.22?.3:0;res.push(s);driven[k]=s;anim=1;SFX.thud&&SFX.thud(0,.45);burst(xs[k]+10,74,10,sp.what==='anvil'?'#ffd27a':'#e8c890',90);k++;r=1;if(k>=n)this.end();},
-        draw(t){if(sp.what==='anvil'){px(50,86,140,10,'#3a3d46');px(50,86,140,2,'#6f7480');px(90,96,60,16,'#2a2c34');px(60,76,120,10,'#ff9a3a');px(60,76,120,2,'#ffe0a0');}
+        draw(t){if(sp.artFn){sp.artFn(HLP,t,{driven,k});if(k<n){const cx=xs[k]+10,cy=ys[k]-4;const rr=Math.max(0,r)*30+4;g.strokeStyle='#ffd27a';g.lineWidth=1;g.beginPath();g.arc(cx,cy,rr,0,Math.PI*2);g.stroke();g.strokeStyle='rgba(155,224,122,.8)';g.beginPath();g.arc(cx,cy,.12*30+4,0,Math.PI*2);g.stroke();const hy=anim>0?cy-20:cy-40;px(cx-2,hy-14,4,18,'#7a4a24');px(cx-8,hy+4,16,7,'#6f7480');px(cx-8,hy+4,16,2,'#959aa5');}return;}
+          if(sp.what==='anvil'){px(50,86,140,10,'#3a3d46');px(50,86,140,2,'#6f7480');px(90,96,60,16,'#2a2c34');px(60,76,120,10,'#ff9a3a');px(60,76,120,2,'#ffe0a0');}
           else if(sp.what==='rivet'){px(24,74,192,26,'#7a5a3a');for(let j=0;j<26;j+=5)px(24,74+j,192,1,'#6a4a2a');}else board(20,74,200,26);
           xs.forEach((x,i)=>{const dv=driven[i];const hgt=dv===undefined?10:Math.round(10*(1-dv));const c=sp.what==='rivet'?'#d88a40':sp.what==='anvil'?'#fff0b0':'#9aa0a8';px(x+8,74-hgt,3,hgt,c);px(x+6,72-hgt,7,2,c);});
           if(k<n){const cx=xs[k]+10,cy=70;const rr=Math.max(0,r)*30+4;g.strokeStyle='#ffd27a';g.lineWidth=1;g.beginPath();g.arc(cx,cy,rr,0,Math.PI*2);g.stroke();g.strokeStyle='rgba(155,224,122,.8)';g.beginPath();g.arc(cx,cy,.12*30+4,0,Math.PI*2);g.stroke();
@@ -156,16 +160,22 @@ function craftGame2(v,r,steps,done){const box=$('cgame'),cv=$('cgC'),g=cv.getCon
             for(let j=0;j<5;j++)px(x+(nt.s<0?-3+j:3-j),32-j,1,1+2*j>0?1:1,'#1a0e06'),px(x+(nt.s<0?-3+j:3-j),32+j,1,1,'#1a0e06');}
           text('L',20,48,'#ffd27a');text('R',220,48,'#90c8f0');}};},
     // tap as fast as you can
-    mash(sp){let taps=0,tm=0;return {hint:`${fine?'Click (or Space)':'Tap'} as fast as you can.`,
+    mash(sp){let taps=0,tm=0,lastSide=0;const o={hint:sp.alt?(fine?'Press A/← and D/→ in turn (or click left, right, left…) as fast as you can.':'Tap left, right, left, right… as fast as you can.'):`${fine?'Click (or Space)':'Tap'} as fast as you can.`,
         update(dt){tm+=dt;if((taps>=sp.need||tm>sp.time)&&!this.done){this.done=true;this.score=Math.min(1,taps/sp.need)*(taps>=sp.need?1:.85);}},
         down(){taps++;SFX.thud&&SFX.thud(0,.15);burst(120,80,3,sp.kind==='grind'?'#efe8dc':'#e8c890',40);},
         draw(t){const p=Math.min(1,taps/sp.need);
-          if(sp.kind==='grind'){px(90,70,60,30,'#6f7480');px(90,70,60,3,'#959aa5');px(96,66,48,6,'#383b46');for(let i=0;i<10;i++)px(100+i*4,66-(1-p)*8+(i%2),3,3,p>.6?'#f4f0e8':'#d8d0c0');const a=taps*.8;px(120+Math.cos(a)*14,50+Math.sin(a)*4,4,20,'#7a4a24');}
+          if(sp.artFn)sp.artFn(HLP,t,{p,taps,side:lastSide});
+          else if(sp.kind==='grind'){px(90,70,60,30,'#6f7480');px(90,70,60,3,'#959aa5');px(96,66,48,6,'#383b46');for(let i=0;i<10;i++)px(100+i*4,66-(1-p)*8+(i%2),3,3,p>.6?'#f4f0e8':'#d8d0c0');const a=taps*.8;px(120+Math.cos(a)*14,50+Math.sin(a)*4,4,20,'#7a4a24');}
           else{const rr=16+p*34;g.fillStyle='#e8c890';g.beginPath();g.ellipse(120,82,rr,rr*.4,0,0,Math.PI*2);g.fill();px(120-28,62+Math.sin(taps)*2,56,8,'#c08a54');px(120-36,63+Math.sin(taps)*2,8,6,'#7a4a24');px(120+28,63+Math.sin(taps)*2,8,6,'#7a4a24');}
-          px(14,10,212*p,6,'#9be07a');px(14,16,212*Math.max(0,1-tm/sp.time),2,'#e8a040');}};},
+          px(14,10,212*p,6,'#9be07a');px(14,16,212*Math.max(0,1-tm/sp.time),2,'#e8a040');}};
+      // alternating sides only count when they alternate (shucking, twisting)
+      if(sp.alt)o.side=function(s){if(this.done||s===lastSide)return;lastSide=s;this.down();};return o;},
     // a pumpkin face: hold on the drawn lines as the knife reaches them, let go on the gaps
-    trace(sp){const segs=[[.0,.12,1],[.12,.2,0],[.2,.32,1],[.32,.4,0],[.4,.62,1],[.62,.7,0],[.7,.9,1],[.9,1,0]];let s=0,good=0,total=0;
-      const path=u=>{if(u<.2)return [80+u/.2*24,54+Math.abs(u/.2-.5)*-14+7];if(u<.4)return [136+(u-.2)/.2*24,54+Math.abs((u-.2)/.2-.5)*-14+7];const v=(u-.4)/.6;return [82+v*76,82+Math.sin(v*Math.PI)*10];};
+    trace(sp){const segs=sp.segs||[[.0,.12,1],[.12,.2,0],[.2,.32,1],[.32,.4,0],[.4,.62,1],[.62,.7,0],[.7,.9,1],[.9,1,0]];let s=0,good=0,total=0;
+      const path=sp.path||(u=>{if(u<.2)return [80+u/.2*24,54+Math.abs(u/.2-.5)*-14+7];if(u<.4)return [136+(u-.2)/.2*24,54+Math.abs((u-.2)/.2-.5)*-14+7];const v=(u-.4)/.6;return [82+v*76,82+Math.sin(v*Math.PI)*10];});
+      if(sp.artFn)return {hint:sp.hint||'Hold while the blade is on a line. Let go on the gaps.',
+        update(dt){s+=dt*(sp.speed||.16);total+=dt;const seg=segs.find(q=>s>=q[0]&&s<q[1]);if(seg&&(!!this.hold)===!!seg[2])good+=dt;if(s>=1&&!this.done){this.done=true;this.score=Math.min(1,good/total*1.08);}},
+        draw(t){sp.artFn(HLP,t,{s,segs,path,hold:this.hold});}};
       return {hint:'Hold while the knife is on a line. Let go on the gaps.',
         update(dt){s+=dt*.16;total+=dt;const seg=segs.find(q=>s>=q[0]&&s<q[1]);if(seg&&(!!this.hold)===!!seg[2])good+=dt;if(s>=1&&!this.done){this.done=true;this.score=Math.min(1,good/total*1.08);}},
         draw(t){const cx=120,cy=70;for(let y=-40;y<=40;y++)for(let x=-56;x<=56;x+=2){if(x*x/3136+y*y/1600>1)continue;const rib=Math.abs(Math.sin(x/56*Math.PI*1.6));px(cx+x,cy+y,2,1,rib<.15?'#b04a14':y<-20?'#f0904a':'#e8742a');}px(cx-2,cy-48,5,10,'#5a7a2a');
@@ -174,7 +184,8 @@ function craftGame2(v,r,steps,done){const box=$('cgame'),cv=$('cgC'),g=cv.getCon
   // ---------- running the steps
   box.style.display='flex';CG.on=true;let i=0;const scores=[];let cur=null,wait=0,last=performance.now(),result=null,banner=null;
   $('cgT').textContent=r.name;
-  const start=()=>{cur=MECH[steps[i].m](steps[i]);cur.hold=false;$('cgH').innerHTML=`<b>${steps.length>1?`${i+1}/${steps.length} · `:''}${steps[i].t}.</b> ${cur.hint}`;};
+  const HLP={g,W,H,px,text,icon,burst,board,fine,parts};
+  const start=()=>{const m=steps[i].m;cur=MECH[m]?MECH[m](steps[i]):CG2_MORE[m](steps[i],HLP);cur.hold=false;$('cgH').innerHTML=`<b>${steps.length>1?`${i+1}/${steps.length} · `:''}${steps[i].t}.</b> ${cur.hint}`;};
   const finishAll=()=>{if(result!==null)return;result=scores.reduce((a,b)=>a+b,0)/scores.length;setTimeout(()=>{box.style.display='none';CG.on=false;removeEventListener('keydown',kd,true);removeEventListener('keyup',ku,true);cv.onpointerdown=cv.onpointerup=cv.onpointercancel=null;done(result);},700);};
   const down=(x)=>{if(!cur||cur.done||wait>0)return;A.init&&A.init();if(cur.side&&x!==undefined){cur.side(x<W/2?-1:1);return;}cur.hold=true;cur.down&&cur.down();};
   const up=()=>{if(cur)cur.hold=false;};
