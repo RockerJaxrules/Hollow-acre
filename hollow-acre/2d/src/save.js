@@ -1,6 +1,6 @@
 /* ================= saving: the game autosaves every 30 seconds of play, on going in or out of a building, whenever it is closed or
    switched away from, and at the start of each day. Continue on the title screen resumes exactly where you were. ================= */
-const SAVE_KEY='hollowSave1';
+const SAVE_KEY='hollowSave1'+ACCT_SUFFIX;   // each profile keeps its own farm (account.js)
 const SAVE_SKIP=new Set(['mode','paused','room','night','introDrive','storm','autoCol']);
 function saveGame(mid){try{const data=saveData(mid);localStorage.setItem(SAVE_KEY,JSON.stringify(data));return true;}catch(e){return false;}}
 function saveData(mid){const s={};for(const k of Object.keys(S)){if(SAVE_SKIP.has(k))continue;const v=S[k];if(typeof v==='function')continue;try{s[k]=JSON.parse(JSON.stringify(v));}catch(e){}}

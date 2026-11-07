@@ -33,7 +33,7 @@ const LOOK_OPTS={
   acc:['#c83a5a','#e86a8a','#f0d040','#3a5a8a','#4f7a3e','#e8e8f0','#7a4a8a','#d8603a']};
 const LOOK_DEF=Object.assign({style:'short',beard:'',outfit:'shirt',pattern:'plaid',hat:'',glasses:'',accessory:''},LOOK_BASE);
 S.look=Object.assign({},LOOK_DEF);
-try{const sv=JSON.parse(localStorage.getItem('hollowLook')||'null');if(sv)Object.assign(S.look,sv);}catch(e){}
+try{const sv=JSON.parse(localStorage.getItem('hollowLook'+ACCT_SUFFIX)||'null');if(sv)Object.assign(S.look,sv);}catch(e){}
 if(S.look.glasses===true)S.look.glasses='round';if(S.look.glasses===false)S.look.glasses='';if(S.look.outfit==='flannel'){S.look.outfit='shirt';S.look.pattern='plaid';}
 for(const k of ['style','outfit','beard','hat','glasses','accessory','pattern'])if(!LOOK_OPTS[k].some(o=>o[0]===S.look[k]))S.look[k]=LOOK_DEF[k];
 const hexRGB=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
@@ -103,7 +103,7 @@ function applyLook(only){const look=S.look,M=lookMap(look);for(const tool of (on
   function open(edit){editing=!!edit;$('cKick').textContent=edit?'The wardrobe':'Who is driving';$('cGo').textContent=edit?'Done':'Drive';build();applyLook(['','_hoe']);$('title').hidden=true;el.hidden=false;if($('cName'))$('cName').value=S.look.name||'';raf=requestAnimationFrame(preview);}
   window.openWardrobe=()=>{S.paused=true;$('bag')&&($('bag').hidden=true);open(true);};
   $('begin').addEventListener('click',e=>{e.stopImmediatePropagation();A.init&&A.init();open(false);},true);
-  $('cGo').addEventListener('click',()=>{if($('cName'))S.look.name=$('cName').value.trim().slice(0,14);try{localStorage.setItem('hollowLook',JSON.stringify(S.look));}catch(e){}el.hidden=true;cancelAnimationFrame(raf);applyLook();
+  $('cGo').addEventListener('click',()=>{if($('cName'))S.look.name=$('cName').value.trim().slice(0,14);try{localStorage.setItem('hollowLook'+ACCT_SUFFIX,JSON.stringify(S.look));}catch(e){}el.hidden=true;cancelAnimationFrame(raf);applyLook();
     if(editing){S.paused=false;toast('You change in the cabin. The mirror takes a moment to catch up.',2.4);return;}A.init&&A.init();startCine('intro');});}
 // the wardrobe: from the bag at any time
 {const _ob=openBag;openBag=function(){_ob();const B=$('bagBody');if(!B||B.querySelector('#bagWard'))return;const d=document.createElement('div');d.style.cssText='text-align:center;margin-top:10px';
