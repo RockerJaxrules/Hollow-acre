@@ -4,8 +4,12 @@
 const PORT={img:null,ready:false,row:{}};
 PORTRAITS.ids.forEach((id,i)=>PORT.row[id]=i);
 {const im=new Image();im.onload=()=>{PORT.img=im;PORT.ready=true;};im.src=PORTRAITS.src;}
-const hasPortrait=id=>PORT.row[id]!==undefined;
+// the young adult women have their own high-detail portraits (128 px, px/portraitHD2.py)
+const PORTHD={img:null,ready:false,row:{}};if(typeof PORTRAITS_HD!=='undefined'){PORTRAITS_HD.ids.forEach((id,i)=>PORTHD.row[id]=i);const im=new Image();im.onload=()=>{PORTHD.img=im;PORTHD.ready=true;};im.src=PORTRAITS_HD.src;}
+const hasPortrait=id=>PORT.row[id]!==undefined||PORTHD.row[id]!==undefined;
 function drawPortrait(cv,id,expr){const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,cv.width,cv.height);
+  if(PORTHD.ready&&PORTHD.row[id]!==undefined){const e=Math.max(0,PORTRAITS_HD.expr.indexOf(expr||'neutral'));const pw=PORTRAITS_HD.pw,ph=PORTRAITS_HD.ph;const s=Math.min(cv.width/pw,cv.height/ph);const w=pw*s,h=ph*s;
+    g.drawImage(PORTHD.img,e*pw,PORTHD.row[id]*ph,pw,ph,(cv.width-w)/2,cv.height-h,w,h);return true;}
   if(!PORT.ready||!hasPortrait(id))return false;const e=Math.max(0,PORTRAITS.expr.indexOf(expr||'neutral'));const pw=PORTRAITS.pw,ph=PORTRAITS.ph;
   const s=Math.min(cv.width/pw,cv.height/ph);const w=pw*s,h=ph*s;g.drawImage(PORT.img,e*pw,PORT.row[id]*ph,pw,ph,(cv.width-w)/2,cv.height-h,w,h);return true;}
 // ---- what are they feeling? read it from the words, the hour, and how far the story has gone
@@ -34,7 +38,7 @@ function emotionOf(id,text,ctx){const t=String(text||'').replace(/<[^>]+>/g,' ')
 @media (orientation:landscape) and (max-height:540px){#talkPortrait canvas{width:96px;height:96px}}
 @media (max-width:380px){#talkPortrait canvas{width:96px;height:96px}}
 #scene canvas{background:linear-gradient(#d9a868,#b8814a)!important}`;document.head.appendChild(c);
-  const box=document.createElement('div');box.id='talkPortrait';box.innerHTML='<canvas width="64" height="64"></canvas><div class="nm"></div>';
+  const box=document.createElement('div');box.id='talkPortrait';box.innerHTML='<canvas width="128" height="128"></canvas><div class="nm"></div>';
   const t=$('talk');t.insertBefore(box,t.firstChild);}
 let talkWho=null,talkCtx=null;
 function talkFace(){const n=talkWho;const box=$('talkPortrait');if(!n||!hasPortrait(n.def.id)){box.style.display='none';return;}box.style.display='';

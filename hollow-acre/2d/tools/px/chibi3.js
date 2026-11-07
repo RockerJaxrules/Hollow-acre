@@ -48,6 +48,7 @@ const SH0=SHTC[0];
 const LONG=!['tee','dress','tank','skirt'].includes(OUT)||C.longSleeves;
 const OPENFRONT={jacket:2,cardigan:2,longcoat:2,vest:2,openshirt:2};
 const LEGSKIN=OUT==='dress'||OUT==='skirt'||!!C.skirt;
+const ALL=!!C.allure&&!KID;   // a young adult woman: a fuller bust, a narrower waist, a low neckline
 // ---------------------------------------------------------------- proportions (adult / child). All rows count up from the shoe soles.
 const FOOT=60,LEGH=KID?5:7,TORH=KID?9:11,HEADH=KID?19:20;
 const HIP0=FOOT-3-LEGH;          // the belt row          (adult 50)
@@ -86,7 +87,7 @@ function armTo(sx,sy,hx,hy,far,inner,noHand){const cloth=(OUT==='jacket'||OUT===
   for(let j=0;j<2;j++)for(let k=-1;k<=1;k++)p(hx+k,hy+1+j,S2[j===1?2:k===-1?4:3]);p(hx,hy+3,S2[1]);}
 // ---------------------------------------------------------------- the torso and what's on it
 function torsoFront(cx,top,hip,back){const half=6;
-  for(let y=top;y<=hip;y++){const j=y-top;const hw=j===0?5:half;for(let u=-hw+1;u<=hw;u++){const x=cx+u;const su=u-.5;
+  for(let y=top;y<=hip;y++){const j=y-top;const hw=j===0?5:ALL?(j>=2&&j<=5?7:j>=7&&j<=8?5:half):half;for(let u=-hw+1;u<=hw;u++){const x=cx+u;const su=u-.5;
       let k=su<-hw+1.5?4:su>hw-1.5?1:su>hw-3?2:3;if(j===0)k=Math.min(4,k+1);if(y>=hip-1)k=Math.max(1,k-1);
       let R=shirtAt(x,y);
       if(OPENFRONT[OUT]&&!back){if(Math.abs(su)>OPENFRONT[OUT])R=JK;else R=OUT==='openshirt'?EX:OUT==='vest'?shirtAt(x,y):shirtAt(x,y);}
@@ -122,7 +123,15 @@ function torsoFront(cx,top,hip,back){const half=6;
   if(OUT==='tee'||OUT==='shirt'||OUT==='openshirt'){for(let u=-5;u<=6;u++)p(cx+u,hem,BELT[u<-3?2:u>4?0:1]);if(!back){p(cx,hem,BUCKLE[1]);p(cx+1,hem,BUCKLE[1]);}}
   if(OUT==='overalls'){const R=PNT;for(let y=top+(back?5:4);y<=hem;y++)for(let u=-3;u<=4;u++)p(cx+u,y,R[u===-3?4:u===4?1:3]);
     for(const u of [-4,5])for(let y=top+1;y<top+5;y++)p(cx+u,y,R[2]);if(!back){p(cx-3,top+4,BUCKLE[1]);p(cx+4,top+4,BUCKLE[1]);p(cx,top+7,R[1]);p(cx+1,top+7,R[1]);}}
-  if(C.apron&&!back){const R=EX;for(let y=top+3;y<=hem+(LEGSKIN?5:2);y++)for(let u=-3;u<=4;u++)p(cx+u,y,R[u===-3?4:u===4?1:y===top+3?4:3]);p(cx-4,top+3,R[2]);p(cx+5,top+3,R[2]);}}
+  if(ALL&&!back){// a low neckline: two rounded mounds of skin with the cleavage between, the cloth curving round beneath
+    const SKN=[[-3,4,null],[-3,4,null],[-3,4,'c'],[-3,4,'C'],[-2,3,'C'],[0,1,'C']];
+    for(let j=0;j<SKN.length;j++){const [a,b,cl]=SKN[j],y=top+j;for(let u=a;u<=b;u++){const su=u-.5;let k=su<-1.5?4:su>1.5?2:3;
+        if(j>=2){if(u===-3||u===4)k=j===2?3:2;else if(u===-2||u===-1)k=j===3?5:4;else if(u===2||u===3)k=j===3?3:2;}
+        if(cl&&(u===0||u===1))k=cl==='c'?2:(u===0?1:0);p(cx+u,y,SK[k]);}
+      p(cx+a-1,y,shirtAt(cx+a-1,y)[1]);p(cx+b+1,y,shirtAt(cx+b+1,y)[0]);}
+    for(const [u,k] of [[-4,4],[-3,4],[-2,3],[-1,2],[2,2],[3,2],[4,1],[5,1]])p(cx+u,top+5,shirtAt(cx+u,top+5)[k]);
+    for(let u=-5;u<=6;u++)p(cx+u,top+6,shirtAt(cx+u,top+6)[u<0?1:0]);}
+  if(C.apron&&!back){const R=EX;for(let y=top+(ALL?7:3);y<=hem+(LEGSKIN?5:2);y++)for(let u=-3;u<=4;u++)p(cx+u,y,R[u===-3?4:u===4?1:y===top+3?4:3]);p(cx-4,top+3,R[2]);p(cx+5,top+3,R[2]);}}
 // skirts and long coats hang over the legs
 function skirtFront(cx,hip,back){if(OUT==='longcoat'){const len=KID?5:7;for(let j=0;j<len;j++){const hw=6+(j>>1);for(let u=-hw+1;u<=hw;u++){if(!back&&Math.abs(u-.5)<1.6)continue;p(cx+u,hip+1+j,JK[u<-hw+3?4:u>hw-2?1:u>hw-4?2:3]);}}for(let u=-8;u<=9;u++)p(cx+u,hip+len,JK[0]);}
   if(OUT==='skirt'||OUT==='dress'||C.skirt){const R=OUT==='dress'?shirtAt(0,0)&&SH0:(C.skirt?SKR:PNT);const len=KID?4:6;for(let j=0;j<len;j++){const hw=6+Math.round(j*.6);for(let u=-hw+1;u<=hw;u++){let k=u<-hw+3?4:u>hw-2?1:u>hw-4?2:3;if(j===len-1)k=1;else if(((u+40)%3===0)&&j>0)k=Math.max(2,k-1);p(cx+u,hip+j,(OUT==='dress'?SH0:R)[k]);}}}}
@@ -130,6 +139,8 @@ function skirtFront(cx,hip,back){if(OUT==='longcoat'){const len=KID?5:7;for(let 
 function torsoSide(cx,top,hip,fl){const hw=4;for(let y=top;y<=hip;y++){const j=y-top;for(let u=-hw;u<=hw;u++){const x=cx+u*fl+(fl<0?1:0);let k=u*fl<-hw+1.5?(fl>0?4:1):u*fl>hw-1.5?(fl>0?2:3):3;
       if(fl>0){k=u<-2?4:u>2?2:3;}else{k=u>2?4:u<-2?2:3;}if(j===0&&Math.abs(u)>=hw)continue;if(y>=hip-1)k=Math.max(1,k-1);
       let R=shirtAt(x,y);if(OPENFRONT[OUT]){R=(u>=hw-1&&OUT!=='vest')?(OUT==='openshirt'?EX:shirtAt(x,y)):JK;if(OUT==='vest'&&u<hw-1)R=JK;}p(x,y,R[k]);}}
+  if(ALL){for(let j=2;j<=5;j++){const u=hw+1,x=cx+u*fl+(fl<0?1:0);p(x,top+j,shirtAt(x,top+j)[j===2?3:j===5?1:fl>0?2:3]);if(j===3||j===4){const x2=cx+(hw+2)*fl+(fl<0?1:0);p(x2,top+j,shirtAt(x2,top+j)[j===3?2:1]);}}
+    for(let j=0;j<3;j++)for(let u=hw-2+j;u<=hw;u++)p(cx+u*fl+(fl<0?1:0),top+j,SK[j===2?2:3]);}
   if(OUT==='overalls'){for(let y=top+4;y<=hip;y++)for(let u=-1;u<=hw;u++)p(cx+u*fl+(fl<0?1:0),y,PNT[u===hw?2:3]);for(let y=top+1;y<top+4;y++)p(cx+fl*1,y,PNT[2]);}
   if(OUT==='hoodie')for(let j=0;j<4;j++)for(let u=-hw;u<=-1;u++)p(cx+u*fl+(fl<0?1:0),top+j,SH0[j===3?1:2]);
   if(OUT==='tee'||OUT==='shirt'||OUT==='openshirt')for(let u=-hw;u<=hw;u++)p(cx+u*fl+(fl<0?1:0),hip,BELT[1]);
@@ -147,12 +158,12 @@ function headFront(cx,hy,back,pose){const chin=hy+9,top=chin-HEADH+1;
   for(const s of [-1,1]){const ex=s<0?cx-8:cx+9;p(ex,hy,SK[s<0?3:2]);p(ex,hy+1,SK[s<0?4:2]);p(ex,hy+2,SK[s<0?3:1]);p(ex,hy+3,SK[1]);}
   if(back)return;
   faceFront(cx,hy+(pose.nod?1:0),pose);}
-function faceFront(cx,hy,pose){const E=pose.blink?'blink':(C.hollowEyes?'hollow':EXPR);const LIP=SK[0];
+function faceFront(cx,hy,pose){const E=pose.blink?'blink':(C.hollowEyes?'hollow':EXPR);const LIP=ALL?[178,46,70]:SK[0];
   for(const s of [-1,1]){const x0=s<0?cx-4:cx+4;const out=s<0?x0-1:x0+2,inn=s<0?x0+2:x0-1;// a 2-wide eye: x0, x0+1
     if(E==='blink'||E==='happy'){if(E==='happy'){p(x0,hy+1,LASH);p(x0+1,hy+1,LASH);p(out,hy+2,LASH);p(inn,hy+2,LASH);}else{p(x0,hy+2,LASH);p(x0+1,hy+2,LASH);p(out,hy+2,LASH);}continue;}
     if(E==='hollow'){for(let j=0;j<3;j++){p(x0,hy+j,[12,8,12]);p(x0+1,hy+j,[12,8,12]);}continue;}
     // lash line with a flick at the outer corner, iris lightening downward, a glint, the lower lid
-    p(x0,hy,LASH);p(x0+1,hy,LASH);p(out,hy,LASH);
+    p(x0,hy,LASH);p(x0+1,hy,LASH);p(out,hy,LASH);if(ALL){p(out+(s<0?-1:1),hy-1,LASH);p(out,hy-1,LASH);}
     p(x0,hy+1,EYR[1]);p(x0+1,hy+1,EYR[1]);p(x0,hy+2,EYR[3]);p(x0+1,hy+2,EYR[2]);
     p(s<0?x0+1:x0,hy+1,[255,255,255]);
     if(E==='surprised'||E==='scared'){p(x0,hy-1,LASH);p(x0+1,hy-1,LASH);p(x0,hy,WHITE);p(x0+1,hy,WHITE);p(out,hy-1,LASH);}
@@ -171,9 +182,10 @@ function faceFront(cx,hy,pose){const E=pose.blink?'blink':(C.hollowEyes?'hollow'
   else if(EXPR==='angry'){for(let u=-1;u<=2;u++)p(cx+u,my,LIP);}
   else if(EXPR==='surprised'||EXPR==='scared'){p(cx,my,MOUTH);p(cx+1,my,MOUTH);p(cx,my+1,MOUTH);p(cx+1,my+1,MOUTH);}
   else if(EXPR==='wrong'){for(let u=-3;u<=4;u++)p(cx+u,my+(Math.abs(u-.5)>3?-1:0),MOUTH);for(let u=-2;u<=3;u+=2)p(cx+u,my,TEETH);}
+  else if(ALL){p(cx-1,my,[150,40,60]);p(cx,my,[178,46,70]);p(cx+1,my,[178,46,70]);p(cx+2,my,[150,40,60]);p(cx,my+1,[206,82,98]);p(cx+1,my+1,[206,82,98]);}
   else if(C.smile!==false){p(cx-1,my,SK[1]);p(cx,my+1,SK[1]);p(cx+1,my+1,SK[1]);p(cx+2,my,SK[1]);}
   else{p(cx,my,SK[1]);p(cx+1,my,SK[1]);}
-  if(EXPR==='happy'||C.blush){p(cx-6,hy+4,BLUSH);p(cx-5,hy+4,BLUSH);p(cx+6,hy+4,BLUSH);p(cx+7,hy+4,BLUSH);}}
+  if(EXPR==='happy'||C.blush||ALL){p(cx-6,hy+4,BLUSH);p(cx-5,hy+4,BLUSH);p(cx+6,hy+4,BLUSH);p(cx+7,hy+4,BLUSH);}}
 function headSide(cx,hy,fl,pose){const chin=hy+9,top=chin-HEADH+1;
   // a profile: the skull fills back to front, the face is the front third, chin set back a little
   for(let y=top;y<=chin;y++){const t=y-top,b=chin-y;let back=-7,front=7;if(t===0){back=-4;front=3;}else if(t===1){back=-6;front=5;}else if(t===2)front=6;

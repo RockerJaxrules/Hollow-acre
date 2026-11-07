@@ -23,7 +23,8 @@ let L=null;const p=(x,y,c)=>{if(c)P(L,Math.round(x),Math.round(y),c);};const g=(
 const mix=(a,b,t)=>[Math.round(a[0]+(b[0]-a[0])*t),Math.round(a[1]+(b[1]-a[1])*t),Math.round(a[2]+(b[2]-a[2])*t)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 // ---------------------------------------------------------------- geometry. The face axis is x=32 (columns 31|32), the eye line y=EYE.
-const CX=31.5,EYE=KID?33:31,CHIN=KID?50:52,FT=KID?15:13;
+const ALL=!!C.allure&&!KID,LIFT=ALL?5:0;   // a young adult woman: the head sits higher so the neckline shows
+const CX=31.5,EYE=(KID?33:31)-LIFT,CHIN=(KID?50:52)-LIFT,FT=(KID?15:13)-LIFT;
 // half-width of the face at each row: forehead, temples, cheekbones, then the jaw curving in to the chin
 function faceHW(y){if(y<FT)return 0;const t=y-FT;if(t<3)return 9+t*1.3;if(y<EYE+5)return 13;const j=(y-(EYE+5))/(CHIN-(EYE+5));if(j>1)return 0;return 13-Math.pow(j,1.6)*(KID?7:8.5)-(j>.85?(j-.85)*14:0);}
 // ---------------------------------------------------------------- shoulders and clothes (drawn first)
@@ -32,11 +33,11 @@ function torso(){const top=CHIN+1,R=SH;
   for(let y=CHIN-6;y<=top+3;y++){const hw=KID?4:5;for(let x=-hw;x<hw;x++){const X=CX+.5+x;let k=x<-hw+2?4:x>hw-3?2:3;if(y<CHIN+2)k=Math.min(k,2);p(X,y,SK[k]);}}
   for(let y=CHIN-1;y<=CHIN+2;y++)for(let x=-5;x<5;x++)if(x>-3)p(CX+.5+x,y,SK[1]);
   // shoulders: a broad curve from the neck out to the frame edge
-  const sw=KID?22:27;for(let y=top;y<PH;y++){const t=(y-top)/(PH-top);const hw=Math.min(31,(KID?8:10)+Math.sqrt(t)*sw);for(let x=-Math.ceil(hw);x<Math.ceil(hw);x++){const X=CX+.5+x;const ax=Math.abs(x+.5);if(ax>hw)continue;
+  const sw=KID?22:ALL?24:27;for(let y=top;y<PH;y++){const t=(y-top)/(PH-top);const hw=Math.min(31,(KID?8:10)+Math.sqrt(t)*sw);for(let x=-Math.ceil(hw);x<Math.ceil(hw);x++){const X=CX+.5+x;const ax=Math.abs(x+.5);if(ax>hw)continue;
       if(ax<(KID?4:5)&&y<top+3)continue;
       let k=x<-hw+4?5:x>hw-5?2:x>hw-9?3:4;if(y>PH-3)k=Math.max(1,k-1);
       let RR=R;if(OUT==='jacket'||OUT==='longcoat'||OUT==='cardigan'){RR=ax>6+(y-top)*.35?JK:R;}if(OUT==='vest'&&ax>5&&ax<hw-5)RR=JK;if(OUT==='openshirt'&&ax<4+(y-top)*.2)RR=EX;
-      if(OUT==='overalls'&&ax<11&&y>top+8)RR=PN;if(OUT==='tank'&&ax>9)RR=SK;if((OUT==='dress'||OUT==='skirt')&&C.apron&&ax<9&&y>top+6)RR=EX;
+      if(OUT==='overalls'&&ax<11&&y>top+8)RR=PN;if(OUT==='tank'&&ax>9)RR=SK;if((OUT==='dress'||OUT==='skirt')&&C.apron&&!ALL&&ax<9&&y>top+6)RR=EX;
       // pattern
       let kk=k;if(RR===R){const PAT=C.pattern||(C.plaid?'plaid':'');const cx=((x%6)+6)%6,cy=((y%6)+6)%6;if(PAT==='plaid'&&(cx<2||cy<2))kk=Math.max(1,kk-1);if(PAT==='stripes'&&cy<3)kk=Math.max(1,kk-1);if(PAT==='dots'&&cx===2&&cy===2)kk=6;}
       p(X,y,RR[kk]);}}
@@ -53,7 +54,18 @@ function torso(){const top=CHIN+1,R=SH;
   if(OUT==='hoodie'){for(let x=-11;x<11;x++){const yy=top-1+Math.round(Math.abs(x+.5)*.25);for(let j=0;j<4;j++)p(nx+x,yy+j,SH[j===0?5:j===3?2:4]);}for(const s of [-3,3])for(let y=top+3;y<top+12;y++)p(nx+s-(s<0?0:1),y,y===top+11?SH[5]:WHITE);}
   if(OUT==='sweater'||OUT==='turtleneck'){const tall=OUT==='turtleneck'?7:3;for(let y=top-tall+3;y<top+3;y++)for(let x=-6;x<6;x++)p(nx+x,y,SH[(x&1)?3:4]);for(let x=-6;x<6;x++)p(nx+x,top+3,SH[2]);}
   if(OUT==='overalls'){for(const s of [-1,1])for(let y=top;y<top+12;y++){p(nx+s*8-(s<0?1:0),y,PN[3]);p(nx+s*9-(s<0?1:0),y,PN[2]);}for(const s of [-1,1]){p(nx+s*8-(s<0?1:0),top+10,[222,190,96]);p(nx+s*9-(s<0?1:0),top+10,[150,118,52]);}}
-  if(C.apron){for(const s of [-1,1])for(let y=top+1;y<top+8;y++)p(nx+s*7-(s<0?1:0),y,EX[3]);}
+  if(C.apron){for(const s of [-1,1])for(let y=top+1;y<top+8;y++)p(nx+s*(ALL?12:7)-(s<0?1:0),y,EX[3]);}
+  if(ALL){// a low-cut top: the upper halves of the bust show above the neckline, rounded and shaded, with the cleavage dark between them
+    const BX=6.2,BY=top+10.5,BR=6.8;
+    const clothY=ax=>ax<BX+BR-1.5?BY+1.2+Math.max(0,ax-BX-2)*.25:ax<16?BY+1.2-(ax-(BX+BR-1.5))*2.6:top+2;
+    for(let y=top;y<PH;y++)for(let x=-17;x<17;x++){const fx=x+.5,ax=Math.abs(fx);if(y>=clothY(ax))continue;
+      let k=fx<0?4:3;if(y===top+3&&ax>2&&ax<10)k=5;if(y===top+4&&ax>2&&ax<10)k=fx<0?3:2;          // the collarbones
+      for(const sd of [-1,1]){const cx=sd*BX,nxv=(fx-cx)/BR,nyv=(y-BY)/BR,d=Math.hypot(nxv,nyv);if(d>1)continue;
+        const l=-.62*nxv-.78*nyv+(sd>0?-.12:0);k=l>.5?6:l>.22?5:l>-.12?4:l>-.42?3:2;if(d>.86&&nyv>-.2)k=Math.min(k,2);}
+      if(y>BY-BR*.55){if(ax<.9)k=y>BY-BR*.2?0:1;else if(ax<1.9)k=Math.min(k,2);else if(ax<2.6)k=Math.min(k,3);}       // the cleavage
+      p(nx+x,y,SK[k]);}
+    for(let x=-17;x<17;x++){const fx=x+.5,ax=Math.abs(fx);const cy=Math.ceil(clothY(ax));if(cy<top||cy>=PH)continue;p(nx+x,cy,SH[1]);if(cy+1<PH)p(nx+x,cy+1,SH[fx<0?5:4]);}
+    if(OUT==='jacket'||OUT==='longcoat'||OUT==='cardigan')for(const s of [-1,1])for(let y=top;y<PH;y++){const ax=Math.max(16,9+(y-top)*.45);const x=nx+s*ax-(s<0?1:0);p(x,y,JK[s<0?6:1]);p(x+s,y,JK[s<0?5:2]);}}
   if(C.collar)for(let x=-3;x<3;x++){p(nx+x,top,WHITE);p(nx+x,top+1,WHITE2);}
   if(C.badge){for(const [dx,dy,c] of [[-12,8,[255,228,120]],[-11,8,[240,200,80]],[-12,9,[200,150,40]],[-11,7,[255,228,120]],[-13,8,[255,228,120]],[-11,9,[200,150,40]]])p(nx+dx,top+dy,c);}}
 // ---------------------------------------------------------------- the head
@@ -89,7 +101,8 @@ function eyes(ex){const hollow=!!C.hollowEyes;
     // upper lid: thick, with the lash flick past the outer corner; a crease above
     for(let i=0;i<7;i++){const yy=top+(i===0||i===6?1:0);p(x0+i,yy,LASH);if(i>0&&i<6)p(x0+i,yy-1,i===(s<0?1:5)?LASH:null);}
     p(out+(s<0?-1:1),top,LASH);p(out+(s<0?-1:1),top-1,LASH);
-    for(let i=1;i<6;i++)p(x0+i,top-2,SK[3]);
+    if(ALL){p(out+(s<0?-2:2),top-2,LASH);p(out+(s<0?-1:1),top-2,LASH);p(out,top-1,LASH);p(out+(s<0?-1:1),bot-1,LASH);for(let i=1;i<6;i++)p(x0+i,top-1,mix(SK[3],[150,96,140],.45));}
+    for(let i=1;i<6;i++)p(x0+i,top-2,ALL?mix(SK[3],[150,96,140],.3):SK[3]);
     if(sad){p(inn,top-1,LASH);p(inn+(s<0?-1:1),top-1,LASH);}
     // lower lid
     for(let i=1;i<6;i++)p(x0+i,bot,SK[2]);p(out,bot-1,SK[2]);}}
@@ -97,7 +110,7 @@ function brows(ex){const R=HR;for(const s of [-1,1]){const x0=s<0?CX-11:CX+3,inn
     for(let i=0;i<8;i++){const t=i/7;let lift=Math.round(Math.sin(t*Math.PI)*1.6);const innerT=s<0?t:1-t;   // 1 at the inner end
       if(ex==='angry')lift=Math.round(-innerT*3+1.5);if(ex==='sad'||ex==='scared')lift=Math.round(innerT*3-.5);
       const x=x0+i,y=y0-lift;const th=i>1&&i<7?2:1;for(let j=0;j<th;j++)p(x,y+j,j===0?R[2]:R[1]);}}}
-function mouth(ex){const mx=CX+.5,my=EYE+12,LP=mix(SK[3],[200,90,90],.35),LP2=mix(SK[2],[150,50,60],.35);
+function mouth(ex){const mx=CX+.5,my=EYE+12,LP=ALL?[214,88,104]:mix(SK[3],[200,90,90],.35),LP2=ALL?[168,44,68]:mix(SK[2],[150,50,60],.35);
   if(ex==='happy'){for(let x=-5;x<5;x++){const yy=my+Math.round(Math.pow(Math.abs(x+.5)/5,2)*-2+1);p(mx+x,yy,MOUTH);if(Math.abs(x+.5)<4)p(mx+x,yy-1,TEETH);}for(let x=-3;x<3;x++)p(mx+x,my+2,LP);p(mx-6,my-1,SK[2]);p(mx+5,my-1,SK[2]);return;}
   if(ex==='sad'){for(let x=-4;x<4;x++){const yy=my+1-Math.round(Math.pow(Math.abs(x+.5)/4,2)*-1.5)-1;p(mx+x,yy,LP2);}for(let x=-2;x<2;x++)p(mx+x,my+2,LP);return;}
   if(ex==='angry'){for(let x=-4;x<4;x++){p(mx+x,my,LP2);p(mx+x,my+1,x>-3&&x<2?TEETH:LP2);}for(let x=-3;x<3;x++)p(mx+x,my+2,LP);p(mx-5,my+1,SK[2]);p(mx+4,my+1,SK[2]);return;}
@@ -106,7 +119,7 @@ function mouth(ex){const mx=CX+.5,my=EYE+12,LP=mix(SK[3],[200,90,90],.35),LP2=mi
   if(ex==='wrong'){for(let x=-8;x<8;x++){const yy=my+Math.round(Math.pow(Math.abs(x+.5)/8,2)*-4+1);p(mx+x,yy,MOUTH);if(Math.abs(x+.5)<7&&(x&1))p(mx+x,yy-1,TEETH);}return;}
   // neutral: a closed mouth, a darker upper lip, a lit lower lip
   if(C.smile===false){for(let x=-3;x<3;x++)p(mx+x,my,LP2);return;}
-  for(let x=-4;x<4;x++){const yy=my-(Math.abs(x+.5)>3?1:0);p(mx+x,yy,LP2);}for(let x=-2;x<2;x++)p(mx+x,my+1,LP);p(mx-1,my+2,SK[3]);p(mx,my+2,SK[3]);}
+  for(let x=-4;x<4;x++){const yy=my-(Math.abs(x+.5)>3?1:0);p(mx+x,yy,LP2);}for(let x=-2;x<2;x++)p(mx+x,my+1,LP);if(ALL){for(let x=-3;x<3;x++)p(mx+x,my+1,LP);p(mx-1,my+2,LP);p(mx,my+2,LP);p(mx-1,my+1,[240,150,160]);}else{p(mx-1,my+2,SK[3]);p(mx,my+2,SK[3]);}}
 // ---------------------------------------------------------------- hair: the sprite styles, redrawn at portrait size. Locks fall from a comb point; each has a lit
 // edge with a bright streak, a dark edge, and comes to a point; every lock border is a dark line.
 const HS={
@@ -200,6 +213,7 @@ function acc(){const a=C.accessory;if(!a)return;const R=AC;const S=hairStyle()||
   if(a==='scarf'||a==='bandana'){const y0=CHIN-1;for(let x=-11;x<11;x++)for(let j=0;j<5;j++){const yy=y0+j+Math.round(Math.abs(x+.5)*.15);p(CX+.5+x,yy,R[j===0?5:j===4?2:(x<-5?5:x>5?3:4)]);}
     if(a==='scarf'){for(let x=-11;x<11;x+=4)for(let j=1;j<4;j++)p(CX+.5+x+j*.3,y0+j+Math.round(Math.abs(x+.5)*.15),R[2]);
       for(let j=4;j<16;j++){const w=5-(j>12?1:0),sx=CX+4+Math.round(Math.sin(j*.4));for(let i=0;i<w;i++)p(sx+i,y0+j,R[i===0?5:i===w-1?2:((j)%4===0?3:4)]);}for(let i=0;i<5;i++)p(CX+4+i,y0+16,R[(i&1)?1:5]);}else for(let j=5;j<12;j++){const w=8-j*.6;for(let x=-Math.ceil(w);x<Math.ceil(w);x++)p(CX+.5+x,y0+j,R[(x+j)%4===0?5:3]);}}
+  if(a==='necklace'&&ALL){for(let x=-7;x<7;x++){const yy=CHIN+4+Math.round((1-Math.pow((x+.5)/7,2))*6);p(CX+.5+x,yy,R[5]);}p(CX,CHIN+11,[255,255,255]);p(CX+1,CHIN+11,R[4]);p(CX,CHIN+12,R[3]);p(CX+1,CHIN+12,R[2]);return;}
   if(a==='necklace'){for(let x=-8;x<8;x++){const yy=CHIN+4+Math.round((1-Math.pow((x+.5)/8,2))*5);p(CX+.5+x,yy,R[5]);}p(CX,CHIN+10,[255,255,255]);p(CX+1,CHIN+10,R[4]);p(CX,CHIN+11,R[3]);p(CX+1,CHIN+11,R[2]);}}
 // ---------------------------------------------------------------- render each expression: back hair, clothes, face, front hair, extras, outline
 EXS.forEach((ex,i)=>{L=layer('p',PW,PH);hair(false);torso();head(ex);beard();hair(true);glasses();acc();hat();

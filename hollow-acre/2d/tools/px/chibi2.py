@@ -48,6 +48,11 @@ NPC.update({
   'maud': dict(skin='#c98c62', hair='#5a2a1a', hairStyle='ponytail', outfit='jacket', extra='#5a4a3a', shirt='#8a8a90', pants='#3a3a40', shoes='#1e1a18', accessory='bandana', acc='#b83a2a'),
   'corwin': dict(skin='#e0c4a8', hair='#9a9aa0', hairStyle='shaggy', outfit='longcoat', extra='#3a4a5a', shirt='#c8b060', pants='#3a3a30', shoes='#2a2010', beard='stubble', hat='cap', hatColor='#c8a030'),
 })
+
+# the young adult women: fitted low-cut tops (no scarves over the neckline), lashes, lipstick
+ALLURE = {'nell': dict(outfit='tee', overalls=False, pants='#4a3e2e'), 'june': dict(accessory='necklace', acc='#e8c860'), 'cora': dict(accessory='necklace', acc='#e8e0f0'), 'ida': dict(),
+          'tess': dict(accessory='necklace', acc='#e8c860'), 'iris': dict(), 'della': dict(), 'maud': dict(accessory='headband')}
+for _k, _v in ALLURE.items(): NPC[_k].update(_v, allure=1)
 # player base colours: every recolourable region has its own base ramp
 BASE = dict(skin='#e8b48c', hair='#6a4224', eye='#3a5a7a', shirt='#b8402c', pants='#3a4e7a', shoes='#3a2618', extra='#6a7a3a', hatColor='#8a5a2a', acc='#c83a5a')
 OUTFITS = ['tee', 'shirt', 'overalls', 'jacket', 'dress', 'hoodie', 'vest', 'sweater', 'tank', 'turtleneck', 'cardigan', 'openshirt', 'skirt', 'longcoat']
