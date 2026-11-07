@@ -169,12 +169,16 @@ if(CFG.porch){const p0=wx0-6,p1=wx1+6,pr=yB-48,ph=10;
   rect(Ldet,p0-1,yB,p1-p0+3,6,PAL.wood[3]);for(let x=p0;x<p1;x+=9)vl(Ldet,x,yB,6,PAL.wood[1]);hl(Ldet,p0-1,yB,p1-p0+3,PAL.wood[5]);hl(Ldet,p0-1,yB+5,p1-p0+3,PAL.wood[0]);
   rect(Ldet,doorX-14,yB+6,28,3,PAL.wood[2]);hl(Ldet,doorX-14,yB+6,28,PAL.wood[4]);}
 // ===== chimney
-if(CFG.chimney!==undefined&&CFG.chimney!==null){const cw=16,cx=(ox+WW/2+CFG.chimney*32-cw/2)|0,ct=6,cb=y0+18;CHIM=[cx+cw/2-W/2,ct-3];
-  for(let y=ct;y<cb;y++)for(let x=cx;x<cx+cw;x++){const row=(y-ct)/4|0,off=row%2?4:0;const mort=(y-ct)%4===3||((x-cx+off)%8===7);P(Lchim,x,y,mort?PAL.red[1]:PAL.red[(x-cx)<3?4:(x-cx)>cw-4?2:3]);}
+if(CFG.chimney!==undefined&&CFG.chimney!==null){const cw=CFG.chimStone?20:16,cx=(ox+WW/2+CFG.chimney*32-cw/2)|0,ct=6,cb=y0+18;CHIM=[cx+cw/2-W/2,ct-3];const BR=CFG.chimStone?PAL.stone:PAL.red;
+  for(let y=ct;y<cb;y++)for(let x=cx;x<cx+cw;x++){const rh=CFG.chimStone?6:4,bw2=CFG.chimStone?10:8,row=(y-ct)/rh|0,off=row%2?(bw2>>1):0;const mort=(y-ct)%rh===rh-1||((x-cx+off+(CFG.chimStone?(hsh(row,(x-cx+off)/bw2|0,5)*3|0):0))%bw2===bw2-1);P(Lchim,x,y,mort?BR[1]:BR[(x-cx)<3?4:(x-cx)>cw-4?2:(CFG.chimStone&&hsh(row,(x-cx+off)/bw2|0,6)>.6?2:3)]);}
   for(let y=ct;y<cb;y++)for(let x=cx+cw-4;x<cx+cw;x++){const c=G(Lchim,x,y);if(c)P(Lchim,x,y,shade(c,.7));}
   rect(Lchim,cx-2,ct-6,cw+4,4,PAL.stone[4]);hl(Lchim,cx-2,ct-6,cw+4,PAL.stone[5]);rect(Lchim,cx+2,ct-5,cw-4,2,PAL.ink[0]);rect(Lchim,cx-2,ct-2,cw+4,3,PAL.stone[2]);hl(Lchim,cx-2,ct,cw+4,PAL.stone[1]);
   for(let x=cx;x<cx+cw;x++)P(Lchim,x,cb,PAL.red[0]);
   for(let y=cb-10;y<cb+3;y++)for(let x=cx+cw;x<cx+cw+5;x++){const c=G(Lroof,x,y);if(c)P(Lroof,x,y,shade(c,.62));}}
+// ===== a kitchen stovepipe: thin blackened tin with a rain cap and seams
+if(CFG.pipe!==undefined){const px_=(ox+WW/2+CFG.pipe*32)|0,pt=y0+2,pb=y0+30;for(let y=pt;y<pb;y++)for(let x=px_-3;x<px_+3;x++)P(Lchim,x,y,PAL.slate[x<px_-1?4:x>px_?1:3]);
+  for(let i=0;i<3;i++)hl(Lchim,px_-3,pt+7+i*8,6,PAL.slate[0]);rect(Lchim,px_-6,pt-5,12,3,PAL.slate[3]);hl(Lchim,px_-6,pt-5,12,PAL.slate[5]);hl(Lchim,px_-6,pt-3,12,PAL.slate[1]);vl(Lchim,px_-4,pt-2,2,PAL.slate[1]);vl(Lchim,px_+3,pt-2,2,PAL.slate[1]);
+  for(let y=pb-8;y<pb+2;y++)for(let x=px_+3;x<px_+6;x++){const c=G(Lroof,x,y);if(c)P(Lroof,x,y,shade(c,.65));}}
 // ===== steeple: clapboard tower in front, louvred belfry with a bell, shaded spire and cross
 if(CFG.steeple){const tw=46,tx=(ox+WW/2-tw/2)|0,bt=y0+roofH-30,bh=34,belT=bt-bh,spH=CFG.spire||86,apex=belT-6-spH;
   for(let y=bt;y<yB;y++){const k=(y-bt)%5;hl(Lchim,tx,y,tw,k===0?S_[4]:k===4?S_[1]:S_[3]);}

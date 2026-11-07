@@ -3,6 +3,8 @@ sys.path.insert(0, '.')
 from run import run
 ROOMS = {
   'cabin':  dict(w=9, d=6, door=4.5, theme='cabin', windows=[[2, 0], [7, 0]]),
+  'cabin1': dict(w=9, d=6, door=4.5, theme='home', paper='mustard', windows=[[2, 0], [7, 0]]),
+  'cabin2': dict(w=12, d=6, door=4.5, theme='home', paper='mustard', windows=[[2, 0], [7, 0], [10.5, 0]]),
   'store':  dict(w=13, d=8, door=6.5, theme='store', windows=[[1.6, 0], [4.6, 0], [8.4, 0], [11.4, 0]]),
   'home_rust': dict(w=8, d=6, door=4, theme='home', paper='rust', windows=[[2, 0], [6, 0]]),
   'home_blue': dict(w=8, d=6, door=4, theme='home', paper='blue', windows=[[2, 0], [6, 0]]),
@@ -14,8 +16,8 @@ ROOMS = {
 }
 FURN = {'bed': (56, 76), 'table': (56, 44), 'chair': (22, 38), 'stove': (44, 58), 'shelf_books': (52, 82, dict(goods='books')), 'shelf_jars': (52, 82, dict(goods='jars')),
   'shelf_cans': (64, 82, dict(goods='cans')), 'shelf_tools': (64, 66, dict(goods='tools', step=20)), 'shelf_parts': (64, 82, dict(goods='parts')), 'shelf_mail': (64, 70, dict(goods='mail', step=16)), 'rocker': (28, 44), 'cradle': (36, 30), 'piano': (72, 58), 'chess': (40, 44), 'blackboard': (72, 46), 'schooldesk': (30, 36), 'globe': (24, 34), 'mailsacks': (36, 30), 'netwall': (60, 36), 'rods': (32, 64), 'coffin': (40, 66), 'shovels': (34, 58), 'filecab': (28, 52), 'mapboard': (56, 40), 'photowall': (46, 32), 'knit': (22, 22), 'tires': (30, 40), 'drum': (24, 36), 'drum_blue': (24, 36, dict(blue=True)), 'toolbox': (36, 40), 'hoist': (40, 70), 'rug': (84, 52), 'counter': (100, 48), 'crates': (46, 40), 'pew': (124, 40),
-  'chairE': (22, 38), 'chairN': (22, 38), 'shelfE': (25, 104), 'shelfN': (52, 82), 'rug_r': (52, 84), 'altar': (76, 64), 'bench': (84, 62), 'cellar': (42, 30), 'mirror': (22, 32), 'clock': (20, 62), 'car': (124, 72), 'candles': (40, 24), 'desk': (58, 48), 'keg': (26, 32)}
-NIGHT = {'table', 'stove', 'altar', 'candles', 'desk', 'mirror'}
+  'kcounter': (76, 52), 'hearth': (60, 88), 'chairE': (22, 38), 'chairN': (22, 38), 'shelfE': (25, 104), 'shelfN': (52, 82), 'rug_r': (52, 84), 'altar': (76, 64), 'bench': (84, 62), 'cellar': (42, 30), 'mirror': (22, 32), 'clock': (20, 62), 'car': (124, 72), 'candles': (40, 24), 'desk': (58, 48), 'keg': (26, 32)}
+NIGHT = {'hearth', 'table', 'stove', 'altar', 'candles', 'desk', 'mirror'}
 only = sys.argv[1:]; meta = {}
 for n, r in ROOMS.items():
     if only and n not in only and 'rooms' not in only: continue

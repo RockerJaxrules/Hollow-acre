@@ -4050,5 +4050,273 @@
 0,
 0
 ]
+},
+"cabin_t1": {
+"src": "spr/lpc/obj/cabin_t1.png",
+"fw": 212,
+"fh": 190,
+"ax": 106,
+"ay": 187,
+"foot": [
+-3.0,
+-3.3,
+3.0,
+0
+],
+"bw": 6,
+"chim": [
+51,
+-184
+]
+},
+"cabin_t1_n": {
+"src": "spr/lpc/obj/cabin_t1_n.png",
+"fw": 212,
+"fh": 190,
+"ax": 106,
+"ay": 187,
+"foot": [
+-3.0,
+-3.3,
+3.0,
+0
+]
+},
+"cabin_t2": {
+"src": "spr/lpc/obj/cabin_t2.png",
+"fw": 276,
+"fh": 190,
+"ax": 138,
+"ay": 187,
+"foot": [
+-4.0,
+-3.3,
+4.0,
+0
+],
+"bw": 8,
+"chim": [
+-77,
+-184
+]
+},
+"cabin_t2_n": {
+"src": "spr/lpc/obj/cabin_t2_n.png",
+"fw": 276,
+"fh": 190,
+"ax": 138,
+"ay": 187,
+"foot": [
+-4.0,
+-3.3,
+4.0,
+0
+]
+},
+"cabin_t3": {
+"src": "spr/lpc/obj/cabin_t3.png",
+"fw": 276,
+"fh": 190,
+"ax": 138,
+"ay": 187,
+"foot": [
+-4.0,
+-3.3,
+4.0,
+0
+],
+"bw": 8,
+"chim": [
+-77,
+-184
+]
+},
+"cabin_t3_n": {
+"src": "spr/lpc/obj/cabin_t3_n.png",
+"fw": 276,
+"fh": 190,
+"ax": 138,
+"ay": 187,
+"foot": [
+-4.0,
+-3.3,
+4.0,
+0
+]
+},
+"room_cabin1": {
+"src": "spr/lpc/obj/room_cabin1.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"w": 9,
+"d": 6,
+"door": 4.5,
+"theme": "home",
+"paper": "mustard",
+"windows": [
+[
+2,
+0
+],
+[
+7,
+0
+]
+]
+}
+},
+"room_cabin1_n": {
+"src": "spr/lpc/obj/room_cabin1_n.png",
+"fw": 312,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"w": 9,
+"d": 6,
+"door": 4.5,
+"theme": "home",
+"paper": "mustard",
+"windows": [
+[
+2,
+0
+],
+[
+7,
+0
+]
+]
+}
+},
+"room_cabin2": {
+"src": "spr/lpc/obj/room_cabin2.png",
+"fw": 408,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"w": 12,
+"d": 6,
+"door": 4.5,
+"theme": "home",
+"paper": "mustard",
+"windows": [
+[
+2,
+0
+],
+[
+7,
+0
+],
+[
+10.5,
+0
+]
+]
+}
+},
+"room_cabin2_n": {
+"src": "spr/lpc/obj/room_cabin2_n.png",
+"fw": 408,
+"fh": 304,
+"ax": 0,
+"ay": 0,
+"foot": [
+0,
+0,
+0,
+0
+],
+"side": 12,
+"top": 100,
+"room": {
+"w": 12,
+"d": 6,
+"door": 4.5,
+"theme": "home",
+"paper": "mustard",
+"windows": [
+[
+2,
+0
+],
+[
+7,
+0
+],
+[
+10.5,
+0
+]
+]
+}
+},
+"in_kcounter": {
+"src": "spr/lpc/obj/in_kcounter.png",
+"fw": 76,
+"fh": 52,
+"ax": 38.0,
+"ay": 49,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"in_hearth": {
+"src": "spr/lpc/obj/in_hearth.png",
+"fw": 60,
+"fh": 88,
+"ax": 30.0,
+"ay": 85,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"in_hearth_n": {
+"src": "spr/lpc/obj/in_hearth_n.png",
+"fw": 60,
+"fh": 88,
+"ax": 30.0,
+"ay": 85,
+"foot": [
+0,
+0,
+0,
+0
+]
 }
 }

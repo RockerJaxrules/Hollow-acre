@@ -200,6 +200,24 @@ if(K==='desk'){topBox(3,12,W-6,10,H-28,WD,WD[2]);frame(A,8,26,W/2-10,H-34,WD[3],
   for(const x of [5,W-9])post(A,x,H-8,4,6);gs(cx+3,base,W/2-2|0,3,70);}
 if(K==='keg'){const x0=4,w=W-8;for(let y=6;y<base;y++){const t=(y-6)/(base-6),half=w/2+Math.round(Math.sin(t*Math.PI)*1.5);for(let x=-half;x<half;x++){const u=(x+half)/(2*half);P(A,cx+x,y,PAL.red[u<.2?4:u<.6?3:u<.85?2:1]);}}
   for(const y of [10,base-6])for(let x=-w/2;x<w/2;x++)P(A,cx+x,y,PAL.slate[3]);ell(A,cx,6,w/2,3,PAL.red[4]);ell(A,cx,6,3,1,PAL.ink[1]);gs(cx+2,base,w/2+1|0,2,70);}
+// ---- the cabin's upgrades: Nell's kitchen counter (a basin sink with a pump, a cutting board, crocks) and a stone hearth
+if(K==='kcounter'){topBox(2,10,W-4,10,H-24,WD,WD[2]);
+  for(const dx of [6,W/2+2|0]){frame(A,dx,24,(W/2|0)-10,H-30,WD[3],WD[0]);P(A,dx+((W/2|0)-10)-3,24+((H-30)>>1),PAL.brass[3]);}
+  ell(A,W-20,15,8,4,PAL.white[2]);ell(A,W-20,15,6,3,PAL.white[4]);ell(A,W-20,16,5,2,PAL.glass[3]);P(A,W-22,15,PAL.white[5]);
+  rect(A,W-10,2,3,12,PAL.slate[2]);vl(A,W-10,2,12,PAL.slate[4]);rect(A,W-13,2,6,2,PAL.slate[3]);hl(A,W-16,4,6,PAL.slate[2]);
+  rect(B,8,12,16,6,WD[4]);hl(B,8,12,16,WD[5]);hl(B,8,17,16,WD[2]);ell(B,15,13,3,2,[236,232,224]);P(B,15,11,PAL.curtain[3]);P(B,16,10,PAL.moss[3]);
+  for(const [x,c] of [[28,PAL.rust],[34,PAL.cream]]){rect(B,x,6,5,8,c[2]);hl(B,x,6,5,c[3]);vl(B,x+4,6,8,c[1]);}
+  gs(cx+3,base,W/2-2|0,3,70);}
+if(K==='hearth'){const ST=PAL.stone,x0=4,w=W-8,top=6;
+  for(let y=top;y<H-6;y++)for(let x=x0;x<x0+w;x++){const row=(y-top)/7|0,off=row%2?6:0,col=(x-x0+off)/12|0;const mort=(y-top)%7===6||(x-x0+off)%12===11;
+    P(A,x,y,mort?ST[1]:ST[hsh(row,col,4)>.66?4:hsh(row,col,5)>.33?3:2]);}
+  rect(A,x0-3,top+16,w+6,5,WD[3]);hl(A,x0-3,top+16,w+6,WD[5]);hl(A,x0-3,top+20,w+6,WD[1]);
+  for(const [x,c] of [[x0+4,PAL.cream],[x0+w-9,PAL.cream]]){rect(B,x,top+9,3,7,c[3]);P(B,x+1,top+8,N?PAL.lit[5]:PAL.lit[3]);}
+  const fx=cx-13,fy=top+28,fw=26,fh=H-fy-10;for(let y=0;y<fh;y++)for(let x=0;x<fw;x++){const r=fw/2;if(y<r&&(x-r+.5)**2+(r-y)**2>r*r)continue;P(A,fx+x,fy+y,PAL.ink[0]);}
+  for(let x=4;x<fw-4;x++){P(A,fx+x,fy+fh-3,WD[1]);P(A,fx+x,fy+fh-4,WD[2]);}
+  const F=N?[PAL.lit[2],PAL.lit[3],PAL.lit[4],PAL.lit[5]]:[PAL.lit[1],PAL.lit[2],PAL.lit[3],PAL.lit[4]];
+  for(let i=0;i<9;i++){const x=fx+6+i*1.6|0,h=5+(hsh(i,1,7)*7|0);for(let j=0;j<h;j++)P(B,x,fy+fh-5-j,F[Math.min(3,(j*4/h|0)===0?3:3-(j*4/h|0))]);}
+  rect(A,x0-6,H-7,w+12,4,ST[3]);hl(A,x0-6,H-7,w+12,ST[5]);hl(A,x0-6,H-4,w+12,ST[1]);gs(cx,base,W/2|0,2,60);}
 // ---- the cabin furniture turned, for placing it facing another way. These are the east-facing views; west is the same art flipped.
 // chair from its side: the back upright on the left (a post from the floor to the top rail), the seat running toward where it faces
 if(K==='chairE'){post(A,4,27,3,H-30);post(A,W-7,27,3,H-30);rect(A,6,H-11,W-12,2,WD[1]);hl(A,6,H-11,W-12,WD[3]);
