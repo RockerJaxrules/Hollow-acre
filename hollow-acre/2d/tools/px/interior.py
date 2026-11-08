@@ -12,6 +12,13 @@ ROOMS = {
   'shop_bait2': dict(w=9, d=6, door=4, theme='home', wall='panel', floor='painted', paint='blue', windows=[[2, 0], [6, 0]], mat='blue'),
   'shop_lusk2': dict(w=10, d=6, door=6.8, theme='home', wall='plaster', paper='mustard', floor='checker', chk='red', windows=[[3.6, 0], [8.0, 0]], doors=[[9.3, 'red']], mat='red'),
   'shop_harlow2': dict(w=14, d=8, door=6.5, theme='home', wall='damask', paper='red', floor='parquet', wains='bead', windows=[[1.6, 0], [4.6, 0], [9.4, 0]], doors=[[12.9, 'bark']], mat='mustard'),
+  # ---- the shops again, bigger and busier (#152): room for aisles, displays and a corner to sit in
+  'shop_store3': dict(w=18, d=11, door=9, theme='store', windows=[[2.6, 0], [6.8, 0], [11.2, 0]], doors=[[15.6, 'bark']], mat='red'),
+  'shop_garage3': dict(w=15, d=9, door=7.5, theme='garage', windows=[[4.2, 0, 30, 8, 26], [9.6, 0, 30, 8, 26]], doors=[[13.6, 'slate']]),
+  'shop_forge3': dict(w=15, d=9, door=7.5, theme='home', wall='plaster', paper='slate', floor='flag', wains='none', windows=[[5.6, 0], [9.4, 0]], doors=[[13.4, 'bark']], mat='rust'),
+  'shop_carp3': dict(w=15, d=9, door=7.5, theme='home', wall='panel', floor='wide', windows=[[2.4, 0], [6.6, 0], [10.4, 0]], doors=[[13.4, 'bark']], mat='mustard'),
+  'shop_feed3': dict(w=15, d=9, door=7.5, theme='home', wall='log', floor='planks', windows=[[2.4, 0], [6.6, 0], [10.4, 0]], doors=[[13.4, 'bark']], mat='sage'),
+  'shop_bait3': dict(w=12, d=8, door=6, theme='home', wall='panel', floor='painted', paint='blue', windows=[[2.4, 0], [6, 0], [9.6, 0]], mat='blue'),
   # ---- where the keepers live
   'priv_store': dict(w=7, d=5, door=3.5, theme='home', wall='stripe', paper='rust', floor='parquet', windows=[[2, 0], [5.2, 0]], mat='rust'),
   'priv_garage': dict(w=7, d=5, door=3.5, theme='home', wall='panel', floor='wide', windows=[[5.4, 0]], mat='slate'),
