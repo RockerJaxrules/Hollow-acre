@@ -235,7 +235,7 @@ function rgBuildAll(){const t0=performance.now();
   // milestones: the old county posts at the heart of each place, and three in the old valley
   for(const m of RG_MILES)rgPut('rg_mile',m.x,m.z,{kind:'prop',mile:m.k},.28);
   console.log('regions built',((performance.now()-t0)|0)+'ms',OBJ.length);}
-const RG_MILES=[{k:'farm',name:'Hollow Acre',x:-9.6,z:-10.6},{k:'town',name:'Marrow Hollow green',x:38.6,z:3.2},{k:'wick',name:'Wickham',x:118.8,z:51.6},
+const RG_MILES=[{k:'farm',name:'Hollow Acre',x:-13.2,z:-10.2},{k:'town',name:'Marrow Hollow green',x:38.6,z:3.2},{k:'wick',name:'Wickham',x:118.8,z:51.6},
   {k:'r9w',name:'Pine Rest Motel',x:-126.4,z:-9.4},{k:'grey',name:'Greyfield',x:-209,z:65.2},{k:'fen',name:'The Fen',x:-192.4,z:197.6},{k:'corn',name:'The Deep Corn',x:23.4,z:198.2},
   {k:'drown',name:'Marrow Reservoir',x:115,z:170},{k:'ridge',name:'The Lookout',x:155.4,z:-137},{k:'marrow',name:'Old Marrow',x:-2.6,z:-108.6},{k:'birch',name:'The Weeping Birches',x:-205,z:-114.6}];
 {const _bw=buildWorld;buildWorld=function(){_bw();try{rgBuildAll();}catch(e){console.error('regions',e);}};}
