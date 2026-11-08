@@ -47,12 +47,29 @@ const circles=[],rects=[],segs=[];
 function addCircle(x,z,r){circles.push({x,z,r});}
 function addRect(x0,z0,x1,z1){rects.push({x0:Math.min(x0,x1),z0:Math.min(z0,z1),x1:Math.max(x0,x1),z1:Math.max(z0,z1)});}
 function addSeg(x1,z1,x2,z2,r){segs.push({x1,z1,x2,z2,r});}
-function collide(p,r){
-  for(const c of circles){const dx=p.x-c.x,dz=p.z-c.z,d=Math.hypot(dx,dz),m=c.r+r;if(d<m&&d>1e-5){p.x=c.x+dx/d*m;p.z=c.z+dz/d*m;}}
-  for(const q of rects){const cx=clamp(p.x,q.x0,q.x1),cz=clamp(p.z,q.z0,q.z1);const dx=p.x-cx,dz=p.z-cz,d=Math.hypot(dx,dz);
+// a grid over the colliders, so a step only looks at what's near it (the valley is far too big now to test every tree each frame).
+// Anything added or taken away marks it stale; it's also redrawn every few seconds for the few things that move in place.
+const CGRID={c:6,m:new Map(),dirty:true,t:0,stamp:1,A:{c:[],r:[],s:[]}};
+function cgAdd(k,q){const c=CGRID.c,m=CGRID.m;let x0,z0,x1,z1;
+  if(k==='c'){x0=q.x-q.r;z0=q.z-q.r;x1=q.x+q.r;z1=q.z+q.r;}else if(k==='r'){x0=q.x0;z0=q.z0;x1=q.x1;z1=q.z1;}
+  else{const r=q.r||.15;x0=Math.min(q.x1,q.x2)-r;z0=Math.min(q.z1,q.z2)-r;x1=Math.max(q.x1,q.x2)+r;z1=Math.max(q.z1,q.z2)+r;}
+  const i0=Math.floor(x0/c),i1=Math.floor(x1/c),j0=Math.floor(z0/c),j1=Math.floor(z1/c);
+  for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const key=i*100003+j;let b=m.get(key);if(!b){b={c:[],r:[],s:[]};m.set(key,b);}b[k].push(q);}}
+// adding goes straight into the grid; taking away marks it to be redrawn
+for(const [arr,k] of [[circles,'c'],[rects,'r'],[segs,'s']]){arr.push=function(){const n=Array.prototype.push.apply(this,arguments);if(!CGRID.dirty)for(const q of arguments)cgAdd(k,q);return n;};
+  arr.splice=function(){CGRID.dirty=true;return Array.prototype.splice.apply(this,arguments);};}
+function cgBuild(){CGRID.m.clear();for(const q of circles)cgAdd('c',q);for(const q of rects)cgAdd('r',q);for(const q of segs)cgAdd('s',q);CGRID.dirty=false;CGRID.t=performance.now();}
+function cgNear(x,z,r){if(CGRID.dirty||performance.now()-CGRID.t>3000)cgBuild();const c=CGRID.c,A=CGRID.A;A.c.length=0;A.r.length=0;A.s.length=0;const st=++CGRID.stamp;
+  const i0=Math.floor((x-r)/c),i1=Math.floor((x+r)/c),j0=Math.floor((z-r)/c),j1=Math.floor((z+r)/c);
+  for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const b=CGRID.m.get(i*100003+j);if(!b)continue;
+    for(const k of ['c','r','s'])for(const it of b[k]){if(it._cg===st)continue;it._cg=st;A[k].push(it);}}
+  return A;}
+function collide(p,r){const A=cgNear(p.x,p.z,r+1.2);
+  for(const c of A.c){const dx=p.x-c.x,dz=p.z-c.z,d=Math.hypot(dx,dz),m=c.r+r;if(d<m&&d>1e-5){p.x=c.x+dx/d*m;p.z=c.z+dz/d*m;}}
+  for(const q of A.r){const cx=clamp(p.x,q.x0,q.x1),cz=clamp(p.z,q.z0,q.z1);const dx=p.x-cx,dz=p.z-cz,d=Math.hypot(dx,dz);
     if(d<r){if(d>1e-5){p.x=cx+dx/d*r;p.z=cz+dz/d*r;}else{const l=p.x-q.x0,rr=q.x1-p.x,t=p.z-q.z0,bb=q.z1-p.z,mn=Math.min(l,rr,t,bb);
       if(mn===l)p.x=q.x0-r;else if(mn===rr)p.x=q.x1+r;else if(mn===t)p.z=q.z0-r;else p.z=q.z1+r;}}}
-  for(const s of segs){const dx=s.x2-s.x1,dz=s.z2-s.z1,L=dx*dx+dz*dz||1;const t=clamp(((p.x-s.x1)*dx+(p.z-s.z1)*dz)/L,0,1);const cx=s.x1+dx*t,cz=s.z1+dz*t;
+  for(const s of A.s){const dx=s.x2-s.x1,dz=s.z2-s.z1,L=dx*dx+dz*dz||1;const t=clamp(((p.x-s.x1)*dx+(p.z-s.z1)*dz)/L,0,1);const cx=s.x1+dx*t,cz=s.z1+dz*t;
     const ex=p.x-cx,ez=p.z-cz,d=Math.hypot(ex,ez),m=s.r+r;if(d<m&&d>1e-5){p.x=cx+ex/d*m;p.z=cz+ez/d*m;}}
   if(Math.hypot(p.x-pond.x,p.z-pond.z)<pond.r-.3&&!(Math.abs(p.x-pond.x)<.9&&p.z<pond.z-pond.r+4.2)){const dx=p.x-pond.x,dz=p.z-pond.z,d=Math.hypot(dx,dz)||1;p.x=pond.x+dx/d*(pond.r-.3);p.z=pond.z+dz/d*(pond.r-.3);}
   if(p.x<250){p.x=clamp(p.x,B.x0-6,B.x1+3);p.z=clamp(p.z,B.z0+.5,B.z1-.5);}
@@ -208,8 +225,8 @@ function fenceLine(x1,z1,x2,z2,skip,type){const fh=(type||'fence')+'_h',fv=(type
   else{const xs=Math.min(x1,x2),xe=Math.max(x1,x2);for(let x=xs;x<xe-.01;x+=2){obj(fh,x,z1+.1,{kind:'fence',clipw:Math.min(2,xe-x)});}}}
 // every solid thing gets a collider: anything standing that nothing blocks yet gets one sized from its footprint
 function autoCollide(){const SOLID=new Set(['tree','pine','bld','lamp','prop','bush','fence','wreck','furn','bin']);let added=0;
-  const blockedAt=(x,z)=>circles.some(c=>Math.hypot(c.x-x,c.z-z)<c.r+.05)||rects.some(r=>x>r.x0-.05&&x<r.x1+.05&&z>r.z0-.05&&z<r.z1+.05)||
-    segs.some(s=>{const dx=s.x2-s.x1,dz=s.z2-s.z1,L=dx*dx+dz*dz||1;const t=clamp(((x-s.x1)*dx+(z-s.z1)*dz)/L,0,1);return Math.hypot(s.x1+dx*t-x,s.z1+dz*t-z)<(s.r||.15)+.05;});
+  const blockedAt=(x,z)=>{const A=cgNear(x,z,.2);return A.c.some(c=>Math.hypot(c.x-x,c.z-z)<c.r+.05)||A.r.some(r=>x>r.x0-.05&&x<r.x1+.05&&z>r.z0-.05&&z<r.z1+.05)||
+    A.s.some(s=>{const dx=s.x2-s.x1,dz=s.z2-s.z1,L=dx*dx+dz*dz||1;const t=clamp(((x-s.x1)*dx+(z-s.z1)*dz)/L,0,1);return Math.hypot(s.x1+dx*t-x,s.z1+dz*t-z)<(s.r||.15)+.05;});};
   for(const o of OBJ){if(o.hide||!SOLID.has(o.kind)||o.noCol||(o.debris&&o.debris!=='rock'&&o.debris!=='stump'))continue;if(o.kind==='fence'&&o.spr.endsWith('_h')){continue;}
     const cx=o.x,cz=o.z-.1;if(blockedAt(cx,cz))continue;const f=footBox(o);if(!f)continue;const w=f[2]-f[0],d=f[3]-f[1];
     if(w>1.6||d>1.2)addRect(f[0]+.08,Math.max(f[1],o.z-1.2)+.05,f[2]-.08,o.z-.05);else addCircle(cx,cz,clamp(Math.min(w,d+.3)*.45,.18,.6));added++;}

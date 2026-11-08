@@ -21,7 +21,7 @@ function drawSpr(name,x,y,clip,dir,frame,o){const m=SPR[name];if(!m)return;const
   else g.drawImage(im,sx,sy,m.fw,m.fh,dx,dy,m.fw,m.fh);
   if(o.alpha!==undefined)g.globalAlpha=1;}
 // ---------- ground: LPC autotiles (corner-matched 3x6 blocks)
-const CH=256,chunks=new Map();
+const CH=256,chunks=new Map();let FRAME_NO=0;
 const TS={grass:['spr/lpc/tiles/terrain.png',0,192],flowers:['spr/lpc/tiles/terrain.png',96,192],dark:['spr/lpc/tiles/terrain.png',192,192],
   dirt:['spr/lpc/tiles/dirt.png',0,0],stone:['spr/lpc/tiles/terrain.png',384,0],water:['spr/lpc/tiles/watergrass.png',0,0],plowed:['spr/lpc/tiles/plowed.png',0,0]};
 const PIECE={1:[[0,2]],2:[[2,2]],3:[[1,2]],4:[[0,4]],5:[[0,3]],6:[[0,4],[2,2]],7:[[2,1]],8:[[2,4]],9:[[2,4],[0,2]],10:[[2,3]],11:[[1,1]],12:[[1,4]],13:[[2,0]],14:[[1,0]]};
@@ -29,14 +29,17 @@ function drawAuto(g,name,mask,dx,dy,seed){const [src,bx,by]=TS[name];const im=IM
   if(mask===15){const v=seed<.6?[1,3]:[(seed*10|0)%3,5];g.drawImage(im,bx+v[0]*32,by+v[1]*32,32,32,dx,dy,32,32);return;}
   for(const [c,r] of PIECE[mask])g.drawImage(im,bx+c*32,by+r*32,32,32,dx,dy,32,32);}
 function maskAt(fn,x,z){return (fn(x,z)?8:0)|(fn(x+1,z)?4:0)|(fn(x,z+1)?2:0)|(fn(x+1,z+1)?1:0);}
-function chunk(cx,cz){const k=cx+','+cz;let c=chunks.get(k);if(c)return c;
+// the ground is drawn in chunks and kept; the valley is big enough now that only the most recently seen ones are kept (the rest are redrawn if you come back)
+const CHUNK_MAX=150;
+function chunkKeep(k,c){chunks.set(k,c);if(chunks.size>CHUNK_MAX){let n=chunks.size-CHUNK_MAX;for(const key of chunks.keys()){if(n--<=0)break;chunks.delete(key);}}}
+function chunk(cx,cz){const k=cx+','+cz;let c=chunks.get(k);if(c){if(c.used!==FRAME_NO){c.used=FRAME_NO;chunks.delete(k);chunks.set(k,c);}return c;}
   c=document.createElement('canvas');c.width=CH;c.height=CH;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
   const N=CH/32,x0=cx*N,z0=cz*N;
-  if(x0>=280){g.fillStyle='#0a090c';g.fillRect(0,0,CH,CH);chunks.set(k,c);return c;}
+  if(x0>=280){g.fillStyle='#0a090c';g.fillRect(0,0,CH,CH);chunkKeep(k,c);return c;}
   c.wm=groundPixels(g,x0,z0,N);
   // Route 9: the Blender-rendered asphalt strip (rotated to run east-west), ending where the farm lane begins
   const rs=roadStripH();if(rs&&z0*32<(-6+5.2)*32&&(z0+N)*32>(-6-5.2)*32&&x0<-12.5){g.save();g.beginPath();{const ex=(-12.5-x0)*32;g.moveTo(0,0);for(let y=0;y<=CH;y+=4)g.lineTo(ex-Math.round(hash(y+z0*CH,7)*10+fbm(y*.05,z0)*26),y);g.lineTo(0,CH);g.closePath();}g.clip();{const bx0=(BRIDGE.x-4.4-x0)*32,bx1=(BRIDGE.x+4.4-x0)*32;g.beginPath();g.rect(-9999,-9999,bx0+9999,99999);g.rect(bx1,-9999,99999,99999);g.clip();}
-    for(let wx=-216;wx<-12.5;wx+=12){const dx=(wx-x0)*32;if(dx>CH||dx+rs.width<0)continue;g.drawImage(rs,dx,(-6-5-z0)*32);}g.restore();}
+    for(let wx=-312;wx<-12.5;wx+=12){const dx=(wx-x0)*32;if(dx>CH||dx+rs.width<0)continue;g.drawImage(rs,dx,(-6-5-z0)*32);}g.restore();}
   // the bridge deck: worn planks running across, darker toward the walls
   {const bx0=Math.round((BRIDGE.x-4.45-x0)*32),bx1=Math.round((BRIDGE.x+4.45-x0)*32),bz0=Math.round((-9.3-z0)*32),bz1=Math.round((-2.8-z0)*32);
    if(bx1>0&&bx0<CH&&bz1>0&&bz0<CH)for(let x=bx0;x<bx1;x++){const pl=Math.floor((x-bx0)/9),k=(x-bx0)%9;for(let y=Math.max(0,bz0);y<Math.min(CH,bz1);y++){const e=Math.min(y-bz0,bz1-1-y)/18;
@@ -57,7 +60,7 @@ function chunk(cx,cz){const k=cx+','+cz;let c=chunks.get(k);if(c)return c;
     if(top+hp+8<0||top>CH)continue;const sc=((Math.round(wx*32)%64)+64)%64;
     g.drawImage(cl,sc,0,1,8,px,top,1,8);if(hp>8)g.drawImage(cl,sc,60-(hp-8),1,hp-8,px,top+8,1,hp-8);
     for(let k=0;k<6;k++){g.fillStyle=`rgba(0,18,10,${.34-k*.055})`;g.fillRect(px,top+hp+k,1,1);}}
-  chunks.set(k,c);return c;}
+  chunkKeep(k,c);return c;}
 let _rsH=null;function roadStripH(){if(_rsH)return _rsH;const m=SPR.road,im=m&&IMG[m.src];if(!im)return null;
   const c=document.createElement('canvas');c.width=im.height;c.height=im.width;const g=c.getContext('2d');g.translate(0,im.width);g.rotate(-Math.PI/2);g.drawImage(im,0,0);return _rsH=c;}
 // ---------- per-pixel ground: LibreSprite textures sampled in world space, regions blended along irregular edges

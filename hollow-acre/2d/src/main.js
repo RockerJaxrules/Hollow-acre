@@ -13,7 +13,7 @@ function castShadow(o,X,Y){if(sunShadow(o,X,Y)){if(o.kind==='tree'||o.kind==='pi
   const w=Math.max(5,Math.min(26,m.fw*.42));ctx2.beginPath();ctx2.ellipse(X+w*.35,Y+1,w,w*.32,0,0,Math.PI*2);ctx2.fill();}
 function shadow(x,y,w){ctx2.fillStyle='rgba(10,14,8,.32)';ctx2.beginPath();ctx2.ellipse(x,y,w,w*.38,0,0,Math.PI*2);ctx2.fill();}
 let nightK=0,camT={x:0,z:0},titleT=0;
-function render(dt,now){const t=now/1000;
+function render(dt,now){const t=now/1000;FRAME_NO++;
   const amb=ambient(S.hour);nightK=clamp((S.hour-18.4)/1.8,0,1);if(S.hour<6.6)nightK=Math.max(nightK,clamp((6.6-S.hour)/1.6,0,1));if(S.room==='mine')nightK=1;nightAmt=nightK;
   // camera
   let fx=P.x,fz=P.z-.6;if(S.room){const R=ROOMS[S.room];const hw=VW/PPM/2,hh=VH/PPM/2;fx=R.w+.8<hw*2?R.ox+R.w/2:clamp(P.x,R.ox+hw-.4,R.ox+R.w-hw+.4);fz=R.d+3.5<hh*2?R.oz+R.d/2-.5:clamp(P.z-.6,R.oz-3+hh*1.12,R.oz+R.d+.6-hh*.88);}if(S.mode==='title'){fx=Math.sin(t*.05)*8;fz=-4+Math.cos(t*.04)*4;}
