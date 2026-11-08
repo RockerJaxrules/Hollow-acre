@@ -150,6 +150,7 @@ function lessonsUpdate(dt){if(maeT>0){maeT-=dt;if(maeT<=0)$('maecard').style.dis
   const st=seedsTotal();if(lsSeeds!==null&&st>lsSeeds&&!$('shop').hidden&&shopV==='mae')S.ls.ev.buy=1;lsSeeds=st;
   const ob=$('objective');const r=ob&&!ob.hidden?ob.getBoundingClientRect():null;if(r)el.style.setProperty('--lessonTop',Math.round(r.bottom+4)+'px');
   el.style.display=S.paused||$('bag').hidden===false?'none':'flex';
+  if(!S.ls.base)S.ls.base={};if(L.begin&&!Object.keys(S.ls.base).length)L.begin(S.ls.base);
   const tx=`<b>Caitlyn</b>${L.goal(S.ls.base)}${L.at&&typeof wayChip==='function'?wayChip(L.at()):''}`;if(el.dataset.tx!==tx){el.dataset.tx=tx;el.querySelector('.tx').innerHTML=tx;headIcon&&headIcon('mae',el.querySelector('canvas'));}
   if(L.ok(S.ls.base)&&!S.paused){const rw=lsReward(L);maeSay(L.done,rw,6);SFX.coin&&SFX.coin();lsBegin(S.ls.i+1);}}
 {const _mu=mindUpdate;mindUpdate=function(dt){_mu(dt);lessonsUpdate(dt);try{lsSideUpdate();}catch(e){}};}
