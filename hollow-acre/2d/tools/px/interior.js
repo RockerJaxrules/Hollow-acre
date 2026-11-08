@@ -92,6 +92,7 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
     for(const [tx,ty,k] of [[px+8,30,0],[px+20,28,1],[px+34,30,2],[px+48,28,0],[px+60,30,1]]){if(k===0){vl(B,tx,ty,14,PAL.slate[4]);rect(B,tx-2,ty,5,4,PAL.slate[2]);}else if(k===1){vl(B,tx,ty+2,14,WD[4]);rect(B,tx-3,ty,7,3,PAL.slate[3]);}else{ell(B,tx,ty+7,5,5,PAL.slate[3]);ell(B,tx,ty+7,3,3,PAL.ink[1]);}}
     const cx3=x0+40;wallShadow(cx3,30,18,22);rect(B,cx3,30,18,22,PAL.cream[3]);rect(B,cx3,30,18,5,PAL.red[3]);for(let j=0;j<3;j++)for(let i=0;i<4;i++)rect(B,cx3+2+i*4,37+j*5,3,3,PAL.cream[1]);P(B,cx3+10,47,PAL.red[3]);}
   if(R.theme==='home'){for(const d of R.doors||[])backDoor(B,x0+d[0]*32,top,PAL[d[1]||'bark'],d[2]&&PAL[d[2]]);if(R.mat)doormat(A,x0+R.door*32,front-11,PAL[R.mat]);}
+  else if(R.theme==='store'||R.theme==='garage'){for(const d of R.doors||[])backDoor(B,x0+d[0]*32,top,PAL[d[1]||'bark'],d[2]&&PAL[d[2]]);if(R.mat)doormat(A,x0+R.door*32,front-11,PAL[R.mat]);}
   // ---- sunlight through each window, falling across the floor down and to the right (day only)
   if(!N&&R.theme!=='mine')for(const w of R.windows||[]){const ww=w[2]||28,wx=x0+w[0]*32-ww/2;for(let y=top+2;y<Math.min(front-4,top+86);y++){const t=(y-top)/86,sk=Math.round((y-top)*.55);
       for(let x=wx+sk;x<wx+sk+ww;x++){const e=Math.min(x-(wx+sk),wx+sk+ww-1-x);const a=(1-t)*Math.min(1,e/4);const c=G(A,x,y);if(c&&a>0)P(A,x,y,[Math.min(255,c[0]*(1+.28*a)+10*a),Math.min(255,c[1]*(1+.24*a)+8*a),Math.min(255,c[2]*(1+.12*a)+2*a)]);}}}

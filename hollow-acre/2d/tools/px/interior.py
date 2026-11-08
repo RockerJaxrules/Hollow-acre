@@ -3,6 +3,24 @@ sys.path.insert(0, '.')
 from run import run
 ROOMS = {
   'cabin':  dict(w=9, d=6, door=4.5, theme='cabin', windows=[[2, 0], [7, 0]]),
+  # ---- the shops, each its own room now, with a door at the back to where the keeper lives
+  'shop_store2': dict(w=13, d=8, door=6.5, theme='store', windows=[[1.6, 0], [4.6, 0], [8.4, 0], [11.4, 0]], doors=[[6.5, 'bark']], mat='red'),
+  'shop_garage2': dict(w=12, d=7, door=6.8, theme='garage', windows=[[4.2, 0, 30, 8, 26]], doors=[[11.3, 'slate']]),
+  'shop_forge2': dict(w=11, d=7, door=6.8, theme='home', wall='plaster', paper='slate', floor='flag', wains='none', windows=[[2, 0], [5, 0]], doors=[[9.6, 'bark']], mat='rust'),
+  'shop_carp2': dict(w=11, d=7, door=4, theme='home', wall='panel', floor='wide', windows=[[2, 0], [6, 0]], doors=[[9.6, 'bark']], mat='mustard'),
+  'shop_feed2': dict(w=11, d=7, door=4, theme='home', wall='log', floor='planks', windows=[[2, 0], [6, 0]], doors=[[9.6, 'bark']], mat='sage'),
+  'shop_bait2': dict(w=9, d=6, door=4, theme='home', wall='panel', floor='painted', paint='blue', windows=[[2, 0], [6, 0]], mat='blue'),
+  'shop_lusk2': dict(w=10, d=6, door=6.8, theme='home', wall='plaster', paper='mustard', floor='checker', chk='red', windows=[[3.6, 0], [8.0, 0]], doors=[[9.3, 'red']], mat='red'),
+  'shop_harlow2': dict(w=14, d=8, door=6.5, theme='home', wall='damask', paper='red', floor='parquet', wains='bead', windows=[[1.6, 0], [4.6, 0], [9.4, 0]], doors=[[12.9, 'bark']], mat='mustard'),
+  # ---- where the keepers live
+  'priv_store': dict(w=7, d=5, door=3.5, theme='home', wall='stripe', paper='rust', floor='parquet', windows=[[2, 0], [5.2, 0]], mat='rust'),
+  'priv_garage': dict(w=7, d=5, door=3.5, theme='home', wall='panel', floor='wide', windows=[[5.4, 0]], mat='slate'),
+  'priv_forge': dict(w=7, d=5, door=3.5, theme='home', wall='log', floor='flag', windows=[[2, 0]], mat='rust'),
+  'priv_carp': dict(w=7, d=5, door=3.5, theme='home', wall='panel', floor='wide', windows=[[3.5, 0]], mat='mustard'),
+  'priv_feed': dict(w=7, d=5, door=3.5, theme='home', wall='log', floor='planks', windows=[[2, 0], [5, 0]], mat='sage'),
+  'priv_lusk': dict(w=7, d=5, door=3.5, theme='home', wall='plaster', paper='mustard', floor='checker', chk='red', windows=[[5.2, 0]], mat='red'),
+  'priv_harlow': dict(w=7, d=5, door=3.5, theme='home', wall='damask', paper='red', floor='parquet', wains='bead', windows=[[2, 0], [5, 0]], mat='curtain'),
+  'priv_ashby': dict(w=7, d=5, door=3.5, theme='home', wall='stripe', paper='blue', floor='checker', chk='blue', windows=[[2, 0], [5, 0]], mat='blue'),
   'cabin0': dict(w=6, d=6, door=3, theme='cabin', windows=[[1.4, 0], [4.6, 0]]),
   'cabin0m': dict(w=6, d=6, door=3, theme='home', paper='mustard', windows=[[1.4, 0], [4.6, 0]]),
   'cabin1': dict(w=9, d=6, door=4.5, theme='home', paper='mustard', windows=[[2, 0], [7, 0]]),
