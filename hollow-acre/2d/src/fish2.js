@@ -1,7 +1,6 @@
-/* ================= fishing, second pass (the Stardew way): hold to wind up and let go to cast (or tap twice), the float sails out
-   on an arc and lands with a splash, bobs in its own ripples, and ducks under with a "!" over your head on a bite. The catch game
-   is a carved wooden gauge beside you: your green bar, the fish itself, the reel, and now and then a treasure chest to catch too.
-   Every kind of fish is its own item with its own picture, size and quality. ================= */
+/* ================= fishing, second pass: every kind of fish its own item with its own picture, size and quality, the float's
+   flight and splash and its ripples, and the card that shows what you caught. (How you cast, strike and fight the fish is in
+   fish3.js, which replaces the cast and catch game that used to be here.) ================= */
 // ---------- every fish its own item
 const FISH_SP={'Yellow perch':'perch','Sunfish':'sunfish','Mud carp':'carp','Creek chub':'chub','Brook trout':'trout','Largemouth bass':'bass','Channel catfish':'catfish','Pale eel':'eel','Eyeless pike':'pike','Hollow carp':'hollow'};
 const FISH_BY_SP={};for(const f of FISH)FISH_BY_SP[FISH_SP[f[0]]]=f;
@@ -107,7 +106,7 @@ addEventListener('keyup',e=>{if(e.code!=='Space'&&e.code!=='KeyC')return;const k
 addEventListener('pointerdown',e=>{if((e.target!==view&&e.target.id!=='c')||S.mode!=='play'||S.paused||MG.on||(typeof PLACE!=='undefined'&&PLACE.on))return;if(e.pointerType==='mouse'&&e.button!==0)return;
   if(fish.state==='power'){F2.pd={id:e.pointerId,t:performance.now(),cast:true};e.stopImmediatePropagation();return;}
   if(fish.state!=='off'||S.room||P.anim||heldKind()!=='rod'||!waterAhead())return;const [wx,wz]=screenToWorld(e.clientX,e.clientY);const dP=Math.hypot(wx-P.x,wz-P.z);
-  if(!(dP<1.3||(waterAt(wx,wz)&&dP<6)))return;fishAct();if(fish.state==='power'){F2.pd={id:e.pointerId,t:performance.now(),cast:false};e.stopImmediatePropagation();}},true);
+  if(!(dP<1.3||(waterAt(wx,wz)&&dP<6)))return;fish.tap=[wx,wz,performance.now()];fishAct();if(fish.state==='power'){F2.pd={id:e.pointerId,t:performance.now(),cast:false};e.stopImmediatePropagation();}},true);
 addEventListener('pointerup',e=>{const pd=F2.pd;if(!pd||e.pointerId!==pd.id)return;F2.pd=null;e.stopImmediatePropagation();if(fish.state!=='power')return;if(pd.cast||performance.now()-pd.t>260)fishAct();},true);
 addEventListener('pointercancel',e=>{if(F2.pd&&e.pointerId===F2.pd.id)F2.pd=null;},true);
 

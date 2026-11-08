@@ -170,7 +170,7 @@ addEventListener('keydown',e=>{if(e.repeat||S.mode!=='play')return;const k=e.cod
   const b=document.createElement('button');b.id='btnUse';b.className='btn';b.setAttribute('aria-label','Use what you are holding');b.innerHTML='<img alt=""><span class="l">Use</span><span class="n"></span>';
   $('buttons').appendChild(b);press(b,useFront);
   setInterval(()=>{const it=selectedItem();const im=b.querySelector('img');const src=it?iconOf(it.icon):'';if(im._src!==src){im._src=src;if(src)im.src=src;else im.removeAttribute('src');}
-    b.querySelector('.l').textContent=fishing()?(fish.state==='bite'?'Hook!':fish.state==='power'?'Cast':'Reel'):it?(it.type==='T'?'Use':it.type==='S'?'Plant':it.food?'Hold':'Use'):'Hand';
+    b.querySelector('.l').textContent=fishing()?(fish.state==='bite'?'Strike!':fish.state==='power'?'Cast':fish.state==='reel'?'Reel':'Wait…'):it?(it.type==='T'?'Use':it.type==='S'?'Plant':it.food?'Hold':'Use'):'Hand';
     b.querySelector('.n').textContent=it&&it.id==='can'?S.water:'';},150);}
 // seeds planted in soil you've already watered start the day watered
 setInterval(()=>{for(const t of tiles)if(t.wet&&t.crop&&!t.crop.watered&&t.crop.stage<3)t.crop.watered=true;},250);

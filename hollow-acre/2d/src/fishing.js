@@ -1,5 +1,5 @@
-/* ================= fishing: cast at any water, wait for the bite, then the catch bar.
-   Hold (touch, mouse, or Space) to lift the green bar; keep the fish inside it until the reel fills. Every fish swims its own way. ================= */
+/* ================= fishing: the kinds of fish (where and when they bite, how hard they fight), the junk, and the first
+   version of the cast and catch (replaced by fish3.js). ================= */
 S.fishLog=S.fishLog||{};
 const FISH=[
   // name, value, difficulty 0..1, behaviour, where ('pond' | 'creek' | 'any'), when ('day' | 'night' | 'any'), min/max length cm

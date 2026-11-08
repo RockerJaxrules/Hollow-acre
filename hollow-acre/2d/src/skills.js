@@ -15,9 +15,9 @@ const SKILLS={
   mining:{name:'Mining',icon:'copper',perks:{3:'The pickaxe costs 1 less energy.',8:'The pickaxe costs 2 less energy.'},
     p5:[['miner','Miner','A third of the time, a vein gives one more ore or stone.'],['geologist','Geologist','Ore sometimes has hollow-glass inside.']],
     p10:[['blacksmith','Blacksmith','Copper and iron bars sell for 50% more.'],['excavator','Excavator','The pickaxe costs 1 less energy again.']]},
-  fishing:{name:'Fishing',icon:'fish',every:'Fish are worth 3% more and the catch bar grows.',perks:{3:'Casting costs 1 less energy.'},
+  fishing:{name:'Fishing',icon:'fish',every:'Fish are worth 3% more, and your line takes a little more strain.',perks:{3:'Casting costs 1 less energy.'},
     p5:[['fisher','Fisher','Fish are worth 25% more.'],['trapper','Trapper','Fish bite twice as fast.']],
-    p10:[['angler','Angler','Fish are worth 50% more.'],['steady','Steady hand','The catch bar is much wider.']]},
+    p10:[['angler','Angler','Fish are worth 50% more.'],['steady','Steady hand','Your line takes much more strain before it snaps.']]},
   combat:{name:'Combat',icon:'blade',every:'+5 max health.',perks:{},
     p5:[['fighter','Fighter','+15 max health.'],['scout','Scout','Every kill heals you.']],
     p10:[['brute','Brute','+25 max health.'],['warden','Warden','Your lantern burns the creature twice as fast.']]}};
@@ -74,7 +74,7 @@ function skTick(){if(!S.skills)return;if(S.mode!==SKW.mode){SKW.mode=S.mode;SKW.
     if(sk==='mining'&&k!=='gem'){if(hasProf('miner')&&rand()<.33){addInv(k,1);SKW.inv[k]++;}if(hasProf('geologist')&&k!=='stone'&&rand()<.1){addInv('gem',1);SKW.inv.gem=inv('gem');toast('There’s hollow-glass in the ore.',2);}}}
   // fish caught
   const f=S.fishCaught||0;if(f>SKW.fish&&!quiet)addXP('fishing',8*(f-SKW.fish));SKW.fish=f;
-  // the catch bar grows with fishing; a trapper's fish bite sooner
+  // the line gets stronger with fishing (fish3.js); a trapper's fish bite sooner
   if(typeof MG!=='undefined'){if(MG.on&&!MG._sk){MG._sk=1;const L=skLvl('fishing');MG.size=Math.min(.55,MG.size+L*.006+(hasProf('steady')?.09:0));}if(!MG.on)MG._sk=0;}
   if(typeof fish!=='undefined'){if(fish.state==='wait'&&!fish._tp){fish._tp=1;if(hasProf('trapper'))fish.t*=.5;}if(fish.state!=='wait')fish._tp=0;}}
 // what the professions change elsewhere: crops grow faster, the lantern burns harder, milk and bars ship for more

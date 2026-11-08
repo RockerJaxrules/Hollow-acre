@@ -63,7 +63,7 @@ const LESSONS=[
    goal:()=>'Build a workbench from Grandpa’s plans',ok:()=>Object.values(S.benches||{}).some(Boolean),coins:20,done:'Look at that. It’s even level. You’re better at this than he was.'},
   {id:'craft',t:'Craft something',say:'Open your bag and press Craft, or use a bench. Everything you gather makes something. Try a straw charm or a lamp oil flask.',
    goal:()=>'Craft anything',ok:()=>S.ls.ev.craft,items:{fiber:5},done:'There’s nothing on a farm that isn’t good for something. Here, more fiber.'},
-  {id:'fish',t:'Go fishing',say:'Fish are good money and good company. Hold your rod and tap the water. Tap again to cast, wait for the bite, then keep the fish inside the bar until it gives up.',
+  {id:'fish',t:'Go fishing',say:'Fish are good money and good company. Hold your rod and tap the water where you want to cast. Ignore the little nibbles; strike when the float is pulled right under. Then hold to reel it in, and let go whenever it runs or jumps, or the line snaps.',
    goal:b=>'Catch a fish',ok:b=>(S.fishCaught||0)>b.fish,begin:b=>{b.fish=S.fishCaught||0;},coins:20,done:'Otto at the pond will want to hear about that. He wants to hear about every fish.'},
   {id:'cook',t:'Cook a meal',say:'Elias’s stove in the cabin still works. Bring crops and cook. Cooked food gives far more energy than raw.',
    goal:()=>'Cook something at the stove',ok:()=>S.ls.ev.cook,coins:15,done:'Smells like his cooking. Sorry. I’ll be fine.'},
