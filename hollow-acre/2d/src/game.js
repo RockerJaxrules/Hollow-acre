@@ -298,10 +298,10 @@ function update(dt){slamUpdate(dt);mindUpdate(dt);lifeUpdate(dt);
     else if(darkT>.05&&darkT<.1&&S.flasks===0)toast('Your lantern is dry.',2.4,true);}}
   if(sputT>0)sputT-=dt;
   // movement
-  let mx=joy.x,mz=joy.y;if(keys.KeyW||keys.ArrowUp)mz-=1;if(keys.KeyS||keys.ArrowDown)mz+=1;if(keys.KeyA||keys.ArrowLeft)mx-=1;if(keys.KeyD||keys.ArrowRight)mx+=1;
+  let mx=joy.x,mz=joy.y;const kb=!!(keys.KeyW||keys.ArrowUp||keys.KeyS||keys.ArrowDown||keys.KeyA||keys.ArrowLeft||keys.KeyD||keys.ArrowRight);if(keys.KeyW||keys.ArrowUp)mz-=1;if(keys.KeyS||keys.ArrowDown)mz+=1;if(keys.KeyA||keys.ArrowLeft)mx-=1;if(keys.KeyD||keys.ArrowRight)mx+=1;
   [mx,mz]=mindInput(mx,mz);
   let mag=Math.hypot(mx,mz);if(mag>1){mx/=mag;mz/=mag;mag=1;}
-  const corn=inCorn(P.x,P.z);const moving=mag>.15&&!P.anim,run=mag>.85||keys.ShiftLeft;const spd=moving?(run?5:3)*mag*(corn?.7:1)*(S.energy>0?1:.6):0;
+  const corn=inCorn(P.x,P.z);const shift=!!(keys.ShiftLeft||keys.ShiftRight);const moving=mag>.15&&!P.anim,run=kb?shift:(mag>.85||shift);const spd=moving?(run?5:3)*mag*(corn?.7:1)*(S.energy>0?1:.6):0;
   lastDir=P.dir;
   if(moving){P.fx=mx/mag;P.fz=mz/mag;P.dir=dirOf(mx,mz);P.x+=P.fx*spd*dt;P.z+=P.fz*spd*dt;collide(P,.3);if(fish.state!=='off')fish.state='off';}
   P.spd=spd;
