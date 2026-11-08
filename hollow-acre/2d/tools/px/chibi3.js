@@ -127,14 +127,15 @@ function torsoFront(cx,top,hip,back){const half=6;
   if(OUT==='tee'||OUT==='shirt'||OUT==='openshirt'){for(let u=-5;u<=6;u++)p(cx+u,hem,BELT[u<-3?2:u>4?0:1]);if(!back){p(cx,hem,BUCKLE[1]);p(cx+1,hem,BUCKLE[1]);}}
   if(OUT==='overalls'){const R=PNT;for(let y=top+(back?5:4);y<=hem;y++)for(let u=-3;u<=4;u++)p(cx+u,y,R[u===-3?4:u===4?1:3]);
     for(const u of [-4,5])for(let y=top+1;y<top+5;y++)p(cx+u,y,R[2]);if(!back){p(cx-3,top+4,BUCKLE[1]);p(cx+4,top+4,BUCKLE[1]);p(cx,top+7,R[1]);p(cx+1,top+7,R[1]);}}
-  if(ALL&&!back){// a low neckline: two rounded mounds of skin with the cleavage between, the cloth curving round beneath
-    const SKN=[[-3,4,null],[-3,4,null],[-3,4,'c'],[-3,4,'C'],[-2,3,'C'],[0,1,'C']];
-    for(let j=0;j<SKN.length;j++){const [a,b,cl]=SKN[j],y=top+j;for(let u=a;u<=b;u++){const su=u-.5;let k=su<-1.5?4:su>1.5?2:3;
-        if(j>=2){if(u===-3||u===4)k=j===2?3:2;else if(u===-2||u===-1)k=j===3?5:4;else if(u===2||u===3)k=j===3?3:2;}
-        if(cl&&(u===0||u===1))k=cl==='c'?2:(u===0?1:0);p(cx+u,y,SK[k]);}
-      p(cx+a-1,y,shirtAt(cx+a-1,y)[1]);p(cx+b+1,y,shirtAt(cx+b+1,y)[0]);}
-    for(const [u,k] of [[-4,4],[-3,4],[-2,3],[-1,2],[2,2],[3,2],[4,1],[5,1]])p(cx+u,top+5,shirtAt(cx+u,top+5)[k]);
-    for(let u=-5;u<=6;u++)p(cx+u,top+6,shirtAt(cx+u,top+6)[u<0?1:0]);}
+  if(ALL&&!back){// a low sweetheart neckline: two full rounded curves of skin with a clear cleavage between, the cloth gathered under the bust
+    const SKN=[[-4,5],[-4,5],[-4,5],[-3,4],[-3,4],[-2,3],[0,1]];
+    for(let j=0;j<SKN.length;j++){const [a,b]=SKN[j],y=top+j;
+      for(let u=a;u<=b;u++){const L=u<=0,iu=L?-u:u-1;let k;
+        if(j<=1)k=L?4:3;
+        else{k=L?(iu>=2?4:iu===1?3:2):(iu>=3?2:3);if(j>=4)k=Math.max(1,k-1);if(iu===0)k=j>=3?(L?0:1):(L?1:2);}
+        p(cx+u,y,SK[k]);}
+      p(cx+a-1,y,shirtAt(cx+a-1,y)[4]);p(cx+b+1,y,shirtAt(cx+b+1,y)[1]);}
+    for(let u=-5;u<=6;u++)p(cx+u,top+7,shirtAt(cx+u,top+7)[u<1?1:0]);}
   if(C.apron&&!back){const R=EX;for(let y=top+(ALL?7:3);y<=hem+(LEGSKIN?5:2);y++)for(let u=-3;u<=4;u++)p(cx+u,y,R[u===-3?4:u===4?1:y===top+3?4:3]);p(cx-4,top+3,R[2]);p(cx+5,top+3,R[2]);}}
 // skirts and long coats hang over the legs
 function skirtFront(cx,hip,back){if(OUT==='longcoat'){const len=KID?5:7;for(let j=0;j<len;j++){const hw=6+(j>>1);for(let u=-hw+1;u<=hw;u++){if(!back&&Math.abs(u-.5)<1.6)continue;p(cx+u,hip+1+j,JK[u<-hw+3?4:u>hw-2?1:u>hw-4?2:3]);}}for(let u=-8;u<=9;u++)p(cx+u,hip+len,JK[0]);}
@@ -368,7 +369,7 @@ function acc(cx,hy,view,fl,a,top0,hairTop){if(!a)return;const R=ACCR,side=view!=
     else if(side){for(let j=2;j<6;j++)p(cx-fl*3,y0+j,R[2]);}}
   if(a==='earrings'&&!back){const G=[230,190,70],G2=[255,236,150];if(side){p(cx-fl*2,hy+4,G);p(cx-fl*2,hy+5,G2);}else{p(cx-9,hy+4,G);p(cx-9,hy+5,G2);p(cx+10,hy+4,G);p(cx+10,hy+5,G2);}}
   if(a==='choker'&&!back){const y0=top0;for(let x=(side?-3:-4);x<=(side?3:5);x++){p(cx+x,y0,R[0]);p(cx+x,y0+1,R[1]);}if(!side){p(cx,y0+2,R[4]);p(cx+1,y0+2,R[3]);}}
-  if(a==='necklace'&&!back&&!side){for(let x=-3;x<=4;x++)p(cx+x,top0+2+Math.round((1-Math.pow((x-.5)/3.5,2))*2),R[4]);p(cx,top0+5,[255,255,255]);p(cx+1,top0+5,R[3]);}}
+  if(a==='necklace'&&!back&&!side){const ny=ALL?-1:0;for(let x=-3;x<=4;x++)p(cx+x,top0+2+ny+Math.round((1-Math.pow((x-.5)/3.5,2))*(ALL?1:2)),R[4]);p(cx,top0+(ALL?3:5),[255,255,255]);p(cx+1,top0+(ALL?3:5),R[3]);}}
 // ---------------------------------------------------------------- tools. The game draws the tool itself (toolfx.js); the sheets carry the arms and the fists over
 // the handle, and META.tool says where the grip is, the angle (0 = screen right, 90 = down), the foreshortening and whether it's behind the body.
 // A pickaxe, hoe or axe only ever swings in one plane: from the side you see the arc; facing toward or away from you it goes straight up
@@ -395,7 +396,7 @@ function toolHands(kind,dir,f){const [gx,gy,ang,k]=toolEntry(kind,dir,f);const a
 // nod, blink, reach (back view: hands hidden in front of the body), tool (callback)
 function human(dir,pose){const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1,back=dir==='N';
   const crouch=pose.crouch||0,bob=pose.bob||0,lean=side?Math.round((pose.lean||0)*fl):0;
-  const cx=CX+(side?0:(pose.sway||0));const hip=HIP0+crouch+bob,top=TOP0+crouch+bob,ux=cx+lean,hy=top-9-(KID?0:0);
+  const cx=CX+(side?0:(pose.sway||0));const hip=HIP0+crouch+bob,top=TOP0+crouch+bob,ux=cx+lean,hy=top-9-(ALL?1:0);
   const shL=side?[ux-fl,top+1]:[ux-7,top+1],shR=side?[ux+fl,top+1]:[ux+8,top+1];
   const def=side?[[0,KID?8:10],[0,KID?8:10]]:[[0,KID?8:10],[0,KID?8:10]];const hands=pose.hands||def;
   const H={cx:ux,hy,top0:top};let hairInfo=null;
@@ -431,8 +432,8 @@ function walkPose(f,dir,run){const pose={};if(f===0)return pose;const side=dir==
   pose.bob=Math.abs(c)<.5?(run?-2:-1):0;if(run)pose.lean=2;
   if(side){const a=Math.round(c*S),b=-a;const liftA=s>0?Math.round(s*(run?3:2)):0,liftB=s<0?Math.round(-s*(run?3:2)):0;pose.legs=[[a,liftA],[b,liftB]];
     const A=run?1.1:.9;pose.hands=[[Math.round(-b*A)*fl,(run?6:9)-Math.round(Math.abs(b)*.3)],[Math.round(-a*A)*fl,(run?6:9)-Math.round(Math.abs(a)*.3)]];}
-  else{const sg=back?-1:1;const dL=c>.5?1:c<-.5?-1:0;pose.legs=[sg*dL,-sg*dL];if(run){pose.legs=[sg*dL*(Math.abs(c)>.8?2:1),-sg*dL*(Math.abs(c)>.8?2:1)];}
-    pose.sway=0;const ay=run?7:10;pose.hands=[[0,ay+Math.round(-c*sg*(run?2:1))],[0,ay+Math.round(c*sg*(run?2:1))]];}
+  else{const sg=back?-1:1;const st=run?3:2;const dL=Math.round(c*st);pose.legs=[sg*dL,-sg*dL];
+    pose.sway=0;const ay=run?7:10,sw=Math.round(c*(run?3:2));pose.hands=[[sw<0?-1:0,ay-sw*sg],[sw>0?1:0,ay+sw*sg]];}
   return pose;}
 // planting and harvesting: bend, kneel, reach into the soil in front, press it in, rise, stand
 function plantPose(f,dir){const pose={},side=dir==='E'||dir==='W',back=dir==='N',fl=dir==='W'?-1:1;if(f===0||f===5)return pose;const kneel=f===2||f===3;
