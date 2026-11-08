@@ -1,40 +1,29 @@
-/* ================= Market Lane: the smith, the carpenter, the feed barn and the bait shop, and the people who run them ================= */
-// ---- the lane runs east–west south of the back lane; a path at x=48 joins them
-const LANE=15.5;
-const SHOPS_AT={bait:{spr:'shop_bait',x:31},forge:{spr:'shop_forge',x:39},carp:{spr:'shop_carp',x:57},feed:{spr:'shop_feed',x:65.5}};
-const SHOP_FRONT=13.6,SHOP_DOOR=13.95;
-ROADS.push([26,LANE,70,LANE,2],[48,5,48,LANE,2]);
+/* ================= the trades: the bait shop and the smith on the corner of Market and Green Street, the carpenter at the east end
+   of Market Street, and Bell's feed barn out on Orchard Lane with Ezra's pen beside it; and the people who run them ================= */
+const SHOPS_AT={bait:{spr:'shop_bait',x:25,front:7.8},forge:{spr:'shop_forge',x:31.2,front:7.8},carp:{spr:'shop_carp',x:68.8,front:7.8},feed:{spr:'shop_feed',x:50.5,front:44}};
+const shopDoor=k=>[SHOPS_AT[k].x,SHOPS_AT[k].front+.35],shopOut=k=>({x:SHOPS_AT[k].x,z:SHOPS_AT[k].front+.7});
 {const _bw=buildWorld;buildWorld=function(){
-  // keep the scatter off the lane, the shop yards and the cow pen
-  reserve(24,8.5,72,22.5);
   _bw();
-  // anything that still landed on the lane goes
-  const clear=o=>o.x>24&&o.x<72&&o.z>8&&o.z<23&&/^(tree|bush|rock|weeds|deb)/.test(o.kind||'')||(o.x>24&&o.x<72&&o.z>8&&o.z<23&&/^(rock_|weeds_|twig|leaves|pine|maple|bush)/.test(o.spr));
-  for(let i=OBJ.length-1;i>=0;i--){const o=OBJ[i];if(clear(o)){for(let j=circles.length-1;j>=0;j--)if(Math.hypot(circles[j].x-o.x,circles[j].z-o.z)<.6)circles.splice(j,1);OBJ.splice(i,1);}}
-  for(const [k,s] of Object.entries(SHOPS_AT))building(s.spr,s.x,SHOP_FRONT,{jack:k==='forge'||k==='feed'});
-  // yards: the smith's quench barrel and coal, the carpenter's timber stack, sacks by the feed barn, a rack of rods at the bait shop
-  put('anvil',35.4,14.1,.35);put('barrel',42.6,13.9,.3);put('lumber',52.8,13.7);addRect(51.9,13.2,53.7,13.9);put('lumber',61.2,13.6);addRect(60.3,13.1,62.1,13.8);
-  put('sacks',69.4,14.0);put('hay',69.6,12.6);addRect(68.8,11.8,70.4,12.7);put('crate',27.9,14.1,.3);put('barrel',34.2,13.9,.3);
-  for(const x of[35,44,52,61])lamp(x,17.1);
-  put('signpost',46.6,8.2,.2,{label:'MARKET LANE'});
-  // Ezra's pen: split-rail fence with a wide gate onto the lane, two cows and their hay
-  fenceLine(59.5,17.4,63,17.4);fenceLine(67,17.4,70.5,17.4);fenceLine(59.5,17.4,59.5,22);fenceLine(70.5,17.4,70.5,22);fenceLine(59.5,22,70.5,22);
-  COWS.push(...[[62,19.3,'cow_1'],[67.6,20.4,'cow_2'],[64.6,21.0,'cow_1']].map(([x,z,s])=>({e:obj(s,x,z,{kind:'cow'}),x,z,hx:x,hz:z,t:rand()*6,flip:rand()<.5})));
-  put('hay',68.8,18.6);addRect(68.1,17.9,69.6,18.7);
-  // the sheriff's cruiser, parked across from his house
-  put('police',65.6,-4.1,0,{kind:'car'});addRect(63.9,-5.1,67.3,-4.1);};}
+  for(const [k,s] of Object.entries(SHOPS_AT))building(s.spr,s.x,s.front,{jack:k==='forge'||k==='feed'});
+  // forecourts: the smith's anvil and quench barrel, the carpenter's timber, a crate of tackle at the bait shop
+  put('anvil',33.5,8.7,.35);put('barrel',28.7,8.5,.3);put('crate',22.9,8.6,.3);put('lumber',66.6,8.7);addRect(65.7,8.2,67.5,8.9);
+  // yards behind, back onto Main Street: nets and traps, the smith's woodpile, the carpenter's seasoning stacks
+  for(const x of [22,27.85,34.8])hedgeLine(x,-3.2,4.3);fenceLine(22,-3.2,24.2,-3.2,0,'picket');fenceLine(25.8,-3.2,30.2,-3.2,0,'picket');fenceLine(31.8,-3.2,34.8,-3.2,0,'picket');
+  for(const x of [65.2,72.6])hedgeLine(x,-3.2,4.3);fenceLine(65.2,-3.2,68.2,-3.2,0,'picket');fenceLine(69.8,-3.2,72.6,-3.2,0,'picket');
+  put('wk_rack',24.6,.6,0,{kind:'prop'});put('wk_trap',22.9,1.8,.25);put('barrel',26.9,1.9,.3);
+  put('firewood',29.6,.9);addRect(28.9,.4,30.3,1);put('barrel',33.3,1.3,.3);put('barrel',32.7,1.8,.3);
+  put('lumber',67.2,.8);addRect(66.3,.3,68.1,1);put('lumber',70.6,1.6);addRect(69.7,1.1,71.5,1.8);
+  // Ezra's pen beside the feed barn: split rails, a gate onto the lane, three cows and their hay
+  fenceLine(55,36.8,55,43.2);fenceLine(63.6,36.8,63.6,43.2);fenceLine(55,36.8,63.6,36.8);fenceLine(55,43.2,58.4,43.2);fenceLine(60.6,43.2,63.6,43.2);
+  COWS.push(...[[57.4,39.4,'cow_1'],[61.4,40.6,'cow_2'],[59.4,41.8,'cow_1']].map(([x,z,s])=>({e:obj(s,x,z,{kind:'cow'}),x,z,hx:x,hz:z,t:rand()*6,flip:rand()<.5})));
+  put('hay',62.4,38.4);addRect(61.7,37.7,63.2,38.5);put('sacks',46.6,44.6);put('hay',54.2,44.3);addRect(53.7,43.6,54.7,44.4);
+  // the sheriff's cruiser, parked at the kerb across from his house
+  put('police',71,-4.3,0,{kind:'car'});addRect(68.6,-5.6,73.4,-4.3);};}
 // cows drift a few steps and graze (the sprite flips with them)
 const COWS=[];
 {const _u=update;update=function(dt){_u(dt);if(S.room)return;for(const c of COWS){c.t-=dt;if(c.t<0){c.t=4+rand()*6;c.tx=c.hx+(rand()*2-1)*1.4;c.tz=c.hz+(rand()*2-1)*.7;}
   if(c.tx!=null){const dx=c.tx-c.x,dz=c.tz-c.z,d=Math.hypot(dx,dz);if(d>.05){const s=Math.min(d,.35*dt);c.x+=dx/d*s;c.z+=dz/d*s;if(Math.abs(dx)>.05)c.flip=dx<0;}}
   c.e.x=c.x;c.e.z=c.z;c.e.flip=c.flip;}};}
-// people walk to the lane by the x=48 path
-{const _rt=routeTo;routeTo=function(x,z,tx,tz){const lane=(px,pz)=>pz>10.5&&px>24&&px<72;
-  if(Math.hypot(tx-x,tz-z)<=5||(!lane(x,z)&&!lane(tx,tz)))return _rt(x,z,tx,tz);
-  const pts=[];if(lane(x,z)){pts.push([x,LANE],[48,LANE],[48,5.3]);x=48;z=5.3;}
-  if(lane(tx,tz)){const head=_rt(x,z,48,5.3).slice(0,-1);pts.push(...head,[48,5.3],[48,LANE],[tx,LANE],[tx,tz]);}else pts.push(..._rt(x,z,tx,tz));
-  return pts.filter((p,i)=>i===0||Math.hypot(p[0]-pts[i-1][0],p[1]-pts[i-1][1])>.05);};}
-
 // ---- four more townsfolk
 const LANEFOLK=[
   {id:'gideon',name:'Gideon Brannock',role:'Armourer and blacksmith',nightPos:[22,-4.6],
@@ -72,26 +61,26 @@ Object.assign(PEOPLE,{
 // ---- homes and routines (Pip lives over the store with Caitlyn and Tobias; the other three live behind their shops)
 const LROOM=(ox,shell,name,out,furn)=>({ox,oz:-60,shell,name,out,furn,paper:shell.slice(10)});
 Object.assign(ROOMS,{
-  shop_forge:LROOM(724,'room_garage','Brannock’s Forge',{x:39,z:14.3},[['furnace',1.3,1.25,[-0.70,-0.5,0.70,0]],['in_shelf_tools',3.4,0.62,[-1.00,-0.4,1.00,0]],['bench_weapon',5.6,1.15,[-1.10,-0.45,1.10,0]],['bench_armor',8.0,1.3,[-0.70,-0.45,0.70,0]],
+  shop_forge:LROOM(724,'room_garage','Brannock’s Forge',shopOut('forge'),[['furnace',1.3,1.25,[-0.70,-0.5,0.70,0]],['in_shelf_tools',3.4,0.62,[-1.00,-0.4,1.00,0]],['bench_weapon',5.6,1.15,[-1.10,-0.45,1.10,0]],['bench_armor',8.0,1.3,[-0.70,-0.45,0.70,0]],
     ['anvil',1.8,3.3,[-0.50,-0.3,0.50,0]],['in_counter',4.4,4.0,[-1.56,-0.6,1.56,0]],['barrel',0.6,5.4,[-0.40,-0.3,0.40,0]],['in_crates',1.8,5.5,[-0.70,-0.4,0.70,0]],['in_drum',8.4,5.3,[-0.35,-0.3,0.35,0]]]),
-  shop_carp:LROOM(756,'room_home_rust','Hartley Carpentry',{x:57,z:14.3},[['lumber',1.2,1.3,[-0.90,-0.4,0.90,0]],['lumber',1.2,2.8,[-0.90,-0.4,0.90,0]],['bench_furn',4.0,1.15,[-1.10,-0.45,1.10,0]],['in_shelf_tools',6.6,0.62,[-1.00,-0.4,1.00,0]],
+  shop_carp:LROOM(756,'room_home_rust','Hartley Carpentry',shopOut('carp'),[['lumber',1.2,1.3,[-0.90,-0.4,0.90,0]],['lumber',1.2,2.8,[-0.90,-0.4,0.90,0]],['bench_furn',4.0,1.15,[-1.10,-0.45,1.10,0]],['in_shelf_tools',6.6,0.62,[-1.00,-0.4,1.00,0]],
     ['in_counter',5.9,3.6,[-1.56,-0.6,1.56,0]],['in_rocker',0.9,4.9,[-0.40,-0.45,0.40,0]],['in_chair',2.1,5.1,[-0.30,-0.25,0.30,0]],['in_crates',7.2,5.3,[-0.70,-0.4,0.70,0]]]),
-  shop_feed:LROOM(788,'room_home_sage','Bell’s Feed & Stock',{x:65.5,z:14.3},[['hay',1.0,1.4,[-0.70,-0.4,0.70,0]],['hay',1.0,2.9,[-0.70,-0.4,0.70,0]],['sacks',2.5,1.1,[-0.55,-0.3,0.55,0]],['sacks',3.4,1.3,[-0.55,-0.3,0.55,0]],
+  shop_feed:LROOM(788,'room_home_sage','Bell’s Feed & Stock',shopOut('feed'),[['hay',1.0,1.4,[-0.70,-0.4,0.70,0]],['hay',1.0,2.9,[-0.70,-0.4,0.70,0]],['sacks',2.5,1.1,[-0.55,-0.3,0.55,0]],['sacks',3.4,1.3,[-0.55,-0.3,0.55,0]],
     ['in_shelf_jars',5.4,0.62,[-0.80,-0.4,0.80,0]],['barrel',7.3,1.2,[-0.40,-0.3,0.40,0]],['in_counter',5.9,3.6,[-1.56,-0.6,1.56,0]],['sacks',0.9,5.1,[-0.55,-0.3,0.55,0]],['in_keg',2.1,5.3,[-0.40,-0.3,0.40,0]],['in_crates',7.2,5.3,[-0.70,-0.4,0.70,0]]]),
-  shop_bait:LROOM(820,'room_home_blue','Bait & Tackle',{x:31,z:14.3},[['in_rods',0.6,0.9,[-0.50,-0.3,0.50,0]],['in_netwall',2.6,-0.95,null,'flat'],['in_shelf_cans',5.3,0.62,[-1.00,-0.4,1.00,0]],['barrel',7.3,1.2,[-0.40,-0.3,0.40,0]],
+  shop_bait:LROOM(820,'room_home_blue','Bait & Tackle',shopOut('bait'),[['in_rods',0.6,0.9,[-0.50,-0.3,0.50,0]],['in_netwall',2.6,-0.95,null,'flat'],['in_shelf_cans',5.3,0.62,[-1.00,-0.4,1.00,0]],['barrel',7.3,1.2,[-0.40,-0.3,0.40,0]],
     ['in_counter',5.9,3.6,[-1.56,-0.6,1.56,0]],['in_keg',0.8,4.9,[-0.40,-0.3,0.40,0]],['in_crates',1.9,5.3,[-0.70,-0.4,0.70,0]],['in_drum_blue',7.3,5.3,[-0.35,-0.3,0.35,0]]])});
 Object.assign(ROOM_LAMP,{shop_forge:[1.3,1.6],shop_carp:[4,2.2],shop_feed:[4,2.2],shop_bait:[4,2.2]});
 // the garage's cruiser is the sheriff's second car, up on blocks
 {const f=ROOMS.garage.furn.find(q=>q[0]==='in_car');if(f){f[0]='police_blocks';f[3]=[-1.9,-1.3,1.9,0];}}
-Object.assign(HOMES,{brannock:{door:[39,SHOP_DOOR],face:'N',room:'shop_forge',name:'the rooms behind the forge'},hartley:{door:[57,SHOP_DOOR],face:'N',room:'shop_carp',name:'the loft over the workshop'},
-  bell:{door:[65.5,SHOP_DOOR],face:'N',room:'shop_feed',name:'the feed barn'}});
+Object.assign(HOMES,{brannock:{door:shopDoor('forge'),face:'N',room:'shop_forge',name:'the rooms behind the forge'},hartley:{door:shopDoor('carp'),face:'N',room:'shop_carp',name:'the loft over the workshop'},
+  bell:{door:shopDoor('feed'),face:'N',room:'shop_feed',name:'the feed barn'}});
 Object.assign(HOME_SPOT,{brannock:[4.4,2.9],hartley:[5.9,2.6],bell:[5.9,2.6]});
-Object.assign(PL,{forge_yard:[36.4,15.2,.6],lumber:[53.6,15.0,.6],pen:[65,19.6,1.6],lane:[46,LANE,3],bait_porch:[31,14.7,.4]});
+Object.assign(PL,{forge_yard:[33,9.1,.4],lumber:[66.6,9.5,.4],pen:[59.4,40,1.6],lane:[45.4,11,3],bait_porch:[25,8.7,.4]});
 Object.assign(INDOOR,{
-  forge:{room:'shop_forge',door:[39,SHOP_DOOR],spots:{gideon:[4.4,3.0]},browse:[[6.4,3.4],[3.0,5.0]]},
-  carp:{room:'shop_carp',door:[57,SHOP_DOOR],spots:{nell:[5.9,2.6]},browse:[[2.8,3.6],[3.4,5.0]]},
-  feed:{room:'shop_feed',door:[65.5,SHOP_DOOR],spots:{ezra:[5.9,2.6]},browse:[[2.8,3.6],[3.4,5.0]]},
-  bait:{room:'shop_bait',door:[31,SHOP_DOOR],spots:{otto:[5.9,2.6]},browse:[[2.8,3.6],[3.4,5.0]]}});
+  forge:{room:'shop_forge',door:shopDoor('forge'),spots:{gideon:[4.4,3.0]},browse:[[6.4,3.4],[3.0,5.0]]},
+  carp:{room:'shop_carp',door:shopDoor('carp'),spots:{nell:[5.9,2.6]},browse:[[2.8,3.6],[3.4,5.0]]},
+  feed:{room:'shop_feed',door:shopDoor('feed'),spots:{ezra:[5.9,2.6]},browse:[[2.8,3.6],[3.4,5.0]]},
+  bait:{room:'shop_bait',door:shopDoor('bait'),spots:{otto:[5.9,2.6]},browse:[[2.8,3.6],[3.4,5.0]]}});
 INDOOR.store.spots.pip=[4.7,1.5];
 Object.assign(LIFE,{
   gideon:{home:'brannock',job:'Armourer and blacksmith, Brannock’s Forge',personality:'Huge, quiet, exact. Talks to metal more than people. Forges the nails for the Tithe’s door.',day:[[6,'home'],[7,'forge'],[10.5,'forge_yard'],[11.5,'forge'],[12.5,'square'],[13.5,'forge'],[18,'store'],[19,'home']]},
@@ -105,7 +94,7 @@ for(const n of npcs){const L=LIFE[n.def.id];if(L)n.def.role=L.job;}
 const KEEP={forge:'gideon',carp:'nell',feed:'ezra',bait:'otto'};
 const keeperIn=job=>{const n=npcById(KEEP[job]);return n&&n.loc==='in'&&n.inWant===job;};
 for(const [job,s] of Object.entries(SHOPS_AT)){const R='shop_'+job;
-  interact.push({x:s.x,z:SHOP_DOOR,r:.9,label:()=>'Enter',ok:()=>true,act(){
+  interact.push({x:s.x,z:s.front+.35,r:.9,label:()=>'Enter',ok:()=>true,act(){
     if(isNight()||S.hour<7||S.hour>=18.5){toast({forge:'Shut. Through the gap the coals are still red, and the anvil is still ringing.',carp:'Shut. Something long and pale lies on the workbench under a sheet.',feed:'Shut. Inside, every animal in the barn is facing the door.',bait:'Shut. A sign on the glass: GONE FISHING. It has been written over many times.'}[job],3,true);SFX.deny();return;}
     enterRoom(R);}});
   const cz=job==='forge'?4.7:4.3,cx=job==='forge'?4.4:5.9;

@@ -102,7 +102,7 @@ function mindUpdate(dt){
 }
 // (named apart from econ.js's blackout, which is passing out from exhaustion: one replaced the other and the screen stayed black)
 function mindBlackout(){if(S.mode!=='play'){return;}M.blackout=true;S.mode='trans';fade(1);SFX.tinnitus&&SFX.tinnitus();
-  const spots=[[carPos.x+1.5,carPos.z+3.6,'by the wreck of your car'],[CORN.x0+3,CORN.z0+4,'in the middle of the corn'],[58,-26,'between the graves'],[pond.x+pond.r+1.5,pond.z,'at the edge of the pond, ankle-deep']];
+  const spots=[[carPos.x+1.5,carPos.z+3.6,'by the wreck of your car'],[CORN.x0+3,CORN.z0+4,'in the middle of the corn'],[56,-38.2,'between the graves'],[pond.x+pond.r+1.5,pond.z,'at the edge of the pond, ankle-deep']];
   const s=pick(spots);
   setTimeout(()=>{P.x=s[0];P.z=s[1];P.fx=0;P.fz=1;P.dir='S';S.hour=Math.min(25.5,S.hour+2.2);M.v=38;M.figs.length=0;M.dop=null;M.rush=null;M.prints.length=0;
     H.state='gone';H.vis=false;H.timer=10;fade(0);S.mode='play';M.blackout=false;

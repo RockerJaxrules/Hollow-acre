@@ -88,11 +88,11 @@ for(const k of ['quill','fenn','thorne','lusk']){const h=HOMES[k];const [x,z]=h.
 interact.push({x:NEWHOUSES.marsh.x,z:NEWHOUSES.marsh.z+.35,r:.9,label:()=>'Door',ok:()=>true,act(){toast(isNight()?'The door is open an inch. Your lamp is lit inside. You did not light it.':'Locked. Through the window: Grandpa’s desk, his chair, your coat on the hook.',3.2,true);mindHit&&mindHit(2);}});
 interact.push({x:TITHE.x,z:TITHE.z-1.15,r:1,label:()=>'Door',ok:()=>true,act(){toast(S.day<20?'Nailed shut, from the outside. The nail heads are warm.':'The nails have been pulled. Every one. The door is waiting.',3.2,true);mindHit&&mindHit(3);}});
 // ---- getting around out there: a small road graph that joins the town's streets at two junctions
-const RG={J:[20,-6],K:[70,-6],a:[20,19],b:[20,LANE_E],c:[20,70],d:[20,88],e:[20,98],f:[MILLX,104],g:[40,LANE_E],h:[-20,LANE_W],i:[-20,88],k2:[70,5],k3:[70,15.5],
+const RG={J:[20,-6],K:[TOWN.east,-6],a:[20,19],b:[20,LANE_E],c:[20,70],d:[20,88],e:[20,98],f:[MILLX,104],g:[40,LANE_E],h:[-20,LANE_W],i:[-20,88],k2:[TOWN.east,TOWN.market],k3:[TOWN.east,TOWN.elm],k4:[TOWN.east,TOWN.orchard],
   m:[108,-6],n:[146,-6],o:[146,-24],p:[190,-6],q:[190,1.5]};
-const RE=[['J','a'],['a','b'],['b','c'],['c','d'],['d','e'],['e','f'],['b','g'],['b','h'],['d','i'],['K','m'],['m','n'],['n','o'],['n','p'],['p','q'],['K','k2'],['k2','k3'],['J','K']];
+const RE=[['J','a'],['a','b'],['b','c'],['c','d'],['d','e'],['e','f'],['b','g'],['b','h'],['d','i'],['K','m'],['m','n'],['n','o'],['n','p'],['p','q'],['K','k2'],['k2','k3'],['k3','k4'],['k4','g'],['J','K']];
 const RADJ={};for(const [a,b] of RE){(RADJ[a]=RADJ[a]||[]).push(b);(RADJ[b]=RADJ[b]||[]).push(a);}
-const outside=(x,z)=>x>72||z>24;
+const outside=(x,z)=>x>76||z>46.5;
 function nearNode(x,z){let best=null,bd=1e9;for(const [k,[nx,nz]] of Object.entries(RG)){const d=Math.hypot(nx-x,nz-z);if(d<bd){bd=d;best=k;}}return best;}
 function graphPath(a,b){const prev={[a]:null},q=[a];while(q.length){const u=q.shift();if(u===b)break;for(const v of RADJ[u]||[]){if(v in prev)continue;prev[v]=u;q.push(v);}}
   const out=[];let u=b;if(!(b in prev))return [];while(u){out.unshift(RG[u]);u=prev[u];}return out;}

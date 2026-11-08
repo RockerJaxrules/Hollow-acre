@@ -9,7 +9,7 @@ const floraH=(x,z,s)=>{const v=Math.sin(x*12.9898+z*78.233+(s||0)*37.719)*43758.
 Object.assign(TREE_COL,{oak_russet:['#7a3214','#c8642a'],oak_green:['#3a5a20','#7aa040'],birch_gold:['#a07818','#f0c040'],birch_green:['#6a7a24','#c0c850'],willow:['#6a7a2a','#b8c058'],
   spruce_0:['#1d3a34','#3e6e60'],spruce_1:['#22402e','#4a7454'],apple_tree:['#4a6020','#8aa040'],apple_gold:['#7a7020','#c8b848'],deadoak:['#3a322c','#7a6e62'],snag:['#5a564e','#a8a296']});
 {const _bw=buildWorld;buildWorld=function(){_bw();if(!SPR.oak_russet)return;
-  const kept=(x,z)=>Math.hypot(x,z+10)<24||Math.hypot(x-48,z+6)<24||(typeof inWick==='function'&&inWick(x,z))||Math.hypot(x-HOLLOW_TREE.x,z-HOLLOW_TREE.z)<4||Math.hypot(x-TITHE.x,z-TITHE.z)<10;
+  const kept=(x,z)=>Math.hypot(x,z+10)<24||inTown(x,z,2)||(typeof inWick==='function'&&inWick(x,z))||Math.hypot(x-HOLLOW_TREE.x,z-HOLLOW_TREE.z)<4||Math.hypot(x-TITHE.x,z-TITHE.z)<10;
   const nearWater=(x,z,r)=>{for(let a=0;a<6.28;a+=.785)if(LAYERS.water(x+Math.cos(a)*r,z+Math.sin(a)*r))return true;return false;};
   const orchard=(x,z)=>x>28&&x<66&&z>50&&z<67;
   const hollow=(x,z)=>x>78&&x<136&&Math.abs(z+6)>3.2;

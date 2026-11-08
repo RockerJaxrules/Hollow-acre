@@ -8,8 +8,8 @@
    Wickham's river: fog rolling off the far bank, and fish jumping
    Each also has a sound of its own when you're near. ================= */
 const AMBP=[
- {k:'square',x:48,z:-5,r:12},{k:'mill',x:30,z:96,r:10},{k:'quarry',x:146,z:-28,r:14},{k:'orchard',x:46,z:56,r:12},
- {k:'lake',x:LAKE.x,z:LAKE.z,r:LAKE.rx+6},{k:'graves',x:60.8,z:-27.6,r:9},{k:'wkriver',x:134,z:68,r:12}];
+ {k:'square',x:squarePos.x,z:squarePos.z,r:14},{k:'mill',x:30,z:96,r:10},{k:'quarry',x:146,z:-28,r:14},{k:'orchard',x:46,z:56,r:12},
+ {k:'lake',x:LAKE.x,z:LAKE.z,r:LAKE.rx+6},{k:'graves',x:56.5,z:-36.6,r:12},{k:'wkriver',x:134,z:68,r:12}];
 const AMBS={pigeons:[],crows:[],acc:0,snd:0,tag:0};
 const ambNear=k=>{const a=AMBP.find(q=>q.k===k);return a&&!S.room&&Math.hypot(P.x-a.x,P.z-a.z)<a.r+18;};
 // flocks that live in a place: pigeons in the square, crows on the graves

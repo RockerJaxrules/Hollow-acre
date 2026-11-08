@@ -59,7 +59,7 @@ const ENC=[
      else{mindHit(6);say(e,'A crow drops something at your feet and watches you pick it up. It is a tooth. It is one of yours. You check with your tongue. They are all there.');}}},
   {id:'stranger',who:'farmer',x:22.8,z:-7.4,dir:'S',h:[17,19.6],when:()=>typeof hl==='function'&&hl()>=2,
    act(e){mindHit(10);SFX.stinger&&SFX.stinger();say(e,'Someone is waiting at the old bus stop, facing the road. Your coat. Your walk. It turns around. It doesn’t have your face yet. “Soon,” it says, kindly. Then the stop is empty.');}},
-  {id:'fallen',who:null,obj:'lumber',x:21.2,z:30,h:[7,18],when:()=>S.day>=3,
+  {id:'fallen',who:null,obj:'lumber',x:20,z:34,h:[7,18],when:()=>S.day>=3,
    act(e){if(S.tools.axe<1){say(e,'A tree has come down across Mill Road.');return;}addInv('wood',8);S.coins+=25;say(e,'A tree came down across Mill Road in the night. You clear it: eight wood, and Abel leaves twenty-five coins on the fence post with a note. “Thanks. It wasn’t the wind.”');}},
 ];
 S.enc=S.enc||null;

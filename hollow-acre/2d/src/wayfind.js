@@ -11,7 +11,7 @@ function wayChip(t){if(!t||S.mode!=='play')return '';const o=outsidePoint(t);if(
 {const css=document.createElement('style');css.textContent='.odir{color:#ffd27a;white-space:nowrap;margin-left:4px}#note .odir{color:#8a4a10;font-weight:600}';document.head.appendChild(css);}
 {const _o=objective;objective=function(){const r=_o();if(!r||!r[2])return r;return [r[0],r[1]+wayChip(r[2]),r[2]];};}
 // the map names more of the places you're sent to
-for(const p of [['Crossroads',crossPos.x,crossPos.z+5],['Coyle’s store',29.5,-12.2],['Old mine',MINE.x,MINE.z-6],['Your car',carPos.x,carPos.z+3],['Footbridge',FOOT.x,FOOT.z-2],['Hartley Carpentry',57,SHOP_DOOR+2.2],['Forge',39,SHOP_DOOR+2.2],['Bait & Tackle',31,SHOP_DOOR+3.6],['Feed & Stock',65.5,SHOP_DOOR+3.6]])
+for(const p of [['Crossroads',crossPos.x,crossPos.z+5],['Coyle’s store',TB.store[1],-12.2],['Old mine',MINE.x,MINE.z-6],['Your car',carPos.x,carPos.z+3],['Footbridge',FOOT.x,FOOT.z-2],['Hartley Carpentry',SHOPS_AT.carp.x,SHOPS_AT.carp.front+2.2],['Forge',SHOPS_AT.forge.x,SHOPS_AT.forge.front+2.2],['Bait & Tackle',SHOPS_AT.bait.x,SHOPS_AT.bait.front+3.6],['Feed & Stock',SHOPS_AT.feed.x,SHOPS_AT.feed.front+2.4],['Town hall',TB.hall[1],-13],['Post office',TB.post[1],-13],['Schoolhouse',TB.school[1],TB.school[2]-4],['The green',squarePos.x,squarePos.z+5]])
   if(!MAP_PLACES.some(q=>q[0]===p[0]))MAP_PLACES.push(p);
 // the mine is set into the cliff after the world is built, so its name follows it there (it was left sitting on the farm road)
 {const _ob=openBag;openBag=function(t){const e=MAP_PLACES.find(q=>q[0]==='Old mine');if(e&&MINE&&MINE.z<-12){e[1]=MINE.x;e[2]=MINE.z-6;}return _ob.apply(this,arguments);};}

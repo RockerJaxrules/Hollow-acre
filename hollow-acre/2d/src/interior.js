@@ -5,12 +5,12 @@ const ROOMS={
     ['in_bed',1.3,2.6,[-.85,-2.1,.85,0]],['in_shelf_books',3.2,.62,[-.8,-.4,.8,0]],['in_clock',4.3,.55,[-.3,-.3,.3,0]],['in_desk',5.85,.95,[-.88,-.45,.88,0]],
     ['in_stove',7.9,.95,[-.68,-.5,.68,0]],['in_rug',3.9,4.1,null,'flat'],['in_table',6.3,3.5,[-.85,-.45,.85,0]],['in_chair',5.2,3.55,[-.3,-.25,.3,0]],['in_chair',7.4,3.55,[-.3,-.25,.3,0]],
     ['in_cellar',1.2,5.4,null,'flat'],['in_mirror',8.45,-.45,null,'flat'],['barrel',8.4,5.2,[-.4,-.3,.4,0]]]},
-  store:{ox:330,oz:-62,out:{x:29.5,z:-8.7},name:'Coyle’s General Store',furn:[
+  store:{ox:330,oz:-62,out:tbOut('store'),name:'Coyle’s General Store',furn:[
     ['in_shelf_cans',1.1,.62,[-1,-.4,1,0]],['in_shelf_jars',2.9,.62,[-.8,-.4,.8,0]],['in_shelf_cans',4.6,.62,[-1,-.4,1,0]],['in_shelf_jars',8.4,.62,[-.8,-.4,.8,0]],['in_shelf_cans',10.1,.62,[-1,-.4,1,0]],['in_shelf_jars',11.9,.62,[-.8,-.4,.8,0]],
     ['in_counter',6.5,2.5,[-1.56,-.6,1.56,0]],['in_shelf_cans',2.4,4.7,[-1,-.4,1,0]],['in_shelf_jars',4.2,4.7,[-.8,-.4,.8,0]],['in_shelf_jars',8.8,4.7,[-.8,-.4,.8,0]],['in_shelf_cans',10.6,4.7,[-1,-.4,1,0]],
     ['in_crates',1.2,7.0,[-.7,-.4,.7,0]],['in_crates',11.8,7.0,[-.7,-.4,.7,0]],['barrel',.6,2.8,[-.4,-.3,.4,0]],['barrel',12.4,2.8,[-.4,-.3,.4,0]],['sacks',12.1,5.9,[-.55,-.3,.55,0]],['in_keg',.7,5.9,[-.4,-.3,.4,0]],
     ['pumpkin',3.1,7.2,[-.3,-.2,.3,0]],['pumpkin_b',3.7,7.3,[-.3,-.2,.3,0]],['in_rug',6.5,6.9,null,'flat']]},
-  church:{ox:360,oz:-60,out:{x:48,z:-17.9},name:'Marrow Hollow Church',furn:[
+  church:{ox:360,oz:-60,out:{x:CHURCH_DOOR.x,z:CHURCH_DOOR.z+.3},name:'Marrow Hollow Church',furn:[
     ['in_altar',5,1.7,[-1.15,-.65,1.15,0]],['in_candles',2.5,1.1,[-.6,-.25,.6,0]],['in_candles',7.5,1.1,[-.6,-.25,.6,0]],
     ['in_pew',2.4,3.6,[-1.95,-.45,1.95,0]],['in_pew',7.6,3.6,[-1.95,-.45,1.95,0]],['in_pew',2.4,5.0,[-1.95,-.45,1.95,0]],['in_pew',7.6,5.0,[-1.95,-.45,1.95,0]],
     ['in_pew',2.4,6.4,[-1.95,-.45,1.95,0]],['in_pew',7.6,6.4,[-1.95,-.45,1.95,0]]]},
@@ -29,8 +29,8 @@ function leaveRoom(){const R=roomOf();if(!R)return;S.mode='trans';fade(1);SFX.th
 // doors outside
 {const cab=interact.find(it=>it.x===doorPos.x&&it.z===doorPos.z);if(cab){cab.label=()=>!S.readLetter?'Read note':'Enter';
     cab.act=function(){if(!S.readLetter){S.readLetter=true;openNote(LETTER.map(p=>p.startsWith('<span')?p:`<p>${p}</p>`).join(''));return;}enterRoom('cabin');};}}
-interact.push({x:31,z:-9.05,r:.9,label:()=>'Enter',ok:()=>true,act(){if(isNight()){toast('Locked. Behind the glass, every can on the shelf has been turned to face the door.',3);SFX.deny();return;}enterRoom('store');}});
-interact.push({x:48,z:-18.2,r:1.1,label:()=>'Enter',ok:()=>true,act(){enterRoom('church');}});
+interact.push({x:tbDoor('store')[0],z:tbDoor('store')[1],r:.9,label:()=>'Enter',ok:()=>true,act(){if(isNight()){toast('Locked. Behind the glass, every can on the shelf has been turned to face the door.',3);SFX.deny();return;}enterRoom('store');}});
+interact.push({x:CHURCH_DOOR.x,z:CHURCH_DOOR.z,r:1.1,label:()=>'Enter',ok:()=>true,act(){enterRoom('church');}});
 interact.push({x:-33.7,z:-10.25,r:.9,label:()=>'Enter',ok:()=>true,act(){enterRoom('garage');}});
 // things to use inside
 const rp=(k,lx,lz)=>({x:ROOMS[k].ox+lx,z:ROOMS[k].oz+lz});

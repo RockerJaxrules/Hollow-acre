@@ -8,7 +8,7 @@ const stLeft=()=>S.st.tithe?S.st.tithe-S.day:99;
 const stKnown=()=>S.lore.filter(l=>!l.endsWith('|')).length;
 const stLast=()=>S.st.tithe&&!S.st.done&&stLeft()<=6;
 const stTitheNight=()=>S.st.tithe&&!S.st.done&&S.day===S.st.tithe;
-const MAILPOS={x:-13.6,z:-1.9},CHURCH_STEP={x:48,z:-15.6},TITHE_DOOR={x:TITHE.x,z:TITHE.z-1.15};
+const MAILPOS={x:-13.6,z:-1.9},CHURCH_STEP={x:CHURCH_DOOR.x,z:CHURCH_DOOR.z+2.6},TITHE_DOOR={x:TITHE.x,z:TITHE.z-1.15};
 const BEDPOS={x:ROOMS.cabin.ox+1.3,z:ROOMS.cabin.oz+2.9};
 let stFound=[];try{stFound=JSON.parse(localStorage.getItem('hollowEndings')||'[]');}catch(e){}
 

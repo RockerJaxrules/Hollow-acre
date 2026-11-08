@@ -3,7 +3,7 @@
    Region names, place plaques, a compass, a parchment frame. Your mark, your objective, and anyone you're playing with.
    It zooms, and it scrolls with a finger. ================= */
 const MAPX={s:4,pad:34,cv:null,zoom:1};
-const REGIONS=[['MARROW HOLLOW',48,1],['HOLLOW ACRE',-2,-15.5],['ROUTE 9',-58,-14],['THE HOLLOW WOODS',108,-16],['THE QUARRY',147,-36],['BLACK LAKE',186,34],
+const REGIONS=[['MARROW HOLLOW',49,16],['HOLLOW ACRE',-2,-15.5],['ROUTE 9',-58,-14],['THE HOLLOW WOODS',108,-16],['THE QUARRY',147,-36],['BLACK LAKE',186,34],
   ['WICKHAM CROSSING',131,40],['QUILL ORCHARD',47,72],['THE MARSH PLACE',-25,70],['MILL ROAD',14,62],['THE RIVER',80,108],['TITHE CLEARING',-26,100],['THE CORN',-2,26]];
 const MAPSIL={};
 function mapSil(im,sx,sy,w,h){const k=im.src+'|'+sx+'|'+sy;if(MAPSIL[k])return MAPSIL[k];const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');

@@ -6,12 +6,30 @@ const FSTART={i0:3,j0:0,w:4,h:3};   // the patch Grandpa still kept clear; the r
 const CORN={x0:-15,x1:11,z0:11.5,z1:24};
 const inCorn=(x,z)=>x>CORN.x0&&x<CORN.x1&&z>CORN.z0&&z<CORN.z1;
 const pond={x:-30,z:24.5,r:7.5};
-const wellPos={x:7.3,z:-10.5},binPos={x:-3.6,z:-8.6},doorPos={x:0,z:-8.9},carPos={x:-60.2,z:-1.4},pumpPos={x:-30.5,z:-10.3},boothPos={x:44.5,z:-9.6};
-const crossPos={x:20,z:19},boardPos={x:52,z:-9.4},tsPos={x:22.8,z:-8.2},farmSignPos={x:-13.4,z:-10.1},squarePos={x:48,z:-6};
+const wellPos={x:7.3,z:-10.5},binPos={x:-3.6,z:-8.6},doorPos={x:0,z:-8.9},carPos={x:-60.2,z:-1.4},pumpPos={x:-30.5,z:-10.3},boothPos={x:34.6,z:-9.6};
+const crossPos={x:20,z:19},boardPos={x:44.6,z:-3.2},tsPos={x:22.8,z:-8.2},farmSignPos={x:-13.4,z:-10.1},squarePos={x:50,z:2.6};
+// ---------- Marrow Hollow, rebuilt as a real little town. Main Street is Route 9; Hill, Market and Elm Streets and Orchard Lane run
+// parallel to it; Church Street, the two Green Streets and East Avenue cross them. The town green sits between Main and Market.
+// Every building faces the street to the south of it, so each block is one row of fronts with gardens behind.
+const TOWN={main:-6,hill:-25,market:11,elm:29,orchard:46,gw:36,ge:64,church:50,east:74,mill:20};
+const GREEN={x0:37.3,x1:62.7,z0:-4.4,z1:9.6};
+const TB={ // [sprite, x, front z, options]
+  store:['store',29,-9.4,{jack:1}],post:['postoffice',38.2,-9.4,{porch:false}],danny:['house_a',44.6,-9.4,{lit:false,porch:false}],hall:['townhall',56.6,-9.4,{porch:false,lit:false}],dunn:['house_d',66.5,-9.4,{jack:1}],
+  hale:['house_b',38,-27.2,{}],church:['church',50,-27.6,{}],crane:['house_d',62.5,-27.2,{}],pell:['house_c',70,-27.2,{lit:false,porch:false}],
+  vance:['house_c',25,26.6,{}],lindqvist:['house_b',31.5,26.6,{jack:1}],school:['schoolhouse',50,26.6,{jack:1}],oakes:['house_b2',59,26.6,{}],gale:['house_d2',69,26.6,{jack:1}],
+  marr:['house_c2',26,44,{lit:false}],wren:['house_a2',68.5,44,{lit:false,porch:false}]};
+const tbDoor=k=>[TB[k][1],TB[k][2]+.35],tbOut=k=>({x:TB[k][1],z:TB[k][2]+.7});
+const GYARD={x0:41,x1:72,z0:-41.6,z1:-32.6,gate:57},YOURGRAVE={x:66.6,z:-36.8},CHURCH_DOOR={x:50,z:-27.2};
+// Hill Street stands on a terrace: a stone retaining wall along the back of the Main Street gardens, steps up at the head of Church Street
+const TERRACE={z:-22.4,base:-21.3,x0:29.6,x1:72.4,steps:[48.8,51.2]};
+const inTown=(x,z,m)=>{m=m||0;return x>20.6-m&&x<76+m&&z>-42.2-m&&z<45+m;};
 const fishSpot={x:pond.x,z:pond.z-pond.r+3.6};
-const ALTAR_POS=[[-27,8,'west woods'],[-2,29,'cornfield'],[64,-32,'churchyard']];
+const ALTAR_POS=[[-27,8,'west woods'],[-2,29,'cornfield'],[70.2,-39.6,'churchyard']];
 const SCARE_SPOTS=[[6.9,4],[9.8,-1.2],[2.2,-7.6]];
-const ROADS=[[-12.5,-6,70,-6,3],[16,-9.4,16,-6,2.8],[0,-8.6,0,-1,2],[20,-6,20,19,2],[20,19,4,19,1.6],[48,-18,48,-6,2.4],[26,5,70,5,2],[26,-6,26,5,2],[70,-6,70,5,2],[-46,-6,-46,-9,1.8],[-36,-6,-36,-10.6,2],[2,-9,6,-9,1.4]];
+const ROADS=[[-12.5,-6,70,-6,3],[16,-9.4,16,-6,2.8],[0,-8.6,0,-1,2],[20,-6,20,19,2],[20,19,4,19,1.6],[-46,-6,-46,-9,1.8],[-36,-6,-36,-10.6,2],[2,-9,6,-9,1.4],
+  // the town's streets
+  [33,TOWN.hill,74,TOWN.hill,2],[TOWN.church,TOWN.hill,TOWN.church,TOWN.main,2],[GYARD.gate,TOWN.hill,GYARD.gate,GYARD.z0+.6,1.2],
+  [20,TOWN.market,74,TOWN.market,2.4],[20,TOWN.elm,74,TOWN.elm,2],[TOWN.gw,TOWN.main,TOWN.gw,TOWN.elm,2],[TOWN.ge,TOWN.main,TOWN.ge,TOWN.elm,2],[TOWN.east,TOWN.main,TOWN.east,TOWN.orchard,2]];
 const SIDEWALKS=[];
 // ---------- the north ridge: a cliff face you see from the front, plateau behind it
 const RIDGE={x0:-50,x1:30,h:1.85};
@@ -33,11 +51,16 @@ function fbm(x,z){return vnoise(x,z)*.55+vnoise(x*2.1+7,z*2.1+3)*.3+vnoise(x*4.3
 function segDist(px,pz,x1,z1,x2,z2){const dx=x2-x1,dz=z2-z1,L=dx*dx+dz*dz||1;const t=clamp(((px-x1)*dx+(pz-z1)*dz)/L,0,1);return Math.hypot(px-x1-dx*t,pz-z1-dz*t);}
 // ---------- terrain layers (membership tested at tile corners; LPC autotiles drawn per cell)
 const onRoad=(x,z,extra)=>{for(const r of ROADS)if(segDist(x,z,r[0],r[1],r[2],r[3])<r[4]/2+(extra||0))return true;return false;};
+// cobbles: Main Street through town, Market Street, Church Street, and the paths on the green
+const greenPath=(x,z)=>x>GREEN.x0&&x<GREEN.x1&&z>GREEN.z0&&z<GREEN.z1&&(Math.hypot(x-squarePos.x,(z-squarePos.z)*1.2)<4.4||Math.abs(x-squarePos.x)<.85||Math.abs(z-squarePos.z)<.75);
+const townStone=(x,z)=>(Math.abs(z+6)<2.3&&x>21.4&&x<76)||(Math.abs(z-TOWN.market)<1.5&&x>21&&x<75)||(Math.abs(x-TOWN.church)<1.1&&z>TOWN.hill-1&&z<-6)||greenPath(x,z);
+// the schoolyard behind the school is worn to dirt by a hundred years of games
+const schoolField=(x,z)=>x>38.4+(fbm(x*.5,z*.5)-.5)*1.4&&x<53.8&&z>14.4+(fbm(x*.6+3,z*.6)-.5)*1.2&&z<21.4;
 const LAYERS={
   dirt:(x,z)=>{const j=(fbm(x*.7,z*.7)-.5)*.8;return onRoad(x,z,j)||(Math.hypot(x-pond.x,z-pond.z)<pond.r+1.6+j&&Math.hypot(x-pond.x,z-pond.z)>pond.r-.4)
     ||(x>CORN.x0-.6&&x<CORN.x1+.6&&z>CORN.z0-.6&&z<CORN.z1+.6)||(x>FIELD.x0+FSTART.i0-.35+j*.3&&x<FIELD.x0+FSTART.i0+FSTART.w+.35-j*.3&&z>FIELD.z0+FSTART.j0-.35+j*.3&&z<FIELD.z0+FSTART.j0+FSTART.h+.35-j*.3)
-    ||(Math.hypot(x+60.6,z-1.2)<3.0+j)||(x>-7+j&&x<7-j&&z>-9.6&&z<-7.2+j*.5);},
-  stone:(x,z)=>(Math.abs(z+6)<2.6&&x<-12.5)||Math.hypot(x-48,z+6)<6.6||(Math.abs(z+6)<2.1&&x>24&&x<72)||(Math.abs(x-48)<1.4&&z>-18.6&&z<-6),
+    ||(Math.hypot(x+60.6,z-1.2)<3.0+j)||schoolField(x,z)||(x>-7+j&&x<7-j&&z>-9.6&&z<-7.2+j*.5);},
+  stone:(x,z)=>(Math.abs(z+6)<2.6&&x<-12.5)||townStone(x,z),
   water:(x,z)=>(Math.hypot(x-pond.x,z-pond.z)<pond.r+(fbm(x*.8,z*.8)-.5)*.9&&!(x>pond.x-1.1&&x<pond.x+1.1&&z<pond.z-pond.r+4.2))||inCreek(x,z),
   dark:(x,z)=>Math.max(B.x0-x,x-B.x1,B.z0-z,z-B.z1)>-1.5-2.5*fbm(x*.3+11,z*.3+7)||((x<-16&&z>6)||(z>28))&&fbm(x*.22+70,z*.22)>.5,
 };
@@ -81,7 +104,7 @@ function clearSpot(x,z,m){m=m||0;
   if(Math.hypot(x-pond.x,z-pond.z)<pond.r+2.5+m)return false;
   if(creekDist(x,z)<2+m)return false;
   if(ridgeH(x)>0&&z>ridgeZ(x)-1.4-m&&z<ridgeZ(x)+RIDGE.h+1.4+m)return false;
-  if(Math.hypot(x-48,z+6)<8.5+m)return false;
+  if(inTown(x,z,m))return false;
   if(Math.abs(z+6)<3.5+m&&x<-12)return false;
   if(Math.hypot(x-crossPos.x,z-crossPos.z)<4.5+m)return false;
   if(x>CORN.x0-1.5&&x<CORN.x1+1.5&&z>CORN.z0-1.5&&z<CORN.z1+1.5)return false;
@@ -135,23 +158,8 @@ function buildWorld(){
   // ---------- crash site on Route 9
   put('car_wreck',carPos.x-.8,carPos.z+3.2,0,{night:'car_wreck_n',kind:'wreck'});addRect(carPos.x-1.8,carPos.z-1.2,carPos.x+1.2,carPos.z+3.1);
   put('deadtree',carPos.x+.15,carPos.z+3.45,.35);reserve(-65,-8,-56,4);
-  // ---------- Marrow Hollow: main street (z=-6), north row faces the street, south row faces the back lane (z=5)
-  building('store',29.5,-9.4,{jack:1});building('house_a',40,-9.4);building('house_b',57,-9.4,{jack:1});building('house_d',66,-9.4);
-  building('house_c',31,3.6);building('house_b',40,3.6);building('house_c',57,3.6,{lit:false});building('house_d',66,3.6,{lit:false});
-  // side yards: picket runs between the houses, store goods stacked by the door
-  fenceLine(35.6,-9.6,35.6,-13.8,0,'picket');fenceLine(61.5,-9.6,61.5,-13.8,0,'picket');fenceLine(35.6,-.6,35.6,3.4,0,'picket');fenceLine(61.5,-.6,61.5,3.4,0,'picket');
-  put('crate',34.9,-9.0,.3);put('sacks',32.55,-8.6);put('barrel',23.4,-9.3,.3);put('barrel',23.9,-8.8,.3);put('hay',22.4,-11.6);addRect(21.6,-12.8,23.2,-11.7);
-  // street lamps on the kerbs, never in the road
-  for(const x of[27,36.4,45.8,50.2,61,70])lamp(x,-8.5);for(const x of[27,36.4,61,70])lamp(x,-3.5);for(const x of[36.4,48,61])lamp(x,6.5);
-  put('phone_booth',boothPos.x,boothPos.z+.5,0,{night:'phone_booth_n',kind:'booth'});addRect(boothPos.x-.55,boothPos.z-.4,boothPos.x+.55,boothPos.z+.5);
-  put('board',boardPos.x,boardPos.z,0);addSeg(boardPos.x-.8,boardPos.z,boardPos.x+.8,boardPos.z,.12);
-  put('signpost',tsPos.x,tsPos.z,.2,{label:'MARROW HOLLOW'});
-  // church on its own path north of the square, graveyard to the east
-  building('church',48,-18.6);
-  const graves=[];for(let r=0;r<3;r++)for(let c=0;c<5;c++)graves.push([56.5+c*2.2,-30+r*2.6]);
-  graves.forEach(([x,z],i)=>{if(i===7)return;put('grave_'+((i*7)%4),x,z,.35);});
-  put('deadtree',67.5,-31,.35);fenceLine(54.5,-32.5,68.5,-32.5);fenceLine(54.5,-32.5,54.5,-21.5);fenceLine(68.5,-32.5,68.5,-21.5);fenceLine(54.5,-21.5,60.5,-21.5);fenceLine(62.5,-21.5,68.5,-21.5);
-  reserve(53.5,-34,70,-20.5);
+  // ---------- Marrow Hollow
+  buildTown();
   // garage + pump on the west road, the widow's house north of the highway
   building('garage',-36,-10.6,{lit:true});put('gas_pump',pumpPos.x,pumpPos.z+1.6,0,{night:'gas_pump_n'});addCircle(pumpPos.x-.4,pumpPos.z,.35);addCircle(pumpPos.x+.4,pumpPos.z,.35);
   put('barrel',-31.6,-11.9,.3);put('barrel',-31.1,-11.5,.3);put('crate',-40.8,-10.9,.3);put('firewood',-41.6,-12);
@@ -173,8 +181,7 @@ function buildWorld(){
   put('hay',11.5,-10.4);addRect(10.8,-11.6,12.3,-10.4);put('hay',11.5,-8.9);addRect(10.8,-10.1,12.3,-9);put('cart',21.4,-8.7);addRect(20.2,-9.3,22.6,-8.7);put('hay',12.2,-1.0);
   fenceLine(8.5,-3.9,13.5,-3.9);fenceLine(8.5,-3.9,8.5,-.2);fenceLine(13.5,-3.9,13.5,-.2);fenceLine(8.5,-.2,10,-.2);fenceLine(12,-.2,13.5,-.2);reserve(8,-4.4,14,.4);
   // ---------- planted trees: an avenue along the lane into town, the church walk, the crossroads, the pond's east bank
-  {let k=0;for(const [x,z] of [[23.2,-2.6],[23.6,-9.6]]){const n=['maple_red','maple_orange','maple_gold'][k++%3];obj(n,x,z,{kind:'tree',solid:1});addCircle(x,z,.4);}}
-  for(const [n,x,z] of [['maple_red',45.2,-14.6],['maple_gold',50.8,-14.6],['maple_orange',23.5,16.4],['maple_red',17,21.6],['maple_gold',-21.5,21],['maple_orange',-21.8,27.5],['maple_green',-24,31.5]]){obj(n,x,z,{kind:'tree',solid:1});addCircle(x,z,.4);}
+  for(const [n,x,z] of [['maple_orange',23.5,16.4],['maple_red',17,21.6],['maple_gold',-21.5,21],['maple_orange',-21.8,27.5],['maple_green',-24,31.5]]){obj(n,x,z,{kind:'tree',solid:1});addCircle(x,z,.4);}
   // ---------- woods & trees: thick pines outside the valley and in the west/south woods, autumn trees in the open
   scatter(560,2.2,()=>{const r=rand();return r<.36?'pine_0':r<.72?'pine_1':r<.86?'pine_o0':'pine_o1';},(x,z)=>{const out=Math.max(B.x0-x,x-B.x1,B.z0-z,z-B.z1);
     const woods=(x<-14&&z>4)||(z>26&&x<30)||(x>10&&x<26&&z>8&&z<16)||(z<-20&&x<26);return (out>-2||woods)&&clearSpot(x,z,.8);},.35);
@@ -216,6 +223,86 @@ function buildWorld(){
   for(const [x,z] of [[-180,-.4],[-136,-11.4],[-110,-.6],[-92,-11.1]])put('signpost',x,z);
   addRect(B.x0-20,B.z0-14,B.x0-6.5,-9);addRect(B.x0-20,-3,B.x0-6.5,B.z1+14);
 }
+// ---------- Marrow Hollow, street by street
+const TREE_T=(n,x,z)=>{const e=obj(n,x,z,{kind:'tree',solid:1,town:1});addCircle(x,z,.4);return e;};
+function buildTown(){
+  // the rows: every building faces the street south of it
+  for(const [k,[spr,x,z,o]] of Object.entries(TB)){const e=building(spr,x,z,o);e.tb=k;}
+  // ---- Main Street: shopfronts facing the green
+  put('sacks',32.55,-8.6);put('barrel',23.4,-9.3,.3);put('barrel',23.9,-8.8,.3);put('hay',22.4,-11.6);addRect(21.6,-12.8,23.2,-11.7);
+  put('phone_booth',boothPos.x,boothPos.z+.5,0,{night:'phone_booth_n',kind:'booth'});addRect(boothPos.x-.55,boothPos.z-.4,boothPos.x+.55,boothPos.z+.5);
+  put('signpost',tsPos.x,tsPos.z,.2,{label:'MARROW HOLLOW'});
+  for(const x of [26,41.4,48.2,51.8,62.3,71.6])lamp(x,-8.25);
+  for(const x of [23.5,35.2,45.4,54.6,65.4])lamp(x,-3.75);
+  put('hydrant',33.3,-8.05,.18);put('hydrant',62.9,-3.7,.18);put('trashcan',47.7,-8.05,.22);put('trashcan',36.2,-8.05,.22);put('trashcan',57.4,-3.75,.22);
+  put('planter',54.2,-8.15,0,{kind:'prop'});put('planter',59,-8.15,0,{kind:'prop'});put('planter',27.1,-8.15,0,{kind:'prop'});
+  put('st_church',48.7,-7.95,.12);put('st_main',37.9,-3.6,.12);put('st_green',34.5,-3.6,.12);put('st_east',75.5,-3.9,.12);
+  // ---- the green: cobbled paths crossing at the bandstand, the memorial, the notice board, benches and old maples
+  put('bandstand',squarePos.x,squarePos.z+1.4,0,{kind:'prop'});addRect(squarePos.x-2.1,squarePos.z+.35,squarePos.x+2.1,squarePos.z+1.4);
+  put('memorial',42.4,.3,0,{kind:'prop'});addRect(41.7,-.2,43.1,.3);
+  put('board',boardPos.x,boardPos.z,0);addSeg(boardPos.x-.8,boardPos.z,boardPos.x+.8,boardPos.z,.12);
+  for(const [x,z] of [[41.2,4.8],[58.8,4.8],[57.6,.6]])put('parkbench',x,z,0,{kind:'prop'});
+  put('birdbath',58.4,-1.9,.25);put('planter',48.4,-3.85,0,{kind:'prop'});put('planter',51.6,-3.85,0,{kind:'prop'});put('planter',45.4,9.3,0,{kind:'prop'});put('planter',54.6,9.3,0,{kind:'prop'});
+  for(const [x,z] of [[46.7,-.7],[53.3,-.7],[46.7,5.9],[53.3,5.9]])lamp(x,z);
+  for(const [n,x,z] of [['maple_red',39.2,-3],['oak_russet',61,-3],['maple_gold',39.2,8.6],['maple_orange',61,8.6]])TREE_T(n,x,z);
+  reserve(GREEN.x0,GREEN.z0,GREEN.x1,GREEN.z1);
+  // ---- Hill Street: the parsonage, the church at the head of Church Street, the sexton's house; the churchyard behind
+  const G=GYARD;
+  fenceLine(G.x0,G.z0,G.x1,G.z0,0,'rgiron');fenceLine(G.x0,G.z0,G.x0,G.z1,0,'rgiron');fenceLine(G.x1,G.z0,G.x1,G.z1,0,'rgiron');
+  fenceLine(G.x0,G.z1,G.gate-1.1,G.z1,0,'rgiron');fenceLine(G.gate+1.1,G.z1,G.x1,G.z1,0,'rgiron');reserve(G.x0-1,G.z0-1,G.x1+1,G.z1+.5);
+  for(let r=0;r<4;r++)for(let c=0;c<13;c++){const x=42.8+c*2.3+(r&1)*.6,z=G.z1-2.2-r*2;if(Math.abs(x-G.gate)<1.4)continue;if(Math.hypot(x-YOURGRAVE.x,z-YOURGRAVE.z)<1.3)continue;
+    if(Math.hypot(x-ALTAR_POS[2][0],z-ALTAR_POS[2][1])<2)continue;put('grave_'+((r*5+c*3)%4),x,z,.35);}
+  put('deadtree',43.2,-40.4,.35);put('shed_b',70.6,-33.6,0,{kind:'prop'});
+  for(const x of [35,43,47.6,52.6,61,67.6])lamp(x,-23);put('st_hill',53.2,-23.2,.12);
+  // the terrace wall: cut stone with a lit coping, steps at Church Street, a boulder where it meets the farm ridge
+  {const T=TERRACE;const run=(a,b)=>{for(let x=a;x<b-.05;x+=2){const x0=Math.min(x,b-2);obj('twall',x0,T.base,{kind:'wall'});}addSeg(a,T.base-.5,b,T.base-.5,.5);};
+    run(T.x0,T.steps[0]);run(T.steps[1],T.x1);obj('tsteps',(T.steps[0]+T.steps[1])/2,T.base,{kind:'wall'});
+    addSeg(T.steps[0]-.05,T.z,T.steps[0]-.05,T.base,.12);addSeg(T.steps[1]+.05,T.z,T.steps[1]+.05,T.base,.12);put('rock_1',T.x0-.2,T.base+.2,.4).town=1;}
+  // ---- Market Street: the trades on the west corner, the carpenter on the east, the green between
+  for(const x of [24,31,38.6,45,55,61.4,69])lamp(x,12.6);lamp(39.6,9.3);lamp(60.4,9.3);
+  put('st_market',34.7,9.5,.12);put('st_mill',21.6,12.7,.12);put('hydrant',37.9,12.7,.18);
+  // ---- Elm Street: houses, and the schoolhouse with its yard
+  for(const x of [24,32,40,48,56,64,72])lamp(x,30.6);put('st_elm',34.7,27.7,.12);
+  hedgeLine(37.6,21.2,26.4);put('rg_swing',41.6,23.6,0,{kind:'prop'});put('parkbench',43.6,26.8,0,{kind:'prop'});
+  // ---- Orchard Lane and East Avenue
+  put('st_orchard',72.9,44.8,.12);put('signpost',66.4,45,.2,{label:'FOR SALE'});for(const z of [2,18,36])lamp(72.6,z);
+  // ---- street trees: an avenue of maples down Market Street, oaks on Hill and Elm
+  for(const [i,x] of [27.5,34.4,41.6,48.4,51.6,58.4,65.6,72.4].entries())TREE_T(['maple_red','maple_orange','maple_gold'][i%3],x,13);
+  for(const [i,x] of [39,45.2,55,58.4,64.4,70.4].entries())TREE_T(i%2?'oak_russet':'maple_gold',x,-23.4);
+  for(const [i,x] of [28,36,44,52,60,68].entries())TREE_T(['oak_green','maple_orange','birch_gold'][i%3],x,31);
+  // ---- back gardens: picket fences between the plots, a gate onto the street behind, and what people keep there
+  const done=new Set(),side=(x,zf,zb,gap)=>{const k=x+':'+zf;if(done.has(k))return;done.add(k);if(gap==null)hedgeLine(x,zf,zb);else{hedgeLine(x,zf,gap+(zb<zf?1.3:-1.3));hedgeLine(x,gap-(zb<zf?1.3:-1.3),zb);}};
+  const plot=(x0,x1,zf,zb,gate,gap)=>{side(x0,zf,zb,gap);side(x1,zf,zb,gap);
+    if(gate){const gx=(x0+x1)/2;fenceLine(x0,zb,gx-.8,zb,0,'picket');fenceLine(gx+.8,zb,x1,zb,0,'picket');}};
+  side(23.6,-12.9,-18.8);side(34.6,-12.9,-21.1,-16.6);for(const [x0,x1] of [[34.6,41.4],[41.4,48.6],[51.4,62.3],[62.3,72.6]])plot(x0,x1,-12.9,-21.1,0,-16.6);fenceLine(29.6,-21.1,34.6,-21.1,0,'picket');fenceLine(34.6,-21.1,48.6,-21.1,0,'picket');fenceLine(51.4,-21.1,72.6,-21.1,0,'picket');
+  for(const [x0,x1] of [[21.6,28],[28,34.8],[54.6,62.6],[65.2,72.6]])plot(x0,x1,23,13.9,1);
+  side(37.6,21.2,13.9);side(54.6,23,13.9);fenceLine(37.6,13.9,44.6,13.9,0,'picket');fenceLine(47.4,13.9,54.6,13.9,0,'picket');   // the school field
+  for(const [x0,x1] of [[21.6,34],[34,46],[64.6,72.6]])plot(x0,x1,40.6,31.6,1);
+  const Y=(spr,x,z,o)=>put(spr,x,z,0,Object.assign({kind:'prop',town:1},o||{}));
+  // Coyle's: stock waiting by the back door
+  Y('crate',25.4,-15.8);Y('crate',26.3,-16.3);Y('barrel',31.8,-15.9);Y('barrel',32.5,-16.5);put('hay',28.4,-17.8);addRect(27.6,-19,29.2,-17.9);put('cart',31.4,-19.6);addRect(30.2,-20.2,32.6,-19);
+  // the post office: June's vegetables and her washing
+  Y('gardenbed',36.8,-16.4,{kind:'flat'});Y('clothesline',38.2,-19.8);Y('birdbath',40.4,-17);
+  // Danny's: nobody has touched the garden since; his swing still hangs from the apple tree
+  TREE_T('apple_tree',43.6,-19.2);Y('rg_swing',45.4,-17.2);for(let k=0;k<7;k++)obj('weeds_'+(k&1),42+((k*37)%6),-14.2-((k*53)%7),{kind:'deco',town:1});
+  // the town hall's lawn
+  TREE_T('maple_red',54.4,-19.2);TREE_T('maple_gold',59.6,-18.4);Y('parkbench',57,-15.8);
+  // the Dunns: a shed, the sheriff's washing, tomatoes gone over
+  Y('shed',64.8,-16.4);Y('clothesline_b',68.6,-19.8);Y('gardenbed_b',70.4,-16.2,{kind:'flat'});
+  // Elm Street gardens
+  Y('gardenbed',25.8,15.4,{kind:'flat'});Y('birdbath',26.6,19.8);
+  Y('wk_boat',31.4,16.6);Y('wk_nets',30.2,20.6);Y('barrel',33.6,15.2);
+  Y('rg_swing',46.6,18.4);Y('parkbench',51.4,16.2);
+  TREE_T('apple_tree',57.2,15.6);Y('gardenbed_b',60.6,18.2,{kind:'flat'});Y('shed_b',56.6,21.2);
+  Y('clothesline_b',68.6,16.6);Y('gardenbed',70.6,20.2,{kind:'flat'});
+  // Orchard Lane gardens
+  Y('shed',30.6,33.6);Y('gardenbed_b',25.6,34.6,{kind:'flat'});for(let k=0;k<3;k++)Y('hedge',22.2+k*2.1,38.4);
+  TREE_T('apple_tree',39.2,34.2);TREE_T('apple_gold',43.4,33);
+  for(let k=0;k<6;k++)obj('weeds_'+(k&1),66+((k*29)%6),33.6+((k*41)%5),{kind:'deco',town:1});TREE_T('deadoak',70.6,35.4);
+  reserve(20.6,-24,76,-12.6);reserve(20.6,40.6,76,45.4);reserve(20.6,12.2,76,23.4);reserve(20.6,30.2,76,40.8);
+}
+// a hedge along a north-south line (the sideways view of a picket fence reads as a string of beads; a hedge reads as a hedge)
+function hedgeLine(x,z1,z2){const za=Math.min(z1,z2),zb=Math.max(z1,z2);let k=0;for(let z=za+1;z<=zb+.01;z+=1)obj(k++%3===1?'hedge_v_b':'hedge_v',x,z,{kind:'prop',noCol:true,town:1});addSeg(x,za,x,zb,.32);}
 const lamps=[];
 function lamp(x,z){const e=obj('lamp',x,z,{kind:'lamp',night:'lamp_n'});lamps.push({e,x,z,dead:rand()<.25,ph:rand()*10});addCircle(x,z,.15);}
 const fenceDefs=[];

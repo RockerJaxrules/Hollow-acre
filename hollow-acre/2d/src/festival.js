@@ -15,16 +15,16 @@ const fToday=()=>FESTS[dayOfMonth()]||null;
 const fOn=()=>{const f=fToday();return f&&S.hour>=f.from&&S.hour<f.to?f:null;};
 const fWedding=()=>{for(const [id,r] of Object.entries(S.rom||{}))if(r.wedding===S.day&&!r.married)return id;return null;};
 const fGather=()=>fOn()||(fWedding()&&S.hour>=9&&S.hour<13);
-Object.assign(PL,{fest:[48,-4.6,6]});
-const F_SQ={x:48,z:-4};
+Object.assign(PL,{fest:[squarePos.x,squarePos.z+4.2,4.6]});
+const F_SQ={x:squarePos.x,z:squarePos.z+4.6};
 // ---- the townsfolk come to it (Wickham's stay home: it's a long walk)
 {const _wf=wantFor;wantFor=function(n){const w=_wf.apply(this,arguments);if(!fGather())return w;const L=LIFE[n.def.id];const h=L&&HOMES[L.home];
   if(h&&h.door&&h.door[0]>90)return w;return 'fest';};}
 // ---- the square, dressed
 const FDEC=[];
 {const mk=(spr,x,z,kind)=>{const o=obj(spr,x,z,{kind:kind||'prop',hide:true,noCol:kind==='flat'});FDEC.push(o);return o;};
-  mk('f_bunting',44,-8.6);mk('f_bunting',52.4,-8.6);mk('f_lanterns',44,-1.2);mk('f_lanterns',52.4,-1.2);
-  FDEC.floor=mk('f_floor',48,-2.4,'flat');FDEC.scale=mk('f_scale',53.2,-4.4);FDEC.toss=mk('f_ringtoss',43,-4.4);FDEC.stall=mk('wk_stall',43,-4.6);}
+  const q=squarePos;mk('f_bunting',q.x-4.6,q.z-6.6);mk('f_bunting',q.x+4.6,q.z-6.6);mk('f_lanterns',q.x-6.8,q.z+5.2);mk('f_lanterns',q.x+6.8,q.z+5.2);
+  FDEC.floor=mk('f_floor',q.x,q.z+6.4,'flat');FDEC.scale=mk('f_scale',q.x+6.2,q.z+3.2);FDEC.toss=mk('f_ringtoss',q.x-6.2,q.z+3.4);FDEC.stall=mk('wk_stall',q.x-6.4,q.z+3);}
 function fDress(){const f=fToday(),w=fWedding();const on=!!(f||w)&&!S.room;
   for(const o of FDEC){o.hide=!on;}if(!on)return;
   FDEC.floor.hide=!(f&&f.k==='dance')&&!w;FDEC.scale.hide=!(f&&f.k==='weigh');FDEC.toss.hide=!(f&&f.k==='fair');FDEC.stall.hide=!(f&&f.k==='market');}
@@ -43,9 +43,9 @@ vendors.fest_market={name:'Harvest Market stall',sub:'Caitlyn and Pip, behind a 
   {k:'pie',name:'Pumpkin pie',desc:'Everybody loves pie. Everybody.',price:40,can:true,buy(){addInv('pie');}},
   {k:'bq',name:'Wildflower bouquet',desc:'Market price. For asking someone out.',price:30,can:true,buy(){addInv('bouquet');}},
   {k:'ring',name:'Marrow ring',desc:'Market price. For asking someone to marry you.',price:220,can:inv('ring')<1,buy(){addInv('ring');}}];}};
-interact.push({x:43,z:-3.8,r:1.4,story:true,on:()=>{const f=fOn();return !!(f&&f.k==='market')&&!S.room;},label:()=>'Market stall',ok:()=>true,act(){openShop('fest_market');}});
+interact.push({x:squarePos.x-6.4,z:squarePos.z+3.8,r:1.4,story:true,on:()=>{const f=fOn();return !!(f&&f.k==='market')&&!S.room;},label:()=>'Market stall',ok:()=>true,act(){openShop('fest_market');}});
 // ---- the weigh-in
-interact.push({x:53.2,z:-3.6,r:1.4,story:true,on:()=>{const f=fOn();return !!(f&&f.k==='weigh')&&!S.room;},label:()=>S.fest['weigh'+S.day]?'The scale':'Enter the weigh-in',ok:()=>true,act(){
+interact.push({x:squarePos.x+6.2,z:squarePos.z+4,r:1.4,story:true,on:()=>{const f=fOn();return !!(f&&f.k==='weigh')&&!S.room;},label:()=>S.fest['weigh'+S.day]?'The scale':'Enter the weigh-in',ok:()=>true,act(){
   if(S.fest['weigh'+S.day]){toast('Your pumpkin’s already on the scale. Come back next month.',2);return;}
   const ps=S.basket.filter(b=>b.kind==='pumpkin');if(!ps.length){toast('You need a pumpkin in your basket to enter. Grow one, then bring it.',2.6);SFX.deny&&SFX.deny();return;}
   const best=ps.sort((a,b)=>(b.value||0)-(a.value||0))[0];S.basket.splice(S.basket.indexOf(best),1);S.fest['weigh'+S.day]=1;
@@ -55,14 +55,14 @@ interact.push({x:53.2,z:-3.6,r:1.4,story:true,on:()=>{const f=fOn();return !!(f&
   openNote(`<h3>Pumpkin Weigh-in</h3><p>Hale reads the scale out loud, as if it’s scripture.</p>`+all.map((a,i)=>`<p>${['🥇','🥈','🥉','·'][i]} <b>${a[0]}</b>: ${a[1]} lb</p>`).join('')+
     `<p>${place===0?'First! The whole square cheers. Otto shakes your hand for a long time and says it’s the soil. It’s always the soil.':place<3?'A ribbon. Not bad at all for a farm that was weeds a month ago.':'Not this year. Otto pats your pumpkin like a dog. “Next year.”'}${prize?` <b>+${prize} coins.</b>`:''}</p>`,'Lovely');SFX.coin&&SFX.coin();}});
 // ---- the dance
-interact.push({x:48,z:-1.6,r:2.2,story:true,on:()=>{const f=fOn();return !!(f&&f.k==='dance')&&!S.room&&!S.fest['dance'+S.day];},label:()=>'Ask someone to dance',ok:()=>true,act(){
+interact.push({x:squarePos.x,z:squarePos.z+5.4,r:2.2,story:true,on:()=>{const f=fOn();return !!(f&&f.k==='dance')&&!S.room&&!S.fest['dance'+S.day];},label:()=>'Ask someone to dance',ok:()=>true,act(){
   const here=npcs.filter(n=>PEOPLE[n.def.id]&&n.vis!==false&&Math.hypot(n.x-F_SQ.x,n.z-F_SQ.z)<14);
   const cand=here.filter(n=>(typeof romDating==='function'&&romDating(n.def.id))||hearts(n.def.id)>=4).sort((a,b)=>(romDating(b.def.id)?100:0)+hearts(b.def.id)-(romDating(a.def.id)?100:0)-hearts(a.def.id)).slice(0,6);
   if(!cand.length){toast('Nobody here knows you well enough to dance with you yet. Make friends (4 hearts), then ask.',3);return;}
   openNote('<h3>Lantern Dance</h3><p>Who will you ask?</p><p style="text-align:center">'+cand.map(n=>`<button class="btn fDance" data-id="${n.def.id}" style="margin:3px">${n.def.name.split(' ')[0]}${romDating(n.def.id)?' ♥':''}</button>`).join('')+'</p>','Not yet');
   document.querySelectorAll('#noteText .fDance').forEach(b=>b.addEventListener('click',()=>{$('note').hidden=true;noteCb=null;fRhythm(b.dataset.id);},{once:true}));}});
 // ---- the ring toss
-interact.push({x:43,z:-3.6,r:1.4,story:true,on:()=>{const f=fOn();return !!(f&&f.k==='fair')&&!S.room;},label:()=>'Ring toss',ok:()=>true,act(){
+interact.push({x:squarePos.x-6.2,z:squarePos.z+4.2,r:1.4,story:true,on:()=>{const f=fOn();return !!(f&&f.k==='fair')&&!S.room;},label:()=>'Ring toss',ok:()=>true,act(){
   if(S.fest['toss'+S.day]>=3){toast('Three goes is the limit. Nell runs the stall and she’s strict about it.',2.4);return;}
   if(S.coins<5){toast('Five coins a go.',1.6);return;}S.coins-=5;updateHud();S.fest['toss'+S.day]=(S.fest['toss'+S.day]||0)+1;fToss();}});
 // ---- the little games: keep time with your partner, and throw the rings

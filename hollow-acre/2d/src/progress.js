@@ -105,7 +105,7 @@ const LS_AT={
   clear:()=>{const f=fieldTiles();if(!f.length)return null;let x=0,z=0;for(const t of f){x+=t.x;z+=t.z;}return {x:x/f.length,z:z/f.length};},
   till:()=>LS_NEAR(fieldTiles().filter(t=>!t.tilled)),plant:()=>LS_NEAR(fieldTiles().filter(t=>t.tilled&&!t.crop)),
   water:()=>S.water<=0?wellPos:LS_NEAR(fieldTiles().filter(t=>t.crop&&!t.crop.watered)),
-  fish:()=>({x:pond.x,z:pond.z-pond.r-.6}),cook:()=>doorPos,friends:()=>({x:48,z:-6}),upgrade:()=>({x:-36,z:-14}),ward:()=>({x:48,z:-21}),
+  fish:()=>({x:pond.x,z:pond.z-pond.r-.6}),cook:()=>doorPos,friends:()=>({x:squarePos.x,z:squarePos.z+4}),upgrade:()=>({x:-36,z:-14}),ward:()=>({x:CHURCH_DOOR.x,z:CHURCH_DOOR.z+.6}),
   furnish:()=>doorPos,coop:()=>({x:12.6,z:-5.2}),smelt:()=>({x:12.6,z:-5.2})};
 function guideTarget(fallback){
   if(S.ls&&S.ls.i>=0&&!S.tut.off){const sd=S.ls.side&&S.ls.side.ship;if(sd&&sd.st==='on'&&S.basket.length)return guidePoint(binPos);

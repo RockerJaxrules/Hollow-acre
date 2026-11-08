@@ -48,22 +48,22 @@ Object.assign(PEOPLE,{
     events:[{h:3,title:'The last verse',text:`Ida plays you the last verse on the church organ, very softly. It is a list of names, sung in order, ending with <i>Danny Coyle</i>.<br><br>Then her hands keep going over one more bar. She doesn’t sing it. She doesn’t have to.`,lore:'The last verse of Ida’s hymn is the list of the taken, sung in order. There is one more bar after Danny’s name.'}]}});
 for(const d of NEWFOLK)S.friend[d.id]=S.friend[d.id]||0;
 // ---- the general store is twice the size now; its door moved with it
-ROOMS.store.out={x:29.5,z:-8.7};{const it=interact.find(q=>q.x===31&&q.z===-9.05);if(it)it.x=29.5;}
+ROOMS.store.out=tbOut('store');
 
 // ---- places in town (centre, wander radius)
-const PL={store:[29.5,-8.3,1.6],square:[48,-5.6,2.4],church:[48,-17.2,1.4],graves:[60.8,-27.6,3],garage:[-35,-9.4,2],dock:[-30,19.6,.2],board:[52,-8.6,.8],booth:[44.5,-8.7,.4],
-  farmgate:[-12.2,-6,.8],road_w:[-68,-5.4,1.4],porch_agnes:[-46,-8.6,.6],school:[46,-3.8,1.6],bake:[43.6,-7.4,.6],corn:[-2,10.6,2.4],farmlane:[-6,-6,1.2],bridge:[-24.5,-5.8,.6]};
+const PL={store:[TB.store[1],-8.3,1.6],square:[squarePos.x,squarePos.z+3.7,2.4],church:[CHURCH_DOOR.x,CHURCH_DOOR.z+1,1.4],graves:[GYARD.gate,-36.6,2.4],garage:[-35,-9.4,2],dock:[-30,19.6,.2],board:[boardPos.x,boardPos.z+.6,.8],booth:[boothPos.x,boothPos.z+1.2,.4],
+  farmgate:[-12.2,-6,.8],road_w:[-68,-5.4,1.4],porch_agnes:[-46,-8.6,.6],school:[41.4,25.4,1.6],bake:[40.6,-2.4,.6],corn:[-2,10.6,2.4],farmlane:[-6,-6,1.2],bridge:[-24.5,-5.8,.6]};
 // homes: door outside, which side the door faces, and a home room
 const HOMES={
-  coyle:{door:[29.5,-9.05],face:'N',room:'store',name:'Coyle’s General Store'},  // Caitlyn and Tobias live above the shop
+  coyle:{door:tbDoor('store'),face:'N',room:'store',name:'Coyle’s General Store'},  // Caitlyn and Tobias live above the shop
   pruitt:{door:[-33.7,-10.25],face:'N',room:'garage',name:'Pruitt’s Garage'},
   abernathy:{door:[-46,-9.25],face:'N',room:'home_agnes',name:'the Abernathy house'},
-  hale:{door:[57,-9.05],face:'N',room:'home_hale',name:'the parsonage'},
-  dunn:{door:[66,-9.05],face:'N',room:'home_dunn',name:'the Dunn house'},
-  vance:{door:[31,3.95],face:'S',room:'home_cora',name:'the Vance house'},
-  june:{door:[40,3.95],face:'S',room:'home_june',name:'June’s rooms'},
-  lindqvist:{door:[57,3.95],face:'S',room:'home_otto',name:'the Lindqvist house'},
-  crane:{door:[66,3.95],face:'S',room:'home_silas',name:'the Crane house'}};
+  hale:{door:tbDoor('hale'),face:'N',room:'home_hale',name:'the parsonage'},
+  dunn:{door:tbDoor('dunn'),face:'N',room:'home_dunn',name:'the Dunn house'},
+  vance:{door:tbDoor('vance'),face:'N',room:'home_cora',name:'the Vance house'},
+  june:{door:tbDoor('post'),face:'N',room:'home_june',name:'June’s rooms over the post office'},
+  lindqvist:{door:tbDoor('lindqvist'),face:'N',room:'home_otto',name:'the Lindqvist house'},
+  crane:{door:tbDoor('crane'),face:'N',room:'home_silas',name:'the Crane house'}};
 const LIFE={
   mae:{home:'coyle',job:'Runs the general store',personality:'Twenty-five. Took over the store when her mother walked into the corn. Raising her little brother. Dry, warm, tired, funny. Never says Danny’s name.',day:[[6,'home'],[7,'store'],[12,'square'],[13,'store'],[18.5,'home']]},
   tobias:{home:'coyle',job:'Goes to school, gets into the corn',personality:'Nine, nosy, fearless. Sings the rhyme nobody lets him finish.',day:[[6,'home'],[8,'school'],[12,'corn'],[14.5,'square'],[16,'store'],[18,'home']]},
@@ -82,8 +82,10 @@ for(const n of npcs){const L=LIFE[n.def.id];if(L)n.def.role=L.job;}
 // ---- routes along the streets: everything connects through Main Street / Route 9 (z = -6)
 const STREET=-6;
 function routeTo(x,z,tx,tz){const pts=[];const far=Math.hypot(tx-x,tz-z)>5;
-  const down=(px,pz)=>{if(pz>2){const gaps=[34.4,48,60.5,24];if(px>24&&px<72){const g=gaps.reduce((a,b)=>Math.abs(b-px)<Math.abs(a-px)?b:a);return [[g,STREET],[g,5.3],[px,5.3]];}}
-    if(pz>8&&px<-15)return [[-35,STREET],[-35,12.4],[px,pz-1.5]];if(pz<-21&&px>50)return [[53,STREET],[53,-22]];return [[px,STREET]];};
+  const xs=[TOWN.mill,TOWN.gw,TOWN.church,TOWN.ge,TOWN.east];
+  const down=(px,pz)=>{if(px>21&&px<75&&Math.abs(pz-STREET)>2.5){const g=xs.filter(v=>pz>STREET?v!==TOWN.church:v===TOWN.church||v===TOWN.east).reduce((a,b)=>Math.abs(b-px)<Math.abs(a-px)?b:a);
+      const row=[TOWN.hill,TOWN.market,TOWN.elm,TOWN.orchard].reduce((a,b)=>Math.abs(b-pz)<Math.abs(a-pz)?b:a);return [[g,STREET],[g,row],[px,row]];}
+    if(pz>8&&px<-15)return [[-35,STREET],[-35,12.4],[px,pz-1.5]];return [[px,STREET]];};
   if(!far)return [[tx,tz]];
   const a=down(x,z),b=down(tx,tz);
   // leave: from here back to the street (reverse of the way in), cross along the street, then go in
@@ -93,12 +95,12 @@ function placeXY(key,n){const p=PL[key];if(!p)return null;const r=p[2];return [p
 // ---- home rooms: one per house, furnished for who lives there
 const HROOM=(ox,paper)=>({ox,oz:-60,furn:[],paper,shell:'room_home_'+paper});
 Object.assign(ROOMS,{home_agnes:Object.assign(HROOM(500,'rust'),{name:'The Abernathy house',out:{x:-46,z:-8.7},furn:[['in_bed',1.3,2.6,[-0.85,-2.1,0.85,0]],['in_shelf_jars',3.2,0.62,[-0.80,-0.4,0.80,0]],['in_clock',4.5,0.55,[-0.30,-0.3,0.30,0]],['in_photowall',6.0,-0.9,null,'flat'],['in_stove',7.1,0.95,[-0.68,-0.5,0.68,0]],['in_rocker',3.3,3.7,[-0.40,-0.45,0.40,0]],['in_knit',4.1,3.9,[-0.30,-0.3,0.30,0]],['in_cradle',6.6,4.5,[-0.55,-0.5,0.55,0]],['in_rug',3.8,4.7,null,'flat'],['in_mirror',0.5,-0.45,null,'flat']]}),
-  home_hale:Object.assign(HROOM(532,'blue'),{name:'The parsonage',out:{x:57,z:-8.7},furn:[['in_piano',1.7,1.0,[-1.10,-0.5,1.10,0]],['in_shelf_books',4.0,0.62,[-0.80,-0.4,0.80,0]],['in_shelf_books',5.6,0.62,[-0.80,-0.4,0.80,0]],['in_stove',7.2,0.95,[-0.68,-0.5,0.68,0]],['in_chess',5.1,3.5,[-0.55,-0.4,0.55,0]],['in_chair',4.2,3.55,[-0.30,-0.25,0.30,0]],['in_chair',6.0,3.55,[-0.30,-0.25,0.30,0]],['in_table',2.0,3.9,[-0.85,-0.45,0.85,0]],['in_chair',0.9,3.95,[-0.30,-0.25,0.30,0]],['in_rug',4.4,4.9,null,'flat']]}),
-  home_dunn:Object.assign(HROOM(564,'sage'),{name:'The Dunn house',out:{x:66,z:-8.7},furn:[['in_filecab',0.6,0.85,[-0.40,-0.4,0.40,0]],['in_desk',2.0,1.0,[-0.88,-0.45,0.88,0]],['in_mapboard',3.9,-0.9,null,'flat'],['in_shelf_parts',5.5,0.62,[-1.00,-0.4,1.00,0]],['in_bed',7.1,2.5,[-0.85,-2.1,0.85,0]],['in_bed',1.2,5.1,[-0.85,-2.1,0.85,0]],['in_table',4.2,3.8,[-0.85,-0.45,0.85,0]],['in_chair',3.1,3.85,[-0.30,-0.25,0.30,0]],['in_chair',5.3,3.85,[-0.30,-0.25,0.30,0]],['in_tires',7.4,5.2,[-0.45,-0.3,0.45,0]]]}),
-  home_cora:Object.assign(HROOM(596,'sage'),{name:'The Vance house',out:{x:31,z:4.5},furn:[['in_shelf_books',0.9,0.62,[-0.80,-0.4,0.80,0]],['in_shelf_books',2.5,0.62,[-0.80,-0.4,0.80,0]],['in_blackboard',4.3,-0.95,null,'flat'],['in_desk',6.1,1.0,[-0.88,-0.45,0.88,0]],['in_globe',7.5,1.0,[-0.30,-0.3,0.30,0]],['in_schooldesk',2.6,3.4,[-0.45,-0.3,0.45,0]],['in_schooldesk',4.0,3.4,[-0.45,-0.3,0.45,0]],['in_schooldesk',5.4,3.4,[-0.45,-0.3,0.45,0]],['in_schooldesk',2.6,4.8,[-0.45,-0.3,0.45,0]],['in_schooldesk',5.4,4.8,[-0.45,-0.3,0.45,0]],['in_bed',7.1,5.2,[-0.85,-2.1,0.85,0]]]}),
-  home_june:Object.assign(HROOM(628,'rust'),{name:'June’s rooms',out:{x:40,z:4.5},furn:[['in_shelf_mail',1.2,0.62,[-1.00,-0.4,1.00,0]],['in_shelf_mail',3.3,0.62,[-1.00,-0.4,1.00,0]],['in_desk',5.4,1.0,[-0.88,-0.45,0.88,0]],['in_bed',7.1,2.6,[-0.85,-2.1,0.85,0]],['in_table',3.6,3.8,[-0.85,-0.45,0.85,0]],['in_chair',2.5,3.85,[-0.30,-0.25,0.30,0]],['in_mailsacks',1.0,4.9,[-0.55,-0.4,0.55,0]],['in_mailsacks',2.3,5.1,[-0.55,-0.4,0.55,0]],['in_rug',5.0,4.8,null,'flat']]}),
-  home_otto:Object.assign(HROOM(660,'blue'),{name:'The Lindqvist house',out:{x:57,z:4.5},furn:[['in_rods',0.6,0.9,[-0.50,-0.3,0.50,0]],['in_netwall',2.6,-0.95,null,'flat'],['barrel',1.5,1.3,[-0.40,-0.3,0.40,0]],['in_stove',4.3,0.95,[-0.68,-0.5,0.68,0]],['in_bed',7.1,2.6,[-0.85,-2.1,0.85,0]],['in_table',3.5,3.6,[-0.85,-0.45,0.85,0]],['in_chair',2.4,3.65,[-0.30,-0.25,0.30,0]],['in_keg',0.8,4.8,[-0.40,-0.3,0.40,0]],['in_crates',2.1,5.1,[-0.70,-0.4,0.70,0]],['in_drum_blue',6.5,5.3,[-0.35,-0.3,0.35,0]]]}),
-  home_silas:Object.assign(HROOM(692,'sage'),{name:'The Crane house',out:{x:66,z:4.5},furn:[['in_shovels',0.7,0.95,[-0.50,-0.3,0.50,0]],['in_shelf_tools',2.5,0.62,[-1.00,-0.4,1.00,0]],['in_candles',5.8,1.2,[-0.60,-0.25,0.60,0]],['in_coffin',5.8,3.6,[-0.60,-1.9,0.60,0]],['in_bed',1.3,5.1,[-0.85,-2.1,0.85,0]],['in_table',3.6,3.6,[-0.85,-0.45,0.85,0]],['in_chair',2.5,3.65,[-0.30,-0.25,0.30,0]],['in_clock',7.4,0.55,[-0.30,-0.3,0.30,0]],['in_photowall',4.1,-0.9,null,'flat']]})});
+  home_hale:Object.assign(HROOM(532,'blue'),{name:'The parsonage',out:tbOut('hale'),furn:[['in_piano',1.7,1.0,[-1.10,-0.5,1.10,0]],['in_shelf_books',4.0,0.62,[-0.80,-0.4,0.80,0]],['in_shelf_books',5.6,0.62,[-0.80,-0.4,0.80,0]],['in_stove',7.2,0.95,[-0.68,-0.5,0.68,0]],['in_chess',5.1,3.5,[-0.55,-0.4,0.55,0]],['in_chair',4.2,3.55,[-0.30,-0.25,0.30,0]],['in_chair',6.0,3.55,[-0.30,-0.25,0.30,0]],['in_table',2.0,3.9,[-0.85,-0.45,0.85,0]],['in_chair',0.9,3.95,[-0.30,-0.25,0.30,0]],['in_rug',4.4,4.9,null,'flat']]}),
+  home_dunn:Object.assign(HROOM(564,'sage'),{name:'The Dunn house',out:tbOut('dunn'),furn:[['in_filecab',0.6,0.85,[-0.40,-0.4,0.40,0]],['in_desk',2.0,1.0,[-0.88,-0.45,0.88,0]],['in_mapboard',3.9,-0.9,null,'flat'],['in_shelf_parts',5.5,0.62,[-1.00,-0.4,1.00,0]],['in_bed',7.1,2.5,[-0.85,-2.1,0.85,0]],['in_bed',1.2,5.1,[-0.85,-2.1,0.85,0]],['in_table',4.2,3.8,[-0.85,-0.45,0.85,0]],['in_chair',3.1,3.85,[-0.30,-0.25,0.30,0]],['in_chair',5.3,3.85,[-0.30,-0.25,0.30,0]],['in_tires',7.4,5.2,[-0.45,-0.3,0.45,0]]]}),
+  home_cora:Object.assign(HROOM(596,'sage'),{name:'The Vance house',out:tbOut('vance'),furn:[['in_shelf_books',0.9,0.62,[-0.80,-0.4,0.80,0]],['in_shelf_books',2.5,0.62,[-0.80,-0.4,0.80,0]],['in_blackboard',4.3,-0.95,null,'flat'],['in_desk',6.1,1.0,[-0.88,-0.45,0.88,0]],['in_globe',7.5,1.0,[-0.30,-0.3,0.30,0]],['in_schooldesk',2.6,3.4,[-0.45,-0.3,0.45,0]],['in_schooldesk',4.0,3.4,[-0.45,-0.3,0.45,0]],['in_schooldesk',5.4,3.4,[-0.45,-0.3,0.45,0]],['in_schooldesk',2.6,4.8,[-0.45,-0.3,0.45,0]],['in_schooldesk',5.4,4.8,[-0.45,-0.3,0.45,0]],['in_bed',7.1,5.2,[-0.85,-2.1,0.85,0]]]}),
+  home_june:Object.assign(HROOM(628,'rust'),{name:'June’s rooms',out:tbOut('post'),furn:[['in_shelf_mail',1.2,0.62,[-1.00,-0.4,1.00,0]],['in_shelf_mail',3.3,0.62,[-1.00,-0.4,1.00,0]],['in_desk',5.4,1.0,[-0.88,-0.45,0.88,0]],['in_bed',7.1,2.6,[-0.85,-2.1,0.85,0]],['in_table',3.6,3.8,[-0.85,-0.45,0.85,0]],['in_chair',2.5,3.85,[-0.30,-0.25,0.30,0]],['in_mailsacks',1.0,4.9,[-0.55,-0.4,0.55,0]],['in_mailsacks',2.3,5.1,[-0.55,-0.4,0.55,0]],['in_rug',5.0,4.8,null,'flat']]}),
+  home_otto:Object.assign(HROOM(660,'blue'),{name:'The Lindqvist house',out:tbOut('lindqvist'),furn:[['in_rods',0.6,0.9,[-0.50,-0.3,0.50,0]],['in_netwall',2.6,-0.95,null,'flat'],['barrel',1.5,1.3,[-0.40,-0.3,0.40,0]],['in_stove',4.3,0.95,[-0.68,-0.5,0.68,0]],['in_bed',7.1,2.6,[-0.85,-2.1,0.85,0]],['in_table',3.5,3.6,[-0.85,-0.45,0.85,0]],['in_chair',2.4,3.65,[-0.30,-0.25,0.30,0]],['in_keg',0.8,4.8,[-0.40,-0.3,0.40,0]],['in_crates',2.1,5.1,[-0.70,-0.4,0.70,0]],['in_drum_blue',6.5,5.3,[-0.35,-0.3,0.35,0]]]}),
+  home_silas:Object.assign(HROOM(692,'sage'),{name:'The Crane house',out:tbOut('crane'),furn:[['in_shovels',0.7,0.95,[-0.50,-0.3,0.50,0]],['in_shelf_tools',2.5,0.62,[-1.00,-0.4,1.00,0]],['in_candles',5.8,1.2,[-0.60,-0.25,0.60,0]],['in_coffin',5.8,3.6,[-0.60,-1.9,0.60,0]],['in_bed',1.3,5.1,[-0.85,-2.1,0.85,0]],['in_table',3.6,3.6,[-0.85,-0.45,0.85,0]],['in_chair',2.5,3.65,[-0.30,-0.25,0.30,0]],['in_clock',7.4,0.55,[-0.30,-0.3,0.30,0]],['in_photowall',4.1,-0.9,null,'flat']]})});
 const HOME_SPOT={coyle:[6.5,1.4],pruitt:[5.9,2.0],abernathy:[3.3,4.3],hale:[3.2,2.6],dunn:[4.2,2.6],vance:[6.1,1.9],june:[5.4,1.9],lindqvist:[3.5,4.4],crane:[3.6,4.5]};
 // knock to visit: you can go in when someone's home in the day; locked after the bell
 for(const [k,h] of Object.entries(HOMES)){if(h.room==='store'||h.room==='garage')continue;const [x,z]=h.door;
@@ -107,7 +109,7 @@ for(const [k,h] of Object.entries(HOMES)){if(h.room==='store'||h.room==='garage'
     if(!who.length){toast(`Nobody’s home at ${h.name}.`,1.8);SFX.thud(0,.2);return;}
     toast(`${who.map(n=>n.def.name.split(' ')[0]).join(' and ')} ${who.length>1?'let':'lets'} you in.`,1.8);enterRoom(h.room);}});}
 // the house nobody lives in
-interact.push({x:40,z:-9.05,r:.9,label:()=>'Door',ok:()=>true,act(){toast('Locked. Through the window: a boy’s room, bed made, dusted this morning. A fishing rod by the door. Danny’s.',3.4,true);}});
+interact.push({x:tbDoor('danny')[0],z:tbDoor('danny')[1],r:.9,label:()=>'Door',ok:()=>true,act(){toast('Locked. Through the window: a boy’s room, bed made, dusted this morning. A fishing rod by the door. Danny’s.',3.4,true);}});
 
 // ---- the day: each person follows their routine and walks there by the streets
 function wantFor(n){const L=LIFE[n.def.id];if(!L)return null;let cur=L.day[0][1];for(const [h,k] of L.day)if(S.hour>=h)cur=k;if(S.hour>=19.6&&cur!=='church')cur='home';return cur;}
@@ -143,5 +145,5 @@ function townTick(dt){const vigil=S.hour>=20&&S.day>=2&&!S.bound;if(vigil)return
   for(const n of npcs){if(!LIFE[n.def.id])continue;n.loc=null;n.route=null;n.target=null;}};}
 // the journal says who they are and what they do
 {const _oj=openJournal;openJournal=function(){_oj();const el=document.querySelector('#noteText');if(!el)return;el.querySelectorAll('.jrow').forEach(r=>{const nm=r.querySelector('b');if(!nm)return;const n=npcs.find(q=>q.def.name===nm.textContent);const L=n&&LIFE[n.def.id];
-  if(L&&!r.dataset.life){r.dataset.life=1;const d=document.createElement('div');d.className='jsub';const h=HOMES[L.home];const where=n.loc==='in'?'at home':n.target?{store:'at the store',square:'in the square',church:'at the church',graves:'in the graveyard',garage:'at the garage',dock:'on the dock',board:'by the notice board',booth:'by the phone booth',farmgate:'by your farm gate',road_w:'out on Route 9',porch_agnes:'on her porch',school:'teaching in the square',bake:'at the bake table',corn:'by the corn',farmlane:'on your lane',route:'on the mail route',bridge:'on the bridge'}[n.target]||'':'';
+  if(L&&!r.dataset.life){r.dataset.life=1;const d=document.createElement('div');d.className='jsub';const h=HOMES[L.home];const where=n.loc==='in'?'at home':n.target?{store:'at the store',square:'in the square',church:'at the church',graves:'in the graveyard',garage:'at the garage',dock:'on the dock',board:'by the notice board',booth:'by the phone booth',farmgate:'by your farm gate',road_w:'out on Route 9',porch_agnes:'on her porch',school:'at the schoolhouse',bake:'at the bake table',corn:'by the corn',farmlane:'on your lane',route:'on the mail route',bridge:'on the bridge'}[n.target]||'':'';
     d.innerHTML=`${L.job}. Lives at ${h.name}. ${L.personality}${where?` <i>Now: ${where}.</i>`:''}`;r.appendChild(d);}});};}

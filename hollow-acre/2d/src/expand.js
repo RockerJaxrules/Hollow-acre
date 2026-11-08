@@ -5,7 +5,7 @@ const OLD={x1:72,z1:40};
 const HOLLOW_TREE={x:108,z:14},LAKE={x:186,z:16,rx:20,rz:13},QUARRY={x0:128,x1:166,z0:-40,z1:-20},TITHE={x:-26,z:88},MILLX=20;
 const RIVER=[[176,27],[150,58],[112,82],[70,98],[20,104],[-30,112],[-90,118]];
 const LANE_E=46,LANE_W=46;
-ROADS.push([70,-6,212,-6,3],[146,-6,146,-24,2],[190,-6,190,1.5,2],[108,-4,108,9,1.4],[70,5,70,15.5,2],
+ROADS.push([70,-6,212,-6,3],[146,-6,146,-24,2],[190,-6,190,1.5,2],[108,-4,108,9,1.4],
   [20,19,20,120,2.4],[20,LANE_E,70,LANE_E,2],[20,LANE_W,-52,LANE_W,2],[20,88,-20,88,1.6],[20,98,40,98,1.8]);
 const riverD=(x,z)=>{let best=1e9;for(let i=0;i<RIVER.length-1;i++){const [a,b]=RIVER[i],[c,d]=RIVER[i+1];best=Math.min(best,segDist(x,z,a,b,c,d));}return best;};
 const BRIDGE2={x:MILLX,z:104};
