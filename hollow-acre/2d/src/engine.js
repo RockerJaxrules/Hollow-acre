@@ -67,7 +67,7 @@ let _rsH=null;function roadStripH(){if(_rsH)return _rsH;const m=SPR.road,im=m&&I
 const TEXD={};const TP=192;
 function texData(k){if(TEXD[k])return TEXD[k];const m=SPR['tex_'+k],im=m&&IMG[m.src];if(!im)return null;const c=document.createElement('canvas');c.width=TP;c.height=TP;const q=c.getContext('2d');q.drawImage(im,0,0);
   return TEXD[k]=q.getImageData(0,0,TP,TP).data;}
-const GPAL={dirt:[[74,47,28],[107,69,40],[138,92,52]],stone:[[46,44,50],[70,67,75]],grassTuft:[[86,153,62],[118,179,76]],wet:[[60,140,184],[124,188,216]]};
+const GPAL={dirt:[[78,48,36],[98,64,42],[146,106,64]],stone:[[54,52,62],[74,71,84]],grassTuft:[[78,138,58],[100,160,64]],wet:[[60,130,162],[148,196,216]]};
 function jnoise(x,y){const xi=x>>3,yi=y>>3,fx=(x&7)/8,fy=(y&7)/8;const h=(a,b)=>hash(a*7+13,b*11+5);const a=h(xi,yi),b=h(xi+1,yi),c=h(xi,yi+1),d=h(xi+1,yi+1);
   const u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;}
 function groundPixels(g,x0,z0,N){const LY=['dark','dirt','stone','water'],TX=['forest','dirt','stone','water'];const tg=texData('grass');if(!tg)return;
