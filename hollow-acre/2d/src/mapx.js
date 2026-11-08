@@ -118,6 +118,11 @@ renderMap=function(keep){const B2=$('bagBody');$('bagSub').textContent=S.room?'Y
   B2.innerHTML=`<div id="mapBar"><span>Drag to look around.</span><span class="z"><button class="btn" id="mzOut">−</button><button class="btn" id="mzIn">+</button></span></div><div id="mapWrap"><div id="mapInner"><canvas id="mapCv"></canvas></div></div>
     <div id="mapLegend"><span><i style="background:#e8402a;border-radius:50%"></i>You</span><span><i style="background:#ffd040"></i>Where you’re headed</span><span><i style="background:#4ab0e8;border-radius:50%"></i>Friends</span><span><i style="background:#e8d4a4"></i>Roads</span><span><i style="background:#2e4a28"></i>Deep woods</span></div>`;
   const base=MAPX.cv,cv=$('mapCv');cv.width=base.width;cv.height=base.height;mapLive(cv.getContext('2d'),base);
+  // the mine: a grey shoulder of rock with a dark timbered mouth, so it can be found on the map
+  if(typeof MINE!=='undefined'&&MINE.z<-12){const g=cv.getContext('2d'),s=MAPX.s*2.2,X=MAPX.pad+(MINE.x-B.x0)*MAPX.s,Y=MAPX.pad+(MINE.z-B.z0)*MAPX.s;g.fillStyle='rgba(0,0,0,.35)';g.beginPath();g.ellipse(X,Y+s*.4,s*3.4,s*.7,0,0,6.29);g.fill();
+    g.fillStyle='#5a5650';g.beginPath();g.ellipse(X,Y-s*.6,s*3.2,s*1.9,0,Math.PI,0);g.fill();g.fillStyle='#7a766e';g.beginPath();g.ellipse(X-s*.5,Y-s*1.1,s*2.2,s*1.1,0,Math.PI,0);g.fill();
+    g.fillStyle='#14100c';g.beginPath();g.ellipse(X,Y-s*.2,s*1.05,s*1.3,0,Math.PI,0);g.fill();g.fillRect(X-s*1.05,Y-s*.2,s*2.1,s*.5);
+    g.fillStyle='#8a5a2a';g.fillRect(X-s*1.25,Y-s*1.5,s*.35,s*1.8);g.fillRect(X+s*.9,Y-s*1.5,s*.35,s*1.8);g.fillRect(X-s*1.35,Y-s*1.65,s*2.7,s*.35);}
   const wrap=$('mapWrap'),inner=$('mapInner');const fit=wrap.clientWidth||600;const wpx=Math.max(fit,Math.round(fit*1.7*MAPX.zoom));inner.style.width=wpx+'px';
   const pct=(x,z)=>[(MAPX.pad+(x-B.x0)*MAPX.s)/base.width*100,(MAPX.pad+(z-B.z0)*MAPX.s)/base.height*100];
   for(const [n,x,z] of MAP_PLACES){const nn=x=>x.toLowerCase().replace(/^the /,'');if(REGIONS.some(r=>nn(r[0])===nn(n)))continue;const [l,t]=pct(x,z);const dv=document.createElement('div');dv.className='plq';dv.dataset.ax=l;dv.dataset.ay=t;dv.dataset.pri=10;dv.textContent=n;inner.appendChild(dv);}
