@@ -83,7 +83,7 @@ const PLACE={on:false};
 function startPlace(spec){if(PLACE.on)placeCancel();Object.assign(PLACE,{on:true,spec,x:null,z:null,manual:false});['shop','bag'].forEach(id=>{const el=$(id);if(el&&!el.hidden){el.hidden=true;}});S.paused=false;
   {const N=spec.name[0].toUpperCase()+spec.name.slice(1);$('placeHint').innerHTML=matchMedia('(pointer:fine)').matches?`<b>${N}</b>: click where it goes, or drag it. Then <b>Place</b> (or Enter, or double-click). Esc cancels.`:`<b>${N}</b>: tap where it goes, or drag it. Then <b>Place</b> (or tap it twice).`;}$('placeBar').style.display='flex';}
 function placeCancel(){if(!PLACE.on)return;const sp=PLACE.spec;for(const [k,n] of Object.entries(sp.refund||{}))addInv(k,n);if(sp.coins)S.coins+=sp.coins;if(sp.cancel)sp.cancel();PLACE.on=false;$('placeBar').style.display='none';toast('Put away.',1);updateHud();}
-function placeSpot(){const sp=PLACE.spec;if(!PLACE.manual){PLACE.x=Math.round((P.x+P.fx*1.6)*2)/2;PLACE.z=Math.round((P.z+P.fz*1.4+(P.fz<0?0:sp.d*.5))*2)/2;}return [PLACE.x,PLACE.z];}
+function placeSpot(){const sp=PLACE.spec;if(!PLACE.manual){PLACE.x=Math.round((P.x+P.fx*1.6)*8)/8;PLACE.z=Math.round((P.z+P.fz*1.4+(P.fz<0?0:sp.d*.5))*8)/8;}return [PLACE.x,PLACE.z];}
 function placeValid(x,z){const sp=PLACE.spec,x0=x-sp.w/2,x1=x+sp.w/2,z0=z-sp.d,z1=z;
   if(sp.room){const R=ROOMS[sp.room];if(S.room!==sp.room)return 'Take it inside first.';if(x0<R.ox+.15||x1>R.ox+R.w-.15||z0<R.oz+.45||z1>R.oz+R.d-.3)return 'Against the wall.';if(Math.abs(x-(R.ox+R.door))<1&&z1>R.oz+R.d-1.4)return 'That blocks the door.';}
   else{if(S.room)return 'Go back outside.';if(x0<-12||x1>25||z0<-16||z1>13)return 'Off the farm.';
@@ -93,7 +93,11 @@ function placeValid(x,z){const sp=PLACE.spec,x0=x-sp.w/2,x1=x+sp.w/2,z0=z-sp.d,z
   for(const r of rects)if(r.x1>x0+.05&&r.x0<x1-.05&&r.z1>z0+.05&&r.z0<z1-.05)return 'Something is in the way.';
   for(const c of circles)if(c.x+c.r>x0&&c.x-c.r<x1&&c.z+c.r>z0&&c.z-c.r<z1)return 'Something is in the way.';
   for(const s of segs){const L=Math.hypot(s.x2-s.x1,s.z2-s.z1),n=Math.max(2,Math.ceil(L/.1));for(let i=0;i<=n;i++){const t=i/n,px=s.x1+(s.x2-s.x1)*t,pz=s.z1+(s.z2-s.z1)*t,r=(s.r||.15);if(px>x0-r&&px<x1+r&&pz>z0-r&&pz<z1+r)return 'A fence is in the way.';}}
-  for(const o of OBJ){if(o.hide||['deco','anim','grass','flat'].includes(o.kind))continue;if(o.x>x0-.2&&o.x<x1+.2&&o.z>z0-.1&&o.z<z1+.3)return 'Something is in the way.';}
+  for(const o of OBJ){if(o.hide||['deco','anim','grass','flat'].includes(o.kind))continue;
+    // each thing blocks the ground it stands on: its own footprint if it has one, otherwise a box the width of its base
+    const m=SPR[o.spr],f=m&&m.foot&&(m.foot[0]||m.foot[2])?m.foot:null,hw=Math.min(.34,Math.max(.12,(m?m.fw:20)/PPM*.3));
+    const ox0=o.x+(f?f[0]:-hw),ox1=o.x+(f?f[2]:hw),oz0=o.z+(f?f[1]:-.3),oz1=o.z+(f?f[3]:.02);
+    if(ox1>x0+.03&&ox0<x1-.03&&oz1>z0+.03&&oz0<z1-.03)return 'Something is in the way.';}
   if(Math.hypot(P.x-x,P.z-(z-sp.d/2))<Math.max(sp.w,sp.d)*.45)return 'You are standing there.';return null;}
 function placeConfirm(){if(!PLACE.on)return;const [x,z]=placeSpot();const bad=placeValid(x,z);if(bad){toast(bad,1.4);SFX.deny();return;}
   const sp=PLACE.spec;PLACE.on=false;$('placeBar').style.display='none';SFX.thud(0,.35);burst(x,z-.2,12,'#c8a070',1.2,.6,2);sp.done(x,z);updateHud();}
@@ -104,7 +108,7 @@ function placeDraw(){if(!PLACE.on)return;const [x,z]=placeSpot();const sp=PLACE.
 // picking a spot: press anywhere to move the building there, drag to slide it around, then press Place (or Enter, or tap it twice).
 // The same on a touch screen and with a mouse. While placing, dragging moves the building, not you.
 {const toWorld=(e)=>{const r=view.getBoundingClientRect();const X=(e.clientX-r.left)*VW/r.width,Y=(e.clientY-r.top)*VH/r.height;
-    const sp=PLACE.spec;return [Math.round(((X+cam.px-(VW>>1))/PPM)*2)/2,Math.round(((Y+cam.pz-Math.round(VH*.56))/PPM+sp.d/2)*2)/2];};
+    const sp=PLACE.spec;return [Math.round(((X+cam.px-(VW>>1))/PPM)*8)/8,Math.round(((Y+cam.pz-Math.round(VH*.56))/PPM+sp.d/2)*8)/8];};
   let drag=null,lastTap={t:0,x:0,y:0};const onWorld=e=>e.target===view||(e.target&&e.target.id==='c');
   addEventListener('pointerdown',e=>{if(!PLACE.on||!onWorld(e))return;if(e.pointerType==='mouse'&&e.button!==0)return;e.stopImmediatePropagation();e.preventDefault();
     const now=performance.now();const again=now-lastTap.t<380&&Math.hypot(e.clientX-lastTap.x,e.clientY-lastTap.y)<28;lastTap={t:now,x:e.clientX,y:e.clientY};
