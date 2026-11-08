@@ -22,6 +22,10 @@ ROOMS = {
   'shop_harlow3': dict(w=17, d=10, door=8.5, theme='home', wall='damask', paper='red', floor='parquet', wains='bead', windows=[[2.2, 0], [5.8, 0], [10.6, 0]], doors=[[15.2, 'bark']], mat='mustard'),
   'shop_lusk3': dict(w=13, d=8, door=6.5, theme='home', wall='plaster', paper='mustard', floor='checker', chk='red', windows=[[2.4, 0], [6.6, 0]], doors=[[11.4, 'red']], mat='red'),
   'tavern': dict(w=16, d=9, door=8, theme='home', wall='panel', floor='wide', wains='bead', windows=[[2.4, 0], [6.4, 0], [12.6, 0]], mat='red'),
+  # ---- hidden rooms under the houses (#154)
+  'cellar_agnes': dict(w=8, d=5, door=4, theme='home', wall='plaster', paper='slate', floor='flag', wains='none', windows=[], mat='rust'),
+  'cellar_hale': dict(w=8, d=5, door=4, theme='home', wall='log', floor='planks', windows=[], mat='slate'),
+  'cellar_dunn': dict(w=8, d=5, door=4, theme='home', wall='plaster', paper='mustard', floor='flag', wains='none', windows=[], mat='slate'),
   # ---- where the keepers live
   'priv_store': dict(w=7, d=5, door=3.5, theme='home', wall='stripe', paper='rust', floor='parquet', windows=[[2, 0], [5.2, 0]], mat='rust'),
   'priv_garage': dict(w=7, d=5, door=3.5, theme='home', wall='panel', floor='wide', windows=[[5.4, 0]], mat='slate'),
