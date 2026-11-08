@@ -11,13 +11,6 @@ from PIL import Image, ImageDraw
 S = 4; N = 128; NS = N * S
 _yy, _xx = np.mgrid[0:NS, 0:NS]
 X = (_xx + .5) / S; Y = (_yy + .5) / S
-# the view: the young adult women's portraits are framed a little wider (zoomed out from the top of the head) so the neckline
-# and the bust sit inside the frame instead of below it; everyone else keeps the old framing
-VIEW = dict(z=1.0, ty=0.0)
-def set_view(z, ty=0.0):
-    global X, Y
-    VIEW['z'] = z; VIEW['ty'] = ty
-    X = ((_xx + .5) / S - N / 2) * z + N / 2; Y = ((_yy + .5) / S) * z + ty
 LV = np.array([-.5, -.62, .6]); LV = LV / np.linalg.norm(LV)
 
 def hexc(h): h = h.lstrip('#'); return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
@@ -52,8 +45,7 @@ def ramp(base, n=6, dark=.36, light=1.32, shade_hue=.98, shade_amt=.22, lit_amt=
 
 # ---------------------------------------------------------------- shapes
 def poly(pts):
-    z, ty = VIEW['z'], VIEW['ty']
-    im = Image.new('L', (NS, NS), 0); ImageDraw.Draw(im).polygon([(((x - N / 2) / z + N / 2) * S, ((y - ty) / z) * S) for x, y in pts], fill=255)
+    im = Image.new('L', (NS, NS), 0); ImageDraw.Draw(im).polygon([(x * S, y * S) for x, y in pts], fill=255)
     return np.asarray(im) > 127
 def ell(cx, cy, rx, ry, rot=0):
     if rot:
@@ -341,7 +333,7 @@ class Painter:
         sw = s.C.get('shoulder', 55.0); o = BO
         nw = s.C.get('neck_w', 8.4)
         tr = bez([(nw + .6, 88 + o), (nw + 5.6, 99 + o), (30, 100 + o), (sw - 9, 105 + o)], 30)
-        dl = bez([(sw - 9, 105 + o), (sw - 3, 107.5 + o), (sw + 1, 114 + o), (sw + 2, 166)], 20)   # runs past the bottom of any view
+        dl = bez([(sw - 9, 105 + o), (sw - 3, 107.5 + o), (sw + 1, 114 + o), (sw + 2, max(129 + o, 132))], 20)
         half = np.vstack([tr, dl])
         R = [(CX + x, y) for x, y in half]; L = [(CX - x, y) for x, y in half[::-1]]
         return L + R
@@ -369,7 +361,7 @@ class Painter:
     def bust(s):
         """young adult women: the bust under the neckline, lit as two soft forms"""
         C, cv = s.C, s.cv
-        b = C.get('bust', 16.4); cy = C.get('bust_y', 117.0) + BO; sep = C.get('bust_sep', 12.9)
+        b = C.get('bust', 15.2); cy = C.get('bust_y', 117.0) + BO; sep = C.get('bust_sep', 12.9)
         bl = []; bm = []
         for sg in (-1, 1):
             m = ell(CX + sg * sep, cy, b, b * .94); bm.append(m)
@@ -479,8 +471,8 @@ class Painter:
         tor = poly(s.torso_poly())
         if kind in ('cardigan', 'jacket'):
             for sg in (-1, 1):
-                inner = bez([(CX + sg * 13, 88 + o), (CX + sg * 19.5, 100 + o), (CX + sg * 25, 113 + o), (CX + sg * 28, 166)], 30)
-                pts = [(x, y) for x, y in inner] + [(CX + sg * (sw + 4), 166), (CX + sg * (sw + 4), 86 + o)]
+                inner = bez([(CX + sg * 13, 88 + o), (CX + sg * 19.5, 100 + o), (CX + sg * 25, 113 + o), (CX + sg * 28, max(129 + o, 132))], 30)
+                pts = [(x, y) for x, y in inner] + [(CX + sg * (sw + 4), max(129 + o, 132)), (CX + sg * (sw + 4), 86 + o)]
                 m = poly(pts) & tor
                 if C.get('cardi_off'): m &= Y > (107 + o + 5 * sstep(30, 50, np.abs(X - CX)))
                 lit = .58 - .2 * (X - CX) / 55 - .1 * sstep(40, 58, np.abs(X - CX)) + .06 * G(CX - 34, 104 + o, 12, 5)
@@ -504,7 +496,7 @@ class Painter:
                 cv.add(shift(col, 0, 1.0) & ~col & tor, 'top', -.15)
         if kind == 'apron':
             for sg in (-1, 1):
-                st = stroke(bez([(CX + sg * 24, 92 + o), (CX + sg * 21.5, 108 + o), (CX + sg * 18.5, 166)], 20), [4.2, 4.2, 4.6])
+                st = stroke(bez([(CX + sg * 24, 92 + o), (CX + sg * 21.5, 108 + o), (CX + sg * 18.5, max(129 + o, 132))], 20), [4.2, 4.2, 4.6])
                 cv.put(st & tor, 'top2', .66 - .12 * sg)
                 cv.add(shift(st, sg * .9, 0) & ~st & tor, 'top', -.12)
 
@@ -1184,6 +1176,4 @@ class Painter:
         img = outline(img, bid, s.pal)
         return img
 
-def portrait(C, ex, var='day'):
-    set_view(1.22 if C.get('allure') else 1.0, 0.0)
-    return Painter(C, ex, var).paint()
+def portrait(C, ex, var='day'): return Painter(C, ex, var).paint()

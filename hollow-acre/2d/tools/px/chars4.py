@@ -25,7 +25,7 @@ CH = {
   # Caitlyn (the shopkeeper; her id stays 'mae' so saves keep working): black tank top with a white trim edge, as in her photos
   'mae': dict(skin='#f3d2b8', hair='#e2c27e', tip='#e58fb0', tip_y=92, tip_t=.7, eye='#6a8aa4', lip='#b8303e', style='long', part=1.5, tuck=1,
               glasses='square', frame='#16121a', earrings='stars', metal='#d8dce4', necklace='cord', cord='#141216', top='#1e1c22', top3='#e6e2e8',
-              neck='tank', trim=1, trim_w=.9, bust=16.6, freckles=9, makeup='#7a6070', wing=1.4, lash_w=1.15, blush=.55, allure=1,
+              neck='tank', trim=1, trim_w=.9, bust=15.8, freckles=9, makeup='#7a6070', wing=1.4, lash_w=1.15, blush=.55, allure=1,
               face_w=25.0, chin=86, jaw_q=.5, eye_a=6.2, tilt=.9, iris=4.0, lip_w=6.8, lip_lo=3.1, seed=31),
 }
 
