@@ -74,7 +74,7 @@ const LEAFC=['#c8642a','#d8902e','#a8402a','#e0b040','#8a5a2a'];
       ctx2.fillStyle='rgba(235,242,250,.5)';ctx2.fillRect(X-Math.round(rx*.5),Y-Math.round(rz*.4),Math.max(2,Math.round(rx*.35)),1);ctx2.fillRect(X+Math.round(rx*.15),Y-Math.round(rz*.1),Math.max(1,Math.round(rx*.15)),1);
       if(rain){ctx2.strokeStyle='rgba(220,230,245,.45)';for(let k=0;k<2;k++){const f=(now*1.6+p.ph+k*.5)%1;ctx2.globalAlpha=1-f;ctx2.beginPath();ctx2.ellipse(X+Math.round((hash(i*3+k,Math.floor(now*1.6+p.ph+k*.5))-.5)*rx),Y,1+f*5,.5+f*2,0,0,6.283);ctx2.stroke();}ctx2.globalAlpha=1;}}}
   for(const p of RX.prints){const a=clamp(1-(now-p.t)/40,0,1);if(a<=0)continue;const X=Math.round(sx(p.x)),Y=Math.round(sz(p.z));if(X<-10||X>VW+10||Y<-10||Y>VH+10)continue;
-    ctx2.globalAlpha=a*(p.mud?.55:.3);ctx2.fillStyle=p.mud?'#2a1c10':'#1a2028';
+    ctx2.globalAlpha=a*(p.blood?.7:p.mud?.55:.3);ctx2.fillStyle=p.blood?'#5e0806':p.mud?'#2a1c10':'#1a2028';
     if(p.dir==='E'||p.dir==='W'){ctx2.fillRect(X-2,Y-1,4,2);ctx2.fillRect(X+(p.dir==='E'?3:-4),Y-1,2,2);}else{ctx2.fillRect(X-1,Y-2,2,4);ctx2.fillRect(X-1,Y+(p.dir==='S'?3:-4),2,2);}}
   ctx2.globalAlpha=1;
   const fk=rxFrostK();if(fk>0){const c0=Math.floor(cam.x-VW/2/PPM)-1,c1=Math.ceil(cam.x+VW/2/PPM)+1,r0=Math.floor(cam.z-VH*.56/PPM)-1,r1=Math.ceil(cam.z+VH*.44/PPM)+1;
@@ -137,6 +137,7 @@ function rxOverheard(dt){RX.bub=RX.bub.filter(b=>(b.t+=dt)<b.life);if(!outdoors(
   if(Math.random()>.45)return;const n=cand[(Math.random()*cand.length)|0],id=n.def.id;RX.heard[id]=now;
   const other=npcs.find(q=>q!==n&&q.vis!==false&&q.loc!=='in'&&Math.hypot(q.x-n.x,q.z-n.z)<2.6);const tier=rotDark();
   let pool=RX_SAY.any;if(other&&Math.random()<.6)pool=RX_SAY.pair;else if(tier&&Math.random()<.55)pool=RX_SAY.rot[Math.min(6,tier)].concat(RX_SAY.rot[Math.max(1,tier-1)]);
+  else if(RX_SAY.hurt&&typeof bleedK==='function'&&bleedK()>.2&&Math.random()<.75)pool=RX_SAY.hurt;
   else if(typeof raining==='function'&&raining()&&Math.random()<.6)pool=RX_SAY.rain;else if(P.spd>=4.5&&Math.random()<.7)pool=RX_SAY.run;
   const line=pool[(Math.random()*pool.length)|0];if(!line)return;RX.bub.push({n,line,t:0,life:3.4+line.length*.03});
   if(other&&pool===RX_SAY.pair){n.dir=dirOf(other.x-n.x,other.z-n.z);other.dir=dirOf(n.x-other.x,n.z-other.z);}else n.dir=dirOf(P.x-n.x,P.z-n.z);
