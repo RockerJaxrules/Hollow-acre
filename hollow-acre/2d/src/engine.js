@@ -38,8 +38,13 @@ function chunk(cx,cz){const k=cx+','+cz;let c=chunks.get(k);if(c){if(c.used!==FR
   if(x0>=280){g.fillStyle='#0a090c';g.fillRect(0,0,CH,CH);chunkKeep(k,c);return c;}
   c.wm=groundPixels(g,x0,z0,N);
   // Route 9: the Blender-rendered asphalt strip (rotated to run east-west), ending where the farm lane begins
-  const rs=roadStripH();if(rs&&z0*32<(-6+5.2)*32&&(z0+N)*32>(-6-5.2)*32&&x0<-12.5){g.save();g.beginPath();{const ex=(-12.5-x0)*32;g.moveTo(0,0);for(let y=0;y<=CH;y+=4)g.lineTo(ex-Math.round(hash(y+z0*CH,7)*10+fbm(y*.05,z0)*26),y);g.lineTo(0,CH);g.closePath();}g.clip();{const bx0=(BRIDGE.x-4.4-x0)*32,bx1=(BRIDGE.x+4.4-x0)*32;g.beginPath();g.rect(-9999,-9999,bx0+9999,99999);g.rect(bx1,-9999,99999,99999);g.clip();}
+  const rs=roadStripH();if(rs&&z0*32<(-6+5.2)*32&&(z0+N)*32>(-6-5.2)*32&&x0<-12.5){g.save();g.beginPath();{const ex=(-12.5-x0)*32;g.moveTo(0,0);for(let y=0;y<=CH;y+=4)g.lineTo(ex-Math.round(hash(y+z0*CH,7)*14+fbm(y*.05+z0*.3,z0)*70),y);g.lineTo(0,CH);g.closePath();}g.clip();{const bx0=(BRIDGE.x-4.4-x0)*32,bx1=(BRIDGE.x+4.4-x0)*32;g.beginPath();g.rect(-9999,-9999,bx0+9999,99999);g.rect(bx1,-9999,99999,99999);g.clip();}
     for(let wx=-312;wx<-12.5;wx+=12){const dx=(wx-x0)*32;if(dx>CH||dx+rs.width<0)continue;g.drawImage(rs,dx,(-6-5-z0)*32);}g.restore();}
+  // past the ragged end, broken slabs of the same asphalt lie out on the gravel, fewer the further you go
+  if(rs&&z0*32<(-6+5.2)*32&&(z0+N)*32>(-6-5.2)*32&&x0<-6&&x0+N>-16){for(let i=0;i<26;i++){const sx=-14.2+hash(i,91)*5.6,sz=-6+(hash(i,92)-.5)*7.4;if(hash(i,93)<(sx+13.4)/4.6)continue;
+    const r=(.25+hash(i,94)*.55)*(1-(sx+14.2)/9)*32;if(r<4)continue;const cx=(sx-x0)*32,cz=(sz-z0)*32;if(cx<-40||cx>CH+40||cz<-40||cz>CH+40)continue;
+    g.save();g.beginPath();for(let k=0;k<6;k++){const a2=k/6*6.283+hash(i,95+k);const rr=r*(.65+hash(i*7+k,96)*.5);g.lineTo(cx+Math.cos(a2)*rr,cz+Math.sin(a2)*rr*.8);}g.closePath();g.clip();
+    g.drawImage(rs,(-30-x0)*32,(-6-5-z0)*32);g.restore();g.fillStyle='rgba(20,14,10,.35)';g.fillRect(Math.round(cx-r*.6),Math.round(cz+r*.62),Math.round(r*1.2),2);}}
   // the bridge deck: worn planks running across, darker toward the walls
   {const bx0=Math.round((BRIDGE.x-4.45-x0)*32),bx1=Math.round((BRIDGE.x+4.45-x0)*32),bz0=Math.round((-9.3-z0)*32),bz1=Math.round((-2.8-z0)*32);
    if(bx1>0&&bx0<CH&&bz1>0&&bz0<CH)for(let x=bx0;x<bx1;x++){const pl=Math.floor((x-bx0)/9),k=(x-bx0)%9;for(let y=Math.max(0,bz0);y<Math.min(CH,bz1);y++){const e=Math.min(y-bz0,bz1-1-y)/18;

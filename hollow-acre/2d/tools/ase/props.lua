@@ -60,8 +60,8 @@ S.fence_h = function()
 end
 S.fence_v = function()
   local c = new(14, 68)
-  for y = 2, 48 do P(c, 5, y, WD[6]); P(c, 6, y, WD[5]); P(c, 7, y, WD[4]); P(c, 8, y, WD[2]) end   -- the rails running away up the screen
-  for y = 6, 46, 9 do P(c, 6, y, 'k3') end
+  for y = 24, 50 do P(c, 5, y, WD[6]); P(c, 6, y, WD[5]); P(c, 7, y, WD[4]); P(c, 8, y, WD[2]) end   -- the rails running back one tile to the last post
+  for y = 28, 46, 9 do P(c, 6, y, 'k3') end
   post(c, 4, 9, 46, 65, WD, true); P(c, 6, 50, 'm2'); P(c, 6, 58, 'm2')
   return done(c, 7, 66)
 end
@@ -78,8 +78,8 @@ S.picket_h = function()
 end
 S.picket_v = function()
   local c = new(14, 68)
-  for y = 0, 50 do P(c, 5, y, WH[7]); P(c, 6, y, WH[6]); P(c, 7, y, WH[5]); P(c, 8, y, WH[3]) end
-  for y = 2, 48, 6 do px.hline(c, 4, 9, y, WH[7]); P(c, 9, y + 1, WH[2]) end   -- picket tops seen end-on
+  for y = 22, 50 do P(c, 5, y, WH[7]); P(c, 6, y, WH[6]); P(c, 7, y, WH[5]); P(c, 8, y, WH[3]) end
+  for y = 24, 48, 6 do px.hline(c, 4, 9, y, WH[7]); P(c, 9, y + 1, WH[2]) end   -- picket tops seen end-on
   post(c, 4, 9, 48, 65, WH, true)
   return done(c, 7, 66)
 end
@@ -95,8 +95,8 @@ S.rgiron_h = function()
 end
 S.rgiron_v = function()
   local c = new(14, 68)
-  for y = 6, 52 do P(c, 6, y, 'bt3'); P(c, 7, y, 'bt2') end
-  for y = 8, 50, 6 do P(c, 5, y, 'bt4'); P(c, 8, y, 'bt1') end
+  for y = 22, 52 do P(c, 6, y, 'bt3'); P(c, 7, y, 'bt2') end
+  for y = 24, 50, 6 do P(c, 5, y, 'bt4'); P(c, 8, y, 'bt1') end
   B.stones(c, 2, 56, 11, 65, 9, 5, function() return .6 end)
   post(c, 4, 9, 34, 55, IR, true); P(c, 6, 31, 'bt5'); P(c, 7, 32, 'bt3')
   return done(c, 7, 66)

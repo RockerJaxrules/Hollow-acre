@@ -34,7 +34,7 @@ const fishSpot={x:pond.x,z:pond.z-pond.r+3.6};
 const ALTAR_POS=[[-27,8,'west woods'],[-2,29,'cornfield'],[70.2,-39.6,'churchyard']];
 const SCARE_SPOTS=[[6.9,4],[9.8,-1.2],[2.2,-7.6]];
 function lanePts(P,w){const out=[];for(let i=0;i<P.length-1;i++)out.push([P[i][0],P[i][1],P[i+1][0],P[i+1][1],w]);return out;}
-const ROADS=[[-12.5,-6,70,-6,3],[16,-9.4,16,-6,2.8],[0,-8.6,0,-1,2],[20,-6,20,19,2],[20,19,4,19,1.6],[-46,-6,-46,-9,1.8],[-36,-6,-36,-10.6,2],[2,-9,6,-9,1.4],
+const ROADS=[[-17,-6,-10,-6,8.2],[-10,-6,-6.5,-6,5.4],[-12.5,-6,70,-6,3],[16,-9.4,16,-6,2.8],[0,-8.6,0,-1,2],[20,-6,20,19,2],[20,19,4,19,1.6],[-46,-6,-46,-9,1.8],[-36,-6,-36,-10.6,2],[2,-9,6,-9,1.4],
   // the town's lanes: Church Lane winds up the hill; the lanes south wander between the houses
   ...lanePts([[50,-7.5],[49.6,-14],[51,-19],[50,-23.6],[50,-27.6]],2),...lanePts([[34,-26.6],[44,-25.8],[50,-25.6],[56,-26.1],[66,-25.4],[72.6,-24.8],[74,-24.2]],1.8),
   ...lanePts([[56.6,-26.1],[56.6,-33.4]],1.2),...lanePts([[34,-26.6],[34.4,-32.2],[41,-32.5]],1.1),
@@ -74,7 +74,7 @@ const LAYERS={
   dirt:(x,z)=>{const j=(fbm(x*.7,z*.7)-.5)*.8;return onRoad(x,z,j)||(Math.hypot(x-pond.x,z-pond.z)<pond.r+1.6+j&&Math.hypot(x-pond.x,z-pond.z)>pond.r-.4)
     ||(x>CORN.x0-.6&&x<CORN.x1+.6&&z>CORN.z0-.6&&z<CORN.z1+.6)||(x>FIELD.x0+FSTART.i0-.35+j*.3&&x<FIELD.x0+FSTART.i0+FSTART.w+.35-j*.3&&z>FIELD.z0+FSTART.j0-.35+j*.3&&z<FIELD.z0+FSTART.j0+FSTART.h+.35-j*.3)
     ||(Math.hypot(x+60.6,z-1.2)<3.0+j)||wornGround(x,z)||(x>-7+j&&x<7-j&&z>-9.6&&z<-7.2+j*.5);},
-  stone:(x,z)=>(Math.abs(z+6)<2.6&&x<-12.5)||townStone(x,z),
+  stone:(x,z)=>(Math.abs(z+6)<2.6&&x<-16)||townStone(x,z),
   water:(x,z)=>(Math.hypot(x-pond.x,z-pond.z)<pond.r+(fbm(x*.8,z*.8)-.5)*.9&&!(x>pond.x-1.1&&x<pond.x+1.1&&z<pond.z-pond.r+4.2))||inCreek(x,z),
   dark:(x,z)=>Math.max(B.x0-x,x-B.x1,B.z0-z,z-B.z1)>-1.5-2.5*fbm(x*.3+11,z*.3+7)||((x<-16&&z>6)||(z>28))&&fbm(x*.22+70,z*.22)>.5,
 };
@@ -161,7 +161,7 @@ function buildWorld(){
   for(const [x,z] of [[-8.3,-12.2],[8.4,-13.6],[-3.4,-15.5]]){obj('bush_green',x,z,{kind:'bush'});addCircle(x,z-.15,.55);}
   reserve(-11,-19,12,-7.5);
   // the farm gate: fence along the west edge, an open gate where the lane comes in, the sign and mailbox outside it
-  fenceLine(-12.6,-17,-12.6,-7.6);fenceLine(-12.6,-4.4,-12.6,4);
+  fenceLine(-12.6,-17,-12.6,-11);fenceLine(-12.6,-1,-12.6,4);
   put('signpost',-13.4,-10.1,.2,{label:'HOLLOW ACRE'});put('mailbox',-13.6,-1.9,.15);
   // the field, fenced with a gate at the top; scarecrow inside, pumpkins at the corners
   fenceLine(-6,-1,-1,-1);fenceLine(1,-1,6,-1);fenceLine(-6,-1,-6,9);fenceLine(6,-1,6,9);fenceLine(-6,9,6,9);

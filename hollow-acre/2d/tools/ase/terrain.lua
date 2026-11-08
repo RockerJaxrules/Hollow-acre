@@ -75,7 +75,8 @@ T.forest = function() local c = px.new(N, N, PAL); grassy(c, F, 3, 5, {step = 7,
 T.dirt = function()
   local c = px.new(N, N, PAL)
   for y = 0, N - 1 do for x = 0, N - 1 do local n = fbm(x, y, 11); local m = vnoise(x, y, 24, 13)
-    local k = n < .4 and 4 or (n < .72 and 5 or 6); if m > .82 then k = k - 1 end
+    local big = vnoise(x, y, 3, 17)                                             -- the light tone comes in big soft areas, not little ovals
+    local k = n < .44 and 4 or 5; if big > .66 and n > .4 then k = 6 end; if m > .86 and k == 4 then k = 3 end
     px.p(c, x, y, D[k]) end end
   for i = 0, 140 do local x, y = math.floor(H(i, 20) * N), math.floor(H(i, 21) * N); local t = H(i, 22)        -- pebbles of a few sizes
     if t < .55 then P(c, x, y, 's6'); P(c, x + 1, y + 1, 'd2')
