@@ -3,6 +3,8 @@ sys.path.insert(0, '.')
 from run import run
 ROOMS = {
   'cabin':  dict(w=9, d=6, door=4.5, theme='cabin', windows=[[2, 0], [7, 0]]),
+  'cabin0': dict(w=6, d=6, door=3, theme='cabin', windows=[[1.4, 0], [4.6, 0]]),
+  'cabin0m': dict(w=6, d=6, door=3, theme='home', paper='mustard', windows=[[1.4, 0], [4.6, 0]]),
   'cabin1': dict(w=9, d=6, door=4.5, theme='home', paper='mustard', windows=[[2, 0], [7, 0]]),
   'cabin2': dict(w=12, d=6, door=4.5, theme='home', paper='mustard', windows=[[2, 0], [7, 0], [10.5, 0]]),
   'store':  dict(w=13, d=8, door=6.5, theme='store', windows=[[1.6, 0], [4.6, 0], [8.4, 0], [11.4, 0]]),
