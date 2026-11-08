@@ -1,14 +1,18 @@
-/* ================= leaving full screen. Esc leaves it straight away when nothing else is open (some pages lock the keyboard
-   in full screen and the browser then wants Esc held down; the game now does it on a normal press). And while you're in
-   full screen an X sits in the top-right corner, above everything, menus and scenes included. ================= */
+/* ================= full screen that Esc doesn't throw you out of. Esc closes the game's menus, so in full screen the game
+   locks the Esc key (the browser's Keyboard Lock): a quick press reaches the game and closes whatever is open, and only
+   holding Esc down leaves full screen (the browser says so when you go full screen). And while you're in full screen an
+   X sits in the top-right corner, above everything, menus and scenes included, to leave it with one click or tap.
+   Keyboard Lock works in Chrome and Edge when the game is its own page (and in the desktop app); where the browser doesn't
+   allow it (Safari, Firefox, or the game shown inside another page) Esc still leaves straight away, and the X is there. ================= */
+const FSX={locked:false,told:false};
 const fsExit=()=>{try{(document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}};
-function fsSomethingOpen(){
-  for(const id of ['bag','shop','note','talk','craft','shipBin','saleSlip','lvlUp','fsTip','sndPick']){const el=$(id);if(el&&!el.hidden&&getComputedStyle(el).display!=='none')return true;}
-  if(typeof SCENE!=='undefined'&&SCENE)return true;if(document.querySelector('.sheet:not([hidden])'))return true;
-  if((typeof PLACE!=='undefined'&&PLACE.on)||(typeof CG!=='undefined'&&CG.on)||(typeof MG!=='undefined'&&MG.on))return true;
-  if(typeof fish!=='undefined'&&fish.state&&fish.state!=='off')return true;return false;}
-addEventListener('keydown',e=>{if(e.code!=='Escape'||e.repeat||!fsOn())return;if(fsSomethingOpen())return;e.preventDefault();fsExit();},true);
-{const x=document.createElement('button');x.id='fsX';x.title='Leave full screen (Esc)';x.setAttribute('aria-label','Leave full screen');
+function fsLockEsc(on){try{if(!navigator.keyboard||!navigator.keyboard.lock)return Promise.resolve(false);
+    if(!on){navigator.keyboard.unlock();FSX.locked=false;return Promise.resolve(false);}
+    return navigator.keyboard.lock(['Escape']).then(()=>(FSX.locked=true)).catch(()=>(FSX.locked=false));}catch(e){return Promise.resolve(false);}}
+function fsChanged(){const on=fsOn();fsLockEsc(on).then(ok=>{if(!on||FSX.told||!matchMedia('(pointer:fine)').matches)return;FSX.told=true;
+  toast(ok?'Esc closes menus now. Hold Esc down, or click ✕ in the top-right corner, to leave full screen.':'Click ✕ in the top-right corner to leave full screen.',3.6);});}
+document.addEventListener('fullscreenchange',fsChanged);document.addEventListener('webkitfullscreenchange',fsChanged);
+{const x=document.createElement('button');x.id='fsX';x.title='Leave full screen';x.setAttribute('aria-label','Leave full screen');
   x.innerHTML='<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2.6" stroke-linecap="square" fill="none"/></svg>';
   x.addEventListener('click',e=>{e.stopPropagation();e.preventDefault();fsExit();});x.addEventListener('pointerdown',e=>e.stopPropagation());x.addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});
   document.body.appendChild(x);
