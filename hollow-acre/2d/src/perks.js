@@ -1,22 +1,37 @@
-/* ================= a gift for one player: Jaxon's farm, brought in with his own transfer code, can give as many gifts as he likes
-   to anyone, every day (no once-a-day, no two-a-week). The code itself isn't kept here, only its fingerprint; entering it under
-   Profiles > "Enter a transfer code" marks the farm that comes in, and the perk works while the farmer on it is called Jaxon. ================= */
-const PERK_CODES=new Set(['1iffre3z46y.x9fboxq6xf']);
+/* ================= codes: each profile's settings (Profiles, then the profile's own page) have an "Enter a code" box.
+   The right code turns on unlimited gifts for that profile: give anyone as many gifts as you like, every day (no once-a-day,
+   no two-a-week). The perk is kept with the profile and in its farm's save, so it goes along in a transfer code and to a
+   friend's farm (the host doesn't get it). ================= */
 const perkHash=(str,seed=0)=>{let h1=0xdeadbeef^seed,h2=0x41c6ce57^seed;for(let i=0,ch;i<str.length;i++){ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}
   h1=Math.imul(h1^(h1>>>16),2246822507);h1^=Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507);h2^=Math.imul(h1^(h1>>>13),3266489909);return (4294967296*(2097151&h2)+(h1>>>0)).toString(36);};
-const perkPrint=code=>perkHash(code)+'.'+perkHash(code,7);
-// the code with anything stray pasted after its end (a letter on the next line) taken off
-const perkClean=code=>{code=String(code||'').replace(/\s+/g,'');const m=/^(HA1Z?:[A-Za-z0-9+/]+=+)[A-Za-z0-9+/]{1,3}$/.exec(code);return m?m[1]:code;};
-const giftsUnlimited=()=>{if(!S.perkGifts)return false;const me=typeof acctMe==='function'&&acctMe();return /\bjaxon\b/i.test(NAME()+' '+(me&&me.name||''));};
-// bringing a farm in: a matching code marks it (and its morning save) before it's written to this device
-{const _dec=acctDecode;acctDecode=async function(code){const c=perkClean(code);let o;try{o=await _dec.call(this,code);}catch(e){if(c===String(code||'').replace(/\s+/g,''))throw e;o=await _dec.call(this,c);}
-  if(PERK_CODES.has(perkPrint(c))){for(const k of ['save','morning']){if(!o[k])continue;try{const d=JSON.parse(o[k]);if(d&&d.S){d.S.perkGifts=true;d.S.perkTold=false;o[k]=JSON.stringify(d);}}catch(e){}}}
-  return o;};}
+const PERK_CODES={[perkHash('jaxon5')]:'gifts'};   // codes are checked without caring about capitals or spaces
+const perkOf=code=>PERK_CODES[perkHash(String(code||'').replace(/\s+/g,'').toLowerCase())]||null;
+const profPerk=(p,k)=>!!(p&&p.perks&&p.perks.includes(k));
+const giftsUnlimited=()=>!!(S.perkGifts||profPerk(typeof acctMe==='function'&&acctMe(),'gifts'));
+// the profile keeps it, and so does its farm's save (the one written to this device, and the game in play if it's this profile)
+function perkGrant(p,k){p.perks=p.perks||[];if(!p.perks.includes(k))p.perks.push(k);acctStore();
+  if(k!=='gifts')return;const ks=acctKeys(p.id);
+  for(const key of [ks.save,ks.morning]){try{const d=JSON.parse(localStorage.getItem(key)||'null');if(d&&d.S){d.S.perkGifts=true;localStorage.setItem(key,JSON.stringify(d));}}catch(e){}}
+  if(p.id===ACCT.cur){S.perkGifts=true;try{typeof flushSave==='function'&&flushSave();}catch(e){}}}
+// the box on the profile's page
+{const _as=acctShow;acctShow=function(view,arg){
+  if(view==='perk'){const p=ACCT.list.find(q=>q.id===arg);if(!p)return _as('list');const box=$('acctPanel').querySelector('.box');$('acctPanel').hidden=false;
+    box.innerHTML=`<h3>Enter a code</h3>For ${acctEsc(p.name)}.<input id="acctPerk" maxlength="32" autocomplete="off" autocapitalize="off" spellcheck="false"><div class="acts"><button data-a="ok">Use code</button><button data-a="back">Back</button></div><div class="msg"></div>`;
+    const msg=t=>{box.querySelector('.msg').textContent=t;};const inp=$('acctPerk');['keydown','keyup','keypress'].forEach(t=>inp.addEventListener(t,e=>e.stopPropagation()));
+    const go=()=>{const k=perkOf(inp.value);if(!k){msg('That code doesn’t do anything.');return;}if(profPerk(p,k)){msg('Already on: unlimited gifts, every day.');return;}
+      perkGrant(p,k);msg(`Code accepted. Unlimited gifts are on for ${p.name}: give anyone as many as you like, every day.`);};
+    box.querySelector('[data-a=ok]').addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});
+    box.querySelector('[data-a=back]').addEventListener('click',()=>acctShow('more',p.id));inp.focus();return;}
+  const r=_as.apply(this,arguments);
+  if(view==='more'){const p=ACCT.list.find(q=>q.id===arg);const box=$('acctPanel').querySelector('.box');const acts=box&&box.querySelector('.acts');
+    if(p&&acts){const b=document.createElement('button');b.dataset.a='perk';b.textContent='Enter a code';const back=acts.querySelector('[data-a=back]');acts.insertBefore(b,back);b.addEventListener('click',()=>acctShow('perk',p.id));
+      if(profPerk(p,'gifts')){const s=document.createElement('div');s.style.cssText='margin:6px 0;color:#b8e07a;font-size:13px';s.textContent='Unlimited gifts: on';acts.before(s);}}}
+  return r;};}
 // the Give button stays: every day, as often as you like (still not to the things standing in the dark at night)
 {const _st=socialTalk;socialTalk=function(n){const r=_st.apply(this,arguments);try{if(giftsUnlimited()){const gb=$('talkGift');if(gb&&!isNight())gb.hidden=!giftKeys().length;}}catch(e){}return r;};}
 {const _og=openGift;openGift=function(n){const r=_og.apply(this,arguments);try{if(giftsUnlimited()){const row=$('talk').querySelector('.giftrow');
     if(row)row.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setTimeout(()=>{const gb=$('talkGift');if(gb&&!isNight()&&giftKeys().length)gb.hidden=false;},0)));}}catch(e){}return r;};}
 // the perk is the farmer's own: on a friend's farm it comes along, and the host doesn't get it
-if(typeof PERSONAL!=='undefined'&&!PERSONAL.includes('perkGifts'))PERSONAL.push('perkGifts','perkTold');
-// say so once
-{const _mu=mindUpdate;let told=false;mindUpdate=function(dt){_mu(dt);if(!told&&S.mode==='play'&&giftsUnlimited()&&!S.perkTold){told=true;S.perkTold=true;setTimeout(()=>toast('Unlimited gifts are on for Jaxon: give anyone as many as you like, every day.',4),1500);}};}
+if(typeof PERSONAL!=='undefined'&&!PERSONAL.includes('perkGifts'))PERSONAL.push('perkGifts');
+// a profile that has it marks its farm, so a transfer code made from it carries the perk
+if(profPerk(acctMe(),'gifts'))S.perkGifts=true;
