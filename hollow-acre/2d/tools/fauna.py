@@ -1,6 +1,8 @@
 """Wildlife, drawn here by code, animated: deer (a doe and a stag) that walk, graze, look up and bound away; rabbits that sit
 and hop; red squirrels that run and sit up with a nut; robins that peck, hop and fly; mallards (drake and hen) that swim and
-dabble; a fox that trots and sits. Side views facing right (the game flips them). Every body part is a lit volume, light from
+dabble; a fox that trots and sits. Side views facing right (the game flips them), and for everything that runs a front view
+(coming toward you) and a back view (going away), so a deer bounding up the screen shows its white rump and raised tail, not
+its side. Every body part is a lit volume, light from
 the upper left, shading hue-shifted (shadows toward violet, light toward gold), the far legs darker than the near ones, a dark
 outline round each frame. Writes spr/lpc/obj/wild_*.png sheets and their entries in objects.json."""
 import json, math, colorsys
@@ -65,12 +67,13 @@ def limb(c, pts, w, R, k=1.0):
 SPR = {}
 def sheet(name, W, H, G, clips):
     """clips: list of (clipname, [frame drawing functions]). Each frame is drawn, outlined, and laid out in its row."""
-    rows = len(clips); cols = max(len(f) for _, f in clips)
+    rows = len(clips); cols = max(len(row[1]) for row in clips)
     out = Image.new('RGBA', (W * cols, H * rows), (0, 0, 0, 0)); meta = {}
-    for r, (cn, frames) in enumerate(clips):
+    for r, row in enumerate(clips):
+        cn, frames = row[0], row[1]; view = row[2] if len(row) > 2 else 'S'
         for i, fn in enumerate(frames):
             c = C(W, H); fn(c); c.outline(); out.alpha_composite(c.im, (i * W, r * H))
-        meta[cn] = {'S': [r, len(frames)]}
+        meta.setdefault(cn, {})[view] = [r, len(frames)]
     out.save(OBJ + name + '.png')
     SPR[name] = {'src': f'spr/lpc/obj/{name}.png', 'fw': W, 'fh': H, 'ax': W / 2, 'ay': float(G), 'clips': meta, 'foot': [0, 0, 0, 0]}
     print(name, out.size)
@@ -222,12 +225,120 @@ def fox(pose, f):
     return draw
 
 
-sheet('wild_doe', 54, 50, 47, [('walk', [deer(False, 'walk', i) for i in range(4)]), ('run', [deer(False, 'run', i) for i in range(4)]), ('graze', [deer(False, 'graze', i) for i in range(2)]), ('alert', [deer(False, 'alert', 0)])])
-sheet('wild_stag', 54, 50, 47, [('walk', [deer(True, 'walk', i) for i in range(4)]), ('run', [deer(True, 'run', i) for i in range(4)]), ('graze', [deer(True, 'graze', i) for i in range(2)]), ('alert', [deer(True, 'alert', 0)])])
-sheet('wild_rabbit', 20, 16, 14, [('sit', [rabbit('sit', i) for i in range(2)]), ('hop', [rabbit('hop', i) for i in range(4)])])
-sheet('wild_squirrel', 20, 16, 14, [('run', [squirrel('run', i) for i in range(3)]), ('sit', [squirrel('sit', i) for i in range(2)])])
+# ---------------------------------------------------------------- front and back views, for running toward you and away
+RUNF = [(0, (0, 6), (6, 0)), (2, (1, 2), (0, 0)), (4, (6, 6), (5, 5)), (1, (6, 0), (0, 6))]   # lift, front legs tuck, hind legs tuck
+WALKF = [(0, (0, 2), (2, 0)), (0, (1, 1), (1, 1)), (0, (2, 0), (0, 2)), (0, (1, 1), (1, 1))]
+def deer_fb(stag, pose, f, back):
+    """seen from the front (toward you) or the back (away): legs reach and tuck in turn, the body bobs, a running deer's
+    white tail flags up"""
+    def draw(c):
+        lift, ft, ht = (RUNF if pose == 'run' else WALKF)[f]; by = 29 - lift; cx = 27
+        def leg(x, top, tuck, R, k, ground):
+            hy = ground - tuck - lift * .4; kn = (x + (1 if x > cx else -1) * min(2, tuck * .4), (top + hy) / 2 - tuck * .2)
+            limb(c, [(x, top), kn], lambda t: 2.6 - t * .8, R, k); limb(c, [kn, (x, hy)], 1.5, R, k); c.p(x, hy, HOOF[1]); c.p(x + 1, hy, HOOF[0])
+        def antlers(y0, R):
+            for sd in (-1, 1):
+                b = (cx + sd * 2, y0); pts = [b, (cx + sd * 5, y0 - 4), (cx + sd * 8, y0 - 9), (cx + sd * 8.5, y0 - 13)]
+                limb(c, pts, lambda t: 1.8 - t * .7, R); limb(c, [(cx + sd * 5.5, y0 - 5), (cx + sd * 3.5, y0 - 9)], 1.1, R); limb(c, [(cx + sd * 7.6, y0 - 9.5), (cx + sd * 11, y0 - 11)], 1.1, R)
+        if not back:
+            # coming toward you: the hind legs show behind the front ones, shorter and in shade; then the chest, the near legs, the head
+            leg(cx - 2.5, by + 2, ht[0], DEERD, .62, 45); leg(cx + 2.5, by + 2, ht[1], DEERD, .62, 45)
+            ell(c, cx, by - 1, 7.4, 6.4, DEER, under=PALE, ut=.7); ell(c, cx, by + 1.5, 6, 5.4, DEER, under=PALE, ut=.45)
+            leg(cx - 4, by + 4, ft[0], DEER, 1, 47); leg(cx + 4, by + 4, ft[1], DEER, 1, 47)
+            limb(c, [(cx, by - 2), (cx, by - 7), (cx, by - 10)], lambda t: 5.6 - t * 1.6, DEER)
+            hy = by - 13
+            for sd, R in ((-1, DEERD), (1, DEER)):
+                ell(c, cx + sd * 5.2, hy - 3, 2.8, 1.3, R, rot=-sd * .45); c.p(cx + sd * 5.2, hy - 3, PALE[3])
+            ell(c, cx, hy, 3.6, 3.8, DEER); ell(c, cx, hy + 2.6, 2.3, 2, PALE); c.p(cx, hy + 4, (24, 16, 14)); c.p(cx - 1, hy + 4, (40, 28, 24))
+            for sd in (-1, 1): c.p(cx + sd * 2.2, hy - .8, (14, 8, 8)); c.p(cx + sd * 2.2 - sd, hy - 1.3, (226, 214, 190))
+            if stag: antlers(hy - 3.2, ANT)
+        else:
+            # going away: the far front legs and the head first, then the rump with its white patch and tail, then the near hind legs
+            leg(cx - 2.5, by + 2, ft[0], DEERD, .62, 45); leg(cx + 2.5, by + 2, ft[1], DEERD, .62, 45)
+            limb(c, [(cx, by - 3), (cx, by - 8)], lambda t: 5 - t * 1.4, DEERD, .9)
+            hy = by - 11.5
+            if stag: antlers(hy - 2.4, ANT)
+            ell(c, cx, hy, 3.2, 3.1, DEERD)
+            for sd in (-1, 1): ell(c, cx + sd * 4.6, hy - 2.2, 2.6, 1.2, DEER, rot=-sd * .45)
+            ell(c, cx, by, 7.2, 6.6, DEER, under=PALE, ut=.85); ell(c, cx, by - .4, 3.4, 4.2, PALE)
+            if pose == 'run': ell(c, cx, by - 6.4, 1.9, 3.3, PALE); c.p(cx, by - 9, PALE[5])
+            else: ell(c, cx, by - 3.6, 1.4, 2.2, DEERD)
+            leg(cx - 4, by + 3, ht[0], DEER, 1, 47); leg(cx + 4, by + 3, ht[1], DEER, 1, 47)
+    return draw
+
+
+def rabbit_fb(f, back):
+    def draw(c):
+        lift = {1: 2, 2: 4, 3: 1}.get(f, 0); by = 11 - lift; cx = 10
+        if not back:
+            ell(c, cx, by, 3.8, 3.5, RAB, under=PALE, ut=.4)
+            if lift < 3:
+                for sd in (-1, 1): ell(c, cx + sd * 2.2, by + 3.2, 1.3, .9, PALE)
+            ell(c, cx, by - 3.6, 2.8, 2.4, RAB)
+            for sd, R in ((-1, RABD), (1, RAB)): ell(c, cx + sd * 1.3, by - 7.4, 1, 2.8, R, rot=sd * .18); c.p(cx + sd * 1.3, by - 7.4, (190, 140, 140))
+            for sd in (-1, 1): c.p(cx + sd * 1.4, by - 4, (14, 10, 10))
+            c.p(cx, by - 2.6, (190, 120, 120))
+        else:
+            ell(c, cx, by - 3.4, 2.7, 2.3, RABD)
+            for sd in (-1, 1): ell(c, cx + sd * 1.3, by - 7.2, 1, 2.8, RAB, rot=sd * .18)
+            ell(c, cx, by, 3.9, 3.6, RAB); ell(c, cx, by + .9, 1.6, 1.5, PALE)
+            if lift < 3:
+                for sd in (-1, 1): ell(c, cx + sd * 2.4, by + 3.3, 1.2, .9, RABD)
+    return draw
+
+
+def fox_fb(f, back):
+    def draw(c):
+        ph = f / 4 * 2 * math.pi; by = 11 + abs(math.sin(ph)) * -.8; cx = 17; sw = math.sin(ph)
+        def leg(x, a, R, k, top, gy): limb(c, [(x, top), (x, gy - max(0, a) * 2.5)], 1.8, R, k)
+        if not back:
+            ell(c, cx + 3.6 + sw, by + 1.6, 2.4, 1.7, FOX, rot=.3); ell(c, cx + 5.4 + sw, by + 2.2, 1.1, 1, PALE)   # the brush, mostly hidden behind
+            leg(cx - 1.4, -sw, BLK, .6, by + 2, 18); leg(cx + 1.4, sw, BLK, .6, by + 2, 18)
+            ell(c, cx, by + .5, 4.6, 3.8, FOX, under=PALE, ut=.3)
+            leg(cx - 2.4, sw, BLK, 1, by + 3, 20); leg(cx + 2.4, -sw, BLK, 1, by + 3, 20)
+            hy = by - 4
+            for sd, R in ((-1, BLK), (1, FOXD)): ell(c, cx + sd * 2.6, hy - 3.2, 1.1, 2, R, rot=sd * .3)
+            ell(c, cx, hy, 3.4, 3, FOX); ell(c, cx, hy + 1.6, 1.9, 1.4, PALE); c.p(cx, hy + 2.6, (14, 10, 10))
+            for sd in (-1, 1): c.p(cx + sd * 1.5, hy - .6, (14, 10, 10))
+        else:
+            leg(cx - 1.4, sw, BLK, .6, by + 2, 18); leg(cx + 1.4, -sw, BLK, .6, by + 2, 18)
+            hy = by - 4; ell(c, cx, hy, 3.2, 2.8, FOXD)
+            for sd in (-1, 1): ell(c, cx + sd * 2.4, hy - 3, 1.1, 2, BLK, rot=sd * .3)
+            ell(c, cx, by, 4.8, 3.8, FOX)
+            leg(cx - 2.6, -sw, BLK, 1, by + 3, 20); leg(cx + 2.6, sw, BLK, 1, by + 3, 20)
+            tx = cx + sw * 2.4; ell(c, tx, by + 2.6, 2.2, 4, FOX, rot=sw * .3); ell(c, tx + sw * .8, by + 6, 1.5, 1.4, PALE)   # the brush swinging behind
+    return draw
+
+
+def squirrel_fb(f, back):
+    def draw(c):
+        by = 10 - (1 if f == 1 else 0); cx = 10
+        tail = lambda: [ell(c, cx + math.sin(i * .9 + f) * 1.2, by - 1 - i * 1.6, 2.4 + i * .15, 2, SQ if i % 2 else SQD) for i in range(6)]
+        if not back:
+            tail(); ell(c, cx, by, 2.8, 2.8, SQ, under=PALE, ut=.2); ell(c, cx, by - 3, 2.2, 2, SQ)
+            for sd in (-1, 1): ell(c, cx + sd * 1.6, by - 5, .7, 1.1, SQD); c.p(cx + sd * 1, by - 3.4, (14, 10, 10))
+            for sd, up in ((-1, f % 2), (1, 1 - f % 2)): c.p(cx + sd * 1.6, by + 2.6 - up, SQD[1])
+        else:
+            for sd in (-1, 1): ell(c, cx + sd * 1.6, by - 4.6, .7, 1.1, SQD)
+            ell(c, cx, by - 2.8, 2.1, 1.9, SQD); ell(c, cx, by, 2.9, 2.8, SQ)
+            for sd, up in ((-1, f % 2), (1, 1 - f % 2)): c.p(cx + sd * 1.6, by + 2.6 - up, SQD[1])
+            tail()
+    return draw
+
+
+sheet('wild_doe', 54, 50, 47, [('walk', [deer(False, 'walk', i) for i in range(4)]), ('run', [deer(False, 'run', i) for i in range(4)]), ('graze', [deer(False, 'graze', i) for i in range(2)]), ('alert', [deer(False, 'alert', 0)]),
+      ('walk', [deer_fb(False, 'walk', i, False) for i in range(4)], 'F'), ('walk', [deer_fb(False, 'walk', i, True) for i in range(4)], 'B'),
+      ('run', [deer_fb(False, 'run', i, False) for i in range(4)], 'F'), ('run', [deer_fb(False, 'run', i, True) for i in range(4)], 'B')])
+sheet('wild_stag', 54, 50, 47, [('walk', [deer(True, 'walk', i) for i in range(4)]), ('run', [deer(True, 'run', i) for i in range(4)]), ('graze', [deer(True, 'graze', i) for i in range(2)]), ('alert', [deer(True, 'alert', 0)]),
+      ('walk', [deer_fb(True, 'walk', i, False) for i in range(4)], 'F'), ('walk', [deer_fb(True, 'walk', i, True) for i in range(4)], 'B'),
+      ('run', [deer_fb(True, 'run', i, False) for i in range(4)], 'F'), ('run', [deer_fb(True, 'run', i, True) for i in range(4)], 'B')])
+sheet('wild_rabbit', 20, 16, 14, [('sit', [rabbit('sit', i) for i in range(2)]), ('hop', [rabbit('hop', i) for i in range(4)]),
+      ('hop', [rabbit_fb(i, False) for i in range(4)], 'F'), ('hop', [rabbit_fb(i, True) for i in range(4)], 'B')])
+sheet('wild_squirrel', 20, 16, 14, [('run', [squirrel('run', i) for i in range(3)]), ('sit', [squirrel('sit', i) for i in range(2)]),
+      ('run', [squirrel_fb(i, False) for i in range(3)], 'F'), ('run', [squirrel_fb(i, True) for i in range(3)], 'B')])
 sheet('wild_bird', 13, 11, 9, [('stand', [bird('stand', 0)]), ('peck', [bird('peck', 0)]), ('hop', [bird('hop', i) for i in range(2)]), ('fly', [bird('fly', i) for i in range(2)])])
 sheet('wild_drake', 21, 13, 10, [('swim', [duck(True, 'swim', i) for i in range(2)]), ('dabble', [duck(True, 'dabble', 0)])])
 sheet('wild_hen', 21, 13, 10, [('swim', [duck(False, 'swim', i) for i in range(2)]), ('dabble', [duck(False, 'dabble', 0)])])
-sheet('wild_fox', 34, 22, 20, [('trot', [fox('trot', i) for i in range(4)]), ('sit', [fox('sit', 0)])])
+sheet('wild_fox', 34, 22, 20, [('trot', [fox('trot', i) for i in range(4)]), ('sit', [fox('sit', 0)]),
+      ('trot', [fox_fb(i, False) for i in range(4)], 'F'), ('trot', [fox_fb(i, True) for i in range(4)], 'B')])
 d = json.load(open('spr/lpc/objects.json')); d.update(SPR); json.dump(d, open('spr/lpc/objects.json', 'w'))

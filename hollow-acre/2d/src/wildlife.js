@@ -69,7 +69,7 @@ function wildUpdate(dt){
     if(a.kind==='squirrel'){
       if(a.st==='climb'){a.h+=dt*60;if(a.h>70)a.st='gone';continue;}
       if(a.st!=='flee'&&d<(pr?7:4.5)){a.st='flee';if(onScreen(a.x,a.z,40))wSnd.squeak();}
-      if(a.st==='flee'){const tx=a.tree.x,tz=a.tree.z+.15,dx=tx-a.x,dz=tz-a.z,dd=Math.hypot(dx,dz);if(dd<.3){a.st='climb';a.x=tx;a.z=tz;continue;}a.dir=dx>=0?1:-1;a.x+=dx/dd*6*dt;a.z+=dz/dd*6*dt;continue;}
+      if(a.st==='flee'){const tx=a.tree.x,tz=a.tree.z+.15,dx=tx-a.x,dz=tz-a.z,dd=Math.hypot(dx,dz);if(dd<.3){a.st='climb';a.x=tx;a.z=tz;continue;}a.dir=dx>=0?1:-1;a.vx=dx/dd*6;a.vz=dz/dd*6;a.x+=dx/dd*6*dt;a.z+=dz/dd*6*dt;continue;}
       if(a.st==='run'){wMove(a,a.vx,a.vz,dt,true);if(a.t<=0){a.st='sit';a.t=1+rand()*2.5;}continue;}
       if(a.t<=0){a.st='run';a.t=.4+rand()*.7;const ang=rand()*6.28;a.vx=Math.cos(ang)*3.2;a.vz=Math.sin(ang)*2;a.dir=a.vx>=0?1:-1;
         if(Math.hypot(a.x-a.tree.x,a.z-a.tree.z)>3){a.vx=(a.tree.x-a.x)*1.2;a.vz=(a.tree.z+.8-a.z)*1.2;a.dir=a.vx>=0?1:-1;}}continue;}
@@ -91,13 +91,20 @@ function wildUpdate(dt){
       if(a.st==='sit'){a.dir=P.x>a.x?1:-1;if(a.t<=0){a.st='trot';a.t=3+rand()*4;a.tx=a.x+(rand()-.5)*24;a.tz=a.z+(rand()-.5)*14;}continue;}
       if(a.t<=0&&d<16&&rand()<.6){a.st='sit';a.t=2+rand()*2.5;continue;}
       const dx=a.tx-a.x,dz=a.tz-a.z,dd=Math.hypot(dx,dz);if(dd<.5||a.t<=0){a.tx=a.x+(rand()-.5)*24;a.tz=a.z+(rand()-.5)*14;a.t=3+rand()*4;continue;}
-      a.dir=dx>=0?1:-1;wMove(a,dx/dd*2.4,dz/dd*2.4,dt,true);continue;}}
+      a.dir=dx>=0?1:-1;a.vx=dx/dd*2.4;a.vz=dz/dd*2.4;wMove(a,a.vx,a.vz,dt,true);continue;}}
   // birdsong in the day, when there are birds about
   if(!night){wChirpT-=dt;if(wChirpT<=0){wChirpT=2.5+rand()*5;if(WILD.some(a=>a.kind==='bird'&&a.st!=='fly'&&onScreen(a.x,a.z,80)))wSnd.chirp();}}
   // eyes in the trees at night
   if(night&&!S.room){wEyeT-=dt;if(wEyeT<=0){wEyeT=9+rand()*14;const t=OBJ.find(o=>o.kind==='tree'&&!o.hide&&!o.room&&Math.hypot(o.x-P.x,o.z-P.z)>7&&Math.hypot(o.x-P.x,o.z-P.z)<14&&rand()<.08);
       if(t)WEYES.push({x:t.x+(rand()-.5)*1.4,z:t.z,h:60+rand()*40,t:4+rand()*5,bl:0});}}
   for(let i=WEYES.length-1;i>=0;i--){const e=WEYES[i];e.t-=dt;e.bl-=dt;if(e.bl<-2.5-rand()*3)e.bl=.14;if(e.t<=0||!night||wFar(e.x,e.z)<5)WEYES.splice(i,1);}}
+// ---- which way it faces: running mostly up the screen you see its back (a deer's white rump and raised tail), mostly down
+// the screen its face, otherwise its side. Only for the moving clips that have those views drawn.
+const W_MOVING={deer:['run','walk'],rabbit:['hop'],fox:['trot'],squirrel:['run']};
+function wView(a,clip){if(!(W_MOVING[a.kind]||[]).includes(clip))return 'S';const m=SPR[a.spr],c=m&&m.clips&&m.clips[clip];if(!c||!c.F)return 'S';
+  const vx=a.vx||0,vz=a.vz||0;if(Math.hypot(vx,vz)<.05)return a.view||'S';
+  // a little stickiness so it doesn't flicker between views on a diagonal
+  const k=a.view&&a.view!=='S'?.8:1.25;a.view=Math.abs(vz)>Math.abs(vx)*k?(vz>0?'F':'B'):'S';return a.view;}
 // ---- drawing: each one sits on its own soft shadow, sorted in with everything else
 function wClip(a){const fps={walk:6,run:10,trot:9,graze:1.6,hop:10,swim:2,fly:12,peck:5}[a.st]||4;
   switch(a.kind){case 'deer':return [a.st==='flee'?'run':a.st==='walk'?'walk':a.st==='graze'?'graze':'alert',a.st==='flee'||a.st==='walk'||a.st==='graze'?Math.floor(a.at*fps):0];
@@ -113,8 +120,8 @@ function wClip(a){const fps={walk:6,run:10,trot:9,graze:1.6,hop:10,swim:2,fly:12
         ctx2.strokeStyle='rgba(220,236,255,.28)';ctx2.lineWidth=1;const k=(a.at*.6)%1;ctx2.beginPath();ctx2.ellipse(X,Y-1,8+k*7,2.4+k*2,0,0,Math.PI*2);ctx2.stroke();
         if(a.st!=='dabble'&&!isNight()){ctx2.beginPath();ctx2.moveTo(X-a.dir*8,Y-2);ctx2.lineTo(X-a.dir*16,Y-4);ctx2.moveTo(X-a.dir*8,Y);ctx2.lineTo(X-a.dir*16,Y+2);ctx2.stroke();}}
       else{const h=a.h||0,w=Math.max(4,m.fw*.3)*(a.kind==='bird'&&h>0?Math.max(.3,1-h/80):1);ctx2.fillStyle=`rgba(10,14,8,${a.kind==='bird'&&h>0?.18:.3})`;ctx2.beginPath();ctx2.ellipse(X+1,Y,w,w*.32,0,0,Math.PI*2);ctx2.fill();}
-      const [clip,fr]=wClip(a);const alpha=a.kind==='squirrel'&&a.st==='climb'?Math.max(0,1-a.h/70):undefined;
-      drawSpr(a.spr,X,Y-(a.h||0),clip,'S',fr,{flip:a.dir<0,alpha});}});}};}
+      const [clip,fr]=wClip(a);const alpha=a.kind==='squirrel'&&a.st==='climb'?Math.max(0,1-a.h/70):undefined;const v=wView(a,clip);
+      drawSpr(a.spr,X,Y-(a.h||0),clip,v,fr,{flip:v==='S'&&a.dir<0,alpha});}});}};}
 // eyeshine: the watcher's eyes, and the eyes in the trees
 {const _ll=lifeLight;lifeLight=function(t,L){_ll(t,L);if(S.room||L<.3)return;
   for(const a of WILD)if(a.watch&&a.st!=='gone'&&onScreen(a.x,a.z,40)){const X=sx(a.x)+a.dir*13,Y=sz(a.z)-33;glowAt(X,Y,5,[255,250,210],.9*L);glowAt(X-a.dir*2,Y,4,[255,250,210],.7*L);}
