@@ -51,3 +51,12 @@ function sprEmit(t,k){const now=performance.now()/1000,a=now*3.2+k;for(let s=0;s
   const morning=S.hour>=6&&S.hour<7.25;const room=S.room||null;let k=0;
   for(const o of SPRW.objs){const t=o.sprT;if(!t||(t.gh?'greenhouse':null)!==room)continue;k++;
     if(morning||(SPRAY.one&&SPRAY.one.t===t&&now<SPRAY.one.until))sprEmit(t,k);}};}
+// ---- so you can see them working: holding one lights the square it'll go on and the eight it will water; every morning
+// they say how much they watered
+if(typeof TILE_TOOLS!=='undefined')TILE_TOOLS.add('sprinkler');
+{const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld(D,t);try{if(S.mode!=='play'||typeof hlTile==='undefined'||!hlTile)return;const it=selectedItem();if(!it||it.key!=='I:sprinkler')return;const c=hlTile;
+  D.push({z:c.z-1.6,mind:1,draw(){const k=(Math.sin(t*4)+1)/2;for(const q of sprAround(c).concat([c])){const X=Math.round(sx(q.x-.5)),Y=Math.round(sz(q.z-.5));
+      ctx2.fillStyle=q===c?`rgba(255,220,120,${.18+k*.12})`:`rgba(120,190,255,${.14+k*.1})`;ctx2.fillRect(X+1,Y+1,30,30);}
+    const X0=Math.round(sx(c.x-1.5)),Y0=Math.round(sz(c.z-1.5));ctx2.strokeStyle=`rgba(160,215,255,${.55+k*.3})`;ctx2.lineWidth=1;ctx2.setLineDash([4,3]);ctx2.strokeRect(X0+.5,Y0+.5,95,95);ctx2.setLineDash([]);}});}catch(e){}};}
+{const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);try{let n=0;for(const p of S.sprPlaced){const t=sprTile(p);if(t)for(const q of sprAround(t))if(q.crop&&q.crop.stage<3&&q.crop.watered)n++;}
+  if(S.sprPlaced.length)setTimeout(()=>toast(n?`Your ${S.sprPlaced.length>1?S.sprPlaced.length+' sprinklers have':'sprinkler has'} watered ${n} ${n===1?'crop':'crops'} this morning.`:`Your ${S.sprPlaced.length>1?'sprinklers are':'sprinkler is'} running. Plant around ${S.sprPlaced.length>1?'them':'it'} and they’ll be watered every morning.`,3.2),9800);}catch(e){}return r;};}
