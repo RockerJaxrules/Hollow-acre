@@ -59,7 +59,7 @@ function stHud(){const el=$('titheCd');if(!S.st.started||S.st.done){el.style.dis
   if(st.act===2){const left=ST_PLACES.filter(p=>!st.seen[p.k]).sort((a,b)=>Math.hypot(a.x-P.x,a.z-P.z)-Math.hypot(b.x-P.x,b.z-P.z));
     const wd=wardDone();if(!left.length&&stKnown()>=8&&wd<2)return ['The Ward',`Hale says the valley only answers those who keep the Ward. Offer two bundles at the church ledger. ${wd}/2`,CHURCH_STEP];
     return ['The Tithe',`Learn what the valley hides. Places ${5-left.length}/5 · Things known ${Math.min(stKnown(),8)}/8 · Ward ${Math.min(wd,2)}/2`+(left.length?` · Next: ${left[0].name}`:' · Talk to people, ask questions.'),left[0]||null];}
-  const miss=[['dock','under the Black Lake dock',{x:LAKE.x,z:LAKE.z-LAKE.rz+1.6}],['tree','in the hollow tree, at noon',HOLLOW_TREE],['bed','under your bed',doorPos]].filter(m=>!st.got[m[0]]);
+  const miss=[['dock','under the Black Lake dock',{x:LAKE.x,z:LAKE.z-LAKE.rz+2.6}],['tree','in the hollow tree, at noon',HOLLOW_TREE],['bed','under your bed',doorPos]].filter(m=>!st.got[m[0]]);
   if(miss.length){const need={dock:S.rod<2?' You need a stronger rod (Otto sells the ash rod).':'',tree:S.tools.axe<2?' You need a steel axe (Hollis, 3 iron).':'',bed:S.tools.pick<2?' You need a steel pickaxe (Hollis, 3 copper + 4 iron).':''}[miss[0][0]];
     return ['Three stones',`Bring back what held the door. ${3-miss.length}/3 found. One is ${miss[0][1]}.${need}`,miss[0][2]];}
   const carry=Object.keys(st.got).length-st.set;
@@ -73,7 +73,7 @@ function stStart(){const st=S.st;st.started=true;st.tithe=0;st.act=2;
 // ---- interactions
 interact.push({x:MAILPOS.x,z:MAILPOS.z,r:1.1,on:()=>!!S.st.mail,label:()=>'Read',ok:()=>true,act(){const L=S.st.mail;S.st.mail=null;S.st.lettersRead++;SFX.page&&SFX.page();
   const day=S.day+1;openNote(`<h3>Day ${day}</h3><p>${ST_LETTERS[L]}</p>${L==='epi_door'?'':'<p style="text-align:right">— you</p>'}`,'Keep it',()=>{mindHit(L==='first'?6:4);if(L==='first'){S.st.act=3;addLore('A letter in my handwriting: the three stones are under the dock, in the hollow tree at noon, and under my bed. Put them back.');}});}});
-interact.push({x:LAKE.x,z:LAKE.z-LAKE.rz+1.6,r:1.6,on:()=>S.st.act>=3&&!S.st.got.dock,label:()=>S.rod<2?'Cord':'Hook it',ok:()=>true,act(){if(S.rod<2){toast('The cord goes straight down into black water. Your arm isn’t long enough and your rod would snap. Otto sells an ash rod that might hook it.',4);SFX.deny();return;}S.st.got.dock=1;SFX.thud&&SFX.thud(0,.3);mindHit(6);
+interact.push({x:LAKE.x,z:LAKE.z-LAKE.rz+2.6,r:1.6,on:()=>S.st.act>=3&&!S.st.got.dock,label:()=>S.rod<2?'Cord':'Hook it',ok:()=>true,act(){if(S.rod<2){toast('The cord goes straight down into black water. Your arm isn’t long enough and your rod would snap. Otto sells an ash rod that might hook it.',4);SFX.deny();return;}S.st.got.dock=1;SFX.thud&&SFX.thud(0,.3);mindHit(6);
   toast('You hook the cord and haul. It fights like a fish, then like a hand. Then it lets go. On the end: a black stone, warm as skin.',4,true);}});
 interact.push({x:HOLLOW_TREE.x,z:HOLLOW_TREE.z-1.3,r:1.8,on:()=>S.st.act>=3&&!S.st.got.tree,label:()=>'Reach in',ok:()=>true,act(){
   if(S.hour<11.5||S.hour>13){toast('The hollow is only dark. The carving says WHEN THE SUN IS IN. Come back at noon.',3);SFX.deny();return;}

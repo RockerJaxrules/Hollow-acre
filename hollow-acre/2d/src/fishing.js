@@ -9,7 +9,7 @@ const FISH=[
   ['Hollow carp',40,.85,'mixed','pond','night',70,140]];
 const FISH_ODD={'Eyeless pike':'It has no eyes. Where they should be, smooth skin. It is still looking at you.','Pale eel':'It is warm. Eels are not warm.','Hollow carp':'When you lift it, it is far too light. Something inside it rattles, like teeth in a jar.'};
 const JUNK=[['A child’s sneaker',0,'Laces still tied. It’s dry.'],['A hair ribbon',0,'Blue, faded. Agnes would know it.'],['A rusted harmonica',2,'Someone has scratched E.M. into the side.'],['Your own house key',0,'It is your key. Your key is in your pocket.']];
-const waterAt=(x,z)=>LAYERS.water(x,z);
+const waterAt=(x,z)=>LAYERS.water(x,z)&&!onDock(x,z);   // the planks of a dock aren't water: you stand on them, and a cast doesn't land on them
 function waterAhead(){for(const d of [1.2,1.8,2.4]){const x=P.x+P.fx*d,z=P.z+P.fz*d;if(waterAt(x,z))return [x,z];}return null;}
 const hasRod=()=>true;
 function fishWhere(x,z){return Math.hypot(x-pond.x,z-pond.z)<pond.r+3?'pond':'creek';}

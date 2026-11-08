@@ -17,7 +17,7 @@ const WHOUSES=[ // [key, sprite, x, front z, lit]
   put('barrel',118.4,42.9,.3);put('barrel',119,43.4,.3);put('crate',108.8,43.2,.3);put('sacks',121,43.5);put('cart',136,49.6,0);addRect(134.8,48.9,137.2,50.1);
   fenceLine(127,WK.lane-2,127,WK.lane-6,0,'picket');fenceLine(141,WK.lane-2,141,WK.lane-6,0,'picket');fenceLine(113,WK.lane-2,113,WK.lane-6,0,'picket');
   // the ferry landing below the village
-  put('dock',128,71.6,0,{kind:'flat'});put('signpost',130.4,69,.2,{label:'FERRY'});
+  put('dock',128,71.6,0,{kind:'flat'});addDock(128,71.6);put('signpost',130.4,69,.2,{label:'FERRY'});
   // a few gardens behind the south row
   for(const [x,z] of [[104,63],[120,63],[150,63]]){fenceLine(x-3,z-1.5,x+3,z-1.5,0,'picket');for(let i=0;i<4;i++)obj(rand()<.5?'pumpkin':'pumpkin_b',x-2.2+i*1.5,z+.6,{});}};}
 const WFOLK=[

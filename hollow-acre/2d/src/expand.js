@@ -12,6 +12,10 @@ const BRIDGE2={x:MILLX,z:104};
 const inLake=(x,z)=>{const dx=(x-LAKE.x)/LAKE.rx,dz=(z-LAKE.z)/LAKE.rz;return dx*dx+dz*dz<1+(fbm(x*.25,z*.25)-.5)*.35;};
 const inRiver=(x,z)=>riverD(x,z)<2.1+(fbm(x*.3,z*.3)-.5)*.9&&!(Math.abs(x-BRIDGE2.x)<1.2&&z>BRIDGE2.z-3.7&&z<BRIDGE2.z+3.5);
 const newWater=(x,z)=>(x>OLD.x1||z>OLD.z1)&&(inLake(x,z)||inRiver(x,z));
+// docks over the lake and the river are planks you can walk out on: dry footing laid over the water (the pond's own dock is cut out of the pond in world.js)
+const DOCKS=[];
+function addDock(x,z){if(!DOCKS.some(d=>Math.abs(d.x-x)<.01&&Math.abs(d.z-z)<.01))DOCKS.push({x,z,x0:x-.85,x1:x+.85,z0:z-2.4,z1:z+1.95});}
+const onDock=(x,z)=>DOCKS.some(d=>x>d.x0&&x<d.x1&&z>d.z0&&z<d.z1);
 const inQuarry=(x,z)=>x>QUARRY.x0+(fbm(x*.3,z*.3)-.5)*4&&x<QUARRY.x1&&z>QUARRY.z0&&z<QUARRY.z1+(fbm(x*.2,z*.2)-.5)*3;
 const hollowWoods=(x,z)=>x>78&&x<136&&Math.abs(z+6)>3.2&&Math.hypot(x-HOLLOW_TREE.x,z-HOLLOW_TREE.z)>6&&!(Math.abs(x-108)<1.6&&z>-6&&z<10);
 const southWoods=(x,z)=>z>108||(z>74&&x<-40)||(x>78&&z>40&&riverD(x,z)>4);
@@ -24,8 +28,9 @@ const southWoods=(x,z)=>z>108||(z>74&&x<-40)||(x>78&&z>40&&riverD(x,z)>4);
   if(x<=OLD.x1&&z<=OLD.z1)return Dk(x,z)&&!(z>28&&z<40&&x>-16);
     if(onRoad(x,z,0))return false;return (hollowWoods(x,z)&&fbm(x*.2+5,z*.2)>.42)||(southWoods(x,z)&&fbm(x*.18,z*.2+9)>.46);};}
 // water you can't walk into
-{const _c=collide;collide=function(p,r){_c(p,r);if(p.x>=250||!newWater(p.x,p.z))return;
-  for(let rr=.25;rr<3;rr+=.25)for(let a=0;a<16;a++){const x=p.x+Math.cos(a/16*Math.PI*2)*rr,z=p.z+Math.sin(a/16*Math.PI*2)*rr;if(!newWater(x,z)){p.x=x;p.z=z;return;}}};}
+{const _c=collide;collide=function(p,r){_c(p,r);if(p.x>=250||!newWater(p.x,p.z)||onDock(p.x,p.z))return;
+  for(const d of DOCKS)if(p.x>d.x0-.7&&p.x<d.x1+.7&&p.z>d.z0-.7&&p.z<d.z1+.7){p.x=clamp(p.x,d.x0+.02,d.x1-.02);p.z=clamp(p.z,d.z0+.02,d.z1-.02);return;}   // step off a dock's edge and its planks hold you
+  for(let rr=.25;rr<3;rr+=.25)for(let a=0;a<16;a++){const x=p.x+Math.cos(a/16*Math.PI*2)*rr,z=p.z+Math.sin(a/16*Math.PI*2)*rr;if(!newWater(x,z)||onDock(x,z)){p.x=x;p.z=z;return;}}};}
 // ---- building the new land
 const NEWHOUSES={quill:{spr:'house_c',x:40,z:LANE_E-2},fenn:{spr:'house_b',x:6,z:96},marsh:{spr:'house_a',x:-20,z:LANE_W-2},tithe:{spr:'house_d',x:TITHE.x,z:TITHE.z-1.5},
   thorne:{spr:'house_d',x:156,z:-26},lusk:{spr:'garage',x:200,z:-9.6}};
@@ -53,7 +58,7 @@ const NEWHOUSES={quill:{spr:'house_c',x:40,z:LANE_E-2},fenn:{spr:'house_b',x:6,z
   for(let i=0;i<26;i++){const x=lerp(QUARRY.x0+3,QUARRY.x1-3,rand()),z=lerp(QUARRY.z0+3,QUARRY.z1-3,rand());if(Math.hypot(x-156,z+26)<6||Math.abs(x-146)<2)continue;const s=pick(['rock_0','rock_1','ore_stone','ore_copper','ore_iron','ore_coal']);put(s,x,z,.4);}
   put('cart',140,-21,0);addRect(138.8,-21.6,141.2,-20.4);put('lumber',150,-22);addRect(149.1,-22.5,150.9,-21.8);put('signpost',143.6,-8.4,.2,{label:'QUARRY'});
   // the Black Lake: a dock, a boat, nothing on the far shore
-  put('dock',LAKE.x,LAKE.z-LAKE.rz+1.4,0,{kind:'flat'});put('signpost',186.4,-8.4,.2,{label:'BLACK LAKE'});
+  put('dock',LAKE.x,LAKE.z-LAKE.rz+1.4,0,{kind:'flat'});addDock(LAKE.x,LAKE.z-LAKE.rz+1.4);put('signpost',186.4,-8.4,.2,{label:'BLACK LAKE'});
   // the hollow tree
   obj('deadtree',HOLLOW_TREE.x,HOLLOW_TREE.z,{kind:'tree',solid:1,scale:1.6});addCircle(HOLLOW_TREE.x,HOLLOW_TREE.z,1.1);put('signpost',109.6,-8.4,.2,{label:'HOLLOW WOODS'});
   // the Tithe House: a ring of standing stones in the clearing
