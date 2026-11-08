@@ -44,7 +44,7 @@ function heldTick(){if(S.mode!=='play'||S.paused)return;const it=selectedItem();
 setInterval(()=>{try{heldTick();}catch(e){}},150);
 function startFurnHeld(k,key){if(!S.furnBag.includes(k))return;const [name]=FURN[k];const v=furnView(k,'S');const [w,d]=furnFoot(k,'S');
   startPlace({spr:v.spr,flip:v.flip,w,d,room:'cabin',furn:k,rot:'S',held:key,name:name.toLowerCase(),cancel(){},
-    done(x,z){const i=S.furnBag.indexOf(k);if(i>=0)S.furnBag.splice(i,1);const r=this.rot||'S';const p={k,x,z,rot:r};S.furnPlaced.push(p);furnHook(p,placeFurnAt(k,x,z,r));}});
+    done(x,z){const i=S.furnBag.indexOf(k);if(i>=0)S.furnBag.splice(i,1);const r=this.rot||'S';const p={k,x,z,rot:r,fin:this.fin};S.furnPlaced.push(p);furnHook(p,placeFurnAt(k,x,z,r));}});
   if(FURN_VIEWS[k])$('placeHint').innerHTML+=matchMedia('(pointer:fine)').matches?' <b>R</b> turns it.':' <b>Rotate</b> turns it.';}
 // ---- moving a workbench: Pick up, from inside its own panel
 const BENCH_MADE={};

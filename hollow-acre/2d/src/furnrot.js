@@ -28,7 +28,7 @@ function placeRotate(){const sp=PLACE.on&&PLACE.spec;if(!sp||!sp.furn)return;con
 startFurn=function(k,opt){opt=opt||{};const [name]=FURN[k];const rot=opt.rot||'S';const v=furnView(k,rot);const [w,d]=furnFoot(k,rot);
   startPlace({spr:v.spr,flip:v.flip,w,d,room:'cabin',furn:k,rot,moving:!!opt.back,name:name.toLowerCase(),
     cancel(){if(opt.back)opt.back();else S.furnBag.push(k);},
-    done(x,z){const r=this.rot||'S';const p={k,x,z,rot:r};S.furnPlaced.push(p);furnHook(p,placeFurnAt(k,x,z,r));}});
+    done(x,z){const r=this.rot||'S';const p={k,x,z,rot:r,fin:this.fin||opt.fin};S.furnPlaced.push(p);furnHook(p,placeFurnAt(k,x,z,r));}});
   if(!opt.back){const i=S.furnBag.indexOf(k);if(i>=0)S.furnBag.splice(i,1);}   // take just the one you're placing
   if(FURN_VIEWS[k]){const fine=matchMedia('(pointer:fine)').matches;$('placeHint').innerHTML+=fine?' <b>R</b> turns it.':' <b>Rotate</b> turns it.';}
   $('placeRot').style.display=FURN_VIEWS[k]?'':'none';};
@@ -45,7 +45,7 @@ function furnHook(p,made){const it={x:p.x,z:p.z-.25,r:.9,on:()=>S.room==='cabin'
 function liftFurn(p,made,it){const k=p.k;made.o.hide=true;if(made.rect){const i=rects.indexOf(made.rect);if(i>=0)rects.splice(i,1);}
   const i=interact.indexOf(it);if(i>=0)interact.splice(i,1);S.furnPlaced=S.furnPlaced.filter(q=>q!==p);if(k==='lamp')S.cabinLamp=false;
   SFX.page&&SFX.page();
-  startFurn(k,{rot:p.rot||'S',back(){const q={k,x:p.x,z:p.z,rot:p.rot||'S'};S.furnPlaced.push(q);furnHook(q,placeFurnAt(k,q.x,q.z,q.rot));}});
+  startFurn(k,{rot:p.rot||'S',fin:p.fin,back(){const q={k,x:p.x,z:p.z,rot:p.rot||'S',fin:p.fin};S.furnPlaced.push(q);furnHook(q,placeFurnAt(k,q.x,q.z,q.rot));}});
   PLACE.x=p.x;PLACE.z=p.z;PLACE.manual=true;}
 // placing from the bag uses the new start; loading a save puts every piece back facing the way you left it
 benchesBoot=function(){for(const [k] of BENCHES)if(S.benches[k]&&BENCH_POS[k])placeBench(k,BENCH_POS[k].x,BENCH_POS[k].z);
