@@ -1,25 +1,37 @@
 /* ================= Wickham Crossing: the river village. A street, a square, an inn, a chapel, the doctor, the ferry, and ten more people.
    Wickham gives its dead to the river, not the corn, and believes that is why it is spared. ================= */
-const WK={street:46,lane:58.5,x0:98,x1:162,sq:[130,46]};
-ROADS.push([150,-6,150,WK.street,2.4],[WK.x0,WK.street,WK.x1,WK.street,3],[104,WK.lane,156,WK.lane,2],[116,WK.street,116,WK.lane,2],[144,WK.street,144,WK.lane,2],
-  [70,LANE_E,WK.x0,WK.street,2],[130,36,130,WK.street,2],[128,WK.lane,128,71,1.6]);
+// laid out again (#146): the chapel on its rise at the head of Bell Street; High Street with the inn, the doctor's and the old
+// families; the square between High Street and Mill Row, with the drowned bell; Mill Row along the south; and the river walk
+// down past the boats and the net racks to the ferry. Hedged gardens behind every row.
+const WK={street:46,lane:60,x0:96,x1:150,sq:[124,52],bell:124};
+ROADS.push([150,-6,150,WK.street,2.4],[WK.x0,WK.street,WK.x1,WK.street,3],[98,WK.lane,140,WK.lane,2],[WK.bell,36,WK.bell,WK.street,2],[WK.bell,WK.street,WK.bell,WK.lane,1.6],
+  [70,LANE_E,WK.x0,WK.street,2],[128,WK.lane,128,71,1.6]);
 const inWick=(x,z)=>x>92&&x<168&&z>30&&z<70;
-{const Dk=LAYERS.dark,St=LAYERS.stone;LAYERS.dark=(x,z)=>!inWick(x,z)&&Dk(x,z);LAYERS.stone=(x,z)=>St(x,z)||Math.hypot(x-WK.sq[0],z-WK.sq[1])<6.2+(fbm(x*.6,z*.6)-.5)*1.2||(Math.abs(z-WK.street)<2&&x>WK.x0&&x<WK.x1);}
+{const Dk=LAYERS.dark,St=LAYERS.stone;LAYERS.dark=(x,z)=>!inWick(x,z)&&Dk(x,z);LAYERS.stone=(x,z)=>St(x,z)||(Math.abs(x-WK.sq[0])<5.6+(fbm(x*.6,z*.6)-.5)*.8&&z>WK.street&&z<WK.lane-1.2)||(Math.abs(z-WK.street)<2&&x>WK.x0&&x<WK.x1);}
 const WHOUSES=[ // [key, sprite, x, front z, lit]
-  ['harlow','inn',112,42.6],['ashby','house_a',100,42.6],['quinn','church',130,36.2],['vale','house_b',146,42.6],['kerrigan','house_d',158,42.6],
-  ['pike','house_c',106,56.6],['wk_empty','house_b',134,56.6],['wk_school','house_a',152,56.6],['ward','house_d',122,56.6]];
+  ['quinn','church',124,35.4],['harlow','inn',106.5,43.4],['ashby','house_a',115.4,43.4],['vale','house_b',132.6,43.4],['kerrigan','house_d',140,43.4],['wk_empty','house_c',146.9,43.4],
+  ['pike','house_c',103.5,57.4],['ward','house_a',111,57.4],['wk_school','house_b',136,57.4]];
+const wkDoor=k=>{const h=WHOUSES.find(w=>w[0]===k);return [h[2],h[3]+.35];};
 {const _bw=buildWorld;buildWorld=function(){reserve(92,30,168,70);_bw();
   for(let i=OBJ.length-1;i>=0;i--){const o=OBJ[i];if(inWick(o.x,o.z)&&/tree|bush|deco/.test(o.kind||'')&&Math.abs(o.x-130)>34){}else if(inWick(o.x,o.z)&&/tree|bush|deco/.test(o.kind||'')){for(let j=circles.length-1;j>=0;j--)if(Math.hypot(circles[j].x-o.x,circles[j].z-o.z)<.6)circles.splice(j,1);OBJ.splice(i,1);}}
   for(const [k,spr,x,z] of WHOUSES)building(spr,x,z,{lit:k!=='wk_empty',jack:k==='harlow'||k==='vale',porch:spr!=='church'&&k!=='wk_empty'});
-  // the square: a well, the notice board, benches of crates, lamps
-  put('well',WK.sq[0],WK.sq[1]+.9);addCircle(WK.sq[0],WK.sq[1]+.4,1.05);put('board',126,48.4,0);addSeg(125.2,48.4,126.8,48.4,.12);put('signpost',96,47.6,.2,{label:'WICKHAM'});put('signpost',151.6,24,.2,{label:'WICKHAM'});
-  for(const x of [104,118,138,156])lamp(x,43.8);for(const x of [104,118,138,156])lamp(x,48.4);for(const x of [110,140])lamp(x,60.8);
-  put('barrel',118.4,42.9,.3);put('barrel',119,43.4,.3);put('crate',108.8,43.2,.3);put('sacks',121,43.5);put('cart',136,49.6,0);addRect(134.8,48.9,137.2,50.1);
-  fenceLine(127,WK.lane-2,127,WK.lane-6,0,'picket');fenceLine(141,WK.lane-2,141,WK.lane-6,0,'picket');fenceLine(113,WK.lane-2,113,WK.lane-6,0,'picket');
-  // the ferry landing below the village
-  put('dock',128,71.6,0,{kind:'flat'});addDock(128,71.6);put('signpost',130.4,69,.2,{label:'FERRY'});
-  // a few gardens behind the south row
-  for(const [x,z] of [[104,63],[120,63],[150,63]]){fenceLine(x-3,z-1.5,x+3,z-1.5,0,'picket');for(let i=0;i<4;i++)obj(rand()<.5?'pumpkin':'pumpkin_b',x-2.2+i*1.5,z+.6,{});}};}
+  // the square: the drowned bell, the notice board, benches, lamps; the chapel steps up to the north
+  put('well',WK.sq[0],WK.sq[1]+.9);addCircle(WK.sq[0],WK.sq[1]+.4,1.05);put('board',120,48.6,0);addSeg(119.2,48.6,120.8,48.6,.12);put('signpost',97.6,47.8,.2,{label:'WICKHAM'});put('signpost',151.6,24,.2,{label:'WICKHAM'});
+  put('parkbench',121.4,55.6,0,{kind:'prop'});put('parkbench',127,49.2,0,{kind:'prop'});put('planter',119.4,57.2,0,{kind:'prop'});put('planter',128.6,57.2,0,{kind:'prop'});
+  for(const x of [101,119.6,128.4,136.1,143.9])lamp(x,44.4);for(const x of [100,110,117.6,130.4,140,148])lamp(x,47.8);for(const x of [106,116,122.4,133.6])lamp(x,61.2);for(const z of [38.4,42.2])for(const x of [122.6,125.4])lamp(x,z);
+  put('barrel',112.1,44.1,.3);put('barrel',112.6,44.5,.3);put('crate',100.8,44.2,.3);put('sacks',119.2,44.3);put('cart',128.8,55.2,0);addRect(127.6,54.5,130,55.7);
+  // gardens behind the rows: hedges between the plots, washing, vegetables, a bench under an apple tree
+  const gside=(x,z1,z2)=>hedgeLine(x,z1,z2);
+  for(const x of [101.2,112,118.6,129.4,136,144.4])gside(x,40,33.4);
+  for(const x of [100.6,107.3,114.4])gside(x,54,48);for(const x of [132.6,139.4])gside(x,54,48);
+  const G=(spr,x,z,o)=>put(spr,x,z,0,Object.assign({kind:'prop',town:1},o||{}));
+  G('clothesline',106.4,37.2);G('gardenbed',108.6,34.8,{kind:'flat'});G('wk_rack',115.4,36.4);G('gardenbed_b',122,38.6,{kind:'flat'});
+  G('clothesline_b',132.6,37);G('shed',140.6,35.6);G('gardenbed',146.6,36,{kind:'flat'});
+  G('gardenbed_b',103.8,50.6,{kind:'flat'});G('wk_nets',110.8,50.8);G('birdbath',104.2,52.6);G('shed_b',136.2,50.2);
+  {const t=obj('apple_tree',97.8,51,{kind:'tree',solid:1,town:1});addCircle(97.8,51,.4);}
+  // the ferry landing below the village, and lanterns for the dead along the river walk
+  put('dock',128,71.6,0,{kind:'flat'});addDock(128,71.6);put('signpost',130.4,69,.2,{label:'FERRY'});for(const z of [63.4,66.6])lamp(126.6,z);
+    reserve(96,32,152,41);reserve(96,47,152,55);};}
 const WFOLK=[
   {id:'tess',name:'Tess Harlow',role:'Keeps the Lantern Inn',nightPos:[96,-3.6],
     lines:['Room for one? We’ve always got room for one. Never more than one.','The lantern in the window’s been lit since 1871. We just keep it fed.','Breakfast’s at six. If you hear someone at the table before then, that’s just the last guest. He never left.'],
@@ -90,31 +102,31 @@ Object.assign(BDAY,{tess:4,hob:10,lyle:15,vera:23,quinn:17,nan:25,finn:9,iris:12
 const wr=(i,paper,name,x,z,furn)=>FROOM(980+i*32,paper,name,{x,z:z+.7},furn);
 const BEDS=(a,b)=>[['in_bed',7.1,2.5,[-0.85,-2.1,0.85,0]],['in_table',4.0,3.6,[-0.85,-0.45,0.85,0]],['in_chair',2.9,3.65,[-0.30,-0.25,0.30,0]],['in_rug',4.4,5.0,null,'flat'],a,b];
 Object.assign(ROOMS,{
-  home_harlow:wr(0,'rust','The Lantern Inn',112,42.6,[['in_counter',6.5,2.5,[-1.56,-0.6,1.56,0]],['in_shelf_jars',1.2,0.62,[-0.80,-0.4,0.80,0]],['in_keg',11.6,1.2,[-0.40,-0.3,0.40,0]],['in_table',2.5,5.0,[-0.85,-0.45,0.85,0]],['in_chair',1.4,5.05,[-0.30,-0.25,0.30,0]],['in_table',10.5,5.0,[-0.85,-0.45,0.85,0]],['in_chair',9.4,5.05,[-0.30,-0.25,0.30,0]],['in_stove',10.4,0.95,[-0.68,-0.5,0.68,0]],['barrel',12.3,3.0,[-0.40,-0.3,0.40,0]]]),
-  home_ashby:wr(1,'blue','The doctor’s house',100,42.6,BEDS(['in_filecab',0.6,0.85,[-0.40,-0.4,0.40,0]],['in_shelf_books',2.4,0.62,[-0.80,-0.4,0.80,0]])),
-  home_vale:wr(2,'sage','The Vale house',146,42.6,BEDS(['in_knit',1.2,1.2,[-0.30,-0.3,0.30,0]],['in_shelf_mail',3.0,0.62,[-1.00,-0.4,1.00,0]])),
-  home_kerrigan:wr(3,'rust','The Kerrigan house',158,42.6,BEDS(['in_rocker',1.0,1.2,[-0.40,-0.45,0.40,0]],['in_shovels',3.0,0.95,[-0.50,-0.3,0.50,0]])),
-  home_pike:wr(4,'blue','The Pike house',106,56.6,BEDS(['in_rods',0.6,0.9,[-0.50,-0.3,0.50,0]],['in_netwall',2.6,-0.95,null,'flat'])),
-  home_quinn:Object.assign({ox:980+5*32,oz:-60,shell:'room_church',name:'Wickham Chapel',out:{x:130,z:36.9},furn:[['in_altar',5,1.7,[-1.15,-.65,1.15,0]],['in_candles',2.5,1.1,[-.6,-.25,.6,0]],['in_candles',7.5,1.1,[-.6,-.25,.6,0]],['in_pew',2.4,3.6,[-1.95,-.45,1.95,0]],['in_pew',7.6,3.6,[-1.95,-.45,1.95,0]],['in_pew',2.4,5.2,[-1.95,-.45,1.95,0]],['in_pew',7.6,5.2,[-1.95,-.45,1.95,0]]]}),
-  home_ward:wr(6,'sage','The schoolhouse',122,56.6,[['in_blackboard',4.3,-0.95,null,'flat'],['in_schooldesk',2.6,3.4,[-0.45,-0.3,0.45,0]],['in_schooldesk',4.0,3.4,[-0.45,-0.3,0.45,0]],['in_schooldesk',5.4,3.4,[-0.45,-0.3,0.45,0]],['in_desk',6.1,1.0,[-0.88,-0.45,0.88,0]],['in_globe',7.5,1.0,[-0.30,-0.3,0.30,0]]])});
+  home_harlow:wr(0,'rust','The Lantern Inn',106.5,43.4,[['in_counter',6.5,2.5,[-1.56,-0.6,1.56,0]],['in_shelf_jars',1.2,0.62,[-0.80,-0.4,0.80,0]],['in_keg',11.6,1.2,[-0.40,-0.3,0.40,0]],['in_table',2.5,5.0,[-0.85,-0.45,0.85,0]],['in_chair',1.4,5.05,[-0.30,-0.25,0.30,0]],['in_table',10.5,5.0,[-0.85,-0.45,0.85,0]],['in_chair',9.4,5.05,[-0.30,-0.25,0.30,0]],['in_stove',10.4,0.95,[-0.68,-0.5,0.68,0]],['barrel',12.3,3.0,[-0.40,-0.3,0.40,0]]]),
+  home_ashby:wr(1,'blue','The doctor’s house',115.4,43.4,BEDS(['in_filecab',0.6,0.85,[-0.40,-0.4,0.40,0]],['in_shelf_books',2.4,0.62,[-0.80,-0.4,0.80,0]])),
+  home_vale:wr(2,'sage','The Vale house',132.6,43.4,BEDS(['in_knit',1.2,1.2,[-0.30,-0.3,0.30,0]],['in_shelf_mail',3.0,0.62,[-1.00,-0.4,1.00,0]])),
+  home_kerrigan:wr(3,'rust','The Kerrigan house',140,43.4,BEDS(['in_rocker',1.0,1.2,[-0.40,-0.45,0.40,0]],['in_shovels',3.0,0.95,[-0.50,-0.3,0.50,0]])),
+  home_pike:wr(4,'blue','The Pike house',103.5,57.4,BEDS(['in_rods',0.6,0.9,[-0.50,-0.3,0.50,0]],['in_netwall',2.6,-0.95,null,'flat'])),
+  home_quinn:Object.assign({ox:980+5*32,oz:-60,shell:'room_church',name:'Wickham Chapel',out:{x:124,z:36.1},furn:[['in_altar',5,1.7,[-1.15,-.65,1.15,0]],['in_candles',2.5,1.1,[-.6,-.25,.6,0]],['in_candles',7.5,1.1,[-.6,-.25,.6,0]],['in_pew',2.4,3.6,[-1.95,-.45,1.95,0]],['in_pew',7.6,3.6,[-1.95,-.45,1.95,0]],['in_pew',2.4,5.2,[-1.95,-.45,1.95,0]],['in_pew',7.6,5.2,[-1.95,-.45,1.95,0]]]}),
+  home_ward:wr(6,'sage','The schoolhouse',111,57.4,[['in_blackboard',4.3,-0.95,null,'flat'],['in_schooldesk',2.6,3.4,[-0.45,-0.3,0.45,0]],['in_schooldesk',4.0,3.4,[-0.45,-0.3,0.45,0]],['in_schooldesk',5.4,3.4,[-0.45,-0.3,0.45,0]],['in_desk',6.1,1.0,[-0.88,-0.45,0.88,0]],['in_globe',7.5,1.0,[-0.30,-0.3,0.30,0]]])});
 ROOMS.home_harlow.shell='room_store';
-Object.assign(HOMES,{harlow:{door:[112,42.95],face:'N',room:'home_harlow',name:'the Lantern Inn'},ashby:{door:[100,42.95],face:'N',room:'home_ashby',name:'the doctor’s house'},
-  vale:{door:[146,42.95],face:'N',room:'home_vale',name:'the Vale house'},kerrigan:{door:[158,42.95],face:'N',room:'home_kerrigan',name:'the Kerrigan house'},
-  pike:{door:[106,56.95],face:'S',room:'home_pike',name:'the Pike house'},quinn:{door:[130,36.55],face:'N',room:'home_quinn',name:'Wickham Chapel'}});
+Object.assign(HOMES,{harlow:{door:wkDoor('harlow'),face:'N',room:'home_harlow',name:'the Lantern Inn'},ashby:{door:wkDoor('ashby'),face:'N',room:'home_ashby',name:'the doctor’s house'},
+  vale:{door:wkDoor('vale'),face:'N',room:'home_vale',name:'the Vale house'},kerrigan:{door:wkDoor('kerrigan'),face:'N',room:'home_kerrigan',name:'the Kerrigan house'},
+  pike:{door:wkDoor('pike'),face:'N',room:'home_pike',name:'the Pike house'},quinn:{door:wkDoor('quinn'),face:'N',room:'home_quinn',name:'Wickham Chapel'}});
 Object.assign(HOME_SPOT,{harlow:[6.5,1.4],ashby:[3.4,2.4],vale:[3.4,2.4],kerrigan:[3.4,2.4],pike:[3.4,2.4],quinn:[5,2.6]});
 for(const k of ['harlow','ashby','vale','kerrigan','pike','quinn']){const h=HOMES[k];const [x,z]=h.door;const shop=k==='harlow'||k==='quinn';
   interact.push({x,z,r:.9,label:()=>shop?'Enter':'Knock',ok:()=>true,act(){const who=npcs.filter(n=>n.loc==='in'&&n.homeKey===k);
     if(S.hour>=20&&!S.bound){toast(k==='harlow'?'The inn door is locked. The lantern in the window is lit. Someone inside says, “No vacancy,” in your voice.':'Nobody answers. Something inside counts, slowly, to three.',3,true);SFX.deny();return;}
     if(!who.length&&!shop){toast(`Nobody’s home at ${h.name}.`,1.8);SFX.thud(0,.2);return;}enterRoom(h.room);}});}
-interact.push({x:134,z:56.95,r:.9,label:()=>'Door',ok:()=>true,act(){toast('Boarded. Through a gap: a child’s bedroom, a fishing rod, a calendar stopped on October 1999.',3.2,true);}});
+interact.push({x:wkDoor('wk_empty')[0],z:wkDoor('wk_empty')[1],r:.9,label:()=>'Door',ok:()=>true,act(){toast('Boarded. Through a gap: a child’s bedroom, a fishing rod, a calendar stopped on October 1999.',3.2,true);}});
 // the inn sells food and a bed
 vendors.inn={name:'The Lantern Inn',sub:'“Room for one. Never more than one.”',rows:()=>[
   {k:'stew',name:'Rabbit stew',desc:'+50 energy, +15 health.',price:22,can:true,buy(){addInv('stew');}},
   {k:'pie',name:'Hob’s pie',desc:'+60 energy, +25 health. There is a tooth in it. It is probably a rabbit’s.',price:35,can:true,buy(){addInv('pie');}},
-  {k:'room',name:'Room four, one night',desc:'Sleep here; wake at six, rested. Lock the door.',price:30,can:S.hour>=17,buy(){setTimeout(()=>{$('shop').hidden=true;S.paused=false;newDay(`Day ${S.day+1}. You wake in room four. The door is unlocked. You locked it.`,[112,44.2]);},50);}}]};
+  {k:'room',name:'Room four, one night',desc:'Sleep here; wake at six, rested. Lock the door.',price:30,can:S.hour>=17,buy(){setTimeout(()=>{$('shop').hidden=true;S.paused=false;newDay(`Day ${S.day+1}. You wake in room four. The door is unlocked. You locked it.`,[wkDoor('harlow')[0],wkDoor('harlow')[1]+.9]);},50);}}]};
 interact.push({...rp('home_harlow',6.5,3.0),r:1.4,on:inRoom('home_harlow'),label:()=>'Counter',ok:()=>true,act(){openShop('inn');}});
 // ---- routines
-Object.assign(PL,{wk_square:[130,48,4],wk_inn:[112,44.4,1],wk_chapel:[130,38,1.2],wk_ferry:[128,69.8,.6],wk_river:[136,66,2],wk_lane:[130,WK.lane,8],wk_woods:[96,30,3],wk_gardens:[120,63,6],wk_board:[126,49.4,.6],wk_road:[150,20,2]});
+Object.assign(PL,{wk_square:[124,51,3.4],wk_inn:[106.5,44.6,1],wk_chapel:[124,37.4,1.2],wk_ferry:[128,69.8,.6],wk_river:[132.4,63.6,1.6],wk_lane:[118,WK.lane,8],wk_woods:[96,30,3],wk_gardens:[110.6,52.4,2],wk_board:[120,49.4,.6],wk_road:[150,20,2]});
 Object.assign(LIFE,{
   tess:{home:'harlow',job:'Keeps the Lantern Inn',personality:'Kind, tired, unflappable. Talks to the guest book.',day:[[6,'home']]},
   hob:{home:'harlow',job:'Cooks at the inn, traps rabbits',personality:'Gruff and gentle. Feeds the guest nobody can see.',day:[[6,'wk_woods'],[10,'home'],[14,'wk_woods'],[17,'home']]},
@@ -126,11 +138,11 @@ Object.assign(LIFE,{
   iris:{home:'vale',job:'Seamstress, sews the Tithe’s clothes',personality:'Fussy, warm, afraid of her own hands.',day:[[7,'home'],[11,'wk_square'],[12,'home'],[16,'wk_board'],[17,'home']]},
   moss:{home:'kerrigan',job:'Trapper in the woods',personality:'Wary, quiet, a tracker of things that should not leave tracks.',day:[[5.5,'wk_woods'],[12,'wk_inn'],[13,'wk_woods'],[18,'home']]},
   ada:{home:'kerrigan',job:'Moss’s mother, blind, sees',personality:'Ancient, sharp, gentle. Sees what stands behind you.',day:[[6,'home'],[10,'wk_square'],[13,'home']]}});
-INDOOR.wk_innwork={room:'home_harlow',door:[112,42.95],spots:{tess:[6.5,1.4]},browse:[[2.5,4.2],[10.5,4.2]]};
+INDOOR.wk_innwork={room:'home_harlow',door:wkDoor('harlow'),spots:{tess:[6.5,1.4]},browse:[[2.5,4.2],[10.5,4.2]]};
 LIFE.tess.day=[[6,'home'],[7,'wk_innwork'],[21,'home']];
 for(const n of npcs){const L=LIFE[n.def.id];if(L)n.def.role=L.job;}
 // ---- roads to Wickham in the routing graph, and the map
-Object.assign(RG,{w0:[150,-6],w1:[150,24],w2:[150,WK.street],w3:[130,WK.street],w4:[WK.x0,WK.street],g2:[70,LANE_E],w5:[128,WK.lane]});
+Object.assign(RG,{w0:[150,-6],w1:[150,24],w2:[150,WK.street],w3:[WK.bell,WK.street],w4:[WK.x0,WK.street],g2:[70,LANE_E],w5:[128,WK.lane]});
 for(const [a,b] of [['n','w0'],['w0','p'],['w0','w1'],['w1','w2'],['w2','w3'],['w3','w4'],['w4','g2'],['g2','g'],['w3','w5']]){(RADJ[a]=RADJ[a]||[]).push(b);(RADJ[b]=RADJ[b]||[]).push(a);}
-MAP_PLACES.push(['Wickham Crossing',130,32],['Lantern Inn',112,39],['Ferry',128,74],['Wickham Road',153,12]);
+MAP_PLACES.push(['Wickham Crossing',124,29],['Lantern Inn',106.5,39],['Ferry',128,74],['Wickham Road',153,12]);
 {const _rs=socialReward;socialReward=function(r){_rs(r);const K={vera:'Vera’s hand in yours',riverstone:'Nan’s river stone',needle:'Iris’s needle',blindfold:'Ada’s blindfold'};if(K[r]){S.keyItems=S.keyItems||[];if(!S.keyItems.includes(r))S.keyItems.push(r);toast(`${K[r]} — kept in your journal.`,2.6);}};}

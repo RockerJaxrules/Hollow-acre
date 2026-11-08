@@ -26,7 +26,7 @@ const ST_PLACES=[
   {k:'lake',name:'The Black Lake',x:LAKE.x,z:LAKE.z-LAKE.rz-1,r:6,
    text:`The water doesn’t reflect anything. Not the dock, not the sky, not you.<br><br>Under the last plank of the dock someone has tied a cord. It goes straight down. It is pulled tight, the way a cord is when someone at the other end is holding on.`,
    lore:'A cord is tied under the Black Lake dock, pulled tight from below.'},
-  {k:'wick',name:'Wickham Crossing',x:130,z:46,r:7,
+  {k:'wick',name:'Wickham Crossing',x:124,z:50,r:8,
    text:`Wickham’s square has a noticeboard like Marrow Hollow’s. Every notice is the same notice, printed every year for a hundred and fifty years:<br><br><i>THE DRAWING WILL BE HELD AT MARROW HOLLOW CHURCH. ATTENDANCE IS KIND.</i><br><br>This year’s has your birthday on it.`,
    lore:'Wickham posts the same notice every year: the drawing is at Marrow Hollow church. This year’s date is your birthday.'},
 ];

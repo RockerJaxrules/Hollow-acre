@@ -26,12 +26,12 @@ if(SPR.fuel){NEWHOUSES.lusk.spr='fuel';const dx=(SPR.fuel.door_dx||0)/PPM;
     // (there used to be a boardwalk laid in one long strip down both sides of the street and the lane, through the grass,
     // across the paths and under the pumpkins, attached to nothing: it's gone. The street has its cobbles and the houses their porches.)
     // a fish stall on the square
-    put('wk_stall',121.6,49.6,.6);
+    put('wk_stall',120.2,54.4,.6);
     // the riverbank: racks of fish, nets, boats, traps, rope
-    put('wk_nets',133.8,61,.3);put('wk_rack',137.6,63.2,.3);put('wk_rack',131.4,65.6,.3);
+    put('wk_nets',131.4,62.8,.3);put('wk_rack',136.4,63.6,.3);put('wk_rack',130.8,66.2,.3);
     put('wk_boat',129.6,68,.6);put('wk_boat',125.2,69.8,.6);
     put('wk_trap',134,64.8,.25);put('wk_trap',127.8,66.6,.25);put('wk_trap',123.4,68.6,.25);
-    put('wk_rope',127.4,67.6,0);put('wk_rope',136.6,61.6,0);put('barrel',123.8,67.2,.3);put('crate',122.6,67.6,.3);}
+    put('wk_rope',127.4,67.6,0);put('wk_rope',134.2,62.6,0);put('barrel',123.8,67.2,.3);put('crate',122.6,67.6,.3);}
   // ---------- Pruitt's garage: a forecourt, the pump on its island, tyres and oil drums
   if(SPR.forecourt){
     // the pump comes in off the road edge, onto the forecourt beside the garage (its honour box and the quest marker with it)
