@@ -91,7 +91,7 @@ function torsoFront(cx,top,hip,back){const half=6;
   for(let y=top;y<=hip;y++){const j=y-top;const hw=j===0?5:ALL?(j>=2&&j<=5?7:j>=7&&j<=8?5:half):half;for(let u=-hw+1;u<=hw;u++){const x=cx+u;const su=u-.5;
       let k=su<-hw+1.5?4:su>hw-1.5?1:su>hw-3?2:3;if(j===0)k=Math.min(4,k+1);if(y>=hip-1)k=Math.max(1,k-1);
       let R=shirtAt(x,y);
-      if(OPENFRONT[OUT]&&!back){if(Math.abs(su)>OPENFRONT[OUT])R=JK;else R=OUT==='openshirt'?EX:OUT==='vest'?shirtAt(x,y):shirtAt(x,y);}
+      if(OPENFRONT[OUT]&&!back){if(Math.abs(su)>OPENFRONT[OUT])R=OUT==='openshirt'?shirtAt(x,y):JK;else R=OUT==='openshirt'?EX:shirtAt(x,y);}   // an open shirt: its own two fronts either side, the tee between
       if(OPENFRONT[OUT]&&back)R=OUT==='openshirt'||OUT==='vest'?(OUT==='vest'?JK:shirtAt(x,y)):JK;
       if(OUT==='tank'&&j<2&&Math.abs(su)>2.5&&Math.abs(su)<4.5)R=SK;
       p(x,y,R[k]);}}
@@ -102,7 +102,10 @@ function torsoFront(cx,top,hip,back){const half=6;
     if(OUT==='tee'||OUT==='dress'||OUT==='skirt'||OUT==='overalls'){for(let u=-1;u<=2;u++)p(cx+u,top,SK[2]);p(cx-2,top,SH0[1]);p(cx+3,top,SH0[1]);for(let u=-1;u<=2;u++)p(cx+u,top+1,SH0[1]);}
     if(OUT==='shirt'||OUT==='vest'){p(cx,top,SK[2]);p(cx+1,top,SK[2]);for(const [u,c] of [[-2,WHITE],[-1,WHITE],[2,[214,208,198]],[3,[214,208,198]]])p(cx+u,top,c);p(cx-1,top+1,WHITE);p(cx+2,top+1,[214,208,198]);
       if(OUT==='shirt'){for(let y=top+2;y<hem-1;y++)p(cx+1,y,SH0[1]);for(let y=top+3;y<hem-1;y+=3)p(cx,y,WHITE);p(cx-4,top+4,SH0[1]);p(cx-3,top+4,SH0[1]);}}
-    if(OUT==='openshirt'){for(let y=top;y<hem;y++){p(cx-2,y,SH0[4]);p(cx+3,y,SH0[1]);}p(cx-3,top,WHITE);p(cx+4,top,[214,208,198]);for(let u=-1;u<=2;u++)p(cx+u,top,SK[2]);}
+    if(OUT==='openshirt'){// the fronts hang open: the tee shows down the middle, wider at the top where the collar turns back in a V
+      for(let y=top;y<hem;y++){const v=y-top<3?1:0;if(v){p(cx-2,y,EX[3]);p(cx+3,y,EX[2]);}p(cx-2-v,y,SH0[4]);p(cx+3+v,y,SH0[1]);}
+      p(cx-4,top,SH0[4]);p(cx-3,top,SH0[3]);p(cx+4,top,SH0[2]);p(cx+5,top,SH0[1]);p(cx-4,top+1,SH0[3]);p(cx+5,top+1,SH0[1]);
+      for(let u=-1;u<=2;u++)p(cx+u,top,SK[2]);for(let u=-1;u<=2;u++)p(cx+u,top+1,EX[1]);}
     if(OUT==='jacket'||OUT==='longcoat'||OUT==='cardigan'){// lapels and the shirt between
       for(let y=top;y<top+4;y++){p(cx-2+(y-top>>1),y,JK[4]);p(cx+3-(y-top>>1),y,JK[1]);}
       for(let y=top+4;y<hem;y++){p(cx-2,y,JK[4]);p(cx+3,y,JK[1]);}
@@ -139,7 +142,7 @@ function skirtFront(cx,hip,back){if(OUT==='longcoat'){const len=KID?5:7;for(let 
 // side view torso: narrower, chest forward
 function torsoSide(cx,top,hip,fl){const hw=4;for(let y=top;y<=hip;y++){const j=y-top;for(let u=-hw;u<=hw;u++){const x=cx+u*fl+(fl<0?1:0);let k=u*fl<-hw+1.5?(fl>0?4:1):u*fl>hw-1.5?(fl>0?2:3):3;
       if(fl>0){k=u<-2?4:u>2?2:3;}else{k=u>2?4:u<-2?2:3;}if(j===0&&Math.abs(u)>=hw)continue;if(y>=hip-1)k=Math.max(1,k-1);
-      let R=shirtAt(x,y);if(OPENFRONT[OUT]){R=(u>=hw-1&&OUT!=='vest')?(OUT==='openshirt'?EX:shirtAt(x,y)):JK;if(OUT==='vest'&&u<hw-1)R=JK;}p(x,y,R[k]);}}
+      let R=shirtAt(x,y);if(OUT==='openshirt'){if(u>=hw)R=EX;}else if(OPENFRONT[OUT]){R=(u>=hw-1&&OUT!=='vest')?shirtAt(x,y):JK;if(OUT==='vest'&&u<hw-1)R=JK;}p(x,y,R[k]);}}   // side on, the open shirt covers all but a sliver of tee at the chest
   if(ALL){for(let j=2;j<=5;j++){const u=hw+1,x=cx+u*fl+(fl<0?1:0);p(x,top+j,shirtAt(x,top+j)[j===2?3:j===5?1:fl>0?2:3]);if(j===3||j===4){const x2=cx+(hw+2)*fl+(fl<0?1:0);p(x2,top+j,shirtAt(x2,top+j)[j===3?2:1]);}}
     for(let j=0;j<3;j++)for(let u=hw-2+j;u<=hw;u++)p(cx+u*fl+(fl<0?1:0),top+j,SK[j===2?2:3]);}
   if(OUT==='overalls'){for(let y=top+4;y<=hip;y++)for(let u=-1;u<=hw;u++)p(cx+u*fl+(fl<0?1:0),y,PNT[u===hw?2:3]);for(let y=top+1;y<top+4;y++)p(cx+fl*1,y,PNT[2]);}
