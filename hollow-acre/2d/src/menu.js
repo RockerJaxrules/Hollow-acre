@@ -32,7 +32,8 @@ function slotUse(i){if(S.mode!=='play'||S.paused)return;syncSlots();const k=S.sl
   else if(it.type==='T')toast(it.name+(it.id==='can'?` — ${S.water}/${S.waterMax}`:''),1.2);
   else if(it.food){if(was===i){if(it.type==='P'){takeBasket(it.id,1);eat(it.food[0],it.food[1],it.id==='mushroom'?'You eat the glowcap raw. Your teeth feel loose':'You eat a raw '+it.name.toLowerCase());}else{takeInv(it.id,1);eat(it.food[0],it.food[1],it.name);}updateHud();}
     else toast(`${it.name} ×${it.qty} — tap again to eat`,1.4);}
-  else if(it.type==='F'){if(S.room!=='cabin')toast('Carry it into the cabin, then use it to place it.',1.8);else startFurn(it.id);}
+  else if(it.type==='F'){if(S.room!=='cabin')toast('Furniture goes inside: carry it into the cabin and hold it there to place it.',2);}
+  else if(it.type==='K'){if(S.room)toast('Take it out onto the farm and hold it there to set it up.',2);}
   else toast(`${it.name} ×${it.qty}`,1.2);
   renderHotbar();}
 const selectedItem=()=>itemInfo(S.slots[S.slotSel]);
@@ -93,10 +94,10 @@ function renderItems(){const B=$('bagBody');syncSlots();
   const G=$('invGrid');const cells=[...G.children];
   const paint=()=>{cells.forEach((c,i)=>{const it=itemInfo(S.slots[i]);c.innerHTML=it?`<img src="${iconOf(it.icon)}" alt=""><b>${it.tool?'':(it.qty>1?it.qty:'')}</b>`:'';c.classList.toggle('sel',i===S.slotSel);c.setAttribute('aria-label',it?`${it.name}${it.qty>1?' ×'+it.qty:''}`:'empty');});};
   const tip=(i)=>{const it=itemInfo(S.slots[i]);const T=$('invTip');if(!it){T.innerHTML='Empty slot.';return;}
-    let act='';if(it.food)act=`<button class="chip" data-eat="${i}" style="margin-left:6px">Eat</button>`;if(it.type==='F')act=`<button class="chip" data-place="${it.id}" style="margin-left:6px">Place</button>`;
+    let act='';if(it.food)act=`<button class="chip" data-eat="${i}" style="margin-left:6px">Eat</button>`;if(it.type==='F'||it.type==='K')act=`<button class="chip" data-place="${it.key}" style="margin-left:6px">Hold</button>`;
     T.innerHTML=`<b>${it.name}</b>${it.qty>1?` ×${it.qty}`:''}${act}<br>${it.desc}`;
     const eb=T.querySelector('[data-eat]');if(eb)eb.addEventListener('click',()=>{S.paused=false;S.slotSel=i;slotUse(i);slotUse(i);S.paused=true;renderItems();});
-    const pb=T.querySelector('[data-place]');if(pb)pb.addEventListener('click',()=>{if(S.room!=='cabin'){toast('Carry it into the cabin first.',1.6);return;}$('bag').hidden=true;S.paused=false;startFurn(pb.dataset.place);});};
+    const pb=T.querySelector('[data-place]');if(pb)pb.addEventListener('click',()=>{holdItem(pb.dataset.place);});};
   paint();
   // drag and drop (mouse and touch): press, move past a few pixels to drag; release on a slot to swap, on the bin to throw away
   let drag=null;const ghost=document.createElement('img');ghost.id='dragGhost';
@@ -107,7 +108,7 @@ function renderItems(){const B=$('bagBody');syncSlots();
   const end=e=>{if(!drag)return;const d=drag;drag=null;ghost.remove();cells.forEach(c=>c.classList.remove('drag','over'));$('invTrash').classList.remove('over');
     if(!d.moved){S.slotSel=d.i<12?d.i:S.slotSel;tip(d.i);paint();return;}
     const t=cellAt(e.clientX,e.clientY);if(!t)return;
-    if(t.id==='invTrash'){const it=itemInfo(S.slots[d.i]);if(!it)return;if(it.tool){toast('You can’t throw that away. Grandpa would know.',1.8);return;}
+    if(t.id==='invTrash'){const it=itemInfo(S.slots[d.i]);if(!it)return;if(it.tool){toast('You can’t throw that away. Grandpa would know.',1.8);return;}if(it.type==='K'){toast('You built that. Set it up somewhere instead.',1.8);return;}
       if(it.type==='I')takeInv(it.id,it.qty);else if(it.type==='P')takeBasket(it.id,it.qty);else if(it.type==='S')S.seeds[it.id]=0;else if(it.type==='F')S.furnBag=S.furnBag.filter(q=>q!==it.id);
       S.slots[d.i]=null;SFX.thud&&SFX.thud(0,.2);toast(`Threw away ${it.name.toLowerCase()}.`,1.4);updateHud();renderItems();return;}
     const j=+t.dataset.i;if(t.classList.contains('locked')||j===d.i)return;const tmp=S.slots[j];S.slots[j]=S.slots[d.i];S.slots[d.i]=tmp;SFX.click?SFX.click():0;paint();tip(j);};

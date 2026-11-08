@@ -129,7 +129,7 @@ vendors.b_furn.rows=()=>Object.entries(FURN).map(([k,[name,spr,need]])=>({k,name
 function startFurn(k){const [name,spr]=FURN[k];const [w,d]=FURN_FP[k];startPlace({spr,w,d,room:'cabin',name:name.toLowerCase(),cancel(){S.furnBag.push(k);},done(x,z){placeFurnAt(k,x,z);S.furnPlaced.push({k,x,z});}});const i=S.furnBag.indexOf(k);if(i>=0)S.furnBag.splice(i,1);}
 {const _ob=openBag;openBag=function(){_ob();if(!S.furnBag.length)return;const B=$('bagBody');const h=document.createElement('div');
   h.innerHTML='<h3>Furniture</h3><div class="grid">'+S.furnBag.map(k=>`<div class="it"><img src="${iconOf(FURN[k][1])}" alt=""><span>${FURN[k][0]}</span><button data-place="${k}">Place</button></div>`).join('')+'</div>';B.appendChild(h);
-  h.querySelectorAll('[data-place]').forEach(b=>b.addEventListener('click',()=>{if(S.room!=='cabin'){toast('Carry it into the cabin first.',1.6);return;}startFurn(b.dataset.place);}));};}
+  h.querySelectorAll('[data-place]').forEach(b=>b.addEventListener('click',()=>holdItem('F:'+b.dataset.place)));};}
 {const _il2=interiorLight;interiorLight=function(L){const was=S.cabinLamp;if(was&&typeof was==='object'){S.cabinLamp=false;_il2(L);S.cabinLamp=was;if(S.room==='cabin')glowAt(sx(was.x),sz(was.z)-60,120,[255,190,110],.8*L);}else _il2(L);};}
 // buildings: the coop and the greenhouse go where you choose
 {const _pl5=vendors.plans.rows;vendors.plans.rows=()=>_pl5().map(r=>{
