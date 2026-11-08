@@ -4,7 +4,7 @@
    friend's farm (the host doesn't get it). ================= */
 const perkHash=(str,seed=0)=>{let h1=0xdeadbeef^seed,h2=0x41c6ce57^seed;for(let i=0,ch;i<str.length;i++){ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}
   h1=Math.imul(h1^(h1>>>16),2246822507);h1^=Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507);h2^=Math.imul(h1^(h1>>>13),3266489909);return (4294967296*(2097151&h2)+(h1>>>0)).toString(36);};
-const PERK_CODES={[perkHash('jaxon5')]:'gifts'};   // codes are checked without caring about capitals or spaces
+const PERK_CODES={[perkHash('jaxon5')]:'gifts',[perkHash('jaxon6')]:'truepath'};   // codes are checked without caring about capitals or spaces
 const perkOf=code=>PERK_CODES[perkHash(String(code||'').replace(/\s+/g,'').toLowerCase())]||null;
 const profPerk=(p,k)=>!!(p&&p.perks&&p.perks.includes(k));
 const giftsUnlimited=()=>!!(S.perkGifts||profPerk(typeof acctMe==='function'&&acctMe(),'gifts'));
@@ -15,18 +15,20 @@ function perkGrant(p,k){p.perks=p.perks||[];if(!p.perks.includes(k))p.perks.push
   if(p.id===ACCT.cur){S.perkGifts=true;try{typeof flushSave==='function'&&flushSave();}catch(e){}}}
 // the box on the profile's page
 {const _as=acctShow;acctShow=function(view,arg){
-  if(view==='perk'){const p=ACCT.list.find(q=>q.id===arg);if(!p)return _as('list');const from=arguments[2]||'more';const box=$('acctPanel').querySelector('.box');$('acctPanel').hidden=false;
-    box.innerHTML=`<h3>Codes</h3>Type a code for ${acctEsc(p.name)}.${profPerk(p,'gifts')?'<div style="margin:6px 0;color:#b8e07a;font-size:13px">Unlimited gifts: on</div>':''}<input id="acctPerk" maxlength="32" autocomplete="off" autocapitalize="off" spellcheck="false"><div class="acts"><button data-a="ok">Use code</button><button data-a="back">Back</button></div><div class="msg"></div>`;
+  if(view==='perk'){const PERK_SAY={gifts:n=>`Code accepted. Unlimited gifts are on for ${n}: give anyone as many as you like, every day.`,
+      truepath:n=>`Code accepted. Next time ${n} plays: 9 hearts with Maud and her fourth shard, 10 hearts with Agnes and Ruth’s ribbon, 10 hearts with Caitlyn, dating her, and Danny’s letter.`};
+    const p=ACCT.list.find(q=>q.id===arg);if(!p)return _as('list');const from=arguments[2]||'more';const box=$('acctPanel').querySelector('.box');$('acctPanel').hidden=false;
+    box.innerHTML=`<h3>Codes</h3>Type a code for ${acctEsc(p.name)}.${profPerk(p,'gifts')?'<div style="margin:6px 0;color:#b8e07a;font-size:13px">Unlimited gifts: on</div>':''}${profPerk(p,'truepath')?'<div style="margin:6px 0;color:#b8e07a;font-size:13px">Jaxon 6: on</div>':''}<input id="acctPerk" maxlength="32" autocomplete="off" autocapitalize="off" spellcheck="false"><div class="acts"><button data-a="ok">Use code</button><button data-a="back">Back</button></div><div class="msg"></div>`;
     const msg=t=>{box.querySelector('.msg').textContent=t;};const inp=$('acctPerk');['keydown','keyup','keypress'].forEach(t=>inp.addEventListener(t,e=>e.stopPropagation()));
-    const go=()=>{const k=perkOf(inp.value);if(!k){msg('That code doesn’t do anything.');return;}if(profPerk(p,k)){msg('Already on: unlimited gifts, every day.');return;}
-      perkGrant(p,k);msg(`Code accepted. Unlimited gifts are on for ${p.name}: give anyone as many as you like, every day.`);};
+    const go=()=>{const k=perkOf(inp.value);if(!k){msg('That code doesn’t do anything.');return;}if(profPerk(p,k)){msg(k==='gifts'?'Already on: unlimited gifts, every day.':'Already on for this profile.');return;}
+      perkGrant(p,k);msg(PERK_SAY[k](p.name));};
     box.querySelector('[data-a=ok]').addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});
     box.querySelector('[data-a=back]').addEventListener('click',()=>from==='list'?acctShow('list'):acctShow('more',p.id));inp.focus();return;}
   const r=_as.apply(this,arguments);
   // the Profiles screen itself has a Codes button (for the profile you're playing), and marks a profile that has unlimited gifts
   if(view==='list'){const box=$('acctPanel').querySelector('.box');const acts=box&&box.querySelector('.acts');
     if(acts){const b=document.createElement('button');b.dataset.a='codes';b.textContent='Codes';acts.insertBefore(b,acts.firstChild);b.addEventListener('click',e=>{e.stopPropagation();acctShow('perk',ACCT.cur,'list');});}
-    box&&box.querySelectorAll('.row').forEach(r=>{const p=ACCT.list.find(q=>q.id===r.dataset.id);const sm=r.querySelector('.who small');if(p&&sm&&profPerk(p,'gifts'))sm.textContent+=' · unlimited gifts';});}
+    box&&box.querySelectorAll('.row').forEach(r=>{const p=ACCT.list.find(q=>q.id===r.dataset.id);const sm=r.querySelector('.who small');if(p&&sm&&profPerk(p,'gifts'))sm.textContent+=' · unlimited gifts';if(p&&sm&&profPerk(p,'truepath'))sm.textContent+=' · Jaxon 6';});}
   if(view==='more'){const p=ACCT.list.find(q=>q.id===arg);const box=$('acctPanel').querySelector('.box');const acts=box&&box.querySelector('.acts');
     if(p&&acts){const b=document.createElement('button');b.dataset.a='perk';b.textContent='Codes';const back=acts.querySelector('[data-a=back]');acts.insertBefore(b,back);b.addEventListener('click',()=>acctShow('perk',p.id));
       if(profPerk(p,'gifts')){const s=document.createElement('div');s.style.cssText='margin:6px 0;color:#b8e07a;font-size:13px';s.textContent='Unlimited gifts: on';acts.before(s);}}}
@@ -39,3 +41,17 @@ function perkGrant(p,k){p.perks=p.perks||[];if(!p.perks.includes(k))p.perks.push
 if(typeof PERSONAL!=='undefined'&&!PERSONAL.includes('perkGifts'))PERSONAL.push('perkGifts');
 // a profile that has it marks its farm, so a transfer code made from it carries the perk
 if(profPerk(acctMe(),'gifts'))S.perkGifts=true;
+
+// ---- Jaxon 6: the true ending's people, done. Applied once, the first time this profile plays after the code is entered:
+//      Maud at 9 hearts with her fourth shard, Agnes at 10 with Ruth's ribbon, Caitlyn at 10 and dating, and Danny's letter.
+//      Their heart scenes still play when you talk to them; nothing is given twice.
+const TRUE_LORE=['Danny’s letter: the Tall Man is a door, and everyone it took is still inside holding it shut. If enough push at once it opens the other way.',
+  'Agnes gave you Ruth’s ribbon to burn at the stones, so Ruth can leave.','Maud secretly cut a fourth piece of the seam and gave it to you. It might finish the thing, or feed it.'];
+function perkTruePath(){S.friend=S.friend||{};const at=(id,n)=>{S.friend[id]=Math.max(S.friend[id]||0,n);};at('maud',900);at('agnes',1000);at('mae',1000);
+  S.rom=S.rom||{};S.rom.mae=Object.assign(S.rom.mae||{},{dating:true,day:S.rom.mae&&S.rom.mae.day||S.day});
+  S.keyItems=S.keyItems||[];for(const k of ['shard','ribbon'])if(!S.keyItems.includes(k))S.keyItems.push(k);
+  S.lore=S.lore||[];for(const l of TRUE_LORE)if(!S.lore.includes(l))S.lore.push(l);
+  S.perkTrue=true;try{updateHud&&updateHud();}catch(e){}
+  setTimeout(()=>toast('Jaxon 6: Maud ♥9 and the fourth shard, Agnes ♥10 and Ruth’s ribbon, Caitlyn ♥10 and dating, Danny’s letter in your journal.',5),1200);}
+{const _mu=mindUpdate;mindUpdate=function(dt){_mu(dt);if(S.mode==='play'&&!S.perkTrue&&S.readLetter&&profPerk(acctMe(),'truepath'))perkTruePath();};}
+if(typeof PERSONAL!=='undefined'&&!PERSONAL.includes('perkTrue'))PERSONAL.push('perkTrue');
