@@ -377,15 +377,26 @@ def drum():
 
 # ---------------------------------------------------------------- Lusk Fuel
 def fuel(lit=False):
-    W, H = 340, 184; c = C(W, H); G = 180
+    W, H = 340, 216; c = C(W, H); G = 212
     kx0, kx1, wt = 176, 300, G - 66
     # the flat roof seen from above (lighter toward the front), the parapet's cap catching the light
-    for y in range(wt - 22, wt - 2):
-        for x in range(kx0 + 2, kx1 - 2):
-            k = 2 if y < wt - 16 else 3
-            col = RB[k] if HASH(x // 4, y // 2, 3) > .2 else RB[k - 1]
+    rt = wt - 46
+    for y in range(rt, wt - 2):
+        for x in range(kx0, kx1):
+            v = (y - rt) / (wt - 2 - rt); k = 1 if v < .2 else 2 if v < .6 else 3
+            col = RB[k] if HASH(x // 4, y // 2, 3) > .2 else RB[max(0, k - 1)]
+            if (y - rt) % 7 == 6: col = RB[max(0, k - 1)]                       # the seams of the roofing felt
+            if x < kx0 + 3: col = CR[4] if x == kx0 else CR[3]                   # the parapet: lit on the left
+            elif x >= kx1 - 3: col = CR[2] if x < kx1 - 1 else CR[1]            # in shade on the right
+            if y < rt + 3: col = CR[5] if y == rt else CR[3] if y == rt + 1 else CR[2]   # along the back
+            if y == rt + 3 and kx0 + 3 <= x < kx1 - 3: col = (24, 22, 30)        # the parapet's shadow on the roof
             c.p(x, y, col)
-    box(c, kx0 + 70, wt - 20, 16, 3, 5, ramp('#8a8c90'))   # a vent box
+    for y in range(wt - 18, wt - 12):   # a puddle by the drain
+        for x in range(kx0 + 20, kx0 + 44):
+            if ((x - (kx0 + 32)) / 12) ** 2 + ((y - (wt - 15)) / 3) ** 2 < 1: c.p(x, y, (60, 72, 90) if not lit else (70, 80, 96)); c.p(kx0 + 26, wt - 16, (150, 170, 190))
+    box(c, kx0 + 68, rt + 10, 26, 7, 12, ramp('#9a9ca0'), front=lambda i, j, col: (60, 62, 68) if j % 3 == 1 and 3 < i < 22 else None)   # the air unit
+    for x in range(kx0 + 70, kx0 + 96): c.p(x + 4, rt + 30, (16, 18, 24), 80); c.p(x + 4, rt + 31, (16, 18, 24), 40)   # its shadow
+    cyl(c, kx0 + 106, rt + 14, 2.5, 9, ramp('#8a8c90')); cyl(c, kx0 + 112, rt + 18, 2, 6, ramp('#8a8c90'))   # vent pipes
     for x in range(kx0 - 2, kx1 + 2): c.p(x, wt - 3, CR[5]); c.p(x, wt - 2, CR[4]); c.p(x, wt - 1, CR[2])
     # the walls: block courses, light falling off to the right, a shadow under the cap, grime at the foot
     for y in range(wt, G):
@@ -419,10 +430,15 @@ def fuel(lit=False):
     box(c, dx0 - 3, G - 2, dx1 - dx0 + 6, 1, 2, ramp('#a8a6a0'))
     # the canopy: its top (lighter toward the front edge), the lettered fascia, its lit underside lights at night
     cx0, cx1, ft = 8, 176, G - 92
-    for y in range(ft - 12, ft):
+    CT = ramp('#b8bab6')
+    for y in range(ft - 34, ft):
         for x in range(cx0 + 2, cx1):
-            k = 3 if y < ft - 6 else 4
-            c.p(x, y, ramp('#b8bab6')[k] if HASH(x // 6, y // 3, 5) > .15 else ramp('#b8bab6')[k - 1])
+            v = (y - (ft - 34)) / 34; k = 2 if v < .25 else 3 if v < .7 else 4
+            col = CT[k] if HASH(x // 6, y // 3, 5) > .15 else CT[k - 1]
+            if (x - cx0) % 28 == 0: col = CT[k - 1]                              # the panel seams
+            if HASH(x // 2, y // 2, 8) < .025: col = (128, 118, 96)             # leaves and grime blown up there
+            if y == ft - 34: col = CT[5]
+            c.p(x, y, col)
     for x in range(cx0 + 2, cx1): c.p(x, ft - 1, CR[5])
     for y in range(ft, ft + 16):
         for x in range(cx0, cx1 + 2):
@@ -450,11 +466,11 @@ def fuel(lit=False):
         c.r(px0 + 5, G - 64, 12, 1, RD[3])
     for x in (cx0 + 6, cx1 - 8): pole(c, x, ft + 16, G, 5, ramp('#d6d4cc')); box(c, x - 1, G - 4, 7, 1, 3, ramp('#a8a6a0'))
     # the price sign: a board with thickness on a round pole
-    sx0 = 304
-    for y in range(30, G):
+    sx0 = 304; so = G - 174
+    for y in range(so + 24, G):
         for i in range(4): c.p(sx0 + 13 + i, y, WG[[4, 3, 2, 1][i]])
-    box(c, sx0, 6, 30, 2, 36, ramp('#e8e4d6'), front=lambda i, j, col: RD[3] if i < 2 or i > 27 or j < 2 or j > 33 else ((252, 248, 236) if lit else None))
-    c.text(sx0 + 9, 13, 'GAS', TE[1]); c.text(sx0 + 7, 22, '.89', (30, 30, 30)); c.text(sx0 + 5, 32, 'BAIT', RD[2])
+    box(c, sx0, so, 30, 2, 36, ramp('#e8e4d6'), front=lambda i, j, col: RD[3] if i < 2 or i > 27 or j < 2 or j > 33 else ((252, 248, 236) if lit else None))
+    c.text(sx0 + 9, so + 7, 'GAS', TE[1]); c.text(sx0 + 7, so + 16, '.89', (30, 30, 30)); c.text(sx0 + 5, so + 26, 'BAIT', RD[2])
     contact(c, kx0, kx1, G); contact(c, sx0 + 13, sx0 + 17, G)
     ground(c, cx0, kx1, G, 8, 70)
     c.outline(OUTC)
