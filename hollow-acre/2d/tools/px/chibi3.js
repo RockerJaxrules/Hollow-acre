@@ -231,6 +231,13 @@ const HS={
   braids:  {vol:1,  crown:2,K:5,part:.5,fr:[-4,-2,1],side:[1,3],back:-2,tip:1,braids:1},
   pigtails:{vol:1.5,crown:2,K:6,part:0, fr:[-2,-1,1],side:[2,3],back:-2,tip:1,pigs:1},
   spacebuns:{vol:1,crown:2,K:6,part:0, fr:[-2,-1,1],side:[1,2],back:-3,tip:1,buns:1},
+  pixie:   {vol:.8, crown:2,K:6,part:-2,fr:[-2,-1,2],side:[1,0],back:-5,tip:1,sweep:1},
+  mullet:  {vol:1,  crown:2,K:5,part:0, fr:[-4,-2,1],side:[1,3],back:9,tip:2},
+  lob:     {vol:1.5,crown:2,K:5,part:-2,fr:[-4,-1,2],side:[2,10],back:6,tip:1},
+  swoop:   {vol:1.5,crown:2,K:5,part:-4,fr:[-5,-1,2],side:[2,14],back:10,tip:2,sweep:1},
+  slick:   {vol:.6, crown:2,K:7,part:0, fr:[-5,-4,0],side:[1,0],back:-3,tip:0},
+  curlylong:{vol:2.5,crown:3,K:5,part:0,fr:[-3,-2,2],side:[3,12],back:9,tip:2,tex:'curl'},
+  halfup:  {vol:1.5,crown:2,K:5,part:.5,fr:[-5,-1,2],side:[2,13],back:10,tip:2,knot:1},
 };
 function hairFor(st){if(!st||st==='bald')return null;const S=Object.assign({},HS[st]||HS.short);if(C.hairLen){S.side=[S.side[0],C.hairLen];S.back=Math.max(S.back,C.hairLen-4);}return S;}
 // shade one hair pixel: global light from the upper left, the lock's lit and dark edges, a streak near the top
@@ -320,7 +327,10 @@ function beard(cx,hy,view,fl,bt){if(!bt||view==='N')return;const R=HR,chin=hy+9;
   for(let y=hy+3;y<=chin+2;y++){const hw=y<=hy+4?8:y<chin-1?8:y===chin-1?7:y===chin?6:y===chin+1?5:3;for(let u=(side?-1:-hw+1);u<=(side?7-(y>chin?2:0):hw);u++){const su=side?u:u-.5;
       if(!side&&y<chin-2&&Math.abs(su)<5.5&&y<hy+5)continue;if(!side&&y===hy+6&&Math.abs(su)<1.6)continue;if(side&&y<hy+5&&u>1)continue;put(u,y,y>=chin+1?1:(side?(u>4?3:2):(su<-3?4:su>3?2:3)));}}
   mst();}
-function glasses(cx,hy,view,fl,gt){if(view==='N')return;gt=gt===true?'round':gt;const F=gt==='shades'?[[20,16,22],[34,30,38]]:[[40,34,44],[64,58,70]],GL=[196,212,224];
+function glasses(cx,hy,view,fl,gt){if(view==='N')return;
+  if(gt==='monocle'){const G=[[150,118,52],[214,176,82]],GLs=[200,214,226];const x0=view==='S'?cx+3:cx+fl*3;
+    for(const [dx,dy] of [[1,-1],[2,-1],[3,-1],[0,0],[4,0],[0,1],[4,1],[0,2],[4,2],[1,3],[2,3],[3,3]])p(x0+(view==='S'?dx:fl*dx),hy+dy,G[dy<1?1:0]);
+    p(x0+(view==='S'?1:fl),hy,GLs);for(let i=1;i<6;i++)p(x0+(view==='S'?4:fl*4),hy+3+i,G[i%2]);return;}gt=gt===true?'round':gt;const F=gt==='shades'?[[20,16,22],[34,30,38]]:[[40,34,44],[64,58,70]],GL=[196,212,224];
   if(view==='S'){for(const s of [-1,1]){const x0=s<0?cx-6:cx+3;for(let i=0;i<5;i++){if(gt==='round'&&(i===0||i===4)){}else{p(x0+i,hy-1,F[1]);p(x0+i,hy+3,F[0]);}}for(let j=0;j<3;j++){p(x0,hy+j,F[1]);p(x0+4,hy+j,F[0]);}
       if(gt==='shades'){for(let j=0;j<3;j++)for(let i=1;i<4;i++)p(x0+i,hy+j,j===0&&i===1?[90,90,100]:F[0]);}else p(x0+1,hy,GL);}
     p(cx,hy,F[1]);p(cx+1,hy,F[1]);p(cx-7,hy,F[1]);p(cx+8,hy,F[1]);}
@@ -338,6 +348,14 @@ function hat(cx,hy,view,fl,h,hairTop){if(!h)return;const H=HAT,side=view!=='S'&&
   if(h==='cowboy'||h==='sheriff'){const R2=h==='sheriff'?ramp('#a07848'):H;for(let y=T0-3;y<hy-5;y++){const w=y<T0-1?5:7;for(let x=-w;x<=w+1;x++){if(y===T0-3&&Math.abs(x-.5)<2)continue;p(cx+x+sh,y,R2[x<-2?4:x>3?1:3]);}}
     for(let x=-7;x<=8;x++)p(cx+x+sh,hy-6,[40,28,20]);for(let x=-13;x<=14;x++){const up=Math.abs(x-.5)>11?1:0;p(cx+x+sh,hy-5-up,R2[x<-6?4:x>7?1:3]);p(cx+x+sh,hy-4-up,R2[0]);}
     if(h==='sheriff'&&view==='S'){p(cx,hy-8,[255,220,110]);p(cx+1,hy-8,[220,170,60]);p(cx,hy-9,[255,220,110]);}}
+  if(h==='beret'){dome(T0+1,hy-5,10,H,sh-1);for(let x=-11;x<=10;x++){p(cx+x+sh-1,hy-5,H[x<-4?3:x>5?1:2]);p(cx+x+sh-1,hy-4,H[0]);}p(cx+sh,T0,H[2]);p(cx+sh,T0-1,H[1]);}
+  if(h==='flatcap'){dome(T0+1,hy-4,9,H,sh);for(let x=-9;x<=10;x++)p(cx+x+sh,hy-4,H[1]);for(let x=-8;x<=8;x+=3)p(cx+x+sh,T0+3,H[1]);
+    if(view==='S'){for(let x=-6;x<=7;x++){p(cx+x,hy-3,H[x<-2?3:2]);p(cx+x,hy-2,H[0]);}}else if(side){for(let i=0;i<5;i++){p(cx+fl*(7+i),hy-4,H[2]);p(cx+fl*(7+i),hy-3,H[0]);}}}
+  if(h==='witch'){const W=ramp('#2a2236'),B=[96,46,120];const tip=T0-15;
+    for(let y=tip;y<hy-5;y++){const t=(y-tip)/(hy-5-tip),w=Math.round(1+t*7.5),bend=Math.round((1-t)*(1-t)*5)*(side?-fl:1);
+      for(let x=-w;x<=w+1;x++)p(cx+x+sh+bend,y,W[x<-w*.4?4:x>w*.5?1:3]);}
+    for(let x=-7;x<=8;x++){p(cx+x+sh,hy-7,B);p(cx+x+sh,hy-6,[60,26,76]);}p(cx+sh-2,hy-7,[230,190,70]);
+    for(let x=-15;x<=16;x++){const dn=Math.abs(x-.5)>12?1:0;p(cx+x+sh,hy-5+dn,W[x<-6?4:x>7?1:3]);p(cx+x+sh,hy-4+dn,W[0]);}}
   if(h==='top'){const T=ramp('#1c1a20');for(let y=T0-7;y<hy-5;y++)for(let x=-6;x<=7;x++)p(cx+x+sh,y,T[x<-3?4:x>4?1:3]);for(let x=-6;x<=7;x++){p(cx+x+sh,hy-8,[120,30,30]);p(cx+x+sh,hy-7,[80,20,20]);}for(let x=-10;x<=11;x++){p(cx+x+sh,hy-5,T[x<0?3:1]);p(cx+x+sh,hy-4,T[0]);}}}
 function acc(cx,hy,view,fl,a,top0,hairTop){if(!a)return;const R=ACCR,side=view!=='S'&&view!=='N',back=view==='N',chin=hy+9;
   if(a==='bow'){const bx=back?cx+5:side?cx-fl*5:cx+6,by=(hairTop!=null?hairTop:hy-10)+1;for(const s of [-1,1])for(let j=-2;j<=2;j++)for(let i=1;i<=3;i++){if(Math.abs(j)>3-i)continue;p(bx+s*i,by+j,R[s<0?(j<0?4:3):(j<0?2:1)]);}p(bx,by,R[0]);p(bx,by-1,R[2]);}
@@ -348,6 +366,8 @@ function acc(cx,hy,view,fl,a,top0,hairTop){if(!a)return;const R=ACCR,side=view!=
     if(!back&&!side){if(a==='scarf'){for(let j=2;j<7;j++)for(let i=0;i<3;i++)p(cx+3+i,y0+j,R[i===0?3:i===2?1:2]);for(let i=0;i<3;i++)p(cx+3+i,y0+7,R[(i&1)?1:3]);}
       else{for(let j=2;j<6;j++){const w=5-j;for(let x=-w;x<=w+1;x++)p(cx+x,y0+j,R[(x+j)%3===0?4:2]);}}}
     else if(side){for(let j=2;j<6;j++)p(cx-fl*3,y0+j,R[2]);}}
+  if(a==='earrings'&&!back){const G=[230,190,70],G2=[255,236,150];if(side){p(cx-fl*2,hy+4,G);p(cx-fl*2,hy+5,G2);}else{p(cx-9,hy+4,G);p(cx-9,hy+5,G2);p(cx+10,hy+4,G);p(cx+10,hy+5,G2);}}
+  if(a==='choker'&&!back){const y0=top0;for(let x=(side?-3:-4);x<=(side?3:5);x++){p(cx+x,y0,R[0]);p(cx+x,y0+1,R[1]);}if(!side){p(cx,y0+2,R[4]);p(cx+1,y0+2,R[3]);}}
   if(a==='necklace'&&!back&&!side){for(let x=-3;x<=4;x++)p(cx+x,top0+2+Math.round((1-Math.pow((x-.5)/3.5,2))*2),R[4]);p(cx,top0+5,[255,255,255]);p(cx+1,top0+5,R[3]);}}
 // ---------------------------------------------------------------- tools. The game draws the tool itself (toolfx.js); the sheets carry the arms and the fists over
 // the handle, and META.tool says where the grip is, the angle (0 = screen right, 90 = down), the foreshortening and whether it's behind the body.

@@ -15,13 +15,13 @@ const LOOK_BASE={skin:'#e8b48c',hair:'#6a4224',eye:'#3a5a7a',shirt:'#b8402c',pan
 const SHIRT_BASES=['#b8402c','#b8462c','#b84c2c','#b8522c','#b8582c','#b85e2c','#b8642c','#b86a2c'];
 const patShift=(pat,cls)=>{const jm=cls>>1,v=cls&1;if(pat==='plaid')return (v?1:0)+(jm===2?1:0);if(pat==='stripes')return jm<2?1:0;if(pat==='dots')return (v&&jm===1)?-1:0;return 0;};
 const LOOK_OPTS={
-  style:[['short','Swept'],['crop','Short & neat'],['sidepart','Side part'],['bangs','Fringe'],['shaggy','Shaggy'],['spiky','Spiky'],['buzz','Buzzed'],['mohawk','Mohawk'],['topknot','Top knot'],['curly','Curly'],['afro','Afro'],['wavy','Wavy'],['bob','Bob'],['long','Long'],['ponytail','Ponytail'],['pigtails','Pigtails'],['bun','Bun'],['spacebuns','Space buns'],['braids','Braids'],['bald','Bald']],
+  style:[['short','Swept'],['crop','Short & neat'],['sidepart','Side part'],['bangs','Fringe'],['shaggy','Shaggy'],['spiky','Spiky'],['buzz','Buzzed'],['mohawk','Mohawk'],['topknot','Top knot'],['curly','Curly'],['afro','Afro'],['wavy','Wavy'],['bob','Bob'],['long','Long'],['ponytail','Ponytail'],['pigtails','Pigtails'],['bun','Bun'],['spacebuns','Space buns'],['braids','Braids'],['pixie','Pixie'],['mullet','Mullet'],['lob','Shoulder length'],['swoop','Side-swept long'],['slick','Slicked back'],['curlylong','Long curls'],['halfup','Half up'],['bald','Bald']],
   beard:[['','None'],['stubble','Stubble'],['moustache','Moustache'],['goatee','Goatee'],['full','Beard']],
   outfit:[['shirt','Shirt'],['openshirt','Open shirt'],['tee','T-shirt'],['tank','Tank top'],['sweater','Sweater'],['turtleneck','Turtleneck'],['cardigan','Cardigan'],['hoodie','Hoodie'],['vest','Vest'],['overalls','Overalls'],['jacket','Jacket'],['longcoat','Long coat'],['skirt','Skirt'],['dress','Dress']],
   pattern:[['','Plain'],['plaid','Plaid'],['stripes','Stripes'],['dots','Dots']],
-  hat:[['','None'],['cap','Cap'],['straw','Straw hat'],['bucket','Bucket hat'],['beanie','Beanie'],['cowboy','Cowboy hat']],
-  glasses:[['','None'],['round','Round'],['square','Square'],['shades','Shades']],
-  accessory:[['','None'],['bow','Bow'],['flower','Flower'],['headband','Headband'],['scarf','Scarf'],['bandana','Bandana'],['necklace','Necklace']],
+  hat:[['','None'],['cap','Cap'],['straw','Straw hat'],['bucket','Bucket hat'],['beanie','Beanie'],['cowboy','Cowboy hat'],['flatcap','Flat cap'],['beret','Beret'],['top','Top hat'],['witch','Witch’s hat']],
+  glasses:[['','None'],['round','Round'],['square','Square'],['shades','Shades'],['monocle','Monocle']],
+  accessory:[['','None'],['bow','Bow'],['flower','Flower'],['headband','Headband'],['scarf','Scarf'],['bandana','Bandana'],['necklace','Necklace'],['earrings','Earrings'],['choker','Choker']],
   hair:['#6a4224','#3a2416','#14100e','#9a5a2a','#b8823c','#d8c27a','#8a2e1a','#c85a24','#9a9aa0','#e8e4dc','#3a4a6a','#5a2a5a','#2e6a4a','#d86a9a'],
   skin:['#f6d8c0','#f2cfb0','#e8b48c','#d49a70','#b8784c','#8a5434','#5e3a26'],
   eye:['#3a5a7a','#4a3020','#3a6a3a','#6a6a72','#1a1418','#6a3a7a','#2a7a8a'],
@@ -92,6 +92,10 @@ function applyLook(only){const look=S.look,M=lookMap(look);for(const tool of (on
       for(const o of LOOK_OPTS[key]){const named=Array.isArray(o);const v=named?o[0]:o;const b=document.createElement('button');b.className='chip'+(named?'':' sw')+(S.look[key]===v?' on':'');
         if(named)b.textContent=o[1];else{b.style.background=o;b.setAttribute('aria-label',label+' '+o);}
         b.addEventListener('click',()=>{S.look[key]=v;changed();build();});box.appendChild(b);}
+      if(!Array.isArray(LOOK_OPTS[key][0])){const own=!LOOK_OPTS[key].includes(S.look[key]);const w=document.createElement('label');w.className='chip sw cpick'+(own?' on':'');w.title='Any colour';
+        w.style.background=own?S.look[key]:'conic-gradient(#e05a4a,#e8c84a,#5ac85a,#4ab0e8,#8a5ae8,#e05a4a)';
+        const inp=document.createElement('input');inp.type='color';inp.value=/^#[0-9a-f]{6}$/i.test(S.look[key]||'')?S.look[key]:'#888888';inp.style.cssText='opacity:0;width:100%;height:100%;border:0;padding:0;cursor:pointer';
+        inp.addEventListener('input',()=>{S.look[key]=inp.value;w.style.background=inp.value;changed();});inp.addEventListener('change',()=>build());w.appendChild(inp);box.appendChild(w);}
       P2.appendChild(row);}}
   $('cL').addEventListener('click',()=>{dirI=(dirI+3)%4;});$('cR').addEventListener('click',()=>{dirI=(dirI+1)%4;});
   $('cAnim').addEventListener('click',()=>{anim=(anim+1)%ANIMS.length;$('cAnim').textContent=ANIMS[anim][0];if(anim===3)applyLook(['_hoe']);});

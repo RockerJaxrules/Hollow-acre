@@ -62,11 +62,11 @@ for _k, _v in {'ida': dict(extra='#c89aa0'), 'tess': dict(shirt='#3e5a40', extra
 # player base colours: every recolourable region has its own base ramp
 BASE = dict(skin='#e8b48c', hair='#6a4224', eye='#3a5a7a', shirt='#b8402c', pants='#3a4e7a', shoes='#3a2618', extra='#6a7a3a', hatColor='#8a5a2a', acc='#c83a5a')
 OUTFITS = ['tee', 'shirt', 'overalls', 'jacket', 'dress', 'hoodie', 'vest', 'sweater', 'tank', 'turtleneck', 'cardigan', 'openshirt', 'skirt', 'longcoat']
-HAIRS = ['short', 'long', 'bun', 'spiky', 'bangs', 'ponytail', 'curly', 'buzz', 'braids', 'pigtails', 'wavy', 'mohawk', 'afro', 'bob', 'sidepart', 'shaggy', 'topknot', 'spacebuns', 'crop']
+HAIRS = ['short', 'long', 'bun', 'spiky', 'bangs', 'ponytail', 'curly', 'buzz', 'braids', 'pigtails', 'wavy', 'mohawk', 'afro', 'bob', 'sidepart', 'shaggy', 'topknot', 'spacebuns', 'crop', 'pixie', 'mullet', 'lob', 'swoop', 'slick', 'curlylong', 'halfup']
 BEARDS = ['stubble', 'moustache', 'goatee', 'full']
-HATS = ['cap', 'straw', 'beanie', 'cowboy', 'bucket']
-GLASSES = ['round', 'square', 'shades']
-ACCS = ['bow', 'flower', 'headband', 'scarf', 'bandana', 'necklace']
+HATS = ['cap', 'straw', 'beanie', 'cowboy', 'bucket', 'top', 'beret', 'flatcap', 'witch']
+GLASSES = ['round', 'square', 'shades', 'monocle']
+ACCS = ['bow', 'flower', 'headband', 'scarf', 'bandana', 'necklace', 'earrings', 'choker']
 TOOLS = ['', 'hoe', 'can', 'pick', 'axe', 'rod']
 JOBS = []
 for n, look in NPC.items(): JOBS.append((n, dict(look), None, 'all'))
