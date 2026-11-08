@@ -23,19 +23,22 @@ S4.bellows=(sp,K)=>{const g=K.g,LO=(sp.band||[.6,.82])[0],HI=(sp.band||[.6,.82])
   const st={H:.25,fill:1,pump:0,prog:0,inT:0,runT:0,burn:0,t:0,end:0,puffs:[]};let roar=null;
   const pumpNow=()=>{const p=st.fill;st.fill=0;st.pump=.001;st.H=Math.min(1.15,st.H+.095*(.25+.75*p));A.hiss(.32,.18*(.4+.6*p),'lowpass',380,{slide:900});A.tone(90,.18,'sine',.08*(p+.3),{slide:60});
     K.emit(100,100,6,{c:['#fff4d0','#ffd27a','#f08a1c'],v:60+p*60,ang:-Math.PI*.85,spread:1,g:-40,life:.6});if(p<.45)K.judge(.25,140,70,true);};
-  return {title:sp.t||'Pump the bellows',how:'Tap to pump. Each pump feeds the fire, but the bellows need a moment to fill again. Keep the metal glowing in the green.',hint:'Tap to pump. Hold the glow in the green.',st,
+  return {title:sp.t||'Pump the bellows',how:item==='pump'?'Tap to pump. Each stroke builds pressure, but the pump needs a moment to refill. Keep the needle in the green.':'Tap to pump. Each pump feeds the fire, but the bellows need a moment to fill again. Keep the metal glowing in the green.',hint:'Tap to pump. Hold the glow in the green.',st,
     update(dt,I){st.t+=dt;if(!roar)roar=MS.loop('lowpass',300,.8);roar.set(.03+st.H*.12,180+st.H*500);
       if(st.end){st.end+=dt;if(st.end>.7){st.done=true;st.score=M4.cl(st.inT/Math.max(1,st.runT)*1.12-st.burn*.25,0,1);}return;}
       st.runT+=dt;st.fill=Math.min(1,st.fill+dt/.5);if(st.pump>0){st.pump+=dt/.3;if(st.pump>=1)st.pump=0;}
       st.H-=.085*(st.H-.12)*dt*1.4;if(I.pressed)pumpNow();
-      if(st.H>=LO&&st.H<=HI){st.inT+=dt;st.prog+=dt/DUR;}else if(st.H>HI){st.burn+=dt;if(Math.random()<dt*20)K.emit(70,96,1,{c:['#ffffff','#fff4d0'],v:90,spread:2,g:120,life:.5});}
-      if(Math.random()<dt*(4+st.H*30))K.emit(36+Math.random()*48,96,1,{c:['#ffd27a','#f06a1c','#c83a14'],v:30+st.H*60,spread:.8,g:-30,life:.9+st.H});
-      if(Math.random()<dt*st.H*6)A.tone(1800+Math.random()*1800,.02,'square',.012);
+      if(st.H>=LO&&st.H<=HI){st.inT+=dt;st.prog+=dt/DUR;}else if(st.H>HI){st.burn+=dt;if(item!=='pump'&&Math.random()<dt*20)K.emit(70,96,1,{c:['#ffffff','#fff4d0'],v:90,spread:2,g:120,life:.5});}
+      if(item!=='pump'&&Math.random()<dt*(4+st.H*30))K.emit(36+Math.random()*48,96,1,{c:['#ffd27a','#f06a1c','#c83a14'],v:30+st.H*60,spread:.8,g:-30,life:.9+st.H});
+      if(item!=='pump'&&Math.random()<dt*st.H*6)A.tone(1800+Math.random()*1800,.02,'square',.012);if(item==='pump'&&roar)roar.set(st.H*.08,1800+st.H*1200);
       if(st.prog>=1||st.runT>(sp.time||16)){st.end=.001;MS.good();}},
     draw(t){const H=st.H;
       // coals: a heap of lumps whose cracks glow with the heat
       for(let i=0;i<26;i++){const cx=24+(i*37%64),cy=100+((i*13)%10),r=3+(i%3);const gl=Math.max(0,Math.min(1,H*1.2-((i*7)%5)*.08+Math.sin(t*3+i)*.08));K.ball(cx,cy,r,['#0a0806','#1a1614','#2a2420','#3a332c'],r-1);if(gl>.2){K.px(cx-1,cy,2,1,heatCol(gl*.9));K.px(cx,cy-1,1,1,heatCol(gl));}}
-      for(let i=0;i<8;i++)K.flame(28+i*7,100,.6+H*1.3,t+i*.4);K.glow(56,96,60+H*50,'255,150,60',.2+H*.35);
+      K.px(20,80,72,30,'#1a0a04');MG4ART.fire(K,22,106,68,28,.3+H*.8,t,[20,80,72,30]);K.glow(56,96,60+H*50,'255,150,60',.2+H*.35);
+      if(item==='pump'){const P_=st.H;const cx=150,cy=96;K.ball(cx,cy,14,CA_P.brass,8);K.px(cx-2,cy-24,4,12,CA_P.brass[4]);for(let a=0;a<6.28;a+=.5){const r=6+P_*40;for(let k=0;k<5;k++){const u=k/5;K.pa(cx+Math.cos(a+st.t*3)*r*u,cy-24-Math.sin(u*Math.PI)*P_*30+u*10,1,1,'#9cc4e0',.8*(1-u));}}
+        K.px(200,70,12,60,CA_P.iron[4]);K.px(200,70,12,1,CA_P.iron[6]);const pl=st.pump>0?Math.sin(Math.PI*Math.min(1,st.pump))*14:0;K.px(205,46+pl,2,26,CA_P.iron[6]);K.px(196,44+pl,20,4,CA_P.wood[4]);m4hand(K,206,42+pl);K.line(200,124,cx+8,cy+6,'#3a3a3a',2);
+        K.ball(240,110,8,['#2a2a2a','#c8c0a8','#e8e0cc','#f8f4ec']);const na=-2.3+Math.min(1.1,P_)*2.8;K.line(240,110,240+Math.cos(na)*6,110+Math.sin(na)*6,'#a02a1a',1);return;}
       if(item==='crucible'){const cx=58,cy=92;K.ball(cx,cy,13,['#3a2a20','#6a4a34','#8a6a4c','#a8886a'],11);K.ell(cx,cy-9,11,3,'#2a1a10');const m=Math.min(1,st.prog*1.4);if(m>0){K.ell(cx,cy-9,9*m+1,2,heatCol(.55+H*.4));K.px(cx-4,cy-10,4,1,'#fff4d0');}else for(let k=0;k<5;k++)K.px(cx-7+k*3,cy-11+(k%2),3,2,sp.ore||'#8a6a4a');K.glow(cx,cy-6,24,'255,180,80',.2+H*.3);}
       else{const c=heatCol(Math.min(1,H));for(let x=40;x<150;x++){const u=(x-40)/110,hh=Math.max(0,Math.min(1,H*(1.15-u*1.1)));K.px(x,96,1,4,u<.5?heatCol(hh):CA_P.iron[3]);K.px(x,96,1,1,u<.5?heatCol(Math.min(1,hh+.15)):CA_P.iron[5]);}K.glow(70,98,26,'255,170,80',.2+H*.3);M4.rot(g,M4F.tongs(),150,98,0,0,7);}
       // the bellows: the bottom board stays put, the top board hinges at the nozzle; the leather pleats open and close between them
@@ -44,7 +47,7 @@ S4.bellows=(sp,K)=>{const g=K.g,LO=(sp.band||[.6,.82])[0],HI=(sp.band||[.6,.82])
       for(let i=0;i<=BL;i++){const x=NX+4+i;const yb=NY+2+i*.12,yt=NY-2+Math.tan(ang)*i;const fold=Math.floor((yb-yt)/5);for(let y=Math.ceil(yt)+2;y<yb-1;y++){const u=(y-yt)/(yb-yt);K.px(x,y,1,1,L[(Math.floor(u*fold*2))%2?2:4]);}
         K.px(x,yb,1,3,W[i%11===0?2:3]);K.px(x,yb,1,1,W[5]);K.px(x,yt-2,1,3,W[i%11===0?3:4]);K.px(x,yt-2,1,1,W[6]);}
       const hx=NX+4+BL,hy=NY-2+Math.tan(ang)*BL;K.px(hx,hy-1,12,3,W[4]);K.px(hx+9,hy-6,3,8,W[3]);m4hand(K,hx+11,hy-6);},
-    hud(t){K.label('HEAT',286,21,'#f4ecd8');K.gauge(282,30,8,92,LO/1.15,HI/1.15,st.H/1.15,{zone:'#5a3a14'});K.meter(st.prog,st.runT?st.inT/st.runT:1);
+    hud(t){K.label(item==='pump'?'PRESSURE':'HEAT',286,21,'#f4ecd8');K.gauge(282,30,8,92,LO/1.15,HI/1.15,st.H/1.15,{zone:'#5a3a14'});K.meter(st.prog,st.runT?st.inT/st.runT:1);if(item==='pump')return;
       K.label('BELLOWS',150,52,st.fill<.95?'#e8b030':'#9be07a');K.px(132,60,36,3,'#1a0e06');K.px(133,61,34*st.fill,1,st.fill<.95?'#e8b030':'#9be07a');
       if(st.H>HI&&Math.floor(t*6)%2)K.label('TOO HOT: IT’LL BURN',160,24,'#e8542a');},
     auto(dt,AP){const a=m4ai(this,AP,dt);const mid=(LO+HI)/2;if(st.H<mid-.02&&st.fill>.9&&st.t>.4)m4tap(a);AP.hand=[176,70];AP.press=a.down;},
@@ -152,19 +155,26 @@ S4.skim=(sp,K)=>{const g=K.g,CX=160,CY=92,RX=70,RY=22,N=sp.n||5,COL=sp.col||['#f
 // ---------------------------------------------------------------- CRANK: wind the wire round the rod in even turns: steady circles, not too fast
 S4.crank=(sp,K)=>{const g=K.g,RX=60,RY=94,RL=180,CXk=262,CYk=94,CR=16,N=sp.n||18;
   const st={ang:0,turns:0,coils:[],last:null,spd:0,t:0,end:0,spds:[],ok:0};let wind=null;
-  return {title:sp.t||'Wind the wire into a coil',how:K.fine?'Turn the crank in circles with the mouse (or hold Space). Keep an even, steady pace so the coils sit tight.':'Turn the crank by drawing circles with your finger. Keep an even, steady pace so the coils sit tight.',hint:'Steady circles: not too fast, not too slow.',st,
+  return {title:sp.t||'Wind the wire into a coil',how:sp.look==='mortar'?'Grind in circles with the pestle: draw circles'+(K.fine?' with the mouse (or hold Space)':' with your finger')+' at an even, steady pace.':sp.look==='straw'?'Twist the straw: draw circles'+(K.fine?' with the mouse (or hold Space)':' with your finger')+' at an even, steady pace.':sp.look==='rug'?'Coil the braid round into a rug: draw circles'+(K.fine?' with the mouse (or hold Space)':' with your finger')+' at an even, steady pace.':K.fine?'Turn the crank in circles with the mouse (or hold Space). Keep an even, steady pace so the coils sit tight.':'Turn the crank by drawing circles with your finger. Keep an even, steady pace so the coils sit tight.',hint:'Steady circles: not too fast, not too slow.',st,
     update(dt,I){st.t+=dt;if(!wind)wind=MS.loop('bandpass',900,3);if(st.end){st.end+=dt;wind.set(0);if(st.end>.6){st.done=true;st.score=M4.cl(st.ok/Math.max(1,st.coils.length),0,1);}return;}
-      let da=0;if(I.key&&I.down)da=dt*6.2;else if(I.down){const a=Math.atan2(I.y-CYk,I.x-CXk);if(st.last!=null){let d=a-st.last;if(d>Math.PI)d-=Math.PI*2;if(d<-Math.PI)d+=Math.PI*2;da=Math.max(0,d);}st.last=a;}else st.last=null;
+      let da=0;const ccx=sp.look?160:CXk,ccy=sp.look?96:CYk;if(I.key&&I.down)da=dt*6.2;else if(I.down){const a=Math.atan2(I.y-ccy,I.x-ccx);if(st.last!=null){let d=a-st.last;if(d>Math.PI)d-=Math.PI*2;if(d<-Math.PI)d+=Math.PI*2;da=Math.max(0,d);}st.last=a;}else st.last=null;
       st.ang+=da;st.spd+=(da/dt-st.spd)*Math.min(1,dt*5);wind.set(da>0?Math.min(.1,st.spd*.012):0,500+st.spd*80,3);
       while(st.ang>=Math.PI*2){st.ang-=Math.PI*2;const s=st.spd;const ok=s>3.2&&s<9.5;st.coils.push(ok?1:s>=9.5?2:0);if(ok)st.ok++;A.tone(ok?900:600,.04,'triangle',.05);if(!ok)K.judge(.25,RX+st.coils.length*6,RY-24,true);else if(st.coils.length%4===0)K.judge(1,RX+st.coils.length*6,RY-24,true);}
       if(st.coils.length>=N){st.end=.001;MS.good();}},
-    draw(t){const I=CA_P.iron;K.px(RX-6,RY-30,8,60,CA_P.wood[3]);K.px(RX-6,RY-30,1,60,CA_P.wood[5]);K.metal(RX,RY-3,RL,6,I);
+    draw(t){const I=CA_P.iron,look=sp.look;
+      if(look){const n=st.coils.length,cx=160,cy=96;
+        if(look==='rug'){for(let i=0;i<n*14;i++){const a=i*.45,r=3+a*1.05;const x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r*.55;K.px(x-1,y-1,3,3,['#b25645','#90abc2','#d6ad52'][(i>>2)%3]);}const a=n*14*.45+st.ang,r=3+n*14*.45*1.05;m4hand(K,cx+Math.cos(a)*r,cy+Math.sin(a)*r*.55-4);}
+        else if(look==='mortar'){K.ell(cx,cy+24,40,10,'#3a3630');for(let y=0;y<26;y++){const w=40-y*.4;K.px(cx-w,cy+y-2,w*2,1,CA_P.stone[y<3?5:y<20?3:2]);}K.ell(cx,cy,34,8,CA_P.stone[1]);K.ell(cx,cy+1,30,6,'#d8d0c0');const bones=Math.max(0,8-n);for(let i=0;i<bones;i++)K.px(cx-20+i*5,cy-1+(i%2),4,2,'#efe8dc');
+          const px=cx+Math.cos(st.ang)*18,py=cy+Math.sin(st.ang)*4;K.line(px,py,px+18,py-50,CA_P.stone[4],6);K.line(px+1,py-1,px+19,py-51,CA_P.stone[6],2);m4hand(K,px+18,py-50);}
+        else{for(let i=0;i<9;i++){const tw=st.ang*.15+i*.7,ox=Math.sin(tw)*(4+n*.2);K.line(cx-20+i*4+ox,30,cx-4+i+ox*.3,130,CA_P.straw[3+(i%3)],2);}K.px(cx-12,124,24,6,'#93463f');m4hand(K,cx+Math.cos(st.ang)*16,40+Math.sin(st.ang)*4);m4hand(K,cx,128,true);}
+        return;}
+      K.px(RX-6,RY-30,8,60,CA_P.wood[3]);K.px(RX-6,RY-30,1,60,CA_P.wood[5]);K.metal(RX,RY-3,RL,6,I);
       st.coils.forEach((c,i)=>{const x=RX+4+i*(RL-10)/N;g.strokeStyle=c===1?'#c87a3a':c===2?'#a85a2a':'#8a4a2a';g.lineWidth=2;g.beginPath();g.ellipse(x+(c===2?(i%2?2:-2):0),RY,2.5,8+(c===0?2:0),0,0,6.29);g.stroke();K.px(x-1,RY-8,1,1,'#f4b070');});
       const sp_=st.coils.length;K.line(RX+4+sp_*(RL-10)/N,RY-8,RX+4+sp_*(RL-10)/N+8,RY-40,'#c87a3a',1);
       K.px(CXk-2,CYk-2,4,4,I[5]);const hx=CXk+Math.cos(st.ang)*CR,hy=CYk+Math.sin(st.ang)*CR;K.line(CXk,CYk,hx,hy,I[4],3);K.px(hx-3,hy-6,6,10,CA_P.wood[4]);m4hand(K,hx,hy+2);
       g.strokeStyle='rgba(255,244,192,.25)';g.lineWidth=1;g.beginPath();g.arc(CXk,CYk,CR,0,6.29);g.stroke();},
     hud(t){K.label('PACE',156,24,'#f4ecd8','r');K.gauge(162,24,90,6,3.2/12,9.5/12,Math.min(12,st.spd)/12);K.meter(st.coils.length/N,st.coils.length?st.ok/st.coils.length:1);},
-    auto(dt,AP){const a=m4ai(this,AP,dt);if(this._a==null)this._a=0;if(st.t>.4){this._a+=dt*6.2;m4move(a,CXk+Math.cos(this._a)*CR,CYk+Math.sin(this._a)*CR);m4hold(a,true);}AP.hand=[a.x+2,a.y-10];AP.press=a.down;},
+    auto(dt,AP){const a=m4ai(this,AP,dt);if(this._a==null)this._a=0;if(st.t>.4){this._a+=dt*6.2;const ccx=sp.look?160:CXk,ccy=sp.look?96:CYk;m4move(a,ccx+Math.cos(this._a)*CR*2,ccy+Math.sin(this._a)*CR*2);m4hold(a,true);}AP.hand=[a.x+2,a.y-10];AP.press=a.down;},
     quiet(){wind&&wind.set(0);},stop(){wind&&wind.stop();wind=null;}};};
 // ---------------------------------------------------------------- LINKS: the pliers squeeze each open ring shut; tap when the two ends meet for a closed, seamless link
 S4.links=(sp,K)=>{const g=K.g,N=sp.n||8,COLS=8;const st={i:0,ph:0,sp:2.2,done_:[],t:0,end:0,close:0};

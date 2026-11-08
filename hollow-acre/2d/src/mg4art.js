@@ -2,6 +2,13 @@
    the yard and the barn. Each has its own light: a window, a lantern, the fire. ================= */
 const MG4ART={
   cache:{},
+  fire(K,x0,y0,w,h,heat,t,clip){const g=K.g,F=['#fff8d8','#fce07c','#f8b83c','#f08a1c','#d8541c','#a82c0c','#6a1806'];if(clip){g.save();g.beginPath();g.rect(clip[0],clip[1],clip[2],clip[3]);g.clip();}
+    heat=Math.max(.05,heat);for(let x=0;x<w;x+=2){const u=x/w,env=Math.pow(Math.sin(Math.PI*Math.min(1,Math.max(0,u*1.04-.02))),.55);
+      const n=Math.sin(x*.31+t*7.3)*.45+Math.sin(x*.17-t*4.1)*.3+Math.sin(x*.71+t*12.7)*.25;const H=Math.max(1,h*heat*env*(.62+.38*n));
+      const bands=[[0,.18,0],[.18,.36,1],[.36,.55,2],[.55,.72,3],[.72,.86,4],[.86,.95,5],[.95,1,6]];
+      for(const [a,b,c] of bands){const y1=y0-H*a,y2=y0-H*b;K.px(x0+x,Math.round(y2),2,Math.max(1,Math.round(y1-y2)),F[c===0&&env<.6?1:c]);}
+      if(n>.55&&H>4){const fy=y0-H-3-((t*40+x*3)%6);K.px(x0+x,fy,1,2,F[4]);}}
+    g.globalAlpha=.55;K.px(x0,y0-2,w,2,F[0]);g.globalAlpha=1;if(clip)g.restore();},
   // the still parts of a room are drawn once into a canvas, then lit and animated on top every frame
   base(name,draw){if(this.cache[name])return this.cache[name];const c=document.createElement('canvas');c.width=320;c.height=180;const g=c.getContext('2d');g.imageSmoothingEnabled=false;const K=caKit(g,320,180);K.g=g;draw(K,g);return this.cache[name]=c;},
   tool(K,x,y,kind){const I=CA_P.iron,W=CA_P.wood;
@@ -17,8 +24,8 @@ const MG4ART={
       // a window with leaves outside
       K.px(132,10,56,40,W[1]);for(let y=0;y<34;y++){const u=y/34;K.px(135,13+y,50,1,`rgb(${140+u*70|0},${186+u*44|0},${222+u*20|0})`);}
       for(let x=0;x<50;x++){const h=6+Math.sin(x*.13)*2+Math.sin(x*.41)*1;K.px(135+x,47-h,1,h,'#7a9a8a');}for(let x=0;x<50;x++){const h=3+Math.sin(x*.3+1)*1.5;K.px(135+x,47-h,1,h,'#5a7a4a');}
-      K.px(172,24,3,23,'#3a2a1a');K.px(172,24,1,23,'#5a4028');const LEAF=['#1c3418','#2a4a20','#3c6228','#527e32','#6c9a3e','#8cb44e'];for(const [lx,ly,r] of [[166,22,7],[178,18,8],[186,26,6],[160,30,5],[174,30,6],[182,12,5],[168,13,5]])K.ball(lx,ly,r,LEAF,r-1);
-      for(let k=0;k<20;k++){const lx=158+((k*13)%30),ly=10+((k*7)%24);K.px(lx,ly,1,1,'#a8d060');}K.ball(146,40,5,LEAF,3);K.ball(152,42,4,LEAF,3);
+      K.g.save();K.g.beginPath();K.g.rect(135,13,50,34);K.g.clip();K.px(172,24,3,23,'#3a2a1a');K.px(172,24,1,23,'#5a4028');const LEAF=['#1c3418','#2a4a20','#3c6228','#527e32','#6c9a3e','#8cb44e'];for(const [lx,ly,r] of [[166,22,7],[178,18,8],[186,26,6],[160,30,5],[174,30,6],[182,12,5],[168,13,5]])K.ball(lx,ly,r,LEAF,r-1);
+      for(let k=0;k<20;k++){const lx=158+((k*13)%30),ly=10+((k*7)%24);K.px(lx,ly,1,1,'#a8d060');}K.ball(146,40,5,LEAF,3);K.ball(152,42,4,LEAF,3);K.g.restore();
       K.px(158,13,3,34,W[3]);K.px(135,28,50,3,W[3]);K.px(129,48,62,4,W[5]);K.px(129,52,62,1,W[1]);
       // the tool wall: a pegboard rail with saws, a square, chisels, a mallet, a coil of rope
       K.px(10,12,104,4,O[3]);K.px(10,12,104,1,O[6]);for(let x=14;x<112;x+=10)K.px(x,13,2,2,O[1]);
@@ -34,8 +41,8 @@ const MG4ART={
       for(let y=0;y<112;y++)for(let x=0;x<320;x++){const tx=x%12,ty=y%12,n=K.H32((x/12)|0,(y/12)|0,15);K.px(x,y,1,1,tx===0||ty===0?T[0]:K.pick(T,(ty<2?4:tx>9?2:3)-(n>.8&&ty>1?1:0)));if((tx===2||tx===3)&&ty===2)K.px(x,y,1,1,'#fbf8ee');}
       K.px(18,12,62,44,W[1]);for(let y=0;y<38;y++){const u=y/38;K.px(21,15+y,56,1,`rgb(${150+u*70|0},${192+u*40|0},${226+u*18|0})`);}
       for(let x=0;x<56;x++){const h=7+Math.sin(x*.11+2)*3;K.px(21+x,53-h,1,h,'#86a890');}for(let x=0;x<56;x++){const h=3+Math.sin(x*.27)*1.5;K.px(21+x,53-h,1,h,'#5e8a4c');}
-      const LEAF=['#1c3418','#2a4a20','#3c6228','#527e32','#6c9a3e','#8cb44e'];K.px(64,30,2,23,'#3a2a1a');for(const [lx,ly,r] of [[60,26,6],[70,22,7],[66,32,5],[74,30,4]])K.ball(lx,ly,r,LEAF,r-1);
-      for(let k=0;k<5;k++){const cx=26+k*9;K.ball(cx,49,3,['#a83a2a','#c8503a','#e87050','#f8a080'],3);}
+      K.g.save();K.g.beginPath();K.g.rect(21,15,56,38);K.g.clip();const LEAF=['#1c3418','#2a4a20','#3c6228','#527e32','#6c9a3e','#8cb44e'];K.px(64,30,2,23,'#3a2a1a');for(const [lx,ly,r] of [[60,26,6],[70,22,7],[66,32,5],[74,30,4]])K.ball(lx,ly,r,LEAF,r-1);
+      for(let k=0;k<5;k++){const cx=26+k*9;K.ball(cx,49,3,['#a83a2a','#c8503a','#e87050','#f8a080'],3);}K.g.restore();
       K.px(47,15,3,38,W[3]);K.px(21,33,56,3,W[3]);K.px(15,55,68,4,W[5]);K.px(15,59,68,1,W[1]);
       // copper pans hung by their handles: flat rounds with a rolled rim and a bright polish streak
       K.px(116,5,88,2,CA_P.iron[3]);K.px(116,5,88,1,CA_P.iron[6]);const C=CA_P.copper;
@@ -74,8 +81,8 @@ const MG4ART={
   anim:{
     workshop(K,t){const a=.18+Math.sin(t*5)*.02;K.px(250,0,1,10,CA_P.iron[2]);K.metal(246,10,10,3,CA_P.brass);K.px(247,13,8,9,'rgba(255,220,140,.8)');K.px(249,15,4,5,'#fff2c0');K.metal(246,22,10,2,CA_P.brass);K.glow(251,18,34,'255,200,120',a);},
     kitchen(K,t){},
-    stove(K,t){const f=.5+Math.sin(t*7)*.15+Math.sin(t*13)*.1;for(let i=0;i<5;i++){K.px(176+i*8,128,4,18,`rgba(255,${120+i*12},40,${.35+f*.4})`);K.px(177+i*8,138,2,8,'#ffd27a');}K.glow(194,138,34,'255,140,60',.25+f*.12);},
-    forge(K,t){const f=.35+Math.sin(t*3)*.04+Math.sin(t*11)*.02;for(let i=0;i<9;i++)K.flame(26+i*7,108,1.6,t+i*.3);K.glow(56,96,120,'255,140,60',f);},
+    stove(K,t){const f=.5+Math.sin(t*7)*.15+Math.sin(t*13)*.1;MG4ART.fire(K,173,150,40,22,.7+f*.2,t,[172,124,42,26]);for(let x=174;x<212;x+=4)K.px(x,147,2,3,'#2a1a10');K.glow(194,138,34,'255,140,60',.25+f*.12);},
+    forge(K,t){const f=.35+Math.sin(t*3)*.04+Math.sin(t*11)*.02;MG4ART.fire(K,22,110,68,26,.75+Math.sin(t*2)*.08,t,[20,80,72,30]);K.glow(56,96,120,'255,140,60',f);},
     sewing(K,t){K.px(118,78,5,16,'#efe2c0');K.px(118,78,5,1,'#fff6e0');const fy=Math.sin(t*9)*1;K.px(119,72+fy,3,6,'#ffd27a');K.px(120,70+fy,1,3,'#fff6c8');K.glow(120,74,40,'255,210,140',.3);},
     yard(K,t){for(let i=0;i<3;i++){const cx=((i*120+t*5)%(380))-40,cy=12+i*9;for(const [dx,dy,r] of [[0,0,7],[9,-3,8],[18,0,7],[9,2,7]])K.ell(cx+dx,cy+dy,r,3,'#f6f8fa');}},
     barn(K,t){}},

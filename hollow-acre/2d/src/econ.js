@@ -55,9 +55,12 @@ function openBag(){S.paused=true;const B=$('bagBody');const T=S.tools;
   $('bag').hidden=false;}
 // ---- shops learn about materials: rows may need ore/wood/stone, and say what the button does
 renderShop=(function(prev){return function(){prev();const rows=vendors[shopV].rows();const els=[...$('shopRows').children];rows.forEach((r,i)=>{if(!els[i])return;const b=els[i].querySelector('button');if(!b)return;
-  if(r.need){const ok=Object.entries(r.need).every(([k,n])=>inv(k)>=n)&&S.coins>=r.price&&r.can;const nb=b.cloneNode(true);nb.disabled=!ok;nb.textContent=r.btn||(r.price?r.price+' coins':'Free');
+  if(r.need){const ok=Object.entries(r.need).every(([k,n])=>inv(k)>=n)&&S.coins>=r.price&&r.can;const nb=b.cloneNode(true);nb.disabled=!ok;if(r.btn&&r.price&&r.can)nb.innerHTML=`${r.btn}<br><small style="opacity:.8">${r.price} coins</small>`;else nb.textContent=r.btn||(r.price?r.price+' coins':'Free');
     nb.addEventListener('click',()=>{if(!ok)return;for(const [k,n] of Object.entries(r.need))takeInv(k,n);S.coins-=r.price;SFX.coin();r.buy();renderShop();updateHud();});b.replaceWith(nb);
-    const d=els[i].querySelector('span');const need=' Needs '+Object.entries(r.need).map(([k,n])=>`${n} ${(ITEMS[k]||{name:k}).name.toLowerCase()} (${inv(k)})`).join(', ')+'.';if(d&&!d.dataset.nd){d.textContent+=need;d.dataset.nd=1;}}
+    // everything it takes, coins included, and exactly what's still missing
+    const d=els[i].querySelector('span');const need=' Needs '+(r.price?`${r.price} coins (${S.coins}), `:'')+Object.entries(r.need).map(([k,n])=>`${n} ${(ITEMS[k]||{name:k}).name.toLowerCase()} (${inv(k)})`).join(', ')+'.';
+    const miss=[];if(r.can){if(S.coins<r.price)miss.push(`${r.price-S.coins} more coins`);for(const [k,n] of Object.entries(r.need))if(inv(k)<n)miss.push(`${n-inv(k)} more ${(ITEMS[k]||{name:k}).name.toLowerCase()}`);}
+    if(d&&!d.dataset.nd){d.textContent+=need;d.dataset.nd=1;if(miss.length){const m=document.createElement('b');m.style.cssText='display:block;color:#e8a040;font-weight:normal';m.textContent='Still need '+miss.join(', ')+'.';d.appendChild(m);}}}
   else if(r.btn){b.textContent=r.btn;}});};})(renderShop);
 vendors.hollis.rows=()=>{const fr=S.freeUpgrades,T=S.tools;return [
   {k:'hoe',name:'Copper hoe',desc:S.hoe>1?'Already done.':'Tills three tiles in a row with each swing.',price:fr?0:40,can:S.hoe<2,need:{copper:5},buy(){S.hoe=2;T.hoe=2;}},
