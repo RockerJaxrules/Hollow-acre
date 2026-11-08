@@ -64,7 +64,7 @@ function tileUse(t,kind,mode){const c=t.crop;faceAt(t.x,t.z);
   if(mode==='interact'){if(c)toast(`${SEEDS[c.type].name}: ${c.watered?'watered today':'needs water'}, ${Math.floor(c.growth/(SEEDS[c.type].grow*3)*100)}% grown.`,1.6);return false;}
   if(kind==='hoe'){if(t.tilled||c)return false;doTill(t);return true;}
   if(kind==='can'){if(!t.tilled&&!c){tSay('Water tilled soil or crops.',1.2);return false;}if(S.water<=0){tDeny();tSay('The can is empty. Refill it at the well, or dip it in the pond.',2);return false;}
-    if(c){if(c.watered)return false;doWater(t);return true;}if(t.wet)return false;waterSoil(t);return true;}
+    if(c){if(c.watered)return false;doWater(t);return true;}tSay('Nothing’s growing there yet. Plant something, then water it.',1.6);return false;}
   if(kind==='seed'){const it=selectedItem();if(c)return false;if(!t.tilled){needHint('hoe','Till the soil first.');return false;}if(!it||it.qty<=0){tSay('Out of those seeds. Caitlyn sells more.',1.6);return false;}S.sel=it.id;doPlant(t);return true;}
   if(kind==='fert'){if(!c){tSay('Bone meal goes on a growing crop.',1.4);return false;}boneMeal(t);return true;}
   if(kind==='pick'){if(t.tilled&&!c){untill(t);return true;}return false;}
