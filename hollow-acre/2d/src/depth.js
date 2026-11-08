@@ -94,3 +94,11 @@ function sunActor(X,Y,h){const s=DX.sun;if(!s)return;const g=DX.sg;g.setTransfor
 function sunEnd(){const s=DX.sun;if(!s)return;const g=DX.sg;g.setTransform(1,0,0,1,0,0);
   if(!s.lamp){for(const n of npcs)if(n.vis)sunActor(sx(n.x),sz(n.z),40);if(S.mode!=='title'&&!(cine&&cine.hidePlayer))sunActor(sx(P.x),sz(P.z),40);}
   ctx2.globalAlpha=s.a;ctx2.drawImage(DX.rc,0,0);ctx2.globalAlpha=1;}
+// ---- on a slow phone the water reflections are the heaviest thing on screen: if the game can't keep up (under ~38 frames a
+// second, measured over a few seconds with water in view) they switch off for the rest of the session. Fast machines never notice.
+const DXQ={t0:0,n:0,last:0,lite:false};
+function dxQualityTick(now){if(DXQ.lite)return;if(S.mode!=='play'||S.paused||S.room||!dxWaterOnScreen()){DXQ.n=0;DXQ.t0=0;DXQ.last=now;return;}
+  if(!DXQ.t0){DXQ.t0=now;DXQ.n=0;DXQ.last=now;return;}const gap=now-DXQ.last;DXQ.last=now;if(gap>250){DXQ.t0=now;DXQ.n=0;return;}   // a pause or a hidden tab isn't slowness
+  DXQ.n++;if(now-DXQ.t0>4000){const avg=(now-DXQ.t0)/DXQ.n;if(avg>26)DXQ.lite=true;DXQ.t0=now;DXQ.n=0;}}
+{const _dw=depthWater;depthWater=function(t){if(DXQ.lite)return;return _dw.apply(this,arguments);};}
+{const step=now=>{try{dxQualityTick(now);}catch(e){}requestAnimationFrame(step);};requestAnimationFrame(step);}
