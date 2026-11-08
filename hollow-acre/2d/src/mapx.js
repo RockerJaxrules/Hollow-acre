@@ -5,6 +5,9 @@
 const MAPX={s:4,pad:34,cv:null,zoom:1};
 const REGIONS=[['MARROW HOLLOW',48,1],['HOLLOW ACRE',-2,-15.5],['ROUTE 9',-58,-14],['THE HOLLOW WOODS',108,-16],['THE QUARRY',147,-36],['BLACK LAKE',186,34],
   ['WICKHAM CROSSING',131,40],['QUILL ORCHARD',47,72],['THE MARSH PLACE',-25,70],['MILL ROAD',14,62],['THE RIVER',80,108],['TITHE CLEARING',-26,100],['THE CORN',-2,26]];
+const MAPSIL={};
+function mapSil(im,sx,sy,w,h){const k=im.src+'|'+sx+'|'+sy;if(MAPSIL[k])return MAPSIL[k];const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');
+  g.drawImage(im,sx,sy,w,h,0,0,w,h);g.globalCompositeOperation='source-in';g.fillStyle='#2a1808';g.fillRect(0,0,w,h);return MAPSIL[k]=c;}
 function mapPaint(){const s=MAPX.s,pad=MAPX.pad,W=Math.round((B.x1-B.x0)*s),H=Math.round((B.z1-B.z0)*s);
   const c=document.createElement('canvas');c.width=W+pad*2;c.height=H+pad*2;const g=c.getContext('2d');
   // ---- terrain, pixel by pixel
@@ -52,6 +55,7 @@ function mapPaint(){const s=MAPX.s,pad=MAPX.pad,W=Math.round((B.x1-B.x0)*s),H=Ma
     let sx=0,sy=0;if(m.clips){const c=Object.values(m.clips)[0];const r=Object.values(c)[0];sy=r[0]*m.fh;}
     const dx=X(o.x)-m.ax*sc,dy=Y(o.z)-m.ay*sc,dw=m.fw*sc,dh=m.fh*sc;if(dw<1.5||dh<1.5)continue;
     if(k==='bld'||k==='tree'){g.fillStyle='rgba(20,14,8,.28)';g.beginPath();g.ellipse(X(o.x)+dw*.06,Y(o.z),dw*.42,Math.max(1.5,dw*.13),0,0,Math.PI*2);g.fill();}
+    if(k==='bld'){const oc=mapSil(im,sx,sy,m.fw,m.fh);for(const [ox,oy] of [[-1.5,0],[1.5,0],[0,-1.5],[0,1.5]])g.drawImage(oc,0,0,m.fw,m.fh,dx+ox,dy+oy,dw,dh);}
     g.drawImage(im,sx,sy,m.fw,m.fh,dx,dy,dw,dh);}
   g.restore();
   // ---- the frame: parchment edge, ink border, corners
@@ -70,9 +74,19 @@ function mapPaint(){const s=MAPX.s,pad=MAPX.pad,W=Math.round((B.x1-B.x0)*s),H=Ma
   // title cartouche
   {const t='The Valley of Marrow Hollow';g.font='italic bold 22px Georgia,serif';const tw=g.measureText(t).width+44,tx=pad+18,ty=pad+16;g.fillStyle='rgba(232,214,170,.92)';g.fillRect(tx,ty,tw,38);g.strokeStyle='#4a2e14';g.lineWidth=2;g.strokeRect(tx,ty,tw,38);g.strokeRect(tx+4,ty+4,tw-8,30);
     g.fillStyle='#3a2210';g.textAlign='left';g.fillText(t,tx+22,ty+26);}}
-  // region names, inked across the land
-  g.textAlign='center';for(const [n,x,z] of REGIONS){const px=pad+X(x),py=pad+Y(z);g.font='italic 600 15px Georgia,serif';g.lineWidth=4;g.strokeStyle='rgba(240,226,190,.85)';const spaced=n.split('').join(String.fromCharCode(8202));g.strokeText(spaced,px,py);g.fillStyle='#3a2210';g.fillText(spaced,px,py);}
   return c;}
+// ---- labels never sit on each other: each tries its spot, then above, below, to the side; a pin marks the real spot when it moves.
+// What doesn't fit waits for you to zoom in. Your own mark is never covered.
+function mapLayout(inner){const W=inner.clientWidth,H=inner.clientHeight;if(!W||!H)return;const placed=[];
+  const you=inner.querySelector('.you');if(you){const x=you.offsetLeft,y=you.offsetTop;placed.push({x0:x-14,y0:y-14,x1:x+14,y1:y+14});}
+  const hit=r=>r.x0<2||r.y0<2||r.x1>W-2||r.y1>H-2||placed.some(q=>r.x0<q.x1&&r.x1>q.x0&&r.y0<q.y1&&r.y1>q.y0);
+  const items=[...inner.querySelectorAll('.plq,.rgn')].sort((a,b)=>(+b.dataset.pri)-(+a.dataset.pri));
+  for(const el of items){el.style.display='';const ax=+el.dataset.ax*W/100,ay=+el.dataset.ay*H/100,w=el.offsetWidth,h=el.offsetHeight;
+    const C=el.classList.contains('rgn')?[[0,0],[0,-h*.8],[0,h*.8],[w*.25,0],[-w*.25,0]]:[[0,0],[0,-h-7],[0,h+7],[w/2+9,0],[-w/2-9,0],[w/2+7,-h-3],[-w/2-7,-h-3],[w/2+7,h+3],[-w/2-7,h+3]];
+    let ok=null;for(const [dx,dy] of C){const r={x0:ax+dx-w/2-3,y0:ay+dy-h/2-2,x1:ax+dx+w/2+3,y1:ay+dy+h/2+2};if(!hit(r)){ok=[dx,dy,r];break;}}
+    if(!ok){el.style.display='none';continue;}
+    placed.push(ok[2]);el.style.left=(ax+ok[0])+'px';el.style.top=(ay+ok[1])+'px';
+    if((ok[0]||ok[1])&&el.classList.contains('plq')){const d=document.createElement('div');d.className='pin';d.style.left=ax+'px';d.style.top=ay+'px';inner.appendChild(d);}}}
 // ---- the live layer: the field as it is today, you, your objective, your friends
 function mapLive(g,base){const s=MAPX.s,pad=MAPX.pad,X=x=>pad+(x-B.x0)*s,Y=z=>pad+(z-B.z0)*s;g.drawImage(base,0,0);
   for(const t of tiles){if(t.gh)continue;if(!t.tilled&&!t.crop)continue;g.fillStyle=t.crop&&t.crop.watered?'#5a3a20':'#7a5230';g.fillRect(X(t.x-.5)+.5,Y(t.z-.5)+.5,s-1,s-1);
@@ -86,6 +100,9 @@ function mapLive(g,base){const s=MAPX.s,pad=MAPX.pad,X=x=>pad+(x-B.x0)*s,Y=z=>pa
 {const c=document.createElement('style');c.textContent=`
 #mapWrap{position:relative;overflow:auto;max-height:min(64vh,620px);-webkit-overflow-scrolling:touch;background:#2a1a0c;box-shadow:inset 0 0 0 3px #5a3418;touch-action:pan-x pan-y}
 #mapInner{position:relative}#mapInner canvas{display:block;width:100%;height:auto;image-rendering:auto}
+#mapWrap .rgn{position:absolute;transform:translate(-50%,-50%);font:italic 600 13px/1 Georgia,serif;letter-spacing:.16em;color:#3a2210;white-space:nowrap;pointer-events:none;
+  text-shadow:0 0 2px rgba(240,226,190,.95),0 0 4px rgba(240,226,190,.9),1px 1px 0 rgba(240,226,190,.9)}
+#mapWrap .plq,#mapWrap .rgn{z-index:2}#mapWrap .pin{z-index:1;position:absolute;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#3a2210;box-shadow:0 0 0 1.5px #f0e2be;pointer-events:none}
 #mapWrap .plq{position:absolute;transform:translate(-50%,-50%);font:600 11px/1.1 Georgia,serif;color:#2a1608;background:rgba(236,220,178,.9);padding:2px 6px;border:1px solid #6a4422;box-shadow:1px 1px 0 rgba(0,0,0,.35);white-space:nowrap;pointer-events:none}
 #mapWrap .you{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;pointer-events:none}
 #mapWrap .you:before{content:'';position:absolute;inset:0;border-radius:50%;background:#e8402a;box-shadow:0 0 0 2px #fff,0 0 0 4px rgba(0,0,0,.4)}
@@ -103,9 +120,10 @@ renderMap=function(keep){const B2=$('bagBody');$('bagSub').textContent=S.room?'Y
   const base=MAPX.cv,cv=$('mapCv');cv.width=base.width;cv.height=base.height;mapLive(cv.getContext('2d'),base);
   const wrap=$('mapWrap'),inner=$('mapInner');const fit=wrap.clientWidth||600;const wpx=Math.max(fit,Math.round(fit*1.7*MAPX.zoom));inner.style.width=wpx+'px';
   const pct=(x,z)=>[(MAPX.pad+(x-B.x0)*MAPX.s)/base.width*100,(MAPX.pad+(z-B.z0)*MAPX.s)/base.height*100];
-  if(MAPX.zoom>=1)for(const [n,x,z] of MAP_PLACES){const nn=x=>x.toLowerCase().replace(/^the /,'');if(REGIONS.some(r=>nn(r[0])===nn(n)))continue;const [l,t]=pct(x,z);const dv=document.createElement('div');dv.className='plq';dv.style.left=l+'%';dv.style.top=t+'%';dv.textContent=n;inner.appendChild(dv);}
+  for(const [n,x,z] of MAP_PLACES){const nn=x=>x.toLowerCase().replace(/^the /,'');if(REGIONS.some(r=>nn(r[0])===nn(n)))continue;const [l,t]=pct(x,z);const dv=document.createElement('div');dv.className='plq';dv.dataset.ax=l;dv.dataset.ay=t;dv.dataset.pri=10;dv.textContent=n;inner.appendChild(dv);}
+  for(const [n,x,z] of REGIONS){const [l,t]=pct(x,z);const dv=document.createElement('div');dv.className='rgn';dv.dataset.ax=l;dv.dataset.ay=t;dv.dataset.pri=5;dv.style.fontSize=Math.round(11+MAPX.zoom*2)+'px';dv.textContent=n;inner.appendChild(dv);}
   let px=P.x,pz=P.z;const R=roomOf&&roomOf();if(R&&R.out){px=R.out.x;pz=R.out.z;}const [l,t]=pct(px,pz);const y=document.createElement('div');y.className='you';y.style.left=l+'%';y.style.top=t+'%';inner.appendChild(y);
   // late in the story the map knows something you don't: a second mark, at the Marsh place
   if(typeof hl==='function'&&hl()>=3&&isNight()&&rand()<.5){const [l2,t2]=pct(-20,LANE_W-1);const g2=document.createElement('div');g2.className='you ghost';g2.style.left=l2+'%';g2.style.top=t2+'%';inner.appendChild(g2);setTimeout(()=>g2.remove(),2400);}
   $('mzIn').onclick=()=>mapZoom(MAPX.zoom*1.5);$('mzOut').onclick=()=>mapZoom(MAPX.zoom/1.5);
-  $('bag').hidden=false;requestAnimationFrame(()=>{const fx=keepX!=null?keepX:l/100,fy=keepY!=null?keepY:t/100;wrap.scrollLeft=fx*wrap.scrollWidth-wrap.clientWidth/2;wrap.scrollTop=fy*wrap.scrollHeight-wrap.clientHeight/2;});};
+  $('bag').hidden=false;requestAnimationFrame(()=>{mapLayout(inner);const fx=keepX!=null?keepX:l/100,fy=keepY!=null?keepY:t/100;wrap.scrollLeft=fx*wrap.scrollWidth-wrap.clientWidth/2;wrap.scrollTop=fy*wrap.scrollHeight-wrap.clientHeight/2;});};

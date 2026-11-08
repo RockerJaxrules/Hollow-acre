@@ -133,7 +133,7 @@ vendors.v_forge={name:'Brannock’s Forge',sub:'“Iron remembers. So do I.”',
 vendors.v_carp={name:'Hartley Carpentry',sub:'“Measure twice. Measure three times if it’s a box.”',rows:()=>[
   {k:'wood',name:'Timber ×10',desc:'Seasoned planks, cut to length.',price:25,can:true,buy(){addInv('wood',10);}},
   {k:'plans',name:'Building plans',desc:'Nell draws it, you choose where it goes on the farm.',price:0,can:true,btn:'Look',buy(){setTimeout(()=>openShop('plans'),0);}},
-  ...Object.entries(FURN).map(([k,[name,spr,need]])=>({k:'f_'+k,name:name+' (made to order)',desc:S.furn.includes(k)||S.furnBag.includes(k)?'You already have one.':'Nell builds it; you place it in the cabin.',price:Object.values(need).reduce((a,b)=>a+b,0)*4,can:!S.furn.includes(k)&&!S.furnBag.includes(k),
+  ...Object.entries(FURN).map(([k,[name,spr,need]])=>({k:'f_'+k,name:name+' (made to order)',desc:'Nell builds it; you place it in the cabin. As many as you like.',price:Object.values(need).reduce((a,b)=>a+b,0)*4,can:true,
     buy(){S.furnBag.push(k);toast(`Nell carries the ${name.toLowerCase()} out. It’s in your bag; place it inside the cabin.`,2.6);}})),
   {k:'sellw',name:'Sell timber',desc:`2 coins a plank. You have ${inv('wood')}.`,price:0,can:inv('wood')>=10,btn:'Sell 10',buy(){takeInv('wood',10);S.coins+=20;}}]};
 vendors.v_feed={name:'Bell’s Feed & Stock',sub:'“Treat ’em kind. They’re all that sleeps easy here.”',rows:()=>[

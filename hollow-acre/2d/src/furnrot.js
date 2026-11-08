@@ -29,7 +29,7 @@ startFurn=function(k,opt){opt=opt||{};const [name]=FURN[k];const rot=opt.rot||'S
   startPlace({spr:v.spr,flip:v.flip,w,d,room:'cabin',furn:k,rot,moving:!!opt.back,name:name.toLowerCase(),
     cancel(){if(opt.back)opt.back();else S.furnBag.push(k);},
     done(x,z){const r=this.rot||'S';const p={k,x,z,rot:r};S.furnPlaced.push(p);furnHook(p,placeFurnAt(k,x,z,r));}});
-  S.furnBag=S.furnBag.filter(q=>q!==k);
+  if(!opt.back){const i=S.furnBag.indexOf(k);if(i>=0)S.furnBag.splice(i,1);}   // take just the one you're placing
   if(FURN_VIEWS[k]){const fine=matchMedia('(pointer:fine)').matches;$('placeHint').innerHTML+=fine?' <b>R</b> turns it.':' <b>Rotate</b> turns it.';}
   $('placeRot').style.display=FURN_VIEWS[k]?'':'none';};
 // a Rotate button on the placement bar, and R on a keyboard

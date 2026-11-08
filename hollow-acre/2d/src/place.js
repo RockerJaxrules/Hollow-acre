@@ -120,9 +120,10 @@ S.furnBag=S.furnBag||[];S.furnPlaced=S.furnPlaced||[];
 const FURN_FP={chair:[.85,.55],lamp:[.6,.4],shelf:[1.6,.45],rug:[2.4,1.4],pumpkin:[.7,.5],crates:[1.3,.7]};
 function placeFurnAt(k,x,z){const [name,spr,need,pos,kind]=FURN[k];const o=obj(spr,x,z,{kind:kind||'furn',room:'cabin',glow:k==='pumpkin'?1:0,night:SPR[spr+'_n']?spr+'_n':null});
   if(!kind){const [w,d]=FURN_FP[k];addRect(x-w/2,z-d,x+w/2,z-.02);}if(k==='lamp'){S.cabinLamp={x,z};}if(!S.furn.includes(k))S.furn.push(k);}
-vendors.b_furn.rows=()=>Object.entries(FURN).map(([k,[name,spr,need]])=>({k,name,desc:S.furn.includes(k)?'Already in the cabin.':S.furnBag.includes(k)?'In your bag. Place it inside the cabin.':'Made here, placed wherever you like inside the cabin.',price:0,
-  can:!S.furn.includes(k)&&!S.furnBag.includes(k)&&(k!=='pumpkin'||basketCount('pumpkin')>0),need,btn:'Make',buy(){if(k==='pumpkin')takeBasket('pumpkin',1);S.furnBag.push(k);toast(`The ${name.toLowerCase()} is in your bag. Place it from the bag inside the cabin.`,2.6);}}));
-function startFurn(k){const [name,spr]=FURN[k];const [w,d]=FURN_FP[k];startPlace({spr,w,d,room:'cabin',name:name.toLowerCase(),cancel(){S.furnBag.push(k);},done(x,z){placeFurnAt(k,x,z);S.furnPlaced.push({k,x,z});}});S.furnBag=S.furnBag.filter(q=>q!==k);}
+const furnCount=k=>(S.furnPlaced||[]).filter(p=>p.k===k).length+S.furnBag.filter(q=>q===k).length;
+vendors.b_furn.rows=()=>Object.entries(FURN).map(([k,[name,spr,need]])=>({k,name,desc:`Made here, placed wherever you like inside the cabin. Make as many as you like.${furnCount(k)?` You have ${furnCount(k)}.`:''}`,price:0,
+  can:(k!=='pumpkin'||basketCount('pumpkin')>0),need,btn:'Make',buy(){if(k==='pumpkin')takeBasket('pumpkin',1);S.furnBag.push(k);toast(`The ${name.toLowerCase()} is in your bag. Place it from the bag inside the cabin.`,2.6);}}));
+function startFurn(k){const [name,spr]=FURN[k];const [w,d]=FURN_FP[k];startPlace({spr,w,d,room:'cabin',name:name.toLowerCase(),cancel(){S.furnBag.push(k);},done(x,z){placeFurnAt(k,x,z);S.furnPlaced.push({k,x,z});}});const i=S.furnBag.indexOf(k);if(i>=0)S.furnBag.splice(i,1);}
 {const _ob=openBag;openBag=function(){_ob();if(!S.furnBag.length)return;const B=$('bagBody');const h=document.createElement('div');
   h.innerHTML='<h3>Furniture</h3><div class="grid">'+S.furnBag.map(k=>`<div class="it"><img src="${iconOf(FURN[k][1])}" alt=""><span>${FURN[k][0]}</span><button data-place="${k}">Place</button></div>`).join('')+'</div>';B.appendChild(h);
   h.querySelectorAll('[data-place]').forEach(b=>b.addEventListener('click',()=>{if(S.room!=='cabin'){toast('Carry it into the cabin first.',1.6);return;}startFurn(b.dataset.place);}));};}
