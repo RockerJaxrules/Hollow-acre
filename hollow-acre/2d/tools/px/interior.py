@@ -48,6 +48,13 @@ ROOMS = {
   'home_kerrigan': dict(windows=[[2, 0], [6, 0]], w=9, d=6, door=4, theme='home', wall='panel', floor='painted', paint='rust', doors=[[8.35, 'bark']], mat='mustard'),
   'home_pike': dict(windows=[[2, 0], [6, 0]], w=9, d=6, door=4, theme='home', wall='log', floor='wide', doors=[[8.35, 'teal']], mat='blue'),
   'home_ward': dict(windows=[[2, 0], [6, 0]], w=9, d=6, door=4, theme='home', wall='plaster', paper='mustard', floor='parquet', doors=[[8.35, 'red']], mat='sage'),
+  # ---- out in the new land
+  'rg_office': dict(w=8, d=6, door=4, theme='home', wall='stripe', paper='mustard', floor='checker', chk='red', windows=[[1.8, 0], [6.2, 0]], mat='red'),
+  'rg_room6': dict(w=7, d=5, door=3.5, theme='home', wall='damask', paper='sage', floor='wide', windows=[[3.5, 0]], mat='curtain'),
+  'rg_dorm': dict(w=14, d=8, door=7, theme='home', wall='plaster', paper='slate', floor='wide', wains='bead', windows=[[1.8, 0], [4.8, 0], [9.2, 0], [12.2, 0]], mat='slate'),
+  'rg_hut': dict(w=6, d=5, door=3, theme='home', wall='log', floor='planks', windows=[[4.6, 0]], mat='sage'),
+  'rg_ranger': dict(w=8, d=6, door=4, theme='home', wall='log', floor='wide', windows=[[2, 0], [6, 0]], mat='sage'),
+  'rg_lookout': dict(w=6, d=5, door=3, theme='home', wall='panel', floor='wide', windows=[[.9, 0], [2.3, 0], [3.7, 0], [5.1, 0]], mat='sage'),
   # ---- the back rooms of the houses: where they sleep, and keep what they don't show visitors
   'back_agnes': dict(w=7, d=5, door=3.5, theme='home', wall='stripe', paper='sage', floor='painted', paint='blue', windows=[[3.5, 0]], mat='rust'),
   'back_hale': dict(w=7, d=5, door=3.5, theme='home', wall='panel', floor='wide', windows=[[2, 0], [5.2, 0]], mat='curtain'),
