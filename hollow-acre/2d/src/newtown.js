@@ -75,3 +75,20 @@ function nearLeaf(){const a=Math.random()*6.283,r=6+Math.random()*7;return {x:ca
     for(const [k,p] of Object.entries(d.bench)){if(!p||!inTown(p.x,p.z))continue;const bad=onRoad(p.x,p.z,.6)||blds.some(b=>p.x>b[0]&&p.x<b[2]&&p.z>b[1]&&p.z<b[3]);
       if(bad){const i=BENCHES.findIndex(b=>b[0]===k);if(i>=0&&typeof benchSpot==='function')d.bench[k]=benchSpot(i);}}}}catch(e){}
   return _lg.apply(this,arguments);};}
+
+// ---- the farmstead and the houses on Route 9 west, given back their yards (#146c)
+{const _bw=buildWorld;buildWorld=function(){_bw();
+  const P_=(spr,x,z,o)=>put(spr,x,z,0,Object.assign({kind:'prop',town:1},o||{}));const T_=(n,x,z)=>{const e=obj(n,x,z,{kind:'tree',solid:1,town:1});addCircle(x,z,.4);return e;};
+  const clearAround=(x0,z0,x1,z1)=>{for(let i=OBJ.length-1;i>=0;i--){const o=OBJ[i];if(o.town||o.x<x0||o.x>x1||o.z<z0||o.z>z1)continue;if(!/^(tree|pine|bush|deco|anim)$/.test(o.kind||'')&&!o.debris)continue;
+      for(let j=circles.length-1;j>=0;j--)if(Math.hypot(circles[j].x-o.x,circles[j].z-o.z)<.5)circles.splice(j,1);OBJ.splice(i,1);}};
+  // Hollow Acre: Grandpa's little orchard under the ridge, his tool shed, and the honesty stand at the gate
+  clearAround(-12,-19.6,-7,-14);for(const [n,x,z] of [['apple_tree',-10.4,-14.9],['apple_gold',-8.2,-17.1],['apple_tree',-11,-18.4]])T_(n,x,z);
+  P_('shed_b',-9.8,-9.9);P_('in_produce',-10.2,-8.35);P_('signpost',-11.9,-7.9,{label:'EGGS',kind:'prop'});
+  // Agnes's back garden: vegetables, her washing, and Ruth's swing, still hanging
+  clearAround(-50.5,-19.8,-41.5,-12.6);hedgeLine(-50.2,-12.9,-19.2);hedgeLine(-41.8,-12.9,-19.2);fenceLine(-50.2,-19.2,-41.8,-19.2,0,'picket');
+  P_('gardenbed',-47.6,-15,{kind:'flat'});P_('clothesline',-44.6,-17.6);P_('rg_swing',-46.8,-17.8);P_('birdbath',-43.2,-14.6);
+  // behind Pruitt's: the cars Hollis couldn't save, tyres and drums
+  clearAround(-41.5,-17.6,-30,-14);P_('rg_car_b',-38.2,-15.4);P_('rg_car_c',-33.6,-16.6,{flip:true});P_('tyres',-35.6,-14.6);P_('tyres',-35,-15.1);P_('drum',-31.2,-14.6);P_('drum',-30.7,-15);
+  reserve(-50.5,-19.8,-41.5,-12.6);reserve(-41.5,-17.6,-30,-14);};}
+interact.push({x:-10.2,z:-7.9,r:1.1,on:()=>!S.room,label:()=>'Look',ok:()=>true,act(){SFX.page&&SFX.page();const t='Grandpa’s honesty stand. A tin nailed to the post, CASH in his capitals. It is full of coins: forty years of them, most older than you. Nobody ever took one. Under the tin someone has scratched, recently: HE STILL COUNTS IT.';
+  toast(t,5,true);S.rgLook=S.rgLook||{};if(!S.rgLook.honesty){S.rgLook.honesty=1;addLore(t);}}});

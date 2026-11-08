@@ -59,7 +59,7 @@ const LESSONS=[
    goal:()=>'Buy seeds at Caitlyn’s store',ok:()=>S.ls.ev.buy,seeds:{pumpkin:2},done:'A customer! Here, two pumpkin seeds extra. Don’t tell Hollis I play favourites.'},
   {id:'gather',t:'Wood and stone',say:'You’ll need wood and stone for everything. Hold the axe and tap a tree to chop it; hold the pickaxe and tap a rock to break it. Stumps need two swings.',
    goal:b=>`Gather wood ${Math.min(inv('wood')-b.wood,15)}/15 · stone ${Math.min(inv('stone')-b.stone,15)}/15`,ok:b=>inv('wood')-b.wood>=15&&inv('stone')-b.stone>=15,begin:b=>{b.wood=inv('wood');b.stone=inv('stone');},coins:25,done:'Strong arms. Elias had strong arms. He taught me to split kindling when I was nine and never once let me win.'},
-  {id:'build',t:'Build a workbench',at:()=>({x:12.6,z:-5.2}),say:'Elias left his building plans pinned on the board by the woodpile, east of the cabin near the road. Look at them and build the Farming bench. You choose where it goes.',
+  {id:'build',t:'Build a workbench',at:()=>({x:9.9,z:-7.7}),say:'Elias left his building plans pinned on the board by the woodpile, east of the cabin near the road. Look at them and build the Farming bench. You choose where it goes.',
    goal:()=>'Build a workbench from Grandpa’s plans',ok:()=>Object.values(S.benches||{}).some(Boolean),coins:20,done:'Look at that. It’s even level. You’re better at this than he was.'},
   {id:'craft',t:'Craft something',say:'Open your bag and press Craft, or use a bench. Everything you gather makes something. Try a straw charm or a lamp oil flask.',
    goal:()=>'Craft anything',ok:()=>S.ls.ev.craft,items:{fiber:5},done:'There’s nothing on a farm that isn’t good for something. Here, more fiber.'},
@@ -106,7 +106,7 @@ const LS_AT={
   till:()=>LS_NEAR(fieldTiles().filter(t=>!t.tilled)),plant:()=>LS_NEAR(fieldTiles().filter(t=>t.tilled&&!t.crop)),
   water:()=>S.water<=0?wellPos:LS_NEAR(fieldTiles().filter(t=>t.crop&&!t.crop.watered)),
   fish:()=>({x:pond.x,z:pond.z-pond.r-.6}),cook:()=>doorPos,friends:()=>({x:squarePos.x,z:squarePos.z+4}),upgrade:()=>({x:-36,z:-14}),ward:()=>({x:CHURCH_DOOR.x,z:CHURCH_DOOR.z+.6}),
-  furnish:()=>doorPos,coop:()=>({x:12.6,z:-5.2}),smelt:()=>({x:12.6,z:-5.2})};
+  furnish:()=>doorPos,coop:()=>({x:9.9,z:-7.7}),smelt:()=>({x:9.9,z:-7.7})};
 function guideTarget(fallback){
   if(S.ls&&S.ls.i>=0&&!S.tut.off){const sd=S.ls.side&&S.ls.side.ship;if(sd&&sd.st==='on'&&S.basket.length)return guidePoint(binPos);
     const L=LESSONS[S.ls.i];if(L){const t=(L.at&&L.at())||(LS_AT[L.id]&&LS_AT[L.id]());if(t)return guidePoint(t);return null;}}

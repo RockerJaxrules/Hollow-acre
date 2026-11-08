@@ -38,9 +38,9 @@ const farmObjs=[];
 function rebuildFarm(){for(const o of farmObjs){o.hide=true;}farmObjs.length=0;
   if(S.coop){const o=obj('coop',11,-2.6,{kind:'bld',night:'coop_n'});farmObjs.push(o);addRect(9.6,-3.8,12.4,-2.7);}
   if(S.fieldLamps){for(const x of [-2,2]){lamp(x,-1.6);farmObjs.push(lamps[lamps.length-1].e);lamps[lamps.length-1].dead=false;}}}
-interact.push({x:12.6,z:-5.2,r:1.4,label:()=>'Plans',ok:()=>true,act(){openShop('plans');}});
+interact.push({x:9.9,z:-7.7,r:1.4,label:()=>'Plans',ok:()=>true,act(){openShop('plans');}});
 interact.push({x:11.9,z:-2.0,r:1.5,on:()=>S.coop&&S.eggs>0,label:()=>`Eggs ${S.eggs}`,ok:()=>true,act(){for(let i=0;i<S.eggs;i++)S.basket.push({kind:'egg',value:8});toast(`You collect ${S.eggs} eggs. One is still warm. One is cold as a stone.`,2.6);S.eggs=0;SFX.harvest();updateHud();}});
-put('board',12.6,-5.6,0);addSeg(11.8,-5.6,13.4,-5.6,.12);
+put('board',9.9,-8.1,0);addSeg(9.1,-8.1,10.7,-8.1,.12);   // on the verge by the well, not in the road
 
 // Stardew-style: after a harvest, hold the crop up over your head for a moment
 const _doHarvest=doHarvest;doHarvest=function(t){const type=t.crop&&t.crop.type;_doHarvest(t);if(type)setTimeout(()=>{P.hold={spr:type+'_3',t:1.1};},420);};
