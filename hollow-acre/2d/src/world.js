@@ -318,7 +318,7 @@ function buildTown(){
   side(22.2,19.4,14.4);side(28.8,18.8,14.4);fenceLine(22.2,14.4,24.4,14.4,0,'picket');fenceLine(26.2,14.4,28.8,14.4,0,'picket');Y('gardenbed',25.6,16.4,{kind:'flat'});Y('birdbath',27,17.6);
   fenceLine(30,14.4,36.2,14.4);Y('wk_boat',33,16.2);Y('wk_nets',31.4,17.4);Y('barrel',35.4,15.8);
   // the Dunns: the sheriff's car in the lane, a shed, cellar doors; the Oakes: an old stone wall round a vegetable garden
-  put('police',61.4,29.8,0,{kind:'car'});addRect(59,28.5,63.8,29.8);Y('shed',56,19.8);D('cellardoor',62.8,24.6);Y('clothesline_b',59.4,20.6);
+  ROADS.push([61.4,26.4,61.4,31.2,3]);put('police',61.4,29.8,0,{kind:'car'});addRect(59,28.5,63.8,29.8);Y('shed',56,19.8);D('cellardoor',62.8,24.6);Y('clothesline_b',59.4,20.6);
   W('stonewall',64,70,18.8);W('stonewall_b',70,72,18.8);Y('gardenbed_b',67.4,17.4,{kind:'flat'});
   // the Gales: money's short, the roof leaks; marr's hedge has swallowed his gate; wren's is going back to the woods
   obj('tarp',29.6,36.24,{kind:'prop',noCol:true,town:1});fenceLine(26.4,33.2,34.6,33.2,0,'picket');Y('clothesline',30.6,31.4);Y('wheel',35.4,33.6);

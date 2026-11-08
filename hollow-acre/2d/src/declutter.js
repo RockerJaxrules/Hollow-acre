@@ -3,7 +3,28 @@
    footprints. The smaller, purely decorative piece is taken away (and any collider it brought with it), so the bigger thing
    reads cleanly. Wall and fence runs overlap on purpose and are left alone, as is the bucket by the well. ================= */
 const DECLUTTER={removed:[]};
-{const _bw=buildWorld;buildWorld=function(){_bw();try{grovePass();}catch(e){console.error('groves',e);}try{declutter();}catch(e){console.error('declutter',e);}};}
+{const _bw=buildWorld;buildWorld=function(){_bw();try{grovePass();}catch(e){console.error('groves',e);}try{frontWalks();}catch(e){console.error('walks',e);}try{declutter();}catch(e){console.error('declutter',e);}};}
+/* front walks: every house has a way to its door. From the doorstep a narrow stone walk runs to the nearest lane or street,
+   straight down if it can, otherwise down a step and along; never through a wall, a fence or another building. */
+const WALKS=[];
+function frontWalks(){
+  const st0=LAYERS.stone;
+  const hard=(x,z)=>onRoad(x,z,0)||st0(x,z);
+  const FEN=OBJ.filter(o=>!o.hide&&o.kind==='fence'&&o.x<250);
+  const inRect=(x,z)=>rects.some(r=>x>r.x0-.15&&x<r.x1+.15&&z>r.z0-.15&&z<r.z1+.15)||segs.some(q=>segDist(x,z,q.x1,q.z1,q.x2,q.z2)<(q.r||.2)+.15)||
+    FEN.some(o=>o.spr.endsWith('_h')?(Math.abs(z-o.z)<.35&&x>o.x-.2&&x<o.x+(o.clipw||2)+.2):(Math.abs(x-o.x)<.35&&z>o.z-1.2&&z<o.z+.2));
+  for(const h of HOUSES){const o=h.e;if(!o||o.hide||o.x>=250||o.room)continue;
+    if(!/^(house|h_|wk_house|wk_ward|wk_pike|wk_schoolh|cabin|schoolhouse|inn|tavern|townhall|postoffice|store|shop_|rg_logcabin)/.test(o.spr))continue;
+    const dx=o.x,dz=o.z+.45;if(hard(dx,dz+.6))continue;
+    let seg=null;
+    for(let k=.5;k<=9;k+=.25){const z=dz+k;if(inRect(dx,z))break;if(hard(dx,z)){seg=[[dx,dz,dx,z+.3]];break;}}
+    if(!seg){const z1=dz+1.4;if(!inRect(dx,z1))for(const s of [1,-1]){for(let k=.5;k<=10;k+=.25){const x=dx+s*k;if(inRect(x,z1))break;if(hard(x,z1)){seg=[[dx,dz,dx,z1],[dx,z1,x+s*.3,z1]];break;}}if(seg)break;}}
+    if(!seg)continue;
+    for(const q of seg){WALKS.push([q[0],q[1],q[2],q[3]]);
+      for(const p of OBJ)if(!p.hide&&/^(pumpkin|jack|weeds|fern|bush_|rock_)/.test(p.spr)&&segDist(p.x,p.z,q[0],q[1],q[2],q[3])<.75){p.hide=true;
+        for(let k=circles.length-1;k>=0;k--)if(Math.abs(circles[k].x-p.x)<.5&&Math.abs(circles[k].z-p.z)<.5)circles.splice(k,1);}}}
+  if(WALKS.length){LAYERS.stone=(x,z)=>st0(x,z)||WALKS.some(q=>Math.abs(x-(q[0]+q[2])/2)<Math.abs(q[2]-q[0])/2+1&&Math.abs(z-(q[1]+q[3])/2)<Math.abs(q[3]-q[1])/2+1&&segDist(x,z,q[0],q[1],q[2],q[3])<.55);}
+}
 /* groves, not sprinkles: the open land had its trees scattered evenly, one every few steps, everywhere. Real country (and good
    game maps) has groves and stands with meadows between them. A slow field decides where the groves are; lone trees out in
    the meadows are taken away, and the groves fill in with more of the same tree. Deep woods, the farm, the towns and the
