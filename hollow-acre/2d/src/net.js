@@ -25,7 +25,7 @@ function netRoom(name){const r=HollowNet.joinRoom({appId:NET_APP,turnConfig:NET_
   get((d,id)=>{if(!d||typeof d!=='object'||Array.isArray(d))return;let s='';try{s=JSON.stringify(d);}catch(e){return;}if(s.length>4096)return;
     const prev=peers.get(id);const p=Object.freeze({peer:id,by:null,isMe:false,sameTab:false,kind:'viewer',guest:false,presence:Object.freeze(d),updatedAt:Date.now()});peers.set(id,p);fire(prev?{u:[p]}:{j:[p]});});
   return {name,net:true,
-    presence(patch){for(const [k,v] of Object.entries(patch||{})){if(v===null)delete mine[k];else mine[k]=v;}mine=Object.assign({},mine);dirty=true;if(!tmr)tmr=setTimeout(flush,100);return Promise.resolve();},
+    presence(patch){for(const [k,v] of Object.entries(patch||{})){if(v===null)delete mine[k];else mine[k]=v;}mine=Object.assign({},mine);dirty=true;if(!tmr)tmr=setTimeout(flush,50);return Promise.resolve();},
     onPeers(cb){cbs.push(cb);setTimeout(()=>fire({j:[me()]}),0);return ()=>{const i=cbs.indexOf(cb);if(i>=0)cbs.splice(i,1);};},
     onConnection(cb){setTimeout(()=>cb(true),0);return ()=>{};},connected:()=>true,peers:()=>[me(),...peers.values()],
     emit(topic,data,to){if(!open)return Promise.resolve();try{evSend({t:topic,d:data},to);}catch(e){}return Promise.resolve();},

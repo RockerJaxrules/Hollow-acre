@@ -79,3 +79,51 @@ addEventListener('pagehide',()=>{if(HOST.role&&CO.room&&CO.room.emit)try{CO.room
   const stop=e=>e.stopPropagation();if($('hoCode'))['keydown','keyup','keypress'].forEach(t=>$('hoCode').addEventListener(t,stop));
   if($('hoHost'))$('hoHost').onclick=()=>hostStart();if($('hoJoin'))$('hoJoin').onclick=()=>hostJoin($('hoCode').value);
   if($('hoStop'))$('hoStop').onclick=()=>{hostLeave();toast('You stopped hosting.',2);};if($('hoLeave'))$('hoLeave').onclick=()=>hostLeave();};}
+/* ================= on a shared farm, what anyone builds shows up for everyone straight away: benches, furniture in the cabin,
+   the coop, the greenhouse, the field lamps, sprinklers, the shipping bin and the eggs. Before, they only arrived the next morning. ================= */
+const MPW={known:{},t:0,pending:null,reg:{bench:[],furn:[],farm:{rects:[],lamps:[]}}};
+const WORLD_KEYS=['benches','furnPlaced','coop','coopPos','fieldLamps','greenhouse','sprinklers','ship','eggs','_bp','_gh'];
+function worldOut(k){if(k==='_bp')return BENCH_POS;if(k==='_gh')return S.greenhouse?{x:GH.x,z:GH.z}:null;
+  if(k==='coopPos'&&S.coopPos)return {x:S.coopPos.x,z:S.coopPos.z};return S[k]===undefined?null:S[k];}
+const wjs=v=>{try{return JSON.stringify(v===undefined?null:v);}catch(e){return 'null';}};
+function worldReset(){for(const k of WORLD_KEYS)MPW.known[k]=wjs(worldOut(k));}
+// what each bench, piece of furniture and farm building put into the world, so it can be taken out again and put back as the others have it
+const unplace=e=>{for(const o of e.objs||[]){o.hide=true;const i=OBJ.indexOf(o);if(i>=0)OBJ.splice(i,1);}for(const r of e.rects||[]){const i=rects.indexOf(r);if(i>=0)rects.splice(i,1);}
+  for(const it of e.its||[]){const i=interact.indexOf(it);if(i>=0)interact.splice(i,1);}};
+{const _pb=placeBench;placeBench=function(k){const o0=OBJ.length,r0=rects.length,i0=interact.length;const out=_pb.apply(this,arguments);
+  MPW.reg.bench.push({k,objs:OBJ.slice(o0),rects:rects.slice(r0),its:interact.slice(i0)});return out;};}
+{const _pf=placeFurnAt;placeFurnAt=function(){const o0=OBJ.length,r0=rects.length;const out=_pf.apply(this,arguments);MPW.reg.furn.push({objs:OBJ.slice(o0),rects:rects.slice(r0),its:[],made:out});return out;};}
+{const _fh=furnHook;furnHook=function(p,made){const it=_fh.apply(this,arguments);const e=MPW.reg.furn.find(q=>q.made===made);if(e&&it)e.its.push(it);return it;};}
+{const _rf=rebuildFarm;rebuildFarm=function(){const F=MPW.reg.farm;for(const r of F.rects){const i=rects.indexOf(r);if(i>=0)rects.splice(i,1);}
+  for(const L of F.lamps){const i=lamps.indexOf(L);if(i>=0)lamps.splice(i,1);L.e.hide=true;const c=circles.findIndex(q=>q.x===L.x&&q.z===L.z&&q.r===.15);if(c>=0)circles.splice(c,1);}
+  if(S.coopPos)delete S.coopPos.col;const r0=rects.length,l0=lamps.length;const out=_rf.apply(this,arguments);F.rects=rects.slice(r0);F.lamps=lamps.slice(l0);return out;};}
+const ghUp=()=>OBJ.some(o=>o.spr==='greenhouse'&&!o.hide);
+// put the world's built things back exactly as the shared farm has them
+function worldRebuild(keys){const all=!keys,has=k=>all||keys.has(k);
+  if(has('benches')||has('_bp')){for(const e of MPW.reg.bench)unplace(e);MPW.reg.bench=[];for(const [k] of BENCHES)if(S.benches&&S.benches[k]&&BENCH_POS[k])placeBench(k,BENCH_POS[k].x,BENCH_POS[k].z);}
+  if(has('furnPlaced')){for(const e of MPW.reg.furn)unplace(e);MPW.reg.furn=[];S.cabinLamp=false;for(const p of S.furnPlaced||[])furnHook(p,placeFurnAt(p.k,p.x,p.z,p.rot));}
+  if(has('coop')||has('coopPos')||has('fieldLamps'))rebuildFarm();
+  if((has('greenhouse')||has('_gh'))&&S.greenhouse&&!ghUp()){ROOMS.greenhouse.out={x:GH.x,z:GH.z+.8};buildGreenhouse();loadGame.gh=1;}
+  if(typeof NAV!=='undefined')NAV.sig='';   // people re-learn the ground
+  if(typeof updateHud==='function')updateHud();}
+function worldApply(d){if(!d||typeof d!=='object')return;const keys=new Set();
+  for(const k of WORLD_KEYS){if(!(k in d))continue;const v=d[k];
+    if(k==='_bp'){if(!v||typeof v!=='object')continue;for(const b of Object.keys(BENCH_POS))delete BENCH_POS[b];for(const [b,p] of Object.entries(v))if(p&&isFinite(p.x)&&isFinite(p.z))BENCH_POS[b]={x:+p.x,z:+p.z};}
+    else if(k==='_gh'){if(v&&isFinite(v.x)&&isFinite(v.z)&&!ghUp()){GH.x=+v.x;GH.z=+v.z;}}
+    else if(k==='ship'||k==='furnPlaced'){if(!Array.isArray(v))continue;S[k]=v.slice(0,400);}
+    else if(k==='benches'){if(!v||typeof v!=='object')continue;S[k]=v;}
+    else if(k==='coopPos'){S[k]=v&&isFinite(v.x)&&isFinite(v.z)?{x:+v.x,z:+v.z}:null;}
+    else S[k]=v;
+    MPW.known[k]=wjs(worldOut(k));keys.add(k);}
+  if(!keys.size)return;MPW.pending=MPW.pending||new Set();for(const k of keys)MPW.pending.add(k);}
+function worldSync(dt){if(!HOST.role||!CO.room||!CO.room.emit||HOST.applying)return;if(HOST.role==='guest'&&!HOST.joined)return;
+  // something to put in place: wait until nobody here is halfway through placing or moving a piece
+  if(MPW.pending&&!PLACE.on){const k=MPW.pending;MPW.pending=null;try{worldRebuild(k);}catch(e){}}
+  MPW.t+=dt;if(MPW.t<.4||PLACE.on)return;MPW.t=0;
+  const ch={};let n=0;for(const k of WORLD_KEYS){const j=wjs(worldOut(k));if(j!==MPW.known[k]){MPW.known[k]=j;ch[k]=JSON.parse(j);n++;}}
+  if(n)CO.room.emit('world',ch);}
+{const _mu=mindUpdate;mindUpdate=function(dt){_mu(dt);try{worldSync(dt);}catch(e){}};}
+{const _hw=hostWire;hostWire=function(){_hw();const r=CO.room;if(!r||!r.on)return;HOST.off.push(r.on('world',m=>{if(!m||m.isMe||!HOST.role)return;try{worldApply(m.data);}catch(e){}}));};}
+{const _hr=hostReset;hostReset=function(){_hr();worldReset();};}
+// a fresh copy of the farm (joining, or a new morning) brings its built things with it, not only the first time
+{const _as=applySnap;applySnap=function(){const r=_as.apply(this,arguments);try{worldRebuild();worldReset();}catch(e){}return r;};}
