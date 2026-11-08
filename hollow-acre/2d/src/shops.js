@@ -1,24 +1,23 @@
 /* ================= the trades: the bait shop and the smith on the corner of Market and Green Street, the carpenter at the east end
    of Market Street, and Bell's feed barn out on Orchard Lane with Ezra's pen beside it; and the people who run them ================= */
-const SHOPS_AT={bait:{spr:'shop_bait',x:25,front:7.8},forge:{spr:'shop_forge',x:31.2,front:7.8},carp:{spr:'shop_carp',x:68.8,front:7.8},feed:{spr:'shop_feed',x:50.5,front:44}};
+const SHOPS_AT={bait:{spr:'shop_bait',x:24.6,front:8.8},forge:{spr:'shop_forge',x:31.6,front:9.8},carp:{spr:'shop_carp',x:68.4,front:8.6},feed:{spr:'shop_feed',x:50.5,front:44}};
 const shopDoor=k=>[SHOPS_AT[k].x,SHOPS_AT[k].front+.35],shopOut=k=>({x:SHOPS_AT[k].x,z:SHOPS_AT[k].front+.7});
 {const _bw=buildWorld;buildWorld=function(){
   _bw();
   for(const [k,s] of Object.entries(SHOPS_AT))building(s.spr,s.x,s.front,{jack:k==='forge'||k==='feed'});
   // forecourts: the smith's anvil and quench barrel, the carpenter's timber, a crate of tackle at the bait shop
-  put('anvil',33.5,8.7,.35);put('barrel',28.7,8.5,.3);put('crate',22.9,8.6,.3);put('lumber',66.6,8.7);addRect(65.7,8.2,67.5,8.9);
+  put('anvil',33.9,10.6,.35);put('barrel',29.1,10.5,.3);put('crate',22.7,9.5,.3);put('wheel',35.3,9.7,0,{kind:'prop'});put('lumber',66.2,9.6);addRect(65.3,9.1,67.1,9.8);obj('mud_b',70.6,10.2,{kind:'flat'});obj('mud_a',30.6,11.6,{kind:'flat'});
   // yards behind, back onto Main Street: nets and traps, the smith's woodpile, the carpenter's seasoning stacks
-  for(const x of [22,27.85,34.8])hedgeLine(x,-3.2,4.3);fenceLine(22,-3.2,24.2,-3.2,0,'picket');fenceLine(25.8,-3.2,30.2,-3.2,0,'picket');fenceLine(31.8,-3.2,34.8,-3.2,0,'picket');
+  for(const x of [21.8,28.1])hedgeLine(x,-3.2,5.3);fenceLine(35.2,-3.2,35.2,6.3);fenceLine(21.8,-3.2,24.2,-3.2,0,'picket');fenceLine(25.8,-3.2,30.6,-3.2);fenceLine(32.2,-3.2,35.2,-3.2);
   for(const x of [65.2,72.6])hedgeLine(x,-3.2,4.3);fenceLine(65.2,-3.2,68.2,-3.2,0,'picket');fenceLine(69.8,-3.2,72.6,-3.2,0,'picket');
-  put('wk_rack',24.6,.6,0,{kind:'prop'});put('wk_trap',22.9,1.8,.25);put('barrel',26.9,1.9,.3);
-  put('firewood',29.6,.9);addRect(28.9,.4,30.3,1);put('barrel',33.3,1.3,.3);put('barrel',32.7,1.8,.3);
+  put('wk_rack',24.6,.6,0,{kind:'prop'});put('wk_trap',22.9,1.8,.25);put('barrel',26.9,2.4,.3);
+  put('firewood',30,.9);addRect(29.3,.4,30.7,1);put('choppingblock',31.8,1.2,0,{kind:'prop'});put('barrel',33.6,1.6,.3);put('barrel',33,2.1,.3);
   put('lumber',67.2,.8);addRect(66.3,.3,68.1,1);put('lumber',70.6,1.6);addRect(69.7,1.1,71.5,1.8);
   // Ezra's pen beside the feed barn: split rails, a gate onto the lane, three cows and their hay
-  fenceLine(55,36.8,55,43.2);fenceLine(63.6,36.8,63.6,43.2);fenceLine(55,36.8,63.6,36.8);fenceLine(55,43.2,58.4,43.2);fenceLine(60.6,43.2,63.6,43.2);
+  fenceLine(55,37.8,55,43.2);fenceLine(63.6,37.8,63.6,43.2);fenceLine(55,37.8,63.6,37.8);fenceLine(55,43.2,58.4,43.2);fenceLine(60.6,43.2,63.6,43.2);obj('mud_a',59.4,42.2,{kind:'flat'});obj('mud_b',57,39.6,{kind:'flat'});
   COWS.push(...[[57.4,39.4,'cow_1'],[61.4,40.6,'cow_2'],[59.4,41.8,'cow_1']].map(([x,z,s])=>({e:obj(s,x,z,{kind:'cow'}),x,z,hx:x,hz:z,t:rand()*6,flip:rand()<.5})));
-  put('hay',62.4,38.4);addRect(61.7,37.7,63.2,38.5);put('sacks',46.6,44.6);put('hay',54.2,44.3);addRect(53.7,43.6,54.7,44.4);
-  // the sheriff's cruiser, parked at the kerb across from his house
-  put('police',71,-4.3,0,{kind:'car'});addRect(68.6,-5.6,73.4,-4.3);};}
+  put('hay',62.4,39.2);addRect(61.7,38.5,63.2,39.3);put('bucket',56,42.6,0,{kind:'prop'});put('sacks',46.6,44.6);put('hay',54.2,44.3);addRect(53.7,43.6,54.7,44.4);
+};}
 // cows drift a few steps and graze (the sprite flips with them)
 const COWS=[];
 {const _u=update;update=function(dt){_u(dt);if(S.room)return;for(const c of COWS){c.t-=dt;if(c.t<0){c.t=4+rand()*6;c.tx=c.hx+(rand()*2-1)*1.4;c.tz=c.hz+(rand()*2-1)*.7;}
@@ -75,7 +74,7 @@ Object.assign(ROOM_LAMP,{shop_forge:[1.3,1.6],shop_carp:[4,2.2],shop_feed:[4,2.2
 Object.assign(HOMES,{brannock:{door:shopDoor('forge'),face:'N',room:'shop_forge',name:'the rooms behind the forge'},hartley:{door:shopDoor('carp'),face:'N',room:'shop_carp',name:'the loft over the workshop'},
   bell:{door:shopDoor('feed'),face:'N',room:'shop_feed',name:'the feed barn'}});
 Object.assign(HOME_SPOT,{brannock:[4.4,2.9],hartley:[5.9,2.6],bell:[5.9,2.6]});
-Object.assign(PL,{forge_yard:[33,9.1,.4],lumber:[66.6,9.5,.4],pen:[59.4,40,1.6],lane:[45.4,11,3],bait_porch:[25,8.7,.4]});
+Object.assign(PL,{forge_yard:[33.2,11,.4],lumber:[66.2,10.4,.4],pen:[59.4,40.6,1.6],lane:[32.6,-17.8,2.2],bait_porch:[24.6,9.7,.4]});
 Object.assign(INDOOR,{
   forge:{room:'shop_forge',door:shopDoor('forge'),spots:{gideon:[4.4,3.0]},browse:[[6.4,3.4],[3.0,5.0]]},
   carp:{room:'shop_carp',door:shopDoor('carp'),spots:{nell:[5.9,2.6]},browse:[[2.8,3.6],[3.4,5.0]]},

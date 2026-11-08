@@ -27,7 +27,7 @@ const NPCPOS={mae:{day:[29,-8.5],path:[[29,-8.5],[26.6,-8.3],[32,-8.4]]},hale:{d
   tobias:{day:[48,6.6],path:[[48,6.6],[52,7],[50,8.4],[45,6.2]]},hollis:{day:[-35,-9.6],path:[[-35,-9.6],[-30,-9.4],[-39,-9.8]]},
   agnes:{day:[-46,-8.6],path:[[-46,-8.6],[-44,-8.2],[-48,-8.4]],nightPos:[-46,-8.6]},dunn:{day:[66.5,-8.6],path:[[66.5,-8.6],[62,-8.2],[70,-8.4],[64,-4.2]]}};
 // the pages that lay in the old streets lie in the same kind of place in the new town
-Object.assign(PAGES[1],{x:TB.hall[1]+3,z:TB.hall[2]+1.1});Object.assign(PAGES[2],{x:67.8,z:-40.4});Object.assign(PAGES[3],{x:22.4,z:17.4});
+Object.assign(PAGES[1],{x:TB.hall[1]+3,z:TB.hall[2]+1.1});Object.assign(PAGES[2],{x:67.8,z:-40.4});Object.assign(PAGES[3],{x:21.9,z:15.6});
 for(const d of NPCDEF)if(NPCPOS[d.id])Object.assign(d,NPCPOS[d.id]);
 const npcs=NPCDEF.map(d=>({def:d,x:d.day[0],z:d.day[1],dir:'S',clip:'idle',t:Math.random()*4,wp:0,wait:Math.random()*4,vis:true,spd:0}));
 const npcById=id=>npcs.find(n=>n.def.id===id);

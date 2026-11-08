@@ -52,7 +52,7 @@ ROOMS.store.out=tbOut('store');
 
 // ---- places in town (centre, wander radius)
 const PL={store:[TB.store[1],-8.3,1.6],square:[squarePos.x,squarePos.z+3.7,2.4],church:[CHURCH_DOOR.x,CHURCH_DOOR.z+1,1.4],graves:[GYARD.gate,-36.6,2.4],garage:[-35,-9.4,2],dock:[-30,19.6,.2],board:[boardPos.x,boardPos.z+.6,.8],booth:[boothPos.x,boothPos.z+1.2,.4],
-  farmgate:[-12.2,-6,.8],road_w:[-68,-5.4,1.4],porch_agnes:[-46,-8.6,.6],school:[41.4,25.4,1.6],bake:[40.6,-2.4,.6],corn:[-2,10.6,2.4],farmlane:[-6,-6,1.2],bridge:[-24.5,-5.8,.6]};
+  farmgate:[-12.2,-6,.8],road_w:[-68,-5.4,1.4],porch_agnes:[-46,-8.6,.6],school:[46.4,26.7,1.4],bake:[35.4,-15.6,.5],tavern:[68,-9.5,2.2],courtyard:[30.4,-18.6,2.2],corn:[-2,10.6,2.4],farmlane:[-6,-6,1.2],bridge:[-24.5,-5.8,.6]};
 // homes: door outside, which side the door faces, and a home room
 const HOMES={
   coyle:{door:tbDoor('store'),face:'N',room:'store',name:'Coyle’s General Store'},  // Caitlyn and Tobias live above the shop

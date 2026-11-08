@@ -39,7 +39,7 @@ for(const [k,t] of Object.entries(TOWN_DOORS)){const [x,z]=tbDoor(k);
     toast(night?t.night:t.day,5,true);if(night&&typeof mindHit==='function')mindHit(3);}});}
 // the memorial and the bandstand on the green
 const GREEN_LOOKS=[
-  {x:42.4,z:.9,label:'Read',name:'The memorial',text:'TO THE CHILDREN OF MARROW HOLLOW, WHO WENT AHEAD. Under it, a year and a first name for every autumn since 1871. The newest is Danny’s. Below his, the stone has already been dressed smooth for one more.'},
+  {x:41.4,z:2.2,label:'Read',name:'The memorial',text:'TO THE CHILDREN OF MARROW HOLLOW, WHO WENT AHEAD. Under it, a year and a first name for every autumn since 1871. The newest is Danny’s. Below his, the stone has already been dressed smooth for one more.'},
   {x:squarePos.x,z:squarePos.z+2,label:'Look',name:'The bandstand',text:'Someone has scratched a hopscotch into the bandstand boards and numbered it one to ninety-two. The band hasn’t played since the festival of 1952. On festival nights you can still hear them tuning up.'}];
 for(const g of GREEN_LOOKS)interact.push({x:g.x,z:g.z,r:1.2,on:()=>!S.room,label:()=>g.label,ok:()=>true,act(){SFX.page&&SFX.page();const key='green:'+g.name;S.rgLook=S.rgLook||{};
   if(!S.rgLook[key]){S.rgLook[key]=1;addLore(g.name+': '+g.text);}toast(g.text,5.5,true);}});
@@ -92,3 +92,65 @@ function nearLeaf(){const a=Math.random()*6.283,r=6+Math.random()*7;return {x:ca
   reserve(-50.5,-19.8,-41.5,-12.6);reserve(-41.5,-17.6,-30,-14);};}
 interact.push({x:-10.2,z:-7.9,r:1.1,on:()=>!S.room,label:()=>'Look',ok:()=>true,act(){SFX.page&&SFX.page();const t='Grandpa’s honesty stand. A tin nailed to the post, CASH in his capitals. It is full of coins: forty years of them, most older than you. Nobody ever took one. Under the tin someone has scratched, recently: HE STILL COUNTS IT.';
   toast(t,5,true);S.rgLook=S.rgLook||{};if(!S.rgLook.honesty){S.rgLook.honesty=1;addLore(t);}}});
+
+// ---- the Lamplighter (#153): the town's front room. Nobody keeps the bar; everybody pays. The till is always full.
+{let ox=Math.max(...Object.values(ROOMS).map(R=>R.ox||0))+40;const F=(spr,x,z,dep,kind)=>{const m=SPR[spr];const hw=m?Math.max(.2,m.fw/64-.12):.4;return [spr,x,z,kind==='flat'?null:[-hw,-(dep||.4),hw,0],kind||undefined];};
+  ROOMS.tavern={ox,oz:-60,name:'The Lamplighter',shell:'room_tavern',out:tbOut('tavern'),furn:[
+    F('in_hearth',3.8,1,.5),F('in_rocker',5.4,2.2,.3),F('in_shelf_jars',10.2,.62,.4),F('in_keg',14.4,.9,.3),F('in_keg',15.2,1.1,.3),['in_photowall',8.4,-.45,null,'flat'],
+    F('in_counter',10.4,3.2,.6),F('in_counter',13.4,3.2,.6),
+    F('in_table',3,4.6,.45),F('in_chair',1.9,4.65,.25),F('in_chair',4.1,4.65,.25),F('in_table',6.8,4.9,.45),F('in_chair',5.7,4.95,.25),F('in_chair',7.9,4.95,.25),
+    F('in_table',3.2,7.4,.45),F('in_chair',2.1,7.45,.25),F('in_chair',4.3,7.45,.25),F('in_chess',11.2,7.4,.3),F('in_chair',10.2,7.45,.25),F('in_chair',12.2,7.45,.25),
+    F('in_piano',14.4,6.4,.5),['barrel',.7,2.6,[-.4,-.3,.4,0]],['barrel',15.4,4.6,[-.4,-.3,.4,0]],F('in_plant2',15.4,8.4,.3),F('in_plant',.8,8.4,.25),['in_rug',8,8.4,null,'flat']]};
+  ROOM_LAMP.tavern=[6.5,2.4];}
+interact.push({x:tbDoor('tavern')[0],z:tbDoor('tavern')[1],r:1,on:()=>!S.room,label:()=>'Enter',ok:()=>true,act(){
+  if(S.hour<11||S.hour>=21.5){toast(S.hour<11?'Shut till eleven. Through the glass the chairs are already pulled out, as if everyone has just stood up.':'Shut. The lamp in the window is lit. Someone inside is laughing at a joke nobody told.',3,true);SFX.deny&&SFX.deny();return;}
+  enterRoom('tavern');setTimeout(()=>{try{A.tone(1568,.35,'sine',.08,{verb:true});}catch(e){}},420);}});
+vendors.tavern={name:'The Lamplighter',sub:'Nobody keeps the bar. Put your coins in the till. The till is always full.',rows:()=>[
+  {k:'stew',name:'Bowl of stew',desc:'+50 energy, +15 health. Thick, peppery, still hot. Nobody saw who made it.',price:20,can:true,buy(){addInv('stew');}},
+  {k:'pie',name:'Pie by the slice',desc:'+60 energy, +25 health.',price:30,can:true,buy(){addInv('pie');}},
+  {k:'round',name:'Buy the room a round',desc:'Everyone here likes you a little more.',price:40,can:true,buy(){const R=ROOMS.tavern;let n=0;
+    for(const q of npcs)if(q.loc==='in'&&Math.abs(q.x-R.ox-R.w/2)<R.w/2+1&&Math.abs(q.z-R.oz-R.d/2)<R.d/2+1&&typeof PEOPLE!=='undefined'&&PEOPLE[q.def.id]){addFriend(q.def.id,12);n++;}
+    toast(n?`${n} glass${n>1?'es':''} go up. “To the farm.” Somebody adds, quietly: “While it lasts.”`:'You buy a round for an empty room. Every glass on the bar is empty in the morning.',3);}}]};
+interact.push({x:0,z:0,r:1.3,on:()=>S.room==='tavern',label:()=>'Bar',ok:()=>true,act(){openShop('tavern');}});
+{const it=interact[interact.length-1];Object.defineProperties(it,{x:{get(){return ROOMS.tavern.ox+11.9;}},z:{get(){return ROOMS.tavern.oz+4.0;}}});}
+interact.push({x:0,z:0,r:1,on:()=>S.room==='tavern',label:()=>'Look',ok:()=>true,act(){SFX.page&&SFX.page();const t='Photographs of every regular since 1890, nailed up behind the bar. Under each one, a year. Some of the faces have been scratched out with a key. One of the newest photos is of you, at that table, laughing. You have never been in here before.';
+  toast(t,5,true);S.rgLook=S.rgLook||{};if(!S.rgLook.tavphoto){S.rgLook.tavphoto=1;addLore(t);if(typeof mindHit==='function')mindHit(4);}}});
+{const it=interact[interact.length-1];Object.defineProperties(it,{x:{get(){return ROOMS.tavern.ox+8.4;}},z:{get(){return ROOMS.tavern.oz+.5;}}});}
+
+// ---- micro-climates: the copses are dark underfoot and in the air; the alley is in shadow all day, and the courtyard beyond is bright
+{const Dk=LAYERS.dark;const inCopse=(x,z)=>COPSES.some(C=>((x-C.x)/C.rx)**2+((z-C.z)/C.rz)**2<1+(fbm(x*.4,z*.4)-.5)*.5);LAYERS.dark=(x,z)=>inCopse(x,z)||Dk(x,z);}
+{const _do=depthOver;depthOver=function(t){_do(t);if(S.room||DX.off)return;const day=clamp(1-nightK*1.4,0,1);if(day<=0)return;
+  ctx2.save();ctx2.fillStyle=`rgba(8,12,18,${(.36*day).toFixed(3)})`;ctx2.fillRect(Math.round(sx(ALLEY.x0)),Math.round(sz(ALLEY.z0)-40),Math.round((ALLEY.x1-ALLEY.x0)*32),Math.round((ALLEY.z1-ALLEY.z0)*32)+40);
+  for(const C of COPSES){const X=sx(C.x),Y=sz(C.z)-30;if(X<-260||X>VW+260||Y<-200||Y>VH+200)continue;const g=ctx2.createRadialGradient(X,Y,10,X,Y,C.rx*32*1.1);
+    g.addColorStop(0,`rgba(6,12,10,${(.42*day).toFixed(3)})`);g.addColorStop(1,'rgba(6,12,10,0)');ctx2.fillStyle=g;ctx2.save();ctx2.translate(X,Y);ctx2.scale(1,C.rz/C.rx*1.2);ctx2.translate(-X,-Y);ctx2.beginPath();ctx2.arc(X,Y,C.rx*32*1.1,0,6.283);ctx2.fill();ctx2.restore();}
+  ctx2.restore();};}
+
+// ---- the town pond on the commons below the school: reeds, a willow leaning over, a bench. Kids are told not to swim in it.
+const TPOND={x:49,z:35.4,rx:4.4,rz:2.5};
+const inTPond=(x,z)=>((x-TPOND.x)/TPOND.rx)**2+((z-TPOND.z)/TPOND.rz)**2<1+(fbm(x*.7+2,z*.7)-.5)*.3;
+{const W=LAYERS.water;LAYERS.water=(x,z)=>W(x,z)||inTPond(x,z);}
+{const _c=collide;collide=function(p,r){_c(p,r);if(p.x>=250||Math.abs(p.x-TPOND.x)>TPOND.rx+1||Math.abs(p.z-TPOND.z)>TPOND.rz+1||!inTPond(p.x,p.z))return;
+  for(let rr=.2;rr<3;rr+=.2)for(let a=0;a<16;a++){const x=p.x+Math.cos(a/16*6.283)*rr,z=p.z+Math.sin(a/16*6.283)*rr;if(!inTPond(x,z)){p.x=x;p.z=z;return;}}};}
+{const _bw=buildWorld;buildWorld=function(){_bw();
+  for(let a=0;a<6.28;a+=.32){if(floraH(a,9,3)>.62)continue;const x=TPOND.x+Math.cos(a)*(TPOND.rx+.5),z=TPOND.z+Math.sin(a)*(TPOND.rz+.45);if(inTPond(x,z))continue;obj('reeds',x,z,{kind:'plant',town:1});}
+  {const e=obj('willow',43.8,36.2,{kind:'tree',solid:1,town:1});addCircle(43.8,36.2,.45);}
+  put('parkbench',53.6,39.2,0,{kind:'prop',town:1});put('signpost',54.8,32.6,.2,{label:'NO SWIMMING',kind:'prop'});};}
+
+// ---- Wickham and the farm, by the same rules (#153): height, worn paths, mud, a copse, walls of whatever was to hand, small stories
+DESIRE.push([[106.5,44.4],[116,48.6],[121,50.4]],[[127,57],[128.6,62.6],[127.4,68.6]],[[133.4,57.8],[134.6,61.8]],
+  [[0,-8.4],[0.4,-6]],[[2.6,-8.6],[5.8,-9.4]],[[4.2,-7.6],[9.6,-7.4],[13.6,-8.4]],[[-1.6,-1],[-4.6,-4.4],[-9.8,-7.6]]);
+COPSES.push({x:101,z:35.4,rx:4.2,rz:3.2});
+{const _bw=buildWorld;buildWorld=function(){_bw();
+  const Y=(spr,x,z,o)=>put(spr,x,z,0,Object.assign({kind:'prop',town:1},o||{}));const D=(spr,x,z)=>obj(spr,x,z,{kind:'flat',town:1});
+  const W=(spr,x0,x1,z)=>{for(let x=x0;x<x1-.05;x+=2)obj(spr,Math.min(x,x1-2),z,{kind:'prop',noCol:true,town:1});addSeg(x0,z-.15,x1,z-.15,.3);};
+  // Wickham: the chapel stands on a rise, a stone retaining wall with wooden steps up from High Street
+  {const base=39.2,s0=WK.bell-1.2,s1=WK.bell+1.2;const run=(a,b)=>{for(let x=a;x<b-.05;x+=2)obj('twall',Math.min(x,b-2),base,{kind:'wall',town:1});addSeg(a,base-.5,b,base-.5,.5);};
+    run(116,s0);run(s1,132);obj('tsteps_wood',WK.bell,base,{kind:'wall',town:1});addSeg(s0-.05,base-1.1,s0-.05,base,.12);addSeg(s1+.05,base-1.1,s1+.05,base,.12);
+    Y('vines',116.4,base+.02,{noCol:true});Y('vines',131.4,base+.02,{noCol:true});}
+  // the copse behind the inn: dark, close, a path in that nobody admits to using
+  {const C=COPSES[COPSES.length-1];for(let i=0;i<12;i++){const a=i*2.4,r=.2+((i*.41)%1)*.8;const x=C.x+Math.cos(a)*C.rx*r,z=C.z+Math.sin(a)*C.rz*r;const e=obj(['pine_0','spruce_1','pine_1','spruce_0'][i%4],x,z,{kind:'pine',solid:1,town:1});addCircle(x,z,.4);}}
+  // the inn's kitchen yard; the boarded house's roof under a tarp; the riverbank trodden to mud; a broken wheel at the net loft
+  Y('firewood',109.4,38.4);Y('choppingblock',111,38.8);Y('bucket',125.8,52.6);obj('tarp',146.5,43.42,{kind:'prop',noCol:true,town:1});
+  D('mud_a',128.4,66.4);D('mud_b',133.6,63.2);Y('wheel',139.6,56.6);W('stonewall',100.2,104.2,54.6);W('stonewall_b',104.2,106.2,54.6);
+  // the farm: Grandpa's barn roof patched with a tarp, the axe left in the block by the woodpile, the yard worn to mud at the trough
+  obj('tarp',16.4,-9.58,{kind:'prop',noCol:true,town:1});Y('choppingblock',5.8,-9.2);D('mud_a',8.6,-7.8);Y('bucket',8.4,-9.8);};}

@@ -18,7 +18,7 @@ const wkDoor=k=>{const h=WHOUSES.find(w=>w[0]===k);return [h[2],h[3]+.35];};
   // the square: the drowned bell, the notice board, benches, lamps; the chapel steps up to the north
   put('well',WK.sq[0],WK.sq[1]+.9);addCircle(WK.sq[0],WK.sq[1]+.4,1.05);put('board',120,48.6,0);addSeg(119.2,48.6,120.8,48.6,.12);put('signpost',97.6,47.8,.2,{label:'WICKHAM'});put('signpost',151.6,24,.2,{label:'WICKHAM'});
   put('parkbench',121.4,55.6,0,{kind:'prop'});put('parkbench',127,49.2,0,{kind:'prop'});put('planter',119.4,57.2,0,{kind:'prop'});put('planter',128.6,57.2,0,{kind:'prop'});
-  for(const x of [101,119.6,128.4,136.1,143.9])lamp(x,44.4);for(const x of [100,110,117.6,130.4,140,148])lamp(x,47.8);for(const x of [106,116,122.4,133.6])lamp(x,61.2);for(const z of [38.4,42.2])for(const x of [122.6,125.4])lamp(x,z);
+  for(const x of [101,119.6,128.4,136.1,143.9])lamp(x,44.4);for(const x of [100,110,117.6,130.4,140,148])lamp(x,47.8);for(const x of [106,116,122.4,133.6])lamp(x,61.2);for(const z of [37.2,42.6])for(const x of [122.4,125.6])lamp(x,z);
   put('barrel',112.1,44.1,.3);put('barrel',112.6,44.5,.3);put('crate',100.8,44.2,.3);put('sacks',119.2,44.3);put('cart',128.8,55.2,0);addRect(127.6,54.5,130,55.7);
   // gardens behind the rows: hedges between the plots, washing, vegetables, a bench under an apple tree
   const gside=(x,z1,z2)=>hedgeLine(x,z1,z2);
