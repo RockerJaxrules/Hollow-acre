@@ -343,7 +343,8 @@ function acc(cx,hy,view,fl,a,top0,hairTop){if(!a)return;const R=ACCR,side=view!=
   if(a==='bow'){const bx=back?cx+5:side?cx-fl*5:cx+6,by=(hairTop!=null?hairTop:hy-10)+1;for(const s of [-1,1])for(let j=-2;j<=2;j++)for(let i=1;i<=3;i++){if(Math.abs(j)>3-i)continue;p(bx+s*i,by+j,R[s<0?(j<0?4:3):(j<0?2:1)]);}p(bx,by,R[0]);p(bx,by-1,R[2]);}
   if(a==='flower'&&!back){const fx=side?cx-fl*2:cx-7,fy=hy-5;for(const [dx,dy] of [[0,-1],[-1,0],[1,0],[0,1]])p(fx+dx,fy+dy,R[3]);p(fx-1,fy-1,R[4]);p(fx,fy,[250,220,90]);}
   if(a==='headband'){const y0=hy-6;for(let x=-9;x<=10;x++){const yy=y0-Math.round(Math.pow(Math.abs(x-.5)/9,2)*-1);if(side&&x*fl>4)continue;p(cx+x,yy,R[x<-4?4:x>5?2:3]);p(cx+x,yy+1,R[1]);}}
-  if(a==='scarf'||a==='bandana'){const y0=top0-1;for(let x=-5;x<=6;x++){p(cx+x,y0,R[x<-2?4:x>3?2:3]);p(cx+x,y0+1,R[x<-2?3:x>3?1:2]);}
+  // seen from behind, a scarf or neckerchief is hidden by the hair and the collar: it isn't drawn at all
+  if((a==='scarf'||a==='bandana')&&!back){const y0=top0-1;for(let x=-5;x<=6;x++){p(cx+x,y0,R[x<-2?4:x>3?2:3]);p(cx+x,y0+1,R[x<-2?3:x>3?1:2]);}
     if(!back&&!side){if(a==='scarf'){for(let j=2;j<7;j++)for(let i=0;i<3;i++)p(cx+3+i,y0+j,R[i===0?3:i===2?1:2]);for(let i=0;i<3;i++)p(cx+3+i,y0+7,R[(i&1)?1:3]);}
       else{for(let j=2;j<6;j++){const w=5-j;for(let x=-w;x<=w+1;x++)p(cx+x,y0+j,R[(x+j)%3===0?4:2]);}}}
     else if(side){for(let j=2;j<6;j++)p(cx-fl*3,y0+j,R[2]);}}
