@@ -277,12 +277,9 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/
   render(dt,now);
   if(cine&&cine.draw)cine.draw();
   if(S.mode==='play'){ctx=computeContext();ui.act.textContent=ctx.label||'—';ui.act.classList.toggle('off',!ctx.ok);ui.act.classList.toggle('hot',!!ctx.ok&&!!ctx.label);updateHud();
-    const ob=objective();ui.obj.innerHTML=`<b>${ob[0]}</b> ${ob[1]}`;const tg=typeof guideTarget==='function'?guideTarget(ob[2]):ob[2];
-    if(tg&&Math.hypot(tg.x-P.x,tg.z-P.z)>(tg.door?1.2:3)){const X=sx(tg.x),Y=sz(tg.z);const ax=clamp(X,20,VW-20),ay=clamp(Y,60,VH-60);const off=X<8||X>VW-8||Y<20||Y>VH-20;
-      ui.arrow.style.display=off?'block':'none';if(off){const ang=Math.atan2(Y-VH/2,X-VW/2);ui.arrow.style.left=(ax*innerWidth/VW-15)+'px';ui.arrow.style.top=Math.max(innerHeight*.3,Math.min(innerHeight-200,ay*innerHeight/VH-15))+'px';ui.arrow.style.transform=`rotate(${ang+Math.PI/2}rad)`;}
-      // on screen: a bobbing marker over the spot itself, with its shadow on the ground
-      else if(!S.paused){const m=Math.max(1,Math.round(3/SCALE)),b=Math.round(Math.abs(Math.sin(now/260))*5*m),mx=Math.round(X),my=Math.round(Y)-22*m-b;ctx2.fillStyle='rgba(0,0,0,.28)';ctx2.fillRect(mx-4*m+Math.round(b/3),Math.round(Y)-m,(9*m)-Math.round(b/1.5),2*m);
-        const C=[[0,0,11],[1,1,9],[2,2,7],[3,3,5],[4,4,3],[5,5,1]];ctx2.fillStyle='#1a120b';for(const [k,dx,w] of C)ctx2.fillRect(mx+(-6+dx)*m,my+(k-1)*m,(w+2)*m,2*m);for(const [k,dx,w] of C){ctx2.fillStyle=k<2?'#ffd27a':'#e8923f';ctx2.fillRect(mx+(-5+dx)*m,my+k*m,w*m,m);}}}
+    const ob=objective();ui.obj.innerHTML=`<b>${ob[0]}</b> ${ob[1]}`;const tg=ob[2];
+    if(tg&&Math.hypot(tg.x-P.x,tg.z-P.z)>3){const X=sx(tg.x),Y=sz(tg.z);const ax=clamp(X,20,VW-20),ay=clamp(Y,60,VH-60);const off=X<0||X>VW||Y<0||Y>VH;
+      ui.arrow.style.display=off?'block':'none';if(off){const ang=Math.atan2(Y-VH/2,X-VW/2);ui.arrow.style.left=(ax*innerWidth/VW-15)+'px';ui.arrow.style.top=(ay*innerHeight/VH-15)+'px';ui.arrow.style.transform=`rotate(${ang+Math.PI/2}rad)`;}}
     else ui.arrow.style.display='none';}
   if(toastT>0){toastT-=dt;if(toastT<=0)ui.toast.classList.remove('show');}
 }
