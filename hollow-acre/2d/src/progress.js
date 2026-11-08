@@ -162,18 +162,35 @@ setInterval(()=>{const l=$('lesson');if(S.paused||S.mode!=='play'){l.style.displ
 
 // ---- Mae in person: when she talks you through a lesson she walks over and stands beside you, then heads off again
 const MAEV={on:false,x:0,z:0,tx:0,tz:0,dir:'S',t:0,mv:0,stay:0,room:null,leave:false};
-function maeCome(stay,instant){const v=MAEV;const side=P.fx>=0?-1:1;let tx=P.x+side*1.7,tz=P.z+.25;
-  if(S.room){const R=ROOMS[S.room];if(R){tx=clamp(tx,R.ox+.8,R.ox+(R.w||10)-.8);tz=clamp(tz,R.oz+1.2,R.oz+(R.d||7)-.6);}}
-  if(!v.on||v.room!==(S.room||null)){const a=Math.atan2(tz-P.z,tx-P.x);v.x=instant?tx:P.x+Math.cos(a)*7;v.z=instant?tz:P.z+Math.sin(a)*4.5;if(S.room){v.x=tx;v.z=tz;}}
+// Caitlyn walks over to you: from somewhere she can actually walk from, round things, never through walls or water,
+// and never a second Caitlyn when she's already standing nearby (at your gate with a basket, or just down the road)
+const mFree=(x,z)=>{const p={x,z};collide(p,.32);if(Math.hypot(p.x-x,p.z-z)>.04)return false;return !(!S.room&&typeof LAYERS!=='undefined'&&LAYERS.water&&LAYERS.water(x,z));};
+const mClear=(x0,z0,x1,z1)=>{const d=Math.hypot(x1-x0,z1-z0),n=Math.max(1,Math.ceil(d/.3));for(let i=1;i<=n;i++)if(!mFree(x0+(x1-x0)*i/n,z0+(z1-z0)*i/n))return false;return true;};
+function maeCome(stay,instant){const v=MAEV;
+  const e=typeof encLive==='function'&&encLive();if(e&&e.who==='mae')return;
+  const real=npcById('mae');if(!v.on&&real&&real.vis&&((real.room||null)===(S.room||null))&&Math.hypot(real.x-P.x,real.z-P.z)<9)return;
+  // where she'll stand: beside you, on whichever side is open
+  const side0=P.fx>=0?-1:1;let tx=null,tz=null;
+  for(const [dx,dz] of [[side0*1.7,.25],[-side0*1.7,.25],[0,1.4],[0,-1.4],[side0*1.2,1.2],[-side0*1.2,1.2]]){let x=P.x+dx,z=P.z+dz;
+    if(S.room){const R=ROOMS[S.room];if(R){x=clamp(x,R.ox+.8,R.ox+(R.w||10)-.8);z=clamp(z,R.oz+1.2,R.oz+(R.d||7)-.6);}}
+    if(mFree(x,z)&&mClear(P.x,P.z,x,z)){tx=x;tz=z;break;}}
+  if(tx===null){tx=P.x+side0*.9;tz=P.z+.2;}
+  if(!v.on||v.room!==(S.room||null)){let placed=false;
+    if(!instant&&!S.room){// a starting point a few steps off with a clear walk to you
+      const a0=Math.atan2(tz-P.z,tx-P.x);for(let k=0;k<16&&!placed;k++){const a=a0+(k%2?1:-1)*Math.ceil(k/2)*.4;for(const r of [6,4.5,3]){const x=tx+Math.cos(a)*r,z=tz+Math.sin(a)*r*.75;if(mFree(x,z)&&mClear(x,z,tx,tz)){v.x=x;v.z=z;placed=true;break;}}}}
+    if(!placed){v.x=tx;v.z=tz;}v.stuck=0;}
   Object.assign(v,{on:true,tx,tz,stay:Math.max(v.stay,stay+1.5),room:S.room||null,leave:false});}
 function maeUpdate(dt){const v=MAEV;if(!v.on)return;v.t+=dt;if((S.room||null)!==v.room){v.on=false;return;}
+  {const e=typeof encLive==='function'&&encLive();if(e&&e.who==='mae'){v.on=false;return;}}
   if(!S.paused)v.stay-=dt;if(v.stay<=0&&!v.leave){v.leave=true;const a=Math.atan2(v.z-P.z,v.x-P.x)||0;v.tx=v.x+Math.cos(a)*9;v.tz=v.z+Math.sin(a)*6;}
   const dx=v.tx-v.x,dz=v.tz-v.z,d=Math.hypot(dx,dz);
-  if(d>.15){const sp=v.leave?2.2:2.8;const st=Math.min(d,sp*dt);v.x+=dx/d*st;v.z+=dz/d*st;v.dir=dirOf(dx,dz);v.mv=1;}
+  if(d>.15){const sp=v.leave?2.2:2.8;const st=Math.min(d,sp*dt);const ox=v.x,oz=v.z;v.x+=dx/d*st;v.z+=dz/d*st;const p={x:v.x,z:v.z};collide(p,.32);v.x=p.x;v.z=p.z;
+    if(!S.room&&LAYERS.water&&LAYERS.water(v.x,v.z)){v.x=ox;v.z=oz;}
+    v.dir=dirOf(dx,dz);v.mv=1;const moved=Math.hypot(v.x-ox,v.z-oz);if(moved<st*.3){v.stuck=(v.stuck||0)+dt;if(v.stuck>.7){if(v.leave){v.on=false;return;}v.x=v.tx;v.z=v.tz;v.stuck=0;}}else v.stuck=0;}
   else{v.mv=0;v.dir=dirOf(P.x-v.x,P.z-v.z);if(v.leave){v.on=false;return;}}
   if(v.leave&&(!onScreen(v.x,v.z,60)||Math.hypot(v.x-P.x,v.z-P.z)>12))v.on=false;
   // she follows if you wander off while she's still talking
-  if(!v.leave&&Math.hypot(P.x-v.tx,P.z-v.tz)>3.2){const side=v.x<P.x?-1:1;v.tx=P.x+side*1.7;v.tz=P.z+.25;}}
+  if(!v.leave&&Math.hypot(P.x-v.tx,P.z-v.tz)>3.2){const side=v.x<P.x?-1:1;let x=P.x+side*1.7,z=P.z+.25;if(!mFree(x,z)){x=P.x-side*1.7;}v.tx=x;v.tz=z;}}
 {const _lu=lifeUpdate;lifeUpdate=function(dt){_lu(dt);maeUpdate(dt);if(MAEV.on){const n=npcById('mae');if(n)n.vis=false;}};}
 {const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld(D,t);const v=MAEV;if(!v.on||(S.room||null)!==v.room||!onScreen(v.x,v.z,80))return;
   const m=SPR.mae;if(!m)return;const clip=v.mv?'walk':(m.clips.idle?'idle':'walk');
