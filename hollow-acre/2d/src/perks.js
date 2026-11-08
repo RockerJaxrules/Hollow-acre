@@ -4,7 +4,7 @@
    friend's farm (the host doesn't get it). ================= */
 const perkHash=(str,seed=0)=>{let h1=0xdeadbeef^seed,h2=0x41c6ce57^seed;for(let i=0,ch;i<str.length;i++){ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}
   h1=Math.imul(h1^(h1>>>16),2246822507);h1^=Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507);h2^=Math.imul(h1^(h1>>>13),3266489909);return (4294967296*(2097151&h2)+(h1>>>0)).toString(36);};
-const PERK_CODES={[perkHash('jaxon5')]:'gifts',[perkHash('jaxon6')]:'truepath',[perkHash('jaxon7')]:'truecheck'};   // codes are checked without caring about capitals or spaces
+const PERK_CODES={[perkHash('jaxon5')]:'gifts',[perkHash('jaxon6')]:'truepath',[perkHash('jaxon7')]:'truecheck',[perkHash('jaxon8')]:'safenight'};   // codes are checked without caring about capitals or spaces
 const perkOf=code=>PERK_CODES[perkHash(String(code||'').replace(/\s+/g,'').toLowerCase())]||null;
 const profPerk=(p,k)=>!!(p&&p.perks&&p.perks.includes(k));
 const giftsUnlimited=()=>!!(S.perkGifts||profPerk(typeof acctMe==='function'&&acctMe(),'gifts'));
@@ -17,9 +17,10 @@ function perkGrant(p,k){p.perks=p.perks||[];if(!p.perks.includes(k))p.perks.push
 {const _as=acctShow;acctShow=function(view,arg){
   if(view==='perk'){const PERK_SAY={gifts:n=>`Code accepted. Unlimited gifts are on for ${n}: give anyone as many as you like, every day.`,
       truepath:n=>`Code accepted. Next time ${n} plays: 9 hearts with Maud and her fourth shard, 10 hearts with Agnes and Ruth’s ribbon, 10 hearts with Caitlyn, dating her, and Danny’s letter.`,
-      truecheck:n=>`Code accepted. ${n}’s Journal now has a true ending checklist: what’s done, what’s left, and where to get it.`};
+      truecheck:n=>`Code accepted. ${n}’s Journal now has a true ending checklist: what’s done, what’s left, and where to get it.`,
+      safenight:n=>`Code accepted. On Tithe night the tall thing on Mill Road can’t take ${n}, the bed won’t let you sleep, and if the night runs out the door waits another night. The only way to the bad ending is to choose it.`};
     const p=ACCT.list.find(q=>q.id===arg);if(!p)return _as('list');const from=arguments[2]||'more';const box=$('acctPanel').querySelector('.box');$('acctPanel').hidden=false;
-    box.innerHTML=`<h3>Codes</h3>Type a code for ${acctEsc(p.name)}.${profPerk(p,'gifts')?'<div style="margin:6px 0;color:#b8e07a;font-size:13px">Unlimited gifts: on</div>':''}${profPerk(p,'truepath')?'<div style="margin:6px 0;color:#b8e07a;font-size:13px">Jaxon 6: on</div>':''}${profPerk(p,'truecheck')?'<div style="margin:6px 0;color:#b8e07a;font-size:13px">Jaxon 7: on (true ending checklist in the Journal)</div>':''}<input id="acctPerk" maxlength="32" autocomplete="off" autocapitalize="off" spellcheck="false"><div class="acts"><button data-a="ok">Use code</button><button data-a="back">Back</button></div><div class="msg"></div>`;
+    box.innerHTML=`<h3>Codes</h3>Type a code for ${acctEsc(p.name)}.${profPerk(p,'gifts')?'<div style="margin:6px 0;color:#b8e07a;font-size:13px">Unlimited gifts: on</div>':''}${profPerk(p,'truepath')?'<div style="margin:6px 0;color:#b8e07a;font-size:13px">Jaxon 6: on</div>':''}${profPerk(p,'truecheck')?'<div style="margin:6px 0;color:#b8e07a;font-size:13px">Jaxon 7: on (true ending checklist in the Journal)</div>':''}${profPerk(p,'safenight')?'<div style="margin:6px 0;color:#b8e07a;font-size:13px">Jaxon 8: on (Tithe night can’t take you)</div>':''}<input id="acctPerk" maxlength="32" autocomplete="off" autocapitalize="off" spellcheck="false"><div class="acts"><button data-a="ok">Use code</button><button data-a="back">Back</button></div><div class="msg"></div>`;
     const msg=t=>{box.querySelector('.msg').textContent=t;};const inp=$('acctPerk');['keydown','keyup','keypress'].forEach(t=>inp.addEventListener(t,e=>e.stopPropagation()));
     const go=()=>{const k=perkOf(inp.value);if(!k){msg('That code doesn’t do anything.');return;}if(profPerk(p,k)){msg(k==='gifts'?'Already on: unlimited gifts, every day.':'Already on for this profile.');return;}
       perkGrant(p,k);msg(PERK_SAY[k](p.name));};
@@ -29,7 +30,7 @@ function perkGrant(p,k){p.perks=p.perks||[];if(!p.perks.includes(k))p.perks.push
   // the Profiles screen itself has a Codes button (for the profile you're playing), and marks a profile that has unlimited gifts
   if(view==='list'){const box=$('acctPanel').querySelector('.box');const acts=box&&box.querySelector('.acts');
     if(acts){const b=document.createElement('button');b.dataset.a='codes';b.textContent='Codes';acts.insertBefore(b,acts.firstChild);b.addEventListener('click',e=>{e.stopPropagation();acctShow('perk',ACCT.cur,'list');});}
-    box&&box.querySelectorAll('.row').forEach(r=>{const p=ACCT.list.find(q=>q.id===r.dataset.id);const sm=r.querySelector('.who small');if(p&&sm&&profPerk(p,'gifts'))sm.textContent+=' · unlimited gifts';if(p&&sm&&profPerk(p,'truepath'))sm.textContent+=' · Jaxon 6';if(p&&sm&&profPerk(p,'truecheck'))sm.textContent+=' · Jaxon 7';});}
+    box&&box.querySelectorAll('.row').forEach(r=>{const p=ACCT.list.find(q=>q.id===r.dataset.id);const sm=r.querySelector('.who small');if(p&&sm&&profPerk(p,'gifts'))sm.textContent+=' · unlimited gifts';if(p&&sm&&profPerk(p,'truepath'))sm.textContent+=' · Jaxon 6';if(p&&sm&&profPerk(p,'truecheck'))sm.textContent+=' · Jaxon 7';if(p&&sm&&profPerk(p,'safenight'))sm.textContent+=' · Jaxon 8';});}
   if(view==='more'){const p=ACCT.list.find(q=>q.id===arg);const box=$('acctPanel').querySelector('.box');const acts=box&&box.querySelector('.acts');
     if(p&&acts){const b=document.createElement('button');b.dataset.a='perk';b.textContent='Codes';const back=acts.querySelector('[data-a=back]');acts.insertBefore(b,back);b.addEventListener('click',()=>acctShow('perk',p.id));
       if(profPerk(p,'gifts')){const s=document.createElement('div');s.style.cssText='margin:6px 0;color:#b8e07a;font-size:13px';s.textContent='Unlimited gifts: on';acts.before(s);}}}
@@ -75,6 +76,14 @@ function trueCheckHtml(){const st=S.st||{},got=st.got||{},tick=b=>b?'<b style="c
   else{const L=stLeft();night=L>0?`Tithe night is in ${L} day${L>1?'s':''}.`:'Tithe night is tonight. After the bell, walk to the Tithe House and press X: Open.';}
   h+=`<p style="margin-top:.6em"><b>${n}/5 done.</b> ${night}</p>`;
   if(n===5)h+='<p style="color:#8fd06a">Everything is ready. On Tithe night choose <b>Push the door open from this side</b>.</p>';
+  if(safeNight())h+='<p class="jsub">Jaxon 8 is on: Tithe night can’t take you. The bad ending only happens if you choose to go in.</p>';
   return h;}
 {const _oj=openJournal;openJournal=function(){const r=_oj.apply(this,arguments);try{if(!profPerk(acctMe(),'truecheck'))return r;const el=$('noteText');if(!el)return r;
   const ppl=[...el.querySelectorAll('h4')].find(x=>/People/i.test(x.textContent));const html=trueCheckHtml();if(ppl)ppl.insertAdjacentHTML('beforebegin',html);else el.insertAdjacentHTML('beforeend',html);}catch(e){}return r;};}
+
+// ---- Jaxon 8: Tithe night can't end badly by itself. The tall thing on the Mill Road can't take you (its hand stops an inch away),
+//      the bed won't let you sleep, the small hours don't take you, and if the night runs out the door waits one more night.
+//      Choosing "Open the door and go in" is still yours to choose.
+function safeNight(){return profPerk(typeof acctMe==='function'&&acctMe(),'safenight');}
+{const _sl=sleep;sleep=function(){if(safeNight()&&S.st&&stTitheNight()&&isNight()&&S.mode==='play'){SFX.deny&&SFX.deny();
+    toast('You lie down and your eyes won’t close. Something is holding them open, gently. Not tonight. Tonight you go to the door.',4.4,true);return;}return _sl.apply(this,arguments);};}

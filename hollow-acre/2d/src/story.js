@@ -185,7 +185,10 @@ $('keepFarming').addEventListener('click',()=>{const st=S.st;ui.toast.style.visi
 
 // ---- days: letters, missed drawings, the night you don't go
 {const _nd=newDay;newDay=function(msg,pos){const st=S.st;
-  if(stTitheNight()&&S.mode!=='end'){S.mode='play';fade(0);stEnding('taken');return;}
+  if(stTitheNight()&&S.mode!=='end'){
+    // Jaxon 8: the night can't take you. If it runs out before you reach the door, the door waits one more night.
+    if(typeof safeNight==='function'&&safeNight()){st.tithe=S.day+1;st.ev.road=0;HZ.tall=null;setTimeout(()=>toast('The night ran out, and nothing took you. The door waited. Tithe night is tonight, again.',4.6,true),9200);}
+    else{S.mode='play';fade(0);stEnding('taken');return;}}
   _nd(msg,pos);if(!st.started||st.done)return;const L=stLeft();
   if(L<=0&&!st.drawn){st.drawn=true;setTimeout(()=>toast('You don’t remember the drawing. Everyone says you were there. Everyone says you stood up when they read your name.',5,true),4200);}
   else if(L>=1&&L<=6&&ST_LETTERS[L]&&!st.mail){st.mail=L;}
@@ -220,7 +223,7 @@ function storyUpdate(dt){const st=S.st;stHud();if(!S.bound)return;if(!st.started
   if(L===0&&isNight()){if(!st.lined){st.lined=1;let i=0;for(const n of npcs){n._line=[i%2?18.4:21.6,30+Math.floor(i/2)*3.6];i++;}}
     for(const n of npcs){if(!n._line)continue;n.vis=true;n.x=n._line[0];n.z=n._line[1];n.wait=1;}
     if(!st.ev.road&&P.x>15&&P.x<25&&P.z>32&&P.z<86){st.ev.road=1;SFX.whisper&&SFX.whisper();toast('As you pass, each of them says it quietly. Happy birthday. Happy birthday. Happy birthday.',4.5,true);mindHit(6);}
-    if(S.hour>=25.4&&S.mode==='play'&&!S.paused)stEnding('taken');}
+    if(S.hour>=25.4&&S.mode==='play'&&!S.paused&&!(typeof safeNight==='function'&&safeNight()))stEnding('taken');}
 }
 // ---- what people say in the last week
 {const _t=talk;talk=function(n){_t(n);if(stLast()&&rand()<.35&&$('talkLine'))setTimeout(()=>{if(!$('talk').hidden)$('talkLine').innerHTML=`<q>${pick(ST_TALK)}</q>`;},0);};}

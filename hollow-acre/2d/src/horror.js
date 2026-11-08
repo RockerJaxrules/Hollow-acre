@@ -94,7 +94,8 @@ function horrorUpdate(dt){if(S.mode!=='play'||S.paused)return;HZ.sessionT+=dt;co
     if(!HZ.tall&&onRoad&&P.z<50){HZ.tall={x:20,z:P.z-6.5,t:0,dir:'S',moving:false};SFX.shriek&&SFX.shriek(0);toast('Behind you, at the top of the road, something very tall has started walking. Don’t turn back.',4.4,true);mindHit(8);}
     if(HZ.tall){const q=HZ.tall;q.t+=dt;const dx=P.x-q.x,dz=P.z-q.z,d=Math.hypot(dx,dz);q.dir=dirOf(dx,dz);
       const want=5.2,sp=d>want?Math.min(HZ.pspd,7)+.4:0;q.moving=sp>.05;if(q.moving){q.x+=dx/d*sp*dt;q.z+=dz/d*sp*dt;}
-      if(d<2.4){HZ.tall=null;stEnding('taken');return;}
+      if(d<2.4){if(typeof safeNight==='function'&&safeNight()){q.x=P.x-dx/d*2.6;q.z=P.z-dz/d*2.6;if(!q.warned){q.warned=1;SFX.stinger&&SFX.stinger();toast('It reaches for you, and its hand stops an inch from your neck, as if something is holding its wrist. It can’t take you. It keeps walking behind you anyway.',4.6,true);}}   // Jaxon 8
+        else{HZ.tall=null;stEnding('taken');return;}}
       if(rand()<dt*.6)SFX.heart&&SFX.heart(.35);if(P.z>86)HZ.tall=null;}}
   else if(HZ.tall)HZ.tall=null;}
 
