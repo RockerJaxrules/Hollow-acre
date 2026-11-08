@@ -12,7 +12,7 @@
 S.rgNight=S.rgNight||{};
 const RGN_EV={x:0,z:0,k:null,t:0,dur:0};
 const rgnNight=()=>isNight()&&!S.room&&S.mode==='play';
-function rgnOnce(k,text,hit){if(S.rgNight[k]===S.day)return false;S.rgNight[k]=S.day;setTimeout(()=>{toast(text,5,true);mindHit&&mindHit(hit||3);SFX.stinger&&SFX.stinger();},300);return true;}
+function rgnOnce(k,text,hit){if(S.rgNight[k]===S.day)return false;S.rgNight[k]=S.day;S.rgNightSeen=S.rgNightSeen||{};S.rgNightSeen[k]=text;setTimeout(()=>{toast(text,5,true);mindHit&&mindHit(hit||3);SFX.stinger&&SFX.stinger();},300);return true;}
 // where Room 6's door is, where the lookout cab is, the chapel windows, the hearths
 const RGN_R6=()=>({x:RGP.motel.x+3.33,z:RGP.motel.z+.05});
 const RGN_HEARTHS=[[-2,-114],[10,-103],[-50,-112],[-60,-127],[8,-129],[-12,-94],[-44,-98]];

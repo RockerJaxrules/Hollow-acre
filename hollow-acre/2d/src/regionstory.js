@@ -76,9 +76,24 @@ function rgTravel(from){const list=RG_MILES.filter(m=>m!==from&&rgMileKnown(m));
   const cost=m=>clamp(Math.hypot(m.x-from.x,m.z-from.z)/160,.25,2.5);
   openNote('<h3>The county milestone</h3><p>An old stone post, a wheel chalked on it. Somebody has kept the chalk fresh. Follow the old roads to:</p><p style="text-align:center">'+
     list.map(m=>`<button class="btn rgGo" data-k="${m.k}" style="margin:3px 4px">${m.name} <span style="opacity:.7">${(()=>{const h=cost(m);return h<1?Math.round(h*60)+' min':h.toFixed(1)+' h';})()}</span></button>`).join('')+'</p>','Not now',()=>{});
-  document.querySelectorAll('#noteText .rgGo').forEach(btn=>btn.addEventListener('click',()=>{const m=RG_MILES.find(q=>q.k===btn.dataset.k);if(!m)return;const h=cost(m);
-    if(S.hour+h>25.6){toast('Not this late. You’d drop in the road.',2.4,true);return;}
-    $('note').hidden=true;noteCb=null;fade(1);setTimeout(()=>{S.hour+=h;P.x=m.x+.2;P.z=m.z+1.3;P.dir='S';S.paused=false;fade(0);toast(`${m.name}. ${h<1?Math.round(h*60)+' minutes':h.toFixed(1)+' hours'} on the old roads.`,2.6);},500);},{once:true}));}
+  document.querySelectorAll('#noteText .rgGo').forEach(btn=>btn.addEventListener('click',()=>{const m=RG_MILES.find(q=>q.k===btn.dataset.k);if(!m)return;if(rgGoTo(from,m)){$('note').hidden=true;noteCb=null;}},{once:true}));}
+const rgCost=(from,m)=>clamp(Math.hypot(m.x-from.x,m.z-from.z)/160,.25,2.5);
+function rgGoTo(from,m){const h=rgCost(from,m);if(S.hour+h>25.6){toast('Not this late. You’d drop in the road.',2.4,true);return false;}
+  fade(1);setTimeout(()=>{S.hour+=h;P.x=m.x+.2;P.z=m.z+1.3;P.dir='S';S.paused=false;fade(0);toast(`${m.name}. ${h<1?Math.round(h*60)+' minutes':h.toFixed(1)+' hours'} on the old roads.`,2.6);},500);return true;}
+// the milestone you're standing at, if any
+const rgMileHere=()=>S.room?null:RG_MILES.find(m=>Math.hypot(P.x-m.x,P.z-m.z-.5)<2.6)||null;
+// ---- the map shows the milestones you know; standing at one, tap another to go there
+{const st=document.createElement('style');st.textContent=`#mapWrap .mile{position:absolute;z-index:3;width:14px;height:18px;margin:-16px 0 0 -7px;border:0;padding:0;background:none;cursor:pointer}
+#mapWrap .mile:before{content:'';position:absolute;left:2px;right:2px;top:3px;bottom:0;background:#9a968c;border:1.5px solid #2a1a0c;border-radius:5px 5px 1px 1px}
+#mapWrap .mile:after{content:'';position:absolute;left:4px;top:6px;width:6px;height:6px;border:1.5px solid #f4f0e4;border-radius:50%}
+#mapWrap .mile.here:before{background:#e8c060}#mapWrap .mile.go:hover:before{background:#f0e2be}#mapWrap .mile[disabled]{cursor:default}`;document.head.appendChild(st);}
+{const _rm=renderMap;renderMap=function(keep){const r=_rm.apply(this,arguments);try{const inner=$('mapInner'),base=MAPX.cv;if(!inner||!base)return r;const here=rgMileHere();
+  const pct=(x,z)=>[(MAPX.pad+(x-B.x0)*MAPX.s)/base.width*100,(MAPX.pad+(z-B.z0)*MAPX.s)/base.height*100];
+  for(const m of RG_MILES){if(!rgMileKnown(m))continue;const [l,t]=pct(m.x,m.z);const b=document.createElement('button');b.className='mile'+(m===here?' here':here?' go':'');b.style.left=l+'%';b.style.top=t+'%';
+    b.title=m.name+(here&&m!==here?` (${(()=>{const h=rgCost(here,m);return h<1?Math.round(h*60)+' min':h.toFixed(1)+' h';})()})`:'');
+    b.addEventListener('click',e=>{e.stopPropagation();if(m===here){toast(`You’re at the ${m.name} milestone.`,1.8);return;}if(!here){toast(`The ${m.name} milestone. Stand at any milestone to travel to it from the map.`,2.6);return;}
+      if(rgGoTo(here,m)){if($('bagClose'))$('bagClose').click();else{$('bag').hidden=true;S.paused=false;}}});inner.appendChild(b);}
+  const lg=$('mapLegend');if(lg&&!lg.querySelector('.mlg'))lg.insertAdjacentHTML('beforeend','<span class="mlg"><i style="background:#9a968c;border-radius:3px"></i>Milestones'+(here?' (tap one to go there)':'')+'</span>');}catch(e){}return r;};}
 {const _bw=buildWorld;buildWorld=function(){_bw();for(const o of OBJ){if(!o.mile)continue;const m=RG_MILES.find(q=>q.k===o.mile);if(!m)continue;
   interact.push({x:m.x,z:m.z+.5,r:1.3,on:()=>!S.room,label:()=>'Milestone',ok:()=>true,act(){rgTravel(m);}});}};}
 // ---- something to gather in every place, new spots every morning
