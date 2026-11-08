@@ -10,7 +10,7 @@ const PLACE_WORD={store:'at the general store',square:'in the square',school:'at
   pen:'by the stock pens',feed:'at Bell’s Feed & Stock',lane:'on the shop lane',bait:'at the bait & tackle shop',
   wk_woods:'in the woods outside Wickham',wk_square:'in Wickham square',wk_inn:'at the Wickham inn',wk_innwork:'working at the Wickham inn',
   wk_road:'on the Wickham road',wk_board:'by the Wickham notice board',wk_lane:'on a Wickham lane',wk_ferry:'at the Wickham ferry',
-  wk_river:'by the Wickham river',wk_gardens:'in the Wickham gardens',wk_chapel:'at the Wickham chapel',vigil:'at the night vigil'};
+  wk_river:'by the Wickham river',wk_gardens:'in the Wickham gardens',wk_chapel:'at the Wickham chapel',vigil:'at the night vigil',fest:'at the festival in the town square',farmgate:'by your farm gate'};
 const placeWord=(k,L)=>k==='home'?'at home'+(L&&HOMES[L.home]?` (${HOMES[L.home].name})`:''):PLACE_WORD[k]||'out and about';
 const clockH=h=>{let hh=Math.floor(h),mm=Math.round((h-hh)*4)*15;if(mm===60){hh++;mm=0;}const h12=((hh+11)%12)+1;return h12+(mm?':'+String(mm).padStart(2,'0'):'')+(hh<12?'am':'pm');};
 const HE_LATEST=20.25;   // isNight(): after this, talking never starts a scene
