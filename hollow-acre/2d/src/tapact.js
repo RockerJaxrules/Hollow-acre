@@ -96,7 +96,10 @@ function useOn(T,mode){if(!T)return false;const kind=heldKind();
 const busy=()=>S.mode!=='play'||S.paused||P.anim||(typeof MG!=='undefined'&&MG.on)||(typeof PLACE!=='undefined'&&PLACE.on);
 // while a line is out, any use goes to the rod: cast, reel in, strike
 const fishing=()=>typeof fish!=='undefined'&&fish.state!=='off';
+// the stones: using the right tool on the spot does it too (the rod on the dock's cord, the axe on the hollow tree, the pickaxe at your bed)
+function storyToolAt(){const k=heldKind();for(const it of interact){if(!it.tool||it.tool!==k)continue;if(it.toolOn?!it.toolOn():(it.on&&!it.on()))continue;if(Math.hypot(P.x-it.x,P.z-it.z)<it.r+.3)return it;}return null;}
 function useFront(){A.init&&A.init();if(typeof PLACE!=='undefined'&&PLACE.on){placeConfirm();return;}if(busy())return;if(fishing()){fishAct();return;}
+  {const si=storyToolAt();if(si){si.act();return;}}
   const T=frontTarget();if(T){useOn(T,'tool');return;}
   // nothing to use a tool on: if you're facing someone or a door, use that instead
   interactFront(true);}

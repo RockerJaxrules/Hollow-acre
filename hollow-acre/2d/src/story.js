@@ -73,14 +73,16 @@ function stStart(){const st=S.st;st.started=true;st.tithe=0;st.act=2;
 // ---- interactions
 interact.push({x:MAILPOS.x,z:MAILPOS.z,r:1.1,on:()=>!!S.st.mail,label:()=>'Read',ok:()=>true,act(){const L=S.st.mail;S.st.mail=null;S.st.lettersRead++;SFX.page&&SFX.page();
   const day=S.day+1;openNote(`<h3>Day ${day}</h3><p>${ST_LETTERS[L]}</p>${L==='epi_door'?'':'<p style="text-align:right">— you</p>'}`,'Keep it',()=>{mindHit(L==='first'?6:4);if(L==='first'){S.st.act=3;addLore('A letter in my handwriting: the three stones are under the dock, in the hollow tree at noon, and under my bed. Put them back.');}});}});
-interact.push({x:LAKE.x,z:LAKE.z-LAKE.rz+2.6,r:1.6,on:()=>S.st.act>=3&&!S.st.got.dock,label:()=>S.rod<2?'Cord':'Hook it',ok:()=>true,act(){if(S.rod<2){toast('The cord goes straight down into black water. Your arm isn’t long enough and your rod would snap. Otto sells an ash rod that might hook it.',4);SFX.deny();return;}S.st.got.dock=1;SFX.thud&&SFX.thud(0,.3);mindHit(6);
+// before the letter, the cord is only something you notice at the end of the dock
+interact.push({x:LAKE.x,z:LAKE.z-LAKE.rz+2.6,r:1.4,on:()=>!S.st||S.st.act<3,label:()=>'Look',ok:()=>true,act(){toast('A cord is knotted round the last plank and goes straight down into the black water. It’s pulled tight. Whatever is on the end is heavy.',4);}});
+interact.push({x:LAKE.x,z:LAKE.z-LAKE.rz+2.6,r:1.6,tool:'rod',on:()=>S.st.act>=3&&!S.st.got.dock,label:()=>S.rod<2?'Cord':'Hook it',ok:()=>true,act(){if(S.rod<2){toast('The cord goes straight down into black water. Your arm isn’t long enough and your rod would snap. Otto sells an ash rod that might hook it.',4);SFX.deny();return;}S.st.got.dock=1;SFX.thud&&SFX.thud(0,.3);mindHit(6);
   toast('You hook the cord and haul. It fights like a fish, then like a hand. Then it lets go. On the end: a black stone, warm as skin.',4,true);}});
-interact.push({x:HOLLOW_TREE.x,z:HOLLOW_TREE.z-1.3,r:1.8,on:()=>S.st.act>=3&&!S.st.got.tree,label:()=>'Reach in',ok:()=>true,act(){
+interact.push({x:HOLLOW_TREE.x,z:HOLLOW_TREE.z-1.3,r:1.8,tool:'axe',on:()=>S.st.act>=3&&!S.st.got.tree,label:()=>'Reach in',ok:()=>true,act(){
   if(S.hour<11.5||S.hour>13){toast('The hollow is only dark. The carving says WHEN THE SUN IS IN. Come back at noon.',3);SFX.deny();return;}
   if(S.tools.axe<2){toast('The light goes in, but the hollow has grown shut around something. Your axe just bounces. A steel axe would split it.',3.6);SFX.deny();return;}
   S.st.got.tree=1;mindHit(5);toast('At noon the light goes straight down into the tree. A black stone sits in the bottom, and a child’s tooth beside it. You take the stone.',4,true);}});
 {const bd=interact.find(e=>e.on===undefined?false:Math.abs(e.x-BEDPOS.x)<.01&&Math.abs(e.z-BEDPOS.z)<.01&&e.r===1.3);const _l=bd.label,_a=bd.act;const want=()=>S.st.act>=3&&!S.st.got.bed;
-  bd.label=()=>want()?'Look under':_l();
+  bd.label=()=>want()?'Look under':_l();bd.tool='pick';bd.toolOn=want;
   bd.act=function(){if(!want())return _a.call(this);if(S.tools.pick<2){toast('Under the bed the boards are nailed down, and something underneath is warm. Your pickaxe can’t pry them. A steel one could.',3.8);SFX.deny();return;}S.st.got.bed=1;mindHit(8);SFX.stinger&&SFX.stinger();
     toast('It was always here. Under where you sleep. The floor beneath it is worn smooth, as if someone has been lying under your bed every night, holding it.',4.2,true);};}
 // the Tithe House door: setting the stones, and the choice on Tithe night
