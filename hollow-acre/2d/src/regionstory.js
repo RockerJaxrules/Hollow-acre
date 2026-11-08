@@ -8,7 +8,8 @@
      Chapter Three the scarecrow in the Deep Corn that wears your clothes
    And each place is worth going back to: something to gather there every day, fish in the fen and the reservoir, and the old
    county milestones, chalked with a wheel, that take you between any two you have found. ================= */
-S.rg=S.rg||{seen:{},f:[],fday:0,gaveDoll:0};
+S.rg=S.rg||{seen:{},gaveDoll:0};
+S.rgf=S.rgf||{day:0,f:[]};   // today's gathering spots: one list for the whole farm, shared in multiplayer
 const RG_LINE={r9w:'The road you came in on. It goes on, and on, to the county line.',grey:'Red brick behind an iron fence. Someone has kept the children’s graves weeded.',
   fen:'The river gives out here into black water. What goes in, stays.',corn:'Harlan’s fields, grown into a maze. Something is walking the next row over, keeping pace.',
   drown:'Marrow Reservoir, 1931. A steeple stands up out of the water.',ridge:'Dark pines and granite. Up on the rise, the fire lookout.',
@@ -104,14 +105,24 @@ cicoMake('it_chaga',(p)=>{for(let i=-9;i<=9;i++)for(let j=-6;j<=6;j++)if(i*i/81+
 function rgForageSpot(k){const r=RGK[k];for(let t=0;t<200;t++){const x=lerp(r.x0+3,r.x1-3,Math.random()),z=lerp(r.z0+3,r.z1-3,Math.random());if(!inNewLand(x,z)||rgAt(x,z)!==r)continue;
     if(LAYERS.water(x,z)||onRoad(x,z,.6))continue;if(k==='drown'&&!LAYERS.dirt(x,z))continue;if(k==='corn'&&!(x>DCF.x0&&x<DCF.x1&&z>DCF.z0&&z<DCF.z1&&dcPath(x,z)))continue;
     const A=cgNear(x,z,.6);if(A.c.some(c=>Math.hypot(c.x-x,c.z-z)<c.r+.5)||A.r.some(q=>x>q.x0-.5&&x<q.x1+.5&&z>q.z0-.5&&z<q.z1+.5))continue;return [x,z];}return null;}
-function rgForageRoll(){S.rg.f=[];for(const [k,[it,n]] of Object.entries(RG_FOR))for(let i=0;i<n;i++){const p=rgForageSpot(k);if(p)S.rg.f.push({k:it,x:+p[0].toFixed(2),z:+p[1].toFixed(2),t:0});}S.rg.fday=S.day;rgForageHook();}
+// on a shared farm only the host rolls them; everyone else is sent the host's
+const rgRolls=()=>typeof HOST==='undefined'||!HOST.role||HOST.role==='host';
+function rgForageRoll(){if(!rgRolls()){rgForageHook();return;}const f=[];for(const [k,[it,n]] of Object.entries(RG_FOR))for(let i=0;i<n;i++){const p=rgForageSpot(k);if(p)f.push({k:it,x:+p[0].toFixed(2),z:+p[1].toFixed(2),t:0});}S.rgf={day:S.day,f};rgForageHook();}
 const RG_FI=[];
-function rgForageHook(){for(let i=0;i<S.rg.f.length;i++){let it=RG_FI[i];if(!it){const j=i;it={x:0,z:0,r:.9,on:()=>{const f=S.rg.f[j];return !!f&&!f.t&&!S.room;},label:()=>'Gather',ok:()=>true,
-      act(){const f=S.rg.f[j];if(!f||f.t)return;f.t=1;addInv(f.k);SFX.harvest&&SFX.harvest();toast(`+1 ${ITEMS[f.k].name}.`,1.8);}};RG_FI.push(it);interact.push(it);}
-    it.x=S.rg.f[i].x;it.z=S.rg.f[i].z;}}
+const rgF=()=>(S.rgf&&Array.isArray(S.rgf.f))?S.rgf.f:[];
+function rgForageHook(){const F=rgF();for(let i=0;i<F.length;i++){let it=RG_FI[i];if(!it){const j=i;it={x:0,z:0,r:.9,on:()=>{const f=rgF()[j];return !!f&&!f.t&&!S.room;},label:()=>'Gather',ok:()=>true,
+      act(){const f=rgF()[j];if(!f||f.t)return;f.t=1;addInv(f.k);SFX.harvest&&SFX.harvest();toast(`+1 ${ITEMS[f.k].name}.`,1.8);}};RG_FI.push(it);interact.push(it);}
+    it.x=F[i].x;it.z=F[i].z;}}
 {const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);try{rgForageRoll();}catch(e){}return r;};}
-{const _lg=loadGame;loadGame=function(d){const r=_lg.apply(this,arguments);try{S.rg=Object.assign({seen:{},f:[],fday:0,gaveDoll:0},S.rg||{});if(!S.rg.f.length||S.rg.fday!==S.day)rgForageRoll();else rgForageHook();}catch(e){}return r;};}
-setTimeout(()=>{try{if(!S.rg.f||!S.rg.f.length)rgForageRoll();}catch(e){}},1500);
+{const _lg=loadGame;loadGame=function(d){const r=_lg.apply(this,arguments);try{S.rg=Object.assign({seen:{},gaveDoll:0},S.rg||{});delete S.rg['f'];delete S.rg['fday'];
+  if(!rgF().length||S.rgf.day!==S.day)rgForageRoll();else rgForageHook();}catch(e){}return r;};}
+setTimeout(()=>{try{if(!rgF().length)rgForageRoll();}catch(e){}},1500);
+// shared farm: the list travels with the rest of the farm; two people gathering at once both keep what they took
+if(typeof WORLD_KEYS!=='undefined'){WORLD_KEYS.push('rgf');
+  const _wa=worldApply;worldApply=function(d){try{if(d&&d.rgf&&Array.isArray(d.rgf.f)&&S.rgf&&d.rgf.day===S.rgf.day&&d.rgf.f.length===rgF().length){let mine=false;
+      d.rgf={day:d.rgf.day,f:d.rgf.f.map((q,i)=>{const t=(q.t||rgF()[i].t)?1:0;if(t&&!q.t)mine=true;return Object.assign({},q,{t});})};
+      const r=_wa.call(this,d);if(mine)MPW.known.rgf='';rgForageHook();return r;}}catch(e){}
+    const r=_wa.apply(this,arguments);try{if(d&&d.rgf)rgForageHook();}catch(e){}return r;};}
 // ---- fish of the fen and the reservoir
 FISH.push(['Peat eel',24,.55,'floater','fen','any',40,95],['Bog-blind minnow',9,.2,'smooth','fen','day',6,12],['Black pike',34,.75,'dart','fen','night',55,115],
   ['Reservoir perch',11,.25,'smooth','res','day',16,30],['Lake trout',22,.5,'dart','res','day',30,60],['Bell carp',46,.82,'mixed','res','night',60,130]);
@@ -141,7 +152,7 @@ function rgAmbient(dt){const r=rgAt(P.x,P.z);if(!r||S.room)return;const night=is
   else if(r.k==='marrow')A.hiss&&A.hiss(1.4,.025,'lowpass',300,{wobble:true});}
 {const _u=update;update=function(dt){_u(dt);if(S.mode!=='play')return;try{rgAmbient(dt);}catch(e){}};}
 {const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld(D,t);if(S.room)return;
-  for(const f of S.rg.f||[]){if(f.t||!onScreen(f.x,f.z,40))continue;const ic=CICO[ITEMS[f.k].icon];if(!ic)continue;
+  for(const f of rgF()){if(f.t||!onScreen(f.x,f.z,40))continue;const ic=CICO[ITEMS[f.k].icon];if(!ic)continue;
     D.push({z:f.z,draw(){const X=Math.round(sx(f.x)),Y=Math.round(sz(f.z));ctx2.fillStyle='rgba(10,10,8,.32)';ctx2.fillRect(X-6,Y-1,12,3);const b=Math.round(Math.sin(t*2+f.x)*1);ctx2.drawImage(ic,X-9,Y-17+b,18,18);
       if(Math.sin(t*3+f.z*7)>.85){ctx2.fillStyle='#fff8e0';ctx2.fillRect(X+4,Y-15+b,1,1);ctx2.fillRect(X+3,Y-14+b,3,1);ctx2.fillRect(X+4,Y-13+b,1,1);}}});}
   for(const w of RGA.wisps){if(w.a<=0||!onScreen(w.x,w.z,30))continue;D.push({z:w.z,mind:1,draw(){const X=Math.round(sx(w.x)),Y=Math.round(sz(w.z))-18-Math.sin(w.ph*2)*4;
