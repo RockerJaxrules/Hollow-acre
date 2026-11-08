@@ -294,7 +294,7 @@ function buildTown(){
   // the hidden garden, behind the parsonage, through a gap in the wall: a fountain nobody tends, and somebody does
   const HG=HIDDEN_GARDEN;W('stonewall',HG.x0,HG.gap[0],HG.z1);W('stonewall',HG.gap[1],HG.x1,HG.z1);W('stonewall_b',HG.x0,HG.x0+2,HG.z0);W('stonewall',HG.x0+2,HG.x1,HG.z0);
   hedgeLine(HG.x0,HG.z0,HG.z1);hedgeLine(HG.x1,HG.z0,HG.z1);reserve(HG.x0,HG.z0,HG.x1,HG.z1);
-  Y('fountain',43.4,-36.2);for(const x of [40.8,45.8])Y('parkbench',x,-34.4);Y('planter',40.4,-39.8);Y('planter',46.4,-39.8);Y('birdbath',41,-38);TREE_T('apple_gold',46,-39.4);
+  Y('fountain',43.4,-36.2);Y('parkbench',43.5,-34.05);Y('parkbench',46.1,-34.6);Y('planter',40.4,-39.8);Y('planter',46.4,-39.8);Y('birdbath',41,-38);TREE_T('apple_gold',46,-39.4);
   // the copse on the hill: close-grown and dark, the light barely gets in
   {const C=COPSES[1];for(let i=0;i<16;i++){const a=i*2.4,r=.25+((i*.37)%1)*.8;const x=C.x+Math.cos(a)*C.rx*r,z=C.z+Math.sin(a)*C.rz*r;if(Math.hypot(x-34,z+28)<2)continue;
     const e=obj(['pine_0','pine_1','spruce_0','spruce_1'][i%4],x,z,{kind:'pine',solid:1,town:1});addCircle(x,z,.4);}}
