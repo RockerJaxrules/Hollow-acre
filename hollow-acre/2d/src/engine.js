@@ -42,6 +42,9 @@ function chunk(cx,cz){const k=cx+','+cz;let c=chunks.get(k);if(c)return c;
    if(bx1>0&&bx0<CH&&bz1>0&&bz0<CH)for(let x=bx0;x<bx1;x++){const pl=Math.floor((x-bx0)/9),k=(x-bx0)%9;for(let y=Math.max(0,bz0);y<Math.min(CH,bz1);y++){const e=Math.min(y-bz0,bz1-1-y)/18;
      let c=k===8?[46,30,20]:k===0?[128,92,60]:[[96,66,42],[104,72,46],[88,60,38]][(pl+((y>>5)&1))%3];const n=hash(pl*31+(y>>3),x0+z0)*.18+.82;const sh=Math.min(1,.45+e*.6)*n;
      if(((y+pl*13)%37)===0&&k>2&&k<6)c=[40,28,18];g.fillStyle=`rgb(${c[0]*sh|0},${c[1]*sh|0},${c[2]*sh|0})`;g.fillRect(x,y,1,1);}}}
+  // no water shows through the bridge decks: they come out of the water mask, so reflections and ripples stop at the planks
+  if(c.wm){const wg=c.wm.getContext('2d');const cut=(ax,az,bx,bz)=>wg.clearRect(Math.round((ax-x0)*32),Math.round((az-z0)*32),Math.round((bx-ax)*32),Math.round((bz-az)*32));
+    cut(BRIDGE.x-4.45,-9.3,BRIDGE.x+4.45,-2.8);cut(FOOT.x-3,FOOT.z-.8,FOOT.x+3,FOOT.z+.8);}
   // ground clutter: tufts, stones, wildflowers, twigs on open grass
   const dec=SPR.decor&&IMG[SPR.decor.src];
   if(dec)for(let j=0;j<N;j++)for(let i=0;i<N;i++){const X=x0+i,Z=z0+j,h=hash(X*7+3,Z*5+1);if(terr(X+.5,Z+.5)!=='grass')continue;

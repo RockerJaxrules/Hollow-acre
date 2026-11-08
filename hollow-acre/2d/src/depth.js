@@ -9,14 +9,25 @@ function dxMask(g){const left=cam.px-(VW>>1),top=cam.pz-Math.round(VH*.56);const
   g.drawImage(tmp,0,0);g.globalCompositeOperation='source-over';return any;}
 function dxWaterOnScreen(){const left=cam.px-(VW>>1),top=cam.pz-Math.round(VH*.56);for(let cz=Math.floor(top/CH);cz<=Math.floor((top+VH)/CH);cz++)for(let cx=Math.floor(left/CH);cx<=Math.floor((left+VW)/CH);cx++){const ch=chunks.get(cx+','+cz);if(ch&&ch.wm)return true;}return false;}
 const DX_REFLECT=new Set(['tree','pine','bld','lamp','prop','bush','fence','wreck']);
+const dxNearWater=(x,z)=>[[0,.6],[0,1.5],[0,3],[1.2,1.5],[-1.2,1.5]].some(([dx,dz])=>terr(x+dx,z+dz)==='water');
+// one thing mirrored about its feet, fading out with distance below the waterline: tall things (the covered bridge, the big trees)
+// leave a reflection that melts into the water instead of a hard-edged block far down the creek
+function dxMirror(g,im,sx0,sy0,m,X,Y,flip){const fw=m.fw,fh=m.fh,ax=Math.round(m.ax),ay=Math.round(m.ay);
+  const t=DX.mt||(DX.mt=document.createElement('canvas'));if(t.width<fw||t.height<fh){t.width=Math.max(t.width,fw);t.height=Math.max(t.height,fh);}
+  const q=t.getContext('2d');q.globalCompositeOperation='source-over';q.clearRect(0,0,t.width,t.height);q.save();q.translate(flip?fw:0,fh);q.scale(flip?-1:1,-1);q.drawImage(im,sx0,sy0,fw,fh,0,0,fw,fh);q.restore();
+  const y0=fh-1-ay,L=Math.max(22,Math.min(110,ay*.55));const gr=q.createLinearGradient(0,y0,0,y0+L);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(.55,'rgba(0,0,0,.6)');gr.addColorStop(1,'rgba(0,0,0,0)');
+  q.globalCompositeOperation='destination-in';q.fillStyle=gr;q.fillRect(0,0,fw,fh);q.globalCompositeOperation='source-over';
+  g.drawImage(t,0,0,fw,fh,flip?X+ax-fw+1:X-ax,Y+ay-fh+1,fw,fh);}
 function depthWater(t){if(DX.off||S.room||!dxWaterOnScreen())return;const g=dxCanvas();
   // 1) mirrored world: everything standing near the water, flipped about its feet, darkened and tinted by the water
   g.clearRect(0,0,VW,VH);
   if(!DX.refl){DX.refl=OBJ.filter(o=>DX_REFLECT.has(o.kind)&&[[0,1.5],[0,3],[0,5],[1.5,2],[-1.5,2]].some(([dx,dz])=>terr(o.x+dx,o.z+dz)==='water'));}
   for(const o of DX.refl){if(o.hide)continue;const m=SPR[o.spr];if(!m)continue;const im=IMG[m.src];if(!im)continue;const X=Math.round(sx(o.x)),Y=Math.round(sz(o.z));
-    if(X<-m.fw||X>VW+m.fw||Y<-20||Y>VH+20)continue;g.save();g.translate(0,Y*2);g.scale(1,-1);g.drawImage(im,0,0,m.fw,m.fh,X-Math.round(m.ax),Y-Math.round(m.ay),m.fw,m.fh);g.restore();}
-  for(const n of npcs)if(n.vis){const m=SPR[n.def.id];if(!m)continue;const im=IMG[m.src];const X=Math.round(sx(n.x)),Y=Math.round(sz(n.z));const c=m.clips.idle[n.dir||'S']||m.clips.idle.S;
-    g.save();g.translate(0,Y*2);g.scale(1,-1);g.drawImage(im,0,c[0]*m.fh,m.fw,m.fh,X-m.ax,Y-m.ay,m.fw,m.fh);g.restore();}
+    if(X<-m.fw||X>VW+m.fw||Y<-20||Y>VH+m.fh)continue;dxMirror(g,im,0,0,m,X,Y,!!o.flip);}
+  // people by the water, in the pose they're in right now (not frozen standing still)
+  for(const n of npcs)if(n.vis){const m=SPR[n.def.id];if(!m||!m.clips)continue;const im=IMG[m.src];if(!im)continue;if(!dxNearWater(n.x,n.z))continue;const X=Math.round(sx(n.x)),Y=Math.round(sz(n.z));
+    if(X<-m.fw||X>VW+m.fw||Y<-20||Y>VH+m.fh)continue;const fr=n._fr&&n._fr[0]===n.def.id?n._fr:null;const c=fr&&m.clips[fr[1]]||m.clips.idle||m.clips.walk;const r=c[fr?fr[2]:(n.dir||'S')]||c.S||Object.values(c)[0];
+    dxMirror(g,im,((fr?fr[3]:0)|0)%r[1]*m.fw,r[0]*m.fh,m,X,Y,false);}
   g.globalCompositeOperation='source-atop';g.fillStyle=`rgba(16,44,72,${.45+nightK*.3})`;g.fillRect(0,0,VW,VH);g.globalCompositeOperation='source-over';
   if(dxMask(g)){ctx2.globalAlpha=.42-nightK*.2;for(let y=0;y<VH;y+=6){const off=Math.round(Math.sin(y*.15+t*2.4)*1.4);ctx2.drawImage(DX.rc,0,y,VW,6,off,y,VW,6);}ctx2.globalAlpha=1;}
   // 2) moving water: short bright streaks drifting down the creek and lapping round the pond

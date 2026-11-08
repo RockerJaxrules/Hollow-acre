@@ -166,10 +166,16 @@ function mindCropOver(tl,X,Y){if(!(isNight()&&tierOf(M.v)>=2)||!tl.crop||tl.crop
   const dx=clamp(Math.round((P.x-tl.x)*1.2),-1,1);CROPGLOW.push([X+dx,Y-8]);ctx2.fillStyle='#ffb24a';ctx2.fillRect(Math.round(X)-3+dx,Math.round(Y)-9,2,2);ctx2.fillRect(Math.round(X)+1+dx,Math.round(Y)-9,2,2);ctx2.fillRect(Math.round(X)-2+dx,Math.round(Y)-5,4,1);}
 function mindWatcherDraw(D){if(!M.watcher)return;const w=M.watcher;D.push({z:w.z,mind:1,draw(){drawSpr(w.id,sx(w.x),sz(w.z),'walk',dirOf(P.x-w.x,P.z-w.z),0,{alpha:Math.min(1,w.t*1.5)});}});}
 function mindReflection(){ // your reflection in the water, a little behind you. when you're far gone it stops copying you
-  if(!onScreen(P.x,P.z,10))return;if(Math.abs(P.x-BRIDGE.x)<4.8&&P.z<-1.5&&P.z>-10)return;const T=tierOf(M.v);if(terr(P.x,P.z+1.1)!=='water'&&terr(P.x,P.z+1.6)!=='water')return;
+  if(!onScreen(P.x,P.z,10))return;if(Math.abs(P.x-BRIDGE.x)<4.8&&P.z<-1.5&&P.z>-10)return;if(Math.abs(P.x-FOOT.x)<3.3&&Math.abs(P.z-FOOT.z)<1.7)return;   // on a bridge: the deck is between you and the water
+  const T=tierOf(M.v);if(terr(P.x,P.z+.6)!=='water'&&terr(P.x,P.z+1.1)!=='water'&&terr(P.x,P.z+1.6)!=='water')return;
   const lag=T>=1?Math.min(TRAIL.length-1,4+T*5):0;const r=T>=1&&TRAIL.length>lag?TRAIL[TRAIL.length-1-lag]:{x:P.x,z:P.z,dir:P.dir,clip:P.clip,t:P.t};
-  const X=Math.round(sx(r.x)),Y=Math.round(sz(P.z))+4;ctx2.save();ctx2.beginPath();ctx2.rect(0,Y,VW,VH);ctx2.clip();ctx2.translate(0,Y*2);ctx2.scale(1,-1);ctx2.globalAlpha=.32;
-  const dir=T>=3?'S':r.dir;drawSpr('farmer',X,Y,'walk',dir,r.clip==='walk'&&T<3?frameOf('farmer','walk',r.t):0);ctx2.restore();ctx2.globalAlpha=1;
+  const X=Math.round(sx(r.x)),Y=Math.round(sz(P.z))+4;
+  // drawn on its own sheet, then cut to the water, so none of it lies on the grass or the sand
+  const pc=DX.pc||(DX.pc=document.createElement('canvas'));if(pc.width!==VW||pc.height!==VH){pc.width=VW;pc.height=VH;}const g=pc.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,VW,VH);
+  g.save();g.beginPath();g.rect(0,Y,VW,VH);g.clip();g.translate(0,Y*2);g.scale(1,-1);
+  const fr=T===0&&P._fr&&SPR[P._fr[0]]?P._fr:null;
+  if(fr)drawSpr(fr[0],X,Y,fr[1],fr[2],fr[3],{ctx:g});else{const dir=T>=3?'S':r.dir;drawSpr('farmer',X,Y,'walk',dir,r.clip==='walk'&&T<3?frameOf('farmer','walk',r.t):0,{ctx:g});}
+  g.restore();if(!dxMask(g))return;ctx2.globalAlpha=.32;ctx2.drawImage(pc,0,0);ctx2.globalAlpha=1;
   if(T>=3){ctx2.fillStyle='rgba(10,4,4,.6)';ctx2.fillRect(X-3,Y+26,6,1);}}
 // shipping lies too
 {const bin=interact.find(e=>e.x===binPos.x&&e.z===binPos.z);if(bin){const _a=bin.act;bin.act=function(){const n=S.basket.length;_a.call(this);if(tierOf(M.v)>=3&&n){toast(`Shipped ${n} teeth for 0 coins.`,1.2,true);setTimeout(()=>toast('No. You shipped crops. You shipped crops.',2),1300);}};}}
