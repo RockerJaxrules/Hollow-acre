@@ -33,13 +33,13 @@ class C:
         for x, y in out: s.px[x, y] = (*col, 255)
 
 
-def ramp(hexc, n=7, spread=.95, hs=.07):
+def ramp(hexc, n=7, spread=.62, hs=.08):
     """n tones of one colour, dark to light. Shadows drift toward violet, highlights toward gold."""
     r, g, b = [int(hexc[i:i + 2], 16) / 255 for i in (1, 3, 5)]; h, s, v = colorsys.rgb_to_hsv(r, g, b); out = []
     for i in range(n):
         t = i / (n - 1) - .55
         tgt = .72 if t < 0 else .13; d = ((tgt - h + .5) % 1) - .5; hh = (h + d * min(1, abs(t) * hs * 6)) % 1
-        ss = max(0, min(1, s * (1 - t * .5))); vv = max(0, min(1, v * (1 + t * spread)))
+        ss = max(0, min(1, s * (1.08 - t * .22))); vv = max(0, min(1, v * (1 + t * spread * (1.25 if t < 0 else 1))))
         out.append(tuple(round(c * 255) for c in colorsys.hsv_to_rgb(hh, ss, vv)))
     return out
 
@@ -67,14 +67,14 @@ def blobs(c, clumps, R, seed=0, rough=.16, cell=4, leaf=.24, under=.3, top=None,
     n = len(R)
     for (x, y), (f, nx, ny, nz, k, dp) in Z.items():
         l = max(0, nx * L[0] + ny * L[1] + nz * L[2])
-        sh = .14 + .92 * l - under * max(0, ny) * .7 - .22 * max(0, (y - y0) / max(1, y1 - y0) - .35)
+        sh = .02 + .9 * l - under * max(0, ny) * .8 - .26 * max(0, (y - y0) / max(1, y1 - y0) - .3) - .34 * (1 - nz) ** 2
         # leaves: each small cell is a little scalloped bump, lit on its upper left
         u, v = (x % cell) - cell * .4, (y % cell) - cell * .4; jit = HASH(x // cell, y // cell, seed)
-        sh += leaf * (.45 - (u * u + v * v) / (cell * cell * .9)) * (.6 + jit * .8) + (jit - .5) * .08
+        sh += leaf * (.45 - (u * u + v * v) / (cell * cell * .9)) * (.7 + jit * .5) + (jit - .5) * .05
         # the shadow a nearer clump throws down and to the right onto this one
         for ox, oy in ((-2, -2), (-3, -2), (-2, -3), (-1, -2)):
             q = Z.get((x + ox, y + oy))
-            if q and q[4] != k and q[0] > f + 1.5: sh -= .22 * shadow_k; break
+            if q and q[4] != k and q[0] > f + 1.5: sh -= .3 * shadow_k; break
         idx = max(0, min(n - 1, int(round(sh * (n - 1)))))
         c.p(x, y, R[idx])
     return Z
@@ -153,7 +153,7 @@ def oak(name, col, seed):
         x = cx + math.cos(a) * 44 * rr; y = 50 + math.sin(a) * 24 * rr - 6
         cl.append((x, y, 17 + HASH(i, seed, 3) * 9, (y - 20) * .5 + HASH(i, seed, 4) * 6))
     cl += [(cx - 42, 64, 15, 30), (cx + 44, 62, 15, 30), (cx - 18, 72, 16, 36), (cx + 20, 74, 15, 36), (cx, 22, 18, 4)]
-    blobs(c, cl, R, seed=seed, rough=.18, cell=4)
+    blobs(c, cl, R, seed=seed, rough=.12, cell=5, leaf=.26)
     c.outline(); contact_band(c, cx - 14, cx + 14, G)
     ground_shadow(c, cx + 6, G + 1, 30)
     fallen(c, cx, G + 2, 36, [R[3], R[5], R[4]], 14, seed)
@@ -231,8 +231,9 @@ def spruce(name, col, seed, W=70, H=134, tiers=8):
                 droop = abs(d) ** 2 * 3
                 if y < y0 + droop: continue
                 # each tier: lit on its left and top, the underside in its own shade, needles as short diagonal strokes
-                l = .7 - .5 * d - .55 * tt ** 2 + (.18 if (x + y * (1 if d < 0 else -1)) % 3 == 0 else -.04) + (HASH(x, y, seed) - .5) * .18
-                if tt > .82: l -= .3
+                l = .72 - .55 * d - .5 * tt ** 2 + (.2 if (x + y * (1 if d < 0 else -1)) % 3 == 0 else -.06) + (HASH(x, y, seed) - .5) * .14 - (.12 if k % 2 else 0)
+                if tt > .72: l -= .45
+                if abs(d) > .8 and HASH(x, y // 2, seed + k) > .7: continue   # ragged ends of the branches
                 c.p(x, y, R[max(0, min(6, int(round(l * 6))))])
     c.outline(); contact_band(c, cx - 5, cx + 5, G)
     ground_shadow(c, cx + 5, G + 1, W * .32)
@@ -379,11 +380,11 @@ def reeds(name, seed):
     save(name, c, G, (0, 0, 0, 0))
 
 
-oak('oak_russet', '#a85a2c', 11); oak('oak_green', '#5f7f2e', 12)
-birch('birch_gold', '#e0b438', 21); birch('birch_green', '#a9b444', 22)
-willow('willow', '#9cab48', 31)
-spruce('spruce_0', '#2d5a52', 41); spruce('spruce_1', '#355e46', 42, W=60, H=112, tiers=7)
-apple('apple_tree', '#6f8a2c', 51); apple('apple_gold', '#9a9a34', 52, fruit=(214, 170, 50))
+oak('oak_russet', '#9a3e1c', 11); oak('oak_green', '#3f6a24', 12)
+birch('birch_gold', '#d49a1c', 21); birch('birch_green', '#8a9a2c', 22)
+willow('willow', '#6e8a2e', 31)
+spruce('spruce_0', '#24504a', 41); spruce('spruce_1', '#2a5238', 42, W=60, H=112, tiers=7)
+apple('apple_tree', '#4e7424', 51); apple('apple_gold', '#86862a', 52, fruit=(214, 170, 50))
 deadoak('deadoak', 61); snag('snag', 62)
 bush('holly', '#2f5a34', 71, berries='#d0302a'); bush('juniper', '#4c7a6a', 72, W=60, H=34, low=.5, spiky=True)
 bush('elder', '#6a8a36', 73, berries='#3a2448'); sumac('sumac', 74)

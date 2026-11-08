@@ -142,8 +142,8 @@ const interact=[
   {x:boothPos.x,z:boothPos.z+.7,r:1.6,label:()=>phone.ring?'Answer':'Phone',ok:()=>phone.ring,act(){answerPhone();}},
   {cat:true,x:0,z:0,r:1.3,on:()=>S.cat==='lost'&&cat.vis,label:()=>'Pick up',ok:()=>true,act(){S.cat='carried';SFX.meow();toast('Whiskers. She is shaking. Something in the corn scared her.',2.6);}},
   ...mushrooms.map(m=>({mush:m,x:0,z:0,r:1.2,on:()=>!m.taken,label:()=>'Pick',ok:()=>true,act(){m.taken=true;S.basket.push({kind:'mushroom',value:5});SFX.plant();toast('Glowcap mushroom. Sells for 5. Tobias might want one.',2.2);}})),
-  ...pageEnts.map(pg=>({x:pg.x,z:pg.z,r:1.4,on:()=>!S.pages.includes(pg.i),label:()=>'Read',ok:()=>true,act(){readPage(pg.i);}})),
-  ...altars.map(a=>({x:a.x,z:a.z+.5,r:2.2,label:()=>a.lit?'Burning':(S.candles>0?(isNight()?'Light':'Wait'):'Stone'),ok:()=>!a.lit,
+  ...pageEnts.map(pg=>({x:pg.x,z:pg.z,r:1.4,story:true,on:()=>!S.pages.includes(pg.i),label:()=>'Read',ok:()=>true,act(){readPage(pg.i);}})),
+  ...altars.map(a=>({x:a.x,z:a.z+.5,r:2.2,story:()=>!a.lit&&!S.bound,label:()=>a.lit?'Burning':(S.candles>0?(isNight()?'Light':'Wait'):'Stone'),ok:()=>!a.lit,
     act(){if(S.candles<=0){toast('An old stone with a carved sign. A stub of black wax sits on top. It wants a candle.',2.8);return;}
       if(!isNight()){toast('The rite needs the moon. Come back after the bell.',2.4);SFX.deny();return;}lightAltar(a);}})),
   ...NPCDEF.map((d,i)=>({npc:i,x:0,z:0,r:1.7,on:()=>npcs[i].vis,label:()=>'Talk',ok:()=>true,act(){talk(npcs[i]);}})),

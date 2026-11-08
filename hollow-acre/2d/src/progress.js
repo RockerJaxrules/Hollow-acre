@@ -35,7 +35,7 @@ function openWard(){const rows=WARD.map(w=>{const done=S.ward[w.k],ok=!done&&war
 $('noteText').addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.wardb');if(!b)return;const w=WARD.find(x=>x.k===b.dataset.w);if(!w||S.ward[w.k]||!wardReady(w))return;
   wardTake(w);S.ward[w.k]=1;S.coins+=w.coins;SFX.bell&&SFX.bell();updateHud&&updateHud();$('note').hidden=true;noteCb=null;S.paused=false;$('noteText').style.maxHeight='';$('noteText').style.overflowY='';
   setTimeout(()=>openNote(`<h3>${w.name} is kept</h3><p>${w.text}</p><p style="font-size:13px">+${w.coins} coins · The Ward ${wardDone()}/${WARD.length}</p>`,'Good',()=>{mindHit(3);}),200);});
-{const R=ROOMS.church;interact.push({x:R.ox+5,z:R.oz+2.5,r:1.4,on:()=>S.room==='church',label:()=>'Ward ledger',ok:()=>true,act(){openWard();}});}
+{const R=ROOMS.church;interact.push({x:R.ox+5,z:R.oz+2.5,r:1.4,story:true,on:()=>S.room==='church',label:()=>'Ward ledger',ok:()=>true,act(){openWard();}});}
 
 // ---------- Mae's lessons
 S.ls=S.ls||{i:-1,base:{},ev:{}};
