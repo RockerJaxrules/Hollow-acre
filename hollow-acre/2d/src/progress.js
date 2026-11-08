@@ -99,6 +99,21 @@ function lsSideUpdate(){if(S.ls.i<0||S.tut.off||S.paused)return;S.ls.side=S.ls.s
   for(const L of LS_SIDE){const e=S.ls.side[L.id]=S.ls.side[L.id]||{st:'wait'};if(e.st==='done')continue;
     if(e.st==='wait'&&L.when()){e.st='on';e.b={};L.begin(e.b);if(maeT<=0)maeSay(L.say,'Side lesson: '+(L.id==='sleep'?'Sleep':'Harvest and ship'),9);}
     else if(e.st==='on'&&L.ok(e.b)&&maeT<=0){e.st='done';const rw=lsReward(L);maeSay(L.done,rw,6);SFX.coin&&SFX.coin();}}}
+// ---- where the guide arrow points: Caitlyn's lesson while she's teaching, the story's objective after
+const LS_NEAR=list=>{let b=null,bd=1e9;for(const t of list){const d=Math.hypot(t.x-P.x,t.z-P.z);if(d<bd){bd=d;b=t;}}return b?{x:b.x,z:b.z}:null;};
+const LS_AT={
+  clear:()=>{const f=fieldTiles();if(!f.length)return null;let x=0,z=0;for(const t of f){x+=t.x;z+=t.z;}return {x:x/f.length,z:z/f.length};},
+  till:()=>LS_NEAR(fieldTiles().filter(t=>!t.tilled)),plant:()=>LS_NEAR(fieldTiles().filter(t=>t.tilled&&!t.crop)),
+  water:()=>S.water<=0?wellPos:LS_NEAR(fieldTiles().filter(t=>t.crop&&!t.crop.watered)),
+  fish:()=>({x:pond.x,z:pond.z-pond.r-.6}),cook:()=>doorPos,friends:()=>({x:48,z:-6}),upgrade:()=>({x:-36,z:-14}),ward:()=>({x:48,z:-21}),
+  furnish:()=>doorPos,coop:()=>({x:12.6,z:-5.2}),smelt:()=>({x:12.6,z:-5.2})};
+function guideTarget(fallback){
+  if(S.ls&&S.ls.i>=0&&!S.tut.off){const sd=S.ls.side&&S.ls.side.ship;if(sd&&sd.st==='on'&&S.basket.length)return guidePoint(binPos);
+    const L=LESSONS[S.ls.i];if(L){const t=(L.at&&L.at())||(LS_AT[L.id]&&LS_AT[L.id]());if(t)return guidePoint(t);return null;}}
+  return guidePoint(fallback);}
+// indoors, anything outside is through the door; outdoors, anything indoors is at its building's door
+function guidePoint(t){if(!t)return null;if(S.room){const R=ROOMS[S.room];if(R&&R.door!=null){const inThis=t.x>=R.ox-1&&t.x<=R.ox+R.w+1&&t.z>=R.oz-1&&t.z<=R.oz+R.d+1;return inThis?t:{x:R.ox+R.door,z:R.oz+R.d-.2,door:1};}return t;}
+  const o=typeof outsidePoint==='function'?outsidePoint(t):null;return o?{x:o.x,z:o.z}:t;}
 // remember what happened
 {const _e=eat;eat=function(){S.ls.ev.eat=1;return _e.apply(this,arguments);};}
 {const _j=openJournal;openJournal=function(){S.ls.ev.journal=1;return _j.apply(this,arguments);};}
