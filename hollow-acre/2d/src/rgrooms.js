@@ -37,5 +37,5 @@ const RG_ROOMS={
   for(const [k,r] of Object.entries(RG_ROOMS)){if(!ROOMS[k])continue;const R=ROOMS[k];R.out=r.out();const d=r.door();
     interact.push({x:d.x,z:d.z,r:1,on:()=>!S.room,label:()=>r.label||'Door',ok:()=>true,act(){const no=r.gate&&r.gate();if(no){SFX.deny&&SFX.deny();toast(no,3);return;}
       if(r.enterMsg&&!S.first['room_'+k])setTimeout(()=>toast(r.enterMsg,2.4),500);enterRoom(k);}});
-    for(const L of r.looks)interact.push({x:R.ox+L[0],z:R.oz+L[1],r:1.1,on:()=>S.room===k,label:()=>'Look',ok:()=>true,act(){toast(L[2],5.5,true);SFX.page&&SFX.page();
-      const key='rgroom:'+k+':'+L[0];S.rgLook=S.rgLook||{};if(!S.rgLook[key]){S.rgLook[key]=1;addLore(L[2].replace(/<[^>]+>/g,''));if(typeof mindHit==='function')mindHit(2);}}});}};}
+    for(const L of r.looks)interact.push({x:R.ox+L[0],z:R.oz+L[1],r:1.1,on:()=>S.room===k,label:()=>'Look',ok:()=>true,act(){SFX.page&&SFX.page();
+      const key='rgroom:'+k+':'+L[0];S.rgLook=S.rgLook||{};if(!S.rgLook[key]){S.rgLook[key]=1;addLore(L[2].replace(/<[^>]+>/g,''));if(typeof mindHit==='function')mindHit(2);}toast(L[2],5.5,true);}});}};}
