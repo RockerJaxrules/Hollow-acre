@@ -4,19 +4,26 @@ function dxCanvas(){if(!DX.rc||DX.rc.width!==VW||DX.rc.height!==VH){DX.rc=docume
 // paint the water mask of every on-screen chunk into the scratch canvas, keeping only what lies on water
 function dxMask(g){const left=cam.px-(VW>>1),top=cam.pz-Math.round(VH*.56);const c0=Math.floor(left/CH),c1=Math.floor((left+VW)/CH),r0=Math.floor(top/CH),r1=Math.floor((top+VH)/CH);
   g.globalCompositeOperation='destination-in';g.beginPath();let any=false;
-  const tmp=DX.mk||(DX.mk=document.createElement('canvas'));if(tmp.width!==VW||tmp.height!==VH){tmp.width=VW;tmp.height=VH;}const tg=tmp.getContext('2d');tg.clearRect(0,0,VW,VH);
-  for(let cz=r0;cz<=r1;cz++)for(let cx=c0;cx<=c1;cx++){const ch=chunks.get(cx+','+cz);if(ch&&ch.wm){tg.drawImage(ch.wm,cx*CH-left,cz*CH-top);any=true;}}
-  g.drawImage(tmp,0,0);g.globalCompositeOperation='source-over';return any;}
+  // the mask is the same for both passes in a frame: build it once
+  const tmp=DX.mk||(DX.mk=document.createElement('canvas'));const key=FRAME_NO+'|'+left+'|'+top+'|'+VW+'x'+VH;
+  if(DX.mkKey!==key){if(tmp.width!==VW||tmp.height!==VH){tmp.width=VW;tmp.height=VH;}const tg=tmp.getContext('2d');tg.clearRect(0,0,VW,VH);DX.mkAny=false;
+    for(let cz=r0;cz<=r1;cz++)for(let cx=c0;cx<=c1;cx++){const ch=chunks.get(cx+','+cz);if(ch&&ch.wm){tg.drawImage(ch.wm,cx*CH-left,cz*CH-top);DX.mkAny=true;}}DX.mkKey=key;}
+  any=DX.mkAny;g.drawImage(tmp,0,0);g.globalCompositeOperation='source-over';return any;}
 function dxWaterOnScreen(){const left=cam.px-(VW>>1),top=cam.pz-Math.round(VH*.56);for(let cz=Math.floor(top/CH);cz<=Math.floor((top+VH)/CH);cz++)for(let cx=Math.floor(left/CH);cx<=Math.floor((left+VW)/CH);cx++){const ch=chunks.get(cx+','+cz);if(ch&&ch.wm)return true;}return false;}
 const DX_REFLECT=new Set(['tree','pine','bld','lamp','prop','bush','fence','wreck']);
 const dxNearWater=(x,z)=>[[0,.6],[0,1.5],[0,3],[1.2,1.5],[-1.2,1.5]].some(([dx,dz])=>terr(x+dx,z+dz)==='water');
 // one thing mirrored about its feet, fading out with distance below the waterline: tall things (the covered bridge, the big trees)
 // leave a reflection that melts into the water instead of a hard-edged block far down the creek
+// each mirror image (a sprite frame, flipped and faded) is made once and kept: by the fen, the reservoir and the river there can be
+// dozens of trees at the water's edge on screen at once, and remaking every one every frame was the slowest thing in the game
+const DX_MC=new Map();
 function dxMirror(g,im,sx0,sy0,m,X,Y,flip){const fw=m.fw,fh=m.fh,ax=Math.round(m.ax),ay=Math.round(m.ay);
-  const t=DX.mt||(DX.mt=document.createElement('canvas'));if(t.width<fw||t.height<fh){t.width=Math.max(t.width,fw);t.height=Math.max(t.height,fh);}
-  const q=t.getContext('2d');q.globalCompositeOperation='source-over';q.clearRect(0,0,t.width,t.height);q.save();q.translate(flip?fw:0,fh);q.scale(flip?-1:1,-1);q.drawImage(im,sx0,sy0,fw,fh,0,0,fw,fh);q.restore();
-  const y0=fh-1-ay,L=Math.max(22,Math.min(110,ay*.55));const gr=q.createLinearGradient(0,y0,0,y0+L);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(.55,'rgba(0,0,0,.6)');gr.addColorStop(1,'rgba(0,0,0,0)');
-  q.globalCompositeOperation='destination-in';q.fillStyle=gr;q.fillRect(0,0,fw,fh);q.globalCompositeOperation='source-over';
+  const key=m.src+'|'+sx0+'|'+sy0+'|'+(flip?1:0);let t=DX_MC.get(key);
+  if(!t){if(DX_MC.size>600)DX_MC.clear();t=document.createElement('canvas');t.width=fw;t.height=fh;
+    const q=t.getContext('2d');q.save();q.translate(flip?fw:0,fh);q.scale(flip?-1:1,-1);q.drawImage(im,sx0,sy0,fw,fh,0,0,fw,fh);q.restore();
+    const y0=fh-1-ay,L=Math.max(22,Math.min(110,ay*.55));const gr=q.createLinearGradient(0,y0,0,y0+L);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(.55,'rgba(0,0,0,.6)');gr.addColorStop(1,'rgba(0,0,0,0)');
+    q.globalCompositeOperation='destination-in';q.fillStyle=gr;q.fillRect(0,0,fw,fh);q.globalCompositeOperation='source-over';
+    if(im.complete!==false&&(im.naturalWidth||im.width))DX_MC.set(key,t);}
   g.drawImage(t,0,0,fw,fh,flip?X+ax-fw+1:X-ax,Y+ay-fh+1,fw,fh);}
 function depthWater(t){if(DX.off||S.room||!dxWaterOnScreen())return;const g=dxCanvas();
   // 1) mirrored world: everything standing near the water, flipped about its feet, darkened and tinted by the water
