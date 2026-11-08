@@ -75,7 +75,7 @@ function dxSil(spr){let c=DX.sil['s_'+spr];if(c)return c;const m=SPR[spr],im=m&&
   try{const d=q.getImageData(0,0,m.fw,m.fh),a=d.data;for(let i=0;i<a.length;i+=4){const on=a[i+3]>=200;a[i]=10;a[i+1]=18;a[i+2]=6;a[i+3]=on?255:0;}q.putImageData(d,0,0);}
   catch(e){q.globalCompositeOperation='source-in';q.fillStyle='#0a1206';q.fillRect(0,0,m.fw,m.fh);}
   DX.sil['s_'+spr]=c;return c;}
-const SUN_SKIP=new Set(['deco','flat','anim','corn']);
+const SUN_SKIP=new Set(['deco','flat','anim']);   // corn casts its shadow too: a field of it without shadows looks painted on
 // trees and bushes throw soft shade: the silhouette blurred a little and fading toward the far end of the crown, so neighbouring
 // crowns don't merge into one hard-edged slab of shadow
 function dxSilSoft(spr){const k='ss_'+spr;if(DX.sil[k])return DX.sil[k];const base=dxSil(spr);if(!base)return null;const m=SPR[spr];const c=document.createElement('canvas');c.width=m.fw+8;c.height=m.fh+8;const g=c.getContext('2d');
@@ -86,7 +86,7 @@ function sunBegin(){DX.lamp=null;DX.sun=sunState();if(S.introDrive&&DX.carLamp&&
 function sunShadow(o,X,Y){const s=DX.sun;if(!s||SUN_SKIP.has(o.kind))return false;const m=SPR[o.spr];if(!m)return false;const c=dxSil(o.spr);if(!c)return false;
   let shx=s.sx,shy=s.sy;if(s.lamp){const dx=X-DX.lamp.x,dy=Y-DX.lamp.y,d=Math.hypot(dx,dy);if(d>230||d<6)return true;const k=clamp(d/110,.25,1.5);shx=dx/d*k;shy=dy/d*k;}
   // trees and bushes are tall: a long low-sun shadow of the whole crown thrown down the screen reads as a dark blob, so theirs stay short
-  if(!s.lamp&&(o.kind==='tree'||o.kind==='pine'||o.kind==='bush')){shx=clamp(shx,-.5,.5);shy=clamp(shy,.06,.3);}
+  if(!s.lamp&&(o.kind==='tree'||o.kind==='pine'||o.kind==='bush'||o.kind==='corn')){shx=clamp(shx,-.5,.5);shy=clamp(shy,.06,.3);}
   const g=DX.sg;g.setTransform(1,0,-shx,-shy,Math.round(X),Math.round(Y));const soft=(o.kind==='tree'||o.kind==='pine'||o.kind==='bush')&&dxSilSoft(o.spr);
   if(soft)g.drawImage(soft,-Math.round(m.ax)-4,-Math.round(m.ay)-4);else g.drawImage(c,-Math.round(m.ax),-Math.round(m.ay));return true;}
 function sunActor(X,Y,h){const s=DX.sun;if(!s)return;const g=DX.sg;g.setTransform(1,0,0,1,0,0);g.fillStyle='#0a1206';g.beginPath();

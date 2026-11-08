@@ -6,7 +6,12 @@ function frameOf(name,clip,t,dur){const m=SPR[name];if(!m||!m.clips)return 0;con
   if(clip==='idle')return Math.floor(t*f[2])%nf;return a+Math.floor(t*f[2])%(b-a+1);}
 function charSprite(e,name){const clip=e.clip||'idle';return [name,clip];}
 // shadows: light from the upper left, so everything that stands up throws its shadow down and to the right
-function castShadow(o,X,Y){if(sunShadow(o,X,Y)){if(o.kind==='tree'||o.kind==='pine'){ctx2.fillStyle='rgba(8,16,6,.22)';ctx2.beginPath();ctx2.ellipse(X+2,Y+1,9,3,0,0,Math.PI*2);ctx2.fill();}return;}const m=SPR[o.spr];if(!m||o.kind==='fence'||o.kind==='furn'||o.kind==='anim'||o.spr.startsWith('maple')||o.kind==='bush')return;ctx2.fillStyle='rgba(8,16,6,.32)';
+function castShadow(o,X,Y){if(sunShadow(o,X,Y)){if(o.kind==='tree'||o.kind==='pine'){ctx2.fillStyle='rgba(8,16,6,.22)';ctx2.beginPath();ctx2.ellipse(X+2,Y+1,9,3,0,0,Math.PI*2);ctx2.fill();}return;}const m=SPR[o.spr];if(!m||o.kind==='fence'||o.kind==='furn')return;
+  // no sun (night, or the sun hidden): everything that stands still sits in a soft shadow of its own, reeds and grass and bushes too
+  if(o.kind==='anim'){if(!o.grass&&!/^(reeds|fern)/.test(o.spr))return;ctx2.fillStyle='rgba(8,16,6,.2)';ctx2.beginPath();ctx2.ellipse(X+1,Y,6,2,0,0,Math.PI*2);ctx2.fill();return;}
+  if(o.kind==='corn'){ctx2.fillStyle='rgba(8,16,6,.24)';ctx2.beginPath();ctx2.ellipse(X+2,Y,8,2.6,0,0,Math.PI*2);ctx2.fill();return;}
+  if(o.kind==='bush'||o.spr.startsWith('maple')){ctx2.fillStyle='rgba(8,16,6,.26)';ctx2.beginPath();ctx2.ellipse(X+3,Y+1,o.kind==='bush'?14:20,o.kind==='bush'?4.5:6,0,0,Math.PI*2);ctx2.fill();return;}
+  ctx2.fillStyle='rgba(8,16,6,.32)';
   if(o.kind==='bld'){const f=m.foot||[-3,0,3,0];const x0=X+f[0]*PPM,x1=X+f[2]*PPM,h=Math.min(64,m.fh*.42),d=h*.55;
     ctx2.beginPath();ctx2.moveTo(x1,Y-h);ctx2.lineTo(x1+d,Y-h+d*.8);ctx2.lineTo(x1+d,Y+5);ctx2.lineTo(x0+10,Y+5);ctx2.lineTo(x0,Y);ctx2.lineTo(x1,Y);ctx2.closePath();ctx2.fill();return;}
   if(o.kind==='tree'||o.kind==='pine'){ctx2.beginPath();ctx2.ellipse(X+8,Y+2,o.kind==='pine'?17:22,7,0,0,Math.PI*2);ctx2.fill();return;}
