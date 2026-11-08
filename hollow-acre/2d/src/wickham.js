@@ -10,7 +10,7 @@ const inWick=(x,z)=>x>92&&x<168&&z>30&&z<70;
 {const Dk=LAYERS.dark,St=LAYERS.stone;LAYERS.dark=(x,z)=>!inWick(x,z)&&Dk(x,z);LAYERS.stone=(x,z)=>St(x,z)||(Math.abs(x-WK.sq[0])<5.6+(fbm(x*.6,z*.6)-.5)*.8&&z>WK.street&&z<WK.lane-1.2)||(Math.abs(z-WK.street)<2&&x>WK.x0&&x<WK.x1);}
 const WHOUSES=[ // [key, sprite, x, front z, lit]
   ['quinn','church',124,35.4],['harlow','inn',106.5,43.4],['ashby','house_a',115.4,43.4],['vale','house_b',132.6,43.4],['kerrigan','house_d',140,43.4],['wk_empty','house_c',146.9,43.4],
-  ['pike','house_c',103.5,57.4],['ward','house_a',111,57.4],['wk_school','house_b',136,57.4]];
+  ['pike','wk_pike',103.5,57.4],['ward','wk_ward',111,57.4],['wk_school','wk_schoolh',136,57.4]];
 const wkDoor=k=>{const h=WHOUSES.find(w=>w[0]===k);return [h[2],h[3]+.35];};
 {const _bw=buildWorld;buildWorld=function(){reserve(92,30,168,70);_bw();
   for(let i=OBJ.length-1;i>=0;i--){const o=OBJ[i];if(inWick(o.x,o.z)&&/tree|bush|deco/.test(o.kind||'')&&Math.abs(o.x-130)>34){}else if(inWick(o.x,o.z)&&/tree|bush|deco/.test(o.kind||'')){for(let j=circles.length-1;j>=0;j--)if(Math.hypot(circles[j].x-o.x,circles[j].z-o.z)<.6)circles.splice(j,1);OBJ.splice(i,1);}}

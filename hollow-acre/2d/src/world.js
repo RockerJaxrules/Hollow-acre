@@ -20,7 +20,7 @@ const TB={ // [sprite, x, front z, options]
   store:['store',28,-9.6,{jack:1}],post:['postoffice',38,-9.2,{porch:false}],danny:['house_a',45.2,-10.2,{lit:false,porch:false}],hall:['townhall',57.4,-10.8,{porch:false,lit:false}],
   tavern:['tavern',68,-11.4,{porch:false}],
   hale:['house_b',38.5,-28.4,{}],church:['church',50,-28.2,{}],crane:['house_d',61.5,-28.4,{}],pell:['house_c',69.6,-27.6,{lit:false,porch:false}],
-  vance:['house_c',25.5,22.2,{}],lindqvist:['house_b',33,21.2,{jack:1}],school:['schoolhouse',46.4,25.6,{jack:1}],dunn:['house_d',58.5,24.8,{jack:1}],oakes:['house_b2',67.4,23.1,{}],
+  vance:['h_vance',25.5,22.2,{}],lindqvist:['h_lindqvist',33,21.2,{jack:1}],school:['schoolhouse',46.4,25.6,{jack:1}],dunn:['h_dunn',58.5,24.8,{jack:1}],oakes:['house_b2',67.4,23.1,{}],
   gale:['house_d2',30.5,36.2,{jack:1}],marr:['house_c2',23.8,43.8,{lit:false}],wren:['house_a2',68.6,34.4,{lit:false,porch:false}]};
 const tbDoor=k=>[TB[k][1],TB[k][2]+.35],tbOut=k=>({x:TB[k][1],z:TB[k][2]+.7});
 const GYARD={x0:54,x1:72,z0:-41.6,z1:-33,gate:56.6},YOURGRAVE={x:66.6,z:-37.2},CHURCH_DOOR={x:50,z:-27.85};
@@ -177,7 +177,7 @@ function buildWorld(){
   // garage + pump on the west road, the widow's house north of the highway
   building('garage',-36,-10.6,{lit:true});put('gas_pump',pumpPos.x,pumpPos.z+1.6,0,{night:'gas_pump_n'});addCircle(pumpPos.x-.4,pumpPos.z,.35);addCircle(pumpPos.x+.4,pumpPos.z,.35);
   put('barrel',-31.6,-11.9,.3);put('barrel',-31.1,-11.5,.3);put('crate',-40.8,-10.9,.3);put('firewood',-41.6,-12);
-  building('house_a',-46,-9.6,{jack:1});
+  building('h_widow',-46,-9.6,{jack:1});
   // crossroads shrine
   put('signpost',crossPos.x-1.6,crossPos.z-1.2,.2,{label:'FARM'});
   // ---------- Marrow Creek: covered bridge on Route 9, footbridge in the west woods, falls off the ridge

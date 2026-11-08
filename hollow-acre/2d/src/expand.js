@@ -32,8 +32,8 @@ const southWoods=(x,z)=>z>108||(z>74&&x<-40)||(x>78&&z>40&&riverD(x,z)>4);
   for(const d of DOCKS)if(p.x>d.x0-.7&&p.x<d.x1+.7&&p.z>d.z0-.7&&p.z<d.z1+.7){p.x=clamp(p.x,d.x0+.02,d.x1-.02);p.z=clamp(p.z,d.z0+.02,d.z1-.02);return;}   // step off a dock's edge and its planks hold you
   for(let rr=.25;rr<3;rr+=.25)for(let a=0;a<16;a++){const x=p.x+Math.cos(a/16*Math.PI*2)*rr,z=p.z+Math.sin(a/16*Math.PI*2)*rr;if(!newWater(x,z)||onDock(x,z)){p.x=x;p.z=z;return;}}};}
 // ---- building the new land
-const NEWHOUSES={quill:{spr:'house_c',x:40,z:LANE_E-2},fenn:{spr:'house_b',x:6,z:96},marsh:{spr:'house_a',x:-20,z:LANE_W-2},tithe:{spr:'house_d',x:TITHE.x,z:TITHE.z-1.5},
-  thorne:{spr:'house_d',x:156,z:-26},lusk:{spr:'garage',x:200,z:-9.6}};
+const NEWHOUSES={quill:{spr:'h_quill',x:40,z:LANE_E-2},fenn:{spr:'h_fenn',x:6,z:96},marsh:{spr:'h_marsh',x:-20,z:LANE_W-2},tithe:{spr:'h_tithe',x:TITHE.x,z:TITHE.z-1.5},
+  thorne:{spr:'h_thorne',x:156,z:-26},lusk:{spr:'garage',x:200,z:-9.6}};
 {const _bw=buildWorld;buildWorld=function(){
   for(const h of Object.values(NEWHOUSES))reserve(h.x-6,h.z-6,h.x+6,h.z+3);
   reserve(28,49,66,68);reserve(-44,49,-6,66);reserve(26,94,42,102);reserve(HOLLOW_TREE.x-5,HOLLOW_TREE.z-5,HOLLOW_TREE.x+5,HOLLOW_TREE.z+5);reserve(TITHE.x-8,TITHE.z-8,TITHE.x+8,TITHE.z+7);
@@ -42,7 +42,7 @@ const NEWHOUSES={quill:{spr:'house_c',x:40,z:LANE_E-2},fenn:{spr:'house_b',x:6,z
   // houses
   for(const [k,h] of Object.entries(NEWHOUSES)){if(k==='lusk')building(h.spr,h.x,h.z,{lit:true});else building(h.spr,h.x,h.z,{lit:k!=='marsh'&&k!=='tithe',jack:k==='quill',porch:k!=='marsh'&&k!=='tithe'});}
   put('gas_pump',196,-7.6,0,{night:'gas_pump_n'});addCircle(195.6,-7.9,.35);addCircle(196.4,-7.9,.35);put('signpost',204,-5,.2,{label:'GAS'});
-  building('barn',32,99,{porch:false});obj('blades',38.2,98.2,{kind:'anim',fps:3,yoff:135});put('windpump',38.2,98.2,.45);
+  building('barn_b',32,99,{porch:false});obj('blades',38.2,98.2,{kind:'anim',fps:3,yoff:135});put('windpump',38.2,98.2,.45);
   // Mill Road's timber bridge over the river (the deck is the only dry way across)
   obj('millbridge',BRIDGE2.x,BRIDGE2.z+3.6,{kind:'flat'});
   for(const sd of [-1,1])addSeg(BRIDGE2.x+sd*1.45,BRIDGE2.z-3.7,BRIDGE2.x+sd*1.45,BRIDGE2.z+3.45,.1);   // the railings: on and off only at the ends

@@ -1,0 +1,505 @@
+-- Hollow Acre building kit for Aseprite. One locked master palette of hand-picked, hue-shifted ramps (shadows lean
+-- violet/plum, lights lean warm yellow); every building is built from a spec out of the same parts: walls in six materials,
+-- roofs in five, front gables, cross gables, gambrels, parapets, a church tower; windows, doors, porches, awnings, signs,
+-- chimneys, ivy, flower boxes, lanterns, and the wrong details. Flat colour bands, dithering only for soft transitions.
+local B = {}
+local px
+
+B.PAL = {
+ {'OUT','#1d1018'},{'OUT2','#2c1820'},
+ -- roofs (8 steps)
+ {'r1','#2e1424'},{'r2','#4f1a28'},{'r3','#75242b'},{'r4','#9a3530'},{'r5','#bd4f35'},{'r6','#d9733f'},{'r7','#eca055'},{'r8','#f6c779'},
+ {'sl1','#1c1a2c'},{'sl2','#2a2a44'},{'sl3','#3a3d5c'},{'sl4','#4c5372'},{'sl5','#626c88'},{'sl6','#7f8aa2'},{'sl7','#a2acbe'},{'sl8','#c8d0da'},
+ {'sh1','#22141c'},{'sh2','#3a2022'},{'sh3','#57302a'},{'sh4','#764334'},{'sh5','#94593e'},{'sh6','#b2744c'},{'sh7','#cc955e'},{'sh8','#e4b878'},
+ {'tn1','#141e1c'},{'tn2','#1f302a'},{'tn3','#2c4636'},{'tn4','#3d5e40'},{'tn5','#567a48'},{'tn6','#74964e'},{'tn7','#97b05a'},{'tn8','#c0c870'},
+ {'th1','#2a1c1a'},{'th2','#463024'},{'th3','#66462c'},{'th4','#8a6234'},{'th5','#ab7e3c'},{'th6','#c89c4a'},{'th7','#dfba62'},{'th8','#f0d88a'},
+ {'pr1','#1e1028'},{'pr2','#301838'},{'pr3','#46224a'},{'pr4','#5e2e5a'},{'pr5','#7a3e6a'},{'pr6','#985478'},{'pr7','#b87088'},{'pr8','#d896a0'},
+ -- walls (7 steps)
+ {'w1','#2a1824'},{'w2','#47292b'},{'w3','#6a3f30'},{'w4','#8d5937'},{'w5','#ad7542'},{'w6','#c99352'},{'w7','#e0b467'},
+ {'ww1','#2a2630'},{'ww2','#4a4450'},{'ww3','#6e6874'},{'ww4','#948e92'},{'ww5','#b8b2ae'},{'ww6','#d6d0c6'},{'ww7','#ece6d8'},
+ {'sg1','#1c2420'},{'sg2','#2c3a30'},{'sg3','#405440'},{'sg4','#587050'},{'sg5','#748c62'},{'sg6','#94a878'},{'sg7','#b8c494'},
+ {'bb1','#161c2c'},{'bb2','#222c44'},{'bb3','#33425e'},{'bb4','#485a78'},{'bb5','#627694'},{'bb6','#8296ae'},{'bb7','#a8b8c8'},
+ {'ox1','#200e18'},{'ox2','#381420'},{'ox3','#561c26'},{'ox4','#742a2c'},{'ox5','#923c34'},{'ox6','#ae5640'},{'ox7','#c87452'},
+ {'mu1','#2a1c14'},{'mu2','#48301c'},{'mu3','#6c4a22'},{'mu4','#92662a'},{'mu5','#b48434'},{'mu6','#cca244'},{'mu7','#e2c060'},
+ {'bk1','#1e0e14'},{'bk2','#3a1418'},{'bk3','#5a1e1e'},{'bk4','#7a2c26'},{'bk5','#9a3e30'},{'bk6','#b4563a'},{'bk7','#cc744a'},
+ {'s1','#231b2b'},{'s2','#382f42'},{'s3','#51485a'},{'s4','#6d6473'},{'s5','#8c8389'},{'s6','#ada395'},{'s7','#cfc5ac'},
+ {'lg1','#1c1016'},{'lg2','#321c1e'},{'lg3','#4c2c26'},{'lg4','#683e2e'},{'lg5','#845238'},{'lg6','#a06a44'},{'lg7','#ba8654'},
+ {'pl1','#3a3036'},{'pl2','#5e5258'},{'pl3','#847a78'},{'pl4','#aaa096'},{'pl5','#cac0ae'},{'pl6','#e2d8c2'},{'pl7','#f2eada'},
+ -- trims, glass, doors, nature, metal, light, the wrong things
+ {'t1','#5c4544'},{'t2','#8b7362'},{'t3','#bba78a'},{'t4','#e2d4b0'},{'t5','#f6ecd2'},
+ {'dg1','#10201a'},{'dg2','#1a3226'},{'dg3','#264834'},{'dg4','#366044'},{'dg5','#4c7a56'},
+ {'bt1','#141218'},{'bt2','#24202a'},{'bt3','#36303c'},{'bt4','#4a4252'},{'bt5','#625a6a'},
+ {'g1','#121628'},{'g2','#1d2742'},{'g3','#2c4262'},{'g4','#46698a'},{'g5','#86bccc'},{'g6','#d2eef0'},
+ {'d1','#10202a'},{'d2','#1a3438'},{'d3','#284c4c'},{'d4','#3c6a62'},{'d5','#5a8c7a'},
+ {'dr1','#2a0c12'},{'dr2','#4a1218'},{'dr3','#6e1c20'},{'dr4','#922a28'},{'dr5','#b04034'},
+ {'v1','#172219'},{'v2','#233a25'},{'v3','#34552b'},{'v4','#4f7432'},{'v5','#76943c'},{'v6','#a7b453'},
+ {'f1','#4a1626'},{'f2','#7e2434'},{'f3','#b0464a'},{'f4','#d77a68'},
+ {'m1','#1e1e2a'},{'m2','#383a4a'},{'m3','#5e6274'},{'m4','#9298a8'},
+ {'y1','#b8742a'},{'y2','#e8a83e'},{'y3','#fbe08a'},
+ {'b1','#4e0a12'},{'b2','#84141c'},{'b3','#b02a2a'},
+ {'p1','#c8b8b0'},{'p2','#ece2da'},
+ {'k1','#22141e'},{'k2','#3a2228'},{'k3','#573430'},{'k4','#77493a'},{'k5','#9a6448'},{'k6','#b8835a'},
+}
+local function ramp(prefix, n) local r = {} for i = 1, n do r[i] = prefix .. i end return r end
+B.ROOFS = {scallop = ramp('r', 8), slate = ramp('sl', 8), shingle = ramp('sh', 8), tin = ramp('tn', 8), thatch = ramp('th', 8), plum = ramp('pr', 8)}
+B.WALLS = {honey = ramp('w', 7), white = ramp('ww', 7), sage = ramp('sg', 7), blue = ramp('bb', 7), oxblood = ramp('ox', 7), mustard = ramp('mu', 7),
+           brick = ramp('bk', 7), stone = ramp('s', 7), log = ramp('lg', 7), plaster = ramp('pl', 7)}
+B.TRIMS = {cream = ramp('t', 5), green = ramp('dg', 5), black = ramp('bt', 5)}
+B.DOORS = {teal = ramp('d', 5), red = ramp('dr', 5), green = ramp('dg', 5), black = ramp('bt', 5), oak = {'w2', 'w3', 'w4', 'w5', 'w6'}}
+local STONE = B.WALLS.stone
+
+B.FONT = {
+ A={'010','101','111','101','101'},B={'110','101','110','101','110'},C={'011','100','100','100','011'},D={'110','101','101','101','110'},
+ E={'111','100','110','100','111'},F={'111','100','110','100','100'},G={'011','100','101','101','011'},H={'101','101','111','101','101'},
+ I={'111','010','010','010','111'},J={'001','001','001','101','010'},K={'101','101','110','101','101'},L={'100','100','100','100','111'},
+ M={'101','111','111','101','101'},N={'101','111','111','111','101'},O={'010','101','101','101','010'},P={'110','101','110','100','100'},
+ Q={'010','101','101','110','011'},R={'110','101','110','101','101'},S={'011','100','010','001','110'},T={'111','010','010','010','010'},
+ U={'101','101','101','101','111'},V={'101','101','101','101','010'},W={'101','101','111','111','101'},X={'101','101','010','101','101'},
+ Y={'101','101','010','010','010'},Z={'111','001','010','100','111'},['&']={'010','101','010','101','011'},["'"]={'010','010','000','000','000'},
+ [' ']={'000','000','000','000','000'},['.']={'000','000','000','000','010'},
+ ['0']={'111','101','101','101','111'},['1']={'010','110','010','010','111'},['2']={'110','001','010','100','111'},['3']={'110','001','010','001','110'},
+ ['4']={'101','101','111','001','001'},['5']={'111','100','110','001','110'},['6']={'011','100','110','101','010'},['7']={'111','001','010','010','010'},
+ ['8']={'010','101','010','101','010'},['9']={'010','101','011','001','110'},['-']={'000','000','111','000','000'},[':']={'000','010','000','010','000'},
+ ['!']={'010','010','010','000','010'}}
+
+function B.init(lib) px = lib end
+local function P(c, x, y, col) px.p(c, x, y, col) end
+local function R(c, x0, y0, x1, y1, col) px.rect(c, x0, y0, x1, y1, col) end
+local function H(a, b) return px.h(a, b) end
+local function band(c, rmp, lt, lo, hi) return px.band(c, rmp, lt, lo, hi) end
+
+function B.text(c, x, y, s, col, sh)
+  s = s:upper()
+  for i = 1, #s do local g = B.FONT[s:sub(i, i)] or B.FONT[' ']
+    for r = 1, 5 do for k = 1, 3 do if g[r]:sub(k, k) == '1' then if sh then P(c, x + k, y + r, sh) end; P(c, x + k - 1, y + r - 1, col) end end end
+    x = x + 4 end
+end
+
+-- ------------------------------------------------------------------ materials
+function B.stones(c, x0, y0, x1, y1, seed, rowh, lightf)
+  local y = y0; local row = 0
+  while y <= y1 do
+    local h = math.min(rowh, y1 - y + 1); local x = x0 - math.floor(H(row, seed) * 7)
+    while x <= x1 do
+      local w = 8 + math.floor(H(x, row + seed) * 7)
+      local xa, xb = math.max(x0, x), math.min(x1, x + w - 2)
+      for yy = y, y + h - 2 do for xx = xa, xb do
+        local lt = (lightf and lightf(xx, yy) or .6)
+        local inner = (yy == y) and .2 or ((xx == xa) and .1 or ((yy == y + h - 2 or xx == xb) and -.22 or 0))
+        P(c, xx, yy, band(c, STONE, lt + inner + (H(xa, yy // 3) - .5) * .12, 3, 7))
+      end end
+      if xb >= xa then px.vline(c, xb + 1, y, y + h - 2, 's1'); px.hline(c, xa, xb + 1, y + h - 1, 's1') end
+      x = x + w
+    end
+    y = y + h; row = row + 1
+  end
+end
+
+function B.wall(c, mat, x0, y0, x1, y1, seed)
+  local Wr = B.WALLS[mat]
+  local function lt(x) return .64 - (x - x0) / ((x1 - x0) * 3.2) end
+  if mat == 'brick' then
+    for y = y0, y1 do local course = (y - y0) // 4; local r = (y - y0) % 4; local off = (course % 2) * 5
+      for x = x0, x1 do local bx = (x + off) % 10
+        if r == 3 or bx == 9 then P(c, x, y, (x + y) % 5 == 0 and 's5' or 's4')
+        else local id = ((x + off) // 10) * 31 + course * 17; local n = H(id, seed)
+          local v = lt(x) + (n - .5) * .3 + (r == 0 and .14 or 0) + (bx == 8 and -.12 or 0)
+          P(c, x, y, band(c, Wr, v, 2, 7)) end end end
+  elseif mat == 'stone' then
+    B.stones(c, x0, y0, x1, y1, seed, 7, function(x, y) return lt(x) end)
+  elseif mat == 'log' then
+    for y = y0, y1 do local r = (y - y0) % 7
+      for x = x0, x1 do local col = ({'lg2', 'lg5', 'lg6', 'lg5', 'lg4', 'lg3', 'lg1'})[r + 1]
+        if (r == 2 or r == 3) and H(x // 3, y) > .9 then col = 'lg3' end
+        if x > x1 - (x1 - x0) * .25 and r >= 1 and r <= 4 and (x + y) % 2 == 0 then col = ({'lg2', 'lg4', 'lg5', 'lg4', 'lg3'})[r] end
+        P(c, x, y, col) end end
+    for y = y0, y1, 7 do for _, ex in ipairs({x0 - 3, x1 + 3}) do
+      px.ellipse(c, ex + .5, y + 3.5, 3.5, 3.5, 'lg6'); px.ellipse(c, ex + .5, y + 3.5, 2, 2, 'lg5'); P(c, ex, y + 3, 'lg4') end end
+  elseif mat == 'plaster' then
+    for y = y0, y1 do for x = x0, x1 do P(c, x, y, band(c, Wr, lt(x) + .12 + (H(x // 4, y // 3) - .5) * .06, 3, 7)) end end
+    local beams = {}
+    for x = x0, x1 - 2, 22 do beams[#beams + 1] = x end; beams[#beams + 1] = x1 - 3
+    for _, bx in ipairs(beams) do R(c, bx, y0, bx + 3, y1, 'k3'); px.vline(c, bx, y0, y1, 'k4'); px.vline(c, bx + 3, y0, y1, 'k2') end
+    local mid = (y0 + y1) // 2; R(c, x0, mid, x1, mid + 3, 'k3'); px.hline(c, x0, x1, mid, 'k4'); px.hline(c, x0, x1, mid + 3, 'k2')
+    for i = 1, #beams - 1, 2 do local a, b = beams[i] + 4, beams[i + 1] - 1
+      if b - a > 8 then px.line(c, a, mid - 1, b, y0 + 1, 'k3'); px.line(c, a, mid - 2, b - 1, y0 + 1, 'k2') end end
+    R(c, x0, y0, x1, y0 + 2, 'k3'); px.hline(c, x0, x1, y0, 'k4')
+  elseif mat == 'batten' then
+    for y = y0, y1 do for x = x0, x1 do local bx = (x - x0) % 8
+      P(c, x, y, bx == 0 and Wr[2] or (bx == 1 and Wr[6] or band(c, Wr, lt(x) - .04, 3, 6))) end end
+  else  -- clapboard in the given paint
+    for y = y0, y1 do local row = (y - y0) // 6; local ry = (y - y0) % 6
+      local tone = H(row, seed) > .4 and .04 or -.04
+      for x = x0, x1 do local col
+        if ry == 5 then col = Wr[2] elseif ry == 4 then col = Wr[3] elseif ry == 0 then col = (x < x1 - (x1 - x0) * .2) and Wr[6] or Wr[5]
+        else col = band(c, Wr, lt(x) + tone, 4, 6) end
+        P(c, x, y, col) end end
+    for k = 0, math.floor((x1 - x0) * (y1 - y0) / 1600) do local kx = x0 + 6 + math.floor(H(k, seed) * (x1 - x0 - 12)); local ky = y0 + 2 + 6 * math.floor(H(k, seed + 3) * ((y1 - y0) // 6))
+      if ky < y1 - 3 then P(c, kx, ky, Wr[2]); P(c, kx + 1, ky, Wr[3]) end end
+  end
+end
+
+-- ------------------------------------------------------------------ roofs
+-- one pixel of roof material, given which side it's on (lit 1..0 shaded) and where it is in its course
+function B.roofpx(c, mat, x, y, top, lit, seed)
+  local Rr = B.ROOFS[mat]
+  if mat == 'scallop' then
+    local row = (y - top) // 7; local ry = (y - top) % 7; local off = (row % 2) * 6; local lx = (x + off) % 12
+    if (ry == 6 and lx >= 2 and lx <= 9) or (ry == 5 and (lx == 1 or lx == 10)) or (ry == 4 and (lx == 0 or lx == 11)) then return px.i(c, lit > .5 and Rr[2] or Rr[1]) end
+    local n = H(x // 12 + row * 7, row + seed)
+    local v = band(c, Rr, (lit > .5 and .66 or .26) + .2 * (1 - math.abs(lx - 5.5) / 6) - (ry <= 1 and .2 or 0) + (n - .5) * .1 - (y - top) / 520, 2, 8)
+    if lit > .5 and ry == 2 and (lx == 3 or lx == 4) then v = px.i(c, n > .5 and Rr[8] or Rr[7]) end
+    return v
+  elseif mat == 'slate' or mat == 'shingle' or mat == 'plum' then
+    local ch = (mat == 'slate') and 5 or 6; local cw = (mat == 'slate') and 9 or 11
+    local row = (y - top) // ch; local ry = (y - top) % ch; local off = math.floor(H(row, seed) * cw)
+    local lx = (x + off) % cw; local n = H((x + off) // cw, row + seed)
+    if ry == ch - 1 then return px.i(c, lit > .5 and Rr[2] or Rr[1]) end
+    if lx == 0 and ry < ch - 2 then return px.i(c, lit > .5 and Rr[3] or Rr[2]) end
+    local v = band(c, Rr, (lit > .5 and .62 or .24) + (ry == 0 and .14 or 0) - (ry == ch - 2 and .1 or 0) + (n - .5) * .16 - (y - top) / 560, 2, 8)
+    if lit > .5 and ry == 1 and lx == 2 and n > .45 then v = px.i(c, Rr[8]) end
+    if n > .985 then v = px.i(c, Rr[2]) end
+    return v
+  elseif mat == 'tin' then
+    local bx = x % 7
+    if bx == 0 then return px.i(c, lit > .5 and Rr[7] or Rr[4]) end
+    if bx == 1 then return px.i(c, lit > .5 and Rr[5] or Rr[3]) end
+    if bx == 6 then return px.i(c, Rr[2]) end
+    local col = x // 7; local rs = H(col, seed); local ry0 = top + math.floor(H(col, seed + 1) * 40)
+    if rs > .72 and y >= ry0 and y < ry0 + 6 + math.floor(rs * 10) and bx >= 2 and bx <= 4 then return px.i(c, y < ry0 + 3 and 'r5' or 'r4') end   -- a rust streak running down a rib
+    return band(c, Rr, (lit > .5 and .58 or .26) - (y - top) / 600, 2, 7)
+  else -- thatch
+    local n = H(x // 2 + (y // 3) * 17, seed)
+    local row = (y - top) % 9
+    local v = (lit > .5 and .6 or .26) + (n - .5) * .34 - (row == 8 and .25 or 0) + (row == 0 and .1 or 0)
+    return band(c, Rr, v, 1, 8)
+  end
+end
+
+-- a front gable: the end wall in the house's material, cream barge boards, and the two roof planes running back from it
+function B.frontgable(c, sp, x0, x1, yW, wallmat, roofmat, trim, seed)
+  local W = x1 - x0; local ax = (x0 + x1) // 2
+  local over = 14; local Gh = math.floor(W * (sp.pitch or .28)); local Rb = math.floor(W * (sp.back or .31))
+  local ay = yW - Gh; local topA = ay - Rb + 6; local sideTop = yW - math.floor(W * .25)
+  local roofpoly = {{x0 - over, sideTop}, {ax, topA}, {x1 + over, sideTop}, {x1 + over, yW + 4}, {ax, ay}, {x0 - over, yW + 4}}
+  px.poly(c, roofpoly, function(x, y) return B.roofpx(c, roofmat, x, y, topA, x < ax and 1 or 0, seed) end)
+  -- moss and the odd bird mess along the lower courses
+  for i = 0, math.floor(W / 3) do local x = x0 - over + math.floor(H(i, seed) * (W + over * 2)); local y = yW - 22 + math.floor(H(i, seed + 5) * 24)
+    if px.get(c, x, y) ~= 0 and math.abs(x - ax) > 6 and H(i, 9) < (sp.moss or .4) then P(c, x, y, ({'v3', 'v4', 'v5', 'v4'})[i % 4 + 1]); P(c, x + 1, y, 'v3') end end
+  for y = topA, ay do P(c, ax - 1, y, B.ROOFS[roofmat][7]); P(c, ax, y, B.ROOFS[roofmat][6]); P(c, ax + 1, y, B.ROOFS[roofmat][3]); P(c, ax + 2, y, B.ROOFS[roofmat][2]) end
+  px.vline(c, x0 - over, sideTop, yW + 4, B.ROOFS[roofmat][3]); px.vline(c, x1 + over, sideTop, yW + 4, B.ROOFS[roofmat][1])
+  -- the gable end
+  local G = B.WALLS[wallmat]
+  px.poly(c, {{x0, yW + 1}, {ax, ay + 4}, {x1, yW + 1}}, function(x, y)
+    if wallmat == 'brick' or wallmat == 'stone' then local r = (y % 4); return px.i(c, (r == 3 or (x + (y // 4) % 2 * 5) % 10 == 9) and 's4' or G[4 + ((x // 10 + y // 4) % 2)]) end
+    local bx = (x - x0) % 8; if bx == 0 then return px.i(c, G[2]) end; if bx == 1 then return px.i(c, G[6]) end
+    return band(c, G, .56 - (x - x0) / 700 - (yW - y) / 300, 3, 6) end)
+  local gw = sp.gablewin or 'round'
+  if gw == 'round' then
+    local cy = ay + Gh * .55
+    px.ellipse(c, ax + .5, cy + .5, 9, 9, trim[3]); px.ellipse(c, ax + .5, cy + .5, 7, 7, 'g2'); px.ellipse(c, ax - 1.5, cy - 1.5, 3.5, 3.5, 'g3')
+    P(c, ax - 3, cy - 4, 'g6'); P(c, ax - 2, cy - 4, 'g5'); px.hline(c, ax - 6, ax + 7, math.floor(cy), trim[2]); px.vline(c, ax, cy - 7, cy + 7, trim[2])
+  elseif gw == 'loft' then
+    local ly = ay + math.floor(Gh * .35); R(c, ax - 9, ly, ax + 9, ly + 16, trim[3]); R(c, ax - 7, ly + 2, ax + 7, ly + 16, 'w3')
+    px.line(c, ax - 7, ly + 2, ax + 7, ly + 16, trim[4]); px.line(c, ax + 7, ly + 2, ax - 7, ly + 16, trim[4]); px.vline(c, ax, ay - 4, ly - 1, 'm3')
+  elseif gw == 'vent' then
+    local vy = ay + math.floor(Gh * .45); R(c, ax - 6, vy, ax + 6, vy + 9, trim[3]); for yy = vy + 2, vy + 8, 2 do px.hline(c, ax - 5, ax + 5, yy, trim[1]) end
+  end
+  for t = 0, 5 do
+    local col = ({'OUT', trim[1], trim[3], trim[4], trim[5], 'OUT'})[t + 1]
+    px.line(c, x0 - over - 1, yW + 3 + t - 2, ax, ay + t - 2, col)
+    px.line(c, ax, ay + t - 2, x1 + over + 1, yW + 3 + t - 2, (t >= 1 and t <= 4) and ({trim[1], trim[2], trim[3], trim[3]})[t] or col)
+  end
+  return topA, ay
+end
+
+-- a long roof seen from the front (ridge running left-right), with hipped ends
+function B.sideroof(c, x0, x1, yW, depth, roofmat, seed, hip)
+  local over = 10; local top = yW - depth; local hipw = hip and math.floor(depth * .9) or 0
+  for y = top, yW + 3 do
+    local t = (y - top) / math.max(1, depth); local inset = math.floor((1 - t) * hipw)
+    local xa, xb = x0 - over + inset, x1 + over - inset
+    for x = xa, xb do
+      local lit = 1
+      if hip and x < xa + math.floor(t * hipw * .6) + 3 then lit = 1 end
+      if hip and x > xb - math.floor(t * hipw) - 3 then lit = 0 end
+      P(c, x, y, B.roofpx(c, roofmat, x, y, top, lit, seed))
+    end
+    if hip then P(c, xb - math.floor(t * hipw) - 3, y, B.ROOFS[roofmat][2]) end
+  end
+  local Rr = B.ROOFS[roofmat]
+  px.hline(c, x0 - over + hipw, x1 + over - hipw, top, Rr[7]); px.hline(c, x0 - over + hipw, x1 + over - hipw, top + 1, Rr[6]); px.hline(c, x0 - over + hipw, x1 + over - hipw, top - 1, 'OUT')
+  px.hline(c, x0 - over, x1 + over, yW + 4, 'OUT')
+  return top
+end
+
+-- ------------------------------------------------------------------ openings and life
+function B.window(c, wx, wy, ww, wh, o)
+  if o.lancet and not o._in then
+    local hw = ww / 2 + 4; local cx = wx + (ww - 1) / 2; local ys = wy - 4 + 1.732 * hw
+    local function inside(x, y) if y >= ys then return true end
+      local a, b = (x + .5) - (cx - hw), (x + .5) - (cx + hw); local dy = (y + .5) - ys
+      return a * a + dy * dy <= 4 * hw * hw and b * b + dy * dy <= 4 * hw * hw end
+    local orig = px.p
+    px.p = function(cc, x, y, col) if inside(math.floor(x), math.floor(y)) then orig(cc, x, y, col) end end
+    local q = {}; for k, v in pairs(o) do q[k] = v end; q._in = true
+    B.window(c, wx, wy, ww, wh, q)
+    px.p = orig
+    for y = wy - 5, math.floor(ys) do for x = wx - 5, wx + ww + 4 do       -- the arch's edge: lit on the left, shaded right, a dark line outside
+      if inside(x, y) and not (inside(x - 1, y) and inside(x + 1, y) and inside(x, y - 1)) then P(c, x, y, x < cx and o.trim[5] or o.trim[2])
+      elseif not inside(x, y) and (inside(x, y + 1) or inside(x - 1, y) or inside(x + 1, y)) and y > wy - 5 then P(c, x, y, 'OUT2') end end end
+    return
+  end
+  local T = o.trim
+  if o.shutters then for _, sx in ipairs({wx - 9, wx + ww + 4}) do
+    R(c, sx, wy - 2, sx + 4, wy + wh + 1, o.shutters[3]); px.vline(c, sx, wy - 2, wy + wh + 1, o.shutters[4]); px.vline(c, sx + 4, wy - 2, wy + wh + 1, o.shutters[2])
+    for yy = wy, wy + wh, 3 do px.hline(c, sx + 1, sx + 3, yy, o.shutters[2]) end end end
+  R(c, wx - 4, wy - 4, wx + ww + 3, wy + wh + 3, T[3]); px.hline(c, wx - 4, wx + ww + 3, wy - 4, T[5]); px.vline(c, wx - 4, wy - 4, wy + wh + 3, T[4]); px.vline(c, wx + ww + 3, wy - 4, wy + wh + 3, T[2])
+  for y = wy, wy + wh - 1 do for x = wx, wx + ww - 1 do
+    local v
+    if o.night and not o.dark then v = px.ramp(c, {'y1', 'y2', 'y3'}, .92 - (y - wy) / wh * .6, x, y)
+    else v = ((x - wx) + (y - wy) * .8 < ww * .55) and 'g3' or 'g2' end
+    if o.stained then                                                   -- leaded diamond panes; a few coloured, one of them red
+      local u, w2 = (x - wx) + (y - wy), (x - wx) - (y - wy)
+      if u % 7 == 0 or w2 % 7 == 0 then v = 'OUT2'
+      else local id = (u // 7) * 13 + (w2 // 7) * 7; local n = H(id, o.seed or 1)
+        local lit = o.night and not o.dark
+        if n > .86 then v = lit and 'b3' or 'dr3' elseif n > .7 then v = lit and 'y3' or 'y1' elseif n > .55 then v = lit and 'y2' or 'd3' end end
+    end
+    P(c, x, y, v) end end
+  if not (o.night and not o.dark) and not o.stained then px.line(c, wx + 2, wy + 6, wx + 7, wy + 1, 'g5'); px.line(c, wx + 3, wy + 7, wx + 8, wy + 2, 'g4'); P(c, wx + 2, wy + 2, 'g6') end
+  if o.curtain then for i = 0, math.min(7, wh - 2) do
+    local cc = (o.night and not o.dark) and 'f3' or o.curtain
+    px.hline(c, wx, wx + 3 - i // 3, wy + i, cc); px.hline(c, wx + ww - 4 + i // 3, wx + ww - 1, wy + i, cc) end end
+  if o.face then local fx = wx + ww * .62
+    px.ellipse(c, fx, wy + wh - 7, 3.2, 3.6, 'p1'); P(c, fx - 1.5, wy + wh - 8, 'OUT'); P(c, fx + 1, wy + wh - 8, 'OUT'); P(c, fx - 1, wy + wh - 9, 'p2')
+    px.hline(c, math.floor(fx - 2), math.floor(fx + 2), wy + wh - 3, 'f2') end
+  if o.watcher and o.night then for y = wy + 4, wy + wh - 1 do for x = wx + 3, wx + ww - 4 do
+    local dx = x - (wx + ww / 2); if (dx * dx) / 6 + (y - (wy + 7)) ^ 2 / 7 < 1 or (y > wy + 10 and math.abs(dx) < 4) then P(c, x, y, 'OUT') end end end end
+  if not o.stained then
+    px.vline(c, wx + ww // 2, wy, wy + wh - 1, T[2]); px.hline(c, wx, wx + ww - 1, wy + wh // 2, T[2])
+    px.vline(c, wx + ww // 2 + 1, wy, wy + wh - 1, T[4]); px.hline(c, wx, wx + ww - 1, wy + wh // 2 + 1, T[4])
+  else px.hline(c, wx, wx + ww - 1, wy + wh * 2 // 3, T[3]); px.hline(c, wx, wx + ww - 1, wy + wh * 2 // 3 + 1, T[2]) end
+  if o.broken then px.line(c, wx + 2, wy + 3, wx + 6, wy + 8, 'OUT'); px.line(c, wx + 6, wy + 8, wx + 4, wy + 12, 'OUT'); P(c, wx + 7, wy + 4, 'g1') end
+  if o.boarded then for i, yy in ipairs({wy + 2, wy + wh - 7}) do
+    R(c, wx - 5, yy + i, wx + ww + 4, yy + i + 3, 'w5'); px.hline(c, wx - 5, wx + ww + 4, yy + i, 'w7'); px.hline(c, wx - 5, wx + ww + 4, yy + i + 3, 'w2')
+    P(c, wx - 3, yy + i + 1, 'm2'); P(c, wx + ww + 2, yy + i + 1, 'm2') end end
+  R(c, wx - 6, wy + wh + 3, wx + ww + 5, wy + wh + 5, T[4]); px.hline(c, wx - 6, wx + ww + 5, wy + wh + 3, T[5]); px.hline(c, wx - 6, wx + ww + 5, wy + wh + 6, 'w2')
+  if o.box then B.flowerbox(c, wx - 3, wy + wh + 7, ww + 5, o.box == 'dead', o.seed or 1) end
+end
+
+function B.flowerbox(c, bx, by, bw, dying, seed)
+  R(c, bx, by, bx + bw, by + 7, 'w4'); px.hline(c, bx, bx + bw, by, 'w6'); px.hline(c, bx, bx + bw, by + 7, 'w2'); px.vline(c, bx, by, by + 7, 'w5')
+  for i = 0, 4 do px.vline(c, bx + 3 + i * (bw // 5), by + 2, by + 5, 'w3') end
+  for i = 0, bw - 2, 3 do
+    local fx = bx + 1 + i; local hgt = 3 + math.floor(H(i, bx + seed) * 4)
+    if dying then px.vline(c, fx, by - hgt + 2, by - 1, 'k3'); P(c, fx + 1, by - hgt + 3, ({'f1', 'f2', 'k2'})[i % 3 + 1]); P(c, fx + 1, by - hgt + 4, 'f1')
+    else px.vline(c, fx, by - hgt, by - 1, 'v3'); P(c, fx - 1, by - hgt + 2, 'v4'); P(c, fx, by - hgt - 1, ({'f3', 'f4', 'y2', 'f3', 'p2'})[(i + seed) % 5 + 1]); P(c, fx + 1, by - hgt, 'f2') end
+  end
+end
+
+function B.door(c, dx0, dx1, dy0, yb, o)
+  local T, D = o.trim, o.col
+  R(c, dx0 - 5, dy0 - 5, dx1 + 5, yb, T[3]); px.hline(c, dx0 - 5, dx1 + 5, dy0 - 5, T[5]); px.vline(c, dx0 - 5, dy0 - 5, yb, T[4]); px.vline(c, dx1 + 5, dy0 - 5, yb, T[2])
+  R(c, dx0 - 7, dy0 - 8, dx1 + 7, dy0 - 6, T[4]); px.hline(c, dx0 - 7, dx1 + 7, dy0 - 8, T[5]); px.hline(c, dx0 - 7, dx1 + 7, dy0 - 5, 'w2')
+  local kind = o.kind or 'plank'
+  for y = dy0, yb do for x = dx0, dx1 do
+    local bx = (x - dx0) % 6
+    local v
+    if kind == 'barn' then v = band(c, D, .55 - (x - dx0) / 120, 2, 4)
+    else v = (bx == 0) and D[1] or ((bx == 1) and D[4] or band(c, D, .55 - (x - dx0) / 70, 2, 4)) end
+    P(c, x, y, v) end end
+  local mid = (dx0 + dx1) // 2
+  if kind == 'double' or kind == 'barn' then px.vline(c, mid, dy0, yb, 'OUT') end
+  if kind == 'barn' then for _, h in ipairs({{dx0, mid}, {mid + 1, dx1}}) do px.line(c, h[1], dy0, h[2], yb, T[4]); px.line(c, h[2], dy0, h[1], yb, T[4])
+      R(c, h[1], dy0, h[2], dy0 + 1, T[4]); R(c, h[1], yb - 1, h[2], yb, T[4]) end
+  elseif kind == 'glass' then R(c, dx0 + 3, dy0 + 3, dx1 - 3, dy0 + (yb - dy0) // 2, o.night and 'y2' or 'g3'); if not o.night then P(c, dx0 + 4, dy0 + 4, 'g6'); P(c, dx0 + 5, dy0 + 4, 'g5') end
+    px.vline(c, mid, dy0 + 3, dy0 + (yb - dy0) // 2, T[2])
+  else R(c, dx0 + 5, dy0 + 5, dx1 - 5, dy0 + 15, T[2]); R(c, dx0 + 6, dy0 + 6, dx1 - 6, dy0 + 14, o.night and 'y2' or 'g2'); px.vline(c, mid, dy0 + 6, dy0 + 14, T[2]); px.hline(c, dx0 + 6, dx1 - 6, dy0 + 10, T[2])
+    if not o.night then P(c, dx0 + 7, dy0 + 7, 'g5') end end
+  R(c, dx1 - 5, dy0 + (yb - dy0) * .55, dx1 - 3, dy0 + (yb - dy0) * .55 + 2, 'y2'); P(c, dx1 - 5, dy0 + (yb - dy0) * .55, 'y3')
+  if o.ribbon then R(c, dx1 - 6, dy0 + 18, dx1 - 2, dy0 + 19, 'b2'); P(c, dx1 - 4, dy0 + 20, 'b2'); P(c, dx1 - 3, dy0 + 21, 'b1'); P(c, dx1 - 5, dy0 + 21, 'b3') end
+  if o.scratches then for k = 0, 2 do px.line(c, dx0 + 3 + k * 3, yb - 17, dx0 + 6 + k * 3, yb - 8, 'OUT') end end
+  if o.blood then for k = 0, 3 do px.vline(c, dx0 + 2 + k * 2, dy0 + 20, dy0 + 26 + k * 2, k % 2 == 0 and 'b2' or 'b1') end end
+  R(c, dx0 - 9, yb + 1, dx1 + 9, yb + 5, 's6'); px.hline(c, dx0 - 9, dx1 + 9, yb + 1, 's7'); px.hline(c, dx0 - 9, dx1 + 9, yb + 5, 's3')
+end
+
+function B.lantern(c, lx, ly, night)
+  px.hline(c, lx - 3, lx + 3, ly, 'm2'); px.vline(c, lx - 3, ly, ly + 4, 'm2'); R(c, lx - 2, ly + 4, lx + 3, ly + 12, 'm3'); R(c, lx - 1, ly + 5, lx + 2, ly + 11, night and 'y3' or 'g3')
+  if not night then P(c, lx, ly + 8, 'y2'); P(c, lx + 1, ly + 8, 'y1') end
+  px.hline(c, lx - 3, lx + 4, ly + 3, 'm1'); px.hline(c, lx - 3, lx + 4, ly + 13, 'm1')
+end
+
+function B.ivy(c, x, ybot, ytop, seed)
+  local sx, sy = x, ybot
+  for i = 0, 160 do
+    sx = sx + (H(i, seed) - .4) * 2.2; sy = sy - 1
+    if sy < ytop then break end
+    P(c, sx, sy, 'v2')
+    if i % 3 == 0 then local lx2 = sx + (i % 2 == 0 and -3 or 2)
+      for _, d in ipairs({{0,0},{1,0},{0,1},{1,1},{2,0},{-1,1}}) do P(c, lx2 + d[1], sy + d[2], ({'v3','v4','v5','v4','v6','v3'})[(i + d[1] + d[2]) % 6 + 1]) end end
+  end
+end
+
+function B.chimney(c, cx0, cx1, cy0, cy1, mat)
+  for y = cy0 + 6, cy1 do for x = cx1 + 1, cx1 + 9 do if px.get(c, x, y) ~= 0 and (x + y) % 2 == 0 then P(c, x, y, 'OUT2') end end end
+  if mat == 'brick' then B.wall(c, 'brick', cx0, cy0 + 4, cx1, cy1, 7)
+  else B.stones(c, cx0, cy0 + 4, cx1, cy1, 5, 5, function(x, y) return .7 - (x - cx0) / 40 end) end
+  R(c, cx0 - 3, cy0, cx1 + 3, cy0 + 3, 's6'); px.hline(c, cx0 - 3, cx1 + 3, cy0, 's7'); px.hline(c, cx0 - 3, cx1 + 3, cy0 + 3, 's3')
+  R(c, cx0 + 3, cy0 - 1, cx1 - 3, cy0, 'OUT')
+end
+
+function B.sign(c, cx, y, text)
+  local w = #text * 4 + 9; local x0 = cx - w // 2
+  R(c, x0, y, x0 + w, y + 10, 'w4'); px.hline(c, x0, x0 + w, y, 'w6'); px.hline(c, x0, x0 + w, y + 1, 'w5'); px.hline(c, x0, x0 + w, y + 10, 'w2')
+  px.vline(c, x0, y, y + 10, 'OUT'); px.vline(c, x0 + w, y, y + 10, 'OUT'); px.hline(c, x0, x0 + w, y - 1, 'OUT'); px.hline(c, x0, x0 + w, y + 11, 'OUT')
+  B.text(c, x0 + 5, y + 3, text, 't5', 'w2')
+  P(c, x0 + 2, y + 5, 'm2'); P(c, x0 + w - 2, y + 5, 'm2')
+end
+
+function B.awning(c, x0, x1, y, a, b)
+  for yy = y, y + 9 do for x = x0, x1 do local st = ((x - x0) // 7) % 2; local col = st == 1 and a or b
+    P(c, x, yy, col[(yy < y + 3) and 4 or 3]) end end
+  for x = x0, x1, 7 do local st = ((x - x0) // 7) % 2; local col = st == 1 and a or b
+    for k = 0, 4 do P(c, x + k, y + 10 + ((k == 1 or k == 3) and 1 or (k == 2 and 2 or 0)), col[2]) end end
+  px.hline(c, x0, x1, y - 1, 'OUT')
+  for yy = y + 11, y + 15 do for x = x0, x1 do if (x + yy) % 2 == 0 and px.get(c, x, yy) ~= 0 then P(c, x, yy, 'OUT2') end end end
+end
+
+function B.porch(c, x0, x1, ytop, yb, roofmat, trim, rail)
+  for y = ytop - 8, ytop do for x = x0 - 3, x1 + 3 do P(c, x, y, B.roofpx(c, roofmat, x, y, ytop - 8, 1, 3)) end end
+  px.hline(c, x0 - 4, x1 + 4, ytop - 9, 'OUT'); px.hline(c, x0 - 3, x1 + 3, ytop + 1, trim[4]); px.hline(c, x0 - 3, x1 + 3, ytop + 2, trim[2]); px.hline(c, x0 - 4, x1 + 4, ytop + 3, 'OUT')
+  for yy = ytop + 4, ytop + 9 do for x = x0, x1 do if (x + yy) % 2 == 0 and px.get(c, x, yy) ~= 0 then P(c, x, yy, 'OUT2') end end end
+  for _, postx in ipairs({x0, x1 - 2}) do R(c, postx, ytop + 3, postx + 2, yb, trim[4]); px.vline(c, postx + 2, ytop + 3, yb, trim[2]) end
+  if rail then for x = x0, x1 do P(c, x, yb - 10, trim[4]); P(c, x, yb - 9, trim[2]); if x % 4 == 0 then px.vline(c, x, yb - 8, yb, trim[3]) end end end
+end
+
+-- ------------------------------------------------------------------ whole buildings
+function B.build(sp, night)
+  local wt = sp.w; local W = math.floor(wt * 32); local m = 22
+  local wallH = sp.wallh or 70
+  local kind = sp.kind or 'gable'
+  local extraTop = (kind == 'gable' or kind == 'church' or kind == 'barn') and math.floor(W * .62) + 10 or (sp.roofd or 64) + 40
+  if kind == 'church' then extraTop = extraTop + (sp.spire or 70) + 30 end
+  if kind == 'cross' then extraTop = math.max(extraTop, math.floor(W * .45 * .62) + 40) end
+  local Wd = W + m * 2; local Hh = extraTop + wallH + 16
+  local c = px.new(Wd, Hh, B.PAL)
+  local x0, x1 = m, m + W - 1; local gy = Hh - 6; local yW = gy - 9 - wallH
+  local trim = B.TRIMS[sp.trim or 'cream']; local seed = sp.seed or 1
+  local roofmat = sp.roof or 'scallop'; local wallmat = sp.wall or 'honey'
+  -- roof first (the walls and the gable sit in front of it)
+  local topY
+  if kind == 'gable' or kind == 'church' or kind == 'barn' then topY = select(1, B.frontgable(c, sp, x0, x1, yW, wallmat, roofmat, trim, seed))
+  elseif kind == 'cross' then
+    topY = B.sideroof(c, x0, x1, yW, sp.roofd or 64, roofmat, seed, sp.hip)
+    local gw = math.floor(W * (sp.gablew or .42)); local gx0 = (x0 + x1) // 2 - gw // 2
+    B.frontgable(c, {pitch = .34, back = .26, gablewin = sp.gablewin or 'round', moss = sp.moss}, gx0, gx0 + gw, yW, wallmat, roofmat, trim, seed + 3)
+  elseif kind == 'flat' then
+    local py = yW - 16
+    for y = py, yW do for x = x0 - 2, x1 + 2 do P(c, x, y, B.WALLS[wallmat][(y - py) % 5 == 4 and 3 or 5]) end end
+    R(c, x0 - 5, py - 4, x1 + 5, py - 1, trim[4]); px.hline(c, x0 - 5, x1 + 5, py - 4, trim[5]); px.hline(c, x0 - 5, x1 + 5, py - 1, trim[2]); px.hline(c, x0 - 5, x1 + 5, py - 5, 'OUT')
+    for x = x0, x1, 9 do R(c, x, py, x + 2, py + 2, trim[3]) end
+    topY = py - 5
+  end
+  -- the walls, the shadow under the eaves, corner boards, the foundation
+  B.wall(c, (sp.siding and wallmat ~= 'brick' and wallmat ~= 'stone' and wallmat ~= 'log' and wallmat ~= 'plaster') and wallmat or wallmat, x0, yW + 1, x1, gy - 10, seed)
+  for y = yW + 1, yW + 6 do for x = x0, x1 do if (y - yW) < 6 - ((x + y) % 2) * 3 then P(c, x, y, 'OUT2') end end end
+  if wallmat ~= 'brick' and wallmat ~= 'stone' and wallmat ~= 'log' then
+    for _, cx in ipairs({x0, x1 - 4}) do R(c, cx, yW + 2, cx + 4, gy - 10, trim[3]); px.vline(c, cx, yW + 2, gy - 10, trim[4]); px.vline(c, cx + 4, yW + 2, gy - 10, trim[2]) end end
+  B.stones(c, x0 - 4, gy - 9, x1 + 4, gy, seed + 11, 5, function(x, y) return .66 - (x - x0) / 700 end)
+  px.hline(c, x0 - 4, x1 + 4, gy - 9, 's6')
+  -- shopfront awning and sign
+  if sp.awning then B.awning(c, x0 + 6, x1 - 6, yW + 8, B.DOORS.red, {'t1', 't2', 't4', 't5'}) end
+  -- windows
+  local wins = sp.windows or {}
+  for i, w in ipairs(wins) do
+    local ww, wh = w.w or 24, w.h or 26
+    local wx = math.floor(x0 + w.x * 32 - ww / 2); local wy = w.y and (yW + w.y) or (yW + 18 + (sp.awning and 10 or 0))
+    B.window(c, wx, wy, ww, wh, {trim = trim, night = night, dark = w.dark, curtain = (w.curtain == false) and nil or (w.curtain or ({'t4', 'f2', 'v4', 't4', 'f3'})[(i + seed) % 5 + 1]),
+      face = w.face, watcher = w.watcher, broken = w.broken, boarded = w.boarded, box = w.box, lancet = w.lancet, stained = w.stained, shutters = sp.shutters and B.TRIMS[sp.shutters] or nil, seed = seed + i})
+  end
+  -- the door, porch, lantern
+  if not sp.nodoor then
+    local d = sp.door or {}; local dw = d.w or 26; local dh = d.h or 46; local dcx = math.floor((x0 + x1) / 2 + (d.dx or 0) * 32)
+    local dx0, dx1 = dcx - dw // 2, dcx + dw // 2
+    if sp.porch then B.porch(c, sp.porch.full and x0 + 4 or dx0 - 16, sp.porch.full and x1 - 4 or dx1 + 16, gy - 10 - dh - 14, gy - 10, roofmat, trim, sp.porch.rail) end
+    B.door(c, dx0, dx1, gy - 10 - dh, gy - 10, {trim = trim, col = B.DOORS[d.col or 'teal'], kind = d.kind, night = night, ribbon = sp.ribbon, scratches = sp.scratches, blood = sp.blooddoor})
+    if sp.lantern ~= false then B.lantern(c, dx1 + 12, gy - 10 - dh + 6, night) end
+  end
+  if sp.sign then B.sign(c, (x0 + x1) // 2, yW + (sp.awning and -2 or 6) + (sp.signy or 0), sp.sign) end
+  if sp.ivy then B.ivy(c, sp.ivy == 'left' and x0 + 3 or x1 - 3, gy - 11, yW + 4, seed) end
+  -- chimneys
+  local chim
+  for _, ch in ipairs(sp.chimneys or {}) do local cx = math.floor(x0 + ch.x * W); local cy = (topY or yW - 60) + (ch.dy or 18)
+    B.chimney(c, cx - 10, cx + 10, cy, yW - 10, ch.mat or 'stone')
+    if not chim then chim = {cx, cy} end end
+  -- the church's tower and spire, standing in front of the nave
+  if kind == 'church' then
+    -- the tower: a box standing proud of the nave, a quarter of its width, with a shaded side face, three stages
+    -- split by string courses (door, clock, belfry), and an octagonal spire with a lucarne and a gilt cross
+    local tcx = (x0 + x1) // 2; local tw = math.max(22, math.floor(W * .12)); local side = 7
+    local ttop = (topY or yW - 80) - 4; local tb = gy - 10
+    local G = B.WALLS[wallmat]
+    for y = ttop + 2, tb do for x = tcx + tw + 1, tcx + tw + 10 do if (x + y) % 2 == 0 or x < tcx + tw + 5 then P(c, x, y, 'OUT2') end end end  -- its shadow on the nave
+    B.wall(c, wallmat, tcx - tw, ttop, tcx + tw, tb, seed + 5)
+    for y = ttop, tb do for x = tcx + tw + 1, tcx + tw + side do                                                                       -- the side face, in shade
+      local v = band(c, G, .18 + ((y - ttop) % 6 == 0 and .12 or 0), 1, 4); P(c, x, y, v) end end
+    px.vline(c, tcx + tw + side, ttop, tb, G[1])
+    if wallmat ~= 'brick' and wallmat ~= 'stone' and wallmat ~= 'log' then
+      for _, cx in ipairs({tcx - tw, tcx + tw - 4}) do R(c, cx, ttop, cx + 4, tb, trim[3]); px.vline(c, cx, ttop, tb, trim[4]); px.vline(c, cx + 4, ttop, tb, trim[2]) end
+    else for y = ttop, tb, 5 do R(c, tcx - tw, y, tcx - tw + (((y - ttop) // 5) % 2 == 0 and 6 or 3), y + 4, 's6'); px.hline(c, tcx - tw, tcx - tw + 5, y + 4, 's3') end end  -- quoins
+    local function course(y) R(c, tcx - tw - 3, y, tcx + tw + side + 2, y + 3, trim[4]); px.hline(c, tcx - tw - 3, tcx + tw + side + 2, y, trim[5])
+      px.hline(c, tcx - tw - 3, tcx + tw + side + 2, y + 3, trim[2]); px.hline(c, tcx - tw - 3, tcx + tw + side + 2, y + 4, 'OUT2')
+      R(c, tcx + tw + 1, y, tcx + tw + side + 2, y + 3, trim[2]) end
+    local belY = ttop + 6; local clkY = belY + 46; local doorTop = tb - 58
+    -- belfry: two louvred lancets, the bell hanging in the dark between them
+    for _, bx in ipairs({tcx - tw // 2 - 6, tcx + tw // 2 - 6}) do
+      local bw, bh = 12, 30
+      B.window(c, bx, belY + 6, bw, bh, {trim = trim, lancet = true, dark = true, curtain = nil})
+      for yy = belY + 4, belY + 6 + bh - 1 do for xx = bx, bx + bw - 1 do if px.get(c, xx, yy) ~= px.i(c, trim[5]) and px.get(c, xx, yy) ~= px.i(c, trim[2]) and px.get(c, xx, yy) ~= px.i(c, 'OUT2') and yy >= belY + 2 then
+        local inside = px.get(c, xx, yy) == px.i(c, 'g2') or px.get(c, xx, yy) == px.i(c, 'g3') or px.get(c, xx, yy) == px.i(c, trim[4]) or px.get(c, xx, yy) == px.i(c, trim[3])
+        if inside then P(c, xx, yy, (yy - belY) % 4 == 0 and trim[2] or ((yy - belY) % 4 == 1 and trim[3] or 'OUT')) end end end end
+    end
+    local bcx = tcx; px.ellipse(c, bcx + .5, belY + 26, 7, 8, 'm2'); R(c, bcx - 8, belY + 30, bcx + 8, belY + 33, 'm2'); px.hline(c, bcx - 8, bcx + 8, belY + 33, 'm1')
+    px.vline(c, bcx - 4, belY + 21, belY + 31, 'm3'); P(c, bcx - 3, belY + 22, 'm4'); px.vline(c, bcx, belY + 12, belY + 18, 'm1'); P(c, bcx, belY + 35, 'm1')
+    course(belY + 44)
+    -- a clock face that has stopped, with its twelve marks
+    local cl = clkY + 16; px.ellipse(c, tcx + .5, cl + .5, 12, 12, trim[2]); px.ellipse(c, tcx + .5, cl + .5, 10.5, 10.5, 't5'); px.ellipse(c, tcx + 1.5, cl + 1.5, 9, 9, 't4')
+    px.ellipse(c, tcx + .5, cl + .5, 9, 9, 't5')
+    for i = 0, 11 do local a = i * math.pi / 6; local rr = (i % 3 == 0) and 7.5 or 8.2
+      P(c, tcx + math.floor(math.sin(a) * rr + .5), cl - math.floor(math.cos(a) * rr + .5), i % 3 == 0 and 'OUT' or 't2') end
+    px.line(c, tcx, cl, tcx - 1, cl - 6, 'OUT'); px.line(c, tcx, cl, tcx + 4, cl + 3, 'OUT'); P(c, tcx, cl, 'b2')
+    course(cl + 18)
+    -- the door under a pointed arch, steps worn in the middle
+    local dw = 15
+    B.door(c, tcx - dw, tcx + dw, doorTop, tb, {trim = trim, col = B.DOORS.oak, kind = 'double', night = night, scratches = sp.scratches})
+    for i = 0, dw + 6 do local hgt = math.floor(math.sqrt(math.max(0, (dw + 6) ^ 2 - i * i)) * .62)
+      for yy = doorTop - 6 - hgt, doorTop - 6 do for _, xx in ipairs({tcx - i, tcx + i}) do
+        P(c, xx, yy, (yy == doorTop - 6 - hgt) and (xx < tcx and trim[5] or trim[2]) or ((i < dw - 1 and yy > doorTop - 6 - hgt + 3) and (night and 'y1' or 'g2') or trim[3])) end end end
+    P(c, tcx, doorTop - 6 - math.floor((dw + 6) * .62) - 1, trim[5])
+    R(c, tcx - dw - 12, tb + 1, tcx + dw + 12, tb + 3, 's6'); px.hline(c, tcx - dw - 12, tcx + dw + 12, tb + 1, 's7')
+    R(c, tcx - dw - 8, tb - 1, tcx + dw + 8, tb, 's5'); px.hline(c, tcx - 5, tcx + 5, tb, 's4')
+    -- the spire: octagonal, lit left, shaded right, a lucarne low on the front, gilt cross
+    local sp_h = sp.spire or 70; local base = tw + 5
+    px.hline(c, tcx - tw - 6, tcx + tw + side + 4, ttop, trim[5]); R(c, tcx - tw - 6, ttop + 1, tcx + tw + side + 4, ttop + 3, trim[3]); px.hline(c, tcx - tw - 6, tcx + tw + side + 4, ttop + 4, 'OUT2')
+    for i = 0, sp_h do local f = i / sp_h; local hw = base * f; local y = ttop - sp_h + i
+      for x = math.floor(tcx - hw), math.ceil(tcx + hw + side * f) do
+        local u = (x - tcx) / math.max(1, hw)
+        local col = B.roofpx(c, roofmat, x, y, ttop - sp_h, u < -.33 and 1 or (u < .33 and (u < 0 and 1 or 0) or 0), seed)
+        if math.abs(u + .33) < .04 or math.abs(u - .33) < .04 then col = B.ROOFS[roofmat][2] end
+        if x > tcx + hw then col = B.ROOFS[roofmat][1] end
+        P(c, x, y, col) end end
+    local ly = ttop - math.floor(sp_h * .28); local lw = math.max(4, math.floor(base * .22))
+    for i = 0, lw + 1 do px.hline(c, tcx - i, tcx + i, ly - lw - 1 + i, i == lw + 1 and trim[2] or trim[4]) end
+    R(c, tcx - lw + 1, ly + 1, tcx + lw - 1, ly + 7, 'OUT'); for yy = ly + 2, ly + 7, 2 do px.hline(c, tcx - lw + 1, tcx + lw - 1, yy, trim[2]) end
+    px.vline(c, tcx - lw, ly, ly + 8, trim[4]); px.vline(c, tcx + lw, ly, ly + 8, trim[2])
+    px.vline(c, tcx, ttop - sp_h - 14, ttop - sp_h, 'y2'); px.vline(c, tcx + 1, ttop - sp_h - 14, ttop - sp_h, 'y1'); px.hline(c, tcx - 4, tcx + 5, ttop - sp_h - 10, 'y2'); px.hline(c, tcx - 4, tcx + 5, ttop - sp_h - 9, 'y1'); P(c, tcx, ttop - sp_h - 14, 'y3')
+  end
+  if sp.handprint then local hx, hy = math.floor(x0 + sp.handprint * W), gy - 30
+    px.ellipse(c, hx, hy, 3, 3.5, 'b2'); for k = 0, 3 do px.vline(c, hx - 3 + k * 2, hy - 7, hy - 3, k == 3 and 'b1' or 'b2') end; px.vline(c, hx + 1, hy + 3, hy + 10, 'b1') end
+  px.outline(c, px.i(c, 'OUT'))
+  -- chim: where smoke leaves the first chimney, relative to the sprite's anchor (the game's puff offset)
+  return c, {w = Wd, h = Hh, ax = Wd / 2, ay = gy - 3, chim = chim and {chim[1] - Wd / 2, chim[2] - (gy - 3) - 2} or nil}
+end
+
+return B

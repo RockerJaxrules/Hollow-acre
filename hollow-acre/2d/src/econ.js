@@ -85,7 +85,7 @@ vendors.cook={name:'Grandpa’s stove',sub:'The recipe cards are in his handwrit
 const MINE={x:-6,z:0,mobs:[],ores:[],ladder:null};
 ROOMS.mine={ox:430,oz:-60,out:{x:0,z:0},name:'The old Marrow mine',furn:[]};
 ROOMS.greenhouse={ox:462,oz:-60,out:{x:10.5,z:8.3},name:'The greenhouse',furn:[]};
-function placeMine(){MINE.z=ridgeZ(MINE.x)+RIDGE.h+.15;obj('mineportal',MINE.x,MINE.z,{kind:'bld'});addRect(MINE.x-1.3,MINE.z-1.2,MINE.x-.6,MINE.z);addRect(MINE.x+.6,MINE.z-1.2,MINE.x+1.3,MINE.z);
+function placeMine(){MINE.z=ridgeZ(MINE.x)+RIDGE.h+.15;obj('mineportal',MINE.x,MINE.z,{kind:'bld',night:'mineportal_n'});addRect(MINE.x-1.3,MINE.z-1.2,MINE.x-.6,MINE.z);addRect(MINE.x+.6,MINE.z-1.2,MINE.x+1.3,MINE.z);
   ROOMS.mine.out={x:MINE.x,z:MINE.z+.9};interact.push({x:MINE.x,z:MINE.z+.3,r:1,label:()=>'Enter mine',ok:()=>true,act(){mineEnter();}});}
 const ORE_HITS={stone:1,copper:2,coal:2,iron:3,gem:3};
 function mineFloor(f){S.mineFloor=f;S.mineDeep=Math.max(S.mineDeep,f);const R=ROOMS.mine;for(const o of MINE.ores)o.hide=true;for(const o of MINE.ores)if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}

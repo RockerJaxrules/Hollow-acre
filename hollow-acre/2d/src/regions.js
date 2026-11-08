@@ -200,7 +200,7 @@ function rgBuildAll(){const t0=performance.now();
   {const C=RGP.cornC;for(let i=0;i<12;i++){const a=i/12*6.283;const x=C.x+Math.cos(a)*5.6,z=C.z+Math.sin(a)*3.8;rgPut(['rg_scare_a','rg_scare_b','rg_scare_c'][i%3],x,z,{kind:'prop',flip:Math.cos(a)>0},.22);}
     rgPut('rg_scare_b',C.x,C.z-.4,{kind:'prop',scareYou:1},.22);}
   rgClear(RGP.harlan.x-8,RGP.harlan.z-14,RGP.harlan.x+18,RGP.harlan.z+3);rgReserve(RGP.harlan.x-8,RGP.harlan.z-12,RGP.harlan.x+18,RGP.harlan.z+2);
-  building('house_c',RGP.harlan.x,RGP.harlan.z,{lit:false,porch:false});building('barn',RGP.harlan.x+11,RGP.harlan.z-1,{porch:false,lit:false});put('silo',RGP.harlan.x+16.6,RGP.harlan.z-4,.8);
+  building('h_harlan',RGP.harlan.x,RGP.harlan.z,{lit:false,porch:false});building('barn_c',RGP.harlan.x+11,RGP.harlan.z-1,{porch:false,lit:false});put('silo',RGP.harlan.x+16.6,RGP.harlan.z-4,.8);
   put('signpost',24,193.5,.2,{label:'THE DEEP CORN'});put('signpost',24,147.5,.2,{label:'HARLAN’S'});put('cart',RGP.harlan.x-5,RGP.harlan.z+1.4);addRect(RGP.harlan.x-6.2,RGP.harlan.z+.8,RGP.harlan.x-3.8,RGP.harlan.z+1.4);
   rgTrees('corn',380,[['maple_red',2],['maple_orange',2],['maple_gold',2],['sumac',1],['oak_russet',1],['pine_0',1]],.04);
   // ================= THE DROWNED VILLAGE
@@ -215,7 +215,7 @@ function rgBuildAll(){const t0=performance.now();
   {let n=0;for(let t=0;t<6000&&n<320;t++){const R=RGP.res;const a=RR()*6.283,d=1+RR()*.12;const x=R.x+Math.cos(a)*R.rx*d,z=R.z+Math.sin(a)*R.rz*d;if(LAYERS.water(x,z)||!rgOpen(x,z,.3,.4))continue;obj('reeds',x,z,{kind:'anim',grass:1,fps:1.2,ph:RR()*2});occAdd(x,z,.3);n++;}}
   // ================= PINE RIDGE
   rgClear(RGP.tower.x-10,RGP.tower.z-6,RGP.tower.x+24,RGP.tower.z+16);rgReserve(RGP.tower.x-3,RGP.tower.z-3,RGP.tower.x+3,RGP.tower.z+2);
-  rgPut('rg_tower',RGP.tower.x,RGP.tower.z,{kind:'bld'},0);addRect(RGP.tower.x-1.1,RGP.tower.z-1.2,RGP.tower.x+1.1,RGP.tower.z);
+  rgPut('rg_tower',RGP.tower.x,RGP.tower.z,{kind:'bld',night:'rg_tower_n'},0);addRect(RGP.tower.x-1.1,RGP.tower.z-1.2,RGP.tower.x+1.1,RGP.tower.z);
   rgBuild('rg_logcabin',RGP.ranger.x,RGP.ranger.z,{lit:false});put('firewood',RGP.ranger.x+3.2,RGP.ranger.z+.6,.3);put('signpost',RGP.tower.x+3,RGP.tower.z+3.4,.2,{label:'LOOKOUT'});
   rgScatter('rg_outcrop','ridge',38,null,{kind:'prop',col:0},2.2);
   for(const o of OBJ.slice(-38))if(o.spr==='rg_outcrop')addRect(o.x-1.8,o.z-1,o.x+1.8,o.z-.05);
