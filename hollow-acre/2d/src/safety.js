@@ -5,3 +5,7 @@
     if(S.mode==='trans'){if(!transSince)transSince=now;if(now-transSince>9000){transSince=0;S.mode='play';fade(0);if(typeof M!=='undefined'){M.blackout=false;if(M.v<=0)M.v=35;}toast('You come to. Something kept your place.',3,true);}}
     else transSince=0;
     if(S.mode==='play'&&op>.9&&!S.paused){if(!blackSince)blackSince=now;if(now-blackSince>3000){blackSince=0;fade(0);}}else blackSince=0;},500);}
+// phones: taps and pinches never zoom the page (iOS ignores the viewport's no-zoom, so the gestures are stopped by hand)
+{addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});
+  addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});
+  let lastEnd=0;addEventListener('touchend',e=>{const now=performance.now();if(now-lastEnd<320&&!(e.target&&e.target.closest&&e.target.closest('input,textarea,select')))e.preventDefault();lastEnd=now;},{passive:false});}
