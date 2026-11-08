@@ -149,4 +149,9 @@ function renderMap(){const B2=$('bagBody');$('bagSub').textContent=S.room?'You a
   $('bag').hidden=false;requestAnimationFrame(()=>{wrap.scrollLeft=(l/100)*wrap.scrollWidth-wrap.clientWidth/2;wrap.scrollTop=(t/100)*wrap.scrollHeight-wrap.clientHeight/2;});}
 const HEART_MAX=()=>Math.round(FRIEND_MAX/100);
 addEventListener('keydown',e=>{if(S.mode!=='play')return;if(e.code==='KeyM'&&!S.paused){openBag('map');e.preventDefault();}if((e.code==='KeyE'||e.code==='Tab')&&!S.paused){openBag('items');e.preventDefault();}});
+// the same key shuts what it opened: Tab or E closes the menu again, M closes the map, J closes the journal
+addEventListener('keydown',e=>{if(S.mode!=='play'||e.repeat)return;const tag=(e.target&&e.target.tagName)||'';if(/INPUT|TEXTAREA/.test(tag))return;
+  const bag=$('bag'),open=bag&&!bag.hidden;
+  if(open&&(e.code==='Tab'||e.code==='KeyE'||(e.code==='KeyM'&&GM_TAB==='map'))){e.preventDefault();e.stopImmediatePropagation();$('bagClose').click();return;}
+  if(e.code==='KeyJ'&&$('note')&&!$('note').hidden&&/Journal/.test(($('noteText').querySelector('h3')||{}).textContent||'')){e.preventDefault();e.stopImmediatePropagation();$('noteClose').click();}},true);
 {const bb=$('btnBag');if(bb)bb.textContent='Menu';}
