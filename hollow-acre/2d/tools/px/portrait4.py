@@ -171,13 +171,13 @@ def wave_pts(pts, amp, freq, phase=0.0, axis=0):
 
 class Painter:
     def __init__(s, C, ex, var='day'):
-        global LV
+        global LV, BO
         L0 = {'night': (-.5, -.25, .82)}.get(var, (-.5, -.62, .6)); LV = np.array(L0) / np.linalg.norm(L0)
         D = dict(face_w=25.0, chin=86.0, jaw_p=1.85, jaw_q=.5, jaw_taper=.26, eye_a=6.2, iris=4.1, eye_y=59.3, lash_w=1.12)
         T = {'man': dict(face_w=26.0, chin=88.0, jaw_p=2.5, jaw_q=.62, jaw_taper=.12, eye_a=5.1, iris=3.0, tilt=.15, lash_w=.55, wing=0, lashes=0, eye_y=59.6, brow_y=52.0, eye_open=.74,
                          brow_w=1.6, brow_arch=.5, lip_w=6.4, lip_up=1.3, lip_lo=1.9, nose=1.12, blush=.1, shoulder=58.0, neck_w=10.2, natural_lip=.5),
-             'kid': dict(face_w=25.6, chin=84.0, jaw_p=1.7, jaw_q=.45, jaw_taper=.3, eye_a=6.7, iris=4.6, eye_y=61.0, tilt=.1, lash_w=.8, wing=0, lashes=0, nose=.75,
-                         lip_w=5.0, lip_up=1.5, lip_lo=2.1, blush=.55, shoulder=46.0, neck_w=7.4, brow_w=1.0, natural_lip=.55),
+             'kid': dict(face_w=27.0, chin=80.5, jaw_p=2.6, jaw_q=.55, jaw_taper=.06, eye_a=7.5, iris=5.5, eye_y=62.2, tilt=.04, lash_w=.8, wing=0, lashes=0, nose=.55,
+                         nose_y=68.4, mouth_y=73.8, brow_y=53.6, lip_w=4.4, lip_up=1.3, lip_lo=1.9, blush=.65, shoulder=41.0, neck_w=8.8, brow_w=1.0, natural_lip=.55, body_dy=-8.0),
              'elder': dict(eye_a=5.4, iris=3.4, tilt=0, lash_w=.85, wing=0, lashes=0, lip_up=1.6, lip_lo=2.2, blush=.25, age=.75, natural_lip=.45, jaw_q=.58)}.get(C.get('kind'), {})
         if C.get('kind') == 'oldman': T = dict({'man': 1} and {}, **{})
         base = dict(D); base.update(T)
@@ -185,6 +185,7 @@ class Painter:
             base.update(face_w=26.0, chin=88.0, jaw_p=2.3, jaw_q=.6, jaw_taper=.14, eye_a=4.9, iris=2.9, tilt=.0, lash_w=.55, wing=0, lashes=0, eye_y=59.8, brow_y=51.6, eye_open=.72,
                         brow_w=1.7, brow_arch=.6, lip_w=6.2, lip_up=1.1, lip_lo=1.6, nose=1.2, blush=.1, shoulder=57.0, neck_w=9.6, natural_lip=.42, age=.85)
         C = dict(base, **C)
+        BO = 4.0 + C.get('body_dy', 0.0)    # kids' shoulders sit closer under the chin
         if var == 'wet': C['vol'] = C.get('vol', 0) - 2.5
         s.C = C; s.ex = ex; s.var = var; s.pal = Palette(); s.cv = Canvas(s.pal); s.rng = np.random.RandomState(C.get('seed', 7))
         s.mk_palette()
@@ -332,7 +333,7 @@ class Painter:
         sw = s.C.get('shoulder', 55.0); o = BO
         nw = s.C.get('neck_w', 8.4)
         tr = bez([(nw + .6, 88 + o), (nw + 5.6, 99 + o), (30, 100 + o), (sw - 9, 105 + o)], 30)
-        dl = bez([(sw - 9, 105 + o), (sw - 3, 107.5 + o), (sw + 1, 114 + o), (sw + 2, 129 + o)], 20)
+        dl = bez([(sw - 9, 105 + o), (sw - 3, 107.5 + o), (sw + 1, 114 + o), (sw + 2, max(129 + o, 132))], 20)
         half = np.vstack([tr, dl])
         R = [(CX + x, y) for x, y in half]; L = [(CX - x, y) for x, y in half[::-1]]
         return L + R
@@ -371,7 +372,7 @@ class Painter:
         cv.put(s.bust_m & cv.where('skin'), 'skin', L)
         top = cy - b * .94
         cv.add(s.bust_m, 'skin', -.4 * np.exp(-((X - CX - .3) / 2.4) ** 2) * sstep(top + 2, top + 7, Y))
-        cv.put(stroke(bez([(CX + .25, top + 5.5), (CX - .15, top + 10), (CX + .3, 129 + BO)], 20), [.3, .8, 1.0]), 'cleave', .5)
+        cv.put(stroke(bez([(CX + .25, top + 5.5), (CX - .15, top + 10), (CX + .3, max(129 + BO, 132))], 20), [.3, .8, 1.0]), 'cleave', .5)
         for sg in (-1, 1):   # the inner curve of each breast, meeting in a soft Y
             cv.put(stroke(bez([(CX + sg * .4, top + 7.5), (CX + sg * 2.2, top + 9.2), (CX + sg * 4.2, top + 12.6)], 12), [.6, .5, .2]), 'cleave', .5)
             cv.add(ell(CX + sg * (sep - 3.5), top + 4.5, 4.2, 2.2) & s.bust_m, 'skin', .07)
@@ -470,8 +471,8 @@ class Painter:
         tor = poly(s.torso_poly())
         if kind in ('cardigan', 'jacket'):
             for sg in (-1, 1):
-                inner = bez([(CX + sg * 13, 88 + o), (CX + sg * 19.5, 100 + o), (CX + sg * 25, 113 + o), (CX + sg * 28, 129 + o)], 30)
-                pts = [(x, y) for x, y in inner] + [(CX + sg * (sw + 4), 129 + o), (CX + sg * (sw + 4), 86 + o)]
+                inner = bez([(CX + sg * 13, 88 + o), (CX + sg * 19.5, 100 + o), (CX + sg * 25, 113 + o), (CX + sg * 28, max(129 + o, 132))], 30)
+                pts = [(x, y) for x, y in inner] + [(CX + sg * (sw + 4), max(129 + o, 132)), (CX + sg * (sw + 4), 86 + o)]
                 m = poly(pts) & tor
                 if C.get('cardi_off'): m &= Y > (107 + o + 5 * sstep(30, 50, np.abs(X - CX)))
                 lit = .58 - .2 * (X - CX) / 55 - .1 * sstep(40, 58, np.abs(X - CX)) + .06 * G(CX - 34, 104 + o, 12, 5)
@@ -495,7 +496,7 @@ class Painter:
                 cv.add(shift(col, 0, 1.0) & ~col & tor, 'top', -.15)
         if kind == 'apron':
             for sg in (-1, 1):
-                st = stroke(bez([(CX + sg * 24, 92 + o), (CX + sg * 21.5, 108 + o), (CX + sg * 18.5, 129 + o)], 20), [4.2, 4.2, 4.6])
+                st = stroke(bez([(CX + sg * 24, 92 + o), (CX + sg * 21.5, 108 + o), (CX + sg * 18.5, max(129 + o, 132))], 20), [4.2, 4.2, 4.6])
                 cv.put(st & tor, 'top2', .66 - .12 * sg)
                 cv.add(shift(st, sg * .9, 0) & ~st & tor, 'top', -.12)
 
@@ -661,8 +662,9 @@ class Painter:
 
     def nose(s):
         cv = s.cv; n = s.C.get('nose', 1.0)
-        cv.put(ell(CX - 2.5 * n, 69.7, .95, .55), 'nostril', .62)
-        cv.put(ell(CX + 2.6 * n, 69.7, 1.05, .6), 'nostril', .3)
+        ny = s.C.get('nose_y', 69.7)
+        cv.put(ell(CX - 2.5 * n, ny, .95, .55), 'nostril', .62)
+        cv.put(ell(CX + 2.6 * n, ny, 1.05, .6), 'nostril', .3)
 
     def mouth(s):
         C, cv, ex = s.C, s.cv, s.ex
@@ -1079,7 +1081,7 @@ class Painter:
     def wear(s):
         C, cv = s.C, s.cv; o = BO; sw = C.get('shoulder', 55.0); tor = poly(s.torso_poly()); w = C.get('wear') or ()
         if 'overalls' in w:
-            bib = poly([(CX - 15, 109 + o), (CX + 15, 109 + o), (CX + 16, 130 + o), (CX - 16, 130 + o)]) & tor
+            bib = poly([(CX - 15, 109 + o), (CX + 15, 109 + o), (CX + 16, max(130 + o, 132)), (CX - 16, max(130 + o, 132))]) & tor
             L = .58 - .18 * (X - CX) / 40
             cv.put(bib, 'top2', L); cv.add(bib & ~shift(bib, 0, 1), 'top2', -.15)
             cv.add(stroke([(CX - 9, 115 + o), (CX + 9, 115 + o)], [.6, .6]) & bib, 'top2', -.12)
@@ -1158,7 +1160,7 @@ class Painter:
         # the arms part from the body
         sw = C.get('shoulder', 55.0)
         for sg in (-1, 1):
-            am = stroke(bez([(CX + sg * (sw - 12), 112 + BO), (CX + sg * (sw - 10.5), 120 + BO), (CX + sg * (sw - 9.5), 129 + BO)], 16), [.4, 1.0, 1.1])
+            am = stroke(bez([(CX + sg * (sw - 12), 112 + BO), (CX + sg * (sw - 10.5), 120 + BO), (CX + sg * (sw - 9.5), max(129 + BO, 132))], 16), [.4, 1.0, 1.1])
             for m_ in ('skin', 'top', 'top2', 'dot'):
                 if m_ in s.pal.names: cv.add(am, m_, -.17)
         if s.var == 'wet':
