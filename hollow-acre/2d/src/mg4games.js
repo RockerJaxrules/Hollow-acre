@@ -89,14 +89,25 @@ const M4S={
   tin:()=>M4.pre('tin',30,26,K=>{const I=CA_P.iron;for(let y=4;y<=24;y++)for(let x=2;x<=27;x++)K.px(x,y,1,1,I[x<5?6:x>24?2:x%5===0?4:5]);K.px(2,10,26,8,'#b8402a');K.px(2,10,26,1,'#e06a48');K.px(6,12,18,4,'#f2e2bc');K.px(8,13,14,1,'#3a2410');K.px(8,15,10,1,'#3a2410');
     K.ell(15,4,13,3,I[7]);K.ell(15,4,11,2,'#4a2410');K.ell(14,4,6,1,'#7a3e1c');},true),
   sawhorse:()=>M4.pre('sawhorse',48,66,K=>{const W=CA_P.wood;for(let i=0;i<60;i++){K.px(10-i*.12,6+i,4,1,W[i%9===0?3:4]);K.px(34+i*.12,6+i,4,1,W[i%9===0?2:3]);}K.px(8,36,32,3,W[3]);K.px(8,36,32,1,W[5]);K.plank(2,1,44,6,W,3);},true),
-  hand:(dir)=>M4.pre('hand'+dir+m4look().key,18,15,K=>{const P=m4look().skin,F=['.....oooooo.......','...oohhhhhhoo.....','..ohhmmmmmmmhoo...','.ohmmmmmmmmmmmso..','.ohmmmhhhhmmmmmso.','.ohmmoooooommmmso.','.ommhmmsmmsmmsmso.','.ommmmsmmsmmsmmso.','.ommhmsmmsmmsmmso.','.osmmmsmmsmmsmsso.','..osmmsmmsmmsssso.','..oossossossosoo..','...oo.oo.oo.oo....'];
-    const C={o:'#3a1a0c',h:P[5],m:P[4],s:P[2],n:P[3]};F.forEach((r,j)=>{for(let i=0;i<r.length;i++){const ch=r[i];if(ch==='.')continue;const x=dir==='l'?17-i:i;K.px(x,j+1,1,1,C[ch]);}});}),
-  palm:(dir)=>M4.pre('palm'+dir+m4look().key,22,13,K=>{const P=m4look().skin,F=['...oooooooo...........','..ohhhhhhhhooooooooo..','.ohmmmmmmmmhhhhhhhhhoo','ohmmmmmmmmmmmmmmmmmmmo','ommmmmmmmmmsssssssssso','ommmmmmmmmmmmmmmmmmmmo','ommmmmmmmmmsssssssssso','ommmmmmmmmmmmmmmmmmmo.','.osmmmmmmmmsssssssso..','..oooooooooooooooo....'];
-    const C={o:'#3a1a0c',h:P[5],m:P[4],s:P[2]};F.forEach((r,j)=>{for(let i=0;i<r.length;i++){const ch=r[i];if(ch==='.')continue;const x=dir==='l'?21-i:i;K.px(x,j+1,1,1,C[ch]);}});})};
+  // hands are drawn smooth at four times the size, then brought down to pixels and outlined, so the fingers read as fingers
+  hand:(dir)=>m4hi('hand'+dir+m4look().key,20,17,dir==='l',(g,P)=>{const rr=(x,y,w,h,r,c)=>{g.fillStyle=c;g.beginPath();g.roundRect(x,y,w,h,r);g.fill();};
+    rr(3,2,13,11,3.5,P[3]);rr(3.6,2.4,11,4,2,P[4]);rr(4,9.5,12,3,1.5,P[2]);
+    for(let i=0;i<4;i++){const x=4.2+i*3.05;rr(x,6.2,3,8.6-Math.abs(i-1.5)*.7,1.5,P[3]);rr(x+.3,6.5,1.4,5.5,.7,P[4]);g.fillStyle=P[1];g.fillRect(x+2.6,7.2,.5,6.5);rr(x+.4,12.6-Math.abs(i-1.5)*.7,2.2,1.6,.7,P[5]);}
+    g.save();g.translate(3,4.5);g.rotate(-.12);rr(0,0,10.5,3.6,1.8,P[4]);rr(.4,.3,8,1.4,.7,P[5]);g.fillStyle=P[2];g.fillRect(1,3,9,.6);rr(8.2,.5,2.2,2.6,1,P[5]);g.restore();}),
+  palm:(dir)=>m4hi('palm'+dir+m4look().key,24,14,dir==='l',(g,P)=>{const rr=(x,y,w,h,r,c)=>{g.fillStyle=c;g.beginPath();g.roundRect(x,y,w,h,r);g.fill();};
+    rr(1.5,2,11,9.5,3,P[3]);rr(2,2.4,9,3,1.5,P[4]);
+    for(let i=0;i<4;i++){const y=2.3+i*2.25,L=10-Math.abs(i-1.2)*1.6;rr(10,y,L,2.3,1.15,P[3]);rr(10.5,y+.2,L-1.5,.8,.4,P[4]);g.fillStyle=P[1];g.fillRect(10.5,y+2.05,L-1,.35);rr(10+L-2.2,y+.4,1.8,1.5,.6,P[5]);}
+    g.save();g.translate(4,9);g.rotate(.35);rr(0,0,8,2.8,1.4,P[3]);rr(.4,.3,6,.9,.45,P[4]);g.restore();rr(1.5,8.8,9,2.4,1.2,P[2]);})};
+// draw at 4x with smooth shapes, sample down to pixels, outline in a warm dark brown
+function m4hi(key,w,h,flip,fn){return M4.pre(key,w+2,h+2,(K,g)=>{const c=document.createElement('canvas');c.width=w*4;c.height=h*4;const q=c.getContext('2d');q.scale(4,4);
+  const L=m4look();fn(q,L.skin);const d=q.getImageData(0,0,w*4,h*4).data;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){// the most common colour among the 4x4 block's opaque pixels
+    const cnt={};let best=null,bn=0,op=0;for(let j=0;j<4;j++)for(let i=0;i<4;i++){const o=((y*4+j)*w*4+(x*4+i))*4;if(d[o+3]<128)continue;op++;const k=d[o]+','+d[o+1]+','+d[o+2];cnt[k]=(cnt[k]||0)+1;if(cnt[k]>bn){bn=cnt[k];best=k;}}
+    if(op>=7){const [r,gg,b]=best.split(',');K.px(1+(flip?w-1-x:x),1+y,1,1,`rgb(${r},${gg},${b})`);}}},'#3a1a0c');}
 // a board seen from the front and a little above: a lit top face, a darker front face
 function m4board(w,top,front,P,seed){return M4.pre('bd'+w+'_'+top+'_'+front+'_'+seed+P[3],w+2,top+front+2,K=>{K.plank(1,1,w,top,M4.sh(P,1),seed);K.plank(1,1+top,w,front,M4.sh(P,-1),seed+5);K.px(1,top+1,w,1,M4.sh(P,1)[6]);},true);}
-const m4hand=(K,x,y,flip)=>{const h=M4S.hand(flip?'l':'r');K.g.drawImage(h,Math.round(x-9),Math.round(y-8));};
-const m4palm=(K,x,y,flip)=>{const h=M4S.palm(flip?'l':'r');K.g.drawImage(h,Math.round(x-11),Math.round(y-7));};
+const m4hand=(K,x,y,flip)=>{const h=M4S.hand(flip?'l':'r');K.g.drawImage(h,Math.round(x-11),Math.round(y-9));};
+const m4palm=(K,x,y,flip)=>{const h=M4S.palm(flip?'l':'r');K.g.drawImage(h,Math.round(x-13),Math.round(y-8));};
 // just a cuff behind the wrist, pointing back toward you: hands, not sticks
 const m4sleeve=(K,x0,y0,x1,y1)=>{const ux=(x1>=x0?1:-1)*.55,uy=.84;const Lk=m4look(),L=11;
   // a bare forearm, or the sleeve of your top, its cuff turned back
