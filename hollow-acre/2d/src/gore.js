@@ -18,7 +18,10 @@ function goreDecal(x,z,r,n){for(let i=0;i<(n||1);i++){const a=Math.random()*6.28
   for(const d of GORE.dec){const age=now-d.t;if(age>420)continue;const X=Math.round(sx(d.x)),Y=Math.round(sz(d.z));if(X<-30||X>VW+30||Y<-30||Y>VH+30)continue;
     const dry=clamp(age/90,0,1),a=age>360?(420-age)/60:1,rx=Math.max(1,d.r*PPM),rz=Math.max(1,d.r*PPM*.55);
     ctx2.fillStyle=`rgba(${Math.round(118-dry*58)},${Math.round(10+dry*6)},${Math.round(8+dry*2)},${.85*a})`;
-    if(rx<=1.5){ctx2.fillRect(X,Y,2,1);continue;}ctx2.beginPath();ctx2.ellipse(X,Y,rx,rz,0,0,6.283);ctx2.fill();
+    if(rx<=1.5){ctx2.fillRect(X,Y,2,1);continue;}
+    if(SPR.g_dec_s0){const sz=rx<4?'s':rx<7?'m':'l',sh=(Math.floor(d.s)&1);           // drawn splats: wet, drying to brown as it ages
+      if(dry<1)drawSpr('g_dec_'+sz+sh,X,Y,null,null,0,{alpha:(1-dry)*a});if(dry>0)drawSpr('g_dry_'+sz+sh,X,Y,null,null,0,{alpha:dry*a});continue;}
+    ctx2.beginPath();ctx2.ellipse(X,Y,rx,rz,0,0,6.283);ctx2.fill();
     ctx2.fillStyle=`rgba(${Math.round(70-dry*30)},6,4,${.5*a})`;ctx2.beginPath();ctx2.ellipse(X+1,Y+1,rx*.7,rz*.6,0,0,6.283);ctx2.fill();
     if(dry<.6){ctx2.fillStyle=`rgba(230,140,140,${(.6-dry)*a})`;ctx2.fillRect(X-Math.round(rx*.4),Y-Math.round(rz*.4),1,1);}
     for(let k=0;k<3;k++){const h=hash(d.s*7+k,k*3);ctx2.fillStyle=`rgba(100,10,8,${.7*a})`;ctx2.fillRect(X+Math.round((h-.5)*rx*3),Y+Math.round((hash(k,d.s*3)-.5)*rz*3),1,1);}}};}

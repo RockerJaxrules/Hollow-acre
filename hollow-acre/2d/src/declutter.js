@@ -23,7 +23,10 @@ function frontWalks(){
     for(const q of seg){WALKS.push([q[0],q[1],q[2],q[3]]);
       for(const p of OBJ)if(!p.hide&&/^(pumpkin|jack|weeds|fern|bush_|rock_)/.test(p.spr)&&segDist(p.x,p.z,q[0],q[1],q[2],q[3])<.75){p.hide=true;
         for(let k=circles.length-1;k>=0;k--)if(Math.abs(circles[k].x-p.x)<.5&&Math.abs(circles[k].z-p.z)<.5)circles.splice(k,1);}}}
-  if(WALKS.length){LAYERS.stone=(x,z)=>st0(x,z)||WALKS.some(q=>Math.abs(x-(q[0]+q[2])/2)<Math.abs(q[2]-q[0])/2+1&&Math.abs(z-(q[1]+q[3])/2)<Math.abs(q[3]-q[1])/2+1&&segDist(x,z,q[0],q[1],q[2],q[3])<.55);}
+  // the walks are laid as stepping stones (the ground can't draw anything narrower than a tile cleanly)
+  for(const q of WALKS){const L=Math.hypot(q[2]-q[0],q[3]-q[1]);const n=Math.max(1,Math.round(L/.62));
+    for(let i=0;i<=n;i++){const t=i/n;if(i===n&&L>.8)continue;const x=q[0]+(q[2]-q[0])*t+(floraH(q[0]+i,q[1],71)-.5)*.14,z=q[1]+(q[3]-q[1])*t+(floraH(q[0],q[1]+i,72)-.5)*.1;
+      obj('stepstone_'+Math.floor(floraH(x,z,73)*3),x,z+.1,{kind:'flat'});}}
 }
 /* groves, not sprinkles: the open land had its trees scattered evenly, one every few steps, everywhere. Real country (and good
    game maps) has groves and stands with meadows between them. A slow field decides where the groves are; lone trees out in

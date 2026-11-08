@@ -511,6 +511,21 @@ S.fountain = function()
   return done(c, 52, 86)
 end
 
+-- ------------------------------------------------------------------ stepping stones for the walks to every door
+local function stepstone(seed)
+  local c = new(18, 12); local cx, cy = 9, 6
+  for y = 1, 10 do for x = 1, 16 do local dx, dy = (x + .5 - cx) / 7.5, (y + .5 - cy) / 4.2; local th = math.atan(dy, dx)
+    local e = 1 + .12 * math.sin(th * 4 + seed) + .07 * math.sin(th * 7 + seed * 2)
+    if dx * dx + dy * dy <= e * e then local l = .74 - dx * .25 - dy * .35; if dy > .55 then l = .32 end
+      if H(x // 2, y + seed) > .9 then l = l - .15 end; P(c, x, y, band(c, ST, l, 2, 7)) end end end
+  P(c, cx - 3, cy - 2, 's7'); P(c, cx - 2, cy - 2, 's7')
+  for x = 2, 15 do if H(x, seed) > .7 and px.get(c, x, 9) ~= 0 then P(c, x, 10, 'v3') end end              -- grass creeping round its foot
+  return done(c, 9, 6)
+end
+S.stepstone_0 = function() return stepstone(1) end
+S.stepstone_1 = function() return stepstone(4) end
+S.stepstone_2 = function() return stepstone(7) end
+
 local names = {}
 for k in pairs(S) do names[#names + 1] = k end
 table.sort(names)

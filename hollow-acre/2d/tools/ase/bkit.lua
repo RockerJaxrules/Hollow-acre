@@ -429,10 +429,21 @@ function B.build(sp, night)
   if sp.sign then B.sign(c, (x0 + x1) // 2, yW + (sp.awning and -2 or 6) + (sp.signy or 0), sp.sign) end
   if sp.ivy then B.ivy(c, sp.ivy == 'left' and x0 + 3 or x1 - 3, gy - 11, yW + 4, seed) end
   -- chimneys
+  -- chimneys rise out of the roof: each finds the roof's top edge where it stands, sits its base a little way down the
+  -- roof (never below the eaves), and climbs clear of the ridge line; too near an edge, it slides in until it fits
   local chim
-  for _, ch in ipairs(sp.chimneys or {}) do local cx = math.floor(x0 + ch.x * W); local cy = (topY or yW - 60) + (ch.dy or 18)
-    B.chimney(c, cx - 10, cx + 10, cy, yW - 10, ch.mat or 'stone')
-    if not chim then chim = {cx, cy} end end
+  local function roofTop(x) for y = 0, c.h - 1 do if px.get(c, x, y) ~= 0 then return y end end return nil end
+  for _, ch in ipairs(sp.chimneys or {}) do
+    local cx = math.floor(x0 + ch.x * W); local hw = 7; local mid = (x0 + x1) / 2; local base
+    for _ = 1, 60 do
+      local a, b, m = roofTop(cx - hw), roofTop(cx + hw), roofTop(cx)
+      if a and b and m then base = math.max(a, b, m) + 10; if base < yW - 8 then break end end
+      base = nil; cx = cx + (cx < mid and 2 or -2)
+    end
+    if base then local top = base - 26 - (ch.tall or 0)
+      B.chimney(c, cx - hw, cx + hw, top, base, ch.mat or 'stone')
+      for x = cx - hw - 1, cx + hw + 1 do P(c, x, base + 1, 'OUT2') end                     -- where it meets the roof
+      if not chim then chim = {cx, top} end end end
   -- the church's tower and spire, standing in front of the nave
   if kind == 'church' then
     -- the tower: a box standing proud of the nave, a quarter of its width, with a shaded side face, three stages
