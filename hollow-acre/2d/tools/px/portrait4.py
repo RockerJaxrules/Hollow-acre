@@ -135,7 +135,7 @@ def outline(img, bid, pal):
         if not pal.outline[i]: continue
         m = edge & (bid == i); c = pal.ramps[i][0]
         img[m, :3] = np.array(mix(c, (30, 10, 18), .62))
-    hid = [pal.names.index(n) for n in ('hair', 'hairtip') if n in pal.names]
+    hid = [pal.names.index(n) for n in ('hair', 'hairtip', 'beard') if n in pal.names]
     sid = [pal.names.index(n) for n in ('skin', 'blush', 'shadow') if n in pal.names]
     hm = np.isin(bid, hid); sm = np.isin(bid, sid)
     near = np.zeros_like(hm)
@@ -174,7 +174,17 @@ class Painter:
         global LV
         L0 = {'night': (-.5, -.25, .82)}.get(var, (-.5, -.62, .6)); LV = np.array(L0) / np.linalg.norm(L0)
         D = dict(face_w=25.0, chin=86.0, jaw_p=1.85, jaw_q=.5, jaw_taper=.26, eye_a=6.2, iris=4.1, eye_y=59.3, lash_w=1.12)
-        C = dict(D, **C)
+        T = {'man': dict(face_w=26.0, chin=88.0, jaw_p=2.5, jaw_q=.62, jaw_taper=.12, eye_a=5.1, iris=3.0, tilt=.15, lash_w=.55, wing=0, lashes=0, eye_y=59.6, brow_y=52.0, eye_open=.74,
+                         brow_w=1.6, brow_arch=.5, lip_w=6.4, lip_up=1.3, lip_lo=1.9, nose=1.12, blush=.1, shoulder=58.0, neck_w=10.2, natural_lip=.5),
+             'kid': dict(face_w=25.6, chin=84.0, jaw_p=1.7, jaw_q=.45, jaw_taper=.3, eye_a=6.7, iris=4.6, eye_y=61.0, tilt=.1, lash_w=.8, wing=0, lashes=0, nose=.75,
+                         lip_w=5.0, lip_up=1.5, lip_lo=2.1, blush=.55, shoulder=46.0, neck_w=7.4, brow_w=1.0, natural_lip=.55),
+             'elder': dict(eye_a=5.4, iris=3.4, tilt=0, lash_w=.85, wing=0, lashes=0, lip_up=1.6, lip_lo=2.2, blush=.25, age=.75, natural_lip=.45, jaw_q=.58)}.get(C.get('kind'), {})
+        if C.get('kind') == 'oldman': T = dict({'man': 1} and {}, **{})
+        base = dict(D); base.update(T)
+        if C.get('kind') == 'oldman':
+            base.update(face_w=26.0, chin=88.0, jaw_p=2.3, jaw_q=.6, jaw_taper=.14, eye_a=4.9, iris=2.9, tilt=.0, lash_w=.55, wing=0, lashes=0, eye_y=59.8, brow_y=51.6, eye_open=.72,
+                        brow_w=1.7, brow_arch=.6, lip_w=6.2, lip_up=1.1, lip_lo=1.6, nose=1.2, blush=.1, shoulder=57.0, neck_w=9.6, natural_lip=.42, age=.85)
+        C = dict(base, **C)
         if var == 'wet': C['vol'] = C.get('vol', 0) - 2.5
         s.C = C; s.ex = ex; s.var = var; s.pal = Palette(); s.cv = Canvas(s.pal); s.rng = np.random.RandomState(C.get('seed', 7))
         s.mk_palette()
@@ -209,6 +219,7 @@ class Painter:
         P.define('glint', [(255, 255, 255)], prio=6.0, thr=[], outline=False)
         P.define('glint2', [(236, 240, 248)], prio=4.5, thr=[], outline=False)
         lip = C.get('lip', '#c0485a')
+        if C.get('natural_lip') and not C.get('lip'): lip = '#%02x%02x%02x' % mix(hexc(C['skin']), (176, 74, 80), C['natural_lip'])
         if s.ex == 'wrong': lip = '#5a1622'
         P.define('lip', ramp(lip, 6, dark=.42, light=1.35, shade_hue=.95, shade_amt=.25, lit_amt=.25), thr=[.2, .33, .48, .66, .84], outline=False)
         P.define('lipline', [mix(hexc(lip), (40, 10, 20), .62), mix(hexc(lip), (60, 16, 26), .5)], prio=3.6, thr=[.5], outline=False)
@@ -223,6 +234,18 @@ class Painter:
         P.define('vein', [(150, 20, 30), (220, 50, 50)], prio=3.4, thr=[.5], outline=False)
         P.define('rain', [(178, 206, 232)], prio=5.0, thr=[], outline=False)
         P.define('tongue', [(170, 60, 72), (214, 96, 104)], prio=1.6, thr=[.5], outline=False)
+        bd = C.get('beard_c') or H
+        P.define('beard', ramp(bd, 6, dark=.34, light=1.35, shade_hue=.99, shade_amt=.3, lit_amt=.25, sat=1.2), thr=[.17, .31, .45, .62, .8])
+        P.define('stubble', [mix(c, mix(hexc(bd), (90, 100, 120), .4), .2 if i >= 3 else .26) for i, c in enumerate(s.SK)], prio=1.0, outline=False)
+        P.define('wrinkle', [s.SK[1], s.SK[1], s.SK[2], s.SK[2], s.SK[2], s.SK[2]], prio=2.0, outline=False)
+        if C.get('hatColor'): P.define('hatm', ramp(C['hatColor'], 6, dark=.36, light=1.26, shade_hue=.75, shade_amt=.2, lit_amt=.18, sat=1.1))
+        P.define('collarw', ramp('#ecebe6', 6, dark=.55, light=1.08, shade_hue=.66, shade_amt=.2))
+        P.define('badge', ramp('#d8b040', 6, dark=.4, light=1.35, shade_hue=.02, shade_amt=.2), prio=2.6)
+        if C.get('hollow'):
+            P.define('sclera', [(6, 4, 8), (12, 8, 14), (20, 12, 20)], prio=1.2, thr=[.4, .7], outline=False)
+            P.define('iris', [(30, 26, 34), (44, 40, 50), (60, 56, 66)], prio=2.0, thr=[.35, .65], outline=False)
+        if C.get('blind'):
+            P.define('iris', [(170, 172, 168), (200, 202, 198), (226, 228, 224)], prio=1.6, thr=[.35, .65], outline=False)
         P.define('freckle', [mix(s.SK[2], (170, 90, 60), .25)], prio=1.6, thr=[], outline=False)
         P.define('glass', [(255, 255, 255)], prio=2.0, thr=[], outline=False)
 
@@ -307,7 +330,8 @@ class Painter:
     # ------------------------------------------------------------ body: neck, shoulders, chest (everything below the chin sits BO lower)
     def torso_poly(s):
         sw = s.C.get('shoulder', 55.0); o = BO
-        tr = bez([(9.0, 88 + o), (14, 99 + o), (30, 100 + o), (sw - 9, 105 + o)], 30)
+        nw = s.C.get('neck_w', 8.4)
+        tr = bez([(nw + .6, 88 + o), (nw + 5.6, 99 + o), (30, 100 + o), (sw - 9, 105 + o)], 30)
         dl = bez([(sw - 9, 105 + o), (sw - 3, 107.5 + o), (sw + 1, 114 + o), (sw + 2, 129 + o)], 20)
         half = np.vstack([tr, dl])
         R = [(CX + x, y) for x, y in half]; L = [(CX - x, y) for x, y in half[::-1]]
@@ -315,7 +339,7 @@ class Painter:
     def body(s):
         C, cv = s.C, s.cv; o = BO
         tor = poly(s.torso_poly())
-        neck = poly([(CX - 8.4, 70), (CX + 8.4, 70), (CX + 9.3, 92 + o), (CX - 9.3, 92 + o)])
+        nw = C.get('neck_w', 8.4); neck = poly([(CX - nw, 70), (CX + nw, 70), (CX + nw + .9, 92 + o), (CX - nw - .9, 92 + o)])
         skin_m = tor | neck
         lit = .62 - .12 * (X - CX) / 55 - .1 * sstep(38, 58, np.abs(X - CX))
         lit = lit + .1 * G(CX - 30, 104 + o, 10, 4)
@@ -327,6 +351,8 @@ class Painter:
             ridge = ribbon(cb, [.5, 1.2, 1.0, .4])[0]; below = ribbon(cb + np.array([0, 1.25]), [.4, 1.1, .9, .3])[0]
             cv.add(ridge, 'skin', .1 if sg < 0 else .05); cv.add(below, 'skin', -.12)
         cv.add(ell(CX + .5, 99.5 + o, 2.4, 1.6), 'skin', -.13)
+        if C.get('kind') in ('man', 'oldman'):
+            cv.add(ell(CX + .3, 85 + o * .5, 2.0, 2.6), 'skin', .07); cv.add(ell(CX + 1.2, 87.5 + o * .5, 1.8, 1.2), 'skin', -.1)
         for sg in (-1, 1):
             cv.add(stroke(bez([(CX + sg * 6.5, 80 + o * .5), (CX + sg * 4.5, 90 + o), (CX + sg * 1.6, 98.5 + o)], 20), [.3, .9, .4]), 'skin', -.06 if sg < 0 else -.09)
         s.skin_body = skin_m
@@ -361,6 +387,8 @@ class Painter:
             half = bez([(0, 118 + o), (5, 110 + o), (10, 100 + o), (13.5, 90 + o)], 24)
         elif t == 'square':
             half = np.array([(0, 113 + o), (4, 112.8 + o), (17, 112.4 + o), (19.5, 104 + o), (21, 92 + o)])
+        elif t == 'smallv':
+            half = bez([(0, 105 + o), (4, 100 + o), (8, 95 + o), (11.5, 89 + o)], 20)
         elif t == 'plunge':
             half = bez([(0, 122 + o), (5, 112 + o), (11, 100 + o), (14.5, 90 + o)], 24)
         elif t == 'deepscoop':
@@ -500,6 +528,11 @@ class Painter:
         chin = C.get('chin', 87.0)
         hw_row = np.interp(Y, np.linspace(20, chin, 200), s.face_hw(np.linspace(20, chin, 200)))
         lit -= .06 * sstep(chin - 4, chin, Y)
+        if C.get('kind') in ('man', 'oldman'):
+            lit = lit - .1 * G(CX - 15.5, 73, 3.2, 4.5) - .14 * G(CX + 15.5, 73, 3.2, 4.5)
+            lit = lit - .12 * G(CX - 11.5, 55.5, 7.5, 1.6) - .14 * G(CX + 11.5, 55.5, 7.5, 1.6) + .08 * G(CX - 11, 53.5, 6, 1.2)
+            lit = lit - .14 * G(66.4, 64, 1.0, 4.4) + .08 * np.exp(-((X - 62.6) / .8) ** 2) * sstep(56, 59, Y) * sstep(68, 66, Y)
+            lit = lit + .06 * G(CX - 19, 81, 3, 2) - .08 * G(CX, chin - 1.5, 3.5, 1.5) * 0 + .05 * G(CX - 1, chin - 3, 3, 1.6)
         cv.put(fm, 'skin', lit)
         s.face_m = fm; s.face_lit = lit
         # the head throws a shadow on the neck
@@ -532,7 +565,11 @@ class Painter:
         elif ex == 'surprised': up, lo, iris_r, pup = 4.4, 2.7, iris_r * .86, 1.15
         elif ex == 'scared': up, lo, iris_r, pup, look = 4.6, 2.8, iris_r * .74, .85, (1.1, 0)
         elif ex == 'wrong': up, lo, iris_r, pup = 4.0, 2.6, 1.9, 0
-        elif ex == 'love': up, lo, iris_r, pup = 2.8, 1.0, iris_r * 1.08, 1.2
+        up, lo = up * C.get('eye_open', 1), lo * C.get('eye_open', 1)
+        if C.get('hollow'): iris_r, pup = 1.1, 0
+        if C.get('blind'): up, pup = up * .7, 0
+        if C.get('heavy'): up = up * .82
+        if ex == 'love': up, lo, iris_r, pup = 2.8, 1.0, iris_r * 1.08, 1.2
         elif ex == 'cry': up, lo, tilt, look = 2.4, 1.9, -.7, (0, .9)
         elif ex == 'smug': up, lo, look = 2.2, 1.9, (-1.1, .2)
         elif ex == 'think': up, lo, look = 3.3, 1.9, (1.3, -1.2)
@@ -564,6 +601,7 @@ class Painter:
         if pup: cv.put(ell(icx, icy, pup, pup * 1.05) & scl, 'pupil', .3)
         if ex == 'wrong':
             cv.put(ell(icx, icy, .9, .9) & scl, 'iris', .9)
+        elif C.get('hollow'): pass
         else:
             cv.put(ell(icx - 1.35, icy - 1.25, 1.1, 1.0) & scl, 'glint', 1)
             cv.put(ell(icx + 1.5, icy + 1.6, .6, .55) & scl, 'glint2', 1)
@@ -577,8 +615,8 @@ class Painter:
         cv.put(ribbon(lash, [.7 * lw, 1.2 * lw, 1.5 * lw, 1.9 * lw])[0], 'lash', .3)
         oc = (lx[-1], ly[-1] - .35)
         wing = C.get('wing', 1.0)
-        cv.put(stroke([oc, (oc[0] + sg * 1.6 * wing, oc[1] - .9 * wing), (oc[0] + sg * 2.8 * wing, oc[1] - 2.0 * wing)], [1.5 * lw, .9, .25]), 'lash', .3)
-        for k, tt in enumerate((.35, .62, .85)):
+        if wing > 0: cv.put(stroke([oc, (oc[0] + sg * 1.6 * wing, oc[1] - .9 * wing), (oc[0] + sg * 2.8 * wing, oc[1] - 2.0 * wing)], [1.5 * lw, .9, .25]), 'lash', .3)
+        for k, tt in enumerate((.35, .62, .85) if C.get('lashes', 1) else ()):
             j = int(tt * 29); bx, by = lx[j], ly[j] - .6
             cv.put(stroke([(bx, by), (bx + sg * (.6 + k * .4), by - 1.1 - k * .25)], [.7, .25]), 'lash', .3)
         # the lower lid: a soft line on the outer two thirds, and the crease above
@@ -717,7 +755,10 @@ class Painter:
                                 (CX + sg * (fw + 4.5 + j * 2.2 + vol), 126 + j * .6)], [4, 6.5, 6.5, 2], front, tone=.02 - .035 * (j % 3), wave=W(j))
                 if tucked:   # the hair over the tucked ear sweeps behind it
                     s.lock([(PX + sg * 2, 22), (CX + sg * (fw - 4), 26), (CX + sg * (fw + 1), 38), (CX + sg * (fw + 3.5), 55)], [4, 7, 6, 2], front, tone=.0)
-            if C.get('bangs', 'curtain') == 'curtain':
+            if C.get('bangs') == 'blunt':
+                for k in range(8):
+                    xx = CX - 17 + k * 4.8; s.lock([(xx + 1, 24), (xx + .6, 36), (xx, 47 + (k % 2) * .8)], [5.2, 5, 4.2], front, tone=.03 - (k % 3) * .03)
+            elif C.get('bangs', 'curtain') == 'curtain':
                 for sg in (-1, 1):
                     s.lock([(PX + sg * 1.0, 21.5), (PX + sg * 8, 24.5), (CX + sg * 18.5, 33), (CX + sg * (fw + .5), 58)], [3.5, 7, 5.5, 1.2], front, tone=-.01)
                     s.lock([(PX + sg * .4, 22), (PX + sg * 4.5, 27), (CX + sg * 13.5, 33.5), (CX + sg * (fw - 2.5), 50)], [3.5, 7.5, 6, 1.4], front, tone=.03)
@@ -760,6 +801,55 @@ class Painter:
             if tail == 'front_l':
                 s.lock([(CX - fw + 2, 52), (CX - fw - 7, 76), (CX - fw - 2, 102), (CX - fw - 6, 128)], [8, 11, 10, 4], front, tone=.1)
                 s.lock([(CX - fw + 3, 54), (CX - fw - 3, 78), (CX - fw + 1, 104), (CX - fw - 1, 128)], [4, 6, 6, 2], front, tone=.06)
+        elif st in ('short', 'buzz', 'crop', 'spiky', 'curly', 'shaggy', 'sidepart', 'bangs', 'bob'):
+            hl = [(CX - fw - .3, 57), (CX - fw + .8, 46), (CX - fw + 3.6, 38.5), (CX - 14, 33.8), (CX - 7, 31.8), (CX, 31.2), (CX + 7, 31.8), (CX + 14, 33.8),
+                  (CX + fw - 3.6, 38.5), (CX + fw - .8, 46), (CX + fw + .3, 57)]
+            if st == 'buzz': hl = [(x, y + (1.2 if abs(x - CX) < 18 else .4)) for x, y in hl]
+            if st == 'bob':
+                m = poly([(CX - fw - 4, 44)] + [(CX + (fw + 4) * math.cos(a), 49 - 32 * math.sin(a)) for a in np.linspace(math.pi, 0, 30)] + [(CX + fw + 4, 44), (CX + fw + 5, 86), (CX - fw - 5, 86)])
+                s.mass(m, back)
+            s.hairline_cap(front, hl)
+            if st == 'buzz':
+                front.append(dict(m=ell(CX, 49, fw + 3.4, 32.5) & (Y < np.interp(X, [p[0] for p in hl], [p[1] for p in hl], left=99, right=99)) & ((np.floor(X * 1.5) + np.floor(Y * 1.5)) % 3 == 0), L=s.hair_lit() - .14, mat='hair', tip=None, sh=None))
+            elif st in ('short', 'sidepart', 'crop'):
+                part = CX - 7 if st != 'crop' else CX
+                for j in range(6):
+                    tgt = (CX + (fw + 1.5) * (1 if j < 4 else -1), 33 + j * 2.4) if st == 'sidepart' else (CX + (fw + 1) * (1 if j % 2 else -1), 34 + j * 2)
+                    s.lock([(part, 20.5 + j * .3), ((part + tgt[0]) / 2, 18 + j * .8), tgt], [4, 7, 3], front, tone=.03 - (j % 3) * .03)
+                if st == 'short': s.lock([(CX - 6, 24), (CX + 2, 25), (CX + 8, 33)], [4, 6, 2], front, tone=.06)
+                if st == 'crop':
+                    for k in range(7):
+                        xx = CX - 15 + k * 5; s.lock([(xx, 28), (xx + 1.5, 32.5), (xx + 2.5, 36.5)], [4, 3.5, .8], front, tone=.04 - (k % 2) * .05)
+            elif st == 'spiky':
+                for k in range(9):
+                    a = math.pi * (.15 + .7 * k / 8); bx, by = CX - math.cos(a) * 14, 30 - math.sin(a) * 12
+                    s.lock([(CX - math.cos(a) * 6, 30), (bx, by), (bx - math.cos(a) * 5, by - math.sin(a) * 6)], [7, 5, .6], front, tone=.04 - (k % 3) * .03)
+                for k in range(6):
+                    xx = CX - 13 + k * 5.2; s.lock([(xx, 28), (xx + 1, 34), (xx + 2.5, 40 + (k % 2) * 2.5)], [4.5, 3.5, .6], front, tone=.05 - (k % 2) * .05)
+            elif st == 'curly':
+                r_ = np.random.RandomState(4)
+                for k in range(70):
+                    a = r_.uniform(0, math.pi); rr = r_.uniform(.65, 1.08)
+                    cx_ = CX + math.cos(a) * (fw + 3) * rr; cy_ = 46 - math.sin(a) * 30 * rr
+                    if cy_ > 56: continue
+                    front.append(dict(m=ell(cx_, cy_, 3.0, 2.8), L=sphere_lit(cx_ - .8, cy_ - .8, 3.2, 3.0, flat=.95, amb=.3, k=.5) + .1 * sstep(60, 20, Y) - .1 * (X > CX + 10), mat='hair', tip=None, sh=(.6, .8)))
+            elif st == 'shaggy':
+                for sg in (-1, 1):
+                    for j in range(4):
+                        s.lock([(CX + sg * (fw - 6 - j * 2), 30 + j), (CX + sg * (fw + 3 + j * .5), 50 + j * 2), (CX + sg * (fw + 1 + j), 64 + j * 2.5)], [5, 6, 1.5], front, tone=.02 - (j % 2) * .05)
+                for k in range(7):
+                    xx = CX - 15 + k * 5; s.lock([(xx + 2, 26), (xx, 36), (xx - 1.5, 42 + (k % 3) * 2)], [5, 4.5, .8], front, tone=.04 - (k % 2) * .05)
+            elif st == 'bangs' or st == 'bob':
+                if st == 'bob':
+                    for sg in (-1, 1):
+                        for j in range(4):
+                            s.lock([(CX + sg * (fw - 8 - j * 2), 28 + j), (CX + sg * (fw + 3.5), 56), (CX + sg * (fw + 1 - j * 1.5), 84)], [5, 7, 4], front, tone=.02 - (j % 2) * .05)
+                else:
+                    for sg in (-1, 1):
+                        for j in range(3):
+                            s.lock([(CX + sg * (fw - 6 - j * 2), 30 + j), (CX + sg * (fw + 2.5), 50), (CX + sg * (fw + 1), 62 + j * 2)], [5, 6, 1.5], front, tone=.02 - (j % 2) * .05)
+                for k in range(8):
+                    xx = CX - 17 + k * 4.8; s.lock([(xx + 1, 25), (xx + .6, 36), (xx, 46.5 + (k % 2) * .8)], [5.2, 5, 4], front, tone=.04 - (k % 3) * .03)
         return back, front
     def braids(s, front):
         fw = s.C.get('face_w', 24.5)
@@ -881,6 +971,162 @@ class Painter:
         for (sx_, sy_) in ((CX + 4.5, 113), (CX + 6.4, 118.5), (CX + 2.6, 120.6)):
             cv.put(ell(sx_, sy_, .55, .55) & cv.where('top'), 'top3', .5)
 
+
+    # ------------------------------------------------------------ age, beards
+    def wrinkles(s):
+        C, cv = s.C, s.cv; a = C.get('age', 0)
+        if a <= 0: return
+        ey = C.get('eye_y', 59.3); dx = C.get('eye_dx', 11.6); ea = C.get('eye_a', 5.9); fm = s.face_m
+        for sg in (-1, 1):
+            ox = CX + sg * (dx + ea + 1.2)
+            for k, ang in enumerate((-.35, .05, .4)[:2 + (a > .6)]):
+                cv.put(stroke([(ox, ey + ang * 2), (ox + sg * 2.6, ey + ang * 4.2 - .3)], [.6, .2]) & fm, 'wrinkle', .5)
+            cv.put(stroke(bez([(CX + sg * (dx - ea * .7), ey + 4.2), (CX + sg * dx, ey + 5.4), (CX + sg * (dx + ea * .8), ey + 4.4)], 16), [.2, .6, .2]) & fm, 'wrinkle', .5)
+            cv.put(stroke(bez([(CX + sg * 4.6, 69), (CX + sg * 8.2, 72.5), (CX + sg * 9.2, 78.5)], 20), [.4, .8, .3]) & fm, 'wrinkle', .5)
+            if a > .55: cv.add(ell(CX + sg * 17, 80, 5, 3) & fm, 'skin', -.08)
+        if a > .5:
+            for yy in (37.5, 40.5):
+                cv.put(stroke(bez([(CX - 9, yy + .6), (CX, yy - .4), (CX + 9, yy + .6)], 20), [.2, .55, .2]) & fm, 'wrinkle', .55)
+    def beard(s):
+        C, cv, ex = s.C, s.cv, s.ex; kind = C.get('beard')
+        if not kind: return
+        fm = s.face_m; mx, my = CX + .3, C.get('mouth_y', 76.5); chin = C.get('chin', 86); fw = C.get('face_w', 25)
+        hl = s.hair_lit() if hasattr(s, 'hair_lit') else .5
+        strands = .1 * np.sin(X * 2.1 + 2.2 * np.sin(Y * .3)) + .05 * np.sin(X * 5.3 + Y * .8)
+        mouth_hole = ell(mx, my + (1.4 if ex in ('happy', 'laugh', 'scared', 'cry', 'surprised', 'wrong') else .6), C.get('lip_w', 6.4) + .8, 2.6 if ex in ('happy', 'laugh', 'scared', 'cry', 'wrong') else 2.0)
+        if kind == 'stubble':
+            ys = np.linspace(60, chin + 1, 60); hw = s.face_hw(ys)
+            reg = poly([(CX + w + .3, y) for w, y in zip(hw, ys)] + [(CX - w - .3, y) for w, y in zip(hw[::-1], ys[::-1])]) & (Y > 66 + 3 * np.abs(X - CX) / fw * 0)
+            reg &= ~((np.abs(X - CX) < 11) & (Y < my - 2.2)) | ((np.abs(X - CX) < 7.5) & (Y > my - 4.2) & (Y < my - 1.6))
+            reg &= ~mouth_hole & (Y > 64.5 + 2.5 * (1 - np.abs(X - CX) / fw))
+            cv.put(reg & fm, 'stubble', s.face_lit - .02)
+            cv.put(reg & fm & (((np.floor(X) * 7 + np.floor(Y) * 13) % 11) == 0), 'stubble', s.face_lit - .18); return
+        mo = None
+        if kind in ('moustache', 'goatee', 'full'):
+            mo = np.zeros((NS, NS), bool)
+            for sg in (-1, 1):
+                mo |= ribbon(bez([(mx + sg * .2, my - 2.7), (mx + sg * 4.5, my - 2.9), (mx + sg * 7.6, my - 1.4), (mx + sg * 8.6, my + 1.4)], 24), [2.4, 2.6, 2.0, .8])[0]
+            cv.put(mo, 'beard', hl * 0 + .5 + strands - .08 * (X > CX))
+        if kind == 'goatee':
+            g = ell(mx, chin - 3.0, 4.2, 4.0) | ribbon(bez([(mx, my + 2.6), (mx, chin - 2)], 8), [3.2, 4.0])[0]
+            cv.put(g & ~mouth_hole, 'beard', .48 + strands - .08 * (X > CX))
+        if kind == 'full':
+            yc = chin - 4.5; wc = float(s.face_hw(np.array([yc]))[0]) + 1.6; ys = np.linspace(58, yc + 8.6, 80)
+            hw = np.where(ys < yc, s.face_hw(np.clip(ys, 20, chin)) + 1.6, wc * np.sqrt(np.clip(1 - ((ys - yc) / 8.8) ** 2, 0, 1)))
+            out = [(CX + w, y) for w, y in zip(hw, ys)] + [(CX - w, y) for w, y in zip(hw[::-1], ys[::-1])]
+            reg = poly(out) & (Y > 63 + 6.5 * np.clip(1 - np.abs(X - CX) / (fw + 2), 0, 1) ** 1.6)
+            reg &= ~mouth_hole
+            L = .6 + strands + .08 * sstep(70, 60, Y) - .16 * sstep(CX - 4, CX + 20, X) - .1 * sstep(chin - 1, chin + 6, Y) + .12 * G(CX - 8, chin - 4, 5, 4)
+            cv.put(reg, 'beard', L)
+            cv.add(reg & ~shift(reg, 0, 1.0), 'beard', -.12)
+            for k in range(14):   # a few separate tufts break the bottom edge
+                bx = CX - (wc - 2) + k * (2 * wc - 4) / 13; by = yc + 8.4 * math.sqrt(max(0, 1 - ((bx - CX) / wc) ** 2))
+                cv.put(ribbon(bez([(bx, by - 4), (bx + (bx - CX) * .04, by + .5)], 8), [2.2, .4])[0], 'beard', .5 + .1 * (bx < CX))
+            if mo is not None: cv.put(mo, 'beard', .56 + strands - .08 * (X > CX))
+    # ------------------------------------------------------------ hats for everyone
+    def hat2(s):
+        C, cv = s.C, s.cv; h = C.get('hat'); fw = C.get('face_w', 25)
+        if not h: return
+        m = 'hatm' if 'hatm' in s.pal.names else 'acc'
+        if h == 'cap':
+            dome = ell(CX, 34, fw + 2.6, 21) & (Y < 35)
+            L = sphere_lit(CX - 5, 24, fw + 4, 20, flat=.92, amb=.4, k=.46)
+            cv.put(dome, m, L)
+            front = ell(CX, 34, 11, 21) & dome
+            cv.add(front, m, .05)
+            for sg in (-1, 1): cv.add(stroke(bez([(CX + sg * 11, 15.5), (CX + sg * 12, 24), (CX + sg * 11.5, 35)], 20), [.5, .8, .6]) & dome, m, -.16)
+            for sg in (-1, 1): cv.add(stroke(bez([(CX, 13.4), (CX + sg * 13, 18), (CX + sg * (fw + 1), 33)], 20), [.4, .7, .5]) & dome, m, -.1)
+            cv.put(ell(CX, 13.6, 2.0, 1.3), m, .72)
+            for k in range(2): cv.add(ell(CX - 4 + k * 8, 27, .7, .7) & dome, m, -.2)
+            q = np.clip((X - CX) / (fw + 1.5), -1, 1); bt = 33 + 1.0 * (1 - q * q); bb = 35 + 6.6 * (1 - q * q) ** 1.1
+            brim = (np.abs((X - CX) / (fw + 1.5)) < 1) & (Y > bt) & (Y < bb)
+            cv.put(brim, m, .62 - .08 * (X > CX) - .4 * sstep(bt + 1.4, bt + 3.2, Y) + .16 * sstep(bb - 1.4, bb - .3, Y))
+            cv.add(brim & ~shift(brim, 0, 1), m, .1)
+            sh = (shift(brim, .5, 2.4) | shift(brim, .3, 4.8)) & ~brim & ~dome
+        elif h == 'top':
+            crown = poly([(CX - 15.5, 30), (CX - 14.5, 2), (CX + 14.5, 2), (CX + 15.5, 30)])
+            cv.put(crown, m, .45 - .2 * sstep(CX - 12, CX + 15, X) + .12 * G(CX - 9, 10, 3, 12))
+            cv.put(crown & (Y > 23) & (Y < 28), m, .2)
+            brim = ell(CX, 31, 25, 3.6)
+            cv.put(brim, m, .36 + .2 * (Y < 30.5)); sh = shift(brim, .4, 2.6) & ~brim & ~crown
+        elif h == 'sheriff':
+            crown = ell(CX, 24, 16.5, 13) & (Y < 31)
+            L = sphere_lit(CX - 4, 18, 18, 14, flat=.9, amb=.4, k=.45)
+            cv.put(crown, m, L); cv.add(ell(CX, 12, 3.5, 6) & crown, m, -.18)
+            cv.put(crown & (Y > 26) & (Y < 30), m, .22)
+            q = (X - CX) / 36.0; ytop = 30.5 - 5.5 * q * q; brim = (np.abs(q) < 1) & (Y > ytop) & (Y < ytop + 4.2 + 1.5 * (1 - q * q))
+            cv.put(brim & ~crown, m, .42 + .2 * sstep(ytop + 3, ytop + 4.5, Y) - .1 * (X > CX)); sh = shift(brim, .4, 2.8) & ~brim & ~crown
+        elif h == 'bucket':
+            crown = ell(CX, 30, fw + 1, 15) & (Y < 31)
+            cv.put(crown, m, sphere_lit(CX - 4, 22, fw + 2, 16, flat=.9, amb=.4, k=.42))
+            band = poly([(CX - fw - 1, 30), (CX + fw + 1, 30), (CX + fw + 6, 38.5), (CX - fw - 6, 38.5)])
+            cv.put(band, m, .32 + .22 * sstep(36, 38.5, Y) - .08 * (X > CX))
+            for k in range(3): cv.add(stroke([(CX - fw - 2 - k * 1.5, 31 + k * 2.6), (CX + fw + 2 + k * 1.5, 31 + k * 2.6)], [.4, .4]) & band, m, -.08)
+            sh = shift(band, .4, 2.6) & ~band & ~crown
+        elif h == 'beanie':
+            dome = ell(CX, 36, fw + 2.8, 22) & (Y < 39)
+            L = sphere_lit(CX - 4, 26, fw + 4, 22, flat=.9, amb=.4, k=.42)
+            cv.put(dome, m, L)
+            cv.add(dome & ((np.floor(X) % 3) == 0) & (Y < 33), m, -.08)
+            cuff = dome & (Y > 32)
+            cv.put(cuff, m, L + .05); cv.add(cuff & ((np.floor(X) % 2) == 0), m, -.1); cv.add(cuff & ~shift(cuff, 0, -1), m, -.15)
+            cv.put(ell(CX + 2, 13.5, 3.2, 2.6), m, .65)
+            sh = shift(cuff, .3, 2.2) & ~dome
+        else: return
+        for mm in ('skin', 'hair', 'blush', 'shadow', 'crease', 'brow'):
+            if mm in s.pal.names: cv.add(sh, mm, -.2)
+    # ------------------------------------------------------------ menswear and the rest
+    def wear(s):
+        C, cv = s.C, s.cv; o = BO; sw = C.get('shoulder', 55.0); tor = poly(s.torso_poly()); w = C.get('wear') or ()
+        if 'overalls' in w:
+            bib = poly([(CX - 15, 109 + o), (CX + 15, 109 + o), (CX + 16, 130 + o), (CX - 16, 130 + o)]) & tor
+            L = .58 - .18 * (X - CX) / 40
+            cv.put(bib, 'top2', L); cv.add(bib & ~shift(bib, 0, 1), 'top2', -.15)
+            cv.add(stroke([(CX - 9, 115 + o), (CX + 9, 115 + o)], [.6, .6]) & bib, 'top2', -.12)
+            for sg in (-1, 1):
+                st = stroke(bez([(CX + sg * 21, 90 + o), (CX + sg * 19, 100 + o), (CX + sg * 13, 110 + o)], 16), [4.6, 4.4, 4.2])
+                cv.put(st & tor, 'top2', .6 - .12 * sg); cv.add(shift(st, sg * .9, .4) & ~st & tor, 'top', -.12)
+                cv.put(ell(CX + sg * 12.5, 110.5 + o, 1.8, 1.8), 'badge', .7)
+        if 'vest' in w:
+            for sg in (-1, 1):
+                pts = [(CX + sg * 8, 92 + o), (CX + sg * 3, 118 + o), (CX + sg * 2.5, 132 + o), (CX + sg * (sw - 12), 132 + o), (CX + sg * (sw - 14), 112 + o), (CX + sg * 18, 92 + o)]
+                m_ = poly(pts) & tor; cv.put(m_, 'top2', .55 - .18 * (X - CX) / 40)
+                cv.add(ribbon(bez([(CX + sg * 8, 92 + o), (CX + sg * 3, 118 + o)], 12), [1.2, 1.2])[0] & m_, 'top2', .1)
+                cv.add(shift(m_, -sg * 1, .5) & ~m_ & tor, 'top', -.14)
+            for by in (112, 120): cv.put(ell(CX + 3.6, by + o, .9, .9), 'badge', .6)
+        if 'coat' in w:
+            for sg in (-1, 1):
+                pts = [(CX + sg * 10, 88 + o), (CX + sg * 7, 112 + o), (CX + sg * 6, 132 + o), (CX + sg * (sw + 4), 132 + o), (CX + sg * (sw + 4), 86 + o)]
+                m_ = poly(pts) & tor; L = .5 - .2 * (X - CX) / 55 + .06 * G(CX - 34, 104 + o, 12, 5)
+                cv.put(m_, 'top2', L)
+                lap = poly([(CX + sg * 10, 88 + o), (CX + sg * 19, 92 + o), (CX + sg * 16, 106 + o), (CX + sg * 7.5, 110 + o)]) & tor
+                cv.put(lap, 'top2', L + .08); cv.add(lap & ~shift(lap, -sg, 0), 'top2', -.15)
+                cv.add(shift(m_, -sg * 1, .5) & ~m_ & tor, 'top', -.15)
+        if 'clerical' in w:
+            cv.put(stroke(bez([(CX - 9.5, 90 + o), (CX, 93.5 + o), (CX + 9.5, 90 + o)], 16), [2.6, 2.6, 2.6]), 'collarw', .7)
+            cv.put(poly([(CX - 2, 92 + o), (CX + 2, 92 + o), (CX + 2, 96.5 + o), (CX - 2, 96.5 + o)]), 'collarw', .8)
+        if 'hood' in w:
+            ring = ribbon(bez([(CX - 21, 96 + o), (CX - 13, 89 + o), (CX, 92 + o), (CX + 13, 89 + o), (CX + 21, 96 + o)], 40), [5, 6, 6, 6, 5])[0] & tor
+            cv.put(ring, 'top', .5 + .12 * (X < CX)); cv.add(ring & ~shift(ring, 0, -1.2), 'top', -.18)
+            for sg in (-1, 1): cv.put(stroke([(CX + sg * 4, 97 + o), (CX + sg * 4.5, 112 + o)], [.7, .6]), 'collarw', .6)
+        if 'badge' in w:
+            bx, by = CX - 20, 113 + o
+            pts = [(bx + (3.6 if k % 2 == 0 else 1.6) * math.cos(k * math.pi / 5 - math.pi / 2), by + (3.6 if k % 2 == 0 else 1.6) * math.sin(k * math.pi / 5 - math.pi / 2)) for k in range(10)]
+            cv.put(poly(pts), 'badge', .55 + .3 * G(bx - 1, by - 1, 1.6, 1.6))
+        if 'bandana' in w:
+            b = poly([(CX - 10.5, 90 + o), (CX + 10.5, 90 + o), (CX + 2, 105 + o), (CX - 1, 105 + o)])
+            cv.put(b, 'acc', .55 + .15 * (X < CX)); cv.add(stroke([(CX - 6, 93 + o), (CX, 101 + o)], [.6, .4]), 'acc', -.18)
+            cv.put(ell(CX + 8.5, 91.5 + o, 2.2, 1.8), 'acc', .5)
+        if 'scarf' in w:
+            sc = ribbon(bez([(CX - 14, 92 + o), (CX - 6, 97 + o), (CX + 6, 97 + o), (CX + 14, 92 + o)], 30), [6, 6.5, 6.5, 6])[0]
+            cv.put(sc, 'acc', .5 + .15 * (X < CX)); cv.add(sc & (np.floor(X) % 4 == 0), 'acc', -.08)
+            tail = ribbon(bez([(CX + 7, 97 + o), (CX + 9, 110 + o), (CX + 8, 126 + o)], 20), [5, 5, 4.6])[0]
+            cv.put(tail, 'acc', .44); cv.add(tail & ~shift(tail, 0, -1) & (Y > 124 + o), 'acc', -.15)
+        if 'knit' in w:
+            cv.add(s.cloth_m & ((np.floor(X) % 3) == 0), 'top', -.07)
+            cv.add(s.cloth_m & ((np.floor(Y + X * .0) % 6) == 0) & (Y > 120 + o), 'top', -.05)
+        if 'stripes' in w:
+            cv.add(s.cloth_m & ((np.floor(Y) % 6) < 2), 'top', -.13)
     # ------------------------------------------------------------ the whole portrait
     def paint(s):
         C, cv = s.C, s.cv
@@ -888,14 +1134,14 @@ class Painter:
         s.paint_locks(back)
         s.body()
         if C.get('allure'): s.bust()
-        s.clothes(); s.over_layer()
+        s.clothes(); s.over_layer(); s.wear()
         if C.get('print') == 'moon': s.print_moon()
         s.necklace()
         s.face()
         cv.add(s.face_m & ~shift(s.face_m, 0, -1.0) & (Y > 68), 'skin', -.24)      # the jaw line
         s.earrings()
         for sg in (-1, 1): s.eye(sg)
-        s.brows(); s.nose(); s.mouth()
+        s.wrinkles(); s.brows(); s.nose(); s.mouth(); s.beard()
         before = cv.mat.copy()
         s.paint_locks(front)
         hm = (cv.mat != before) & ((cv.mat == s.pal.id('hair')) | (('hairtip' in s.pal.names) and (cv.mat == s.pal.id('hairtip')) if 'hairtip' in s.pal.names else False))
@@ -903,6 +1149,7 @@ class Painter:
         for m in ('skin', 'blush', 'shadow', 'crease'):
             if m in s.pal.names: cv.add(sh, m, -.17)
         if C.get('cap'): s.cap()
+        s.hat2()
         if C.get('headband'): s.headband()
         if C.get('flower_at'): s.flower(*C['flower_at'])
         s.glasses()

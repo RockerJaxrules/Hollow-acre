@@ -39,7 +39,7 @@ head = head.replace('<div><b>Left thumb</b> walk. Push far to run.</div>', '<div
 loader = '<div id="loadScr" role="status" aria-live="polite"><div class="lt">Hollow Acre</div><div class="lb"><i id="loadBar"></i></div><div class="ls" id="loadTxt">Loading the valley…</div></div>\n'
 import base64
 _pm = json.load(open('px/out/portraits.json')); _pm['src'] = 'data:image/png;base64,' + base64.b64encode(open('px/out/portraits.png','rb').read()).decode()
-_ph = json.load(open('px/out/portraits_hd.json')); _ph['src'] = 'data:image/png;base64,' + base64.b64encode(open('px/out/portraits_hd.png','rb').read()).decode()
+_ph = json.load(open('px/out/portraits_hd.json')); _ph['srcs'] = {v: 'data:image/png;base64,' + base64.b64encode(open(f'px/out/portraits_hd_{v}.png','rb').read()).decode() for v in _ph['vars']}
 import time as _t
 # the player's sheets for the axe, hoe and pick are pixel-for-pixel the same picture (the tool head is drawn on top in toolfx.js):
 # point them all at one file, so each is downloaded (and published) once

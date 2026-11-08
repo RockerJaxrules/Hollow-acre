@@ -5,15 +5,17 @@ const PORT={img:null,ready:false,row:{}};
 PORTRAITS.ids.forEach((id,i)=>PORT.row[id]=i);
 {const im=new Image();im.onload=()=>{PORT.img=im;PORT.ready=true;};im.src=PORTRAITS.src;}
 // the young adult women have their own high-detail portraits (128 px, px/portraitHD2.py)
-const PORTHD={img:null,ready:false,row:{}};if(typeof PORTRAITS_HD!=='undefined'){PORTRAITS_HD.ids.forEach((id,i)=>PORTHD.row[id]=i);const im=new Image();im.onload=()=>{PORTHD.img=im;PORTHD.ready=true;};im.src=PORTRAITS_HD.src;}
+// everyone has a high-detail portrait (128 px, px/portrait4.py): one sheet for daylight, one lantern-lit, one in the rain
+const PORTHD={imgs:{},ready:false,row:{}};if(typeof PORTRAITS_HD!=='undefined'){PORTRAITS_HD.ids.forEach((id,i)=>PORTHD.row[id]=i);
+  for(const v of PORTRAITS_HD.vars){const im=new Image();im.onload=()=>{PORTHD.imgs[v]=im;if(v==='day')PORTHD.ready=true;};im.src=PORTRAITS_HD.srcs[v];}}
 const hasPortrait=id=>PORT.row[id]!==undefined||PORTHD.row[id]!==undefined;
 // which version of the portrait fits the moment: lantern-lit at night, soaked in the storm, otherwise daylight
 function portraitVariant(){try{const out=!S.room;if(S.storm&&out&&isNight())return 'wet';if(isNight()&&out)return 'night';}catch(e){}return 'day';}
 const EXPR_FALLBACK={love:'happy',laugh:'happy',cry:'sad',smug:'neutral',think:'neutral'};
 function drawPortrait(cv,id,expr){const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,cv.width,cv.height);
-  if(PORTHD.ready&&PORTHD.row[id]!==undefined){const v=portraitVariant();const rk=PORTHD.row[id+'@'+v]!==undefined?PORTHD.row[id+'@'+v]:PORTHD.row[id];
+  if(PORTHD.ready&&PORTHD.row[id]!==undefined){const v=portraitVariant();const im=PORTHD.imgs[v]||PORTHD.imgs.day;const rk=PORTHD.row[id];
     const e=Math.max(0,PORTRAITS_HD.expr.indexOf(expr||'neutral'));const pw=PORTRAITS_HD.pw,ph=PORTRAITS_HD.ph;const s=Math.min(cv.width/pw,cv.height/ph);const w=pw*s,h=ph*s;
-    g.drawImage(PORTHD.img,e*pw,rk*ph,pw,ph,(cv.width-w)/2,cv.height-h,w,h);return true;}
+    g.drawImage(im,e*pw,rk*ph,pw,ph,(cv.width-w)/2,cv.height-h,w,h);return true;}
   if(!PORT.ready||!hasPortrait(id))return false;expr=EXPR_FALLBACK[expr]||expr;const e=Math.max(0,PORTRAITS.expr.indexOf(expr||'neutral'));const pw=PORTRAITS.pw,ph=PORTRAITS.ph;
   const s=Math.min(cv.width/pw,cv.height/ph);const w=pw*s,h=ph*s;g.drawImage(PORT.img,e*pw,PORT.row[id]*ph,pw,ph,(cv.width-w)/2,cv.height-h,w,h);return true;}
 // ---- what are they feeling? read it from the words, the hour, and how far the story has gone
