@@ -106,13 +106,16 @@ function render(dt,now){const t=now/1000;
       if(typeof lanternDraw==='function')lanternDraw(ctx2,clip,t);
       if(tm){const t2=toolOverlay(ctx2,nm,P.dir,f|0,ox,oy,'front');if(t2){tip=t2;if(pour)waterStream(ctx2,tip,wto,t);}fistOverlay(ctx2,nm,P.dir,f|0,ox,oy);}
       fishDraw(ctx2,tip&&tm&&tm.toolKind==='rod'?tip:null,X,Y,t);}
-    else if(d.hollow){const X=sx(H.x),Y=sz(H.z);const clip=H.clip==='walk'||H.clip==='crawl'||H.clip==='idle'?'walk':H.clip==='scream'||H.clip==='lunge'?'spellcast':'hurt';
-      const f=clip==='hurt'?(Math.random()<.3?1:0):H.clip==='idle'?0:frameOf('hollow',clip,H.ft*(H.clip==='crawl'?1.6:1));
+    else if(d.hollow){const X=sx(H.x),Y=sz(H.z);
+      // each state its own animation: the stalk, the still watch, the spider crawl, the scream, the lunge, the recoil
+      const CL={walk:'walk',crawl:'crawl',idle:'idle',frozen:'idle',scream:'scream',lunge:'lunge'};const clip=CL[H.clip]||'hurt';
+      const f=H.clip==='frozen'?0:frameOf('hollow',clip,H.ft*(clip==='crawl'?1.6:clip==='hurt'?2:1));
       const jit=H.clip==='frozen'?(Math.random()-.5)*2:0;const rise=(1-H.rise)*40;
       ctx2.save();ctx2.beginPath();ctx2.rect(0,0,VW,Math.round(Y));ctx2.clip();
-      shadow(X,Y,16);drawSpr('hollow',X+jit,Y+rise+(H.clip==='crawl'?18:0),clip,clip==='hurt'?'S':H.dir,f,{scale:H.clip==='crawl'?.8:1,alpha:H.alpha});ctx2.restore();
-      const ey=Y+rise-(H.clip==='crawl'?57:94);const fl=.7+Math.random()*.3;ctx2.fillStyle=`rgba(255,40,20,${fl*H.alpha})`;
-      if(H.dir!=='N'){ctx2.fillRect(Math.round(X)-5,Math.round(ey),2,2);ctx2.fillRect(Math.round(X)+3,Math.round(ey),2,2);}}
+      shadow(X,Y,clip==='crawl'?24:16);drawSpr('hollow',X+jit,Y+rise,clip,clip==='hurt'?'S':H.dir,f,{alpha:H.alpha});ctx2.restore();
+      // the eyes burn in the dark: a soft glow where they are
+      if(H.dir!=='N'&&nightK>.2){const side=H.dir==='E'?1:H.dir==='W'?-1:0;const ey=Y+rise-(clip==='crawl'?(side?44:30):clip==='lunge'?122:140);const ex=X+jit+side*15;
+        const gr=ctx2.createRadialGradient(ex,ey,0,ex,ey,12);gr.addColorStop(0,`rgba(255,90,20,${(.35+Math.random()*.15)*H.alpha*nightK})`);gr.addColorStop(1,'rgba(255,40,10,0)');ctx2.fillStyle=gr;ctx2.fillRect(ex-12,ey-12,24,24);}}
     else if(d.ruth){const X=sx(ruth.x),Y=sz(ruth.z);drawSpr('ruth',X,Y,'walk',ruth.dir,0,{alpha:.45+Math.random()*.15});}
     else if(d.cat){drawSpr('cat',sx(cat.x),sz(cat.z),cat.clip,cat.dir,frameOf('cat',cat.clip,cat.t));}
     else if(d.scare){const X=sx(scare.x),Y=sz(scare.z);shadow(X,Y,8);ctx2.fillStyle='#4a3020';ctx2.fillRect(Math.round(X)-1,Math.round(Y)-70,3,70);ctx2.fillRect(Math.round(X)-22,Math.round(Y)-56,45,3);drawSpr('hollow',X,Y-6,'walk','S',0,{scale:.62});}
