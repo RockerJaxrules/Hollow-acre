@@ -55,10 +55,6 @@ const LESSONS=[
    goal:()=>`Water your crops ${Math.min(fieldTiles().filter(t=>t.crop&&t.crop.watered).length,6)}/6`,ok:()=>fieldTiles().filter(t=>t.crop&&t.crop.watered).length>=6,coins:10,done:'That’s the whole job, really. Water, wait, worry.'},
   {id:'eat',t:'Eat something',say:'See those two bars? E is energy, H is health. Work drains energy. Open your bag and use the bread to eat it.',
    goal:()=>'Eat something from your bag',ok:()=>S.ls.ev.eat,coins:5,done:'There. Never let that bar run dry out here. People who faint in the fields wake up in strange places.'},
-  {id:'sleep',t:'Sleep',say:'When it gets late, go to bed in the cabin. Sleeping saves your day and gives you your energy back. And don’t stay out past two. Please.',
-   goal:b=>'Go to bed in the cabin',ok:b=>S.day>b.day,begin:b=>{b.day=S.day;},coins:20,done:'Morning! See? You made it through a night. That’s the hardest part. Well. One of them.'},
-  {id:'ship',t:'Harvest and ship',at:()=>binPos,say:'When a crop is ripe, harvest it, then drop it in the wooden shipping bin just left of the cabin door. It’s sold overnight and you’re paid in the morning.',
-   goal:b=>`Ship crops ${Math.min(S.shipped-b.shipped,3)}/3`,ok:b=>S.shipped-b.shipped>=3,begin:b=>{b.shipped=S.shipped;},coins:30,done:'Your first coins. Spend them on seeds and they’ll come back to you twice over.'},
   {id:'store',t:'Visit the store',at:()=>ROOMS.store&&ROOMS.store.out,say:'Come see me at the store: Coyle’s General Store, east along Route 9, the first shop past the MARROW HOLLOW sign. Buy some seeds. I’ll show you the shelves.',
    goal:()=>'Buy seeds at Caitlyn’s store',ok:()=>S.ls.ev.buy,seeds:{pumpkin:2},done:'A customer! Here, two pumpkin seeds extra. Don’t tell Hollis I play favourites.'},
   {id:'gather',t:'Wood and stone',say:'You’ll need wood and stone for everything. Hold the axe and tap a tree to chop it; hold the pickaxe and tap a rock to break it. Stumps need two swings.',
@@ -88,6 +84,21 @@ const LESSONS=[
   {id:'coop',t:'Build the coop',say:'Last lesson. Build the chicken coop from Elias’s plans. Hens lay every morning. Eggs feed you and sell well.',
    goal:()=>'Build the chicken coop',ok:()=>S.coop,coins:100,done:'That’s everything I know. You don’t need me now. …You’ll still come by the store, won’t you? Promise me.'},
 ];
+// lessons that need a night to pass run alongside the others, so the chain never waits on bedtime:
+// Caitlyn mentions bed when it gets late, and the shipping bin once something is ripe; each pays out whenever you do it
+const LS_SIDE=[
+  {id:'sleep',when:()=>S.hour>=19,say:'When it gets late, go to bed in the cabin. Sleeping saves your day and gives you your energy back. And don’t stay out past two. Please.',
+   begin:b=>{b.day=S.day;},ok:b=>S.day>b.day,coins:20,done:'Morning! See? You made it through a night. That’s the hardest part. Well. One of them.'},
+  {id:'ship',when:()=>tiles.some(t=>t.crop&&t.crop.stage>=3)||S.basket.length>0,say:'Something’s ripe! Harvest it, then drop it in the wooden shipping bin just left of the cabin door. It’s sold overnight and you’re paid in the morning.',
+   begin:b=>{b.shipped=S.shipped;},ok:b=>S.shipped-b.shipped>=3,coins:30,done:'Your first coins. Spend them on seeds and they’ll come back to you twice over.'}];
+const LS_OLD=['clear','till','plant','water','eat','sleep','ship','store','gather','build','craft','fish','cook','friends','map','mine','smelt','upgrade','ward','furnish','coop'];
+function lsSideUpdate(){if(S.ls.i<0||S.tut.off||S.paused)return;S.ls.side=S.ls.side||{};
+  // saves from before: put the chain back on the same lesson, by name
+  if(!S.ls.v2){S.ls.v2=1;const oldI=S.ls.i,id=LS_OLD[oldI];let j=LESSONS.findIndex(L=>L.id===id);if(j<0)j=LESSONS.findIndex(L=>L.id==='store');if(id&&j>=0&&j!==S.ls.i){S.ls.i=j;S.ls.base={};const L=LESSONS[j];if(L&&L.begin)L.begin(S.ls.base);}
+    if(oldI>LS_OLD.indexOf('ship'))for(const L of LS_SIDE)S.ls.side[L.id]={st:'done'};}
+  for(const L of LS_SIDE){const e=S.ls.side[L.id]=S.ls.side[L.id]||{st:'wait'};if(e.st==='done')continue;
+    if(e.st==='wait'&&L.when()){e.st='on';e.b={};L.begin(e.b);if(maeT<=0)maeSay(L.say,'Side lesson: '+(L.id==='sleep'?'Sleep':'Harvest and ship'),9);}
+    else if(e.st==='on'&&L.ok(e.b)&&maeT<=0){e.st='done';const rw=lsReward(L);maeSay(L.done,rw,6);SFX.coin&&SFX.coin();}}}
 // remember what happened
 {const _e=eat;eat=function(){S.ls.ev.eat=1;return _e.apply(this,arguments);};}
 {const _j=openJournal;openJournal=function(){S.ls.ev.journal=1;return _j.apply(this,arguments);};}
@@ -126,7 +137,7 @@ function lessonsUpdate(dt){if(maeT>0){maeT-=dt;if(maeT<=0)$('maecard').style.dis
   el.style.display=S.paused||$('bag').hidden===false?'none':'flex';
   const tx=`<b>Caitlyn</b>${L.goal(S.ls.base)}${L.at&&typeof wayChip==='function'?wayChip(L.at()):''}`;if(el.dataset.tx!==tx){el.dataset.tx=tx;el.querySelector('.tx').innerHTML=tx;headIcon&&headIcon('mae',el.querySelector('canvas'));}
   if(L.ok(S.ls.base)&&!S.paused){const rw=lsReward(L);maeSay(L.done,rw,6);SFX.coin&&SFX.coin();lsBegin(S.ls.i+1);}}
-{const _mu=mindUpdate;mindUpdate=function(dt){_mu(dt);lessonsUpdate(dt);};}
+{const _mu=mindUpdate;mindUpdate=function(dt){_mu(dt);lessonsUpdate(dt);try{lsSideUpdate();}catch(e){}};}
 // candles cost more: the rite has to be earned
 {const _pr=vendors.peddler.rows;vendors.peddler.rows=()=>_pr().map(r=>r.k==='candle'?Object.assign(r,{price:45}):r);}
 setInterval(()=>{if(S.paused&&$('maecard').style.display!=='none'){$('maecard').style.display='none';maeT=0;}},200);
