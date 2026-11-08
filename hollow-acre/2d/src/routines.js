@@ -110,3 +110,6 @@ interact.push({x:0,z:0,r:1,on:()=>S.room==='home_hale',label:()=>'Stove',ok:()=>
   ctx2.restore();};}
 {const _am=ambient;ambient=function(h){const a=_am(h);if(!raining())return a;const k=S.room?.82:.8;return [a[0]*k,a[1]*k,a[2]*(k+.04)];};}
 {let acc=0;const _u=update;update=function(dt){_u(dt);acc+=dt;if(acc<.5||!A||!A.ok||!A.rain)return;acc=0;try{if(raining()&&!isNight())A.rain.gain.setTargetAtTime(S.room?.025:.06,A.ctx.currentTime,1);}catch(e){}};}
+// ---- a spot inside a gathering place is never inside a prop or in the water: try a few, fall back to the middle
+{const _px=placeXY;placeXY=function(key,n){const p=PL[key];if(!p)return null;for(let i=0;i<8;i++){const q=_px(key,n);if(!q)return q;const t={x:q[0],z:q[1]};collide(t,.34);
+    if(Math.hypot(t.x-q[0],t.z-q[1])<.02&&!(typeof LAYERS!=='undefined'&&LAYERS.water&&LAYERS.water(q[0],q[1])))return q;}return [p[0],p[1]];};}

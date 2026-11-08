@@ -126,7 +126,7 @@ vendors.inn={name:'The Lantern Inn',sub:'â€œRoom for one. Never more than one.â€
   {k:'room',name:'Room four, one night',desc:'Sleep here; wake at six, rested. Lock the door.',price:30,can:S.hour>=17,buy(){setTimeout(()=>{$('shop').hidden=true;S.paused=false;newDay(`Day ${S.day+1}. You wake in room four. The door is unlocked. You locked it.`,[wkDoor('harlow')[0],wkDoor('harlow')[1]+.9]);},50);}}]};
 interact.push({...rp('home_harlow',6.5,3.0),r:1.4,on:inRoom('home_harlow'),label:()=>'Counter',ok:()=>true,act(){openShop('inn');}});
 // ---- routines
-Object.assign(PL,{wk_square:[124,51,3.4],wk_inn:[106.5,44.6,1],wk_chapel:[124,37.4,1.2],wk_ferry:[128,69.8,.6],wk_river:[132.4,63.6,1.6],wk_lane:[118,WK.lane,8],wk_woods:[96,30,3],wk_gardens:[110.6,52.4,2],wk_board:[120,49.4,.6],wk_road:[150,20,2]});
+Object.assign(PL,{wk_square:[124,51,3.4],wk_inn:[106.5,44.6,1],wk_chapel:[124,37.4,1.2],wk_ferry:[128,69.8,.6],wk_river:[133.1,64.1,.8],wk_lane:[118,WK.lane,8],wk_woods:[96,30,3],wk_gardens:[110.6,52.4,2],wk_board:[120,49.4,.6],wk_road:[150,20,2]});
 Object.assign(LIFE,{
   tess:{home:'harlow',job:'Keeps the Lantern Inn',personality:'Kind, tired, unflappable. Talks to the guest book.',day:[[6,'home']]},
   hob:{home:'harlow',job:'Cooks at the inn, traps rabbits',personality:'Gruff and gentle. Feeds the guest nobody can see.',day:[[6,'wk_woods'],[10,'home'],[14,'wk_woods'],[17,'home']]},

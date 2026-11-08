@@ -6,6 +6,7 @@
 const RX={gust:0,gustLen:4.5,gustNext:28,gustDir:1,grid:null,gridN:0,gridT:0,birds:[],treeSeen:{},rustT:0,prints:[],wet:0,
   pud:new Map(),tg:new Map(),bub:[],bubT:6,heard:{},npcStepT:{},mus:{t:2,step:0,ph:null,key:'',n:0},breathT:2};
 const rotTier=()=>typeof wardDone==='function'?wardDone():0;
+const rotDark=()=>S.st&&S.st.ending==='door'?0:rotTier();   // after the door opens, the town keeps its flowers and loses the rest
 const rotK=()=>clamp(rotTier()/6,0,1);
 const autumnK=()=>clamp((S.day-1)/27,0,1);
 const outdoors=()=>!S.room&&S.mode==='play';
@@ -81,7 +82,7 @@ const LEAFC=['#c8642a','#d8902e','#a8402a','#e0b040','#8a5a2a'];
       for(let k=0;k<26;k++){const h1=hash(v*31+k,17),h2=hash(v*7+k*3,29);g.fillRect((h1*PPM)|0,(h2*PPM)|0,h1>.8?2:1,1);}return c;});}
     ctx2.globalAlpha=fk;for(let i=c0;i<=c1;i++)for(let j=r0;j<=r1;j++){const tk=i*4096+j;let g=RX.tg.get(tk);if(g===undefined){g=terr(i+.5,j+.5)==='grass'?1:0;if(RX.tg.size>20000)RX.tg.clear();RX.tg.set(tk,g);}if(!g)continue;ctx2.drawImage(RX.frostT[(hash(i,j)*4)|0],sx(i),sz(j));}ctx2.globalAlpha=1;}
   // the green, late on: a ring where the grass has died round the memorial
-  if(rotTier()>=5&&typeof GREEN_LOOKS!=='undefined'){const X=Math.round(sx(41.4)),Y=Math.round(sz(2.4));ctx2.strokeStyle='rgba(70,56,40,.4)';ctx2.lineWidth=5;ctx2.beginPath();ctx2.ellipse(X,Y,58,24,0,0,6.283);ctx2.stroke();ctx2.lineWidth=1;}};}
+  if(rotDark()>=5&&typeof GREEN_LOOKS!=='undefined'){const X=Math.round(sx(41.4)),Y=Math.round(sz(2.4));ctx2.strokeStyle='rgba(70,56,40,.4)';ctx2.lineWidth=5;ctx2.beginPath();ctx2.ellipse(X,Y,58,24,0,0,6.283);ctx2.stroke();ctx2.lineWidth=1;}};}
 // ---------- birds that burst out of the trees
 function rxBirds(dt){const night=isNight();
   if(outdoors()&&P.spd>0){for(const o of rxNear(P.x,P.z,'t',3)){if(o.kind!=='tree')continue;const d=Math.hypot(o.x-P.x,(o.z-P.z)*1.3);if(d>(P.spd>=4?2.6:1.5))continue;
@@ -132,9 +133,9 @@ const RX_SAY={
     ['It’s nearly time. You can feel it in your teeth.','Whatever happens, love, it was nothing you did. (They don’t believe that. Neither do you.)']]};
 function rxOverheard(dt){RX.bub=RX.bub.filter(b=>(b.t+=dt)<b.life);if(!outdoors()||isNight()||typeof talkingTo!=='undefined'&&talkingTo)return;
   RX.bubT-=dt;if(RX.bubT>0)return;RX.bubT=2.5;const now=S.day*24+S.hour;
-  const cand=npcs.filter(n=>n.vis!==false&&n.loc!=='in'&&n.loc!=='gone'&&Math.hypot(n.x-P.x,n.z-P.z)<4.6&&!RX.bub.some(b=>b.n===n)&&!(RX.heard[n.def.id]>now-1.5));if(!cand.length)return;
+  const cand=npcs.filter(n=>n.vis!==false&&!['in','gone','woods','bound','follow'].includes(n.loc)&&Math.hypot(n.x-P.x,n.z-P.z)<4.6&&!RX.bub.some(b=>b.n===n)&&!(RX.heard[n.def.id]>now-1.5));if(!cand.length)return;
   if(Math.random()>.45)return;const n=cand[(Math.random()*cand.length)|0],id=n.def.id;RX.heard[id]=now;
-  const other=npcs.find(q=>q!==n&&q.vis!==false&&q.loc!=='in'&&Math.hypot(q.x-n.x,q.z-n.z)<2.6);const tier=rotTier();
+  const other=npcs.find(q=>q!==n&&q.vis!==false&&q.loc!=='in'&&Math.hypot(q.x-n.x,q.z-n.z)<2.6);const tier=rotDark();
   let pool=RX_SAY.any;if(other&&Math.random()<.6)pool=RX_SAY.pair;else if(tier&&Math.random()<.55)pool=RX_SAY.rot[Math.min(6,tier)].concat(RX_SAY.rot[Math.max(1,tier-1)]);
   else if(typeof raining==='function'&&raining()&&Math.random()<.6)pool=RX_SAY.rain;else if(P.spd>=4.5&&Math.random()<.7)pool=RX_SAY.run;
   const line=pool[(Math.random()*pool.length)|0];if(!line)return;RX.bub.push({n,line,t:0,life:3.4+line.length*.03});
@@ -157,7 +158,7 @@ function rxTownDrawables(D,t){if(S.room)return;const tier=rotTier();if(!tier)ret
     ctx2.strokeStyle='#3a2a1a';ctx2.beginPath();ctx2.moveTo(Math.round(x1),Math.round(y1));for(let i=1;i<=n;i++){const f=i/n;ctx2.lineTo(Math.round(x1+(x2-x1)*f),Math.round(y1+(y2-y1)*f+Math.sin(f*Math.PI)*12));}ctx2.stroke();
     for(let i=1;i<n;i++){const f=i/n,X=Math.round(x1+(x2-x1)*f),Y=Math.round(y1+(y2-y1)*f+Math.sin(f*Math.PI)*12),fl=Math.round(Math.sin(t*4+i)*1.2);ctx2.fillStyle=FL[i%5];ctx2.beginPath();ctx2.moveTo(X-3,Y);ctx2.lineTo(X+3,Y);ctx2.lineTo(X+fl,Y+6);ctx2.closePath();ctx2.fill();}}});}
   // red ribbons on every lamp post in town
-  if(typeof lamps!=='undefined')for(const l of lamps){if(l.x<18||l.x>80||l.z<-45||l.z>50||!onScreen(l.x,l.z,60))continue;D.push({z:l.z+.01,mind:1,draw(){const X=Math.round(sx(l.x)),Y=Math.round(sz(l.z))-40,sw=Math.round(Math.sin(t*2.2+l.ph)*2);
+  if(rotDark()&&typeof lamps!=='undefined')for(const l of lamps){if(l.x<18||l.x>80||l.z<-45||l.z>50||!onScreen(l.x,l.z,60))continue;D.push({z:l.z+.01,mind:1,draw(){const X=Math.round(sx(l.x)),Y=Math.round(sz(l.z))-40,sw=Math.round(Math.sin(t*2.2+l.ph)*2);
     ctx2.fillStyle='#8a1a14';ctx2.fillRect(X-2,Y,5,3);ctx2.fillStyle='#b8261c';ctx2.fillRect(X-2,Y,5,1);ctx2.fillStyle='#8a1a14';ctx2.fillRect(X+sw,Y+3,1,6);ctx2.fillRect(X+2+sw,Y+3,1,5);ctx2.fillRect(X+sw-1,Y+9,1,1);}});}
   if(tier<2||typeof HOMES==='undefined')return;
   for(const [k,h] of Object.entries(HOMES)){const d=h.door;if(!d||d[0]<15||d[0]>90||!onScreen(d[0],d[1],80))continue;
@@ -165,11 +166,11 @@ function rxTownDrawables(D,t){if(S.room)return;const tier=rotTier();if(!tier)ret
     D.push({z:d[1]+.15,mind:1,draw(){const X=Math.round(sx(d[0]-.7)),Y=Math.round(sz(d[1]+.15));ctx2.fillStyle='rgba(10,14,8,.3)';ctx2.fillRect(X-4,Y,9,2);ctx2.fillStyle='#a8542e';ctx2.fillRect(X-3,Y-6,7,6);ctx2.fillStyle='#c86a3a';ctx2.fillRect(X-4,Y-7,9,2);
       ctx2.fillStyle='#3a7a2a';ctx2.fillRect(X-3,Y-10,7,3);for(const [dx,dy,c] of [[-3,-12,'#e8c040'],[0,-13,'#d83a5a'],[3,-11,'#f2ece0'],[-1,-10,'#d83a5a'],[2,-14,'#e8c040']]){ctx2.fillStyle=c;ctx2.fillRect(X+dx,Y+dy,2,2);}}});
     D.push({z:d[1]+.12,mind:1,draw(){const X=Math.round(sx(d[0]+.6)),Y=Math.round(sz(d[1]+.12));ctx2.fillStyle='rgba(10,14,8,.3)';ctx2.fillRect(X-4,Y,9,2);ctx2.fillStyle='#4a3a2a';ctx2.fillRect(X-4,Y-3,9,3);ctx2.fillStyle='#6a5440';ctx2.fillRect(X-4,Y-4,9,1);
-      ctx2.fillStyle='#4a0c0a';ctx2.fillRect(X-3,Y-4,7,1);if(!isNight())for(let i=0;i<2;i++){const a=t*7+i*3+k.length;ctx2.fillStyle='#101010';ctx2.fillRect(X+Math.round(Math.cos(a)*4),Y-8+Math.round(Math.sin(a*1.3)*2),1,1);}}});
-    if(tier>=6)D.push({z:d[1]-.28,mind:1,draw(){const X=Math.round(sx(d[0])),Y=Math.round(sz(d[1]-.35))-26;ctx2.strokeStyle='rgba(30,10,8,.8)';ctx2.beginPath();ctx2.arc(X+.5,Y+.5,3,0,6.283);ctx2.moveTo(X+.5,Y-4);ctx2.lineTo(X+.5,Y+5);ctx2.moveTo(X-4,Y+.5);ctx2.lineTo(X+5,Y+.5);ctx2.stroke();}});}}
+      if(!rotDark())return;ctx2.fillStyle='#4a0c0a';ctx2.fillRect(X-3,Y-4,7,1);if(!isNight())for(let i=0;i<2;i++){const a=t*7+i*3+k.length;ctx2.fillStyle='#101010';ctx2.fillRect(X+Math.round(Math.cos(a)*4),Y-8+Math.round(Math.sin(a*1.3)*2),1,1);}}});
+    if(rotDark()>=6)D.push({z:d[1]-.28,mind:1,draw(){const X=Math.round(sx(d[0])),Y=Math.round(sz(d[1]-.35))-26;ctx2.strokeStyle='rgba(30,10,8,.8)';ctx2.beginPath();ctx2.arc(X+.5,Y+.5,3,0,6.283);ctx2.moveTo(X+.5,Y-4);ctx2.lineTo(X+.5,Y+5);ctx2.moveTo(X-4,Y+.5);ctx2.lineTo(X+5,Y+.5);ctx2.stroke();}});}}
 {const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld(D,t);try{rxTownDrawables(D,t);}catch(e){}};}
 // brighter days, and redder dusks, as the Ward fills
-{const _am=ambient;ambient=function(h){const a=_am(h);const tier=rotTier();if(!tier||S.room)return a;
+{const _am=ambient;ambient=function(h){const a=_am(h);const tier=rotDark();if(!tier||S.room)return a;
   const day=h>9&&h<16?.025*tier:0,dusk=tier>=4?Math.max(0,1-Math.abs(h-18.6)/1.8)*(tier-3)/3:0;
   return [a[0]*(1+day+.12*dusk),a[1]*(1+day-.04*dusk),a[2]*(1+day*.6-.1*dusk)];};}
 function rxFrostK(){const h=S.hour;if(S.room||S.day<15||h<5.5||h>=9.4||(typeof raining==='function'&&rainDay(S.day)&&h>9))return 0;return clamp(Math.min((h-5.5)/.5,(9.4-h)/1.6),0,1)*clamp((S.day-14)/7,.5,1);}
@@ -214,4 +215,4 @@ function rxBreath(dt){if(S.mode!=='play')return;const cold=(S.day>=15&&S.hour<9.
   if(say)setTimeout(()=>{if(S.mode==='play')toast(say,4);},8200);RX.prints.length=0;return r;};}
 // ---------- tie it into the frame
 {const _u=update;update=function(dt){_u(dt);if(S.mode!=='play'||S.paused)return;try{rxGrass(dt);rxBirds(dt);rxNpcSteps(dt);rxOverheard(dt);rxMusic(dt);rxBreath(dt);
-    if(rotTier()>=3&&typeof NEAR!=='undefined'&&!NEAR.flock)NEAR.next-=dt*.8;}catch(e){if(!RX.err){RX.err=1;console.warn('reactive',e);}}};}
+    if(rotDark()>=3&&typeof NEAR!=='undefined'&&!NEAR.flock)NEAR.next-=dt*.8;}catch(e){if(!RX.err){RX.err=1;console.warn('reactive',e);}}};}
