@@ -23,8 +23,8 @@ if(SPR.fuel){NEWHOUSES.lusk.spr='fuel';const dx=(SPR.fuel.door_dx||0)/PPM;
     const w=OBJ.find(o=>o.spr==='well'&&Math.abs(o.x-WK.sq[0])<.5&&Math.abs(o.z-(WK.sq[1]+.9))<.5);if(w&&SPR.wk_bell){w.spr='wk_bell';w.night='wk_bell_n';}
     // lanterns on crooked posts instead of the valley's lamp posts
     for(const l of lamps)if(inWick(l.x,l.z)&&SPR.wk_lamp){l.e.spr='wk_lamp';l.e.night='wk_lamp_n';}
-    // boardwalks along the street, both rows
-    for(let x=98.5;x<126;x+=3)flat('wk_walk',x,44.2);for(let x=135.5;x<158;x+=3)flat('wk_walk',x,44.2);for(let x=101.5;x<157;x+=3)flat('wk_walk',x,57.25);
+    // (there used to be a boardwalk laid in one long strip down both sides of the street and the lane, through the grass,
+    // across the paths and under the pumpkins, attached to nothing: it's gone. The street has its cobbles and the houses their porches.)
     // a fish stall on the square
     put('wk_stall',121.6,49.6,.6);
     // the riverbank: racks of fish, nets, boats, traps, rope
