@@ -1,7 +1,7 @@
 """Item icons for the raw resources, drawn at 32x32 (they were 16x16 blown up, and copper and iron read as grey stone):
 stone, copper ore (copper veins, a little green patina), iron ore (rust-red veins, silver glints), coal (glossy black facets).
-Each is a lumpy rock lit from the upper left with hue-shifted ramps and a dark outline. Also a proper stump sprite in place
-of the broken one (it was a slice of tree trunk with leaves in it). Writes spr/lpc/obj/ and objects.json."""
+Each is a lumpy rock lit from the upper left with hue-shifted ramps and a dark outline. Writes spr/lpc/obj/ and objects.json.
+(Stumps are not drawn here: each felled tree's stump is cut from that tree's own sprite by makeStump in place.js.)"""
 import json, math, colorsys
 from PIL import Image
 H = lambda x, y, s=0: (math.sin(x * 127.1 + y * 311.7 + s * 74.7) * 43758.5453) % 1
@@ -67,7 +67,4 @@ px = im.load()
 for (x, y), (f, nx, ny, nz) in zb.items():
     if nx < -.2 and ny < -.1 and H(x // 2, y // 2, 4) > .55: px[x, y] = (150, 150, 168, 255)   # the glossy facets that catch the light
 save('icon32_coal', outline(im))
-# ---- a stump to replace the broken one: the oak stump, set on the old sprite's canvas
-st = Image.open('spr/lpc/obj/stump_oak.png').convert('RGBA'); c = Image.new('RGBA', (46, 32), (0, 0, 0, 0)); c.alpha_composite(st, ((46 - st.width) // 2, 30 - st.height + 3))
-c.save('spr/lpc/obj/stump.png')
 d = json.load(open('spr/lpc/objects.json')); d.update(SPR); json.dump(d, open('spr/lpc/objects.json', 'w')); print('ok', list(SPR))

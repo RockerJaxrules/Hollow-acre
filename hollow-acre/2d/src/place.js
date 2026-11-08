@@ -10,11 +10,18 @@ function makeStump(spr){const key='stump_of_'+spr;if(SPR[key])return key;const m
   const bark=(x,y)=>{if(x<0||y<0||x>=m.fw||y>=m.fh)return false;const i=(y*m.fw+x)*4;const r=D[i],g=D[i+1],b=D[i+2],a=D[i+3];return a>200&&r>g+4&&r>b+8&&r<215;};
   // trunk width and bark colours, measured just above the root flare
   const row=ay-8;let x0=ax,x1=ax;while(bark(x0-1,row))x0--;while(bark(x1+1,row))x1++;let w=x1-x0+1;const cols=[];
+  // not brown bark (a birch is white, a snag is grey): measure the trunk by its own colour instead, from the middle outwards
+  if(w<5){const at=(x,y)=>{const i=(y*m.fw+x)*4;return [D[i],D[i+1],D[i+2],D[i+3]];};const c0=at(ax,row);
+    if(c0[3]>200&&c0[0]+c0[1]+c0[2]>90&&!(c0[1]>c0[0]+6&&c0[1]>=c0[2])){const near=(x)=>{if(x<0||x>=m.fw)return false;const q=at(x,row);return q[3]>200&&q[0]+q[1]+q[2]>45&&Math.abs(q[0]-c0[0])+Math.abs(q[1]-c0[1])+Math.abs(q[2]-c0[2])<150;};
+      x0=ax;x1=ax;while(near(x0-1))x0--;while(near(x1+1))x1++;w=x1-x0+1;}}
   if(w>=5){for(let x=x0;x<=x1;x++){const i=(row*m.fw+x)*4;cols.push([D[i],D[i+1],D[i+2]]);}}
   if(w<5){w=Math.max(14,Math.round(m.fw*.17));for(const h of ['#2a160c','#4a2a18','#6a3e22','#8a5634','#a87048'])cols.push([parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]);}
   w=Math.max(12,w);cols.sort((p,q)=>(p[0]+p[1]+p[2])-(q[0]+q[1]+q[2]));const BK=[0,.2,.45,.7,.95].map(t=>{const c=cols[Math.min(cols.length-1,Math.floor(t*cols.length))];return `rgb(${c[0]},${c[1]},${c[2]})`;});
   const H=20,W=w+40,h=H+12,c=document.createElement('canvas');c.width=W;c.height=h;const g=c.getContext('2d');const bx=(W-w)>>1,by=h-6-H;
   for(let y=0;y<H;y++){const fl=y>H-6?Math.round((y-(H-6))*.9):0;for(let x=-fl;x<w+fl;x++){const u=(x+fl)/(w+2*fl);g.fillStyle=BK[u<.18?4:u<.45?3:u<.8?2:1];if(((x*7+y*3)%9)===0)g.fillStyle=BK[1];if(y>H-3)g.fillStyle=BK[1];g.fillRect(bx+x,by+y,1,1);}}
+  // pale bark (birch): the black lenticel dashes it has on the standing tree, so the stump reads as the same tree
+  const lum=cols.reduce((t,c)=>t+c[0]+c[1]+c[2],0)/cols.length/3;
+  if(lum>150){g.fillStyle='#1c1a1e';for(let y=2;y<H-4;y+=3+((hash(y,spr.length)*3)|0)){const l=2+((hash(y,3)*Math.min(5,w*.4))|0),x=1+((hash(y,9)*(w-l-1))|0);g.fillRect(bx+x,by+y,l,1);if(hash(y,11)>.5)g.fillRect(bx+x+1,by+y+1,Math.max(1,l-2),1);}}
   // roots running into the soil on both sides
   for(const [sd,l] of [[-1,5],[1,6]])for(let i=0;i<l;i++){const xx=sd<0?bx-6-i+1:bx+w+5+i-1,yy=h-7+Math.min(1,i>>1);g.fillStyle=BK[2];g.fillRect(xx,yy,1,1);g.fillStyle=BK[0];g.fillRect(xx,yy+1,1,1);}
   const ox=0;x0=bx;x1=bx+w-1;
