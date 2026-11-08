@@ -35,7 +35,17 @@ interact.push({x:-33.7,z:-10.25,r:.9,label:()=>'Enter',ok:()=>true,act(){enterRo
 // things to use inside
 const rp=(k,lx,lz)=>({x:ROOMS[k].ox+lx,z:ROOMS[k].oz+lz});
 const inRoom=k=>()=>S.room===k;
-interact.push({...rp('cabin',1.3,2.9),r:1.3,on:inRoom('cabin'),label:()=>S.hour>=18?'Sleep':'Bed',ok:()=>true,act(){if(S.hour<18){toast('You aren’t tired yet. The pillow still smells of Grandpa’s pipe.',2.6);return;}sleep();}});
+interact.push({...rp('cabin',1.3,2.9),r:1.3,on:inRoom('cabin'),label:()=>'Sleep',ok:()=>true,act(){if(S.hour<18){sleepEarly();return;}sleep();}});
+// sleeping before evening: you can, but the rest of the day is gone and you can't come back to it. Bed asks first, and says so
+// plainly when tonight is one you can't afford to sleep through.
+function sleepEarly(){const t=fmtTime(S.hour);let warn='';
+  try{if(S.st&&S.st.started&&!S.st.done){const L=stLeft();
+    if(L===0)warn='<p style="color:#d0503a"><b>Tonight is Tithe night.</b> If you sleep through it, you won’t wake up.</p>';
+    else if(L===1&&!S.st.drawn)warn='<p style="color:#d0503a"><b>The drawing is at six tonight.</b> Sleep now and you’ll miss it; everyone will say you were there.</p>';}}catch(e){}
+  const dry=(typeof tiles!=='undefined')?tiles.filter(q=>q.crop&&!q.crop.watered&&!q.gh).length:0;
+  openNote(`<h3>Go to bed now?</h3><p>It’s only ${t}. If you sleep now, the rest of today is gone, and you can’t come back to it.</p>`+(dry?`<p>${dry} of your crops haven’t been watered today.</p>`:'')+warn+
+    '<p style="text-align:center;margin-top:10px"><button class="btn" id="sleepNow">Sleep</button></p>','Not yet',()=>{});
+  const b=$('sleepNow');if(b)b.addEventListener('click',()=>{$('note').hidden=true;noteCb=null;S.paused=false;sleep();},{once:true});}
 interact.push({...rp('cabin',5.85,1.4),r:1.1,on:inRoom('cabin'),label:()=>'Desk',ok:()=>true,act(){
   const T=tierOf(M.v);openNote(T>=3?`<p><i>Grandpa’s ledger of the farm. Every line on every page says the same thing, in your handwriting:</i></p><p>DON’T LET IT IN DON’T LET IT IN DON’T LET IT IN</p>`:
   `<p><i>Grandpa’s desk. A seed ledger, a pipe gone cold, and a list in pencil:</i></p><p>Turnips by the 3rd. Pumpkins by the 9th. Six pages hidden, one for every year I said no.</p><p>Bell at eight. Lamp oil. <b>Never open the cellar after dark.</b></p>`);}});
