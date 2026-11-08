@@ -74,10 +74,13 @@ S4.dig=(sp,K)=>{const g=K.g,N=sp.n||6;const st={d:0,hole:0,q:[],t:0,end:0,lift:0
       if(I.down){const res=1+Math.sin(st.t*9)*.5;st.d+=dt*.85*res;if(Math.random()<dt*10)A.hiss(.05,.08,'lowpass',400);if(st.d>=1.12){st.stuck=1;st.q.push(.15);K.judge(.15,160,60,true);MS.miss();A.tone(140,.25,'square',.05,{slide:90});}}
       else if(st.d>.05){const q=st.d>=.6&&st.d<=1?1:st.d>=.4?.6:.3;st.q.push(q);K.judge(q,160,60,true);st.hole+=st.d/N*1.1;st.pile+=st.d;st.lift=.001;MS.whoosh();A.hiss(.2,.15,'lowpass',700);K.emit(200,90,12,{c:['#5a4022','#7a5a32','#3a2a14'],v:90,ang:-Math.PI*.3,spread:.8,g:400,life:.8});st.d=0;
         if(st.q.length>=N||st.hole>=1){st.end=.001;MS.good();}}},
-    draw(t){K.ell(150,150,70,12,'#3a2a14');const h=Math.min(1,st.hole);K.ell(150,148,18+h*10,4+h*3,'#1a0e06');K.ell(236,150,10+st.pile*6,3+st.pile*2,'#5a4022');
+    draw(t){K.ell(150,152,74,14,'#2a1e0e');K.ell(150,150,70,12,'#4a3418');for(let k=0;k<30;k++){const a=k*2.4,r=40+((k*13)%30);K.px(150+Math.cos(a)*r,150+Math.sin(a)*r*.17,2,1,k%2?'#6a4a24':'#3a2a14');}const h=Math.min(1,st.hole);K.ell(150,148,18+h*10,4+h*3,'#1a0e06');K.ell(236,150,10+st.pile*6,3+st.pile*2,'#5a4022');
       const lift=st.lift>0?Math.sin(st.lift*Math.PI):0;const d=st.stuck?1.12:st.d;const sx=150,sy=150-30+d*18-lift*30;
-      K.px(sx-6,sy,12,14,CA_P.iron[5]);K.px(sx-6,sy,12,1,CA_P.iron[7]);if(lift>.1)K.ell(sx,sy+2,8,3,'#5a4022');K.px(sx-1,sy-60,3,60,CA_P.wood[4]);K.px(sx-6,sy-64,12,4,CA_P.wood[3]);
-      K.px(sx+6,sy-4,12,4,'#3a2a1a');m4hand(K,sx,sy-64);m4hand(K,sx,sy-36,true);if(st.stuck&&Math.floor(t*6)%2)K.label('STUCK: TAP TO WIGGLE',160,30,'#e8542a');},
+      // a spade: a dished steel blade with a tread on top, an ash shaft, a D-grip
+      for(let y=0;y<18;y++){const w=Math.round(9-Math.max(0,y-12)*.9);K.px(sx-w,sy+y,w*2,1,CA_P.iron[y<2?6:y>15?3:5]);K.px(sx-w,sy+y,1,1,CA_P.iron[7]);K.px(sx+w-1,sy+y,1,1,CA_P.iron[2]);}K.px(sx-9,sy-1,18,2,CA_P.iron[3]);K.px(sx-2,sy-4,4,6,CA_P.iron[4]);
+      if(lift>.1){K.ell(sx,sy+4,9,4,'#5a4022');for(let k=0;k<5;k++)K.px(sx-6+k*3,sy+1-(k%2),2,2,'#3a2a14');}
+      K.px(sx-1,sy-60,3,58,CA_P.wood[4]);K.px(sx-1,sy-60,1,58,CA_P.wood[6]);K.px(sx-7,sy-66,14,3,CA_P.wood[3]);K.px(sx-7,sy-66,2,7,CA_P.wood[3]);K.px(sx+5,sy-66,2,7,CA_P.wood[3]);
+      K.px(sx+9,sy-6,14,5,'#3a2a1a');K.px(sx+9,sy-6,14,1,'#5a4030');m4hand(K,sx,sy-64);m4hand(K,sx,sy-36,true);if(st.stuck&&Math.floor(t*6)%2)K.label('STUCK: TAP TO WIGGLE',160,30,'#e8542a');},
     hud(){K.label('DEPTH',286,14,'#f4ecd8');K.gauge(282,24,8,90,.6/1.15,1/1.15,Math.min(1.15,st.stuck?1.12:st.d)/1.15,{zone:'#5a4a1c'});K.meter(Math.min(1,st.hole),M4.avg(st.q)||1);},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(st.stuck)m4tap(a);else if(!st.lift&&st.t>.5)m4hold(a,st.d<.8);AP.hand=[166,50];AP.press=a.down;},
     quiet(){},stop(){}};};
@@ -95,7 +98,11 @@ S4.light=(sp,K)=>{const g=K.g,look=sp.look||'lantern';const st={m:3,lit:0,burn:0
     draw(t){const lx=160,ly=92;
       // leaves and dust tell you about the wind
       for(let i=0;i<8;i++){const ph=(t*(windy()?1.2:.15)+i*.13)%1;const x=windy()?ph*340-10:40+i*30+Math.sin(t+i)*4,y=40+((i*29)%80)+Math.sin(t*2+i)*(windy()?8:2);K.px(x,y,2,2,i%2?'#c8822a':'#8a5a1a');}
-      if(look==='lantern'){K.px(lx-1,30,2,30,CA_P.iron[3]);g.drawImage(M4.pre('lantern',30,44,k=>{k.metal(2,0,26,5,CA_P.iron,8);k.px(5,5,20,28,'#00000000');for(let y=5;y<33;y++){k.pa(5,y,20,1,'#d8eef8',.25);}k.px(5,5,2,28,CA_P.iron[4]);k.px(23,5,2,28,CA_P.iron[4]);k.metal(2,33,26,6,CA_P.iron,8);k.px(13,26,4,7,'#e8dcc0');},true),lx-15,ly-30);}
+      if(look==='lantern'){K.px(lx-1,20,2,26,CA_P.iron[3]);K.px(lx-40,18,80,3,CA_P.wood[3]);
+        // a hurricane lantern: a domed top with a ring, a glass globe in wire guards, a brass tank with the wick knob
+        g.drawImage(M4.pre('lantern2',44,64,k=>{const I=CA_P.iron,B=CA_P.brass;k.ell(22,4,4,3,I[2]);k.px(14,6,16,4,I[4]);k.px(10,10,24,4,I[5]);k.px(10,10,24,1,I[7]);
+          for(let y=14;y<44;y++){const w=Math.round(9+Math.sin((y-14)/30*Math.PI)*4);k.pa(22-w,y,w*2,1,'#d8eef8',.35);k.px(22-w,y,1,1,'#ffffff');k.pa(21+w,y,1,1,'#8ab0c8',.9);}
+          for(const xx of [9,22,35])k.line(xx,14,xx+(xx-22)*.25,44,I[3],1);k.px(8,44,28,3,B[3]);k.px(8,44,28,1,B[6]);k.px(10,47,24,12,B[4]);k.px(10,47,3,12,B[6]);k.px(31,47,3,12,B[2]);k.px(8,59,28,3,B[3]);k.ball(37,52,3,B,2);k.px(20,36,4,8,'#e8dcc0');},true),lx-22,ly-34);}
       else{K.ball(lx,ly+16,22,CA_P.brass,10);K.px(lx-10,ly-2,20,6,CA_P.brass[5]);K.px(lx-2,ly-6,4,5,'#e8dcc0');}
       if(st.lit){for(let k=0;k<3;k++)K.flame(lx-3,ly-2,.5,t+k);K.glow(lx,ly-4,60,'255,210,120',.45+Math.sin(t*9)*.05);}
       if(st.burn>0||st.out>0){const lean=windy()?-6:Math.sin(t*3)*1;const mx=lx+8,my=ly-6;K.line(mx,my,mx+26,my-30,'#c8a060',1);K.px(mx-1,my-1,3,3,'#8a2a14');if(st.burn>0){K.flame(mx-3+lean*.5,my-2,.4,t);K.glow(mx,my-4,20,'255,190,90',.4);}else{for(let k=0;k<3;k++)K.pa(mx-2+k*2+lean,my-6-k*4,2,2,'#c8c0b8',.5);}m4hand(K,mx+28,my-32);}

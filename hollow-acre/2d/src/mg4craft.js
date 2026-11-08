@@ -5,6 +5,21 @@
 const m4cloth=(key,w,h,P,seed)=>M4.pre(key,w,h,k=>{for(let y=0;y<h;y++)for(let x=0;x<w;x++){const n=k.H32(x%200,y,seed||3);const v=((x+y)&1)?1:0;const lv=3+v-((((x>>1)+(y>>1))%5===0)?1:0)-(n>.95?1:0);k.px(x,y,1,1,P[Math.max(0,Math.min(P.length-1,lv))]);}});
 // still things drawn once: planks, a board, a vat
 const m4blk=(key,w,h,fn)=>M4.pre(key,w,h,fn);
+// woven canvas: threads over and under, a soft light across the folds; and pebbled leather with creases
+const m4weave=(key,w,h,P,seed)=>M4.pre(key,w,h,k=>{for(let y=0;y<h;y++)for(let x=0;x<w;x++){// 2px threads, warp over weft in a checker, a lit top edge on each, the faintest drape
+  const cx=(x>>1),cy=(y>>1),over=(cx+cy)&1,ex=over?(x&1):(y&1);const drape=Math.sin(x*.03+seed)*.5+Math.sin(y*.05+x*.01)*.5;
+  let lv=3+(over?0:-1)+(ex?0:1)+(drape>.6?1:drape<-.6?-1:0)+(k.H32(cx,cy,seed)>.96?-1:0);k.px(x,y,1,1,P[Math.max(0,Math.min(P.length-1,lv))]);}});
+const m4hide=(key,w,h,P,seed)=>M4.pre(key,w,h,k=>{for(let y=0;y<h;y++)for(let x=0;x<w;x++){// smooth hide: a soft sheen across it, fine pebbles, now and then a crease
+  const sheen=Math.sin(x*.025+y*.012+seed)*.5+Math.sin(y*.04)*.3;const peb=k.H32(x>>1,y>>1,seed);let lv=4+(sheen>.45?1:sheen<-.45?-1:0)+(peb>.88?1:0)-(peb<.06?1:0);
+  if(Math.abs(Math.sin(x*.11+y*.031+seed)*Math.sin(y*.07))<.015)lv-=1;k.px(x,y,1,1,P[Math.max(0,Math.min(P.length-1,lv))]);}});
+// the dress form: f is how full each side is stuffed (0 flat and sagging, 1 full)
+const m4form=(K,cx,top,fl,fr,t)=>{const g=K.g,L=['#8a7a5a','#b0a07a','#ccbe96','#e2d6b2','#f2e8cc','#fbf6e4'];
+  const half=(s,f)=>{const pts=[[0,0],[9,1],[17,6],[19,12],[18,22],[13,34],[12,40],[15,52],[17,60],[14,64],[0,64]];g.beginPath();pts.forEach(([x,y],i)=>{const sag=(1-f)*(y>8&&y<60?Math.sin(y/64*Math.PI)*5:0);const X=cx+s*(x*(.7+.3*f)-sag*.4),Y=top+y+(1-f)*(y>20?2:0);i?g.lineTo(X,Y):g.moveTo(X,Y);});g.closePath();};
+  K.px(cx-1,top+64,3,40,CA_P.wood[3]);K.px(cx-1,top+64,1,40,CA_P.wood[5]);for(const s of [-1,0,1])K.line(cx,top+100,cx+s*20,top+110,CA_P.wood[3],2);K.ell(cx,top+111,24,3,'#00000040');
+  for(const [s,f] of [[-1,fl],[1,fr]]){half(s,f);const gr=g.createLinearGradient(cx-20*s,0,cx+4*s,0);gr.addColorStop(0,s<0?L[4]:L[2]);gr.addColorStop(1,s<0?L[3]:L[1]);g.fillStyle=gr;g.fill();g.strokeStyle='#5a4a32';g.lineWidth=1;g.stroke();
+    for(let y=4;y<62;y+=3)K.pa(cx+s*(4+((y*7)%9)),top+y,1,1,L[0],.5);if(f<.6)for(let k=0;k<4;k++)K.line(cx+s*6,top+20+k*9,cx+s*15,top+23+k*9,L[1],1);}
+  K.px(cx,top+2,1,62,'#8a6a4a');for(let y=4;y<62;y+=4)K.px(cx-1,top+y,3,1,'#a8885a');
+  K.ball(cx,top-4,5,CA_P.wood,4);K.px(cx-2,top-1,5,3,CA_P.wood[3]);};
 const m4len=pts=>{let L=0;for(let i=1;i<pts.length;i++)L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);return L;};
 const m4at=(pts,s)=>{for(let i=1;i<pts.length;i++){const d=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);if(s<=d||i===pts.length-1){const u=d?Math.min(1,s/d):0;return [pts[i-1][0]+(pts[i][0]-pts[i-1][0])*u,pts[i-1][1]+(pts[i][1]-pts[i-1][1])*u,Math.atan2(pts[i][1]-pts[i-1][1],pts[i][0]-pts[i-1][0])];}s-=d;}return [pts[0][0],pts[0][1],0];};
 const m4near=(pts,x,y)=>{let best=1e9,bs=0,acc=0;for(let i=1;i<pts.length;i++){const [ax,ay]=pts[i-1],[bx,by]=pts[i];const dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy)||1;let u=((x-ax)*dx+(y-ay)*dy)/(L*L);u=Math.max(0,Math.min(1,u));const px=ax+dx*u,py=ay+dy*u,d=Math.hypot(x-px,y-py);if(d<best){best=d;bs=acc+u*L;}acc+=L;}return [best,bs];};
@@ -37,7 +52,7 @@ S4.trace=(sp,K)=>{const g=K.g,paths=sp.paths,surf=sp.surface||'canvas',tool=sp.t
       if(surf==='pumpkin'){const cx=160,cy=84;g.drawImage(m4blk('pumpkinface',200,136,k=>{for(let y=-58;y<=58;y++){const w=Math.round(96*Math.sqrt(Math.max(0,1-(y/60)**2)));for(let x=-w;x<=w;x++){const rib=Math.abs(Math.sin((x/w)*Math.PI*2.5));const l=-x/w*.35-y/60*.45+rib*.25;k.px(100+x,72+y,1,1,['#7a2e08','#a8420e','#d05a16','#e8742a','#f49a48','#fcc070'][Math.max(0,Math.min(5,Math.round(2.6+l*3)))]);}}
         k.px(96,0,8,14,'#4a6a2a');k.px(96,0,2,14,'#6a8a3a');}),cx-100,cy-72);if(sp.glow&&st.end){for(const p of paths){g.fillStyle=`rgba(255,${190+Math.sin(t*9)*20|0},90,.9)`;g.beginPath();g.moveTo(p[0][0],p[0][1]);for(const q of p)g.lineTo(q[0],q[1]);g.fill();}K.glow(cx,cy,70,'255,190,90',.35+Math.sin(t*9)*.05);}}
       else if(surf==='glass'){g.drawImage(m4blk('glassfr',200,80,k=>k.planks(0,0,200,80,CA_P.wood,10,4,true)),60,40);for(let r=0;r<2;r++)for(let c=0;c<3;c++){K.pa(66+c*64,46+r*36,58,30,'#c8e2f0',.55);K.px(70+c*64,48+r*36,10,1,'#ffffff');}}
-      else{const C=m4cloth('cl_'+surf,220,96,SURF[surf]||SURF.canvas,7);K.pa(54,30,220,96,'#000',.3);g.drawImage(C,50,26);for(let x=50;x<270;x+=3)K.px(x,26,2,1,SURF[surf]?SURF[surf][5]:'#ddd0aa');}
+      else{const C=surf==='leather'?m4hide('hide_'+surf,220,96,CA_P.leather,5):m4weave('wv_'+surf,220,96,SURF[surf]||SURF.canvas,7);K.pa(54,30,220,96,'#000',.3);g.drawImage(C,50,26);for(let x=50;x<270;x+=3)K.px(x,26,2,1,SURF[surf]?SURF[surf][5]:'#ddd0aa');}
       // the line to follow, then what you've done
       paths.forEach((p,pi)=>{if(pi<st.pi&&tool!=='putty')return;const L=m4len(p);for(let s=pi===st.pi?st.s:0;s<L;s+=4){const [x,y]=m4at(p,s);K.px(x,y,2,1,surf==='pumpkin'?'#3a1a08':surf==='glass'?'#7a6a4a':'#fff8e8');}});
       for(const [x,y,pi,f] of st.cut){if(tool==='putty'){K.px(x-1,y-1,3,3,'#b8ac90');K.px(x-1,y-1,3,1,'#d8ccb0');}else if(surf==='pumpkin'){K.px(x,y,2,2,'#2a0e04');K.px(x,y+2,2,1,'#f8d080');}else{K.px(x,y,1,1,'#1a0e06');K.px(x+1,y,1,1,f?'#6a4a2a':'#2a1a0c');}}
@@ -51,7 +66,7 @@ S4.trace=(sp,K)=>{const g=K.g,paths=sp.paths,surf=sp.surface||'canvas',tool=sp.t
     auto(dt,AP){const a=m4ai(this,AP,dt);if(st.jump>0||st.t<.5){const [x,y]=P()[0];m4move(a,x,y);m4hold(a,false);}else{this._s=Math.max(this._s||0,st.s)+58*dt;const [x,y]=m4at(P(),this._s);m4move(a,x+Math.sin(st.t*3)*.6,y);m4hold(a,true);if(this._s>=m4len(P()))this._s=0;}AP.hand=[a.x+6,a.y-30];AP.press=a.down;},
     quiet(){loop&&loop.set(0);},stop(){loop&&loop.stop();loop=null;}};};
 // ---------------------------------------------------------------- SEW: a running stitch. Tap as each chalk tick passes under the needle, and keep the seam under it
-S4.sew=(sp,K)=>{const g=K.g,NX=150,SP=10,N=sp.n||14,P=sp.cloth||['#5a4a30','#6e5c3c','#82704a','#968458','#a89668','#bcaa7c'];const cloth=m4cloth('sew'+P[3],200,90,P,11);
+S4.sew=(sp,K)=>{const g=K.g,NX=150,SP=10,N=sp.n||14,P=sp.cloth||['#5a4a30','#6e5c3c','#82704a','#968458','#a89668','#bcaa7c'];const cloth=m4weave('sew'+P[3],200,90,P,11);
   const st={off:0,dy:0,drift:0,stitches:[],q:[],t:0,end:0,nd:0,next:0,seamY:t=>0};
   const seam=x=>Math.sin(x*.012)*10+Math.sin(x*.031)*4;
   return {title:sp.t||'Sew the seam',how:'The cloth feeds under the needle. Tap to stitch as each chalk tick passes the needle, and keep the seam under it: '+(K.fine?'move the mouse up/down (or W/S)':'drag up and down')+'.',hint:'Tap on each tick; keep the seam under the needle.',st,
@@ -229,13 +244,13 @@ S4.crimp=(sp,K)=>{const g=K.g,CX=160,CY=100,RX=70,RY=26,N=sp.n||12,look=sp.look|
       if(I.pressed&&st.pinch<=0){st.pinch=.18;let best=-1,be=9;marks.forEach((m,i)=>{if(st.done_[i]!=null)return;const ph=(((m+st.a-Math.PI/2)%(Math.PI*2))+Math.PI*3)%(Math.PI*2)-Math.PI;if(Math.abs(ph)<be){be=Math.abs(ph);best=i;}});
         const q=best<0?.15:M4.q(be,.06,.14,.24);if(best>=0&&be<.5){st.done_[best]=q;st.q.push(q);}else st.q.push(.15);K.judge(q,CX,CY+RY+20,true);if(q<.3)MS.miss();A.tone(look==='pie'?320:1800,.05,look==='pie'?'sine':'square',.05);}
       if(st.a>Math.PI*2*(sp.turns||1.15)||st.done_.filter(x=>x!=null).length>=N){st.end=.001;MS.good();}},
-    draw(t){K.px(CX-6,CY+RY,12,40,CA_P.wood[3]);K.ell(CX,CY+RY+40,40,6,CA_P.wood[2]);
+    draw(t){if(look==='pie'){K.px(CX-6,CY+RY,12,40,CA_P.wood[3]);K.ell(CX,CY+RY+40,40,6,CA_P.wood[2]);}
       if(look==='pie'){K.ell(CX,CY+4,RX+4,RY+3,'#a87438');K.ell(CX,CY,RX,RY,'#c89a58');K.ell(CX,CY-2,RX-8,RY-6,'#d8742a');K.ell(CX-10,CY-6,RX-30,RY-14,'#e8904a');}
-      else{K.ell(CX,CY,RX*.55,RY,'#efe2c0');K.px(CX-RX*.4,CY-80,RX*.8,80,'#efe2c0');K.px(CX-RX*.4,CY-80,4,80,'#ffffff');}
-      marks.forEach((m,i)=>{const a=m+st.a;const x=CX+Math.cos(a)*RX*(look==='pie'?1:.55),y=CY+Math.sin(a)*RY;if(Math.sin(a)<-.2)return;const done=st.done_[i]!=null;
+      else{m4form(K,CX,CY-58,1,1,t);g.strokeStyle='#e8d070';g.lineWidth=1;g.beginPath();g.ellipse(CX,CY,RX*.55,RY*.45,0,0,Math.PI);g.stroke();}
+      marks.forEach((m,i)=>{const a=m+st.a;const x=CX+Math.cos(a)*RX*(look==='pie'?1:.55),y=CY+Math.sin(a)*RY*(look==='pie'?1:.45);if(Math.sin(a)<-.2)return;const done=st.done_[i]!=null;
         if(look==='pie'){if(done)for(let k=-2;k<=2;k++)K.px(x+k,y-1+Math.abs(k)*.5,1,3,st.done_[i]>.6?'#8a5428':'#7a4420');else K.px(x-1,y-1,2,2,'#fff4c0');}
         else{if(done){K.px(x,y-6,1,6,CA_P.iron[6]);K.ball(x,y-7,2,['#8a1a14','#c83a2a','#f86a5a']);}else K.px(x-1,y-1,2,2,'#2a6a9a');}});
-      const p=st.pinch>0?2:0;m4hand(K,CX-8,CY+RY+8-p,true);m4hand(K,CX+8,CY+RY+8-p);},
+      const p=st.pinch>0?2:0;const hy=look==='pie'?CY+RY+8:CY+RY*.45+6;m4hand(K,CX-8,hy-p,true);m4hand(K,CX+8,hy-p);},
     hud(){K.meter(st.done_.filter(x=>x!=null).length/N,M4.avg(st.q)||1);},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(st.pinch<=0)marks.forEach((m,i)=>{if(st.done_[i]!=null)return;const ph=(((m+st.a-Math.PI/2)%(Math.PI*2))+Math.PI*3)%(Math.PI*2)-Math.PI;if(Math.abs(ph)<.03)m4tap(a);});AP.hand=[CX+10,CY+RY+20];AP.press=a.down;},
     quiet(){},stop(){}};};
@@ -244,7 +259,7 @@ S4.bake=(sp,K)=>{const g=K.g;const st={c:0,heat:.6,t:0,end:0,out:0};let roar=nul
   const crust=c=>c<.35?['#e8c890','#f0d8a8']:c<.7?['#d8a050','#e8b868']:c<1.05?['#b8702a','#d08a3a']:c<1.3?['#8a4a1a','#a85a24']:['#3a2010','#5a3018'];
   return {title:sp.t||'Bake it golden',how:'Watch the crust through the oven window. The fire runs hot and cold, so the colour changes at its own pace. Tap to take it out when it’s golden brown.',hint:'Tap to take it out when it’s golden.',st,
     update(dt,I){st.t+=dt;if(!roar)roar=MS.loop('lowpass',260,.8);if(st.end){st.end+=dt;roar.set(0);if(st.end>.9){st.done=true;st.score=st.c>1.3?.1:M4.q(Math.abs(st.c-.95),.1,.2,.32);}return;}
-      st.heat=.6+Math.sin(st.t*.7)*.25+Math.sin(st.t*1.9)*.1;st.c+=dt*st.heat*(sp.rate||.14);roar.set(.03+st.heat*.05,200+st.heat*200);
+      st.heat=.6+Math.sin(st.t*.7)*.25+Math.sin(st.t*1.9)*.1;st.c+=dt*st.heat*(sp.rate||.22);roar.set(.03+st.heat*.05,200+st.heat*200);
       if(st.c>1.15&&Math.random()<dt*8)K.emit(160,64,1,{c:['#5a5048'],v:12,g:-40,life:1.4,sz:3,kind:'steam'});
       if(I.pressed||st.c>1.6){st.end=.001;st.out=1;A.tone(500,.1,'sine',.06,{slide:300});const q=st.c>1.3?.1:M4.q(Math.abs(st.c-.95),.1,.2,.32);K.judge(q,160,40);MS.thunk();}},
     draw(t){const I=CA_P.iron;K.px(70,30,180,130,I[1]);K.metal(66,26,188,8,I,12);K.px(86,44,148,80,'#140c08');
@@ -262,10 +277,11 @@ S4.stuff=(sp,K)=>{const g=K.g,N=sp.n||16;const st={L:0,R:0,tilt:0,q:[],t:0,end:0
       let s=0;if(I.side)s=I.side;else if(I.pressed)s=I.x<160?-1:1;if(st.push>0)st.push-=dt;
       if(s&&st.push<=0){if(s<0)st.L++;else st.R++;st.push=.15;st.ps=s;MS.rustle();K.emit(160+s*20,80,4,{c:CA_P.straw.slice(3),v:40,spread:2,g:200,life:.5});const d=Math.abs(st.L-st.R);K.judge(d<=1?1:d<=2?.75:d<=3?.45:.15,160+s*30,40,true);}
       st.tilt+=((st.R-st.L)*.05-st.tilt)*Math.min(1,dt*4);if(st.L+st.R>=N){st.end=.001;MS.good();}},
-    draw(t){const cx=160,cy=40;g.save();g.translate(cx,150);g.rotate(st.tilt*.3);g.translate(-cx,-150);K.px(cx-2,110,4,40,CA_P.wood[3]);
-      const fl=k=>Math.min(1,k/(N/2));for(const [s,v] of [[-1,st.L],[1,st.R]]){const f=fl(v);for(let y=0;y<60;y++){const w=Math.round((16+Math.sin(y/60*Math.PI)*8)*(.55+.45*f));K.px(s<0?cx-w:cx,cy+12+y,w,1,y%6<1?'#d8ccb0':'#efe2c0');}}
-      K.ell(cx,cy+8,12,6,'#efe2c0');K.px(cx-1,cy-6,2,14,CA_P.wood[4]);g.setLineDash([2,2]);g.strokeStyle='#9be07a';g.strokeRect(cx-24,cy+12,48,60);g.setLineDash([]);g.restore();
-      const p=st.push>0?st.ps:0;m4hand(K,cx-40+(p<0?8:0),90,true);m4hand(K,cx+40-(p>0?8:0),90);K.ell(cx,160,50,5,'#00000040');},
+    draw(t){const cx=160,top=34;g.save();g.translate(cx,150);g.rotate(st.tilt*.3);g.translate(-cx,-150);const fl=k=>Math.min(1,k/(N/2));
+      m4form(K,cx,top,fl(st.L),fl(st.R),t);g.setLineDash([2,2]);g.strokeStyle='rgba(155,224,122,.8)';g.beginPath();g.moveTo(cx-20,top+12);g.lineTo(cx-20,top+58);g.moveTo(cx+20,top+12);g.lineTo(cx+20,top+58);g.stroke();g.setLineDash([]);g.restore();
+      // the straw waiting in a basket, and a handful going in
+      K.ell(258,150,26,8,CA_P.straw[1]);K.ell(258,146,24,6,CA_P.straw[3]);for(let i=0;i<14;i++)K.line(240+i*3,146,236+i*3.5,134+((i*5)%7),CA_P.straw[3+(i%3)],1);
+      const p=st.push>0?st.ps:0;if(p)for(let i=0;i<5;i++)K.line(cx+p*26,90+i,cx+p*(34+i*2),84+i*3,CA_P.straw[4+(i%2)],1);m4hand(K,cx-34+(p<0?10:0),92,true);m4hand(K,cx+34-(p>0?10:0),92);},
     hud(){K.label('L '+st.L+'  R '+st.R,160,14,Math.abs(st.L-st.R)<=1?'#9be07a':'#e8b030');K.meter((st.L+st.R)/N,1-Math.min(1,Math.abs(st.L-st.R)/4));},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(st.push<=0&&st.t>.5){a.side=st.L<=st.R?-1:1;}AP.hand=[160+(st.L<=st.R?-40:40),80];AP.press=!!a.side;},
     quiet(){},stop(){}};};
