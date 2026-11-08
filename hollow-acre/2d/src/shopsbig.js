@@ -33,6 +33,17 @@ const SHOPS_BIG={
     browse:[[4.2,3.0],[1.6,2.0],[10.8,5.6]],
     furn:[F('in_rods',.6,.9,.3),W_('in_fishmount',4.2,-.45),W_('in_lures',7.8,-.45),W_('in_sign_open',11.1,-.5),F('in_tank',4.2,2.2,.5),F('in_counter',8.6,4.0,.6),
       ['barrel',11.2,1.4,[-.4,-.3,.4,0]],F('in_keg',.8,6.6,.3),F('in_crates',1.9,6.9,.4),F('in_drum_blue',11.2,6.8,.3),F('in_plant',11.3,4.4,.25),FL('in_rug',6,7.5)]},
+  home_harlow:{shell:'room_shop_harlow3',back:15.2,till:[12.4,2.0],counter:[12.5,3.9],lamp:[6,2.4],keeper:'tess',
+    browse:[[3.0,5.8],[7.0,6.2],[3.2,8.8],[7.6,9.0],[5.4,2.9]],
+    furn:[F('in_hearth',4.0,1.0,.5),F('in_rocker',5.6,2.3,.3),F('in_shelf_jars',9.4,.62,.4),F('in_keg',12.0,.9,.3),F('in_keg',13.0,.9,.3),F('in_clock',8.0,.55,.3),
+      F('in_counter',10.9,3.0,.6),F('in_counter',14.0,3.0,.6),
+      F('in_table',3.0,5.0,.45),F('in_chair',1.9,5.05,.25),F('in_chair',4.1,5.05,.25),F('in_table',7.0,5.4,.45),F('in_chair',5.9,5.45,.25),F('in_chair',8.1,5.45,.25),
+      F('in_table',3.2,8.0,.45),F('in_chair',2.1,8.05,.25),F('in_chair',4.3,8.05,.25),F('in_table',7.6,8.2,.45),F('in_chair',6.5,8.25,.25),F('in_chair',8.7,8.25,.25),
+      F('in_piano',15.4,6.8,.5),['barrel',.7,2.6,[-.4,-.3,.4,0]],['barrel',16.4,3.4,[-.4,-.3,.4,0]],F('in_plant2',16.4,9.3,.3),F('in_plant',.8,9.4,.25),FL('in_rug',5.2,6.8),FL('in_rug',8.5,9.6)]},
+  home_lusk:{shell:'room_shop_lusk3',back:11.4,lamp:[6.5,2.2],
+    furn:[F('in_shelf_cans',.9,.62,.4),F('in_shelf_parts',4.4,.62,.4),F('in_shelf_cans',8.6,.62,.4),F('in_clock',10.2,.55,.3),W_('in_poster_lost',12.4,-.45),
+      F('in_counter',8.8,3.4,.6),F('in_candycase',11.4,3.6,.5),F('in_table',2.4,4.2,.45),F('in_chair',1.3,4.25,.25),F('in_chair',3.5,4.25,.25),F('in_seedrack',5.2,4.6,.3),
+      F('in_tires',12.2,6.4,.3),F('in_tires',12.2,7.4,.3),F('in_drum',.8,6.8,.3),F('in_drum_blue',1.6,7.0,.3),F('in_crates',3.8,7.4,.4),F('in_plant',4.9,7.6,.25),FL('in_rug',6.5,7.5)]},
   garage:{shell:'room_shop_garage3',back:13.6,lamp:[7.4,.6],
     furn:[F('in_shelf_parts',1.1,.62,.4),F('in_shelf_tools',3.1,.62,.4),F('in_bench',6.6,1.05,.5),F('in_toolbox',8.6,1.3,.35),W_('in_poster_fair',11.2,-.45),F('in_tires',11.8,1.5,.3),F('in_tires',11.8,2.5,.3),
       F('police_blocks',3.6,5.0,1.3),F('in_hoist',7.4,4.4,.3),F('in_drum',.7,7.6,.3),F('in_drum_blue',1.5,7.8,.3),F('in_tires',13.8,6.2,.3),F('in_tires',13.8,7.2,.3),F('in_crates',10.6,8.0,.4),['barrel',14.3,4.2,[-.4,-.3,.4,0]]]}};
@@ -43,9 +54,9 @@ for(const [k,B] of Object.entries(SHOPS_BIG)){const R=ROOMS[k];if(!R||!SPR[B.she
     p.pdoor=B.back;if(ROOMS[p.key])ROOMS[p.key].pdoor=B.back;if(it)it.x=R.ox+B.back;}}
 // the counters, the keepers' places behind them, and where customers stand to browse
 {const C=SHOPS_BIG;const ctr=(k)=>interact.filter(q=>q.x>=ROOMS[k].ox-1&&q.x<=ROOMS[k].ox+20&&Math.abs(q.z-ROOMS[k].oz-3)<3&&(()=>{try{return q.label()==='Counter';}catch(e){return false;}})());
-  for(const k of ['store','shop_forge','shop_carp','shop_feed','shop_bait']){const B=C[k];for(const it of ctr(k)){it.x=ROOMS[k].ox+B.counter[0];it.z=ROOMS[k].oz+B.counter[1];}}
+  for(const k of ['store','shop_forge','shop_carp','shop_feed','shop_bait','home_harlow']){const B=C[k];for(const it of ctr(k)){it.x=ROOMS[k].ox+B.counter[0];it.z=ROOMS[k].oz+B.counter[1];}}
   INDOOR.store.spots.mae=C.store.spots.mae;INDOOR.store.spots.pip=C.store.spots.pip;INDOOR.store.browse=C.store.browse;
-  for(const [job,k] of [['forge','shop_forge'],['carp','shop_carp'],['feed','shop_feed'],['bait','shop_bait']]){const B=C[k];INDOOR[job].spots[B.keeper]=B.till;INDOOR[job].browse=B.browse;}
+  for(const [job,k] of [['forge','shop_forge'],['carp','shop_carp'],['feed','shop_feed'],['bait','shop_bait'],['wk_innwork','home_harlow']]){const B=C[k];INDOOR[job].spots[B.keeper]=B.till;INDOOR[job].browse=B.browse;}
   const g=k=>interact.find(q=>{try{return q.label()===k&&q.x>=ROOMS.garage.ox&&q.x<ROOMS.garage.ox+20;}catch(e){return false;}});
   const wb=g('Workbench');if(wb){wb.x=ROOMS.garage.ox+6.6;wb.z=ROOMS.garage.oz+1.7;}const cr=g('Cruiser');if(cr){cr.x=ROOMS.garage.ox+3.6;cr.z=ROOMS.garage.oz+5.6;}}
 // Caitlyn is at the till when she's standing behind the counter, wherever the counter is now
