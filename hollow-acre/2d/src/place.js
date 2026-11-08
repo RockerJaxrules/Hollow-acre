@@ -55,9 +55,12 @@ shadow=function(x,y,w){ctx2.fillStyle='rgba(10,14,8,.38)';ctx2.beginPath();ctx2.
 
 // ---------- leaves that come off the maples, in the world: they drift down, land at the foot of the tree, lie there, then fade
 const LEAVES=[];let leafT=0;
+// the trees that drop leaves, and the colours they drop (light, dark)
+const LEAF_COL={maple_orange:['#e08a2e','#9a4a14'],maple_red:['#c8402a','#7a1c12'],maple_gold:['#e8b83a','#9a7018'],maple_green:['#6aa040','#2e5a20'],
+  oak_russet:['#c8642a','#7a3214'],oak_green:['#7aa040','#3a5a20'],birch_gold:['#f0c040','#a07818'],birch_green:['#c0c850','#6a7a24'],willow:['#b8c058','#6a7a2a'],apple_tree:['#8aa040','#4a6020'],apple_gold:['#c8b848','#7a7020']};
 function leavesUpdate(dt){if(S.room||nightK>.7)return;leafT-=dt;if(leafT<=0){leafT=1.6+rand()*2.4;
-    const near=OBJ.filter(o=>!o.hide&&o.spr&&o.spr.startsWith('maple')&&onScreen(o.x,o.z,40));if(near.length){const o=near[(rand()*near.length)|0];
-      LEAVES.push({x:o.x+(rand()-.5)*2.4,z:o.z+(rand()-.2)*.8,h:70+rand()*40,t:0,ph:rand()*6,col:{maple_orange:['#e08a2e','#9a4a14'],maple_red:['#c8402a','#7a1c12'],maple_gold:['#e8b83a','#9a7018'],maple_green:['#6aa040','#2e5a20']}[o.spr],land:0});}}
+    const near=OBJ.filter(o=>!o.hide&&o.spr&&LEAF_COL[o.spr]&&onScreen(o.x,o.z,40));if(near.length){const o=near[(rand()*near.length)|0];
+      LEAVES.push({x:o.x+(rand()-.5)*2.4,z:o.z+(rand()-.2)*.8,h:70+rand()*40,t:0,ph:rand()*6,col:LEAF_COL[o.spr],land:0});}}
   for(let i=LEAVES.length-1;i>=0;i--){const L=LEAVES[i];L.t+=dt;if(L.h>0){L.h=Math.max(0,L.h-dt*14);L.x+=Math.sin(L.t*1.7+L.ph)*dt*.5+dt*.12;}else{L.land+=dt;if(L.land>6)LEAVES.splice(i,1);}}}
 function leavesDraw(){for(const L of LEAVES){const X=Math.round(sx(L.x)),Y=Math.round(sz(L.z)),a=L.land>4?1-(L.land-4)/2:1;ctx2.globalAlpha=a*(1-nightK*.7);
   if(L.h>0){ctx2.fillStyle='rgba(8,14,6,.28)';ctx2.fillRect(X-1,Y,3,1);}

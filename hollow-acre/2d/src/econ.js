@@ -177,7 +177,7 @@ function treeChop(){for(const o of OBJ){if(o.hide||(o.kind!=='tree'&&o.kind!=='p
       // the trunk takes a bite on your side, the tree rocks away from you on its base, chips fly from the cut, a few leaves come down
       o.notch=o.hits;o.notchSide=P.x<o.x?-1:1;if(!o.trunkW){const sk=makeStump(o.spr);o.trunkW=sk?Math.round((SPR[sk].foot[2]||.2)*PPM)-1:6;}o.rock={t:0,dir:P.x<o.x?1:-1};
       for(let i=0;i<9;i++)parts.push({x:o.x+o.notchSide*o.trunkW/PPM,z:o.z+.02,y:.38,vx:o.notchSide*(.8+Math.random()*1.6),vz:(Math.random()-.5)*.6,vy:1.2+Math.random()*1.4,t:0,life:.5+Math.random()*.3,col:i%3?'#d8b478':'#8a5c34',size:i%2?2:1});
-      if(o.spr.startsWith('maple')&&typeof LEAVES!=='undefined'){const C={maple_orange:['#e08a2e','#9a4a14'],maple_red:['#c8402a','#7a1c12'],maple_gold:['#e8b83a','#9a7018'],maple_green:['#6aa040','#2e5a20']}[o.spr];for(let i=0;i<3;i++)LEAVES.push({x:o.x+(Math.random()-.5)*2.2,z:o.z+(Math.random()-.3)*.6,h:60+Math.random()*30,t:0,ph:Math.random()*6,col:C,land:0});}
+      if(typeof LEAVES!=='undefined'&&typeof LEAF_COL!=='undefined'&&LEAF_COL[o.spr]){const C=LEAF_COL[o.spr];for(let i=0;i<3;i++)LEAVES.push({x:o.x+(Math.random()-.5)*2.2,z:o.z+(Math.random()-.3)*.6,h:60+Math.random()*30,t:0,ph:Math.random()*6,col:C,land:0});}
       if(o.hits<(S.tools.axe>1?3:5))return;
       // it leans, then comes down away from you, and the crown bursts when it hits
       o.hide=true;o.goneDay=S.day;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}SFX.screech&&SFX.screech();FALLING.push({o,t:0,dir:P.x<o.x?1:-1,cc,landed:false});if(typeof onTreeFelled==='function')onTreeFelled(o);
