@@ -689,6 +689,37 @@ def mile():
     c.outline(); return c
 save('rg_mile', mile(), 15, 46, foot=(-.3, -.25, .3, 0))
 
+# ======================================================================== what the children left (The Count)
+def rem(kind):
+    c = C(30, 26); gy = 22; c.shadow(15, gy, 10, 2.6, 150)
+    if kind == 'shoe':
+        R = ramp('#6a3a2a', spread=.7)
+        c.poly([(5, gy - 1), (24, gy - 1), (25, gy - 4), (19, gy - 6), (14, gy - 9), (8, gy - 9), (6, gy - 6)], lambda x, y: R[4] if y < gy - 6 else R[3] if x < 18 else R[2])
+        c.rect(5, gy - 1, 25, gy, R[1]); c.rect(9, gy - 10, 13, gy - 8, R[5])
+        for x in (10, 12): c.p(x, gy - 7, (230, 220, 200))
+    elif kind == 'horse':
+        R = ramp('#a8743a', spread=.7)
+        c.rect(8, gy - 9, 21, gy - 5, lambda x, y: R[4] if y == gy - 9 else R[3]); c.rect(19, gy - 14, 23, gy - 8, lambda x, y: R[4] if x < 21 else R[2]); c.rect(22, gy - 13, 25, gy - 11, R[3])
+        for x in (9, 12, 17, 20): c.rect(x, gy - 4, x + 1, gy - 1, R[2])
+        c.rect(6, gy - 9, 8, gy - 6, R[1]); c.p(22, gy - 13, (20, 14, 10)); c.rect(4, gy - 1, 26, gy, R[1])
+    elif kind == 'slate':
+        c.rect(5, gy - 14, 24, gy - 1, lambda x, y: WOOD[4] if x in (5, 6) or y in (gy - 14, gy - 13) else WOOD[2] if x in (23, 24) or y in (gy - 2, gy - 1) else (46, 52, 56))
+        for k in range(5): c.rect(9 + k * 3, gy - 10 + (k % 2), 10 + k * 3, gy - 9 + (k % 2), (220, 220, 210))
+        c.rect(9, gy - 6, 19, gy - 6, (200, 200, 190))
+    elif kind == 'marbles':
+        B2 = ramp('#8a6a4a', spread=.6); c.ellipse(11, gy - 5, 6, 5, lambda x, y, d: B2[4] if x < 10 else B2[2]); c.rect(9, gy - 11, 13, gy - 9, B2[1])
+        for i, (x, y, col) in enumerate(((19, gy - 3, '#c83a2a'), (23, gy - 2, '#3a6ac8'), (21, gy - 6, '#3a9a5a'), (16, gy - 1, '#e8c040'))):
+            Rm = ramp(col, spread=.8); c.ellipse(x, y, 2.2, 2.2, lambda xx, yy, d, Rm=Rm, x=x, y=y: Rm[5] if xx < x and yy < y else Rm[3])
+    elif kind == 'cap':
+        R = ramp('#3a5a8a', spread=.7); c.ellipse(14, gy - 5, 9, 6, lambda x, y, d: (R[4] if x < 13 else R[3]) if y < gy - 4 else R[2])
+        c.poly([(13, gy - 3), (27, gy - 3), (25, gy - 1), (13, gy - 1)], lambda x, y: R[2] if y < gy - 1 else R[1]); c.p(14, gy - 11, R[5])
+    elif kind == 'top':
+        R = ramp('#c8402a', spread=.7)
+        c.poly([(8, gy - 10), (22, gy - 10), (15, gy - 1)], lambda x, y: (R[4] if x < 13 else R[2]) if ((y // 2) % 2) else (GOLD[4] if x < 13 else GOLD[2]))
+        c.ellipse(15, gy - 10, 7, 2.2, lambda x, y, d: R[5] if x < 14 else R[3]); c.rect(14, gy - 15, 16, gy - 11, WOOD[3])
+    c.outline(); return c
+for k in ('shoe', 'horse', 'slate', 'marbles', 'cap', 'top'): save('rem_' + k, rem(k), 15, 22)
+
 # ---- register
 d = json.load(open('spr/lpc/objects.json')); d.update(SPR); json.dump(d, open('spr/lpc/objects.json', 'w'))
 print(len(SPR), 'sprites:', ' '.join(SPR))
