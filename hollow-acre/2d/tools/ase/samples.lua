@@ -64,13 +64,14 @@ local function cottage(night)
     local row = (y - topA) // 7; local ry = (y - topA) % 7; local off = (row % 2) * 6; local lx = (x + off) % 12
     local left = x < ax
     if (ry == 6 and lx >= 2 and lx <= 9) or (ry == 5 and (lx == 1 or lx == 10)) or (ry == 4 and (lx == 0 or lx == 11)) then return px.i(c, left and 'r2' or 'r1') end
-    local base = left and .62 or .3
-    local bulge = .26 * (1 - math.abs(lx - 5.5) / 6) + .05 * ry / 6
-    if ry < 2 then bulge = bulge - .18 end
     local n = H(x // 12 + row * 7, row)
-    if n > .94 then return px.i(c, 'r1') end                         -- a slipped tile
-    local v = px.ramp(c, ROOF, base + bulge + (n - .5) * .14 - (y - topA) / 400, x, y, 2, 8)
-    if left and ry == 3 and (lx == 3 or lx == 4) and n > .35 then v = px.i(c, 'r8') end
+    if n > .965 then return px.i(c, 'r1') end                        -- a slipped tile
+    local base = left and .66 or .26
+    local bulge = .2 * (1 - math.abs(lx - 5.5) / 6)
+    if ry <= 1 then bulge = bulge - .2 end                           -- tucked under the row above
+    local v = px.band(c, ROOF, base + bulge + (n - .5) * .1 - (y - topA) / 520, 2, 8)
+    if left and ry == 2 and (lx == 3 or lx == 4) then v = px.i(c, n > .5 and 'r8' or 'r7') end   -- the light catching each scallop
+    if not left and ry == 2 and lx == 4 and n > .6 then v = px.i(c, 'r4') end
     return v
   end)
   -- moss creeping up from the eaves
@@ -216,24 +217,38 @@ local function maple()
   end
   -- an eye-shaped knot in the bark
   px.ellipse(c, cx - 1, 128, 4, 2.4, 'k1'); P(c, cx - 2, 128, 'k3'); P(c, cx, 127, 'p1'); px.hline(c, cx - 5, cx + 3, 125, 'k2')
-  -- the crown: clusters of leaves, back to front, lit from the upper left
-  local clusters = {{70,30,22},{44,46,18},{96,46,18},{70,50,30},{48,70,22},{92,70,22},{70,80,24},{34,64,14},{108,64,14}}
+  -- the crown: puffs of leaves, back to front; each puff lit from the upper left in clean bands with leafy edges
+  local clusters = {{70,30,22},{44,46,19},{97,46,19},{70,52,28},{46,72,21},{94,72,21},{70,82,23},{33,62,13},{108,62,13},{58,24,13},{84,22,12}}
   table.sort(clusters, function(a, b) return a[2] < b[2] end)
   for ci, cl in ipairs(clusters) do
     local ccx, ccy, r = cl[1], cl[2], cl[3]
-    for y = ccy - r, ccy + r, 2 do for x = ccx - r, ccx + r, 3 do
-      local jx = x + math.floor(H(x, y + ci) * 3) - 1; local jy = y + math.floor(H(y, x - ci) * 2)
-      local nx, ny = (jx - ccx) / r, (jy - ccy) / r
-      if nx * nx + ny * ny <= 1 then
-        local lt = .5 + .42 * (-.72 * nx - .7 * ny) + (ccy < 50 and .08 or 0) - (ci < 3 and .1 or 0) + (H(jx, jy) - .5) * .24
-        local function L(dx, dy, d) local v = math.max(1, math.min(8, math.floor(1 + lt * 7 + .5) + d)); P(c, jx + dx, jy + dy, LEAF[v]) end
-        L(0, 0, 0); L(1, 0, 0); L(-1, 1, -1); L(0, 1, -1); L(1, 1, -2); L(0, -1, 1); L(2, 1, -2)
-        if lt > .78 then P(c, jx, jy - 1, 'L8') end
+    local front = (ccy - 24) / 60                       -- puffs lower down sit in front and catch more light
+    for y = ccy - r - 2, ccy + r + 2 do for x = ccx - r - 2, ccx + r + 2 do
+      -- a lumpy, leafy edge rather than a circle
+      local a = math.atan(y - ccy, x - ccx); local edge = r * (1 + .1 * math.sin(a * 7 + ci) + .06 * math.sin(a * 13 + ci * 3))
+      local d = math.sqrt((x - ccx) ^ 2 + (y - ccy) ^ 2)
+      if d <= edge then
+        local nx, ny = (x - ccx) / r, (y - ccy) / r
+        local leaf = (H(x // 3, y // 2 + ci) - .5) * .22                       -- leaf-sized steps in the light
+        local lt = .42 + .5 * (-.72 * nx - .68 * ny) + front * .14 + leaf
+        if d > edge - 1.5 and nx + ny > .2 then lt = lt - .3 end              -- the shadowed rim, bottom right
+        P(c, x, y, px.band(c, LEAF, lt, 2, 7))
       end
     end end
+    -- a dark crease where this puff overlaps the one behind it
+    for t = 0, 40 do local a = math.rad(20 + t * 3); local x = ccx + math.cos(a) * (r + 1); local y = ccy + math.sin(a) * (r + 1)
+      if px.get(c, x, y) ~= 0 then P(c, x, y, 'L2') end end
+    -- light catching leaf tips on the upper left
+    for k = 0, math.floor(r / 2) do
+      local a = math.rad(200 + H(k, ci) * 70); local rr = r * (.45 + H(ci, k) * .45)
+      local x, y = math.floor(ccx + math.cos(a) * rr), math.floor(ccy + math.sin(a) * rr)
+      P(c, x, y, 'L8'); P(c, x + 1, y, 'L7'); P(c, x, y + 1, 'L7')
+    end
   end
   -- deep gaps where the limbs show through
-  for _, g in ipairs({{58, 92}, {83, 90}, {70, 94}, {52, 80}}) do px.ellipse(c, g[1], g[2], 3, 2, 'L1') end
+  for _, g in ipairs({{58, 92, -1}, {83, 90, 1}, {50, 84, -1}, {90, 84, 1}}) do      -- the limbs glimpsed between puffs
+    for k = 0, 5 do local x = g[1] + g[3] * k * .6; local y = g[2] - k
+      P(c, x - 1, y, 'L2'); P(c, x, y, 'k3'); P(c, x + 1, y, 'k2'); P(c, x + 2, y, 'L2') end end
   px.outline(c, px.i(c, 'L1'), function(v) return v >= px.i(c, 'L1') and v <= px.i(c, 'L8') end)
   px.outline(c, px.i(c, 'OUT'))
   -- a few leaves let go

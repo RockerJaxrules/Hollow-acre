@@ -62,8 +62,15 @@ end
 function px.ramp(c, ramp, light, x, y, lo, hi)
   lo = lo or 1; hi = hi or #ramp; light = math.max(0, math.min(1, light))
   local v = lo + light * (hi - lo); local b = math.floor(v); local f = v - b
+  x = math.floor(x); y = math.floor(y)
   local t = BAYER[y % 4 + 1][x % 4 + 1] / 16
   local k = math.min(hi, b + (f > t and 1 or 0))
+  return px.i(c, ramp[k])
+end
+-- flat band (no dither): Stardew-style clean colour steps
+function px.band(c, ramp, light, lo, hi)
+  lo = lo or 1; hi = hi or #ramp; light = math.max(0, math.min(1, light))
+  local k = math.max(lo, math.min(hi, math.floor(lo + light * (hi - lo) + .5)))
   return px.i(c, ramp[k])
 end
 -- a one-pixel outline round everything drawn (or round pixels matching pred), on transparent pixels only
