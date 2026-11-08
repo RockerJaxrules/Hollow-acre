@@ -34,8 +34,8 @@ function heartEventsHtml(){const ppl=npcs.filter(n=>PEOPLE[n.def.id]&&(PEOPLE[n.
       const what=s==='seen'?'<span class="hes">Seen ✓</span>'
         :s==='ready'?`<span class="hen">Ready: talk to ${n.def.name} before ${clockH(HE_LATEST)}</span>`
         :s==='date'?`<span class="hel">Only once you’re dating (bring a bouquet at ♥8)</span>`
-        :`<span class="hel">${e.h-hearts(id)} more ${e.h-hearts(id)===1?'heart':'hearts'}</span>`;
-      h+=`<li><span class="heh">♥${e.h}</span> <span class="het">${s==='seen'||s==='ready'?e.title:'<i>'+e.title+'</i>'}</span> — ${what}</li>`;}
+        :`<span class="hel">${Math.ceil(e.h)-hearts(id)} more ${Math.ceil(e.h)-hearts(id)===1?'heart':'hearts'}</span>`;
+      h+=`<li><span class="heh">♥${Math.ceil(e.h)}</span> <span class="het">${s==='seen'||s==='ready'?e.title:'<i>'+e.title+'</i>'}</span> — ${what}</li>`;}
     h+='</ul></div>';}
   const top=`<p class="jsub">A heart event plays the first time you talk to someone during the day (before ${clockH(HE_LATEST)}) once they have enough hearts. Talk to people every day and bring gifts they like to raise hearts. If they have something to tell you about a job first, that comes first; talk again tomorrow.</p>`+
     (ready.length?`<p class="heready-sum">Ready now: <b>${ready.join(', ')}</b>${canNow?'':' (tomorrow, it’s too late tonight)'}</p>`:'');

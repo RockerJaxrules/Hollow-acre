@@ -11,7 +11,8 @@
 S.saga=S.saga||{done:{},ch:0};
 const SG_PLACE=(x,z)=>{for(let r=0;r<6;r+=.5)for(let a=0;a<12;a++){const X=x+Math.cos(a/12*6.283)*r,Z=z+Math.sin(a/12*6.283)*r;
   if(typeof LAYERS!=='undefined'&&LAYERS.water(X,Z))continue;const p={x:X,z:Z};collide(p,.45);if(Math.hypot(p.x-X,p.z-Z)<.03)return {x:X,z:Z};}return {x,z};};
-const sgPartner=()=>{let best=null,bh=-1;for(const id of Object.keys(PEOPLE)){if(!npcById(id))continue;const d=typeof romDating==='function'&&romDating(id);const h=hearts(id)+(d?100:0);if(h>bh){bh=h;best=id;}}return best||'mae';};
+// the one who cares most: whoever you're dating (the closest, if more than one), else the one of them you're closest to
+const sgPartner=()=>{let best=null,bh=-1;for(const id of Object.keys(typeof ROMANCE!=='undefined'?ROMANCE:PEOPLE)){if(!npcById(id))continue;const d=typeof romDating==='function'&&romDating(id);const h=hearts(id)+(d?100:0);if(h>bh){bh=h;best=id;}}return best||'mae';};
 const sgName=id=>{const n=npcById(id);return n?n.def.name.split(' ')[0]:'Caitlyn';};
 // ---- the beats
 const SAGA=[
