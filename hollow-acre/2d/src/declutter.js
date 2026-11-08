@@ -43,7 +43,7 @@ function grovePass(){
   const G=new Map();const key=(x,z)=>Math.floor(x/2)+','+Math.floor(z/2);
   for(const o of OBJ){if(o.hide||o.room||o.x>=250)continue;if(!(o.solid||['tree','pine','bld','prop','fence','lamp','bush','wreck','well','plant'].includes(o.kind)))continue;const k=key(o.x,o.z);(G.get(k)||G.set(k,[]).get(k)).push(o);}
   const near=(x,z,r)=>{for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++){const L=G.get((Math.floor(x/2)+i)+','+(Math.floor(z/2)+j));if(L)for(const o of L)if(!o.hide&&Math.abs(o.x-x)<r&&Math.abs(o.z-z)<r)return true;}return false;};
-  const free=(x,z)=>inCore(x,z)&&!kept(x,z)&&!onRoad(x,z,1.4)&&!LAYERS.water(x,z)&&!LAYERS.dirt(x,z)&&!(typeof inQuarry==='function'&&inQuarry(x,z))&&!BLOCK.some(r=>x>r[0]-1&&x<r[2]+1&&z>r[1]-1&&z<r[3]+1)&&!near(x,z,1.7);
+  const free=(x,z)=>inCore(x,z)&&!kept(x,z)&&!onAsphalt(x,z,1)&&!onRoad(x,z,1.4)&&!LAYERS.water(x,z)&&!LAYERS.dirt(x,z)&&!(typeof inQuarry==='function'&&inQuarry(x,z))&&!BLOCK.some(r=>x>r[0]-1&&x<r[2]+1&&z>r[1]-1&&z<r[3]+1)&&!near(x,z,1.7);
   // 1. the meadows: lone trees out in the open go (one in ten stays, a landmark on its own)
   for(const o of OBJ){if(o.hide||o.room||!(o.kind==='tree'||o.kind==='pine')||o.town||!inCore(o.x,o.z)||kept(o.x,o.z))continue;
     if(o.spr==='deadtree'||o.spr==='willow'||/^apple/.test(o.spr)||LAYERS.dark(o.x,o.z))continue;
@@ -60,7 +60,12 @@ function grovePass(){
       const kk=key(x,z);(G.get(kk)||G.set(kk,[]).get(kk)).push(e);made++;GROVES.added++;}
     if(made)GROVES.groves++;}
 }
-function declutter(){
+// Route 9's asphalt is drawn ten tiles wide west of the farm, wider than its road entry: nothing grows on it
+const onAsphalt=(x,z,m)=>x<-12.5+(m||0)&&Math.abs(z+6)<4.6+(m||0);
+function clearAsphalt(){let n=0;for(const o of OBJ){if(o.hide||o.room||!(o.kind==='tree'||o.kind==='pine'||o.kind==='bush'||o.kind==='plant'))continue;
+    if(!onAsphalt(o.x,o.z,.4))continue;o.hide=true;n++;for(let k=circles.length-1;k>=0;k--)if(Math.abs(circles[k].x-o.x)<.5&&Math.abs(circles[k].z-o.z)<.5)circles.splice(k,1);}
+  DECLUTTER.asphalt=n;}
+function declutter(){clearAsphalt();
   const DECOR=/^(pumpkin|jack|sacks|crate|barrel|bucket|weeds|fern|deadtree|spruce|pine_|hedge|grave_|tyres|drum|firewood|hay|bush_|holly|juniper|elder|sumac|mushroom|rock_)/;
   const SKIP=/^(twall|fence|picket|rgiron|stonewall)/;
   const foot=o=>{const m=SPR[o.spr];if(!m||!m.foot)return null;const f=m.foot;if(!(f[2]-f[0]>.05&&f[3]-f[1]>.02))return null;return [o.x+f[0],o.z+f[1],o.x+f[2],o.z+f[3]];};

@@ -119,7 +119,7 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
       ctx2.save();ctx2.beginPath();ctx2.rect(0,0,VW,Math.round(Y));ctx2.clip();
       shadow(X,Y,clip==='crawl'?24:16);drawSpr('hollow',X+jit,Y+rise,clip,clip==='hurt'?'S':H.dir,f,{alpha:H.alpha});ctx2.restore();
       // the eyes burn in the dark: a soft glow where they are
-      if(H.dir!=='N'&&nightK>.2){const side=H.dir==='E'?1:H.dir==='W'?-1:0;const ey=Y+rise-(clip==='crawl'?(side?44:30):clip==='lunge'?122:140);const ex=X+jit+side*15;
+      if(H.dir!=='N'&&nightK>.2){const side=H.dir==='E'?1:H.dir==='W'?-1:0;const ey=Y+rise-(clip==='crawl'?(side?46:34):clip==='lunge'?128:146);const ex=X+jit+side*9;
         const gr=ctx2.createRadialGradient(ex,ey,0,ex,ey,12);gr.addColorStop(0,`rgba(255,90,20,${(.35+Math.random()*.15)*H.alpha*nightK})`);gr.addColorStop(1,'rgba(255,40,10,0)');ctx2.fillStyle=gr;ctx2.fillRect(ex-12,ey-12,24,24);}}
     else if(d.ruth){const X=sx(ruth.x),Y=sz(ruth.z);drawSpr('ruth',X,Y,'walk',ruth.dir,0,{alpha:.45+Math.random()*.15});}
     else if(d.cat){drawSpr('cat',sx(cat.x),sz(cat.z),cat.clip,cat.dir,frameOf('cat',cat.clip,cat.t));}
@@ -161,8 +161,8 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
       // the flame and the glass
       glowAt(lp.x,lp.y,18+2*fk,[255,232,170],.95*k);glowAt(lp.x,lp.y,46,[255,170,80],.55*k*(.85+.15*fk));}
     lifeLight(t,L);if(cine&&cine.light)cine.light(L);interiorLight(L);
-    if(H.vis&&H.dir!=='N'){glowAt(sx(H.x),sz(H.z)-94,10,[255,40,20],.9*H.alpha);}
-    for(const g of ghosts)if(g.t>0)glowAt(sx(g.x),sz(g.z)-94,8,[255,40,20],g.t*2);}
+    if(H.vis&&H.dir!=='N'){const cl=H.clip,side=H.dir==='E'?1:H.dir==='W'?-1:0;const eh=cl==='crawl'?(side?46:34):cl==='lunge'?128:146;glowAt(sx(H.x)+side*9,sz(H.z)+(1-H.rise)*40-eh,10,[255,90,20],.9*H.alpha);}   // the eyes of the new, taller Hollow
+    for(const g of ghosts)if(g.t>0)glowAt(sx(g.x),sz(g.z)-146,8,[255,90,20],g.t*2);}
   if(flashT>0){lctx.globalCompositeOperation='lighter';lctx.fillStyle=`rgba(210,220,255,${clamp(flashT,0,1)})`;lctx.fillRect(0,0,VW,VH);}
   ctx2.globalCompositeOperation='multiply';ctx2.drawImage(lightC,0,0);ctx2.globalCompositeOperation='source-over';
   // vignette + danger pulse + grain
