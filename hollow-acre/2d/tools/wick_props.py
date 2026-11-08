@@ -58,321 +58,410 @@ def save(name, c, ax=None, ay=None, foot=(-1, -.4, 1, 0), extra=None):
     if extra: m.update(extra)
     SPRITES[name] = m; print(name, c.W, c.H)
 
-# ---------------------------------------------------------------- the fish drying rack
-def rack():
-    c = C(66, 58); G = 54
-    c.shadow(33, G + 1, 30, 3)
-    for x in (5, 57): post(c, x, 10, G, WOOD, 4)
-    for x in range(4, 63): c.p(x, 11, WOOD[3]); c.p(x, 12, WOOD[2]); c.p(x, 13, WOOD[1])
-    for x in (5, 57):
-        for k in range(10): c.p(x + 2 + (k // 3 if x == 5 else -k // 3), 14 + k, WOOD[2])   # braces
-    for i, x in enumerate(range(13, 54, 7)):
-        L = 11 + int(HASH(i, 1) * 5); FR = [(66, 62, 58), (112, 104, 90), (160, 150, 128), (200, 192, 170)]
-        c.line(x + 1, 14, x + 1, 17, ROPE[1])
-        for j in range(L):
-            w = 1 if j < 2 or j > L - 3 else 2
-            for k in range(-w + 1, w + 1): c.p(x + k, 18 + j, FR[3 if k < 0 else 2 if j < L * .6 else 1])
-        c.p(x - 1, 18 + L, FR[1]); c.p(x + 2, 18 + L, FR[1]); c.p(x, 20, (30, 30, 30))   # tail and eye
-    c.outline(); save('wk_rack', c, foot=(-1, -.3, 1, 0))
-# ---------------------------------------------------------------- an upturned rowboat on two chocks
-def boat():
-    c = C(78, 34); G = 30; HULL = [(26, 46, 56), (38, 72, 84), (54, 104, 116), (82, 140, 148), (124, 176, 178)]
-    c.shadow(38, G, 35, 3, 90)
-    x0, x1 = 4, 74
+
+# ================================================================ depth: the rules every prop here follows
+# - seen from the front and a little above: anything with a top shows it (lighter), its front face below (mid tone);
+#   round things (posts, drums, tyres, the bell) are shaded across, lit from the upper left with a bright streak near the left;
+# - the shading is hue-shifted: shadows drift cool (toward violet), highlights warm (toward gold), never just darker/lighter;
+# - the edge where a top meets a front catches a bright line; insets (windows, doors, trays) get a shadow along their top
+#   and left inside edges and a light sill;
+# - everything sits on the ground: a darker band where it meets the ground and a soft shadow falling down and to the right.
+import colorsys
+def ramp(hexc, n=6, spread=.95, hs=.06):
+    r, g, b = [int(hexc[i:i + 2], 16) / 255 for i in (1, 3, 5)]; h, s, v = colorsys.rgb_to_hsv(r, g, b); out = []
+    for i in range(n):
+        t = i / (n - 1) - .55
+        tgt = .70 if t < 0 else .12; d = ((tgt - h + .5) % 1) - .5; hh = (h + d * min(1, abs(t) * hs * 6)) % 1
+        ss = max(0, min(1, s * (1 - t * .55))); vv = max(0, min(1, v * (1 + t * spread)))
+        out.append(tuple(round(c * 255) for c in colorsys.hsv_to_rgb(hh, ss, vv)))
+    return out
+OUTC = (34, 22, 30)
+def ground(c, x0, x1, G, off=4, a=86):
+    """the soft shadow on the ground, falling down and to the right of the base"""
+    cx, rx = (x0 + x1) / 2 + off, (x1 - x0) / 2 + 3
+    for y in range(G - 2, G + 3):
+        for x in range(int(cx - rx), int(cx + rx) + 1):
+            d = ((x - cx) / rx) ** 2 + ((y - G) / 2.6) ** 2
+            if d < 1 and 0 <= x < c.W and 0 <= y < c.H and c.px[x, y][3] == 0: c.px[x, y] = (14, 16, 22, int(a * (1 - d * .6)))
+def contact(c, x0, x1, G, k=.72):
+    """darken the bottom rows of whatever stands on the ground line, so it sits instead of floating"""
     for x in range(x0, x1):
-        u = (x - x0) / (x1 - x0)   # 0 = stern (square), 1 = bow (pointed, rising)
-        keel = G - 4 - int(16 * (1 - (2 * u - 1) ** 4) ** .5 if u < .5 else 16 * (1 - ((u - .5) / .5) ** 2.2) ** .5)
-        gun = G - 3 - int(6 * max(0, u - .7) / .3 * max(0, u - .7) / .3)   # the sheer: the gunwale sweeps up to the bow
+        for dy, m in ((1, k), (2, .86)):
+            y = G - dy
+            if 0 <= x < c.W and 0 <= y < c.H:
+                p = c.px[x, y]
+                if p[3] == 255: c.px[x, y] = (round(p[0] * m), round(p[1] * m), round(p[2] * m), 255)
+def box(c, x, y, w, dt, hf, R, grain=0, seed=0, top=None, front=None):
+    """a block seen from the front and above: top face (dt rows) over front face (hf rows). R is a 6-tone ramp."""
+    for j in range(dt):
+        for i in range(w):
+            col = R[5] if j == dt - 1 else R[4] if j > 0 else R[3]
+            if grain and j not in (0, dt - 1) and HASH(i // grain, j, seed) < .25: col = R[3]
+            if top: col = top(i, j, col) or col
+            c.p(x + i, y + j, col)
+    for j in range(hf):
+        for i in range(w):
+            u = i / max(1, w - 1); col = R[4] if i == 0 else R[3] if u < .3 else R[2] if u < .85 else R[1]
+            if j == hf - 1: col = R[1]
+            if grain and HASH((i + j * 3) // grain, j // 2, seed + 1) < .12: col = R[max(0, R.index(col) - 1)]
+            if front: col = front(i, j, col) or col
+            c.p(x + i, y + dt + j, col)
+def cyl(c, cx, ytop, rx, h, R, cap=True, capc=None, ry=None):
+    """an upright cylinder: an elliptical top (lighter, rim lit at the front) over a body shaded round, its base curved"""
+    ry = ry or max(1, rx * .38)
+    for x in range(int(cx - rx), int(cx + rx) + 1):
+        u = (x - cx) / rx
+        if abs(u) > 1: continue
+        k = 0 if -.6 < u < -.3 else 1 if u < -.05 else 2 if u < .4 else 3 if u < .8 else 4
+        col = [R[5], R[4], R[3], R[2], R[1]][k]; arc = ry * math.sqrt(max(0, 1 - u * u))
+        for y in range(int(ytop + arc), int(ytop + h + arc) + 1): c.p(x, y, col)
+    if cap:
+        for y in range(int(ytop - ry), int(ytop + ry) + 1):
+            for x in range(int(cx - rx), int(cx + rx) + 1):
+                d = ((x - cx) / rx) ** 2 + ((y - ytop) / ry) ** 2
+                if d <= 1: c.p(x, y, (capc or R[4]) if d < .62 else R[5] if y > ytop else R[3])
+def pole(c, x, y0, y1, w, R):
+    """a post: square-ish, lit on its left face, shadowed on its right, its top a lighter cap"""
+    for y in range(y0, y1):
+        for i in range(w):
+            col = R[4] if i == 0 else R[3] if i < w * .5 else R[2] if i < w - 1 else R[1]
+            if HASH(x + i, y // 3, 9) < .06: col = R[1]
+            c.p(x + i, y, col)
+    for i in range(w): c.p(x + i, y0, R[5] if i < w - 1 else R[3])
+def inset(c, x0, y0, x1, y1, fill, Rframe):
+    """a recess (window, door, tray): frame, a shadow inside along its top and left, a light sill under it"""
+    for y in range(y0, y1):
+        for x in range(x0, x1): c.p(x, y, fill(x - x0, y - y0) if callable(fill) else fill)
+    for x in range(x0, x1): c.p(x, y0, (20, 18, 26), 150); c.p(x, y0 + 1, (20, 18, 26), 70)
+    for y in range(y0, y1): c.p(x0, y, (20, 18, 26), 110)
+    for x in range(x0 - 2, x1 + 2): c.p(x, y0 - 2, Rframe[2]); c.p(x, y0 - 1, Rframe[1]); c.p(x, y1, Rframe[4]); c.p(x, y1 + 1, Rframe[2])
+    for y in range(y0 - 2, y1 + 2): c.p(x0 - 2, y, Rframe[3]); c.p(x0 - 1, y, Rframe[2]); c.p(x1, y, Rframe[2]); c.p(x1 + 1, y, Rframe[1])
+W_ = ramp('#9a6a40'); WG = ramp('#8a8478'); ST = ramp('#8e9096'); TE = ramp('#2f8c8c'); CR = ramp('#d8d0bc'); RD = ramp('#b8402c'); RB = ramp('#3e3c40'); BRZ = ramp('#8a6a3a'); RP = ramp('#b48c56'); IR = ramp('#4a4a50')
+
+# ---------------------------------------------------------------- the fish drying rack: round poles, a round bar, fish hung in a row
+def rack():
+    c = C(70, 60); G = 56
+    for x in (6, 60): pole(c, x, 10, G, 4, W_)
+    for x in range(4, 66):   # the bar, a cylinder lying across
+        for j, col in enumerate((W_[5], W_[4], W_[3], W_[2], W_[1])): c.p(x, 10 + j, col)
+    for x in (6, 60):
+        for k in range(9): c.p(x + 2 + (k // 3 if x == 6 else -k // 3), 15 + k, W_[2])
+    FR = ramp('#9a9488')
+    for i, x in enumerate(range(14, 58, 7)):
+        L = 12 + int(HASH(i, 1) * 5); sw = int(HASH(i, 2) * 2)
+        c.line(x + 1, 15, x + 1 + sw, 18, RP[2])
+        for j in range(L):
+            w = 1 if j < 2 or j > L - 3 else 2; xx = x + sw
+            for k in range(-w + 1, w + 1): c.p(xx + k, 18 + j, FR[5] if k < 0 else FR[4] if j < L * .55 else FR[3] if k == 0 else FR[2])
+            c.p(xx + w + 1, 18 + j, FR[1]) if j % 3 == 0 and w == 2 else None
+        c.p(xx - 1, 18 + L, FR[2]); c.p(xx + 2, 18 + L, FR[2]); c.p(xx, 20, (24, 22, 30))
+        for k in range(3): c.p(xx + 6 + k, G - 1, (14, 16, 22), 60)   # each fish's own shadow on the ground
+    contact(c, 6, 10, G); contact(c, 60, 64, G); ground(c, 4, 66, G, 5, 60)
+    c.outline(OUTC); save('wk_rack', c, foot=(-1, -.3, 1, 0))
+# ---------------------------------------------------------------- an upturned rowboat: a round hull, the flat transom at the stern
+def boat():
+    c = C(80, 36); G = 31; HB = ramp('#3a7888')
+    x0, x1 = 6, 76
+    for x in range(x0, x1):
+        u = (x - x0) / (x1 - x0)
+        keel = G - 4 - int(17 * (1 - (2 * u - 1) ** 4) ** .5 if u < .5 else 17 * (1 - ((u - .5) / .5) ** 2.2) ** .5)
+        gun = G - 3 - int(6 * (max(0, u - .7) / .3) ** 2)
         for y in range(keel, gun):
-            v = (y - keel) / max(1, gun - keel); col = HULL[4] if y == keel else HULL[3] if v < .22 else HULL[2] if v < .62 else HULL[1]
-            if (y - keel) % 5 == 4 and 0 < v < .92: col = HULL[1]          # plank seams
-            if HASH(x, y, 2) < .018: col = (168, 160, 140)                  # a fleck of bare wood
+            v = (y - keel) / max(1, gun - keel); col = HB[5] if v < .1 else HB[4] if v < .3 else HB[3] if v < .55 else HB[2] if v < .8 else HB[1]
+            if (y - keel) % 5 == 4 and .15 < v < .92: col = HB[max(0, HB.index(col) - 1)]
+            if HASH(x, y, 2) < .015: col = (176, 168, 148)
             c.p(x, y, col)
-        c.p(x, gun, (156, 54, 38)); c.p(x, gun + 1, (112, 36, 26))         # the red gunwale
-    for x in (14, 50): c.r(x, G - 2, 6, 3, WOOD[2]); c.r(x, G - 2, 6, 1, WOOD[3])
-    c.outline(); save('wk_boat', c, foot=(-1.1, -.4, 1.1, 0))
-# ---------------------------------------------------------------- an eel trap (a wicker cone on its side) and a coil of rope
+        c.p(x, gun, RD[3]); c.p(x, gun + 1, RD[1])
+        c.p(x, keel, HB[5]) if 4 < x < x1 - 4 else None
+    for y in range(G - 18, G - 2):   # the transom: the flat square stern, in shadow
+        for x in range(x0 - 3, x0 + 1): c.p(x, y, HB[1] if x > x0 - 2 else HB[0])
+    for x in (16, 54): box(c, x, G - 3, 7, 1, 2, W_)
+    contact(c, x0 - 3, x1, G - 1); ground(c, x0, x1, G, 5, 96)
+    c.outline(OUTC); save('wk_boat', c, foot=(-1.1, -.4, 1.1, 0))
+# ---------------------------------------------------------------- an eel trap: a wicker funnel lying down, hoops round it, its dark mouth
 def trap():
-    c = C(32, 22); G = 19; WK = [(78, 58, 28), (122, 92, 48), (166, 132, 78), (204, 172, 112)]
-    c.shadow(16, G, 14, 2)
+    c = C(32, 24); G = 20; WK = ramp('#a88648')
     for x in range(3, 29):
         u = (x - 3) / 25; r = 2.5 + u * 5.5; cy = G - 2 - r
         for y in range(int(cy - r), int(cy + r) + 1):
-            v = (y - (cy - r)) / (2 * r); col = WK[3] if v < .22 else WK[2] if v < .55 else WK[1] if v < .85 else WK[0]
-            if (y + x // 2) % 3 == 0: col = WK[max(0, [3, 2, 1, 0][min(3, int(v * 4))] - 1)]   # the weave
-            if x % 7 == 0: col = WK[0] if v > .5 else WK[1]                                    # the hoops
-            c.p(x, y, col)
+            v = (y - (cy - r)) / (2 * r); k = 5 if v < .15 else 4 if v < .4 else 3 if v < .65 else 2 if v < .85 else 1
+            if (y + x // 2) % 3 == 0: k = max(0, k - 1)
+            if x % 7 == 0: k = max(0, k - 2) if v > .5 else min(5, k + 1)
+            c.p(x, y, WK[k])
     for y in range(G - 15, G - 1):
         for x in range(25, 30):
-            if ((x - 28) / 2.2) ** 2 + ((y - (G - 8)) / 6) ** 2 < 1: c.p(x, y, (30, 22, 12))   # the mouth
-    c.outline(); save('wk_trap', c, foot=(-.4, -.2, .4, 0))
+            if ((x - 28) / 2.2) ** 2 + ((y - (G - 8)) / 6) ** 2 < 1: c.p(x, y, (26, 20, 14))
+    contact(c, 3, 29, G - 1); ground(c, 3, 29, G, 3, 70)
+    c.outline(OUTC); save('wk_trap', c, foot=(-.4, -.2, .4, 0))
 def rope():
-    c = C(26, 16); G = 13; c.shadow(13, G, 12, 2)
-    # a spiral of rope seen from a little above: each turn a lit top edge and a shadowed underside, the loose end trailing off
+    c = C(26, 16); G = 13
     for a in range(0, 360 * 4, 3):
         t = a / (360 * 4); r = 10.5 - t * 8; an = math.radians(a)
-        x = 13 + math.cos(an) * r; y = G - 4 + math.sin(an) * r * .42
-        up = math.sin(an) < 0
-        c.p(x, y, ROPE[3] if up else ROPE[2]); c.p(x, y + 1, ROPE[1] if up else ROPE[0])
-        if a % 12 == 0: c.p(x, y, ROPE[1])   # the twist of the strands
-    for k in range(7): c.p(23 + k * .5, G - 3 + k * .3, ROPE[2]); c.p(23 + k * .5, G - 2 + k * .3, ROPE[0])
+        x = 13 + math.cos(an) * r; y = G - 4 + math.sin(an) * r * .42; up = math.sin(an) < 0
+        c.p(x, y, RP[5] if up else RP[3]); c.p(x, y + 1, RP[2] if up else RP[1])
+        if a % 12 == 0: c.p(x, y, RP[2])
+    for k in range(7): c.p(23 + k * .5, G - 3 + k * .3, RP[3]); c.p(23 + k * .5, G - 2 + k * .3, RP[1])
     c.p(13, G - 4, (40, 30, 18)); c.p(14, G - 4, (40, 30, 18))
-    c.outline(); save('wk_rope', c, foot=(-.3, -.15, .3, 0))
-# ---------------------------------------------------------------- nets hung up to dry, cork floats along the bottom
+    ground(c, 2, 24, G, 2, 70); c.outline(OUTC); save('wk_rope', c, foot=(-.3, -.15, .3, 0))
+# ---------------------------------------------------------------- nets hung up to dry: draped in folds, cork floats along the hem
 def nets():
-    c = C(76, 64); G = 61
-    c.shadow(38, G, 34, 3)
-    for x in (4, 68): post(c, x, 6, G, GREY, 4)
-    for x in range(4, 72): c.p(x, 7, ROPE[2])
-    NET = (70, 74, 56)
-    for i in range(0, 60, 5):
-        for j in range(0, 40):
-            x0 = 8 + i; sag = int(6 * math.sin((x0 - 8) / 60 * math.pi))
-            y = 8 + j + int(sag * j / 40)
-            if (j + i) % 5 == 0 or (j - i) % 5 == 0: c.p(x0 + (j % 5), y, NET)
-    for i in range(10, 66, 6):
-        sag = int(6 * math.sin((i - 8) / 60 * math.pi)); y = 48 + sag
-        c.r(i, y, 3, 2, (232, 120, 44)); c.p(i, y, (250, 180, 110))
-    c.outline(); save('wk_nets', c, foot=(-1.1, -.2, 1.1, 0))
-# ---------------------------------------------------------------- the fish stall: a striped awning, ice and the day's catch
+    c = C(78, 66); G = 62; NR = ramp('#5a6448')
+    for x in (4, 70): pole(c, x, 6, G, 4, WG)
+    for x in range(4, 74):
+        sag = 1.5 * math.sin((x - 4) / 70 * math.pi); c.p(x, 7 + sag, RP[4]); c.p(x, 8 + sag, RP[2])
+    for i in range(0, 62):
+        x0 = 9 + i; fold = math.sin(i / 62 * math.pi * 5)   # folds: the net bunches into vertical pleats
+        tone = 4 if fold > .5 else 3 if fold > -.2 else 2 if fold > -.7 else 1
+        top = 9 + int(1.5 * math.sin(i / 62 * math.pi)); hem = 48 + int(6 * math.sin(i / 62 * math.pi))
+        for y in range(top, hem):
+            if ((y - top) + i) % 4 == 0 or ((y - top) - i) % 4 == 0: c.p(x0, y, NR[tone])
+    for i in range(11, 70, 6):
+        hem = 48 + int(6 * math.sin((i - 9) / 62 * math.pi))
+        for k, col in enumerate(ramp('#e07a34')[5:1:-1]): c.p(i + (k % 2), hem + k // 2, col)
+        c.p(i + 1, hem + 2, ramp('#e07a34')[1])
+    for i in range(14, 70, 3): c.p(i + 6, G - 1, (14, 16, 22), 40)   # the net's thin shadow on the ground
+    contact(c, 4, 8, G); contact(c, 70, 74, G); ground(c, 4, 74, G, 4, 50)
+    c.outline(OUTC); save('wk_nets', c, foot=(-1.1, -.2, 1.1, 0))
+# ---------------------------------------------------------------- the fish stall: an awning (its top, its scalloped front, its shadow),
+# a table with an ice tray sunk in its top and the catch laid out, a crate of fish below, a chalkboard
 def stall():
-    c = C(88, 80); G = 77; T = [(30, 92, 96), (44, 128, 128), (70, 162, 158)]; WH = [(196, 192, 180), (226, 222, 210), (244, 242, 232)]
-    c.shadow(44, G, 40, 4, 90)
-    for x in (6, 78): post(c, x, 10, G, WOOD, 4)
-    # the awning, scalloped
-    for x in range(2, 86):
-        stripe = ((x - 2) // 8) % 2; R = T if stripe == 0 else WH
-        for y in range(6, 20):
-            v = (y - 6) / 14; c.p(x, y, R[2] if v < .3 else R[1] if v < .8 else R[0])
-        sc = 20 + int(2 * abs(math.sin((x - 2) / 8 * math.pi)))
-        for y in range(20, sc + 1): c.p(x, y, R[0])
-    for x in range(2, 86): c.p(x, 5, (240, 240, 230) if ((x - 2) // 8) % 2 else T[2])
-    # the table, the ice and the fish
-    for y in range(46, 56):
-        for x in range(8, 80): c.p(x, y, WOOD[3] if y == 46 else WOOD[2] if y < 52 else WOOD[1])
-    for y in range(40, 47):
-        for x in range(12, 76): c.p(x, y, (214, 232, 238) if HASH(x, y) > .25 else (170, 200, 214))
-    FR = [(60, 70, 80), (120, 134, 140), (178, 190, 194), (220, 228, 230)]
-    for i, x in enumerate(range(15, 70, 9)):
-        L = 7 + int(HASH(i, 3) * 3)
+    c = C(92, 84); G = 80; T = ramp('#2f8c8c'); WH = ramp('#e2ded0'); ICE = ramp('#cfe6ee'); FR = ramp('#98a6ac')
+    for x in (6, 82): pole(c, x, 12, G, 4, W_)
+    # the awning: its sloping top (lit), then its scalloped front edge in shade
+    for x in range(2, 90):
+        R = T if ((x - 2) // 8) % 2 == 0 else WH
+        for y in range(4, 16): c.p(x, y, R[5] if y < 6 else R[4] if y < 11 else R[3])
+        sc = 20 + int(2.5 * abs(math.sin((x - 2) / 8 * math.pi)))
+        for y in range(16, sc + 1): c.p(x, y, R[2] if y < sc else R[1])
+    for x in range(2, 90): c.p(x, 3, WH[5] if ((x - 2) // 8) % 2 else T[5])
+    for y in range(23, 31):   # the awning's shadow across the back of the stall
+        for x in range(10, 82): c.p(x, y, (16, 20, 26), 60 - (y - 23) * 6)
+    # the table: a block (top 9 rows, front 10), the ice tray sunk into the top
+    box(c, 8, 40, 76, 9, 10, W_, grain=6, seed=4)
+    inset(c, 13, 41, 79, 47, lambda i, j: ICE[5] if HASH(i // 2, j, 3) > .3 else ICE[4], W_)
+    for n, x in enumerate(range(16, 74, 9)):   # the catch, each fish with a lit back and a shadow on the ice
+        L = 7 + int(HASH(n, 3) * 3); yy = 42 + (n % 2)
         for k in range(L):
-            for j in (0, 1, 2): c.p(x + k, 41 + j + (i % 2), FR[3 - j] if k > 0 else FR[1])
-        c.p(x + L, 41 + (i % 2), FR[1]); c.p(x + L, 43 + (i % 2), FR[1]); c.p(x + 1, 42 + (i % 2), (20, 20, 24))
-    for x in (12, 70): post(c, x, 56, G, WOOD, 3)
-    # a crate of fish below, and the chalkboard
-    c.r(30, 62, 26, 12, WOOD[2]); c.r(30, 62, 26, 2, WOOD[3]); c.r(30, 67, 26, 1, WOOD[1])
-    c.r(58, 58, 18, 13, (40, 44, 40)); c.r(58, 58, 18, 1, WOOD[3]); c.text(60, 61, 'FISH', (230, 230, 220))
-    c.outline(); save('wk_stall', c, foot=(-1.3, -.6, 1.3, 0))
-# ---------------------------------------------------------------- the drowned bell: Wickham's square has a bell hung over a stone plinth
+            c.p(x + k, yy, FR[5] if k > 0 else FR[2]); c.p(x + k, yy + 1, FR[3]); c.p(x + k, yy + 2, FR[2]); c.p(x + k + 1, yy + 3, ICE[2])
+        c.p(x + L, yy, FR[2]); c.p(x + L, yy + 2, FR[2]); c.p(x + 1, yy + 1, (20, 20, 28))
+    for x in (12, 76): pole(c, x, 59, G, 3, W_)
+    box(c, 30, 62, 28, 5, 11, W_, grain=7, seed=5, top=lambda i, j, col: FR[4] if 0 < j < 4 and i % 5 in (1, 2, 3) else None)   # a crate of fish
+    box(c, 62, 58, 20, 2, 14, ramp('#3a4038'))
+    c.text(64, 63, 'FISH', (232, 232, 222), (90, 96, 88))
+    contact(c, 6, 86, G); ground(c, 4, 88, G, 6, 92)
+    c.outline(OUTC); save('wk_stall', c, foot=(-1.3, -.6, 1.3, 0))
+# ---------------------------------------------------------------- the drowned bell: a stone plinth (its top and its coursed front),
+# a timber frame, the bell (round, its mouth dark, verdigris where the river ran), candles at its foot
 def bell(lit=False):
-    c = C(60, 100); G = 97; ST = [(64, 66, 70), (92, 94, 98), (122, 124, 128), (156, 158, 160)]; BR = [(46, 36, 26), (82, 64, 40), (120, 96, 60), (160, 132, 84), (200, 176, 120)]
-    c.shadow(30, G, 26, 4, 90)
-    # the plinth
-    for y in range(G - 16, G):
-        for x in range(8, 52):
-            col = ST[3] if y == G - 16 else ST[2] if x < 20 else ST[1]
-            if (y - (G - 16)) % 6 == 5 or (x + ((y - (G - 16)) // 6) * 7) % 14 == 0: col = ST[0]
+    c = C(64, 104); G = 100
+    box(c, 8, G - 22, 48, 7, 15, ST, top=lambda i, j, col: ST[3] if HASH(i // 4, j, 7) < .2 else None,
+        front=lambda i, j, col: ST[0] if j % 5 == 4 or (i + (j // 5) * 6) % 12 == 0 else None)
+    for x in (13, 47): pole(c, x, 16, G - 22, 4, W_)
+    box(c, 9, 12, 46, 2, 4, W_)
+    for k in range(8): c.p(17 + k, 18 + k, W_[2]); c.p(46 - k, 18 + k, W_[2])
+    for x in range(22, 42): c.p(x, G - 19, (14, 16, 22), 70)   # the bell's shadow on the plinth top
+    for y in range(22, 52):
+        u = (y - 22) / 30; w = 6 + 7 * u ** 1.6 + (4 * (u - .8) / .2 if u > .8 else 0) - (1 if u < .12 else 0)
+        for x in range(int(32 - w), int(32 + w) + 1):
+            v = (x - (32 - w)) / (2 * w); k = 5 if .12 < v < .22 else 4 if v < .38 else 3 if v < .62 else 2 if v < .85 else 1
+            col = BRZ[k]
+            if HASH(x, y, 7) < .1 + u * .22: col = ramp('#4e927a')[max(1, k - 1)]
             c.p(x, y, col)
-    # the frame and the beam
-    for x in (12, 44): post(c, x, 14, G - 16, WOOD, 4)
-    for x in range(8, 52): c.p(x, 12, WOOD[4]); c.p(x, 13, WOOD[3]); c.p(x, 14, WOOD[2]); c.p(x, 15, WOOD[1])
-    for k in range(8): c.p(16 + k, 16 + k, WOOD[2]); c.p(43 - k, 16 + k, WOOD[2])
-    # the bell, green where the river ran over it
-    for y in range(20, 50):
-        u = (y - 20) / 30; w = 6 + 7 * u ** 1.6 + (4 * (u - .8) / .2 if u > .8 else 0) - (1 if u < .12 else 0)
-        for x in range(int(30 - w), int(30 + w) + 1):
-            v = (x - (30 - w)) / (2 * w); col = BR[4] if v < .18 else BR[3] if v < .4 else BR[2] if v < .75 else BR[1]
-            if HASH(x, y, 7) < .12 + u * .25: col = (70, 128, 108) if HASH(x, y, 8) < .5 else (92, 150, 126)   # verdigris
-            c.p(x, y, col)
-    for x in range(14, 47): c.p(x, 50, BR[1])
-    c.r(29, 16, 3, 4, BR[1]); c.r(29, 50, 2, 4, BR[2])   # crown and clapper
-    for k in range(18): c.p(30 + math.sin(k * .5) * .6, 54 + k, ROPE[2])   # the rope
-    # names cut in the plinth, candles at its foot
-    for k in range(5): c.r(16 + k * 6, G - 10, 4, 1, ST[0])
-    for x in (10, 47):
-        c.r(x, G - 4, 2, 4, (226, 218, 196))
+    for x in range(17, 48): c.p(x, 52, BRZ[1]); c.p(x, 53, (26, 20, 18)) if 19 < x < 46 else None   # the dark mouth
+    box(c, 30, 17, 4, 1, 4, BRZ); c.r(31, 52, 2, 4, BRZ[2])
+    for k in range(18): c.p(32 + math.sin(k * .5) * .6, 56 + k, RP[3])
+    for k in range(5): c.r(16 + k * 7, G - 9, 4, 1, ST[0])
+    for x in (10, 52):
+        cyl(c, x + 1, G - 6, 1.5, 4, CR, cap=True)
         if lit:
-            c.p(x, G - 6, (255, 200, 90)); c.p(x + 1, G - 6, (255, 200, 90)); c.p(x, G - 7, (255, 236, 160))
-            for dy in range(-3, 3):
-                for dx in range(-3, 4):
-                    if dx * dx + dy * dy < 9: c.p(x + dx, G - 6 + dy, (255, 190, 90), 60)
-        else: c.p(x, G - 5, (40, 30, 24))
-    c.outline(); save('wk_bell' + ('_n' if lit else ''), c, foot=(-.75, -.5, .75, 0))
-# ---------------------------------------------------------------- a lantern hung from a crooked wooden post
+            c.p(x, G - 9, (255, 200, 90)); c.p(x + 1, G - 9, (255, 214, 120)); c.p(x + 1, G - 10, (255, 240, 170))
+            for dy in range(-4, 4):
+                for dx in range(-4, 5):
+                    if dx * dx + dy * dy < 16: c.p(x + 1 + dx, G - 9 + dy, (255, 190, 90), 50)
+        else: c.p(x + 1, G - 8, (40, 30, 24))
+    contact(c, 8, 56, G); ground(c, 8, 56, G, 6, 96)
+    c.outline(OUTC); save('wk_bell' + ('_n' if lit else ''), c, foot=(-.75, -.5, .75, 0))
+# ---------------------------------------------------------------- a lantern hung from a crooked post
 def wlamp(lit=False):
-    c = C(26, 84); G = 81
-    post(c, 9, 8, G, WOOD, 4)
-    for x in range(9, 23): c.p(x, 8, WOOD[3]); c.p(x, 9, WOOD[1])
-    for k in range(6): c.p(12 + k, 10 + k, WOOD[2])   # the brace
-    c.line(21, 10, 21, 13, (40, 36, 34))
-    # the lantern: iron frame, glass, a little roof
-    for y in range(14, 28):
-        for x in range(17, 26):
-            fr = x in (17, 25) or y in (14, 27, 18)
-            if y < 17 and (x - 17 < 17 - y or 25 - x < 17 - y): continue
-            col = (44, 40, 38) if fr else ((255, 214, 120) if lit else (120, 128, 120)) if x < 22 else ((240, 170, 80) if lit else (90, 98, 92))
+    c = C(28, 86); G = 82
+    pole(c, 9, 8, G, 4, W_)
+    for x in range(9, 24): c.p(x, 8, W_[5]); c.p(x, 9, W_[3]); c.p(x, 10, W_[1])
+    for k in range(6): c.p(13 + k, 11 + k, W_[2])
+    c.line(22, 11, 22, 14, IR[1])
+    for y in range(14, 19):   # the cap: a little roof, its lit slope and its shaded slope
+        w = (y - 14) + 1
+        for x in range(22 - w, 23 + w): c.p(x, y, IR[4] if x < 22 else IR[2])
+    for y in range(19, 30):
+        for x in range(17, 28):
+            fr = x in (17, 27) or y in (19, 29, 24)
+            col = IR[2] if fr else ((255, 220, 130) if lit else (128, 140, 132)) if x < 22 else ((236, 168, 78) if lit else (92, 104, 98))
+            if not fr and not lit and x == 18 and y < 24: col = (176, 190, 184)   # a glint on the glass
             c.p(x, y, col)
+    for x in range(18, 27): c.p(x, 30, IR[1])
     if lit:
-        for dy in range(-7, 8):
-            for dx in range(-7, 8):
-                if dx * dx + dy * dy < 49: c.p(21 + dx, 22 + dy, (255, 200, 110), int(70 * (1 - (dx * dx + dy * dy) / 49)))
-    c.r(8, G - 1, 6, 2, WOOD[1])
-    c.outline(); save('wk_lamp' + ('_n' if lit else ''), c, ax=11, foot=(-.1, -.1, .1, .05))
-# ---------------------------------------------------------------- boardwalk planks (lies flat)
+        for dy in range(-8, 9):
+            for dx in range(-8, 9):
+                if dx * dx + dy * dy < 64: c.p(22 + dx, 24 + dy, (255, 200, 110), int(64 * (1 - (dx * dx + dy * dy) / 64)))
+    contact(c, 9, 13, G); ground(c, 7, 15, G, 3, 70)
+    c.outline(OUTC); save('wk_lamp' + ('_n' if lit else ''), c, ax=11, foot=(-.1, -.1, .1, .05))
+# ---------------------------------------------------------------- a raised boardwalk (lies flat): plank deck, a lit front lip, the beam
+# under it, posts, and its shadow on the ground
 def walk():
-    c = C(96, 30);
-    for y in range(0, 26):
+    c = C(96, 26); DK = ramp('#a07446')
+    for y in range(0, 15):
         for x in range(96):
-            k = x % 8; pl = x // 8; col = WOOD[3] if y < 2 else WOOD[2] if (pl % 3) else (150, 108, 68)
-            if k == 7: col = WOOD[0]
-            if HASH(pl, y // 4, 4) < .1 and k in (2, 3): col = WOOD[1]
-            if y in (4, 21) and k in (1, 5): col = (60, 54, 50)   # nail heads
+            k = x % 7; pl = x // 7; tone = 3 if (pl % 3 == 1) else 4 if (pl % 3 == 0) else 3
+            if y < 2: tone -= 1                                    # the far edge, a touch darker
+            col = DK[tone]
+            if k == 6: col = DK[1]                                 # the gaps between planks
+            if HASH(pl, y // 3, 4) < .12 and k in (2, 3): col = DK[max(0, tone - 1)]   # grain
+            if y in (3, 11) and k in (1, 4): col = (66, 58, 60)    # nail heads
             c.p(x, y, col)
-    for x in range(96): c.p(x, 26, WOOD[1]); c.p(x, 27, WOOD[0])
-    save('wk_walk', c, ax=48, ay=13, foot=(0, 0, 0, 0))
-# ---------------------------------------------------------------- Pruitt's forecourt (lies flat), the pump island, tyres, an oil drum
+    for x in range(96): c.p(x, 15, DK[5]); c.p(x, 16, DK[2]); c.p(x, 17, DK[1]); c.p(x, 18, DK[1]); c.p(x, 19, DK[0])
+    for x in range(4, 96, 24):
+        for y in range(20, 23): c.p(x, y, DK[1]); c.p(x + 1, y, DK[0])
+    for y in range(20, 25):
+        for x in range(96): c.p(x, y, (14, 16, 22), 70 - (y - 20) * 13) if c.px[x, y][3] == 0 else None
+    save('wk_walk', c, ax=48, ay=12, foot=(0, 0, 0, 0))
+# ---------------------------------------------------------------- Pruitt's forecourt (lies flat): a concrete slab with a little thickness
 def forecourt():
-    c = C(200, 96)
-    for y in range(96):
+    c = C(200, 96); CO = ramp('#9c9a92')
+    for y in range(93):
         for x in range(200):
-            edge = min(x, 199 - x, y, 95 - y)
-            if edge < 3 and HASH(x, y, 6) < .5 - edge * .15: continue   # a ragged, broken edge
-            col = (150, 148, 140) if HASH(x // 3, y // 3, 1) > .3 else (140, 138, 132)
-            if x % 48 == 0 or y % 48 == 0: col = (104, 102, 98)   # the joints
+            edge = min(x, 199 - x, y, 92 - y)
+            if edge < 3 and HASH(x, y, 6) < .5 - edge * .15: continue
+            col = CO[3] if HASH(x // 3, y // 3, 1) > .3 else CO[2]
+            if x % 48 == 0 or y % 48 == 0: col = CO[1]
+            if (x % 48 == 1 or y % 48 == 1) and x > 1 and y > 1: col = CO[4]   # each joint's lit lip
             c.p(x, y, col)
+    for x in range(3, 197): c.p(x, 93, CO[1]); c.p(x, 94, CO[0]); c.p(x, 95, (14, 16, 22), 60)   # the slab's thickness and shadow
     for cx, cy, r in ((70, 40, 9), (120, 60, 6), (150, 30, 5)):
         for y in range(cy - r, cy + r):
             for x in range(cx - 2 * r, cx + 2 * r):
-                if ((x - cx) / (2 * r)) ** 2 + ((y - cy) / r) ** 2 < 1 and HASH(x, y, 9) < .8: c.p(x, y, (60, 58, 62), 120)   # oil stains
+                if ((x - cx) / (2 * r)) ** 2 + ((y - cy) / r) ** 2 < 1 and HASH(x, y, 9) < .8: c.p(x, y, (58, 56, 64), 120)
     save('forecourt', c, ax=100, ay=48, foot=(0, 0, 0, 0))
 def island():
-    c = C(70, 22); G = 18
-    for y in range(G - 10, G):
-        for x in range(2, 68):
-            top = y < G - 6; col = (176, 174, 166) if top else ((228, 190, 40) if ((x // 5) % 2 == 0) else (40, 36, 34))
-            if y == G - 10: col = (200, 198, 190)
-            c.p(x, y, col)
-    c.outline(); save('pump_isle', c, foot=(-1, -.3, 1, 0))
+    c = C(70, 24); CO = ramp('#b0aea4')
+    box(c, 2, 4, 66, 6, 7, CO, front=lambda i, j, col: ((228, 190, 40) if (i // 5) % 2 == 0 else (40, 36, 34)) if j < 5 else None)
+    contact(c, 2, 68, 17); ground(c, 2, 68, 17, 3, 70)
+    c.outline(OUTC); save('pump_isle', c, ay=17, foot=(-1, -.3, 1, 0))
+# ---------------------------------------------------------------- tyres stacked: each a squat ring, the top one showing its hole
 def tyres():
-    c = C(30, 32); G = 29; c.shadow(15, G, 13, 2)
+    c = C(32, 34); G = 30; RU = ramp('#3c3a3e')
     for k in range(3):
         y0 = G - 8 - k * 7
         for y in range(y0, y0 + 8):
-            for x in range(2, 28):
-                v = (y - y0) / 8; col = (60, 58, 60) if v < .3 else (38, 36, 38) if v < .8 else (24, 22, 24)
-                if 10 <= x <= 19 and y == y0 + 2 and k == 2: col = (14, 12, 14)
-                c.p(x, y, col)
-    c.r(9, G - 22, 12, 2, (14, 12, 14))
-    c.outline(); save('tyres', c, foot=(-.4, -.3, .4, 0))
+            for x in range(3, 29):
+                u = (x - 16) / 13; v = (y - y0) / 8; t = 5 if v < .15 else 4 if v < .35 else 3 if v < .6 else 2 if v < .85 else 1
+                if u > .6: t = max(0, t - 1)
+                if (x + k) % 3 == 0 and .3 < v < .8: t = max(0, t - 1)   # the tread
+                c.p(x, y + (1 if abs(u) > .85 else 0), RU[t])
+    ty = G - 8 - 2 * 7 - 1
+    for y in range(ty - 3, ty + 4):
+        for x in range(3, 29):
+            d = ((x - 16) / 13) ** 2 + ((y - ty) / 3.6) ** 2; h = ((x - 16) / 6.5) ** 2 + ((y - ty) / 1.8) ** 2
+            if d <= 1: c.p(x, y, (14, 12, 16) if h <= 1 else RU[4] if y < ty else RU[3])
+    contact(c, 3, 29, G); ground(c, 3, 29, G, 4, 90)
+    c.outline(OUTC); save('tyres', c, foot=(-.4, -.3, .4, 0))
 def drum():
-    c = C(20, 30); G = 27; c.shadow(10, G, 9, 2)
-    for y in range(4, G):
-        for x in range(2, 18):
-            v = (x - 2) / 16; col = (176, 60, 40) if v < .25 else (140, 46, 32) if v < .7 else (100, 32, 24)
-            if y in (10, 18): col = (80, 26, 20)
-            if HASH(x, y, 5) < .07: col = (120, 80, 50)
-            c.p(x, y, col)
-    for x in range(2, 18): c.p(x, 3, (110, 40, 30)); c.p(x, 4, (190, 80, 56))
-    c.outline(); save('drum', c, foot=(-.3, -.3, .3, 0))
+    c = C(22, 32); G = 28
+    cyl(c, 11, 5, 8, 20, RD)
+    for yy in (11, 18):
+        for x in range(3, 20):
+            u = (x - 11) / 8; arc = 3 * math.sqrt(max(0, 1 - u * u)); c.p(x, yy + arc, RD[1]); c.p(x, yy - 1 + arc, RD[4] if u < .2 else RD[3])
+    for k in range(9):
+        x = 6 + int(HASH(k, 4) * 10); y = 9 + int(HASH(k, 5) * 14); c.p(x, y, (120, 74, 46)); c.p(x, y + 1, (100, 60, 40))
+    c.r(13, 4, 3, 2, IR[3]); c.p(13, 4, IR[5])
+    contact(c, 3, 20, G); ground(c, 3, 20, G, 3, 90)
+    c.outline(OUTC); save('drum', c, foot=(-.3, -.3, .3, 0))
 
-# ---------------------------------------------------------------- Lusk Fuel: the kiosk, the canopy over two old pumps, the price sign
-TEAL = [(18, 60, 64), (30, 90, 94), (44, 124, 126), (72, 160, 158), (120, 196, 190)]
-WALL = [(150, 144, 132), (184, 178, 164), (206, 200, 186), (226, 222, 208), (240, 238, 228)]
+# ---------------------------------------------------------------- Lusk Fuel
 def fuel(lit=False):
     W, H = 340, 184; c = C(W, H); G = 180
-    # ---- the kiosk (right): block walls painted cream, a teal band, flat roof behind a parapet
     kx0, kx1, wt = 176, 300, G - 66
-    for y in range(wt - 22, wt):   # the flat roof seen from above, tar paper
+    # the flat roof seen from above (lighter toward the front), the parapet's cap catching the light
+    for y in range(wt - 22, wt - 2):
         for x in range(kx0 + 2, kx1 - 2):
-            col = (78, 78, 82) if HASH(x // 4, y // 2, 3) > .2 else (66, 66, 70)
-            if y == wt - 22: col = (110, 110, 112)
+            k = 2 if y < wt - 16 else 3
+            col = RB[k] if HASH(x // 4, y // 2, 3) > .2 else RB[k - 1]
             c.p(x, y, col)
-    c.r(kx0 + 70, wt - 18, 16, 8, (96, 98, 100)); c.r(kx0 + 70, wt - 18, 16, 1, (130, 132, 134))   # a vent box
+    box(c, kx0 + 70, wt - 20, 16, 3, 5, ramp('#8a8c90'))   # a vent box
+    for x in range(kx0 - 2, kx1 + 2): c.p(x, wt - 3, CR[5]); c.p(x, wt - 2, CR[4]); c.p(x, wt - 1, CR[2])
+    # the walls: block courses, light falling off to the right, a shadow under the cap, grime at the foot
     for y in range(wt, G):
         for x in range(kx0, kx1):
-            v = (x - kx0) / (kx1 - kx0); col = WALL[3] if v < .15 else WALL[2] if v < .8 else WALL[1]
-            if (y - wt) % 8 == 7 or (x + ((y - wt) // 8) * 8) % 16 == 0: col = WALL[0]   # the blocks
-            if y > G - 5: col = WALL[0] if HASH(x, y) < .6 else (120, 112, 96)   # grime along the bottom
+            u = (x - kx0) / (kx1 - kx0); col = CR[4] if u < .12 else CR[3] if u < .75 else CR[2]
+            if (y - wt) % 8 == 7 or (x + ((y - wt) // 8) * 8) % 16 == 0: col = CR[1]
+            if y > G - 5: col = CR[1] if HASH(x, y) < .6 else (120, 112, 96)
             c.p(x, y, col)
     for y in range(wt, wt + 8):
-        for x in range(kx0, kx1): c.p(x, y, TEAL[3] if y == wt else TEAL[2] if y < wt + 6 else TEAL[1])
-    for x in range(kx0, kx1): c.p(x, wt + 6, (200, 60, 40))
-    for x in range(kx0 - 2, kx1 + 2): c.p(x, wt - 1, WALL[4]); c.p(x, wt - 2, WALL[3])
-    # the big window, things for sale behind the glass, posters
+        for x in range(kx0, kx1): c.p(x, y, TE[4] if y == wt else TE[3] if y < wt + 6 else TE[1])
+    for x in range(kx0, kx1): c.p(x, wt + 6, RD[3]); c.p(x, wt + 8, (20, 18, 26), 90); c.p(x, wt + 9, (20, 18, 26), 40)
+    # the window: sunk in its frame, shelves of cans behind the glass, posters stuck on it
     wx0, wx1, wy0, wy1 = kx0 + 8, kx0 + 70, wt + 14, G - 18
-    for y in range(wy0, wy1):
-        for x in range(wx0, wx1):
-            col = (255, 222, 150) if lit else (54, 72, 84)
-            if not lit and ((x - wx0) + (y - wy0)) % 23 < 3: col = (110, 140, 156)   # reflections
-            c.p(x, y, col)
-    for k in range(3):   # shelves of cans
+    def glass(i, j):
+        if lit: return (255, 222, 150)
+        return (120, 150, 166) if (i + j) % 23 < 3 else (48, 66, 80) if j > 2 else (36, 50, 62)
+    inset(c, wx0, wy0, wx1, wy1, glass, TE)
+    for k in range(3):
         sy = wy0 + 6 + k * 9
         for x in range(wx0 + 3, wx1 - 3):
-            c.p(x, sy + 5, (90, 70, 50) if not lit else (180, 130, 80))
-            if (x // 3) % 2 == 0: c.p(x, sy + 3, (200, 70, 50) if (x // 6) % 2 else (230, 200, 80)); c.p(x, sy + 4, (150, 50, 40) if (x // 6) % 2 else (190, 160, 60))
-    for x in range(wx0 - 2, wx1 + 2): c.p(x, wy0 - 2, TEAL[1]); c.p(x, wy0 - 1, TEAL[1]); c.p(x, wy1, TEAL[1]); c.p(x, wy1 + 1, WALL[4])
-    for y in range(wy0, wy1): c.p(wx0 - 2, y, TEAL[1]); c.p(wx0 - 1, y, TEAL[1]); c.p(wx1, y, TEAL[1]); c.p(wx1 + 1, y, TEAL[1]); c.p(wx0 + 31, y, TEAL[1])
-    c.r(wx0 + 4, wy0 + 2, 18, 9, (236, 230, 210)); c.text(wx0 + 6, wy0 + 4, 'BAIT', (180, 40, 30))
-    c.r(wx0 + 36, wy0 + 2, 14, 9, (200, 226, 236)); c.text(wx0 + 38, wy0 + 4, 'ICE', (30, 70, 120))
-    # the door: teal, glass in the top half, a sign that never turns round
+            c.p(x, sy + 5, (96, 76, 56) if not lit else (180, 130, 80))
+            if (x // 3) % 2 == 0: c.p(x, sy + 3, RD[4] if (x // 6) % 2 else (230, 200, 80)); c.p(x, sy + 4, RD[2] if (x // 6) % 2 else (190, 160, 60))
+    for y in range(wy0, wy1): c.p(wx0 + 31, y, TE[1])
+    box(c, wx0 + 4, wy0 + 2, 18, 1, 8, ramp('#ece6d2')); c.text(wx0 + 6, wy0 + 4, 'BAIT', RD[2])
+    box(c, wx0 + 36, wy0 + 2, 14, 1, 8, ramp('#cce2ea')); c.text(wx0 + 38, wy0 + 4, 'ICE', (30, 70, 120))
+    # the door, sunk in its frame: glass above, the push bar, the sign
     dx0, dx1 = kx0 + 84, kx0 + 104
-    for y in range(wt + 12, G):
-        for x in range(dx0, dx1):
-            col = TEAL[2] if x < dx0 + 3 else TEAL[1]
-            if y < wt + 34 and dx0 + 3 <= x < dx1 - 3: col = (255, 214, 140) if lit else (60, 80, 92)
-            c.p(x, y, col)
-    c.r(dx0 + 2, wt + 38, 16, 2, (190, 190, 190)); c.r(dx0 + 1, wt + 22, 18, 7, (200, 50, 36)); c.text(dx0 + 2, wt + 23, 'OPEN', (250, 240, 220))
-    c.r(dx0 - 2, G - 1, dx1 - dx0 + 4, 2, (130, 128, 120))
-    # ---- the canopy (left): a flat slab on two posts, its fascia lettered, two old pumps under it on an island
+    inset(c, dx0, wt + 12, dx1, G - 1, lambda i, j: ((255, 214, 140) if lit else (56, 76, 90)) if (j < 22 and 2 < i < 17) else (TE[3] if i < 3 else TE[2]), TE)
+    c.r(dx0 + 2, wt + 38, 16, 1, (210, 210, 210)); c.r(dx0 + 2, wt + 39, 16, 1, (130, 130, 136))
+    box(c, dx0 + 1, wt + 21, 18, 1, 7, RD); c.text(dx0 + 2, wt + 23, 'OPEN', (250, 240, 220))
+    box(c, dx0 - 3, G - 2, dx1 - dx0 + 6, 1, 2, ramp('#a8a6a0'))
+    # the canopy: its top (lighter toward the front edge), the lettered fascia, its lit underside lights at night
     cx0, cx1, ft = 8, 176, G - 92
-    for y in range(ft - 12, ft):   # its top
+    for y in range(ft - 12, ft):
         for x in range(cx0 + 2, cx1):
-            c.p(x, y, (176, 178, 176) if HASH(x // 6, y // 3, 5) > .15 else (160, 162, 160))
-            if y == ft - 12: c.p(x, y, (200, 202, 198))
-    for y in range(ft, ft + 16):   # the fascia
+            k = 3 if y < ft - 6 else 4
+            c.p(x, y, ramp('#b8bab6')[k] if HASH(x // 6, y // 3, 5) > .15 else ramp('#b8bab6')[k - 1])
+    for x in range(cx0 + 2, cx1): c.p(x, ft - 1, CR[5])
+    for y in range(ft, ft + 16):
         for x in range(cx0, cx1 + 2):
-            col = WALL[4] if y < ft + 3 else WALL[3]
-            if ft + 11 <= y < ft + 14: col = TEAL[2]
-            if y == ft + 14: col = (200, 60, 40)
-            if y == ft + 15: col = WALL[1]
+            col = CR[5] if y == ft else CR[4] if y < ft + 3 else CR[3]
+            if ft + 11 <= y < ft + 14: col = TE[3] if y == ft + 11 else TE[2]
+            if y == ft + 14: col = RD[3]
+            if y == ft + 15: col = CR[1]
+            if x > cx1 - 6 and y > ft: col = tuple(max(0, v - 18) for v in col)   # the far end in shade
             c.p(x, y, col)
-    lx = cx0 + (cx1 - cx0) // 2 - (9 * 4) // 2; c.text(lx, ft + 4, 'LUSK FUEL', (200, 54, 36), (120, 30, 20))
+    lx = cx0 + (cx1 - cx0) // 2 - (9 * 4) // 2; c.text(lx, ft + 4, 'LUSK FUEL', RD[3], RD[1])
     if lit:
-        for x in range(cx0 + 6, cx1 - 4): c.p(x, ft + 16, (230, 244, 255))   # the tube lights underneath
+        for x in range(cx0 + 6, cx1 - 4): c.p(x, ft + 16, (230, 244, 255))
     shade = (cx0 + 4, cx1 - 2, ft + 16, G)
-    for y in range(G - 12, G - 2):
-        for x in range(cx0 + 30, cx1 - 30):
-            col = (184, 182, 174) if y < G - 7 else ((228, 190, 40) if ((x // 5) % 2 == 0) else (40, 36, 34))
-            if y == G - 12: col = (210, 208, 200)
-            c.p(x, y, col)
-    for px0 in (cx0 + 46, cx0 + 102):   # two pumps, 1970s: rounded tops, a window of spinning figures, a hose on a hook
-        for y in range(G - 58, G - 12):
-            for x in range(px0, px0 + 22):
-                v = (x - px0) / 22; col = TEAL[3] if v < .2 else TEAL[2] if v < .75 else TEAL[1]
-                if y < G - 54 and (x - px0 < 2 or px0 + 21 - x < 2): continue
-                if G - 50 <= y < G - 40 and px0 + 3 <= x < px0 + 19: col = (236, 232, 214) if not lit else (250, 246, 220)
-                if y == G - 30: col = WALL[4]
-                c.p(x, y, col)
-        c.text(px0 + 4, G - 48, '0.89' if px0 < 100 else '13.7', (30, 30, 30))
-        c.r(px0 + 3, G - 28, 16, 10, TEAL[1]); c.r(px0 + 5, G - 26, 5, 6, (40, 40, 40)); c.r(px0 + 18, G - 36, 6, 4, (60, 60, 60))
-        for k in range(14): c.p(px0 + 23 + math.sin(k * .3) * 2, G - 33 + k, (30, 30, 30))   # the hose
-        c.r(px0 + 6, G - 64, 10, 6, (250, 244, 228) if lit else (226, 220, 200)); c.r(px0 + 6, G - 61, 10, 1, (200, 60, 40))   # the globe
-    for x in (cx0 + 6, cx1 - 8): post(c, x, ft + 16, G, [(120, 118, 112), (160, 158, 150), (196, 194, 186), (222, 220, 212), (240, 238, 230)], 5)
-    # ---- the price sign on its pole (far right)
-    sx0 = 304; post(c, sx0 + 13, 30, G, GREY, 4)
-    for y in range(8, 44):
-        for x in range(sx0, sx0 + 30):
-            col = (196, 54, 36) if y < 10 or y > 41 or x < sx0 + 2 or x > sx0 + 27 else ((252, 248, 236) if lit else (232, 228, 214))
-            c.p(x, y, col)
-    c.text(sx0 + 9, 13, 'GAS', (30, 90, 94)); c.text(sx0 + 7, 22, '.89', (30, 30, 30)); c.text(sx0 + 5, 32, 'BAIT', (180, 40, 30))
-    c.p(sx0 + 15, 25, (30, 30, 30))   # the cents mark, worn off
-    c.outline()
-    # the shade under the canopy (no outline round it): deepest at the back, fading toward the front
+    # the island and the two pumps: each pump a box (its top showing), the globe a lit ball, a hose on its hook
+    box(c, cx0 + 30, G - 14, cx1 - cx0 - 60, 5, 8, ramp('#b0aea4'), front=lambda i, j, col: ((228, 190, 40) if (i // 5) % 2 == 0 else (40, 36, 34)) if j < 6 else None)
+    for px0 in (cx0 + 46, cx0 + 102):
+        box(c, px0, G - 60, 22, 4, 46, TE, front=lambda i, j, col: ((246, 242, 224) if lit else (232, 228, 210)) if 6 <= j < 16 and 3 <= i < 19 else CR[5] if j == 26 else None)
+        c.text(px0 + 4, G - 52, '0.89' if px0 < 100 else '13.7', (30, 30, 30))
+        box(c, px0 + 3, G - 30, 16, 1, 9, TE); c.r(px0 + 5, G - 28, 5, 6, (34, 34, 40)); box(c, px0 + 18, G - 40, 6, 1, 4, IR)
+        for k in range(16): c.p(px0 + 23 + math.sin(k * .3) * 2, G - 36 + k, (28, 28, 34)); c.p(px0 + 24 + math.sin(k * .3) * 2, G - 36 + k, (70, 70, 80))
+        for y in range(G - 70, G - 61):
+            for x in range(px0 + 5, px0 + 17):
+                d = ((x - (px0 + 11)) / 6) ** 2 + ((y - (G - 65.5)) / 4.5) ** 2
+                if d <= 1: c.p(x, y, (255, 250, 236) if lit else (250, 246, 230) if (x - px0 < 9 and y < G - 66) else (226, 220, 200) if d < .7 else (190, 182, 160))
+        c.r(px0 + 5, G - 64, 12, 1, RD[3])
+    for x in (cx0 + 6, cx1 - 8): pole(c, x, ft + 16, G, 5, ramp('#d6d4cc')); box(c, x - 1, G - 4, 7, 1, 3, ramp('#a8a6a0'))
+    # the price sign: a board with thickness on a round pole
+    sx0 = 304
+    for y in range(30, G):
+        for i in range(4): c.p(sx0 + 13 + i, y, WG[[4, 3, 2, 1][i]])
+    box(c, sx0, 6, 30, 2, 36, ramp('#e8e4d6'), front=lambda i, j, col: RD[3] if i < 2 or i > 27 or j < 2 or j > 33 else ((252, 248, 236) if lit else None))
+    c.text(sx0 + 9, 13, 'GAS', TE[1]); c.text(sx0 + 7, 22, '.89', (30, 30, 30)); c.text(sx0 + 5, 32, 'BAIT', RD[2])
+    contact(c, kx0, kx1, G); contact(c, sx0 + 13, sx0 + 17, G)
+    ground(c, cx0, kx1, G, 8, 70)
+    c.outline(OUTC)
     sx0_, sx1_, sy0_, sy1_ = shade
     for y in range(sy0_, sy1_):
         for x in range(sx0_, sx1_):
-            if c.px[x, y][3] == 0: c.p(x, y, (16, 22, 26), int((80 if not lit else 34) * (1 - (y - sy0_) / (sy1_ - sy0_) * .6)))
-    # the door sits at the kiosk door: for home_lusk's door (world x) and where you come out
+            if c.px[x, y][3] == 0: c.p(x, y, (16, 22, 30), int((84 if not lit else 34) * (1 - (y - sy0_) / (sy1_ - sy0_) * .55)))
     save('fuel' + ('_n' if lit else ''), c, ax=W / 2, ay=G - 1, foot=(-5.1, -2.2, 4.5, 0), extra={'bw': 10, 'door_dx': (dx0 + dx1) / 2 - W / 2})
 
 if __name__ == '__main__':
