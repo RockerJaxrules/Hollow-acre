@@ -74,9 +74,12 @@ function stStart(){const st=S.st;st.started=true;st.tithe=0;st.act=2;
 interact.push({x:MAILPOS.x,z:MAILPOS.z,r:1.1,on:()=>!!S.st.mail,label:()=>'Read',ok:()=>true,act(){const L=S.st.mail;S.st.mail=null;S.st.lettersRead++;SFX.page&&SFX.page();
   const day=S.day+1;openNote(`<h3>Day ${day}</h3><p>${ST_LETTERS[L]}</p>${L==='epi_door'?'':'<p style="text-align:right">— you</p>'}`,'Keep it',()=>{mindHit(L==='first'?6:4);if(L==='first'){S.st.act=3;addLore('A letter in my handwriting: the three stones are under the dock, in the hollow tree at noon, and under my bed. Put them back.');}});}});
 // before the letter, the cord is only something you notice at the end of the dock
-interact.push({x:LAKE.x,z:LAKE.z-LAKE.rz+2.6,r:1.4,on:()=>!S.st||S.st.act<3,label:()=>'Look',ok:()=>true,act(){toast('A cord is knotted round the last plank and goes straight down into the black water. It’s pulled tight. Whatever is on the end is heavy.',4);}});
+interact.push({x:LAKE.x,z:LAKE.z-LAKE.rz+2.6,r:1.4,on:()=>!S.st||S.st.act<3||S.st.got.dock,label:()=>'Look',ok:()=>true,act(){
+  if(S.st&&S.st.got.dock){toast('The cord hangs slack off the last plank now, frayed at the end. You already have the lake’s stone.',3.6);return;}
+  toast('A cord is knotted round the last plank and goes straight down into the black water. It’s pulled tight. Whatever is on the end is heavy.',4);}});
 interact.push({x:LAKE.x,z:LAKE.z-LAKE.rz+2.6,r:1.6,tool:'rod',on:()=>S.st.act>=3&&!S.st.got.dock,label:()=>S.rod<2?'Cord':'Hook it',ok:()=>true,act(){if(S.rod<2){toast('The cord goes straight down into black water. Your arm isn’t long enough and your rod would snap. Otto sells an ash rod that might hook it.',4);SFX.deny();return;}S.st.got.dock=1;SFX.thud&&SFX.thud(0,.3);mindHit(6);
   toast('You hook the cord and haul. It fights like a fish, then like a hand. Then it lets go. On the end: a black stone, warm as skin.',4,true);}});
+interact.push({x:HOLLOW_TREE.x,z:HOLLOW_TREE.z-1.3,r:1.8,on:()=>S.st&&S.st.act>=3&&S.st.got.tree,label:()=>'Look',ok:()=>true,act(){toast('The hollow is empty now, split open where your axe went in. You already have its stone.',3.4);}});
 interact.push({x:HOLLOW_TREE.x,z:HOLLOW_TREE.z-1.3,r:1.8,tool:'axe',on:()=>S.st.act>=3&&!S.st.got.tree,label:()=>'Reach in',ok:()=>true,act(){
   if(S.hour<11.5||S.hour>13){toast('The hollow is only dark. The carving says WHEN THE SUN IS IN. Come back at noon.',3);SFX.deny();return;}
   if(S.tools.axe<2){toast('The light goes in, but the hollow has grown shut around something. Your axe just bounces. A steel axe would split it.',3.6);SFX.deny();return;}
@@ -223,3 +226,15 @@ function storyUpdate(dt){const st=S.st;stHud();if(!S.bound)return;if(!st.started
 {const _t=talk;talk=function(n){_t(n);if(stLast()&&rand()<.35&&$('talkLine'))setTimeout(()=>{if(!$('talk').hidden)$('talkLine').innerHTML=`<q>${pick(ST_TALK)}</q>`;},0);};}
 // ---- the map shows the Tithe House once you know
 if(typeof MAP_PLACES!=='undefined'&&!MAP_PLACES.some(p=>/Tithe/.test(p[0])))MAP_PLACES.push(['Tithe House',TITHE.x,TITHE.z]);
+
+// ---- the journal says where you are in the story: what's done and what's left, and the three stones one by one
+{const _oj=openJournal;openJournal=function(){_oj.apply(this,arguments);const el=$('noteText');const sub=el&&el.querySelector('.jsub');if(!sub)return;
+  const st=S.st,tick=b=>b?'<b style="color:#8fd06a">✓</b>':'<span style="opacity:.5">○</span>';let h='<h4>The story so far</h4>';
+  if(!S.bound||!st.started)h+='<p class="jsub">Chapter One. Follow the goal at the top of the screen.</p>';
+  else if(st.done)h+='<p class="jsub">It’s over. Whatever you chose, you chose it.</p>';
+  else if(st.act===2){h+='<p>Chapter Two: the Tithe. When all of these are done, a letter comes to your mailbox.</p>'+ST_PLACES.map(p=>`<p>${tick(st.seen[p.k])} ${p.name}</p>`).join('')+
+    `<p>${tick(stKnown()>=8)} Things known: ${Math.min(stKnown(),8)}/8</p><p>${tick(wardDone()>=2)} Ward bundles kept at the church: ${Math.min(wardDone(),2)}/2</p>`;}
+  else{if(st.mail)h+='<p><b>There’s a letter in your mailbox.</b> Stand at it and press X (or tap the tag).</p>';
+    h+='<p>The three black stones:</p>'+[['dock','Under the Black Lake dock (Otto’s ash rod hooks it)'],['tree','In the hollow tree, at noon (steel axe)'],['bed','Under your bed (steel pickaxe)']].map(([k,t])=>`<p>${tick(st.got[k])} ${t}${st.got[k]?' · <i>found</i>':''}</p>`).join('')+
+      `<p>${tick(st.set>=3)} Set on the Tithe House doorstep: ${Math.min(st.set||0,3)}/3</p>`;}
+  sub.insertAdjacentHTML('afterend',h);};}

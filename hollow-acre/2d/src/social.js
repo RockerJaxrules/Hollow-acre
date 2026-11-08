@@ -142,10 +142,12 @@ for(const f of finds)interact.push({x:f.x,z:f.z,r:1.3,on:()=>!S.lore.includes(f.
 function findsDraw(t){for(const f of finds){if(S.lore.includes(f.title+'|')||!f.need())continue;if(!onScreen(f.x,f.z,40))continue;const k=(Math.sin(t*3+f.x)+1)/2;if(k<.5)continue;
     const X=Math.round(sx(f.x)),Y=Math.round(sz(f.z))-12-Math.round(k*3);ctx2.fillStyle=`rgba(255,245,200,${(k-.5)*1.6})`;ctx2.fillRect(X,Y-2,1,5);ctx2.fillRect(X-2,Y,5,1);}}
 // ---------- the journal
+// a gift's name, whether it's farm produce or something from the bag (iron bars, stew, hollow-glass)
+function giftName(k){return GIFTS[k]||(typeof itemInfo==='function'&&(itemInfo('I:'+k)||{}).name)||(typeof PRODUCE_NAMES!=='undefined'&&PRODUCE_NAMES[k])||String(k).replace(/_/g,' ');}
 function openJournal(){S.paused=true;const T=tierOf(M.v);
   const corrupt=s=>T<2?s:s.split(' ').map(w=>hash(w.length*13,S.day+w.charCodeAt(0))>(T>=3?.86:.94)?pick(['it','is','inside','behind you','YOU','wake up','corn','31']):w).join(' ');
   let h=`<h3>Journal</h3><p class="jsub">Day ${T>=3&&rand()<.4?31:S.day}. ${S.pages.length}/6 of Grandpa’s pages.</p>`;
-  h+='<h4>People</h4>';for(const n of npcs){const id=n.def.id;if(!PEOPLE[id])continue;h+=`<div class="jrow"><b>${n.def.name}</b> <span class="hearts">${heartStr(id)}</span><br><span class="jsub">${corrupt(n.def.role)}. Loves ${PEOPLE[id].loves.map(k=>GIFTS[k]).join(', ')}.</span></div>`;}
+  h+='<h4>People</h4>';for(const n of npcs){const id=n.def.id;if(!PEOPLE[id])continue;h+=`<div class="jrow"><b>${n.def.name}</b> <span class="hearts">${heartStr(id)}</span><br><span class="jsub">${corrupt(n.def.role)}. Loves ${PEOPLE[id].loves.map(giftName).join(', ')}.</span></div>`;}
   const lore=S.lore.filter(l=>!l.endsWith('|'));h+='<h4>What you know</h4>'+(lore.length?lore.map(l=>`<p>• ${corrupt(l)}</p>`).join(''):'<p class="jsub">Nothing yet. Ask around. Look closer.</p>');
   if(S.pages.length){h+='<h4>Grandpa’s pages</h4>'+S.pages.map(i=>`<p>• <i>${PAGES[i].date}</i> — ${corrupt(PAGES[i].text.slice(0,90))}…</p>`).join('');}
   if(T>=3)h+=`<p class="jsub" style="color:#b33">${pick(['You did not write this page.','There is a page here in your handwriting. It just says: STOP COUNTING.','Someone has drawn a tall figure in the margin of every page.'])}</p>`;
