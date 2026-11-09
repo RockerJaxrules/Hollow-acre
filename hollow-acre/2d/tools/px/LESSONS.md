@@ -278,6 +278,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   (overlap 3-4 px, a dark line between), a step darker and cooler, and join them with a vine into the stem.
 - A dried leaf tip as pale as the husks reads as a third ear or a bone: dull tan, two steps under the husk's lightest,
   never cream.
+- [round 10: all 11 at 6] What finally worked for the pumpkin leaf: smooth rounded lobes (ellipses) each ending in one
+  1 px point, wider than tall, one body tone, a lit rim up-left, a shade rim down-right, a pale vein per lobe (or one
+  midrib on a small leaf); back leaves a step darker and cooler; leaves overlapping with a dark line between.
+- A straight 1-2 px line on the soil reads as a dropped twig: a vine must start at the stem, curve, and end in a curl.
 - A young pumpkin in deep blue-green reads as a mossy stone among green leaves; warm it toward olive.
 - Ripe pumpkin: scalloped joins at the top and bottom made it octagonal. Dip only the middle joins, by one pixel, at the
   top; keep the base closed; one highlight mass.
