@@ -134,9 +134,9 @@ function torsoFront(cx,top,hip,back){const half=6+WIDE;
     for(let j=0;j<SKN.length;j++){const [a,b]=SKN[j],y=top+j;
       for(let u=a;u<=b;u++){const L=u<=0,iu=L?-u:u-1;let k;
         if(j<=1)k=L?4:3;
-        else{k=L?(iu>=2?4:iu===1?3:2):(iu>=3?2:3);if(j>=4)k=Math.max(1,k-1);if(iu===0)k=j>=3?(L?0:1):(L?1:2);}
+        else{k=L?(iu>=2?4:iu===1?3:2):(iu>=3?2:3);if(j>=4)k=Math.max(1,k-1);if(iu===0)k=j>=2?(L?0:1):(L?1:2);}   // the cleft from row 2: it reads at game scale (owner)
         p(cx+u,y,SK[k]);}
-      p(cx+a-1,y,shirtAt(cx+a-1,y)[4]);p(cx+b+1,y,shirtAt(cx+b+1,y)[1]);}
+      p(cx+a-1,y,shirtAt(cx+a-1,y)[1]);p(cx+b+1,y,shirtAt(cx+b+1,y)[0]);}   // a dark edge to the neckline: a clear break between cloth and skin
     for(let u=-5;u<=6;u++)p(cx+u,top+7,shirtAt(cx+u,top+7)[u<1?1:0]);}
   if(C.apron&&!back){const R=EX;for(let y=top+(ALL?7:3);y<=hem+(LEGSKIN?5:2);y++)for(let u=-3;u<=4;u++)p(cx+u,y,R[u===-3?4:u===4?1:y===top+3?4:3]);p(cx-4,top+3,R[2]);p(cx+5,top+3,R[2]);}}
 // skirts and long coats hang over the legs

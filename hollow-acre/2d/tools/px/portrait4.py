@@ -374,16 +374,18 @@ class Painter:
         L = np.where(s.bust_m, s.bust_lit, cv.lit)
         cv.put(s.bust_m & cv.where('skin'), 'skin', L)
         top = cy - b * .94
-        # the cleavage: a soft V of shadow where the two forms meet, deepest just under the neckline and fading down,
-        # with a short crease (not a hard streak running off the frame, which read as a stain)
-        vshade = np.exp(-((X - CX - .3) / (1.2 + .12 * np.clip(Y - top, 0, 30))) ** 2) * sstep(top + 2, top + 6, Y) * (1 - .6 * sstep(cy, cy + 10, Y))
-        cv.add(s.bust_m, 'skin', -.3 * vshade)
-        cv.put(stroke(bez([(CX + .25, top + 5.5), (CX - .1, top + 9.5), (CX + .3, top + 15)], 20), [.3, .7, .2]), 'cleave', .5)
-        for sg in (-1, 1):   # the inner curve of each breast, meeting in a soft Y
-            cv.put(stroke(bez([(CX + sg * .4, top + 7.5), (CX + sg * 2.2, top + 9.2), (CX + sg * 4.2, top + 12.6)], 12), [.6, .5, .2]), 'cleave', .5)
-            cv.add(ell(CX + sg * (sep - 3.5), top + 4.5, 4.2, 2.2) & s.bust_m, 'skin', .07)
+        # the cleavage (owner: clearly visible, drawn well): each breast shaded one step on its inner, lower curve, the two
+        # meeting in a short crease just under the neckline; one highlight at the upper left of each (the light is top-left).
+        # No full-length streak and no side ticks: those read as a slit or a stain.
         for sg in (-1, 1):
-            cv.add(ribbon(bez([(CX + sg * 3, top + 5.2), (CX + sg * (sep - 3), top - .4), (CX + sg * (sep + 8), top + 3.5)], 30), [.2, 1.0, .3])[0] & s.bust_m, 'skin', .07)
+            bx = CX + sg * sep; u = (X - bx) / b; v = (Y - cy) / b
+            inner = sstep(.15, .85, -u * sg) * sstep(-.55, .35, v)
+            cv.add(bm[0 if sg < 0 else 1], 'skin', -.16 * inner)
+            cv.add(ell(bx - b * .38, cy - b * .5, b * .3, b * .17) & bm[0 if sg < 0 else 1], 'skin', .08)   # the upper-left highlight
+        cv.add(s.bust_m, 'skin', -.22 * np.exp(-((X - CX - .3) / 1.3) ** 2) * sstep(top + 3, top + 6, Y) * (1 - sstep(top + 9, top + 13, Y)))
+        cv.put(stroke(bez([(CX + .25, top + 5.5), (CX, top + 7.5), (CX + .2, top + 9.5)], 12), [.3, .6, .2]), 'cleave', .5)
+        for sg in (-1, 1):
+            cv.add(ribbon(bez([(CX + sg * 3, top + 5.2), (CX + sg * (sep - 3), top - .4), (CX + sg * (sep + 8), top + 3.5)], 30), [.2, 1.0, .3])[0] & s.bust_m, 'skin', .07 if sg < 0 else .03)
 
     def neckline(s):
         """the cut of the top: returns the mask of skin it leaves bare"""
@@ -981,9 +983,10 @@ class Painter:
         C, cv = s.C, s.cv; kind = C.get('necklace')
         if not kind: return
         if kind == 'chain':
-            pts = bez([(CX - 9.2, 90 + BO), (CX - 6, 105.5 + BO), (CX + 6, 105.5 + BO), (CX + 9.2, 90 + BO)], 40)
+            dy = -2.2 if C.get('allure') else 0   # the young women: the chain sits higher so the pendant never covers the cleavage (owner)
+            pts = bez([(CX - 9.2, 90 + BO), (CX - 6, 105.5 + BO + dy), (CX + 6, 105.5 + BO + dy), (CX + 9.2, 90 + BO)], 40)
             cv.put(ribbon(pts, [.6, .75, .75, .6])[0], 'metal', .55 + .2 * (X < CX))
-            cv.put(ell(CX, 107.6 + BO, 1.5, 2.0), 'metal', .45 + .4 * G(CX - .6, 106.8 + BO, .8, .8))
+            cv.put(ell(CX, 107.6 + BO + dy, 1.5, 2.0), 'metal', .45 + .4 * G(CX - .6, 106.8 + BO + dy, .8, .8))
         elif kind == 'pearls':
             pts = bez([(CX - 9.4, 90 + BO), (CX - 5.5, 103 + BO), (CX + 5.5, 103 + BO), (CX + 9.4, 90 + BO)], 400)
             for k in range(0, 400, 26):
