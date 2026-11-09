@@ -265,6 +265,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   grooves that bow with the form, keep the fruit a step below the leaf, and put one highlight at top-left.
 - A separate dead leaf that bends at a right angle and hangs straight reads as a tag or a peg. Dry the tip of a real leaf
   instead.
+- In a darker back tone set, a leaf whose outline and body are only one step apart loses its lobes: keep the lit rim
+  and the vein bright even on back leaves, and cut notches 2-3 px deep (1 px notches vanish into a dome).
+- A fruit whose grooves and highlight sit one step off its body is a flat lump: grooves two steps darker, a 3x2
+  highlight, a dark edge along the bottom-right.
+- A dried leaf tip must not touch an ear (they merge into a club with a peg), and it turns in two steps (olive-straw,
+  then straw), not one hard step.
 - A young pumpkin in deep blue-green reads as a mossy stone among green leaves; warm it toward olive.
 - Ripe pumpkin: scalloped joins at the top and bottom made it octagonal. Dip only the middle joins, by one pixel, at the
   top; keep the base closed; one highlight mass.
