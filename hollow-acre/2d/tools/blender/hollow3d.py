@@ -5,7 +5,9 @@ palette, plus a normal map per frame for the game's lighting.
 
     python3 hollow3d.py out_dir [clips...]      (clips: walk idle crawl scream lunge hurt; default walk idle)
 
-Writes <out_dir>/<clip>_<dir>_<i>.png and <clip>_<dir>_<i>_n.png (normals), 96x176 each, feet at y=171.
+Writes <out_dir>/<clip>_<dir>_<i>.png, 96x176 each, feet at y=171 (the old sheet's layout: walk 8, idle 4, crawl 6,
+scream 6, lunge 4 frames in N W S E, hurt 4 facing S). Then finish_frames.py hardens, rims, outlines and assembles the
+sheet. Normal maps per frame (for the engine's lighting) are still to come.
 """
 import sys, os, math
 import bpy, bmesh
@@ -21,9 +23,9 @@ LIGHT = Vector((-.75, -.35, .55)).normalized()   # from the upper left and a lit
 
 # ---------------------------------------------------------------- palette (dark -> light; hue-shifted, our own)
 PAL = {
-    'pumpkin': ['#1e0c0e', '#3e1812', '#622a16', '#843e1a', '#a0522a'],   # a rotting pumpkin: brown and plum, never candy; only the glow is bright
+    'pumpkin': ['#1a0a0c', '#341410', '#542414', '#70361a', '#8a4624'],   # a rotting pumpkin: brown and plum, never candy; only the glow is bright
     'stem':    ['#141a10', '#24301a', '#3a4a24', '#526a30', '#6e8a3c'],
-    'coat':    ['#0e0a14', '#1a1326', '#2a2038', '#3c2e4c', '#504062'],
+    'coat':    ['#09070b', '#130f18', '#1e1826', '#2e2538', '#433750'],   # near-black plum: the face is the light, not the coat
     'patch':   ['#140c0c', '#22161a', '#322228', '#423038', '#544048'],
     'thread':  ['#3a3430', '#544c44', '#6e665a', '#888070', '#a29a88'],
     'void':    ['#060408', '#0a070e', '#0e0a14', '#120c1a', '#160f20'],
@@ -182,7 +184,7 @@ def coat(top, bot, r_top, r_bot, mats, sway=0.0, seed=1):
         a0 = math.atan2(v.co.y, v.co.x) + step / 2; rr = math.hypot(v.co.x, v.co.y); v.co.x, v.co.y = rr * math.cos(a0), rr * math.sin(a0)
     for v in bm.verts:
         ang = math.atan2(v.co.y, v.co.x); down = .5 - v.co.z / H      # 0 at the collar, 1 at the hem
-        fold = 1 + .09 * math.sin(ang * 7 + 1.3) * down
+        fold = 1 + .13 * math.sin(ang * 7 + 1.3) * down
         v.co.x *= fold; v.co.y *= fold * .74
         if v.co.z < 0:   # the hem: torn into points, swinging with the stride
             v.co.z += R.uniform(-.14, .06) - (.32 * R.random() if R.random() < .3 else 0); v.co.x += sway * .3 * down
@@ -201,12 +203,6 @@ def coat(top, bot, r_top, r_bot, mats, sway=0.0, seed=1):
         return Vector((x, -.74 * math.sqrt(max(rr * rr - x * x, 0)) * 1.06 - .03, z))
     for (x0, z0, x1, z1) in ((.16, bot + .75, .3, bot + .45), (.26, bot + .82, .4, bot + .52), (-.3, top - .55, -.2, top - .78)):   # torn slits
         parts.append(segment('tear', front(z0, x0) + Vector((0, -.01, 0)), front(z1, x1) + Vector((0, -.01, 0)), .03, .015, mats['void'], 4))
-    zb = top - min(1.25, (top - bot) * .5)   # a rope belt, knotted (always on the coat, however short)
-    bpy.ops.mesh.primitive_torus_add(major_radius=1, minor_radius=.05, location=(0, 0, zb))
-    rb = r_top + (r_bot - r_top) * (top - zb) / H
-    b = bpy.context.active_object; b.scale = (rb + .03, (rb + .03) * .76, 1); b.data.materials.append(mats['belt']); parts.append(b)
-    kn = front(zb, -.18); parts += [ball('knot', kn, .07, mats['belt']), segment('rope', kn, kn + Vector((-.06, -.02, -.34)), .035, .025, mats['belt'], 5),
-                                   segment('rope', kn, kn + Vector((.04, -.03, -.28)), .035, .025, mats['belt'], 5)]
     for sx in (-1, 1):   # a torn high collar
         parts.append(segment('collar', (sx * .1, -.08, top - .06), (sx * .16, -.13, top + .13), .08, .015, mats['coat'], 4))
     return parts
@@ -241,14 +237,14 @@ def _stand_legs(P, front=0.0, back=0.0):
         P['leg' + side] = [(x, 0, HIP), (x, dy * .5 - .03, HIP * .52), (x, dy, .02)]
 
 
-def pose(t, clip):
+def pose(t, clip, side_view=False):
     """the skeleton for the clip at phase t (0..1). The figure faces -y (toward the camera).
     Arms are [shoulder (in the torso's own space), elbow, wrist (in the world)]; the torso pitches about the hips
     ('pitch', + leans forward) and drops ('drop'); 'shift' slides the whole figure back so a reach stays in the frame."""
-    P = {'pitch': 0, 'drop': 0, 'head_pitch': 0, 'face_pitch': 0, 'hump': False, 'limb': 1.0, 'head_tilt': 0, 'mouth': 0, 'sway': 0, 'bob': 0, 'shift': 0, 'sleeves': True,
+    P = {'pitch': 0, 'drop': 0, 'head_pitch': 0, 'face_pitch': 0, 'face_world': False, 'spread': 1.0, 'hump': False, 'limb': 1.0, 'head_tilt': 0, 'mouth': 0, 'sway': 0, 'bob': 0, 'shift': 0, 'sleeves': True,
          'coat': None, 'neck': 1.0, 'jit': 0}
     s = math.sin(t * 2 * math.pi); c = math.cos(t * 2 * math.pi)
-    SH = lambda x, b=0: (x * 2.05, 0, 3.22 + b)
+    SH = lambda x, b=0: (x * 1.8, 0, 3.16 + b)
     if clip == 'walk':
         lift = abs(c) * .06; _walk_legs(t, P, lift)
         for side, ph in (('L', 0), ('R', math.pi)):
@@ -264,13 +260,17 @@ def pose(t, clip):
     elif clip == 'crawl':   # on all fours like a spider: a hunched hump of coat, the head low in front looking at you,
                             # four long limbs with their knees and elbows up above the back, feet on one ground line
         P.update(pitch=45, drop=1.35, head_pitch=85, face_pitch=-140, head_tilt=s * 7, coat=(HIP + .8, HIP - .35, .28, .45), neck=.15, sleeves=False,
-                 shift=.25, hump=True, limb=1.3)
+                 shift=.45 if side_view else .25, hump=True, limb=1.7, face_world=True)
+        sp = .5 if side_view else 1.0   # how far the limbs splay sideways (from the side, splay is depth, and crossing lines)
         for side, ph in (('L', 0), ('R', math.pi)):
             x = -1 if side == 'L' else 1
             sw = math.sin(t * 2 * math.pi + ph); up = max(0, math.cos(t * 2 * math.pi + ph))
-            P['leg' + side] = [(x * .16, .15, HIP - 1.35), (x * .5, .45, 1.95 + up * .1), (x * .55, .95 - sw * .12, .02 + up * .14)]
+            P['leg' + side] = [(x * .16, .15, HIP - 1.35), (x * .42 * sp, .45, 2.15 + up * .1), (x * .5 * sp, (.85 if side_view else .95) - sw * .12, .02 + up * .14)]
             swa, upa = -sw, max(0, -math.cos(t * 2 * math.pi + ph))   # each arm moves with the opposite leg
-            P['arm' + side] = [(x * .3, 0, HIP + .75), (x * .5, -.25 + swa * .05, 2.0 + upa * .1), (x * .55, -.05 - swa * .1, .4 + upa * .12)]
+            if side_view:   # from the side the front legs arch up over the head and come down in front of it
+                P['arm' + side] = [(x * .3, 0, HIP + .75), (x * .4, -1.35 + swa * .05, 2.2 + upa * .1), (x * .4, -1.85 - swa * .1, .4 + upa * .12)]
+            else:
+                P['arm' + side] = [(x * .3, 0, HIP + .75), (x * .82, -.25 + swa * .05, 1.8 + upa * .1), (x * .8, -.05 - swa * .1, .4 + upa * .12)]
         P['bob'] = abs(c) * .03
     elif clip == 'scream':   # arms flung up and out, the head thrown back, the mouth tearing open
         k = min(1.0, t * 6 / 1.6); e = k * k * (3 - 2 * k); tr = math.sin(t * 2 * math.pi * 7) * .03 * (k >= 1)
@@ -284,10 +284,10 @@ def pose(t, clip):
         _stand_legs(P, front=-.45 * k, back=.35 * k)
         for side in ('L', 'R'):
             x = -1 if side == 'L' else 1; reach = k * (1.0 if side == 'L' else .85)
-            el = (x * (.56 - .08 * reach), -.1 - .5 * reach + .25 * back, 2.48 + .75 * reach + .2 * back)
+            el = (x * (.66 - .06 * reach), -.25 - .4 * reach + .25 * back, 2.48 + 1.0 * reach + .2 * back)
             wr = (x * (.68 - .22 * reach), -.04 - 1.2 * reach + .4 * back, 1.54 + 1.85 * reach + .55 * back)
             P['arm' + side] = [SH(x * .16), el, wr]
-        P.update(pitch=24 * k - 8 * back, head_pitch=-14 * k, mouth=.6 * k, shift=.45 * k, head_tilt=-6 * k)
+        P.update(pitch=24 * k - 8 * back, head_pitch=-14 * k, mouth=.6 * k, shift=.45 * k, head_tilt=-6 * k, spread=1 + .9 * k)
     elif clip == 'hurt':   # it recoils from the light: arms over its face, leaning away, shaking
         tr = math.sin(t * 2 * math.pi * 2) * .05
         for side, dy in (('L', .05), ('R', .3)):
@@ -303,7 +303,7 @@ def pose(t, clip):
 def build(clip, t, yaw):
     s = reset()
     mats = {k: toon_material(k, v) for k, v in PAL.items()}
-    P = pose(t, clip); objs = []
+    P = pose(t, clip, side_view=int(yaw) % 180 == 90); objs = []
     hipv = Vector((0, 0, HIP))
     T = Matrix.Translation((0, 0, -P['drop'])) @ Matrix.Translation(hipv) @ Matrix.Rotation(math.radians(P['pitch']), 4, 'X') @ Matrix.Translation(-hipv)
     for side in ('L', 'R'):
@@ -323,12 +323,12 @@ def build(clip, t, yaw):
         else:              # torn away: bare stick arms
             L_ = P['limb']; objs += [segment('upper', sh, el, .07 * L_, .05 * L_, mats['stick'], 8), ball('elbow', el, .065 * L_, mats['stick']), segment('fore', el, wr, .05 * L_, .04 * L_, mats['stick'], 8),
                      segment('rag', sh, sh + (el - sh) * .3, .12, .08, mats['coat'], 8)]
-        objs += hand(wr, wr - el, mats)
-    top, bot, rt, rb = P['coat'] or (3.5, 1.35 + P['bob'], .3, .66)
+        objs += hand(wr, wr - el, mats, P['spread'])
+    top, bot, rt, rb = P['coat'] or (3.45, 1.35 + P['bob'], .24, .56)
     torso = coat(top, bot, rt, rb, mats, P['sway'])
-    if P['hump']: torso.append(ball('hump', (0, .1, HIP + .35), .47, mats['coat'], (1.1, .9, 1.0)))
+    if P['hump']: torso.append(ball('hump', (0, .1, HIP + .35), .58, mats['coat'], (1.1, .9, 1.0)))
     neck_base = Vector((0, 0, top - .05 + P['bob'])); neck_top = neck_base + Vector((0, 0, P['neck']))
-    torso.append(segment('neck', neck_base, neck_top, .05, .04, mats['stick'], 8))
+    torso.append(segment('neck', neck_base, neck_top, .075, .055, mats['stick'], 8))
     r = .5; head = pumpkin(r, mats, P['mouth'])
     piv = bpy.data.objects.new('headpivot', None); bpy.context.scene.collection.objects.link(piv); piv.location = neck_top
     look = {90: -32, 270: 32}.get(int(yaw) % 360, 0) if clip != 'crawl' else {90: -20, 270: 20}.get(int(yaw) % 360, 0)
@@ -338,6 +338,10 @@ def build(clip, t, yaw):
     for o in head: o.parent = hc
     torso.append(piv)
     for o in torso: o.matrix_basis = T @ o.matrix_basis   # the torso, neck and head lean and drop together
+    if P['face_world']:   # set the head's facing outright: turned to the viewer, tipped a little up
+        bpy.context.view_layer.update(); loc = hc.matrix_world.translation.copy()
+        lk = {90: -35, 270: 35}.get(int(yaw) % 360, 0)
+        hc.matrix_world = Matrix.Translation(loc) @ Matrix.Rotation(math.radians(lk), 4, 'Z') @ Matrix.Rotation(math.radians(P['head_tilt']), 4, 'Y') @ Matrix.Rotation(math.radians(-12), 4, 'X')
     objs += torso
     # everything turns to face its direction (and slides back by 'shift' along its own facing)
     root = bpy.data.objects.new('root', None); bpy.context.scene.collection.objects.link(root)
