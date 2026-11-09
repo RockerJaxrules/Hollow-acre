@@ -225,7 +225,7 @@ class Painter:
         P.define('lip', ramp(lip, 6, dark=.42, light=1.35, shade_hue=.95, shade_amt=.25, lit_amt=.25), thr=[.2, .33, .48, .66, .84], outline=False)
         P.define('lipline', [mix(hexc(lip), (40, 10, 20), .62), mix(hexc(lip), (60, 16, 26), .5)], prio=3.6, thr=[.5], outline=False)
         P.define('mouth', [(54, 14, 24), (88, 24, 36), (120, 40, 50)], prio=1.5, thr=[.35, .65], outline=False)
-        P.define('teeth', [(214, 206, 204), (240, 236, 232), (252, 250, 246)], prio=1.8, thr=[.4, .7], outline=False)
+        P.define('teeth', [(214, 206, 204), (240, 236, 232), (252, 250, 246)] if C.get('teeth_v1') else [(176, 160, 156), (222, 212, 202), (238, 230, 218)], prio=1.8, thr=[.4, .7], outline=False)   # warm off-white, never the brightest thing on the face (judge)
         P.define('tooth_gap', [(150, 120, 120)], prio=3.0, thr=[], outline=False)
         P.define('tear', [(120, 170, 220), (190, 224, 250), (255, 255, 255)], prio=3.0, thr=[.4, .75], outline=False)
         for k in ('top', 'top2', 'top3', 'acc', 'acc2', 'frame', 'metal', 'cord', 'dot'):
@@ -682,7 +682,7 @@ class Painter:
         line = my - corner * u * u + .15 * np.exp(-(u / .2) ** 2) - (C.get('smirk', 0) + (1.8 if ex == 'smug' else 0)) * np.clip(u, 0, 1) ** 2 * (0 if ex in ('sad', 'scared', 'wrong', 'cry') else 1)
         top = line - uh * (1 - u * u) ** .55 + .7 * np.exp(-(u / .16) ** 2) - .25 * np.exp(-((np.abs(u) - .32) / .14) ** 2)
         if ex in ('happy', 'scared', 'wrong', 'laugh', 'cry'):
-            op = {'happy': 2.7, 'scared': 2.6, 'wrong': 4.2, 'laugh': 4.0, 'cry': 2.2}[ex]
+            op = {'happy': 2.7, 'scared': 2.6, 'wrong': 4.2, 'laugh': 4.0 if C.get('teeth_v1') else 5.6, 'cry': 2.2}[ex]   # a laugh opens the jaw (judge: it read as the smile with the eyes shut)
             o_top = line - .2 * (1 - u * u)
             o_bot = line + op * (1 - u * u) ** .8
             if ex in ('scared', 'cry'): o_bot = line + op * (1 - u * u) ** .9 + .6 * np.sin(u * 7) * (1 - u * u)
@@ -698,7 +698,7 @@ class Painter:
                 band = {'laugh': 2.4, 'wrong': 2.9}.get(ex, 2.0)
                 th = poly(list(zip(xs, o_top - .4)) + list(zip(xs[::-1], (o_top + band * (1 - .3 * u * u))[::-1])))
                 cv.put(th & opening & (np.abs(X - mx) < hw * .7), 'teeth', .78 - .14 * sstep(hw * .3, hw * .7, np.abs(X - mx)))
-            if ex == 'laugh': cv.put(ell(mx, my + op - .4, hw * .42, 1.5) & opening, 'tongue', .6)
+            if ex == 'laugh': cv.put(ell(mx, my + op - .4, hw * (.42 if C.get('teeth_v1') else .5), 1.5 if C.get('teeth_v1') else 2.1) & opening, 'tongue', .6)
             if ex == 'wrong':
                 lo_t = poly(list(zip(xs, o_bot - 1.4 * (1 - u * u))) + list(zip(xs[::-1], o_bot[::-1])))
                 cv.put(lo_t & opening & (np.abs(X - mx) < hw * .75), 'teeth', .6)
@@ -771,6 +771,12 @@ class Painter:
             if C.get('bangs') == 'blunt':
                 for k in range(8):
                     xx = CX - 17 + k * 4.8; s.lock([(xx + 1, 24), (xx + .6, 36), (xx, 47 + (k % 2) * .8)], [5.2, 5, 4.2], front, tone=.03 - (k % 3) * .03)
+            elif C.get('bangs') == 'side_swept':   # parted on the right, swept across the forehead to the left temple, above the glasses
+                s.lock([(PX + 1, 21.5), (PX + 6, 26), (CX + fw - 3, 40), (CX + fw + 1, 58)], [3.5, 7, 6, 1.5], front, tone=-.03)
+                s.lock([(PX - 1, 21.5), (CX + 3, 27.5), (CX - 11, 38), (CX - fw + .5, 55)], [4.5, 8.5, 7.5, 2.2], front, tone=-.01)
+                s.lock([(PX - 1.5, 22.5), (CX + 1, 31), (CX - 9, 42.5), (CX - fw + 3.5, 52.5)], [3.5, 7.5, 6.5, 1.6], front, tone=.04)
+                s.lock([(PX - .5, 23), (CX + 5, 31.5), (CX - 2, 41.5), (CX - 8.5, 48.5)], [3, 6.5, 5.5, 1.0], front, tone=.08)
+                s.lock([(PX + .5, 23.5), (CX + 7.5, 33), (CX + 3.5, 42), (CX - 1, 47)], [2.5, 5, 4, .8], front, tone=.02)
             elif C.get('bangs') == 'curtain_long':
                 for sg in (-1, 1):
                     s.lock([(PX + sg * 1.0, 21.5), (PX + sg * 9, 25), (CX + sg * 19, 36), (CX + sg * (fw + .5), 60)], [3.5, 7, 5.5, 1.2], front, tone=-.02)

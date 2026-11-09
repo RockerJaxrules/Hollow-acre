@@ -37,6 +37,7 @@ PAL = {
     'glow':    ['#8a3410', '#d06a1c', '#f0a040', '#f8d27a', '#fcecb0'],
 }
 for _k in ('coat', 'bone', 'stick'): PAL[_k + '_far'] = [PAL[_k][0]] + PAL[_k][:-1]   # the far limb: one step darker (judge r21)
+PAL['coat_near'] = PAL['coat'][1:] + ['#5e5670']   # the near sleeve one step lighter: the arm reads against the coat (judge r23)
 MOTTLE = {'coat': 0.0}   # no mottle: the streaks read as fur (judge r15); the folds carry the cloth   # a whisper of variation in the cloth; shape comes from folds, not speckle (owner: no grit)
 
 
@@ -179,7 +180,7 @@ def pumpkin(r, mats, mouth_open=0.0):
     return [o, candle, stem, stem2] + cuts + cuts_extra
 
 
-def coat(top, bot, r_top, r_bot, mats, sway=0.0, seed=1):
+def coat(top, bot, r_top, r_bot, mats, sway=0.0, seed=1, hem_fwd=0.0):
     """an A-line coat: narrow sloping shoulders flaring to a torn hem; open down the front; a patched, belted, buttoned
     old thing"""
     import random; R = random.Random(seed)
@@ -194,7 +195,7 @@ def coat(top, bot, r_top, r_bot, mats, sway=0.0, seed=1):
         fold = 1 + (.17 * math.sin(ang * 4 + 1.3) + .06 * math.sin(ang * 7 + .4)) * max(0.0, down) ** .8   # long folds hanging from the shoulders
         v.co.x *= fold; v.co.y *= fold * .74
         if v.co.z < 0:   # the hem: torn into points, swinging with the stride
-            v.co.z += R.uniform(-.12, .06) - (R.uniform(.2, .5) if R.random() < .35 else 0); v.co.x += sway * .9 * down; v.co.y += abs(sway) * .4 * down   # torn strips of uneven length
+            v.co.z += R.uniform(-.12, .06) - (R.uniform(.2, .5) if R.random() < .35 else 0); v.co.x += sway * .9 * down; v.co.y += abs(sway) * .4 * down - hem_fwd * down   # torn strips of uneven length
     for f in bm.faces:
         c = f.calc_center_median()
         if abs(math.atan2(c.y, c.x) + math.pi / 2) < step * .6 and abs(c.x) < .2: f.material_index = 1
@@ -309,15 +310,16 @@ def pose(t, clip, side_view=False, far=None):
         P.update(pitch=(22 if side_view else 34) * k - 8 * back, head_pitch=-18 * k, mouth=.6 * k, shift=(.62 if side_view else .45) * k, head_tilt=-6 * k, spread=1 + .9 * k, claw=1 + .45 * k)   # side-on: back far enough that the reach stays in the frame
         if side_view:   # the pumpkin tips into the reach a beat late; the mouth stays lit (a dark maw read as a rotten spot);
                         # the sleeves ride up the reaching arms, baring the bony forearms; the far arm one step darker
-            kh = [.3, .3, .8, .85][int(round(t * 4)) % 4]
+            kh = [-.45, .3, .8, .85][int(round(t * 4)) % 4]   # wind-up: the head pulled back
             P.update(head_pitch=18 * kh - 4, mouth=.25 * k, look=42, ride=.2 + .3 * k, far_dark=far)
             # a lunge, not a reach: the hips drive forward over a bent front knee, the back leg trails (judge r22)
-            hf, dp = -.34 * k + .08 * back, .1 * k
-            P.update(fwd=hf, drop=dp)
+            hf, dp = -.34 * k + .08 * back, .1 * k + .13 * back   # the wind-up crouches 4 px
+            P.update(fwd=hf, drop=dp, hem_fwd=[-.08, -.1, -.16, .26][int(round(t * 4)) % 4])   # the hem trails the drive, then swings past the legs on the recover
             for side, lead in (('L', True), ('R', False)):
                 x = -.16 if side == 'L' else .16; hip = (x, hf, HIP - dp)
-                if lead: P['leg' + side] = [hip, (x, hf - .4 * k - .02, HIP * .52 + .04 * k), (x, hf - .3 * k, .02)]
-                else: P['leg' + side] = [hip, (x, hf + .38 * k + .02, HIP * .52 - .02 * k), (x, hf + .78 * k + .02, .02)]
+                kb = .16 * back   # the crouch bends both knees forward
+                if lead: P['leg' + side] = [hip, (x, hf - .4 * k - .02 - kb, HIP * .52 + .04 * k - .05 * back), (x, hf - .3 * k, .02)]
+                else: P['leg' + side] = [hip, (x, hf + .38 * k + .02 - kb, HIP * .52 - .02 * k - .05 * back), (x, hf + .78 * k + .02, .02)]
     elif clip == 'hurt':   # it recoils from the light: arms over its face, leaning away, shaking
         tr = math.sin(t * 2 * math.pi * 2) * .05
         for side, dy in (('L', .05), ('R', .3)):
@@ -346,11 +348,11 @@ def build(clip, t, yaw):
         objs.append(segment('foot', heel, toe, .055, .03, mats['stick'], 6))
         sh, el, wr = P['arm' + side]; sh, el, wr = T @ Vector(sh), Vector(el), Vector(wr)
         dark = P.get('far_dark') == side
-        M = dict(mats, coat=mats['coat_far'], bone=mats['bone_far'], stick=mats['stick_far']) if dark else mats
+        M = dict(mats, coat=mats['coat_far'], bone=mats['bone_far'], stick=mats['stick_far']) if dark else dict(mats, coat=mats['coat_near']) if P.get('far_dark') else mats
         if P['sleeves'] and P.get('ride', 0) > .05:   # the sleeve rides up the reaching arm: tapering to a knobbed elbow, flaring to a torn cuff, the bare forearm a bony stick
             dn = (wr - el).normalized(); cuff = el + (wr - el) * (1 - P['ride'] - .2)
             objs += [segment('sleeve', sh, el, .1, .072, M['coat'], 10), ball('elbow', el + Vector((0, .02, -.02)), .082, M['coat']),
-                     segment('sleeve', el, cuff, .07, .118, M['coat'], 10), segment('fore', cuff - dn * .12, wr, .046, .028, M['bone'], 8),
+                     segment('sleeve', el, cuff, .07, .118, M['coat'], 10), segment('fore', cuff - dn * .12, wr, .056, .036, M['bone'], 8),
                      ball('wristknob', wr - dn * .04, .036, M['bone'])]   # bone, not wood: the forearm reads against the grass (judge r22)
             sd = dn.cross(Vector((0, 0, 1))); sd = sd.normalized() if sd.length > 1e-3 else Vector((1, 0, 0))
             for o_, L in ((-.08, .26), (.0, .17), (.07, .31)):   # torn strips hanging off the cuff, down (they hang, the arm reaches)
@@ -367,7 +369,7 @@ def build(clip, t, yaw):
                      segment('rag', sh, sh + (el - sh) * .3, .12, .08, mats['coat'], 8)]
         objs += hand(wr, wr - el, M, P['spread'], P.get('claw', 1.0))
     top, bot, rt, rb = P['coat'] or (3.45, 1.35 + P.get('hem_bob', P['bob']), .2, .56)   # narrow top: sloping shoulders
-    torso = coat(top, bot, rt, rb, mats, P['sway'])
+    torso = coat(top, bot, rt, rb, mats, P['sway'], hem_fwd=P.get('hem_fwd', 0.0))
     if P['hump']: torso.append(ball('hump', (0, .1, HIP + .35), .58, mats['coat'], (1.1, .9, 1.0)))
     neck_base = Vector((0, 0, top - .05 + P['bob'])); neck_top = neck_base + Vector((0, 0, P['neck'] + P.get('head_lag', 0)))   # the head settles a beat late
     torso.append(segment('neck', neck_base, neck_top, .075, .055, mats['stick'], 8))
