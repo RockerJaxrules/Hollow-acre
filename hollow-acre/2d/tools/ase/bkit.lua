@@ -17,7 +17,7 @@ B.PAL = {
  {'sh1','#22141c'},{'sh2','#3a2022'},{'sh3','#57302a'},{'sh4','#764334'},{'sh5','#94593e'},{'sh6','#b2744c'},{'sh7','#cc955e'},{'sh8','#e4b878'},
  {'tn1','#161c18'},{'tn2','#222c24'},{'tn3','#2f3f30'},{'tn4','#42553c'},{'tn5','#586c46'},{'tn6','#72844e'},{'tn7','#909c5a'},{'tn8','#b4b46c'},   -- two steps toward olive (judge r3)
  {'th1','#2a1c1a'},{'th2','#463024'},{'th3','#66462c'},{'th4','#8a6234'},{'th5','#ab7e3c'},{'th6','#c89c4a'},{'th7','#dfba62'},{'th8','#f0d88a'},
- {'pr1','#1e1028'},{'pr2','#301838'},{'pr3','#46224a'},{'pr4','#5e2e5a'},{'pr5','#7a3e6a'},{'pr6','#985478'},{'pr7','#b87088'},{'pr8','#d896a0'},
+ {'pr1','#1c1024'},{'pr2','#2c1834'},{'pr3','#402444'},{'pr4','#553050'},{'pr5','#6c3e5e'},{'pr6','#84546c'},{'pr7','#9e6c7c'},{'pr8','#ba8c94'},   -- judge (sweep): the plum read as candy pink; pulled toward a dusty plum
  -- walls (7 steps)
  {'w1','#2a1824'},{'w2','#47292b'},{'w3','#6a3f30'},{'w4','#8d5937'},{'w5','#ad7542'},{'w6','#c99352'},{'w7','#e0b467'},
  {'ww1','#2a2630'},{'ww2','#4a4450'},{'ww3','#6e6874'},{'ww4','#948e92'},{'ww5','#b8b2ae'},{'ww6','#d6d0c6'},{'ww7','#ece6d8'},
@@ -326,6 +326,13 @@ function B.sideroof(c, x0, x1, yW, depth, roofmat, seed, hip)
     if hip then P(c, xb - math.floor(t * hipw) - 3, y, B.ROOFS[roofmat][2]); P(c, xa + math.floor(t * hipw * .6) + 3, y, B.ROOFS[roofmat][6]) end   -- the hips: the right one dark, the left one lit (judge: lit ridge and hips)
   end
   B.RCTX = nil
+  --[[ judge (kit pass 1): light each plane as a volume: a step lighter toward the upper left, a step darker toward the right and
+       the eave. The boundaries step along the courses (6 px) so they read as light falling off, not as painted bands ]]
+  local Wd = (x1 - x0) + 2 * over
+  for y = top + 2, yW + 3 do local r = (y - top) // 6; local f = (y - top) / math.max(1, depth)
+    local litTo = x0 - over + math.floor(Wd * (.42 - .30 * f)); local darkFrom = x0 - over + math.floor(Wd * (.80 - .12 * f))
+    for x = x0 - over, x1 + over do if px.get(c, x, y) ~= 0 then
+      if x < litTo and y > top + 1 then px.shade(c, x, y, 1) elseif x > darkFrom then px.shade(c, x, y, -1) end end end end
   local Rr = B.ROOFS[roofmat]
   --[[ judge (buildings sweep): a side roof in one even tone with a pale frame read as a box lid. The slope turns away from
        the light toward the eave: the lowest courses a step and two darker (the shadow the eave gathers), the first under the
@@ -602,9 +609,12 @@ function B.build(sp, night)
          this angle its top shows: tar and gravel behind the parapet, the back parapet's lit edge, a vent and a hatch ]]
     local dep = 22; local ry0 = py - 5 - dep
     for y = ry0, py - 6 do for x = x0 - 4, x1 + 4 do local n = H(x // 2 + y * 13, seed + 91)
-      P(c, x, y, (y <= ry0 + 1) and (y == ry0 and 'OUT' or 's5') or (n > .86 and 's4' or ((y - ry0) < 6 and 's2' or 's3'))) end end
+      local blob = H(x // 4 + (y // 3) * 29, seed + 93) > .82   -- gravel in soft 4x3 patches (judge: single-pixel speckle reads as grit)
+      P(c, x, y, (y <= ry0 + 1) and (y == ry0 and 'OUT' or 's5') or (blob and 's4' or ((y - ry0) < 6 and 's2' or 's3'))) end end
     px.vline(c, x0 - 5, ry0, py - 5, 'OUT'); px.vline(c, x1 + 5, ry0, py - 5, 'OUT')
     for y = py - 8, py - 6 do for x = x0 - 4, x1 + 4 do px.shade(c, x, y, -1) end end   -- the front parapet's shadow on the roof
+    px.hline(c, x0 - 5, x1 + 5, py - 5, 's6'); px.hline(c, x0 - 5, x1 + 5, py - 6, 's5')   -- judge: the front parapet's lit edge (the slab read as a lid laid on)
+    for y = py, py + 2 do for x = x0 - 2, x1 + 2 do px.shade(c, x, y, y == py + 2 and -1 or -2) end end   -- judge: the cornice casts a shadow on the facade below it
     local vx = x0 + math.floor((x1 - x0) * .72); R(c, vx, ry0 + 6, vx + 5, ry0 + 13, 'm3'); px.vline(c, vx, ry0 + 6, ry0 + 13, 'm4'); px.hline(c, vx, vx + 5, ry0 + 6, 'm4')
     for y = ry0 + 14, ry0 + 15 do for x = vx, vx + 6 do px.shade(c, x, y, -2) end end   -- a vent stack and its shadow
     local hx = x0 + math.floor((x1 - x0) * .2); R(c, hx, ry0 + 8, hx + 9, ry0 + 13, 'k3'); px.hline(c, hx, hx + 9, ry0 + 8, 'k5'); px.rect(c, hx + 1, ry0 + 9, hx + 8, ry0 + 9, 'k4')   -- a roof hatch
