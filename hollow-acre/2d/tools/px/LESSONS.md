@@ -346,6 +346,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [code] Never end an inserted line with a // comment in these one-line-per-function files: twice it swallowed the
   rest of the line (the legs, then a whole function). Use /* */ or put the comment on its own line, then syntax-check.
 
+## Buildings (Nov 10: kit v2, judged 6 vs the installed 4)
+- The installed buildings carried the banned grit: a 1 px light dot on every shingle (frosted roofs at 1x), checkerboard
+  eave and chimney shadows, and a stain layer smeared across trim and posts. Wear is drawn as shapes, never as a layer.
+- A cast shadow drawn in the outline colour merges with the outline above it and reads as a thicker line. Shadow a wall
+  with its own darkest steps (the brick or siding still shows through), 3 rows dark, then a step lighter, then one more.
+- Moss in round clumps along the lower courses and the shaded side, not streaks along every course.
+
 ## Making minigames (Nov 10: yard 3 -> 6, barn 3 -> 6, installed)
 - A sunny candy palette (bright grass, white tiles, honey wood, blue sky) is the first thing that sinks a scene. Dusk light,
   dulled colours, one visible light source (a lamp, a candle, a lit window) and a darker floor read as this game.

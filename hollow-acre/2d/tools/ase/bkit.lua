@@ -68,7 +68,7 @@ B.FONT = {
  ['!']={'010','010','010','000','010'}}
 
 function B.init(lib) px = lib end
-B.EAVE_DROP = 4   -- the roof's overhang covers the wall's top 4 rows: the eave shadow starts just below it
+B.EAVE_DROP = 0   -- the roof's overhang covers the wall's top 4 rows: the eave shadow starts just below it
 local function P(c, x, y, col) px.p(c, x, y, col) end
 local function R(c, x0, y0, x1, y1, col) px.rect(c, x0, y0, x1, y1, col) end
 local function H(a, b) return px.h(a, b) end
@@ -350,7 +350,8 @@ end
 -- (judge: the dotted band read as noise; a clean eave band is what gives the roof its overhang)
 function B.eaveshadow(c, x0, x1, yW)
   local d = B.EAVE_DROP or 0
-  for x = x0, x1 do P(c, x, yW + 1 + d, 'OUT2'); P(c, x, yW + 2 + d, 'OUT2'); for y = yW + 3 + d, yW + 4 + d do px.shade(c, x, y, -2) end; px.shade(c, x, yW + 5 + d, -1) end
+  -- the wall's own darkest steps, so its texture still shows through (judge: a near-black band merged into the roof's outline)
+  for x = x0, x1 do for y = yW + 1 + d, yW + 3 + d do px.shade(c, x, y, -3) end; px.shade(c, x, yW + 4 + d, -2); px.shade(c, x, yW + 5 + d, -1) end
 end
 
 function B.chimney(c, cx0, cx1, cy0, cy1, mat)

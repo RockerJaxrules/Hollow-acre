@@ -122,7 +122,9 @@ local function step(c, v, d)
   local t = c.idx[pre .. (tonumber(num) + d)]; return t or v
 end
 -- shade one pixel d steps along its own colour ramp (d < 0 darker); outlines and transparency are left alone
-function px.shade(c, x, y, d) local v = px.get(c, x, y); if v == 0 then return end; local t = step(c, v, d); if t ~= v then px.p(c, x, y, t) end end
+function px.shade(c, x, y, d) local v = px.get(c, x, y); if v == 0 then return end; local t = step(c, v, d)
+  while t == v and d ~= 0 do d = d > 0 and d - 1 or d + 1; t = step(c, v, d) end   -- as far as the ramp goes
+  if t ~= v then px.p(c, x, y, t) end end
 function px.weather_v1(c)
   local W = c.weather; if not W then return end
   local img = c.img; local w, h = c.w, c.h
