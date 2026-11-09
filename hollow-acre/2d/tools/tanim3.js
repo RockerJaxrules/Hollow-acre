@@ -3,7 +3,7 @@ const {chromium}=require('playwright');const fs=require('fs');
 (async()=>{const [page,out]=process.argv.slice(2);fs.mkdirSync(out,{recursive:true});
  const b=await chromium.launch();const pg=await b.newPage({viewport:{width:900,height:600}});const errs=[];pg.on('pageerror',e=>errs.push('ERR '+e.message));
  await pg.route('**/version.json*',r=>r.abort());
- await pg.goto('http://localhost:8766/'+page,{waitUntil:'domcontentloaded'});await pg.waitForFunction(()=>!document.getElementById('loadScr'),null,{timeout:90000});
+ await pg.goto('http://localhost:'+(process.env.PORT||8766)+'/'+page,{waitUntil:'domcontentloaded'});await pg.waitForFunction(()=>!document.getElementById('loadScr'),null,{timeout:90000});
  await pg.evaluate(()=>{try{localStorage.clear();}catch(e){}});
  await pg.evaluate(()=>{document.getElementById('begin').click();document.getElementById('cGo').click();});await pg.waitForTimeout(300);await pg.evaluate(()=>__game.skip());await pg.waitForTimeout(800);
  const ev=c=>pg.evaluate(c=>__game.ev(c),c);
@@ -22,7 +22,7 @@ const {chromium}=require('playwright');const fs=require('fs');
    for(let k=0;k<nf;k++){
      await ev(`(()=>{const t=tiles[${T}];S.paused=true;P.anim={clip:'${clip}',dur:${dur},t:${dur}*${(k+.5)/nf},fire:null,fired:true,item:'${clip==='grab'?'sprinkler':''}',step:window._st,tgt:{x:t.x,z:t.z}};P.clip='${clip}';if(window._st){const e=actStepE(_st,${(k+.5)/nf});P.x=_capX+_st.dx*e;P.z=_capZ+_st.dz*e;}})()`);
      await pg.waitForTimeout(70);await shot(`${clip}_${d}_${k}`);
-     if(['hoe','axe','pick','water'].includes(clip)){await ev('window.NO_TOOL_DRAW=true');await pg.waitForTimeout(50);await shot(`${clip}_${d}_${k}_nt`);await ev('window.NO_TOOL_DRAW=false');}}
+     if(['hoe','axe','pick','water','plant','grab'].includes(clip)){await ev('window.NO_TOOL_DRAW=true');await pg.waitForTimeout(50);await shot(`${clip}_${d}_${k}_nt`);await ev('window.NO_TOOL_DRAW=false');}}
   }}
  await ev('(()=>{delete window._capX;delete window._capZ;})()');
  for(const [clip,nf,fps,first] of [['walk',8,13,1],['run',8,18,1],['idle',4,3,0]].filter(c=>!ONLY.length||ONLY.includes(c[0]))){
