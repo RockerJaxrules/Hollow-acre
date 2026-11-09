@@ -414,6 +414,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   and lift one past it. A dark red hole reads as a wound: the loft is plum-brown with grey lit battens.
 - [shack r1] Peeling paint is a few big patches over 2-4 boards with staggered ends, flat silver-grey; many short runs
   with dark lips at each end read as grit. Rain stains run down from the sills (one step darker, 1-2 px wide).
+- [Harlan r1] Boarded UP is the opening covered: boards wider than the frame, a tilted one, a split end, nails, a notice
+  on the door. Two boards on one window read as shelves; equal planks in the wall's own grey read as louvred shutters.
+- [Harlan r1] Rust on a derelict tin roof: whole sheets rusted brown (the lg ramp, like the barn) and runs that start at
+  the eave; orange 1-2 px stalks in a row read as candles, and more than two rusted sheets read as painted stripes.
 - [shack r1] Mending reads when the new wood is whole boards (full length, a step lighter and warmer, nail at each end)
   and a whole block of new shingles with crisp edges; short stubs read as brackets or hinges.
 

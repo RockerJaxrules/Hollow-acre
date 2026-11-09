@@ -121,11 +121,21 @@ function B.wall(c, mat, x0, y0, x1, y1, seed, rough)
   elseif mat == 'log' then
     for y = y0, y1 do local r = (y - y0) % 7
       for x = x0, x1 do local col = ({'lg2', 'lg5', 'lg6', 'lg5', 'lg4', 'lg3', 'lg1'})[r + 1]
-        if (r == 2 or r == 3) and H(x // 3, y) > .9 then col = 'lg3' end
-        if x > x1 - (x1 - x0) * .25 and r >= 1 and r <= 4 and (x + y) % 2 == 0 then col = ({'lg2', 'lg4', 'lg5', 'lg4', 'lg3'})[r] end
+        -- judge (sweep): a 1 px checker on the right quarter read as grit; the logs keep one light, a knot now and then
+        if (r == 2 or r == 3) and H(x // 3, y) > .93 then col = 'lg4' end
+        if r == 3 and H(x // 9, y // 7 + 40) > .9 and (x % 9) < 3 then col = 'lg4' end   -- a check along the grain
         P(c, x, y, col) end end
-    for y = y0, y1, 7 do for _, ex in ipairs({x0 - 3, x1 + 3}) do
-      px.ellipse(c, ex + .5, y + 3.5, 3.5, 3.5, 'lg6'); px.ellipse(c, ex + .5, y + 3.5, 2, 2, 'lg5'); P(c, ex, y + 3, 'lg4') end end
+    --[[ judge (sweep): orange discs stacked at each corner read as a zip or gears. The corner is notched: each course's end
+         sticks out past the wall, alternately long and short, as dull tan end grain in a bark rim, heart off centre ]]
+    for y = y0, y1 - 3, 7 do local k = (y - y0) // 7
+      for side, ex in ipairs({x0 - 2 - (k % 2), x1 + 2 + ((k + 1) % 2)}) do local cy = y + 3
+        for yy = -3, 3 do for xx = -3, 3 do local d = math.sqrt(xx * xx + yy * yy)
+          if d <= 3.2 then local col
+            if d > 2.3 then col = (xx + yy < 0) and 'lg4' or 'lg2'
+            elseif math.abs(xx - (side == 1 and 1 or -1)) + math.abs(yy) < .5 then col = 'eg2'
+            elseif (xx + yy) >= 2 and d > 1.4 then col = 'eg3'
+            else col = (xx + yy <= -1) and 'eg4' or 'eg3' end   -- a step darker than loose firewood: a pale column read as a string of teeth
+            P(c, ex + xx, cy + yy, col) end end end end end
   elseif mat == 'plaster' then
     for y = y0, y1 do for x = x0, x1 do P(c, x, y, band(c, Wr, lt(x) + .12 + (H(x // 4, y // 3) - .5) * .06, 3, 7)) end end
     local beams = {}
@@ -728,6 +738,21 @@ function B.boardup(c, dx0, dx1, dy0, yb)
   for yy = ny + 2, ny + 6, 2 do px.hline(c, nx + 1, nx + 4, yy, 't1') end; P(c, nx + 3, ny + 1, 'm2')
 end
 
+-- a millstone leaning on the wall (the Fenns run the mill): a grey dressed stone, lit top-left, the square eye dark,
+-- the furrows cut in it, a contact shadow
+function B.millstone(c, cx, gy)
+  local r = 9; local cy = gy - r - 1
+  for yy = -r - 1, r + 1 do for xx = -r - 1, r + 1 do local d = math.sqrt(xx * xx + yy * yy)
+    if d <= r + .4 then local col
+      if d > r - .8 then col = (xx + yy < 0) and 's5' or 's2'
+      elseif math.abs(xx) <= 1 and math.abs(yy) <= 1 then col = 'OUT'
+      else local a = math.atan(yy, xx); local f = (a * 8 / math.pi) % 2
+        col = (xx + yy <= -4) and 's6' or ((xx + yy >= 5) and 's3' or 's4')
+        if d > 2.5 and d < r - 1.5 and f < .25 then col = (xx + yy <= -4) and 's4' or 's2' end end
+      P(c, cx + xx, cy + yy, col) end end end
+  for x = cx - r + 2, cx + r + 3 do px.shade(c, x, gy, -2); px.shade(c, x, gy + 1, -1) end
+end
+
 function B.derelictfx(c, sp, x0, x1, yW, topY, wins, seed)
   local Rr = B.ROOFS[sp.roof or 'asphalt']
   for i, w in ipairs(wins or {}) do local ww, wh = w.w or 24, w.h or 26
@@ -945,6 +970,7 @@ function B.build(sp, night)
   -- chim: where smoke leaves the first chimney, relative to the sprite's anchor (the game's puff offset)
   if sp.coop then B.coopfx(c, sp, x0, x1, gy, seed) end
   if sp.tools then B.leantools(c, x1 + 3, gy) end
+  if sp.millstone then B.millstone(c, x1 - 9, gy - 1) end
   if sp.logs then B.logpile(c, x0 + 1, x0 + 34, gy - 1, 22, seed) end   -- stacked against the wall, left of the door
   return c, {w = Wd, h = Hh, ax = Wd / 2, ay = gy - 3, chim = chim and {chim[1] - Wd / 2, chim[2] - (gy - 3) - 2} or nil, door = DOORMETA}
 end

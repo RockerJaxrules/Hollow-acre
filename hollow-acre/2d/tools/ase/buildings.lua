@@ -117,7 +117,7 @@ local V = {
  h_quill     = {base = 'house_c', kind = 'side', wall = 'sage', roof = 'brown', trim = 'cream', door = {col = 'oak', w = 22},
                 windows = {{x = 1.0, w = 22}, {x = 4.0, w = 22}}, ivy = 'left', moss = .6, seed = 174},
  h_fenn      = {base = 'house_b', kind = 'side', wall = 'log', roof = 'brown', trim = 'cream', door = {col = 'green'}, dormers = {},
-                windows = {{x = 1.25}, {x = 4.75}}, chimneys = {{x = .2}}, moss = 1.1, seed = 175},
+                windows = {{x = 1.25}, {x = 4.75}}, chimneys = {{x = .2}}, moss = 1.1, millstone = true, seed = 175},   -- the Fenns run the mill
  h_marsh     = {base = 'house_a', wall = 'blue', roof = 'slate', trim = 'cream', shutters = false, door = {col = 'teal'}, porch = {rail = true}, dormers = {},
                 windows = UP(), chimneys = {{x = .78}}, moss = .5, seed = 176},
  h_widow     = {base = 'house_a', wall = 'white', roof = 'plum', trim = 'black', shutters = 'black', door = {col = 'black'}, porch = {full = true, rail = true},
