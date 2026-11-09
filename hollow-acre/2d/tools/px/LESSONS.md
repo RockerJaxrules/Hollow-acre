@@ -445,3 +445,6 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 
 - Silhouette first, then masses, then detail. Skipping straight to clusters produced polka-dot bubbles.
 - Placing clusters along mathematical lines (perimeters, boundaries) looks mechanical, like piped icing.
+
+- Tools in hand (judge, Nov 10): an axe head drawn round reads as a pan or spade; it needs the flare, a beard toward the hands and a poll behind the haft. A pick seen end-on must show the point leading, never a white ball. A pick's crescent is thick at the haft and tapers to 1 px points, not an even-width sickle.
+- Debris (judge, Nov 10): pale specks vanish into the dirt they fly over; the darker clods with an outline read better. Outline debris in its own darkest tone, never near-black.

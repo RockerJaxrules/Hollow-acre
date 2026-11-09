@@ -85,8 +85,6 @@ const HIT_FX={hoe:[[['#7a5634','#4a3220'],-5,-3,3,2],[['#8a6440','#5a3e24'],-3,-
   pick:[[['#a8a8b0','#5e5e68'],-4,-5,3,2],[['#9a9aa4','#585862'],4,-6,2,3],[['#b8b8c0','#6a6a74'],6,-1,3,2],[['#8a8a94','#4e4e58'],-6,-2,2,2]]};
 function hitFx(g,kind,tip,f){const P_=HIT_FX[kind];if(!P_||!tip||(f!==5&&f!==6))return;const k=f===5?1:1.8;
   for(const [[cl,cd],dx,dy,w0,h0] of P_){const w=f===6?Math.max(2,w0-1):w0,h=f===6?Math.max(2,h0-1):h0;const x=Math.round(tip[0]+dx*k),y=Math.round(tip[1]+dy*k+(f===6?2:0));
-    if(kind==='hoe'){/* judge, Nov 10: clods drawn as boxed squares read as dice; irregular lumps in two soil tones, a dark-brown underside only */
-      const ww=Math.max(2,w-(f===6?1:0));g.fillStyle=cl;g.fillRect(x+1,y,ww-1,1);g.fillRect(x,y+1,ww,1);g.fillStyle=cd;g.fillRect(x,y+2,ww-1,1);if(ww>2)g.fillRect(x+ww-1,y+1,1,1);continue;}
     g.fillStyle='#140e0a';g.fillRect(x-1,y-1,w+2,h+2);g.fillStyle=cd;g.fillRect(x,y,w,h);g.fillStyle=cl;g.fillRect(x,y,w-1,h-1);}
   // the pick strikes a spark off the stone: warm white, never tinted by what's under it
   if(kind==='pick'&&f===5){const x=Math.round(tip[0]),y=Math.round(tip[1]);g.fillStyle='#2a1e10';g.fillRect(x-3,y-2,7,3);g.fillRect(x-1,y-4,3,7);g.fillStyle='#ffe6a0';g.fillRect(x-2,y-1,5,1);g.fillRect(x,y-3,1,5);g.fillStyle='#ffffff';g.fillRect(x,y-1,1,1);}}

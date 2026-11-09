@@ -2,24 +2,32 @@
    draw, at the grip, angle and layer each frame asks for (META.tool, from px/chibi2.js). Because the game draws them they can reach
    the square you aim at, go behind you when they should, pour water where it lands, and look different once upgraded. ================= */
 const TOOL_ART={
- axe:{px:5,art:["....KKK.......","...KDLK.KKK...","...KDLKKmllK..","...KDLKmmmleK.","...KDLKmmmmleK","..KsDLsmmmmmeK","..KsbbsmmmmmeK","..KsDLsmmmmmeK","...KDLKmmmmleK","...KDLKmmmleK.","...KDLKKmllK..","...KDLK.KKK...",
-   "...KDLK.......","...KDMK.......","...KDLK.......","...KDLK.......","...KDMK.......","...KDLK.......","...KDLK.......","...KDMK.......","...KDLK.......","...KDLK.......","...KKKK......."]},
+ axe:{px:5,art:["...KKKK.......", "...KDLK.....KK", "...KDLK...KKeK", "...KDLK.KKmleK", "..KsDLsKmmmleK", "..KsbbsmmmmleK", "..KsDLsmmmmleK", "..KsbbsmmmmleK", "..KsDLsKmmmleK", "...KDLK.KKmleK", "...KDLK...KKeK", "...KDLK.....KK", "...KDLK.......", "...KDMK.......", "...KDLK.......", "...KDLK.......", "...KDMK.......", "...KDLK.......", "...KDLK.......", "...KDMK.......", "...KDLK.......", "...KDLK.......", "...KKKK......."]},   /* judge, Nov 10: the head as the icon's flared wedge (narrow at the eye, a straight bright edge with corners); the rounded blade read as a pan at the strike */
  pick:{px:9,art:["......KKKKKK......","....KKllmmmmKK....","..KKllmmbbmmmmKK..",".KllmmKKbbKKmmmsK.","KllmK..KDLK..KmmsK","KlmK...KDLK...KmsK","KlK....KDLK....KsK",".K.....KDLK.....K.",".......KDMK.......",".......KDLK.......",".......KDLK.......",".......KDMK.......",".......KDLK.......",".......KDLK.......",".......KDMK.......",".......KDLK.......",".......KDLK.......",".......KDMK.......",".......KDLK.......",".......KDLK.......",".......KKKK......."]},
  hoe:{px:5,art:["....KK.......","...KDLKKKKKK.","...KDLKmmmllK","...KsbbmmmmlK","...KDLKKKmmeK","...KDLK..KmeK","...KDLK...KeK","...KDLK....K.","...KDMK.....","...KDLK.....","...KDLK.....","...KDMK.....","...KDLK.....","...KDLK.....",
    "...KDMK.....","...KDLK.....","...KDLK.....","...KDMK.....","...KDLK.....","...KDLK.....","...KDLK.....","...KDLK.....","...KDLK.....","...KKKK....."]},
  // the same tools seen from the front, for swings straight up and down: the hoe's blade face-on, the pickaxe's head across, the axe's blade edge-on
  hoe_f:{px:5,art:["..KKKKKKK..", ".KlleeellK.", ".KmmlllmmK.", "..KKKsKKK..", "....KsK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KKKK...."]},
- pick_f:{px:4,art:["..KKKK..",".KmleeK.",".KmlelK.",".KbmlmK.",".KsbmbK.","..KsbK..","..KDLK..","..KDLK..","..KDMK..","..KDLK..","..KDLK..","..KDMK..","..KDLK..","..KDLK..","..KDMK..","..KDLK..","..KDLK..","..KDMK..","..KDLK..","..KKKK.."]},
+ pick_f:{px:4,art:["...KK...", "..KeK...", "..KelK..", "..KlmK..", "..KlmK..", ".KKmbKK.", ".KbsbbK.", "..KDLK..", "..KDLK..", "..KDMK..", "..KDLK..", "..KDLK..", "..KDMK..", "..KDLK..", "..KDLK..", "..KDMK..", "..KDLK..", "..KDLK..", "..KDMK..", "..KDLK..", "..KKKK.."]},   /* judge, Nov 10: seen end-on the head is a thin spike, lit on the left, not a round knob (that read as a mallet) */
  axe_f:{px:4,art:["...KK...", "..KleK..", "..KleK..", ".KmleK..", ".KmleK..", ".KmlbK..", "..KsbK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KKKK.."]},
- // a watering can seen from the side, spout to the right; the hand holds the top of the handle
- can:{px:5,py:1,art:["...KKKKK........","..KlmmmbK.......","..Km...Kb.......",".KKKKKKKKK....KK","KleelllmmbK..KeK","KelllllmmbK.KlK.","KllllllmmbKKmK..","KlllllmmmbbmbK..","KmllllmmmbbbK...","KmmmmmmmbbsK....",".KbbbbbbbsK.....","..KKKKKKKK......"]}};
-const TOOL_PAL={K:[26,16,12],D:[84,52,28],M:[124,82,46],L:[176,126,76],s:[60,64,76],b:[92,98,112],m:[150,156,170],l:[204,210,222],e:[244,248,252]};
+ /* the can end-on (judge r6: tipping the side view toward us read as a gourd): facing down the drum with the grey rose low on its
+    front, tipped forward to pour with the rose below it; facing up the rose shows above the far rim, leaning further out to pour */
+ can_f:{px:5.5,py:1,tip:[6.5, 8.5],art:["....KKKK....", "....KllK....", "..KKKmmKKK..", ".KeelllmmbK.", ".KbbbbbbbbK.", ".KlllllmmbK.", ".KlllKKKmbK.", ".KllKihgKbK.", ".KllKhggKbK.", ".KlllKKKmbK.", ".KbbbbbbbbK.", ".KmmmmmmbbK.", "..KKKKKKKK.."]},
+ can_ft:{px:5.5,py:1,tip:[6, 12],art:["..KKKKKKKK..", ".KeeelllmbK.", ".KeelllmmbK.", ".KbbbbbbbbK.", ".KlllllmmbK.", ".KlllllmmbK.", ".KbbbbbbbbK.", "..KmmmmmbK..", "....KmmK....", "...KKKKKK...", "...KihggK...", "...KhggsK...", "....KKKK...."]},
+ can_b:{px:5.5,py:2,tip:[10, 1],art:["........KKK.", "....KKK.KihK", "....KlK.KhgK", "..KKKmKKKmK.", ".KeelllmmbK.", ".KbbbbbbbbK.", ".KlllllmmbK.", ".KlllllmmbK.", ".KlllllmmbK.", ".KbbbbbbbbK.", ".KmmmmmmbbK.", "..KKKKKKKK.."]},
+ can_bt:{px:5.5,py:4,tip:[11, 1],art:["..........KKK", ".........KihK", "........KKhgK", "....KKK.KmKK.", "..KKKlKKmK...", ".KeelllmbK...", ".KbbbbbbbK...", ".KllllllmbK..", ".KllllllmbK..", ".KbbbbbbbbK..", ".KmmmmmmbbK..", "..KKKKKKKK..."]},
+ // the watering can side-on, spout to the right (judge: the hand-drawn can reads like its icon; the 3D one read as a gourd),
+ // in the icon's greens with its grey rose on the spout; the hand holds the top of the handle
+ can:{px:5,py:1,tip:[16.5,4.5],art:["...KKKKK..........", "..KlmmmbK.........", "..Km...Kb.....KKK.", ".KKKKKKKKK...KihK.", "KleelllmmbK..KhgK.", "KelllllmmbK.KlKKK.", "KllllllmmbKKmK....", "KlllllmmmbbmbK....", "KmllllmmmbbbK.....", "KmmmmmmmbbsK......", ".KbbbbbbbsK.......", "..KKKKKKKK........"]}};
+/* metal and wood in hand (judge, Nov 10: the old greys with a white edge read as steel and stayed SIMILAR to the icons);
+   g h i: the can's grey rose (the icon's), which no grade recolours; the can's greens are the icon's (METAL.tin) */
+const TOOL_PAL={K:[26,16,12],D:[84,52,28],M:[124,82,46],L:[176,126,76],s:[60,64,76],b:[92,98,112],m:[150,156,170],l:[204,210,222],e:[244,248,252],g:[70, 73, 83],h:[134, 138, 147],i:[215, 216, 218]};
 // metal by grade: what upgrades look like
 const METAL={rust:{s:[54,42,40],b:[86,66,56],m:[120,92,74],l:[150,120,98],e:[176,150,126]},iron:{},
   copper:{s:[88,42,24],b:[138,68,34],m:[194,104,52],l:[230,148,84],e:[252,204,150]},
   steel:{s:[38,54,92],b:[66,96,148],m:[112,150,206],l:[172,204,242],e:[232,246,255]},
   gold:{s:[110,72,14],b:[168,118,24],m:[220,170,40],l:[248,214,90],e:[255,244,180]},
-  tin:{s:[26,58,34],b:[44,94,52],m:[70,136,74],l:[118,186,108],e:[176,222,160]}};
+  tin:{s:[38,71,50],b:[55,97,62],m:[75,123,75],l:[103,151,93],e:[150,196,128]}};   // the can icon's greens, the in-hand body a step up to its sage with a lit top (judge: it sank into the plaid)
 function toolGrade(kind){const T=S.tools||{};
   if(kind==='hoe')return (S.hoe||T.hoe||1)>1?'copper':'rust';if(kind==='pick')return (T.pick||1)>2?'gold':(T.pick||1)>1?'steel':'iron';
   if(kind==='axe')return (T.axe||1)>2?'gold':(T.axe||1)>1?'steel':'iron';if(kind==='can')return S.waterMax>10?'copper':'tin';return 'iron';}
@@ -27,6 +35,7 @@ function toolGrade(kind){const T=S.tools||{};
 const TOOL_CACHE=new Map();
 function toolStamp(kind,grade,ang,k,mir){ang=Math.round(ang/3)*3;k=Math.round(k*20)/20;const key=kind+grade+ang+'|'+k+(mir?'m':'');let st=TOOL_CACHE.get(key);if(st)return st;
   const T=TOOL_ART[kind],A=T.art,h=A.length,w=A[0].length,px0=T.px,py0=T.py!==undefined?T.py+.5:h-3.5;const pal=Object.assign({},TOOL_PAL,METAL[grade]||{});
+  if(kind.startsWith('can'))pal.K=pal.s.map(v=>Math.round(v*.5));   /* the can's outline a darker version of its own colour (LPC rule; judge: near-black sank it) */
   const th=(ang+90)*Math.PI/180,c=Math.cos(th),s=Math.sin(th),R=Math.ceil(Math.hypot(w,h))+2;const N=2*R+1;
   const cv=document.createElement('canvas');cv.width=N;cv.height=N;const g=cv.getContext('2d');const id=g.createImageData(N,N),D=id.data;
   for(let dy=-R;dy<=R;dy++)for(let dx=-R;dx<=R;dx++){const cnt={};let empty=0;
@@ -55,10 +64,16 @@ function drawSmear(g,gx,gy,a0,a1,k,r){a0*=Math.PI/180;a1*=Math.PI/180;for(let i=
 function toolOverlay(g,nm,dir,f,ox,oy,layer,o){const m=SPR[nm];const T=m&&m.tool&&m.tool[dir]&&m.tool[dir][f];if(!T)return null;const [gx0,gy0,ang,k,behind]=T;
   if((layer==='back')!==!!behind)return null;const kind=m.toolKind;const gx=ox+gx0,gy=oy+gy0;const fl=dir==='W'?-1:1;o=o||{};
   if(kind==='rod')return drawRod(g,gx,gy,ang,k,S.rod||1,fl);
-  if(kind==='can'){const tilt=dir==='W'?-(180-ang):ang;   // the sheet stores the west angle mirrored (180-a); undo that, then tip the other way
-    const st=toolStamp('can',toolGrade('can'),tilt-90,1,dir==='W');g.drawImage(st.cv,gx-st.R,gy-st.R);
+  /* owner, Nov 10: facing down and up the can pointed sideways. Facing down it turns so the spout points toward the square in
+     front of him (to the left of the can at his right hip) and tips down onto it, like facing left; facing up it is held at
+     his shoulder with the spout up and away over it */
+  if(kind==='can'&&(dir==='S'||dir==='N')){const nm2=(dir==='S'?'can_f':'can_b')+(ang>25?'t':'');const A=TOOL_ART[nm2];
+    const st=toolStamp(nm2,toolGrade('can'),-90,1,false);g.drawImage(st.cv,gx-st.R,gy-st.R);   // drawn as drawn: the views carry their own tip
+    return [gx+A.tip[0]-A.px,gy+A.tip[1]-A.py];}
+  if(kind==='can'){const mir=dir==='W';const tilt=dir==='W'?-(180-ang):dir==='S'?-(28+ang*.85):dir==='N'?-(65-ang*.4):ang;   /* facing down the spout always aims toward the square in front (judge r5: at rest it was still side-on) */   // the sheet stores the west angle mirrored (180-a)
+    const st=toolStamp('can',toolGrade('can'),tilt-90,1,mir);g.drawImage(st.cv,gx-st.R,gy-st.R);
     // the spout's tip, turned with the can
-    const sx0=(dir==='W'?-1:1)*(14.5-5),sy0=4.5-1.5,r=tilt*Math.PI/180;return [gx+sx0*Math.cos(r)-sy0*Math.sin(r),gy+sx0*Math.sin(r)+sy0*Math.cos(r)];}
+    const CA=TOOL_ART.can,sx0=(mir?-1:1)*(CA.tip[0]-CA.px),sy0=CA.tip[1]-CA.py,r=tilt*Math.PI/180;return [gx+sx0*Math.cos(r)-sy0*Math.sin(r),gy+sx0*Math.sin(r)+sy0*Math.cos(r)];}
   const grade=o.grade||toolGrade(kind);
   if(f===4&&m.tool[dir][3]){const a0=m.tool[dir][3][2];let a1=ang;if(dir==='W'&&a1>a0)a1-=360;if(dir!=='W'&&a1<a0)a1+=360;if(dir==='E'||dir==='W')drawSmear(g,gx,gy,a0,a1,1,19);}
   const front=(dir==='S'||dir==='N')&&TOOL_ART[kind+'_f'];   /* owner: facing down/up the pick hit the stone sideways; the front art keeps its head in the swing, point first */const st=toolStamp(front?kind+'_f':kind,grade,ang,k,dir==='W');g.drawImage(st.cv,gx-st.R,gy-st.R);
@@ -78,7 +93,7 @@ const FISTS={};
 function fistOverlay(g,nm,dir,f,ox,oy){const im=FISTS[nm];const m=SPR[nm];if(!im||!m||!m.clips||!m.clips.thrust)return;const T=m.tool&&m.tool[dir]&&m.tool[dir][f];if(!T||T[4])return;
   const r=m.clips.thrust[dir];g.drawImage(im,f*m.fw,r[0]*m.fh,m.fw,m.fh,ox,oy,m.fw,m.fh);}
 // water falling from the spout onto the square in front
-function waterStream(g,from,to,t){const [x0,y0]=from,[x1,y1]=to;const n=16;   // a stream 2 px wide in two blues (judge: a 1 px dotted line read as wire), a splash where it lands
+function waterStream(g,from,to,t){const [x0,y0]=from,[x1,y1]=to;const n=Math.max(16,Math.ceil(Math.hypot(x1-x0,y1-y0)/1.5));   /* judge: a long stream read as a dotted wire */   // a stream 2 px wide in two blues (judge: a 1 px dotted line read as wire), a splash where it lands
   for(let i=0;i<n;i++){const u=((i/n)+t*2.2)%1;const x=x0+(x1-x0)*Math.sqrt(u),y=y0+(y1-y0)*u*u;g.fillStyle=i%4===0?'#e6f4ff':'#7ab8e0';g.fillRect(Math.round(x),Math.round(y),2,3);g.fillStyle='#4a86b8';g.fillRect(Math.round(x)+1,Math.round(y)+1,1,2);}
   const s=Math.sin(t*30),k=(t*6)%1;g.fillStyle='#a8d4f0';g.fillRect(Math.round(x1)-3,Math.round(y1),7,1);g.fillStyle='#e6f4ff';
   for(const d of [-1,1]){g.fillRect(Math.round(x1+d*(2+k*3)),Math.round(y1-2-Math.sin(k*Math.PI)*3),1,1);}g.fillRect(Math.round(x1)-1+(s>0?1:0),Math.round(y1)-1,2,1);}
@@ -104,7 +119,7 @@ function gradeIcon(kind){const grade=kind==='rod'?'rod'+(S.rod||1):toolGrade(kin
   const c=document.createElement('canvas');c.width=32;c.height=32;const g=c.getContext('2d',{willReadFrequently:true});g.imageSmoothingEnabled=false;g.drawImage(im,0,0,m.fw,m.fh,0,0,32,32);
   const d=g.getImageData(0,0,32,32),D=d.data;
   // which pixels change: metal (grey) for blades and heads, green for the can, the wood of the rod
-  const pick=(r,gg,b)=>{const [h,sat,v]=rgbHsv(r,gg,b);if(kind==='can')return h>80&&h<160&&sat>.2&&v>.2;if(kind==='rod')return h>15&&h<45&&sat>.3&&v>.2;return sat<.21&&v>.28;};
+  const pick=(r,gg,b)=>{const [h,sat,v]=rgbHsv(r,gg,b);if(kind==='can')return h>80&&h<170&&sat>.15&&v>.05;   /* the can's darkest greens too: they stayed green on the copper can (owner: upgrades get their own colours) */if(kind==='rod')return h>15&&h<45&&sat>.3&&v>.2;return sat<.21&&v>.28;};
   const cols=new Map();for(let i=0;i<D.length;i+=4){if(!D[i+3])continue;if(!pick(D[i],D[i+1],D[i+2]))continue;const k=(D[i]<<16)|(D[i+1]<<8)|D[i+2];cols.set(k,.3*D[i]+.59*D[i+1]+.11*D[i+2]);}
   const sorted=[...cols.entries()].sort((a,b)=>a[1]-b[1]);const lo=sorted.length?sorted[0][1]:0,hi=sorted.length?sorted[sorted.length-1][1]:1;
   const M=METAL[grade]||{};const ramp=kind==='rod'?ROD_RAMP(S.rod||1):[M.s||TOOL_PAL.s,M.b||TOOL_PAL.b,M.m||TOOL_PAL.m,M.l||TOOL_PAL.l,M.e||TOOL_PAL.e];
