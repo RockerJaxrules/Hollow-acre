@@ -331,6 +331,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   where the player stays (no step back that lands in the last sample).
 - [run r7] Side view: the FAR leg tucked up behind is hidden by the planted near leg unless it trails 4+ px; the run's
   passing frame then reads as standing. Keep the arms bent on the passing frames too.
+- [run r8-r9] A run bounces the other way from a walk: low on the passing frame (support knee bent), high on the next
+  frame with both feet off the ground. Lean the head clearly ahead (the legs only take half of the generator's lean).
+- [grab r8] When an action needs the player closer than he stands, walk him there first with the normal walk (outside
+  the action) and keep the action itself still. Facing away, stand him a little to the side of the square so what he
+  sets down stays in view beside him.
 - [judging] An old build (test2d_old.html) loads the CURRENT sprites from the same folders: after installing new sheets,
   old-vs-new captures from it are both new. Compare sheets directly (old files from git or backup_v2) instead.
 - [code] Never end an inserted line with a // comment in these one-line-per-function files: twice it swallowed the
