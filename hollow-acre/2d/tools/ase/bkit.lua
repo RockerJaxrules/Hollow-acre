@@ -15,7 +15,7 @@ B.PAL = {
  {'tl1','#10181c'},{'tl2','#172328'},{'tl3','#1f3034'},{'tl4','#2a3f42'},{'tl5','#365052'},{'tl6','#456264'},{'tl7','#587878'},{'tl8','#72908c'},
  {'sl1','#1c1a2c'},{'sl2','#2a2a44'},{'sl3','#3a3d5c'},{'sl4','#4c5372'},{'sl5','#626c88'},{'sl6','#7f8aa2'},{'sl7','#a2acbe'},{'sl8','#c8d0da'},
  {'sh1','#22141c'},{'sh2','#3a2022'},{'sh3','#57302a'},{'sh4','#764334'},{'sh5','#94593e'},{'sh6','#b2744c'},{'sh7','#cc955e'},{'sh8','#e4b878'},
- {'tn1','#141e1c'},{'tn2','#1f302a'},{'tn3','#2c4636'},{'tn4','#3d5e40'},{'tn5','#567a48'},{'tn6','#74964e'},{'tn7','#97b05a'},{'tn8','#c0c870'},
+ {'tn1','#161c18'},{'tn2','#222c24'},{'tn3','#2f3f30'},{'tn4','#42553c'},{'tn5','#586c46'},{'tn6','#72844e'},{'tn7','#909c5a'},{'tn8','#b4b46c'},   -- two steps toward olive (judge r3)
  {'th1','#2a1c1a'},{'th2','#463024'},{'th3','#66462c'},{'th4','#8a6234'},{'th5','#ab7e3c'},{'th6','#c89c4a'},{'th7','#dfba62'},{'th8','#f0d88a'},
  {'pr1','#1e1028'},{'pr2','#301838'},{'pr3','#46224a'},{'pr4','#5e2e5a'},{'pr5','#7a3e6a'},{'pr6','#985478'},{'pr7','#b87088'},{'pr8','#d896a0'},
  -- walls (7 steps)
@@ -165,6 +165,14 @@ function B.roofpx(c, mat, x, y, top, lit, seed)
     local v = band(c, Rr, (lit > .5 and .62 or .24) + (ry == 0 and .14 or 0) - (ry == ch - 2 and .1 or 0) + (n - .5) * .16 - (y - top) / 560, 2, 8)
     if lit > .5 and ry == 1 and lx == 2 and n > .8 then v = px.i(c, Rr[7]) end   -- a few lit shingle tips, not a dash on every other one (judge: the roof read as noise)
     return v
+  elseif mat == 'tin' and B.GABLE then
+    local G = B.GABLE; local d = math.abs(x - G.ax); local v = y - G.k * d; local bx = math.floor(v) % 6
+    if bx == 0 then return px.i(c, lit > .5 and Rr[6] or Rr[4]) end
+    if bx == 1 then return px.i(c, lit > .5 and Rr[4] or Rr[2]) end
+    local sm = math.floor(v / 6); local rs = H(sm + (lit > .5 and 0 or 50), seed); local W2 = (y - v) / math.max(.01, G.k)
+    local d0 = 18 + math.floor(H(sm, seed + 1) * 26)
+    if rs > .86 and bx == 2 and d >= d0 and d < d0 + 6 + math.floor(rs * 6) then return px.i(c, 'r4') end   -- a thin rust run beside a seam, low on the slope
+    return band(c, Rr, lit > .5 and .5 or .22, 2, 6)
   elseif mat == 'tin' then
     local bx = x % 7
     if bx == 0 then return px.i(c, lit > .5 and Rr[7] or Rr[4]) end
@@ -187,7 +195,10 @@ function B.frontgable(c, sp, x0, x1, yW, wallmat, roofmat, trim, seed)
   local over = 14; local Gh = math.floor(W * (sp.pitch or .28)); local Rb = math.floor(W * (sp.back or .31))
   local ay = yW - Gh; local topA = ay - Rb + 6; local sideTop = yW - math.floor(W * .25)
   local roofpoly = {{x0 - over, sideTop}, {ax, topA}, {x1 + over, sideTop}, {x1 + over, yW + 4}, {ax, ay}, {x0 - over, yW + 4}}
+  --[[ judge r3: seen end-on, a metal roof's seams run from the ridge down to each eave, parallel to the gable's edges ]]
+  B.GABLE = {ax = ax, k = (yW + 4 - ay) / math.max(1, ax - (x0 - over))}
   px.poly(c, roofpoly, function(x, y) return B.roofpx(c, roofmat, x, y, topA, x < ax and 1 or 0, seed) end)
+  B.GABLE = nil
   -- moss and the odd bird mess along the lower courses
   for i = 0, math.floor(W / 3) do local x = x0 - over + math.floor(H(i, seed) * (W + over * 2)); local y = yW - 22 + math.floor(H(i, seed + 5) * 24)
     if px.get(c, x, y) ~= 0 and math.abs(x - ax) > 6 and H(i, 9) < (sp.moss or .4) then P(c, x, y, ({'v3', 'v4', 'v5', 'v4'})[i % 4 + 1]); P(c, x + 1, y, 'v3') end end

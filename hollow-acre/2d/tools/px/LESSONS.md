@@ -382,6 +382,9 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   rest of the line (the legs, then a whole function). Use /* */ or put the comment on its own line, then syntax-check.
 
 ## Buildings (Nov 10: kit v2, judged 6 vs the installed 4)
+- [r3] Moss goes where water sits: the lowest 6-8 px of a roof (the eaves) and the 2-3 courses above a wall's base, in
+  clumps. Spread over whole roof planes it reads as camouflage or mould (6 vs 5).
+- [r3, next] Metal roof seams run from the ridge DOWN to the eave (parallel to the gable edges), never parallel to the ridge.
 - The installed buildings carried the banned grit: a 1 px light dot on every shingle (frosted roofs at 1x), checkerboard
   eave and chimney shadows, and a stain layer smeared across trim and posts. Wear is drawn as shapes, never as a layer.
 - A cast shadow drawn in the outline colour merges with the outline above it and reads as a thicker line. Shadow a wall
