@@ -16,6 +16,8 @@ DRYL = [HEX(c) for c in ('#2e2414', '#4a3a1c', '#6a5428', '#8a7236', '#a89048', 
 TURN_TOP = [HEX(c) for c in ('#2e1228', '#4a1e40', '#6a2e5a', '#8a4474', '#a65e8c')]
 TURN_LOW = [HEX(c) for c in ('#6a5e58', '#9a8e84', '#c2b6a8', '#ded4c4', '#f0e8da')]
 PUMP = [HEX(c) for c in ('#2e1006', '#4c1e0c', '#6c3012', '#8a461a', '#a45c24', '#be7834')]
+GREENP = [HEX(c) for c in ('#2a2a12', '#3e3e18', '#565620', '#6e6c2a', '#8a8634', '#a29e40')]   # an unripe pumpkin: dull yellow-olive, a full value step off the leaves
+STREAK = HEX('#8e9c62')
 STEM = [HEX(c) for c in ('#1e2410', '#2e3818', '#465022')]
 FLOWER = [HEX(c) for c in ('#7a5a14', '#b4881e', '#d8b040')]
 TASSEL = [HEX(c) for c in ('#5a4218', '#7a5a20', '#a07a2c', '#c09a3c')]
@@ -99,16 +101,18 @@ def bulb(cv, cx, cy, rx, ry, soil_y):
     cv.put(cx - rx * .45, cy - ry * .45, shade(TURN_TOP, 4))   # a highlight on the shoulder
 
 
-def pumpkin_fruit(cv, cx, cy, rx, ry):
+def pumpkin_fruit(cv, cx, cy, rx, ry, ramp=PUMP, streaks=False, lobes=1.6, lift=0, seam=.12):
     for y in range(int(cy - ry), int(cy + ry) + 1):
         for x in range(int(cx - rx), int(cx + rx) + 1):
             u, v = (x - cx) / rx, (y - cy) / ry
             if u * u + v * v > 1: continue
-            rib = math.cos(u * math.pi * 1.6) ** 2   # the lobes: dark seams between them
+            rib = math.cos(u * math.pi * lobes) ** 2   # the lobes: dark seams between them
             l = -u * .5 - v * .8
-            k = 2 + (1 if l > .1 else 0) + (1 if l > .55 else 0) - (1 if l < -.45 else 0) - (1 if rib < .12 else 0)
-            cv.put(x, y, shade(PUMP, k))
-    cv.put(cx - rx * .4, cy - ry * .5, PUMP[5]); cv.put(cx - rx * .4 + 1, cy - ry * .5, PUMP[4])
+            k = 2 + lift + (1 if l > .1 else 0) + (1 if l > .55 else 0) - (1 if l < -.45 else 0) - (1 if rib < seam else 0)
+            c = shade(ramp, k)
+            if streaks and .44 < rib < .5 and abs(v) < .6 and abs(u) < .6: c = STREAK   # thin pale streaks on the front ribs: unripe
+            cv.put(x, y, c)
+    cv.put(cx - rx * .4, cy - ry * .5, ramp[5]); cv.put(cx - rx * .4 + 1, cy - ry * .5, ramp[4])
     for i in range(3): cv.put(cx + (1 if i == 2 else 0), cy - ry - i, STEM[1 + (i == 0)])
 
 
@@ -147,8 +151,11 @@ def pumpkin(stage):
             leaf(cv, cx + ox, B - 3, a, big + 3, big * .6, -a * .3, LEAF)
         if stage == 1:   # a flower
             for dx, dy, k in ((0, 0, 2), (1, 0, 1), (-1, 0, 1), (0, -1, 2), (0, 1, 0)): cv.put(cx + 7 + dx, B - 5 + dy, FLOWER[k])
-        else:
-            pumpkin_fruit(cv, cx + 3, B - 5, 7, 5.2)
+        elif stage == 2:   # unripe: green with pale streaks (a brown one read as a chestnut or rot)
+            pumpkin_fruit(cv, cx + 2, B - 6, 6.2, 5.2, GREENP, lobes=1.8, seam=.08)   # a round fruit, 12 px, in front of the leaves
+        else:   # ripe: a big lobed pumpkin in the harvest icon's muted ramp, sitting in its vine, a dry leaf for autumn
+            pumpkin_fruit(cv, cx + 1, B - 7, 10.5, 7.6, PUMP, lobes=2.0, lift=1, seam=.05)
+            for i, (dx, dy) in enumerate(((1, -9), (2, -10), (3, -10), (4, -9))): cv.put(cx + 1 + dx, B - 7 + dy, STEM[2] if i < 2 else LEAF[3])   # a curled stem
     return outline(cv.image())
 
 
@@ -187,6 +194,6 @@ def corn(stage):
 if __name__ == '__main__':
     out = sys.argv[1]; os.makedirs(out, exist_ok=True)
     for st in range(4): turnip(st).save(os.path.join(out, f'turnip_{st}.png'))
-    for st in range(3): pumpkin(st).save(os.path.join(out, f'pumpkin_{st}.png'))
+    for st in range(4): pumpkin(st).save(os.path.join(out, f'pumpkin_{st}.png'))   # stage 3 is the ripe one (it was still the old outside-art sprite)
     for st in range(3): corn(st).save(os.path.join(out, f'corn_{st}.png'))
     print('ok')
