@@ -11,7 +11,10 @@ const fogC=document.createElement('canvas'),fctx=fogC.getContext('2d');
 const fxC=document.createElement('canvas'),xctx=fxC.getContext('2d');
 // ---------- sprites
 const IMG={};
-function loadImages(list,prog){let done=0;return Promise.all(list.map(src=>new Promise(res=>{const im=new Image();im.onload=()=>{IMG[src]=im;prog&&prog(++done,list.length);res();};im.onerror=()=>{prog&&prog(++done,list.length);res();};im.src=src;})));}
+// the published page carries its images bundled in a few packs (packs.json lists them); anywhere else each image loads from its own path
+const PACK={};let PACKS=null;
+function loadPacks(){if(PACKS)return PACKS;return PACKS=fetch('packs.json?b='+BUILD_ID,{cache:'no-store'}).then(r=>r.ok?r.json():null).then(L=>L&&L.packs?Promise.all(L.packs.map(n=>fetch(n+'?b='+BUILD_ID).then(r=>r.ok?r.json():{}).then(d=>Object.assign(PACK,d)).catch(()=>{}))):null).catch(()=>null);}
+function loadImages(list,prog){let done=0;return loadPacks().then(()=>Promise.all(list.map(src=>new Promise(res=>{const im=new Image();im.onload=()=>{IMG[src]=im;prog&&prog(++done,list.length);res();};im.onerror=()=>{if(PACK[src]&&im.src!==src){im.src=src;return;}prog&&prog(++done,list.length);res();};im.src=PACK[src]||src;}))));}
 function drawSpr(name,x,y,clip,dir,frame,o){const m=SPR[name];if(!m)return;const im=IMG[m.src];if(!im)return;o=o||{};
   let sx=0,sy=0;if(m.clips){const c=(m.clips[clip]||m.clips.idle||Object.values(m.clips)[0]);const r=c[dir]||c.S||Object.values(c)[0];sy=r[0]*m.fh;sx=((frame|0)%r[1])*m.fw;}
   const g=o.ctx||ctx2;const dx=Math.round(x-m.ax),dy=Math.round(y-m.ay);
