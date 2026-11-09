@@ -29,10 +29,24 @@ LIGHT = (-.6, -.8)   # from the top left
 
 
 class Canvas:
-    def __init__(self, w, h): self.w, self.h = w, h; self.px = {}
+    def __init__(self, w, h): self.w, self.h = w, h; self.px = {}; self.grp = None; self.under = {}
     def put(self, x, y, c, over=True):
         x, y = int(round(x)), int(round(y))
-        if 0 <= x < self.w and 0 <= y < self.h and (over or (x, y) not in self.px): self.px[(x, y)] = c
+        if 0 <= x < self.w and 0 <= y < self.h and (over or (x, y) not in self.px):
+            if self.grp is not None:
+                if (x, y) not in self.grp and (x, y) in self.px: self.under[(x, y)] = True   # this piece covers earlier drawing here
+                self.grp[(x, y)] = c
+            self.px[(x, y)] = c
+    def begin(self): self.grp = {}; self.under = {}
+    def end(self, dark):
+        """close a piece (a leaf): where its rim lies over something drawn earlier, a dark line separates them (Stardew's
+        inner line between overlapping leaves), so a bush reads as separate leaves, not one blob"""
+        g = self.grp or {}; self.grp = None
+        for (x, y), c in g.items():
+            if (x, y) not in self.under: continue
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                if (x + dx, y + dy) not in g and (x + dx, y + dy) in self.px:
+                    self.px[(x, y)] = dark; break
     def image(self):
         im = Image.new('RGBA', (self.w, self.h), (0, 0, 0, 0)); p = im.load()
         for (x, y), c in self.px.items(): p[x, y] = c
@@ -42,7 +56,7 @@ class Canvas:
 def shade(ramp, k): return ramp[max(0, min(len(ramp) - 1, k))]
 
 
-def leaf(cv, x0, y0, ang, L, W, bend, ramp, blade=False, droop=0.0):
+def _leaf(cv, x0, y0, ang, L, W, bend, ramp, blade=False, droop=0.0):
     """a shaped leaf from (x0, y0): angle 0 points up, + leans right; bend curls it as it grows; droop pulls the tip
     down. Its lit edge faces the light, its underside and midrib are darker."""
     n = max(6, int(L * 3)); cx, cy = x0, y0
@@ -65,6 +79,16 @@ def leaf(cv, x0, y0, ang, L, W, bend, ramp, blade=False, droop=0.0):
             cv.put(cx + nx * o, cy + ny * o, shade(ramp, k))
 
 
+def _grouped(fn, ramp_arg):
+    def g(cv, *a, **k):
+        ramp = k.get('ramp') if 'ramp' in k else a[ramp_arg]
+        cv.begin(); fn(cv, *a, **k); cv.end(shade(ramp, 1))
+    return g
+
+
+leaf = _grouped(_leaf, 6)
+
+
 def mound(cv, cx, y, w):
     """the hilled soil a plant stands in: a low dome, lit on top, dark at its foot"""
     for dx in range(-w, w + 1):
@@ -85,7 +109,8 @@ def outline(im):
             for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
                 X, Y = x + dx, y + dy
                 if 0 <= X < W and 0 <= Y < H and p[X, Y][3]:
-                    r, g, b, _ = p[X, Y]; add.append((x, y, (int(r * .42), int(g * .4), int(b * .45), 255))); break
+                    k = .62 if (dx, dy) in ((1, 0), (0, 1)) else .38          # the outline is lighter where it faces the light (top-left)
+                    r, g, b, _ = p[X, Y]; add.append((x, y, (int(r * k), int(g * k * .96), int(b * k * 1.06), 255))); break
     for x, y, c in add: p[x, y] = c
     return im
 
@@ -121,10 +146,12 @@ def pumpkin_fruit(cv, cx, cy, rx, ry, ramp=PUMP, streaks=False, lobes=1.6, lift=
 
 FLOWERO = [HEX(c) for c in ('#6a3010', '#a4521a', '#cc7a2a', '#e8a248')]   # a pumpkin flower: an orange trumpet
 KHAKI = [HEX(c) for c in ('#3a4416', '#5a6a20', '#7e8e2c', '#a0ae3a', '#bec850', '#d6dc6c')]   # the unripe gourd, a step lighter than the leaves
+STEMB = [HEX(c) for c in ('#2a180a', '#4e3218', '#74502a')]   # a pumpkin's woody stem
+PALEL = [HEX(c) for c in ('#1e3416', '#2e4e20', '#46702e', '#5e8a3a', '#7aa44a', '#98bc5e', '#b4d276')]   # a leaf's paler underside
 YELLOWL = [HEX(c) for c in ('#2a2a14', '#44441c', '#646024', '#86802e', '#a49c3c', '#bcb44e', '#cec462')]   # a leaf going yellow
 
 
-def spoon(cv, x0, y0, ang, L, W, ramp, droop=0.0, bend=0.0):
+def _spoon(cv, x0, y0, ang, L, W, ramp, droop=0.0, bend=0.0):
     """a turnip green (judge: "turnip greens, not leek spears"): a short stalk, then a broad spoon-shaped blade with a
     crinkled edge and a pale midrib; lit on the side facing the light, darker underneath"""
     n = max(8, int(L * 3)); cx, cy = x0, y0
@@ -146,7 +173,7 @@ def spoon(cv, x0, y0, ang, L, W, ramp, droop=0.0, bend=0.0):
             cv.put(cx + nx * o, cy + ny * o, c)
 
 
-def seed_leaf(cv, x0, y0, ang, L, W, ramp):
+def _seed_leaf(cv, x0, y0, ang, L, W, ramp):
     """a cotyledon: a thick oval, lit over most of it, dark only along its lower-right rim (no dark ring all round)"""
     ex, ey = x0 + math.sin(ang) * L * .5, y0 - math.cos(ang) * L * .5
     for y in range(int(ey - L), int(ey + L) + 2):
@@ -163,7 +190,7 @@ def seed_leaf(cv, x0, y0, ang, L, W, ramp):
     for k in range(int(L * .5)): cv.put(x0 + math.sin(ang) * k * .5, y0 - k * .5, STEM[2])
 
 
-def palm(cv, cx, cy, r, ramp, rot=0.0, behind=False):
+def _palm(cv, cx, cy, r, ramp, rot=0.0, behind=False):
     """a pumpkin leaf: a broad round leaf with five shallow lobes, seen from above and a little in front; lit top-left,
     darker toward the lower right, three pale veins from the stalk"""
     k0 = -1 if behind else 0
@@ -186,23 +213,29 @@ def palm(cv, cx, cy, r, ramp, rot=0.0, behind=False):
             cv.put(x, y, c)
 
 
+spoon = _grouped(_spoon, 5)
+seed_leaf = _grouped(_seed_leaf, 5)
+palm = _grouped(_palm, 3)
+
+
 def ribbed(cv, cx, cy, rx, ry, ramp, nrib=3, lift=0):
     """a ribbed fruit drawn as lobes (judge: "ribs as broken dashes read as speckle; shade each lobe with a lit left
     edge"): unbroken curved seams, each lobe lit along its left side, the whole lit top-left"""
-    seams = [(-1 + 2 * (i + 1) / (nrib + 1)) for i in range(nrib)]
+    seams = [math.sin(math.radians(a)) for a in ((-58, -22, 22, 58) if nrib == 4 else (-50, 0, 50))]   # meridians: closer toward the sides
     for y in range(int(cy - ry), int(cy + ry) + 1):
         v = (y - cy) / ry
         if abs(v) > 1: continue
         hw = rx * math.sqrt(max(0, 1 - v * v))
-        xs = [cx + sd * hw for sd in seams]
+        bend = min(1, math.sqrt(max(0, (v + 1) / 1.5)))      # the seams leave the stem at the top and swing out round the body
+        xs = [cx + sd * hw * bend for sd in seams]
         for x in range(int(round(cx - hw)), int(round(cx + hw)) + 1):
             u = (x - cx) / max(1, hw)
             l = -u * .45 - v * .8
             k = 2 + lift + (l > .05) + (l > .5) - (l < -.5)
             near = min(abs(x - sx) for sx in xs)
             right_of = [x - sx for sx in xs if x - sx > 0]
-            if near < .5 and abs(v) < .86: k -= 1                                     # the seam
-            elif right_of and min(right_of) < 1.5 and abs(v) < .7 and u < .6: k += 1   # a lobe's lit left edge
+            if near < .5 and abs(v) < .86 and l < .45: k -= 1                         # the seam: only away from the light, so the sphere reads first
+            elif right_of and min(right_of) < 1.5 and abs(v) < .7 and -.6 < u < .3 and l > .1: k += 1   # a lobe's lit left edge, on the lit side only
             cv.put(x, y, ramp[max(0, min(len(ramp) - 1, k))])
 
 
@@ -240,7 +273,9 @@ def turnip(stage):
                     k = 2 + (l > .2) + (l > .6) - (l < -.4)
                     cv.put(x, y, shade(ramp, k))
             for (dx, dy) in ((-3, -3), (-2, -3), (-3, -2)): cv.put(cx + dx, cy + dy, TURN_TOP[4])   # the shoulder's highlight, a small cluster
-            for k in range(3): cv.put(cx + (k == 2), cy + ry + 1 + k, TURN_LOW[1 if k else 2])       # the taproot
+            for dx in range(-7, 8):                                                                  # the soil lip in front of it
+                h = int(round(2.4 * (1 - (dx / 7.5) ** 2)))
+                for dy in range(h + 1): cv.put(cx + dx, B - dy, SOIL[3 if dy == h and dx < 0 else 2 if dy == h else 1])
     return outline(cv.image())
 
 
@@ -248,13 +283,13 @@ def pumpkin(stage):
     cv = Canvas(32, 64); B = 58; cx = 16
     mound(cv, cx, B, 6)
     if stage == 0:   # two thick, round seed leaves (broader and blunter than the turnip's)
-        seed_leaf(cv, cx - 1, B - 3, -1.05, 5.4, 2.6, LEAF); seed_leaf(cv, cx + 1, B - 3, 1.0, 5.2, 2.6, LEAF)
-        for k in range(3): cv.put(cx, B - 2 - k, STEM[2])
+        for k in range(4): cv.put(cx, B - 2 - k, KHAKI[4] if k < 3 else KHAKI[3])   # a pale, thick stem
+        seed_leaf(cv, cx - 1, B - 5, -1.35, 6.4, 3.0, LEAF); seed_leaf(cv, cx + 1, B - 5, 1.3, 6.2, 3.0, LEAF)   # broad squash seed leaves, held flat
         return outline(cv.image())
     for i in range(-10, 11): cv.put(cx + i, B - 2 + round(math.sin(i * .55)), STEM[2 if i < 0 else 1])   # the vine along the ground
     if stage == 1:   # round lobed leaves of different sizes, an orange trumpet flower, a curling tendril: a vine
         palm(cv, cx - 7, B - 8, 5.0, LEAF, .2); palm(cv, cx + 5, B - 10, 6.2, LEAF, -.2); palm(cv, cx - 1, B - 5, 4.2, LEAF, 0)
-        fx, fy = cx + 10, B - 6
+        fx, fy = cx + 8, B - 7    # the flower sits on the vine
         for (dx, dy, k) in ((-1, 0, 3), (1, 0, 3), (-1, 1, 2), (0, 1, 3), (1, 1, 2), (0, 2, 2), (0, 3, 1), (0, 0, 2)): cv.put(fx + dx, fy + dy, FLOWERO[k])
         cv.put(fx, fy + 4, STEM[2])
         for (dx, dy) in ((-12, -1), (-13, -2), (-13, -3), (-12, -4), (-11, -4), (-11, -3)): cv.put(cx + dx, B - 2 + dy, STEM[2])
@@ -264,8 +299,13 @@ def pumpkin(stage):
         for i in range(3): cv.put(cx + 1 + (i == 2), B - 11 - i, STEM[2 if i < 2 else 1])
     else:   # ripe: a big lobed pumpkin in the icon's muted ramp, its leaves still showing behind it
         palm(cv, cx - 9, B - 10, 5.8, LEAF, .25, behind=True); palm(cv, cx + 9, B - 12, 5.2, LEAF, -.25, behind=True)
-        ribbed(cv, cx + 1, B - 7, 10.5, 7.6, PUMP, nrib=3, lift=1)
-        for i, (dx, dy) in enumerate(((0, -8), (0, -9), (1, -10), (2, -10), (3, -9))): cv.put(cx + 1 + dx, B - 7 + dy, STEM[2] if i < 3 else LEAF[3])   # a curled stem
+        pcx, pcy, prx, pry = cx + 1, B - 9, 10.0, 8.6                       # rounder: a pumpkin, not a squash
+        ribbed(cv, pcx, pcy, prx, pry, PUMP, nrib=4, lift=1)
+        for (dx, dy) in ((-5, -5), (-5, -4), (-6, -3), (-6, -2), (-6, -1), (-4, -5)): cv.put(pcx + dx, pcy + dy, PUMP[6])   # one clear highlight streak on the upper-left lobe
+        for (dx, dy) in ((-1, -9), (0, -9), (-1, -10), (0, -10), (0, -11), (1, -11), (1, -12), (2, -12)):           # a thick brown stem, curling
+            cv.put(pcx + dx, pcy + dy, STEMB[2] if dx < 0 or dy < -10 else STEMB[1])
+        for (dx, dy) in ((-2, -8), (-1, -8), (0, -8), (1, -8), (2, -8), (-1, -7), (0, -7)): cv.put(pcx + dx, pcy + dy, PUMP[2])   # the dent where the stem sinks in
+        cv.put(pcx - 1, pcy - 8, STEMB[0]); cv.put(pcx, pcy - 8, STEMB[0])
     return outline(cv.image())
 
 
@@ -296,10 +336,10 @@ def corn(stage):
         for dx in range(-w + 1, w + 1): cv.put(cx + dx, y, LEAF[4] if dx < 0 or w == 1 else LEAF[2])
     # leaves alternate up the stalk with uneven lengths, angles and droop (judge: "mirrored tiers like a fishbone")
     spots = {0: ((.34, -1, 10, .9), (.5, 1, 12, 1.1), (.7, -1, 9, .6), (.88, 1, 7, .4)),
-             1: ((.12, 1, 12, 1.2), (.25, -1, 15, .9), (.41, 1, 14, .7), (.53, -1, 12, 1.0), (.68, 1, 13, .6), (.79, -1, 9, .5), (.9, 1, 7, .3)),
+             1: ((.12, 1, 11, 1.4), (.24, -1, 16, .8), (.39, 1, 13, .5), (.54, -1, 11, 1.3), (.66, 1, 15, .9), (.8, -1, 8, .4), (.9, 1, 6, .2)),
              2: ((.07, -1, 11, 1.3), (.17, 1, 13, 1.1), (.3, -1, 15, .9), (.43, 1, 14, .7), (.55, -1, 15, 1.0), (.67, 1, 12, .6), (.77, -1, 11, .7), (.88, 1, 8, .4))}[stage]
     for i, (t, side, L, dr) in enumerate(spots):
-        y = B - 2 - t * H; dry = stage == 2 and i < 2; ramp = DRYL if dry else LEAF   # the lowest two drying: tan, shorter, less curled
+        y = B - 2 - t * H; dry = stage == 2 and i < 2; ramp = DRYL if dry else (PALEL if (stage >= 1 and i == 3) else LEAF)   # the lowest two drying; one turned to show its pale underside
         leaf(cv, cx + side, y, side * (.78 - t * .3), L - (3 if dry else 0), 2.5, side * .22, ramp, blade=True, droop=side * (dr * .6 if dry else dr))
     if stage == 2:
         corn_ear(cv, cx + 1, B - 2 - .5 * H, 1, 12, 5, .5)       # the main ear
