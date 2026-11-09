@@ -380,14 +380,16 @@ function acc(cx,hy,view,fl,a,top0,hairTop){if(!a)return;const R=ACCR,side=view!=
 // over your head and straight down in front of you. So facing up or down every angle is -90 or 90.
 const TP={
  swing:{E:[[6,7,55,1,0],[3,-4,-60,1,1],[0,-11,-115,1,1],[-2,-12,-160,1,1],[5,-4,-15,1,0],[10,6,28,1,0],[10,7,32,1,0],[6,6,50,1,0]],
-        S:[[3,7,90,.75,0],[3,-4,-90,1,1],[2,-12,-90,1,1],[2,-13,-90,.85,1],[2,-3,90,.3,0],[2,10,90,1,0],[2,11,90,.95,0],[3,7,90,.75,0]],
-        N:[[3,6,90,.5,1],[3,-4,-90,1,1],[2,-12,-90,1,1],[2,-13,-90,.5,0],[2,-11,-90,1.05,1],[2,-6,-90,.85,1],[2,-5,-90,.8,1],[3,5,90,.5,1]]},
+        // facing down: wound up over the right shoulder (not straight up behind the head, which read as a peg), struck down at a slant
+        S:[[3,7,90,.75,0],[5,-4,-70,1,1],[5,-11,-62,1,1],[4,-12,-70,.9,1],[3,-3,90,.3,0],[4,10,80,1,0],[4,11,82,.95,0],[3,7,88,.75,0]],
+        // facing away: the strike shows its head beside and above the player's head instead of vanishing behind the body
+        N:[[3,6,90,.5,1],[3,-4,-90,1,1],[2,-12,-90,1,1],[2,-13,-90,.5,0],[6,-13,-78,1.15,1],[6,-9,-80,1.05,1],[6,-8,-80,1,1],[3,5,90,.5,1]]},
  rod:{E:[[6,3,-35,1,0],[3,-5,-100,1,1],[1,-9,-135,1,1],[0,-10,-150,1,1],[5,-3,-50,1,0],[8,2,-15,1,0],[8,3,-10,1,0],[7,3,-25,1,0]],
       S:[[5,4,70,.75,0],[5,-4,-90,1,1],[3,-9,-90,1,1],[2,-10,-90,.8,1],[4,0,60,.6,0],[5,4,75,.7,0],[5,5,78,.7,0],[5,4,72,.75,0]],
       N:[[5,2,-80,.8,1],[5,-3,-90,1,1],[4,-9,-90,.7,0],[3,-11,-90,.5,0],[5,-4,-85,1,1],[5,1,-80,.9,1],[5,2,-80,.9,1],[5,2,-80,.85,1]]},
  can:{E:[[8,5,0,1,0],[9,2,10,1,0],[10,1,20,1,0],[11,1,40,1,0],[11,1,48,1,0],[11,1,48,1,0],[11,1,40,1,0],[9,3,10,1,0]],
       S:[[6,6,0,1,0],[5,4,10,1,0],[4,3,20,1,0],[3,3,42,1,0],[3,3,50,1,0],[3,3,50,1,0],[3,3,42,1,0],[5,5,10,1,0]],
-      N:[[7,4,0,1,1],[7,2,10,1,1],[7,0,20,1,1],[7,-1,42,1,1],[7,-1,50,1,1],[7,-1,50,1,1],[7,-1,42,1,1],[7,3,10,1,1]]}};
+      N:[[9,4,0,1,1],[10,2,10,1,1],[10,0,20,1,0],[11,-1,42,1,0],[11,-1,50,1,0],[11,-1,50,1,0],[11,-1,42,1,0],[10,3,10,1,1]]}};   // the can held out to the right side so it shows past the body
 const TOOLMETA={N:[],W:[],S:[],E:[]};
 const SW_LEAN=[0,-2,-3,-3,1,3,3,1],SW_CROUCH=[0,0,0,0,2,4,4,1],SW_BOB=[0,-1,-2,-1,0,0,0,0];
 function toolEntry(kind,dir,f){const fam=kind==='rod'?'rod':kind==='can'?'can':'swing';const e=TP[fam][dir==='W'?'E':dir][f];if(dir!=='W')return e.slice();return [-e[0],e[1],180-e[2],e[3],e[4]];}
@@ -448,7 +450,8 @@ function walkPose(f,dir,run){const pose={};if(f===0)return pose;const side=dir==
   else{const sg=back?-1:1;const st=run?4:2;const dL=Math.round(c*st);pose.legs=[sg*dL,-sg*dL];pose.sway=0;
     // seen from the front, the arm swinging forward drops in front of the body and moves in toward the middle;
     // the one swinging back rises and tucks behind (from behind, the reverse)
-    const ay=run?6:10,amp=run?4:4;const hand=(fw,inward)=>{const k=fw*amp;const y=ay+Math.round(sg*(k>0?k:k*.6));const x=k>0?Math.round(k*(run?.25:.5))*inward:Math.round(k*(run?.15:.3))*-inward;return [x,y];};
+    // a fuller swing so it reads at game size (judge: 'the hands barely move against the legs from the front')
+    const ay=run?6:10,amp=run?5:5;const hand=(fw,inward)=>{const k=fw*amp;const y=ay+Math.round(sg*(k>0?k*.8:k*.6));const x=k>0?Math.round(k*(run?.25:.2))*inward:Math.round(k*(run?.15:.2))*-inward;return [x,y];};   // hands stay at the sides, swinging down-forward and up-back
     pose.hands=[hand(-c,1),hand(c,-1)];}
   return pose;}
 // planting and harvesting: bend, kneel, reach into the soil in front, press it in, rise, stand

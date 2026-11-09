@@ -125,8 +125,9 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [walk r1 5/10 vs 4/10 at the Stardew bar] The walk lives in the arms: each hand swings against its leg, clear of the
   hip (side: 5-6 px ahead and behind; front: the forward hand drops in front of the body and moves in, the back one
   rises and tucks). A run is not a fast walk: lean held through every frame, the free foot tucked up behind on the
-  passing frames, bent arms pumping (fist at the chest, then driven back), a bigger stride and bob. Hair, hats and
-  hair accessories follow the head a frame late. An idle needs a visible breath and a blink.
+  passing frames, bent arms pumping (fist at the chest, then driven back), a bigger stride and bob. [corrected Nov 10]
+  Hair, hats and hair accessories move WITH the head on the same frame (owner: a frame's lag read as "hair bobbing up
+  and down like it's not attached"; judged 8 vs 3 at 6x). An idle needs a visible breath and a blink.
 
 ## Creatures in Blender (the Hollow, tools/blender/hollow3d.py) [blind judge rounds 1-14; installed at 6 vs 3]
 - Walk weight: the bob must dip on both contacts. A head pitch that swings once per cycle (lag(...) * 7) moved the head
@@ -298,6 +299,16 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   face and one darker fold where it turns down.
 - Iterate on a 6x zoom of the stage beside the reference AND a field shot: the young pumpkin looked fine zoomed and like
   a stone in the field.
+
+## Player actions (Nov 10)
+- Capture animations with the game paused and the action's clock set to each frame. Real-time screenshots lag behind
+  the clip, and the later frames come out as idle.
+- Facing down, a tool wound up straight above the head reads as a peg; wind it over one shoulder at a slant. Struck
+  straight down in front, it reads as a stake; slant it.
+- Facing away, a swing drawn wholly behind the body vanishes. Let the tool's head show beside and above the head.
+- A held thing must show in every direction: the can held out to the side, seeds falling from the hand when
+  planting, the sprinkler carried from the hands to the square when setting it down.
+- A water stream is 2 px wide in two blues and ends in a splash. A 1 px dotted line reads as wire.
 
 ## Making minigames (Nov 10: yard 3 -> 6, barn 3 -> 6, installed)
 - A sunny candy palette (bright grass, white tiles, honey wood, blue sky) is the first thing that sinks a scene. Dusk light,
