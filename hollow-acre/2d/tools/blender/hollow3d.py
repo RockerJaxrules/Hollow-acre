@@ -302,6 +302,9 @@ def pose(t, clip, side_view=False, far=None):
             if side_view: reach = k * .66 * (.78 if side == far else 1.0)   # side-on the far arm is held back: two arms, not one doubled (judge r21); the body carries the rest of the reach
             el = (x * (.66 + .1 * reach), -.25 - .7 * reach + .25 * back, 2.48 + .55 * reach + .2 * back)
             wr = (x * (.62 + .18 * reach), -.04 - 1.7 * reach + .4 * back, 1.54 + .9 * reach + .55 * back)   # forward and a little up: at the player, not out to the sides
+            if not side_view:   # facing or away: the installed round-18 grab (wide and up reads from the front), the wrists brought in so the claws stay 4 px inside the cell
+                el = (x * (.64 + .1 * reach), -.25 - .4 * reach + .25 * back, 2.48 + 1.1 * reach + .2 * back)
+                wr = (x * (.66 + .3 * reach), -.04 - 1.1 * reach + .4 * back, 1.54 + 2.3 * reach + .55 * back)
             if side_view and side == far: el, wr = (el[0], el[1], el[2] + .3), (wr[0], wr[1], wr[2] + .62)   # and higher, reaching for the head: clear of the near arm
             if side_view and back:   # the wind-up: both claws cocked up and back, showing behind the coat
                 el = (el[0], .32 + (.08 if side == far else 0), 2.95 + (.12 if side == far else 0))
@@ -310,7 +313,7 @@ def pose(t, clip, side_view=False, far=None):
                 hf_, dp_ = -.34 * k + .2 * back, .1 * k + .2 * back
                 el, wr = (el[0], el[1] + hf_, el[2] - dp_), (wr[0], wr[1] + hf_, wr[2] - dp_)
             P['arm' + side] = [SH(x * .16), el, wr]
-        P.update(pitch=(22 if side_view else 34) * k - 8 * back, head_pitch=-18 * k, mouth=.6 * k, shift=(.62 if side_view else .45) * k - (.34 if side_view else 0) * back, head_tilt=-6 * k, spread=1 + .9 * k, claw=1 + .45 * k)   # side-on: back far enough that the reach stays in the frame
+        P.update(pitch=(22 if side_view else 32) * k - 8 * back, head_pitch=-18 * k, mouth=.6 * k, shift=(.62 if side_view else .45) * k - (.34 if side_view else 0) * back, head_tilt=-6 * k, spread=1 + (.9 if side_view else .6) * k, claw=1 + (.45 if side_view else .1) * k)   # side-on: back far enough that the reach stays in the frame
         if side_view:   # the pumpkin tips into the reach a beat late; the mouth stays lit (a dark maw read as a rotten spot);
                         # the sleeves ride up the reaching arms, baring the bony forearms; the far arm one step darker
             kh = [-.55, .1, .4, .8][int(round(t * 4)) % 4]   # wind-up: the head pulled back; then it arrives a beat late, so the face still shows at full reach
