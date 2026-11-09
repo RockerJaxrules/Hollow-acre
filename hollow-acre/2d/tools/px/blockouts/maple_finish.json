@@ -1,3 +1,1 @@
-{"name":"maple_fall_o","anchor":[56,120],"leaf":"12345","bark":"WVUT","tuft_step":4,
- "palette":{"1":"#3a1530","2":"#6e2433","3":"#a23c2e","4":"#cc6236","5":"#e6924c","W":"#2a1c26","V":"#4a3230","U":"#6e4e3c","T":"#957258","s":"#32212599"},
- "outline":["#2c1022","#5a1e2c"]}
+{"name": "maple_fall_o", "anchor": [60, 128], "leaf": "12345", "bark": "WVUT", "tuft_step": 4, "palette": {"1": "#3a1530", "2": "#6e2433", "3": "#a23c2e", "4": "#c05a34", "5": "#dc8a4a", "W": "#2a1c26", "V": "#4a3230", "U": "#6e4e3c", "T": "#957258", "s": "#32212599", "6": "#e6a65e"}, "outline": ["#2c1022", "#5a1e2c"], "min_cluster": 8, "tuft_odds": 4, "hi": "6", "litter": {"n": 18, "rx": 34, "ry": 10, "cols": "abcd", "from": "2345"}}

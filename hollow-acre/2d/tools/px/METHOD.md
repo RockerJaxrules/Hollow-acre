@@ -53,3 +53,17 @@ staggered lattice, always one step darker than what is under it (one step lighte
 on every zone border and in the shade, sparse in the lit dome. The rim: the same tufts standing proud round the lower
 two thirds (serrated), small bumps on top. One outline round the whole tree. Trunk tucked up under the crown; drop
 shadow; a few fallen leaves.
+
+## The approved method: 3D blockout, then the hand finish (owner: "very good"; use it for everything)
+
+1. Block the object out in 3D with simple shapes in a scene file (`blockouts/<name>.json`): spheres and ellipsoids
+   (foliage gets `lumps` for bundles and `lumps2` for leaf clumps), cylinders (trunks, with `flare`), `branch` tapered
+   capsules (forks, roots), boxes. Camera `elev` 30. Light from above, slightly left and front; `shadow_light` is
+   steeper and from behind-left so the cast shadow falls short and down-right.
+2. `python3 blockout.py blockouts/<name>.json blockouts/<name>` renders the toon-banded reference (ramp letters per
+   material; `ambient`, `shade`, `hi`/`hi_at` per material).
+3. `python3 finish.py blockouts/<name>.grid.txt <out>.pxg blockouts/<name>_finish.json` does the hand pass: melts
+   clusters under 8 px, leaf shapes on light/shade borders at uneven spacing, leaf tips and notches on the silhouette,
+   deepest step only on the bottom edge, bark grooves, a lit edge, a knot, fallen leaves, one outline.
+4. `python3 grid.py view <out>.pxg <png> 4`: look at it at 1x, 3x and in grey; then a side-by-side for the owner.
+5. Colour variants are palette swaps of the same grid; shape variants are a new scene with the bundles moved.

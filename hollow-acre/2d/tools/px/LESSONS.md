@@ -14,8 +14,27 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   art only by reading or measuring it.
 - "they both looked bad" (the maple in the game and my bundle maple): matching the old art is not the bar; beat it.
 - "make it look like hand-placed human-made art": the LPC sheet is the quality target; drawn, not generated.
+- "the angle feels a bit off" (maple from a 45-degree camera): 45 degrees looks down like a drone, the trunk shrinks and
+  the root flare shows as a disc. Use the 30-degree camera (blockout `elev` 30): trees stand up, the ground is
+  foreshortened, as in LPC and Stardew.
+- "this is better but trunk needs a bit more detail but this is very good" (maple v2): the 3D blockout + hand finish
+  is the approved method. A trunk needs bark grooves, a lit edge, a knot and roots, not one flat colour.
+- "you have to do this for everything now": every sprite goes through the blockout + hand finish.
+- "maybe a bit more improvement" (v4): leaf clumps through the crown (a second, finer lump octave), small sunlit
+  highlights, fallen leaves round the foot (it's autumn).
 
 ## Trees and foliage
+
+- [maple 3D v3] Texture tufts placed on a fixed step ((x+3y) % 4) made diagonal hatching across the crown. Place leaf
+  shapes at hashed, uneven spacing with a no-touch radius.
+- [maple 3D v1-v2] Lone specks and 1-3 px rings ("eyes") come from small dips in the lumpy surface; melt every
+  cluster under 8 px into its surroundings before adding texture.
+- [maple 3D v5] A fine lump octave doubles the self-shadow: the whole lower crown went plum. Give leaves an ambient
+  floor (.14) and weaker self-shadow (.5) so only the bottom edge is deep.
+- [maple 3D v8] grid.py's outline reads colours, not letters: two letters with one colour confuse it (the crown's
+  lit areas got outlined). Every letter needs its own colour; fallen leaves get duller ones.
+- What worked (owner: "very good"): crown from 7 overlapping lumpy spheres, 30-degree camera, toon bands, leaf tips
+  and notches on the silhouette at uneven spacing, shadow cast down-right by a separate steeper shadow light.
 
 - [maple 4/10] A crown that is one smooth ellipse with bumps stuck on reads as a ball or a pumpkin, not a tree. Build
   3-5 overlapping bundles, each lit top-left and dark bottom-right, with notched edges.
