@@ -10,6 +10,9 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   game): it counts as an 8, anything that looks amateur next to it is 5 at most. Measured: our crops ran lum 8-133 (mean
   75) where the reference runs 37-211 (mean 133), so "darker, moodier" had turned into mud. Crops keep a full value range;
   the game's lighting supplies the mood.
+- "our turnip one is better, that's the only one though" (Nov 10, on the strict-palette set vs the reference): the turnip
+  (spoon leaves with a pale midrib and crinkled edge, a domed purple shoulder, a curved purple cap with a taproot) is the
+  standard to keep; pumpkin and corn still fall short of the reference and need reworking.
 - "it needs to be almost on par with Stardew Valley when it comes to animations and textures and models": the QUALITY
   bar is Stardew Valley's finish (clean clusters, 3-4 tones a material, deliberate highlights and inner lines, keyed
   animation with bob, anticipation and follow-through). The LOOK stays this game's: darker, moodier, not candy.
