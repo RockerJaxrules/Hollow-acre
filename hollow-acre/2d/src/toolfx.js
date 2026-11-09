@@ -61,7 +61,7 @@ function toolOverlay(g,nm,dir,f,ox,oy,layer,o){const m=SPR[nm];const T=m&&m.tool
     const sx0=(dir==='W'?-1:1)*(14.5-5),sy0=4.5-1.5,r=tilt*Math.PI/180;return [gx+sx0*Math.cos(r)-sy0*Math.sin(r),gy+sx0*Math.sin(r)+sy0*Math.cos(r)];}
   const grade=o.grade||toolGrade(kind);
   if(f===4&&m.tool[dir][3]){const a0=m.tool[dir][3][2];let a1=ang;if(dir==='W'&&a1>a0)a1-=360;if(dir!=='W'&&a1<a0)a1+=360;if(dir==='E'||dir==='W')drawSmear(g,gx,gy,a0,a1,1,19);}
-  const front=(dir==='S'||dir==='N')&&kind!=='pick'&&TOOL_ART[kind+'_f'];const st=toolStamp(front?kind+'_f':kind,grade,ang,k,dir==='W');g.drawImage(st.cv,gx-st.R,gy-st.R);
+  const front=(dir==='S'||dir==='N')&&TOOL_ART[kind+'_f'];   /* owner: facing down/up the pick hit the stone sideways; the front art keeps its head in the swing, point first */const st=toolStamp(front?kind+'_f':kind,grade,ang,k,dir==='W');g.drawImage(st.cv,gx-st.R,gy-st.R);
   const r=ang*Math.PI/180;return [gx+Math.cos(r)*18*k,gy+Math.sin(r)*18*k];}
 // the hit: drawn at the business end on the strike and the frame after (dirt, wood chips, stone chips and a spark)
 // what flies off the blade: two-tone chips of 2-3 px (judge: 1 px specks read as dust), thrown back and up from the tip

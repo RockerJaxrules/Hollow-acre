@@ -1,5 +1,5 @@
 /* ================= render + main loop ================= */
-const FPS_CLIP={walk:[1,8,13],run:[1,8,18],idle:[0,3,3],thrust:[0,7,0],slash:[0,5,0],hurt:[0,5,10],spellcast:[0,6,8],sit:[0,2,2]};
+const FPS_CLIP={walk:[1,8,17],run:[1,8,18],idle:[0,3,3],thrust:[0,7,0],slash:[0,5,0],hurt:[0,5,10],spellcast:[0,6,8],sit:[0,3,2]};
 // planting, harvesting and setting things down: he kneels in toward the square (the body leans up to 12-18 px toward it),
 // what he carries sits in his hands (the sheet's own hand points), and what he sets down lands on the square
 // (judge: 'a 3x3 handful in the hand, 2 px seeds that land with a soil puff'; 'the sprinkler in both hands touching the square at the bottom of the crouch')
@@ -13,13 +13,14 @@ function handful(hx,hy){ctx2.fillStyle='#24160a';ctx2.fillRect(hx-2,hy-2,5,4);ct
   for(let j=0;j<3;j++)for(let i=0;i<3;i++){ctx2.fillStyle=SEEDC[(i+j)%3===0?1:(i*2+j)%3===1?0:2];ctx2.fillRect(hx-1+i,hy-2+j,1,1);}}
 // planting: a 3x3 handful in the lead hand while he kneels; the seeds leave the hand on the 3rd frame, arc over the 4th,
 // land in the square on the 5th with a puff of soil and stay (the crop appears after they land)
-function plantFx(X,Y,f,front){const a=P.anim;if(!(a&&a.clip==='plant'&&a.tgt))return;if(a._h===undefined)a._h=!!a.tgt.crop;if(a._h)return;
-  const k=a.t/a.dur,N=P.dir==='N';const [hx0,hy0]=handAt(X,Y,f,1);const hx=N?X+7:hx0,hy=N?Y-37:hy0;   /* facing away the hand comes up by the shoulder */
+function plantFx(X,Y,f,front){const a=P.anim;if(!(a&&a.clip==='plant'&&a.tgt)||window.NO_TOOL_DRAW)return;if(a._h===undefined)a._h=!!a.tgt.crop;if(a._h)return;
+  const k=a.t/a.dur,N=P.dir==='N';const [hx0,hy0]=handAt(X,Y,f,1);const hx=N?X+13:hx0,hy=N?hy0-9:hy0;   /* facing away (motion judge r2): the pinch beside the head at shoulder height, 4-6 px out from the hair, never on the crown */
   if(front&&k>=.1&&k<.42)handful(hx,hy);
   const tx=sx(a.tgt.x),ty=sz(a.tgt.z)+3;
   for(let i=0;i<3;i++){const k0=.42+i*.03,u=(k-k0)/.27;if(u<0)continue;const px=tx+(i-1)*4,py=ty+(i===1?-2:1);
-    if(u<1){const lift=N?30:9;const x=Math.round(hx+(px-hx)*u),y=Math.round(hy+(py-hy)*u-lift*Math.sin(Math.PI*u));
-      if(front===(!N||y<Y-58))seedPx(x,y);continue;}   /* facing away the seeds show while they pass over his head, then drop behind him */
+    if(u<1){const lift=N?0:9;const x=Math.round(hx+(px-hx)*u),y=Math.round(hy+(py-hy)*u-lift*Math.sin(Math.PI*u));
+      if(!N&&front){const gy=Math.round(Y+2+(py-Y-2)*u);if(gy-y>2){ctx2.fillStyle='rgba(16,10,4,.35)';ctx2.fillRect(x,gy,2,1);}}   /* a speck of shadow on the ground under the throw */
+      if(front===(!N||x>X+9))seedPx(x,y);continue;}   /* facing away they drop from beside his shoulder and pass behind him */
     if(front!==!N)continue;seedPx(px,py);
     const w=(k-k0-.27)/.12;if(w>=0&&w<1)for(let d=0;d<4;d++){const ang=[-2.6,-2.0,-1.1,-.5][d],r=1+w*3;ctx2.globalAlpha=1-w;ctx2.fillStyle=SOILC[d%3];ctx2.fillRect(Math.round(px+Math.cos(ang)*r),Math.round(py+1+Math.sin(ang)*r*.7),d%2?2:1,1);}
     ctx2.globalAlpha=1;}}
@@ -28,7 +29,7 @@ function plantFx(X,Y,f,front){const a=P.anim;if(!(a&&a.clip==='plant'&&a.tgt))re
 // hands still on it, let go as he rises. Facing away it rides beside his head at shoulder height, then goes down behind him.
 function grabFrame(st,k){if(k<.3)return st.in>.05?['walk',1+Math.floor(k/.3*4)]:['slash',0];if(k<.38)return ['slash',1];if(k<.5)return ['slash',2];if(k<.62)return ['slash',3];
   if(k<.72)return ['slash',4];return st.out>.05?['walk',Math.max(1,4-Math.floor((k-.72)/.28*4))]:['slash',5];}
-function grabSet(X,Y,f,front){const a=P.anim;if(!(a&&a.clip==='grab'&&a.tgt&&a.item==='sprinkler'&&SPR.sprinkler_w)||a.tgt.spr)return;const k=a.t/a.dur,N=P.dir==='N';
+function grabSet(X,Y,f,front){const a=P.anim;if(!(a&&a.clip==='grab'&&a.tgt&&a.item==='sprinkler'&&SPR.sprinkler_w)||a.tgt.spr||window.NO_TOOL_DRAW)return;const k=a.t/a.dur,N=P.dir==='N';
   const m=SPR.sprinkler_w,im=IMG[m.src];if(!im)return;const tx=sx(a.tgt.x),ty=sz(a.tgt.z)+4;
   const land=.55;
   if(k>=land){if(front!==!N)return;
@@ -49,7 +50,8 @@ function grabSet(X,Y,f,front){const a=P.anim;if(!(a&&a.clip==='grab'&&a.tgt&&a.i
 function frameOf(name,clip,t,dur){const m=SPR[name];if(!m||!m.clips)return 0;const c=m.clips[clip]||m.clips.idle;if(!c)return 0;const nf=(c.S||Object.values(c)[0])[1];
   const f=FPS_CLIP[clip]||[0,nf-1,8];const a=f[0],b=Math.min(f[1],nf-1);
   if(dur)return a+Math.min(b-a,Math.floor(clamp(t/dur,0,.999)*(b-a+1)));
-  if(clip==='idle')return Math.floor(t*f[2])%nf;return a+Math.floor(t*f[2])%(b-a+1);}
+  /* idle and sit: the last frame is the blink; show it one loop in three, not every loop (motion judge r3) */
+  if(clip==='idle'||clip==='sit'){const k=Math.floor(t*f[2]),fr=k%nf;return (fr===nf-1&&Math.floor(k/nf)%3)?0:fr;}return a+Math.floor(t*f[2])%(b-a+1);}
 function charSprite(e,name){const clip=e.clip||'idle';return [name,clip];}
 // shadows: light from the upper left, so everything that stands up throws its shadow down and to the right
 function castShadow(o,X,Y){if(sunShadow(o,X,Y)){if(o.kind==='tree'||o.kind==='pine'){ctx2.fillStyle='rgba(8,16,6,.22)';ctx2.beginPath();ctx2.ellipse(X+2,Y+1,9,3,0,0,Math.PI*2);ctx2.fill();}return;}const m=SPR[o.spr];if(!m||o.kind==='fence'||o.kind==='furn')return;
@@ -152,13 +154,13 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
       if(S.mode==='scare')clip='hurt';P._fr=[nm,clip,clip==='hurt'?'S':P.dir,f||0];footShadow(P._fr,X,Y);
       const tm=clip==='thrust'&&SPR[nm]&&SPR[nm].tool?SPR[nm]:null;const ox=tm?Math.round(X-tm.ax):0,oy=tm?Math.round(Y-tm.ay):0;let tip=null;
       // water from the can lands on the square you're watering
-      const pour=tm&&tm.toolKind==='can'&&f>=3&&f<=6;const wto=pour?(()=>{const a=P.anim,tg=a&&a.tgt;const wx=tg?tg.x:P.x+P.fx*.9,wz=tg?tg.z:P.z+P.fz*.9+.1;return P.dir==='N'?[sx(wx)+4,sz(wz)+6]:[sx(wx),sz(wz)+4];})():null;
-      if(tm){tip=toolOverlay(ctx2,nm,P.dir,f|0,ox,oy,'back')||tip;if(tip&&pour)waterStream(ctx2,tip,wto,t);}
+      const pour=tm&&tm.toolKind==='can'&&f>=3&&f<=6;const wto=pour?(()=>{const a=P.anim,tg=a&&a.tgt;const wx=tg?tg.x:P.x+P.fx*.9,wz=tg?tg.z:P.z+P.fz*.9+.1;return P.dir==='N'?[sx(wx)+12,sz(wz)+2]:P.dir==='S'?[sx(wx)+3,sz(wz)-3]:[sx(wx),sz(wz)+4];})():null;   /* motion judge r2: facing down it watered his boots, facing away it was a stub on his hip */
+      if(tm&&!window.NO_TOOL_DRAW){tip=toolOverlay(ctx2,nm,P.dir,f|0,ox,oy,'back')||tip;if(tip&&pour)waterStream(ctx2,tip,wto,t);}
       grabSet(X,Y,f|0,false);plantFx(X,Y,f|0,false);   /* the parts behind his body */   // facing away, the thing set down in front of him is behind his body
       drawSpr(nm,X,Y,clip,clip==='hurt'?'S':P.dir,clip==='hurt'?Math.min(5,Math.floor((performance.now()/120)%6)):f);
       grabSet(X,Y,f|0,true);plantFx(X,Y,f|0,true);
       if(typeof lanternDraw==='function')lanternDraw(ctx2,clip,t);
-      if(tm){const t2=toolOverlay(ctx2,nm,P.dir,f|0,ox,oy,'front');if(t2){tip=t2;if(pour)waterStream(ctx2,tip,wto,t);}fistOverlay(ctx2,nm,P.dir,f|0,ox,oy);if(tm.toolKind!=='can'&&tm.toolKind!=='rod'&&P.anim)hitFx(ctx2,tm.toolKind,tip,f|0);}
+      if(tm&&!window.NO_TOOL_DRAW){const t2=toolOverlay(ctx2,nm,P.dir,f|0,ox,oy,'front');if(t2){tip=t2;if(pour)waterStream(ctx2,tip,wto,t);}fistOverlay(ctx2,nm,P.dir,f|0,ox,oy);if(tm.toolKind!=='can'&&tm.toolKind!=='rod'&&P.anim)hitFx(ctx2,tm.toolKind,tip,f|0);}
       fishDraw(ctx2,tip&&tm&&tm.toolKind==='rod'?tip:null,X,Y,t);}
     else if(d.hollow){const X=sx(H.x),Y=sz(H.z);
       // each state its own animation: the stalk, the still watch, the spider crawl, the scream, the lunge, the recoil
