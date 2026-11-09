@@ -301,6 +301,24 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   a stone in the field.
 
 ## Player actions (Nov 10)
+- [motion judges r2, Nov 10] Judged in motion, everything that passed on still frames dropped to 5: the owner was right.
+  Read the motion picture before the frames. A swing seen edge-on (facing down or up) must stay edge-on through every frame.
+- The installed axe and pick swung out sideways to his left facing down/up and never touched the stump/rock (3 and 4 vs
+  the new straight-down swings at 6). Always capture a tool with its target in shot and the tool drawn alone (no-tool diff).
+- A planted foot must travel BACK relative to the body: the old run lifted the foot while it travelled back, so the planted
+  one slid forward (a moonwalk). Check the phase: lift only while the foot swings forward.
+- The passing foot must show: tucked straight behind the standing shin it hides, and the frame reads as standing (a skip).
+  Trail it 3 px behind the shin, lifted 4.
+- Never more than 1 px of rise or fall between neighbouring frames, walk or run; a run is low on the support frame and high
+  after push-off.
+- A breath moves the chest, shoulders, arms and head; the hips, legs and boots stay locked (the whole body dropping a pixel
+  reads as a nod). Use a WHAT MOVED map (pixels changed vs frame 1) to show a 1 px motion to a judge.
+- Arm swing and stride are separate numbers: widening the stride with the arms tied to it made a T-pose.
+- A carried item starts in the hand: compute its grip from the frame's own hand point, never a fixed offset from the body.
+- Seated facing us: a lap 2 px wider than the hips, two knees with a 1 px cleft, 2 px of shin, hands on the thighs.
+- A hurt fling needs one arm up and the other guarding the chin (hands 6+ px apart in height), or it reads as a shrug.
+- Ground speed vs stride: at 3 tiles/s with 7 px legs a planted foot cannot hold; lengthen the stride (5 px) and speed the
+  cadence (P.t at speed/2.6 x 17 fps) to halve the skate rather than pretend it isn't there.
 - [OWNER, Nov 10, verbatim] "You obviously have not found a way to show them the animations because it's hitting the stone
   with the pickaxe sideways on the front and back ones ... show it a gif of the animations or something." Still frames in
   a row hid it: facing down/up the pick (and the axe) swung across the frontal plane, its head flat across, landing beside

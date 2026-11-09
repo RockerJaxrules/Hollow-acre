@@ -60,9 +60,13 @@ const CX=23;                     // the figure's axis runs between columns 23 an
 // ---------------------------------------------------------------- legs and shoes
 // front/back: a straight column per leg, a dark seam between them, the shoe under it. dy moves the foot (+1 toward you, -1 lifted).
 function legsFront(cx,hip,dyL,dyR,back,squat){const R=LEGSKIN?SK:PNT;const len=FOOT-3-hip;
-  if(SIT){// seated, facing us: the lap (thighs coming toward us), two rounded knees, the shins darker below, the boots
-    for(let y=hip+1;y<=hip+4;y++)for(let x=cx-6;x<=cx+6;x++)p(x,y,R[y===hip+1?(back?2:4):x<=cx-5||x>=cx+5?1:3]);
-    for(const kx of [cx-4,cx+2]){for(let i=0;i<4;i++){p(kx+i,hip+5,R[i===0||i===3?2:back?2:4]);}for(let y=hip+6;y<=FOOT-3;y++)for(let i=0;i<4;i++)p(kx+i,y,R[i===0?2:i===3?0:1]);}
+  if(SIT){/* seated (motion judge r2): the lap 2 px wider than the hips each side, two rounded knees with a 1 px cleft, the shins
+     in the shadow under the knees, the boots. Facing away the seat is wide and dark and the shins hang in shadow */
+    for(let y=hip+1;y<=hip+2;y++)for(let x=cx-6;x<=cx+7;x++)p(x,y,R[back?(y===hip+1?2:1):(y===hip+1?4:x<=cx-5||x>=cx+6?2:3)]);
+    for(const [k0,k1] of [[cx-6,cx],[cx+2,cx+8]]){const w=k1-k0;
+      for(let i=0;i<w;i++){const edge=i===0||i===w-1;p(k0+i,hip+3,R[back?1:edge?2:4]);p(k0+i,hip+4,R[back?1:edge?1:3]);}}
+    p(cx+1,hip+3,R[0]);p(cx+1,hip+4,R[0]);
+    for(let y=hip+5;y<=FOOT-3;y++){for(let i=0;i<4;i++){p(cx-4+i,y,R[back?0:i===3?0:1]);p(cx+3+i,y,R[back?0:i===0?0:1]);}}
     shoeFront(cx-5,FOOT-2,-1,back);shoeFront(cx+2,FOOT-2,1,back);return;}
   for(const [s,dy] of [[-1,dyL],[1,dyR]]){const x0=s<0?cx-4:cx+2,w=4,bot=hip+len+dy;
     for(let y=hip+1;y<=bot;y++)for(let i=0;i<w;i++){let k=i===0?(s<0?4:3):i===w-1?(s<0?2:1):3;if(y===bot)k=Math.min(k,2);p(x0+i,y,R[k]);}
@@ -406,8 +410,8 @@ const TP={
       S:[[5,4,70,.75,0],[5,-4,-90,1,1],[3,-9,-90,1,1],[2,-10,-90,.8,1],[4,0,60,.6,0],[5,4,75,.7,0],[5,5,78,.7,0],[5,4,72,.75,0]],
       N:[[5,2,-80,.8,1],[5,-3,-90,1,1],[4,-9,-90,.7,0],[3,-11,-90,.5,0],[5,-4,-85,1,1],[5,1,-80,.9,1],[5,2,-80,.9,1],[5,2,-80,.85,1]]},
  can:{E:[[8,5,0,1,0],[9,2,10,1,0],[10,1,20,1,0],[11,1,40,1,0],[11,1,48,1,0],[11,1,48,1,0],[11,1,40,1,0],[9,3,10,1,0]],
-      S:[[6,6,0,1,0],[5,4,10,1,0],[4,3,20,1,0],[3,3,42,1,0],[3,3,50,1,0],[3,3,50,1,0],[3,3,42,1,0],[5,5,10,1,0]],
-      N:[[9,4,0,1,1],[10,2,10,1,1],[10,0,20,1,0],[11,-1,42,1,0],[11,-1,50,1,0],[11,-1,50,1,0],[11,-1,42,1,0],[10,3,10,1,1]]}};   // the can held out to the right side so it shows past the body
+      S:[[6,6,0,1,0],[6,6,10,1,0],[7,7,20,1,0],[8,9,42,1,0],[8,9,50,1,0],[8,9,50,1,0],[8,9,42,1,0],[7,7,10,1,0]],   /* motion judge r2: held out at the waist beside the hip, not hugged to the chest */
+      N:[[9,4,0,1,1],[10,2,10,1,1],[11,-1,20,1,0],[12,-4,42,1,0],[12,-4,50,1,0],[12,-4,50,1,0],[12,-4,42,1,0],[10,3,10,1,1]]}};   /* facing away: raised and out past his right side so the stream shows */   // the can held out to the right side so it shows past the body
 const TOOLMETA={N:[],W:[],S:[],E:[]};let HANDS_REC=null;const HANDMETA={N:[],W:[],S:[],E:[]};
 const SW_LEAN=[0,-2,-3,-3,1,3,3,1],SW_CROUCH=[0,0,0,0,2,4,4,1],SW_BOB=[0,-1,-2,-1,0,0,0,0];
 // the axe stands taller and leans into the chop; the pickaxe rises higher and drops deeper into the strike, then rebounds
@@ -422,8 +426,8 @@ function toolHands(kind,dir,f){const [gx,gy,ang,k]=toolEntry(kind,dir,f);const a
 // nod, blink, reach (back view: hands hidden in front of the body), tool (callback)
 let SIT=false;
 function human(dir,pose){SIT=!!pose.sit;const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1,back=dir==='N';
-  const crouch=pose.crouch||0,bob=pose.bob||0,lean=side?Math.round((pose.lean||0)*fl):0;
-  const cx=CX+(side?0:(pose.sway||0));const hip=HIP0+crouch+bob,top=TOP0+crouch+bob,ux=cx+lean,hy=top-9-(ALL?1:0)+(STOOP?2:0);
+  const crouch=pose.crouch||0,bob=pose.bob||0,lean=side?Math.round((pose.lean||0)*fl):0,breath=pose.breath||0;
+  const cx=CX+(side?0:(pose.sway||0));const hip=HIP0+crouch+bob,top=TOP0+crouch+bob+breath,ux=cx+lean,hy=top-9-(ALL?1:0)+(STOOP?2:0);
   const shL=side?[ux-fl,top+1]:[ux-7-WIDE,top+1],shR=side?[ux+fl,top+1]:[ux+8+WIDE,top+1];
   const def=side?[[0,KID?8:10],[0,KID?8:10]]:[[0,KID?8:10],[0,KID?8:10]];const hands=pose.hands||def;
   HANDS_REC=[[shL[0]+hands[0][0],shL[1]+hands[0][1]],[shR[0]+hands[1][0],shR[1]+hands[1][1]]];   // where the hands are, for the game to put things in them
@@ -438,13 +442,14 @@ function human(dir,pose){SIT=!!pose.sit;const side=dir==='E'||dir==='W',fl=dir==
       if(back&&pose.reach){armTo(shL[0],shL[1],shL[0]+hands[0][0],shL[1]+hands[0][1],false,1);armTo(shR[0],shR[1],shR[0]+hands[1][0],shR[1]+hands[1][1],false,-1);}
       legsFront(cx,hip,L[0],L[1],back,pose.squat||0);skirtFront(ux,hip,back);torsoFront(ux,top,hip,back);
       const up=hands[0][1]<-4||hands[1][1]<-4;
-      const arms=()=>{for(const [i,sh] of [[0,shL],[1,shR]]){const h=[sh[0]+hands[i][0],sh[1]+hands[i][1]];
+      const arms=(only)=>{for(const [i,sh] of [[0,shL],[1,shR]]){if(only!=null&&i!==only)continue;const h=[sh[0]+hands[i][0],sh[1]+hands[i][1]];
           if(pose.elbows){const el=[sh[0]+pose.elbows[i][0],sh[1]+pose.elbows[i][1]];armTo(sh[0],sh[1],el[0],el[1],false,i?-1:1,true);armTo(el[0],el[1],h[0],h[1],false,i?-1:1,!!pose.noHands);}
           else if(hands[i][1]<-4){const el=[sh[0]+(i?2:-2),sh[1]-5];armTo(sh[0],sh[1],el[0],el[1],false,i?-1:1,true);armTo(el[0],el[1],h[0],h[1],false,i?-1:1);}
           else armTo(sh[0],sh[1],h[0],h[1],false,i?-1:1,!!pose.noHands);}};
-      if(up&&!(back&&pose.reach))arms();
+      if(pose.guard!=null){arms(1-pose.guard);headFront(ux,hy,back,pose);arms(pose.guard);}
+      else{if(up&&!(back&&pose.reach))arms();
       headFront(ux,hy,back,pose);
-      if(!up&&!(back&&pose.reach))arms();}});
+      if(!up&&!(back&&pose.reach))arms();}}});
   into('beard',()=>beard(ux,hy+(pose.nod?1:0),side?(fl>0?'E':'W'):dir,fl,C.beard===true?'full':C.beard));
   into('hair',()=>{const hy2=hy+(pose.hairLag||0);TIPY=hy2+(C.tipDy||6);hairInfo=side?hairSide(ux,hy2,fl,C.hairStyle||'short',pose):hairFront(ux,hy2,back,C.hairStyle||'short',pose);});
   const hairTop=hairInfo?hairInfo.top:null;
@@ -461,18 +466,23 @@ function human(dir,pose){SIT=!!pose.sit;const side=dir==='E'||dir==='W',fl=dir==
 // lean, bounce and legs, with the new arm pump (each bent arm against its own-side leg, still bent on the passing frames)
 function runPose(f,dir){const pose={};const side=dir==='E'||dir==='W',back=dir==='N',fl=dir==='W'?-1:1;
   const ph=(f-1)/8*Math.PI*2,c=Math.cos(ph),s=Math.sin(ph);const S=KID?4:5;
-  pose.bob=Math.abs(c)<.5?-2:(Math.abs(c)>.92?1:0);pose.hairLag=0;pose.lean=3;pose.nod=side?0:1;
-  if(side){const a=Math.round(c*S),b=-a;const liftA=s>0?Math.round(s*4):0,liftB=s<0?Math.round(-s*4):0;
-    const tuck=(d,l)=>l>2?d-2:d;pose.legs=[[tuck(a,liftA),liftA],[tuck(b,liftB),liftB]];if(Math.abs(c)<.5)pose.crouch=1;
+  /* motion judge r2 (ground track): the old legs lifted the foot while it travelled back, so the planted foot slid forward
+     (a moonwalk) and the passing foot hid behind the standing shin, which read as a skip. Now the planted foot travels
+     back, the lifted one swings forward trailing 3 px behind the standing shin; the body is low just before the passing
+     frame (the support knee bent) and high after push-off, never more than 1 px between neighbouring frames */
+  const D=[0,0,1,0,-1,0,1,0,-1][f]||0;pose.crouch=(f%4===2||f%4===3)?1:0;pose.bob=D-pose.crouch;pose.hairLag=0;pose.lean=3;pose.nod=side?0:1;
+  if(side){const a=Math.round(c*S),b=-a;const liftA=s<0?Math.round(-s*4):0,liftB=s>0?Math.round(s*4):0;
+    const tuck=(d,l)=>l>2?d-3:d-Math.round(l*.5);pose.legs=[[tuck(a,liftA),liftA],[tuck(b,liftB),liftB]];
     const base=6,A=1.5;const hand=(k,far)=>{const dx=Math.round(k*A);if(dx===0)return [fl*(far?0:2),base-2];
       return dx>0?[Math.min(dx,4)*fl,base-3-Math.min(2,Math.round(dx*.4))]:[Math.round(dx*.9)*fl,base+1];};
     pose.hands=[hand(-a,true),hand(a,false)];}
-  else{const sg=back?-1:1;const dL=Math.round(c*4);pose.legs=[sg*dL,-sg*dL];pose.sway=0;const ay=6;
+  else{const sg=back?-1:1;const dL=Math.round(c*4);const liftL=s<0?Math.round(-s*3):0,liftR=s>0?Math.round(s*3):0;
+    pose.legs=[Math.max(-4,sg*dL-liftL),Math.max(-4,-sg*dL-liftR)];pose.sway=0;const ay=6;   /* the swinging knee comes up (judge r2: both boots down on the passing frame) */
     const hand=(fw,inward)=>fw>0?[Math.round(2*fw)*inward,ay-Math.round(3*fw)]:[Math.round(-1.5*fw)*-inward,ay+Math.round(sg*3*-fw)];
     pose.hands=[hand(-c,1),hand(c,-1)];}
   return pose;}
 function walkPose(f,dir,run){const pose={};if(f===0)return pose;if(run)return runPose(f,dir);const side=dir==='E'||dir==='W',back=dir==='N',fl=dir==='W'?-1:1;
-  const ph=(f-1)/8*Math.PI*2,c=Math.cos(ph),s=Math.sin(ph);const S=run?(KID?4:5):(KID?2:3);
+  const ph=(f-1)/8*Math.PI*2,c=Math.cos(ph),s=Math.sin(ph);const S=run?(KID?4:5):(KID?3:5);   /* motion judge r2: the planted foot travelled 1.5 px a frame against 6 px of ground; a longer stride and a faster cadence halve the skate */
   // the body's height over the eight frames: contact, down, pass (highest), up, contact... (judge r3: a smooth rise and fall, not a jump on the passing frames)
   const WBOB=[0,0,1,0,-1,0,1,0,-1];   // judge r3: never more than 1 px between neighbouring frames (a 3 px step read as a hop)
   // the run bounces the other way (judge r8): low on the passing frame with the support knee bent, high on the frame
@@ -492,14 +502,14 @@ function walkPose(f,dir,run){const pose={};if(f===0)return pose;if(run)return ru
       if(dx===0)dx=1;   // on the passing frame the near hand stays a pixel ahead so the arm never vanishes into the shirt
       // both arms swing about the body's middle (the far shoulder sits a pixel behind, the near one a pixel ahead), so both steps swing the same
       const dy=Math.round(Math.sqrt(Math.max(0,10.5*10.5-dx*dx)))-(fwd?1:0);return [(dx+(far?1:-1))*fl,Math.min(base,dy)];};
-    pose.hands=[hand(-a,true),hand(a,false)];}   // far arm against the far leg (a), near arm against the near leg (b=-a)
+    const ka=Math.round(c*(KID?2:3));pose.hands=[hand(-ka,true),hand(ka,false)];}   // far arm against the far leg (a), near arm against the near leg (b=-a); the arms keep their own swing when the stride grows
   else{const sg=back?-1:1;const st=run?4:2;const dL=Math.round(c*st),lift=run?3:2;
     // the planted foot drifts from forward (lower) to back; the swinging foot is lifted, highest on the passing frame
     const liftL=s<0?Math.round(-s*lift):0,liftR=s>0?Math.round(s*lift):0,kn=run&&KNEE[f]?2:0;pose.legs=[sg*dL-liftL-(s<0?kn:0),-sg*dL-liftR-(s>0?kn:0)];pose.sway=0;   /* run: the passing knee comes up higher (judge r8) */
     // seen from the front, the arm swinging forward drops and comes in over the hip; the one swinging back rises and tucks
     // (judge r3: 'the forward hand should drop about 2 px and move in, the back hand rise 1-2 px')
     const ay=run?6:10;const hand=(fw,inward)=>{if(run){/* judge r7: the arms pump clear of the body - fist up to the chest in front, driven back to the hip */return fw>0?[Math.round(2*fw)*inward,ay-Math.round(3*fw)]:[Math.round(-1.5*fw)*-inward,ay+Math.round(sg*3*-fw)];}
-      const k=fw;return k>0?[Math.round(3*k)*inward,ay+Math.round(sg*3*k)]:[Math.round(.6*k)*inward,ay+Math.round(sg*2.4*k)];};
+      const k=fw;return k>0?[Math.round(2*k)*inward,ay+Math.round(sg*4*k)]:[Math.round(.6*k)*inward,ay+Math.round(sg*3.4*k)];};   /* motion judge r2: 1-2 px could not be seen at 1x */
     pose.hands=[hand(-c,1),hand(c,-1)];}
   return pose;}
 // planting and harvesting: bend, kneel, reach into the soil in front, press it in, rise, stand
@@ -507,11 +517,22 @@ function plantPose(f,dir){const pose={},side=dir==='E'||dir==='W',back=dir==='N'
   // kneeling to the square in front: a short step forward with the near foot, a lean from the hips (the feet stay put),
   // the hands reaching low and forward (judge r4: lean, never slide the whole body)
   if(side){if(kneel){pose.crouch=5;pose.lean=5;pose.legs=[[-4,0],[5,0]];const d=f===3?1:0;pose.hands=[[fl*(7+d),12+d],[fl*(9+d),12+d]];pose.nod=1;}
-    else if(f===1){pose.crouch=3;pose.lean=3;pose.legs=[[-3,0],[3,0]];pose.hands=[[fl*5,10],[fl*7,10]];pose.nod=1;}else{pose.crouch=2;pose.lean=2;pose.hands=[[fl*4,4],[fl*5,3]];}}
+    else if(f===1){pose.crouch=3;pose.lean=3;pose.legs=[[-3,0],[3,0]];pose.hands=[[fl*5,10],[fl*7,10]];pose.nod=1;}
+    else{pose.crouch=3;pose.lean=3;pose.legs=[[-2,0],[3,0]];pose.hands=[[fl*5,7],[fl*6,6]];}}   /* the rise (motion judge r2: kneel to upright in one frame, the foot snapping back): half up, the foot half back */
   else{if(kneel){pose.crouch=6;pose.squat=2;const d=f===3?1:0;pose.hands=back?[[4,8],[-3,8]]:[[5,14+d],[-4,14+d]];pose.reach=back;pose.nod=1;}
     else if(f===1){pose.crouch=3;pose.squat=1;pose.hands=back?[[4,7],[-3,7]]:[[5,11],[-4,11]];pose.reach=back;pose.nod=1;}
-    else{pose.crouch=2;pose.hands=back?[[4,2],[-3,2]]:[[5,3],[-4,3]];pose.reach=back;}}
+    else{pose.crouch=3;pose.squat=1;pose.hands=back?[[4,5],[-3,5]]:[[5,7],[-4,7]];pose.reach=back;}}
   return pose;}
+// each person their own way of standing (judge, townsfolk: "everyone stands the same way"): elbow then hand, from the shoulder
+function stance(pose,side,dir,fl){const ST=C.stance;if(!ST||KID||dir==='N')return;
+  if(!side){if(ST==='hips'){pose.elbows=[[-3,5],[3,5]];pose.hands=[[2,9],[-1,9]];}
+    else if(ST==='folded'){pose.elbows=[[-1,7],[1,7]];pose.hands=[[8,5],[-7,5]];}
+    else if(ST==='pockets'){pose.hands=[[1,9],[0,9]];pose.noHands=true;}
+    else if(ST==='behind'){pose.hands=[[2,8],[-1,8]];pose.noHands=true;}}
+  else{if(ST==='hips'){pose.elbows=[[-2,5],[-2,5]];pose.hands=[[1,8],[1,8]];}
+    else if(ST==='folded'){pose.elbows=[[0,6],[0,6]];pose.hands=[[3,5],[3,5]];}
+    else if(ST==='pockets'){pose.hands=[[0,9],[0,9]];pose.noHands=true;}
+    else if(ST==='behind'){pose.hands=[[-2,8],[-2,8]];pose.noHands=true;}}}
 // ---------------------------------------------------------------- render
 if(CFG.portraits){console.log('portraits are drawn by portrait3.js now');}
 ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
@@ -519,17 +540,9 @@ ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
   const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1;let pose={};
   if(clip==='walk')pose=walkPose(f,dir,false);
   if(clip==='run')pose=walkPose(f===0?1:f,dir,true);
-  if(clip==='idle'){pose.bob=[0,1,1,0][f];pose.hairLag=0;pose.blink=f===3;
-    // each person their own way of standing (judge, townsfolk: "everyone stands the same way"): elbow then hand, from the shoulder
-    const ST=C.stance;if(ST&&!KID&&dir!=='N'){
-      if(!side){if(ST==='hips'){pose.elbows=[[-3,5],[3,5]];pose.hands=[[2,9],[-1,9]];}
-        else if(ST==='folded'){pose.elbows=[[-1,7],[1,7]];pose.hands=[[8,5],[-7,5]];}
-        else if(ST==='pockets'){pose.hands=[[1,9],[0,9]];pose.noHands=true;}
-        else if(ST==='behind'){pose.hands=[[2,8],[-1,8]];pose.noHands=true;}}
-      else{if(ST==='hips'){pose.elbows=[[-2,5],[-2,5]];pose.hands=[[1,8],[1,8]];}
-        else if(ST==='folded'){pose.elbows=[[0,6],[0,6]];pose.hands=[[3,5],[3,5]];}
-        else if(ST==='pockets'){pose.hands=[[0,9],[0,9]];pose.noHands=true;}
-        else if(ST==='behind'){pose.hands=[[-2,8],[-2,8]];pose.noHands=true;}}}}
+  /* idle (motion judge: the breath was the whole body dropping a pixel, legs too, so it read as a nod): the chest, shoulders,
+     arms and head settle a pixel on the out-breath while the hips, legs and boots stay locked */
+  if(clip==='idle'){pose.breath=[0,1,1,0][f];pose.hairLag=0;pose.blink=f===3;stance(pose,side,dir,fl);}
   if(clip==='thrust'&&TOOL){const kind=TOOL;const e=toolEntry(kind,dir,f);const T=toolHands(kind,dir,f);
     if(kind==='can'){pose.crouch=f>=3&&f<=6?1:0;pose.lean=f>=3&&f<=6?1:0;}else{const K_=SWK[kind];pose.crouch=(K_?K_.crouch:SW_CROUCH)[f];pose.bob=(K_?K_.bob:SW_BOB)[f];pose.lean=(K_?K_.lean:SW_LEAN)[f];}
     if(side&&kind!=='can')pose.legs=[[-2,0],[3,0]];
@@ -544,11 +557,22 @@ ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
   if(clip==='slash')pose=plantPose(f,dir);
   // hurt (judge: it read as a shrug, then dozing): the hit (snap up, wide eyes, an O mouth, hands flung out at the shoulders),
   // the cower (head ducked, shoulders up, eyes squeezed shut, hands beside the neckline, never over it), then easing back
-  if(clip==='hurt'){pose.bob=[-2,-3,0,0,0,0][f];pose.crouch=[0,0,3,3,2,1][f];pose.nod=f>=2&&f<=4?1:0;pose.expr=f<2||f===5?'scared':'wince';
-    // the second frame overshoots (higher, wider); the arms are uneven so the fling doesn't read as a cheer (judge r1)
-    pose.hands=[[[-5,-7],[4,-5]],[[-6,-9],[5,-6]],[[1,-5],[-1,-4]],[[1,-5],[-1,-4]],[[0,1],[0,2]],[[0,6],[0,6]]][f];}
+  if(clip==='hurt'){pose.bob=[-2,-3,0,0,0,0][f];pose.crouch=[0,0,3,3,1,0][f];pose.nod=f>=2&&f<=4?1:0;pose.expr=f<2||f===5?'scared':'wince';
+    /* motion judge r2: the fling read as a shrug ("ta-da") because both arms went up alike. Now one arm flies up and out, the
+       other folds to guard the chin (hands 6+ px apart in height); the cower shivers a pixel so frames 3 and 4 differ; the last
+       frame lands exactly on the idle (crouch 0, the person's own stance) so nothing pops when the idle resumes */
+    if(f===0){pose.elbows=[[-3,-5],[1,5]];pose.hands=[[-5,-10],[-5,-3]];pose.guard=1;}
+    else if(f===1){pose.elbows=[[-4,-6],[2,5]];pose.hands=[[-6,-12],[-5,-4]];pose.guard=1;}
+    else if(f===2){pose.hands=[[1,-5],[-1,-4]];}
+    else if(f===3){pose.hands=[[1,-4],[-1,-5]];pose.sway=1;}
+    else if(f===4){pose.hands=[[0,3],[0,4]];}
+    else{pose.hands=null;stance(pose,side,dir,fl);}}
   if(clip==='spellcast'){const up=f>1;pose.hands=up?(side?[[fl*-1,-10],[fl*2,-11]]:[[1,-11],[-1,-11]]):null;}
-  if(clip==='sit'){pose.crouch=2;pose.sit=true;pose.bob=[0,1,0][f]||0;pose.hands=side?[[fl*5,9],[fl*6,9]]:[[3,13],[-3,13]];pose.blink=f===2;}   /* hands resting on the thigh / the knees; a breath */
+  /* sit (motion judge: facing us it read as a standing person made shorter; one low frame in three read as a twitch): facing
+     us the lap is drawn, two knees and the shins below them, hands resting on the thighs; the breath holds two frames and
+     moves only the chest, shoulders and head (hands stay on the lap) */
+  if(clip==='sit'){pose.sit=true;const br=[0,1,1][f];pose.breath=br;pose.crouch=side?2:1;
+    pose.hands=side?[[fl*5,9-br],[fl*6,9-br]]:[[4+WIDE,11-br],[-4-WIDE,11-br]];pose.blink=f===0;}   /* hands resting on the thigh / the knees; a breath */
   const EX0=EXPR;if(pose.expr)EXPR=pose.expr;human(dir,pose);EXPR=EX0;
   if(clip==='slash'&&HANDS_REC)HANDMETA[dir][f]=HANDS_REC.map(h=>h.map(Math.round));
   // outline the whole figure; each outline pixel goes to the part whose pixel it borders
