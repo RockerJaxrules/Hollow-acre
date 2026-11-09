@@ -433,6 +433,8 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Ramps: shades toward purple, lights toward yellow, no pure colours. About 6 colours per 32x32 area (measured on LPC).
 
 ## Process
+- [Nov 10] An `if` dropped into the middle of an if/else-if chain adopts the chain's trailing else: the hurt's impact
+  frames fell back to the idle stance. Put per-case overrides AFTER the chain, and re-render every character a change can touch.
 
 - Silhouette first, then masses, then detail. Skipping straight to clusters produced polka-dot bubbles.
 - Placing clusters along mathematical lines (perimeters, boundaries) looks mechanical, like piped icing.
