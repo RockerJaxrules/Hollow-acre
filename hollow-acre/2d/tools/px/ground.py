@@ -68,7 +68,8 @@ def clump(t, x, y, R, ramp, big):
             yy = y - k; xx = bx + int(round(lean * k * .5))
             col = ramp[1] if k == 0 else (ramp[-1] if k == h - 1 else (ramp[-2] if k >= h - 2 else ramp[2]))
             t.put(xx, yy, col)
-    for i in range(-spread // 2, spread // 2 + 1):   # the clump's shadow on the ground
+    sl = R.randint(-spread // 2, 0); sr = R.randint(0, spread // 2 + 1)
+    for i in range(sl, sr + 1):   # the clump's shadow on the ground: its length varies
         if t.get(x + i, y + 1) not in ramp: t.put(x + i, y + 1, ramp[0])
 
 
@@ -80,16 +81,40 @@ def leaf(t, x, y, R):
     t.put(x + 2, y - 1, LEAF[-1]); t.put(x, y + 1, LEAF[0]); t.put(x - 1, y + 2, LEAF[0])
 
 
+def blob(t, cx, cy, r, col, seed, wob=.28):
+    """a broad patch with a wandering, hard edge (low sines round a circle, no noise contours)"""
+    R = random.Random(seed); ph = [R.uniform(0, 6.28) for _ in range(3)]; amp = [wob, wob * .6, wob * .35]
+    for y in range(int(-r * 1.5), int(r * 1.5) + 1):
+        for x in range(int(-r * 1.5), int(r * 1.5) + 1):
+            a = math.atan2(y, x); rr = r * (1 + sum(amp[k] * math.sin((k + 2) * a + ph[k]) for k in range(3)))
+            if x * x + (y * 1.35) ** 2 <= rr * rr: t.put(int(cx) + x, int(cy) + y, col)
+
+
 def grass(seed=3):
     t = Tile(G[3]); R = random.Random(seed)
-    pts = scatter(seed, 4.2, 8.5)
-    for (x, y, r) in sorted(pts, key=lambda p: p[1]):
-        d = density(x, y, seed); light = density(x + 40, y + 90, seed + 2); dry = density(x + 61, y + 37, seed + 5) > .86
-        if dry: ramp = DRY[:]
-        elif light > .6: ramp = [G[2], G[3], G[5], G[6], G[7]]   # sunnier swathes: the same clumps, a step lighter
+    DAMP, WORN = HEX('#425d29'), HEX('#4f6b30')    # half a step either side of the base: ground variation, not stains
+    blob(t, 52, 60, 34, DAMP, seed + 1)
+    blob(t, 140, 138, 30, WORN, seed + 2, .22)
+    # tufts gather in clusters (denser toward a cluster's middle), the ground between stays quiet
+    centres = [(R.uniform(0, N), R.uniform(0, N), R.uniform(11, 20)) for _ in range(15)]
+    pts = []
+    for (cx, cy, rad) in centres:
+        for _ in range(R.randint(12, 20)):
+            a = R.uniform(0, 6.283); d = rad * math.sqrt(R.random())
+            x, y = cx + math.cos(a) * d, cy + math.sin(a) * d * .7
+            if all(min(abs(x - px_), N - abs(x - px_)) ** 2 + min(abs(y - py_), N - abs(y - py_)) ** 2 > 16 for px_, py_, _ in pts):
+                pts.append((x % N, y % N, (cx, cy)))
+    for _ in range(45):   # loners between the clusters
+        pts.append((R.uniform(0, N), R.uniform(0, N), None))
+    dry_c = centres[R.randrange(len(centres))][:2]   # one cluster has dried off
+    for (x, y, c) in sorted(pts, key=lambda p: p[1]):
+        base = t.get(int(x), int(y))
+        if c is not None and c[:2] == dry_c: ramp = DRY[:]
+        elif base == WORN: ramp = [G[2], G[3], G[5], G[6], G[7]]
+        elif base == DAMP: ramp = [G[0], G[1], G[3], G[4], G[5]]
         else: ramp = [G[1], G[2], G[4], G[5], G[6]]
-        clump(t, x, y, R, ramp, big=d > .55 and R.random() < .5)
-    for i in range(6): leaf(t, R.uniform(0, N), R.uniform(0, N), R)
+        clump(t, x, y, R, ramp, big=c is not None and R.random() < .45)
+    for i in range(5): leaf(t, R.uniform(0, N), R.uniform(0, N), R)
     return t
 
 
