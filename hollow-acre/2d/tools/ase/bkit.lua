@@ -127,15 +127,23 @@ function B.wall(c, mat, x0, y0, x1, y1, seed, rough)
         P(c, x, y, col) end end
     --[[ judge (sweep): orange discs stacked at each corner read as a zip or gears. The corner is notched: each course's end
          sticks out past the wall, alternately long and short, as dull tan end grain in a bark rim, heart off centre ]]
-    for y = y0, y1 - 3, 7 do local k = (y - y0) // 7
-      for side, ex in ipairs({x0 - 2 - (k % 2), x1 + 2 + ((k + 1) % 2)}) do local cy = y + 3
-        for yy = -3, 3 do for xx = -3, 3 do local d = math.sqrt(xx * xx + yy * yy)
-          if d <= 3.2 then local col
-            if d > 2.3 then col = (xx + yy < 0) and 'lg4' or 'lg2'
-            elseif math.abs(xx - (side == 1 and 1 or -1)) + math.abs(yy) < .5 then col = 'eg2'
-            elseif (xx + yy) >= 2 and d > 1.4 then col = 'eg3'
-            else col = (xx + yy <= -1) and 'eg4' or 'eg3' end   -- a step darker than loose firewood: a pale column read as a string of teeth
-            P(c, ex + xx, cy + yy, col) end end end end end
+    --[[ (Fenn r1) a column of identical nubs read as a bead chain: a saddle-notch corner alternates. On even courses the
+         side wall's log end stands 3-4 px proud (three sizes, a third darker, heart off centre); on odd courses the front
+         log runs to the corner and ends flush in a sawn face, so the corner zigzags like two walls crossing ]]
+    for y = y0, y1 - 3, 7 do local k = (y - y0) // 7; local cy = y + 3
+      for side = 1, 2 do local dir = (side == 1) and -1 or 1; local edge = (side == 1) and x0 or x1
+        if k % 2 == 0 then local r = ({2.6, 3.1, 3.5})[1 + math.floor(H(k * 3 + side, 71) * 2.99)]; local dark = H(k + side * 9, 73) < .34
+          local ex = edge + dir * 3; local hx = (H(k, side + 75) > .5) and 1 or -1
+          for yy = -3, 3 do for xx = -4, 4 do local d = math.sqrt(xx * xx + yy * yy)
+            if d <= r + .2 then local col
+              if d > r - .8 then col = (xx + yy < 0) and 'lg4' or 'lg2'
+              elseif xx == hx and yy == 0 then col = 'eg2'
+              elseif (xx + yy) >= 2 and d > r - 1.7 then col = dark and 'eg2' or 'eg3'
+              else col = (xx + yy <= -1) and (dark and 'eg3' or 'eg4') or (dark and 'eg2' or 'eg3') end
+              P(c, ex + xx, cy + yy, col) end end end
+        else   -- the front log's sawn end, flush with the corner
+          for yy = y + 1, y + 5 do P(c, edge, yy, (yy <= y + 2) and 'eg4' or 'eg3'); P(c, edge + dir, yy, 'OUT2') end
+          P(c, edge, y + 3, 'eg2') end end end
   elseif mat == 'plaster' then
     for y = y0, y1 do for x = x0, x1 do P(c, x, y, band(c, Wr, lt(x) + .12 + (H(x // 4, y // 3) - .5) * .06, 3, 7)) end end
     local beams = {}
@@ -505,7 +513,10 @@ function B.door(c, dx0, dx1, dy0, yb, o)
       R(c, h[1], dy0, h[2], dy0 + 1, T[4]); R(c, h[1], yb - 1, h[2], yb, T[4]) end
   elseif kind == 'glass' then R(c, dx0 + 3, dy0 + 3, dx1 - 3, dy0 + (yb - dy0) // 2, o.night and 'y2' or 'g3'); if not o.night then P(c, dx0 + 4, dy0 + 4, 'g6'); P(c, dx0 + 5, dy0 + 4, 'g5') end
     px.vline(c, mid, dy0 + 3, dy0 + (yb - dy0) // 2, T[2])
-  else R(c, dx0 + 5, dy0 + 5, dx1 - 5, dy0 + 15, T[2]); R(c, dx0 + 6, dy0 + 6, dx1 - 6, dy0 + 14, o.night and 'y2' or 'g2'); px.vline(c, mid, dy0 + 6, dy0 + 14, T[2]); px.hline(c, dx0 + 6, dx1 - 6, dy0 + 10, T[2])
+  else R(c, dx0 + 5, dy0 + 5, dx1 - 5, dy0 + 15, T[2]); R(c, dx0 + 6, dy0 + 6, dx1 - 6, dy0 + 14, (o.night or o.glow) and 'y2' or 'g2')
+    if o.glow then for x = dx0 + 6, dx1 - 6 do P(c, x, dy0 + 13, 'y1'); P(c, x, dy0 + 14, 'y1'); if (x - dx0) % 5 == 2 then P(c, x, dy0 + 12, 'f3') end end   -- the forge's embers glowing through the glass, day and night
+      for x = dx0 + 6, dx1 - 6 do if (x * 7) % 5 == 1 then P(c, x, dy0 + 7, 'y3') end end end
+    px.vline(c, mid, dy0 + 6, dy0 + 14, T[2]); px.hline(c, dx0 + 6, dx1 - 6, dy0 + 10, T[2])
     if not o.night then P(c, dx0 + 7, dy0 + 7, 'g5') end end
   R(c, dx1 - 5, dy0 + (yb - dy0) * .55, dx1 - 3, dy0 + (yb - dy0) * .55 + 2, 'y2'); P(c, dx1 - 5, dy0 + (yb - dy0) * .55, 'y3')
   if o.ribbon then R(c, dx1 - 6, dy0 + 18, dx1 - 2, dy0 + 19, 'b2'); P(c, dx1 - 4, dy0 + 20, 'b2'); P(c, dx1 - 3, dy0 + 21, 'b1'); P(c, dx1 - 5, dy0 + 21, 'b3') end
@@ -740,6 +751,54 @@ end
 
 -- a millstone leaning on the wall (the Fenns run the mill): a grey dressed stone, lit top-left, the square eye dark,
 -- the furrows cut in it, a contact shadow
+-- the carpenter's trade at the door: fresh sawn planks leaning on the wall, a short stack of boards on two blocks
+function B.lumber(c, lx, sx, gy)
+  for i, h in ipairs({30, 25, 33}) do local bx = lx + (i - 1) * 6
+    for yy = 0, h do local x = bx   -- (judge-free self check) a stepped slant read as broken posts: they stand straight
+      local y = gy - 1 - yy
+      P(c, x - 1, y, 'OUT'); P(c, x, y, 'w6'); P(c, x + 1, y, 'w5'); P(c, x + 2, y, 'w5'); P(c, x + 3, y, 'w3'); P(c, x + 4, y, 'OUT') end
+    local tx = bx; P(c, tx, gy - 2 - h, 'eg5'); P(c, tx + 1, gy - 2 - h, 'eg4'); P(c, tx + 2, gy - 2 - h, 'eg4'); P(c, tx + 3, gy - 2 - h, 'eg3')   -- the sawn end
+    px.hline(c, tx - 1, tx + 4, gy - 3 - h, 'OUT')
+    for x = bx + 4, bx + 7 do px.shade(c, x, gy - 3 - math.floor(h * .5), -1) end end   -- each casts a sliver of shadow on the wall
+  if sx then   -- three boards stacked on two dark blocks, their sawn ends to the left
+    R(c, sx + 2, gy - 3, sx + 5, gy - 1, 'k2'); R(c, sx + 13, gy - 3, sx + 16, gy - 1, 'k2')
+    for k = 0, 2 do local y = gy - 4 - k * 3; local x0 = sx + (k == 1 and 1 or 0); local x1 = sx + 18 - (k == 2 and 2 or 0)
+      px.hline(c, x0, x1, y - 2, 'w6'); px.hline(c, x0, x1, y - 1, 'w5'); px.hline(c, x0, x1, y, 'w3')
+      P(c, x0, y - 2, 'eg5'); P(c, x0, y - 1, 'eg4'); P(c, x0, y, 'eg3') end
+    px.hline(c, sx - 1, sx + 19, gy - 13, 'OUT')
+    for x = sx + 1, sx + 21 do px.shade(c, x, gy, -2) end end
+end
+
+-- the smith's yard: an anvil on a stump (steel, lit top face, the horn tapering left), a quench barrel of dark water
+-- small props drawn in front of a wall get their own dark outline, or they sink into it (a grey anvil on grey stone)
+local function stamp(c, pts)
+  local has = {}; for _, q in ipairs(pts) do has[q[1] .. ',' .. q[2]] = true end
+  for _, q in ipairs(pts) do for _, d in ipairs({{1,0},{-1,0},{0,1},{0,-1}}) do local k = (q[1] + d[1]) .. ',' .. (q[2] + d[2])
+    if not has[k] then P(c, q[1] + d[1], q[2] + d[2], 'OUT') end end end
+  for _, q in ipairs(pts) do P(c, q[1], q[2], q[3]) end
+end
+function B.anvil(c, a, gy)
+  local pts = {}; local function p(x, y, col) pts[#pts + 1] = {x, y, col} end
+  for x = a + 4, a + 12 do for y = gy - 7, gy - 1 do p(x, y, (x == a + 4) and 'lg4' or ((x == a + 12) and 'lg2' or 'lg3')) end end   -- the stump
+  for x = a + 4, a + 12 do p(x, gy - 8, 'eg4') end
+  local t = gy - 17
+  for x = a, a + 17 do local hx = x - a; local y0 = t + ((hx < 3) and 1 or 0); local y1 = t + 4 - ((hx < 3) and 1 or 0) - ((hx < 1) and 1 or 0)
+    p(x, y0, 'm4'); for y = y0 + 1, y1 do p(x, y, (hx > 13) and 'm2' or 'm3') end end   -- the face, the horn tapering left
+  for x = a + 6, a + 11 do for y = t + 5, t + 6 do p(x, y, (x == a + 6) and 'm3' or 'm2') end end   -- the waist
+  for x = a + 4, a + 13 do p(x, t + 7, 'm2'); p(x, t + 8, 'm1') end   -- the foot
+  stamp(c, pts); P(c, a + 14, t + 1, 'm1'); P(c, a + 15, t + 1, 'm1')   -- the hardy hole
+  for x = a + 5, a + 15 do px.shade(c, x, gy + 1, -2) end
+end
+function B.barrel(c, a, gy)
+  local pts = {}; local function p(x, y, col) pts[#pts + 1] = {x, y, col} end
+  for x = a, a + 10 do local e = (x - a) / 10; local col = (e < .3) and 'k5' or ((e < .7) and 'k4' or 'k3')
+    for y = gy - 14, gy - 1 do p(x, y, ((x - a) % 3 == 2 and e > .2 and e < .9) and 'k3' or col) end end
+  stamp(c, pts)
+  for _, y in ipairs({gy - 12, gy - 5}) do px.hline(c, a, a + 10, y, 'm2'); P(c, a + 1, y, 'm3') end
+  px.hline(c, a + 1, a + 9, gy - 14, 'k6'); px.hline(c, a + 1, a + 9, gy - 13, 'g2'); P(c, a + 3, gy - 13, 'g4')   -- the rim and the dark water
+  for x = a + 2, a + 13 do px.shade(c, x, gy + 1, -2) end
+end
+
 function B.millstone(c, cx, gy)
   local r = 9; local cy = gy - r - 1
   for yy = -r - 1, r + 1 do for xx = -r - 1, r + 1 do local d = math.sqrt(xx * xx + yy * yy)
@@ -875,12 +934,13 @@ function B.build(sp, night)
     local pr = sp.porch or (home and {rail = true}) or nil
     local px0, px1 = pr and (pr.full and x0 + 4 or dx0 - 16), pr and (pr.full and x1 - 4 or dx1 + 16)
     if pr then B.porch(c, px0, px1, gy - 10 - dh - 14, gy - 10, roofmat, trim, pr.rail) end
-    B.door(c, dx0, dx1, gy - 10 - dh, gy - 10, {trim = trim, col = B.DOORS[d.col or 'teal'], kind = d.kind, night = night, ribbon = sp.ribbon, scratches = sp.scratches, blood = sp.blooddoor, rough = sp.rough})
+    B.door(c, dx0, dx1, gy - 10 - dh, gy - 10, {trim = trim, col = B.DOORS[d.col or 'teal'], kind = d.kind, night = night, ribbon = sp.ribbon, scratches = sp.scratches, blood = sp.blooddoor, rough = sp.rough, glow = sp.forge})
     local stoneSteps = (wallmat == 'brick' or wallmat == 'stone')
     if pr then B.deck(c, px0 - 2, px1 + 2, gy - 10, gy - 6)
       for _, postx in ipairs({px0, px1 - 2}) do R(c, postx, gy - 6, postx + 2, gy - 1, trim[3]); px.vline(c, postx + 2, gy - 6, gy - 1, trim[2]) end end   -- the posts carry on down to the ground
     DOORMETA = {w = dw, dx = dcx - (W + 2 * m) / 2, steps = wide and 'ramp' or ((stoneSteps and not pr) and 'stone' or 'wood')}
     if d.boarded then B.boardup(c, dx0, dx1, gy - 10 - dh, gy - 10) end
+    if sp.forge then B.anvil(c, dx1 + 14, gy - 10); B.barrel(c, dx0 - 25, gy - 10) end
     if sp.lantern ~= false then B.lantern(c, dx1 + 12, gy - 10 - dh + 6, night) end
   end
   if sp.sign then B.sign(c, (x0 + x1) // 2, yW + (sp.awning and -2 or 6) + (sp.signy or 0), sp.sign) end
@@ -971,6 +1031,7 @@ function B.build(sp, night)
   if sp.coop then B.coopfx(c, sp, x0, x1, gy, seed) end
   if sp.tools then B.leantools(c, x1 + 3, gy) end
   if sp.millstone then B.millstone(c, x1 - 9, gy - 1) end
+  if sp.lumber then B.lumber(c, x0 + math.floor(sp.lumber[1] * 32), sp.lumber[2] and x0 + math.floor(sp.lumber[2] * 32) or nil, gy - 10) end
   if sp.logs then B.logpile(c, x0 + 1, x0 + 34, gy - 1, 22, seed) end   -- stacked against the wall, left of the door
   return c, {w = Wd, h = Hh, ax = Wd / 2, ay = gy - 3, chim = chim and {chim[1] - Wd / 2, chim[2] - (gy - 3) - 2} or nil, door = DOORMETA}
 end

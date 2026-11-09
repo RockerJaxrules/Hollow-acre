@@ -49,11 +49,11 @@ local S = {
  shop_bait  = {w = 5, kind = 'flat', wall = 'blue', trim = 'cream', sign = 'BAIT', signy = 0, door = {col = 'teal', w = 22}, windows = {{x = 1.0, w = 20, curtain = false}, {x = 4.0, w = 20}},
                moss = .9, seed = 121},
  shop_carp  = {w = 6, kind = 'side', wall = 'log', roof = 'brown', trim = 'cream', sign = 'HARTLEY', signy = 0, door = {col = 'oak', kind = 'double', w = 30, h = 48},
-               windows = {{x = 1.1, w = 20}, {x = 4.9, w = 20}}, chimneys = {{x = .82}}, seed = 122},
+               windows = {{x = 1.1, w = 20}, {x = 4.9, w = 20}}, chimneys = {{x = .82}}, lumber = {1.65, 5.35}, seed = 122},   -- the carpenter's: planks at the door
  shop_feed  = {w = 6, kind = 'gable', wall = 'sage', roof = 'tin', trim = 'cream', sign = "BELL'S FEED", signy = 0, door = {col = 'red', kind = 'barn', w = 34, h = 50},
                windows = {{x = 0.9, w = 18, curtain = false}, {x = 5.1, w = 18, curtain = false}}, seed = 123, gablewin = 'loft'},
  shop_forge = {w = 6, kind = 'side', wall = 'stone', roof = 'slate', trim = 'black', sign = 'FORGE', signy = 0, door = {col = 'black', kind = 'double', w = 32, h = 50},
-               windows = {{x = 0.9, w = 18, curtain = false}, {x = 5.1, w = 18, curtain = false}}, chimneys = {{x = .2, dy = 4}}, moss = .5, seed = 124},
+               windows = {{x = 0.9, w = 18, curtain = false}, {x = 5.1, w = 18, curtain = false}}, chimneys = {{x = .2, dy = 4}}, moss = .5, forge = true, seed = 124},   -- the smith's: anvil, quench barrel, ember glow
  garage     = {w = 8, kind = 'flat', wall = 'brick', trim = 'cream', sign = "PRUITT'S GARAGE", door = {col = 'black', kind = 'double', w = 60, h = 54},
                windows = {{x = 0.9, w = 22, curtain = false}, {x = 7.1, w = 22, curtain = false, broken = true}}, seed = 125, lantern = false},
  -- ---- Wickham: the older side of the valley, stone and dark slate

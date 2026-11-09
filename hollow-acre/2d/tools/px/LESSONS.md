@@ -414,6 +414,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   and lift one past it. A dark red hole reads as a wound: the loft is plum-brown with grey lit battens.
 - [shack r1] Peeling paint is a few big patches over 2-4 boards with staggered ends, flat silver-grey; many short runs
   with dark lips at each end read as grit. Rain stains run down from the sills (one step darker, 1-2 px wide).
+- [Fenn r1] A log corner is two walls crossing: alternate courses, a round side-wall end standing 3-4 px proud then the
+  front log ending flush in a sawn face, so the column zigzags; identical nubs one per course read as a bead chain.
+- [shops] A trade reads from what stands at the door, not the sign: planks for the carpenter, an anvil and quench barrel
+  for the smith, a millstone for the miller. Props in front of a wall need their own dark outline or they sink into it.
 - [Harlan r1] Boarded UP is the opening covered: boards wider than the frame, a tilted one, a split end, nails, a notice
   on the door. Two boards on one window read as shelves; equal planks in the wall's own grey read as louvred shutters.
 - [Harlan r1] Rust on a derelict tin roof: whole sheets rusted brown (the lg ramp, like the barn) and runs that start at
