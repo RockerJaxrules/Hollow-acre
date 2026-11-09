@@ -61,7 +61,7 @@ def body(c):
     by = 13
     # far legs first, in shade: the far hind cocked up and back, the far fore forward
     leg(c, (14, by + 3), -2.3, 5, 5, .5, DEERD, .7)
-    leg(c, (36, by + 4), 1.8, 5.5, 5.5, -.25, DEERD, .7)
+    leg(c, (34, by + 5), 1.05, 5.5, 5.5, -.15, DEERD, .7)       # far fore: down and forward, short of the head
     # one volume: ribcage and haunch as a single barrel lit from the top-left, belly pale only underneath
     ell(c, 25, by + 2, 13.5, 6.6, DEER, under=PALE, ut=.66)
     ell(c, 15.5, by + 1.6, 5.2, 5, DEER, k=.92)
@@ -75,10 +75,10 @@ def body(c):
             c.p(x, y, col)
     # near legs: hind stretched back off the pool, fore stretched forward, different angles
     leg(c, (15, by + 6), -1.5, 5.5, 5.5, .35, DEER, .95)
-    leg(c, (35, by + 6), 1.45, 6, 6, -.3, DEER, .95)
+    leg(c, (32, by + 6), .85, 5.5, 6, -.2, DEER, .95)          # near fore: down and forward, a gap before the head
     # the neck, thick (the doe's weight), along the ground; the head flat on its cheek, ears laid back, eye shut
     limb2(c, [(37, by + 1), (41.5, by + 2), (46, by + 2.5)], lambda t: 6.4 - t * 1.6, DEER)
-    hx, hy = 51, by + 3
+    hx, hy = 51, by + 1
     ell(c, hx - 3.4, hy - 4.6, 1.7, 4.4, DEERD, rot=-.75)     # the far ear, behind
     ell(c, hx, hy, 4.6, 3.6, DEER)                             # the skull, lying on its cheek
     ell(c, hx + 5, hy + 1.2, 3.2, 2.3, DEER, under=PALE, ut=.4)   # the long muzzle
