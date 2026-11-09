@@ -4,7 +4,7 @@ isn't there (GitHub Pages, local runs) the game loads each image from its own pa
 import re, json, os, base64
 h = open('hollow-acre-2d.html').read()
 refs = sorted(r for r in set(re.findall(r'(spr/[A-Za-z0-9_/.\-]+\.png)', h)) if os.path.exists(r))
-LIM = 9_000_000
+LIM = 2_500_000   # small packs: each one downloads quickly and a failed one is cheap to fetch again
 packs, cur, size = [], {}, 0
 def flush():
     global cur, size

@@ -13,8 +13,14 @@ const fxC=document.createElement('canvas'),xctx=fxC.getContext('2d');
 const IMG={};
 // the published page carries its images bundled in a few packs (packs.json lists them); anywhere else each image loads from its own path
 const PACK={};let PACKS=null;
-function loadPacks(){if(PACKS)return PACKS;return PACKS=fetch('packs.json?b='+BUILD_ID,{cache:'no-store'}).then(r=>r.ok?r.json():null).then(L=>L&&L.packs?Promise.all(L.packs.map(n=>fetch(n+'?b='+BUILD_ID).then(r=>r.ok?r.json():{}).then(d=>Object.assign(PACK,d)).catch(()=>{}))):null).catch(()=>null);}
-function loadImages(list,prog){let done=0;return loadPacks().then(()=>Promise.all(list.map(src=>new Promise(res=>{const im=new Image();im.onload=()=>{IMG[src]=im;prog&&prog(++done,list.length);res();};im.onerror=()=>{if(PACK[src]&&im.src!==src){im.src=src;return;}prog&&prog(++done,list.length);res();};im.src=PACK[src]||src;}))));}
+const PACKINFO={ok:0,total:0,on:false};
+function fetchPack(n,tries){return fetch(n+'?b='+BUILD_ID+(tries<3?'&r='+tries:'')).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(d=>{Object.assign(PACK,d);PACKINFO.ok++;})
+  .catch(()=>tries>1?new Promise(res=>setTimeout(res,(4-tries)*1200)).then(()=>fetchPack(n,tries-1)):null);}   // a pack that fails is fetched again, up to three times
+function loadPacks(){if(PACKS)return PACKS;return PACKS=fetch('packs.json?b='+BUILD_ID,{cache:'no-store'}).then(r=>r.ok?r.json():null).then(L=>{if(!L||!L.packs)return null;PACKINFO.on=true;PACKINFO.total=L.packs.length;
+  return Promise.all(L.packs.map(n=>fetchPack(n,3)));}).catch(()=>null);}
+function loadImages(list,prog){let done=0;return loadPacks().then(()=>Promise.all(list.map(src=>new Promise(res=>{
+  if(PACKINFO.on&&!PACK[src]){prog&&prog(++done,list.length);return res();}   // its pack failed: the loose file on the site is an old one, so leave it out
+  const im=new Image();im.onload=()=>{IMG[src]=im;prog&&prog(++done,list.length);res();};im.onerror=()=>{if(PACK[src]&&im.src!==src&&!PACKINFO.on){im.src=src;return;}prog&&prog(++done,list.length);res();};im.src=PACK[src]||src;}))));}
 function drawSpr(name,x,y,clip,dir,frame,o){const m=SPR[name];if(!m)return;const im=IMG[m.src];if(!im)return;o=o||{};
   let sx=0,sy=0;if(m.clips){const c=(m.clips[clip]||m.clips.idle||Object.values(m.clips)[0]);const r=c[dir]||c.S||Object.values(c)[0];sy=r[0]*m.fh;sx=((frame|0)%r[1])*m.fw;}
   const g=o.ctx||ctx2;const dx=Math.round(x-m.ax),dy=Math.round(y-m.ay);

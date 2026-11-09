@@ -300,6 +300,7 @@ function boot(){resize();addEventListener('resize',()=>{resize();vig=null;});mak
   const list=[...new Set(Object.values(SPR).map(m=>m.src))].concat(Object.values(TS).map(t=>t[0]));
   const lb=$('loadBar'),lt=$('loadTxt');
   loadImages([...new Set(list)],(d,n)=>{lb.style.width=(d/n*100)+'%';lt.textContent='Loading the valley… '+d+' / '+n;}).then(()=>{
+    {const st=document.getElementById('buildStamp');if(st){const d=new Date(+BUILD_ID*1000);st.textContent='Build '+d.toLocaleDateString(undefined,{day:'numeric',month:'short'})+' '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})+(PACKINFO.on?' · art '+PACKINFO.ok+'/'+PACKINFO.total+(PACKINFO.ok<PACKINFO.total?' (some art failed to load: reload the page)':''):'');}}
     buildWorld();econBoot();buildInteriors();farmDebris();S.autoCol=autoCollide();treeChop();benchesBoot();placeScarecrow(1);spawnMushrooms();resetCat();placeNPCs();
     for(const [cx,cz] of[[-6.3,2.2],[1.2,9.4],[squarePos.x+8,squarePos.z-5.4],[60,-39.2],[-14.5,-9]])crows.push({x:cx,z:cz,hx:cx,hz:cz,y:0,state:'perch',t:0,vx:0,vz:0});
     applyLook();S.mode='title';$('loadScr').style.opacity=0;setTimeout(()=>$('loadScr').remove(),800);requestAnimationFrame(loop);});
