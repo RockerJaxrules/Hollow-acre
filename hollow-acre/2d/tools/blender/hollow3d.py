@@ -271,6 +271,16 @@ def pose(t, clip, side_view=False, far=None):
             x = -.16 if side == 'L' else .16
             P['arm' + side] = [SH(x, br), (x * 3.6, .02, 2.48 + br), (x * 4.4, -.04, 1.54 + br * 2)]
         P.update(sway=br, head_tilt=s * 6 - 7, bob=br, pitch=4, head_pitch=8)
+    elif clip in ('scarecrow', 'scarelook'):
+        # owner, Nov 10: the scarecrow is the Hollow by day and must match it. Hung on its post: the arms along the crossbar,
+        # the bone hands limp below it, the feet off the ground, the head slumped; 'scarelook' (you came close): the head
+        # lifts and turns to you while the candle kindles
+        w = t / .84 if clip == 'scarelook' else 0.0; w = min(1.0, w); br = s * .02 if clip == 'scarecrow' else 0
+        for side in ('L', 'R'):
+            x = -1 if side == 'L' else 1
+            P['leg' + side] = [(x * .16, 0, HIP), (x * .17, -.03, HIP * .56), (x * .14, .04, .34)]   # dangling, the toes off the ground
+            P['arm' + side] = [SH(x * .16, br), (x * .8, .02, 3.1 + br), (x * 1.18, -.03, 2.68 + br)]   # along the crossbar, the forearm drooping (inside the 96 px frame)
+        P.update(sway=br, bob=br, pitch=2, head_tilt=(1 - w) * 15 + s * 2 * (1 - w), head_pitch=(1 - w) * 24 + w * 4, post=True, lit=w, turn=(1 - w) * -38)
     elif clip == 'crawl':   # on all fours like a spider: a hunched hump of coat, the head low in front looking at you,
                             # four long limbs with their knees and elbows up above the back, feet on one ground line
         P.update(pitch=45, drop=1.35, head_pitch=85, face_pitch=-140, head_tilt=s * 7, coat=(HIP + .8, HIP - .35, .28, .45), neck=.15, sleeves=False,
@@ -379,9 +389,13 @@ def build(clip, t, yaw):
     if P['hump']: torso.append(ball('hump', (0, .1, HIP + .35), .58, mats['coat'], (1.1, .9, 1.0)))
     neck_base = Vector((0, 0, top - .05 + P['bob'])); neck_top = neck_base + Vector((0, 0, P['neck'] + P.get('head_lag', 0)))   # the head settles a beat late
     torso.append(segment('neck', neck_base, neck_top, .075, .055, mats['stick'], 8))
-    r = .5; head = pumpkin(r, mats, P['mouth'])
+    hm = mats
+    if P.get('lit') is not None:   # by day the candle is out: the carving is dark; waking, an ember, then the glow
+        lit = P['lit']; hm = dict(mats, glow=mats['void'], flesh=mats['void']) if lit < .34 else dict(mats, glow=mats['button'], flesh=mats['pumpkin']) if lit < .67 else mats
+    r = .5; head = pumpkin(r, hm, P['mouth'])
     piv = bpy.data.objects.new('headpivot', None); bpy.context.scene.collection.objects.link(piv); piv.location = neck_top
     look = {90: -P.get('look', 32), 270: P.get('look', 32)}.get(int(yaw) % 360, 0) if clip != 'crawl' else {90: -20, 270: 20}.get(int(yaw) % 360, 0)
+    look += P.get('turn', 0)
     piv.rotation_euler = (math.radians(P['head_pitch']), math.radians(P['head_tilt']), math.radians(look))
     hc = bpy.data.objects.new('headctr', None); bpy.context.scene.collection.objects.link(hc); hc.parent = piv; hc.location = (0, 0, r * .85)
     hc.rotation_euler = (math.radians(P['face_pitch']), 0, 0)
@@ -393,6 +407,8 @@ def build(clip, t, yaw):
         lk = {90: -35, 270: 35}.get(int(yaw) % 360, 0)
         hc.matrix_world = Matrix.Translation(loc) @ Matrix.Rotation(math.radians(lk), 4, 'Z') @ Matrix.Rotation(math.radians(P['head_tilt']), 4, 'Y') @ Matrix.Rotation(math.radians(-12), 4, 'X')
     objs += torso
+    if P.get('post'):   # the scarecrow's post and crossbar, behind it
+        objs += [segment('post', (0, .2, -.02), (0, .2, 4.05), .085, .075, mats['stick'], 8), segment('bar', (-1.32, .17, 3.1), (1.32, .17, 3.1), .065, .065, mats['stick'], 8)]
     # everything turns to face its direction (and slides back by 'shift' along its own facing)
     root = bpy.data.objects.new('root', None); bpy.context.scene.collection.objects.link(root)
     for o in objs: o.parent = root
@@ -412,8 +428,8 @@ def render(clip, t, yaw, path):
 
 
 DIRS = {'S': 0, 'E': 90, 'N': 180, 'W': 270}
-NFR = {'walk': 8, 'idle': 4, 'crawl': 6, 'scream': 6, 'lunge': 4, 'hurt': 4}
-ONLY = {'hurt': ('S',)}
+NFR = {'walk': 8, 'idle': 4, 'crawl': 6, 'scream': 6, 'lunge': 4, 'hurt': 4, 'scarecrow': 4, 'scarelook': 6}
+ONLY = {'hurt': ('S',), 'scarecrow': ('S', 'N'), 'scarelook': ('S',)}
 if __name__ == '__main__':
     for clip in CLIPS:
         for d, yaw in DIRS.items():

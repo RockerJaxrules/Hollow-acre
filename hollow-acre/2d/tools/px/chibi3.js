@@ -411,7 +411,7 @@ const TP={
       N:[[5,2,-80,.8,1],[5,-3,-90,1,1],[4,-9,-90,.7,0],[3,-11,-90,.5,0],[5,-4,-85,1,1],[5,1,-80,.9,1],[5,2,-80,.9,1],[5,2,-80,.85,1]]},
  can:{E:[[8,5,0,1,0],[9,2,10,1,0],[10,1,20,1,0],[11,1,40,1,0],[11,1,48,1,0],[11,1,48,1,0],[11,1,40,1,0],[9,3,10,1,0]],
       S:[[6,6,0,1,0],[6,6,10,1,0],[7,7,20,1,0],[8,9,42,1,0],[8,9,50,1,0],[8,9,50,1,0],[8,9,42,1,0],[7,7,10,1,0]],   /* motion judge r2: held out at the waist beside the hip, not hugged to the chest */
-      N:[[9,4,0,1,1],[10,2,10,1,1],[11,-1,20,1,0],[12,-4,42,1,0],[12,-4,50,1,0],[12,-4,50,1,0],[12,-4,42,1,0],[10,3,10,1,1]]}};   /* facing away: raised and out past his right side so the stream shows */   // the can held out to the right side so it shows past the body
+      N:[[9,4,0,1,1],[10,2,10,1,1],[11,-4,20,1,0],[11,-11,42,1,0],[11,-12,50,1,0],[11,-12,50,1,0],[11,-11,42,1,0],[10,3,10,1,1]]}};   /* judge r4: raised above the shoulder so the stream falls onto the square behind him */   /* facing away: raised and out past his right side so the stream shows */   // the can held out to the right side so it shows past the body
 const TOOLMETA={N:[],W:[],S:[],E:[]};let HANDS_REC=null;const HANDMETA={N:[],W:[],S:[],E:[]};
 const SW_LEAN=[0,-2,-3,-3,1,3,3,1],SW_CROUCH=[0,0,0,0,2,4,4,1],SW_BOB=[0,-1,-2,-1,0,0,0,0];
 // the axe stands taller and leans into the chop; the pickaxe rises higher and drops deeper into the strike, then rebounds

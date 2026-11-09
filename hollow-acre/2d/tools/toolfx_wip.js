@@ -21,7 +21,7 @@ const METAL={rust:{s:[54,42,40],b:[86,66,56],m:[120,92,74],l:[150,120,98],e:[176
   copper:{s:[88,42,24],b:[138,68,34],m:[194,104,52],l:[230,148,84],e:[252,204,150]},
   steel:{s:[38,54,92],b:[66,96,148],m:[112,150,206],l:[172,204,242],e:[232,246,255]},
   gold:{s:[110,72,14],b:[168,118,24],m:[220,170,40],l:[248,214,90],e:[255,244,180]},
-  tin:{s:[26, 49, 37],b:[38, 71, 50],m:[55, 97, 62],l:[75, 123, 75],e:[103, 151, 93]}};   // the can icon's greens
+  tin:{s:[38,71,50],b:[55,97,62],m:[75,123,75],l:[103,151,93],e:[150,196,128]}};   // the can icon's greens, the in-hand body a step up to its sage with a lit top (judge: it sank into the plaid)
 function toolGrade(kind){const T=S.tools||{};
   if(kind==='hoe')return (S.hoe||T.hoe||1)>1?'copper':'rust';if(kind==='pick')return (T.pick||1)>2?'gold':(T.pick||1)>1?'steel':'iron';
   if(kind==='axe')return (T.axe||1)>2?'gold':(T.axe||1)>1?'steel':'iron';if(kind==='can')return S.waterMax>10?'copper':'tin';return 'iron';}
@@ -29,6 +29,7 @@ function toolGrade(kind){const T=S.tools||{};
 const TOOL_CACHE=new Map();
 function toolStamp(kind,grade,ang,k,mir){ang=Math.round(ang/3)*3;k=Math.round(k*20)/20;const key=kind+grade+ang+'|'+k+(mir?'m':'');let st=TOOL_CACHE.get(key);if(st)return st;
   const T=TOOL_ART[kind],A=T.art,h=A.length,w=A[0].length,px0=T.px,py0=T.py!==undefined?T.py+.5:h-3.5;const pal=Object.assign({},TOOL_PAL,METAL[grade]||{});
+  if(kind==='can')pal.K=pal.s.map(v=>Math.round(v*.5));   /* the can's outline a darker version of its own colour (LPC rule; judge: near-black sank it) */
   const th=(ang+90)*Math.PI/180,c=Math.cos(th),s=Math.sin(th),R=Math.ceil(Math.hypot(w,h))+2;const N=2*R+1;
   const cv=document.createElement('canvas');cv.width=N;cv.height=N;const g=cv.getContext('2d');const id=g.createImageData(N,N),D=id.data;
   for(let dy=-R;dy<=R;dy++)for(let dx=-R;dx<=R;dx++){const cnt={};let empty=0;
@@ -85,7 +86,7 @@ const FISTS={};
 function fistOverlay(g,nm,dir,f,ox,oy){const im=FISTS[nm];const m=SPR[nm];if(!im||!m||!m.clips||!m.clips.thrust)return;const T=m.tool&&m.tool[dir]&&m.tool[dir][f];if(!T||T[4])return;
   const r=m.clips.thrust[dir];g.drawImage(im,f*m.fw,r[0]*m.fh,m.fw,m.fh,ox,oy,m.fw,m.fh);}
 // water falling from the spout onto the square in front
-function waterStream(g,from,to,t){const [x0,y0]=from,[x1,y1]=to;const n=16;   // a stream 2 px wide in two blues (judge: a 1 px dotted line read as wire), a splash where it lands
+function waterStream(g,from,to,t){const [x0,y0]=from,[x1,y1]=to;const n=Math.max(16,Math.ceil(Math.hypot(x1-x0,y1-y0)/1.5));   /* judge: a long stream read as a dotted wire */   // a stream 2 px wide in two blues (judge: a 1 px dotted line read as wire), a splash where it lands
   for(let i=0;i<n;i++){const u=((i/n)+t*2.2)%1;const x=x0+(x1-x0)*Math.sqrt(u),y=y0+(y1-y0)*u*u;g.fillStyle=i%4===0?'#e6f4ff':'#7ab8e0';g.fillRect(Math.round(x),Math.round(y),2,3);g.fillStyle='#4a86b8';g.fillRect(Math.round(x)+1,Math.round(y)+1,1,2);}
   const s=Math.sin(t*30),k=(t*6)%1;g.fillStyle='#a8d4f0';g.fillRect(Math.round(x1)-3,Math.round(y1),7,1);g.fillStyle='#e6f4ff';
   for(const d of [-1,1]){g.fillRect(Math.round(x1+d*(2+k*3)),Math.round(y1-2-Math.sin(k*Math.PI)*3),1,1);}g.fillRect(Math.round(x1)-1+(s>0?1:0),Math.round(y1)-1,2,1);}
