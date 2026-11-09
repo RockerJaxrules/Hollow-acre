@@ -234,7 +234,7 @@ def _walk_legs(t, P, lift):
     for side, ph in (('L', 0), ('R', math.pi)):
         sw = math.sin(t * 2 * math.pi + ph); up = max(0, math.cos(t * 2 * math.pi + ph))   # the leg swinging forward lifts
         x = -.16 if side == 'L' else .16
-        P['leg' + side] = [(x, 0, HIP + lift), (x * (1 + up * .9), -sw * .3 - up * .2, HIP * .52 + up * .42), (x * (1 + up * .5), -sw * .45, .02 + up * .55)]
+        P['leg' + side] = [(x, 0, HIP + lift), (x * (1 + up * .5), -sw * .3 - up * .32, HIP * .52 + up * .22), (x * (1 + up * .3), -sw * .45, .02 + up * .16)]
 
 
 def _stand_legs(P, front=0.0, back=0.0):
@@ -321,11 +321,11 @@ def build(clip, t, yaw):
     for side in ('L', 'R'):
         J = P['leg' + side]; ft = J[-1]
         for k in range(len(J) - 1):
-            r0 = (.062 if k == 0 else .046 - .008 * (k - 1)) * P['limb']; r1 = (.044 if k == 0 else .022) * P['limb']
+            r0 = (.064 if k == 0 else .05 - .006 * (k - 1)) * P['limb']; r1 = (.05 if k == 0 else .034) * P['limb']   # bone, but thick enough to hold against grass
             objs.append(segment('leg', J[k], J[k + 1], r0, r1, mats['stick'], 8))
-            if k: objs.append(ball('knee', J[k], .05 * P['limb'], mats['stick']))   # a knuckle, not a bead
-        heel = Vector(ft) + Vector((0, .06, .03)); toe = Vector(ft) + Vector((0, -.26, .0))   # a long bony foot, pointed, flat on the ground
-        objs.append(segment('foot', heel, toe, .045, .012, mats['stick'], 6))
+            if k: objs.append(ball('knee', J[k], .062 * P['limb'], mats['stick']))   # a knob of a knee
+        heel = Vector(ft) + Vector((0, .06, .035)); toe = Vector(ft) + Vector((0, -.24, .015))   # a flat bony foot
+        objs.append(segment('foot', heel, toe, .055, .03, mats['stick'], 6))
         sh, el, wr = P['arm' + side]; sh, el, wr = T @ Vector(sh), Vector(el), Vector(wr)
         if P['sleeves']:   # the sleeve runs all the way down; only the hand shows
             cuff = wr - (wr - el).normalized() * .08
