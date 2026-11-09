@@ -910,6 +910,133 @@ def turnip(stage):
     return outline(cv.image())
 
 
+# ================================================================ v8 (strict round 4: turnips, pumpkin_0, pumpkin_3, corn_0 hold;
+# corn reads as a bamboo pole, the pumpkin leaf as an umbrella, the young fruit as a mottled lump)
+KERN = [HEX(c) for c in ('#6e4612', '#b0801a', '#d4a028', '#eabe40', '#f4d670')]   # a step toward old gold (judge: cream read as dried)
+
+
+def lobed_fruit(cv, cx, cy, rx, ry, ramp, seams_deg=(-60, -24, 14, 52), highlight=True, rim=None):
+    """lobes as flat tones (three per lobe), seams as continuous grooves curving with the form, the base closed (no notch
+    below it), one highlight mass; rim: a darker edge on the left where it meets a leaf"""
+    top = len(ramp) - 1; seams = [math.sin(math.radians(a)) for a in seams_deg]
+    for y in range(int(cy - ry) - 1, int(cy + ry) + 1):
+        v = (y - cy) / ry
+        if abs(v) > 1: continue
+        hw = rx * math.sqrt(max(0, 1 - v * v)); bend = min(1, math.sqrt(max(0, (v + 1) / 1.5)))
+        xs = [cx - hw] + [cx + sd * hw * bend for sd in seams] + [cx + hw]
+        for x in range(int(round(cx - hw)), int(round(cx + hw)) + 1):
+            for i in range(len(xs) - 1):
+                if xs[i] - .5 <= x <= xs[i + 1] + .5: a0, a1 = xs[i], xs[i + 1]; break
+            q = (x - a0) / max(1, a1 - a0)
+            if v < -.86 + .2 * abs(q - .5) and (q < .14 or q > .86): continue       # scallops at the top joins only (the base stays closed)
+            u = (x - cx) / max(1, hw); l = -u * .5 - v * .7
+            k = 3 + (l > -.15) + (l > .4)                                          # three flat tones across the whole
+            if min(abs(x - s) for s in xs[1:-1]) < .6 and abs(v) < .9: k -= 1      # every seam one continuous groove
+            if rim == 'left' and x <= round(cx - hw) + 1: k -= 1                    # a darker edge against the leaf
+            cv.put(x, y, ramp[max(0, min(top - 1, k))])
+    if highlight:
+        hx, hy = int(cx - rx * .48), int(cy - ry * .42)
+        for (dx, dy) in ((0, 0), (1, 0), (0, 1), (1, 1), (0, 2)): cv.put(hx + dx, hy + dy, ramp[top])
+
+
+def leaf34(cv, ox, oy, w, h, flip=False, back=False):
+    """a big pumpkin leaf in 3/4 view (judge: "face-on on a straight stalk reads as an umbrella"): wider than tall,
+    tilted back, five lobes on its far edge, a pale vein star, its near rim curled over in a darker band"""
+    R = LEAF; d = 1 if back else 0; top = len(R) - 1
+    cv.begin(); px = set()
+    for y in range(-h, 1):
+        for x in range(-w, w + 1):
+            u, v = x / w, y / h
+            th = math.atan2(-v, u)                                          # 0..pi across the far edge
+            edge = .6 + .4 * abs(math.cos(2.5 * th)) ** .7                  # deep lobes on the far edge, pointed tips
+            if u * u + (v * .95) ** 2 > edge * edge or v > 0: continue
+            px.add((x, y))
+    for (x, y) in px:
+        X = -x if flip else x
+        near = y > -2                                                        # the near rim, curled over: darker
+        k = (top - 4) if near else (top - 1 if (X + y * 1.5) < 0 else top - 2)
+        cv.put(ox + X, oy + y, R[max(1, k - d)])
+    for a in (-1.15, -.55, 0, .55, 1.15):                                   # the vein star, from the stalk to each lobe tip
+        th = math.pi / 2 - a; L = .6 + .4 * abs(math.cos(2.5 * th)) ** .7
+        for i in range(2, int(w * L * .95)):
+            x = round(math.cos(th) * i); y = round(-math.sin(th) * i * h / w * .95)
+            if (x, y) in px and y < -2: cv.put(ox + (-x if flip else x), oy + y, R[top - d])
+    cv.end(R[2])
+
+
+def pumpkin(stage):
+    cv = Canvas(32, 64); B = 58; cx = 16
+    contact(cv, cx, B, 4 + 2 * stage)
+    if stage == 0:
+        for k in range(4): cv.put(cx, B - 1 - k, GOURD[5] if k < 3 else GOURD[4])
+        seed_leaf(cv, cx - 1, B - 5, -.82, 6.2, 2.6, LEAF); seed_leaf(cv, cx + 1, B - 3, .9, 4.8, 2.2, LEAF)
+        return outline(cv.image())
+    vine = [(cx - 14, B - 2), (cx - 10, B - 3), (cx - 6, B - 1), (cx - 1, B - 2), (cx + 4, B - 3), (cx + 9, B - 1), (cx + 14, B - 2)]
+    for (x0, y0), (x1, y1) in zip(vine, vine[1:]):                            # a curving vine, lit only along its upper curves
+        n = int(abs(x1 - x0)) + 1
+        for i in range(n + 1):
+            t = i / n; x = round(x0 + (x1 - x0) * t); y = round(y0 + (y1 - y0) * t + math.sin(t * math.pi) * -.6)
+            cv.put(x, y, LEAF[4] if y1 < y0 else LEAF[3])
+    if stage == 1:   # broad leaves in 3/4 view on short curved stalks, a tendril, the flower
+        leaf34(cv, cx - 6, B - 5, 9, 9, back=True)
+        leaf34(cv, cx + 6, B - 3, 7, 7, flip=True)
+        for (dx, dy) in ((11, -2), (12, -3), (13, -4), (12, -5), (11, -5), (11, -4)): cv.put(cx + dx, B + dy, LEAF[4])
+        fx, fy = cx - 12, B - 4
+        for (dx, dy, k) in ((-2, -2, 3), (-1, -2, 2), (1, -2, 2), (2, -2, 3), (-1, -1, 2), (0, -1, 3), (1, -1, 2), (-1, 0, 1), (0, 0, 2), (1, 0, 1), (0, 1, 1)):
+            cv.put(fx + dx, fy + dy, FLOWERY[k])
+    elif stage == 2:   # the young pumpkin: continuous rib grooves, flat tones, a darker edge where it meets the leaf
+        leaf34(cv, cx - 7, B - 3, 8, 8, back=True)
+        lobed_fruit(cv, cx + 3, B - 5, 7.6, 4.8, PGREEN, seams_deg=(-50, -12, 26, 58), rim='left')
+        for (dx, dy, c) in ((0, -10, 2), (1, -10, 1), (0, -11, 3), (1, -11, 2), (1, -12, 3)): cv.put(cx + 3 + dx, B + dy, KHAKI[c])
+    else:   # ripe (holds): continuous grooves, a closed base, a 3/4 leaf behind on the left
+        leaf34(cv, cx - 8, B - 4, 8, 8, back=True)
+        pcx, pcy, prx, pry = cx + 1, B - 9, 10.4, 8.6
+        lobed_fruit(cv, pcx, pcy, prx, pry, PUMP)
+        for (dx, dy) in ((-1, -8), (0, -8), (1, -8)): cv.put(pcx + dx, pcy + dy, PUMP[2])
+        for (dx, dy) in ((-1, -9), (0, -9), (-1, -10), (0, -10), (-1, -11), (0, -11), (0, -12), (1, -12)):
+            cv.put(pcx + dx, pcy + dy, STEMB[3] if dx < 0 else STEMB[1])
+    return outline(cv.image())
+
+
+def corn(stage):
+    """the stalk is no longer the brightest, longest shape (judge: "a bamboo pole"): it takes the leaves' shade tone with a
+    1 px lit left edge and shows only in short gaps between long arching leaves, with darker leaves behind"""
+    cv = Canvas(28, 62); B = 60; cx = 14
+    H = (19, 40, 50)[stage]
+    contact(cv, cx, B, 5)
+    sway = lambda t: round(math.sin(t * 2.2) * (1.0 if stage else 0))
+    W0 = 2 if stage == 0 else 3
+    spots = {0: ((.3, -1, 13, 1.3, 0), (.5, 1, 14, 1.0, 0), (.78, -1, 10, .7, 0)),
+             1: ((.08, -1, 15, 1.6, 1), (.16, 1, 18, 1.5, 0), (.26, -1, 17, 1.4, 0), (.36, 1, 15, 1.2, 1), (.48, -1, 18, 1.5, 0), (.6, 1, 15, 1.2, 0), (.7, -1, 13, 1.0, 1), (.82, 1, 11, .8, 0), (.92, -1, 8, .5, 0)),
+             2: ((.08, 1, 15, 1.6, 1), (.18, -1, 18, 1.5, 0), (.28, 1, 16, 1.4, 1), (.4, -1, 17, 1.4, 0), (.52, 1, 15, 1.2, 1), (.62, -1, 16, 1.3, 0), (.74, 1, 12, 1.0, 0), (.86, -1, 9, .6, 0))}[stage]
+    def leaves(behind):
+        for (t, side, L, dr, bh) in spots:
+            if bool(bh) != behind: continue
+            y = B - 2 - t * H; xo = sway(t)
+            leaf(cv, cx + xo + side, y, side * (.55 - t * .2), L, 2.5, side * .35, LEAF[:-2] if behind else LEAF, blade=True, droop=side * dr)   # rising, then drooping past the tip
+    leaves(True)
+    for y in range(B - 1, B - H, -1):
+        t = (B - y) / H; w = (W0 if t < .5 else max(1, W0 - 1)) if stage else (2 if t < .7 else 1); xo = sway(t)
+        for dx in range(-(w // 2), w - w // 2):
+            cv.put(cx + xo + dx, y, LEAF[5] if dx == -(w // 2) else LEAF[3])     # the leaves' shade tone, a 1 px lit left edge
+    leaves(False)
+    if stage == 2:
+        corn_ear(cv, cx + sway(.55) + 2, B - 2 - .55 * H, 1, 12, 5, .5)
+        corn_ear(cv, cx + sway(.4) - 2, B - 2 - .4 * H, -1, 9, 4, -.55)
+        jx, jy = cx + sway(.3) + 2, B - 2 - .3 * H                              # the dead leaf, on the right now, clear of the ears
+        for k in range(13):
+            x = jx + (k * .45 if k < 5 else 2.2 + (k - 5) * .15); y = jy + k * .9
+            cv.put(x, y, DRYL[4] if k < 8 else DRYL[3]); cv.put(x + 1, y, DRYL[3])
+    top = B - H; tx = cx + sway(1)
+    if stage == 1:
+        for (dx, dy) in ((0, 0), (0, -1), (0, -2), (0, -3), (-1, -2), (-2, -3), (1, -1), (2, -2)): cv.put(tx + dx, top + dy, TASSEL[2] if dy < -1 else TASSEL[1])
+    elif stage == 2:
+        for (dx, dy, k) in ((0, 0, 1), (0, -1, 2), (0, -2, 2), (0, -3, 3), (0, -4, 3), (0, -5, 3), (1, -3, 2), (2, -3, 2), (3, -2, 3), (4, -1, 2),
+                            (1, -5, 3), (2, -5, 3), (3, -4, 2), (-1, -3, 2), (-2, -2, 2), (-1, -5, 3)):
+            cv.put(tx + dx, top + dy, TASSEL[k])
+    return outline(cv.image())
+
+
 def specks(im):
     """lint: isolated single pixels whose colour differs from all four neighbours by a lot (reads as speckle)"""
     p = im.load(); W, H = im.size; out = []
