@@ -61,7 +61,7 @@ function toolOverlay(g,nm,dir,f,ox,oy,layer,o){const m=SPR[nm];const T=m&&m.tool
   /* owner, Nov 10: facing down and up the can pointed sideways. Facing down it turns so the spout points toward the square in
      front of him (to the left of the can at his right hip) and tips down onto it, like facing left; facing up it is held at
      his shoulder with the spout up and away over it */
-  if(kind==='can'){const mir=dir==='W'||dir==='S';const tilt=dir==='W'?-(180-ang):dir==='S'?-ang:dir==='N'?-(65-ang*.4):ang;   // the sheet stores the west angle mirrored (180-a)
+  if(kind==='can'){const mir=dir==='W'||dir==='S';const tilt=dir==='W'?-(180-ang):dir==='S'?-(28+ang*.85):dir==='N'?-(65-ang*.4):ang;   /* facing down the spout always aims toward the square in front (judge r5: at rest it was still side-on) */   // the sheet stores the west angle mirrored (180-a)
     const st=toolStamp('can',toolGrade('can'),tilt-90,1,mir);g.drawImage(st.cv,gx-st.R,gy-st.R);
     // the spout's tip, turned with the can
     const CA=TOOL_ART.can,sx0=(mir?-1:1)*(CA.tip[0]-CA.px),sy0=CA.tip[1]-CA.py,r=tilt*Math.PI/180;return [gx+sx0*Math.cos(r)-sy0*Math.sin(r),gy+sx0*Math.sin(r)+sy0*Math.cos(r)];}
