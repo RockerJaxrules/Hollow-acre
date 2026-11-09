@@ -296,11 +296,11 @@ def pose(t, clip, side_view=False):
         k = [0.0, .7, 1.0, .45][int(round(t * 4)) % 4]; back = [1, 0, 0, 0][int(round(t * 4)) % 4]
         _stand_legs(P, front=-.45 * k, back=.35 * k)
         for side in ('L', 'R'):
-            x = -1 if side == 'L' else 1; reach = k * (1.0 if side == 'L' else .85)
+            x = -1 if side == 'L' else 1; reach = k * (1.0 if side == 'L' else .85) * (.86 if side_view else 1.0)
             el = (x * (.66 + .1 * reach), -.25 - .7 * reach + .25 * back, 2.48 + .55 * reach + .2 * back)
             wr = (x * (.62 + .18 * reach), -.04 - 1.7 * reach + .4 * back, 1.54 + .9 * reach + .55 * back)   # forward and a little up: at the player, not out to the sides
             P['arm' + side] = [SH(x * .16), el, wr]
-        P.update(pitch=34 * k - 8 * back, head_pitch=-18 * k, mouth=.6 * k, shift=.45 * k, head_tilt=-6 * k, spread=1 + .9 * k, claw=1 + .45 * k)
+        P.update(pitch=(26 if side_view else 34) * k - 8 * back, head_pitch=-18 * k, mouth=.6 * k, shift=(.6 if side_view else .45) * k, head_tilt=-6 * k, spread=1 + .9 * k, claw=1 + .45 * k)   # side-on: back far enough that the reach stays in the frame
     elif clip == 'hurt':   # it recoils from the light: arms over its face, leaning away, shaking
         tr = math.sin(t * 2 * math.pi * 2) * .05
         for side, dy in (('L', .05), ('R', .3)):
