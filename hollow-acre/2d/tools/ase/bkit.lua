@@ -46,7 +46,7 @@ B.PAL = {
  {'gs1','#2a2b2e'},{'gs2','#404247'},{'gs3','#56595e'},{'gs4','#6f7277'},{'gs5','#8c8f92'},   -- judge r3: two steps darker and cooler (near-white read louder than the barn)
  {'gw1','#24211f'},{'gw2','#3c3732'},{'gw3','#57504a'},{'gw4','#756c62'},{'gw5','#958a7c'},
  {'dn1','#26232a'},{'dn2','#423d44'},{'dn3','#5f5a5e'},{'dn4','#807a7a'},{'dn5','#a19b96'},{'dn6','#bdb6ac'},{'dn7','#d2cbbd'},   -- judge (shack): dingy white, a step darker and greyer than kept paint
- {'eg1','#2e2420'},{'eg2','#4a3c32'},{'eg3','#6c5a4a'},{'eg4','#8c7860'},{'eg5','#a69276'},   -- judge (woodshed r3): dull tan end grain, not orange
+ {'eg1','#2e2420'},{'eg2','#5a4838'},{'eg3','#8a7458'},{'eg4','#b29c78'},{'eg5','#cbb892'},   -- judge (woodshed r3): dull tan end grain, not orange; (r4) paler, cream-tan, so the ends read as cut wood not discs
  {'k1','#22141e'},{'k2','#3a2228'},{'k3','#573430'},{'k4','#77493a'},{'k5','#9a6448'},{'k6','#b8835a'},
 }
 local function ramp(prefix, n) local r = {} for i = 1, n do r[i] = prefix .. i end return r end
@@ -241,6 +241,10 @@ function B.roofpx(c, mat, x, y, top, lit, seed)
     return band(c, Rr, (lit > .5 and .5 or .22) - (worn and .14 or 0), 2, 6)
   elseif mat == 'tin' then
     local bx = x % 7
+    local sk = B.EAVE and (x // 7 - B.EAVE.x0 // 7) or -1
+    if B.ROUGH == true and B.EAVE and (sk == 4 or sk == 22) then   -- derelict, as the barn beside it: two whole sheets rusted through (more read as stripes)
+      if bx == 0 then return px.i(c, 'lg5') end; if bx == 1 or bx == 6 then return px.i(c, 'lg2') end
+      return px.i(c, (H(y // 3, x // 7 + seed) > .5) and 'lg3' or 'lg4') end
     if bx == 0 then return px.i(c, lit > .5 and Rr[7] or Rr[4]) end
     if bx == 1 then return px.i(c, lit > .5 and Rr[5] or Rr[3]) end
     if bx == 6 then return px.i(c, Rr[2]) end
@@ -248,8 +252,11 @@ function B.roofpx(c, mat, x, y, top, lit, seed)
          streaks floating mid-slope read as blood), a few, clustered toward the two ends of the eave ]]
     local E = B.EAVE
     if E and (E.x1 - E.x0) > 110 and bx >= 2 and bx <= 3 then local col = x // 7; local w = E.x1 - E.x0; local fx = (x - E.x0) / math.max(1, w)
-      if (fx < .3 or fx > .7) and H(col, seed) > .55 then local len = 5 + math.floor(H(col, seed + 1) * 6); local up = E.y - y
-        if up >= 0 and up < len and not (up >= len - 2 and bx == 3) then return px.i(c, up >= len - 3 and 'mu4' or 'mu3') end end end
+      local rr = (B.ROUGH == true)
+      if (rr or fx < .3 or fx > .7) and H(col, seed) > (rr and .35 or .55) then local len = (rr and 8 or 5) + math.floor(H(col, seed + 1) * (rr and 12 or 6)); local up = E.y - y
+        if up >= 0 and up < len and not (up >= len - 2 and bx == 3) then
+          if rr then return px.i(c, up >= len * .6 and 'lg5' or 'lg4') end   -- derelict: brown rust, as on the barn (orange stalks read as candles)
+          return px.i(c, up >= len - 3 and 'mu4' or 'mu3') end end end
     return band(c, Rr, (lit > .5 and .58 or .26) - (y - top) / 600, 2, 7)
   else -- thatch
     local n = H(x // 2 + (y // 3) * 17, seed)
@@ -353,6 +360,12 @@ function B.sideroof(c, x0, x1, yW, depth, roofmat, seed, hip)
     if B.ROUGH == 'patched' then   -- mended: a block of new shingles, a step lighter, crisp edges
       for y = py0, py0 + 13 do for x = px0, px0 + 22 do if px.get(c, x, y) ~= 0 then local ry = (y - py0) % 6
         P(c, x, y, ry == 5 and Rr[3] or ((x - px0 + (y - py0) // 6 * 4) % 8 == 0 and Rr[4] or Rr[6])) end end end
+    elseif roofmat == 'tin' then   -- derelict tin: two sheets gone from the ridge down, the loft dark between the battens, the torn lower end lit
+      local sx0 = px0 - px0 % 7 + 2; local sx1 = sx0 + 13; local ybot = top + math.floor(depth * .5)   -- judge: a strip to the eave read as a ladder
+      for x = sx0, sx1 do local yend = ybot - ((x - sx0) % 5 == 2 and 2 or 0) - ((x > sx0 + 8) and 3 or 0)
+        for y = top, yend do P(c, x, y, ((y - top) % 9 == 4) and 'gw4' or (((y - top) % 9 == 5) and 'gw2' or ((y <= top + 1) and 'bt1' or 'bt2'))) end
+        P(c, x, yend + 1, Rr[7]) end   -- the lit edge of the sheet below, where it tore
+      B.TINGAP = {sx0, sx1}
     else   -- derelict: a hole where shingles have gone, the dark loft through it, two battens across, a lit torn edge
       for y = py0, py0 + 17 do for x = px0, px0 + 30 do local e = math.abs(x - px0 - 15) / 15 + math.abs(y - py0 - 8) / 9
         -- judge (shack r1): a maroon hole read as rot or a wound; the dark loft is plum-brown, the battens old grey wood, lit on top
@@ -437,7 +450,14 @@ function B.window(c, wx, wy, ww, wh, o)
     for y = hy, hy + hh do for x = hx, hx + hw do local e = (x - hx) / math.max(1, hw) + (y - hy) / math.max(1, hh)
       if e < .95 + (H(x, y + 3) - .5) * .35 then P(c, x, y, 'OUT') end end end
     P(c, hx + hw, hy, 'g5'); P(c, hx + hw - 1, hy + 1, 'g4'); P(c, hx, hy + hh, 'g5'); P(c, hx + 1, hy + hh - 1, 'g4'); P(c, hx + hw // 2 + 1, hy + hh // 2 + 1, 'g5') end
-  if o.boarded then for i, yy in ipairs({wy + 2, wy + wh - 7}) do
+  if o.boarded == 'full' then   -- judge (sweep): two boards read as shelves; boarded UP is the window covered, boards wider than the frame, dark gaps between
+    local bw = {'gs3', 'gs5', 'gs1'}; local k = 0
+    for yy = wy, wy + wh - 4, 6 do k = k + 1; local a = (k % 2 == 0) and 2 or 0; local b = (k == 3) and 3 or 0; local tilt = (k == 2)
+      for x = wx - 5 + a, wx + ww + 4 - b do local dy = tilt and math.floor((x - wx) / 9) or 0
+        P(c, x, yy + dy, bw[2]); P(c, x, yy + dy + 1, bw[1]); P(c, x, yy + dy + 2, bw[1]); P(c, x, yy + dy + 3, bw[1]); P(c, x, yy + dy + 4, bw[3]) end
+      if k == 3 then P(c, wx + ww + 4 - b, yy + 1, bw[3]); P(c, wx + ww + 4 - b, yy + 2, bw[3]) end   -- a split end
+      P(c, wx - 3 + a, yy + 2, 'm2'); P(c, wx + ww + 2 - b, yy + 2 + (tilt and math.floor((ww + 2) / 9) or 0), 'm2') end
+  elseif o.boarded then for i, yy in ipairs({wy + 2, wy + wh - 7}) do
     -- judge (derelict barn): new-lumber yellow boards read as fresh repairs; on a derelict building they are grey, old and split
     local bw = o.rough and {'gs3', 'gs5', 'gs1'} or {'w5', 'w7', 'w2'}
     R(c, wx - 5, yy + i, wx + ww + 4, yy + i + 3, bw[1]); px.hline(c, wx - 5, wx + ww + 4, yy + i, bw[2]); px.hline(c, wx - 5, wx + ww + 4, yy + i + 3, bw[3])
@@ -540,6 +560,9 @@ function B.deck(c, x0, x1, ytop, ybot)
     local col = (r == 0) and 'w7' or ((r == 1) and 'w6' or ((y == ybot) and 'w2' or 'w4'))
     if r >= 2 and (x - x0) % 9 == 0 then col = 'w2' end
     if r == 0 and (x - x0) % 9 == 0 then col = 'w5' end
+    if B.ROUGH == true then   -- judge (shack r2): fresh orange lumber was the most saturated thing on a house left to rot
+      col = (r == 0) and 'gs5' or ((r == 1) and 'gs4' or ((y == ybot) and 'gs1' or 'gs3')); if (x - x0) % 9 == 0 then col = (r == 0) and 'gs4' or 'gs1' end
+      if (x - x0) % 23 == 14 and r <= 2 then col = 'gs1' end end   -- a split tread
     P(c, x, y, col) end end
   for x = x0, x1 do if (x % 2 == 0) then P(c, x, ybot + 1, 'OUT2') end end
 end
@@ -650,7 +673,7 @@ function B.logpile(c, x0, x1, gy, h, seed)   --[[ judge (woodshed r2): a backed 
      biscuits. (r3): identical orange rounds with a dark cross read as gears. Logs lie with their ends to us: the bodies run
      back as bark cylinders (seen above each top end, so they show length), the ends are dull tan with a dark bark rim, the
      heart off centre, one darker crescent ring on the shade side, three sizes, no cross, lit top-left ]]
-  local logs = {}; local rows = {4, 3, 2}; local y = gy - 4
+  local logs = {}; local rows = {5, 4, 3}; local y = gy - 4   -- (r4) the pile covers about half the front
   for ri, n in ipairs(rows) do local rr = {}
     for k = 1, n do rr[k] = 2.5 + math.floor(H(k * 3 + ri, seed + 101) * 2.99) * .5 end   -- radius 2.5, 3 or 3.5 (6-8 px across)
     local span = 0; for k = 1, n do span = span + 2 * rr[k] end
@@ -679,7 +702,10 @@ function B.logpile(c, x0, x1, gy, h, seed)   --[[ judge (woodshed r2): a backed 
         if edge and d <= r - .8 then col = 'eg5'   -- the fresh split face, lit
         elseif d > r - .8 then col = (xx + yy < 0) and 'lg4' or 'lg2'   -- the bark rim, lit side a step lighter
         else local hx = L.split and 0 or L.hx; local dh = math.sqrt((xx - hx) ^ 2 + (yy - L.hy) ^ 2)
+          local cdir = math.floor(H(L.x, L.y + seed) * 3)   -- (r4) one radial check from the heart to the rim, three directions
+          local onck = (cdir == 0 and yy == L.hy and xx > hx) or (cdir == 1 and xx == hx and yy < L.hy) or (cdir == 2 and xx - hx == yy - L.hy and xx > hx)
           if dh < .5 then col = 'eg2'   -- the heart, a single dark pixel off centre
+          elseif onck and not L.split then col = 'eg3'
           elseif r >= 3 and not L.split and d > r - 1.8 and (xx + yy) >= 2 and (xx * L.hx < 0 or yy > 1) then col = 'eg3'   -- one short ring arc on the shade side only
           else col = (xx + yy <= -2) and (L.dark and 'eg4' or 'eg5') or (L.dark and 'eg3' or 'eg4') end end
         P(c, L.x + xx, L.y + yy, col) end end end end
@@ -689,6 +715,19 @@ end
 --[[ judge (shack r1): the outline was unbroken (perfect rectangle roof, level eaves), so the shack read as a tidy house.
      Neglect reads from the silhouette: the right end of the roof sags 3 px, shingles are missing from the ridge line and one
      is lifted past it, and rain has stained the wall down from each sill ]]
+-- a door boarded up: a diagonal brace under three planks nailed across, wider than the frame, old grey wood, a notice
+function B.boardup(c, dx0, dx1, dy0, yb)
+  local bw = {'gs3', 'gs5', 'gs1'}
+  for x = dx0 - 2, dx1 + 2 do local t = (x - dx0 + 2) / (dx1 - dx0 + 4); local y = math.floor(dy0 + 8 + t * (yb - dy0 - 20))
+    for k = 0, 5 do P(c, x, y + k, k == 0 and bw[2] or (k == 5 and bw[3] or bw[1])) end end
+  for i, yy in ipairs({dy0 + 4, dy0 + (yb - dy0) // 2 - 2, yb - 12}) do local a = (i == 2) and 3 or 0
+    for x = dx0 - 8 + a, dx1 + 8 - (i == 3 and 2 or 0) do P(c, x, yy, bw[2]); for k = 1, 3 do P(c, x, yy + k, bw[1]) end; P(c, x, yy + 4, bw[3]); P(c, x, yy + 5, 'OUT') end
+    P(c, dx0 - 6 + a, yy + 2, 'm2'); P(c, dx1 + 5, yy + 2, 'm2') end
+  local nx, ny = dx0 + 4, dy0 + 11   -- a notice nailed up, pale and curling
+  R(c, nx, ny, nx + 6, ny + 8, 'p1'); px.hline(c, nx, nx + 6, ny, 'p2'); px.vline(c, nx + 6, ny + 1, ny + 8, 't2')
+  for yy = ny + 2, ny + 6, 2 do px.hline(c, nx + 1, nx + 4, yy, 't1') end; P(c, nx + 3, ny + 1, 'm2')
+end
+
 function B.derelictfx(c, sp, x0, x1, yW, topY, wins, seed)
   local Rr = B.ROOFS[sp.roof or 'asphalt']
   for i, w in ipairs(wins or {}) do local ww, wh = w.w or 24, w.h or 26
@@ -696,10 +735,13 @@ function B.derelictfx(c, sp, x0, x1, yW, topY, wins, seed)
     for k, st in ipairs({{wx + 3, 11, 2}, {wx + ww - 6, 7, 1}}) do for dy = 0, st[2] do for dx = 0, st[3] - 1 do local y = wy + wh + 3 + dy
       if dy < st[2] - 1 or dx == 0 then px.shade(c, st[1] + dx, y, -1) end end end end end
   local hx = x0 + math.floor((x1 - x0) * .62)
+  if (sp.roof == 'tin') and B.TINGAP then for x = B.TINGAP[1], B.TINGAP[2] do for y = topY - 1, topY + 1 do px.p(c, x, y, 0) end end
+  else
   for _, n in ipairs({{hx + 3, {2, 3, 4, 4, 3, 2, 1}}, {hx + 20, {1, 3, 3, 2}}}) do for i, dep in ipairs(n[2]) do
     for y = topY - 1, topY - 2 + dep do px.p(c, n[1] + i - 1, y, 0) end end end   -- shingles gone from the ridge line
   local lx = hx + 11   -- one shingle lifted, standing proud of the outline
   px.hline(c, lx + 3, lx + 7, topY - 4, Rr[6]); px.hline(c, lx + 1, lx + 7, topY - 3, Rr[5]); px.hline(c, lx, lx + 6, topY - 2, Rr[3]); px.hline(c, lx, lx + 6, topY - 1, Rr[1])
+  end
   -- the sag: the right end of the roof (and its eave shadow) drops up to 3 px, so the eave and ridge bend
   local xs, xe = x1 - 40, x1 + 12
   for x = xs, xe do local t = (x - xs) / (xe - xs); local sft = math.floor(3.4 * t ^ 1.2)
@@ -708,7 +750,7 @@ function B.derelictfx(c, sp, x0, x1, yW, topY, wins, seed)
 end
 
 function B.build(sp, night)
-  DOORMETA = nil; B.ROUGH = (sp.kind == 'side') and sp.rough or nil
+  DOORMETA = nil; B.TINGAP = nil; B.ROUGH = (sp.kind == 'side') and sp.rough or nil
   local wt = sp.w; local W = math.floor(wt * 32); local m = 22
   local wallH = sp.wallh or 70
   local kind = sp.kind or 'gable'
@@ -813,6 +855,7 @@ function B.build(sp, night)
     if pr then B.deck(c, px0 - 2, px1 + 2, gy - 10, gy - 6)
       for _, postx in ipairs({px0, px1 - 2}) do R(c, postx, gy - 6, postx + 2, gy - 1, trim[3]); px.vline(c, postx + 2, gy - 6, gy - 1, trim[2]) end end   -- the posts carry on down to the ground
     DOORMETA = {w = dw, dx = dcx - (W + 2 * m) / 2, steps = wide and 'ramp' or ((stoneSteps and not pr) and 'stone' or 'wood')}
+    if d.boarded then B.boardup(c, dx0, dx1, gy - 10 - dh, gy - 10) end
     if sp.lantern ~= false then B.lantern(c, dx1 + 12, gy - 10 - dh + 6, night) end
   end
   if sp.sign then B.sign(c, (x0 + x1) // 2, yW + (sp.awning and -2 or 6) + (sp.signy or 0), sp.sign) end
@@ -902,7 +945,7 @@ function B.build(sp, night)
   -- chim: where smoke leaves the first chimney, relative to the sprite's anchor (the game's puff offset)
   if sp.coop then B.coopfx(c, sp, x0, x1, gy, seed) end
   if sp.tools then B.leantools(c, x1 + 3, gy) end
-  if sp.logs then B.logpile(c, x0 + 1, x0 + 27, gy - 1, 22, seed) end   -- stacked against the wall, left of the door
+  if sp.logs then B.logpile(c, x0 + 1, x0 + 34, gy - 1, 22, seed) end   -- stacked against the wall, left of the door
   return c, {w = Wd, h = Hh, ax = Wd / 2, ay = gy - 3, chim = chim and {chim[1] - Wd / 2, chim[2] - (gy - 3) - 2} or nil, door = DOORMETA}
 end
 

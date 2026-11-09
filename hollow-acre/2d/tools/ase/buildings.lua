@@ -89,7 +89,7 @@ local S = {
              windows = {{x = 0.8, w = 18, curtain = false}, {x = 6.0, w = 18, curtain = false, broken = true}}, lantern = false, seed = 151, handprint = .9},
  coop     = {w = 3, kind = 'gable', wall = 'honey', roof = 'brown', trim = 'cream', door = {col = 'oak', w = 18, h = 34, dx = .45}, wallh = 48, windows = {}, lantern = false, gablewin = 'mesh', coop = true, seed = 152},
  shed     = {w = 2.1, kind = 'gable', wall = 'white', roof = 'brown', trim = 'cream', door = {col = 'oak', w = 18, h = 34}, wallh = 44, windows = {}, lantern = false, gablewin = 'vent', tools = true, seed = 153},
- shed_b   = {w = 2.1, kind = 'side', wall = 'dingy', roof = 'tin', trim = 'cream', door = {col = 'oak', w = 18, h = 34, dx = .42}, wallh = 44, roofd = 26, windows = {}, lantern = false, logs = true, seed = 154},
+ shed_b   = {w = 2.1, kind = 'side', wall = 'dingy', roof = 'tin', trim = 'weathered', door = {col = 'oak', w = 18, h = 34, dx = .52}, wallh = 44, roofd = 26, windows = {}, lantern = false, logs = true, seed = 154},
  -- ---- out on the roads
  rg_logcabin = {w = 5, kind = 'side', wall = 'log', roof = 'brown', trim = 'cream', door = {col = 'oak', w = 22}, windows = {{x = 1.0, w = 20}, {x = 4.0, w = 20, boarded = true, curtain = false}},
                 chimneys = {{x = .8}}, moss = 1.4, seed = 161},
@@ -127,8 +127,10 @@ local V = {
  h_thorne    = {base = 'house_d', kind = 'side', wall = 'oxblood', roof = 'slate', trim = 'black', door = {col = 'red'}, porch = {rail = true}, dormers = {},
                 windows = {{x = 1.4, y = 64}, {x = 5.6, y = 64, box = 'dead'}, {x = 1.4, y = 14, boarded = true, curtain = false}, {x = 3.5, y = 14, watcher = true}, {x = 5.6, y = 14, boarded = true, curtain = false}},
                 chimneys = {{x = .8}}, moss = 1.2, scratches = true, seed = 179},
- h_harlan    = {base = 'house_c', wall = 'white', roof = 'tin', trim = 'cream', door = {col = 'red', w = 22}, lantern = false, dormers = {},
-                windows = {{x = 1.0, w = 22, boarded = true, curtain = false}, {x = 4.0, w = 22, broken = true, curtain = false}}, moss = 1.6, seed = 180},
+ -- judge (sweep, BLOCKING): Harlan's empty farmhouse must read as boarded up. Derelict like his barn beside it: windows and
+ -- door boarded over, the tin roof sagging with two sheets gone and rust at the eave, dingy peeling siding
+ h_harlan    = {base = 'house_c', kind = 'side', wall = 'dingy', roof = 'tin', trim = 'weathered', door = {col = 'red', w = 22, boarded = true}, lantern = false, dormers = {},
+                windows = {{x = 1.0, w = 22, boarded = 'full', curtain = false}, {x = 4.0, w = 22, boarded = 'full', curtain = false}}, rough = true, moss = 1.6, seed = 180},
  wk_ward     = {base = 'house_a', wall = 'sage', roof = 'slate', trim = 'cream', shutters = false, door = {col = 'oak'},
                 windows = UP(), chimneys = {{x = .78}}, moss = .9, seed = 181},
  wk_pike     = {base = 'house_c', kind = 'side', wall = 'honey', roof = 'plum', trim = 'black', door = {col = 'green', w = 22},
