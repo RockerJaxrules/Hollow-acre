@@ -301,6 +301,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   a stone in the field.
 
 ## Player actions (Nov 10)
+- [owner, Nov 10, verbatim] "make the 3d animation models that the tool use for the animations match there item icons compare
+  the similarity between them with a judge ... than do the 6 score system". Every tool now passes a SIMILARITY check against
+  its toolbar icon (as the toolbar draws it, with the grade's recolouring) before the 6-score. "Don't forget to make multiple
+  with different colors for different resources when you upgrade": each grade recolours icon and hand from one ramp.
+- A 3D blockout of a small held object (a 20 px can) read as a gourd: too few pixels for its shading. At that size a
+  hand-drawn sprite in the icon's colours wins; use 3D for orientation reference, not the final pixels.
+- [owner, Nov 10] The scarecrow is the Hollow by day: render both from one model so they cannot drift apart.
 - [motion judges r2, Nov 10] Judged in motion, everything that passed on still frames dropped to 5: the owner was right.
   Read the motion picture before the frames. A swing seen edge-on (facing down or up) must stay edge-on through every frame.
 - The installed axe and pick swung out sideways to his left facing down/up and never touched the stump/rock (3 and 4 vs
