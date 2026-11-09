@@ -105,8 +105,8 @@ MATDEF = {'lamp_on': {'ramp': 'lamp', 'emit': 3}, 'lred': {'emit': 2}, 'lblue': 
 CARS = {
     'car_east':      dict(parts=lambda: sedan('red'), frames=[-f * .15 for f in range(7)], size=(180, 132), origin=(90, 96)),
     'car_beaten':    dict(parts=lambda: sedan('red', beaten=True), frames=[0.0], size=(180, 132), origin=(90, 96), sheet=7),
-    'car_wreck':     dict(parts=lambda: shift(sedan('red', crumple=1.6), -33 * S, 3) + debris(), rot=dict(yaw=-62, pitch=-40, roll=8, pivot=[0, 0, 0]), size=(190, 190), origin=(95, 140)),
-    'car_wreck_n':   dict(parts=lambda: shift(sedan('red', crumple=1.6, lights=True), -33 * S, 3) + debris(), rot=dict(yaw=-62, pitch=-40, roll=8, pivot=[0, 0, 0]), size=(190, 190), origin=(95, 140)),
+    'car_wreck':     dict(parts=lambda: shift(sedan('red', crumple=1.6), 0, -4) + debris(), rot=dict(yaw=-58, pitch=-14, roll=7, pivot=[0, 0, 0]), size=(220, 170), origin=(110, 120)),
+    'car_wreck_n':   dict(parts=lambda: shift(sedan('red', crumple=1.6, lights=True), 0, -4) + debris(), rot=dict(yaw=-58, pitch=-14, roll=7, pivot=[0, 0, 0]), size=(220, 170), origin=(110, 120)),
     'police':        dict(parts=lambda: sedan('black', police=True), rot=dict(yaw=-150), size=(170, 140), origin=(85, 100), scale=.8),
     'police_blocks': dict(parts=lambda: [dict(p, **({'min': [p['min'][0], p['min'][1] + 7 * S, p['min'][2]], 'max': [p['max'][0], p['max'][1] + 7 * S, p['max'][2]]} if 'min' in p else {'c': [p['c'][0], p['c'][1] + 7 * S, p['c'][2]]})) for p in sedan('black', police=True, wheels=False)]
                           + [box(x * S - 4, 0, z * S - 4, x * S + 4, 7 * S + 1, z * S + 4, 'block') for x in (-20, 20) for z in (-10, 10)],

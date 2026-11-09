@@ -922,10 +922,10 @@
 },
 "car_wreck": {
 "src": "spr/lpc/obj/car_wreck.png",
-"fw": 147,
-"fh": 175,
-"ax": 76.0,
-"ay": 141.0,
+"fw": 133,
+"fh": 112,
+"ax": 62.0,
+"ay": 71.0,
 "foot": [
 -1.86,
 -4.48,
@@ -948,10 +948,10 @@
 },
 "car_wreck_n": {
 "src": "spr/lpc/obj/car_wreck_n.png",
-"fw": 147,
-"fh": 175,
-"ax": 76.0,
-"ay": 141.0,
+"fw": 133,
+"fh": 112,
+"ax": 62.0,
+"ay": 71.0,
 "foot": [
 -1.86,
 -4.48,
@@ -14958,5 +14958,291 @@
 "ay": 32.0,
 "px": "ase",
 "chim": null
+},
+"stump_of_maple_orange": {
+"src": "spr/lpc/obj/stump_of_maple_orange.png",
+"foot": [
+-0.298125,
+-0.3,
+0.298125,
+0
+],
+"fw": 36,
+"fh": 28,
+"ax": 18.0,
+"ay": 18.0
+},
+"stump_of_maple_red": {
+"src": "spr/lpc/obj/stump_of_maple_red.png",
+"foot": [
+-0.298125,
+-0.3,
+0.298125,
+0
+],
+"fw": 36,
+"fh": 28,
+"ax": 18.0,
+"ay": 18.0
+},
+"stump_of_maple_gold": {
+"src": "spr/lpc/obj/stump_of_maple_gold.png",
+"foot": [
+-0.29375,
+-0.3,
+0.29375,
+0
+],
+"fw": 36,
+"fh": 27,
+"ax": 18.0,
+"ay": 17.0
+},
+"stump_of_maple_green": {
+"src": "spr/lpc/obj/stump_of_maple_green.png",
+"foot": [
+-0.29375,
+-0.3,
+0.29375,
+0
+],
+"fw": 36,
+"fh": 27,
+"ax": 18.0,
+"ay": 17.0
+},
+"stump_of_oak_green": {
+"src": "spr/lpc/obj/stump_of_oak_green.png",
+"foot": [
+-0.340625,
+-0.3,
+0.340625,
+0
+],
+"fw": 42,
+"fh": 30,
+"ax": 21.0,
+"ay": 19.0
+},
+"stump_of_oak_russet": {
+"src": "spr/lpc/obj/stump_of_oak_russet.png",
+"foot": [
+-0.340625,
+-0.3,
+0.340625,
+0
+],
+"fw": 42,
+"fh": 30,
+"ax": 21.0,
+"ay": 19.0
+},
+"stump_of_tree_green": {
+"src": "spr/lpc/obj/stump_of_tree_green.png",
+"foot": [
+-0.21062499999999998,
+-0.3,
+0.21062499999999998,
+0
+],
+"fw": 26,
+"fh": 22,
+"ax": 13.0,
+"ay": 15.0
+},
+"stump_of_tree_orange": {
+"src": "spr/lpc/obj/stump_of_tree_orange.png",
+"foot": [
+-0.215,
+-0.3,
+0.215,
+0
+],
+"fw": 26,
+"fh": 22,
+"ax": 13.0,
+"ay": 15.0
+},
+"stump_of_apple_tree": {
+"src": "spr/lpc/obj/stump_of_apple_tree.png",
+"foot": [
+-0.24687499999999998,
+-0.3,
+0.24687499999999998,
+0
+],
+"fw": 30,
+"fh": 24,
+"ax": 15.0,
+"ay": 16.0
+},
+"stump_of_apple_gold": {
+"src": "spr/lpc/obj/stump_of_apple_gold.png",
+"foot": [
+-0.24687499999999998,
+-0.3,
+0.24687499999999998,
+0
+],
+"fw": 30,
+"fh": 24,
+"ax": 15.0,
+"ay": 16.0
+},
+"stump_of_birch_green": {
+"src": "spr/lpc/obj/stump_of_birch_green.png",
+"foot": [
+-0.17890625000000002,
+-0.3,
+0.17890625000000002,
+0
+],
+"fw": 16,
+"fh": 19,
+"ax": 8.0,
+"ay": 14.0
+},
+"stump_of_birch_gold": {
+"src": "spr/lpc/obj/stump_of_birch_gold.png",
+"foot": [
+-0.17890625000000002,
+-0.3,
+0.17890625000000002,
+0
+],
+"fw": 16,
+"fh": 19,
+"ax": 8.0,
+"ay": 14.0
+},
+"stump_of_willow": {
+"src": "spr/lpc/obj/stump_of_willow.png",
+"foot": [
+-0.36874999999999997,
+-0.3,
+0.36874999999999997,
+0
+],
+"fw": 46,
+"fh": 31,
+"ax": 23.0,
+"ay": 19.0
+},
+"stump_of_deadoak": {
+"src": "spr/lpc/obj/stump_of_deadoak.png",
+"foot": [
+-0.32656250000000003,
+-0.3,
+0.32656250000000003,
+0
+],
+"fw": 38,
+"fh": 25,
+"ax": 19.0,
+"ay": 18.0
+},
+"stump_of_deadtree": {
+"src": "spr/lpc/obj/stump_of_deadtree.png",
+"foot": [
+-0.18875,
+-0.3,
+0.18875,
+0
+],
+"fw": 23,
+"fh": 20,
+"ax": 11.0,
+"ay": 15.0
+},
+"stump_of_snag": {
+"src": "spr/lpc/obj/stump_of_snag.png",
+"foot": [
+-0.25,
+-0.3,
+0.25,
+0
+],
+"fw": 30,
+"fh": 22,
+"ax": 15.0,
+"ay": 16.0
+},
+"stump_of_pine_0": {
+"src": "spr/lpc/obj/stump_of_pine_0.png",
+"foot": [
+-0.17890625000000002,
+-0.3,
+0.17890625000000002,
+0
+],
+"fw": 18,
+"fh": 19,
+"ax": 9.0,
+"ay": 14.0
+},
+"stump_of_pine_1": {
+"src": "spr/lpc/obj/stump_of_pine_1.png",
+"foot": [
+-0.17890625000000002,
+-0.3,
+0.17890625000000002,
+0
+],
+"fw": 18,
+"fh": 19,
+"ax": 9.0,
+"ay": 14.0
+},
+"stump_of_pine_o0": {
+"src": "spr/lpc/obj/stump_of_pine_o0.png",
+"foot": [
+-0.17890625000000002,
+-0.3,
+0.17890625000000002,
+0
+],
+"fw": 18,
+"fh": 19,
+"ax": 9.0,
+"ay": 14.0
+},
+"stump_of_pine_o1": {
+"src": "spr/lpc/obj/stump_of_pine_o1.png",
+"foot": [
+-0.17890625000000002,
+-0.3,
+0.17890625000000002,
+0
+],
+"fw": 18,
+"fh": 19,
+"ax": 9.0,
+"ay": 14.0
+},
+"stump_of_spruce_0": {
+"src": "spr/lpc/obj/stump_of_spruce_0.png",
+"foot": [
+-0.228125,
+-0.3,
+0.228125,
+0
+],
+"fw": 22,
+"fh": 22,
+"ax": 11.0,
+"ay": 16.0
+},
+"stump_of_spruce_1": {
+"src": "spr/lpc/obj/stump_of_spruce_1.png",
+"foot": [
+-0.19999999999999998,
+-0.3,
+0.19999999999999998,
+0
+],
+"fw": 20,
+"fh": 20,
+"ax": 10.0,
+"ay": 15.0
 }
 }

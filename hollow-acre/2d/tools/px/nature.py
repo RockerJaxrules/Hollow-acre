@@ -276,8 +276,36 @@ def install_to(GAME, name, p, ax, ay, size):
     M[name] = e; json.dump(M, open(mp, 'w'), indent=0)
 
 
+def stump_recipe(tree, rec):
+    """the stump a felled tree leaves: its own trunk (same radius, flare, bark and roots), sawn off low with rings on top"""
+    shapes, mats = rec['build']()
+    trunk = next((q for q in shapes if q['type'] == 'cylinder' and q['mat'] == 'bark'), None)
+    if trunk is None: return None
+    roots = [q for q in shapes if q['type'] == 'branch' and q['mat'] == 'bark' and q['b'][1] == 0]
+    st = dict(trunk, h=10 + trunk['r'] * .35, topmat='grain', top_at=.75)
+    out = dict(rec); out.pop('litter', None); out.pop('fruit', None); out['rings'] = True; out['_r'] = trunk['r']
+    out['build'] = lambda: ([st] + roots, {'bark': mats['bark'], 'grain': {'chars': 'PQRS', 'ambient': .35, 'shade': .3}})
+    return out
+
+
+def stump_install(name, p, ax, ay, size, r):
+    install(name, p, ax, ay, size)
+    for root in [GAME] + [q for q in os.environ.get('HA_BUILD', '').split(':') if q]:
+        mp = os.path.join(root, 'spr', 'lpc', 'objects.json'); M = json.load(open(mp))
+        M[name]['foot'] = [-(r + 1) / 32, -.3, (r + 1) / 32, 0]; json.dump(M, open(mp, 'w'), indent=0)
+
+
 if __name__ == '__main__':
     args = [a for a in sys.argv[1:] if not a.startswith('--')]
+    if '--stumps' in sys.argv:   # one stump per tree, cut from that tree's own trunk
+        for tree, rec in SPRITES.items():
+            if args and not any(a in tree for a in args): continue
+            if 'bark' not in rec or tree.startswith('stump'): continue
+            sr = stump_recipe(tree, rec)
+            if not sr: continue
+            name = 'stump_of_' + tree; p, ax, ay, size = make(name, sr); print(name, size, 'anchor', ax, ay, 'r', round(sr['_r'], 1))
+            if '--install' in sys.argv: stump_install(name, p, ax, ay, size, sr['_r'])
+        sys.exit(0)
     for name, rec in SPRITES.items():
         if args and not any(a in name for a in args): continue
         p, ax, ay, size = make(name, rec)

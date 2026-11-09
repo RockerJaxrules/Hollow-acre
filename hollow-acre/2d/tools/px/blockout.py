@@ -150,6 +150,10 @@ def render(scene):
                     row = math.floor(v / sp); seam = (v % sp) < 1 or ((u + (row % 2) * sp) % (2 * sp)) < 1
                 elif kind == 'bars':          # vertical bars sp apart (a cage)
                     seam = (u % sp) >= 1.2
+                elif kind == 'mosaic':        # stained glass: small leaded cells, each its own colour step
+                    cu, cv = math.floor(u / sp), math.floor(v / sp)
+                    if (u % sp) < .9 or (v % sp) < .9: b = 0
+                    else: b = 1 + (cu * 7 + cv * 13) % (nk - 1)
                 elif kind == 'glint':         # a diagonal glint across glass (lighter, not darker)
                     if ((u - v) % sp) < 2.2: b = min(nk - 1, b + 2)
                 if seam: b = max(0, b - pat[3] if len(pat) > 3 else b - 1)
