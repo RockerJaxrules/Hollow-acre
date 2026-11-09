@@ -168,10 +168,10 @@ function B.roofpx(c, mat, x, y, top, lit, seed)
   elseif mat == 'tin' and B.GABLE then
     local G = B.GABLE; local d = math.abs(x - G.ax); local v = y - G.k * d
     local sm0 = math.floor(v / 6); local right = x >= G.ax
-    --[[ judge r5: the derelict barn shows it on the roof too: one slipped sheet (its ribs 2 px out of line, a dark gap above) ]]
-    if G.rough and right and sm0 >= 7 and sm0 <= 9 and d >= 14 and d <= 30 then
-      if math.floor(v) % 18 == 0 and sm0 == 7 then return px.i(c, Rr[1]) end
-      v = v + 2 end
+    --[[ judge r7: the derelict barn's neglect belongs at the eaves (mid-slope blotches read as mould): one lifted sheet near
+         the left eave, a dark gap under a lit bent edge ]]
+    if G.rough and not right and sm0 == 8 and d >= G.half - 12 and d <= G.half - 7 then
+      return px.i(c, (math.floor(v) % 6 == 0) and Rr[7] or Rr[1]) end
     local bx = math.floor(v) % 6; local sm = math.floor(v / 6)
     -- judge r5: wear where the water runs off, the last 3-8 px of each rib before the eave a step darker, each rib its own length
     local run = 3 + math.floor(H(sm + (right and 50 or 0), seed + 7) * 6); local worn = d > G.half - run
@@ -179,6 +179,7 @@ function B.roofpx(c, mat, x, y, top, lit, seed)
     if bx == 1 then return px.i(c, lit > .5 and Rr[2] or Rr[1]) end   -- judge r4: the rib's shadow side, so each seam is a 2 px rib
     -- rust (judge r5): orange-brown, 2 px wide, starting at a rib end and running out to the eave, darkest where it starts
     local rs = H(sm + (right and 50 or 0), seed); local rl = 2 + math.floor(H(sm, seed + 3) * 6)   -- judge r6: 2-7 px, not a ladder of equal dashes
+    if G.rough then rs = (sm % 3 == 1 and H(sm, seed + 9) > .4) and 1 or 0; rl = 8 + math.floor(H(sm, seed + 4) * 7) end   -- derelict: longer runs on ribs that aren't neighbours
     if rs > .84 and (bx == 2 or bx == 3) and d > G.half - rl then return px.i(c, d < G.half - rl / 2 and 'mu3' or 'mu4') end
     return band(c, Rr, (lit > .5 and .5 or .22) - (worn and .14 or 0), 2, 6)
   elseif mat == 'tin' then
@@ -211,6 +212,15 @@ function B.frontgable(c, sp, x0, x1, yW, wallmat, roofmat, trim, seed)
   B.GABLE = {ax = ax, k = (yW + 4 - ay) / math.max(1, ax - (x0 - over)), half = ax - (x0 - over), rough = sp.rough}
   px.poly(c, roofpoly, function(x, y) return B.roofpx(c, roofmat, x, y, topA, x < ax and 1 or 0, seed) end)
   B.GABLE = nil
+  if sp.rough then   -- judge r7: three olive moss clumps along the outer 8 px of each plane, lit top-left
+    for side = 0, 1 do for k = 0, 2 do
+      local ex = side == 0 and (x0 - over + 2 + math.floor(H(k, seed + 31 + side) * 5)) or (x1 + over - 2 - math.floor(H(k, seed + 33 + side) * 5))
+      local ey = sideTop + 8 + math.floor((k + .3 + H(k, seed + 35 + side) * .5) / 3 * (yW + 4 - sideTop - 12))
+      local rw, rh = 3 + math.floor(H(k, seed + 37) * 2), 2 + math.floor(H(k, seed + 39) * 1.5)
+      for yy = -rh, rh do for xx = -rw, rw do if (xx * xx) / (rw * rw + .5) + (yy * yy) / (rh * rh + .5) <= 1 and px.get(c, ex + xx, ey + yy) ~= 0 then
+        P(c, ex + xx, ey + yy, (yy < 0 and xx <= 0) and 'v5' or ((yy > 0 or xx > rw - 1) and 'v3' or 'v4')) end end end
+    end end
+  end
   -- moss and the odd bird mess along the lower courses
   for i = 0, math.floor(W / 3) do local x = x0 - over + math.floor(H(i, seed) * (W + over * 2)); local y = yW - 22 + math.floor(H(i, seed + 5) * 24)
     if px.get(c, x, y) ~= 0 and math.abs(x - ax) > 6 and H(i, 9) < (sp.moss or .4) then P(c, x, y, ({'v3', 'v4', 'v5', 'v4'})[i % 4 + 1]); P(c, x + 1, y, 'v3') end end

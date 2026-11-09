@@ -151,7 +151,7 @@ for _, name in ipairs(names) do
     local sp = S[name]
     for _, night in ipairs({false, true}) do
       B.EAVE = nil
-      local c, meta = B.build(sp, night); local mr = {'sl', 'sh', 'th', 's', 'as', 'bn', 'tl'}; if sp.rough then mr[#mr + 1] = 'tn' end   -- the derelict barn's tin grows moss at the eaves (judge r6)
+      local c, meta = B.build(sp, night); local mr = {'sl', 'sh', 'th', 's', 'as', 'bn', 'tl'};    -- the derelict barn's eave moss is drawn as clumps in bkit (judge r7: the noise moss landed mid-slope)
       c.weather = {grime = .3, streak = true, round = .35, radius = 2, patch = .12, cell = 6, chips = .004, nochips = {tn = true}, moss = {ramps = mr, amt = .62, low = 8, base = {'s'}}}   -- no chip specks on tin (judge r4: grit)
       local fn = name .. (night and '_n' or '')
       px.save(c, app.fs.joinPath(out, fn .. '.png'))
