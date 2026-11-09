@@ -549,9 +549,7 @@ class Painter:
         bl = C.get('blush', .5) + {'happy': .35, 'love': .7, 'laugh': .45, 'cry': .3}.get(s.ex, 0) - (.4 if s.ex in ('scared', 'wrong') else 0)
         if bl > .2:
             for sg in (-1, 1):
-                lift = 2.0 if (s.ex == 'laugh' and not C.get('teeth_v1')) else 0   # laughing pushes the cheeks up (judge)
-                bm = ell(CX + sg * (14.5 - lift * .3), 67.5 - lift, 4.6 * min(1.3, bl + .4) * (1.08 if lift else 1), 2.4 * min(1.3, bl + .4) * (1.15 if lift else 1)) & fm
-                if lift: cv.add(ell(CX + sg * 13.5, 63.8, 3.6, 1.4) & fm & ~bm, 'skin', .06)   # the apple of the cheek catches light above the blush
+                bm = ell(CX + sg * 14.5, 67.5, 4.6 * min(1.3, bl + .4), 2.4 * min(1.3, bl + .4)) & fm
                 cv.put(bm, 'blush', lit)
                 if s.ex == 'love':
                     for k in range(3):
@@ -687,13 +685,13 @@ class Painter:
         if ex in ('happy', 'scared', 'wrong', 'laugh', 'cry'):
             op = {'happy': 2.7, 'scared': 2.6, 'wrong': 4.2, 'laugh': 4.0 if C.get('teeth_v1') else 7.4, 'cry': 2.2}[ex]   # a laugh opens the jaw (judge: it read as the smile with the eyes shut)
             o_top = line - .2 * (1 - u * u)
-            o_bot = line + op * (1 - u * u) ** (.45 if (ex == 'laugh' and not C.get('teeth_v1')) else .8)   # a laugh is a D: a round full bottom, not a V
+            o_bot = line + op * (1 - u * u) ** .8
             if ex in ('scared', 'cry'): o_bot = line + op * (1 - u * u) ** .9 + .6 * np.sin(u * 7) * (1 - u * u)
             bot = o_bot + lh * .85 * (1 - u * u) ** .7
             up_lip = poly(list(zip(xs, top)) + list(zip(xs[::-1], o_top[::-1])))
             lo_lip = poly(list(zip(xs, o_bot)) + list(zip(xs[::-1], bot[::-1])))
             opening = poly(list(zip(xs, o_top)) + list(zip(xs[::-1], o_bot[::-1])))
-            cv.put(opening, 'mouth', (.4 + .3 * sstep(my + op * .6, my + op, Y)) if (C.get('teeth_v1') or ex != 'laugh') else (.42 - .3 * sstep(hw * .45, hw * .85, np.abs(X - mx)) + .2 * sstep(my + op * .55, my + op, Y)))   # a laugh: deep maroon inside, darkest only in the corners
+            cv.put(opening, 'mouth', (.4 + .3 * sstep(my + op * .6, my + op, Y)) if (C.get('teeth_v1') or ex != 'laugh') else (.12 + .3 * sstep(my + op * .55, my + op, Y)))   # a laugh: dark inside, so the open jaw reads at 1x
             if C.get('teeth_v1'):   # (kept as it was for a face the owner asked us not to change)
                 th = poly(list(zip(xs * 0 + xs, o_top)) + list(zip(xs[::-1], (o_top + 1.5 + (1.4 if ex == 'wrong' else 0) * (1 - u * u))[::-1])))
                 cv.put(th & opening & (np.abs(X - mx) < hw * .82), 'teeth', .75 - .3 * sstep(hw * .4, hw * .8, np.abs(X - mx)))
@@ -701,9 +699,7 @@ class Painter:
                 band = {'laugh': 2.4, 'wrong': 2.9}.get(ex, 2.0)
                 th = poly(list(zip(xs, o_top - .4)) + list(zip(xs[::-1], (o_top + band * (1 - .3 * u * u))[::-1])))
                 cv.put(th & opening & (np.abs(X - mx) < hw * .7), 'teeth', .78 - .14 * sstep(hw * .3, hw * .7, np.abs(X - mx)))
-            if ex == 'laugh':
-                if C.get('teeth_v1'): cv.put(ell(mx, my + op - .4, hw * .42, 1.5) & opening, 'tongue', .6)
-                else: cv.put(ell(mx, my + op + .6, hw * .62, 2.6) & opening & (Y > my + op - 2.2), 'tongue', .6)   # a low mound resting on the floor of the mouth, inside the lip
+            if ex == 'laugh': cv.put(ell(mx, my + op - (.4 if C.get('teeth_v1') else .9), hw * (.42 if C.get('teeth_v1') else .52), 1.5 if C.get('teeth_v1') else 2.4) & opening, 'tongue', .6)
             if ex == 'wrong':
                 lo_t = poly(list(zip(xs, o_bot - 1.4 * (1 - u * u))) + list(zip(xs[::-1], o_bot[::-1])))
                 cv.put(lo_t & opening & (np.abs(X - mx) < hw * .75), 'teeth', .6)
