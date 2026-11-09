@@ -31,7 +31,7 @@ PAL = {
     'void':    ['#0e0810', '#140a16', '#1a0c1c', '#200e22', '#261028'],   # dark violet-plum, not black
     'button':  ['#2a0608', '#4e0c10', '#7a161a', '#a02424', '#c43a32'],
     'belt':    ['#0e0a08', '#1e1610', '#30241a', '#463424', '#5e4632'],
-    'stick':   ['#120c0e', '#221a1e', '#342a2e', '#4c3e42', '#66585a'],   # a lit edge so the legs part from the grass
+    'stick':   ['#140e0a', '#261a12', '#3c2a1c', '#56402a', '#72583a'],   # dry wood: the sticks part from the plum coat (judge r14)
     'bone':    ['#2e2c2e', '#4c4a4e', '#6e6c70', '#8e8c8c', '#b0aca4'],
     'flesh':   ['#8a3a10', '#c8661c', '#e8923a', '#f6bc62', '#fde09a'],
     'glow':    ['#8a3410', '#d06a1c', '#f0a040', '#f8d27a', '#fcecb0'],
@@ -190,10 +190,10 @@ def coat(top, bot, r_top, r_bot, mats, sway=0.0, seed=1):
         a0 = math.atan2(v.co.y, v.co.x) + step / 2; rr = math.hypot(v.co.x, v.co.y); v.co.x, v.co.y = rr * math.cos(a0), rr * math.sin(a0)
     for v in bm.verts:
         ang = math.atan2(v.co.y, v.co.x); down = .5 - v.co.z / H      # 0 at the collar, 1 at the hem
-        fold = 1 + (.12 * math.sin(ang * 3 + 1.3) + .05 * math.sin(ang * 5 + .4)) * down
+        fold = 1 + (.17 * math.sin(ang * 4 + 1.3) + .06 * math.sin(ang * 7 + .4)) * max(0.0, down) ** .8   # long folds hanging from the shoulders
         v.co.x *= fold; v.co.y *= fold * .74
         if v.co.z < 0:   # the hem: torn into points, swinging with the stride
-            v.co.z += R.uniform(-.14, .06) - (.32 * R.random() if R.random() < .3 else 0); v.co.x += sway * .9 * down; v.co.y += abs(sway) * .4 * down
+            v.co.z += R.uniform(-.12, .06) - (R.uniform(.2, .5) if R.random() < .35 else 0); v.co.x += sway * .9 * down; v.co.y += abs(sway) * .4 * down   # torn strips of uneven length
     for f in bm.faces:
         c = f.calc_center_median()
         if abs(math.atan2(c.y, c.x) + math.pi / 2) < step * .6 and abs(c.x) < .2: f.material_index = 1
