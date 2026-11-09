@@ -54,6 +54,10 @@ BUILDS = {'hale': 'stoop', 'agnes': 'stoop short', 'ezra': 'stoop', 'otto': 'sto
           'ada': 'tall stoop', 'orla': 'stoop', 'corwin': 'stoop', 'hollis': 'broad', 'dunn': 'stout', 'gideon': 'broad tall',
           'silas': 'tall', 'hob': 'broad stout', 'quinn': 'tall', 'moss': 'broad', 'abel': 'stout', 'maud': 'tall', 'vera': 'short'}
 for _k, _b in BUILDS.items(): NPC[_k]['build'] = _b
+STANCES = {'hollis': 'hips', 'hob': 'hips', 'maud': 'hips', 'dunn': 'folded', 'gideon': 'folded', 'abel': 'folded', 'tess': 'folded',
+           'quinn': 'pockets', 'moss': 'pockets', 'silas': 'pockets', 'vera': 'pockets', 'wes': 'pockets', 'hale': 'behind', 'otto': 'behind',
+           'lyle': 'behind', 'ezra': 'behind', 'corwin': 'behind'}
+for _k, _s in STANCES.items(): NPC[_k]['stance'] = _s
 # Caitlyn runs the store now (id 'mae' so saves and scripts keep working): blonde with pink lengths, square black glasses, black tee, jeans, white sneakers
 NPC['mae'] = dict(skin='#f3d2b8', hair='#e2c27e', hairTip='#e58fb0', tipDy=7, hairStyle='long', outfit='tank', shirt='#1e1c22', pants='#7a96bc', shoes='#e8e4dc',
                   glasses='square', accessory='necklace', acc='#3a3238', eye='#6a8aa4', allure=1)

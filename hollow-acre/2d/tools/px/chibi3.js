@@ -404,17 +404,18 @@ function human(dir,pose){const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1,back=
   const H={cx:ux,hy,top0:top};let hairInfo=null;
   into('body',()=>{
     if(side){// far arm and leg first, then the body, then the near leg and arm
-      const L=pose.legs||[[-1,0],[1,0]];armTo(shL[0],shL[1],shL[0]+hands[0][0],shL[1]+hands[0][1],true,fl>0?1:-1);   // standing side-on: the far leg a pixel back, so two legs read, not one peg
+      const L=pose.legs||[[-1,0],[1,0]];const sideArm=(sh,hd,el,far,inn)=>{if(el){armTo(sh[0],sh[1],sh[0]+el[0]*fl,sh[1]+el[1],far,inn,true);armTo(sh[0]+el[0]*fl,sh[1]+el[1],sh[0]+hd[0]*(pose.elbows?fl:1),sh[1]+hd[1],far,inn,!!pose.noHands);}else armTo(sh[0],sh[1],sh[0]+hd[0]*(pose.noHands&&pose.hands?fl:1),sh[1]+hd[1],far,inn,!!pose.noHands);};sideArm(shL,hands[0],pose.elbows&&pose.elbows[0],true,fl>0?1:-1);   // standing side-on: the far leg a pixel back, so two legs read, not one peg
       legSide(cx+Math.round(lean/2),hip,L[0][0],L[0][1],fl,true,crouch);legSide(cx+Math.round(lean/2),hip,L[1][0],L[1][1],fl,false,crouch);
       skirtSide(ux,hip,fl);torsoSide(ux,top,hip,fl);headSide(ux+(STOOP?2*fl:0),hy,fl,pose);
-      armTo(shR[0],shR[1],shR[0]+hands[1][0],shR[1]+hands[1][1],false,fl>0?-1:1);}
+      sideArm(shR,hands[1],pose.elbows&&pose.elbows[1],false,fl>0?-1:1);}
     else{const L=pose.legs||[0,0];
       if(back&&pose.reach){armTo(shL[0],shL[1],shL[0]+hands[0][0],shL[1]+hands[0][1],false,1);armTo(shR[0],shR[1],shR[0]+hands[1][0],shR[1]+hands[1][1],false,-1);}
       legsFront(cx,hip,L[0],L[1],back,pose.squat||0);skirtFront(ux,hip,back);torsoFront(ux,top,hip,back);
       const up=hands[0][1]<-4||hands[1][1]<-4;
       const arms=()=>{for(const [i,sh] of [[0,shL],[1,shR]]){const h=[sh[0]+hands[i][0],sh[1]+hands[i][1]];
-          if(hands[i][1]<-4){const el=[sh[0]+(i?2:-2),sh[1]-5];armTo(sh[0],sh[1],el[0],el[1],false,i?-1:1,true);armTo(el[0],el[1],h[0],h[1],false,i?-1:1);}
-          else armTo(sh[0],sh[1],h[0],h[1],false,i?-1:1);}};
+          if(pose.elbows){const el=[sh[0]+pose.elbows[i][0],sh[1]+pose.elbows[i][1]];armTo(sh[0],sh[1],el[0],el[1],false,i?-1:1,true);armTo(el[0],el[1],h[0],h[1],false,i?-1:1,!!pose.noHands);}
+          else if(hands[i][1]<-4){const el=[sh[0]+(i?2:-2),sh[1]-5];armTo(sh[0],sh[1],el[0],el[1],false,i?-1:1,true);armTo(el[0],el[1],h[0],h[1],false,i?-1:1);}
+          else armTo(sh[0],sh[1],h[0],h[1],false,i?-1:1,!!pose.noHands);}};
       if(up&&!(back&&pose.reach))arms();
       headFront(ux,hy,back,pose);
       if(!up&&!(back&&pose.reach))arms();}});
@@ -463,7 +464,17 @@ ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
   const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1;let pose={};
   if(clip==='walk')pose=walkPose(f,dir,false);
   if(clip==='run')pose=walkPose(f===0?1:f,dir,true);
-  if(clip==='idle'){pose.bob=[0,1,1,0][f];pose.hairLag=[0,-1,0,1][f];pose.blink=f===3;}
+  if(clip==='idle'){pose.bob=[0,1,1,0][f];pose.hairLag=[0,-1,0,1][f];pose.blink=f===3;
+    // each person their own way of standing (judge, townsfolk: "everyone stands the same way"): elbow then hand, from the shoulder
+    const ST=C.stance;if(ST&&!KID&&dir!=='N'){
+      if(!side){if(ST==='hips'){pose.elbows=[[-3,5],[3,5]];pose.hands=[[2,9],[-1,9]];}
+        else if(ST==='folded'){pose.elbows=[[-1,7],[1,7]];pose.hands=[[8,5],[-7,5]];}
+        else if(ST==='pockets'){pose.hands=[[1,9],[0,9]];pose.noHands=true;}
+        else if(ST==='behind'){pose.hands=[[2,8],[-1,8]];pose.noHands=true;}}
+      else{if(ST==='hips'){pose.elbows=[[-2,5],[-2,5]];pose.hands=[[1,8],[1,8]];}
+        else if(ST==='folded'){pose.elbows=[[0,6],[0,6]];pose.hands=[[3,5],[3,5]];}
+        else if(ST==='pockets'){pose.hands=[[0,9],[0,9]];pose.noHands=true;}
+        else if(ST==='behind'){pose.hands=[[-2,8],[-2,8]];pose.noHands=true;}}}}
   if(clip==='thrust'&&TOOL){const kind=TOOL;const e=toolEntry(kind,dir,f);const T=toolHands(kind,dir,f);
     if(kind==='can'){pose.crouch=f>=3&&f<=6?1:0;pose.lean=f>=3&&f<=6?1:0;}else{pose.crouch=SW_CROUCH[f];pose.bob=SW_BOB[f];pose.lean=SW_LEAN[f];}
     if(side&&kind!=='can')pose.legs=[[-2,0],[3,0]];

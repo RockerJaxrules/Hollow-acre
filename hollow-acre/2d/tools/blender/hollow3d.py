@@ -84,7 +84,7 @@ def toon_material(name, ramp):
         nt.links.new(geo.outputs['Normal'], dot.inputs[0])
         ao = nt.nodes.new('ShaderNodeAmbientOcclusion'); ao.inputs['Distance'].default_value = .3; ao.samples = 8
         a = _math(nt, 'MULTIPLY_ADD', dot.outputs['Value'], .5, .5)
-        b = _math(nt, 'MULTIPLY_ADD', ao.outputs['AO'], .4, .6)
+        b = _math(nt, 'MULTIPLY_ADD', ao.outputs['AO'], .0 if name == 'coat' else .4, 1.0 if name == 'coat' else .6)   # no AO on the coat: 8-sample AO speckles it; the folds shade it
         v = _math(nt, 'MULTIPLY', a, b)
         if name in MOTTLE:
             tc = nt.nodes.new('ShaderNodeTexCoord'); nz = nt.nodes.new('ShaderNodeTexNoise')
@@ -214,16 +214,16 @@ def coat(top, bot, r_top, r_bot, mats, sway=0.0, seed=1):
     return parts
 
 
-def hand(wrist, direction, mats, spread=1.0):
+def hand(wrist, direction, mats, spread=1.0, size=1.0):
     """long bony fingers fanned from the wrist, bent at the knuckle"""
-    d = Vector(direction).normalized(); parts = [ball('palm', wrist + d * .06, .09, mats['bone'], (1, .75, 1.2))]
+    d = Vector(direction).normalized(); parts = [ball('palm', wrist + d * .06 * size, .09 * size, mats['bone'], (1, .75, 1.2))]
     side = d.cross(Vector((0, 1, 0))).normalized() if abs(d.y) < .9 else Vector((1, 0, 0))
     curl = Vector((0, -1, 0))
     for k in range(4):
-        off = (k - 1.5) * .05 * spread; base = Vector(wrist) + d * .1 + side * off
-        kn = base + d * .2 + side * off * 1.2; tip = kn + (d * .8 + curl * .35).normalized() * .2
-        parts += [segment('finger', base, kn, .03, .024, mats['bone'], 5), ball('knuckle', kn, .03, mats['bone']),
-                  segment('finger', kn, tip, .024, .012, mats['bone'], 5)]
+        off = (k - 1.5) * .05 * spread * size; base = Vector(wrist) + d * .1 * size + side * off
+        kn = base + d * .2 * size + side * off * 1.2; tip = kn + (d * .8 + curl * .35).normalized() * .2 * size
+        parts += [segment('finger', base, kn, .03 * size, .024 * size, mats['bone'], 5), ball('knuckle', kn, .03 * size, mats['bone']),
+                  segment('finger', kn, tip, .024 * size, .012 * size, mats['bone'], 5)]
     return parts
 
 
@@ -289,17 +289,18 @@ def pose(t, clip, side_view=False):
         _stand_legs(P)
         for side in ('L', 'R'):
             x = -1 if side == 'L' else 1
-            P['arm' + side] = [SH(x * .16), (x * (.56 + .24 * e) + tr, .0, 2.48 + 1.5 * e), (x * (.7 + .32 * e) - tr, -.04 + .04 * e, 1.54 + 3.0 * e + tr)]
-        P.update(pitch=-9 * e, head_pitch=-16 * e, mouth=e, head_tilt=tr * 60, jit=tr)
+            hi = 1.0 if side == 'L' else .72   # lopsided: one claw higher than the other, not a cheer
+            P['arm' + side] = [SH(x * .16, -.08 * e), (x * (.62 + .3 * e) + tr, -.1 * e, 2.48 + 1.15 * e * hi), (x * (.5 + .2 * e) - tr, -.3 * e, 1.54 + 2.7 * e * hi + tr)]   # elbows out, forearms hooked back in
+        P.update(pitch=-12 * e, head_pitch=-24 * e, mouth=e, head_tilt=tr * 60 + 9 * e, jit=tr)
     elif clip == 'lunge':   # it reaches for you
         k = [0.0, .7, 1.0, .45][int(round(t * 4)) % 4]; back = [1, 0, 0, 0][int(round(t * 4)) % 4]
         _stand_legs(P, front=-.45 * k, back=.35 * k)
         for side in ('L', 'R'):
             x = -1 if side == 'L' else 1; reach = k * (1.0 if side == 'L' else .85)
-            el = (x * (.66 + .12 * reach), -.25 - .4 * reach + .25 * back, 2.48 + 1.1 * reach + .2 * back)
-            wr = (x * (.68 + .5 * reach), -.04 - 1.1 * reach + .4 * back, 1.54 + 2.3 * reach + .55 * back)   # wide and up: reads from the front too
+            el = (x * (.66 + .1 * reach), -.25 - .7 * reach + .25 * back, 2.48 + .55 * reach + .2 * back)
+            wr = (x * (.62 + .18 * reach), -.04 - 1.7 * reach + .4 * back, 1.54 + .9 * reach + .55 * back)   # forward and a little up: at the player, not out to the sides
             P['arm' + side] = [SH(x * .16), el, wr]
-        P.update(pitch=32 * k - 8 * back, head_pitch=-18 * k, mouth=.6 * k, shift=.45 * k, head_tilt=-6 * k, spread=1 + .9 * k)
+        P.update(pitch=34 * k - 8 * back, head_pitch=-18 * k, mouth=.6 * k, shift=.45 * k, head_tilt=-6 * k, spread=1 + .9 * k, claw=1 + .45 * k)
     elif clip == 'hurt':   # it recoils from the light: arms over its face, leaning away, shaking
         tr = math.sin(t * 2 * math.pi * 2) * .05
         for side, dy in (('L', .05), ('R', .3)):
@@ -337,7 +338,7 @@ def build(clip, t, yaw):
         else:              # torn away: bare stick arms
             L_ = P['limb']; objs += [segment('upper', sh, el, .065 * L_, .042 * L_, mats['stick'], 8), ball('elbow', el, .048 * L_, mats['stick']), segment('fore', el, wr, .042 * L_, .022 * L_, mats['stick'], 8),
                      segment('rag', sh, sh + (el - sh) * .3, .12, .08, mats['coat'], 8)]
-        objs += hand(wr, wr - el, mats, P['spread'])
+        objs += hand(wr, wr - el, mats, P['spread'], P.get('claw', 1.0))
     top, bot, rt, rb = P['coat'] or (3.45, 1.35 + P.get('hem_bob', P['bob']), .2, .56)   # narrow top: sloping shoulders
     torso = coat(top, bot, rt, rb, mats, P['sway'])
     if P['hump']: torso.append(ball('hump', (0, .1, HIP + .35), .58, mats['coat'], (1.1, .9, 1.0)))
