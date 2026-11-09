@@ -196,7 +196,7 @@ function rgBuildAll(){const t0=performance.now();
   put('signpost',-190,192,.2,{label:'THE FEN'});
   // ================= THE DEEP CORN
   dcMaze();rgReserve(DCF.x0-1,DCF.z0-1,DCF.x1+1,DCF.z1+1);
-  for(let x=DCF.x0+.5;x<DCF.x1;x+=1.0)for(let z=DCF.z0+.5;z<DCF.z1;z+=.9){if(dcPath(x,z))continue;if(RR()<.06)continue;obj('corn_'+((RR()*3)|0),x+(RR()-.5)*.14,z,{kind:'corn'});}
+  for(let x=DCF.x0+.5;x<DCF.x1;x+=1.0)for(let z=DCF.z0+.5;z<DCF.z1;z+=.9){if(dcPath(x,z))continue;if(RR()<.06)continue;obj('corn_'+(1+((RR()*2)|0)),x+(RR()-.5)*.14,z,{kind:'corn'});}
   {const C=RGP.cornC;for(let i=0;i<12;i++){const a=i/12*6.283;const x=C.x+Math.cos(a)*5.6,z=C.z+Math.sin(a)*3.8;rgPut(['rg_scare_a','rg_scare_b','rg_scare_c'][i%3],x,z,{kind:'prop',flip:Math.cos(a)>0},.22);}
     rgPut('rg_scare_b',C.x,C.z-.4,{kind:'prop',scareYou:1},.22);}
   rgClear(RGP.harlan.x-8,RGP.harlan.z-14,RGP.harlan.x+18,RGP.harlan.z+3);rgReserve(RGP.harlan.x-8,RGP.harlan.z-12,RGP.harlan.x+18,RGP.harlan.z+2);

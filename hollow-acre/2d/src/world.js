@@ -230,7 +230,7 @@ function buildWorld(){
     for(let j=0;j<k;j++){const x=cx+(rand()-.5)*2.2,z=cz+(rand()-.5)*1.2;if(terr(x,z)!=='grass'||!clearSpot(x,z,-.6))continue;obj(gold?'tgold':'tgrass',x,z,{kind:'anim',grass:1,fps:1.4,ph:hash(x*9|0,z*9|0)*2});n++;}}}
   for(const t_ of OBJ.filter(o=>o.spr&&o.spr.startsWith('maple')&&o.spr!=='maple_green'))for(let k=0;k<5;k++){const a=rand()*6.28,r=.6+rand()*1.9;const x=t_.x+Math.cos(a)*r*1.3,z=t_.z+Math.sin(a)*r*.6+.3;if(terr(x,z)!=='grass')continue;obj('leaves',x,z,{kind:'deco',v:(rand()*4)|0});}
   // the cornfield in neat rows
-  for(let x=CORN.x0+.5;x<CORN.x1;x+=.9)for(let z=CORN.z0+.5;z<CORN.z1;z+=.8){if(Math.abs(x+.5)<1&&z<20)continue;if(Math.abs(z-19)<1.1&&x>-1.5)continue;if(rand()<.05)continue;obj('corn_'+((rand()*3)|0),x+(rand()-.5)*.12,z,{kind:'corn'});}
+  for(let x=CORN.x0+.5;x<CORN.x1;x+=.9)for(let z=CORN.z0+.5;z<CORN.z1;z+=.8){if(Math.abs(x+.5)<1&&z<20)continue;if(Math.abs(z-19)<1.1&&x>-1.5)continue;if(rand()<.05)continue;obj('corn_'+(1+((rand()*2)|0)),x+(rand()-.5)*.12,z,{kind:'corn'});}
   addSeg(pond.x-.95,pond.z-pond.r-.6,pond.x-.95,pond.z-pond.r+4.2,.1);addSeg(pond.x+.95,pond.z-pond.r-.6,pond.x+.95,pond.z-pond.r+4.2,.1);addSeg(pond.x-.95,pond.z-pond.r+4.2,pond.x+.95,pond.z-pond.r+4.2,.1);
   addRect(B.x0-12,B.z0-14,B.x1+12,B.z0-.5);addRect(B.x0-12,B.z1+.5,B.x1+12,B.z1+14);addRect(B.x1+2.5,B.z0-14,B.x1+14,B.z1+14);
   // Route 9 west of the valley: only ever seen from the car on the night you arrive
