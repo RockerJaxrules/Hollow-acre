@@ -290,8 +290,17 @@ function px.weather(c)
   local MZ
   if W.moss then local set = {}; for _, r in ipairs(W.moss.ramps or W.moss) do set[r] = true end; local amt = W.moss.amt or .3
     local thr = .5 + (1 - amt) * .25; local F = {}
+    --[[ low = n: moss only in the lowest n px of each surface (roof eaves), measured to the surface's lower edge; ramps
+         listed in base use the distance to the sprite's foot in that column instead (stone walls: the bottom courses) ]]
+    local low, base = W.moss.low, {}; for _, r in ipairs(W.moss.base or {}) do base[r] = true end
+    local DN, FOOT = {}, {}
+    if low then for x = 0, w - 1 do FOOT[x] = -1; for y = h - 1, 0, -1 do if V[y][x] ~= 0 then FOOT[x] = y; break end end end
+      for y = h - 1, 0, -1 do DN[y] = {}; for x = 0, w - 1 do local pre = Rz[y][x]
+        DN[y][x] = (pre and y < h - 1 and Rz[y + 1][x] == pre) and DN[y + 1][x] + 1 or 0 end end end
     for y = 0, h - 1 do F[y] = {}; for x = 0, w - 1 do F[y][x] = 0; local pre = Rz[y][x]
-      if pre and set[pre] then local n = vn(x * .55, y * .75, 6, 21) * .78 + vn(x * .9, y * .9, 3, 23) * .22; --[[ round clumps, not streaks along the courses (judge: moss in clumps, not speckle) ]] local rel = (Pz[y][x] - 2) / math.max(1, 2 * len[pre] - 2)
+      local near = true
+      if low and pre then if base[pre] then near = FOOT[x] - y < low + 2 else near = DN[y][x] < low end end
+      if pre and set[pre] and near then local n = vn(x * .55, y * .75, 6, 21) * .78 + vn(x * .9, y * .9, 3, 23) * .22; --[[ round clumps, not streaks along the courses (judge: moss in clumps, not speckle) ]] local rel = (Pz[y][x] - 2) / math.max(1, 2 * len[pre] - 2)
         if n > thr and (rel < .55 or n > thr + .08) then F[y][x] = 1 + math.min(3, math.floor(rel * 4)) end end end end
     MZ = clean(F)
     local MR = {}; for i, hx in ipairs(MOSS) do local r, g, b = hex(hx); if px.MOOD then r, g, b = px.grade(r, g, b) end; MR[i] = {r, g, b, 255} end
