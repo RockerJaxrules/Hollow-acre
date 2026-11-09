@@ -237,7 +237,7 @@ class Painter:
         P.define('tongue', [(170, 60, 72), (214, 96, 104)], prio=1.6, thr=[.5], outline=False)
         bd = C.get('beard_c') or H
         P.define('beard', ramp(bd, 6, dark=.34, light=1.35, shade_hue=.99, shade_amt=.3, lit_amt=.25, sat=1.2), thr=[.17, .31, .45, .62, .8])
-        P.define('stubble', [mix(c, mix(hexc(bd), (90, 100, 120), .4), .2 if i >= 3 else .26) for i, c in enumerate(s.SK)], prio=1.0, outline=False)
+        P.define('stubble', [mix(c, mix(hexc(bd), (90, 100, 120), .12), .26 if i >= 3 else .32) for i, c in enumerate(s.SK)], prio=1.0, outline=False)   # tinted toward his own hair: silver for white, copper for red
         P.define('wrinkle', [s.SK[1], s.SK[1], s.SK[2], s.SK[2], s.SK[2], s.SK[2]], prio=2.0, outline=False)
         if C.get('hatColor'): P.define('hatm', ramp(C['hatColor'], 6, dark=.36, light=1.26, shade_hue=.75, shade_amt=.2, lit_amt=.18, sat=1.1))
         P.define('collarw', ramp('#ecebe6', 6, dark=.55, light=1.08, shade_hue=.66, shade_amt=.2))
@@ -1049,10 +1049,15 @@ class Painter:
             reg = poly([(CX + w + .3, y) for w, y in zip(hw, ys)] + [(CX - w - .3, y) for w, y in zip(hw[::-1], ys[::-1])]) & (Y > 66 + 3 * np.abs(X - CX) / fw * 0)
             reg &= ~((np.abs(X - CX) < 11) & (Y < my - 2.2)) | ((np.abs(X - CX) < 7.5) & (Y > my - 4.2) & (Y < my - 1.6))
             reg &= ~mouth_hole & (Y > 64.5 + 2.5 * (1 - np.abs(X - CX) / fw))
-            cv.put(reg & fm, 'stubble', s.face_lit - .02)
-            # shapes, not speckle (owner: no grit): a darker band along the jaw and under the chin, a soft shadow over the lip
-            cv.put(reg & fm & ((np.abs(X - CX) > fw - 4.5) | (Y > chin - 5.5)), 'stubble', s.face_lit - .14)
-            cv.put(reg & fm & (np.abs(X - CX) < 7.5) & (Y > my - 4.2) & (Y < my - 1.6), 'stubble', s.face_lit - .1); return
+            # a beard line, not a straight band: high at the sideburn, slanting down the cheek to the mouth corners
+            dx = np.abs(X - CX)
+            y_top = 59.5 + (my - 3.2 - 59.5) * np.clip((fw - dx) / (fw - 9.0), 0, 1) + .7 * np.sin(X * 1.1 + 1.3)
+            lip = reg & (dx < 7.5) & (Y > my - 4.2) & (Y < my - 1.6)
+            area = ((reg & (Y > y_top)) | lip) & fm & ~mouth_hole
+            cv.put(area, 'stubble', s.face_lit - .02 + .05 * (X < CX))   # one step lighter on the lit side
+            # denser along the jaw and under the chin, and over the lip: shapes, not speckle (owner: no grit)
+            cv.put(area & ((dx > fw - 4.5) | (Y > chin - 5.5)), 'stubble', s.face_lit - .14)
+            cv.put(lip & fm, 'stubble', s.face_lit - .1); return
         mo = None
         if kind in ('moustache', 'goatee', 'full'):
             mo = np.zeros((NS, NS), bool)
