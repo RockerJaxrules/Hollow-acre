@@ -135,7 +135,7 @@ vendors.v_bait={name:'Bait & Tackle',sub:'“Fish don’t bite in October. They 
   {k:'bait',name:'Bait ×5',desc:`Worms in a tin. Fish bite three times as fast. You have ${inv('bait')}.`,price:12,can:true,buy(){addInv('bait',5);}},
   {k:'rod2',name:'Ash rod',desc:S.rod>=2?'You fish with it.':'Lands bigger fish: every catch is worth half again.',price:90,can:S.rod<2,buy(){S.rod=2;}},
   {k:'rod3',name:'Otto’s old greenheart rod',desc:S.rod>=3?'You fish with it.':'Every catch worth double. “It caught your grandfather’s hat.”',price:220,can:S.rod===2,buy(){S.rod=3;}},
-  ...(typeof LADDER_FULL!=='undefined'&&LADDER_FULL?[{k:'rod4',name:'Hollow-glass rod',desc:S.rod>=4?'You fish with it.':'A rod set with black glass. Every catch worth two and a half times, and the fish fight less. “Don’t ask me where the glass came from. Don’t ask it either.”',price:380,can:S.rod===3,need:{gem:2,iron:2},buy(){S.rod=4;}}]:[]),
+  ...(typeof ROD4_OK!=='undefined'&&ROD4_OK?[{k:'rod4',name:'Hollow-glass rod',desc:S.rod>=4?'You fish with it.':'A rod set with black glass. Every catch worth two and a half times, and the fish fight less. “Don’t ask me where the glass came from. Don’t ask it either.”',price:380,can:S.rod===3,need:{gem:2,iron:2},buy(){S.rod=4;}}]:[]),
   {k:'sellf',name:'Sell fish',desc:`Otto pays more than the bin. You have ${basketCount('fish')}.`,price:0,can:basketCount('fish')>0,btn:'Sell all',buy(){sellAll('fish',1.4,'Otto');}}]};
 // bait and a better rod change the fishing
 {const _fa=fishAct;fishAct=function(){const was=fish.state,nb=S.basket.length;_fa();

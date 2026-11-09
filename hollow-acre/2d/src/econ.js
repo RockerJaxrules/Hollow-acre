@@ -9,7 +9,8 @@ const TOOL_TITLE={hoe:['Rusty hoe','Copper hoe','Steel hoe','Hollow-glass hoe'],
 function toolName(k){const n=TOOL_TITLE[k];return n[Math.min(n.length,toolLv(k))-1];}
 /* the new top levels open only once every grade's art has passed its judge (owner: nothing installs below 6 or unpreferred);
    until then each tool stops at the level it always had */
-const LADDER_FULL=false,LADDER_CAP={hoe:2,can:2,pick:2,axe:2};
+const LADDER_FULL=true,LADDER_CAP={hoe:2,can:2,pick:2,axe:2};   // judge (grades r3): every hoe, can, pick and axe grade SIMILAR 6-8, set 6
+const ROD4_OK=false;   // the glass rod waits on its own judge (r3: mid teal, not a black gem)
 const pickCost=()=>[3,2,1][Math.min(3,toolLv('pick'))-1],axeCost=()=>[4,2,1][Math.min(3,toolLv('axe'))-1];
 const ITEMS={
   wood:{name:'Wood',icon:'wood'},stone:{name:'Stone',icon:'stone'},fiber:{name:'Fiber',icon:'fiber'},

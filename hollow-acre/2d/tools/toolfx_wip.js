@@ -45,7 +45,7 @@ function toolStamp(kind,grade,ang,k,mir){ang=Math.round(ang/3)*3;k=Math.round(k*
     const col=pal[best];const o=((dy+R)*N+(dx+R))*4;D[o]=col[0];D[o+1]=col[1];D[o+2]=col[2];D[o+3]=255;}
   g.putImageData(id,0,0);st={cv,R};TOOL_CACHE.set(key,st);if(TOOL_CACHE.size>600)TOOL_CACHE.delete(TOOL_CACHE.keys().next().value);return st;}
 // the rod: cork grip, reel, a shaft that tapers to the tip. Bamboo, ash, then greenheart.
-const ROD_COL=[[[232,196,112],[166,124,52]],[[184,170,150],[104,92,80]],[[86,128,70],[44,74,40]],[[60,130,122],[14,36,40]]];   // judge (rods): bamboo old gold and a step lighter than ash; ash a pale grey-brown, so the two part at 1x   // bamboo, ash, greenheart, Hollow-glass (the gem's teal)
+const ROD_COL=[[[232,196,112],[166,124,52]],[[184,170,150],[104,92,80]],[[86,128,70],[44,74,40]],[[40,88,86],[8,18,22]]];   /* judge r3: the glass rod was mid teal, lighter than greenheart: near-black teal with mint glints */   // judge (rods): bamboo old gold and a step lighter than ash; ash a pale grey-brown, so the two part at 1x   // bamboo, ash, greenheart, Hollow-glass (the gem's teal)
 function drawRod(g,gx,gy,ang,k,lvl,fl){const a=ang*Math.PI/180,dx=Math.cos(a),dy=Math.sin(a);const L=Math.round(30*k);const [lt,dk]=ROD_COL[Math.max(0,Math.min(3,(lvl||1)-1))];
   const px=(x,y,c)=>{g.fillStyle=`rgb(${c[0]},${c[1]},${c[2]})`;g.fillRect(Math.round(x),Math.round(y),1,1);};
   // the butt and cork below the hand
@@ -56,7 +56,8 @@ function drawRod(g,gx,gy,ang,k,lvl,fl){const a=ang*Math.PI/180,dx=Math.cos(a),dy
   for(let i=4;i<=L;i++){const x=gx+dx*i,y=gy+dy*i;const thin=i>L*.62;if(!thin){px(x+(ax?-1:0),y+(ax?0:-1),ol);px(x+(ax?2:0),y+(ax?0:2),ol);}else px(x+(ax?1:0),y+(ax?0:1),ol);}
   for(let i=4;i<=L;i++){const x=gx+dx*i,y=gy+dy*i;const thin=i>L*.62;px(x,y,lt);if(!thin)px(x+(ax?1:0),y+(ax?0:1),dk);}
   // guides and the reel
-  for(const t of [.35,.6,.82]){const i=Math.round(L*t);px(gx+dx*i-dy,gy+dy*i+dx,[200,200,210]);}
+  for(const t of [.35,.6,.82]){const i=Math.round(L*t);px(gx+dx*i-dy,gy+dy*i+dx,(lvl||1)>=4?[96,96,108]:[200,200,210]);}   // the line guides (judge: pale dots read as beads; dark on the glass rod first, the others after their own round)
+  if((lvl||1)>=4)for(const t of [.22,.47,.71]){const i=Math.round(L*t);px(gx+dx*i,gy+dy*i,[196,250,232]);}   // the glass rod's hard mint glints
   const rx=gx+dx*1-dy*2*(fl||1),ry=gy+dy*1+dx*2;g.fillStyle='#2a2a32';g.fillRect(Math.round(rx)-1,Math.round(ry)-1,3,3);px(rx,ry,[190,190,200]);
   return [gx+dx*L,gy+dy*L];}
 // the swing's blur: a pale arc between the wind-up and the swing
