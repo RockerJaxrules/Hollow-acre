@@ -452,7 +452,7 @@ class Painter:
         cv.put(cloth, 'top', lit)
         cv.add(cloth & ~shift(cloth, 0, 1.0), 'top', -.2)
         if C.get('pattern') == 'dots':
-            dm = (((X + 1.5) % 6 - 3) ** 2 + ((Y + 1.5 + 3 * (np.floor((X + 1.5) / 6) % 2)) % 6 - 3) ** 2) < 1.1
+            dm = (((X + 2) % 8 - 4) ** 2 + ((Y + 2 + 4 * (np.floor((X + 2) / 8) % 2)) % 8 - 4) ** 2) < 2.1   # 2 px dots, spaced: single-pixel dots read as speckle (judge, owner rule)
             cv.put(cloth & dm, 'dot', lit)
         edge_sh = bare & shift(cloth, 0, -1.2) & ~cloth
         cv.add(edge_sh & tor, 'skin', -.12)

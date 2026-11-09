@@ -9,7 +9,7 @@ CH = {
                top='#6a2a3a', pattern='dots', dot='#c8909c', neck='offshoulder', necklace='pearls', acc2='#ece6f0', earrings='stud', makeup='#7a4a6a', lash_w=1.25, wing=1.3,
                face_w=24.4, chin=87, jaw_p=2.2, eye_a=6.0, tilt=1.4, lip_w=6.4, lip_up=2.4, brow_arch=1.25, brow_w=.85, allure=1, seed=9),
   'ida': dict(skin='#ecc8b0', hair='#a88a6a', eye='#5a7aa8', lip='#d0607a', style='bun', bun_dx=-2, flower_at=(83, 22), acc='#e86a8a', acc2='#f0d040',
-              top='#8aa0b8', pattern='dots', dot='#d4dfec', neck='square', over='apron', top2='#c89aa0', blush=.75, makeup='#c88a9a', allure=1,
+              top='#8aa0b8', pattern='dots', dot='#d4dfec', neck='sweetheart', over='apron', top2='#c89aa0', blush=.75, makeup='#c88a9a', allure=1,
               face_w=25.2, jaw_q=.48, chin=85.5, eye_a=6.5, tilt=.3, iris=4.3, lip_w=5.8, nose=.85, brow_arch=.85, seed=13),
   'tess': dict(skin='#f2cfb0', hair='#c85a24', eye='#8a5a2a', lip='#c24a4a', style='bun', top='#3e5a40', neck='sweetheart', over='apron', top2='#c8a878',
                necklace='chain', metal='#e8c860', earrings='hoop', freckles=26, makeup='#b07850', allure=1, face_w=24.8, chin=86, tilt=.8, seed=17),
