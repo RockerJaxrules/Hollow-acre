@@ -9,3 +9,4 @@ One row per critiqued attempt. The point is to see the number of attempts per ki
 | 2026-11-09 | maple (3D blockout + finish, nature/maple_3d.pxg) | 1-9 (one session) | owner: angle off at v1; "very good" at v2; "a bit more" at v4 | v1: lower the camera to 30 degrees | trunk detail (grooves, knot, roots), uneven leaf shapes, leaf clumps, highlights, fallen leaves |
 | 2026-11-09 | 25 props (barrel, crate, lamp, fences, well...) | 1 | owner: "not good enough" | reverted to the drawn ones | practise: material detail pass, more contrast, keep labels |
 | 2026-11-09 | people (June, Caitlyn) 3D chibi | 4 | owner: "look very bad so far" | not installed | practise the face, hair and body as drills first |
+| 2026-11-09 | drill 12: crate, barrel, lamp | 1-3 | self-check: v3 about level with the drawn ones, not better yet | v1 too much top, noisy streaks; v2 front too dark | props get an 18-degree camera, front-left light, a belly shape for barrels, sparse streaks |

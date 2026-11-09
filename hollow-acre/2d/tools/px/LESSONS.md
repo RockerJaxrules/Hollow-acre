@@ -78,6 +78,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [props v1] Depth along z is foreshortened by half at 30 degrees but the game's ground is not: anything that has to
   span tiles along z (vertical fences) must be modelled twice as long.
 
+- [drill 12 v1-v3] Props are drawn nearly face-on with a thin top: camera 18 degrees, not the world's 30, or the lid
+  takes over. Light them from the front-left (-.55, .85, .85) or the fronts go dark. Barrels are bellied (an
+  ellipsoid cut flat top and bottom), not cans. One streak in nine pixels is texture; one in three is noise.
+
 ## People (48x64) [owner: "look very bad so far"]
 
 - [chars v1] At the world's 30-degree camera the cap and hair cover the face; people use a near face-on camera (~12).
