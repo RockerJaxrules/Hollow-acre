@@ -1,262 +1,34 @@
 name maple_fall_o
-anchor 60 117
-pal o #2a1012
-pal 1 #4a1814
-pal 2 #74261a
-pal 3 #9e3a1c
-pal 4 #c45a22
-pal 5 #e2822e
-pal 6 #f4ac44
-pal 7 #fcd77e
-pal a #1a1214
-pal b #2e211c
-pal c #46322a
-pal d #634a38
-pal e #82664c
-pal f #a08460
-use lobes.pxg
-size 120 121
-# 1. the trunk (the crown will cover its top)
-stamp trunk2 50 86
-# 2. the crown as six big masses, back to front; each blocked in dark (inside its clusters), then covered in
-#    clusters lit on its own top-left
-mass 2 60,26 59,32 55,38 48,41 40,43 32,41 25,37 21,32 20,26 21,20 26,15 32,11 40,10 48,11 55,14 60,20
-stamp lobeE 27 4 shade=1
-stamp lobeF 35 4 flip
-stamp lobeD 23 9
-stamp lobeE 31 9 flip
-stamp lobeD 40 9
-stamp lobeE 47 9 flip
-stamp lobeF 19 14 flip
-stamp lobeE 26 14 flip
-stamp lobeD 35 14 shade=-1 flip
-stamp lobeD 43 14 shade=-1 flip
-stamp lobeD 51 14 shade=-1 flip
-stamp lobeF 15 19
-stamp lobeD 23 19
-stamp lobeF 31 19 shade=-1
-stamp lobeD 38 19 shade=-1
-stamp lobeE 47 19 shade=-1
-stamp lobeF 55 19 shade=-2
-stamp lobeD 11 24
-stamp lobeD 19 24 shade=-1
-stamp lobeD 27 24 shade=-1
-stamp lobeD 35 24 shade=-1 flip
-stamp lobeF 43 24 shade=-1 flip
-stamp lobeD 51 24 shade=-2
-stamp lobeF 59 24 shade=-2
-stamp lobeE 14 29 shade=-1 flip
-stamp lobeD 24 29 shade=-1 flip
-stamp lobeD 31 29 shade=-1
-stamp lobeF 39 29 shade=-2
-stamp lobeD 47 29 shade=-2 flip
-stamp lobeD 55 29 shade=-2 flip
-stamp lobeD 19 34 shade=-1 flip
-stamp lobeE 27 34 shade=-2 flip
-stamp lobeE 36 34 shade=-2 flip
-stamp lobeE 42 34 shade=-2
-stamp lobeD 51 34 shade=-2
-stamp lobeD 31 39 shade=-2
-stamp lobeD 39 39 shade=-2
-mass 2 98,24 94,30 91,36 84,39 76,41 68,39 60,36 56,30 54,24 56,18 61,12 68,9 76,9 84,8 90,13 96,18
-stamp lobeD 64 2
-stamp lobeF 71 2
-stamp lobeE 58 7
-stamp lobeD 67 7
-stamp lobeF 76 7
-stamp lobeD 82 7 shade=-1 flip
-stamp lobeE 55 12
-stamp lobeE 62 12 flip
-stamp lobeD 71 12 shade=-1 flip
-stamp lobeF 78 12 shade=-1
-stamp lobeF 86 12 shade=-1
-stamp lobeF 51 17
-stamp lobeD 59 17 shade=-1
-stamp lobeD 66 17 shade=-1
-stamp lobeD 75 17 shade=-1 flip
-stamp lobeF 83 17 shade=-2
-stamp lobeF 91 17 shade=-2
-stamp lobeF 47 22 shade=-1
-stamp lobeF 56 22 shade=-1 flip
-stamp lobeD 63 22 shade=-1 flip
-stamp lobeD 71 22 shade=-2 flip
-stamp lobeE 79 22 shade=-2
-stamp lobeE 87 22 shade=-2 flip
-stamp lobeD 95 22 shade=-2
-stamp lobeF 51 27 shade=-1
-stamp lobeE 59 27 shade=-2 flip
-stamp lobeF 67 27 shade=-2
-stamp lobeD 76 27 shade=-2 flip
-stamp lobeD 82 27 shade=-2
-stamp lobeD 91 27 shade=-2
-stamp lobeF 54 32 shade=-2
-stamp lobeD 63 32 shade=-2
-stamp lobeF 71 32 shade=-2
-stamp lobeD 79 32 shade=-2
-stamp lobeD 88 32 shade=-2
-stamp lobeF 67 37 shade=-2 flip
-stamp lobeD 75 37 shade=-2
-mass 2 41,54 40,60 37,66 31,69 24,70 17,69 11,66 7,60 6,54 7,48 12,43 17,39 24,38 31,39 36,43 39,48
-stamp lobeD 15 32 flip
-stamp lobeD 24 32 flip
-stamp lobeD 4 37
-stamp lobeF 11 37
-stamp lobeF 18 37
-stamp lobeD 27 37 shade=-1 flip
-stamp lobeD 7 42
-stamp lobeE 15 42 shade=-1 flip
-stamp lobeF 24 42 shade=-1 flip
-stamp lobeE 31 42 shade=-1
-stamp lobeF 3 47
-stamp lobeF 12 47 shade=-1
-stamp lobeD 19 47 shade=-1 flip
-stamp lobeF 28 47 shade=-1 flip
-stamp lobeD 34 47 shade=-2 flip
-stamp lobeE -1 52 shade=-1 flip
-stamp lobeD 8 52 shade=-1 flip
-stamp lobeD 16 52 shade=-1
-stamp lobeD 24 52 shade=-2 flip
-stamp lobeF 30 52 shade=-2
-stamp lobeD 39 52 shade=-2
-stamp lobeE 4 57 shade=-1 flip
-stamp lobeE 12 57 shade=-2 flip
-stamp lobeD 19 57 shade=-2
-stamp lobeF 26 57 shade=-2
-stamp lobeD 36 57 shade=-2 flip
-stamp lobeD 7 62 shade=-2 flip
-stamp lobeD 14 62 shade=-2
-stamp lobeF 23 62 shade=-2
-stamp lobeD 30 62 shade=-2 flip
-stamp lobeE 10 67 shade=-2 flip
-stamp lobeE 19 67 shade=-2 flip
-stamp lobeD 27 67 shade=-2 flip
-mass 2 83,52 80,59 76,65 69,68 60,69 52,67 44,65 40,59 38,52 39,45 44,40 52,36 60,33 69,35 75,40 81,45
-stamp lobeF 53 28 flip
-stamp lobeF 61 28
-stamp lobeD 41 33
-stamp lobeD 49 33
-stamp lobeD 57 33 flip
-stamp lobeD 65 33 shade=-1
-stamp lobeE 73 33 shade=-1
-stamp lobeF 37 38
-stamp lobeD 45 38
-stamp lobeF 53 38 shade=-1
-stamp lobeD 61 38 shade=-1
-stamp lobeD 69 38 shade=-1
-stamp lobeE 77 38 shade=-1
-stamp lobeD 33 43
-stamp lobeD 41 43 shade=-1
-stamp lobeD 49 43 shade=-1 flip
-stamp lobeD 57 43 shade=-1 flip
-stamp lobeD 65 43 shade=-1
-stamp lobeD 73 43 shade=-2 flip
-stamp lobeE 30 48 shade=-1 flip
-stamp lobeD 37 48 shade=-1
-stamp lobeD 44 48 shade=-1 flip
-stamp lobeD 53 48 shade=-1
-stamp lobeD 61 48 shade=-2 flip
-stamp lobeD 69 48 shade=-2
-stamp lobeF 76 48 shade=-2 flip
-stamp lobeF 33 53 shade=-1 flip
-stamp lobeF 41 53 shade=-1 flip
-stamp lobeD 48 53 shade=-2
-stamp lobeD 57 53 shade=-2
-stamp lobeD 65 53 shade=-2 flip
-stamp lobeD 73 53 shade=-2
-stamp lobeF 81 53 shade=-2 flip
-stamp lobeD 36 58 shade=-2 flip
-stamp lobeD 45 58 shade=-2
-stamp lobeD 53 58 shade=-2 flip
-stamp lobeD 61 58 shade=-2 flip
-stamp lobeE 69 58 shade=-2 flip
-stamp lobeD 76 58 shade=-2
-stamp lobeE 41 63 shade=-2
-stamp lobeE 50 63 shade=-2
-stamp lobeF 58 63 shade=-2
-stamp lobeD 66 63 shade=-2
-stamp lobeF 73 63 shade=-2 flip
-stamp lobeF 52 68 shade=-2 flip
-stamp lobeD 61 68 shade=-2 flip
-mass 2 111,52 110,58 106,63 101,67 94,68 87,67 81,64 79,58 76,52 77,46 82,41 87,36 94,36 101,38 107,40 111,46
-stamp lobeD 85 30 flip
-stamp lobeD 93 30 flip
-stamp lobeD 80 35
-stamp lobeF 89 35 shade=-1
-stamp lobeF 98 35 shade=-1
-stamp lobeE 77 40 shade=-1
-stamp lobeE 85 40 shade=-1
-stamp lobeF 92 40 shade=-1
-stamp lobeF 100 40 shade=-2
-stamp lobeD 74 45 shade=-1 flip
-stamp lobeD 81 45 shade=-1
-stamp lobeD 88 45 shade=-1 flip
-stamp lobeE 98 45 shade=-2 flip
-stamp lobeD 105 45 shade=-2 flip
-stamp lobeD 77 50 shade=-2
-stamp lobeD 85 50 shade=-2 flip
-stamp lobeD 93 50 shade=-2
-stamp lobeD 101 50 shade=-2 flip
-stamp lobeD 109 50 shade=-2
-stamp lobeE 73 55 shade=-2 flip
-stamp lobeD 81 55 shade=-2
-stamp lobeF 89 55 shade=-2 flip
-stamp lobeE 97 55 shade=-2 flip
-stamp lobeF 106 55 shade=-2 flip
-stamp lobeD 77 60 shade=-2 flip
-stamp lobeD 84 60 shade=-2 flip
-stamp lobeE 93 60 shade=-2
-stamp lobeE 102 60 shade=-2 flip
-stamp lobeE 81 65 shade=-2
-stamp lobeD 89 65 shade=-2
-stamp lobeD 97 65 shade=-2
-mass 2 84,80 81,84 76,88 68,90 58,91 49,90 41,87 35,84 31,80 35,76 41,72 49,70 58,69 68,70 76,72 83,76
-stamp lobeD 47 64 flip
-stamp lobeE 55 64 shade=-1 flip
-stamp lobeD 62 64 shade=-1
-stamp lobeE 27 69
-stamp lobeF 35 69 shade=-1
-stamp lobeD 44 69 shade=-1 flip
-stamp lobeF 52 69 shade=-1
-stamp lobeF 58 69 shade=-1
-stamp lobeF 67 69 shade=-2
-stamp lobeD 75 69 shade=-2
-stamp lobeE 23 74 shade=-1
-stamp lobeD 31 74 shade=-1 flip
-stamp lobeD 39 74 shade=-1
-stamp lobeE 46 74 shade=-1
-stamp lobeD 55 74 shade=-2 flip
-stamp lobeD 62 74 shade=-2 flip
-stamp lobeD 71 74 shade=-2 flip
-stamp lobeE 79 74 shade=-2
-stamp lobeE 27 79 shade=-2 flip
-stamp lobeE 36 79 shade=-2
-stamp lobeF 44 79 shade=-2 flip
-stamp lobeD 50 79 shade=-2
-stamp lobeD 59 79 shade=-2
-stamp lobeD 67 79 shade=-2 flip
-stamp lobeE 75 79 shade=-2 flip
-stamp lobeD 31 84 shade=-2
-stamp lobeE 39 84 shade=-2
-stamp lobeE 47 84 shade=-2
-stamp lobeD 54 84 shade=-2 flip
-stamp lobeD 62 84 shade=-2 flip
-stamp lobeD 71 84 shade=-2 flip
-stamp lobeE 50 89 shade=-2
-stamp lobeF 58 89 shade=-2 flip
-# one gap where the crown thins, a branch in it
-mass 1 70,58 77,56 80,61 74,65 69,63
-stamp twig 70 57 flip
-# 6. loose leaves past the edge
-stamp tipA 50 0
-stamp tipB 66 1
-stamp tipC 22 11
-stamp tipA 94 12 shade=-1
-stamp tipB 108 27 shade=-1
-stamp tipC 115 43 shade=-1
-stamp tipA 115 59 shade=-2
-stamp tipB 106 76 shade=-2
-stamp tipC 90 92 shade=-2
-stamp tipA 20 88 shade=-2
-stamp tipB 4 64 shade=-2
-stamp tipC 1 44 shade=-1
-stamp tipA 7 28
+anchor 60 115
+pal 1 #4a1d36
+pal 2 #8a2e2e
+pal 3 #c9582a
+pal 4 #f0953c
+pal 5 #ffd47c
+pal 6 #fff0b4
+pal T #8f6a52
+pal U #634636
+pal V #3f2c2a
+pal W #2a1c22
+use maple_parts.pxg
+size 120 118
+# 1. trunk, its top inside the crown
+stamp trunk3 53 90
+# 2. the crown's back mass: one flat dark shape so no hole shows between bundles
+mass 2 40,6 62,4 84,14 100,28 110,46 106,62 92,76 72,84 50,86 30,82 14,72 6,56 6,38 16,22
+mass 1 30,80 50,84 72,82 92,74 104,62 100,70 88,80 70,88 48,88 28,84
+# 3. bundles, back to front, big ones for the body and small ones to break the rhythm
+stamp bundle 52 0 shade=-1
+stamp bundleS 34 2 shade=-1
+stamp bundle 76 14 shade=-1
+stamp bundle 22 8
+stamp bundleS 50 16
+stamp bundle 84 36 shade=-1
+stamp bundle 4 24
+stamp bundle 58 30 shade=-1
+stamp bundleS 34 26
+stamp bundle 16 46 shade=-1
+stamp bundleS 74 56 shade=-1
+stamp bundle 40 50 shade=-1
+stamp bundleS 8 44
+stamp bundle 62 58 shade=-1

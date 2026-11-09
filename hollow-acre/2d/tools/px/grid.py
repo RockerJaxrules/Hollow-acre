@@ -106,6 +106,70 @@ def lint(im, outline=None):
                 if sum(1 for q in [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)] if A(*q)) >= 3: bite.append((x, y))
     return {'size': im.size, 'colours': len(cols), 'lone': len(lone), 'lone_at': lone[:12], 'spurs': spur[:12], 'bites': bite[:12]}
 
+def lab(c):
+    r, g, b = [v / 255 for v in c[:3]]
+    f = lambda v: ((v + .055) / 1.055) ** 2.4 if v > .04045 else v / 12.92
+    r, g, b = f(r), f(g), f(b); X = (r * .4124 + g * .3576 + b * .1805) / .9505; Y = r * .2126 + g * .7152 + b * .0722; Z = (r * .0193 + g * .1192 + b * .9505) / 1.089
+    h = lambda t: t ** (1 / 3) if t > .008856 else 7.787 * t + 16 / 116
+    return (116 * h(Y) - 16, 500 * (h(X) - h(Y)), 200 * (h(Y) - h(Z)))
+
+def validate(im, pal=None):
+    """the mechanical checks pixel artists (and the rulebooks) run before calling a sprite done"""
+    w, h = im.size; p = im.load(); A = lambda x, y: 0 <= x < w and 0 <= y < h and p[x, y][3] > 0
+    out = {'size': im.size}; cols = {}
+    semi = 0
+    for y in range(h):
+        for x in range(w):
+            c = p[x, y]
+            if 0 < c[3] < 255: semi += 1
+            if c[3]: cols[c[:3]] = cols.get(c[:3], 0) + 1
+    out['colours'] = len(cols); out['semi_transparent'] = semi
+    cap = 16 if max(w, h) <= 32 else 32 if max(w, h) <= 64 else 48
+    out['colour_cap'] = cap
+    if pal: out['off_palette'] = sum(1 for c in cols if c not in {v[:3] for v in pal.values()})
+    L = {c: lab(c) for c in cols}; ks = list(cols); dup = []
+    for i in range(len(ks)):
+        for j in range(i + 1, len(ks)):
+            a, b = L[ks[i]], L[ks[j]]
+            if ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2) ** .5 < 3: dup.append((ks[i], ks[j]))
+    out['near_duplicates'] = len(dup)
+    iso = []
+    for y in range(h):
+        for x in range(w):
+            if not A(x, y): continue
+            n4 = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+            if not any(A(*q) and p[q][:3] == p[x, y][:3] for q in n4): iso.append((x, y))
+    out['isolated'] = len(iso); out['isolated_at'] = iso[:10]
+    # banding: long horizontal runs of one colour sitting directly on a run of the next ramp colour (parallel stripes)
+    band = 0; thr = max(8, w // 3)
+    for y in range(h - 1):
+        run = 0
+        for x in range(w):
+            if A(x, y) and A(x, y + 1) and p[x, y][:3] != p[x, y + 1][:3] and (x == 0 or (p[x - 1, y][:3] == p[x, y][:3] and p[x - 1, y + 1][:3] == p[x, y + 1][:3])): run += 1
+            else: run = 0
+            if run >= thr: band += 1; run = -10 ** 9
+    out['banding_rows'] = band
+    # outline: share of edge pixels in the most common edge colour
+    edge = [p[x, y][:3] for y in range(h) for x in range(w) if A(x, y) and any(not A(*q) for q in [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)])]
+    if edge:
+        from collections import Counter
+        out['outline_top_share'] = round(Counter(edge).most_common(1)[0][1] / len(edge), 2)
+    return out
+
+def ascii(im, region=None):
+    w, h = im.size; p = im.load(); x0, y0, x1, y1 = region or (0, 0, w, h); keys = {}; G = '.ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    rows = []
+    for y in range(y0, y1):
+        r = ''
+        for x in range(x0, x1):
+            c = p[x, y]
+            if not c[3]: r += '.'; continue
+            k = c[:3]
+            if k not in keys: keys[k] = G[len(keys) + 1]
+            r += keys[k]
+        rows.append(r)
+    return '\n'.join(rows) + '\n' + ' '.join(f'{v}=#{k[0]:02x}{k[1]:02x}{k[2]:02x}' for k, v in keys.items())
+
 def view(im, out, z=8):
     w, h = im.size; big = Image.new('RGBA', (w * z + 1, h * z + 1), (0, 0, 0, 255)); d = ImageDraw.Draw(big)
     for y in range(h):
@@ -115,7 +179,8 @@ def view(im, out, z=8):
     up = im.resize((w * z, h * z), Image.NEAREST); big.alpha_composite(up, (0, 0))
     for x in range(0, w + 1): d.line([(x * z, 0), (x * z, h * z)], fill=(0, 0, 0, 70) if x % 8 else (0, 0, 0, 160))
     for y in range(0, h + 1): d.line([(0, y * z), (w * z, y * z)], fill=(0, 0, 0, 70) if y % 8 else (0, 0, 0, 160))
-    pre = Image.new('RGBA', (w * 4 + 40, h * 3 + 20), (74, 92, 58, 255)); pre.alpha_composite(im, (8, 8)); pre.alpha_composite(im.resize((w * 3, h * 3), Image.NEAREST), (w + 24, 8))
+    pre = Image.new('RGBA', (w * 4 + 40, h * 3 + 24 + h), (74, 92, 58, 255)); pre.alpha_composite(im, (8, 8)); pre.alpha_composite(im.resize((w * 3, h * 3), Image.NEAREST), (w + 24, 8))
+    g = im.convert('LA').convert('RGBA'); pre.alpha_composite(g, (8, h * 3 + 16))   # the value check: still reads in grey?
     sheet = Image.new('RGBA', (big.width + pre.width + 10, max(big.height, pre.height)), (30, 30, 30, 255)); sheet.alpha_composite(big, (0, 0)); sheet.alpha_composite(pre, (big.width + 10, 0))
     sheet.save(out)
 
@@ -125,5 +190,8 @@ if __name__ == '__main__':
         od = sys.argv[3]; os.makedirs(od, exist_ok=True); im.save(os.path.join(od, meta['name'] + '.png'))
         a = meta['anchor'] or (im.width / 2, im.height - 2)
         print(f'META {meta["name"]} {im.width} {im.height} {a[0]} {int(a[1])} {im.width / 32:.2f} - -')
-    elif cmd == 'view': view(im, sys.argv[3], int(sys.argv[4]) if len(sys.argv) > 4 else 8); print(lint(im))
+    elif cmd == 'view': view(im, sys.argv[3], int(sys.argv[4]) if len(sys.argv) > 4 else 8); print(validate(im, meta['pal']))
     elif cmd == 'lint': print(lint(im))
+    elif cmd == 'validate': print(validate(im, meta['pal']))
+    elif cmd == 'ascii':
+        reg = tuple(int(v) for v in sys.argv[3].split(',')) if len(sys.argv) > 3 else None; print(ascii(im, reg))
