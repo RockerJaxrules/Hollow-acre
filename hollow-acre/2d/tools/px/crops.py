@@ -354,6 +354,237 @@ def corn(stage):
     return outline(cv.image())
 
 
+# ================================================================ v5 (strict judge against the reference set, R = 8)
+# "leaves are outlined blobs; value ramps compressed and only darker (no pale highlight, no hue shift to red/plum);
+#  everything mechanically regular (even ribs, ladder leaves, one dish under every stage)"
+LEAF = [HEX(c) for c in ('#0a1e1a', '#12341e', '#1c4e22', '#2a6a26', '#3c862c', '#56a236', '#78be48', '#a6d86e')]   # cool deep shade to a pale yellow-green light
+PUMP = [HEX(c) for c in ('#36122a', '#661c1e', '#983018', '#c44c1a', '#e06c26', '#f09038', '#f8b65e', '#fcdc98')]   # plum shade to a pale peach light
+GOURD = [HEX(c) for c in ('#142418', '#1e3a1c', '#2c5422', '#3e6e28', '#548a30', '#6ea43c', '#92c052')]             # the unripe pumpkin: a darker green than the leaves' lights
+FLOWERY = [HEX(c) for c in ('#7a4a10', '#c08218', '#e8b02c', '#fadc66')]                                            # a pumpkin flower: a yellow trumpet
+TURN_TOP = [HEX(c) for c in ('#2e1036', '#521c5c', '#7a2c80', '#a04aa4', '#c876c4', '#e2a8dc')]                     # plum to mauve to a lilac glint
+TURN_LOW = [HEX(c) for c in ('#6e6274', '#9a90a0', '#c8c0c4', '#e6e0dc', '#fbf8f2')]                               # white, shaded toward cool lilac
+TASSEL = [HEX(c) for c in ('#6a4c18', '#9a7424', '#c8a038', '#e8cc62')]
+DRYL = [HEX(c) for c in ('#3a2a14', '#5e4620', '#86682e', '#a88a42', '#c8ac5e', '#e0c87e')]
+HUSK = [HEX(c) for c in ('#4a4620', '#7a7232', '#a49a46', '#c8bc62', '#e0d684')]
+KERN = [HEX(c) for c in ('#6a4416', '#a87a1c', '#d8a82c', '#f2d054', '#faea92')]
+STEMB = [HEX(c) for c in ('#2a180c', '#4e3018', '#765028', '#9a7040')]
+SHADOWC = (50, 33, 37, 150)   # #322125 at 60%: a contact shadow instead of the soil dish
+
+
+def outline(im):
+    """a darker version of the neighbouring colour round the opaque silhouette (never black; the soft shadow gets none);
+    lighter where it faces the light"""
+    W, H = im.size; p = im.load(); add = []
+    for y in range(H):
+        for x in range(W):
+            if p[x, y][3] == 255: continue
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                X, Y = x + dx, y + dy
+                if 0 <= X < W and 0 <= Y < H and p[X, Y][3] == 255:
+                    k = .62 if (dx, dy) in ((1, 0), (0, 1)) else .38
+                    r, g, b, _ = p[X, Y]; add.append((x, y, (int(r * k), int(g * k * .96), int(b * k * 1.06), 255))); break
+    for x, y, c in add: p[x, y] = c
+    return im
+
+
+def contact(cv, cx, y, w):
+    """a soft contact shadow on the ground (no opaque soil dish)"""
+    for dx in range(-w, w + 1):
+        cv.put(cx + dx, y, SHADOWC)
+        if abs(dx) < w - 1: cv.put(cx + dx, y + 1, SHADOWC)
+
+
+def _spoon(cv, x0, y0, ang, L, W, ramp, droop=0.0, bend=0.0):
+    """a turnip green: a lit stalk, then a spoon blade with a crinkled edge, a BRIGHT midrib, lit half and shaded half"""
+    n = max(8, int(L * 3)); cx, cy = x0, y0; top = len(ramp) - 1
+    for i in range(n + 1):
+        t = i / n; a = ang + bend * t + droop * t * t
+        dx, dy = math.sin(a), -math.cos(a); cx += dx * L / n; cy += dy * L / n
+        nx, ny = -dy, dx; lit = (nx * LIGHT[0] + ny * LIGHT[1]) > 0
+        w = .5 if t < .28 else W * math.sin(math.pi * min(1, (t - .28) / .72 * 1.05)) ** .55 * (1 + .12 * math.sin(t * 22))
+        for s in range(-int(w * 2) - 1, int(w * 2) + 2):
+            o = s / 2.0
+            if abs(o) > w: continue
+            side_lit = (o > 0) == lit
+            if t < .28: c = ramp[top - 2] if side_lit else ramp[2]                      # the stalk, lit on one side
+            elif abs(o) < .5 and .32 < t < .92: c = ramp[top]                          # the bright midrib
+            elif side_lit: c = ramp[top - 1] if abs(o) > w - .8 else ramp[top - 2]
+            else: c = ramp[2] if abs(o) > w - .8 else ramp[3]
+            cv.put(cx + nx * o, cy + ny * o, c)
+
+
+def _palm(cv, cx, cy, r, ramp, rot=0.0, behind=False):
+    """a pumpkin leaf: five deep, pointed lobes, flat (one mid tone), a lit rim toward the light, a darker rim away,
+    a pale vein star from the stalk"""
+    k0 = -1 if behind else 0; top = len(ramp) - 1
+    for y in range(int(cy - r) - 2, int(cy + r) + 3):
+        for x in range(int(cx - r * 1.25) - 2, int(cx + r * 1.25) + 3):
+            dx, dy = (x - cx), (y - cy) / .8
+            rho = math.hypot(dx, dy); th = math.atan2(dy, dx)
+            lobe = abs(math.cos(2.5 * (th - rot)))
+            R = r * (.62 + .38 * lobe ** .6)                                         # deep sinuses, pointed lobes
+            if abs(th - math.pi / 2) < .3 and rho > .35 * r: continue               # the notch at the stalk
+            if rho > R: continue
+            l = -(dx / r) * .6 - (dy / r) * .8
+            k = 4 + k0
+            if rho > R - 1.2: k += 1 if l > 0 else -1
+            elif l < -.5: k -= 1
+            c = ramp[max(1, min(top, k))]
+            for va in (-1.9, -.95, 0, .95, 1.9):                                    # five veins
+                vx, vy = math.cos(va - math.pi / 2 + rot), math.sin(va - math.pi / 2 + rot)
+                proj = dx * vx + dy * vy; perp = abs(-dx * vy + dy * vx)
+                if .15 * r < proj < .75 * R and perp < .5: c = ramp[max(1, min(top, k + 2))]
+            cv.put(x, y, c)
+
+
+def lobed_fruit(cv, cx, cy, rx, ry, ramp, nlobe=5, lift=0):
+    """a pumpkin built from lobes (judge: "five lobes, each lit on the left and shaded on the right; scalloped outline at
+    each join; a peach-to-plum ramp"): the whole lit top-left, each lobe rounded on its own, the joins scalloped"""
+    top = len(ramp) - 1
+    seams = [math.sin(math.radians(a)) for a in ((-54, -18, 18, 54) if nlobe == 5 else (-50, 0, 50))]
+    for y in range(int(cy - ry) - 1, int(cy + ry) + 1):
+        v = (y - cy) / ry
+        if abs(v) > 1: continue
+        hw = rx * math.sqrt(max(0, 1 - v * v)); bend = min(1, math.sqrt(max(0, (v + 1) / 1.5)))
+        xs = [cx - hw] + [cx + sd * hw * bend for sd in seams] + [cx + hw]
+        for x in range(int(round(cx - hw)), int(round(cx + hw)) + 1):
+            # which lobe, and where across it (0 left .. 1 right)
+            for i in range(len(xs) - 1):
+                if xs[i] - .5 <= x <= xs[i + 1] + .5: a0, a1 = xs[i], xs[i + 1]; break
+            q = (x - a0) / max(1, a1 - a0)
+            if abs(v) > .9 - .25 * abs(q - .5) and (q < .12 or q > .88): continue  # scallops: the joins dip at the top and bottom
+            u = (x - cx) / max(1, hw); l = -u * .45 - v * .75                         # the whole, lit top-left
+            k = 3 + lift + (l > -.05) + (l > .45) - (l < -.45)
+            k += 1 if q < .3 else (-1 if q > .78 else 0)                               # each lobe: lit left, shaded right
+            cv.put(x, y, ramp[max(0, min(top - 1, k))])
+    # the pale highlight on the upper-left lobe, a short streak, and the notch at the stem
+    for (dx, dy) in ((-int(rx * .5), -int(ry * .5)), (-int(rx * .5), -int(ry * .5) + 1), (-int(rx * .5) - 1, -int(ry * .5) + 2), (-int(rx * .5) + 1, -int(ry * .5) - 1)):
+        cv.put(cx + dx, cy + dy, ramp[top])
+
+
+def turnip(stage):
+    cv = Canvas(32, 64); B = 58; cx = 16
+    contact(cv, cx, B, 4 + 2 * stage)
+    if stage == 0:
+        seed_leaf(cv, cx - 1, B - 3, -.75, 4.4, 1.6, LEAF); seed_leaf(cv, cx + 1, B - 3, .7, 4.2, 1.6, LEAF)
+        cv.put(cx, B - 1, LEAF[3]); cv.put(cx, B - 2, LEAF[4])
+    elif stage == 1:
+        for a, L, d in ((-.95, 8, -.2), (-.25, 10, 0), (.35, 9.5, .1), (1.0, 7.5, .3)): spoon(cv, cx + a, B - 1, a, L, 2.2, LEAF, droop=d)
+    elif stage == 2:
+        for (a, L, d) in ((-1.15, 10, -.3), (-.55, 12.5, -.1), (-.05, 13.5, 0), (.5, 12.5, .15), (1.1, 10.5, .35)): spoon(cv, cx + a * 1.6, B - 3, a, L, 2.6, LEAF, droop=d)
+        for y in range(B - 4, B + 1):   # the shoulder: plum at the bottom-right, mauve, a lilac glint top-left
+            for x in range(cx - 5, cx + 6):
+                u, v = (x - cx) / 4.6, (y - (B - .5)) / 3.6
+                if u * u + v * v > 1 or y > B: continue
+                l = -u * .6 - v * .8
+                cv.put(x, y, TURN_TOP[5] if (l > .7 and u < -.2) else TURN_TOP[4] if l > .35 else TURN_TOP[3] if l > -.1 else TURN_TOP[2])
+    else:
+        for i, (a, L, d) in enumerate(((-1.25, 12, -.35), (-.7, 14, -.15), (-.2, 15.5, 0), (.3, 15, .1), (.8, 13.5, .25), (1.3, 11, .45))):
+            spoon(cv, cx + a * 1.4, B - 10, a, L, 2.8, LEAF, droop=d)
+        cy, rx, ry = B - 4, 5.6, 5.0
+        for y in range(int(cy - ry), int(cy + ry) + 1):
+            for x in range(int(cx - rx), int(cx + rx) + 1):
+                u, v = (x - cx) / rx, (y - cy) / ry
+                if u * u + v * v > 1 or y > B - 1: continue                          # its lower part is in the ground
+                border = -.05 - .45 * u * u + .12 * math.sin(x * 1.3)                # the purple fades down with a wavy edge
+                ramp = TURN_TOP if v < border else TURN_LOW
+                l = -u * .55 - v * .75
+                k = 2 + (l > .15) + (l > .55) - (l < -.4)
+                cv.put(x, y, ramp[max(0, min(len(ramp) - 2, k + (1 if ramp is TURN_TOP else 0)))])
+        for (dx, dy) in ((-3, -3), (-2, -3), (-3, -2)): cv.put(cx + dx, cy + dy, TURN_TOP[5])   # the lilac glint
+        for dx in range(-6, 7): cv.put(cx + dx, B, SOIL[2] if dx < 0 else SOIL[1])              # the soil line it sits in
+    return outline(cv.image())
+
+
+def pumpkin(stage):
+    cv = Canvas(32, 64); B = 58; cx = 16
+    contact(cv, cx, B, 5 + 2 * stage)
+    if stage == 0:   # broad, flat seed leaves spread sideways and a small true leaf between them
+        for k in range(3): cv.put(cx, B - 1 - k, GOURD[5] if k < 2 else GOURD[4])
+        seed_leaf(cv, cx - 1, B - 4, -1.45, 6.6, 2.8, LEAF); seed_leaf(cv, cx + 1, B - 4, 1.42, 6.4, 2.8, LEAF)
+        palm(cv, cx, B - 7, 2.6, LEAF, 0)
+        return outline(cv.image())
+    vine = [(cx + i, B - 1 + round(math.sin(i * .5) * .8)) for i in range(-11, 12)]   # the vine, one mid-green line along the ground
+    for (x, y) in vine: cv.put(x, y, LEAF[3])
+    if stage == 1:   # five-lobed leaves on stalks at different heights, a tendril curl, a yellow trumpet flower
+        for (ox, h, r, rot) in ((-7, 9, 5.2, .25), (5, 12, 6.4, -.2), (-1, 6, 4.0, 0)):
+            for k in range(h - int(r * .7)): cv.put(cx + ox, B - 2 - k, LEAF[4])        # the leaf stalk
+            palm(cv, cx + ox, B - 2 - h, r, LEAF, rot)
+        for (dx, dy) in ((-12, -1), (-13, -2), (-13, -3), (-12, -4), (-11, -4), (-11, -3)): cv.put(cx + dx, B - 1 + dy, LEAF[4])   # the tendril
+        fx, fy = cx + 9, B - 6
+        for (dx, dy, k) in ((-2, -2, 3), (-1, -2, 2), (1, -2, 2), (2, -2, 3), (-1, -1, 2), (0, -1, 3), (1, -1, 2), (-1, 0, 1), (0, 0, 2), (1, 0, 1), (0, 1, 1), (0, 2, 0)):
+            cv.put(fx + dx, fy + dy, FLOWERY[k])
+        cv.put(fx, fy + 3, LEAF[4]); cv.put(fx, fy + 4, LEAF[4])
+    elif stage == 2:   # a darker green fruit, ribs as lobe shading, half under a lobed leaf
+        palm(cv, cx - 8, B - 9, 5.0, LEAF, .2, behind=True)
+        lobed_fruit(cv, cx + 1, B - 5, 6.8, 5.4, GOURD, nlobe=5)
+        for k in range(3): cv.put(cx + 1, B - 11 - k, STEMB[2] if k else STEMB[1])
+        palm(cv, cx + 7, B - 7, 5.4, LEAF, -.3)                                          # in front, covering its right half
+    else:   # ripe: 1.2:1, five lobes, scalloped joins, a notch and a woody stem
+        palm(cv, cx - 9, B - 9, 5.6, LEAF, .25, behind=True); palm(cv, cx + 10, B - 10, 5.0, LEAF, -.25, behind=True)
+        pcx, pcy, prx, pry = cx + 1, B - 9, 10.4, 8.6
+        lobed_fruit(cv, pcx, pcy, prx, pry, PUMP, nlobe=5, lift=0)
+        for (dx, dy) in ((-1, -8), (0, -8), (1, -8)): cv.put(pcx + dx, pcy + dy, PUMP[2])                       # the notch round the stem
+        for (dx, dy) in ((-1, -9), (0, -9), (-1, -10), (0, -10), (-1, -11), (0, -11), (0, -12), (1, -12)):    # a 2x4 stem, lit on its left
+            cv.put(pcx + dx, pcy + dy, STEMB[3] if dx < 0 else STEMB[1])
+    return outline(cv.image())
+
+
+def corn_ear(cv, bx, by, side, L, wfull, ang):
+    """a husked ear: straw husk round the lower two thirds and peeled back at the top; kernels only in the top third, in
+    small clusters staggered like brickwork (no 1 px checker); a short silk tuft"""
+    ux, uy = math.sin(ang), -math.cos(ang); px_, py_ = math.cos(ang), math.sin(ang)
+    for i in range(L):
+        u = i / (L - 1); w = wfull * (.6 + .4 * math.sin(min(1, u * 1.6) * math.pi * .5)) if u < .85 else wfull * (.85 - (u - .85) * 2)
+        n = max(2, int(round(w)))
+        for j in range(n):
+            o = j - (n - 1) / 2; jj = j if side > 0 else n - 1 - j
+            x, y = bx + ux * i + px_ * o, by + uy * i + py_ * o
+            if u < .62 or jj == 0 or jj == n - 1:
+                col = HUSK[4] if jj == 0 else HUSK[1] if jj == n - 1 else (HUSK[2] if u < .2 else HUSK[3])
+            else:
+                col = KERN[4] if jj == 1 else KERN[2] if jj < n - 2 else KERN[1]
+                if (i + (jj % 2)) % 3 == 0 and jj > 1: col = KERN[1]               # the gap between kernel clusters
+            cv.put(x, y, col)
+    tx, ty = bx + ux * L, by + uy * L
+    for (dx, dy) in ((0, 0), (side, 0), (side, 1)): cv.put(tx + dx, ty + dy, DRYL[2])
+
+
+def corn(stage):
+    cv = Canvas(28, 62); B = 60; cx = 14
+    H = (19, 40, 50)[stage]
+    contact(cv, cx, B, 5)
+    nodes = []
+    for y in range(B - 1, B - H, -1):   # the stalk, lit left, shaded right
+        t = (B - y) / H; w = 1 if t > .72 else 2
+        for dx in range(-w + 1, w + 1): cv.put(cx + dx, y, LEAF[5] if dx < 0 or w == 1 else LEAF[3])
+    # fewer, longer ribbon leaves at uneven heights, tips drooping, each lit on its top edge, dark underneath
+    spots = {0: ((.3, -1, 13, 1.3), (.5, 1, 14, 1.0), (.78, -1, 10, .7)),
+             1: ((.18, 1, 15, 1.4), (.37, -1, 17, 1.1), (.55, 1, 14, .8), (.72, -1, 12, 1.2), (.86, 1, 9, .5)),
+             2: ((.08, -1, 14, 2.4), (.15, 1, 13, 2.2), (.32, -1, 16, 1.1), (.47, 1, 15, .8), (.62, -1, 14, 1.2), (.77, 1, 11, .7), (.88, -1, 8, .4))}[stage]
+    for i, (t, side, L, dr) in enumerate(spots):
+        y = B - 2 - t * H; dry = stage == 2 and i < 2
+        nodes.append(y)
+        if dry: leaf(cv, cx + side, y, side * 1.15, L - 2, 1.5, side * .5, DRYL, blade=True, droop=side * 1.5)   # dry ones hang down as thin ribbons
+        else: leaf(cv, cx + side, y, side * (.85 - t * .3), L, 2.2, side * .2, LEAF, blade=True, droop=side * dr)
+    for y in nodes:   # node rings where the leaves join
+        cv.put(cx, int(y) + 1, LEAF[2]); cv.put(cx + 1, int(y) + 1, LEAF[1])
+    if stage == 2:
+        corn_ear(cv, cx + 1, B - 2 - .48 * H, 1, 12, 5, .5)
+        corn_ear(cv, cx - 1, B - 2 - .3 * H, -1, 9, 4, -.55)
+    top = B - H
+    if stage == 1:   # a tassel of three short spikes
+        for (dx, dy) in ((0, 0), (0, -1), (0, -2), (0, -3), (-1, -2), (-2, -3), (1, -1), (2, -2)): cv.put(cx + dx, top + dy, TASSEL[2] if dy < -1 else TASSEL[1])
+    elif stage == 2:   # drooping straw spikes
+        for (dx, dy, k) in ((0, 0, 1), (0, -1, 2), (0, -2, 2), (0, -3, 3), (0, -4, 3), (-1, -2, 2), (-2, -2, 2), (-3, -1, 3), (-4, 0, 2), (1, -2, 2), (2, -3, 2), (3, -3, 3), (4, -2, 3), (5, -1, 2), (-1, -4, 3), (-2, -5, 3), (-3, -5, 2), (1, -5, 3), (2, -6, 3)):
+            cv.put(cx + dx, top + dy, TASSEL[k])
+    return outline(cv.image())
+
+
+spoon = _grouped(_spoon, 5)
+palm = _grouped(_palm, 3)
+
+
 def specks(im):
     """lint: isolated single pixels whose colour differs from all four neighbours by a lot (reads as speckle)"""
     p = im.load(); W, H = im.size; out = []
