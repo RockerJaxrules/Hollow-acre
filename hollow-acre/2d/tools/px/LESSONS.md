@@ -301,6 +301,23 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   a stone in the field.
 
 ## Player actions (Nov 10)
+- [OWNER, Nov 10, verbatim] "You obviously have not found a way to show them the animations because it's hitting the stone
+  with the pickaxe sideways on the front and back ones ... show it a gif of the animations or something." Still frames in
+  a row hid it: facing down/up the pick (and the axe) swung across the frontal plane, its head flat across, landing beside
+  the body, and the target was never in the shot. JUDGE ANIMATIONS WITH MOTION, ALWAYS:
+  1. capture with the real target on the square (a rock for the pick, a stump or tree for the axe, soil for the hoe);
+  2. capture every frame twice, with and without the tool (window.NO_TOOL_DRAW), and draw the tool's path: each frame's
+     tool in its own colour over the scene, numbered at its far end (motion.py) - the swing plane and the landing point
+     are then plain in one picture;
+  3. make a GIF at real speed and SEND IT TO THE OWNER, whose eye is the final verdict (tools/px/gifs/).
+- Facing down or up, an overhead swing is edge-on to the camera: the tool and its head lie along one vertical line, the
+  head's point leads, and it comes straight down onto what's in front (or beyond the head, facing up). A head drawn
+  across (left-right) is a sideways swing.
+- A swing must reach its target: the player walks in to striking distance first (as close as the target's collision
+  allows), and the facing-down strike frames are drawn longer so the point lands on the rock, not at the feet.
+- [OWNER, Nov 10, verbatim] on the run: "I miss the old one. The arm swing is good but the tilting and legs look weird."
+  The judge had scored the new run 6 vs 4: the owner's eye outranks the judge. Kept the old run's lean, bounce and legs
+  with the new arms, and sent the owner a side-by-side GIF to choose.
 - Capture animations with the game paused and the action's clock set to each frame. Real-time screenshots lag behind
   the clip, and the later frames come out as idle.
 - Facing down, a tool wound up straight above the head reads as a peg; wind it over one shoulder at a slant. Struck

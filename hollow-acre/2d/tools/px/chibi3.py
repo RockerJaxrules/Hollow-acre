@@ -91,7 +91,7 @@ for v, t in (('', 'hoe'), ('_can', 'can'), ('_axe', 'axe'), ('_pick', 'pick')): 
     for gl in GLASSES: JOBS.append((f'pl_glasses_{gl}{v}', dict(BASE, hairStyle='bald', glasses=gl), t, 'glasses'))
     for a in ACCS: JOBS.append((f'pl_acc_{a}{v}', dict(BASE, hairStyle='short', accessory=a), t, 'acc'))
 only = sys.argv[1:]
-if only: JOBS = [j for j in JOBS if any(j[0] == o or (o.endswith('*') and j[0].startswith(o[:-1])) for o in only)]
+if only: JOBS = [j for j in JOBS if any(j[0] == o or (o.endswith('*') and j[0].startswith(o[:-1])) or (o.startswith('*') and j[0].endswith(o[1:])) for o in only)]
 def go(j):
     n, look, tool, part = j
     return n, run('chibi3.js', dict(name=n, look=look, tool=tool, part=part, seed=len(n)), (48 * 9, 64 * 29))

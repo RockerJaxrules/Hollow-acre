@@ -391,16 +391,16 @@ function acc(cx,hy,view,fl,a,top0,hairTop){if(!a)return;const R=ACCR,side=view!=
 const TP={
  swing:{E:[[6,7,55,1,0],[3,-4,-60,1,1],[0,-11,-115,1,1],[-2,-12,-160,1,1],[5,-4,-15,1,0],[10,6,28,1,0],[10,7,32,1,0],[6,6,50,1,0]],
         // facing down: wound up over the right shoulder (not straight up behind the head, which read as a peg), struck down at a slant
-        S:[[3,7,90,.75,0],[5,-4,-70,1,1],[5,-11,-62,1,1],[4,-12,-70,.9,1],[3,-3,90,.3,0],[4,10,80,1,0],[4,11,82,.95,0],[3,7,88,.75,0]],
+        S:[[3,7,90,.75,0],[5,-4,-70,1,1],[5,-11,-62,1,1],[4,-12,-70,.9,1],[3,-3,90,.3,0],[3,13,88,1.3,0],[3,12,88,1.2,0],[3,7,88,.75,0]],   /* the strike reaches the square in front (motion check: it landed at the feet) */
         // facing away: the strike shows its head beside and above the player's head instead of vanishing behind the body
         N:[[3,6,90,.5,1],[3,-4,-90,1,1],[2,-12,-90,1,1],[2,-13,-90,.5,0],[6,-13,-78,1.15,1],[6,-9,-80,1.05,1],[6,-8,-80,1,1],[3,5,90,.5,1]]},
  // the axe: wound back at shoulder height, a level chop into the trunk in front, held in the wood, pulled out
  axe:{E:[[6,7,60,1,0],[2,-3,-100,1,1],[-2,-6,-150,1,1],[-3,-5,-172,1,1],[6,-4,-40,1,0],[11,-1,-6,1,0],[11,0,-2,1,0],[7,4,40,1,0]],
-      S:[[3,7,90,.75,0],[6,-4,-60,1,1],[7,-8,-40,1,1],[8,-8,-28,.9,1],[5,0,15,.6,0],[-2,3,160,.9,0],[-2,4,164,.9,0],[3,7,96,.75,0]],
-      N:[[3,6,90,.5,1],[5,-6,-75,1,1],[6,-12,-65,1,1],[7,-12,-55,.9,1],[3,-10,-120,1.05,1],[-7,-6,-160,1.1,1],[-7,-5,-162,1.1,1],[3,5,90,.5,1]]},
+      S:[[3,7,90,.75,0],[6,-4,-60,1,1],[6,-10,-70,1,1],[5,-13,-75,.9,1],[3,-2,90,.35,0],[3,13,88,1.3,0],[3,12,88,1.2,0],[3,8,88,.8,0]],   /* owner: front and back swings went sideways; now over the shoulder and down onto what's in front */
+      N:[[3,6,90,.5,1],[3,-6,-90,1,1],[2,-14,-90,1,1],[2,-16,-90,.5,0],[6,-14,-78,1.2,1],[6,-11,-80,1.1,1],[6,-12,-80,1.05,1],[3,5,90,.5,1]]},
  // the pickaxe: a high overhead wind-up, a heavy strike low into the ground, a recoil off the stone, then settling
  pick:{E:[[6,7,55,1,0],[2,-6,-90,1,1],[-1,-13,-135,1,1],[-3,-14,-170,1,1],[6,-6,-30,1,0],[11,8,42,1,0],[10,5,26,1,0],[7,6,50,1,0]],
-       S:[[3,7,90,.75,0],[5,-6,-70,1,1],[5,-14,-75,1,1],[4,-16,-80,.9,1],[3,-2,90,.3,0],[4,12,80,1,0],[4,9,84,.9,0],[3,8,88,.8,0]],
+       S:[[3,7,90,.75,0],[5,-6,-70,1,1],[5,-14,-75,1,1],[4,-16,-80,.9,1],[3,-2,90,.3,0],[3,13,88,1.3,0],[3,11,88,1.15,0],[3,8,88,.8,0]],   /* facing down: struck straight down, point first, reaching the stone (owner) */
        N:[[3,6,90,.5,1],[3,-6,-90,1,1],[2,-14,-90,1,1],[2,-16,-90,.5,0],[6,-14,-78,1.2,1],[6,-11,-80,1.1,1],[6,-12,-80,1.05,1],[3,5,90,.5,1]]},
  rod:{E:[[6,3,-35,1,0],[3,-5,-100,1,1],[1,-9,-135,1,1],[0,-10,-150,1,1],[5,-3,-50,1,0],[8,2,-15,1,0],[8,3,-10,1,0],[7,3,-25,1,0]],
       S:[[5,4,70,.75,0],[5,-4,-90,1,1],[3,-9,-90,1,1],[2,-10,-90,.8,1],[4,0,60,.6,0],[5,4,75,.7,0],[5,5,78,.7,0],[5,4,72,.75,0]],
@@ -457,7 +457,21 @@ function human(dir,pose){SIT=!!pose.sit;const side=dir==='E'||dir==='W',fl=dir==
   into('toolf',()=>{if(pose.tool)pose.tool(ux,top);});}
 // ---------------------------------------------------------------- poses per clip
 // the walk: Stardew's four beats (contact, pass, contact, pass) spread over our eight frames
-function walkPose(f,dir,run){const pose={};if(f===0)return pose;const side=dir==='E'||dir==='W',back=dir==='N',fl=dir==='W'?-1:1;
+// the run (owner, Nov 10: "I miss the old one. The arm swing is good but the tilting and legs look weird"): the old run's
+// lean, bounce and legs, with the new arm pump (each bent arm against its own-side leg, still bent on the passing frames)
+function runPose(f,dir){const pose={};const side=dir==='E'||dir==='W',back=dir==='N',fl=dir==='W'?-1:1;
+  const ph=(f-1)/8*Math.PI*2,c=Math.cos(ph),s=Math.sin(ph);const S=KID?4:5;
+  pose.bob=Math.abs(c)<.5?-2:(Math.abs(c)>.92?1:0);pose.hairLag=0;pose.lean=3;pose.nod=side?0:1;
+  if(side){const a=Math.round(c*S),b=-a;const liftA=s>0?Math.round(s*4):0,liftB=s<0?Math.round(-s*4):0;
+    const tuck=(d,l)=>l>2?d-2:d;pose.legs=[[tuck(a,liftA),liftA],[tuck(b,liftB),liftB]];if(Math.abs(c)<.5)pose.crouch=1;
+    const base=6,A=1.5;const hand=(k,far)=>{const dx=Math.round(k*A);if(dx===0)return [fl*(far?0:2),base-2];
+      return dx>0?[Math.min(dx,4)*fl,base-3-Math.min(2,Math.round(dx*.4))]:[Math.round(dx*.9)*fl,base+1];};
+    pose.hands=[hand(-a,true),hand(a,false)];}
+  else{const sg=back?-1:1;const dL=Math.round(c*4);pose.legs=[sg*dL,-sg*dL];pose.sway=0;const ay=6;
+    const hand=(fw,inward)=>fw>0?[Math.round(2*fw)*inward,ay-Math.round(3*fw)]:[Math.round(-1.5*fw)*-inward,ay+Math.round(sg*3*-fw)];
+    pose.hands=[hand(-c,1),hand(c,-1)];}
+  return pose;}
+function walkPose(f,dir,run){const pose={};if(f===0)return pose;if(run)return runPose(f,dir);const side=dir==='E'||dir==='W',back=dir==='N',fl=dir==='W'?-1:1;
   const ph=(f-1)/8*Math.PI*2,c=Math.cos(ph),s=Math.sin(ph);const S=run?(KID?4:5):(KID?2:3);
   // the body's height over the eight frames: contact, down, pass (highest), up, contact... (judge r3: a smooth rise and fall, not a jump on the passing frames)
   const WBOB=[0,0,1,0,-1,0,1,0,-1];   // judge r3: never more than 1 px between neighbouring frames (a 3 px step read as a hop)
