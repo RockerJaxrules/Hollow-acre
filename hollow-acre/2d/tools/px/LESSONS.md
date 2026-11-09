@@ -258,6 +258,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   bottom read as lettuce in a planter; round-lobed leaves held up on 6-7 px stalks read as broccoli or little trees.
   What is left to try: drawn by hand, three lobes with a notch between each, a pale vein to each lobe, low and
   overlapping, stalks 2-3 px at most.
+- Leaves the same size and the same pale value, side by side, read as clover or cabbage heads in a row. Make the back
+  leaf about 1.5x bigger and a cooler step darker, vary the front leaves' size and tilt, and draw a dark line where they
+  overlap.
+- Fruit lighter than its own leaf, with evenly spaced pale rib arches, reads as a striped gourd or a garlic bulb. Use dark
+  grooves that bow with the form, keep the fruit a step below the leaf, and put one highlight at top-left.
+- A separate dead leaf that bends at a right angle and hangs straight reads as a tag or a peg. Dry the tip of a real leaf
+  instead.
 - A young pumpkin in deep blue-green reads as a mossy stone among green leaves; warm it toward olive.
 - Ripe pumpkin: scalloped joins at the top and bottom made it octagonal. Dip only the middle joins, by one pixel, at the
   top; keep the base closed; one highlight mass.
