@@ -72,14 +72,14 @@ for d, row, f0, n, fps in sorted(specs, key=lambda s: 'SENW'.index(s[0])):
             for gx in range(0, tr.width, TS * 2): td.line((gx, y, gx, y + LH - 4), fill=(50, 64, 42, 255))
             tr.alpha_composite(legs.resize((48 * TS, 28 * TS), Image.NEAREST), (x, y))
             a = np.asarray(fr_)[:, :, 3] > 0; ys = np.nonzero(a.any(axis=1))[0]; low = ys.max()
-            cols = np.nonzero(a[low])[0]
+            cols = np.nonzero(a[low])[0] if low >= 60 else np.array([], dtype=int)   # row 60 is the ground; anything higher is in the air
             for cx_ in cols: td.rectangle((x + cx_ * TS, y + (low - 36) * TS, x + cx_ * TS + TS - 1, y + (low - 36) * TS + TS - 1), fill=(230, 40, 40, 255))
             # contact runs (each boot), in world px
             runs = []; st = None
             for k_, cx_ in enumerate(cols):
                 if st is None: st = cx_
                 if k_ == len(cols) - 1 or cols[k_ + 1] != cx_ + 1: runs.append((st, cx_)); st = None
-            wx = ', '.join(f'{a_ + step * i:.0f}-{b_ + step * i:.0f}' for a_, b_ in runs)
+            wx = ', '.join(f'{a_ + step * i:.0f}-{b_ + step * i:.0f}' for a_, b_ in runs) or f'none: AIRBORNE ({60 - low} px up)'
             td.text((int(48 + step * N) * TS + 8, y + LH // 2 - 6), f'f{i % n + 1}: ground {wx}', fill=(255, 255, 255, 255))
         td.text((4, tr.height - 12), f'{step:.1f} px travelled per frame', fill=(255, 255, 255, 255))
         track = tr

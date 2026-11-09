@@ -317,6 +317,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A carried item starts in the hand: compute its grip from the frame's own hand point, never a fixed offset from the body.
 - Seated facing us: a lap 2 px wider than the hips, two knees with a 1 px cleft, 2 px of shin, hands on the thighs.
 - A hurt fling needs one arm up and the other guarding the chin (hands 6+ px apart in height), or it reads as a shrug.
+- [run r3] A run is not a fast walk: give it an AIRBORNE frame (both feet up 2+ px after the push-off), a stride longer
+  than the walk's, a heel kick behind and the knee coming through. Draw each leg from a per-frame table (offset, lift),
+  not a sine: a sine gives walk legs. The push-off boot stands on its toe, never lies flat far behind (the 'weird legs').
+- [grab r2] An item carried in the hand needs a carry POSE (hands up on it), not just a grip point: hung from a hand at the
+  hip, a post reaches the ground and slides when moved.
+- [tools] Mark ground contact only on the ground row; a track tool that calls the lowest pixel 'contact' hides airborne frames.
 - Ground speed vs stride: at 3 tiles/s with 7 px legs a planted foot cannot hold; lengthen the stride (5 px) and speed the
   cadence (P.t at speed/2.6 x 17 fps) to halve the skate rather than pretend it isn't there.
 - [OWNER, Nov 10, verbatim] "You obviously have not found a way to show them the animations because it's hitting the stone
@@ -385,6 +391,8 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [r3] Moss goes where water sits: the lowest 6-8 px of a roof (the eaves) and the 2-3 courses above a wall's base, in
   clumps. Spread over whole roof planes it reads as camouflage or mould (6 vs 5).
 - [r3, next] Metal roof seams run from the ridge DOWN to the eave (parallel to the gable edges), never parallel to the ridge.
+- [r4] A seam is a 2 px rib: the lit line and a dark line under it; a lone lit line reads as hatching. Tone by slope, not
+  by distance (a tone stepping with x made a hard vertical band). Rust is a 2 px streak down a seam toward the eave.
 - The installed buildings carried the banned grit: a 1 px light dot on every shingle (frosted roofs at 1x), checkerboard
   eave and chimney shadows, and a stain layer smeared across trim and posts. Wear is drawn as shapes, never as a layer.
 - A cast shadow drawn in the outline colour merges with the outline above it and reads as a thicker line. Shadow a wall

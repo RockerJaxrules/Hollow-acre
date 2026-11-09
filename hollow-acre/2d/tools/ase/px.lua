@@ -283,7 +283,7 @@ function px.weather(c)
       local ln = 4 + math.floor(px.h(k, 79) * span * .25)
       for y = sy, math.min(h - 1, sy + ln) do if Rz[y][sx] then O[y][sx] = O[y][sx] - 1 end end end end
     if W.chips and W.chips > 0 then for y = 1, h - 1 do for x = 0, w - 2 do
-      if px.h(x * 3.1, y * 1.7) < W.chips and Rz[y][x] and Rz[y][x + 1] == Rz[y][x] and Rz[y - 1][x] == Rz[y][x] and Rz[y - 1][x + 1] == Rz[y][x] then
+      if px.h(x * 3.1, y * 1.7) < W.chips and Rz[y][x] and not (W.nochips and W.nochips[Rz[y][x]]) and Rz[y][x + 1] == Rz[y][x] and Rz[y - 1][x] == Rz[y][x] and Rz[y - 1][x + 1] == Rz[y][x] then
         O[y][x] = O[y][x] - 2; O[y][x + 1] = O[y][x + 1] - 2; O[y - 1][x] = O[y - 1][x] + 1; O[y - 1][x + 1] = O[y - 1][x + 1] + 1 end end end end
   end
   -- 5. moss in the shaded hollows

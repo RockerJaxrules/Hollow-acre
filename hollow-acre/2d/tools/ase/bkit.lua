@@ -166,13 +166,21 @@ function B.roofpx(c, mat, x, y, top, lit, seed)
     if lit > .5 and ry == 1 and lx == 2 and n > .8 then v = px.i(c, Rr[7]) end   -- a few lit shingle tips, not a dash on every other one (judge: the roof read as noise)
     return v
   elseif mat == 'tin' and B.GABLE then
-    local G = B.GABLE; local d = math.abs(x - G.ax); local v = y - G.k * d; local bx = math.floor(v) % 6
-    if bx == 0 then return px.i(c, lit > .5 and Rr[6] or Rr[4]) end
-    if bx == 1 then return px.i(c, lit > .5 and Rr[4] or Rr[2]) end
-    local sm = math.floor(v / 6); local rs = H(sm + (lit > .5 and 0 or 50), seed); local W2 = (y - v) / math.max(.01, G.k)
-    local d0 = 18 + math.floor(H(sm, seed + 1) * 26)
-    if rs > .86 and bx == 2 and d >= d0 and d < d0 + 6 + math.floor(rs * 6) then return px.i(c, 'r4') end   -- a thin rust run beside a seam, low on the slope
-    return band(c, Rr, lit > .5 and .5 or .22, 2, 6)
+    local G = B.GABLE; local d = math.abs(x - G.ax); local v = y - G.k * d
+    local sm0 = math.floor(v / 6); local right = x >= G.ax
+    --[[ judge r5: the derelict barn shows it on the roof too: one slipped sheet (its ribs 2 px out of line, a dark gap above) ]]
+    if G.rough and right and sm0 >= 7 and sm0 <= 9 and d >= 14 and d <= 30 then
+      if math.floor(v) % 18 == 0 and sm0 == 7 then return px.i(c, Rr[1]) end
+      v = v + 2 end
+    local bx = math.floor(v) % 6; local sm = math.floor(v / 6)
+    -- judge r5: wear where the water runs off, the last 3-8 px of each rib before the eave a step darker, each rib its own length
+    local run = 3 + math.floor(H(sm + (right and 50 or 0), seed + 7) * 6); local worn = d > G.half - run
+    if bx == 0 then return px.i(c, lit > .5 and (worn and Rr[5] or Rr[6]) or (worn and Rr[3] or Rr[4])) end
+    if bx == 1 then return px.i(c, lit > .5 and Rr[2] or Rr[1]) end   -- judge r4: the rib's shadow side, so each seam is a 2 px rib
+    -- rust (judge r5): orange-brown, 2 px wide, starting at a rib end and running out to the eave, darkest where it starts
+    local rs = H(sm + (right and 50 or 0), seed); local rl = 6 + math.floor(H(sm, seed + 3) * 5)
+    if rs > .8 and (bx == 2 or bx == 3) and d > G.half - rl then return px.i(c, d < G.half - rl / 2 and 'mu3' or 'mu4') end
+    return band(c, Rr, (lit > .5 and .5 or .22) - (worn and .14 or 0), 2, 6)
   elseif mat == 'tin' then
     local bx = x % 7
     if bx == 0 then return px.i(c, lit > .5 and Rr[7] or Rr[4]) end
@@ -196,7 +204,7 @@ function B.frontgable(c, sp, x0, x1, yW, wallmat, roofmat, trim, seed)
   local ay = yW - Gh; local topA = ay - Rb + 6; local sideTop = yW - math.floor(W * .25)
   local roofpoly = {{x0 - over, sideTop}, {ax, topA}, {x1 + over, sideTop}, {x1 + over, yW + 4}, {ax, ay}, {x0 - over, yW + 4}}
   --[[ judge r3: seen end-on, a metal roof's seams run from the ridge down to each eave, parallel to the gable's edges ]]
-  B.GABLE = {ax = ax, k = (yW + 4 - ay) / math.max(1, ax - (x0 - over))}
+  B.GABLE = {ax = ax, k = (yW + 4 - ay) / math.max(1, ax - (x0 - over)), half = ax - (x0 - over), rough = sp.rough}
   px.poly(c, roofpoly, function(x, y) return B.roofpx(c, roofmat, x, y, topA, x < ax and 1 or 0, seed) end)
   B.GABLE = nil
   -- moss and the odd bird mess along the lower courses

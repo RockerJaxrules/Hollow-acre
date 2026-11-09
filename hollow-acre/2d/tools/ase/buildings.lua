@@ -135,7 +135,7 @@ local V = {
                 windows = {{x = 1.0, w = 22}, {x = 4.0, w = 22}}, moss = .9, seed = 182},
  barn_b      = {base = 'barn', wall = 'white', roof = 'asphalt', trim = 'black', door = {col = 'oak', kind = 'barn', w = 44, h = 52},
                 windows = {{x = 0.8, w = 18, curtain = false}, {x = 6.0, w = 18, curtain = false}}, moss = 1.0, handprint = false, seed = 184},
- barn_c      = {base = 'barn', wall = 'oxblood', roof = 'tin', trim = 'black', door = {col = 'black', kind = 'barn', w = 44, h = 52},
+ barn_c      = {base = 'barn', wall = 'oxblood', roof = 'tin', trim = 'black', door = {col = 'black', kind = 'barn', w = 44, h = 52}, rough = true,
                 windows = {{x = 0.8, w = 18, curtain = false, boarded = true}, {x = 6.0, w = 18, curtain = false, broken = true}}, moss = 1.8, scratches = true, handprint = .2, seed = 185},
  wk_schoolh  = {base = 'house_b', wall = 'oxblood', roof = 'asphalt', trim = 'cream', door = {col = 'green'}, sign = 'SCHOOL', signy = -2, dormers = {},
                 windows = {{x = 1.25, w = 26, h = 28}, {x = 4.75, w = 26, h = 28}}, chimneys = {{x = .2}}, moss = .8, seed = 183},
@@ -150,7 +150,7 @@ for _, name in ipairs(names) do
   if not only or only == name then
     local sp = S[name]
     for _, night in ipairs({false, true}) do
-      local c, meta = B.build(sp, night); c.weather = {grime = .3, streak = true, round = .35, radius = 2, patch = .12, cell = 6, chips = .004, moss = {ramps = {'sl', 'sh', 'th', 's', 'as', 'bn', 'tl'}, amt = .62, low = 8, base = {'s'}}}
+      local c, meta = B.build(sp, night); c.weather = {grime = .3, streak = true, round = .35, radius = 2, patch = .12, cell = 6, chips = .004, nochips = {tn = true}, moss = {ramps = {'sl', 'sh', 'th', 's', 'as', 'bn', 'tl'}, amt = .62, low = 8, base = {'s'}}}   -- no chip specks on tin (judge r4: grit)
       local fn = name .. (night and '_n' or '')
       px.save(c, app.fs.joinPath(out, fn .. '.png'))
       print(string.format('META %s %d %d %.1f %d %.2f %s %s', fn, meta.w, meta.h, meta.ax, meta.ay, sp.w,

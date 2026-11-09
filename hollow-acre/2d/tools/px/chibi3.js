@@ -465,19 +465,20 @@ function human(dir,pose){SIT=!!pose.sit;const side=dir==='E'||dir==='W',fl=dir==
 // the run (owner, Nov 10: "I miss the old one. The arm swing is good but the tilting and legs look weird"): the old run's
 // lean, bounce and legs, with the new arm pump (each bent arm against its own-side leg, still bent on the passing frames)
 function runPose(f,dir){const pose={};const side=dir==='E'||dir==='W',back=dir==='N',fl=dir==='W'?-1:1;
-  const ph=(f-1)/8*Math.PI*2,c=Math.cos(ph),s=Math.sin(ph);const S=KID?4:5;
-  /* motion judge r2 (ground track): the old legs lifted the foot while it travelled back, so the planted foot slid forward
-     (a moonwalk) and the passing foot hid behind the standing shin, which read as a skip. Now the planted foot travels
-     back, the lifted one swings forward trailing 3 px behind the standing shin; the body is low just before the passing
-     frame (the support knee bent) and high after push-off, never more than 1 px between neighbouring frames */
-  const D=[0,0,1,0,-1,0,1,0,-1][f]||0;pose.crouch=(f%4===2||f%4===3)?1:0;pose.bob=D-pose.crouch;pose.hairLag=0;pose.lean=3;pose.nod=side?0:1;
-  if(side){const a=Math.round(c*S),b=-a;const liftA=s<0?Math.round(-s*4):0,liftB=s>0?Math.round(s*4):0;
-    const tuck=(d,l)=>l>2?d-3:d-Math.round(l*.5);pose.legs=[[tuck(a,liftA),liftA],[tuck(b,liftB),liftB]];
-    const base=6,A=1.5;const hand=(k,far)=>{const dx=Math.round(k*A);if(dx===0)return [fl*(far?0:2),base-2];
+  const ph=(f-1)/8*Math.PI*2,c=Math.cos(ph);
+  /* motion judge r3: a run is not a fast walk. Each leg follows its own table (foot offset forward, lift): contact in front,
+     support under the hips, push off on the toe, AIRBORNE (both feet up), heel kicked up behind, tucked high through the
+     pass, knee forward, reaching. The other leg is the same table half a cycle on. A stride longer than the walk's, a
+     moderate lean (owner: the old run's 3 read better than 6), the body low on the support frames, never 1 px more between
+     neighbours; the arm pump the owner liked stays */
+  const K=KID?.75:1;const LT=[[6,0],[3,0],[0,0],[-4,2],[-5,4],[-2,5],[2,4],[5,2]].map(([o,l])=>[Math.round(o*K),Math.round(l*K)]);
+  const i=(f-1+8)%8,A=LT[i],B=LT[(i+4)%8];
+  pose.crouch=(i%4===1||i%4===2)?1:0;pose.bob=0;pose.hairLag=0;pose.lean=4;pose.nod=side?0:1;
+  if(side){pose.legs=[A,B];
+    const a=Math.round(c*(KID?4:5));const base=6,AA=1.5;const hand=(k,far)=>{const dx=Math.round(k*AA);if(dx===0)return [fl*(far?0:2),base-2];
       return dx>0?[Math.min(dx,4)*fl,base-3-Math.min(2,Math.round(dx*.4))]:[Math.round(dx*.9)*fl,base+1];};
     pose.hands=[hand(-a,true),hand(a,false)];}
-  else{const sg=back?-1:1;const dL=Math.round(c*4);const liftL=s<0?Math.round(-s*3):0,liftR=s>0?Math.round(s*3):0;
-    pose.legs=[Math.max(-4,sg*dL-liftL),Math.max(-4,-sg*dL-liftR)];pose.sway=0;const ay=6;   /* the swinging knee comes up (judge r2: both boots down on the passing frame) */
+  else{const sg=back?-1:1;const fy=([o,l])=>Math.max(-4,sg*Math.round(o*.6)-Math.round(l*.75));pose.legs=[fy(A),fy(B)];pose.sway=0;const ay=6;
     const hand=(fw,inward)=>fw>0?[Math.round(2*fw)*inward,ay-Math.round(3*fw)]:[Math.round(-1.5*fw)*-inward,ay+Math.round(sg*3*-fw)];
     pose.hands=[hand(-c,1),hand(c,-1)];}
   return pose;}
@@ -570,7 +571,12 @@ ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
     else if(f===3){pose.hands=[[1,-5],[-1,-4]];}
     else if(f===4){pose.hands=[[0,3],[0,4]];}
     else{pose.hands=null;stance(pose,side,dir,fl);}}
-  if(clip==='spellcast'){const up=f>1;pose.hands=up?(side?[[fl*-1,-10],[fl*2,-11]]:[[1,-11],[-1,-11]]):null;}
+  /* spellcast frame 0 is the CARRY pose (motion judge r2, the sprinkler: it must start in his hand, not hang at his hip and
+     slide): side-on both hands forward at chest height on the post; facing down the right forearm up from an elbow at his
+     side; facing away the left hand out past his body. Its hand points go to the game as hands[dir][6] */
+  if(clip==='spellcast'&&f===0){if(side)pose.hands=[[fl*6,3],[fl*7,2]];else if(dir==='S'){pose.elbows=[[0,5],[1,6]];pose.hands=[[0,10],[-1,2]];}
+    else{pose.elbows=[[-2,6],[0,5]];pose.hands=[[-2,3],[0,10]];}}
+  else if(clip==='spellcast'){const up=f>1;pose.hands=up?(side?[[fl*-1,-10],[fl*2,-11]]:[[1,-11],[-1,-11]]):null;}
   /* sit (motion judge: facing us it read as a standing person made shorter; one low frame in three read as a twitch): facing
      us the lap is drawn, two knees and the shins below them, hands resting on the thighs; the breath holds two frames and
      moves only the chest, shoulders and head (hands stay on the lap) */
@@ -578,6 +584,7 @@ ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
     pose.hands=side?[[fl*5,9-br],[fl*6,9-br]]:[[4+WIDE,11-br],[-4-WIDE,11-br]];pose.blink=f===3;}   /* the last frame is the blink; the game shows it one loop in three */   /* hands resting on the thigh / the knees; a breath */
   const EX0=EXPR;if(pose.expr)EXPR=pose.expr;human(dir,pose);EXPR=EX0;
   if(clip==='slash'&&HANDS_REC)HANDMETA[dir][f]=HANDS_REC.map(h=>h.map(Math.round));
+  if(clip==='spellcast'&&f===0&&HANDS_REC)HANDMETA[dir][6]=HANDS_REC.map(h=>h.map(Math.round));   // the carry pose
   // outline the whole figure; each outline pixel goes to the part whose pixel it borders
   const comp=flatten(PARTS.map(k=>LY[k]),FW,FH);
   for(let y=0;y<FH;y++)for(let x=0;x<FW;x++){if(G(comp,x,y))continue;let n=null,ow=null;
