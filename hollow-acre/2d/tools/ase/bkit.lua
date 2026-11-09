@@ -185,8 +185,13 @@ function B.roofpx(c, mat, x, y, top, lit, seed)
     local ch = (mat == 'slate') and 5 or 6; local cw = (mat == 'slate') and 9 or 11
     local row = (y - top) // ch; local ry = (y - top) % ch; local off = math.floor(H(row, seed) * cw)
     local lx = (x + off) % cw; local n = H((x + off) // cw, row + seed)
-    if ry == ch - 1 then return px.i(c, lit > .5 and Rr[2] or Rr[1]) end
-    if lx == 0 and ry < ch - 2 then return px.i(c, lit > .5 and Rr[3] or Rr[2]) end
+    --[[ judge (buildings sweep): one shingle stamp edge to edge gave the biggest mass on every building texture and no form.
+         The middle of each plane goes quiet (soft course lines, no joints); the full shingle pattern stays at the eave, the
+         edges and the hips, where the eye reads the material ]]
+    local ctx = B.RCTX; local quiet = false
+    if ctx then local dE = ctx.yb - y; local dS = math.min(x - ctx.xa, ctx.xb - x); quiet = dE > ch * 2 + 1 and dS > 9 and (y - top) > ch end
+    if ry == ch - 1 then return px.i(c, quiet and (lit > .5 and Rr[3] or Rr[2]) or (lit > .5 and Rr[2] or Rr[1])) end
+    if lx == 0 and ry < ch - 2 and not quiet then return px.i(c, lit > .5 and Rr[3] or Rr[2]) end
     local v = band(c, Rr, (lit > .5 and .62 or .24) + (ry == 0 and .14 or 0) - (ry == ch - 2 and .1 or 0) + (n - .5) * .16 - (y - top) / 560, 2, 8)
     if lit > .5 and ry == 1 and lx == 2 and n > .8 then v = px.i(c, Rr[7]) end   -- a few lit shingle tips, not a dash on every other one (judge: the roof read as noise)
     return v
@@ -311,15 +316,23 @@ function B.sideroof(c, x0, x1, yW, depth, roofmat, seed, hip)
   for y = top, yW + 3 do
     local t = (y - top) / math.max(1, depth); local inset = math.floor((1 - t) * hipw)
     local xa, xb = x0 - over + inset, x1 + over - inset
+    B.RCTX = {xa = xa, xb = xb, yb = yW + 3}
     for x = xa, xb do
       local lit = 1
       if hip and x < xa + math.floor(t * hipw * .6) + 3 then lit = 1 end
       if hip and x > xb - math.floor(t * hipw) - 3 then lit = 0 end
       P(c, x, y, B.roofpx(c, roofmat, x, y, top, lit, seed))
     end
-    if hip then P(c, xb - math.floor(t * hipw) - 3, y, B.ROOFS[roofmat][2]) end
+    if hip then P(c, xb - math.floor(t * hipw) - 3, y, B.ROOFS[roofmat][2]); P(c, xa + math.floor(t * hipw * .6) + 3, y, B.ROOFS[roofmat][6]) end   -- the hips: the right one dark, the left one lit (judge: lit ridge and hips)
   end
+  B.RCTX = nil
   local Rr = B.ROOFS[roofmat]
+  --[[ judge (buildings sweep): a side roof in one even tone with a pale frame read as a box lid. The slope turns away from
+       the light toward the eave: the lowest courses a step and two darker (the shadow the eave gathers), the first under the
+       ridge a step lighter ]]
+  if not hip then for y = top + 2, yW + 3 do local fromEave = yW + 3 - y
+    local k = fromEave <= 2 and -2 or (fromEave <= 7 and -1 or (y <= top + 4 and 1 or 0))
+    if k ~= 0 then for x = x0 - over, x1 + over do if px.get(c, x, y) ~= 0 then px.shade(c, x, y, k) end end end end end
   px.hline(c, x0 - over + hipw, x1 + over - hipw, top, Rr[7]); px.hline(c, x0 - over + hipw, x1 + over - hipw, top + 1, Rr[6]); px.hline(c, x0 - over + hipw, x1 + over - hipw, top - 1, 'OUT')
   px.hline(c, x0 - over, x1 + over, yW + 4, 'OUT')
   return top
@@ -447,7 +460,7 @@ end
 function B.eaveshadow(c, x0, x1, yW)
   local d = B.EAVE_DROP or 0
   -- the wall's own darkest steps, so its texture still shows through (judge: a near-black band merged into the roof's outline)
-  for x = x0, x1 do for y = yW + 1 + d, yW + 3 + d do px.shade(c, x, y, -3) end; px.shade(c, x, yW + 4 + d, -2); px.shade(c, x, yW + 5 + d, -1) end
+  for x = x0, x1 do for y = yW + 1 + d, yW + 4 + d do px.shade(c, x, y, -3) end; px.shade(c, x, yW + 5 + d, -2); px.shade(c, x, yW + 6 + d, -1) end   -- judge (sweep): the eave's cast shadow read as missing; a row deeper
 end
 
 function B.chimney(c, cx0, cx1, cy0, cy1, mat)
@@ -472,7 +485,7 @@ function B.awning(c, x0, x1, y, a, b)
   for x = x0, x1, 7 do local st = ((x - x0) // 7) % 2; local col = st == 1 and a or b
     for k = 0, 4 do P(c, x + k, y + 10 + ((k == 1 or k == 3) and 1 or (k == 2 and 2 or 0)), col[2]) end end
   px.hline(c, x0, x1, y - 1, 'OUT')
-  for yy = y + 11, y + 15 do for x = x0, x1 do if (x + yy) % 2 == 0 and px.get(c, x, yy) ~= 0 then P(c, x, yy, 'OUT2') end end end
+  for yy = y + 11, y + 16 do for x = x0, x1 do if px.get(c, x, yy) ~= 0 then px.shade(c, x, yy, yy <= y + 13 and -3 or (yy <= y + 15 and -2 or -1)) end end end   -- judge (sweep): flat on the wall like tape; a cast shadow under it
 end
 
 -- a porch floor: boards running across, a lit front edge, board ends, a dark fascia and its shadow on the ground
@@ -570,7 +583,8 @@ function B.build(sp, night)
   if kind == 'hip' or kind == 'side' then
     topY = B.sideroof(c, x0, x1, yW, sp.roofd, roofmat, seed, kind == 'hip')
     if kind == 'side' then local Rr = B.ROOFS[roofmat]                                         -- the rake boards at the gable ends
-      for _, e in ipairs({{x0 - 10, trim[4]}, {x1 + 10, trim[2]}}) do px.vline(c, e[1], topY, yW + 4, e[2]); px.vline(c, e[1] + (e[1] < x0 and 1 or -1), topY, yW + 3, trim[3]) end
+      -- the rake boards in the roof's own dark edge, not the pale trim (judge: a cream frame round the roof read as a box lid)
+      for _, e in ipairs({{x0 - 10, Rr[3]}, {x1 + 10, Rr[1]}}) do px.vline(c, e[1], topY, yW + 4, e[2]); px.vline(c, e[1] + (e[1] < x0 and 1 or -1), topY, yW + 3, Rr[2]) end
       px.hline(c, x0 - 10, x1 + 10, topY - 1, 'OUT') end
     for i, d in ipairs(sp.dormers or {}) do local dcx = math.floor(x0 + d.x * (x1 - x0))
       B.dormer(c, dcx, yW - 8, d.w or 24, d.h or 22, roofmat, wallmat, trim, night, seed + 20 + i) end
@@ -584,7 +598,17 @@ function B.build(sp, night)
     for y = py, yW do for x = x0 - 2, x1 + 2 do P(c, x, y, B.WALLS[wallmat][(y - py) % 5 == 4 and 3 or 5]) end end
     R(c, x0 - 5, py - 4, x1 + 5, py - 1, trim[4]); px.hline(c, x0 - 5, x1 + 5, py - 4, trim[5]); px.hline(c, x0 - 5, x1 + 5, py - 1, trim[2]); px.hline(c, x0 - 5, x1 + 5, py - 5, 'OUT')
     for x = x0, x1, 9 do R(c, x, py, x + 2, py + 2, trim[3]) end
-    topY = py - 5
+    --[[ judge (buildings sweep): a flat roof showed only its front edge and read as a cardboard false front. From above at
+         this angle its top shows: tar and gravel behind the parapet, the back parapet's lit edge, a vent and a hatch ]]
+    local dep = 22; local ry0 = py - 5 - dep
+    for y = ry0, py - 6 do for x = x0 - 4, x1 + 4 do local n = H(x // 2 + y * 13, seed + 91)
+      P(c, x, y, (y <= ry0 + 1) and (y == ry0 and 'OUT' or 's5') or (n > .86 and 's4' or ((y - ry0) < 6 and 's2' or 's3'))) end end
+    px.vline(c, x0 - 5, ry0, py - 5, 'OUT'); px.vline(c, x1 + 5, ry0, py - 5, 'OUT')
+    for y = py - 8, py - 6 do for x = x0 - 4, x1 + 4 do px.shade(c, x, y, -1) end end   -- the front parapet's shadow on the roof
+    local vx = x0 + math.floor((x1 - x0) * .72); R(c, vx, ry0 + 6, vx + 5, ry0 + 13, 'm3'); px.vline(c, vx, ry0 + 6, ry0 + 13, 'm4'); px.hline(c, vx, vx + 5, ry0 + 6, 'm4')
+    for y = ry0 + 14, ry0 + 15 do for x = vx, vx + 6 do px.shade(c, x, y, -2) end end   -- a vent stack and its shadow
+    local hx = x0 + math.floor((x1 - x0) * .2); R(c, hx, ry0 + 8, hx + 9, ry0 + 13, 'k3'); px.hline(c, hx, hx + 9, ry0 + 8, 'k5'); px.rect(c, hx + 1, ry0 + 9, hx + 8, ry0 + 9, 'k4')   -- a roof hatch
+    topY = ry0 - 1
   end
   -- the walls, the shadow under the eaves, corner boards, the foundation
   local avoid = nil
