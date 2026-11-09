@@ -1330,6 +1330,182 @@ def corn(stage):
     return outline(cv.image())
 
 
+# ================================================================ v11 (strict round 7: 8 hold; pumpkin_1 5 "three clover heads in
+# a row, same size, same pale value"; pumpkin_2 5 "picket ribs, lighter than its own leaf"; corn_2 5 "the dead leaf a tag")
+# Pumpkin leaves: a hand-drawn silhouette per leaf (big back leaf, mid leaf, a tilted leaf, a small one), shaded by rule:
+# lit rim where the edge faces up/left, shade rim down/right, the body split into two tones on a diagonal, a pale vein
+# from the stalk end to each lobe tip. Tone sets: 'front' mid-green, 'back' a cooler step darker.
+PSIL = {
+    'big': (["......###......",
+             "..#..#####..#..",
+             ".###.#####.###.",
+             "###############",
+             "###############",
+             ".#############.",
+             "###############",
+             ".#####.#.#####.",
+             "..###..#..###..",
+             ".......#......."], (7, 8), [(1, 3), (7, 0), (13, 3), (2, 7), (12, 7)]),
+    'mid': (["....##....",
+             ".#.####.#.",
+             "##########",
+             "##########",
+             ".########.",
+             "##########",
+             ".###.#.##.",
+             ".....#...."], (5, 6), [(0, 3), (5, 0), (9, 3)]),
+    'tilt': (["...##..##...",
+              ".##########.",
+              "############",
+              ".##########.",
+              "..###.####..",
+              ".....#......"], (5, 4), [(0, 2), (4, 0), (8, 0), (11, 2)]),
+    'small': (["..#.#..",
+               ".#####.",
+               "#######",
+               ".#####.",
+               "...#..."], (3, 4), [(0, 2), (3, 0), (6, 2)]),
+}
+PTONES = {'front': (LEAF[5], LEAF[4], LEAF[3], LEAF[3], LEAF[6]),     # lit rim, body light, body dark, shade rim, vein
+          'back': (LEAF[4], LEAF[3], LEAF[2], LEAF[2], LEAF[4])}
+
+
+def pleaf2(cv, x, y, kind, tones='front', flip=False):
+    rows, (bx, by), tips = PSIL[kind]; w = len(rows[0]); h = len(rows)
+    lit, b1, b2, sh, vein = PTONES[tones]
+    px = {(i, j) for j, r in enumerate(rows) for i, ch in enumerate(r) if ch == '#'}
+    X = lambda i: x + (w - 1 - i if flip else i)
+    up_l = (lambda i, j: (i - 1, j) not in px or (i, j - 1) not in px) if not flip else (lambda i, j: (i + 1, j) not in px or (i, j - 1) not in px)
+    dn_r = (lambda i, j: (i + 1, j) not in px or (i, j + 1) not in px) if not flip else (lambda i, j: (i - 1, j) not in px or (i, j + 1) not in px)
+    cv.begin()
+    for (i, j) in px:
+        fi = (w - 1 - i) if flip else i                                     # screen-space column inside the leaf
+        if dn_r(i, j): c = sh
+        elif up_l(i, j): c = lit
+        else: c = b1 if fi + j * 1.3 < w * .62 + h * .45 else b2           # the lit upper-left half one tone up
+        cv.put(X(i), y + j, c)
+    for (tx, ty) in tips:                                                   # the veins
+        n = max(abs(tx - bx), abs(ty - by))
+        for k in range(1, n):
+            i = round(bx + (tx - bx) * k / n); j = round(by + (ty - by) * k / n)
+            if (i, j) in px and not dn_r(i, j) and not up_l(i, j): cv.put(X(i), y + j, vein)
+    cv.end(LEAF[1])
+    return X(bx), y + by
+
+
+OLV = [HEX(c) for c in ('#18221a', '#232f1a', '#30401c', '#3e5220', '#506826', '#68802e', '#8a9c44')]   # the young fruit: a cool shade step at the bottom
+
+
+def young_fruit(cv, cx, cy, rx, ry):
+    """3-4 dark grooves bowing with the form, one highlight patch top-left, a cool shade step over the bottom-right third;
+    the body sits a step below the leaves"""
+    seams = [math.sin(math.radians(a)) for a in (-46, -8, 30)]
+    for y in range(int(cy - ry), int(cy + ry) + 1):
+        v = (y - cy) / ry
+        if abs(v) > 1: continue
+        hw = rx * math.sqrt(max(0, 1 - v * v)); bend = min(1, math.sqrt(max(0, (v + 1) / 1.5)))
+        xs = [cx + sd * hw * bend for sd in seams]
+        for x in range(int(round(cx - hw)), int(round(cx + hw)) + 1):
+            u = (x - cx) / max(1, hw); l = -u * .5 - v * .7
+            k = 3 + (l > -.1) + (l > .45)
+            if l < -.55: k = 2                                                 # the cool shade step
+            if min(abs(x - s_) for s_ in xs) < .6 and abs(v) < .85: k -= 1     # a groove
+            cv.put(x, y, OLV[max(1, k)])
+    hx, hy = int(cx - rx * .5), int(cy - ry * .45)
+    for (dx, dy) in ((0, 0), (1, 0), (0, 1)): cv.put(hx + dx, hy + dy, OLV[6])
+
+
+def pumpkin(stage):
+    cv = Canvas(32, 64); B = 58; cx = 16
+    contact(cv, cx, B, 4 + 2 * stage)
+    if stage == 0:
+        for k in range(4): cv.put(cx, B - 1 - k, GOURD[5] if k < 3 else GOURD[4])
+        seed_leaf(cv, cx - 1, B - 5, -.82, 6.2, 2.6, LEAF); seed_leaf(cv, cx + 1, B - 3, .9, 4.8, 2.2, LEAF)
+        return outline(cv.image())
+    def vine(pts):
+        for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+            n = int(max(abs(x1 - x0), abs(y1 - y0))) + 1
+            for i in range(n + 1): cv.put(round(x0 + (x1 - x0) * i / n), round(y0 + (y1 - y0) * i / n), LEAF[4])
+    if stage == 1:   # a vine mound: a big cool leaf behind, a mid leaf and a tilted leaf in front, of different sizes
+        vine([(cx - 14, B - 1), (cx - 9, B - 2), (cx - 4, B - 1), (cx + 2, B - 2), (cx + 8, B - 1), (cx + 13, B - 2)])
+        for (dx, dy) in ((13, -3), (14, -4), (14, -5), (13, -6), (12, -5)): cv.put(cx + dx, B + dy, LEAF[4])
+        pleaf2(cv, cx - 9, B - 15, 'big', 'back')
+        pleaf2(cv, cx - 14, B - 9, 'mid', 'front')
+        pleaf2(cv, cx + 1, B - 7, 'tilt', 'front', flip=True)
+        fx, fy = cx + 11, B - 4
+        for (dx, dy, k) in ((-1, -1, 3), (1, -1, 3), (-1, 0, 2), (0, 0, 3), (1, 0, 2), (0, 1, 1)): cv.put(fx + dx, fy + dy, FLOWERY[k])
+        cv.put(fx, fy + 2, LEAF[4])
+    elif stage == 2:   # the young fruit a step below its leaf, a big leaf behind it on the left
+        vine([(cx - 14, B - 1), (cx - 9, B - 2), (cx - 3, B - 1)])
+        pleaf2(cv, cx - 16, B - 14, 'big', 'front')
+        cv.begin(); young_fruit(cv, cx + 4, B - 5, 7.2, 4.8); cv.end(OLV[0])
+        for (dx, dy, c) in ((0, -10, 2), (1, -10, 1), (0, -11, 3), (1, -11, 2), (1, -12, 3)): cv.put(cx + 4 + dx, B + dy, KHAKI[c])
+    else:
+        vine([(cx - 14, B - 1), (cx - 9, B - 2), (cx - 5, B - 1)])
+        pleaf2(cv, cx - 16, B - 13, 'mid', 'back')
+        pcx, pcy, prx, pry = cx + 1, B - 9, 10.4, 8.6
+        lobed_fruit(cv, pcx, pcy, prx, pry, PUMP)
+        for (dx, dy) in ((-1, -8), (0, -8), (1, -8)): cv.put(pcx + dx, pcy + dy, PUMP[2])
+        for (dx, dy) in ((-1, -9), (0, -9), (-1, -10), (0, -10), (-1, -11), (0, -11), (0, -12), (1, -12)):
+            cv.put(pcx + dx, pcy + dy, STEMB[3] if dx < 0 else STEMB[1])
+    return outline(cv.image())
+
+
+def corn_ear(cv, bx, by, side, L, wfull, ang):
+    """kernels in 2-px-tall blocks down the ear (lit column, middle, shade column), a dark seam every third row on the
+    middle and shade columns only, so they read as rows of kernels, not a lattice"""
+    ux, uy = math.sin(ang), -math.cos(ang); px_, py_ = math.cos(ang), math.sin(ang)
+    for i in range(L):
+        u = i / (L - 1); w = wfull * (.6 + .4 * math.sin(min(1, u * 1.6) * math.pi * .5)) if u < .85 else wfull * (.85 - (u - .85) * 2)
+        n = max(2, int(round(w)))
+        for j in range(n):
+            o = j - (n - 1) / 2; jj = j if side > 0 else n - 1 - j
+            x, y = bx + ux * i + px_ * o, by + uy * i + py_ * o
+            if u < .55 or jj == 0 or jj == n - 1:
+                col = HUSK[4] if jj == 0 else HUSK[2] if jj == n - 1 else HUSK[3]
+            else:
+                col = KERN[4] if jj == 1 else KERN[3] if jj < n - 2 else KERN[2]
+                if i % 3 == 2 and jj > 1: col = KERN[1]
+            cv.put(x, y, col)
+    tx, ty = bx + ux * L, by + uy * L
+    for (dx, dy) in ((0, 0), (side, 0), (side, 1)): cv.put(tx + dx, ty + dy, DRYL[2])
+
+
+def corn(stage):
+    if stage < 2: return _corn_v9(stage)
+    # ripe: no separate dead leaf (it read as a tag); the long lower-left leaf dries to straw over its last 5 px
+    cv = Canvas(28, 62); B = 60; cx = 14; H = 50
+    contact(cv, cx, B, 5)
+    sway = lambda t: round(math.sin(t * 2.2))
+    spots = ((.14, 1, 14, 1.3, 1), (.27, -1, 17, 1.4, 0), (.45, 1, 13, 1.0, 0), (.6, -1, 15, 1.1, 0), (.74, 1, 11, .8, 1), (.87, -1, 8, .5, 0))
+    def leaves(behind):
+        for (t, side, L, dr, bh) in spots:
+            if bool(bh) != behind: continue
+            y = B - 2 - t * H; xo = sway(t); bx = cx + xo + side
+            before = dict(cv.px)
+            leaf(cv, bx, y, side * (.62 - t * .2), L, 2.4, side * .3, LEAF[:-2] if behind else LEAF, blade=True, droop=side * dr)
+            if t == .27:   # this leaf's tip dries
+                new = [(p, c) for p, c in cv.px.items() if before.get(p) != c]
+                far = sorted(new, key=lambda pc: -((pc[0][0] - bx) ** 2 + (pc[0][1] - y) ** 2))
+                tipd = math.sqrt((far[0][0][0] - bx) ** 2 + (far[0][0][1] - y) ** 2)
+                for (p, c) in new:
+                    d = math.sqrt((p[0] - bx) ** 2 + (p[1] - y) ** 2)
+                    if d > tipd - 5.5 and c in LEAF:
+                        cv.px[p] = DRYL[max(1, min(5, LEAF.index(c) - 1))]
+    leaves(True)
+    for y in range(B - 1, B - H, -1):
+        t = (B - y) / H; w = 3 if t < .5 else 2; xo = sway(t)
+        for dx in range(-(w // 2), w - w // 2): cv.put(cx + xo + dx, y, LEAF[5] if dx == -(w // 2) else LEAF[3])
+    leaves(False)
+    corn_ear(cv, cx + sway(.55) + 2, B - 2 - .55 * H, 1, 12, 5, .5)
+    corn_ear(cv, cx + sway(.38) - 2, B - 2 - .38 * H, -1, 9, 4, -.55)
+    top = B - H; tx = cx + sway(1)
+    for (dx, dy, k) in ((0, 0, 1), (0, -1, 2), (0, -2, 2), (0, -3, 3), (0, -4, 3), (0, -5, 3), (0, -6, 3),
+                        (-1, -3, 2), (-2, -2, 2), (-3, -1, 3), (-4, 0, 2), (1, -4, 2), (2, -3, 3), (3, -2, 2), (4, -1, 3), (1, -6, 3), (2, -7, 2)):
+        cv.put(tx + dx, top + dy, TASSEL[k])
+    return outline(cv.image())
+
+
 def specks(im):
     """lint: isolated single pixels whose colour differs from all four neighbours by a lot (reads as speckle)"""
     p = im.load(); W, H = im.size; out = []
