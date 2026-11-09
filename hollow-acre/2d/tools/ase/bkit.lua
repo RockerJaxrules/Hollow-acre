@@ -42,6 +42,7 @@ B.PAL = {
  {'y1','#b8742a'},{'y2','#e8a83e'},{'y3','#fbe08a'},
  {'b1','#4e0a12'},{'b2','#84141c'},{'b3','#b02a2a'},
  {'p1','#c8b8b0'},{'p2','#ece2da'},
+ {'gw1','#24211f'},{'gw2','#3c3732'},{'gw3','#57504a'},{'gw4','#756c62'},{'gw5','#958a7c'},
  {'k1','#22141e'},{'k2','#3a2228'},{'k3','#573430'},{'k4','#77493a'},{'k5','#9a6448'},{'k6','#b8835a'},
 }
 local function ramp(prefix, n) local r = {} for i = 1, n do r[i] = prefix .. i end return r end
@@ -49,8 +50,8 @@ B.ROOFS = {scallop = ramp('r', 8), slate = ramp('sl', 8), shingle = ramp('sh', 8
            asphalt = ramp('as', 8), brown = ramp('bn', 8), teal = ramp('tl', 8)}
 B.WALLS = {honey = ramp('w', 7), white = ramp('ww', 7), sage = ramp('sg', 7), blue = ramp('bb', 7), oxblood = ramp('ox', 7), mustard = ramp('mu', 7),
            brick = ramp('bk', 7), stone = ramp('s', 7), log = ramp('lg', 7), plaster = ramp('pl', 7)}
-B.TRIMS = {cream = ramp('t', 5), green = ramp('dg', 5), black = ramp('bt', 5)}
-B.DOORS = {teal = ramp('d', 5), red = ramp('dr', 5), green = ramp('dg', 5), black = ramp('bt', 5), oak = {'w2', 'w3', 'w4', 'w5', 'w6'}}
+B.TRIMS = {cream = ramp('t', 5), green = ramp('dg', 5), black = ramp('bt', 5), weathered = ramp('gw', 5)}
+B.DOORS = {teal = ramp('d', 5), red = ramp('dr', 5), green = ramp('dg', 5), black = ramp('bt', 5), oak = {'w2', 'w3', 'w4', 'w5', 'w6'}, weathered = ramp('gw', 5)}
 local STONE = B.WALLS.stone
 
 B.FONT = {
@@ -101,7 +102,7 @@ function B.stones(c, x0, y0, x1, y1, seed, rowh, lightf)
   end
 end
 
-function B.wall(c, mat, x0, y0, x1, y1, seed)
+function B.wall(c, mat, x0, y0, x1, y1, seed, rough)
   local Wr = B.WALLS[mat]
   local function lt(x) return .64 - (x - x0) / ((x1 - x0) * 3.2) end
   if mat == 'brick' then
@@ -142,6 +143,18 @@ function B.wall(c, mat, x0, y0, x1, y1, seed)
         P(c, x, y, col) end end
     for k = 0, math.floor((x1 - x0) * (y1 - y0) / 1600) do local kx = x0 + 6 + math.floor(H(k, seed) * (x1 - x0 - 12)); local ky = y0 + 2 + 6 * math.floor(H(k, seed + 3) * ((y1 - y0) // 6))
       if ky < y1 - 3 then P(c, kx, ky, Wr[2]); P(c, kx + 1, ky, Wr[3]) end end
+    if rough then   -- judge (derelict barn): neglect shows in the boards themselves, a few missing (the dark inside and a stud behind), one sprung
+      local rows = (y1 - y0) // 6
+      local avoid = type(rough) == 'table' and rough or {}   -- the door and windows (a gap under them would never show)
+      local function free(a, b) for _, sp in ipairs(avoid) do if b >= sp[1] and a <= sp[2] then return false end end return true end
+      local function spot(k, len) for t = 0, 24 do local gx = x0 + 8 + math.floor(H(k * 31 + t, seed + 65) * (x1 - x0 - 16 - len)); if free(gx, gx + len) then return gx end end end
+      for k = 0, 2 do local r = 1 + math.floor(H(k, seed + 61) * (rows - 3)); local len = 9 + math.floor(H(k, seed + 63) * 9)
+        local gx = spot(k, len); local gy = y0 + r * 6
+        if gx then R(c, gx, gy, gx + len, gy + 4, 'k1'); px.hline(c, gx, gx + len, gy, 'OUT'); px.vline(c, gx + len // 2, gy + 1, gy + 4, 'k2')
+        P(c, gx - 1, gy + 2, Wr[2]); P(c, gx + len + 1, gy + 2, Wr[2]); px.hline(c, gx, gx + len, gy + 5, Wr[5]) end end
+      local r = 2 + math.floor(H(7, seed + 67) * (rows - 4)); local gx = spot(9, 14) or x0 + 10; local gy = y0 + r * 6
+      for i = 0, 13 do local dy = (i >= 7) and ((i - 6) // 3) or 0; px.vline(c, gx + i, gy + dy, gy + 4 + dy, Wr[3 + (i % 2)]); P(c, gx + i, gy + 5 + dy, Wr[1]) end   -- one board sprung loose at its right end
+    end
   end
 end
 
@@ -170,8 +183,6 @@ function B.roofpx(c, mat, x, y, top, lit, seed)
     local sm0 = math.floor(v / 6); local right = x >= G.ax
     --[[ judge r7: the derelict barn's neglect belongs at the eaves (mid-slope blotches read as mould): one lifted sheet near
          the left eave, a dark gap under a lit bent edge ]]
-    if G.rough and not right and sm0 == 8 and d >= G.half - 12 and d <= G.half - 7 then
-      return px.i(c, (math.floor(v) % 6 == 0) and Rr[7] or Rr[1]) end
     local bx = math.floor(v) % 6; local sm = math.floor(v / 6)
     -- judge r5: wear where the water runs off, the last 3-8 px of each rib before the eave a step darker, each rib its own length
     local run = 3 + math.floor(H(sm + (right and 50 or 0), seed + 7) * 6); local worn = d > G.half - run
@@ -226,6 +237,18 @@ function B.frontgable(c, sp, x0, x1, yW, wallmat, roofmat, trim, seed)
     if px.get(c, x, y) ~= 0 and math.abs(x - ax) > 6 and H(i, 9) < (sp.moss or .4) then P(c, x, y, ({'v3', 'v4', 'v5', 'v4'})[i % 4 + 1]); P(c, x + 1, y, 'v3') end end
   for y = topA, ay do P(c, ax - 1, y, B.ROOFS[roofmat][7]); P(c, ax, y, B.ROOFS[roofmat][6]); P(c, ax + 1, y, B.ROOFS[roofmat][3]); P(c, ax + 2, y, B.ROOFS[roofmat][2]) end
   px.vline(c, x0 - over, sideTop, yW + 4, B.ROOFS[roofmat][3]); px.vline(c, x1 + over, sideTop, yW + 4, B.ROOFS[roofmat][1])
+  if sp.rough and roofmat == 'tin' then
+    --[[ judge (derelict barn): a flat dark hole read as a clean roof with a stain. One sheet near the left eave is lifted: 14 px
+         along its rib, its outer end raised 3 px and standing 3 px past the roof's outline, a lit top edge, the dark gap under
+         it and its shadow on the sheet below ]]
+    local Rr = B.ROOFS.tin; local half = ax - (x0 - over); local k = (yW + 4 - ay) / math.max(1, ax - (x0 - over)); local v0 = 48
+    for d = half - 13, half + 3 do local x = ax - d; local yt = math.floor(v0 + k * d + .5)   -- the rib band's top on this column (bands run v = y - k*d)
+      local lift = math.max(0, math.floor((d - (half - 13)) * 3 / 16 + .5)); local top = yt - lift
+      if lift > 0 then for yy = top + 5, yt + 5 do P(c, x, yy, 'OUT') end end
+      P(c, x, top, Rr[7]); P(c, x, top + 1, Rr[5]); P(c, x, top + 2, Rr[5]); P(c, x, top + 3, Rr[4]); P(c, x, top + 4, Rr[2])
+      if d <= half then for yy = yt + 6, yt + 7 do if px.get(c, x, yy) ~= 0 then px.shade(c, x, yy, -1) end end end
+    end
+  end
   -- the gable end
   local G = B.WALLS[wallmat]
   px.poly(c, {{x0, yW + 1}, {ax, ay + 4}, {x1, yW + 1}}, function(x, y)
@@ -321,7 +344,10 @@ function B.window(c, wx, wy, ww, wh, o)
   else px.hline(c, wx, wx + ww - 1, wy + wh * 2 // 3, T[3]); px.hline(c, wx, wx + ww - 1, wy + wh * 2 // 3 + 1, T[2]) end
   if o.broken then px.line(c, wx + 2, wy + 3, wx + 6, wy + 8, 'OUT'); px.line(c, wx + 6, wy + 8, wx + 4, wy + 12, 'OUT'); P(c, wx + 7, wy + 4, 'g1') end
   if o.boarded then for i, yy in ipairs({wy + 2, wy + wh - 7}) do
-    R(c, wx - 5, yy + i, wx + ww + 4, yy + i + 3, 'w5'); px.hline(c, wx - 5, wx + ww + 4, yy + i, 'w7'); px.hline(c, wx - 5, wx + ww + 4, yy + i + 3, 'w2')
+    -- judge (derelict barn): new-lumber yellow boards read as fresh repairs; on a derelict building they are grey, old and split
+    local bw = o.rough and {'gw3', 'gw5', 'gw1'} or {'w5', 'w7', 'w2'}
+    R(c, wx - 5, yy + i, wx + ww + 4, yy + i + 3, bw[1]); px.hline(c, wx - 5, wx + ww + 4, yy + i, bw[2]); px.hline(c, wx - 5, wx + ww + 4, yy + i + 3, bw[3])
+    if o.rough and i == 2 then local sx = wx + ww // 2 + 2; P(c, sx, yy + i + 1, bw[3]); P(c, sx + 1, yy + i + 2, bw[3]); P(c, sx + 2, yy + i + 2, bw[3]); P(c, sx - 1, yy + i + 1, 'gw2') end
     P(c, wx - 3, yy + i + 1, 'm2'); P(c, wx + ww + 2, yy + i + 1, 'm2') end end
   R(c, wx - 6, wy + wh + 3, wx + ww + 5, wy + wh + 5, T[4]); px.hline(c, wx - 6, wx + ww + 5, wy + wh + 3, T[5]); px.hline(c, wx - 6, wx + ww + 5, wy + wh + 6, 'w2')
   if o.box then B.flowerbox(c, wx - 3, wy + wh + 7, ww + 5, o.box == 'dead', o.seed or 1) end
@@ -525,7 +551,11 @@ function B.build(sp, night)
     topY = py - 5
   end
   -- the walls, the shadow under the eaves, corner boards, the foundation
-  B.wall(c, (sp.siding and wallmat ~= 'brick' and wallmat ~= 'stone' and wallmat ~= 'log' and wallmat ~= 'plaster') and wallmat or wallmat, x0, yW + 1, x1, gy - 10, seed)
+  local avoid = nil
+  if sp.rough then avoid = {}; local d = sp.door or {}; local dcx = math.floor((x0 + x1) / 2 + (d.dx or 0) * 32); local dw = d.w or 26
+    avoid[#avoid + 1] = {dcx - dw // 2 - 6, dcx + dw // 2 + 6}
+    for _, w in ipairs(sp.windows or {}) do local ww = w.w or 24; local wx = math.floor(x0 + w.x * 32 - ww / 2); avoid[#avoid + 1] = {wx - 9, wx + ww + 9} end end
+  B.wall(c, (sp.siding and wallmat ~= 'brick' and wallmat ~= 'stone' and wallmat ~= 'log' and wallmat ~= 'plaster') and wallmat or wallmat, x0, yW + 1, x1, gy - 10, seed, avoid)
   B.eaveshadow(c, x0, x1, yW)
   if wallmat ~= 'brick' and wallmat ~= 'stone' and wallmat ~= 'log' then
     for _, cx in ipairs({x0, x1 - 4}) do R(c, cx, yW + 2, cx + 4, gy - 10, trim[3]); px.vline(c, cx, yW + 2, gy - 10, trim[4]); px.vline(c, cx + 4, yW + 2, gy - 10, trim[2]) end end
@@ -539,7 +569,7 @@ function B.build(sp, night)
     local ww, wh = w.w or 24, w.h or 26
     local wx = math.floor(x0 + w.x * 32 - ww / 2); local wy = w.y and (yW + w.y) or (yW + 18 + (sp.awning and 10 or 0))
     B.window(c, wx, wy, ww, wh, {trim = trim, night = night, dark = w.dark, curtain = (w.curtain == false) and nil or (w.curtain or ({'t4', 'f2', 'v4', 't4', 'f3'})[(i + seed) % 5 + 1]),
-      face = w.face, watcher = w.watcher, broken = w.broken, boarded = w.boarded, box = w.box, lancet = w.lancet, stained = w.stained, shutters = sp.shutters and B.TRIMS[sp.shutters] or nil, seed = seed + i})
+      face = w.face, watcher = w.watcher, broken = w.broken, boarded = w.boarded, rough = sp.rough, box = w.box, lancet = w.lancet, stained = w.stained, shutters = sp.shutters and B.TRIMS[sp.shutters] or nil, seed = seed + i})
   end
   -- the door, porch, lantern
   if not sp.nodoor then
