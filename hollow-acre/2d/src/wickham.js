@@ -24,12 +24,16 @@ const wkDoor=k=>{const h=WHOUSES.find(w=>w[0]===k);return [h[2],h[3]+.35];};
   // gardens behind the rows: hedges between the plots, washing, vegetables, a bench under an apple tree
   const gside=(x,z1,z2)=>hedgeLine(x,z1,z2);
   for(const x of [101.2,112,118.6,129.4,136,144.4])gside(x,40,33.4);
-  for(const x of [100.6,107.3,114.4])gside(x,54,48);for(const x of [132.6,139.4])gside(x,54,48);
+  for(const x of [100.6,107.3,114.4])gside(x,54,49.6);for(const x of [132.6,139.4])gside(x,54,49.6);
+  // High Street's south side shows the street a low garden wall with gates, not the backs of the yards
+  {const run=(a,b,z)=>{for(let x=a;x<b-.05;x+=2)obj('stonewall',Math.min(x,b-2),z,{kind:'prop',noCol:true,town:1});addSeg(a,z-.15,b,z-.15,.3);};
+   run(98,103.8,48.6);run(105.4,111,48.6);run(112.6,118,48.6);run(130,135.6,48.6);run(137.2,150,48.6);}
   const G=(spr,x,z,o)=>put(spr,x,z,0,Object.assign({kind:'prop',town:1},o||{}));
   G('clothesline',106.4,35.5);G('gardenbed',108.6,34.8,{kind:'flat'});G('wk_rack',115.4,36.4);G('gardenbed_b',122,38.6,{kind:'flat'});
   G('clothesline_b',132.6,37);G('shed',140.6,35.6);G('gardenbed',146.6,36,{kind:'flat'});
-  G('gardenbed_b',103.8,50.6,{kind:'flat'});G('wk_nets',110.8,49.6);G('birdbath',104.2,51.4);G('shed_b',136.2,50.2);
+  G('gardenbed_b',103.8,50.6,{kind:'flat'});G('wk_nets',110.8,49.6);G('birdbath',104.2,51.4);G('shed_b',142.6,56.6);G('wk_rack',144.8,52.4);G('wk_nets',147.6,51.6);G('barrel',142.6,51.4);   // a net yard on the river side
   {const t=obj('apple_tree',97.8,51,{kind:'tree',solid:1,town:1});addCircle(97.8,51,.4);}
+  put('parkbench',96.8,58.8,0,{kind:'prop',town:1});lamp(96.2,61.4);   // Mill Row ends at a bench under a lamp, not in the grass
   // the ferry landing below the village, and lanterns for the dead along the river walk
   put('dock',128,71.6,0,{kind:'flat'});addDock(128,71.6);put('signpost',130.4,69,.2,{label:'FERRY'});for(const z of [63.4,66.6])lamp(126.6,z);
     reserve(96,32,152,41);reserve(96,47,152,55);};}
