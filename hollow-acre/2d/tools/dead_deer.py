@@ -78,16 +78,15 @@ def body(c):
     leg(c, (35, by + 6), 1.45, 6, 6, -.3, DEER, .95)
     # the neck, thick (the doe's weight), along the ground; the head flat on its cheek, ears laid back, eye shut
     limb2(c, [(37, by + 1), (41.5, by + 2), (46, by + 2.5)], lambda t: 6.4 - t * 1.6, DEER)
-    hx, hy = 50, by + 3
-    ell(c, hx - 4, hy - 2.6, 3.8, 1.3, DEERD, rot=-.15)       # the far ear, laid back along the neck
-    ell(c, hx, hy, 4.2, 3.3, DEER)                             # the skull
-    ell(c, hx + 4.6, hy + 1.2, 3.2, 2.2, DEER, under=PALE, ut=.35)   # the muzzle, pale only underneath
-    c.p(hx + 7.4, hy + .8, (24, 16, 14)); c.p(hx + 7.4, hy + 1.4, (40, 28, 24))   # the nose
-    for ex in (-1, 0, 1): c.p(hx + .5 + ex, hy - .6, (20, 12, 12))   # the eye, shut
-    c.p(hx - .5, hy - 1.4, PALE[4])
-    ell(c, hx - 4.6, hy - 1.2, 4.2, 1.5, DEER, rot=-.1)       # the near ear, laid back flat along the neck
-    ell(c, hx - 4.6, hy - 1.2, 2.6, .6, PALE, rot=-.1)
-    c.p(hx + 6, hy + 3, (150, 40, 44)); c.p(hx + 7, hy + 3.4, (110, 26, 32))
+    hx, hy = 51, by + 3
+    ell(c, hx - 3.4, hy - 4.6, 1.7, 4.4, DEERD, rot=-.75)     # the far ear, behind
+    ell(c, hx, hy, 4.6, 3.6, DEER)                             # the skull, lying on its cheek
+    ell(c, hx + 5, hy + 1.2, 3.2, 2.3, DEER, under=PALE, ut=.4)   # the long muzzle
+    for nx_, ny_ in ((8, .4), (8, 1.2), (7.2, 1.6), (8.6, .8)): c.p(hx + nx_, hy + ny_, (30, 20, 18))   # the dark nose, the doe's
+    for ex in (-1, 0, 1): c.p(hx + .6 + ex, hy - .8, (22, 12, 12))   # the eye, shut: a dark line
+    ell(c, hx - 2.4, hy - 4.2, 2.2, 5.0, DEER, rot=-.55)      # the near ear: big, angled back, the strongest deer cue
+    ell(c, hx - 2.4, hy - 4.2, 1.0, 3.4, DEERD, rot=-.55)     # its shaded inside (no pale specks)
+    c.p(hx + 6.6, hy + 3.2, (150, 40, 44)); c.p(hx + 7.4, hy + 3.6, (110, 26, 32))
 
 
 c = C(W, H)

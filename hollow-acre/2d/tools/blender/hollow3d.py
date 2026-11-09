@@ -272,7 +272,7 @@ def pose(t, clip, side_view=False):
     elif clip == 'crawl':   # on all fours like a spider: a hunched hump of coat, the head low in front looking at you,
                             # four long limbs with their knees and elbows up above the back, feet on one ground line
         P.update(pitch=45, drop=1.35, head_pitch=85, face_pitch=-140, head_tilt=s * 7, coat=(HIP + .8, HIP - .35, .28, .45), neck=.15, sleeves=False,
-                 shift=.55 if side_view else .25, hump=True, limb=1.7, face_world=True)
+                 shift=.6 if side_view else -.2, hump=True, limb=1.25 if side_view else 1.5, face_world=True)   # back from the front claws: inside the 96x176 frame
         sp = .5 if side_view else 1.0   # how far the limbs splay sideways (from the side, splay is depth, and crossing lines)
         for side, ph in (('L', 0), ('R', math.pi)):
             x = -1 if side == 'L' else 1
