@@ -318,9 +318,14 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   other and the walk limps. Use a pendulum (the hand rises as it swings out) so the arm never stretches.
 - [walk r3] The passing foot must trail 3-4 px behind the planted shin and lift 3-4 px, or its boot merges into the
   planted boot and reads as a kink in the shin.
-- [plant/grab r2] The target square is a whole tile from the feet, beyond the hands' reach. Lean the body in toward
-  it (up to 12 px sideways, 18 px facing down, almost none facing away so the body doesn't cover the square), and
-  take the hand points from the sheet itself (the generator records them) so things sit in the hands.
+- [plant/grab r2-r5, corrected] The target square is a whole tile from the feet, beyond the hands' reach. Sliding the
+  whole sprite toward it read as teleporting (r4). What works: the kneel itself steps the near foot forward and leans
+  from the hips; small things (seeds) cover the rest of the distance in a visible arc (leave the hand on the 3rd frame,
+  land on the 5th, stay); a big thing set down by hand (the sprinkler) needs a REAL half step first (the player moves,
+  walking frames, the camera follows, nothing snaps back), so the hands are on it when it touches down.
+- [plant r5] Facing away, show what's in the hand beside the head at shoulder height, never on the crown (a pale
+  cluster on the hair reads as a bun). Landed seeds as 2x2 clusters with a dark lower edge, not single pixels.
+- Take the hand points from the sheet itself (the generator records them) so things sit in the hands.
 - [code] Never end an inserted line with a // comment in these one-line-per-function files: twice it swallowed the
   rest of the line (the legs, then a whole function). Use /* */ or put the comment on its own line, then syntax-check.
 
