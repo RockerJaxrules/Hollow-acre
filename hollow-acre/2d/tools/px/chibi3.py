@@ -54,7 +54,7 @@ BUILDS = {'hale': 'stoop', 'agnes': 'stoop short', 'ezra': 'stoop', 'otto': 'sto
           'ada': 'tall stoop', 'orla': 'stoop', 'corwin': 'stoop', 'hollis': 'broad', 'dunn': 'stout', 'gideon': 'broad tall',
           'silas': 'tall', 'hob': 'broad stout', 'quinn': 'tall', 'moss': 'broad', 'abel': 'stout', 'maud': 'tall', 'vera': 'short'}
 for _k, _b in BUILDS.items(): NPC[_k]['build'] = _b
-STANCES = {'hollis': 'hips', 'hob': 'hips', 'maud': 'hips', 'dunn': 'folded', 'gideon': 'folded', 'abel': 'folded', 'tess': 'hips',
+STANCES = {'hollis': 'hips', 'hob': 'hips', 'maud': 'hips', 'dunn': 'folded', 'gideon': 'folded', 'abel': 'folded', 'tess': 'folded',
            'quinn': 'pockets', 'moss': 'pockets', 'silas': 'pockets', 'vera': 'pockets', 'wes': 'pockets', 'hale': 'behind', 'otto': 'behind',
            'lyle': 'behind', 'ezra': 'behind', 'corwin': 'behind'}
 for _k, _s in STANCES.items(): NPC[_k]['stance'] = _s
@@ -62,8 +62,8 @@ for _k, _s in STANCES.items(): NPC[_k]['stance'] = _s
 NPC['mae'] = dict(skin='#f3d2b8', hair='#e2c27e', hairTip='#e58fb0', tipDy=7, hairStyle='long', outfit='tank', shirt='#1e1c22', pants='#7a96bc', shoes='#e8e4dc',
                   glasses='square', accessory=None, eye='#6a8aa4', allure=1)   # no cord at sprite scale: it read as a black U over her cleavage (judge); her portrait keeps it
 # the young adult women: fitted low-cut tops (no scarves over the neckline), lashes, lipstick
-ALLURE = {'nell': dict(outfit='tee', overalls=False, pants='#4a3e2e'), 'june': dict(accessory='necklace', acc='#e8c860'), 'cora': dict(accessory='necklace', acc='#e8e0f0'), 'ida': dict(),
-          'tess': dict(accessory='necklace', acc='#e8c860'), 'iris': dict(), 'della': dict(), 'maud': dict(accessory='headband')}
+ALLURE = {'nell': dict(outfit='tee', overalls=False, pants='#4a3e2e'), 'june': dict(accessory=None), 'cora': dict(accessory=None), 'ida': dict(),
+          'tess': dict(accessory=None), 'iris': dict(), 'della': dict(accessory=None, extra='#5e3e6e'), 'maud': dict(accessory='headband')}   # no necklaces at sprite scale: they read as a collar, a necktie or a breastplate over the cleavage (judge; owner rule); the portraits keep them
 for _k, _v in ALLURE.items(): NPC[_k].update(_v, allure=1)
 # the portraits' clothes (chars4.py) and the sprites' clothes are the same clothes
 for _k, _v in {'ida': dict(extra='#c89aa0'), 'tess': dict(shirt='#3e5a40', extra='#9a7650'), 'iris': dict(shirt='#b48ad0'), 'della': dict(shirt='#d8a840'),

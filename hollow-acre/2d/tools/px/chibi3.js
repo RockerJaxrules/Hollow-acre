@@ -134,7 +134,7 @@ function torsoFront(cx,top,hip,back){const half=6+WIDE;
     for(let j=0;j<SKN.length;j++){const [a,b]=SKN[j],y=top+j;
       for(let u=a;u<=b;u++){const L=u<=0,iu=L?-u:u-1;let k;
         if(j<=1)k=L?4:3;
-        else{k=L?(iu>=2?4:iu===1?3:2):(iu>=3?2:3);if(j>=4)k=Math.max(1,k-1);if(iu===0)k=j>=2?(L?0:1):(L?1:2);}   // the cleft from row 2: it reads at game scale (owner)
+        else{k=L?(iu>=2?4:iu===1?3:2):(iu>=3?2:3);if(j>=4)k=Math.max(1,k-1);if(iu===0)k=j>=5?(L?0:1):j>=2?(L?1:2):(L?2:3);}   // the cleft from row 2 in two soft steps, darkest only at its base: a form, not a streak (judge)
         p(cx+u,y,SK[k]);}
       p(cx+a-1,y,shirtAt(cx+a-1,y)[1]);p(cx+b+1,y,shirtAt(cx+b+1,y)[0]);}   // a dark edge to the neckline: a clear break between cloth and skin
     for(let u=-5;u<=6;u++)p(cx+u,top+7,shirtAt(cx+u,top+7)[u<1?1:0]);}
@@ -372,7 +372,7 @@ function acc(cx,hy,view,fl,a,top0,hairTop){if(!a)return;const R=ACCR,side=view!=
   if(a==='earrings'&&!back){const G=[230,190,70],G2=[255,236,150];if(side){p(cx-fl*2,hy+4,G);p(cx-fl*2,hy+5,G2);}else{p(cx-9,hy+4,G);p(cx-9,hy+5,G2);p(cx+10,hy+4,G);p(cx+10,hy+5,G2);}}
   if(a==='choker'&&!back){const y0=top0;for(let x=(side?-3:-4);x<=(side?3:5);x++){p(cx+x,y0,R[0]);p(cx+x,y0+1,R[1]);}if(!side){p(cx,y0+2,R[4]);p(cx+1,y0+2,R[3]);}}
   if(a==='necklace'&&!back&&!side){if(ALL){// the young women: the chain hugs the base of the neck and one small pendant sits above the cleavage, never over it (owner)
-      for(let x=-3;x<=4;x++)p(cx+x,top0+Math.round((1-Math.pow((x-.5)/3.5,2))*1),R[x<0?3:2]);p(cx,top0+2,R[3]);}   // one step dimmer: the chain is not the brightest thing on her
+      for(let x=-3;x<=4;x++)p(cx+x,top0+Math.round((1-Math.pow((x-.5)/3.5,2))*1),R[x<0?4:3]);p(cx,top0+2,R[4]);}
     else{for(let x=-3;x<=4;x++)p(cx+x,top0+2+Math.round((1-Math.pow((x-.5)/3.5,2))*2),R[4]);p(cx,top0+5,[255,255,255]);p(cx+1,top0+5,R[3]);}}}
 // ---------------------------------------------------------------- tools. The game draws the tool itself (toolfx.js); the sheets carry the arms and the fists over
 // the handle, and META.tool says where the grip is, the angle (0 = screen right, 90 = down), the foreshortening and whether it's behind the body.
