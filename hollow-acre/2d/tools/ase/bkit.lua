@@ -334,8 +334,10 @@ function B.sideroof(c, x0, x1, yW, depth, roofmat, seed, hip)
     local hipEdge = hip and (xa + math.floor(t * hipw * .6) + 3) or nil
     local blockX = x0 - over + math.floor(Wd * .3); local blockY = top + 6 * math.max(1, math.floor(depth * .45 / 6))
     for x = x0 - over, x1 + over do if px.get(c, x, y) ~= 0 then
-      if hip and x < hipEdge - 1 then px.shade(c, x, y, 1)
-      elseif roofmat ~= 'slate' and y < blockY and x < blockX and x >= (hipEdge or (x0 - over)) + 1 then px.shade(c, x, y, 1) end end end end
+      local cool = (roofmat == 'slate' or roofmat == 'teal')   -- judge (pass 3): a lit step on blue slate or teal went icy, streaky or read as a verdigris stain
+      if hip and x < hipEdge - 1 then
+        if cool then P(c, x, y, ((y - top) % 5 == 4) and B.ROOFS[roofmat][5] or B.ROOFS[roofmat][6]) else px.shade(c, x, y, 1) end   -- slate/teal: one flat, mid step lighter, no streaks
+      elseif not cool and y < blockY and x < blockX and x >= (hipEdge or (x0 - over)) + 1 then px.shade(c, x, y, 1) end end end end
   local Rr = B.ROOFS[roofmat]
   --[[ judge (buildings sweep): a side roof in one even tone with a pale frame read as a box lid. The slope turns away from
        the light toward the eave: the lowest courses a step and two darker (the shadow the eave gathers), the first under the
