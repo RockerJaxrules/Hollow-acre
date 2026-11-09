@@ -1,0 +1,241 @@
+name maple_fall_o
+anchor 56 121
+pal 1 #4c1a30
+pal 2 #8c2c34
+pal 3 #c24c2c
+pal 4 #e7803a
+pal 5 #f4ac54
+pal O #3a1426
+pal o #7a2630
+pal T #a07a5c
+pal U #74533e
+pal V #4e3530
+pal W #33232a
+pal s #32212599
+use maple_lpc4_parts.pxg
+size 112 128
+mass s 22,118 40,113 70,112 96,116 100,121 84,126 52,127 28,124
+stamp leafL 24 116
+stamp leafR 88 119
+stamp leafL 70 122
+stamp leafR 34 124
+stamp leafL 96 114
+stamp trunkL 46 92
+stamp crown 0 0
+stamp vtuftL 35 10
+stamp vtuftL 40 10
+stamp vtuftL 45 10 flip
+stamp vtuftL 50 10 flip
+stamp vtuftL 55 10 flip
+stamp vtuftL 60 10
+stamp vtuftL 65 10
+stamp vtuft 32 14 flip
+stamp vtuft 37 14 flip
+stamp vtuft 42 14 flip
+stamp vtuft 47 14 flip
+stamp vtuft 52 14 flip
+stamp vtuftL 57 14
+stamp vtuftL 72 14
+stamp vtuftL 77 14
+stamp vtuft 25 18
+stamp vtuft 30 18
+stamp vtuft 35 18
+stamp vtuft 40 18 flip
+stamp vtuft 60 18 flip
+stamp vtuftL 65 18
+stamp vtuft 22 22
+stamp vtuft 27 22 flip
+stamp vtuft 37 22 flip
+stamp vtuft 47 22 flip
+stamp vtuft 52 22 flip
+stamp vtuft 62 22
+stamp vtuftL 67 22
+stamp vtuftL 82 22
+stamp vtuft 20 26
+stamp vtuft 25 26 flip
+stamp vtuft 55 26
+stamp vtuft 65 26
+stamp vtuftL 70 26 flip
+stamp vtuft 22 30
+stamp vtuft 27 30 flip
+stamp vtuft 47 30
+stamp vtuft 52 30 flip
+stamp vtuft 67 30 flip
+stamp vtuftL 77 30
+stamp vtuftL 92 30
+stamp vtuft 15 34
+stamp vtuft 25 34 flip
+stamp vtuft 30 34
+stamp vtuft 45 34 flip
+stamp vtuft 65 34 flip
+stamp vtuftL 70 34
+stamp vtuft 90 34
+stamp vtuftL 95 34 flip
+stamp vtuft 17 38
+stamp vtuft 32 38 flip
+stamp vtuft 37 38
+stamp vtuft 42 38 flip
+stamp vtuftL 67 38
+stamp vtuft 92 38 flip
+stamp vtuftL 97 38
+stamp vtuftL 15 42 flip
+stamp vtuftL 65 42 flip
+stamp vtuftL 80 42
+stamp vtuft 90 42
+stamp vtuftL 95 42
+stamp vtuftL 12 46 flip
+stamp vtuftL 17 46 flip
+stamp vtuft 22 46
+stamp vtuft 57 46
+stamp vtuftL 62 46
+stamp vtuftL 72 46 flip
+stamp vtuftL 77 46
+stamp vtuft 92 46
+stamp vtuftL 97 46
+stamp vtuftL 20 50 flip
+stamp vtuft 25 50 flip
+stamp vtuft 35 50 flip
+stamp vtuft 40 50
+stamp vtuft 45 50 flip
+stamp vtuft 50 50 flip
+stamp vtuft 55 50 flip
+stamp vtuftL 60 50
+stamp vtuft 90 50 flip
+stamp vtuftL 12 54 flip
+stamp vtuftL 27 54
+stamp vtuftL 32 54 flip
+stamp vtuftL 37 54 flip
+stamp vtuftL 42 54 flip
+stamp vtuftL 47 54 flip
+stamp vtuftL 52 54 flip
+stamp vtuftL 57 54 flip
+stamp vtuftL 67 54
+stamp vtuft 87 54 flip
+stamp vtuftL 92 54 flip
+stamp vtuftL 97 54 flip
+stamp vtuftL 25 58 flip
+stamp vtuftL 55 58
+stamp vtuftL 75 58 flip
+stamp vtuftL 80 58 flip
+stamp vtuft 85 58 flip
+stamp vtuftL 90 58 flip
+stamp vtuftL 100 58 flip
+stamp vtuft 12 62 flip
+stamp vtuftL 27 62 flip
+stamp vtuftL 62 62
+stamp vtuft 82 62
+stamp vtuftL 92 62
+stamp vtuftL 10 66 flip
+stamp vtuft 15 66
+stamp vtuft 20 66
+stamp vtuft 75 66
+stamp vtuftL 80 66
+stamp vtuftL 17 70
+stamp vtuft 22 70
+stamp vtuft 27 70
+stamp vtuftL 32 70
+stamp vtuft 62 70 flip
+stamp vtuft 67 70 flip
+stamp vtuftL 72 70 flip
+stamp vtuftL 77 70 flip
+stamp vtuftL 87 70 flip
+stamp vtuftL 92 70 flip
+stamp vtuftL 20 74
+stamp vtuftL 25 74 flip
+stamp vtuftL 30 74
+stamp vtuft 35 74
+stamp vtuft 40 74 flip
+stamp vtuft 45 74
+stamp vtuft 50 74 flip
+stamp vtuft 55 74 flip
+stamp vtuft 60 74 flip
+stamp vtuftL 65 74 flip
+stamp vtuftL 90 74
+stamp vtuftL 27 78 flip
+stamp vtuftL 32 78
+stamp vtuftL 37 78 flip
+stamp vtuftL 42 78 flip
+stamp vtuftL 47 78
+stamp vtuftL 52 78
+stamp vtuftL 57 78 flip
+stamp vtuftL 62 78
+stamp vtuftL 67 78
+stamp vtuftL 72 78 flip
+stamp vtuftL 77 78
+stamp vtuftL 87 78 flip
+stamp vtuft 35 82
+stamp vtuft 40 82 flip
+stamp vtuft 45 82 flip
+stamp vtuft 50 82 flip
+stamp vtuft 55 82 flip
+stamp vtuft 60 82
+stamp vtuft 65 82
+stamp vtuft 70 82 flip
+stamp vtuftL 75 82
+stamp vtuftL 37 86 flip
+stamp vtuftL 42 86 flip
+stamp vtuftL 47 86
+stamp vtuftL 52 86 flip
+stamp vtuftL 57 86
+stamp vtuftL 62 86 flip
+stamp vtuftL 67 86
+stamp vtuftL 72 86
+stamp rimV 100 49 shade=-1
+stamp rimV 97 52 shade=-1
+stamp rimV 96 56 shade=-1
+stamp rimV 95 59 shade=-1
+stamp rimV 94 63 shade=-1
+stamp rimV 93 66 shade=-1
+stamp rimV 91 70 shade=-1
+stamp rimV 89 73 shade=-1
+stamp rimV 87 75 shade=-1
+stamp rimV 84 78 shade=-1
+stamp rimV 81 81 shade=-1
+stamp rimV 78 83 shade=-1
+stamp rimV 75 85 shade=-1
+stamp rimV 72 87 shade=-1
+stamp rimV 68 88 shade=-1
+stamp rimV 65 89 shade=-1
+stamp rimV 61 90 shade=-1
+stamp rimV 57 90 shade=-1
+stamp rimV 54 91 shade=-1
+stamp rimV 50 90 shade=-1
+stamp rimV 46 90 shade=-1
+stamp rimV 42 89 shade=-1
+stamp rimV 39 88 shade=-1
+stamp rimV 35 87 shade=-1
+stamp rimV 32 85 shade=-1
+stamp rimV 29 83 shade=-1
+stamp rimV 26 81 shade=-1
+stamp rimV 23 78 shade=-1
+stamp rimV 20 75 shade=-1
+stamp rimV 18 73 shade=-1
+stamp rimV 16 70
+stamp rimV 14 66
+stamp rimV 13 63
+stamp rimV 12 59
+stamp rimV 11 56
+stamp rimV 10 52
+stamp rimV 10 49
+stamp rimV 8 45
+stamp rimV 8 41
+stamp rimV 9 38
+stamp rimV 10 34
+stamp rimB 15 27
+stamp rimB 19 22
+stamp rimB 25 16
+stamp rimB 31 12
+stamp rimB 39 9
+stamp rimB 47 7
+stamp rimB 54 7
+stamp rimB 62 7
+stamp rimB 70 9
+stamp rimB 78 12
+stamp rimB 84 16
+stamp rimB 90 22
+stamp rimB 94 27
+stamp rimV 97 34 shade=-1
+stamp rimV 98 38 shade=-1
+stamp rimV 99 41 shade=-1
+stamp rimV 99 45 shade=-1
+outline O o s

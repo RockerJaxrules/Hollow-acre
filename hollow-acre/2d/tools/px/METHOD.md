@@ -34,3 +34,22 @@ Trunk: a cylinder with vertical bark stripes, a crack and a knot by hand, and a 
 - `grid.py`: `build`, `view`, `validate`, `ascii`, `lint`. A `.pxg` file holds the palette, modules (small hand-drawn
   grids), stamps (a module placed at x,y, optionally flipped or stepped lighter/darker as a whole) and block-in masses.
 - `nature/`: the trees' bundles, trunks and assembled crowns.
+
+## LPC style (the target look)
+
+From the public Liberated Pixel Cup style guide (written so artists can make new, original art in this style) and the
+LPC Revised guide: 32x32 tile grid; top-down about 60 degrees, orthographic (no perspective), diagonals 1:2, a cube's
+top 32 wide by 24 high; "toon" rendering with medium-low texture, shade in blocks, block out volume first, detail
+sparse and mostly on edges; light from above, slightly left; ramps never one hue (shades toward purple, lights toward
+yellow, no pure colours); outlines a darker version of the object's colour, lighter where lit (characters near-black);
+drop shadows #322125 at 60%; no dithering; props: strong difference between lit top and sides, contrast with the
+ground, always a shadow. Measured on LPC art (measured only, nothing reused): about 6 colours per 32x32 tile.
+
+## LPC-style broadleaf tree (what worked)
+
+One round crown volume, not a pile of balls: a round lit dome offset to the top-left (and a small brighter patch in it),
+a shade crescent bottom-right, the deepest step on the bottom rim. Texture is one V-shaped leaf tuft repeated on a
+staggered lattice, always one step darker than what is under it (one step lighter on the dark side of a border): dense
+on every zone border and in the shade, sparse in the lit dome. The rim: the same tufts standing proud round the lower
+two thirds (serrated), small bumps on top. One outline round the whole tree. Trunk tucked up under the crown; drop
+shadow; a few fallen leaves.

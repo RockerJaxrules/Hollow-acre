@@ -53,6 +53,9 @@ def parse(path, mods=None, pal=None):
             meta['stamps'].append((t[1], int(t[2]), int(t[3]), 'flip' in t[4:], 'vflip' in t[4:], sh))
         elif t[0] == 'mass':   # mass <char> x,y x,y x,y ...  - a flat block-in shape (polygon) in one colour
             meta['stamps'].append(('__mass', t[1], [tuple(int(v) for v in q.split(',')) for q in t[2:]], False, False, 0))
+        elif t[0] == 'outline':   # outline <dark> <lit> [skip-chars]: a 1-px ring round the finished silhouette (LPC: a
+            # darker version of the colour; the lit top/left side gets the lighter one)
+            meta['stamps'].append(('__outline', t[1], (t[2], t[3] if len(t) > 3 else ''), False, False, 0))
         elif t[0] == 'size':
             meta['grid'] = ['.' * int(t[1])] * int(t[2])
     meta['mods'] = mods; meta['pal'] = pal
@@ -70,6 +73,17 @@ def render(meta):
     # a stamp may be shaded lighter or darker as a whole (shade=+1 / -2): the hand-drawn module keeps its shape and
     # cluster pattern, only its shades step along the ramp (digits 1-9 are ramp steps, darkest first)
     for name, sx, sy, fl, vf, sh in meta['stamps']:
+        if name == '__outline':
+            dark, (lit, skip) = sx, sy; px_ = im.load(); inv = {v: k for k, v in pal.items()}
+            solid = lambda x, y: 0 <= x < w and 0 <= y < h and px_[x, y][3] == 255 and inv.get(px_[x, y]) not in skip
+            add = []
+            for y in range(h):
+                for x in range(w):
+                    if solid(x, y) or (0 <= x < w and 0 <= y < h and px_[x, y][3] == 255 and inv.get(px_[x, y]) not in skip): continue
+                    below_or_right = solid(x, y + 1) or solid(x + 1, y); above_or_left = solid(x, y - 1) or solid(x - 1, y)
+                    if below_or_right or above_or_left: add.append((x, y, lit if (below_or_right and not above_or_left) else dark))
+            for x, y, ch in add: put(x, y, ch)
+            continue
         if name == '__mass':
             ch, pts = sx, sy; ys = [q[1] for q in pts]
             for y in range(min(ys), max(ys) + 1):
@@ -85,6 +99,15 @@ def render(meta):
         for y, row in enumerate(rows):
             r = row[::-1] if fl else row
             for x, ch in enumerate(r):
+                if ch in '-+':
+                    X, Y = sx + x, sy + y
+                    if 0 <= X < w and 0 <= Y < h and px[X, Y][3] == 255:
+                        inv = {v: k for k, v in pal.items()}; cur = inv.get(px[X, Y])
+                        if cur and cur.isdigit():
+                            k = max(1, min(9, int(cur) + (-1 if ch == '-' else 1)))
+                            while str(k) not in pal and k > 1: k -= 1
+                            put(X, Y, str(k))
+                    continue
                 if sh and ch.isdigit() and ch != '0':
                     k = max(1, min(9, int(ch) + sh))
                     while str(k) not in pal and k > 1: k -= 1
