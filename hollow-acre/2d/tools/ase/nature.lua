@@ -345,7 +345,7 @@ for k in pairs(N) do names[#names + 1] = k end
 table.sort(names)
 for _, name in ipairs(names) do
   if not only or only == name then
-    local c, m = N[name](); c.weather = {speck = .06, grime = .22, round = 1.35, radius = math.max(4, math.floor(c.w / 7)), mottle = .16, cell = 6}
+    local c, m = N[name](); c.weather = {grime = .15, round = 1.35, radius = math.max(4, math.floor(c.w / 7)), patch = .18, cell = 6}
     px.save(c, app.fs.joinPath(out, name .. '.png'))
     print(string.format('META %s %d %d %.1f %d %.2f - -', name, m.w, m.h, m.ax, m.ay, m.w / 32))
   end

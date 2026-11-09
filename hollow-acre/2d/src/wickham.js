@@ -7,6 +7,7 @@ const WK={street:46,lane:60,x0:96,x1:150,sq:[124,52],bell:124};
 ROADS.push([150,-6,150,WK.street,2.4],[WK.x0,WK.street,WK.x1,WK.street,3],[98,WK.lane,140,WK.lane,2],[WK.bell,36,WK.bell,WK.street,2],[WK.bell,WK.street,WK.bell,WK.lane,1.6],
   [70,LANE_E,WK.x0,WK.street,2],[128,WK.lane,128,71,1.6]);
 const inWick=(x,z)=>x>92&&x<168&&z>30&&z<70;
+STREETS.push({x0:WK.x0,x1:WK.x1,z:WK.street,hw:1.3,sw:.85});
 {const Dk=LAYERS.dark,St=LAYERS.stone;LAYERS.dark=(x,z)=>!inWick(x,z)&&Dk(x,z);LAYERS.stone=(x,z)=>St(x,z)||(Math.abs(x-WK.sq[0])<5.6+(fbm(x*.6,z*.6)-.5)*.8&&z>WK.street&&z<WK.lane-1.2)||(Math.abs(z-WK.street)<2&&x>WK.x0&&x<WK.x1);}
 const WHOUSES=[ // [key, sprite, x, front z, lit]
   ['quinn','church',124,35.4],['harlow','inn',106.5,43.4],['ashby','house_a',115.4,43.4],['vale','house_b',132.6,43.4],['kerrigan','house_d',140,43.4],['wk_empty','house_c',146.9,43.4],

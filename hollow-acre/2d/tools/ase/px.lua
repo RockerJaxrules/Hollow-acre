@@ -17,11 +17,11 @@ local function hsv2rgb(h, s, v) local c = v * s; local x = c * (1 - math.abs((h 
   return r + m, g + m, b + m end
 function px.grade(r, g, b)
   local h, s, v = rgb2hsv(r / 255, g / 255, b / 255)
-  v = (v ^ 1.32) * .97                                         -- deep darks, lights kept: contrast like the old rendered art
-  s = math.min(1, s * (1 + .18 * (1 - v)))                     -- shadows keep their colour (richer, not grey)
-  if v > .78 then s = s * .9 end                               -- only the brightest tones ease off
-  if h > 45 and h < 160 then s = s * .95 end
-  if v < .45 then local t = (.45 - v) / .45; local d = ((250 - h + 540) % 360) - 180; h = (h + d * .18 * t + 360) % 360 end
+  v = (v ^ 1.22) * .97                                         -- a little darker, lights kept (the old art's level)
+  s = s * .93 * (1 + .06 * (1 - v))                            -- calmer colour, shadows keep a little more
+  if v > .8 then s = s * .92 end                               -- only the brightest tones ease off
+  if h > 45 and h < 160 then s = s * .95 end                   -- greens and yellows toward autumn
+  if v < .45 then local t = (.45 - v) / .45; local d = ((250 - h + 540) % 360) - 180; h = (h + d * .12 * t + 360) % 360 end
   local rr, gg, bb = hsv2rgb(h, s, v)
   return math.floor(rr * 255 + .5), math.floor(gg * 255 + .5), math.floor(bb * 255 + .5)
 end
@@ -36,7 +36,7 @@ function px.new(w, h, pal)
     P:setColor(i, Color{r=r, g=g, b=b, a=255}); idx[e[1]] = i end
   spr:setPalette(P); spr.transparentColor = 0
   local cel = spr.cels[1] or spr:newCel(spr.layers[1], spr.frames[1])
-  local c = {spr=spr, img=cel.image, w=w, h=h, idx=idx, weather={speck=.09, grime=.4, streak=false}}
+  local c = {spr=spr, img=cel.image, w=w, h=h, idx=idx, weather={grime=.25, patch=.25}}
   local names = {}; for n, i in pairs(idx) do names[i] = n end; c.names = names
   return c
 end
@@ -121,7 +121,7 @@ local function step(c, v, d)
   local pre, num = n:match('^(%a+)(%d+)$'); if not pre or pre == 'OUT' then return v end
   local t = c.idx[pre .. (tonumber(num) + d)]; return t or v
 end
-function px.weather(c)
+function px.weather_v1(c)
   local W = c.weather; if not W then return end
   local img = c.img; local w, h = c.w, c.h
   local V = {}; for y = 0, h - 1 do local row = {}; for x = 0, w - 1 do row[x] = img:getPixel(x, y) end; V[y] = row end
@@ -183,5 +183,129 @@ function px.weather(c)
   end
   for y = 0, h - 1 do for x = 0, w - 1 do if new[y][x] ~= V[y][x] then img:drawPixel(x, y, new[y][x]) end end end
 end
-function px.save(c, path) px.weather(c); c.spr:saveCopyAs(path) end
+-- ---- weathering v2, the old art's way: no dither and no lone pixels; every change is a clean-edged shape, and shading
+-- falls off through in-between tones (a half step between each pair of ramp steps) instead of checkerboards and specks.
+--   round  : the silhouette lit as a volume (light from the top-left): lit rims up a half or whole step, far rims down
+--   soft   : where two broad flats of neighbouring steps meet, a one-pixel band of the in-between tone (on by default)
+--   patch  : broad worn patches a half step darker (a whole step at their hearts) and a few sun-bleached ones
+--   moss   : {ramps = {'sl', 's'}, amt = .3}: moss in the shaded hollows of those surfaces (shingle gaps, stone joints)
+--   grime  : a ragged dirt line up from the ground, a half step darker, a whole step at the very foot
+--   streak : a few water stains: solid thin runs a half step darker
+--   chips  : rare dents: a two-pixel dark nick with its lit lip above
+-- The result is saved as a full-colour image (the in-between tones would overflow a 256-colour palette).
+-- c.weather.v1 = true uses the earlier, grittier pass (px.weather_v1), kept as a backup.
+local MOSS = {'#1c2818', '#2c3c20', '#42532a', '#5c6a34'}
+function px.weather(c)
+  local W = c.weather; if not W then return nil end
+  if W.v1 then px.weather_v1(c); return nil end
+  local img = c.img; local w, h = c.w, c.h
+  local pal = c.spr.palettes[1]
+  local RGB = {}; for i = 0, #pal - 1 do local q = pal:getColor(i); RGB[i] = {q.red, q.green, q.blue, q.alpha} end
+  local function parse(n) if not n then return nil end; local pre, num = n:match('^(%a+)(%d+)$'); if not pre or pre == 'OUT' then return nil end
+    return pre, tonumber(num) * 2 end
+  local len = {}; for n, _ in pairs(c.idx) do local pre, pos = parse(n); if pre then len[pre] = math.max(len[pre] or 0, pos // 2) end end
+  local V, Rz, Pz = {}, {}, {}
+  for y = 0, h - 1 do V[y], Rz[y], Pz[y] = {}, {}, {}
+    for x = 0, w - 1 do local v = img:getPixel(x, y); V[y][x] = v; local pre, pos = parse(c.names[v]); Rz[y][x] = pre; Pz[y][x] = pos end end
+  local function get(x, y) if x < 0 or y < 0 or x >= w or y >= h then return 0 end return V[y][x] end
+  local function rz(x, y) if x < 0 or y < 0 or x >= w or y >= h then return nil end return Rz[y][x] end
+  local function pz(x, y) if x < 0 or y < 0 or x >= w or y >= h then return nil end return Pz[y][x] end
+  -- the colour of a ramp position (in half steps: 2 = step 1, 3 = between steps 1 and 2, ...)
+  local function tone(pre, pos) local n = len[pre]; pos = math.max(2, math.min(2 * n, pos))
+    local a = c.idx[pre .. (pos // 2)]; if pos % 2 == 0 then return RGB[a] end
+    local b = c.idx[pre .. (pos // 2 + 1)]; if not a or not b then return RGB[a or b] end
+    local p, q = RGB[a], RGB[b]; return {(p[1] + q[1]) // 2, (p[2] + q[2]) // 2, (p[3] + q[3]) // 2, 255} end
+  local D4 = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}}
+  -- value noise (wraps for ground tiles)
+  local function vn(x, y, cell, sd)
+    local gx, gy = x / cell, y / cell; local i, j = math.floor(gx), math.floor(gy); local fx, fy = gx - i, gy - j
+    local ni, nj = W.wrapW and math.max(1, math.floor(w / cell)) or nil, W.wrapW and math.max(1, math.floor(h / cell)) or nil
+    local function hv(a, b) if ni then a = a % ni; b = b % nj end return px.h(a + sd * 31, b + sd * 17) end
+    local u, vv = fx * fx * (3 - 2 * fx), fy * fy * (3 - 2 * fy)
+    local a1, b1, c1, d1 = hv(i, j), hv(i + 1, j), hv(i, j + 1), hv(i + 1, j + 1)
+    return a1 + (b1 - a1) * u + (c1 - a1) * vv + (a1 - b1 - c1 + d1) * u * vv
+  end
+  local O = {}; for y = 0, h - 1 do O[y] = {}; for x = 0, w - 1 do O[y][x] = 0 end end
+  -- 1. soft
+  if W.soft ~= false then local S2 = {}
+    for y = 0, h - 1 do for x = 0, w - 1 do local pre, pos = Rz[y][x], Pz[y][x]
+      if pre then for _, d in ipairs(D4) do local qx, qy = x + d[1], y + d[2]
+        if rz(qx, qy) == pre and pz(qx, qy) == pos + 2 and get(x - d[1], y - d[2]) == V[y][x] and get(qx + d[1], qy + d[2]) == V[qy][qx] then
+          S2[#S2 + 1] = {x, y}; break end end end end end
+    for _, q in ipairs(S2) do Pz[q[2]][q[1]] = Pz[q[2]][q[1]] + 1 end
+  end
+  -- a field of offsets with its lone pixels removed (each kept pixel shares its value with a neighbour)
+  local function clean(F) local out = {}
+    for y = 0, h - 1 do out[y] = {}; for x = 0, w - 1 do local f = F[y][x]; out[y][x] = f
+      if f ~= 0 then local n = 0; for _, d in ipairs(D4) do local yy, xx = y + d[2], x + d[1]; if F[yy] and F[yy][xx] == f then n = n + 1 end end
+        if n == 0 then out[y][x] = 0 end end end end
+    return out end
+  -- 2. round
+  local R = W.round or 0
+  if R > 0 then local r = W.radius or 3
+    local S = {}; for y = 0, h do S[y] = {}; for x = 0, w do S[y][x] = 0 end end
+    for y = 1, h do local acc = 0; for x = 1, w do acc = acc + ((V[y - 1][x - 1] ~= 0) and 1 or 0); S[y][x] = S[y - 1][x] + acc end end
+    local function A(x, y) local x0, y0, x1, y1 = math.max(0, x - r), math.max(0, y - r), math.min(w, x + r + 1), math.min(h, y + r + 1)
+      return (S[y1][x1] - S[y0][x1] - S[y1][x0] + S[y0][x0]) / ((2 * r + 1) * (2 * r + 1)) end
+    local Lx, Ly = -.62, -.78; local F = {}
+    for y = 0, h - 1 do F[y] = {}; for x = 0, w - 1 do F[y][x] = 0
+      if Rz[y][x] then local gx, gy = A(x + 1, y) - A(x - 1, y), A(x, y + 1) - A(x, y - 1); local mag = math.sqrt(gx * gx + gy * gy)
+        if mag > .02 then local nx, ny = -gx / mag, -gy / mag; local e = math.min(1, mag * (2 * r + 1) * .55)
+          local sh = (nx * Lx + ny * Ly) * e * R
+          F[y][x] = sh > 0 and math.min(2, math.floor(sh * 2.2 + .25)) or -math.min(3, math.floor(-sh * 3 + .25)) end end end end
+    F = clean(F); for y = 0, h - 1 do for x = 0, w - 1 do O[y][x] = O[y][x] + F[y][x] end end
+  end
+  -- 3. worn patches
+  local PA = W.patch or 0
+  if PA > 0 then local cell = (W.cell or 6) * 2; local lo = .5 - (1 - PA) * .2; local hi = .5 + (1 - PA) * .26; local F = {}
+    for y = 0, h - 1 do F[y] = {}; for x = 0, w - 1 do F[y][x] = 0
+      if Rz[y][x] then local n = vn(x, y, cell, 5) * .65 + vn(x, y, cell / 2, 9) * .35
+        if n < lo - .13 then F[y][x] = -2 elseif n < lo then F[y][x] = -1 elseif n > hi then F[y][x] = 1 end end end end
+    F = clean(F); for y = 0, h - 1 do for x = 0, w - 1 do O[y][x] = O[y][x] + F[y][x] end end
+  end
+  -- 4. grime up from the ground, water stains, dents
+  local miny, maxy = 1e9, -1e9
+  for y = 0, h - 1 do for x = 0, w - 1 do if V[y][x] ~= 0 then miny = math.min(miny, y); maxy = math.max(maxy, y) end end end
+  if maxy >= miny then local span = maxy - miny + 1
+    if W.grime and W.grime > 0 then
+      for x = 0, w - 1 do local top = maxy - span * W.grime * .45 * (.55 + .45 * vn(x, 0, 7, 31)); local foot = maxy - span * W.grime * .12 * (.5 + .5 * vn(x, 0, 4, 33))
+        for y = math.max(0, math.floor(top)), maxy do if Rz[y][x] then O[y][x] = O[y][x] - ((y > foot) and 2 or 1) end end end end
+    if W.streak then for k = 0, math.floor(w / 16) do local sx = math.floor(px.h(k, 77) * w); local sy = math.floor(miny + px.h(k, 78) * span * .6)
+      local ln = 4 + math.floor(px.h(k, 79) * span * .25)
+      for y = sy, math.min(h - 1, sy + ln) do if Rz[y][sx] then O[y][sx] = O[y][sx] - 1 end end end end
+    if W.chips and W.chips > 0 then for y = 1, h - 1 do for x = 0, w - 2 do
+      if px.h(x * 3.1, y * 1.7) < W.chips and Rz[y][x] and Rz[y][x + 1] == Rz[y][x] and Rz[y - 1][x] == Rz[y][x] and Rz[y - 1][x + 1] == Rz[y][x] then
+        O[y][x] = O[y][x] - 2; O[y][x + 1] = O[y][x + 1] - 2; O[y - 1][x] = O[y - 1][x] + 1; O[y - 1][x + 1] = O[y - 1][x + 1] + 1 end end end end
+  end
+  -- 5. moss in the shaded hollows
+  local MZ
+  if W.moss then local set = {}; for _, r in ipairs(W.moss.ramps or W.moss) do set[r] = true end; local amt = W.moss.amt or .3
+    local thr = .5 + (1 - amt) * .25; local F = {}
+    for y = 0, h - 1 do F[y] = {}; for x = 0, w - 1 do F[y][x] = 0; local pre = Rz[y][x]
+      if pre and set[pre] then local n = vn(x * .45, y * 1.6, 7, 21) * .7 + vn(x * .6, y, 3, 23) * .3; local rel = (Pz[y][x] - 2) / math.max(1, 2 * len[pre] - 2)
+        if n > thr and (rel < .55 or n > thr + .08) then F[y][x] = 1 + math.min(3, math.floor(rel * 4)) end end end end
+    MZ = clean(F)
+    local MR = {}; for i, hx in ipairs(MOSS) do local r, g, b = hex(hx); if px.MOOD then r, g, b = px.grade(r, g, b) end; MR[i] = {r, g, b, 255} end
+    MZ.rgb = MR
+  end
+  -- assemble, then drop any lone pixel the weathering made
+  local OUTC = {}
+  for y = 0, h - 1 do OUTC[y] = {}; for x = 0, w - 1 do local v = V[y][x]; local pre = Rz[y][x]
+    if pre then local m = MZ and MZ[y][x] or 0
+      if m > 0 then local o = O[y][x]; OUTC[y][x] = MZ.rgb[math.max(1, math.min(4, m + (o >= 2 and 1 or (o <= -2 and -1 or 0))))]
+      else OUTC[y][x] = tone(pre, Pz[y][x] + O[y][x]) end
+    else OUTC[y][x] = RGB[v] end end end
+  local function key(q) return q[1] * 65536 + q[2] * 256 + q[3] + (q[4] or 255) * 16777216 end
+  for y = 0, h - 1 do for x = 0, w - 1 do local v = V[y][x]
+    if v ~= 0 and Rz[y][x] then local k = key(OUTC[y][x])
+      if k ~= key(RGB[v]) then local alone = true
+        for _, d in ipairs(D4) do local yy, xx = y + d[2], x + d[1]; if OUTC[yy] and OUTC[yy][xx] and key(OUTC[yy][xx]) == k then alone = false; break end end
+        if alone then OUTC[y][x] = tone(Rz[y][x], Pz[y][x]) end end end end end
+  local out = Sprite(w, h, ColorMode.RGB); local oi = out.cels[1].image; local pc = app.pixelColor
+  for y = 0, h - 1 do for x = 0, w - 1 do local v = V[y][x]
+    if v ~= 0 then local q = OUTC[y][x]; oi:drawPixel(x, y, pc.rgba(q[1], q[2], q[3], q[4] or 255)) end end end
+  return out
+end
+function px.save(c, path) local out = px.weather(c)
+  if out then out:saveCopyAs(path); out:close() else c.spr:saveCopyAs(path) end end
 return px

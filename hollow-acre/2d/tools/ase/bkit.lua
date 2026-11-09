@@ -9,6 +9,10 @@ B.PAL = {
  {'OUT','#1d1018'},{'OUT2','#2c1820'},
  -- roofs (8 steps)
  {'r1','#2e1424'},{'r2','#4f1a28'},{'r3','#75242b'},{'r4','#9a3530'},{'r5','#bd4f35'},{'r6','#d9733f'},{'r7','#eca055'},{'r8','#f6c779'},
+ -- asphalt shingle roofs, the way most houses are roofed now: charcoal, dark brown, weathered teal
+ {'as1','#141418'},{'as2','#1e1e24'},{'as3','#2a2930'},{'as4','#37353c'},{'as5','#46434a'},{'as6','#57535a'},{'as7','#6c676c'},{'as8','#868082'},
+ {'bn1','#1a1214'},{'bn2','#271a1a'},{'bn3','#36241f'},{'bn4','#463026'},{'bn5','#573d2e'},{'bn6','#6a4c38'},{'bn7','#7f5e46'},{'bn8','#977458'},
+ {'tl1','#10181c'},{'tl2','#172328'},{'tl3','#1f3034'},{'tl4','#2a3f42'},{'tl5','#365052'},{'tl6','#456264'},{'tl7','#587878'},{'tl8','#72908c'},
  {'sl1','#1c1a2c'},{'sl2','#2a2a44'},{'sl3','#3a3d5c'},{'sl4','#4c5372'},{'sl5','#626c88'},{'sl6','#7f8aa2'},{'sl7','#a2acbe'},{'sl8','#c8d0da'},
  {'sh1','#22141c'},{'sh2','#3a2022'},{'sh3','#57302a'},{'sh4','#764334'},{'sh5','#94593e'},{'sh6','#b2744c'},{'sh7','#cc955e'},{'sh8','#e4b878'},
  {'tn1','#141e1c'},{'tn2','#1f302a'},{'tn3','#2c4636'},{'tn4','#3d5e40'},{'tn5','#567a48'},{'tn6','#74964e'},{'tn7','#97b05a'},{'tn8','#c0c870'},
@@ -41,7 +45,8 @@ B.PAL = {
  {'k1','#22141e'},{'k2','#3a2228'},{'k3','#573430'},{'k4','#77493a'},{'k5','#9a6448'},{'k6','#b8835a'},
 }
 local function ramp(prefix, n) local r = {} for i = 1, n do r[i] = prefix .. i end return r end
-B.ROOFS = {scallop = ramp('r', 8), slate = ramp('sl', 8), shingle = ramp('sh', 8), tin = ramp('tn', 8), thatch = ramp('th', 8), plum = ramp('pr', 8)}
+B.ROOFS = {scallop = ramp('r', 8), slate = ramp('sl', 8), shingle = ramp('sh', 8), tin = ramp('tn', 8), thatch = ramp('th', 8), plum = ramp('pr', 8),
+           asphalt = ramp('as', 8), brown = ramp('bn', 8), teal = ramp('tl', 8)}
 B.WALLS = {honey = ramp('w', 7), white = ramp('ww', 7), sage = ramp('sg', 7), blue = ramp('bb', 7), oxblood = ramp('ox', 7), mustard = ramp('mu', 7),
            brick = ramp('bk', 7), stone = ramp('s', 7), log = ramp('lg', 7), plaster = ramp('pl', 7)}
 B.TRIMS = {cream = ramp('t', 5), green = ramp('dg', 5), black = ramp('bt', 5)}
@@ -150,7 +155,7 @@ function B.roofpx(c, mat, x, y, top, lit, seed)
     local v = band(c, Rr, (lit > .5 and .66 or .26) + .2 * (1 - math.abs(lx - 5.5) / 6) - (ry <= 1 and .2 or 0) + (n - .5) * .1 - (y - top) / 520, 2, 8)
     if lit > .5 and ry == 2 and (lx == 3 or lx == 4) then v = px.i(c, n > .5 and Rr[8] or Rr[7]) end
     return v
-  elseif mat == 'slate' or mat == 'shingle' or mat == 'plum' then
+  elseif mat == 'slate' or mat == 'shingle' or mat == 'plum' or mat == 'asphalt' or mat == 'brown' or mat == 'teal' then
     local ch = (mat == 'slate') and 5 or 6; local cw = (mat == 'slate') and 9 or 11
     local row = (y - top) // ch; local ry = (y - top) % ch; local off = math.floor(H(row, seed) * cw)
     local lx = (x + off) % cw; local n = H((x + off) // cw, row + seed)
@@ -399,12 +404,43 @@ function B.porch(c, x0, x1, ytop, yb, roofmat, trim, rail)
   if rail then for x = x0, x1 do P(c, x, yb - 10, trim[4]); P(c, x, yb - 9, trim[2]); if x % 4 == 0 then px.vline(c, x, yb - 8, yb, trim[3]) end end end
 end
 
+-- a dormer standing on the roof: a little sided face with a window, its own small roof, its shadow on the roof behind
+function B.dormer(c, cx, yb, wd, hd, roofmat, wallmat, trim, night, seed)
+  local x0, x1 = cx - wd // 2, cx + wd // 2; local yt = yb - hd; local ph = math.floor((wd / 2 + 4) * .62)
+  for y = yt + 2, yb + 3 do for x = x1 + 1, x1 + 5 do if px.get(c, x, y) ~= 0 then P(c, x, y, 'OUT2') end end end
+  local wm = (wallmat == 'brick' or wallmat == 'stone' or wallmat == 'log') and 'white' or wallmat
+  B.wall(c, wm, x0, yt, x1, yb, seed)
+  for _, bx in ipairs({x0, x1 - 2}) do R(c, bx, yt, bx + 2, yb, trim[3]); px.vline(c, bx, yt, yb, trim[4]) end
+  B.window(c, cx - 6, yt + 4, 13, hd - 7, {trim = trim, night = night, curtain = 't4', seed = seed})
+  px.hline(c, x0 - 1, x1 + 1, yb + 1, 'OUT')
+  px.poly(c, {{x0 - 4, yt + 2}, {cx + .5, yt - ph}, {x1 + 5, yt + 2}}, function(x, y) return B.roofpx(c, roofmat, x, y, yt - ph, x <= cx and 1 or 0, seed) end)
+  for t = 0, 2 do local col = ({trim[4], trim[3], trim[2]})[t + 1]
+    px.line(c, x0 - 4, yt + 2 + t, cx, yt - ph + t, col); px.line(c, cx + 1, yt - ph + t, x1 + 5, yt + 2 + t, t == 0 and trim[3] or trim[2]) end
+  px.line(c, x0 - 5, yt + 2, cx, yt - ph - 1, 'OUT'); px.line(c, cx + 1, yt - ph - 1, x1 + 6, yt + 2, 'OUT')
+end
+-- a roll-up garage door: four lit-edged panels, a row of little windows along the top, a concrete apron at the foot
+function B.garagedoor(c, x0, x1, y0, y1, trim, night, seed)
+  R(c, x0 - 4, y0 - 4, x1 + 4, y1, trim[3]); px.hline(c, x0 - 4, x1 + 4, y0 - 4, trim[5]); px.vline(c, x0 - 4, y0 - 4, y1, trim[4]); px.vline(c, x1 + 4, y0 - 4, y1, trim[2])
+  local G = B.WALLS.white; local n = 4; local ph = (y1 - y0 + 1) / n; local cols = math.max(3, math.floor((x1 - x0) / 13))
+  for y = y0, y1 do local k = math.floor((y - y0) / ph); local r = (y - y0) - k * ph
+    for x = x0, x1 do local col
+      if r < 1 then col = G[6] elseif r >= ph - 1.2 then col = G[3] else col = band(c, G, .58 - (x - x0) / math.max(1, x1 - x0) * .22 - k * .04, 3, 6) end
+      local cx = (x - x0) % ((x1 - x0 + 1) / cols)
+      if k == 0 and r >= 2.5 and r < ph - 2.5 and cx > 2.5 and cx < (x1 - x0 + 1) / cols - 2.5 then col = night and 'y2' or ((r < 4 and cx < 6) and 'g4' or 'g2') end
+      P(c, x, y, col) end end
+  for i = 1, cols - 1 do local sx = math.floor(x0 + i * (x1 - x0 + 1) / cols); for y = y0, y1 do if px.get(c, sx, y) ~= px.i(c, 'g2') then P(c, sx, y, G[4]) end end end
+  P(c, (x0 + x1) // 2 - 2, y1 - 4, 'm2'); P(c, (x0 + x1) // 2 + 2, y1 - 4, 'm2'); px.hline(c, (x0 + x1) // 2 - 2, (x0 + x1) // 2 + 2, y1 - 3, 'm1')
+  if seed and H(seed, 3) > .5 then for k = 0, 2 do px.vline(c, x0 + 8 + k * 9, y1 - 6 - k, y1, 's4') end end   -- oil and rust streaks at the foot
+end
+
 -- ------------------------------------------------------------------ whole buildings
 function B.build(sp, night)
   DOORMETA = nil
   local wt = sp.w; local W = math.floor(wt * 32); local m = 22
   local wallH = sp.wallh or 70
   local kind = sp.kind or 'gable'
+  -- modern roofs: 'hip' (sloped on all four sides) and 'side' (ridge running left to right, gable ends at the sides)
+  if (kind == 'hip' or kind == 'side') and not sp.roofd then sp.roofd = math.floor(math.max(50, math.min(84, W * .32))) end
   local extraTop = (kind == 'gable' or kind == 'church' or kind == 'barn') and math.floor(W * .62) + 10 or (sp.roofd or 64) + 40
   if kind == 'church' then extraTop = extraTop + (sp.spire or 70) + 30 end
   if kind == 'cross' then extraTop = math.max(extraTop, math.floor(W * .45 * .62) + 40) end
@@ -415,7 +451,26 @@ function B.build(sp, night)
   local roofmat = sp.roof or 'scallop'; local wallmat = sp.wall or 'honey'
   -- roof first (the walls and the gable sit in front of it)
   local topY
-  if kind == 'gable' or kind == 'church' or kind == 'barn' then topY = select(1, B.frontgable(c, sp, x0, x1, yW, wallmat, roofmat, trim, seed))
+  -- an attached garage wing, drawn first so the house's own eaves overhang it
+  if sp.wing then local wg = sp.wing; local ww = math.floor(wg.w * 32); local wx0, wx1
+    if wg.side == 'left' then wx0, wx1 = x0, x0 + ww - 1; x0 = x0 + ww + 1 else wx0, wx1 = x1 - ww + 1, x1; x1 = x1 - ww - 1 end
+    local wyW = gy - 9 - (wg.h or 58)
+    B.sideroof(c, wx0, wx1, wyW, wg.roofd or 40, roofmat, seed + 7, true)
+    B.wall(c, wg.wall or wallmat, wx0, wyW + 1, wx1, gy - 10, seed + 9)
+    for y = wyW + 1, wyW + 5 do for x = wx0, wx1 do if (y - wyW) < 5 - ((x + y) % 2) * 3 then P(c, x, y, 'OUT2') end end end
+    B.stones(c, wx0 - 4, gy - 9, wx1 + 4, gy, seed + 13, 5, function(x, y) return .66 - (x - wx0) / 700 end); px.hline(c, wx0 - 4, wx1 + 4, gy - 9, 's6')
+    local gx0, gx1 = wx0 + 9, wx1 - 9
+    B.garagedoor(c, gx0, gx1, gy - (wg.h or 58) + 12, gy - 1, trim, night, seed)
+    R(c, gx0 - 6, gy, gx1 + 6, gy + 3, 's6'); px.hline(c, gx0 - 6, gx1 + 6, gy, 's7'); px.hline(c, gx0 - 6, gx1 + 6, gy + 3, 's4')
+  end
+  if kind == 'hip' or kind == 'side' then
+    topY = B.sideroof(c, x0, x1, yW, sp.roofd, roofmat, seed, kind == 'hip')
+    if kind == 'side' then local Rr = B.ROOFS[roofmat]                                         -- the rake boards at the gable ends
+      for _, e in ipairs({{x0 - 10, trim[4]}, {x1 + 10, trim[2]}}) do px.vline(c, e[1], topY, yW + 4, e[2]); px.vline(c, e[1] + (e[1] < x0 and 1 or -1), topY, yW + 3, trim[3]) end
+      px.hline(c, x0 - 10, x1 + 10, topY - 1, 'OUT') end
+    for i, d in ipairs(sp.dormers or {}) do local dcx = math.floor(x0 + d.x * (x1 - x0))
+      B.dormer(c, dcx, yW - 8, d.w or 24, d.h or 22, roofmat, wallmat, trim, night, seed + 20 + i) end
+  elseif kind == 'gable' or kind == 'church' or kind == 'barn' then topY = select(1, B.frontgable(c, sp, x0, x1, yW, wallmat, roofmat, trim, seed))
   elseif kind == 'cross' then
     topY = B.sideroof(c, x0, x1, yW, sp.roofd or 64, roofmat, seed, sp.hip)
     local gw = math.floor(W * (sp.gablew or .42)); local gx0 = (x0 + x1) // 2 - gw // 2
@@ -451,7 +506,7 @@ function B.build(sp, night)
     -- the door sits up on the foundation, so something always leads up to it: homes get a porch (deck, posts, roof, rail)
     -- with steps down the middle; shops and halls get steps; barn and garage doors get a plank ramp
     local wide = (d.kind == 'barn') or (dw >= 50)
-    local home = not wide and not sp.sign and sp.stoop ~= false and (kind == 'gable' or kind == 'cross') and (sp.wallh or 70) >= 60
+    local home = not wide and not sp.sign and sp.stoop ~= false and (kind == 'gable' or kind == 'cross' or kind == 'hip' or kind == 'side') and (sp.wallh or 70) >= 60
     local pr = sp.porch or (home and {rail = true}) or nil
     local px0, px1 = pr and (pr.full and x0 + 4 or dx0 - 16), pr and (pr.full and x1 - 4 or dx1 + 16)
     if pr then B.porch(c, px0, px1, gy - 10 - dh - 14, gy - 10, roofmat, trim, pr.rail) end

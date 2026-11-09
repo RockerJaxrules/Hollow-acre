@@ -18,6 +18,7 @@ for row in rows:
     e = O.get(fn)
     if e is None:
         b = O.get(base) if base != '-' else (O.get(fn[:-2]) if fn.endswith('_n') else None)   # a new night sprite copies its day twin
+        if b is None and fn.startswith('tex_'): b = {'foot': [0, 0, 0, 0]}                                                 # a new ground texture needs no footprint
         if b is None: raise SystemExit(f'{fn}: no entry and no base to copy a footprint from')
         e = {k: v for k, v in b.items() if k in ('foot', 'bw')}
     e.update(src=f'spr/lpc/obj/{fn}.png', fw=int(w), fh=int(h), ax=float(ax), ay=float(ay), px='ase')

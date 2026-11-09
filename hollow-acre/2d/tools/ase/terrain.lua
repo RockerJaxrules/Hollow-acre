@@ -16,11 +16,14 @@ local RAMPS = {
   s = {'#24222c', '#36343e', '#4a4754', '#5e5b68', '#76727e', '#8e8a96', '#a8a4ae', '#c4c0c8'},
   w = {'#10283e', '#163652', '#1c4664', '#245878', '#2e6c8c', '#3c82a2', '#5c9cba', '#94c4d8', '#d4eef4'},
   x = {'#f0ece0', '#f2d050', '#e89aa8', '#9ab8e8'},
+  a = {'#18171c', '#201f25', '#28272e', '#302f36', '#393840', '#43424a', '#504e55', '#5e5c62'},    -- blacktop
+  cn = {'#3e3b3e', '#524e4f', '#67625f', '#7b766f', '#8d877e', '#9e978c', '#afa89b', '#c0b9ab'},   -- concrete
 }
 local PAL = {{'OUT', '#22161e'}}
 for k, cols in pairs(RAMPS) do for i, h in ipairs(cols) do PAL[#PAL + 1] = {k .. i, h} end end
 local function R_(k) local r = {}; for i = 1, #RAMPS[k] do r[i] = k .. i end return r end
 local G, F, L, D, S, W = R_('g'), R_('f'), R_('l'), R_('d'), R_('s'), R_('w')
+local A, CN = R_('a'), R_('cn')
 
 local function H(a, b) return px.h(a, b) end
 local function wrap(v) return (v % N + N) % N end
@@ -132,8 +135,41 @@ T.water = function()
   return c
 end
 
-for _, name in ipairs({'grass', 'forest', 'dirt', 'stone', 'water'}) do
-  local c = T[name](); c.weather = {speck = .07, grime = 0, mottle = .3, cell = 8, wrapW = true}
+-- blacktop for the town streets: worn asphalt with patched repairs, crack lines, oil stains and the odd lighter stone
+T.tar = function()
+  local c = px.new(N, N, PAL)
+  for y = 0, N - 1 do for x = 0, N - 1 do local n = fbm(x, y, 41); local m = vnoise(x, y, 24, 43)
+    local k = n < .38 and 3 or (n < .66 and 4 or 5); if m > .86 then k = k + 1 end
+    px.p(c, x, y, A[k]) end end
+  for i = 0, 5 do local x0, y0 = math.floor(H(i, 50) * N), math.floor(H(i, 51) * N); local w, h = 14 + math.floor(H(i, 52) * 30), 8 + math.floor(H(i, 53) * 16)   -- patched repairs
+    for y = 0, h do for x = 0, w do local e = (x == 0 or y == 0 or x == w or y == h); P(c, x0 + x, y0 + y, e and A[1] or (H(x // 3 + i, y // 3) > .8 and A[3] or A[2])) end end end
+  for i = 0, 7 do local x, y = H(i, 60) * N, H(i, 61) * N; local a = H(i, 62) * 6.28                                       -- cracks: a dark line with a lit lip
+    for k = 0, 24 + math.floor(H(i, 63) * 30) do a = a + (H(i * 7, k) - .5) * .9; x = x + math.cos(a); y = y + math.sin(a)
+      P(c, x, y, A[1]); P(c, x, y - 1, A[6]) end end
+  for i = 0, 4 do local cx, cy = H(i, 70) * N, H(i, 71) * N; local r = 4 + H(i, 72) * 7                                  -- oil stains
+    for y = -r, r do for x = -r * 1.4, r * 1.4 do if (x / 1.4) ^ 2 + y * y < r * r * (.6 + vnoise(cx + x, cy + y, 16, 73) * .5) then P(c, cx + x, cy + y, A[2]) end end end end
+  for i = 0, 70 do local x, y = math.floor(H(i, 80) * N), math.floor(H(i, 81) * N); P(c, x, y, A[7]); P(c, x + 1, y, A[6]) end   -- lighter stones in the mix
+  return c
+end
+-- the sidewalks: poured slabs a tile square with tooled joints, stains, a cracked slab or two, weeds in the joints
+T.walk = function()
+  local c = px.new(N, N, PAL)
+  for y = 0, N - 1 do for x = 0, N - 1 do local sl = (x // 32) * 7 + (y // 32) * 13; local tone = H(sl, 90)
+    local n = fbm(x, y, 91); local k = (tone > .66 and 6 or (tone > .3 and 5 or 4)) + (n < .36 and -1 or (n > .7 and 1 or 0))
+    local jx, jy = x % 32, y % 32
+    if jx == 0 or jy == 0 then k = 2 elseif jx == 1 or jy == 1 then k = 7 end
+    px.p(c, x, y, CN[math.max(1, math.min(8, k))]) end end
+  for i = 0, 5 do local sx, sy = (math.floor(H(i, 92) * 6)) * 32, (math.floor(H(i, 93) * 6)) * 32; local x, y = sx + 4 + H(i, 94) * 24, sy + 2   -- cracked slabs
+    for k = 0, 28 do x = x + (H(i, k) - .5) * 1.6; y = y + 1; P(c, x, y, CN[2]); P(c, x + 1, y, CN[7]) end end
+  for i = 0, 40 do local x = math.floor(H(i, 95) * 6) * 32; local y = math.floor(H(i, 96) * N)                                 -- weeds in the joints
+    if H(i, 97) > .5 then P(c, x, y, 'g3'); P(c, x, y - 1, 'g4'); P(c, x + 1, y - 1, 'g5') else P(c, y, x, 'g3'); P(c, y + 1, x, 'g4') end end
+  for i = 0, 3 do local cx, cy = H(i, 98) * N, H(i, 99) * N; local r = 3 + H(i, 100) * 5
+    for y = -r, r do for x = -r, r do if x * x + y * y < r * r * (.5 + vnoise(cx + x, cy + y, 16, 101) * .6) then P(c, cx + x, cy + y, CN[3]) end end end end
+  return c
+end
+
+for _, name in ipairs({'grass', 'forest', 'dirt', 'stone', 'water', 'tar', 'walk'}) do
+  local c = T[name](); c.weather = {patch = .3, cell = 8, wrapW = true}
   px.save(c, app.fs.joinPath(out, 'tex_' .. name .. '.png'))
   print(string.format('META tex_%s %d %d %.1f %d %.2f - -', name, N, N, 0, 0, 6))
 end

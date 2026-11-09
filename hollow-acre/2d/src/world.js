@@ -70,7 +70,13 @@ const greenPath=(x,z)=>Math.hypot(x-squarePos.x,(z-squarePos.z-.4)*1.25)<4.2&&Ma
 const townStone=(x,z)=>(Math.abs(z+6)<2.3&&x>21.4&&x<76)||greenPath(x,z)||(x>23.5&&x<41.4&&z>-20.6&&z<-13.6&&fbm(x*.5,z*.5)>.36)||(x>HIDDEN_GARDEN.x0+1&&x<HIDDEN_GARDEN.x1-1&&Math.abs(z-(-37))<.7);
 const schoolField=(x,z)=>x>40.4+(fbm(x*.5,z*.5)-.5)*1.4&&x<53.8&&z>15.6+(fbm(x*.6+3,z*.6)-.5)*1.2&&z<21.4;
 const wornGround=(x,z)=>onDesire(x,z,.6)&&fbm(x*1.4+3,z*1.4)>.34||schoolField(x,z);
+// the town streets are blacktop now, with poured sidewalks and curbs either side and a faded line down the middle
+const STREETS=[{x0:21.4,x1:76,z:-6,hw:1.55,sw:.9}];
+const inStreet=(x,z,w)=>{for(const s of STREETS)if(x>s.x0&&x<s.x1&&Math.abs(z-s.z)<s.hw+(w?s.sw:0))return true;return false;};
+function tarLine(x,z){for(const s of STREETS)if(x>s.x0+1&&x<s.x1-1&&Math.abs(z-s.z)<.06&&((x*32)%96)<52)return true;return false;}
 const LAYERS={
+  tar:(x,z)=>inStreet(x,z,false),
+  walk:(x,z)=>inStreet(x,z,true),
   dirt:(x,z)=>{const j=(fbm(x*.7,z*.7)-.5)*.8;return onRoad(x,z,j)||(Math.hypot(x-pond.x,z-pond.z)<pond.r+1.6+j&&Math.hypot(x-pond.x,z-pond.z)>pond.r-.4)
     ||(x>CORN.x0-.6&&x<CORN.x1+.6&&z>CORN.z0-.6&&z<CORN.z1+.6)||(x>FIELD.x0+FSTART.i0-.35+j*.3&&x<FIELD.x0+FSTART.i0+FSTART.w+.35-j*.3&&z>FIELD.z0+FSTART.j0-.35+j*.3&&z<FIELD.z0+FSTART.j0+FSTART.h+.35-j*.3)
     ||(Math.hypot(x+60.6,z-1.2)<3.0+j)||wornGround(x,z)||(x>-7+j&&x<7-j&&z>-9.6&&z<-7.2+j*.5);},

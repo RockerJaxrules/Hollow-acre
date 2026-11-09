@@ -221,6 +221,6 @@ for r, row in ipairs(ROWS) do local clip, d, n = row[1], row[2], row[3]
     if clip == 'crawl' then crawl(view, f) else figure(view, pose(clip, view, f)) end
   end end
 px.outline(c, px.i(c, 'OUT'))
-c.weather = {speck = .05, grime = 0, round = .6, radius = 3, mottle = .18}
+c.weather = {round = .6, radius = 3, patch = .15}
 px.save(c, app.fs.joinPath(out, 'hollow.png'))
 print('META hollow done')

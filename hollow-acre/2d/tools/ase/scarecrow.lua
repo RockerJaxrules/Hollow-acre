@@ -115,6 +115,6 @@ for r, row in ipairs(ROWS) do local clip, d, n = row[1], row[2], row[3]
     local look = (clip == 'look') and math.min(1, f / 4) or 0
     frame(d, clip == 'look' and (f % 4) or f, look) end end
 px.outline(c, px.i(c, 'OUT'))
-c.weather = {speck = .06, grime = 0, round = .6, radius = 2, mottle = .18}
+c.weather = {round = .6, radius = 2, patch = .15}
 px.save(c, app.fs.joinPath(out, 'scarecrow.png'))
 print('META scarecrow done')
