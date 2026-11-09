@@ -198,6 +198,11 @@ local MOSS = {'#1c2818', '#2c3c20', '#42532a', '#5c6a34'}
 function px.weather(c)
   local W = c.weather; if not W then return nil end
   if W.v1 then px.weather_v1(c); return nil end
+  -- hand mode (the default): drawn the way pixel artists work, measured against the LPC sheets: a few shades per
+  -- material and no blended in-between tones, outlines coloured from the material they wrap (darker where the light
+  -- falls away, lighter on the lit top-left), stray one-pixel spurs and notches on the silhouette cleaned off
+  local HAND = W.hand ~= false
+  if HAND then W.soft = false end
   local img = c.img; local w, h = c.w, c.h
   local pal = c.spr.palettes[1]
   local RGB = {}; for i = 0, #pal - 1 do local q = pal:getColor(i); RGB[i] = {q.red, q.green, q.blue, q.alpha} end
@@ -256,7 +261,7 @@ function px.weather(c)
     F = clean(F); for y = 0, h - 1 do for x = 0, w - 1 do O[y][x] = O[y][x] + F[y][x] end end
   end
   -- 3. worn patches
-  local PA = W.patch or 0
+  local PA = W.patch or 0; if HAND and not W.patchHand then PA = 0 end   -- hand mode: wear is drawn as shapes by the kits, not clouds
   if PA > 0 then local cell = (W.cell or 6) * 2; local lo = .5 - (1 - PA) * .2; local hi = .5 + (1 - PA) * .26; local F = {}
     for y = 0, h - 1 do F[y] = {}; for x = 0, w - 1 do F[y][x] = 0
       if Rz[y][x] then local n = vn(x, y, cell, 5) * .65 + vn(x, y, cell / 2, 9) * .35
@@ -293,7 +298,8 @@ function px.weather(c)
   for y = 0, h - 1 do OUTC[y] = {}; for x = 0, w - 1 do local v = V[y][x]; local pre = Rz[y][x]
     if pre then local m = MZ and MZ[y][x] or 0
       if m > 0 then local o = O[y][x]; OUTC[y][x] = MZ.rgb[math.max(1, math.min(4, m + (o >= 2 and 1 or (o <= -2 and -1 or 0))))]
-      else OUTC[y][x] = tone(pre, Pz[y][x] + O[y][x]) end
+      else local o = O[y][x]; if HAND then o = (o >= 0) and (2 * math.floor(o / 2)) or (-2 * math.floor(-o / 2)) end
+        OUTC[y][x] = tone(pre, Pz[y][x] + o) end
     else OUTC[y][x] = RGB[v] end end end
   local function key(q) return q[1] * 65536 + q[2] * 256 + q[3] + (q[4] or 255) * 16777216 end
   for y = 0, h - 1 do for x = 0, w - 1 do local v = V[y][x]
@@ -301,6 +307,28 @@ function px.weather(c)
       if k ~= key(RGB[v]) then local alone = true
         for _, d in ipairs(D4) do local yy, xx = y + d[2], x + d[1]; if OUTC[yy] and OUTC[yy][xx] and key(OUTC[yy][xx]) == k then alone = false; break end end
         if alone then OUTC[y][x] = tone(Rz[y][x], Pz[y][x]) end end end end end
+  if HAND then
+    local OUTI = c.idx['OUT']; local OUT2I = c.idx['OUT2']
+    local function op(x, y) return x >= 0 and y >= 0 and x < w and y < h and V[y][x] ~= 0 end
+    -- spurs (a lone pixel sticking out of the silhouette) go; notches (a one-pixel bite) are filled with the outline
+    local kill, fill = {}, {}
+    for y = 0, h - 1 do for x = 0, w - 1 do local n = 0; for _, d in ipairs(D4) do if op(x + d[1], y + d[2]) then n = n + 1 end end
+      if V[y][x] ~= 0 and V[y][x] == OUTI and n <= 1 then kill[#kill + 1] = {x, y} end
+      if V[y][x] == 0 and n >= 3 then fill[#fill + 1] = {x, y} end end end
+    for _, q in ipairs(kill) do V[q[2]][q[1]] = 0 end
+    for _, q in ipairs(fill) do V[q[2]][q[1]] = OUTI; OUTC[q[2]] = OUTC[q[2]] or {}; OUTC[q[2]][q[1]] = RGB[OUTI] end
+    -- selout: each outline pixel takes the darkest shade of the material it wraps; where it faces the light
+    -- (open to the top or left) it eases a step lighter, so lit edges soften as they do in hand-drawn sprites
+    for y = 0, h - 1 do for x = 0, w - 1 do if V[y][x] == OUTI then
+      local best, bn = nil, 0; local cnt = {}
+      for _, d in ipairs({{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, -1}, {1, -1}, {-1, 1}}) do local xx, yy = x + d[1], y + d[2]
+        if xx >= 0 and yy >= 0 and xx < w and yy < h then local pre = Rz[yy][xx]; if pre and V[yy][xx] ~= OUTI then cnt[pre] = (cnt[pre] or 0) + 1; if cnt[pre] > bn then best, bn = pre, cnt[pre] end end end end
+      if best then local lit = (not op(x, y - 1)) or (not op(x - 1, y)); local shadeSide = (not op(x + 1, y)) or (not op(x, y + 1))
+        local base = tone(best, 2); local k = .55
+        if lit and not shadeSide then base = tone(best, 4); k = .7 end
+        -- keep it dark enough to read against any ground: mix toward the old outline colour
+        local o0 = RGB[OUTI]; OUTC[y][x] = {math.floor(o0[1] * (1 - k) + base[1] * k), math.floor(o0[2] * (1 - k) + base[2] * k), math.floor(o0[3] * (1 - k) + base[3] * k), 255} end end end end
+  end
   local out = Sprite(w, h, ColorMode.RGB); local oi = out.cels[1].image; local pc = app.pixelColor
   for y = 0, h - 1 do for x = 0, w - 1 do local v = V[y][x]
     if v ~= 0 then local q = OUTC[y][x]; oi:drawPixel(x, y, pc.rgba(q[1], q[2], q[3], q[4] or 255)) end end end
