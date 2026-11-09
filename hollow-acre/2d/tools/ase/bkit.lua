@@ -43,7 +43,7 @@ B.PAL = {
  {'b1','#4e0a12'},{'b2','#84141c'},{'b3','#b02a2a'},
  {'p1','#c8b8b0'},{'p2','#ece2da'},
  {'oxf1','#1c1017'},{'oxf2','#2f1d20'},{'oxf3','#482329'},{'oxf4','#623233'},{'oxf5','#7d4540'},{'oxf6','#985e50'},{'oxf7','#b27c65'},
- {'gs1','#3a3834'},{'gs2','#5c5852'},{'gs3','#7e7a72'},{'gs4','#a39d92'},{'gs5','#c6c0b4'},
+ {'gs1','#2a2b2e'},{'gs2','#404247'},{'gs3','#56595e'},{'gs4','#6f7277'},{'gs5','#8c8f92'},   -- judge r3: two steps darker and cooler (near-white read louder than the barn)
  {'gw1','#24211f'},{'gw2','#3c3732'},{'gw3','#57504a'},{'gw4','#756c62'},{'gw5','#958a7c'},
  {'k1','#22141e'},{'k2','#3a2228'},{'k3','#573430'},{'k4','#77493a'},{'k5','#9a6448'},{'k6','#b8835a'},
 }
@@ -151,14 +151,17 @@ function B.wall(c, mat, x0, y0, x1, y1, seed, rough)
       for r = 0, rows do local low = r >= rows - 3; local x = x0
         while x < x1 do local len = 6 + math.floor(H(x + r * 7, seed + 71) * 16)
           if H(x * 3 + r, seed + 73) < (low and .55 or .12) then for xx = x, math.min(x1, x + len) do for ry = 0, 5 do local yy = y0 + r * 6 + ry
-            if yy <= y1 then P(c, xx, yy, ry == 5 and 'gs1' or (ry == 4 and 'gs2' or (ry == 0 and 'gs5' or ((xx + ry) % 7 == 0 and 'gs3' or 'gs4')))) end end end end
+            -- judge r3: tidy rectangles read as a pattern; the paint tears unevenly at each end and leaves the odd fleck of red
+            local endd = math.min(xx - x, x + len - xx); local torn = endd < 3 and H(xx * 5 + ry, seed + 75) < .6 - endd * .15
+            if yy <= y1 and not torn and not (ry >= 1 and ry <= 3 and H(xx * 7 + ry, seed + 77) > .96) then P(c, xx, yy, ry == 5 and 'gs1' or (ry == 4 and 'gs2' or (ry == 0 and 'gs5' or ((xx + ry) % 7 == 0 and 'gs3' or 'gs4')))) end end end end
           x = x + len + 1 end end
       local avoid = type(rough) == 'table' and rough or {}   -- the door and windows (a gap under them would never show)
       local function free(a, b) for _, sp in ipairs(avoid) do if b >= sp[1] and a <= sp[2] then return false end end return true end
       local function spot(k, len) for t = 0, 24 do local gx = x0 + 8 + math.floor(H(k * 31 + t, seed + 65) * (x1 - x0 - 16 - len)); if free(gx, gx + len) then return gx end end end
       for k = 0, 2 do local r = 1 + math.floor(H(k, seed + 61) * (rows - 3)); local len = 9 + math.floor(H(k, seed + 63) * 9)
         local gx = spot(k, len); local gy = y0 + r * 6
-        if gx then R(c, gx, gy, gx + len, gy + 4, 'k1'); P(c, gx, gy + 1, Wr[3]); P(c, gx, gy + 2, Wr[3]); P(c, gx + len, gy + 3, Wr[3]); P(c, gx + len - 1, gy + 4, Wr[3]);   -- splintered ends px.hline(c, gx, gx + len, gy, 'OUT'); px.vline(c, gx + len // 2, gy + 1, gy + 4, 'k2')
+        if gx then R(c, gx, gy, gx + len, gy + 4, 'k1'); P(c, gx, gy + 1, Wr[3]); P(c, gx, gy + 2, Wr[3]); P(c, gx + len, gy + 3, Wr[3]); P(c, gx + len - 1, gy + 4, Wr[3]);   -- splintered ends
+          px.hline(c, gx + 1, gx + len - 1, gy - 1, Wr[6]); P(c, gx + 3, gy, Wr[5]); P(c, gx + len - 4, gy, Wr[5]);   -- the lit, broken edge of the board above px.hline(c, gx, gx + len, gy, 'OUT'); px.vline(c, gx + len // 2, gy + 1, gy + 4, 'k2')
         P(c, gx - 1, gy + 2, Wr[2]); P(c, gx + len + 1, gy + 2, Wr[2]); px.hline(c, gx, gx + len, gy + 5, Wr[5]) end end
       local r = 2 + math.floor(H(7, seed + 67) * (rows - 4)); local gx = spot(9, 14) or x0 + 10; local gy = y0 + r * 6
       for i = 0, 13 do local dy = (i >= 7) and ((i - 6) // 3) or 0; px.vline(c, gx + i, gy + dy, gy + 4 + dy, Wr[3 + (i % 2)]); P(c, gx + i, gy + 5 + dy, Wr[1]) end   -- one board sprung loose at its right end
@@ -198,8 +201,10 @@ function B.roofpx(c, mat, x, y, top, lit, seed)
     if bx == 1 then return px.i(c, lit > .5 and Rr[2] or Rr[1]) end   -- judge r4: the rib's shadow side, so each seam is a 2 px rib
     -- rust (judge r5): orange-brown, 2 px wide, starting at a rib end and running out to the eave, darkest where it starts
     local rs = H(sm + (right and 50 or 0), seed); local rl = 2 + math.floor(H(sm, seed + 3) * 6)   -- judge r6: 2-7 px, not a ladder of equal dashes
-    if G.rough then rs = (sm % 3 == 1 and H(sm, seed + 9) > .4) and 1 or 0; rl = 8 + math.floor(H(sm, seed + 4) * 7) end   -- derelict: longer runs on ribs that aren't neighbours
-    if rs > .84 and (bx == 2 or bx == 3) and d > G.half - rl then return px.i(c, d < G.half - rl / 2 and 'mu3' or 'mu4') end
+    if G.rough then rs = (sm % 2 == 1 and H(sm + (right and 50 or 0), seed + 9) > .35) and 1 or 0; rl = 12 + math.floor(H(sm, seed + 4) * 12) end   -- derelict (judge r3: the roof read untouched): long rust runs down every other seam to the eave
+    if rs > .84 and (bx == 2 or bx == 3) and d > G.half - rl then
+      if G.rough then return px.i(c, d < G.half - rl * .6 and 'lg5' or (bx == 2 and 'lg6' or 'lg5')) end
+      return px.i(c, d < G.half - rl / 2 and 'mu3' or 'mu4') end
     return band(c, Rr, (lit > .5 and .5 or .22) - (worn and .14 or 0), 2, 6)
   elseif mat == 'tin' then
     local bx = x % 7
@@ -231,13 +236,13 @@ function B.frontgable(c, sp, x0, x1, yW, wallmat, roofmat, trim, seed)
   B.GABLE = {ax = ax, k = (yW + 4 - ay) / math.max(1, ax - (x0 - over)), half = ax - (x0 - over), rough = sp.rough}
   px.poly(c, roofpoly, function(x, y) return B.roofpx(c, roofmat, x, y, topA, x < ax and 1 or 0, seed) end)
   B.GABLE = nil
-  if sp.rough then   -- judge r7: three olive moss clumps along the outer 8 px of each plane, lit top-left
-    for side = 0, 1 do for k = 0, 2 do
+  if sp.rough then   -- judge r7: olive moss clumps along the outer 8 px of each plane, lit top-left (judge r3: two, larger, not beads)
+    for side = 0, 1 do for k = 0, 1 do
       local ex = side == 0 and (x0 - over + 2 + math.floor(H(k, seed + 31 + side) * 5)) or (x1 + over - 2 - math.floor(H(k, seed + 33 + side) * 5))
-      local ey = sideTop + 8 + math.floor((k + .3 + H(k, seed + 35 + side) * .5) / 3 * (yW + 4 - sideTop - 12))
-      local rw, rh = 3 + math.floor(H(k, seed + 37) * 2), 2 + math.floor(H(k, seed + 39) * 1.5)
+      local ey = sideTop + 10 + math.floor((k + .3 + H(k, seed + 35 + side) * .5) / 2 * (yW + 4 - sideTop - 16))
+      local rw, rh = 5 + math.floor(H(k, seed + 37) * 2), 3 + math.floor(H(k, seed + 39) * 1.5)
       for yy = -rh, rh do for xx = -rw, rw do if (xx * xx) / (rw * rw + .5) + (yy * yy) / (rh * rh + .5) <= 1 and px.get(c, ex + xx, ey + yy) ~= 0 then
-        P(c, ex + xx, ey + yy, (yy < 0 and xx <= 0) and 'v5' or ((yy > 0 or xx > rw - 1) and 'v3' or 'v4')) end end end
+        P(c, ex + xx, ey + yy, (yy < 0 and xx <= 0) and 'v4' or ((yy > 0 or xx > rw - 1) and 'v2' or 'v3')) end end end
     end end
   end
   -- moss and the odd bird mess along the lower courses
@@ -262,10 +267,13 @@ function B.frontgable(c, sp, x0, x1, yW, wallmat, roofmat, trim, seed)
   px.poly(c, {{x0, yW + 1}, {ax, ay + 4}, {x1, yW + 1}}, function(x, y)
     if wallmat == 'brick' or wallmat == 'stone' then local r = (y % 4); return px.i(c, (r == 3 or (x + (y // 4) % 2 * 5) % 10 == 9) and 's4' or G[4 + ((x // 10 + y // 4) % 2)]) end
     local bx = (x - x0) % 8
-    if sp.rough then   -- judge r2: peeled to silver-grey wood in board-wide runs down from the gable's edges, the red left in islands
-      local edge = ay + 4 + (yW + 1 - (ay + 4)) * (math.abs(x - ax) / math.max(1, ax - x0)); local b = (x - x0) // 8
-      if y - edge < 3 + H(b, seed + 77) * 22 then if bx == 0 then return px.i(c, 'gs1') end; if bx == 1 then return px.i(c, 'gs5') end
-        return px.i(c, ((y + b) % 9 == 0) and 'gs3' or 'gs4') end end
+    if sp.rough then   --[[ judge r3: a peel following both roof edges read as bunting (a mirrored sawtooth). Whole boards bleach from
+         the bottom up, uneven, longest on the weather (left) side; the boards under the eaves stay mostly red; grain streaks ]]
+      local b = (x - x0) // 8; local left = x < ax; local edge = ay + 4 + (yW + 1 - (ay + 4)) * (math.abs(x - ax) / math.max(1, ax - x0))
+      local len = math.floor(H(b, seed + 77) * (left and 30 or 12)) - (H(b, seed + 79) > .55 and 8 or 0)
+      if yW + 1 - y < len and y - edge > 5 then if bx == 0 then return px.i(c, 'gs1') end; if bx == 1 then return px.i(c, 'gs5') end
+        if (bx == 4 or bx == 6) and H(y // 3, b + seed) > .55 then return px.i(c, 'gs3') end
+        return px.i(c, (yW + 1 - y) > len - 2 and 'gs3' or 'gs4') end end
     if bx == 0 then return px.i(c, G[2]) end; if bx == 1 then return px.i(c, G[6]) end
     return band(c, G, .56 - (x - x0) / 700 - (yW - y) / 300, 3, 6) end)
   local gw = sp.gablewin or 'round'

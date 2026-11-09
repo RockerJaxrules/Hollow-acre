@@ -12,7 +12,7 @@ const TOOL_ART={
  axe_f:{px:4,art:["...KK...", "..KleK..", "..KleK..", ".KmleK..", ".KmleK..", ".KmlbK..", "..KsbK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KKKK.."]},
  /* the can end-on (judge r6: tipping the side view toward us read as a gourd): facing down the drum with the grey rose low on its
     front, tipped forward to pour with the rose below it; facing up the rose shows above the far rim, leaning further out to pour */
- can_f:{px:5.5,py:1,tip:[6.5, 9.5],art:["..KKKKKKKK..", ".K........K.", ".K..KllK..K.", ".KKKKmmKKKK.", ".KeelllmmbK.", ".KbbbbbbbbK.", ".KlllllmmbK.", ".KlllKKKmbK.", ".KllKihgKbK.", ".KllKhggKbK.", ".KlllKKKmbK.", ".KbbbbbbbbK.", ".KmmmmmmbbK.", "..KKKKKKKK.."]},
+ can_f:{px:5.5,py:1,tip:[6.5, 9.5],art:["..KKKKKKKK..", ".K........K.", ".K..KllK..K.", "..KKKmmKKK..", ".KeelllmmbK.", ".KbbbbbbbbK.", ".KlllllmmbK.", ".KlllKKKmbK.", ".KllKihgKbK.", ".KllKhggKbK.", ".KlllKKKmbK.", ".KbbbbbbbbK.", ".KmmmmmmbbK.", "..KKKKKKKK.."]},
  can_ft:{px:5.5,py:1,tip:[6, 12],art:["..KKKKKKKK..", ".KeeelllmbK.", ".KeelllmmbK.", ".KbbbbbbbbK.", ".KlllllmmbK.", ".KlllllmmbK.", ".KbbbbbbbbK.", "..KmmmmmbK..", "....KmmK....", "...KKKKKK...", "...KihggK...", "...KhggsK...", "....KKKK...."]},
  can_b:{px:5.5,py:2,tip:[10, 1],art:["........KKK.", "....KKK.KihK", "....KlK.KhgK", "..KKKmKKKmK.", ".KeelllmmbK.", ".KbbbbbbbbK.", ".KlllllmmbK.", ".KlllllmmbK.", ".KlllllmmbK.", ".KbbbbbbbbK.", ".KmmmmmmbbK.", "..KKKKKKKK.."]},
  can_bt:{px:5.5,py:4,tip:[11, 1],art:["..........KKK", ".........KihK", "........KKhgK", "....KKK.KmKK.", "..KKKlKKmK...", ".KeelllmbK...", ".KbbbbbbbK...", ".KllllllmbK..", ".KllllllmbK..", ".KbbbbbbbbK..", ".KmmmmmmbbK..", "..KKKKKKKK..."]},
@@ -23,13 +23,13 @@ const TOOL_ART={
    g h i: the can's grey rose (the icon's), which no grade recolours; the can's greens are the icon's (METAL.tin) */
 const TOOL_PAL={K:[26,16,12],D:[84,52,28],M:[124,82,46],L:[176,126,76],s:[60,64,76],b:[92,98,112],m:[150,156,170],l:[204,210,222],e:[244,248,252],g:[70, 73, 83],h:[134, 138, 147],i:[215, 216, 218]};
 // metal by grade: what upgrades look like
-const METAL={rust:{s:[54,42,40],b:[86,66,56],m:[120,92,74],l:[150,120,98],e:[176,150,126]},iron:{},
+const METAL={rust:{s:[46,24,18],b:[74,38,26],m:[102,56,36],l:[130,78,52],e:[160,110,80]},   // judge r2: the hand read as clay (two steps lighter and pinker than the icon): dark oxide, lit only on the top edgeiron:{},
   copper:{s:[88,42,24],b:[138,68,34],m:[194,104,52],l:[230,148,84],e:[252,204,150]},
-  steel:{s:[38,54,92],b:[66,96,148],m:[112,150,206],l:[172,204,242],e:[232,246,255]},
-  steel2:{s:[40,48,64],b:[68,82,104],m:[112,128,152],l:[166,182,204],e:[232,240,250]},   // NEXT (judge, grades: the cornflower blue read as enamel or ice): a blue-grey, waiting for its own judge round
+  steel:{s:[32,38,54],b:[54,66,88],m:[90,106,134],l:[146,164,192],e:[238,246,255]},   // judge r2: iron and steel the same value at 1x; steel darker and cooler with a white glint
+  steel_old:{s:[40,48,64],b:[68,82,104],m:[112,128,152],l:[166,182,204],e:[232,240,250]},   // NEXT (judge, grades: the cornflower blue read as enamel or ice): a blue-grey, waiting for its own judge round
   gold:{s:[110,72,14],b:[168,118,24],m:[220,170,40],l:[248,214,90],e:[255,244,180]},
   tin:{s:[38,71,50],b:[55,97,62],m:[75,123,75],l:[103,151,93],e:[150,196,128]},
-  glass:{s:[8,16,20],b:[14,34,38],m:[24,60,62],l:[46,108,102],e:[178,242,226]}};   // Hollow-glass: black glass with the gem's teal in it and a hard bright glint (judge: mid teal read as verdigris paint, a sidegrade)   // the can icon's greens, the in-hand body a step up to its sage with a lit top (judge: it sank into the plaid)
+  glass:{s:[5,9,12],b:[10,22,26],m:[18,40,44],l:[34,84,82],e:[206,255,238]}};   // judge r2: near-black with a hard white-mint glint, so it reads as a gem, apart from the tin can   // Hollow-glass: black glass with the gem's teal in it and a hard bright glint (judge: mid teal read as verdigris paint, a sidegrade)   // the can icon's greens, the in-hand body a step up to its sage with a lit top (judge: it sank into the plaid)
 function toolGrade(kind){const t=typeof TOOL_TIER!=='undefined'&&TOOL_TIER[kind];return t?t[Math.min(t.length,toolLv(kind))-1]:'iron';}
 // rotate pixel art cleanly (3x3 supersampled, majority vote) about the grip, and remember the result
 const TOOL_CACHE=new Map();
@@ -45,11 +45,12 @@ function toolStamp(kind,grade,ang,k,mir){ang=Math.round(ang/3)*3;k=Math.round(k*
     const col=pal[best];const o=((dy+R)*N+(dx+R))*4;D[o]=col[0];D[o+1]=col[1];D[o+2]=col[2];D[o+3]=255;}
   g.putImageData(id,0,0);st={cv,R};TOOL_CACHE.set(key,st);if(TOOL_CACHE.size>600)TOOL_CACHE.delete(TOOL_CACHE.keys().next().value);return st;}
 // the rod: cork grip, reel, a shaft that tapers to the tip. Bamboo, ash, then greenheart.
-const ROD_COL=[[[214,188,96],[150,124,54]],[[206,164,112],[134,98,62]],[[86,128,70],[44,74,40]],[[60,130,122],[14,36,40]]];   // bamboo, ash, greenheart, Hollow-glass (the gem's teal)
+const ROD_COL=[[[232,196,112],[166,124,52]],[[184,170,150],[104,92,80]],[[86,128,70],[44,74,40]],[[60,130,122],[14,36,40]]];   // judge (rods): bamboo old gold and a step lighter than ash; ash a pale grey-brown, so the two part at 1x   // bamboo, ash, greenheart, Hollow-glass (the gem's teal)
 function drawRod(g,gx,gy,ang,k,lvl,fl){const a=ang*Math.PI/180,dx=Math.cos(a),dy=Math.sin(a);const L=Math.round(30*k);const [lt,dk]=ROD_COL[Math.max(0,Math.min(3,(lvl||1)-1))];
   const px=(x,y,c)=>{g.fillStyle=`rgb(${c[0]},${c[1]},${c[2]})`;g.fillRect(Math.round(x),Math.round(y),1,1);};
   // the butt and cork below the hand
-  for(let i=-4;i<=3;i++){const x=gx+dx*i,y=gy+dy*i;px(x,y,i<0?[120,84,48]:[176,136,84]);px(x+(Math.abs(dy)>.7?1:0),y+(Math.abs(dy)>.7?0:1),[60,40,24]);}
+  for(let i=-4;i<=3;i++){const x=gx+dx*i,y=gy+dy*i;px(x,y,i<0?[58,54,60]:[92,86,92]);px(x+(Math.abs(dy)>.7?1:0),y+(Math.abs(dy)>.7?0:1),[30,26,32]);}   // judge (rods): the icon's charcoal grip
+  {const rx=gx+dx*1-(Math.abs(dy)>.7?2:0)*fl,ry=gy+dy*1+(Math.abs(dy)>.7?0:2);px(rx,ry,[208,206,200]);px(rx+1,ry,[160,158,154]);px(rx,ry+1,[160,158,154]);px(rx+1,ry+1,[96,94,92]);}   // and its pale reel, 2x2
   // the shaft
   const ol=[34,24,16],ax=Math.abs(dy)>.7;
   for(let i=4;i<=L;i++){const x=gx+dx*i,y=gy+dy*i;const thin=i>L*.62;if(!thin){px(x+(ax?-1:0),y+(ax?0:-1),ol);px(x+(ax?2:0),y+(ax?0:2),ol);}else px(x+(ax?1:0),y+(ax?0:1),ol);}
@@ -100,7 +101,7 @@ function waterStream(g,from,to,t){const [x0,y0]=from;let [x1,y1]=to;   // a stre
   g.fillStyle='rgba(28,16,8,.32)';g.fillRect(Math.round(x1)-4,Math.round(y1),9,2);g.fillRect(Math.round(x1)-3,Math.round(y1)+2,7,1);
   const n=Math.max(16,Math.ceil(Math.hypot(x1-x0,y1-y0)/1.5));   /* judge: a long stream read as a dotted wire */
   for(let i=0;i<n;i++){const u=((i/n)+t*2.2)%1;const x=x0+(x1-x0)*Math.sqrt(u),y=y0+(y1-y0)*u*u;const hh=Math.max(1,Math.min(3,Math.round(y1)-Math.round(y)));   // the stream stops at the splash: running past it made a '+' that read as a sparkle
-    g.fillStyle=i%4===0?'#e6f4ff':'#7ab8e0';g.fillRect(Math.round(x),Math.round(y),2,hh);g.fillStyle='#4a86b8';if(hh>1)g.fillRect(Math.round(x)+1,Math.round(y)+1,1,hh-1);}
+    g.fillStyle=(i+Math.floor(t*13.3))%4===0?'#e6f4ff':'#7ab8e0';g.fillRect(Math.round(x),Math.round(y),2,hh);g.fillStyle='#4a86b8';if(hh>1)g.fillRect(Math.round(x)+1,Math.round(y)+1,1,hh-1);}
   const k=(t*6)%1;g.fillStyle='#a8d4f0';g.fillRect(Math.round(x1)-2,Math.round(y1)+1,5,1);g.fillStyle='#7ab8e0';g.fillRect(Math.round(x1)-1,Math.round(y1),3,1);
   for(const d of [-1,1]){const dx=Math.round(x1+d*(2+k*4))-(d<0?1:0),dy=Math.round(y1-1-Math.sin(k*Math.PI)*3);
     g.fillStyle='#7ab8e0';g.fillRect(dx,dy,2,2);g.fillStyle='#e6f4ff';g.fillRect(dx,dy,1,1);g.fillStyle='#3c6e9c';g.fillRect(dx,dy+1,2,1);}}
@@ -131,7 +132,7 @@ function gradeIcon(kind){const grade=kind==='rod'?'rod'+(S.rod||1):toolGrade(kin
   const sorted=[...cols.entries()].sort((a,b)=>a[1]-b[1]);const lo=sorted.length?sorted[0][1]:0,hi=sorted.length?sorted[sorted.length-1][1]:1;
   const M=METAL[grade]||{};const ramp=kind==='rod'?ROD_RAMP(S.rod||1):[M.s||TOOL_PAL.s,M.b||TOOL_PAL.b,M.m||TOOL_PAL.m,M.l||TOOL_PAL.l,M.e||TOOL_PAL.e];
   const map=new Map(sorted.map(([k,L])=>[k,ramp[Math.max(0,Math.min(4,Math.round((L-lo)/Math.max(1,hi-lo)*4)))]]));
-  if(grade!=='iron'&&!(kind==='can'&&grade==='tin')&&!(kind==='rod'&&(S.rod||1)===1))for(let i=0;i<D.length;i+=4){if(!D[i+3])continue;const to=map.get((D[i]<<16)|(D[i+1]<<8)|D[i+2]);if(to){D[i]=to[0];D[i+1]=to[1];D[i+2]=to[2];}}
+  if(grade!=='iron'&&!(kind==='can'&&grade==='tin')&&true)for(let i=0;i<D.length;i+=4){if(!D[i+3])continue;const to=map.get((D[i]<<16)|(D[i+1]<<8)|D[i+2]);if(to){D[i]=to[0];D[i+1]=to[1];D[i+2]=to[2];}}
   g.putImageData(d,0,0);return GRADE_ICON[key]=c.toDataURL();}
 {const _io=iconOf;iconOf=function(spr){if(spr==='hoe'||spr==='can'||spr==='pick'||spr==='axe'||spr==='rod'){const u=gradeIcon(spr);if(u)return u;}return _io.apply(this,arguments);};}
 

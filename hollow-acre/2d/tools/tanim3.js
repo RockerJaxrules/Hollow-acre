@@ -7,6 +7,8 @@ const {chromium}=require('playwright');const fs=require('fs');
  await pg.evaluate(()=>{try{localStorage.clear();}catch(e){}});
  await pg.evaluate(()=>{document.getElementById('begin').click();document.getElementById('cGo').click();});await pg.waitForTimeout(300);await pg.evaluate(()=>__game.skip());await pg.waitForTimeout(800);
  const ev=c=>pg.evaluate(c=>__game.ev(c),c);
+ // LEVELS='hoe=3,can=4,pick=3,axe=2,rod=4': capture with those tool levels (each upgrade's own colours)
+ if(process.env.LEVELS)await ev('(()=>{for(const kv of '+JSON.stringify(process.env.LEVELS)+'.split(",")){const [k,v]=kv.split("=");const n=+v;if(k==="hoe"){S.hoe=n;S.tools.hoe=n;}else if(k==="can")S.waterMax=[10,20,30,40][n-1];else if(k==="rod")S.rod=n;else S.tools[k]=n;}for(const key of Object.keys(GRADE_ICON))delete GRADE_ICON[key];return 1;})()');
  await ev("S.tut.off=true;S.readLetter=true;S.foundCabin=true;S.hour=10;S.energy=100;S.water=10;$('hud').style.opacity=0");
  const T=await ev("(()=>{const t=tiles.find(t=>!t.gh&&!t.tilled&&!(t.debris&&!t.debris.hide)&&!interact.some(q=>(!q.on||q.on())&&Math.hypot(q.x-t.x,q.z-t.z)<1.5));return tiles.indexOf(t);})()");
  const shot=async(name)=>{const c=await ev(`(()=>{const r=view.getBoundingClientRect();const ax=window._capX!==undefined?_capX:P.x,az=window._capZ!==undefined?_capZ:P.z;return [r.left+sx(ax)*r.width/VW, r.top+sz(az)*r.height/VH, r.width/VW];})()`);
