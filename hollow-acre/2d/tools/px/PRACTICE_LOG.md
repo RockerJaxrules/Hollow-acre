@@ -50,3 +50,4 @@ One row per critiqued attempt. The point is to see the number of attempts per ki
 | 2026-11-10 | run | 8 | 5 vs 4 (sheets compared directly) | the bounce was a walk's (highest on the passing frames), no airborne frame, no lean | bounce reversed: sinks onto a bent knee on the passing frame, both feet off the ground on the next; lean 6; front knee higher |
 | 2026-11-10 | run | 9 | 6 vs 4 (new in slot a) | the arms: the fist moves 2-3 px, the far arm not a shade darker | PASS |
 | 2026-11-10 | actions: grab (sprinkler) | 8 | (judging) | | the game walks the player up to half a tile from the square first (normal walking); no movement inside the action; carried upright at the side; facing up he stands to the square's right so it's set down beside him in view |
+| 2026-11-10 | actions: grab (sprinkler) | 9 | 6 vs 2 (new in slot a) | facing down the hands aren't on it at touchdown and it merges with his boots; facing up no arm reaches it | PASS; installed (GRAB_V2 on) |

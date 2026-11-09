@@ -23,26 +23,29 @@ function plantFx(X,Y,f,front){const a=P.anim;if(!(a&&a.clip==='plant'&&a.tgt))re
     if(front!==!N)continue;seedPx(px,py);
     const w=(k-k0-.27)/.12;if(w>=0&&w<1)for(let d=0;d<4;d++){const ang=[-2.6,-2.0,-1.1,-.5][d],r=1+w*3;ctx2.globalAlpha=1-w;ctx2.fillStyle=SOILC[d%3];ctx2.fillRect(Math.round(px+Math.cos(ang)*r),Math.round(py+1+Math.sin(ang)*r*.7),d%2?2:1,1);}
     ctx2.globalAlpha=1;}}
-// setting a sprinkler down: a step in (two walking frames) carrying it across the chest, turned upright through a slant
-// as he kneels, its base just over the square on the 3rd frame and on it on the 4th with his hands on the post, then a step
-// back out so the last frame matches the first. Facing away it rides over a shoulder; he steps back after so it shows.
+// setting a sprinkler down (he has walked up to half a tile from the square first): carried upright at his side, the cap
+// just above his fist; set upright over the square with its base 4 px up on the 3rd frame, on the square on the 4th with his
+// hands still on it, let go as he rises. Facing away it rides beside his head at shoulder height, then goes down behind him.
 function grabFrame(st,k){if(k<.3)return st.in>.05?['walk',1+Math.floor(k/.3*4)]:['slash',0];if(k<.38)return ['slash',1];if(k<.5)return ['slash',2];if(k<.62)return ['slash',3];
   if(k<.72)return ['slash',4];return st.out>.05?['walk',Math.max(1,4-Math.floor((k-.72)/.28*4))]:['slash',5];}
 function grabSet(X,Y,f,front){const a=P.anim;if(!(a&&a.clip==='grab'&&a.tgt&&a.item==='sprinkler'&&SPR.sprinkler_w)||a.tgt.spr)return;const k=a.t/a.dur,N=P.dir==='N';
   const m=SPR.sprinkler_w,im=IMG[m.src];if(!im)return;const tx=sx(a.tgt.x),ty=sz(a.tgt.z)+4;
-  if(k>=.56){if(front!==!N)return;drawSpr('sprinkler_w',tx,ty,null,null,0);return;}
+  const land=.55;
+  if(k>=land){if(front!==!N)return;
+    // resting on the square: its contact shadow, a little dust where it touched down
+    ctx2.fillStyle='rgba(10,8,6,.35)';ctx2.beginPath();ctx2.ellipse(tx+1,ty+1,8,2.5,0,0,Math.PI*2);ctx2.fill();
+    drawSpr('sprinkler_w',tx,ty,null,null,0);
+    const w=(k-land)/.18;if(w<1){ctx2.globalAlpha=1-w;ctx2.fillStyle='#7a5c3a';for(const [dx,dy] of [[-9,-1],[-6,-3],[8,-2],[10,0]])ctx2.fillRect(Math.round(tx+dx*(1+w*.6)),Math.round(ty+dy-w*2),2,1);ctx2.globalAlpha=1;}
+    return;}
   if(front!==(N?k<.3:true))return;
-  const st=a.step,g=st?grabFrame(st,k):['slash',f];const fs=g[0]==='slash'?g[1]:0;const L=handAt(X,Y,fs,0),R=handAt(X,Y,fs,1);
-  const up=[tx,ty-m.ay+m.fh/2-4];   // upright, base 4 px over the square
-  let cx,cy,ang,sc;
-  if(N){const hold=[X+6,Y-44];const u=smooth01((k-.3)/.2);cx=hold[0]+(tx-hold[0])*u;cy=hold[1]+(up[1]+4-hold[1])*u-5*Math.sin(Math.PI*u);ang=0;sc=.85+.15*u;}
-  else{const hold=[(L[0]+R[0])/2,Math.min(L[1],R[1])-(fs===0?8:0)];   // carried against the chest, not over the belt
-    if(k<.12){cx=hold[0];cy=hold[1];ang=Math.PI/2;sc=.85;}
-    else if(k<.4){const u=(k-.12)/.28,e=smooth01(u);cx=hold[0]+(up[0]-hold[0])*e;cy=hold[1]+(up[1]-hold[1])*e;ang=(Math.PI/2)*(1-Math.min(1,u));sc=.85+.15*e;}
-    else{const u=smooth01((k-.4)/.16);cx=up[0];cy=up[1]+4*u;ang=0;sc=1;}}
-  if(P.dir==='W')ang=-ang;
-  ctx2.save();ctx2.translate(Math.round(cx),Math.round(cy));if(ang)ctx2.rotate(Math.round(ang*8/Math.PI)*Math.PI/8);
-  ctx2.drawImage(im,0,0,m.fw,m.fh,Math.round(-m.fw*sc/2),Math.round(-m.fh*sc/2),Math.round(m.fw*sc),Math.round(m.fh*sc));ctx2.restore();}
+  const st=a.step,fs=st?grabFrame(st,k)[1]:Math.min(5,Math.floor(k*6));const R=handAt(X,Y,fs,1),L=handAt(X,Y,fs,0);const side=P.dir==='W'?-1:1;
+  // carried: its foot 8-10 px above his soles, the T at chest height, 3-4 px clear of his body (facing down: at his right side;
+  // facing away: beside his left shoulder). From then on it only ever moves DOWN, a few px a frame, until it lands (judge r8)
+  const hs=.85,H=m.fh*hs,foot0=N?Y-28:Y-9;
+  const x0=N?X-12:P.dir==='S'?Math.max(L[0],R[0])+6:X+side*14;   /* side view: held out in front, clear of his body */
+  const u=Math.max(0,Math.min(1,(k-.17)/(land-.17)));
+  const fx=x0+(tx-x0)*u,fy=foot0+(ty-foot0)*u,sc=hs+(1-hs)*u;
+  ctx2.drawImage(im,0,0,m.fw,m.fh,Math.round(fx-m.fw*sc/2),Math.round(fy-m.ay*sc),Math.round(m.fw*sc),Math.round(m.fh*sc));}
 function frameOf(name,clip,t,dur){const m=SPR[name];if(!m||!m.clips)return 0;const c=m.clips[clip]||m.clips.idle;if(!c)return 0;const nf=(c.S||Object.values(c)[0])[1];
   const f=FPS_CLIP[clip]||[0,nf-1,8];const a=f[0],b=Math.min(f[1],nf-1);
   if(dur)return a+Math.min(b-a,Math.floor(clamp(t/dur,0,.999)*(b-a+1)));

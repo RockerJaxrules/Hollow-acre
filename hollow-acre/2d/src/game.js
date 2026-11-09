@@ -305,11 +305,14 @@ function update(dt){slamUpdate(dt);mindUpdate(dt);lifeUpdate(dt);
   let mag=Math.hypot(mx,mz);if(mag>1){mx/=mag;mz/=mag;mag=1;}
   const corn=inCorn(P.x,P.z);const shift=!!(keys.ShiftLeft||keys.ShiftRight);const moving=mag>.15&&!P.anim,run=kb?shift:(mag>.85||shift);const spd=moving?(run?5:3)*mag*(corn?.7:1)*(S.energy>0?1:.6):0;
   lastDir=P.dir;
+  // a short walk the game takes for you before an action that needs you closer (setting a sprinkler down); any input cancels it
+  let auto=false;if(P.walkTo&&!P.anim){const w=P.walkTo;if(mag>.15)P.walkTo=null;else{const dx=w.x-P.x,dz=w.z-P.z,d=Math.hypot(dx,dz);w.t=(w.t||0)+dt;
+    if(d<.04||w.t>1.6){P.walkTo=null;w.then&&w.then();}else{const st=Math.min(3*dt,d);P.fx=dx/d;P.fz=dz/d;P.dir=dirOf(dx,dz);P.x+=P.fx*st;P.z+=P.fz*st;collide(P,.3);auto=true;}}}
   if(moving){P.fx=mx/mag;P.fz=mz/mag;P.dir=dirOf(mx,mz);P.x+=P.fx*spd*dt;P.z+=P.fz*spd*dt;collide(P,.3);if(fish.state!=='off')fish.state='off';}
   P.spd=spd;
   if(P.anim){const a=P.anim;a.t+=dt;P.clip=a.clip;if(a.step){const e=actStepE(a.step,a.t/a.dur),de=e-(a._se||0);a._se=e;P.x+=a.step.dx*de;P.z+=a.step.dz*de;collide(P,.3);}if(!a.fired&&a.t>a.dur*(a.fireAt||.55)){a.fired=true;a.fire&&a.fire();}if(a.t>=a.dur)P.anim=null;}
-  else P.clip=moving?'walk':'idle';
-  P.t+=dt*(moving?spd/2.6:1);
+  else P.clip=(moving||auto)?'walk':'idle';
+  P.t+=dt*(moving?spd/2.6:auto?3/2.6:1);
   if(moving){stepT-=dt*(run?1.5:1);if(stepT<=0){stepT=.33;SFX.step(corn);if(rand()<.5&&!corn)burst(P.x,P.z+.05,2,'#6a5a46',.5,.4,.6);}}
   fishUpdate(dt);
   for(const t of tiles){const c=t.crop;if(!c)continue;c.pop=Math.min(1,c.pop+dt*3);if(c.stage>=3||!c.watered)continue;c.growth+=dt*TIME_K();const ns=Math.min(3,Math.floor(c.growth/SEEDS[c.type].grow));
