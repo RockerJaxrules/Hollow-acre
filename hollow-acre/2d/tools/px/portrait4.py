@@ -566,7 +566,7 @@ class Painter:
         elif ex == 'surprised': up, lo, iris_r, pup = 4.4, 2.7, iris_r * .86, 1.15
         elif ex == 'scared': up, lo, iris_r, pup, look = 4.6, 2.8, iris_r * .74, .85, (1.1, 0)
         elif ex == 'wrong': up, lo, iris_r, pup = 4.0, 2.6, 1.9, 0
-        up, lo = up * C.get('eye_open', 1), lo * C.get('eye_open', 1)
+        up, lo = up * C.get('eye_open', 1) * C.get('eye_up', 1), lo * C.get('eye_open', 1) * C.get('eye_lo', 1)   # each face its own lids
         if C.get('hollow'): iris_r, pup = 1.1, 0
         if C.get('blind'): up, pup = up * .7, 0
         if C.get('heavy'): up = up * .82
@@ -582,7 +582,7 @@ class Painter:
             return
         u = np.linspace(-1, 1, 41)
         xs = ecx + sg * u * a
-        yu = ecy - up * (1 - u * u) ** .72 * (1 - .14 * u) - tilt * (u + 1) / 2 + inner_drop * np.clip(-u, 0, 1) * .9 + inner_drop * .25
+        yu = ecy - up * (1 - u * u) ** C.get('eye_round', .72) * (1 - .14 * u)   # low = round, high = almond - tilt * (u + 1) / 2 + inner_drop * np.clip(-u, 0, 1) * .9 + inner_drop * .25
         yl = ecy + lo * (1 - u * u) ** .85 - tilt * .55 * (u + 1) / 2
         if ex in ('happy', 'love'): yl = ecy + lo * (1 - u * u) ** .85 - tilt * .55 * (u + 1) / 2 - .9 * (1 - u * u)
         pts = list(zip(xs, yu)) + list(zip(xs[::-1], yl[::-1]))
