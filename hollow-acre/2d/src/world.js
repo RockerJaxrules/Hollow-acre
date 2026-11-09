@@ -62,6 +62,8 @@ function fbm(x,z){return vnoise(x,z)*.55+vnoise(x*2.1+7,z*2.1+3)*.3+vnoise(x*4.3
 function segDist(px,pz,x1,z1,x2,z2){const dx=x2-x1,dz=z2-z1,L=dx*dx+dz*dz||1;const t=clamp(((px-x1)*dx+(pz-z1)*dz)/L,0,1);return Math.hypot(px-x1-dx*t,pz-z1-dz*t);}
 // ---------- terrain layers (membership tested at tile corners; LPC autotiles drawn per cell)
 const onRoad=(x,z,extra)=>{for(const r of ROADS)if(segDist(x,z,r[0],r[1],r[2],r[3])<r[4]/2+(extra||0))return true;return false;};
+// the ground's ragged road edge: full on the roads, a third of it on the narrow lanes, so a lane stays the width it was laid out at
+const onRoadRag=(x,z,j)=>{for(const r of ROADS)if(segDist(x,z,r[0],r[1],r[2],r[3])<r[4]/2+j*(r[4]<3?.35:1))return true;return false;};
 // cobbles on Route 9 through town and round the bandstand; desire paths worn across the green and through the gaps people use
 const DESIRE=[[[37,-3.6],[48.5,3.4],[60,11]],[[60,-3.6],[48.5,3.4],[37.6,11.2]],[[48.5,-3.8],[48.5,11.8]],[[33.9,-8],[33.9,-14],[31,-16.6]],
   [[62,22.4],[64.6,19.6],[69,16.4]],[[44.6,13.6],[46,15.4]],[[36,12.4],[44,14.4],[55,14.6]],[[60.6,30],[62.2,34],[61,37.6]],[[41.6,-17],[44.6,-17.6],[48.8,-16.4]]];
@@ -77,7 +79,7 @@ function tarLine(x,z){for(const s of STREETS)if(x>s.x0+1&&x<s.x1-1&&Math.abs(z-s
 const LAYERS={
   tar:(x,z)=>inStreet(x,z,false),
   walk:(x,z)=>inStreet(x,z,true),
-  dirt:(x,z)=>{const j=(fbm(x*.7,z*.7)-.5)*.8;return onRoad(x,z,j)||(Math.hypot(x-pond.x,z-pond.z)<pond.r+1.6+j&&Math.hypot(x-pond.x,z-pond.z)>pond.r-.4)
+  dirt:(x,z)=>{const j=(fbm(x*.7,z*.7)-.5)*.8;return onRoadRag(x,z,j)||(Math.hypot(x-pond.x,z-pond.z)<pond.r+1.6+j&&Math.hypot(x-pond.x,z-pond.z)>pond.r-.4)
     ||(x>CORN.x0-.6&&x<CORN.x1+.6&&z>CORN.z0-.6&&z<CORN.z1+.6)||(x>FIELD.x0+FSTART.i0-.35+j*.3&&x<FIELD.x0+FSTART.i0+FSTART.w+.35-j*.3&&z>FIELD.z0+FSTART.j0-.35+j*.3&&z<FIELD.z0+FSTART.j0+FSTART.h+.35-j*.3)
     ||(Math.hypot(x+60.6,z-1.2)<3.0+j)||wornGround(x,z)||(x>-7+j&&x<7-j&&z>-9.6&&z<-7.2+j*.5);},
   stone:(x,z)=>(Math.abs(z+6)<2.6&&x<-16)||townStone(x,z),
