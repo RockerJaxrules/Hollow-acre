@@ -569,10 +569,7 @@ ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
     else if(f===1){pose.elbows=[[-4,-6],[3,4]];pose.hands=[[-6,-12],[-4,-6]];pose.guard=1;}
     else if(f===2){pose.elbows=[[-2,-2],[3,4]];pose.hands=[[-1,-7],[-4,-6]];pose.guard=1;}
     else if(f===3){pose.hands=[[1,-5],[-1,-4]];}
-    else if(f===4){pose.hands=[[0,3],[0,4]];
-      /* motion judge r5 (Dunn, Gideon 5): arms folded at rest, the hands snapped 7-8 px from the lap into the fold on the last
-         frame (a pop); this frame now goes half way there */
-      if(C.stance==='folded'){const t={};stance(t,side,dir,fl);if(t.hands){pose.hands=pose.hands.map((h,k)=>[Math.round((h[0]+t.hands[k][0])/2),Math.round((h[1]+t.hands[k][1])/2)]);pose.elbows=t.elbows;}}}
+    else if(f===4){pose.hands=[[0,3],[0,4]];}
     else{pose.hands=null;stance(pose,side,dir,fl);}
     /* motion judge r3 (Hob): on broad shoulders both fists at the chin sit level beside the beard and read as a shrug; there
        the screen-right arm drops out to the hip while the other fist guards the cheek. (After the chain: put inside it, its
