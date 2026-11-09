@@ -436,7 +436,7 @@ function human(dir,pose){const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1,back=
 function walkPose(f,dir,run){const pose={};if(f===0)return pose;const side=dir==='E'||dir==='W',back=dir==='N',fl=dir==='W'?-1:1;
   const ph=(f-1)/8*Math.PI*2,c=Math.cos(ph),s=Math.sin(ph);const S=run?(KID?4:5):(KID?2:3);
   const bobAt=g=>{if(g<1)return 0;const cc=Math.cos((g-1)/8*Math.PI*2);return Math.abs(cc)<.5?(run?-2:-1):(run&&Math.abs(cc)>.92?1:0);};
-  pose.bob=bobAt(f);pose.hairLag=bobAt(f===1?8:f-1)-pose.bob;   // the hair follows the head a frame late
+  pose.bob=bobAt(f);pose.hairLag=0;   // the hair moves with the head (owner: a frame's lag read as hair bobbing loose, not attached)
   if(run){pose.lean=3;pose.nod=side?0:1;}
   if(side){const a=Math.round(c*S),b=-a;const liftA=s>0?Math.round(s*(run?4:2)):0,liftB=s<0?Math.round(-s*(run?4:2)):0;
     const tuck=(d,l)=>run&&l>2?d-2:d;pose.legs=[[tuck(a,liftA),liftA],[tuck(b,liftB),liftB]];if(run&&Math.abs(c)<.5)pose.crouch=1;
@@ -466,7 +466,7 @@ ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
   const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1;let pose={};
   if(clip==='walk')pose=walkPose(f,dir,false);
   if(clip==='run')pose=walkPose(f===0?1:f,dir,true);
-  if(clip==='idle'){pose.bob=[0,1,1,0][f];pose.hairLag=[0,-1,0,1][f];pose.blink=f===3;
+  if(clip==='idle'){pose.bob=[0,1,1,0][f];pose.hairLag=0;pose.blink=f===3;
     // each person their own way of standing (judge, townsfolk: "everyone stands the same way"): elbow then hand, from the shoulder
     const ST=C.stance;if(ST&&!KID&&dir!=='N'){
       if(!side){if(ST==='hips'){pose.elbows=[[-3,5],[3,5]];pose.hands=[[2,9],[-1,9]];}
