@@ -54,3 +54,4 @@ One row per critiqued attempt. The point is to see the number of attempts per ki
 | 2026-11-10 | idle, sit, hurt (baseline) | 1 | idle 6, sit 3, hurt 4 | sit: the legs just shortened (reads as crouching); hurt: no impact frame, a slow sink with closed eyes (dozing) | sit legs drawn seated (L in profile, lap and knees in front); hurt: snap up, scared eyes, hands flung out, cower, recover |
 | 2026-11-10 | hurt | 2 | 6 vs 3 (new in slot a) | the cower's closed lids with the women's pink mouth and blush read as giggling | a clenched > < wince, brows down to the nose, a grimace, no blush; frame 2 overshoots; uneven arms |
 | 2026-11-10 | sit | 2 | 6 vs 3 (new in slot a) | front: the lap is one flat band with the boots under it (split the knees, 2 px of shin) | PASS |
+| 2026-11-10 | hurt | 3 | 6 vs 2 (new in slot a) | the impact still reads symmetric on some rows (guard the face with one hand, fling the other); the beard hides the O mouth | PASS |
