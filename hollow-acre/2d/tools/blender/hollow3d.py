@@ -21,7 +21,7 @@ LIGHT = Vector((-.75, -.35, .55)).normalized()   # from the upper left and a lit
 
 # ---------------------------------------------------------------- palette (dark -> light; hue-shifted, our own)
 PAL = {
-    'pumpkin': ['#3a1410', '#7a2e12', '#b85418', '#e0822a', '#f4aa4a'],
+    'pumpkin': ['#1e0c0e', '#3e1812', '#622a16', '#843e1a', '#a0522a'],   # a rotting pumpkin: brown and plum, never candy; only the glow is bright
     'stem':    ['#141a10', '#24301a', '#3a4a24', '#526a30', '#6e8a3c'],
     'coat':    ['#0e0a14', '#1a1326', '#2a2038', '#3c2e4c', '#504062'],
     'patch':   ['#140c0c', '#22161a', '#322228', '#423038', '#544048'],
@@ -29,7 +29,7 @@ PAL = {
     'void':    ['#060408', '#0a070e', '#0e0a14', '#120c1a', '#160f20'],
     'button':  ['#2a0608', '#4e0c10', '#7a161a', '#a02424', '#c43a32'],
     'belt':    ['#0e0a08', '#1e1610', '#30241a', '#463424', '#5e4632'],
-    'stick':   ['#0e0a0c', '#1c1418', '#2c2024', '#3e3032', '#544244'],
+    'stick':   ['#120c0e', '#221a1e', '#3a2e32', '#5a4a4e', '#7c6a6c'],   # a lit edge so the legs part from the grass
     'bone':    ['#2e2c2e', '#4c4a4e', '#6e6c70', '#8e8c8c', '#b0aca4'],
     'flesh':   ['#8a3a10', '#c8661c', '#e8923a', '#f6bc62', '#fde09a'],
     'glow':    ['#8a3410', '#d06a1c', '#f0a040', '#f8d27a', '#fcecb0'],
@@ -151,7 +151,7 @@ def pumpkin(r, mats, mouth_open=0.0):
         eye = [(cx - sx * r * .34, -r * .02), (cx + sx * r * .3, r * .1), (cx + sx * r * .04, r * .62)]
         if sx > 0: eye = list(reversed(eye))
         cuts.append(prism('eye', eye, Y0, Y1, mats['flesh']))
-    w = r * .86; top = -r * .2; bot = -r * (.64 + mouth_open * .25)
+    w = r * (.86 - .3 * mouth_open); top = -r * (.2 - .1 * mouth_open); bot = -r * (.64 + mouth_open * .3)
     mouth = [(-w, top + r * .12), (-w * .62, top - r * .02), (-w * .45, top), (-w * .45, top - r * .1), (-w * .2, top - r * .1), (-w * .2, top + r * .02),
              (w * .2, top + r * .02), (w * .2, top - r * .1), (w * .45, top - r * .1), (w * .45, top), (w * .62, top - r * .02), (w, top + r * .12),
              (w * .7, bot + r * .12), (w * .32, bot), (w * .32, bot + r * .1), (w * .05, bot + r * .1), (w * .05, bot), (-w * .32, bot), (-w * .32, bot + r * .1),
@@ -163,8 +163,11 @@ def pumpkin(r, mats, mouth_open=0.0):
         except Exception: pass
         c.hide_render = True
     candle = ball('candle', (0, 0, -r * .1), r * .82, mats['glow'], (1.05, 1.05, .9))
+    if mouth_open > .3:   # screaming: the mouth gapes dark, only its rim lit
+        maw = prism('maw', [(x * .8, z * .8 + top * .2 + bot * .2) for x, z in reversed(mouth)], -r * 1.0, -r * .9, mats['void']); cuts_extra = [maw]
+    else: cuts_extra = []
     stem = segment('stem', (0, 0, r * .62), (.06, .03, r * 1.12), .08, .05, mats['stem'], 6)
-    return [o, candle, stem] + cuts
+    return [o, candle, stem] + cuts + cuts_extra
 
 
 def coat(top, bot, r_top, r_bot, mats, sway=0.0, seed=1):
@@ -182,7 +185,7 @@ def coat(top, bot, r_top, r_bot, mats, sway=0.0, seed=1):
         fold = 1 + .09 * math.sin(ang * 7 + 1.3) * down
         v.co.x *= fold; v.co.y *= fold * .74
         if v.co.z < 0:   # the hem: torn into points, swinging with the stride
-            v.co.z += R.uniform(-.24, .08); v.co.x += sway * .3 * down
+            v.co.z += R.uniform(-.14, .06) - (.32 * R.random() if R.random() < .3 else 0); v.co.x += sway * .3 * down
     for f in bm.faces:
         c = f.calc_center_median()
         if abs(math.atan2(c.y, c.x) + math.pi / 2) < step * .6 and abs(c.x) < .2: f.material_index = 1
@@ -199,24 +202,14 @@ def coat(top, bot, r_top, r_bot, mats, sway=0.0, seed=1):
     for k in range(4):   # buttons beside the opening, one missing
         if k == 2: continue
         parts.append(ball('button', front(top - .3 - k * .34, .12) + Vector((0, -.01, 0)), .045, mats['button']))
-    zb = top - 1.25   # a rope belt, knotted
+    zb = top - min(1.25, (top - bot) * .5)   # a rope belt, knotted (always on the coat, however short)
     bpy.ops.mesh.primitive_torus_add(major_radius=1, minor_radius=.05, location=(0, 0, zb))
     rb = r_top + (r_bot - r_top) * (top - zb) / H
     b = bpy.context.active_object; b.scale = (rb + .03, (rb + .03) * .76, 1); b.data.materials.append(mats['belt']); parts.append(b)
     kn = front(zb, -.18); parts += [ball('knot', kn, .07, mats['belt']), segment('rope', kn, kn + Vector((-.06, -.02, -.34)), .035, .025, mats['belt'], 5),
                                    segment('rope', kn, kn + Vector((.04, -.03, -.28)), .035, .025, mats['belt'], 5)]
-    # a sewn-on patch low on the left, with big crude stitches
-    pz, px_ = bot + .62, -.24; pc = front(pz, px_); nrm = Vector((px_ / max(r_bot, .1), -1, 0)).normalized()
-    bpy.ops.mesh.primitive_cube_add(size=1, location=pc + nrm * .005)
-    pt = bpy.context.active_object; pt.scale = (.3, .02, .3); pt.rotation_euler = (0, math.radians(8), math.atan2(nrm.x, -nrm.y))
-    pt.data.materials.append(mats['patch']); parts.append(pt)
-    side = Vector((-nrm.y, nrm.x, 0)).normalized()
-    for i in range(3):
-        c0 = pc + nrm * .03 + side * (-.15) + Vector((0, 0, -.1 + i * .1))
-        parts.append(segment('stitch', c0 - side * .05, c0 + side * .05, .018, .018, mats['thread'], 4))
     for sx in (-1, 1):   # a torn high collar
-        parts.append(segment('collar', (sx * .16, .02, top - .06), (sx * .28, .06, top + .3), .1, .012, mats['coat'], 4))
-        parts.append(segment('collar', (sx * .05, -.1, top - .04), (sx * .1, -.12, top + .2), .07, .01, mats['coat'], 4))
+        parts.append(segment('collar', (sx * .1, -.08, top - .06), (sx * .16, -.13, top + .13), .08, .015, mats['coat'], 4))
     return parts
 
 
@@ -253,7 +246,7 @@ def pose(t, clip):
     """the skeleton for the clip at phase t (0..1). The figure faces -y (toward the camera).
     Arms are [shoulder (in the torso's own space), elbow, wrist (in the world)]; the torso pitches about the hips
     ('pitch', + leans forward) and drops ('drop'); 'shift' slides the whole figure back so a reach stays in the frame."""
-    P = {'pitch': 0, 'drop': 0, 'head_pitch': 0, 'head_tilt': 0, 'mouth': 0, 'sway': 0, 'bob': 0, 'shift': 0, 'sleeves': True,
+    P = {'pitch': 0, 'drop': 0, 'head_pitch': 0, 'face_pitch': 0, 'hump': False, 'limb': 1.0, 'head_tilt': 0, 'mouth': 0, 'sway': 0, 'bob': 0, 'shift': 0, 'sleeves': True,
          'coat': None, 'neck': 1.0, 'jit': 0}
     s = math.sin(t * 2 * math.pi); c = math.cos(t * 2 * math.pi)
     SH = lambda x, b=0: (x * 2.3, 0, 3.36 + b)
@@ -262,22 +255,24 @@ def pose(t, clip):
         for side, ph in (('L', 0), ('R', math.pi)):
             x = -.16 if side == 'L' else .16; asw = -math.sin(t * 2 * math.pi + ph) * .5
             P['arm' + side] = [SH(x, lift), (x * 3.5, asw * .4 - .04, 2.48 + lift), (x * 4.3, asw, 1.56 + lift)]
-        P.update(sway=s * .14, head_tilt=s * 5 - 3, bob=lift)
+        P.update(sway=s * .14, head_tilt=s * 5 - 3, bob=lift, pitch=5, head_pitch=6)
     elif clip == 'idle':
         br = s * .03; _stand_legs(P)
         for side in ('L', 'R'):
             x = -.16 if side == 'L' else .16
             P['arm' + side] = [SH(x, br), (x * 3.6, .02, 2.48 + br), (x * 4.4, -.04, 1.54 + br * 2)]
-        P.update(sway=br, head_tilt=s * 6 - 7, bob=br)
-    elif clip == 'crawl':   # on all fours like a spider: low body, knees and elbows high above it, head forward
-        P.update(pitch=80, drop=1.15, head_pitch=-78, head_tilt=s * 8, coat=(HIP + 1.0, HIP - .35, .28, .45), neck=.35, sleeves=False, shift=.3)
+        P.update(sway=br, head_tilt=s * 6 - 7, bob=br, pitch=4, head_pitch=8)
+    elif clip == 'crawl':   # on all fours like a spider: a hunched hump of coat, the head low in front looking at you,
+                            # four long limbs with their knees and elbows up above the back, feet on one ground line
+        P.update(pitch=45, drop=1.35, head_pitch=85, face_pitch=-140, head_tilt=s * 7, coat=(HIP + .8, HIP - .35, .28, .45), neck=.15, sleeves=False,
+                 shift=.2, hump=True, limb=1.3)
         for side, ph in (('L', 0), ('R', math.pi)):
             x = -1 if side == 'L' else 1
             sw = math.sin(t * 2 * math.pi + ph); up = max(0, math.cos(t * 2 * math.pi + ph))
-            P['leg' + side] = [(x * .16, 0, HIP - 1.15), (x * .58, .45 + sw * .08, 2.3 + up * .18), (x * .62, .85 - sw * .3, .02 + up * .16)]
+            P['leg' + side] = [(x * .16, .15, HIP - 1.35), (x * .62, .5, 1.85 + up * .1), (x * .95, .85 - sw * .12, .02 + up * .14)]
             swa, upa = -sw, max(0, -math.cos(t * 2 * math.pi + ph))   # each arm moves with the opposite leg
-            P['arm' + side] = [(x * .33, 0, HIP + .95), (x * .78, -1.0 + swa * .1, 2.25 + upa * .18), (x * .72, -1.35 - swa * .28, .05 + upa * .2)]
-        P['bob'] = abs(c) * .04
+            P['arm' + side] = [(x * .3, 0, HIP + .75), (x * .68, -.6 + swa * .06, 1.85 + upa * .12), (x * .92, -.78 - swa * .12, .4 + upa * .15)]
+        P['bob'] = abs(c) * .03
     elif clip == 'scream':   # arms flung up and out, the head thrown back, the mouth tearing open
         k = min(1.0, t * 6 / 1.6); e = k * k * (3 - 2 * k); tr = math.sin(t * 2 * math.pi * 7) * .03 * (k >= 1)
         _stand_legs(P)
@@ -296,11 +291,13 @@ def pose(t, clip):
         P.update(pitch=24 * k - 8 * back, head_pitch=-14 * k, mouth=.6 * k, shift=.45 * k, head_tilt=-6 * k)
     elif clip == 'hurt':   # it recoils from the light: arms over its face, leaning away, shaking
         tr = math.sin(t * 2 * math.pi * 2) * .05
-        _stand_legs(P, front=.1, back=.25)
+        for side, dy in (('L', .05), ('R', .3)):
+            x = -.16 if side == 'L' else .16
+            P['leg' + side] = [(x, 0, HIP - .25), (x * 1.3, -.32, 1.05), (x, dy, .02)]
         for side in ('L', 'R'):
             x = -1 if side == 'L' else 1
-            P['arm' + side] = [SH(x * .16), (x * .62 + tr, -.35, 3.5), (-x * .12 + tr, -.85, 4.35 + x * .08)]
-        P.update(pitch=-14, head_pitch=10, head_tilt=22 + tr * 80, mouth=.5, jit=tr, shift=-.1)
+            P['arm' + side] = [SH(x * .16), (x * .64 + tr, .05, 3.25), (-x * .1 + tr, -.35, 4.1 + x * .08)]
+        P.update(pitch=-18, drop=.25, head_pitch=12, head_tilt=22 + tr * 80, mouth=.5, jit=tr, shift=-.25)
     return P
 
 
@@ -311,26 +308,35 @@ def build(clip, t, yaw):
     hipv = Vector((0, 0, HIP))
     T = Matrix.Translation((0, 0, -P['drop'])) @ Matrix.Translation(hipv) @ Matrix.Rotation(math.radians(P['pitch']), 4, 'X') @ Matrix.Translation(-hipv)
     for side in ('L', 'R'):
-        hp, kn, ft = P['leg' + side]
-        objs += [segment('thigh', hp, kn, .06, .05, mats['stick'], 8), segment('shin', kn, ft, .05, .04, mats['stick'], 8), ball('knee', kn, .07, mats['stick']),
-                 ball('foot', (ft[0], ft[1] - .06, ft[2] + .02), .07, mats['stick'], (1, 1.8, .6))]
+        J = P['leg' + side]; ft = J[-1]
+        for k in range(len(J) - 1):
+            objs.append(segment('leg', J[k], J[k + 1], (.06 - .01 * k) * P['limb'], (.05 - .01 * k) * P['limb'], mats['stick'], 8))
+            if k: objs.append(ball('knee', J[k], .07 - .005 * k, mats['stick']))
+        objs.append(ball('foot', (ft[0], ft[1] - .06, ft[2] + .02), .07, mats['stick'], (1, 1.8, .6)))
         sh, el, wr = P['arm' + side]; sh, el, wr = T @ Vector(sh), Vector(el), Vector(wr)
         if P['sleeves']:   # the sleeve runs all the way down; only the hand shows
             cuff = wr - (wr - el).normalized() * .08
             objs += [segment('sleeve', sh, el, .11, .09, mats['coat'], 10), ball('elbow', el, .09, mats['coat']),
                      segment('sleeve', el, cuff, .09, .115, mats['coat'], 10), segment('wrist', cuff, wr, .04, .04, mats['stick'], 6)]
+            dn = (wr - el).normalized(); sd = dn.cross(Vector((0, 1, 0))).normalized()
+            for k, (o_, L) in enumerate(((-.07, .22), (.06, .14))):   # torn strips hanging off the cuff
+                a_ = cuff + sd * o_; objs.append(segment('rag', a_, a_ + dn * L + Vector((0, 0, -.04)), .035, .008, mats['coat'], 4))
         else:              # torn away: bare stick arms
-            objs += [segment('upper', sh, el, .07, .05, mats['stick'], 8), ball('elbow', el, .065, mats['stick']), segment('fore', el, wr, .05, .04, mats['stick'], 8),
+            L_ = P['limb']; objs += [segment('upper', sh, el, .07 * L_, .05 * L_, mats['stick'], 8), ball('elbow', el, .065 * L_, mats['stick']), segment('fore', el, wr, .05 * L_, .04 * L_, mats['stick'], 8),
                      segment('rag', sh, sh + (el - sh) * .3, .12, .08, mats['coat'], 8)]
         objs += hand(wr, wr - el, mats)
     top, bot, rt, rb = P['coat'] or (3.5, 1.35 + P['bob'], .3, .66)
     torso = coat(top, bot, rt, rb, mats, P['sway'])
+    if P['hump']: torso.append(ball('hump', (0, .1, HIP + .35), .47, mats['coat'], (1.1, .9, 1.0)))
     neck_base = Vector((0, 0, top - .05 + P['bob'])); neck_top = neck_base + Vector((0, 0, P['neck']))
     torso.append(segment('neck', neck_base, neck_top, .05, .04, mats['stick'], 8))
     r = .5; head = pumpkin(r, mats, P['mouth'])
     piv = bpy.data.objects.new('headpivot', None); bpy.context.scene.collection.objects.link(piv); piv.location = neck_top
-    piv.rotation_euler = (math.radians(P['head_pitch']), math.radians(P['head_tilt']), 0)
-    for o in head: o.parent = piv; o.location = o.location + Vector((0, 0, r * .85))
+    look = {90: -32, 270: 32}.get(int(yaw) % 360, 0) if clip != 'crawl' else {90: -20, 270: 20}.get(int(yaw) % 360, 0)
+    piv.rotation_euler = (math.radians(P['head_pitch']), math.radians(P['head_tilt']), math.radians(look))
+    hc = bpy.data.objects.new('headctr', None); bpy.context.scene.collection.objects.link(hc); hc.parent = piv; hc.location = (0, 0, r * .85)
+    hc.rotation_euler = (math.radians(P['face_pitch']), 0, 0)
+    for o in head: o.parent = hc
     torso.append(piv)
     for o in torso: o.matrix_basis = T @ o.matrix_basis   # the torso, neck and head lean and drop together
     objs += torso

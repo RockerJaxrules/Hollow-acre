@@ -9,6 +9,10 @@ def finish(im):
     for y in range(H):
         for x in range(W):
             r, g, b, a = px[x, y]; px[x, y] = (r, g, b, 255) if a >= 128 else (0, 0, 0, 0)
+    for y in range(H):   # a lone pixel with nothing beside it is a speck: drop it
+        for x in range(W):
+            if px[x, y][3] and not any(0 <= x + dx < W and 0 <= y + dy < H and px[x + dx, y + dy][3] for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                px[x, y] = (0, 0, 0, 0)
     add = []
     for y in range(H):
         for x in range(W):

@@ -7,7 +7,7 @@ const CORN={x0:-15,x1:11,z0:11.5,z1:24};
 const inCorn=(x,z)=>x>CORN.x0&&x<CORN.x1&&z>CORN.z0&&z<CORN.z1;
 const pond={x:-30,z:24.5,r:7.5};
 const wellPos={x:7.3,z:-10.5},binPos={x:-3.6,z:-8.6},doorPos={x:0,z:-8.9},carPos={x:-60.2,z:-1.4},pumpPos={x:-30.5,z:-10.3},boothPos={x:41.65,z:-9.4};
-const crossPos={x:20,z:19},boardPos={x:44,z:-3.0},tsPos={x:22.8,z:-8.2},farmSignPos={x:-13.4,z:-10.1},squarePos={x:48.5,z:3.4};
+const crossPos={x:20,z:19},boardPos={x:44,z:-3.0},tsPos={x:22.4,z:-8.0},farmSignPos={x:-13.4,z:-10.1},squarePos={x:48.5,z:3.4};
 // ---------- Marrow Hollow (#153), settled over a hundred years rather than laid out: shops and the civic buildings along Route 9
 // at their own setbacks; a dark alley between the store and the post office opening into the sunny market courtyard; a broken
 // line of retaining walls with wooden stairs up to Church Hill, where a walled garden hides behind the parsonage; the green in
@@ -40,7 +40,7 @@ const ROADS=[[-17,-6,-10,-6,8.2],[-10,-6,-6.5,-6,5.4],[-12.5,-6,70,-6,3],[16,-9.
   ...lanePts([[56.6,-26.1],[56.6,-33.4]],1.2),...lanePts([[34,-26.6],[34.4,-32.2],[41,-32.5]],1.1),
   ...lanePts([[21,11],[28,12],[36,12.4]],2),...lanePts([[36,12.4],[37.6,19.8],[39,27.4],[52,28.2],[64,26],[72,24.4],[74,24]],2),
   ...lanePts([[20,24.4],[29,24.2],[37.6,23.4]],1.6),...lanePts([[20,38.8],[28,38.6],[35,38.2],[39.2,28.6]],1.6),...lanePts([[74,36.4],[65,36.6]],1.4),
-  ...lanePts([[74,10.6],[66,11.6],[61,13.8],[55,14.6]],1.8),[TOWN.east,TOWN.main,TOWN.east,TOWN.orchard,2]];
+  ...lanePts([[74,10.6],[66,11.6],[61.6,15.0],[55,14.6]],1.8),[TOWN.east,TOWN.main,TOWN.east,TOWN.orchard,2]];
 const SIDEWALKS=[];
 // ---------- the north ridge: a cliff face you see from the front, plateau behind it
 const RIDGE={x0:-50,x1:30,h:1.85};
@@ -197,8 +197,9 @@ function buildWorld(){
   // the ridge face blocks the way north
   for(let x=RIDGE.x0;x<RIDGE.x1;x+=.8){if(ridgeH(x)<.3)continue;addSeg(x,ridgeZ(x)+.9,x+.8,ridgeZ(x+.8)+.9,.5);}
   // ---------- the farm: red barn + silo east of the field, windpump, mailbox, hens
-  building('barn',16,-9.6,{porch:false});put('silo',20.6,-12.6,.8);reserve(11.5,-15,22,-8.6);
-  put('hay',11.5,-10.4);addRect(10.8,-11.6,12.3,-10.4);put('hay',11.5,-8.9);addRect(10.8,-10.1,12.3,-9);put('cart',21.4,-8.7);addRect(20.2,-9.3,22.6,-8.7);put('hay',12.2,-1.0);
+  building('barn',16,-9.6,{porch:false});put('silo',18.4,-17.0,.8);hedgeLine(21.2,-17.5,-8.8);
+  for(const [n,x,z] of [['maple_orange',20.2,-16.2],['oak_russet',22.4,-13.6],['maple_red',20.4,-10.4]]){obj(n,x,z,{kind:'tree',solid:1});addCircle(x,z,.4);}reserve(11.5,-15,22,-8.6);
+  put('hay',11.5,-10.4);addRect(10.8,-11.6,12.3,-10.4);put('hay',11.5,-8.9);addRect(10.8,-10.1,12.3,-9);put('cart',13.6,-8.2);addRect(12.4,-8.8,14.8,-8.2);put('hay',12.2,-1.0);
   fenceLine(8.5,-3.9,13.5,-3.9);fenceLine(8.5,-3.9,8.5,-.2);fenceLine(13.5,-3.9,13.5,-.2);fenceLine(8.5,-.2,10,-.2);fenceLine(12,-.2,13.5,-.2);reserve(8,-4.4,14,.4);
   // ---------- planted trees: an avenue along the lane into town, the church walk, the crossroads, the pond's east bank
   for(const [n,x,z] of [['maple_orange',23.5,16.4],['maple_red',17,21.6],['maple_gold',-21.5,21],['maple_orange',-21.8,27.5],['maple_green',-24,31.5]]){obj(n,x,z,{kind:'tree',solid:1});addCircle(x,z,.4);}
@@ -254,7 +255,7 @@ function buildTown(){
   for(const [k,[spr,x,z,o]] of Object.entries(TB)){const e=building(spr,x,z,o);e.tb=k;}
 
   // ===== Route 9: the shops and the town's business, each at its own setback
-  put('sacks',32.4,-8.7);put('barrel',22.6,-9.4,.3);put('barrel',23.1,-8.9,.3);put('hay',21.9,-11.6);addRect(21.2,-12.8,22.7,-11.7);
+  put('sacks',32.4,-8.7);put('barrel',22.6,-9.4,.3);put('barrel',23.1,-8.9,.3);
   put('phone_booth',boothPos.x,boothPos.z+.5,0,{night:'phone_booth_n',kind:'booth'});addRect(boothPos.x-.55,boothPos.z-.4,boothPos.x+.55,boothPos.z+.5);
   put('signpost',tsPos.x,tsPos.z,.2,{label:'MARROW HOLLOW'});
   for(const x of [26,36.4,48.6,51.6,62.8])L(x,-8.15);for(const x of [24,35.6,47.4,52.6,65.4])L(x,-3.75);
@@ -275,7 +276,7 @@ function buildTown(){
   side(41.6,-12.9,-21.1,-17);side(23.2,-12.9,-18.8);
   // Danny's garden and the hall lawn, walled and hedged their own ways; the tavern yard fenced with whatever was to hand
   side(48.6,-13.4,-23,-16.8);for(let k=0;k<8;k++)obj('weeds_'+(k&1),42.6+((k*37)%6),-14.6-((k*53)%7),{kind:'deco',town:1});TREE_T('apple_tree',44,-19.6);Y('rg_swing',46.2,-18);
-  side(51.6,-15,-23,-17.6);TREE_T('maple_red',54.4,-19.6);TREE_T('oak_russet',60,-18.8);Y('parkbench',55.6,-20.4);
+  L(48.9,-12);L(51.1,-18);side(51.6,-15,-23,-17.6);TREE_T('maple_red',54.4,-19.6);TREE_T('oak_russet',60,-18.8);Y('parkbench',55.6,-20.4);
   hedgeLine(62.8,-21,-18.2);
   // ===== the terrace: three walls at three depths, wooden stairs where the lane climbs, ivy and long grass at the joins
   for(const [x0,x1,base] of TERRACE.walls){const st=x0<TERRACE.steps[0]&&x1>TERRACE.steps[1];
@@ -308,11 +309,11 @@ function buildTown(){
   put('bandstand',squarePos.x,squarePos.z+1.4,0,{kind:'prop'});addRect(squarePos.x-2.1,squarePos.z+.35,squarePos.x+2.1,squarePos.z+1.4);
   put('memorial',41.4,1.6,0,{kind:'prop'});addRect(40.7,1.1,42.1,1.6);
   put('board',boardPos.x,boardPos.z,0);addSeg(boardPos.x-.8,boardPos.z,boardPos.x+.8,boardPos.z,.12);
-  for(const [x,z] of [[42.6,6.8],[55.2,-.8],[53.6,8.6]])put('parkbench',x,z,0,{kind:'prop'});put('birdbath',57.2,2.6,.25);
+  for(const [x,z] of [[42.6,6.8],[55.2,-.8],[53.6,8.6]])put('parkbench',x,z,0,{kind:'prop'});put('birdbath',55,3,.25);
   for(const [x,z] of [[45.4,.6],[51.6,.6],[45.4,7.2],[51.6,7.2]])L(x,z);
-  for(const [n,x,z] of [['maple_red',38.8,6.6],['maple_gold',41.4,10],['oak_russet',58.6,-1.6],['maple_orange',56.6,6.2],['birch_gold',38,-1.4]])TREE_T(n,x,z);
+  for(const [n,x,z] of [['maple_red',38.8,6.6],['maple_gold',41.4,10],['oak_russet',55.6,-2.2],['maple_orange',56.6,6.2],['birch_gold',38,-1.4]])TREE_T(n,x,z);
   // the water tower over the green: you can see it from anywhere in town, and at night its light watches you
-  put('watertower',60.8,11.4,0,{night:'watertower_n',kind:'prop',glow:1});addRect(59.3,10.3,62.3,11.4);
+  put('watertower',60.8,13.0,0,{night:'watertower_n',kind:'prop',glow:1});addRect(59.3,11.9,62.3,13.0);
   // ===== Smith's Row and the carpenter's lane: work, mud, a wheel that broke and was never mended
   for(const x of [24,31,38])L(x,13.6,true);put('st_market',35.2,10.8,.12);put('st_mill',21.6,12.6,.12);
   // ===== the lanes south: houses strung along them, each property fenced its own way
@@ -335,7 +336,7 @@ function buildTown(){
     if(x>64&&x<71.5&&z>15&&z<19.2)continue;   // the Oakes garden is cut out of the copse
     const e=obj(['pine_1','spruce_0','pine_o0','spruce_1','pine_0'][i%5],x,z,{kind:'pine',solid:1,town:1});addCircle(x,z,.4);}}
   // street trees along the lanes, never in a row
-  for(const [n,x,z] of [['maple_red',29.6,13.8],['maple_orange',44.6,13.6],['oak_green',36.8,30.4],['maple_gold',47,30.6],['birch_gold',57.6,29.2],['maple_red',66.2,28.4],['oak_russet',24,27.6],['maple_orange',38.4,40]])TREE_T(n,x,z);
+  for(const [n,x,z] of [['maple_orange',44.6,13.6],['oak_green',36.8,30.4],['maple_gold',47,30.6],['birch_gold',57.6,29.2],['maple_red',66.2,28.4],['oak_russet',24,27.6],['maple_orange',38.4,40]])TREE_T(n,x,z);
   reserve(20.6,-24,76,-12.6);reserve(20.6,12.6,76,45.4);reserve(GREEN.x0,GREEN.z0,GREEN.x1,GREEN.z1);reserve(20.6,-42,76,-24);
 }
 // a hedge along a north-south line (the sideways view of a picket fence reads as a string of beads; a hedge reads as a hedge)
