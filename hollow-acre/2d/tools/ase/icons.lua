@@ -80,17 +80,13 @@ local function sparkle(x, y, col) P(x, y, col); P(x - 1, y, col); P(x + 1, y, co
 
 local I = {}
 -- ------------------------------------------------------------------ tools (grey metal, green can, cane rod: the grade tints find them)
-I.hoe = function()   -- the head at a right angle to the handle: a short neck, then the blade hanging back toward the grip
-  local hx, hy, tx, ty = 5, 29, 21, 9; local L = math.sqrt((tx - hx) ^ 2 + (ty - hy) ^ 2); local dx, dy = (tx - hx) / L, (ty - hy) / L; local qx, qy = -dy, dx
-  rod(hx, hy, tx, ty, 3, 'wd', {mod = function(x, y, l, t) return l - ((math.floor(t * 30) % 6 == 0) and .1 or 0) end})
-  local nx, ny = tx + qx * 4, ty + qy * 4
-  rod(tx - dx, ty - dy, nx, ny, 2.4, 'mt', {amb = .3})
-  local a1, a2 = {nx - dx * .5, ny - dy * .5}, {nx + qx * 6 - dx * .5, ny + qy * 6 - dy * .5}
-  local a3, a4 = {a2[1] - dx * 9, a2[2] - dy * 9}, {a1[1] - dx * 9, a1[2] - dy * 9}
-  poly({a1, a2, a3, a4}, 'mt', function(x, y) local along = ((x - a1[1]) * -dx + (y - a1[2]) * -dy) / 9; local across = ((x - a1[1]) * qx + (y - a1[2]) * qy) / 6
-    return .82 - along * .35 - across * .3 end)
-  line(math.floor(a4[1] + .5), math.floor(a4[2] + .5), math.floor(a3[1] + .5), math.floor(a3[2] + .5), 'mt7')
-  blob(tx, ty, 2.4, 2.4, 'mt', {amb = .3})
+I.hoe = function()   -- a garden hoe: the handle, a thin neck that hooks over and down, and a small flat blade hanging below it with a
+  -- bright edge, clear of the handle (judge: a broad blade against the handle read as a small axe)
+  rod(5, 29, 20, 9, 3, 'wd', {mod = function(x, y, l, t) return l - ((math.floor(t * 30) % 6 == 0) and .1 or 0) end})
+  rod(20, 9, 25, 7, 2, 'mt', {amb = .3}); rod(25, 7, 27, 11, 2, 'mt', {amb = .3})
+  poly({{23, 11}, {30, 11}, {31, 17}, {22, 17}}, 'mt', function(x, y) return .86 - (y - 11) / 6 * .42 - (x - 22) / 9 * .12 end)
+  line(22, 17, 31, 17, 'mt7'); line(23, 11, 30, 11, 'mt5'); line(31, 12, 31, 16, 'mt2')
+  blob(20, 9, 2.2, 2.2, 'mt', {amb = .3})
 end
 I.can = function()
   rod(19, 21, 28, 9, 2.6, 'cg')

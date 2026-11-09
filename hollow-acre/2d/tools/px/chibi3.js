@@ -384,6 +384,14 @@ const TP={
         S:[[3,7,90,.75,0],[5,-4,-70,1,1],[5,-11,-62,1,1],[4,-12,-70,.9,1],[3,-3,90,.3,0],[4,10,80,1,0],[4,11,82,.95,0],[3,7,88,.75,0]],
         // facing away: the strike shows its head beside and above the player's head instead of vanishing behind the body
         N:[[3,6,90,.5,1],[3,-4,-90,1,1],[2,-12,-90,1,1],[2,-13,-90,.5,0],[6,-13,-78,1.15,1],[6,-9,-80,1.05,1],[6,-8,-80,1,1],[3,5,90,.5,1]]},
+ // the axe: wound back at shoulder height, a level chop into the trunk in front, held in the wood, pulled out
+ axe:{E:[[6,7,60,1,0],[2,-3,-100,1,1],[-2,-6,-150,1,1],[-3,-5,-172,1,1],[6,-4,-40,1,0],[11,-1,-6,1,0],[11,0,-2,1,0],[7,4,40,1,0]],
+      S:[[3,7,90,.75,0],[6,-4,-60,1,1],[7,-8,-40,1,1],[8,-8,-28,.9,1],[5,0,15,.6,0],[-2,3,160,.9,0],[-2,4,164,.9,0],[3,7,96,.75,0]],
+      N:[[3,6,90,.5,1],[5,-6,-75,1,1],[6,-12,-65,1,1],[7,-12,-55,.9,1],[3,-10,-120,1.05,1],[-7,-6,-160,1.1,1],[-7,-5,-162,1.1,1],[3,5,90,.5,1]]},
+ // the pickaxe: a high overhead wind-up, a heavy strike low into the ground, a recoil off the stone, then settling
+ pick:{E:[[6,7,55,1,0],[2,-6,-90,1,1],[-1,-13,-135,1,1],[-3,-14,-170,1,1],[6,-6,-30,1,0],[11,8,42,1,0],[10,5,26,1,0],[7,6,50,1,0]],
+       S:[[3,7,90,.75,0],[5,-6,-70,1,1],[5,-14,-75,1,1],[4,-16,-80,.9,1],[3,-2,90,.3,0],[4,12,80,1,0],[4,9,84,.9,0],[3,8,88,.8,0]],
+       N:[[3,6,90,.5,1],[3,-6,-90,1,1],[2,-14,-90,1,1],[2,-16,-90,.5,0],[6,-14,-78,1.2,1],[6,-11,-80,1.1,1],[6,-12,-80,1.05,1],[3,5,90,.5,1]]},
  rod:{E:[[6,3,-35,1,0],[3,-5,-100,1,1],[1,-9,-135,1,1],[0,-10,-150,1,1],[5,-3,-50,1,0],[8,2,-15,1,0],[8,3,-10,1,0],[7,3,-25,1,0]],
       S:[[5,4,70,.75,0],[5,-4,-90,1,1],[3,-9,-90,1,1],[2,-10,-90,.8,1],[4,0,60,.6,0],[5,4,75,.7,0],[5,5,78,.7,0],[5,4,72,.75,0]],
       N:[[5,2,-80,.8,1],[5,-3,-90,1,1],[4,-9,-90,.7,0],[3,-11,-90,.5,0],[5,-4,-85,1,1],[5,1,-80,.9,1],[5,2,-80,.9,1],[5,2,-80,.85,1]]},
@@ -392,7 +400,9 @@ const TP={
       N:[[9,4,0,1,1],[10,2,10,1,1],[10,0,20,1,0],[11,-1,42,1,0],[11,-1,50,1,0],[11,-1,50,1,0],[11,-1,42,1,0],[10,3,10,1,1]]}};   // the can held out to the right side so it shows past the body
 const TOOLMETA={N:[],W:[],S:[],E:[]};
 const SW_LEAN=[0,-2,-3,-3,1,3,3,1],SW_CROUCH=[0,0,0,0,2,4,4,1],SW_BOB=[0,-1,-2,-1,0,0,0,0];
-function toolEntry(kind,dir,f){const fam=kind==='rod'?'rod':kind==='can'?'can':'swing';const e=TP[fam][dir==='W'?'E':dir][f];if(dir!=='W')return e.slice();return [-e[0],e[1],180-e[2],e[3],e[4]];}
+// the axe stands taller and leans into the chop; the pickaxe rises higher and drops deeper into the strike, then rebounds
+const SWK={axe:{lean:[0,-1,-3,-3,1,3,3,1],crouch:[0,0,0,0,1,2,2,1],bob:[0,-1,-1,-1,0,0,0,0]},pick:{lean:[0,-2,-3,-4,1,4,3,1],crouch:[0,0,-1,-1,2,5,3,1],bob:[0,-1,-2,-2,0,0,0,0]}};
+function toolEntry(kind,dir,f){const fam=kind==='rod'?'rod':kind==='can'?'can':TP[kind]?kind:'swing';const e=TP[fam][dir==='W'?'E':dir][f];if(dir!=='W')return e.slice();return [-e[0],e[1],180-e[2],e[3],e[4]];}
 function fistAt(x,y){for(let j=0;j<2;j++)for(let k=-1;k<=1;k++)p(x+k,y+1+j,SK[j===1?2:k===-1?4:3]);p(x,y+3,SK[1]);}
 // hands for a grip: one at the grip, one further up the handle; the can is held by one hand
 function toolHands(kind,dir,f){const [gx,gy,ang,k]=toolEntry(kind,dir,f);const a=ang*Math.PI/180;
@@ -437,13 +447,13 @@ function human(dir,pose){const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1,back=
 // the walk: Stardew's four beats (contact, pass, contact, pass) spread over our eight frames
 function walkPose(f,dir,run){const pose={};if(f===0)return pose;const side=dir==='E'||dir==='W',back=dir==='N',fl=dir==='W'?-1:1;
   const ph=(f-1)/8*Math.PI*2,c=Math.cos(ph),s=Math.sin(ph);const S=run?(KID?4:5):(KID?2:3);
-  const bobAt=g=>{if(g<1)return 0;const cc=Math.cos((g-1)/8*Math.PI*2);return Math.abs(cc)<.5?(run?-2:-1):(run&&Math.abs(cc)>.92?1:0);};
+  const bobAt=g=>{if(g<1)return 0;const cc=Math.cos((g-1)/8*Math.PI*2);return Math.abs(cc)<.5?-2:(Math.abs(cc)>.92?(run?1:0):0);};   // a 2 px rise on the passing frames so the step reads (judge: the bob was too faint)
   pose.bob=bobAt(f);pose.hairLag=0;   // the hair moves with the head (owner: a frame's lag read as hair bobbing loose, not attached)
   if(run){pose.lean=3;pose.nod=side?0:1;}
   if(side){const a=Math.round(c*S),b=-a;const liftA=s>0?Math.round(s*(run?4:2)):0,liftB=s<0?Math.round(-s*(run?4:2)):0;
     const tuck=(d,l)=>run&&l>2?d-2:d;pose.legs=[[tuck(a,liftA),liftA],[tuck(b,liftB),liftB]];if(run&&Math.abs(c)<.5)pose.crouch=1;
     // each arm swings against its leg, well clear of the hip: forward and a little up, back and straight
-    const A=run?1.5:2.0,base=run?6:9;const hand=k=>{let dx=Math.round(-k*A);const fwd=dx>0;
+    const A=run?1.5:2.4,base=run?6:9;const hand=k=>{let dx=Math.round(-k*A);const fwd=dx>0;
       if(run)return fwd?[Math.min(dx,4)*fl,base-3-Math.min(2,Math.round(dx*.4))]:[Math.round(dx*.9)*fl,base+1];   // a bent arm pumping: fist at the chest, then driven back
       return [dx*fl,base-(fwd?Math.round(Math.abs(k)*.5):0)];};
     pose.hands=[hand(b),hand(a)];}
@@ -481,7 +491,7 @@ ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
         else if(ST==='pockets'){pose.hands=[[0,9],[0,9]];pose.noHands=true;}
         else if(ST==='behind'){pose.hands=[[-2,8],[-2,8]];pose.noHands=true;}}}}
   if(clip==='thrust'&&TOOL){const kind=TOOL;const e=toolEntry(kind,dir,f);const T=toolHands(kind,dir,f);
-    if(kind==='can'){pose.crouch=f>=3&&f<=6?1:0;pose.lean=f>=3&&f<=6?1:0;}else{pose.crouch=SW_CROUCH[f];pose.bob=SW_BOB[f];pose.lean=SW_LEAN[f];}
+    if(kind==='can'){pose.crouch=f>=3&&f<=6?1:0;pose.lean=f>=3&&f<=6?1:0;}else{const K_=SWK[kind];pose.crouch=(K_?K_.crouch:SW_CROUCH)[f];pose.bob=(K_?K_.bob:SW_BOB)[f];pose.lean=(K_?K_.lean:SW_LEAN)[f];}
     if(side&&kind!=='can')pose.legs=[[-2,0],[3,0]];
     // hands from the shoulders: the grip is relative to the shoulders' middle (ux, shoulder row)
     // a hand's block is drawn one row under its point, and the shoulders sit one row under the reference row
