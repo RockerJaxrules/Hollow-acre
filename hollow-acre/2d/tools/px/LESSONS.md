@@ -99,6 +99,23 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   clumps with shine bands, clothing seams, belts and buttons, a defined jaw. Body proportions and the face must be
   drilled on their own before any character is redone.
 
+## Creatures in Blender (the Hollow, tools/blender/hollow3d.py) [blind judge rounds 1-4]
+
+- [hollow r1] A smooth toon render beside a drawn sprite looks bright and plain: match the old sprite's palette values
+  first (sample them), then add mottle (noise into the toon factor) so cloth is never one flat colour.
+- [hollow r1] Carve for real: a solidified shell, boolean cuts, a candle sphere inside. The face then glows in every
+  view and the cut walls give a lit rim for free; floating face decals show as slivers from the side.
+- [hollow r1 6/10] The pumpkin skin must sit below the glow: push it to brown and plum (highlight under ~70%), or the
+  thing reads as a Halloween decoration and the carved light loses.
+- [hollow r1] A scream needs a tall dark maw (a dark plate behind the mouth hole), not the same grin with arms up.
+- [hollow r2] Side views: turn the head about 30 degrees to the viewer, or the face is a sliver on the pumpkin's edge.
+- [hollow r2-r3] A spider crawl: one hunched hump of coat, the head low in front, four thick limbs arching up BEHIND
+  the head (none crossing it), feet near the walk's ground line. Splay in x shows as height in side views
+  (9.6 px per tile of depth), so keep feet within ~.55 tile of the centre line or they drop out of the frame.
+- [hollow r3] 1-2 px buttons read as specks; tidy belts and buttons read as a robe. Tatter with shapes: torn hem strips
+  of uneven length, rags off the cuffs, dark claw slits. Sloping, narrow shoulders for a starved body.
+- [hollow r3] A cool rim on the lit (top-left) edge keeps a dark body visible against night grass.
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline

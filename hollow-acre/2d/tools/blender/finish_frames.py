@@ -13,6 +13,14 @@ def finish(im):
         for x in range(W):
             if px[x, y][3] and not any(0 <= x + dx < W and 0 <= y + dy < H and px[x + dx, y + dy][3] for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
                 px[x, y] = (0, 0, 0, 0)
+    rim = []   # a cool rim where the light (top left) catches the silhouette, so the body holds against night grass
+    for y in range(H):
+        for x in range(W):
+            r, g, b, a = px[x, y]
+            if not a or (r > 200 and g > 150): continue   # not the glow
+            if (x == 0 or not px[x - 1, y][3]) or (y == 0 or not px[x, y - 1][3]):
+                rim.append((x, y, (int(r * .62 + 118 * .38), int(g * .62 + 116 * .38), int(b * .62 + 150 * .38), 255)))
+    for x, y, c in rim: px[x, y] = c
     add = []
     for y in range(H):
         for x in range(W):

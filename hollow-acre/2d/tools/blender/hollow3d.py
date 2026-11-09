@@ -194,14 +194,13 @@ def coat(top, bot, r_top, r_bot, mats, sway=0.0, seed=1):
     bpy.ops.object.shade_smooth()
     parts = [o]
     bpy.ops.mesh.primitive_uv_sphere_add(segments=20, ring_count=10, radius=1, location=(0, 0, top - .04))
-    y = bpy.context.active_object; y.scale = (r_top * 1.15, r_top * .8, .16); y.data.materials.append(mats['coat']); bpy.ops.object.shade_smooth(); parts.append(y)
+    y = bpy.context.active_object; y.scale = (r_top * 1.0, r_top * .78, .12); y.data.materials.append(mats['coat']); bpy.ops.object.shade_smooth(); parts.append(y)
 
     def front(z, x=0.0):   # the point on the coat's front at height z (world), a hair proud of the cloth
         f = (top - z) / H; rr = r_top + (r_bot - r_top) * f
         return Vector((x, -.74 * math.sqrt(max(rr * rr - x * x, 0)) * 1.06 - .03, z))
-    for k in range(4):   # buttons beside the opening, one missing
-        if k == 2: continue
-        parts.append(ball('button', front(top - .3 - k * .34, .12) + Vector((0, -.01, 0)), .045, mats['button']))
+    for (x0, z0, x1, z1) in ((.16, bot + .75, .3, bot + .45), (.26, bot + .82, .4, bot + .52), (-.3, top - .55, -.2, top - .78)):   # torn slits
+        parts.append(segment('tear', front(z0, x0) + Vector((0, -.01, 0)), front(z1, x1) + Vector((0, -.01, 0)), .03, .015, mats['void'], 4))
     zb = top - min(1.25, (top - bot) * .5)   # a rope belt, knotted (always on the coat, however short)
     bpy.ops.mesh.primitive_torus_add(major_radius=1, minor_radius=.05, location=(0, 0, zb))
     rb = r_top + (r_bot - r_top) * (top - zb) / H
@@ -249,7 +248,7 @@ def pose(t, clip):
     P = {'pitch': 0, 'drop': 0, 'head_pitch': 0, 'face_pitch': 0, 'hump': False, 'limb': 1.0, 'head_tilt': 0, 'mouth': 0, 'sway': 0, 'bob': 0, 'shift': 0, 'sleeves': True,
          'coat': None, 'neck': 1.0, 'jit': 0}
     s = math.sin(t * 2 * math.pi); c = math.cos(t * 2 * math.pi)
-    SH = lambda x, b=0: (x * 2.3, 0, 3.36 + b)
+    SH = lambda x, b=0: (x * 2.05, 0, 3.22 + b)
     if clip == 'walk':
         lift = abs(c) * .06; _walk_legs(t, P, lift)
         for side, ph in (('L', 0), ('R', math.pi)):
@@ -265,13 +264,13 @@ def pose(t, clip):
     elif clip == 'crawl':   # on all fours like a spider: a hunched hump of coat, the head low in front looking at you,
                             # four long limbs with their knees and elbows up above the back, feet on one ground line
         P.update(pitch=45, drop=1.35, head_pitch=85, face_pitch=-140, head_tilt=s * 7, coat=(HIP + .8, HIP - .35, .28, .45), neck=.15, sleeves=False,
-                 shift=.2, hump=True, limb=1.3)
+                 shift=.25, hump=True, limb=1.3)
         for side, ph in (('L', 0), ('R', math.pi)):
             x = -1 if side == 'L' else 1
             sw = math.sin(t * 2 * math.pi + ph); up = max(0, math.cos(t * 2 * math.pi + ph))
-            P['leg' + side] = [(x * .16, .15, HIP - 1.35), (x * .62, .5, 1.85 + up * .1), (x * .95, .85 - sw * .12, .02 + up * .14)]
+            P['leg' + side] = [(x * .16, .15, HIP - 1.35), (x * .5, .45, 1.95 + up * .1), (x * .55, .95 - sw * .12, .02 + up * .14)]
             swa, upa = -sw, max(0, -math.cos(t * 2 * math.pi + ph))   # each arm moves with the opposite leg
-            P['arm' + side] = [(x * .3, 0, HIP + .75), (x * .68, -.6 + swa * .06, 1.85 + upa * .12), (x * .92, -.78 - swa * .12, .4 + upa * .15)]
+            P['arm' + side] = [(x * .3, 0, HIP + .75), (x * .5, -.25 + swa * .05, 2.0 + upa * .1), (x * .55, -.05 - swa * .1, .4 + upa * .12)]
         P['bob'] = abs(c) * .03
     elif clip == 'scream':   # arms flung up and out, the head thrown back, the mouth tearing open
         k = min(1.0, t * 6 / 1.6); e = k * k * (3 - 2 * k); tr = math.sin(t * 2 * math.pi * 7) * .03 * (k >= 1)
