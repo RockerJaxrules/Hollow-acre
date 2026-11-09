@@ -166,6 +166,17 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Thin V tufts spread evenly read as speckle at 1x; filled clump shapes (a dome of blades, spiky top, dark root row,
   lit upper-left, short shadow) read as grass. Lone 2-4 px marks and leaves in a lawn read as specks or eyes.
 
+## Portraits: check before installing (Nov 9)
+- Before installing a re-rendered sheet, diff it cell by cell against the installed one and explain every changed
+  pixel. PIL's getbbox() on an RGBA difference looks only at alpha, so colour changes report as "same": use
+  getbbox(alpha_only=False) or numpy.
+- A "#" comment dropped into the middle of a formula silently cut off its tail (the eye's tilt and inner-corner terms),
+  which changed every face by 1-36 px. A new per-face parameter must reproduce the old pixels exactly at its default:
+  render the old settings with the new code and compare with the installed sheet before judging anything.
+- Per-character tweaks (hair length staggers, new styles) go behind their own setting, or they leak into everyone
+  who shares that style (June, Ruth and Ada changed when only Caitlyn's hair was meant to).
+- Teeth: one continuous row of upper teeth, clear of the corners. Two lone corner teeth read as fangs (judge 6 vs 5).
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline

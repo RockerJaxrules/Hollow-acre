@@ -202,7 +202,7 @@ class Painter:
         P.define('cleave', [s.SK[0], s.SK[0], s.SK[1], s.SK[1], s.SK[1], s.SK[1]], prio=2.4, outline=False)
         mk = C.get('makeup')
         if mk: P.define('shadow', skin_ramp(mix(hexc(skin) if isinstance(skin, str) else skin, hexc(mk), .4)), outline=False)
-        H = C['hair']; s.HR = ramp(H, 6, dark=.34, light=1.42, shade_hue=.8 if C.get('cool_hair') else .99, shade_amt=.3, lit_amt=.3, sat=1.32)
+        H = C['hair']; s.HR = ramp(H, 6, dark=.34, light=1.42, shade_hue=C.get('hair_shade_hue', .8 if C.get('cool_hair') else .99), shade_amt=C.get('hair_shade_amt', .3), lit_amt=.3, sat=1.32)
         P.define('hair', s.HR, thr=[.17, .31, .45, .62, .8])
         if C.get('tip'): P.define('hairtip', ramp(C['tip'], 6, dark=.38, light=1.3, shade_hue=.9, shade_amt=.25), thr=[.17, .31, .45, .62, .8])
         bc = C.get('brow') or mix(hexc(H), (30, 20, 20), .45)
@@ -588,7 +588,7 @@ class Painter:
             return
         u = np.linspace(-1, 1, 41)
         xs = ecx + sg * u * a
-        yu = ecy - up * (1 - u * u) ** C.get('eye_round', .72) * (1 - .14 * u)   # low = round, high = almond - tilt * (u + 1) / 2 + inner_drop * np.clip(-u, 0, 1) * .9 + inner_drop * .25
+        yu = ecy - up * (1 - u * u) ** C.get('eye_round', .72) * (1 - .14 * u) - tilt * (u + 1) / 2 + inner_drop * np.clip(-u, 0, 1) * .9 + inner_drop * .25   # eye_round: low = round, high = almond
         yl = ecy + lo * (1 - u * u) ** .85 - tilt * .55 * (u + 1) / 2
         if ex in ('happy', 'love'): yl = ecy + lo * (1 - u * u) ** .85 - tilt * .55 * (u + 1) / 2 - .9 * (1 - u * u)
         pts = list(zip(xs, yu)) + list(zip(xs[::-1], yl[::-1]))
@@ -737,7 +737,7 @@ class Painter:
         if st in ('long', 'wavy', 'braids'):
             if st != 'braids':
                 m = poly([(CX - fw - 5.5 - vol * .5, 44)] + [(CX + (fw + 5.5 + vol * .5) * math.cos(a), 49 - 33 * math.sin(a)) for a in np.linspace(math.pi, 0, 30)] +
-                         [(CX + fw + 5.5 + vol * .5, 44), (CX + fw + 7 + vol, 80), (CX + fw + 10 + vol * 1.4, 129), (CX - fw - 10 - vol * 1.4, 129), (CX - fw - 7 - vol, 80)])
+                         [(CX + fw + 5.5 + vol * .5, 44), (CX + fw + 7 + vol, 80), (CX + fw + 10 + vol * 1.4, C.get('hair_end', 129)), (CX - fw - 10 - vol * 1.4, C.get('hair_end', 129)), (CX - fw - 7 - vol, 80)])
                 s.mass(m, back)
                 for sg in (-1, 1):
                     for j in range(4):
@@ -761,11 +761,11 @@ class Painter:
                 tucked = tuck and sg == tuck
                 for j in (4, 3, 2, 1, 0):
                     if tucked:
-                        s.lock([(CX + sg * (fw - 4), 38 + j * 1.5), (CX + sg * (fw + 5), 52), (CX + sg * (fw + 4 + j), 80), (CX + sg * (fw + 7 + j * 2 + vol), 127)],
+                        s.lock([(CX + sg * (fw - 4), 38 + j * 1.5), (CX + sg * (fw + 5), 52), (CX + sg * (fw + 4 + j), 80), (CX + sg * (fw + 7 + j * 2 + vol), C.get('hair_end', 129) - 2)],
                                [4.5, 6.5, 6, 2.5], back, tone=-.04 + .03 * (j % 2), wave=W(j))
                     else:
                         s.lock([(CX + sg * (fw - 2.5 - j * 1.1), 33 + j * 2.2), (CX + sg * (fw + 2 + j * .9 + vol * .3), 58), (CX + sg * (fw + 1 + j * 1.3 + vol * .6), 92),
-                                (CX + sg * (fw + 4.5 + j * 2.2 + vol), 126 + j * .6)], [4, 6.5, 6.5, 2], front, tone=.02 - .035 * (j % 3), wave=W(j))
+                                (CX + sg * (fw + 4.5 + j * 2.2 + vol), C.get('hair_end', 129) - 3 + j * .6 - ((j % 2) * 2.5 if 'hair_end' in C else 0))], [4, 6.5, 6.5, 2], front, tone=.02 - .035 * (j % 3), wave=W(j))
                 if tucked:   # the hair over the tucked ear sweeps behind it
                     s.lock([(PX + sg * 2, 22), (CX + sg * (fw - 4), 26), (CX + sg * (fw + 1), 38), (CX + sg * (fw + 3.5), 55)], [4, 7, 6, 2], front, tone=.0)
             if C.get('bangs') == 'blunt':
