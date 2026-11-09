@@ -35,7 +35,7 @@ function fDress(){const f=fToday(),w=fWedding();const on=!!(f||w)&&!S.room;
   const d=dayOfMonth();const next=Object.keys(FESTS).map(Number).map(k=>[k,FESTS[k]]).sort((a,b)=>((a[0]-d+28)%28)-((b[0]-d+28)%28));
   sub.insertAdjacentHTML('afterend',`<h4 class="fcal">Festivals</h4>`+next.map(([k,f])=>`<p>${k===d?'<b>Today</b>':((k-d+28)%28===1?'Tomorrow':`In ${(k-d+28)%28} days`)} · <b>${f.name}</b>, the town square, ${clockH(f.from)}–${clockH(f.to)}</p>`).join(''));}catch(e){}return r;};}
 // ---- the market stall
-ITEMS.candy_apple=ITEMS.candy_apple||{name:'Candied apple',food:[30,6],icon:'it_bouquet',desc:'Bright red, sticky, a little bit too sweet. Sold only at the Harvest Market. +30 energy.'};
+ITEMS.candy_apple=ITEMS.candy_apple||{name:'Candied apple',food:[30,6],icon:'it_candy_apple',desc:'Bright red, sticky, a little bit too sweet. Sold only at the Harvest Market. +30 energy.'};
 vendors.fest_market={name:'Harvest Market stall',sub:'Caitlyn and Pip, behind a stall full of jars. “Market prices. Real ones, for once.”',rows:()=>{const v=S.basket.reduce((a,b)=>a+(b.value||0),0);return [
   {k:'sellall',name:'Sell your basket at market prices',desc:S.basket.length?`${S.basket.length} things in your basket. Half again what the bin pays: ${Math.round(v*1.5)} coins.`:'Your basket is empty.',price:0,can:S.basket.length>0,
    buy(){const c=Math.round(v*1.5);S.coins+=c;S.basket.length=0;toast(`Sold. +${c} coins.`,2);for(const id of ['mae','pip'])if(npcById(id))addFriend(id,10);updateHud();}},
@@ -99,7 +99,7 @@ function fToss(){const pegs=[40,90,140,190,240,290];let throws=0,hits=0,last=nul
 #fGame .box{background:#2a1a0e;padding:12px 14px;box-shadow:0 0 0 2px #1a0e06,0 0 0 4px #b8521c;color:#f4e6c8;text-align:center;zoom:var(--su,1)}
 #fGame .t{font-size:16px;margin-bottom:8px;color:#ffd27a}#fGame canvas{width:min(84vw,480px);image-rendering:pixelated;touch-action:none;display:block}#fGame .h{font-size:12px;opacity:.8;margin-top:6px}`;document.head.appendChild(st);}
 // ---- weddings
-ITEMS.ring={name:'Marrow ring',icon:'it_bouquet',desc:'An old iron ring with a red stone, the kind the valley has always married with. Give it to someone you’re dating at ten hearts to ask them to marry you.'};
+ITEMS.ring={name:'Marrow ring',icon:'it_ring',desc:'An old iron ring with a red stone, the kind the valley has always married with. Give it to someone you’re dating at ten hearts to ask them to marry you.'};
 {const _vf=vendors.v_feed.rows;vendors.v_feed.rows=()=>{const r=_vf();r.push({k:'ring',name:'Marrow ring',desc:'For asking someone to marry you. They must be dating you, at ten hearts.',price:300,can:inv('ring')<1,
   buy(){addInv('ring');toast('Ezra hands it over without a word, then says, very quietly: “Good.”',2.6);}});return r;};}
 {const _og=openGift;openGift=function(n){_og.apply(this,arguments);if(!n||!ROMANCE[n.def.id]||inv('ring')<=0)return;const id=n.def.id;const R=S.rom[id]||{};if(R.married||R.wedding)return;

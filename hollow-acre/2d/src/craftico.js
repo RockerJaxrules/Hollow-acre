@@ -1,7 +1,8 @@
 /* ================= proper pictures for the things you make (the crafting lists used to show the material instead):
    the oil flask, the sprinkler, the club, sickle and machete, the jacket, coat and mail shirt ================= */
 const CICO={};
-function cicoMake(key,draw){const c=document.createElement('canvas');c.width=32;c.height=32;const g=c.getContext('2d');const H=s=>{const n=Math.sin(s*12.9898)*43758.5453;return n-Math.floor(n);};
+// a drawn icon (spr icon32_<key>, from the Aseprite icon set) wins over the one made here in code
+function cicoMake(key,draw){if(SPR['icon32_'+key])return key;const c=document.createElement('canvas');c.width=32;c.height=32;const g=c.getContext('2d');const H=s=>{const n=Math.sin(s*12.9898)*43758.5453;return n-Math.floor(n);};
   const p=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),w,h);};
   const poly=(pts,fn)=>{let x0=99,x1=-1,y0=99,y1=-1;for(const [x,y] of pts){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}
     for(let y=Math.floor(y0);y<=y1;y++)for(let x=Math.floor(x0);x<=x1;x++){let ins=false;for(let a=0,b=pts.length-1;a<pts.length;b=a++){const [xa,ya]=pts[a],[xb,yb]=pts[b];if((ya>y+.5)!==(yb>y+.5)&&x+.5<(xb-xa)*(y+.5-ya)/(yb-ya)+xa)ins=!ins;}if(ins){const c2=fn(x,y);if(c2)p(x,y,1,1,c2);}}};
@@ -28,5 +29,5 @@ function cicoMake(key,draw){const c=document.createElement('canvas');c.width=32;
     poly([[13,3],[16,7],[19,3]],()=>I[2]);});}
 Object.assign(CRAFT_ICON,{flask:'it_flask',spr:'it_sprinkler',sprinkler:'it_sprinkler',club:'it_club',sickle:'it_sickle',machete:'it_machete',jacket:'it_jacket',coat:'it_coat',mail:'it_mail'});
 // the oil lamp's picture is the lit lamp and the table top, not the whole stand shrunk down
-{const mk=()=>{const m=SPR.in_oillamp_n,im=m&&IMG[m.src];if(!im||!im.complete||!im.naturalWidth){setTimeout(mk,400);return;}const c=document.createElement('canvas');c.width=32;c.height=32;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+if(!SPR.icon32_in_oillamp){const mk=()=>{const m=SPR.in_oillamp_n,im=m&&IMG[m.src];if(!im||!im.complete||!im.naturalWidth){setTimeout(mk,400);return;}const c=document.createElement('canvas');c.width=32;c.height=32;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
   g.drawImage(im,0,0,m.fw,30,(32-m.fw)>>1,1,m.fw,30);ICON.in_oillamp=c.toDataURL();};mk();}
