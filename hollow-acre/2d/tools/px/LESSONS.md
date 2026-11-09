@@ -271,6 +271,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   highlight, a dark edge along the bottom-right.
 - A dried leaf tip must not touch an ear (they merge into a club with a peg), and it turns in two steps (olive-straw,
   then straw), not one hard step.
+- Lobes built from pointed wedges go jagged (a centre spike, 1-2 px teeth: nettle, thistle, holly). A pumpkin lobe is a
+  rounded shoulder ending in ONE 1 px point; notches only between lobes; drop edge pixels with fewer than two
+  neighbours; inside, one body tone and a pale vein, nothing else.
+- A leaf standing beside its fruit, brighter than it, reads as a sticker: tuck it behind the fruit's upper-left
+  (overlap 3-4 px, a dark line between), a step darker and cooler, and join them with a vine into the stem.
+- A dried leaf tip as pale as the husks reads as a third ear or a bone: dull tan, two steps under the husk's lightest,
+  never cream.
 - A young pumpkin in deep blue-green reads as a mossy stone among green leaves; warm it toward olive.
 - Ripe pumpkin: scalloped joins at the top and bottom made it octagonal. Dip only the middle joins, by one pixel, at the
   top; keep the base closed; one highlight mass.

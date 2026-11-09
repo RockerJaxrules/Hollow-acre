@@ -1658,6 +1658,140 @@ def corn(stage):
     return outline(cv.image())
 
 
+# ================================================================ v13 (strict round 9: 8 hold; pumpkin leaves now "jagged:
+# nettle, thistle, holly"; pumpkin_2's leaf "the brightest thing, a lime crown standing apart: two stickers"; corn_2's
+# dried tip "pale as the husks: a third ear, a bone")
+def round_lobe_leaf(n_lobes, reach, r, spread, squash=.72):
+    """a leaf wider than tall: each lobe a rounded shoulder (an ellipse) ending in one 1 px point; notches only between
+    lobes; no teeth along the edges (isolated edge pixels removed). Returns pixels, base, the lobes' tip pixels"""
+    angs = [math.radians(-spread + 2 * spread * k / (n_lobes - 1)) for k in range(n_lobes)] if n_lobes > 1 else [0]
+    px = set(); tips = []
+    for a in angs:
+        k = .78 + .22 * math.cos(a)                                               # side lobes a little shorter
+        ux, uy = math.sin(a), -math.cos(a) * squash
+        cx_, cy_ = ux * reach * k, uy * reach * k
+        rr = r * (.85 + .15 * math.cos(a))
+        R = int(reach + r + 3)
+        for y in range(-R, 3):
+            for x in range(-R, R + 1):
+                if ((x - cx_) / rr) ** 2 + ((y - cy_) / (rr * .86)) ** 2 <= 1: px.add((x, y))
+        tx, ty = round(cx_ + ux * (rr + .6) / max(.3, math.hypot(ux, uy))), round(cy_ + uy * (rr * .86 + .6) / max(.3, math.hypot(ux, uy)))
+        tips.append((tx, ty))
+    for y in range(-2, 2):                                                         # the heart of the leaf, round the stalk end
+        for x in range(-2, 3):
+            if x * x + y * y <= 4.5: px.add((x, y))
+    for _ in range(2):                                                             # no teeth: drop edge pixels with < 2 neighbours
+        px = {p for p in px if sum((p[0] + dx, p[1] + dy) in px for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))) >= 2}
+    for t in tips: px.add(t)                                                       # then one point on each lobe
+    return px, tips
+
+
+LTONES2 = {'front': (LEAF[5], LEAF[4], LEAF[3], LEAF[6]),     # lit rim, body, shade rim, vein: a step darker than v12
+           'back': (LEAF[4], LEAF[3], LEAF[2], LEAF[5])}
+
+
+def pleaf4(cv, x, y, n_lobes, reach, r, spread, tones='front', squash=.72):
+    px, tips = round_lobe_leaf(n_lobes, reach, r, spread, squash)
+    lit, body, sh, vein = LTONES2[tones]
+    up_l = lambda i, j: (i - 1, j) not in px or (i, j - 1) not in px
+    dn_r = lambda i, j: (i + 1, j) not in px or (i, j + 1) not in px
+    cv.begin()
+    for (i, j) in px:
+        cv.put(x + i, y + j, sh if dn_r(i, j) else lit if up_l(i, j) else body)
+    for (tx, ty) in tips:                                                          # one pale vein per lobe, from the stalk end
+        n = max(abs(tx), abs(ty))
+        for k in range(1, n - 1):
+            i = round(tx * k / n); j = round(ty * k / n)
+            if (i, j) in px and not dn_r(i, j) and not up_l(i, j): cv.put(x + i, y + j, vein)
+    cv.end(LEAF[0] if tones == 'back' else LEAF[1])
+
+
+OLV2[6] = HEX('#c4bc64')   # the young fruit's highlight one step lighter (it barely showed at 1x)
+
+
+def pumpkin(stage):
+    cv = Canvas(32, 64); B = 58; cx = 16
+    contact(cv, cx, B, 4 + 2 * stage)
+    if stage == 0:
+        for k in range(4): cv.put(cx, B - 1 - k, GOURD[5] if k < 3 else GOURD[4])
+        seed_leaf(cv, cx - 1, B - 5, -.82, 6.2, 2.6, LEAF); seed_leaf(cv, cx + 1, B - 3, .9, 4.8, 2.2, LEAF)
+        return outline(cv.image())
+    def run(pts, col=LEAF[4], w=1):
+        for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+            n = int(max(abs(x1 - x0), abs(y1 - y0))) + 1
+            for i in range(n + 1):
+                x, y = round(x0 + (x1 - x0) * i / n), round(y0 + (y1 - y0) * i / n)
+                cv.put(x, y, col)
+                if w > 1: cv.put(x, y + 1, LEAF[3])
+    if stage == 1:   # a big five-lobed leaf behind, two three-lobed leaves in front (one smaller, flatter), the vine in two runs
+        run([(cx - 14, B - 2), (cx - 11, B - 1), (cx - 7, B - 1), (cx - 5, B - 2)])
+        run([(cx + 5, B - 1), (cx + 8, B - 1), (cx + 11, B - 2), (cx + 13, B - 3)])
+        for (dx, dy) in ((14, -4), (14, -5), (13, -6), (12, -5)): cv.put(cx + dx, B + dy, LEAF[5])
+        pleaf4(cv, cx - 1, B - 6, 5, 6.5, 3.0, 76, 'back', squash=.8)
+        pleaf4(cv, cx - 8, B - 3, 3, 4.6, 2.6, 56, 'front')
+        pleaf4(cv, cx + 6, B - 3, 3, 4.0, 2.3, 60, 'front', squash=.6)
+        fx, fy = cx + 12, B - 7
+        for (dx, dy, k) in ((-1, -1, 3), (1, -1, 3), (-1, 0, 2), (0, 0, 3), (1, 0, 2), (0, 1, 1)): cv.put(fx + dx, fy + dy, FLOWERY[k])
+        cv.put(fx, fy + 2, LEAF[4])
+    elif stage == 2:   # the leaf tucked behind the fruit's upper-left (one step darker), the vine running into the stem
+        run([(cx - 14, B - 2), (cx - 10, B - 1), (cx - 6, B - 1)])
+        pleaf4(cv, cx - 3, B - 6, 3, 5.2, 2.8, 58, 'back')
+        cv.begin(); young_fruit(cv, cx + 5, B - 5, 7.2, 4.8); cv.end(OLV2[0])
+        run([(cx - 4, B - 9), (cx - 1, B - 11), (cx + 2, B - 11), (cx + 4, B - 10)], LEAF[4], w=2)
+        for (dx, dy, c) in ((0, -10, 2), (1, -10, 1), (0, -11, 3), (1, -11, 2), (1, -12, 3)): cv.put(cx + 5 + dx, B + dy, KHAKI[c])
+    else:
+        run([(cx - 15, B - 2), (cx - 11, B - 1), (cx - 7, B - 1)])
+        pleaf4(cv, cx - 9, B - 4, 3, 4.6, 2.6, 58, 'back')
+        pcx, pcy, prx, pry = cx + 1, B - 9, 10.4, 8.6
+        lobed_fruit(cv, pcx, pcy, prx, pry, PUMP)
+        for (dx, dy) in ((-1, -8), (0, -8), (1, -8)): cv.put(pcx + dx, pcy + dy, PUMP[2])
+        for (dx, dy) in ((-1, -9), (0, -9), (-1, -10), (0, -10), (-1, -11), (0, -11), (0, -12), (1, -12)):
+            cv.put(pcx + dx, pcy + dy, STEMB[3] if dx < 0 else STEMB[1])
+    return outline(cv.image())
+
+
+OLIVEG = [HEX(c) for c in ('#2a3a1a', '#3c4e22', '#52622a', '#687232', '#7e823a', '#92903e')]   # green going olive: the first of three drying steps
+
+
+def corn(stage):
+    if stage < 2: return _corn_v9(stage)
+    # ripe: the lowest right leaf hangs lower and dries in three steps (olive-green, olive-straw, dull tan), its lightest
+    # two steps under the husk's lightest, never cream
+    cv = Canvas(28, 62); B = 60; cx = 14; H = 50
+    contact(cv, cx, B, 5)
+    sway = lambda t: round(math.sin(t * 2.2))
+    spots = ((.14, 1, 14, 2.4, 1), (.27, -1, 17, 1.4, 0), (.45, 1, 13, 1.0, 0), (.6, -1, 15, 1.1, 0), (.74, 1, 11, .8, 1), (.87, -1, 8, .5, 0))
+    def leaves(behind):
+        for (t, side, L, dr, bh) in spots:
+            if bool(bh) != behind: continue
+            y = B - 2 - t * H; xo = sway(t); bx = cx + xo + side
+            before = dict(cv.px)
+            leaf(cv, bx, y, side * (.62 - t * .2), L, 2.4, side * .3, LEAF[:-2] if behind else LEAF, blade=True, droop=side * dr)
+            if t == .14:
+                new = [(p, c) for p, c in cv.px.items() if before.get(p) != c]
+                dist = lambda p: math.sqrt((p[0] - bx) ** 2 + (p[1] - y) ** 2)
+                far = max(dist(p) for p, c in new)
+                for (p, c) in new:
+                    d = far - dist(p)
+                    if c not in LEAF or d > 8.5: continue
+                    k = LEAF.index(c)
+                    if d < 3: cv.px[p] = DRYL[max(1, min(3, k - 1))]
+                    elif d < 5.5: cv.px[p] = OSTRAW[max(1, min(3, k - 1))]
+                    else: cv.px[p] = OLIVEG[max(1, min(5, k - 1))]
+    leaves(True)
+    for y in range(B - 1, B - H, -1):
+        t = (B - y) / H; w = 3 if t < .5 else 2; xo = sway(t)
+        for dx in range(-(w // 2), w - w // 2): cv.put(cx + xo + dx, y, LEAF[5] if dx == -(w // 2) else LEAF[3])
+    leaves(False)
+    cv.begin(); corn_ear(cv, cx + sway(.55) + 2, B - 2 - .55 * H, 1, 12, 5, .5); cv.end(HUSK[0])
+    cv.begin(); corn_ear(cv, cx + sway(.38) - 2, B - 2 - .38 * H, -1, 9, 4, -.55); cv.end(HUSK[0])
+    top = B - H; tx = cx + sway(1)
+    for (dx, dy, k) in ((0, 0, 1), (0, -1, 2), (0, -2, 2), (0, -3, 3), (0, -4, 3), (0, -5, 3), (0, -6, 3),
+                        (-1, -3, 2), (-2, -2, 2), (-3, -1, 3), (-4, 0, 2), (1, -4, 2), (2, -3, 3), (3, -2, 2), (4, -1, 3), (1, -6, 3), (2, -7, 2)):
+        cv.put(tx + dx, top + dy, TASSEL[k])
+    return outline(cv.image())
+
+
 def specks(im):
     """lint: isolated single pixels whose colour differs from all four neighbours by a lot (reads as speckle)"""
     p = im.load(); W, H = im.size; out = []
