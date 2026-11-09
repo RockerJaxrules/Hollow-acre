@@ -228,7 +228,7 @@ function B.roofpx(c, mat, x, y, top, lit, seed)
     --[[ judge r6: rust starts at the eave and runs up a rib 5-10 px, 2 px wide, tapered at the top, orange-brown (crimson
          streaks floating mid-slope read as blood), a few, clustered toward the two ends of the eave ]]
     local E = B.EAVE
-    if E and bx >= 2 and bx <= 3 then local col = x // 7; local w = E.x1 - E.x0; local fx = (x - E.x0) / math.max(1, w)
+    if E and (E.x1 - E.x0) > 110 and bx >= 2 and bx <= 3 then local col = x // 7; local w = E.x1 - E.x0; local fx = (x - E.x0) / math.max(1, w)
       if (fx < .3 or fx > .7) and H(col, seed) > .55 then local len = 5 + math.floor(H(col, seed + 1) * 6); local up = E.y - y
         if up >= 0 and up < len and not (up >= len - 2 and bx == 3) then return px.i(c, up >= len - 3 and 'mu4' or 'mu3') end end end
     return band(c, Rr, (lit > .5 and .58 or .26) - (y - top) / 600, 2, 7)
@@ -616,16 +616,21 @@ function B.leantools(c, x, gy)
   px.hline(c, x + 12, x + 16, gy, 'OUT')
   for xx = x - 1, x + 18 do if px.get(c, xx, gy + 1) ~= 0 then px.shade(c, xx, gy + 1, -2) end end
 end
-function B.logpile(c, x0, x1, gy, h, seed)   -- split logs stacked end-on: pale cut faces in dark bark rims, shadow between them
-  R(c, x0, gy - h, x1, gy, 'k1')
-  local r = 4; local row = 0
-  for y = gy - r, gy - h + r, -(2 * r - 1) do local off = (row % 2) * r
-    for x = x0 + r + off, x1 - r + 1, 2 * r do
+function B.logpile(c, x0, x1, gy, h, seed)   --[[ judge (sheds): identical ends with a '+' on black read as a crate of buttons. Two or
+     three sizes, rings off centre, dark bark brown between them, lit top-left, a contact shadow on the ground ]]
+  R(c, x0, gy - h, x1, gy, 'w2')
+  local y = gy - 4; local row = 0
+  while y > gy - h + 3 do local x = x0 + 3 + (row % 2) * 2
+    while x < x1 - 2 do local r = 3 + math.floor(H(x + row * 7, seed + 101) * 2); local ox = (H(x, row + seed) > .5) and 1 or -1
       for yy = -r, r do for xx = -r, r do local d = xx * xx + yy * yy
-        if d <= r * r + 1 then P(c, x + xx, y + yy, d >= (r - 1) * (r - 1) + 2 and 'w2' or ((xx + yy <= -2) and 'w7' or (d <= 1 and 'w4' or 'w6'))) end end end end
-    row = row + 1 end
-  px.hline(c, x0, x1, gy - h - 1, 'OUT'); px.vline(c, x0 - 1, gy - h, gy, 'OUT'); px.vline(c, x1 + 1, gy - h, gy, 'OUT')
-  for xx = x0, x1 + 3 do P(c, xx, gy + 1, 'OUT2') end
+        if d <= r * r and px.get(c, x + xx, y + yy) ~= nil then
+          local col = (d >= (r - 1) * (r - 1) + 1) and 'w3' or ((xx + yy <= -2) and 'w7' or 'w6')
+          if (xx - ox) * (xx - ox) + yy * yy == math.floor(r * r / 3) then col = 'w5' end   -- one growth ring, off centre
+          P(c, x + xx, y + yy, col) end end end
+      x = x + 2 * r + 1 end
+    y = y - 7; row = row + 1 end
+  px.hline(c, x0, x1, gy - h - 1, 'w1'); px.vline(c, x0 - 1, gy - h, gy, 'w1'); px.vline(c, x1 + 1, gy - h, gy, 'w1')
+  for xx = x0 - 1, x1 + 4 do P(c, xx, gy + 1, 'OUT2') end; for xx = x0 + 2, x1 + 5 do P(c, xx, gy + 2, 'OUT2') end
 end
 
 function B.build(sp, night)
