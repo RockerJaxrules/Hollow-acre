@@ -296,6 +296,32 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Iterate on a 6x zoom of the stage beside the reference AND a field shot: the young pumpkin looked fine zoomed and like
   a stone in the field.
 
+## Making minigames (Nov 10: yard 3 -> 6, barn 3 -> 6, installed)
+- A sunny candy palette (bright grass, white tiles, honey wood, blue sky) is the first thing that sinks a scene. Dusk light,
+  dulled colours, one visible light source (a lamp, a candle, a lit window) and a darker floor read as this game.
+- The verdict text (PERFECT x5) must have a full dark outline and must never blink to a dark colour. Dark brown text on
+  dark ground cannot be read. Keep verdicts off the tool and the line being worked: fix their spot away from the cursor.
+- Anything the player manages must read at half size. Vents need to be 8+ px glowing openings with smoke rising from
+  each; the flail must be the palest, most outlined object in the scene (pale ash wood, a lit top edge, a dark outline,
+  a leather thong).
+- Smoke is solid round puffs in 2-3 greys that swell and shrink (no see-through squares, which read as glass cubes or
+  bubbles), rising in a column from where it comes out.
+- A dome of turves laid in a regular grid reads as a brick igloo. Lay them by angle round the dome (foreshortened at the
+  edges), light the whole dome (lit top-left, dark bottom-right), and break up the grass lips.
+- Repeated props read as stamped copies: give logs, sheaves and bales two or three variants (length, grain, a knot, the
+  heart off centre, flipped).
+- Light from a window is a hard-edged patch on the floor with the bars in it, not a see-through beam.
+- A thing being carried must sit clear of the title plate and the HUD (the yard's log was hidden under WATCH).
+- A gauge belongs next to what it measures, with its good band in green.
+- Backgrounds go through a lone-pixel pass: any pixel whose four neighbours all match each other, but not it, takes their
+  colour.
+- Rough or worn surfaces (an unplaned board, a waxed cloth) are drawn as shapes: long torn-grain streaks, a few
+  splinters, a duller tone. Single dark and light pixels read as gravel or sandpaper.
+- The drop point must show before the tap: a clear shadow on the surface under the held thing (an egg over the pan).
+- A tool must visibly touch the work where the pointer is (the skimmer's bowl in the metal under the cursor).
+- Cloth: never a 1-2 px checker weave (it turns to dither) and no big soft blotches (they read as stains). Use a flat
+  body tone, a few tapered fold curves (a lit crest with its shadow under it), a frayed selvedge and pins.
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline

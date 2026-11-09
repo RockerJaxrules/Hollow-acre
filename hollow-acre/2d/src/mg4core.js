@@ -66,12 +66,15 @@ function mg4Kit(g){const W=320,H=180;const K=caKit(g,W,H);K.g=g;K.W=W;K.H=H;K.pa
   K.text=(t,x,y,c,sc,al)=>{if(typeof sc==='string'){al=sc;sc=1;}t=String(t).toUpperCase();sc=sc||1;const w=t.length*4*sc;let X=Math.round(al==='l'?x:al==='r'?x-w:x-w/2);
     for(const ch of t){const f=PXFONT[ch]||PXFONT[' '];for(let j=0;j<5;j++)for(let i=0;i<3;i++)if(f[j*3+i]==='1'){K.px(X+i*sc+sc,y+j*sc+sc,sc,sc,'#140a04');}X+=4*sc;}
     X=Math.round(al==='l'?x:al==='r'?x-w:x-w/2);for(const ch of t){const f=PXFONT[ch]||PXFONT[' '];for(let j=0;j<5;j++)for(let i=0;i<3;i++)if(f[j*3+i]==='1')K.px(X+i*sc,y+j*sc,sc,sc,c);X+=4*sc;}};
+  // text outlined all round in dark plum, for verdicts that must read on any ground
+  K.textO=(t,x,y,c,sc)=>{sc=sc||1;for(const [dx,dy] of [[-1,0],[1,0],[0,-1],[0,1],[1,1]]){const u=String(t).toUpperCase(),w=u.length*4*sc;let X=Math.round(x-w/2)+dx*sc;for(const ch of u){const f=PXFONT[ch]||PXFONT[' '];for(let j=0;j<5;j++)for(let i=0;i<3;i++)if(f[j*3+i]==='1')K.px(X+i*sc,y+dy*sc+j*sc,sc,sc,'#1a0c12');X+=4*sc;}}
+    const u=String(t).toUpperCase(),w=u.length*4*sc;let X=Math.round(x-w/2);for(const ch of u){const f=PXFONT[ch]||PXFONT[' '];for(let j=0;j<5;j++)for(let i=0;i<3;i++)if(f[j*3+i]==='1')K.px(X+i*sc,y+j*sc,sc,sc,c);X+=4*sc;}};
   // a label that reads on any wall: the same letters on a dark rounded strip
   K.label=(t,x,y,c,sc,al)=>{if(typeof sc==='string'){al=sc;sc=1;}t=String(t);sc=sc||1;const w=t.length*4*sc,X=Math.round(al==='l'?x:al==='r'?x-w:x-w/2);K.pa(X-3,y-2,w+5,5*sc+4,'#140a04',.62);K.pa(X-2,y-3,w+3,1,'#140a04',.62);K.pa(X-2,y+5*sc+2,w+3,1,'#140a04',.62);K.text(t,x,y,c,sc,al);};
   // particles: chips, dust, sparks, drops, steam, curls; each with gravity, drag, life and a colour ramp
   K.emit=(x,y,n,o)=>{o=o||{};for(let i=0;i<n;i++){const a=(o.ang!=null?o.ang:-Math.PI/2)+(Math.random()-.5)*(o.spread!=null?o.spread:2.4),v=(o.v||60)*(.4+Math.random()*.8);
     K.parts.push({x:x+(Math.random()-.5)*(o.w||0),y:y+(Math.random()-.5)*(o.h||0),vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:0,life:(o.life||.8)*(.6+Math.random()*.6),g:o.g!=null?o.g:220,drag:o.drag||0,
-      c:o.c||['#e8c890'],sz:o.sz||1,kind:o.kind||'dot',glow:o.glow,rot:Math.random()*6});}};
+      c:o.c||['#e8c890'],sz:o.sz||1,kind:o.kind||'dot',glow:o.glow,hi:o.hi,rot:Math.random()*6});}};
   K.burst=(x,y,n,c,sp)=>K.emit(x,y,n,{c:[c],v:sp||70});
   K.judge=(s,x,y,quiet)=>{const J=s>=.95?['PERFECT','#ffd27a']:s>=.6?['GOOD','#9be07a']:s>=.25?['OK','#e8c070']:['MISS','#e8542a'];
     for(let k=K.pops.length-1;k>=0;k--){const p=K.pops[k];if(Math.abs(p.x-x)<40&&Math.abs(p.y-y)<24)K.pops.splice(k,1);}   // a new verdict replaces the one still rising there
@@ -154,8 +157,8 @@ function mg4Run(def,name,done,icon){if(MG4.closeCur)MG4.closeCur(true);const box
       const q=result,stars=q>.9?3:q>.6?2:q>.3?1:0;for(let i=0;i<stars;i++)if(!run['st'+i]&&reveal-.3-i*.25>0){run['st'+i]=1;A.tone(880*[1,1.26,1.5][i],.25,'triangle',.07);A.tone(1760*[1,1.26,1.5][i],.15,'sine',.03,{delay:.03});K.emit(128+i*24+6,154,8,{c:['#fff4c0','#ffd27a'],v:50,g:80,life:.5});}K.pa(118,142,84,22,'#140c06',.75);for(let i=0;i<3;i++){const on=i<stars,pop=on?Math.min(1,Math.max(0,(reveal-.3-i*.25)*5)):1;if(on&&pop<=0)continue;cg3Star(K,128+i*24,148+(on?Math.round((1-pop)*-5):0),on);}}
     else{MG4ART.scene(K,spd().scene||def.scene,t);cur.draw(t,phase);MG4ART.light(K,spd().scene||def.scene,t);cur.hud&&phase!=='title'&&cur.hud(t);}
     for(let k=K.parts.length-1;k>=0;k--){const p=K.parts[k];p.t+=dt;if(p.t>p.life){K.parts.splice(k,1);continue;}p.vx*=1-p.drag*dt;p.vy=p.vy*(1-p.drag*dt)+p.g*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
-      const u=p.t/p.life,c=p.c[Math.min(p.c.length-1,Math.floor(u*p.c.length))];if(p.kind==='steam'){K.pa(p.x-p.sz,p.y-p.sz,p.sz*2,p.sz*2,c,.35*(1-u));}else{g.globalAlpha=u>.75?(1-u)*4:1;K.px(p.x,p.y,p.sz,p.sz,c);g.globalAlpha=1;}}
-    for(let k=K.pops.length-1;k>=0;k--){const p=K.pops[k];p.t+=dt;if(p.t>1){K.pops.splice(k,1);continue;}const yy=Math.round(p.y-p.t*18-(p.big?Math.sin(Math.min(1,p.t*8)*Math.PI)*4:0));K.text(p.txt,p.x,yy,p.t>.7&&Math.floor(p.t*20)%2?'#4a3420':p.c,p.big?2:1);}
+      const u=p.t/p.life,c=p.c[Math.min(p.c.length-1,Math.floor(u*p.c.length))];if(p.kind==='smoke'){const z=Math.max(1,p.sz*(.5+Math.sin(u*Math.PI)*.8)),X=Math.round(p.x),Y=Math.round(p.y),zr=Math.round(z);for(let dy=-zr;dy<=zr;dy++){const w=Math.round(Math.sqrt(Math.max(0,z*z-dy*dy)));if(w<1)continue;K.px(X-w,Y+dy,2*w,1,c);if(dy<0&&dy>-zr)K.px(X-w,Y+dy,Math.max(1,w-1),1,p.hi||c);}}else if(p.kind==='steam'){const z=Math.max(1,Math.round(p.sz)),X=Math.round(p.x),Y=Math.round(p.y);g.globalAlpha=.35*(1-u);g.fillStyle=c;g.beginPath();g.rect(X-z+1,Y-z,2*z-2,2*z);g.rect(X-z,Y-z+1,2*z,2*z-2);g.fill('nonzero');g.globalAlpha=1;}else{g.globalAlpha=u>.75?(1-u)*4:1;K.px(p.x,p.y,p.sz,p.sz,c);g.globalAlpha=1;}}
+    for(let k=K.pops.length-1;k>=0;k--){const p=K.pops[k];p.t+=dt;if(p.t>1){K.pops.splice(k,1);continue;}const yy=Math.round(p.y-p.t*18-(p.big?Math.sin(Math.min(1,p.t*8)*Math.PI)*4:0));K.textO(p.txt,p.x,yy,p.t>.7&&Math.floor(p.t*20)%2?'#fff4d8':p.c,p.big?2:1);}
     if(K.flash>0){K.flash-=dt;K.pa(0,0,W,H,'#fff6d0',Math.max(0,K.flash)*.6);}
     g.setTransform(1,0,0,1,0,0);
     if(reveal===0){
