@@ -186,6 +186,14 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Per-character tweaks (hair length staggers, new styles) go behind their own setting, or they leak into everyone
   who shares that style (June, Ruth and Ada changed when only Caitlyn's hair was meant to).
 - Teeth: one continuous row of upper teeth, clear of the corners. Two lone corner teeth read as fangs (judge 6 vs 5).
+- Cleavage, chat portraits: frame the young women 4 px higher so the neckline shows (cropped at the frame edge it fails the
+  owner's rule); shade each breast on its inner, lower curve with one highlight upper left, a short crease only under the
+  neckline. A full-length dark streak reads as a slit or stain. Narrow plunges make a wedge: cut them wide. Pendants at
+  the base of the neck (6 vs 4, then 6 vs 5).
+- Cleavage, walking sprites (48x64): no necklaces at all; at that scale a chain reads as a collar, a necktie or a
+  breastplate. The cleft in two soft steps, darkest only at its base; a hard 1 px darkest stripe reads as a tie or zip.
+  The top must sit two value steps from the skin (a tan apron on pale skin merged into one column). Arms folded across
+  the chest hide it; a stance that differs from the walk flickers (5 vs 4 twice).
 - A laugh has to open: a D-shaped mouth 7 px tall, a little wider than the smile, dark inside, top teeth, tongue at the
   bottom (6 vs 5 in both sets). A 1.6 px taller opening was invisible to two judges.
 
