@@ -248,8 +248,29 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - If arms are drawn: foreshortened (about twice the fist's width where they leave the frame, tapering to the cuff),
   shaded as one cylinder with two creases at most, in a muted wool clearly apart from the scene's reds, and routed so
   they never cover the work.
-- Corn: an ear reads when its husk is straw, not leaf green (or it vanishes), and its kernels are lighter than the leaves
-  in grey; lemon yellow is candy, old gold is right; kernels as small clusters, not 1 px alternating stripes.
+
+## Crops (strict judge against the reference set, Nov 10: rounds 1-6, 0 -> 8 of 11 stages at 6)
+- The turnip is the standard: spoon leaves with a bright midrib, a plum shoulder, a round bulb with a taproot. Every crop
+  gets the same things: a full value range (lights near 210 lum), a soft contact shadow (not a soil dish), and a darker
+  separation line wherever one leaf overlaps another.
+- Pumpkin leaf, every way it failed: a polygon formula with lit/shade by (x+y) dithers ("formula"); a 3/4 leaf face-on
+  on a straight stalk reads as an umbrella; hand grids with scalloped bumps along the top and a dark rim along the
+  bottom read as lettuce in a planter; round-lobed leaves held up on 6-7 px stalks read as broccoli or little trees.
+  What is left to try: drawn by hand, three lobes with a notch between each, a pale vein to each lobe, low and
+  overlapping, stalks 2-3 px at most.
+- A young pumpkin in deep blue-green reads as a mossy stone among green leaves; warm it toward olive.
+- Ripe pumpkin: scalloped joins at the top and bottom made it octagonal. Dip only the middle joins, by one pixel, at the
+  top; keep the base closed; one highlight mass.
+- Corn: a stalk that is the brightest, longest shape reads as a bamboo pole (give it the leaves' shade tone and a 1 px
+  lit edge). Leaves mirrored in strict alternation read as a fern; vary length and height and show 2-3 px of stalk
+  between their bases.
+- Corn ears: an ear reads when its husk is straw, not leaf green (or it vanishes), and its kernels are lighter than the
+  leaves in grey. Lemon yellow is candy; old gold is right. Draw kernels as 2x2 clusters, not 1 px stripes (those read
+  as a cocoon).
+- A dead corn leaf drawn as a 1 px bent line reads as a stick. Make it a ribbon tapering 3 -> 1 px, with a straw top
+  face and one darker fold where it turns down.
+- Iterate on a 6x zoom of the stage beside the reference AND a field shot: the young pumpkin looked fine zoomed and like
+  a stone in the field.
 
 ## Outlines, light, colour
 
