@@ -181,6 +181,8 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Per-character tweaks (hair length staggers, new styles) go behind their own setting, or they leak into everyone
   who shares that style (June, Ruth and Ada changed when only Caitlyn's hair was meant to).
 - Teeth: one continuous row of upper teeth, clear of the corners. Two lone corner teeth read as fangs (judge 6 vs 5).
+- A laugh has to open: a D-shaped mouth 7 px tall, a little wider than the smile, dark inside, top teeth, tongue at the
+  bottom (6 vs 5 in both sets). A 1.6 px taller opening was invisible to two judges.
 
 ## Outlines, light, colour
 
