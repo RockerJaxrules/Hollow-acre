@@ -418,6 +418,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   front log ending flush in a sawn face, so the column zigzags; identical nubs one per course read as a bead chain.
 - [shops] A trade reads from what stands at the door, not the sign: planks for the carpenter, an anvil and quench barrel
   for the smith, a millstone for the miller. Props in front of a wall need their own dark outline or they sink into it.
+- [slate r5] Quiet middles work for slate too: one tone per course and no lit tips away from the edges; the full joints
+  and the odd lit tip stay at the eaves, hips and rakes. Next for walls: stone and brick gridded at one contrast edge to
+  edge read as grit; quiet the bay middles (bigger stones, joints one step off the face), keep joints crisp at corners.
+- [story check] Read the region's description before drawing its building: Old Marrow's chapel was an intact white
+  chapel with a roof where the story says "a roofless chapel" (burnt 1872). The sprite has to tell the place's story.
 - [Harlan r1] Boarded UP is the opening covered: boards wider than the frame, a tilted one, a split end, nails, a notice
   on the door. Two boards on one window read as shelves; equal planks in the wall's own grey read as louvred shutters.
 - [Harlan r1] Rust on a derelict tin roof: whole sheets rusted brown (the lg ramp, like the barn) and runs that start at

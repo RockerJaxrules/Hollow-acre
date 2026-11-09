@@ -226,7 +226,8 @@ function B.roofpx(c, mat, x, y, top, lit, seed)
          The middle of each plane goes quiet (soft course lines, no joints); the full shingle pattern stays at the eave, the
          edges and the hips, where the eye reads the material ]]
     local ctx = B.RCTX; local quiet = false
-    if ctx then local dE = ctx.yb - y; local dS = math.min(x - ctx.xa, ctx.xb - x); quiet = dE > ch * 2 + 1 and dS > 9 and (y - top) > ch end
+    if ctx then local dE = ctx.yb - y; local dS = math.min(x - ctx.xa, ctx.xb - x); quiet = dE > ch * 2 + 1 and dS > 9 and (y - top) > ch
+      if ctx.rake then quiet = quiet and (y - ctx.rake(x)) > ch + 2 end end
     if ry == ch - 1 then return px.i(c, quiet and (lit > .5 and Rr[3] or Rr[2]) or (lit > .5 and Rr[2] or Rr[1])) end
     if lx == 0 and ry < ch - 2 and not quiet then return px.i(c, lit > .5 and Rr[3] or Rr[2]) end
     -- judge (inn): mottled light streaks across the upper front: the quiet middle keeps one tone per course, no lit tips
@@ -293,8 +294,32 @@ function B.frontgable(c, sp, x0, x1, yW, wallmat, roofmat, trim, seed)
   local roofpoly = {{x0 - over, sideTop}, {ax, topA}, {x1 + over, sideTop}, {x1 + over, yW + 4}, {ax, ay}, {x0 - over, yW + 4}}
   --[[ judge r3: seen end-on, a metal roof's seams run from the ridge down to each eave, parallel to the gable's edges ]]
   B.GABLE = {ax = ax, k = (yW + 4 - ay) / math.max(1, ax - (x0 - over)), half = ax - (x0 - over), rough = sp.rough}
+  --[[ judge (chapels): the front-gable planes kept one shingle stamp edge to edge (a brick wall). The same quiet middle as
+       the side roofs: the full pattern only near the eaves, the outer edges and the rakes ]]
+  local L0 = x0 - over; local function rake(x) local t = (x < ax) and (x - L0) / math.max(1, ax - L0) or (x1 + over - x) / math.max(1, x1 + over - ax); return sideTop + (topA - sideTop) * t end
+  B.RCTX = {xa = x0 - over, xb = x1 + over, yb = yW + 4, rake = rake}
+  if sp.burnt then   --[[ Old Marrow burnt in 1872: the chapel is roofless. Through the gone roof: the far gable's inner face,
+       dark and sooted, its top collapsed in the middle; a few charred rafters left, some broken short ]]
+    -- (r0 self-check) a full dark fill with rafters over it read as a dark roof: the far wall has fallen in the middle so sky
+    -- shows through, its inner face is the same stone in shade, two lancet holes open in it, and only two charred stubs remain
+    local function topf(x) local col
+      if x < ax then col = math.max(0, 26 - (ax - x) * .35) + ((x < ax - 95) and 6 or 0)   -- the left of the far wall stands, ragged
+      else col = 24 + (x - ax) * .42 end                                              -- the right has fallen most of the way
+      return rake(x) + col + math.floor(H(x // 3, seed + 201) * 6) end
+    local holes = {{ax - 86, ax - 76}, {ax - 62, ax - 54}}
+    px.poly(c, roofpoly, function(x, y) local tp = topf(x); if y < tp then return 0 end
+      for _, hh in ipairs(holes) do if x >= hh[1] and x <= hh[2] then local cx = (hh[1] + hh[2]) / 2; local hy0 = tp + 8 + math.max(0, math.floor((math.abs(x - cx)) ^ 2 / 4))
+        if y >= hy0 and y <= tp + 34 then return 0 end end end
+      if y < tp + 2 then return px.i(c, (x < ax) and 's4' or 's3') end   -- the broken top of the wall, lit where it faces up-left
+      local r = (y % 5); local mort = (r == 4) or ((x + (y // 5) % 2 * 6) % 12 == 11)
+      return px.i(c, mort and 'bt1' or (((x // 12 + y // 5) % 3 == 0) and 'bt2' or 's2')) end)
+    for _, st in ipairs({{-1, 92, 18}, {1, 74, 13}, {1, 118, 9}}) do local sd, off, len = st[1], st[2], st[3]   -- two charred rafter stubs off the front rake
+      local sx = ax + sd * off; local sy = math.floor(ay + (yW + 1 - ay) * (off / math.max(1, (x1 - x0) / 2)))
+      for i = 0, len do local x = sx + sd * math.floor(i * .25); local y = sy - i; P(c, x - sd, y, 'lg3'); P(c, x, y, 'bt1'); P(c, x + sd, y, 'OUT') end end
+  else
   px.poly(c, roofpoly, function(x, y) return B.roofpx(c, roofmat, x, y, topA, x < ax and 1 or 0, seed) end)
-  B.GABLE = nil
+  end
+  B.RCTX = nil; B.GABLE = nil
   if sp.rough then   -- judge r7: olive moss clumps along the outer 8 px of each plane, lit top-left (judge r3: two, larger, not beads)
     for side = 0, 1 do for k = 0, 1 do
       local ex = side == 0 and (x0 - over + 2 + math.floor(H(k, seed + 31 + side) * 5)) or (x1 + over - 2 - math.floor(H(k, seed + 33 + side) * 5))
@@ -307,8 +332,10 @@ function B.frontgable(c, sp, x0, x1, yW, wallmat, roofmat, trim, seed)
   -- moss and the odd bird mess along the lower courses
   for i = 0, sp.rough and -1 or math.floor(W / 3) do local x = x0 - over + math.floor(H(i, seed) * (W + over * 2)); local y = yW - 22 + math.floor(H(i, seed + 5) * 24)
     if px.get(c, x, y) ~= 0 and math.abs(x - ax) > 6 and H(i, 9) < (sp.moss or .4) then P(c, x, y, ({'v3', 'v4', 'v5', 'v4'})[i % 4 + 1]); P(c, x + 1, y, 'v3') end end
+  if not sp.burnt then
   for y = topA, ay do P(c, ax - 1, y, B.ROOFS[roofmat][7]); P(c, ax, y, B.ROOFS[roofmat][6]); P(c, ax + 1, y, B.ROOFS[roofmat][3]); P(c, ax + 2, y, B.ROOFS[roofmat][2]) end
   px.vline(c, x0 - over, sideTop, yW + 4, B.ROOFS[roofmat][3]); px.vline(c, x1 + over, sideTop, yW + 4, B.ROOFS[roofmat][1])
+  end
   if sp.rough and roofmat == 'tin' then
     --[[ judge (derelict barn): a flat dark hole read as a clean roof with a stain. One sheet near the left eave is lifted: 14 px
          along its rib, its outer end raised 3 px and standing 3 px past the roof's outline, a lit top edge, the dark gap under
@@ -837,6 +864,31 @@ function B.millstone(c, cx, gy)
   for x = cx - r + 2, cx + r + 3 do px.shade(c, x, gy, -2); px.shade(c, x, gy + 1, -1) end
 end
 
+-- the burnt chapel: the tower broken off below its clock (the spire, belfry and bell gone), a lit broken edge; soot
+-- plumes above every opening; the openings empty; rubble and a fallen beam at the foot
+function B.burntfx(c, sp, snap, x0, x1, yW, gy, topY, wins, seed)
+  local W = x1 - x0; local tcx = (x0 + x1) // 2; local tw = math.max(22, math.floor(W * .12)); local side = 7
+  local ttop = (topY or yW - 80) - 4; local clkY = ttop + 6 + 46
+  local function cut(x) local base = clkY + 32; local j = math.floor(H(x // 3, seed + 211) * 5); if x > tcx + 4 and x < tcx + 14 then j = j + 9 end; if x < tcx - tw + 6 then j = j - 7 end; return base + j end
+  for x = tcx - tw - 10, tcx + tw + side + 10 do local cy = cut(x); if x < tcx - tw - 3 or x > tcx + tw + side + 2 then cy = clkY - 40 end
+    for y = 0, cy - 1 do local v = snap[y * c.w + x]; if v then px.p(c, x, y, v) end end
+    if px.get(c, x, cy) ~= 0 then P(c, x, cy, (x < tcx + tw) and 's5' or 's3'); P(c, x, cy + 1, 's4') end end
+  local rev = {}; for n, i in pairs(c.idx) do rev[i] = n end
+  local function emptyhole(xa, ya, xb, yb, keep) for y = ya, yb do for x = xa, xb do local n = rev[px.get(c, x, y)] or ''
+    if n:match('^g%d') or n:match('^f%d') or n == 't4' or n == 't5' or n == 'p1' or n == 'p2' or (keep and (n:match('^w%d') or n:match('^y%d'))) then P(c, x, y, (x < (xa + xb) / 2) and 'bt2' or 'bt1') end end end end
+  for _, w in ipairs(wins or {}) do local ww, wh = w.w or 24, w.h or 26; local wx = math.floor(x0 + w.x * 32 - ww / 2); local wy = w.y and (yW + w.y) or (yW + 18)
+    emptyhole(wx + 1, wy - 6, wx + ww - 2, wy + wh - 2) end
+  emptyhole(tcx - 14, gy - 70, tcx + 14, gy - 11, true)   -- the door burnt away: a dark opening
+  local function soot(x, y, w, h) for yy = y - h, y do for xx = x - w, x + w do local t = (y - yy) / h; local ww = w * (1 - t * .5) + math.sin(yy * .5 + xx) * .8
+    if math.abs(xx - x) <= ww and px.get(c, xx, yy) ~= 0 then px.shade(c, xx, yy, (t < .5 and math.abs(xx - x) < ww - 2) and -3 or -2) end end end end
+  for _, w in ipairs(wins or {}) do local ww, wh = w.w or 24, w.h or 26; local wx = math.floor(x0 + w.x * 32 - ww / 2); local wy = w.y and (yW + w.y) or (yW + 18)
+    soot(wx + ww // 2, wy - 2, ww // 2 + 1, 18) end
+  soot(tcx, gy - 70, 10, 20)
+  for k = 0, 9 do local rx = x0 - 6 + math.floor(H(k, seed + 221) * (W + 12)); local ry = gy - 1 - math.floor(H(k, seed + 223) * 3); local rr = 2 + math.floor(H(k, seed + 225) * 2.5)
+    for yy = -rr, 0 do for xx = -rr - 1, rr + 1 do if xx * xx / ((rr + 1) ^ 2) + yy * yy / (rr * rr) <= 1 then P(c, rx + xx, ry + yy, (yy <= -rr + 1 and xx <= 0) and 's5' or ((xx > 0) and 's3' or 's4')) end end end end
+  local bx = x1 - 46; for i = 0, 26 do local y = gy - 3 - math.floor(i * 5 / 26); P(c, bx + i, y, 'lg3'); P(c, bx + i, y + 1, 'bt1'); P(c, bx + i, y + 2, 'OUT') end   -- a fallen beam
+end
+
 function B.derelictfx(c, sp, x0, x1, yW, topY, wins, seed)
   local Rr = B.ROOFS[sp.roof or 'asphalt']
   for i, w in ipairs(wins or {}) do local ww, wh = w.w or 24, w.h or 26
@@ -988,6 +1040,8 @@ function B.build(sp, night)
       for x = cx - hw - 1, cx + hw + 1 do P(c, x, base + 1, 'OUT2') end                     -- where it meets the roof
       if not chim then chim = {cx, top} end end end
   -- the church's tower and spire, standing in front of the nave
+  local burntSnap
+  if sp.burnt and kind == 'church' then burntSnap = {}; for y = 0, c.h - 1 do for x = 0, c.w - 1 do burntSnap[y * c.w + x] = px.get(c, x, y) end end end
   if kind == 'church' then
     -- the tower: a box standing proud of the nave, a quarter of its width, with a shaded side face, three stages
     -- split by string courses (door, clock, belfry), and an octagonal spire with a lucarne and a gilt cross
@@ -1049,6 +1103,7 @@ function B.build(sp, night)
     px.vline(c, tcx - lw, ly, ly + 8, trim[4]); px.vline(c, tcx + lw, ly, ly + 8, trim[2])
     px.vline(c, tcx, ttop - sp_h - 14, ttop - sp_h, 'y2'); px.vline(c, tcx + 1, ttop - sp_h - 14, ttop - sp_h, 'y1'); px.hline(c, tcx - 4, tcx + 5, ttop - sp_h - 10, 'y2'); px.hline(c, tcx - 4, tcx + 5, ttop - sp_h - 9, 'y1'); P(c, tcx, ttop - sp_h - 14, 'y3')
   end
+  if burntSnap then B.burntfx(c, sp, burntSnap, x0, x1, yW, gy, topY, wins, seed) end
   if sp.handprint then local hx, hy = math.floor(x0 + sp.handprint * W), gy - 30
     px.ellipse(c, hx, hy, 3, 3.5, 'b2'); for k = 0, 3 do px.vline(c, hx - 3 + k * 2, hy - 7, hy - 3, k == 3 and 'b1' or 'b2') end; px.vline(c, hx + 1, hy + 3, hy + 10, 'b1') end
   if sp.rough == true and kind == 'side' then B.derelictfx(c, sp, x0, x1, yW, topY, wins, seed) end

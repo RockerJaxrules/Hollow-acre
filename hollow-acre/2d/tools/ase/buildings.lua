@@ -99,10 +99,12 @@ local S = {
                            {x = 1.2, y = 58, boarded = true, curtain = false}, {x = 2.6, y = 58}, {x = 4.0, y = 58, watcher = true}, {x = 5.4, y = 58}, {x = 6.6, y = 58}, {x = 8.0, y = 58, broken = true}, {x = 9.4, y = 58}, {x = 10.8, y = 58, dark = true},
                            {x = 1.2, y = 104}, {x = 2.6, y = 104, boarded = true, curtain = false}, {x = 4.0, y = 104}, {x = 8.0, y = 104}, {x = 9.4, y = 104, broken = true}, {x = 10.8, y = 104, boarded = true, curtain = false}},
                 chimneys = {{x = .1, mat = 'brick'}, {x = .9, mat = 'brick'}}, ivy = 'left', moss = 1.4, scratches = true, seed = 163},
- rg_chapel   = {w = 9.8, kind = 'church', wall = 'white', roof = 'shingle', trim = 'cream', wallh = 88, nodoor = true, spire = 56,
-                windows = {{x = 1.3, y = 10, w = 14, h = 44, boarded = true, curtain = false, lancet = true}, {x = 3.0, y = 10, w = 14, h = 44, broken = true, curtain = false, lancet = true, stained = true},
-                           {x = 6.8, y = 10, w = 14, h = 44, curtain = false, lancet = true, stained = true}, {x = 8.5, y = 10, w = 14, h = 44, boarded = true, curtain = false, lancet = true}},
-                moss = 1.8, scratches = true, seed = 162},
+ -- Old Marrow's chapel, burnt with the settlement in 1872 (regions.js: 'a roofless chapel'): a stone shell, the roof gone,
+ -- the tower broken below its clock, the windows empty and sooted, rubble at its foot
+ rg_chapel   = {w = 9.8, kind = 'church', wall = 'stone', roof = 'shingle', trim = 'weathered', wallh = 88, nodoor = true, spire = 56, burnt = true,
+                windows = {{x = 1.3, y = 10, w = 14, h = 44, dark = true, curtain = false, lancet = true}, {x = 3.0, y = 10, w = 14, h = 44, dark = true, curtain = false, lancet = true},
+                           {x = 6.8, y = 10, w = 14, h = 44, dark = true, curtain = false, lancet = true}, {x = 8.5, y = 10, w = 14, h = 44, dark = true, curtain = false, lancet = true}},
+                moss = .6, seed = 162},
 }
 -- ---- one of a kind: every household gets its own house, drawn from a base plan with its own materials and wear.
 -- base names the plan (and so the footprint the world was laid out with); the rest overrides it.
