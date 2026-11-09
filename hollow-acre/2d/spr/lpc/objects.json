@@ -922,10 +922,10 @@
 },
 "car_wreck": {
 "src": "spr/lpc/obj/car_wreck.png",
-"fw": 138,
-"fh": 255,
-"ax": 62.8,
-"ay": 191.5,
+"fw": 147,
+"fh": 175,
+"ax": 76.0,
+"ay": 141.0,
 "foot": [
 -1.86,
 -4.48,
@@ -948,10 +948,10 @@
 },
 "car_wreck_n": {
 "src": "spr/lpc/obj/car_wreck_n.png",
-"fw": 138,
-"fh": 255,
-"ax": 62.8,
-"ay": 191.5,
+"fw": 147,
+"fh": 175,
+"ax": 76.0,
+"ay": 141.0,
 "foot": [
 -1.86,
 -4.48,
@@ -1032,10 +1032,10 @@
 },
 "car_east": {
 "src": "spr/lpc/obj/car_east.png",
-"fw": 173,
-"fh": 219,
-"ax": 86.5,
-"ay": 132.7,
+"fw": 180,
+"fh": 132,
+"ax": 90.0,
+"ay": 96.0,
 "clips": {
 "yaw": {
 "S": [
@@ -1050,28 +1050,6 @@
 0,
 0
 ]
-},
-"car_drive": {
-"fw": 173,
-"fh": 219,
-"ax": 86.5,
-"ay": 132.7,
-"clips": {
-"yaw": {
-"S": [
-0,
-7
-]
-}
-},
-"src": "spr/lpc/obj/car_drive.png"
-},
-"car_side": {
-"src": "spr/lpc/obj/car_side.png",
-"fw": 160,
-"fh": 117,
-"ax": 80.0,
-"ay": 81.7
 },
 "road": {
 "src": "spr/lpc/obj/road.png",
@@ -3941,10 +3919,10 @@
 },
 "police": {
 "src": "spr/lpc/obj/police.png",
-"fw": 112,
-"fh": 87,
-"ax": 60,
-"ay": 71,
+"fw": 125,
+"fh": 77,
+"ax": 62.0,
+"ay": 51.0,
 "foot": [
 -2.4,
 -1.3,
@@ -3954,10 +3932,10 @@
 },
 "police_blocks": {
 "src": "spr/lpc/obj/police_blocks.png",
-"fw": 118,
-"fh": 91,
-"ax": 63,
-"ay": 75,
+"fw": 125,
+"fh": 74,
+"ax": 59.0,
+"ay": 59.0,
 "foot": [
 -2.4,
 -1.3,
@@ -3982,10 +3960,10 @@
 },
 "car_beaten": {
 "src": "spr/lpc/obj/car_beaten.png",
-"fw": 173,
-"fh": 219,
-"ax": 86.5,
-"ay": 132.7,
+"fw": 180,
+"fh": 132,
+"ax": 90.0,
+"ay": 96.0,
 "clips": {
 "yaw": {
 "S": [

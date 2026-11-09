@@ -15,10 +15,27 @@ scene.json: {"size":[W,H], "origin":[ox,oy] (screen position of world 0,0,0), "m
 import sys, json, math
 import numpy as np
 
+ROT = None   # the whole model can be turned (yaw about y, pitch about z, roll about x) before it is rendered
+
+
+def set_rotation(yaw=0, pitch=0, roll=0, pivot=(0, 0, 0)):
+    global ROT
+    if not (yaw or pitch or roll): ROT = None; return
+    cy, sy_, cp, sp_, cr, sr = math.cos(yaw), math.sin(yaw), math.cos(pitch), math.sin(pitch), math.cos(roll), math.sin(roll)
+    Ry = np.array([[cy, 0, sy_], [0, 1, 0], [-sy_, 0, cy]]); Rz = np.array([[cp, -sp_, 0], [sp_, cp, 0], [0, 0, 1]])
+    Rx = np.array([[1, 0, 0], [0, cr, -sr], [0, sr, cr]])
+    R = Ry @ Rz @ Rx; ROT = (R, np.array(pivot, float))
+
+
 def sdf_scene(P, shapes):
     """signed distance to the nearest shape, and which shape it is"""
+    PW = P
+    if ROT is not None:   # world -> model space (rotations keep distances, so the SDF stays exact)
+        R, pv = ROT; P = (P - pv) @ R + pv
+    PM = P
     d = np.full(P.shape[0], 1e9); idx = np.full(P.shape[0], -1)
     for i, s in enumerate(shapes):
+        P = PW if s.get('world') else PM   # 'world' parts (debris on the ground) don't turn with the model
         t = s['type']
         if t in ('sphere', 'ellipsoid'):
             c = np.array(s['c'], float); r = np.array(s.get('rr', [s.get('r', 1)] * 3), float)
@@ -48,8 +65,12 @@ def sdf_scene(P, shapes):
             di = np.linalg.norm(P - (a + hh[:, None] * ab), axis=1) - (s['r0'] + (s['r1'] - s['r0']) * hh)
         elif t == 'box':
             mn = np.array(s['min'], float); mx = np.array(s['max'], float); c = (mn + mx) / 2; e = (mx - mn) / 2
-            q = np.abs(P - c) - e; di = np.linalg.norm(np.maximum(q, 0), axis=1) + np.minimum(q.max(axis=1), 0)
+            rd = s.get('round', 0)
+            q = np.abs(P - c) - (e - rd); di = np.linalg.norm(np.maximum(q, 0), axis=1) + np.minimum(q.max(axis=1), 0) - rd
         else: continue
+        for pl in s.get('planes', []):   # flat cuts at an absolute distance from the shape's centre (windscreens, slopes)
+            nn = np.array(pl[:3], float); nn /= np.linalg.norm(nn); cc = np.array(s.get('c') or ((np.array(s['min']) + np.array(s['max'])) / 2).tolist(), float)
+            di = np.maximum(di, (P - cc) @ nn - pl[3])
         L = s.get('lumps', 0)
         if L:   # a leafy surface: overlapping bumps, the size of a small leaf clump
             f = s.get('lumpfreq', .55); X, Y, Z = P[:, 0] + s.get('seed', 0) * 7.3, P[:, 1], P[:, 2] + s.get('seed', 0) * 3.1
@@ -64,6 +85,8 @@ def sdf_scene(P, shapes):
 
 def render(scene):
     W, H = scene['size']; ox, oy = scene.get('origin', [W / 2, H - 8]); shapes = scene['shapes']
+    rt = scene.get('rotate', {}); set_rotation(math.radians(rt.get('yaw', 0)), math.radians(rt.get('pitch', 0)),
+                                               math.radians(rt.get('roll', 0)), rt.get('pivot', (0, 0, 0)))
     mats = scene['materials']
     # orthographic camera tilted down by `elev` degrees (30 reads like LPC and Stardew: trees stand up, the ground
     # is foreshortened; 45 looks down like a drone and shows too much crown top). screen x = X,

@@ -29,7 +29,7 @@ nature.py, blockprops.py). They replace the LPC-derived versions; no outside art
 Ground textures: drawn for this game (tools/ase/terrain.lua).
 
 Car wreck and deer sprites: drawn for this game. Cat sprite: rendered in Blender for this game.
-Car models: "Car Kit" by Kenney (www.kenney.nl), CC0 1.0. Rendered to pixel sprites in Blender for this game.
+Cars (the sedan, the wreck, the sheriff's cruiser): modelled and rendered with this game's own tools (tools/px/cars.py).
 Road texture: procedural, made in Blender for this game.
 
 Buildings, fences and props (houses, cabin, store, garage, church, fences, lamps, well, phone booth, notice board, gas pump, signpost, barrel, crate, hay, sacks, cart): drawn for this game in LibreSprite (https://github.com/LibreSprite/LibreSprite). Layered .ase sources are in tools/px.

@@ -34,7 +34,7 @@ css = '''
 </style>'''
 head = head.replace('</style>', css, 1)
 head = head.replace('<div id="app">', '<div id="app">\n  <canvas id="view"></canvas>', 1)
-head = head.replace('<div class="small">Headphones on, silent mode off.</div>', '<div class="small">Headphones on, silent mode off.</div>\n    <div class="small" id="credits">Pixel art from the Liberated Pixel Cup (CC-BY-SA 3.0 / GPL 3.0) by Lanea Zimmerman (Sharm), Daniel Eddeland, bluecarrot16, Casper Nilsson, Xenodora, Daniel Armstrong, Eliza Wyatt, Johannes Sjölund, Stephen Challener and many more. Cars: Kenney Car Kit (CC0). Full list in CREDITS.</div>')
+head = head.replace('<div class="small">Headphones on, silent mode off.</div>', '<div class="small">Headphones on, silent mode off.</div>\n    <div class="small" id="credits">Character sprites from the Liberated Pixel Cup character generator (CC-BY-SA 3.0 / GPL 3.0) by bluecarrot16, Eliza Wyatt, Johannes Sjölund, Stephen Challener and many more. Everything else is drawn for this game. Full list in CREDITS.</div>')
 head = head.replace('<div><b>Right thumb</b> drag to look. Your lantern follows your eyes.</div>', '<div><b>Your lantern</b> shines where you walk. Point it at what hunts you.</div>')
 head = head.replace('<div><b>Left thumb</b> walk. Push far to run.</div>', '<div><b>Drag anywhere</b> to walk. Push far to run.</div>')
 loader = '<div id="loadScr" role="status" aria-live="polite"><div class="lt">Hollow Acre</div><div class="lb"><i id="loadBar"></i></div><div class="ls" id="loadTxt">Loading the valley…</div></div>\n'
