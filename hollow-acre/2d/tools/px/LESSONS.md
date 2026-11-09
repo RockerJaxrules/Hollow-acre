@@ -336,6 +336,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [grab r8] When an action needs the player closer than he stands, walk him there first with the normal walk (outside
   the action) and keep the action itself still. Facing away, stand him a little to the side of the square so what he
   sets down stays in view beside him.
+- [hurt r1-r2] A fright needs an impact frame (snap up, wide eyes, an O mouth, hands flung out, uneven so it isn't a
+  cheer), a cower and a recovery. Closed eyes in pain are a clenched > < with brows down to the nose and a grimace:
+  flat closed lids read as dozing, and with a smile or blush as giggling.
+- [sit r1] Seated is drawn, not shortened: in profile the thigh runs forward at seat height, then the knee and the shin
+  down to the boot (an L); facing us, a lap wider than the hips, two knees, the shins below; hands on the thigh/knees.
 - [judging] An old build (test2d_old.html) loads the CURRENT sprites from the same folders: after installing new sheets,
   old-vs-new captures from it are both new. Compare sheets directly (old files from git or backup_v2) instead.
 - [code] Never end an inserted line with a // comment in these one-line-per-function files: twice it swallowed the

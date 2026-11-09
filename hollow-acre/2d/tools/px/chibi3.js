@@ -177,6 +177,7 @@ function faceFront(cx,hy,pose){const E=pose.blink?'blink':(C.hollowEyes?'hollow'
   for(const s of [-1,1]){const x0=s<0?cx-4:cx+4;const out=s<0?x0-1:x0+2,inn=s<0?x0+2:x0-1;// a 2-wide eye: x0, x0+1
     if(E==='blink'||E==='happy'){if(E==='happy'){p(x0,hy+1,LASH);p(x0+1,hy+1,LASH);p(out,hy+2,LASH);p(inn,hy+2,LASH);}else{p(x0,hy+2,LASH);p(x0+1,hy+2,LASH);p(out,hy+2,LASH);}continue;}
     if(E==='hollow'){for(let j=0;j<3;j++){p(x0,hy+j,[12,8,12]);p(x0+1,hy+j,[12,8,12]);}continue;}
+    if(E==='wince'){const P3=s<0?[[0,0],[1,1],[2,1],[0,2]]:[[2,0],[0,1],[1,1],[2,2]];const bx=s<0?x0-1:x0;for(const [u,v] of P3)p(bx+u,hy+v,LASH);continue;}   /* clenched shut, > < (judge: flat closed lids read as giggling) */
     // lash line with a flick at the outer corner, iris lightening downward, a glint, the lower lid
     p(x0,hy,LASH);p(x0+1,hy,LASH);p(out,hy,LASH);if(ALL){p(out+(s<0?-1:1),hy-1,LASH);p(out,hy-1,LASH);}
     p(x0,hy+1,EYR[1]);p(x0+1,hy+1,EYR[1]);p(x0,hy+2,EYR[3]);p(x0+1,hy+2,EYR[2]);
@@ -185,7 +186,7 @@ function faceFront(cx,hy,pose){const E=pose.blink?'blink':(C.hollowEyes?'hollow'
     if(E==='sad'){p(inn,hy-1,HR[1]);}}
   // brows
   for(const s of [-1,1]){const b0=s<0?cx-5:cx+4;const y=hy-2-((EXPR==='surprised'||EXPR==='scared')?1:0);
-    if(EXPR==='angry'){p(b0+(s<0?2:0),y+1,HR[1]);p(b0+1,y,HR[1]);p(b0+(s<0?0:2),y,HR[1]);}
+    if(EXPR==='angry'||EXPR==='wince'){p(b0+(s<0?2:0),y+1,HR[1]);p(b0+1,y,HR[1]);p(b0+(s<0?0:2),y,HR[1]);}
     else if(EXPR==='sad'||EXPR==='scared'){p(b0+(s<0?2:0),y,HR[1]);p(b0+1,y,HR[1]);p(b0+(s<0?0:2),y+1,HR[1]);}
     else{p(b0,y+(s<0?1:0),HR[1]);p(b0+1,y,HR[1]);p(b0+2,y+(s<0?0:1),HR[1]);}}
   // nose: one shade beside the axis
@@ -196,11 +197,12 @@ function faceFront(cx,hy,pose){const E=pose.blink?'blink':(C.hollowEyes?'hollow'
   else if(EXPR==='sad'){p(cx-1,my+1,LIP);p(cx,my,LIP);p(cx+1,my,LIP);p(cx+2,my+1,LIP);}
   else if(EXPR==='angry'){for(let u=-1;u<=2;u++)p(cx+u,my,LIP);}
   else if(EXPR==='surprised'||EXPR==='scared'){p(cx,my,MOUTH);p(cx+1,my,MOUTH);p(cx,my+1,MOUTH);p(cx+1,my+1,MOUTH);}
+  else if(EXPR==='wince'){p(cx-1,my+1,MOUTH);p(cx,my,MOUTH);p(cx+1,my,MOUTH);p(cx+2,my+1,MOUTH);}
   else if(EXPR==='wrong'){for(let u=-3;u<=4;u++)p(cx+u,my+(Math.abs(u-.5)>3?-1:0),MOUTH);for(let u=-2;u<=3;u+=2)p(cx+u,my,TEETH);}
   else if(ALL){p(cx-1,my,[150,40,60]);p(cx,my,[178,46,70]);p(cx+1,my,[178,46,70]);p(cx+2,my,[150,40,60]);p(cx,my+1,[206,82,98]);p(cx+1,my+1,[206,82,98]);}
   else if(C.smile!==false){p(cx-1,my,SK[1]);p(cx,my+1,SK[1]);p(cx+1,my+1,SK[1]);p(cx+2,my,SK[1]);}
   else{p(cx,my,SK[1]);p(cx+1,my,SK[1]);}
-  if(EXPR==='happy'||C.blush||ALL){p(cx-6,hy+4,BLUSH);p(cx-5,hy+4,BLUSH);p(cx+6,hy+4,BLUSH);p(cx+7,hy+4,BLUSH);}}
+  if((EXPR==='happy'||C.blush||ALL)&&EXPR!=='wince'){p(cx-6,hy+4,BLUSH);p(cx-5,hy+4,BLUSH);p(cx+6,hy+4,BLUSH);p(cx+7,hy+4,BLUSH);}}
 function headSide(cx,hy,fl,pose){const chin=hy+9,top=chin-HEADH+1;
   // a profile: the skull fills back to front, the face is the front third, chin set back a little
   for(let y=top;y<=chin;y++){const t=y-top,b=chin-y;let back=-7,front=7;if(t===0){back=-4;front=3;}else if(t===1){back=-6;front=5;}else if(t===2)front=6;
@@ -528,8 +530,9 @@ ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
   if(clip==='slash')pose=plantPose(f,dir);
   // hurt (judge: it read as a shrug, then dozing): the hit (snap up, wide eyes, an O mouth, hands flung out at the shoulders),
   // the cower (head ducked, shoulders up, eyes squeezed shut, hands beside the neckline, never over it), then easing back
-  if(clip==='hurt'){pose.bob=[-2,-2,0,0,0,0][f];pose.crouch=[0,0,3,3,2,1][f];pose.nod=f>=2&&f<=4?1:0;pose.expr=f<2||f===5?'scared':null;pose.blink=f>=2&&f<=4;
-    pose.hands=[[[-5,-5],[5,-5]],[[-6,-6],[6,-6]],[[1,-5],[-1,-5]],[[1,-5],[-1,-5]],[[0,1],[0,1]],[[0,6],[0,6]]][f];}
+  if(clip==='hurt'){pose.bob=[-2,-3,0,0,0,0][f];pose.crouch=[0,0,3,3,2,1][f];pose.nod=f>=2&&f<=4?1:0;pose.expr=f<2||f===5?'scared':'wince';
+    // the second frame overshoots (higher, wider); the arms are uneven so the fling doesn't read as a cheer (judge r1)
+    pose.hands=[[[-5,-7],[4,-5]],[[-6,-9],[5,-6]],[[1,-5],[-1,-4]],[[1,-5],[-1,-4]],[[0,1],[0,2]],[[0,6],[0,6]]][f];}
   if(clip==='spellcast'){const up=f>1;pose.hands=up?(side?[[fl*-1,-10],[fl*2,-11]]:[[1,-11],[-1,-11]]):null;}
   if(clip==='sit'){pose.crouch=2;pose.sit=true;pose.bob=[0,1,0][f]||0;pose.hands=side?[[fl*5,9],[fl*6,9]]:[[3,13],[-3,13]];pose.blink=f===2;}   /* hands resting on the thigh / the knees; a breath */
   const EX0=EXPR;if(pose.expr)EXPR=pose.expr;human(dir,pose);EXPR=EX0;
