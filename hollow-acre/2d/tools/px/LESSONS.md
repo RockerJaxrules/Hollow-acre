@@ -10,6 +10,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - "too gritty" / "over gritty": no speckle, no single-pixel noise as texture, no checkerboard dither. Wear is drawn as
   shapes (a patch, a streak, a moss line), never as sprinkled pixels.
 - "too close to Stardew" / "make it darker, more detail, more like before": moodier values, more hand detail, not candy.
+- "all the young hot women are meant to have decent cleavage in their normal and chat sprites": Nell, June, Cora, Ida,
+  Tess, Iris, Della, Maud and Caitlyn (all adults) show a low neckline with clearly visible cleavage in BOTH their walking
+  sprites (front views) and their chat portraits. Nothing may cover it: necklaces sit at the base of the neck, collars,
+  scarves and cardigans stay open. Draw it well: soft rounded forms and a soft V of shadow, never a hard streak that reads
+  as a stain. Vera is 16 and stays modest; none for men, children or elders. Caitlyn's face stays exactly as it is.
 - "the old art was more detailed, more realistic... feels less gritty, less round, too fake": forms must read as round
   volumes lit from one side, with detail placed on purpose.
 - "houses don't have the two-side roof anymore" / "more modern houses": hip and side-gable roofs, siding, dormers.

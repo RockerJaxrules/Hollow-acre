@@ -185,7 +185,7 @@ class Painter:
             base.update(face_w=26.0, chin=88.0, jaw_p=2.3, jaw_q=.6, jaw_taper=.14, eye_a=4.9, iris=2.9, tilt=.0, lash_w=.55, wing=0, lashes=0, eye_y=59.8, brow_y=51.6, eye_open=.72,
                         brow_w=1.7, brow_arch=.6, lip_w=6.2, lip_up=1.1, lip_lo=1.6, nose=1.2, blush=.1, shoulder=57.0, neck_w=9.6, natural_lip=.42, age=.85)
         C = dict(base, **C)
-        BO = 4.0 + C.get('body_dy', 0.0)    # kids' shoulders sit closer under the chin
+        BO = 4.0 + C.get('body_dy', -4.0 if C.get('allure') else 0.0)   # the young women sit 4 px higher so the neckline and cleavage read (owner)    # kids' shoulders sit closer under the chin
         if var == 'wet': C['vol'] = C.get('vol', 0) - 2.5
         s.C = C; s.ex = ex; s.var = var; s.pal = Palette(); s.cv = Canvas(s.pal); s.rng = np.random.RandomState(C.get('seed', 7))
         s.mk_palette()
@@ -374,8 +374,11 @@ class Painter:
         L = np.where(s.bust_m, s.bust_lit, cv.lit)
         cv.put(s.bust_m & cv.where('skin'), 'skin', L)
         top = cy - b * .94
-        cv.add(s.bust_m, 'skin', -.4 * np.exp(-((X - CX - .3) / 2.4) ** 2) * sstep(top + 2, top + 7, Y))
-        cv.put(stroke(bez([(CX + .25, top + 5.5), (CX - .15, top + 10), (CX + .3, max(129 + BO, 132))], 20), [.3, .8, 1.0]), 'cleave', .5)
+        # the cleavage: a soft V of shadow where the two forms meet, deepest just under the neckline and fading down,
+        # with a short crease (not a hard streak running off the frame, which read as a stain)
+        vshade = np.exp(-((X - CX - .3) / (1.2 + .12 * np.clip(Y - top, 0, 30))) ** 2) * sstep(top + 2, top + 6, Y) * (1 - .6 * sstep(cy, cy + 10, Y))
+        cv.add(s.bust_m, 'skin', -.3 * vshade)
+        cv.put(stroke(bez([(CX + .25, top + 5.5), (CX - .1, top + 9.5), (CX + .3, top + 15)], 20), [.3, .7, .2]), 'cleave', .5)
         for sg in (-1, 1):   # the inner curve of each breast, meeting in a soft Y
             cv.put(stroke(bez([(CX + sg * .4, top + 7.5), (CX + sg * 2.2, top + 9.2), (CX + sg * 4.2, top + 12.6)], 12), [.6, .5, .2]), 'cleave', .5)
             cv.add(ell(CX + sg * (sep - 3.5), top + 4.5, 4.2, 2.2) & s.bust_m, 'skin', .07)
@@ -518,7 +521,7 @@ class Painter:
             cv.add(ell(ex_ + sg * 1.9, 61.5, 1.5, 3.6), 'skin', -.2)
             s.ear_m |= e
         fm = poly(s.face_poly())
-        lit = sphere_lit(61.5, 52, 27, C.get('face_ry', 50 if C.get('teeth_v1') else 38), flat=.72, amb=.44, k=.32)   # a smaller face_ry curves the light-to-shadow edge round the cheek (a tall one makes a straight vertical 'mask' edge)
+        lit = sphere_lit(61.5, 52, 27, C.get('face_ry', 50), flat=.72, amb=.44, k=.32)   # a smaller face_ry curves the light-to-shadow edge round the cheek (a tall one makes a straight vertical 'mask' edge)
         lit += .07 * G(55, 37, 8, 5)                                  # forehead
         lit += .1 * G(50, 64.5, 5, 3) + .04 * G(78, 64.5, 4, 3)       # cheekbones
         lit -= .07 * G(52, 56.5, 7, 2.6) + .09 * G(76.5, 56.5, 7, 2.6)  # under the brow ridge
@@ -733,7 +736,7 @@ class Painter:
         out.append(dict(m=mask, L=hl + d + tex, mat='hair', tip=None, sh=None, mass=True))
     def hair_hem(s, xr, xl, hend):
         """the bottom edge of long hair, right to left: flat by default; with hair_end set, tapered points of uneven length"""
-        if 'hair_end' not in s.C: return [(xr, hend), (xl, hend)]
+        if not s.C.get('hem_taper'): return [(xr, hend), (xl, hend)]
         pts = []; n = 9
         for j in range(n + 1):
             x = xr + (xl - xr) * j / n
