@@ -326,13 +326,16 @@ function B.sideroof(c, x0, x1, yW, depth, roofmat, seed, hip)
     if hip then P(c, xb - math.floor(t * hipw) - 3, y, B.ROOFS[roofmat][2]); P(c, xa + math.floor(t * hipw * .6) + 3, y, B.ROOFS[roofmat][6]) end   -- the hips: the right one dark, the left one lit (judge: lit ridge and hips)
   end
   B.RCTX = nil
-  --[[ judge (kit pass 1): light each plane as a volume: a step lighter toward the upper left, a step darker toward the right and
-       the eave. The boundaries step along the courses (6 px) so they read as light falling off, not as painted bands ]]
+  --[[ judge (kit pass 2): stepped diagonals read as painted glare bars. Light by plane: the left hip a step lighter than the
+       front; on the front at most one block-shaped lighter step at the upper left, its edges on course lines and shingle
+       joints; the right hip stays in shade. Blue slate takes no lit step (it turns powder blue, read as ice) ]]
   local Wd = (x1 - x0) + 2 * over
-  for y = top + 2, yW + 3 do local r = (y - top) // 6; local f = (y - top) / math.max(1, depth)
-    local litTo = x0 - over + math.floor(Wd * (.42 - .30 * f)); local darkFrom = x0 - over + math.floor(Wd * (.80 - .12 * f))
+  for y = top + 2, yW + 3 do local t = (y - top) / math.max(1, depth); local inset = math.floor((1 - t) * hipw); local xa = x0 - over + inset
+    local hipEdge = hip and (xa + math.floor(t * hipw * .6) + 3) or nil
+    local blockX = x0 - over + math.floor(Wd * .3); local blockY = top + 6 * math.max(1, math.floor(depth * .45 / 6))
     for x = x0 - over, x1 + over do if px.get(c, x, y) ~= 0 then
-      if x < litTo and y > top + 1 then px.shade(c, x, y, 1) elseif x > darkFrom then px.shade(c, x, y, -1) end end end end
+      if hip and x < hipEdge - 1 then px.shade(c, x, y, 1)
+      elseif roofmat ~= 'slate' and y < blockY and x < blockX and x >= (hipEdge or (x0 - over)) + 1 then px.shade(c, x, y, 1) end end end end
   local Rr = B.ROOFS[roofmat]
   --[[ judge (buildings sweep): a side roof in one even tone with a pale frame read as a box lid. The slope turns away from
        the light toward the eave: the lowest courses a step and two darker (the shadow the eave gathers), the first under the
@@ -609,8 +612,8 @@ function B.build(sp, night)
          this angle its top shows: tar and gravel behind the parapet, the back parapet's lit edge, a vent and a hatch ]]
     local dep = 22; local ry0 = py - 5 - dep
     for y = ry0, py - 6 do for x = x0 - 4, x1 + 4 do local n = H(x // 2 + y * 13, seed + 91)
-      local blob = H(x // 4 + (y // 3) * 29, seed + 93) > .82   -- gravel in soft 4x3 patches (judge: single-pixel speckle reads as grit)
-      P(c, x, y, (y <= ry0 + 1) and (y == ry0 and 'OUT' or 's5') or (blob and 's4' or ((y - ry0) < 6 and 's2' or 's3'))) end end
+      -- judge (pass 2): gravel blobs read as camouflage, single pixels as grit: plain tar, darker toward the back
+      P(c, x, y, (y <= ry0 + 1) and (y == ry0 and 'OUT' or 's5') or ((y - ry0) < 7 and 's2' or 's3')) end end
     px.vline(c, x0 - 5, ry0, py - 5, 'OUT'); px.vline(c, x1 + 5, ry0, py - 5, 'OUT')
     for y = py - 8, py - 6 do for x = x0 - 4, x1 + 4 do px.shade(c, x, y, -1) end end   -- the front parapet's shadow on the roof
     px.hline(c, x0 - 5, x1 + 5, py - 5, 's6'); px.hline(c, x0 - 5, x1 + 5, py - 6, 's5')   -- judge: the front parapet's lit edge (the slab read as a lid laid on)
