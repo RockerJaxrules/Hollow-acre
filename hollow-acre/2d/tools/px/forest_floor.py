@@ -813,7 +813,119 @@ def forest6(seed=16):
     return t
 
 
+
+# ---------------------------------------------------------------- v7 (judge on v6, 5/10: "the repeat shows: litter in
+# two columns per tile, the biggest pile once per tile, the lilac pebbles a grid of bright points; the base too dark and
+# flat (pine shadows read as brown discs); every pile built the same way; moss pads are green pills; piles have no
+# volume")
+B7 = HEX('#302d21'); B7LO, B7HI = HEX('#2c2a1d'), HEX('#353123')   # half steps: zones, not puddles
+FL7, FL7L = HEX('#28261b'), HEX('#3a3627')
+SH7 = HEX('#211f16')
+STONE7 = [HEX(c) for c in ('#2a2826', '#3c3a36', '#4f4c46', '#636058', '#77736a')]   # warm grey, no lilac
+
+
+def drift7(t, cx, cy, rad, R, hues, gshadow):
+    """a pile with volume: leaves on the side toward the light take a lighter step of their ramp, leaves on the far side
+    a darker one, so the heap reads lit top-left and shaded at its lower right"""
+    n = int(rad * rad * .2) + 3; leaves = []
+    for _ in range(n):
+        a = R.uniform(0, 6.283); d = rad * R.random() ** .8
+        x, y = cx + math.cos(a) * d, cy + math.sin(a) * d * .65
+        L = R.choice((4, 5, 5, 6)); W = L * R.uniform(.5, .7)
+        ramp = R.choice(hues); side = ((x - cx) * LX + (y - cy) / .65 * LY) / max(1, rad)
+        if side > .3: ramp = ramp[1:] + ramp[-1:]
+        elif side < -.35: ramp = ramp[:1] + ramp[:-1]
+        leaves.append((x, y, R.uniform(0, 3.14), L, W, ramp))
+    leaves.sort(key=lambda q: q[1])
+    drawn = [leaf(t, int(x), int(y), a, L, W, ramp) for (x, y, a, L, W, ramp) in leaves]
+    occ = set((int(p[0]) % N, int(p[1]) % N) for px in drawn for p in px)
+    for px in drawn:
+        for (x, y, c) in px:
+            for dx, dy in ((1, 1), (2, 1)):
+                k = ((x + dx) % N, (y + dy) % N)
+                if k not in occ:
+                    c2 = gshadow(t.get(*k))
+                    if c2: t.put(k[0], k[1], c2)
+    for px in drawn:
+        for (x, y, c) in px: t.put(int(x), int(y), c)
+
+
+def cushion7(t, cx, cy, w, R, gshadow):
+    """moss as a lumpy cushion: two to four small domes pressed together, back to front, each lit top-left"""
+    for k in sorted(range(R.randint(2, 4)), key=lambda i: R.random()):
+        ox, oy = R.uniform(-w * .5, w * .5), R.uniform(-w * .2, w * .25); r = R.uniform(2.6, 3.8)
+        moss6(t, int(cx + ox), int(cy + oy), int(round(r)), max(2, int(round(r * .7))), R, gshadow)
+
+
+def forest7(seed=17):
+    R = random.Random(seed); t = Tile(B7)
+    zf = wfield(seed, [(1, 1, 1), (-1, 2, .8), (2, -1, .6), (1, 3, .3)])   # broader zones: two to three soil tones that show
+    for y in range(N):
+        for x in range(N):
+            v = zf(x, y)
+            if v > .32: t.put(x, y, B7HI)
+            elif v < -.38: t.put(x, y, B7LO)
+    ground = (B7, B7LO, B7HI, FL7, FL7L)
+    gshadow = lambda c: SH7 if c in ground else None
+    # one big drift wrapping across the tile's left/right edge, two of similar weight, scraps between (no columns)
+    drifts = [(6, 104, 36), (104, 34, 22), (128, 150, 22)]
+    near = lambda x, y: min(tdist((x, y), (dx, dy)) / dr for dx, dy, dr in drifts)
+    pts = []; tries = 0
+    while tries < 16000 and len(pts) < 260:
+        tries += 1
+        x, y = R.uniform(0, N), R.uniform(0, N); d = near(x, y)
+        if d < .85 or R.random() < (d - 1.4) / 4: continue
+        if all(tdist((x, y), q) > R.uniform(6, 10) for q in pts): pts.append((x, y))
+    for (x, y) in pts:
+        stamp4(t, x, y, R.choice(SHAPES3), [FL7, FL7, FL7L] if R.random() < .45 else [FL7, FL7, FL7], R)
+    items = []
+    for i, (cx, cy, rr) in enumerate(drifts):
+        def at(f0, f1, a0=0, a1=6.283):
+            a = R.uniform(a0, a1); d = rr * R.uniform(f0, f1)
+            return cx + math.cos(a) * d * 1.25, cy + math.sin(a) * d * .7
+        npile = {36: 13, 22: 7}[rr]
+        items.append((cy, 'pile', cx, max(7, int(rr * .4))))
+        for k in range(npile - 1):
+            x, y = at(.12, .85); items.append((y, 'pile', x, R.randint(5, 9) if k % 3 else R.randint(8, 11)))
+        # each drift gathers a different mix at its edge, on a different side
+        side = R.uniform(0, 6.283)
+        mix = R.choice([['moss', 'moss', 'tuft', 'twig'], ['tuft', 'tuft', 'pebbles', 'twig', 'moss'], ['moss', 'twig', 'twig', 'tuft']])
+        for j, kind in enumerate(mix):
+            x, y = at(.85, 1.2, side + j * 1.1, side + j * 1.1 + .9)
+            ex = {'moss': R.choice((5, 6, 7)), 'tuft': R.randint(6, 9), 'pebbles': None, 'twig': (R.randint(9, 14), R.random() < .4)}[kind]
+            items.append((y, kind, x, ex))
+    # scraps between the drifts: small piles, a twig, a tuft, a little moss, each more than once
+    for k in ('pile', 'pile', 'pile', 'pile', 'pile', 'twig', 'twig', 'tuft', 'tuft', 'moss', 'moss'):
+        for _ in range(80):
+            x, y = R.uniform(0, N), R.uniform(0, N)
+            if near(x, y) > 1.5: break
+        ex = {'pile': R.randint(3, 5), 'twig': (R.randint(7, 10), False), 'tuft': R.randint(5, 6), 'moss': 4}[k]
+        items.append((y, k, x, ex))
+    for (y, kind, x, ex) in sorted(items, key=lambda q: q[0]):
+        if kind == 'pile':
+            hues = R.choice(([DEAD6, DEAD6, RUST6], [DEAD6, DEAD6, OCHRE6], [DEAD6, RUST6, OCHRE6], [DEAD6, DEAD6, DEAD6, RUST6]))
+            drift7(t, x, y, ex, R, hues, gshadow)
+        elif kind == 'moss': cushion7(t, x, y, ex, R, gshadow)
+        elif kind == 'tuft': mound(t, x - ex / 2, y, ex, TUFT6, R)
+        elif kind == 'twig':
+            L, thick = ex
+            px, s2 = twig(t, x, y, R.uniform(-.6, .6) + R.choice((0, 3.14)), L, R, thick=thick)
+            for (a, b) in s2:
+                c = gshadow(t.get(a, b))
+                if c: t.put(a, b, c)
+            for (a, b, c) in px: t.put(int(a), int(b), c)
+        elif kind == 'pebbles':
+            for k in range(R.choice((2, 3))):
+                w = R.choice((2, 3)); px, s2 = pebble(t, int(x) + k * 5, int(y) + R.randint(-1, 1), w, max(1, w - 1))
+                px = [(a, b, STONE7[STONE.index(c)]) for a, b, c in px]
+                for (a, b) in s2:
+                    c = gshadow(t.get(a, b))
+                    if c: t.put(a, b, c)
+                for (a, b, c) in px: t.put(a, b, c)
+    return t
+
+
 if __name__ == '__main__':
     out = sys.argv[1] if len(sys.argv) > 1 else '/tmp/forest.png'
-    seed = int(sys.argv[2]) if len(sys.argv) > 2 else 16
-    {'1': forest, '2': forest2, '3': forest3, '4': forest4, '5': forest5, '6': forest6}[os.environ.get('V', '6')](seed).save(out); print('wrote', out)
+    seed = int(sys.argv[2]) if len(sys.argv) > 2 else 17
+    {'1': forest, '2': forest2, '3': forest3, '4': forest4, '5': forest5, '6': forest6, '7': forest7}[os.environ.get('V', '7')](seed).save(out); print('wrote', out)

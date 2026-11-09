@@ -33,11 +33,11 @@ def spread(R, k, min_d, taken=()):
 
 
 # ---------------------------------------------------------------- tarmac
-TA = HEX('#2e2d33'); TA_LO, TA_HI = HEX('#2a292f'), HEX('#323137')
-CHIP = HEX('#36353c')                       # the aggregate, one step up
-CRACK, LIP = HEX('#1c1b20'), HEX('#3b3a42')
+TA = HEX('#2e2d33'); TA_LO, TA_HI = HEX('#2c2b31'), HEX('#302f35')   # barely there: zones, not stains
+WEAR_L, WEAR_D = HEX('#333137'), HEX('#2a2730')   # wear clusters within one value step: warm grey light, plum dark
+CRACK, LIP = HEX('#1d1a22'), HEX('#3c3a40')
 PATCH, SEAM, PATCH_LIT = HEX('#26252b'), HEX('#1d1c21'), HEX('#34333a')
-SNAKE, SNAKE_HI = HEX('#18171b'), HEX('#3e3d47')
+SNAKE, SNAKE_HI = HEX('#18151c'), HEX('#3e3c46')
 OIL, OIL_DK, OIL_SHEEN = HEX('#252329'), HEX('#1f1d23'), HEX('#3a3448')
 
 
@@ -53,7 +53,7 @@ def crack(t, x, y, R, steps):
                 ba += R.uniform(-.4, .4); bx += math.cos(ba); by += math.sin(ba); pts.append((int(round(bx)), int(round(by))))
     pts = list(dict.fromkeys(pts))
     for (px, py) in pts:
-        if R.random() < .55 and (px + 1, py + 1) not in pts: t.put(px + 1, py + 1, LIP)
+        if (px + 1, py + 1) not in pts and (px, py + 1) not in pts: t.put(px, py + 1, LIP)   # the broken edge catches the light, every step
     for (px, py) in pts: t.put(px, py, CRACK)
 
 
@@ -65,20 +65,28 @@ def tar(seed=21):
             v = zf(x, y)
             if v > .5: t.put(x, y, TA_HI)
             elif v < -.55: t.put(x, y, TA_LO)
-    # the aggregate: small flat chips one step up, never single pixels
-    for (x, y) in poisson(R, 420, 4, 7):
-        x, y = int(x), int(y); t.put(x, y, CHIP); t.put(x + 1, y, CHIP)
-        if R.random() < .5: t.put(x, y + 1, CHIP)
-    # repair patches, three sizes, each a darker newer asphalt with a seam and a lit top-left edge
+    # (judge: "a faint even lattice of lone lighter dots") wear as flat clusters of 3-8 px in two close tones, warm grey
+    # and plum, on a Poisson spacing whose density drifts across the tile
+    dens = wfield(seed + 3, [(1, 2, 1), (2, -1, .7), (-1, 3, .4)])
+    for (x, y) in poisson(R, 170, 7, 15, ok=lambda a, b: R.random() < .55 + .45 * dens(a, b)):
+        col = WEAR_L if R.random() < .55 else WEAR_D; w = R.randint(2, 4); h = R.randint(1, 2); ph = R.uniform(0, 6.28)
+        for yy in range(-h, h + 1):
+            for xx in range(-w, w + 1):
+                if (xx / (w + .5)) ** 2 + (yy / (h + .5)) ** 2 < 1 + .25 * math.sin(xx * 1.7 + ph): t.put(int(x) + xx, int(y) + yy, col)
+    # repair patches: two, flush with the road (no lit edge: lit edges read as raised drain covers), irregular (two
+    # overlapping rectangles), a shade darker inside, sealed round the edge with a black tar line
     taken = []
-    for (w, h) in ((30, 18), (22, 14), (16, 12)):
-        (cx, cy), = spread(R, 1, 50, taken); taken.append((cx, cy)); x0, y0 = int(cx - w / 2), int(cy - h / 2)
-        for y in range(h):
-            for x in range(w):
-                c = SEAM if (x in (0, w - 1) or y in (0, h - 1)) else PATCH_LIT if (x == 1 or y == 1) else PATCH
-                t.put(x0 + x, y0 + y, c)
-        for (x, y) in poisson(R, int(w * h / 40), 4, 6, ok=lambda a, b: x0 + 2 < a < x0 + w - 3 and y0 + 2 < b < y0 + h - 3, tries=600):
-            t.put(int(x), int(y), TA); t.put(int(x) + 1, int(y), TA)
+    for (w, h) in ((28, 14), (20, 12)):
+        (cx, cy), = spread(R, 1, 70, taken); taken.append((cx, cy)); x0, y0 = int(cx - w / 2), int(cy - h / 2)
+        ox, oy, w2, h2 = R.randint(4, w // 2), R.choice((-1, 1)) * R.randint(3, 5), R.randint(w // 2, w - 4), R.randint(h // 2, h)
+        inside = lambda x, y: (0 <= x < w and 0 <= y < h) or (ox <= x < ox + w2 and oy <= y < oy + h2)
+        for y in range(-6, h + 7):
+            for x in range(-2, w + 2):
+                if not inside(x, y): continue
+                edge = not all(inside(x + dx, y + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+                t.put(x0 + x, y0 + y, SNAKE if edge else PATCH)
+        for (x, y) in poisson(R, int(w * h / 30), 4, 6, ok=lambda a, b: inside(int(a) - x0, int(b) - y0) and inside(int(a) - x0 + 2, int(b) - y0 + 1) and inside(int(a) - x0 - 1, int(b) - y0 - 1), tries=800):
+            t.put(int(x), int(y), TA_LO); t.put(int(x) + 1, int(y), TA_LO)
     # oil stains: two, hard edged, a darker heart and a faint sheen streak
     for (cx, cy) in spread(R, 2, 60, taken):
         taken.append((cx, cy)); rx, ry = R.uniform(7, 10), R.uniform(3.5, 5); ph = R.uniform(0, 6.28)
@@ -103,7 +111,7 @@ def tar(seed=21):
     for (cx, cy) in spread(R, 4, 40, taken):
         for k in range(R.choice((2, 3))):
             stamp4(t, cx + R.uniform(-5, 5), cy + R.uniform(-3, 3), R.choice(SHAPES3), R.choice((DEAD6, RUST6, OCHRE6))[1:4], R,
-                   shadow_of=lambda c: HEX('#222127') if c in (TA, TA_LO, TA_HI, CHIP) else None)
+                   shadow_of=lambda c: HEX('#222127') if c in (TA, TA_LO, TA_HI, WEAR_L, WEAR_D) else None)
     return t
 
 
@@ -115,30 +123,26 @@ FLECK = HEX('#203f50')
 
 def water(seed=22):
     R = random.Random(seed); t = Tile(WB)
-    zf = wfield(seed, [(1, 2, 1), (3, -1, .7), (-2, 3, .5)])
+    zf = wfield(seed, [(0, 3, 1), (1, 4, .6), (-1, 5, .45), (2, 6, .3)])   # mostly along y: wandering horizontal bands, like light lying across water
     for y in range(N):
         for x in range(N):
             v = zf(x, y)
-            if v > .45: t.put(x, y, WB_HI)
-            elif v < -.5: t.put(x, y, WB_LO)
+            if v > .5: t.put(x, y, WB_HI)
+            elif v < -.55: t.put(x, y, WB_LO)
     # a quiet layer of short flat ripples one step off the water, 4-6 px long
     for (x, y) in poisson(R, 260, 6, 10):
         L = R.randint(4, 6); col = TROUGH if R.random() < .5 else CREST1 if zf(x, y) > .2 else FLECK
         for k in range(L): t.put(int(x) + k, int(y), col)
-    # wave groups: two to four stacked dashes, the top one lit, a dark trough under each, staggered like a swell
-    for (cx, cy) in poisson(R, 26, 22, 34):
-        n = R.randint(2, 4); x0 = int(cx)
+    # wave groups gathered in a few wind lanes: two to four stacked dashes, the top one lit, a dark trough under each,
+    # leaning either way and of different lengths (judge: "every glint stack the same staircase stepping down-right")
+    lanes = [R.uniform(0, N) for _ in range(4)]
+    for (cx, cy) in poisson(R, 30, 18, 30, ok=lambda a, b: min(min(abs(b - l), N - abs(b - l)) for l in lanes) < 14):
+        n = R.randint(2, 4); x0 = int(cx); lean = R.choice((-2, -1, 1, 2, 3))
         for i in range(n):
-            L = R.randint(6, 12) - i; y = int(cy) + i * 3; xs = x0 + R.randint(-3, 3) + i * 2
+            L = max(3, R.randint(5, 13) - i * R.randint(1, 3)); y = int(cy) + i * R.choice((2, 3)); xs = x0 + R.randint(-2, 2) + i * lean
             for k in range(L):
                 t.put(xs + k, y, CREST2 if (i == 0 and 1 <= k < L - 1) else CREST1)
                 t.put(xs + k + 1, y + 1, TROUGH)
-    # leaves afloat, in twos, each with a dark ring of still water under it
-    for (cx, cy) in spread(R, 4, 45):
-        for k in range(2):
-            x, y = cx + k * R.uniform(5, 8), cy + R.uniform(-3, 3)
-            stamp4(t, x, y, R.choice(SHAPES3[:4]), R.choice((DEAD6, RUST6, OCHRE6))[1:4], R,
-                   shadow_of=lambda c: TROUGH if c in (WB, WB_LO, WB_HI, FLECK, CREST1) else None)
     return t
 
 

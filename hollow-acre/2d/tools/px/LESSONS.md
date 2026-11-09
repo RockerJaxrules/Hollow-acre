@@ -178,6 +178,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Moss and grass are the brightest, most saturated things on a forest floor: keep them two steps down and olive, or they
   fight the trees.
 - A brown floor under dark green pines separates them by hue; a green floor under them loses the trees.
+- Drifts stretched sideways at similar heights line up into horizontal bands across the 2x2 repeat; drifts need different
+  shapes (round, diagonal) and heights, and none may be one of a kind (forest v7 lost to v6 on this).
+- Leaf colours go grey-olive under the game's forest light: the lit step of a leaf must be warmer and lighter than looks
+  right on the bare tile.
+- Water: anything floating (leaves) baked into the tile repeats as a stamp; float it as props by world position. Glints
+  read best gathered in a few wind lanes with varied length and lean, not one staircase repeated.
+- Tarmac: lone 1-2 px lighter chips on a spacing read as a dot lattice; wear is flat 3-8 px clusters in two close tones.
 - Anything that appears once per tile marks the repeat: a blob, a dry mound, the biggest clump, a leaf pair. Every
   feature needs siblings of the same weight elsewhere in the tile, or must be too faint to find.
 - Tuft rims round a tone patch read as rings or shrubby pads; smooth flat patches read as stains or shadows of
