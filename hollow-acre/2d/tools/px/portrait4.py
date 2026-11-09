@@ -518,7 +518,7 @@ class Painter:
             cv.add(ell(ex_ + sg * 1.9, 61.5, 1.5, 3.6), 'skin', -.2)
             s.ear_m |= e
         fm = poly(s.face_poly())
-        lit = sphere_lit(61.5, 52, 27, 50, flat=.72, amb=.44, k=.32)
+        lit = sphere_lit(61.5, 52, 27, C.get('face_ry', 50 if C.get('teeth_v1') else 38), flat=.72, amb=.44, k=.32)   # a smaller face_ry curves the light-to-shadow edge round the cheek (a tall one makes a straight vertical 'mask' edge)
         lit += .07 * G(55, 37, 8, 5)                                  # forehead
         lit += .1 * G(50, 64.5, 5, 3) + .04 * G(78, 64.5, 4, 3)       # cheekbones
         lit -= .07 * G(52, 56.5, 7, 2.6) + .09 * G(76.5, 56.5, 7, 2.6)  # under the brow ridge
@@ -1050,7 +1050,9 @@ class Painter:
             reg &= ~((np.abs(X - CX) < 11) & (Y < my - 2.2)) | ((np.abs(X - CX) < 7.5) & (Y > my - 4.2) & (Y < my - 1.6))
             reg &= ~mouth_hole & (Y > 64.5 + 2.5 * (1 - np.abs(X - CX) / fw))
             cv.put(reg & fm, 'stubble', s.face_lit - .02)
-            cv.put(reg & fm & (((np.floor(X) * 7 + np.floor(Y) * 13) % 11) == 0), 'stubble', s.face_lit - .18); return
+            # shapes, not speckle (owner: no grit): a darker band along the jaw and under the chin, a soft shadow over the lip
+            cv.put(reg & fm & ((np.abs(X - CX) > fw - 4.5) | (Y > chin - 5.5)), 'stubble', s.face_lit - .14)
+            cv.put(reg & fm & (np.abs(X - CX) < 7.5) & (Y > my - 4.2) & (Y < my - 1.6), 'stubble', s.face_lit - .1); return
         mo = None
         if kind in ('moustache', 'goatee', 'full'):
             mo = np.zeros((NS, NS), bool)
