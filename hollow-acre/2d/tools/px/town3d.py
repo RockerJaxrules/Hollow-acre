@@ -281,6 +281,15 @@ def build(name, sp, night):
         ay = top - Y(10)
         for k, x in enumerate(range(int(x0 + 6), int(x1 - 6), 7)):
             P.append(box(x, ay - Y(10), 0, min(x + 7, x1 - 6), ay, 16, 'awnA' if k % 2 else 'awnB', c=[x + 3.5, ay - Y(5), 8], planes=[[0, .8, .6, 3.5]]))
+    proud = (W * sp.get('gablew', .42) / 2, 10) if kind == 'cross' else None
+    def bring_forward(start):
+        if not proud: return
+        for q in P[start:]:
+            xs = [q[k][0] for k in ('min', 'max', 'c', 'a') if k in q]
+            if xs and all(abs(x) < proud[0] - 1 for x in xs):
+                for k in ('min', 'max', 'c', 'a', 'b'):
+                    if k in q: q[k] = [q[k][0], q[k][1], q[k][2] + proud[1]]
+    mark = len(P)
     # windows
     for i, wo in enumerate(sp.get('windows') or []):
         ww, wh = wo.get('w', 24), wo.get('h', 26); cx = x0 + wo['x'] * 32
@@ -307,11 +316,13 @@ def build(name, sp, night):
             P += [box(lx - 2, F + Y(dh - 8), 0, lx + 2, F + Y(dh - 6), 4, 'iron'), box(lx - 3, F + Y(dh - 18), 2, lx + 3, F + Y(dh - 8), 6, 'lit' if night else 'glass'),
                   box(lx - 3.5, F + Y(dh - 8), 1.5, lx + 3.5, F + Y(dh - 6.5), 6.5, 'iron')]
         meta = {'door_w': float(dw), 'door_dx': float(round(d.get('dx', 0) * 32) - 1), 'steps': st}
+    bring_forward(mark)
     if sp.get('sign'):
         text = sp['sign']; sw = len(text) * 4 + 9
         sy = top - Y((-2 if sp.get('awning') else 6) + sp.get('signy', 0)) - Y(11)
-        P.append(box(-sw / 2, sy, 0, sw / 2, sy + Y(11), 3, 'signb'))
-        meta['_sign'] = (text, sy + Y(11) - 2, 3)
+        sz0 = proud[1] if proud else 0
+        P.append(box(-sw / 2, sy, sz0, sw / 2, sy + Y(11), sz0 + 3, 'signb'))
+        meta['_sign'] = (text, sy + Y(11) - 2, sz0 + 3)
     if sp.get('ivy'):   # ivy climbing one corner
         ix = x0 + 8 if sp['ivy'] == 'left' else x1 - 8
         for k in range(5):
