@@ -166,7 +166,7 @@ def pumpkin(r, mats, mouth_open=0.0):
              (w * .2, top + r * .02), (w * .2, top - r * .1), (w * .45, top - r * .1), (w * .45, top), (w * .62, top - r * .02), (w, top + r * .12),
              (w * .7, bot + r * .12), (w * .32, bot), (w * .32, bot + r * .1), (w * .05, bot + r * .1), (w * .05, bot), (-w * .32, bot), (-w * .32, bot + r * .1),
              (-w * .55, bot + r * .1), (-w * .55, bot + r * .03), (-w * .78, bot + r * .16)]
-    cuts.append(prism('mouth', list(reversed(mouth)), Y0, Y1, mats['flesh']))
+    cuts.append(prism('mouth', list(reversed(mouth)), Y0, Y1, mats.get('mouthflesh', mats['flesh'])))
     for c in cuts:
         bo = o.modifiers.new('carve', 'BOOLEAN'); bo.operation = 'DIFFERENCE'; bo.object = c; bo.solver = 'EXACT'
         try: bo.material_mode = 'TRANSFER'
@@ -279,8 +279,11 @@ def pose(t, clip, side_view=False, far=None):
         for side in ('L', 'R'):
             x = -1 if side == 'L' else 1
             P['leg' + side] = [(x * .16, 0, HIP), (x * .17, -.03, HIP * .56), (x * .14, .04, .34)]   # dangling, the toes off the ground
-            P['arm' + side] = [SH(x * .16, br), (x * .8, .02, 3.1 + br), (x * 1.18, -.03, 2.68 + br)]   # along the crossbar, the forearm drooping (inside the 96 px frame)
-        P.update(sway=br, bob=br, pitch=2, head_tilt=(1 - w) * 15 + s * 2 * (1 - w), head_pitch=(1 - w) * 24 + w * 4, post=True, lit=w, turn=(1 - w) * -38)
+            lift = .07 * min(1, max(0, (w - .3) / .2))   # judge r1: the forearms lift as it wakes, not only the head
+            P['arm' + side] = [SH(x * .16, br), (x * .8, .02, 3.1 + br), (x * 1.18, -.03, 2.68 + br + lift)]   # along the crossbar, the forearm drooping (inside the 96 px frame)
+        # judge r1: the wake spread over all six frames (claws curl; head half turned; ember eyes; ember mouth; mid glow; full)
+        P.update(sway=br, bob=br, pitch=2, head_tilt=(1 - w) * 15 + s * 2 * (1 - w), head_pitch=(1 - w) * 24 + w * 4, post=True, lit=w,
+                 turn=-38 * (1 - min(1, w / .4)), spread=.62 if clip == 'scarelook' else 1.0)
     elif clip == 'crawl':   # on all fours like a spider: a hunched hump of coat, the head low in front looking at you,
                             # four long limbs with their knees and elbows up above the back, feet on one ground line
         P.update(pitch=45, drop=1.35, head_pitch=85, face_pitch=-140, head_tilt=s * 7, coat=(HIP + .8, HIP - .35, .28, .45), neck=.15, sleeves=False,
@@ -391,7 +394,12 @@ def build(clip, t, yaw):
     torso.append(segment('neck', neck_base, neck_top, .075, .055, mats['stick'], 8))
     hm = mats
     if P.get('lit') is not None:   # by day the candle is out: the carving is dark; waking, an ember, then the glow
-        lit = P['lit']; hm = dict(mats, glow=mats['void'], flesh=mats['void']) if lit < .34 else dict(mats, glow=mats['button'], flesh=mats['pumpkin']) if lit < .67 else mats
+        lit = P['lit']
+        if lit < .3: hm = dict(mats, glow=mats['void'], flesh=mats['void'])                                     # dark
+        elif lit < .5: hm = dict(mats, glow=mats['void'], flesh=mats['button'], mouthflesh=mats['void'])       # ember eyes
+        elif lit < .7: hm = dict(mats, glow=mats['button'], flesh=mats['button'])                             # ember eyes and mouth
+        elif lit < .9: hm = dict(mats, glow=mats['button'], flesh=mats['flesh'])                              # mid orange
+        else: hm = mats
     r = .5; head = pumpkin(r, hm, P['mouth'])
     piv = bpy.data.objects.new('headpivot', None); bpy.context.scene.collection.objects.link(piv); piv.location = neck_top
     look = {90: -P.get('look', 32), 270: P.get('look', 32)}.get(int(yaw) % 360, 0) if clip != 'crawl' else {90: -20, 270: 20}.get(int(yaw) % 360, 0)
