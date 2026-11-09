@@ -307,6 +307,11 @@ function buildTown(){
   // the copse on the hill: close-grown and dark, the light barely gets in
   {const C=COPSES[1];for(let i=0;i<16;i++){const a=i*2.4,r=.25+((i*.37)%1)*.8;const x=C.x+Math.cos(a)*C.rx*r,z=C.z+Math.sin(a)*C.rz*r;if(Math.hypot(x-34,z+28)<2)continue;
     const e=obj(['pine_0','pine_1','spruce_0','spruce_1'][i%4],x,z,{kind:'pine',solid:1,town:1});addCircle(x,z,.4);}}
+  // the hilltop west of the parsonage: a wood edge along the back, and a lookout bench at the cliff's lip over the farm,
+  // reached by a footpath from the end of Hill Street
+  for(let x=17.6,k=0;x<34;x+=2.1+((k*37)%10)/10,k++){const z=-41.2+((k*53)%17)/10;if(Math.hypot(x-28,(z+33)*.8)<5.6)continue;
+    const e=obj(['pine_0','spruce_1','pine_o0','spruce_0','pine_1'][k%5],x,z,{kind:'pine',solid:1,town:1});addCircle(x,z,.4);}
+  ROADS.push([34,-26.6,24.2,-23.9,1.1]);Y('parkbench',23.5,-23.2);TREE_T('maple_red',21.6,-24.6);
   // ===== the green: lawn, a ring of cobbles round the bandstand, paths worn across it where people actually walk
   put('bandstand',squarePos.x,squarePos.z+1.4,0,{kind:'prop'});addRect(squarePos.x-2.1,squarePos.z+.35,squarePos.x+2.1,squarePos.z+1.4);
   put('memorial',41.4,1.6,0,{kind:'prop'});addRect(40.7,1.1,42.1,1.6);
