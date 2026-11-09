@@ -366,6 +366,31 @@ function B.awning(c, x0, x1, y, a, b)
   for yy = y + 11, y + 15 do for x = x0, x1 do if (x + yy) % 2 == 0 and px.get(c, x, yy) ~= 0 then P(c, x, yy, 'OUT2') end end end
 end
 
+-- a porch floor: boards running across, a lit front edge, board ends, a dark fascia and its shadow on the ground
+function B.deck(c, x0, x1, ytop, ybot)
+  for y = ytop, ybot do for x = x0, x1 do local r = y - ytop
+    local col = (r == 0) and 'w7' or ((r == 1) and 'w6' or ((y == ybot) and 'w2' or 'w4'))
+    if r >= 2 and (x - x0) % 9 == 0 then col = 'w2' end
+    if r == 0 and (x - x0) % 9 == 0 then col = 'w5' end
+    P(c, x, y, col) end end
+  for x = x0, x1 do if (x % 2 == 0) then P(c, x, ybot + 1, 'OUT2') end end
+end
+-- steps from a raised doorway down to the ground: each a lit tread and a shaded riser, wider as they go down, worn in the middle
+function B.steps(c, cx, hw, ytop, ybot, mat)
+  local n = math.max(1, math.floor((ybot - ytop + 1) / 2))
+  for i = 0, n - 1 do local y0 = ytop + i * 2; local w = hw + i * 2
+    for x = cx - w, cx + w do
+      if mat == 'stone' then P(c, x, y0, (x < cx - w + 2) and 's6' or 's7'); P(c, x, y0 + 1, (x > cx + w - 2) and 's2' or 's4')
+      else P(c, x, y0, (x < cx - w + 2) and 'w6' or 'w7'); P(c, x, y0 + 1, (x > cx + w - 2) and 'w2' or 'w4') end end
+    for x = cx - 3, cx + 3 do P(c, x, y0, mat == 'stone' and 's6' or 'w6') end
+    P(c, cx - w, y0 + 1, mat == 'stone' and 's3' or 'w3') end
+end
+-- a plank ramp for wide barn and garage doors
+function B.ramp(c, x0, x1, ytop, ybot)
+  for y = ytop, ybot do local t = (y - ytop) / math.max(1, ybot - ytop); local e = math.floor(t * 4)
+    for x = x0 - e, x1 + e do local col = ((x - x0) % 7 == 0) and 'w3' or ((y == ytop) and 'w6' or 'w5'); if x < x0 - e + 2 then col = 'w6' elseif x > x1 + e - 2 then col = 'w3' end; P(c, x, y, col) end end
+  for y = ytop + 2, ybot, 3 do px.hline(c, x0, x1, y, 'w4') end
+end
 function B.porch(c, x0, x1, ytop, yb, roofmat, trim, rail)
   for y = ytop - 8, ytop do for x = x0 - 3, x1 + 3 do P(c, x, y, B.roofpx(c, roofmat, x, y, ytop - 8, 1, 3)) end end
   px.hline(c, x0 - 4, x1 + 4, ytop - 9, 'OUT'); px.hline(c, x0 - 3, x1 + 3, ytop + 1, trim[4]); px.hline(c, x0 - 3, x1 + 3, ytop + 2, trim[2]); px.hline(c, x0 - 4, x1 + 4, ytop + 3, 'OUT')
@@ -376,6 +401,7 @@ end
 
 -- ------------------------------------------------------------------ whole buildings
 function B.build(sp, night)
+  DOORMETA = nil
   local wt = sp.w; local W = math.floor(wt * 32); local m = 22
   local wallH = sp.wallh or 70
   local kind = sp.kind or 'gable'
@@ -422,8 +448,18 @@ function B.build(sp, night)
   if not sp.nodoor then
     local d = sp.door or {}; local dw = d.w or 26; local dh = d.h or 46; local dcx = math.floor((x0 + x1) / 2 + (d.dx or 0) * 32)
     local dx0, dx1 = dcx - dw // 2, dcx + dw // 2
-    if sp.porch then B.porch(c, sp.porch.full and x0 + 4 or dx0 - 16, sp.porch.full and x1 - 4 or dx1 + 16, gy - 10 - dh - 14, gy - 10, roofmat, trim, sp.porch.rail) end
+    -- the door sits up on the foundation, so something always leads up to it: homes get a porch (deck, posts, roof, rail)
+    -- with steps down the middle; shops and halls get steps; barn and garage doors get a plank ramp
+    local wide = (d.kind == 'barn') or (dw >= 50)
+    local home = not wide and not sp.sign and sp.stoop ~= false and (kind == 'gable' or kind == 'cross') and (sp.wallh or 70) >= 60
+    local pr = sp.porch or (home and {rail = true}) or nil
+    local px0, px1 = pr and (pr.full and x0 + 4 or dx0 - 16), pr and (pr.full and x1 - 4 or dx1 + 16)
+    if pr then B.porch(c, px0, px1, gy - 10 - dh - 14, gy - 10, roofmat, trim, pr.rail) end
     B.door(c, dx0, dx1, gy - 10 - dh, gy - 10, {trim = trim, col = B.DOORS[d.col or 'teal'], kind = d.kind, night = night, ribbon = sp.ribbon, scratches = sp.scratches, blood = sp.blooddoor})
+    local stoneSteps = (wallmat == 'brick' or wallmat == 'stone')
+    if pr then B.deck(c, px0 - 2, px1 + 2, gy - 10, gy - 6)
+      for _, postx in ipairs({px0, px1 - 2}) do R(c, postx, gy - 6, postx + 2, gy - 1, trim[3]); px.vline(c, postx + 2, gy - 6, gy - 1, trim[2]) end end   -- the posts carry on down to the ground
+    DOORMETA = {w = dw, dx = dcx - (W + 2 * m) / 2, steps = wide and 'ramp' or ((stoneSteps and not pr) and 'stone' or 'wood')}
     if sp.lantern ~= false then B.lantern(c, dx1 + 12, gy - 10 - dh + 6, night) end
   end
   if sp.sign then B.sign(c, (x0 + x1) // 2, yW + (sp.awning and -2 or 6) + (sp.signy or 0), sp.sign) end
@@ -510,7 +546,7 @@ function B.build(sp, night)
     px.ellipse(c, hx, hy, 3, 3.5, 'b2'); for k = 0, 3 do px.vline(c, hx - 3 + k * 2, hy - 7, hy - 3, k == 3 and 'b1' or 'b2') end; px.vline(c, hx + 1, hy + 3, hy + 10, 'b1') end
   px.outline(c, px.i(c, 'OUT'))
   -- chim: where smoke leaves the first chimney, relative to the sprite's anchor (the game's puff offset)
-  return c, {w = Wd, h = Hh, ax = Wd / 2, ay = gy - 3, chim = chim and {chim[1] - Wd / 2, chim[2] - (gy - 3) - 2} or nil}
+  return c, {w = Wd, h = Hh, ax = Wd / 2, ay = gy - 3, chim = chim and {chim[1] - Wd / 2, chim[2] - (gy - 3) - 2} or nil, door = DOORMETA}
 end
 
 return B

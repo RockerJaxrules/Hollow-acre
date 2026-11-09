@@ -71,13 +71,46 @@ const MG4ART={
       for(let i=0;i<6;i++){const sx=200+i*16;K.px(sx,40,11,18,['#b25645','#90abc2','#d6ad52','#6d8355','#8a5a9a','#e8e0d0'][i]);K.px(sx,38,11,3,CA_P.wood[4]);K.px(sx,58,11,3,CA_P.wood[4]);}K.plank(194,61,104,4,CA_P.wood,3);
       K.ball(150,44,9,['#5a1a14','#8a2a20','#b84a3a','#d87060']);for(let k=0;k<6;k++)K.px(144+k*2,36+((k*3)%5),1,5,CA_P.iron[6]);
       K.plank(0,114,320,8,CA_P.wood,4);K.planks(0,122,320,58,CA_P.wood,9,6);K.px(0,122,320,1,CA_P.wood[0]);},
-    yard(K){for(let y=0;y<84;y++){const k=y/84;K.px(0,y,320,1,`rgb(${150+k*60|0},${190+k*40|0},${222+k*18|0})`);}
-      for(let i=0;i<16;i++){const tx=i*22+((i*7)%9);K.ball(tx,74-((i*13)%7),13,CA_P.grass,10);}K.px(236,52,30,22,'#8a2a20');K.px(232,48,38,5,'#5a1a14');K.px(248,62,7,12,'#3a1210');
-      for(let y=78;y<180;y++)for(let x=0;x<320;x++){const n=K.H32(x>>1,y>>1,9);K.px(x,y,1,1,K.pick(CA_P.grass,(n>.75?4:n>.3?3:2)+(y<84?1:0)));}
-      for(let k=0;k<40;k++){const fx=(K.H32(k,3,17)*320)|0,fy=90+((K.H32(k,4,17)*86)|0);K.px(fx,fy,2,2,['#f0e070','#e86a8a','#f4f4f4','#b88ae0'][k%4]);K.px(fx,fy+2,1,2,'#3c6228');}
-      for(let x=0;x<320;x+=36){K.plank(x,66,4,18,CA_P.wood,x,true);}K.plank(0,70,320,3,CA_P.wood,2);},
-    barn(K){K.planks(0,0,320,118,CA_P.wood,16,31,true);for(let k=0;k<5;k++){const hx=20+k*58;K.px(hx,60,46,58,'#c8a050');for(let j=0;j<30;j++)K.px(hx+((j*7)%44),60+((j*11)%56),6,1,j%2?'#e8c870':'#a88038');}
-      K.plank(0,112,320,10,CA_P.oak,7);K.planks(0,122,320,58,CA_P.oak,12,5);K.px(0,122,320,1,CA_P.oak[0]);}},
+    yard(K){// an autumn afternoon behind the farm: banded sky, two far ridges, a tree line in its colours, the red barn, the rail fence, the mown field
+      const SKY=['#7aa8d0','#8cb6d8','#a2c4de','#bcd2e2','#d6dee2','#e8e2d4'];for(let y=0;y<84;y++)K.px(0,y,320,1,SKY[Math.min(5,(y/14)|0)]);
+      const ridge=(base,amp,f,ph,cols)=>{for(let x=0;x<320;x++){const top=base-Math.round(amp*(.55+.45*Math.sin(x*f+ph))+amp*.3*Math.sin(x*f*2.7+ph*2));K.px(x,top,1,84-top,cols[0]);K.px(x,top,1,1,cols[1]);}};
+      ridge(58,10,.021,1.3,['#8a9eb4','#a6b6c6']);ridge(66,7,.034,4.1,['#6e8a8c','#86a0a0']);
+      // the tree line: clumps of leaf puffs, each tree its own autumn colour, trunks showing between
+      const TC=[['#3a2a14','#7a3214','#a84a1e','#c86a2a','#e08e3a','#f2b45a'],['#2a2410','#6a5418','#9a7a20','#c49e28','#e2c03c','#f2dc64'],['#1c3418','#2a4a20','#3c6228','#527e32','#6c9a3e','#8cb44e'],['#2a1018','#6c1c2e','#9a2a30','#c43e34','#e2603c','#f28a52']];
+      for(let i=0;i<15;i++){const tx=4+i*22+((i*7)%9),ty=72-((i*13)%6);const C=TC[(i*5+1)%4];K.px(tx-1,ty,3,10,'#3e2414');
+        for(const [dx,dy,r] of [[-6,2,7],[6,2,7],[0,-4,8],[-3,-9,5],[4,-8,5]])K.ball(tx+dx,ty+dy,r,C);}
+      // the barn in the distance: red board walls, a grey roof, a white X on the door
+      K.px(230,50,44,26,'#8a2a20');for(let x=230;x<274;x+=4)K.px(x,50,1,26,'#6a1e16');K.px(272,50,2,26,'#5a1a14');
+      for(let i=0;i<10;i++)K.px(226+i,49-i,52-i*2,1,i<2?'#4a4a52':'#6a6a74');K.px(226,49,52,1,'#2a2a30');
+      K.px(244,60,14,16,'#5a1a14');K.line(245,61,257,75,'#e8e0d0',1);K.line(257,61,245,75,'#e8e0d0',1);K.px(240,54,6,4,'#2a1a10');K.px(241,55,4,2,'#e8c870');
+      // the rail fence, posts lit on the left, a shadow line under the rails
+      for(let x=6;x<320;x+=34){K.px(x,62,4,20,'#7a5230');K.px(x,62,1,20,'#a87848');K.px(x+3,62,1,20,'#4a2e16');K.px(x-1,61,6,1,'#c89456');}
+      for(const y of [66,73]){K.px(0,y,320,2,'#966036');K.px(0,y,320,1,'#c89456');K.px(0,y+2,320,1,'#4a2e16');}
+      // the field: flat bands of grass in soft patches, with drawn tufts (dark root, lit tips), a few flowers, a cart track
+      const G=['#2e5228','#3e6a2e','#4e8236','#64983e','#80b04a','#a2c85c'];
+      const vn=(x,y,c,sd)=>{const gx=x/c,gy=y/c,i=Math.floor(gx),j=Math.floor(gy),fx=gx-i,fy=gy-j,u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy);const a=K.H32(i,j,sd),b=K.H32(i+1,j,sd),c2=K.H32(i,j+1,sd),d=K.H32(i+1,j+1,sd);return a+(b-a)*u+(c2-a)*v+(a-b-c2+d)*u*v;};
+      for(let y=78;y<180;y+=2)for(let x=0;x<320;x+=2){const n=vn(x,y*1.6,40,9)*.7+vn(x,y,14,13)*.3;const k=n>.6?3:n>.42?2:1;K.px(x,y,2,2,G[k]);}
+      for(let i=0;i<70;i++){const x=(K.H32(i,1,21)*316)|0,y=82+((K.H32(i,2,21)*94)|0);const k=K.H32(x>>4,y>>4,9)>.5?3:2;
+        K.px(x,y+2,3,1,G[k-1]);K.px(x,y+1,3,1,G[k]);K.px(x,y,1,1,G[k+2]);K.px(x+2,y,1,1,G[k+2]);K.px(x+1,y-1,1,1,G[5]);}
+      for(let k=0;k<14;k++){const fx=(K.H32(k,3,17)*316)|0,fy=96+((K.H32(k,4,17)*78)|0);const c=['#f0e070','#e86a8a','#f4f4f4','#b88ae0'][k%4];K.px(fx,fy,2,2,c);K.px(fx+1,fy+1,1,1,'#f8e8a0');K.px(fx,fy+2,1,2,'#2e5228');}
+      for(let y=84;y<180;y++){const w=2+((y-84)/12|0);for(const cx of [118-((y-84)*.5|0),196+((y-84)*.5|0)])K.pa(cx,y,w,1,'#6a4a28',.5);}},
+    barn(K){// inside the barn: board walls in their own shade, a beam and the loft, a window of light, tools, stacked bales, straw on the boards
+      K.planks(0,0,320,118,CA_P.wood,16,31,true);for(let y=0;y<40;y++)K.pa(0,y,320,1,'#0a0604',.5-y/90);
+      K.px(0,30,320,8,CA_P.wood[3]);K.px(0,30,320,1,CA_P.wood[5]);K.px(0,37,320,1,CA_P.wood[1]);K.pa(0,38,320,4,'#000',.3);       // the beam
+      for(const x of [40,160,280]){K.px(x,0,8,30,CA_P.wood[2]);K.px(x,0,1,30,CA_P.wood[4]);K.px(x+7,0,1,30,CA_P.wood[0]);}
+      K.px(132,48,40,30,'#2a1a10');K.px(135,51,34,24,'#cfe2ea');K.px(135,51,34,8,'#e8f0f0');K.px(151,51,2,24,'#2a1a10');K.px(135,62,34,2,'#2a1a10');   // a window
+      // tools on the wall: a pitchfork, a rake, a coil of rope on a peg
+      K.line(200,44,200,104,CA_P.oak[4],2);for(const d of [-4,0,4])K.line(200+d,44,200+d,34,CA_P.iron[5],1);K.px(196,44,9,2,CA_P.iron[4]);
+      K.line(214,46,214,104,CA_P.oak[3],2);K.px(208,44,13,3,CA_P.iron[4]);for(let x=208;x<221;x+=2)K.px(x,47,1,3,CA_P.iron[3]);
+      K.px(236,52,3,3,CA_P.oak[2]);for(let r=0;r<3;r++)K.ell(238,62,9-r*2,7-r*2,r%2?'#8a6a3a':'#b49058');K.ell(238,62,3,2,CA_P.wood[1]);
+      // the bales: lit top, straw-textured front with two twine bands, stacked two high on the left
+      const bale=(x,y,w,h)=>{const S=CA_P.straw;K.px(x,y,w,5,S[5]);K.px(x,y,w,1,S[6]);
+        for(let yy=y+5;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++){const n=K.H32(xx>>1,yy,4);K.px(xx,yy,1,1,S[n>.8?4:n>.4?3:2]);}
+        K.px(x+w-3,y+5,3,h-5,S[1]);for(const bx of [x+w*.28|0,x+w*.72|0]){K.px(bx,y,2,h,'#6a4a20');K.px(bx,y,1,h,'#9a7030');}
+        K.px(x,y+h,w,2,'#2a1a08');for(let k=0;k<5;k++)K.px(x+((K.H32(k,x,5)*w)|0),y-1-(k%2),1,2,S[5]);};
+      bale(8,74,56,22);bale(70,74,56,22);bale(36,52,56,22);bale(250,80,56,22);
+      K.px(0,112,320,10,CA_P.oak[3]);K.px(0,112,320,1,CA_P.oak[5]);K.planks(0,122,320,58,CA_P.oak,12,5);K.px(0,122,320,1,CA_P.oak[0]);
+      for(let k=0;k<60;k++){const x=(K.H32(k,7,9)*318)|0,y=124+((K.H32(k,8,9)*54)|0);K.line(x,y,x+3+(k%3),y-1+(k%2),CA_P.straw[3+(k%3)],1);}}},
   anim:{
     workshop(K,t){const a=.18+Math.sin(t*5)*.02;K.px(250,0,1,10,CA_P.iron[2]);K.metal(246,10,10,3,CA_P.brass);K.px(247,13,8,9,'rgba(255,220,140,.8)');K.px(249,15,4,5,'#fff2c0');K.metal(246,22,10,2,CA_P.brass);K.glow(251,18,34,'255,200,120',a);},
     kitchen(K,t){},

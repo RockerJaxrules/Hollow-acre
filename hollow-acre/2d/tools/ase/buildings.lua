@@ -148,11 +148,12 @@ for _, name in ipairs(names) do
   if not only or only == name then
     local sp = S[name]
     for _, night in ipairs({false, true}) do
-      local c, meta = B.build(sp, night)
+      local c, meta = B.build(sp, night); c.weather = {speck = .1, grime = .3, streak = true, round = .35, radius = 2, mottle = .3, cell = 6}
       local fn = name .. (night and '_n' or '')
       px.save(c, app.fs.joinPath(out, fn .. '.png'))
       print(string.format('META %s %d %d %.1f %d %.2f %s %s', fn, meta.w, meta.h, meta.ax, meta.ay, sp.w,
-        meta.chim and string.format('%d,%d', math.floor(meta.chim[1]), math.floor(meta.chim[2])) or '-', BASE[name] and (BASE[name] .. (night and '_n' or '')) or '-'))
+        meta.chim and string.format('%d,%d', math.floor(meta.chim[1]), math.floor(meta.chim[2])) or '-', BASE[name] and (BASE[name] .. (night and '_n' or '')) or '-')
+        .. (meta.door and string.format(' door_w=%d door_dx=%d steps=%s', meta.door.w, math.floor(meta.door.dx), meta.door.steps) or ''))
     end
   end
 end

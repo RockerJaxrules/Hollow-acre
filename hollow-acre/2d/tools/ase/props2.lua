@@ -373,7 +373,7 @@ for k in pairs(S) do names[#names + 1] = k end
 table.sort(names)
 for _, name in ipairs(names) do
   if not only or only == name then
-    local c, m = S[name]()
+    local c, m = S[name](); if name:match('^tex') == nil then c.weather = {speck = .1, grime = .3, streak = name:match('wall') ~= nil or name == 'watertower' or name == 'memorial', round = .7, radius = 3, mottle = .28, cell = 5} end
     px.save(c, app.fs.joinPath(out, name .. '.png'))
     print(string.format('META %s %d %d %.1f %d %.2f - -', name, m.w, m.h, m.ax, m.ay, m.w / 32))
   end

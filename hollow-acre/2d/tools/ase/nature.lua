@@ -81,10 +81,10 @@ local function crown(c, o)
         local dir = dx * .55 + dy * .8
         local lloc = .52 - .38 * dir
         local lg = .58 - .38 * ((x - cx) / rx * .45 + (y - cy) / ry * .75)
-        local l = lloc * .5 + lg * .55 + (o.lift or 0)
+        local l = lloc * .5 + lg * .55 + (o.lift or 0) - .1
         if d < .82 and d > .3 and dir < -.28 then l = l + .2 end                     -- the lit crescent on each clump's top-left
-        if d > .8 and dir > .2 then l = l - .26 end                                   -- its dark rim where it sits over the clump behind
-        P(c, x, y, band(c, r, l, lo, #r - 1)) end end end end
+        if d > .76 and dir > .15 then l = l - .38 end                                 -- its dark rim where it sits over the clump behind
+        P(c, x, y, band(c, r, l, lo, #r - 2)) end end end end
   -- sparse leaf marks: a light dash here, a dark nick there
   local area = rx * ry
   for i = 0, math.floor(area / 40) do local x = math.floor(cx - rx + H(i, seed + 21) * rx * 2); local y = math.floor(cy - ry + H(i, seed + 22) * ry * 2)
@@ -345,7 +345,7 @@ for k in pairs(N) do names[#names + 1] = k end
 table.sort(names)
 for _, name in ipairs(names) do
   if not only or only == name then
-    local c, m = N[name]()
+    local c, m = N[name](); c.weather = {speck = .06, grime = .22, round = 1.35, radius = math.max(4, math.floor(c.w / 7)), mottle = .16, cell = 6}
     px.save(c, app.fs.joinPath(out, name .. '.png'))
     print(string.format('META %s %d %d %.1f %d %.2f - -', name, m.w, m.h, m.ax, m.ay, m.w / 32))
   end

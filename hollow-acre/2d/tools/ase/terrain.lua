@@ -133,7 +133,7 @@ T.water = function()
 end
 
 for _, name in ipairs({'grass', 'forest', 'dirt', 'stone', 'water'}) do
-  local c = T[name]()
+  local c = T[name](); c.weather = {speck = .07, grime = 0, mottle = .3, cell = 8, wrapW = true}
   px.save(c, app.fs.joinPath(out, 'tex_' .. name .. '.png'))
   print(string.format('META tex_%s %d %d %.1f %d %.2f - -', name, N, N, 0, 0, 6))
 end

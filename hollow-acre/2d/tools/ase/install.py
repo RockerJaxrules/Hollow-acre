@@ -6,8 +6,13 @@ src, root, roots = sys.argv[1], sys.argv[2], sys.argv[3:]
 oj = os.path.join(root, 'spr/lpc/objects.json'); O = json.load(open(oj))
 rows = [l.split() for l in open(os.path.join(src, 'meta.txt')) if l.startswith('META ')]
 n = 0
+# sprites the user preferred in their original form are never overwritten
+KEEP = set()
+try: KEEP = {l.strip() for l in open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'keep_old.txt')) if l.strip()}
+except FileNotFoundError: pass
 for row in rows:
     _, fn, w, h, ax, ay, wt, chim, base = row[:9]; extra = dict(kv.split('=') for kv in row[9:])
+    if fn in KEEP or fn.replace('_n', '') in KEEP: continue
     for r in [root] + roots:
         shutil.copy(os.path.join(src, fn + '.png'), os.path.join(r, 'spr/lpc/obj', fn + '.png'))
     e = O.get(fn)
@@ -18,7 +23,9 @@ for row in rows:
     e.update(src=f'spr/lpc/obj/{fn}.png', fw=int(w), fh=int(h), ax=float(ax), ay=float(ay), px='ase')
     if not fn.endswith('_n'):
         e['chim'] = [int(v) for v in chim.split(',')] if chim != '-' else None
-    for k, v in extra.items(): e[k] = float(v)
+    for k, v in extra.items():
+        try: e[k] = float(v)
+        except ValueError: e[k] = v
     O[fn] = e; n += 1
 json.dump(O, open(oj, 'w'))
 print('installed', n)

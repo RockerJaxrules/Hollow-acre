@@ -511,6 +511,37 @@ S.fountain = function()
   return done(c, 52, 86)
 end
 
+-- ------------------------------------------------------------------ front steps and ramps: separate pieces that stand in front of a
+-- raised doorway, so people climb them. Seen from above and in front: three treads (lit tops) and risers, each lower step wider,
+-- worn in the middle; from the sill (top row) down to the ground (anchor). 28 px tall: the sill sits 7 px above the building's base.
+local function stepsSprite(dw, mat)
+  local W = dw + 22; local c = new(W, 30); local cx = W // 2; local ay = 27
+  local T = mat == 'stone' and {'s7', 's6', 's5', 's4', 's3', 's2'} or {'w7', 'w6', 'w5', 'w4', 'w3', 'w2'}
+  local rows = {{0, 5, 0}, {6, 8, -1}, {9, 13, 1}, {14, 16, -1}, {17, 21, 2}, {22, 25, -1}}
+  for _, r in ipairs(rows) do local y0, y1, k = r[1], r[2], r[3]; local tier = (k >= 0) and k or 0
+    local hw = math.floor(dw / 2) + 3 + tier * 3; if k < 0 then hw = math.floor(dw / 2) + 3 + (((y0 - 6) // 8) * 3) end
+    for y = y0, y1 do for x = cx - hw, cx + hw do local col
+      if k >= 0 then col = (y == y0) and T[1] or T[2]; if mat ~= 'stone' and (x - cx + 40) % 7 == 0 then col = T[4] end
+        if math.abs(x - cx) <= 3 and y > y0 then col = T[3] end                         -- worn in the middle
+        if x <= cx - hw + 1 then col = T[1] elseif x >= cx + hw - 1 then col = T[4] end
+      else col = (y == y0) and T[6] or T[5]; if mat == 'stone' and (x + y) % 9 == 0 then col = T[6] end; if x >= cx + hw - 1 then col = T[6] end end
+      P(c, x, y, col) end end end
+  for x = cx - math.floor(dw / 2) - 9, cx + math.floor(dw / 2) + 9 do if x % 2 == 0 then P(c, x, 26, 'OUT2') end end
+  if mat == 'stone' then for i = 0, 3 do local x, y = cx - 6 + math.floor(H(i, dw) * 12), 2 + math.floor(H(i, dw + 1) * 18); P(c, x, y, 'v3') end end   -- moss in the joints
+  return done(c, cx, ay)
+end
+local function rampSprite(dw)
+  local W = dw + 16; local c = new(W, 30); local cx = W // 2; local ay = 27
+  for y = 0, 25 do local hw = math.floor(dw / 2) + 2 + math.floor(y / 5)
+    for x = cx - hw, cx + hw do local col = ((x - cx + 40) % 7 == 0) and 'w3' or ((y % 6 == 0) and 'w6' or 'w5')
+      if x <= cx - hw + 1 then col = 'w6' elseif x >= cx + hw - 1 then col = 'w2' end; if math.abs(x - cx) < 6 and H(x, y) > .7 then col = 'k3' end; P(c, x, y, col) end end
+  for y = 3, 24, 6 do for x = cx - math.floor(dw / 2) - 2, cx + math.floor(dw / 2) + 2 do P(c, x, y, 'w4') end end
+  for x = cx - math.floor(dw / 2) - 7, cx + math.floor(dw / 2) + 7 do if x % 2 == 0 then P(c, x, 26, 'OUT2') end end
+  return done(c, cx, ay)
+end
+for _, dw in ipairs({18, 22, 26, 30, 32}) do S['steps_stone_' .. dw] = function() return stepsSprite(dw, 'stone') end; S['steps_wood_' .. dw] = function() return stepsSprite(dw, 'wood') end end
+for _, dw in ipairs({34, 44, 60}) do S['ramp_' .. dw] = function() return rampSprite(dw) end end
+
 -- ------------------------------------------------------------------ stepping stones for the walks to every door
 local function stepstone(seed)
   local c = new(18, 12); local cx, cy = 9, 6
@@ -531,7 +562,7 @@ for k in pairs(S) do names[#names + 1] = k end
 table.sort(names)
 for _, name in ipairs(names) do
   if not only or only == name then
-    local c, m = S[name]()
+    local c, m = S[name](); if name:match('^tex') == nil and not name:match('^steps') and not name:match('^ramp') then c.weather = {speck = .1, grime = .3, streak = name:match('wall') ~= nil or name == 'watertower' or name == 'memorial', round = .7, radius = 3, mottle = .28, cell = 5} end
     px.save(c, app.fs.joinPath(out, name .. '.png'))
     print(string.format('META %s %d %d %.1f %d %.2f - -', name, m.w, m.h, m.ax, m.ay, m.w / 32))
   end

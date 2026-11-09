@@ -406,7 +406,7 @@ table.sort(names)
 for _, name in ipairs(names) do
   if not only or only == name then
     for _, night in ipairs(LIT[name] and {false, true} or {false}) do
-      local c, m = S[name](night)
+      local c, m = S[name](night); c.weather = {speck = .1, grime = .3, streak = (name ~= 'cbridge' and name ~= 'rg_tower'), round = .35, radius = 2, mottle = .3, cell = 6}
       local fn = name .. (night and '_n' or '')
       px.save(c, app.fs.joinPath(out, fn .. '.png'))
       local extra = m.door_dx and string.format(' door_dx=%d', m.door_dx) or ''
