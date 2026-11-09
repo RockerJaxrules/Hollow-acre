@@ -25,7 +25,7 @@ LIGHT = Vector((-.75, -.35, .55)).normalized()   # from the upper left and a lit
 PAL = {
     'pumpkin': ['#2a100e', '#4e1e12', '#723418', '#8e4a22', '#b06a34'],   # four crisp tones; the last is a small highlight   # a rotting pumpkin: brown and plum, never candy; only the glow is bright
     'stem':    ['#141a10', '#24301a', '#3a4a24', '#526a30', '#6e8a3c'],
-    'coat':    ['#09070b', '#130f18', '#1e1826', '#352b42', '#4f4266'],   # near-black plum: the face is the light, not the coat
+    'coat':    ['#0b090d', '#15121a', '#221e29', '#363040', '#4c4558'],   # plum-grey, less violet (judge r17: 'a Halloween decoration')   # near-black plum: the face is the light, not the coat
     'patch':   ['#140c0c', '#22161a', '#322228', '#423038', '#544048'],
     'thread':  ['#3a3430', '#544c44', '#6e665a', '#888070', '#a29a88'],
     'void':    ['#0e0810', '#140a16', '#1a0c1c', '#200e22', '#261028'],   # dark violet-plum, not black
