@@ -136,6 +136,17 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Label a lineup from the sheet's own row order (N, W, S, E per clip): a cell I called "idle" was the walk facing
   away, and two judges reported the idle as "showing the back of the head".
 
+## Animals (Nov 9: cows 4 -> 6, installed; dead deer 2 -> 5)
+- Volume by surface normal, not by height bands: a barrel lit from the top-left with a cool lilac (white coat) or
+  plum-brown (tan coat) shade reads as a body; bands parallel to the belly read as a table or a loaf.
+- Legs read as legs when the far pair sits 4-5 px off the near pair and one step darker, the front leg has a knee
+  proud at the front and the hind leg a hock proud at the back. 2 px offsets merge into one post.
+- A limb routine that widens only along x draws a lying (horizontal) leg 1 px thick: draw thickness across the
+  limb's direction.
+- A dead animal reads by its head: a big ear is the strongest deer cue; laid flat it disappears. Legs stretched out
+  horizontally (hind back, fore forward) say "lying on its side"; legs pointing down say "standing".
+- A round wound reads as a target or an eye; a ragged tear along the flank reads as a wound.
+
 ## Ground tiles (grass, 8 versions, stuck at 5)
 - Anything that appears once per tile marks the repeat: a blob, a dry mound, the biggest clump, a leaf pair. Every
   feature needs siblings of the same weight elsewhere in the tile, or must be too faint to find.

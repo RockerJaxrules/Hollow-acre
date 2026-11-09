@@ -49,6 +49,11 @@ NPC.update({
   'corwin': dict(skin='#e0c4a8', hair='#9a9aa0', hairStyle='shaggy', outfit='longcoat', extra='#3a4a5a', shirt='#c8b060', pants='#3a3a30', shoes='#2a2010', beard='stubble', hat='cap', hatColor='#c8a030'),
 })
 
+# builds: everyone their own body (judge, townsfolk 4/10). Elders stoop; men broad, stout or tall; Vera is a short 16.
+BUILDS = {'hale': 'stoop', 'agnes': 'stoop short', 'ezra': 'stoop', 'otto': 'stout stoop', 'lyle': 'tall stoop', 'nan': 'stoop short',
+          'ada': 'tall stoop', 'orla': 'stoop', 'corwin': 'stoop', 'hollis': 'broad', 'dunn': 'stout', 'gideon': 'broad tall',
+          'silas': 'tall', 'hob': 'broad stout', 'quinn': 'tall', 'moss': 'broad', 'abel': 'stout', 'maud': 'tall', 'vera': 'short'}
+for _k, _b in BUILDS.items(): NPC[_k]['build'] = _b
 # Caitlyn runs the store now (id 'mae' so saves and scripts keep working): blonde with pink lengths, square black glasses, black tee, jeans, white sneakers
 NPC['mae'] = dict(skin='#f3d2b8', hair='#e2c27e', hairTip='#e58fb0', tipDy=7, hairStyle='long', outfit='tank', shirt='#1e1c22', pants='#7a96bc', shoes='#e8e4dc',
                   glasses='square', accessory='necklace', acc='#3a3238', eye='#6a8aa4', allure=1)

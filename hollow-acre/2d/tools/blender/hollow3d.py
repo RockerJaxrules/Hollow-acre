@@ -36,7 +36,7 @@ PAL = {
     'flesh':   ['#8a3a10', '#c8661c', '#e8923a', '#f6bc62', '#fde09a'],
     'glow':    ['#8a3410', '#d06a1c', '#f0a040', '#f8d27a', '#fcecb0'],
 }
-MOTTLE = {'coat': .07}   # a whisper of variation in the cloth; shape comes from folds, not speckle (owner: no grit)
+MOTTLE = {'coat': 0.0}   # no mottle: the streaks read as fur (judge r15); the folds carry the cloth   # a whisper of variation in the cloth; shape comes from folds, not speckle (owner: no grit)
 
 
 def hexrgb(h): return tuple(int(h[i:i + 2], 16) / 255 for i in (1, 3, 5))
@@ -202,7 +202,7 @@ def coat(top, bot, r_top, r_bot, mats, sway=0.0, seed=1):
     bpy.ops.object.shade_smooth()
     parts = [o]
     bpy.ops.mesh.primitive_uv_sphere_add(segments=20, ring_count=10, radius=1, location=(0, 0, top - .04))
-    y = bpy.context.active_object; y.scale = (r_top * 1.0, r_top * .78, .12); y.data.materials.append(mats['coat']); bpy.ops.object.shade_smooth(); parts.append(y)
+    y = bpy.context.active_object; y.scale = (r_top * .85, r_top * .7, .1); y.data.materials.append(mats['coat']); bpy.ops.object.shade_smooth(); parts.append(y)
 
     def front(z, x=0.0):   # the point on the coat's front at height z (world), a hair proud of the cloth
         f = (top - z) / H; rr = r_top + (r_bot - r_top) * f
@@ -296,10 +296,10 @@ def pose(t, clip, side_view=False):
         _stand_legs(P, front=-.45 * k, back=.35 * k)
         for side in ('L', 'R'):
             x = -1 if side == 'L' else 1; reach = k * (1.0 if side == 'L' else .85)
-            el = (x * (.66 - .06 * reach), -.25 - .4 * reach + .25 * back, 2.48 + 1.0 * reach + .2 * back)
-            wr = (x * (.68 - .22 * reach), -.04 - 1.2 * reach + .4 * back, 1.54 + 1.85 * reach + .55 * back)
+            el = (x * (.66 + .12 * reach), -.25 - .4 * reach + .25 * back, 2.48 + 1.1 * reach + .2 * back)
+            wr = (x * (.68 + .5 * reach), -.04 - 1.1 * reach + .4 * back, 1.54 + 2.3 * reach + .55 * back)   # wide and up: reads from the front too
             P['arm' + side] = [SH(x * .16), el, wr]
-        P.update(pitch=24 * k - 8 * back, head_pitch=-14 * k, mouth=.6 * k, shift=.45 * k, head_tilt=-6 * k, spread=1 + .9 * k)
+        P.update(pitch=32 * k - 8 * back, head_pitch=-18 * k, mouth=.6 * k, shift=.45 * k, head_tilt=-6 * k, spread=1 + .9 * k)
     elif clip == 'hurt':   # it recoils from the light: arms over its face, leaning away, shaking
         tr = math.sin(t * 2 * math.pi * 2) * .05
         for side, dy in (('L', .05), ('R', .3)):
@@ -338,7 +338,7 @@ def build(clip, t, yaw):
             L_ = P['limb']; objs += [segment('upper', sh, el, .065 * L_, .042 * L_, mats['stick'], 8), ball('elbow', el, .048 * L_, mats['stick']), segment('fore', el, wr, .042 * L_, .022 * L_, mats['stick'], 8),
                      segment('rag', sh, sh + (el - sh) * .3, .12, .08, mats['coat'], 8)]
         objs += hand(wr, wr - el, mats, P['spread'])
-    top, bot, rt, rb = P['coat'] or (3.45, 1.35 + P.get('hem_bob', P['bob']), .24, .56)
+    top, bot, rt, rb = P['coat'] or (3.45, 1.35 + P.get('hem_bob', P['bob']), .2, .56)   # narrow top: sloping shoulders
     torso = coat(top, bot, rt, rb, mats, P['sway'])
     if P['hump']: torso.append(ball('hump', (0, .1, HIP + .35), .58, mats['coat'], (1.1, .9, 1.0)))
     neck_base = Vector((0, 0, top - .05 + P['bob'])); neck_top = neck_base + Vector((0, 0, P['neck'] + P.get('head_lag', 0)))   # the head settles a beat late
