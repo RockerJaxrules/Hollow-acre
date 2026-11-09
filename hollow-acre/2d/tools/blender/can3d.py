@@ -23,7 +23,7 @@ def reset():
     s.render.film_transparent = True; s.cycles.filter_width = .01; s.view_settings.view_transform = 'Standard'; s.cycles.use_denoising = False
     return s
 
-def mat(name, dark=False):
+def mat(name, dark=False, stops=(0, .3, .5, .7, .88), order=None):
     m = bpy.data.materials.new(name); m.use_nodes = True; nt = m.node_tree; nt.nodes.clear()
     out = nt.nodes.new('ShaderNodeOutputMaterial'); em = nt.nodes.new('ShaderNodeEmission')
     geo = nt.nodes.new('ShaderNodeNewGeometry'); dot = nt.nodes.new('ShaderNodeVectorMath'); dot.operation = 'DOT_PRODUCT'
@@ -32,11 +32,18 @@ def mat(name, dark=False):
     nt.links.new(dot.outputs['Value'], ma.inputs[0])
     if dark: ma.inputs[1].default_value = .08
     cr = nt.nodes.new('ShaderNodeValToRGB'); r = cr.color_ramp; r.interpolation = 'CONSTANT'
-    stops = [0, .3, .5, .7, .88]
-    while len(r.elements) < 5: r.elements.new(.5)
-    for el, p, k in zip(r.elements, stops, ORDER): el.position = p; el.color = lin(TIN[k])
+    order = order or ORDER
+    while len(r.elements) < len(order): r.elements.new(.5)
+    for el, p, k in zip(r.elements, stops, order): el.position = p; el.color = lin(TIN[k])
     nt.links.new(ma.outputs[0], cr.inputs['Fac']); nt.links.new(cr.outputs['Color'], em.inputs['Color']); nt.links.new(em.outputs[0], out.inputs['Surface'])
     return m
+
+def depth_mat():
+    m = bpy.data.materials.new('depth'); m.use_nodes = True; nt = m.node_tree; nt.nodes.clear()
+    out = nt.nodes.new('ShaderNodeOutputMaterial'); em = nt.nodes.new('ShaderNodeEmission'); cd = nt.nodes.new('ShaderNodeCameraData')
+    ma = nt.nodes.new('ShaderNodeMath'); ma.operation = 'MULTIPLY_ADD'; ma.inputs[1].default_value = -.05; ma.inputs[2].default_value = 1.6   # depth 12..32 -> 1..0
+    nt.links.new(cd.outputs['View Z Depth'], ma.inputs[0]); nt.links.new(ma.outputs[0], em.inputs['Strength'])
+    em.inputs['Color'].default_value = (1, 1, 1, 1); nt.links.new(em.outputs[0], out.inputs['Surface']); return m
 
 def seg(a, b, r0, r1, m, parent, verts=12):
     a, b = Vector(a), Vector(b); d = b - a
@@ -45,7 +52,8 @@ def seg(a, b, r0, r1, m, parent, verts=12):
     bpy.ops.object.shade_smooth(); o.parent = parent; return o
 
 def build():
-    M, D = mat('tin'), mat('inside', True)
+    M, D = mat('tin', stops=(0, .42, .7, .93), order='bmle'), mat('inside', True)
+    HM = mat('handle', stops=(0, .5), order='sb')   # the handle a step darker than the lid it crosses
     root = bpy.data.objects.new('can', None); bpy.context.scene.collection.objects.link(root)
     bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=.92, depth=1.4, location=(0, 0, .7)); b = bpy.context.active_object
     b.data.materials.append(M); bpy.ops.object.shade_smooth(); b.parent = root
@@ -60,12 +68,12 @@ def build():
     rose = tip + dirv * .3
     # the handle: an arch over the top from the back of the rim toward the front
     pts = [(-.95 + 1.55 * t, 0, 1.4 + 1.0 * math.sin(math.pi * t)) for t in [i / 12 for i in range(13)]]
-    for p, q in zip(pts, pts[1:]): seg(p, q, .16, .16, M, root, 10)
+    for p, q in zip(pts, pts[1:]): seg(p, q, .17, .17, HM, root, 10)
     grip = Vector((-.17, 0, 1.4 + 1.0))
     return root, rose, grip
 
 def camera():
-    cam = bpy.data.cameras.new('cam'); cam.type = 'ORTHO'; cam.ortho_scale = 5.4
+    cam = bpy.data.cameras.new('cam'); cam.type = 'ORTHO'; cam.ortho_scale = 5.5
     o = bpy.data.objects.new('cam', cam); bpy.context.scene.collection.objects.link(o); bpy.context.scene.camera = o
     el = math.radians(40)   # the game's 3/4 view: looking down 40 degrees, from the front (-y)
     o.location = (0, -20 * math.cos(el), 20 * math.sin(el) + .7); o.rotation_euler = (math.radians(90) - el, 0, 0)
@@ -73,8 +81,8 @@ def camera():
 
 VIEWS = {   # name: (yaw of the spout, tilt down)
     'can_e': (0, 0), 'can_et': (0, 40),
-    'can_f': (-112, 0), 'can_ft': (-112, 30),    # spout toward us and a little to the left (toward the square in front of him)
-    'can_b': (112, 0), 'can_bt': (112, 30),      # spout away and a little to the left
+    'can_f': (-135, 0), 'can_ft': (-135, 32),    # spout toward us and to the left (toward the square in front of him): the handle and spout both read
+    'can_b': (135, 0), 'can_bt': (135, 32),      # spout away and to the left
 }
 
 def render(name, yaw, tilt, root, rose, grip, camo, path):
@@ -82,13 +90,28 @@ def render(name, yaw, tilt, root, rose, grip, camo, path):
     root.matrix_world = Matrix.Rotation(math.radians(yaw), 4, 'Z') @ Matrix.Rotation(math.radians(tilt), 4, 'Y')
     bpy.context.view_layer.update()
     sc = bpy.context.scene; sc.render.filepath = path; bpy.ops.render.render(write_still=True)
+    # the same view in depth, for the lines where one part passes in front of another
+    keep = {o: list(o.data.materials) for o in bpy.data.objects if o.type == 'MESH'}; dm = depth_mat()
+    for o in keep: o.data.materials.clear(); o.data.materials.append(dm)
+    sc.view_settings.view_transform = 'Raw' if 'Raw' in [v.identifier for v in type(sc.view_settings).bl_rna.properties['view_transform'].enum_items] else 'Standard'
+    sc.render.image_settings.color_depth = '16'; sc.render.filepath = path.replace('.png', '_z.png'); bpy.ops.render.render(write_still=True)
+    sc.render.image_settings.color_depth = '8'; sc.view_settings.view_transform = 'Standard'
+    for o, ms in keep.items():
+        o.data.materials.clear()
+        for mm in ms: o.data.materials.append(mm)
     def px(p):
         v = world_to_camera_view(sc, camo, root.matrix_world @ p); return (v.x * FW, (1 - v.y) * FH)
     return px(rose), px(grip)
 
 def to_art(path, rose, grip):
     from PIL import Image
+    import numpy as np
     im = Image.open(path).convert('RGBA'); W, H = im.size; k = W // FW
+    zi = np.asarray(Image.open(path.replace('.png', '_z.png')).convert('I;16') if False else Image.open(path.replace('.png', '_z.png'))).astype(float)
+    if zi.ndim == 3: zi = zi[:, :, 0]
+    zi = zi / zi.max() if zi.max() > 0 else zi
+    # per art pixel: its mean depth (nearer = brighter)
+    zs = zi[:FH * k, :FW * k].reshape(FH, k, FW, k).mean(axis=(1, 3))
     # downsample 4x by majority of opaque palette colours
     cols = {v: c for c, v in TIN.items()}
     def near(rgb):
@@ -102,6 +125,15 @@ def to_art(path, rose, grip):
                     p = im.getpixel((x * k + i, y * k + j))
                     if p[3] > 128: op += 1; c = near(p[:3]); cnt[c] = cnt.get(c, 0) + 1
             if op * 2 >= k * k: g[y][x] = max(cnt, key=cnt.get)
+    # inner lines: where a part sits clearly in front of the one beside it, the farther pixel becomes a dark line
+    o = [r[:] for r in g]
+    for y in range(FH):
+        for x in range(FW):
+            if g[y][x] == '.': continue
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                yy, xx = y + dy, x + dx
+                if 0 <= yy < FH and 0 <= xx < FW and g[yy][xx] != '.' and zs[yy, xx] - zs[y, x] > .03: o[y][x] = 'K'; break
+    g = o
     # outline: a dark rim around the silhouette
     o = [r[:] for r in g]
     for y in range(FH):
