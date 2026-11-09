@@ -9,7 +9,7 @@ orders. Latest round first.
 
 | Family | Latest score | In the game? | First fix the judge named |
 |---|---|---|---|
-| The Hollow (Blender) | r19 5 vs the r18 install 6 (lopsided scream read as a wave); r18 6 vs 5; r17 6 vs 5; r14 6 vs drawn 3 | yes: r18 (plum-grey coat); earlier versions in spr/backup_v2/hollow | actions are the idle body with the arms changed: head thrown back, torso arched, coat reacting; side lunge with claws thrust ahead of the head (r19's side lunge was preferred); cloth folds as shapes |
+| The Hollow (Blender) | r21 side lunge kept in frame 6 vs the installed 4 (hands ran off the cell); r19 5 vs the r18 install 6 (lopsided scream read as a wave); r18 6 vs 5; r17 6 vs 5; r14 6 vs drawn 3 | yes: r21 (r18 body, side lunge inside its cell); earlier versions in spr/backup_v2/hollow | actions are the idle body with the arms changed: head thrown back, torso arched, coat reacting; side-lunge arms as tapering bony limbs with elbows and ragged cuffs, the far arm 4-5 px off and one step darker; head turned ~30° to the viewer in side views so the face reads as a lantern; pumpkin tips into the reach; fingertips 4 px inside the cell; cloth folds as shapes |
 | Player walk/run/idle | new 5 vs old 4 | yes (all 230 sheets) | texture: plaid and hair read as printed-on; hair clumps with shine bands |
 | Crops (turnip, pumpkin, corn) | old 4; new not judged yet | yes (old was outside art) | judge the new set |
 | Grass | best v6 5 (v4 3-5, v5 4, v8 4; old 3) | no (stalled at 5, below 6) | no one-off features at all (every blob, mound or dry tuft marks the 192 px repeat); open ground needs a quiet drift of 3-5 px blades one step off the base; autumn as dry blades inside clumps |

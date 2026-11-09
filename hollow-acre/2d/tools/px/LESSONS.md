@@ -128,11 +128,22 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [hollow r3] 1-2 px buttons read as specks; tidy belts and buttons read as a robe. Tatter with shapes: torn hem strips
   of uneven length, rags off the cuffs, dark claw slits. Sloping, narrow shoulders for a starved body.
 - [hollow r3] A cool rim on the lit (top-left) edge keeps a dark body visible against night grass.
+- [hollow r21] Every finger at least 4 px inside its cell: a reach that touched the edge lost 6 to 4 against the same
+  body kept inside the frame. Slide the figure back along its facing ('shift') rather than shortening the reach.
+- [hollow r22] Side-on, a far limb that copies the near one reads as one tube drawn twice: hold it back, raise it 10+ px
+  and shade it one step darker. Sleeves that ride up the reaching arm (taper to a knobbed elbow, flare to a torn cuff,
+  a bare bony forearm) read as limbs; constant-width sleeves read as pipes with stripes.
+- [hollow r22] A carved mouth must stay lit in side views: a dark maw seen edge-on reads as a rotten spot or a gag.
+- [hollow r22 5/10] A lunge that moves only the arms is a reach. Drive the hips forward over a bent front knee, trail
+  the back leg, and let the head arrive a beat late; tilting the torso about the hips alone swings the hem backward
+  and the body reads as leaning away. Bone forearms, not wood: brown sticks vanish into the grass at 1x.
 
 ## Judging (Nov 9)
 - Blind judges vary by about a point between rounds and lean toward whichever image is in slot b: in tree round 4 the
   same pair scored new 6 / old 5 with new as b and old 6 / new 5 with old as b. For a close call, judge both orders
   and treat a split as a tie. A real win holds in slot a too (the Hollow: 6 vs 3 with the new one in slot a).
+- Build a judge sheet by splicing the changed rows into the INSTALLED sheet, never from an old render folder: a folder
+  that still held a rejected scream and front lunge put them in front of the judge as if they were part of the change.
 - Label a lineup from the sheet's own row order (N, W, S, E per clip): a cell I called "idle" was the walk facing
   away, and two judges reported the idle as "showing the back of the head".
 

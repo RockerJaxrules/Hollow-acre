@@ -36,6 +36,7 @@ PAL = {
     'flesh':   ['#8a3a10', '#c8661c', '#e8923a', '#f6bc62', '#fde09a'],
     'glow':    ['#8a3410', '#d06a1c', '#f0a040', '#f8d27a', '#fcecb0'],
 }
+for _k in ('coat', 'bone', 'stick'): PAL[_k + '_far'] = [PAL[_k][0]] + PAL[_k][:-1]   # the far limb: one step darker (judge r21)
 MOTTLE = {'coat': 0.0}   # no mottle: the streaks read as fur (judge r15); the folds carry the cloth   # a whisper of variation in the cloth; shape comes from folds, not speckle (owner: no grit)
 
 
@@ -84,7 +85,7 @@ def toon_material(name, ramp):
         nt.links.new(geo.outputs['Normal'], dot.inputs[0])
         ao = nt.nodes.new('ShaderNodeAmbientOcclusion'); ao.inputs['Distance'].default_value = .3; ao.samples = 8
         a = _math(nt, 'MULTIPLY_ADD', dot.outputs['Value'], .5, .5)
-        b = _math(nt, 'MULTIPLY_ADD', ao.outputs['AO'], .0 if name == 'coat' else .4, 1.0 if name == 'coat' else .6)   # no AO on the coat: 8-sample AO speckles it; the folds shade it
+        b = _math(nt, 'MULTIPLY_ADD', ao.outputs['AO'], .0 if name.startswith('coat') else .4, 1.0 if name.startswith('coat') else .6)   # no AO on the coat: 8-sample AO speckles it; the folds shade it
         v = _math(nt, 'MULTIPLY', a, b)
         if name in MOTTLE:
             tc = nt.nodes.new('ShaderNodeTexCoord'); nz = nt.nodes.new('ShaderNodeTexNoise')
@@ -243,7 +244,7 @@ def _stand_legs(P, front=0.0, back=0.0):
         P['leg' + side] = [(x, 0, HIP), (x, dy * .5 - .03, HIP * .52), (x, dy, .02)]
 
 
-def pose(t, clip, side_view=False):
+def pose(t, clip, side_view=False, far=None):
     """the skeleton for the clip at phase t (0..1). The figure faces -y (toward the camera).
     Arms are [shoulder (in the torso's own space), elbow, wrist (in the world)]; the torso pitches about the hips
     ('pitch', + leans forward) and drops ('drop'); 'shift' slides the whole figure back so a reach stays in the frame."""
@@ -297,10 +298,26 @@ def pose(t, clip, side_view=False):
         _stand_legs(P, front=-.45 * k, back=.35 * k)
         for side in ('L', 'R'):
             x = -1 if side == 'L' else 1; reach = k * (1.0 if side == 'L' else .85) * (.86 if side_view else 1.0)
+            if side_view: reach = k * .66 * (.78 if side == far else 1.0)   # side-on the far arm is held back: two arms, not one doubled (judge r21); the body carries the rest of the reach
             el = (x * (.66 + .1 * reach), -.25 - .7 * reach + .25 * back, 2.48 + .55 * reach + .2 * back)
             wr = (x * (.62 + .18 * reach), -.04 - 1.7 * reach + .4 * back, 1.54 + .9 * reach + .55 * back)   # forward and a little up: at the player, not out to the sides
+            if side_view and side == far: el, wr = (el[0], el[1], el[2] + .3), (wr[0], wr[1], wr[2] + .62)   # and higher, reaching for the head: clear of the near arm
+            if side_view:   # the whole body drives forward: the arms ride with the hips
+                hf_, dp_ = -.34 * k + .08 * back, .1 * k
+                el, wr = (el[0], el[1] + hf_, el[2] - dp_), (wr[0], wr[1] + hf_, wr[2] - dp_)
             P['arm' + side] = [SH(x * .16), el, wr]
-        P.update(pitch=(26 if side_view else 34) * k - 8 * back, head_pitch=-18 * k, mouth=.6 * k, shift=(.6 if side_view else .45) * k, head_tilt=-6 * k, spread=1 + .9 * k, claw=1 + .45 * k)   # side-on: back far enough that the reach stays in the frame
+        P.update(pitch=(22 if side_view else 34) * k - 8 * back, head_pitch=-18 * k, mouth=.6 * k, shift=(.62 if side_view else .45) * k, head_tilt=-6 * k, spread=1 + .9 * k, claw=1 + .45 * k)   # side-on: back far enough that the reach stays in the frame
+        if side_view:   # the pumpkin tips into the reach a beat late; the mouth stays lit (a dark maw read as a rotten spot);
+                        # the sleeves ride up the reaching arms, baring the bony forearms; the far arm one step darker
+            kh = [.3, .3, .8, .85][int(round(t * 4)) % 4]
+            P.update(head_pitch=18 * kh - 4, mouth=.25 * k, look=42, ride=.2 + .3 * k, far_dark=far)
+            # a lunge, not a reach: the hips drive forward over a bent front knee, the back leg trails (judge r22)
+            hf, dp = -.34 * k + .08 * back, .1 * k
+            P.update(fwd=hf, drop=dp)
+            for side, lead in (('L', True), ('R', False)):
+                x = -.16 if side == 'L' else .16; hip = (x, hf, HIP - dp)
+                if lead: P['leg' + side] = [hip, (x, hf - .4 * k - .02, HIP * .52 + .04 * k), (x, hf - .3 * k, .02)]
+                else: P['leg' + side] = [hip, (x, hf + .38 * k + .02, HIP * .52 - .02 * k), (x, hf + .78 * k + .02, .02)]
     elif clip == 'hurt':   # it recoils from the light: arms over its face, leaning away, shaking
         tr = math.sin(t * 2 * math.pi * 2) * .05
         for side, dy in (('L', .05), ('R', .3)):
@@ -316,9 +333,9 @@ def pose(t, clip, side_view=False):
 def build(clip, t, yaw):
     s = reset()
     mats = {k: toon_material(k, v) for k, v in PAL.items()}
-    P = pose(t, clip, side_view=int(yaw) % 180 == 90); objs = []
+    P = pose(t, clip, side_view=int(yaw) % 180 == 90, far={90: 'R', 270: 'L'}.get(int(yaw) % 360)); objs = []
     hipv = Vector((0, 0, HIP))
-    T = Matrix.Translation((0, 0, -P['drop'])) @ Matrix.Translation(hipv) @ Matrix.Rotation(math.radians(P['pitch']), 4, 'X') @ Matrix.Rotation(math.radians(P.get('roll', 0)), 4, 'Y') @ Matrix.Translation(-hipv)
+    T = Matrix.Translation((0, P.get('fwd', 0), -P['drop'])) @ Matrix.Translation(hipv) @ Matrix.Rotation(math.radians(P['pitch']), 4, 'X') @ Matrix.Rotation(math.radians(P.get('roll', 0)), 4, 'Y') @ Matrix.Translation(-hipv)
     for side in ('L', 'R'):
         J = P['leg' + side]; ft = J[-1]
         for k in range(len(J) - 1):
@@ -328,7 +345,17 @@ def build(clip, t, yaw):
         heel = Vector(ft) + Vector((0, .06, .035)); toe = Vector(ft) + Vector((0, -.24, .015))   # a flat bony foot
         objs.append(segment('foot', heel, toe, .055, .03, mats['stick'], 6))
         sh, el, wr = P['arm' + side]; sh, el, wr = T @ Vector(sh), Vector(el), Vector(wr)
-        if P['sleeves']:   # the sleeve runs all the way down; only the hand shows
+        dark = P.get('far_dark') == side
+        M = dict(mats, coat=mats['coat_far'], bone=mats['bone_far'], stick=mats['stick_far']) if dark else mats
+        if P['sleeves'] and P.get('ride', 0) > .05:   # the sleeve rides up the reaching arm: tapering to a knobbed elbow, flaring to a torn cuff, the bare forearm a bony stick
+            dn = (wr - el).normalized(); cuff = el + (wr - el) * (1 - P['ride'] - .2)
+            objs += [segment('sleeve', sh, el, .1, .072, M['coat'], 10), ball('elbow', el + Vector((0, .02, -.02)), .082, M['coat']),
+                     segment('sleeve', el, cuff, .07, .118, M['coat'], 10), segment('fore', cuff - dn * .12, wr, .046, .028, M['bone'], 8),
+                     ball('wristknob', wr - dn * .04, .036, M['bone'])]   # bone, not wood: the forearm reads against the grass (judge r22)
+            sd = dn.cross(Vector((0, 0, 1))); sd = sd.normalized() if sd.length > 1e-3 else Vector((1, 0, 0))
+            for o_, L in ((-.08, .26), (.0, .17), (.07, .31)):   # torn strips hanging off the cuff, down (they hang, the arm reaches)
+                a_ = cuff + sd * o_ * .6 + Vector((0, 0, -.06)); objs.append(segment('rag', a_, a_ + (dn * .25 + Vector((0, 0, -1))).normalized() * L, .04, .008, M['coat'], 4))
+        elif P['sleeves']:   # the sleeve runs all the way down; only the hand shows
             cuff = wr - (wr - el).normalized() * .08
             objs += [segment('sleeve', sh, el, .105, .095, mats['coat'], 10), ball('elbow', el, .088, mats['coat']),
                      segment('sleeve', el, cuff, .09, .115, mats['coat'], 10), segment('wrist', cuff, wr, .04, .04, mats['stick'], 6)]
@@ -338,7 +365,7 @@ def build(clip, t, yaw):
         else:              # torn away: bare stick arms
             L_ = P['limb']; objs += [segment('upper', sh, el, .065 * L_, .042 * L_, mats['stick'], 8), ball('elbow', el, .048 * L_, mats['stick']), segment('fore', el, wr, .042 * L_, .022 * L_, mats['stick'], 8),
                      segment('rag', sh, sh + (el - sh) * .3, .12, .08, mats['coat'], 8)]
-        objs += hand(wr, wr - el, mats, P['spread'], P.get('claw', 1.0))
+        objs += hand(wr, wr - el, M, P['spread'], P.get('claw', 1.0))
     top, bot, rt, rb = P['coat'] or (3.45, 1.35 + P.get('hem_bob', P['bob']), .2, .56)   # narrow top: sloping shoulders
     torso = coat(top, bot, rt, rb, mats, P['sway'])
     if P['hump']: torso.append(ball('hump', (0, .1, HIP + .35), .58, mats['coat'], (1.1, .9, 1.0)))
@@ -346,7 +373,7 @@ def build(clip, t, yaw):
     torso.append(segment('neck', neck_base, neck_top, .075, .055, mats['stick'], 8))
     r = .5; head = pumpkin(r, mats, P['mouth'])
     piv = bpy.data.objects.new('headpivot', None); bpy.context.scene.collection.objects.link(piv); piv.location = neck_top
-    look = {90: -32, 270: 32}.get(int(yaw) % 360, 0) if clip != 'crawl' else {90: -20, 270: 20}.get(int(yaw) % 360, 0)
+    look = {90: -P.get('look', 32), 270: P.get('look', 32)}.get(int(yaw) % 360, 0) if clip != 'crawl' else {90: -20, 270: 20}.get(int(yaw) % 360, 0)
     piv.rotation_euler = (math.radians(P['head_pitch']), math.radians(P['head_tilt']), math.radians(look))
     hc = bpy.data.objects.new('headctr', None); bpy.context.scene.collection.objects.link(hc); hc.parent = piv; hc.location = (0, 0, r * .85)
     hc.rotation_euler = (math.radians(P['face_pitch']), 0, 0)
