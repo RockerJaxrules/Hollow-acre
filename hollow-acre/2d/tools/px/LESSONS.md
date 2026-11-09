@@ -4,6 +4,9 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 
 ## From the owner (strongest)
 
+- "it needs to be almost on par with Stardew Valley when it comes to animations and textures and models": the QUALITY
+  bar is Stardew Valley's finish (clean clusters, 3-4 tones a material, deliberate highlights and inner lines, keyed
+  animation with bob, anticipation and follow-through). The LOOK stays this game's: darker, moodier, not candy.
 - "too gritty" / "over gritty": no speckle, no single-pixel noise as texture, no checkerboard dither. Wear is drawn as
   shapes (a patch, a streak, a moss line), never as sprinkled pixels.
 - "too close to Stardew" / "make it darker, more detail, more like before": moodier values, more hand detail, not candy.

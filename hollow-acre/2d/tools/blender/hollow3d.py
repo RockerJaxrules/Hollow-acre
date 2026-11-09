@@ -23,7 +23,7 @@ LIGHT = Vector((-.75, -.35, .55)).normalized()   # from the upper left and a lit
 
 # ---------------------------------------------------------------- palette (dark -> light; hue-shifted, our own)
 PAL = {
-    'pumpkin': ['#1a0a0c', '#341410', '#542414', '#70361a', '#8a4624'],   # a rotting pumpkin: brown and plum, never candy; only the glow is bright
+    'pumpkin': ['#1a0a0c', '#341410', '#542414', '#70361a', '#8a4624', '#a86034'],   # last: a small specular   # a rotting pumpkin: brown and plum, never candy; only the glow is bright
     'stem':    ['#141a10', '#24301a', '#3a4a24', '#526a30', '#6e8a3c'],
     'coat':    ['#09070b', '#130f18', '#1e1826', '#352b42', '#4f4266'],   # near-black plum: the face is the light, not the coat
     'patch':   ['#140c0c', '#22161a', '#322228', '#423038', '#544048'],
@@ -36,7 +36,7 @@ PAL = {
     'flesh':   ['#8a3a10', '#c8661c', '#e8923a', '#f6bc62', '#fde09a'],
     'glow':    ['#8a3410', '#d06a1c', '#f0a040', '#f8d27a', '#fcecb0'],
 }
-MOTTLE = {'coat': .16, 'patch': .12, 'pumpkin': .06, 'belt': .08}   # cloth and skin are never one flat colour
+MOTTLE = {'coat': .07}   # a whisper of variation in the cloth; shape comes from folds, not speckle (owner: no grit)
 
 
 def hexrgb(h): return tuple(int(h[i:i + 2], 16) / 255 for i in (1, 3, 5))
@@ -79,7 +79,7 @@ def toon_material(name, ramp):
         sep = nt.nodes.new('ShaderNodeSeparateXYZ'); nt.links.new(geo.outputs['Normal'], sep.inputs[0])
         v = _math(nt, 'MULTIPLY_ADD', sep.outputs['Z'], -.35, .62)
     else:
-        cr = _ramp(nt, ramp, [0, .26, .46, .64, .82])
+        cr = _ramp(nt, ramp, [0, .26, .46, .64, .82] if len(ramp) == 5 else [0, .24, .42, .6, .78, .94])
         dot = nt.nodes.new('ShaderNodeVectorMath'); dot.operation = 'DOT_PRODUCT'; dot.inputs[1].default_value = LIGHT
         nt.links.new(geo.outputs['Normal'], dot.inputs[0])
         ao = nt.nodes.new('ShaderNodeAmbientOcclusion'); ao.inputs['Distance'].default_value = .3; ao.samples = 8
@@ -246,11 +246,14 @@ def pose(t, clip, side_view=False):
     s = math.sin(t * 2 * math.pi); c = math.cos(t * 2 * math.pi)
     SH = lambda x, b=0: (x * 1.8, 0, 3.16 + b)
     if clip == 'walk':
-        lift = abs(c) * .06; _walk_legs(t, P, lift)
+        t = t + .035 * math.sin(4 * math.pi * t)   # a hitch: it lingers on each contact
+        s = math.sin(t * 2 * math.pi); c = math.cos(t * 2 * math.pi)
+        lift = abs(c) * .13 - .03; _walk_legs(t, P, lift)
+        lag = lambda ph: math.sin(t * 2 * math.pi - ph)
         for side, ph in (('L', 0), ('R', math.pi)):
-            x = -.16 if side == 'L' else .16; asw = -math.sin(t * 2 * math.pi + ph) * .5
-            P['arm' + side] = [SH(x, lift), (x * 3.5, asw * .4 - .04, 2.48 + lift), (x * 4.3, asw, 1.56 + lift)]
-        P.update(sway=s * .14, head_tilt=s * 5 - 3, bob=lift, pitch=5, head_pitch=6)
+            x = -.16 if side == 'L' else .16; asw = -math.sin(t * 2 * math.pi + ph) * .5; wsw = -math.sin(t * 2 * math.pi + ph - .7) * .58
+            P['arm' + side] = [SH(x, lift), (x * 3.5, asw * .4 - .04, 2.48 + lift), (x * 4.3, wsw, 1.56 + lift + abs(wsw) * .12)]
+        P.update(sway=lag(.9) * .16, head_tilt=lag(.6) * 6 - 3, bob=lift, pitch=5 + c * c * 2, head_pitch=6 + lag(1.0) * 4)
     elif clip == 'idle':
         br = s * .03; _stand_legs(P)
         for side in ('L', 'R'):
@@ -265,7 +268,7 @@ def pose(t, clip, side_view=False):
         for side, ph in (('L', 0), ('R', math.pi)):
             x = -1 if side == 'L' else 1
             sw = math.sin(t * 2 * math.pi + ph); up = max(0, math.cos(t * 2 * math.pi + ph))
-            P['leg' + side] = [(x * .16, .15, HIP - 1.35), (x * .42 * sp, .45, 2.15 + up * .1), (x * .5 * sp, (.85 if side_view else .95) - sw * .12, .02 + up * .14)]
+            P['leg' + side] = [(x * .16, .15, HIP - 1.35), (x * (.42 if side_view else .62) * sp, .45, 2.05 + up * .1), (x * .5 * sp, (.85 if side_view else .95) - sw * .12, .02 + up * .14)]
             swa, upa = -sw, max(0, -math.cos(t * 2 * math.pi + ph))   # each arm moves with the opposite leg
             if side_view:   # from the side the front legs arch up over the head and come down in front of it
                 P['arm' + side] = [(x * .3, 0, HIP + .75), (x * .4, -1.35 + swa * .05, 2.2 + upa * .1), (x * .4, -1.85 - swa * .1, .4 + upa * .12)]
@@ -295,8 +298,8 @@ def pose(t, clip, side_view=False):
             P['leg' + side] = [(x, 0, HIP - .25), (x * 1.3, -.32, 1.05), (x, dy, .02)]
         for side in ('L', 'R'):
             x = -1 if side == 'L' else 1
-            P['arm' + side] = [SH(x * .16), (x * .64 + tr, .05, 3.25), (-x * .1 + tr, -.35, 4.1 + x * .08)]
-        P.update(pitch=-18, drop=.25, head_pitch=12, head_tilt=22 + tr * 80, mouth=.5, jit=tr, shift=-.25)
+            P['arm' + side] = [SH(x * .16), (x * .78 + tr, -.1, 3.45), (x * .62 + tr, -.45, 4.35 + x * .06)]
+        P.update(pitch=-18, drop=.25, head_pitch=12, head_tilt=22 + tr * 80, mouth=.5, jit=tr, shift=-.25, spread=1.7)
     return P
 
 
@@ -311,7 +314,7 @@ def build(clip, t, yaw):
         for k in range(len(J) - 1):
             objs.append(segment('leg', J[k], J[k + 1], (.06 - .01 * k) * P['limb'], (.05 - .01 * k) * P['limb'], mats['stick'], 8))
             if k: objs.append(ball('knee', J[k], .07 - .005 * k, mats['stick']))
-        objs.append(ball('foot', (ft[0], ft[1] - .06, ft[2] + .02), .07, mats['stick'], (1, 1.8, .6)))
+        objs.append(ball('foot', (ft[0], ft[1] - .08, ft[2] + .03), .09, mats['stick'], (1, 1.9, .65)))
         sh, el, wr = P['arm' + side]; sh, el, wr = T @ Vector(sh), Vector(el), Vector(wr)
         if P['sleeves']:   # the sleeve runs all the way down; only the hand shows
             cuff = wr - (wr - el).normalized() * .08

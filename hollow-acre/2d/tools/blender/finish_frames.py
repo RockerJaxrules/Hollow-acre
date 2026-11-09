@@ -13,12 +13,30 @@ def finish(im):
         for x in range(W):
             if px[x, y][3] and not any(0 <= x + dx < W and 0 <= y + dy < H and px[x + dx, y + dy][3] for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
                 px[x, y] = (0, 0, 0, 0)
+    for _ in range(2):   # clean clusters: a pixel no neighbour shares its colour with takes its neighbours' commonest colour
+        fix = []
+        for y in range(1, H - 1):
+            for x in range(1, W - 1):
+                c0 = px[x, y]
+                if not c0[3] or (c0[0] > 200 and c0[1] > 150): continue   # never the glow
+                nb = [px[x + dx, y + dy] for dx in (-1, 0, 1) for dy in (-1, 0, 1) if dx or dy]
+                if any(n == c0 for n in nb): continue
+                op = [n for n in nb if n[3]]
+                if len(op) < 6: continue   # an edge or a thin line: leave it
+                best = max(set(op), key=op.count)
+                if op.count(best) >= 3: fix.append((x, y, best))
+        for x, y, cc in fix: px[x, y] = cc
     rim = []   # a cool rim where the light (top left) catches the silhouette, so the body holds against night grass
     for y in range(H):
         for x in range(W):
             r, g, b, a = px[x, y]
             if not a or (r > 200 and g > 150): continue   # not the glow
-            if (x == 0 or not px[x - 1, y][3]) or (y == 0 or not px[x, y - 1][3]):
+            nx = ny = 0   # which way the silhouette faces here: toward its empty neighbours
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    if (dx or dy) and not (0 <= x + dx < W and 0 <= y + dy < H and px[x + dx, y + dy][3]): nx += dx; ny += dy
+            n = (nx * nx + ny * ny) ** .5
+            if n and (-nx - ny) / (1.4142 * n) >= .5:   # only edges that face the light (up and to the left)
                 rim.append((x, y, (int(r * .35 + 140 * .65), int(g * .35 + 140 * .65), int(b * .35 + 200 * .65), 255)))   # cool blue-violet
     for x, y, c in rim: px[x, y] = c
     add = []
