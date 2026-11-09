@@ -452,13 +452,16 @@ function walkPose(f,dir,run){const pose={};if(f===0)return pose;const side=dir==
   const ph=(f-1)/8*Math.PI*2,c=Math.cos(ph),s=Math.sin(ph);const S=run?(KID?4:5):(KID?2:3);
   // the body's height over the eight frames: contact, down, pass (highest), up, contact... (judge r3: a smooth rise and fall, not a jump on the passing frames)
   const WBOB=[0,0,1,0,-1,0,1,0,-1];   // judge r3: never more than 1 px between neighbouring frames (a 3 px step read as a hop)
-  const bobAt=g=>{if(g<1)return 0;if(!run)return WBOB[g];const cc=Math.cos((g-1)/8*Math.PI*2);return Math.abs(cc)<.5?-2:(Math.abs(cc)>.92?1:0);};
+  // the run bounces the other way (judge r8): low on the passing frame with the support knee bent, high on the frame
+  // after it with both feet off the ground; never more than 1 px between neighbours
+  const RBOB=[0,1,2,-1,0,1,2,-1,0],AIR=[0,0,0,0,1,0,0,0,1],KNEE=[0,0,0,1,0,0,0,1,0];
+  const bobAt=g=>{if(g<1)return 0;return run?RBOB[g]:WBOB[g];};
   pose.bob=bobAt(f);pose.hairLag=0;   // the hair moves with the head (owner: a frame's lag read as hair bobbing loose, not attached)
-  if(run){pose.lean=4;pose.nod=side?0:1;}   /* judge r7: hold the head clearly ahead of the hips */
+  if(run){pose.lean=6;pose.nod=side?0:1;if(KNEE[f])pose.crouch=3;}   /* judge r7-r8: the head clearly ahead of the hips (the legs take half the lean); the passing frame sinks onto a bent knee */
   if(side){// leg A is planted while it travels front to back (s>0); meanwhile leg B swings through, lifted, knee bent
     const a=Math.round(c*S),b=-a;const L=run?4:4;const liftA=s<0?Math.round(-s*L):0,liftB=s>0?Math.round(s*L):0;
     const tuck=(d,l)=>run&&l>2?d-4:d-Math.round(l*.75);   // the swinging foot trails 3-4 px behind the planted shin, lifted clear (judge r3: it merged into the planted boot)
-    pose.legs=[[tuck(a,liftA),liftA],[tuck(b,liftB),liftB]];if(run&&Math.abs(c)<.5)pose.crouch=1;
+    const air=run&&AIR[f]?2:0;pose.legs=[[tuck(a,liftA+air),liftA+air],[tuck(b,liftB+air),liftB+air]];   /* the airborne frame: both feet off the ground */
     // each arm swings against the leg on its own side (the far arm with the near leg), as a pendulum: the hand rises as it swings out
     const base=run?6:9,A=run?1.5:2.67;const hand=(k,far)=>{let dx=Math.round(k*A);const fwd=dx>0;
       if(run){if(dx===0)return [fl*(far?0:2),base-2];   /* passing: the arm stays bent, fist at the hip (judge r7: straight arms there read as standing) */
@@ -469,7 +472,7 @@ function walkPose(f,dir,run){const pose={};if(f===0)return pose;const side=dir==
     pose.hands=[hand(-a,true),hand(a,false)];}   // far arm against the far leg (a), near arm against the near leg (b=-a)
   else{const sg=back?-1:1;const st=run?4:2;const dL=Math.round(c*st),lift=run?3:2;
     // the planted foot drifts from forward (lower) to back; the swinging foot is lifted, highest on the passing frame
-    const liftL=s<0?Math.round(-s*lift):0,liftR=s>0?Math.round(s*lift):0;pose.legs=[sg*dL-liftL,-sg*dL-liftR];pose.sway=0;
+    const liftL=s<0?Math.round(-s*lift):0,liftR=s>0?Math.round(s*lift):0,kn=run&&KNEE[f]?2:0;pose.legs=[sg*dL-liftL-(s<0?kn:0),-sg*dL-liftR-(s>0?kn:0)];pose.sway=0;   /* run: the passing knee comes up higher (judge r8) */
     // seen from the front, the arm swinging forward drops and comes in over the hip; the one swinging back rises and tucks
     // (judge r3: 'the forward hand should drop about 2 px and move in, the back hand rise 1-2 px')
     const ay=run?6:10;const hand=(fw,inward)=>{if(run){/* judge r7: the arms pump clear of the body - fist up to the chest in front, driven back to the hip */return fw>0?[Math.round(2*fw)*inward,ay-Math.round(3*fw)]:[Math.round(-1.5*fw)*-inward,ay+Math.round(sg*3*-fw)];}
