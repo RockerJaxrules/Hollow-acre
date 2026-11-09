@@ -30,7 +30,7 @@ RAMPS = {
     'steel':  ['#1c1e26', '#343844', '#565c6a', '#868c9a', '#c0c6d0'],
 }
 OUTLINE = ['#140e12', '#2e2226']
-POOL = 'ABCDEFGHIJKLMNPQRTUVWXYZbcdefghijklmnpqrtuvw0123456789!$%&*=@?^~;:<>'   # free for materials ('O' 'o' 's' '.' '-' '+' are taken)
+POOL = 'ABCDEFGHIJKLMNPQRTUVWXYZbcdefghijklmnpqrtuvw0123456789!$%&*=@?^~;:<>#"\'(),/[]_`{|}' + 'αβγδεζηθικλμνξπρστυφχψωΓΔΘΛΞΠΣΦΨΩ'   # free for materials ('O' 'o' 's' '.' '-' '+' are taken)
 
 
 def box(x0, y0, z0, x1, y1, z1, m, **k): return dict(type='box', min=[x0, y0, z0], max=[x1, y1, z1], mat=m, **k)

@@ -126,7 +126,7 @@ def render(scene):
         mname = {}; hiflag = set(); NRM = {}
         for j, i in enumerate(hp):
             s = shapes[hid[i]]; m = s['mat']
-            if s.get('topmat') and n[j, 1] > s.get('top_at', .8): m = s['topmat']
+            if s.get('topmat') and n[j, s.get('top_axis', 1)] * s.get('top_sign', 1) > s.get('top_at', .8): m = s['topmat']
             M = mats[m]; ch = M['chars']; nk = len(ch)
             amb = M.get('ambient', 0); shw = M.get('shade', .65)
             vv = amb + (1 - amb) * lam[j] * ((1 - shw) + shw * sh[j]) * ao[j] + s.get('bias', 0)
@@ -169,6 +169,7 @@ def render(scene):
     # cast shadow on the ground (y = 0) from the light
     shadow = np.zeros(H * W, bool)
     gm = ~hit
+    if scene.get('noshadow'): gm[:] = False   # icons float on the slot, no ground under them
     if gm.any():
         idxs = np.where(gm)[0]; Xg = X[idxs]; Zg = -V[idxs] / se      # where the pixel's ray meets the ground
         G = np.stack([Xg, np.zeros_like(Xg) + .2, Zg], axis=1); occ = np.zeros(len(idxs), bool)
