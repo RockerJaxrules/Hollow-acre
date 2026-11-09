@@ -11,20 +11,20 @@ import sys, os, math
 from PIL import Image
 
 HEX = lambda h: (int(h[1:3], 16), int(h[3:5], 16), int(h[5:7], 16), 255)
-KERN = [HEX(c) for c in ('#5e3e22', '#9a7430', '#bc9640', '#d4b45a')]   # old-gold kernels with a plum-brown shade (judge: lemon was candy)
+KERN = [HEX(c) for c in ('#6a4416', '#b0801c', '#dcac2c', '#f2d054')]   # old-gold kernels with a plum-brown shade (judge: lemon was candy)
 SILK = [HEX(c) for c in ('#5a3418', '#7a4a24', '#9a6434')]
-HUSK = [HEX(c) for c in ('#3e3a1e', '#635c2c', '#857c3c', '#a69c50', '#bcb466')]   # straw husk, clear of the leaf green
-LEAF = [HEX(c) for c in ('#18241a', '#22341c', '#304822', '#40602a', '#567832', '#6e9040', '#88a64e')]
+HUSK = [HEX(c) for c in ('#4a4620', '#7a7232', '#a49a46', '#c8bc62', '#e0d684')]   # straw husk, clear of the leaf green
+LEAF = [HEX(c) for c in ('#0e2410', '#173c16', '#22561c', '#2f7224', '#418e2e', '#5eac3a', '#82c64c')]   # a full value range (judge vs the reference: ours were muddy)
 DRYL = [HEX(c) for c in ('#2e2414', '#4a3a1c', '#6a5428', '#8a7236', '#a89048', '#c4ac5c')]
-TURN_TOP = [HEX(c) for c in ('#2e1228', '#4a1e40', '#6a2e5a', '#8a4474', '#a65e8c')]
-TURN_LOW = [HEX(c) for c in ('#6a5e58', '#9a8e84', '#c2b6a8', '#ded4c4', '#f0e8da')]
-PUMP = [HEX(c) for c in ('#2e1006', '#4c1e0c', '#6c3012', '#8a461a', '#a45c24', '#be7834')]
+TURN_TOP = [HEX(c) for c in ('#36103c', '#5c1c64', '#84308c', '#ac4cb0', '#cc74c8')]
+TURN_LOW = [HEX(c) for c in ('#7a6c66', '#ab9f95', '#d2c8bc', '#ebe4d8', '#fbf7ee')]
+PUMP = [HEX(c) for c in ('#4a160a', '#7c2810', '#b04216', '#d8621e', '#ee8430', '#f8aa52', '#fcc87c')]
 GREENP = [HEX(c) for c in ('#2a2a12', '#3e3e18', '#565620', '#6e6c2a', '#8a8634', '#a29e40')]   # an unripe pumpkin: dull yellow-olive, a full value step off the leaves
 STREAK = HEX('#8e9c62')
-STEM = [HEX(c) for c in ('#1e2410', '#2e3818', '#465022')]
+STEM = [HEX(c) for c in ('#1a2a0e', '#2c4416', '#44621e')]
 FLOWER = [HEX(c) for c in ('#7a5a14', '#b4881e', '#d8b040')]
-TASSEL = [HEX(c) for c in ('#5a4218', '#7a5a20', '#a07a2c', '#c09a3c')]
-SOIL = [HEX(c) for c in ('#1e140e', '#2c1e14', '#3c2a1c', '#4e3826')]
+TASSEL = [HEX(c) for c in ('#7a5a14', '#b08a1c', '#d8b42c', '#f0d650')]
+SOIL = [HEX(c) for c in ('#24160c', '#3a2414', '#54361e', '#6e4a2a')]
 LIGHT = (-.6, -.8)   # from the top left
 
 
@@ -120,7 +120,7 @@ def pumpkin_fruit(cv, cx, cy, rx, ry, ramp=PUMP, streaks=False, lobes=1.6, lift=
 
 
 FLOWERO = [HEX(c) for c in ('#6a3010', '#a4521a', '#cc7a2a', '#e8a248')]   # a pumpkin flower: an orange trumpet
-KHAKI = [HEX(c) for c in ('#3a3a1a', '#5a5a2a', '#7a7636', '#9a9446', '#b4ac58', '#c8c06c')]   # the unripe gourd, a step lighter than the leaves
+KHAKI = [HEX(c) for c in ('#3a4416', '#5a6a20', '#7e8e2c', '#a0ae3a', '#bec850', '#d6dc6c')]   # the unripe gourd, a step lighter than the leaves
 YELLOWL = [HEX(c) for c in ('#2a2a14', '#44441c', '#646024', '#86802e', '#a49c3c', '#bcb44e', '#cec462')]   # a leaf going yellow
 
 

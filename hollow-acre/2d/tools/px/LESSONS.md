@@ -4,6 +4,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 
 ## From the owner (strongest)
 
+- "your judge is being too kind on crops: that pumpkin does not look anywhere near good enough, most of them don't; compare
+  them to the outside assets and you will see how bad ours look" (Nov 10): a judge's 6 against our OWN old art is not the
+  bar. Calibrate against a professional reference (the outside-art set we replaced, used only to compare, never in the
+  game): it counts as an 8, anything that looks amateur next to it is 5 at most. Measured: our crops ran lum 8-133 (mean
+  75) where the reference runs 37-211 (mean 133), so "darker, moodier" had turned into mud. Crops keep a full value range;
+  the game's lighting supplies the mood.
 - "it needs to be almost on par with Stardew Valley when it comes to animations and textures and models": the QUALITY
   bar is Stardew Valley's finish (clean clusters, 3-4 tones a material, deliberate highlights and inner lines, keyed
   animation with bob, anticipation and follow-through). The LOOK stays this game's: darker, moodier, not candy.
