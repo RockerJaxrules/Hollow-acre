@@ -229,8 +229,9 @@ function B.roofpx(c, mat, x, y, top, lit, seed)
     if ctx then local dE = ctx.yb - y; local dS = math.min(x - ctx.xa, ctx.xb - x); quiet = dE > ch * 2 + 1 and dS > 9 and (y - top) > ch end
     if ry == ch - 1 then return px.i(c, quiet and (lit > .5 and Rr[3] or Rr[2]) or (lit > .5 and Rr[2] or Rr[1])) end
     if lx == 0 and ry < ch - 2 and not quiet then return px.i(c, lit > .5 and Rr[3] or Rr[2]) end
-    local v = band(c, Rr, (lit > .5 and .62 or .24) + (ry == 0 and .14 or 0) - (ry == ch - 2 and .1 or 0) + (n - .5) * .16 - (y - top) / 560, 2, 8)
-    if lit > .5 and ry == 1 and lx == 2 and n > .8 then v = px.i(c, Rr[7]) end   -- a few lit shingle tips, not a dash on every other one (judge: the roof read as noise)
+    -- judge (inn): mottled light streaks across the upper front: the quiet middle keeps one tone per course, no lit tips
+    local v = band(c, Rr, (lit > .5 and .62 or .24) + (ry == 0 and (quiet and .07 or .14) or 0) - (ry == ch - 2 and .1 or 0) + (n - .5) * (quiet and .04 or .16) - (y - top) / 560, 2, 8)
+    if lit > .5 and ry == 1 and lx == 2 and n > .8 and not quiet then v = px.i(c, Rr[7]) end   -- a few lit shingle tips, not a dash on every other one (judge: the roof read as noise)
     return v
   elseif mat == 'tin' and B.GABLE then
     local G = B.GABLE; local d = math.abs(x - G.ax); local v = y - G.k * d
@@ -799,6 +800,30 @@ function B.barrel(c, a, gy)
   for x = a + 2, a + 13 do px.shade(c, x, gy + 1, -2) end
 end
 
+-- the Lantern Inn's own lantern: a wrought bracket off the wall, a scroll at its end, a big lantern on a short chain,
+-- warm glass, and its light on the stone round it
+function B.hanglamp(c, wx, y, night)
+  local lx = wx - 15
+  for yy = y - 10, y + 24 do for xx = lx - 13, wx + 2 do local d = math.sqrt((xx - lx) ^ 2 + ((yy - (y + 12)) * 1.15) ^ 2)
+    if d < 13 and px.get(c, xx, yy) ~= 0 then px.shade(c, xx, yy, d < 7 and 2 or 1) end end end   -- its light on the wall
+  px.hline(c, lx - 4, wx, y, 'm1'); px.hline(c, lx - 3, wx, y + 1, 'm2'); px.line(c, wx, y + 9, wx - 9, y + 2, 'm1'); px.line(c, wx - 1, y + 9, wx - 9, y + 3, 'm2')   -- the arm and its brace
+  P(c, lx - 5, y - 1, 'm1'); P(c, lx - 6, y, 'm1'); P(c, lx - 5, y + 1, 'm1'); P(c, lx - 4, y + 2, 'm1')   -- a scroll at the end
+  px.vline(c, lx, y + 2, y + 4, 'm1')
+  local pts = {}
+  px.hline(c, lx - 1, lx + 1, y + 5, 'm2'); px.hline(c, lx - 3, lx + 3, y + 6, 'm2'); px.hline(c, lx - 5, lx + 5, y + 7, 'm3'); px.hline(c, lx - 5, lx + 5, y + 8, 'm1')   -- the cap
+  for yy = y + 9, y + 20 do P(c, lx - 5, yy, 'm1'); P(c, lx + 5, yy, 'm1'); P(c, lx, yy, 'm2')
+    for _, xx in ipairs({lx - 4, lx - 3, lx - 2, lx - 1, lx + 1, lx + 2, lx + 3, lx + 4}) do local core = yy >= y + 12 and yy <= y + 17 and math.abs(xx - lx) <= 2
+      P(c, xx, yy, core and 'y3' or 'y2') end end
+  px.hline(c, lx - 5, lx + 5, y + 21, 'm2'); px.hline(c, lx - 4, lx + 4, y + 22, 'm1'); px.hline(c, lx - 1, lx + 1, y + 23, 'm1')   -- the base and its drip
+end
+-- a bench outside: a thick plank seat lit on top, two stout legs, its shadow
+function B.bench(c, a, b, gy)
+  px.hline(c, a, b, gy - 9, 'OUT'); px.hline(c, a, b, gy - 8, 'w6'); px.hline(c, a, b, gy - 7, 'w4'); px.hline(c, a, b, gy - 6, 'w3'); px.hline(c, a, b, gy - 5, 'OUT')
+  P(c, a - 1, gy - 8, 'OUT'); P(c, a - 1, gy - 7, 'OUT'); P(c, a - 1, gy - 6, 'OUT'); P(c, b + 1, gy - 8, 'OUT'); P(c, b + 1, gy - 7, 'OUT'); P(c, b + 1, gy - 6, 'OUT')
+  for _, lx in ipairs({a + 2, b - 4}) do R(c, lx, gy - 4, lx + 2, gy - 1, 'w2'); P(c, lx, gy - 4, 'w3'); P(c, lx - 1, gy - 3, 'OUT'); P(c, lx + 3, gy - 3, 'OUT') end
+  for x = a + 1, b + 3 do px.shade(c, x, gy, -2) end
+end
+
 function B.millstone(c, cx, gy)
   local r = 9; local cy = gy - r - 1
   for yy = -r - 1, r + 1 do for xx = -r - 1, r + 1 do local d = math.sqrt(xx * xx + yy * yy)
@@ -941,6 +966,7 @@ function B.build(sp, night)
     DOORMETA = {w = dw, dx = dcx - (W + 2 * m) / 2, steps = wide and 'ramp' or ((stoneSteps and not pr) and 'stone' or 'wood')}
     if d.boarded then B.boardup(c, dx0, dx1, gy - 10 - dh, gy - 10) end
     if sp.forge then B.anvil(c, dx1 + 14, gy - 10); B.barrel(c, dx0 - 25, gy - 10) end
+    if sp.innlamp then B.hanglamp(c, dx0 - 7, gy - 10 - dh - 2, night); B.barrel(c, dx0 - 22, gy - 10); B.bench(c, dx1 + 30, dx1 + 62, gy - 10) end
     if sp.lantern ~= false then B.lantern(c, dx1 + 12, gy - 10 - dh + 6, night) end
   end
   if sp.sign then B.sign(c, (x0 + x1) // 2, yW + (sp.awning and -2 or 6) + (sp.signy or 0), sp.sign) end

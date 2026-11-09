@@ -59,7 +59,7 @@ local S = {
  -- ---- Wickham: the older side of the valley, stone and dark slate
  inn        = {w = 10, kind = 'hip', wall = 'stone', roof = 'slate', trim = 'cream', roofd = 70, wallh = 112, sign = 'THE LANTERN INN', signy = 46,
                door = {col = 'green', kind = 'double', w = 30, h = 48}, windows = {{x = 1.5, y = 64}, {x = 3.2, y = 64}, {x = 6.8, y = 64}, {x = 8.5, y = 64}, {x = 1.5, y = 12}, {x = 3.2, y = 12}, {x = 6.8, y = 12}, {x = 8.5, y = 12}},
-               dormers = {{x = .3}, {x = .7}}, chimneys = {{x = .1}, {x = .9}}, seed = 131},
+               dormers = {{x = .3}, {x = .7}}, chimneys = {{x = .1}, {x = .9}}, innlamp = true, seed = 131},   -- the Lantern Inn's own lantern on a bracket
  wk_house_a = {w = 6, kind = 'hip', wall = 'stone', roof = 'slate', trim = 'green', door = {col = 'green'}, windows = {{x = 1.25}, {x = 4.75}},
                dormers = {{x = .5}}, chimneys = {{x = .8}}, moss = 1.0, seed = 132},
  wk_house_b = {w = 6, kind = 'side', wall = 'white', roof = 'teal', trim = 'cream', door = {col = 'oak'}, windows = {{x = 1.25}, {x = 4.75, box = 'dead'}}, dormers = {{x = .5}},
