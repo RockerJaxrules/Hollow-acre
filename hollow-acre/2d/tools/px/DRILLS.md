@@ -16,3 +16,8 @@ Small studies of the basic forms everything is built from. Draw one, critique it
 | 9 | A shingle roof patch and a window | 32x32 | crisp, 1:2 diagonals |
 | 10 | A wooden crate and a barrel (LPC: strong top vs side lighting) | 32x32 | strong top/side difference, shadow |
 | 11 | Grass tuft, fallen-leaf cluster, small flower (ground decoration) | 16x16 | readable, not noise |
+| 12 | A crate, a barrel and a lamp post through the blockout, then the material pass (seams, grain, nails, rims) | 32x40 | beats the drawn one side by side |
+| 13 | A sack, a firewood stack and a mailbox with its name plate | 40x40 | beats the drawn one; labels kept |
+| 14 | A chibi head: face-on, 3/4 and profile, with crisp eyes, brows, mouth, jaw | 24x24 | reads at 1x as well as the drawn head |
+| 15 | Chibi hair: three styles with outlined clumps and a shine band, front/side/back | 24x28 | as clean as the drawn hair |
+| 16 | A chibi body in a tee and jeans: seams, belt, hands, shoes; then a walk cycle | 48x64 | as readable as the drawn body |

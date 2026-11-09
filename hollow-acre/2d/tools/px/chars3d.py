@@ -27,6 +27,9 @@ def ramp(hexc, n=5):
 
 
 LOOKS = {   # the same descriptions the 2D generator uses (chibi.py / chibi3.py)
+    # Caitlyn (id 'mae'), from her own photos: blonde with pink lengths, square black glasses, a black tank top, jeans, white sneakers
+    'mae': dict(skin='#f3d2b8', hair='#e2c27e', hairTip='#e58fb0', hairStyle='long', outfit='tank', shirt='#1e1c22', pants='#7a96bc', shoes='#e8e4dc',
+                glasses='square', accessory='necklace', acc='#3a3238', eye='#6a8aa4', allure=1),
     'june': dict(skin='#f0c4a0', hair='#c86a2a', hairStyle='wavy', outfit='shirt', shirt='#3e5e90', pants='#4a4a5a', shoes='#3a2618',
                  hat='cap', hatColor='#3a5a8a', accessory='necklace', acc='#e8c860', eye='#3a5a7a', allure=1),
 }
@@ -65,7 +68,9 @@ def body(L, phase=0.0, walking=False):
     for s in (-1, 1):
         ang = -s * sw * .5; sh = [s * 7.4, hip + Y(12.4), 0]
         el = [s * 8.2, hip + Y(7.2), math.sin(ang) * 3.2]; hd = [s * 8.6, hip + Y(2.6), math.sin(ang) * 6]
-        P += [capsule(sh, el, 2.4, 2.1, 'shirt'), capsule(el, hd, 2.0, 1.8, 'shirt' if L.get('outfit') in ('shirt', 'sweater', 'jacket') else 'skin'),
+        tank = L.get('outfit') == 'tank'
+        if tank: P.append(capsule([s * 3.2, hip + Y(12.4), 2.6], [s * 4.6, hip + Y(14.2), .5], .7, .7, 'shirt'))   # a strap over the shoulder
+        P += [capsule(sh, el, 2.4, 2.1, 'skin' if tank else 'shirt'), capsule(el, hd, 2.0, 1.8, 'shirt' if L.get('outfit') in ('shirt', 'sweater', 'jacket') else 'skin'),
               sph(hd, 2.2, 'skin')]
     # the head: big, round, chibi
     hc = [0, neck_y + Y(10.9), .4]; P.append(sph(hc, 9.7, 'skin'))
@@ -78,6 +83,10 @@ def body(L, phase=0.0, walking=False):
         P += [ell([0, hc[1] - 9, hc[2] - 6], [8.6, 12, 3.6], 'hair', lumps=.9, lumpfreq=.9),
               ell([-9.6, hc[1] - 10, hc[2] - 2.5], [2.4, 10, 2.6], 'hair', lumps=.8, lumpfreq=1.0),
               ell([9.6, hc[1] - 10, hc[2] - 2.5], [2.4, 10, 2.6], 'hair', lumps=.8, lumpfreq=1.0)]
+        if L.get('hairTip'):   # the coloured lengths: the ends of the hair, a little fuller than the hair above them
+            P += [ell([0, hc[1] - 15, hc[2] - 6.2], [8.9, 7.0, 4.0], 'hairtip', lumps=.7, lumpfreq=1.0),       # the lower half, from the shoulders down
+                  ell([-9.6, hc[1] - 15.5, hc[2] - 2.5], [2.8, 6.0, 3.0], 'hairtip', lumps=.6, lumpfreq=1.0),
+                  ell([9.6, hc[1] - 15.5, hc[2] - 2.5], [2.8, 6.0, 3.0], 'hairtip', lumps=.6, lumpfreq=1.0)]
     if L.get('hat') == 'cap':
         P += [sph([0, hc[1] + 3.2, hc[2] - 1.2], 11.0, 'hat', planes=[[0, -1, 0, -3.4]]),
               ell([0, hc[1] + 6.9, hc[2] + 9.4], [6.8, .8, 3.6], 'hat')]                                    # a short brim, above the eyes
@@ -89,7 +98,8 @@ def body(L, phase=0.0, walking=False):
 def render_frame(name, L, yaw, phase, walking, tag):
     parts = body(L, phase, walking)
     ramps = {'skin': ramp(L['skin'])[:4] + [ramp(L['skin'])[3]], 'hair': [ramp(L['hair'])[0]] + ramp(L['hair'])[:4], 'shirt': ramp(L['shirt']), 'pants': ramp(L['pants']), 'shoes': ramp(L['shoes']),
-             'hat': ramp(L.get('hatColor', '#5a4a3a')), 'acc': ramp(L.get('acc', '#e8c860')), 'crease': ramp('#8a4a3a')}
+             'hairtip': [ramp(L.get('hairTip', L['hair']))[0]] + ramp(L.get('hairTip', L['hair']))[:4],
+             'hat': [ramp(L.get('hatColor', '#5a4a3a'))[0]] + ramp(L.get('hatColor', '#5a4a3a'))[:4], 'acc': ramp(L.get('acc', '#e8c860')), 'crease': ramp('#8a4a3a')}
     used = []
     for p in parts:
         if p['mat'] not in used: used.append(p['mat'])
@@ -119,18 +129,32 @@ def face(im, L, yaw, phase, walking):
     sy = round(60 - (hc_y - 1.0) * CY - 9.6 * SY)   # eye row on screen (the face's front at z ~ 9.6)
     def C(h): return tuple(int(h[i:i + 2], 16) for i in (1, 3, 5)) + (255,)
     eye, white, lash, lip = C(ramp(L.get('eye', '#3a5a7a'))[1]), (250, 246, 240, 255), C('#1a1016'), C(ramp('#c84a5a')[2])
-    if yaw % 360 == 0:   # facing you
-        for ex in (24 - 4, 24 + 3):
-            for dy in range(3):
-                for dx in range(2): px[ex + dx, sy + dy] = eye
-            px[ex, sy] = white
-            if L.get('allure'): px[ex - (1 if ex < 24 else -2), sy - 1] = lash; px[ex, sy - 1] = lash; px[ex + 1, sy - 1] = lash
-        px[24, sy + 5] = lip; px[23, sy + 5] = lip if L.get('allure') else px[23, sy + 5]
+    hair = C(ramp(L['hair'])[0]); ir = ramp(L.get('eye', '#3a5a7a')); I0, I1, I2 = C(ir[0]), C(ir[2]), C(ir[3]); blush = C('#e88a8a')
+    def put(x, y, c):
+        if 0 <= x < im.width and 0 <= y < im.height and px[x, y][3] > 0: px[x, y] = c
+    if yaw % 360 == 0:   # facing you: big eyes with a highlight, lashes, brows, a little blush, lips
+        for side, ex in ((-1, 24 - 6), (1, 24 + 3)):
+            for dx in range(3): put(ex + dx, sy - 1, lash)                       # the lid line
+            if L.get('allure'): put(ex + (-1 if side < 0 else 3), sy - 2, lash)   # a winged lash
+            put(ex, sy, white); put(ex + 1, sy, I2); put(ex + 2, sy, I1)
+            put(ex, sy + 1, I1); put(ex + 1, sy + 1, I0); put(ex + 2, sy + 1, I0)
+            put(ex + (0 if side < 0 else 1), sy + 2, I1); put(ex + (1 if side < 0 else 2), sy + 2, I0)
+            for dx in range(3): put(ex + dx - (1 if side < 0 else -1) * (1 if dx == 0 else 0), sy - 3 - (1 if dx == 1 else 0), hair)   # brow
+            put(ex + (-1 if side < 0 else 3), sy + 3, blush)
+        if L.get('glasses') == 'square':   # square black frames round both eyes and a bridge between them
+            for ex in (24 - 6, 24 + 3):
+                for dx in range(-1, 4): put(ex + dx, sy - 2, lash); put(ex + dx, sy + 3, lash)
+                for dy in range(-2, 4): put(ex - 1, sy + dy, lash); put(ex + 3, sy + dy, lash)
+            put(23, sy, lash); put(24, sy, lash)
+        if L.get('allure'): put(23, sy + 5, lip); put(24, sy + 5, lip); put(24, sy + 6, C(ramp('#c84a5a')[1]))
+        else: put(24, sy + 5, lip)
     elif yaw % 360 in (90, 270):   # in profile: one eye toward the facing side
-        ex = 24 + (5 if yaw % 360 == 90 else -6)
-        for dy in range(3): px[ex, sy + dy] = eye
-        if L.get('allure'): px[ex, sy - 1] = lash; px[ex + (1 if yaw % 360 == 90 else -1), sy - 1] = lash
-
+        d = 1 if yaw % 360 == 90 else -1; ex = 24 + (5 if d > 0 else -6)
+        put(ex, sy - 1, lash); put(ex, sy, I2); put(ex, sy + 1, I0); put(ex, sy + 2, I1)
+        put(ex - d, sy, white if False else I1)
+        if L.get('allure'): put(ex + d, sy - 1, lash); put(ex + d, sy - 2, lash)
+        put(ex - d, sy - 3, hair); put(ex, sy - 3, hair)
+        put(ex + d * 2, sy + 5, lip)
 
 if __name__ == '__main__':
     from PIL import Image

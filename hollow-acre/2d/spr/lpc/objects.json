@@ -144,10 +144,10 @@
 },
 "mushroom": {
 "src": "spr/lpc/obj/mushroom.png",
-"fw": 27,
-"fh": 21,
+"fw": 28,
+"fh": 28,
 "ax": 14.0,
-"ay": 16.0,
+"ay": 26.0,
 "foot": [
 0,
 0,
@@ -175,9 +175,9 @@
 "pumpkin": {
 "src": "spr/lpc/obj/pumpkin.png",
 "fw": 26,
-"fh": 25,
+"fh": 22,
 "ax": 13.0,
-"ay": 18.0,
+"ay": 19.0,
 "foot": [
 -0.3,
 -0.25,
@@ -189,10 +189,10 @@
 },
 "pumpkin_b": {
 "src": "spr/lpc/obj/pumpkin_b.png",
-"fw": 22,
-"fh": 21,
-"ax": 11.0,
-"ay": 15.0,
+"fw": 24,
+"fh": 20,
+"ax": 12.0,
+"ay": 17.0,
 "foot": [
 -0.3,
 -0.25,
@@ -205,9 +205,9 @@
 "jack": {
 "src": "spr/lpc/obj/jack.png",
 "fw": 26,
-"fh": 25,
+"fh": 22,
 "ax": 13.0,
-"ay": 18.0,
+"ay": 19.0,
 "foot": [
 -0.3,
 -0.25,
@@ -249,10 +249,10 @@
 },
 "hay": {
 "src": "spr/lpc/obj/hay.png",
-"fw": 50,
-"fh": 40,
-"ax": 24.0,
-"ay": 31.0,
+"fw": 46,
+"fh": 36,
+"ax": 23.0,
+"ay": 33.0,
 "foot": [
 -0.8,
 -1.2,
@@ -264,10 +264,10 @@
 },
 "barrel": {
 "src": "spr/lpc/obj/barrel.png",
-"fw": 29,
-"fh": 38,
-"ax": 14.0,
-"ay": 30.0,
+"fw": 30,
+"fh": 34,
+"ax": 15.0,
+"ay": 31.0,
 "foot": [
 -0.35,
 -0.3,
@@ -324,10 +324,10 @@
 },
 "grave_0": {
 "src": "spr/lpc/obj/grave_0.png",
-"fw": 36,
-"fh": 43,
-"ax": 18.0,
-"ay": 37.0,
+"fw": 47,
+"fh": 44,
+"ax": 23.5,
+"ay": 41.0,
 "foot": [
 -0.6,
 -0.3,
@@ -339,9 +339,9 @@
 },
 "grave_1": {
 "src": "spr/lpc/obj/grave_1.png",
-"fw": 23,
-"fh": 28,
-"ax": 11.0,
+"fw": 28,
+"fh": 27,
+"ax": 14.0,
 "ay": 24.0,
 "foot": [
 -0.4,
@@ -384,10 +384,10 @@
 },
 "crate": {
 "src": "spr/lpc/obj/crate.png",
-"fw": 32,
-"fh": 34,
+"fw": 30,
+"fh": 32,
 "ax": 15.0,
-"ay": 26.0,
+"ay": 29.0,
 "foot": [
 -0.5,
 -0.4,
@@ -399,9 +399,9 @@
 },
 "signpost": {
 "src": "spr/lpc/obj/signpost.png",
-"fw": 53,
-"fh": 48,
-"ax": 24.0,
+"fw": 40,
+"fh": 46,
+"ax": 20.0,
 "ay": 43.0,
 "foot": [
 -0.2,
@@ -414,9 +414,9 @@
 },
 "fence_h": {
 "src": "spr/lpc/obj/fence_h.png",
-"fw": 76,
-"fh": 26,
-"ax": 37.0,
+"fw": 72,
+"fh": 24,
+"ax": 0.0,
 "ay": 22.0,
 "foot": [
 0,
@@ -444,10 +444,10 @@
 },
 "well": {
 "src": "spr/lpc/obj/well.png",
-"fw": 72,
-"fh": 76,
+"fw": 64,
+"fh": 74,
 "ax": 32.0,
-"ay": 63.0,
+"ay": 71.0,
 "foot": [
 -1.1,
 -0.9,
@@ -847,9 +847,9 @@
 },
 "lamp": {
 "src": "spr/lpc/obj/lamp.png",
-"fw": 27,
-"fh": 88,
-"ax": 9.0,
+"fw": 16,
+"fh": 82,
+"ax": 8.0,
 "ay": 79.0,
 "foot": [
 -0.1,
@@ -1285,10 +1285,10 @@
 },
 "picket_h": {
 "src": "spr/lpc/obj/picket_h.png",
-"fw": 69,
-"fh": 23,
-"ax": 34.0,
-"ay": 20.0,
+"fw": 64,
+"fh": 25,
+"ax": 0.0,
+"ay": 23.0,
 "foot": [
 0,
 0,
@@ -1453,10 +1453,10 @@
 },
 "anvil": {
 "src": "spr/lpc/obj/anvil.png",
-"fw": 35,
-"fh": 29,
-"ax": 14.0,
-"ay": 22.0,
+"fw": 34,
+"fh": 26,
+"ax": 17.0,
+"ay": 23.0,
 "foot": [
 0,
 0,
@@ -6246,9 +6246,9 @@
 },
 "drum": {
 "src": "spr/lpc/obj/drum.png",
-"fw": 26,
-"fh": 36,
-"ax": 12.0,
+"fw": 22,
+"fh": 32,
+"ax": 11.0,
 "ay": 29.0,
 "foot": [
 -0.3,
@@ -10585,10 +10585,10 @@
 },
 "hydrant": {
 "src": "spr/lpc/obj/hydrant.png",
-"fw": 23,
+"fw": 20,
 "fh": 30,
-"ax": 11.0,
-"ay": 25.0,
+"ax": 10.0,
+"ay": 27.0,
 "foot": [
 -0.2,
 -0.15,
@@ -10600,10 +10600,10 @@
 },
 "parkbench": {
 "src": "spr/lpc/obj/parkbench.png",
-"fw": 63,
-"fh": 39,
-"ax": 30.0,
-"ay": 34.0,
+"fw": 62,
+"fh": 40,
+"ax": 31.0,
+"ay": 36.0,
 "foot": [
 -0.85,
 -0.3,
@@ -10615,10 +10615,10 @@
 },
 "planter": {
 "src": "spr/lpc/obj/planter.png",
-"fw": 45,
-"fh": 32,
+"fw": 44,
+"fh": 34,
 "ax": 22.0,
-"ay": 25.0,
+"ay": 31.0,
 "foot": [
 -0.6,
 -0.3,
@@ -10876,10 +10876,10 @@
 },
 "hedge": {
 "src": "spr/lpc/obj/hedge.png",
-"fw": 78,
-"fh": 41,
-"ax": 38.0,
-"ay": 33.0,
+"fw": 70,
+"fh": 40,
+"ax": 0.0,
+"ay": 36.0,
 "foot": [
 0,
 -0.3,
@@ -10891,10 +10891,10 @@
 },
 "birdbath": {
 "src": "spr/lpc/obj/birdbath.png",
-"fw": 31,
-"fh": 44,
-"ax": 14.0,
-"ay": 35.0,
+"fw": 30,
+"fh": 40,
+"ax": 15.0,
+"ay": 37.0,
 "foot": [
 -0.3,
 -0.2,
@@ -12217,10 +12217,10 @@
 },
 "stonewall": {
 "src": "spr/lpc/obj/stonewall.png",
-"fw": 78,
-"fh": 37,
-"ax": 38.0,
-"ay": 30.0,
+"fw": 70,
+"fh": 38,
+"ax": 0.0,
+"ay": 32.0,
 "foot": [
 0,
 -0.3,
@@ -12292,10 +12292,10 @@
 },
 "bucket": {
 "src": "spr/lpc/obj/bucket.png",
-"fw": 23,
-"fh": 31,
+"fw": 22,
+"fh": 24,
 "ax": 11.0,
-"ay": 25.0,
+"ay": 21.0,
 "foot": [
 -0.2,
 -0.15,
@@ -12307,10 +12307,10 @@
 },
 "choppingblock": {
 "src": "spr/lpc/obj/choppingblock.png",
-"fw": 36,
-"fh": 36,
-"ax": 16.0,
-"ay": 27.0,
+"fw": 40,
+"fh": 40,
+"ax": 20.0,
+"ay": 36.0,
 "foot": [
 -0.4,
 -0.3,
@@ -12353,9 +12353,9 @@
 "fountain": {
 "src": "spr/lpc/obj/fountain.png",
 "fw": 104,
-"fh": 83,
+"fh": 96,
 "ax": 52.0,
-"ay": 56.0,
+"ay": 86.0,
 "foot": [
 -1.5,
 -0.9,

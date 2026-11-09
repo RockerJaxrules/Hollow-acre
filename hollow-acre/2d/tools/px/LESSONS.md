@@ -20,6 +20,9 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - "this is better but trunk needs a bit more detail but this is very good" (maple v2): the 3D blockout + hand finish
   is the approved method. A trunk needs bark grooves, a lit edge, a knot and roots, not one flat colour.
 - "you have to do this for everything now": every sprite goes through the blockout + hand finish.
+- "props are not good enough and the human sprites look very bad so far" / "do you need some practise for the props
+  and other stuff first": the 3D props and the 3D people did not beat the drawn ones. Nothing replaces existing art
+  until it clearly beats it side by side. Practise first (drills), show the owner, then replace.
 - "maybe a bit more improvement" (v4): leaf clumps through the crown (a second, finer lump octave), small sunlit
   highlights, fallen leaves round the foot (it's autumn).
 
@@ -62,6 +65,25 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - What worked: filled leaf clumps read as foliage; thin V-line tufts read as stripes.
 - What worked: a 2x2-cell draft makes the whole thing look upscaled (mixed pixel size); use the 2x2 leaf only as edge
   texture.
+
+## Props (small objects, 20-40 px) [owner: "not good enough"]
+
+- [props v1] 3D toon shading alone gives plastic toys at this size: the drawn props win on hand detail. Every prop
+  needs a material pass after the render: wood = dark board seams, grain streaks, nail heads; metal = a bright rim
+  line and rivets; stone = cracks and chips; cloth = folds and a tie.
+- [props v1] The drawn props have more contrast: near-black outline and inner lines, top face clearly lighter than the
+  front, the shadow side clearly darker. The 3D ones came out mid-grey and soft.
+- [props v1] Signs, labels and plaques (MARSH, PHONE, the memorial plate) are what make a prop belong to this town;
+  never lose them.
+- [props v1] Depth along z is foreshortened by half at 30 degrees but the game's ground is not: anything that has to
+  span tiles along z (vertical fences) must be modelled twice as long.
+
+## People (48x64) [owner: "look very bad so far"]
+
+- [chars v1] At the world's 30-degree camera the cap and hair cover the face; people use a near face-on camera (~12).
+- [chars v1-v4] A 3D head with painted eyes reads as a doll; the drawn chibi wins on crisp shapes: outlined hair
+  clumps with shine bands, clothing seams, belts and buttons, a defined jaw. Body proportions and the face must be
+  drilled on their own before any character is redone.
 
 ## Outlines, light, colour
 
