@@ -13,7 +13,7 @@ sheet, clip, out = sys.argv[1], sys.argv[2], sys.argv[3]
 label = sys.argv[4] if len(sys.argv) > 4 else os.path.basename(sheet)[:-4]
 os.makedirs(out, exist_ok=True)
 CL = {'walk': (0, 9, 1, 8, 17 * 3 / 2.6, 3), 'run': (4, 9, 1, 8, 18 * 5 / 2.6, 5),   # the game's real rates: P.t runs at speed/2.6
-      'idle': (8, 4, 0, 4, 3, 0), 'sit': (25, 3, 0, 3, 2, 0)}  # first row, frames in row, first frame, count, fps, tiles/s
+      'idle': (8, 4, 0, 4, 3, 0), 'sit': (25, 4, 0, 4, 2, 0)}  # first row, frames in row, first frame, count, fps, tiles/s
 if os.environ.get('WALK_FPS'): CL['walk'] = CL['walk'][:4] + (float(os.environ['WALK_FPS']) * 3 / 2.6, 3)   # an older build's walk rate
 ROWS = {'walk': 'NWSE', 'run': 'NWSE', 'idle': 'NWSE', 'sit': 'NWSE'}
 im = Image.open(sheet).convert('RGBA')

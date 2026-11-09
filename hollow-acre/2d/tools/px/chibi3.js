@@ -8,7 +8,7 @@ SEED=CFG.seed||3;
 const C=CFG.look,KID=!!C.kid,PART=CFG.part||'all',TOOL=CFG.tool||null;
 let EXPR=CFG.expr||'neutral';
 const FW=48,FH=64,D4=['N','W','S','E'];
-const CLIPS=[['walk',D4,9],['run',D4,9],['idle',D4,4],['thrust',D4,8],['slash',D4,6],['hurt',['S'],6],['spellcast',D4,7],['sit',D4,3]];
+const CLIPS=[['walk',D4,9],['run',D4,9],['idle',D4,4],['thrust',D4,8],['slash',D4,6],['hurt',['S'],6],['spellcast',D4,7],['sit',D4,4]];
 const ROWS=[];for(const [n,ds,nf] of CLIPS)for(const d of ds)ROWS.push([n,d,nf]);
 const SHEET=layer('sheet',FW*9,FH*ROWS.length);
 // ---- hue-shifted five-step ramps (deep, shadow, mid, base, light), shared with custom.js, and the outline colour
@@ -557,22 +557,25 @@ ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
   if(clip==='slash')pose=plantPose(f,dir);
   // hurt (judge: it read as a shrug, then dozing): the hit (snap up, wide eyes, an O mouth, hands flung out at the shoulders),
   // the cower (head ducked, shoulders up, eyes squeezed shut, hands beside the neckline, never over it), then easing back
-  if(clip==='hurt'){pose.bob=[-2,-3,0,0,0,0][f];pose.crouch=[0,0,3,3,1,0][f];pose.nod=f>=2&&f<=4?1:0;pose.expr=f<2||f===5?'scared':'wince';
+  /* motion judge r3: frame 3 is now an in-between (head part way down, the flung arm half way to the face) so the cower doesn't
+     pop; the guarding forearm comes up from an elbow out at the side so it never crosses a neckline (Nell r3: BLOCKING); the
+     last frame wears the idle face */
+  if(clip==='hurt'){pose.bob=[-2,-3,-1,0,0,0][f];pose.crouch=[0,0,1,3,1,0][f];pose.nod=f>=3&&f<=4?1:0;pose.expr=f<2||f===4?'scared':f<4?'wince':null;
     /* motion judge r2: the fling read as a shrug ("ta-da") because both arms went up alike. Now one arm flies up and out, the
        other folds to guard the chin (hands 6+ px apart in height); the cower shivers a pixel so frames 3 and 4 differ; the last
        frame lands exactly on the idle (crouch 0, the person's own stance) so nothing pops when the idle resumes */
-    if(f===0){pose.elbows=[[-3,-5],[1,5]];pose.hands=[[-5,-10],[-5,-3]];pose.guard=1;}
-    else if(f===1){pose.elbows=[[-4,-6],[2,5]];pose.hands=[[-6,-12],[-5,-4]];pose.guard=1;}
-    else if(f===2){pose.hands=[[1,-5],[-1,-4]];}
-    else if(f===3){pose.hands=[[1,-4],[-1,-5]];pose.sway=1;}
+    if(f===0){pose.elbows=[[-3,-5],[3,4]];pose.hands=[[-5,-10],[-4,-5]];pose.guard=1;}
+    else if(f===1){pose.elbows=[[-4,-6],[3,4]];pose.hands=[[-6,-12],[-4,-6]];pose.guard=1;}
+    else if(f===2){pose.elbows=[[-2,-2],[3,4]];pose.hands=[[-1,-7],[-4,-6]];pose.guard=1;}
+    else if(f===3){pose.hands=[[1,-5],[-1,-4]];}
     else if(f===4){pose.hands=[[0,3],[0,4]];}
     else{pose.hands=null;stance(pose,side,dir,fl);}}
   if(clip==='spellcast'){const up=f>1;pose.hands=up?(side?[[fl*-1,-10],[fl*2,-11]]:[[1,-11],[-1,-11]]):null;}
   /* sit (motion judge: facing us it read as a standing person made shorter; one low frame in three read as a twitch): facing
      us the lap is drawn, two knees and the shins below them, hands resting on the thighs; the breath holds two frames and
      moves only the chest, shoulders and head (hands stay on the lap) */
-  if(clip==='sit'){pose.sit=true;const br=[0,1,1][f];pose.breath=br;pose.crouch=side?2:1;
-    pose.hands=side?[[fl*5,9-br],[fl*6,9-br]]:[[4+WIDE,11-br],[-4-WIDE,11-br]];pose.blink=f===0;}   /* hands resting on the thigh / the knees; a breath */
+  if(clip==='sit'){pose.sit=true;const br=[0,1,1,0][f];pose.breath=br;pose.crouch=side?2:1;
+    pose.hands=side?[[fl*5,9-br],[fl*6,9-br]]:[[4+WIDE,11-br],[-4-WIDE,11-br]];pose.blink=f===3;}   /* the last frame is the blink; the game shows it one loop in three */   /* hands resting on the thigh / the knees; a breath */
   const EX0=EXPR;if(pose.expr)EXPR=pose.expr;human(dir,pose);EXPR=EX0;
   if(clip==='slash'&&HANDS_REC)HANDMETA[dir][f]=HANDS_REC.map(h=>h.map(Math.round));
   // outline the whole figure; each outline pixel goes to the part whose pixel it borders
