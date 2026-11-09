@@ -10,6 +10,7 @@ const lightC=document.createElement('canvas'),lctx=lightC.getContext('2d');
 const fogC=document.createElement('canvas'),fctx=fogC.getContext('2d');
 const fxC=document.createElement('canvas'),xctx=fxC.getContext('2d');
 // ---------- sprites
+// a loose image is asked for under this build's name (?b=), so no cache can hand back an older picture
 const IMG={};
 // the published page carries its images bundled in a few packs (packs.json lists them); anywhere else each image loads from its own path
 const PACK={};let PACKS=null;
@@ -20,7 +21,7 @@ function loadPacks(){if(PACKS)return PACKS;return PACKS=fetch('packs.json?b='+BU
   return Promise.all(L.packs.map(n=>fetchPack(n,3)));}).catch(()=>null);}
 function loadImages(list,prog){let done=0;return loadPacks().then(()=>Promise.all(list.map(src=>new Promise(res=>{
   if(PACKINFO.on&&!PACK[src]){prog&&prog(++done,list.length);return res();}   // its pack failed: the loose file on the site is an old one, so leave it out
-  const im=new Image();im.onload=()=>{IMG[src]=im;prog&&prog(++done,list.length);res();};im.onerror=()=>{if(PACK[src]&&im.src!==src&&!PACKINFO.on){im.src=src;return;}prog&&prog(++done,list.length);res();};im.src=PACK[src]||src;}))));}
+  const im=new Image();im.onload=()=>{IMG[src]=im;prog&&prog(++done,list.length);res();};im.onerror=()=>{if(PACK[src]&&im.src!==src&&!PACKINFO.on){im.src=src;return;}prog&&prog(++done,list.length);res();};im.src=PACK[src]||(src+'?b='+BUILD_ID);}))));}
 function drawSpr(name,x,y,clip,dir,frame,o){const m=SPR[name];if(!m)return;const im=IMG[m.src];if(!im)return;o=o||{};
   let sx=0,sy=0;if(m.clips){const c=(m.clips[clip]||m.clips.idle||Object.values(m.clips)[0]);const r=c[dir]||c.S||Object.values(c)[0];sy=r[0]*m.fh;sx=((frame|0)%r[1])*m.fw;}
   const g=o.ctx||ctx2;const dx=Math.round(x-m.ax),dy=Math.round(y-m.ay);
