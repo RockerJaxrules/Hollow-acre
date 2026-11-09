@@ -155,8 +155,8 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
       if(S.mode==='scare')clip='hurt';P._fr=[nm,clip,clip==='hurt'?'S':P.dir,f||0];footShadow(P._fr,X,Y);
       const tm=clip==='thrust'&&SPR[nm]&&SPR[nm].tool?SPR[nm]:null;const ox=tm?Math.round(X-tm.ax):0,oy=tm?Math.round(Y-tm.ay):0;let tip=null;
       // water from the can lands on the square you're watering
-      const pour=tm&&tm.toolKind==='can'&&f>=3&&f<=6;const wto=pour?(()=>{const a=P.anim,tg=a&&a.tgt;const wx=tg?tg.x:P.x+P.fx*.9,wz=tg?tg.z:P.z+P.fz*.9+.1;return P.dir==='N'?[sx(wx)+10,sz(wz)-4]:P.dir==='S'?[sx(wx)+3,sz(wz)-3]:[sx(wx),sz(wz)+4];})():null;   /* motion judge r2: facing down it watered his boots, facing away it was a stub on his hip */
-      const wt=t+(P.anim?P.anim.t*3:0);   /* the stream flows with the pour itself too, so every frame of it differs */
+      const pour=tm&&tm.toolKind==='can'&&f>=3&&f<=6;const wto=pour?(()=>{const a=P.anim,tg=a&&a.tgt;const wx=tg?tg.x:P.x+P.fx*.9,wz=tg?tg.z:P.z+P.fz*.9+.1;return P.dir==='N'?[sx(P.x)+15,sz(P.z)-36]:P.dir==='S'?[sx(wx)+3,sz(wz)-3]:[sx(wx),sz(wz)+4];})():null;   /* motion judge r2: facing down it watered his boots, facing away it was a stub on his hip */
+      const wt=t+(f|0)*.15;   /* the stream shifts a third of its pattern each frame, so the pour flows even frame by frame */   /* the stream flows with the pour itself too, so every frame of it differs */
       /* facing away (motion judge r5): the stream runs from the rose up behind the can and his head to the square behind him,
          so it is drawn before them, from where the can's spout will be */
       if(tm&&!window.NO_TOOL_DRAW&&pour&&P.dir==='N'){const dc=WSTREAM_DUMMY||(WSTREAM_DUMMY=document.createElement('canvas').getContext('2d'));const tp=toolOverlay(dc,nm,P.dir,f|0,ox,oy,'front')||toolOverlay(dc,nm,P.dir,f|0,ox,oy,'back');if(tp)waterStream(ctx2,tp,wto,wt);}

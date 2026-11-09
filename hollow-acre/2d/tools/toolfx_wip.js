@@ -10,6 +10,12 @@ const TOOL_ART={
  hoe_f:{px:5,art:["..KKKKKKK..", ".KlleeellK.", ".KmmlllmmK.", "..KKKsKKK..", "....KsK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KDLK....", "...KKKK...."]},
  pick_f:{px:4,art:["...KK...", "..KeK...", "..KelK..", "..KlmK..", "..KlmK..", ".KKmbKK.", ".KbsbbK.", "..KDLK..", "..KDLK..", "..KDMK..", "..KDLK..", "..KDLK..", "..KDMK..", "..KDLK..", "..KDLK..", "..KDMK..", "..KDLK..", "..KDLK..", "..KDMK..", "..KDLK..", "..KKKK.."]},   /* judge, Nov 10: seen end-on the head is a thin spike, lit on the left, not a round knob (that read as a mallet) */
  axe_f:{px:4,art:["...KK...", "..KleK..", "..KleK..", ".KmleK..", ".KmleK..", ".KmlbK..", "..KsbK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KDLK..", "..KKKK.."]},
+ /* the can end-on (judge r6: tipping the side view toward us read as a gourd): facing down the drum with the grey rose low on its
+    front, tipped forward to pour with the rose below it; facing up the rose shows above the far rim, leaning further out to pour */
+ can_f:{px:5.5,py:1,tip:[6.5, 8.5],art:["....KKKK....", "....KllK....", "..KKKmmKKK..", ".KeelllmmbK.", ".KbbbbbbbbK.", ".KlllllmmbK.", ".KlllKKKmbK.", ".KllKihgKbK.", ".KllKhggKbK.", ".KlllKKKmbK.", ".KbbbbbbbbK.", ".KmmmmmmbbK.", "..KKKKKKKK.."]},
+ can_ft:{px:5.5,py:1,tip:[6, 12],art:["..KKKKKKKK..", ".KeeelllmbK.", ".KeelllmmbK.", ".KbbbbbbbbK.", ".KlllllmmbK.", ".KlllllmmbK.", ".KbbbbbbbbK.", "..KmmmmmbK..", "....KmmK....", "...KKKKKK...", "...KihggK...", "...KhggsK...", "....KKKK...."]},
+ can_b:{px:5.5,py:2,tip:[10, 1],art:["........KKK.", "....KKK.KihK", "....KlK.KhgK", "..KKKmKKKmK.", ".KeelllmmbK.", ".KbbbbbbbbK.", ".KlllllmmbK.", ".KlllllmmbK.", ".KlllllmmbK.", ".KbbbbbbbbK.", ".KmmmmmmbbK.", "..KKKKKKKK.."]},
+ can_bt:{px:5.5,py:4,tip:[11, 1],art:["..........KKK", ".........KihK", "........KKhgK", "....KKK.KmKK.", "..KKKlKKmK...", ".KeelllmbK...", ".KbbbbbbbK...", ".KllllllmbK..", ".KllllllmbK..", ".KbbbbbbbbK..", ".KmmmmmmbbK..", "..KKKKKKKK..."]},
  // the watering can side-on, spout to the right (judge: the hand-drawn can reads like its icon; the 3D one read as a gourd),
  // in the icon's greens with its grey rose on the spout; the hand holds the top of the handle
  can:{px:5,py:1,tip:[16.5,4.5],art:["...KKKKK..........", "..KlmmmbK.........", "..Km...Kb.....KKK.", ".KKKKKKKKK...KihK.", "KleelllmmbK..KhgK.", "KelllllmmbK.KlKKK.", "KllllllmmbKKmK....", "KlllllmmmbbmbK....", "KmllllmmmbbbK.....", "KmmmmmmmbbsK......", ".KbbbbbbbsK.......", "..KKKKKKKK........"]}};
@@ -29,7 +35,7 @@ function toolGrade(kind){const T=S.tools||{};
 const TOOL_CACHE=new Map();
 function toolStamp(kind,grade,ang,k,mir){ang=Math.round(ang/3)*3;k=Math.round(k*20)/20;const key=kind+grade+ang+'|'+k+(mir?'m':'');let st=TOOL_CACHE.get(key);if(st)return st;
   const T=TOOL_ART[kind],A=T.art,h=A.length,w=A[0].length,px0=T.px,py0=T.py!==undefined?T.py+.5:h-3.5;const pal=Object.assign({},TOOL_PAL,METAL[grade]||{});
-  if(kind==='can')pal.K=pal.s.map(v=>Math.round(v*.5));   /* the can's outline a darker version of its own colour (LPC rule; judge: near-black sank it) */
+  if(kind.startsWith('can'))pal.K=pal.s.map(v=>Math.round(v*.5));   /* the can's outline a darker version of its own colour (LPC rule; judge: near-black sank it) */
   const th=(ang+90)*Math.PI/180,c=Math.cos(th),s=Math.sin(th),R=Math.ceil(Math.hypot(w,h))+2;const N=2*R+1;
   const cv=document.createElement('canvas');cv.width=N;cv.height=N;const g=cv.getContext('2d');const id=g.createImageData(N,N),D=id.data;
   for(let dy=-R;dy<=R;dy++)for(let dx=-R;dx<=R;dx++){const cnt={};let empty=0;
@@ -61,7 +67,10 @@ function toolOverlay(g,nm,dir,f,ox,oy,layer,o){const m=SPR[nm];const T=m&&m.tool
   /* owner, Nov 10: facing down and up the can pointed sideways. Facing down it turns so the spout points toward the square in
      front of him (to the left of the can at his right hip) and tips down onto it, like facing left; facing up it is held at
      his shoulder with the spout up and away over it */
-  if(kind==='can'){const mir=dir==='W'||dir==='S';const tilt=dir==='W'?-(180-ang):dir==='S'?-(28+ang*.85):dir==='N'?-(65-ang*.4):ang;   /* facing down the spout always aims toward the square in front (judge r5: at rest it was still side-on) */   // the sheet stores the west angle mirrored (180-a)
+  if(kind==='can'&&(dir==='S'||dir==='N')){const nm2=(dir==='S'?'can_f':'can_b')+(ang>25?'t':'');const A=TOOL_ART[nm2];
+    const st=toolStamp(nm2,toolGrade('can'),-90,1,false);g.drawImage(st.cv,gx-st.R,gy-st.R);   // drawn as drawn: the views carry their own tip
+    return [gx+A.tip[0]-A.px,gy+A.tip[1]-A.py];}
+  if(kind==='can'){const mir=dir==='W';const tilt=dir==='W'?-(180-ang):dir==='S'?-(28+ang*.85):dir==='N'?-(65-ang*.4):ang;   /* facing down the spout always aims toward the square in front (judge r5: at rest it was still side-on) */   // the sheet stores the west angle mirrored (180-a)
     const st=toolStamp('can',toolGrade('can'),tilt-90,1,mir);g.drawImage(st.cv,gx-st.R,gy-st.R);
     // the spout's tip, turned with the can
     const CA=TOOL_ART.can,sx0=(mir?-1:1)*(CA.tip[0]-CA.px),sy0=CA.tip[1]-CA.py,r=tilt*Math.PI/180;return [gx+sx0*Math.cos(r)-sy0*Math.sin(r),gy+sx0*Math.sin(r)+sy0*Math.cos(r)];}
