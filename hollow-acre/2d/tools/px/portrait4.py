@@ -296,7 +296,10 @@ class Painter:
             if ty > s.C.get('tip_y', 84) - 22:
                 tip = ribbon(pts[k:], list(widths(len(pts), w)[k:][::max(1, (63 - k) // 4)]) or [1])[0] & whole
                 dz = ribbon(pts[max(0, k - 5):k + 1], [max(w) * .9] * 3)[0] & whole & ~tip
-                tip = tip | (dz & ((np.floor(X) + np.floor(Y)) % 2 == 0))
+                y_lo, y_hi = pts[max(0, k - 5)][1], pts[k][1]; reach = max(2.0, abs(y_hi - y_lo) + 2)
+                ph = s.rng.uniform(0, 6.3)
+                tongue = Y > y_hi - reach * np.clip(np.sin(X * .75 + ph) * 1.3, 0, 1)   # pointed pink tongues into the blonde
+                tip = tip | (dz & tongue)
         out.append(dict(m=whole, L=L, mat=mat, tip=tip, sh=(nrm[0] * 1.0, nrm[1] * 1.0 + .5)))
         return whole
     def hair_lit(s):
@@ -399,7 +402,10 @@ class Painter:
             pts = [(CX - x, y) for x, y in half[::-1]] + [(CX + x, y) for x, y in half] + [(CX + half[-1][0], 60), (CX - half[-1][0], 60)]
             s.neck_half = half; bare = poly(pts)
             for sg in (-1, 1):
-                bare |= poly([(CX + sg * 28.5, 60), (CX + sg * 28.5, 92 + o), (CX + sg * 31, 104 + o), (CX + sg * 38, 113 + o), (CX + sg * 64, 114 + o), (CX + sg * 64, 60)])
+                if s.C.get('armholes'):   # the armhole curves down to the side seam; the arm beyond it is bare
+                    bare |= poly([(CX + sg * 28.5, 60), (CX + sg * 28.5, 92 + o), (CX + sg * 30.5, 104 + o), (CX + sg * 34.5, 113 + o), (CX + sg * 37.5, 121 + o), (CX + sg * 38.5, 140), (CX + sg * 64, 140), (CX + sg * 64, 60)])
+                else:
+                    bare |= poly([(CX + sg * 28.5, 60), (CX + sg * 28.5, 92 + o), (CX + sg * 31, 104 + o), (CX + sg * 38, 113 + o), (CX + sg * 64, 114 + o), (CX + sg * 64, 60)])
             return bare
         elif t in ('tube', 'cami', 'offshoulder'):
             # strapless edges run right across the chest; the shoulders stay bare
@@ -685,8 +691,13 @@ class Painter:
             lo_lip = poly(list(zip(xs, o_bot)) + list(zip(xs[::-1], bot[::-1])))
             opening = poly(list(zip(xs, o_top)) + list(zip(xs[::-1], o_bot[::-1])))
             cv.put(opening, 'mouth', .4 + .3 * sstep(my + op * .6, my + op, Y))
-            th = poly(list(zip(xs * 0 + xs, o_top)) + list(zip(xs[::-1], (o_top + 1.5 + (1.4 if ex == 'wrong' else 0) * (1 - u * u))[::-1])))
-            cv.put(th & opening & (np.abs(X - mx) < hw * .82), 'teeth', .75 - .3 * sstep(hw * .4, hw * .8, np.abs(X - mx)))
+            if C.get('teeth_v1'):   # (kept as it was for a face the owner asked us not to change)
+                th = poly(list(zip(xs * 0 + xs, o_top)) + list(zip(xs[::-1], (o_top + 1.5 + (1.4 if ex == 'wrong' else 0) * (1 - u * u))[::-1])))
+                cv.put(th & opening & (np.abs(X - mx) < hw * .82), 'teeth', .75 - .3 * sstep(hw * .4, hw * .8, np.abs(X - mx)))
+            else:   # one continuous row of upper teeth, clear of the corners (two lone corner teeth read as fangs; judge)
+                band = {'laugh': 2.4, 'wrong': 2.9}.get(ex, 2.0)
+                th = poly(list(zip(xs, o_top - .4)) + list(zip(xs[::-1], (o_top + band * (1 - .3 * u * u))[::-1])))
+                cv.put(th & opening & (np.abs(X - mx) < hw * .7), 'teeth', .78 - .14 * sstep(hw * .3, hw * .7, np.abs(X - mx)))
             if ex == 'laugh': cv.put(ell(mx, my + op - .4, hw * .42, 1.5) & opening, 'tongue', .6)
             if ex == 'wrong':
                 lo_t = poly(list(zip(xs, o_bot - 1.4 * (1 - u * u))) + list(zip(xs[::-1], o_bot[::-1])))
@@ -760,6 +771,11 @@ class Painter:
             if C.get('bangs') == 'blunt':
                 for k in range(8):
                     xx = CX - 17 + k * 4.8; s.lock([(xx + 1, 24), (xx + .6, 36), (xx, 47 + (k % 2) * .8)], [5.2, 5, 4.2], front, tone=.03 - (k % 3) * .03)
+            elif C.get('bangs') == 'curtain_long':
+                for sg in (-1, 1):
+                    s.lock([(PX + sg * 1.0, 21.5), (PX + sg * 9, 25), (CX + sg * 19, 36), (CX + sg * (fw + .5), 60)], [3.5, 7, 5.5, 1.2], front, tone=-.02)
+                    s.lock([(PX + sg * .5, 22), (PX + sg * 5, 28), (CX + sg * 14.5, 40), (CX + sg * (fw - 4), 54)], [3.5, 7.5, 6.5, 1.6], front, tone=.02)
+                    s.lock([(PX + sg * .2, 22.5), (PX + sg * 3, 31), (CX + sg * 10, 44), (CX + sg * 15.5, 52)], [3, 6.5, 5.5, 1.0], front, tone=.06)   # the innermost: down to the top of the frames
             elif C.get('bangs', 'curtain') == 'curtain':
                 for sg in (-1, 1):
                     s.lock([(PX + sg * 1.0, 21.5), (PX + sg * 8, 24.5), (CX + sg * 18.5, 33), (CX + sg * (fw + .5), 58)], [3.5, 7, 5.5, 1.2], front, tone=-.01)
@@ -911,7 +927,11 @@ class Painter:
             else:
                 ax, ay = np.abs(X - ecx), np.abs(Y - ecy - .2)
                 def rr(hw, hh, r): return ((np.maximum(ax - (hw - r), 0) ** 2 + np.maximum(ay - (hh - r), 0) ** 2) <= r * r)
-                o = rr(9.6, 7.0, 3.0); i = rr(8.1, 5.6, 2.2); rings |= o & ~i
+                if kind == 'tall':
+                    ay = np.abs(Y - ecy - 1.2); o = rr(9.4, 8.2, 4.4); i = rr(7.9, 6.8, 3.4)
+                else:
+                    o = rr(9.6, 7.0, 3.0); i = rr(8.1, 5.6, 2.2)
+                rings |= o & ~i
                 arm_x = ecx + sg * 9.5
             cv.put(stroke([(arm_x, ecy - 2.5), (CX + sg * (C.get('face_w', 24.5) + 1), ecy - 3.2)], [1.0, .8]), 'frame', .4)
             gx, gy = ecx - 4.6, ecy - 2.6
@@ -928,9 +948,10 @@ class Painter:
             elif kind == 'hoop':
                 cv.put(ell(lx, ly + 3.4, 2.9, 3.6) & ~ell(lx, ly + 3.4, 1.8, 2.5) & (Y > ly), 'metal', .72 - .2 * (X > lx))
             elif kind == 'stars':
-                for (sx_, sy_, r) in ((lx, ly, 1.9), (lx + sg * 1.4, ly - 6.2, 1.3)):
+                big = C.get('star_r', 1.9)
+                for (sx_, sy_, r) in ((lx, ly + (1 if big > 2 else 0), big), (lx + sg * 1.4, ly - 6.2, big * .68)):
                     pts = [(sx_ + (r if k % 2 == 0 else r * .45) * math.cos(k * math.pi / 5 - math.pi / 2), sy_ + (r if k % 2 == 0 else r * .45) * math.sin(k * math.pi / 5 - math.pi / 2)) for k in range(10)]
-                    cv.put(poly(pts), 'metal', .75)
+                    cv.put(poly(pts), 'metal', (.75 - .3 * (Y > sy_ + .3)) if big > 2 else .75)
                 cv.put(ell(lx + sg * .8, ly - 2.8, .8, .8), 'metal', .6)
     def necklace(s):
         C, cv = s.C, s.cv; kind = C.get('necklace')
@@ -944,9 +965,15 @@ class Painter:
             for k in range(0, 400, 26):
                 px_, py_ = pts[k]; cv.put(ell(px_, py_, .95, .95), 'acc2', .5 + .35 * G(px_ - .35, py_ - .35, .45, .45))
         elif kind == 'cord':
-            pts = bez([(CX - 9.0, 89 + BO), (CX - 5.5, 103.5 + BO), (CX + 5.5, 103.5 + BO), (CX + 9.0, 89 + BO)], 40)
-            cv.put(ribbon(pts, [.6, .7, .7, .6])[0], 'cord', .4)
-            cv.put(ell(CX, 105.4 + BO, 1.1, 1.4), 'metal', .7)
+            if C.get('cord_v'):
+                by = C['cord_v'] + BO
+                for sg in (-1, 1):
+                    cv.put(ribbon(bez([(CX + sg * 9.2, 89 + BO), (CX + sg * 7.4, 97 + BO), (CX + sg * 3, by - 2.5), (CX, by)], 24), [.6, .7, .7, .6])[0], 'cord', .4)
+                cv.put(ell(CX, by + 1.3, 1.2, 1.3), 'metal', .42 + .25 * G(CX - .5, by + .8, .6, .6))
+            else:
+                pts = bez([(CX - 9.0, 89 + BO), (CX - 5.5, 103.5 + BO), (CX + 5.5, 103.5 + BO), (CX + 9.0, 89 + BO)], 40)
+                cv.put(ribbon(pts, [.6, .7, .7, .6])[0], 'cord', .4)
+                cv.put(ell(CX, 105.4 + BO, 1.1, 1.4), 'metal', .7)
     def vein(s):
         vx, vy = CX + s.C.get('face_w', 25) + 1, 27
         for k in range(4):   # four bent bars around an empty centre: the cartoon mark for a throbbing temple
