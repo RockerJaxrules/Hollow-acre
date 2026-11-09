@@ -23,7 +23,7 @@ LIGHT = Vector((-.75, -.35, .55)).normalized()   # from the upper left and a lit
 
 # ---------------------------------------------------------------- palette (dark -> light; hue-shifted, our own)
 PAL = {
-    'pumpkin': ['#1a0a0c', '#341410', '#542414', '#70361a', '#8a4624', '#a86034'],   # last: a small specular   # a rotting pumpkin: brown and plum, never candy; only the glow is bright
+    'pumpkin': ['#2a100e', '#4e1e12', '#723418', '#8e4a22', '#b06a34'],   # four crisp tones; the last is a small highlight   # a rotting pumpkin: brown and plum, never candy; only the glow is bright
     'stem':    ['#141a10', '#24301a', '#3a4a24', '#526a30', '#6e8a3c'],
     'coat':    ['#09070b', '#130f18', '#1e1826', '#352b42', '#4f4266'],   # near-black plum: the face is the light, not the coat
     'patch':   ['#140c0c', '#22161a', '#322228', '#423038', '#544048'],
@@ -79,7 +79,7 @@ def toon_material(name, ramp):
         sep = nt.nodes.new('ShaderNodeSeparateXYZ'); nt.links.new(geo.outputs['Normal'], sep.inputs[0])
         v = _math(nt, 'MULTIPLY_ADD', sep.outputs['Z'], -.35, .62)
     else:
-        cr = _ramp(nt, ramp, [0, .26, .46, .64, .82] if len(ramp) == 5 else [0, .24, .42, .6, .78, .94])
+        cr = _ramp(nt, ramp, [0, .3, .52, .74, .93] if name == 'pumpkin' else [0, .26, .46, .64, .82])
         dot = nt.nodes.new('ShaderNodeVectorMath'); dot.operation = 'DOT_PRODUCT'; dot.inputs[1].default_value = LIGHT
         nt.links.new(geo.outputs['Normal'], dot.inputs[0])
         ao = nt.nodes.new('ShaderNodeAmbientOcclusion'); ao.inputs['Distance'].default_value = .3; ao.samples = 8
@@ -91,6 +91,12 @@ def toon_material(name, ramp):
             nz.inputs['Scale'].default_value = 3.2; nz.inputs['Detail'].default_value = 1.0
             nt.links.new(tc.outputs['Object'], nz.inputs['Vector'])
             v = _math(nt, 'ADD', v, _math(nt, 'MULTIPLY_ADD', nz.outputs['Fac'], MOTTLE[name] * 2, -MOTTLE[name]))
+    if name == 'pumpkin':
+        tc = nt.nodes.new('ShaderNodeTexCoord'); sp = nt.nodes.new('ShaderNodeSeparateXYZ'); nt.links.new(tc.outputs['Object'], sp.inputs[0])
+        ang = _math(nt, 'ARCTAN2', sp.outputs['Y'], sp.outputs['X'])
+        rib = _math(nt, 'COSINE', _math(nt, 'MULTIPLY', ang, 8.0))
+        groove = _math(nt, 'LESS_THAN', rib, -.82)   # 1 in the groove
+        v = _math(nt, 'MULTIPLY', v, _math(nt, 'MULTIPLY_ADD', groove, -.42, 1.0))
     nt.links.new(v, cr.inputs['Fac'])
     nt.links.new(cr.outputs['Color'], em.inputs['Color']); nt.links.new(em.outputs[0], out.inputs['Surface'])
     return m
@@ -153,7 +159,7 @@ def pumpkin(r, mats, mouth_open=0.0):
         eye = [(cx - sx * r * .34, -r * .02), (cx + sx * r * .3, r * .1), (cx + sx * r * .04, r * .62)]
         if sx > 0: eye = list(reversed(eye))
         cuts.append(prism('eye', eye, Y0, Y1, mats['flesh']))
-    w = r * (.86 - .3 * mouth_open); top = -r * (.2 - .1 * mouth_open); bot = -r * (.64 + mouth_open * .3)
+    w = r * (.86 - .3 * mouth_open); top = -r * (.2 - .1 * mouth_open); bot = -r * min(.64 + mouth_open * .3, .8)
     mouth = [(-w, top + r * .12), (-w * .62, top - r * .02), (-w * .45, top), (-w * .45, top - r * .1), (-w * .2, top - r * .1), (-w * .2, top + r * .02),
              (w * .2, top + r * .02), (w * .2, top - r * .1), (w * .45, top - r * .1), (w * .45, top), (w * .62, top - r * .02), (w, top + r * .12),
              (w * .7, bot + r * .12), (w * .32, bot), (w * .32, bot + r * .1), (w * .05, bot + r * .1), (w * .05, bot), (-w * .32, bot), (-w * .32, bot + r * .1),
@@ -164,12 +170,12 @@ def pumpkin(r, mats, mouth_open=0.0):
         try: bo.material_mode = 'TRANSFER'
         except Exception: pass
         c.hide_render = True
-    candle = ball('candle', (0, 0, -r * .1), r * .82, mats['glow'], (1.05, 1.05, .9))
+    candle = ball('candle', (0, 0, -r * .1), r * (.7 if mouth_open > .3 else .82), mats['glow'], (1.05, 1.05, .9))
     if mouth_open > .3:   # screaming: the mouth gapes dark, only its rim lit
-        maw = prism('maw', [(x * .8, z * .8 + top * .2 + bot * .2) for x, z in reversed(mouth)], -r * 1.0, -r * .9, mats['void']); cuts_extra = [maw]
+        maw = prism('maw', [(x * .62, z * .78 + (top + bot) * .11) for x, z in reversed(mouth)], -r * .84, -r * .76, mats['void']); cuts_extra = [maw]
     else: cuts_extra = []
-    stem = segment('stem', (0, 0, r * .62), (.06, .03, r * 1.12), .08, .05, mats['stem'], 6)
-    return [o, candle, stem] + cuts + cuts_extra
+    stem = segment('stem', (0, 0, r * .62), (.07, .03, r * 1.1), .1, .07, mats['stem'], 6); stem2 = segment('stem', (.07, .03, r * 1.1), (.17, .05, r * 1.18), .07, .04, mats['stem'], 6)
+    return [o, candle, stem, stem2] + cuts + cuts_extra
 
 
 def coat(top, bot, r_top, r_bot, mats, sway=0.0, seed=1):
@@ -187,7 +193,7 @@ def coat(top, bot, r_top, r_bot, mats, sway=0.0, seed=1):
         fold = 1 + .13 * math.sin(ang * 7 + 1.3) * down
         v.co.x *= fold; v.co.y *= fold * .74
         if v.co.z < 0:   # the hem: torn into points, swinging with the stride
-            v.co.z += R.uniform(-.14, .06) - (.32 * R.random() if R.random() < .3 else 0); v.co.x += sway * .3 * down
+            v.co.z += R.uniform(-.14, .06) - (.32 * R.random() if R.random() < .3 else 0); v.co.x += sway * .9 * down; v.co.y += abs(sway) * .4 * down
     for f in bm.faces:
         c = f.calc_center_median()
         if abs(math.atan2(c.y, c.x) + math.pi / 2) < step * .6 and abs(c.x) < .2: f.material_index = 1
@@ -228,7 +234,7 @@ def _walk_legs(t, P, lift):
     for side, ph in (('L', 0), ('R', math.pi)):
         sw = math.sin(t * 2 * math.pi + ph); up = max(0, math.cos(t * 2 * math.pi + ph))   # the leg swinging forward lifts
         x = -.16 if side == 'L' else .16
-        P['leg' + side] = [(x, 0, HIP + lift), (x, -sw * .3 - up * .12, HIP * .52 + up * .2), (x, -sw * .5, .02 + up * .3)]
+        P['leg' + side] = [(x, 0, HIP + lift), (x * (1 + up * .9), -sw * .3 - up * .2, HIP * .52 + up * .42), (x * (1 + up * .5), -sw * .45, .02 + up * .55)]
 
 
 def _stand_legs(P, front=0.0, back=0.0):
@@ -253,7 +259,8 @@ def pose(t, clip, side_view=False):
         for side, ph in (('L', 0), ('R', math.pi)):
             x = -.16 if side == 'L' else .16; asw = -math.sin(t * 2 * math.pi + ph) * .5; wsw = -math.sin(t * 2 * math.pi + ph - .7) * .58
             P['arm' + side] = [SH(x, lift), (x * 3.5, asw * .4 - .04, 2.48 + lift), (x * 4.3, wsw, 1.56 + lift + abs(wsw) * .12)]
-        P.update(sway=lag(.9) * .16, head_tilt=lag(.6) * 6 - 3, bob=lift, pitch=5 + c * c * 2, head_pitch=6 + lag(1.0) * 4)
+        P.update(sway=lag(.9) * .2, head_tilt=lag(.6) * 7 - 3, bob=lift, pitch=5 + c * c * 2, head_pitch=6 + lag(1.0) * 4,
+                 jit=-math.sin(t * 2 * math.pi) * .07, roll=math.sin(t * 2 * math.pi) * 4)
     elif clip == 'idle':
         br = s * .03; _stand_legs(P)
         for side in ('L', 'R'):
@@ -263,7 +270,7 @@ def pose(t, clip, side_view=False):
     elif clip == 'crawl':   # on all fours like a spider: a hunched hump of coat, the head low in front looking at you,
                             # four long limbs with their knees and elbows up above the back, feet on one ground line
         P.update(pitch=45, drop=1.35, head_pitch=85, face_pitch=-140, head_tilt=s * 7, coat=(HIP + .8, HIP - .35, .28, .45), neck=.15, sleeves=False,
-                 shift=.45 if side_view else .25, hump=True, limb=1.7, face_world=True)
+                 shift=.55 if side_view else .25, hump=True, limb=1.7, face_world=True)
         sp = .5 if side_view else 1.0   # how far the limbs splay sideways (from the side, splay is depth, and crossing lines)
         for side, ph in (('L', 0), ('R', math.pi)):
             x = -1 if side == 'L' else 1
@@ -271,7 +278,7 @@ def pose(t, clip, side_view=False):
             P['leg' + side] = [(x * .16, .15, HIP - 1.35), (x * (.42 if side_view else .62) * sp, .45, 2.05 + up * .1), (x * .5 * sp, (.85 if side_view else .95) - sw * .12, .02 + up * .14)]
             swa, upa = -sw, max(0, -math.cos(t * 2 * math.pi + ph))   # each arm moves with the opposite leg
             if side_view:   # from the side the front legs arch up over the head and come down in front of it
-                P['arm' + side] = [(x * .3, 0, HIP + .75), (x * .4, -1.35 + swa * .05, 2.2 + upa * .1), (x * .4, -1.85 - swa * .1, .4 + upa * .12)]
+                P['arm' + side] = [(x * .3, 0, HIP + .75), (x * .4, -1.5 + swa * .05, 2.35 + upa * .1), (x * .4, -2.0 - swa * .1, .4 + upa * .12)]
             else:
                 P['arm' + side] = [(x * .3, 0, HIP + .75), (x * .82, -.25 + swa * .05, 1.8 + upa * .1), (x * .8, -.05 - swa * .1, .4 + upa * .12)]
         P['bob'] = abs(c) * .03
@@ -308,17 +315,20 @@ def build(clip, t, yaw):
     mats = {k: toon_material(k, v) for k, v in PAL.items()}
     P = pose(t, clip, side_view=int(yaw) % 180 == 90); objs = []
     hipv = Vector((0, 0, HIP))
-    T = Matrix.Translation((0, 0, -P['drop'])) @ Matrix.Translation(hipv) @ Matrix.Rotation(math.radians(P['pitch']), 4, 'X') @ Matrix.Translation(-hipv)
+    T = Matrix.Translation((0, 0, -P['drop'])) @ Matrix.Translation(hipv) @ Matrix.Rotation(math.radians(P['pitch']), 4, 'X') @ Matrix.Rotation(math.radians(P.get('roll', 0)), 4, 'Y') @ Matrix.Translation(-hipv)
     for side in ('L', 'R'):
         J = P['leg' + side]; ft = J[-1]
         for k in range(len(J) - 1):
-            objs.append(segment('leg', J[k], J[k + 1], (.06 - .01 * k) * P['limb'], (.05 - .01 * k) * P['limb'], mats['stick'], 8))
-            if k: objs.append(ball('knee', J[k], .07 - .005 * k, mats['stick']))
-        objs.append(ball('foot', (ft[0], ft[1] - .08, ft[2] + .03), .09, mats['stick'], (1, 1.9, .65)))
+            objs.append(segment('leg', J[k], J[k + 1], (.065 - .012 * k) * P['limb'], (.042 - .012 * k) * P['limb'], mats['stick'], 8))
+            if k: objs.append(ball('knee', J[k], (.085 - .01 * k) * P['limb'] ** .5, mats['stick']))
+        objs.append(ball('foot', (ft[0], ft[1] - .03, ft[2] + .03), .07, mats['stick'], (1, 1.2, .7)))
+        for a_ in (-.5, 0, .5):   # three long toes, splayed
+            tip = Vector(ft) + Vector((math.sin(a_) * .17, -math.cos(a_) * .2, -.01))
+            objs.append(segment('toe', Vector(ft) + Vector((0, -.04, .03)), tip, .03, .012, mats['stick'], 5))
         sh, el, wr = P['arm' + side]; sh, el, wr = T @ Vector(sh), Vector(el), Vector(wr)
         if P['sleeves']:   # the sleeve runs all the way down; only the hand shows
             cuff = wr - (wr - el).normalized() * .08
-            objs += [segment('sleeve', sh, el, .11, .09, mats['coat'], 10), ball('elbow', el, .09, mats['coat']),
+            objs += [segment('sleeve', sh, el, .105, .095, mats['coat'], 10), ball('elbow', el, .094, mats['coat']),
                      segment('sleeve', el, cuff, .09, .115, mats['coat'], 10), segment('wrist', cuff, wr, .04, .04, mats['stick'], 6)]
             dn = (wr - el).normalized(); sd = dn.cross(Vector((0, 1, 0))).normalized()
             for k, (o_, L) in enumerate(((-.07, .22), (.06, .14))):   # torn strips hanging off the cuff

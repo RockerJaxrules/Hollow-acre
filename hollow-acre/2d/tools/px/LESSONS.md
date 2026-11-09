@@ -102,6 +102,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   clumps with shine bands, clothing seams, belts and buttons, a defined jaw. Body proportions and the face must be
   drilled on their own before any character is redone.
 
+- [walk r1 5/10 vs 4/10 at the Stardew bar] The walk lives in the arms: each hand swings against its leg, clear of the
+  hip (side: 5-6 px ahead and behind; front: the forward hand drops in front of the body and moves in, the back one
+  rises and tucks). A run is not a fast walk: lean held through every frame, the free foot tucked up behind on the
+  passing frames, bent arms pumping (fist at the chest, then driven back), a bigger stride and bob. Hair, hats and
+  hair accessories follow the head a frame late. An idle needs a visible breath and a blink.
+
 ## Creatures in Blender (the Hollow, tools/blender/hollow3d.py) [blind judge rounds 1-4]
 
 - [hollow r1] A smooth toon render beside a drawn sprite looks bright and plain: match the old sprite's palette values

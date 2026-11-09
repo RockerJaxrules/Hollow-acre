@@ -417,23 +417,34 @@ function human(dir,pose){const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1,back=
       headFront(ux,hy,back,pose);
       if(!up&&!(back&&pose.reach))arms();}});
   into('beard',()=>beard(ux,hy+(pose.nod?1:0),side?(fl>0?'E':'W'):dir,fl,C.beard===true?'full':C.beard));
-  into('hair',()=>{TIPY=hy+(C.tipDy||6);hairInfo=side?hairSide(ux,hy,fl,C.hairStyle||'short',pose):hairFront(ux,hy,back,C.hairStyle||'short',pose);});
+  into('hair',()=>{const hy2=hy+(pose.hairLag||0);TIPY=hy2+(C.tipDy||6);hairInfo=side?hairSide(ux,hy2,fl,C.hairStyle||'short',pose):hairFront(ux,hy2,back,C.hairStyle||'short',pose);});
   const hairTop=hairInfo?hairInfo.top:null;
-  into('acc',()=>acc(ux,hy,side?(fl>0?'E':'W'):dir,fl,C.accessory,top,hairTop));
+  const hyL=hy+(pose.hairLag||0);   // what sits on the hair moves with the hair
+  into('acc',()=>acc(ux,['headband','bow','flower'].includes(C.accessory)?hyL:hy,side?(fl>0?'E':'W'):dir,fl,C.accessory,top,hairTop));
   into('glasses',()=>{if(C.glasses)glasses(ux,hy+(pose.nod?1:0),side?(fl>0?'E':'W'):dir,fl,C.glasses);});
-  into('hat',()=>hat(ux,hy,side?(fl>0?'E':'W'):dir,fl,C.hat,hairTop));
+  into('hat',()=>hat(ux,hyL,side?(fl>0?'E':'W'):dir,fl,C.hat,hairTop));
   // under a hat, the hair above the brim is hidden by the hat (it used to peek round the crown)
   if(C.hat){const L=LY.hair,by=hy-4+(pose.nod?1:0);for(let y=0;y<by;y++)for(let x=0;x<L.w;x++){const i=(y*L.w+x)*4;if(L.d[i+3]){const hl=LY.hat;if(!(hl.d[i+3])||y<by-1)L.d[i+3]=0;}}}
   into('toolf',()=>{if(pose.tool)pose.tool(ux,top);});}
 // ---------------------------------------------------------------- poses per clip
 // the walk: Stardew's four beats (contact, pass, contact, pass) spread over our eight frames
 function walkPose(f,dir,run){const pose={};if(f===0)return pose;const side=dir==='E'||dir==='W',back=dir==='N',fl=dir==='W'?-1:1;
-  const ph=(f-1)/8*Math.PI*2,c=Math.cos(ph),s=Math.sin(ph);const S=run?(KID?3:4):(KID?2:3);
-  pose.bob=Math.abs(c)<.5?(run?-2:-1):0;if(run)pose.lean=2;
-  if(side){const a=Math.round(c*S),b=-a;const liftA=s>0?Math.round(s*(run?3:2)):0,liftB=s<0?Math.round(-s*(run?3:2)):0;pose.legs=[[a,liftA],[b,liftB]];
-    const A=run?1.1:.9;pose.hands=[[Math.round(-b*A)*fl,(run?6:9)-Math.round(Math.abs(b)*.3)],[Math.round(-a*A)*fl,(run?6:9)-Math.round(Math.abs(a)*.3)]];}
-  else{const sg=back?-1:1;const st=run?3:2;const dL=Math.round(c*st);pose.legs=[sg*dL,-sg*dL];
-    pose.sway=0;const ay=run?7:10,sw=Math.round(c*(run?3:2));pose.hands=[[sw<0?-1:0,ay-sw*sg],[sw>0?1:0,ay+sw*sg]];}
+  const ph=(f-1)/8*Math.PI*2,c=Math.cos(ph),s=Math.sin(ph);const S=run?(KID?4:5):(KID?2:3);
+  const bobAt=g=>{if(g<1)return 0;const cc=Math.cos((g-1)/8*Math.PI*2);return Math.abs(cc)<.5?(run?-2:-1):(run&&Math.abs(cc)>.92?1:0);};
+  pose.bob=bobAt(f);pose.hairLag=bobAt(f===1?8:f-1)-pose.bob;   // the hair follows the head a frame late
+  if(run){pose.lean=3;pose.nod=side?0:1;}
+  if(side){const a=Math.round(c*S),b=-a;const liftA=s>0?Math.round(s*(run?4:2)):0,liftB=s<0?Math.round(-s*(run?4:2)):0;
+    const tuck=(d,l)=>run&&l>2?d-2:d;pose.legs=[[tuck(a,liftA),liftA],[tuck(b,liftB),liftB]];if(run&&Math.abs(c)<.5)pose.crouch=1;
+    // each arm swings against its leg, well clear of the hip: forward and a little up, back and straight
+    const A=run?1.5:2.0,base=run?6:9;const hand=k=>{let dx=Math.round(-k*A);const fwd=dx>0;
+      if(run)return fwd?[Math.min(dx,4)*fl,base-3-Math.min(2,Math.round(dx*.4))]:[Math.round(dx*.9)*fl,base+1];   // a bent arm pumping: fist at the chest, then driven back
+      return [dx*fl,base-(fwd?Math.round(Math.abs(k)*.5):0)];};
+    pose.hands=[hand(b),hand(a)];}
+  else{const sg=back?-1:1;const st=run?4:2;const dL=Math.round(c*st);pose.legs=[sg*dL,-sg*dL];pose.sway=0;
+    // seen from the front, the arm swinging forward drops in front of the body and moves in toward the middle;
+    // the one swinging back rises and tucks behind (from behind, the reverse)
+    const ay=run?6:10,amp=run?4:4;const hand=(fw,inward)=>{const k=fw*amp;const y=ay+Math.round(sg*(k>0?k:k*.6));const x=k>0?Math.round(k*(run?.25:.5))*inward:Math.round(k*(run?.15:.3))*-inward;return [x,y];};
+    pose.hands=[hand(-c,1),hand(c,-1)];}
   return pose;}
 // planting and harvesting: bend, kneel, reach into the soil in front, press it in, rise, stand
 function plantPose(f,dir){const pose={},side=dir==='E'||dir==='W',back=dir==='N',fl=dir==='W'?-1:1;if(f===0||f===5)return pose;const kneel=f===2||f===3;
@@ -450,7 +461,7 @@ ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
   const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1;let pose={};
   if(clip==='walk')pose=walkPose(f,dir,false);
   if(clip==='run')pose=walkPose(f===0?1:f,dir,true);
-  if(clip==='idle'){pose.bob=[0,0,-1,0][f];}
+  if(clip==='idle'){pose.bob=[0,1,1,0][f];pose.hairLag=[0,-1,0,1][f];pose.blink=f===3;}
   if(clip==='thrust'&&TOOL){const kind=TOOL;const e=toolEntry(kind,dir,f);const T=toolHands(kind,dir,f);
     if(kind==='can'){pose.crouch=f>=3&&f<=6?1:0;pose.lean=f>=3&&f<=6?1:0;}else{pose.crouch=SW_CROUCH[f];pose.bob=SW_BOB[f];pose.lean=SW_LEAN[f];}
     if(side&&kind!=='can')pose.legs=[[-2,0],[3,0]];
