@@ -143,7 +143,7 @@ function torsoFront(cx,top,hip,back){const half=6+WIDE;
 function skirtFront(cx,hip,back){if(OUT==='longcoat'){const len=KID?5:7;for(let j=0;j<len;j++){const hw=6+(j>>1);for(let u=-hw+1;u<=hw;u++){if(!back&&Math.abs(u-.5)<1.6)continue;p(cx+u,hip+1+j,JK[u<-hw+3?4:u>hw-2?1:u>hw-4?2:3]);}}for(let u=-8;u<=9;u++)p(cx+u,hip+len,JK[0]);}
   if(OUT==='skirt'||OUT==='dress'||C.skirt){const R=OUT==='dress'?shirtAt(0,0)&&SH0:(C.skirt?SKR:PNT);const len=KID?4:6;for(let j=0;j<len;j++){const hw=6+Math.round(j*.6);for(let u=-hw+1;u<=hw;u++){let k=u<-hw+3?4:u>hw-2?1:u>hw-4?2:3;if(j===len-1)k=1;else if(((u+40)%3===0)&&j>0)k=Math.max(2,k-1);p(cx+u,hip+j,(OUT==='dress'?SH0:R)[k]);}}}}
 // side view torso: narrower, chest forward
-function torsoSide(cx,top,hip,fl){const hw=4+WIDE;for(let y=top;y<=hip;y++){const j=y-top;for(let u=-hw-(STOOP?(j<2?2:j<4?1:0):0);u<=hw+(B.has('stout')&&j>=4?(j>=6?2:1):0);u++){const x=cx+u*fl+(fl<0?1:0);let k=u*fl<-hw+1.5?(fl>0?4:1):u*fl>hw-1.5?(fl>0?2:3):3;
+function torsoSide(cx,top,hip,fl){const hw=4+WIDE;for(let y=top;y<=hip;y++){const j=y-top;const back=(STOOP?(j<2?2:j<4?1:0):0)+(j>=1&&j<=3?1:0),front=(B.has('stout')&&j>=4?(j>=6?2:1):0)+(!ALL&&!KID&&j>=2&&j<=4?1:0);for(let u=-hw-back;u<=hw+front;u++){/* a back curve (shoulder blades) and a chest line: not a peg */const x=cx+u*fl+(fl<0?1:0);let k=u*fl<-hw+1.5?(fl>0?4:1):u*fl>hw-1.5?(fl>0?2:3):3;
       if(fl>0){k=u<-2?4:u>2?2:3;}else{k=u>2?4:u<-2?2:3;}if(j===0&&Math.abs(u)>=hw)continue;if(y>=hip-1)k=Math.max(1,k-1);
       let R=shirtAt(x,y);if(OUT==='openshirt'){if(u>=hw)R=EX;}else if(OPENFRONT[OUT]){R=(u>=hw-1&&OUT!=='vest')?shirtAt(x,y):JK;if(OUT==='vest'&&u<hw-1)R=JK;}p(x,y,R[k]);}}   // side on, the open shirt covers all but a sliver of tee at the chest
   if(ALL){for(let j=2;j<=5;j++){const u=hw+1,x=cx+u*fl+(fl<0?1:0);p(x,top+j,shirtAt(x,top+j)[j===2?3:j===5?1:fl>0?2:3]);if(j===3||j===4){const x2=cx+(hw+2)*fl+(fl<0?1:0);p(x2,top+j,shirtAt(x2,top+j)[j===3?2:1]);}}
@@ -404,7 +404,7 @@ function human(dir,pose){const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1,back=
   const H={cx:ux,hy,top0:top};let hairInfo=null;
   into('body',()=>{
     if(side){// far arm and leg first, then the body, then the near leg and arm
-      const L=pose.legs||[[0,0],[0,0]];armTo(shL[0],shL[1],shL[0]+hands[0][0],shL[1]+hands[0][1],true,fl>0?1:-1);
+      const L=pose.legs||[[-1,0],[1,0]];armTo(shL[0],shL[1],shL[0]+hands[0][0],shL[1]+hands[0][1],true,fl>0?1:-1);   // standing side-on: the far leg a pixel back, so two legs read, not one peg
       legSide(cx+Math.round(lean/2),hip,L[0][0],L[0][1],fl,true,crouch);legSide(cx+Math.round(lean/2),hip,L[1][0],L[1][1],fl,false,crouch);
       skirtSide(ux,hip,fl);torsoSide(ux,top,hip,fl);headSide(ux+(STOOP?2*fl:0),hy,fl,pose);
       armTo(shR[0],shR[1],shR[0]+hands[1][0],shR[1]+hands[1][1],false,fl>0?-1:1);}
