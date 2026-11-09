@@ -84,7 +84,7 @@ for t in TOOLS:
     JOBS.append(('farmer' + sfx, dict(BASE, outfit='shirt', pattern='plaid', hairStyle='short'), t or None, 'all'))
     for o in OUTFITS: JOBS.append((f'pl_body_{o}{sfx}', dict(BASE, outfit=o, hairStyle='bald'), t or None, 'body'))
     if t: JOBS.append((f'pl_toolf{sfx}', dict(BASE, hairStyle='bald'), t, 'toolf'))
-for v, t in (('', 'hoe'), ('_can', 'can')):   # head parts follow the head, which moves the same for every swing tool
+for v, t in (('', 'hoe'), ('_can', 'can'), ('_axe', 'axe'), ('_pick', 'pick')):   # head parts follow the head; the axe and pick lean and crouch their own way, so they get their own
     for h in HAIRS: JOBS.append((f'pl_hair_{h}{v}', dict(BASE, hairStyle=h), t, 'hair'))
     for b in BEARDS: JOBS.append((f'pl_beard_{b}{v}', dict(BASE, hairStyle='bald', beard=b), t, 'beard'))
     for h in HATS: JOBS.append((f'pl_hat_{h}{v}', dict(BASE, hairStyle='bald', hat=h), t, 'hat'))

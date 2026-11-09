@@ -309,6 +309,20 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A held thing must show in every direction: the can held out to the side, seeds falling from the hand when
   planting, the sprinkler carried from the hands to the square when setting it down.
 - A water stream is 2 px wide in two blues and ends in a splash. A 1 px dotted line reads as wire.
+- [walk r2-r3] Check the walk's numbers before its pixels: print each frame's legs and hands. Our side walk had each arm
+  swinging WITH its own leg (a pacing gait) and the lifted foot moving backwards (the stance motion); both looked
+  "almost right" at 4x for weeks. The swinging foot is the one travelling back to front.
+- [walk r3] The rise and fall moves at most 1 px between neighbouring frames (0,+1,0,-1 repeating over the 8 frames);
+  a 3 px step from the low frame to the passing frame reads as a hop.
+- [walk r3] Side arms swing about the body's middle, not about each shoulder, or one step swings 2 px less than the
+  other and the walk limps. Use a pendulum (the hand rises as it swings out) so the arm never stretches.
+- [walk r3] The passing foot must trail 3-4 px behind the planted shin and lift 3-4 px, or its boot merges into the
+  planted boot and reads as a kink in the shin.
+- [plant/grab r2] The target square is a whole tile from the feet, beyond the hands' reach. Lean the body in toward
+  it (up to 12 px sideways, 18 px facing down, almost none facing away so the body doesn't cover the square), and
+  take the hand points from the sheet itself (the generator records them) so things sit in the hands.
+- [code] Never end an inserted line with a // comment in these one-line-per-function files: twice it swallowed the
+  rest of the line (the legs, then a whole function). Use /* */ or put the comment on its own line, then syntax-check.
 
 ## Making minigames (Nov 10: yard 3 -> 6, barn 3 -> 6, installed)
 - A sunny candy palette (bright grass, white tiles, honey wood, blue sky) is the first thing that sinks a scene. Dusk light,
