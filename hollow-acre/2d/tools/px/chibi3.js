@@ -569,6 +569,9 @@ ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
     else if(f===1){pose.elbows=[[-4,-6],[3,4]];pose.hands=[[-6,-12],[-4,-6]];pose.guard=1;}
     else if(f===2){pose.elbows=[[-2,-2],[3,4]];pose.hands=[[-1,-7],[-4,-6]];pose.guard=1;}
     else if(f===3){pose.hands=[[1,-5],[-1,-4]];}
+    /* motion judge r3 (Hob): on broad shoulders both fists at the chin sit level beside the beard and read as a shrug; there
+       the screen-right arm drops out to the hip while the other fist guards the cheek */
+    if(WIDE&&(f===2||f===3)){pose.elbows=null;pose.guard=null;pose.hands=[f===2?[-1,-7]:[1,-5],[2,7]];}
     else if(f===4){pose.hands=[[0,3],[0,4]];}
     else{pose.hands=null;stance(pose,side,dir,fl);}}
   /* spellcast frame 0 is the CARRY pose (motion judge r2, the sprinkler: it must start in his hand, not hang at his hip and
