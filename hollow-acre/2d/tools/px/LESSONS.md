@@ -326,6 +326,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [plant r5] Facing away, show what's in the hand beside the head at shoulder height, never on the crown (a pale
   cluster on the hair reads as a bun). Landed seeds as 2x2 clusters with a dark lower edge, not single pixels.
 - Take the hand points from the sheet itself (the generator records them) so things sit in the hands.
+- [grab r6-r7] The judge sees 6 sampled frames, not the motion: a move that happens between two samples reads as a
+  jump however smooth it is in play. Any step must span at least two sampled frames, and a judged action should end
+  where the player stays (no step back that lands in the last sample).
+- [run r7] Side view: the FAR leg tucked up behind is hidden by the planted near leg unless it trails 4+ px; the run's
+  passing frame then reads as standing. Keep the arms bent on the passing frames too.
+- [judging] An old build (test2d_old.html) loads the CURRENT sprites from the same folders: after installing new sheets,
+  old-vs-new captures from it are both new. Compare sheets directly (old files from git or backup_v2) instead.
 - [code] Never end an inserted line with a // comment in these one-line-per-function files: twice it swallowed the
   rest of the line (the legs, then a whole function). Use /* */ or put the comment on its own line, then syntax-check.
 

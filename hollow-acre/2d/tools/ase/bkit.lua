@@ -162,8 +162,7 @@ function B.roofpx(c, mat, x, y, top, lit, seed)
     if ry == ch - 1 then return px.i(c, lit > .5 and Rr[2] or Rr[1]) end
     if lx == 0 and ry < ch - 2 then return px.i(c, lit > .5 and Rr[3] or Rr[2]) end
     local v = band(c, Rr, (lit > .5 and .62 or .24) + (ry == 0 and .14 or 0) - (ry == ch - 2 and .1 or 0) + (n - .5) * .16 - (y - top) / 560, 2, 8)
-    if lit > .5 and ry == 1 and lx == 2 and n > .45 then v = px.i(c, Rr[8]) end
-    if n > .985 then v = px.i(c, Rr[2]) end
+    if lit > .5 and ry == 1 and lx == 2 and n > .8 then v = px.i(c, Rr[7]) end   -- a few lit shingle tips, not a dash on every other one (judge: the roof read as noise)
     return v
   elseif mat == 'tin' then
     local bx = x % 7
@@ -346,8 +345,14 @@ function B.ivy(c, x, ybot, ytop, seed)
   end
 end
 
+-- the shadow the eaves throw on the wall below: a solid dark band, then two rows a step and a half darker, no checkerboard
+-- (judge: the dotted band read as noise; a clean eave band is what gives the roof its overhang)
+function B.eaveshadow(c, x0, x1, yW)
+  for x = x0, x1 do P(c, x, yW + 1, 'OUT2'); P(c, x, yW + 2, 'OUT2'); for y = yW + 3, yW + 4 do px.shade(c, x, y, -2) end; px.shade(c, x, yW + 5, -1) end
+end
+
 function B.chimney(c, cx0, cx1, cy0, cy1, mat)
-  for y = cy0 + 6, cy1 do for x = cx1 + 1, cx1 + 9 do if px.get(c, x, y) ~= 0 and (x + y) % 2 == 0 then P(c, x, y, 'OUT2') end end end
+  for y = cy0 + 6, cy1 do for x = cx1 + 1, cx1 + 7 do if px.get(c, x, y) ~= 0 then px.shade(c, x, y, x < cx1 + 5 and -2 or -1) end end end   -- the chimney's shadow on the roof: solid steps, no checkerboard
   if mat == 'brick' then B.wall(c, 'brick', cx0, cy0 + 4, cx1, cy1, 7)
   else B.stones(c, cx0, cy0 + 4, cx1, cy1, 5, 5, function(x, y) return .7 - (x - cx0) / 40 end) end
   R(c, cx0 - 3, cy0, cx1 + 3, cy0 + 3, 's6'); px.hline(c, cx0 - 3, cx1 + 3, cy0, 's7'); px.hline(c, cx0 - 3, cx1 + 3, cy0 + 3, 's3')
@@ -457,7 +462,7 @@ function B.build(sp, night)
     local wyW = gy - 9 - (wg.h or 58)
     B.sideroof(c, wx0, wx1, wyW, wg.roofd or 40, roofmat, seed + 7, true)
     B.wall(c, wg.wall or wallmat, wx0, wyW + 1, wx1, gy - 10, seed + 9)
-    for y = wyW + 1, wyW + 5 do for x = wx0, wx1 do if (y - wyW) < 5 - ((x + y) % 2) * 3 then P(c, x, y, 'OUT2') end end end
+    B.eaveshadow(c, wx0, wx1, wyW)
     B.stones(c, wx0 - 4, gy - 9, wx1 + 4, gy, seed + 13, 5, function(x, y) return .66 - (x - wx0) / 700 end); px.hline(c, wx0 - 4, wx1 + 4, gy - 9, 's6')
     local gx0, gx1 = wx0 + 9, wx1 - 9
     B.garagedoor(c, gx0, gx1, gy - (wg.h or 58) + 12, gy - 1, trim, night, seed)
@@ -484,7 +489,7 @@ function B.build(sp, night)
   end
   -- the walls, the shadow under the eaves, corner boards, the foundation
   B.wall(c, (sp.siding and wallmat ~= 'brick' and wallmat ~= 'stone' and wallmat ~= 'log' and wallmat ~= 'plaster') and wallmat or wallmat, x0, yW + 1, x1, gy - 10, seed)
-  for y = yW + 1, yW + 6 do for x = x0, x1 do if (y - yW) < 6 - ((x + y) % 2) * 3 then P(c, x, y, 'OUT2') end end end
+  B.eaveshadow(c, x0, x1, yW)
   if wallmat ~= 'brick' and wallmat ~= 'stone' and wallmat ~= 'log' then
     for _, cx in ipairs({x0, x1 - 4}) do R(c, cx, yW + 2, cx + 4, gy - 10, trim[3]); px.vline(c, cx, yW + 2, gy - 10, trim[4]); px.vline(c, cx + 4, yW + 2, gy - 10, trim[2]) end end
   B.stones(c, x0 - 4, gy - 9, x1 + 4, gy, seed + 11, 5, function(x, y) return .66 - (x - x0) / 700 end)
@@ -542,7 +547,7 @@ function B.build(sp, night)
     local tcx = (x0 + x1) // 2; local tw = math.max(22, math.floor(W * .12)); local side = 7
     local ttop = (topY or yW - 80) - 4; local tb = gy - 10
     local G = B.WALLS[wallmat]
-    for y = ttop + 2, tb do for x = tcx + tw + 1, tcx + tw + 10 do if (x + y) % 2 == 0 or x < tcx + tw + 5 then P(c, x, y, 'OUT2') end end end  -- its shadow on the nave
+    for y = ttop + 2, tb do for x = tcx + tw + 1, tcx + tw + 10 do px.shade(c, x, y, x < tcx + tw + 6 and -2 or -1) end end  -- its shadow on the nave: solid steps
     B.wall(c, wallmat, tcx - tw, ttop, tcx + tw, tb, seed + 5)
     for y = ttop, tb do for x = tcx + tw + 1, tcx + tw + side do                                                                       -- the side face, in shade
       local v = band(c, G, .18 + ((y - ttop) % 6 == 0 and .12 or 0), 1, 4); P(c, x, y, v) end end

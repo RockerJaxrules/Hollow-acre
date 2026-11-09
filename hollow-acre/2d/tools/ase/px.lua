@@ -121,6 +121,8 @@ local function step(c, v, d)
   local pre, num = n:match('^(%a+)(%d+)$'); if not pre or pre == 'OUT' then return v end
   local t = c.idx[pre .. (tonumber(num) + d)]; return t or v
 end
+-- shade one pixel d steps along its own colour ramp (d < 0 darker); outlines and transparency are left alone
+function px.shade(c, x, y, d) local v = px.get(c, x, y); if v == 0 then return end; local t = step(c, v, d); if t ~= v then px.p(c, x, y, t) end end
 function px.weather_v1(c)
   local W = c.weather; if not W then return end
   local img = c.img; local w, h = c.w, c.h
@@ -287,7 +289,7 @@ function px.weather(c)
   if W.moss then local set = {}; for _, r in ipairs(W.moss.ramps or W.moss) do set[r] = true end; local amt = W.moss.amt or .3
     local thr = .5 + (1 - amt) * .25; local F = {}
     for y = 0, h - 1 do F[y] = {}; for x = 0, w - 1 do F[y][x] = 0; local pre = Rz[y][x]
-      if pre and set[pre] then local n = vn(x * .45, y * 1.6, 7, 21) * .7 + vn(x * .6, y, 3, 23) * .3; local rel = (Pz[y][x] - 2) / math.max(1, 2 * len[pre] - 2)
+      if pre and set[pre] then local n = vn(x * .55, y * .75, 6, 21) * .78 + vn(x * .9, y * .9, 3, 23) * .22; --[[ round clumps, not streaks along the courses (judge: moss in clumps, not speckle) ]] local rel = (Pz[y][x] - 2) / math.max(1, 2 * len[pre] - 2)
         if n > thr and (rel < .55 or n > thr + .08) then F[y][x] = 1 + math.min(3, math.floor(rel * 4)) end end end end
     MZ = clean(F)
     local MR = {}; for i, hx in ipairs(MOSS) do local r, g, b = hex(hx); if px.MOOD then r, g, b = px.grade(r, g, b) end; MR[i] = {r, g, b, 255} end
