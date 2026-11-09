@@ -4,9 +4,14 @@ const W=CFG.w,H=CFG.h,N=!!CFG.night;
 const A=layer('art',W,H),B=layer('details',W,H),SHD=layer('shadow',W,H);
 const WD=PAL.wood,ST=PAL.stone,TR=PAL.white,RD=PAL.red,K=CFG.kind;const RK=['#2a2220','#3a302c','#4a3e38','#5e5048'].map(HEX);
 function gs(cx,cy,rx,ry,a){for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++)if(x*x/(rx*rx)+y*y/(ry*ry)<=1)P(SHD,cx+x,cy+y,PAL.out[0],a||70);}
-function planks(L,x0,y0,w,h,R,pw){pw=pw||8;for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const row=Math.floor((y-y0)/pw),off=(row*37)%61,seg=Math.floor((x-x0+off)/44);
-  let k=2+((hsh(seg,row,3)>.6)?1:0)-((hsh(seg,row,4)>.85)?1:0);if((y-y0)%pw===0)k=0;else if((y-y0)%pw===1)k=Math.min(4,k+1);if((x-x0+off)%44===0)k=0;if(hsh(x,y,9)>.985)k=1;P(L,x,y,R[Math.max(0,Math.min(R.length-1,k))]);}}
-function tilesF(L,x0,y0,w,h,R,s){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const i=Math.floor((x-x0)/s),j=Math.floor((y-y0)/s),u=(x-x0)%s,v=(y-y0)%s;let k=(i+j)%2?2:3;if(hsh(i,j,5)>.8)k--;if(u===0||v===0)k=0;else if(u===1||v===1)k=Math.min(R.length-1,k+1);P(L,x,y,R[k]);}}
+function planks(L,x0,y0,w,h,R,pw){pw=pw||8;for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const row=Math.floor((y-y0)/pw),off=Math.floor(hsh(row,7,31)*44),seg=Math.floor((x-x0+off)/44);
+  let k=2+((hsh(seg,row,3)>.55)?1:0);if((y-y0)%pw===0)k=0;else if((y-y0)%pw===1)k=Math.min(4,k+1);if((x-x0+off)%44===0)k=0;
+  // grain as long streaks a step darker along each board, nails in pairs at the board ends (no single dark specks: "too gritty")
+  const v=(y-y0)%pw,u=(x-x0+off)%44;if(v>=3&&v<pw-1&&k>0){const sv=3+Math.floor(hsh(seg,row,20)*(pw-4)),s0=4+Math.floor(hsh(seg,row,21)*14),sl=10+Math.floor(hsh(seg,row,22)*16);if(v===sv&&u>=s0&&u<s0+sl)k=Math.max(1,k-1);
+    const sv2=3+Math.floor(hsh(seg,row,23)*(pw-4));if(pw>=10&&v===sv2&&sv2!==sv&&u>=26&&u<38)k=Math.max(1,k-1);}
+  if(pw>=7&&(u===2||u===41)&&(v===2||v===pw-2))k=1;P(L,x,y,R[Math.max(0,Math.min(R.length-1,k))]);}}
+function tilesF(L,x0,y0,w,h,R,s){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const i=Math.floor((x-x0)/s),j=Math.floor((y-y0)/s),u=(x-x0)%s,v=(y-y0)%s;
+  let c=(i+j)%2?shade(R[3],.92):R[3];if(u===0||v===0)c=R[1];else if(u===1||v===1)c=R[4];P(L,x,y,c);}}   // two close tones, a lit edge, a seam: not a quilt of greys
 function concrete(L,x0,y0,w,h){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const n=hsh(x>>2,y>>2,6)*.6+hsh(x,y,7)*.4;let c=ST[n>.7?3:n<.25?1:2];if(((x-x0)%96===0)||((y-y0)%64===0))c=ST[1];P(L,x,y,c);}
   for(let i=0;i<5;i++){const cx=x0+hsh(i,1,3)*w|0,cy=y0+hsh(i,2,3)*h|0,r=6+hsh(i,3,3)*10|0;for(let y=-r;y<=r;y++)for(let x=-r*1.5;x<=r*1.5;x++){if(x*x/(2.25*r*r)+y*y/(r*r)>1-hsh(cx+x,cy+y,4)*.3)continue;P(L,cx+x,cy+y,PAL.ink[1],150);}}}
 function wallpaper(L,x0,y0,w,h,R,stripe){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){let k=2;const u=(x-x0)%stripe;if(u<2)k=3;if(u===stripe>>1)k=1;if((y-y0)%14===7&&u===stripe>>2)k=3;if(hsh(x>>3,y>>3,8)>.92)k=1;P(L,x,y,R[k]);}}
@@ -20,24 +25,28 @@ function windowW(L,x,y,w,h,arched){rect(L,x-3,y-3,w+6,h+7,TR[3]);frame(L,x-3,y-3
   if(!N)for(let j=0;j<h;j++)P(SHD,x+w+3,y+j,PAL.out[0],40);}
 // ---- every house its own walls, floor and doors (spliced into interior.js before the room shells)
 function damask(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const u=(x-x0)%16,v=(y-y0)%20,dx=Math.abs(u-8),dy=Math.abs(v-10);let k=2;
-  if(dx+dy*.8<6&&dx+dy*.8>3.5)k=3;if(dx+dy*.8<2)k=3;if((u===0||u===15)&&v%4<2)k=1;if(hsh(x,y,3)>.97)k=1;P(L,x,y,R[k]);}}
+  if(dx+dy*.8<6&&dx+dy*.8>3.5)k=3;if(dx+dy*.8<2)k=3;if((u===0||u===15)&&v%4<2)k=1;P(L,x,y,R[k]);}}
 function panelWall(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const u=(x-x0)%40,v=(y-y0)%46;let c=R[2];if(u<3||v<3)c=R[3];if(u===0||v===0)c=R[4];if(u===39||v===45)c=R[1];
   if(u>5&&u<35&&v>5&&v<41){c=R[2];if(u===6||v===6)c=R[1];if(u===34||v===40)c=R[3];if(hsh(x>>1,y>>3,4)>.8)c=R[1];}P(L,x,y,c);}}
 function logWall(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++){const r=Math.floor((y-y0)/11),v=(y-y0)%11;for(let x=x0;x<x0+w;x++){let c=v<2?R[4]:v<5?R[3]:v<9?R[2]:v<10?R[1]:PAL.cream[0];
-  if(hsh(x>>2,r,6)>.86&&v>2&&v<9)c=R[1];if(hsh(x,r,7)>.985)c=R[0];P(L,x,y,c);}}}
+  if(hsh(x>>2,r,6)>.86&&v>2&&v<9)c=R[1];P(L,x,y,c);}}}
 function beadWains(L,x0,y,w,h,C){for(let j=0;j<h;j++)for(let i=0;i<w;i++){let c=C[2];if(i%5===0)c=C[1];if(i%5===1)c=C[3];if(j<3)c=j===0?C[3]:C[2];P(L,x0+i,y+j,c);}hl(L,x0,y-1,w,WD[3]);hl(L,x0,y-2,w,WD[4]);}
 function parquet(L,x0,y0,w,h){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const a=x-x0+y-y0,b=x-x0-(y-y0);const cell=Math.floor(a/12)+Math.floor(b/12);const dir=cell%2;const t=dir?(a%12):(((b%12)+12)%12);
   let c=WD[dir?3:4];if(t===0)c=WD[1];if(t===1)c=WD[dir?4:5];if(hsh(Math.floor(a/12),Math.floor(b/12),5)>.7)c=shade(c,.92);P(L,x,y,c);}}
 function checker(L,x0,y0,w,h,A2,B2){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const i=Math.floor((x-x0)/16),j=Math.floor((y-y0)/16),u=(x-x0)%16,v=(y-y0)%16;let c=(i+j)%2?A2[3]:B2[3];
   if(u===0||v===0)c=shade(c,.85);if(hsh(x>>2,y>>2,8)>.93)c=shade(c,.92);P(L,x,y,c);}}
 function flagstone(L,x0,y0,w,h){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=Math.floor((y-y0)/18),o=(r*13)%27,s=Math.floor((x-x0+o)/(22+(r%3)*4));const u=(x-x0+o)%(22+(r%3)*4),v=(y-y0)%18;
-  const n=hsh(s,r,9);let c=ST[n>.66?4:n>.33?3:2];if(u<2||v<2)c=ST[1];if(u===2||v===2)c=ST[n>.5?5:4];if(hsh(x,y,10)>.96)c=ST[1];P(L,x,y,c);}}
+  const n=hsh(s,r,9);let c=ST[n>.66?4:n>.33?3:2];if(u<2||v<2)c=ST[1];if(u===2||v===2)c=ST[n>.5?5:4];
+  if(hsh(s,r,11)>.62&&u>3&&v>3){const cu=6+Math.floor(hsh(s,r,12)*10),cv=5+Math.floor(hsh(s,r,13)*6),dir=hsh(s,r,14)>.5?1:-1,dv=v-cv;if(dv>=0&&dv<6&&u===cu+dir*Math.floor(dv*.7))c=ST[1];}   // a crack, not specks
+  P(L,x,y,c);}}
 function painted(L,x0,y0,w,h,C){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const row=Math.floor((y-y0)/9),v=(y-y0)%9;let c=C[3];if(v===0)c=C[1];if(v===1)c=C[4];
   const wear=Math.exp(-Math.pow((x-x0-w*.5)/(w*.18),2))*Math.exp(-Math.pow((y-y0-h*.55)/(h*.4),2));if(hsh(x>>2,row,11)<wear*.55-.12)c=hsh(x>>3,row,12)>.5?shade(C[3],.84):WD[4];P(L,x,y,c);}}
 function hexTile(L,x0,y0,w,h,C){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=Math.floor((y-y0)/7),o=r%2?5:0,u=(x-x0+o)%10,v=(y-y0)%7;let c=C[3];
   if(v===0||u===0)c=C[1];if(hsh(Math.floor((x-x0+o)/10),r,13)>.88)c=C[2];if(hsh(Math.floor((x-x0+o)/10),r,14)>.988)c=PAL.slate[3];P(L,x,y,c);}}
-function wideBoards(L,x0,y0,w,h){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const row=Math.floor((y-y0)/14),v=(y-y0)%14,off=(row*53)%97,seg=Math.floor((x-x0+off)/97);let c=PAL.bark[hsh(seg,row,15)>.5?3:2];
-  if(v===0)c=PAL.bark[0];if(v===1)c=PAL.bark[4];if((x-x0+off)%97===0)c=PAL.bark[1];if(hsh(x>>3,y,16)>.9)c=PAL.bark[1];if(hsh(x,y,17)>.985)c=PAL.ink[0];P(L,x,y,c);}}
+function wideBoards(L,x0,y0,w,h){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const row=Math.floor((y-y0)/14),v=(y-y0)%14,off=Math.floor(hsh(row,7,32)*97),seg=Math.floor((x-x0+off)/97);let c=hsh(seg,row,15)>.5?PAL.bark[3]:shade(PAL.bark[3],.9);
+  if(v===0)c=PAL.bark[0];if(v===1)c=PAL.bark[4];const u=(x-x0+off)%97;if(u===0)c=PAL.bark[1];
+  if(v>2&&v<13&&u>4&&u<92&&hsh((x-x0+off)>>4,row*14+v,16)>.93)c=PAL.bark[1];   // grain: 16 px streaks along the board, no specks
+  if((u===3||u===94)&&(v===4||v===10))c=PAL.bark[0];P(L,x,y,c);}}   // nails at the board ends
 // a closed panelled door on the back wall, with its frame, knob, a strip of light under it (or dark, at night)
 function backDoor(L,cx,floorY,C,knob){const w=26,h=56,x=Math.round(cx-w/2),y=floorY-h;rect(L,x-4,y-4,w+8,h+4,TR[4]);frame(L,x-4,y-4,w+8,h+4,TR[5],TR[2]);rect(L,x-2,y-2,w+4,2,TR[3]);
   rect(L,x,y,w,h,C[3]);frame(L,x,y,w,h,C[4],C[1]);for(const [px,py,pw,ph] of [[x+4,y+5,8,18],[x+14,y+5,8,18],[x+4,y+29,8,22],[x+14,y+29,8,22]]){frame(L,px,py,pw,ph,C[1],C[4]);rect(L,px+1,py+1,pw-2,ph-2,C[2]);}

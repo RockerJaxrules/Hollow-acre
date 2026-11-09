@@ -169,6 +169,15 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A round wound reads as a target or an eye; a ragged tear along the flank reads as a wound.
 
 ## Ground tiles (grass, 8 versions, stuck at 5)
+- Forest floor (Nov 10, five drafts): a carpet of separate leaves is confetti at 1x whatever the tones (v3, dense or
+  sparse); raised litter "mats" with lit and shaded rims read as rugs or slabs (v2, v5b: boxy, "crates or dead birds");
+  an even jittered grid of objects reads as "wallpaper with stickers" (v1). What scored best: well-made parts (two-tone
+  pebbles lit top-left, filled tuft clumps, moss with a contact shadow) gathered into drifts of different sizes.
+- A quiet in-tone layer (lying leaf shapes 3-6 px, one step off the soil, placed by Poisson disc with a varying spacing)
+  makes bare ground read as a material without speckle; the same marks on an even spacing read as a lattice.
+- Moss and grass are the brightest, most saturated things on a forest floor: keep them two steps down and olive, or they
+  fight the trees.
+- A brown floor under dark green pines separates them by hue; a green floor under them loses the trees.
 - Anything that appears once per tile marks the repeat: a blob, a dry mound, the biggest clump, a leaf pair. Every
   feature needs siblings of the same weight elsewhere in the tile, or must be too faint to find.
 - Tuft rims round a tone patch read as rings or shrubby pads; smooth flat patches read as stains or shadows of
@@ -196,6 +205,15 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   the chest hide it; a stance that differs from the walk flickers (5 vs 4 twice).
 - A laugh has to open: a D-shaped mouth 7 px tall, a little wider than the smile, dark inside, top teeth, tongue at the
   bottom (6 vs 5 in both sets). A 1.6 px taller opening was invisible to two judges.
+
+## Interiors (Nov 10: family 4 -> 5)
+- Light that is drawn OVER the scene (additive beams, floor ovals at the beam ends) reads as see-through stains; put the
+  sun on the FLOOR as a flat hard-edged patch with the window's glazing bars, drawn before the furniture so it covers it.
+- Remove speckle and the next flaw shows: a fixed row offset for plank ends (row*37 % 61) draws diagonal stripes across
+  a room; offsets must be random per row. Three far-apart plank tones read as patchwork; two close tones read as wood.
+- A contact shadow made by squashing the whole silhouette hangs below the foot as a step; centre it on the foot line so
+  most of it hides under the piece.
+- A home without the shop's daytime lighting needs a stronger sun patch, or the room has no visible light source.
 
 ## Outlines, light, colour
 
