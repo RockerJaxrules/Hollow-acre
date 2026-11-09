@@ -54,7 +54,7 @@ BUILDS = {'hale': 'stoop', 'agnes': 'stoop short', 'ezra': 'stoop', 'otto': 'sto
           'ada': 'tall stoop', 'orla': 'stoop', 'corwin': 'stoop', 'hollis': 'broad', 'dunn': 'stout', 'gideon': 'broad tall',
           'silas': 'tall', 'hob': 'broad stout', 'quinn': 'tall', 'moss': 'broad', 'abel': 'stout', 'maud': 'tall', 'vera': 'short'}
 for _k, _b in BUILDS.items(): NPC[_k]['build'] = _b
-STANCES = {'hollis': 'hips', 'hob': 'hips', 'maud': 'hips', 'dunn': 'folded', 'gideon': 'folded', 'abel': 'folded', 'tess': 'folded',
+STANCES = {'hollis': 'hips', 'hob': 'hips', 'maud': 'hips', 'dunn': 'folded', 'gideon': 'folded', 'abel': 'folded', 'tess': 'hips',
            'quinn': 'pockets', 'moss': 'pockets', 'silas': 'pockets', 'vera': 'pockets', 'wes': 'pockets', 'hale': 'behind', 'otto': 'behind',
            'lyle': 'behind', 'ezra': 'behind', 'corwin': 'behind'}
 for _k, _s in STANCES.items(): NPC[_k]['stance'] = _s

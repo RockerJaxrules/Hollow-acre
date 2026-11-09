@@ -382,8 +382,8 @@ class Painter:
             inner = sstep(.15, .85, -u * sg) * sstep(-.55, .35, v)
             cv.add(bm[0 if sg < 0 else 1], 'skin', -.16 * inner)
             cv.add(ell(bx - b * .38, cy - b * .5, b * .3, b * .17) & bm[0 if sg < 0 else 1], 'skin', .08)   # the upper-left highlight
-        cv.add(s.bust_m, 'skin', -.22 * np.exp(-((X - CX - .3) / 1.3) ** 2) * sstep(top + 3, top + 6, Y) * (1 - sstep(top + 9, top + 13, Y)))
-        cv.put(stroke(bez([(CX + .25, top + 5.5), (CX, top + 7.5), (CX + .2, top + 9.5)], 12), [.3, .6, .2]), 'cleave', .5)
+        cv.add(s.bust_m, 'skin', -.16 * np.exp(-((X - CX - .3) / 1.6) ** 2) * sstep(top + 3, top + 6, Y) * (1 - sstep(top + 9, top + 13, Y)))
+        cv.put(stroke(bez([(CX + .25, top + 5.5), (CX, top + 7.5), (CX + .2, top + 9.5)], 12), [.3, .6, .2]), 'cleave', .68)   # one step lighter: on darker skin the darkest step read as a slit
         for sg in (-1, 1):
             cv.add(ribbon(bez([(CX + sg * 3, top + 5.2), (CX + sg * (sep - 3), top - .4), (CX + sg * (sep + 8), top + 3.5)], 30), [.2, 1.0, .3])[0] & s.bust_m, 'skin', .07 if sg < 0 else .03)
 
@@ -399,7 +399,7 @@ class Painter:
         elif t == 'smallv':
             half = bez([(0, 105 + o), (4, 100 + o), (8, 95 + o), (11.5, 89 + o)], 20)
         elif t == 'plunge':
-            half = bez([(0, 122 + o), (5, 112 + o), (11, 100 + o), (14.5, 90 + o)], 24)
+            half = bez([(0, 124 + o), (8.5, 115 + o), (15, 102 + o), (16.5, 90 + o)], 24)   # a wide plunge: the cleavage shows as soft forms, not a thin wedge (owner)
         elif t == 'deepscoop':
             half = bez([(0, 119.5 + o), (9, 118.5 + o), (19.5, 111 + o), (23, 92 + o)], 30)
         elif t == 'tank':   # a tank top: a scoop at the front, straps, bare shoulders and arms
@@ -983,7 +983,7 @@ class Painter:
         C, cv = s.C, s.cv; kind = C.get('necklace')
         if not kind: return
         if kind == 'chain':
-            dy = -2.2 if C.get('allure') else 0   # the young women: the chain sits higher so the pendant never covers the cleavage (owner)
+            dy = -5.0 if C.get('allure') else 0   # the young women: the chain sits at the base of the neck so the pendant never covers the cleavage (owner)
             pts = bez([(CX - 9.2, 90 + BO), (CX - 6, 105.5 + BO + dy), (CX + 6, 105.5 + BO + dy), (CX + 9.2, 90 + BO)], 40)
             cv.put(ribbon(pts, [.6, .75, .75, .6])[0], 'metal', .55 + .2 * (X < CX))
             cv.put(ell(CX, 107.6 + BO + dy, 1.5, 2.0), 'metal', .45 + .4 * G(CX - .6, 106.8 + BO + dy, .8, .8))
