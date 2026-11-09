@@ -152,7 +152,7 @@ function noteDrawables(D){if(S.readLetter||S.room)return;D.push({z:-9.38,mind:1,
 {const css=document.createElement('style');css.textContent=`#hotbar{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;gap:4px;z-index:6}
   #hotbar .slot{width:44px;height:44px;position:relative;padding:0;border:0;background:#3a2414;box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 4px #8a5a2a,inset 0 0 0 6px #5a3818;image-rendering:pixelated;cursor:pointer}
   #hotbar .slot img{width:32px;height:32px;image-rendering:pixelated;position:absolute;left:6px;top:6px}#hotbar .slot.on{box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 4px #f0a040,inset 0 0 0 6px #b8602a}
-  #hotbar .slot b{position:absolute;right:4px;bottom:2px;font:10px/1 'Pixelify Sans',monospace;color:#f4e4c0;text-shadow:1px 1px 0 #000}#hotbar .slot i{position:absolute;left:4px;top:3px;font:8px/1 monospace;color:#c8a070;font-style:normal}
+  #hotbar .slot b{position:absolute;right:4px;bottom:2px;font:10px/1 'Hollow Pixel',monospace;color:#f4e4c0;text-shadow:1px 1px 0 #000}#hotbar .slot i{position:absolute;left:4px;top:3px;font:8px/1 monospace;color:#c8a070;font-style:normal}
   #btnSeed{display:none!important}`;document.head.appendChild(css);
   const hb=document.createElement('div');hb.id='hotbar';const SL=[['hoe','hoe'],['can','can'],['pick','pick'],['axe','axe'],['seed','seed'],['food','food']];
   hb.innerHTML=SL.map(([k,ic],i)=>`<button class="slot" data-k="${k}" aria-label="${k}"><i>${i+1}</i><img data-ic="${ic}" alt=""><b id="hb_${k}"></b></button>`).join('');$('buttons').appendChild(hb);

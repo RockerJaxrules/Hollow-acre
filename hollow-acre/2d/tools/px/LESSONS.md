@@ -222,6 +222,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   most of it hides under the piece.
 - A home without the shop's daytime lighting needs a stronger sun patch, or the room has no visible light source.
 
+## UI type (Nov 10: our own pixel font, 6 vs 5)
+- One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
+  to none and draw a real bold cut).
+- Pixel type must sit at whole-number multiples of its em grid, and should match the art's pixel size; text smaller than
+  the art's pixel reads as "upscaled" and dim small lines fail the greyscale check.
+- Curly quotes need clear 6 and 9 shapes at 3 px tall, or the opening quote reads as a closing one.
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline

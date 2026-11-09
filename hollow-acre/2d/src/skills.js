@@ -94,7 +94,7 @@ setInterval(skTick,200);
   if(sk&&n>1){const L=skLvl(sk);n=Math.max(1,n-(L>=8&&sk!=='fishing'?2:L>=3?1:0)-(sk==='mining'&&hasProf('excavator')?1:0));}return _sp(n);};}
 
 // ---- the level-up mark: gold pixel letters that rise off your head and fade (drawn over the world, so the light doesn't dim it)
-{const css=document.createElement('style');css.textContent=`.skfloat{position:fixed;z-index:40;pointer-events:none;transform:translate(-50%,-100%);font-family:'Pixelify Sans',monospace;font-size:20px;color:#ffd27a;white-space:nowrap;
+{const css=document.createElement('style');css.textContent=`.skfloat{position:fixed;z-index:40;pointer-events:none;transform:translate(-50%,-100%);font-family:'Hollow Pixel',monospace;font-size:20px;color:#ffd27a;white-space:nowrap;
   text-shadow:2px 0 #1a0e06,-2px 0 #1a0e06,0 2px #1a0e06,0 -2px #1a0e06,2px 2px #1a0e06,0 0 10px rgba(255,200,90,.6);animation:skf 2.6s ease-out forwards}
   .skfloat small{display:block;text-align:center;font-size:12px;color:#fff4c0}@keyframes skf{0%{opacity:0;margin-top:8px}12%{opacity:1;margin-top:0}75%{opacity:1}100%{opacity:0;margin-top:-34px}}`;document.head.appendChild(css);}
 setInterval(()=>{if(!SK_FLOAT.length)return;const f=SK_FLOAT.shift();const r=view.getBoundingClientRect();const x=r.left+sx(P.x)*r.width/VW,y=r.top+(sz(P.z)-58)*r.height/VH;

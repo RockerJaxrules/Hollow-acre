@@ -49,7 +49,7 @@ fishUpdate=function(dt){if(fish.state==='off'||MG.on)return;
 #fishMG .fishi{position:absolute;left:4px;width:28px;height:28px;margin-top:-14px;image-rendering:pixelated}
 #fishMG .reel{position:absolute;right:12px;top:12px;bottom:12px;width:14px;background:#1a0e06;box-shadow:inset 0 0 0 2px #0a0604}
 #fishMG .reel i{position:absolute;left:2px;right:2px;bottom:2px;background:linear-gradient(#f0c040,#e86a2a)}
-#fishMG .hint{position:absolute;bottom:-34px;left:50%;transform:translateX(-50%);white-space:nowrap;font:13px 'Pixelify Sans',monospace;color:#fff4dc;text-shadow:1px 1px 0 #000}
+#fishMG .hint{position:absolute;bottom:-34px;left:50%;transform:translateX(-50%);white-space:nowrap;font:13px 'Hollow Pixel',monospace;color:#fff4dc;text-shadow:1px 1px 0 #000}
 #fishMG.horror .water{background:linear-gradient(#3a0a0a,#120404)}#fishMG.horror .fishi{filter:hue-rotate(160deg) brightness(.8)}`;document.head.appendChild(css);
   const pw=document.createElement('div');pw.id='fishPow';pw.innerHTML='<i></i>';document.body.appendChild(pw);
   setInterval(()=>{pw.style.display=fish.state==='power'?'block':'none';pw.firstChild.style.height=(fish.power*74)+'px';},33);}

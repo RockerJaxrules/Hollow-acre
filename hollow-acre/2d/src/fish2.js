@@ -135,8 +135,8 @@ function fishDraw(g,tip,X,Y,t){const now=performance.now();
 // ---------- the catch game: a carved gauge with water, your bar, the fish, a reel and sometimes a chest
 {const css=document.createElement('style');css.textContent=`#fishMG{background:rgba(6,10,14,.28)}#fishMG .frame{display:none}
 #fishMG .fg{position:absolute;left:calc(50% + 40px);top:50%;transform:translateY(-62%);image-rendering:pixelated;filter:drop-shadow(0 4px 0 rgba(0,0,0,.45))}
-#fishMG .fhint{position:absolute;left:50%;bottom:9%;transform:translateX(-50%);white-space:nowrap;font:14px 'Pixelify Sans',monospace;color:#fff4dc;text-shadow:1px 1px 0 #000,0 0 6px #000}
-#fishCard{position:fixed;left:50%;top:12%;transform:translateX(-50%) scale(.6);opacity:0;z-index:61;display:flex;gap:10px;align-items:center;padding:8px 14px 8px 8px;background:#f2e2bc;color:#3a2410;font:14px 'Pixelify Sans',monospace;
+#fishMG .fhint{position:absolute;left:50%;bottom:9%;transform:translateX(-50%);white-space:nowrap;font:14px 'Hollow Pixel',monospace;color:#fff4dc;text-shadow:1px 1px 0 #000,0 0 6px #000}
+#fishCard{position:fixed;left:50%;top:12%;transform:translateX(-50%) scale(.6);opacity:0;z-index:61;display:flex;gap:10px;align-items:center;padding:8px 14px 8px 8px;background:#f2e2bc;color:#3a2410;font:14px 'Hollow Pixel',monospace;
   box-shadow:0 0 0 3px #5a3418,0 0 0 6px #b8823c,0 0 0 9px #3a2410,0 8px 0 9px rgba(0,0,0,.35);transition:transform .22s cubic-bezier(.3,1.6,.5,1),opacity .2s;pointer-events:none}
 #fishCard.on{transform:translateX(-50%) scale(1);opacity:1}#fishCard canvas{width:64px;height:64px;image-rendering:pixelated;background:#d8c49a;box-shadow:inset 0 0 0 2px #a8865a}
 #fishCard b{font-size:17px;display:block}#fishCard .q{color:#8a6a2a}#fishCard .new{display:inline-block;background:#d84a2a;color:#fff4dc;padding:0 5px;margin-left:6px;font-size:12px;vertical-align:2px}`;document.head.appendChild(css);

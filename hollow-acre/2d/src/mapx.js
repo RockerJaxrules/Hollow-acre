@@ -70,9 +70,9 @@ function mapPaint(){const s=MAPX.s,pad=MAPX.pad,W=Math.round((B.x1-B.x0)*s),H=Ma
   // compass rose
   {const cx=c.width-pad-62,cy=c.height-pad-62,r=40;g.save();g.translate(cx,cy);g.fillStyle='rgba(232,214,170,.88)';g.beginPath();g.arc(0,0,r+8,0,Math.PI*2);g.fill();g.strokeStyle='#4a2e14';g.lineWidth=2;g.stroke();
     for(let k=0;k<8;k++){const a=k*Math.PI/4,L=k%2?r*.55:r;g.fillStyle=k%2?'#8a6a3a':(k===0?'#9a2a1a':'#4a2e14');g.beginPath();g.moveTo(Math.sin(a)*L,-Math.cos(a)*L);g.lineTo(Math.sin(a+.25)*8,-Math.cos(a+.25)*8);g.lineTo(Math.sin(a-.25)*8,-Math.cos(a-.25)*8);g.closePath();g.fill();}
-    g.fillStyle='#4a2e14';g.font='bold 13px Georgia,serif';g.textAlign='center';g.fillText('N',0,-r-12);g.restore();}
+    g.fillStyle='#4a2e14';g.font='bold 10px "Hollow Pixel",monospace';g.textAlign='center';g.fillText('N',0,-r-12);g.restore();}
   // title cartouche
-  {const t='The Valley of Marrow Hollow';g.font='italic bold 22px Georgia,serif';const tw=g.measureText(t).width+44,tx=pad+18,ty=pad+16;g.fillStyle='rgba(232,214,170,.92)';g.fillRect(tx,ty,tw,38);g.strokeStyle='#4a2e14';g.lineWidth=2;g.strokeRect(tx,ty,tw,38);g.strokeRect(tx+4,ty+4,tw-8,30);
+  {const t='The Valley of Marrow Hollow';g.font='bold 20px "Hollow Pixel",monospace';const tw=g.measureText(t).width+44,tx=pad+18,ty=pad+16;g.fillStyle='rgba(232,214,170,.92)';g.fillRect(tx,ty,tw,38);g.strokeStyle='#4a2e14';g.lineWidth=2;g.strokeRect(tx,ty,tw,38);g.strokeRect(tx+4,ty+4,tw-8,30);
     g.fillStyle='#3a2210';g.textAlign='left';g.fillText(t,tx+22,ty+26);}}
   return c;}
 // ---- labels never sit on each other: each tries its spot, then above, below, to the side; a pin marks the real spot when it moves.
@@ -95,7 +95,7 @@ function mapLive(g,base){const s=MAPX.s,pad=MAPX.pad,X=x=>pad+(x-B.x0)*s,Y=z=>pa
   if(tg&&isFinite(tg.x)&&isFinite(tg.z)&&tg.x<250){const x=X(tg.x),y=Y(tg.z);g.save();g.translate(x,y);g.fillStyle='#ffd040';g.strokeStyle='#5a2a08';g.lineWidth=2;g.beginPath();
     for(let k=0;k<10;k++){const a=k*Math.PI/5-Math.PI/2,r=k%2?4:10;g.lineTo(Math.cos(a)*r,Math.sin(a)*r);}g.closePath();g.fill();g.stroke();g.restore();}
   if(typeof others==='function')for(const p of others()){const q=p.presence;if(!q||q.r)continue;g.fillStyle='#4ab0e8';g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.arc(X(q.x),Y(q.z),5,0,Math.PI*2);g.fill();g.stroke();
-    g.font='bold 11px Georgia,serif';g.textAlign='center';g.lineWidth=3;g.strokeStyle='rgba(240,226,190,.9)';g.strokeText(clean(q.n),X(q.x),Y(q.z)-9);g.fillStyle='#123a5a';g.fillText(clean(q.n),X(q.x),Y(q.z)-9);}}
+    g.font='bold 10px "Hollow Pixel",monospace';g.textAlign='center';g.lineWidth=3;g.strokeStyle='rgba(240,226,190,.9)';g.strokeText(clean(q.n),X(q.x),Y(q.z)-9);g.fillStyle='#123a5a';g.fillText(clean(q.n),X(q.x),Y(q.z)-9);}}
 // ---- the screen
 {const c=document.createElement('style');c.textContent=`
 #mapWrap{position:relative;overflow:auto;max-height:min(64vh,620px);-webkit-overflow-scrolling:touch;background:#2a1a0c;box-shadow:inset 0 0 0 3px #5a3418;touch-action:pan-x pan-y}

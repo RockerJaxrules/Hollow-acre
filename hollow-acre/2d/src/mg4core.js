@@ -55,9 +55,9 @@ function mg4Ambience(scene){const M=MAMB[scene]||MAMB.workshop;const bed=MS.loop
   radial-gradient(circle at 9px calc(100% - 9px),#fff2c8 0 1px,#e8c060 1px 3px,#5a3418 3px 4px,transparent 4px),radial-gradient(circle at calc(100% - 9px) calc(100% - 9px),#fff2c8 0 1px,#e8c060 1px 3px,#5a3418 3px 4px,transparent 4px),
   repeating-linear-gradient(90deg,#7a4a20 0 4px,#6a3e1a 4px 5px,#7e4e22 5px 9px,#6a3e1a 9px 10px);
   box-shadow:0 0 0 3px #1a0e06,0 0 0 6px #b8823c,0 0 0 9px #3a2410,0 12px 0 9px rgba(0,0,0,.4),inset 0 2px 0 #b8823c,inset 0 -2px 0 #4a2a10}
-#mg4 .t{background:#f2e2bc;color:#3a2410;font:18px 'Pixelify Sans',monospace;padding:3px 16px;box-shadow:0 0 0 2px #5a3418,0 0 0 4px #b8823c,0 0 0 6px #3a2410,0 4px 0 6px rgba(0,0,0,.3)}
+#mg4 .t{background:#f2e2bc;color:#3a2410;font:18px 'Hollow Pixel',monospace;padding:3px 16px;box-shadow:0 0 0 2px #5a3418,0 0 0 4px #b8823c,0 0 0 6px #3a2410,0 4px 0 6px rgba(0,0,0,.3)}
 #mg4 canvas{width:min(94vw,880px,calc((100vh - 170px)*16/9));aspect-ratio:16/9;image-rendering:pixelated;touch-action:none;cursor:pointer;background:#1a110a;box-shadow:0 0 0 2px #1a0e06,0 0 0 4px #4a2a10,0 0 0 6px #b8823c,0 0 0 8px #1a0e06}
-#mg4 .h{color:#fff4dc;text-shadow:1px 1px 0 #000;background:rgba(26,14,6,.6);padding:4px 12px;box-shadow:0 0 0 1px #4a2a10;font:13px 'Pixelify Sans',monospace;text-align:center;max-width:min(94vw,880px)}
+#mg4 .h{color:#fff4dc;text-shadow:1px 1px 0 #000;background:rgba(26,14,6,.6);padding:4px 12px;box-shadow:0 0 0 1px #4a2a10;font:13px 'Hollow Pixel',monospace;text-align:center;max-width:min(94vw,880px)}
 #mg4 .h b{color:#ffd27a}#mg4 .row{display:flex;gap:8px}`;document.head.appendChild(css);
   const d=document.createElement('div');d.id='mg4';d.innerHTML='<div class="box"><div class="t" id="mg4T"></div><canvas id="mg4C" width="320" height="180"></canvas><div class="h" id="mg4H"></div><div class="row"><button class="close" id="mg4Skip">Skip</button></div></div>';document.body.appendChild(d);}
 // ---------------------------------------------------------------- the kit: drawing, text, particles, judging
