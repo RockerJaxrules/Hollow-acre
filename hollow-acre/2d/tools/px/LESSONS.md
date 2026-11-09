@@ -10,6 +10,9 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   game): it counts as an 8, anything that looks amateur next to it is 5 at most. Measured: our crops ran lum 8-133 (mean
   75) where the reference runs 37-211 (mean 133), so "darker, moodier" had turned into mud. Crops keep a full value range;
   the game's lighting supplies the mood.
+- "only use strict judge for crops, don't use it for anything else unless I say so" (Nov 10): the reference-calibrated
+  strict judge (outside-art set = 8, amateur next to it = 5 at most) is for CROPS ONLY. Every other family keeps the
+  normal blind judge: install at 6+ and preferred over the old art (owner-rule exceptions as before).
 - "our turnip one is better, that's the only one though" (Nov 10, on the strict-palette set vs the reference): the turnip
   (spoon leaves with a pale midrib and crinkled edge, a domed purple shoulder, a curved purple cap with a taproot) is the
   standard to keep; pumpkin and corn still fall short of the reference and need reworking.
