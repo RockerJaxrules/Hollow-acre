@@ -9,7 +9,8 @@ import bpy, bmesh
 from mathutils import Vector, Matrix
 from bpy_extras.object_utils import world_to_camera_view
 
-TIN = {'s': (26, 58, 34), 'b': (44, 94, 52), 'm': (70, 136, 74), 'l': (118, 186, 108), 'e': (176, 222, 160)}
+TIN = {'s': (26, 49, 37), 'b': (38, 71, 50), 'm': (55, 97, 62), 'l': (75, 123, 75), 'e': (103, 151, 93),   # the can icon's greens (owner: match the icon)
+       'g': (70, 73, 83), 'h': (134, 138, 147), 'i': (215, 216, 218)}                                          # its grey rose
 ORDER = 'sbmle'
 LIGHT = Vector((-0.55, -0.45, 0.70)).normalized()   # top, slightly left and toward us
 FW = FH = 24
@@ -53,29 +54,31 @@ def seg(a, b, r0, r1, m, parent, verts=12):
 
 def build():
     M, D = mat('tin', stops=(0, .42, .7, .93), order='bmle'), mat('inside', True)
+    G = mat('rose', stops=(0, .45, .85), order='ghi')
     HM = mat('handle', stops=(0, .5), order='sb')   # the handle a step darker than the lid it crosses
     root = bpy.data.objects.new('can', None); bpy.context.scene.collection.objects.link(root)
     bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=.92, depth=1.4, location=(0, 0, .7)); b = bpy.context.active_object
     b.data.materials.append(M); bpy.ops.object.shade_smooth(); b.parent = root
     # the opening: a dark disc just inside the rim, and a rolled rim
     # a lidded top with a small fill hole at the back: an open top read as two eyes with the handle across it
-    bpy.ops.mesh.primitive_cylinder_add(vertices=12, radius=.2, depth=.04, location=(-.45, 0, 1.43)); o = bpy.context.active_object; o.data.materials.append(D); o.parent = root
+    bpy.ops.mesh.primitive_cylinder_add(vertices=20, radius=.62, depth=.04, location=(0, 0, 1.42)); o = bpy.context.active_object; o.data.materials.append(D); o.parent = root   # the icon's dark opening
     bpy.ops.mesh.primitive_torus_add(major_radius=.85, minor_radius=.1, location=(0, 0, 1.4)); o = bpy.context.active_object; o.data.materials.append(M); bpy.ops.object.shade_smooth(); o.parent = root
     # the spout: from low on the body up and out along +x, ending in a rose (a short wide cone, the holes facing out)
-    seg((.7, 0, .35), (2.0, 0, 1.45), .26, .16, M, root)
+    seg((.7, 0, .35), (2.0, 0, 1.45), .24, .17, M, root)
     tip = Vector((2.0, 0, 1.45)); dirv = (tip - Vector((.7, 0, .35))).normalized()
-    seg(tip - dirv * .05, tip + dirv * .3, .18, .36, M, root)
-    rose = tip + dirv * .3
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=12, ring_count=8, radius=.34, location=tip + dirv * .22); o = bpy.context.active_object
+    o.data.materials.append(G); bpy.ops.object.shade_smooth(); o.parent = root   # the icon's round grey rose
+    rose = tip + dirv * .4
     # the handle: an arch over the top from the back of the rim toward the front
     pts = [(-.95 + 1.55 * t, 0, 1.4 + 1.0 * math.sin(math.pi * t)) for t in [i / 12 for i in range(13)]]
-    for p, q in zip(pts, pts[1:]): seg(p, q, .17, .17, HM, root, 10)
+    for p, q in zip(pts, pts[1:]): seg(p, q, .2, .2, M, root, 10)   # the handle in the body's green, as on the icon
     grip = Vector((-.17, 0, 1.4 + 1.0))
     return root, rose, grip
 
 def camera():
-    cam = bpy.data.cameras.new('cam'); cam.type = 'ORTHO'; cam.ortho_scale = 5.5
+    cam = bpy.data.cameras.new('cam'); cam.type = 'ORTHO'; cam.ortho_scale = 4.3
     o = bpy.data.objects.new('cam', cam); bpy.context.scene.collection.objects.link(o); bpy.context.scene.camera = o
-    el = math.radians(40)   # the game's 3/4 view: looking down 40 degrees, from the front (-y)
+    el = math.radians(20)   # upright things in this game are drawn nearly side-on with a little top showing (like the icons)
     o.location = (0, -20 * math.cos(el), 20 * math.sin(el) + .7); o.rotation_euler = (math.radians(90) - el, 0, 0)
     return o
 
