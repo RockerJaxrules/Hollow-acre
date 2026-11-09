@@ -190,7 +190,7 @@ def coat(top, bot, r_top, r_bot, mats, sway=0.0, seed=1):
         a0 = math.atan2(v.co.y, v.co.x) + step / 2; rr = math.hypot(v.co.x, v.co.y); v.co.x, v.co.y = rr * math.cos(a0), rr * math.sin(a0)
     for v in bm.verts:
         ang = math.atan2(v.co.y, v.co.x); down = .5 - v.co.z / H      # 0 at the collar, 1 at the hem
-        fold = 1 + .13 * math.sin(ang * 7 + 1.3) * down
+        fold = 1 + (.12 * math.sin(ang * 3 + 1.3) + .05 * math.sin(ang * 5 + .4)) * down
         v.co.x *= fold; v.co.y *= fold * .74
         if v.co.z < 0:   # the hem: torn into points, swinging with the stride
             v.co.z += R.uniform(-.14, .06) - (.32 * R.random() if R.random() < .3 else 0); v.co.x += sway * .9 * down; v.co.y += abs(sway) * .4 * down
@@ -258,8 +258,10 @@ def pose(t, clip, side_view=False):
         lag = lambda ph: math.sin(t * 2 * math.pi - ph)
         for side, ph in (('L', 0), ('R', math.pi)):
             x = -.16 if side == 'L' else .16; asw = -math.sin(t * 2 * math.pi + ph) * .5; wsw = -math.sin(t * 2 * math.pi + ph - .7) * .58
-            P['arm' + side] = [SH(x, lift), (x * 3.5, asw * .4 - .04, 2.48 + lift), (x * 4.3, wsw, 1.56 + lift + abs(wsw) * .12)]
-        P.update(sway=lag(.9) * .2, head_tilt=lag(.6) * 7 - 3, bob=lift, pitch=5 + c * c * 2, head_pitch=6 + lag(1.0) * 4,
+            fwd = max(0, -wsw) / .58   # 1 when this hand is swung fully forward (toward -y)
+            P['arm' + side] = [SH(x, lift), (x * 3.5, asw * .4 - .04, 2.48 + lift), (x * 4.3 * (1 - .3 * fwd), wsw, 1.56 + lift + abs(wsw) * .12 - .1 * fwd)]
+        lift_prev = abs(math.cos((t - .125) * 2 * math.pi)) * .13 - .03
+        P.update(sway=lag(.9) * .2, head_tilt=lag(.6) * 7 - 3, bob=lift, pitch=5 + c * c * 2, head_pitch=6 + lag(1.0) * 4, head_lag=(lift_prev - lift) * .9,
                  jit=-math.sin(t * 2 * math.pi) * .07, roll=math.sin(t * 2 * math.pi) * 4)
     elif clip == 'idle':
         br = s * .03; _stand_legs(P)
@@ -275,7 +277,7 @@ def pose(t, clip, side_view=False):
         for side, ph in (('L', 0), ('R', math.pi)):
             x = -1 if side == 'L' else 1
             sw = math.sin(t * 2 * math.pi + ph); up = max(0, math.cos(t * 2 * math.pi + ph))
-            P['leg' + side] = [(x * .16, .15, HIP - 1.35), (x * (.42 if side_view else .62) * sp, .45, 2.05 + up * .1), (x * .5 * sp, (.85 if side_view else .95) - sw * .12, .02 + up * .14)]
+            P['leg' + side] = [(x * .16, .15, HIP - 1.35), (x * (.42 if side_view else .62) * sp, -.05 if side_view else .45, (1.9 if side_view else 2.05) + up * .1), (x * .5 * sp, (.85 if side_view else .95) - sw * .12, .02 + up * .14)]
             swa, upa = -sw, max(0, -math.cos(t * 2 * math.pi + ph))   # each arm moves with the opposite leg
             if side_view:   # from the side the front legs arch up over the head and come down in front of it
                 P['arm' + side] = [(x * .3, 0, HIP + .75), (x * .4, -1.5 + swa * .05, 2.35 + upa * .1), (x * .4, -2.0 - swa * .1, .4 + upa * .12)]
@@ -319,28 +321,27 @@ def build(clip, t, yaw):
     for side in ('L', 'R'):
         J = P['leg' + side]; ft = J[-1]
         for k in range(len(J) - 1):
-            objs.append(segment('leg', J[k], J[k + 1], (.065 - .012 * k) * P['limb'], (.042 - .012 * k) * P['limb'], mats['stick'], 8))
-            if k: objs.append(ball('knee', J[k], (.085 - .01 * k) * P['limb'] ** .5, mats['stick']))
-        objs.append(ball('foot', (ft[0], ft[1] - .03, ft[2] + .03), .07, mats['stick'], (1, 1.2, .7)))
-        for a_ in (-.5, 0, .5):   # three long toes, splayed
-            tip = Vector(ft) + Vector((math.sin(a_) * .17, -math.cos(a_) * .2, -.01))
-            objs.append(segment('toe', Vector(ft) + Vector((0, -.04, .03)), tip, .03, .012, mats['stick'], 5))
+            r0 = (.062 if k == 0 else .046 - .008 * (k - 1)) * P['limb']; r1 = (.044 if k == 0 else .022) * P['limb']
+            objs.append(segment('leg', J[k], J[k + 1], r0, r1, mats['stick'], 8))
+            if k: objs.append(ball('knee', J[k], .05 * P['limb'], mats['stick']))   # a knuckle, not a bead
+        heel = Vector(ft) + Vector((0, .06, .03)); toe = Vector(ft) + Vector((0, -.26, .0))   # a long bony foot, pointed, flat on the ground
+        objs.append(segment('foot', heel, toe, .045, .012, mats['stick'], 6))
         sh, el, wr = P['arm' + side]; sh, el, wr = T @ Vector(sh), Vector(el), Vector(wr)
         if P['sleeves']:   # the sleeve runs all the way down; only the hand shows
             cuff = wr - (wr - el).normalized() * .08
-            objs += [segment('sleeve', sh, el, .105, .095, mats['coat'], 10), ball('elbow', el, .094, mats['coat']),
+            objs += [segment('sleeve', sh, el, .105, .095, mats['coat'], 10), ball('elbow', el, .088, mats['coat']),
                      segment('sleeve', el, cuff, .09, .115, mats['coat'], 10), segment('wrist', cuff, wr, .04, .04, mats['stick'], 6)]
             dn = (wr - el).normalized(); sd = dn.cross(Vector((0, 1, 0))).normalized()
             for k, (o_, L) in enumerate(((-.07, .22), (.06, .14))):   # torn strips hanging off the cuff
                 a_ = cuff + sd * o_; objs.append(segment('rag', a_, a_ + dn * L + Vector((0, 0, -.04)), .035, .008, mats['coat'], 4))
         else:              # torn away: bare stick arms
-            L_ = P['limb']; objs += [segment('upper', sh, el, .07 * L_, .05 * L_, mats['stick'], 8), ball('elbow', el, .065 * L_, mats['stick']), segment('fore', el, wr, .05 * L_, .04 * L_, mats['stick'], 8),
+            L_ = P['limb']; objs += [segment('upper', sh, el, .065 * L_, .042 * L_, mats['stick'], 8), ball('elbow', el, .048 * L_, mats['stick']), segment('fore', el, wr, .042 * L_, .022 * L_, mats['stick'], 8),
                      segment('rag', sh, sh + (el - sh) * .3, .12, .08, mats['coat'], 8)]
         objs += hand(wr, wr - el, mats, P['spread'])
     top, bot, rt, rb = P['coat'] or (3.45, 1.35 + P['bob'], .24, .56)
     torso = coat(top, bot, rt, rb, mats, P['sway'])
     if P['hump']: torso.append(ball('hump', (0, .1, HIP + .35), .58, mats['coat'], (1.1, .9, 1.0)))
-    neck_base = Vector((0, 0, top - .05 + P['bob'])); neck_top = neck_base + Vector((0, 0, P['neck']))
+    neck_base = Vector((0, 0, top - .05 + P['bob'])); neck_top = neck_base + Vector((0, 0, P['neck'] + P.get('head_lag', 0)))   # the head settles a beat late
     torso.append(segment('neck', neck_base, neck_top, .075, .055, mats['stick'], 8))
     r = .5; head = pumpkin(r, mats, P['mouth'])
     piv = bpy.data.objects.new('headpivot', None); bpy.context.scene.collection.objects.link(piv); piv.location = neck_top
