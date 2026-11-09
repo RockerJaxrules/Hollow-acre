@@ -305,11 +305,11 @@ class Painter:
     def hair_lit(s):
         if getattr(s, '_hl', None) is not None: return s._hl
         C = s.C; hc = C.get('hair_c', (63, 44)); hr = C.get('hair_r', 34)
-        lit = sphere_lit(hc[0], hc[1], hr, hr * 1.12, flat=.9, amb=.36, k=.44)
+        lit = sphere_lit(hc[0], hc[1], hr, hr * 1.12, flat=.9, amb=C.get('hair_amb', .36), k=.44)
         lit = lit - .09 * sstep(68, 124, Y)
         d = np.sqrt((X - hc[0] + 2) ** 2 + ((Y - hc[1]) * 1.05) ** 2)
         sr = C.get('sheen_r', 22.0)
-        sheen = .36 * np.exp(-((d - sr) / 1.7) ** 2) * sstep(56, 30, Y) * (1 - .6 * sstep(58, 92, X))
+        sheen = C.get('sheen_amp', .36) * np.exp(-((d - sr) / 1.7) ** 2) * sstep(56, 30, Y) * (1 - .6 * sstep(58, 92, X))
         if C.get('style') in ('long', 'wavy'):
             sheen = sheen + .2 * np.exp(-((Y - 76 - 2.5 * np.sin(X * .25)) / 2.2) ** 2) * (1 - .5 * sstep(CX, CX + 30, X))
         s._hl = lit + sheen
@@ -725,6 +725,14 @@ class Painter:
     # ------------------------------------------------------------ hairstyles: lists of locks, back to front
     def mass(s, mask, out, d=-.16):
         hl = s.hair_lit(); out.append(dict(m=mask, L=hl + d + .05 * np.sin(X * 1.25 + 2.2 * np.sin(Y * .09)), mat='hair', tip=None, sh=None, mass=True))
+    def hair_hem(s, xr, xl, hend):
+        """the bottom edge of long hair, right to left: flat by default; with hair_end set, tapered points of uneven length"""
+        if 'hair_end' not in s.C: return [(xr, hend), (xl, hend)]
+        pts = []; n = 9
+        for j in range(n + 1):
+            x = xr + (xl - xr) * j / n
+            pts.append((x, hend + (3.5 + 2.5 * math.sin(j * 2.3)) if j % 2 == 0 else hend - 5))
+        return pts
     def hairline_cap(s, out, hl_pts):
         """the hair covering the skull above a hairline (pulled-back styles)"""
         xs = np.array([p[0] for p in hl_pts]); ys = np.array([p[1] for p in hl_pts]); o = np.argsort(xs)
@@ -738,7 +746,7 @@ class Painter:
         if st in ('long', 'wavy', 'braids'):
             if st != 'braids':
                 m = poly([(CX - fw - 5.5 - vol * .5, 44)] + [(CX + (fw + 5.5 + vol * .5) * math.cos(a), 49 - 33 * math.sin(a)) for a in np.linspace(math.pi, 0, 30)] +
-                         [(CX + fw + 5.5 + vol * .5, 44), (CX + fw + 7 + vol, 80), (CX + fw + 10 + vol * 1.4, C.get('hair_end', 129)), (CX - fw - 10 - vol * 1.4, C.get('hair_end', 129)), (CX - fw - 7 - vol, 80)])
+                         [(CX + fw + 5.5 + vol * .5, 44), (CX + fw + 7 + vol, 80)] + s.hair_hem(CX + fw + 10 + vol * 1.4, CX - fw - 10 - vol * 1.4, C.get('hair_end', 129)) + [(CX - fw - 7 - vol, 80)])
                 s.mass(m, back)
                 for sg in (-1, 1):
                     for j in range(4):
