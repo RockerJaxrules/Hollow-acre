@@ -51,6 +51,54 @@ for _ in range(2):
                 if nb: new[y][x] = nb.most_common(1)[0][0]
     rows = new
 def hsh(a, b): return (a * 73856093 ^ b * 19349663) % 97
+# 1a. one dome lit from the top-left (judge, three rounds: "a pile of balls, each lobe with its own full highlight"):
+#     the top two steps survive only toward the crown's top-left; further right or lower they step down one or two
+if leaf and conf.get('hi_zone', True) and conf.get('tufts', True) and len(leaf) >= 5:
+    pts = [(x, y) for y in range(H) for x in range(W) if rows[y][x] in leaf]
+    if pts:
+        x0 = min(p[0] for p in pts); x1 = max(p[0] for p in pts); y0 = min(p[1] for p in pts); y1 = max(p[1] for p in pts)
+        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2; rx, ry = max(1, (x1 - x0) / 2), max(1, (y1 - y0) / 2)
+        for (x, y) in pts:
+            c = rows[y][x]; i = leaf.index(c)
+            if i < len(leaf) - 2: continue
+            d = (x - cx) / rx * .62 + (y - cy) / ry * .78   # how far toward the shaded bottom-right
+            if d > .55: rows[y][x] = leaf[max(0, i - 2)]
+            elif d > .12: rows[y][x] = leaf[i - 1]
+# 1b. the lit zone stays clean (judge: "each clump's lit top one clean shape with 2-3 placed highlight leaves"): shards
+#     of the top steps under lit_merge pixels melt into their clump, then a majority pass rounds the lit shapes off
+LM = conf.get('lit_merge', 0)
+if leaf and LM:
+    lit = leaf[-3:]
+    for _ in range(3):
+        for c, comp in components():
+            if c not in lit or len(comp) >= LM: continue
+            nb = Counter(at(x + dx, y + dy) for x, y in comp for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                         if at(x + dx, y + dy) in leaf and at(x + dx, y + dy) != c)
+            if nb:
+                r = nb.most_common(1)[0][0]
+                for x, y in comp: rows[y][x] = r
+    for _ in range(2):
+        new = [r[:] for r in rows]
+        for y in range(1, H - 1):
+            for x in range(1, W - 1):
+                c = rows[y][x]
+                if c not in lit: continue
+                nb = Counter(at(x + dx, y + dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1) if (dx or dy))
+                m, k = nb.most_common(1)[0]
+                if m != c and m in lit and k >= 5: new[y][x] = m
+        rows = new
+    # 2-3 highlight leaves on each big lit clump, toward its top-left: a small pointed leaf of the top step
+    top = leaf[-1]
+    for c, comp in components():
+        if c != leaf[-2] or len(comp) < 30: continue
+        xs = sorted(comp, key=lambda p: p[0] + p[1])   # top-left first
+        n = 0
+        for (x, y) in xs[len(xs) // 6::max(1, len(xs) // 5)]:
+            if n >= (3 if len(comp) > 80 else 2): break
+            cells = [(x, y), (x + 1, y), (x - 1, y + 1), (x, y + 1), (x + 1, y + 1), (x, y + 2)] if hsh(x, y) % 2 else [(x, y), (x + 1, y), (x + 1, y + 1), (x + 2, y + 1), (x + 1, y + 2)]
+            if all(at(a, b) == c for a, b in cells):
+                for a, b in cells: rows[b][a] = top
+                n += 1
 # 2. leaf shapes on the light/shade borders: a small pointed leaf of the lighter step hanging into the darker one
 #    (3 px wide, 1 px tip), at uneven spacing, never on a lattice; now and then a dark gap biting up into the light
 placed = [[False] * W for _ in range(H)]
@@ -107,6 +155,29 @@ if leaf and conf.get('deep_edge', True):
     for y in range(H):
         for x in range(W):
             if rows[y][x] in leaf and at(x, y + 1) not in leaf: rows[y][x] = deep
+# 3b. the underside is clumps too, not a flat dark skirt (judge): a row of dim clumps along the bottom of the crown,
+#     each with a faint lit top-left and the deepest step only in the gaps between them and along the rim
+if leaf and conf.get('under_clumps', True) and len(leaf) >= 4 and conf.get('tufts', True):
+    bot = {}
+    for x in range(W):
+        ys_ = [y for y in range(H) if rows[y][x] in leaf]
+        if ys_: bot[x] = ys_[-1]
+    dark = (leaf[0], leaf[1])
+    x = min(bot) + 3 if bot else W
+    while x < (max(bot) - 3 if bot else 0):
+        w = 7 + hsh(x, 31) % 9; h = 4 + hsh(x, 32) % 4   # uneven sizes: not a row of piped icing
+        xc = x + w // 2
+        if xc in bot and hsh(x, 34) % 5:   # now and then a gap in the row
+            yc = bot[xc] - h + 1 - hsh(x, 35) % 3
+            for yy in range(yc - h, yc + h + 1):
+                for xx in range(xc - w // 2, xc + w // 2 + 1):
+                    if not (0 <= xx < W and 0 <= yy < H): continue
+                    e = ((xx - xc) / (w / 2)) ** 2 + ((yy - yc) / h) ** 2
+                    if e > 1 or rows[yy][xx] not in dark or at(xx, yy + 1) not in leaf: continue
+                    if e > .72 and yy > yc: rows[yy][xx] = leaf[0]            # the gap under the clump
+                    elif (xx - xc) + (yy - yc) * 1.4 < -1.5: rows[yy][xx] = leaf[2]   # its dim lit top-left
+                    else: rows[yy][xx] = leaf[1]
+        x += max(4, w - 4 + hsh(x, 33) % 6)   # some overlap, some don't
 BS = conf.get('bark_style', 'grooves')
 if bark and BS == 'birch':
     # 6b. birch: pale bark with short dark horizontal marks (lenticels) and a few dark patches
@@ -129,21 +200,25 @@ if bark and BS == 'grooves':
     xs_ = sorted(cols)
     def darker(c): i = bark.index(c); return bark[max(0, i - 1)]
     def lighter(c): i = bark.index(c); return bark[min(len(bark) - 1, i + 1)]
+    TS = sum(ord(ch) * (i + 3) for i, ch in enumerate(conf.get('name', ''))) % 89   # each tree its own bark
     for x in xs_:
         ys_ = cols[x]
         if at(x - 1, ys_[len(ys_) // 2]) not in bark or at(x + 1, ys_[len(ys_) // 2]) not in bark: continue
-        if hsh(x, 1) % 3 == 0:                 # a groove: broken runs of 3-8 px
-            y = ys_[0] + hsh(x, 2) % 4
+        if hsh(x + TS, 1) % 3 == 0:            # a groove: long runs that wander a pixel left or right, not a dashed zipper
+            y = ys_[0] + hsh(x + TS, 2) % 4; gx = x
             while y < ys_[-1] - 1:
-                n = 3 + hsh(x, y) % 6
+                n = 6 + hsh(x + TS, y) % 9
                 for k in range(n):
-                    if at(x, y + k) in bark: rows[y + k][x] = darker(rows[y + k][x])
-                    if hsh(x + k, y) % 3 == 0 and at(x - 1, y + k) in bark and at(x - 2, y + k) in bark:
-                        rows[y + k][x - 1] = lighter(rows[y + k][x - 1])   # a ridge catching the light beside it
-                y += n + 2 + hsh(y, x) % 4
+                    if k and hsh(gx + TS, y + k) % 7 == 0 and at(gx + (1 if hsh(y + k, TS) % 2 else -1), y + k) in bark:
+                        gx += 1 if hsh(y + k, TS) % 2 else -1
+                    if at(gx, y + k) in bark: rows[y + k][gx] = darker(rows[y + k][gx])
+                    if at(gx - 1, y + k) in bark and at(gx - 2, y + k) in bark and hsh(gx + k, y + TS) % 2 == 0:
+                        rows[y + k][gx - 1] = lighter(rows[y + k][gx - 1])   # the ridge beside it catches the light
+                y += n + 1 + hsh(y, x + TS) % 3
     if xs_:                                    # lit edge: the second column from the left, broken
-        for y in cols[xs_[0] + 1] if xs_[0] + 1 in cols else []:
-            if hsh(y, 9) % 4 and at(xs_[0] + 1, y) in bark: rows[y][xs_[0] + 1] = lighter(rows[y][xs_[0] + 1])
+        for y in cols[xs_[0] + 1] if xs_[0] + 1 in cols else []:   # a solid lit edge, and a broken second column
+            if at(xs_[0] + 1, y) in bark: rows[y][xs_[0] + 1] = lighter(rows[y][xs_[0] + 1])
+            if hsh(y, 9 + TS) % 3 == 0 and at(xs_[0] + 2, y) in bark: rows[y][xs_[0] + 2] = lighter(rows[y][xs_[0] + 2])
         kx = xs_[len(xs_) // 2 - 1]; kys = cols[kx]; ky = kys[len(kys) * 3 // 5] if kys else 0
         if kys and all(at(kx + dx, ky + dy) in bark for dx in (-1, 0, 1, 2) for dy in (-1, 0, 1, 2)):
             for dx, dy in ((0, 0), (1, 0), (0, 1), (1, 1)): rows[ky + dy][kx + dx] = bark[0]
@@ -151,9 +226,11 @@ if bark and BS == 'grooves':
 if bark and leaf:
     for x in range(W):
         for y in range(H):
-            if rows[y][x] in bark and at(x, y - 1) in leaf:
-                for k in range(3):
+            if rows[y][x] in bark and at(x, y - 1) in leaf:   # the crown's shadow across the top of the trunk
+                for k in range(3 + hsh(x, 41) % 2):
                     if at(x, y + k) in bark: rows[y + k][x] = bark[0]
+                for k in range(3 + hsh(x, 41) % 2, 7 + hsh(x, 42) % 3):
+                    if at(x, y + k) in bark and bark.index(rows[y + k][x]) > 1: rows[y + k][x] = bark[1]
 # 8. end grain on a cut top (stumps, logs): growth rings round the middle, foreshortened, and one crack
 RG = conf.get('rings')
 if RG:
@@ -193,13 +270,17 @@ if LT:
         dx = (hsh(i, 21) % (2 * LT.get('rx', 30) + 1)) - LT.get('rx', 30); dy = (hsh(i, 22) % (2 * LT.get('ry', 9) + 1)) - LT.get('ry', 9) // 2
         if (dx / LT.get('rx', 30)) ** 2 + (dy / LT.get('ry', 9)) ** 2 > 1: continue
         x, y = bx + dx, by + dy
-        shape = [[(0, 0), (1, 0)], [(0, 0), (1, 0), (1, -1)], [(0, 0), (1, 0), (2, 0), (1, -1)], [(0, 0), (1, 1), (1, 0)]][hsh(i, 23) % 4]
+        shape = [[(1, -1), (2, -1), (0, 0), (1, 0), (2, 0), (3, 0), (1, 1), (2, 1)], [(0, -1), (1, -1), (0, 0), (1, 0), (2, 0), (2, 1), (3, 1)],
+                 [(2, -1), (3, -1), (1, 0), (2, 0), (3, 0), (0, 1), (1, 1)]][hsh(i, 23) % 3]   # 4x3 leaves, two-tone (below)
         if not all(0 <= x + a < W and 0 <= y + b < H and rows[y + b][x + a] in '.s' for a, b in shape): continue
         if any(at(x + a + ex, y + b + ey) not in '.s' for a, b in shape for ex in (-1, 0, 1) for ey in (-1, 0, 1)): continue
         cols = LT.get('cols', 'abcd')     # their own palette letters, so the outline skips them (no ring round a leaf)
         inshade = rows[y][x] == 's'
         c = cols[(hsh(i, 24) % (len(cols) - 1))] if inshade else cols[1 + hsh(i, 24) % (len(cols) - 1)]
         for a, b in shape: rows[y + b][x + a] = c
+        lt = cols[min(len(cols) - 1, cols.index(c) + 1)]; dk = cols[max(0, cols.index(c) - 1)]
+        a0, b0 = min(shape, key=lambda p: p[0] + p[1] * 2); rows[y + b0][x + a0] = lt   # lit top-left
+        a1, b1 = max(shape, key=lambda p: p[0] + p[1] * 2); rows[y + b1][x + a1] = dk   # dark tip
         n += 1
 grid = '\n'.join(''.join(r) for r in rows)
 pal = '\n'.join(f'pal {k} {v}' for k, v in conf['palette'].items())

@@ -74,6 +74,6 @@ shadow; a few fallen leaves.
 - Code-drawn ("math": shapes placed by formulas in tools/ase/*.lua, chibi3.js, portrait code): buildings, props,
   people, item icons, chat portraits. It won every comparison for those.
 - Every new or redrawn math version goes to the judge (the pixel-critic agent, blind, score out of 10, one first fix)
-  and is only swapped in when it beats what is in the game and scores 7+.
+  and is only swapped in when it beats what is in the game and scores 6+ (owner, Nov 9: "allow a 6 to be the requirement").
 - Layouts come before buildings: plan each place (streets, lots, spacing, facing, sight lines) and check the plan in
   the game before drawing or redrawing the buildings that fill it.

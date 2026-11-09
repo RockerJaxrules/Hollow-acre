@@ -116,6 +116,14 @@ def render(scene):
                       sdf_scene(Q + [0, ee, 0], shapes)[0] - sdf_scene(Q - [0, ee, 0], shapes)[0],
                       sdf_scene(Q + [0, 0, ee], shapes)[0] - sdf_scene(Q - [0, 0, ee], shapes)[0]], axis=1)
         n /= np.linalg.norm(n, axis=1)[:, None] + 1e-9
+        dome = scene.get('dome')   # shade a crown as one lit dome: bend each leaf normal toward the crown's envelope
+        dm = np.zeros(len(hp), bool)
+        if dome:
+            dm = np.array([shapes[hid[i]].get('mat') == dome.get('mat', 'leaf') for i in hp])
+            if dm.any():
+                c_ = np.array(dome['c'], float); r_ = np.array(dome['rr'], float); w_ = dome.get('w', .6)
+                ne = (Q[dm] - c_) / (r_ * r_); ne /= np.linalg.norm(ne, axis=1)[:, None] + 1e-9
+                nb = n[dm] * (1 - w_) + ne * w_; n[dm] = nb / (np.linalg.norm(nb, axis=1)[:, None] + 1e-9)
         lam = np.clip(n @ Lt, 0, 1)
         # self-shadow: march toward the light; anything in the way darkens it (shadows between leaf bundles)
         R = Q + n * .6; sh = np.ones(len(hp))
@@ -123,6 +131,8 @@ def render(scene):
             dd, _ = sdf_scene(R, shapes); sh = np.minimum(sh, np.clip(dd * 3, 0, 1)); R = R + Lt[None, :] * np.maximum(dd, .3)[:, None]
         # crease darkening (cheap ambient occlusion)
         ao = np.clip(sdf_scene(Q + n * 1.5, shapes)[0] / 1.5, 0, 1) * .5 + .5
+        if dome and dm.any():   # inside one dome the lumps barely shadow each other: no dark seams between them
+            ks = dome.get('seams', .3); sh[dm] = 1 - (1 - sh[dm]) * ks; ao[dm] = 1 - (1 - ao[dm]) * ks
         mname = {}; hiflag = set(); NRM = {}
         for j, i in enumerate(hp):
             s = shapes[hid[i]]; m = s['mat']

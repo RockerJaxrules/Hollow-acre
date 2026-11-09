@@ -17,9 +17,9 @@ SHADOW = '#32212599'
 
 # ---------------------------------------------------------------- palettes (dark -> light; shades sink to plum/blue)
 LEAF = {
-    'orange': (['#3a1530', '#6e2433', '#a23c2e', '#c05a34', '#dc8a4a', '#e6a65e'], ['#2c1022', '#5a1e2c']),
-    'red':    (['#2e0f26', '#5a1a2e', '#86232f', '#ad3631', '#cc5a3c', '#dc8058'], ['#240a1e', '#4c1428']),
-    'gold':   (['#3a2228', '#6a3e2e', '#9a682e', '#c4973a', '#dcbc52', '#e8d27a'], ['#2a1820', '#583424']),
+    'orange': (['#3a1530', '#6e2433', '#a23c2e', '#c05a34', '#dc8a4a', '#d89a58'], ['#2c1022', '#5a1e2c']),
+    'red':    (['#2e0f26', '#5a1a2e', '#86232f', '#ad3631', '#cc5a3c', '#d47a54'], ['#240a1e', '#4c1428']),
+    'gold':   (['#3a2228', '#6a3e2e', '#9a682e', '#c4973a', '#dcbc52', '#d8c070'], ['#2a1820', '#583424']),
     'green':  (['#14202a', '#203a32', '#2e5636', '#4a763c', '#6e9a48', '#92b65e'], ['#0e1820', '#1c3028']),
     'russet': (['#2e1626', '#582830', '#843e2e', '#a65c30', '#c48444', '#d8a45c'], ['#22101e', '#4a2028']),
     'willow': (['#1e2228', '#34402e', '#56643a', '#7e8a40', '#a4ac52', '#c4c470'], ['#161a20', '#2c3428']),
@@ -70,9 +70,16 @@ def broadleaf(bundles, s=1.0, trunk=(7, 46), fork=True, lumps=(2.0, 1.0)):
     sh += [{'type': 'branch', 'a': [-rr * .4, 8 * s, 0], 'b': [-rr * 1.6, 0, 3 * s], 'r0': rr * .64, 'r1': rr * .3, 'mat': 'bark', 'bias': -.14},
            {'type': 'branch', 'a': [rr * .4, 8 * s, 0], 'b': [rr * 1.6, 0, 4 * s], 'r0': rr * .64, 'r1': rr * .3, 'mat': 'bark', 'bias': -.14},
            {'type': 'branch', 'a': [0, 7 * s, rr * .4], 'b': [s, 0, rr * 1.3], 'r0': rr * .57, 'r1': rr * .28, 'mat': 'bark', 'bias': -.1}]
+    # one dome lit from the top-left (judge: "a pile of equally lit balls"): each bundle steps darker the further it sits
+    # to the right, low or back of the crown, lighter (a little) toward the top-left-front; its own shading stays
+    n = len(bundles); cx = sum(b[0] for b in bundles) / n; cy = sum(b[1] for b in bundles) / n; cz = sum(b[2] for b in bundles) / n
+    ex = max(1, max(abs(b[0] - cx) for b in bundles)); ey = max(1, max(abs(b[1] - cy) for b in bundles)); ez = max(1, max(abs(b[2] - cz) for b in bundles))
+    Lx, Ly, Lz = -.55, .7, .45; Ln = (Lx * Lx + Ly * Ly + Lz * Lz) ** .5
     for x, y, z, r in bundles:
+        d = ((x - cx) / ex * Lx + (y - cy) / ey * Ly + (z - cz) / ez * Lz) / Ln
+        bias = .22 * d if d < 0 else .05 * d
         sh.append({'type': 'sphere', 'c': [x * s, y * s, z * s], 'r': r * s, 'mat': 'leaf', 'lumps': lumps[0], 'lumpfreq': .42,
-                   'lumps2': lumps[1], 'lumpfreq2': 1.0})
+                   'lumps2': lumps[1], 'lumpfreq2': 1.0, 'bias': round(bias, 3)})
     return sh, {'leaf': leafmat(), 'bark': {'chars': 'WVUT', 'ambient': .32, 'shade': .45}}
 
 
@@ -230,12 +237,19 @@ def make(name, rec):
     if 'bark' in mats: pal.update(dict(zip('WVUT', BARK[rec['bark']])))
     if 'grain' in mats: pal.update(dict(zip('PQRS', GRAIN)))
     pal['s'] = SHADOW
+    lv = [sh for sh in shapes if sh.get('mat') == 'leaf' and sh['type'] == 'sphere']
+    dome = None
+    if len(lv) >= 3 and not rec.get('stone') and not any(sh['type'] == 'cone' for sh in shapes) and rec.get('dome', False):   # dome shading: judged cotton-like (5 vs 6), off by default
+        lo = [min(sh['c'][k] - sh['r'] for sh in lv) for k in range(3)]; hi = [max(sh['c'][k] + sh['r'] for sh in lv) for k in range(3)]
+        dome = {'mat': 'leaf', 'c': [(lo[k] + hi[k]) / 2 for k in range(3)], 'rr': [(hi[k] - lo[k]) / 2 for k in range(3)],
+                'w': rec.get('dome_w', .5), 'seams': .45}
     scene = {'size': [Wd, Hd], 'origin': [Wd // 2, Hd - 22], 'elev': 30, 'materials': mats, 'palette': pal, 'shapes': shapes,
              'gamma': 1.3, 'shadow_light': [-.13, 1, -.12]}
+    if dome: scene['dome'] = dome
     if rec.get('stone'): scene['gamma'] = 1.15
     sp = os.path.join(GEN, name); json.dump(scene, open(sp + '.json', 'w'))
     fin = {'name': name, 'anchor': [Wd // 2, Hd - 22], 'leaf': '12345' if 'leaf' in mats else '', 'bark': 'WVUT' if 'bark' in mats else '',
-           'palette': pal, 'outline': outl, 'tuft_odds': 4, 'min_cluster': 8 if Hd > 80 else 4}
+           'palette': pal, 'outline': outl, 'tuft_odds': 5, 'min_cluster': 8 if Hd > 80 else 4, 'lit_merge': 16 if Hd > 80 else 8}
     if 'leaf' in mats: fin['hi'] = '6'; pal['6'] = (LEAF['stone' if rec.get('stone') else rec['leaf']][0])[5]
     if rec.get('stone'): fin.update({'tips': False, 'tufts': False, 'deep_edge': True})
     if rec.get('bark_style'): fin['bark_style'] = rec['bark_style']
@@ -243,7 +257,7 @@ def make(name, rec):
     if rec.get('fruit'):
         fc = FRUIT[rec['fruit']]; pal.update({'x': fc[0], 'y': fc[1], 'z': fc[2]})
         fin['fruit'] = {'chars': 'xyz', 'n': 9 if Hd > 70 else 5, 'size': 3 if rec['fruit'] == 'apple' else 1, 'gap': 11 if rec['fruit'] == 'apple' else 5}
-    if rec.get('litter'): fin['litter'] = {'n': 18 if Hd > 80 else 6, 'rx': max(10, Wd // 4), 'ry': 9 if Hd > 80 else 4, 'cols': 'abcd', 'from': '2345'}
+    if rec.get('litter'): fin['litter'] = {'n': 5 if Hd > 80 else 2, 'rx': max(8, Wd // 6), 'ry': 7 if Hd > 80 else 3, 'cols': 'abcd', 'from': '2345'}
     json.dump(fin, open(sp + '_finish.json', 'w'))
     subprocess.run([sys.executable, os.path.join(HERE, 'blockout.py'), sp + '.json', sp], check=True, capture_output=True)
     pxg = os.path.join(OUT, name + '.pxg')

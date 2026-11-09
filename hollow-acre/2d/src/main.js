@@ -119,7 +119,7 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
       ctx2.save();ctx2.beginPath();ctx2.rect(0,0,VW,Math.round(Y));ctx2.clip();
       shadow(X,Y,clip==='crawl'?24:16);drawSpr('hollow',X+jit,Y+rise,clip,clip==='hurt'?'S':H.dir,f,{alpha:H.alpha});ctx2.restore();
       // the eyes burn in the dark: a soft glow where they are
-      if(H.dir!=='N'&&nightK>.2){const side=H.dir==='E'?1:H.dir==='W'?-1:0;const ey=Y+rise-(clip==='crawl'?(side?46:34):clip==='lunge'?128:146);const ex=X+jit+side*9;
+      if(H.dir!=='N'&&nightK>.2){const side=H.dir==='E'?1:H.dir==='W'?-1:0;const GO={walk:[136,20,141],idle:[134,16,138],crawl:[25,21,34],scream:[138,9,141],lunge:[142,0,141],hurt:[134,0,134]}[clip]||[136,0,140];const ey=Y+rise-(side?GO[2]:GO[0]);const ex=X+jit+side*GO[1];
         const gr=ctx2.createRadialGradient(ex,ey,0,ex,ey,12);gr.addColorStop(0,`rgba(255,90,20,${(.35+Math.random()*.15)*H.alpha*nightK})`);gr.addColorStop(1,'rgba(255,40,10,0)');ctx2.fillStyle=gr;ctx2.fillRect(ex-12,ey-12,24,24);}}
     else if(d.ruth){const X=sx(ruth.x),Y=sz(ruth.z);drawSpr('ruth',X,Y,'walk',ruth.dir,0,{alpha:.45+Math.random()*.15});}
     else if(d.cat){drawSpr('cat',sx(cat.x),sz(cat.z),cat.clip,cat.dir,frameOf('cat',cat.clip,cat.t));}

@@ -36,8 +36,11 @@ def finish(im):
                 for dy in (-1, 0, 1):
                     if (dx or dy) and not (0 <= x + dx < W and 0 <= y + dy < H and px[x + dx, y + dy][3]): nx += dx; ny += dy
             n = (nx * nx + ny * ny) ** .5
-            if n and (-nx - ny) / (1.4142 * n) >= .5:   # only edges that face the light (up and to the left)
-                rim.append((x, y, (int(r * .35 + 140 * .65), int(g * .35 + 140 * .65), int(b * .35 + 200 * .65), 255)))   # cool blue-violet
+            if n and (-nx - ny) / (1.4142 * n) >= .4:   # only edges that face the light (up and to the left)
+                rim.append((x, y, (int(r * .25 + 150 * .75), int(g * .25 + 140 * .75), int(b * .25 + 210 * .75), 255)))   # cool lavender
+                X, Y = x - round(nx / n), y - round(ny / n)   # a second, softer pixel one step inside: the rim reads at 1x
+                if 0 <= X < W and 0 <= Y < H and px[X, Y][3] and not (px[X, Y][0] > 200 and px[X, Y][1] > 150):
+                    r2, g2, b2, _ = px[X, Y]; rim.append((X, Y, (int(r2 * .55 + 120 * .45), int(g2 * .55 + 112 * .45), int(b2 * .55 + 180 * .45), 255)))
     for x, y, c in rim: px[x, y] = c
     add = []
     for y in range(H):

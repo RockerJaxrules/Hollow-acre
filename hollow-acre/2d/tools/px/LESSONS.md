@@ -108,7 +108,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   passing frames, bent arms pumping (fist at the chest, then driven back), a bigger stride and bob. Hair, hats and
   hair accessories follow the head a frame late. An idle needs a visible breath and a blink.
 
-## Creatures in Blender (the Hollow, tools/blender/hollow3d.py) [blind judge rounds 1-4]
+## Creatures in Blender (the Hollow, tools/blender/hollow3d.py) [blind judge rounds 1-14; installed at 6 vs 3]
+- Walk weight: the bob must dip on both contacts. A head pitch that swings once per cycle (lag(...) * 7) moved the head
+  as much as the bob and turned two dips into one; a nod of cos(4*pi*t) keeps both beats. The swinging hand should rise
+  (reads from the front, where the swing is only depth), and the hem should follow a frame late (hem_bob = lift_prev).
+- A 2 px cool lavender rim on light-facing edges is what holds a dark coat against night grass in greyscale.
 
 - [hollow r1] A smooth toon render beside a drawn sprite looks bright and plain: match the old sprite's palette values
   first (sample them), then add mottle (noise into the toon factor) so cloth is never one flat colour.
@@ -124,6 +128,21 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [hollow r3] 1-2 px buttons read as specks; tidy belts and buttons read as a robe. Tatter with shapes: torn hem strips
   of uneven length, rags off the cuffs, dark claw slits. Sloping, narrow shoulders for a starved body.
 - [hollow r3] A cool rim on the lit (top-left) edge keeps a dark body visible against night grass.
+
+## Judging (Nov 9)
+- Blind judges vary by about a point between rounds and lean toward whichever image is in slot b: in tree round 4 the
+  same pair scored new 6 / old 5 with new as b and old 6 / new 5 with old as b. For a close call, judge both orders
+  and treat a split as a tie. A real win holds in slot a too (the Hollow: 6 vs 3 with the new one in slot a).
+- Label a lineup from the sheet's own row order (N, W, S, E per clip): a cell I called "idle" was the walk facing
+  away, and two judges reported the idle as "showing the back of the head".
+
+## Ground tiles (grass, 8 versions, stuck at 5)
+- Anything that appears once per tile marks the repeat: a blob, a dry mound, the biggest clump, a leaf pair. Every
+  feature needs siblings of the same weight elsewhere in the tile, or must be too faint to find.
+- Tuft rims round a tone patch read as rings or shrubby pads; smooth flat patches read as stains or shadows of
+  nothing. Very faint zones from a wrapping low-frequency field were the least objectionable.
+- Thin V tufts spread evenly read as speckle at 1x; filled clump shapes (a dome of blades, spiky top, dark root row,
+  lit upper-left, short shadow) read as grass. Lone 2-4 px marks and leaves in a lawn read as specks or eyes.
 
 ## Outlines, light, colour
 

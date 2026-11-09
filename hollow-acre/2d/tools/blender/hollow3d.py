@@ -234,7 +234,7 @@ def _walk_legs(t, P, lift):
     for side, ph in (('L', 0), ('R', math.pi)):
         sw = math.sin(t * 2 * math.pi + ph); up = max(0, math.cos(t * 2 * math.pi + ph))   # the leg swinging forward lifts
         x = -.16 if side == 'L' else .16
-        P['leg' + side] = [(x, 0, HIP + lift), (x * (1 + up * .5), -sw * .3 - up * .32, HIP * .52 + up * .22), (x * (1 + up * .3), -sw * .45, .02 + up * .16)]
+        P['leg' + side] = [(x, 0, HIP + lift), (x * (1 + up * .5), -sw * .3 - up * .32, HIP * .52 + up * .28), (x * (1 + up * .3), -sw * .45, .02 + up * .25)]
 
 
 def _stand_legs(P, front=0.0, back=0.0):
@@ -254,14 +254,14 @@ def pose(t, clip, side_view=False):
     if clip == 'walk':
         t = t + .035 * math.sin(4 * math.pi * t)   # a hitch: it lingers on each contact
         s = math.sin(t * 2 * math.pi); c = math.cos(t * 2 * math.pi)
-        lift = abs(c) * .13 - .03; _walk_legs(t, P, lift)
+        lift = abs(c) * .2 - .05; _walk_legs(t, P, lift)   # 4-5 px bob: high when the legs pass, low on each contact
         lag = lambda ph: math.sin(t * 2 * math.pi - ph)
         for side, ph in (('L', 0), ('R', math.pi)):
             x = -.16 if side == 'L' else .16; asw = -math.sin(t * 2 * math.pi + ph) * .5; wsw = -math.sin(t * 2 * math.pi + ph - .7) * .58
             fwd = max(0, -wsw) / .58   # 1 when this hand is swung fully forward (toward -y)
-            P['arm' + side] = [SH(x, lift), (x * 3.5, asw * .4 - .04, 2.48 + lift), (x * 4.3 * (1 - .3 * fwd), wsw, 1.56 + lift + abs(wsw) * .12 - .1 * fwd)]
-        lift_prev = abs(math.cos((t - .125) * 2 * math.pi)) * .13 - .03
-        P.update(sway=lag(.9) * .2, head_tilt=lag(.6) * 7 - 3, bob=lift, pitch=5 + c * c * 2, head_pitch=6 + lag(1.0) * 4, head_lag=(lift_prev - lift) * .9,
+            P['arm' + side] = [SH(x, lift), (x * 3.5, asw * .4 - .04, 2.48 + lift), (x * 4.3 * (1 - .45 * fwd), wsw, 1.56 + lift + abs(wsw) * .3 - .05 * fwd)]   # the swinging hand rises: reads from the front too
+        lift_prev = abs(math.cos((t - .125) * 2 * math.pi)) * .2 - .05
+        P.update(sway=lag(.9) * .2, head_tilt=lag(.6) * 7 - 3, bob=lift, pitch=5 + c * c * 2, head_pitch=8 - 5 * math.cos(4 * math.pi * (t - .04)), hem_bob=lift_prev, head_lag=(lift_prev - lift) * .9,   # a nod on each contact (two per cycle); the hem a frame late
                  jit=-math.sin(t * 2 * math.pi) * .07, roll=math.sin(t * 2 * math.pi) * 4)
     elif clip == 'idle':
         br = s * .03; _stand_legs(P)
@@ -338,7 +338,7 @@ def build(clip, t, yaw):
             L_ = P['limb']; objs += [segment('upper', sh, el, .065 * L_, .042 * L_, mats['stick'], 8), ball('elbow', el, .048 * L_, mats['stick']), segment('fore', el, wr, .042 * L_, .022 * L_, mats['stick'], 8),
                      segment('rag', sh, sh + (el - sh) * .3, .12, .08, mats['coat'], 8)]
         objs += hand(wr, wr - el, mats, P['spread'])
-    top, bot, rt, rb = P['coat'] or (3.45, 1.35 + P['bob'], .24, .56)
+    top, bot, rt, rb = P['coat'] or (3.45, 1.35 + P.get('hem_bob', P['bob']), .24, .56)
     torso = coat(top, bot, rt, rb, mats, P['sway'])
     if P['hump']: torso.append(ball('hump', (0, .1, HIP + .35), .58, mats['coat'], (1.1, .9, 1.0)))
     neck_base = Vector((0, 0, top - .05 + P['bob'])); neck_top = neck_base + Vector((0, 0, P['neck'] + P.get('head_lag', 0)))   # the head settles a beat late
