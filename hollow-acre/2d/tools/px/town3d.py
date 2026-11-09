@@ -23,6 +23,7 @@ WALLS = {k: R(p, (1, 2, 4, 5, 6)) for k, p in dict(honey='w', white='ww', sage='
                                                     stone='s', log='lg', plaster='pl').items()}
 ROOFS = {k: R(p, (1, 2, 3, 4, 6)) for k, p in dict(scallop='r', slate='sl', shingle='sh', tin='tn', thatch='th', plum='pr', asphalt='as',
                                                     brown='bn', teal='tl').items()}
+ROOFS['tin'] = R('tn', (1, 2, 3, 4, 5))   # tin catches the light hardest: keep its top step down
 TRIMS = {k: R(p, (1, 2, 3, 4, 5)) for k, p in dict(cream='t', green='dg', black='bt').items()}
 DOORS = {'teal': R('d', range(1, 6)), 'red': R('dr', range(1, 6)), 'green': R('dg', range(1, 6)), 'black': R('bt', range(1, 6)),
          'oak': R('w', range(2, 7))}

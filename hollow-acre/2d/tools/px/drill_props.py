@@ -10,10 +10,10 @@ GAME = os.path.abspath(os.path.join(HERE, '..', '..'))
 RAMPS = {   # more contrast than the first try: near-black darks, warm lights
     'wood':  ['#1e100c', '#3e2414', '#68401f', '#94642f', '#c08b4c'],
     'dkwood': ['#140a08', '#2a170e', '#432616', '#5e3820', '#7a4c2c'],
-    'brace': ['#5a3a1c', '#8a5e2e', '#b48446', '#d6a866', '#ecc888'],
+    'brace': ['#4a2e16', '#6e4824', '#94683a', '#b88a52', '#d6a866'],
     'stave': ['#2a160e', '#5a3418', '#8e5e30', '#c08e50', '#e2b878'],
     'lid':   ['#2a180e', '#4e3018', '#7a5028', '#a2733e', '#c49456'],
-    'iron':  ['#0c0c10', '#1a1a20', '#2c2c34', '#4a4a56', '#8a8e9a'],
+    'iron':  ['#0a0a0e', '#16161c', '#24242c', '#383a44', '#6a6e7a'],
     'black': ['#08070a', '#121016', '#1c1a22', '#2a2732', '#3e3a48'],
     'glow':  ['#7a4a1a', '#c08030', '#e8b050', '#f8d880', '#fff4c8'],
 }
@@ -22,7 +22,8 @@ DRILLS = {
                                  box(-13, 23, -11, 13, 25, 11, 'wood', pattern=['planks', 5, 'z']),
                                  box(-13.5, 0, 10.5, -10.5, 24, 11.6, 'dkwood'), box(10.5, 0, 10.5, 13.5, 24, 11.6, 'dkwood'),
                                  box(-13.5, 21, 10.5, 13.5, 24, 11.6, 'dkwood'), box(-13.5, 0, 10.5, 13.5, 3, 11.6, 'dkwood'),
-                                 rod([-10, 3.5, 11.6], [10, 20.5, 11.6], 1.0, 1.0, 'brace')],
+                                 rod([-10, 3.5, 11.15], [10, 20.5, 11.15], 1.0, 1.0, 'brace'),
+                                 dict(type='sphere', c=[-9.6, 4.2, 12.0], r=.7, mat='dkwood'), dict(type='sphere', c=[9.6, 19.8, 12.0], r=.7, mat='dkwood')],
                   elev=18, rules=[{'do': 'streaks', 'mat': 'wood', 'dir': 'h', 'every': 9, 'len': (2, 3), 'step': -1},
                          {'do': 'nails', 'mat': 'dkwood'}, {'do': 'grass'}]),
     'barrel': dict(parts=lambda: [dict(type='ellipsoid', c=[0, 14, 0], rr=[13.5, 19, 13.5], mat='stave', planes=[[0, 1, 0, 13.5], [0, -1, 0, 14]],

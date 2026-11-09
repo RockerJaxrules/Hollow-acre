@@ -82,6 +82,16 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   takes over. Light them from the front-left (-.55, .85, .85) or the fronts go dark. Barrels are bellied (an
   ellipsoid cut flat top and bottom), not cans. One streak in nine pixels is texture; one in three is noise.
 
+## Buildings [self-check, all 53 rendered: the drawn ones win, none installed]
+
+- [town v1] Roofs face the sky, so in the 3D render they catch the full light and go pale (slate turned powder blue,
+  plum turned pink). Roofs need their own darker ramp or a lower light share; the drawn roofs stay dark and mossy.
+- [town v1] The drawn buildings carry weathering as shapes (moss along eaves, stained stone, dark window glass); the
+  3D ones are clean and bright and lose the horror mood. Glass must stay dark in the day, curtains muted.
+- [town v1] A front gable on a cross-plan building (the town hall) hid the windows and the door behind a blank wall.
+- [town v1] Small hand details (the church clock and tower door, the stone courses, the garage's dark door) are what
+  the drawn buildings win on. Organic, soft forms (trees, bushes, rocks) are where the 3D method clearly wins.
+
 ## People (48x64) [owner: "look very bad so far"]
 
 - [chars v1] At the world's 30-degree camera the cap and hair cover the face; people use a near face-on camera (~12).
