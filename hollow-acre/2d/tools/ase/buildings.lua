@@ -135,7 +135,7 @@ local V = {
                 windows = {{x = 1.0, w = 22}, {x = 4.0, w = 22}}, moss = .9, seed = 182},
  barn_b      = {base = 'barn', wall = 'white', roof = 'asphalt', trim = 'black', door = {col = 'oak', kind = 'barn', w = 44, h = 52},
                 windows = {{x = 0.8, w = 18, curtain = false}, {x = 6.0, w = 18, curtain = false}}, moss = 1.0, handprint = false, seed = 184},
- barn_c      = {base = 'barn', wall = 'oxblood', roof = 'tin', trim = 'weathered', door = {col = 'weathered', kind = 'barn', w = 44, h = 52}, rough = true,
+ barn_c      = {base = 'barn', wall = 'oxfade', roof = 'tin', trim = 'weathered', door = {col = 'weathered', kind = 'barn', w = 44, h = 52}, rough = true,
                 windows = {{x = 0.8, w = 18, curtain = false, boarded = true}, {x = 6.0, w = 18, curtain = false, broken = true}}, moss = 1.8, scratches = true, handprint = .2, seed = 185},
  wk_schoolh  = {base = 'house_b', wall = 'oxblood', roof = 'asphalt', trim = 'cream', door = {col = 'green'}, sign = 'SCHOOL', signy = -2, dormers = {},
                 windows = {{x = 1.25, w = 26, h = 28}, {x = 4.75, w = 26, h = 28}}, chimneys = {{x = .2}}, moss = .8, seed = 183},
