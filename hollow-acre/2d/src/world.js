@@ -313,7 +313,8 @@ function buildTown(){
   put('board',boardPos.x,boardPos.z,0);addSeg(boardPos.x-.8,boardPos.z,boardPos.x+.8,boardPos.z,.12);
   for(const [x,z] of [[42.6,6.8],[55.2,-.8],[53.6,8.6]])put('parkbench',x,z,0,{kind:'prop'});put('birdbath',55,3,.25);
   for(const [x,z] of [[45.4,.6],[51.6,.6],[45.4,7.2],[51.6,7.2]])L(x,z);
-  for(const [n,x,z] of [['maple_red',38.8,6.6],['maple_gold',41.4,10],['oak_russet',55.6,-2.2],['maple_orange',56.6,6.2],['birch_gold',38,-1.4]])TREE_T(n,x,z);
+  for(const [n,x,z] of [['maple_red',37.6,8.8],['maple_gold',42.2,10.6],['oak_russet',55.6,-2.2],['maple_orange',60.4,6.0],['birch_gold',38,-1.4]])TREE_T(n,x,z);   // on the green's rim, not in it
+  W('stonewall',40.4,48,12);W('stonewall_b',50.4,52.4,12);W('stonewall',52.4,57.6,12);   // a low wall along its south side, open where the paths come in
   // the water tower over the green: you can see it from anywhere in town, and at night its light watches you
   put('watertower',60.8,13.0,0,{night:'watertower_n',kind:'prop',glow:1});addRect(59.3,11.9,62.3,13.0);
   // ===== Smith's Row and the carpenter's lane: work, mud, a wheel that broke and was never mended
