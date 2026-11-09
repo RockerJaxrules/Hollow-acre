@@ -1,0 +1,1 @@
+{"name": "rock_0", "anchor": [47, 52], "leaf": "12345", "bark": "", "palette": {"1": "#1c1a24", "2": "#34303c", "3": "#524a56", "4": "#746a70", "5": "#968a88", "6": "#b4a89e", "s": "#32212599"}, "outline": ["#16141c", "#2c2832"], "tuft_odds": 4, "min_cluster": 4, "hi": "6", "tips": false, "tufts": false, "deep_edge": true}

@@ -54,7 +54,7 @@ def hsh(a, b): return (a * 73856093 ^ b * 19349663) % 97
 # 2. leaf shapes on the light/shade borders: a small pointed leaf of the lighter step hanging into the darker one
 #    (3 px wide, 1 px tip), at uneven spacing, never on a lattice; now and then a dark gap biting up into the light
 placed = [[False] * W for _ in range(H)]
-for y in range(1, H - 3):
+for y in (range(1, H - 3) if leaf and conf.get('tufts', True) else ()):
     for x in range(2, W - 2):
         c = rows[y][x]; below = at(x, y + 1)
         if c not in leaf or below not in leaf or leaf.index(c) <= leaf.index(below): continue
@@ -68,7 +68,7 @@ for y in range(1, H - 3):
                 if at(x + dx, y + 1) == below: rows[y + 1][x + dx] = c
             if at(x, y + 2) == below: rows[y + 2][x] = c
         placed[y][x] = True
-if conf.get('tips', True):
+if leaf and conf.get('tips', True):
     top = {}
     for x in range(W):
         for y in range(H):
@@ -99,14 +99,28 @@ if conf.get('tips', True):
                     else:
                         rows[y][x] = '.'
             y += 4 + hsh(y, 5) % 4
-deep = leaf[0]
-for y in range(H):
-    for x in range(W):
-        if rows[y][x] == deep and at(x, y + 1) in leaf and at(x, y + 2) in leaf: rows[y][x] = leaf[1]
-for y in range(H):
-    for x in range(W):
-        if rows[y][x] in leaf and at(x, y + 1) not in leaf: rows[y][x] = deep
-if bark:
+if leaf and conf.get('deep_edge', True):
+    deep = leaf[0]
+    for y in range(H):
+        for x in range(W):
+            if rows[y][x] == deep and at(x, y + 1) in leaf and at(x, y + 2) in leaf: rows[y][x] = leaf[1]
+    for y in range(H):
+        for x in range(W):
+            if rows[y][x] in leaf and at(x, y + 1) not in leaf: rows[y][x] = deep
+BS = conf.get('bark_style', 'grooves')
+if bark and BS == 'birch':
+    # 6b. birch: pale bark with short dark horizontal marks (lenticels) and a few dark patches
+    def darker(c): i = bark.index(c); return bark[max(0, i - 1)]
+    for y in range(H):
+        x = 0
+        while x < W:
+            if rows[y][x] in bark and hsh(x, y) % 9 == 0 and at(x - 1, y) in bark:
+                n = 2 + hsh(y, x) % 3
+                for k in range(n):
+                    if at(x + k, y) in bark: rows[y][x + k] = bark[0] if k else darker(rows[y][x + k])
+                x += n + 3
+            else: x += 1
+if bark and BS == 'grooves':
     # 6. bark: broken vertical grooves one step darker, a lit edge on the left, one knot
     cols = {}
     for x in range(W):
@@ -134,16 +148,45 @@ if bark:
         if kys and all(at(kx + dx, ky + dy) in bark for dx in (-1, 0, 1, 2) for dy in (-1, 0, 1, 2)):
             for dx, dy in ((0, 0), (1, 0), (0, 1), (1, 1)): rows[ky + dy][kx + dx] = bark[0]
             for dx, dy in ((0, -1), (1, -1), (-1, 0), (-1, 1)): rows[ky + dy][kx + dx] = lighter(rows[ky + dy][kx + dx])
+if bark and leaf:
     for x in range(W):
         for y in range(H):
             if rows[y][x] in bark and at(x, y - 1) in leaf:
                 for k in range(3):
                     if at(x, y + k) in bark: rows[y + k][x] = bark[0]
+# 8. end grain on a cut top (stumps, logs): growth rings round the middle, foreshortened, and one crack
+RG = conf.get('rings')
+if RG:
+    pts = [(x, y) for y in range(H) for x in range(W) if rows[y][x] in RG]
+    if pts:
+        cx = sum(p[0] for p in pts) / len(pts); cy = sum(p[1] for p in pts) / len(pts)
+        for x, y in pts:
+            d = ((x - cx) ** 2 + ((y - cy) * 2) ** 2) ** .5
+            if int(d) % 3 == 2: rows[y][x] = RG[max(0, RG.index(rows[y][x]) - 1)]
+        for x in range(int(cx), W):
+            if at(x, int(cy)) in RG and hsh(x, 5) % 5: rows[int(cy)][x] = RG[0]
+# 9. fruit and berries in the foliage (apples, holly, elder): small lit balls, never on the bottom edge
+FR = conf.get('fruit')
+if FR and leaf:
+    fx = FR['chars']; size = FR.get('size', 2); n = 0; i = 0; got = []
+    while n < FR.get('n', 8) and i < 3000:
+        i += 1; x = 3 + hsh(i, 31) * 131 % (W - 6); y = 3 + hsh(i, 37) * 151 % (H - 6)
+        if not all(at(x + a, y + b) in leaf for a in range(-1, size + 1) for b in range(-1, size + 3)): continue
+        if any(abs(x - gx) + abs(y - gy) < FR.get('gap', 6) for gx, gy in got): continue
+        if size == 3:          # an apple: a lit ball, light top-left, dark bottom-right
+            for (a, b), ch in zip([(0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2)], [2, 1, 1, 1, 1, 0, 1, 0, 0]):
+                if not (a, b) in ((0, 0), (2, 2)) or ch: rows[y + b][x + a] = fx[ch]
+            rows[y - 1][x + 1] = bark[0] if bark else fx[0]      # a stalk
+        elif size == 2:
+            rows[y][x] = fx[2]; rows[y][x + 1] = fx[1]; rows[y + 1][x] = fx[1]; rows[y + 1][x + 1] = fx[0]
+        else:
+            rows[y][x] = fx[2]; rows[y][x + 1] = fx[1]; rows[y + 1][x] = fx[0]
+        got.append((x, y)); n += 1
 # 7. fallen leaves round the foot of the tree (it's autumn): small 2-3 px leaves, darker inside the shadow
 LT = conf.get('litter')
-if LT and bark:
-    bys = [(x, y) for y in range(H) for x in range(W) if rows[y][x] in bark]
-    by = max(y for x, y in bys); bx = sum(x for x, y in bys if y >= by - 2) // max(1, len([1 for x, y in bys if y >= by - 2]))
+if LT:
+    solid = [(x, y) for y in range(H) for x in range(W) if rows[y][x] not in '.s']
+    by = max(y for x, y in solid); low = [x for x, y in solid if y >= by - 2]; bx = sum(low) // max(1, len(low))
     n = 0; i = 0
     while n < LT.get('n', 14) and i < 400:
         i += 1
@@ -152,7 +195,7 @@ if LT and bark:
         x, y = bx + dx, by + dy
         shape = [[(0, 0), (1, 0)], [(0, 0), (1, 0), (1, -1)], [(0, 0), (1, 0), (2, 0), (1, -1)], [(0, 0), (1, 1), (1, 0)]][hsh(i, 23) % 4]
         if not all(0 <= x + a < W and 0 <= y + b < H and rows[y + b][x + a] in '.s' for a, b in shape): continue
-        if any(at(x + a + ex, y + b + ey) in bark + leaf for a, b in shape for ex in (-1, 0, 1) for ey in (-1, 0, 1)): continue
+        if any(at(x + a + ex, y + b + ey) not in '.s' for a, b in shape for ex in (-1, 0, 1) for ey in (-1, 0, 1)): continue
         cols = LT.get('cols', 'abcd')     # their own palette letters, so the outline skips them (no ring round a leaf)
         inshade = rows[y][x] == 's'
         c = cols[(hsh(i, 24) % (len(cols) - 1))] if inshade else cols[1 + hsh(i, 24) % (len(cols) - 1)]

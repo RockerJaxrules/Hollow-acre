@@ -1,0 +1,1 @@
+{"name": "bush_red", "anchor": [62, 69], "leaf": "12345", "bark": "", "palette": {"1": "#2e0f26", "2": "#5a1a2e", "3": "#86232f", "4": "#ad3631", "5": "#cc5a3c", "6": "#dc8058", "s": "#32212599"}, "outline": ["#240a1e", "#4c1428"], "tuft_odds": 4, "min_cluster": 8, "hi": "6", "litter": {"n": 18, "rx": 31, "ry": 9, "cols": "abcd", "from": "2345"}}

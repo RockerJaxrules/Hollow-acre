@@ -23,14 +23,14 @@ def sdf_scene(P, shapes):
         if t in ('sphere', 'ellipsoid'):
             c = np.array(s['c'], float); r = np.array(s.get('rr', [s.get('r', 1)] * 3), float)
             q = (P - c) / r; k = np.linalg.norm(q, axis=1); di = (k - 1) * r.min()
-            L = s.get('lumps', 0)
-            if L:   # a leafy surface: overlapping bumps, the size of a small leaf clump
-                f = s.get('lumpfreq', .55); X, Y, Z = P[:, 0], P[:, 1], P[:, 2]
-                di = di - L * (np.sin(X * f + 1.3) * np.sin(Y * f * 1.1 + .7) * np.sin(Z * f * .9 + 2.1) * .5 + .5)
-                L2 = s.get('lumps2', 0)
-                if L2:   # a second, finer octave: clumps of a few leaves (what gives LPC crowns their texture)
-                    f2 = s.get('lumpfreq2', 1.1)
-                    di = di - L2 * (np.sin(X * f2 + Z * .4 + .3) * np.sin(Y * f2 * 1.2 + X * .3 + 1.9) * np.sin(Z * f2 * .8 + 4.0) * .5 + .5)
+            for cut in s.get('cuts', []):   # flat faces sliced off (rocks): each cut is a plane normal and an offset
+                nn = np.array(cut[:3], float); nn /= np.linalg.norm(nn)
+                di = np.maximum(di, (P - c) @ nn - cut[3] * r.min())
+        elif t == 'cone':    # base centre c, base radius r, height h (a pine tier)
+            c = np.array(s['c'], float); h = s['h']; r = s['r']
+            y = P[:, 1] - c[1]; rad = np.hypot(P[:, 0] - c[0], P[:, 2] - c[2])
+            ca = h / math.hypot(h, r)
+            di = np.maximum((rad - r * (1 - y / h)) * ca, -y)
         elif t == 'cylinder':
             c = np.array(s['c'], float); h = s['h']; r = s['r']
             y = P[:, 1] - c[1]; rad = np.hypot(P[:, 0] - c[0], P[:, 2] - c[2])
@@ -45,6 +45,15 @@ def sdf_scene(P, shapes):
             mn = np.array(s['min'], float); mx = np.array(s['max'], float); c = (mn + mx) / 2; e = (mx - mn) / 2
             q = np.abs(P - c) - e; di = np.linalg.norm(np.maximum(q, 0), axis=1) + np.minimum(q.max(axis=1), 0)
         else: continue
+        L = s.get('lumps', 0)
+        if L:   # a leafy surface: overlapping bumps, the size of a small leaf clump
+            f = s.get('lumpfreq', .55); X, Y, Z = P[:, 0] + s.get('seed', 0) * 7.3, P[:, 1], P[:, 2] + s.get('seed', 0) * 3.1
+            di = di - L * (np.sin(X * f + 1.3) * np.sin(Y * f * 1.1 + .7) * np.sin(Z * f * .9 + 2.1) * .5 + .5)
+            L2 = s.get('lumps2', 0)
+            if L2:   # a second, finer octave: clumps of a few leaves (what gives LPC crowns their texture)
+                f2 = s.get('lumpfreq2', 1.1)
+                di = di - L2 * (np.sin(X * f2 + Z * .4 + .3) * np.sin(Y * f2 * 1.2 + X * .3 + 1.9) * np.sin(Z * f2 * .8 + 4.0) * .5 + .5)
+        if s.get('stepdown'): di = di * s['stepdown']   # lumpy shapes over-estimate distance: march carefully
         m = di < d; d[m] = di[m]; idx[m] = i
     return d, idx
 
@@ -87,7 +96,9 @@ def render(scene):
         # crease darkening (cheap ambient occlusion)
         ao = np.clip(sdf_scene(Q + n * 1.5, shapes)[0] / 1.5, 0, 1) * .5 + .5
         for j, i in enumerate(hp):
-            s = shapes[hid[i]]; m = s['mat']; ch = mats[m]['chars']; nk = len(ch)
+            s = shapes[hid[i]]; m = s['mat']
+            if s.get('topmat') and n[j, 1] > s.get('top_at', .8): m = s['topmat']
+            ch = mats[m]['chars']; nk = len(ch)
             amb = mats[m].get('ambient', 0); shw = mats[m].get('shade', .65)
             vv = amb + (1 - amb) * lam[j] * ((1 - shw) + shw * sh[j]) * ao[j] + s.get('bias', 0)
             g = scene.get('gamma', 1.5)   # moodier: most of the volume sits in the middle and lower steps
