@@ -280,7 +280,7 @@ class Painter:
         L = np.where(seam, L - (.07 if soft else .15), L)
         rim = whole & ~shift(whole, nrm[0] * .8, nrm[1] * .8)
         L = np.where(rim & ~seam, L + .05, L)
-        if strands and max(w) >= 4.5:
+        if strands and max(w) >= 4.5 and not s.C.get('clumps'):
             Wd = widths(len(pts), w)[:, None] / 2
             for off, dl, t0, t1 in ((-.35 if lit_left else .35, -.17, .1 + s.rng.uniform(0, .15), .7 + s.rng.uniform(0, .2)),
                                     (.38 if lit_left else -.38, .09, .15, .55 + s.rng.uniform(0, .2))):
@@ -306,7 +306,7 @@ class Painter:
         if getattr(s, '_hl', None) is not None: return s._hl
         C = s.C; hc = C.get('hair_c', (63, 44)); hr = C.get('hair_r', 34)
         lit = sphere_lit(hc[0], hc[1], hr, hr * 1.12, flat=.9, amb=C.get('hair_amb', .36), k=.44)
-        lit = lit - .09 * sstep(68, 124, Y)
+        lit = lit - C.get('hair_fade', .09) * sstep(68, 124, Y)
         d = np.sqrt((X - hc[0] + 2) ** 2 + ((Y - hc[1]) * 1.05) ** 2)
         sr = C.get('sheen_r', 22.0)
         sheen = C.get('sheen_amp', .36) * np.exp(-((d - sr) / 1.7) ** 2) * sstep(56, 30, Y) * (1 - .6 * sstep(58, 92, X))
@@ -549,7 +549,9 @@ class Painter:
         bl = C.get('blush', .5) + {'happy': .35, 'love': .7, 'laugh': .45, 'cry': .3}.get(s.ex, 0) - (.4 if s.ex in ('scared', 'wrong') else 0)
         if bl > .2:
             for sg in (-1, 1):
-                bm = ell(CX + sg * 14.5, 67.5, 4.6 * min(1.3, bl + .4), 2.4 * min(1.3, bl + .4)) & fm
+                lift = 2.0 if (s.ex == 'laugh' and not C.get('teeth_v1')) else 0   # laughing pushes the cheeks up (judge)
+                bm = ell(CX + sg * (14.5 - lift * .3), 67.5 - lift, 4.6 * min(1.3, bl + .4) * (1.08 if lift else 1), 2.4 * min(1.3, bl + .4) * (1.15 if lift else 1)) & fm
+                if lift: cv.add(ell(CX + sg * 13.5, 63.8, 3.6, 1.4) & fm & ~bm, 'skin', .06)   # the apple of the cheek catches light above the blush
                 cv.put(bm, 'blush', lit)
                 if s.ex == 'love':
                     for k in range(3):
@@ -726,7 +728,13 @@ class Painter:
 
     # ------------------------------------------------------------ hairstyles: lists of locks, back to front
     def mass(s, mask, out, d=-.16):
-        hl = s.hair_lit(); out.append(dict(m=mask, L=hl + d + .05 * np.sin(X * 1.25 + 2.2 * np.sin(Y * .09)), mat='hair', tip=None, sh=None, mass=True))
+        hl = s.hair_lit()
+        if s.C.get('clumps'):   # broad clumps ~7 px wide: lit on the left, a shade step on the right, a dark seam between (no raked streaks)
+            ph = X * .45 + 1.4 * np.sin(Y * .075) + .6 * np.sin(Y * .21 + X * .05)
+            f = (ph / math.pi) % 1.0
+            tex = .07 * (.5 - f) * 2 - .2 * (f > .86)
+        else: tex = .05 * np.sin(X * 1.25 + 2.2 * np.sin(Y * .09))
+        out.append(dict(m=mask, L=hl + d + tex, mat='hair', tip=None, sh=None, mass=True))
     def hair_hem(s, xr, xl, hend):
         """the bottom edge of long hair, right to left: flat by default; with hair_end set, tapered points of uneven length"""
         if 'hair_end' not in s.C: return [(xr, hend), (xl, hend)]
