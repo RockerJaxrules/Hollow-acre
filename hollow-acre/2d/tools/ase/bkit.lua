@@ -91,15 +91,21 @@ function B.stones(c, x0, y0, x1, y1, seed, rowh, lightf)
   local y = y0; local row = 0
   while y <= y1 do
     local h = math.min(rowh, y1 - y + 1); local x = x0 - math.floor(H(row, seed) * 7)
+    --[[ judge (inn, wk_house_a): every stone bevelled at full contrast edge to edge read as grit at 1x. The joints stay crisp
+         near the corners, the eave and the foot; in the middle of the wall the stones run bigger, softly bevelled, and
+         their joints sit one step off the face colour ]]
+    local midrow = (y - y0 > 9) and (y1 - y > 11) and (y1 - y0 > 40)
     while x <= x1 do
-      local w = 8 + math.floor(H(x, row + seed) * 7)
+      local w0 = 8 + math.floor(H(x, row + seed) * 7)
+      local quiet = midrow and (x - x0 > 16) and (x1 - x > 26)
+      local w = quiet and (13 + math.floor(H(x, row + seed + 9) * 9)) or w0
       local xa, xb = math.max(x0, x), math.min(x1, x + w - 2)
       for yy = y, y + h - 2 do for xx = xa, xb do
         local lt = (lightf and lightf(xx, yy) or .6)
-        local inner = (yy == y) and .2 or ((xx == xa) and .1 or ((yy == y + h - 2 or xx == xb) and -.22 or 0))
-        P(c, xx, yy, band(c, STONE, lt + inner + (H(xa, yy // 3) - .5) * .12, 3, 7))
+        local inner = quiet and ((yy == y) and .08 or ((yy == y + h - 2) and -.08 or 0)) or ((yy == y) and .2 or ((xx == xa) and .1 or ((yy == y + h - 2 or xx == xb) and -.22 or 0)))
+        P(c, xx, yy, band(c, STONE, lt + inner + (H(xa, yy // 3) - .5) * (quiet and .06 or .12), 3, 7))
       end end
-      if xb >= xa then px.vline(c, xb + 1, y, y + h - 2, 's1'); px.hline(c, xa, xb + 1, y + h - 1, 's1') end
+      if xb >= xa then local mj = quiet and 's3' or 's1'; px.vline(c, xb + 1, y, y + h - 2, mj); px.hline(c, xa, xb + 1, y + h - 1, mj) end
       x = x + w
     end
     y = y + h; row = row + 1
@@ -370,6 +376,13 @@ function B.frontgable(c, sp, x0, x1, yW, wallmat, roofmat, trim, seed)
   elseif gw == 'loft' then
     local ly = ay + math.floor(Gh * .35); R(c, ax - 9, ly, ax + 9, ly + 16, trim[3]); R(c, ax - 7, ly + 2, ax + 7, ly + 16, 'w3')
     px.line(c, ax - 7, ly + 2, ax + 7, ly + 16, trim[4]); px.line(c, ax + 7, ly + 2, ax - 7, ly + 16, trim[4]); px.vline(c, ax, ay - 4, ly - 1, 'm3')
+  elseif gw == 'hayloft' then   -- a working barn's loft: the door swung open, hay piled to the sill and spilling, a hoist beam and hook
+    local ly = ay + math.floor(Gh * .3); R(c, ax - 10, ly, ax + 10, ly + 19, trim[3]); px.hline(c, ax - 10, ax + 10, ly, trim[4]); R(c, ax - 8, ly + 2, ax + 8, ly + 18, 'k1')
+    for yy = ly + 9, ly + 18 do for xx = ax - 8, ax + 8 do local top = ly + 9 + math.floor(math.abs(xx - ax + 2) * .35 + H(xx, 3) * 2)
+      if yy >= top then P(c, xx, yy, (yy == top) and 'th7' or ((yy == top + 1) and 'th6' or (((xx + yy) % 5 == 0) and 'th3' or 'th5'))) end end end
+    for k = 0, 4 do local sx = ax - 7 + k * 4; P(c, sx, ly + 19, 'th6'); P(c, sx + 1, ly + 20, 'th5') end   -- straw over the sill
+    R(c, ax + 11, ly + 1, ax + 18, ly + 18, 'w3'); px.vline(c, ax + 11, ly + 1, ly + 18, 'w5'); px.vline(c, ax + 15, ly + 1, ly + 18, 'w2'); px.line(c, ax + 12, ly + 2, ax + 17, ly + 17, trim[4])   -- the door, swung open
+    R(c, ax - 2, ly - 7, ax + 2, ly - 4, 'w3'); px.hline(c, ax - 2, ax + 2, ly - 7, 'w5'); px.vline(c, ax, ly - 3, ly + 5, 'k5'); P(c, ax, ly + 6, 'm2'); P(c, ax + 1, ly + 7, 'm2')   -- hoist beam, rope, hook
   elseif gw == 'mesh' then   -- the coop's gable: an opening covered in chicken wire, the dark roost behind it
     local vy = ay + math.floor(Gh * .38); R(c, ax - 9, vy, ax + 9, vy + 12, trim[3]); R(c, ax - 7, vy + 2, ax + 7, vy + 11, 'k1')
     for yy = vy + 2, vy + 11 do for xx = ax - 7, ax + 7 do if ((xx + yy) % 3 == 0) or ((xx - yy) % 3 == 0 and (yy % 2 == 0)) then P(c, xx, yy, 'm3') end end end
@@ -851,6 +864,18 @@ function B.bench(c, a, b, gy)
   for x = a + 1, b + 3 do px.shade(c, x, gy, -2) end
 end
 
+-- a schoolhouse bell cupola on the ridge: a small open box with the bell in its arch, a pyramid cap
+function B.cupola(c, cx, yb, roofmat, trim)
+  local Rr = B.ROOFS[roofmat]; local w = 8; local h = 12; local y0 = yb - h
+  for x = cx - w, cx + w do for y = y0, yb do P(c, x, y, (x == cx - w) and trim[4] or ((x >= cx + w - 1) and trim[2] or trim[3])) end end
+  R(c, cx - 4, y0 + 3, cx + 4, yb - 1, 'k1'); P(c, cx - 4, y0 + 3, trim[3]); P(c, cx + 4, y0 + 3, trim[3])   -- the arch
+  px.ellipse(c, cx + .5, y0 + 8, 2.5, 3, 'm3'); px.hline(c, cx - 3, cx + 3, y0 + 10, 'm2'); P(c, cx - 1, y0 + 7, 'm4')   -- the bell
+  px.hline(c, cx - w - 1, cx + w + 1, yb, 'OUT')
+  for i = 0, 9 do local hw = w + 2 - i; local y = y0 - 1 - i; if hw < 0 then break end
+    for x = cx - hw, cx + hw do P(c, x, y, (x < cx) and Rr[6] or Rr[3]) end; P(c, cx - hw - 1, y, 'OUT'); P(c, cx + hw + 1, y, 'OUT') end
+  px.hline(c, cx - w - 3, cx + w + 3, y0, 'OUT'); px.vline(c, cx, y0 - 13, y0 - 10, 'm2')
+end
+
 function B.millstone(c, cx, gy)
   local r = 9; local cy = gy - r - 1
   for yy = -r - 1, r + 1 do for xx = -r - 1, r + 1 do local d = math.sqrt(xx * xx + yy * yy)
@@ -1111,6 +1136,7 @@ function B.build(sp, night)
   -- chim: where smoke leaves the first chimney, relative to the sprite's anchor (the game's puff offset)
   if sp.coop then B.coopfx(c, sp, x0, x1, gy, seed) end
   if sp.tools then B.leantools(c, x1 + 3, gy) end
+  if sp.cupola and topY then B.cupola(c, (x0 + x1) // 2, topY + 7, roofmat, trim) end
   if sp.millstone then B.millstone(c, x1 - 9, gy - 1) end
   if sp.lumber then B.lumber(c, x0 + math.floor(sp.lumber[1] * 32), sp.lumber[2] and x0 + math.floor(sp.lumber[2] * 32) or nil, gy - 10) end
   if sp.logs then B.logpile(c, x0 + 1, x0 + 34, gy - 1, 22, seed) end   -- stacked against the wall, left of the door
