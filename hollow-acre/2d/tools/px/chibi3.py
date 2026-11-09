@@ -60,13 +60,13 @@ STANCES = {'hollis': 'hips', 'hob': 'hips', 'maud': 'hips', 'dunn': 'folded', 'g
 for _k, _s in STANCES.items(): NPC[_k]['stance'] = _s
 # Caitlyn runs the store now (id 'mae' so saves and scripts keep working): blonde with pink lengths, square black glasses, black tee, jeans, white sneakers
 NPC['mae'] = dict(skin='#f3d2b8', hair='#e2c27e', hairTip='#e58fb0', tipDy=7, hairStyle='long', outfit='tank', shirt='#1e1c22', pants='#7a96bc', shoes='#e8e4dc',
-                  glasses='square', accessory='necklace', acc='#3a3238', eye='#6a8aa4', allure=1)
+                  glasses='square', accessory=None, eye='#6a8aa4', allure=1)   # no cord at sprite scale: it read as a black U over her cleavage (judge); her portrait keeps it
 # the young adult women: fitted low-cut tops (no scarves over the neckline), lashes, lipstick
 ALLURE = {'nell': dict(outfit='tee', overalls=False, pants='#4a3e2e'), 'june': dict(accessory='necklace', acc='#e8c860'), 'cora': dict(accessory='necklace', acc='#e8e0f0'), 'ida': dict(),
           'tess': dict(accessory='necklace', acc='#e8c860'), 'iris': dict(), 'della': dict(), 'maud': dict(accessory='headband')}
 for _k, _v in ALLURE.items(): NPC[_k].update(_v, allure=1)
 # the portraits' clothes (chars4.py) and the sprites' clothes are the same clothes
-for _k, _v in {'ida': dict(extra='#c89aa0'), 'tess': dict(shirt='#3e5a40', extra='#c8a878'), 'iris': dict(shirt='#b48ad0'), 'della': dict(shirt='#d8a840'),
+for _k, _v in {'ida': dict(extra='#c89aa0'), 'tess': dict(shirt='#3e5a40', extra='#9a7650'), 'iris': dict(shirt='#b48ad0'), 'della': dict(shirt='#d8a840'),
                'maud': dict(shirt='#8a3a34'), 'june': dict(shirt='#3e5e90')}.items(): NPC[_k].update(_v)
 # player base colours: every recolourable region has its own base ramp
 BASE = dict(skin='#e8b48c', hair='#6a4224', eye='#3a5a7a', shirt='#b8402c', pants='#3a4e7a', shoes='#3a2618', extra='#6a7a3a', hatColor='#8a5a2a', acc='#c83a5a')
