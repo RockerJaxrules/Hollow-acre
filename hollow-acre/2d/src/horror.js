@@ -17,7 +17,7 @@ function gainTo(v,t){if(!A.ok||!A.master)return;const g=A.master.gain,n=A.ctx.cu
 
 // ---- 2. the scarecrows: after the binding, one more stands in your field every night, all facing the cabin
 const CROW_SPOTS=[[-4.2,8.6],[4.6,8.8],[-5.6,4.4],[6.2,3.8],[-2,9.4],[2.4,9.6],[-6.4,1.2],[7,1],[0.2,10.2],[-3.6,-0.6],[4.2,-0.4],[-7.2,6.6],[7.8,6.4],[-1,11]];
-function crowDraw(x,z){const X=sx(x),Y=sz(z);shadow(X,Y,8);ctx2.fillStyle='#4a3020';ctx2.fillRect(Math.round(X)-1,Math.round(Y)-70,3,70);ctx2.fillRect(Math.round(X)-22,Math.round(Y)-56,45,3);drawSpr('hollow',X,Y-6,'walk','N',0,{scale:.62});}
+function crowDraw(x,z){const X=sx(x),Y=sz(z);shadow(X,Y,8);if(SPR.scarecrow){drawSpr('scarecrow',X,Y,'idle','N',Math.floor(performance.now()/1000*2.2+x*1.7+z)%4);return;}ctx2.fillStyle='#4a3020';ctx2.fillRect(Math.round(X)-1,Math.round(Y)-70,3,70);ctx2.fillRect(Math.round(X)-22,Math.round(Y)-56,45,3);drawSpr('hollow',X,Y-6,'walk','N',0,{scale:.62});}
 {const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld(D,t);
   if(!S.room&&S.bound&&!(S.st&&S.st.done)&&!(stTitheNight&&stTitheNight()))for(let i=0;i<Math.min(S.hz.crows,CROW_SPOTS.length);i++){const [x,z]=CROW_SPOTS[i];if(!onScreen(x,z,80))continue;D.push({z,mind:1,draw(){crowDraw(x,z);}});}
   if(HZ.tall){const q=HZ.tall;D.push({z:q.z,mind:1,draw(){drawSpr('hollow',sx(q.x),sz(q.z),'walk',q.dir||'S',q.moving?frameOf('hollow','walk',q.t*1.4):0,{scale:1.35,alpha:.92});}});}};}

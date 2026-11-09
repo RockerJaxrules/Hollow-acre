@@ -123,7 +123,10 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
         const gr=ctx2.createRadialGradient(ex,ey,0,ex,ey,12);gr.addColorStop(0,`rgba(255,90,20,${(.35+Math.random()*.15)*H.alpha*nightK})`);gr.addColorStop(1,'rgba(255,40,10,0)');ctx2.fillStyle=gr;ctx2.fillRect(ex-12,ey-12,24,24);}}
     else if(d.ruth){const X=sx(ruth.x),Y=sz(ruth.z);drawSpr('ruth',X,Y,'walk',ruth.dir,0,{alpha:.45+Math.random()*.15});}
     else if(d.cat){drawSpr('cat',sx(cat.x),sz(cat.z),cat.clip,cat.dir,frameOf('cat',cat.clip,cat.t));}
-    else if(d.scare){const X=sx(scare.x),Y=sz(scare.z);shadow(X,Y,8);ctx2.fillStyle='#4a3020';ctx2.fillRect(Math.round(X)-1,Math.round(Y)-70,3,70);ctx2.fillRect(Math.round(X)-22,Math.round(Y)-56,45,3);drawSpr('hollow',X,Y-6,'walk','S',0,{scale:.62});}
+    else if(d.scare){const X=sx(scare.x),Y=sz(scare.z);shadow(X,Y,8);
+      if(SPR.scarecrow){const near=Math.hypot(P.x-scare.x,P.z-scare.z)<3.4;const now=performance.now()/1000;scare.lk=clamp((scare.lk||0)+(near?1:-1)*(now-(scare.lt||now))*.9,0,1);scare.lt=now;
+        if(scare.lk>.02)drawSpr('scarecrow',X,Y,'look','S',Math.min(5,Math.floor(scare.lk*5.99)));else drawSpr('scarecrow',X,Y,'idle','S',Math.floor(now*2.2+scare.x)%4);}
+      else{ctx2.fillStyle='#4a3020';ctx2.fillRect(Math.round(X)-1,Math.round(Y)-70,3,70);ctx2.fillRect(Math.round(X)-22,Math.round(Y)-56,45,3);drawSpr('hollow',X,Y-6,'walk','S',0,{scale:.62});}}
     else if(d.mush){drawSpr('mushroom',sx(d.mush.x),sz(d.mush.z));}
     else if(d.page){const X=Math.round(sx(d.page.x)),Y=Math.round(sz(d.page.z));const fl=Math.round(Math.sin(t*3+d.page.i)*1);
       ctx2.fillStyle='rgba(8,16,6,.3)';ctx2.fillRect(X-6,Y-1,14,3);ctx2.fillStyle='#d8ccb0';ctx2.fillRect(X-6,Y-7+fl,12,7-fl);ctx2.fillStyle='#efe6d0';ctx2.fillRect(X-6,Y-8+fl,11,6-fl);
