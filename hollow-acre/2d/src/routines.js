@@ -38,7 +38,7 @@ const BREAKS=[
   {day:6,id:'cora',from:11.8,to:13.6,at:[67.6,15.6],face:'N',spot:'the notice board',line:'Miss Vance is in the copse, touching each tree in turn and counting under her breath. She has got to nine thousand and something. She does not look at you. “Don’t interrupt. I’ll lose my place.”'},
   {day:8,id:'otto',from:6,to:10,at:[49,33],face:'S',spot:'the dock on the pond',line:'Otto is standing in the town pond, up to his knees in water ten inches deep, staring down. “Can’t see the bottom,” he says. “Can you see the bottom?”'},
   {day:9,id:'june',from:7.5,to:10.8,at:[60.8,12.5],face:'N',spot:'her mail route',line:'June has climbed the first rungs of the water tower and stopped, holding on, face pressed to the ladder. Her mail bag is on the ground. Every letter in it is addressed to you.'},
-  {day:11,id:'ida',from:9.5,to:13,at:[43.4,-35.7],face:'N',spot:'the bake table',line:'Ida is in the walled garden, kneeling at the fountain with her hands in the water up to the wrists. She is humming the Tithe hymn. When you say her name she keeps humming, and smiles, and doesn’t turn round.'}];
+  {day:11,id:'ida',from:9.5,to:13,at:[40.9,-35.7],face:'N',spot:'the bake table',line:'Ida is in the walled garden, kneeling at the fountain with her hands in the water up to the wrists. She is humming the Tithe hymn. When you say her name she keeps humming, and smiles, and doesn’t turn round.'}];
 const breakNow=n=>{for(const b of BREAKS)if(b.id===n.def.id&&S.day>=b.day&&(S.day-b.day)%7===0&&S.hour>=b.from&&S.hour<b.to)return b;return null;};
 for(const b of BREAKS)PL['brk_'+b.id]=[b.at[0],b.at[1],.05];
 // ---- the missing: gone for days, and nobody admits it

@@ -8,7 +8,7 @@ const shopDoor=k=>[SHOPS_AT[k].x,SHOPS_AT[k].front+.35],shopOut=k=>({x:SHOPS_AT[
   // forecourts: the smith's anvil and quench barrel, the carpenter's timber, a crate of tackle at the bait shop
   put('anvil',33.9,10.6,.35);put('barrel',29.1,10.5,.3);put('crate',22.7,9.5,.3);put('wheel',35.3,9.7,0,{kind:'prop'});put('lumber',66.2,9.6);addRect(65.3,9.1,67.1,9.8);obj('mud_b',70.6,10.2,{kind:'flat'});obj('mud_a',30.6,11.6,{kind:'flat'});
   // yards behind, back onto Main Street: nets and traps, the smith's woodpile, the carpenter's seasoning stacks
-  for(const x of [21.8,28.1])hedgeLine(x,-3.2,5.3);fenceLine(35.2,-3.2,35.2,6.3);fenceLine(21.8,-3.2,24.2,-3.2,0,'picket');fenceLine(25.8,-3.2,30.6,-3.2);fenceLine(32.2,-3.2,35.2,-3.2);
+  for(const x of [21.8,28.1])hedgeLine(x,-3.2,5.3);hedgeLine(35.2,-3.2,6.3);fenceLine(21.8,-3.2,24.2,-3.2,0,'picket');fenceLine(25.8,-3.2,30.6,-3.2);fenceLine(32.2,-3.2,35.2,-3.2);
   for(const x of [65.2,72.6])hedgeLine(x,-3.2,4.3);fenceLine(65.2,-3.2,68.2,-3.2,0,'picket');fenceLine(69.8,-3.2,72.6,-3.2,0,'picket');
   put('wk_rack',24.6,.6,0,{kind:'prop'});put('wk_trap',22.9,1.8,.25);put('barrel',26.9,2.4,.3);
   put('firewood',30,.9);addRect(29.3,.4,30.7,1);put('choppingblock',31.8,1.2,0,{kind:'prop'});put('barrel',33.6,1.6,.3);put('barrel',33,2.1,.3);

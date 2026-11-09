@@ -25,7 +25,7 @@ const southWoods=(x,z)=>z>108||(z>74&&x<-40)||(x>78&&z>40&&riverD(x,z)>4);
     (riverD(x,z)<3.3&&riverD(x,z)>1.6&&(x>OLD.x1||z>OLD.z1))||(Math.abs(x-LAKE.x)<LAKE.rx+2.5&&inLake(x*.94+LAKE.x*.06,z*.9+LAKE.z*.1)&&!inLake(x,z)))&&!newWater(x,z);
   LAYERS.stone=(x,z)=>St(x,z)||inQuarry(x,z);
   LAYERS.dark=(x,z)=>{if(Math.max(B.x0-x,x-B.x1,B.z0-z,z-B.z1)>-1.5-2.5*fbm(x*.3+11,z*.3+7))return true;   // a ragged woodland edge round the world, not a ruled line
-  if(x<=OLD.x1&&z<=OLD.z1)return Dk(x,z)&&!(z>28&&z<40&&x>-16);
+  if(x<=OLD.x1&&z<=OLD.z1)return Dk(x,z)&&!(z>28&&z<=40.5&&x>-16);
     if(onRoad(x,z,0))return false;return (hollowWoods(x,z)&&fbm(x*.2+5,z*.2)>.42)||(southWoods(x,z)&&fbm(x*.18,z*.2+9)>.46);};}
 // water you can't walk into
 {const _c=collide;collide=function(p,r){_c(p,r);if(p.x>=250||!newWater(p.x,p.z)||onDock(p.x,p.z))return;
@@ -64,7 +64,7 @@ const NEWHOUSES={quill:{spr:'h_quill',x:40,z:LANE_E-2},fenn:{spr:'h_fenn',x:6,z:
   // the Tithe House: a ring of standing stones in the clearing
   for(let i=0;i<9;i++){const a=i/9*Math.PI*2+.3;const x=TITHE.x+Math.cos(a)*6,z=TITHE.z+1+Math.sin(a)*4.5;if(Math.sin(a)<-.5&&Math.abs(Math.cos(a))<.5)continue;put('grave_'+(i%4),x,z,.35);}
   // Mill Road signs and lamps
-  put('signpost',22,24,.2,{label:'MILL ROAD'});for(const z of[34,58,82])lamp(22,z);put('signpost',22.4,LANE_E+1.6,.2,{label:'QUILL ORCHARD'});
+  put('signpost',22,24,.2,{label:'MILL ROAD',face:'P'});for(const z of[34,58,82])lamp(22,z);put('signpost',22.4,LANE_E+1.6,.2,{label:'QUILL ORCHARD'});
   for(const x of [82,118,160,200])lamp(x,-8.4);
   // forests for the new land
   const free=(x,z)=>!onRoad(x,z,1.2)&&!LAYERS.water(x,z)&&!inQuarry(x,z)&&!inLake(x*.85+LAKE.x*.15,z*.8+LAKE.z*.2)&&!BLOCK.some(r=>x>r[0]-1&&x<r[2]+1&&z>r[1]-1&&z<r[3]+1)&&!OBJ.some(o=>o.solid&&Math.abs(o.x-x)<2&&Math.abs(o.z-z)<2);

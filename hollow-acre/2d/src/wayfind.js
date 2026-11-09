@@ -16,7 +16,7 @@ for(const p of [['Crossroads',crossPos.x,crossPos.z+5],['Coyle’s store',TB.sto
 // the mine is set into the cliff after the world is built, so its name follows it there (it was left sitting on the farm road)
 {const _ob=openBag;openBag=function(t){const e=MAP_PLACES.find(q=>q[0]==='Old mine');if(e&&MINE&&MINE.z<-12){e[1]=MINE.x;e[2]=MINE.z-6;}return _ob.apply(this,arguments);};}
 // a signpost where the dirt road leaves Route 9 for the crossroads
-put('signpost',21.8,-3.6,.2,{label:'CROSSROADS'});
+put('signpost',21.4,-2.4,.2,{label:'CROSSROADS',face:'P'});
 
 // tap the objective for the whole route, and a button to the map
 const ROUTES={

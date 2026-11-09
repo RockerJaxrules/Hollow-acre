@@ -94,6 +94,14 @@ A player should be able to draw the town from memory after one or two visits.
 7. Do the light pass.
 8. Inspector pass: screenshot, review like a player, fix, repeat until clean.
 
+### Planning rules (from the layout inspection, before any building is placed or redrawn)
+1. **Frontage.** Buildings sit on the north side of the street they face. The south side of an east-west street gets only low front edges: walls, picket, verges, trees, greens. No back yards and no fence ends face a street.
+2. **Roof band.** Nothing's base may sit between a building's back wall and 1 tile past its visible ridge, unless it is meant to be hidden. In 3/4 view that strip is under the roof, so anything there is buried or seems to stand on it. The ridge lies 1-3 tiles behind the back wall for houses and about 7 for churches.
+3. **North-south boundaries** are hedges or walls, never end-on fences (seen end-on a fence is a lone pole). Every yard has a closed outline.
+4. **Gaps** between buildings are at least 2.5 tiles eave to eave, except deliberate alleys of 1.2-2 tiles.
+5. **Setbacks vary by role:** shops 0.5-1.5 tiles behind the sidewalk, civic buildings 2.5-3.5 behind a lawn, houses 1.5-3 with front gardens. Never a row on a ruler.
+6. **Signs point at their destination.** A road running north-south gets a plain name board (`face:'P'`), not a left or right arrow.
+
 ## Inspector checklist
 - **Can I tell where I am?** A landmark should be visible or near, and the district should be readable from the ground and colours.
 - **Is any screen empty or overcrowded?** Count the points of interest.

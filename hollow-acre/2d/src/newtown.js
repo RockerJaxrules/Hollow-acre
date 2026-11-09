@@ -145,12 +145,12 @@ COPSES.push({x:101,z:35.4,rx:4.2,rz:3.2});
   const W=(spr,x0,x1,z)=>{for(let x=x0;x<x1-.05;x+=2)obj(spr,Math.min(x,x1-2),z,{kind:'prop',noCol:true,town:1});addSeg(x0,z-.15,x1,z-.15,.3);};
   // Wickham: the chapel stands on a rise, a stone retaining wall with wooden steps up from High Street
   {const base=39.2,s0=WK.bell-1.2,s1=WK.bell+1.2;const run=(a,b)=>{for(let x=a;x<b-.05;x+=2)obj('twall',Math.min(x,b-2),base,{kind:'wall',town:1});addSeg(a,base-.5,b,base-.5,.5);};
-    run(116,s0);run(s1,132);obj('tsteps_wood',WK.bell,base,{kind:'wall',town:1});addSeg(s0-.05,base-1.1,s0-.05,base,.12);addSeg(s1+.05,base-1.1,s1+.05,base,.12);
-    Y('vines',116.4,base+.02,{noCol:true});Y('vines',131.4,base+.02,{noCol:true});}
+    run(119.4,s0);run(s1,128.6);obj('tsteps_wood',WK.bell,base,{kind:'wall',town:1});addSeg(s0-.05,base-1.1,s0-.05,base,.12);addSeg(s1+.05,base-1.1,s1+.05,base,.12);
+    Y('vines',119.8,base+.02,{noCol:true});Y('vines',128.2,base+.02,{noCol:true});}
   // the copse behind the inn: dark, close, a path in that nobody admits to using
   {const C=COPSES[COPSES.length-1];for(let i=0;i<12;i++){const a=i*2.4,r=.2+((i*.41)%1)*.8;const x=C.x+Math.cos(a)*C.rx*r,z=C.z+Math.sin(a)*C.rz*r;const e=obj(['pine_0','spruce_1','pine_1','spruce_0'][i%4],x,z,{kind:'pine',solid:1,town:1});addCircle(x,z,.4);}}
   // the inn's kitchen yard; the boarded house's roof under a tarp; the riverbank trodden to mud; a broken wheel at the net loft
-  Y('firewood',109.4,38.4);Y('choppingblock',111,38.8);Y('bucket',125.8,52.6);obj('tarp',146.5,43.42,{kind:'prop',noCol:true,town:1});
+  Y('firewood',109.4,35.4);Y('choppingblock',111,35.6);Y('bucket',125.8,52.6);obj('tarp',146.5,43.42,{kind:'prop',noCol:true,town:1});
   D('mud_a',128.4,66.4);D('mud_b',133.6,63.2);Y('wheel',139.6,56.6);W('stonewall',100.2,104.2,54.6);W('stonewall_b',104.2,106.2,54.6);
   // the farm: Grandpa's barn roof patched with a tarp, the axe left in the block by the woodpile, the yard worn to mud at the trough
   obj('tarp',16.4,-9.58,{kind:'prop',noCol:true,town:1});Y('choppingblock',5.8,-9.2);D('mud_a',8.6,-7.8);Y('bucket',8.4,-9.8);};}

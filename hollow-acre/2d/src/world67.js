@@ -4,8 +4,9 @@
 const SIGN_BLANKS={'-180':'MARROW HOLLOW 9 MI','-136':'NO SERVICES','-110':'DEER XING','-92':'MARROW HOLLOW 2 MI','-88':'!TURN BACK'};
 // a proper signpost: a thick two-tone board with a bevelled top, its edge showing underneath, grain and knots, an arrow tip cut to a point,
 // nailed onto a squared post that stands in the middle of it (two posts under a long board), grass round the foot, the name carved in
-function signSprite(label,flip){const red=label[0]==='!';const L=(red?label.slice(1):label).toUpperCase().replace(/[^A-Z0-9 .]/g,'');const key='sign:'+label+(flip?':L':'');if(SPR[key])return key;
-  const tw=L.length*4-1,bw=Math.max(24,tw+12),tip=6,fh=11,th=2,by=7,Hh=42,W=bw+tip+4;
+function signSprite(label,flip){const red=label[0]==='!';const L=(red?label.slice(1):label).toUpperCase().replace(/[^A-Z0-9 .]/g,'');const plain=flip==='plain';if(plain)flip=false;
+  const key='sign:'+label+(plain?':P':flip?':L':'');if(SPR[key])return key;
+  const tw=L.length*4-1,bw=Math.max(24,tw+12),tip=plain?0:6,fh=11,th=2,by=7,Hh=42,W=bw+tip+4;
   const bx0=flip?2+tip:2,bx1=bx0+bw-1;   // the square part of the board; the tip carries on past bx1 (or before bx0 when it points left)
   const c=document.createElement('canvas');c.width=W;c.height=Hh;const g=c.getContext('2d');const p=(x,y,col)=>{g.fillStyle=col;g.fillRect(x,y,1,1);};
   const H=(x,y,s)=>{const n=Math.sin(x*127.1+y*311.7+s*74.7+L.length*13.3)*43758.5453;return n-Math.floor(n);};
@@ -64,7 +65,8 @@ function signClear(o){if(!signCovered(o,o.x,o.z))return;let best=null,bd=1e9;
 function world67(){
   for(const o of OBJ){if(o.spr!=='signpost'||o.room)continue;if(!o.label){const k=Object.keys(SIGN_BLANKS).find(k=>Math.abs(+k-o.x)<1.5);if(k)o.label=SIGN_BLANKS[k];}
     if(o.label&&terr(o.x,o.z)==='water'){let best=null;for(let r=.5;r<5&&!best;r+=.5)for(let a=0;a<6.28&&!best;a+=.4){const x=o.x+Math.cos(a)*r,z=o.z+Math.sin(a)*r;if(terr(x,z)!=='water'&&!blockedAt(x,z,.2))best=[x,z];}if(best){o.x=best[0];o.z=best[1];}}
-    if(o.label){const right=OBJ.some(q=>q!==o&&(q.kind==='tree'||q.kind==='pine'||q.kind==='bld'||q.kind==='bush')&&q.x-o.x>0&&q.x-o.x<3&&Math.abs(q.z-o.z)<1.6)||terr(o.x+1.6,o.z)==='water';o.spr=signSprite(o.label,right);signClear(o);}}
+    if(o.label&&o.face){o.spr=signSprite(o.label,o.face==='P'?'plain':o.face==='L');signClear(o);}   // a sign that knows where its place is points there (P: a plain name board, for a road running north-south)
+    else if(o.label){const right=OBJ.some(q=>q!==o&&(q.kind==='tree'||q.kind==='pine'||q.kind==='bld'||q.kind==='bush')&&q.x-o.x>0&&q.x-o.x<3&&Math.abs(q.z-o.z)<1.6)||terr(o.x+1.6,o.z)==='water';o.spr=signSprite(o.label,right);signClear(o);}}
   // lamp posts off the paths, onto the grass verge
   for(const l of lamps){if(terr(l.x,l.z)!=='dirt')continue;let best=null;for(const r of [1,1.5,2,2.5,3])for(const [dx,dz] of [[r,0],[-r,0],[0,-r],[0,r]]){if(best)break;const x=l.x+dx,z=l.z+dz;if(terr(x,z)==='grass'&&terr(x-dx*.3,z-dz*.3)!=='water'&&!blockedAt(x,z,.25))best=[x,z];}
     if(!best)continue;const c=circles.find(q=>Math.abs(q.x-l.x)<.01&&Math.abs(q.z-l.z)<.01);if(c){c.x=best[0];c.z=best[1];}l.x=l.e.x=best[0];l.z=l.e.z=best[1];}

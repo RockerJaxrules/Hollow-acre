@@ -19,14 +19,14 @@ const inGreen=(x,z)=>((x-GREEN.cx)/GREEN.rx)**2+((z-GREEN.cz)/GREEN.rz)**2<1+(fb
 const TB={ // [sprite, x, front z, options]
   store:['store',28,-9.6,{jack:1}],post:['postoffice',38,-9.2,{porch:false}],danny:['house_a',45.2,-10.2,{lit:false,porch:false}],hall:['townhall',57.4,-10.8,{porch:false,lit:false}],
   tavern:['tavern',68,-11.4,{porch:false}],
-  hale:['house_b',38.5,-28.4,{}],church:['church',50,-28.2,{}],crane:['house_d',61.5,-28.4,{}],pell:['house_c',69.6,-27.6,{lit:false,porch:false}],
+  hale:['house_b',38.5,-28.4,{}],church:['church',50,-28.2,{}],crane:['house_d',61.5,-27.4,{}],pell:['house_c',69.6,-27.6,{lit:false,porch:false}],
   vance:['h_vance',25.5,22.2,{}],lindqvist:['h_lindqvist',33,21.2,{jack:1}],school:['schoolhouse',46.4,25.6,{jack:1}],dunn:['h_dunn',58.5,24.8,{jack:1}],oakes:['house_b2',67.4,23.1,{}],
   gale:['house_d2',30.5,36.2,{jack:1}],marr:['house_c2',23.8,43.8,{lit:false}],wren:['house_a2',68.6,34.4,{lit:false,porch:false}]};
 const tbDoor=k=>[TB[k][1],TB[k][2]+.35],tbOut=k=>({x:TB[k][1],z:TB[k][2]+.7});
 const GYARD={x0:54,x1:72,z0:-41.6,z1:-33,gate:56.6},YOURGRAVE={x:66.6,z:-37.2},CHURCH_DOOR={x:50,z:-27.85};
 // the terrace under Church Hill is three walls at three depths, not one ruled line; wooden stairs where Church Lane climbs it
 const TERRACE={walls:[[29.6,44,-21.3],[44,58,-23.6],[58,72.4,-21.8]],steps:[48.8,51.2],stepsBase:-23.6};
-const HIDDEN_GARDEN={x0:39,x1:47.4,z0:-41,z1:-33,gap:[40,41.6]};
+const HIDDEN_GARDEN={x0:36.5,x1:44.9,z0:-41,z1:-33,gap:[37.5,39.1]};
 const COPSES=[{x:68,z:16.8,rx:6.2,rz:2.8},{x:28,z:-33,rx:5.4,rz:6.6}];
 const ALLEY={x0:33.1,x1:34.9,z0:-13.4,z1:-9.4};
 const inTown=(x,z,m)=>{m=m||0;return x>20.6-m&&x<76+m&&z>-42.2-m&&z<45+m;};
@@ -167,10 +167,10 @@ function buildWorld(){
   for(const [x,z] of [[-8.3,-12.2],[8.4,-13.6],[-3.4,-15.5]]){obj('bush_green',x,z,{kind:'bush'});addCircle(x,z-.15,.55);}
   reserve(-11,-19,12,-7.5);
   // the farm gate: fence along the west edge, an open gate where the lane comes in, the sign and mailbox outside it
-  fenceLine(-12.6,-17,-12.6,-11);fenceLine(-12.6,-1,-12.6,4);
+  hedgeLine(-12.6,-17,-11);hedgeLine(-12.6,-1,4);
   put('signpost',-13.4,-10.1,.2,{label:'HOLLOW ACRE'});put('mailbox',-13.6,-1.9,.15);
   // the field, fenced with a gate at the top; scarecrow inside, pumpkins at the corners
-  fenceLine(-6,-1,-1,-1);fenceLine(1,-1,6,-1);fenceLine(-6,-1,-6,9);fenceLine(6,-1,6,9);fenceLine(-6,9,6,9);
+  fenceLine(-6,-1,-1,-1);fenceLine(1,-1,6,-1);fenceLine(-6,-1,-6,9);fenceLine(6,-1,6,9);fenceLine(-6,9,-1.4,9);fenceLine(.4,9,6,9);
   reserve(-7,-2,7,10);
   put('pumpkin',-5.3,-.3,.25);put('pumpkin_b',5.3,-.4,.25);put('pumpkin',-5.3,8.3,.25);put('pumpkin',5.3,8.2,.25);
   // windpump on its own patch west of the field, a water trough at its foot
@@ -185,7 +185,7 @@ function buildWorld(){
   put('barrel',-31.6,-11.9,.3);put('barrel',-31.1,-11.5,.3);put('crate',-40.8,-10.9,.3);put('firewood',-41.6,-12);
   building('h_widow',-46,-9.6,{jack:1});
   // crossroads shrine
-  put('signpost',crossPos.x-1.6,crossPos.z-1.2,.2,{label:'FARM'});
+  put('signpost',crossPos.x-1.6,crossPos.z-1.2,.2,{label:'FARM',face:'L'});
   // ---------- Marrow Creek: covered bridge on Route 9, footbridge in the west woods, falls off the ridge
   put('cbridge',BRIDGE.x,BRIDGE.z,0,{night:'cbridge_n',kind:'bld'});addSeg(BRIDGE.x-4.7,-9.1,BRIDGE.x+4.7,-9.1,.15);addSeg(BRIDGE.x-4.7,-2.9,BRIDGE.x+4.7,-2.9,.15);
   put('footbridge',FOOT.x,FOOT.z,0,{kind:'flat'});put('footbridge_rail',FOOT.x,FOOT.z+.5,0,{kind:'prop',noCol:true});put('dock',pond.x,pond.z-pond.r+1.85,0,{kind:'flat'});
@@ -227,7 +227,7 @@ function buildWorld(){
     for(let j=0;j<k;j++){const x=cx+(rand()-.5)*2.2,z=cz+(rand()-.5)*1.2;if(terr(x,z)!=='grass'||!clearSpot(x,z,-.6))continue;obj(gold?'tgold':'tgrass',x,z,{kind:'anim',grass:1,fps:1.4,ph:hash(x*9|0,z*9|0)*2});n++;}}}
   for(const t_ of OBJ.filter(o=>o.spr&&o.spr.startsWith('maple')&&o.spr!=='maple_green'))for(let k=0;k<5;k++){const a=rand()*6.28,r=.6+rand()*1.9;const x=t_.x+Math.cos(a)*r*1.3,z=t_.z+Math.sin(a)*r*.6+.3;if(terr(x,z)!=='grass')continue;obj('leaves',x,z,{kind:'deco',v:(rand()*4)|0});}
   // the cornfield in neat rows
-  for(let x=CORN.x0+.5;x<CORN.x1;x+=.9)for(let z=CORN.z0+.5;z<CORN.z1;z+=.8){if(Math.abs(x+.5)<1&&z<20)continue;if(rand()<.05)continue;obj('corn_'+((rand()*3)|0),x+(rand()-.5)*.12,z,{kind:'corn'});}
+  for(let x=CORN.x0+.5;x<CORN.x1;x+=.9)for(let z=CORN.z0+.5;z<CORN.z1;z+=.8){if(Math.abs(x+.5)<1&&z<20)continue;if(Math.abs(z-19)<1.1&&x>-1.5)continue;if(rand()<.05)continue;obj('corn_'+((rand()*3)|0),x+(rand()-.5)*.12,z,{kind:'corn'});}
   addSeg(pond.x-.95,pond.z-pond.r-.6,pond.x-.95,pond.z-pond.r+4.2,.1);addSeg(pond.x+.95,pond.z-pond.r-.6,pond.x+.95,pond.z-pond.r+4.2,.1);addSeg(pond.x-.95,pond.z-pond.r+4.2,pond.x+.95,pond.z-pond.r+4.2,.1);
   addRect(B.x0-12,B.z0-14,B.x1+12,B.z0-.5);addRect(B.x0-12,B.z1+.5,B.x1+12,B.z1+14);addRect(B.x1+2.5,B.z0-14,B.x1+14,B.z1+14);
   // Route 9 west of the valley: only ever seen from the car on the night you arrive
@@ -262,7 +262,7 @@ function buildTown(){
   put('st_church',48.4,-7.95,.12);put('st_main',37.4,-3.7,.12);put('st_east',75.5,-3.9,.12);
   // the tavern's raised patio, tables out on it; its yard behind: woodpile, axe in the block, empties, mud where the barrels roll
   D('deck',68,-8.4);for(const x of [65.6,70.4]){Y('in_table',x,-9.4,{kind:'prop'});}Y('barrel',63.6,-9.3);
-  Y('firewood',64.6,-16.2);Y('choppingblock',66.4,-16.6);Y('barrel',70.6,-16);Y('barrel',71.2,-16.6);Y('crate',69.6,-17.2);D('mud_a',68.6,-18.4);
+  Y('firewood',64.6,-19.6);Y('choppingblock',66.4,-20.0);Y('barrel',70.6,-19.4);Y('barrel',71.2,-20.0);Y('crate',69.6,-20.6);D('mud_a',68.6,-18.6);
   // Danny's: a house among the shops, its little front garden gone to seed behind a broken wall
   W('stonewall',42.2,44.2,-8.3);W('stonewall_b',46.2,48.2,-8.3);for(let k=0;k<6;k++)obj('weeds_'+(k&1),42.6+k,-8.9-(k%2)*.4,{kind:'deco',town:1});
   // the town hall: a lawn, a flagpole, ivy up the chimney
@@ -270,13 +270,13 @@ function buildTown(){
   // ===== the alley between the store and the post office: dark, narrow, and then the courtyard opens up in the sun
   put('trashcan',34.4,-12.4,.22);put('crate',33.5,-13,.3);
   Y('well',31,-16.4,{kind:'prop'});addCircle(31,-16.9,1.05);Y('bucket',32.6,-16.2);Y('wk_stall',37,-15.4);Y('applespill',37.8,-17.4);Y('crate',39.4,-16.4);Y('crate',40,-16.9);
-  Y('parkbench',27.6,-19.8);Y('sacks',25,-14.8);Y('crate',25.6,-15.4);Y('barrel',24.2,-16.6);Y('cart',29.8,-20.2);L(35.6,-19.4,true);L(26,-14.2,true);
+  Y('parkbench',27.6,-19.8);Y('sacks',25,-16.6);Y('crate',25.6,-15.4);Y('barrel',24.2,-16.6);Y('cart',29.8,-20.2);L(35.6,-19.4,true);L(26.2,-16.4,true);
   for(const [n,x,z] of [['maple_gold',39.6,-20]])TREE_T(n,x,z);
   side(41.6,-12.9,-21.1,-17);side(23.2,-12.9,-18.8);
   // Danny's garden and the hall lawn, walled and hedged their own ways; the tavern yard fenced with whatever was to hand
   side(48.6,-13.4,-23,-16.8);for(let k=0;k<8;k++)obj('weeds_'+(k&1),42.6+((k*37)%6),-14.6-((k*53)%7),{kind:'deco',town:1});TREE_T('apple_tree',44,-19.6);Y('rg_swing',46.2,-18);
-  side(51.6,-15,-23,-17.6);TREE_T('maple_red',54.4,-19.6);TREE_T('oak_russet',60,-18.8);Y('parkbench',57,-16.2);
-  fenceLine(62.8,-15.2,62.8,-21);
+  side(51.6,-15,-23,-17.6);TREE_T('maple_red',54.4,-19.6);TREE_T('oak_russet',60,-18.8);Y('parkbench',55.6,-20.4);
+  hedgeLine(62.8,-21,-18.2);
   // ===== the terrace: three walls at three depths, wooden stairs where the lane climbs, ivy and long grass at the joins
   for(const [x0,x1,base] of TERRACE.walls){const st=x0<TERRACE.steps[0]&&x1>TERRACE.steps[1];
     const run=(a,b)=>{for(let x=a;x<b-.05;x+=2)obj('twall',Math.min(x,b-2),base,{kind:'wall',town:1});addSeg(a,base-.5,b,base-.5,.5);};
@@ -293,14 +293,14 @@ function buildTown(){
   const G=GYARD;fenceLine(G.x0,G.z1,G.gate-1,G.z1,0,'rgiron');fenceLine(G.gate+1,G.z1,G.x1,G.z1,0,'rgiron');fenceLine(G.x1,G.z0,G.x1,G.z1,0,'rgiron');fenceLine(G.x0,G.z0,G.x0,G.z1,0,'rgiron');
   W('stonewall',G.x0,G.x0+8,G.z0);W('stonewall_b',G.x0+8,G.x0+10,G.z0);W('stonewall',G.x0+10,G.x1,G.z0);reserve(G.x0-1,G.z0-1,G.x1+1,G.z1+.5);
   for(let r=0;r<4;r++)for(let c=0;c<8;c++){const x=55.6+c*2.15+(r&1)*.5,z=G.z1-2.2-r*1.95;if(Math.abs(x-G.gate)<1.3)continue;if(Math.hypot(x-YOURGRAVE.x,z-YOURGRAVE.z)<1.3)continue;
-    if(Math.hypot(x-ALTAR_POS[2][0],z-ALTAR_POS[2][1])<2)continue;put('grave_'+((r*5+c*3)%4),x,z,.35);}
+    if(Math.hypot(x-ALTAR_POS[2][0],z-ALTAR_POS[2][1])<2)continue;if(r===0&&x>57&&x<66)continue;put('grave_'+((r*5+c*3)%4),x,z,.35);}
   put('deadtree',71,-34.4,.35);Y('shed_b',63.4,-40.4);
   // pell's: boarded, a tarp over the hole in the roof
   obj('tarp',69.2,-27.58,{kind:'prop',noCol:true,town:1});
   // the hidden garden, behind the parsonage, through a gap in the wall: a fountain nobody tends, and somebody does
   const HG=HIDDEN_GARDEN;W('stonewall',HG.x0,HG.gap[0],HG.z1);W('stonewall',HG.gap[1],HG.x1,HG.z1);W('stonewall_b',HG.x0,HG.x0+2,HG.z0);W('stonewall',HG.x0+2,HG.x1,HG.z0);
   hedgeLine(HG.x0,HG.z0,HG.z1);hedgeLine(HG.x1,HG.z0,HG.z1);reserve(HG.x0,HG.z0,HG.x1,HG.z1);
-  Y('fountain',43.4,-36.2);Y('parkbench',43.5,-34.05);Y('parkbench',46.1,-34.6);Y('planter',40.4,-39.8);Y('planter',46.4,-39.8);Y('birdbath',41,-38);TREE_T('apple_gold',46,-39.4);
+  Y('fountain',40.9,-36.2);Y('parkbench',41,-34.05);Y('parkbench',43.6,-34.6);Y('planter',37.9,-39.8);Y('planter',43.9,-39.8);Y('birdbath',38.5,-38);TREE_T('apple_gold',43.5,-39.4);
   // the copse on the hill: close-grown and dark, the light barely gets in
   {const C=COPSES[1];for(let i=0;i<16;i++){const a=i*2.4,r=.25+((i*.37)%1)*.8;const x=C.x+Math.cos(a)*C.rx*r,z=C.z+Math.sin(a)*C.rz*r;if(Math.hypot(x-34,z+28)<2)continue;
     const e=obj(['pine_0','pine_1','spruce_0','spruce_1'][i%4],x,z,{kind:'pine',solid:1,town:1});addCircle(x,z,.4);}}
@@ -316,22 +316,23 @@ function buildTown(){
   // ===== Smith's Row and the carpenter's lane: work, mud, a wheel that broke and was never mended
   for(const x of [24,31,38])L(x,13.6,true);put('st_market',35.2,10.8,.12);put('st_mill',21.6,12.6,.12);
   // ===== the lanes south: houses strung along them, each property fenced its own way
-  for(const [x,z] of [[38.6,16],[41.8,29.6],[52,30.2],[62,28.2],[71,26.4],[26,26],[33.4,25.6],[27,40.4],[36.6,39.8],[70.4,38.2]])L(x,z,true);
+  for(const [x,z] of [[38.6,16],[41.8,29.6],[52,30.2],[64.6,28.4],[71,26.4],[26,26],[33.4,25.6],[27,40.4],[36.6,39.8],[70.4,38.2]])L(x,z,true);
   put('st_elm',40.6,22.6,.12);put('st_orchard',72.9,44.8,.12);put('signpost',66.4,37.8,.2,{label:'FOR SALE'});
   // the school: its yard picketed, the field behind worn to dirt
-  fenceLine(41.8,25.8,41.8,22.4,0,'picket');Y('rg_swing',53.4,19);Y('parkbench',51.6,16.6);Y('rg_swing',45,18.4);fenceLine(40.6,15,46.8,15,0,'picket');fenceLine(48.6,15,54,15,0,'picket');side(54.2,15,21.4);
+  hedgeLine(41.8,22.4,25.8);Y('rg_swing',53.4,19);Y('parkbench',51.6,16.6);Y('rg_swing',45,18.4);fenceLine(40.6,15,46.8,15,0,'picket');fenceLine(48.6,15,54,15,0,'picket');side(54.2,15,21.4);
   // Vance: hedged and neat; Lindqvist: split rail, nets and an upturned boat
   side(22.2,19.4,14.4);side(28.8,18.8,14.4);fenceLine(22.2,14.4,24.4,14.4,0,'picket');fenceLine(26.2,14.4,28.8,14.4,0,'picket');Y('gardenbed',25.6,16.4,{kind:'flat'});Y('birdbath',27,17.6);
-  fenceLine(30,14.4,36.2,14.4);Y('wk_boat',33,16.2);Y('wk_nets',31.4,17.4);Y('barrel',35.4,15.8);
+  fenceLine(30,14.4,36.2,14.4);Y('wk_boat',33.6,15.4);Y('wk_nets',31,15.6);Y('barrel',35.4,15.8);
   // the Dunns: the sheriff's car in the lane, a shed, cellar doors; the Oakes: an old stone wall round a vegetable garden
-  ROADS.push([61.4,26.4,61.4,31.2,3]);put('police',61.4,29.8,0,{kind:'car'});addRect(59,28.5,63.8,29.8);Y('shed',56,19.8);D('cellardoor',62.8,24.6);Y('clothesline_b',59.4,20.6);
-  W('stonewall',64,70,18.8);W('stonewall_b',70,72,18.8);Y('gardenbed_b',67.4,17.4,{kind:'flat'});
+  put('police',61.2,26.7,0,{kind:'car'});addRect(58.8,25.4,63.6,26.7);Y('shed',57.6,16.6);D('cellardoor',62.8,24.6);Y('clothesline_b',60.4,17.2);
+  W('stonewall',64.6,68.6,15.2);W('stonewall_b',68.6,70.6,15.2);Y('gardenbed_b',67.4,16.6,{kind:'flat'});
   // the Gales: money's short, the roof leaks; marr's hedge has swallowed his gate; wren's is going back to the woods
-  obj('tarp',29.6,36.24,{kind:'prop',noCol:true,town:1});fenceLine(26.4,33.2,34.6,33.2,0,'picket');Y('clothesline',30.6,31.4);Y('wheel',35.4,33.6);
+  obj('tarp',29.6,36.24,{kind:'prop',noCol:true,town:1});fenceLine(26.6,37.4,29.8,37.4,0,'picket');fenceLine(31.2,37.4,34.4,37.4,0,'picket');Y('clothesline',24.2,35);Y('wheel',35.4,33.6);
   for(let k=0;k<3;k++)Y('hedge',20.8+k*2.1,40.6);obj('bush_green',27,41.2,{kind:'bush',town:1});
   for(let k=0;k<8;k++)obj('weeds_'+(k&1),65.6+((k*29)%6),30.6+((k*41)%5)*.6,{kind:'deco',town:1});TREE_T('deadoak',72.4,31);
   // the copse in the south-east: kids are told not to play in it, so of course they do
   {const C=COPSES[0];for(let i=0;i<14;i++){const a=i*2.4,r=.2+((i*.41)%1)*.85;const x=C.x+Math.cos(a)*C.rx*r,z=C.z+Math.sin(a)*C.rz*r;
+    if(x>64&&x<71.5&&z>15&&z<19.2)continue;   // the Oakes garden is cut out of the copse
     const e=obj(['pine_1','spruce_0','pine_o0','spruce_1','pine_0'][i%5],x,z,{kind:'pine',solid:1,town:1});addCircle(x,z,.4);}}
   // street trees along the lanes, never in a row
   for(const [n,x,z] of [['maple_red',29.6,13.8],['maple_orange',44.6,13.6],['oak_green',36.8,30.4],['maple_gold',47,30.6],['birch_gold',57.6,29.2],['maple_red',66.2,28.4],['oak_russet',24,27.6],['maple_orange',38.4,40]])TREE_T(n,x,z);
