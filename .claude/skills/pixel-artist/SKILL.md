@@ -26,14 +26,13 @@ Follow `METHOD.md`: palette (hue-shifted ramps, a darker/moodier take for this g
 → detail on borders only → clean-up. Author it as a `.pxg` grid (`grid.py`). After every pass:
 `python3 grid.py view <file> <out.png>` and look at it (1x, 3x, grey), and `python3 grid.py validate <file>`.
 
-## Critique (blind)
+## Check (no separate critic: the owner said it takes too long)
 
-When it looks right to you, spawn a fresh `pixel-critic` agent (`.claude/agents/pixel-critic.md`) with the new sprite
-and the sprite it would replace, named a.png / b.png at random so it cannot tell which is new. It returns a cold read,
-which is better, a score out of 10 and the one first fix. Keep a change only if it wins. Ship (install into the game)
-only at 7/10 or more and a win over what's in the game.
+Look at the zoomed view yourself against `LESSONS.md` and the review list in `METHOD.md`, run `validate`, then show the
+owner a side-by-side with what it replaces. The owner's reaction is the verdict. (The `pixel-critic` agent still exists
+but only runs when the owner asks for it.)
 
-## After every critique: write it down (this is the practice)
+## After every check or owner reaction: write it down (this is the practice)
 
 1. Append a row to `PRACTICE_LOG.md`: date, sprite, attempt number, score, the critic's first fix, what you changed.
 2. Turn the critique into lessons in `LESSONS.md`, under the right heading:
