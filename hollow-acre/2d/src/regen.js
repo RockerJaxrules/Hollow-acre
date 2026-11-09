@@ -18,6 +18,6 @@ function regenPass(){let trees=0,ground=0;const busy=(o)=>Math.hypot(P.x-o.x,P.z
 function fellRemote(k){const o=OBJ.find(q=>q.choppable&&!q.hide&&objKey(q)===k);if(!o)return;o.hide=true;o.goneDay=S.day;colOff(o);
   const sk=(typeof makeStump==='function'&&makeStump(o.spr))||'stump_maple';const st=obj(sk,o.x,o.z,{kind:'prop',debris:'stump',stumpOf:o});o.stump=st;
   st.col={x:o.x,z:o.z-.1,r:Math.max(.3,((SPR[sk]&&SPR[sk].foot&&SPR[sk].foot[2])||.4)*.85)};circles.push(st.col);
-  interact.push({x:o.x,z:o.z+.2,r:.85,on:()=>!st.hide,label:()=>'Chop',ok:()=>true,act(){if(P.anim)return;if(!spend(S.tools.axe>1?2:4))return;faceTo(st.x,st.z);
+  interact.push({x:o.x,z:o.z+.2,r:.85,on:()=>!st.hide,label:()=>'Chop',ok:()=>true,act(){if(P.anim)return;if(!spend(axeCost()))return;faceTo(st.x,st.z);
     startAnim('axe',.55,null,()=>{st.hits=(st.hits||0)+1;SFX.thud(0,.4);if(st.hits<(S.tools.axe>1?1:2))return;st.hide=true;st.goneDay=S.day;colOff(st);addInv('wood',3);toast('The stump comes out. +3 wood.',1.4);});}});}
 function onTreeFelled(o){if(typeof HOST!=='undefined'&&HOST.role&&CO.room&&CO.room.emit)CO.room.emit('tree',{k:objKey(o)});}

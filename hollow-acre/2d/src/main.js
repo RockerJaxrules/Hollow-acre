@@ -159,13 +159,16 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
       const wt=t+(f|0)*.15;   /* the stream shifts a third of its pattern each frame, so the pour flows even frame by frame */   /* the stream flows with the pour itself too, so every frame of it differs */
       /* facing away (motion judge r5): the stream runs from the rose up behind the can and his head to the square behind him,
          so it is drawn before them, from where the can's spout will be */
-      if(tm&&!window.NO_TOOL_DRAW&&pour&&P.dir==='N'){const dc=WSTREAM_DUMMY||(WSTREAM_DUMMY=document.createElement('canvas').getContext('2d'));const tp=toolOverlay(dc,nm,P.dir,f|0,ox,oy,'front')||toolOverlay(dc,nm,P.dir,f|0,ox,oy,'back');if(tp)waterStream(ctx2,tp,wto,wt);}
+      /* motion judge r7: drawn behind him it was hidden by his head and only the splash showed, a few px from the rose, so the
+         water seemed to spring upward like a fountain. Now it falls from the rose, in front, beside his right shoulder, to a
+         splash on the ground ~30 px above his feet (the square in front of him, as the camera sees it) */
+      let nst=null;if(tm&&!window.NO_TOOL_DRAW&&pour&&P.dir==='N'){const dc=WSTREAM_DUMMY||(WSTREAM_DUMMY=document.createElement('canvas').getContext('2d'));nst=toolOverlay(dc,nm,P.dir,f|0,ox,oy,'front')||toolOverlay(dc,nm,P.dir,f|0,ox,oy,'back');}
       if(tm&&!window.NO_TOOL_DRAW){tip=toolOverlay(ctx2,nm,P.dir,f|0,ox,oy,'back')||tip;if(tip&&pour&&P.dir!=='N')waterStream(ctx2,tip,wto,wt);}
       grabSet(X,Y,f|0,false);plantFx(X,Y,f|0,false);   /* the parts behind his body */   // facing away, the thing set down in front of him is behind his body
       drawSpr(nm,X,Y,clip,clip==='hurt'?'S':P.dir,clip==='hurt'?Math.min(5,Math.floor((performance.now()/120)%6)):f);
       grabSet(X,Y,f|0,true);plantFx(X,Y,f|0,true);
       if(typeof lanternDraw==='function')lanternDraw(ctx2,clip,t);
-      if(tm&&!window.NO_TOOL_DRAW){const t2=toolOverlay(ctx2,nm,P.dir,f|0,ox,oy,'front');if(t2){tip=t2;if(pour&&P.dir!=='N')waterStream(ctx2,tip,wto,wt);}fistOverlay(ctx2,nm,P.dir,f|0,ox,oy);if(tm.toolKind!=='can'&&tm.toolKind!=='rod'&&P.anim)hitFx(ctx2,tm.toolKind,tip,f|0);}
+      if(tm&&!window.NO_TOOL_DRAW){const t2=toolOverlay(ctx2,nm,P.dir,f|0,ox,oy,'front');if(t2){tip=t2;if(pour&&P.dir!=='N')waterStream(ctx2,tip,wto,wt);}fistOverlay(ctx2,nm,P.dir,f|0,ox,oy);if(nst)waterStream(ctx2,nst,[nst[0]+3,nst[1]+6],wt);   /* judge r8: the splash must sit below the rose: the water falls 6 px to the soil above his right shoulder */if(tm.toolKind!=='can'&&tm.toolKind!=='rod'&&P.anim)hitFx(ctx2,tm.toolKind,tip,f|0);}
       fishDraw(ctx2,tip&&tm&&tm.toolKind==='rod'?tip:null,X,Y,t);}
     else if(d.hollow){const X=sx(H.x),Y=sz(H.z);
       // each state its own animation: the stalk, the still watch, the spider crawl, the scream, the lunge, the recoil

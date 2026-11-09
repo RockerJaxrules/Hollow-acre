@@ -143,7 +143,7 @@ function fishDraw(g,tip,X,Y,t){const now=performance.now();
   const el=$('fishMG');const cv=document.createElement('canvas');cv.className='fg';cv.width=46;cv.height=160;el.appendChild(cv);const h=document.createElement('div');h.className='fhint';el.appendChild(h);
   const card=document.createElement('div');card.id='fishCard';card.innerHTML='<canvas width="32" height="32"></canvas><div class="t"></div>';document.body.appendChild(card);}
 const FG={W:46,H:160,tx:7,ty:9,tw:19,th:134,px:31,pw:7};
-startMG=function(f){const el=$('fishMG');const night=isNight();Object.assign(MG,{on:true,f,hold:false,zone:.1,zv:0,fy:.3,fv:0,ft:.3,tt:0,prog:.32,size:S.rod>=3?.36:S.rod>=2?.31:.26,d:f?f[2]:.25,beh:f?f[3]:'smooth',
+startMG=function(f){const el=$('fishMG');const night=isNight();Object.assign(MG,{on:true,f,hold:false,zone:.1,zv:0,fy:.3,fv:0,ft:.3,tt:0,prog:.32,size:S.rod>=4?.40:S.rod>=3?.36:S.rod>=2?.31:.26,d:f?f[2]:.25,beh:f?f[3]:'smooth',
     last:performance.now(),scare:false,perfect:true,age:0,reelA:0,sp:f?FISH_SP[f[0]]:null,horror:night&&!!f&&f[2]>.6,
     tr:f&&rand()<.2&&!(night&&f[2]>.6)?{at:1+rand()*2.5,y:.15+rand()*.7,vy:0,prog:0,got:false,pop:0}:null});
   const k=Math.max(2,Math.min(4,Math.floor(innerHeight*.62/FG.H)));const cv=el.querySelector('.fg');cv.style.width=FG.W*k+'px';cv.style.height=FG.H*k+'px';
@@ -192,7 +192,7 @@ endMG=function(ok){MG.on=false;MG.hold=false;$('fishMG').style.display='none';S.
   if(!ok){toast(MG.f?`The ${MG.f[0].toLowerCase()} got away.`:'It got away.',1.6);SFX.thud&&SFX.thud(0,.2);return;}
   if(!MG.f){const j=pick(JUNK);if(j[1])S.basket.push({kind:'harmonica',value:j[1]});SFX.splash&&SFX.splash();toast(`You reel in… ${j[0].toLowerCase()}. ${j[2]}`,3,true);if(/key|sneaker/.test(j[0]))mindHit&&mindHit(2);return;}
   const f=MG.f,sp=MG.sp;const len=Math.round(f[6]+rand()*(f[7]-f[6]));const big=(len-f[6])/(f[7]-f[6]);const q=MG.perfect?2:big>.7?1:0;
-  const v=Math.round(f[1]*(.8+big*.5)*(S.rod>=3?2:S.rod>=2?1.5:1)*[1,1.25,1.5][q]);
+  const v=Math.round(f[1]*(.8+big*.5)*(S.rod>=4?2.5:S.rod>=3?2:S.rod>=2?1.5:1)*[1,1.25,1.5][q]);
   const isNew=!S.fishLog[f[0]],rec=!isNew&&len>S.fishLog[f[0]];S.basket.push({kind:'fish',sp,value:v,len,q});S.fishCaught=(S.fishCaught||0)+1;S.fishLog[f[0]]=Math.max(S.fishLog[f[0]]||0,len);
   SFX.splash&&SFX.splash();burst(fish.bx,fish.bz,16,'#9fc0e0',2,.7,3);F2.show={sp,until:performance.now()+2400};
   if(MG.perfect&&typeof addXP==='function')addXP('fishing',6);

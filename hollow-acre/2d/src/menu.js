@@ -2,11 +2,11 @@
    The slots are a view over the stores the rest of the game already uses (tools, seeds, the produce basket, materials and food,
    furniture), so every shop, quest and recipe keeps working; the slots only remember where you put things. ================= */
 S.bagSize=S.bagSize||24;S.slots=(S.slots&&S.slots.length===36)?S.slots:new Array(36).fill(null);S.slotSel=S.slotSel||0;
-const ROD_NAMES=['Bamboo rod','Ash rod','Greenheart rod'];
+const ROD_NAMES=['Bamboo rod','Ash rod','Greenheart rod','Hollow-glass rod'];
 const PRODUCE_NAMES={turnip:'Turnip',pumpkin:'Pumpkin',corn:'Corn',fish:'Fish',egg:'Egg',mushroom:'Glowcap'};
 function itemInfo(key){if(!key)return null;const i=key.indexOf(':'),t=key.slice(0,i),id=key.slice(i+1);const T=S.tools||{};
-  if(t==='T'){const N={hoe:[`${T.hoe>1?'Copper':'Rusty'} hoe`,'Tills soil. Swing it at grass or dirt.'],can:[`${S.waterMax>10?'Copper':'Tin'} watering can`,`Holds ${S.waterMax} water. Refill at the well or pond. ${S.water}/${S.waterMax} now.`],
-      pick:[`${T.pick>1?'Steel':'Grandpa’s'} pickaxe`,'Breaks rocks and ore.'],axe:[`${T.axe>1?'Steel':'Old'} axe`,'Chops trees and stumps for wood.'],rod:[ROD_NAMES[Math.max(0,(S.rod||1)-1)],'Tap the water to cast. Strike when the float goes under, then reel it in, giving it line when it runs.']}[id];
+  if(t==='T'){const N={hoe:[toolName('hoe'),'Tills soil. Swing it at grass or dirt.'],can:[toolName('can'),`Holds ${S.waterMax} water. Refill at the well or pond. ${S.water}/${S.waterMax} now.`],
+      pick:[toolName('pick'),'Breaks rocks and ore.'],axe:[toolName('axe'),'Chops trees and stumps for wood.'],rod:[ROD_NAMES[Math.max(0,(S.rod||1)-1)],'Tap the water to cast. Strike when the float goes under, then reel it in, giving it line when it runs.']}[id];
     return {key,type:t,id,name:N[0],desc:N[1],icon:id,qty:1,tool:true};}
   if(t==='S'){const sd=SEEDS[id];if(!sd)return null;return {key,type:t,id,name:sd.name+' seeds',desc:`Plant in tilled soil and water daily. Grows in ${Math.round(sd.grow/2)}–${sd.grow} hours of care.`,icon:SPR['icon32_seed_'+id]?'seed_'+id:'seed',qty:S.seeds[id]||0};}
   if(t==='P'){const n=basketCount(id);const v=S.basket.filter(b=>b.kind===id).reduce((a,b)=>a+b.value,0);const raw=RAW[id];

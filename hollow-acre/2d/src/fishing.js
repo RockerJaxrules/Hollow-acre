@@ -14,7 +14,7 @@ function waterAhead(){for(const d of [1.2,1.8,2.4]){const x=P.x+P.fx*d,z=P.z+P.f
 const hasRod=()=>true;
 function fishWhere(x,z){return Math.hypot(x-pond.x,z-pond.z)<pond.r+3?'pond':'creek';}
 function pickFish(where,night){const pool=FISH.filter(f=>(f[4]==='any'||f[4]===where)&&(f[5]==='any'||(f[5]==='night')===night));
-  const w=pool.map(f=>Math.pow(1.05-f[2],1.6)*(S.rod>=3?1+f[2]:S.rod>=2?1+f[2]*.5:1));let r=rand()*w.reduce((a,b)=>a+b,0);for(let i=0;i<pool.length;i++){r-=w[i];if(r<=0)return pool[i];}return pool[0];}
+  const w=pool.map(f=>Math.pow(1.05-f[2],1.6)*(S.rod>=4?1+f[2]*1.4:S.rod>=3?1+f[2]:S.rod>=2?1+f[2]*.5:1));let r=rand()*w.reduce((a,b)=>a+b,0);for(let i=0;i<pool.length;i++){r-=w[i];if(r<=0)return pool[i];}return pool[0];}
 // ---- the cast
 fish.power=0;
 fishAct=function(){if(MG.on)return;
@@ -61,7 +61,7 @@ const MG={on:false};
   addEventListener('keydown',e=>{if(MG.on&&(e.code==='Space'||e.code==='Enter'||e.code==='KeyC')){MG.hold=true;e.preventDefault();e.stopPropagation();}},true);
   addEventListener('keyup',e=>{if(e.code==='Space'||e.code==='Enter'||e.code==='KeyC')MG.hold=false;},true);}
 function startMG(f){const el=$('fishMG');Object.assign(MG,{on:true,f,hold:false,zone:.1,zv:0,fy:.3,fv:0,ft:.3,tt:0,prog:.32,
-  size:S.rod>=3?.36:S.rod>=2?.31:.26,d:f?f[2]:.25,beh:f?f[3]:'smooth',last:performance.now(),scare:false});
+  size:S.rod>=4?.40:S.rod>=3?.36:S.rod>=2?.31:.26,d:f?f[2]:.25,beh:f?f[3]:'smooth',last:performance.now(),scare:false});
   el.classList.toggle('horror',isNight()&&!!f&&f[2]>.6);el.querySelector('.fishi').src=iconOf(f?'fish':'stone');el.style.display='flex';S.paused=true;fish.state='reel';
   requestAnimationFrame(mgStep);}
 function mgStep(now){if(!MG.on)return;const dt=Math.min(.05,(now-MG.last)/1000);MG.last=now;const el=$('fishMG');
@@ -79,7 +79,7 @@ function mgStep(now){if(!MG.on)return;const dt=Math.min(.05,(now-MG.last)/1000);
 function endMG(ok){MG.on=false;MG.hold=false;$('fishMG').style.display='none';$('fishMG').querySelector('.hint').textContent='Hold to lift the bar';S.paused=false;fish.state='off';
   if(!ok){toast(MG.f?`The ${MG.f[0].toLowerCase()} got away.`:'It got away.',1.6);SFX.thud&&SFX.thud(0,.2);return;}
   if(!MG.f){const j=pick(JUNK);if(j[1])S.basket.push({kind:'fish',value:j[1]});SFX.splash&&SFX.splash();toast(`You reel in… ${j[0].toLowerCase()}. ${j[2]}`,3,true);if(/key|sneaker/.test(j[0]))mindHit&&mindHit(2);return;}
-  const f=MG.f;const len=Math.round(f[6]+rand()*(f[7]-f[6]));const big=(len-f[6])/(f[7]-f[6]);let v=Math.round(f[1]*(.8+big*.5)*(S.rod>=3?2:S.rod>=2?1.5:1));
+  const f=MG.f;const len=Math.round(f[6]+rand()*(f[7]-f[6]));const big=(len-f[6])/(f[7]-f[6]);let v=Math.round(f[1]*(.8+big*.5)*(S.rod>=4?2.5:S.rod>=3?2:S.rod>=2?1.5:1));
   S.basket.push({kind:'fish',value:v});S.fishCaught=(S.fishCaught||0)+1;S.fishLog[f[0]]=Math.max(S.fishLog[f[0]]||0,len);
   SFX.splash&&SFX.splash();burst(fish.bx,fish.bz,16,'#9fc0e0',2,.7,3);
   toast(`${S.fishLog[f[0]]===len&&len>0?'New! ':''}${f[0]}, ${len} cm. Worth ${v}.${FISH_ODD[f[0]]?' '+FISH_ODD[f[0]]:''}`,FISH_ODD[f[0]]?3.4:2.2,!!FISH_ODD[f[0]]);

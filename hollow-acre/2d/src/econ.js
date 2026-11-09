@@ -1,5 +1,16 @@
 /* ================= the farm economy: inventory, tools, energy, health, food and cooking, the mine, equipment upgrades, the greenhouse ================= */
 Object.assign(S,{energy:100,energyMax:100,hp:100,hpMax:100,inv:{},tools:{hoe:S.hoe||1,can:1,pick:1,axe:1},mineFloor:0,mineDeep:0,greenhouse:false});
+/* tool levels (owner: "make multiple with different colors for different resources when you upgrade"): every upgrade is made of
+   its own resource and takes that resource's colour. Hoe and can: base, copper, steel, Hollow-glass (the gem's teal). Pick and
+   axe start in iron: iron, steel, Hollow-glass (old saves keep their meaning: level 2 was and is steel) */
+function toolLv(k){const T=S.tools||{};if(k==='hoe')return Math.max(S.hoe||1,T.hoe||1);if(k==='can')return S.waterMax>=40?4:S.waterMax>=30?3:S.waterMax>10?2:1;return T[k]||1;}
+const TOOL_TIER={hoe:['rust','copper','steel','glass'],can:['tin','copper','steel','glass'],pick:['iron','steel','glass'],axe:['iron','steel','glass']};
+const TOOL_TITLE={hoe:['Rusty hoe','Copper hoe','Steel hoe','Hollow-glass hoe'],can:['Tin watering can','Copper watering can','Steel watering can','Hollow-glass watering can'],pick:['Grandpa’s pickaxe','Steel pickaxe','Hollow-glass pickaxe'],axe:['Old axe','Steel axe','Hollow-glass axe']};
+function toolName(k){const n=TOOL_TITLE[k];return n[Math.min(n.length,toolLv(k))-1];}
+/* the new top levels open only once every grade's art has passed its judge (owner: nothing installs below 6 or unpreferred);
+   until then each tool stops at the level it always had */
+const LADDER_FULL=false,LADDER_CAP={hoe:2,can:2,pick:2,axe:2};
+const pickCost=()=>[3,2,1][Math.min(3,toolLv('pick'))-1],axeCost=()=>[4,2,1][Math.min(3,toolLv('axe'))-1];
 const ITEMS={
   wood:{name:'Wood',icon:'wood'},stone:{name:'Stone',icon:'stone'},fiber:{name:'Fiber',icon:'fiber'},
   copper:{name:'Copper ore',icon:'copper'},iron:{name:'Iron ore',icon:'iron'},coal:{name:'Coal',icon:'coal'},gem:{name:'Hollow-glass',icon:'gem',sell:40,desc:'A black gem that is warm to the touch. Sells for 40.'},
@@ -15,7 +26,7 @@ function blackout(){if(S.mode!=='play'&&S.mode!=='scare')return;S.mode='trans';f
   S.room='cabin';const R=ROOMS.cabin;P.x=R.ox+2.6;P.z=R.oz+2.9;P.dir='S';S.hp=Math.round(S.hpMax*.5);S.energy=Math.round(S.energyMax*.5);S.hour=Math.min(25.5,S.hour+2);S.mineFloor=0;
   if(typeof M!=='undefined'){M.v=Math.max(M.v,40);M.blackout=false;}S.mode='play';fade(0);toast(`You wake in Grandpa’s bed. You don’t remember walking home. Your boots are muddy to the knee.${lost?' '+lost+' coins are gone.':''}`,4.2,true);},1300);}
 // ---- energy costs on the farm
-{const _t=doTill;doTill=function(t){if(!spend(S.hoe>1?3:2))return;_t(t);};const _w=doWater;doWater=function(t){if(!spend(1))return;_w(t);};}
+{const _t=doTill;doTill=function(t){if(!spend([2,3,4,5][Math.min(4,toolLv('hoe'))-1]))return;_t(t);};const _w=doWater;doWater=function(t){if(!spend(1))return;_w(t);};}
 // sleeping refills you; collapsing in the dirt only half
 {const _nd=newDay;newDay=function(msg,pos){_nd(msg,pos);const bad=msg&&/collapsed|dragged/.test(msg);S.energy=Math.round(S.energyMax*(bad?.55:1));S.hp=Math.min(S.hpMax,S.hp+(bad?20:S.hpMax));
   for(const t of tiles)if(t.gh&&t.crop&&t.crop.stage<3)t.crop.watered=true;S.mineFloor=0;};}
@@ -42,7 +53,7 @@ function openBag(){S.paused=true;const B=$('bagBody');const T=S.tools;
   $('bagSub').textContent=`Energy ${Math.round(S.energy)}/${S.energyMax} · Health ${Math.round(S.hp)}/${S.hpMax}${S.mineDeep?` · Deepest mine floor ${S.mineDeep}`:''}`;
   const row=(icon,label,btn)=>`<div class="it"><img src="${iconOf(icon)}" alt=""><span>${label}</span>${btn||''}</div>`;
   let h='<h3>Tools</h3><div class="grid">';
-  h+=row('hoe',`${T.hoe>1?'Copper':'Rusty'} hoe`)+row('can',`${S.waterMax>10?'Copper':'Tin'} watering can`)+row('pick',`${T.pick>1?'Steel':'Grandpa’s'} pickaxe`)+row('axe',`${T.axe>1?'Steel':'Old'} axe`);h+='</div>';
+  h+=row('hoe',toolName('hoe'))+row('can',toolName('can'))+row('pick',toolName('pick'))+row('axe',toolName('axe'));h+='</div>';
   const prod={};for(const b of S.basket)prod[b.kind]=(prod[b.kind]||0)+1;
   if(Object.keys(prod).length){h+='<h3>Produce</h3><div class="grid">';for(const k in prod){const ic=k;h+=row(ic,`${k[0].toUpperCase()+k.slice(1)} ×${prod[k]}`,RAW[k]?`<button data-raw="${k}">Eat</button>`:'');}h+='</div>';}
   const mats=Object.keys(ITEMS).filter(k=>!ITEMS[k].food&&inv(k)>0),foods=Object.keys(ITEMS).filter(k=>ITEMS[k].food&&inv(k)>0);
@@ -62,11 +73,21 @@ renderShop=(function(prev){return function(){prev();const rows=vendors[shopV].ro
     const miss=[];if(r.can){if(S.coins<r.price)miss.push(`${r.price-S.coins} more coins`);for(const [k,n] of Object.entries(r.need))if(inv(k)<n)miss.push(`${n-inv(k)} more ${(ITEMS[k]||{name:k}).name.toLowerCase()}`);}
     if(d&&!d.dataset.nd){d.textContent+=need;d.dataset.nd=1;if(miss.length){const m=document.createElement('b');m.style.cssText='display:block;color:#e8a040;font-weight:normal';m.textContent='Still need '+miss.join(', ')+'.';d.appendChild(m);}}}
   else if(r.btn){b.textContent=r.btn;}});};})(renderShop);
-vendors.hollis.rows=()=>{const fr=S.freeUpgrades,T=S.tools;return [
-  {k:'hoe',name:'Copper hoe',desc:S.hoe>1?'Already done.':'Tills three tiles in a row with each swing.',price:fr?0:40,can:S.hoe<2,need:{copper:5},buy(){S.hoe=2;T.hoe=2;}},
-  {k:'can',name:'Copper watering can',desc:S.waterMax>10?'Already done.':'Holds twice the water.',price:fr?0:30,can:S.waterMax<=10,need:{copper:4},buy(){S.waterMax=20;S.water=20;S.bigCan=true;}},
-  {k:'pick',name:'Steel pickaxe',desc:T.pick>1?'Already done.':'Breaks rock and iron in fewer swings, for less effort.',price:fr?0:60,can:T.pick<2,need:{copper:3,iron:4},buy(){T.pick=2;}},
-  {k:'axe',name:'Steel axe',desc:T.axe>1?'Already done.':'Splits stumps in one swing.',price:fr?0:40,can:T.axe<2,need:{iron:3},buy(){T.axe=2;}},
+vendors.hollis.rows=()=>{const fr=S.freeUpgrades,T=S.tools;
+  // one row per tool: its next level, made of the next resource up (copper, then iron for steel, then Hollow-glass)
+  const up=(k,steps)=>{const lv=toolLv(k),nx=(LADDER_FULL||lv<LADDER_CAP[k])?steps[lv-1]:null;if(!nx)return {k,name:TOOL_TITLE[k][lv-1],desc:LADDER_FULL?'As good as it gets. Hollis won’t touch it.':'Already done.',price:0,can:false,need:{},buy(){}};
+    return {k,name:TOOL_TITLE[k][lv],desc:nx.d,price:fr?0:nx.p,can:true,need:nx.n,buy:nx.b};};
+  return [
+  up('hoe',[{d:'Tills three tiles in a row with each swing.',p:40,n:{copper:5},b(){S.hoe=2;T.hoe=2;}},
+            {d:'Tills five tiles in a row.',p:100,n:{iron:5,coal:2},b(){S.hoe=3;T.hoe=3;}},
+            {d:'Tills a square three tiles wide and three deep. The black glass edge never dulls.',p:220,n:{gem:2,iron:3},b(){S.hoe=4;T.hoe=4;}}]),
+  up('can',[{d:'Holds twice the water.',p:30,n:{copper:4},b(){S.waterMax=20;S.water=20;S.bigCan=true;}},
+            {d:'Holds 30 water.',p:75,n:{iron:4,coal:2},b(){S.waterMax=30;S.water=30;}},
+            {d:'Holds 40 water. It comes out cold, even in the sun.',p:180,n:{gem:2,iron:2},b(){S.waterMax=40;S.water=40;}}]),
+  up('pick',[{d:'Breaks rock and iron in fewer swings, for less effort.',p:60,n:{copper:3,iron:4},b(){T.pick=2;}},
+             {d:'Another swing fewer on everything, for almost no effort. The glass stays warm in your hand.',p:250,n:{gem:3,iron:5},b(){T.pick=3;}}]),
+  up('axe',[{d:'Splits stumps in one swing.',p:40,n:{iron:3},b(){T.axe=2;}},
+            {d:'Fells a tree in two swings. The wood it cuts is warm.',p:200,n:{gem:2,iron:4},b(){T.axe=3;}}]),
   {k:'spr',name:'Brass sprinkler',desc:S.sprinklers>=4?'Your field has all it can use.':`Waters a patch of field every morning. You have ${S.sprinklers}/4.`,price:fr?0:45,can:S.sprinklers<4,need:{copper:2,iron:1},buy(){S.sprinklers++;}},
   {k:'hood',name:'Lantern hood',desc:S.flashlight?'Your light is already focused.':'A reflector for your lantern. Throws the light much further.',price:fr?0:60,can:!S.flashlight,need:{iron:2},buy(){S.flashlight=true;}}];};
 {const _mae=vendors.mae.rows;vendors.mae.rows=()=>{const r=_mae();r.push({k:'bread',name:'Loaf of bread',desc:'+30 energy.',price:10,can:true,buy(){addInv('bread');}},{k:'stew',name:'Bowl of stew',desc:'+50 energy, +15 health. “You look peaky, dear.”',price:25,can:true,buy(){addInv('stew');}},
@@ -78,7 +99,7 @@ vendors.cook={name:'Grandpa’s stove',sub:'The recipe cards are in his handwrit
 {const st=interact.find(it=>it.on&&ROOMS.cabin&&Math.abs(it.x-(ROOMS.cabin.ox+7.9))<.01);if(st){st.label=()=>'Cook';st.act=()=>openShop('cook');}}
 // ---- farm debris now gives materials and costs energy; stumps need the axe
 {const add=farmDebris;farmDebris=function(){add();for(const it of interact){if(!it.act||!it.label)continue;const o=OBJ.find(q=>q.debris&&Math.abs(q.x-it.x)<.001&&Math.abs(q.z-it.z)<.001);if(!o)continue;const orig=it.act;
-    it.act=function(){if(P.anim)return;const cost=o.debris==='rock'?(S.tools.pick>1?2:3):o.debris==='weeds'?1:0;if(cost&&!spend(cost))return;faceTo(o.x,o.z);startAnim(o.debris==='rock'?'pick':'grab',o.debris==='rock'?.55:.45,null,()=>{orig.call(it);
+    it.act=function(){if(P.anim)return;const cost=o.debris==='rock'?(pickCost()):o.debris==='weeds'?1:0;if(cost&&!spend(cost))return;faceTo(o.x,o.z);startAnim(o.debris==='rock'?'pick':'grab',o.debris==='rock'?.55:.45,null,()=>{orig.call(it);
       if(o.debris==='rock')addInv('stone',1+(rand()<.3?1:0));if(o.debris==='weeds')addInv('fiber');if(o.debris==='twig')addInv('wood');});};}
   fieldDebris();};}
 // ---- the old Marrow mine, cut into the cliff behind the farm
@@ -98,8 +119,8 @@ function mineFloor(f){S.mineFloor=f;S.mineDeep=Math.max(S.mineDeep,f);const R=RO
   toast(f===1?'The old Marrow mine. The air is cold and smells of pennies.':`Floor ${f}.${f%5===0?' Somebody has scratched tally marks into the wall. They stop at your age.':''}`,2.4,f>=8);}
 function mineTarget(){if(S.room!=='mine')return null;let best=null,bd=1.3;for(const o of MINE.ores){if(o.hide)continue;const d=Math.hypot(o.x-P.x,o.z-P.z);const dot=((o.x-P.x)*P.fx+(o.z-P.z)*P.fz)/(d||1);if(d<bd&&(d<.8||dot>.3)){bd=d;best=o;}}return best;}
 {const _cc=computeContext;computeContext=function(){if(S.room==='mine'){const L=MINE.ladder;if(L&&!L.hide&&Math.hypot(L.x-P.x,L.z-P.z)<1.1)return {label:'Climb down',ok:true,act(){fade(1);SFX.thud(0,.3);setTimeout(()=>{P.x=ROOMS.mine.ox+ROOMS.mine.door;P.z=ROOMS.mine.oz+ROOMS.mine.d-1;mineFloor(S.mineFloor+1);fade(0);},350);}};
-    const o=mineTarget();if(o)return {label:'Mine',ok:true,act(){if(!spend(S.tools.pick>1?2:3))return;faceTo(o.x,o.z);startAnim('pick',.55,null,()=>{o.hits++;SFX.thud(0,.35);burst(o.x,o.z,10,'#8a8690',1.4,.7,2);
-      const need=Math.max(1,ORE_HITS[o.ore]-(S.tools.pick>1?1:0))+(o.ore==='iron'&&S.tools.pick<2?1:0);if(o.ore==='iron'&&S.tools.pick<2&&o.hits===1&&!S.first.ironSlow){S.first.ironSlow=1;toast('Iron is tough. Keep swinging: Grandpa’s old pick breaks it in four.',3);}
+    const o=mineTarget();if(o)return {label:'Mine',ok:true,act(){if(!spend(pickCost()))return;faceTo(o.x,o.z);startAnim('pick',.55,null,()=>{o.hits++;SFX.thud(0,.35);burst(o.x,o.z,10,'#8a8690',1.4,.7,2);
+      const need=Math.max(1,ORE_HITS[o.ore]-(toolLv('pick')-1))+(o.ore==='iron'&&S.tools.pick<2?1:0);if(o.ore==='iron'&&S.tools.pick<2&&o.hits===1&&!S.first.ironSlow){S.first.ironSlow=1;toast('Iron is tough. Keep swinging: Grandpa’s old pick breaks it in four.',3);}
       if(o.hits<need&&need>2)toast(`${ITEMS[o.ore].name}: cracking ${o.hits}/${need}`,.7);
       if(o.hits>=need){o.hide=true;const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);addInv('stone');if(o.ore!=='stone')addInv(o.ore,1+(rand()<.35?1:0));toast(`+${ITEMS[o.ore].name.toLowerCase()}`,1);
         if(o===MINE.ladderAt||(!MINE.ladder&&MINE.ores.every(q=>q.hide))){MINE.ladder=obj('ladder',o.x,o.z+.05,{kind:'flat'});SFX.stinger();toast('A ladder, going down.',1.4);}}});}};}
@@ -135,7 +156,7 @@ function econBoot(){placeMine();
 function makeDebris(spr,x,z,tile){const kind=spr.split('_')[0];const o=obj(spr,x,z,{kind:'prop',debris:kind});if(tile)tile.debris=o;
   if(kind==='rock'||kind==='stump'){o.col={x,z:z-.1,r:kind==='stump'?.36:.3};circles.push(o.col);}
   const verb={rock:'Break',stump:'Chop',weeds:'Pull',twig:'Pick up'}[kind];
-  interact.push({x,z,r:.75,on:()=>!o.hide,label:()=>verb,ok:()=>true,act(){if(P.anim)return;const cost={rock:S.tools.pick>1?2:3,stump:S.tools.axe>1?2:4,weeds:1,twig:0}[kind];if(cost&&!spend(cost))return;faceTo(o.x,o.z);
+  interact.push({x,z,r:.75,on:()=>!o.hide,label:()=>verb,ok:()=>true,act(){if(P.anim)return;const cost={rock:pickCost(),stump:axeCost(),weeds:1,twig:0}[kind];if(cost&&!spend(cost))return;faceTo(o.x,o.z);
     startAnim(kind==='rock'?'pick':kind==='stump'?'axe':'grab',.5,null,()=>{o.hits=(o.hits||0)+1;const need=kind==='stump'?(S.tools.axe>1?1:2):1;SFX.thud(0,kind==='rock'?.35:.2);
       burst(o.x,o.z,kind==='rock'?14:9,kind==='rock'?'#8a8690':kind==='weeds'?'#4a8a32':'#7d5636',1.3,.6,2);if(o.hits<need)return;
       o.hide=true;o.goneDay=S.day;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}
@@ -160,7 +181,7 @@ function noteDrawables(D){if(S.readLetter||S.room)return;D.push({z:-9.38,mind:1,
 function hotbarUse(k){if(S.mode!=='play'||S.paused)return;const T=S.tools;
   if(k==='seed'){onSeed();return;}
   if(k==='food'){const best=Object.keys(ITEMS).filter(q=>ITEMS[q].food&&inv(q)>0).sort((a,b)=>ITEMS[a].food[0]-ITEMS[b].food[0])[0];if(best){takeInv(best);eat(ITEMS[best].food[0],ITEMS[best].food[1],ITEMS[best].name);}else{const raw=Object.keys(RAW).find(q=>basketCount(q)>0);if(raw){takeBasket(raw,1);eat(RAW[raw][0],RAW[raw][1],'A raw '+raw);}else toast('Nothing to eat.',1.4);}updateHud();return;}
-  const nm={hoe:`${T.hoe>1?'Copper':'Rusty'} hoe — till soil`,can:`${S.waterMax>10?'Copper':'Tin'} can — ${S.water}/${S.waterMax}`,pick:`${T.pick>1?'Steel':'Grandpa’s'} pickaxe — break stone`,axe:`${T.axe>1?'Steel':'Old'} axe — chop stumps`}[k];toast(nm,1.4);}
+  const nm={hoe:`${toolName('hoe')} — till soil`,can:`${toolName('can').replace(' watering can',' can')} — ${S.water}/${S.waterMax}`,pick:`${toolName('pick')} — break stone`,axe:`${toolName('axe')} — chop stumps`}[k];toast(nm,1.4);}
 setInterval(()=>{const hb=$('hotbar');if(!hb)return;hb.style.display=(S.mode!=='play'||$('hud').hidden||S.paused)?'none':'flex';if(!$('hb_seed'))return;
   for(const im of hb.querySelectorAll('img'))if(!im.src&&(SPR['icon32_'+im.dataset.ic]||SPR['icon_'+im.dataset.ic])&&IMG[(SPR['icon32_'+im.dataset.ic]||SPR['icon_'+im.dataset.ic]).src])im.src=iconOf(im.dataset.ic);
   $('hb_seed').textContent=S.seeds[S.sel]||0;$('hb_can').textContent=S.water;const fc=Object.keys(ITEMS).filter(q=>ITEMS[q].food).reduce((a,q)=>a+inv(q),0);$('hb_food').textContent=fc||'';
@@ -171,20 +192,20 @@ setInterval(()=>{const hb=$('hotbar');if(!hb)return;hb.style.display=(S.mode!=='
 const TREE_COL={maple_orange:['#a8441a','#ec9a34'],maple_red:['#8c2222','#d8623a'],maple_gold:['#9c7818','#e4c84a'],maple_green:['#235a26','#52983a']};
 function treeChop(){for(const o of OBJ){if(o.hide||(o.kind!=='tree'&&o.kind!=='pine'))continue;if(o.room||o.x>=250)continue;if(o.spr==='deadtree')continue;o.choppable=1;
   o.col=circles.find(c=>Math.hypot(c.x-o.x,c.z-(o.z-.1))<.35)||null;
-  interact.push({x:o.x,z:o.z+.2,r:1.2,on:()=>!o.hide,label:()=>'Chop',ok:()=>true,act(){if(P.anim)return;if(!spend(S.tools.axe>1?2:4))return;
+  interact.push({x:o.x,z:o.z+.2,r:1.2,on:()=>!o.hide,label:()=>'Chop',ok:()=>true,act(){if(P.anim)return;if(!spend(axeCost()))return;
     {if(!o.trunkW){const sk=makeStump(o.spr);o.trunkW=sk?Math.round((SPR[sk].foot[2]||.2)*PPM)-1:6;}const vert=Math.abs(P.z-o.z)>Math.abs(P.x-o.x)*1.1;if(vert){P.x=o.x+.04;P.z=P.z>o.z?o.z+.55:o.z-.62;}else{const side=P.x<o.x?-1:1,d=(15+o.trunkW)/PPM;P.x=o.x+side*d;P.z=o.z+.06;}}faceTo(o.x,o.z);
     startAnim('axe',.55,null,()=>{o.hits=(o.hits||0)+1;SFX.thud(0,.45);cam.shake=Math.max(cam.shake,.14);const cc=TREE_COL[o.spr]||['#1d4129','#356538'];
       // the trunk takes a bite on your side, the tree rocks away from you on its base, chips fly from the cut, a few leaves come down
       o.notch=o.hits;o.notchSide=P.x<o.x?-1:1;if(!o.trunkW){const sk=makeStump(o.spr);o.trunkW=sk?Math.round((SPR[sk].foot[2]||.2)*PPM)-1:6;}o.rock={t:0,dir:P.x<o.x?1:-1};
       for(let i=0;i<9;i++)parts.push({x:o.x+o.notchSide*o.trunkW/PPM,z:o.z+.02,y:.38,vx:o.notchSide*(.8+Math.random()*1.6),vz:(Math.random()-.5)*.6,vy:1.2+Math.random()*1.4,t:0,life:.5+Math.random()*.3,col:i%3?'#d8b478':'#8a5c34',size:i%2?2:1});
       if(typeof LEAVES!=='undefined'&&typeof LEAF_COL!=='undefined'&&LEAF_COL[o.spr]){const C=LEAF_COL[o.spr];for(let i=0;i<3;i++)LEAVES.push({x:o.x+(Math.random()-.5)*2.2,z:o.z+(Math.random()-.3)*.6,h:60+Math.random()*30,t:0,ph:Math.random()*6,col:C,land:0});}
-      if(o.hits<(S.tools.axe>1?3:5))return;
+      if(o.hits<[5,3,2][Math.min(3,toolLv('axe'))-1])return;
       // it leans, then comes down away from you, and the crown bursts when it hits
       o.hide=true;o.goneDay=S.day;if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}SFX.screech&&SFX.screech();FALLING.push({o,t:0,dir:P.x<o.x?1:-1,cc,landed:false});if(typeof onTreeFelled==='function')onTreeFelled(o);
       const w=o.kind==='pine'?6:8;addInv('wood',w);toast(`Timber. +${w} wood.`,1.6);updateHud();
       if(rand()<.08)setTimeout(()=>toast('Carved into the heartwood, where no one could have reached it: your initials.',3,true),900);
       const sk=makeStump(o.spr)||'stump_maple';const st=obj(sk,o.x,o.z,{kind:'prop',debris:'stump',stumpOf:o});o.stump=st;st.col={x:o.x,z:o.z-.1,r:Math.max(.3,(SPR[sk].foot[2]||.4)*.85)};circles.push(st.col);
-      interact.push({x:o.x,z:o.z+.2,r:.85,on:()=>!st.hide,label:()=>'Chop',ok:()=>true,act(){if(P.anim)return;if(!spend(S.tools.axe>1?2:4))return;faceTo(st.x,st.z);
+      interact.push({x:o.x,z:o.z+.2,r:.85,on:()=>!st.hide,label:()=>'Chop',ok:()=>true,act(){if(P.anim)return;if(!spend(axeCost()))return;faceTo(st.x,st.z);
         startAnim('axe',.55,null,()=>{st.hits=(st.hits||0)+1;SFX.thud(0,.4);burst(st.x,st.z,10,'#7d5636',1.4,.7,2);if(st.hits<(S.tools.axe>1?1:2))return;
           st.hide=true;st.goneDay=S.day;const k=circles.indexOf(st.col);if(k>=0)circles.splice(k,1);addInv('wood',3);toast('The stump comes out. +3 wood.',1.4);});}});});}});}}
 // trees shake when hit

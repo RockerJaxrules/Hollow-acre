@@ -8,9 +8,9 @@ function quarrySetup(){if(QROCKS.length||typeof QUARRY==='undefined')return;
     interact.push({x:o.x,z:o.z,r:.8,on:()=>!o.hide&&!S.room,label:()=>q.kind==='stone'?'Break':'Mine',ok:()=>true,act(){quarryHit(q);}});}
   // a working quarry: always a few veins of each ore among the boulders
   for(const [kind,want] of [['iron',3],['copper',3],['coal',2]]){let have=QROCKS.filter(q=>q.kind===kind).length;for(const q of QROCKS){if(have>=want)break;if(q.kind!=='stone')continue;q.kind=kind;q.o.spr='ore_'+kind;have++;}}}
-function quarryHit(q){if(P.anim)return;const o=q.o;if(!spend(S.tools.pick>1?2:3))return;faceTo(o.x,o.z);
+function quarryHit(q){if(P.anim)return;const o=q.o;if(!spend(pickCost()))return;faceTo(o.x,o.z);
   startAnim('pick',.55,null,()=>{q.hits++;SFX.thud(0,.35);burst(o.x,o.z,12,q.kind==='copper'?'#c87a40':q.kind==='iron'?'#b8a090':q.kind==='coal'?'#2a2a2a':'#8a8690',1.4,.7,2);
-    const need=Math.max(1,(ORE_HITS[q.kind]||1)-(S.tools.pick>1?1:0))+(q.kind==='iron'&&S.tools.pick<2?1:0);
+    const need=Math.max(1,(ORE_HITS[q.kind]||1)-(toolLv('pick')-1))+(q.kind==='iron'&&S.tools.pick<2?1:0);
     if(q.kind==='iron'&&S.tools.pick<2&&q.hits===1&&!S.first.ironSlow){S.first.ironSlow=1;toast('Iron is tough. Keep swinging: Grandpa’s old pick breaks it in four.',3);}
     if(q.hits<need){if(need>2)toast(`${ITEMS[q.kind]?ITEMS[q.kind].name:'Rock'}: cracking ${q.hits}/${need}`,.7);return;}q.hits=0;o.hide=true;o.goneDay=S.day;if(q.c){const k=circles.indexOf(q.c);if(k>=0)circles.splice(k,1);}
     addInv('stone',1+(rand()<.4?1:0));if(q.kind!=='stone')addInv(q.kind,1+(rand()<.35?1:0));toast(q.kind==='stone'?'+stone':`+${ITEMS[q.kind].name.toLowerCase()}`,1);updateHud&&updateHud();});}
