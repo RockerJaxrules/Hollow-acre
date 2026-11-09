@@ -63,7 +63,7 @@ NPC['mae'] = dict(skin='#f3d2b8', hair='#e2c27e', hairTip='#e58fb0', tipDy=7, ha
                   glasses='square', accessory=None, eye='#6a8aa4', allure=1)   # no cord at sprite scale: it read as a black U over her cleavage (judge); her portrait keeps it
 # the young adult women: fitted low-cut tops (no scarves over the neckline), lashes, lipstick
 ALLURE = {'nell': dict(outfit='tee', overalls=False, pants='#4a3e2e'), 'june': dict(accessory=None), 'cora': dict(accessory=None), 'ida': dict(),
-          'tess': dict(accessory=None), 'iris': dict(), 'della': dict(accessory=None, extra='#5e3e6e'), 'maud': dict(accessory='headband')}   # no necklaces at sprite scale: they read as a collar, a necktie or a breastplate over the cleavage (judge; owner rule); the portraits keep them
+          'tess': dict(accessory=None), 'iris': dict(), 'della': dict(accessory=None), 'maud': dict(accessory='headband')}   # no necklaces at sprite scale: they read as a collar, a necktie or a breastplate over the cleavage (judge; owner rule); the portraits keep them
 for _k, _v in ALLURE.items(): NPC[_k].update(_v, allure=1)
 # the portraits' clothes (chars4.py) and the sprites' clothes are the same clothes
 for _k, _v in {'ida': dict(extra='#c89aa0'), 'tess': dict(shirt='#3e5a40', extra='#9a7650'), 'iris': dict(shirt='#b48ad0'), 'della': dict(shirt='#d8a840'),
