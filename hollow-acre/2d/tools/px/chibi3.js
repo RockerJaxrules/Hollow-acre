@@ -477,10 +477,12 @@ function walkPose(f,dir,run){const pose={};if(f===0)return pose;const side=dir==
   return pose;}
 // planting and harvesting: bend, kneel, reach into the soil in front, press it in, rise, stand
 function plantPose(f,dir){const pose={},side=dir==='E'||dir==='W',back=dir==='N',fl=dir==='W'?-1:1;if(f===0||f===5)return pose;const kneel=f===2||f===3;
-  if(side){if(kneel){pose.crouch=5;pose.lean=2;pose.legs=[[-3,0],[3,0]];const d=f===3?1:0;pose.hands=[[fl*(4+d),12+d],[fl*(6+d),12+d]];pose.nod=1;}
-    else if(f===1){pose.crouch=3;pose.lean=2;pose.hands=[[fl*3,10],[fl*5,10]];pose.nod=1;}else{pose.crouch=2;pose.lean=1;pose.hands=[[fl*4,4],[fl*5,3]];}}
-  else{if(kneel){pose.crouch=5;pose.squat=2;const d=f===3?1:0;pose.hands=back?[[4,8],[-3,8]]:[[5,12+d],[-4,12+d]];pose.reach=back;pose.nod=1;}
-    else if(f===1){pose.crouch=3;pose.squat=1;pose.hands=back?[[4,7],[-3,7]]:[[5,10],[-4,10]];pose.reach=back;pose.nod=1;}
+  // kneeling to the square in front: a short step forward with the near foot, a lean from the hips (the feet stay put),
+  // the hands reaching low and forward (judge r4: lean, never slide the whole body)
+  if(side){if(kneel){pose.crouch=5;pose.lean=5;pose.legs=[[-4,0],[5,0]];const d=f===3?1:0;pose.hands=[[fl*(7+d),12+d],[fl*(9+d),12+d]];pose.nod=1;}
+    else if(f===1){pose.crouch=3;pose.lean=3;pose.legs=[[-3,0],[3,0]];pose.hands=[[fl*5,10],[fl*7,10]];pose.nod=1;}else{pose.crouch=2;pose.lean=2;pose.hands=[[fl*4,4],[fl*5,3]];}}
+  else{if(kneel){pose.crouch=6;pose.squat=2;const d=f===3?1:0;pose.hands=back?[[4,8],[-3,8]]:[[5,14+d],[-4,14+d]];pose.reach=back;pose.nod=1;}
+    else if(f===1){pose.crouch=3;pose.squat=1;pose.hands=back?[[4,7],[-3,7]]:[[5,11],[-4,11]];pose.reach=back;pose.nod=1;}
     else{pose.crouch=2;pose.hands=back?[[4,2],[-3,2]]:[[5,3],[-4,3]];pose.reach=back;}}
   return pose;}
 // ---------------------------------------------------------------- render
