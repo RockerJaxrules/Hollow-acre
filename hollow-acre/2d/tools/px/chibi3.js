@@ -60,6 +60,10 @@ const CX=23;                     // the figure's axis runs between columns 23 an
 // ---------------------------------------------------------------- legs and shoes
 // front/back: a straight column per leg, a dark seam between them, the shoe under it. dy moves the foot (+1 toward you, -1 lifted).
 function legsFront(cx,hip,dyL,dyR,back,squat){const R=LEGSKIN?SK:PNT;const len=FOOT-3-hip;
+  if(SIT){// seated, facing us: the lap (thighs coming toward us), two rounded knees, the shins darker below, the boots
+    for(let y=hip+1;y<=hip+4;y++)for(let x=cx-6;x<=cx+6;x++)p(x,y,R[y===hip+1?(back?2:4):x<=cx-5||x>=cx+5?1:3]);
+    for(const kx of [cx-4,cx+2]){for(let i=0;i<4;i++){p(kx+i,hip+5,R[i===0||i===3?2:back?2:4]);}for(let y=hip+6;y<=FOOT-3;y++)for(let i=0;i<4;i++)p(kx+i,y,R[i===0?2:i===3?0:1]);}
+    shoeFront(cx-5,FOOT-2,-1,back);shoeFront(cx+2,FOOT-2,1,back);return;}
   for(const [s,dy] of [[-1,dyL],[1,dyR]]){const x0=s<0?cx-4:cx+2,w=4,bot=hip+len+dy;
     for(let y=hip+1;y<=bot;y++)for(let i=0;i<w;i++){let k=i===0?(s<0?4:3):i===w-1?(s<0?2:1):3;if(y===bot)k=Math.min(k,2);p(x0+i,y,R[k]);}
     // a little knee crease halfway down
@@ -71,6 +75,8 @@ function shoeFront(x,y,s,back){const R=SHO;const w=5;for(let i=0;i<w;i++){const 
   if(!back){p(x+(s<0?1:2),y,R[4]);}}
 // side view: two columns that lean from the hip to the foot; the far one is darker. off: foot offset along the facing; lift: raised.
 function legSide(hx,hip,off,lift,fl,far,crouch){const R=far?dk(LEGSKIN?SK:PNT,1):(LEGSKIN?SK:PNT);const len=FOOT-3-hip,fx=hx+off*fl,bot=hip+len-lift;
+  if(SIT){const kx=hx+fl*(far?6:8);for(let y=hip+1;y<=hip+3;y++)for(let x=Math.min(hx-1,kx);x<=Math.max(hx-1,kx);x++)p(x,y,R[y===hip+1?4:y===hip+3?1:3]);
+    segLeg(kx,hip+3,kx,FOOT-3,R);shoeSide(kx,FOOT-2,fl,far);return;}   /* seated (judge: the shortened legs read as a crouch) */
   if(crouch>2){// knees forward: thigh out, shin back down
     const kx=hx+fl*(2+Math.round(crouch/2)),ky=hip+Math.round(len*.45);segLeg(hx,hip+1,kx,ky,R);segLeg(kx,ky,fx,bot,R);}
   else if(lift>=2){// the swinging leg: thigh forward to the knee, shin back down to the raised foot
@@ -412,7 +418,8 @@ function toolHands(kind,dir,f){const [gx,gy,ang,k]=toolEntry(kind,dir,f);const a
 // ---------------------------------------------------------------- one figure
 // pose: crouch, bob, lean (side), sway (front), legs:{L,R} foot offsets, hands:[left/far, right/near] absolute offsets from the shoulders,
 // nod, blink, reach (back view: hands hidden in front of the body), tool (callback)
-function human(dir,pose){const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1,back=dir==='N';
+let SIT=false;
+function human(dir,pose){SIT=!!pose.sit;const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1,back=dir==='N';
   const crouch=pose.crouch||0,bob=pose.bob||0,lean=side?Math.round((pose.lean||0)*fl):0;
   const cx=CX+(side?0:(pose.sway||0));const hip=HIP0+crouch+bob,top=TOP0+crouch+bob,ux=cx+lean,hy=top-9-(ALL?1:0)+(STOOP?2:0);
   const shL=side?[ux-fl,top+1]:[ux-7-WIDE,top+1],shR=side?[ux+fl,top+1]:[ux+8+WIDE,top+1];
@@ -519,10 +526,13 @@ ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
     if(dir==='N'&&e[1]>-6)pose.reach=true;
     pose.tool=(ux,top)=>{TOOLMETA[dir][f]=[ux+e[0],top+e[1],e[2],e[3],e[4]];if(!e[4]&&dir!=='N')for(const gg of [T.g1,T.g2])if(gg)fistAt(Math.round(ux+gg[0]),Math.round(top+gg[1]-1));};}
   if(clip==='slash')pose=plantPose(f,dir);
-  if(clip==='hurt'){pose.crouch=[0,1,2,3,4,4][f];pose.lean=-1;pose.hands=[[3,-4],[-3,-4]];pose.blink=f>1;}
+  // hurt (judge: it read as a shrug, then dozing): the hit (snap up, wide eyes, an O mouth, hands flung out at the shoulders),
+  // the cower (head ducked, shoulders up, eyes squeezed shut, hands beside the neckline, never over it), then easing back
+  if(clip==='hurt'){pose.bob=[-2,-2,0,0,0,0][f];pose.crouch=[0,0,3,3,2,1][f];pose.nod=f>=2&&f<=4?1:0;pose.expr=f<2||f===5?'scared':null;pose.blink=f>=2&&f<=4;
+    pose.hands=[[[-5,-5],[5,-5]],[[-6,-6],[6,-6]],[[1,-5],[-1,-5]],[[1,-5],[-1,-5]],[[0,1],[0,1]],[[0,6],[0,6]]][f];}
   if(clip==='spellcast'){const up=f>1;pose.hands=up?(side?[[fl*-1,-10],[fl*2,-11]]:[[1,-11],[-1,-11]]):null;}
-  if(clip==='sit'){pose.crouch=5;pose.squat=3;if(side)pose.legs=[[3,0],[4,0]];pose.hands=side?[[fl*2,7],[fl*3,7]]:[[1,7],[-1,7]];}
-  human(dir,pose);
+  if(clip==='sit'){pose.crouch=2;pose.sit=true;pose.bob=[0,1,0][f]||0;pose.hands=side?[[fl*5,9],[fl*6,9]]:[[3,13],[-3,13]];pose.blink=f===2;}   /* hands resting on the thigh / the knees; a breath */
+  const EX0=EXPR;if(pose.expr)EXPR=pose.expr;human(dir,pose);EXPR=EX0;
   if(clip==='slash'&&HANDS_REC)HANDMETA[dir][f]=HANDS_REC.map(h=>h.map(Math.round));
   // outline the whole figure; each outline pixel goes to the part whose pixel it borders
   const comp=flatten(PARTS.map(k=>LY[k]),FW,FH);
