@@ -37,7 +37,7 @@ PAL = {
     'glow':    ['#8a3410', '#d06a1c', '#f0a040', '#f8d27a', '#fcecb0'],
 }
 for _k in ('coat', 'bone', 'stick'): PAL[_k + '_far'] = [PAL[_k][0]] + PAL[_k][:-1]   # the far limb: one step darker (judge r21)
-PAL['coat_near'] = PAL['coat'][1:] + ['#5e5670']   # the near sleeve one step lighter: the arm reads against the coat (judge r23)
+PAL['coat_near'] = PAL['coat'][2:] + ['#5e5670', '#706884']   # the near sleeve one step lighter: the arm reads against the coat (judge r23)
 MOTTLE = {'coat': 0.0}   # no mottle: the streaks read as fur (judge r15); the folds carry the cloth   # a whisper of variation in the cloth; shape comes from folds, not speckle (owner: no grit)
 
 
@@ -303,21 +303,24 @@ def pose(t, clip, side_view=False, far=None):
             el = (x * (.66 + .1 * reach), -.25 - .7 * reach + .25 * back, 2.48 + .55 * reach + .2 * back)
             wr = (x * (.62 + .18 * reach), -.04 - 1.7 * reach + .4 * back, 1.54 + .9 * reach + .55 * back)   # forward and a little up: at the player, not out to the sides
             if side_view and side == far: el, wr = (el[0], el[1], el[2] + .3), (wr[0], wr[1], wr[2] + .62)   # and higher, reaching for the head: clear of the near arm
+            if side_view and back:   # the wind-up: both claws cocked up and back, showing behind the coat
+                el = (el[0], .32 + (.08 if side == far else 0), 2.95 + (.12 if side == far else 0))
+                wr = (wr[0], .62 + (.1 if side == far else 0), 2.75 + (.25 if side == far else 0))
             if side_view:   # the whole body drives forward: the arms ride with the hips
-                hf_, dp_ = -.34 * k + .08 * back, .1 * k
+                hf_, dp_ = -.34 * k + .2 * back, .1 * k + .2 * back
                 el, wr = (el[0], el[1] + hf_, el[2] - dp_), (wr[0], wr[1] + hf_, wr[2] - dp_)
             P['arm' + side] = [SH(x * .16), el, wr]
-        P.update(pitch=(22 if side_view else 34) * k - 8 * back, head_pitch=-18 * k, mouth=.6 * k, shift=(.62 if side_view else .45) * k, head_tilt=-6 * k, spread=1 + .9 * k, claw=1 + .45 * k)   # side-on: back far enough that the reach stays in the frame
+        P.update(pitch=(22 if side_view else 34) * k - 8 * back, head_pitch=-18 * k, mouth=.6 * k, shift=(.62 if side_view else .45) * k - (.34 if side_view else 0) * back, head_tilt=-6 * k, spread=1 + .9 * k, claw=1 + .45 * k)   # side-on: back far enough that the reach stays in the frame
         if side_view:   # the pumpkin tips into the reach a beat late; the mouth stays lit (a dark maw read as a rotten spot);
                         # the sleeves ride up the reaching arms, baring the bony forearms; the far arm one step darker
-            kh = [-.45, .3, .8, .85][int(round(t * 4)) % 4]   # wind-up: the head pulled back
-            P.update(head_pitch=18 * kh - 4, mouth=.25 * k, look=42, ride=.2 + .3 * k, far_dark=far)
+            kh = [-.55, .1, .4, .8][int(round(t * 4)) % 4]   # wind-up: the head pulled back; then it arrives a beat late, so the face still shows at full reach
+            P.update(head_pitch=18 * kh - 4, mouth=.25 * k, look=48, ride=.2 + .3 * k, far_dark=far)
             # a lunge, not a reach: the hips drive forward over a bent front knee, the back leg trails (judge r22)
-            hf, dp = -.34 * k + .08 * back, .1 * k + .13 * back   # the wind-up crouches 4 px
-            P.update(fwd=hf, drop=dp, hem_fwd=[-.08, -.1, -.16, .26][int(round(t * 4)) % 4])   # the hem trails the drive, then swings past the legs on the recover
+            hf, dp = -.34 * k + .2 * back, .1 * k + .2 * back   # the wind-up: hips back over the rear foot, 6 px lower
+            P.update(fwd=hf, drop=dp, pitch=22 * k - 16 * back, hem_fwd=[.14, -.1, -.18, -.14][int(round(t * 4)) % 4])   # leaning back the hem swings forward; on the drive and the recover it trails
             for side, lead in (('L', True), ('R', False)):
                 x = -.16 if side == 'L' else .16; hip = (x, hf, HIP - dp)
-                kb = .16 * back   # the crouch bends both knees forward
+                kb = .3 * back   # the crouch bends both knees forward
                 if lead: P['leg' + side] = [hip, (x, hf - .4 * k - .02 - kb, HIP * .52 + .04 * k - .05 * back), (x, hf - .3 * k, .02)]
                 else: P['leg' + side] = [hip, (x, hf + .38 * k + .02 - kb, HIP * .52 - .02 * k - .05 * back), (x, hf + .78 * k + .02, .02)]
     elif clip == 'hurt':   # it recoils from the light: arms over its face, leaning away, shaking

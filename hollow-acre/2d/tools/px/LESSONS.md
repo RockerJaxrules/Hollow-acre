@@ -137,6 +137,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [hollow r22 5/10] A lunge that moves only the arms is a reach. Drive the hips forward over a bent front knee, trail
   the back leg, and let the head arrive a beat late; tilting the torso about the hips alone swings the hem backward
   and the body reads as leaning away. Bone forearms, not wood: brown sticks vanish into the grass at 1x.
+- [hollow r24-r25] Anticipation has to be big to read at 1x: a 4 px crouch scored a tie; leaning back over the rear
+  foot, 6 px lower, head pulled back and both claws cocked up behind the coat scored 6 vs 5. Slide the wind-up frame
+  forward so the cocked claws stay inside the cell.
+- [judging] A judge given only 1x and 2x sheets could not see 2-3 px mouth changes and called it a tie; send an
+  enlarged crop of the changed part beside the 1x sheet.
 
 ## Judging (Nov 9)
 - Blind judges vary by about a point between rounds and lean toward whichever image is in slot b: in tree round 4 the
