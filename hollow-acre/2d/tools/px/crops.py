@@ -11,8 +11,9 @@ import sys, os, math
 from PIL import Image
 
 HEX = lambda h: (int(h[1:3], 16), int(h[3:5], 16), int(h[5:7], 16), 255)
-KERN = [HEX(c) for c in ('#8a5c14', '#c8901c', '#e8b830', '#f8dc70')]   # corn kernels: deep, body, lit body, highlight
-SILK = [HEX(c) for c in ('#6a3a18', '#9a5a28')]
+KERN = [HEX(c) for c in ('#5e3e22', '#9a7430', '#bc9640', '#d4b45a')]   # old-gold kernels with a plum-brown shade (judge: lemon was candy)
+SILK = [HEX(c) for c in ('#5a3418', '#7a4a24', '#9a6434')]
+HUSK = [HEX(c) for c in ('#3e3a1e', '#635c2c', '#857c3c', '#a69c50', '#bcb466')]   # straw husk, clear of the leaf green
 LEAF = [HEX(c) for c in ('#18241a', '#22341c', '#304822', '#40602a', '#567832', '#6e9040', '#88a64e')]
 DRYL = [HEX(c) for c in ('#2e2414', '#4a3a1c', '#6a5428', '#8a7236', '#a89048', '#c4ac5c')]
 TURN_TOP = [HEX(c) for c in ('#2e1228', '#4a1e40', '#6a2e5a', '#8a4474', '#a65e8c')]
@@ -161,6 +162,29 @@ def pumpkin(stage):
     return outline(cv.image())
 
 
+def corn_ear(cv, bx, by, side, L, wfull, ang):
+    """a husked ear growing from the stalk (judge on v1: 'bare cobs pinned on the leaves'): its base tucked into the leaf
+    joint, a straw-green husk wrapped round the lower two thirds, opening at the top onto a band of old-gold kernels in
+    small clusters (lit side, body, shade), a drooping silk tuft at the tip"""
+    ux, uy = math.sin(ang), -math.cos(ang); px_, py_ = math.cos(ang), math.sin(ang)
+    for i in range(L):
+        u = i / (L - 1); w = wfull * (.55 + .45 * math.sin(min(1, u * 1.6) * math.pi * .5)) if u < .82 else wfull * (.82 - (u - .82) * 1.6)
+        n = max(2, int(round(w)))
+        for j in range(n):
+            o = j - (n - 1) / 2; jj = j if side > 0 else n - 1 - j      # jj 0 = the lit side
+            x, y = bx + ux * i + px_ * o, by + uy * i + py_ * o
+            husk = u < .5 or ((jj == 0 or jj == n - 1) and u < .85)       # wrapped below, peeled back along the edges above
+            if husk:
+                col = HUSK[4] if jj == 0 else HUSK[1] if jj == n - 1 else (HUSK[2] if u < .15 else HUSK[3])
+            else:
+                col = KERN[3] if jj == 1 else KERN[1] if jj >= n - 2 else KERN[2]
+                if i % 3 == 0 and 1 < jj < n - 2: col = KERN[1]           # the line between two clusters of kernels
+            cv.put(x, y, col)
+    tx, ty = bx + ux * L, by + uy * L
+    for k, (dx, dy) in enumerate(((0, 0), (side * 1, 0), (side * 2, 1), (side * 2, 2))):   # the silk, drooping outward
+        cv.put(tx + dx, ty + dy, SILK[min(2, k)] if k < 2 else SILK[0])
+
+
 def corn(stage):
     cv = Canvas(28, 62); B = 60; cx = 14
     H = (17, 38, 50)[stage]
@@ -176,6 +200,9 @@ def corn(stage):
     for i, (t, side, L) in enumerate(spots):
         y = B - 2 - t * H; ramp = DRYL if (stage == 2 and i < 2) else LEAF
         leaf(cv, cx + side, y, side * (.75 - t * .25), L, 2.5, side * .25, ramp, blade=True, droop=side * (1.6 if i < 2 else .9))
+    if stage == 2:
+        corn_ear(cv, cx + 1, B - 2 - .5 * H, 1, 12, 5, .5)     # the main ear
+        corn_ear(cv, cx - 1, B - 2 - .3 * H, -1, 8, 3.6, -.6)   # a smaller one, lower, on the other side
     if stage >= 1:   # a tassel bud, then a full ochre tassel
         top = B - H
         if stage == 1:
@@ -184,26 +211,6 @@ def corn(stage):
             for s, L in ((-1, 6), (0, 8), (1, 6), (-1, 4), (1, 5)):
                 for i in range(L):
                     cv.put(cx + s * (i // 3) + (s if i > 1 else 0) * 0, top - i * (1 if s == 0 else .8), TASSEL[min(3, 1 + i // 3)])
-    if stage == 2:   # ears that read as corn (judge: "ripe corn needs a readable ear"): a cob angled out from the stalk, its husk
-        # wrapped round the base and opened at the top to show rows of gold kernels, a brown silk tuft at the tip
-        for (t, side, L, wfull) in ((.4, 1, 12, 5), (.58, -1, 9, 4)):
-            bx, by = cx + side * 1, B - 2 - t * H; ang = side * .62
-            ux, uy = math.sin(ang), -math.cos(ang); px_, py_ = math.cos(ang), math.sin(ang)
-            for i in range(L):
-                u = i / (L - 1); w = wfull * (.75 + .25 * math.sin(min(1, u * 1.3) * math.pi * .5)) if u < .85 else wfull * .6
-                for j in range(int(round(w))):
-                    o = j - (w - 1) / 2
-                    x, y = bx + ux * i + px_ * o, by + uy * i + py_ * o
-                    edge = j == 0 or j == int(round(w)) - 1
-                    if u < .38 or (edge and u < .8):   # the husk: wrapped below, peeled back along the sides above
-                        col = DRYL[4] if j == 0 else (LEAF[3] if u < .2 else DRYL[3])
-                    else:                               # kernels in rows, lit on the left
-                        n = int(round(w)); jj = j if side > 0 else n - 1 - j   # kernel rows run along the cob: lit, body, shade columns,
-                        col = KERN[3] if jj <= 1 else KERN[2] if jj < n - 2 else KERN[1]   # a darker line between every other kernel
-                        if i % 2 == 0 and 0 < jj < n - 2: col = KERN[1] if jj > 1 else KERN[2]
-                    cv.put(x, y, col)
-            tx, ty = bx + ux * L, by + uy * L
-            for k in range(2): cv.put(tx + ux * k, ty + uy * k, SILK[k > 0])
     return outline(cv.image())
 
 

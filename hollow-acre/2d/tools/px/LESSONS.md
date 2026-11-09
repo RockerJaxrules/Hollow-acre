@@ -229,6 +229,16 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   the art's pixel reads as "upscaled" and dim small lines fail the greyscale check.
 - Curly quotes need clear 6 and 9 shapes at 3 px tall, or the opening quote reads as a closing one.
 
+## First-person hands in the minigames (Nov 10: long forearms lost 3 vs floating fists)
+- A forearm of constant width with a dark line every few rows reads as a ladder or a striped pipe; arms that cross the
+  scene hide the job (the fire, the cutting line) and become the loudest thing in the frame. Don't extend sleeves to the
+  frame edge by default.
+- If arms are drawn: foreshortened (about twice the fist's width where they leave the frame, tapering to the cuff),
+  shaded as one cylinder with two creases at most, in a muted wool clearly apart from the scene's reds, and routed so
+  they never cover the work.
+- Corn: an ear reads when its husk is straw, not leaf green (or it vanishes), and its kernels are lighter than the leaves
+  in grey; lemon yellow is candy, old gold is right; kernels as small clusters, not 1 px alternating stripes.
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline

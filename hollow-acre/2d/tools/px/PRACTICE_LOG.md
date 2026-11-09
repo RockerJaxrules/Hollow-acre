@@ -16,3 +16,5 @@ One row per critiqued attempt. The point is to see the number of attempts per ki
 | 2026-11-10 | interior floors (interior.js) | 1 | (judging) | baseline judge: no speckle, contact shadows, light from visible sources | single-pixel specks out of planks, wide boards, flagstones, damask, log walls; grain streaks, nail pairs, cracks; window beams replaced by hard-edged floor patches; #322125 contact band |
 | 2026-11-10 | forest floor v7 | 7 | 5 (lost narrowly to v6 in slot b) | re-lay the drifts: no rows, none one of a kind | kept v6 installed |
 | 2026-11-10 | tarmac, water (ground2.py) | 1-4 | tarmac 5 (old speckled: exception), water 6 | tarmac: wear clusters not a dot lattice; water: leaves out of the tile | both fixes made, both installed |
+| 2026-11-10 | minigame forearms | 1-2 | 3 (old fists won every scene) | tapered foreshortened forearms that never cover the job | reverted, not installed |
+| 2026-11-10 | ripe corn | 1-3 | v1 6 vs old (no ear visible) | husked ears joined to the stalk, old gold, kernel clusters | v3 drawn, judging with all crop stages |
