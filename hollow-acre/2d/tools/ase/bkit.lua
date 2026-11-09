@@ -298,6 +298,10 @@ function B.frontgable(c, sp, x0, x1, yW, wallmat, roofmat, trim, seed)
   elseif gw == 'loft' then
     local ly = ay + math.floor(Gh * .35); R(c, ax - 9, ly, ax + 9, ly + 16, trim[3]); R(c, ax - 7, ly + 2, ax + 7, ly + 16, 'w3')
     px.line(c, ax - 7, ly + 2, ax + 7, ly + 16, trim[4]); px.line(c, ax + 7, ly + 2, ax - 7, ly + 16, trim[4]); px.vline(c, ax, ay - 4, ly - 1, 'm3')
+  elseif gw == 'mesh' then   -- the coop's gable: an opening covered in chicken wire, the dark roost behind it
+    local vy = ay + math.floor(Gh * .38); R(c, ax - 9, vy, ax + 9, vy + 12, trim[3]); R(c, ax - 7, vy + 2, ax + 7, vy + 11, 'k1')
+    for yy = vy + 2, vy + 11 do for xx = ax - 7, ax + 7 do if ((xx + yy) % 3 == 0) or ((xx - yy) % 3 == 0 and (yy % 2 == 0)) then P(c, xx, yy, 'm3') end end end
+    px.hline(c, ax - 9, ax + 9, vy + 12, trim[2]); px.hline(c, ax - 9, ax + 9, vy, trim[4])
   elseif gw == 'vent' then
     local vy = ay + math.floor(Gh * .45); R(c, ax - 6, vy, ax + 6, vy + 9, trim[3]); for yy = vy + 2, vy + 8, 2 do px.hline(c, ax - 5, ax + 5, yy, trim[1]) end
   end
@@ -563,6 +567,38 @@ function B.garagedoor(c, x0, x1, y0, y1, trim, night, seed)
 end
 
 -- ------------------------------------------------------------------ whole buildings
+--[[ judge (buildings sweep): the coop read as a small shed with a vent (BLOCKING). What says hens: a low hatch with a cleated
+     ramp down to the ground, a nest-box lean-to on the side with its own lid, chicken wire in the gable, straw at the foot ]]
+function B.coopfx(c, sp, x0, x1, gy, seed)
+  local fy = gy - 10
+  -- the hatch, low on the wall left of the door
+  local hx0, hx1 = x0 + 8, x0 + 19; local hy0 = fy - 12
+  R(c, hx0 - 2, hy0 - 2, hx1 + 2, fy, 'w3'); px.hline(c, hx0 - 2, hx1 + 2, hy0 - 2, 'w6'); px.vline(c, hx0 - 2, hy0 - 2, fy, 'w5')
+  R(c, hx0, hy0, hx1, fy, 'k1'); px.hline(c, hx0, hx1, hy0, 'OUT'); px.hline(c, hx0, hx1, hy0 + 1, 'lg1')
+  R(c, hx1 + 3, hy0 - 3, hx1 + 9, hy0 + 8, 'w4'); px.vline(c, hx1 + 3, hy0 - 3, hy0 + 8, 'w6'); px.vline(c, hx1 + 9, hy0 - 3, hy0 + 8, 'w2')   -- the slide door, pulled up to the side
+  -- the ramp: a plank from the sill to the ground, cleats across it
+  local ax_, ay_, bx_, by_ = hx0 + 4, fy - 1, hx0 - 24, gy + 2
+  local n = math.max(math.abs(bx_ - ax_), math.abs(by_ - ay_))
+  for i = 0, n do local x = math.floor(ax_ + (bx_ - ax_) * i / n + .5); local y = math.floor(ay_ + (by_ - ay_) * i / n + .5)
+    P(c, x, y - 2, 'OUT'); P(c, x, y - 1, 'w7'); P(c, x, y, 'w5'); P(c, x, y + 1, 'w4'); P(c, x, y + 2, 'w2'); P(c, x, y + 3, 'OUT'); if i % 5 == 2 then P(c, x, y - 1, 'w3'); P(c, x, y, 'w3') end end   -- a lit top edge so it reads over the stones
+  for x = bx_ - 2, ax_ do P(c, x, gy, 'OUT2') end
+  -- the nest box: a lean-to on the right wall
+  local nx0, nx1 = x1 + 1, x1 + 15; local ny0, ny1 = fy - 26, fy - 9
+  R(c, nx0, ny0, nx1, ny1, 'w4'); px.vline(c, nx1, ny0, ny1, 'w2'); px.hline(c, nx0, nx1, ny1, 'w2')
+  for xx = nx0 + 4, nx1 - 1, 5 do px.vline(c, xx, ny0 + 2, ny1 - 1, 'w3') end
+  for k = 0, 17 do local yy = ny0 - 1 - math.floor(k * 5 / 17); P(c, nx1 + 1 - k, yy, 'bn6'); P(c, nx1 + 1 - k, yy - 1, 'bn5'); P(c, nx1 + 1 - k, yy + 1, 'bn3') end   -- its sloped lid
+  px.line(c, nx0 + 2, ny1 + 1, nx0 + 2, fy, 'w2'); px.line(c, nx1 - 2, ny1 + 1, nx0 + 4, fy, 'w2')   -- the bracket
+  for yy = ny0, ny1 do for xx = nx0, nx1 do if px.get(c, xx, yy) ~= 0 and xx > nx1 - 3 then px.shade(c, xx, yy, -1) end end end
+  -- straw at the foot of the wall and spilling from the hatch
+  for i = 0, 16 do local sx = x0 - 6 + math.floor(H(i, seed + 97) * (x1 - x0 + 24)); local sw = 2 + math.floor(H(i, seed + 98) * 3)
+    for k = 0, sw do P(c, sx + k, gy - 1 - (k % 2), (k % 3 == 0) and 't4' or 't3') end end
+  for k = -4, 6 do P(c, hx0 + k, fy - (k % 2), 't4') end
+  -- a hen looking out of the hatch: white head, red comb, a dot of beak (says 'coop' at a glance)
+  local hx, hy = hx0 + 5, hy0 + 5
+  R(c, hx - 1, hy, hx + 2, hy + 3, 'p2'); P(c, hx + 2, hy + 3, 'p1'); P(c, hx - 1, hy + 3, 'p1'); P(c, hx, hy - 1, 'b3'); P(c, hx + 1, hy - 1, 'b2'); P(c, hx - 2, hy + 1, 'y2'); P(c, hx, hy + 1, 'OUT')
+  for x = hx - 1, hx + 3 do if px.get(c, x, hy + 4) ~= 0 then P(c, x, hy + 4, 'p1') end end
+end
+
 function B.build(sp, night)
   DOORMETA = nil
   local wt = sp.w; local W = math.floor(wt * 32); local m = 22
@@ -754,6 +790,7 @@ function B.build(sp, night)
     px.ellipse(c, hx, hy, 3, 3.5, 'b2'); for k = 0, 3 do px.vline(c, hx - 3 + k * 2, hy - 7, hy - 3, k == 3 and 'b1' or 'b2') end; px.vline(c, hx + 1, hy + 3, hy + 10, 'b1') end
   px.outline(c, px.i(c, 'OUT'))
   -- chim: where smoke leaves the first chimney, relative to the sprite's anchor (the game's puff offset)
+  if sp.coop then B.coopfx(c, sp, x0, x1, gy, seed) end
   return c, {w = Wd, h = Hh, ax = Wd / 2, ay = gy - 3, chim = chim and {chim[1] - Wd / 2, chim[2] - (gy - 3) - 2} or nil, door = DOORMETA}
 end
 
