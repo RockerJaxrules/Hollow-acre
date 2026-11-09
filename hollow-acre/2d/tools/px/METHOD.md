@@ -67,3 +67,13 @@ shadow; a few fallen leaves.
    deepest step only on the bottom edge, bark grooves, a lit edge, a knot, fallen leaves, one outline.
 4. `python3 grid.py view <out>.pxg <png> 4`: look at it at 1x, 3x and in grey; then a side-by-side for the owner.
 5. Colour variants are palette swaps of the same grid; shape variants are a new scene with the bundles moved.
+
+## Which method for which art (owner, after the side-by-sides)
+
+- 3D blockout + hand finish: nature (trees, pines, bushes, rocks, stumps) and vehicles. It won those comparisons.
+- Code-drawn ("math": shapes placed by formulas in tools/ase/*.lua, chibi3.js, portrait code): buildings, props,
+  people, item icons, chat portraits. It won every comparison for those.
+- Every new or redrawn math version goes to the judge (the pixel-critic agent, blind, score out of 10, one first fix)
+  and is only swapped in when it beats what is in the game and scores 7+.
+- Layouts come before buildings: plan each place (streets, lots, spacing, facing, sight lines) and check the plan in
+  the game before drawing or redrawing the buildings that fill it.

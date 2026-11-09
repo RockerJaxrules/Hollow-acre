@@ -26,11 +26,13 @@ Follow `METHOD.md`: palette (hue-shifted ramps, a darker/moodier take for this g
 → detail on borders only → clean-up. Author it as a `.pxg` grid (`grid.py`). After every pass:
 `python3 grid.py view <file> <out.png>` and look at it (1x, 3x, grey), and `python3 grid.py validate <file>`.
 
-## Check (no separate critic: the owner said it takes too long)
+## Check
 
-Look at the zoomed view yourself against `LESSONS.md` and the review list in `METHOD.md`, run `validate`, then show the
-owner a side-by-side with what it replaces. The owner's reaction is the verdict. (The `pixel-critic` agent still exists
-but only runs when the owner asks for it.)
+Pick the method by the art (METHOD.md: 3D blockout for nature and vehicles; code-drawn "math" for buildings, props,
+people, icons and portraits). For math versions the owner asked for the judge: give the old and new sprite to the
+`pixel-critic` agent (blind), take its score and first fix, fix, judge again; swap in only at 7+ and only when it beats
+the old one side by side. Then show the owner; the owner's reaction is the final verdict. Plan a place's layout before
+its buildings.
 
 ## After every check or owner reaction: write it down (this is the practice)
 
