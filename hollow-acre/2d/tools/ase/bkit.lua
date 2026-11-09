@@ -178,16 +178,20 @@ function B.roofpx(c, mat, x, y, top, lit, seed)
     if bx == 0 then return px.i(c, lit > .5 and (worn and Rr[5] or Rr[6]) or (worn and Rr[3] or Rr[4])) end
     if bx == 1 then return px.i(c, lit > .5 and Rr[2] or Rr[1]) end   -- judge r4: the rib's shadow side, so each seam is a 2 px rib
     -- rust (judge r5): orange-brown, 2 px wide, starting at a rib end and running out to the eave, darkest where it starts
-    local rs = H(sm + (right and 50 or 0), seed); local rl = 6 + math.floor(H(sm, seed + 3) * 5)
-    if rs > .8 and (bx == 2 or bx == 3) and d > G.half - rl then return px.i(c, d < G.half - rl / 2 and 'mu3' or 'mu4') end
+    local rs = H(sm + (right and 50 or 0), seed); local rl = 2 + math.floor(H(sm, seed + 3) * 6)   -- judge r6: 2-7 px, not a ladder of equal dashes
+    if rs > .84 and (bx == 2 or bx == 3) and d > G.half - rl then return px.i(c, d < G.half - rl / 2 and 'mu3' or 'mu4') end
     return band(c, Rr, (lit > .5 and .5 or .22) - (worn and .14 or 0), 2, 6)
   elseif mat == 'tin' then
     local bx = x % 7
     if bx == 0 then return px.i(c, lit > .5 and Rr[7] or Rr[4]) end
     if bx == 1 then return px.i(c, lit > .5 and Rr[5] or Rr[3]) end
     if bx == 6 then return px.i(c, Rr[2]) end
-    local col = x // 7; local rs = H(col, seed); local ry0 = top + math.floor(H(col, seed + 1) * 40)
-    if rs > .72 and y >= ry0 and y < ry0 + 6 + math.floor(rs * 10) and bx >= 2 and bx <= 4 then return px.i(c, y < ry0 + 3 and 'r5' or 'r4') end   -- a rust streak running down a rib
+    --[[ judge r6: rust starts at the eave and runs up a rib 5-10 px, 2 px wide, tapered at the top, orange-brown (crimson
+         streaks floating mid-slope read as blood), a few, clustered toward the two ends of the eave ]]
+    local E = B.EAVE
+    if E and bx >= 2 and bx <= 3 then local col = x // 7; local w = E.x1 - E.x0; local fx = (x - E.x0) / math.max(1, w)
+      if (fx < .3 or fx > .7) and H(col, seed) > .55 then local len = 5 + math.floor(H(col, seed + 1) * 6); local up = E.y - y
+        if up >= 0 and up < len and not (up >= len - 2 and bx == 3) then return px.i(c, up >= len - 3 and 'mu4' or 'mu3') end end end
     return band(c, Rr, (lit > .5 and .58 or .26) - (y - top) / 600, 2, 7)
   else -- thatch
     local n = H(x // 2 + (y // 3) * 17, seed)
@@ -240,6 +244,7 @@ end
 -- a long roof seen from the front (ridge running left-right), with hipped ends
 function B.sideroof(c, x0, x1, yW, depth, roofmat, seed, hip)
   local over = 10; local top = yW - depth; local hipw = hip and math.floor(depth * .9) or 0
+  B.EAVE = {y = yW + 3, x0 = x0 - over, x1 = x1 + over}
   for y = top, yW + 3 do
     local t = (y - top) / math.max(1, depth); local inset = math.floor((1 - t) * hipw)
     local xa, xb = x0 - over + inset, x1 + over - inset

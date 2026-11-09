@@ -150,7 +150,9 @@ for _, name in ipairs(names) do
   if not only or only == name then
     local sp = S[name]
     for _, night in ipairs({false, true}) do
-      local c, meta = B.build(sp, night); c.weather = {grime = .3, streak = true, round = .35, radius = 2, patch = .12, cell = 6, chips = .004, nochips = {tn = true}, moss = {ramps = {'sl', 'sh', 'th', 's', 'as', 'bn', 'tl'}, amt = .62, low = 8, base = {'s'}}}   -- no chip specks on tin (judge r4: grit)
+      B.EAVE = nil
+      local c, meta = B.build(sp, night); local mr = {'sl', 'sh', 'th', 's', 'as', 'bn', 'tl'}; if sp.rough then mr[#mr + 1] = 'tn' end   -- the derelict barn's tin grows moss at the eaves (judge r6)
+      c.weather = {grime = .3, streak = true, round = .35, radius = 2, patch = .12, cell = 6, chips = .004, nochips = {tn = true}, moss = {ramps = mr, amt = .62, low = 8, base = {'s'}}}   -- no chip specks on tin (judge r4: grit)
       local fn = name .. (night and '_n' or '')
       px.save(c, app.fs.joinPath(out, fn .. '.png'))
       print(string.format('META %s %d %d %.1f %d %.2f %s %s', fn, meta.w, meta.h, meta.ax, meta.ay, sp.w,
