@@ -133,7 +133,10 @@ def render(scene):
             g = scene.get('gamma', 1.5)   # moodier: most of the volume sits in the middle and lower steps
             q = max(vv, 0) ** g
             b = int(np.clip(q * nk * 1.12, 0, nk - 1))
-            if 'emit' in M:   # fire, lit from inside: white-hot coals at the bottom, flame tongues licking up, dark above
+            if 'emit' in M and M.get('glow'):   # a lit window: an even warm glow, brighter toward the middle
+                cx_ = (s['min'][0] + s['max'][0]) / 2 if 'min' in s else Q[j, 0]; hw_ = abs(s['max'][0] - s['min'][0]) / 2 if 'min' in s else 1
+                b = min(nk - 1, M['emit'] + (1 if abs(Q[j, 0] - cx_) < hw_ * .45 else 0))
+            elif 'emit' in M:   # fire, lit from inside: white-hot coals at the bottom, flame tongues licking up, dark above
                 y0 = s.get('min', [0, Q[j, 1] - 4])[1]; hy = Q[j, 1] - y0; tongue = (math.sin(Q[j, 0] * 1.3 + 1) * 2.2 + 4.5)
                 b = nk - 1 if hy < 2 else nk - 2 if hy < 3.5 else (M['emit'] if hy < tongue else 0)
             pat = M.get('pattern') or s.get('pattern')
@@ -147,6 +150,8 @@ def render(scene):
                     row = math.floor(v / sp); seam = (v % sp) < 1 or ((u + (row % 2) * sp) % (2 * sp)) < 1
                 elif kind == 'bars':          # vertical bars sp apart (a cage)
                     seam = (u % sp) >= 1.2
+                elif kind == 'glint':         # a diagonal glint across glass (lighter, not darker)
+                    if ((u - v) % sp) < 2.2: b = min(nk - 1, b + 2)
                 if seam: b = max(0, b - pat[3] if len(pat) > 3 else b - 1)
             band[i] = b; mname[i] = m; NRM[i] = n[j]
             if 'hi' in M and q > M.get('hi_at', .9): hiflag.add(i)   # a small sunlit highlight
