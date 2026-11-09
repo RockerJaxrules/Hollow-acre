@@ -23,14 +23,11 @@ function drawSpr(name,x,y,clip,dir,frame,o){const m=SPR[name];if(!m)return;const
   else if(o.scale&&o.scale!==1){const s=o.scale;g.drawImage(im,sx,sy,m.fw,m.fh,Math.round(x-m.ax*s),Math.round(y-m.ay*s),Math.round(m.fw*s),Math.round(m.fh*s));}
   else g.drawImage(im,sx,sy,m.fw,m.fh,dx,dy,m.fw,m.fh);
   if(o.alpha!==undefined)g.globalAlpha=1;}
-// ---------- ground: LPC autotiles (corner-matched 3x6 blocks)
+// ---------- ground chunks
 const CH=256,chunks=new Map();let FRAME_NO=0;
-const TS={grass:['spr/lpc/tiles/terrain.png',0,192],flowers:['spr/lpc/tiles/terrain.png',96,192],dark:['spr/lpc/tiles/terrain.png',192,192],
-  dirt:['spr/lpc/tiles/dirt.png',0,0],stone:['spr/lpc/tiles/terrain.png',384,0],water:['spr/lpc/tiles/watergrass.png',0,0],plowed:['spr/lpc/tiles/plowed.png',0,0]};
+const TS={};   // the old LPC ground tiles are gone: the ground is drawn from our own tex_ textures
 const PIECE={1:[[0,2]],2:[[2,2]],3:[[1,2]],4:[[0,4]],5:[[0,3]],6:[[0,4],[2,2]],7:[[2,1]],8:[[2,4]],9:[[2,4],[0,2]],10:[[2,3]],11:[[1,1]],12:[[1,4]],13:[[2,0]],14:[[1,0]]};
-function drawAuto(g,name,mask,dx,dy,seed){const [src,bx,by]=TS[name];const im=IMG[src];if(!im||!mask)return;
-  if(mask===15){const v=seed<.6?[1,3]:[(seed*10|0)%3,5];g.drawImage(im,bx+v[0]*32,by+v[1]*32,32,32,dx,dy,32,32);return;}
-  for(const [c,r] of PIECE[mask])g.drawImage(im,bx+c*32,by+r*32,32,32,dx,dy,32,32);}
+function drawAuto(){}
 function maskAt(fn,x,z){return (fn(x,z)?8:0)|(fn(x+1,z)?4:0)|(fn(x,z+1)?2:0)|(fn(x+1,z+1)?1:0);}
 // the ground is drawn in chunks and kept; the valley is big enough now that only the most recently seen ones are kept (the rest are redrawn if you come back)
 const CHUNK_MAX=150;

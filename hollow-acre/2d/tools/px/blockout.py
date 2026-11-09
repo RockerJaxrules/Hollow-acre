@@ -31,9 +31,14 @@ def sdf_scene(P, shapes):
             y = P[:, 1] - c[1]; rad = np.hypot(P[:, 0] - c[0], P[:, 2] - c[2])
             ca = h / math.hypot(h, r)
             di = np.maximum((rad - r * (1 - y / h)) * ca, -y)
+        elif t == 'torus':     # a ring in the x-y plane (faces the viewer): centre c, ring radius R, tube radius r
+            c = np.array(s['c'], float); q0 = np.hypot(P[:, 0] - c[0], P[:, 1] - c[1]) - s['R']
+            di = np.hypot(q0, P[:, 2] - c[2]) - s['r']
         elif t == 'cylinder':
-            c = np.array(s['c'], float); h = s['h']; r = s['r']
-            y = P[:, 1] - c[1]; rad = np.hypot(P[:, 0] - c[0], P[:, 2] - c[2])
+            c = np.array(s['c'], float); h = s['h']; r = s['r']; ax = s.get('axis', 'y')
+            if ax == 'y': y = P[:, 1] - c[1]; rad = np.hypot(P[:, 0] - c[0], P[:, 2] - c[2])
+            elif ax == 'z': y = P[:, 2] - c[2]; rad = np.hypot(P[:, 0] - c[0], P[:, 1] - c[1])
+            else: y = P[:, 0] - c[0]; rad = np.hypot(P[:, 1] - c[1], P[:, 2] - c[2])
             fl = s.get('flare', 0); rr = r + fl * np.clip(1 - y / max(1, h * .25), 0, 1) ** 2
             dx = rad - rr; dy = np.maximum(-y, y - h)
             di = np.minimum(np.maximum(dx, dy), 0) + np.hypot(np.maximum(dx, 0), np.maximum(dy, 0))
@@ -95,16 +100,40 @@ def render(scene):
             dd, _ = sdf_scene(R, shapes); sh = np.minimum(sh, np.clip(dd * 3, 0, 1)); R = R + Lt[None, :] * np.maximum(dd, .3)[:, None]
         # crease darkening (cheap ambient occlusion)
         ao = np.clip(sdf_scene(Q + n * 1.5, shapes)[0] / 1.5, 0, 1) * .5 + .5
+        mname = {}; hiflag = set(); NRM = {}
         for j, i in enumerate(hp):
             s = shapes[hid[i]]; m = s['mat']
             if s.get('topmat') and n[j, 1] > s.get('top_at', .8): m = s['topmat']
-            ch = mats[m]['chars']; nk = len(ch)
-            amb = mats[m].get('ambient', 0); shw = mats[m].get('shade', .65)
+            M = mats[m]; ch = M['chars']; nk = len(ch)
+            amb = M.get('ambient', 0); shw = M.get('shade', .65)
             vv = amb + (1 - amb) * lam[j] * ((1 - shw) + shw * sh[j]) * ao[j] + s.get('bias', 0)
             g = scene.get('gamma', 1.5)   # moodier: most of the volume sits in the middle and lower steps
             q = max(vv, 0) ** g
-            b = int(np.clip(q * nk * 1.12, 0, nk - 1)); band[i] = b; mat[i] = ch[b]
-            if 'hi' in mats[m] and q > mats[m].get('hi_at', .9): mat[i] = mats[m]['hi']   # a small sunlit highlight
+            b = int(np.clip(q * nk * 1.12, 0, nk - 1))
+            if 'emit' in M:   # fire, lit from inside: white-hot coals at the bottom, flame tongues licking up, dark above
+                y0 = s.get('min', [0, Q[j, 1] - 4])[1]; hy = Q[j, 1] - y0; tongue = (math.sin(Q[j, 0] * 1.3 + 1) * 2.2 + 4.5)
+                b = nk - 1 if hy < 2 else nk - 2 if hy < 3.5 else (M['emit'] if hy < tongue else 0)
+            pat = M.get('pattern') or s.get('pattern')
+            if pat:   # seams in world space, so they follow the surface in perspective
+                X_, Y_, Z_ = Q[j]; a_ = np.abs(n[j]); face = int(np.argmax(a_))
+                u, v = ((X_, Y_) if face == 2 else (Z_, Y_) if face == 0 else (X_, Z_))
+                kind, sp = pat[0], pat[1]; seam = False
+                if kind == 'planks':          # boards running along an axis, seams every sp
+                    ax_ = {'x': X_, 'y': Y_, 'z': Z_}[pat[2]]; seam = (ax_ % sp) < 1
+                elif kind == 'bricks':        # courses sp high, bricks 2 sp long, every other course offset
+                    row = math.floor(v / sp); seam = (v % sp) < 1 or ((u + (row % 2) * sp) % (2 * sp)) < 1
+                elif kind == 'bars':          # vertical bars sp apart (a cage)
+                    seam = (u % sp) >= 1.2
+                if seam: b = max(0, b - pat[3] if len(pat) > 3 else b - 1)
+            band[i] = b; mname[i] = m; NRM[i] = n[j]
+            if 'hi' in M and q > M.get('hi_at', .9): hiflag.add(i)   # a small sunlit highlight
+        # bevel: the front edge of every top face catches the light (the LPC rim), for materials that ask for it
+        for i in list(mname):
+            M = mats[mname[i]]
+            if M.get('bevel') and NRM[i][1] > .7 and (i + W) in mname and NRM[i + W][1] < .4 and hid[i + W] == hid[i]:
+                band[i] = min(len(M['chars']) - 1, band[i] + 1)
+        for i, m in mname.items():
+            mat[i] = mats[m]['hi'] if i in hiflag else mats[m]['chars'][band[i]]
     # cast shadow on the ground (y = 0) from the light
     shadow = np.zeros(H * W, bool)
     gm = ~hit

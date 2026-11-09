@@ -548,19 +548,6 @@
 0
 ]
 },
-"pumpkin_3": {
-"src": "spr/lpc/obj/pumpkin_3.png",
-"fw": 40,
-"fh": 64,
-"ax": 20,
-"ay": 58,
-"foot": [
-0,
-0,
-0,
-0
-]
-},
 "cabin_n": {
 "src": "spr/lpc/obj/cabin_n.png",
 "fw": 236,
@@ -1544,10 +1531,10 @@
 },
 "bench_farm": {
 "src": "spr/lpc/obj/bench_farm.png",
-"fw": 64,
-"fh": 64,
-"ax": 32.0,
-"ay": 61,
+"fw": 62,
+"fh": 62,
+"ax": 28.0,
+"ay": 54.0,
 "foot": [
 0,
 0,
@@ -1557,10 +1544,10 @@
 },
 "bench_weapon": {
 "src": "spr/lpc/obj/bench_weapon.png",
-"fw": 64,
-"fh": 66,
-"ax": 32.0,
-"ay": 63,
+"fw": 62,
+"fh": 62,
+"ax": 29.0,
+"ay": 54.0,
 "foot": [
 0,
 0,
@@ -1570,10 +1557,10 @@
 },
 "bench_armor": {
 "src": "spr/lpc/obj/bench_armor.png",
-"fw": 72,
-"fh": 62,
-"ax": 36.0,
-"ay": 59,
+"fw": 75,
+"fh": 58,
+"ax": 38.0,
+"ay": 50.0,
 "foot": [
 0,
 0,
@@ -1584,9 +1571,9 @@
 "bench_furn": {
 "src": "spr/lpc/obj/bench_furn.png",
 "fw": 64,
-"fh": 62,
-"ax": 32.0,
-"ay": 59,
+"fh": 61,
+"ax": 29.0,
+"ay": 50.0,
 "foot": [
 0,
 0,
@@ -1596,10 +1583,10 @@
 },
 "furnace": {
 "src": "spr/lpc/obj/furnace.png",
-"fw": 48,
-"fh": 68,
-"ax": 24.0,
-"ay": 65,
+"fw": 43,
+"fh": 73,
+"ax": 20.0,
+"ay": 63.0,
 "foot": [
 0,
 0,
@@ -8372,10 +8359,10 @@
 },
 "mine_lift": {
 "src": "spr/lpc/obj/mine_lift.png",
-"fw": 52,
-"fh": 92,
-"ax": 26.0,
-"ay": 86.0,
+"fw": 70,
+"fh": 88,
+"ax": 30.0,
+"ay": 80.0,
 "foot": [
 -0.7,
 -0.4,

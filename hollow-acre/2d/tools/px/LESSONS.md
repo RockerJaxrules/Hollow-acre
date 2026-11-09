@@ -33,6 +33,14 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   floor (.14) and weaker self-shadow (.5) so only the bottom edge is deep.
 - [maple 3D v8] grid.py's outline reads colours, not letters: two letters with one colour confuse it (the crown's
   lit areas got outlined). Every letter needs its own colour; fallen leaves get duller ones.
+- [pines] Wide, flat tiers (height half the radius) render as one smooth striped cone from a raised camera: the back
+  of each tier fills the silhouette. Tiers must be steep (height about 1.25 x radius), with drooping tip blobs round
+  each hem and a strong self-shadow (shade .85) so each skirt darkens the one below.
+- [rocks] A lumpy ellipsoid reads as an egg. Slice flat faces off it (a flat-ish top and 5 side planes): toon bands
+  then give each face one flat colour, chunky and LPC-like.
+- [apples] 2x2 fruit reads as berries at 1x; apples need 3x3 with a lit top-left and a stalk.
+- [tall trees] A cast-shadow light at 25 degrees throws a birch's crown shadow far from its trunk; keep the shadow
+  light steep (-.13, 1, -.12) so the shadow sits under the tree, a little down-right.
 - What worked (owner: "very good"): crown from 7 overlapping lumpy spheres, 30-degree camera, toon bands, leaf tips
   and notches on the silhouette at uneven spacing, shadow cast down-right by a separate steeper shadow light.
 
