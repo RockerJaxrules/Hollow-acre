@@ -160,12 +160,12 @@ S4.saw=(sp,K)=>{const g=K.g,X0=44,X1=292,TOP=96,FR=106,BOT=114,CX=sp.cx||232,N=s
 // ---------------------------------------------------------------- PLANE: hold to push; keep the speed even and the shaving comes off in one long curl
 S4.plane=(sp,K)=>{const g=K.g,X0=34,X1=286,TOP=90,FR=102,LO=sp.lo||52,HI=sp.hi||94,VMAX=160,CELL=2,NC=(X1-X0)/CELL,P=sp.wood||CA_P.oak;
   const board=m4board(X1-X0,12,8,P,sp.seed||7),plane=M4S.plane();
-  const tex=lv=>M4.pre('ptex2_'+lv+P[3],X1-X0,12,k=>{k.plank(0,0,X1-X0,12,M4.sh(P,lv===0?2:lv===1?1:0),sp.seed||7);const H=k.H32;
+  const tex=lv=>M4.pre('ptex3_'+lv+P[3],X1-X0,12,k=>{k.plank(0,0,X1-X0,12,M4.sh(P,lv===0?2:lv===1?1:0),sp.seed||7);const H=k.H32;
     // rough (2): dull grey raw wood, long torn-grain streaks and a few splinters; half-planed (1): fewer, fainter streaks; planed (0): clean grain and one sheen line. No single pixels.
-    const W_=X1-X0;if(lv===2){k.pa(0,0,W_,12,'#4a4440',.35);for(let i=0;i<W_/7;i++){const x=(H(i,1,3)*W_)|0,y=1+((H(i,2,3)*10)|0),l=6+((H(i,3,3)*16)|0);k.pa(x,y,Math.min(l,W_-x),1,'#1a0e06',.5);k.pa(x+1,y-1,Math.max(1,Math.min(l-3,W_-x-1)),1,'#d8c0a0',.22);}
+    const W_=X1-X0;if(lv===2){k.pa(0,0,W_,12,'#2e2a2c',.5);for(let i=0;i<W_/7;i++){const x=(H(i,1,3)*W_)|0,y=1+((H(i,2,3)*10)|0),l=6+((H(i,3,3)*16)|0);k.pa(x,y,Math.min(l,W_-x),1,'#1a0e06',.5);k.pa(x+1,y-1,Math.max(1,Math.min(l-3,W_-x-1)),1,'#d8c0a0',.22);}
       for(let i=0;i<3;i++){const x=10+((H(i,5,3)*(W_-30))|0),y=3+((H(i,6,3)*6)|0);k.pa(x,y,5,1,'#e8d4b0',.6);k.pa(x+1,y+1,4,1,'#1a0e06',.55);k.pa(x+4,y-1,2,1,'#e8d4b0',.5);}}
-    if(lv===1){k.pa(0,0,W_,12,'#4a4440',.15);for(let i=0;i<W_/16;i++){const x=(H(i,1,5)*W_)|0,y=1+((H(i,2,5)*10)|0),l=8+((H(i,3,5)*14)|0);k.pa(x,y,Math.min(l,W_-x),1,'#2a1608',.32);}}
-    if(lv===0){k.pa(0,2,W_,1,'#fff6e0',.28);}
+    if(lv===1){k.pa(0,0,W_,12,'#2e2a2c',.25);for(let i=0;i<W_/16;i++){const x=(H(i,1,5)*W_)|0,y=1+((H(i,2,5)*10)|0),l=8+((H(i,3,5)*14)|0);k.pa(x,y,Math.min(l,W_-x),1,'#2a1608',.32);}}
+    if(lv===0){k.pa(0,0,W_,12,'#ffe0a0',.1);k.pa(0,2,W_,1,'#fff6e0',.35);}
     if(lv==='T')for(let x=0;x<X1-X0;x++){for(let y=1;y<12;y++)if(H(x,y,8)>.7)k.pa(x,y,1,1,'#2a1608',.65);if(x%3===0)k.pa(x,3,1,6,'#1a0e06',.5);}});
   const st={x:X0-28,v:0,pass:0,mode:'wait',lift:0,r:new Array(NC).fill(sp.rough||2),torn:new Array(NC).fill(0),inb:[],ok:0,cnt:0,rib:0,curls:[],chat:0,t:0,end:0,bx:-1};
   let loop=null;const L=()=>loop||(loop=MS.loop('bandpass',3000,.9));
@@ -429,7 +429,7 @@ S4.pour=(sp,K)=>{const g=K.g,ves=sp.vessel||'jug',img=ves==='ladle'?M4S.ladle():
         for(let k=0;k<60&&y<sur;k++){K.px(x,y,w,2,COL[0]);if(k%3===0)K.px(x,y,1,1,COL[1]);const dtt=.012;x+=vx*dtt;vy+=600*dtt;y+=vy*dtt;}
         K.ell(x,sur,3+w,1,COL[1]);}
       const [hx,hy]=M4.tr(ax,ay,-aa,ves==='ladle'?55-PV.ox:31-PV.ox,ves==='ladle'?3-PV.oy:20-PV.oy);m4sleeve(K,hx+3,hy,hx+40,hy-24);m4hand(K,hx,hy);},
-    hud(t){const gx=290,gy=40;K.label('FILL',gx+4,gy-9,'#f4ecd8');K.gauge(gx,gy,8,70,(LT-.035)/1.1,(LT+.035)/1.1,Math.min(1.1,st.L)/1.1);
+    hud(t){const gx=290,gy=40;K.label('FILL',gx+4,gy-9,'#f4ecd8');K.gauge(gx,gy,8,70,(LT-.035)/1.1,(LT+.035)/1.1,Math.min(1.1,st.L)/1.1);K.meter(Math.min(1,st.L/LT));
       if(NB>1)K.label('BOWL '+(st.bi+1)+'/'+NB,30,20,'#f4ecd8','l');if(st.dip>0)K.label('MORE FROM THE POT',160,24,'#ffd27a');},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(st.slide||st.dip||st.end){m4hold(a,false);}else{const pred=st.L+st.q*(.16+Math.max(0,st.a-a0())/1.9*.6);m4hold(a,pred<LT-.012&&st.t>.4);}AP.hand=[PV.x+12,PV.y-30];AP.press=a.down;},
     quiet(){loop&&loop.set(0);},stop(){loop&&loop.stop();loop=null;}};};

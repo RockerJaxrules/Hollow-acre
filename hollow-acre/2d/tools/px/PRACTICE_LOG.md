@@ -34,3 +34,4 @@ One row per critiqued attempt. The point is to see the number of attempts per ki
 | 2026-11-10 | minigame: stove | 1 | 6 vs 4 | a shadow on the pan under the egg | shares the dusk kitchen; egg shadow strengthened |
 | 2026-11-10 | minigame: forge | 1 | 6 vs 4 | the skimmer's bowl in the metal under the cursor, hand clear of the bar | soot-dark stone, blackened hearth, flagstone floor; skimmer follows the pointer |
 | 2026-11-10 | minigame: workshop | 1 | 5 vs 4 | the rough board drawn as speckle (gravel) | torn-grain streaks and splinters, shavings in 3 shapes, lantern lights the wall; re-judging |
+| 2026-11-10 | minigame: workshop | 2 | 6 vs 4 | planed vs rough wood must differ at half size | rough wood darker and cooler, planed warmer with a sheen; the right-edge bar now shows the whole recipe with step ticks (it reset each step and read as broken), and the ladle step draws it too |
