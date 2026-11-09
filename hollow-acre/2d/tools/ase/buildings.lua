@@ -88,8 +88,8 @@ local S = {
  barn     = {w = 6.8, kind = 'gable', wall = 'oxblood', roof = 'tin', trim = 'cream', door = {col = 'red', kind = 'barn', w = 44, h = 52}, wallh = 64, gablewin = 'loft',
              windows = {{x = 0.8, w = 18, curtain = false}, {x = 6.0, w = 18, curtain = false, broken = true}}, lantern = false, seed = 151, handprint = .9},
  coop     = {w = 3, kind = 'gable', wall = 'honey', roof = 'brown', trim = 'cream', door = {col = 'oak', w = 18, h = 34, dx = .45}, wallh = 48, windows = {}, lantern = false, gablewin = 'mesh', coop = true, seed = 152},
- shed     = {w = 2.1, kind = 'side', wall = 'white', roof = 'asphalt', trim = 'black', door = {col = 'oak', w = 18, h = 34}, wallh = 44, roofd = 26, windows = {}, lantern = false, seed = 153},
- shed_b   = {w = 2.1, kind = 'side', wall = 'sage', roof = 'tin', trim = 'cream', door = {col = 'oak', w = 18, h = 34}, wallh = 44, roofd = 26, windows = {}, lantern = false, seed = 154},
+ shed     = {w = 2.1, kind = 'gable', wall = 'white', roof = 'brown', trim = 'cream', door = {col = 'oak', w = 18, h = 34}, wallh = 44, windows = {}, lantern = false, gablewin = 'vent', tools = true, seed = 153},
+ shed_b   = {w = 2.1, kind = 'side', wall = 'honey', roof = 'tin', trim = 'cream', door = {col = 'oak', w = 18, h = 34}, wallh = 44, roofd = 26, windows = {}, lantern = false, logs = true, seed = 154},
  -- ---- out on the roads
  rg_logcabin = {w = 5, kind = 'side', wall = 'log', roof = 'brown', trim = 'cream', door = {col = 'oak', w = 22}, windows = {{x = 1.0, w = 20}, {x = 4.0, w = 20, boarded = true, curtain = false}},
                 chimneys = {{x = .8}}, moss = 1.4, seed = 161},

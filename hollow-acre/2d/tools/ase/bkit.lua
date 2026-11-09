@@ -599,6 +599,35 @@ function B.coopfx(c, sp, x0, x1, gy, seed)
   for x = hx - 1, hx + 3 do if px.get(c, x, hy + 4) ~= 0 then P(c, x, hy + 4, 'p1') end end
 end
 
+--[[ judge (buildings sweep): the sheds read as a crate lid or a crypt, one box in greyscale. What says shed: tools leaning
+     on the wall (a rake and a shovel), firewood stacked against the side ]]
+function B.leantools(c, x, gy)
+  local function pole(xa, ya, xb, yb)   -- a wooden handle, lit on its left edge
+    local n = math.max(math.abs(xb - xa), math.abs(yb - ya))
+    for i = 0, n do local px_ = math.floor(xa + (xb - xa) * i / n + .5); local py_ = math.floor(ya + (yb - ya) * i / n + .5)
+      P(c, px_ - 1, py_, 'OUT'); P(c, px_, py_, 'w6'); P(c, px_ + 1, py_, 'w4'); P(c, px_ + 2, py_, 'OUT') end end
+  -- the rake: its head up against the wall, tines down
+  pole(x + 1, gy - 1, x + 6, gy - 44)
+  R(c, x + 1, gy - 48, x + 12, gy - 46, 'm3'); px.hline(c, x + 1, x + 12, gy - 48, 'm4'); px.hline(c, x, x + 13, gy - 49, 'OUT'); px.hline(c, x, x + 13, gy - 45, 'OUT')
+  for tx = x + 1, x + 12, 2 do px.vline(c, tx, gy - 45, gy - 42, 'm2'); P(c, tx, gy - 41, 'OUT') end
+  -- the shovel: blade on the ground, handle up against the wall
+  pole(x + 14, gy - 8, x + 10, gy - 40); R(c, x + 8, gy - 42, x + 12, gy - 40, 'w4'); px.hline(c, x + 8, x + 12, gy - 43, 'OUT')   -- the grip
+  for yy = gy - 9, gy - 1 do local half = (yy > gy - 3) and 2 or 3; px.hline(c, x + 14 - half, x + 14 + half, yy, yy < gy - 6 and 'm4' or 'm3'); P(c, x + 14 - half - 1, yy, 'OUT'); P(c, x + 14 + half + 1, yy, 'OUT') end
+  px.hline(c, x + 12, x + 16, gy, 'OUT')
+  for xx = x - 1, x + 18 do if px.get(c, xx, gy + 1) ~= 0 then px.shade(c, xx, gy + 1, -2) end end
+end
+function B.logpile(c, x0, x1, gy, h, seed)   -- split logs stacked end-on: pale cut faces in dark bark rims, shadow between them
+  R(c, x0, gy - h, x1, gy, 'k1')
+  local r = 4; local row = 0
+  for y = gy - r, gy - h + r, -(2 * r - 1) do local off = (row % 2) * r
+    for x = x0 + r + off, x1 - r + 1, 2 * r do
+      for yy = -r, r do for xx = -r, r do local d = xx * xx + yy * yy
+        if d <= r * r + 1 then P(c, x + xx, y + yy, d >= (r - 1) * (r - 1) + 2 and 'w2' or ((xx + yy <= -2) and 'w7' or (d <= 1 and 'w4' or 'w6'))) end end end end
+    row = row + 1 end
+  px.hline(c, x0, x1, gy - h - 1, 'OUT'); px.vline(c, x0 - 1, gy - h, gy, 'OUT'); px.vline(c, x1 + 1, gy - h, gy, 'OUT')
+  for xx = x0, x1 + 3 do P(c, xx, gy + 1, 'OUT2') end
+end
+
 function B.build(sp, night)
   DOORMETA = nil
   local wt = sp.w; local W = math.floor(wt * 32); local m = 22
@@ -791,6 +820,8 @@ function B.build(sp, night)
   px.outline(c, px.i(c, 'OUT'))
   -- chim: where smoke leaves the first chimney, relative to the sprite's anchor (the game's puff offset)
   if sp.coop then B.coopfx(c, sp, x0, x1, gy, seed) end
+  if sp.tools then B.leantools(c, x1 + 3, gy) end
+  if sp.logs then B.logpile(c, x0 - 21, x0 - 2, gy, 22, seed) end
   return c, {w = Wd, h = Hh, ax = Wd / 2, ay = gy - 3, chim = chim and {chim[1] - Wd / 2, chim[2] - (gy - 3) - 2} or nil, door = DOORMETA}
 end
 
