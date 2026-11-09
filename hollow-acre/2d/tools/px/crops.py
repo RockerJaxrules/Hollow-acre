@@ -1180,6 +1180,156 @@ def corn(stage):
     return outline(cv.image())
 
 
+# ================================================================ v10 (strict round 6: 8 stages hold; pumpkin leaves still read
+# as lettuce domes: "palmate leaves 7-9 px wide as flat plates tilted toward the viewer, three round lobes, a pale vein star,
+# a 1 px leaf stalk rising from the vine and a dark gap underneath")
+OGREEN = [HEX(c) for c in ('#1e2810', '#2e3c16', '#42561e', '#5a7028', '#748a32', '#90a442', '#b0be60')]   # the young fruit, warmed toward olive
+OSTRIPE = HEX('#c4cc88')
+
+
+def young_fruit(cv, cx, cy, rx, ry):
+    seams = [math.sin(math.radians(a)) for a in (-48, -10, 28, 60)]
+    for y in range(int(cy - ry), int(cy + ry) + 1):
+        v = (y - cy) / ry
+        if abs(v) > 1: continue
+        hw = rx * math.sqrt(max(0, 1 - v * v)); bend = min(1, math.sqrt(max(0, (v + 1) / 1.5)))
+        xs = [cx + sd * hw * bend for sd in seams]
+        for x in range(int(round(cx - hw)), int(round(cx + hw)) + 1):
+            u = (x - cx) / max(1, hw); l = -u * .5 - v * .7
+            c = OGREEN[3 + (l > -.15) + (l > .4)]
+            if min(abs(x - s_) for s_ in xs) < .6 and -.8 < v < .7: c = OSTRIPE if l > -.2 else OGREEN[5]
+            cv.put(x, y, c)
+    for (dx, dy) in ((-3, -2), (-2, -2), (-3, -1), (-2, -1)): cv.put(cx + dx, cy + dy, OGREEN[6])
+
+
+def lobed_fruit(cv, cx, cy, rx, ry, ramp, seams_deg=(-60, -24, 14, 52), highlight=True, rim=None):
+    """as v8, with a rounder outline (judge: "octagonal, stair-stepped shoulders"): only the two middle joins dip, by a
+    single pixel, at the very top"""
+    top = len(ramp) - 1; seams = [math.sin(math.radians(a)) for a in seams_deg]
+    for y in range(int(cy - ry) - 1, int(cy + ry) + 1):
+        v = (y - cy) / ry
+        if abs(v) > 1: continue
+        hw = rx * math.sqrt(max(0, 1 - v * v)); bend = min(1, math.sqrt(max(0, (v + 1) / 1.5)))
+        xs = [cx - hw] + [cx + sd * hw * bend for sd in seams] + [cx + hw]
+        for x in range(int(round(cx - hw)), int(round(cx + hw)) + 1):
+            if v < -.93 and min(abs(x - s_) for s_ in xs[2:-2]) < .6: continue       # one-pixel dips at the middle joins only
+            u = (x - cx) / max(1, hw); l = -u * .5 - v * .7
+            k = 3 + (l > -.15) + (l > .4)
+            if min(abs(x - s_) for s_ in xs[1:-1]) < .6 and abs(v) < .9: k -= 1
+            cv.put(x, y, ramp[max(0, min(top - 1, k))])
+    if highlight:
+        hx, hy = int(cx - rx * .48), int(cy - ry * .42)
+        for (dx, dy) in ((0, 0), (1, 0), (0, 1), (1, 1), (0, 2)): cv.put(hx + dx, hy + dy, ramp[top])
+
+
+# a pumpkin leaf drawn by hand, face-on: three lobes with a notch between each, a vein from the stalk end to each lobe,
+# 'L' lit, 'b' body, 's' shade, 'v' vein (round-6 try on stalks read as little trees; these sit low and overlap)
+PLEAF_A = ["...LL....",
+           ".L.LbL.s.",
+           "LLLbvbsss",
+           "LbvLvbvss",
+           ".Lbbvbss.",
+           "..bbvss..",
+           "....s...."]
+PLEAF_B = ["....L......",
+           "..L.Lb..s..",
+           ".LLLbvb.ss.",
+           "LLvLbvbsvss",
+           ".LbvLvbvss.",
+           "Lbbbvvvbsss",
+           ".bbb.v.sss.",
+           "..b.....s.."]
+
+
+def pleaf(cv, x, y, grid, flip=False, back=False):
+    d = 1 if back else 0; w = len(grid[0])
+    tone = {'L': LEAF[6 - d], 'b': LEAF[5 - d], 's': LEAF[4 - d], 'v': LEAF[7 - d]}
+    cv.begin()
+    for j, row in enumerate(grid):
+        for i, ch in enumerate(row):
+            if ch != '.': cv.put(x + (w - 1 - i if flip else i), y + j, tone[ch])
+    cv.end(LEAF[1])
+
+
+def pumpkin(stage):
+    cv = Canvas(32, 64); B = 58; cx = 16
+    contact(cv, cx, B, 4 + 2 * stage)
+    if stage == 0:
+        for k in range(4): cv.put(cx, B - 1 - k, GOURD[5] if k < 3 else GOURD[4])
+        seed_leaf(cv, cx - 1, B - 5, -.82, 6.2, 2.6, LEAF); seed_leaf(cv, cx + 1, B - 3, .9, 4.8, 2.2, LEAF)
+        return outline(cv.image())
+    def vine(pts):
+        for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+            n = int(max(abs(x1 - x0), abs(y1 - y0))) + 1
+            for i in range(n + 1): cv.put(round(x0 + (x1 - x0) * i / n), round(y0 + (y1 - y0) * i / n), LEAF[4])
+    if stage == 1:   # a low mound: a big leaf behind, two leaves in front over its lower edge, short stalks, a tendril, the flower
+        vine([(cx - 14, B - 1), (cx - 9, B - 2), (cx - 4, B - 1), (cx + 2, B - 2), (cx + 8, B - 1), (cx + 13, B - 2)])
+        for (dx, dy) in ((13, -3), (14, -4), (14, -5), (13, -6), (12, -5)): cv.put(cx + dx, B + dy, LEAF[5])
+        for k in range(3): cv.put(cx - 2, B - 2 - k, LEAF[3])
+        pleaf(cv, cx - 8, B - 14, PLEAF_B, back=True)
+        for k in range(2): cv.put(cx - 9, B - 2 - k, LEAF[4])
+        pleaf(cv, cx - 14, B - 10, PLEAF_A)
+        for k in range(2): cv.put(cx + 4, B - 2 - k, LEAF[4])
+        pleaf(cv, cx + 1, B - 10, PLEAF_A, flip=True)
+        fx, fy = cx + 10, B - 4
+        for (dx, dy, k) in ((-1, -1, 3), (1, -1, 3), (-1, 0, 2), (0, 0, 3), (1, 0, 2), (0, 1, 1)): cv.put(fx + dx, fy + dy, FLOWERY[k])
+        cv.put(fx, fy + 2, LEAF[4])
+    elif stage == 2:   # the young fruit (olive) with the big leaf behind it on the left
+        vine([(cx - 14, B - 1), (cx - 9, B - 2), (cx - 3, B - 1)])
+        for k in range(2): cv.put(cx - 8, B - 2 - k, LEAF[3])
+        pleaf(cv, cx - 15, B - 12, PLEAF_B, back=True)
+        cv.begin(); young_fruit(cv, cx + 4, B - 5, 7.2, 4.8); cv.end(OGREEN[0])
+        for (dx, dy, c) in ((0, -10, 2), (1, -10, 1), (0, -11, 3), (1, -11, 2), (1, -12, 3)): cv.put(cx + 4 + dx, B + dy, KHAKI[c])
+    else:
+        vine([(cx - 14, B - 1), (cx - 9, B - 2), (cx - 5, B - 1)])
+        pleaf(cv, cx - 16, B - 11, PLEAF_A, back=True)
+        pcx, pcy, prx, pry = cx + 1, B - 9, 10.4, 8.6
+        lobed_fruit(cv, pcx, pcy, prx, pry, PUMP)
+        for (dx, dy) in ((-1, -8), (0, -8), (1, -8)): cv.put(pcx + dx, pcy + dy, PUMP[2])
+        for (dx, dy) in ((-1, -9), (0, -9), (-1, -10), (0, -10), (-1, -11), (0, -11), (0, -12), (1, -12)):
+            cv.put(pcx + dx, pcy + dy, STEMB[3] if dx < 0 else STEMB[1])
+    return outline(cv.image())
+
+
+_corn_v9 = corn
+
+
+def corn(stage):
+    if stage < 2: return _corn_v9(stage)
+    # the ripe stage: v9's plant, with the dead leaf as a tapering ribbon and an open tassel of thin spikes
+    cv = Canvas(28, 62); B = 60; cx = 14; H = 50
+    contact(cv, cx, B, 5)
+    sway = lambda t: round(math.sin(t * 2.2))
+    spots = ((.14, 1, 14, 1.3, 1), (.27, -1, 17, 1.4, 0), (.45, 1, 13, 1.0, 0), (.6, -1, 15, 1.1, 0), (.74, 1, 11, .8, 1), (.87, -1, 8, .5, 0))
+    def leaves(behind):
+        for (t, side, L, dr, bh) in spots:
+            if bool(bh) != behind: continue
+            y = B - 2 - t * H; xo = sway(t)
+            leaf(cv, cx + xo + side, y, side * (.62 - t * .2), L, 2.4, side * .3, LEAF[:-2] if behind else LEAF, blade=True, droop=side * dr)
+    leaves(True)
+    for y in range(B - 1, B - H, -1):
+        t = (B - y) / H; w = 3 if t < .5 else 2; xo = sway(t)
+        for dx in range(-(w // 2), w - w // 2): cv.put(cx + xo + dx, y, LEAF[5] if dx == -(w // 2) else LEAF[3])
+    leaves(False)
+    corn_ear(cv, cx + sway(.55) + 2, B - 2 - .55 * H, 1, 12, 5, .5)
+    corn_ear(cv, cx + sway(.38) - 2, B - 2 - .38 * H, -1, 9, 4, -.55)
+    # the dead leaf: a ribbon from the joint, out and then down, tapering 3 px -> 1 px, a straw top face, one darker fold
+    jx, jy = cx + sway(.3) + 2, int(B - 2 - .3 * H)
+    path = [(jx + i, jy + (i // 3)) for i in range(5)] + [(jx + 5, jy + 2 + i) for i in range(1, 8)]
+    for i, (x, y) in enumerate(path):
+        w = 3 if i < 4 else 2 if i < 9 else 1
+        turning = i in (4, 5)
+        for j in range(w):
+            if i < 5: cv.put(x, y + j, DRYL[1] if turning else (DRYL[4] if j == 0 else DRYL[3]))   # running out: top face up
+            else: cv.put(x + j, y, DRYL[1] if turning else (DRYL[4] if j == 0 else DRYL[2]))       # hanging down: lit side left
+    # the tassel opened into thin spikes
+    top = B - H; tx = cx + sway(1)
+    for (dx, dy, k) in ((0, 0, 1), (0, -1, 2), (0, -2, 2), (0, -3, 3), (0, -4, 3), (0, -5, 3), (0, -6, 3),
+                        (-1, -3, 2), (-2, -2, 2), (-3, -1, 3), (-4, 0, 2), (1, -4, 2), (2, -3, 3), (3, -2, 2), (4, -1, 3), (1, -6, 3), (2, -7, 2)):
+        cv.put(tx + dx, top + dy, TASSEL[k])
+    return outline(cv.image())
+
+
 def specks(im):
     """lint: isolated single pixels whose colour differs from all four neighbours by a lot (reads as speckle)"""
     p = im.load(); W, H = im.size; out = []
