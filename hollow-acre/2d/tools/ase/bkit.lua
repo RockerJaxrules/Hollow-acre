@@ -68,6 +68,7 @@ B.FONT = {
  ['!']={'010','010','010','000','010'}}
 
 function B.init(lib) px = lib end
+B.EAVE_DROP = 4   -- the roof's overhang covers the wall's top 4 rows: the eave shadow starts just below it
 local function P(c, x, y, col) px.p(c, x, y, col) end
 local function R(c, x0, y0, x1, y1, col) px.rect(c, x0, y0, x1, y1, col) end
 local function H(a, b) return px.h(a, b) end
@@ -348,7 +349,8 @@ end
 -- the shadow the eaves throw on the wall below: a solid dark band, then two rows a step and a half darker, no checkerboard
 -- (judge: the dotted band read as noise; a clean eave band is what gives the roof its overhang)
 function B.eaveshadow(c, x0, x1, yW)
-  for x = x0, x1 do P(c, x, yW + 1, 'OUT2'); P(c, x, yW + 2, 'OUT2'); for y = yW + 3, yW + 4 do px.shade(c, x, y, -2) end; px.shade(c, x, yW + 5, -1) end
+  local d = B.EAVE_DROP or 0
+  for x = x0, x1 do P(c, x, yW + 1 + d, 'OUT2'); P(c, x, yW + 2 + d, 'OUT2'); for y = yW + 3 + d, yW + 4 + d do px.shade(c, x, y, -2) end; px.shade(c, x, yW + 5 + d, -1) end
 end
 
 function B.chimney(c, cx0, cx1, cy0, cy1, mat)
@@ -404,7 +406,7 @@ end
 function B.porch(c, x0, x1, ytop, yb, roofmat, trim, rail)
   for y = ytop - 8, ytop do for x = x0 - 3, x1 + 3 do P(c, x, y, B.roofpx(c, roofmat, x, y, ytop - 8, 1, 3)) end end
   px.hline(c, x0 - 4, x1 + 4, ytop - 9, 'OUT'); px.hline(c, x0 - 3, x1 + 3, ytop + 1, trim[4]); px.hline(c, x0 - 3, x1 + 3, ytop + 2, trim[2]); px.hline(c, x0 - 4, x1 + 4, ytop + 3, 'OUT')
-  for yy = ytop + 4, ytop + 9 do for x = x0, x1 do if (x + yy) % 2 == 0 and px.get(c, x, yy) ~= 0 then P(c, x, yy, 'OUT2') end end end
+  for x = x0, x1 do for yy = ytop + 4, ytop + 5 do if px.get(c, x, yy) ~= 0 then px.shade(c, x, yy, -2) end end; if px.get(c, x, ytop + 6) ~= 0 then px.shade(c, x, ytop + 6, -1) end end   -- the porch roof's shadow on the wall: solid steps (judge: the checker frieze turned to dither)
   for _, postx in ipairs({x0, x1 - 2}) do R(c, postx, ytop + 3, postx + 2, yb, trim[4]); px.vline(c, postx + 2, ytop + 3, yb, trim[2]) end
   if rail then for x = x0, x1 do P(c, x, yb - 10, trim[4]); P(c, x, yb - 9, trim[2]); if x % 4 == 0 then px.vline(c, x, yb - 8, yb, trim[3]) end end end
 end
