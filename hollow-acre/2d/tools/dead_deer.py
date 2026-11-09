@@ -44,7 +44,7 @@ def pool(c):
             d2 = ((x + .5 - 40) / 8) ** 2 + ((y + .5 - 27.5) / 2.2) ** 2   # where it ran down-right
             if d < rr * rr or d2 < 1:
                 c.p(x, y, POOL[0] if (d > rr * rr * .66 and d2 >= .6) else POOL[1])
-    for gx, gy in ((22, 22), (23, 22), (24, 22), (37, 26), (38, 26)): c.p(gx, gy, POOL[2])   # wet glints
+    for gx, gy in ((19, 22), (20, 22), (21, 22), (20, 23), (21, 23)): c.p(gx, gy, POOL[2])   # one wet highlight, top-left
 
 
 def leg(c, hip, ang, ln1, ln2, bend, R, k):
@@ -61,21 +61,22 @@ def body(c):
     by = 13
     # far legs first, in shade: the far hind cocked up and back, the far fore forward
     leg(c, (14, by + 3), -2.3, 5, 5, .5, DEERD, .7)
-    leg(c, (34, by + 5), 1.05, 5.5, 5.5, -.15, DEERD, .7)       # far fore: down and forward, short of the head
+    leg(c, (33, by + 5), .55, 4.5, 4.5, -1.6, DEERD, .7)        # far fore: folded under the chest
     # one volume: ribcage and haunch as a single barrel lit from the top-left, belly pale only underneath
     ell(c, 25, by + 2, 13.5, 6.6, DEER, under=PALE, ut=.66)
     ell(c, 15.5, by + 1.6, 5.2, 5, DEER, k=.92)
     ell(c, 11, by + 1, 1.6, 2.2, PALE)                        # the tail, limp
     for y in range(by - 1, by + 5):                          # the wound: dark inside, wet flesh, a pale torn lip
         for x in range(21, 32):
-            e = ((x + .5 - 26.5) / 4.6) ** 2 + ((y + .5 - (by + 2)) / 2.4) ** 2
+            e = ((x + .5 - 26) / 6.2) ** 2 + ((y + .5 - (by + 2) - .25 * math.sin(x * 1.3)) / 1.7) ** 2   # long and ragged, not round
             if e > 1: continue
             col = WOUND[0] if e < .4 else WOUND[1]
-            if e > .62 and y + .5 < by + 1.6: col = WOUND[3] if x % 2 else WOUND[2]
+            if e > .62 and y + .5 < by + 1.6: col = WOUND[2]                       # a torn lip, one colour (alternating read as teeth)
             c.p(x, y, col)
+    for rx_, ry_ in ((24, by + 2), (25, by + 2), (26, by + 3)): c.p(rx_, ry_, WOUND[3])   # one pale rib in the dark
     # near legs: hind stretched back off the pool, fore stretched forward, different angles
     leg(c, (15, by + 6), -1.5, 5.5, 5.5, .35, DEER, .95)
-    leg(c, (32, by + 6), .85, 5.5, 6, -.2, DEER, .95)          # near fore: down and forward, a gap before the head
+    leg(c, (30, by + 6), .4, 4.5, 5, -1.7, DEER, .95)           # near fore: folded under, hoof tucked back: a gap before the head
     # the neck, thick (the doe's weight), along the ground; the head flat on its cheek, ears laid back, eye shut
     limb2(c, [(37, by + 1), (41.5, by + 2), (46, by + 2.5)], lambda t: 6.4 - t * 1.6, DEER)
     hx, hy = 51, by + 1
@@ -83,9 +84,10 @@ def body(c):
     ell(c, hx, hy, 4.6, 3.6, DEER)                             # the skull, lying on its cheek
     ell(c, hx + 5, hy + 1.2, 3.2, 2.3, DEER, under=PALE, ut=.4)   # the long muzzle
     for nx_, ny_ in ((8, .4), (8, 1.2), (7.2, 1.6), (8.6, .8)): c.p(hx + nx_, hy + ny_, (30, 20, 18))   # the dark nose, the doe's
-    for ex in (-1, 0, 1): c.p(hx + .6 + ex, hy - .8, (22, 12, 12))   # the eye, shut: a dark line
+    for ex, ey in ((0, -1), (1, -1), (0, 0), (1, 0)): c.p(hx + .4 + ex, hy - .6 + ey, (18, 10, 10))   # the eye, open and dull: 2x2 dark
+    c.p(hx + .4, hy - 1.6, (70, 50, 46))   # a dull glint
     ell(c, hx - 2.4, hy - 4.2, 2.2, 5.0, DEER, rot=-.55)      # the near ear: big, angled back, the strongest deer cue
-    ell(c, hx - 2.4, hy - 4.2, 1.0, 3.4, DEERD, rot=-.55)     # its shaded inside (no pale specks)
+    ell(c, hx - 2.4, hy - 4.2, 1.0, 3.2, PALE, rot=-.55, k=.75)   # its pale inside, one shape (the ear is the deer cue)
     c.p(hx + 6.6, hy + 3.2, (150, 40, 44)); c.p(hx + 7.4, hy + 3.6, (110, 26, 32))
 
 
