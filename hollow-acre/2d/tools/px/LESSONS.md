@@ -405,6 +405,17 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A cast shadow drawn in the outline colour merges with the outline above it and reads as a thicker line. Shadow a wall
   with its own darkest steps (the brick or siding still shows through), 3 rows dark, then a step lighter, then one more.
 - Moss in round clumps along the lower courses and the shaded side, not streaks along every course.
+- [repeated, woodshed r1-r3] A log pile is NOT a grid of identical rounds: a '+' or a full ring on a 3-4 px face reads as
+  a button or a gear, and saturated orange ends read as candy. Draw dull tan ends (the brightest step only top-left), a
+  1 px bark rim, a single dark heart pixel off centre, three sizes, a third of them split wedges, a third darker, and a
+  short bark cylinder above the top logs so they show their length. Stack it against the wall, not beside the sprite.
+- [shack r1] Neglect reads from the OUTLINE first: a roof that is a perfect rectangle with level eaves reads as kept,
+  whatever is drawn on it. Sag one end 2-3 px (shift whole columns, eave shadow too), take shingles out of the ridge line
+  and lift one past it. A dark red hole reads as a wound: the loft is plum-brown with grey lit battens.
+- [shack r1] Peeling paint is a few big patches over 2-4 boards with staggered ends, flat silver-grey; many short runs
+  with dark lips at each end read as grit. Rain stains run down from the sills (one step darker, 1-2 px wide).
+- [shack r1] Mending reads when the new wood is whole boards (full length, a step lighter and warmer, nail at each end)
+  and a whole block of new shingles with crisp edges; short stubs read as brackets or hinges.
 
 ## Making minigames (Nov 10: yard 3 -> 6, barn 3 -> 6, installed)
 - A sunny candy palette (bright grass, white tiles, honey wood, blue sky) is the first thing that sinks a scene. Dusk light,

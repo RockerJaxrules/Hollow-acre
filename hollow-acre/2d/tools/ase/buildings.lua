@@ -72,9 +72,9 @@ local S = {
                           {x = 7.0, y = 10, w = 14, h = 48, curtain = false, lancet = true, stained = true}, {x = 8.7, y = 10, w = 14, h = 48, curtain = false, lancet = true}},
                moss = 1.2, seed = 136},
  -- ---- the farm: your house run down, patched, mended, then bigger; the barn, the coop, the sheds
- cabin_s0 = {w = 4.6, kind = 'side', wall = 'white', roof = 'asphalt', trim = 'black', door = {col = 'oak', w = 22}, wallh = 64, roofd = 44,
+ cabin_s0 = {w = 4.6, kind = 'side', wall = 'dingy', roof = 'asphalt', trim = 'weathered', door = {col = 'weathered', w = 22}, wallh = 64, roofd = 44, rough = true,
              windows = {{x = .85, w = 20, boarded = true, curtain = false}, {x = 3.75, w = 20, broken = true, curtain = false}}, moss = 1.6, scratches = true, lantern = false, seed = 141},
- cabin_s1 = {w = 4.6, kind = 'side', wall = 'white', roof = 'asphalt', trim = 'cream', door = {col = 'oak', w = 22}, wallh = 64, roofd = 44,
+ cabin_s1 = {w = 4.6, kind = 'side', wall = 'white', roof = 'asphalt', trim = 'cream', door = {col = 'oak', w = 22}, wallh = 64, roofd = 44, rough = 'patched',
              windows = {{x = .85, w = 20}, {x = 3.75, w = 20, boarded = true, curtain = false}}, moss = 1.0, seed = 142},
  cabin    = {w = 6, kind = 'hip', wall = 'honey', roof = 'brown', trim = 'cream', door = {col = 'teal'}, windows = {{x = 1.25}, {x = 4.75}},
              dormers = {{x = .5}}, chimneys = {{x = .78}}, ivy = 'left', seed = 143},
@@ -89,7 +89,7 @@ local S = {
              windows = {{x = 0.8, w = 18, curtain = false}, {x = 6.0, w = 18, curtain = false, broken = true}}, lantern = false, seed = 151, handprint = .9},
  coop     = {w = 3, kind = 'gable', wall = 'honey', roof = 'brown', trim = 'cream', door = {col = 'oak', w = 18, h = 34, dx = .45}, wallh = 48, windows = {}, lantern = false, gablewin = 'mesh', coop = true, seed = 152},
  shed     = {w = 2.1, kind = 'gable', wall = 'white', roof = 'brown', trim = 'cream', door = {col = 'oak', w = 18, h = 34}, wallh = 44, windows = {}, lantern = false, gablewin = 'vent', tools = true, seed = 153},
- shed_b   = {w = 2.1, kind = 'side', wall = 'white', roof = 'tin', trim = 'cream', door = {col = 'oak', w = 18, h = 34}, wallh = 44, roofd = 26, windows = {}, lantern = false, logs = true, seed = 154},
+ shed_b   = {w = 2.1, kind = 'side', wall = 'dingy', roof = 'tin', trim = 'cream', door = {col = 'oak', w = 18, h = 34, dx = .42}, wallh = 44, roofd = 26, windows = {}, lantern = false, logs = true, seed = 154},
  -- ---- out on the roads
  rg_logcabin = {w = 5, kind = 'side', wall = 'log', roof = 'brown', trim = 'cream', door = {col = 'oak', w = 22}, windows = {{x = 1.0, w = 20}, {x = 4.0, w = 20, boarded = true, curtain = false}},
                 chimneys = {{x = .8}}, moss = 1.4, seed = 161},
