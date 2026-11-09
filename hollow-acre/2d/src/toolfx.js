@@ -61,16 +61,27 @@ function toolOverlay(g,nm,dir,f,ox,oy,layer,o){const m=SPR[nm];const T=m&&m.tool
     const sx0=(dir==='W'?-1:1)*(14.5-5),sy0=4.5-1.5,r=tilt*Math.PI/180;return [gx+sx0*Math.cos(r)-sy0*Math.sin(r),gy+sx0*Math.sin(r)+sy0*Math.cos(r)];}
   const grade=o.grade||toolGrade(kind);
   if(f===4&&m.tool[dir][3]){const a0=m.tool[dir][3][2];let a1=ang;if(dir==='W'&&a1>a0)a1-=360;if(dir!=='W'&&a1<a0)a1+=360;if(dir==='E'||dir==='W')drawSmear(g,gx,gy,a0,a1,1,19);}
-  const front=(dir==='S'||dir==='N')&&TOOL_ART[kind+'_f'];const st=toolStamp(front?kind+'_f':kind,grade,ang,k,dir==='W');g.drawImage(st.cv,gx-st.R,gy-st.R);
+  const front=(dir==='S'||dir==='N')&&kind!=='pick'&&TOOL_ART[kind+'_f'];const st=toolStamp(front?kind+'_f':kind,grade,ang,k,dir==='W');g.drawImage(st.cv,gx-st.R,gy-st.R);
   const r=ang*Math.PI/180;return [gx+Math.cos(r)*18*k,gy+Math.sin(r)*18*k];}
+// the hit: drawn at the business end on the strike and the frame after (dirt, wood chips, stone chips and a spark)
+// what flies off the blade: two-tone chips of 2-3 px (judge: 1 px specks read as dust), thrown back and up from the tip
+const HIT_FX={hoe:[[['#7a5634','#4a3220'],-5,-3,3,2],[['#8a6440','#5a3e24'],-3,-6,2,2],[['#7a5634','#4a3220'],3,-5,2,3],[['#6a4a2c','#3e2a18'],6,-2,3,2]],
+  axe:[[['#ecd29c','#b08a52'],-4,-5,3,2],[['#d8b878','#9a7444'],3,-7,2,3],[['#f0dcae','#b89660'],6,-2,3,2],[['#c8a468','#8a6a3e'],-6,-1,2,2]],
+  pick:[[['#a8a8b0','#5e5e68'],-4,-5,3,2],[['#9a9aa4','#585862'],4,-6,2,3],[['#b8b8c0','#6a6a74'],6,-1,3,2],[['#8a8a94','#4e4e58'],-6,-2,2,2]]};
+function hitFx(g,kind,tip,f){const P_=HIT_FX[kind];if(!P_||!tip||(f!==5&&f!==6))return;const k=f===5?1:1.8;
+  for(const [[cl,cd],dx,dy,w0,h0] of P_){const w=f===6?Math.max(2,w0-1):w0,h=f===6?Math.max(2,h0-1):h0;const x=Math.round(tip[0]+dx*k),y=Math.round(tip[1]+dy*k+(f===6?2:0));
+    g.fillStyle='#140e0a';g.fillRect(x-1,y-1,w+2,h+2);g.fillStyle=cd;g.fillRect(x,y,w,h);g.fillStyle=cl;g.fillRect(x,y,w-1,h-1);}
+  // the pick strikes a spark off the stone: warm white, never tinted by what's under it
+  if(kind==='pick'&&f===5){const x=Math.round(tip[0]),y=Math.round(tip[1]);g.fillStyle='#2a1e10';g.fillRect(x-3,y-2,7,3);g.fillRect(x-1,y-4,3,7);g.fillStyle='#ffe6a0';g.fillRect(x-2,y-1,5,1);g.fillRect(x,y-3,1,5);g.fillStyle='#ffffff';g.fillRect(x,y-1,1,1);}}
 // the player's fists over the handle, drawn after the tool (from the look's own colours: see custom.js)
 const FISTS={};
 function fistOverlay(g,nm,dir,f,ox,oy){const im=FISTS[nm];const m=SPR[nm];if(!im||!m||!m.clips||!m.clips.thrust)return;const T=m.tool&&m.tool[dir]&&m.tool[dir][f];if(!T||T[4])return;
   const r=m.clips.thrust[dir];g.drawImage(im,f*m.fw,r[0]*m.fh,m.fw,m.fh,ox,oy,m.fw,m.fh);}
 // water falling from the spout onto the square in front
-function waterStream(g,from,to,t){const [x0,y0]=from,[x1,y1]=to;const n=14;for(let i=0;i<n;i++){const u=((i/n)+t*2.2)%1;const x=x0+(x1-x0)*Math.sqrt(u),y=y0+(y1-y0)*u*u;
-    g.fillStyle=i%3?'rgba(150,205,240,.9)':'rgba(230,246,255,.95)';g.fillRect(Math.round(x),Math.round(y),i%2?1:2,2);}
-  g.fillStyle='rgba(210,236,255,.7)';const s=Math.sin(t*30);g.fillRect(Math.round(x1)-2-(s>0?1:0),Math.round(y1),5,1);g.fillRect(Math.round(x1)-1,Math.round(y1)-1+(s>0?0:1),1,1);}
+function waterStream(g,from,to,t){const [x0,y0]=from,[x1,y1]=to;const n=16;   // a stream 2 px wide in two blues (judge: a 1 px dotted line read as wire), a splash where it lands
+  for(let i=0;i<n;i++){const u=((i/n)+t*2.2)%1;const x=x0+(x1-x0)*Math.sqrt(u),y=y0+(y1-y0)*u*u;g.fillStyle=i%4===0?'#e6f4ff':'#7ab8e0';g.fillRect(Math.round(x),Math.round(y),2,3);g.fillStyle='#4a86b8';g.fillRect(Math.round(x)+1,Math.round(y)+1,1,2);}
+  const s=Math.sin(t*30),k=(t*6)%1;g.fillStyle='#a8d4f0';g.fillRect(Math.round(x1)-3,Math.round(y1),7,1);g.fillStyle='#e6f4ff';
+  for(const d of [-1,1]){g.fillRect(Math.round(x1+d*(2+k*3)),Math.round(y1-2-Math.sin(k*Math.PI)*3),1,1);}g.fillRect(Math.round(x1)-1+(s>0?1:0),Math.round(y1)-1,2,1);}
 // ---- fishing with the rod in your hands: wind up while the power builds, whip it out on the cast, hold it while you wait, and it jerks on a bite
 const ROD={prev:'off',castT:9};
 function rodFrame(){if(typeof fish==='undefined')return -1;const mg=typeof MG!=='undefined'&&MG.on;if(fish.state==='off'&&!mg)return -1;

@@ -44,7 +44,7 @@ function lookMap(look){const M=new Map();const key=c=>(c[0]<<16)|(c[1]<<8)|c[2];
   const to=lookRamp(look.shirt||LOOK_BASE.shirt);SHIRT_BASES.forEach((b,cls)=>put(lookRamp(b),shiftRamp(to,patShift(look.pattern,cls))));
   return M;}
 const LAYER_IMG=n=>{const m=SPR[n];return m&&IMG[m.src];};
-function layersFor(look,tool){const v=tool==='_can'?'_can':'';const L=['pl_body_'+look.outfit+tool];
+function layersFor(look,tool){const v=(tool==='_can'||tool==='_axe'||tool==='_pick')&&SPR['pl_body_'+look.outfit+tool]&&(SPR['pl_hair_short'+tool]||tool==='_can')?tool:'';   /* the axe and pick lean their own way: their own head layers */const L=['pl_body_'+look.outfit+tool];
   if(look.beard)L.push('pl_beard_'+look.beard+v);if(look.style&&look.style!=='bald')L.push('pl_hair_'+look.style+v);if(look.accessory)L.push('pl_acc_'+look.accessory+v);
   if(look.glasses)L.push('pl_glasses_'+look.glasses+v);if(look.hat)L.push('pl_hat_'+look.hat+v);if(tool)L.push('pl_toolf'+tool);return L;}
 const LOOK_ORIG={};

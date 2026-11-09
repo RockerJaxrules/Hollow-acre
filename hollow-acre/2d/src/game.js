@@ -168,7 +168,7 @@ function faceTo(x,z){const dx=x-P.x,dz=z-P.z,d=Math.hypot(dx,dz)||1;P.fx=dx/d;P.
 function startAnim(clip,dur,t,fire){if(clip==='hoe'||clip==='pick'||clip==='axe')dur=Math.max(dur,.72);P.anim={clip,dur,t:0,fire,fired:false,tgt:t||null};if(t)faceTo(t.x,t.z);}
 function doTill(t){startAnim('hoe',.7,t,()=>{t.tilled=true;S.everTilled=true;SFX.till();burst(t.x,t.z,14,'#6a4a30',1.6,.6,2);cam.shake=Math.max(cam.shake,.12);});}
 function doPlant(t){if(S.seeds[S.sel]<=0)return;const type=S.sel;startAnim('plant',.7,t,()=>{if(t.crop||S.seeds[type]<=0)return;S.seeds[type]--;S.everPlanted=true;t.crop={type,stage:0,growth:0,watered:false,pop:0};SFX.plant();
-  burst(t.x,t.z,6,'#d8c890',.6,.5,1);if(S.seeds[S.sel]<=0){const o=S.sel==='turnip'?'pumpkin':'turnip';if(S.seeds[o]>0)S.sel=o;}});}
+  burst(t.x,t.z,6,'#d8c890',.6,.5,1);if(S.seeds[S.sel]<=0){const o=S.sel==='turnip'?'pumpkin':'turnip';if(S.seeds[o]>0)S.sel=o;}});if(P.anim)P.anim.fireAt=.78;}
 function doWater(t){if(S.water<=0)return;startAnim('water',1.1,t,()=>{if(!t.crop)return;S.water--;S.everWatered=true;t.crop.watered=true;SFX.water();
   for(let i=0;i<14;i++)parts.push({x:t.x+(Math.random()-.5)*.5,z:t.z+(Math.random()-.5)*.3,y:.8,vx:0,vz:0,vy:-1-Math.random(),t:0,life:.4,col:'#9cc8e8',size:1});if(S.water===0)toast('The can is empty. Refill it at the well.',2.2);});}
 function doHarvest(t){const c=t.crop;startAnim('plant',.7,t,()=>{if(t.crop!==c)return;const moon=isNight();S.basket.push({kind:c.type,value:SEEDS[c.type].sell*(moon?2:1)});t.crop=null;SFX.harvest();
@@ -307,7 +307,7 @@ function update(dt){slamUpdate(dt);mindUpdate(dt);lifeUpdate(dt);
   lastDir=P.dir;
   if(moving){P.fx=mx/mag;P.fz=mz/mag;P.dir=dirOf(mx,mz);P.x+=P.fx*spd*dt;P.z+=P.fz*spd*dt;collide(P,.3);if(fish.state!=='off')fish.state='off';}
   P.spd=spd;
-  if(P.anim){const a=P.anim;a.t+=dt;P.clip=a.clip;if(!a.fired&&a.t>a.dur*.55){a.fired=true;a.fire&&a.fire();}if(a.t>=a.dur)P.anim=null;}
+  if(P.anim){const a=P.anim;a.t+=dt;P.clip=a.clip;if(a.step){const e=actStepE(a.step,a.t/a.dur),de=e-(a._se||0);a._se=e;P.x+=a.step.dx*de;P.z+=a.step.dz*de;collide(P,.3);}if(!a.fired&&a.t>a.dur*(a.fireAt||.55)){a.fired=true;a.fire&&a.fire();}if(a.t>=a.dur)P.anim=null;}
   else P.clip=moving?'walk':'idle';
   P.t+=dt*(moving?spd/2.6:1);
   if(moving){stepT-=dt*(run?1.5:1);if(stepT<=0){stepT=.33;SFX.step(corn);if(rand()<.5&&!corn)burst(P.x,P.z+.05,2,'#6a5a46',.5,.4,.6);}}

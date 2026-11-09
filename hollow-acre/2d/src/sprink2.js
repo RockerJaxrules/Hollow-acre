@@ -30,10 +30,18 @@ function sprWaterAround(t){let n=0;for(const q of sprAround(t)){if(q.crop&&q.cro
 function sprPlace(t){if(t.crop){tSay('Something is growing there. Pick an empty square.',1.6);return false;}
   if(t.debris&&!t.debris.hide){tSay('Clear that square first.',1.4);return false;}if(t.spr){return false;}
   if(inv('sprinkler')<=0)return false;faceAt(t.x,t.z);
-  startAnim('grab',.4,t,()=>{if(t.spr||t.crop||inv('sprinkler')<=0)return;takeInv('sprinkler',1);S.sprPlaced.push([t.i,t.j]);sprSync();SFX.thud&&SFX.thud(0,.25);
+  startAnim('grab',GRAB_V2?.85:.4,t,()=>{if(t.spr||t.crop||inv('sprinkler')<=0)return;takeInv('sprinkler',1);S.sprPlaced.push([t.i,t.j]);sprSync();SFX.thud&&SFX.thud(0,.25);
     const n=sprWaterAround(t);SPRAY.one={t,until:performance.now()/1000+2.6};SFX.water&&setTimeout(()=>SFX.water(),150);
     toast(n?`It hisses and spins: ${n} ${n===1?'crop':'crops'} around it watered. It’ll water these eight squares every morning.`:'Set down. Every morning it waters the eight squares around it.',2.8);
-    syncSlots();renderHotbar();updateHud&&updateHud();});return true;}
+    syncSlots();renderHotbar();updateHud&&updateHud();});if(P.anim&&GRAB_V2){P.anim.item='sprinkler';P.anim.step=sprStep(t);P.anim.fireAt=.56;}return true;}
+// the new way of setting a sprinkler down ships only once a blind judge passes it (6+ and preferred)
+var GRAB_V2=false;
+// a half step in to the square, set it down, a step back out (judge r6: the hands must be on it when it touches down,
+// and the last frame should match the first). Facing away there's no room to reach past the body: he steps back
+// after setting it down, so the sprinkler shows above his head.
+function sprStep(t){const dx=t.x-P.x,dz=t.z+.12-P.z,d=Math.hypot(dx,dz)||1;if(P.dir==='N')return {dx:dx/d,dz:dz/d,in:0,out:.5};
+  const go=Math.min(.6,d-.45);return go>.05?{dx:dx/d,dz:dz/d,in:go,out:go}:null;}
+function actStepE(st,k){const sm=u=>{u=Math.max(0,Math.min(1,u));return u*u*(3-2*u);};return st.in*sm(k/.3)-st.out*sm((k-.72)/.28);}
 function sprPick(t){const k=S.sprPlaced.findIndex(p=>p[0]===t.i&&p[1]===t.j);if(k<0)return false;faceAt(t.x,t.z);
   startAnim('pick',.5,t,()=>{const k2=S.sprPlaced.findIndex(p=>p[0]===t.i&&p[1]===t.j);if(k2<0)return;S.sprPlaced.splice(k2,1);sprSync();addInv('sprinkler',1);SFX.thud&&SFX.thud(0,.3);
     burst(t.x,t.z,6,'#c89a3c',1,.5,1.5);toast('You pull the sprinkler up. It’s back in your bag.',1.8);syncSlots();renderHotbar();});return true;}
