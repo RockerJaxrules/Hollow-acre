@@ -25,13 +25,13 @@ LIGHT = Vector((-.75, -.35, .55)).normalized()   # from the upper left and a lit
 PAL = {
     'pumpkin': ['#1a0a0c', '#341410', '#542414', '#70361a', '#8a4624'],   # a rotting pumpkin: brown and plum, never candy; only the glow is bright
     'stem':    ['#141a10', '#24301a', '#3a4a24', '#526a30', '#6e8a3c'],
-    'coat':    ['#09070b', '#130f18', '#1e1826', '#2e2538', '#433750'],   # near-black plum: the face is the light, not the coat
+    'coat':    ['#09070b', '#130f18', '#1e1826', '#352b42', '#4f4266'],   # near-black plum: the face is the light, not the coat
     'patch':   ['#140c0c', '#22161a', '#322228', '#423038', '#544048'],
     'thread':  ['#3a3430', '#544c44', '#6e665a', '#888070', '#a29a88'],
-    'void':    ['#060408', '#0a070e', '#0e0a14', '#120c1a', '#160f20'],
+    'void':    ['#0e0810', '#140a16', '#1a0c1c', '#200e22', '#261028'],   # dark violet-plum, not black
     'button':  ['#2a0608', '#4e0c10', '#7a161a', '#a02424', '#c43a32'],
     'belt':    ['#0e0a08', '#1e1610', '#30241a', '#463424', '#5e4632'],
-    'stick':   ['#120c0e', '#221a1e', '#3a2e32', '#5a4a4e', '#7c6a6c'],   # a lit edge so the legs part from the grass
+    'stick':   ['#120c0e', '#221a1e', '#342a2e', '#4c3e42', '#66585a'],   # a lit edge so the legs part from the grass
     'bone':    ['#2e2c2e', '#4c4a4e', '#6e6c70', '#8e8c8c', '#b0aca4'],
     'flesh':   ['#8a3a10', '#c8661c', '#e8923a', '#f6bc62', '#fde09a'],
     'glow':    ['#8a3410', '#d06a1c', '#f0a040', '#f8d27a', '#fcecb0'],

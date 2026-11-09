@@ -19,7 +19,7 @@ def finish(im):
             r, g, b, a = px[x, y]
             if not a or (r > 200 and g > 150): continue   # not the glow
             if (x == 0 or not px[x - 1, y][3]) or (y == 0 or not px[x, y - 1][3]):
-                rim.append((x, y, (int(r * .5 + 132 * .5), int(g * .5 + 128 * .5), int(b * .5 + 170 * .5), 255)))
+                rim.append((x, y, (int(r * .35 + 140 * .65), int(g * .35 + 140 * .65), int(b * .35 + 200 * .65), 255)))   # cool blue-violet
     for x, y, c in rim: px[x, y] = c
     add = []
     for y in range(H):
