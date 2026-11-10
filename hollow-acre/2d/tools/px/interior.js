@@ -33,8 +33,10 @@ function logWall(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++){const r=Math.floor((y-y
 function beadWains(L,x0,y,w,h,C){for(let j=0;j<h;j++)for(let i=0;i<w;i++){let c=C[2];if(i%5===0)c=C[1];if(i%5===1)c=C[3];if(j<3)c=j===0?C[3]:C[2];P(L,x0+i,y+j,c);}hl(L,x0,y-1,w,WD[3]);hl(L,x0,y-2,w,WD[4]);}
 function parquet(L,x0,y0,w,h){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const a=x-x0+y-y0,b=x-x0-(y-y0);const cell=Math.floor(a/12)+Math.floor(b/12);const dir=cell%2;const t=dir?(a%12):(((b%12)+12)%12);
   let c=WD[dir?3:4];if(t===0)c=WD[1];if(t===1)c=WD[dir?4:5];if(hsh(Math.floor(a/12),Math.floor(b/12),5)>.7)c=shade(c,.92);P(L,x,y,c);}}
-function checker(L,x0,y0,w,h,A2,B2){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const i=Math.floor((x-x0)/16),j=Math.floor((y-y0)/16),u=(x-x0)%16,v=(y-y0)%16;let c=(i+j)%2?A2[3]:B2[3];
-  if(u===0||v===0)c=shade(c,.85);if(hsh(x>>2,y>>2,8)>.93)c=shade(c,.92);P(L,x,y,c);}}
+// (interiors) bright red on cream at full contrast was the loudest thing in every room it was in, and the specks were grit:
+// the tiles sit a step down (worn, waxed), the grout is a soft line on the top and left of each tile, no specks
+function checker(L,x0,y0,w,h,A2,B2){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const i=Math.floor((x-x0)/16),j=Math.floor((y-y0)/16),u=(x-x0)%16,v=(y-y0)%16;const lt=B2[1].map((v,k)=>Math.round(v*.55+B2[2][k]*.45));let c=(i+j)%2?A2[2]:lt;   // the light tile between two cream steps, close to the dark one
+  if(u===0||v===0)c=shade(c,.84);else if(u===1||v===1)c=shade(c,1.05);P(L,x,y,c);}}
 function flagstone(L,x0,y0,w,h){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=Math.floor((y-y0)/18),o=(r*13)%27,s=Math.floor((x-x0+o)/(22+(r%3)*4));const u=(x-x0+o)%(22+(r%3)*4),v=(y-y0)%18;
   const n=hsh(s,r,9);let c=ST[n>.66?4:n>.33?3:2];if(u<2||v<2)c=ST[1];if(u===2||v===2)c=ST[n>.5?5:4];
   if(hsh(s,r,11)>.62&&u>3&&v>3){const cu=6+Math.floor(hsh(s,r,12)*10),cv=5+Math.floor(hsh(s,r,13)*6),dir=hsh(s,r,14)>.5?1:-1,dv=v-cv;if(dv>=0&&dv<6&&u===cu+dir*Math.floor(dv*.7))c=ST[1];}   // a crack, not specks
