@@ -274,14 +274,12 @@ def rundown(night):
             for j in range(5): c.p(wx + i, yy + i * a + j, P['grey'][[4, 3, 3, 2, 1][j]])
     # leaves blown in under the door, grit in the corners
     door = fx(3)
-    # (owner: "too gritty") each leaf a 4x3 shape with a lit top edge and a dark lower one, in small groups, no loose specks
-    LEAVES = [((110, 60, 30), (150, 80, 30), (70, 38, 22)), ((140, 104, 40), (180, 140, 56), (88, 64, 28)), ((96, 72, 44), (124, 96, 58), (62, 46, 30))]
-    for g in range(5):
-        gx = door + (H(g, 11) - .5) * 60; gy = fy(5.6) + (H(g, 12) - .5) * 14
-        for k in range(2 + (g % 2)):
-            x = int(gx + (H(g * 7 + k, 15) - .5) * 12); y = int(gy + (H(g * 7 + k, 16) - .5) * 6); body, lit, dk = LEAVES[(g + k) % 3]
-            for (dx, dy) in ((1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (3, 1), (1, 2), (2, 2)): c.p(x + dx, y + dy, body)
-            c.p(x + 1, y, lit); c.p(x, y + 1, lit); c.p(x + 2, y + 2, dk); c.p(x + 3, y + 1, dk); c.p(x + 4, y + 2, dk)
+    for i in range(40):
+        x = door + (H(i, 11) - .5) * 70; y = fy(5.6) + (H(i, 12) - .5) * 20
+        c.p(x, y, [(150, 80, 30), (180, 110, 40), (110, 60, 30), (90, 70, 40)][i % 4]); c.p(x + 1, y, [(150, 80, 30), (180, 110, 40), (110, 60, 30), (90, 70, 40)][(i + 1) % 4])
+    for i in range(60):
+        x = SIDE + 2 + H(i, 13) * 8 if i % 2 else im.width - SIDE - 10 + H(i, 13) * 8; y = TOP + H(i, 14) * 190
+        c.p(x, y, (60, 50, 40), 120)
     return im
 for night in (0, 1):
     nm = 'room_cabin0' + ('_n' if night else ''); rundown(bool(night)).save(OBJ + nm + '.png')

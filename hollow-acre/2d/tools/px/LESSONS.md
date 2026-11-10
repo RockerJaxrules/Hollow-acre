@@ -253,6 +253,31 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 
 - [process] An old/new pair must load the OLD sprites: the scratch build shares one sprite pack set, so a copy of the old
   page still draws the new art. Export the last commit (git archive spr + index.html) and serve it from its own folder.
+- [interiors r3] A post-pass script that dresses a room shell (tools/shack.py adds the shack's holes, leak, damp and boarded
+  pane to room_cabin0) is lost when the shells are re-rendered: re-run every post-pass after interior.py, or the room loses
+  its story (the cabin lost 5 vs 5.5 to its own older self).
+- [interiors r3] Floor holes as flat pure-black dashes of one shape set in a line read as glitches: a broken board is a
+  missing stretch of ONE plank (on the plank lines), dark brown earth inside, the far board's cut face along the top, a joist
+  across a long gap, ragged ends with pale lit splinter tips, three different lengths, never in a line.
+- [interiors r3] One pattern repeated on a grid wall to wall (diamond parquet, checker) is the loudest thing in the room:
+  take its joint lines a step quieter and frame it with plain boards running along each wall, so it stops short of the
+  furniture that stands against the walls.
+- [interiors r3] A rug under a table shows only a thin arc and reads as something else (a rainbow): a rug goes where it is
+  seen, under a chair or in open floor, with the furniture standing on its edge, not covering it.
+- [interiors r3] Say who lives there with ONE object only they would own (a kneeler with an open Bible for the minister, a
+  child's drawings for the boy); crates in a bedroom read as storage dumped there. The room with the drawings scored 6.
+- [interiors r3] Two copies of the same bed sprite, mirrored either side of a shelf, read as a hotel and lose to two
+  different beds in an uneven layout.
+- [interiors r3 -> PASS 6 vs 4.5 and 6 vs 4] The teacher's house and the mother-and-son room won once the floor stopped
+  shouting and one object said who lives there. Next level (judge): Stardew dresses a room at three scales: big furniture,
+  then small things on every surface, then things hung on every wall, with pieces touching and overlapping. Big sprites
+  standing apart on bare floor under bare walls read as props placed, not a life lived.
+- [interiors r3] A tall piece standing in front of a window (a bookcase hiding a third of the glass) is a placement error;
+  check every tall piece against the window list before judging.
+- [interiors r3] Fading a too-loud quilt to grey made it read as stone: fade toward the room's own warm brown instead
+  (mix 45% toward the floor colour, 15% darker), and keep its pattern.
+- [interiors r3] One pupil desk on its own reads as a side table: a piece that says a job needs its group (two or three
+  desks in a row facing the board).
 - [interiors r2] A fire lights nothing until the source glows: flame tongues (deep orange edge, pale core) and a hot grill
   must be the brightest pixels in the room before any floor light. Vertical bars read as a heater grate.
 

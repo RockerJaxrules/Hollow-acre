@@ -31,8 +31,17 @@ function panelWall(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x+
 function logWall(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++){const r=Math.floor((y-y0)/11),v=(y-y0)%11;for(let x=x0;x<x0+w;x++){let c=v<2?R[4]:v<5?R[3]:v<9?R[2]:v<10?R[1]:PAL.cream[0];
   if(hsh(x>>2,r,6)>.86&&v>2&&v<9)c=R[1];P(L,x,y,c);}}}
 function beadWains(L,x0,y,w,h,C){for(let j=0;j<h;j++)for(let i=0;i<w;i++){let c=C[2];if(i%5===0)c=C[1];if(i%5===1)c=C[3];if(j<3)c=j===0?C[3]:C[2];P(L,x0+i,y+j,c);}hl(L,x0,y-1,w,WD[3]);hl(L,x0,y-2,w,WD[4]);}
-function parquet(L,x0,y0,w,h){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const a=x-x0+y-y0,b=x-x0-(y-y0);const cell=Math.floor(a/12)+Math.floor(b/12);const dir=cell%2;const t=dir?(a%12):(((b%12)+12)%12);
-  let c=WD[dir?3:4];if(t===0)c=WD[1];if(t===1)c=WD[dir?4:5];if(hsh(Math.floor(a/12),Math.floor(b/12),5)>.7)c=shade(c,.92);P(L,x,y,c);}}
+// (interiors r3, judge: "the diamond floor is one pattern on a grid across the whole room") the field a step quieter (the two
+// directions a half step apart, the joints a soft line), framed by plain boards running along each wall and a thin inlay, so the
+// pattern stops short of the furniture standing against the walls
+function parquet(L,x0,y0,w,h){const B=11,mx=(a,b,t)=>a.map((v,k)=>Math.round(v+(b[k]-v)*t));
+  for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const u=x-x0,v=y-y0,iu=w-1-u,iv=h-1-v,db=Math.min(u,iu,v,iv);let c;
+    if(db<B-2){const horiz=db===v||db===iv,t=db%4,run=horiz?u:v,bi=Math.floor(db/4);c=WD[3];if(t===0)c=mx(WD[2],WD[3],.35);else if(t===1)c=shade(WD[3],1.07);
+      if(t&&((run+bi*23+(horiz?0:11))%46===0))c=mx(WD[2],WD[3],.35);else if(t>1&&hsh(Math.floor((run+bi*23)/46),bi+(horiz?0:9),7)>.66)c=shade(c,.95);}
+    else if(db===B-2)c=mx(WD[1],WD[2],.5);else if(db===B-1)c=shade(WD[4],.97);
+    else{const a=u+v,b=u-v,cell=Math.floor(a/12)+Math.floor(b/12),dir=cell%2,t=dir?(a%12):(((b%12)+12)%12);
+      c=dir?WD[3]:mx(WD[3],WD[4],.5);if(t===0)c=mx(WD[2],WD[3],.5);else if(t===1)c=shade(c,1.05);if(hsh(Math.floor(a/12),Math.floor(b/12),5)>.7)c=shade(c,.95);}
+    P(L,x,y,c);}}
 // (interiors) bright red on cream at full contrast was the loudest thing in every room it was in, and the specks were grit:
 // the tiles sit a step down (worn, waxed), the grout is a soft line on the top and left of each tile, no specks
 function checker(L,x0,y0,w,h,A2,B2){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const i=Math.floor((x-x0)/16),j=Math.floor((y-y0)/16),u=(x-x0)%16,v=(y-y0)%16;const lt=A2[2].map((v,k)=>Math.round(v*.62+B2[2][k]*.38));let c=(i+j)%2?A2[2]:lt;   // the light tile only a step above the dark one: a quiet floor under louder furniture   // the light tile between two cream steps, close to the dark one

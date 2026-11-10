@@ -71,7 +71,7 @@ ROOMS = {
   'rg_lookout': dict(w=6, d=5, door=3, theme='home', wall='panel', floor='wide', windows=[[.9, 0], [2.3, 0], [3.7, 0], [5.1, 0]], mat='sage'),
   # ---- the back rooms of the houses: where they sleep, and keep what they don't show visitors
   'back_agnes': dict(w=7, d=5, door=3.5, theme='home', wall='stripe', paper='sage', floor='painted', paint='blue', windows=[[3.5, 0]], mat='rust'),
-  'back_hale': dict(w=7, d=5, door=3.5, theme='home', wall='panel', floor='wide', windows=[[2, 0], [5.2, 0]], mat='curtain'),
+  'back_hale': dict(w=7, d=5, door=3.5, theme='home', wall='panel', floor='wide', windows=[[1.6, 0], [4.3, 0]], mat='curtain'),
   'back_dunn': dict(w=7, d=5, door=3.5, theme='home', wall='plaster', paper='slate', floor='planks', windows=[[5.2, 0]], mat='slate'),
   'back_cora': dict(w=7, d=5, door=3.5, theme='home', wall='stripe', paper='rust', floor='parquet', windows=[[2, 0], [5.2, 0]], mat='blue'),
   'back_june': dict(w=7, d=5, door=3.5, theme='home', wall='damask', paper='mustard', floor='wide', windows=[[3.5, 0]], mat='mustard'),

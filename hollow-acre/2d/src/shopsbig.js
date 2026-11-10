@@ -6,11 +6,11 @@
    shafts with dust turning in them, the keepers move between the counter and the shelves, and the shop bell rings when you come in. ================= */
 const F=(spr,x,z,dep,kind)=>PF(spr,x,z,dep,kind),W_=(spr,x,z)=>[spr,x,z,null,'flat'],FL=(spr,x,z)=>[spr,x,z,null,'flat'];
 const SHOPS_BIG={
-  store:{shell:'room_shop_store3',back:15.6,till:[14,2.4],counter:[14,4.1],lamp:[9,2.4],
-    spots:{mae:[14,2.4],pip:[12.6,2.5]},browse:[[2.4,6.1],[4.2,8.6],[6.6,6.3],[11.6,8.2],[1.1,1.5],[9,1.5],[16.6,4.4],[2.6,10.6]],
-    furn:[F('in_shelf_cans',1.1,.62,.4),F('in_shelf_jars',4.7,.62,.4),F('in_shelf_cans',9,.62,.4),F('in_shelf_jars',13.4,.62,.4),W_('in_poster_lost',16.9,-.45),W_('in_poster_seeds',7.75,-.45),
-      F('in_counter',14,3.3,.6),F('in_candycase',16.6,3.6,.5),F('in_shelf_cans',2.4,5.4,.4),F('in_shelf_jars',4.2,5.4,.4),F('in_shelf_jars',2.4,7.9,.4),F('in_shelf_cans',4.2,7.9,.4),
-      F('in_seedrack',6.6,5.6,.3),F('in_seedrack',6.6,8.0,.3),F('in_produce',11.6,7.4,.5),['pumpkin',13.6,8.1,[-.3,-.2,.3,0]],['pumpkin_b',14.2,8.3,[-.3,-.2,.3,0]],
+  store:{shell:'room_shop_store3',back:15.6,till:[14,2.66],counter:[14,4.1],lamp:[9,2.4],
+    spots:{mae:[14,2.66],pip:[11.8,3.05]},browse:[[2.4,6.1],[4.2,8.6],[6.6,6.3],[11.6,8.2],[1.1,1.5],[9,1.5],[16.6,4.4],[2.6,10.6]],
+    furn:[F('in_shelf_cans',1.1,.62,.4),F('in_shelf_jars',4.7,.62,.4),F('in_shelf_mail',9,.62,.4),['in_mailsacks',10.5,1.25,[-.5,-.3,.5,0]],F('in_cabinet',13.4,.62,.4),W_('in_poster_lost',16.9,-.45),W_('in_poster_seeds',7.75,-.45),
+      F('in_counter',14,3.3,.6),F('in_candycase',16.6,3.6,.5),F('in_shelf_cans',2.4,5.4,.4),F('in_shelf_jars',4.2,5.4,.4),F('in_shelf_tools',2.4,7.9,.4),F('in_shelf_books',4.2,7.9,.4),
+      F('in_seedrack',6.6,5.6,.3),F('in_table',6.6,8.1,.45),F('in_produce',11.6,7.4,.5),['pumpkin',13.6,8.1,[-.3,-.2,.3,0]],['pumpkin_b',14.2,8.3,[-.3,-.2,.3,0]],
       ['barrel',.7,2.4,[-.4,-.3,.4,0]],F('in_keg',.7,3.3,.3),['sacks',17.2,6.2,[-.55,-.3,.55,0]],F('in_crates',16.4,9.6,.4),['barrel',17.3,8.0,[-.4,-.3,.4,0]],
       F('in_stove',1.0,9.8,.5),F('in_chess',2.6,10.2,.3),F('in_chair',3.5,10.3,.25),F('in_rocker',1.8,10.6,.3),[ 'in_cat',16.9,7.2,null],
       F('in_plant',7.4,10.4,.25),F('in_plant',10.6,10.4,.25),F('in_plant2',17.3,10.3,.3),FL('in_rug',9,10.5)]},
