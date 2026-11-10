@@ -3155,6 +3155,70 @@ if(K==='chimney2'){const base=113,x0=14,w=22,sd=5,BR=hexR(['#2a1614','#46241e','
   for(let y=top+20;y<hy;y++)for(let x=x0+5;x<x0+w-5;x++){const d=Math.abs(x-(x0+w/2+Math.sin(y*.15)*2))/((y-top)*.12+1.5);if(d<1&&G(A,x,y))P(A,x,y,mixC(G(A,x,y),hexR(['#140e10'])[0],.6*(1-d)));}   // soot plumed up the face
   for(const [bx,by] of [[x0-3,base-2],[x0+w+6,base-1],[x0+w+9,base-3]]){for(let i=0;i<4;i++){P(A,bx+i,by,BR[3]);P(A,bx+i,by+1,BR[1]);}}
   for(let i=0;i<14;i++){P(A,x0+w-2+i,base-4+Math.round(i*.25),hexR(['#1a1210'])[0]);P(A,x0+w-2+i,base-3+Math.round(i*.25),hexR(['#2e2018'])[0]);}}
+// =================================================================================== props sweep batch 6a, drawn by hand
+// street signs: a dark green-grey post lit up its left, a cast foot with a soft shadow, an enamel blade with a lit top edge, a cream keyline, white letters, two bolts, a ball on top
+if(/^stsign_/.test(K)){const T={main:'MAIN ST',hill:'HILL ST',market:'MARKET ST',elm:'ELM ST',church:'CHURCH ST',orchard:'ORCHARD LN',east:'EAST AVE',green:'GREEN ST',mill:'MILL RD'}[K.slice(7)]||'MAIN ST';
+  const GP=hexR(['#1c2220','#2a3430','#3c4a44','#566660','#728078']),GN=hexR(['#0e2418','#163422','#22482e','#2e5c3c','#3e744c']),base=69,cx=W>>1;
+  for(let x=-5;x<=7;x++){SH(cx+x+1,base,x<-3||x>5?70:140);SH(cx+x+2,base+1,60);}
+  for(let y=14;y<base-2;y++){P(A,cx-1,y,GP[4]);P(A,cx,y,GP[3]);P(A,cx+1,y,GP[1]);}
+  for(const [y,w] of [[base-3,2],[base-2,3],[base-1,3]])for(let i=-w;i<=w;i++)P(A,cx+i,y,GP[i<0?3:(i>1?0:2)]);
+  for(let y=8;y<17;y++)for(let x=2;x<W-2;x++){let c=GN[y===8?4:(y===16?1:2)];if(x===2)c=GN[3];if(x===W-3)c=GN[1];if((y===9||y===15)&&x>3&&x<W-4)c=hexR(['#c8c0a0'])[0];P(A,x,y,c);}
+  drawText(A,T,cx-((T.length*4-1)>>1),10,hexR(['#ece8dc'])[0]);P(A,3,12,GP[4]);P(A,W-4,12,GP[4]);
+  for(let y=4;y<8;y++)for(let x=-1;x<=1;x++)P(A,cx+x,y,GP[(x<0||y===4)?4:2]);P(A,cx-1,4,GP[4]);}
+// a ring-toss stall: a cloth-covered table top lit as a plane, bottles in two rows, a peg of rings, the front cloth hanging in broad folds with faded stripes
+if(K==='ringtoss2'){const base=41,x0=4,x1=51,top=14,fy=20,CL=hexR(['#5a1e1e','#7e2e2a','#9e403a','#b45a4c']),CR=hexR(['#8a8270','#aea48e','#cac0a6']);
+  for(let x=x0;x<x1+4;x++){SH(x+1,base,150);SH(x+2,base+1,70);}
+  for(let y=top;y<fy;y++)for(let x=x0;x<x1;x++)P(A,x,y,CR[y===top?2:1]);
+  for(let y=fy;y<base;y++)for(let x=x0;x<x1;x++){const u=x-x0,stripe=Math.floor(u/6)%2===0;const fold=Math.sin(u*.55)*.5+.5;let k=fold>.7?3:fold>.3?2:1;if(y>base-3)k=Math.max(0,k-1);P(A,x,y,stripe?CL[k]:CR[Math.max(0,k-1)]);}
+  for(let x=x0;x<x1;x++)P(A,x,fy,CL[0]);
+  const BT=[hexR(['#1e3424','#2e5038','#4a7058']),hexR(['#3a2a14','#5e4420','#8a6830']),hexR(['#28303a','#3e4a58','#5e6e80'])];
+  for(let r=0;r<2;r++)for(let i=0;i<5;i++){const bx=x0+6+i*9+r*4,by=top+(r?5:2),h=r?6:5,c=BT[(i+r)%3];for(let j=0;j<h;j++){const w=j<2?0:1;for(let k=-w;k<=w;k++)P(A,bx+k,by-j,c[k<0?2:(k>0?0:1)]);}P(A,bx,by-h,c[2]);}
+  for(let y=6;y<top;y++)P(A,x1-3,y,WW[4]);for(const [ry,rc] of [[9,'#c8a040'],[11,'#a83a30'],[13,'#3a6a8a']]){P(A,x1-5,ry,hexR([rc])[0]);P(A,x1-1,ry,hexR([rc])[0]);P(A,x1-4,ry-1,hexR([rc])[0]);P(A,x1-2,ry-1,hexR([rc])[0]);}}
+// an old well left out in the region: a ring of rubble stone, the far inner wall lit under the rim and darkening toward the near rim, a broken post with a rope hanging into it
+if(K==='oldwell2'){const base=42,cx=31,St=GST;
+  for(let x=-24;x<=26;x++){SH(cx+x+1,base,140);SH(cx+x+2,base+1,70);}
+  for(let y=-10;y<=6;y++)for(let x=-22;x<=22;x++){const d=x*x/484+y*y/100;if(d>1)continue;const inner=x*x/196+(y+1)*(y+1)/36;if(inner<1){const t=(y+7)/12;P(A,cx+x,base-12+y,t<.25?St[3]:(t<.5?St[2]:(t<.75?St[1]:St[0])));continue;}
+    const stone=(Math.floor((Math.atan2(y,x)+3.2)*5)+Math.floor(d*3))%2;let k=y<-3?5:(y>2?2:4);if(stone)k--;if(x>15)k--;P(A,cx+x,base-12+y,St[Math.max(1,k)]);}
+  for(let y=base-34;y<base-10;y++){P(A,cx+18,y,WW[5]);P(A,cx+19,y,WW[4]);P(A,cx+20,y,WW[2]);}for(const [bx,by] of [[18,-35],[19,-36],[20,-35]])P(A,cx+bx,base+by,WW[6]);   // a broken post, splintered
+  for(let i=0;i<9;i++)P(A,cx+17-i,base-30+Math.round(i*i*.12),hexR(['#8a7a5c'])[0]);for(let j=0;j<9;j++)P(A,cx+8,base-21+j,hexR(['#7a6a4c'])[0]);   // the rope over the edge and down into the dark
+  for(const [mx,my] of [[-20,-2],[-19,-3],[-18,-2],[14,4],[15,4]])P(A,cx+mx,base-12+my,hexR(['#4d5a2c','#66733a'])[(mx+my+40)%2]);}
+// an outcrop: three boulders cut in planes, a lit top on each, hard edges, cracks, a chipped lip, lichen in clumps, a shadow down and to the right
+if(K==='outcrop2'){const R=GST,base=42;
+  for(let x=6;x<104;x++){SH(x+2,base+1,150);SH(x+3,base+2,90);SH(x+4,base+3,40);}
+  const rock=(T,L,Rt,cr)=>{poly(L,(x,y)=>P(A,x,y,R[3]));poly(Rt,(x,y)=>P(A,x,y,R[1]));poly(T,(x,y)=>P(A,x,y,R[5]));for(const p of T)P(A,Math.round(p[0]),Math.round(p[1]),R[6]);for(const [x,y] of cr)P(A,x,y,R[1]);};
+  rock([[44,14],[58,6],[76,8],[84,16],[66,22],[48,22]],[[44,14],[48,22],[66,22],[64,base],[42,base-2],[40,24]],[[66,22],[84,16],[90,26],[86,base],[64,base]],[[56,10],[57,11],[58,12],[58,13],[59,14],[70,24],[71,26],[71,28],[72,30]]);
+  rock([[10,26],[18,20],[30,22],[34,28],[24,32],[12,32]],[[10,26],[12,32],[24,32],[24,base],[10,base],[8,32]],[[24,32],[34,28],[38,34],[36,base],[24,base]],[[18,24],[19,25],[20,27]]);
+  rock([[88,30],[94,26],[102,28],[104,33],[96,36],[90,35]],[[88,30],[90,35],[96,36],[96,base],[88,base]],[[96,36],[104,33],[105,38],[102,base],[96,base]],[]);
+  for(const [lx,ly] of [[74,12],[75,12],[76,13],[75,13],[20,22],[21,22]])P(A,lx,ly,hexR(['#7d8650','#8f9a62'])[(lx+ly)%2]);
+  for(let x=78;x<84;x++)P(A,x,16+((x*3)%2),undefined);P(A,78,17,R[2]);}
+// the swing set in the empty lot: an iron A-frame lit on its left and top edges, two swings; one hangs still, the other is caught swinging toward you (its seat higher on screen, its chains shorter)
+if(K==='swing2'){const base=80,I=hexR(['#1a1c20','#2a2e34','#3e444c','#5a626c','#7e8892']),x0=8,x1=90,ty=14;
+  for(let x=x0-6;x<x1+8;x++){SH(x+2,base,90);}
+  for(const [lx,dir] of [[x0,1],[x1,-1]])for(let j=0;j<base-ty;j++){for(const s of [-1,1]){const x=Math.round(lx+s*j*.14);P(A,x,ty+j,I[s<0?4:2]);P(A,x+1,ty+j,I[s<0?2:1]);}}
+  for(let x=x0-1;x<=x1+2;x++){P(A,x,ty-1,I[4]);P(A,x,ty,I[3]);P(A,x,ty+1,I[1]);}
+  const CH=hexR(['#6a6e74','#8a8e94']);
+  for(const cx of [30,36])for(let y=ty+2;y<base-18;y++)P(A,cx,y,CH[y%2]);for(let x=27;x<40;x++){P(A,x,base-18,WW[5]);P(A,x,base-17,WW[3]);P(A,x,base-16,WW[1]);}for(let x=28;x<39;x++)SH(x+1,base-1,120);   // the still swing
+  for(const [cx,dx] of [[58,-1],[66,1]])for(let y=ty+2;y<base-28;y++)P(A,cx+Math.round((y-ty)*dx*.06),y,CH[y%2]);for(let x=56;x<70;x++){P(A,x,base-28,WW[6]);P(A,x,base-27,WW[4]);P(A,x,base-26,WW[3]);P(A,x,base-25,WW[1]);}for(let x=56;x<70;x++)SH(x+2,base-1,90);}   // the moving swing, nearer and higher
+// a produce stand: a two-tier stall of crates, round fruit in heaps (each lit on its upper left, dark between), a pumpkin row, price cards a step down
+if(K==='produce2'){const base=61,x0=4,x1=92;
+  for(let x=x0;x<x1+4;x++){SH(x+1,base,150);SH(x+2,base+1,70);}
+  for(let y=base-26;y<base;y++)for(let x=x0;x<x1;x++){const r=(y-(base-26));let k=r===13||r===0?5:((r%13)===12?1:3);if(x===x0||x===x1-1)k=2;if((x-x0)%22===0)k=1;P(A,x,y,WW[k]);}
+  for(let y=base-40;y<base-26;y++)for(let x=x0+6;x<x1-6;x++){const r=y-(base-40);let k=r===0?5:(r===13?1:3);if((x-x0-6)%19===0)k=1;P(A,x,y,WW[k]);}
+  const FR=[hexR(['#3a0f10','#5e1a18','#7e2a22','#9c3e2e','#b4583e']),hexR(['#4a3010','#7a5218','#a8742a','#c89040','#dcaa5a']),hexR(['#2a3a14','#3e5420','#567030','#728c40','#8ea654']),hexR(['#6a3a12','#8e5218','#b46e24','#cc8a38','#dca450'])];
+  const heap=(x,y,w,c,r)=>{r=2.3;for(let row=0;row<2;row++)for(let i=0;i<(row?w-2:w-1);i++){const fx=x+2+i*(2*r)+row*(r+.5)+((i*7)%3===0?1:0),fy=y-row*(r+.5)-((i*5)%3===0?1:0);for(let j=-r;j<=r;j++)for(let k=-r;k<=r;k++){if(j*j+k*k>r*r+.5)continue;const lit=-k-j;P(A,Math.round(fx+k),Math.round(fy+j),FR[c][lit>r-1?4:lit>-1?3:lit>-r?2:1]);}}};   // (sweep: "triangle heaps") rows of big round fruit, overlapping, uneven
+  heap(x0+3,base-30,5,0,1.6);heap(x0+25,base-30,5,1,1.6);heap(x0+47,base-30,5,2,1.6);heap(x0+69,base-30,4,0,1.6);
+  heap(x0+12,base-44,4,3,2.2);heap(x0+43,base-44,4,0,1.6);heap(x0+62,base-44,4,1,1.6);
+  for(const px of [x0+8,x0+30,x0+52,x0+74]){rect(A,px,base-11,8,5,RAMP.cream[2]);hl(A,px,base-11,8,RAMP.cream[3]);P(A,px+2,base-9,WW[1]);P(A,px+4,base-9,WW[1]);P(A,px+5,base-9,WW[1]);}}
+// the untended fountain in the hidden garden: an eight-sided stone basin of murky water with leaves on it, a column and an upper bowl, a thin spray falling in 2 px streams to splash rings
+if(K==='fountain2'){const base=86,cx=52,St=hexR(['#2c282a','#46403f','#635b58','#827974','#a19790','#bdb3aa']),WA=hexR(['#16201c','#1e2c26','#2a3c32','#46604e','#6e8a78']);
+  for(let x=-50;x<=50;x++){SH(cx+x+2,base,140);SH(cx+x+3,base+1,70);}
+  for(let y=-16;y<=8;y++)for(let x=-48;x<=48;x++){const d=x*x/2304+y*y/256;if(d>1)continue;const inner=x*x/1849+(y+2)*(y+2)/169;let c;if(inner<1)c=WA[(y+2)<-6?2:1];else c=St[y<-4?5:(y>3?2:(x<-30?4:3))];P(A,cx+x,base-12+y,c);}
+  for(let y=-2;y<=8;y++)for(let x=-48;x<=48;x++){if(y<0)continue;const d=x*x/2304+(y*y)/256;if(d>1){const d2=x*x/2304+((y-8)*(y-8))/64;if(d2<1&&y>0)P(A,cx+x,base-12+y+4,St[x<-30?3:(x>30?1:2)]);}}
+  for(const [lx,ly,c] of [[-24,-6,'#8a4a22'],[18,-2,'#a86a2a'],[-6,2,'#7a3a1a'],[30,-8,'#9a5a26']]){P(A,cx+lx,base-12+ly,hexR([c])[0]);P(A,cx+lx+1,base-12+ly,hexR([c])[0]);P(A,cx+lx+1,base-13+ly,hexR(['#5a3a1a'])[0]);}
+  for(let y=base-44;y<base-16;y++)for(let x=-3;x<=3;x++)P(A,cx+x,y,St[x<-1?4:x>1?1:3]);
+  for(let y=-4;y<=3;y++)for(let x=-16;x<=16;x++){if(x*x/256+y*y/16>1)continue;P(A,cx+x,base-46+y,y<-1?WA[2]:St[y<1?4:(x>10?1:2)]);}
+  for(let y=base-58;y<base-48;y++){P(A,cx,y,St[3]);}P(A,cx,base-59,St[4]);
+  const SP=hexR(['#9ab0a4','#c8d8ce']);for(const sd of [-1,1]){for(let i=0;i<22;i++){const t=i/22,x=Math.round(cx+sd*(2+t*24)),y=Math.round(base-58+t*t*30-t*6);P(A,x,y,SP[1]);P(A,x+sd,y,SP[0]);}const rx=cx+sd*27,ry=base-12-4;for(let a=0;a<24;a++){const t=a/24*6.28;P(A,Math.round(rx+Math.cos(t)*6),Math.round(ry+Math.sin(t)*2),WA[3]);}P(A,rx,ry-1,SP[1]);P(A,rx-1,ry-2,SP[0]);P(A,rx+1,ry-2,SP[0]);}}   // a flat splash ring, the splash rising at its centre
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
 for(const f of NOOL)for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(f(x,y))for(const L of [O,O2])L.d[(y*W+x)*4+3]=0;
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));
