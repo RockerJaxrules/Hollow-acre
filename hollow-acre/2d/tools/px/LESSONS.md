@@ -900,7 +900,14 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A tall narrow side view needs its lid a full step lighter than the end panel and the contents strip wider (5-6 px) and brighter than the panel, or it reads as a post or clock case; a candle flame must be 3-4 px with a pale core and the brightest thing on the piece.
 
 ## Benches (Nov 10: round 1, 10 pieces both orders; the garage workbench 6 installed)
-- A grindstone drawn as a grey disc with a stepped rim reads as a saw blade: draw it in warm sandstone, round (no single-pixel pips at the four ends, they become teeth once outlined), show its thickness as the same disc pushed 2-3 px aside in shadow, and dip its foot in a trough.
+- [round 2 overturned round 1] The trade object must be the highest-contrast shape on the bench: my sandstone grindstone sank into the brown wood and lost both ways to the old grey disc. Keep a grey wheel lighter than the wood; shade its edge-on view as a rim (lit left, dark right, proud hub, water in the trough), never with even ribs (a wrapped sack).
+- A pale saw reads at 1x; the same saw in dark steel goes to a grey smear (the old carpentry bench won both ways). Darkening the trade object to tame it loses the read.
+- Brown leather on brown wood disappears; a work piece needs a hue step from the bench (a dull oxblood hide on oak), not just a value step.
+- A turned piece is drawn at the front's full length running up the screen; my half-length farm bench side read as a cabinet in both orders, every round.
+- A mirror is never the left turn when the ends differ: the tools at one end go far in one side view and near in the other; a stand at the end goes in front of the near end in one view and centred beyond the far end (its lower half hidden) in the other.
+- Hilts hanging over a back board need a wide crossguard with turned-down ends, a 2 px dark grip and a round pommel; a 1 px grip with a lit tip reads as a candle.
+- Cream-topped blocks behind a board read as mugs of beer: lean long boards over the back instead, ends sawn tan.
+- A seat on a bench with a trade: one thing that says the trade (a boot on a last) beats both a cleared seat and a frame-like back rail.
 - A garage bench needs the mechanic's things (vise, battery, toolbox, oil can); a hand saw on it says carpenter. A worktop in bright honey wood is the loudest mass: keep it two steps duller.
 - A flat stone slab on a furnace reads as blank, and speckle on it as grit: a few big cap stones with joints, each lit on its left, and a lit front lip chipped in two places.
 - Smoke drawn as 1 px dots reads as hairs: two soft puffs (alpha under the outline threshold, so no outline), lit top-left, fading as they rise.
