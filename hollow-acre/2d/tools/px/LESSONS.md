@@ -513,6 +513,8 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A back must keep the trade: plank ends and a saw handle over a carpentry bench's back board, planks on its shelf.
 - A hood with a near-black inside reads as a hole; use the darkest plum-brown step, and let the far lip show above the near shell.
 - Open space under a table fills with outline if legs, stretchers and far legs sit 1-3 px apart: draw only the near legs, and only a soft fading shadow under the apron.
+- [owner-level] One camera for every view: a horizontal top is drawn at about three-quarters of its real depth in the front, the back and both sides (METHOD.md: a cube's top is 32x24). Shallow fronts with long sides read as the camera jumping from level to overhead.
+- Things on one end of a piece stay on that end through every turn: a keg's tap end is far in one side view, near in the other and on the left from the back.
 - A mirror is only a correct turn for a piece that is the same at both ends: when the ends differ (a vise, a grindstone, a stand), draw the left side separately, with that end's things at the far end.
 - Turned sideways, a bench keeps its full length running up the screen (about the front's width) and its depth across (about the front's top depth plus a little); half-length tops read as cabinets.
 - From the front, a rocking chair's runners hide behind its legs: the old splayed feet hint at runners better than straight legs on a flat rail.
