@@ -19,7 +19,7 @@ SZ = {'bookcase': {'S': (52, 82), 'E': (25, 82), 'N': (52, 82)}, 'desk': {'S': (
       'mirror': {'S': (22, 32)}, 'painting_a': {'S': (36, 26)}, 'painting_b': {'S': (30, 34)}, 'calendar': {'S': (26, 34)}, 'photowall': {'S': (46, 32)}, 'coatpegs': {'S': (48, 44)},
       'poster_lost': {'S': (30, 40)}, 'poster_fair': {'S': (30, 40)}, 'poster_seeds': {'S': (30, 40)}, 'hangplant': {'S': (30, 40)}, 'plant': {'S': (34, 48)}, 'plant2': {'S': (40, 78)},
       'sawhorse': {'S': (64, 40)}, 'chickcrate': {'S': (46, 34)}, 'feedbins': {'S': (96, 46)}, 'mailsacks': {'S': (36, 30)}, 'produce': {'S': (96, 64)}, 'seedrack': {'S': (46, 76)},
-      'tank': {'S': (66, 50)}, 'toolwall': {'S': (80, 46)}, 'saddle': {'S': (46, 46)}, 'shovels': {'S': (34, 58)}, 'rods': {'S': (32, 64)}}
+      'tank': {'S': (66, 50)}, 'toolwall': {'S': (80, 46)}, 'saddle': {'S': (46, 46)}, 'shovels': {'S': (34, 58)}, 'rods': {'S': (32, 64)}, 'bar': {'S': (110, 52)}, 'hearth': {'S': (60, 88)}, 'altar': {'S': (76, 64)}, 'blackboard': {'S': (72, 46)}, 'candycase': {'S': (70, 58)}, 'chairstack': {'S': (44, 70)}}
 NIGHT = {'desk', 'table', 'candles', 'lamp', 'stove', 'lamp_st', 'mirror'}
 kinds = sys.argv[1:] or list(SZ)
 for k in kinds:
