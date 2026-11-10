@@ -395,6 +395,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   hairline crack or two read as an old wall.
 - [interiors b17] A tall piece set on another (tyres on a drum) reads as one totem; trade pieces stand side by side.
 
+- [interiors b24] A bed is the biggest piece in a bedroom: one frame repeated in every room is the first thing a judge counts
+  as kit. Keep three or four frames (patchwork, brass, four-poster, plain pine) and let each room pick.
+- [interiors b24] A cellar has no windows and no parlour things: no wall clock, no jar ledge, no picture; its light is a
+  lantern with a hard pool.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).

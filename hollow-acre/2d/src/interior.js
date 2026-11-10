@@ -23,7 +23,7 @@ function buildInteriors(){for(const k in ROOMS){const R=ROOMS[k],m=SPR[R.shell||
   // judge (interiors): one quilted bed and one red rug in every home. Each household keeps its own bed and rug (grandpa's cabin keeps his)
   let hk=7;for(const ch of k)hk=(hk*31+ch.charCodeAt(0))>>>0;let bi=0;
   for(const [spr0,lx,lz,f,kind,flip] of R.furn){let spr=spr0;
-    if(k!=='cabin'&&!k.startsWith('cabin')){if(spr0==='in_bed'){const v='in_bed_'+'bcde'[(hk+bi++)%4];if(SPR[v])spr=v;}else if(spr0==='in_rug'){const v='in_rug_'+'bcd'[hk%3];if(SPR[v])spr=v;}}
+    if(k!=='cabin'&&!k.startsWith('cabin')){if(spr0==='in_bed'){const i=bi++;let v='in_bed_'+'bcde'[(hk+i)%4];if(!ROOM_PASSED.has(k)){const NB=['in_bedbrass','in_bed_b','in_bedfour','in_bed_c','in_bedplain','in_bed_d','in_bed_e'];v=NB[(hk*5+i*3)%NB.length];}if(SPR[v])spr=v;}   /* (b19-b24: one bed frame everywhere) rooms still being judged draw from seven beds; passed rooms keep theirs */else if(spr0==='in_rug'){const v='in_rug_'+'bcd'[hk%3];if(SPR[v])spr=v;}}
     const o=obj(spr,x0+lx,z0+lz,{kind:kind||'furn',night:SPR[spr+'_n']?spr+'_n':null,room:k,flip:!!flip});if(f)addRect(o.x+f[0],o.z+f[1],o.x+f[2],o.z+f[3]);}}}
 function enterRoom(k){const R=ROOMS[k];S.mode='trans';fade(1);SFX.thud(0,.25);
   setTimeout(()=>{S.room=k;S.roomPan=(R.d+3.5>=VH/PPM)?{t0:performance.now()}:null;P.x=R.ox+R.door;P.z=R.oz+R.d-.45;P.dir='N';P.fx=0;P.fz=-1;P.anim=null;H.vis=false;if(H.state!=='gone'){H.state='gone';H.timer=5;}S.mode='play';fade(0);
@@ -91,7 +91,8 @@ function interiorGround(){const R=roomOf();if(!R)return;const m=SPR[R.shell||('r
    small pool under candles; walls keep only the back wall's shadow; contact shadows show 2-3 px below each foot */
 const ROOM_LIGHTS={in_stove:[.8,10],in_hearth:[1,14],in_forgehearth:[.9,14],in_candles:[.5,0],in_oillamp:[.45,0],in_walllantern:[.6,0],in_votive:[.45,0]};
 const ROOM_OBJS={};
-const ROOM_SHADE_OK=new Set(['home_silas','home_dunn','home_kerrigan','home_harlow','shop_forge','home_fenn','tavern','cabin','home_cora','back_hale','back_quill','back_agnes','mine']);   // rooms whose light pass has won its blind round (6+ and preferred); the rest keep the old light until theirs does
+const ROOM_PASSED=new Set(['home_cora','back_hale','back_quill','cabin','store','home_ashby','greenhouse','back_agnes','mine','home_ward','home_vale','home_otto','home_june','home_thorne','home_hale','home_quill','home_agnes','home_pike','home_fenn','home_kerrigan','home_harlow','shop_bait','shop_feed','shop_forge','tavern','back_otto','back_pike','back_vale','church','garage']);   // interiors that passed their blind round: their dressing stays as judged
+const ROOM_SHADE_OK=new Set(['priv_forge','cellar_hale','undercroft','home_silas','home_dunn','home_kerrigan','home_harlow','shop_forge','home_fenn','tavern','cabin','home_cora','back_hale','back_quill','back_agnes','mine']);   // rooms whose light pass has won its blind round (6+ and preferred); the rest keep the old light until theirs does
 function roomShade(R){const k=S.room;let L=ROOM_OBJS[k];if(!L||L.n!==OBJ.length){L=ROOM_OBJS[k]=OBJ.filter(o=>o.room===k);L.n=OBJ.length;}
   const fx0=Math.round(sx(R.ox)),fx1=Math.round(sx(R.ox+R.w)),fy0=Math.round(sz(R.oz)),fy1=Math.round(sz(R.oz+R.d));
   ctx2.fillStyle='rgba(16,10,14,.16)';ctx2.fillRect(fx0,fy0,fx1-fx0,fy1-fy0);   // the floor a step down, so lit furniture tops stand above it

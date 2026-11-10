@@ -190,7 +190,7 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
     if(kind==='ledge'){const sx=px-6;wallShadow(sx,40,30,3);rect(B,sx,40,30,3,WD[4]);hl(B,sx,40,30,WD[5]);
       for(let k=0;k<4;k++){const jx=sx+3+k*7;rect(B,jx,32,5,8,[PAL.rust,PAL.sage,PAL.mustard,PAL.glass][(k+RH)%4][3]);hl(B,jx,31,5,PAL.brass[2]);P(B,jx+1,34,PAL.white[5]);}return;}
     picture(px,26,18,22,i+RH);};
-  if(R.theme==='cabin'||R.theme==='home'){gapsAt.slice(0,R.w<8?2:3).forEach((c,i)=>{const px=x0+c*32-9;wallThing(WK[(RH+i*3)%WK.length],px,i);});}
+  if((R.theme==='cabin'||R.theme==='home')&&!R.noDress){gapsAt.slice(0,R.w<8?2:3).forEach((c,i)=>{const px=x0+c*32-9;wallThing(WK[(RH+i*3)%WK.length],px,i);});}
   if(false){gapsAt.slice(0,3).forEach((c,i)=>{const px=x0+c*32-9;i===1?(()=>{const sx=px-6;wallShadow(sx,40,30,3);rect(B,sx,40,30,3,WD[4]);hl(B,sx,40,30,WD[5]);
       for(let k=0;k<4;k++){const jx=sx+3+k*7;rect(B,jx,32,5,8,[PAL.rust,PAL.sage,PAL.mustard,PAL.glass][k][3]);hl(B,jx,31,5,PAL.brass[2]);P(B,jx+1,34,PAL.white[5]);}})():picture(px,26,18,22,i+(R.paper||'').length);});}
   if(R.theme==='store'){const sx=x0+fw/2-46;wallShadow(sx,18,92,13);rect(B,sx,18,92,13,PAL.cream[3]);frame(B,sx,18,92,13,PAL.cream[2],WD[0]);drawText(B,'COYLE GENERAL',sx+18,22,PAL.red[1]);
@@ -214,7 +214,7 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   const ww=w[2]||28,wh=w[4]||34,wx=Math.round(x0+w[0]*32-ww/2),   /* (b14) a fractional x made every G() miss: windows at 3.8 or 4.6 threw no light at all */
     L=Math.min(front-top-24,Math.round(wh*.55),26),Y0=top+(R.sunY||16),LT=[255,232,196];   /* (b20) shorter: tall church windows still threw stripes */   /* thrown out past the furniture against the wall */
     const GL=(R.theme==='church'||R.lancet)?[[255,214,150],[236,186,186],[190,206,236],[255,232,196]]:null;
-    for(let y=Y0;y<Y0+L;y++){const sk=Math.round((y-Y0)*.28)+3,xl=wx+sk,xr=wx+sk+ww-1;
+    for(let y=Y0;y<Y0+L;y++){const sk=Math.round((y-Y0)*(R.sunSk!=null?R.sunSk:.28))+3,xl=wx+sk,xr=wx+sk+ww-1;
       for(let x=xl;x<=xr;x++){if(x<x0||x>=x0+fw)continue;const u=x-xl,v=y-Y0;const c=G(A,x,y);if(!c)continue;
         if(Math.abs(u-(ww>>1))<1||Math.abs(v-(L>>1))<1){P(A,x,y,[Math.min(255,c[0]*1.06+4),Math.min(255,c[1]*1.06+3),Math.min(255,c[2]*1.06+1)]);continue;}   // the bars
         const rim=u<2||u>ww-3||v<2||v>L-3,k=rim?.16:(GL?.42:.34),f=rim?1.12:1.22;const LT2=GL?GL[((u<(ww>>1))?0:1)+((v<(L>>1))?0:2)]:LT;

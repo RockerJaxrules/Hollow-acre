@@ -41,7 +41,7 @@ const SHOPS_BIG={
       F('in_table',3.2,8.0,.45),F('in_chair',2.1,8.05,.25),F('in_chair',4.3,8.05,.25),F('in_table',7.6,8.2,.45),F('in_chair',6.5,8.25,.25),F('in_chair',8.7,8.25,.25),
       F('in_piano',15.4,6.8,.5),['barrel',.7,2.6,[-.4,-.3,.4,0]],['barrel',16.4,3.4,[-.4,-.3,.4,0]],F('in_plant2',16.4,9.3,.3),F('in_plant',.8,9.4,.25)]},
   home_lusk:{shell:'room_shop_lusk3',back:11.4,lamp:[6.5,2.2],
-    furn:[F('in_shelf_cans',.9,.62,.4),F('in_cooler',9.0,.75,.4),F('in_mapspinner',1.4,5.4,.25),F('in_oilrack',2.6,5.45,.3),F('in_snackrack',3.8,5.45,.3),W_('in_poster_lost',12.4,-.45),
+    furn:[F('in_shelf_cans',.9,.62,.4),F('in_cooler',9.0,.75,.4),F('in_wiperrack',7.75,.75,.3),F('in_mapspinner',1.4,5.4,.25),F('in_oilrack',2.6,5.45,.3),F('in_snackrack',3.8,5.45,.3),W_('in_poster_lost',12.4,-.45),
       F('in_ctr_gas',8.8,3.4,.6),F('in_candycase',11.4,3.6,.5),
       F('in_tires',12.2,6.8,.3),F('in_drum',.8,6.8,.3),F('in_drum_blue',1.6,7.0,.3),F('in_plant',4.9,7.6,.25)]},
   garage:{shell:'room_shop_garage3',back:13.6,lamp:[7.4,.6],
