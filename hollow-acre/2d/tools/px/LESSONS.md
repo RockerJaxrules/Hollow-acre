@@ -938,6 +938,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - (r4) Detail grouped by light (clumps, plates) beats even detail everywhere: chaga is 2-3 big crust plates and one broken face of rust-orange flesh, not twenty facets; the bark it grows on must stay darker than white or it steals the eye.
 - (r4) A metal bottle with a ball stopper and round shoulders reads as a decanter whatever its band: a hip flask needs a flat cap on a short neck and square shoulders.
 - (icons) Steam drawn as zigzag hairs reads as hair or stink lines: 2-3 soft puffs, lit on the top-left, see-through, with no outline.
+- [r5] READ THE ITEM'S NAME AND DESCRIPTION IN THE GAME BEFORE DRAWING ITS ICON. Two rounds were spent drawing a hip flask for 'it_flask', which is the lamp-oil flask that refills the lantern.
+- (r5) Steam puffs pass at 6 but must be pale and see-through with no dark lower edge; opaque mid-grey stacks read as cauliflower.
+- (r5) A fix too small to see at 3x ties with the old one (twig tip, rock crack, straw dulled one step): change enough pixels to read at 1x, or leave it.
+- (r5) Dulling a cap or a coat toward the brown inventory colour makes it vanish; keep dark subjects a value step off the background and give them a lit rim.
+- (r5) Every red fruit needs its own hue and value (cranberry deep crimson, rosehip orange-red, apple dark glossy red); one coral for all reads as candy.
 
 ## Outlines, light, colour
 
