@@ -2581,10 +2581,17 @@ if(K==='millbills'){const R=RAMP.walnut;   // (wall) the miller's rack: two mill
   for(const [bx,l] of [[8,18],[18,15]]){for(let y=6;y<6+l;y++){P(A,bx,y,RAMP.oak[4]);P(A,bx+1,y,RAMP.oak[2]);}rect(A,bx-4,6+l,10,3,RAMP.iron[3]);hl(A,bx-4,6+l,10,RAMP.iron[5]);P(A,bx-5,7+l,RAMP.steel[5]);P(A,bx+6,7+l,RAMP.steel[5]);}   // the bills, their wedge heads
   {const hx=W-9;for(let y=6;y<18;y+=2){P(A,hx,y,RAMP.iron[4]);P(A,hx,y+1,RAMP.iron[2]);}for(let a=0;a<14;a++){const t=a/13*Math.PI*1.3;P(A,hx+Math.round(Math.sin(t)*3),18+Math.round(-Math.cos(t)*3)+3,RAMP.iron[a<7?4:2]);}P(A,hx-3,20,RAMP.steel[5]);}   // the sack hook
   wallSh(0,0,W-3,H-3,2,2,80);}
-if(K==='barrack'){const base=H-3,R=RAMP.oak,I=RAMP.iron;   // a smith's rack of bar iron against the wall: square and round bars stood on end in a timber rack, a pair of tongs hooked on its side
-  box3(4,base-8,W-8,3,5,R,{faceK:2});for(const lx of [5,W-8]){for(let y=4;y<base-2;y++){P(A,lx,y,R[4]);P(A,lx+1,y,R[2]);}}hl(A,5,10,W-11,R[4]);hl(A,5,11,W-11,R[1]);
-  for(let i=0;i<7;i++){const bx=8+i*((W-17)/6|0),top=2+((hsh(i,1,91)*8)|0),wd=i%3===0?3:2;for(let y=top;y<base-7;y++)for(let x=0;x<wd;x++)P(A,bx+x,y,I[x===0?4:x===wd-1?1:2]);P(A,bx,top,I[5]);if(i%2)for(let y=top+3;y<base-8;y+=5)P(A,bx+1,y,RAMP.rust[3]);}   // the bars, a little rust on some
-  {const tx=W-5;ln(A,tx,8,tx+2,26,I[3]);ln(A,tx+2,8,tx,26,I[4]);P(A,tx+1,6,I[5]);}cast(4,W-4,base);}
+if(K==='barrack'){const base=H-3,I=RAMP.iron;   // (b39: an upright rack read as a radiator) bar iron leaned against the wall: bars of different lengths and thickness at an angle, some hooked or twisted at the end, rust at the tips, a short block of timber at their foot
+  const bars=[[5,30,2,0],[12,38,3,1],[19,26,2,2],[25,40,2,0],[31,33,3,3]];   // [foot x, length, thickness, end: 0 plain 1 hook 2 twist 3 flat]
+  for(const [fx,len,th,end] of bars){const fy=base-2,tx=fx-Math.round(len*.18),ty=fy-Math.round(len*.95);for(let t=0;t<=len;t++){const x=Math.round(fx+(tx-fx)*t/len),y=Math.round(fy+(ty-fy)*t/len);for(let k=0;k<th;k++){let c=I[k===0?4:k===th-1?1:2];if(end===2&&t>len-8&&(t+k)%3===0)c=I[5];if(t>len-3)c=RAMP.rust[3-k%2];P(A,x+k,y,c);}}
+    if(end===1){for(let a=0;a<6;a++)P(A,tx+Math.round(Math.cos(a*.6)*2),ty-Math.round(Math.sin(a*.6)*2),I[3]);}if(end===3){hl(A,tx-1,ty,th+2,I[4]);}}
+  rect(A,3,base-4,W-8,4,RAMP.oak[3]);hl(A,3,base-4,W-8,RAMP.oak[5]);hl(A,3,base-1,W-8,RAMP.oak[1]);   // the timber block they stand on
+  cast(3,W-4,base);}
+if(K==='drownedboard'){const R=RAMP.walnut;   // (wall) the chapel's board of the lake's dead: dark varnished wood, a carved heading, names in faded gilt, the last line left half-painted
+  rect(A,1,1,W-2,H-2,R[2]);frame(A,1,1,W-2,H-2,R[4],R[0]);frame(A,3,3,W-6,H-6,R[1],R[3]);for(let x=4;x<W-4;x++)P(A,x,2,R[5]);
+  drawText(A,'LOST',(W>>1)-8,5,RAMP.brass[4]);hl(A,6,11,W-12,RAMP.brass[2]);
+  for(let r=0;r<6;r++){const y=14+r*4,len=r===5?Math.round((W-14)*.4):W-14-((hsh(r,1,92)*10)|0);for(let x=7;x<7+len;x++)if(hsh(x,r,93)>.22)P(A,x,y,RAMP.brass[r<4?3:2]);for(let x=W-12;x<W-7;x++)if(hsh(x,r,94)>.3&&r<5)P(A,x,y,RAMP.brass[2]);}
+  for(let y=2;y<H-1;y++)SH(W-1,y,80);}
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
 for(const f of NOOL)for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(f(x,y))for(const L of [O,O2])L.d[(y*W+x)*4+3]=0;
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));

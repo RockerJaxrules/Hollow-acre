@@ -482,6 +482,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors b38] A pew seen from behind with the space under the seat left transparent reads as an open rail frame you can
   see the floor through: close it with a lower back panel under a dark band at the seat lip.
 
+- [interiors b39] Even vertical bars in a frame read as a radiator or a birdcage; loose stock reads when it leans at an angle,
+  uneven in length and thickness, with a hooked end and rust at the tips.
+- [interiors b39] Edit scripts that cut a block "up to the next kind" fail on the last kind in the file: fall back to the end
+  marker, and check the script printed ok before rendering.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).
