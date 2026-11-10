@@ -372,6 +372,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors b10] The survey camera matters: the old shots were taken while the camera was still panning down from the back
   wall, the new ones after it settled on the floor. Match the camera state before comparing (rs_b4.js sets the pan).
 
+- [interiors b13] A red-orange light fan on the floor reads as blood; firelight on a floor is amber with a pale inner step.
+- [interiors b13] Identical repeats at even spacing (six pews, red spines every 24 px) read as stamped shelving; vary the
+  count and the place of the small things on each copy, and use two or three kinds of the piece.
+- [interiors b13] A tiered stand of small red cups reads as a cake until the flames are the brightest pixels on it.
+- [interiors b14] Things that read at once in a shop: a word on the thing (COLD, MAPS, GAS OIL, FLOUR), a car side-on on a lift
+  with its hood up, bottles with long necks (short wide ones read as books).
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).

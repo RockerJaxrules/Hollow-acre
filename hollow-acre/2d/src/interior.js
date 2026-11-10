@@ -12,8 +12,8 @@ const ROOMS={
     ['pumpkin',3.1,7.2,[-.3,-.2,.3,0]],['pumpkin_b',3.7,7.3,[-.3,-.2,.3,0]],['in_rug',6.5,6.9,null,'flat']]},
   church:{ox:360,oz:-60,out:{x:CHURCH_DOOR.x,z:CHURCH_DOOR.z+.3},name:'Marrow Hollow Church',furn:[
     ['in_crossbig',5,-0.45,null,'flat'],['in_altar',5,1.7,[-1.15,-.65,1.15,0]],['in_candles',2.5,1.1,[-.6,-.25,.6,0]],['in_candles',7.5,1.1,[-.6,-.25,.6,0]],
-    ['in_pew_bk',2.4,3.6,[-1.95,-.45,1.95,0]],['in_pew_bk',7.6,3.6,[-1.95,-.45,1.95,0]],['in_pewv_bk',2.4,5.0,[-1.95,-.45,1.95,0]],['in_pew_bk',7.6,5.0,[-1.95,-.45,1.95,0]],
-    ['in_pew_bk',2.4,6.4,[-1.95,-.45,1.95,0]],['in_pew_bk',7.6,6.4,[-1.95,-.45,1.95,0]]]},
+    ['in_pew_bk',2.4,3.6,[-1.95,-.45,1.95,0]],['in_pewb_bk',7.6,3.6,[-1.95,-.45,1.95,0]],['in_pewv_bk',2.4,5.0,[-1.95,-.45,1.95,0]],['in_pew_bk',7.6,5.0,[-1.95,-.45,1.95,0]],
+    ['in_pewb_bk',2.4,6.4,[-1.95,-.45,1.95,0]],['in_pewv_bk',7.6,6.4,[-1.95,-.45,1.95,0]]]},
   garage:{ox:392,oz:-60,out:{x:-33.7,z:-9.9},name:'Pruitt’s Garage',furn:[['in_shelf_parts',1.1,0.62,[-1.00,-0.4,1.00,0]],['in_shelf_tools',3.1,0.62,[-1.00,-0.4,1.00,0]],['in_bench',5.9,1.05,[-1.30,-0.5,1.30,0]],['in_toolbox',8.3,1.3,[-0.55,-0.35,0.55,0]],['in_car',3.3,4.4,[-1.85,-1.3,1.85,0]],['in_hoist',6.4,3.6,[-0.60,-0.3,0.60,0]],['in_tires',8.4,3.5,[-0.45,-0.3,0.45,0]],['in_tires',8.4,4.5,[-0.45,-0.3,0.45,0]],['in_drum',0.6,5.5,[-0.35,-0.3,0.35,0]],['in_drum_blue',1.4,5.7,[-0.35,-0.3,0.35,0]],['in_crates',8.2,5.6,[-0.70,-0.4,0.70,0]]]}};
 S.room=null;
 function roomOf(){return S.room&&ROOMS[S.room];}
@@ -89,17 +89,17 @@ function interiorGround(){const R=roomOf();if(!R)return;const m=SPR[R.shell||('r
 /* (round 2) see-through ovals read as stains and side bands as stripes: fire light is drawn like the window sun patches that
    work, an additive hard-edged fan opening out of the hearth or forge mouth in two stepped tones (2 tiles wide at most), a
    small pool under candles; walls keep only the back wall's shadow; contact shadows show 2-3 px below each foot */
-const ROOM_LIGHTS={in_stove:[.8,10],in_hearth:[1,14],in_forgehearth:[.9,14],in_candles:[.5,0],in_oillamp:[.45,0]};
+const ROOM_LIGHTS={in_stove:[.8,10],in_hearth:[1,14],in_forgehearth:[.9,14],in_candles:[.5,0],in_oillamp:[.45,0],in_walllantern:[.6,0],in_votive:[.45,0]};
 const ROOM_OBJS={};
-const ROOM_SHADE_OK=new Set(['home_fenn','tavern','cabin','home_cora','back_hale','back_quill','back_agnes','mine']);   // rooms whose light pass has won its blind round (6+ and preferred); the rest keep the old light until theirs does
+const ROOM_SHADE_OK=new Set(['home_harlow','shop_forge','home_fenn','tavern','cabin','home_cora','back_hale','back_quill','back_agnes','mine']);   // rooms whose light pass has won its blind round (6+ and preferred); the rest keep the old light until theirs does
 function roomShade(R){const k=S.room;let L=ROOM_OBJS[k];if(!L||L.n!==OBJ.length){L=ROOM_OBJS[k]=OBJ.filter(o=>o.room===k);L.n=OBJ.length;}
   const fx0=Math.round(sx(R.ox)),fx1=Math.round(sx(R.ox+R.w)),fy0=Math.round(sz(R.oz)),fy1=Math.round(sz(R.oz+R.d));
   ctx2.fillStyle='rgba(16,10,14,.16)';ctx2.fillRect(fx0,fy0,fx1-fx0,fy1-fy0);   // the floor a step down, so lit furniture tops stand above it
   ctx2.fillStyle='rgba(16,10,14,.30)';ctx2.fillRect(fx0,fy0,fx1-fx0,10);   // the back wall's own shadow on the floor
   ctx2.save();ctx2.globalCompositeOperation='lighter';const night=isNight()?1:0;
-  for(const o of L){if(o.hide)continue;const sp=(o.spr||'').replace(/_n$/,''),q=ROOM_LIGHTS[sp];if(!q)continue;const s=q[0],cx=Math.round(sx(o.x)),y0=Math.round(sz(o.z))+1;
-    const tone=(a,w0,w1,len,col)=>{ctx2.fillStyle=`rgba(${col||'255,128,44'},${a})`;for(let j=0;j<len;j++){const w=Math.round(w0+(w1-w0)*j/len);ctx2.fillRect(cx-w,y0+j,w*2,1);}};
-    if(q[1]){const L1=Math.round(46*s),L2=Math.round(28*s);tone(.10+.05*night,q[1]*s,32*s,L1);tone(.10+.05*night,q[1]*s*.7,20*s,L2);}   // a fan out of the mouth
+  for(const o of L){if(o.hide)continue;const sp=(o.spr||'').replace(/_n$/,''),q=ROOM_LIGHTS[sp];if(!q)continue;const s=q[0],cx=Math.round(sx(o.x)),y0=Math.round(sz(o.z+(sp==='in_walllantern'?.75:0)))+1;
+    const tone=(a,w0,w1,len,col)=>{ctx2.fillStyle=`rgba(${col||'255,170,72'},${a})`;   /* (b13: the red-orange fan read as blood) amber, the inner step pale */for(let j=0;j<len;j++){const w=Math.round(w0+(w1-w0)*j/len);ctx2.fillRect(cx-w,y0+j,w*2,1);}};
+    if(q[1]){const L1=Math.round(46*s),L2=Math.round(28*s);tone(.10+.05*night,q[1]*s,32*s,L1);tone(.10+.05*night,q[1]*s*.7,20*s,L2,'255,214,140');}   // a fan out of the mouth
     else{tone(.07+.04*night,7,10,6,'255,214,150');tone(.08,4,6,4,'255,230,180');}}   // (r4: a red-orange pool read as blood) a small pale-yellow pool under the candles
   ctx2.restore();
   ctx2.fillStyle='rgba(50,33,37,.62)';
