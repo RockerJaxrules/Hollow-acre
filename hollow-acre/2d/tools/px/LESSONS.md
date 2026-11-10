@@ -281,6 +281,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors r4] A floor patch (lino, carpet) laid over a floor that is already patterned reads as a pale glitch block:
   only lay one over plain boards.
 - [process] A JS object literal with the same key twice keeps the LAST one: grep a table for the key before adding to it.
+- [interiors r5] A hatch in the floor drawn with a dark band along its lower edge reads as a raised crate: a floor piece has
+  no front face, only a 1 px gap all round, and no outline pass (NOOL.push(()=>true)); paint it like the floor around it.
+- [interiors r5] An unreadable small sprite in open floor (a sack with a white blob of letters) costs more than it adds:
+  every piece must read at a glance or go.
+- [process] kind 'deco' in a room's furniture list draws a LEAVES sprite, not the piece: things on beds and tables use the
+  ordinary furniture kind with no footprint (and a tall anchor, ay, to sit up on the surface).
 - [interiors r3] A tall piece standing in front of a window (a bookcase hiding a third of the glass) is a placement error;
   check every tall piece against the window list before judging.
 - [interiors r3] Fading a too-loud quilt to grey made it read as stone: fade toward the room's own warm brown instead

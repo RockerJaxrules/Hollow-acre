@@ -83,8 +83,17 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   if(R.theme==='store'){brick(A,x0,8,fw,wallH,PAL.red);rect(A,x0,8+wallH-22,fw,22,WD[2]);for(let x=x0;x<x0+fw;x+=7)vl(A,x,8+wallH-22,22,WD[1]);hl(A,x0,8+wallH-22,fw,WD[4]);}
   if(R.theme==='church'){plaster(A,x0,8,fw,wallH,TR);rect(A,x0,8+wallH-26,fw,26,WD[1]);for(let x=x0;x<x0+fw;x+=24)frame(A,x+2,8+wallH-23,20,20,WD[3],WD[0]);hl(A,x0,8+wallH-26,fw,WD[3]);}
   if(R.theme==='garage'){for(let y=8;y<8+wallH;y++)for(let x=x0;x<x0+fw;x++){const r=Math.floor((y-8)/10),o=r%2?9:0,b=(x-x0+o)%18;let c=ST[(hsh(Math.floor((x-x0+o)/18),r,5)>.5)?3:2];if(b===0||(y-8)%10===9)c=ST[1];else if((y-8)%10===0)c=ST[4];P(A,x,y,c);}}
-  if(R.theme==='mine'){for(let y=8;y<8+wallH;y++)for(let x=x0;x<x0+fw;x++){const n=hsh(x>>3,(y+(x>>4))>>3,5)*.7+hsh(x,y,6)*.3;P(A,x,y,ST[n>.75?3:n<.25?0:1]);}
-    for(let x=x0;x<x0+fw;x+=40)for(let y=8;y<8+wallH;y++){P(A,x,y,WD[2]);P(A,x+1,y,WD[1]);}for(let x=x0;x<x0+fw;x++){P(A,x,14,WD[2]);P(A,x,15,WD[0]);}}
+  // (interiors: the mine was blocky noise) the rock face in strata, each band lit along its top and dark along its foot; three
+  // timber sets (post, post, beam) where the lanterns hang, each post lit on the left, a lantern on it
+  if(R.theme==='mine'){const PX=[1.6,5.5,9.4].map(m=>x0+Math.round(m*32));
+    // boulders: jittered cells, each one flat tone, lit along the top edge where the cell above ends, dark seams between
+    const CW=22,CH=15,cell=(x,y)=>{let b=1e9,b2=1e9,id=0;const gx=Math.floor(x/CW),gy=Math.floor(y/CH);for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++){const cx=gx+i,cy=gy+j,px=(cx+.15+hsh(cx,cy,21)*.7)*CW,py=(cy+.15+hsh(cx,cy,22)*.7)*CH;const d=(x-px)**2+((y-py)*1.4)**2;if(d<b){b2=b;b=d;id=cx*997+cy;}else if(d<b2)b2=d;}return [id,Math.sqrt(b2)-Math.sqrt(b)];};
+    for(let y=8;y<8+wallH;y++)for(let x=x0;x<x0+fw;x++){const [id,gap]=cell(x,y),[idUp]=cell(x,y-2),[idL]=cell(x-2,y);let c=ST[hsh(id,1,23)>.5?2:1];
+      if(gap<1.6)c=ST[0];else if(idUp!==id||idL!==id)c=ST[3];P(A,x,y,c);}
+    for(let x=x0;x<x0+fw;x++){P(A,x,8,WD[4]);P(A,x,9,WD[3]);P(A,x,10,WD[3]);P(A,x,11,WD[2]);P(A,x,12,WD[1]);P(A,x,13,WD[0]);}
+    for(const px of PX){for(let y=12;y<8+wallH;y++){P(A,px-3,y,WD[4]);P(A,px-2,y,WD[3]);P(A,px-1,y,WD[3]);P(A,px,y,WD[2]);P(A,px+1,y,WD[2]);P(A,px+2,y,WD[1]);P(A,px+3,y,WD[0]);}
+      for(let j=0;j<7;j++)for(let i=-3;i<=3;i++){const ly=24+j;let c=j===0||j===6?PAL.stone[1]:(Math.abs(i)===3?PAL.stone[2]:(N?[255,214,140]:[226,170,96]));if(j===3&&Math.abs(i)<3)c=N?[255,240,200]:[246,206,140];P(A,px+i,ly,c);}
+      P(A,px,22,PAL.stone[2]);P(A,px,23,PAL.stone[1]);}}
   if(R.theme==='glass'){for(let y=8;y<8+wallH;y++)for(let x=x0;x<x0+fw;x++){const i=(x-x0)%24,j=(y-8)%20;let c=N?PAL.ink[1]:PAL.glass[(y-8)<wallH*.5?4:3];if(!N&&(x+y)%23===0)c=PAL.glass[5];if(i===0||j===0)c=TR[3];P(A,x,y,c);}}
   // ceiling beam line, crown moulding
   rect(A,x0,0,fw,8,WD[1]);hl(A,x0,7,fw,WD[3]);for(let x=x0;x<x0+fw;x+=48)rect(A,x,0,10,8,WD[2]);
@@ -96,8 +105,16 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   if(R.theme==='garage')concrete(A,x0,top,fw,fd);
   if(R.theme==='garage'){const bx=x0+fw-150,bw=104;for(let y=14;y<8+wallH;y++)for(let x=bx;x<bx+bw;x++){const j=(y-14)%6;P(A,x,y,j===0?ST[4]:j===5?ST[1]:ST[3]);}frame(A,bx-3,12,bw+6,wallH-2,WD[3],WD[0]);rect(A,bx+bw/2-6,8+wallH-10,12,3,PAL.slate[2]);
     for(let x=bx;x<bx+bw;x++){const k=((x-bx)>>3)%2;for(let j=0;j<4;j++)P(A,x,top+fd-60+j,k?PAL.mustard[4]:PAL.ink[0]);}}
-  if(R.theme==='mine'){for(let y=top;y<top+fd;y++)for(let x=x0;x<x0+fw;x++){const n=hsh(x>>4,(y+(x>>3))>>4,8)*.8+hsh(x,y,9)*.2;P(A,x,y,n>.78?RK[3]:n>.45?RK[2]:RK[1]);}
-    for(let i=0;i<40;i++){const px=x0+(hsh(i,1,4)*fw|0),py=top+(hsh(i,2,4)*fd|0);P(A,px,py,ST[3]);P(A,px+1,py,ST[2]);}}
+  // (interiors: the mine floor was 16 px noise blocks and sprinkled specks) three flat tones in big soft-edged patches of packed
+  // earth, a few pebble clusters lit top-left, hairline cracks, and the old cart track running in from the door
+  if(R.theme==='mine'){const sm=(x,y)=>Math.sin(x*.045+Math.sin(y*.06)*1.7)+Math.sin(y*.052+Math.sin(x*.037)*1.3)+Math.sin((x+y)*.021);
+    const RKm=mixC(RK[2],RK[1],.5),RKl=mixC(RK[2],RK[3],.45);for(let y=top;y<top+fd;y++)for(let x=x0;x<x0+fw;x++){const v=sm(x,y);P(A,x,y,v>1.3?RKl:v<-1.35?RKm:RK[2]);}
+    for(let g=0;g<11;g++){const gx=x0+12+(hsh(g,1,4)*(fw-24)|0),gy=top+8+(hsh(g,2,4)*(fd-16)|0);for(let k=0;k<3+(g%3);k++){const px=gx+((hsh(g,k,7)-.5)*14|0),py=gy+((hsh(k,g,8)-.5)*8|0),sz=hsh(g,k,9)>.55?5:3;
+      for(let j=0;j<sz-1;j++)for(let i=0;i<sz;i++){if((i===0||i===sz-1)&&(j===0||j===sz-2))continue;P(A,px+i,py+j,j===0||i===0?ST[3]:ST[2]);}P(A,px+1,py,ST[4]);for(let i=1;i<sz;i++)P(A,px+i,py+sz-1,RK[0]);P(A,px+sz-1,py+sz-2,ST[1]);}}
+    for(let c=0;c<6;c++){let cx=x0+16+(hsh(c,3,5)*(fw-32)|0),cy=top+10+(hsh(c,4,5)*(fd-20)|0);const n=10+(hsh(c,5,5)*14|0);for(let i=0;i<n;i++){P(A,cx,cy,RK[0]);P(A,cx,cy+1,RK[3]);cx+=1;if(hsh(c,i,6)>.6)cy+=hsh(c,i,7)>.5?1:-1;}}
+    {const dx=x0+Math.round((R.door||fw/64)*32),r1=dx-7,r2=dx+6,y0t=top+26;for(let y=y0t;y<top+fd;y++){if((y-y0t)%9<3){for(let x=r1-4;x<=r2+4;x++)P(A,x,y,(y-y0t)%9===0?WD[3]:WD[(y-y0t)%9===1?2:1]);}
+        for(const rx of [r1,r2]){P(A,rx,y,PAL.stone[4]);P(A,rx+1,y,PAL.stone[2]);P(A,rx+2,y,RK[0]);}}
+      for(let x=r1-3;x<=r2+5;x++){P(A,x,y0t-3,WD[4]);P(A,x,y0t-2,WD[3]);P(A,x,y0t-1,WD[1]);}}}
   if(R.theme==='glass'){tilesF(A,x0,top,fw,fd,ST,16);const s0x=x0+32,s0y=top+38,sw=7*32,sh=4*32;for(let y=s0y-3;y<s0y+sh+3;y++)for(let x=s0x-3;x<s0x+sw+3;x++){const edge=x<s0x||y<s0y||x>=s0x+sw||y>=s0y+sh;
     const n=hsh(x>>2,y>>2,6)*.6+hsh(x,y,7)*.4;P(A,x,y,edge?WD[y<s0y?4:1]:(n>.75?[150,104,64]:n<.25?[92,60,36]:[120,82,50]));}}
   // skirting where floor meets the back wall + ambient occlusion

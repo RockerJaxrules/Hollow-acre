@@ -106,7 +106,13 @@ vendors.cook={name:'Grandpa’s stove',sub:'The recipe cards are in his handwrit
 // ---- the old Marrow mine, cut into the cliff behind the farm
 const MINE={x:-6,z:0,mobs:[],ores:[],ladder:null};
 ROOMS.mine={ox:430,oz:-60,out:{x:0,z:0},name:'The old Marrow mine',furn:[]};
-ROOMS.greenhouse={ox:462,oz:-60,out:{x:10.5,z:8.3},name:'The greenhouse',furn:[]};
+// (interiors: "the greenhouse is bare") the margins round the soil bed kept like a working glasshouse: seed jars and a seedling box
+// along the back, compost sacks and a bucket, pots in the corners, a rain barrel, plants hung from the glass. Nothing on the soil.
+ROOMS.greenhouse={ox:462,oz:-60,out:{x:10.5,z:8.3},name:'The greenhouse',furn:[
+  ['in_shelf_jars',0.85,.62,[-.75,-.4,.75,0]],['sacks',2.5,1.0,[-.5,-.25,.5,0]],['bucket',3.35,1.02,[-.3,-.2,.3,0]],['planter',5.2,1.0,[-.65,-.25,.65,0]],
+  ['in_plant',6.7,1.0,[-.3,-.2,.3,0]],['barrel',8.35,1.0,[-.4,-.3,.4,0]],['in_hangplant',2.9,-.45,null,'flat'],['in_hangplant',7.4,-.45,null,'flat'],
+  ['in_plant2',.5,3.4,[-.3,-.2,.3,0]],['in_plant',.5,4.9,[-.3,-.2,.3,0]],['in_plant',8.5,2.7,[-.3,-.2,.3,0]],['sacks',8.5,4.4,[-.45,-.25,.45,0]],
+  ['in_crates',7.3,5.85,[-.7,-.3,.7,0]]]};
 function placeMine(){MINE.z=ridgeZ(MINE.x)+RIDGE.h+.15;obj('mineportal',MINE.x,MINE.z,{kind:'bld',night:'mineportal_n'});addRect(MINE.x-1.3,MINE.z-1.2,MINE.x-.6,MINE.z);addRect(MINE.x+.6,MINE.z-1.2,MINE.x+1.3,MINE.z);
   ROOMS.mine.out={x:MINE.x,z:MINE.z+.9};interact.push({x:MINE.x,z:MINE.z+.3,r:1,label:()=>'Enter mine',ok:()=>true,act(){mineEnter();}});}
 const ORE_HITS={stone:1,copper:2,coal:2,iron:3,gem:3};
