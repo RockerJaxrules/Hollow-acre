@@ -427,7 +427,7 @@ if(K==='rug'){const cx=(W-1)/2,cy=(H-2)/2,rx=(W-4)/2,ry=(H-5)/2;
   for(let x=0;x<W;x++)for(let y=0;y<H;y++){if(G(A,x,y)&&!G(A,x,y+1))SH(x,y+1,120);}}
 // =================================================================================== the bed (quilt variants)
 if(K==='bed'){const R=RAMP.walnut,base=H-3,x0=6,w=W-12,Q=CFG.q||'a';
-  const QUILT={a:[RAMP.brick,RAMP.green,RAMP.cream],b:[RAMP.blue,RAMP.bluegrey,RAMP.plum],c:[RAMP.green,RAMP.green,RAMP.ochre],d:[RAMP.ochre,RAMP.brick,RAMP.ochre],e:[RAMP.plum,RAMP.brick,RAMP.cream]}[Q];
+  const QUILT={a:[RAMP.brick,RAMP.green,RAMP.cream],b:[RAMP.blue,RAMP.bluegrey,RAMP.plum],c:[RAMP.green,RAMP.green,RAMP.ochre],d:[RAMP.ochre,RAMP.brick,RAMP.ochre],e:[RAMP.plum,RAMP.brick,RAMP.burlap]}[Q];
   const post=(x,y0,y1)=>{for(let y=y0;y<y1;y++){P(A,x,y,R[5]);P(A,x+1,y,R[4]);P(A,x+2,y,R[3]);P(A,x+3,y,R[1]);}const b=(y0+3);hl(A,x-1,b,6,R[4]);hl(A,x-1,b+1,6,R[2]);
     for(let i=0;i<3;i++)hl(A,x+(i===0?1:0),y0-3+i,i===0?2:4,R[i===0?5:4]);};
   // the headboard: a lit top rail, a raised panel with three spindles, posts with finials
@@ -716,8 +716,8 @@ if(K==='drum'||K==='indrum'||K==='drum_blue'){const base=H-3,cx=W>>1,Rr=K==='dru
   cast(cx-9,cx+9,base);}
 // =================================================================================== outdoor: a stack of old tyres
 if(K==='tyres'){const base=H-3,cx=W>>1,T=hexR(['#141414','#1e1e1f','#2a2a2b','#383839','#4a4a4b','#5f5f60']);   // three thick tyres lying stacked: black rubber, tread on the walls, the hole on top with a lit inner rim
-  const rx=12,ry=5,hgt=6;
-  for(let k=0;k<3;k++){const by=base-k*hgt-ry;for(let y=0;y<hgt;y++){const bul=(y>0&&y<hgt-1)?1:0;for(let x=-rx-bul;x<=rx+bul;x++){const xx=Math.max(-rx,Math.min(rx,x));const e=Math.sqrt(Math.max(0,1-xx*xx/(rx*rx)))*ry;let kk=y===0||y===1?(x<0?5:4):(y===hgt-1?0:(x<-rx*.5?3:(x>rx*.5?1:2)));if(((x+k*3+40)%4===0)&&y>1&&y<hgt-1)kk=Math.max(0,kk-1);P(A,cx+x,Math.round(by+e)+y,T[kk]);}}}   // each tyre bulging: a lit upper lip, a dark under-lip, tread blocks between
+  const ry=5,hgt=6;let rx=12;
+  for(let k=0;k<3;k++){rx=[13,12,12][k];const by=base-k*hgt-ry+(k>0?1:0);for(let y=0;y<hgt;y++){const bul=(y>0&&y<hgt-1)?1:0;for(let x=-rx-bul;x<=rx+bul;x++){const xx=Math.max(-rx,Math.min(rx,x));const e=Math.sqrt(Math.max(0,1-xx*xx/(rx*rx)))*ry;let kk=y===0||y===1?(x<0?5:4):(y===hgt-1?0:(x<-rx*.5?3:(x>rx*.5?1:2)));if(((x+k*3+40)%4===0)&&y>1&&y<hgt-1)kk=Math.max(0,kk-1);P(A,cx+x,Math.round(by+e)+y,T[kk]);}}}   // each tyre bulging: a lit upper lip, a dark under-lip, tread blocks between
   const ty=base-3*hgt-ry+1;for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){const d=x*x/(rx*rx)+y*y/(ry*ry);if(d>1)continue;const di=x*x/36+y*y/6.2;if(di<=1){P(A,cx+x,ty+y,y<0?T[0]:T[0]);continue;}P(A,cx+x,ty+y,T[y<0?(x<0?5:4):(x<0?3:2)]);}   // the top: the ring and the hole
   for(let x=-5;x<=5;x++){const e=Math.round(Math.sqrt(Math.max(0,1-x*x/36))*2.5);P(A,cx+x,ty+e,T[5]);}                         // the hole's far inner rim, lit
   cast(cx-rx,cx+rx,base);}
@@ -725,10 +725,10 @@ if(K==='tyres'){const base=H-3,cx=W>>1,T=hexR(['#141414','#1e1e1f','#2a2a2b','#3
 if(K==='lumber'){const base=H-3,R=RAMP.pine;   // sawn boards stacked flat on dark spacers: both ends staggered, long lit tops, square pale ends with growth lines
   const layers=[[2,40],[7,36],[3,38],[9,33],[5,36]];
   layers.forEach(([x0,len],li)=>{const y=base-4-li*4;
-    for(let i=0;i<len;i++){P(A,x0+i,y-1,R[5]);P(A,x0+i,y,R[4]);P(A,x0+i,y+1,R[3]);P(A,x0+i,y+2,R[2]);if((i*5+li*3)%23<2)P(A,x0+i,y+1,R[2]);}
+    for(let i=0;i<len;i++){P(A,x0+i,y-1,R[5]);P(A,x0+i,y,R[4]);P(A,x0+i,y+1,R[3]);P(A,x0+i,y+2,R[2]);}
     for(let j=-1;j<=2;j++){P(A,x0+len,y+j,RAMP.oak[j<0?5:4]);P(A,x0+len+1,y+j,RAMP.oak[j===0?3:4]);P(A,x0+len+2,y+j,RAMP.oak[2]);}P(A,x0+len+1,y+1,RAMP.oak[2]);   // the square right end
     for(let j=-1;j<=2;j++){P(A,x0-1,y+j,RAMP.oak[j<0?5:4]);P(A,x0-2,y+j,RAMP.oak[3]);}                                                                           // the left end
-    if(li>0)for(const bx of [x0+3+(li*5)%7,x0+len-6-(li*3)%5]){P(A,bx,y+3,RAMP.walnut[1]);P(A,bx+1,y+3,RAMP.walnut[1]);P(A,bx+2,y+3,RAMP.walnut[0]);}});   // spacers near each end, staggered   // dark spacer battens between the layers
+    P(A,x0+len+1,y,RAMP.oak[1]);P(A,x0+5+((li*11)%(len-10)),y+1,R[1]);});   // the end's heart off centre; one knot on each board   // dark spacer battens between the layers
   cast(1,W-3,base);}
 // =================================================================================== outdoor: a ladder leaning on nothing (laid against a wall when placed)
 if(K==='ladder'){const base=H-3,R=RAMP.pine;
@@ -1098,17 +1098,17 @@ if(K==='candycase'){const base=H-3,x0=4,w=W-8,R=RAMP.walnut;   // a candy case: 
   const gx=x0+3,gy=top+8,gw=w-6,gh=17;for(let y=gy;y<gy+gh;y++)for(let x=gx;x<gx+gw;x++)P(A,x,y,RAMP.walnut[1]);
   const SW=[RAMP.plum,RAMP.ochre,RAMP.brick,RAMP.green,RAMP.cream];
   for(let r=0;r<2;r++){const ty=gy+6+r*8;for(let x=gx+1;x<gx+gw-1;x++)P(A,x,ty+2,RAMP.oak[2]);
-    for(let k=0;k<4;k++){const C=[RAMP.brick,RAMP.ochre,RAMP.green,RAMP.plum][(k+r)%4],hx=gx+4+k*15,hw=10;for(let i=0;i<hw;i++){const hh=Math.round(Math.sin(Math.PI*(i+.5)/hw)*3);for(let j=0;j<=hh;j++)P(A,hx+i,ty+1-j,C[j===hh?5:(i<hw*.4?4:3)]);}
-      for(const [sx_,sy_] of [[hx+2,ty-2],[hx+6,ty-1]]){P(A,sx_,sy_,C[5]);P(A,sx_+1,sy_,C[4]);P(A,sx_,sy_+1,C[4]);P(A,sx_+1,sy_+1,C[2]);}}}   // a heap in each tray, each its own colour, two sweets on top catching the light   // a heap of sweets on each tray, each its own dull colour, lit along its top
+    for(let k=0;k<4;k++){const C=[RAMP.brick,RAMP.ochre,RAMP.green,RAMP.plum][(k+r)%4],hx=gx+3+k*15;
+      if((k+r)%3===2){for(let n=0;n<4;n++){const sx_=hx+2+n*3;for(let j=0;j<6-(n%2)*2;j++)P(A,sx_,ty+1-j,j%2?RAMP.cream[5]:C[4]);}}   // striped sticks standing up
+      else for(const [dx,dy] of [[1,0],[5,0],[9,0],[3,-2],[7,-2]]){const x=hx+dx,y=ty+dy;P(A,x-1,y,C[5]);P(A,x,y,C[4]);P(A,x+1,y,C[3]);P(A,x+2,y,C[5]);P(A,x,y-1,C[5]);P(A,x+1,y-1,C[4]);}}}   // wrapped sweets: a body, twisted ends catching the light
   for(let i=0;i<gw;i++)P(A,gx+i,gy,RAMP.glass[4]);for(let j=0;j<10;j++)P(A,gx+2+j,gy+1+j,RAMP.glass[3]);                         // the glass: a lit top edge, a sheen
   for(let k=0;k<4;k++){const jx=x0+6+k*15,jh=10+(k%2)*2,C=SW[k];for(let y=0;y<jh;y++)for(let x=0;x<9;x++)P(A,jx+x,top-y-1,RAMP.glass[x===0?4:(x===8?1:1)]);for(let sy=0;sy+2<jh-2;sy+=3)for(let sx=1;sx<8;sx+=3){const yy=top-2-sy-((sx>>1)%2);P(A,jx+sx,yy-1,C[5]);P(A,jx+sx+1,yy-1,C[4]);P(A,jx+sx,yy,C[3]);P(A,jx+sx+1,yy,C[2]);}P(A,jx+1,top-jh+1,RAMP.glass[5]);rect(A,jx,top-jh-2,9,2,RAMP.ironW[3]);hl(A,jx,top-jh-2,9,RAMP.ironW[4]);}   // jars with tin lids, full to different heights
   cast(x0,x0+w,base);}
-if(K==='chairstack'){const base=H-3,R=RAMP.oak;   // four kitchen chairs stacked for the night, seen side on: each an "h", nested seat on seat
-  const chair=(x,y,k)=>{const L=RAMP.walnut;for(let j=0;j<30;j++){P(A,x,y-j,L[4]);P(A,x+1,y-j,L[2]);}   // the back post running down into the back leg
-      for(const ry of [y-27,y-21])for(let i=-1;i<=1;i++)P(A,x+i,ry,L[5]);                                                      // the rails' ends
-      for(let i=0;i<13;i++){P(A,x+2+i,y-14,RAMP.oak[5]);P(A,x+2+i,y-13,RAMP.oak[5]);P(A,x+2+i,y-12,RAMP.oak[4]);P(A,x+2+i,y-11,RAMP.oak[2]);P(A,x+2+i,y-10,RAMP.walnut[0]);}   // the seat: the lightest thing, a dark line under its edge
-      for(let j=0;j<10;j++){P(A,x+13,y-9+j,L[3]);P(A,x+14,y-9+j,L[1]);}for(let i=3;i<13;i++)P(A,x+i,y-4,L[2]);};                // the front leg, a stretcher
-  for(let k=0;k<4;k++)chair(6+k*3,base-k*8,k);cast(4,32,base);}
+if(K==='chairstack'){const base=H-3,cx=W>>1,R=RAMP.oak,D=RAMP.walnut;   // three kitchen chairs stacked seat on seat for the night, seen as the room sees them: each seat top the lightest thing, the backs darker behind
+  const chair=(x,y)=>{for(const px of [x-9,x+8])for(let j=0;j<16;j++){P(A,px,y-14-j,D[3]);P(A,px+1,y-14-j,D[1]);}for(let i=-9;i<=9;i++){P(A,x+i,y-30,D[4]);P(A,x+i,y-29,D[2]);P(A,x+i,y-24,D[3]);}   // the back: two posts, a top rail, a slat
+      for(let j=0;j<5;j++)for(let i=-10;i<=10;i++)P(A,x+i,y-14+j,R[j<3?5:4]);for(let i=-10;i<=10;i++){P(A,x+i,y-9,R[2]);P(A,x+i,y-8,D[0]);}   // the seat: a lit top, its front edge
+      for(const lx of [x-9,x+8])for(let j=0;j<8;j++){P(A,lx,y-7+j,D[3]);P(A,lx+1,y-7+j,D[1]);}};                                 // the front legs
+  chair(cx,base);chair(cx+1,base-11);chair(cx-1,base-22);cast(cx-11,cx+11,base);}
 // =================================================================================== small things: bottles, papers, knitting, drawings, the map board, signs, the fish, the net, lures, the cat
 if(K==='bottles'){const base=H-3;   // empty bottles on the floor: two standing, one tipped over, a dark spill
   for(let y=-2;y<=1;y++)for(let x=-8;x<=8;x++){if(x*x/64+y*y/3>1)continue;SH(15+x,base-1+y,120);}
@@ -1168,7 +1168,7 @@ if(K==='fishmount'){const x0=2,y0=3,w=W-4,h=H-7;   // a pike on a plaque: a long
   wallShadow(x0,x0+w-1,y0,y0+h-1);}
 if(K==='netwall'){const x0=3,y0=5,w=W-6,h=H-11;   // a fishing net hung to dry: a straight cord across three pegs, the mesh hanging from it in swags, big open holes, cork floats on the cord
   const pegs=[x0+2,x0+(w>>1),x0+w-3];const botY=x=>{let k=x<pegs[1]?0:1;const t=(x-pegs[k])/(pegs[k+1]-pegs[k]);return y0+h-6+Math.round(Math.sin(Math.max(0,Math.min(1,t))*Math.PI)*5);};
-  for(let x=x0;x<x0+w;x++){const b0=botY(x);const dp=Math.min(...pegs.map(px=>Math.abs(px-x)));const step=dp<4?3:(dp<9?5:7);for(let y=y0+1;y<=b0;y++){const u=x-x0,v=y-y0;if((u+v)%step===0||(u-v+70)%step===0)P(A,x,y,RAMP.burlap[dp<4?2:((u+v)%step===0?4:3)]);}P(A,x,b0,RAMP.burlap[3]);}   // gathered close under each peg, open in the swags between   // big diamond holes, swagging lower between the pegs
+  for(let x=x0;x<x0+w;x++){const b0=botY(x);const dp=Math.min(...pegs.map(px=>Math.abs(px-x)));const step=dp<4?5:8;for(let y=y0+1;y<=b0;y++){const u=x-x0,v=y-y0;if((u+v)%step===0||(u-v+70)%step===0)P(A,x,y,RAMP.burlap[dp<4?2:((u+v)%step===0?4:3)]);}P(A,x,b0,RAMP.burlap[3]);}   // gathered close under each peg, open in the swags between   // big diamond holes, swagging lower between the pegs
   for(let x=x0;x<x0+w;x++){P(A,x,y0,RAMP.burlap[5]);P(A,x,y0+1,RAMP.burlap[2]);}                                              // the straight cord
   for(const px of pegs){P(A,px,y0-2,RAMP.walnut[4]);P(A,px+1,y0-2,RAMP.walnut[2]);P(A,px,y0-1,RAMP.walnut[3]);P(A,px+1,y0-1,RAMP.walnut[1]);}   // the pegs
   for(const fx of [x0+9,x0+21,x0+36,x0+48]){for(let j=0;j<3;j++)for(let i=0;i<4;i++)P(A,fx-1+i,y0-1+j,RAMP.oak[j===0?5:(i===3?2:4)]);}   // cork floats on the cord
@@ -1183,7 +1183,7 @@ if(K==='lures'){const x0=3,y0=3,w=W-6,h=H-8;   // a tackle card of lures: spoons
   rect(A,x0+w-14,y0+h-7,10,4,RAMP.cream[2]);hl(A,x0+w-13,y0+h-5,7,RAMP.walnut[2]);   // a small price tag
   wallShadow(x0,x0+w-1,y0,y0+h-1);}
 if(K==='cat'){const base=H-3,cx=(W>>1)+2,C=hexR(['#141218','#1f1c24','#2b2731','#3a3542','#4c4656','#615a6c']);   // a black cat curled asleep: a low oval body lit along its back, a round head with pointed ears, the tail wrapped along the front, one eye open
-  for(let y=-3;y<=2;y++)for(let x=-14;x<=14;x++){if(x*x/196+y*y/9>1)continue;P(A,cx-2+x,base-3+y,RAMP.brick[y<-1?4:(y<1?3:2)]);}   // the cushion
+  for(let y=-3;y<=2;y++)for(let x=-14;x<=14;x++){if(x*x/196+y*y/9>1)continue;P(A,cx-2+x,base-3+y,RAMP.ochre[y<-1?4:(y<1?3:1)]);}   // a mustard cushion: lit on top, a dark roll at the front
   for(let y=-5;y<=3;y++)for(let x=-10;x<=10;x++){if(x*x/100+y*y/25>1)continue;const l=-(x*.4+y)/5;P(A,cx+x,base-6+y,C[l>.8?4:(l>.2?3:(l>-.4?2:1))]);}   // the body: a low oval
   for(let x=-8;x<=8;x++){const yy=-Math.round(Math.sqrt(Math.max(0,25*(1-x*x/100))));P(A,cx+x,base-6+yy,RAMP.bluegrey[x<0?4:3]);}  // a cool rim of light along its back
   const hx=cx-10,hy=base-6;for(let y=-3;y<=3;y++)for(let x=-3;x<=3;x++){if(x*x+y*y>11)continue;P(A,hx+x,hy+y,C[x+y<-2?4:(x+y<1?3:2)]);}   // the head, tucked at the front
