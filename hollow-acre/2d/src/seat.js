@@ -8,7 +8,7 @@ const SEATS={
   in_chair:{f:'S',lift:1},in_chairE:{f:'E',dx:.04},in_chairN:{f:'N',dz:.2},
   in_rockS:{f:'S',lift:2},in_rocker:{f:'S',lift:2},in_rockE:{f:'E',dx:.1,lift:2},in_rockN:{f:'N',dz:.2,lift:8},
   in_stool:{f:'*',lift:8},
-  in_pew:{f:'S',at:[-1.5,-.75,0,.75,1.5],lift:2},in_pew_bk:{f:'N',at:[-1.5,-.75,0,.75,1.5],dz:.24},in_pewv_bk:{f:'N',at:[-1.5,-.75,0,.75,1.5],dz:.24},in_pews_bk:{f:'N',at:[-.7,0,.7],dz:.24},in_pewsb_bk:{f:'N',at:[-.7,0,.7],dz:.24},in_pewss_bk:{f:'N',at:[-.45,.45],dz:.24},in_chbench:{f:'N',at:[-.7,0,.7],dz:-.06,lift:3},in_chbench_b:{f:'N',at:[-.7,.7],dz:-.06,lift:3},in_chbench_s:{f:'N',at:[-.45,.45],dz:-.06,lift:3},in_chbench_n:{f:'N',at:[-.6,.6],dz:-.06,lift:3},in_pewb_bk:{f:'N',at:[-1.5,-.75,0,.75,1.5],dz:.24},
+  in_pew:{f:'S',at:[-1.5,-.75,0,.75,1.5],lift:2},in_pew_bk:{f:'N',at:[-1.5,-.75,0,.75,1.5],dz:.24},in_pewv_bk:{f:'N',at:[-1.5,-.75,0,.75,1.5],dz:.24},in_pews_bk:{f:'N',at:[-.7,0,.7],dz:.24},in_pewsb_bk:{f:'N',at:[-.7,0,.7],dz:.24},in_pewss_bk:{f:'N',at:[-.45,.45],dz:.24},in_chbench:{f:'N',at:[-.7,0,.7],dz:-.06,lift:3},in_chbench_b:{f:'N',at:[-.7,.7],dz:-.06,lift:3},in_chbench_s:{f:'N',at:[-.45,.45],dz:-.06,lift:3},in_chbench_n:{f:'N',at:[-.6,.6],dz:-.06,lift:3},in_pewb_bk:{f:'N',at:[-1.5,-.75,0,.75,1.5],dz:.24},in_pewk:{f:'N',at:[-.7,0,.7],dz:.24},in_pewk2:{f:'N',at:[-.7,0,.7],dz:.24},in_pewk4:{f:'N',at:[-.7,0,.7],dz:.24},in_pewk5:{f:'N',at:[-.7,0,.7],dz:.24},in_pewk3:{f:'N',at:[-.5,.5],dz:.24},
   parkbench:{f:'S',at:[-.42,.42],lift:1},
   rg_swing:{f:'S',at:[-.36,.78],lift:9}};
 const SEAT_DIR={S:[0,1],N:[0,-1],E:[1,0],W:[-1,0]};
@@ -26,7 +26,7 @@ function sitDown(o,i){const d=SEATS[o.spr];if(!d||P.sit)return;const face=seatFa
   seatMoment(o);}
 function standUp(){const s=P.sit;if(!s)return;P.sit=null;P.x=s.from.x;P.z=s.from.z;}
 // a pew at night: something sits down beside you
-function seatMoment(o){if(!/^in_pew/.test(o.spr)||!isNight()||rand()<.4)return;const s=P.sit;
+function seatMoment(o){if(!/^in_(pew|chbench)/.test(o.spr)||!isNight()||rand()<.4)return;const s=P.sit;
   setTimeout(()=>{if(P.sit!==s)return;SFX.thud&&SFX.thud(0,.18);toast('The pew creaks beside you, the way it does when someone sits down.',3,true);typeof mindHit==='function'&&mindHit(2);},2600+rand()*2400);}
 // one "Sit" for every spot on every seat in the world, kept in step with the furniture as it is built, moved and taken away
 const SEAT_ENT=new Map();

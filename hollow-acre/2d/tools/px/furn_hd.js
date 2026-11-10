@@ -2507,15 +2507,16 @@ if(K==='casewall'){const R=RAMP.oak,Ck=hexR(['#3a2a1c','#5a4430','#7a5c40','#947
     P(A,x+5,y,RAMP.red[5]);P(A,x+5,y+1,RAMP.red[3]);pins.push([x+5,y]);}
   for(let i=0;i<pins.length;i++){const [px,py]=pins[i],[qx,qy]=i%3===0?[1,H>>1]:pins[(i+2)%pins.length];ln(B,px,py,qx,qy,RAMP.red[4]);}   // red string, some of it running off the left edge to the map
   for(let y=2;y<H-1;y++)SH(W-1,y,80);}
-if(K==='altardais'){const base=H-3,R=RAMP.oak,Lt=RAMP.pine,Cl=RAMP.ivory,cx=W>>1;   // (b46: the rail read as a chest with a keyhole) the chapel altar on a one-step dais of pale wood, a linen cloth over its whole top hanging down the front in one broad fold, the brass cross and two candles standing on it
-  box3(4,base-12,W-8,7,5,Lt,{topPw:5,faceK:3});                                                       // the dais
-  const x0=cx-17,w=34,top=base-30;box3(x0,top,w,6,13,R,{faceK:2});
-  for(let y=top-1;y<top+6;y++)for(let x=x0-1;x<=x0+w;x++)P(A,x,y,Cl[y===top-1?5:5]);                 // the cloth over the top
-  for(let y=top+6;y<top+15;y++)for(let x=x0-1;x<=x0+w;x++){const fold=Math.abs(x-cx)<3;let k=fold?3:4;if(x===x0-1)k=5;if(x===x0+w)k=2;if(y===top+14)k=2;if(fold&&x===cx+2)k=2;P(A,x,y,Cl[k]);}   // hanging down the front, one broad fold in the middle
-  for(let x=x0;x<x0+w;x+=2)P(A,x,top+15,Cl[1]);
-  for(let y=top-13;y<top;y++){P(A,cx,y,RAMP.brass[y<top-10?5:3]);P(A,cx+1,y,RAMP.brass[2]);}hl(A,cx-3,top-10,8,RAMP.brass[4]);rect(A,cx-2,top-1,5,2,RAMP.brass[3]);   // the cross
+if(K==='altardais'){const base=H-3,R=RAMP.oak,Lt=RAMP.pine,Cl=RAMP.ivory,cx=W>>1;   // (b48: "the step under the altar reads as a second bench") a deep platform the altar stands on: its top runs back under the altar, a riser with a lit nosing; (b46) a linen cloth over the altar's whole top, hanging down the front in one broad fold, the brass cross and two candles on it
+  const dT=base-20;box3(3,dT,W-6,14,6,Lt,{topPw:6,faceK:3});hl(A,3,dT+13,W-6,Lt[6]||Lt[5]);                                    // the platform: a deep top, a lit nosing, the riser
+  const x0=cx-17,w=34,foot=dT+9,top=foot-14;box3(x0,top,w,4,10,R,{faceK:2});
+  for(let x=x0-2;x<x0+w+4;x++){SH(x,foot,120);SH(x,foot+1,70);}                                                                 // the altar's own shadow on the platform
+  for(let y=top-1;y<top+5;y++)for(let x=x0-1;x<=x0+w;x++)P(A,x,y,Cl[5]);
+  for(let y=top+5;y<foot-1;y++)for(let x=x0-1;x<=x0+w;x++){const fold=Math.abs(x-cx)<3;let k=fold?3:4;if(x===x0-1)k=5;if(x===x0+w)k=2;if(y===foot-2)k=2;if(fold&&x===cx+2)k=2;P(A,x,y,Cl[k]);}
+  for(let x=x0;x<x0+w;x+=2)P(A,x,foot-1,Cl[1]);
+  for(let y=top-13;y<top;y++){P(A,cx,y,RAMP.brass[y<top-10?5:3]);P(A,cx+1,y,RAMP.brass[2]);}hl(A,cx-3,top-10,8,RAMP.brass[4]);rect(A,cx-2,top-1,5,2,RAMP.brass[3]);
   for(const sx of [x0+4,x0+w-5]){vl(A,sx,top-6,6,RAMP.brass[3]);vl(A,sx,top-10,4,RAMP.cream[5]);P(A,sx,top-12,NIGHT?RAMP.lit[5]:RAMP.lit[4]);P(A,sx,top-11,RAMP.lit[3]);}
-  cast(4,W-5,base);}
+  cast(3,W-4,base);}
 if(K==='coffinlids'){const base=H-3,Pn=RAMP.pine,Wn=RAMP.walnut;   // two coffin lids leaning on the wall: a full one in raw pale pine, not yet stained, and a small one for a child, finished dark
   const lid=(x0,w,h,R,cross)=>{const top=base-h;for(let y=top;y<base;y++){const t=(y-top)/h,hw=Math.round(t<.25?w*.35+t*w*.6:w/2-(t-.25)*w*.35);for(let x=-hw;x<=hw;x++){let k=3;if(x===-hw)k=5;if(x>=hw-1)k=1;if(y===top)k=5;P(A,x0+x,y,R[k]);}
       if(t>.08&&t<.92){const ih=Math.max(1,hw-3);P(A,x0-ih,y,R[2]);P(A,x0+ih,y,R[4]);}}if(cross){vl(A,x0,top+5,10,RAMP.brass[4]);hl(A,x0-3,top+8,7,RAMP.brass[4]);}};
@@ -2633,6 +2634,51 @@ if(K==='chbenchn'){const base=H-3,Pn=RAMP.pine,Wn=RAMP.walnut,x0=4,w=W-8,top=bas
   {const nx=x0+6,ny=top-3;for(let y=0;y<6;y++)for(let x=0;x<16;x++){if((x+y)%3===0||(x-y+30)%3===0)P(A,nx+x,ny+y,RAMP.olive[y===0?4:3]);}hl(A,nx,ny+6,16,RAMP.olive[1]);for(const fx of [nx+2,nx+8,nx+13])P(A,fx,ny+5,RAMP.cream[5]);}   // the folded net, its corks
   {const ox=x0+w-20,oy=top-2;for(let y=0;y<6;y++)for(let x=0;x<12;x++)P(A,ox+x,oy+y,RAMP.straw[y===0?5:x<2?5:x>9?2:4]);hl(A,ox,oy+6,12,RAMP.straw[1]);P(A,ox+6,oy+3,RAMP.charcoal[2]);}   // the oilskin, folded
   for(let x=x0-2;x<x0+w+4;x++){SH(x,base,160);SH(x,base+1,110);SH(x+1,base+2,60);}}
+// =================================================================================== (b48) the chapel pews again: backless benches read as coffee tables, open-railed backs as fences. A closed box pew seen from
+// behind: rounded end boards standing well above a lit cap rail, a solid back of two broad planks, a hymn shelf with books standing on it, a darker lower panel down to a plinth
+if(/^pewk[2345]?$/.test(K)){const base=H-3,Wn=RAMP.walnut,Pn=RAMP.pine,x0=3,w=W-6,top=base-37,VAR={pewk:0,pewk2:1,pewk3:2,pewk4:3,pewk5:4}[K];
+  const bx0=x0+5,bx1=x0+w-5,rT=top+7,sh=rT+14;
+  for(let x=bx0;x<bx1;x++){P(A,x,rT,Pn[5]);P(A,x,rT+1,Pn[4]);P(A,x,rT+2,Wn[4]);P(A,x,rT+3,Wn[3]);P(A,x,rT+4,Wn[0]);}   // the cap rail: its lit top, its face, the dark line under it
+  for(let y=rT+5;y<sh;y++)for(let x=bx0;x<bx1;x++){let k=3;if(y===rT+5)k=4;const seam=rT+9;if(y===seam)k=1;if(y===seam+1)k=4;
+    if(k===3){const g=Math.floor(hsh(x>>4,y,61+VAR)*100);if(g>90&&((x+y*3)&15)<10)k=2;}P(A,x,y,Wn[k]);}                               // the back: two broad planks, a few long grain streaks
+  for(let x=bx0;x<bx1;x++){P(A,x,sh,Pn[3]);P(A,x,sh+1,Wn[1]);P(A,x,sh+2,Wn[0]);}                                                 // the hymn shelf
+  for(let y=sh+3;y<base-2;y++)for(let x=bx0;x<bx1;x++){let k=2;if(y===sh+3)k=1;if(k===2&&hsh(x>>3,y,71+VAR)>.93&&(x&7)<5)k=1;P(A,x,y,Wn[k]);}   // the lower panel, a step darker
+  hl(A,bx0,base-2,bx1-bx0,Wn[1]);hl(A,bx0,base-1,bx1-bx0,Wn[0]);                                                                // the plinth
+  // the books on the shelf: their own clusters on every pew, so no two pews match
+  const BK=[RAMP.red,RAMP.green,RAMP.plum,RAMP.charcoal||RAMP.iron,RAMP.ochre,RAMP.blue];const by=sh-1;
+  const stand=(x,h,c,wd)=>book(x,by-h+1,wd||3,h,BK[c%BK.length]);
+  const L=[[[8,6,0],[11,5,1],['lean',14,5,2],['flat',40,10,3]],[[30,6,2],[33,6,0],[36,5,4],['lean',39,5,1],[56,5,3]],[[18,5,1],['flat',26,9,0]],[['flat',14,9,4],[46,6,3],[49,6,2]],[[22,5,5],[25,6,0],['lean',28,6,3]]][VAR];
+  for(const b of L){if(b[0]==='lean')bookLean(bx0+b[1],by-b[2]+1,b[2],BK[b[3]%BK.length]);else if(b[0]==='flat')bookFlat(bx0+b[1],by-2,b[2],BK[b[3]%BK.length]);else if(bx0+b[0]+3<bx1)stand(bx0+b[0],b[1],b[2]);}
+  // the end boards: taller than the back, a rounded top, a carved collar, lit on the left
+  for(const [ex,lit] of [[x0,1],[x0+w-5,0]]){const R5=lit?[5,4,3,3,1]:[4,3,2,2,0];
+    for(let y=top+2;y<base;y++)for(let i=0;i<5;i++)P(A,ex+i,y,Wn[R5[i]]);
+    for(let i=1;i<4;i++)P(A,ex+i,top,Wn[lit?5:4]);for(let i=0;i<5;i++)P(A,ex+i,top+1,Wn[i<2?(lit?5:4):R5[i]]);P(A,ex,top+1,Wn[lit?4:3]);P(A,ex+4,top+1,Wn[1]);   // the rounded top
+    hl(A,ex,top+4,5,Wn[0]);hl(A,ex,top+5,5,Wn[lit?5:4]);                                                                         // a carved collar
+    vl(A,ex+2,top+8,base-top-12,Wn[lit?2:1]);hl(A,ex,base-1,5,Wn[0]);}
+  for(let x=x0-1;x<x0+w+3;x++){SH(x,base,165);SH(x+1,base+1,115);SH(x+2,base+2,55);}}
+// (b48) the aisle runner from the door to the altar: wine-red wool between an ochre border, worn paler in long streaks down the middle where feet go, a fringe at the door end
+if(K==='runner'){const Rd=hexR(['#2a1014','#45181d','#5e2227','#73292d','#873636','#9c4642']),Oc=RAMP.ochre,x0=1,w=W-2,h=H-2,cx=w>>1;
+  for(let v=0;v<h;v++)for(let u=0;u<w;u++){let c=Rd[3];const d=Math.abs(u-cx+.5);
+    if(d<5&&v>18){const st=Math.floor(hsh(u,Math.floor(v/22),83)*10);if(st>5)c=Rd[4];}                                            // the worn middle, in long streaks
+    if(u===0||u===w-1)c=Rd[0];else if(u===1||u===w-2)c=Rd[2];else if(u===3||u===w-4)c=Oc[3];else if(u===4||u===w-5)c=Rd[1];
+    if(v>=h-5){c=v===h-5?Rd[1]:(u%2===0&&u>0&&u<w-1?RAMP.cream[v===h-4?3:2]:null);}                                               // the bound end and its fringe
+    if(c)P(A,x0+u,v,c);}}
+// (b48: "the font reads as a birdbath") a stone font with its oak lid on, a little brass cross on the lid
+if(K==='fontlid'){const base=H-3,St=hexR(['#2c282a','#46403f','#635b58','#827974','#a19790','#bdb3aa']),Ok=RAMP.oak,cx=W>>1;
+  for(let y=base-8;y<base;y++)for(let x=-7;x<=7;x++)P(A,cx+x,y,St[x<-5?4:x>4?1:y===base-8?4:2]);hl(A,cx-7,base-1,15,St[1]);
+  for(let y=base-22;y<base-8;y++)for(let x=-3;x<=3;x++)P(A,cx+x,y,St[x<-1?4:x>1?1:3]);
+  const by=base-28;for(let y=-5;y<=5;y++){const hw=Math.round(11-Math.max(0,Math.abs(y)-2)*1.2);for(let x=-hw;x<=hw;x++){let k=y<-2?4:3;if(x<=-hw+1)k=5;if(x>=hw-1)k=1;if(y>2)k=Math.min(k,2);P(A,cx+x,by+y+3,St[k]);}}
+  for(let y=-5;y<=0;y++){const hw=Math.round(10-Math.max(0,-y-1)*1.6);for(let x=-hw;x<=hw;x++){let k=y===-5?4:y<-2?3:2;if(x<=-hw+1)k=4;if(x>=hw-1)k=1;if(y===0)k=1;P(A,cx+x,by+y,Ok[k]);}}   // the lid, a low eight-sided dome
+  hl(A,cx-9,by-1,19,Ok[0]);
+  for(let y=by-13;y<by-5;y++){P(A,cx,y,RAMP.brass[4]);P(A,cx+1,y,RAMP.brass[2]);}hl(A,cx-2,by-10,6,RAMP.brass[4]);hl(A,cx-2,by-9,6,RAMP.brass[1]);   // the cross on it
+  cast(cx-8,cx+8,base);}
+// (b48) a hymn board on the wall: a dark board in an oak frame, the day's numbers in pale card on little ledges
+if(K==='hymnboard'){const Ok=RAMP.oak,Wn=RAMP.walnut,x0=2,y0=2,w=W-4,h=H-6;
+  rect(A,x0,y0,w,h,Ok[3]);hl(A,x0,y0,w,Ok[5]);vl(A,x0,y0,h,Ok[4]);vl(A,x0+w-1,y0,h,Ok[1]);hl(A,x0,y0+h-1,w,Ok[0]);
+  for(let x=x0+w/2-3;x<x0+w/2+3;x++){P(A,x,y0-1,Ok[4]);P(A,x,y0-2,Ok[5]);}                                                       // a little pediment
+  rect(A,x0+2,y0+2,w-4,h-4,Wn[1]);
+  const N=['148','271','36'];for(let r=0;r<3;r++){const ry=y0+3+r*8;rect(A,x0+3,ry,w-6,6,RAMP.cream[4]);hl(A,x0+3,ry+5,w-6,RAMP.cream[2]);drawText(A,N[r],x0+w/2-N[r].length*2+1,ry,Wn[0]);hl(A,x0+2,ry+6,w-4,Ok[2]);}
+  for(let x=x0+1;x<x0+w+2;x++)SH(x,y0+h,120);for(let y=y0+1;y<y0+h;y++)SH(x0+w,y,100);}
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
 for(const f of NOOL)for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(f(x,y))for(const L of [O,O2])L.d[(y*W+x)*4+3]=0;
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));

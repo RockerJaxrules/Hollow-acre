@@ -87,6 +87,17 @@ function flagstone(L,x0,y0,w,h,RS){const SR=RS||ST;for(let y=y0;y<y0+h;y++)for(l
   const n=hsh(s,r,9);let c=n>.5?SR[3]:mixC(SR[3],SR[2],.45);if(u<2||v<2)c=mixC(SR[1],SR[2],.35);if(v===2&&n>.78&&u>3&&u<14)c=mixC(SR[3],SR[4],.5);   /* (b12) mortar a step quieter, a lit lip on a few stones only */
   const nearWall=r===0||x-x0<30||x0+w-x<30;if(nearWall&&hsh(s,r,11)>.88&&u>3&&v>3){const cu=6+Math.floor(hsh(s,r,12)*10),cv=5+Math.floor(hsh(s,r,13)*6),dir=hsh(s,r,14)>.5?1:-1,dv=v-cv;if(dv>=0&&dv<6&&u===cu+dir*Math.floor(dv*.7))c=SR[1];}   // a crack, not specks
   P(L,x,y,c);}}
+// (b48: "an even square grid wall to wall reads as modern tile; use flagstones of three or four sizes with no seam running across the room")
+// dressed limestone laid in courses of one height, some stones two courses tall so no course seam crosses the room, widths of four sizes;
+// two close tones, a lit lip on a few stones only, the joints a step quieter than the stone
+const LIME=['#3e3936','#5d5650','#7d746c','#9a9086','#b2a89d','#c9bfb3'].map(HEX);
+function ashlar(L,x0,y0,w,h,SR){SR=SR||LIME;const RH=11,rows=Math.ceil(h/RH)+1,occ=[],stones=[],SW=[14,20,26,33];const row=r=>occ[r]||(occ[r]=new Uint8Array(w+1));
+  for(let r=0;r<rows;r++){const o=row(r);let x=0;while(x<w){if(o[x]){x++;continue;}let e=x;while(e<w&&!o[e])e++;
+    let sw=SW[Math.floor(hsh(x,r,41)*4)];if(e-x-sw<10)sw=e-x;const tall=r<rows-1&&sw<=26&&hsh(x,r,43)>.74;
+    stones.push({x,y:r*RH,w:sw,h:tall?RH*2:RH,n:hsh(x,r,47)});for(let i=x;i<x+sw;i++){o[i]=1;if(tall)row(r+1)[i]=1;}x+=sw;}}
+  for(const s of stones)for(let y=s.y;y<s.y+s.h&&y<h;y++)for(let x=s.x;x<s.x+s.w&&x<w;x++){const u=x-s.x,v=y-s.y;let c=s.n>.5?SR[3]:mixC(SR[3],SR[2],.38);if(s.n>.86)c=mixC(SR[3],SR[4],.3);
+    if(u===0||v===0)c=mixC(SR[1],SR[2],.45);else if(v===1&&s.n>.62)c=mixC(c,SR[4],.55);else if(u===s.w-1&&s.n<.3)c=mixC(c,SR[2],.5);
+    P(L,x0+x,y0+y,c);}}
 // (interiors r4) the wear was 4 px chips scattered down the path and read as footprints or specks: the paint wears through in long
 // streaks along the boards where feet go, first thinning (the wood's warmth showing through), then bare wood in the middle
 function painted(L,x0,y0,w,h,C,soft){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const row=Math.floor((y-y0)/9),v=(y-y0)%9;let c=C[3];if(v===0)c=C[1];if(v===1)c=C[4];
@@ -141,7 +152,7 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   for(const w of R.windows||[]){windowW(B,x0+w[0]*32-(w[2]||28)/2|0,14+(w[3]||8),w[2]||28,w[4]||34,(R.theme==='church'||R.lancet)?'lancet':false);}
   // floor
   if(R.theme==='cabin'||R.theme==='store'||(R.theme==='home'&&(!R.floor||R.floor==='planks')))planks(A,x0,top,fw,fd,WD,8,R.theme==='store');
-  if(R.theme==='home'){const fl=R.floor;if(fl==='parquet')parquet(A,x0,top,fw,fd);if(fl==='checker')checker(A,x0,top,fw,fd,PAL[R.chk||'slate'],PAL.cream);if(fl==='flag')flagstone(A,x0,top,fw,fd,R.flagRamp&&PAL[R.flagRamp]);if(fl==='packflag')packflag(A,x0,top,fw,fd,(R.soot||[]).map(q=>[q[0]*32,q[1]*32,q[2]||20]));if(fl==='painted')painted(A,x0,top,fw,fd,PAL[R.paint||'teal'],R.wear==='soft');if(fl==='hex')hexTile(A,x0,top,fw,fd,TR);if(fl==='wide')wideBoards(A,x0,top,fw,fd,R.floorQ);}
+  if(R.theme==='home'){const fl=R.floor;if(fl==='parquet')parquet(A,x0,top,fw,fd);if(fl==='checker')checker(A,x0,top,fw,fd,PAL[R.chk||'slate'],PAL.cream);if(fl==='flag')flagstone(A,x0,top,fw,fd,R.flagRamp&&PAL[R.flagRamp]);if(fl==='packflag')packflag(A,x0,top,fw,fd,(R.soot||[]).map(q=>[q[0]*32,q[1]*32,q[2]||20]));if(fl==='painted')painted(A,x0,top,fw,fd,PAL[R.paint||'teal'],R.wear==='soft');if(fl==='hex')hexTile(A,x0,top,fw,fd,TR);if(fl==='wide')wideBoards(A,x0,top,fw,fd,R.floorQ);if(fl==='ashlar')ashlar(A,x0,top,fw,fd);}
   if(R.theme==='church')tilesF(A,x0,top,fw,fd,ST,16);
   if(R.theme==='garage'){A.bay=x0+fw-150+52;concrete(A,x0,top,fw,fd);A.bay=null;}
   if(R.theme==='garage'){const bx=x0+fw-150,bw=104;for(let y=14;y<8+wallH;y++)for(let x=bx;x<bx+bw;x++){const j=(y-14)%6;P(A,x,y,j===0?ST[4]:j===5?ST[1]:ST[3]);}frame(A,bx-3,12,bw+6,wallH-2,WD[3],WD[0]);rect(A,bx+bw/2-6,8+wallH-10,12,3,PAL.slate[2]);
