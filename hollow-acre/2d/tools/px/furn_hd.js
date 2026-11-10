@@ -2182,7 +2182,12 @@ if(K==='smithhooks'){const R=RAMP.oak;rect(A,1,3,W-2,5,R[3]);hl(A,1,3,W-2,R[5]);
   for(let j=0;j<14;j++){P(A,16,9+j,RAMP.oak[3]);P(A,17,9+j,RAMP.oak[1]);}rect(A,13,22,8,4,RAMP.iron[3]);hl(A,13,22,8,RAMP.iron[5]);
   for(const hx of [26,36])for(let a=0;a<12;a++){const t=a/11*Math.PI*1.25-Math.PI*.12;P(A,hx+Math.round(Math.cos(t+Math.PI)*4),12+Math.round(-Math.sin(t)*4),RAMP.iron[a<5?5:3]);}
   if(W>50){for(let j=0;j<12;j++)P(A,46,9+j,RAMP.iron[4]);rect(A,44,20,5,3,RAMP.iron[2]);}for(let y=3;y<H-1;y++)SH(W-1,y,60);}
-if(K==='gasdrum'||K==='oildrum'){const base=H-3,cx=W>>1,Rr=K==='oildrum'?RAMP.blue:RAMP.red;   // a red fuel drum stencilled GAS, a funnel on its lid
+if(K==='gasdrum'){const base=H-3,Rr=RAMP.red,x0=3,w=W-6,top=base-26;   // (b34: a tall red cylinder read as a fire extinguisher) a jerrycan: a flat oblong can, three handles on top, a spout at the corner, the X pressed in its side, GAS stencilled
+  for(let y=top;y<base;y++)for(let x=x0;x<x0+w;x++){let k=3;if(x===x0)k=5;if(x===x0+w-1)k=1;if(y===top)k=5;if(y===base-1)k=1;P(A,x,y,Rr[k]);}
+  for(let i=0;i<w-6;i++){P(A,x0+3+i,top+4+Math.round(i*(base-top-10)/(w-6)),Rr[2]);P(A,x0+w-4-i,top+4+Math.round(i*(base-top-10)/(w-6)),Rr[4]);}   // the pressed X
+  for(let k=0;k<3;k++){const hx=x0+2+k*4;vl(A,hx,top-3,3,Rr[3]);hl(A,hx,top-3,3,Rr[4]);}rect(A,x0+w-5,top-5,3,5,RAMP.steel[3]);vl(A,x0+w-5,top-5,5,RAMP.steel[5]);P(A,x0+w-4,top-6,RAMP.charcoal[1]);   // handles, the spout
+  rect(A,x0+2,top+9,w-4,7,RAMP.cream[4]);drawText(A,'GAS',x0+(w>>1)-5,top+10,Rr[1]);cast(x0,x0+w,base);}
+if(K==='oildrum'){const base=H-3,cx=W>>1,Rr=RAMP.blue;   // a red fuel drum stencilled GAS, a funnel on its lid
   for(let y=8;y<base;y++)for(let x=-9;x<=9;x++){const u=(x+9)/18;P(A,cx+x,y,Rr[u<.2?4:u<.55?3:u<.85?2:1]);}for(const y of [11,(H>>1)+2,base-3])for(let x=-9;x<=9;x++)P(A,cx+x,y,Rr[1]);
   ell(A,cx,8,9,3,Rr[4]);ell(A,cx,8,7,2,Rr[2]);drawText(A,K==='oildrum'?'OIL':'GAS',cx-6,(H>>1)-4,RAMP.cream[5]);for(let j=0;j<5;j++)hl(A,cx-4+j,1+j,9-2*j,RAMP.steel[4-(j%2)]);vl(A,cx,6,3,RAMP.steel[2]);cast(cx-9,cx+9,base);}
 if(K==='doctorbag'){const base=H-3,L=RAMP.walnut;   /* (b27) a step lighter than black, so it reads on the dark floor */   // a doctor's black bag, open, a stethoscope trailing out
@@ -2257,9 +2262,9 @@ if(K==='radioshelf'){const base=H-3,R=RAMP.oak,O=RAMP.olive,x0=4,w=W-8,top=base-
     for(let i=0;i<5;i++)P(A,rx0+rw+(i%2),top-2+i,RAMP.charcoal[i%2?1:4]);}                                                                   // the handset, its coiled cord
   {const lx=x0+1,ly=top+1;rect(A,lx,ly,8,3,RAMP.cream[5]);vl(A,lx+4,ly,3,RAMP.cream[2]);hl(A,lx+1,ly+1,2,RAMP.charcoal[3]);hl(A,lx+5,ly+1,2,RAMP.charcoal[3]);hl(A,lx,ly+3,8,RAMP.green[2]);}   // the logbook
   cast(x0,x0+w,base);}
-if(K==='peatstack'){const base=H-3,Pt=hexR(['#140e0b','#22170f','#332217','#45301f','#5a3f29','#6e4f35']),St=RAMP.steel,Wd=RAMP.pine;   // a rick of cut peat, bricks crossed to dry, the cutter's slane leaning on it, crumbs on the floor
+if(K==='peatstack'){const base=H-3,Pt=hexR(['#22170f','#332217','#45301f','#5a3f29','#6e4f35','#86643f']),St=RAMP.steel,Wd=RAMP.pine;   // a rick of cut peat, bricks crossed to dry, the cutter's slane leaning on it, crumbs on the floor
   const brick=(x,y)=>{for(let j=0;j<6;j++)for(let i=0;i<9;i++){let k=j<2?(j===0?5:4):3;if(i===0&&j>=2)k=4;if(i===8)k=1;if(j===5)k=1;if(j>=2&&hsh(x+i,y+j,71)>.86)k=5;if(j>=2&&hsh(x+i,y+j,72)>.9)k=1;P(A,x+i,y+j,Pt[k]);}};
-  const rows=[[5,4],[4,9],[3,14]];rows.forEach(([n,ox],r)=>{for(let i=0;i<n;i++)brick(3+ox-4+i*9,base-6-r*5);});
+  const rows=[[6,4],[5,9],[4,14],[2,23]];rows.forEach(([n,ox],r)=>{for(let i=0;i<n;i++)brick(3+ox-4+i*9,base-6-r*5);});   /* (b34: dark on dark read as rubble) bigger, a step lighter */
   {const hx=W-5,hy=3,bx=W-14,by=base-12;ln(A,hx,hy,bx,by,Wd[4]);ln(A,hx+1,hy,bx+1,by,Wd[2]);hl(A,hx-3,hy-1,7,Wd[5]);hl(A,hx-3,hy,7,Wd[2]);   // the slane: a long handle, a T grip,
     for(let y=by;y<by+11;y++){P(A,bx-1,y,St[4]);P(A,bx,y,St[3]);P(A,bx+1,y,St[2]);P(A,bx+2,y,St[1]);if(y>by+2)P(A,bx+3,y,St[0]);}P(A,bx,by+11,St[2]);P(A,bx+1,by+11,St[1]);   // the narrow blade and its wing
     hl(A,bx-1,by,4,St[5]);for(let y=by+3;y<by+8;y++)P(A,bx+4,y,St[1]);}
@@ -2537,6 +2542,19 @@ if(K==='caskwine'){const base=H-3,R=RAMP.oak,cx=W>>1;   // an upright wine cask 
   for(const hy of [base-24,base-13,base-6])for(let x=-11;x<=11;x++){if(Math.abs(x)>10&&hy!==base-13)continue;P(A,cx+x,hy,RAMP.iron[x<-6?4:x>6?1:2]);}
   drawText(A,'WINE',cx-7,base-20,RAMP.cream[5]);rect(A,cx-2,base-11,3,3,RAMP.walnut[2]);P(A,cx-1,base-8,RAMP.walnut[1]);rect(A,cx-2,base-6,4,3,RAMP.steel[3]);hl(A,cx-2,base-6,4,RAMP.steel[5]);   // the tap, a tin cup
   hl(A,cx-12,base-3,25,R[1]);for(const lx of [cx-11,cx+9])rect(A,lx,base-3,3,3,R[2]);cast(cx-12,cx+12,base);}
+if(K==='lookoutmap'){   // (wall, under the lookout windows) a district map pinned up, one corner curling, a red ring where the light was seen; binoculars hanging on a peg beside it
+  const mw=W-16;rect(A,1,2,mw,H-4,RAMP.cream[4]);hl(A,1,2,mw,RAMP.cream[5]);for(let y=4;y<H-3;y+=3)for(let x=3;x<mw-1;x++)if(hsh(x,y,89)>.55)P(A,x,y,mixC(RAMP.cream[3],RAMP.olive[4],.5));ln(A,3,H-6,mw-4,6,RAMP.glass[4]);
+  ell(A,mw-12,H>>1,3,2,RAMP.red[4]);ell(A,mw-12,H>>1,2,1,RAMP.cream[4]);for(const [px,py] of [[2,3],[mw-2,3],[2,H-4]])P(A,px,py,RAMP.red[5]);
+  for(let i=0;i<4;i++)for(let j=0;j<=i;j++)P(A,mw-1-j,H-3-i+j,RAMP.cream[2+(j===0?1:0)]);   // the curled corner
+  {const bx=W-9;P(A,bx+3,1,RAMP.walnut[4]);ln(A,bx+3,2,bx,7,RAMP.charcoal[2]);ln(A,bx+3,2,bx+6,7,RAMP.charcoal[2]);for(const ox of [0,5]){rect(A,bx-1+ox,8,4,7,RAMP.charcoal[3]);hl(A,bx-1+ox,8,4,RAMP.charcoal[5]);P(A,bx+ox,14,RAMP.glass[5]);}}   // binoculars on their strap
+  wallSh(0,0,W-3,H-3,2,2,80);}
+if(K==='firetools'){const base=H-3,R=RAMP.pine;   // the ranger's fire tools in a rack in the corner: a shovel, a Pulaski (axe and grubbing hoe on one head), a fire beater (a rubber flap on a long pole)
+  box3(3,base-8,W-6,3,5,R,{faceK:2});for(let x=5;x<W-5;x+=5)rect(A,x,base-7,3,2,R[0]);
+  const pole=(x,top)=>{for(let y=top;y<base-6;y++){P(A,x,y,R[4]);P(A,x+1,y,R[2]);}};
+  pole(8,6);rect(A,5,1,8,7,RAMP.steel[3]);hl(A,5,1,8,RAMP.steel[5]);vl(A,12,1,7,RAMP.steel[1]);   // the shovel, blade up
+  pole(18,4);hl(A,13,4,12,RAMP.steel[4]);hl(A,13,5,12,RAMP.steel[2]);rect(A,12,3,3,4,RAMP.steel[4]);rect(A,23,5,3,4,RAMP.red[3]);P(A,25,8,RAMP.steel[4]);   // the Pulaski, its red-painted axe end
+  pole(W-11,9);rect(A,W-15,1,10,9,RAMP.charcoal[2]);hl(A,W-15,1,10,RAMP.charcoal[4]);for(let y=2;y<10;y+=2)hl(A,W-14,y,8,RAMP.charcoal[1]);   // the beater's rubber flap
+  cast(3,W-4,base);}
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
 for(const f of NOOL)for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(f(x,y))for(const L of [O,O2])L.d[(y*W+x)*4+3]=0;
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));

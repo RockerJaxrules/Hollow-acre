@@ -450,6 +450,14 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors b33] A stained-glass patch misread three ways in three rounds (shield, paper, quilt, net): when a piece of light
   keeps misreading, cut it.
 
+- [interiors b34] A stove's floor light by day read as a lampshade or bell in five rounds of five different shapes: like the
+  candles, a fire lights the floor only at night or underground. Stop redrawing a light that keeps misreading; take it away
+  where it would not show in life.
+- [interiors b34] The oval wall mirror from the generic wall kit read as a feather, a fish and a lozenge: in a judged room,
+  hang only things that belong to that room (noDress), never the generic kit.
+- [interiors b34] A tall red cylinder reads as a fire extinguisher; a gas can reads as a jerrycan (flat oblong, three handles,
+  a spout at the corner, the pressed X).
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).

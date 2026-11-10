@@ -24,12 +24,12 @@ const RG_ROOMS={
   looks:[[3,1.2,'Jars of fen water on the shelf, each labelled with a year. In every one something floats: a hair ribbon, a button, a baby’s shoe. The cutter kept one thing from every child the fen gave back.'],
    [2,4.3,'The cutter’s diary, open at 1931: <i>Cut a girl out of the bank today, by the hut. Twelve or so. Fresh as if she was put there this morning, but her dress was 1872. Put her back. It’s what you do.</i>']]},
  rg_ranger:{name:'The ranger’s cabin',out:()=>({x:RGP.ranger.x,z:RGP.ranger.z+.7}),door:()=>({x:RGP.ranger.x,z:RGP.ranger.z+.35}),
-  furn:[BF('in_radioshelf',1.95,1.0,.45),BF('in_chairN',1.95,1.6,.2),['in_firedanger',3.4,-.6,null,'flat'],['firewood',3.4,1.1,[-.6,-.3,.6,0]],BF('in_stove',4.95,.95,.5),['in_gunpegs',6.6,-.45,null,'flat'],['in_bedplain',8.3,2.6,BED_F],BF('in_filecab',.6,.85,.4),BF('in_bootbench',6.3,5.75,.3)],
+  furn:[BF('in_radioshelf',1.95,1.0,.45),BF('in_chairN',1.95,1.6,.2),['in_firedanger',3.4,-.6,null,'flat'],['firewood',3.4,1.1,[-.6,-.3,.6,0]],BF('in_stove',4.95,.95,.5),['in_gunpegs',6.6,-.45,null,'flat'],['in_bedplain',8.3,2.6,BED_F],BF('in_filecab',.6,.85,.4),BF('in_bootbench',6.3,5.75,.3),BF('in_firetools',.75,4.9,.3)],
   looks:[[3.4,.5,'The fire-danger dial has been wired at the red end. Pencilled round its rim, a date for every light reported on Tithe night since 1923, and beside every date the same field. There is no room left to write.'],
    [1.95,1.6,'A two-way radio, still on, still hissing. Every few minutes a child’s voice comes through and reads out a number. It is counting down. It has got to nine.'],
    [.6,1.5,'Missing-hiker reports. Everyone who went up the lookout path and wasn’t found. The last line of each is the same: <i>Tracks led up. None down.</i>']]},
  rg_lookout:{name:'The lookout cab',out:()=>({x:RGP.tower.x,z:RGP.tower.z+1.4}),door:()=>({x:RGP.tower.x,z:RGP.tower.z+.9}),label:'Climb',
-  furn:[BF('in_firefinder',3,2.6,.5),BF('in_stool',3.9,3.1,.2),BF('in_radioshelf',1.0,1.0,.45),BF('in_campcot',4.75,4.55,.5),BF('in_tincrate',.65,3.8,.3),BF('in_satchel',.75,4.6,.2),['bucket',1.6,4.5,[-.3,-.2,.3,0]]],
+  furn:[BF('in_firefinder',3,2.6,.5),['in_lookoutmap',3.0,-.15,null,'flat'],BF('in_stool',3.9,3.1,.2),BF('in_radioshelf',1.0,1.0,.45),BF('in_campcot',4.75,4.55,.5),BF('in_tincrate',.65,3.8,.3),BF('in_satchel',.75,4.6,.2),['bucket',1.6,4.5,[-.3,-.2,.3,0]]],
   looks:[[3,2.1,'The fire finder’s sight has been bolted in place, pointing one way. Through it, at the hub of the wheel: your cabin. There is a light on in your window. You didn’t leave a light on.']]}};
 {let ox=Math.max(...Object.values(ROOMS).map(R=>R.ox||0))+40;
   for(const [k,r] of Object.entries(RG_ROOMS)){if(!SPR['room_'+k])continue;ROOMS[k]={ox,oz:-60,name:r.name,shell:'room_'+k,out:r.out(),furn:r.furn};r.key=k;ox+=30;}}
