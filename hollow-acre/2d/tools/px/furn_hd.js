@@ -597,7 +597,7 @@ if(K==='pew'){const R=RAMP.walnut,base=H-3,x0=7,w=W-14;   // owner: "benches loo
     for(let j=0;j<6;j++)hl(A,x0-1,rt+j,w+2,RAMP.oak[j===0?3:(j<3?5:(j<5?4:2))]);                                            // the top: the cap rail and the book ledge, one lit band seen from above
     for(const [bx,C,n] of [[x0+16,RAMP.red,9],[x0+60,RAMP.green,7],[x0+84,RAMP.ochre,8]]){for(let j=0;j<3;j++)hl(A,bx,rt+1+j,n,C[j===0?5:(j===1?4:2)]);P(A,bx+n-1,rt+2,RAMP.cream[5]);}   // books lying on it, bright against it
     for(let i=0;i<w;i++){P(A,x0+i,sy,RAMP.oak[4]);P(A,x0+i,sy+1,RAMP.oak[2]);}                                                // the pale seat's back edge, showing under the back
-    fadeDark(sy+2);endPost(x0-5,rt-8);endPost(x0+w,rt-8);cast(x0-5,x0+1,base);cast(x0+w-1,x0+w+4,base);}
+    for(let y=sy+2;y<base;y++){const a=Math.round(210-(y-sy-2)*(170/(base-sy-2)));for(let x=x0;x<x0+w;x++)SH(x,y,a);}endPost(x0-5,rt-8);endPost(x0+w,rt-8);cast(x0-5,x0+1,base);cast(x0+w-1,x0+w+4,base);}
   else{   // from the front: a cushioned seat you can see the top of, a back that leans behind it, open and dark under it
     const sF=base-12,sB=sF-9,bt=sB-17;
     for(let y=bt+2;y<sB;y++)for(let i=0;i<w;i++)P(A,x0+i,y,R[3-fall(i)]);panels(bt+4,sB-3,3);for(let i=0;i<w;i++){P(A,x0+i,sB-2,R[0]);P(A,x0+i,sB-1,R[0]);}                                                                // the back: boards of different widths
@@ -936,11 +936,11 @@ if(K==='sawhorse'){const base=H-3,R=RAMP.pine;
   for(let i=0;i<9;i++)P(A,cut-3+((i*5)%9),base-((i*3)%3),RAMP.cream[(i%2)?4:3]);cast(6,W-6,base);}
 if(K==='chickcrate'){const base=H-3,x0=3,w=W-6,R=RAMP.oak,I=RAMP.ironW,top=base-21;   // a crate of chicks: different sizes, facing different ways, one looking out over the top
   box3(x0,top,w,6,15,R,{facePw:5});const fy=top+6;
-  for(let y=fy+2;y<fy+12;y++)for(let x=x0+2;x<x0+w-2;x++)P(A,x,y,y===fy+11?RAMP.straw[x%3?2:3]:RAMP.walnut[y<fy+4?0:1]);    // inside: dark, straw on the floor
+  for(let y=fy+2;y<fy+12;y++)for(let x=x0+2;x<x0+w-2;x++)P(A,x,y,y>=fy+10?RAMP.straw[x%3?2:3]:RAMP.plum[y<fy+4?1:2]);    // inside: dark, straw on the floor
   const chick=(cx,cy,s,f)=>{for(let y=-s;y<=s;y++)for(let x=-s-1;x<=s+1;x++){if(x*x/((s+1.4)*(s+1.4))+y*y/((s+.4)*(s+.4))>1)continue;P(A,cx+x,cy+y,RAMP.straw[y<0&&x*f<1?5:(y>0||x*f>s-1?4:5)]);}
     const hx=cx+f*s,hy=cy-s,r=Math.max(1,s-1);for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){if(x*x+y*y>r*r+1)continue;P(A,hx+x,hy+y,RAMP.straw[y<0?5:4]);}
     P(A,hx+f*(r>1?1:0),hy-(r>1?1:0),RAMP.walnut[0]);P(A,hx+f*(r+1),hy,RAMP.pumpkin[4]);if(s>2)P(A,hx+f*(r+2),hy,RAMP.pumpkin[2]);};
-  chick(x0+8,fy+8,3,1);chick(x0+27,fy+8,3,-1);                              // four chicks, no two alike
+  chick(x0+8,fy+8,3,1);chick(x0+27,fy+8,3,-1);for(const [hx,hw] of [[x0+5,7],[x0+24,7]])hl(A,hx,fy+5,hw,RAMP.straw[5]);                              // four chicks, no two alike
   for(const x of [x0+12,x0+22,x0+31]){for(let y=fy+2;y<fy+12;y++)P(A,x,y,I[1]);P(A,x,fy+2,I[3]);}                                 // dark iron bars over the open front
   const peek=(hx,hy,r,f)=>{for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){if(x*x+y*y>r*r+1)continue;P(A,hx+x,hy+y,RAMP.straw[y<0?5:4]);}P(A,hx+f,hy-1,RAMP.walnut[0]);P(A,hx+f*(r+1),hy,RAMP.pumpkin[4]);if(r>2)P(A,hx+f*(r+2),hy,RAMP.pumpkin[2]);};
   peek(x0+13,top-1,3,1);peek(x0+22,top-3,2,-1);peek(x0+33,top,3,-1);   // three heads up over the rim, different sizes, different ways
@@ -972,7 +972,7 @@ if(K==='produce'){const base=H-3,R=RAMP.oak,x0=3,w=W-6;   // a produce stand: tw
     if(kind==='apple'){P(A,cx-1,cy-1,C[5]);P(A,cx,cy-2,RAMP.bark[2]);}if(kind==='pump'){P(A,cx,cy-3,RAMP.bark[2]);P(A,cx,cy,C[2]);P(A,cx,cy+1,C[2]);}if(kind==='potato'){P(A,cx,cy,C[2]);P(A,cx-1,cy-1,C[5]);}};   // a cabbage: its leaves curling round a lit heart
   const heap=(x0b,yb,wb,kind,big)=>{const L={apple:[[0,4,6],[2,4,5],[4,4,3]],pump:[[0,7,3],[3.5,7,big?1:0]],squash:[[0,6,3],[3,6,2]],potato:[[0,6,3],[3,6,big?2:1]]}[kind];   // each crop heaped its own way: a low dome of apples, pumpkins side by side, squash and cabbages two deep
     const hh={apple:2,potato:3,squash:3,pump:4}[kind];const rows=[];L.forEach(([off,sp,n],row)=>{const r_=[];const w0=(n-1)*sp;for(let i=0;i<n;i++)r_.push([x0b+Math.round(wb/2-w0/2+i*sp+(off%1?0:0)),yb-row*hh]);rows.push(r_);});
-    for(let k=rows.length-1;k>=0;k--)for(const [cx,cy] of rows[k])fr(cx,cy,kind);};
+    for(let i=1;i<wb-1;i++)P(A,x0b+i,yb+2,RAMP.plum[0]);for(let k=rows.length-1;k>=0;k--)for(const [cx,cy] of rows[k])fr(cx,cy,kind);const tr=rows[rows.length-1][0];if(tr){P(A,tr[0]-1,tr[1]-2,RAMP.cream[5]);}};   // a dark foot under each heap, a glint on its top
   const crates=(fy,kinds)=>{const bw=Math.floor(w/4);for(let k=0;k<4;k++){const cx0=x0+k*bw;heap(cx0+1,fy-2,bw-2,kinds[k][0],kinds[k][1]);
       for(let j=0;j<5;j++)for(let i=0;i<bw-1;i++)P(A,cx0+i,fy+j,R[j===0?5:(j===4?1:(i<2?4:3))]);vl(A,cx0+bw-1,fy,5,R[0]);hl(A,cx0,fy+2,bw-1,R[2]);}};   // crate fronts in front of the heaps
   for(const lx of [x0,x0+w-3])for(let y=base-46;y<base;y++){P(A,lx,y,R[4]);P(A,lx+1,y,R[2]);P(A,lx+2,y,R[1]);}                     // the posts
@@ -981,7 +981,7 @@ if(K==='produce'){const base=H-3,R=RAMP.oak,x0=3,w=W-6;   // a produce stand: tw
   for(let y=base-31;y<base-28;y++)for(let i=0;i<w;i++)P(A,x0+i,y,R[y===base-31?3:1]);                                          // the upper shelf's edge
   crates(base-14,[['potato',1],['apple',0],['pump',1],['squash',0]]);
   for(let y=base-9;y<base;y++){const a=Math.round(190-(y-base+9)*16);for(let x=x0+3;x<x0+w-3;x++)SH(x,y,a);}                      // the dark under the stand
-  for(const [k,t] of [[0,'5C'],[1,'8C'],[2,'4C'],[3,'3C']]){const bw=Math.floor(w/4),cx=x0+k*bw+(bw>>1)-5;rect(A,cx,base-12,10,7,RAMP.cream[3]);hl(A,cx,base-12,10,RAMP.cream[4]);drawText(A,t,cx+1,base-11,RAMP.walnut[0]);}   // chalked price cards
+  for(const [k,t] of [[0,'5C'],[1,'8C'],[2,'4C'],[3,'3C']]){const bw=Math.floor(w/4),cx=x0+k*bw+(bw>>1)-5;rect(A,cx,base-12,10,7,RAMP.cream[2]);hl(A,cx,base-12,10,RAMP.cream[3]);drawText(A,t,cx+1,base-11,RAMP.walnut[0]);}   // chalked price cards
   cast(x0,x0+w,base);}
 if(K==='seedrack'){const base=H-3,x0=3,w=W-6,R=RAMP.oak;   // a seed rack: rows of packets, taller than wide, standing in pockets behind a front lip
   rect(A,x0,4,w,base-6,R[1]);wood(x0,4,w,base-6,R);
@@ -1022,7 +1022,7 @@ if(K==='saddle'){const base=H-3,cx=(W>>1)+1,L=hexR(['#3e2615','#5c3a20','#7c522e
   for(let y=0;y<4;y++)for(let x=-14;x<=14;x++)P(A,cx+x,sy-y+3,RAMP.brick[y===3?4:(x>11?2:3)]);for(let x=-14;x<=14;x+=3)P(A,cx+x,sy+4,RAMP.brick[1]);   // the blanket, its fringe
   const seatY=x=>x<-8?-3:(x<6?-2+Math.round(Math.sin(Math.PI*(x+8)/14)):(x<11?-3-Math.round((x-6)*.5):-5));
   for(let x=-12;x<=12;x++){const ty=seatY(x);for(let y=ty;y<=0;y++){let k=y===ty?5:(y===ty+1?(x>-7&&x<6?5:4):3);if(x>9&&y>ty)k=2;if(y===0)k=1;P(A,cx+x,sy+y,L[k]);}}   // the seat: the biggest lit plane
-  for(let j=0;j<2;j++){P(A,cx-12,sy-3-j,L[4]);P(A,cx-11,sy-3-j,L[2]);}for(let i=-13;i<=-10;i++)P(A,cx+i,sy-5,L[i<-11?5:4]);   // the horn: a low knob
+  for(let j=0;j<4;j++){P(A,cx-12,sy-3-j,L[4]);P(A,cx-11,sy-3-j,L[2]);}for(let i=-14;i<=-9;i++)P(A,cx+i,sy-7,L[i<-12?5:4]);for(let i=-13;i<=-10;i++)P(A,cx+i,sy-8,L[5]);   // the horn: a short post, a flat cap, higher than the cantle
   for(let y=1;y<11;y++)for(let x=-7;x<=5;x++){const r=y>7?(y-7)*1.5:0;if(x<-7+r||x>5-r)continue;P(A,cx+x,sy+y,L[x<=-6+r?4:(x>=4-r?1:2)]);}   // the flap
   for(let j=11;j<14;j++)P(A,cx-1,sy+j,L[1]);for(let i=-3;i<=2;i++){P(A,cx-1+i,sy+14,I[i<0?4:2]);P(A,cx-1+i,sy+17,I[2]);}for(let j=14;j<18;j++){P(A,cx-4,sy+j,I[3]);P(A,cx+1,sy+j,I[1]);}   // the strap, an iron stirrup
   cast(cx-20,cx+20,base);}
@@ -1037,8 +1037,8 @@ if(K==='shovels'){const base=H-3,x0=3,w=W-6,R=RAMP.walnut,O=RAMP.oak,I=RAMP.iron
   cast(x0,x0+w,base);}
 if(K==='rods'){const base=H-3,S_=RAMP.stone,R=RAMP.walnut;   // fishing rods in a floor rack: each a clean tapering line at its own lean, never crossing, a reel at the butt
   const rod=(bx,tx,ty,bend)=>{const by=base-6;const n=by-ty;for(let j=0;j<=n;j++){const t=j/n,x=Math.round(bx+(tx-bx)*t),y=by-j;
-      P(A,x,y,t<.14?RAMP.walnut[3]:RAMP.straw[t<.6?4:5]);if(t<.14)P(A,x+1,y,RAMP.walnut[1]);}   // a cork-dark grip, then one pale cane line
-    const rr=[.09,.17,.11,.14][(bx>>2)%4];const rx=Math.round(bx+(tx-bx)*rr)+3,ry=by-Math.round(n*rr);for(let y=-2;y<=2;y++)for(let x=-2;x<=2;x++){if(x*x+y*y>5)continue;P(A,rx+x,ry+y,(x+y<-1)?S_[5]:(x*x+y*y>2?S_[2]:RAMP.ironW[1]));}P(A,rx+3,ry,S_[3]);   // a round reel: a dark drum, a lit rim, its handle
+      P(A,x,y,t<.14?RAMP.walnut[3]:RAMP.oak[t<.6?4:5]);if(t<.14)P(A,x+1,y,RAMP.walnut[1]);}   // a cork-dark grip, then one pale cane line
+    const rr=[.06,.22,.12,.17][(bx>>2)%4];const rx=Math.round(bx+(tx-bx)*rr)+3,ry=by-Math.round(n*rr);for(let y=-2;y<=2;y++)for(let x=-2;x<=2;x++){if(x*x+y*y>5)continue;P(A,rx+x,ry+y,(x+y<-1)?S_[5]:(x*x+y*y>2?S_[2]:RAMP.ironW[1]));}P(A,rx+3,ry,S_[3]);   // a round reel: a dark drum, a lit rim, its handle
     return [tx,ty];};
   rod(5,2,8,-1);const tip=rod(11,10,3,0);rod(17,19,6,1);rod(23,28,12,1);
   for(let j=1;j<14;j++)P(A,tip[0],tip[1]+j,RAMP.cream[2]);P(A,tip[0],tip[1]+14,RAMP.brick[4]);P(A,tip[0],tip[1]+15,RAMP.cream[5]);P(A,tip[0],tip[1]+16,RAMP.brick[3]);   // a line hanging from a tip, a red-and-white float
@@ -1054,10 +1054,9 @@ if(K==='bar'){const base=H-3,x0=3,w=W-6,R=RAMP.walnut,B=RAMP.brass;   // a long 
   hl(A,x0,base-2,w,R[1]);hl(A,x0,base-1,w,R[0]);
   for(let i=2;i<w-2;i++){P(A,x0+i,base-6,B[i<w*.4?4:3]);P(A,x0+i,base-5,B[1]);}for(const bx of [x0+8,x0+(w>>1),x0+w-10]){P(A,bx,base-4,B[2]);P(A,bx,base-3,B[1]);}   // a brass foot rail, dull, on three brackets
   // on the top: a beer tap, two bottles, a stack of glasses, a ring left by a glass
-  {const tx=x0+w-26;for(let j=0;j<9;j++){P(A,tx,top-j,B[3]);P(A,tx+1,top-j,B[1]);}hl(A,tx-1,top-9,4,B[4]);for(let j=0;j<5;j++){P(A,tx-2+(j>>2),top-14+j,RAMP.walnut[4]);P(A,tx-1+(j>>2),top-14+j,RAMP.walnut[2]);}P(A,tx+2,top-6,B[3]);P(A,tx+3,top-5,B[2]);}
-  for(const [bx,C,h] of [[x0+12,RAMP.green,10],[x0+16,RAMP.oak,8]]){for(let j=0;j<h;j++){const ww=j>h-4?0:1;for(let i=-ww;i<=ww+1;i++)P(A,bx+i,top+2-j,C[i<0?4:(i>0?1:3)]);}P(A,bx,top+2-h,RAMP.walnut[1]);P(A,bx-1,top-h+5,RAMP.cream[4]);P(A,bx,top-h+5,RAMP.cream[3]);}   // two bottles, a paper label
-  for(let g=0;g<3;g++)for(let j=0;j<4;j++){P(A,x0+30+g*4,top+2-j,RAMP.glass[j===3?5:3]);P(A,x0+31+g*4,top+2-j,RAMP.glass[2]);P(A,x0+32+g*4,top+2-j,RAMP.glass[j===3?4:1]);}   // three glasses
-  for(const [dx,dy] of [[0,0],[1,0],[2,0],[-1,1],[3,1],[0,2],[1,2],[2,2]])P(A,x0+56+dx,top+2+dy,R[1]);                        // a ring left by a glass
+  for(const tx of [x0+w-30,x0+w-21]){for(let j=0;j<9;j++){P(A,tx,top-j,B[j<2?4:3]);P(A,tx+1,top-j,B[1]);}hl(A,tx-1,top-9,4,B[4]);for(let j=0;j<6;j++){P(A,tx-1+(j>>2),top-15+j,RAMP.ivory[5]);P(A,tx+(j>>2),top-15+j,RAMP.ivory[3]);}P(A,tx+2,top-6,B[3]);}   // two beer pumps, pale handles
+  for(const [bx,C,h] of [[x0+8,RAMP.green,12],[x0+12,RAMP.oak,9],[x0+16,RAMP.plum,11],[x0+20,RAMP.green,8],[x0+24,RAMP.ochre,10]]){for(let j=0;j<h;j++){const ww=j>h-4?0:1;for(let i=-ww;i<=ww+1;i++)P(A,bx+i,top+2-j,i===-ww&&j<h-4?RAMP.ivory[4]:C[i>ww?1:(j>h-4?3:2)]);}P(A,bx,top+2-h,RAMP.walnut[1]);P(A,bx,top-h+6,RAMP.cream[4]);P(A,bx+1,top-h+6,RAMP.cream[3]);}   // bottles of different heights, each with a lit edge and a label
+  for(let g=0;g<3;g++)for(let j=0;j<4;j++){P(A,x0+34+g*4,top+2-j,RAMP.glass[j===3?5:3]);P(A,x0+35+g*4,top+2-j,RAMP.glass[2]);P(A,x0+36+g*4,top+2-j,RAMP.glass[j===3?4:1]);}   // three glasses
   cast(x0,x0+w,base);}
 if(K==='hearth'){const base=H-3,St=RAMP.stone,x0=4,w=W-8;   // a stone hearth: big uneven stones, an oak mantel with a few things on it, a fire, a hearth slab
   const sTop=4;const cells=[];let y=sTop,row=0;
@@ -1103,12 +1102,12 @@ if(K==='candycase'){const base=H-3,x0=4,w=W-8,R=RAMP.walnut;   // a candy case: 
   for(let r=0;r<2;r++){const ty=gy+5+r*8;for(let x=gx+1;x<gx+gw-1;x++)P(A,x,ty+3,RAMP.oak[2]);
     for(let k=0;k<5;k++){const C=SW[(k+r*2)%5],bx=gx+3+k*12;for(let n=0;n<4;n++){const sx_=bx+((n*3)%7),sy_=ty+(n%2);P(A,sx_,sy_,C[4]);P(A,sx_+1,sy_,C[3]);P(A,sx_,sy_+1,C[2]);P(A,sx_+1,sy_+1,C[2]);}}}   // trays of sweets, each kind its own dull colour
   for(let i=0;i<gw;i++)P(A,gx+i,gy,RAMP.glass[4]);for(let j=0;j<10;j++)P(A,gx+2+j,gy+1+j,RAMP.glass[3]);                         // the glass: a lit top edge, a sheen
-  for(let k=0;k<4;k++){const jx=x0+6+k*15,jh=10+(k%2)*2,C=SW[k];for(let y=0;y<jh;y++)for(let x=0;x<9;x++){let c=RAMP.glass[x===0?4:(x===8?1:2)];if(y>2&&x>0&&x<8&&(x+y)%3!==0)c=C[y<6?4:3];P(A,jx+x,top-y-1,c);}rect(A,jx,top-jh-2,9,2,RAMP.ironW[3]);hl(A,jx,top-jh-2,9,RAMP.ironW[4]);}   // jars with tin lids, full to different heights
+  for(let k=0;k<4;k++){const jx=x0+6+k*15,jh=10+(k%2)*2,C=SW[k];for(let y=0;y<jh;y++)for(let x=0;x<9;x++)P(A,jx+x,top-y-1,RAMP.glass[x===0?4:(x===8?1:1)]);for(let sy=0;sy+2<jh-2;sy+=3)for(let sx=1;sx<8;sx+=3){const yy=top-2-sy-((sx>>1)%2);P(A,jx+sx,yy-1,C[5]);P(A,jx+sx+1,yy-1,C[4]);P(A,jx+sx,yy,C[3]);P(A,jx+sx+1,yy,C[2]);}P(A,jx+1,top-jh+1,RAMP.glass[5]);rect(A,jx,top-jh-2,9,2,RAMP.ironW[3]);hl(A,jx,top-jh-2,9,RAMP.ironW[4]);}   // jars with tin lids, full to different heights
   cast(x0,x0+w,base);}
 if(K==='chairstack'){const base=H-3,R=RAMP.oak;   // four kitchen chairs stacked for the night, seen side on: each an "h", nested seat on seat
   const chair=(x,y,k)=>{const L=k%2?R:RAMP.pine;for(let j=0;j<30;j++){P(A,x,y-j,L[4]);P(A,x+1,y-j,L[2]);}   // the back post running down into the back leg
       for(const ry of [y-27,y-21])for(let i=-1;i<=1;i++)P(A,x+i,ry,L[5]);                                                      // the rails' ends
-      for(let i=0;i<13;i++){P(A,x+2+i,y-12,L[5]);P(A,x+2+i,y-11,L[3]);P(A,x+2+i,y-10,L[1]);}                                     // the seat
+      for(let i=0;i<13;i++){P(A,x+2+i,y-13,RAMP.oak[5]);P(A,x+2+i,y-12,RAMP.oak[5]);P(A,x+2+i,y-11,RAMP.oak[3]);P(A,x+2+i,y-10,RAMP.walnut[0]);}   // the seat: the lightest thing, a dark line under its edge
       for(let j=0;j<10;j++){P(A,x+13,y-9+j,L[3]);P(A,x+14,y-9+j,L[1]);}for(let i=3;i<13;i++)P(A,x+i,y-4,L[2]);};                // the front leg, a stretcher
   for(let k=0;k<4;k++)chair(8+k*2,base-k*6,k);cast(6,30,base);}
 // =================================================================================== small things: bottles, papers, knitting, drawings, the map board, signs, the fish, the net, lures, the cat
@@ -1126,22 +1125,30 @@ if(K==='papers'){const base=H-3;   // papers dropped on the floor at angles, lin
 if(K==='knit'){const base=H-3,cx=W>>1;   // a knitting basket: wicker, three balls of wool, two needles, a half-made sleeve hanging over the side
   for(const [bx,by,C] of [[cx-4,base-10,RAMP.plum],[cx+2,base-11,RAMP.ochre],[cx-1,base-13,RAMP.bluegrey]])for(let y=-3;y<=3;y++)for(let x=-3;x<=3;x++){if(x*x+y*y>10)continue;P(A,bx+x,by+y,C[(x+y<-2)?5:((x*2+y)%3===0?2:(x+y<1?4:3))]);}   // balls of wool, their strands
   for(let j=0;j<10;j++){P(A,cx+3+Math.round(j*.4),base-12-j,RAMP.oak[4]);P(A,cx+5+Math.round(j*.2),base-12-j,RAMP.oak[3]);}       // two needles
-  for(let y=0;y<7;y++){const ww=8-(y>4?1:0);for(let x=-ww;x<=ww;x++)P(A,cx+x,base-7+y,RAMP.straw[y===0?5:((x+y)%2?2:3)]);}   // the wicker basket
+  for(let y=0;y<7;y++){const ww=8-(y>4?1:0);for(let x=-ww;x<=ww;x++)P(A,cx+x,base-7+y,RAMP.burlap[y===0?5:((((x+y)>>1)%2)?3:2)]);}   // the wicker basket: slanted strands in a dull tan
   for(let j=0;j<6;j++)for(let i=0;i<3;i++)P(A,cx-9+i,base-6+j,RAMP.plum[j%2?3:4]);                                            // the half-made sleeve over the side
   cast(cx-8,cx+8,base);}
-if(K==='drawings'){const x0=2,y0=2;   // a child's drawings pinned up: houses, a family, the sun, and in every one, standing tall at the edge, a dark figure with no face
-  const pic=(px,py,ww,hh,tilt,kind)=>{for(let j=0;j<hh;j++)for(let i=0;i<ww;i++)P(A,px+i+Math.round(j*tilt),py+j,RAMP.cream[j===0?5:4]);P(A,px+(ww>>1)+Math.round(tilt),py+1,RAMP.brick[3]);
-    const at=(i,j,c)=>P(A,px+i+Math.round(j*tilt),py+j,c);
+if(K==='drawings'){const x0=2,y0=2;   // a child's drawings pinned up, each a different thing, and in every one a tall dark figure with long arms
+  const pic=(px,py,ww,hh,tilt,kind,fx)=>{const at=(i,j,c)=>P(A,px+i+Math.round(j*tilt),py+j,c);for(let j=0;j<hh;j++)for(let i=0;i<ww;i++)at(i,j,RAMP.cream[j===0?5:4]);at(ww>>1,1,RAMP.brick[3]);
     if(kind===0){for(let i=3;i<11;i++)at(i,11,RAMP.oak[3]);for(let i=0;i<5;i++){at(4+i,10-i,RAMP.brick[3]);at(12-i,10-i,RAMP.brick[3]);}at(15,3,RAMP.ochre[5]);at(16,3,RAMP.ochre[5]);}   // a house, the sun
-    if(kind===1){for(const fx of [3,7,10])for(let j=5;j<12;j++)at(fx,j,RAMP.blue[2]);for(const fx of [3,7,10])at(fx,4,RAMP.brick[4]);}                                       // the family
-    if(kind===2){for(let i=2;i<14;i++)at(i,12,RAMP.green[3]);for(let j=6;j<12;j++)at(6,j,RAMP.bark[2]);for(let i=4;i<9;i++)at(i,5,RAMP.green[4]);}                                // a tree, the grass
-    for(let j=2;j<hh-2;j++)at(ww-3,j,RAMP.walnut[0]);for(let j=2;j<hh-6;j++)at(ww-4,j,RAMP.walnut[0]);at(ww-4,3,RAMP.brick[5]);at(ww-3,3,RAMP.brick[5]);};   // the tall dark one, at the edge of every picture
-  pic(x0+2,y0+2,20,14,.05,0);pic(x0+26,y0+1,18,15,-.06,1);pic(x0+48,y0+3,19,14,.08,2);pic(x0+4,y0+20,18,15,-.04,1);pic(x0+27,y0+21,20,14,.06,0);pic(x0+52,y0+20,18,16,-.05,2);
-  pic(x0+14,y0+37,19,14,.04,2);pic(x0+40,y0+37,20,14,-.07,0);}
+    if(kind===1){for(const f of [3,6,9])for(let j=6;j<12;j++)at(f,j,RAMP.blue[2]);for(const f of [3,6,9])at(f,5,RAMP.brick[4]);}                     // the family
+    if(kind===2){for(let i=2;i<15;i++)at(i,12,RAMP.green[3]);for(let j=6;j<12;j++)at(6,j,RAMP.bark[2]);for(let i=3;i<10;i++)at(i,5,RAMP.green[4]);}   // a tree
+    if(kind===3){for(let i=1;i<ww-1;i++)at(i,10+(i%3===0?1:0),RAMP.blue[3]);for(let i=4;i<9;i++)at(i,9,RAMP.oak[3]);at(6,7,RAMP.oak[3]);at(6,8,RAMP.oak[3]);}   // the lake, a boat
+    if(kind===4){for(const r of [8,10,12])for(let i=1;i<ww-2;i+=2)at(i,r,RAMP.ochre[4]);for(let j=5;j<12;j++)at(5,j,RAMP.oak[2]);at(4,6,RAMP.oak[2]);at(6,6,RAMP.oak[2]);}   // the field, the scarecrow
+    if(kind===5){for(let j=5;j<12;j++)for(let i=3;i<9;i++)if(i===3||i===8||j===5)at(i,j,RAMP.stone[2]);at(5,3,RAMP.stone[2]);at(5,4,RAMP.stone[2]);at(6,4,RAMP.stone[2]);at(4,4,RAMP.stone[2]);}   // the church
+    if(kind===6){for(let i=2;i<12;i++)at(i,9,RAMP.brick[2]);for(let i=4;i<9;i++)at(i,7,RAMP.brick[2]);at(3,11,RAMP.walnut[1]);at(10,11,RAMP.walnut[1]);for(let i=12;i<15;i++)at(i,9-(i-12),RAMP.walnut[2]);}   // a car, crashed
+    if(kind===7){for(let i=2;i<12;i++){at(i,10,RAMP.blue[3]);at(i,11,RAMP.oak[3]);}at(3,9,RAMP.cream[2]);at(4,9,RAMP.cream[2]);}                   // a bed, someone in it
+    for(let j=1;j<hh-1;j++){at(fx,j,RAMP.walnut[0]);at(fx+1,j,RAMP.walnut[0]);}for(let i=-1;i<=2;i++){at(fx+i,1,RAMP.walnut[0]);at(fx+i,2,RAMP.walnut[0]);}   // the tall one: two strokes wide, its head above everything
+    for(let k=1;k<5;k++){at(fx-k,4+k,RAMP.walnut[0]);at(fx+1+k,4+k,RAMP.walnut[0]);}at(fx,2,RAMP.brick[5]);at(fx+1,2,RAMP.brick[5]);};   // long arms reaching down, red eyes
+  pic(x0+2,y0+2,20,14,.05,0,16);pic(x0+26,y0+1,18,15,-.06,1,12);pic(x0+48,y0+3,19,14,.08,2,14);pic(x0+4,y0+20,18,15,-.04,3,2);pic(x0+27,y0+21,20,14,.06,4,15);pic(x0+52,y0+20,18,16,-.05,5,12);
+  pic(x0+14,y0+37,19,14,.04,6,15);pic(x0+40,y0+37,20,14,-.07,7,8);}
 if(K==='mapboard'){const x0=2,y0=2,w=W-4,h=H-6;   // a map of the valley pinned to a cork board: the river, the road, red string from pin to pin, a circled place
   for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++)P(A,x,y,RAMP.oak[(x*3+y*5)%7===0?4:3]);wood(x0,y0,w,h,RAMP.walnut);
   const mx=x0+5,my=y0+4,mw=w-10,mh=h-9;for(let y=my;y<my+mh;y++)for(let x=mx;x<mx+mw;x++)P(A,x,y,RAMP.cream[y===my?5:4]);
-  for(let i=0;i<mw;i++){const yy=my+5+Math.round(Math.sin(i*.2)*3+i*.15);P(A,mx+i,yy,RAMP.blue[3]);P(A,mx+i,yy+1,RAMP.blue[2]);}   // the river
+  for(let y=0;y<mh;y++)for(let x=0;x<mw;x++){const d=((x-mw*.3)*(x-mw*.3))/(mw*mw*.04)+((y-mh*.35)*(y-mh*.35))/(mh*mh*.06)+Math.sin(x*.7+y)*.12;if(d<1)P(A,mx+x,my+y,RAMP.blue[d>.8?2:3]);else if(d<1.25)P(A,mx+x,my+y,RAMP.cream[3]);}   // the lake, its shore shaded
+  for(let i=0;i<mw;i++){const yy=my+mh-8+Math.round(Math.sin(i*.25)*1.5);P(A,mx+i,yy,RAMP.blue[2]);}   // the creek
+  for(let y=my;y<my+mh;y++){P(A,mx+(mw>>1),y,RAMP.cream[2]);P(A,mx+(mw>>1)+1,y,RAMP.cream[5]);}   // the fold
+  for(const [tx,ty] of [[mx,my],[mx+mw-1,my],[mx,my+mh-1],[mx+mw-1,my+mh-1]]){P(A,tx,ty,RAMP.brass[5]);P(A,tx+1,ty+1,RAMP.brass[2]);}   // tacks
   for(let i=0;i<mw;i++)if(i%2===0)P(A,mx+i,my+mh-6-Math.round(i*.1),RAMP.walnut[2]);                                           // the road
   for(const [ax,ay,bx,by] of [[mx+6,my+4,mx+20,my+17],[mx+20,my+17,mx+34,my+8],[mx+34,my+8,mx+40,my+20]])ln(A,ax,ay,bx,by,RAMP.brick[3]);
   for(const [px,py] of [[mx+6,my+4],[mx+20,my+17],[mx+34,my+8],[mx+40,my+20]]){P(A,px,py,RAMP.brick[5]);P(A,px,py+1,RAMP.brick[1]);}   // pins, red string between them
@@ -1160,11 +1167,13 @@ if(K==='fishmount'){const x0=2,y0=3,w=W-4,h=H-7;   // a pike on a plaque: a long
   P(A,x0+10,cy-1,RAMP.ochre[5]);P(A,x0+11,cy-1,RAMP.walnut[0]);for(let i=0;i<4;i++)P(A,x0+6+i,cy+1,RAMP.walnut[1]);              // the glass eye, the long jaw
   rect(A,x0+(w>>1)-5,y0+h-4,10,2,RAMP.brass[3]);hl(A,x0+(w>>1)-5,y0+h-4,10,RAMP.brass[4]);
   wallShadow(x0,x0+w-1,y0,y0+h-1);}
-if(K==='netwall'){const x0=3,y0=4,w=W-6,h=H-10;   // a fishing net hung to dry: cork floats along the top rope, the mesh sagging in diamonds, a few shells caught in it
-  for(let i=0;i<w;i++){P(A,x0+i,y0+Math.round(Math.sin(i/w*Math.PI)*2),RAMP.burlap[4]);}
-  for(let k=0;k<7;k++){const fx=x0+3+k*8,fy=y0+Math.round(Math.sin((fx-x0)/w*Math.PI)*2);rect(A,fx-1,fy-1,4,3,RAMP.oak[4]);hl(A,fx-1,fy-1,4,RAMP.oak[5]);}   // cork floats
-  for(let d=-h;d<w+h;d+=6)for(let j=0;j<h;j++){const sag=Math.round(Math.sin((j)/h*Math.PI)*2);const xa=x0+d+j,xb=x0+d+h-j;if(xa>=x0&&xa<x0+w)P(A,xa,y0+2+j+sag,RAMP.burlap[3]);if(xb>=x0&&xb<x0+w)P(A,xb,y0+2+j+sag,RAMP.burlap[2]);}   // the mesh in diamonds
-  for(const [sx_,sy_] of [[x0+12,y0+12],[x0+33,y0+19],[x0+46,y0+9]]){P(A,sx_,sy_,RAMP.ivory[5]);P(A,sx_+1,sy_,RAMP.ivory[4]);P(A,sx_,sy_+1,RAMP.ivory[3]);}   // shells
+if(K==='netwall'){const x0=3,y0=5,w=W-6,h=H-11;   // a fishing net hung from four pegs to dry: it swags between them, its hem ragged and gathered, big cork floats along the rope
+  const pegs=[x0+1,x0+19,x0+37,x0+w-2];const topY=x=>{let k=0;while(k<pegs.length-2&&x>pegs[k+1])k++;const t=(x-pegs[k])/(pegs[k+1]-pegs[k]);return y0+Math.round(Math.sin(t*Math.PI)*3);};
+  const botY=x=>y0+h-2+Math.round(Math.sin(x*.5)*1.5+Math.sin(x*1.3)*1)-((x>x0+20&&x<x0+30)?3:0);
+  for(let x=x0;x<x0+w;x++){const t0=topY(x),b0=botY(x);for(let y=t0+1;y<=b0;y++){const u=x-x0,v=y-t0;if((u+v)%5===0||(u-v+50)%5===0)P(A,x,y,RAMP.burlap[(u+v)%5===0?3:2]);}}   // the mesh
+  for(let x=x0;x<x0+w;x++)P(A,x,topY(x),RAMP.burlap[4]);for(const px of pegs){P(A,px,y0-1,RAMP.walnut[4]);P(A,px,y0,RAMP.walnut[2]);P(A,px+1,y0,RAMP.walnut[1]);}   // the rope, the pegs
+  for(const fx of [x0+9,x0+28,x0+46]){const fy=topY(fx);for(let j=0;j<3;j++)for(let i=0;i<4;i++)P(A,fx-1+i,fy-1+j,RAMP.oak[j===0?5:(i===3?2:4)]);}   // cork floats
+  for(const [sx_,sy_] of [[x0+13,y0+12],[x0+40,y0+16]]){P(A,sx_,sy_,RAMP.ivory[5]);P(A,sx_+1,sy_,RAMP.ivory[4]);P(A,sx_,sy_+1,RAMP.ivory[3]);}
   wallShadow(x0,x0+w-1,y0,y0+h);}
 if(K==='lures'){const x0=3,y0=3,w=W-6,h=H-8;   // a tackle card of lures: spoons, a plug, flies, each a different shape
   for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++)P(A,x,y,RAMP.bluegrey[y===y0?3:1]);wood(x0,y0,w,h,RAMP.oak);
@@ -1172,8 +1181,8 @@ if(K==='lures'){const x0=3,y0=3,w=W-6,h=H-8;   // a tackle card of lures: spoons
   const spoon=(x,y,C)=>{for(let j=0;j<6;j++){const ww=j<1||j>4?0:1;for(let i=-ww;i<=ww;i++)P(A,x+i,y+j,C[i<0?5:(i>0?2:4)]);}hook(x,y+6);};
   const plug=(x,y,C)=>{for(let i=0;i<7;i++)for(let j=0;j<3;j++)P(A,x+i,y+j,C[j===0?4:(j===2?2:3)]);P(A,x+1,y+1,RAMP.walnut[0]);P(A,x+1,y,RAMP.ivory[5]);hook(x+3,y+3);};
   const fly=(x,y,C)=>{for(let j=0;j<4;j++){P(A,x-j%2,y+j,C[4]);P(A,x+1+j%2,y+j,C[3]);}P(A,x,y,RAMP.ochre[5]);hook(x,y+4);};
-  spoon(x0+6,y0+5,RAMP.steel);spoon(x0+13,y0+4,RAMP.brass);plug(x0+19,y0+5,RAMP.brick);plug(x0+29,y0+6,RAMP.green);fly(x0+8,y0+18,RAMP.plum);fly(x0+15,y0+19,RAMP.ochre);spoon(x0+24,y0+17,RAMP.steel);fly(x0+33,y0+18,RAMP.bluegrey);
-  hl(A,x0+3,y0+h-4,w-6,RAMP.cream[3]);drawText(A,'LURES',x0+(w>>1)-10,y0+h-9,RAMP.cream[4]);
+  spoon(x0+6,y0+5,RAMP.steel);spoon(x0+13,y0+4,RAMP.brass);plug(x0+19,y0+5,RAMP.brick);plug(x0+29,y0+6,RAMP.green);fly(x0+8,y0+18,RAMP.plum);spoon(x0+16,y0+17,RAMP.brass);plug(x0+22,y0+19,RAMP.ochre);fly(x0+34,y0+18,RAMP.bluegrey);
+  rect(A,x0+w-14,y0+h-7,10,4,RAMP.cream[2]);hl(A,x0+w-13,y0+h-5,7,RAMP.walnut[2]);   // a small price tag
   wallShadow(x0,x0+w-1,y0,y0+h-1);}
 if(K==='cat'){const base=H-3,cx=W>>1;   // a black cat curled asleep on a cushion, its tail round its nose, one eye open
   for(let y=-3;y<=2;y++)for(let x=-13;x<=13;x++){if(x*x/169+y*y/9>1)continue;P(A,cx+x,base-3+y,RAMP.brick[y<-1?4:(y<1?3:2)]);}   // the cushion
@@ -1181,7 +1190,8 @@ if(K==='cat'){const base=H-3,cx=W>>1;   // a black cat curled asleep on a cushio
   for(let y=-3;y<=2;y++)for(let x=-3;x<=3;x++){if(x*x+y*y*1.2>10)continue;P(A,cx-7+x,base-9+y,RAMP.charcoal?RAMP.charcoal[x+y<-2?4:2]:RAMP.walnut[2]);}   // the head tucked in
   for(const ex of [-9,-6])P(A,cx+ex,base-13,RAMP.charcoal?RAMP.charcoal[3]:RAMP.walnut[3]);P(A,cx-10,base-12,RAMP.charcoal?RAMP.charcoal[2]:RAMP.walnut[2]);P(A,cx-5,base-12,RAMP.charcoal?RAMP.charcoal[2]:RAMP.walnut[2]);   // ears
   P(A,cx-6,base-9,RAMP.olive[5]);P(A,cx-5,base-9,RAMP.ochre[5]);hl(A,cx-9,base-9,2,RAMP.walnut[0]);                                // one eye open, the other shut
-  for(let i=0;i<12;i++)P(A,cx-6+i,base-3+Math.round(Math.sin(i*.3)),RAMP.charcoal?RAMP.charcoal[2]:RAMP.walnut[2]);                 // the tail round the front
+  for(let x=-8;x<=8;x++){const yy=Math.round(-Math.sqrt(Math.max(0,30*(1-x*x/81))));P(A,cx+x,base-7+yy,RAMP.bluegrey[3]);}   // a cool rim of light along its back
+  for(let i=0;i<16;i++){const tx=cx+8-i,ty=base-3-Math.round(Math.sin(i/16*Math.PI)*1.5)-(i>12?i-12:0);P(A,tx,ty,RAMP.charcoal?RAMP.charcoal[3]:RAMP.walnut[2]);P(A,tx,ty+1,RAMP.charcoal?RAMP.charcoal[1]:RAMP.walnut[1]);}   // the tail wrapped round the front to its nose
   cast(cx-13,cx+13,base);}
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));
