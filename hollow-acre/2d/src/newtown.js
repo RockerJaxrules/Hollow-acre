@@ -145,7 +145,7 @@ COPSES.push({x:101,z:35.4,rx:4.2,rz:3.2});
   const W=(spr,x0,x1,z)=>{for(let x=x0;x<x1-.05;x+=2)obj(spr,Math.min(x,x1-2),z,{kind:'prop',noCol:true,town:1});addSeg(x0,z-.15,x1,z-.15,.3);};
   // Wickham: the chapel stands on a rise, a stone retaining wall with wooden steps up from High Street
   {const base=39.2,s0=WK.bell-1.2,s1=WK.bell+1.2;const run=(a,b)=>{for(let x=a;x<b-.05;x+=2)obj('twall',Math.min(x,b-2),base,{kind:'wall',town:1});addSeg(a,base-.5,b,base-.5,.5);};
-    run(119.4,s0);run(s1,128.6);obj('tsteps_wood',WK.bell,base,{kind:'wall',town:1});addSeg(s0-.05,base-1.1,s0-.05,base,.12);addSeg(s1+.05,base-1.1,s1+.05,base,.12);
+    run(119.4,s0);run(s1,128.6);obj('tsteps_wood',WK.bell,base,{kind:'flat',town:1,stairs:1});addSeg(s0-.02,base-1.5,s0-.02,base+.15,.16);addSeg(s1+.02,base-1.5,s1+.02,base+.15,.16);
     Y('vines',119.8,base+.02,{noCol:true});Y('vines',128.2,base+.02,{noCol:true});}
   // the copse behind the inn: dark, close, a path in that nobody admits to using
   {const C=COPSES[COPSES.length-1];for(let i=0;i<12;i++){const a=i*2.4,r=.2+((i*.41)%1)*.8;const x=C.x+Math.cos(a)*C.rx*r,z=C.z+Math.sin(a)*C.rz*r;const e=obj(['pine_0','spruce_1','pine_1','spruce_0'][i%4],x,z,{kind:'pine',solid:1,town:1});addCircle(x,z,.4);}}

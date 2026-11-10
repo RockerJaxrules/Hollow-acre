@@ -577,6 +577,9 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 
 - Two raised points on either end of a curved shape with a hanging panel between them read as horns over a face (a saddle side-on read as a bull's skull). Keep a saddle's ends low and round, and give it context (a blanket, a rope) before detail.
 
+- Stairs you climb are laid on the ground (a flat decal under whoever is on them), never sorted like a wall: sorted at their base they are drawn over the climber and you seem to walk through them. Their run up the screen must equal the wall's rise, and their sides need collision the whole length, past both ends (owner: "the stair for the chapel is useless... you just walk through it").
+- Every building whose door sits on a foundation needs door steps (steps, door_w, door_dx in its sprite data), the chapels too.
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline
