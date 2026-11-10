@@ -230,13 +230,13 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
   if(flashT>0){lctx.globalCompositeOperation='lighter';lctx.fillStyle=`rgba(210,220,255,${clamp(flashT,0,1)})`;lctx.fillRect(0,0,VW,VH);}
   ctx2.globalCompositeOperation='multiply';ctx2.drawImage(lightC,0,0);ctx2.globalCompositeOperation='source-over';
   // vignette + danger pulse + grain
-  if(!vig||vig.w!==VW||vig.h!==VH)makeVig();ctx2.drawImage(vig.c,0,0);
+  {const va=S.room&&!isNight()?.36:.55;if(!vig||vig.w!==VW||vig.h!==VH||vig.a!==va)makeVig(va);}ctx2.drawImage(vig.c,0,0);   /* (b47: indoors by day the side walls sank to near-black and a day room read as dusk) a lighter vignette inside by day */
   if(danger>.3&&!S.bound){ctx2.fillStyle=`rgba(120,0,0,${(danger-.3)*.25*(.6+.4*Math.sin(t*6))})`;ctx2.fillRect(0,0,VW,VH);}
   mindScreen(t);
 }
 let vig=null;
-function makeVig(){const c=document.createElement('canvas');c.width=VW;c.height=VH;const g=c.getContext('2d');const gr=g.createRadialGradient(VW/2,VH*.5,Math.min(VW,VH)*.35,VW/2,VH*.5,Math.max(VW,VH)*.75);
-  gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(6,4,10,.55)');g.fillStyle=gr;g.fillRect(0,0,VW,VH);vig={c,w:VW,h:VH};}
+function makeVig(va){va=va||.55;const c=document.createElement('canvas');c.width=VW;c.height=VH;const g=c.getContext('2d');const gr=g.createRadialGradient(VW/2,VH*.5,Math.min(VW,VH)*.35,VW/2,VH*.5,Math.max(VW,VH)*.75);
+  gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,`rgba(6,4,10,${va})`);g.fillStyle=gr;g.fillRect(0,0,VW,VH);vig={c,w:VW,h:VH,a:va};}
 /* ================= jumpscare (pixel) ================= */
 function drawScare(){const c=$('scare');const W=96,Hh=128;c.width=W;c.height=Hh;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
   g.fillStyle='#050102';g.fillRect(0,0,W,Hh);

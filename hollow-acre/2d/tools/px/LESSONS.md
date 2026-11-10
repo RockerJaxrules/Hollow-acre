@@ -508,6 +508,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 
 - [interiors b45] The chapel's window patch misread a fifth way (a feather): a lancet's light on a dark plank floor never reads
   in this room in any shape or tint. Cut it for good; the whitewashed wall is its daylight.
+- [interiors b46] A plain closed altar rail read as a chest with a keyhole; anything lying on a bench top (a net, a hymnal) turns
+  the bench into a table. An altar reads when a pale linen cloth hangs over its top and down the front in one broad fold, with a
+  cross and two candles standing on it: the palest shape in the room at the head of the aisle.
+- [interiors b47] A daytime room with a dark, busy board floor (an end joint on nearly every plank, about RGB 67,44,30) and a
+  heavy screen vignette reads as dusk, and the furniture sinks into it. Lift the floor a value step, make the boards twice as
+  long with quieter joints, and keep the indoor day vignette light so the side walls stay above near-black.
 
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis

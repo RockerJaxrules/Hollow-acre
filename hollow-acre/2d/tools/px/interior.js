@@ -97,10 +97,11 @@ function painted(L,x0,y0,w,h,C,soft){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w
   P(L,x,y,c);}}
 function hexTile(L,x0,y0,w,h,C){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=Math.floor((y-y0)/7),o=r%2?5:0,u=(x-x0+o)%10,v=(y-y0)%7;let c=C[3];
   if(v===0||u===0)c=C[1];if(hsh(Math.floor((x-x0+o)/10),r,13)>.88)c=C[2];if(hsh(Math.floor((x-x0+o)/10),r,14)>.988)c=PAL.slate[3];P(L,x,y,c);}}
-function wideBoards(L,x0,y0,w,h){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const row=Math.floor((y-y0)/14),v=(y-y0)%14,off=Math.floor(hsh(row,7,32)*97),seg=Math.floor((x-x0+off)/97);let c=hsh(seg,row,15)>.5?PAL.bark[3]:shade(PAL.bark[3],.9);
-  if(v===0)c=PAL.bark[0];if(v===1)c=PAL.bark[4];const u=(x-x0+off)%97;if(u===0)c=PAL.bark[1];
-  if(v>2&&v<13&&u>4&&u<92&&hsh((x-x0+off)>>4,row*14+v,16)>.93)c=PAL.bark[1];   // grain: 16 px streaks along the board, no specks
-  if((u===3||u===94)&&(v===4||v===10))c=PAL.bark[0];P(L,x,y,c);}}   // nails at the board ends
+function wideBoards(L,x0,y0,w,h,q){const BL=q?194:97;   // q (b47: "a dark busy plank field, an end joint on almost every plank"): boards twice as long, the joints and grain a step quieter
+  for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const row=Math.floor((y-y0)/14),v=(y-y0)%14,off=Math.floor(hsh(row,7,32)*BL),seg=Math.floor((x-x0+off)/BL);let c=hsh(seg,row,15)>.5?PAL.bark[3]:shade(PAL.bark[3],q?.95:.9);
+  if(v===0)c=PAL.bark[0];if(v===1)c=PAL.bark[4];const u=(x-x0+off)%BL;if(u===0)c=PAL.bark[q?2:1];
+  if(v>2&&v<13&&u>4&&u<BL-5&&hsh((x-x0+off)>>4,row*14+v,16)>(q?.96:.93))c=q?shade(PAL.bark[3],.86):PAL.bark[1];   // grain: 16 px streaks along the board, no specks
+  if((u===3||u===BL-3)&&(v===4||v===10))c=PAL.bark[q?1:0];P(L,x,y,c);}}   // nails at the board ends
 // a closed panelled door on the back wall, with its frame, knob, a strip of light under it (or dark, at night)
 function backDoor(L,cx,floorY,C,knob){const w=26,h=56,x=Math.round(cx-w/2),y=floorY-h;rect(L,x-4,y-4,w+8,h+4,TR[4]);frame(L,x-4,y-4,w+8,h+4,TR[5],TR[2]);rect(L,x-2,y-2,w+4,2,TR[3]);
   rect(L,x,y,w,h,C[3]);frame(L,x,y,w,h,C[4],C[1]);for(const [px,py,pw,ph] of [[x+4,y+5,8,18],[x+14,y+5,8,18],[x+4,y+29,8,22],[x+14,y+29,8,22]]){frame(L,px,py,pw,ph,C[1],C[4]);rect(L,px+1,py+1,pw-2,ph-2,C[2]);}
@@ -140,7 +141,7 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   for(const w of R.windows||[]){windowW(B,x0+w[0]*32-(w[2]||28)/2|0,14+(w[3]||8),w[2]||28,w[4]||34,(R.theme==='church'||R.lancet)?'lancet':false);}
   // floor
   if(R.theme==='cabin'||R.theme==='store'||(R.theme==='home'&&(!R.floor||R.floor==='planks')))planks(A,x0,top,fw,fd,WD,8,R.theme==='store');
-  if(R.theme==='home'){const fl=R.floor;if(fl==='parquet')parquet(A,x0,top,fw,fd);if(fl==='checker')checker(A,x0,top,fw,fd,PAL[R.chk||'slate'],PAL.cream);if(fl==='flag')flagstone(A,x0,top,fw,fd,R.flagRamp&&PAL[R.flagRamp]);if(fl==='packflag')packflag(A,x0,top,fw,fd,(R.soot||[]).map(q=>[q[0]*32,q[1]*32,q[2]||20]));if(fl==='painted')painted(A,x0,top,fw,fd,PAL[R.paint||'teal'],R.wear==='soft');if(fl==='hex')hexTile(A,x0,top,fw,fd,TR);if(fl==='wide')wideBoards(A,x0,top,fw,fd);}
+  if(R.theme==='home'){const fl=R.floor;if(fl==='parquet')parquet(A,x0,top,fw,fd);if(fl==='checker')checker(A,x0,top,fw,fd,PAL[R.chk||'slate'],PAL.cream);if(fl==='flag')flagstone(A,x0,top,fw,fd,R.flagRamp&&PAL[R.flagRamp]);if(fl==='packflag')packflag(A,x0,top,fw,fd,(R.soot||[]).map(q=>[q[0]*32,q[1]*32,q[2]||20]));if(fl==='painted')painted(A,x0,top,fw,fd,PAL[R.paint||'teal'],R.wear==='soft');if(fl==='hex')hexTile(A,x0,top,fw,fd,TR);if(fl==='wide')wideBoards(A,x0,top,fw,fd,R.floorQ);}
   if(R.theme==='church')tilesF(A,x0,top,fw,fd,ST,16);
   if(R.theme==='garage'){A.bay=x0+fw-150+52;concrete(A,x0,top,fw,fd);A.bay=null;}
   if(R.theme==='garage'){const bx=x0+fw-150,bw=104;for(let y=14;y<8+wallH;y++)for(let x=bx;x<bx+bw;x++){const j=(y-14)%6;P(A,x,y,j===0?ST[4]:j===5?ST[1]:ST[3]);}frame(A,bx-3,12,bw+6,wallH-2,WD[3],WD[0]);rect(A,bx+bw/2-6,8+wallH-10,12,3,PAL.slate[2]);
