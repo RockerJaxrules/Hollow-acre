@@ -3,6 +3,7 @@
 Each line is something an attempt taught. Newest and repeated mistakes go to the top of their section.
 
 ## From the owner (strongest)
+- Owner, Nov 10, on the 3D-rendered furniture, props and benches: "redo these all not in blender you lose detail when you do it and it looks bad". Understood: rendering small objects (furniture, props, stations) from 3D models smears the detail at game size. Draw them by hand in code, pixel by pixel, the way the buildings kit and the original furniture were made, and draw each turned view (side, back) by hand too, never render it. All 3D-rendered furniture was taken back out of the game (old art restored).
 
 - "your judge is being too kind on crops: that pumpkin does not look anywhere near good enough, most of them don't; compare
   them to the outside assets and you will see how bad ours look" (Nov 10): a judge's 6 against our OWN old art is not the

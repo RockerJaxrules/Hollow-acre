@@ -5,7 +5,7 @@
 function sprViews(spr){if(!spr||!SPR[spr+'_e'])return null;return {S:[spr],E:[spr+'_e'],N:[SPR[spr+'_bk']?spr+'_bk':spr],W:SPR[spr+'_w']?[spr+'_w']:[spr+'_e',1]};}
 const TURN_FP=(w,d,rot)=>rot==='E'||rot==='W'?[d+.15,Math.max(.5,w-.2)]:[w,d];
 // cabin furniture: any piece whose art has its views turns, even without a hand-made entry
-for(const k in FURN){const v=sprViews(FURN[k][1]);if(v)FURN_VIEWS[k]=v;}
+for(const k in FURN){const v=sprViews(FURN[k][1]);if(v&&!FURN_VIEWS[k])FURN_VIEWS[k]=v;}
 // the benches and the furnace
 {const _pb=placeBench;placeBench=function(k,x,z,rot){const d=BENCHES.find(b=>b[0]===k);if(!d)return _pb.apply(this,arguments);
   rot=rot||(BENCH_POS[k]&&BENCH_POS[k].rot)||'S';const v=sprViews(d[1]);const s0=d[1],f0=BENCH_FP[k];
