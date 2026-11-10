@@ -557,6 +557,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   installing, so a later re-render cannot quietly swap in an unjudged version.
 - [process] **[repeated x3]** Edit scripts: a replacement that ends in a `//` comment must END ITS LINE. Check after each script
   that the text right after every replaced span is a newline, or move the comment to the end of the line.
+- [props sweep] Big set pieces pass when drawn in the game's own 3/4 camera: show the deck top, the far rail, the round plan. A
+  face-on elevation of the same thing loses every time.
+- [props sweep] "Abandoned for years" needs the ground to take it back: flat tyres, tall mixed grass grown up over the sills and
+  wheels, a dead (not bright) headlight. A neat row of tufts along the sill says parked.
 
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
