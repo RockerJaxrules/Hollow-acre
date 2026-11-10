@@ -10,7 +10,7 @@ const DIVY={floater:.06,dart:.14,mixed:.2,smooth:.16,sinker:.38,junk:0};
 const F4={bg:null,key:'',drops:[],motes:null,last:0};
 const F4X0=5,F4Y0=5,F4IW=230,F4IH=118,F4SURF=F4Y0+25;
 function f4Bed(px){const u=(px-F4X0)/F4IW;if(u<.84)return F4SURF+44+u*36+Math.sin(u*17)*2;return F4SURF+44+.84*36+(u-.84)/.16*70;}
-function f4Bank(y){return y<F4SURF?F4X0+22:F4X0+22+(y-F4SURF)*.36;}
+function f4Bank(y){return y<F4SURF?F4X0+22:F4X0+22+(y-F4SURF)*.13+Math.sin(y*.3)*.6;}
 const F4PX=x=>F4X0+42+x*(F4IW-58);
 const F4PY=(y,x)=>{const px=F4PX(clamp(x,0,1));return F4SURF+6+y*(Math.min(f4Bed(px),F4Y0+F4IH-6)-F4SURF-14);};
 function f4Splash(x,n,y){const px=F4PX(clamp(x,0,1.05));for(let k=0;k<n;k++)F4.drops.push({x:px+(rand()-.5)*6,y:(y==null?F4SURF:y)-1,vx:(rand()-.5)*40,vy:-30-rand()*45,t:0});}
@@ -84,7 +84,7 @@ function fightBg4(night,horror){const key=night+'|'+horror;if(F4.bg&&F4.key===ke
   // the sky over the far bank, and the far trees in autumn
   for(let y=Y0;y<SURF;y++){const t=(y-Y0)/(SURF-Y0);g.fillStyle=rgb(mix(P.sky0,P.sky1,t));g.fillRect(X0,y,IW,1);}
   for(let x=X0+40;x<X0+IW;x++){const h=6+Math.round(Math.sin(x*.21)*2+Math.sin(x*.07)*3+N(x,0,2)*3);for(let y=SURF-h;y<SURF;y++){const lit=y<SURF-h+2&&N(x,y,3)<.6;
-      p(x,y,rgb(lit?P.treeL:(N(x>>1,y>>1,4)<.18&&!night?[120,64,30]:P.tree)));}}
+      p(x,y,rgb(lit?P.treeL:(N(x>>3,(y+x%3)>>2,4)<.3&&!night?[104,60,30]:P.tree)));}}
   if(night&&!horror){for(let k=0;k<5;k++){const x=X0+120+k*3,y=Y0+4;p(x,y,'#d8dcc8');}}   // a smear of moon behind thin cloud
   // the water, lighter just under the surface and darkening with depth; the deep beyond the corks darkest of all
   for(let y=SURF;y<Y0+IH;y++)for(let x=X0;x<X0+IW;x++){const bed=f4Bed(x);if(y>=bed)continue;const dpt=(y-SURF)/80,u=(x-X0)/IW;
@@ -92,17 +92,19 @@ function fightBg4(night,horror){const key=night+'|'+horror;if(F4.bg&&F4.key===ke
     if(N(x>>2,y>>1,5)<.5)col=col.map(v=>v+2);p(x,y,rgb(col));}
   // the bed: mud lit along its top, pebbles, and the drop-off
   for(let x=X0;x<X0+IW;x++){const bed=Math.round(f4Bed(x));for(let y=Math.max(bed,SURF);y<Y0+IH;y++){const e=y-bed;let col=e===0?P.mudL:e<3?mix(P.mudL,P.mud,.5):mix(P.mud,P.w2,Math.min(1,e/30));
-      if(e>1&&N(x,y,6)<.06)col=mix(col,P.mudL,.7);p(x,y,rgb(col));}}
+      p(x,y,rgb(col));}}
   for(let k=0;k<16;k++){const x=X0+30+Math.round(N(k,1,7)*IW*.78),y=Math.round(f4Bed(x))-1,w=1+Math.round(N(k,2,7)*2);for(let i=0;i<w;i++){p(x+i,y,rgb(mix(P.mudL,[150,140,120],night?.1:.4)));p(x+i,y+1,rgb(P.mud));}}
   // the sunken log lying on the bed, a snapped branch standing up out of it
   {const lx0=X0+Math.round(IW*.6),lx1=X0+Math.round(IW*.74);for(let x=lx0;x<=lx1;x++){const by=Math.round(f4Bed(x)),r=4;
       for(let j=-r;j<=r;j++){const yy=by-r+j;const lit=j<-1;p(x,yy,rgb(lit?(night?[40,32,26]:[96,72,48]):j>2?(night?[14,10,10]:[34,24,18]):(night?[28,22,18]:[66,48,32])));}}
     for(let j=0;j<10;j++)p(lx0+9+Math.round(j*.3),Math.round(f4Bed(lx0+9))-8-j,night?'#2a201a':'#5a4230');
     for(let j=-3;j<=3;j++)p(lx1,Math.round(f4Bed(lx1))-4+j,night?'#3a2e24':'#8a6c48');}
-  // the near bank, cut open: grass on top, soil and roots and stones down its face
-  for(let y=Y0+8;y<Y0+IH;y++){const ex=Math.round(f4Bank(y));for(let x=X0;x<ex;x++){const e=ex-x;let col=y<SURF-6?null:y<SURF-4?(night?[30,40,24]:[86,96,48]):mix(P.soil,[20,12,8],(y-SURF)/90);
-      if(!col)continue;if(e<=1)col=mix(col,[14,8,6],.6);if(y>=SURF-4&&N(x,y,8)<.07)col=mix(col,[130,118,96],.5);
-      if(y>SURF&&(x+Math.round(Math.sin(y*.4)*2))%9===0&&N(x,y,9)<.5)col=mix(col,[110,80,50],.35);p(x,y,rgb(col));}}
+  // the near bank, cut open: grass on top, then dark topsoil, then clay, a few roots and stones set in it; no speckle
+  for(let y=SURF-6;y<Y0+IH;y++){const ex=Math.round(f4Bank(y));for(let x=X0;x<ex;x++){const e=ex-x;
+      let col=y<SURF-4?(night?[30,40,24]:[86,96,48]):y<SURF+6?mix(P.soil,[24,16,10],.25):mix(P.soil,night?[40,34,30]:[104,84,60],Math.min(1,(y-SURF-6)/40)*.5);
+      if(e<=1)col=mix(col,[14,8,6],.6);else if(e<=3&&y>SURF)col=mix(col,P.w1,.25);p(x,y,rgb(col));}}
+  for(const [x0,y0,len] of [[X0+2,SURF+3,10],[X0+6,SURF+9,8],[X0+1,SURF+16,7]])for(let i=0;i<len;i++){const x=x0+i,y=y0+Math.round(Math.sin(i*.6)*1.2+i*.25);if(x<f4Bank(y)-1)p(x,y,night?'#1a120c':'#3a2616');}   // roots
+  for(const [x,y] of [[X0+5,SURF+24],[X0+11,SURF+38],[X0+4,SURF+52]]){if(x+2<f4Bank(y)){p(x,y,night?'#4a4440':'#8a8070');p(x+1,y,night?'#3a3430':'#6a6256');p(x,y+1,night?'#2a2420':'#4a443c');p(x+1,y+1,night?'#2a2420':'#4a443c');}}   // stones
   for(let k=0;k<7;k++){const rx=X0+3+k*3,h=6+Math.round(N(k,4,8)*6);for(let j=0;j<h;j++)p(rx+(j>h-3?1:0),SURF-6-j,j>h-3?(night?'#5a5a34':'#b0a060'):(night?'#24321c':'#4a6a2c'));}
   // the rope of corks that marks where the deep water starts, its line going down to an anchor stone
   {const cx=X0+Math.round(IW*.86);for(let y=SURF;y<Math.min(Y0+IH-4,SURF+70);y+=2)p(cx,y,horror?'#5a1818':'#8a7a5a');
