@@ -792,7 +792,7 @@ if(K==='stool'){const R=RAMP.oak,base=H-3,cx=W>>1;
   for(let x=-7;x<=7;x++)P(A,cx+x,sy+3,R[2]);                                                                                         // its edge
   for(let x=-8;x<=9;x++)SH(cx+x,base,70);cast(cx-6,cx+6,base);}
 // =================================================================================== the church pew
-if(K==='pew'||K==='pewv'||K==='pewb'||K==='pews'||K==='pewsb'){const R=K.startsWith('pews')?RAMP.pine:RAMP.walnut,base=H-3,x0=7,w=W-14,VAR=K==='pewv',SHAWL=K==='pewb';   /* (b40: oak pews on oak boards merged with the floor; the shawl read as a mauve block) the chapel's pews in pale pine */   // owner: "benches look weird, not like you could sit on them"
+if(K==='pew'||K==='pewv'||K==='pewb'||K==='pews'||K==='pewsb'||K==='pewss'){const CH=K.startsWith('pews'),R=RAMP.walnut,ST=CH?RAMP.pine:R,base=H-3,x0=7,w=W-14,VAR=K==='pewv',SHAWL=K==='pewb';   /* (b40: oak pews on oak boards merged with the floor; the shawl read as a mauve block) the chapel's pews in pale pine */   // owner: "benches look weird, not like you could sit on them"
   const endPost=(ex,top)=>{for(let y=top+3;y<base;y++){P(A,ex,y,R[5]);P(A,ex+1,y,R[4]);P(A,ex+2,y,R[3]);P(A,ex+3,y,R[2]);P(A,ex+4,y,R[1]);}
     for(let j=0;j<4;j++)for(let i=-1;i<6;i++){if((j===0&&(i<1||i>3))||(j===1&&(i<0||i>4)))continue;P(A,ex+i,top+j,R[j===0?5:(i<2?4:(i>3?1:3))]);}   // a rounded carved finial on each end
     hl(A,ex,base-1,5,R[1]);P(A,ex+2,top+8,R[1]);P(A,ex+2,top+9,R[2]);P(A,ex+1,top+12,R[5]);};
@@ -804,10 +804,10 @@ if(K==='pew'||K==='pewv'||K==='pewb'||K==='pews'||K==='pewsb'){const R=K.startsW
   if(V==='N'){   // seen from behind, as the church sees it: a solid panelled back under a rounded rail, a narrow ledge with a few books, open and dark under the seat
     const rt=base-30,sy=base-13;   // (judge b10: three raised panels read as sideboard drawers) tongue-and-groove boards, a hymn-book rack across the back
     for(let y=rt+3;y<sy;y++){const r=y-rt-3,seam=r===Math.round((sy-rt-3)/2);for(let i=0;i<w;i++){let k=seam?1:(r===0||r===Math.round((sy-rt-3)/2)+1)?4:3;if(!seam&&((i*7+r*13)%61===0))k=2;P(A,x0+i,y,R[k]);}}   // (b18: slats read as a fence) two long planks
-    for(let i=0;i<w;i++){P(A,x0+i,rt-4,R[5]);P(A,x0+i,rt-3,R[4]);P(A,x0+i,rt-2,R[3]);P(A,x0+i,rt-1,R[0]);}                    // (b13) the seat beyond the back, lit, a dark gap before the rail
+    for(let i=0;i<w;i++){P(A,x0+i,rt-4,ST[5]);P(A,x0+i,rt-3,ST[4]);P(A,x0+i,rt-2,ST[3]);P(A,x0+i,rt-1,R[0]);}   /* (b41) in the chapel the seat beyond the back shows pale pine over a dark walnut back */                    // (b13) the seat beyond the back, lit, a dark gap before the rail
     for(let j=0;j<6;j++)hl(A,x0-1,rt+j,w+2,RAMP.oak[j===0?3:(j<3?5:(j<5?4:2))]);                                            // the cap rail, lit from above
     if(SHAWL){const sx=x0+(K==='pewb'?54:20);for(let y=rt;y<rt+14;y++)for(let x=sx;x<sx+10-((y-rt)>9?(y-rt-9):0);x++)P(A,x,y,RAMP.plum[x===sx?5:(x+y)%4===0?2:y===rt?5:3]);for(let x=sx;x<sx+8;x+=2)P(A,x,rt+14,RAMP.plum[1]);}   // a shawl left over the rail
-    const ry=rt+6,BK={pew:[18,64],pewv:[90],pewb:[36,82],pews:[12,40],pewsb:[30]}[K];BK.forEach((gx,g)=>{const C=(g+K.length)%2?RAMP.charcoal:RAMP.red;   // (b13) two books per pew, placed differently on each
+    const ry=rt+6,BK={pew:[18,64],pewv:[90],pewb:[36,82],pews:[12,40],pewsb:[30],pewss:[22]}[K];BK.forEach((gx,g)=>{const C=(g+K.length)%2?RAMP.charcoal:RAMP.red;   // (b13) two books per pew, placed differently on each
       if(g===1&&K==='pew')bookLean(x0+gx,ry,8,C);else{book(x0+gx,ry,3,8,C,false);P(A,x0+gx+1,ry+3,RAMP.brass[4]);if(g===0&&K!=='pewsb')book(x0+gx+3,ry+1,3,7,RAMP.charcoal,false);}});
     for(let i=0;i<w-6;i++){P(A,x0+3+i,ry+8,RAMP.oak[5]);P(A,x0+3+i,ry+9,RAMP.oak[3]);P(A,x0+3+i,ry+10,RAMP.oak[1]);}       // the rack's front lip
     if(VAR){const bx=x0+44;for(let i=0;i<14;i++){P(A,bx+i,rt+1,RAMP.cream[i===6||i===7?2:5]);P(A,bx+i,rt+2,RAMP.cream[i===6||i===7?2:4]);P(A,bx+i,rt+3,RAMP.red[2]);}   // a hymnal left open on the rail

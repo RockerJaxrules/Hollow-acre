@@ -75,6 +75,13 @@ function fieldstone(L,x0,y0,w,h){const FS=[[34,34,40],[52,52,58],[70,69,74],[88,
       if(i===0||j===0||corner)kk=0;else if(j===1)kk=Math.min(5,k+1);else if(i===SW-1||j===SH2-1)kk=Math.max(1,k-1);if(kk&&hsh(px,py,47)>.94)kk=Math.max(1,kk-1);P(L,px,py,FS[kk]);}}
   for(let x=x0;x<x0+w;x++){const dh=6+((hsh(x>>2,9,48)*4)|0);for(let j=0;j<dh;j++){const c=G(L,x,y0+h-1-j);if(c)P(L,x,y0+h-1-j,[c[0]*.72|0,c[1]*.8|0,c[2]*.74|0]);}}   // damp rising up from the floor, ragged
   hl(L,x0,y0+h-1,w,FS[0]);hl(L,x0,y0+h-2,w,FS[0]);}
+// (b41: running-bond blocks read as cinder-block paving) packed flags: stones in three or four sizes with no seam across the room, two close tones, soot darkening round the fire and the anvil
+function packflag(L,x0,y0,w,h,soot){const FL=[[40,38,42],[60,57,60],[78,75,77],[86,83,84],[100,96,96]],C=8,cw=Math.ceil(w/C),chh=Math.ceil(h/C),used=new Uint8Array(cw*chh);
+  for(let gy=0;gy<chh;gy++)for(let gx=0;gx<cw;gx++){if(used[gy*cw+gx])continue;const n=gy*197+gx*29;let sw=1+((hsh(n,1,51)*3)|0),sh=1+((hsh(n,2,51)*2.5)|0);
+    while(sw>1&&(gx+sw>cw||[...Array(sw).keys()].some(i=>used[gy*cw+gx+i])))sw--;while(sh>1&&gy+sh>chh)sh--;for(let j=0;j<sh;j++)for(let i=0;i<sw;i++)used[(gy+j)*cw+gx+i]=1;
+    const k=hsh(n,3,52)>.5?3:2,X=x0+gx*C,Y=y0+gy*C,SW=sw*C,SH2=sh*C;
+    for(let j=0;j<SH2;j++)for(let i=0;i<SW;i++){const px=X+i,py=Y+j;if(px>=x0+w||py>=y0+h)continue;let kk=k;if(i===0||j===0)kk=0;else if(j===1&&i>1)kk=k+1;else if(i===SW-1)kk=1;P(L,px,py,FL[kk]);}}
+  for(const [sx,sy,r] of soot||[])for(let y=-r;y<=r;y++)for(let x=-r*1.6;x<=r*1.6;x++){const d=Math.hypot(x/1.6,y)/r+hsh(x|0,y,53)*.25;if(d>1)continue;const px=Math.round(x0+sx+x),py=Math.round(y0+sy+y),c=G(L,px,py);if(c)P(L,px,py,[c[0]*(.62+.3*d)|0,c[1]*(.6+.3*d)|0,c[2]*(.62+.3*d)|0]);}}
 function flagstone(L,x0,y0,w,h,RS){const SR=RS||ST;for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=Math.floor((y-y0)/18),o=(r*13)%27,s=Math.floor((x-x0+o)/(22+(r%3)*4));const u=(x-x0+o)%(22+(r%3)*4),v=(y-y0)%18;
   /* (b8) two close tones, not three far apart (patchwork); a lit edge on some stones only; cracks on a few stones by the walls */
   const n=hsh(s,r,9);let c=n>.5?SR[3]:mixC(SR[3],SR[2],.45);if(u<2||v<2)c=mixC(SR[1],SR[2],.35);if(v===2&&n>.78&&u>3&&u<14)c=mixC(SR[3],SR[4],.5);   /* (b12) mortar a step quieter, a lit lip on a few stones only */
@@ -132,7 +139,7 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   for(const w of R.windows||[]){windowW(B,x0+w[0]*32-(w[2]||28)/2|0,14+(w[3]||8),w[2]||28,w[4]||34,(R.theme==='church'||R.lancet)?'lancet':false);}
   // floor
   if(R.theme==='cabin'||R.theme==='store'||(R.theme==='home'&&(!R.floor||R.floor==='planks')))planks(A,x0,top,fw,fd,WD,8,R.theme==='store');
-  if(R.theme==='home'){const fl=R.floor;if(fl==='parquet')parquet(A,x0,top,fw,fd);if(fl==='checker')checker(A,x0,top,fw,fd,PAL[R.chk||'slate'],PAL.cream);if(fl==='flag')flagstone(A,x0,top,fw,fd,R.flagRamp&&PAL[R.flagRamp]);if(fl==='painted')painted(A,x0,top,fw,fd,PAL[R.paint||'teal'],R.wear==='soft');if(fl==='hex')hexTile(A,x0,top,fw,fd,TR);if(fl==='wide')wideBoards(A,x0,top,fw,fd);}
+  if(R.theme==='home'){const fl=R.floor;if(fl==='parquet')parquet(A,x0,top,fw,fd);if(fl==='checker')checker(A,x0,top,fw,fd,PAL[R.chk||'slate'],PAL.cream);if(fl==='flag')flagstone(A,x0,top,fw,fd,R.flagRamp&&PAL[R.flagRamp]);if(fl==='packflag')packflag(A,x0,top,fw,fd,(R.soot||[]).map(q=>[q[0]*32,q[1]*32,q[2]||20]));if(fl==='painted')painted(A,x0,top,fw,fd,PAL[R.paint||'teal'],R.wear==='soft');if(fl==='hex')hexTile(A,x0,top,fw,fd,TR);if(fl==='wide')wideBoards(A,x0,top,fw,fd);}
   if(R.theme==='church')tilesF(A,x0,top,fw,fd,ST,16);
   if(R.theme==='garage'){A.bay=x0+fw-150+52;concrete(A,x0,top,fw,fd);A.bay=null;}
   if(R.theme==='garage'){const bx=x0+fw-150,bw=104;for(let y=14;y<8+wallH;y++)for(let x=bx;x<bx+bw;x++){const j=(y-14)%6;P(A,x,y,j===0?ST[4]:j===5?ST[1]:ST[3]);}frame(A,bx-3,12,bw+6,wallH-2,WD[3],WD[0]);rect(A,bx+bw/2-6,8+wallH-10,12,3,PAL.slate[2]);

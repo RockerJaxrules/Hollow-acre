@@ -491,6 +491,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   differ from the floor in wood (pale pine on dark oak), with a dark plinth line and its own shadow where it meets the floor.
 - [interiors b40] A stump drawn with box3 reads as a crate; a log stump is round: bark down its sides, a sawn top with rings.
 
+- [interiors b41] Flags laid in running bond read as modern paving: pack stones of three or four sizes with no seam across
+  the room, in two close tones, and darken them with soot where the work happens (the fire, the anvil).
+- [interiors b41] A pew from behind reads as a seat when the pale seat plank shows above a darker back, with a dark band
+  under the seat lip; pews of one length in a row read as stamped.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).

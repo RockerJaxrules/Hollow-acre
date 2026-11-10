@@ -30,7 +30,7 @@ ROOMS = {
   # ---- where the keepers live
   'priv_store': dict(w=7, d=5, door=3.5, theme='home', wall='stripe', paper='rust', floor='planks', windows=[[2, 0], [5.2, 0]], mat='rust'),
   'priv_garage': dict(w=7, d=5, door=3.5, theme='home', wall='panel', floor='wide', windows=[[4.3, 0]], sunY=40, mat='slate'),
-  'priv_forge': dict(noDress=True, w=7, d=5, door=3.5, theme='home', wall='log', floor='flag', windows=[[2, 0]], mat='rust'),
+  'priv_forge': dict(noDress=True, w=7, d=5, door=3.5, theme='home', wall='log', floor='packflag', soot=[[5.9, 1.3, 26], [6.1, 4.2, 22]], windows=[[2, 0]], mat='rust'),
   'priv_carp': dict(w=7, d=5, door=3.5, theme='home', wall='panel', floor='wide', windows=[[3.5, 0]], sunY=58, mat='mustard'),
   'priv_feed': dict(w=7, d=5, door=3.5, theme='home', wall='log', floor='planks', windows=[[2, 0], [5, 0]], sunY=40, mat='sage'),
   'priv_lusk': dict(w=7, d=5, door=3.5, theme='home', wall='plaster', paper='bark', floor='checker', chk='bark', windows=[[3.6, 0]], sunY=36, mat='red'),
