@@ -947,6 +947,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - (r5) A fix too small to see at 3x ties with the old one (twig tip, rock crack, straw dulled one step): change enough pixels to read at 1x, or leave it.
 - (r5) Dulling a cap or a coat toward the brown inventory colour makes it vanish; keep dark subjects a value step off the background and give them a lit rim.
 - (r5) Every red fruit needs its own hue and value (cranberry deep crimson, rosehip orange-red, apple dark glossy red); one coral for all reads as candy.
+- (r7) Repeated parts drawn as identical copies (hips, logs, planks) read as stamps: vary size, spacing and one tone per copy.
+- (r7) Warming a lantern's glass all over turns it into a candle at 1x; keep the glass cool and make only the flame core the brightest pixels.
+- (r7) Soup reads as porridge when the surface is one flat tone with flecks: a darker broth ring at the rim, a glint, 2-3 chunks.
+- (r8) In a horror game a likely misread wins: short upright pink shapes out of a tin read as fingers. Worms drape and coil over the rim, 2 px thick, with segment rings.
+- (r8) A coat reads as a coat from its length and its lapels: hem well below the cuffs, a lit lapel and collar, and a body a value step above the brown slot.
 
 ## Outlines, light, colour
 
