@@ -80,24 +80,22 @@ def bonemeal():
 
 
 def ghostcorn():
-    I = Icon(); K = hexr(['#5a5e5a', '#8c908a', '#b4b8b0', '#d2d4cc', '#e8e8e0', '#fafaf4']); HU = hexr(['#2a3226', '#3e4a38', '#56644c', '#728062'])
-    for (pts, k) in (([(4, 29), (7, 16), (13, 23)], 2), ([(4, 29), (18, 26), (12, 21)], 1)):
-        I.poly(pts, 'ol', .4 if k == 2 else .25)                             # grey-green husk peeled back
+    # (r11: "a thin spindle reads as a white feather") the passed corn's fat, blunt cob in bone-white, straw husk down both sides
+    I = Icon(); K = hexr(['#5a5e5a', '#8c908a', '#b4b8b0', '#d2d4cc', '#e8e8e0', '#fafaf4'])
+    for (pts, l) in (([(3, 29), (6, 15), (13, 23)], .55), ([(3, 29), (18, 26), (12, 21)], .35), ([(5, 28), (9, 19), (14, 26)], .75)):
+        I.poly(pts, 'bu', l)                                                  # straw husk leaves peeled back down both sides
     ox, oy = 9.5, 23.5
     for y in range(32):
         for x in range(32):
             u = ((x + .5 - ox) - (y + .5 - oy)) * .7071; v = ((x + .5 - ox) + (y + .5 - oy)) * .7071
-            if u < 0 or u > 20: continue
-            half = 4.4 * math.sin(math.pi * min(1, (u + 1.5) / 22.5) ** .75)
+            if u < 0 or u > 19.6: continue
+            half = 5.3 * min(1, (u + 2) / 6) * (1 if u < 11 else max(.42, 1 - (u - 11) / 13.5)) * (1 if u < 18 else math.sqrt(max(0, 1 - ((u - 18) / 1.6) ** 2)) + (0 if u < 18 else 0))   # fat, tapering to a rounded tip
             if abs(v) > half: continue
             row = math.floor((v + 12) / 2.2); cu = (u + (row % 2) * 1.1) % 2.2; cv = (v + 12) - row * 2.2
-            seam = cu > 1.65 or cv > 1.65
-            lit = .95 - (v + half) / (2 * half + .01) * .55 - u * .012
-            k = 0 if seam else max(1, min(5, int(lit * 5 + .5)))
-            if not seam and cu < .7 and cv < .7: k = min(5, k + 1)
+            seam = cu > 1.75 or cv > 1.75
+            lit = .95 - (v + half) / (2 * half + .01) * .5 - u * .01
+            k = 1 if seam else max(2, min(5, int(lit * 5 + .5)))             # seams a soft grey, not black: no speckle
             I.P(x, y, K[k])
-    for t in range(5):                                                        # the silk at the tip, attached
-        I.P(24 + t * .8, 9 - t * .9, (200, 196, 176)); I.P(25 + t * .6, 9 - t * .6, (160, 156, 140))
     return I.done()
 
 
