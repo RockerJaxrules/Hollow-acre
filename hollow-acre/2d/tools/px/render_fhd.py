@@ -14,7 +14,8 @@ SZ = {'bookcase': {'S': (52, 82), 'E': (25, 82), 'N': (52, 82)}, 'desk': {'S': (
       'filecab': {'S': (28, 52)}, 'schooldesk': {'S': (30, 36)}, 'stool': {'S': (18, 30)}, 'pew': {'S': (124, 44)}, 'toolbox': {'S': (36, 44)}, 'coffin': {'S': (40, 66)},
       'barrel': {'S': (30, 34)}, 'crate': {'S': (30, 32)}, 'sacks': {'S': (36, 36)}, 'hay': {'S': (46, 36)}, 'firewood': {'S': (42, 30)}, 'choppingblock': {'S': (40, 40)}, 'bucket': {'S': (22, 26)}, 'anvil': {'S': (36, 28)},
       'mailbox': {'S': (32, 46)}, 'trashcan': {'S': (22, 32)}, 'drum': {'S': (22, 32)}, 'tyres': {'S': (30, 34)}, 'lumber': {'S': (48, 26)}, 'ladder': {'S': (20, 36)},
-      'signpost': {'S': (40, 46)}, 'lamp_st': {'S': (16, 82)}, 'parkbench': {'S': (62, 40)}, 'planter': {'S': (44, 34)}, 'birdbath': {'S': (30, 40)}, 'board': {'S': (64, 58)}}
+      'signpost': {'S': (40, 46)}, 'lamp_st': {'S': (16, 82)}, 'parkbench': {'S': (62, 40)}, 'planter': {'S': (44, 34)}, 'birdbath': {'S': (30, 40)}, 'board': {'S': (64, 58)},
+      'well': {'S': (64, 74)}, 'cart': {'S': (84, 56)}, 'hydrant': {'S': (20, 30)}}
 NIGHT = {'desk', 'table', 'candles', 'lamp', 'stove', 'lamp_st'}
 kinds = sys.argv[1:] or list(SZ)
 for k in kinds:
