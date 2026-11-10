@@ -1790,6 +1790,40 @@ if(K==='trestlelid'){const base=H-3,Pn=RAMP.pine,R=RAMP.oak;   // a coffin lid b
   {const px=sh+10,py=y0+3;rect(A,px,py,10,4,R[3]);hl(A,px,py,10,R[5]);rect(A,px+3,py-3,3,3,R[4]);P(A,px+3,py-3,R[5]);rect(A,px+7,py+1,2,2,RAMP.steel[4]);}   // the plane, its knob and blade
   for(const [sx,sy] of [[22,base-1],[30,base],[41,base-1]]){hl(A,sx,sy,3,Pn[5]);P(A,sx+3,sy-1,Pn[5]);P(A,sx-1,sy-1,Pn[4]);hl(A,sx,sy+1,3,Pn[2]);}   // curls of shaving, flat on the floor
   for(let x=x0+2;x<x1;x++){SH(x,base-1,90);SH(x,base,120);}cast(8,W-9,base);}
+// =================================================================================== interiors batch 3, round 4 (judge b11)
+if(K==='coffinbuild'){const base=H-3,Pn=RAMP.pine,R=RAMP.oak;   // (judge b11: the open box read as a trough) two unfinished coffin lids of pale pine leaning on the wall, loose boards, a hammer
+  const lid=(cx,h,dk)=>{const sh=Math.round(h*.26),hwOf=j=>j<sh?3+j/sh*5:8-(j-sh)/(h-sh)*4.5;   // narrow head, a hard shoulder, a narrow foot: the six-sided coffin outline
+    for(let j=0;j<h;j++){const hw=Math.round(hwOf(j)),y=base-2-h+j,lean=Math.round((h-j)*.12);
+      for(let i=-hw;i<=hw;i++){let k=4-dk;if(i===-hw)k=5-dk;if(i===hw)k=1;if(j===0)k=5-dk;const iw=Math.round(hwOf(j))-2;if(j>1&&j<h-2&&(i===-iw||i===iw))k=2-dk;P(A,cx+i+lean,y,Pn[Math.max(0,k)]);}P(A,cx+hw+1+lean,y,Pn[0]);}
+    for(let i=-6;i<=6;i++)P(A,cx+i+Math.round((h-2)*.12),base-h,Pn[Math.max(0,2-dk)]);for(let i=-3;i<=3;i++)P(A,cx+i+Math.round(4*.12),base-5,Pn[Math.max(0,2-dk)]);};   // the inset moulding, top and bottom
+  lid(W-26,38,1);lid(W-14,34,0);
+  for(let k=0;k<3;k++){const by=base-2-k*2;hl(A,4,by,24-k*3,Pn[4-k%2]);hl(A,4,by+1,24-k*3,Pn[1]);}                                            // loose boards stacked on the floor
+  {const hx=8,hy=base-8;hl(A,hx,hy,9,R[3]);hl(A,hx,hy+1,9,R[1]);rect(A,hx+8,hy-2,3,4,RAMP.iron[3]);P(A,hx+8,hy-2,RAMP.iron[5]);}             // a hammer on the boards
+  for(let x=W-34;x<W-4;x++){SH(x,base-1,110);SH(x,base,80);}cast(3,28,base);}
+if(K==='ironcot'){const base=H-3,Ir=RAMP.iron,Bl=RAMP.olive,M=RAMP.ivory,x0=4,x1=W-5;   // a narrow iron cot: black rails with brass knobs, a thin ticking mattress, a grey army blanket, one flat pillow
+  const top=6;for(const py of [top,base-10]){for(let x=x0;x<=x1;x++){P(A,x,py,Ir[4]);P(A,x,py+1,Ir[2]);}for(let k=0;k<4;k++){const bx=x0+3+k*((x1-x0-4)/3|0);for(let y=py+2;y<py+8;y++)P(A,bx,y,Ir[3]);}}   // head and foot rails
+  for(const px of [x0,x1])for(let y=top-2;y<base;y++){P(A,px,y,Ir[px===x0?4:2]);}for(const px of [x0,x1]){P(A,px,top-3,RAMP.brass[5]);P(A,px,base-12,RAMP.brass[4]);}
+  rect(A,x0+1,top+3,x1-x0-1,base-top-14,M[3]);for(let y=top+3;y<base-11;y+=3)hl(A,x0+1,y,x1-x0-1,M[2]);                                   // the ticking mattress
+  rect(A,x0+3,top+4,x1-x0-5,6,M[5]);hl(A,x0+3,top+9,x1-x0-5,M[3]);                                                                        // the pillow
+  for(let y=top+12;y<base-11;y++)for(let x=x0+1;x<x1;x++){let k=3;if(y===top+12)k=4;if(x===x0+1)k=4;if(x>=x1-2)k=1;if((y-top)%11===0)k=2;P(A,x,y,Bl[k]);}   // the blanket, folded square
+  hl(A,x0+1,top+13,x1-x0-1,Bl[5]);for(let y=base-11;y<base-3;y++)for(let x=x0+1;x<x1;x++)P(A,x,y,Bl[y===base-11?2:1]);                    // its fold-over and the hang at the foot
+  for(const px of [x0,x1])for(let y=base-3;y<base;y++)P(A,px,y,Ir[3]);under(x0+1,x1-1,base-3,base-1);cast(x0,x1,base);}
+if(K==='quern'){const base=H-3,R=RAMP.oak,Fl=RAMP.ivory;   // (judge b11: say "mill") a flour bin: FLOUR stencilled on the front, the lid propped up, flour heaped inside, a tin scoop, flour dust on the floor
+  const x0=4,w=W-8,top=base-24;for(let y=top-9;y<top;y++){const inset=Math.round((top-y)*.25);for(let x=x0+inset;x<x0+w-inset;x++)P(A,x,y,R[y===top-9?5:(x-x0)%6===0?2:3]);}   // the lid tipped back
+  box3(x0,top,w,6,18,R,{faceK:2});for(let x=x0+2;x<x0+w-2;x++){const hh=Math.round(2+Math.sin((x-x0)/w*Math.PI)*3);for(let y=top+5-hh;y<top+5;y++)P(A,x,y,Fl[y===top+5-hh?5:4]);}   // flour heaped above the rim
+  drawText(A,'FLOUR',x0+(w>>1)-10,top+11,Fl[4]);for(let x=x0+3;x<x0+w-3;x++)if(hsh(x,4,91)>.8)P(A,x,top+17,Fl[2]);                         // the stencil, a little flour caught on the face
+  {const sx=x0+w-12,sy=top+2;rect(A,sx,sy,6,3,RAMP.steel[4]);hl(A,sx,sy,6,RAMP.steel[5]);hl(A,sx+6,sy+1,4,R[3]);}                          // the scoop
+  for(let i=0;i<14;i++){const x=x0+2+((hsh(i,5,92)*(w+6))|0),y=base+((hsh(i,6,93)*2)|0);P(A,x,y,Fl[hsh(i,7,94)>.5?5:3]);}
+  cast(x0,x0+w,base);}
+if(K==='pelts'){const base=H-3,R=RAMP.pine;   // a trapper's drying rack: two posts and a rail, a fox pelt and a coon pelt hanging head-up (ears, leg flaps, tail), a trap on the floor
+  for(const px of [3,W-6])for(let y=4;y<base;y++){P(A,px,y,R[4]);P(A,px+1,y,R[3]);P(A,px+2,y,R[1]);}for(let x=3;x<W-3;x++){P(A,x,5,R[5]);P(A,x,6,R[3]);P(A,x,7,R[1]);}
+  const pelt=(cx,len,Fr,ring)=>{const prof=t=>t<.1?2:t<.15?1.5:t<.24?3:t<.3?6:t<.36?3.5:t<.52?3.5:t<.6?6:t<.66?3:(ring?1.6:2.2);   // head, neck, front legs out, body, back legs out, tail
+    for(let j=0;j<len;j++){const t=j/len,hw=Math.round(prof(t));for(let i=-hw;i<=hw;i++){let k=3;if(i===-hw)k=5;if(i===hw)k=1;if(i===0&&t>.15&&t<.62)k=4;if((t>.24&&t<.3||t>.52&&t<.6)&&Math.abs(i)>3)k=2;
+        if(ring&&t>.66&&(j%4<2))k=1;if(!ring&&t>.92)k=5;P(A,cx+i,9+j,Fr[k]);}}
+    P(A,cx-2,8,Fr[4]);P(A,cx+2,8,Fr[2]);P(A,cx,9,Fr[0]);vl(A,cx,6,3,RAMP.charcoal[3]);};
+  pelt(13,27,RAMP.rust,false);pelt(W-16,25,RAMP.stone,true);
+  {const tx=(W>>1),ty=base-1;ell(A,tx,ty,5,2,RAMP.steel[2]);ell(A,tx,ty,3,1,RAMP.charcoal[1]);for(let i=-4;i<=4;i+=2)P(A,tx+i,ty-2,RAMP.steel[4]);for(let i=0;i<6;i++)P(A,tx+5+i,ty+(i%2),RAMP.steel[i%2?2:4]);}
+  cast(3,W-4,base);}
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
 for(const f of NOOL)for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(f(x,y))for(const L of [O,O2])L.d[(y*W+x)*4+3]=0;
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));

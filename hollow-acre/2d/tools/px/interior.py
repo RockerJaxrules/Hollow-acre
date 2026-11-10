@@ -59,7 +59,7 @@ ROOMS = {
   'home_thorne': dict(windows=[[2, 0], [6, 0]], w=9, d=6, door=4, theme='home', wall='log', floor='wide', doors=[[8.35, 'bark']], mat='rust'),
   'home_ashby': dict(windows=[[2, 0], [6, 0]], w=9, d=6, door=4, theme='home', wall='stripe', paper='blue', floor='checker', chk='blue', doors=[[8.35, 'slate']], mat='red'),
   'home_vale': dict(windows=[[2, 0], [6, 0]], w=9, d=6, door=4, theme='home', wall='damask', paper='sage', floor='parquet', wains='bead', doors=[[8.35, 'sage']], mat='rust'),
-  'home_kerrigan': dict(windows=[[2, 0], [6, 0]], w=9, d=6, door=4, theme='home', wall='panel', floor='painted', paint='rust', doors=[[8.35, 'bark']], mat='mustard'),
+  'home_kerrigan': dict(windows=[[2, 0], [6, 0]], w=9, d=6, door=4, theme='home', wall='panel', floor='painted', paint='slate', doors=[[8.35, 'bark']], mat='mustard'),
   'home_pike': dict(windows=[[2, 0], [6, 0]], w=9, d=6, door=4, theme='home', wall='log', floor='wide', doors=[[8.35, 'teal']], mat='blue'),
   'home_ward': dict(windows=[[2, 0], [6, 0]], w=9, d=6, door=4, theme='home', wall='plaster', paper='mustard', floor='parquet', doors=[[8.35, 'red']], mat='sage'),
   # ---- out in the new land

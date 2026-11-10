@@ -356,6 +356,14 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   a yellow smear is not a fire.
 - [interiors b10] A shop's counter needs its trade on top (lure cards and a scale, a vise, a ledger and bell).
 
+- [interiors b11] Shapes that failed to read at room scale: an open coffin box seen from above (a trough or a canoe), a lid on
+  trestles (a loaf), a quern (cushions), pelts on stretchers (cones, then arrows). What read at once: a stencilled word on a
+  bin (FLOUR), coffin lids standing up (the six-sided outline with an inset moulding), hides hanging head-up from a rack
+  with ears, leg flaps and a tail. Pick the view in which the object's outline is its signature.
+- [interiors b11] Two beds of the same frame in one room read as a hotel: the second bed is a different kind (an iron cot).
+- [interiors b11] A saturated painted floor (rust red, bright sage) becomes the loudest thing in the room; painted floors use
+  the slate or a dull ramp.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).
