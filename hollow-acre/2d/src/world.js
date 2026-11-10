@@ -180,7 +180,7 @@ function buildWorld(){
   put('windpump',-9.2,1.4,.45);obj('blades',-9.2,1.42,{kind:'anim',fps:6,yoff:135});put('barrel',-8.2,1.6,.3);reserve(-11.5,-1.5,-7,3.5);
   // ---------- crash site on Route 9
   put('car_wreck',carPos.x-.8,carPos.z+3.2,0,{night:'car_wreck_n',kind:'wreck'});addRect(carPos.x-1.8,carPos.z-1.2,carPos.x+1.2,carPos.z+3.1);
-  put('deadtree',carPos.x+.15,carPos.z+3.45,.35);reserve(-65,-8,-56,4);
+  {const t=put('deadoak',carPos.x+1.15,carPos.z+3.65,.45);t.keep=true;t.keepR=.45;t.crashOak=true;}reserve(-65,-8,-56,4);   // (owner: "the car crash should be a tree you hit") the dead oak the car is wrapped round, its trunk at the crushed nose
   // ---------- Marrow Hollow
   buildTown();
   // garage + pump on the west road, the widow's house north of the highway

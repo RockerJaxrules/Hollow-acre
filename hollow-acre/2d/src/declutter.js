@@ -3,7 +3,8 @@
    footprints. The smaller, purely decorative piece is taken away (and any collider it brought with it), so the bigger thing
    reads cleanly. Wall and fence runs overlap on purpose and are left alone, as is the bucket by the well. ================= */
 const DECLUTTER={removed:[]};
-{const _bw=buildWorld;buildWorld=function(){_bw();try{grovePass();}catch(e){console.error('groves',e);}try{frontWalks();}catch(e){console.error('walks',e);}try{declutter();}catch(e){console.error('declutter',e);}};}
+{const _bw=buildWorld;buildWorld=function(){_bw();try{grovePass();}catch(e){console.error('groves',e);}try{frontWalks();}catch(e){console.error('walks',e);}try{declutter();}catch(e){console.error('declutter',e);}
+  for(const o of OBJ)if(o.keep){o.hide=false;if(o.keepR&&!circles.some(c=>Math.abs(c.x-o.x)<.3&&Math.abs(c.z-(o.z-.1))<.3))addCircle(o.x,o.z-.1,o.keepR);}};}   // story pieces (the crash oak) are never decluttered
 /* front walks: every house has a way to its door. From the doorstep a narrow stone walk runs to the nearest lane or street,
    straight down if it can, otherwise down a step and along; never through a wall, a fence or another building. */
 const WALKS=[];
