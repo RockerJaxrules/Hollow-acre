@@ -296,6 +296,8 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors r7] Copies on one screen (three identical ferns, twin sack pairs, twin hanging baskets, crate pairs in both
   corners) read as copy-paste: every piece in view should be a different sprite.
 - [process] A helper that takes a fixed number of pieces (BEDS(a,b)) drops a third argument silently: append with concat.
+- [interiors r8] Wall dressing looks for 1.4 m of free wall; a narrow piece (an eye chart) in a gap under that never lands:
+  put the room's key wall piece in its furniture list by hand and check the shot.
 - [interiors r3] A tall piece standing in front of a window (a bookcase hiding a third of the glass) is a placement error;
   check every tall piece against the window list before judging.
 - [interiors r3] Fading a too-loud quilt to grey made it read as stone: fade toward the room's own warm brown instead

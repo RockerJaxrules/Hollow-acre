@@ -15,7 +15,7 @@ const DRESS={
   home_quill:{walls:['in_hangplant','in_painting_a'],floor:'carpet',table:['t_vase','t_plate'],flaws:[],nook:1},
   home_fenn:{walls:['in_coatpegs','in_calendar'],floor:'boards',table:['t_mug','t_plate'],flaws:['in_stain']},
   home_thorne:{walls:['in_calendar'],floor:'boards',table:['t_mug'],flaws:['in_bottles','in_chair_down','in_stain']},
-  home_ashby:{walls:['in_painting_a','in_calendar'],floor:'lino',table:['t_books','t_lamp'],flaws:[],nook:1},
+  home_ashby:{walls:['in_calendar'],floor:'lino',table:['t_books','t_lamp'],flaws:[],nook:1},
   home_vale:{walls:['in_hangplant','in_coatpegs'],floor:'carpet',table:['t_vase'],flaws:['in_papers']},
   home_kerrigan:{walls:['in_coatpegs'],floor:'boards',table:['t_plate','t_candle'],flaws:['in_stain','in_bottles']},
   home_pike:{walls:['in_painting_a'],floor:'boards',table:['t_mug'],flaws:['in_bottles']},

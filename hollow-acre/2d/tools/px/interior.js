@@ -4,7 +4,8 @@ const W=CFG.w,H=CFG.h,N=!!CFG.night;
 const A=layer('art',W,H),B=layer('details',W,H),SHD=layer('shadow',W,H);
 const WD=PAL.wood,ST=PAL.stone,TR=PAL.white,RD=PAL.red,K=CFG.kind;const RK=['#2a2220','#3a302c','#4a3e38','#5e5048'].map(HEX);
 function gs(cx,cy,rx,ry,a){for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++)if(x*x/(rx*rx)+y*y/(ry*ry)<=1)P(SHD,cx+x,cy+y,PAL.out[0],a||70);}
-function planks(L,x0,y0,w,h,R,pw){pw=pw||8;for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const row=Math.floor((y-y0)/pw),off=Math.floor(hsh(row,7,31)*44),seg=Math.floor((x-x0+off)/44);
+// quiet (r8, the store: "the floor is the loudest thing"): the two board tones under half a step apart, seams a step lighter
+function planks(L,x0,y0,w,h,R0,pw,quiet){pw=pw||8;const mq=(a,b,t)=>a.map((v,k)=>Math.round(v+(b[k]-v)*t));const R=quiet?[mq(R0[0],R0[1],.6),mq(R0[1],R0[2],.5),R0[2],mq(R0[2],R0[3],.4),mq(R0[3],R0[4],.3)]:R0;for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const row=Math.floor((y-y0)/pw),off=Math.floor(hsh(row,7,31)*44),seg=Math.floor((x-x0+off)/44);
   let k=2+((hsh(seg,row,3)>.55)?1:0);if((y-y0)%pw===0)k=0;else if((y-y0)%pw===1)k=Math.min(4,k+1);if((x-x0+off)%44===0)k=0;
   // grain as long streaks a step darker along each board, nails in pairs at the board ends (no single dark specks: "too gritty")
   const v=(y-y0)%pw,u=(x-x0+off)%44;if(v>=3&&v<pw-1&&k>0){const sv=3+Math.floor(hsh(seg,row,20)*(pw-4)),s0=4+Math.floor(hsh(seg,row,21)*14),sl=10+Math.floor(hsh(seg,row,22)*16);if(v===sv&&u>=s0&&u<s0+sl)k=Math.max(1,k-1);
@@ -99,7 +100,7 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   rect(A,x0,0,fw,8,WD[1]);hl(A,x0,7,fw,WD[3]);for(let x=x0;x<x0+fw;x+=48)rect(A,x,0,10,8,WD[2]);
   for(const w of R.windows||[]){windowW(B,x0+w[0]*32-(w[2]||28)/2|0,14+(w[3]||8),w[2]||28,w[4]||34,R.theme==='church');}
   // floor
-  if(R.theme==='cabin'||R.theme==='store'||(R.theme==='home'&&(!R.floor||R.floor==='planks')))planks(A,x0,top,fw,fd,WD,8);
+  if(R.theme==='cabin'||R.theme==='store'||(R.theme==='home'&&(!R.floor||R.floor==='planks')))planks(A,x0,top,fw,fd,WD,8,R.theme==='store');
   if(R.theme==='home'){const fl=R.floor;if(fl==='parquet')parquet(A,x0,top,fw,fd);if(fl==='checker')checker(A,x0,top,fw,fd,PAL[R.chk||'slate'],PAL.cream);if(fl==='flag')flagstone(A,x0,top,fw,fd);if(fl==='painted')painted(A,x0,top,fw,fd,PAL[R.paint||'teal']);if(fl==='hex')hexTile(A,x0,top,fw,fd,TR);if(fl==='wide')wideBoards(A,x0,top,fw,fd);}
   if(R.theme==='church')tilesF(A,x0,top,fw,fd,ST,16);
   if(R.theme==='garage')concrete(A,x0,top,fw,fd);
@@ -110,8 +111,8 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   // (interiors r7, judge: "soft ovals read as stains, two-stroke cracks read as birds") one quiet tone in the middle where the ore
   // comes up; damp darker ground along the walls with a hard, ragged edge; pebbles in three sizes gathered by the walls;
   // a few cracks that branch; the cart track runs from the door to a buffer beam at the back wall
-  if(R.theme==='mine'){const DAMP=mixC(RK[2],RK[1],.85);
-    for(let y=top;y<top+fd;y++)for(let x=x0;x<x0+fw;x++){const dw=Math.min(x-x0,x0+fw-1-x,(y-top)*1.3);const edge=20+hsh(x>>2,(y-top)>>2,31)*10+Math.sin(y*.09+x*.02)*6;P(A,x,y,dw<edge?DAMP:RK[2]);}
+  if(R.theme==='mine'){const BASE=mixC(RK[2],RK[3],.6),DAMP=RK[2];   // (r8: "outside the lantern the floor is a void") a step lighter
+    for(let y=top;y<top+fd;y++)for(let x=x0;x<x0+fw;x++){const dw=Math.min(x-x0,x0+fw-1-x,(y-top)*1.3);const edge=20+hsh(x>>2,(y-top)>>2,31)*10+Math.sin(y*.09+x*.02)*6;P(A,x,y,dw<edge?DAMP:BASE);}
     const near=(px,py)=>Math.min(px-x0,x0+fw-1-px,(py-top)*1.2)<46;
     let placed=0;for(let g=0;g<200&&placed<16;g++){const gx=x0+8+(hsh(g,1,4)*(fw-16)|0),gy=top+6+(hsh(g,2,4)*(fd-14)|0);if(!near(gx,gy))continue;placed++;   // groups of pebbles by the walls
       for(let k=0;k<2+(g%3);k++){const px=gx+((hsh(g,k,7)-.5)*14|0),py=gy+((hsh(k,g,8)-.5)*8|0),sz=k===0?5:[2,3,3][(hsh(g,k,9)*3)|0];
@@ -153,7 +154,8 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
     let k=.9,t=0;if(dB<12)t=Math.max(t,(12-dB)/12*.42);if(dS<9)t=Math.max(t,(9-dS)/9*.32);
     P(A,x,y,[c[0]*k*(1-t)+PL[0]*t|0,c[1]*k*(1-t)+PL[1]*t|0,c[2]*k*(1-t)+PL[2]*t|0]);}}
   // ---- sunlight through each window: a hard-edged patch thrown down and to the right, two steps of light, the window's glazing bars crossing it (day only)
-  if(!N&&R.theme!=='mine')for(const w of R.windows||[]){const ww=w[2]||28,wx=x0+w[0]*32-ww/2,L=Math.min(front-top-8,64);
+  if(!N&&R.theme!=='mine')for(const w of (R.theme==='glass'?[[1.5,0,44],[4.5,0,44],[7.5,0,44]]:(R.windows||[]))){   // (r8) a glass wall throws daylight too
+  const ww=w[2]||28,wx=x0+w[0]*32-ww/2,L=Math.min(front-top-8,64);
     for(let y=top+3;y<top+3+L;y++){const sk=Math.round((y-top)*.55),xl=wx+sk,xr=wx+sk+ww-1;
       for(let x=xl;x<=xr;x++){if(x<x0||x>=x0+fw)continue;const u=x-xl,v=y-top-3;
         if(Math.abs(u-(ww>>1))<1||Math.abs(v-(L*.46|0))<1)continue;                                                      // the glazing bars' shadow

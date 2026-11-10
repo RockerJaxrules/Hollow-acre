@@ -677,6 +677,25 @@ if(K==='minecart'){const I=RAMP.ironW,base=H-3,cx=W>>1;   // a riveted iron tub 
   hl(A,cx-bw/2,ty+17,bw,I[0]);
   for(const wx of [cx-8,cx+8]){for(let y=-3;y<=3;y++)for(let x=-3;x<=3;x++){const d=x*x+y*y;if(d>10)continue;P(A,wx+x,base-4+y,d>6?I[1]:(d<2?I[4]:I[2]));}P(A,wx-1,base-6,I[5]);}   // wheels
   cast(cx-bw/2,cx+bw/2,base);}
+// =================================================================================== the doctor's eye chart (a wall piece)
+if(K==='eyechart'){const x0=2,y0=2,w=W-4,h=H-5,C=RAMP.cream;   // (judge r8: "a chart on the wall") a card of letters, big at the top,
+  // smaller row by row, a red line under one row, pinned at the top corners
+  rect(A,x0,y0,w,h,C[4]);frame(A,x0,y0,w,h,C[2],C[1]);hl(A,x0,y0,w,C[5]);
+  const ink=RAMP.charcoal[0],cx=W>>1;
+  for(let j=0;j<5;j++)for(let i=0;i<5;i++)if(j===0||j===2||j===4||i===0)P(A,cx-2+i,y0+3+j,ink);                                       // a big E
+  const GL=[['111','100','111'],['101','111','101'],['111','010','010'],['110','101','110'],['111','101','111'],['111','110','100']];   // C H T D O F, 3x3 each
+  for(const [ry,n] of [[y0+11,2],[y0+16,3],[y0+22,3]]){const tw=n*3+(n-1)*2;let x=cx-(tw>>1);for(let k=0;k<n;k++){const g=GL[(k+ry)%GL.length];for(let j=0;j<3;j++)for(let i=0;i<3;i++)if(g[j][i]==='1')P(A,x+i,ry+j,ink);x+=5;}}
+  hl(A,x0+3,y0+20,w-6,RAMP.red[4]);P(A,x0+1,y0+1,RAMP.brass[5]);P(A,x0+w-2,y0+1,RAMP.brass[5]);}
+// =================================================================================== Ruth's little vanity
+if(K==='vanity'){const C=RAMP.ivory,base=H-3,x0=4,w=W-8;   // (judge r8: "one thing only she would own") a small white chest of drawers, a
+  // hairbrush, a ribbon trailing over the edge, a music box with its lid up and the dancer inside
+  const top=base-24,dT=5;box3(x0,top,w,dT,base-top-dT-2,C,{faceK:3});
+  for(const dy of [top+dT+2,top+dT+9]){hl(A,x0+2,dy,w-4,C[1]);hl(A,x0+2,dy+6,w-4,C[2]);P(A,x0+(w>>1),dy+3,RAMP.brass[5]);P(A,x0+(w>>1)+1,dy+3,RAMP.brass[3]);}
+  for(const lx of [x0+1,x0+w-3]){P(A,lx,base-2,C[2]);P(A,lx+1,base-2,C[1]);P(A,lx,base-1,C[1]);}
+  {const bx=x0+2,by=top+1;for(let i=0;i<5;i++){P(A,bx+i,by+1,RAMP.walnut[3]);P(A,bx+i,by+2,RAMP.walnut[2]);}for(let i=5;i<9;i++)P(A,bx+i,by+2,RAMP.walnut[4]);for(let i=0;i<5;i+=2)P(A,bx+i,by,RAMP.cream[5]);}   // the hairbrush
+  {const rx=x0+w-12,ry=top-5;rect(A,rx,ry+2,8,5,RAMP.red[2]);hl(A,rx,ry+2,8,RAMP.red[4]);for(let i=0;i<8;i++){P(A,rx+i,ry-1+(i>>2),RAMP.red[3]);}hl(A,rx+1,ry+3,6,RAMP.red[1]);P(A,rx+4,ry+3,RAMP.cream[5]);P(A,rx+4,ry+2,RAMP.cream[4]);P(A,rx+4,ry+1,RAMP.pumpkin[4]);}   // the music box, lid up, the dancer
+  for(let j=0;j<7;j++){P(A,x0+w-3+(j>3?1:0),top+2+j,RAMP.blue[4]);}P(A,x0+w-2,top+9,RAMP.blue[3]);                                     // a blue ribbon over the edge
+  cast(x0,x0+w,base);}
 // =================================================================================== the milking stool
 if(K==='stool'){const R=RAMP.oak,base=H-3,cx=W>>1;
   // a milking stool: a round seat two steps lighter than its three splayed legs; floor shows between them
