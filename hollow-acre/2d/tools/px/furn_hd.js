@@ -563,14 +563,16 @@ if(K==='cans'||K==='mail'||K==='parts'){const R=K==='mail'?RAMP.oak:RAMP.pine,ba
   const LAB=[RAMP.brick,RAMP.green,RAMP.bluegrey,RAMP.ochre,RAMP.plum,RAMP.ochre];
   const tin=(x,by,w2,h,L)=>{for(let j=0;j<h;j++)for(let i=0;i<w2;i++){let c=i===0?RAMP.steel[3]:i===w2-1?RAMP.steel[1]:RAMP.steel[2];if(j>1&&j<h-1)c=L[i===0?4:i===w2-1?1:(j===2?4:3)];P(A,x+i,by-h+j,c);}
     hl(A,x,by-h,w2,RAMP.steel[4]);};
-  const letters=(x,by,w2,h)=>{rect(A,x,by-h,w2,h,RAMP.walnut[1]);for(let i=0;i<w2;i++)P(A,x+i,by-h,RAMP.walnut[0]);
-    const r=rr();if(r<.25)return;                                                                                                   // an empty cubby
-    if(r<.42){const bh=6;rect(A,x+1,by-bh,w2-2,bh,RAMP.cream[2]);for(let j=0;j<bh;j+=2)hl(A,x+1,by-bh+j,w2-2,RAMP.cream[4]);vl(A,x+(w2>>1),by-bh,bh,RAMP.brick[2]);return;}   // a tied bundle
-    if(r<.62){const n=1+((rr()*3)|0);for(let k=0;k<n;k++){hl(A,x+1,by-2-k*2,w2-2,RAMP.cream[4]);hl(A,x+1,by-1-k*2,w2-2,RAMP.cream[2]);}return;}   // a short flat stack
-    if(r<.8){for(let k=0;k<3;k++){const ex=x+1+k,eh=4+k;for(let j=0;j<eh;j++)P(A,ex,by-eh+j,RAMP.cream[j===0?4:3]);}return;}             // a fan of letters, upright
-    for(let j=0;j<5;j++){const xx=x+1+Math.round((4-j)*.4);for(let i=0;i<w2-2;i++)P(A,xx+i,by-5+j,RAMP.cream[j===0?4:3]);}};             // one leaning
+  // (judge b2: "the shelf of white jars") letters that read as letters: envelopes with a dark V flap, tied bundles, parcels in brown paper
+  const env=(x,y,w2,h2)=>{rect(A,x,y,w2,h2,RAMP.cream[4]);hl(A,x,y,w2,RAMP.cream[5]);vl(A,x+w2-1,y,h2,RAMP.cream[2]);const m=x+(w2>>1);P(A,x+1,y+1,RAMP.cream[1]);P(A,x+w2-2,y+1,RAMP.cream[1]);if(w2>4)P(A,m,y+2,RAMP.cream[1]);if(w2>4){P(A,m-1,y+2,RAMP.cream[2]);P(A,m+1,y+2,RAMP.cream[2]);}};
+  const letters=(x,by,w2,h,bottom)=>{rect(A,x,by-h,w2,h,RAMP.walnut[1]);for(let i=0;i<w2;i++)P(A,x+i,by-h,RAMP.walnut[0]);
+    const r=rr();if(r<.18)return;                                                                                                   // an empty cubby
+    if(bottom){const ph=Math.min(h-1,6);rect(A,x+1,by-ph,w2-2,ph,RAMP.ochre[3]);hl(A,x+1,by-ph,w2-2,RAMP.ochre[4]);vl(A,x+w2-2,by-ph,ph,RAMP.ochre[2]);vl(A,x+(w2>>1),by-ph,ph,RAMP.cream[1]);hl(A,x+1,by-(ph>>1),w2-2,RAMP.cream[1]);return;}   // a parcel tied with twine
+    if(r<.6){const eh=Math.min(h-1,5);env(x+1,by-eh,w2-2,eh);if(r<.35&&h>7)env(x+1,by-eh-3,w2-2,3);return;}                           // envelopes, flap out
+    if(r<.82){const bh=Math.min(h-1,6);rect(A,x+1,by-bh,w2-2,bh,RAMP.cream[3]);for(let j=0;j<bh;j+=2)hl(A,x+1,by-bh+j,w2-2,RAMP.cream[4]);vl(A,x+(w2>>1),by-bh,bh,RAMP.brick[3]);return;}   // a tied bundle
+    for(let j=0;j<5;j++){const xx=x+1+Math.round((4-j)*.4);for(let i=0;i<w2-2;i++)P(A,xx+i,by-5+j,RAMP.cream[j===0?5:4]);}P(A,x+2,by-4,RAMP.cream[1]);};   // one leaning
   rows.forEach((ry,ri)=>{const by=shelves[ri];let x=x0+4;
-    if(K==='mail'){const cw=Math.floor((w-8)/6);for(let c=0;c<6;c++){const cx=x0+4+c*cw;vl(A,cx,ry,by-ry,R[3]);vl(A,cx+1,ry,by-ry,R[1]);letters(cx+2,by,cw-2,by-ry-1);}
+    if(K==='mail'){const cw=Math.floor((w-8)/6);for(let c=0;c<6;c++){const cx=x0+4+c*cw;vl(A,cx,ry,by-ry,R[3]);vl(A,cx+1,ry,by-ry,R[1]);letters(cx+2,by,cw-2,by-ry-1,ri===rows.length-1);}
       vl(A,x0+4+6*cw,ry,by-ry,R[3]);return;}
     let gapped=0;while(x<x0+w-8){const r=rr();if(r<.1){x+=3;continue;}
       if(K==='cans'&&r>.8&&gapped<2){x+=7+((rr()*5)|0);gapped++;continue;}
@@ -717,6 +719,35 @@ if(K==='dressform'){const base=H-3,cx=W>>1,F=RAMP.plum,Lw=RAMP.walnut;   // a ta
   for(const [px,py] of [[-3,top+5],[2,top+9],[4,top+14],[-4,top+18],[1,top+21]]){P(A,cx+px,py,RAMP.steel[5]);P(A,cx+px+1,py,RAMP.steel[3]);}   // pins
   for(let j=0;j<16;j++){P(A,cx+3+(j>8?1:0),top-1+j,RAMP.ochre[j%3===0?2:4]);}                                                        // the tape measure
   cast(cx-7,cx+7,base);}
+// =================================================================================== the schoolhouse primer case
+if(K==='primers'){const R=RAMP.oak,base=H-3,x0=3,w=W-6,top=base-20;   // (judge b2) a low case of primers, all the same edition (red, a
+  // few blue), one lying flat, a brass hand-bell on top
+  box3(x0,top,w,4,16,R,{faceK:2});rect(A,x0+2,top+6,w-4,12,RAMP.walnut[1]);hl(A,x0+2,top+12,w-4,R[4]);hl(A,x0+2,top+13,w-4,R[1]);
+  for(const [ry,by] of [[top+6,top+12],[top+13,top+18]]){let x=x0+3;while(x<x0+w-4){const C=hsh(x,ry,71)>.75?RAMP.blue:RAMP.red,bw=2;for(let j=ry+1;j<by;j++){P(A,x,j,C[4]);P(A,x+1,j,C[2]);}P(A,x,ry+2,RAMP.ochre[4]);x+=bw+(hsh(x,ry,72)>.85?2:0);}}
+  bookFlat(x0+4,top+1,9,RAMP.red);                                                                                                  // one lying on top
+  {const bx=x0+w-9,by=top+2;for(let j=0;j<5;j++){const hw=1+(j>>1);for(let i=-hw;i<=hw;i++)P(A,bx+i,by-5+j,RAMP.brass[i<0?5:(i===hw?2:4)]);}hl(A,bx-3,by,7,RAMP.brass[2]);vl(A,bx,by-8,3,RAMP.walnut[3]);P(A,bx,by-9,RAMP.walnut[4]);}   // the hand-bell
+  cast(x0,x0+w,base);}
+// =================================================================================== the seamstress's treadle machine
+if(K==='sewmachine'){const R=RAMP.walnut,I=RAMP.ironW,base=H-3,x0=3,w=W-6,top=base-24;   // (judge b2) a cast-iron treadle stand, a
+  // walnut table, the black machine head with a gold decal, a spool, and the cloth she was working on falling over the edge
+  box3(x0,top,w,5,4,R,{faceK:2});
+  for(const lx of [x0+2,x0+w-5]){for(let y=top+9;y<base;y++){P(A,lx,y,I[3]);P(A,lx+1,y,I[1]);}for(let k=0;k<4;k++)P(A,lx+(k%2?2:-1),top+12+k*3,I[4]);}   // lacy iron legs
+  hl(A,x0+3,base-4,w-6,I[2]);for(let i=0;i<9;i++)P(A,x0+(w>>1)-4+i,base-6+((i&1)?0:1),I[4]);                                       // the treadle
+  {const mx=x0+6,my=top-9;rect(A,mx,my+2,16,7,RAMP.charcoal[1]);hl(A,mx,my+2,16,RAMP.charcoal[3]);rect(A,mx,my-2,5,4,RAMP.charcoal[1]);rect(A,mx+12,my,4,9,RAMP.charcoal[0]);
+    hl(A,mx+5,my+4,6,RAMP.brass[5]);P(A,mx+6,my+5,RAMP.brass[3]);P(A,mx+13,my+9,RAMP.steel[4]);P(A,mx+13,my+10,RAMP.steel[3]);
+    vl(A,mx+2,my-5,3,RAMP.cream[2]);P(A,mx+2,my-6,RAMP.red[4]);}                                                                  // the head, the decal, the needle, a spool of red thread
+  for(let j=0;j<13;j++){const xx=x0+w-8+Math.round(Math.sin(j*.6)*1.5);for(let i=0;i<7;i++)P(A,xx+i,top+1+j,RAMP.blue[i===0?4:(i===6?2:3)]);}   // the cloth over the edge
+  cast(x0,x0+w,base);}
+// =================================================================================== the quarry boss's stone and tools
+if(K==='stoneblocks'){const St=RAMP.stone,base=H-3;   // (judge b2: "nothing says quarry") rough-cut blocks stacked, chisel marks on the
+  // faces, chips at the foot, a pick and a sledgehammer leaning on them
+  const block=(x,y,w2,h2,d)=>{for(let j=0;j<d;j++)for(let i=0;i<w2;i++)P(A,x+i+(d-j>>1),y+j,St[j===0?5:4]);for(let j=0;j<h2;j++)for(let i=0;i<w2;i++){let c=St[i<2?4:(i>w2-3?2:3)];if(j%3===1&&((i+j*5)%9)<3&&i>1&&i<w2-2)c=St[2];P(A,x+i,y+d+j,c);}hl(A,x,y+d+h2-1,w2,St[1]);};
+  block(4,base-14,18,11,3);block(23,base-13,15,10,3);block(10,base-26,16,9,3);
+  for(const [cx,cy] of [[6,base],[22,base+1],[30,base]]){P(A,cx,cy-1,St[4]);P(A,cx+1,cy-1,St[3]);}
+  for(let j=0;j<20;j++){P(A,W-8+Math.round(j*.25),base-21+j,RAMP.oak[4]);P(A,W-7+Math.round(j*.25),base-21+j,RAMP.oak[2]);}           // the sledge's haft
+  rect(A,W-11,base-24,7,4,RAMP.ironW[2]);hl(A,W-11,base-24,7,RAMP.ironW[4]);
+  for(let j=0;j<18;j++){P(A,W-14-Math.round(j*.2),base-19+j,RAMP.oak[3]);}for(let i=-5;i<=5;i++)P(A,W-14+i,base-20-Math.round(Math.abs(i)*.4),RAMP.steel[i<0?4:2]);   // the pick
+  cast(4,W-4,base);}
 // =================================================================================== the milking stool
 if(K==='stool'){const R=RAMP.oak,base=H-3,cx=W>>1;
   // a milking stool: a round seat two steps lighter than its three splayed legs; floor shows between them

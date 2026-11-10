@@ -36,7 +36,7 @@ function dressRoom(k,D){const R=ROOMS[k],m=R&&SPR[R.shell||('room_'+k)];if(!m||!
   const add=[];
   // the special pieces first (a tall cabinet or wardrobe may stand in front of a window; not in front of a door or other furniture)
   if(D.special==='cabinet'||D.special==='wardrobe'){const hw=D.special==='cabinet'?.65:.8;const busy=spans.filter((s,i)=>i<R.furn.length+5);
-    for(let x=1;x<w-1;x+=.25){const a=x-hw,b=x+hw;if(spans.some(s=>a<s[1]&&b>s[0]&&!(m.room.windows||[]).some(wd=>Math.abs(s[0]-(wd[0]-.8))<.01&&Math.abs(s[1]-(wd[0]+.8))<.01)))continue;
+    for(let x=1;x<w-1;x+=.25){const a=x-hw,b=x+hw;if(spans.some(s=>a<s[1]&&b>s[0]))continue;   /* (b2) never in front of a window either */
       if(D.special==='cabinet'){add.push(['in_cabinet',x,.62,[-.6,-.4,.6,0]]);D.cabX=x;}else{add.push(['in_drawings',x,-.45,null,'flat'],['in_wardrobe',x,.7,[-.75,-.45,.75,0]]);D.wardX=x;}
       spans.push([a,b]);rects.push([x-hw,.2,x+hw,.7]);break;}}
   // the walls

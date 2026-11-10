@@ -322,6 +322,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   doormat: let it widen all the way to a ragged far edge, and light the wall round the lamp too so light runs lamp, wall, floor.
 - [interiors r15 -> PASS] The mine reached 6 after 15 rounds: name the subject at a glance (track, cart, drift, timber sets),
   keep the middle quiet for play, put the detail at the walls, and let every light have a visible source.
+- [interiors b2] Five rooms on the same shell (same windows, same door, same mat) read as one house shown five times: vary
+  the shell per house (window count and place, wall, floor), not only the furniture.
+- [interiors b2] Generic workshop pieces (pegboard, cogs) never say a trade: each trade needs its own material in view
+  (cut stone and a sledge for the quarry, a treadle machine for the seamstress, primers and a hand-bell for the school).
+- [interiors b2] Small cream blocks on a shelf read as jars whatever they are meant to be: letters need the V of the flap.
 - [interiors r3] A tall piece standing in front of a window (a bookcase hiding a third of the glass) is a placement error;
   check every tall piece against the window list before judging.
 - [interiors r3] Fading a too-loud quilt to grey made it read as stone: fade toward the room's own warm brown instead
