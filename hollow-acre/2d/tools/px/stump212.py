@@ -1,0 +1,128 @@
+"""Stumps for the trees whose blockout stumps failed the baseline (#198): pine and spruce read as clay pots, birch as paper cups,
+willow was a copy of the generic stump, the dead trees had neat tan lids. Drawn by hand in flat tones lit from the top-left, each
+cut from its own tree: pine/spruce low with a pale ringed top and a bead of resin, plated red-brown bark, three uneven roots; birch
+white with black marks and a torn rim; willow wide with grey furrowed bark; the dead tree and the snag snapped off in splinters.
+Frame sizes and anchors stay those of the sprites they replace.     python3 stump212.py -> out/stump212_<name>.png
+"""
+import math, json, random
+from PIL import Image
+
+OBJ = '/tmp/claude-0/-home-user-Minecraftbot/f193b802-e794-5104-89ce-994e8f157fdf/scratchpad/spr/lpc/objects.json'
+
+
+def hexr(a):
+    return [tuple(int(h[i:i + 2], 16) for i in (1, 3, 5)) for h in a]
+
+
+TOP = hexr(['#5a4228', '#7e6040', '#a07c52', '#bc9a68', '#d4b482'])
+RESIN = (214, 150, 52)
+STYLE = {
+    'pine': dict(bark=hexr(['#2a1610', '#46261a', '#643826', '#844c32', '#a06440']), plates=True, hgt=6, roots=3),
+    'spruce': dict(bark=hexr(['#1e1410', '#342218', '#4c3222', '#664430', '#7e583e']), plates=True, hgt=6, roots=3),
+    'birch': dict(bark=hexr(['#4a4642', '#8a857e', '#b8b3aa', '#d8d4cc', '#ece9e2']), marks=True, torn=True, hgt=7, roots=2),
+    'willow': dict(bark=hexr(['#262624', '#3c3b38', '#55534e', '#6e6b65', '#88847d']), furrows=True, hgt=8, roots=4),
+    'dead': dict(bark=hexr(['#222020', '#383532', '#504c48', '#6a6560', '#86807a']), furrows=True, snapped=True, hgt=9, roots=3),
+}
+WHICH = {'pine_0': 'pine', 'pine_1': 'pine', 'pine_o0': 'pine', 'pine_o1': 'pine', 'spruce_0': 'spruce', 'spruce_1': 'spruce',
+         'birch_green': 'birch', 'birch_gold': 'birch', 'willow': 'willow', 'deadtree': 'dead', 'snag': 'dead'}
+
+
+def draw(name):
+    O = json.load(open(OBJ))
+    m = O['stump_of_' + name]; W, H, ax, ay = m['fw'], m['fh'], int(m['ax']), int(m['ay'])
+    st = STYLE[WHICH[name]]; B = st['bark']; R = random.Random(len(name) * 7 + W)
+    r = max(4, int(round(m['foot'][2] * 32 - 1)))
+    ry = max(2, round(r * .55)); hgt = st['hgt'] + (r // 4)
+    im = Image.new('RGBA', (W, H), (0, 0, 0, 0)); px = im.load()
+
+    def P(x, y, c):
+        if 0 <= x < W and 0 <= y < H:
+            px[x, y] = c + (255,)
+
+    cx, by = ax, ay
+    # a soft shadow on the ground, down-right
+    for y in range(H):
+        for x in range(W):
+            if ((x - cx - 2) / (r + 4)) ** 2 + ((y - by - 1) / (ry + 1.5)) ** 2 < 1:
+                px[x, y] = (10, 8, 12, 90)
+    # roots: uneven wedges spreading at the base, lit on top
+    angs = [math.pi * .95, math.pi * .1, math.pi * .62, math.pi * .35][:st['roots']]
+    rw = max(1.6, r * .38)
+    for k, a in enumerate(angs):
+        L = r * (0.95 + R.random() * .4) + 2
+        for t in range(int(L) + 1):
+            f = t / L; x = cx + math.cos(a) * (r * .6 + t); y = by - 1 + math.sin(a) * (ry * .6 + t * .45)
+            hw = rw * (1 - f) + .5                                                    # a root is a flare, thick at the trunk, tapering out
+            for j in range(-int(hw), int(hw) + 1):
+                X = int(round(x - math.sin(a) * j * .5)); Y = int(round(y + j * .5 - hw * .6))
+                P(X, Y, B[4] if j < -hw * .4 else B[3] if j <= 0 else B[2] if j < hw * .6 else B[1])
+    # the trunk: a short cylinder, lit on the left, furrowed or plated or marked
+    for y in range(by - hgt, by + 1):
+        rr_ = r + max(0, y - (by - 3)) * .7                                           # the trunk flares out at its foot
+        for x in range(cx - int(rr_) - 1, cx + int(rr_) + 2):
+            dx = (x - cx) / rr_
+            if abs(dx) > 1:
+                continue
+            yb = by + ry * math.sqrt(max(0, 1 - dx * dx)) * .9
+            if y > yb:
+                continue
+            l = -dx
+            k = 4 if l > .5 else 3 if l > 0 else 2 if l > -.55 else 1
+            if st.get('furrows') and (x - cx) % 3 == 0 and abs(dx) < .9:
+                k = max(0, k - 2)
+            if st.get('plates') and ((y + (x // 3) * 2) % 4 == 0):
+                k = max(0, k - 2)
+            if st.get('marks') and ((y * 5 + x * 3) % 11 == 0 or ((y * 5 + x * 3) % 11 == 1 and (x - cx) % 4 == 0)):
+                k = 0
+            P(x, y, B[k])
+    ty = by - hgt
+    if st.get('snapped'):
+        # snapped off: splinters standing up in pale weathered wood, the tallest on the left catching the light
+        spl = [(-r + 1, 4), (-r // 2, 7), (0, 3), (r // 2, 5), (r - 1, 2)]
+        for (dx, hh) in spl:
+            for j in range(hh):
+                w = max(1, round((1 - j / hh) * 2))
+                for i in range(w):
+                    P(cx + dx + i, ty - j, TOP[3] if i == 0 else TOP[1])
+        for x in range(cx - r, cx + r + 1):
+            P(x, ty, TOP[2]); P(x, ty + 1, B[1])
+    else:
+        # the sawn top: an ellipse a step lighter than the bark, rings, a dark heart off centre, a lit rim at the front-left
+        for y in range(ty - ry, ty + ry + 1):
+            for x in range(cx - r, cx + r + 1):
+                q = ((x - cx) / r) ** 2 + ((y - ty) / ry) ** 2
+                if q > 1:
+                    continue
+                ring = int(math.sqrt(q) * 4)
+                k = 3 if ring % 2 == 0 else 2
+                if q > .8:
+                    k = 4 if (x < cx or y > ty) else 1
+                P(x, y, TOP[k])
+        P(cx + 1, ty, TOP[0]); P(cx + 2, ty, TOP[1])
+        for i in range(1, r - 1):                                                     # one radial check crack
+            P(cx + i, ty - i // 3, TOP[0])
+        if st.get('plates'):
+            P(cx - r + 2, ty + ry - 1, RESIN); P(cx - r + 2, ty + ry, RESIN)          # a bead of resin running down
+        if st.get('torn'):                                                            # the birch tore as it fell: splinters at the back rim
+            for (dx, hh) in ((-r // 2, 3), (r // 3, 2), (r - 2, 2)):
+                for j in range(hh):
+                    P(cx + dx, ty - ry - j, B[3]); P(cx + dx + 1, ty - ry - j + 1, B[1])
+    # outline
+    src = im.copy(); s = src.load()
+    for y in range(H):
+        for x in range(W):
+            if s[x, y][3] > 200:
+                continue
+            for dx, dy in ((0, 1), (0, -1), (1, 0), (-1, 0)):
+                X, Y = x + dx, y + dy
+                if 0 <= X < W and 0 <= Y < H and s[X, Y][3] > 200:
+                    rr, gg, bb, _ = s[X, Y]
+                    px[x, y] = (max(10, int(rr * .32)), max(8, int(gg * .28)), max(12, int(bb * .32)), 255)
+                    break
+    return im
+
+
+if __name__ == '__main__':
+    for n in WHICH:
+        draw(n).save(f'out/stump212_{n}.png')
+    print('ok', len(WHICH))
