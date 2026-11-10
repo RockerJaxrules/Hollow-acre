@@ -46,9 +46,19 @@ function seatSync(){const live=new Set();
   _u(dt);
   const t=P.sit;if(t){P.x=t.x;P.z=t.z;P.dir=t.face;P.fx=SEAT_DIR[t.face][0];P.fz=SEAT_DIR[t.face][1];P.clip='sit';t.t+=dt;
     if(S.mode==='play'&&typeof tierOf==='function'&&tierOf(M.v)<3)M.v=Math.min(100,M.v+dt*.1);}   // sitting a while steadies you, a little
-  syncT-=dt;if(syncT<=0){syncT=.5;seatSync();}};}
+  syncT-=dt;if(syncT<=0){syncT=.5;seatSync();npcSeats();}};}
 // drawn on the seat: raised by the seat's height, no shadow at the feet (the seat's own shadow is under you)
 {const _al=actLean;actLean=function(){const s=P.sit;return s?[0,-s.lift]:_al();};}
 {const _fs=footShadow;footShadow=function(fr,X,Y){if(P.sit&&fr===P._fr)return;return _fs(fr,X,Y);};}
 // sitting, the act button gets you up when there is nothing else to do
 {const _cc=computeContext;computeContext=function(){const r=_cc();if(!P.sit)return r;if(hlTile||!r||!r.label){hlTile=null;return {label:'Stand up',ok:true,act:standUp};}return r;};}
+// townspeople sit too: anyone who has stood still for a moment beside a free seat sits in it, and gets up when they walk off
+function npcSeats(){for(const n of npcs){
+  if(!n.vis){n._seat=null;n._still=0;continue;}
+  const lp=n._lp,still=lp&&Math.abs(lp[0]-n.x)<.02&&Math.abs(lp[1]-n.z)<.02;n._lp=[n.x,n.z];
+  if(n._seat){const s=n._seat;if(!still||n.clip==='walk'||n.clip==='stand'||s.o.hide||!SEAT_ENT.has(s.o))n._seat=null;continue;}
+  n._still=still&&n.clip!=='walk'&&n.clip!=='stand'?(n._still||0)+.5:0;if(n._still<1.5)continue;
+  let best=null,bd=.95;for(const [o,ents] of SEAT_ENT){if(Math.abs(o.x-n.x)>3||Math.abs(o.z-n.z)>2)continue;
+    for(const it of ents){const d=Math.hypot(it.x-n.x,it.z+.12-n.z);if(d<bd&&!seatTaken(o,it.i)&&Math.hypot(it.x-P.x,it.z-P.z)>.5){bd=d;best=it;}}}
+  if(!best)continue;const o=best.o,d=SEATS[o.spr],face=seatFace(o,d,n.dir||'S'),p=seatSpot(o,d,best.i,face);
+  n._seat={o,i:best.i,face,x:p.x,z:p.z,lift:d.lift||0};}}

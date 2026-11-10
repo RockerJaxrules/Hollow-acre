@@ -119,7 +119,7 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
     if(o.kind==='deco'){drawSpr('leaves_'+o.v,X,Y);continue;}if(o.kind==='flat'){drawSpr(o.spr,X,Y);continue;}castShadow(o,X,Y);D.push({z:o.z,o});}
   sunEnd();
   for(const tl of tiles)if(tl.crop){const c=tl.crop;D.push({z:tl.z+.2,crop:tl});}
-  for(const n of npcs)if(n.vis)D.push({z:n.z,npc:n});
+  for(const n of npcs)if(n.vis)D.push({z:n._seat?n._seat.z:n.z,npc:n});
   if(S.mode!=='title'&&!(cine&&cine.hidePlayer))D.push({z:P.z,player:true});
   if(H.vis)D.push({z:H.z,hollow:true});
   if(ruth.vis)D.push({z:ruth.z,ruth:true});
@@ -145,7 +145,7 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
       if(o.night&&SPR[o.night]&&nightK>0)drawSpr(o.night,X,Y,null,null,0,{alpha:(a||1)*nightK});
       if(o.kind==='bld'){const h=HOUSES.find(q=>q.e===o);if(h&&h.faceT>0){const w=(h.w||6)/2;const fx=Math.round(X-w*PPM+48),fy=Math.round(Y-74);ctx2.fillStyle='#d8d4c8';ctx2.fillRect(fx,fy,8,10);ctx2.fillStyle='#000';ctx2.fillRect(fx+1,fy+3,2,2);ctx2.fillRect(fx+5,fy+3,2,2);ctx2.fillRect(fx+2,fy+7,4,2);}}}
     else if(d.crop){const tl=d.crop,c=tl.crop;const nm=c.type+'_'+c.stage;const s=c.pop<1?.6+.4*c.pop:1;if(c.stage>0)shadow(sx(tl.x)+2,sz(tl.z+.2),4+c.stage*2);drawSpr(nm,sx(tl.x),sz(tl.z+.2),null,null,0,{scale:s});mindCropOver(tl,sx(tl.x),sz(tl.z+.2));}
-    else if(d.npc){const n=d.npc;const X=sx(n.x),Y=sz(n.z)-(typeof porchLift==='function'&&!S.room?porchLift(n.x,n.z):0);const m=SPR[n.def.id];const ncl=n.clip==='walk'?'walk':(m&&m.clips&&m.clips.idle&&n.clip!=='stand')?'idle':'walk';const nf=ncl==='walk'?frameOf(n.def.id,'walk',n.t):ncl==='idle'?frameOf(n.def.id,'idle',performance.now()/1000+(n.def.id.length*.37)):0;n._fr=[n.def.id,ncl,n.dir||'S',nf];footShadow(n._fr,X,Y);drawSpr(n.def.id,X,Y,ncl,n.dir,nf);mindNPCOver(n,X,Y);
+    else if(d.npc){const n=d.npc;const st=n._seat;const X=sx(st?st.x:n.x),Y=sz(st?st.z:n.z)-(st?st.lift:0)-(typeof porchLift==='function'&&!S.room?porchLift(n.x,n.z):0);const m=SPR[n.def.id];const ncl=st&&m&&m.clips&&m.clips.sit?'sit':n.clip==='walk'?'walk':(m&&m.clips&&m.clips.idle&&n.clip!=='stand')?'idle':'walk';const nd=ncl==='sit'?st.face:n.dir;const nf=ncl==='walk'?frameOf(n.def.id,'walk',n.t):(ncl==='idle'||ncl==='sit')?frameOf(n.def.id,ncl,performance.now()/1000+(n.def.id.length*.37)):0;n._fr=[n.def.id,ncl,nd||'S',nf];if(ncl!=='sit')footShadow(n._fr,X,Y);drawSpr(n.def.id,X,Y,ncl,nd,nf);mindNPCOver(n,X,Y);
       if(n.clip==='stand'&&S.day>=2&&nightK>.5){ctx2.fillStyle='#ff2a14';const ey=Math.round(Y-35);ctx2.fillRect(Math.round(X)-3,ey,1,1);ctx2.fillRect(Math.round(X)+2,ey,1,1);}}
     else if(d.player){const LN=actLean(),X=sx(P.x)+LN[0],Y=sz(P.z)-(typeof porchLift==='function'&&!S.room?porchLift(P.x,P.z):0)+LN[1];let nm='farmer',clip=P.clip,f;
       if(P.anim){const a=P.anim;if(a.clip==='hoe'||a.clip==='pick'||a.clip==='axe'){nm='farmer_'+a.clip;clip='thrust';}else if(a.clip==='water'){nm='farmer_can';clip='thrust';}else clip='slash';f=frameOf(nm,clip,a.t,a.dur);
