@@ -9,7 +9,9 @@ SZ = {'bookcase': {'S': (52, 82), 'E': (25, 82), 'N': (52, 82)}, 'desk': {'S': (
       'crates': {'S': (46, 40), 'E': (46, 40), 'N': (46, 40)}, 'jars': {'S': (52, 82), 'E': (25, 82), 'N': (52, 82)},
       'rocker': {'S': (32, 48), 'E': (44, 46), 'N': (32, 48)},
       'rug': {'S': (84, 52), 'R': (52, 84)},
-      'wardrobe': {'S': (56, 100)}, 'cabinet': {'S': (46, 92)}, 'stove': {'S': (44, 58)}, 'counter': {'S': (100, 48)}, 'kcounter': {'S': (76, 52)}}
+      'wardrobe': {'S': (56, 100)}, 'cabinet': {'S': (46, 92)}, 'stove': {'S': (44, 58)}, 'counter': {'S': (100, 48)}, 'kcounter': {'S': (76, 52)},
+      'cans': {'S': (64, 82)}, 'mail': {'S': (64, 70)}, 'parts': {'S': (64, 82)},
+      'filecab': {'S': (28, 52)}, 'schooldesk': {'S': (30, 36)}, 'stool': {'S': (18, 30)}, 'pew': {'S': (124, 44)}, 'toolbox': {'S': (36, 40)}, 'coffin': {'S': (40, 66)}}
 NIGHT = {'desk', 'table', 'candles', 'lamp', 'stove'}
 kinds = sys.argv[1:] or list(SZ)
 for k in kinds:

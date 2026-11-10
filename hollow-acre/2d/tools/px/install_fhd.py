@@ -8,7 +8,10 @@ HERE = os.path.dirname(os.path.abspath(__file__)); GAME = os.path.abspath(os.pat
 BUILD = os.environ.get('HA_SCRATCH', '/tmp/claude-0/-home-user-Minecraftbot/f193b802-e794-5104-89ce-994e8f157fdf/scratchpad')
 SPR = {'bookcase': 'in_shelf_books', 'desk': 'in_desk', 'table': 'in_table', 'clock': 'in_clock', 'keg': 'in_keg', 'cradle': 'in_cradle',
        'piano': 'in_piano', 'chess': 'in_chess', 'rocker': 'in_rockS', 'jars': 'in_shelf_jars', 'crates': 'in_crates', 'globe': 'in_globe',
-       'candles': 'in_candles', 'lamp': 'in_oillamp', 'rug': 'in_rug'}
+       'candles': 'in_candles', 'lamp': 'in_oillamp', 'rug': 'in_rug',
+       'beda': 'in_bed', 'bedb': 'in_bed_b', 'bedc': 'in_bed_c', 'bedd': 'in_bed_d', 'bede': 'in_bed_e', 'wardrobe': 'in_wardrobe', 'cabinet': 'in_cabinet', 'stove': 'in_stove',
+       'counter': 'in_counter', 'kcounter': 'in_kcounter', 'cans': 'in_shelf_cans', 'mail': 'in_shelf_mail', 'parts': 'in_shelf_parts', 'filecab': 'in_filecab',
+       'schooldesk': 'in_schooldesk', 'stool': 'in_stool', 'pew': 'in_pew', 'toolbox': 'in_toolbox', 'coffin': 'in_coffin'}
 kinds = [a for a in sys.argv[1:] if not a.startswith('--')]; views = '--views' in sys.argv
 mp = os.path.join(BUILD, 'spr', 'lpc', 'objects.json'); O = json.load(open(mp))
 bak = os.path.join(GAME, 'spr', 'backup_v2', 'furn_old'); os.makedirs(bak, exist_ok=True)
