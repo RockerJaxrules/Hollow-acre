@@ -2852,7 +2852,7 @@ if(K==='lumber2'){const LB=hexR(['#2a1e14','#432f20','#5e4530','#7a5c40','#94744
   const xL=6;for(let x=2;x<47;x++){SH(x+1,base,150);SH(x+2,base+1,80);}
   const rEnd=[42,40,43,41,39];   // ragged right ends, layer by layer
   const TH=[2,3,2,3,2];let yk=10;for(let k=0;k<5;k++){const y=yk,th=TH[k],xr=rEnd[k];yk+=th+1;for(let x=xL;x<=xr;x++){P(A,x,y,LB[3]);for(let j=1;j<th;j++)P(A,x,y+j,LB[2]);P(A,x,y+th,LB[0]);}if(k%2===0){P(A,xr+1,y,EN[2]);P(A,xr+2,y,EN[1]);for(let j=1;j<th;j++){P(A,xr+1,y+j,EN[1]);P(A,xr+2,y+j,EN[0]);}}
-    for(const sx of [11,25,37])if(k<4){P(A,sx,y+2,LB[3]);P(A,sx+1,y+2,LB[2]);}   // spacers between layers
+    for(const sx of [[11,25,37],[15,28,36],[9,22,38],[13,26,35]][k%4]||[])if(k<4){P(A,sx,y+th,LB[3]);P(A,sx+1,y+th,LB[2]);}   // spacers between layers, staggered
     for(let j=0;j<2;j++){P(A,xL-3,y+j,EN[j===0?2:1]);P(A,xL-2,y+j,EN[j===0?2:1]);P(A,xL-1,y+j,EN[j===0?1:0]);}P(A,xL-2+(k%2),y+1,hexR(['#5a4430'])[0]);   // square sawn end grain, lit top-left, the heart off centre
     P(A,xr+1,y,LB[4]);P(A,xr+1,y+1,LB[3]);}
   for(let y=2;y<=9;y++){const row=(y-2)%4;for(let x=xL-2+(9-y>>1);x<=rEnd[0]+(y<6?1:0);x++){P(A,x,y,row===3?LB[2]:(x<xL+16?LB[5]:LB[4]));}}   // the top plane: two planks, lit, a seam between
@@ -3103,21 +3103,24 @@ if(K==='wnets2'){const base=63,TW=hexR(['#5a4a32','#7e6a4a','#a08a64']),CK=hexR(
   NOOL.push((x,y)=>y>12&&y<base-2&&x>6&&x<W-6);
   for(const px of [4,W-7]){for(let y=6;y<=base;y++){P(A,px,y,WW[5]);P(A,px+1,y,WW[4]);P(A,px+2,y,WW[2]);}hl(A,px-1,5,5,WW[6]);for(let j=0;j<3;j++)SH(px+3,base-j,150);}
   for(let x=4;x<W-4;x++){P(A,x,9,WW[5]);P(A,x,10,WW[3]);P(A,x,11,WW[1]);}
-  const swags=[[8,28,44],[29,49,50],[50,70,40]];
-  for(const [sx0,sx1,dep] of swags){const hem=x=>12+Math.round(Math.sin((x-sx0)/(sx1-sx0)*Math.PI)*(dep-30)+30);
-    for(let x=sx0;x<=sx1;x++)for(let y=12;y<=hem(x);y++){const u=x+y,v=x-y+80;if(u%5===0||v%5===0)P(A,x,y,TW[(u%5===0&&v%5===0)?2:(u%5===0?1:0)]);}
-    for(let x=sx0;x<=sx1;x++){P(A,x,hem(x),TW[1]);if((x-sx0)%5===2){P(A,x,hem(x)+1,LD[1]);P(A,x,hem(x)+2,LD[0]);}}
-    for(let x=sx0+2;x<sx1;x+=6){P(A,x,9,CK[2]);P(A,x+1,9,CK[1]);P(A,x,10,CK[1]);P(A,x+1,10,CK[0]);}}
-  for(let y=14;y<34;y++)for(let x=51+((y*3)%4);x<55;x++)P(A,x,y,TW[(x+y)%3?1:0]);}
+  // (props r12: "drapes differ, a lit crest and dark trough per fold, open mesh") four drapes of different widths, gathered at different points, open diamond mesh
+  const TD=hexR(['#3a3024']);const drapes=[[8,20,14,44],[21,39,27,55],[40,53,46,40],[54,71,64,50]];
+  for(const [a,b,gx,hem] of drapes){for(let y=12;y<=hem;y++){const t=Math.min(1,(y-12)/12),xa=Math.round(gx-(gx-a)*(.35+.65*t)),xb=Math.round(gx+(b-gx)*(.35+.65*t));const hy=hem-Math.round(Math.abs(Math.sin((y)*.0))*0);
+      for(let x=xa;x<=xb;x++){const u=x+y,v=x-y+200;if(!(u%4===0||v%4===0))continue;const ph=Math.sin((x-xa)/Math.max(1,xb-xa)*Math.PI*3);const c=ph>.45?TW[2]:ph<-.45?TD[0]:TW[1];P(A,x,y,c);}
+      if(y===hem)for(let x=xa;x<=xb;x+=4){P(A,x,y+1,LD[1]);P(A,x,y+2,LD[0]);}}   // lead sinkers along each hem
+    for(let x=gx-1;x<=gx+1;x++){P(A,x,12,TW[2]);P(A,x,13,TW[1]);}}   // the gather point at the rail
+  for(let x=7;x<W-7;x+=5){P(A,x,9,CK[2]);P(A,x+1,9,CK[1]);P(A,x,10,CK[1]);P(A,x+1,10,CK[0]);}   // cork floats along the rail
+  }
 // a crab pot on the quay: a slatted box with a lit lid, dark inside between the slats, a big crab clambering over it, its legs over the edge
-if(K==='wtrap2'){const base=21,x0=4,x1=27,top=8,fy=12,CR=hexR(['#3a1410','#5e2218','#843424','#a64a32','#c06646']);
+if(K==='wtrap2'){const base=22,x0=3,x1=28,top=9,fy=14,CR=hexR(['#2a1410','#4a2218','#6a3424','#884a32','#9c5e40']),WI=hexR(['#3a3e40','#5e6466','#848a8a']);   // (props r12: "crab bigger, outlined, legs breaking the outline, lid lighter") a crab pot: a lit wire lid, dark slats, a crab on top
   for(let x=x0;x<x1+3;x++){SH(x+1,base,150);SH(x+2,base+1,70);}
-  for(let y=fy;y<base;y++)for(let x=x0;x<x1;x++){const slat=(x-x0)%4<3;P(A,x,y,slat?WW[(x-x0)%4===0?4:3]:WW[0]);}hl(A,x0,base-1,x1-x0,WW[1]);
-  for(let y=top;y<fy;y++)for(let x=x0;x<x1;x++){const slat=(y-top)%2===0||x===x0||x===x1-1;P(A,x,y,slat?WW[y===top?6:5]:WW[1]);}
-  const cx=16,cy=top+1;for(let y=-2;y<=2;y++)for(let x=-4;x<=4;x++){if(x*x/16+y*y/4>1)continue;P(A,cx+x,cy+y,CR[(x+y)<-1?4:((x+y)<2?3:2)]);}
-  P(A,cx-2,cy-2,CR[0]);P(A,cx+1,cy-2,CR[0]);
-  for(const [lx,ly,dx,dy] of [[-4,1,-1,1],[-4,2,-2,2],[4,1,1,1],[4,2,2,2],[-3,2,-1,3],[3,2,1,3]])for(let k=1;k<=3;k++)P(A,cx+lx+dx*Math.ceil(k/2)*(k>1?1:0)+(k===1?dx:0),cy+ly+Math.round(dy*k/2),CR[1]);   // legs over the edge
-  for(const sd of [-1,1]){P(A,cx+sd*5,cy-2,CR[3]);P(A,cx+sd*6,cy-3,CR[4]);P(A,cx+sd*7,cy-3,CR[2]);P(A,cx+sd*6,cy-2,CR[2]);}}   // the claws
+  for(let y=fy;y<base;y++)for(let x=x0;x<x1;x++){const slat=(x-x0)%5<4;P(A,x,y,slat?WW[(x-x0)%5===0?3:2]:WW[0]);}for(let x=x0;x<x1;x++){P(A,x,fy,WW[4]);P(A,x,base-1,WW[1]);}
+  for(let y=top;y<fy;y++)for(let x=x0;x<x1;x++){const fr=x===x0||x===x1-1||y===top||y===fy-1;const mesh=(x-x0)%3===0||(y-top)%2===0;P(A,x,y,fr?WW[x===x0||y===top?6:4]:(mesh?WI[(x<x0+12)?2:1]:WW[1]));}   // the lid: a lit frame and wire mesh
+  const cx=17,cy=top+1;
+  for(const [lx,ly,ex,ey] of [[-4,1,-8,4],[-4,0,-9,1],[-3,2,-6,6],[4,1,8,4],[4,0,9,1],[3,2,6,6]]){const n=Math.max(Math.abs(ex-lx),Math.abs(ey-ly));for(let k=0;k<=n;k++)P(A,cx+Math.round(lx+(ex-lx)*k/n),cy+Math.round(ly+(ey-ly)*k/n),CR[1]);}   // legs splayed out past the lid's edge
+  for(let y=-3;y<=2;y++)for(let x=-5;x<=5;x++){const d=x*x/25+y*y/7;if(d>1)continue;P(A,cx+x,cy+y,d>.75?CR[0]:CR[(x+y)<-2?4:((x+y)<1?3:2)]);}   // the shell, outlined
+  P(A,cx-2,cy-3,CR[0]);P(A,cx+2,cy-3,CR[0]);P(A,cx-2,cy-4,hexR(['#1a1a1a'])[0]);P(A,cx+2,cy-4,hexR(['#1a1a1a'])[0]);   // eye stalks
+  for(const sd of [-1,1]){for(const [dx,dy,c] of [[5,-3,3],[6,-4,4],[7,-4,3],[7,-5,2],[8,-5,4],[6,-5,1]])P(A,cx+sd*dx,cy+dy,CR[c]);}}   // the claws raised
 // a chopping block: a log stump with rough bark, its sawn top lit with an off-centre heart and a split, an axe sunk into it at an angle: a wedge head, the bright edge, a pale handle
 if(K==='chopblk2'){const base=36,cx=20,BK=hexR(['#1e140e','#2e2016','#42301f','#584029']),EN=hexR(['#6e5a40','#8c7454','#a8906a','#c0a880']);
   for(let x=cx-14;x<cx+16;x++){SH(x+1,base,160);SH(x+2,base+1,80);}
@@ -3137,7 +3140,7 @@ if(K==='drum2'){const base=29,cx=11,RD=hexR(['#2a1210','#421c18','#5e2a22','#7a3
   for(let x=-8;x<=9;x++){SH(cx+x+1,base,160);SH(cx+x+2,base+1,80);}
   for(let y=base-22;y<base;y++)for(let x=-8;x<=8;x++){const u=x/8;let k=u<-.6?4:u<-.15?5:u<.35?3:u<.7?2:1;const hy=y-(base-22);if(hy===7||hy===15)k=Math.min(5,k+1);if(hy===8||hy===16)k=0;if(y===base-1)k=0;P(A,cx+x,y,RD[k]);}
   for(const [rx,sy,len] of [[-3,8,5],[2,16,6],[5,8,4]])for(let j=0;j<len;j++)P(A,cx+rx,base-22+sy+1+j,RU[j<len-2?1:0]);   // (props r10) rust runs starting at the rolling hoops
-  for(let y=-2;y<=1;y++)for(let x=-8;x<=8;x++){if(x*x/64+y*y/4>1)continue;const rim=x*x/64+y*y/4>.55;P(A,cx+x,base-23+y,rim?(y<=0&&x<2?hexR(['#c0806a'])[0]:RD[3]):RD[y<0?5:4]);}P(A,cx+3,base-24,RD[1]);P(A,cx+4,base-24,RD[1]);}
+  for(let y=-2;y<=1;y++)for(let x=-8;x<=8;x++){if(x*x/64+y*y/4>1)continue;const rim=x*x/64+y*y/4>.55;P(A,cx+x,base-23+y,rim?(y<=0&&x<2?hexR(['#d49a80'])[0]:RD[4]):hexR(['#b47a62','#a46a54'])[y<0?0:1]);}P(A,cx+3,base-24,hexR(['#3a1a14'])[0]);P(A,cx+4,base-24,hexR(['#e0b098'])[0]);P(A,cx+3,base-24,RD[1]);P(A,cx+4,base-24,RD[1]);}
 // a stone birdbath: a short column on a plinth, a deep bowl lit on its near lip with the far inner wall in shade, still dark slate-teal water with one glint
 if(K==='bbath2'){const base=37,cx=15,St=hexR(['#2c282a','#46403f','#635b58','#827974','#a19790','#bdb3aa']);
   for(let x=-9;x<=10;x++){SH(cx+x+1,base,150);SH(cx+x+2,base+1,70);}
@@ -3147,9 +3150,9 @@ if(K==='bbath2'){const base=37,cx=15,St=hexR(['#2c282a','#46403f','#635b58','#82
   for(let y=-3;y<=1;y++){const hw=Math.round(10-Math.abs(y+1)*1.6);for(let x=-hw;x<=hw;x++)P(A,cx+x,by+y,y<-1?St[1]:hexR(['#1c2a2e','#24363a'])[y<0?0:1]);}   // the far inner wall in shade, the water
   hl(A,cx-11,by+1,23,St[5]);P(A,cx-4,by-1,hexR(['#6e8a8e'])[0]);P(A,cx-3,by-1,hexR(['#4e6a6e'])[0]);}   // the lit near lip, a glint
 // an anvil on a log: rough bark, the sawn rim lit, the foot flared; the anvil's horn to the left, a cool lit top edge, its waist
-if(K==='anvil2'){const base=25,cx=18,BK=hexR(['#1e140e','#2e2016','#42301f','#584029']),EN=hexR(['#6e5a40','#8c7454','#a8906a']),I=RAMP.iron;
+if(K==='anvil2'){const base=25,cx=18,BK=hexR(['#2a1e14','#3e2c1e','#56402c','#6e5438']),EN=hexR(['#6e5a40','#8c7454','#a8906a']),I=RAMP.iron;
   for(let x=cx-12;x<cx+14;x++){SH(x+1,base,160);SH(x+2,base+1,80);}
-  for(let y=base-9;y<base;y++){const fl=y>base-4?(y-base+4)*1.4:0;const hw=Math.round(9+fl);for(let x=-hw;x<=hw;x++){let c=BK[x<-hw+2?3:(x>hw-2?0:(x<0?2:1))];if([-6,-2,3,7].some(g=>Math.abs(x-g-Math.round(Math.sin(y*.9+g)*1))<1)&&Math.abs(x)<hw-1)c=BK[0];P(A,cx+x,y,c);}}   // (props r10) a stump: root flare at the foot, uneven bark grooves
+  for(let y=base-9;y<base;y++){const fl=y>base-4?(y-base+4)*1.4:0;const hw=Math.round(9+fl);for(let x=-hw;x<=hw;x++){let c=BK[x<-hw+2?3:(x>hw-2?0:(x<0?2:1))];if([-6,-2,3,7].some(g=>Math.abs(x-Math.round(g*(1+(y-base+9)*.02)))<1)&&Math.abs(x)<hw-1)c=x<0?BK[1]:BK[0];P(A,cx+x,y,c);}}   // (props r10) a stump: root flare at the foot, uneven bark grooves
   for(const [rx,dir] of [[-12,-1],[11,1]])for(let k=0;k<3;k++)P(A,cx+rx+dir*k,base-1+(k>1?0:0),BK[k===0?2:1]);   // roots running out
   for(let y=-2;y<=1;y++)for(let x=-9;x<=9;x++){const d=x*x/81+y*y/4;if(d>1)continue;const rr=Math.round(Math.sqrt(((x-1)*(x-1))/81+(y*y)/4)*4);P(A,cx+x,base-11+y,rr%2?EN[1]:(x<-2?EN[2]:EN[1]));}P(A,cx+1,base-11,BK[1]);   // the sawn top: rings round a heart off centre
   for(let y=base-18;y<base-11;y++){const r=y-(base-18);let x0=r<3?-10:-4,x1=r<3?8:5;if(r===0)x0=-7;for(let x=x0;x<=x1;x++)P(A,cx+x,y,r===0?RAMP.steel[4]:I[x<-1?3:(x>2?1:2)]);}
@@ -3205,6 +3208,8 @@ if(K==='ringtoss2'){const base=41,x0=4,x1=51,top=14,fy=20,CL=hexR(['#5a1e1e','#7
   const BT=[hexR(['#1e3424','#2e5038','#4a7058']),hexR(['#3a2a14','#5e4420','#8a6830']),hexR(['#28303a','#3e4a58','#5e6e80'])];
   for(let r=0;r<2;r++)for(let i=0;i<5;i++){const bx=x0+6+i*9+r*4,by=top+(r?5:2),h=r?6:5,c=BT[(i+r)%3];for(let j=0;j<h;j++){const w=j<2?0:1;for(let k=-w;k<=w;k++)P(A,bx+k,by-j,c[k<0?2:(k>0?0:1)]);}P(A,bx,by-h,c[2]);}
   P(A,x1,8,WW[4]);P(A,x1+1,8,WW[3]);   // a peg on the post
+  for(const [rx,ry,rc] of [[x0+15,top+1,'#b89038'],[x0+33,top+4,'#9a3a30']]){const c=hexR([rc])[0];for(const [dx,dy] of [[-2,0],[2,0],[-1,-1],[0,-1],[1,-1],[-1,1],[0,1],[1,1]])P(A,rx+dx,ry+dy,c);}   // (props r11) rings caught on two bottle necks
+  for(let k=0;k<3;k++){const c=hexR(['#b89038','#3a6a8a','#9a3a30'])[k];for(let dx=-3;dx<=3;dx++){P(A,x0+4+dx,fy-2-k,Math.abs(dx)===3?c:(k===2?mixC(c,[0xff,0xff,0xff],.15):c));}P(A,x0+4,fy-2-k,CR[0]);}   // a stack of rings lying on the counter
   for(const [ry,rc] of [[10,'#b89038'],[13,'#9a3a30'],[16,'#3a6a8a']]){const c=hexR([rc])[0],d=mixC(c,[0x20,0x18,0x14],.4);for(const [dx,dy] of [[-2,0],[2,0],[-1,-1],[0,-1],[1,-1],[-1,1],[0,1],[1,1]])P(A,x1+1+dx,ry+dy,dy<0||dx<0?c:d);}}   // three rings hung on the peg, each a 5 px loop
 // an old well left out in the region: a ring of rubble stone, the far inner wall lit under the rim and darkening toward the near rim, a broken post with a rope hanging into it
 if(K==='oldwell2'){const base=42,cx=31,St=GST;
@@ -3224,9 +3229,9 @@ if(K==='outcrop2'){const R=GST,base=42;
   for(const [lx,ly] of [[74,12],[75,12],[76,13],[75,13],[20,22],[21,22]])P(A,lx,ly,hexR(['#7d8650','#8f9a62'])[(lx+ly)%2]);
   for(let x=78;x<84;x++)P(A,x,16+((x*3)%2),undefined);P(A,78,17,R[2]);}
 // the swing set in the empty lot: an iron A-frame lit on its left and top edges, two swings; one hangs still, the other is caught swinging toward you (its seat higher on screen, its chains shorter)
-if(K==='swing2'){const base=80,I=hexR(['#1a1c20','#2a2e34','#3e444c','#5a626c','#7e8892']),x0=8,x1=90,ty=14;
+if(K==='swing2'){const base=80,I=hexR(['#1e1c1c','#2e2c2c','#44403e','#5e5856','#807874']),x0=8,x1=90,ty=14;
   for(let x=x0-6;x<x1+8;x++){SH(x+2,base,90);}
-  for(const [lx,dir] of [[x0,1],[x1,-1]])for(let j=0;j<base-ty;j++){for(const s of [-1,1]){const x=Math.round(lx+s*j*.14);P(A,x,ty+j,I[s<0?4:3]);P(A,x+1,ty+j,I[s<0?2:1]);}}
+  for(const [lx,dir] of [[x0,1],[x1,-1]])for(let j=0;j<base-ty;j++){for(const s of [-1,1]){const x=Math.round(lx+s*j*.14);P(A,x-1,ty+j,I[4]);P(A,x,ty+j,I[2]);P(A,x+1,ty+j,I[0]);}}
   for(let x=x0-1;x<=x1+2;x++){P(A,x,ty-1,I[4]);P(A,x,ty,I[3]);P(A,x,ty+1,I[1]);}
   const CH=hexR(['#6a6e74','#8a8e94']);
   for(const cx of [30,36])for(let y=ty+2;y<base-18;y++)P(A,cx,y,CH[y%2]);for(let x=27;x<40;x++){P(A,x,base-18,WW[5]);P(A,x,base-17,WW[3]);P(A,x,base-16,WW[1]);}for(let x=28;x<39;x++)SH(x+1,base-1,120);   // the still swing
@@ -3242,18 +3247,22 @@ if(K==='produce2'){const base=61,x0=4,x1=92;
   heap(x0+12,base-44,4,3,2.2);heap(x0+43,base-44,4,0,1.6);heap(x0+62,base-44,4,1,1.6);
   for(const px of [x0+8,x0+30,x0+52,x0+74]){rect(A,px,base-11,8,5,RAMP.cream[2]);hl(A,px,base-11,8,RAMP.cream[3]);P(A,px+2,base-9,WW[1]);P(A,px+4,base-9,WW[1]);P(A,px+5,base-9,WW[1]);}}
 // the untended fountain in the hidden garden: an eight-sided stone basin of murky water with leaves on it, a column and an upper bowl, a thin spray falling in 2 px streams to splash rings
-if(K==='fountain2'){const base=86,cx=52,St=hexR(['#2c282a','#46403f','#635b58','#827974','#a19790','#bdb3aa']),WA=hexR(['#16201c','#1e2c26','#2a3c32','#46604e','#6e8a78']);
-  for(let x=-50;x<=50;x++){SH(cx+x+2,base,140);SH(cx+x+3,base+1,70);}
-  for(let y=-16;y<=8;y++)for(let x=-48;x<=48;x++){const d=x*x/2304+y*y/256;if(d>1)continue;const inner=x*x/1849+(y+2)*(y+2)/169;let c;if(inner<1)c=WA[(y+2)<-6?2:1];else c=St[y<-4?5:(y>3?2:(x<-30?4:3))];P(A,cx+x,base-12+y,c);}
-  for(let y=-2;y<=8;y++)for(let x=-48;x<=48;x++){if(y<0)continue;const d=x*x/2304+(y*y)/256;if(d>1){const d2=x*x/2304+((y-8)*(y-8))/64;if(d2<1&&y>0)P(A,cx+x,base-12+y+4,St[x<-30?3:(x>30?1:2)]);}}
-  for(const [lx,ly,c] of [[-24,-6,'#8a4a22'],[18,-2,'#a86a2a'],[-6,2,'#7a3a1a'],[30,-8,'#9a5a26']]){P(A,cx+lx,base-12+ly,hexR([c])[0]);P(A,cx+lx+1,base-12+ly,hexR([c])[0]);P(A,cx+lx+1,base-13+ly,hexR(['#5a3a1a'])[0]);}
-  for(let y=base-44;y<base-16;y++)for(let x=-3;x<=3;x++)P(A,cx+x,y,St[x<-1?4:x>1?1:3]);
-  for(let y=-4;y<=3;y++)for(let x=-16;x<=16;x++){if(x*x/256+y*y/16>1)continue;P(A,cx+x,base-46+y,y<-1?WA[2]:St[y<1?4:(x>10?1:2)]);}
-  for(let y=base-58;y<base-48;y++){P(A,cx,y,St[3]);}P(A,cx,base-59,St[4]);
-  const SP=hexR(['#6e8478','#8aa094']);for(let i=0;i<9;i++)P(A,cx+15+(i>6?1:0),base-44+i*3,SP[i%2]);   // (props r10: "make it untended") the jets stopped: one weak trickle off the upper bowl
-  const MO=hexR(['#2e3a20','#3e4c28','#54602e']);for(const [mx,my,n] of [[-40,-6,6],[-22,-10,4],[26,-9,5],[38,-4,4],[-46,0,3]])for(let i=0;i<n;i++)P(A,cx+mx+i,base-12+my+((i*3)%2),MO[(i+mx)%3]);   // moss along the rim
-  for(const [mx,n] of [[-44,9],[-12,6],[20,8],[40,5]])for(let i=0;i<n;i++){P(A,cx+mx+i,base-2,MO[i%3]);if(i%3===1)P(A,cx+mx+i,base-3,MO[1]);}   // and at the base
-  for(let y=-2;y<=1;y++)for(let x=-14;x<=14;x++){if(x*x/196+y*y/4>1)continue;P(A,cx+x,base-46+y,WA[1]);}}   // the upper bowl's water gone dark too   // a flat splash ring, the splash rising at its centre
+if(K==='fountain2'){const base=88,cx=52,St=hexR(['#2c282a','#46403f','#635b58','#827974','#a19790','#bdb3aa']),WA=hexR(['#141a12','#1c2418','#26301e','#3a4428','#56603a']),MO=hexR(['#2e3a20','#3e4c28','#54602e']);   // (props r11: "a flat ring with no wall height") an untended stone basin: a real wall, stagnant olive water with scum and leaves, the jets long dry
+  const cy=base-22,rx=46,ry=13,wh=12;
+  for(let y=-5;y<=5;y++)for(let x=-50;x<=52;x++){const d=x*x/2600+y*y/25;if(d<=1)SH(cx+4+x,base+1+y,Math.round(130*(1-d*.5)));}
+  // the wall: the near half of the drum, stone blocks in staggered courses, lit left, moss low down
+  for(let x=-rx;x<=rx;x++){const yr=cy+Math.round(ry*Math.sqrt(Math.max(0,1-(x/rx)**2)));for(let y=yr;y<=yr+wh;y++){const r=Math.floor((y-yr)/4),o=(r%2)*5,u=(x+rx+o)%10,v=(y-yr)%4;const t=x/rx;let k=t<-.6?4:t<.1?3:t<.6?2:1;if(v===3||u===0)k=Math.max(0,k-2);if(y>yr+wh-3&&hsh(x>>1,y,5)>.4)P(A,cx+x,y,MO[(x+y)%3]);else P(A,cx+x,y,St[k]);}}
+  // the rim: a broad lit band all round, one block chipped away
+  for(let y=-ry-3;y<=ry+3;y++)for(let x=-rx-3;x<=rx+3;x++){const d=x*x/((rx+3)*(rx+3))+y*y/((ry+3)*(ry+3)),d2=x*x/((rx-3)*(rx-3))+y*y/((ry-2)*(ry-2));if(d>1||d2<1)continue;if(x>14&&x<22&&y>0)continue;P(A,cx+x,cy+y,St[y<0?(x<0?5:4):(x<0?4:3)]);}
+  for(let y=-ry+2;y<=ry-2;y++)for(let x=-rx+3;x<=rx-3;x++){const d=x*x/((rx-3)*(rx-3))+y*y/((ry-2)*(ry-2));if(d>1)continue;let c=WA[y<-ry+5?3:(d>.8?2:1)];P(A,cx+x,cy+y,c);}   // the water: dark olive, a scum line along the far edge
+  for(let x=14;x<22;x++){const yr=cy+Math.round(ry*Math.sqrt(Math.max(0,1-(x/rx)**2)));P(A,cx+x,yr-1,St[1]);P(A,cx+x,yr,St[2]);}   // the chipped rim block
+  for(const [lx,ly,lc] of [[-24,-2,'#7a4a22'],[12,3,'#8a5a2a'],[-6,5,'#6a3a1a'],[28,-4,'#7a4a22'],[-34,2,'#6a4a2a']])for(const [dx,dy] of [[0,0],[1,0],[0,1],[2,0],[1,-1]])P(A,cx+lx+dx,cy+ly+dy,hexR([lc])[0]);   // leaves, 3-4 px each
+  // the column and a dry upper bowl, moss creeping up the column
+  for(let y=cy-30;y<cy+2;y++)for(let x=-4;x<=4;x++)P(A,cx+x,y,(y>cy-6&&hsh(x,y,3)>.5)?MO[1]:St[x<-2?4:x>2?1:3]);
+  for(let y=-4;y<=3;y++)for(let x=-15;x<=15;x++){if(x*x/225+y*y/16>1)continue;P(A,cx+x,cy-32+y,y<-1?(x*x/169+(y+1)*(y+1)/9<1?WA[0]:St[5]):St[y<1?4:(x>9?1:2)]);}
+  for(let y=cy-44;y<cy-35;y++)P(A,cx,y,St[3]);P(A,cx,cy-45,St[4]);P(A,cx-1,cy-44,St[4]);
+  for(const [mx,n] of [[-46,8],[-20,5],[10,7],[38,6]])for(let i2=0;i2<n;i2++){P(A,cx+mx+i2,base-1,MO[i2%3]);if(i2%2)P(A,cx+mx+i2,base-2,MO[2]);}   // grass and moss against the base
+  tuft(cx-rx-1,base,3);tuft(cx+rx-2,base,3);}
 // =================================================================================== props sweep batch 6b: the doll trees
 // a pale birch hung with dolls: the trunk tapering and leaning, forked under the crown, bark marked with dark lenticel dashes and black knots, limbs thinning to twigs; dolls the size of dolls on strings, heads and faded dresses
 if(K==='dolltreea'||K==='dolltreeb'){const BI=hexR(['#26262a','#4a4848','#8a8682','#b4b0a8','#d4d0c6','#e8e4da']),V=K==='dolltreea'?0:1,bx=46,base=171;
