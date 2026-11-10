@@ -58,50 +58,66 @@ def iron():
 
 
 def bouquet():
-    # 'Late asters, goldenrod and one red maple leaf, tied with twine': lilac star-heads with yellow eyes, two goldenrod plumes
-    # arching out at the back, one five-pointed red leaf, the stems gathered in a twine wrap and fanning out below it
+    # r18 (r16 split by slot: "the red shape reads as a poppy", "the goldenrod is a 2 px rod: a pencil or a wheat ear", "the
+    # green under the twine is a solid wedge: a wrapper or a skirt", "too saturated"): a real maple leaf (five pointed lobes, a dark
+    # midrib, rust-crimson), feathery goldenrod plumes of small gold clusters, separate cut stems below the twine, colours dulled
     I = Icon()
-    ST = [(0x2c, 0x3a, 0x1c), (0x44, 0x58, 0x28), (0x5e, 0x76, 0x34), (0x7a, 0x92, 0x44)]
-    GR = [(0x6e, 0x50, 0x10), (0xa8, 0x82, 0x1a), (0xd8, 0xb0, 0x2c), (0xf2, 0xd8, 0x5a)]
-    AS = [(0x3a, 0x26, 0x5a), (0x5e, 0x44, 0x8c), (0x86, 0x6a, 0xb8), (0xb4, 0x9c, 0xdc)]
-    for (x0, y0, x1, y1) in ((15, 22, 9, 8), (15, 22, 13, 11), (16, 22, 17, 6), (16, 22, 21, 10), (16, 22, 23, 6), (15, 22, 18, 14), (15, 22, 7, 15)):
-        n = max(abs(x1 - x0), abs(y1 - y0))
+    ST = [(0x26, 0x30, 0x1a), (0x3e, 0x4e, 0x28), (0x58, 0x6c, 0x36), (0x74, 0x88, 0x46)]
+    GR = [(0x7a, 0x5a, 0x16), (0xae, 0x86, 0x22), (0xd2, 0xa8, 0x36), (0xe8, 0xc8, 0x5c)]
+    AS = [(0x3c, 0x2c, 0x56), (0x5e, 0x4a, 0x84), (0x84, 0x6e, 0xae), (0xae, 0x9c, 0xd0)]
+    LF = [(0x58, 0x1a, 0x16), (0x84, 0x2a, 0x1e), (0xaa, 0x3e, 0x26), (0xc6, 0x5c, 0x34)]
+    TW = [(0x6a, 0x52, 0x34), (0x9c, 0x80, 0x56), (0xc8, 0xac, 0x7c)]
+    def line(x0, y0, x1, y1, c, alt=None):
+        n = max(1, int(max(abs(x1 - x0), abs(y1 - y0))))
         for i in range(n + 1):
-            I.P(x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n, ST[2] if i % 3 else ST[1])                    # stems up to each head
-    for (x0, x1) in ((15, 11), (15, 14), (16, 17), (16, 20)):
-        for i in range(8):
-            I.P(x0 + (x1 - x0) * i / 7, 23 + i, ST[2] if i < 5 else ST[1]); I.P(x0 + (x1 - x0) * i / 7 + 1, 23 + i, ST[1])   # stems fanning below
-    for (pts, flip) in (([(16, 13), (19, 9), (22, 6), (24, 3)], 1), ([(14, 13), (11, 10), (8, 6), (6, 4)], -1)):
-        for i in range(len(pts) - 1):                                                                        # goldenrod plumes
+            I.P(x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n, alt if (alt and i % 3 == 0) else c)
+    for (x1, y1) in ((10, 9), (14, 12), (17, 6), (21, 10), (18, 14), (23, 5), (8, 6)):
+        line(15.5, 21, x1, y1, ST[2], ST[1])                                           # stems up to each head
+    for (x1, y1) in ((11, 29), (13.5, 30), (16, 30), (18.5, 29), (21, 28)):
+        line(15.5, 24, x1, y1, ST[2]); I.P(x1, y1, ST[3])                              # separate cut stems below the twine, lit cut ends
+    # goldenrod: two arching fluffy plumes, thin where they leave the bunch and fattening toward the top, lit on the left,
+    # broken up with small gaps so they read soft (not a rod)
+    for (pts, side) in (([(17, 14), (19, 10.5), (21, 7.5), (23, 5), (24.5, 3)], 1), ([(14, 14), (12, 10.5), (10, 7.5), (8, 5), (6.5, 3)], -1)):
+        S = []
+        for i in range(len(pts) - 1):
             (ax, ay), (bx, by) = pts[i], pts[i + 1]
-            for j in range(5):
-                t = j / 5; x = ax + (bx - ax) * t; y = ay + (by - ay) * t
-                I.P(x, y, GR[2]); I.P(x + flip, y, GR[3] if flip < 0 else GR[1]); I.P(x, y + 1, GR[1]); I.P(x + flip * 2, y + 1, GR[2] if (i + j) % 2 else GR[0])
-    for (cx, cy) in ((10, 9), (16, 6), (21, 10), (13, 13), (18, 14)):                                      # asters: ray petals round a yellow eye
+            for j in range(4): t = j / 4; S.append((ax + (bx - ax) * t, ay + (by - ay) * t))
+        S.append(pts[-1])
+        for k, (x, y) in enumerate(S):
+            rad = .6 + 1.5 * min(1, k / (len(S) * .7))
+            for yy in range(int(y - rad) - 1, int(y + rad) + 2):
+                for xx in range(int(x - rad) - 1, int(x + rad) + 2):
+                    d = math.hypot(xx + .5 - x, yy + .5 - y)
+                    if d > rad or (xx * 5 + yy * 3) % 7 == 0: continue          # soft gaps between the florets
+                    lit = (xx + .5 - x) + (yy + .5 - y) < -.3
+                    I.P(xx, yy, GR[3] if lit and d > rad * .4 else GR[2] if lit or d < rad * .5 else GR[1])
+    for (cx, cy) in ((10, 10), (16, 7), (21, 11), (14, 13), (18, 15)):              # asters: ray petals round a yellow eye
         for y in range(cy - 3, cy + 4):
             for x in range(cx - 3, cx + 4):
                 dx, dy = x + .5 - (cx + .5), y + .5 - (cy + .5); d = math.hypot(dx, dy)
                 if d < 2.9:
-                    a = math.atan2(dy, dx); ray = math.cos(a * 4) > -.2
+                    ang = math.atan2(dy, dx); ray = math.cos(ang * 4) > -.2
                     if d > 2.1 and not ray: continue
                     lit = dx + dy < 0
                     I.P(x, y, AS[3] if lit and d > 1 else AS[2] if lit or d < 1.6 else AS[1])
-        I.P(cx, cy, (0xf0, 0xc0, 0x40)); I.P(cx + 1, cy, (0xc8, 0x8a, 0x24)); I.P(cx, cy + 1, (0xc8, 0x8a, 0x24))
-    LF = [(0x5a, 0x14, 0x12), (0x8e, 0x22, 0x18), (0xbe, 0x36, 0x20), (0xe2, 0x5a, 0x30)]
-    leaf = [(5, 17), (3, 13), (6, 14), (6, 10), (9, 13), (11, 11), (11, 15), (13, 15), (11, 18), (8, 19)]   # five points
+        I.P(cx, cy, (0xe8, 0xb8, 0x40)); I.P(cx + 1, cy, (0xb8, 0x80, 0x24)); I.P(cx, cy + 1, (0xb8, 0x80, 0x24))
+    # the maple leaf, at the lower left, tucked behind the twine: five pointed lobes with notches, a dark midrib to each point
+    leaf = [(7, 10), (8, 13), (11, 11.5), (10, 15), (12.5, 17), (9.5, 17), (9, 20), (7, 17.5), (3, 18.5), (5, 15), (2, 12.5), (6, 13)]
     n = len(leaf)
-    for y in range(9, 21):
+    for y in range(9, 22):
         xs = []
         for i in range(n):
             (ax, ay), (bx, by) = leaf[i], leaf[(i + 1) % n]
             if (ay <= y + .5 < by) or (by <= y + .5 < ay): xs.append(ax + (y + .5 - ay) * (bx - ax) / (by - ay))
         xs.sort()
-        for a, b in zip(xs[::2], xs[1::2]):
-            for x in range(int(round(a)), int(round(b))):
-                I.P(x, y, LF[3] if (x - 8) + (y - 15) < -3 else LF[2] if (x - 8) + (y - 15) < 2 else LF[1])
-    for (x, y) in ((8, 15), (7, 14), (9, 14), (8, 16), (7, 17)): I.P(x, y, LF[0])                           # its veins
-    TW = [(0x6a, 0x52, 0x34), (0x9c, 0x80, 0x56), (0xc8, 0xac, 0x7c)]
-    for y in range(21, 24):                                                                                  # the twine wrap
+        for xa, xb in zip(xs[::2], xs[1::2]):
+            for x in range(int(round(xa)), int(round(xb))):
+                v = (x - 7) + (y - 15)
+                I.P(x, y, LF[3] if v < -4 else LF[2] if v < 1 else LF[1])
+    for (tx, ty) in ((7, 10), (11, 11.5), (12.5, 17), (3, 18.5), (2, 12.5)):
+        line(7.5, 17, tx + (7.5 - tx) * .25, ty + (17 - ty) * .25, LF[0])            # the midribs, stopping short of the points
+    line(8, 18, 10, 22, LF[0])                                                         # its stalk, into the bunch
+    for y in range(21, 24):                                                            # the twine wrap
         for x in range(13, 19):
             I.P(x, y, TW[2] if (x + y) % 3 == 0 else TW[1] if x < 17 else TW[0])
     for (x, y) in ((19, 23), (20, 24), (20, 25), (21, 26), (18, 24), (18, 25)): I.P(x, y, TW[1] if y < 25 else TW[0])   # its loose ends

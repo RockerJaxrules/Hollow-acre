@@ -942,6 +942,14 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   taller mouth) so dark contents show between the things lying in it.
 - [r15] Every winner at 6 still fills each material with one flat tone plus an even texture; 7-8 needs 3-4 deliberate tone
   clusters per surface and one placed highlight.
+- [r16] Silver flecks scattered over ore read as speckled granite: the stand-in's dark chunk with rust bleeding from its
+  cracks already said iron. Before redrawing a stand-in, ask what it gets right and keep that.
+- [r16] A big saturated red shape in a bouquet reads as a poppy: a leaf needs its lobes, a midrib and a duller rust-crimson.
+  A goldenrod drawn as a 2 px line is a pencil or a wheat ear; draw a soft plume that fattens toward its tip.
+- [r17] Moving roots a pixel or two is invisible at 1x: judges call it a tie. Change the silhouette or the value pattern, or
+  do not send it.
+- [r17] A stump narrower under its top than at its foot reads as a tied sack; round dark dots on white read as a dalmatian or
+  dice: birch is straight-sided with short horizontal dashes. Two splinters of one height with a gap read as battlements.
 - A family of nodes made from one stamped dome with different flecks reads as one rock: give every material its own shape at 1x (coal as angular black lumps standing proud, copper as fat nuggets, iron as oxide and silver glints, gem as crystals breaking the outline, stone as a slab with moss and a crack), and give each node its own silhouette.
 - A node and its drop must match: the icon is the same material, a hand-sized chunk, not the boulder shrunk.
 - Rust drawn as maroon blocks reads as raw meat or blood: rust is ragged orange-brown oxide bleeding down from cracks, with an ochre step where it catches the light.
