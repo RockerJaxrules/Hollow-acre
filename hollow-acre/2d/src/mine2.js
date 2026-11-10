@@ -10,8 +10,8 @@ function mineEnter(){const cks=mineCheckpoints();if(!cks.length){mineGo(1);retur
   document.querySelectorAll('#noteText .mineGo').forEach(b=>b.addEventListener('click',()=>{$('note').hidden=true;noteCb=null;S.paused=false;mineGo(+b.dataset.f);},{once:true}));}
 // the lift cage on every fifth floor
 {const _mf=mineFloor;mineFloor=function(f){_mf.apply(this,arguments);const R=ROOMS.mine;
-  if(!MINE.lift){MINE.lift=obj('mine_lift',R.ox+1.5,R.oz+1.6,{kind:'prop',room:'mine',hide:true});
-    interact.push({x:R.ox+1.3,z:R.oz+1.9,r:1.2,on:()=>S.room==='mine'&&MINE.lift&&!MINE.lift.hide,label:()=>'Ride up',ok:()=>true,
+  if(!MINE.lift){MINE.lift=obj('mine_lift',R.ox+8.4,R.oz+1.6,{kind:'prop',room:'mine',hide:true});   /* off the cart track (r13) */
+    interact.push({x:R.ox+8.2,z:R.oz+1.9,r:1.2,on:()=>S.room==='mine'&&MINE.lift&&!MINE.lift.hide,label:()=>'Ride up',ok:()=>true,
       act(){SFX.thud&&SFX.thud(0,.3);toast('The cage lurches, and the dark goes down past you.',2);leaveRoom(true);}});}
   const ck=f%5===0;MINE.lift.hide=!ck;if(!ck)return;
   // keep the way to the cage clear

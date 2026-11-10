@@ -117,6 +117,11 @@ function interiorLight(L){const R=roomOf();if(!R)return;const fl=.94+.06*Math.si
      whole room so the floor reads, a small flame glow at each lantern, and under each one a hard-edged wedge of light in two steps */
     const fx0=Math.round(sx(R.ox)),fx1=Math.round(sx(R.ox+R.w)),fy0=Math.round(sz(R.oz)),fy1=Math.round(sz(R.oz+R.d));
     lctx.fillStyle=`rgba(255,214,170,${.16*L})`;lctx.fillRect(fx0,fy0-100,fx1-fx0,fy1-fy0+100);
-    for(const [lx,len] of [[6.4,52],[9.6,34]]){G(lx,-.95,22,[255,236,190],1);G(lx,-.95,40,[255,190,110],.7);const cx=Math.round(sx(R.ox+lx));   /* (r12) the lantern brightest; each fan from it, narrow, its own length */
-      lctx.fillStyle=`rgba(255,170,80,${.32*L*fl})`;for(let j=0;j<len;j++){const w=Math.round(Math.min(30,5+j*.7));lctx.fillRect(cx-w,fy0+j,w*2,1);}
-      lctx.fillStyle=`rgba(255,200,130,${.28*L*fl})`;for(let j=0;j<Math.round(len*.5);j++){const w=Math.round(Math.min(18,3+j*.5));lctx.fillRect(cx-w,fy0+j,w*2,1);}}}}
+    for(const [lx,len] of [[6.4,52],[9.6,36]]){G(lx,-.95,12,[255,236,190],1);const cx=Math.round(sx(R.ox+lx)),ly=Math.round(sz(R.oz-.95));   /* (r14) lamp, wall, floor: */
+      const hh=(a,b)=>{const v=Math.sin(a*12.9898+b*78.233)*43758.5453;return v-Math.floor(v);};
+      /* a hard-edged two-tone pool on the stones and the post round the lamp */
+      for(const [r,a2] of [[14,.3],[7,.38]]){lctx.fillStyle=`rgba(255,190,110,${a2*L*fl})`;for(let j=-r;j<=r;j++){const w=Math.round(r-Math.max(0,Math.abs(j)-r*.45));lctx.fillRect(cx-w,ly+j,w*2,1);}}
+      /* the fan on the floor: narrow at the wall foot under the lamp, widening all the way, its far edge ragged, two stepped tones */
+      for(const [L2,k,a2] of [[len,.62,.3],[Math.round(len*.55),.42,.26]]){lctx.fillStyle=`rgba(255,${k>.5?175:205},${k>.5?90:135},${a2*L*fl})`;
+        const wmax=Math.round(3+L2*k);for(let x=-wmax;x<=wmax;x++){const ax=Math.abs(x),start=Math.max(0,Math.round((ax-3)/k));const end=Math.round(L2*(1-.3*Math.pow(ax/wmax,2))+(hh(cx+x>>1,L2)-.5)*7);
+          if(end>start)lctx.fillRect(cx+x,fy0+start,1,end-start);}}}}}

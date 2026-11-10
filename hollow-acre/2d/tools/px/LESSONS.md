@@ -318,6 +318,8 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   timber-framed drift into the dark), which also gives the room its "deeper down" dread.
 - [process] Removing a line that ends with closing braces removes braces that close OUTER blocks too: count what the deleted
   line closed and put those back (node --check catches it; never chain past a failed check).
+- [interiors r14] A light fan whose width is capped turns into a rectangle with a ruler-straight bottom and reads as a panel or
+  doormat: let it widen all the way to a ragged far edge, and light the wall round the lamp too so light runs lamp, wall, floor.
 - [interiors r3] A tall piece standing in front of a window (a bookcase hiding a third of the glass) is a placement error;
   check every tall piece against the window list before judging.
 - [interiors r3] Fading a too-loud quilt to grey made it read as stone: fade toward the room's own warm brown instead
