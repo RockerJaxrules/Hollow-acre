@@ -823,7 +823,8 @@ def coffin_upright():
 BP.RAMPS.update({'oak':     ['#2c2016', '#4a3624', '#6a4e34', '#8a6a48', '#a6865e'],
                  'endgrain': ['#3a2c1e', '#5e4a32', '#836a4a', '#a28a62', '#b8a07a'],
                  'weather': ['#2a2622', '#433c34', '#5e544a', '#7a6e60', '#958877'],
-                 'rubber':  ['#121214', '#1e1e22', '#2c2c32', '#3e3e46', '#56565e']})
+                 'rubber':  ['#121214', '#1e1e22', '#2c2c32', '#3e3e46', '#56565e'],
+                 'oxide':   ['#24100e', '#421a16', '#62281e', '#7c3628', '#924632']})
 BP.MATDEF.update({'endgrain': {'ramp': 'endgrain', 'ambient': .62}})   # cut ends face the camera, so they get little light: lift them
 
 
@@ -836,9 +837,9 @@ def barrel():
 
 @piece('drum', rot=False, size=(40, 50))
 def outdoor_drum():
-    return [cyl(0, 0, 0, 9, 26, 'redpt'), ring(0, 8, 0, 9.1, .7, 'redpt', axis='y'), ring(0, 18, 0, 9.1, .7, 'redpt', axis='y'),
-            cyl(0, 26, 0, 8.7, .8, 'redpt'), ring(0, 26.6, 0, 8.5, .6, 'tin', axis='y'), cyl(3, 26.6, -3, 1.4, .9, 'tin'),
-            box(-5, 3, 8.4, -2, 22, 9.2, 'stain')]
+    return [cyl(0, 0, 0, 9, 26, 'oxide'), ring(0, 8, 0, 9.1, .7, 'oxide', axis='y'), ring(0, 18, 0, 9.1, .7, 'oxide', axis='y'),
+            cyl(0, 26, 0, 8.7, .8, 'oxide'), ring(0, 26.6, 0, 8.5, .6, 'tin', axis='y'), cyl(3, 26.6, -3, 1.4, .9, 'tin'),
+            ball(-3, 13, 8.6, 0, 'stain', rr=[1.6, 6, .6])]
 
 
 @piece('bucket', rot=False, size=(36, 40))
@@ -868,7 +869,7 @@ def tyre_stack():
 @piece('trashcan', rot=False, size=(36, 50))
 def trash_can():
     P = [cyl(0, 0, 0, 8, 22, 'greenpt'), cyl(0, 22, 0, 8.8, 2, 'greenpt'), ring(0, 24, 0, 8.4, .6, 'steelbl', axis='y'), cyl(0, 24, 0, 2.4, 1.6, 'steelbl')]
-    P += [ring(0, y, 0, 8.1, .6, 'steelbl', axis='y') for y in (5, 11, 17)]                                       # ribs, cool lit
+    P += [ring(0, y, 0, 8.2, .7, 'greenpt', axis='y') for y in (5, 11, 17)] + [ball(5, 13, 6, 0, 'greenpt', rr=[2.2, 2.6, .9])]   # ribs in its own paint, one dent                                       # ribs, cool lit
     P += [ball(-6, 25, 5, 0, 'paper', rr=[2.5, 1.2, 2])]
     return P
 
@@ -954,9 +955,8 @@ def firewood():
     rnd = random.Random(4)
     for row, (y, n) in enumerate(((4, 4), (11.4, 3), (18.8, 2))):
         for i in range(n):
-            x = -(n - 1) * 4.3 + i * 8.6 + (.6 if (i + row) % 2 else -.4); r = 3.6 + rnd.uniform(0, .8)
-            P += [cyl(x, y, -4, r, 8, 'dkwood', axis='z'), cyl(x, y, 4, r - .7, .4, 'endgrain', axis='z'), cyl(x, y, -4.4, r - .7, .4, 'endgrain', axis='z'),
-                  ring(x, y, 4.3, 1.4, .35, 'oak')]
+            x = -(n - 1) * 4.3 + i * 8.6 + (.6 if (i + row) % 2 else -.4); r = rnd.choice((3.2, 3.8, 4.4))
+            P += [cyl(x, y, -4, r, 8, 'dkwood', axis='z'), cyl(x, y, 4, r - .7, .4, 'endgrain', axis='z'), cyl(x, y, -4.4, r - .7, .4, 'endgrain', axis='z')]
     P += [cyl(-16, 3.4, -3, 3.2, 7, 'dkwood', axis='z'), cyl(-16, 3.4, 4, 2.5, .4, 'endgrain', axis='z'), ball(14, 1, 5, 0, 'endgrain', rr=[2.4, .8, 1.4])]
     return P
 
