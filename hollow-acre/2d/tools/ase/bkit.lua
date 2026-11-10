@@ -310,15 +310,15 @@ function B.frontgable(c, sp, x0, x1, yW, wallmat, roofmat, trim, seed)
     -- shows through, its inner face is the same stone in shade, two lancet holes open in it, and only two charred stubs remain
     local function topf(x) local col
       if x < ax then col = math.max(0, 26 - (ax - x) * .35) + ((x < ax - 95) and 6 or 0)   -- the left of the far wall stands, ragged
-      else col = 24 + (x - ax) * .42 end                                              -- the right has fallen most of the way
+      else col = 24 + (x - ax) * .42 + (H(x // 6, seed + 205) - .5) * 14 end           -- the right has fallen most of the way, in ragged blocks
       return rake(x) + col + math.floor(H(x // 3, seed + 201) * 6) end
     local holes = {{ax - 86, ax - 76}, {ax - 62, ax - 54}}
-    px.poly(c, roofpoly, function(x, y) local tp = topf(x); if y < tp then return 0 end
+    B.BURNT = {topf = topf, ax = ax}
+    px.poly(c, roofpoly, function(x, y) local tp = topf(x); if y < tp or x < x0 or x > x1 then return 0 end
       for _, hh in ipairs(holes) do if x >= hh[1] and x <= hh[2] then local cx = (hh[1] + hh[2]) / 2; local hy0 = tp + 8 + math.max(0, math.floor((math.abs(x - cx)) ^ 2 / 4))
         if y >= hy0 and y <= tp + 34 then return 0 end end end
       if y < tp + 2 then return px.i(c, (x < ax) and 's4' or 's3') end   -- the broken top of the wall, lit where it faces up-left
-      local r = (y % 5); local mort = (r == 4) or ((x + (y // 5) % 2 * 6) % 12 == 11)
-      return px.i(c, mort and 'bt1' or (((x // 12 + y // 5) % 3 == 0) and 'bt2' or 's2')) end)
+      return px.i(c, B.innerwall(x, y, y - tp)) end)
     for _, st in ipairs({{-1, 92, 18}, {1, 74, 13}, {1, 118, 9}}) do local sd, off, len = st[1], st[2], st[3]   -- two charred rafter stubs off the front rake
       local sx = ax + sd * off; local sy = math.floor(ay + (yW + 1 - ay) * (off / math.max(1, (x1 - x0) / 2)))
       for i = 0, len do local x = sx + sd * math.floor(i * .25); local y = sy - i; P(c, x - sd, y, 'lg3'); P(c, x, y, 'bt1'); P(c, x + sd, y, 'OUT') end end
@@ -368,6 +368,20 @@ function B.frontgable(c, sp, x0, x1, yW, wallmat, roofmat, trim, seed)
         return px.i(c, (yW + 1 - y) > len - 2 and 'gs3' or 'gs4') end end
     if bx == 0 then return px.i(c, G[2]) end; if bx == 1 then return px.i(c, G[6]) end
     return band(c, G, .56 - (x - x0) / 700 - (yW - y) / 300, 3, 6) end)
+  if sp.burnt then   -- (judge r1) the gable triangles read as whole roof planes: the front wall ends in a broken, stepped top
+    local function btop(x) local d = math.abs(x - ax); local rise = math.max(0, 30 - d * .32); local step = math.floor(H(x // 4, seed + 231) * 7)
+      return yW + 1 - math.floor(rise) + step end
+    px.poly(c, {{x0, yW + 1}, {ax, ay + 4}, {x1, yW + 1}}, function(x, y) local bt = btop(x)
+      if y < bt then local tp = B.BURNT and B.BURNT.topf(x) or -999; if y < tp then return 0 end   -- sky where the far wall has fallen
+        return px.i(c, B.innerwall(x, y, y - tp)) end   -- the inside of the far wall
+      if y <= bt + 1 then return px.i(c, (x < ax) and 's5' or 's4') end   -- the broken top, lit
+      local r = (y % 4); return px.i(c, (r == 3 or (x + (y // 4) % 2 * 5) % 10 == 9) and 's3' or G[4 + ((x // 10 + y // 4) % 2)]) end)
+    for x = x0, x1 do local bt = btop(x); local yr = math.floor(ay + (yW + 4 - ay) * math.abs(x - ax) / math.max(1, ax - (x0 - 14)))   -- close the seam along the old rake only
+      local tp = B.BURNT and B.BURNT.topf(x) or -999
+      for y = math.max(yr - 4, math.ceil(tp)), math.min(bt - 1, yr + 5) do if px.get(c, x, y) == 0 then P(c, x, y, B.innerwall(x, y, y - tp)) end end end
+    for x = x0, x1 do local bt = btop(x); if px.get(c, x, bt - 1) ~= 0 and H(x, 233) > .7 then P(c, x, bt - 1, 's3') end end
+    return topA, ay
+  end
   local gw = sp.gablewin or 'round'
   if gw == 'round' then
     local cy = ay + Gh * .55
@@ -891,27 +905,43 @@ end
 
 -- the burnt chapel: the tower broken off below its clock (the spire, belfry and bell gone), a lit broken edge; soot
 -- plumes above every opening; the openings empty; rubble and a fallen beam at the foot
+-- the inside face of a burnt shell's far wall: the same stone a few steps into shadow, sooted near its broken top
+function B.innerwall(x, y, below)
+  local r = (y % 5); local mort = (r == 4) or ((x + (y // 5) % 2 * 6) % 12 == 11)
+  if mort then return 'bt1' end
+  if below < 6 then return 'bt2' end
+  return ((x // 12 + y // 5) % 3 == 0) and 's2' or 's3'
+end
 function B.burntfx(c, sp, snap, x0, x1, yW, gy, topY, wins, seed)
   local W = x1 - x0; local tcx = (x0 + x1) // 2; local tw = math.max(22, math.floor(W * .12)); local side = 7
   local ttop = (topY or yW - 80) - 4; local clkY = ttop + 6 + 46
-  local function cut(x) local base = clkY + 32; local j = math.floor(H(x // 3, seed + 211) * 5); if x > tcx + 4 and x < tcx + 14 then j = j + 9 end; if x < tcx - tw + 6 then j = j - 7 end; return base + j end
+  local function cut(x) local base = clkY + 32; local j = math.floor(H(x // 3, seed + 211) * 9) - math.floor(H(x // 7, seed + 213) * 6)
+    if x > tcx + 2 and x < tcx + 16 then j = j + 14 end; if x < tcx - tw + 8 then j = j - 9 end; if x > tcx + tw - 6 then j = j + 6 end; return base + j end
   for x = tcx - tw - 10, tcx + tw + side + 10 do local cy = cut(x); if x < tcx - tw - 3 or x > tcx + tw + side + 2 then cy = clkY - 40 end
     for y = 0, cy - 1 do local v = snap[y * c.w + x]; if v then px.p(c, x, y, v) end end
     if px.get(c, x, cy) ~= 0 then P(c, x, cy, (x < tcx + tw) and 's5' or 's3'); P(c, x, cy + 1, 's4') end end
   local rev = {}; for n, i in pairs(c.idx) do rev[i] = n end
   local function emptyhole(xa, ya, xb, yb, keep) for y = ya, yb do for x = xa, xb do local n = rev[px.get(c, x, y)] or ''
     if n:match('^g%d') or n:match('^f%d') or n == 't4' or n == 't5' or n == 'p1' or n == 'p2' or (keep and (n:match('^w%d') or n:match('^y%d'))) then P(c, x, y, (x < (xa + xb) / 2) and 'bt2' or 'bt1') end end end end
-  for _, w in ipairs(wins or {}) do local ww, wh = w.w or 24, w.h or 26; local wx = math.floor(x0 + w.x * 32 - ww / 2); local wy = w.y and (yW + w.y) or (yW + 18)
-    emptyhole(wx + 1, wy - 6, wx + ww - 2, wy + wh - 2) end
+  for _, w in ipairs(sp.ruinholes or {}) do local ww, wh = w.w, w.h; local cx = x0 + math.floor(w.x * 32); local wy = yW + w.y; local hw = ww / 2
+    for y = wy, wy + wh do for x = math.floor(cx - hw), math.ceil(cx + hw) do local dx = math.abs(x - cx); local ay2 = wy + hw - math.sqrt(math.max(0, hw * hw - dx * dx))
+      if y >= ay2 then local edgeL = x <= cx - hw + 1; local edgeT = y <= ay2 + 1
+        P(c, x, y, (edgeL or edgeT) and 'OUT' or ((x < cx) and 'bt2' or 'bt1')) end end end
+    px.hline(c, math.floor(cx - hw) - 1, math.ceil(cx + hw) + 1, wy + wh + 1, 's5'); px.hline(c, math.floor(cx - hw) - 1, math.ceil(cx + hw) + 1, wy + wh + 2, 's3') end   -- a bare stone sill
   emptyhole(tcx - 14, gy - 70, tcx + 14, gy - 11, true)   -- the door burnt away: a dark opening
   local function soot(x, y, w, h) for yy = y - h, y do for xx = x - w, x + w do local t = (y - yy) / h; local ww = w * (1 - t * .5) + math.sin(yy * .5 + xx) * .8
     if math.abs(xx - x) <= ww and px.get(c, xx, yy) ~= 0 then px.shade(c, xx, yy, (t < .5 and math.abs(xx - x) < ww - 2) and -3 or -2) end end end end
-  for _, w in ipairs(wins or {}) do local ww, wh = w.w or 24, w.h or 26; local wx = math.floor(x0 + w.x * 32 - ww / 2); local wy = w.y and (yW + w.y) or (yW + 18)
-    soot(wx + ww // 2, wy - 2, ww // 2 + 1, 18) end
+  for _, w in ipairs(sp.ruinholes or {}) do soot(x0 + math.floor(w.x * 32), yW + w.y + 2, math.floor(w.w / 2) + 2, 22) end
   soot(tcx, gy - 70, 10, 20)
   for k = 0, 9 do local rx = x0 - 6 + math.floor(H(k, seed + 221) * (W + 12)); local ry = gy - 1 - math.floor(H(k, seed + 223) * 3); local rr = 2 + math.floor(H(k, seed + 225) * 2.5)
     for yy = -rr, 0 do for xx = -rr - 1, rr + 1 do if xx * xx / ((rr + 1) ^ 2) + yy * yy / (rr * rr) <= 1 then P(c, rx + xx, ry + yy, (yy <= -rr + 1 and xx <= 0) and 's5' or ((xx > 0) and 's3' or 's4')) end end end end
   local bx = x1 - 46; for i = 0, 26 do local y = gy - 3 - math.floor(i * 5 / 26); P(c, bx + i, y, 'lg3'); P(c, bx + i, y + 1, 'bt1'); P(c, bx + i, y + 2, 'OUT') end   -- a fallen beam
+  for k = 0, 6 do local ax0 = x0 - 8 + math.floor(H(k, seed + 241) * (W + 16)); local aw = 8 + math.floor(H(k, seed + 243) * 10)   -- ash drifted against the foot
+    for i = -aw, aw do local hh = math.floor((1 - (i / aw) ^ 2) * 3); for yy = 0, hh do P(c, ax0 + i, gy - 1 - yy, (yy == hh) and 's5' or 's4') end end end
+  for _, b in ipairs({{x0 + 30, 1, 20}, {x1 - 40, -1, 16}}) do local bx0, dir, len = b[1], b[2], b[3]   -- charred beams standing up out of the shell, past its outline
+    local by = B.BURNT and math.floor(B.BURNT.topf(bx0)) + 6 or (yW - 20)
+    for i = 0, len do local x = bx0 + dir * math.floor(i * .45); local y = by - i; P(c, x - 1, y, 'OUT'); P(c, x, y, 'lg3'); P(c, x + 1, y, 'bt1'); P(c, x + 2, y, 'OUT') end
+    P(c, bx0 + dir * math.floor(len * .45), by - len - 1, 'OUT') end
 end
 
 function B.derelictfx(c, sp, x0, x1, yW, topY, wins, seed)
@@ -936,7 +966,7 @@ function B.derelictfx(c, sp, x0, x1, yW, topY, wins, seed)
 end
 
 function B.build(sp, night)
-  DOORMETA = nil; B.TINGAP = nil; B.ROUGH = (sp.kind == 'side') and sp.rough or nil
+  DOORMETA = nil; B.TINGAP = nil; B.BURNT = nil; B.ROUGH = (sp.kind == 'side') and sp.rough or nil
   local wt = sp.w; local W = math.floor(wt * 32); local m = 22
   local wallH = sp.wallh or 70
   local kind = sp.kind or 'gable'

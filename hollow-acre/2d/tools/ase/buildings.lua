@@ -102,9 +102,8 @@ local S = {
  -- Old Marrow's chapel, burnt with the settlement in 1872 (regions.js: 'a roofless chapel'): a stone shell, the roof gone,
  -- the tower broken below its clock, the windows empty and sooted, rubble at its foot
  rg_chapel   = {w = 9.8, kind = 'church', wall = 'stone', roof = 'shingle', trim = 'weathered', wallh = 88, nodoor = true, spire = 56, burnt = true,
-                windows = {{x = 1.3, y = 10, w = 14, h = 44, dark = true, curtain = false, lancet = true}, {x = 3.0, y = 10, w = 14, h = 44, dark = true, curtain = false, lancet = true},
-                           {x = 6.8, y = 10, w = 14, h = 44, dark = true, curtain = false, lancet = true}, {x = 8.5, y = 10, w = 14, h = 44, dark = true, curtain = false, lancet = true}},
-                moss = .6, seed = 162},
+                windows = {}, ruinholes = {{x = 1.3, y = 12, w = 13, h = 42}, {x = 3.0, y = 12, w = 13, h = 42}, {x = 6.8, y = 12, w = 13, h = 42}, {x = 8.5, y = 12, w = 13, h = 42}},
+                moss = 0, seed = 162},
 }
 -- ---- one of a kind: every household gets its own house, drawn from a base plan with its own materials and wear.
 -- base names the plan (and so the footprint the world was laid out with); the rest overrides it.
