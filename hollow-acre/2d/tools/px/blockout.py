@@ -50,7 +50,9 @@ def sdf_scene(P, shapes):
             di = np.maximum((rad - r * (1 - y / h)) * ca, -y)
         elif t == 'torus':     # a ring in the x-y plane (faces the viewer): centre c, ring radius R, tube radius r
             c = np.array(s['c'], float)
-            if s.get('axis') == 'x':   # turned a quarter: the ring stands in the z-y plane (a wheel seen from the side of a turned cart)
+            if s.get('axis') == 'y':   # lying flat: a hoop round a barrel, a tyre on a stack
+                q0 = np.hypot(P[:, 0] - c[0], P[:, 2] - c[2]) - s['R']; di = np.hypot(q0, P[:, 1] - c[1]) - s['r']
+            elif s.get('axis') == 'x':   # turned a quarter: the ring stands in the z-y plane (a wheel seen from the side of a turned cart)
                 q0 = np.hypot(P[:, 2] - c[2], P[:, 1] - c[1]) - s['R']; di = np.hypot(q0, P[:, 0] - c[0]) - s['r']
             else:
                 q0 = np.hypot(P[:, 0] - c[0], P[:, 1] - c[1]) - s['R']; di = np.hypot(q0, P[:, 2] - c[2]) - s['r']
