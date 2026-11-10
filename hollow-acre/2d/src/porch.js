@@ -14,7 +14,7 @@ function porchZones(){const f=typeof frameCount!=='undefined'?frameCount:Math.fl
   PORCH.zones=Z;return Z;}
 function porchAt(x,z){for(const q of porchZones())if(Math.abs(x-q.x)<q.hw&&z>q.z0&&z<q.z1)return q;return null;}
 // how far up someone standing here is lifted, in screen pixels
-function deckLift(x,z){for(const d of PORCH_DECKS){if(x>d.x0&&x<d.x1&&z>d.z0&&z<d.z1)return d.h;if(Math.abs(x-d.sx)<d.shw&&z>=d.sz0&&z<d.sz1){const t=clamp((d.sz1-z)/(d.sz1-d.sz0),0,1);return t>.8?7:t>.5?5:t>.2?2:0;}}return -1;}   // on a deck: up at its floor; on its steps: a step at a time
+function deckLift(x,z){for(const d of PORCH_DECKS){if(d.st&&Math.abs(x-d.st.x)<d.st.w&&z<d.st.z1&&z>d.z0)return z<d.st.zm?d.st.h2:d.st.h1;if(x>d.x0&&x<d.x1&&z>d.z0&&z<d.z1)return d.h;if(Math.abs(x-d.sx)<d.shw&&z>=d.sz0&&z<d.sz1){const t=clamp((d.sz1-z)/(d.sz1-d.sz0),0,1);return t>.8?7:t>.5?5:t>.2?2:0;}}return -1;}   // on a deck: up at its floor; on its steps: a step at a time
 function porchLift(x,z){const dl=deckLift(x,z);if(dl>=0)return dl;const q=porchAt(x,z);if(!q)return 0;const t=clamp((q.z1-z)/(q.z1-q.z0-.15),0,1);if(q.ramp)return Math.round(t*7);return t>.8?7:t>.5?5:t>.2?2:0;}
 // the steps themselves: just in front of the building, behind anyone on them
 {const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld(D,t);if(S.room)return;for(const q of porchZones())D.push({z:q.z0+.05,mind:1,draw(){drawSpr(q.spr,sx(q.x),sz(q.z1));}});};}

@@ -1306,6 +1306,31 @@ if(K==='wstall'){const base=H-3,x0=6,w=W-12,R=RAMP.walnut;   // the fish stall: 
   for(let y=0;y<10;y++)for(let x=x0-3;x<x0+w+3;x++){const st=Math.floor((x-x0+3)/8)%2;P(A,x,12+y+(y>7&&((x>>2)%2)?1:0),st?RAMP.ivory[y<2?4:3]:hexR(['#1e2c26','#2a3b33','#38493f','#4a5e52','#5e7466','#768c7c'])[y<2?4:3]);}
   rect(A,x0+w-22,top+12,18,8,RAMP.charcoal?RAMP.charcoal[2]:R[1]);drawText(A,'FISH',x0+w-20,top+13,RAMP.cream[4]);
   cast(x0,x0+w,base);}
+if(K==='wnets'){const base=H-3,R=RAMP.walnut,T=hexR(['#16130e','#262019','#3a3124','#524532','#6b5b41','#867354']),px0=3,px1=W-8,poleY=5;   // a tarred fishing net hung to dry: two weathered posts and a pole, the net doubled over it, hanging in folds as a diamond mesh you can see through, cork floats on the head rope, lead sinkers on the hem, the rest heaped on the ground
+  const post=(x)=>{for(let y=poleY-2;y<=base;y++){P(A,x,y,R[5]);P(A,x+1,y,R[4]);P(A,x+2,y,R[3]);P(A,x+3,y,R[1]);}hl(A,x,poleY-3,4,R[5]);P(A,x+1,poleY+9,R[2]);P(A,x+2,poleY+17,R[2]);P(A,x+1,poleY+30,R[2]);cast(x,x+3,base);};
+  post(px0);post(px1);
+  for(let x=px0-1;x<=px1+4;x++){P(A,x,poleY,R[5]);P(A,x,poleY+1,R[4]);P(A,x,poleY+2,R[2]);}                                                     // the pole across, lit along its top
+  for(const jx of [px0,px1])for(let k=0;k<4;k++){P(A,jx+k,poleY-1+k,RAMP.burlap[4]);P(A,jx+3-k,poleY-1+k,RAMP.burlap[3]);}                      // rope lashed round each joint
+  const n0=px0+5,n1=px1-2,top=poleY+3;
+  const hem=x=>Math.round(base-16+2.4*Math.sin(x*.19+1)+1.4*Math.sin(x*.47));
+  const tear=(x,y)=>Math.hypot(x-(n0+21),(y-(top+19))*1.25)<4.4;
+  for(let x=n0;x<=n1;x++){const f=Math.sin((x-n0)*2*Math.PI/12+.6);const shade=f>.45?5:(f>-.2?4:(f>-.7?3:2));               // folds: lit on the ridges, dark and bunched in the valleys
+    const h=hem(x);
+    for(let y=top;y<=h;y++){if(tear(x,y))continue;
+      const lat=((x+y)%4+4)%4===0||((x-y)%4+4)%4===0;const bunch=f<-.7&&((x+y)%2===0);const dbl=y<top+4&&(((x+y+2)%4+4)%4===0||((x-y+2)%4+4)%4===0);
+      if(lat||bunch||dbl)P(A,x,y,T[y>=h-1?Math.max(1,shade-1):shade]);}
+    P(A,x,top,T[Math.max(3,shade)]);if(x%2===0)P(A,x,top+4,T[Math.max(2,shade-1)]);}                                                                   // the head rope, the doubled layer's edge
+  for(const [x,y] of [[n0+17,top+23],[n0+18,top+24],[n0+19,top+24],[n0+24,top+16],[n0+25,top+17],[n0+25,top+18],[n0+21,top+24],[n0+21,top+25]])P(A,x,y,T[3]);   // broken strands hanging in the tear
+  const cork=(fx,fy)=>{for(let dx=0;dx<4;dx++)for(let dy=0;dy<3;dy++){if((dx===0||dx===3)&&dy!==1)continue;P(A,fx+dx,fy+dy,RAMP.ochre[dy===0?5:(dx<2?4:2)]);}};
+  for(let x=n0+4;x<=n1-3;x+=9)cork(x,top+1);                                                                                                             // cork floats along the head rope
+  for(let x=n0+2;x<=n1-2;x+=6){const hy=hem(x)+1;P(A,x,hy,RAMP.iron[4]);P(A,x+1,hy,RAMP.iron[2]);P(A,x,hy+1,RAMP.iron[1]);P(A,x+1,hy+1,RAMP.iron[1]);}   // lead sinkers along the hem
+  const hx=W-29,hy=base-3;                                                                                                                               // the rest of it heaped at the foot of the right post: layers of mesh, the dark inside showing through
+  for(let y=-6;y<=2;y++)for(let x=-15;x<=15;x++){const r=x*x/225+y*y/(y<0?36:4);if(r>1)continue;const X=hx+x,Y=hy+y;
+    const lat=((X+Y)%4+4)%4===0||((X-Y)%4+4)%4===0||((X*2+Y)%7===0);const lvl=y<-4?5:(y<-1?4:3);
+    P(A,X,Y,lat?T[r>.8&&y>0?2:lvl]:(r>.85&&y<0?T[3]:T[1]));}
+  cork(hx-9,hy-4);cork(hx+3,hy-6);cork(hx+10,hy-2);
+  for(let x=hx-16;x<=hx+17;x++){SH(x,hy+3,150);SH(x+1,hy+4,95);}
+  for(let x=n0;x<hx-16;x++)if(((x+base)%4)===0)SH(x,base,55);}                                                                                        // the net's faint lattice shadow on the ground
 if(K==='wbell'){const base=H-3,cx=W>>1,R=RAMP.walnut,St=RAMP.stone;   // the harbour bell: a stone base, two posts and a crossbeam, an old bronze bell gone green: a round crown on its loop, a waist, a flared lip, lit on the left
   for(let y=base-14;y<base;y++)for(let x=-14;x<=14;x++){const row=(base-y)>>2,o=(row%2)*3;let k=x<-10?4:(x>10?2:3);if((base-y)%4===0||((x+o+20)%7===0))k=1;P(A,cx+x,y,St[k]);}hl(A,cx-14,base-14,29,St[5]);
   for(const px of [cx-15,cx+13])for(let y=10;y<base-14;y++){P(A,px,y,R[4]);P(A,px+1,y,R[2]);P(A,px+2,y,R[1]);}for(let x=cx-17;x<=cx+17;x++){P(A,x,9,R[5]);P(A,x,10,R[3]);P(A,x,11,R[1]);}
@@ -1322,19 +1347,38 @@ if(K==='stain'){const cx=W>>1,cy=(H>>1)+1;   // a stain soaked into the floor: a
   for(let i=0;i<22;i++){const w=Math.max(0,3-Math.floor(i/8));for(let j=-w;j<=w;j++)P(A,cx+10+i,cy+2+Math.round(i*.15)+j,i<12?RAMP.walnut[1]:RAMP.walnut[2]);}   // dragged away
   for(const [dx,dy] of [[-22,-6],[-19,7],[14,-8],[-25,1]])P(A,cx+dx,cy+dy,RAMP.walnut[1]);}
 // =================================================================================== the inn's porch: a raised deck against the front wall at sill height, its front railing, its steps (owner: "the porch to the inn looks bad ... stairs so they look natural")
-if(K==='innporch'){const R=hexR(['#21170f','#33251a','#4a3626','#614833','#7a5c42','#927253']),base=H-3,x0=4,x1=W-5,yB=15,yF=base-7;   // the deck floor: weathered planks running out from the wall, in the building's shade at the back, a fascia on its front
-  let i=0,n=0;while(x0+i<=x1){const bw=7+((hsh(n,3,SEED)*4)|0);for(let x=x0+i;x<Math.min(x1+1,x0+i+bw);x++)for(let y=yB;y<yF;y++){const sh=y<yB+12?2:(y<yB+20?3:4);let k=x===x0+i?1:(x===x0+i+1?Math.min(5,sh+1):sh);if(((y*3+n*17)%41)<2&&x>x0+i+1)k=Math.max(1,k-1);P(A,x,y,R[k]);}i+=bw;n++;}
-  for(let y=yB;y<yF;y++)if(((y-yB)%31)===30)for(let x=x0;x<=x1;x++)if(hsh(x>>3,y,SEED)>.4)P(A,x,y,R[1]);                     // butt joints, staggered
-  for(let x=x0;x<=x1;x++){P(A,x,yF,R[5]);P(A,x,yF+1,R[4]);for(let y=yF+2;y<base;y++)P(A,x,y,R[y<base-1?2:1]);}                   // the fascia: its lit nosing, the board face
-  for(let y=yB+2;y<yB+9;y++)for(let x=(W>>1)-12;x<(W>>1)+12;x++)P(A,x,y,RAMP.burlap[(y===yB+2)?4:(((x+y)%3)?3:2)]);                // a doormat at the door
+if(K==='innporch'){const R=hexR(['#21170f','#33251a','#4a3626','#614833','#7a5c42','#927253']),FL=hexR(['#2b1e14','#4a3626','#6b5038','#86643f','#927050','#a8845a','#bf9a6a']),SK=hexR(['#161214','#241e20','#3a3232','#4e4542']),base=H-3,x0=4,x1=W-5,yB=15,yF=base-7,yW=27;   // the deck floor: boards laid along the front wall, each lit along its top edge with a dark seam above; the inn's foundation hides rows above yW
+  for(let r=0,y=yB;y<yF;r++,y+=5){let x=x0-((hsh(r,7,SEED)*44)|0),b=0;   // a row of boards, ends staggered at random
+    while(x<=x1){const len=26+((hsh(r,b,SEED+3)*36)|0),tone=hsh(r*13+b,5,SEED)>.5?3:4;
+      for(let xx=Math.max(x0,x);xx<Math.min(x1+1,x+len);xx++)for(let k=0;k<5&&y+k<yF;k++){let c=k===0?1:(k===1?5:tone);
+        if(xx===x&&k>0)c=1;else if(xx===x+1&&k>0)c=k===1?6:5;                                                          // the butt joint: a dark end, the next board's lit end
+        else if(k===3&&hsh((xx/6)|0,r*7+b,SEED+9)<.16)c=tone-1;                                                          // a run of grain
+        if((xx===x+2||xx===x+len-3)&&(k===2||k===4))c=2;                                                                 // nail heads at each board end
+        {const yq=y+k,wx=Math.abs(xx-(W>>1))-(9+2.5*Math.sin(yq*.31)+(hsh(xx>>1,yq>>1,SEED+4)>.7?1:0));if(yq>yW+17&&yq<yF-1&&wx<0&&k>1&&c>=3)c=Math.min(5,c+1);}   // the path worn pale from the door to the steps
+        const yy=y+k;if(yy<yW+3)c=yy<yW?c:(yy===yW?0:1);else if(yy<yW+9)c=Math.max(1,c-1);                              // the foundation's solid shadow, then the inn's shade
+        P(A,xx,yy,FL[c]);}
+      x+=len;b++;}}
+  for(let y=yW+11;y<yW+17;y++)for(let x=(W>>1)-13;x<(W>>1)+13;x++)P(A,x,y,RAMP.burlap[(y===yW+11)?4:(((x+y)%3)?3:2)]);       // a doormat in front of the stoop
+  for(let x=x0;x<=x1;x++){P(A,x,yF,FL[5]);P(A,x,yF+1,FL[2]);                                                                                     // the deck's lit edge, the rim board below it
+    for(let y=yF+2;y<base;y++){const lat=((x+y)%4+4)%4===0||((x-y)%4+4)%4===0;P(A,x,y,lat?SK[y===yF+2?3:2]:SK[0]);}P(A,x,base-1,SK[1]);}        // a lattice skirt, the dark under the deck showing through it
+  for(let x=x0-1;x<=x1+3;x++){SH(x,base,175);SH(x,base+1,130);SH(x,base+2,70);}                                                 // the deck's shadow on the ground in front
+  for(let y=yB+8;y<=base;y++){SH(x1+1,y,150);SH(x1+2,y,110);SH(x1+3,y,60);}                                                         // and off its right end
   const sideRail=(x)=>{for(let y=yB-14;y<yF-14+2;y++){P(A,x,y,R[5]);P(A,x+1,y,R[4]);P(A,x+2,y,R[2]);}for(const py of [yB-14,yB+30-14,yF-14])for(let y=py;y<py+16;y++){P(A,x,y,R[4]);P(A,x+1,y,R[3]);P(A,x+2,y,R[1]);}};   // a side railing: its top rail running back to the wall, posts at the wall, the middle and the front
   sideRail(x0-1);sideRail(x1-1);}
+if(K==='innstoop'){const FL=hexR(['#2b1e14','#4a3626','#6b5038','#86643f','#927050','#a8845a','#bf9a6a']);   // two wooden steps from the deck up to the inn's door sill, in the deck's own boards
+  const step=(xa,xb,ty)=>{for(let x=xa;x<=xb;x++){for(let y=ty;y<ty+5;y++)P(A,x,y,FL[y===ty+2?1:(y===ty+3?5:4)]);P(A,x,ty+5,FL[6]);        // the tread: two boards, its front edge lit
+      P(A,x,ty+6,FL[1]);for(let y=ty+7;y<ty+11;y++)P(A,x,y,FL[y===ty+10?1:2]);}                                                  // the riser, in the nosing's shadow
+    for(let y=ty;y<ty+11;y++){P(A,xa,y,FL[y<ty+6?5:3]);P(A,xb,y,FL[y<ty+6?2:1]);}};                                                   // lit left end, shaded right end
+  step(5,W-6,0);step(2,W-3,11);
+  for(let x=1;x<=W-1;x++){SH(x,22,150);SH(x,23,95);SH(x,24,45);}}                                                                // its shadow on the deck
 if(K==='innrail'){const R=hexR(['#21170f','#33251a','#4a3626','#614833','#7a5c42','#927253']),base=H-3,x0=4,x1=W-5,top=base-21;   // the front railing: posts, a lit top rail, square balusters, an opening for the steps in the middle
   const gap0=(W>>1)-17,gap1=(W>>1)+16;
   for(let x=x0;x<=x1;x++){if(x>gap0&&x<gap1)continue;P(A,x,top,R[5]);P(A,x,top+1,R[4]);P(A,x,top+2,R[2]);P(A,x,top+10,R[3]);P(A,x,top+11,R[1]);if((x-x0)%5===2)for(let y=top+3;y<top+10;y++){P(A,x,y,R[4]);P(A,x+1,y,R[2]);}}
+  {const bx=x1-27;for(const xx of [bx,bx+1])for(let y=top+3;y<top+10;y++)A.d[(y*A.w+xx)*4+3]=0;for(let k=0;k<6;k++){P(A,bx+1+(k>>1),top+4+k,R[k<3?4:3]);P(A,bx+2+(k>>1),top+4+k,R[1]);}}   // one baluster sprung loose, hanging askew
   for(const px of [x0,x0+50,gap0-2,gap1,x1-50,x1-2])for(let y=top-2;y<base;y++){P(A,px,y,R[y===top-2?5:4]);P(A,px+1,y,R[3]);P(A,px+2,y,R[1]);}}   // posts down to the ground, capped
-if(K==='innsteps'){const R=hexR(['#21170f','#33251a','#4a3626','#614833','#7a5c42','#927253']),base=H-3,x0=3,x1=W-4;   // three wide wooden steps from the deck down to the sidewalk, stringers at their sides
-  for(let k=0;k<3;k++){const ty=1+k*8;for(let x=x0;x<=x1;x++){for(let y=ty;y<ty+5;y++)P(A,x,y,R[y===ty?5:(y===ty+4?2:4)]);for(let y=ty+5;y<ty+8;y++)P(A,x,y,R[y===ty+5?1:2]);}}   // each tread lit along its nose, its riser in shade
-  for(const sx_ of [x0,x1-1])for(let y=0;y<base;y++){P(A,sx_,y,R[sx_===x0?4:1]);P(A,sx_+1,y,R[sx_===x0?3:1]);}}
+if(K==='innsteps'){const FL=hexR(['#2b1e14','#4a3626','#6b5038','#86643f','#927050','#a8845a','#bf9a6a']),base=H-3,x0=3,x1=W-4;   // three wide wooden steps from the deck down to the sidewalk, stringers at their sides
+  for(let k=0;k<3;k++){const ty=1+k*8;for(let x=x0;x<=x1;x++){for(let y=ty;y<ty+4;y++)P(A,x,y,FL[y===ty?3:4]);P(A,x,ty+4,FL[6]);P(A,x,ty+5,FL[1]);for(let y=ty+6;y<ty+8;y++)P(A,x,y,FL[2]);}}   // each tread lit along its front edge, its riser dark under it
+  for(const sx_ of [x0,x1-1])for(let y=0;y<base;y++){P(A,sx_,y,FL[sx_===x0?5:1]);P(A,sx_+1,y,FL[sx_===x0?4:2]);}
+  for(let x=x0;x<=x1+1;x++){SH(x,base,175);SH(x,base+1,125);SH(x,base+2,65);}}
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));

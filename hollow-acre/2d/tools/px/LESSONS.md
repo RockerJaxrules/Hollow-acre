@@ -544,6 +544,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Dark iron (candelabra arms) goes spidery on a dark floor: give its lit faces a cool blue-grey rim.
 - A barrel on its side needs its body showing behind the head (a band of staves above it with a hoop across), or the head reads as a flat clock or a hooded owl.
 
+- A raised deck needs a front face a step darker and cooler than its top (a rim board and a dark lattice skirt), or it reads as ground level however many steps lead down from it.
+- Deck and porch boards run along the wall in 5-px rows: a dark seam, a lit top edge, two close face tones, staggered butt joints with nail heads. One flat brown with a few dark lines reads as mud or a mat.
+- A door above a deck needs a stoop up to its sill in the deck's own wood; a pale stoop reads as paper.
+- Mirror-copied halves (two rail sections) get one break: a sprung baluster, a replaced post.
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline
