@@ -11,11 +11,89 @@
 "w": 27,
 "h": 78
 },
-"bench_farm_n": {
+"bench_farm_bk": {
 "ax": 28,
 "ay": 47,
 "w": 62,
 "h": 56
+},
+"bench_farm_w": {
+"ax": 12,
+"ay": 62,
+"w": 30,
+"h": 78
+},
+"bench_furn": {
+"ax": 29,
+"ay": 50,
+"w": 64,
+"h": 61
+},
+"bench_furn_e": {
+"ax": 12,
+"ay": 59,
+"w": 33,
+"h": 75
+},
+"bench_furn_bk": {
+"ax": 29,
+"ay": 43,
+"w": 64,
+"h": 52
+},
+"bench_furn_w": {
+"ax": 15,
+"ay": 59,
+"w": 33,
+"h": 75
+},
+"bench_weapon": {
+"ax": 29,
+"ay": 54,
+"w": 62,
+"h": 62
+},
+"bench_weapon_e": {
+"ax": 12,
+"ay": 61,
+"w": 27,
+"h": 77
+},
+"bench_weapon_bk": {
+"ax": 29,
+"ay": 46,
+"w": 61,
+"h": 55
+},
+"bench_weapon_w": {
+"ax": 12,
+"ay": 51,
+"w": 30,
+"h": 67
+},
+"bench_armor": {
+"ax": 38,
+"ay": 50,
+"w": 75,
+"h": 58
+},
+"bench_armor_e": {
+"ax": 12,
+"ay": 41,
+"w": 27,
+"h": 57
+},
+"bench_armor_bk": {
+"ax": 35,
+"ay": 50,
+"w": 78,
+"h": 58
+},
+"bench_armor_w": {
+"ax": 12,
+"ay": 63,
+"w": 27,
+"h": 79
 },
 "furnace": {
 "ax": 20,
@@ -29,10 +107,16 @@
 "w": 35,
 "h": 73
 },
-"furnace_n": {
+"furnace_bk": {
 "ax": 20,
 "ay": 60,
 "w": 43,
 "h": 70
+},
+"furnace_w": {
+"ax": 16,
+"ay": 61,
+"w": 36,
+"h": 73
 }
 }

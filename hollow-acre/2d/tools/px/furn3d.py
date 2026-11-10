@@ -1,6 +1,6 @@
 """Furniture, props and decorations for Hollow Acre as 3D blockouts with four facings (owner: everything rotatable except
 wall pieces or where it makes no sense; benches and furnaces too). Each piece is built once in model space, front toward
-the viewer (+z), and turned by exact quarter turns: S (as built), E (its front to the right), N (its back to us). West is
+the viewer (+z), and turned by exact quarter turns: S (as built), E (its front to the right, _e), N (its back to us, _bk: _n means night in the game). West is
 the east view mirrored in the game. Same renderer and hand finish as blockprops.py.
 
     python3 furn3d.py [names...]          renders into furn3d_gen/png/<name>{,_e,_n}.png and furn3d_gen/meta.json
@@ -78,7 +78,7 @@ def render(name, parts, size, suffix=''):
 
 def make(name):
     fn, rot, size = PIECES[name]; parts = fn(); meta = {}
-    for k, suf in ((0, ''), (1, '_e'), (2, '_n'), (3, '_w')) if rot else ((0, ''),):
+    for k, suf in ((0, ''), (1, '_e'), (2, '_bk'), (3, '_w')) if rot else ((0, ''),):
         p, ax, ay, sz = render(name, turn(parts, k), size, suf); meta[name + suf] = dict(ax=ax, ay=ay, w=sz[0], h=sz[1])
     return meta
 
