@@ -361,7 +361,7 @@ if(K==='crates'){const R=RAMP.pine,base=H-3;
   for(let i=0;i<12;i++){const X=6+((hsh(i,1,SEED)*34)|0),Y=base-((hsh(i,2,SEED)*2)|0);if(!G(A,X,Y))P(B,X,Y,RAMP.ochre[2],160);}   // a few straws on the floor
 }
 // =================================================================================== the pantry shelf of jars
-if(K==='jars'){const R=RAMP.pine,base=H-3,x0=2,w=W-4,topY=4;
+if(K==='jars'){const R=RAMP.pine,base=H-3,x0=2,w=W-4,topY=9;
   const CONT=[[RAMP.red,'cloth'],[RAMP.green,'tin'],[RAMP.ochre,'cloth'],[RAMP.plum,'tin'],[RAMP.red,'tin'],[RAMP.ochre,'tin'],[RAMP.green,'cloth'],[RAMP.cream,'cloth']];
   const jar=(x,by,w2,h,Cr,lid,lab)=>{for(let j=0;j<h;j++)for(let i=0;i<w2;i++){const sh=(j<2&&(i===0||i===w2-1));if(sh)continue;let c=Cr[i===0?4:i===w2-1?1:(j<h*.3?3:2)];if(j<2)c=RAMP.glass[i===1?5:3];P(A,x+i,by-h+j,c);}
     P(A,x+1,by-h+3,RAMP.ivory[5]);P(A,x+1,by-h+4,RAMP.ivory[4]);                                                          // the glass glint
@@ -371,7 +371,7 @@ if(K==='jars'){const R=RAMP.pine,base=H-3,x0=2,w=W-4,topY=4;
   if(V==='S'){
     rect(A,x0+2,topY+4,w-4,base-topY-8,RAMP.walnut[2]);for(let x=x0+6;x<x0+w-4;x+=8)vl(A,x,topY+4,base-topY-8,RAMP.walnut[1]);   // the back boards, a step lighter than the jars' darks
     for(const px of [x0,x0+w-3]){rect(A,px,topY+2,3,base-topY-1,R[3]);vl(A,px,topY+2,base-topY-1,R[5]);vl(A,px+2,topY+2,base-topY-1,R[1]);}
-    box3(x0-1,topY-1,w+2,3,3,R,{});
+    box3(x0-1,topY-7,w+2,9,3,R,{});
     const shelves=[topY+22,topY+42,topY+62];for(const sy of shelves){hl(A,x0+3,sy,w-6,R[5]);hl(A,x0+3,sy+1,w-6,R[3]);hl(A,x0+3,sy+2,w-6,R[1]);for(let x=x0+3;x<x0+w-3;x++)SH(x,sy+3,120);}
     let rng=SEED*7+1;const rr=()=>{rng=(rng*1103515245+12345)&0x7fffffff;return rng/0x7fffffff;};
     [topY+4,shelves[0]+3,shelves[1]+3].forEach((ry,ri)=>{const by=[shelves[0],shelves[1],shelves[2]][ri];let x=x0+4;
@@ -383,11 +383,11 @@ if(K==='jars'){const R=RAMP.pine,base=H-3,x0=2,w=W-4,topY=4;
     box3(x0,base-3,w,0,4,R,{});under(x0,x0+w,base,base);cast(x0,x0+w,base);}
   if(V==='E'){const sw=W-6,sx=3,TL=39,tY=topY+TL;   // the side: the top board runs up the screen (one camera for every view), then the framed end panel with a sliver of jars at the open edge
     box3(sx-1,tY-1-TL,sw+2,TL+4,3,R,{topDir:'y',topPw:4});for(let y=tY-TL;y<tY+2;y++)for(let x=sx;x<sx+sw;x++){const c=G(A,x,y);if(c)P(A,x,y,shade(c,1.22));}vl(A,sx-1,tY-TL,TL+3,R[5]);for(let y=tY-TL+9;y<tY;y+=13)hl(A,sx,y,sw,R[2]);rect(A,sx,tY+6,sw-3,base-tY-10,R[2]);for(let y=tY+6;y<base-4;y++){P(A,sx,y,R[4]);P(A,sx+1,y,R[3]);P(A,sx+sw-4,y,R[1]);}
-    panel(sx+3,tY+9,sw-9,30,R);panel(sx+3,tY+43,sw-9,30,R);
+    panel(sx+2,tY+9,Math.max(4,sw-7),30,R);panel(sx+2,tY+43,Math.max(4,sw-7),30,R);
     for(const [a,b,i] of [[tY+8,tY+22,0],[tY+26,tY+42,1],[tY+46,tY+62,2]]){let y=b;let k=0;while(y>a+2){const hgt=6+((i*5+k*3)%5),C=CONT[(i*3+k)%CONT.length][0];for(let j=0;j<hgt&&y-j>a;j++){P(A,sx+sw-3,y-1-j,C[j===hgt-1?5:3]);P(A,sx+sw-2,y-1-j,C[1]);}y-=hgt+2;k++;}}   // jars of different heights and colours along the open edge
     for(const sy of [tY+22,tY+42,tY+62]){P(A,sx+sw-3,sy,R[5]);P(A,sx+sw-2,sy,R[4]);P(A,sx+sw-3,sy+1,R[2]);}
     box3(sx,base-4,sw-2,0,5,R,{facePw:6});under(sx,sx+sw,base,base);cast(sx,sx+sw,base);}
-  if(V==='N'){box3(x0-1,topY-1,w+2,3,3,R,{});for(let y=topY+5;y<base-4;y++)for(let x=x0;x<x0+w;x++){const u=(x-x0)%8;P(A,x,y,R[u===0?1:u===1?4:u===7?2:3]);}
+  if(V==='N'){box3(x0-1,topY-7,w+2,9,3,R,{});for(let y=topY+5;y<base-4;y++)for(let x=x0;x<x0+w;x++){const u=(x-x0)%8;P(A,x,y,R[u===0?1:u===1?4:u===7?2:3]);}
     for(const by of [topY+14,base-18]){hl(A,x0+1,by,w-2,R[5]);hl(A,x0+1,by+1,w-2,R[3]);hl(A,x0+1,by+2,w-2,R[1]);for(let x=x0+4;x<x0+w-3;x+=9)P(A,x,by+1,RAMP.ironW[4]);}
     vl(A,x0,topY+5,base-topY-9,R[5]);vl(A,x0+w-1,topY+5,base-topY-9,R[1]);box3(x0,base-4,w,0,5,R,{});under(x0,x0+w,base,base);cast(x0,x0+w,base);}}
 // =================================================================================== the rocking chair
@@ -1490,10 +1490,14 @@ if(K==='wbell'){const base=H-3,cx=W>>1,R=RAMP.walnut,St=RAMP.stone,Br=RAMP.brass
   for(let k=0;k<=p1-rx-1;k++){const y=pb-14+Math.round(Math.sin(k/(p1-rx)*Math.PI)*4);P(A,rx+k,y,T[(k%3===0)?3:4]);P(A,rx+k,y+1,T[(k%3===1)?1:2]);}
   hl(A,p1-1,pb-15,7,RAMP.ironW[4]);hl(A,p1-1,pb-14,7,RAMP.ironW[2]);                                                                      // the cleat
   for(let y=pb-13;y<pb-6;y++){P(A,p1+5,y,T[(y%3===0)?3:4]);P(A,p1+6,y,T[2]);}}                                                            // the tail hanging from it
-if(K==='rumple'){const C=RAMP.ivory;   // the sheet thrown back and bunched across the middle of the bed: folds lit along their tops, the shadows between them, a corner trailing
-  for(let x=9;x<W-9;x++){const t=(x-9)/(W-18),h=5+Math.round(Math.sin(t*Math.PI)*3+Math.sin(t*9)*1.5);for(let y=0;y<h;y++){const yy=14-y+Math.round(Math.sin(t*5)*1.2);const u=x-9+y*.6,R=[0,4,13,17,28,31,38,47,51,60,99];let k=0;while(R[k+1]<=u)k++;const f=(u-R[k])/(R[k+1]-R[k]);P(A,x,yy,C[y===h-1?5:(f<.18?5:(f<.55?4:(f<.82?3:2)))]);/* folds of different widths, each lit along its ridge, darkening into the valley before the next */}}   // the bunched sheet, its folds
-  for(let x=9;x<W-9;x++)P(A,x,15+Math.round(Math.sin((x-9)/(W-18)*5)*1.2),C[1]);                                                 // its shadow on the quilt
-  for(let j=0;j<7;j++)for(let i=0;i<5-(j>>1);i++)P(A,W-12+i,16+j,C[j===0?4:(i===0?3:2)]);}                                        // a corner trailing down the side
+if(K==='rumple'){const C=RAMP.ivory,x0=8,x1=W-10,by=16;   // the sheet thrown back and bunched across the bed: a soft roll that swells and pinches, four folds of different widths running across it, each lit on its crest, a deep pinch between two of them, the end draping down the side in a tapering wavy hem
+  const F=[[12,5,2.4],[21,8,3.2],[30,3,-1.6],[39,7,2.6],[47,5,1.6]];                                              // fold centre, half-width, height (negative: a pinch)
+  const hgt=x=>{let h=3.6;for(const [c,w,a] of F){const d=(x-c)/w;if(Math.abs(d)<1)h+=a*Math.cos(d*Math.PI/2);}return h;};
+  const shade=x=>{let best=0,bd=99;for(const [c,w,a] of F){const d=(x-c)/w;if(Math.abs(d)<Math.abs(bd)){bd=d;best=a;}}if(best<0||Math.abs(bd)>1)return 2;return bd<-.35?5:(bd<.25?4:(bd<.7?3:2));};
+  for(let x=x0;x<=x1;x++){const h=Math.round(hgt(x));const top=by-h;for(let y=top;y<=by;y++){let c=shade(x);if(y===top)c=Math.min(5,c+1);if(y===by)c=1;else if(y>=by-1&&c>2)c--;P(A,x,y,C[c]);}}
+  for(let x=x0+1;x<=x1-2;x++)SH(x,by+1,150),SH(x+1,by+2,90);                                                    // its shadow on the quilt
+  for(let j=0;j<11;j++){const w=Math.max(2,6-Math.round(j*.4)),xs=x1-4+Math.round(Math.sin(j*.7)*.8);for(let i=0;i<w;i++){const hem=j===10||(j===9&&i%2===1);P(A,xs+i,by+1+j,C[hem?2:(i===0?4:(i===w-1?2:3))]);}}   // the end draping down the side, tapering, its hem wavy
+  for(let j=2;j<11;j++)SH(x1+3,by+j,110);}
 if(K==='stain'){const cx=W>>1,cy=(H>>1)+1;   // a stain soaked into the floor: a dark heart, a paler ragged edge, a smear dragged away to one side, a few drops
   for(let y=-9;y<=9;y++)for(let x=-18;x<=18;x++){const d=x*x/196+y*y/36+hsh(x>>1,y>>1,SEED)*.35;if(d>1.1)continue;P(A,cx-6+x,cy+y,d<.35?RAMP.brick[0]:(d<.75?RAMP.walnut[1]:RAMP.walnut[2]));}
   for(let i=0;i<22;i++){const w=Math.max(0,3-Math.floor(i/8));for(let j=-w;j<=w;j++)P(A,cx+10+i,cy+2+Math.round(i*.15)+j,i<12?RAMP.walnut[1]:RAMP.walnut[2]);}   // dragged away
