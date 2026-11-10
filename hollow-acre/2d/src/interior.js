@@ -11,8 +11,8 @@ const ROOMS={
     ['in_crates',1.2,7.0,[-.7,-.4,.7,0]],['in_crates',11.8,7.0,[-.7,-.4,.7,0]],['barrel',.6,2.8,[-.4,-.3,.4,0]],['barrel',12.4,2.8,[-.4,-.3,.4,0]],['sacks',12.1,5.9,[-.55,-.3,.55,0]],['in_keg',.7,5.9,[-.4,-.3,.4,0]],
     ['pumpkin',3.1,7.2,[-.3,-.2,.3,0]],['pumpkin_b',3.7,7.3,[-.3,-.2,.3,0]],['in_rug',6.5,6.9,null,'flat']]},
   church:{ox:360,oz:-60,out:{x:CHURCH_DOOR.x,z:CHURCH_DOOR.z+.3},name:'Marrow Hollow Church',furn:[
-    ['in_altar',5,1.7,[-1.15,-.65,1.15,0]],['in_candles',2.5,1.1,[-.6,-.25,.6,0]],['in_candles',7.5,1.1,[-.6,-.25,.6,0]],
-    ['in_pew_bk',2.4,3.6,[-1.95,-.45,1.95,0]],['in_pew_bk',7.6,3.6,[-1.95,-.45,1.95,0]],['in_pew_bk',2.4,5.0,[-1.95,-.45,1.95,0]],['in_pew_bk',7.6,5.0,[-1.95,-.45,1.95,0]],
+    ['in_crossbig',5,-0.45,null,'flat'],['in_altar',5,1.7,[-1.15,-.65,1.15,0]],['in_candles',2.5,1.1,[-.6,-.25,.6,0]],['in_candles',7.5,1.1,[-.6,-.25,.6,0]],
+    ['in_pew_bk',2.4,3.6,[-1.95,-.45,1.95,0]],['in_pew_bk',7.6,3.6,[-1.95,-.45,1.95,0]],['in_pewv_bk',2.4,5.0,[-1.95,-.45,1.95,0]],['in_pew_bk',7.6,5.0,[-1.95,-.45,1.95,0]],
     ['in_pew_bk',2.4,6.4,[-1.95,-.45,1.95,0]],['in_pew_bk',7.6,6.4,[-1.95,-.45,1.95,0]]]},
   garage:{ox:392,oz:-60,out:{x:-33.7,z:-9.9},name:'Pruitt’s Garage',furn:[['in_shelf_parts',1.1,0.62,[-1.00,-0.4,1.00,0]],['in_shelf_tools',3.1,0.62,[-1.00,-0.4,1.00,0]],['in_bench',5.9,1.05,[-1.30,-0.5,1.30,0]],['in_toolbox',8.3,1.3,[-0.55,-0.35,0.55,0]],['in_car',3.3,4.4,[-1.85,-1.3,1.85,0]],['in_hoist',6.4,3.6,[-0.60,-0.3,0.60,0]],['in_tires',8.4,3.5,[-0.45,-0.3,0.45,0]],['in_tires',8.4,4.5,[-0.45,-0.3,0.45,0]],['in_drum',0.6,5.5,[-0.35,-0.3,0.35,0]],['in_drum_blue',1.4,5.7,[-0.35,-0.3,0.35,0]],['in_crates',8.2,5.6,[-0.70,-0.4,0.70,0]]]}};
 S.room=null;
@@ -91,7 +91,7 @@ function interiorGround(){const R=roomOf();if(!R)return;const m=SPR[R.shell||('r
    small pool under candles; walls keep only the back wall's shadow; contact shadows show 2-3 px below each foot */
 const ROOM_LIGHTS={in_stove:[.8,10],in_hearth:[1,14],in_forgehearth:[.9,14],in_candles:[.5,0],in_oillamp:[.45,0]};
 const ROOM_OBJS={};
-const ROOM_SHADE_OK=new Set(['tavern','cabin','home_cora','back_hale','back_quill','back_agnes','mine']);   // rooms whose light pass has won its blind round (6+ and preferred); the rest keep the old light until theirs does
+const ROOM_SHADE_OK=new Set(['home_fenn','tavern','cabin','home_cora','back_hale','back_quill','back_agnes','mine']);   // rooms whose light pass has won its blind round (6+ and preferred); the rest keep the old light until theirs does
 function roomShade(R){const k=S.room;let L=ROOM_OBJS[k];if(!L||L.n!==OBJ.length){L=ROOM_OBJS[k]=OBJ.filter(o=>o.room===k);L.n=OBJ.length;}
   const fx0=Math.round(sx(R.ox)),fx1=Math.round(sx(R.ox+R.w)),fy0=Math.round(sz(R.oz)),fy1=Math.round(sz(R.oz+R.d));
   ctx2.fillStyle='rgba(16,10,14,.16)';ctx2.fillRect(fx0,fy0,fx1-fx0,fy1-fy0);   // the floor a step down, so lit furniture tops stand above it

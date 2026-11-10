@@ -364,6 +364,14 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors b11] A saturated painted floor (rust red, bright sage) becomes the loudest thing in the room; painted floors use
   the slate or a dull ramp.
 
+- [interiors b12] A soft round dark blot on a floor reads as a shadow cast by nothing; a stain must be flat, ragged, along the
+  grain, with a dried edge, or not be there at all.
+- [interiors b12] A lit bevel line inside most flagstones reads as a crack on every stone: lit lips on a few stones only.
+- [interiors b12] One panel pattern repeated 16 times across a wall reads as copy-paste: most panels plain, a few with their
+  own long grain.
+- [interiors b10] The survey camera matters: the old shots were taken while the camera was still panning down from the back
+  wall, the new ones after it settled on the floor. Match the camera state before comparing (rs_b4.js sets the pan).
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).

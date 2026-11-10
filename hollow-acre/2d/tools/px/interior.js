@@ -26,7 +26,13 @@ function wallpaper(L,x0,y0,w,h,R,stripe){for(let y=y0;y<y0+h;y++)for(let x=x0;x<
 function brick(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=Math.floor((y-y0)/6),o=r%2?6:0,b=(x-x0+o)%12;let c=R[(hsh(Math.floor((x-x0+o)/12),r,5)>.6)?3:2];if(b===0||(y-y0)%6===5)c=R[0];else if((y-y0)%6===0)c=R[4];P(L,x,y,c);}}
 function plaster(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const n=hsh(x>>3,(y+(x>>4))>>3,5)*.7+hsh(x,y,6)*.3;P(L,x,y,R[n>.8?4:n<.12?2:3]);}
   for(let i=0;i<4;i++){const cx=x0+hsh(i,4,2)*w|0,cy=y0+8+hsh(i,5,2)*(h-16)|0;for(let k=0;k<14;k++)P(L,cx+k-(k>>2),cy+(k>>1)+(k%3===0?1:0),R[1]);}}
-function windowW(L,x,y,w,h,arched){rect(L,x-3,y-3,w+6,h+7,TR[3]);frame(L,x-3,y-3,w+6,h+7,TR[5],TR[1]);
+function windowW(L,x,y,w,h,arched){if(arched==='lancet'){const ah=Math.round(w*.87);rect(L,x-3,y+ah,w+6,h-ah+4,TR[3]);vl(L,x-3,y+ah,h-ah+4,TR[5]);vl(L,x+w+2,y+ah,h-ah+4,TR[1]);}else{rect(L,x-3,y-3,w+6,h+7,TR[3]);frame(L,x-3,y-3,w+6,h+7,TR[5],TR[1]);}
+  if(arched==='lancet'){const ah=Math.round(w*.87);   /* (judge b10: "house windows") a pointed lancet, leaded diamond quarries, a few dull coloured panes */
+    for(let j=0;j<h;j++)for(let i=0;i<w;i++){const u=i+.5,v=ah-j;if(j<ah&&((u-w)*(u-w)+v*v>w*w||u*u+v*v>w*w))continue;const p=Math.floor((i+j)/6),q=Math.floor((i-j+90)/6),hp=hsh(p,q,23);
+      let c=N?(j<h*.5?PAL.ink[0]:PAL.ink[1]):(j<h*.45?PAL.glass[4]:PAL.glass[3]);if(!N){if(hp>.86)c=mixC(PAL.red[2],PAL.glass[3],.35);else if(hp>.76)c=mixC(PAL.brass[3],PAL.glass[3],.4);else if(hp>.68)c=mixC(PAL.blue[3],PAL.glass[4],.3);}
+      if((i+j)%6===0||(i-j+90)%6===0)c=N?PAL.ink[0]:mixC(TR[1],PAL.glass[2],.3);P(L,x+i,y+j,c);}
+    for(let i=-3;i<w+3;i++)for(let j=-3;j<ah;j++){const u=i+.5,v=ah-j;const inO=(u-w)*(u-w)+v*v<=(w+3)*(w+3)&&u*u+v*v<=(w+3)*(w+3);const inI=j>=0&&i>=0&&i<w&&(u-w)*(u-w)+v*v<=w*w&&u*u+v*v<=w*w;if(inO&&!inI&&j<ah)P(L,x+i,y+j,TR[i<w/2?5:2]);}
+    hl(L,x-4,y+h+3,w+8,TR[4]);hl(L,x-4,y+h+4,w+8,TR[1]);if(!N)for(let j=0;j<h;j++)P(SHD,x+w+3,y+j,PAL.out[0],40);return;}
   for(let j=0;j<h;j++)for(let i=0;i<w;i++){if(arched&&j<w/2){const dx=i-w/2+.5,dy=w/2-j;if(dx*dx+dy*dy>(w/2)*(w/2))continue;}
     let c=N?(j<h*.5?PAL.ink[0]:PAL.ink[1]):(j<h*.45?PAL.glass[4]:PAL.glass[3]);if(!N&&(i-j)%11===0)c=PAL.glass[5];P(L,x+i,y+j,c);}
   vl(L,x+(w>>1),y,h,TR[2]);hl(L,x,y+(h>>1),w,TR[2]);hl(L,x-4,y+h+3,w+8,TR[4]);hl(L,x-4,y+h+4,w+8,TR[1]);
@@ -35,7 +41,8 @@ function windowW(L,x,y,w,h,arched){rect(L,x-3,y-3,w+6,h+7,TR[3]);frame(L,x-3,y-3
 function damask(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const u=(x-x0)%16,v=(y-y0)%20,dx=Math.abs(u-8),dy=Math.abs(v-10);let k=2;
   if(dx+dy*.8<6&&dx+dy*.8>3.5)k=3;if(dx+dy*.8<2)k=3;if((u===0||u===15)&&v%4<2)k=1;P(L,x,y,R[k]);}}
 function panelWall(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const u=(x-x0)%40,v=(y-y0)%46;let c=R[2];if(u<3||v<3)c=R[3];if(u===0||v===0)c=R[4];if(u===39||v===45)c=R[1];
-  if(u>5&&u<35&&v>5&&v<41){c=R[2];if(u===6||v===6)c=R[1];if(u===34||v===40)c=R[3];if(hsh(x>>1,y>>3,4)>.8)c=R[1];}P(L,x,y,c);}}
+  if(u>5&&u<35&&v>5&&v<41){const pu=Math.floor((x-x0)/40),pv=Math.floor((y-y0)/46),ph=hsh(pu,pv,31);c=ph>.5?R[2]:mixC(R[2],R[3],.18);if(u===6||v===6)c=R[1];if(u===34||v===40)c=R[3];   /* (b12: 16 identical grained panels) */
+    if(ph>.68&&u>7&&u<33&&v>7&&v<39){const gx=(u+Math.floor(ph*9))%9,s0=Math.floor(hsh(pu,u,32)*20),sl=8+Math.floor(hsh(pu,u,33)*14);if(gx===0&&v>s0+7&&v<s0+7+sl)c=mixC(R[2],R[1],.6);}}P(L,x,y,c);}}
 function logWall(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++){const r=Math.floor((y-y0)/11),v=(y-y0)%11;for(let x=x0;x<x0+w;x++){let c=v<2?R[4]:v<5?R[3]:v<9?R[2]:v<10?R[1]:PAL.cream[0];
   if(hsh(x>>2,r,6)>.86&&v>2&&v<9)c=R[1];P(L,x,y,c);}}}
 function beadWains(L,x0,y,w,h,C){for(let j=0;j<h;j++)for(let i=0;i<w;i++){let c=C[2];if(i%5===0)c=C[1];if(i%5===1)c=C[3];if(j<3)c=j===0?C[3]:C[2];P(L,x0+i,y+j,c);}hl(L,x0,y-1,w,WD[3]);hl(L,x0,y-2,w,WD[4]);}
@@ -57,18 +64,18 @@ function parquet(L,x0,y0,w,h){
 // the tiles sit a step down (worn, waxed), the grout is a soft line on the top and left of each tile, no specks
 function checker(L,x0,y0,w,h,A2,B2){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const fb=frameBoard(x-x0,y-y0,w,h,11);if(fb){P(L,x,y,fb);continue;}const i=Math.floor((x-x0)/16),j=Math.floor((y-y0)/16),u=(x-x0)%16,v=(y-y0)%16;const lt=A2[2].map((v,k)=>Math.round(v*.62+B2[2][k]*.38));let c=(i+j)%2?A2[2]:lt;   // the light tile only a step above the dark one: a quiet floor under louder furniture   // the light tile between two cream steps, close to the dark one
   if(u===0||v===0)c=shade(c,.84);else if(u===1||v===1)c=shade(c,1.05);P(L,x,y,c);}}
-function flagstone(L,x0,y0,w,h){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=Math.floor((y-y0)/18),o=(r*13)%27,s=Math.floor((x-x0+o)/(22+(r%3)*4));const u=(x-x0+o)%(22+(r%3)*4),v=(y-y0)%18;
+function flagstone(L,x0,y0,w,h,RS){const SR=RS||ST;for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=Math.floor((y-y0)/18),o=(r*13)%27,s=Math.floor((x-x0+o)/(22+(r%3)*4));const u=(x-x0+o)%(22+(r%3)*4),v=(y-y0)%18;
   /* (b8) two close tones, not three far apart (patchwork); a lit edge on some stones only; cracks on a few stones by the walls */
-  const n=hsh(s,r,9);let c=n>.5?ST[3]:mixC(ST[3],ST[2],.45);if(u<2||v<2)c=ST[1];if((u===2||v===2)&&n>.35)c=mixC(ST[3],ST[4],.5);
-  const nearWall=r===0||x-x0<30||x0+w-x<30;if(nearWall&&hsh(s,r,11)>.75&&u>3&&v>3){const cu=6+Math.floor(hsh(s,r,12)*10),cv=5+Math.floor(hsh(s,r,13)*6),dir=hsh(s,r,14)>.5?1:-1,dv=v-cv;if(dv>=0&&dv<6&&u===cu+dir*Math.floor(dv*.7))c=ST[1];}   // a crack, not specks
+  const n=hsh(s,r,9);let c=n>.5?SR[3]:mixC(SR[3],SR[2],.45);if(u<2||v<2)c=mixC(SR[1],SR[2],.35);if(v===2&&n>.78&&u>3&&u<14)c=mixC(SR[3],SR[4],.5);   /* (b12) mortar a step quieter, a lit lip on a few stones only */
+  const nearWall=r===0||x-x0<30||x0+w-x<30;if(nearWall&&hsh(s,r,11)>.88&&u>3&&v>3){const cu=6+Math.floor(hsh(s,r,12)*10),cv=5+Math.floor(hsh(s,r,13)*6),dir=hsh(s,r,14)>.5?1:-1,dv=v-cv;if(dv>=0&&dv<6&&u===cu+dir*Math.floor(dv*.7))c=SR[1];}   // a crack, not specks
   P(L,x,y,c);}}
 // (interiors r4) the wear was 4 px chips scattered down the path and read as footprints or specks: the paint wears through in long
 // streaks along the boards where feet go, first thinning (the wood's warmth showing through), then bare wood in the middle
-function painted(L,x0,y0,w,h,C){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const row=Math.floor((y-y0)/9),v=(y-y0)%9;let c=C[3];if(v===0)c=C[1];if(v===1)c=C[4];
+function painted(L,x0,y0,w,h,C,soft){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const row=Math.floor((y-y0)/9),v=(y-y0)%9;let c=C[3];if(v===0)c=C[1];if(v===1)c=C[4];
   const SL=40,off=Math.floor(hsh(row,3,11)*SL),seg=Math.floor((x-x0+off)/SL),u=(x-x0+off)%SL,cx=seg*SL-off+SL/2;
   const wear=Math.exp(-Math.pow((cx-w*.5)/(w*.2),2))*Math.exp(-Math.pow((y-y0-h*.6)/(h*.4),2)),r=hsh(seg,row,11);
   const a=2+hsh(seg,row,13)*12+hsh(seg,v,15)*1.6,b=SL-2-hsh(seg,row,14)*14-hsh(seg,v,16)*1.6;   // softly ragged ends, a different length on every board
-  if(v>1&&r<wear*.95-.2&&u>a&&u<b){c=mixC(C[3],WD[3],.2);if(r<wear*.7-.3&&u>a+4&&u<b-4&&(v===4||v===5))c=v===4?mixC(WD[4],C[3],.2):mixC(WD[3],C[3],.25);}
+  if(!soft&&v>1&&r<wear*.95-.2&&u>a&&u<b){c=mixC(C[3],WD[3],.2);if(!soft&&r<wear*.7-.3&&u>a+4&&u<b-4&&(v===4||v===5))c=v===4?mixC(WD[4],C[3],.2):mixC(WD[3],C[3],.25);}
   P(L,x,y,c);}}
 function hexTile(L,x0,y0,w,h,C){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=Math.floor((y-y0)/7),o=r%2?5:0,u=(x-x0+o)%10,v=(y-y0)%7;let c=C[3];
   if(v===0||u===0)c=C[1];if(hsh(Math.floor((x-x0+o)/10),r,13)>.88)c=C[2];if(hsh(Math.floor((x-x0+o)/10),r,14)>.988)c=PAL.slate[3];P(L,x,y,c);}}
@@ -111,10 +118,10 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   if(R.theme==='glass'){for(let y=8;y<8+wallH;y++)for(let x=x0;x<x0+fw;x++){const i=(x-x0)%24,j=(y-8)%20;let c=N?PAL.ink[1]:PAL.glass[(y-8)<wallH*.5?4:3];if(!N&&(x+y)%23===0)c=PAL.glass[5];if(i===0||j===0)c=TR[3];P(A,x,y,c);}}
   // ceiling beam line, crown moulding
   rect(A,x0,0,fw,8,WD[1]);hl(A,x0,7,fw,WD[3]);for(let x=x0;x<x0+fw;x+=48)rect(A,x,0,10,8,WD[2]);
-  for(const w of R.windows||[]){windowW(B,x0+w[0]*32-(w[2]||28)/2|0,14+(w[3]||8),w[2]||28,w[4]||34,R.theme==='church');}
+  for(const w of R.windows||[]){windowW(B,x0+w[0]*32-(w[2]||28)/2|0,14+(w[3]||8),w[2]||28,w[4]||34,(R.theme==='church'||R.lancet)?'lancet':false);}
   // floor
   if(R.theme==='cabin'||R.theme==='store'||(R.theme==='home'&&(!R.floor||R.floor==='planks')))planks(A,x0,top,fw,fd,WD,8,R.theme==='store');
-  if(R.theme==='home'){const fl=R.floor;if(fl==='parquet')parquet(A,x0,top,fw,fd);if(fl==='checker')checker(A,x0,top,fw,fd,PAL[R.chk||'slate'],PAL.cream);if(fl==='flag')flagstone(A,x0,top,fw,fd);if(fl==='painted')painted(A,x0,top,fw,fd,PAL[R.paint||'teal']);if(fl==='hex')hexTile(A,x0,top,fw,fd,TR);if(fl==='wide')wideBoards(A,x0,top,fw,fd);}
+  if(R.theme==='home'){const fl=R.floor;if(fl==='parquet')parquet(A,x0,top,fw,fd);if(fl==='checker')checker(A,x0,top,fw,fd,PAL[R.chk||'slate'],PAL.cream);if(fl==='flag')flagstone(A,x0,top,fw,fd,R.flagRamp&&PAL[R.flagRamp]);if(fl==='painted')painted(A,x0,top,fw,fd,PAL[R.paint||'teal'],R.wear==='soft');if(fl==='hex')hexTile(A,x0,top,fw,fd,TR);if(fl==='wide')wideBoards(A,x0,top,fw,fd);}
   if(R.theme==='church')tilesF(A,x0,top,fw,fd,ST,16);
   if(R.theme==='garage'){A.bay=x0+fw-150+52;concrete(A,x0,top,fw,fd);A.bay=null;}
   if(R.theme==='garage'){const bx=x0+fw-150,bw=104;for(let y=14;y<8+wallH;y++)for(let x=bx;x<bx+bw;x++){const j=(y-14)%6;P(A,x,y,j===0?ST[4]:j===5?ST[1]:ST[3]);}frame(A,bx-3,12,bw+6,wallH-2,WD[3],WD[0]);rect(A,bx+bw/2-6,8+wallH-10,12,3,PAL.slate[2]);
