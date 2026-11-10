@@ -94,7 +94,7 @@ class Icon:
         if rim:   # a cool lit rim on the top-left edge of dark things, so they hold on the dark slot
             for y in range(32):
                 for x in range(32):
-                    if s[x, y][3] and ((x > 0 and not s[x - 1, y][3]) or (y > 0 and not s[x, y - 1][3])) and (x + y) < 40:
+                    if s[x, y][3] and ((x > 0 and not s[x - 1, y][3]) or (y > 0 and not s[x, y - 1][3])) and (x + y) < 34 and y < 20:
                         if sum(s[x, y][:3]) < 200:
                             self.p[x, y] = RIM + (255,)
             src = self.im.copy(); s = src.load()
@@ -127,19 +127,41 @@ def chaga(I):
 
 
 def ghostcorn(I):
-    # a pale cob held diagonally: rows of bluish-white kernels, two grey husk leaves peeled back from its foot, a faint cold glow
-    I.poly([(5, 29), (9, 17), (15, 25)], 'st', .5); I.poly([(5, 29), (20, 25), (14, 20)], 'st', .3)
-    for i in range(9):
-        for j in range(-2, 3):
-            cx = 11 + i * 1.9 + j * .9; cy = 22 - i * 1.9 + j * .9 * .9
-            if abs(j) == 2 and (i < 1 or i > 7):
+    # a pale cob held diagonally: a staggered grid of round kernels (each lit top-left, shadowed below), three grey-green husk
+    # leaves peeled back from its foot, the silk at its tip
+    HUSK = hexr(['#2a3226', '#3e4a38', '#56644c', '#728062'])
+    for (pts, k) in (([(4, 30), (6, 19), (12, 23)], 2), ([(4, 30), (17, 27), (12, 22)], 1), ([(4, 30), (9, 23), (15, 28)], 3)):
+        poly = pts; ys = [p[1] for p in poly]
+        for y in range(min(ys), max(ys) + 1):
+            xs = []
+            for i in range(3):
+                (x0, y0), (x1, y1) = poly[i], poly[(i + 1) % 3]
+                if (y0 <= y + .5 < y1) or (y1 <= y + .5 < y0):
+                    xs.append(x0 + (y + .5 - y0) * (x1 - x0) / (y1 - y0))
+            xs.sort()
+            for a, b in zip(xs[::2], xs[1::2]):
+                for x in range(int(round(a)), int(round(b))):
+                    I.P(x, y, HUSK[k])
+    # the cob: a fat spindle along a diagonal; in its own (u along, v across) frame each kernel is a 2x2 cell, rows offset by half a
+    # kernel, every cell lit at its top-left corner with a dark seam below and right, the whole cob rounder-lit on its upper side
+    a = math.radians(-45); ca, sa = math.cos(a), math.sin(a); L = 22; Wd = 4.6; ox, oy = 9, 25
+    for y in range(32):
+        for x in range(32):
+            dx, dy = x + .5 - ox, y + .5 - oy
+            u = dx * ca - dy * sa; v = dx * sa + dy * ca
+            u = dx * math.cos(-a) + -dy * math.sin(-a) if False else (dx * ca + -dy * -sa) if False else (dx * 0.7071 - dy * 0.7071)
+            v = dx * 0.7071 + dy * 0.7071
+            if u < 0 or u > L:
                 continue
-            l = .9 - (j + 2) * .13 - i * .01
-            I.P(cx, cy, I.band('wh', l)); I.P(cx + 1, cy, I.band('wh', l - .2))
-            I.P(cx, cy + 1, I.band('wh', l - .25))
-    I.P(27, 4, RAMPS['wh'][5]); I.P(28, 3, RAMPS['wh'][4])                     # the silk at its tip
-    for (x, y) in ((9, 14), (24, 18), (20, 6)):
-        I.P(x, y, RAMPS['cy'][5])
+            half = Wd * math.sin(math.pi * min(1, (u + 1.5) / (L + 2)) ** .8)
+            if abs(v) > half:
+                continue
+            row = int((v + 10) // 2); cu = (u + (row % 2)) % 2; cv = (v + 10) % 2
+            shade = .9 - (v + half) / (2 * half + .01) * .45
+            k = shade if (cu < 1 and cv < 1) else shade - .18 if (cu < 1 or cv < 1) else shade - .42
+            I.P(x, y, I.band('wh', k))
+    for (x, y) in ((28, 4), (29, 3), (27, 3)):
+        I.P(x, y, RAMPS['wh'][4])
     return I.done()
 
 
@@ -151,10 +173,10 @@ def resin(I):
         return .25 + (ny + 1) * .32 - nx * .12
     I.blob(16, 19, 9, 10, 'am', mod=m)
     I.poly([(12, 12), (16, 3), (20, 12)], 'am', .62)
-    for (x, y, k) in ((12, 14, 6), (12, 15, 6), (13, 13, 5)):
-        I.P(x, y, RAMPS['am'][k])
-    I.P(18, 22, RAMPS['am'][1]); I.P(19, 22, RAMPS['am'][0])
-    I.P(14, 26, RAMPS['am'][2]); I.P(17, 27, RAMPS['am'][2])
+    for (x, y) in ((12, 14), (12, 15), (13, 13), (12, 16)):
+        I.P(x, y, (255, 246, 214))                                              # one hard glassy glint
+    for (x, y) in ((19, 24), (20, 23), (20, 24), (19, 25)):
+        I.P(x, y, RAMPS['am'][6])                                               # the light glowing through its lower right
     return I.done()
 
 
@@ -208,19 +230,21 @@ def hay(I):
 
 
 def flask(I):
-    # a pewter hip flask: a curved body lit on the left, a screw cap, a dent, a hard glint
-    def m(x, y, l, nx, ny):
-        return .2 + l * .85
-    I.blob(16, 19, 9, 10, 'mt', mod=m)
-    for y in range(9, 30):
-        for x in range(8, 25):
-            if 9 <= y and (x - 16) ** 2 / 81 + (y - 19) ** 2 / 100 > 1:
+    # a flat pewter hip flask seen face-on, a little turned: a rounded rectangle with curved shoulders, a screw cap on a short neck,
+    # a hard glint down its lit edge, a dent, the curved side showing as a darker band on the right
+    for y in range(9, 29):
+        for x in range(7, 26):
+            ex = max(0, abs(x - 16) - 6.5); ey = max(0, abs(y - 19) - 7)
+            if ex * ex + ey * ey > 9:
                 continue
-    I.poly([(13, 7), (19, 7), (19, 10), (13, 10)], 'mt', .5)
-    I.poly([(12, 4), (20, 4), (20, 7), (12, 7)], 'mt', .72)
-    for y in range(12, 25):
-        I.P(11, y, RAMPS['mt'][6])                                             # the glint down its left side
-    I.P(20, 22, RAMPS['mt'][2]); I.P(21, 23, RAMPS['mt'][2])
+            l = .74 - (x - 7) * .022 - (y - 9) * .008
+            if x > 22:
+                l -= .22
+            I.P(x, y, I.band('mt', l))
+    I.poly([(14, 6), (19, 6), (19, 9), (14, 9)], 'mt', .45); I.poly([(13, 3), (20, 3), (20, 6), (13, 6)], 'mt', .72)
+    for y in range(11, 26):
+        I.P(9, y, RAMPS['mt'][6])
+    I.P(18, 21, RAMPS['mt'][2]); I.P(19, 22, RAMPS['mt'][2]); I.P(19, 21, RAMPS['mt'][5])
     return I.done()
 
 
@@ -241,24 +265,31 @@ def mail(I):
     for y in range(9, 28, 2):
         for x in range(4 + (y // 2) % 2, 28, 2):
             if I.p[x, y][3]:
-                l = .75 - (x - 4) * .018 - (y - 9) * .012
+                l = .82 - (x - 4) * .028 - (y - 9) * .01 - (.18 if (x < 9 or x > 23) and y > 11 else 0)   # lit left shoulder and chest, darker right flank and underarms
                 I.P(x, y, I.band('mt', l)); I.P(x + 1, y + 1, I.band('mt', l - .35))
     I.poly([(12, 7), (20, 7), (19, 10), (13, 10)], 'le', .55)
     return I.done(rim=True)
 
 
 def pie(I):
-    # a pie in its tin in three-quarter view: a lattice top, a crimped rim, a slice cut out showing the red filling
-    I.blob(16, 20, 13, 7, 'mt', mod=lambda x, y, l, nx, ny: .3 + l * .5)                    # the tin
+    # a pie in its tin in three-quarter view: a smooth crust, four clean woven lattice strips each lit on its top-left, a crimped rim,
+    # a slice cut out showing the red filling
+    I.blob(16, 20, 13, 7, 'mt', mod=lambda x, y, l, nx, ny: .3 + l * .5)
     def m(x, y, l, nx, ny):
-        if nx > .15 and ny > -.1 and nx * .9 > -ny:                                           # the missing slice
+        if nx > .15 and ny > -.1 and nx * .9 > -ny:
             return None
-        lat = (x + y) % 5 == 0 or (x - y) % 5 == 0
-        return .55 + l * .4 - (.12 if lat else 0)
+        return .5 + l * .35
     I.blob(16, 18, 12, 6, 'wd', mod=m)
+    for k in range(4):
+        for t_ in range(-13, 14):
+            for (dx, dy, x0) in ((1, .45, 6 + k * 5), (1, -.45, 5 + k * 5)):
+                x = x0 + t_ * .35; y = 13 + k * 0 + (t_ + 13) * .42 if dy > 0 else 23 - (t_ + 13) * .42
+                xx, yy = int(x), int(y)
+                if ((xx - 16) / 12) ** 2 + ((yy - 18) / 6) ** 2 < .82 and not (xx > 17 and yy > 16):
+                    I.P(xx, yy, RAMPS['wd'][6]); I.P(xx + 1, yy, RAMPS['wd'][4])
     for i in range(14):
         a = math.pi + i * math.pi / 13; I.P(16 + math.cos(a) * 12, 18 + math.sin(a) * 6, RAMPS['wd'][6])
-    I.poly([(17, 18), (28, 18), (27, 22), (17, 21)], 'rd', .5)                               # the filling where the slice was cut
+    I.poly([(17, 18), (28, 18), (27, 22), (17, 21)], 'rd', .5)
     I.poly([(17, 18), (28, 18), (28, 19), (17, 19)], 'wd', .7)
     return I.done()
 
@@ -269,9 +300,10 @@ def sprinkler(I):
     I.blob(16, 15, 6, 3, 'br')
     I.poly([(14, 9), (18, 9), (18, 13), (14, 13)], 'br', .6); I.poly([(10, 8), (22, 8), (22, 10), (10, 10)], 'br', .75)
     for s in (-1, 1):
-        for k in range(7):
-            t = k / 6; x = 16 + s * (6 + t * 10); y = 8 - math.sin(t * math.pi) * 6 + t * 6
-            I.P(x, y, RAMPS['bl'][5]); I.P(x + s, y, RAMPS['bl'][4])
+        for k in range(14):
+            t = k / 13; x = 16 + s * (6 + t * 10); y = 8 - math.sin(t * math.pi) * 6 + t * 6
+            I.P(x, y, RAMPS['bl'][6] if k < 7 else RAMPS['bl'][5]); I.P(x, y + 1, RAMPS['bl'][3])     # an unbroken 2 px arc
+        ex = 16 + s * 16; I.P(ex, 15, RAMPS['bl'][5]); I.P(ex, 17, RAMPS['bl'][4]); I.P(ex - s, 16, RAMPS['bl'][5])   # ending in droplets
     return I.done()
 
 
@@ -282,7 +314,9 @@ def bonemeal(I):
             return None
         return .2 + l * .8
     I.blob(16, 20, 11, 10, 'bu', mod=m)
-    I.poly([(11, 11), (21, 11), (19, 6), (13, 6)], 'bu', .55); I.poly([(12, 9), (20, 9), (20, 11), (12, 11)], 'wd', .4)
+    I.poly([(11, 11), (21, 11), (19, 6), (13, 6)], 'bu', .55); I.poly([(12, 9), (20, 9), (20, 11), (12, 11)], 'bu', .3)   # the neck gathered and tied in burlap
+    for (x, y) in ((14, 5), (15, 4), (16, 4), (17, 4), (18, 5), (16, 5)):
+        I.P(x, y, RAMPS['wh'][6] if y == 4 else RAMPS['wh'][4])                                                 # white powder at the mouth
     for t in range(9):
         I.P(12 + t, 20 - t * .2, RAMPS['wh'][6]); I.P(12 + t, 21 - t * .2, RAMPS['wh'][4])
     for (x, y) in ((11, 19), (11, 21), (21, 17), (21, 19)):

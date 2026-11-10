@@ -158,9 +158,13 @@ def ore(name):
         S = Spr(30, 26); S.shadow(15, 22, 13, 3)
         rock(S, [(4, 9), (7, 4), (14, 3), (17, 6), (25, 7), (27, 12), (16, 13), (6, 12)],
              [(4, 9), (6, 12), (7, 22), (3, 20)], [(6, 12), (16, 13), (27, 12), (26, 20), (17, 23), (7, 22)])
-        for (x, y, L, sd) in ((11, 5, 6, 1), (21, 8, 4, 2), (10, 14, 7, 3), (20, 14, 6, 4)):
-            oxide(S, x, y, L, sd)                                                    # oxide bleeding down from the cracks
-        for (x, y) in ((14, 5), (24, 11), (8, 17), (16, 9)):                       # hard silver glints where the ore is bare
+        for pts in (((8, 6), (10, 9), (9, 12), (11, 15), (10, 19)), ((19, 7), (21, 10), (20, 14), (22, 18))):   # (ores r2: "studs") two cracks...
+            for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+                S.line([(x0, y0), (x1, y1)], ROCK[0])
+            for i, (x, y) in enumerate(pts[:-1]):                                     # ...the oxide bleeding out of each, ragged, wider low down
+                for j in range(3 + i):
+                    S.px(x + 1 + (j % 2), y + 1 + j, RUST[2] if j else RUST[3]); S.px(x - 1, y + j, RUST[1] if j > 1 else RUST[4])
+        for (x, y) in ((14, 5), (24, 11)):                                            # two hard silver glints where the ore is bare
             S.px(x, y, SILVER); S.px(x + 1, y, (170, 172, 184))
         return S.done()
     if name == 'gem':
@@ -192,19 +196,23 @@ def icon(name):
         for (x, y) in ((15, 18), (16, 19), (16, 20), (15, 21)):
             S.px(x, y, VERD[1])
         return S.done()
-    if name == 'iron':
-        rock(S, [(4, 12), (8, 6), (17, 5), (21, 8), (28, 9), (29, 15), (18, 17), (6, 16)],
-             [(4, 12), (6, 16), (7, 27), (3, 24)], [(6, 16), (18, 17), (29, 15), (28, 25), (19, 29), (7, 27)])
-        for (x, y, L, sd) in ((12, 7, 7, 1), (23, 10, 5, 2), (10, 18, 8, 3), (22, 18, 7, 4)):
-            oxide(S, x, y, L, sd)
-        for (x, y) in ((16, 7), (26, 13), (8, 21), (18, 12)):
-            S.px(x, y, SILVER); S.px(x + 1, y, (170, 172, 184))
-        return S.done()
+    if name == 'iron':   # (ores r2: "the node shrunk") a hand-sized broken chunk: a fresh fractured face, weathered rusty sides
+        S.poly([(7, 10), (15, 5), (25, 8), (27, 17), (20, 26), (9, 24), (5, 16)], ROCK[2])                 # the weathered skin, dark rock
+        S.poly([(7, 10), (15, 5), (25, 8), (16, 14)], ROCK[4])
+        S.poly([(16, 14), (25, 8), (27, 17), (20, 26)], ROCK[1])
+        for (x, y, L, sd) in ((14, 7, 4, 1), (21, 10, 6, 2)):
+            oxide(S, x, y, L, sd)                                                                            # rust smeared over the skin
+        S.poly([(9, 13), (16, 14), (20, 24), (10, 22)], ROCK[3])                                            # the fresh break: flat steel-grey
+        S.poly([(9, 13), (16, 14), (14, 17), (9, 17)], ROCK[4])
+        for (x, y) in ((11, 15), (15, 19), (13, 21)):
+            S.px(x, y, SILVER)
+        S.line([(16, 14), (20, 24)], ROCK[1])
+        return S.done(), None
 
 
 if __name__ == '__main__':
     for n in ('stone', 'coal', 'copper', 'iron', 'gem'):
         ore(n).save(f'out/ore212_{n}.png')
     for n in ('coal', 'copper', 'iron'):
-        icon(n).save(f'out/ore212_icon_{n}.png')
+        r = icon(n); (r[0] if isinstance(r, tuple) else r).save(f'out/ore212_icon_{n}.png')
     print('ok')
