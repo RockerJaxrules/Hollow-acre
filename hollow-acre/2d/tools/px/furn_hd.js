@@ -3001,6 +3001,76 @@ if(K==='bogbody2'){const PW=hexR(['#0e0f0c','#16170f','#1f1f14','#2c2a1c','#3a35
   for(let j=0;j<11;j++){P(A,cx+5+Math.round(j*.35),cy-1-j,SK[3]);P(A,cx+6+Math.round(j*.35),cy-1-j,SK[1]);}
   const hx=cx+9,hy=cy-13;for(const [fx,fy,c] of [[0,0,3],[1,0,2],[-1,-1,4],[-1,-2,4],[0,-2,3],[1,-3,3],[2,-2,2],[3,-1,2],[2,0,1]])P(A,hx+fx,hy+fy,SK[c]);   // the hand, fingers open
   for(const [rx,rr] of [[8,5],[22,3]])for(let a=0;a<28;a++){const t=a/28*6.28;P(A,Math.round(cx+rx+Math.cos(t)*rr),Math.round(cy-1+Math.sin(t)*rr*.35),PW[4]);}}
+// =================================================================================== props sweep batch 4, drawn by hand
+const WW=hexR(['#1e1a16','#2e2822','#423930','#574c40','#6c5f50','#837463','#9a8a76']);   // weathered grey-brown wood
+// a plank deck seen from above (the mill bridge, the lake dock): planks across the way you walk, two close dull tones, joints staggered, nail pairs, a few gaps, side beams and posts of different heights
+function deck(x0,x1,y0,y1,pw,seed,broken){NOOL.push(()=>true);
+  for(let y=y0;y<y1;y++){const r=Math.floor((y-y0)/pw),v=(y-y0)%pw;const jx=x0+8+Math.floor(hsh(r,1,seed)*(x1-x0-16));const tone=hsh(r,2,seed)>.5?4:3;
+    for(let x=x0;x<x1;x++){let k=tone;if(x>jx)k=hsh(r,3,seed)>.5?4:3;if(v===pw-1)k=1;else if(v===0)k=Math.min(6,k+1);if(x===jx||x===jx+1)k=v===pw-1?1:2;
+      if(v===2&&(x===jx-2||x===jx+3||x===x0+3||x===x1-4))k=1;if(hsh(r,4,seed)>.93&&v===pw-1)k=0;
+      if(k>2&&v>0&&v<pw-1&&hsh(Math.floor((x-x0)/14),r,seed+7)>.96)k-=1;P(A,x,y,WW[k]);}}   // a quiet deck: only a rare darker board end
+  if(broken){const [bx,by]=broken;for(let y=by;y<by+pw-1;y++)for(let x=bx;x<bx+14;x++)P(A,x,y,hexR(['#10161a'])[0]);for(let x=bx;x<bx+14;x+=3)P(A,x,by+((x>>2)%2),WW[3]);}
+  for(let y=y0-2;y<y1+2;y++){for(const [sx,lit] of [[x0-4,1],[x1,0]]){for(let i=0;i<4;i++)P(A,sx+i,y,WW[lit?(i===0?5:4):(i===3?1:2)]);}}
+  let py=y0+4;let n=0;while(py<y1){for(const [sx,side] of [[x0-6,0],[x1+1,1]]){const h=6+Math.floor(hsh(n,side,seed)*5);for(let j=0;j<h;j++)for(let i=0;i<5;i++)P(A,sx+i,py+j,WW[i===0?5:(i===4?1:(j===0?6:3))]);P(A,sx+2,py,WW[6]);}
+    if(n===2){for(let j=0;j<4;j++)P(A,x1+2+j,py+3+j,hexR(['#8a7a5c'])[0]);}py+=28+Math.floor(hsh(n,5,seed)*16);n++;}}
+if(K==='millbr2'){deck(14,150,6,264,7,41,[60,118]);}
+if(K==='dock2'){deck(10,60,4,136,6,53,null);}
+// a footbridge's low rail: a 3 px rail lit on top and dark under, square posts with their own shadows, weathered grey-brown a step above the grass
+if(K==='fbrail2'){const base=10;for(let x=1;x<W-1;x++){P(A,x,base-6,WW[6]);P(A,x,base-5,WW[4]);P(A,x,base-4,WW[1]);SH(x,base+1,90);}
+  for(let px=2;px<W-3;px+=24){for(let y=base-7;y<=base;y++){P(A,px,y,WW[5]);P(A,px+1,y,WW[4]);P(A,px+2,y,WW[2]);}P(A,px,base-8,WW[6]);P(A,px+1,base-8,WW[5]);for(let j=0;j<3;j++){SH(px+3,base-j,150);SH(px+4,base-j+1,90);}}}
+// a gas-station forecourt: big poured slabs with sawn joints, wear in flat patches of two close greys, oil stains soaked in, potholes with a lit far lip and a dark near wall, a crack from one corner
+if(K==='forect2'){const CN=hexR(['#2c2c2e','#3e3e40','#545356','#6a696a','#7f7d7c','#939190']);NOOL.push(()=>true);
+  for(let y=2;y<94;y++)for(let x=2;x<198;x++){let k=4;const sx=Math.floor((x-2)/66),sy=Math.floor((y-2)/46);if(hsh(sx,sy,3)>.5)k=3;
+    for(let i=0;i<22;i++){const px=8+hsh(i,1,4)*184,py=6+hsh(i,2,4)*84,rx=4+hsh(i,3,4)*9,ry=2+hsh(i,4,4)*4,d=((x-px)/rx)**2+((y-py)/ry)**2+Math.sin(x*.7+i)*.12;if(d<1){k=k===4?3:4;break;}}if((x-2)%66===0||(y-2)%46===0)k=1;if(x<4||x>195||y<4||y>91)k=2;P(A,x,y,CN[k]);}   // wear in broad irregular patches, not a grid of blocks
+  for(const [ox,oy,rx,ry] of [[62,40,12,5],[140,62,9,4],[104,24,6,3]])for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){const d=(x*x)/(rx*rx)+(y*y)/(ry*ry);if(d>1)continue;P(A,ox+x,oy+y,mixC(CN[2],hexR(['#1e1c22'])[0],d<.5?.6:.3));}
+  for(const [hx,hy,r] of [[46,62,4],[150,30,3],[120,78,2]])for(let y=-r;y<=r;y++)for(let x=-r-1;x<=r+1;x++){const d=(x*x)/((r+1)*(r+1))+(y*y)/(r*r);if(d>1)continue;P(A,hx+x,hy+y,y<-r*.4?CN[5]:(y>r*.4?CN[1]:CN[0]));}
+  for(let i=0;i<24;i++){const x=4+i+Math.round(Math.sin(i*.8)*1.5),y=90-Math.round(i*.7);P(A,x,y,CN[1]);}}
+// the pump island: a raised kerb, its lit top, a darker front face with diagonal hazard stripes, chipped
+if(K==='pumpisl2'){const CN=hexR(['#2c2c2e','#3e3e40','#545356','#6a696a','#7f7d7c','#939190']),YL=hexR(['#6e5a1c','#9a7e28']);const x0=3,x1=67,top=4,fy=12,base=20;
+  for(let x=x0;x<x1+3;x++){SH(x+1,base,150);SH(x+2,base+1,70);}
+  for(let y=top;y<fy;y++)for(let x=x0;x<x1;x++)P(A,x,y,CN[y===top?5:4]);
+  for(let y=fy;y<base;y++)for(let x=x0;x<x1;x++){const stripe=Math.floor((x-x0+(y-fy))/4)%2===0;let c=stripe?YL[y===fy?1:0]:CN[1];if(x===x0)c=stripe?YL[1]:CN[2];if(x===x1-1)c=CN[0];if(y===base-1)c=CN[0];P(A,x,y,c);}
+  for(const [cx,cy] of [[20,fy],[21,fy],[47,fy+1]])P(A,cx,cy,CN[2]);for(const px of [18,48])for(let j=0;j<3;j++)for(let i=0;i<4;i++)P(A,px+i,top+2+j,CN[j===0?3:2]);}
+// a wagon wheel leaning on a stake, half in the grass: an oval because it leans, the iron tyre round the felloes, the rim's thickness showing, a hub with its nave
+if(K==='wheel2'){const base=48,cx=23,cy=26,rx=15,ry=19,I=RAMP.iron;
+  for(let x=cx-12;x<cx+18;x++){SH(x,base,150);SH(x+1,base+1,80);}
+  for(let y=6;y<=base;y++){P(A,cx+12,y,WW[4]);P(A,cx+13,y,WW[2]);}hl(A,cx+11,5,4,WW[5]);                                                // the stake
+  for(let a=0;a<360;a+=1){const t=a*Math.PI/180;for(let r=0;r<5;r++){const R=1-r/18,x=Math.round(cx+Math.cos(t)*rx*R),y=Math.round(cy+Math.sin(t)*ry*R);let c;if(r===0)c=I[Math.cos(t+.8)>0?3:1];else if(r===1)c=I[2];else{c=WW[Math.cos(t+.8)>.2?5:(Math.cos(t+.8)>-.4?4:2)];if(r===4)c=WW[1];}P(A,x+(r>2&&Math.cos(t)>0?-1:0),y,c);}}
+  for(let k=0;k<10;k++){const t=k/10*Math.PI*2+.15;for(let i=4;i<15;i++){const x=Math.round(cx+Math.cos(t)*rx*i/18),y=Math.round(cy+Math.sin(t)*ry*i/18);P(A,x,y,WW[Math.cos(t+.8)>0?4:2]);}}
+  for(let y=-3;y<=3;y++)for(let x=-3;x<=3;x++){if(x*x/9+y*y/9>1)continue;P(A,cx+x,cy+y,(x+y)<0?WW[5]:WW[2]);}P(A,cx,cy,WW[0]);P(A,cx-1,cy-1,I[3]);
+  for(let x=cx-14;x<cx+10;x++){const h=2+((x*7)%3);for(let j=0;j<h;j++)P(A,x,base-j,hexR(['#3a4424','#4d5a2c','#66733a'])[j===h-1?2:(j>0?1:0)]);}}   // the grass it sits in
+// a phone booth: its roof seen from above and lit, a darker side face, a framed glass door with one broad reflection, the receiver hanging off its hook inside
+if(K==='phbooth2'){const BL=hexR(['#141c24','#1e2a36','#2a3a4a','#3a4e62','#4e667c','#668098']),GL=RAMP.glass,base=67,x0=6,w=20,sd=5,top=10;
+  for(let x=x0;x<x0+w+sd+4;x++){SH(x+1,base,150);SH(x+2,base+1,80);}
+  for(let y=top-5;y<top;y++)for(let x=x0+(top-y);x<x0+w+(top-y)-1+sd;x++)P(A,x,y,BL[y===top-5?5:4]);                                     // the roof, lit
+  for(let y=top;y<base;y++)for(let x=x0+w;x<x0+w+sd;x++){if(y<top+(x-x0-w))continue;P(A,x,y,BL[1]);}                                         // the side face in shade
+  for(let y=top;y<base;y++)for(let x=x0;x<x0+w;x++){const fr=x<x0+2||x>=x0+w-2||y<top+8||y>=base-3;P(A,x,y,fr?BL[x<x0+2?4:3]:GL[1]);}
+  for(let x=x0+2;x<x0+w-2;x++)P(A,x,top+8+18,BL[3]);
+  rect(A,x0,top+1,w,6,RAMP.cream[4]);hl(A,x0,top+6,w,RAMP.cream[2]);drawText(A,'PHONE',x0+1,top+1,BL[1]);
+  for(let i=0;i<14;i++){const y=top+10+i,x=x0+4+Math.round(i*.5);P(A,x,y,GL[3]);P(A,x+1,y,GL[4]);P(A,x+2,y,GL[3]);}                     // one broad reflection
+  rect(A,x0+12,top+13,4,6,BL[0]);for(let j=0;j<7;j++)P(A,x0+13+(j>4?1:0),top+19+j,hexR(['#101010'])[0]);rect(A,x0+12,top+26,3,2,hexR(['#181818'])[0]);}   // the phone, its receiver hanging on the cord
+// a clothesline: two posts, the line sagging, a shirt with sleeves, a sheet, a pair of trousers, each pegged, each in its own folds; on the second line a ragged dried stain on the sheet
+if(K==='cline2'||K==='clineb2'){const base=66,p0=6,p1=104,ty=12,CL=hexR(['#5e5850','#7a746a','#968f84','#b0a99c','#c6bfb2']),BLU=hexR(['#2a3442','#3a4858','#4e5e70','#62748a']),ST=hexR(['#3a1612','#5a2218','#6e3020']);
+  for(const px of [p0,p1]){for(let y=ty-2;y<=base;y++){P(A,px,y,WW[5]);P(A,px+1,y,WW[3]);P(A,px+2,y,WW[1]);}hl(A,px-1,ty-2,4,WW[6]);for(let j=0;j<3;j++)SH(px+3,base-j,140);}
+  const lineY=x=>ty+Math.round(Math.sin((x-p0)/(p1-p0)*Math.PI)*6);for(let x=p0+2;x<p1;x++)P(A,x,lineY(x),hexR(['#c8c0aa'])[0]);
+  const peg=x=>{P(A,x,lineY(x)-1,WW[5]);P(A,x,lineY(x),WW[3]);P(A,x,lineY(x)+1,WW[2]);};
+  const cloth=(x0,w,h,R,shape)=>{for(let x=x0;x<x0+w;x++){const t=lineY(x);for(let y=t+1;y<t+h;y++){const u=x-x0,v=y-t;let k=3;if(shape==='shirt'){if(v>5&&(u<3||u>w-4)&&v>9)continue;if(v<=5&&(u<1||u>w-2))continue;}if(shape==='trs'&&v>7&&u>w/2-1&&u<w/2+1)continue;
+      const fold=Math.sin(u*.9+v*.1)*1;if(fold>.6)k=4;else if(fold<-.7)k=2;if(u===0)k=Math.min(4,k+1);if(u===w-1||v===h-1)k=1;P(A,x,y,R[Math.max(0,Math.min(R.length-1,k))]);}}peg(x0+1);peg(x0+w-2);};
+  cloth(14,16,22,BLU,'shirt');cloth(36,22,30,CL,'sheet');cloth(64,14,26,hexR(['#2e2a24','#423c32','#585042','#6e6454','#847866']),'trs');cloth(84,14,18,CL,'sheet');
+  if(K==='clineb2'){const sx=43,sy=lineY(43)+9;for(let y=0;y<8;y++)for(let x=0;x<7;x++){const d=((x-3)/3.5)**2+((y-3)/4)**2+Math.sin(x*2+y)*.15;if(d>1)continue;P(A,sx+x,sy+y,ST[d>.7?2:1]);}for(const [rx,rl] of [[45,9],[48,6]])for(let j=0;j<rl;j++)P(A,rx,sy+7+j,ST[j<rl-2?1:2]);P(A,sx+5,sy-1,ST[2]);}}
+// a dented trash can: a cylinder lit up its left, the right third in shade, ribs that follow the curve, a dent, a lid lifted a little
+if(K==='trash2'){const GM=hexR(['#24262a','#363a3e','#4c5056','#62676c','#7a7f84','#9298a0']),cx=11,base=29;
+  for(let x=-8;x<=9;x++){SH(cx+x+1,base,150);SH(cx+x+2,base+1,80);}
+  for(let y=base-20;y<base;y++)for(let x=-7;x<=7;x++){const u=x/7;let k=u<-.6?4:u<-.1?5:u<.35?3:u<.7?2:1;if((y-base+20)%6===3)k=Math.max(1,k-1);if(x>=2&&x<=5&&y>base-12&&y<base-7)k=Math.max(1,k-1);if(x===3&&y===base-10)k=0;P(A,cx+x,y,GM[k]);}
+  for(let y=-2;y<=1;y++)for(let x=-8;x<=8;x++){if(x*x/64+y*y/4>1)continue;P(A,cx+x+1,base-22+y,GM[y<0?(x<0?5:4):2]);}P(A,cx+1,base-25,GM[4]);P(A,cx+2,base-25,GM[2]);   // the lid, a little askew, its handle
+  hl(A,cx-7,base-1,15,GM[0]);}
+// a fire hydrant: the dome cap a step lighter than the body, a lit band down the left of the barrel, the side outlets, chipped red over rust
+if(K==='hydr2'){const RD=hexR(['#2e1210','#4a1c18','#6a2a22','#86382c','#a04a38','#b45e48']),cx=10,base=27;
+  for(let x=-6;x<=7;x++){SH(cx+x+1,base,150);SH(cx+x+2,base+1,80);}
+  for(let y=base-3;y<base;y++)for(let x=-6;x<=6;x++)P(A,cx+x,y,RD[x<-3?4:(x>3?1:2)]);
+  for(let y=base-17;y<base-3;y++)for(let x=-4;x<=4;x++){const u=x/4;let k=u<-.5?5:u<0?4:u<.5?3:2;if(hsh(x,y,3)>.92)k=1;P(A,cx+x,y,RD[k]);}
+  for(let y=-2;y<=1;y++)for(let x=-5;x<=5;x++){if(Math.abs(x)<4)continue;P(A,cx+x,base-12+y,RD[x<0?5:2]);}
+  for(let y=-4;y<=0;y++)for(let x=-5;x<=5;x++){if(x*x/25+(y*y)/16>1)continue;P(A,cx+x,base-17+y,RD[x+y<-2?5:(x<2?5:3)]);}P(A,cx,base-22,RD[4]);P(A,cx,base-23,RD[5]);}   // the cap, lighter than the body
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
 for(const f of NOOL)for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(f(x,y))for(const L of [O,O2])L.d[(y*W+x)*4+3]=0;
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));
