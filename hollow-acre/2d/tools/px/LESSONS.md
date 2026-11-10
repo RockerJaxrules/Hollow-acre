@@ -950,6 +950,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   do not send it.
 - [r17] A stump narrower under its top than at its foot reads as a tied sack; round dark dots on white read as a dalmatian or
   dice: birch is straight-sided with short horizontal dashes. Two splinters of one height with a gap read as battlements.
+- [r20] The subject must be the brightest, crispest shape in its icon: a matte pearl smaller than its pale nacre reads as a
+  pebble; a symmetric oval shell with an off-centre bead reads as an eye. Give the jewel the hard glint and the darkest contact.
+- [r20] One clean slanted plane on a broken trunk reads as a sliced wedge or a shark fin: a break is 3-4 splinters of
+  different heights stepping along the slant, pale grey-tan inner wood, a dark heart crack between them.
 - A family of nodes made from one stamped dome with different flecks reads as one rock: give every material its own shape at 1x (coal as angular black lumps standing proud, copper as fat nuggets, iron as oxide and silver glints, gem as crystals breaking the outline, stone as a slab with moss and a crack), and give each node its own silhouette.
 - A node and its drop must match: the icon is the same material, a hand-sized chunk, not the boulder shrunk.
 - Rust drawn as maroon blocks reads as raw meat or blood: rust is ragged orange-brown oxide bleeding down from cracks, with an ochre step where it catches the light.
