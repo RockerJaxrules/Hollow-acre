@@ -43,7 +43,7 @@ def turn(parts, k):
     return out
 
 
-from furn3d_pieces import PIECES   # name -> (builder, rotatable, canvas)
+from furn3d_pieces import PIECES, SCALE   # name -> (builder, rotatable, canvas); name -> size factor
 
 
 def render(name, parts, size, suffix=''):
@@ -76,8 +76,23 @@ def render(name, parts, size, suffix=''):
     return p, ax - max(0, bb[0] - 1), ay - max(0, bb[1] - 1), im.size
 
 
+def scaled(parts, f):
+    """the whole model scaled about its foot (to match the size of the sprite it replaces)"""
+    if f == 1: return parts
+    out = []
+    for p in parts:
+        q = dict(p)
+        for key in ('min', 'max', 'c', 'a', 'b'):
+            if key in q: q[key] = [v * f for v in q[key]]
+        for key in ('r', 'h', 'R', 'r0', 'r1'):
+            if key in q and isinstance(q[key], (int, float)): q[key] = q[key] * f
+        if 'rr' in q and q['rr']: q['rr'] = [v * f for v in q['rr']]
+        out.append(q)
+    return out
+
+
 def make(name):
-    fn, rot, size = PIECES[name]; parts = fn(); meta = {}
+    fn, rot, size = PIECES[name]; parts = scaled(fn(), SCALE.get(name, 1)); meta = {}
     for k, suf in ((0, ''), (1, '_e'), (2, '_bk'), (3, '_w')) if rot else ((0, ''),):
         p, ax, ay, sz = render(name, turn(parts, k), size, suf); meta[name + suf] = dict(ax=ax, ay=ay, w=sz[0], h=sz[1])
     return meta

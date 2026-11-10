@@ -4,6 +4,7 @@ from blockprops import box, cyl, ball, ring, rod
 import blockprops as BP
 
 PIECES = {}
+SCALE = {}   # a piece drawn bigger or smaller than its model, to sit at the size of the sprite it replaces
 def piece(name, rot=True, size=(100, 110)):
     def deco(fn): PIECES[name] = (fn, rot, size); return fn
     return deco
@@ -185,7 +186,8 @@ def jack_o_lantern():
 
 # ---- batch 1, redrawn (judge: the trade object must be the biggest, highest-contrast shape, lit rim on metal; vary repeats;
 #      every cue drawn so it survives the turn). These replace the blockprops versions registered above.
-BP.RAMPS.update({'blgrey': ['#1c2028', '#2c3440', '#425060', '#5c6c7c', '#7c8c98'],
+BP.RAMPS.update({'pine': ['#4a3018', '#7a5228', '#a87a40', '#c89a58', '#dcb878'],
+                 'blgrey': ['#1c2028', '#2c3440', '#425060', '#5c6c7c', '#7c8c98'],
                  'brick':  ['#2a1416', '#4a2020', '#6e3028', '#8e4430', '#a85a3c'],
                  'hot':    ['#5a2a14', '#8a3a18', '#b8541e', '#e07a2a', '#f8a848']})
 
@@ -199,14 +201,15 @@ def table2(w, d, h, top, m, leg):
 
 @piece('bench_farm')
 def bench_farm2():
-    P = table2(26, 10, 24, 4, 'blgrey', 'blgrey')
+    P = table2(26, 10, 24, 4, 'blgrey', 'blgrey') + [box(-25, 18, 9.5, 25, 23.6, 10.5, 'blgrey', pattern=['planks', 6, 'x']), box(-25, 18.6, 10.4, 25, 19.4, 10.8, 'tin')]
     P += [box(-26, 28, -10, 26, 54, -7, 'blgrey', pattern=['planks', 7, 'y']), box(-26, 44, -10, 26, 46, -2, 'wood'),   # back panel, a bare-wood shelf
           box(-22, 28, -4, -3, 31, 7, 'wood')]                                                       # the seed tray
     for i in range(5):
         for k in range(2): P.append(ball(-20 + i * 3.8, 32, -1.5 + k * 5, 1.5 + .3 * ((i + k) % 2), 'leaf'))
     for x, r, h in ((-17, 3.6, 5), (-3, 3, 4), (11, 4, 6)): P += [cyl(x, 46, -6, r, h, 'clay'), ball(x, 47 + h, -6, r * .9, 'leaf', lumps=.5)]
     P += [cyl(15, 28, 3, 4, 6, 'clay'), ball(15, 37, 3, 4.5, 'leaf', lumps=.6, lumpfreq=1.2),
-          cyl(4, 28, 3, 3, 5, 'steel'), rod([6, 31, 3], [11, 34, 3], .8, .6, 'steel'), ring(1, 33, 3, 2.5, .6, 'steel'),   # a watering can
+          cyl(2, 28, 4, 4.6, 8, 'tin'), cyl(2, 36, 4, 3.6, .8, 'tin'), rod([6, 30, 4], [13, 37, 5], 1.1, .7, 'tin'), cyl(13, 37, 5, 1.6, 1.2, 'tin'),
+          ring(2, 38, 4, 3.2, .8, 'tin'),                                                                                   # a big watering can
           box(-23, 34, -9, -17, 41, -8, 'paper'), box(-15, 35, -9, -10, 41, -8, 'redbk'),                                # seed packets pinned up
           ball(-13, 12, 0, 0, 'cloth', rr=[7, 5, 5.5]), box(-17, 15, 4, -9, 18, 6, 'paper'),                              # the bone meal sack, labelled
           cyl(10, 7, 0, 3.5, 2, 'brass'), cyl(10, 9, 0, 1, 3, 'brass')]                                                    # a sprinkler head
@@ -217,9 +220,9 @@ def bench_farm2():
 def bench_furn2():
     P = table2(27, 10, 22, 5, 'wood', 'dkwood')
     P += [box(-27, 27, -10, 27, 50, -7, 'dkwood', pattern=['planks', 9, 'y']),
-          box(-20, 27, -3, 16, 29, 5, 'paper'),                                                      # a pale plank on the top...
-          box(-2, 29, -2, 1, 38, 4, 'steel'), box(-3, 37, -2, 2, 41, 4, 'wood'),                      # ...a saw standing in its cut, handle up
-          ball(-12, 29.5, 6, 1.6, 'paper'), ball(-8, 29.5, 7, 1.3, 'paper'), ball(6, 29.5, 6.5, 1.5, 'paper'), ball(10, 29.3, 4, 1.1, 'paper'),   # shavings
+          box(-22, 27, -3, 18, 30, 6, 'pine', pattern=['planks', 40, 'x']), box(18, 27, -3, 18.6, 30, 6, 'straw'),   # a fresh pine plank on the top...
+          box(-1, 30, -1, 1, 41, 6, 'steel'), box(-2, 40, -1, 3, 45, 6, 'dkwood'), box(0, 41, 0, 2, 43, 5, 'pine'),     # ...a saw standing in its cut, handle up
+          ball(-12, 30.5, 7, 1.8, 'straw'), ball(-8, 30.5, 8, 1.4, 'straw'), ball(6, 30.5, 7.5, 1.6, 'straw'), ball(10, 27.3, 8, 1.4, 'straw'), ball(-20, 1, 12, 0, 'straw', rr=[4, .8, 2.5]),   # shavings
           box(-22, 33, -7, 2, 39, -6, 'steel'), box(-25, 32, -7, -21, 40, -5, 'wood'),               # a big saw on the wall, toothed
           box(8, 31, -7, 10, 46, -6, 'steel'), box(8, 44, -7, 18, 46, -6, 'steel'),                   # a square
           box(-27, 16, 8, -19, 27, 13, 'iron'), cyl(-23, 20, 13, 1.2, 4, 'iron', axis='z'),             # the vice
@@ -234,13 +237,14 @@ def bench_weapon2():
     P = table2(27, 10, 22, 5, 'dkwood', 'dkwood')
     P += [box(-2, 27, -10, 1, 58, -6, 'dkwood'), box(24, 27, -10, 27, 58, -6, 'dkwood'), box(-2, 55, -10, 27, 58, -6, 'dkwood'),   # the rack
           box(-2, 40, -10, 27, 42, -7, 'dkwood')]
-    for x in (6, 17):   # two swords on the rack: long blades with a lit rim, crossguards, wrapped grips, pommels
-        P += [box(x, 27, -6, x + 3, 50, -5, 'steel'), box(x - 3, 50, -6.5, x + 6, 52, -4.5, 'brass'),
-              box(x, 52, -6, x + 3, 56, -5, 'leather'), ball(x + 1.5, 57, -5.5, 1.5, 'brass')]
+    x = 5   # a long sword on the rack: lit blade, brass guard, wrapped grip, pommel
+    P += [box(x, 25, -6, x + 3.4, 50, -5, 'tin'), box(x + 1.2, 25, -5.2, x + 2.2, 50, -4.6, 'ivory'), box(x - 3, 50, -6.5, x + 6.4, 52.4, -4.5, 'brass'),
+          box(x, 52.4, -6, x + 3.4, 56, -5, 'leather'), ball(x + 1.7, 57, -5.5, 1.6, 'brass')]
+    P += [box(17, 30, -6, 19, 56, -5, 'dkwood'), box(19, 47, -6.4, 25, 55, -4.6, 'tin'), box(24, 46, -6.6, 25.4, 56, -4.4, 'ivory')]   # and an axe
     P += [box(-25, 27, -6, -8, 31, 6, 'dkwood'),                                                    # the grindstone's trough
-          cyl(-16, 39, -4, 9, 3, 'stone', axis='z'), cyl(-16, 39, -6, 1.5, 7, 'iron', axis='z'),      # the wheel on its axle
+          cyl(-16, 39, -4, 10, 3.6, 'stone', axis='z'), cyl(-16, 39, -.6, 3.4, 1.4, 'iron', axis='z'), cyl(-16, 39, -6, 1.5, 7.6, 'iron', axis='z'),   # the wheel, its hub and axle
           box(-27, 27, -2, -25, 40, 0, 'dkwood'), box(-7, 27, -2, -5, 40, 0, 'dkwood'),               # its frame
-          rod([-16, 39, 1], [-16, 44, 5], .8, .8, 'iron'), box(-17, 44, 4, -15, 47, 6, 'wood'),        # the crank
+          rod([-16, 39, 1.4], [-9, 33, 3], 1, 1, 'iron'), rod([-9, 33, 3], [-9, 33, 9], 1.2, 1.2, 'wood'),   # the crank, its handle toward you
           box(6, 27, 2, 18, 29, 6, 'iron'), box(9, 29, 3, 15, 31, 5, 'iron'),
           box(-20, 7, -4, -8, 10, 4, 'iron'), box(-5, 7, -3, 4, 9.5, 3, 'steel'), box(7, 7, -4, 16, 11, 4, 'iron')]   # bars of different sizes
     return P
@@ -255,8 +259,9 @@ def bench_armor2():
           ball(-22, 37, 1, 0, 'steel', rr=[8, 9, 5]), box(-22.6, 29, 5.5, -21.4, 45, 6.4, 'ivory'),
           ball(-29.5, 44, 0, 0, 'steel', rr=[3.5, 2.5, 4]), ball(-14.5, 44, 0, 0, 'steel', rr=[3.5, 2.5, 4]),
           cyl(-22, 45, 0, 2.6, 2, 'ink'), box(-27, 27, 4, -17, 29, 6, 'leather')]                    # the neck opening, a belt
-    P += [ball(20, 30, -2, 4.5, 'steel'), cyl(20, 27, -2, 4.8, 3, 'steel'), box(18, 29, 2.5, 22, 31, 3.6, 'ink'),   # a helmet with its visor slit
-          cyl(31, 6, 7, 7, 2, 'wood', axis='z'), cyl(31, 6, 9, 2, 1, 'iron', axis='z'),                   # a shield leaning
+    P += [ball(19, 34, -1, 7.6, 'tin'), cyl(19, 27, -1, 7.8, 7, 'tin'), box(13, 31, 5.4, 25, 33, 7.4, 'ink'), box(18.4, 26, 6.2, 19.6, 31, 7.6, 'ink'),   # a big helmet, visor slit
+          box(18.4, 38, -9, 19.6, 41.6, 6, 'redbk'),                                                                                                        # its crest
+          cyl(12, 13, 11, 11, 2, 'redbk', axis='z'), ring(12, 13, 13, 10.6, 1, 'tin'), cyl(12, 13, 13, 3, 1.6, 'tin', axis='z'),                           # a round shield leaning on the front
           cyl(2, 29, 2, 3, 20, 'leather', axis='x'), box(5, 27, -6, 15, 28, -2, 'leather'),
           box(-10, 7, -4, 30, 11, 4, 'leather')]
     return P
@@ -265,7 +270,7 @@ def bench_armor2():
 @piece('furnace', size=(100, 120))
 def furnace2():
     P = [box(-16, 0, -12, 16, 30, 12, 'stone', pattern=['bricks', 5]),
-         box(-18, 28, -14, 18, 32, 14, 'stone'),
+         box(-18, 28, -14, 18, 32, 14, 'stone', pattern=['bricks', 7]),
          cyl(0, 32, -3, 7, 30, 'stone', pattern=['bricks', 5]), cyl(0, 61, -3, 8, 3, 'iron'),
          box(-11, 1, 11, 11, 20, 12.5, 'brick'),                                                       # warm brick round the mouth
          box(-8, 2, 12, 8, 16, 13, 'soot'), box(-7, 3, 12.5, 7, 13, 13.5, 'fire'),
@@ -773,13 +778,16 @@ def clothesline():
     return P
 
 
-@piece('gas_pump', size=(50, 110))
-def gas_pump():
+def _gas_pump(lit=False):
+    g, d = ('glow', 'glow') if lit else ('ivory', 'glass')
     return [box(-11, 0, -8, 11, 3, 8, 'stone'), box(-9, 3, -6, 9, 50, 6, 'redpt'), box(-9.6, 46, -6.6, 9.6, 50, 6.6, 'ivory'),
-            cyl(0, 50, 0, 7, 3, 'ivory'), ball(0, 58, 0, 0, 'ivory', rr=[7, 6, 4]), cyl(0, 58, 3.6, 4.4, 1, 'redpt', axis='z'),
-            box(-6, 30, 6, 6, 42, 6.8, 'glass'), box(-4, 33, 6.6, 4, 35, 7, 'ink'), box(-4, 37, 6.6, 1, 39, 7, 'ink'),
+            cyl(0, 50, 0, 7, 3, 'ivory'), ball(0, 58, 0, 0, g, rr=[7, 6, 4]), cyl(0, 58, 3.6, 4.4, 1, 'redpt', axis='z'),
+            box(-6, 30, 6, 6, 42, 6.8, d), box(-4, 33, 6.6, 4, 35, 7, 'ink'), box(-4, 37, 6.6, 1, 39, 7, 'ink'),
             box(9, 22, -2, 12, 32, 2, 'iron'), rod([12, 30, 0], [15, 16, 3], .9, .9, 'ink'), rod([15, 16, 3], [13, 6, 5], .9, .9, 'ink'),
             box(-6, 10, 6, 6, 20, 6.8, 'ivory'), box(-4, 13, 6.6, 4, 17, 7, 'redpt')]
+
+piece('gas_pump', size=(50, 110))(lambda: _gas_pump())
+piece('gas_pump_n', rot=False, size=(50, 110))(lambda: _gas_pump(True))   # night: the globe and the readout lit
 
 
 @piece('wk_rack', size=(90, 80))

@@ -476,6 +476,24 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Cloth: never a 1-2 px checker weave (it turns to dither) and no big soft blotches (they read as stains). Use a flat
   body tone, a few tapered fold curves (a lit crest with its shadow under it), a frayed selvedge and pins.
 
+## Furniture and props in four turns (Nov 10: 3D blockouts, 69 pieces judged blind vs the installed art)
+- [repeated] Judges lean toward slot b: re-run every narrow b-slot win with the slots swapped before installing. The oil drum and the signpost won 6-5 from slot b and lost from slot a.
+- The trade object must be the biggest, highest-contrast shape, and it must read at 1x: the watering can, the plank and saw, the breastplate and helmet. Small grey tools on brown are invisible.
+- A pale plank reads as paper. Use warm tan pine with end grain.
+- A round red-and-pale ring reads as an archery target. A shield is wood with an iron boss and a dark rim.
+- A grindstone must be drawn as a wheel: a lit rim ring, an axle hub, a crank and a trough. A half-disc reads as a tombstone or a bell.
+- A light source has to glow: a lamp, candles and a jack-o'-lantern each need an amber flame with a pale core as the brightest pixels.
+- A barrel or drum top must be a step lighter than its sides, with the lid ellipse showing. A dark lid makes a blob.
+- Rows of identical stamps (tins, books, fish, firewood, sprouts) read as a barcode. Vary size, colour and spacing, and leave gaps.
+- Saturated colour reads as candy: honey wood, lemon brass, powder blue, salmon. Pull every hue a step toward this game's dull, weathered range.
+- 21 of 51 side and back views were blank slabs. Every end panel needs its own detail (a frame and stiles, handles, edges) plus a 2 px sliver of the working face.
+- Seen from the side, a tall back board reads as a chair back. Keep back boards to a short lip, and show the long top run.
+- Things stacked one above another in a side view read as a totem or snowman. Keep pieces on one ground line, overlapping front to back.
+- A wheel or a clothesline seen edge-on is a pole. Give it width (a tyre 5-6 px, a hub standing proud), or show the hung items as slivers.
+- Bed stains read as logos when drawn as solid shapes. A stain is an irregular blot one step darker. A blanket needs a turn-down fold and a drape over the sides.
+- Elevation 30 shows a lot of front and little top. Long flat things (beds, garden beds, rugs) need extra length in the model to keep their top area.
+- A horizontal ring needs axis 'y' (the renderer's default ring faces the viewer).
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline
