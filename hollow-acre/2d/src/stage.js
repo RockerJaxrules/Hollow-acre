@@ -94,7 +94,7 @@ function stgEnd(){const st=STG;if(!st||st.ended)return;st.ended=true;const def=s
   setTimeout(()=>{for(const n of st.hidden)n.vis=true;for(const n of npcs)if(n._stg){if(!def.keepCast){n.x=n._stg.x;n.z=n._stg.z;n.vis=n._stg.vis;}n._seat=n._stg.seat;n.loc=n._stg.loc;delete n._stg;n.clip='idle';}
     if(def.restore!==false){if(def.room!==undefined)S.room=st.prev.room;S.storm=st.prev.storm;if(def.hour!==undefined&&!def.keepHour)S.hour=st.prev.hour;if(def.room!==undefined&&def.room!==st.prev.room){P.x=st.prev.P.x;P.z=st.prev.P.z;P.dir=st.prev.P.dir;}}
     if(def.after)def.after();
-    cine=null;STG=null;$('stgBars').classList.remove('on');$('hud').hidden=false;$('buttons').hidden=false;ui.obj.hidden=false;S.mode='play';P.clip='idle';P.spd=0;fade(0);
+    cine=null;STG=null;$('stgBars').classList.remove('on');if(!def.endMode){$('hud').hidden=false;$('buttons').hidden=false;ui.obj.hidden=false;}S.mode=def.endMode||'play';P.clip='idle';P.spd=0;if(!def.endMode)fade(0);
     def.done&&def.done();},520);}
 
 // ======================= the scenes =======================
@@ -237,7 +237,7 @@ function stgParse(html,id){const beats=[];const paras=html.split(/<br>\s*<br>/).
   // merge a run of one speaker's short lines; give each spoken line a bubble from its feeling
   for(const b of beats)if(b.who&&typeof emotionOf==='function'){const ex=emotionOf(b.who,b.text);b.expr=ex;const k=STG_BUBBLE[ex];if(k)b.emote={[b.who]:k};}
   return beats;}
-function stgGeneric(id,title,html,done){const n=npcById(id);const beats=stgParse(html,id);
+function stgGeneric(id,title,html,done,opt){opt=opt||{};const n=npcById(id);const beats=stgParse(html,id);
   if(!beats.length){done&&done();return;}
   const room=S.room||null;const px=P.x,pz=P.z;const free=(x,z)=>{try{return typeof mFree!=='function'||mFree(x,z);}catch(e){return true;}};
   let side=null;for(const [dx,dz] of [[1.35,.1],[-1.35,.1],[0,1.25],[1.1,1.0],[-1.1,1.0],[0,-1.25]]){if(free(px+dx,pz+dz)){side=[dx,dz];break;}}if(!side)side=[1.2,.2];
@@ -249,7 +249,8 @@ function stgGeneric(id,title,html,done){const n=npcById(id);const beats=stgParse
   const cam={x:(px+mark.x)/2,z:(pz+mark.z)/2+.9};
   const first={hold:.25,act(){stgTitle((n?n.def.name+' — ':'')+title);}};if(walk){first.go={[id]:walk};first.face={[id]:faceYou,you:faceThem};first.wait='arrive';first.hold=0;}
   else first.face={[id]:faceYou,you:faceThem};
-  stage({player:{x:px,z:pz,dir:faceThem},cast,cam,lead:300,beats:[first,...beats],keepCast:true,
+  stage({player:{x:px,z:pz,dir:faceThem},cast,cam,lead:300,beats:[first,...beats],keepCast:true,endMode:opt.endMode,
+    tick:opt.endMode?((dt,st)=>{cine.cam.z+=(cam.z-.5-cine.cam.z)*dt*.08;}):undefined,
     done(){if(vEnc){MAEV.on=true;MAEV.x=mark.x;MAEV.z=mark.z;}done&&done();}});}
 
 
@@ -344,5 +345,6 @@ function stgExile(id,html,done,chose){const n=npcById(id);if(!n){done&&done();re
   if(title==='Lantern Dance'&&!STG&&S.mode==='play')return stgDance(id,html,done);
   if(title==='Into the woods'&&!STG&&S.mode==='play'&&typeof dkCamp==='function')return stgExile(id,html,done,/^You say it\./.test(html));
   if(title==='The wedding'&&!STG&&S.mode==='play')return stgWedding(id,html,done);
+  if(!STG&&S.mode==='scene'&&typeof ST_END!=='undefined'&&Object.values(ST_END).some(E=>E.t===title))return stgGeneric(id,title,html,done,{endMode:'scene'});   // the endings: staged where they happen, then the credits
   if(!STG&&S.mode==='play'&&!S.paused&&!title.endsWith(' '))return stgGeneric(id,title,html,done);   // (a trailing space keeps the old card: used for A/B captures)
   return _ps(id,title,html,done);};}
