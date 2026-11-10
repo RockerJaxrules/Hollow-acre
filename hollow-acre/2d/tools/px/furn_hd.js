@@ -722,13 +722,14 @@ if(K==='tyres'){const base=H-3,cx=W>>1,T=hexR(['#141414','#1e1e1f','#2a2a2b','#3
   for(let x=-5;x<=5;x++){const e=Math.round(Math.sqrt(Math.max(0,1-x*x/36))*2.5);P(A,cx+x,ty+e,T[5]);}                         // the hole's far inner rim, lit
   cast(cx-rx,cx+rx,base);}
 // =================================================================================== outdoor: a pile of lumber
-if(K==='lumber'){const base=H-3,R=RAMP.pine;   // sawn boards stacked flat: long lit tops, plain faces, square pale ends with growth lines
-  const layers=[[3,40,0],[5,38,1],[2,41,0],[6,36,1],[4,37,0]];
-  layers.forEach(([x0,len,stk],li)=>{const y=base-4-li*4;
-    for(let i=0;i<len;i++){P(A,x0+i,y-1,R[5]);P(A,x0+i,y,R[4]);P(A,x0+i,y+1,R[3]);P(A,x0+i,y+2,R[2]);if((i*5+li*3)%23<2)P(A,x0+i,y+1,R[2]);}   // a board: lit top edge, face, a few long grain streaks
-    for(let j=-1;j<=2;j++){P(A,x0+len,y+j,RAMP.oak[j<0?5:4]);P(A,x0+len+1,y+j,RAMP.oak[j===0?3:4]);P(A,x0+len+2,y+j,RAMP.oak[2]);}P(A,x0+len+1,y+1,RAMP.oak[2]);   // its square end, pale, a growth line
-    if(stk){P(A,x0+6,y+3,RAMP.walnut[2]);P(A,x0+len-8,y+3,RAMP.walnut[2]);}});                                                  // a sticker under some
-  cast(2,W-3,base);}
+if(K==='lumber'){const base=H-3,R=RAMP.pine;   // sawn boards stacked flat on dark spacers: both ends staggered, long lit tops, square pale ends with growth lines
+  const layers=[[2,40],[7,36],[3,38],[9,33],[5,36]];
+  layers.forEach(([x0,len],li)=>{const y=base-4-li*4;
+    for(let i=0;i<len;i++){P(A,x0+i,y-1,R[5]);P(A,x0+i,y,R[4]);P(A,x0+i,y+1,R[3]);P(A,x0+i,y+2,R[2]);if((i*5+li*3)%23<2)P(A,x0+i,y+1,R[2]);}
+    for(let j=-1;j<=2;j++){P(A,x0+len,y+j,RAMP.oak[j<0?5:4]);P(A,x0+len+1,y+j,RAMP.oak[j===0?3:4]);P(A,x0+len+2,y+j,RAMP.oak[2]);}P(A,x0+len+1,y+1,RAMP.oak[2]);   // the square right end
+    for(let j=-1;j<=2;j++)P(A,x0-1,y+j,RAMP.oak[j<0?4:3]);                                                                           // the left end
+    if(li>0)for(const bx of [12,28]){P(A,bx,y+3,RAMP.walnut[1]);P(A,bx+1,y+3,RAMP.walnut[1]);P(A,bx+2,y+3,RAMP.walnut[0]);}});   // dark spacer battens between the layers
+  cast(1,W-3,base);}
 // =================================================================================== outdoor: a ladder leaning on nothing (laid against a wall when placed)
 if(K==='ladder'){const base=H-3,R=RAMP.pine;
   for(const sx of [4,13]){for(let y=1;y<base;y++){P(A,sx,y,R[5]);P(A,sx+1,y,R[3]);P(A,sx+2,y,R[1]);}}                                           // rails lit on the left
@@ -817,12 +818,12 @@ if(K==='well'){const base=H-3,cx=W>>1,St=RAMP.stone,R=RAMP.oak;
     if(inner<=1){if(y<0||inner<.0)continue;P(A,cx+x,rimY+y,y<-1?RAMP.glass[0]:RAMP.glass[1]);continue;}P(A,cx+x,rimY+y,St[y<0?(x<0?5:4):(x<0?4:3)]);}
   for(let y=-ry+3;y<0;y++)for(let x=-rx+4;x<=rx-4;x++){const inner=x*x/((rx-4)*(rx-4))+y*y/((ry-3)*(ry-3));if(inner<=1&&!(cx+x>=cx-3&&cx+x<=cx+3&&rimY+y<rimY-2))P(A,cx+x,rimY+y,y<-3?St[1]:RAMP.glass[0]);}
   hl(A,cx-6,rimY,5,RAMP.glass[3]);                                                                                                                  // a glint far down
-  {const y0=rimY+ry-2,courses=[[0,6],[6,5],[11,5]];   // big irregular stones following the curve, lit left, moss in the low seams
-    for(const [ci,[cy0,ch]] of courses.entries()){let th=-Math.PI/2+(hsh(ci,1,SEED)*.35);const seams=[];while(th<Math.PI/2){seams.push(Math.round(rx*Math.sin(th)));th+=.38+hsh(ci,seams.length,SEED)*.32;}seams.push(rx+1);
-      let prev=-rx-1;seams.forEach((sx_,si)=>{const tone=2+((hsh(ci,si+7,SEED)*3)|0);for(let x=prev+1;x<sx_;x++)for(let j=0;j<ch;j++){const X=x,side=X<-rx*.45?1:(X>rx*.4?-1:0);let k=Math.max(1,Math.min(5,tone+side));
-        if(j===0)k=Math.min(5,k+1);if(j===ch-1)k=Math.max(1,k-1);if(x===prev+1&&j>0)k=Math.min(5,k+1);P(A,cx+X,y0+cy0+j,St[k]);}
-        for(let j=0;j<ch;j++)P(A,cx+sx_,y0+cy0+j,St[0]);prev=sx_;});for(let x=-rx;x<=rx;x++)P(A,cx+x,y0+cy0+ch-1,St[1]);}
-    for(let x=-rx;x<=rx;x++){if(hsh(x>>1,3,SEED)>.55)P(A,cx+x,base-1,RAMP.green[2]);if(hsh(x>>1,5,SEED)>.75)P(A,cx+x,base-2,RAMP.green[3]);if(hsh(x,9,SEED)>.9)P(A,cx+x,base-6,RAMP.green[3]);}}
+  {const y0=rimY+ry-2,courses=[[0,8],[8,8]];   // two courses of big uneven stones following the curve: quiet faces, crisp dark joints, moss clumped low
+    for(const [ci,[cy0,ch]] of courses.entries()){let th=-Math.PI/2+(hsh(ci,1,SEED)*.4);const seams=[];while(th<Math.PI/2){seams.push(Math.round(rx*Math.sin(th)));th+=.6+hsh(ci,seams.length,SEED)*.4;}seams.push(rx+1);
+      let prev=-rx-1;seams.forEach((sx_,si)=>{const tone=2+((hsh(ci,si+7,SEED)*2)|0),sag=((hsh(ci,si+3,SEED)*3)|0)-1;for(let x=prev+1;x<sx_;x++)for(let j=0;j<ch;j++){const side=x<-rx*.45?1:(x>rx*.45?-1:0);let k=Math.max(1,Math.min(5,tone+side));
+        if(j===0&&x>prev+1)k=Math.min(5,k+1);if(x===prev+1)k=Math.min(5,k+1);if(j===ch-1)k=1;P(A,cx+x,y0+cy0+j+(j===ch-1?0:0),St[k]);}
+        for(let j=0;j<ch;j++)P(A,cx+sx_,y0+cy0+j,St[0]);prev=sx_;});}
+    for(const [mx,my,mw] of [[-18,15,6],[-6,14,4],[7,15,7],[15,8,3],[-14,7,3]]){for(let i=0;i<mw;i++){P(A,cx+mx+i,y0+my,RAMP.green[i%3===0?3:2]);if(i>0&&i<mw-1)P(A,cx+mx+i,y0+my-1,RAMP.green[3]);}}}   // moss clumps on the low stones and in a joint
   for(let i=0;i<14;i++){const mx=cx-4+i*2,my=base-1-((i*7)%4);P(A,mx,my,RAMP.green[2+(i%2)]);P(A,mx+1,my,RAMP.green[2]);}                               // moss on the lowest stones
   cast(cx-rx,cx+rx,base);}
 // =================================================================================== outdoor: the farm cart with a load of pumpkins
@@ -1167,13 +1168,12 @@ if(K==='fishmount'){const x0=2,y0=3,w=W-4,h=H-7;   // a pike on a plaque: a long
   P(A,x0+10,cy-1,RAMP.ochre[5]);P(A,x0+11,cy-1,RAMP.walnut[0]);for(let i=0;i<4;i++)P(A,x0+6+i,cy+1,RAMP.walnut[1]);              // the glass eye, the long jaw
   rect(A,x0+(w>>1)-5,y0+h-4,10,2,RAMP.brass[3]);hl(A,x0+(w>>1)-5,y0+h-4,10,RAMP.brass[4]);
   wallShadow(x0,x0+w-1,y0,y0+h-1);}
-if(K==='netwall'){const x0=3,y0=5,w=W-6,h=H-11;   // a fishing net hung from four pegs to dry: it swags between them, its hem ragged and gathered, big cork floats along the rope
-  const pegs=[x0+1,x0+19,x0+37,x0+w-2];const topY=x=>{let k=0;while(k<pegs.length-2&&x>pegs[k+1])k++;const t=(x-pegs[k])/(pegs[k+1]-pegs[k]);return y0+Math.round(Math.sin(t*Math.PI)*3);};
-  const botY=x=>y0+h-2+Math.round(Math.sin(x*.5)*1.5+Math.sin(x*1.3)*1)-((x>x0+20&&x<x0+30)?3:0);
-  for(let x=x0;x<x0+w;x++){const t0=topY(x),b0=botY(x);for(let y=t0+1;y<=b0;y++){const u=x-x0,v=y-t0;if((u+v)%5===0||(u-v+50)%5===0)P(A,x,y,RAMP.burlap[(u+v)%5===0?3:2]);}}   // the mesh
-  for(let x=x0;x<x0+w;x++)P(A,x,topY(x),RAMP.burlap[4]);for(const px of pegs){P(A,px,y0-1,RAMP.walnut[4]);P(A,px,y0,RAMP.walnut[2]);P(A,px+1,y0,RAMP.walnut[1]);}   // the rope, the pegs
-  for(const fx of [x0+9,x0+28,x0+46]){const fy=topY(fx);for(let j=0;j<3;j++)for(let i=0;i<4;i++)P(A,fx-1+i,fy-1+j,RAMP.oak[j===0?5:(i===3?2:4)]);}   // cork floats
-  for(const [sx_,sy_] of [[x0+13,y0+12],[x0+40,y0+16]]){P(A,sx_,sy_,RAMP.ivory[5]);P(A,sx_+1,sy_,RAMP.ivory[4]);P(A,sx_,sy_+1,RAMP.ivory[3]);}
+if(K==='netwall'){const x0=3,y0=5,w=W-6,h=H-11;   // a fishing net hung to dry: a straight cord across three pegs, the mesh hanging from it in swags, big open holes, cork floats on the cord
+  const pegs=[x0+2,x0+(w>>1),x0+w-3];const botY=x=>{let k=x<pegs[1]?0:1;const t=(x-pegs[k])/(pegs[k+1]-pegs[k]);return y0+h-6+Math.round(Math.sin(Math.max(0,Math.min(1,t))*Math.PI)*5);};
+  for(let x=x0;x<x0+w;x++){const b0=botY(x);for(let y=y0+1;y<=b0;y++){const u=x-x0,v=y-y0;const sag=Math.round(Math.sin((v/(b0-y0))*Math.PI)*0);if((u+v)%7===0||(u-v+70)%7===0)P(A,x,y,RAMP.burlap[(u+v)%7===0?4:3]);}P(A,x,b0,RAMP.burlap[3]);}   // big diamond holes, swagging lower between the pegs
+  for(let x=x0;x<x0+w;x++){P(A,x,y0,RAMP.burlap[5]);P(A,x,y0+1,RAMP.burlap[2]);}                                              // the straight cord
+  for(const px of pegs){P(A,px,y0-2,RAMP.walnut[4]);P(A,px+1,y0-2,RAMP.walnut[2]);P(A,px,y0-1,RAMP.walnut[3]);P(A,px+1,y0-1,RAMP.walnut[1]);}   // the pegs
+  for(const fx of [x0+9,x0+21,x0+36,x0+48]){for(let j=0;j<3;j++)for(let i=0;i<4;i++)P(A,fx-1+i,y0-1+j,RAMP.oak[j===0?5:(i===3?2:4)]);}   // cork floats on the cord
   wallShadow(x0,x0+w-1,y0,y0+h);}
 if(K==='lures'){const x0=3,y0=3,w=W-6,h=H-8;   // a tackle card of lures: spoons, a plug, flies, each a different shape
   for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++)P(A,x,y,RAMP.bluegrey[y===y0?3:1]);wood(x0,y0,w,h,RAMP.oak);
@@ -1184,14 +1184,14 @@ if(K==='lures'){const x0=3,y0=3,w=W-6,h=H-8;   // a tackle card of lures: spoons
   spoon(x0+6,y0+5,RAMP.steel);spoon(x0+13,y0+4,RAMP.brass);plug(x0+19,y0+5,RAMP.brick);plug(x0+29,y0+6,RAMP.green);fly(x0+8,y0+18,RAMP.plum);spoon(x0+16,y0+17,RAMP.brass);plug(x0+22,y0+19,RAMP.ochre);fly(x0+34,y0+18,RAMP.bluegrey);
   rect(A,x0+w-14,y0+h-7,10,4,RAMP.cream[2]);hl(A,x0+w-13,y0+h-5,7,RAMP.walnut[2]);   // a small price tag
   wallShadow(x0,x0+w-1,y0,y0+h-1);}
-if(K==='cat'){const base=H-3,cx=W>>1;   // a black cat curled asleep on a cushion, its tail round its nose, one eye open
+if(K==='cat'){const base=H-3,cx=W>>1,C=RAMP.charcoal||RAMP.walnut;   // a black cat curled into a C on a cushion: a round back with a cool rim of light, its head tucked in, the tail wrapped round to its nose, one eye open
   for(let y=-3;y<=2;y++)for(let x=-13;x<=13;x++){if(x*x/169+y*y/9>1)continue;P(A,cx+x,base-3+y,RAMP.brick[y<-1?4:(y<1?3:2)]);}   // the cushion
-  for(let y=-6;y<=2;y++)for(let x=-9;x<=9;x++){if(x*x/81+y*y/30>1)continue;P(A,cx+x,base-7+y,RAMP.charcoal?RAMP.charcoal[(x+y<-6)?4:(x+y<0?2:1)]:RAMP.walnut[(x+y<-6)?3:1]);}   // the curled body
-  for(let y=-3;y<=2;y++)for(let x=-3;x<=3;x++){if(x*x+y*y*1.2>10)continue;P(A,cx-7+x,base-9+y,RAMP.charcoal?RAMP.charcoal[x+y<-2?4:2]:RAMP.walnut[2]);}   // the head tucked in
-  for(const ex of [-9,-6])P(A,cx+ex,base-13,RAMP.charcoal?RAMP.charcoal[3]:RAMP.walnut[3]);P(A,cx-10,base-12,RAMP.charcoal?RAMP.charcoal[2]:RAMP.walnut[2]);P(A,cx-5,base-12,RAMP.charcoal?RAMP.charcoal[2]:RAMP.walnut[2]);   // ears
-  P(A,cx-6,base-9,RAMP.olive[5]);P(A,cx-5,base-9,RAMP.ochre[5]);hl(A,cx-9,base-9,2,RAMP.walnut[0]);                                // one eye open, the other shut
-  for(let x=-8;x<=8;x++){const yy=Math.round(-Math.sqrt(Math.max(0,30*(1-x*x/81))));P(A,cx+x,base-7+yy,RAMP.bluegrey[3]);}   // a cool rim of light along its back
-  for(let i=0;i<16;i++){const tx=cx+8-i,ty=base-3-Math.round(Math.sin(i/16*Math.PI)*1.5)-(i>12?i-12:0);P(A,tx,ty,RAMP.charcoal?RAMP.charcoal[3]:RAMP.walnut[2]);P(A,tx,ty+1,RAMP.charcoal?RAMP.charcoal[1]:RAMP.walnut[1]);}   // the tail wrapped round the front to its nose
+  for(let y=-8;y<=0;y++)for(let x=-9;x<=9;x++){if(x*x/81+y*y/64>1)continue;P(A,cx+x,base-5+y,C[(x+y<-8)?3:(x+y<-2?2:1)]);}   // the round back
+  for(let a=0;a<=20;a++){const t=Math.PI*(.55+a/20*.75);const X=Math.round(cx+Math.cos(t)*9),Y=Math.round(base-5-Math.sin(t)*8);P(A,X,Y,RAMP.bluegrey[a<10?4:3]);}   // a cool rim of light along the top-left of its back
+  for(let y=-3;y<=3;y++)for(let x=-3;x<=3;x++){if(x*x+y*y>11)continue;P(A,cx-6+x,base-5+y,C[x+y<-2?3:2]);}   // the head tucked against the front
+  P(A,cx-8,base-9,C[3]);P(A,cx-7,base-10,C[3]);P(A,cx-4,base-9,C[3]);P(A,cx-3,base-10,C[2]);                                     // ears
+  P(A,cx-7,base-5,RAMP.olive[5]);P(A,cx-6,base-5,RAMP.ochre[5]);hl(A,cx-4,base-5,2,C[0]);                                          // one eye open, the other shut
+  for(let i=0;i<17;i++){const tx=cx+9-i,ty=base-2-(i>13?(i-13):0);P(A,tx,ty,C[3]);P(A,tx,ty+1,C[1]);}                            // the tail round the front to its nose
   cast(cx-13,cx+13,base);}
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));

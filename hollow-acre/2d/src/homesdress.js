@@ -66,7 +66,7 @@ const DRESS_INFO={};
   const wd=OBJ.find(o=>o.room==='back_cora'&&o.spr==='in_wardrobe');if(wd)DRESS.back_cora.wardObj=wd;
   if(S.rgLook&&S.rgLook.wardrobe&&wd)wardPull();
   // the church's pews, and the colliders under them, so they can be gone at night
-  NIGHTROOM.pews=OBJ.filter(o=>o.room==='church'&&o.spr==='in_pew').map(o=>({o,r:rects.find(r=>Math.abs(r.x0-(o.x-1.95))<.02&&Math.abs(r.z0-(o.z-.45))<.02)}));};}
+  NIGHTROOM.pews=OBJ.filter(o=>o.room==='church'&&/^in_pew/.test(o.spr)).map(o=>({o,r:rects.find(r=>Math.abs(r.x0-(o.x-1.95))<.02&&Math.abs(r.z0-(o.z-.45))<.02)}));};}
 // ---- the wrong things
 function wardPull(){const D=DRESS.back_cora,o=D.wardObj;if(!o||o.pulled)return;o.pulled=1;const r=rects.find(q=>Math.abs(q.x0-(o.x-.75))<.02&&Math.abs(q.z1-o.z)<.02);o.z+=1.3;if(r){r.z0+=1.3;r.z1+=1.3;CGRID.dirty=true;}}
 interact.push({x:0,z:0,r:1.1,on:()=>S.room==='home_otto'&&DRESS.home_otto.cabX!=null,label:()=>'Cabinet',ok:()=>true,act(){SFX.thud&&SFX.thud(0,.2);
