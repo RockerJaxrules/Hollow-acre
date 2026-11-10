@@ -52,7 +52,9 @@ function dressRoom(k,D){const R=ROOMS[k],m=R&&SPR[R.shell||('room_'+k)];if(!m||!
   // a nook: a stub of wall out from the right-hand wall makes the room an L
   if(D.nook&&w>=8){const z=+(d*.5).toFixed(2),x0=w-2.06;if(freeRect(x0-.2,z-.7,w,z+.3)){add.push(['in_partition',x0,z,[0,-.4,2.06,0]]);rects.push([x0,z-.4,w,z]);}}
   // a change of floor where one part of the room becomes another
-  const floors=D.floor?[['in_floor_'+D.floor,w*(.3+dressH(k.length,1)*.4),d*.62,null,'flat']]:[];
+  // (interiors r3) never over a floor that is already patterned: a lino patch on a checker read as a pale glitch block
+  const shellFl=((SPR[R.shell||('room_'+k)]||{}).room||{}).floor,patterned=['checker','parquet','hex','painted','flag'].includes(shellFl);
+  const floors=D.floor&&!patterned?[['in_floor_'+D.floor,w*(.3+dressH(k.length,1)*.4),d*.62,null,'flat']]:[];
   R.furn=[...floors,...R.furn,...add];
   return {w,d,spans,rects,freeSpan,freeRect};}
 const DRESS_INFO={};

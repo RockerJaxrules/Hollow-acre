@@ -272,6 +272,15 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   shouting and one object said who lives there. Next level (judge): Stardew dresses a room at three scales: big furniture,
   then small things on every surface, then things hung on every wall, with pieces touching and overlapping. Big sprites
   standing apart on bare floor under bare walls read as props placed, not a life lived.
+- [interiors r4] A reddish-orange glow under the brightest point in a horror game reads as a stain or blood: candle light
+  on the floor is a small pale-yellow patch, hard-edged, two stepped tones, never red.
+- [interiors r4] Fire drawn as three pale 2 px rectangles reads as heater bars even when called flames: a bed of uneven coals,
+  then tongues that swell from a 4-5 px base and taper to a leaning, curled tip, deep orange edge, yellow core, white root.
+- [interiors r4] Worn paint drawn as 4 px chips down a path reads as footprints or specks: wear goes along the boards as long
+  streaks (paint thinning first, a thin bare-wood scratch in the middle), lengths varied, ends only softly ragged.
+- [interiors r4] A floor patch (lino, carpet) laid over a floor that is already patterned reads as a pale glitch block:
+  only lay one over plain boards.
+- [process] A JS object literal with the same key twice keeps the LAST one: grep a table for the key before adding to it.
 - [interiors r3] A tall piece standing in front of a window (a bookcase hiding a third of the glass) is a placement error;
   check every tall piece against the window list before judging.
 - [interiors r3] Fading a too-loud quilt to grey made it read as stone: fade toward the room's own warm brown instead

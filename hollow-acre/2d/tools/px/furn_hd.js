@@ -504,8 +504,14 @@ if(K==='stove'){const I=RAMP.ironW,base=H-3,cx=W>>1,x0=cx-15,w=30;
   for(const bx of [x0+8,x0+21]){for(let j=0;j<5;j++)for(let i=-4;i<=4;i++){const d=i*i/16+(j-2)*(j-2)/4;if(d>1)continue;P(A,bx+i,top+1+j,d>.6?I[1]:(i<0&&j<2?I[4]:I[3]));}P(A,bx-1,top+2,RAMP.steel[2]);}   // two lids with rims, a cool glint
   rect(A,x0,top+8,w,18,I[2]);vl(A,x0,top+8,18,RAMP.steel[1]);vl(A,x0+1,top+8,18,I[3]);vl(A,x0+w-1,top+8,18,I[0]);hl(A,x0,top+8,w,I[4]);   // the body, a cool rim on its lit side
   rect(A,x0+6,top+11,18,10,I[1]);frame(A,x0+6,top+11,18,10,I[4],I[0]);                                                         // the fire door
-  {const L=RAMP.lit,fy=top+19;rect(A,x0+7,top+12,16,8,[30,14,10]);for(const [fx,fh] of [[x0+10,6],[x0+14,8],[x0+19,5]]){for(let j=0;j<fh;j++){const ww=j<fh*.35?1:j<fh*.7?2:2;for(let i=-ww;i<ww;i++){const core=Math.abs(i+.5)<1&&j<fh-1&&j>0;P(A,fx+i,fy-j,core?L[NIGHT?5:5]:L[j>fh*.6?(NIGHT?4:3):(NIGHT?3:2)]);}}}
-    hl(A,x0+7,fy,16,RAMP.ironW[4]);for(let i=0;i<16;i+=3)P(A,x0+7+i,fy-1,RAMP.ironW[3]);}                                            // flame tongues of uneven height, pale cores, behind a low grate
+  // (interiors r4, judge: "vertical orange bars read as an electric heater") the fire: a bed of uneven coals, three tongues that
+  // swell from a wide base and taper to a leaning, curling tip, deep orange edges, yellow cores, white-hot at the root
+  {const L=RAMP.lit,ox=x0+7,oy=top+12,n=NIGHT?1:0,K2=k=>L[Math.min(5,k+n)];rect(A,ox,oy,16,8,[26,12,9]);
+    for(let i=0;i<16;i++){const h=hsh(i,2,SEED);P(A,ox+i,oy+6,h>.75?[26,12,9]:K2(h>.4?2:1));P(A,ox+i,oy+5,h>.55?K2(1):[40,16,10]);if(h>.85)P(A,ox+i,oy+6,K2(4));}   // coals
+    for(const [bc,hh,lean] of [[4,4,-.3],[8,6,.25],[12,3,.4]]){for(let t=0;t<hh;t++){const f=1-t/hh,hw=Math.max(0,Math.round(2.3*Math.pow(f,.8))),c=Math.round(bc+t*lean),y=oy+5-t;
+        for(let i=-hw;i<=hw;i++){const edge=Math.abs(i)===hw;let k=edge?2:3;if(!edge&&Math.abs(i)<=Math.max(0,hw-2)&&t<hh*.65)k=4;if(i===0&&t<=1)k=5;P(A,ox+c+i,y,K2(k));}}
+      P(A,ox+Math.round(bc+hh*lean+lean*2),oy+5-hh,K2(2));}                                                                        // the curled tip
+    hl(A,ox,oy+7,16,RAMP.ironW[4]);P(A,ox+3,oy+7,RAMP.ironW[2]);P(A,ox+9,oy+7,RAMP.ironW[2]);}                                      // the grate's lit front bar
   rect(A,x0+w-6,top+15,3,2,RAMP.brass[3]);P(A,x0+w-6,top+15,RAMP.brass[5]);                                                        // the latch
   hl(A,x0+8,top+23,14,I[4]);hl(A,x0+8,top+24,14,I[1]);rect(A,x0+13,top+23,4,1,RAMP.brass[4]);                                     // the ash drawer
   for(const lx of [x0+1,x0+w-4]){for(let y=top+26;y<base;y++){P(A,lx,y,I[3]);P(A,lx+1,y,I[2]);P(A,lx+2,y,I[1]);}hl(A,lx-1,base-1,5,I[2]);}   // cabriole legs

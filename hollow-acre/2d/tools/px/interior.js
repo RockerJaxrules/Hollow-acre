@@ -34,24 +34,33 @@ function beadWains(L,x0,y,w,h,C){for(let j=0;j<h;j++)for(let i=0;i<w;i++){let c=
 // (interiors r3, judge: "the diamond floor is one pattern on a grid across the whole room") the field a step quieter (the two
 // directions a half step apart, the joints a soft line), framed by plain boards running along each wall and a thin inlay, so the
 // pattern stops short of the furniture standing against the walls
-function parquet(L,x0,y0,w,h){const B=11,mx=(a,b,t)=>a.map((v,k)=>Math.round(v+(b[k]-v)*t));
-  for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const u=x-x0,v=y-y0,iu=w-1-u,iv=h-1-v,db=Math.min(u,iu,v,iv);let c;
-    if(db<B-2){const horiz=db===v||db===iv,t=db%4,run=horiz?u:v,bi=Math.floor(db/4);c=WD[3];if(t===0)c=mx(WD[2],WD[3],.35);else if(t===1)c=shade(WD[3],1.07);
-      if(t&&((run+bi*23+(horiz?0:11))%46===0))c=mx(WD[2],WD[3],.35);else if(t>1&&hsh(Math.floor((run+bi*23)/46),bi+(horiz?0:9),7)>.66)c=shade(c,.95);}
-    else if(db===B-2)c=mx(WD[1],WD[2],.5);else if(db===B-1)c=shade(WD[4],.97);
-    else{const a=u+v,b=u-v,cell=Math.floor(a/12)+Math.floor(b/12),dir=cell%2,t=dir?(a%12):(((b%12)+12)%12);
-      c=dir?WD[3]:mx(WD[3],WD[4],.5);if(t===0)c=mx(WD[2],WD[3],.5);else if(t===1)c=shade(c,1.05);if(hsh(Math.floor(a/12),Math.floor(b/12),5)>.7)c=shade(c,.95);}
+const mixC=(a,b,t)=>a.map((v,k)=>Math.round(v+(b[k]-v)*t));
+// the plain-board frame round a patterned floor: boards along each wall, a thin inlay, then the pattern (null = inside)
+function frameBoard(u,v,w,h,B){const iu=w-1-u,iv=h-1-v,db=Math.min(u,iu,v,iv);if(db>=B)return null;
+  if(db===B-2)return mixC(WD[1],WD[2],.5);if(db===B-1)return shade(WD[4],.97);
+  const horiz=db===v||db===iv,t=db%4,run=horiz?u:v,bi=Math.floor(db/4);let c=WD[3];if(t===0)c=mixC(WD[2],WD[3],.35);else if(t===1)c=shade(WD[3],1.07);
+  if(t&&((run+bi*23+(horiz?0:11))%46===0))c=mixC(WD[2],WD[3],.35);else if(t>1&&hsh(Math.floor((run+bi*23)/46),bi+(horiz?0:9),7)>.66)c=shade(c,.95);return c;}
+function parquet(L,x0,y0,w,h){
+  for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const u=x-x0,v=y-y0;let c=frameBoard(u,v,w,h,11);
+    if(!c){const a=u+v,b=u-v,cell=Math.floor(a/12)+Math.floor(b/12),dir=cell%2,t=dir?(a%12):(((b%12)+12)%12);
+      c=dir?WD[3]:mixC(WD[3],WD[4],.5);if(t===0)c=mixC(WD[2],WD[3],.5);else if(t===1)c=shade(c,1.05);if(hsh(Math.floor(a/12),Math.floor(b/12),5)>.7)c=shade(c,.95);}
     P(L,x,y,c);}}
 // (interiors) bright red on cream at full contrast was the loudest thing in every room it was in, and the specks were grit:
 // the tiles sit a step down (worn, waxed), the grout is a soft line on the top and left of each tile, no specks
-function checker(L,x0,y0,w,h,A2,B2){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const i=Math.floor((x-x0)/16),j=Math.floor((y-y0)/16),u=(x-x0)%16,v=(y-y0)%16;const lt=A2[2].map((v,k)=>Math.round(v*.62+B2[2][k]*.38));let c=(i+j)%2?A2[2]:lt;   // the light tile only a step above the dark one: a quiet floor under louder furniture   // the light tile between two cream steps, close to the dark one
+function checker(L,x0,y0,w,h,A2,B2){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const fb=frameBoard(x-x0,y-y0,w,h,11);if(fb){P(L,x,y,fb);continue;}const i=Math.floor((x-x0)/16),j=Math.floor((y-y0)/16),u=(x-x0)%16,v=(y-y0)%16;const lt=A2[2].map((v,k)=>Math.round(v*.62+B2[2][k]*.38));let c=(i+j)%2?A2[2]:lt;   // the light tile only a step above the dark one: a quiet floor under louder furniture   // the light tile between two cream steps, close to the dark one
   if(u===0||v===0)c=shade(c,.84);else if(u===1||v===1)c=shade(c,1.05);P(L,x,y,c);}}
 function flagstone(L,x0,y0,w,h){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=Math.floor((y-y0)/18),o=(r*13)%27,s=Math.floor((x-x0+o)/(22+(r%3)*4));const u=(x-x0+o)%(22+(r%3)*4),v=(y-y0)%18;
   const n=hsh(s,r,9);let c=ST[n>.66?4:n>.33?3:2];if(u<2||v<2)c=ST[1];if(u===2||v===2)c=ST[n>.5?5:4];
   if(hsh(s,r,11)>.62&&u>3&&v>3){const cu=6+Math.floor(hsh(s,r,12)*10),cv=5+Math.floor(hsh(s,r,13)*6),dir=hsh(s,r,14)>.5?1:-1,dv=v-cv;if(dv>=0&&dv<6&&u===cu+dir*Math.floor(dv*.7))c=ST[1];}   // a crack, not specks
   P(L,x,y,c);}}
+// (interiors r4) the wear was 4 px chips scattered down the path and read as footprints or specks: the paint wears through in long
+// streaks along the boards where feet go, first thinning (the wood's warmth showing through), then bare wood in the middle
 function painted(L,x0,y0,w,h,C){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const row=Math.floor((y-y0)/9),v=(y-y0)%9;let c=C[3];if(v===0)c=C[1];if(v===1)c=C[4];
-  const wear=Math.exp(-Math.pow((x-x0-w*.5)/(w*.18),2))*Math.exp(-Math.pow((y-y0-h*.55)/(h*.4),2));if(hsh(x>>2,row,11)<wear*.55-.12)c=hsh(x>>3,row,12)>.5?shade(C[3],.84):WD[4];P(L,x,y,c);}}
+  const SL=40,off=Math.floor(hsh(row,3,11)*SL),seg=Math.floor((x-x0+off)/SL),u=(x-x0+off)%SL,cx=seg*SL-off+SL/2;
+  const wear=Math.exp(-Math.pow((cx-w*.5)/(w*.2),2))*Math.exp(-Math.pow((y-y0-h*.6)/(h*.4),2)),r=hsh(seg,row,11);
+  const a=2+hsh(seg,row,13)*12+hsh(seg,v,15)*1.6,b=SL-2-hsh(seg,row,14)*14-hsh(seg,v,16)*1.6;   // softly ragged ends, a different length on every board
+  if(v>1&&r<wear*.95-.2&&u>a&&u<b){c=mixC(C[3],WD[3],.2);if(r<wear*.7-.3&&u>a+4&&u<b-4&&(v===4||v===5))c=v===4?mixC(WD[4],C[3],.2):mixC(WD[3],C[3],.25);}
+  P(L,x,y,c);}}
 function hexTile(L,x0,y0,w,h,C){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=Math.floor((y-y0)/7),o=r%2?5:0,u=(x-x0+o)%10,v=(y-y0)%7;let c=C[3];
   if(v===0||u===0)c=C[1];if(hsh(Math.floor((x-x0+o)/10),r,13)>.88)c=C[2];if(hsh(Math.floor((x-x0+o)/10),r,14)>.988)c=PAL.slate[3];P(L,x,y,c);}}
 function wideBoards(L,x0,y0,w,h){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const row=Math.floor((y-y0)/14),v=(y-y0)%14,off=Math.floor(hsh(row,7,32)*97),seg=Math.floor((x-x0+off)/97);let c=hsh(seg,row,15)>.5?PAL.bark[3]:shade(PAL.bark[3],.9);

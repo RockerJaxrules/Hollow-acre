@@ -98,16 +98,17 @@ function roomShade(R){const k=S.room;let L=ROOM_OBJS[k];if(!L||L.n!==OBJ.length)
   ctx2.fillStyle='rgba(16,10,14,.30)';ctx2.fillRect(fx0,fy0,fx1-fx0,10);   // the back wall's own shadow on the floor
   ctx2.save();ctx2.globalCompositeOperation='lighter';const night=isNight()?1:0;
   for(const o of L){if(o.hide)continue;const sp=(o.spr||'').replace(/_n$/,''),q=ROOM_LIGHTS[sp];if(!q)continue;const s=q[0],cx=Math.round(sx(o.x)),y0=Math.round(sz(o.z))+1;
-    const tone=(a,w0,w1,len)=>{ctx2.fillStyle=`rgba(255,128,44,${a})`;for(let j=0;j<len;j++){const w=Math.round(w0+(w1-w0)*j/len);ctx2.fillRect(cx-w,y0+j,w*2,1);}};
+    const tone=(a,w0,w1,len,col)=>{ctx2.fillStyle=`rgba(${col||'255,128,44'},${a})`;for(let j=0;j<len;j++){const w=Math.round(w0+(w1-w0)*j/len);ctx2.fillRect(cx-w,y0+j,w*2,1);}};
     if(q[1]){const L1=Math.round(46*s),L2=Math.round(28*s);tone(.10+.05*night,q[1]*s,32*s,L1);tone(.10+.05*night,q[1]*s*.7,20*s,L2);}   // a fan out of the mouth
-    else{tone(.10+.05*night,10*s*2,14*s*2,10);tone(.10,6*s*2,9*s*2,6);}}   // a small pool under the candles
+    else{tone(.07+.04*night,7,10,6,'255,214,150');tone(.08,4,6,4,'255,230,180');}}   // (r4: a red-orange pool read as blood) a small pale-yellow pool under the candles
   ctx2.restore();
   ctx2.fillStyle='rgba(50,33,37,.62)';
   for(const o of L){if(o.hide||o.kind==='flat'||o.kind==='deco')continue;const m=SPR[o.spr];if(!m||m.fw<14)continue;const cx=Math.round(sx(o.x)),cy=Math.round(sz(o.z))+2;
     const rw=Math.round(m.fw*.45);ctx2.beginPath();ctx2.ellipse(cx,cy,rw,3,0,0,Math.PI*2);ctx2.fill();}}
 function interiorLight(L){const R=roomOf();if(!R)return;const fl=.94+.06*Math.sin(performance.now()/180);glowAt(sx(P.x),sz(P.z)-20,70,[255,214,170],.55*L);
   const G=(lx,lz,r,c,a)=>glowAt(sx(R.ox+lx),sz(R.oz+lz),r,c,a*L*fl);
-  if(S.room==='cabin'){G(6.5,3.0,110,[255,180,100],.75);G(7.9,.6,70,[255,120,40],.8);G(5.9,.6,60,[255,200,130],.6);}
+  if(S.room==='cabin'){const st=OBJ.find(o=>o.room==='cabin'&&!o.hide&&/^in_stove/.test(o.spr)),dk=OBJ.find(o=>o.room==='cabin'&&!o.hide&&/^in_desk/.test(o.spr));   // the glow follows the stove and the desk lamp in every size of the house
+    G(R.w*.6,R.d*.5,110,[255,180,100],.75);if(st)glowAt(sx(st.x),sz(st.z)-6,70,[255,120,40],.8*L*fl);if(dk)glowAt(sx(dk.x),sz(dk.z)-14,60,[255,200,130],.6*L*fl);}
   if(S.room==='store'){G(6.5,2.0,120,[255,190,110],.7);G(3.2,.6,110,[255,190,110],.6);G(9.8,.6,110,[255,190,110],.6);}
   if(S.room&&S.room.startsWith('home_')){G(3.6,2.4,110,[255,186,110],.7);G(1.2,.6,70,[255,200,140],.5);}
   if(S.room==='church'){G(2.5,.7,80,[255,190,110],.8);G(7.5,.7,80,[255,190,110],.8);G(5,1.2,100,[255,180,100],.6);}
