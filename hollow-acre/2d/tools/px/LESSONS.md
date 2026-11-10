@@ -513,6 +513,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A back must keep the trade: plank ends and a saw handle over a carpentry bench's back board, planks on its shelf.
 - A hood with a near-black inside reads as a hole; use the darkest plum-brown step, and let the far lip show above the near shell.
 - Open space under a table fills with outline if legs, stretchers and far legs sit 1-3 px apart: draw only the near legs, and only a soft fading shadow under the apron.
+- A barrel reads best side-on (bellied staves, hoops, the tap on its end); end-on it reads as a clock, a beehive or an owl. Draw the side as the front.
+- A small chess board on a deep table top reads as an upright pane or an abacus: keep the old pedestal table until a flat board at half its width beats it.
+- Brass arcs and frames are the brightest, most saturated shape; keep them thin and dull so the object (the globe) stays the main shape.
+- Dark iron (candelabra arms) goes spidery on a dark floor: give its lit faces a cool blue-grey rim.
 - A barrel on its side needs its body showing behind the head (a band of staves above it with a hoop across), or the head reads as a flat clock or a hooded owl.
 
 ## Outlines, light, colour

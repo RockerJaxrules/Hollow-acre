@@ -15,7 +15,7 @@ Object.assign(FURN,{
   candles:['Candelabra','in_candles',{wood:2,fiber:6},[3,3],null],
   keg:['Cider keg','in_keg',{wood:8,iron_bar:1},[5.4,5],null],
   cradle:['Cradle','in_cradle',{wood:8},[2,4.5],null]});
-Object.assign(FURN_FP,{bookcase:[1.6,.45],desk:[1.76,.45],clock:[.6,.3],table:[1.7,.45],chess:[1.2,.45],piano:[2.2,.55],globe:[.7,.35],candles:[1.1,.35],keg:[.8,.45],cradle:[1.1,.5]});
+Object.assign(FURN_FP,{bookcase:[1.6,.45],desk:[1.76,.45],clock:[.6,.3],table:[1.7,.45],chess:[1.2,.45],piano:[2.2,.55],globe:[.7,.35],candles:[1.1,.35],keg:[1.2,.45],cradle:[1.1,.5]});
 const FURN_DESC={bookcase:'Grandpa’s books, off the floor at last. Some of the spines have your name on them.',desk:'Somewhere to write the letters you might not send.',
   clock:'It runs a little behind. Wind it anyway; the house feels wrong without the ticking.',table:'Room for two. Room for guests, if anyone comes.',
   chess:'Someone keeps moving the pieces while you sleep. They’re winning.',piano:'Out of tune in a way you start to like. Copper strings, a brass frame.',
