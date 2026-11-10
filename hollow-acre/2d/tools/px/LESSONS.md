@@ -477,7 +477,7 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   body tone, a few tapered fold curves (a lit crest with its shadow under it), a frayed selvedge and pins.
 
 ## Furniture and props in four turns (Nov 10: 3D blockouts, 69 pieces judged blind vs the installed art)
-- [repeated] Judges lean toward slot b: re-run every narrow b-slot win with the slots swapped before installing. The oil drum and the signpost won 6-5 from slot b and lost from slot a.
+- [repeated] Judges lean toward slot b: re-run every narrow b-slot win with the slots swapped before installing. The oil drum and the signpost won 6-5 from slot b and lost from slot a; so did the barrel, tyres, crate and chopping block (5 of 5 flipped). A 6-5 from slot a held every time (tool chest, bookcase, plant).
 - The trade object must be the biggest, highest-contrast shape, and it must read at 1x: the watering can, the plank and saw, the breastplate and helmet. Small grey tools on brown are invisible.
 - A pale plank reads as paper. Use warm tan pine with end grain.
 - A round red-and-pale ring reads as an archery target. A shield is wood with an iron boss and a dark rim.
