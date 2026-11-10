@@ -930,6 +930,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 
 ## Resources and items (#198, Nov 10)
 - [repeated r9] READ THE ITEM'S NAME AND DESCRIPTION IN THE GAME BEFORE DRAWING ITS ICON (grep its ITEMS entry, and its cooking or making game for its colours). r5: the 'flask' is the lamp-oil flask. r9: the soup is turnip soup with a golden broth; the mushroom is the glowcap and must glow.
+- [r14] A worm (or any thin thing) arching across the full width of a container reads as its handle: break it into short coils of
+  different lengths lying IN the container, let soil show between them, and hang just one over the lip with a blunt tip.
+- [r14] A pie reads as a cheese wheel or Pac-Man when its side is tall and its rim is flat: a short wall, a fluted rim that
+  scallops the outline, a darker baked ring inside the crust and one glaze glint; open custard (no lattice) for pumpkin.
 - A family of nodes made from one stamped dome with different flecks reads as one rock: give every material its own shape at 1x (coal as angular black lumps standing proud, copper as fat nuggets, iron as oxide and silver glints, gem as crystals breaking the outline, stone as a slab with moss and a crack), and give each node its own silhouette.
 - A node and its drop must match: the icon is the same material, a hand-sized chunk, not the boulder shrunk.
 - Rust drawn as maroon blocks reads as raw meat or blood: rust is ragged orange-brown oxide bleeding down from cracks, with an ochre step where it catches the light.
