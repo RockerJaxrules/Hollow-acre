@@ -314,6 +314,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors r12] Light fans that all stop on one straight line read as a ledge, and a fan with no lamp at its tip comes from
   nowhere: hang the lamp where the fan starts, make the lamp the brightest pixels, give every fan its own length.
 - [process] Room screenshots must wait for the area-title banner to fade (4.5 s): it covered the wall and its lanterns.
+- [interiors r13] A track, path or pipe that ends against a solid wall reads as going nowhere: give it somewhere to go (a
+  timber-framed drift into the dark), which also gives the room its "deeper down" dread.
+- [process] Removing a line that ends with closing braces removes braces that close OUTER blocks too: count what the deleted
+  line closed and put those back (node --check catches it; never chain past a failed check).
 - [interiors r3] A tall piece standing in front of a window (a bookcase hiding a third of the glass) is a placement error;
   check every tall piece against the window list before judging.
 - [interiors r3] Fading a too-loud quilt to grey made it read as stone: fade toward the room's own warm brown instead

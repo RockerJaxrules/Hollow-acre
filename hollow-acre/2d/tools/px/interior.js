@@ -86,14 +86,19 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   if(R.theme==='garage'){for(let y=8;y<8+wallH;y++)for(let x=x0;x<x0+fw;x++){const r=Math.floor((y-8)/10),o=r%2?9:0,b=(x-x0+o)%18;let c=ST[(hsh(Math.floor((x-x0+o)/18),r,5)>.5)?3:2];if(b===0||(y-8)%10===9)c=ST[1];else if((y-8)%10===0)c=ST[4];P(A,x,y,c);}}
   // (interiors: the mine was blocky noise) the rock face in strata, each band lit along its top and dark along its foot; three
   // timber sets (post, post, beam) where the lanterns hang, each post lit on the left, a lantern on it
-  if(R.theme==='mine'){const PX=[1.6,5.5,9.4].map(m=>x0+Math.round(m*32));
+  if(R.theme==='mine'){const PX=[3.6,6.4,9.6].map(m=>x0+Math.round(m*32)),LIT=[0,1,1];   /* (r13) not evenly spaced, and one lantern long dead */
     // boulders: jittered cells, each one flat tone, lit along the top edge where the cell above ends, dark seams between
     const CW=22,CH=15,cell=(x,y)=>{let b=1e9,b2=1e9,id=0;const gx=Math.floor(x/CW),gy=Math.floor(y/CH);for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++){const cx=gx+i,cy=gy+j,px=(cx+.15+hsh(cx,cy,21)*.7)*CW,py=(cy+.15+hsh(cx,cy,22)*.7)*CH;const d=(x-px)**2+((y-py)*1.4)**2;if(d<b){b2=b;b=d;id=cx*997+cy;}else if(d<b2)b2=d;}return [id,Math.sqrt(b2)-Math.sqrt(b)];};
     for(let y=8;y<8+wallH;y++)for(let x=x0;x<x0+fw;x++){const [id,gap]=cell(x,y),[idUp]=cell(x,y-2),[idL]=cell(x-2,y);let c=ST[hsh(id,1,23)>.5?2:1];
       if(gap<1.6)c=ST[0];else if(idUp!==id||idL!==id)c=ST[3];P(A,x,y,c);}
+    /* (r13) the drift: a timber-framed tunnel mouth cut into the rock where the track runs on into the dark */
+    {const tx=x0+Math.round(1.3*32),hw=20,ty=8+wallH-50;for(let y=ty;y<8+wallH;y++)for(let x=tx-hw;x<=tx+hw;x++){const t=(y-ty)/50;P(A,x,y,[Math.round(10+t*20),Math.round(10+t*22),Math.round(14+t*30)]);}
+      for(let k=0;k<50;k++){const t=k/50,y=8+wallH-1-k,sp=Math.round(7-t*5);for(const s of [-1,1]){const c=t<.4?PAL.stone[2]:t<.75?PAL.stone[1]:[30,32,40];P(A,tx+s*sp,y,c);}if(k%7===0&&t<.8)for(let i=-sp-2;i<=sp+2;i++)P(A,tx+i,y,t<.4?WD[1]:[26,22,24]);}
+      for(const s of [-1,1]){const px2=tx+s*(hw+2);for(let y=ty-2;y<8+wallH;y++){P(A,px2-2,y,WD[4]);P(A,px2-1,y,WD[3]);P(A,px2,y,WD[2]);P(A,px2+1,y,WD[2]);P(A,px2+2,y,WD[0]);}}
+      for(let x=tx-hw-5;x<=tx+hw+5;x++){P(A,x,ty-6,WD[4]);P(A,x,ty-5,WD[3]);P(A,x,ty-4,WD[3]);P(A,x,ty-3,WD[2]);P(A,x,ty-2,WD[0]);}}
     for(let x=x0;x<x0+fw;x++){P(A,x,8,WD[4]);P(A,x,9,WD[3]);P(A,x,10,WD[3]);P(A,x,11,WD[2]);P(A,x,12,WD[1]);P(A,x,13,WD[0]);}
-    for(const px of PX){for(let y=12;y<8+wallH;y++){P(A,px-3,y,WD[4]);P(A,px-2,y,WD[3]);P(A,px-1,y,WD[3]);P(A,px,y,WD[2]);P(A,px+1,y,WD[2]);P(A,px+2,y,WD[1]);P(A,px+3,y,WD[0]);}
-      const LY=8+wallH-36;for(let j=0;j<11;j++)for(let i=-4;i<=4;i++){const ly=LY+j;if(j===0&&Math.abs(i)>2)continue;let c=j<2||j===10?PAL.stone[1]:(Math.abs(i)===4?PAL.stone[2]:[255,214,140]);if(j>=4&&j<=7&&Math.abs(i)<3)c=[255,246,214];if(i===-3&&j>1&&j<10)c=PAL.stone[3];P(A,px+i,ly,c);}   /* (r11) a lantern big enough to be the source of its light */
+    for(const [pi,px] of PX.entries()){for(let y=12;y<8+wallH;y++){P(A,px-3,y,WD[4]);P(A,px-2,y,WD[3]);P(A,px-1,y,WD[3]);P(A,px,y,WD[2]);P(A,px+1,y,WD[2]);P(A,px+2,y,WD[1]);P(A,px+3,y,WD[0]);}
+      const LY=8+wallH-36;for(let j=0;j<11;j++)for(let i=-4;i<=4;i++){const ly=LY+j;if(j===0&&Math.abs(i)>2)continue;let c=j<2||j===10?PAL.stone[1]:(Math.abs(i)===4?PAL.stone[2]:(LIT[pi]?[255,214,140]:[44,46,52]));if(j>=4&&j<=7&&Math.abs(i)<3)c=LIT[pi]?[255,246,214]:[58,60,66];if(i===-3&&j>1&&j<10)c=PAL.stone[3];P(A,px+i,ly,c);}   /* (r11) a lantern big enough to be the source of its light */
       P(A,px,LY-2,PAL.stone[2]);P(A,px,LY-1,PAL.stone[1]);}}
   if(R.theme==='glass'){for(let y=8;y<8+wallH;y++)for(let x=x0;x<x0+fw;x++){const i=(x-x0)%24,j=(y-8)%20;let c=N?PAL.ink[1]:PAL.glass[(y-8)<wallH*.5?4:3];if(!N&&(x+y)%23===0)c=PAL.glass[5];if(i===0||j===0)c=TR[3];P(A,x,y,c);}}
   // ceiling beam line, crown moulding
@@ -137,15 +142,16 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
     const crack=(cx,cy,n,dir,depth)=>{for(let i=0;i<n;i++){P(A,cx,cy,RK[0]);P(A,cx,cy+1,mixC(RK[2],RK[3],.6));cx+=dir;if(hsh(cx,cy,61)>.55)cy+=hsh(cy,cx,62)>.5?1:-1;
         if(depth<1&&i===(n>>1))crack(cx,cy,n>>1,dir,depth+1),cy+=2;}};
     for(let c=0;c<5;c++){const fromL=c%2===0;crack(fromL?x0+5:x0+fw-6,top+20+(hsh(c,4,5)*(fd-40)|0),22+(hsh(c,5,5)*14|0),fromL?1:-1,0);}
-    {const dx=x0+Math.round(1.3*32),r1=dx-7,r2=dx+6,y0t=top+8;   /* (r10) along the left wall: the middle stays open for the ore */ for(let y=y0t;y<top+fd;y++){if((y-y0t)%9<3){for(let x=r1-4;x<=r2+4;x++)P(A,x,y,(y-y0t)%9===0?WD[3]:WD[(y-y0t)%9===1?2:1]);}
-        for(const rx of [r1,r2]){P(A,rx,y,PAL.stone[4]);P(A,rx+1,y,PAL.stone[2]);P(A,rx+2,y,RK[0]);}}
-      for(let x=r1-5;x<=r2+7;x++){P(A,x,y0t-5,WD[4]);P(A,x,y0t-4,WD[3]);P(A,x,y0t-3,WD[3]);P(A,x,y0t-2,WD[2]);P(A,x,y0t-1,WD[0]);}   // the buffer beam
-      for(const bx of [r1-5,r2+6]){P(A,bx,y0t-5,WD[5]);P(A,bx,y0t-4,PAL.stone[4]);}}}
+    {const dx=x0+Math.round(1.3*32),r1=dx-7,r2=dx+6,y0t=top+1;   /* (r10) along the left wall: the middle stays open for the ore */ for(let y=y0t;y<top+fd;y++){if((y-y0t)%9<3){for(let x=r1-4;x<=r2+4;x++)P(A,x,y,(y-y0t)%9===0?WD[3]:WD[(y-y0t)%9===1?2:1]);}
+        for(const rx of [r1,r2]){P(A,rx,y,PAL.stone[4]);P(A,rx+1,y,PAL.stone[2]);P(A,rx+2,y,RK[0]);}}}}
   if(R.theme==='glass'){tilesF(A,x0,top,fw,fd,ST,16);const s0x=x0+32,s0y=top+38,sw=7*32,sh=4*32;for(let y=s0y-3;y<s0y+sh+3;y++)for(let x=s0x-3;x<s0x+sw+3;x++){const edge=x<s0x||y<s0y||x>=s0x+sw||y>=s0y+sh;
     const n=hsh(x>>2,y>>2,6)*.6+hsh(x,y,7)*.4;P(A,x,y,edge?WD[y<s0y?4:1]:(n>.75?[150,104,64]:n<.25?[92,60,36]:[120,82,50]));}}
   // skirting where floor meets the back wall + ambient occlusion
   rect(A,x0,top-8,fw,8,WD[1]);hl(A,x0,top-8,fw,WD[3]);for(let y=0;y<10;y++)for(let x=x0;x<x0+fw;x++){const c=G(A,x,top+y);if(c)P(A,x,top+y,shade(c,.62+y*.038));}
   for(let y=top;y<front;y++)for(let x=0;x<14;x++){for(const xx of [x0+x,x0+fw-1-x]){const c=G(A,xx,y);if(c)P(A,xx,y,shade(c,.66+x*.024));}}
+  if(R.theme==='mine'){const tx=x0+Math.round(1.3*32),hw=20;for(let y=top-8;y<top;y++){const k=top-1-y,t=k/50,sp=Math.round(7-t*5);   /* the drift runs through the skirting to the floor */
+      for(let x=tx-hw;x<=tx+hw;x++)P(A,x,y,[Math.round(10+(1-t)*20),Math.round(10+(1-t)*22),Math.round(14+(1-t)*30)]);
+      if(k%7===0)for(let i=-sp-2;i<=sp+2;i++)P(A,tx+i,y,WD[1]);for(const s of [-1,1])P(A,tx+s*sp,y,PAL.stone[2]);}}
   // ---- depth: the back wall darkens toward the ceiling, the floor darkens away from the windows
   for(let y=8;y<8+wallH;y++){const k=.7+.3*Math.min(1,(y-8)/36);for(let x=x0;x<x0+fw;x++){const c=G(A,x,y);if(c)P(A,x,y,shade(c,k));}}
   for(let y=top;y<front;y++){const k=1-.12*((y-top)/fd);for(let x=x0;x<x0+fw;x++){const c=G(A,x,y);if(c)P(A,x,y,shade(c,k));}}
