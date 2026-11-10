@@ -112,26 +112,34 @@ function stgGatePost(X,Y){const o='#1a120c';ctx2.fillStyle=o;ctx2.fillRect(X-3,Y
   ctx2.fillStyle='#7a5a3a';ctx2.fillRect(X-2,Y-23,5,23);ctx2.fillStyle='#9a7650';ctx2.fillRect(X-2,Y-23,2,23);ctx2.fillStyle='#5a4028';ctx2.fillRect(X+2,Y-23,1,23);
   ctx2.fillStyle='#86643e';ctx2.fillRect(X+3,Y-18,20,2);ctx2.fillRect(X+3,Y-10,20,2);ctx2.fillStyle='#a07a52';ctx2.fillRect(X+3,Y-18,20,1);ctx2.fillRect(X+3,Y-10,20,1);
   ctx2.fillStyle='#6a4c30';ctx2.fillRect(X+23,Y-20,3,20);ctx2.fillStyle='#4a3420';ctx2.fillRect(X-3,Y+1,30,1);}
+function stgFence(X0,X1,Y,gx,open){const o='#1a120c';   // a split-rail fence across the screen with a framed gate (gx = gate centre, px)
+  for(let x=X0;x<=X1;x+=26){if(Math.abs(x-gx)<18)continue;ctx2.fillStyle=o;ctx2.fillRect(x-3,Y-22,6,23);ctx2.fillStyle='#7a5a3a';ctx2.fillRect(x-2,Y-21,4,21);ctx2.fillStyle='#9a7650';ctx2.fillRect(x-2,Y-21,1,21);}
+  for(const ry of [Y-17,Y-9]){for(const [a,b] of [[X0,gx-17],[gx+17,X1]]){ctx2.fillStyle=o;ctx2.fillRect(a,ry-1,b-a,4);ctx2.fillStyle='#86643e';ctx2.fillRect(a,ry,b-a,2);ctx2.fillStyle='#a07a52';ctx2.fillRect(a,ry,b-a,1);}}
+  for(const px of [gx-17,gx+17]){ctx2.fillStyle=o;ctx2.fillRect(px-3,Y-26,7,27);ctx2.fillStyle='#6a4c30';ctx2.fillRect(px-2,Y-25,5,25);ctx2.fillStyle='#8a6a48';ctx2.fillRect(px-2,Y-25,2,25);}   // the gate posts, taller
+  const w=Math.round(30*(1-open*.75)),gx0=gx-14;ctx2.fillStyle=o;ctx2.fillRect(gx0-1,Y-21,w+2,19);ctx2.fillStyle='#8e6a44';ctx2.fillRect(gx0,Y-20,w,3);ctx2.fillRect(gx0,Y-7,w,3);ctx2.fillRect(gx0,Y-20,3,17);ctx2.fillRect(gx0+w-3,Y-20,3,17);
+  ctx2.fillStyle='#a88058';ctx2.fillRect(gx0,Y-20,w,1);for(let i=0;i<w-4;i++){const yy=Math.round(Y-17+i*(10/(w-4)));ctx2.fillStyle='#7a5a3a';ctx2.fillRect(gx0+2+i,yy,2,2);}   // the brace
+  ctx2.fillStyle='#2a2a2e';ctx2.fillRect(gx0+w-4,Y-14,3,2);}
 function stgCaitlynGate(done){const d=doorPos;MAEV.on=false;
-  const post={x:d.x-6.9,z:d.z+3.15},mae={x:d.x-6.25,z:d.z+3.3},meet={x:d.x-1.45,z:d.z+1.6},you={x:d.x+.05,z:d.z+1.25};let phone=1;
-  stage({hour:Math.max(9.5,Math.min(S.hour,16)),player:{x:you.x,z:you.z,dir:'N'},cast:{mae:{x:mae.x,z:mae.z,dir:'E'}},cam:{x:d.x-3.2,z:d.z+3.1},
-    props:[{x:post.x,z:post.z-.05,draw(X,Y){stgGatePost(X,Y);}},
-           {get x(){return npcById('mae').x;},get z(){return npcById('mae').z+.02;},draw(X,Y,t){if(phone<=0)return;const ry=Math.round(-36+(1-phone)*14);
-             ctx2.fillStyle='#120c08';ctx2.fillRect(X+3,Y+ry,6,9);ctx2.fillStyle=(Math.sin(t*2.6)>-.2)?'#a8e0f4':'#78b8d8';ctx2.fillRect(X+4,Y+ry+1,4,6);   // the phone, no bars
-             ctx2.fillStyle='#e8c0a0';ctx2.fillRect(X+3,Y+ry+8,4,2);}}],
-    light(L){},
+  const gate={x:d.x-1.3,z:d.z+4.7},mae={x:gate.x+.05,z:gate.z+.55},you0={x:d.x+.05,z:d.z+1.25},youM={x:gate.x+.15,z:gate.z-.85},in1={x:gate.x-.75,z:gate.z-.8};
+  let phone=1,open=0;const CAM={x:d.x-.9,z:d.z+3.55};
+  stage({hour:Math.max(9.5,Math.min(S.hour,16)),player:{x:you0.x,z:you0.z,dir:'N'},cast:{mae:{x:mae.x,z:mae.z,dir:'N'}},cam:CAM,
+    props:[{x:gate.x,z:gate.z+.06,draw(X,Y){stgFence(X-150,X+150,Y,X,open);}},
+           {get x(){return npcById('mae').x;},get z(){return npcById('mae').z+.02;},draw(X,Y,t){if(phone<=0)return;const ry=Math.round(-40+(1-phone)*18);   // the phone held up, lit, no bars
+             ctx2.fillStyle='rgba(150,210,240,.18)';ctx2.fillRect(X+1,Y+ry-3,12,16);ctx2.fillStyle='#120c08';ctx2.fillRect(X+3,Y+ry,8,11);ctx2.fillStyle=(Math.sin(t*2.4)>-.3)?'#b8e8fa':'#88c4e0';ctx2.fillRect(X+4,Y+ry+1,6,8);
+             ctx2.fillStyle='#e8c0a0';ctx2.fillRect(X+3,Y+ry+10,5,2);}}],
     beats:[
-      {hold:1.1,face:{you:'N'}},
+      {hold:1.0,face:{you:'N'},act(){stgEmote('mae','…',2.2);}},
       {hold:.9,face:{you:'S'},emote:{you:'?'}},
-      {hold:.8,cam:{x:d.x-4.6,z:d.z+3.0},update(dt){phone=Math.max(.001,phone);}},
-      {who:'mae',text:'Oh. Hi.',expr:'surprised',emote:{mae:'!'},update(dt){phone=Math.max(0,phone-dt*1.4);}},
-      {who:'mae',text:'You must be Elias’s grandkid. You have his walk.',go:{mae:[meet.x,meet.z]},face:{mae:'E',you:'W'},cam:{x:d.x-.75,z:d.z+1.75},wait:'arrive',act(){phone=0;}},
+      {hold:.2,go:{you:[[you0.x,youM.z-1.2],[youM.x,youM.z]]},face:{you:'S'},wait:'arrive'},
+      {who:'mae',text:'Oh. Hi.',expr:'surprised',emote:{mae:'!'},update(dt){phone=Math.max(0,phone-dt*1.2);}},
+      {who:'mae',text:'You must be Elias’s grandkid. You have his walk.',act(){phone=0;}},
       {who:'mae',text:'I’m Caitlyn. I run the store in town. Coyle’s.',expr:'happy'},
       {who:'mae',text:'He asked me to look in on you, if you ever came. He said you wouldn’t. I said you would.',expr:'neutral'},
-      {who:'mae',text:'I win.',expr:'smug',wait:.6},
-      {who:'mae',text:'Let me show you how this place works. Then you’ll have a chance, at least.',face:{mae:'S'},cam:{x:d.x-.6,z:d.z+2.4},expr:'think'},
+      {who:'mae',text:'I win.',expr:'smug',wait:.5,emote:{mae:'♪'}},
+      {who:'mae',text:'Let me show you how this place works. Then you’ll have a chance, at least.',expr:'think',update(dt){open=Math.min(1,open+dt*1.6);},
+        go:{mae:[[mae.x,gate.z-.25],[in1.x,in1.z]],you:[youM.x+.35,youM.z]},face:{mae:'E',you:'W'},speed:{mae:1.0,you:.8},wait:'arrive'},
     ],
-    after(){P.x=you.x;P.z=you.z;P.dir='W';},
+    after(){P.x=youM.x+.35;P.z=youM.z;P.dir='W';},
     done(){maeCome(14,true);done&&done();}});}
 
 // 2. The drawing, in the church.  (r1 judges: "the beats are told, not shown": the empty seat is lit and you sit in it; the
@@ -164,20 +172,23 @@ function stgDrawing(done){const R=ROOMS.church,ox=R.ox,oz=R.oz;const at=(x,z)=>(
       {text:'Your name, spelled the way Grandpa spelled it. Not the way you spell it. Somehow more right.',wait:.3},
       {hold:2.4,act(){clap=1;SFX.clap&&SFX.clap();}},
       {hold:1.6,act(){clap=0;},face:{mae:'W'},emote:{mae:'💧'}},
-      {hold:1.5,act(){hand=1;P.clip='sit';stgEmote('you','!');SFX.stinger&&SFX.stinger();}},
-      {hold:1.4,act(){hand=0;P.clip='idle';P.dir='S';}}];
+      {hold:2.4,cam:{x:gap.x+.8,z:gap.z+.2},update(dt){hand=Math.min(1,(hand||.001)+dt*1.8);if(hand>=1&&!this._b){this._b=1;stgEmote('you','!',1.8);SFX.stinger&&SFX.stinger();}},act(){P.clip='sit';}},
+      {hold:1.6,act(){hand=0;P.clip='idle';P.dir='S';}}];
   stage({room:'church',hour:Math.max(S.hour,18.2),keepHour:true,player:{x:door.x,z:door.z,dir:'N'},cast,cam:{x:CAM.x,z:CAM.z+1.6},lead:900,
     light(L){glowAt(sx(ox+5),sz(oz+2.2)-18,120,[255,190,110],.32);glowAt(sx(ox+2.5),sz(oz+1.1)-30,46,[255,200,120],.35);glowAt(sx(ox+7.5),sz(oz+1.1)-30,46,[255,200,120],.35);},
     props:[
       {x:gap.x,z:gap.z-.04,draw(X,Y,t){if(!seatLit)return;ctx2.fillStyle=`rgba(255,226,170,${.35+.15*Math.sin(t*2)})`;ctx2.fillRect(X-7,Y-9,14,5);}},   // the empty seat, lit
-      {x:ox+5,z:oz+2.55,draw(X,Y,t){if(hatUp>0){const k=hatUp,sx0=X+6,sy0=Y-27,hx=X+10+Math.round(k*3),hy=Y-40-Math.round(k*22);
+      {x:ox+5,z:oz+2.55,draw(X,Y,t){if(hatUp>0){const k=hatUp,sx0=X+6,sy0=Y-27,hx=X+12+Math.round(k*12),hy=Y-30-Math.round(k*12);
           for(let i=0;i<=8;i++){const u=i/8,ax=Math.round(sx0+(hx-sx0)*u),ay=Math.round(sy0+(hy+6-sy0)*u);ctx2.fillStyle='#120c0a';ctx2.fillRect(ax-1,ay,4,2);ctx2.fillStyle='#2a2430';ctx2.fillRect(ax,ay,2,1);}
           ctx2.fillStyle='#120c0a';ctx2.fillRect(hx-1,hy+4,4,4);ctx2.fillStyle='#e0b898';ctx2.fillRect(hx,hy+5,2,2);stgHat2(hx+1,hy-2);}
         if(slip){ctx2.fillStyle='#120c08';ctx2.fillRect(X-13,Y-31,10,8);ctx2.fillStyle='#f4ecd8';ctx2.fillRect(X-12,Y-30,8,6);ctx2.fillStyle='#5a4a3a';ctx2.fillRect(X-11,Y-28,6,1);if(slip>1)ctx2.fillRect(X-11,Y-26,4,1);}}},
-      {x:0,z:1e5,draw(X,Y,t){if(!clap)return;for(const id of seated){const n=npcById(id);if(!n)continue;const ph=(Math.floor(t*5)+id.length)%2;if(!ph)continue;   // the clapping
-          const nx=sx(n.x),ny=sz(n.z)-22;ctx2.fillStyle='#f4e8cc';ctx2.fillRect(nx-3,ny,2,1);ctx2.fillRect(nx+2,ny,2,1);ctx2.fillRect(nx,ny-2,1,2);}}},
-      {get x(){return P.x;},get z(){return P.z+.01;},draw(X,Y){if(!hand)return;const o='#060404';ctx2.fillStyle=o;   // a hand on your shoulder: long grey fingers
-          ctx2.fillRect(X+2,Y-28,9,3);ctx2.fillRect(X+8,Y-31,5,4);ctx2.fillRect(X+1,Y-27,2,4);ctx2.fillRect(X+4,Y-26,2,4);ctx2.fillRect(X+7,Y-26,2,3);ctx2.fillStyle='#8a8478';ctx2.fillRect(X+3,Y-27,7,1);ctx2.fillRect(X+2,Y-26,1,2);ctx2.fillRect(X+5,Y-25,1,2);}}],
+      {x:0,z:1e5,draw(X,Y,t){for(const id of seated){const n=npcById(id);if(!n||!n._seat)continue;const ph=(Math.floor(t*6)+id.length)%2;n._seat.lift=clap&&ph?4:2;   // the clapping: the pews bob
+          if(!clap||!ph)continue;const nx=sx(n.x),ny=sz(n.z)-26;ctx2.fillStyle='#fff4dc';ctx2.fillRect(nx-5,ny,3,2);ctx2.fillRect(nx+3,ny,3,2);ctx2.fillRect(nx-1,ny-3,2,3);}}},
+      {get x(){return P.x;},get z(){return P.z+.01;},draw(X,Y){if(!hand)return;const k=Math.min(1,hand);   // a long grey arm over the pew behind, a hand on your shoulder
+          const ax=X+24,ay=Y+10,hx=X+5,hy=Y-29,ex=Math.round(ax+(hx-ax)*k),ey=Math.round(ay+(hy-ay)*k);
+          for(let i=0;i<=14;i++){const u=i/14,px=Math.round(ax+(ex-ax)*u),py=Math.round(ay+(ey-ay)*u);ctx2.fillStyle='#060404';ctx2.fillRect(px-2,py-1,5,4);ctx2.fillStyle='#8c8678';ctx2.fillRect(px-1,py,3,1);}
+          if(k>=1){ctx2.fillStyle='#060404';ctx2.fillRect(hx-2,hy-2,12,6);ctx2.fillRect(hx-3,hy+2,3,6);ctx2.fillRect(hx+1,hy+3,3,6);ctx2.fillRect(hx+5,hy+3,3,5);ctx2.fillRect(hx+8,hy+2,3,4);
+            ctx2.fillStyle='#a8a294';ctx2.fillRect(hx-1,hy-1,10,3);ctx2.fillRect(hx-2,hy+2,1,5);ctx2.fillRect(hx+2,hy+3,1,5);ctx2.fillRect(hx+6,hy+3,1,4);ctx2.fillRect(hx+9,hy+2,1,3);}}}],
     beats:[
       {hold:.6},
       {hold:2.6,go:{you:[ox+5,oz+5.7]},cam:{x:CAM.x,z:CAM.z+.8}},
@@ -193,8 +204,41 @@ function stgDrawing(done){const R=ROOMS.church,ox=R.ox,oz=R.oz;const at=(x,z)=>(
     ],
     done});}
 
+
+// 3. every other story scene: it plays where you are. The person comes and stands beside you (walking in from off-screen if
+// they are not near), the camera frames the two of you, the scene's title shows for a moment, and the text is split into what
+// is said (their portrait, the face read from the words, a bubble over their head) and the little that is narrated.
+(function(){const e=document.createElement('div');e.id='stgTitle';document.body.appendChild(e);
+  const c=document.createElement('style');c.textContent='#stgTitle{position:fixed;left:50%;top:calc(8.5vh + 10px);transform:translateX(-50%);z-index:61;pointer-events:none;color:#e8b860;font-size:15px;letter-spacing:2px;opacity:0;transition:opacity .6s;text-shadow:0 2px 0 #000;background:rgba(10,8,8,.6);padding:4px 14px;border:1px solid #4a3828}#stgTitle.on{opacity:1}';document.head.appendChild(c);})();
+function stgTitle(t){const e=$('stgTitle');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),2600);}
+const STG_BUBBLE={love:'♥',surprised:'!',scared:'!',sad:'…',cry:'💧',laugh:'♪',think:'?',angry:'#',wrong:'…'};
+function stgParse(html,id){const beats=[];const paras=html.split(/<br>\s*<br>/).map(s=>s.trim()).filter(Boolean);
+  const clean=t=>t.replace(/<(?!\/?(b|i|em)\b)[^>]+>/g,'').replace(/\s+/g,' ').trim();
+  const tag=t=>/^[^.]{0,28}\b(says|said|asks|asked|whispers|adds|answers|murmurs|replies)\b[^.]{0,20}[.,]?$/i.test(t)||/^[,.;:—–-]+$/.test(t);
+  for(const p of paras){const re=/<q>([\s\S]*?)<\/q>/g;let last=0,m;
+    while((m=re.exec(p))){const pre=clean(p.slice(last,m.index));if(pre.length>2&&!tag(pre))beats.push({text:pre});beats.push({who:id,text:clean(m[1])});last=re.lastIndex;}
+    const post=clean(p.slice(last));if(post.length>2&&!tag(post))beats.push({text:post});}
+  // merge a run of one speaker's short lines; give each spoken line a bubble from its feeling
+  for(const b of beats)if(b.who&&typeof emotionOf==='function'){const ex=emotionOf(b.who,b.text);b.expr=ex;const k=STG_BUBBLE[ex];if(k)b.emote={[b.who]:k};}
+  return beats;}
+function stgGeneric(id,title,html,done){const n=npcById(id);const beats=stgParse(html,id);
+  if(!beats.length){done&&done();return;}
+  const room=S.room||null;const px=P.x,pz=P.z;const free=(x,z)=>{try{return typeof mFree!=='function'||mFree(x,z);}catch(e){return true;}};
+  let side=null;for(const [dx,dz] of [[1.35,.1],[-1.35,.1],[0,1.25],[1.1,1.0],[-1.1,1.0],[0,-1.25]]){if(free(px+dx,pz+dz)){side=[dx,dz];break;}}if(!side)side=[1.2,.2];
+  const mark={x:px+side[0],z:pz+side[1]};const cast={};let walk=null;const vEnc=id==='mae'&&MAEV.on;if(vEnc)MAEV.on=false;
+  if(n){const near=n.vis&&((n.room||null)===room)&&Math.hypot(n.x-px,n.z-pz)<7;
+    const st=near?{x:n.x,z:n.z}:{x:px+Math.sign(side[0]||1)*5.2,z:pz+side[1]};cast[id]={x:st.x,z:st.z,dir:dirOf(mark.x-st.x,mark.z-st.z)};
+    if(Math.hypot(st.x-mark.x,st.z-mark.z)>.2)walk=[mark.x,mark.z];}
+  const faceYou=dirOf(px-mark.x,pz-mark.z),faceThem=dirOf(mark.x-px,mark.z-pz);
+  const cam={x:(px+mark.x)/2,z:(pz+mark.z)/2+.9};
+  const first={hold:.25,act(){stgTitle((n?n.def.name+' — ':'')+title);}};if(walk){first.go={[id]:walk};first.face={[id]:faceYou,you:faceThem};first.wait='arrive';first.hold=0;}
+  else first.face={[id]:faceYou,you:faceThem};
+  stage({player:{x:px,z:pz,dir:faceThem},cast,cam,lead:300,beats:[first,...beats],keepCast:true,
+    done(){if(vEnc){MAEV.on=true;MAEV.x=mark.x;MAEV.z=mark.z;}done&&done();}});}
+
 // the old text scenes now play on stage
 {const _ps=playScene;playScene=function(id,title,html,done){
   if(title==='Caitlyn drops by'&&!STG)return stgCaitlynGate(done);
   if(title==='The drawing'&&!STG)return stgDrawing(done);
+  if(!STG&&S.mode==='play'&&!S.paused&&!title.endsWith(' '))return stgGeneric(id,title,html,done);   // (a trailing space keeps the old card: used for A/B captures)
   return _ps(id,title,html,done);};}
