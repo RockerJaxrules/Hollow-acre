@@ -583,6 +583,8 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - In a turned view, every loose thing keeps its own footprint: a stool beside the keyboard stands on the floor at its own depth (up the screen), not on the case's near floor line, or its legs grow three times too long.
 - The side of a shelf or cabinet reads as that object only if its open edge shows what is on the shelves, row by row, brighter than the end panel; a blank panel under a long lid reads as a post or clock case.
 
+- A tall narrow side view needs its lid a full step lighter than the end panel and the contents strip wider (5-6 px) and brighter than the panel, or it reads as a post or clock case; a candle flame must be 3-4 px with a pale core and the brightest thing on the piece.
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline
