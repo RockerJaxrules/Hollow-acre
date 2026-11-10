@@ -929,6 +929,7 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Anything lying on a seat makes it a table: put the tin or brush on the floor; a darker back rail with a gap of shadow above the seat says "sit here".
 
 ## Resources and items (#198, Nov 10)
+- [repeated r9] READ THE ITEM'S NAME AND DESCRIPTION IN THE GAME BEFORE DRAWING ITS ICON (grep its ITEMS entry, and its cooking or making game for its colours). r5: the 'flask' is the lamp-oil flask. r9: the soup is turnip soup with a golden broth; the mushroom is the glowcap and must glow.
 - A family of nodes made from one stamped dome with different flecks reads as one rock: give every material its own shape at 1x (coal as angular black lumps standing proud, copper as fat nuggets, iron as oxide and silver glints, gem as crystals breaking the outline, stone as a slab with moss and a crack), and give each node its own silhouette.
 - A node and its drop must match: the icon is the same material, a hand-sized chunk, not the boulder shrunk.
 - Rust drawn as maroon blocks reads as raw meat or blood: rust is ragged orange-brown oxide bleeding down from cracks, with an ochre step where it catches the light.
@@ -942,7 +943,6 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - (r4) Detail grouped by light (clumps, plates) beats even detail everywhere: chaga is 2-3 big crust plates and one broken face of rust-orange flesh, not twenty facets; the bark it grows on must stay darker than white or it steals the eye.
 - (r4) A metal bottle with a ball stopper and round shoulders reads as a decanter whatever its band: a hip flask needs a flat cap on a short neck and square shoulders.
 - (icons) Steam drawn as zigzag hairs reads as hair or stink lines: 2-3 soft puffs, lit on the top-left, see-through, with no outline.
-- [r5] READ THE ITEM'S NAME AND DESCRIPTION IN THE GAME BEFORE DRAWING ITS ICON. Two rounds were spent drawing a hip flask for 'it_flask', which is the lamp-oil flask that refills the lantern.
 - (r5) Steam puffs pass at 6 but must be pale and see-through with no dark lower edge; opaque mid-grey stacks read as cauliflower.
 - (r5) A fix too small to see at 3x ties with the old one (twig tip, rock crack, straw dulled one step): change enough pixels to read at 1x, or leave it.
 - (r5) Dulling a cap or a coat toward the brown inventory colour makes it vanish; keep dark subjects a value step off the background and give them a lit rim.
