@@ -35,7 +35,7 @@ const PRIV={
     look:[4.2,1.45,'A ledger of every animal Ezra has kept: forty years of names in pencil, and the day each one went. In October, every year, the names stop being animals’ names.']},
   home_lusk:{key:'priv_lusk',name:'Corwin’s back room',home:'lusk',pdoor:9.3,owners:['corwin'],spots:{corwin:[3.5,2.9]},
     no:'Corwin shakes his head once. “Employees only.” There have never been any employees.',
-    furn:[['in_bed',5.9,2.6,BEDF],PF('in_desk_steel',2.2,.95,.45),PF('in_clock',4.7,.55,.3),PF('in_chairN',2.2,1.55,.2),PF('in_gasdrum',.75,4.3,.35),PF('in_oilrack',6.35,4.45,.3)],
+    furn:[['in_bedplain',5.9,2.6,BEDF],PF('in_desk_steel',2.2,.95,.45),PF('in_clock',4.7,.55,.3),PF('in_chairN',2.2,1.55,.2),PF('in_gasdrum',.75,4.3,.35),PF('in_oilrack',6.35,4.45,.3)],
     look:[2.2,1.45,'A 1979 calendar from the Lusk Oil Company. Every day is crossed out in pen up to October. October has been crossed out so many times the page has torn through.']},
   home_harlow:{key:'priv_harlow',name:'The innkeepers’ rooms',home:'harlow',pdoor:12.9,owners:['tess','hob'],spots:{tess:[2.6,3.1],hob:[4.6,3.3]},
     no:'Tess catches your sleeve, kindly. “Guests stay out front, love.”',

@@ -208,7 +208,7 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
     let k=.9,t=0;if(dB<12)t=Math.max(t,(12-dB)/12*.42);if(dS<9)t=Math.max(t,(9-dS)/9*.32);
     P(A,x,y,[c[0]*k*(1-t)+PL[0]*t|0,c[1]*k*(1-t)+PL[1]*t|0,c[2]*k*(1-t)+PL[2]*t|0]);}}
   // ---- sunlight through each window: a hard-edged patch thrown down and to the right, two steps of light, the window's glazing bars crossing it (day only)
-  if(!N&&R.theme!=='mine')for(const w of (R.theme==='glass'?[[1.5,0,44],[4.5,0,44],[7.5,0,44]]:(R.windows||[]))){   // (r8) a glass wall throws daylight too
+  if(!N&&R.theme!=='mine'&&!R.noSun)for(const w of (R.theme==='glass'?[[1.5,0,44],[4.5,0,44],[7.5,0,44]]:(R.windows||[]))){   // (r8) a glass wall throws daylight too
   /* (b14: "see-through diagonal light stripes") a compact patch the shape of the window, thrown a little way out from the wall, two flat tones
      that wash out the floor's grain, the glazing cross showing as the floor's own colour */
   const ww=w[2]||28,wh=w[4]||34,wx=Math.round(x0+w[0]*32-ww/2),   /* (b14) a fractional x made every G() miss: windows at 3.8 or 4.6 threw no light at all */

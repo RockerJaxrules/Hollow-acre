@@ -44,7 +44,7 @@ ROOMS = {
   'home_rust': dict(w=8, d=6, door=4, theme='home', paper='rust', windows=[[2, 0], [6, 0]]),
   'home_blue': dict(w=8, d=6, door=4, theme='home', paper='blue', windows=[[2, 0], [6, 0]]),
   'home_sage': dict(w=8, d=6, door=4, theme='home', paper='sage', windows=[[2, 0], [6, 0]]),
-  'chapel': dict(w=8, d=7, door=4, theme='home', wall='panel', floor='wide', windows=[[4, 0, 22, 8, 50]], lancet=True, sunY=76, sunSk=0.3, dapple=True, floorK=[0.78, 0.8, 0.88], mat='red'),
+  'chapel': dict(w=8, d=7, door=4, theme='home', wall='panel', floor='wide', windows=[[4, 0, 22, 8, 50]], lancet=True, noSun=True, sunY=76, sunSk=0.3, dapple=True, floorK=[0.78, 0.8, 0.88], mat='red'),
   'church': dict(w=10, d=8, door=5, theme='church', windows=[[1.5, 0, 22, 8, 50], [3.8, 0, 22, 8, 50], [6.2, 0, 22, 8, 50], [8.5, 0, 22, 8, 50]]),
   'garage': dict(w=9, d=6, door=6.8, theme='garage', windows=[[2, 0, 30, 8, 26]]),
   'mine': dict(w=11, d=8, door=5.5, theme='mine', windows=[]),

@@ -441,6 +441,15 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors b32] Long sun-shadow wedges from every piece read as stains in a small room that already has contact shadows:
   keep day shadows short and soft there.
 
+- [interiors b33] A fire's light drawn row by row ends in a straight bottom edge and reads as a lampshade; build it column by
+  column so it widens from the mouth and every column stops at its own length.
+- [interiors b33] A wall lantern's light must start at the lantern: a glow on the wall round it, then a fan down from the
+  wall's foot. An oval on the floor below reads as a rug or a tabletop.
+- [interiors b33] A cot drawn head-up with straight side rails reads as a standing screen or locker; a camp cot reads lying
+  side-on, crossed legs showing, the sleeping bag at one end.
+- [interiors b33] A stained-glass patch misread three ways in three rounds (shield, paper, quilt, net): when a piece of light
+  keeps misreading, cut it.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).
