@@ -1246,5 +1246,32 @@ if(K==='trapdoor'){const x0=2,y0=2,w=W-4,h=H-6,R=RAMP.walnut;   // a trapdoor in
   for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++)P(A,x,y,RAMP.oak[(x-x0)%9===0?1:(y===y0?4:((x-x0)%9===1?4:3))]);
   hl(A,x0,y0+h-1,w,RAMP.walnut[0]);hl(A,x0,y0+h,w,RAMP.walnut[0]);for(const hy of [y0+4,y0+h-6]){for(let i=0;i<14;i++){P(A,x0+1+i,hy,RAMP.ironW[i<2?4:3]);P(A,x0+1+i,hy+1,RAMP.ironW[1]);}P(A,x0+15,hy,RAMP.ironW[2]);}   // long iron strap hinges; the slit of black
   {const rx=x0+w-9,ry=y0+(h>>1);for(let a=0;a<12;a++){const t=a/12*Math.PI*2;P(A,Math.round(rx+Math.cos(t)*2.5),Math.round(ry+Math.sin(t)*2),t>Math.PI?RAMP.ironW[5]:RAMP.ironW[2]);}P(A,rx-3,ry-2,RAMP.ironW[3]);}}   // a ring big enough to lift by
+// =================================================================================== things on tables: books, a candle, an oil lamp, a mug, a plate, a vase of dead flowers
+if(K==='tbooks'){const base=H-3;   // three books stacked, each its own colour, lit along the top, the pages pale at the ends, a ribbon hanging
+  for(const [x0,y0,w,C] of [[2,base-2,17,RAMP.brick],[3,base-5,15,RAMP.green],[2,base-8,16,RAMP.blue]]){for(let i=0;i<w;i++){P(A,x0+i,y0,C[i===0?4:3]);P(A,x0+i,y0+1,C[i===0?3:2]);P(A,x0+i,y0+2,C[1]);}
+    for(let j=0;j<3;j++)P(A,x0+w,y0+j,RAMP.cream[j===0?5:4]);hl(A,x0,y0,w,C[5]);}
+  P(A,8,base-5,RAMP.ochre[4]);P(A,8,base-4,RAMP.ochre[3]);P(A,8,base-3,RAMP.ochre[3]);P(A,9,base-2,RAMP.ochre[2]);}
+if(K==='tcandle'){const base=H-3,cx=W>>1;   // a candle in a brass dish, wax run down one side, lit
+  for(let x=-4;x<=4;x++){P(A,cx+x,base,RAMP.brass[x<0?4:2]);P(A,cx+x,base-1,RAMP.brass[x<-2?5:3]);}P(A,cx+5,base-1,RAMP.brass[2]);
+  for(let y=base-9;y<base-1;y++){P(A,cx-1,y,RAMP.ivory[5]);P(A,cx,y,RAMP.ivory[4]);P(A,cx+1,y,RAMP.ivory[2]);}P(A,cx+2,base-4,RAMP.ivory[4]);P(A,cx+2,base-3,RAMP.ivory[3]);P(A,cx+2,base-2,RAMP.ivory[3]);   // wax run down
+  P(A,cx,base-10,RAMP.walnut[0]);P(A,cx,base-11,RAMP.lit[4]);P(A,cx,base-12,RAMP.lit[5]);P(A,cx-1,base-11,RAMP.lit[2]);P(A,cx+1,base-11,RAMP.lit[3]);P(A,cx,base-13,RAMP.lit[4]);}
+if(K==='tlamp'){const base=H-3,cx=W>>1,L=NIGHT?RAMP.lit:RAMP.glass;   // a little oil lamp: a brass foot, a glass font, a tall chimney, the flame turned low (high at night)
+  for(let x=-5;x<=5;x++){P(A,cx+x,base,RAMP.brass[x<0?3:1]);P(A,cx+x,base-1,RAMP.brass[x<-3?5:4]);}
+  for(let y=-4;y<=0;y++)for(let x=-4;x<=4;x++){if(x*x/16+y*y/5>1)continue;P(A,cx+x,base-4+y,RAMP.glass[x<-1?4:(x>2?1:2)]);}P(A,cx-2,base-6,RAMP.glass[5]);   // the font
+  hl(A,cx-3,base-9,7,RAMP.brass[4]);for(let y=base-18;y<base-9;y++){const w=y<base-14?1:2;P(A,cx-w,y,RAMP.ivory[NIGHT?4:5]);P(A,cx+w,y,RAMP.ivory[2]);if(w>1){P(A,cx-1,y,NIGHT?RAMP.lit[2]:RAMP.walnut[2]);P(A,cx+1,y,NIGHT?RAMP.lit[1]:RAMP.walnut[1]);}P(A,cx,y,NIGHT?RAMP.lit[2]:RAMP.walnut[1]);}hl(A,cx-1,base-18,3,RAMP.ivory[3]);   // the clear glass chimney: lit edges, the dark inside
+  P(A,cx,base-11,NIGHT?RAMP.lit[5]:RAMP.lit[3]);P(A,cx,base-12,NIGHT?RAMP.lit[4]:RAMP.lit[2]);if(NIGHT){P(A,cx,base-13,RAMP.lit[4]);P(A,cx-1,base-12,RAMP.lit[3]);P(A,cx+1,base-12,RAMP.lit[3]);}}
+if(K==='tmug'){const base=H-3,cx=(W>>1)-1;   // an enamel mug, chipped at the rim, coffee in it, a curl of steam
+  for(let y=base-8;y<=base;y++)for(let x=-4;x<=4;x++)P(A,cx+x,y,RAMP.ivory[y===base?2:(x<-2?5:(x>2?2:4))]);
+  for(let x=-3;x<=3;x++){P(A,cx+x,base-8,RAMP.walnut[1]);P(A,cx+x,base-9,RAMP.ivory[5]);}P(A,cx+2,base-9,RAMP.walnut[2]);P(A,cx+2,base-8,RAMP.ivory[3]);   // the coffee, a chip in the rim
+  for(const [x,y] of [[5,-6],[6,-5],[6,-4],[6,-3],[5,-2]])P(A,cx+x,base+y,RAMP.ivory[3]);hl(A,cx-4,base-4,9,RAMP.bluegrey[3]);    // the handle, a blue band
+  for(let j=0;j<4;j++)P(A,cx-1+(j%2),base-11-j,RAMP.ivory[2]);}
+if(K==='tplate'){const base=H-3,cx=W>>1;   // a plate seen from above, half a loaf and a fork, crumbs
+  for(let y=-4;y<=4;y++)for(let x=-8;x<=8;x++){const d=x*x/64+y*y/16;if(d>1)continue;P(A,cx+x,base-4+y,RAMP.ivory[d>.75?(y<0?5:2):(d>.45?3:4)]);}
+  for(let y=-2;y<=1;y++)for(let x=-4;x<=1;x++){if(x*x/16+y*y/4>1)continue;P(A,cx-1+x,base-5+y,RAMP.oak[y<0?5:(x<-2?4:3)]);}hl(A,cx+1,base-6,1,RAMP.cream[4]);vl(A,cx+1,base-6,3,RAMP.cream[4]);   // half a loaf, its cut face
+  for(let i=0;i<6;i++)P(A,cx+3+i,base-2-(i>>1),RAMP.steel[i<2?4:3]);P(A,cx-6,base-2,RAMP.oak[4]);P(A,cx+5,base-6,RAMP.oak[4]);}
+if(K==='tvase'){const base=H-3,cx=W>>1;   // a clay jug of dried flowers gone brown, one head hanging
+  for(let y=0;y<9;y++){const w=y<2?2:(y<7?3+(y>3?1:0):3);for(let x=-w;x<=w;x++)P(A,cx+x,base-y,RAMP.pumpkin[x<-w+2?3:(x>w-1?1:2)]);}hl(A,cx-2,base-9,5,RAMP.pumpkin[4]);
+  for(const [ang,len,head] of [[-2.0,9,1],[-1.6,11,1],[-1.2,10,1],[-0.9,8,0]]){let x=cx,y=base-9;for(let t=0;t<len;t++){x+=Math.cos(ang);y+=Math.sin(ang);P(A,Math.round(x),Math.round(y),RAMP.bark[2]);}
+    if(head){P(A,Math.round(x),Math.round(y)-1,RAMP.ochre[2]);P(A,Math.round(x)-1,Math.round(y),RAMP.brick[1]);P(A,Math.round(x)+1,Math.round(y),RAMP.ochre[1]);}else{P(A,Math.round(x)+1,Math.round(y)+1,RAMP.brick[1]);P(A,Math.round(x)+2,Math.round(y)+2,RAMP.ochre[1]);}}}   // dried heads, one hanging over
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));
