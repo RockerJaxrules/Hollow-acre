@@ -2513,7 +2513,7 @@ if(K==='altardais'){const base=H-3,R=RAMP.oak,Lt=RAMP.pine,Cl=RAMP.ivory,cx=W>>1
     for(let y=top-12;y<top+1;y++){P(A,cx,y,RAMP.brass[y<top-9?5:3]);P(A,cx+1,y,RAMP.brass[2]);}hl(A,cx-3,top-9,8,RAMP.brass[4]);
     for(const sx of [x0+3,x0+w-4]){vl(A,sx,top-6,7,RAMP.brass[3]);vl(A,sx,top-10,4,RAMP.cream[5]);P(A,sx,top-12,NIGHT?RAMP.lit[5]:RAMP.lit[4]);P(A,sx,top-11,RAMP.lit[3]);}}
   {const ry=base-9;for(let x=3;x<W-3;x++){P(A,x,ry,R[5]);P(A,x,ry+1,R[3]);P(A,x,ry+2,R[1]);}for(let x=5;x<W-4;x+=4){if(Math.abs(x-cx)<4)continue;for(let y=ry+3;y<base-1;y++)P(A,x,y,R[(y-ry)%3===1?4:2]);}   // the rail, its balusters, a gap in the middle
-    rect(A,3,base-1,W-6,2,RAMP.red[2]);hl(A,3,base-1,W-6,RAMP.red[4]);}                                 // the red kneeling cushion
+    rect(A,3,base-1,W-6,2,RAMP.red[1]);hl(A,3,base-1,W-6,RAMP.red[3]);}   /* (b44) duller */                                 // the red kneeling cushion
   cast(4,W-5,base);}
 if(K==='coffinlids'){const base=H-3,Pn=RAMP.pine,Wn=RAMP.walnut;   // two coffin lids leaning on the wall: a full one in raw pale pine, not yet stained, and a small one for a child, finished dark
   const lid=(x0,w,h,R,cross)=>{const top=base-h;for(let y=top;y<base;y++){const t=(y-top)/h,hw=Math.round(t<.25?w*.35+t*w*.6:w/2-(t-.25)*w*.35);for(let x=-hw;x<=hw;x++){let k=3;if(x===-hw)k=5;if(x>=hw-1)k=1;if(y===top)k=5;P(A,x0+x,y,R[k]);}
@@ -2573,7 +2573,7 @@ if(K==='tinsign'){const Rr=RAMP.red;   // (wall) an enamel tin sign, MOTOR OIL, 
   for(const [cx,cy] of [[2,2],[W-3,2],[2,H-3],[W-3,H-3]]){P(A,cx,cy,RAMP.charcoal[1]);for(let i=0;i<3;i++)P(A,cx+(cx<5?i:-i),cy+(cy<5?1:-1)*((i+1)>>1),RAMP.rust[2+(i%2)]);}
   for(let i=0;i<6;i++){const x=3+((hsh(i,1,90)*(W-6))|0),y=3+((hsh(i,2,90)*(H-6))|0);P(A,x,y,RAMP.rust[3]);}for(let y=2;y<H-1;y++)SH(W-1,y,80);}
 if(K==='oarbuoy'){   // (wall) lakeside things in the chapel: an oar hung slantwise, a cork lifebuoy in red and white on its rope, a brass plate under them
-  ln(A,3,H-6,W-6,3,RAMP.pine[4]);ln(A,4,H-6,W-5,3,RAMP.pine[2]);for(let i=0;i<9;i++)for(let j=-2;j<=2;j++)P(A,W-9+i-Math.abs(j)+(i>>2),3+i-3+j,RAMP.pine[j<0?5:3]);   // the oar and its blade
+  {const rx=W-12,ry=13;for(let r=0;r<3;r++)for(let a2=0;a2<48;a2++){const t=a2/48*Math.PI*2;P(A,rx+Math.round(Math.cos(t)*(6-r*1.6)),ry+Math.round(Math.sin(t)*(7-r*1.6)),RAMP.straw[Math.cos(t+.8)>.3?5:Math.cos(t+.8)<-.4?1:3]);}vl(A,rx,2,4,RAMP.straw[2]);P(A,rx,1,RAMP.iron[4]);}   // (b44: the pole read as a giant key) a coil of rope on its own peg
   {const cx=14,cy=12,r=9;for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){const d=Math.hypot(x,y);if(d>r||d<r-4)continue;const a=Math.atan2(y,x)+Math.PI,q=Math.floor(a/(Math.PI/2));P(A,cx+x,cy+y,q%2?RAMP.red[d>r-1.5?3:4]:RAMP.cream[d>r-1.5?3:5]);}
     for(let a=0;a<4;a++){const t=a*Math.PI/2+.8;P(A,cx+Math.round(Math.cos(t)*(r+1)),cy+Math.round(Math.sin(t)*(r+1)),RAMP.straw[3]);}}   // the lifebuoy, its rope
   rect(A,6,H-6,16,4,RAMP.brass[3]);hl(A,6,H-6,16,RAMP.brass[5]);for(let x=8;x<20;x+=2)P(A,x,H-4,RAMP.brass[1]);wallSh(0,0,W-3,H-3,2,2,80);}
