@@ -15,8 +15,10 @@ SZ = {'bookcase': {'S': (52, 82), 'E': (25, 82), 'N': (52, 82)}, 'desk': {'S': (
       'barrel': {'S': (30, 34)}, 'crate': {'S': (30, 32)}, 'sacks': {'S': (36, 36)}, 'hay': {'S': (46, 36)}, 'firewood': {'S': (42, 30)}, 'choppingblock': {'S': (40, 40)}, 'bucket': {'S': (22, 26)}, 'anvil': {'S': (36, 28)},
       'mailbox': {'S': (32, 46)}, 'trashcan': {'S': (22, 32)}, 'drum': {'S': (22, 32)}, 'tyres': {'S': (30, 34)}, 'lumber': {'S': (48, 26)}, 'ladder': {'S': (20, 36)},
       'signpost': {'S': (40, 46)}, 'lamp_st': {'S': (16, 82)}, 'parkbench': {'S': (62, 40)}, 'planter': {'S': (44, 34)}, 'birdbath': {'S': (30, 40)}, 'board': {'S': (64, 58)},
-      'well': {'S': (64, 74)}, 'cart': {'S': (84, 56)}, 'hydrant': {'S': (20, 30)}}
-NIGHT = {'desk', 'table', 'candles', 'lamp', 'stove', 'lamp_st'}
+      'well': {'S': (64, 74)}, 'cart': {'S': (84, 56)}, 'hydrant': {'S': (20, 30)},
+      'mirror': {'S': (22, 32)}, 'painting_a': {'S': (36, 26)}, 'painting_b': {'S': (30, 34)}, 'calendar': {'S': (26, 34)}, 'photowall': {'S': (46, 32)}, 'coatpegs': {'S': (48, 44)},
+      'poster_lost': {'S': (30, 40)}, 'poster_fair': {'S': (30, 40)}, 'poster_seeds': {'S': (30, 40)}, 'hangplant': {'S': (30, 40)}, 'plant': {'S': (34, 48)}, 'plant2': {'S': (40, 78)}}
+NIGHT = {'desk', 'table', 'candles', 'lamp', 'stove', 'lamp_st', 'mirror'}
 kinds = sys.argv[1:] or list(SZ)
 for k in kinds:
     for v, (w, h) in SZ[k].items():
