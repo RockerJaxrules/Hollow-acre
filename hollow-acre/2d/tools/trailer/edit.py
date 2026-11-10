@@ -8,7 +8,8 @@ PREV = len(sys.argv) > 1 and sys.argv[1] == 'preview'
 W, H = (640, 360) if PREV else (1920, 1080)
 FONT = ImageFont.truetype('hollowpixel.ttf', 10)          # its native size: every glyph pixel is one pixel
 PARCH = (232, 220, 192); EMBER = (214, 84, 40); BLOOD = (176, 34, 30)
-SRC = {'intro': 'intro2' if os.path.isdir('intro2') else 'full'}
+SRC = {'intro': 'intro2'}
+SHOTDIR = 'full2'
 
 
 def pixtext(text, k, col, glow=None):
@@ -59,7 +60,7 @@ def title(u, dur):
 
 def frames():
     segs, tot = timeline()
-    cozy = {'farm_morning', 'farm_work', 'green_noon', 'market', 'festival', 'caitlyn', 'orchard'}
+    cozy = {'farm_dawn', 'field_work', 'chop', 'town', 'caitlyn', 'festival'}
     for (a, b, seg) in segs:
         n = int(round((b - a) * FPS))
         if seg[0] == 'black':
@@ -70,7 +71,7 @@ def frames():
         elif seg[0] == 'title':
             for i in range(n): yield title(i / n, seg[1]).convert('RGB')
         else:
-            name, f0, f1 = seg[1], seg[2], seg[3]; d = SRC.get(name, 'full'); last = None
+            name, f0, f1 = seg[1], seg[2], seg[3]; d = SRC.get(name, SHOTDIR); last = None
             for i, k in enumerate(range(f0, f1 + 1)):
                 p = f'{d}/{name}_{k:04d}.png'
                 im = Image.open(p).convert('RGB') if os.path.exists(p) else last; last = im

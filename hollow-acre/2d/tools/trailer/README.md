@@ -2,7 +2,8 @@
 
 Everything is made from the game itself and from code: no outside footage, music or sounds.
 
-1. Serve the built game on port 8766 (`test2d_k.html`), then capture frames on a fake clock so the motion is smooth however slowly the browser renders:
+1. `cap2.js` is the directed capture (every shot walks a real path and does one thing a player would do; the night shots use the creature's own AI). `cap.js` was the first version.
+2. Serve the built game on port 8766 (`test2d_k.html`), then capture frames on a fake clock so the motion is smooth however slowly the browser renders:
    - `node cap.js full` captures every gameplay shot.
    - `ONLY=intro INTRO_END=18.0 node cap.js intro2` captures the cold open through the crash into the oak.
    - Add `preview` as a final argument to grab 3 frames per shot for checking framing.
