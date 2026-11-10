@@ -479,6 +479,9 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   body tone, a few tapered fold curves (a lit crest with its shadow under it), a frayed selvedge and pins.
 
 ## Furniture and props in four turns (Nov 10: 3D blockouts, 69 pieces judged blind vs the installed art)
+- Anything sticking out equally at both ends reads as ears or wings (a saddle beam, a horn and a cantle the same height). Make the two ends different in size and shape.
+- A curled animal drawn as a tall dome reads as a hat: keep it a low oval wider than tall, the head a separate round with pointed ears, the tail along the front.
+- Marks repeated at the same x on every layer line up into a column (spacers read as drawer handles): stagger them.
 - Two equal spikes at the ends of a shape read as ears (a saddle became an owl). Make one end lower and rounder. A rack whose bars match its tools in tone and width reads as a cage or a chair.
 - Each crop on a stall needs its own hue and a full value range, or the heaps read as loaves or mud. Rods that cross and fork read as twigs: lean each at its own angle, never crossing, with the reel at the butt.
 - Gouged eyes (judge, three rounds): pale rims or pale lips round a dark eye read as spectacles. Draw a dark ragged hole, pale scratches running OUT of it and a dark run down the cheek; then it reads as scratched out.
