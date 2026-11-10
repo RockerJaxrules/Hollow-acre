@@ -266,43 +266,115 @@ function sub(text){ui.subs.textContent=text||'';ui.subs.classList.toggle('show',
 function startCine(kind){if(kind==='intro')return introCine();if(kind==='escape')return escapeCine();}
 function endCine(){cine=null;sub('');$('skip').hidden=true;SFX.engine(false);}
 function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true;ui.obj.hidden=true;$('skip').hidden=false;$('title').hidden=true;
-  // the drive happens on the real Route 9, in the real valley: east toward the farm, until the oak at the crash site
-  const TC=15.2,XS=-69.3,LANE=-4.75,HIT={x:-60.4,z:.5},V=9;
-  const carAt=T=>T<TC?{x:XS-V*(TC-T),z:LANE,yaw:0}:(()=>{const k=Math.min(1,(T-TC)/1.8),e=k*k*(3-2*k);return {x:lerp(XS,HIT.x,Math.min(1,k*1.15)),z:lerp(LANE,HIT.z,e),yaw:Math.min(.9,k*1.25)};})();
+  // (#212, owner: "it needs to feel more speedy like the car actually loses control and actual impact on crash")
+  // The drive happens on the real Route 9, east toward the farm, at speed: the camera rides ahead of the car so the road streams under it,
+  // the rain is driven sideways, reflector posts flick past in the headlights, a doe watches from the shoulder. A dead deer lies in the
+  // lane: the car hits it and throws it. Then the figure in the road: the wheel is wrenched, the back end steps out, the car fishtails,
+  // leaves the road and slides into the oak. Hit-stop, a white flash, glass and paint and dirt and leaves, steam, a horn that won't stop.
+  const HIT={x:-60.4,z:.5},LANE=-4.75,V=15,TC=15.2,TH=17.5,DUR=TH-TC,SK=31,XC=HIT.x-SK,DEC=2*(V*DUR-SK)/(DUR*DUR);
+  const YK=[[0,0],[.1,-.45],[.27,.55],[.42,-.25],[.6,.7],[.78,1.2],[.9,1.05],[1,.95]];   // nose left, whip right, back, right, round
+  const cl=v=>Math.max(0,Math.min(1,v)),ss=v=>v*v*(3-2*v);
+  const yawAt=k=>{for(let i=1;i<YK.length;i++)if(k<=YK[i][0]){const a=YK[i-1],b=YK[i],u=(k-a[0])/(b[0]-a[0]);return a[1]+(b[1]-a[1])*(1-Math.cos(Math.PI*u))/2;}return YK[YK.length-1][1];};
+  const carAt=T=>{if(T<TC)return {x:XC-V*(TC-T),z:LANE,yaw:0,v:V};const t=Math.min(DUR,T-TC),k=t/DUR;
+    return {x:XC+V*t-DEC*t*t/2,z:LANE-1.3*Math.sin(Math.PI*cl(k/.35))+(HIT.z-LANE)*ss(cl((k-.3)/.7)),yaw:yawAt(k),v:V-DEC*t};};
+  const carFrame=yaw=>{const m=SPR.car_east,n=m&&m.clips&&m.clips.yaw?m.clips.yaw.S[1]:7;return n>=15?Math.max(0,Math.min(14,Math.round((yaw+.6)/.15))):Math.max(0,Math.min(6,Math.round(yaw/.15)));};
   const wreck=OBJ.filter(o=>o.kind==='wreck');for(const o of wreck)o.hide=true;
   for(const n of npcs)n.vis=false;H.vis=false;S.storm=true;S.hour=23.8;S.introDrive=true;fade(1);
-  const st={t:0,done:{},car:carAt(3),deer:null,fig:null,mir:0,crashed:false};const once=k=>st.done[k]?false:(st.done[k]=true);
+  // the dead deer in the lane, the doe on the shoulder, the reflector posts along both edges of the road
+  const XD=XC-V*(TC-11.4),DEERZ=LANE+.15;
+  const posts=[];for(let x=-292;x<-58;x+=11)posts.push({x,z:-9.35},{x:x+5.5,z:-2.65});
+  const st={t:0,done:{},car:carAt(3),deer:{x:XD,z:DEERZ,y:0,vx:0,vz:0,vy:0,flip:false,hit:false,spin:0},doe:null,fig:null,mir:0,crashed:false,stop:0,
+    skid:[[],[]],smoke:[],deb:[],steam:[],blood:null,horn:0,jolt:0,speed:0};
+  const once=k=>st.done[k]?false:(st.done[k]=true);
   sub('Route 9. 11:48 PM. Rain since the county line.');
-  cine={hidePlayer:true,cam:{x:st.car.x+4.6,z:-6.2},
+  // the rear wheels in world space (for skid marks and smoke)
+  const rearWheels=c=>{const cs=Math.cos(c.yaw),sn=Math.sin(c.yaw);return [-1,1].map(s=>({x:c.x-1.42*cs-s*.8*sn,z:c.z-1.42*sn+s*.8*cs}));};
+  function debris(x,z,n,cols,spd,up,life){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=spd*(.25+Math.random()*.75);st.deb.push({x,z,y:.4+Math.random()*.6,vx:Math.cos(a)*s+st.car.v*.25,vz:Math.sin(a)*s*.7,vy:up*(.4+Math.random()),l:life*(.5+Math.random()*.5),c:cols[(Math.random()*cols.length)|0],sz:Math.random()<.25?2:1});}}
+  cine={_st:st,hidePlayer:true,cam:{x:st.car.x+6,z:-6.2},
     drawables(D){const T=st.t;
-      if(!st.crashed)D.push({z:st.car.z+.2,mind:1,draw(){const f=Math.max(0,Math.min(6,Math.round(st.car.yaw/.15)));drawSpr('car_east',sx(st.car.x),sz(st.car.z)+(T>11.55&&T<11.75?-2:0),'yaw','S',f);}});
-      if(st.deer)D.push({z:st.deer.z,mind:1,draw(){drawSpr('deer_dead',sx(st.deer.x),sz(st.deer.z));}});
-      if(st.fig)D.push({z:st.fig.z,mind:1,draw(){drawSpr('hollow',sx(st.fig.x),sz(st.fig.z),'walk',st.fig.dir,0,{alpha:st.fig.a});}});},
-    light(L){glowAt(VW*.5,VH*.45,Math.max(VW,VH)*.7,[34,40,62],.55);if(st.crashed){DX.carLamp=null;return;}const c=st.car,X=sx(c.x),Y=sz(c.z)-12,a=c.yaw,cs=Math.cos(a),sn=Math.sin(a);DX.carLamp={x:X+2.3*cs*PPM,y:Y+2.3*sn*PPM*.8+12};
+      // ground marks first: the blood where the deer was hit, the skid marks (dark, two rubber lines per wheel)
+      D.push({z:-1e6,mind:1,draw(){
+        if(st.blood){const b=st.blood;ctx2.fillStyle='rgba(58,8,8,.75)';ctx2.fillRect(sx(b.x)-14,sz(b.z)-2,28,4);ctx2.fillRect(sx(b.x)+8,sz(b.z)-1,22,2);ctx2.fillStyle='rgba(90,14,12,.6)';ctx2.fillRect(sx(b.x)-6,sz(b.z)-1,9,2);}
+        ctx2.save();ctx2.strokeStyle='rgba(12,10,10,.66)';ctx2.lineWidth=3;ctx2.lineCap='round';for(const tr of st.skid){ctx2.beginPath();tr.forEach((s,i)=>i?ctx2.lineTo(sx(s.x),sz(s.z)):ctx2.moveTo(sx(s.x),sz(s.z)));ctx2.stroke();}ctx2.restore();}});   // two unbroken rubber streaks
+      for(const p of posts){const X=sx(p.x),Y=sz(p.z);if(X<-20||X>VW+20)continue;D.push({z:p.z,mind:1,draw(){ctx2.fillStyle='#1a1a1e';ctx2.fillRect(X-1,Y-12,4,13);ctx2.fillStyle='#d8d4cc';ctx2.fillRect(X,Y-12,2,12);ctx2.fillStyle=p.z<-6?'#e8a020':'#c8281e';ctx2.fillRect(X,Y-10,2,3);}});}
+      if(st.doe){const d=st.doe;D.push({z:d.z,mind:1,draw(){drawSpr('wild_doe',sx(d.x),sz(d.z),d.run?'run':'alert',d.run?'B':'S',d.run?(T*10)|0:0,{flip:d.flip});}});}
+      if(st.deer&&st.deer.x>st.car.x-40){const d=st.deer;D.push({z:d.z,mind:1,draw(){drawSpr('deer_dead',sx(d.x),sz(d.z)-d.y*PPM,null,null,0,{flip:d.flip});}});}
+      if(!st.crashed)D.push({z:st.car.z+.2,mind:1,draw(){const f=carFrame(st.car.yaw);drawSpr('car_east',sx(st.car.x),sz(st.car.z)+st.jolt,'yaw','S',f);}});
+      if(st.fig)D.push({z:st.fig.z,mind:1,draw(){drawSpr('hollow',sx(st.fig.x),sz(st.fig.z),'walk',st.fig.dir,0,{alpha:st.fig.a});}});
+      // smoke off the tyres, debris and steam: drawn high in the order so they sit over the car
+      D.push({z:1e6,mind:1,draw(){
+        for(const s of st.smoke){const a=Math.max(0,s.l/s.L)*.32,r=Math.round(3+(1-s.l/s.L)*9);ctx2.fillStyle=`rgba(150,148,150,${a.toFixed(3)})`;ctx2.fillRect(sx(s.x)-r,sz(s.z)-r*.8-6,r*2,Math.round(r*1.6));ctx2.fillStyle=`rgba(190,188,190,${(a*.6).toFixed(3)})`;ctx2.fillRect(sx(s.x)-r+1,sz(s.z)-r*.8-6,r,Math.round(r*.7));}
+        for(const p of st.deb){ctx2.fillStyle=p.c;ctx2.fillRect(Math.round(sx(p.x)),Math.round(sz(p.z)-p.y*PPM),p.sz,p.sz);}
+        for(const s of st.steam){const a=Math.max(0,s.l/s.L)*.4,r=Math.round(2+(1-s.l/s.L)*8);ctx2.fillStyle=`rgba(200,200,204,${a.toFixed(3)})`;ctx2.fillRect(sx(s.x)-r,sz(s.z)-s.y*PPM-r,r*2,r*2);}}});},
+    light(L){glowAt(VW*.5,VH*.45,Math.max(VW,VH)*.7,[34,40,62],.55);
+      for(const p of posts){const X=sx(p.x),Y=sz(p.z)-9,dx=p.x-st.car.x;if(!st.crashed&&dx>1.5&&dx<15&&Math.abs(p.z-st.car.z)<6)glowAt(X+1,Y,4,p.z<-6?[255,190,80]:[255,70,50],.9);}   // reflectors flare as the beams find them
+      if(st.doe&&!st.doe.run){const d=st.doe,dx=d.x-st.car.x;if(dx>0&&dx<18){const X=sx(d.x),Y=sz(d.z)-36;glowAt(X+5,Y,3,[220,255,200],1);glowAt(X+8,Y,3,[220,255,200],1);}}   // eyeshine in the headlights
+      if(st.crashed){DX.carLamp=null;if(st.t<TH+3){const fx=sx(HIT.x)+26,fy=sz(HIT.z)+35;if(Math.sin(st.t*37)>-.2){glowAt(fx,fy,18,[255,236,190],.7);coneAt(fx,fy,.95,.3,7*PPM,[255,238,196],.45);}}return;}   // one headlight left, flickering
+      const c=st.car,X=sx(c.x),Y=sz(c.z)-12,a=c.yaw,cs=Math.cos(a),sn=Math.sin(a);DX.carLamp={x:X+2.3*cs*PPM,y:Y+2.3*sn*PPM*.8+12};
       for(const s of [-.55,.55]){const hx=X+(2.1*cs-s*sn)*PPM,hy=Y+(2.1*sn+s*cs)*PPM*.8;coneAt(hx,hy,a,.28,13*PPM,[255,238,196],.8);glowAt(hx,hy,10,[255,240,210],.9);}
-      glowAt(X-2.2*cs*PPM,Y-2.2*sn*PPM,40,[255,26,16],st.mir>0?.95:.55);glowAt(X,Y,70,[120,110,100],.3);
+      coneAt(X+2*cs*PPM,Y+2*sn*PPM*.8+12,a,.12,9*PPM,[150,150,170],.18);   // the headlights' shine on the wet road ahead
+      glowAt(X-2.2*cs*PPM,Y-2.2*sn*PPM,40,[255,26,16],st.mir>0||T_brake()?.95:.55);glowAt(X,Y,70,[120,110,100],.3);
       if(st.fig&&st.fig.a>.5){const fx=sx(st.fig.x),fy=sz(st.fig.z)-94;glowAt(fx-4,fy,5,[255,40,20],1);glowAt(fx+6,fy,5,[255,40,20],1);}},
-    update(dt){st.t+=dt;const T=st.t;if(cine.phase2)return phase2(dt);
-      if(T<17)st.car=carAt(Math.max(3,T));cine.cam.x=lerp(cine.cam.x,st.car.x+(T<TC?4.6:0),1-Math.exp(-dt*(T<3.2?50:6)));cine.cam.z=lerp(cine.cam.z,T<TC?-6.2:-3,1-Math.exp(-dt*3));
+    draw(){if(st.crashed||st.t<3)return;   // the speed: rain driven sideways across the screen, faster than the car
+      const g=ctx2,T=st.t,v=st.car.v||V;g.save();g.strokeStyle='rgba(170,180,200,.22)';g.lineWidth=1;g.beginPath();
+      for(let i=0;i<46;i++){const x=((i*137.7-T*v*PPM*1.3)%(VW+80)+VW+80)%(VW+80)-40,y=((i*71.3+T*260)%(VH+40)+VH+40)%(VH+40)-20,l=8+v*.9;g.moveTo(x,y);g.lineTo(x+l,y-l*.18);}
+      g.stroke();g.restore();},
+    update(dt){if(st.stop>0){st.stop-=dt;return;}   // the hit-stop: one frozen moment at the impact
+      if(st.slow>0){st.slow-=dt;dt*=.3;}   // a breath of slow motion as the deer goes over the hood
+      st.t+=dt;const T=st.t;if(cine.phase2)return phase2(dt);
+      if(T<TH)st.car=carAt(Math.max(3,T));
+      // the camera rides ahead of the car on the straight, closes in during the skid, settles on the oak at the crash
+      const tx=T<TC?st.car.x+6:T<TH?st.car.x+2:HIT.x+.8,tz=T<TC?-6.2:T<TH?st.car.z-.4:HIT.z;
+      cine.cam.x=lerp(cine.cam.x,tx,1-Math.exp(-dt*(T<3.2?60:T<TC?9:5)));cine.cam.z=lerp(cine.cam.z,tz,1-Math.exp(-dt*(T<TC?3:5)));
+      if(T>3&&T<TC)cam.shake=Math.max(cam.shake,.04);   // road rumble
+      st.jolt=T<TH&&Math.sin(T*53)>.7?-1:0;if(st.joltT>0){st.joltT-=dt;st.jolt=-3;}
       if(T>3&&once('a0'))fade(0);
       if(T>4&&once('b'))sub('Voicemail from Grandpa Elias. Three days old.');
+      if(T>6.4&&once('doe')){const c=carAt(8.1);st.doe={x:c.x,z:-10.1,run:false,flip:false};}
+      if(st.doe&&!st.doe.run&&st.car.x>st.doe.x-3){st.doe.run=true;}
+      if(st.doe&&st.doe.run){st.doe.z-=dt*7;st.doe.x+=dt*2;if(st.doe.z<-16)st.doe=null;}
       if(T>7.2&&once('c'))sub('"…it already picked you. I’m sorry, kid. Come quick, before the thirty-first."');
-      if(T>9.4&&once('lt')){flashT=1;SFX.thud(0,.9);cam.shake=.15;st.fig={x:st.car.x+7,z:-12.6,dir:'S',a:1};}
+      if(T>9.4&&once('lt')){flashT=1;SFX.thud(0,.9);cam.shake=.15;st.fig={x:st.car.x+9,z:-12.6,dir:'S',a:1};}
       if(T>9.4&&T<10.2&&st.fig)st.fig.a=flashT>.5?1:0;if(T>10.2&&once('lt2'))st.fig=null;
-      if(T>10.5&&once('d')){st.deer={x:XS-V*(TC-11.6),z:LANE+.1};sub('');}
-      if(T>11.6&&once('e')){SFX.thud(0,.5);cam.shake=.25;sub('Something was lying in the road.');}
+      // the dead deer: struck and thrown, tumbling to the shoulder, leaving its blood on the road
+      const d=st.deer;
+      if(d&&!d.hit&&st.car.x+2.1>=d.x){d.hit=true;st.blood={x:d.x,z:d.z};d.vx=V*.78;d.vz=2.6;d.vy=7.2;SFX.thud(0,1);SFX.thud(0,.6);cam.shake=.7;st.joltT=.16;st.slow=.28;flashT=Math.max(flashT,.28);
+        debris(d.x,d.z,46,['#5a0c0c','#7a1410','#3a0606','#4a2e1e','#8a1a14'],6,3.2,1.1);sub('Something was lying in the road.');}
+      if(d&&d.hit){d.x+=d.vx*dt;d.z+=d.vz*dt;d.vy-=22*dt;d.y=Math.max(0,d.y+d.vy*dt);if(d.y===0&&d.vy<0){d.vy=-d.vy*.35;d.vx*=.6;d.vz*=.6;if(Math.abs(d.vy)<.8)d.vy=0;}d.spin+=dt;if(d.y>0&&((d.spin*9)|0)%2!==(d.flip?1:0))d.flip=!d.flip;d.vx*=Math.pow(.4,dt);d.vz*=Math.pow(.4,dt);}
       if(T>12.8&&once('f')){st.mir=1.4;SFX.stinger();sub('Something in the mirror.');}
       if(st.mir>0){st.mir-=dt;st.fig={x:st.car.x-5.5,z:LANE-.3,dir:'E',a:Math.min(1,st.mir)};if(st.mir<=0)st.fig=null;}
-      if(T>14.2&&once('g')){sub('Nothing. There’s nothing there.');st.fig={x:XS+4.2,z:LANE,dir:'W',a:1};}
-      if(T>15.2&&once('h')){SFX.shriek(0);SFX.horn();}
-      if(T>15.6&&once('h2'))st.fig=null;if(T>16.2&&once('i'))SFX.screech();
-      if(T>17&&once('j')){SFX.crash();cam.shake=1;flashT=1;SFX.engine(false);sub('');st.crashed=true;for(const o of wreck)o.hide=false;burst(HIT.x,HIT.z,26,'#9a9690',2.4,1.4,4);}
-      if(T>17.35&&once('k0'))fade(1);
-      if(T>19&&once('k')){SFX.heart(.6);sub('Rain on your face. Blood in your mouth.');}
-      if(T>21.5&&once('l')){cine.phase2=true;cine.hidePlayer=false;S.hour=4.6;P.x=-58.6;P.z=-4.2;P.dir='S';P.fx=-.3;P.fz=1;H.vis=true;H.x=carPos.x-.6;H.z=carPos.z+1.6;H.state='cutscene';H.clip='crawl';H.dir='W';H.alpha=1;H.rise=1;H.ft=0;
-        cine.cam={x:-59.5,z:-2.6};cine.drawables=null;cine.light=()=>{glowAt(sx(carPos.x-.4),sz(carPos.z+1.2)-20,90,[255,200,140],.45);glowAt(VW*.5,VH*.45,Math.max(VW,VH)*.7,[34,40,62],.5);};sub('Something climbs off the hood.');SFX.breath(0);fade(0);}}};
+      if(T>14.2&&once('g')){sub('Nothing. There’s nothing there.');st.fig={x:XC+5.5,z:LANE,dir:'W',a:1};}
+      // the loss of control
+      if(T>TC&&once('h')){SFX.shriek(0);SFX.horn();cam.shake=Math.max(cam.shake,.35);}
+      if(T>TC+.25&&once('h2'))st.fig=null;
+      if(T>TC+.15&&once('i'))SFX.screech();if(T>TC+1.1&&once('i2'))SFX.screech();
+      if(T>TC&&T<TH){cam.shake=Math.max(cam.shake,.18);
+        rearWheels(st.car).forEach((w,i)=>{st.skid[i].push({x:w.x,z:w.z});if(Math.random()<dt*28)st.smoke.push({x:w.x,z:w.z,l:1.1,L:1.1});});
+        if(st.car.z>-2.6&&once('off')){SFX.thud(0,.7);cam.shake=.5;st.joltT=.1;debris(st.car.x,st.car.z,40,['#3a2a18','#54402a','#4a5e2a','#6a7a34'],6,2.6,1.1);}   // off the edge of the road: dirt and grass thrown up
+        if(st.car.z>-2.6&&Math.random()<dt*20)debris(st.car.x-1,st.car.z,3,['#3a2a18','#54402a'],3,1.2,.6);}
+      // the impact
+      if(T>TH&&once('j')){st.stop=.13;st.crashed=true;for(const o of wreck)o.hide=false;flashT=1;cam.shake=1.4;SFX.crash();SFX.thud(0,1);SFX.engine(false);sub('');
+        const fx=HIT.x+1.2,fz=HIT.z+1.5;
+        debris(fx,fz,70,['#cfe0ea','#9ab8c8','#eef6fa','#7a98a8'],9,3,1.2);           // glass
+        debris(fx,fz,30,['#6a2228','#7c2e2e','#4a1a20'],7,2.4,1.3);                  // paint and metal
+        debris(fx,fz,40,['#3a2a18','#54402a','#2a1e12'],6,1.8,1);                    // dirt
+        for(let i=0;i<34;i++)st.deb.push({x:fx-2+Math.random()*4,z:fz-1+Math.random()*2,y:3+Math.random()*3,vx:(Math.random()-.5)*1.2,vz:(Math.random()-.5)*.6,vy:-.4,l:3+Math.random()*2,c:['#b06a28','#8a3a1c','#c8902e','#6a2a14'][i%4],sz:2,leaf:1});   // leaves shaken out of the oak
+        st.horn=2.4;}
+      if(st.horn>0){st.horn-=dt;if(st.horn<2.4&&once('hn'))SFX.horn();if(st.horn<1.2&&once('hn2'))SFX.horn();}
+      if(st.crashed&&T<TH+4&&Math.random()<dt*14)st.steam.push({x:HIT.x+1.3+(Math.random()-.5)*.6,z:HIT.z+1.45,y:.6,l:1.6,L:1.6});
+      for(const s of st.smoke){s.l-=dt;s.x+=dt*1.5;s.z-=dt*.4;}st.smoke=st.smoke.filter(s=>s.l>0);
+      for(const s of st.steam){s.l-=dt;s.y+=dt*1.4;s.x+=dt*.5;}st.steam=st.steam.filter(s=>s.l>0);
+      for(const p of st.deb){p.l-=dt;if(p.leaf){p.y=Math.max(0,p.y-dt*1.1);p.x+=Math.sin(p.l*5)*dt*.8;continue;}p.x+=p.vx*dt;p.z+=p.vz*dt;p.vy-=14*dt;p.y+=p.vy*dt;if(p.y<0){p.y=0;p.vy=-p.vy*.25;p.vx*=.5;p.vz*=.5;}}st.deb=st.deb.filter(p=>p.l>0);
+
+      if(T>TH+.9&&once('k0'))fade(1);
+      if(T>TH+2.2&&once('k')){SFX.heart(.6);sub('Rain on your face. Blood in your mouth.');}
+      if(T>TH+4.7&&once('l')){cine.phase2=true;cine.hidePlayer=false;S.hour=4.6;P.x=-58.6;P.z=-4.2;P.dir='S';P.fx=-.3;P.fz=1;H.vis=true;H.x=carPos.x-.6;H.z=carPos.z+1.6;H.state='cutscene';H.clip='crawl';H.dir='W';H.alpha=1;H.rise=1;H.ft=0;
+        cine.cam={x:-59.5,z:-2.6};const stm=st.steam;cine.drawables=D=>{D.push({z:1e6,mind:1,draw(){for(const s of stm){const a=Math.max(0,s.l/s.L)*.35,r=Math.round(2+(1-s.l/s.L)*8);ctx2.fillStyle=`rgba(200,200,204,${a.toFixed(3)})`;ctx2.fillRect(sx(s.x)-r,sz(s.z)-s.y*PPM-r,r*2,r*2);}}});};
+        cine.draw=null;cine.light=()=>{glowAt(sx(carPos.x-.4),sz(carPos.z+1.2)-20,90,[255,200,140],.45);glowAt(VW*.5,VH*.45,Math.max(VW,VH)*.7,[34,40,62],.5);};sub('Something climbs off the hood.');SFX.breath(0);fade(0);}}};
+  function T_brake(){return st.t>TC&&st.t<TH;}
   SFX.engine(true);
   function phase2(dt){cine.t2=(cine.t2||0)+dt;const k=cine.t2;H.ft+=dt;
+    if(Math.random()<dt*8)st.steam.push({x:HIT.x+1.3+(Math.random()-.5)*.6,z:HIT.z+1.45,y:.6,l:1.8,L:1.8});for(const s of st.steam){s.l-=dt;s.y+=dt*1.2;s.x+=dt*.4;}st.steam=st.steam.filter(s=>s.l>0);
     if(k<3.5){H.x-=dt*1.1;H.z+=dt*1.6;H.dir='S';}else if(k<6){H.clip='walk';H.dir='W';H.x-=dt*2.6;H.z+=dt*1.4;}
     if(k>2.6&&!cine.s2){cine.s2=1;sub('It crawls away into the trees. It looked back at you.');SFX.whisper(0);}
     if(k>6.2&&!cine.s3){cine.s3=1;H.vis=false;H.state='gone';fade(1);setTimeout(()=>{finishIntro();fade(0);},900);}}}
