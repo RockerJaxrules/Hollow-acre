@@ -35,30 +35,6 @@ def legs4(w, d, h, m, t=3, inset=1):
     return [box(x, 0, z, x + t, h, z + t, m) for x in (-w + inset, w - inset - t) for z in (-d + inset, d - inset - t)]
 
 
-@piece('in_rockS', size=(80, 100))
-def rocking_chair():
-    P = []
-    for x in (-11, 11):   # curved rockers, longer than the chair, tips curling up front and back
-        pts = [(-15, 5), (-11, 1.5), (-5, 0), (5, 0), (11, 1.5), (15, 5)]
-        for (z0, y0), (z1, y1) in zip(pts, pts[1:]): P.append(rod([x, y0 + 1, z0], [x, y1 + 1, z1], 1.3, 1.3, 'dkwood'))
-    P += [box(x - 1.5, 2, z, x + 1.5, 16, z + 3, 'wood') for x in (-11, 11) for z in (-8, 6)]          # legs
-    P += [box(-12, 16, -9, 12, 19, 10, 'wood', pattern=['planks', 4, 'x']),                            # the seat
-          box(-12, 16, -10, -9, 44, -7, 'wood'), box(9, 16, -10, 12, 44, -7, 'wood'),                  # back posts
-          box(-12, 40, -10, 12, 45, -7, 'dkwood'), ball(-10.5, 46, -8.5, 1.8, 'wood'), ball(10.5, 46, -8.5, 1.8, 'wood')]   # crest rail, finials
-    P += [box(x, 19, -9.5, x + 2, 40, -8, 'dkwood') for x in (-6, -2, 2, 6)]                          # spindles
-    P += [box(-13, 26, -8, -10, 28.5, 9, 'wood'), box(10, 26, -8, 13, 28.5, 9, 'wood'),               # arms on their posts
-          box(-12.5, 19, 7, -10.5, 26, 9, 'wood'), box(10.5, 19, 7, 12.5, 26, 9, 'wood'),
-          box(-10, 19, -7, 10, 22, 8, 'redbk'), box(-9, 22, -8, 9, 36, -6, 'redbk')]                   # a worn cushion and back pad
-    return P
-
-
-@piece('in_oillamp', rot=False, size=(40, 70))
-def oil_lamp():
-    return [cyl(0, 0, 0, 5, 3, 'brass'), cyl(0, 3, 0, 2, 6, 'brass'), ball(0, 12, 0, 0, 'glass', rr=[5, 4, 5]),
-            cyl(0, 15, 0, 3, 2, 'brass'), cyl(0, 17, 0, 2.6, 10, 'glass'), box(-1, 19, -1, 1, 23, 1, 'glow'),
-            box(4, 4, -1, 7, 6, 1, 'brass')]
-
-
 @piece('in_shelf_jars', size=(80, 110))
 def shelf_jars():
     P = [box(-24, 0, -7, -21, 50, 6, 'dkwood'), box(21, 0, -7, 24, 50, 6, 'dkwood'), box(-24, 0, -7, 24, 50, -5, 'dkwood', pattern=['planks', 6, 'x'])]
@@ -67,41 +43,10 @@ def shelf_jars():
                                          (-15, 35, 'clay', 4, 9), (-6, 35, 'glass', 3, 7), (3, 35, 'greenbk', 3, 8), (12, 35, 'clay', 3.5, 7),
                                          (-14, 3, 'cloth', 5, 10), (2, 3, 'clay', 5, 9), (14, 3, 'cloth', 4, 8)]):
         P += [cyl(x, y, 0, r, h, m), cyl(x, y + h, 0, r * .6, 1.5, 'wood' if m == 'glass' else 'cloth')]
-    return P
-
-
-@piece('in_crates', size=(80, 90))
-def crates():
-    return [box(-18, 0, -8, 2, 18, 8, 'wood', pattern=['planks', 6, 'y']), box(4, 0, -6, 20, 14, 8, 'wood', pattern=['planks', 5, 'y']),
-            box(-14, 18, -6, 0, 30, 6, 'dkwood', pattern=['planks', 4, 'y']),
-            box(-19, 7, 8, 3, 9, 9, 'dkwood'), box(3, 5, 8, 21, 7, 9, 'dkwood'),                    # slats across the fronts
-            ball(10, 15, 0, 3, 'pumpkin'), ball(15, 15, 2, 2.5, 'pumpkin'), box(-11, 30, -3, -4, 32, 3, 'cloth')]
-
-
-@piece('in_shelf_books', size=(80, 120))
-def bookcase():
-    P = [box(-24, 0, -7, -21, 62, 6, 'dkwood'), box(21, 0, -7, 24, 62, 6, 'dkwood'), box(-24, 0, -7, 24, 62, -5, 'dkwood'),
-         box(-25, 61, -8, 25, 64, 7, 'wood')]
-    for y in (1, 16, 31, 46): P.append(box(-22, y, -5, 22, y + 2, 6, 'wood'))
-    import random
-    rnd = random.Random(7)
-    for y in (3, 18, 33, 48):
-        x = -21
-        while x < 19:
-            w = rnd.choice((2, 2, 3, 3, 4)); h = rnd.choice((9, 10, 11, 12)); m = rnd.choice(('redbk', 'bluebk', 'greenbk', 'leather', 'paper'))
-            if rnd.random() < .12: x += 3; continue                                                # gaps where books are missing
-            P.append(box(x, y, -3, x + w, y + h, 5, m)); x += w
-    return P
-
-
-@piece('in_desk', size=(90, 90))
-def writing_desk():
-    P = legs4(26, 9, 22, 'dkwood') + [box(-27, 22, -10, 27, 26, 10, 'wood', pattern=['planks', 6, 'x']),
-         box(8, 12, -9, 25, 22, 8, 'wood'), box(9, 16, 8, 24, 17, 9, 'dkwood'), box(15, 18, 8, 18, 20, 10, 'brass'),   # a drawer with a pull
-         box(-27, 26, -10, 27, 36, -7, 'dkwood'), box(-27, 36, -10, 27, 38, -5, 'wood'),            # the back gallery
-         box(-18, 26, -2, -2, 27, 8, 'paper'), box(-15, 27, 0, -6, 28, 6, 'paper'),                  # papers, a letter on top
-         cyl(4, 26, 2, 2, 3, 'ink'), rod([5, 29, 2], [9, 34, -1], .5, .3, 'paper'),                  # inkwell and quill
-         cyl(18, 26, -3, 3, 2, 'brass'), cyl(18, 28, -3, 2, 6, 'glass'), box(17, 30, -4, 19, 32, -2, 'glow')]   # a small lamp
+    end_frame(P, 24, 6.5, 50, m='wood')                                                          # framed ends for the side views
+    P += [box(x0, y + .4, -5, x0 + .8, y + 1.6, 5.6, 'wood') for y in (17, 33) for x0 in (-24.8, 24)]   # shelf-board ends showing through
+    P += [rod([24.9, 45, 0], [24.9, 38, 0], .3, .3, 'rope'), ball(25.2, 36, 0, 0, 'leaf', rr=[.8, 3.4, 2]), ball(25.2, 34, -1.4, 0, 'straw', rr=[.8, 2.6, 1.4])]   # a bunch of drying herbs on the side
+    P += [box(-21, 3, -5.6, 21, 47, -5.2, 'wood', pattern=['planks', 7, 'x'])]                     # seams on the back
     return P
 
 
@@ -111,78 +56,11 @@ def grandfather_clock():
             box(-5, 14, 4, 5, 40, 5, 'glass'), rod([0, 40, 4.6], [0, 22, 4.6], .5, .5, 'brass'), cyl(0, 21, 4.6, 2.4, 1, 'brass', axis='z'),
             box(-9, 48, -6, 9, 66, 6, 'dkwood'), cyl(0, 57, 6, 6.5, 1, 'ivory', axis='z'), cyl(0, 57, 7, 1, 1, 'ink', axis='z'),
             rod([0, 57, 7.5], [0, 61, 7.5], .4, .4, 'ink'), rod([0, 57, 7.5], [3, 57, 7.5], .4, .4, 'ink'),
-            box(-10, 66, -7, 10, 69, 7, 'wood'), ball(0, 71, 0, 0, 'wood', rr=[5, 3, 4])]
+            box(-10, 66, -7, 10, 69, 7, 'wood'), ball(0, 71, 0, 0, 'wood', rr=[5, 3, 4]), ball(0, 75, 0, 1.4, 'oldbrass'),   # finial
+            box(-9.6, 51, -3, -9, 63, 3, 'glass'), box(9, 51, -3, 9.6, 63, 3, 'glass'),                                     # side lights in the hood
+            box(-6, 10, -5.6, 6, 44, -5, 'dkwood'), box(-4.6, 12, -6, 4.6, 42, -5.4, 'wood'),                               # a framed back panel
+            box(-7.6, 10, -4, -7, 44, 3, 'dkwood'), box(7, 10, -4, 7.6, 44, 3, 'dkwood')]                                  # and sides
 
-
-@piece('in_table', size=(90, 80))
-def dining_table():
-    return legs4(26, 12, 22, 'dkwood') + [box(-28, 22, -13, 28, 26, 13, 'wood', pattern=['planks', 6, 'x']),
-            box(-12, 26, -6, 12, 27, 6, 'redbk'),                                                    # a runner
-            cyl(-16, 26, 3, 5, 1, 'ivory'), cyl(16, 26, -3, 5, 1, 'ivory'), cyl(0, 26, 0, 2.5, 6, 'clay'), ball(0, 33, 0, 3, 'pumpkin'),
-            cyl(-8, 26, -6, 1.6, 4, 'ivory'), cyl(10, 26, 6, 1.6, 4, 'ivory')]
-
-
-@piece('in_chess', size=(70, 80))
-def chess_table():
-    P = [cyl(0, 0, 0, 7, 2, 'dkwood'), cyl(0, 2, 0, 2, 18, 'dkwood'), box(-14, 20, -11, 14, 23, 11, 'wood')]
-    for i in range(4):
-        for j in range(4): P.append(box(-12 + i * 6, 23, -10 + j * 5, -6 + i * 6, 23.6, -5 + j * 5, 'ivory' if (i + j) % 2 else 'ink'))
-    for (x, z, m) in ((-9, -7, 'ivory'), (-3, -7, 'ivory'), (3, 3, 'ink'), (9, 8, 'ink'), (-3, 3, 'ivory')):
-        P += [cyl(x, 23.6, z, 1.2, 3, m), ball(x, 27.5, z, 1.1, m)]
-    return P
-
-
-@piece('in_piano', size=(100, 100))
-def upright_piano():
-    return [box(-30, 0, -10, 30, 48, 4, 'ink', pattern=['planks', 12, 'x']), box(-31, 48, -11, 31, 51, 5, 'dkwood'),
-            box(-28, 22, 4, 28, 26, 13, 'ink'), box(-27, 26, 5, 27, 27, 12, 'ivory'),
-            box(-28, 6, 4, -24, 22, 9, 'ink'), box(24, 6, 4, 28, 22, 9, 'ink'),                      # legs under the keyboard
-            box(-14, 30, 3, 14, 44, 5, 'dkwood'), box(-12, 32, 5, -2, 42, 6, 'paper'), box(1, 33, 5, 11, 41, 6, 'paper'),   # music on the stand
-            cyl(-24, 51, -4, 2, 1, 'brass'), cyl(-24, 52, -4, 1, 6, 'ivory'), box(-25, 58, -5, -23, 60, -3, 'glow'),
-            box(-8, 0, 6, 8, 12, 14, 'dkwood'), box(-9, 12, 5, 9, 14, 15, 'redbk')]                 # the stool
-
-
-@piece('in_globe', rot=False, size=(50, 80))
-def globe():
-    return [cyl(0, 0, 0, 7, 2, 'dkwood'), cyl(0, 2, 0, 1.6, 14, 'dkwood'), ring(0, 30, 0, 11, 1, 'brass'),
-            ball(0, 30, 0, 10, 'bluebk'), ball(-3, 33, 4, 4.5, 'greenbk'), ball(4, 27, 5, 3.5, 'greenbk'), ball(5, 35, -2, 3, 'paper')]
-
-
-@piece('in_candles', rot=False, size=(50, 80))
-def candelabra():
-    P = [cyl(0, 0, 0, 6, 2, 'brass'), cyl(0, 2, 0, 1.4, 22, 'brass'), box(-13, 23, -1, 13, 25, 1, 'brass')]
-    for x, h in ((-12, 7), (-6, 9), (0, 11), (6, 9), (12, 7)):
-        P += [cyl(x, 25, 0, 1.6, 1, 'brass'), cyl(x, 26, 0, 1.2, h, 'ivory'), box(x - .6, 26 + h, -.6, x + .6, 28.5 + h, .6, 'glow')]
-    return P
-
-
-@piece('in_keg', size=(70, 70))
-def cider_keg():
-    return [box(-12, 0, -9, -9, 8, 9, 'dkwood'), box(9, 0, -9, 12, 8, 9, 'dkwood'),                # the cradle
-            cyl(0, 15, -10, 11, 21, 'wood', axis='z', pattern=['planks', 4, 'x']),
-            ring(0, 15, -8, 11.2, 1, 'iron'), ring(0, 15, 9, 11.2, 1, 'iron'),
-            cyl(0, 10, 11, 1.4, 4, 'brass', axis='z'), box(-1, 8, 13, 1, 10, 15, 'brass'), cyl(0, 2, 13, 2.5, 2, 'clay')]   # the tap and a cup
-
-
-@piece('in_cradle', size=(80, 80))
-def cradle():
-    P = []
-    for x in (-13, 13):   # rockers across the ends
-        pts = [(-12, 4), (-8, 1), (0, 0), (8, 1), (12, 4)]
-        for (z0, y0), (z1, y1) in zip(pts, pts[1:]): P.append(rod([x, y0 + 1, z0], [x, y1 + 1, z1], 1.2, 1.2, 'dkwood'))
-    P += [box(-14, 3, -9, 14, 20, 9, 'wood', pattern=['planks', 4, 'y']), box(-12, 15, -7, 12, 17, 7, 'cloth'),   # the basket and its bedding
-          box(-14, 20, -10, 14, 22, -7, 'dkwood'), box(-14, 20, 7, 14, 22, 10, 'dkwood'),                         # rails along the sides
-          box(-14, 20, -9, -11, 34, 9, 'wood'), box(-14, 32, -9, -4, 35, 9, 'wood'), box(-14, 28, -9, -6, 32, 9, 'wood'),   # the hood over the head end
-          ball(-6, 18, 0, 0, 'ivory', rr=[4, 2.5, 3.5]), box(-4, 17, -6, 11, 20, 6, 'paper'),                      # a small pillow and a quilt
-          box(-2, 20, -6, 11, 21, 6, 'redbk')]
-    return P
-
-
-@piece('jack_b', size=(50, 50))
-def jack_o_lantern():
-    P = [ball(0, 9, 0, 0, 'pumpkin', rr=[11, 9, 10], lumps=.4, lumpfreq=1.6), cyl(0, 17, 0, 1.4, 4, 'greenbk')]
-    P += [box(-6, 10, 8, -3, 13, 10, 'glow'), box(3, 10, 8, 6, 13, 10, 'glow'), box(-5, 4, 9, 5, 7, 10.5, 'glow')]   # eyes and a grin, lit inside
-    return P
 
 # ---- batch 1, redrawn (judge: the trade object must be the biggest, highest-contrast shape, lit rim on metal; vary repeats;
 #      every cue drawn so it survives the turn). These replace the blockprops versions registered above.
@@ -241,10 +119,12 @@ def bench_weapon2():
     P += [box(x, 25, -6, x + 3.4, 50, -5, 'tin'), box(x + 1.2, 25, -5.2, x + 2.2, 50, -4.6, 'ivory'), box(x - 3, 50, -6.5, x + 6.4, 52.4, -4.5, 'brass'),
           box(x, 52.4, -6, x + 3.4, 56, -5, 'leather'), ball(x + 1.7, 57, -5.5, 1.6, 'brass')]
     P += [box(17, 30, -6, 19, 56, -5, 'dkwood'), box(19, 47, -6.4, 25, 55, -4.6, 'tin'), box(24, 46, -6.6, 25.4, 56, -4.4, 'ivory')]   # and an axe
-    P += [box(-25, 27, -6, -8, 31, 6, 'dkwood'),                                                    # the grindstone's trough
-          cyl(-16, 39, -4, 10, 3.6, 'stone', axis='z'), cyl(-16, 39, -.6, 3.4, 1.4, 'iron', axis='z'), cyl(-16, 39, -6, 1.5, 7.6, 'iron', axis='z'),   # the wheel, its hub and axle
-          box(-27, 27, -2, -25, 40, 0, 'dkwood'), box(-7, 27, -2, -5, 40, 0, 'dkwood'),               # its frame
-          rod([-16, 39, 1.4], [-9, 33, 3], 1, 1, 'iron'), rod([-9, 33, 3], [-9, 33, 9], 1.2, 1.2, 'wood'),   # the crank, its handle toward you
+    # the grindstone as a wheel you can read: a lit iron tyre round the stone, the hub and axle standing proud, a crank, a low trough
+    P += [box(-26, 27, -5, -6, 30, 6, 'dkwood'), box(-25, 29.6, -4, -7, 30.2, 5, 'bluebk'),
+          cyl(-16, 42, -3, 10, 3.4, 'stone', axis='z'), ring(-16, 42, .6, 10, 1.3, 'tin'), ring(-16, 42, .6, 5, .6, 'stone'),
+          cyl(-16, 42, .4, 2.8, 1.8, 'iron', axis='z'), cyl(-16, 42, -7, 1.3, 9.6, 'iron', axis='z'),
+          box(-28, 27, -2, -26, 44, 0, 'dkwood'), box(-6, 27, -2, -4, 44, 0, 'dkwood'),
+          rod([-16, 42, 2.4], [-10, 37, 3.4], 1, 1, 'iron'), rod([-10, 37, 3.4], [-10, 37, 9], 1.3, 1.3, 'wood'),
           box(6, 27, 2, 18, 29, 6, 'iron'), box(9, 29, 3, 15, 31, 5, 'iron'),
           box(-20, 7, -4, -8, 10, 4, 'iron'), box(-5, 7, -3, 4, 9.5, 3, 'steel'), box(7, 7, -4, 16, 11, 4, 'iron')]   # bars of different sizes
     return P
@@ -285,38 +165,52 @@ def furnace2():
 BP.RAMPS.update({'stain': ['#1e0e0e', '#2e1414', '#3e1a18', '#4c221c', '#5a2a20'],
                  'redpt': ['#2a1012', '#4a1a1a', '#6e2622', '#94382c', '#b44e38'],
                  'tin':   ['#24282c', '#3c4248', '#5a6268', '#848c90', '#b4bab8'],
-                 'ochre': ['#3a2a10', '#5e4416', '#86621e', '#a8822c', '#c8a444']})
+                 'ochre': ['#3a2a10', '#5e4416', '#86621e', '#a8822c', '#c8a444'],
+                 'oldgold': ['#2e2410', '#4e3c18', '#6e5622', '#8a6e2e', '#a4883c']})
 
 
 def _bed(quilt, frame='wood', stain=False, rumple=False):
+    """a bed: head and foot boards, a mattress, pillows, a quilt that drapes over both sides with a turned-down fold
+    at the head end (judges: bigger, muted patches; a fold and a drape; a stain is an irregular blot one step darker)"""
     P = []
     if frame == 'iron':
         P += [cyl(x, 0, z, 1.4, 17 if z > 0 else 32, 'iron') for x in (-24, 24) for z in (-48, 48)]
+        P += [ball(x, 33, -48, 1.8, 'oldbrass') for x in (-24, 24)] + [ball(x, 18, 48, 1.6, 'oldbrass') for x in (-24, 24)]
         P += [box(-24, 29, -49, 24, 31, -47, 'iron'), box(-24, 14, 47, 24, 16, 49, 'iron')]
         P += [box(x - .6, 14, -48.6, x + .6, 29, -47.4, 'iron') for x in range(-18, 20, 6)]
         P += [box(-24, 8, -48, 24, 10, 48, 'iron')]
     else:
-        P += [box(-26, 0, -50, 26, 32, -44, 'dkwood', pattern=['planks', 9, 'x']), box(-27, 32, -51, 27, 35, -43, 'wood'),   # headboard
-              box(-26, 0, 44, 26, 15, 50, 'dkwood', pattern=['planks', 9, 'x']), box(-27, 15, 43, 27, 17, 51, 'wood'),        # footboard
-              box(-26, 6, -44, -22, 12, 44, 'wood'), box(22, 6, -44, 26, 12, 44, 'wood')]                                    # side rails
-    P += [box(-23, 12, -44, 23, 18, 44, 'ivory')]                                                                           # the mattress
-    P += [ball(-10, 19.5, -37, 0, 'ivory', rr=[9, 3, 5]), ball(10, 19.5, -37, 0, 'ivory', rr=[9, 3, 5])]                   # pillows
-    if isinstance(quilt, list):   # patchwork
-        for i in range(6):
-            for j in range(8):
-                m = quilt[(i + 2 * j) % len(quilt)]
-                P.append(box(-24 + i * 8, 18, -28 + j * 9, -16 + i * 8, 19 + (.3 if (i + j) % 2 else 0), -19 + j * 9, m))
-        P.append(box(-24.5, 10, -28, -23.5, 19, 44, quilt[0])); P.append(box(23.5, 10, -28, 24.5, 19, 44, quilt[1]))   # it hangs over the sides
+        P += [box(-26, 0, -50, 26, 32, -44, 'dkwood', pattern=['planks', 9, 'x']), box(-27, 32, -51, 27, 35, -43, 'wood'),
+              ball(-26, 36.4, -47, 2, 'wood'), ball(26, 36.4, -47, 2, 'wood'),
+              box(-26, 0, 44, 26, 15, 50, 'dkwood', pattern=['planks', 9, 'x']), box(-27, 15, 43, 27, 17, 51, 'wood'),
+              box(-26, 6, -44, -22, 12, 44, 'wood'), box(22, 6, -44, 26, 12, 44, 'wood')]
+    P += [box(-23, 12, -44, 23, 18, 44, 'paper')]                                                            # the mattress
+    P += [ball(-10, 19.6, -38, 0, 'paper', rr=[9, 3.2, 5]), ball(10, 19.6, -38, 0, 'paper', rr=[9, 3.2, 5])]   # pillows
+    zq0, zq1 = -27, 44
+    if isinstance(quilt, list):   # patchwork: four big patches across, five down, the same patches on the drape
+        cols = 4; rows = 5; pw = 48 / cols; pd = (zq1 - zq0) / rows
+        for i in range(cols):
+            for j in range(rows):
+                m = quilt[(i + 2 * j + (j // 2)) % len(quilt)]
+                P.append(box(-24 + i * pw, 18, zq0 + j * pd, -24 + (i + 1) * pw, 19 + (.25 if (i + j) % 2 else 0), zq0 + (j + 1) * pd, m))
+        for j in range(rows):
+            for sx in (-1, 1):
+                m = quilt[((0 if sx < 0 else cols - 1) + 2 * j + (j // 2)) % len(quilt)]
+                P.append(box(24 * sx - (.9 if sx > 0 else 0), 7, zq0 + j * pd, 24 * sx + (.9 if sx < 0 else 0), 19, zq0 + (j + 1) * pd, m))
+        fold = quilt[0]
     else:
-        P += [box(-24.5, 10, -28, 24.5, 19.5, 44, quilt), box(-24.5, 18.5, -30, 24.5, 20.5, -24, 'ivory')]                 # blanket and turned-down sheet
-        if rumple: P += [box(-24.6, 10, z, 24.6, 19.6, z + 2.5, rumple) for z in (-14, -9, 30, 35)]                       # woven stripes
-    if stain: P += [box(2, 19.6, 4, 12, 20.4, 12, 'stain'), box(5, 19.6, 12, 9, 20.4, 15, 'stain')]
+        P += [box(-24.9, 7, zq0, 24.9, 19.2, zq1, quilt)]
+        if rumple: P += [box(-24.95, 7, z, 24.95, 19.3, z + 2.2, rumple) for z in (-12, -8, 32, 36)]
+        fold = quilt
+    P += [box(-24.9, 18, zq0 - 6, 24.9, 20.6, zq0 + .5, fold), box(-24.6, 20.6, zq0 - 5, 24.6, 21.2, zq0 - 1, 'paper')]   # the turned-down fold, sheet showing
+    if stain:   # an irregular blot, low contrast
+        P += [ball(4, 19.4, 10, 0, 'plum', rr=[5, .5, 3.4]), ball(8, 19.4, 13, 0, 'plum', rr=[3.4, .5, 4]), ball(1, 19.4, 15, 0, 'plum', rr=[2, .5, 2.4])]
     return P
 
-piece('in_bed', size=(90, 110))(lambda: _bed(['redbk', 'greenbk', 'paper', 'redbk', 'leather']))
-piece('in_bed_b', size=(90, 110))(lambda: _bed(['bluebk', 'paper', 'blgrey', 'bluebk', 'ivory']))
-piece('in_bed_c', size=(90, 110))(lambda: _bed('greenbk', rumple='paper', stain=True))
-piece('in_bed_d', size=(90, 110))(lambda: _bed('ochre', frame='iron', rumple='leather', stain=True))
+piece('in_bed', size=(90, 110))(lambda: _bed(['redbk', 'greenbk', 'oldgold', 'plum', 'leather']))
+piece('in_bed_b', size=(90, 110))(lambda: _bed(['bluebk', 'blgrey', 'plum', 'bluebk', 'greenbk']))
+piece('in_bed_c', size=(90, 110))(lambda: _bed('greenbk', rumple='leather', stain=True))
+piece('in_bed_d', size=(90, 110))(lambda: _bed('oldgold', frame='iron', rumple='plum', stain=True))
 
 
 @piece('in_chair', size=(50, 70))
@@ -811,4 +705,195 @@ def garden_bed():
             P += [rod([x, 5, z], [x - 1, 10, z + 1], .5, .3, 'leaf'), rod([x, 5, z], [x + 1.5, 9.5, z - 1], .5, .3, 'leaf'),
                   ball(x, 9.6, z, 0, 'leaf', rr=[2.2, 1.2, 1.8])]
             if (i + r) % 3 == 0: P.append(ball(x + .5, 5.6, z + 2.4, 0, 'pumpkin', rr=[1.2, 1, 1.2]))
+    return P
+
+
+
+# ---- batch 2, round 2 (judges: rockers and lights must read at 1x, no candy brass, no stripes of equal books, a real checker,
+#      piano keys in twos and threes, lids lighter than sides; turn check: frame every end panel)
+BP.RAMPS.update({'oldbrass': ['#2e1e10', '#54381a', '#7a5626', '#9a7434', '#b89650'],
+                 'ocean':    ['#16222e', '#20384c', '#2c5068', '#44708a', '#6e9aac'],
+                 'gourd':    ['#2e140c', '#52240e', '#7a3814', '#9c5420', '#b8743a'],
+                 'plum':     ['#1c1216', '#2e1c20', '#42282a', '#5a3834', '#744a40']})
+
+
+def end_frame(P, w, d, h, m='dkwood', inset=1.2):
+    """stiles and rails on both end panels, so a side view shows a framed panel and not a blank slab"""
+    for sx in (-1, 1):
+        x0 = sx * w - (0 if sx > 0 else .8); x1 = x0 + .8
+        P += [box(x0, 0, -d, x1, h, -d + inset * 2, m), box(x0, 0, d - inset * 2, x1, h, d, m),
+              box(x0, h - 2.4, -d, x1, h, d, m), box(x0, 0, -d, x1, 2.4, d, m)]
+    return P
+
+
+@piece('in_rockS', size=(80, 100))
+def rocking_chair():
+    P = []
+    for x in (-11, 11):   # long rockers, lighter than the frame, tips curling well past the feet front and back
+        pts = [(-19, 7), (-15, 2.6), (-8, .6), (0, 0), (10, .6), (19, 2.4), (25, 7.6)]
+        for (z0, y0), (z1, y1) in zip(pts, pts[1:]): P.append(rod([x * 1.08, y0 + 1.6, z0], [x * 1.08, y1 + 1.6, z1], 1.8, 1.8, 'wood'))
+    P += [box(x - 1.4, 2.4, z, x + 1.4, 16, z + 2.8, 'dkwood') for x in (-11, 11) for z in (-8, 5.4)]
+    P += [box(-12, 16, -9, 12, 18.6, 10, 'dkwood', pattern=['planks', 4, 'x']),
+          box(-12, 16, -10, -9, 46, -7, 'dkwood'), box(9, 16, -10, 12, 46, -7, 'dkwood'),
+          box(-12, 42, -10.4, 12, 46, -6.6, 'wood'), ball(-10.5, 47.4, -8.5, 1.9, 'wood'), ball(10.5, 47.4, -8.5, 1.9, 'wood')]
+    P += [box(x, 18.6, -9.4, x + 1.8, 42, -8.2, 'wood') for x in (-7.5, -3.5, .5, 4.5)]
+    P += [box(-13, 27, -8, -10, 29, 10, 'wood'), box(10, 27, -8, 13, 29, 10, 'wood'),
+          box(-12.4, 18.6, 8, -10.6, 27, 9.6, 'dkwood'), box(10.6, 18.6, 8, 12.4, 27, 9.6, 'dkwood'),
+          box(-9, 18.6, -7, 9, 20.4, 7, 'redbk'), box(-14, 22, 2, -11, 27, 9, 'greenbk')]          # a thin seat pad, a folded shawl over the arm
+    return P
+
+
+@piece('in_oillamp', rot=False, size=(50, 90))
+def oil_lamp():
+    P = [cyl(0, 0, 0, 5, 2, 'dkwood'), cyl(0, 2, 0, 1.4, 20, 'dkwood'), cyl(0, 22, 0, 9, 2.4, 'wood')]    # a little pedestal table
+    P += [cyl(0, 24.4, 0, 4, 1.4, 'oldbrass'), cyl(0, 25.8, 0, 1.6, 2, 'oldbrass'),
+          ball(0, 31, 0, 0, 'glass', rr=[5, 4, 5]), cyl(0, 34.6, 0, 3, 1.4, 'oldbrass'),                   # the round font and its collar
+          cyl(0, 36, 0, 2.4, 9, 'glass'), ball(0, 38.6, 0, 0, 'glow', rr=[1.4, 2.6, 1.4]), box(-.4, 41, -.4, .4, 42.4, .4, 'glow'),   # the chimney with a flame inside
+          box(4, 25, -1, 7, 26.6, 1, 'oldbrass')]
+    return P
+
+
+@piece('in_shelf_books', size=(80, 120))
+def bookcase():
+    P = [box(-24, 0, -7, -21, 62, 6, 'dkwood'), box(21, 0, -7, 24, 62, 6, 'dkwood'), box(-24, 0, -7, 24, 62, -5, 'dkwood', pattern=['planks', 8, 'x']),
+         box(-25, 61, -8, 25, 64, 7, 'wood')]
+    end_frame(P, 24, 6.5, 61, m='wood')
+    for y in (1, 16, 31, 46): P.append(box(-22, y, -5, 22, y + 2, 6.6, 'wood'))
+    import random
+    rnd = random.Random(11)
+    for row, y in enumerate((3, 18, 33, 48)):
+        x = -21
+        while x < 19:
+            r = rnd.random()
+            if r < .1: x += 3; continue                                                          # a gap
+            if r < .2 and x < 15:                                                               # a book leaning into the gap
+                P.append(rod([x + .8, y, 1], [x + 4, y + 10, 1], 1.1, 1.1, rnd.choice(('redbk', 'greenbk', 'leather')))); x += 5; continue
+            if r < .26 and row != 0:                                                            # a jar, a candle stub, a small box
+                P.append(rnd.choice((cyl(x + 2, y, 1, 2, 6, 'glass'), cyl(x + 2, y, 1, 1.2, 4, 'ivory'), box(x, y, -2, x + 4, y + 3, 4, 'oldbrass')))); x += 5; continue
+            w = rnd.choice((2, 2, 3, 3, 4)); h = rnd.choice((7, 9, 10, 11, 12, 13)); m = rnd.choice(('redbk', 'bluebk', 'greenbk', 'leather', 'paper', 'plum'))
+            P.append(box(x, y, -3 + rnd.choice((0, .6, 1.2)), x + w, y + h, 5, m)); x += w
+    P += [box(-20, 64, -4, -6, 66, 3, 'redbk'), box(-19, 66, -3, -8, 67.6, 2, 'greenbk')]             # a stack on top
+    return P
+
+
+@piece('in_crates', size=(80, 90))
+def crates():
+    def crate(x0, y0, z0, x1, y1, z1, m='wood'):
+        Q = [box(x0, y0, z0, x1, y1, z1, m, pattern=['planks', 4.5, 'y'])]
+        for (xa, xb) in ((x0 - .5, x0 + 1.8), (x1 - 1.8, x1 + .5)):                               # corner battens
+            Q += [box(xa, y0, z1 - 1.8, xb, y1, z1 + .5, 'dkwood'), box(xa, y0, z0 - .5, xb, y1, z0 + 1.8, 'dkwood')]
+        Q += [box(x0, y1 - 1.8, z1, x1, y1, z1 + .5, 'dkwood'), box(x0, y0, z1, x1, y0 + 1.8, z1 + .5, 'dkwood')]
+        return Q
+    P = crate(-20, 0, -9, 2, 18, 8) + crate(-15, 18, -7, 0, 30, 6, 'dkwood')
+    P += crate(5, 0, 2, 21, 11, 13)                                                               # the fruit box on its own, in front
+    P += [ball(9, 12, 6, 2.8, 'pumpkin'), ball(14, 12.4, 8, 3, 'gourd'), ball(18, 12, 5.6, 2.4, 'pumpkin'), ball(11, 12, 10, 2.2, 'redbk'),
+          box(-13, 30, -3, -4, 31.6, 3, 'burlap'), box(-6, 7, 8.6, 0, 11, 9, 'paper')]
+    return P
+
+
+@piece('in_desk', size=(90, 90))
+def writing_desk():
+    P = legs4(26, 9, 22, 'dkwood') + [box(-27, 22, -10, 27, 26, 10, 'wood', pattern=['planks', 3.5, 'x']),
+         box(8, 4, -9, 25, 22, 8, 'wood'), box(9, 15, 8, 24, 16, 9, 'dkwood'), box(9, 9, 8, 24, 10, 9, 'dkwood'),        # a drawer pedestal
+         box(15, 18, 8, 18, 19.6, 10, 'oldbrass'), box(15, 12, 8, 18, 13.6, 10, 'oldbrass'),
+         box(-27, 26, -10, 27, 30, -7, 'dkwood'), box(-27, 30, -10, 27, 31.4, -6, 'wood'),                              # a low gallery, not a hutch
+         box(-18, 26, -2, -2, 27, 8, 'paper'), box(-15, 27, 0, -6, 28, 6, 'ivory'),
+         cyl(3, 26, 2, 1.8, 2.6, 'ink'), rod([3.5, 28.4, 2], [9, 36, -2], .5, 1.3, 'ivory'),                             # inkwell and a proper quill
+         cyl(18, 26, -3, 3, 2, 'oldbrass'), cyl(18, 28, -3, 2, 6, 'glass'), box(17, 30, -4, 19, 32, -2, 'glow')]
+    return end_frame(P, 27, 9.5, 22)
+
+
+@piece('in_table', size=(90, 80))
+def dining_table():
+    P = legs4(26, 12, 22, 'dkwood') + [box(-28, 22, -13, 28, 26, 13, 'wood', pattern=['planks', 4, 'x'])]
+    P += [box(-30, 26, -5, 30, 26.8, 5, 'redbk'), box(-30.6, 21, -5, -29.8, 26.8, 5, 'redbk'), box(29.8, 21, -5, 30.6, 26.8, 5, 'redbk')]   # a runner over both ends
+    for x, z in ((-18, 8), (18, 8), (-18, -8), (18, -8)):
+        P += [cyl(x, 26, z, 4.6, .8, 'ivory'), ring(x, 26.8, z, 4.4, .45, 'plum', axis='y')]                           # plates with a dark rim
+    P += [cyl(0, 26.8, 0, 2.6, 4, 'oldbrass'), cyl(0, 30.8, 0, 1.2, 6, 'ivory'), ball(0, 37.6, 0, 0, 'glow', rr=[.9, 1.6, .9]),   # a candle
+          ball(-8, 30, 1, 3.4, 'pumpkin'), ball(8, 29.6, -1, 3, 'gourd')]
+    return P
+
+
+@piece('in_chess', size=(80, 80))
+def chess_table():
+    P = [cyl(0, 0, 0, 8, 2, 'dkwood'), cyl(0, 2, 0, 2.4, 18, 'dkwood'), box(-18, 20, -15, 18, 23, 15, 'dkwood')]
+    for i in range(4):
+        for j in range(4): P.append(box(-16 + i * 8, 23, -13 + j * 6.5, -8 + i * 8, 23.6, -6.5 + j * 6.5, 'ivory' if (i + j) % 2 else 'plum'))
+    for (x, z, m, h) in ((-12, -10, 'ivory', 5), (-4, -10, 'ivory', 4), (4, 3, 'plum', 4), (12, 9, 'plum', 6), (-4, 3, 'ivory', 4), (12, -3, 'plum', 5)):
+        P += [cyl(x, 23.6, z, 1.6, h, m), ball(x, 24.6 + h, z, 1.5, m)]
+    return P
+
+
+@piece('in_piano', size=(100, 110))
+def upright_piano():
+    P = [box(-30, 0, -10, 30, 50, 4, 'dkwood'), box(-31, 50, -11, 31, 53, 5, 'wood'),
+         box(-27, 30, 4, -2, 46, 4.8, 'plum'), box(2, 30, 4, 27, 46, 4.8, 'plum'),                                   # inset panels
+         box(-28, 22, 4, 28, 26, 13, 'dkwood'), box(-27, 26, 5, 27, 27, 12, 'ivory'),
+         box(-28, 6, 4, -24, 22, 9, 'dkwood'), box(24, 6, 4, 28, 22, 9, 'dkwood'), box(-24, 3, 2, 24, 18, 4.6, 'plum')]
+    for g, x0 in enumerate(range(-26, 26, 7)):                                                    # black keys in twos and threes
+        for k in range(2 if g % 2 == 0 else 3): P.append(box(x0 + k * 2, 27, 5, x0 + k * 2 + 1.1, 27.8, 8.6, 'ink'))
+    P += [box(-8, 31, 3.4, 8, 42, 5.4, 'oldbrass'), box(-6, 33, 5.4, 6, 41, 6, 'paper'),
+          cyl(-24, 53, -4, 2, 1, 'oldbrass'), cyl(-24, 54, -4, 1, 6, 'ivory'), ball(-24, 61.4, -4, 0, 'glow', rr=[.8, 1.5, .8]),
+          cyl(22, 53, -4, 2, 1, 'oldbrass'), cyl(22, 54, -4, 1, 4, 'ivory'), ball(22, 59.4, -4, 0, 'glow', rr=[.8, 1.5, .8]),
+          box(-8, 0, 8, 8, 12, 15, 'dkwood'), box(-9, 12, 7, 9, 14, 16, 'redbk')]
+    P += [box(x, 4, -10.8, x + 3, 48, -10, 'wood') for x in (-26, -1.5, 23)] + [box(-24, 10, -10.6, 24, 44, -10.2, 'plum')]   # bracing and soundboard at the back
+    return end_frame(P, 30, 10, 50, m='wood')
+
+
+@piece('in_globe', rot=False, size=(50, 80))
+def globe():
+    return [cyl(0, 0, 0, 8, 2, 'dkwood'), rod([0, 2, 0], [0, 17, 0], 1.8, 1.4, 'dkwood'), cyl(0, 16, 0, 3.4, 1.4, 'oldbrass'),
+            ring(0, 30, -.2, 12, 1.4, 'oldbrass'), ring(0, 30, 0, 12, 1, 'oldbrass', axis='x'),
+            ball(0, 30, 0, 10, 'ocean'), ball(-3.5, 33.5, 5.5, 0, 'greenbk', rr=[4.6, 4, 3]), ball(4.5, 26.6, 5.8, 0, 'greenbk', rr=[3.4, 3.6, 2.6]),
+            ball(5.6, 35, -1, 0, 'paper', rr=[2.6, 1.6, 2.2]), cyl(0, 41.4, 0, 1.4, 1.6, 'oldbrass')]
+
+
+@piece('in_candles', rot=False, size=(50, 80))
+def candelabra():
+    P = [cyl(0, 0, 0, 6, 2, 'oldbrass'), cyl(0, 2, 0, 1.6, 22, 'oldbrass'), ball(0, 12, 0, 2.4, 'oldbrass')]
+    for x, h in ((-12, 7), (-6, 9), (0, 11), (6, 9), (12, 7)):
+        P += [rod([0, 22, 0], [x, 25, 0], .9, .9, 'oldbrass'), cyl(x, 25, 0, 1.9, 1, 'oldbrass'), cyl(x, 26, 0, 1.2, h, 'ivory'),
+              ball(x, 27.8 + h, 0, 0, 'glow', rr=[1, 1.8, 1])]
+    P += [ball(-12, 30, 1.2, 0, 'ivory', rr=[.6, 2, .5])]                                         # a drip of wax
+    return P
+
+
+@piece('in_keg', size=(70, 70))
+def cider_keg():
+    P = [box(-9, 0, -12, -5, 7, 12, 'dkwood'), box(5, 0, -12, 9, 7, 12, 'dkwood'),                # chocks
+         box(-9.5, 5, -13, -4.5, 7, 13, 'wood'), box(4.5, 5, -13, 9.5, 7, 13, 'wood')]
+    for k in range(10):                                                                           # a bellied cask lying side-on, staves toward you
+        t = (k + .5) / 10; r = 11.6 - 1.8 * (2 * t - 1) ** 2
+        P.append(cyl(-13 + 26 * k / 10, 17, 0, r, 26 / 10 + .02, 'wood', axis='x', pattern=['planks', 3.4, 'z']))
+    P += [ring(x, 17, 0, 11.6 - 1.8 * (2 * ((x + 13) / 26) - 1) ** 2 + .35, .75, 'ink', axis='x') for x in (-10, -4, 4, 10)]
+    P += [cyl(13, 17, 0, 9.6, .5, 'pine', axis='x'), cyl(-13.5, 17, 0, 9.6, .5, 'pine', axis='x'),                          # oak heads at the ends
+          cyl(13.5, 12, 0, 1.5, 3.6, 'oldbrass', axis='x'), box(16.4, 9.6, -1, 17.8, 12, 1, 'oldbrass'),                       # the tap
+          box(-3, 28.4, -1.4, 3, 29.2, 1.4, 'dkwood'), box(-2, 18, 11.2, 4, 21, 11.8, 'paper')]                               # bung, chalked tally
+    return P
+
+
+@piece('in_cradle', size=(80, 80))
+def cradle():
+    P = []
+    for x in (-15, 15):   # rockers across the ends, lighter, curling past the body
+        pts = [(-15, 6), (-10, 1.6), (0, 0), (10, 1.6), (15, 6)]
+        for (z0, y0), (z1, y1) in zip(pts, pts[1:]): P.append(rod([x, y0 + 1.6, z0], [x, y1 + 1.6, z1], 1.6, 1.6, 'wood'))
+    P += [box(-14, 3, -9, 14, 19, 9, 'dkwood', pattern=['planks', 4, 'y']), box(-12, 14, -7, 12, 16, 7, 'ivory'),
+          box(-14, 19, -10, 14, 21, -7, 'wood'), box(-14, 19, 7, 14, 21, 10, 'wood')]
+    for k in range(8):   # a deep curved hood over the head end
+        a = k / 7 * 3.1416; y = 21 + 13 * __import__('math').sin(a) ; z = -9 * __import__('math').cos(a)
+        P.append(box(-14, y - 1.6, z - 1.6, -4, y + .6, z + 1.6, 'dkwood'))
+    P += [box(-4.6, 20, -10, -3.6, 34.6, 10, 'wood'),                                              # the hood's lit rim
+          ball(-7, 17, 0, 0, 'ivory', rr=[4, 2.4, 3.6]), box(-3, 16, -7.6, 13, 19.6, 7.6, 'redbk'), box(-3, 19.4, -7, -1.4, 20, 7, 'ivory'),
+          box(-4.4, 30, -6, -3.4, 34, 6, 'redbk')]                                                  # the blanket over the hood rim
+    return P
+
+
+@piece('jack_b', size=(56, 56))
+def jack_o_lantern():
+    import math
+    P = [ball(6 * math.cos(a * math.pi / 4), 10, 5.4 * math.sin(a * math.pi / 4), 0, 'gourd', rr=[7.2, 9, 7]) for a in range(8)]
+    P += [ball(0, 11, 0, 0, 'gourd', rr=[8.4, 9.4, 8]), rod([0, 19, 0], [1.6, 23, -1], 1.6, 1.1, 'greenbk')]
+    P += [box(-8, 12, 10.4, -3, 16.6, 13, 'glow'), box(3, 12, 10.4, 8, 16.6, 13, 'glow'), box(-1.2, 9, 11.4, 1.2, 11.4, 13, 'glow'),   # eyes, nose
+          box(-8, 4, 10.4, 8, 7.6, 13, 'glow'), box(-5, 6.6, 12.6, -3, 7.8, 13.2, 'gourd'), box(2, 3.8, 12.6, 4, 5, 13.2, 'gourd')]   # a grin with teeth
     return P

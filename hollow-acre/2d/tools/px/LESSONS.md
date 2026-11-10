@@ -493,6 +493,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Bed stains read as logos when drawn as solid shapes. A stain is an irregular blot one step darker. A blanket needs a turn-down fold and a drape over the sides.
 - Elevation 30 shows a lot of front and little top. Long flat things (beds, garden beds, rugs) need extra length in the model to keep their top area.
 - A horizontal ring needs axis 'y' (the renderer's default ring faces the viewer).
+- A redraw can lose to its own first round: crates (5 -> 3) and chess (3 -> 3, now a tablecloth) got worse. Keep the better round's model and change one thing at a time.
+- A light reads only if the flame is several pixels with a pale core; a 2 px glow inside glass is a blue bottle.
+- Seen from the front at elevation 30, a rocker's runners hide behind the legs. Push the runner tips well forward of the feet and make them lighter than the frame, or the chair reads as a dining chair.
+- Spines must sit two value steps above a dark case back, or the books go to mud.
 
 ## Outlines, light, colour
 
