@@ -496,6 +496,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors b41] A pew from behind reads as a seat when the pale seat plank shows above a darker back, with a dark band
   under the seat lip; pews of one length in a row read as stamped.
 
+- [interiors b42] A high-backed pew seen from behind hides its own seat; after six rounds of "open frames", "crates",
+  "racks", a plain backless bench read at once: a pale seat plank (the lightest wood in the room), a dark band under its lip,
+  a closed apron to a dark plinth. When a piece's camera angle hides what makes it that piece, change the piece.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).

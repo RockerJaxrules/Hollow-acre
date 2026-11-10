@@ -2593,6 +2593,13 @@ if(K==='drownedboard'){const R=RAMP.walnut;   // (wall) the chapel's board of th
   drawText(A,'LOST',(W>>1)-8,5,RAMP.brass[4]);hl(A,6,11,W-12,RAMP.brass[2]);
   for(let r=0;r<6;r++){const y=14+r*4,len=r===5?Math.round((W-14)*.4):W-14-((hsh(r,1,92)*10)|0);for(let x=7;x<7+len;x++)if(hsh(x,r,93)>.22)P(A,x,y,RAMP.brass[r<4?3:2]);for(let x=W-12;x<W-7;x++)if(hsh(x,r,94)>.3&&r<5)P(A,x,y,RAMP.brass[2]);}
   for(let y=2;y<H-1;y++)SH(W-1,y,80);}
+if(K==='chbench'||K==='chbenchs'||K==='chbenchb'){const base=H-3,Pn=RAMP.pine,Wn=RAMP.walnut,x0=4,w=W-8,top=base-17;   // (b42: high-backed pews from behind read as open frames for six rounds) a plain backless chapel bench: a pale pine seat plank, the lightest wood in the room, a dark band under its lip, a closed walnut apron down to a dark plinth, slab ends
+  for(let y=top;y<top+7;y++)for(let x=x0;x<x0+w;x++){let k=y===top?5:y===top+6?3:4;if(x===x0)k=5;if(x===x0+w-1)k=2;if(y>top&&y<top+6&&(((x-x0)*3+y*7)%41===0))k=3;P(A,x,y,Pn[k]);}   // the seat plank
+  hl(A,x0,top+7,w,Pn[2]);hl(A,x0,top+8,w,Wn[0]);hl(A,x0,top+9,w,Wn[0]);                                                         // its front edge, the dark band under the lip
+  for(let y=top+10;y<base-1;y++)for(let x=x0+2;x<x0+w-2;x++){let k=y===top+10?3:2;if(((x-x0)*5+y*11)%53===0)k=1;P(A,x,y,Wn[k]);}hl(A,x0+2,base-1,w-4,Wn[0]);   // the apron, the plinth
+  for(const ex of [x0,x0+w-3])for(let y=top+8;y<base;y++){P(A,ex,y,Wn[ex===x0?4:1]);P(A,ex+1,y,Wn[3]);P(A,ex+2,y,Wn[ex===x0?2:0]);}   // the slab ends
+  if(K==='chbenchb'){const bx=x0+(w>>1)-8,by=top+1;rect(A,bx,by,9,4,RAMP.red[3]);hl(A,bx,by,9,RAMP.red[5]);hl(A,bx,by+4,9,RAMP.red[1]);P(A,bx+8,by+2,RAMP.cream[4]);}   // a hymnal left on the seat
+  for(let x=x0-2;x<x0+w+4;x++){SH(x,base,160);SH(x,base+1,110);SH(x+1,base+2,60);}}
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
 for(const f of NOOL)for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(f(x,y))for(const L of [O,O2])L.d[(y*W+x)*4+3]=0;
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));

@@ -8,7 +8,7 @@ const SEATS={
   in_chair:{f:'S',lift:1},in_chairE:{f:'E',dx:.04},in_chairN:{f:'N',dz:.2},
   in_rockS:{f:'S',lift:2},in_rocker:{f:'S',lift:2},in_rockE:{f:'E',dx:.1,lift:2},in_rockN:{f:'N',dz:.2,lift:8},
   in_stool:{f:'*',lift:8},
-  in_pew:{f:'S',at:[-1.5,-.75,0,.75,1.5],lift:2},in_pew_bk:{f:'N',at:[-1.5,-.75,0,.75,1.5],dz:.24},in_pewv_bk:{f:'N',at:[-1.5,-.75,0,.75,1.5],dz:.24},in_pews_bk:{f:'N',at:[-.7,0,.7],dz:.24},in_pewsb_bk:{f:'N',at:[-.7,0,.7],dz:.24},in_pewss_bk:{f:'N',at:[-.45,.45],dz:.24},in_pewb_bk:{f:'N',at:[-1.5,-.75,0,.75,1.5],dz:.24},
+  in_pew:{f:'S',at:[-1.5,-.75,0,.75,1.5],lift:2},in_pew_bk:{f:'N',at:[-1.5,-.75,0,.75,1.5],dz:.24},in_pewv_bk:{f:'N',at:[-1.5,-.75,0,.75,1.5],dz:.24},in_pews_bk:{f:'N',at:[-.7,0,.7],dz:.24},in_pewsb_bk:{f:'N',at:[-.7,0,.7],dz:.24},in_pewss_bk:{f:'N',at:[-.45,.45],dz:.24},in_chbench:{f:'N',at:[-.7,0,.7],dz:-.06,lift:3},in_chbench_b:{f:'N',at:[-.7,.7],dz:-.06,lift:3},in_chbench_s:{f:'N',at:[-.45,.45],dz:-.06,lift:3},in_pewb_bk:{f:'N',at:[-1.5,-.75,0,.75,1.5],dz:.24},
   parkbench:{f:'S',at:[-.42,.42],lift:1},
   rg_swing:{f:'S',at:[-.36,.78],lift:9}};
 const SEAT_DIR={S:[0,1],N:[0,-1],E:[1,0],W:[-1,0]};
