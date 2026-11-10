@@ -11,7 +11,7 @@ SPR = {'bookcase': 'in_shelf_books', 'desk': 'in_desk', 'table': 'in_table', 'cl
        'candles': 'in_candles', 'lamp': 'in_oillamp', 'rug': 'in_rug',
        'beda': 'in_bed', 'bedb': 'in_bed_b', 'bedc': 'in_bed_c', 'bedd': 'in_bed_d', 'bede': 'in_bed_e', 'wardrobe': 'in_wardrobe', 'cabinet': 'in_cabinet', 'stove': 'in_stove',
        'counter': 'in_counter', 'kcounter': 'in_kcounter', 'cans': 'in_shelf_cans', 'mail': 'in_shelf_mail', 'parts': 'in_shelf_parts', 'filecab': 'in_filecab',
-       'schooldesk': 'in_schooldesk', 'stool': 'in_stool', 'pew': 'in_pew', 'toolbox': 'in_toolbox', 'coffin': 'in_coffin'}
+       'schooldesk': 'in_schooldesk', 'stool': 'in_stool', 'lamp_st': 'lamp', 'pew': 'in_pew', 'toolbox': 'in_toolbox', 'coffin': 'in_coffin'}
 kinds = [a for a in sys.argv[1:] if not a.startswith('--')]; views = '--views' in sys.argv
 mp = os.path.join(BUILD, 'spr', 'lpc', 'objects.json'); O = json.load(open(mp))
 bak = os.path.join(GAME, 'spr', 'backup_v2', 'furn_old'); os.makedirs(bak, exist_ok=True)
