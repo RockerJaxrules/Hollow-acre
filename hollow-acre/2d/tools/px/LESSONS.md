@@ -934,6 +934,14 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   different lengths lying IN the container, let soil show between them, and hang just one over the lip with a blunt tip.
 - [r14] A pie reads as a cheese wheel or Pac-Man when its side is tall and its rim is flat: a short wall, a fluted rim that
   scallops the outline, a darker baked ring inside the crust and one glaze glint; open custard (no lattice) for pumpkin.
+- [r15] A drop is a hand-sized chunk, never the node shrunk: the stone with a flat base read as a boulder on a plinth; four flat
+  faces (lit top, mid left, darker front, dark right), a hard lit ridge and a two-pixel crack read as a stone in the hand.
+- [r15] Ring or weave texture at the same contrast edge to edge reads as checker dither at 1x: keep crisp rings on the lit
+  shoulder and hem only, quieter in the shade. A belt cinching a shirt, with length below it, makes it worn armour, not a tee.
+- [r15] A label that shows what is inside (a worm printed on the bait tin) sells the container; look INTO an open tin (a
+  taller mouth) so dark contents show between the things lying in it.
+- [r15] Every winner at 6 still fills each material with one flat tone plus an even texture; 7-8 needs 3-4 deliberate tone
+  clusters per surface and one placed highlight.
 - A family of nodes made from one stamped dome with different flecks reads as one rock: give every material its own shape at 1x (coal as angular black lumps standing proud, copper as fat nuggets, iron as oxide and silver glints, gem as crystals breaking the outline, stone as a slab with moss and a crack), and give each node its own silhouette.
 - A node and its drop must match: the icon is the same material, a hand-sized chunk, not the boulder shrunk.
 - Rust drawn as maroon blocks reads as raw meat or blood: rust is ragged orange-brown oxide bleeding down from cracks, with an ochre step where it catches the light.
