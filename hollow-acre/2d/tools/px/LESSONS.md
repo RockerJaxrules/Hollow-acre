@@ -545,6 +545,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   size, use 2-3 variants, leave gaps. A dock's evenly spaced side nubs read as clips; a darker near-end face with pilings shows height.
 - [props sweep] Lighting a slate roof plane by plane: the lit plane steps up in VALUE; the top slate tones are cool, so pushing
   them reads as powder-blue ice. Stop a step short.
+- [props sweep] A hung doll reads at 1x only when it dangles in OPEN AIR below the branch (cord 5-9 px, nothing behind its body) and
+  its dress is a step DARKER than its pale head; pale dolls tight against pale bark read as buds or seed pods.
+- [props sweep] Tyre wear drawn as hashed cells reads as camouflage blocks; draw it as continuous wavy wheel tracks, one tone down.
+- [props sweep] Clumps laid over a fill with a gap-toothed top edge get outlined into battlements: wave the fill's top edge so
+  nothing is left for the outline to bite.
 
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
