@@ -487,6 +487,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors b39] Edit scripts that cut a block "up to the next kind" fail on the last kind in the file: fall back to the end
   marker, and check the script printed ok before rendering.
 
+- [interiors b40] A closed pew panel in the floor's own brown still reads as a gap you see the floor through: a seat must
+  differ from the floor in wood (pale pine on dark oak), with a dark plinth line and its own shadow where it meets the floor.
+- [interiors b40] A stump drawn with box3 reads as a crate; a log stump is round: bark down its sides, a sawn top with rings.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).

@@ -792,7 +792,7 @@ if(K==='stool'){const R=RAMP.oak,base=H-3,cx=W>>1;
   for(let x=-7;x<=7;x++)P(A,cx+x,sy+3,R[2]);                                                                                         // its edge
   for(let x=-8;x<=9;x++)SH(cx+x,base,70);cast(cx-6,cx+6,base);}
 // =================================================================================== the church pew
-if(K==='pew'||K==='pewv'||K==='pewb'||K==='pews'||K==='pewsb'){const R=K.startsWith('pews')?RAMP.oak:RAMP.walnut,base=H-3,x0=7,w=W-14,VAR=K==='pewv',SHAWL=K==='pewb'||K==='pewsb';   // owner: "benches look weird, not like you could sit on them"
+if(K==='pew'||K==='pewv'||K==='pewb'||K==='pews'||K==='pewsb'){const R=K.startsWith('pews')?RAMP.pine:RAMP.walnut,base=H-3,x0=7,w=W-14,VAR=K==='pewv',SHAWL=K==='pewb';   /* (b40: oak pews on oak boards merged with the floor; the shawl read as a mauve block) the chapel's pews in pale pine */   // owner: "benches look weird, not like you could sit on them"
   const endPost=(ex,top)=>{for(let y=top+3;y<base;y++){P(A,ex,y,R[5]);P(A,ex+1,y,R[4]);P(A,ex+2,y,R[3]);P(A,ex+3,y,R[2]);P(A,ex+4,y,R[1]);}
     for(let j=0;j<4;j++)for(let i=-1;i<6;i++){if((j===0&&(i<1||i>3))||(j===1&&(i<0||i>4)))continue;P(A,ex+i,top+j,R[j===0?5:(i<2?4:(i>3?1:3))]);}   // a rounded carved finial on each end
     hl(A,ex,base-1,5,R[1]);P(A,ex+2,top+8,R[1]);P(A,ex+2,top+9,R[2]);P(A,ex+1,top+12,R[5]);};
@@ -813,7 +813,7 @@ if(K==='pew'||K==='pewv'||K==='pewb'||K==='pews'||K==='pewsb'){const R=K.startsW
     if(VAR){const bx=x0+44;for(let i=0;i<14;i++){P(A,bx+i,rt+1,RAMP.cream[i===6||i===7?2:5]);P(A,bx+i,rt+2,RAMP.cream[i===6||i===7?2:4]);P(A,bx+i,rt+3,RAMP.red[2]);}   // a hymnal left open on the rail
       for(let i=1;i<6;i+=2){P(A,bx+i,rt+1,RAMP.cream[3]);P(A,bx+8+i,rt+1,RAMP.cream[3]);}P(A,bx+3,rt+4,RAMP.red[4]);P(A,bx+3,rt+5,RAMP.red[3]);}   // its print, the ribbon hanging
     for(let i=0;i<w;i++){P(A,x0+i,sy,RAMP.oak[4]);P(A,x0+i,sy+1,RAMP.oak[2]);}                                                // the pale seat's back edge, showing under the back
-    if(K.startsWith('pews')){for(let y=sy+2;y<base-1;y++){const r=y-sy-2;for(let x=x0;x<x0+w;x++){let k=r<2?0:r===2?1:(r===Math.round((base-sy-3)/2)+1?1:2);if(r>2&&((x*5+r*11)%47===0))k=1;P(A,x,y,R[k]);}}hl(A,x0,base-2,w,R[1]);}   // (b38: "open frames you can see the floor through") the chapel pews closed down to the floor: a dark band under the seat lip, a lower back panel
+    if(K.startsWith('pews')){for(let y=sy+2;y<base-1;y++){const r=y-sy-2;for(let x=x0;x<x0+w;x++){let k=r<1?0:r===1?2:(r===Math.round((base-sy-3)/2)+1?2:3);if(r>2&&((x*5+r*11)%47===0))k=1;P(A,x,y,R[k]);}}hl(A,x0,base-2,w,R[0]);for(let x=x0-3;x<x0+w+5;x++){SH(x,base-1,170);SH(x,base,110);}}   // (b38: "open frames you can see the floor through") the chapel pews closed down to the floor: a dark band under the seat lip, a lower back panel
     else for(let y=sy+2;y<base;y++){const a=Math.round(150-(y-sy-2)*(130/(base-sy-2)));for(let x=x0;x<x0+w;x++)SH(x,y,a);}endPost(x0-5,rt-8);endPost(x0+w,rt-8);cast(x0-5,x0+1,base);cast(x0+w-1,x0+w+4,base);}
   else{   // from the front: a cushioned seat you can see the top of, a back that leans behind it, open and dark under it
     const sF=base-12,sB=sF-9,bt=sB-17;
@@ -2557,8 +2557,9 @@ if(K==='firetools'){const base=H-3,R=RAMP.pine;   // the ranger's fire tools in 
   pole(W-11,9);rect(A,W-15,1,10,9,RAMP.charcoal[2]);hl(A,W-15,1,10,RAMP.charcoal[4]);for(let y=2;y<10;y+=2)hl(A,W-14,y,8,RAMP.charcoal[1]);   // the beater's rubber flap
   cast(3,W-4,base);}
 // =================================================================================== judge b35
-if(K==='smithcorner'){const base=H-3,I=RAMP.iron,Wd=RAMP.oak;   // (b37: "a grey lump on a crate") a smith's corner: a big anvil side-on on its stump, horn to the left, a hammer on the face, the quench bucket touching the stump, horseshoes on the floor
-  const sx=24,sy=base-12;for(let y=sy;y<base;y++)for(let x=-9;x<=9;x++){let k=x<-7?4:x>7?1:3;if((y-sy)%4===0&&Math.abs(x)<7)k=2;P(A,sx+x,y,Wd[k]);}for(let x=-9;x<=9;x++)P(A,sx+x,sy,Wd[5]);   // the stump
+if(K==='smithcorner'){const base=H-3,I=RAMP.iron,Wd=RAMP.oak,Bk=RAMP.bark;   // (b37/b40) a smith's corner: a big anvil side-on on a squat log stump, horn to the left, a hammer on the face, the quench bucket touching the stump, horseshoes on the floor
+  const sx=24,sy=base-12;for(let y=sy+2;y<base;y++)for(let x=-9;x<=9;x++){if(Math.abs(x)===9&&(y===base-1))continue;let k=x<-6?4:x>6?1:2;if(((x+12)*7+(y>>1)*3)%9===0)k=Math.max(0,k-1);P(A,sx+x,y,Bk[k]);}   // the log's bark, round-sided
+  for(let y=-3;y<=3;y++)for(let x=-9;x<=9;x++){if(x*x/81+y*y/9>1)continue;const r=Math.hypot(x/3,y);let c=Wd[(Math.round(r)%2)?4:5];if(x*x/81+y*y/9>.75)c=Bk[3];P(A,sx+x,sy+2+y,c);}   // its sawn top, growth rings
   const ay=sy-10,fl=sx-11,fr=sx+13;rect(A,fl,ay,fr-fl,4,I[3]);hl(A,fl,ay,fr-fl,I[5]);hl(A,fl,ay+3,fr-fl,I[1]);   // the face
   for(let i=0;i<12;i++){const t=i/12,hh=Math.max(1,Math.round(4*(1-t)));for(let j=0;j<hh;j++)P(A,fl-1-i,ay+j+Math.round(t*1.5),I[j===0?5:j===hh-1?1:3]);}   // the horn, tapering left
   rect(A,fr-3,ay,3,6,I[2]);P(A,fr-2,ay+4,I[0]);                                                                                 // the heel and its hardy hole
