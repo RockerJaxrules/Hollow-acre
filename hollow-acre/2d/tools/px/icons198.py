@@ -110,19 +110,21 @@ class Icon:
 
 
 def chaga(I):
-    # a strip of birch bark it grew from, then the conk: a craggy black lump, cracked into plates, broken open at one end on rusty orange
-    I.poly([(3, 26), (28, 22), (29, 27), (4, 30)], 'wh', lambda x, y: .78 if y < 27 else .55)
-    for x in (7, 14, 21):
-        I.P(x, 27 + (x % 3 == 0), RAMPS['ck'][1]); I.P(x + 1, 27 + (x % 3 == 0), RAMPS['ck'][1])
-    def m(x, y, l, nx, ny):
-        if nx > .45 and ny > -.5:
-            return I.band('og', .35 + l * .7)                                  # the broken end: rusty orange flesh
-        crack = (x * 3 + y * 5) % 9 == 0 or (y % 5 == 0 and (x // 4) % 2 == 0)
-        return max(0.04, l * .55 - (.12 if crack else 0))
-    I.blob(15, 18, 12, 8.5, 'ck', amb=.12, k=.9, mod=m)
-    for (x, y) in ((8, 12), (13, 11), (18, 12)):
-        I.P(x, y, RAMPS['ck'][5])                                            # a dull sheen on the plates' lit edges
-    I.P(25, 17, RAMPS['og'][6]); I.P(25, 18, RAMPS['og'][5])
+    # (icons r2: "coal, burnt bread") chaga as it grows: a knobbly charcoal conk bursting out of a strip of birch bark, its crust cracked
+    # into knobs (each lit top-left), and one broken face showing the rusty-orange flesh inside
+    I.poly([(2, 24), (29, 20), (30, 28), (3, 31)], 'wh', lambda x, y: .8 if y < 26 else .55)
+    for (x, y) in ((6, 27), (7, 27), (15, 25), (16, 25), (24, 24), (25, 24)):
+        I.P(x, y, RAMPS['ck'][1])
+    knobs = [(10, 16, 5.5), (16, 13, 6), (22, 16, 5), (13, 20, 5), (19, 20, 5.5), (8, 21, 4)]
+    for (cx, cy, r) in knobs:
+        I.blob(cx, cy, r, r * .85, 'ck', amb=.1, k=.9, mod=lambda x, y, l, nx, ny: max(.05, l * .62))
+    for (x0, y0, x1, y1) in ((13, 10, 15, 17), (19, 12, 18, 18), (11, 18, 16, 19), (7, 18, 9, 23)):
+        n = max(abs(x1 - x0), abs(y1 - y0))
+        for i in range(n + 1):
+            I.P(x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n, RAMPS['ck'][0])           # deep cracks between the knobs
+    for (x, y, w) in ((24, 12, 1), (25, 13, 2), (25, 14, 2), (26, 15, 2), (26, 16, 3), (25, 17, 3), (25, 18, 2), (26, 19, 2), (26, 20, 1)):
+        for i in range(w):
+            I.P(x + i, y, RAMPS['og'][5 if i == 0 else 3])                                  # the broken edge: a jagged split of rusty-orange flesh
     return I.done(rim=True)
 
 
@@ -229,22 +231,33 @@ def hay(I):
     return I.done()
 
 
+def hexr_unused():
+    pass
+
+
 def flask(I):
-    # a flat pewter hip flask seen face-on, a little turned: a rounded rectangle with curved shoulders, a screw cap on a short neck,
-    # a hard glint down its lit edge, a dent, the curved side showing as a darker band on the right
-    for y in range(9, 29):
-        for x in range(7, 26):
-            ex = max(0, abs(x - 16) - 6.5); ey = max(0, abs(y - 19) - 7)
-            if ex * ex + ey * ey > 9:
+    # (icons r2: "a can") a hip flask: a flat body curved like a kidney, sloping shoulders into a short neck, a domed screw cap,
+    # a leather band round its middle, the metal cool in shadow with a rim light down its lit edge
+    COOL = hexr(['#22242e', '#363a48', '#4e5466', '#6c7286', '#9298aa', '#bcc0ce', '#e4e6ee'])
+    for y in range(8, 30):
+        for x in range(6, 27):
+            top = 11 + abs(x - 16) * .55                                                  # the shoulders slope down from the neck
+            ex = max(0, abs(x - 16) - 6.5); eb = max(0, y - 26)
+            if y < top or ex * ex + eb * eb > 9 or y > 29:
                 continue
-            l = .74 - (x - 7) * .022 - (y - 9) * .008
-            if x > 22:
-                l -= .22
-            I.P(x, y, I.band('mt', l))
-    I.poly([(14, 6), (19, 6), (19, 9), (14, 9)], 'mt', .45); I.poly([(13, 3), (20, 3), (20, 6), (13, 6)], 'mt', .72)
-    for y in range(11, 26):
-        I.P(9, y, RAMPS['mt'][6])
-    I.P(18, 21, RAMPS['mt'][2]); I.P(19, 22, RAMPS['mt'][2]); I.P(19, 21, RAMPS['mt'][5])
+            l = .78 - (x - 6) * .028
+            I.P(x, y, COOL[max(0, min(6, int(l * 6 + .5)))])
+    for y in range(17, 24):
+        for x in range(6, 27):
+            if I.p[x, y][3]:
+                I.P(x, y, I.band('le', .62 - (x - 6) * .02 - (.2 if y in (17, 23) else 0)))   # the leather band, stitched edges
+    I.poly([(14, 7), (19, 7), (19, 11), (14, 11)], 'mt', .5)                              # the neck
+    I.blob(16.5, 5.5, 3.6, 2.6, 'mt', amb=.3)                                             # the domed screw cap
+    for x in range(14, 20, 2):
+        I.P(x, 7, RAMPS['mt'][2])
+    for y in range(13, 27):
+        if y < 17 or y > 23:
+            I.P(7, y, COOL[6])                                                            # the rim light down its lit edge
     return I.done()
 
 
