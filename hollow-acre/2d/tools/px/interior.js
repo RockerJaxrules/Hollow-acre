@@ -225,6 +225,19 @@ if(K==='rug'&&CFG.rv){ // braided rag rugs in rings (judge: one red rug in 31 ro
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){const dx=(x-W/2)/(W/2),dy=(y-H/2)/(H/2);const d=dx*dx+dy*dy;if(d>1)continue;const r=Math.sqrt(d);const k=Math.min(RS.length-1,Math.floor((1-r)*RS.length*1.15));
     let c=RS[k];const ang=Math.atan2(dy,dx);if(((Math.floor(ang*W/9)+k)%2)===0&&r>.15)c=c.map(v=>Math.max(0,v-14));if(r>.93)c=RS[0];P(A,x,y,c);}}
 else if(K==='rug'){for(let y=0;y<H;y++)for(let x=0;x<W;x++){const dx=(x-W/2)/(W/2),dy=(y-H/2)/(H/2);const d=dx*dx+dy*dy;if(d>1)continue;let c=PAL.red[2];if(d>.8)c=PAL.mustard[2];else if(d>.7)c=PAL.red[1];else if(d<.18)c=PAL.mustard[3];else if((Math.round(Math.atan2(dy,dx)*4))%2===0&&d>.35&&d<.55)c=PAL.cream[2];P(A,x,y,c);}}
+if(K==='bar'){ // (judge: the tavern's bar was a shop counter pasted twice, with tills) a long bar: a dark worn top, brass beer taps with
+  // painted handles, glasses upside down on a towel, panelled front, a brass foot rail, scuffs where boots rest
+  topBox(2,14,W-4,10,H-28,WD,WD[1]);{const n=Math.floor((W-13)/17),x00=Math.round((W-(n*17-3))/2);for(let i=0;i<n;i++){const x=x00+i*17;frame(A,x,28,14,H-40,WD[3],WD[0]);rect(A,x+2,30,10,H-44,WD[2]);}}
+  for(let x=4;x<W-4;x++){P(A,x,H-9,PAL.brass[3]);P(A,x,H-8,PAL.brass[1]);}for(let x=10;x<W-8;x+=22)vl(A,x,H-8,4,PAL.brass[1]);   // the foot rail on its brackets
+  for(let x=6;x<W-6;x+=7)if(hsh(x,3,4)>.4)P(A,x,H-14,WD[1]);   // scuffs from boots
+  const taps=[[22,PAL.red],[30,PAL.sage],[38,PAL.mustard]];rect(B,18,9,26,3,PAL.brass[1]);hl(B,18,9,26,PAL.brass[3]);
+  for(const [tx,C] of taps){rect(B,tx,1,3,8,C[3]);vl(B,tx,1,8,C[4]||C[3]);P(B,tx+1,0,C[2]);rect(B,tx,9,3,4,PAL.brass[2]);P(B,tx+1,13,PAL.brass[1]);}
+  rect(B,W-40,10,22,3,PAL.cream[2]);for(let k=0;k<3;k++){const gx=W-38+k*7;rect(B,gx,4,5,6,PAL.glass[3]);vl(B,gx,4,6,PAL.glass[5]);hl(B,gx,4,5,PAL.glass[4]);}   // glasses on a towel
+  gs(cx+3,base,W/2-4|0,3,90);}
+if(K==='stool'){ // a bar stool: a round worn seat lit top-left, three legs splayed, a rung
+  ell(A,cx,8,7,4,WD[3]);ell(A,cx-1,7,5,2,WD[5]);hl(A,cx-6,11,13,WD[1]);
+  for(const [x0,x1,c] of [[cx-4,cx-6,WD[2]],[cx+4,cx+6,WD[1]]]){const n=H-14;for(let j=0;j<n;j++){const x=Math.round(x0+(x1-x0)*j/n);P(A,x,12+j,c);}}   // two legs seen, splayed
+  hl(A,cx-4,H-9,9,WD[1]);gs(cx,base,7,2,90);}
 if(K==='counter'){ // shop counter with a till, a bell and a jar of candy
   topBox(2,10,W-4,10,H-24,WD,WD[2]);for(let x=6;x<W-6;x+=16)frame(A,x,24,12,H-32,WD[3],WD[0]);
   rect(B,W-30,1,16,10,PAL.slate[2]);frame(B,W-30,1,16,10,PAL.slate[4],PAL.slate[0]);rect(B,W-27,3,10,3,PAL.cream[3]);for(let i=0;i<4;i++)P(B,W-28+i*3,8,PAL.brass[3]);
