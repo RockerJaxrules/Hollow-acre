@@ -31,19 +31,19 @@ const PRIV={
     look:[1.3,4.1,'Under a sheet, a long pine box, the lid not nailed down. It’s been measured for someone your height. On the lid Nell has written NOT YET, and then crossed out YET.']},
   shop_feed:{key:'priv_feed',name:'Ezra’s room in the barn',home:'bell',pdoor:9.6,owners:['ezra'],spots:{ezra:[3.0,3.0]},
     no:'“The animals don’t like folk back there,” Ezra says. “Neither do I.”',
-    furn:[['in_bed',1.1,2.6,BEDF],PF('in_desk',4.2,.95,.45),PF('in_chairN',4.2,1.55,.2),PF('in_feedsack',6.4,3.9,.3),PF('in_sackopen',5.6,4.55,.3),['sacks',6.45,4.75,[-.45,-.3,.45,0]]],
+    furn:[['in_bed',1.1,2.6,BEDF],PF('in_desk_plank',4.2,.95,.45),PF('in_chairN',4.2,1.55,.2),PF('in_feedsack',6.4,3.9,.3),PF('in_sackopen',5.6,4.55,.3),['sacks',6.45,4.75,[-.45,-.3,.45,0]]],
     look:[4.2,1.45,'A ledger of every animal Ezra has kept: forty years of names in pencil, and the day each one went. In October, every year, the names stop being animals’ names.']},
   home_lusk:{key:'priv_lusk',name:'Corwin’s back room',home:'lusk',pdoor:9.3,owners:['corwin'],spots:{corwin:[3.5,2.9]},
     no:'Corwin shakes his head once. “Employees only.” There have never been any employees.',
-    furn:[['in_bed',5.9,2.6,BEDF],PF('in_desk',2.2,.95,.45),PF('in_clock',4.0,.55,.3),PF('in_chairN',2.2,1.55,.2),PF('in_gasdrum',.75,4.3,.35),PF('in_hosecrate',6.2,4.55,.3)],
+    furn:[['in_bed',5.9,2.6,BEDF],PF('in_desk_steel',2.2,.95,.45),PF('in_clock',4.0,.55,.3),PF('in_chairN',2.2,1.55,.2),PF('in_gasdrum',.75,4.3,.35),PF('in_hosecrate',6.2,4.55,.3)],
     look:[2.2,1.45,'A 1979 calendar from the Lusk Oil Company. Every day is crossed out in pen up to October. October has been crossed out so many times the page has torn through.']},
   home_harlow:{key:'priv_harlow',name:'The innkeepers’ rooms',home:'harlow',pdoor:12.9,owners:['tess','hob'],spots:{tess:[2.6,3.1],hob:[4.6,3.3]},
     no:'Tess catches your sleeve, kindly. “Guests stay out front, love.”',
-    furn:[['in_bed',1.1,2.6,BEDF],PF('in_desk',4.0,.95,.45),PF('in_chairN',4.0,1.55,.2),['in_keyboard_b',6.3,-.45,null,'flat'],PF('in_linentrunk',6.0,3.9,.3)],
+    furn:[['in_bed',1.1,2.6,BEDF],PF('in_desk_bureau',4.0,.95,.45),PF('in_chairN',4.0,1.55,.2),['in_keyboard_b',6.3,-.45,null,'flat'],PF('in_linentrunk',6.0,3.9,.3)],
     look:[4.0,1.45,'The old guest book. Every October the same guest signs in, in the same hand, for one night. This year’s line is blank and waiting, and the pen has been laid across it.']},
   home_ashby:{key:'priv_ashby',name:'The Ashbys’ rooms',home:'ashby',pdoor:8.35,owners:['lyle','vera'],spots:{lyle:[3.2,3.0],vera:[4.6,3.4]},
     no:'Lyle shakes his head. “That’s our home, not the surgery. Please.”',
-    furn:[['in_bed',1.1,2.6,BEDF],['in_ironcot',5.9,2.6,[-.6,-2.0,.6,0]],PF('in_desk',3.5,.95,.45),PF('in_medcab',.6,4.3,.3),PF('in_washstand',6.4,4.5,.3),PF('in_doctorbag',5.5,4.6,.2)],
+    furn:[['in_bed',1.1,2.6,BEDF],['in_ironcot',5.9,2.6,[-.6,-2.0,.6,0]],PF('in_desk_roll',3.5,.95,.45),PF('in_medcab',.6,4.3,.3),PF('in_washstand',6.4,4.5,.3),PF('in_doctorbag',5.5,4.6,.2)],
     look:[5.9,3.0,'A suitcase under Vera’s bed, packed and strapped shut. On top, a bus timetable with every bus circled. None of the buses leave the valley.']}};
 // the rooms themselves, out past every other room
 {let ox=Math.max(...Object.values(ROOMS).map(R=>R.ox||0))+40;
