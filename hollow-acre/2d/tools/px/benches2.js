@@ -215,11 +215,11 @@ if(V==='S'&&K==='furnace'){      // a fieldstone furnace: the top seen from abov
 // E: the bench turned so its front faces right. You see its left end: the planked top running away from you (boards now run
 // up the sprite), the end rail, the near legs, the far legs higher up; the back board or rack is a thin wall along the left edge.
 // N: seen from behind: the back of the tool board stands nearest, braced boards, the top and the apron peeking out round it.
-function plankTopV(x0,y0,w,L,R){const seams=[];for(let x=4;x<w-1;x+=4+((hsh(x,3,SEED)*2)|0))seams.push(x);
+function plankTopV(x0,y0,w,L,R){const seams=[];for(let x=4;x<w-1;x+=4+((hsh(x,3,SEED)*2)|0))seams.push(x);const lift=CFG.view==='S'||CFG.view==='N'?0:1;
   for(let y=0;y<L;y++)for(let x=0;x<w;x++){let k=3;const pl=seams.filter(s=>s<=x).length;
     if(seams.includes(x))k=1;else{const g=hsh(pl,y>>2,SEED*7);k=g>.82?4:g<.16?2:3;if(hsh(x,y,SEED)>.93)k=Math.max(1,k-1);}
     if(y===0)k=1;if(y===L-1)k=5;if(y===L-2)k=4;if(x===0)k=Math.min(5,k+1);if(x===w-1)k=Math.max(0,k-1);
-    if(!seams.includes(x)&&((y+pl*13)%23===0))k=1;P(A,x0+x,y0+y,R[k]);}}
+    if(!seams.includes(x)&&((y+pl*13)%23===0))k=1;if(lift&&k>1&&k<5)k++;P(A,x0+x,y0+y,R[k]);}}
 function benchSide(o){const R=o.R,wD=o.sideW||o.d*2,L=o.sideL||Math.round(o.w/2),x0=(W-wD)>>1,base=H-3,ap=o.ap||6;const top=base-(o.legH||16)-ap-L;const fy=top+L,ly=fy+ap,legH=base-ly+1;
   for(const lx of [x0+2,x0+wD-6])leg(lx,top+3,legH+ap+L-6,R,true);
   if(o.shelf){const sy=base-o.shelf;for(let j=0;j<4;j++)hl(A,x0+3,sy+j,wD-6,R[j===0?4:j===3?1:3]);}
@@ -250,7 +250,7 @@ function boardBack(x,y,w,h,R){for(let j=0;j<h;j++)for(let i=0;i<w;i++){let k=((i
   for(let i=0;i<w;i++)SH(x+i,y+h,140);}
 function pot2(cx,by){for(let j=0;j<5;j++){const w=j<1?2:3;for(let i=-w;i<=w;i++)P(A,cx+i,by-5+j,RAMP.iron[i<0?4:i>1?1:3]);}hl(A,cx-2,by-5,5,RAMP.iron[5]);}   // a small iron pot
 // the back board turned edge-on: a short lip along the back edge (left when the front faces right, right when it faces left), hung tools as slivers on its front side
-function sideRail(b,dir,h,R,sl){const x=dir>0?b.x0+1:b.x0+b.wD-3;for(let y=b.top-h;y<b.top+b.L-h;y++){P(A,x,y,R[5]);P(A,x+1,y,R[2]);}
+function sideRail(b,dir,h,R,sl){const x=dir>0?b.x0+1:b.x0+b.wD-3;for(let y=b.top-h;y<b.top+b.L-h;y++){P(A,x,y,R[3]);P(A,x+1,y,R[1]);}
   for(let y=b.top+b.L-h;y<b.top+b.L;y++){P(A,x,y,R[3]);P(A,x+1,y,R[1]);}hl(A,x,b.top+b.L-h,2,R[5]);if(sl)sl(dir>0?x+2:x-1,b.top-h,b.L);for(let y=b.top-h;y<b.top+b.L;y++)SH(dir>0?x+2:x-1,y,70);}
 // an end-on stack of planks: pale end grain with a ring, dark gaps
 function plankEnds(x,y,n){for(let k=0;k<n;k++){const py=y-k*3;rect(A,x,py,6,2,RAMP.cream[4]);hl(A,x,py,6,RAMP.cream[5]);P(A,x+2,py+1,RAMP.honey[2]);vl(A,x+5,py,2,RAMP.honey[1]);}}
@@ -258,7 +258,7 @@ function plankEnds(x,y,n){for(let k=0;k<n;k++){const py=y-k*3;rect(A,x,py,6,2,RA
 function grindEdge(gx,gy,dir){const St=RAMP.stone,I=RAMP.iron;
   rect(A,gx-6,gy+7,13,5,RAMP.dark[2]);hl(A,gx-6,gy+7,13,RAMP.dark[4]);hl(A,gx-5,gy+8,11,RAMP.steel[1]);
   for(const px of [gx-7,gx+6]){rect(A,px,gy-2,2,11,RAMP.dark[3]);vl(A,px,gy-2,11,RAMP.dark[5]);}
-  for(let y=-10;y<=9;y++){const e=Math.abs(y)>8?1:0;for(let i=e;i<7-e;i++){let k=y<-6?5:y<-1?4:y<5?3:2;if(i===e)k=Math.min(5,k+1);if(i===6-e)k=1;if((y+12)%4===0&&i>e&&i<6-e)k=Math.max(1,k-1);P(A,gx-3+i,gy+y,St[k]);}}
+  for(let y=-12;y<=10;y++){const e=Math.abs(y+1)>10?2:Math.abs(y+1)>8?1:0;for(let i=e;i<8-e;i++){let k=y<-8?5:y<-2?4:y<5?3:2;if(i===e)k=5;if(i===e+1)k=Math.min(5,k+1);if(i===7-e)k=1;if((y+13)%3===0&&i>e+1&&i<7-e)k=Math.max(1,k-1);P(A,gx-4+i,gy+y,St[k]);}}
   rect(A,gx-9,gy-1,19,2,I[3]);hl(A,gx-9,gy-1,19,I[5]);rect(A,gx-11,gy-2,3,4,I[4]);hl(A,gx-11,gy-2,3,I[5]);rect(A,gx+9,gy-2,3,4,I[2]);hl(A,gx+9,gy-2,3,I[4]);   // the axle and its hubs, proud of the posts
   const cx=dir>0?gx+12:gx-12;vl(A,cx,gy-1,7,I[3]);vl(A,cx+(dir>0?1:-1),gy-1,7,I[1]);rect(A,dir>0?cx:cx-4,gy+6,5,2,RAMP.honey[3]);hl(A,dir>0?cx:cx-4,gy+6,5,RAMP.honey[5]);   // the crank, out to one side
   for(const [dx,dy] of [[-4,-11],[-6,-10],[-5,-13],[-8,-12]]){P(B,gx+dx,gy+dy,[255,214,120]);P(B,gx+dx-1,gy+dy,[255,170,80]);}}
@@ -273,7 +273,8 @@ if(V!=='S'&&K==='bench_furn'){
   const o={R:RAMP.oak,w:58,d:14,ap:7,legH:16,shelf:7};
   if(V==='E'||V==='W'){const dir=V==='E'?1:-1;const b=benchSide(Object.assign({},o,{sideW:18,sideL:50}));const near=y=>b.top+b.L-y,far=y=>b.top+y;
     // the tool board edge-on as a short lip, the saw hung on it as a steel sliver with its handle
-    sideRail(b,dir,6,RAMP.oak,(x,y,L)=>{const y0=y+(dir>0?8:L-30);for(let j=0;j<18;j++)P(A,x,y0+j,RAMP.steel[j%2?3:5]);for(let j=0;j<5;j++)P(A,x,y0+18+j,RAMP.honey[4]);});
+    sideRail(b,dir,4,RAMP.oak);
+    {const sx=dir>0?b.x0+5:b.x0+b.wD-9,sy=b.top+(dir>0?6:b.L-26);for(let j=0;j<16;j++){P(A,sx,sy+j,RAMP.steel[5]);P(A,sx+1,sy+j,RAMP.steel[3]);if(j%2)P(A,sx+2,sy+j,RAMP.steel[1]);}rect(A,sx-1,sy+16,4,5,RAMP.honey[4]);hl(A,sx-1,sy+16,4,RAMP.honey[5]);P(A,sx,sy+18,RAMP.dark[1]);P(A,sx+1,sy+18,RAMP.dark[1]);contact(sx,sy+21,3);}   // the saw lying flat
     // the left end (vise, the board in it) comes nearest when the front faces right; the right end (plane, shavings) when it faces left
     const vy=dir>0?near(6):far(3),py=dir>0?far(6):near(14);const fx=dir>0?b.x0+b.wD-8:b.x0+1;
     vise(fx,vy);{const bx=b.cx-2,by0=dir>0?near(26):far(4);for(let j=0;j<22;j++)for(let i=0;i<5;i++)P(A,bx+i,by0+j,RAMP.honey[i===0?5:i===4?2:4]);rect(A,bx,by0+22,5,2,RAMP.cream[4]);hl(A,bx,by0+22,5,RAMP.cream[5]);}
@@ -289,11 +290,11 @@ if(V!=='S'&&K==='bench_weapon'){
   const o={R:RAMP.dark,w:58,d:13,ap:7,legH:16,shelf:7};
   if(V==='E'||V==='W'){const dir=V==='E'?1:-1;const b=benchSide(Object.assign({},o,{sideW:18,sideL:50}));const near=y=>b.top+b.L-y,far=y=>b.top+y;
     // the rack of blades (the front's right end) edge-on as a short lip with blade slivers along its far half (E) or near half (W)
-    sideRail(b,dir,6,RAMP.dark,(x,y,L)=>{for(const off of (dir>0?[3,12,21]:[L-30,L-21,L-12])){for(let j=0;j<8;j++)P(A,x,y+off+j,RAMP.steel[j%2?4:5]);P(A,x,y+off-1,RAMP.iron[4]);}});
+    sideRail(b,dir,4,RAMP.dark);
     // a sword lying along the middle of the top, running up the screen
     {const x=b.cx-1,y0=far(14);for(let j=0;j<17;j++){P(A,x,y0+j,RAMP.steel[5]);P(A,x+1,y0+j,RAMP.steel[2]);}hl(A,x-2,y0+17,6,RAMP.iron[4]);for(let j=0;j<4;j++)P(A,x,y0+18+j,RAMP.leather[3]);contact(x,y0+22,3);}
     {const wy=dir>0?far(4):near(10);rect(A,b.cx-3,wy,7,3,RAMP.stone[3]);hl(A,b.cx-3,wy,7,RAMP.stone[5]);hl(A,b.cx-3,wy+2,7,RAMP.stone[1]);}   // the whetstone at the right end's place
-    grindEdge(b.cx,dir>0?near(14):far(-2),dir);                                                                                   // the grindstone at the left end's place
+    grindEdge(dir>0?b.x0+b.wD-5:b.x0+4,dir>0?near(14):far(2),dir);                                                                                   // the grindstone at the left end's place
     for(let i=0;i<3;i++){rect(A,b.x0+3+i*5,b.base-9,4,2,RAMP.iron[3]);hl(A,b.x0+3+i*5,b.base-9,4,RAMP.iron[5]);}}
   else{const b=benchBack(o);grindstone(b.x0+b.w-14,b.top-4,8);
     for(const hx of [b.x0+10,b.x0+20]){hl(A,hx-3,b.fy-21,7,RAMP.iron[5]);hl(A,hx-3,b.fy-20,7,RAMP.iron[2]);for(let j=0;j<4;j++)P(A,hx,b.fy-25+j,RAMP.leather[j%2?2:4]);P(A,hx,b.fy-26,RAMP.iron[5]);P(A,hx+1,b.fy-26,RAMP.iron[3]);P(A,hx,b.fy-27,RAMP.iron[4]);}   // the hung swords' hilts over the board
@@ -309,12 +310,12 @@ if(V!=='S'&&K==='bench_armor'){
     for(let i=-6;i<8;i++)SH(fx+i,fby+2,150);};
   if(V==='E'||V==='W'){
     // E: the form (at the front's left end) stands in front of the near end, overlapping it; W: it stands beyond the far end, mostly hidden behind the bench
-    if(V==='W'){const bs=H-3;formSide((W>>1)+1,bs-50-2,-1);}
+    if(V==='W'){const bs=H-3;formSide(((W-18)>>1)-3,bs-46,-1);}
     const b=benchSide(Object.assign({},o,{sideW:18,sideL:50}));
     // the top stays a lit plane running away from you; the hide lies on it smaller, foreshortened, the wood showing round it
     hide(b.x0+4,b.top+12,b.wD-8,20);shears(b.x0+5,b.top+b.L-7);rivetTin(b.x0+b.wD-6,b.top+4);
     for(let j=0;j<7;j++)for(let i=0;i<b.wD-8;i++){const l=.4-j/7*.8;P(A,b.x0+4+i,b.base-13+j,RAMP.leather[l>.2?4:l>-.2?3:2]);}
-    if(V==='E')formSide(b.cx,b.base,1);}
+    if(V==='E')formSide(b.x0+b.wD+3,b.base-2,1);}
   else{const b=benchBack(Object.assign({},o,{x0:3}));
     const cx=W-11;dressForm(cx,b.base-3,22,true);const top=b.base-15-22;for(let y=top+3;y<top+21;y++){P(A,cx,y,RAMP.leather[1]);if(y%2===0){P(A,cx-1,y,RAMP.cream[3]);P(A,cx+1,y,RAMP.cream[2]);}}   // laced up the back, no rivets
     for(let y=top+4;y<top+21;y+=3){P(B,cx-2,y,null);P(B,cx+2,y,null);}
