@@ -423,6 +423,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   edge read as grit; quiet the bay middles (bigger stones, joints one step off the face), keep joints crisp at corners.
 - [story check] Read the region's description before drawing its building: Old Marrow's chapel was an intact white
   chapel with a roof where the story says "a roofless chapel" (burnt 1872). The sprite has to tell the place's story.
+- [ruin r1-r2] Roofless reads only when no roof shape survives: a front gable triangle with clean trimmed rakes reads as
+  roof planes even in grey stone. End the front wall in a broken stepped top, show the far wall's inner face in shade,
+  let it fall to sky in ragged blocks (a straight diagonal still reads as a rake), put lancet holes through it. Openings
+  of a roofless shell are lit inside, not black.
 - [Harlan r1] Boarded UP is the opening covered: boards wider than the frame, a tilted one, a split end, nails, a notice
   on the door. Two boards on one window read as shelves; equal planks in the wall's own grey read as louvred shutters.
 - [Harlan r1] Rust on a derelict tin roof: whole sheets rusted brown (the lg ramp, like the barn) and runs that start at
