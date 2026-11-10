@@ -588,23 +588,23 @@ if(K==='pew'){const R=RAMP.walnut,base=H-3,x0=7,w=W-14;   // owner: "benches loo
     hl(A,ex,base-1,5,R[1]);P(A,ex+2,top+8,R[1]);P(A,ex+2,top+9,R[2]);P(A,ex+1,top+12,R[5]);};
   const fall=i=>i>w*.68?1:0;                                                                                                // the window light falls off along its length
   const boardsV=(y0,y1,k0)=>{let i=0,n=0;while(i<w){const bw=8+((hsh(n,9,SEED)*7)|0);for(let x=i;x<Math.min(w,i+bw);x++)for(let y=y0;y<y1;y++){let k=x===i?k0-1:(x===i+1?k0+1:k0);k-=fall(x);P(A,x0+x,y,R[Math.max(1,Math.min(5,k))]);}i+=bw;n++;}};
+  const panels=(y0,y1,n)=>{const pw=Math.floor((w-6)/n);for(let k=0;k<n;k++){const px=x0+3+k*pw,ww=pw-3;for(let y=y0;y<y1;y++)for(let x=px;x<px+ww;x++)P(A,x,y,R[3-fall(x-x0)]);
+    hl(A,px,y0,ww,R[5]);vl(A,px,y0,y1-y0,R[5]);hl(A,px+1,y0+1,ww-2,R[4]);hl(A,px,y1-1,ww,R[1]);vl(A,px+ww-1,y0,y1-y0,R[1]);}};   // long raised panels, a lit bevel along their top and left
   const fadeDark=(y0)=>{for(let y=y0;y<base;y++){const a=Math.round(215-(y-y0)*(160/(base-y0)));for(let x=x0;x<x0+w;x++)SH(x,y,a);}};
   if(V==='N'){   // seen from behind, as the church sees it: a solid panelled back under a rounded rail, a narrow ledge with a few books, open and dark under the seat
     const rt=base-30,sy=base-13;
-    for(let y=rt+3;y<sy;y++)for(let i=0;i<w;i++)P(A,x0+i,y,R[2-fall(i)>0?2-fall(i):1]);
-    const pw=Math.floor((w-8)/3);for(let k=0;k<3;k++){const px=x0+4+k*(pw+0),py=rt+9;rect(A,px+1,py,pw-2,sy-py-2,R[2]);hl(A,px+1,py,pw-2,R[1]);vl(A,px+1,py,sy-py-2,R[1]);hl(A,px+1,sy-3,pw-2,R[3]);vl(A,px+pw-2,py,sy-py-2,R[3]);}   // three long low panels
+    for(let y=rt+3;y<sy;y++)for(let i=0;i<w;i++)P(A,x0+i,y,R[3-fall(i)]);panels(rt+9,sy-1,3);
     for(let j=0;j<4;j++)hl(A,x0-1,rt+j,w+2,R[j===0?3:(j===1?5:(j===2?4:2))]);                                              // the rounded top rail, lit along its crown
     const ly=rt+5;for(let i=3;i<w-3;i++){P(A,x0+i,ly,R[4]);P(A,x0+i,ly+1,R[3]);P(A,x0+i,ly+2,R[1]);}                             // a narrow book ledge
-    bookFlat(x0+18,ly-3,8,RAMP.red);bookLean(x0+62,ly-6,6,RAMP.walnut);bookFlat(x0+86,ly-3,7,RAMP.green);                    // three books, lying and leaning
+    bookFlat(x0+18,ly-3,8,RAMP.red);bookFlat(x0+86,ly-3,7,RAMP.walnut);                    // three books, lying and leaning
     for(let i=0;i<w;i++){P(A,x0+i,sy,R[3]);P(A,x0+i,sy+1,R[1]);}                                                              // the seat's back edge
     fadeDark(sy+2);endPost(x0-5,rt-4);endPost(x0+w,rt-4);cast(x0-5,x0+w+4,base);}
   else{   // from the front: a cushioned seat you can see the top of, a back that leans behind it, open and dark under it
     const sF=base-12,sB=sF-9,bt=sB-17;
-    boardsV(bt+2,sB,3);for(let i=0;i<w;i++)P(A,x0+i,sB-1,R[1]);                                                                // the back: boards of different widths
+    for(let y=bt+2;y<sB;y++)for(let i=0;i<w;i++)P(A,x0+i,y,R[3-fall(i)]);panels(bt+4,sB-2,3);for(let i=0;i<w;i++)P(A,x0+i,sB-1,R[1]);                                                                // the back: boards of different widths
     for(let j=0;j<2;j++)hl(A,x0-1,bt+j,w+2,R[j===0?5:4]);
     for(let y=sB;y<sF;y++)for(let i=0;i<w;i++)P(A,x0+i,y,R[y===sB?2:4-fall(i)]);                                              // the seat board
-    for(let y=sB+1;y<sF-1;y++)for(let i=3;i<w-3;i++){const r=y-sB-1;P(A,x0+i,y,RAMP.brick[r===0?2:(r<3?5-fall(i):(r<5?4-fall(i):3))]);}   // a long red cushion, lit along its top, rolling down to the front
-    for(const cx of [x0+30,x0+72])for(let i=-6;i<=6;i++)P(A,cx+i,sB+3,RAMP.brick[4]);                                        // worn flat where people sit
+    for(let y=sB+1;y<sF-1;y++)for(let i=3;i<w-3;i++){const r=y-sB-1;P(A,x0+i,y,RAMP.brick[r===0?2:(r===1?4:(r<5?3:2))]);}   // a long cushion in one dull red, lit along its top edge, a darker roll at the front
     hl(A,x0,sF,w,R[4]);hl(A,x0,sF+1,w,R[2]);hl(A,x0,sF+2,w,R[1]);                                                             // the seat's rounded front edge into its dark face
     fadeDark(sF+3);endPost(x0-5,bt-5);endPost(x0+w,bt-5);cast(x0-5,x0+w+4,base);}}
 // =================================================================================== the tool tote
@@ -757,7 +757,6 @@ if(K==='parkbench'){const base=H-3,x0=7,w=W-14,R=RAMP.oak,I=RAMP.ironW;   // own
   for(const [y,h] of [[sB-6,3],[sB-11,3],[sB-17,4]])for(let j=0;j<h;j++)for(let i=0;i<w;i++){const fall=i>w*.66?1:0;let k=j===0?4:(j===h-1?1:2);if(k>1)k-=fall;P(A,x0+i,y+j,R[Math.max(1,k)]);}
   for(const bx of [x0+3,x0+(w>>1),x0+w-5])for(let y=sB-16;y<sB;y++){if(G(A,bx,y))continue;P(A,bx,y,I[2]);P(A,bx+1,y,I[1]);}         // the back's iron straps, seen through the gaps, down to the seat
   for(let i=0;i<7;i++)for(let j=0;j<3;j++)P(A,x0+(w>>1)-3+i,sB-16+j,RAMP.brass[j===0?4:(i===6?1:3)]);P(A,x0+(w>>1)-1,sB-15,RAMP.brass[1]);P(A,x0+(w>>1)+1,sB-15,RAMP.brass[1]);   // a small dull brass plaque on the rail
-  for(let j=0;j<4;j++)P(A,x0+12+j,sB-10+(j>1?1:0),R[0]);                                                                     // a split in one slat
   // the seat top: three broad slats, the lightest thing on it, soft seams, the light falling off toward the right
   for(let y=sB;y<sF;y++){const r=y-sB;for(let i=0;i<w;i++){const fall=i>w*.7?1:0;let k=(r===2||r===5)?3:(r===0||r===3||r===6?5:4);if(k>3)k-=fall;P(A,x0+i,y,R[k]);}}
   for(const gx of [x0+14,x0+33])P(A,gx,sB+1,R[3]);                                                                          // two knots
@@ -765,8 +764,8 @@ if(K==='parkbench'){const base=H-3,x0=7,w=W-14,R=RAMP.oak,I=RAMP.ironW;   // own
   for(const ex of [x0,x0+w-1])for(let y=sB;y<=sF+2;y++)P(A,ex,y,R[y<sF?3:1]);                                                // end grain where the slats stop
   // cast-iron ends: an upright behind, an arm at elbow height that scrolls down into the front leg, a splayed foot
   for(const [ex,s_] of [[x0-4,-1],[x0+w,1]]){const L=s_<0;
-    for(let y=sB-18;y<base;y++){const x=ex+(y>base-3?(L?-1:1):0);P(A,x,y,I[L?4:3]);P(A,x+1,y,I[2]);P(A,x+2,y,I[1]);}
-    for(let y=sB-8;y<sF-3;y++){P(A,ex-1,y,I[4]);P(A,ex+3,y,I[1]);P(A,ex,y,I[5]);}                                              // the arm, wider than the upright, its top lit
+    for(let y=sB-18;y<base;y++){const x=ex+(y>base-3?(L?-1:1):0);P(A,x,y,I[L?4:2]);P(A,x+1,y,I[2]);P(A,x+2,y,I[1]);}
+    for(let y=sB-8;y<sF-3;y++){P(A,ex-1,y,I[L?4:3]);P(A,ex+3,y,I[1]);P(A,ex,y,I[L?5:3]);}                                              // the arm, wider than the upright, its top lit
     P(A,ex+(L?-2:4),sF-4,I[3]);P(A,ex+(L?-2:4),sF-3,I[2]);P(A,ex+(L?-1:3),sF-2,I[1]);                                        // the scroll at the front of the arm
     hl(A,ex-1,base-1,5,I[2]);hl(A,ex-1,base,5,I[0]);P(A,ex+1,sB-19,I[4]);}
   for(let y=sF+3;y<base;y++){P(A,x0+(w>>1)-1,y,I[3]);P(A,x0+(w>>1),y,I[1]);}                                                 // a middle leg in the shadow
@@ -844,10 +843,11 @@ function gilt(x,y,w,h){for(let i=0;i<w;i++){P(A,x+i,y,RAMP.brass[4]);P(A,x+i,y+1
   for(let j=0;j<h;j++){P(A,x,y+j,RAMP.brass[4]);P(A,x+1,y+j,RAMP.brass[2]);P(A,x+w-1,y+j,RAMP.brass[1]);P(A,x+w-2,y+j,RAMP.brass[3]);}P(A,x,y,RAMP.brass[5]);P(A,x+1,y+1,RAMP.brass[5]);}
 function wood(x,y,w,h,R){R=R||RAMP.walnut;for(let i=0;i<w;i++){P(A,x+i,y,R[4]);P(A,x+i,y+1,R[3]);P(A,x+i,y+h-1,R[0]);P(A,x+i,y+h-2,R[2]);}for(let j=0;j<h;j++){P(A,x,y+j,R[4]);P(A,x+1,y+j,R[3]);P(A,x+w-1,y+j,R[0]);P(A,x+w-2,y+j,R[1]);}}
 function wallShadow(x0,x1,y0,y1){for(let y=y0;y<=y1;y++)SH(x1+1,y,90);for(let x=x0+1;x<=x1+1;x++)SH(x,y1+1,90);}
-if(K==='mirror'){const x0=3,y0=3,w=W-6,h=H-6,R=RAMP.walnut;
+if(K==='mirror'){const x0=3,y0=3,w=W-6,h=H-6,R=RAMP.oak;
   for(let y=y0+2;y<y0+h-2;y++)for(let x=x0+2;x<x0+w-2;x++){const t=(x-x0)+(y-y0)*.5;let c=RAMP.glass[NIGHT?0:((t>8&&t<11)?4:(y<y0+8?2:1))];if(!NIGHT&&y>y0+h-11){c=(x<x0+8)?RAMP.oak[1]:RAMP.walnut[2];if(y===y0+h-11)c=RAMP.oak[2];}P(A,x,y,c);}   // the glass: a sheen, and low down a dim warm slice of the room it faces
-  if(NIGHT){const fx=x0+w-6,fy=y0+7;for(let y=0;y<14;y++)for(let x=-3;x<=3;x++){const head=y<7&&x*x/9+(y-3)*(y-3)/12<=1,sh=y>=7&&Math.abs(x)<=2+((y-7)>>1);if(head||sh)P(A,fx+x,fy+y,RAMP.ivory[head?(x<0?2:1):1]);}   // a pale face and shoulders that are not yours
-    P(A,fx-1,fy+3,RAMP.walnut[0]);P(A,fx+1,fy+3,RAMP.walnut[0]);for(let i=0;i<14;i++){const x=x0+3+i,y=y0+3+Math.round(i*1.1);const c=G(A,x,y);P(A,x,y,c&&c[0]>120?RAMP.ivory[5]:RAMP.glass[3]);}}   // a sheen line across the glass and across it                       // dark eyes; a faint sheen line so it still reads as glass
+  if(NIGHT){const fx=x0+w-7,fy=y0+5;for(let y=0;y<19;y++)for(let x=-5;x<=5;x++){const head=y<10&&x*x/16+(y-4.5)*(y-4.5)/22<=1,sh=y>=10&&Math.abs(x)<=3+((y-10)>>1);if((head||sh)&&fx+x<x0+w-2)P(A,fx+x,fy+y,RAMP.ivory[head?(x<-1?2:(x>1?1:3)):(x<0?2:1)]);}   // a pale face and shoulders that are not yours, cut off by the frame
+    for(const ex of [-2,1])for(const [dx,dy] of [[0,0],[1,0],[0,1],[1,1],[0,2]])P(A,fx+ex+dx,fy+3+dy,RAMP.walnut[0]);hl(A,fx-1,fy+8,3,RAMP.walnut[1]);   // black ragged eye holes, a slit of a mouth
+    for(let i=0;i<12;i++){const x=x0+3+i,y=y0+3+Math.round(i*1.1);const c=G(A,x,y);P(A,x,y,c&&c[0]>120?RAMP.ivory[5]:RAMP.glass[3]);}}   // a sheen line across the glass, and across it
   wood(x0,y0,w,h,R);for(let i=1;i<w-1;i++){P(A,x0+i,y0,R[5]);P(A,x0+i,y0+1,R[4]);}for(let j=1;j<h-1;j++){P(A,x0,y0+j,R[5]);P(A,x0+1,y0+j,R[4]);}   // a lit bevel along the top and left, two steps above the glass
   for(let i=0;i<5;i++)P(A,x0+(w>>1)-2+i,y0-1-(i===2?1:0),R[i<2?4:2]);
   wallShadow(x0,x0+w-1,y0,y0+h-1);}
@@ -864,9 +864,9 @@ if(K==='painting_b'){const x0=1,y0=1,w=W-2,h=H-2;   // a portrait whose eyes som
   for(let y=-7;y<=7;y++)for(let x=-5;x<=5;x++){if(x*x/25+y*y/52>1)continue;P(A,cx+x,cy+y,RAMP.ivory[x<-2?4:(x>2?2:3)]);}                          // the face
   for(let y=-11;y<=-1;y++)for(let x=-7;x<=7;x++){if(x*x/49+(y+4)*(y+4)/49>1)continue;if(x*x/25+y*y/52<=1&&y>-5)continue;P(A,cx+x,cy+y,RAMP.walnut[0]);}   // hair
   vl(A,cx,cy-1,3,RAMP.ivory[1]);P(A,cx+1,cy+1,RAMP.ivory[1]);hl(A,cx-2,cy+4,4,RAMP.brick[1]);                                                          // nose shadow, a thin mouth
-  for(const ex of [-3,2]){for(const [dx,dy] of [[-1,-2],[0,-2],[-1,-1],[0,-1],[1,-1],[0,0]])P(A,cx+ex+dx,cy+dy,RAMP.plum[0]);
-    for(const [x0_,y0_,x1_,y1_] of [[-3,-4,2,1],[2,-4,-2,1],[-2,-1,3,-2]])ln(A,cx+ex+x0_,cy+y0_,cx+ex+x1_,cy+y1_,RAMP.cream[5]);P(A,cx+ex,cy-1,RAMP.plum[0]);
-    for(let j=1;j<5;j++)P(A,cx+ex+(j>2?1:0),cy+j,RAMP.brick[j<3?1:2]);}   // each eye scratched out to the pale canvas, a dark hole under the scratches, a run down the cheek
+  for(const ex of [-3,2]){for(let y=-2;y<=1;y++)for(let x=-2;x<=1;x++){if((x===-2||x===1)&&(y===-2||y===1))continue;P(A,cx+ex+x,cy+y,RAMP.plum[0]);}   // each eye gouged to a dark ragged hole
+    for(const [x0_,y0_,x1_,y1_] of [[-3,-3,-6,-6],[2,-3,4,-6],[-3,2,-5,4]])ln(A,cx+ex+x0_,cy+y0_,cx+ex+x1_,cy+y1_,RAMP.cream[5]);   // pale scratches running out from it
+    for(let j=2;j<6;j++)P(A,cx+ex+(j>3?1:0)-1,cy+j,RAMP.brick[j<4?1:2]);}   // a dark run down the cheek
   gilt(x0,y0,w,h);for(let i=0;i<w;i++){if(i%3===0)continue;P(A,x0+i,y0,RAMP.brass[3]);}wallShadow(x0,x0+w-1,y0,y0+h-1);}
 if(K==='calendar'){const x0=2,y0=3,w=W-4,h=H-5;   // a paper calendar: October, the days crossed off, the 31st ringed
   for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++)P(A,x,y,RAMP.cream[x===x0+w-1?2:(y<y0+8?4:4)]);rect(A,x0,y0,w,7,RAMP.brick[3]);hl(A,x0,y0,w,RAMP.brick[5]);
