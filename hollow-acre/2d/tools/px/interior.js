@@ -118,9 +118,21 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
       for(let k=0;k<2+(g%3);k++){const px=gx+((hsh(g,k,7)-.5)*14|0),py=gy+((hsh(k,g,8)-.5)*8|0),sz=k===0?5:[2,3,3][(hsh(g,k,9)*3)|0];
         for(let j=0;j<sz-1;j++)for(let i=0;i<sz;i++){if(sz>2&&(i===0||i===sz-1)&&(j===0||j===sz-2))continue;P(A,px+i,py+j,j===0||i===0?ST[3]:ST[2]);}
         if(sz>2)P(A,px+1,py,ST[4]);for(let i=1;i<sz;i++)P(A,px+i,py+sz-1,RK[0]);}}
+    // (r9) flat stones set in the packed earth: big, a step LIGHTER than the earth, corners cut, lit along the top, dark along the
+    // foot and right side; a few, spread out, flush so ore can sit on them
+    for(let k=0;k<6;k++){const sx=x0+24+(hsh(k,11,4)*(fw-60)|0),sy=top+18+(hsh(k,12,4)*(fd-40)|0),sw=14+(hsh(k,13,4)*9|0),sh=7+(hsh(k,14,4)*4|0);
+      const l0=hsh(k,16,4)*4,l1=hsh(k,17,4)*5,r0=sw-hsh(k,18,4)*5,r1=sw-hsh(k,19,4)*4;   // a skewed four-sided stone, never a capsule
+      for(let j=0;j<sh;j++){const t=j/(sh-1),jog=hsh(j,k,23)>.75?1:0,L=Math.round(l0+(l1-l0)*t)+jog,Rr=Math.round(r0+(r1-r0)*t)-(hsh(j,k,24)>.8?1:0);
+        for(let i=L;i<Rr;i++){let c=mixC(ST[2],RK[3],.45);if(j===0||i===L)c=mixC(ST[3],RK[3],.3);if(j===sh-1||i===Rr-1)c=RK[1];P(A,sx+i,sy+j,c);}}
+      P(A,sx+sw-4,sy+sh,RK[0]);P(A,sx+sw-3,sy+sh,RK[0]);}
+    // rubble: small heaps of touching stones at the foot of the walls, not a dotted line
+    const heap=(hx,hy,n,s)=>{for(let k=0;k<n;k++){const px=hx+((hsh(k,hx,18)-.5)*10|0),py=hy+((hsh(hy,k,19))*4|0),sz=2+(hsh(k,s,20)*3|0);
+      for(let j=0;j<sz-1;j++)for(let i=0;i<sz;i++){if(sz>2&&(i===0||i===sz-1)&&(j===0||j===sz-2))continue;P(A,px+i,py+j,j===0||i===0?ST[3]:ST[2]);}for(let i=1;i<sz;i++)P(A,px+i,py+sz-1,RK[0]);}};
+    for(let k=0;k<9;k++){const hx=x0+12+k*Math.floor((fw-24)/9)+((hsh(k,3,21)-.5)*14|0);if(Math.abs(hx-(x0+Math.round((R.door||fw/64)*32)))<16)continue;if(hsh(k,4,21)>.3)heap(hx,top+1,4+(k%3),k);}
+    for(let k=0;k<6;k++)for(const side of [0,1]){if(hsh(k,side,22)<.35)continue;heap(side?x0+fw-8:x0+5,top+20+k*Math.floor((fd-40)/6),3+(k%2),k+side*7);}
     const crack=(cx,cy,n,dir,depth)=>{for(let i=0;i<n;i++){P(A,cx,cy,RK[0]);P(A,cx,cy+1,mixC(RK[2],RK[3],.6));cx+=dir;if(hsh(cx,cy,61)>.55)cy+=hsh(cy,cx,62)>.5?1:-1;
         if(depth<1&&i===(n>>1))crack(cx,cy,n>>1,dir,depth+1),cy+=2;}};
-    for(let c=0;c<5;c++){const fromL=c%2===0;crack(fromL?x0+2:x0+fw-3,top+20+(hsh(c,4,5)*(fd-40)|0),14+(hsh(c,5,5)*12|0),fromL?1:-1,0);}
+    for(let c=0;c<5;c++){const fromL=c%2===0;crack(fromL?x0+5:x0+fw-6,top+20+(hsh(c,4,5)*(fd-40)|0),22+(hsh(c,5,5)*14|0),fromL?1:-1,0);}
     {const dx=x0+Math.round((R.door||fw/64)*32),r1=dx-7,r2=dx+6,y0t=top+8;for(let y=y0t;y<top+fd;y++){if((y-y0t)%9<3){for(let x=r1-4;x<=r2+4;x++)P(A,x,y,(y-y0t)%9===0?WD[3]:WD[(y-y0t)%9===1?2:1]);}
         for(const rx of [r1,r2]){P(A,rx,y,PAL.stone[4]);P(A,rx+1,y,PAL.stone[2]);P(A,rx+2,y,RK[0]);}}
       for(let x=r1-5;x<=r2+7;x++){P(A,x,y0t-5,WD[4]);P(A,x,y0t-4,WD[3]);P(A,x,y0t-3,WD[3]);P(A,x,y0t-2,WD[2]);P(A,x,y0t-1,WD[0]);}   // the buffer beam

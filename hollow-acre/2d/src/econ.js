@@ -107,8 +107,8 @@ vendors.cook={name:'Grandpa’s stove',sub:'The recipe cards are in his handwrit
 const MINE={x:-6,z:0,mobs:[],ores:[],ladder:null};
 // (interiors: "the mine is bare") the back wall between the timber sets: what the old miners left, out of the way of the ore
 // (ore comes up from z 1.2 m on, never against the back wall)
-ROOMS.mine={ox:430,oz:-60,out:{x:0,z:0},name:'The old Marrow mine',furn:[['in_crates',.95,1.0,[-.7,-.3,.7,0]],['lumber',3.6,1.05,[-.75,-.3,.75,0]],
-  ['barrel',7.4,1.0,[-.4,-.3,.4,0]],['in_drum',8.1,1.05,[-.3,-.25,.3,0]],['in_shovels',10.3,1.0,[-.45,-.2,.45,0]],['in_minecart',5.5,2.1,[-.5,-.3,.5,0]]]};
+ROOMS.mine={ox:430,oz:-60,out:{x:0,z:0},name:'The old Marrow mine',furn:[['in_crates',.95,1.0,[-.7,-.3,.7,0]],['in_shovels',10.3,1.0,[-.45,-.2,.45,0]],   // (r9) not one row: the back corners,
+  ['lumber',1.5,7.65,[-.75,-.3,.75,0]],['barrel',9.5,7.55,[-.4,-.3,.4,0]],['in_drum',10.25,7.7,[-.3,-.25,.3,0]],['in_minecart',5.5,2.1,[-.5,-.3,.5,0]]]};   // the front corners, the cart on the track
 // (interiors: "the greenhouse is bare") the margins round the soil bed kept like a working glasshouse: seed jars and a seedling box
 // along the back, compost sacks and a bucket, pots in the corners, a rain barrel, plants hung from the glass. Nothing on the soil.
 ROOMS.greenhouse={ox:462,oz:-60,out:{x:10.5,z:8.3},name:'The greenhouse',furn:[

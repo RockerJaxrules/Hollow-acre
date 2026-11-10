@@ -61,7 +61,7 @@ const DRESS_INFO={};
 {const _bi=buildInteriors;buildInteriors=function(){
   for(const [k,D] of Object.entries(DRESS))if(ROOMS[k]){try{DRESS_INFO[k]=dressRoom(k,D);}catch(e){}}
   // the special pieces
-  {const I=DRESS_INFO.back_agnes;if(I){for(let i=0;i<40;i++){const x=2+dressH(3,i)*(I.w-3),z=2.4+dressH(i,5)*(I.d-3.4);if(I.freeRect(x-.8,z-.6,x+.8,z+.6)){ROOMS.back_agnes.furn.push(['in_trapdoor',x,z,null,'flat']);DRESS.back_agnes.trap={x,z};break;}}}}
+  {const I=DRESS_INFO.back_agnes;if(I){const x=5.55,z=4.25;ROOMS.back_agnes.furn.push(['in_trapdoor',x,z,null,'flat']);DRESS.back_agnes.trap={x,z};}}   // (interiors r9) on the bare boards by the wall, never on the rug
   _bi.apply(this,arguments);
   // the drawings start hidden behind the wardrobe
   const dr=OBJ.find(o=>o.room==='back_cora'&&o.spr==='in_drawings');if(dr){dr.hide=!(S.rgLook&&S.rgLook.wardrobe);DRESS.back_cora.drawObj=dr;}
