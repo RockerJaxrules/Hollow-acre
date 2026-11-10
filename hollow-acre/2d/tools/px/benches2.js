@@ -94,7 +94,7 @@ function saw(x,y,h){const S=RAMP.steel,R=RAMP.honey;for(let j=0;j<h;j++){const w
   rect(A,x+1-h*.25,y+h,6,5,R[3]);hl(A,x+1-h*.25,y+h,6,R[5]);vl(A,x+6-h*.25,y+h,5,R[1]);rect(A,x+2-h*.25,y+h+1,3,2,R[1]);}
 // a pegboard on two uprights behind the bench, with a hanging panel saw, a try-square and a mallet
 function toolBoard(x,y,w,h){const R=RAMP.oak,S=RAMP.steel,I=RAMP.iron;for(const px of [x,x+w-3]){rect(A,px,y,3,h+2,R[2]);vl(A,px,y,h+2,R[4]);vl(A,px+2,y,h+2,R[0]);}
-  for(let j=0;j<h-2;j++)hl(A,x+3,y+1+j,w-6,j%5===4?R[1]:R[2]);hl(A,x+1,y,w-2,R[5]);hl(A,x+1,y+1,w-2,R[3]);for(let j=y+4;j<y+h-2;j+=4)for(let i=x+6;i<x+w-4;i+=4)P(A,i,j,R[1]);
+  for(let j=0;j<h-2;j++)hl(A,x+3,y+1+j,w-6,j%6===5?R[0]:R[1]);hl(A,x+1,y,w-2,R[4]);hl(A,x+1,y+1,w-2,R[2]);for(let j=y+5;j<y+h-2;j+=6)for(let i=x+8;i<x+w-4;i+=7)P(A,i,j,R[0]);   // (benches r1) the board behind darker and quieter
   // panel saw: a long blade narrowing to the tip, teeth along the bottom, a wooden handle with a hole
   const sx=x+6,sy=y+4;for(let i=0;i<17;i++){const hgt=Math.round(7-i*.25);for(let j=0;j<hgt;j++)P(A,sx+i,sy+j,S[j===0?5:j===hgt-1?1:i<3?4:3]);if(i%2===0)P(A,sx+i,sy+hgt,S[1]);}
   rect(A,sx-5,sy,6,8,R[4]);vl(A,sx-5,sy,8,R[5]);hl(A,sx-5,sy+7,6,R[1]);rect(A,sx-3,sy+2,2,3,R[1]);P(A,sx+3,sy-1,I[4]);
@@ -126,10 +126,10 @@ function sickle(x,y){const C=RAMP.copper;for(let a=0;a<3.1;a+=.08){const X=Math.
 function dressForm(cx,by,h,back){const L=RAMP.steel.map((c,i)=>RAMP.iron[Math.min(5,i+1)]),R=RAMP.dark,Bz=RAMP.brass;rect(A,cx-1,by-12,3,12,R[3]);vl(A,cx-1,by-12,12,R[5]);vl(A,cx+1,by-12,12,R[1]);
   // a three-footed stand
   for(let i=0;i<6;i++){P(A,cx-1-i,by+(i>>1),R[4]);P(A,cx+1+i,by+(i>>1),R[2]);}vl(A,cx,by,3,R[3]);for(let i=-7;i<=7;i++)SH(cx+i,by+3,150);
-  const top=by-12-h;for(let y=0;y<h;y++){const t=y/h;const w=Math.round(t<.12?4+t*50:t<.45?10-(t-.12)*6:t<.6?8:8+(t-.6)*5);for(let x=-w;x<=w;x++){const l=-x/w*.6-(t-.4)*.3;let k=l>.45?4:l>.1?3:l>-.3?2:1;P(A,cx+x,top+y,L[k]);}}
+  const top=by-12-h;for(let y=0;y<h;y++){const t=y/h;const w=Math.round(t<.12?4+t*50:t<.45?10-(t-.12)*6:t<.6?8:8+(t-.6)*5);for(let x=-w;x<=w;x++){const l=-x/w*.8-(t-.35)*.5;let k=l>.6?5:l>.3?4:l>-.05?3:l>-.4?2:1;if(x>w-2)k=Math.min(k,1);P(A,cx+x,top+y,L[k]);}}for(let j=0;j<5;j++){P(A,cx-5+Math.round(j*.4),top+3+j,RAMP.steel[5]);}   // (benches r1: "a buttoned coat") the plate curves: a lit upper left, a hard glint, dark lower right
   // neck knob, collar, stitching, rivets down the front
   {const I=RAMP.iron;for(let y=-7;y<=0;y++)for(let x=-5;x<=5;x++){if(x*x+(y+1)*(y+1)*1.2>28)continue;const l=-x*.5-y*.4;P(A,cx+x,top-2+y,I[l>1.6?5:l>.4?4:l>-1?3:2]);}hl(A,cx-5,top-1,11,I[1]);if(!back)hl(A,cx-2,top-3,5,RAMP.ink?RAMP.iron[0]:I[0]);}   // a helmet with a visor slit (not from behind)
-  hl(A,cx-3,top+1,7,L[5]);if(!back)for(let y=top+4;y<top+h-1;y+=3){P(B,cx-2,y,Bz[4]);P(B,cx+2,y,Bz[3]);}
+  hl(A,cx-3,top+1,7,L[5]);if(!back){P(B,cx-4,top+2,Bz[4]);P(B,cx+4,top+2,Bz[3]);}
   for(let y=top+3;y<top+h-1;y+=2)P(A,cx,y,L[1]);}
 // a leather hide spread on the top, stitched round the edge
 function hide(x,y,w,d){const L=RAMP.leather;for(let j=0;j<d;j++)for(let i=0;i<w;i++){const ex=Math.min(i,w-1-i),ey=Math.min(j,d-1-j);if(ex+ey<2)continue;if(hsh(i,j,SEED)>.97&&ex<3)continue;
@@ -159,7 +159,7 @@ if(V==='S'&&K==='bench_farm'){   // a potting bench in old green paint: shelf of
   for(let i=0;i<7;i++)P(A,b.x0+22+((hsh(i,4,SEED)*20)|0),b.top+10+((hsh(i,5,SEED)*3)|0),RAMP.soil[2]);
   sack(b.x0+14,b.base-7,6,9);for(let i=0;i<3;i++)pot(b.x0+36+i*6,b.base-7,2,0);}
 if(V==='S'&&K==='bench_furn'){   // a carpenter's bench: a vise on the corner holding a board, a plane and its shavings, a saw leaning, planks on the shelf
-  const b=bench({R:RAMP.oak,w:58,d:14,ap:7,legH:16,shelf:7});
+  const b=bench({R:RAMP.oak,w:58,d:14,ap:7,legH:16,shelf:7});for(let y=b.top;y<b.top+14;y++)for(let x=b.x0;x<b.x0+b.w;x++){const c=G(A,x,y);if(c)P(A,x,y,[0,1,2].map(k=>Math.round(c[k]+([0xc8,0xa8,0x78][k]-c[k])*.22)));}   // the top a step lighter, so the tools on it stand out
   toolBoard(b.x0+6,b.top-19,b.w-12,18);
   board(b.x0+8,b.top+4,30);vise(b.x0+2,b.top+8);plane(b.x0+40,b.top+6);shavings(b.x0+28,b.top+8,7);
   // a chair leg turned on a lathe, lying at the back
@@ -188,14 +188,14 @@ if(V==='S'&&K==='bench_armor'){  // a leatherworker's bench: a dress form in a r
 if(V==='S'&&K==='furnace'){      // a fieldstone furnace: the top seen from above with the chimney rising from the back, a glowing mouth, bellows, coal
   const S=RAMP.stone,cx=W>>1,base=H-3,w=30,topY=base-36,d=8;
   // body: rounded fieldstones with mortar, lit from the left
-  const stones=[];for(let y=topY+d;y<base;y+=5)for(let x=cx-w/2+((y/5|0)%2?3:0);x<cx+w/2;x+=6+((hsh(x,y,SEED)*2)|0))stones.push([x,y]);
+  const stones=[];for(let y=topY+d;y<base;y+=5)for(let x=cx-w/2+((y/5|0)%2?3:0);x<cx+w/2;x+=5+((hsh(x,y,SEED)*4)|0))stones.push([x,y]);
   for(let y=topY+d;y<base;y++)for(let x=cx-w/2;x<cx+w/2;x++)P(A,x,y,S[1]);
-  for(const [sx0,sy0] of stones){const sw=5+((hsh(sx0,sy0,3)*2)|0),sh=4;for(let j=0;j<sh;j++)for(let i=0;i<sw;i++){const X=sx0+i,Y=sy0+j;if(X<cx-w/2||X>=cx+w/2||Y>=base)continue;if((i===0||i===sw-1)&&(j===0||j===sh-1))continue;
+  for(const [sx0,sy0] of stones){const sw=4+((hsh(sx0,sy0,3)*4)|0),sh=4;for(let j=0;j<sh;j++)for(let i=0;i<sw;i++){const X=sx0+i,Y=sy0+j;if(X<cx-w/2||X>=cx+w/2||Y>=base)continue;if((i===0||i===sw-1)&&(j===0||j===sh-1))continue;
       const side=(X-(cx-w/2))/w;let k=j===0?4:i===0?4:j===sh-1||i===sw-1?2:3;if(side>.72)k=Math.max(1,k-1);if(side<.2)k=Math.min(5,k+1);P(A,X,Y,S[k]);}}
   // the top: a slab you look down onto
-  for(let j=0;j<d;j++)for(let i=-w/2;i<w/2;i++)P(A,cx+i,topY+j,S[j===0?2:j===d-1?5:(hsh(i,j,SEED)>.8?3:4)]);hl(A,cx-w/2,topY+d,w,S[1]);
+  for(let j=0;j<d;j++)for(let i=-w/2;i<w/2;i++)P(A,cx+i,topY+j,S[j===0?2:j===d-1?5:4]);hl(A,cx-w/2,topY+d,w,S[1]);
   // chimney from the back of the top
-  const chx=cx+2;for(let y=topY-20;y<topY+3;y++)for(let x=-4;x<=4;x++){const k=x<-2?4:x>2?1:(((y>>2)+(x>0?1:0))%2?3:2);P(A,chx+x,y,S[k]);}
+  const chx=cx+2;for(let y=topY-20;y<topY+3;y++)for(let x=-4;x<=4;x++){const k=x<-2?4:x>2?1:((y&3)===3||x===((y>>2)%2?-1:1)?1:(x<0?3:2));P(A,chx+x,y,S[k]);}
   for(let y=topY-23;y<topY-20;y++)for(let x=-5;x<=5;x++)P(A,chx+x,y,S[y===topY-23?5:x>3?2:4]);for(let x=-3;x<=3;x++)P(A,chx+x,topY-23,[24,22,26]);
   // a wisp of smoke
   for(const [dx,dy] of [[0,-26],[1,-28],[-1,-30],[0,-32],[2,-33]])P(B,chx+dx,topY+dy,[150,146,150],140);
@@ -264,10 +264,11 @@ function grindEdge(gx,gy,dir){const St=RAMP.stone,I=RAMP.iron;
   for(const [dx,dy] of [[-4,-11],[-6,-10],[-5,-13],[-8,-12]]){P(B,gx+dx,gy+dy,[255,214,120]);P(B,gx+dx-1,gy+dy,[255,170,80]);}}
 if(V!=='S'&&K==='bench_farm'){
   const o={R:RAMP.sage,w:56,d:14,ap:6,legH:17,shelf:7,paint:1};
-  if(V==='E'){const b=benchSide(o);edgeWall(b.x0+1,b.top,b.L,8,RAMP.sage);
-    tray(b.x0+8,b.top+6,14,7);pot(b.x0+11,b.top+b.L-2,3,2);pot(b.x0+19,b.top+b.L-2,3,1);packet(b.x0+16,b.top+15,[200,70,50]);
+  if(V==='E'){const b=benchSide(o);for(let y=b.top;y<b.top+b.L;y++)for(let x=b.x0+6;x<b.x0+b.wD;x++){const c=G(A,x,y);if(c)P(A,x,y,[0,1,2].map(k=>Math.round(c[k]+([0xb8,0xcc,0xa4][k]-c[k])*.28)));}   // (benches r1: "reads as an upright panel") the top a full step lighter than the hutch board
+    edgeWall(b.x0+1,b.top,b.L,8,RAMP.sage);for(const py of [b.top-2,b.top+8,b.top+18])pot(b.x0+3,py,2,py===b.top+8?2:1);   // the hutch board the whole length, its pots along it
+    tray(b.x0+10,b.top+4,8,15);pot(b.x0+12,b.top+b.L-2,3,2);pot(b.x0+20,b.top+b.L-2,3,1);packet(b.x0+20,b.top+12,[200,70,50]);   // the seed tray turned to run up the screen
     sack(b.cx,b.base-7,5,9);}
-  else{const b=benchBack(o),m=x=>b.x0+b.w-(x-b.x0);pot(m(b.x0+14),b.fy-15,3,2);pot(m(b.x0+24),b.fy-15,2,1);pot(m(b.x0+42),b.fy-15,3,0);boardBack(b.x0+3,b.fy-13,b.w-6,14,RAMP.sage);   // a turn, not a copy: the pots in mirrored order
+  else{const b=benchBack(o),m=x=>b.x0+b.w-(x-b.x0);pot(m(b.x0+14),b.fy-21,3,2);pot(m(b.x0+24),b.fy-21,2,1);pot(m(b.x0+42),b.fy-21,3,0);boardBack(b.x0+3,b.fy-19,b.w-6,20,RAMP.sage);   // a turn, not a copy: the pots in mirrored order
     pot(m(b.x0+46),b.top+12,3,1);sack(b.x0+40,b.base-7,6,9);}}
 if(V!=='S'&&K==='bench_furn'){
   const o={R:RAMP.oak,w:58,d:14,ap:7,legH:16,shelf:7};
@@ -321,18 +322,18 @@ if(V!=='S'&&K==='bench_armor'){
     hide(b.x0+16,b.top+2,22,9);for(let j=0;j<7;j++)for(let i=0;i<20;i++){const l=.4-j/7*.8;P(A,b.x0+10+i,b.base-13+j,RAMP.leather[l>.2?4:l>-.2?3:2]);}}}
 if(V!=='S'&&K==='furnace'){
   const S=RAMP.stone,base=H-3;
-  const body=(cx,w,topY,d)=>{const stones=[];for(let y=topY+d;y<base;y+=5)for(let x=cx-w/2+((y/5|0)%2?3:0);x<cx+w/2;x+=6+((hsh(x,y,SEED)*2)|0))stones.push([x,y]);
+  const body=(cx,w,topY,d)=>{const stones=[];for(let y=topY+d;y<base;y+=5)for(let x=cx-w/2+((y/5|0)%2?3:0);x<cx+w/2;x+=5+((hsh(x,y,SEED)*4)|0))stones.push([x,y]);
     for(let y=topY+d;y<base;y++)for(let x=cx-w/2;x<cx+w/2;x++)P(A,x,y,S[1]);
-    for(const [sx0,sy0] of stones){const sw=5+((hsh(sx0,sy0,3)*2)|0),sh=4;for(let j=0;j<sh;j++)for(let i=0;i<sw;i++){const X=sx0+i,Y=sy0+j;if(X<cx-w/2||X>=cx+w/2||Y>=base)continue;if((i===0||i===sw-1)&&(j===0||j===sh-1))continue;
+    for(const [sx0,sy0] of stones){const sw=4+((hsh(sx0,sy0,3)*4)|0),sh=4;for(let j=0;j<sh;j++)for(let i=0;i<sw;i++){const X=sx0+i,Y=sy0+j;if(X<cx-w/2||X>=cx+w/2||Y>=base)continue;if((i===0||i===sw-1)&&(j===0||j===sh-1))continue;
       const side=(X-(cx-w/2))/w;let k=j===0?4:i===0?4:j===sh-1||i===sw-1?2:3;if(side>.72)k=Math.max(1,k-1);if(side<.2)k=Math.min(5,k+1);P(A,X,Y,S[k]);}}
-    for(let j=0;j<d;j++)for(let i=-w/2;i<w/2;i++)P(A,cx+i,topY+j,S[j===0?2:j===d-1?5:(hsh(i,j,SEED)>.8?3:4)]);hl(A,cx-w/2,topY+d,w,S[1]);};
-  const chim=(chx,topY,lo)=>{for(let y=topY-20;y<topY+lo;y++)for(let x=-4;x<=4;x++){const k=x<-2?4:x>2?1:(((y>>2)+(x>0?1:0))%2?3:2);P(A,chx+x,y,S[k]);}
+    for(let j=0;j<d;j++)for(let i=-w/2;i<w/2;i++)P(A,cx+i,topY+j,S[j===0?2:j===d-1?5:4]);hl(A,cx-w/2,topY+d,w,S[1]);};
+  const chim=(chx,topY,lo)=>{for(let y=topY-20;y<topY+lo;y++)for(let x=-4;x<=4;x++){const k=x<-2?4:x>2?1:((y&3)===3||x===((y>>2)%2?-1:1)?1:(x<0?3:2));P(A,chx+x,y,S[k]);}
     for(let y=topY-23;y<topY-20;y++)for(let x=-5;x<=5;x++)P(A,chx+x,y,S[y===topY-23?5:x>3?2:4]);for(let x=-3;x<=3;x++)P(A,chx+x,topY-23,[24,22,26]);
     for(const [dx,dy] of [[0,-26],[1,-28],[-1,-30],[0,-32],[2,-33]])P(B,chx+dx,topY+dy,[150,146,150],140);};
   if(V==='E'){   // turned so the mouth faces right: a narrower stone body, the chimney at the back (left), the fire's glow spilling out on the right
     const cx=W>>1,w=20,topY=base-36,d=14;chim(cx-4,topY+4,3);body(cx,w,topY,d);
-    {const lx=cx+w/2;for(let y=base-17;y<base;y++)for(let i=0;i<4;i++){let k=y===base-17?5:i===0?4:i===3?2:3;if(y===base-16)k=4;P(A,lx+i,y,S[k]);}   // the mouth's stone lip, standing out past the side
-      for(let y=base-12;y<base;y++){P(A,lx+3,y,y>base-6?[236,150,70]:[196,104,52]);P(B,lx+4,y,[255,150,60],Math.max(0,200-(base-y)*12));}   // firelight on its inner edge
+    {const lx=cx+w/2;for(let y=base-15;y<base;y++){const r=y<base-12?(y-(base-15)):3;for(let i=0;i<Math.min(3,r+1);i++){let k=i===0?4:i===2?1:3;if(y===base-15)k=5;P(A,lx+i,y,S[k]);}}   // (benches r1: "orange planks") the mouth's arched stone lip seen edge-on, a sliver standing out past the side
+      for(let y=base-6;y<base;y++){P(B,lx+3,y,[255,150,60],Math.max(0,150-(base-y)*18));}   // only a thin warm glow at the foot of the lip
       for(let x=0;x<11;x++)for(let j=0;j<3;j++){const a=Math.max(0,(150-x*13)-j*35);if(a>0)P(B,lx+4+x,base-1+j,[255,150,60],a);}}   // spilling over the ground
     const bx=cx-w/2-3,by=base-10;for(let j=0;j<9;j++){const ww=Math.round(4-Math.abs(j-4)*.5);for(let i=0;i<ww;i++)P(A,bx+i,by+j,RAMP.leather[i===0?4:i===ww-1?1:3]);}
     for(let i=0;i<8;i++){const X=cx+2+((hsh(i,1,SEED)*8)|0),Y=base-1-((hsh(i,2,SEED)*3)|0);P(A,X,Y,[34,32,38]);}
@@ -341,7 +342,8 @@ if(V!=='S'&&K==='furnace'){
     const cx=W>>1,w=30,topY=base-36,d=8;body(cx,w,topY,d);chim(cx-2,topY+18,6);
     rect(A,cx+5,base-9,8,6,RAMP.iron[2]);hl(A,cx+5,base-9,8,RAMP.iron[4]);vl(A,cx+12,base-9,6,RAMP.iron[0]);P(A,cx+11,base-6,RAMP.iron[5]);   // an ash door
     hl(A,cx+6,base-4,6,[150,60,30]);P(A,cx+8,base-4,[230,120,50]);
-    for(let j=0;j<3;j++)for(let i=0;i<3-j;i++){const lx=cx-w/2+2+i*4+j*2,ly=base-4-j*3;rect(A,lx,ly,4,4,RAMP.dark[2]);hl(A,lx,ly,4,RAMP.dark[4]);P(A,lx+1,ly+1,RAMP.cream[4]);P(A,lx+2,ly+1,RAMP.cream[3]);P(A,lx+1,ly+2,RAMP.cream[3]);P(A,lx+2,ly+2,RAMP.honey[2]);vl(A,lx+3,ly,4,RAMP.dark[0]);}   // split logs stacked, pale end grain with a ring
+    {const EN=hexR(['#6e5a40','#8a7454','#a08a64']),BK=hexR(['#1e1610','#3a2a1c']);const logs=[[cx-w/2+3,base-3,2.6,0],[cx-w/2+9,base-3,3.2,1],[cx-w/2+15,base-3,2.2,0],[cx-w/2+6,base-8,2.4,2],[cx-w/2+12,base-8,2.8,0]];   // (benches r1: "eggs") logs in three sizes, dull tan ends, off-centre hearts, one split wedge
+      for(const [lx,ly,r,kd] of logs){for(let y=-3;y<=3;y++)for(let x=-3;x<=3;x++){const d=Math.hypot(x,y);if(d>r+.4)continue;if(kd===2&&x>0&&y<0)continue;P(A,lx+x,ly+y,d>r-.8?BK[(x+y)<0?1:0]:EN[(x+y)<-1?2:(x+y)<1?1:0]);}P(A,lx+1,ly,BK[0]);}}
     for(let x=cx-w/2-3;x<cx+w/2+4;x++){SH(x,base,160);SH(x,base+1,110);}cast(cx-w/2,cx+w/2,base);
     for(let i=0;i<10;i++){const X=cx+w/2-6+((hsh(i,1,SEED)*8)|0),Y=base-1-((hsh(i,2,SEED)*3)|0);P(A,X,Y,[34,32,38]);P(A,X+1,Y,[22,20,24]);}}}
 const flat=flatten([A,B],W,H);const O=outline(flat);const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}

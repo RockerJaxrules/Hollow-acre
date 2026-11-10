@@ -993,8 +993,9 @@ if(K==='parkbench'){const base=H-3,x0=7,w=W-14,R=RAMP.oak,I=RAMP.ironW;   // own
   for(const ex of [x0,x0+w-1])for(let y=sB;y<=sF+2;y++)P(A,ex,y,R[y<sF?3:1]);                                                // end grain where the slats stop
   // cast-iron ends: an upright behind, an arm at elbow height that scrolls down into the front leg, a splayed foot
   for(const [ex,s_] of [[x0-4,-1],[x0+w,1]]){const L=s_<0;
-    for(let y=sB-18;y<base;y++){const x=ex+(y>base-3?(L?-1:1):0);P(A,x,y,I[L?4:2]);P(A,x+1,y,I[2]);P(A,x+2,y,I[1]);}
-    for(let y=sB-8;y<sF-3;y++){P(A,ex-1,y,I[L?4:3]);P(A,ex+3,y,I[1]);P(A,ex,y,I[L?5:3]);}                                              // the arm, wider than the upright, its top lit
+    for(let y=sB-18;y<sB-4;y++){P(A,ex,y,I[L?3:1]);P(A,ex+1,y,I[1]);P(A,ex+2,y,I[0]);}   // (benches r1: "cut the posts down to armrests") the back upright, darker, standing behind
+    for(let y=sB-4;y<sB-1;y++)for(let i=-1;i<=3;i++)P(A,ex+i,y,y===sB-4?I[L?5:4]:(i===3?I[0]:I[2]));   // the arm at elbow height, its top lit
+    for(let y=sB-1;y<base;y++){const x=ex+(y>base-3?(L?-1:1):0);P(A,x,y,I[L?4:2]);P(A,x+1,y,I[2]);P(A,x+2,y,I[1]);}   // the front leg, from under the arm to a splayed foot
     P(A,ex+(L?-2:4),sF-4,I[3]);P(A,ex+(L?-2:4),sF-3,I[2]);P(A,ex+(L?-1:3),sF-2,I[1]);                                        // the scroll at the front of the arm
     hl(A,ex-1,base-1,5,I[2]);hl(A,ex-1,base,5,I[0]);P(A,ex+1,sB-19,I[4]);}
   for(let y=sF+3;y<base;y++){P(A,x0+(w>>1)-1,y,I[3]);P(A,x0+(w>>1),y,I[1]);}                                                 // a middle leg in the shadow
@@ -2273,16 +2274,15 @@ if(K==='peatstack'){const base=H-3,Pt=hexR(['#22170f','#332217','#45301f','#5a3f
     for(let y=by;y<by+11;y++){P(A,bx-1,y,St[4]);P(A,bx,y,St[3]);P(A,bx+1,y,St[2]);P(A,bx+2,y,St[1]);if(y>by+2)P(A,bx+3,y,St[0]);}P(A,bx,by+11,St[2]);P(A,bx+1,by+11,St[1]);   // the narrow blade and its wing
     hl(A,bx-1,by,4,St[5]);for(let y=by+3;y<by+8;y++)P(A,bx+4,y,St[1]);}
   for(let i=0;i<16;i++){const x=4+((hsh(i,3,73)*(W-14))|0),y=base+((hsh(i,4,74)*2)|0);P(A,x,y,Pt[hsh(i,5,75)>.5?4:2]);}cast(3,W-10,base);}
-if(K==='bootbench'){const base=H-3,R=RAMP.pine,L=RAMP.ironW,x0=22,w=W-25,top=base-15;   // a boot bench by the door: a pair of tall black lace-up boots standing beside it, a brown one lying on the bench, a tin of dubbin and a brush, mud on the boards
+if(K==='bootbench'){const base=H-3,R=RAMP.pine,L=hexR(['#1a120c','#2a1c12','#3e2a1a','#553a24','#6c4c30','#82603e']),x0=22,w=W-25,top=base-15;   // a boot bench by the door: a pair of tall black lace-up boots standing beside it, a brown one lying on the bench, a tin of dubbin and a brush, mud on the boards
   box3(x0,top,w,4,4,R,{faceK:3});for(const lx of [x0+1,x0+w-4])for(let y=top+8;y<base;y++){P(A,lx,y,R[4]);P(A,lx+1,y,R[2]);P(A,lx+2,y,R[1]);}fadeUnder(x0+4,x0+w-5,top+8,base-1);
-  {const tx=x0+w-12,ty=top-3;rect(A,tx,ty,6,4,RAMP.steel[2]);hl(A,tx,ty,6,RAMP.steel[4]);hl(A,tx+1,ty+1,4,RAMP.charcoal[2]);rect(A,tx+7,ty+1,4,3,RAMP.walnut[4]);hl(A,tx+7,ty+1,4,RAMP.walnut[5]);}   // dubbin, a brush
+  {const tx=x0+w-8,ty=top-2;rect(A,tx,ty,5,3,RAMP.walnut[3]);hl(A,tx,ty,5,RAMP.walnut[5]);}   // (benches r1: "clutter makes it a table") only a brush left at the end; the seat plane clear
   const boot=(x,by,L2)=>{for(let y=by-19;y<by-3;y++)for(let i=0;i<6;i++){let k=i===0?4:i===5?1:3;if(y===by-19)k=5;if(y===by-18&&i>0)k=1;P(A,x+i,y,L2[k]);}   // a tall boot, side on: the shaft,
     for(let y=by-16;y<by-4;y+=2){P(A,x-1,y,RAMP.cream[4]);P(A,x,y,L2[5]);}                                                                    // its laces up the front,
     for(let y=by-4;y<by;y++)for(let i=-6;i<6;i++){if(i<-4&&y===by-4)continue;let k=y===by-4?4:3;if(i===-6)k=5;if(i===5)k=1;P(A,x+i,y,L2[k]);}   // the foot, a rounded toe,
     hl(A,x-6,by-1,12,RAMP.charcoal[0]);P(A,x+3,by-2,RAMP.charcoal[1]);P(A,x+4,by-2,RAMP.charcoal[1]);};   // a black sole and heel
   boot(10,base,L);boot(17,base-1,L);
-  {const fx=x0+3,fy=top-5,Bw=RAMP.walnut;for(let j=0;j<5;j++)for(let i=0;i<14;i++){let k=j===0?5:j===4?1:3;P(A,fx+i,fy+j,Bw[k]);}for(let i=1;i<13;i+=2)P(A,fx+i,fy-1+((i>>1)%2),RAMP.cream[4]);   // a brown boot lying on the bench, laces loose
-    for(let j=-5;j<5;j++)for(let i=14;i<18;i++){if(j<-3&&i>16)continue;P(A,fx+i,fy+j,Bw[j<-3?5:i===17?1:3]);}vl(A,fx+18,fy-4,9,RAMP.charcoal[1]);}
+
   for(let i=0;i<12;i++){const x=2+((hsh(i,1,76)*24)|0),y=base-1+((hsh(i,2,77)*3)|0);P(A,x,y,RAMP.bark[hsh(i,3,78)>.5?3:2]);}cast(3,x0+w,base);}
 if(K==='gunpegs'||K==='gunpegss'){const sher=K==='gunpegss',HX=sher?24:30,R=RAMP.walnut,St=RAMP.steel,Cv=sher?RAMP.oak:RAMP.olive,Ht=sher?RAMP.bark:RAMP.burlap,ry=16;   // (wall) a peg rail: the ranger's rifle on two brackets above it, a long canvas coat, a campaign hat, a canteen on its strap
   for(let x=2;x<W-2;x++){P(A,x,ry,R[5]);P(A,x,ry+1,R[3]);P(A,x,ry+2,R[1]);}for(const px of sher?[9,HX,W-9]:[10,30,47]){P(A,px,ry+3,R[4]);P(A,px+1,ry+3,R[2]);P(A,px,ry+4,R[3]);}
@@ -3532,6 +3532,34 @@ if(K==='band2'){   // the town bandstand: an octagonal deck lit as a board plane
   for(let x=cx-erx;x<=cx+erx;x++){const t=(x-cx)/erx,yr=eaveY+Math.round(ery*Math.sqrt(Math.max(0,1-t*t)));const ph=((x-cx+200)%8);const dip=ph>=2&&ph<=6?(ph===4?3:2):1;for(let k=1;k<=dip;k++)P(A,x,yr+k,k===dip?RF[0]:RC[1]);P(A,x,yr,RC[3]);}
   for(let y=apex-6;y<apex+2;y++){P(A,cx,y,PT[y<apex-3?5:3]);P(A,cx+1,y,PT[2]);}for(let x=-2;x<=2;x++)P(A,cx+x,apex-4,PT[x<0?5:3]);P(A,cx,apex-7,PT[5]);
   tuft(cx-rx-2,base,3);tuft(cx+rx,base,3);tuft(cx-30,base+1,2);}
+if(K==='inbench2'){   // (benches: "a wall cabinet with a pegboard") a garage workbench in 3/4: a deep lit top with the work on it, a vise, a pegboard behind, drawers, a lower shelf
+  const base=H-3,R=RAMP.pine,D=RAMP.walnut,I=RAMP.iron,St=RAMP.steel,x0=5,w=74,top=27,dT=12,hF=7;
+  for(let x=x0-2;x<x0+w+5;x++){SH(x+1,base+1,150);SH(x+2,base+2,80);}
+  // the pegboard behind: a darker board, holes one tone down, the tools hanging on it with their own light
+  for(let y=4;y<top+2;y++)for(let x=x0+3;x<x0+w-3;x++){let c=D[(x<x0+8)?3:2];if((x-x0)%4===2&&(y-4)%4===2)c=D[1];if(y===4)c=D[4];if(x===x0+w-4)c=D[0];P(A,x,y,c);}
+  const hang=(x,y)=>{P(A,x,y-1,I[4]);P(A,x,y,I[2]);};
+  hang(14,8);for(let y=9;y<20;y++){P(A,13,y,RAMP.oak[4]);P(A,14,y,RAMP.oak[2]);}for(let i=-3;i<=3;i++){P(A,13+i,9,I[i<0?4:2]);P(A,13+i,10,I[1]);}   // a hammer
+  hang(24,8);for(let y=9;y<21;y++){P(A,24,y,St[3]);P(A,25,y,St[1]);}for(const [dx,dy] of [[-1,9],[2,9],[-1,10],[2,10],[-1,20],[2,20],[0,21],[1,21]])P(A,24+dx,dy,St[3]);   // a wrench
+  for(const [sx,c] of [[33,'#8a2a22'],[36,'#2a4a6a'],[39,'#8a7a2a']]){hang(sx,8);for(let y=9;y<14;y++){P(A,sx,y,hexR([c])[0]);P(A,sx+1,y,mixC(hexR([c])[0],[0,0,0],.4));}for(let y=14;y<19;y++)P(A,sx,y,St[3]);}   // screwdrivers
+  hang(50,7);for(let y=8;y<20;y++)for(let x=46;x<60;x++){const t=(y-8)/12;if(x>46+t*2&&x<60-(1-t)*8)P(A,x,y,y===8?St[4]:(x%2&&y===19?St[1]:St[2]));}for(let y=8;y<14;y++)for(let x=58;x<63;x++)P(A,x,y,RAMP.oak[x<60?4:2]);   // a handsaw
+  hang(69,8);for(let a=0;a<30;a++){const t=a/30*6.28;P(A,Math.round(69+Math.cos(t)*4),Math.round(14+Math.sin(t)*4),RAMP.brass[a%3?2:4]);P(A,Math.round(69+Math.cos(t)*3),Math.round(14+Math.sin(t)*3),RAMP.brass[1]);}   // a coil of wire
+  // the bench: a deep lit top, a front apron, legs
+  const b=box3(x0,top,w,dT,hF,R,{faceK:2});
+  for(let y=top+2;y<top+8;y++)for(let x=x0+40;x<x0+52;x++){const d=((x-x0-46)/6)**2+((y-top-5)/3)**2;if(d<1)P(A,x,y,mixC(G(A,x,y)||R[3],[0x2a,0x22,0x1c],.45));}   // an old oil stain soaked into the top
+  for(const [dx,dw] of [[8,20],[44,20]]){panel(x0+dx,b.fy+1,dw,hF-2,R);P(A,x0+dx+dw/2,b.fy+3,RAMP.brass[4]);P(A,x0+dx+dw/2+1,b.fy+3,RAMP.brass[2]);}   // two drawers with brass pulls
+  for(const lx of [x0+1,x0+w-5])for(let y=b.by;y<base;y++){P(A,lx,y,R[4]);P(A,lx+1,y,R[3]);P(A,lx+2,y,R[2]);P(A,lx+3,y,R[1]);}
+  for(let x=x0+4;x<x0+w-5;x++){P(A,x,base-8,R[4]);P(A,x,base-7,R[2]);P(A,x,base-6,R[1]);}   // the lower shelf
+  for(let y=b.by;y<base-8;y++)for(let x=x0+4;x<x0+w-5;x++)SH(x,y,y<b.by+2?150:90);   // shade under the top
+  // on the lower shelf: a red toolbox and a car battery
+  {const tx=x0+8,ty=base-15;rect(A,tx,ty,16,7,hexR(['#6a2a22'])[0]);hl(A,tx,ty,16,hexR(['#9a4a3a'])[0]);vl(A,tx,ty,7,hexR(['#8a3a2e'])[0]);vl(A,tx+15,ty,7,hexR(['#3a1612'])[0]);hl(A,tx+5,ty-1,6,I[3]);hl(A,tx,ty+3,16,hexR(['#4a1c16'])[0]);}
+  {const tx=x0+w-24,ty=base-14;rect(A,tx,ty,13,6,I[1]);hl(A,tx,ty,13,I[3]);vl(A,tx+12,ty,6,I[0]);for(const [px,c] of [[tx+2,'#8a2a22'],[tx+9,'#2a2a2e']]){P(A,px,ty-1,hexR([c])[0]);P(A,px+1,ty-1,hexR([c])[0]);}}
+  // on the top: a vise at the left corner, a coffee can of bolts, an oil can, a rag, a wrench lying across
+  {const vx=x0+2,vy=top-4;rect(A,vx,vy,9,6,I[2]);hl(A,vx,vy,9,I[4]);vl(A,vx+8,vy,6,I[0]);rect(A,vx-2,vy+1,2,4,I[3]);for(let i=0;i<7;i++)P(A,vx+3+i,vy+3,I[1]);for(let i=0;i<6;i++)P(A,vx-3-i,vy+2+(i>>2),St[3]);P(A,vx-9,vy+3,St[4]);}   // the vise, its screw handle out
+  {const cx=x0+20,cy=top+1;for(let y=cy-6;y<cy+2;y++)for(let x=cx-3;x<=cx+3;x++){let k=x<cx-1?4:x>cx+1?1:2;if(y===cy-6)k=5;P(A,x,y,St[k]);}for(let x=cx-2;x<=cx+2;x++)P(A,x,cy-6,I[1]);P(A,cx-1,cy-7,I[3]);P(A,cx+1,cy-7,I[2]);}   // a coffee can of bolts
+  {const ox=x0+58,oy=top+3;for(let y=oy-5;y<oy+2;y++)for(let x=ox-3;x<=ox+3;x++){if(Math.abs(x-ox)+Math.max(0,oy-3-y)>4)continue;P(A,x,y,hexR(['#5a3a22','#7a5230','#9a6a3c'])[x<ox?2:(x>ox?0:1)]);}for(let i=0;i<5;i++)P(A,ox+1+i,oy-5-i,I[2]);}   // a dull oil can, its long spout
+  {const rx=x0+28,ry=top+6;for(const [dx,dy,c] of [[0,0,4],[1,0,4],[2,0,3],[3,1,3],[1,1,3],[2,1,2],[0,1,3],[4,1,2],[2,2,1],[3,2,2]])P(A,rx+dx,ry+dy,RAMP.cream[c]);}   // an oily rag
+  for(let i=0;i<11;i++){P(A,x0+31+i,top+3+Math.round(i*.2),St[3]);P(A,x0+31+i,top+4+Math.round(i*.2),St[1]);}P(A,x0+30,top+2,St[4]);P(A,x0+30,top+4,St[4]);P(A,x0+42,top+5,St[2]);   // a wrench lying across
+  }
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
 for(const f of NOOL)for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(f(x,y))for(const L of [O,O2])L.d[(y*W+x)*4+3]=0;
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));
