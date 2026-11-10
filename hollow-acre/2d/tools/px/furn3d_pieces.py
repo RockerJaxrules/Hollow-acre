@@ -118,10 +118,10 @@ def bench_weapon2():
     P += [box(-2, 27, -10, 1, 58, -6, 'dkwood'), box(24, 27, -10, 27, 58, -6, 'dkwood'), box(-2, 55, -10, 27, 58, -6, 'dkwood'),   # the rack
           box(-2, 40, -10, 27, 42, -7, 'dkwood')]
     x = 5   # a long sword on the rack: lit blade, brass guard, wrapped grip, pommel
-    P += [box(x - .6, 22, -6, x + 4, 52, -4.8, 'tin'), box(x + .4, 22, -5, x + 2, 52, -4.2, 'ivory'), box(x - 3.4, 52, -6.5, x + 6.8, 54.4, -4.5, 'steelbl'),
+    P += [box(x + .2, 24, -6, x + 3.2, 52, -4.8, 'tin'), box(x + .6, 24, -5, x + 1.6, 52, -4.2, 'ivory'), rod([x + 1.7, 24.2, -5.4], [x + 1.7, 19, -5.4], 1.5, .2, 'tin'), box(x - 3.4, 52, -6.5, x + 6.8, 54.4, -4.5, 'steelbl'),
           box(x, 54.4, -6, x + 3.4, 58, -5, 'castiron'), ball(x + 1.7, 59, -5.5, 1.5, 'steelbl')]
     x = 12   # a second, shorter sword
-    P += [box(x - .4, 26, -6, x + 3.6, 52, -4.8, 'tin'), box(x + .4, 26, -5, x + 1.8, 52, -4.2, 'ivory'), box(x - 2.8, 52, -6.5, x + 6, 54.2, -4.5, 'steelbl'),
+    P += [box(x + .2, 28, -6, x + 3, 52, -4.8, 'tin'), box(x + .6, 28, -5, x + 1.5, 52, -4.2, 'ivory'), rod([x + 1.6, 28.2, -5.4], [x + 1.6, 23.4, -5.4], 1.4, .2, 'tin'), box(x - 2.8, 52, -6.5, x + 6, 54.2, -4.5, 'steelbl'),
           box(x, 54, -6, x + 3, 57, -5, 'castiron'), ball(x + 1.5, 58, -5.5, 1.3, 'steelbl')]
     P += [box(19, 30, -6, 21, 56, -5, 'dkwood'), box(21, 47, -6.4, 25.6, 55, -4.6, 'tin'), box(25, 46, -6.6, 26.4, 56, -4.4, 'ivory')]   # and an axe
     # the grindstone as a wheel you can read: a lit iron tyre round the stone, the hub and axle standing proud, a crank, a low trough
@@ -189,7 +189,7 @@ def _bed(quilt, frame='wood', stain=False, rumple=False):
         P += [box(x - .6, 14, -48.6, x + .6, 29, -47.4, 'iron') for x in range(-18, 20, 6)]
         P += [box(-24, 8, -48, 24, 10, 48, 'iron')]
     else:
-        P += [box(-26, 0, -50, 26, 32, -44, 'dkwood', pattern=['grain', 1.6, 'y']), box(-27, 32, -51, 27, 35, -43, 'wood', pattern=['grain', 1.4, 'x']),
+        P += [box(-26, 0, -50, 26, 32, -44, 'dkwood', pattern=['planks', 9, 'x']), box(-27, 32, -51, 27, 35, -43, 'wood'),
               ball(-26, 36.4, -47, 2, 'wood'), ball(26, 36.4, -47, 2, 'wood'),
               box(-26, 0, 44, 26, 15, 50, 'dkwood', pattern=['planks', 9, 'x']), box(-27, 15, 43, 27, 17, 51, 'wood'),
               box(-26, 6, -44, -22, 12, 44, 'wood'), box(22, 6, -44, 26, 12, 44, 'wood')]
@@ -213,8 +213,7 @@ def _bed(quilt, frame='wood', stain=False, rumple=False):
         fold = quilt
     P += [box(-24.9, 18, zq0 - 6, 24.9, 20.6, zq0 + .5, fold), box(-24.6, 20.6, zq0 - 5, 24.6, 21.2, zq0 - 1, 'paper')]   # the turned-down fold, sheet showing
     fm = fold if not fold.endswith('D') else fold[:-1]
-    P += [rod([-22, 19.4, 2], [-6, 19.8, 10], .9, .9, fm), rod([4, 19.4, 20], [21, 19.8, 28], .9, .9, fm), rod([-14, 19.3, 30], [-2, 19.6, 36], .8, .8, fm),   # folds: lit crests
-          box(-24.9, 12, 43.6, 24.9, 19.4, 45, fm), box(-24.9, 11, 44.6, 24.9, 12.4, 45.6, fm)]                                                           # the quilt over the foot board
+    P += [box(-24.9, 12, 43.6, 24.9, 19.4, 45, fm), box(-24.9, 11, 44.6, 24.9, 12.4, 45.6, fm)]                                                           # the quilt over the foot board
     if stain:   # an irregular blot, one step darker than the blanket
         sm = (fold + 'D') if (fold + 'D') in BP.RAMPS else 'plum'
         P += [ball(4, 19.4, 10, 0, sm, rr=[5, .5, 3.4]), ball(8, 19.4, 13, 0, sm, rr=[3.4, .5, 4]), ball(1, 19.4, 15, 0, sm, rr=[2, .5, 2.4])]
@@ -575,7 +574,7 @@ def crates():
         for zf in (z1, z0 - .6):   # frame and a diagonal brace on the front and back
             Q += [box(x0 - .4, y0, zf, x1 + .4, y0 + 2, zf + .6, 'dkwood'), box(x0 - .4, y1 - 2, zf, x1 + .4, y1, zf + .6, 'dkwood'),
                   box(x0 - .4, y0, zf, x0 + 1.8, y1, zf + .6, 'dkwood'), box(x1 - 1.8, y0, zf, x1 + .4, y1, zf + .6, 'dkwood')]
-        Q.append(rod([x0 + 2.4, y0 + 2.4, z1 + .4], [x1 - 2.4, y1 - 2.4, z1 + .4], .9, .9, 'dkwood'))
+        Q += [rod([x0 + 2.6, y0 + 2.6, z1 + .5], [x1 - 2.6, y1 - 2.6, z1 + .5], 1.3, 1.3, 'dkwood')] + [ball(xx, yy, z1 + 1.1, .5, 'tin') for xx, yy in ((x0 + 1, y0 + 1), (x1 - 1, y0 + 1), (x0 + 1, y1 - 1), (x1 - 1, y1 - 1))]
         Q.append(box(x0, y1, z0, x1, y1 + .6, z1, 'pine', pattern=['planks', 4, 'x']))
         return Q
     P = crate(-20, 0, -9, 2, 18, 8) + crate(-16, 18.6, -7, 0, 30, 5) + crate(5, 0, -6, 21, 13, 8)
@@ -676,8 +675,8 @@ def shop_counter():
     P += [box(13, 32, -6, 31, 37, 5, 'oldbrass'), box(14, 37, -6, 30, 47, -1, 'oldbrass'), box(17, 42, -1.2, 27, 45.6, -.6, 'ink'),   # a period till
           box(18, 43, -.8, 21, 45, -.4, 'paper'), box(23, 43, -.8, 26, 45, -.4, 'paper')]
     P += [box(15 + i * 3, 37, 1 + j * 2, 17 + i * 3, 38.6, 2.4 + j * 2, 'ivory') for i in range(5) for j in range(2)]          # its keys
-    P += [cyl(-32, 32, 2, 5.4, 1.4, 'castiron'), ball(-32, 33.4, 2, 0, 'oldbrass', rr=[4.6, 4.2, 4.6]), cyl(-32, 37.4, 2, .6, 1.6, 'tin'), ball(-32, 39.4, 2, 1.1, 'tin'),
-          ball(-34, 35.6, 4.6, 0, 'ivory', rr=[.9, .7, .5]),   # the bell: a dome on a base
+    P += [cyl(-32, 32, 2, 5.6, 1.6, 'castiron'), ball(-32, 33.6, 2, 0, 'brass', rr=[4.8, 4.6, 4.8]), cyl(-32, 38, 2, .6, 1.6, 'castiron'), ball(-32, 40, 2, 1.2, 'castiron'),
+          ball(-34.4, 35.4, 4.2, 0, 'ivory', rr=[1.1, .9, .6]),   # the bell: a dome on a base
           box(-16, 32, -2, -2, 33, 6, 'paper'), box(-14, 33, -1, -4, 33.6, 4, 'manila'),
           cyl(-42, 32, -4, 3, 7, 'clearglass'), cyl(-42, 39, -4, 2, 1.5, 'wood')]
     P += [ball(-42 + dx, 33.5 + dy, -4 + dz, 1.1, m) for dx, dy, dz, m in ((-1, 0, 1, 'redbk'), (1, 1, 0, 'pumpkin'), (0, 3, -1, 'greenbk'), (1, 4, 1, 'redbk'))]
@@ -942,7 +941,7 @@ def lumber():
         for i in range(n):
             L = 36 + rnd.uniform(-5, 6); x0 = -20 + rnd.uniform(-3, 3); z0 = -10 + i * 4.2 + k * 2
             m = rnd.choice(('oak', 'oak', 'weather'))
-            P += [box(x0, y, z0, x0 + L, y + 3.6, z0 + 3.8, m, pattern=['grain', 1.2, 'x', 6]), box(x0 + 3, y + 3.6, z0 + 1.6, x0 + 3.8, y + 3.9, z0 + 2.2, 'castiron'),
+            P += [box(x0, y, z0, x0 + L, y + 3.6, z0 + 3.8, m, pattern=['grain', 1.6, 'x', 14]), box(x0 + 3, y + 3.6, z0 + 1.6, x0 + 3.8, y + 3.9, z0 + 2.2, 'castiron'),
                   box(x0 + L, y + .2, z0 + .2, x0 + L + .4, y + 3.4, z0 + 3.6, 'endgrain'), box(x0 - .4, y + .2, z0 + .2, x0, y + 3.4, z0 + 3.6, 'endgrain')]
     P += [box(-14, 17.6, -1, 18, 21, 2.8, 'oak')]   # one board laid askew on top
     return P

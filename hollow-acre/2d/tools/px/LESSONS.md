@@ -502,6 +502,9 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Long logs seen end-on show as bark strips; for a woodpile that reads as round ends, keep the logs short in depth.
 - Flat-topped pieces (tables, chess boards) read better from 45 degrees than 30: more of the top shows (furn3d ELEV per piece).
 - The 'iron' ramp reads powder blue next to warm wood: use cast iron (near-black blue-grey) for hoops and frames.
+- Rendered grain on dark wood reads as drips or hair: keep grain to mid-tone tops, with long, sparse streaks.
+- Folds drawn as thin lines read as tears; a fold must be a broad soft ridge (lit crest and shadow), or leave the cloth plain.
+- With the new piece always in slot a, close calls go to slot b: only a clear lead from slot a counts.
 
 ## Outlines, light, colour
 
