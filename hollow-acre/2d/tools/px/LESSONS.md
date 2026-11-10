@@ -932,6 +932,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Four identical nuggets spaced evenly read as studs: vary their size and bite a corner off each.
 - A stump that is a straight cylinder with a flat top reads as a pot or a paper cup: cut it low, flare its foot, give it 3-4 short thick roots lit on top, and its own bark (pine plates, birch white with black marks, willow grey furrows); dead trees snap into splinters of different heights, not a neat lid.
 - Thin evenly spaced roots read as spider legs; ragged spurs read as noise: roots are short, thick at the trunk, tapering smoothly, lit on their upper side.
+- (r4) Two side roots and one centre-front root read as a molar tooth: make the roots unequal on purpose (one long to the front-left, a stub on the right).
+- (r4) Small pickups: a stick's cut end is pale tan with a bark ring; any orange-red tip reads as an ember or a lit match.
+- (r4) Weeds as thin separate sprigs dissolve into speckle at 1x; dense clumps lit as masses win. Dull the straw a step so it is not the most saturated thing on the ground.
+- (r4) Detail grouped by light (clumps, plates) beats even detail everywhere: chaga is 2-3 big crust plates and one broken face of rust-orange flesh, not twenty facets; the bark it grows on must stay darker than white or it steals the eye.
+- (r4) A metal bottle with a ball stopper and round shoulders reads as a decanter whatever its band: a hip flask needs a flat cap on a short neck and square shoulders.
+- (icons) Steam drawn as zigzag hairs reads as hair or stink lines: 2-3 soft puffs, lit on the top-left, see-through, with no outline.
 
 ## Outlines, light, colour
 

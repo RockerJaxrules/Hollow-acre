@@ -20,7 +20,8 @@ STYLE = {
     'pine': dict(bark=hexr(['#24140e', '#3a2218', '#523224', '#6a4230', '#80543e']), plates=True, bigplates=True, hgt=6, roots=3),   # (stumps r2) broad red-brown plates, dark fissures
     'spruce': dict(bark=hexr(['#1c1a18', '#2e2a26', '#433d36', '#5a5248', '#71685c']), scales=True, hgt=6, roots=3),   # (stumps r2) cooler grey-brown, small flaking scales
     'birch': dict(bark=hexr(['#4a4642', '#8a857e', '#b8b3aa', '#d8d4cc', '#ece9e2']), marks=True, torn=True, hgt=7, roots=3),
-    'willow': dict(bark=hexr(['#262624', '#3c3b38', '#55534e', '#6e6b65', '#88847d']), furrows=True, hgt=8, roots=4, uneven=True),
+    'willow': dict(bark=hexr(['#262624', '#3c3b38', '#55534e', '#6e6b65', '#88847d']), furrows=True, hgt=8, roots=4, uneven=True,
+                   angs=(.95, .06, .71, .43), lens=(.5, .15, 1.1, .3)),   # (stumps r4: "a molar") one long root to the front-left, a stub on the right
     'dead': dict(bark=hexr(['#2a2a2c', '#46464a', '#626266', '#808084', '#a0a0a2']), furrows=True, peel=True, snapped=True, hgt=9, roots=3),   # (stumps r2) paler silver-grey, bark peeling
     'snag': dict(bark=hexr(['#141212', '#24201e', '#36302c', '#4a423c', '#5e544c']), furrows=True, spear=True, charred=True, hgt=7, roots=3),   # (stumps r2) darker, charred
 }
@@ -47,10 +48,10 @@ def draw(name):
             if ((x - cx - 2) / (r + 4)) ** 2 + ((y - by - 1) / (ry + 1.5)) ** 2 < 1:
                 px[x, y] = (10, 8, 12, 90)
     # roots: uneven wedges spreading at the base, lit on top
-    angs = [math.pi * .95, math.pi * .1, math.pi * .62, math.pi * .35][:st['roots']]
+    angs = [math.pi * a for a in st.get('angs', (.95, .1, .62, .35))][:st['roots']]
     rw = max(1.8, r * .5)
     for k, a in enumerate(angs):   # (stumps r1: "ragged spurs", "spider legs") short thick roots, lit on top, tapering smoothly
-        L = r * ((0.35, 0.75, 0.5, 0.95)[k % 4] if st.get('uneven') else (0.5 + R.random() * .25)) + 2.5
+        L = r * (st.get('lens', (0.35, 0.75, 0.5, 0.95))[k % 4] if st.get('uneven') else (0.5 + R.random() * .25)) + 2.5
         ux, uy = math.cos(a), math.sin(a) * .55; ql = math.hypot(ux, uy); ux, uy = ux / ql, uy / ql; qx, qy = -uy, ux
         sx0, sy0 = cx + math.cos(a) * r * .75, by - 1 + math.sin(a) * ry * .75
         for ti in range(int(L * 2) + 1):
