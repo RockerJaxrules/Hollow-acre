@@ -561,6 +561,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   face-on elevation of the same thing loses every time.
 - [props sweep] "Abandoned for years" needs the ground to take it back: flat tyres, tall mixed grass grown up over the sills and
   wheels, a dead (not bright) headlight. A neat row of tufts along the sill says parked.
+- [props sweep] A basin, well or fountain must show WALL HEIGHT; a flat oval of water reads as a pond or birdbath. A tall dark
+  rectangle at the foot of a stack reads as a door (a tower or kiln): a fireplace is a low arch in a wider base.
+- [props sweep] Thin legs and posts drawn as stepped doubled strokes read as twisted cable: one clean tube on a fixed slope with a
+  continuous lit left edge.
 
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
