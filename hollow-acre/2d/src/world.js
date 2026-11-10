@@ -289,7 +289,7 @@ function buildTown(){
     const run=(a,b)=>{for(let x=a;x<b-.05;x+=2)obj('twall',Math.min(x,b-2),base,{kind:'wall',town:1});addSeg(a,base-.5,b,base-.5,.5);};
     if(st){run(x0,TERRACE.steps[0]);run(TERRACE.steps[1],x1);}else run(x0,x1);}
   // the stairs lie on the ground (drawn under whoever climbs them: walking up them carries you up the whole rise of the wall), their sides walled the whole way up
-  obj('tsteps_wood',(TERRACE.steps[0]+TERRACE.steps[1])/2,TERRACE.stepsBase,{kind:'flat',town:1,stairs:1});
+  /* owner: the steps in the churchyard wall gap climbed nothing (the ground is level on both sides): gone, the gap is an open gateway */
   addSeg(TERRACE.steps[0]-.02,TERRACE.stepsBase-1.5,TERRACE.steps[0]-.02,TERRACE.stepsBase+.15,.16);addSeg(TERRACE.steps[1]+.02,TERRACE.stepsBase-1.5,TERRACE.steps[1]+.02,TERRACE.stepsBase+.15,.16);
   addSeg(44,-22.4,44,-24.7,.4);addSeg(58,-22.9,58,-24.7,.4);Y('vines',44.2,-21.28,{noCol:true});Y('vines',58.2,-21.78,{noCol:true});
   put('rock_1',29.4,-21.1,.4).town=1;obj('bush_green',44.6,-22.9,{kind:'bush',town:1});obj('bush_red',57.4,-23.0,{kind:'bush',town:1});

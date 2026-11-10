@@ -514,6 +514,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors b47] A daytime room with a dark, busy board floor (an end joint on nearly every plank, about RGB 67,44,30) and a
   heavy screen vignette reads as dusk, and the furniture sinks into it. Lift the floor a value step, make the boards twice as
   long with quieter joints, and keep the indoor day vignette light so the side walls stay above near-black.
+- [interiors b48] Backless benches read as coffee tables, a long low step in front of an altar as a second bench, a plain font
+  as a birdbath; brown furniture on a brown floor sank. What made a chapel read at a glance (6 vs 3.5 in BOTH slot orders, b49):
+  closed box pews seen from behind (rounded end boards standing above a lit cap rail, a solid back, a shelf of books varied per
+  pew) in two straight columns facing the altar, a red runner up the aisle, the altar standing ON a deep platform, a candle stand
+  each side (two different ones, not mirror twins), a lidded font with a cross, and a pale stone floor so the dark wood stands out.
+- [judging] When two rounds flip with the slot (new wins in b, loses in a), the rooms are tied: judge the next change in both
+  orders at once, and count it only when both prefer it.
 
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
