@@ -117,34 +117,37 @@ function stgFence(X0,X1,Y,gx,open){const o='#1a120c';   // a split-rail fence ac
   for(let x=X0;x<=X1;x+=26){if(Math.abs(x-gx)<18)continue;ctx2.fillStyle=o;ctx2.fillRect(x-3,Y-22,6,23);ctx2.fillStyle='#7a5a3a';ctx2.fillRect(x-2,Y-21,4,21);ctx2.fillStyle='#9a7650';ctx2.fillRect(x-2,Y-21,1,21);}
   for(const ry of [Y-17,Y-9]){for(const [a,b] of [[X0,gx-17],[gx+17,X1]]){ctx2.fillStyle=o;ctx2.fillRect(a,ry-1,b-a,4);ctx2.fillStyle='#86643e';ctx2.fillRect(a,ry,b-a,2);ctx2.fillStyle='#a07a52';ctx2.fillRect(a,ry,b-a,1);}}
   for(const px of [gx-17,gx+17]){ctx2.fillStyle=o;ctx2.fillRect(px-3,Y-26,7,27);ctx2.fillStyle='#6a4c30';ctx2.fillRect(px-2,Y-25,5,25);ctx2.fillStyle='#8a6a48';ctx2.fillRect(px-2,Y-25,2,25);}   // the gate posts, taller
-  const w=Math.round(30*(1-open*.75)),gx0=gx-14;ctx2.fillStyle=o;ctx2.fillRect(gx0-1,Y-21,w+2,19);ctx2.fillStyle='#8e6a44';ctx2.fillRect(gx0,Y-20,w,3);ctx2.fillRect(gx0,Y-7,w,3);ctx2.fillRect(gx0,Y-20,3,17);ctx2.fillRect(gx0+w-3,Y-20,3,17);
+  if(open>=1)return;const w=Math.round(30*(1-open*.75)),gx0=gx-14;ctx2.fillStyle=o;ctx2.fillRect(gx0-1,Y-21,w+2,19);ctx2.fillStyle='#8e6a44';ctx2.fillRect(gx0,Y-20,w,3);ctx2.fillRect(gx0,Y-7,w,3);ctx2.fillRect(gx0,Y-20,3,17);ctx2.fillRect(gx0+w-3,Y-20,3,17);
   ctx2.fillStyle='#a88058';ctx2.fillRect(gx0,Y-20,w,1);for(let i=0;i<w-4;i++){const yy=Math.round(Y-17+i*(10/(w-4)));ctx2.fillStyle='#7a5a3a';ctx2.fillRect(gx0+2+i,yy,2,2);}   // the brace
   ctx2.fillStyle='#2a2a2e';ctx2.fillRect(gx0+w-4,Y-14,3,2);}
 function stgPost(X,Y){const o='#1a120c';ctx2.fillStyle=o;ctx2.fillRect(X-3,Y-23,7,24);ctx2.fillStyle='#7a5a3a';ctx2.fillRect(X-2,Y-22,5,22);ctx2.fillStyle='#9a7650';ctx2.fillRect(X-2,Y-22,2,22);ctx2.fillStyle='#5a4028';ctx2.fillRect(X+2,Y-22,1,22);}
+function stgFarmGate(X,Y,open){const o='#1a120c';   // a five-bar farm gate between two capped posts (X = gate centre), swinging open into the yard
+  for(const px of [X-19,X+19]){ctx2.fillStyle=o;ctx2.fillRect(px-4,Y-31,9,32);ctx2.fillStyle='#6a4c30';ctx2.fillRect(px-3,Y-30,7,30);ctx2.fillStyle='#8a6a48';ctx2.fillRect(px-3,Y-30,3,30);ctx2.fillStyle='#4a3420';ctx2.fillRect(px+3,Y-30,1,30);
+    ctx2.fillStyle=o;ctx2.fillRect(px-5,Y-34,11,4);ctx2.fillStyle='#7a5a3a';ctx2.fillRect(px-4,Y-33,9,2);}
+  const w=Math.max(4,Math.round(34*(1-open))),gx0=X-17;ctx2.fillStyle=o;ctx2.fillRect(gx0-1,Y-25,w+2,22);
+  for(const ry of [Y-24,Y-19,Y-14,Y-9,Y-5]){ctx2.fillStyle='#9a7650';ctx2.fillRect(gx0,ry,w,2);ctx2.fillStyle='#b48c60';ctx2.fillRect(gx0,ry,w,1);}
+  ctx2.fillStyle='#8a6a44';ctx2.fillRect(gx0,Y-24,3,21);ctx2.fillRect(gx0+w-3,Y-24,3,21);
+  for(let i=0;i<w-4;i++){const yy=Math.round(Y-6-i*(17/(w-4)));ctx2.fillStyle='#7a5a3a';ctx2.fillRect(gx0+2+i,yy,2,2);}                // the diagonal brace
+  ctx2.fillStyle='#3a3a40';ctx2.fillRect(gx0+w-6,Y-17,4,3);ctx2.fillRect(gx0-1,Y-22,3,2);ctx2.fillRect(gx0-1,Y-9,3,2);}                // latch and hinges
 function stgCaitlynGate(done){const d=doorPos;MAEV.on=false;
-  const gate={x:d.x-2.7,z:d.z+3.05},mae={x:gate.x-.55,z:gate.z+.05},you0={x:d.x+.05,z:d.z+1.25},youM={x:gate.x+.62,z:gate.z+.05},in1={x:gate.x+.05,z:gate.z+.4};
-  let phone=1,open=0;const CAM={x:gate.x+.9,z:gate.z-.45};
-  const props=[];const zs=[];for(let z=gate.z-2.6;z<=gate.z+2.61;z+=.62){if(Math.abs(z-gate.z)<.45)continue;zs.push(z);}
-  zs.forEach((z,i)=>props.push({x:gate.x,z,draw(X,Y){stgPost(X,Y);const nz=zs[i+1];if(nz===undefined||nz-z>.7)return;const Y2=sz(nz);   // rails to the next post
-      for(const h of [17,9]){ctx2.fillStyle='#1a120c';ctx2.fillRect(X-2,Y-h-1,5,Y2-Y+2);ctx2.fillStyle='#86643e';ctx2.fillRect(X-1,Y-h,3,Y2-Y);ctx2.fillStyle='#a07a52';ctx2.fillRect(X-1,Y-h,1,Y2-Y);}}}));
-  props.push({x:gate.x,z:gate.z-.4,draw(X,Y){const Y2=sz(gate.z+.4);const o='#1a120c';   // the gate: a framed panel between the two posts, swinging open into the yard
-      if(open<.5){for(const h of [18,11,4]){ctx2.fillStyle=o;ctx2.fillRect(X-2,Y-h-1,5,Y2-Y+2);ctx2.fillStyle='#8e6a44';ctx2.fillRect(X-1,Y-h,3,Y2-Y);}}
-      else{const L=Math.round(26*(open-.5)*2);for(const h of [18,11,4]){ctx2.fillStyle=o;ctx2.fillRect(X,Y-h-1,L+2,4);ctx2.fillStyle='#8e6a44';ctx2.fillRect(X+1,Y-h,L,2);}}}});
-  props.push({get x(){return npcById('mae').x;},get z(){return npcById('mae').z+.02;},draw(X,Y,t){if(phone<=0)return;const ry=Math.round(-40+(1-phone)*18);   // the phone held up, lit, no bars
-      ctx2.fillStyle='rgba(150,210,240,.2)';ctx2.fillRect(X+1,Y+ry-3,13,17);ctx2.fillStyle='#120c08';ctx2.fillRect(X+3,Y+ry,9,12);ctx2.fillStyle=(Math.sin(t*2.4)>-.3)?'#b8e8fa':'#88c4e0';ctx2.fillRect(X+4,Y+ry+1,7,9);
-      ctx2.fillStyle='#3a5a6a';ctx2.fillRect(X+5,Y+ry+3,1,1);ctx2.fillRect(X+7,Y+ry+3,1,1);ctx2.fillRect(X+9,Y+ry+3,1,1);ctx2.fillStyle='#e8c0a0';ctx2.fillRect(X+3,Y+ry+11,5,2);}});
-  stage({hour:Math.max(9.5,Math.min(S.hour,16)),player:{x:you0.x,z:you0.z,dir:'N'},cast:{mae:{x:mae.x,z:mae.z,dir:'E'}},cam:CAM,props,
+  const gate={x:d.x-1.3,z:d.z+4.3},mae={x:gate.x,z:gate.z+.42},you0={x:d.x+.05,z:d.z+1.25},youM={x:gate.x+.05,z:gate.z-.95},in1={x:gate.x-.65,z:gate.z-.7};
+  let phone=1,open=0;const CAM={x:gate.x+.4,z:d.z+2.95};
+  stage({hour:Math.max(9.5,Math.min(S.hour,16)),player:{x:you0.x,z:you0.z,dir:'N'},cast:{mae:{x:mae.x,z:mae.z,dir:'N'}},cam:CAM,
+    props:[{x:gate.x,z:gate.z+.06,draw(X,Y){stgFence(X-170,X+170,Y,X,1);stgFarmGate(X,Y,open);}},
+           {get x(){return npcById('mae').x;},get z(){return npcById('mae').z+.02;},draw(X,Y,t){if(phone<=0)return;const ry=Math.round(-44+(1-phone)*18);   // the phone held up, lit, no bars
+             ctx2.fillStyle='rgba(150,210,240,.22)';ctx2.fillRect(X+2,Y+ry-4,15,19);ctx2.fillStyle='#120c08';ctx2.fillRect(X+4,Y+ry,10,13);ctx2.fillStyle=(Math.sin(t*2.4)>-.3)?'#b8e8fa':'#88c4e0';ctx2.fillRect(X+5,Y+ry+1,8,10);
+             ctx2.fillStyle='#c83a2a';ctx2.fillRect(X+7,Y+ry+3,4,1);ctx2.fillRect(X+8,Y+ry+2,2,3);ctx2.fillStyle='#e8c0a0';ctx2.fillRect(X+4,Y+ry+12,5,2);}}],   // a red cross: no signal
     beats:[
       {hold:1.0,face:{you:'N'},act(){stgEmote('mae','…',2.2);}},
-      {hold:.9,face:{you:'W'},emote:{you:'?'}},
-      {hold:.2,go:{you:[[you0.x,youM.z],[youM.x,youM.z]]},face:{you:'W'},wait:'arrive'},
+      {hold:.9,face:{you:'S'},emote:{you:'?'}},
+      {hold:.2,go:{you:[[you0.x,youM.z-.6],[youM.x,youM.z]]},face:{you:'S'},wait:'arrive'},
       {who:'mae',text:'Oh. Hi.',expr:'surprised',emote:{mae:'!'},update(dt){phone=Math.max(0,phone-dt*1.2);}},
       {who:'mae',text:'You must be Elias’s grandkid. You have his walk.',act(){phone=0;},expr:'happy'},
       {who:'mae',text:'I’m Caitlyn. I run the store in town. Coyle’s.',expr:'happy'},
       {who:'mae',text:'He asked me to look in on you, if you ever came. He said you wouldn’t. I said you would.',expr:'sad'},
       {who:'mae',text:'I win.',expr:'smug',wait:.5},
       {who:'mae',text:'Let me show you how this place works. Then you’ll have a chance, at least.',expr:'think',update(dt){open=Math.min(1,open+dt*1.6);},
-        go:{mae:[[gate.x-.3,gate.z+.05],[in1.x,in1.z]],you:[youM.x+.35,youM.z-.1]},face:{mae:'E',you:'W'},speed:{mae:.9,you:.7},wait:'arrive'},
+        go:{mae:[[mae.x,gate.z-.2],[in1.x,in1.z]],you:[youM.x+.35,youM.z-.1]},face:{mae:'E',you:'W'},speed:{mae:.9,you:.7},wait:'arrive'},
     ],
     after(){P.x=youM.x+.35;P.z=youM.z-.1;P.dir='W';},
     done(){maeCome(14,true);done&&done();}});}
@@ -182,9 +185,9 @@ function stgDrawing(done){const R=ROOMS.church,ox=R.ox,oz=R.oz;const at=(x,z)=>(
       {text:'Your name, spelled the way Grandpa spelled it. Not the way you spell it. Somehow more right.',wait:.3},
       {hold:2.4,act(){clap=1;SFX.clap&&SFX.clap();}},
       {hold:1.6,act(){clap=0;},face:{mae:'W'},emote:{mae:'💧'}},
-      {hold:2.6,update(dt){hand=Math.min(1,(hand||.001)+dt*1.2);if(hand>=1&&!this._b){this._b=1;stgEmote('you','!',1.8);SFX.stinger&&SFX.stinger();}},act(){P.clip='sit';}},
+      {hold:3.6,update(dt){hand=Math.min(1,(hand||.001)+dt*1.4);if(hand>=1&&!this._b){this._b=1;stgEmote('you','!',1.8);SFX.stinger&&SFX.stinger();}},act(){P.clip='sit';}},
       {hold:1.6,act(){hand=0;P.clip='idle';P.dir='S';}}];
-  stage({room:'church',hour:Math.max(S.hour,18.2),keepHour:true,player:{x:door.x,z:door.z,dir:'N'},cast,cam:{x:CAM.x,z:CAM.z+1.6},lead:900,
+  stage({room:'church',hour:Math.max(S.hour,18.2),keepHour:true,player:{x:door.x,z:door.z,dir:'N'},cast,cam:{x:CAM.x,z:CAM.z+.6},lead:900,
     light(L){glowAt(sx(ox+5),sz(oz+2.2)-18,120,[255,190,110],.32);glowAt(sx(ox+2.5),sz(oz+1.1)-30,46,[255,200,120],.35);glowAt(sx(ox+7.5),sz(oz+1.1)-30,46,[255,200,120],.35);},
     props:[
       {x:gap.x,z:gap.z-.04,draw(X,Y,t){if(!seatLit)return;ctx2.fillStyle=`rgba(255,226,170,${.35+.15*Math.sin(t*2)})`;ctx2.fillRect(X-7,Y-9,14,5);}},   // the empty seat, lit
@@ -195,14 +198,16 @@ function stgDrawing(done){const R=ROOMS.church,ox=R.ox,oz=R.oz;const at=(x,z)=>(
       {x:0,z:1e5,draw(X,Y,t){for(const id of seated){const n=npcById(id);if(!n||!n._seat)continue;const ph=Math.floor(t*5)%2;n._seat.lift=clap&&ph?5:2;   // the clapping: all together, like at a recital
           if(!clap)continue;const nx=sx(n.x),ny=sz(n.z)-20;ctx2.fillStyle='#120c08';const g=ph?1:4;ctx2.fillRect(nx-6+g,ny-1,4,4);ctx2.fillRect(nx+3-g,ny-1,4,4);ctx2.fillStyle='#e8c8a8';ctx2.fillRect(nx-5+g,ny,2,2);ctx2.fillRect(nx+4-g,ny,2,2);
           if(ph){ctx2.fillStyle='#fff4dc';ctx2.fillRect(nx-1,ny-4,2,2);}}}},
-      {get x(){return P.x;},get z(){return P.z+.01;},draw(X,Y){if(!hand)return;const k=Math.min(1,hand);ctx2.globalAlpha=k;   // a hand on your shoulder from behind: long pale fingers
-          const hx=X+3,hy=Y-27,o='#0a0808',sk='#d6d0c2',sh='#a49c8c';
-          ctx2.fillStyle=o;ctx2.fillRect(hx-1,hy-1,12,5);ctx2.fillRect(hx-1,hy+3,3,6);ctx2.fillRect(hx+2,hy+3,3,7);ctx2.fillRect(hx+5,hy+3,3,7);ctx2.fillRect(hx+8,hy+3,3,5);ctx2.fillRect(hx+9,hy+4,4,10);
-          ctx2.fillStyle=sk;ctx2.fillRect(hx,hy,10,3);ctx2.fillRect(hx,hy+3,1,5);ctx2.fillRect(hx+3,hy+3,1,6);ctx2.fillRect(hx+6,hy+3,1,6);ctx2.fillRect(hx+9,hy+3,1,4);ctx2.fillRect(hx+10,hy+5,2,8);
-          ctx2.fillStyle=sh;ctx2.fillRect(hx,hy+2,10,1);ctx2.fillRect(hx+11,hy+5,1,8);ctx2.globalAlpha=1;}}],
+      {get x(){return P.x;},get z(){return P.z+.01;},draw(X,Y){if(!hand)return;const k=Math.min(1,hand);   // a dark sleeve from the empty pew behind; a pale hand with a thumb on your shoulder
+          const sx0=X+16,sy0=Y+16,hx=X+3,hy=Y-27,ex=Math.round(sx0+(hx+6-sx0)*k),ey=Math.round(sy0+(hy+5-sy0)*k);
+          for(let i=0;i<=12;i++){const u=i/12,px=Math.round(sx0+(ex-sx0)*u),py=Math.round(sy0+(ey-sy0)*u);ctx2.fillStyle='#060404';ctx2.fillRect(px-3,py-2,7,5);ctx2.fillStyle='#2a2630';ctx2.fillRect(px-2,py-1,4,3);}
+          if(k<1)return;const o='#060404',sk='#dcd6c8',sh='#9a9284';
+          ctx2.fillStyle=o;ctx2.fillRect(hx-2,hy-2,14,8);ctx2.fillRect(hx-2,hy+5,4,6);ctx2.fillRect(hx+2,hy+5,4,7);ctx2.fillRect(hx+6,hy+5,4,6);ctx2.fillRect(hx+10,hy+4,4,5);ctx2.fillRect(hx+11,hy-4,5,6);
+          ctx2.fillStyle=sk;ctx2.fillRect(hx-1,hy-1,12,6);ctx2.fillRect(hx-1,hy+5,2,5);ctx2.fillRect(hx+3,hy+5,2,6);ctx2.fillRect(hx+7,hy+5,2,5);ctx2.fillRect(hx+11,hy+4,2,4);ctx2.fillRect(hx+12,hy-3,3,4);   // fingers over the shoulder, the thumb behind
+          ctx2.fillStyle=sh;ctx2.fillRect(hx-1,hy+4,12,1);ctx2.fillRect(hx+4,hy-1,1,4);ctx2.fillRect(hx+8,hy-1,1,4);}}],
     beats:[
       {hold:.6},
-      {hold:2.6,go:{you:[ox+5,oz+5.7]},cam:{x:CAM.x,z:CAM.z+.8}},
+      {hold:2.6,go:{you:[ox+5,oz+5.7]}},
       {hold:.2,go:{you:[[ox+5,oz+4.25],[gap.x+.2,oz+4.25],[gap.x,gap.z]]},face:{you:'N'},cam:CAM,wait:'arrive'},
       {hold:.9,act(){seatLit=0;P.clip='sit';P.dir='N';}},
       {hold:1.6,update(dt){hatUp=Math.min(1,hatUp+dt*1.1);}},
@@ -253,19 +258,24 @@ function stgGeneric(id,title,html,done){const n=npcById(id);const beats=stgParse
 function stgLanterns(cx,cy,t){const pts=[];for(let i=0;i<=10;i++){const u=i/10,x=cx-150+u*300,y=cy-118+Math.sin(u*Math.PI)*22;pts.push([x,y]);}
   ctx2.strokeStyle='#1a1410';ctx2.lineWidth=1;ctx2.beginPath();pts.forEach((p,i)=>i?ctx2.lineTo(p[0],p[1]):ctx2.moveTo(p[0],p[1]));ctx2.stroke();
   for(let i=1;i<10;i++){const [x,y]=pts[i],sw=Math.round(Math.sin(t*1.3+i)*1.2);ctx2.fillStyle='#1a1410';ctx2.fillRect(x-3+sw,y+1,7,9);ctx2.fillStyle=i%3===0?'#f0b048':i%3===1?'#e88838':'#f4d070';ctx2.fillRect(x-2+sw,y+2,5,7);ctx2.fillStyle='#fff0c0';ctx2.fillRect(x-1+sw,y+3,2,3);}}
-function stgDance(id,html,done){const n=npcById(id);if(!n){done&&done();return;}const C={x:F_SQ.x,z:F_SQ.z};const beats=stgParse(html,id);
-  const cast={[id]:{x:C.x+.55,z:C.z,dir:'W'}};const ring=npcs.map(m=>m.def.id).filter(k=>k!==id&&k!=='hale').slice(0,16);
-  ring.forEach((k,i)=>{const a=Math.PI*(1.15+1.7*i/Math.max(1,ring.length-1)),r=3.3+(i%2)*.5;cast[k]={x:C.x+Math.cos(a)*r*1.25,z:C.z+Math.sin(a)*r*.7,dir:dirOf(-Math.cos(a),-Math.sin(a))};});
-  const band=['otto','ida','silas'].filter(k=>cast[k]);band.forEach((k,i)=>{cast[k]={x:C.x-1+i,z:C.z-2.6,dir:'S'};});
-  let ang=0,spd=1.25;const last=beats.length;let k=0;
-  stage({hour:Math.max(S.hour,18.6),player:{x:C.x-.55,z:C.z,dir:'E'},cast,cam:{x:C.x,z:C.z+.7},keepCast:false,
-    light(L){const X=sx(C.x),Y=sz(C.z);for(let i=1;i<10;i++){const u=i/10;glowAt(X-150+u*300,Y-112+Math.sin(u*Math.PI)*22,40,[255,190,100],.42);}glowAt(X,Y-10,120,[255,170,90],.22);},
-    props:[{x:C.x,z:1e5,draw(X,Y,t){stgLanterns(sx(C.x),sz(C.z),t);}}],
-    tick(dt,st){const b=st.def.beats[st.i];spd=(st.i>=st.def.beats.length-1)?Math.max(0,spd-dt*1.2):1.25;ang+=dt*spd;
-      const r=.55,px=C.x+Math.cos(ang)*r,pz=C.z+Math.sin(ang)*r*.55,qx=C.x-Math.cos(ang)*r,qz=C.z-Math.sin(ang)*r*.55;
-      P.x=px;P.z=pz;n.x=qx;n.z=qz;st.pin[id]={x:qx,z:qz};P.dir=dirOf(qx-px,qz-pz);n.dir=dirOf(px-qx,pz-qz);const mv=spd>.05;P.clip=mv?'walk':'idle';n.clip=mv?'walk':'idle';P.spd=mv?1:0;
-      if(Math.random()<dt*.6){const bk=band[(Math.random()*band.length)|0];if(bk)stgEmote(bk,'♪',1.2);}},
-    beats:[{hold:2.2,act(){stgTitle(n.def.name+' — Lantern Dance');}},...beats],
+function stgLanternRow(x0,x1,y,sag,t){ctx2.strokeStyle='#120c08';ctx2.lineWidth=1;ctx2.beginPath();for(let i=0;i<=16;i++){const u=i/16,x=x0+(x1-x0)*u,yy=y+Math.sin(u*Math.PI)*sag;i?ctx2.lineTo(x,yy):ctx2.moveTo(x,yy);}ctx2.stroke();
+  for(let i=1;i<8;i++){const u=i/8,x=Math.round(x0+(x1-x0)*u),yy=Math.round(y+Math.sin(u*Math.PI)*sag),sw=Math.round(Math.sin(t*1.3+i)*1.2);
+    ctx2.fillStyle='#120c08';ctx2.fillRect(x-4+sw,yy+1,9,11);ctx2.fillStyle=['#f0b048','#e88838','#f4d070'][i%3];ctx2.fillRect(x-3+sw,yy+2,7,9);ctx2.fillStyle='#fff6d0';ctx2.fillRect(x-1+sw,yy+4,3,4);}}
+function stgDance(id,html,done){const n=npcById(id);if(!n){done&&done();return;}const C={x:F_SQ.x,z:F_SQ.z};const beats=stgParse(html,id).filter(b=>b.who);
+  const cast={[id]:{x:C.x+.55,z:C.z,dir:'W'}};const others=npcs.map(m=>m.def.id).filter(k=>k!==id&&k!=='hale');
+  const pairs=[[others[0],others[1]],[others[2],others[3]]].filter(p=>p[0]&&p[1]);const used=new Set(pairs.flat());
+  const ring=others.filter(k=>!used.has(k)).slice(0,12);
+  ring.forEach((k,i)=>{const a=Math.PI*(1.1+1.8*i/Math.max(1,ring.length-1)),r=3.6;cast[k]={x:C.x+Math.cos(a)*r*1.3,z:C.z+Math.sin(a)*r*.75,dir:dirOf(-Math.cos(a),-Math.sin(a))};});
+  const centres=[{x:C.x-2.1,z:C.z+.9},{x:C.x+2.2,z:C.z+.8}];pairs.forEach((p,i)=>{cast[p[0]]={x:centres[i].x+.5,z:centres[i].z,dir:'W'};cast[p[1]]={x:centres[i].x-.5,z:centres[i].z,dir:'E'};});
+  let ang=0,spd=1.25;
+  const spin=(a,b,c,ph,st)=>{const r=.5,ax=c.x+Math.cos(ang+ph)*r,az=c.z+Math.sin(ang+ph)*r*.55,bx=c.x-Math.cos(ang+ph)*r,bz=c.z-Math.sin(ang+ph)*r*.55;const A=a==='you'?P:npcById(a),B=npcById(b);if(!A||!B)return;
+    A.x=ax;A.z=az;B.x=bx;B.z=bz;if(a!=='you')st.pin[a]={x:ax,z:az};st.pin[b]={x:bx,z:bz};A.dir=dirOf(bx-ax,bz-az);B.dir=dirOf(ax-bx,az-bz);const mv=spd>.05;A.clip=mv?'walk':'idle';B.clip=mv?'walk':'idle';if(a==='you')P.spd=mv?1:0;};
+  stage({hour:20.6,player:{x:C.x-.55,z:C.z,dir:'E'},cast,cam:{x:C.x,z:C.z+.3},keepCast:false,
+    light(L){const X=sx(C.x),Y=sz(C.z);for(const [y0,sag] of [[Y-74,10],[Y-38,8]])for(let i=1;i<8;i++){const u=i/8;glowAt(X-230+u*460,y0+Math.sin(u*Math.PI)*sag+6,46,[255,190,100],.5);}
+      glowAt(X,Y-8,90,[255,170,90],.35);for(const c of centres)glowAt(sx(c.x),sz(c.z)-8,70,[255,170,90],.28);},
+    props:[{x:C.x,z:1e5,draw(X,Y,t){const cx=sx(C.x),cy=sz(C.z);stgLanternRow(cx-230,cx+230,cy-74,10,t);stgLanternRow(cx-230,cx+230,cy-38,8,t+1);}}],
+    tick(dt,st){spd=(st.i>=st.def.beats.length-1)?Math.max(0,spd-dt*1.2):1.25;ang+=dt*spd;spin('you',id,C,0,st);pairs.forEach((p,i)=>spin(p[0],p[1],centres[i],1.7+i,st));},
+    beats:[{hold:2.6,act(){stgTitle(n.def.name+' — Lantern Dance');}},{hold:1.4,emote:{[id]:'♪'}},...beats],
     done});}
 
 // 5. the wedding, in the square at ten: the town in two blocks with an aisle, Dunn at the back with his hat in his hands, Hale
@@ -274,25 +284,56 @@ function stgWedding(id,html,done){const n=npcById(id);if(!n){done&&done();return
   const cast={[id]:{x:C.x+.4,z:C.z+3.4,dir:'N'},hale:{x:C.x,z:C.z-2.2,dir:'S'}};
   const crowd=npcs.map(m=>m.def.id).filter(k=>k!==id&&k!=='hale'&&k!=='dunn');
   crowd.forEach((k,i)=>{const side=i%2?1:-1,row=Math.floor(i/2)%4,col=Math.floor(i/8);cast[k]={x:C.x+side*(1.3+col*.9+(row%2)*.2),z:C.z-1+row*.9,dir:side>0?'W':'E'};});
-  if(npcById('dunn'))cast.dunn={x:C.x+2.4,z:C.z+3.9,dir:'N'};
-  let cheer=0,ang=0,dance=0;
+  if(npcById('dunn'))cast.dunn={x:C.x+2.6,z:C.z+2.7,dir:'N'};
+  let cheer=0,ang=0,dance=0;const dpairs=[[crowd[0],crowd[1]],[crowd[2],crowd[3]],[crowd[4],crowd[5]]].filter(p=>p[0]&&p[1]);const dcs=[{x:C.x-1.6,z:C.z+1.6},{x:C.x+1.7,z:C.z+1.4},{x:C.x,z:C.z+2.4}];
   stage({hour:10,player:{x:C.x-.4,z:C.z+3.4,dir:'N'},cast,cam:{x:C.x,z:C.z+1.2},keepHour:true,
-    props:[{x:C.x,z:C.z-2.6,draw(X,Y,t){const o='#1a120c';ctx2.fillStyle=o;ctx2.fillRect(X-26,Y-46,6,46);ctx2.fillRect(X+20,Y-46,6,46);ctx2.fillRect(X-26,Y-50,52,6);   // an arch of autumn branches
+    props:[{get x(){const m=npcById('dunn');return m?m.x:0;},get z(){const m=npcById('dunn');return m?m.z+.02:0;},draw(X,Y){if(!npcById('dunn'))return;stgHat(X+1,Y-14);}},   // Dunn, his hat in his hands
+      {x:C.x,z:C.z-2.6,draw(X,Y,t){const o='#1a120c';ctx2.fillStyle=o;ctx2.fillRect(X-26,Y-46,6,46);ctx2.fillRect(X+20,Y-46,6,46);ctx2.fillRect(X-26,Y-50,52,6);   // an arch of autumn branches
           ctx2.fillStyle='#6a4a2a';ctx2.fillRect(X-25,Y-45,4,45);ctx2.fillRect(X+21,Y-45,4,45);ctx2.fillRect(X-25,Y-49,50,4);
           for(let i=0;i<14;i++){const a=i/13,lx=X-26+a*52,ly=Y-52+Math.sin(a*Math.PI)*-4;ctx2.fillStyle=['#c8402a','#e0a030','#a83020','#f0c050'][i%4];ctx2.fillRect(lx-2,ly-2,5,4);}}},
       {x:0,z:1e5,draw(X,Y,t){if(!cheer)return;for(const k of crowd){const m=npcById(k);if(!m)continue;const ph=(Math.floor(t*6)+k.length)%2;if(!ph)continue;const nx=sx(m.x),ny=sz(m.z)-34;
           ctx2.fillStyle='#120c08';ctx2.fillRect(nx-6,ny,3,5);ctx2.fillRect(nx+4,ny,3,5);ctx2.fillStyle='#e8c8a8';ctx2.fillRect(nx-5,ny,1,3);ctx2.fillRect(nx+5,ny,1,3);}}}],   // arms up, cheering
-    tick(dt,st){if(!dance)return;ang+=dt*1.3;const r=.55,px=C.x+Math.cos(ang)*r,pz=C.z+.6+Math.sin(ang)*r*.55,qx=C.x-Math.cos(ang)*r,qz=C.z+.6-Math.sin(ang)*r*.55;
-      P.x=px;P.z=pz;n.x=qx;n.z=qz;st.pin[id]={x:qx,z:qz};P.dir=dirOf(qx-px,qz-pz);n.dir=dirOf(px-qx,pz-qz);P.clip='walk';n.clip='walk';P.spd=1;},
+    tick(dt,st){if(!dance)return;ang+=dt*1.3;const sp=(a,b,c,ph)=>{const r=.5,ax=c.x+Math.cos(ang+ph)*r,az=c.z+Math.sin(ang+ph)*r*.55,bx=c.x-Math.cos(ang+ph)*r,bz=c.z-Math.sin(ang+ph)*r*.55;const A=a==='you'?P:npcById(a),B=npcById(b);if(!A||!B)return;
+        A.x=ax;A.z=az;B.x=bx;B.z=bz;if(a!=='you')st.pin[a]={x:ax,z:az};st.pin[b]={x:bx,z:bz};A.dir=dirOf(bx-ax,bz-az);B.dir=dirOf(ax-bx,az-bz);A.clip='walk';B.clip='walk';};
+      sp('you',id,{x:C.x,z:C.z+.6},0);P.spd=1;dpairs.forEach((p,i)=>sp(p[0],p[1],dcs[i],1+i*1.3));},
     beats:[
       {hold:1.4,act(){stgTitle('The wedding');},emote:{dunn:'…'}},
-      {hold:.2,go:{you:[C.x-.4,C.z-1.4],[id]:[C.x+.4,C.z-1.4]},face:{you:'N',[id]:'N'},speed:{you:.7,[id]:.7},wait:'arrive'},
+      {hold:.2,go:{you:[C.x-.4,C.z-1.4],[id]:[C.x+.4,C.z-1.4]},face:Object.assign({you:'N',[id]:'N'},Object.fromEntries(crowd.map(k=>[k,'N']))),speed:{you:.7,[id]:.7},wait:'arrive',cam:{x:C.x,z:C.z+.4}},
       {who:'hale',text:'Dearly beloved. We are gathered here, in the square, in the daylight, for once, for something good.',expr:'happy'},
       {who:'hale',text:`Marsh. And ${nm}.`,face:{you:'E',[id]:'W'}},
       {hold:2.4,act(){cheer=1;SFX.clap&&SFX.clap();crowd.slice(0,10).forEach((k,i)=>setTimeout(()=>stgEmote(k,i%3?'♥':'!',1.4),i*120));},emote:{[id]:'💧'}},
       {who:id,text:'Look at them. Look at all of them. Not one of them is afraid.',expr:'cry'},
-      {hold:3.2,act(){dance=1;cheer=0;}},
-      {text:'Afterwards they dance on the square till the lanterns burn down, and for one whole afternoon the valley forgets to be afraid.'},
+      {hold:4.2,act(){dance=1;cheer=0;dpairs.flat().forEach((k,i)=>setTimeout(()=>stgEmote(k,'♪',1.2),i*200));},cam:{x:C.x,z:C.z+1.2}},
+    ],
+    done});}
+
+
+// 6. into the woods (the dark path): the street walks the one chosen to the edge of the hill copse, a lantern in their hand;
+// everyone turns round at the same moment and walks back; you look back, and they are standing where they were left, watching
+function stgLantern(X,Y,t){ctx2.fillStyle='#120c08';ctx2.fillRect(X-3,Y-5,7,9);ctx2.fillRect(X-1,Y-8,3,3);ctx2.fillStyle=Math.sin(t*9)>-.6?'#ffd070':'#f0a040';ctx2.fillRect(X-2,Y-4,5,6);ctx2.fillStyle='#fff4c8';ctx2.fillRect(X-1,Y-3,2,3);}
+function stgExile(id,html,done,chose){const n=npcById(id);if(!n){done&&done();return;}const nm=n.def.name,C=dkCamp();
+  const edge={x:C.x,z:C.z+1.2},start={x:C.x+.6,z:C.z+4.9};
+  const walkers=npcs.map(m=>m.def.id).filter(k=>k!==id&&k!=='hale'&&k!=='mae').slice(0,9);
+  const cast={[id]:{x:start.x,z:start.z,dir:'N'},hale:{x:start.x-.9,z:start.z+.6,dir:'N'}};
+  walkers.forEach((k,i)=>{cast[k]={x:start.x-1.6+(i%3)*1.1,z:start.z+1.2+Math.floor(i/3)*.8,dir:'N'};});
+  const go1={[id]:[edge.x,edge.z],hale:[edge.x-.9,edge.z+1.2]};walkers.forEach((k,i)=>{go1[k]=[edge.x-1.6+(i%3)*1.1,edge.z+1.9+Math.floor(i/3)*.8];});
+  const back={hale:[start.x-.9,start.z+1.0]};walkers.forEach((k,i)=>{back[k]=[start.x-1.6+(i%3)*1.1,start.z+1.6+Math.floor(i/3)*.7];});
+  const turnS=Object.fromEntries(['hale',...walkers].map(k=>[k,'S']));
+  let lit=0;
+  stage({hour:12.2,player:{x:start.x+1.3,z:start.z+.9,dir:'N'},cast,cam:{x:start.x,z:start.z-.4},
+    light(L){if(lit)glowAt(sx(n.x)+4,sz(n.z)-20,60,[255,200,110],.55);},
+    props:[{get x(){return n.x;},get z(){return n.z+.03;},draw(X,Y,t){stgLantern(X+6,Y-16,t);}}],
+    beats:[
+      {hold:.6,act(){stgTitle('Into the woods');}},
+      chose?{who:'you',text:`${nm}.`}:{who:'hale',text:`${nm}.`,expr:'sad'},
+      {hold:.6,emote:{[id]:'…'}},
+      {text:`${nm} doesn’t argue. Nobody ever argues. Somebody has already packed them a bag: a blanket, a lantern, a tin of matches, a loaf.`},
+      {hold:.2,go:Object.assign({},go1,{you:[edge.x+1.3,edge.z+1.7]}),cam:{x:edge.x,z:edge.z+1.2},speed:Object.fromEntries(Object.keys(go1).map(k=>[k,.75])),wait:'arrive',camSpeed:.7},
+      {hold:1.6,act(){lit=1;},go:{[id]:[edge.x,edge.z-.9]},face:{[id]:'S'}},
+      {hold:1.2,face:Object.assign({you:'S'},turnS)},
+      {hold:.2,go:Object.assign({},back,{you:[start.x+1.3,start.z+.9]}),speed:Object.assign({you:.8},Object.fromEntries(Object.keys(back).map(k=>[k,.8]))),cam:{x:edge.x+.3,z:edge.z+2.6},wait:'arrive',camSpeed:.6},
+      {hold:1.4,face:{you:'N'},emote:{you:'!'}},
+      {text:`You look back. ${nm} is standing exactly where they left them, lantern lit, not moving, watching you go.`,cam:{x:edge.x,z:edge.z+2.2}},
     ],
     done});}
 
@@ -301,6 +342,7 @@ function stgWedding(id,html,done){const n=npcById(id);if(!n){done&&done();return
   if(title==='Caitlyn drops by'&&!STG)return stgCaitlynGate(done);
   if(title==='The drawing'&&!STG)return stgDrawing(done);
   if(title==='Lantern Dance'&&!STG&&S.mode==='play')return stgDance(id,html,done);
+  if(title==='Into the woods'&&!STG&&S.mode==='play'&&typeof dkCamp==='function')return stgExile(id,html,done,/^You say it\./.test(html));
   if(title==='The wedding'&&!STG&&S.mode==='play')return stgWedding(id,html,done);
   if(!STG&&S.mode==='play'&&!S.paused&&!title.endsWith(' '))return stgGeneric(id,title,html,done);   // (a trailing space keeps the old card: used for A/B captures)
   return _ps(id,title,html,done);};}
