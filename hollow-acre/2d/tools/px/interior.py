@@ -50,7 +50,7 @@ ROOMS = {
   'home_agnes': dict(windows=[[2, 0], [6, 0]], w=9, d=6, door=4, theme='home', wall='damask', paper='rust', floor='painted', paint='slate', wains='bead', doors=[[8.35, 'bark']], mat='red'),
   'home_hale': dict(windows=[[2, 0], [6, 0]], w=9, d=6, door=4, theme='home', wall='panel', floor='parquet', doors=[[8.35, 'bark']], mat='curtain'),
   'home_dunn': dict(windows=[[2, 0], [6, 0]], w=9, d=6, door=4, theme='home', wall='plaster', paper='mustard', floor='wide', doors=[[8.35, 'slate']], mat='sage'),
-  'home_cora': dict(windows=[[2, 0], [6, 0]], w=9, d=6, door=4, theme='home', wall='stripe', paper='sage', floor='checker', chk='sage', wains='bead', doors=[[8.35, 'teal']], mat='blue'),
+  'home_cora': dict(windows=[[2, 0], [6, 0]], w=9, d=6, door=4, theme='home', wall='stripe', paper='sage', floor='parquet', wains='bead', doors=[[8.35, 'teal']], mat='blue'),
   'home_june': dict(windows=[[2, 0], [6, 0]], w=9, d=6, door=4, theme='home', wall='stripe', paper='rust', floor='hex', doors=[[8.35, 'red']], mat='mustard'),
   'home_otto': dict(windows=[[2, 0], [6, 0]], w=9, d=6, door=4, theme='home', wall='panel', floor='wide', doors=[[8.35, 'teal']], mat='blue'),
   'home_silas': dict(windows=[[2, 0], [6, 0]], w=9, d=6, door=4, theme='home', wall='damask', paper='slate', floor='flag', doors=[[8.35, 'slate']], mat='red'),

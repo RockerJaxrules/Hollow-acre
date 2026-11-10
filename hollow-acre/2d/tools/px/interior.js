@@ -35,7 +35,7 @@ function parquet(L,x0,y0,w,h){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){c
   let c=WD[dir?3:4];if(t===0)c=WD[1];if(t===1)c=WD[dir?4:5];if(hsh(Math.floor(a/12),Math.floor(b/12),5)>.7)c=shade(c,.92);P(L,x,y,c);}}
 // (interiors) bright red on cream at full contrast was the loudest thing in every room it was in, and the specks were grit:
 // the tiles sit a step down (worn, waxed), the grout is a soft line on the top and left of each tile, no specks
-function checker(L,x0,y0,w,h,A2,B2){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const i=Math.floor((x-x0)/16),j=Math.floor((y-y0)/16),u=(x-x0)%16,v=(y-y0)%16;const lt=B2[1].map((v,k)=>Math.round(v*.55+B2[2][k]*.45));let c=(i+j)%2?A2[2]:lt;   // the light tile between two cream steps, close to the dark one
+function checker(L,x0,y0,w,h,A2,B2){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const i=Math.floor((x-x0)/16),j=Math.floor((y-y0)/16),u=(x-x0)%16,v=(y-y0)%16;const lt=A2[2].map((v,k)=>Math.round(v*.62+B2[2][k]*.38));let c=(i+j)%2?A2[2]:lt;   // the light tile only a step above the dark one: a quiet floor under louder furniture   // the light tile between two cream steps, close to the dark one
   if(u===0||v===0)c=shade(c,.84);else if(u===1||v===1)c=shade(c,1.05);P(L,x,y,c);}}
 function flagstone(L,x0,y0,w,h){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=Math.floor((y-y0)/18),o=(r*13)%27,s=Math.floor((x-x0+o)/(22+(r%3)*4));const u=(x-x0+o)%(22+(r%3)*4),v=(y-y0)%18;
   const n=hsh(s,r,9);let c=ST[n>.66?4:n>.33?3:2];if(u<2||v<2)c=ST[1];if(u===2||v===2)c=ST[n>.5?5:4];
@@ -104,9 +104,17 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
     const cx3=x0+40;wallShadow(cx3,30,18,22);rect(B,cx3,30,18,22,PAL.cream[3]);rect(B,cx3,30,18,5,PAL.red[3]);for(let j=0;j<3;j++)for(let i=0;i<4;i++)rect(B,cx3+2+i*4,37+j*5,3,3,PAL.cream[1]);P(B,cx3+10,47,PAL.red[3]);}
   if(R.theme==='home'){for(const d of R.doors||[])backDoor(B,x0+d[0]*32,top,PAL[d[1]||'bark'],d[2]&&PAL[d[2]]);if(R.mat)doormat(A,x0+R.door*32,front-11,PAL[R.mat]);}
   else if(R.theme==='store'||R.theme==='garage'){for(const d of R.doors||[])backDoor(B,x0+d[0]*32,top,PAL[d[1]||'bark'],d[2]&&PAL[d[2]]);if(R.mat)doormat(A,x0+R.door*32,front-11,PAL[R.mat]);}
-  // ---- sunlight through each window, falling across the floor down and to the right (day only)
-  if(!N&&R.theme!=='mine')for(const w of R.windows||[]){const ww=w[2]||28,wx=x0+w[0]*32-ww/2;for(let y=top+2;y<Math.min(front-4,top+86);y++){const t=(y-top)/86,sk=Math.round((y-top)*.55);
-      for(let x=wx+sk;x<wx+sk+ww;x++){const e=Math.min(x-(wx+sk),wx+sk+ww-1-x);const a=(1-t)*Math.min(1,e/4);const c=G(A,x,y);if(c&&a>0)P(A,x,y,[Math.min(255,c[0]*(1+.28*a)+10*a),Math.min(255,c[1]*(1+.24*a)+8*a),Math.min(255,c[2]*(1+.12*a)+2*a)]);}}}
+  // ---- the floor a step down from the furniture, and shade gathering where it meets the walls: cool, toward plum (judge: furniture sank into a floor of its own value)
+  {const PL=[46,34,48];for(let y=top;y<front;y++)for(let x=x0;x<x0+fw;x++){const c=G(A,x,y);if(!c)continue;const dB=y-top,dS=Math.min(x-x0,x0+fw-1-x);
+    let k=.9,t=0;if(dB<12)t=Math.max(t,(12-dB)/12*.42);if(dS<9)t=Math.max(t,(9-dS)/9*.32);
+    P(A,x,y,[c[0]*k*(1-t)+PL[0]*t|0,c[1]*k*(1-t)+PL[1]*t|0,c[2]*k*(1-t)+PL[2]*t|0]);}}
+  // ---- sunlight through each window: a hard-edged patch thrown down and to the right, two steps of light, the window's glazing bars crossing it (day only)
+  if(!N&&R.theme!=='mine')for(const w of R.windows||[]){const ww=w[2]||28,wx=x0+w[0]*32-ww/2,L=Math.min(front-top-8,64);
+    for(let y=top+3;y<top+3+L;y++){const sk=Math.round((y-top)*.55),xl=wx+sk,xr=wx+sk+ww-1;
+      for(let x=xl;x<=xr;x++){if(x<x0||x>=x0+fw)continue;const u=x-xl,v=y-top-3;
+        if(Math.abs(u-(ww>>1))<1||Math.abs(v-(L*.46|0))<1)continue;                                                      // the glazing bars' shadow
+        const inner=u>=3&&u<=ww-4&&v>=3&&v<=L-4;const f=inner?1.48:1.24,wm=inner?24:11;const c=G(A,x,y);if(!c)continue;
+        P(A,x,y,[Math.min(255,c[0]*f+wm),Math.min(255,c[1]*f+wm*.8),Math.min(255,c[2]*f+wm*.3)]);}}}
   // ---- hanging lamps over the big rooms
   if(R.theme==='store'||R.theme==='church'){for(const f of [.25,.75]){const lx=x0+Math.round(fw*f);vl(B,lx,0,18,PAL.slate[2]);ell(B,lx,22,7,4,N?PAL.lit[4]:PAL.brass[2]);hl(B,lx-7,22,15,PAL.brass[1]);ell(B,lx,25,3,1,N?PAL.lit[5]:PAL.cream[3]);}}
   // side walls: dark tops of the left and right walls
