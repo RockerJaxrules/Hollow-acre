@@ -250,17 +250,17 @@ if(K==='piano'){const R=RAMP.walnut,base=H-3;
     for(let g=0,x=x0+2;x<x0+w-2;g++){const n=g%2?3:2;for(let k=0;k<n&&x<x0+w-2;k++,x+=3){vl(A,x,y,2,RAMP.walnut[0]);vl(A,x+1,y,2,RAMP.walnut[1]);}x+=3;}};
   const sconce=(x,y)=>{hl(A,x-1,y,3,RAMP.brass[4]);rect(A,x,y-5,1,5,RAMP.ivory[4]);P(A,x,y-6,RAMP.lit[NIGHT?5:3]);if(NIGHT)P(B,x,y-7,RAMP.lit[4],180);};
   if(V==='S'){const x0=3,w=W-6,top=base-46;
-    box3(x0-1,top,w+2,3,3,RAMP.oak,{});box3(x0,top+6,w,0,24,R,{facePw:8});panel(x0+5,top+9,(w>>1)-8,16,R);panel(x0+(w>>1)+3,top+9,(w>>1)-8,16,R);
+    box3(x0-1,top-5,w+2,8,3,RAMP.oak,{});box3(x0,top+6,w,0,24,R,{facePw:8});panel(x0+5,top+9,(w>>1)-8,16,R);panel(x0+(w>>1)+3,top+9,(w>>1)-8,16,R);
     rect(A,(W>>1)-7,top+11,14,10,RAMP.cream[4]);hl(A,(W>>1)-7,top+11,14,RAMP.cream[5]);for(let j=0;j<4;j++)hl(A,(W>>1)-6,top+13+j*2,12,RAMP.cream[1]);    // music on the stand
     box3(x0-2,top+30,w+4,6,3,R,{topPw:6});keys(x0+1,top+31,w-2);                                                                   // the keybed
     for(const lx of [x0+1,x0+w-5])leg(lx,top+39,base-top-39,R,true);box3(x0+2,top+39,w-4,0,base-top-42,R,{facePw:6,faceK:1});
-    sconce(x0+6,top-1);sconce(x0+w-7,top-1);
+    sconce(x0+6,top-2);sconce(x0+w-7,top-2);
     box3((W>>1)-9,base-11,18,4,7,RAMP.red,{});for(const lx of [(W>>1)-8,(W>>1)+5])leg(lx,base-4,4,R,false);                       // the bench
     under(x0,x0+w,base,base);cast(x0,x0+w,base);}
-  if(V==='E'){const x0=6,w=24,d=40,top=base-46-d;   // turned: the lid runs up the screen at the piano's length; the near end is the case's panelled side
+  if(V==='E'){const x0=6,w=11,d=50,top=base-46-d;   // turned: the lid runs up the screen at the piano's length; the near end is the case's panelled side
     box3(x0-1,top,w+2,d,3,R,{topDir:'y',topPw:6,});for(let y=top+1;y<top+d-1;y++)for(let x=x0;x<x0+w;x++){const c=G(A,x,y);if(c)P(A,x,y,shade(c,1.25));}   // the lid, the case's walnut
     box3(x0,top+d+3,w,0,base-top-d-3,R,{facePw:7});panel(x0+3,top+d+6,w-6,16,R);panel(x0+3,top+d+25,w-6,base-top-d-30,R);           // the near end of the case
-    const kx=x0+w+1,ky0=top+d-24,ky1=base-18;   // the key bed beside the case (the front faces right), the keys running up the screen
+    const kx=x0+w+1,ky1=base-16,ky0=ky1-45;   // the key bed beside the case (the front faces right), the keys running up the screen
     for(let y=ky0;y<ky1;y++){P(A,kx,y,R[2]);for(let i=1;i<6;i++)P(A,kx+i,y,RAMP.ivory[i===1?3:i===5?2:4]);P(A,kx+6,y,R[1]);}
     for(let y=ky0+1,g=0;y<ky1-1;g++){const n=g%2?3:2;for(let k=0;k<n&&y<ky1-1;k++,y+=2){P(A,kx+1,y,RAMP.walnut[0]);P(A,kx+2,y,RAMP.walnut[0]);P(A,kx+3,y,RAMP.walnut[1]);}y+=2;}   // black keys in twos and threes
     hl(A,kx,ky0-1,7,R[4]);box3(kx,ky1,7,0,5,R,{});for(let y=ky1+5;y<base;y++)P(A,kx+5,y,R[2]);
@@ -268,10 +268,10 @@ if(K==='piano'){const R=RAMP.walnut,base=H-3;
     box3(kx+8,base-24,8,14,6,RAMP.red.map((c,i)=>RAMP.red[Math.max(0,i-1)]),{topDir:'y'});leg(kx+8,base-4,4,R,false);leg(kx+13,base-4,4,R,false);   // the bench, turned
     under(x0,x0+w+16,base,base);cast(x0,x0+w+16,base);}
   if(V==='N'){const x0=3,w=W-6,top=base-46;   // the back: the soundboard behind three braces
-    box3(x0-1,top,w+2,3,3,RAMP.oak,{});box3(x0,top+6,w,0,base-top-6,R,{facePw:9,faceK:2});boards(x0+4,top+10,w-8,base-top-16,RAMP.pine,'y',5,2);
+    box3(x0-1,top-5,w+2,8,3,RAMP.oak,{});box3(x0,top+6,w,0,base-top-6,R,{facePw:9,faceK:2});boards(x0+4,top+10,w-8,base-top-16,RAMP.pine,'y',5,2);
     for(const ry of [top+9,base-9]){hl(A,x0+3,ry,w-6,R[5]);hl(A,x0+3,ry+1,w-6,R[3]);hl(A,x0+3,ry+2,w-6,R[1]);}
     for(const bx of [x0+5,(W>>1)-2,x0+w-9]){rect(A,bx,top+8,4,base-top-12,R[4]);vl(A,bx,top+8,base-top-12,R[5]);vl(A,bx+3,top+8,base-top-12,R[1]);hl(A,bx,top+8,4,RAMP.oak[5]);}
-    sconce(x0+6,top-1);sconce(x0+w-7,top-1);under(x0,x0+w,base,base);cast(x0,x0+w,base);}}
+    sconce(x0+6,top-2);sconce(x0+w-7,top-2);under(x0,x0+w,base,base);cast(x0,x0+w,base);}}
 // =================================================================================== the chess table (looks the same turned: front only)
 if(K==='chess'){const R=RAMP.walnut,base=H-3,cx=W>>1;
   // a pedestal games table: the board lies flat (foreshortened to half its width) on a top with a lit front edge, a turned column, three splayed feet
@@ -363,7 +363,7 @@ if(K==='crates'){const R=RAMP.pine,base=H-3;
 // =================================================================================== the pantry shelf of jars
 if(K==='jars'){const R=RAMP.pine,base=H-3,x0=2,w=W-4,topY=9;
   const CONT=[[RAMP.red,'cloth'],[RAMP.green,'tin'],[RAMP.ochre,'cloth'],[RAMP.plum,'tin'],[RAMP.red,'tin'],[RAMP.ochre,'tin'],[RAMP.green,'cloth'],[RAMP.cream,'cloth']];
-  const jar=(x,by,w2,h,Cr,lid,lab)=>{for(let j=0;j<h;j++)for(let i=0;i<w2;i++){const sh=(j<2&&(i===0||i===w2-1));if(sh)continue;let c=Cr[i===0?4:i===w2-1?1:(j<h*.3?3:2)];if(j<2)c=RAMP.glass[i===1?5:3];P(A,x+i,by-h+j,c);}
+  const jar=(x,by,w2,h,Cr,lid,lab)=>{for(let j=0;j<h;j++)for(let i=0;i<w2;i++){const sh=(j<2&&(i===0||i===w2-1));if(sh)continue;let c=Cr[i===0?5:i===w2-1?2:(j<h*.3?4:3)];if(j<3)c=RAMP.glass[i===1?5:(i===0?4:3)];if(j===3)c=Cr[i===0?4:2];P(A,x+i,by-h+j,c);}
     P(A,x+1,by-h+3,RAMP.ivory[5]);P(A,x+1,by-h+4,RAMP.ivory[4]);                                                          // the glass glint
     if(lid==='cloth'){hl(A,x-1,by-h-1,w2+2,RAMP.red[4]);hl(A,x,by-h,w2,RAMP.cream[4]);P(A,x-1,by-h,RAMP.red[3]);P(A,x+w2,by-h,RAMP.red[2]);hl(A,x,by-h+1,w2,RAMP.brass[1]);}
     else{hl(A,x,by-h-1,w2,RAMP.ironW[4]);hl(A,x,by-h,w2,RAMP.ironW[2]);}
@@ -381,13 +381,13 @@ if(K==='jars'){const R=RAMP.pine,base=H-3,x0=2,w=W-4,topY=9;
     {const bx=x0+w-24,by=base-3;for(let j=0;j<7;j++)for(let i=0;i<16;i++)P(A,bx+i,by-7+j,RAMP.ochre[(i+j)%3===0?2:(j===0?4:3)]);
       for(const [px,py] of [[2,-9],[5,-10],[8,-9],[11,-10],[4,-8],[9,-8],[13,-8]]){P(A,bx+px,by+py,RAMP.oak[5]);P(A,bx+px+1,by+py,RAMP.oak[4]);P(A,bx+px,by+py+1,RAMP.oak[3]);P(A,bx+px+1,by+py+1,RAMP.oak[2]);}}
     box3(x0,base-3,w,0,4,R,{});under(x0,x0+w,base,base);cast(x0,x0+w,base);}
-  if(V==='E'){const sw=W-6,sx=3,TL=39,tY=topY+TL;   // the side: the top board runs up the screen (one camera for every view), then the framed end panel with a sliver of jars at the open edge
-    box3(sx-1,tY-1-TL,sw+2,TL+4,3,R,{topDir:'y',topPw:4});for(let y=tY-TL;y<tY+2;y++)for(let x=sx;x<sx+sw;x++){const c=G(A,x,y);if(c)P(A,x,y,shade(c,1.22));}vl(A,sx-1,tY-TL,TL+3,R[5]);for(let y=tY-TL+9;y<tY;y+=13)hl(A,sx,y,sw,R[2]);rect(A,sx,tY+6,sw-3,base-tY-10,R[2]);for(let y=tY+6;y<base-4;y++){P(A,sx,y,R[4]);P(A,sx+1,y,R[3]);P(A,sx+sw-4,y,R[1]);}
+  if(V==='E'){const sw=W-6,sx=3,TL=33,tY=topY+TL;   // the side: the top board runs up the screen (one camera for every view), then the framed end panel with a sliver of jars at the open edge
+    box3(sx-1,tY-1-TL,sw+2,TL+4,3,R,{topDir:'y',topPw:4});for(let y=tY-TL;y<tY+2;y++)for(let x=sx;x<sx+sw;x++){const c=G(A,x,y);if(c)P(A,x,y,shade(c,1.22));}vl(A,sx-1,tY-TL,TL+3,R[5]);for(let y=tY-TL+9;y<tY;y+=13)hl(A,sx,y,sw,R[2]);rect(A,sx,tY+6,sw-3,base-tY-10,R[3]);for(let y=tY+6;y<base-4;y++){P(A,sx,y,R[4]);P(A,sx+1,y,R[3]);P(A,sx+sw-4,y,R[1]);}
     panel(sx+2,tY+9,Math.max(4,sw-7),30,R);panel(sx+2,tY+43,Math.max(4,sw-7),30,R);
     for(const [a,b,i] of [[tY+8,tY+22,0],[tY+26,tY+42,1],[tY+46,tY+62,2]]){let y=b;let k=0;while(y>a+2){const hgt=6+((i*5+k*3)%5),C=CONT[(i*3+k)%CONT.length][0];for(let j=0;j<hgt&&y-j>a;j++){P(A,sx+sw-3,y-1-j,C[j===hgt-1?5:3]);P(A,sx+sw-2,y-1-j,C[1]);}y-=hgt+2;k++;}}   // jars of different heights and colours along the open edge
     for(const sy of [tY+22,tY+42,tY+62]){P(A,sx+sw-3,sy,R[5]);P(A,sx+sw-2,sy,R[4]);P(A,sx+sw-3,sy+1,R[2]);}
     box3(sx,base-4,sw-2,0,5,R,{facePw:6});under(sx,sx+sw,base,base);cast(sx,sx+sw,base);}
-  if(V==='N'){box3(x0-1,topY-7,w+2,9,3,R,{});for(let y=topY+5;y<base-4;y++)for(let x=x0;x<x0+w;x++){const u=(x-x0)%8;P(A,x,y,R[u===0?1:u===1?4:u===7?2:3]);}
+  if(V==='N'){box3(x0-1,topY-7,w+2,9,3,R,{});const BW=[0,7,16,22,31,38,44,99];for(let y=topY+5;y<base-4;y++)for(let x=x0;x<x0+w;x++){const k=BW.findIndex(v=>v>x-x0)-1,u=x-x0-BW[k],bw=BW[k+1]-BW[k];P(A,x,y,R[u===0?1:u===1?4:u===bw-1?2:3]);}   // back boards of different widths
     for(const by of [topY+14,base-18]){hl(A,x0+1,by,w-2,R[5]);hl(A,x0+1,by+1,w-2,R[3]);hl(A,x0+1,by+2,w-2,R[1]);for(let x=x0+4;x<x0+w-3;x+=9)P(A,x,by+1,RAMP.ironW[4]);}
     vl(A,x0,topY+5,base-topY-9,R[5]);vl(A,x0+w-1,topY+5,base-topY-9,R[1]);box3(x0,base-4,w,0,5,R,{});under(x0,x0+w,base,base);cast(x0,x0+w,base);}}
 // =================================================================================== the rocking chair
