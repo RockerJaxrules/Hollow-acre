@@ -571,6 +571,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A plate from above is about 1.6:1, its well an inner ellipse a step darker with a lit far lip; a long ellipse reads as a tray.
 - A small creature on a busy surface (a crab on a wire lid) needs its own dark outline and to break the object's silhouette.
 
+- A black animal needs a pale ground under it (a cushion) and its ears breaking the outline; a dark dome on a dark mat reads as a loaf or a hat.
+- A rim light that crosses onto the head reads as a collar: stop it at the neck.
+- Dried flowers are four to six separate stems of different lengths with small dull heads (straw, rust, faded mauve), a dark line where a head meets its stem; round pink balls read as fresh pom-poms or candy.
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline
