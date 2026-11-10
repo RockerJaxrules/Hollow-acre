@@ -2236,14 +2236,14 @@ if(K==='firefinder'){const base=H-3,R=RAMP.pine,Br=RAMP.brass,O=RAMP.olive,cx=W>
   for(const [dx,k] of [[-11,4],[11,1]]){ln(A,cx,base-4,cx+dx,base-1,R[k]);ln(A,cx,base-3,cx+dx,base,R[k-1<0?0:k-1]);}hl(A,cx-3,base-3,7,R[2]);   // its splayed feet
   for(let y=-ry;y<=ry+3;y++)for(let x=-rx;x<=rx;x++){const yy=Math.min(y,ry),d=(x*x)/(rx*rx)+(yy*yy)/(ry*ry);if(d>1)continue;if(y>ry-3||(y>0&&(x*x)/(rx*rx)+((y-3)*(y-3))/(ry*ry)>1)){P(A,cx+x,cy+y,Br[x<0?2:1]);}}   // the disc's brass rim, seen edge-on
   for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){const d=(x*x)/(rx*rx)+(y*y)/(ry*ry);if(d>1)continue;const din=(x*x)/((rx-2)*(rx-2))+(y*y)/((ry-1.3)*(ry-1.3));
-    if(din>1){P(A,cx+x,cy+y,Br[(x<0&&y<=0)?5:(x>0&&y>=0)?2:4]);continue;}
-    let c=O[3];const h1=Math.hypot((x-5)/1.6,(y+2)),h2=Math.hypot((x+8)/1.6,(y-2));if((h1|0)%3===0&&h1<9)c=O[2];if((h2|0)%3===0&&h2<7)c=O[2];if(h1<1.5||h2<1.2)c=O[4];
-    if(Math.abs(y-Math.round(2*Math.sin(x/3.5)+3))<1&&x>-16)c=RAMP.glass[3];P(A,cx+x,cy+y,c);}
+    if(din>1.12){P(A,cx+x,cy+y,Br[(x<0&&y<=0)?3:(x>0&&y>=0)?1:2]);continue;}   /* (b32) a thin, dull ring */
+    const Pp=RAMP.cream;let c=Pp[4];const h1=Math.hypot((x-5)/1.6,(y+2)),h2=Math.hypot((x+8)/1.6,(y-2));if((h1|0)%3===0&&h1<9)c=mixC(Pp[3],O[4],.5);if((h2|0)%3===0&&h2<7)c=mixC(Pp[3],O[4],.5);if(h1<1.5||h2<1.2)c=O[4];   /* a pale paper map, contour rings in green */
+    if(Math.abs(y-Math.round(2*Math.sin(x/3.5)+3))<1&&x>-16)c=RAMP.glass[4];P(A,cx+x,cy+y,c);}
   for(let a=0;a<36;a++){const t=a/36*Math.PI*2;P(A,cx+Math.round(Math.cos(t)*(rx-1)),cy+Math.round(Math.sin(t)*(ry-.6)),a%9===0?RAMP.cream[5]:Br[0]);}
   P(A,cx-6,cy+4,RAMP.red[5]);P(A,cx-5,cy+4,RAMP.red[3]);ell(A,cx,cy,1,1,Br[5]);
   {const fx=cx-rx+1,fy=cy+2,bx=cx+rx-1,by=cy-2;ln(A,fx,fy,bx,by,Br[4]);ln(A,fx,fy+1,bx,by+1,Br[1]);   // the sighting arm across the disc,
-    rect(A,fx-1,fy-14,2,14,Br[4]);vl(A,fx-1,fy-14,14,Br[5]);vl(A,fx,fy-13,12,RAMP.charcoal[1]);hl(A,fx-2,fy-15,4,Br[3]);   // the front vane, its hair,
-    rect(A,bx-1,by-14,3,14,Br[3]);vl(A,bx-1,by-14,14,Br[5]);vl(A,bx+1,by-14,14,Br[1]);P(A,bx,by-10,RAMP.charcoal[0]);P(A,bx,by-9,RAMP.charcoal[0]);P(A,bx,by-8,RAMP.charcoal[0]);}   // the rear vane, its peep slot
+    vl(A,fx-2,fy-15,15,Br[4]);vl(A,fx+1,fy-15,15,Br[2]);hl(A,fx-2,fy-15,4,Br[4]);vl(A,fx,fy-14,13,RAMP.charcoal[1]);   // the front sight: a tall open wire frame, a hair down its middle,
+    rect(A,bx-2,by-7,5,7,Br[3]);hl(A,bx-2,by-7,5,Br[5]);vl(A,bx+2,by-7,7,Br[1]);P(A,bx,by-4,RAMP.charcoal[0]);P(A,bx,by-5,RAMP.charcoal[0]);}   // (b32: two equal ends read as a cradle) the rear sight: a short plate with a peep hole
   cast(cx-12,cx+12,base);}
 if(K==='radioshelf'){const base=H-3,R=RAMP.oak,O=RAMP.olive,x0=4,w=W-8,top=base-22;   // the two-way radio: an olive-drab set on a plank table, dials, a frequency window, the red pilot light on, a handset on its coiled cord, the aerial lead up the wall, the logbook open
   box3(x0,top,w,5,8,R,{faceK:2});for(const lx of [x0+1,x0+w-4])for(let y=top+13;y<base;y++){P(A,lx,y,R[4]);P(A,lx+1,y,R[2]);P(A,lx+2,y,R[1]);}fadeUnder(x0+4,x0+w-5,top+13,base-1);
@@ -2470,6 +2470,11 @@ if(K==='carppegs'){const R=RAMP.pine,ry=5;   // (wall) a carpenter's peg rack: a
   {const mx=36,my=ry+5;vl(A,mx,my,12,RAMP.oak[4]);vl(A,mx+1,my,12,RAMP.oak[2]);rect(A,mx-4,my+12,10,6,RAMP.oak[3]);hl(A,mx-4,my+12,10,RAMP.oak[5]);vl(A,mx+5,my+12,6,RAMP.oak[1]);}   // the mallet
   for(const [cx,l] of [[43,14],[46,11]]){vl(A,cx,ry+5,5,RAMP.walnut[4]);vl(A,cx,ry+10,l-5,RAMP.steel[4]);P(A,cx,ry+5+l,RAMP.steel[5]);}
   wallSh(0,0,W-3,H-3,2,2,80);}
+if(K==='toychests'){const base=H-3,R=RAMP.oak,x0=4,w=W-8,top=base-14;   // (b32) the sheriff's boy's toy chest, lid shut: a tin star and a wooden pistol on it, a cap gun's red roll of caps
+  box3(x0,top,w,5,9,R,{faceK:2,facePw:99});hl(A,x0+2,top+9,w-4,R[1]);rect(A,x0+(w>>1)-1,top+6,3,3,RAMP.iron[4]);
+  {const sx=x0+7,sy=top+2;P(A,sx,sy-2,RAMP.steel[5]);hl(A,sx-2,sy-1,5,RAMP.steel[5]);hl(A,sx-1,sy,3,RAMP.steel[4]);P(A,sx-1,sy+1,RAMP.steel[3]);P(A,sx+1,sy+1,RAMP.steel[2]);}
+  {const px=x0+w-16,py=top+1;hl(A,px,py,9,RAMP.walnut[4]);hl(A,px,py+1,9,RAMP.walnut[2]);rect(A,px+7,py+1,3,4,RAMP.walnut[3]);P(A,px+6,py+3,RAMP.walnut[1]);}
+  rect(A,x0+w-6,top+2,3,2,RAMP.red[4]);cast(x0,x0+w,base);}
 if(K==='toychest'){const base=H-3,R=RAMP.blue,x0=4,w=W-8,top=base-14;   // a painted toy chest, the lid up, a rag doll sitting on its edge, wooden blocks on the floor
   for(let y=top-9;y<top;y++){const inset=Math.round((top-y)*.25);for(let x=x0+inset;x<x0+w-inset;x++)P(A,x,y,R[y===top-9?5:(x-x0)%7===0?2:3]);}
   box3(x0,top,w,4,10,R,{faceK:3,facePw:99});rect(A,x0+2,top+1,w-4,2,R[0]);for(let i=0;i<4;i++)P(A,x0+5+i*((w-10)/3|0),top+8,RAMP.cream[4]);hl(A,x0+3,top+10,w-6,R[2]);   // painted stars along the front
@@ -2506,6 +2511,26 @@ if(K==='workchest'){const base=H-3,R=RAMP.oak,x0=3,w=W-6,top=base-16;   // a pla
   box3(x0,top,w,4,12,R,{faceK:2,facePw:99});hl(A,x0+2,top+9,w-4,R[1]);for(const cxx of [x0,x0+w-3]){rect(A,cxx,top,3,3,RAMP.iron[3]);rect(A,cxx,base-4,3,3,RAMP.iron[2]);}rect(A,x0+(w>>1)-1,top+4,3,4,RAMP.iron[4]);
   {const sx=x0+5,sy=top-4;rect(A,sx,sy,w-12,5,RAMP.blue[3]);hl(A,sx,sy,w-12,RAMP.blue[5]);hl(A,sx,sy+4,w-12,RAMP.blue[1]);vl(A,sx+((w-12)>>1),sy,5,RAMP.blue[2]);P(A,sx+3,sy+2,RAMP.cream[4]);P(A,sx+w-15,sy+2,RAMP.cream[4]);}   // the folded shirt
   cast(x0,x0+w,base);}
+if(K==='firedanger'){const R=RAMP.walnut,cx=W>>1,cy=H-10;   // (wall) the ranger's FIRE DANGER board: a painted half-dial, green to red, the arrow wired at the red end, TODAY under it
+  rect(A,1,1,W-2,H-2,RAMP.cream[4]);frame(A,1,1,W-2,H-2,R[4],R[1]);hl(A,2,2,W-4,RAMP.cream[5]);drawText(A,'FIRE DANGER',cx-21,4,RAMP.red[2]);
+  const rr=Math.min(cx-5,cy-12);const segs=[RAMP.green[4],RAMP.olive[4],RAMP.straw[4],RAMP.pumpkin[4],RAMP.red[4]];
+  for(let y=-rr;y<=0;y++)for(let x=-rr;x<=rr;x++){const d=Math.hypot(x,y);if(d>rr||d<rr*.45)continue;const a=Math.atan2(-y,-x)/Math.PI;P(A,cx+x,cy+y,segs[Math.min(4,Math.floor(a*5))]);}
+  for(let i=0;i<=5;i++){const a=Math.PI*(1-i/5);ln(A,cx+Math.round(Math.cos(a)*rr*.45),cy-Math.round(Math.sin(a)*rr*.45),cx+Math.round(Math.cos(a)*rr),cy-Math.round(Math.sin(a)*rr),RAMP.cream[5]);}
+  {const a=Math.PI*.12;ln(A,cx,cy,cx+Math.round(Math.cos(a)*(rr-2)),cy-Math.round(Math.sin(a)*(rr-2)),RAMP.charcoal[0]);ell(A,cx,cy,1,1,RAMP.charcoal[1]);}   // the arrow, at the red end
+  drawText(A,'TODAY',cx-9,cy+2,RAMP.charcoal[2]);for(let y=2;y<H-1;y++)SH(W-1,y,80);}
+// =================================================================================== judge b32
+if(K==='feedcal'){const R=RAMP.walnut;   // (wall) the feed store's own calendar, a cow on it and BELL FEED, the month's days crossed off; a rope halter on a nail beside it
+  const cw=24;rect(A,1,2,cw,H-4,RAMP.cream[4]);hl(A,1,2,cw,RAMP.cream[5]);vl(A,cw,2,H-4,RAMP.cream[2]);P(A,cw>>1,1,RAMP.steel[4]);
+  rect(A,3,4,cw-4,11,RAMP.green[3]);hl(A,3,12,cw-4,RAMP.green[2]);{const cx=12,cy=8;rect(A,cx-5,cy,9,4,RAMP.cream[5]);rect(A,cx-3,cy+1,3,2,RAMP.charcoal[1]);rect(A,cx+4,cy-1,3,3,RAMP.cream[5]);P(A,cx+6,cy,RAMP.charcoal[0]);for(const lx of [cx-5,cx-3,cx+1,cx+3])vl(A,lx,cy+4,2,RAMP.cream[4]);}   // a cow
+  drawText(A,'BELL',4,16,RAMP.red[3]);for(let j=0;j<3;j++)for(let i=0;i<5;i++){const x=3+i*4,y=23+j*4;rect(A,x,y,3,3,RAMP.cream[3]);if(j*5+i<9){P(A,x,y,RAMP.red[3]);P(A,x+2,y+2,RAMP.red[3]);P(A,x+1,y+1,RAMP.red[4]);}}   // days crossed off
+  {const hx=cw+9,hy=4;P(A,hx,hy,RAMP.steel[5]);P(A,hx,hy+1,RAMP.steel[3]);for(let a=0;a<40;a++){const t=a/40*Math.PI*2;P(A,hx+Math.round(Math.sin(t)*5),hy+9+Math.round(-Math.cos(t)*7),RAMP.straw[Math.cos(t)>0?4:2]);}ln(A,hx-3,hy+3,hx+3,hy+12,RAMP.straw[3]);for(let j=0;j<8;j++)P(A,hx+(j%2),hy+16+j,RAMP.straw[j%2?2:4]);}   // the halter and its lead
+  wallSh(0,0,W-3,H-3,2,2,80);}
+if(K==='caskwine'){const base=H-3,R=RAMP.oak,cx=W>>1;   // an upright wine cask on a low stand, iron hoops, WINE chalked on its face, a wooden tap with a cup under it
+  for(let y=base-26;y<base-4;y++){const t=(y-(base-26))/22,hw=Math.round(9+Math.sin(t*Math.PI)*2);for(let x=-hw;x<=hw;x++){let k=3;if(x<-hw+2)k=4;if(x>hw-3)k=1;if(Math.abs(x)%5===0&&x>-hw+2&&x<hw-2)k=2;P(A,cx+x,y,R[k]);}}
+  for(let y=-3;y<=2;y++)for(let x=-9;x<=9;x++)if(x*x/81+y*y/9<=1)P(A,cx+x,base-27+y,y<0?R[4]:R[2]);hl(A,cx-4,base-28,8,R[5]);   // the head
+  for(const hy of [base-24,base-13,base-6])for(let x=-11;x<=11;x++){if(Math.abs(x)>10&&hy!==base-13)continue;P(A,cx+x,hy,RAMP.iron[x<-6?4:x>6?1:2]);}
+  drawText(A,'WINE',cx-7,base-20,RAMP.cream[5]);rect(A,cx-2,base-11,3,3,RAMP.walnut[2]);P(A,cx-1,base-8,RAMP.walnut[1]);rect(A,cx-2,base-6,4,3,RAMP.steel[3]);hl(A,cx-2,base-6,4,RAMP.steel[5]);   // the tap, a tin cup
+  hl(A,cx-12,base-3,25,R[1]);for(const lx of [cx-11,cx+9])rect(A,lx,base-3,3,3,R[2]);cast(cx-12,cx+12,base);}
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
 for(const f of NOOL)for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(f(x,y))for(const L of [O,O2])L.d[(y*W+x)*4+3]=0;
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));

@@ -433,6 +433,14 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors b31] Generated dressing (a wall stub making an L-shaped nook) can appear when furniture moves out of its way:
   re-check the whole room after moving a big piece.
 
+- [interiors b32] By day a candle's or lamp's floor pool reads as a tan rug however it is coloured: a small flame lights the
+  floor only at night, or in a room with no daylight (cellar, crypt). Daylight rooms take their light from the windows.
+- [interiors b32] A light fan's stippled far edge reads as a heap of straw; end it in solid rows of jagged width.
+- [interiors b32] Two equal ends on a sighting arm read as a cradle: give an instrument's parts different shapes (a tall wire
+  frame and a short peep plate), and make the thing it is about (the map) the palest, biggest shape.
+- [interiors b32] Long sun-shadow wedges from every piece read as stains in a small room that already has contact shadows:
+  keep day shadows short and soft there.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).

@@ -65,7 +65,7 @@ function depthOver(t){if(DX.off||S.room)return;const day=clamp(1-nightK*1.6,0,1)
 const ROOM_LAMP={cabin:[6.5,3.0],store:[6.5,2.0],church:[5,1.2],garage:[5.9,.6]};
 function sunState(){const h=S.hour;
   if(S.room){const R=ROOMS[S.room];const sh=SPR[R.shell||('room_'+S.room)],win=sh&&sh.room&&sh.room.windows;if(win&&!win.length)return null;   /* (b31: the player's own lantern threw see-through wedges that read as beams) */   /* (b30: "phantom window beams in a cellar") no windows, no daylight shadows */
-    if(S.room!=='mine'&&!isNight()&&h>6.5&&h<19)return {sx:.12,sy:.4,a:.2};   // daylight from the back windows: soft shadows toward you
+    if(S.room!=='mine'&&!isNight()&&h>6.5&&h<19)return /^(priv_carp|priv_feed|priv_forge|priv_lusk|priv_store|home_dunn|home_quinn|back_fenn|rg_hut|rg_lookout|rg_ranger)$/.test(S.room)?{sx:.06,sy:.22,a:.12}:{sx:.12,sy:.4,a:.2};   /* (b32: long dark wedges read as stains) short, soft day shadows where the contact shadows already ground the pieces */   // daylight from the back windows: soft shadows toward you
     const L=ROOM_LAMP[S.room]||(S.room.startsWith('home_')?[3.6,2.4]:null);if(L){DX.lamp={x:sx(R.ox+L[0]),y:sz(R.oz+L[1])-10};return {sx:0,sy:0,a:.42,lamp:1};}
     if(lanternOn()){DX.lamp={x:sx(P.x),y:sz(P.z)-6};return {sx:0,sy:0,a:.5,lamp:1};}return null;}
   if(h<6.2||h>19.4)return null;const t=clamp((h-12.5)/6,-1,1);const fade=clamp((h-6.2)/1.2,0,1)*clamp((19.4-h)/1.2,0,1);
