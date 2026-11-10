@@ -43,11 +43,11 @@ function dressRoom(k,D){const R=ROOMS[k],m=R&&SPR[R.shell||('room_'+k)];if(!m||!
   let si=0;for(const spr of D.walls||[]){for(let i=0;i<40;i++){const x=1+((dressH(k.length+si,i)*(w-2))*4|0)/4;if(x<.9||x>w-.9||!freeSpan(x-.7,x+.7))continue;add.push([spr,x,-.45,null,'flat']);spans.push([x-.7,x+.7]);break;}si++;}
   // something on every table
   let ti=0;for(const f of R.furn.slice()){if(!DRESS_TABLES.has(f[0])||!D.table||!D.table.length)continue;const t1=D.table[ti%D.table.length],t2=D.table[(ti+1)%D.table.length];ti++;
-    add.push([t1,f[1]-.38,f[2]+.03,null]);if(t2!==t1||f[0]==='in_table')add.push([t2,f[1]+.36,f[2]+.04,null]);}
+    add.push([t1,f[1]-.38,f[2]+.03,null]);if(t2!==t1)add.push([t2,f[1]+.36,f[2]+.04,null]);}   /* (b3) never the same thing twice on one table */
   // an unmade bed or two
   if(D.rumple)for(const f of R.furn)if(f[0]==='in_bed')add.push(['in_rumple',f[1],f[2]+.03,null]);
   // the mess of a life, where there's floor for it
-  let fi=0;for(const spr of D.flaws||[]){for(let i=0;i<60;i++){const x=.9+dressH(fi+7,i)*(w-1.8),z=1.7+dressH(i,fi+3)*(d-2.9);if(Math.abs(x-door)<1.3&&z>d-2.4)continue;
+  let fi=0;const ks=[...k].reduce((a,c)=>a+c.charCodeAt(0),0)%97;for(const spr of D.flaws||[]){for(let i=0;i<60;i++){const x=.9+dressH(fi+7+ks,i)*(w-1.8),z=1.7+dressH(i+ks,fi+3)*(d-2.9);   /* (b3) each room its own spot */if(Math.abs(x-door)<1.3&&z>d-2.4)continue;
       if(!freeRect(x-.6,z-.5,x+.6,z+.3))continue;const fp=spr==='in_chair_down'?[-.5,-.2,.5,0]:spr==='in_bottles'?[-.4,-.2,.4,0]:null;add.push([spr,x,z,fp,spr==='in_stain'||spr==='in_papers'?'flat':undefined]);rects.push([x-.6,z-.5,x+.6,z+.3]);break;}fi++;}
   // a nook: a stub of wall out from the right-hand wall makes the room an L
   if(D.nook&&w>=8){const z=+(d*.5).toFixed(2),x0=w-2.06;if(freeRect(x0-.2,z-.7,w,z+.3)){add.push(['in_partition',x0,z,[0,-.4,2.06,0]]);rects.push([x0,z-.4,w,z]);}}

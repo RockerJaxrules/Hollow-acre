@@ -572,8 +572,8 @@ if(K==='cans'||K==='mail'||K==='parts'){const R=K==='mail'?RAMP.oak:RAMP.pine,ba
     if(r<.82){const bh=Math.min(h-1,6);rect(A,x+1,by-bh,w2-2,bh,RAMP.cream[3]);for(let j=0;j<bh;j+=2)hl(A,x+1,by-bh+j,w2-2,RAMP.cream[4]);vl(A,x+(w2>>1),by-bh,bh,RAMP.brick[3]);return;}   // a tied bundle
     for(let j=0;j<5;j++){const xx=x+1+Math.round((4-j)*.4);for(let i=0;i<w2-2;i++)P(A,xx+i,by-5+j,RAMP.cream[j===0?5:4]);}P(A,x+2,by-4,RAMP.cream[1]);};   // one leaning
   rows.forEach((ry,ri)=>{const by=shelves[ri];let x=x0+4;
-    if(K==='mail'){const cw=Math.floor((w-8)/6);for(let c=0;c<6;c++){const cx=x0+4+c*cw;vl(A,cx,ry,by-ry,R[3]);vl(A,cx+1,ry,by-ry,R[1]);letters(cx+2,by,cw-2,by-ry-1,ri===rows.length-1);}
-      vl(A,x0+4+6*cw,ry,by-ry,R[3]);return;}
+    if(K==='mail'){const NC=4,cw=Math.floor((w-8)/NC);for(let c=0;c<NC;c++){   /* (b3) four wide cubbies, so each envelope shows its flap */const cx=x0+4+c*cw;vl(A,cx,ry,by-ry,R[3]);vl(A,cx+1,ry,by-ry,R[1]);letters(cx+2,by,cw-2,by-ry-1,ri===rows.length-1);}
+      vl(A,x0+4+NC*cw,ry,by-ry,R[3]);return;}
     let gapped=0;while(x<x0+w-8){const r=rr();if(r<.1){x+=3;continue;}
       if(K==='cans'&&r>.8&&gapped<2){x+=7+((rr()*5)|0);gapped++;continue;}
       if(K==='cans'){const w2=5+((rr()*2)|0),h=6+((rr()*4)|0);const L=LAB[(rr()*LAB.length)|0];if(rr()<.3&&x<x0+w-14&&h*2<by-ry-2){tin(x,by,w2,h,L);tin(x,by-h,w2,h,L);}else tin(x,by,w2,Math.min(h,by-ry-2),L);x+=w2+1;}
@@ -748,6 +748,17 @@ if(K==='stoneblocks'){const St=RAMP.stone,base=H-3;   // (judge b2: "nothing say
   rect(A,W-11,base-24,7,4,RAMP.ironW[2]);hl(A,W-11,base-24,7,RAMP.ironW[4]);
   for(let j=0;j<18;j++){P(A,W-14-Math.round(j*.2),base-19+j,RAMP.oak[3]);}for(let i=-5;i<=5;i++)P(A,W-14+i,base-20-Math.round(Math.abs(i)*.4),RAMP.steel[i<0?4:2]);   // the pick
   cast(4,W-4,base);}
+// =================================================================================== the mason's banker
+if(K==='banker'){const R=RAMP.oak,St=RAMP.stone,base=H-3,x0=3,w=W-6,top=base-20;   // (judge b3: "the pegboard still says mechanic") a
+  // heavy timber banker, a block on it dressed square on top and still rough on its far side, chisels laid out, a wooden mallet
+  box3(x0,top,w,6,6,R,{faceK:2});for(const lx of [x0+2,x0+w-6]){rect(A,lx,top+12,4,base-top-12,R[2]);vl(A,lx,top+12,base-top-12,R[4]);vl(A,lx+3,top+12,base-top-12,R[0]);}
+  hl(A,x0+5,base-5,w-10,R[1]);fadeUnder(x0+6,x0+w-7,top+12,base-1);
+  {const bx=x0+8,by=top-12,bw=24;for(let j=0;j<4;j++)for(let i=0;i<bw;i++)P(A,bx+i+(4-j>>1),by+j,St[j===0?5:4]);for(let j=0;j<10;j++)for(let i=0;i<bw;i++){let c=St[i<2?4:(i>bw-3?2:3)];if(i>bw-7&&hsh(i,j,81)>.55)c=St[hsh(i,j,82)>.5?2:4];P(A,bx+i,by+4+j,c);}
+    hl(A,bx,by+13,bw,St[1]);for(let i=bw-6;i<bw;i++)if(hsh(i,1,83)>.4)P(A,bx+i+2,by-1,St[4]);}                                     // the block, rough at the far end
+  for(const [cx,len] of [[x0+w-18,9],[x0+w-14,7],[x0+w-10,8]]){for(let i=0;i<len;i++)P(A,cx+(i>>2),top+2+i%4+(i>>2),i<3?RAMP.steel[4]:RAMP.oak[3]);}   // chisels laid out
+  {const mx=x0+w-24,my=top-6;rect(A,mx,my,7,5,RAMP.oak[3]);hl(A,mx,my,7,RAMP.oak[5]);vl(A,mx+6,my,5,RAMP.oak[1]);for(let i=0;i<8;i++)P(A,mx+7+i,my+2+(i>>2),RAMP.oak[4]);}   // the mallet
+  for(const [cx,cy] of [[x0+6,base],[x0+w-12,base+1],[x0+w-20,base]]){P(A,cx,cy-1,St[4]);P(A,cx+1,cy-1,St[3]);}                    // chips on the floor
+  cast(x0,x0+w,base);}
 // =================================================================================== the milking stool
 if(K==='stool'){const R=RAMP.oak,base=H-3,cx=W>>1;
   // a milking stool: a round seat two steps lighter than its three splayed legs; floor shows between them
