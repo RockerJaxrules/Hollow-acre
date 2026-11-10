@@ -271,8 +271,9 @@ function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true
   // the rain is driven sideways, reflector posts flick past in the headlights, a doe watches from the shoulder. A dead deer lies in the
   // lane: the car hits it and throws it. Then the figure in the road: the wheel is wrenched, the back end steps out, the car fishtails,
   // leaves the road and slides into the oak. Hit-stop, a white flash, glass and paint and dirt and leaves, steam, a horn that won't stop.
-  const HIT={x:-60.4,z:.5},LANE=-4.75,V=15,TC=15.2,TH=17.5,DUR=TH-TC,SK=31,XC=HIT.x-SK,DEC=2*(V*DUR-SK)/(DUR*DUR);
+  const HIT={x:-60.4,z:.5},LANE=-4.75,V=15,TC=15.2,TH=17.5,DUR=TH-TC,SK=32.5,XC=HIT.x-SK,DEC=2*(V*DUR-SK)/(DUR*DUR);
   const YK=[[0,0],[.1,-.45],[.27,.55],[.42,-.25],[.6,.7],[.78,1.2],[.9,1.05],[1,.95]];   // nose left, whip right, back, right, round
+  const STEER=[[0,-.6],[.16,.75],[.38,-.35],[.56,.85],[.72,1.35],[.86,.95]];   // the yanks of the wheel (fraction of the skid, heading it's thrown toward)
   const cl=v=>Math.max(0,Math.min(1,v)),ss=v=>v*v*(3-2*v);
   const yawAt=k=>{for(let i=1;i<YK.length;i++)if(k<=YK[i][0]){const a=YK[i-1],b=YK[i],u=(k-a[0])/(b[0]-a[0]);return a[1]+(b[1]-a[1])*(1-Math.cos(Math.PI*u))/2;}return YK[YK.length-1][1];};
   const carAt=T=>{if(T<TC)return {x:XC-V*(TC-T),z:LANE,yaw:0,v:V};const t=Math.min(DUR,T-TC),k=t/DUR;
@@ -284,7 +285,7 @@ function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true
   const XD=XC-V*(TC-11.4),DEERZ=LANE+.15;
   const posts=[];for(let x=-292;x<-58;x+=11)posts.push({x,z:-9.35},{x:x+5.5,z:-2.65});
   const st={t:0,done:{},car:carAt(3),deer:{x:XD,z:DEERZ,y:0,vx:0,vz:0,vy:0,flip:false,hit:false,spin:0},doe:null,fig:null,mir:0,crashed:false,stop:0,
-    skid:[[],[]],smoke:[],deb:[],steam:[],blood:null,horn:0,jolt:0,speed:0};
+    skid:[[],[]],yaw:0,yawV:0,steer:0,bob:0,bobV:0,camV:{x:0,z:0},kick:{x:0,z:0},reb:0,smoke:[],deb:[],steam:[],blood:null,horn:0,jolt:0,speed:0};
   const once=k=>st.done[k]?false:(st.done[k]=true);
   sub('');   // (owner: "no dialog in the cutscene other than the grandfather's")
   // the rear wheels in world space (for skid marks and smoke)
@@ -299,7 +300,9 @@ function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true
       for(const p of posts){const X=sx(p.x),Y=sz(p.z);if(X<-20||X>VW+20)continue;D.push({z:p.z,mind:1,draw(){ctx2.fillStyle='#1a1a1e';ctx2.fillRect(X-1,Y-12,4,13);ctx2.fillStyle='#d8d4cc';ctx2.fillRect(X,Y-12,2,12);ctx2.fillStyle=p.z<-6?'#e8a020':'#c8281e';ctx2.fillRect(X,Y-10,2,3);}});}
       if(st.doe){const d=st.doe;D.push({z:d.z,mind:1,draw(){drawSpr('wild_doe',sx(d.x),sz(d.z),d.run?'run':'alert',d.run?'B':'S',d.run?(T*10)|0:0,{flip:d.flip});}});}
       if(st.deer&&st.deer.x>st.car.x-40){const d=st.deer;D.push({z:d.z,mind:1,draw(){drawSpr('deer_dead',sx(d.x),sz(d.z)-d.y*PPM,null,null,0,{flip:d.flip});}});}
-      if(!st.crashed)D.push({z:st.car.z+.2,mind:1,draw(){const f=carFrame(st.car.yaw);drawSpr('car_east',sx(st.car.x),sz(st.car.z)+st.jolt,'yaw','S',f);}});
+      if(!st.crashed)D.push({z:st.car.z+.2,mind:1,draw(){const f=carFrame(st.car.yaw);drawSpr('car_east',sx(st.car.x),sz(st.car.z)+st.jolt+Math.round(st.bob),'yaw','S',f);}});
+      if(st.crashed&&st.reb>0){const u=1-st.reb/.6,back=.45*Math.sin(Math.PI*Math.min(1,u/.35))*Math.exp(-u*3),hop=u<.22?-7*Math.sin(Math.PI*u/.22):u<.4?-2*Math.sin(Math.PI*(u-.22)/.18):0;   // (owner: "light and floaty") the wreck rebounds off the trunk, hops and slams down
+        D.push({z:1.8,mind:1,draw(){drawSpr('car_wreck',sx(-61.0-.55*back),sz(1.8-.8*back)+Math.round(hop));}});}
       if(st.fig)D.push({z:st.fig.z,mind:1,draw(){drawSpr('hollow',sx(st.fig.x),sz(st.fig.z),'walk',st.fig.dir,0,{alpha:st.fig.a});}});
       // smoke off the tyres, debris and steam: drawn high in the order so they sit over the car
       D.push({z:1e6,mind:1,draw(){
@@ -323,9 +326,15 @@ function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true
       if(st.slow>0){st.slow-=dt;dt*=.3;}   // a breath of slow motion as the deer goes over the hood
       st.t+=dt;const T=st.t;if(cine.phase2)return phase2(dt);
       if(T<TH)st.car=carAt(Math.max(3,T));
+      // (owner: "the swerve doesn't feel like it has weight") the wheel is yanked, not eased: the heading chases each new steer on a stiff,
+      // underdamped spring, so the car overshoots and settles like something heavy; every yank and bump throws the body onto its springs
+      if(T>=TC&&T<TH){const k=(T-TC)/DUR,tg=STEER.reduce((a,s)=>k>=s[0]?s[1]:a,0);if(tg!==st.steer){st.steer=tg;st.bobV+=26;st.kick.x+=(tg-st.yaw)*-.35;st.kick.z+=.25;SFX.thud&&SFX.thud(0,.25);}
+        st.yawV+=(70*(tg-st.yaw)-7.5*st.yawV)*dt;st.yaw+=st.yawV*dt;st.car.yaw=st.yaw;}
+      st.bobV+=(-140*st.bob-11*st.bobV)*dt;st.bob+=st.bobV*dt;st.kick.x*=Math.pow(.02,dt);st.kick.z*=Math.pow(.02,dt);if(st.reb>0)st.reb-=dt;
       // the camera rides ahead of the car on the straight, closes in during the skid, settles on the oak at the crash
-      const tx=T<TC?st.car.x+6:T<TH?st.car.x+2:HIT.x+.8,tz=T<TC?-6.2:T<TH?st.car.z-.4:HIT.z;
-      cine.cam.x=lerp(cine.cam.x,tx,1-Math.exp(-dt*(T<3.2?60:T<TC?9:5)));cine.cam.z=lerp(cine.cam.z,tz,1-Math.exp(-dt*(T<TC?3:5)));
+      const tx=(T<TC?st.car.x+6:T<TH?st.car.x+2:HIT.x+.8)+st.kick.x,tz=(T<TC?-6.2:T<TH?st.car.z-.4:HIT.z)+st.kick.z;
+      if(T<TC){cine.cam.x=lerp(cine.cam.x,tx,1-Math.exp(-dt*(T<3.2?60:9)));cine.cam.z=lerp(cine.cam.z,tz,1-Math.exp(-dt*3));}
+      else{const cv=st.camV;cv.x+=(38*(tx-cine.cam.x)-9*cv.x)*dt;cv.z+=(38*(tz-cine.cam.z)-9*cv.z)*dt;cine.cam.x+=cv.x*dt;cine.cam.z+=cv.z*dt;}   // a camera with mass: it lags, overshoots, lurches
       if(T>3&&T<TC)cam.shake=Math.max(cam.shake,.04);   // road rumble
       st.jolt=T<TH&&Math.sin(T*53)>.7?-1:0;if(st.joltT>0){st.joltT-=dt;st.jolt=-3;}
       if(T>3&&once('a0'))fade(0);
@@ -349,11 +358,13 @@ function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true
       if(T>TC+.25&&once('h2'))st.fig=null;
       if(T>TC+.15&&once('i'))SFX.screech();if(T>TC+1.1&&once('i2'))SFX.screech();
       if(T>TC&&T<TH){cam.shake=Math.max(cam.shake,.18);
-        rearWheels(st.car).forEach((w,i)=>{st.skid[i].push({x:w.x,z:w.z});if(Math.random()<dt*28)st.smoke.push({x:w.x,z:w.z,l:1.1,L:1.1});});
-        if(st.car.z>-2.6&&once('off')){SFX.thud(0,.7);cam.shake=.5;st.joltT=.1;debris(st.car.x,st.car.z,40,['#3a2a18','#54402a','#4a5e2a','#6a7a34'],6,2.6,1.1);}   // off the edge of the road: dirt and grass thrown up
+        rearWheels(st.car).forEach((w,i)=>{st.skid[i].push({x:w.x,z:w.z});if(Math.random()<dt*45)st.smoke.push({x:w.x,z:w.z,l:1.5,L:1.5});});
+        if(st.car.z>-2.6&&once('off')){SFX.thud(0,.9);cam.shake=.7;st.joltT=.12;st.bobV+=60;st.kick.z+=.5;debris(st.car.x,st.car.z,40,['#3a2a18','#54402a','#4a5e2a','#6a7a34'],6,2.6,1.1);}   // off the edge of the road: dirt and grass thrown up
         if(st.car.z>-2.6&&Math.random()<dt*20)debris(st.car.x-1,st.car.z,3,['#3a2a18','#54402a'],3,1.2,.6);}
       // the impact
-      if(T>TH&&once('j')){st.stop=.13;st.crashed=true;for(const o of wreck)o.hide=false;flashT=1;cam.shake=1.4;SFX.crash();SFX.thud(0,1);SFX.engine(false);sub('');
+      if(T>TH&&once('j')){st.stop=.2;st.crashed=true;for(const o of wreck)o.hide=true;st.reb=.6;st.slow=.45;flashT=1;cam.shake=1.8;SFX.crash();SFX.thud(0,1);SFX.thud(0,1);SFX.boom&&SFX.boom();SFX.engine(false);sub('');
+        st.kick.x+=1.1*Math.cos(.95);st.kick.z+=1.1*Math.sin(.95);st.camV.x+=7;st.camV.z+=6;   // the camera is thrown forward into the tree with the car
+        st.deb.push({x:HIT.x+1.2,z:HIT.z+1.6,y:.3,vx:-3.4,vz:2.2,vy:2.4,l:2.2,c:'#b8b8c0',sz:3},{x:HIT.x+1,z:HIT.z+1.4,y:.5,vx:2.6,vz:3.6,vy:3.2,l:2,c:'#6c6c74',sz:4});   // a hubcap and a strip of bumper torn off
         const fx=HIT.x+1.2,fz=HIT.z+1.5;
         debris(fx,fz,70,['#cfe0ea','#9ab8c8','#eef6fa','#7a98a8'],9,3,1.2);           // glass
         debris(fx,fz,30,['#6a2228','#7c2e2e','#4a1a20'],7,2.4,1.3);                  // paint and metal
@@ -361,6 +372,7 @@ function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true
         for(let i=0;i<34;i++)st.deb.push({x:fx-2+Math.random()*4,z:fz-1+Math.random()*2,y:3+Math.random()*3,vx:(Math.random()-.5)*1.2,vz:(Math.random()-.5)*.6,vy:-.4,l:3+Math.random()*2,c:['#6a4a2a','#4a3420','#8a6a3a','#3a2a1c'][i%4],sz:2,leaf:1});   // dead leaves and bark shaken out of the oak
         st.horn=2.4;st.oak=OBJ.find(o=>o.crashOak);if(st.oak){st.oak.x0=st.oak.x;st.oakT=.7;}}
       if(st.oakT>0&&st.oak){st.oakT-=dt;st.oak.x=st.oak.x0+(st.oakT>0?Math.sin(T*70)*.07*st.oakT/.7:0);}   // the oak shudders from the blow
+      if(st.crashed&&st.reb<=0&&once('settle')){for(const o of wreck)o.hide=false;SFX.thud(0,.5);cam.shake=Math.max(cam.shake,.3);}   // it comes to rest
       if(st.horn>0){st.horn-=dt;if(st.horn<2.4&&once('hn'))SFX.horn();if(st.horn<1.2&&once('hn2'))SFX.horn();}
       if(st.crashed&&T<TH+4&&Math.random()<dt*14)st.steam.push({x:HIT.x+1.3+(Math.random()-.5)*.6,z:HIT.z+1.45,y:.6,l:1.6,L:1.6});
       for(const s of st.smoke){s.l-=dt;s.x+=dt*1.5;s.z-=dt*.4;}st.smoke=st.smoke.filter(s=>s.l>0);
