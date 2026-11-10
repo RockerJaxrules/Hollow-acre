@@ -479,6 +479,8 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   body tone, a few tapered fold curves (a lit crest with its shadow under it), a frayed selvedge and pins.
 
 ## Furniture and props in four turns (Nov 10: 3D blockouts, 69 pieces judged blind vs the installed art)
+- A stain is not an object: no outline, no lit ring, no sparkle marks. A flat ragged blot two steps darker than the boards, drawn along the grain, with a darker dried edge.
+- A shape centred on an oval reads as an eye (a plate with food in the middle): set the food off centre and draw the plate's well.
 - Anything sticking out equally at both ends reads as ears or wings (a saddle beam, a horn and a cantle the same height). Make the two ends different in size and shape.
 - A curled animal drawn as a tall dome reads as a hat: keep it a low oval wider than tall, the head a separate round with pointed ears, the tail along the front.
 - Marks repeated at the same x on every layer line up into a column (spacers read as drawer handles): stagger them.

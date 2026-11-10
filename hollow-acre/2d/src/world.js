@@ -90,6 +90,7 @@ function terr(x,z){if(LAYERS.water(x,z))return 'water';if(LAYERS.stone(x,z))retu
 // ---------- collision
 const circles=[],rects=[],segs=[];
 function addCircle(x,z,r){circles.push({x,z,r});}
+const PORCH_DECKS=[];   // raised decks you walk up onto (the inn's porch): a floor at sill height, steps down at the front
 function addRect(x0,z0,x1,z1){rects.push({x0:Math.min(x0,x1),z0:Math.min(z0,z1),x1:Math.max(x0,x1),z1:Math.max(z0,z1)});}
 function addSeg(x1,z1,x2,z2,r){segs.push({x1,z1,x2,z2,r});}
 // a grid over the colliders, so a step only looks at what's near it (the valley is far too big now to test every tree each frame).
@@ -264,7 +265,10 @@ function buildTown(){
   put('hydrant',33,-8.1,.18);put('trashcan',47.6,-8.1,.22);put('trashcan',41.2,-3.75,.22);put('planter',54.4,-8.6,0,{kind:'prop'});put('planter',60.4,-8.6,0,{kind:'prop'});put('planter',27,-8.3,0,{kind:'prop'});
   put('st_church',48.4,-7.95,.12);put('st_main',37.4,-3.7,.12);put('st_east',75.5,-3.9,.12);
   // the tavern's raised patio, tables out on it; its yard behind: woodpile, axe in the block, empties, mud where the barrels roll
-  D('deck',68,-8.4);for(const x of [65.6,70.4]){Y('in_table',x,-9.4,{kind:'prop'});}Y('barrel',63.6,-9.3);
+  D('inn_deck',68,-8.5);D('inn_steps',68,-7.906);obj('inn_rail',68,-8.5,{kind:'prop',town:1,noCol:true});   // the porch built onto the inn's front at sill height (owner: "the porch to the inn looks bad"): the deck, its front railing, its steps
+  {const tv=OBJ.find(o=>o.spr==='tavern'&&o.kind==='bld');if(tv)tv.noSteps=1;PORCH_DECKS.push({x0:64.75,x1:71.22,z0:-11.45,z1:-8.5,h:7,sx:68,shw:.53,sz0:-8.5,sz1:-7.9});
+   addRect(64.6,-11.4,64.95,-8.45);addRect(71.02,-11.4,71.37,-8.45);addRect(64.6,-8.62,67.45,-8.4);addRect(68.52,-8.62,71.37,-8.4);}   // the railings have weight: the sides and the front, the opening for the steps left clear
+  for(const x of [65.6,70.4]){Y('in_table',x,-9.4,{kind:'prop',lift:7});addRect(x-.8,-9.8,x+.8,-9.42);}Y('barrel',63.6,-9.3);
   Y('firewood',64.6,-19.6);Y('choppingblock',66.4,-20.0);Y('barrel',70.6,-19.4);Y('barrel',71.2,-20.0);Y('crate',69.6,-20.6);D('mud_a',68.6,-18.6);
   // Danny's: a house among the shops, its little front garden gone to seed behind a broken wall
   W('stonewall',42.2,44.2,-8.3);W('stonewall_b',46.2,48.2,-8.3);for(let k=0;k<6;k++)obj('weeds_'+(k&1),42.6+k,-8.9-(k%2)*.4,{kind:'deco',town:1});

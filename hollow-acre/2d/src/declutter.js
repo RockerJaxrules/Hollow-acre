@@ -26,6 +26,7 @@ function frontWalks(){
   // the walks are laid as stepping stones (the ground can't draw anything narrower than a tile cleanly)
   for(const q of WALKS){const L=Math.hypot(q[2]-q[0],q[3]-q[1]);const n=Math.max(1,Math.round(L/.62));
     for(let i=0;i<=n;i++){const t=i/n;if(i===n&&L>.8)continue;const x=q[0]+(q[2]-q[0])*t+(floraH(q[0]+i,q[1],71)-.5)*.14,z=q[1]+(q[3]-q[1])*t+(floraH(q[0],q[1]+i,72)-.5)*.1;
+      if(PORCH_DECKS.some(d=>x>d.x0-.3&&x<d.x1+.3&&z>d.z0-.2&&z<d.sz1+.15))continue;   // not on a porch deck or its steps
       obj('stepstone_'+Math.floor(floraH(x,z,73)*3),x,z+.1,{kind:'flat'});}}
 }
 /* groves, not sprinkles: the open land had its trees scattered evenly, one every few steps, everywhere. Real country (and good
