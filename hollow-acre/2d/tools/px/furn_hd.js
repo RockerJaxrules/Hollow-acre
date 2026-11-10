@@ -659,13 +659,14 @@ if(K==='hay'){const Sw=RAMP.straw,base=H-3,x0=3,w=W-6,d=12,top=base-28;const G2=
   for(let i=0;i<6;i++){const sy=top+d+3+((hsh(i,3,SEED)*14)|0);P(A,x0-1,sy,G2[4]);P(A,x0+w,sy+1,G2[2]);}
   cast(x0,x0+w,base);}
 // =================================================================================== outdoor: a stack of split firewood
-if(K==='firewood'){const base=H-3;
-  const end=(cx,cy,r,split)=>{for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){const d=Math.sqrt(x*x+y*y);if(d>r+.3)continue;if(split&&x+y>1.5)continue;let c;
-      if(d>r-1.2&&x+y>0)c=RAMP.bark[2];else c=RAMP.oak[x+y<-2?5:(x+y<1?4:3)];P(A,cx+x,cy+y,c);}
-    if(!split)P(A,cx+1,cy,RAMP.bark[1]);else for(let i=-r;i<=r;i++){const x=i,y=Math.round(1.5-i);if(x*x+y*y<=r*r)P(A,cx+x,cy+y,RAMP.oak[3]);}};   // dull tan end grain, brightest top-left, one dark heart off centre
-  const logs=[[8,base-4,4,0],[17,base-4,5,1],[27,base-4,4,0],[36,base-4,4,1],[12,base-12,4,1],[21,base-13,4,0],[31,base-12,4,0],[17,base-20,4,0],[26,base-20,3,1]];
-  for(const [x,y,r,sp] of logs)end(x,y,r,sp);
-  for(let x=3;x<41;x++)SH(x,base+1,110);cast(4,38,base);}
+if(K==='firewood'){const base=H-3,R=RAMP.oak,Bk=RAMP.bark;   // split firewood stacked end-on: every log shows its pale end with rings and a bark crescent; the top row's bark runs back
+  const end=(cx,cy,r,split)=>{for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){const d=x*x+y*y;if(d>r*r+r*.6)continue;if(split===1&&x>0)continue;if(split===2&&y<0&&x<0)continue;
+      const edge=d>(r-1)*(r-1)+r*.4;let c=edge?(x+y>0?Bk[1]:Bk[3]):R[(d<2)?3:(Math.abs(Math.sqrt(d)-r*.55)<.6?3:(x+y<0?5:4))];P(A,cx+x,cy+y,c);}
+    if(split!==1)for(let k=1;k<r;k++)P(A,cx+k,cy-Math.round(k*.3),R[2]);};   // a radial check
+  for(const [x,len] of [[9,5],[17,6],[25,4],[33,5]])for(let j=1;j<=len;j++)for(let i=-3;i<=3;i++)P(A,x+i,base-26-j+((x*7)%3),Bk[i<-1?4:(i>1?1:3)]);   // the top row's bark running back
+  const rows=[[base-5,[6,14,22,30,38],4],[base-12,[10,18,26,34],4],[base-19,[9,17,25,33],4],[base-26,[13,21,29],4]];
+  rows.forEach(([cy,xs,r],ri)=>xs.forEach((x,k)=>end(x,cy,r-((k+ri)%3===0?1:0),(k*3+ri)%5===0?1:((k+ri*2)%4===0?2:0))));
+  cast(2,W-3,base);}
 // =================================================================================== outdoor: the chopping block
 if(K==='choppingblock'){const base=H-3,Bk=RAMP.bark;
   const bx=14,top=base-15,rw=10;
@@ -714,16 +715,20 @@ if(K==='drum'){const base=H-3,cx=W>>1,Rr=RAMP.brick,top=base-24;
   for(let y=-3;y<=3;y++)for(let x=-9;x<=9;x++){const d=x*x/81+y*y/9;if(d>1)continue;P(A,cx+x,top+y,d>.7?Rr[y<0?2:4]:Rr[x<0?4:3]);}P(A,cx+4,top-1,RAMP.ironW[1]);P(A,cx+5,top-1,RAMP.ironW[2]);
   cast(cx-9,cx+9,base);}
 // =================================================================================== outdoor: a stack of old tyres
-if(K==='tyres'){const base=H-3,cx=W>>1,T=[RAMP.charcoal[0],RAMP.charcoal[2],RAMP.charcoal[4],RAMP.steel[1]];
-  for(let k=0;k<4;k++){const yb=base-k*6,dx=(k%2?1:-1)*(k>1?1:0);for(let y=-5;y<=1;y++)for(let x=-12;x<=12;x++){const d=x*x/144+(y+2)*(y+2)/12;if(d>1)continue;if(d>.88&&(x+k)%3===0)continue;const l=(-x/12)*.4-(y+2)/3;P(A,cx+x+dx,yb+y,T[l>.5?3:l>.1?2:l>-.4?1:0]);}}   // dark rubber, lit along each upper curve, the tread notching the outline
-  {const ty=base-25;for(let y=-3;y<=2;y++)for(let x=-12;x<=12;x++){const d=x*x/144+(y+.5)*(y+.5)/7;if(d>1)continue;const h=x*x/49+(y+.5)*(y+.5)/3;P(A,cx+x,ty+y,h<1?(y<0?T[0]:RAMP.walnut[0]):T[y<0?3:2]);}for(let x=-6;x<=6;x++)if(x*x/49<1)P(A,cx+x,ty+Math.round(Math.sqrt(1-x*x/49)*1.7),T[3]);}   // the top tyre's hole, its lit inner rim
-  cast(cx-12,cx+12,base);}
+if(K==='tyres'){const base=H-3,cx=W>>1,T=hexR(['#141414','#1e1e1f','#2a2a2b','#383839','#4a4a4b','#5f5f60']);   // three thick tyres lying stacked: black rubber, tread on the walls, the hole on top with a lit inner rim
+  const rx=12,ry=5,hgt=6;
+  for(let k=0;k<3;k++){const by=base-k*hgt-ry;for(let y=0;y<hgt;y++)for(let x=-rx;x<=rx;x++){const e=Math.sqrt(Math.max(0,1-x*x/(rx*rx)))*ry;const Y=Math.round(by+e+y-ry+ry);let kk=x<-rx*.5?3:(x>rx*.5?1:2);if(y===0)kk+=1;if(y===hgt-1)kk=0;if(((x+k*3+40)%4===0)&&y>0&&y<hgt-1)kk=Math.max(0,kk-1);P(A,cx+x,Math.round(by+e)+y,T[kk]);}}   // the sidewalls, tread blocks
+  const ty=base-3*hgt-ry+1;for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){const d=x*x/(rx*rx)+y*y/(ry*ry);if(d>1)continue;const di=x*x/36+y*y/6.2;if(di<=1){P(A,cx+x,ty+y,y<0?T[0]:T[0]);continue;}P(A,cx+x,ty+y,T[y<0?(x<0?5:4):(x<0?3:2)]);}   // the top: the ring and the hole
+  for(let x=-5;x<=5;x++){const e=Math.round(Math.sqrt(Math.max(0,1-x*x/36))*2.5);P(A,cx+x,ty+e,T[5]);}                         // the hole's far inner rim, lit
+  cast(cx-rx,cx+rx,base);}
 // =================================================================================== outdoor: a pile of lumber
-if(K==='lumber'){const base=H-3;
-  const plank=(x,y,len)=>{for(let i=0;i<len;i++){P(A,x+i,y,RAMP.pine[5]);P(A,x+i,y+1,RAMP.pine[4]);P(A,x+i,y+2,RAMP.pine[3]);P(A,x+i,y+3,RAMP.pine[1]);}for(let j=0;j<4;j++){P(A,x+len,y+j,RAMP.oak[j===0?5:4]);P(A,x+len+1,y+j,RAMP.oak[2]);}};   // a board: its lit top face, its edge, a tan end in a dark rim
-  for(const [x,y,l] of [[3,base-4,34],[8,base-8,30],[2,base-12,26],[12,base-12,30],[6,base-16,21]])plank(x,y,l);
-  for(const sx of [7,30])rect(A,sx,base-1,3,2,RAMP.bark[2]);
-  for(let x=2;x<44;x++)SH(x,base+1,110);cast(4,40,base);}
+if(K==='lumber'){const base=H-3,R=RAMP.pine;   // sawn boards stacked flat: long lit tops, plain faces, square pale ends with growth lines
+  const layers=[[3,40,0],[5,38,1],[2,41,0],[6,36,1],[4,37,0]];
+  layers.forEach(([x0,len,stk],li)=>{const y=base-4-li*4;
+    for(let i=0;i<len;i++){P(A,x0+i,y-1,R[5]);P(A,x0+i,y,R[4]);P(A,x0+i,y+1,R[3]);P(A,x0+i,y+2,R[2]);if((i*5+li*3)%23<2)P(A,x0+i,y+1,R[2]);}   // a board: lit top edge, face, a few long grain streaks
+    for(let j=-1;j<=2;j++){P(A,x0+len,y+j,RAMP.oak[j<0?5:4]);P(A,x0+len+1,y+j,RAMP.oak[j===0?3:4]);P(A,x0+len+2,y+j,RAMP.oak[2]);}P(A,x0+len+1,y+1,RAMP.oak[2]);   // its square end, pale, a growth line
+    if(stk){P(A,x0+6,y+3,RAMP.walnut[2]);P(A,x0+len-8,y+3,RAMP.walnut[2]);}});                                                  // a sticker under some
+  cast(2,W-3,base);}
 // =================================================================================== outdoor: a ladder leaning on nothing (laid against a wall when placed)
 if(K==='ladder'){const base=H-3,R=RAMP.pine;
   for(const sx of [4,13]){for(let y=1;y<base;y++){P(A,sx,y,R[5]);P(A,sx+1,y,R[3]);P(A,sx+2,y,R[1]);}}                                           // rails lit on the left
@@ -812,7 +817,12 @@ if(K==='well'){const base=H-3,cx=W>>1,St=RAMP.stone,R=RAMP.oak;
     if(inner<=1){if(y<0||inner<.0)continue;P(A,cx+x,rimY+y,y<-1?RAMP.glass[0]:RAMP.glass[1]);continue;}P(A,cx+x,rimY+y,St[y<0?(x<0?5:4):(x<0?4:3)]);}
   for(let y=-ry+3;y<0;y++)for(let x=-rx+4;x<=rx-4;x++){const inner=x*x/((rx-4)*(rx-4))+y*y/((ry-3)*(ry-3));if(inner<=1&&!(cx+x>=cx-3&&cx+x<=cx+3&&rimY+y<rimY-2))P(A,cx+x,rimY+y,y<-3?St[1]:RAMP.glass[0]);}
   hl(A,cx-6,rimY,5,RAMP.glass[3]);                                                                                                                  // a glint far down
-  {const rows=[[0,6],[6,5],[11,5]];for(let y=0;y<16;y++){const yy=rimY+ry-2+y;const ri=y<6?0:y<11?1:2,ry0=rows[ri][0];const seams=[[-22,-12,-1,10],[-22,-17,-5,6,16],[-22,-9,3,13]][ri];for(let x=-rx;x<=rx;x++){let k=x<-rx*.4?4:x<rx*.3?3:2;if(y===ry0)k=1;if(seams.includes(x))k=1;if(y===ry0+1&&!seams.includes(x))k=Math.min(5,k+1);P(A,cx+x,yy,St[k]);}}}   // big irregular stones, a quiet middle
+  {const y0=rimY+ry-2,courses=[[0,6],[6,5],[11,5]];   // big irregular stones following the curve, lit left, moss in the low seams
+    for(const [ci,[cy0,ch]] of courses.entries()){let th=-Math.PI/2+(hsh(ci,1,SEED)*.35);const seams=[];while(th<Math.PI/2){seams.push(Math.round(rx*Math.sin(th)));th+=.38+hsh(ci,seams.length,SEED)*.32;}seams.push(rx+1);
+      let prev=-rx-1;seams.forEach((sx_,si)=>{const tone=2+((hsh(ci,si+7,SEED)*3)|0);for(let x=prev+1;x<sx_;x++)for(let j=0;j<ch;j++){const X=x,side=X<-rx*.45?1:(X>rx*.4?-1:0);let k=Math.max(1,Math.min(5,tone+side));
+        if(j===0)k=Math.min(5,k+1);if(j===ch-1)k=Math.max(1,k-1);if(x===prev+1&&j>0)k=Math.min(5,k+1);P(A,cx+X,y0+cy0+j,St[k]);}
+        for(let j=0;j<ch;j++)P(A,cx+sx_,y0+cy0+j,St[0]);prev=sx_;});for(let x=-rx;x<=rx;x++)P(A,cx+x,y0+cy0+ch-1,St[1]);}
+    for(let x=-rx;x<=rx;x++){if(hsh(x>>1,3,SEED)>.55)P(A,cx+x,base-1,RAMP.green[2]);if(hsh(x>>1,5,SEED)>.75)P(A,cx+x,base-2,RAMP.green[3]);if(hsh(x,9,SEED)>.9)P(A,cx+x,base-6,RAMP.green[3]);}}
   for(let i=0;i<14;i++){const mx=cx-4+i*2,my=base-1-((i*7)%4);P(A,mx,my,RAMP.green[2+(i%2)]);P(A,mx+1,my,RAMP.green[2]);}                               // moss on the lowest stones
   cast(cx-rx,cx+rx,base);}
 // =================================================================================== outdoor: the farm cart with a load of pumpkins
