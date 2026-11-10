@@ -531,6 +531,20 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [props sweep] A jack-o'-lantern reads when the skin is dull brown-orange and the carved holes are the brightest thing. A
   marble is a round 4 px ball with one glint (a plus-shaped 3 px "ball" reads as a gem sparkle). A child's toy needs the one
   silhouette part that names it (a horse's long muzzle and two ears; a shoe's pale sole, laces and ankle opening).
+- [props sweep] **[repeated]** A comment written in the middle of a line swallows the code after it: the lumber's sawn ends and
+  a rail's post shadows vanished that way. Put a comment only at the very END of a line, and brace-check after every edit.
+- [props sweep] Anything hung must hang FROM something: a twine cord from a real branch, 3-8 px long. Small dark dolls read as
+  bats or seed pods. A pale doll with a round 5x4 head, two dark eyes, a 1 px neck, arms out, a dress and split legs reads at 1x.
+- [props sweep] Brick with only course lines and no head joints reads as stacked planks. Keep faint head joints (one tone down)
+  across the face, crisp ones only at the corners, one tone per brick, and sooty brown-red, never saturated orange.
+- [props sweep] Hoops evenly spaced edge to edge read as banding or a barcode. A silo wants a few bowed hoops at uneven spacing,
+  broad flat concrete bands, stave joints only near its edges, and orange-brown rust from the dome lip (crimson drips read as blood).
+- [props sweep] Corrugated tin: each seam a 2 px rib (a lit line and a dark line), sheets a tone apart, one lifted sheet breaking
+  the outline, a solid shadow under the eave, rust stains widening toward the eave. A honey door with a brass knob reads as candy.
+- [props sweep] Identical plants or turves in a grid read as a stamp or a barcode (carrot bed, peat stack): jitter spacing and
+  size, use 2-3 variants, leave gaps. A dock's evenly spaced side nubs read as clips; a darker near-end face with pilings shows height.
+- [props sweep] Lighting a slate roof plane by plane: the lit plane steps up in VALUE; the top slate tones are cool, so pushing
+  them reads as powder-blue ice. Stop a step short.
 
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
