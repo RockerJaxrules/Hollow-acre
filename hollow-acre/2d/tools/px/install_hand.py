@@ -10,7 +10,7 @@ names = [a for a in sys.argv[1:] if not a.startswith('--')]; front_only = '--fro
 mp = os.path.join(BUILD, 'spr', 'lpc', 'objects.json'); O = json.load(open(mp))
 bak = os.path.join(GAME, 'spr', 'backup_v2', 'bench3d'); os.makedirs(bak, exist_ok=True)
 for n in names:
-    pairs = [(f'b2_{n}', n)] + ([] if front_only else [(f'b2_{n}_E', n + '_e'), (f'b2_{n}_N', n + '_bk')])
+    pairs = [(f'b2_{n}', n)] + ([] if front_only else [(f'b2_{n}_E', n + '_e'), (f'b2_{n}_N', n + '_bk')] + ([(f'b2_{n}_W', n + '_w')] if os.path.exists(os.path.join(HERE, 'out', f'b2_{n}_W.png')) else []))
     for src, dst in pairs:
         sp = os.path.join(HERE, 'out', src + '.png'); im = Image.open(sp)
         for root in (GAME, BUILD):

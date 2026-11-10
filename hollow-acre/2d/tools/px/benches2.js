@@ -111,7 +111,7 @@ function grindstone(cx,cy,r){const S=RAMP.stone,R=RAMP.dark,I=RAMP.iron;
   for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){const d=(x*x+y*y)/(r*r);if(d>1)continue;let k=(-x-y)>r*.4?4:3;if(d>.66){const l=-x-y;k=l>1?5:l<-1?1:2;}P(A,cx+x,cy+y,S[k]);}   // a smooth face, its rim lit top-left, dark bottom-right
   rect(A,cx-1,cy-1,3,3,I[3]);P(A,cx-1,cy-1,I[5]);rect(A,cx+2,cy,r+3,2,I[3]);hl(A,cx+2,cy,r+3,I[4]);vl(A,cx+r+5,cy-4,6,I[3]);rect(A,cx+r+4,cy-6,3,3,R[4]);P(A,cx+r+4,cy-6,R[5]);
   // a little spray of sparks
-  for(const [dx,dy] of [[r-1,-r+2],[r+1,-r],[r+3,-r+1],[r+2,-r-2],[r+4,-r-1]]){P(B,cx+dx,cy+dy,[255,214,120]);P(B,cx+dx+1,cy+dy,[255,170,80]);}}
+  const sd=V==='N'?-1:1;for(const [dx,dy] of [[r-1,-r+2],[r+1,-r],[r+3,-r+1],[r+2,-r-2],[r+4,-r-1]]){P(B,cx+sd*dx,cy+dy,[255,214,120]);P(B,cx+sd*(dx+1),cy+dy,[255,170,80]);}}   // sparks fly off the side the wheel turns toward
 // a rack of pegs on two posts behind the bench, with a blade and a club hanging on it
 function rack(x,y,w,h){const R=RAMP.dark,S=RAMP.steel;for(const px of [x,x+w-3]){rect(A,px,y,3,h,R[2]);vl(A,px,y,h,R[4]);vl(A,px+2,y,h,R[0]);P(A,px,y,R[5]);}
   for(const ry of [y+3,y+h-6]){hl(A,x+3,ry,w-6,R[4]);hl(A,x+3,ry+1,w-6,R[2]);for(let i=x+6;i<x+w-4;i+=7){P(A,i,ry-1,R[5]);P(A,i,ry-2,R[3]);}}
@@ -231,9 +231,10 @@ function benchSide(o){const R=o.R,wD=o.d*2,L=Math.round(o.w/2),x0=(W-wD)>>1,base
   return {x0,wD,L,top,fy,ly,base,cx:x0+(wD>>1)};}
 // a thin wall standing along the left edge of the top (the back board turned edge-on): its lit top edge runs away up the sprite,
 // its near end shows as a narrow post
-function edgeWall(x,top,L,h,R,sliver){for(let y=top-h;y<top+L-h;y++){P(A,x,y,R[5]);P(A,x+1,y,R[4]);P(A,x+2,y,R[4]);P(A,x+3,y,R[3]);P(A,x+4,y,R[2]);}   // its top edge, 5 px deep
-  for(let y=top+L-h;y<top+L;y++){P(A,x,y,R[3]);P(A,x+1,y,R[2]);P(A,x+2,y,R[2]);P(A,x+3,y,R[1]);P(A,x+4,y,R[0]);}hl(A,x,top+L-h,5,R[5]);         // its near end
-  if(sliver)sliver(x+5,top-h,L);for(let y=top-h;y<top+L;y++)SH(x+5+(sliver?2:0),y,80);}
+function edgeWall(x,top,L,h,R,sliver,th){th=th||5;const K=th===5?[5,4,4,3,2]:th===3?[5,3,2]:[5,2];const KE=th===5?[3,2,2,1,0]:th===3?[3,2,0]:[3,1];
+  for(let y=top-h;y<top+L-h;y++)for(let i=0;i<th;i++)P(A,x+i,y,R[K[i]]);                                                   // its top edge, th px deep
+  for(let y=top+L-h;y<top+L;y++)for(let i=0;i<th;i++)P(A,x+i,y,R[KE[i]]);hl(A,x,top+L-h,th,R[5]);                             // its near end
+  if(sliver)sliver(x+th,top-h,L);for(let y=top-h;y<top+L;y++)SH(x+th+(sliver?2:0),y,80);}
 function benchBack(o){const R=o.R,w=o.w,x0=o.x0!==undefined?o.x0:(W-w)>>1,base=H-3,d=o.d||13,ap=o.ap||6;const top=base-(o.legH||16)-ap-d;const fy=top+d,ly=fy+ap,legH=base-ly+1;
   for(const lx of [x0+4,x0+w-8])leg(lx,top+4,legH+ap+d-8,R,true);
   plankTop(x0,top,w,d,R,o);apron(x0,fy,w,ap,R);
@@ -256,44 +257,54 @@ if(V!=='S'&&K==='bench_farm'){
     pot(m(b.x0+46),b.top+12,3,1);sack(b.x0+40,b.base-7,6,9);}}
 if(V!=='S'&&K==='bench_furn'){
   const o={R:RAMP.oak,w:58,d:14,ap:7,legH:16,shelf:7};
-  if(V==='E'){const b=benchSide(o);edgeWall(b.x0+1,b.top,b.L,11,RAMP.oak,(x,y,L)=>{for(let j=0;j<16;j++){P(A,x,y+2+j,RAMP.steel[5]);P(A,x+1,y+2+j,RAMP.steel[3]);P(A,x+2,y+2+j,RAMP.steel[1]);}rect(A,x,y-1,4,4,RAMP.oak[4]);
-      for(let j=0;j<9;j++)P(A,x,y+L-12+j,RAMP.dark[3]);hl(A,x,y+L-4,4,RAMP.steel[4]);rect(A,x,y+L-18,4,3,RAMP.oak[3]);});
-    for(let j=0;j<b.L-6;j++){P(A,b.x0+9,b.top+3+j,RAMP.honey[5]);P(A,b.x0+10,b.top+3+j,RAMP.honey[4]);P(A,b.x0+11,b.top+3+j,RAMP.honey[3]);P(A,b.x0+12,b.top+3+j,RAMP.honey[1]);}
-    contact(b.x0+10,b.top+b.L-3,4);plane(b.x0+15,b.top+16);shavings(b.x0+14,b.top+6,5);vise(b.x0+b.wD-10,b.top+b.L-6);
+  if(V==='E'){const b=benchSide(o);edgeWall(b.x0+1,b.top,b.L,11,RAMP.oak,(x,y,L)=>{for(let j=0;j<15;j++)P(A,x,y+3+j,RAMP.steel[j%2?3:5]);for(let j=0;j<6;j++){P(A,x,y+18+j,RAMP.honey[4]);P(A,x+1,y+18+j,RAMP.honey[2]);}P(A,x+2,y+20,RAMP.honey[3]);P(A,x+2,y+21,RAMP.honey[3]);},2);
+    // three planks lying along the top, running away from you, their end grain toward you: the carpenter's landmark from this side
+    for(let k=0;k<3;k++){const px=b.x0+6+k*6,len=b.L-4-k*3,py=b.top+2+k*2;for(let j=0;j<len;j++)for(let i=0;i<5;i++)P(A,px+i,py+j,RAMP.honey[i===0?5:i===4?2:(j%9===4&&i===2?3:4)]);
+      rect(A,px,py+len,5,3,RAMP.cream[4]);hl(A,px,py+len,5,RAMP.cream[5]);P(A,px+2,py+len+1,RAMP.honey[2]);P(A,px+1,py+len+2,RAMP.cream[3]);vl(A,px+4,py+len,3,RAMP.honey[1]);}
+    shavings(b.x0+22,b.top+6,5);vise(b.x0+b.wD-9,b.top+b.L-5);
     for(let j=0;j<3;j++){const y=b.base-8-j*2;for(let i=0;i<b.wD-8;i++){P(A,b.x0+4+i,y,RAMP.honey[j===2?5:4]);P(A,b.x0+4+i,y+1,RAMP.honey[2]);}}}
   else{const b=benchBack(o);
-    for(const [px,h] of [[b.x0+b.w-17,7],[b.x0+b.w-13,10]]){for(let j=0;j<h;j++){P(A,px,b.fy-17-h+j,RAMP.honey[5]);P(A,px+1,b.fy-17-h+j,RAMP.honey[4]);P(A,px+2,b.fy-17-h+j,RAMP.honey[2]);}hl(A,px,b.fy-17-h,3,RAMP.cream[4]);}   // plank ends standing behind the board
+    for(const [px,h] of [[b.x0+b.w-20,7],[b.x0+b.w-14,10]]){for(let j=0;j<h;j++)for(let i=0;i<6;i++)P(A,px+i,b.fy-17-h+j,RAMP.honey[i===0?5:i===5?1:(i===3&&j%5===2?3:4)]);hl(A,px,b.fy-17-h,6,RAMP.cream[5]);hl(A,px+1,b.fy-16-h,4,RAMP.cream[3]);}   // broad planks standing behind the board, end grain up
     {const hx=b.x0+16,hy=b.fy-24;for(let j=0;j<7;j++)for(let i=0;i<6;i++){if((i>0&&i<5&&j>1&&j<5))continue;P(A,hx+i,hy+j,RAMP.honey[j===0?5:i===0?4:i===5?1:3]);}}   // the saw's handle hung over the top
     boardBack(b.x0+6,b.fy-17,b.w-12,18,RAMP.oak);for(let i=0;i<4;i++)P(A,b.x0+20+i*5,b.fy-18,RAMP.steel[4]);
     for(let j=0;j<3;j++){const y=b.base-8-j*2;for(let i=0;i<b.w-12;i++){P(A,b.x0+6+i,y,RAMP.honey[j===2?5:4]);P(A,b.x0+6+i,y+1,RAMP.honey[2]);}P(A,b.x0+5,y,RAMP.cream[4]);}}}   // planks on the low shelf
 if(V!=='S'&&K==='bench_weapon'){
   const o={R:RAMP.dark,w:58,d:13,ap:7,legH:16,shelf:7};
-  if(V==='E'){const b=benchSide(o);edgeWall(b.x0+1,b.top,b.L,12,RAMP.dark,(x,y,L)=>{for(const yy of [y+3,y+12]){for(let j=0;j<12;j++){P(A,x,yy+j,RAMP.steel[5]);P(A,x+1,yy+j,RAMP.steel[3]);}hl(A,x-1,yy-1,4,RAMP.iron[4]);rect(A,x,yy-4,2,3,RAMP.leather[2]);}});
-    // the grindstone turned: a wheel seen edge-on, 6 px wide, its tread lit, the hub and axle standing out, the crank toward you, the trough under it
-    const gx=b.x0+b.wD-9,gy=b.top+b.L-13,St=RAMP.stone,I=RAMP.iron;
-    for(const px of [gx-7,gx+5]){rect(A,px,gy-1,3,b.top+b.L-gy,RAMP.dark[3]);vl(A,px,gy-1,b.top+b.L-gy,RAMP.dark[5]);vl(A,px+2,gy-1,b.top+b.L-gy,RAMP.dark[1]);}   // the frame's two posts
-    rect(A,gx-6,gy+7,12,4,RAMP.dark[2]);hl(A,gx-6,gy+7,12,RAMP.dark[4]);                                                      // the water trough under the wheel
-    for(let y=-9;y<=9;y++){const ww=Math.round(4*Math.sqrt(1-(y*y)/100));for(let x=-ww;x<=ww;x++){let k;
-      if(x<=-ww+2)k=(y<-2?5:4);else k=(x>=ww?1:(y<-4?4:3));if(x>-ww+2&&x<ww&&(y+12)%5===0)k=2;P(A,gx+x,gy+y,St[k]);}}            // a sliver of the lit face on the left, the scored tread
-    for(let y=-7;y<=7;y+=7)P(A,gx-3,gy+y,St[2]);
-    rect(A,gx-9,gy-1,19,3,I[3]);hl(A,gx-9,gy-1,19,I[5]);hl(A,gx-9,gy+1,19,I[1]);rect(A,gx-11,gy-2,3,5,I[4]);P(A,gx-11,gy-2,I[5]);   // the axle, its hub cap toward the light
-    vl(A,gx+10,gy+1,6,I[3]);vl(A,gx+11,gy+1,6,I[1]);rect(A,gx+9,gy+7,4,3,RAMP.honey[3]);hl(A,gx+9,gy+7,4,RAMP.honey[5]);        // the crank and its handle
-    for(const [dx,dy] of [[-6,-9],[-8,-8],[-7,-11],[-10,-10]]){P(B,gx+dx,gy+dy,[255,214,120]);P(B,gx+dx-1,gy+dy,[255,170,80]);}
-    {const S=RAMP.steel,x=b.x0+9,y=b.top+3;for(let j=0;j<14;j++){P(A,x,y+j,S[5]);P(A,x+1,y+j,S[3]);P(A,x+2,y+j,S[1]);}hl(A,x-2,y+14,7,RAMP.iron[4]);for(let j=0;j<4;j++){P(A,x+1,y+15+j,RAMP.leather[3]);}contact(x,y+19,4);}
-    hammer(b.x0+14,b.top+20);
+  if(V==='E'){const b=benchSide(o);edgeWall(b.x0+1,b.top,b.L,12,RAMP.dark,(x,y,L)=>{for(const yy of [y+4,y+14]){for(let j=0;j<11;j++){P(A,x,yy+j,RAMP.steel[5]);P(A,x+1,yy+j,RAMP.steel[2]);}hl(A,x-1,yy-1,4,RAMP.iron[4]);rect(A,x,yy-4,2,3,RAMP.leather[2]);}},2);
+    // the grindstone on edge: a 6 px tread lit along its top, scored as it turns, in a two-post frame; the axle's hub stands proud, the crank toward the front, a trough of water under it
+    const gx=b.x0+b.wD-12,gy=b.top+b.L-12,St=RAMP.stone,I=RAMP.iron;
+    rect(A,gx-6,gy+6,13,5,RAMP.dark[2]);hl(A,gx-6,gy+6,13,RAMP.dark[4]);hl(A,gx-5,gy+7,11,RAMP.steel[1]);hl(A,gx-5,gy+8,11,RAMP.iron[2]);   // the trough
+    for(const px of [gx-6,gx+5]){rect(A,px,gy-2,2,10,RAMP.dark[3]);vl(A,px,gy-2,10,RAMP.dark[5]);}
+    // the wheel seen at a slant: an elliptical face (lit rim on the left, a darker worn ring, the hub at its centre) and the scored tread curving behind it
+    {const cxF=gx-1,rx=5,ry=10;
+      for(let y=-ry;y<=ry;y++){const e=Math.sqrt(Math.max(0,1-(y*y)/(ry*ry+.5)));const fw=Math.round(rx*e);for(let x=cxF+fw;x<=cxF+fw+3;x++){let k=y<-5?3:y<3?2:1;if((y+12)%4===0)k=1;if(x===cxF+fw+3)k=1;P(A,x,gy+y,St[k]);}}   // the tread
+      for(let y=-ry;y<=ry;y++){const e=Math.sqrt(Math.max(0,1-(y*y)/(ry*ry+.5)));const fw=Math.round(rx*e);for(let x=cxF-fw;x<=cxF+fw;x++){const u=(x-cxF)/rx,v=y/ry;const d=Math.sqrt(u*u+v*v);
+        let k=d>.85?(u<0?5:3):d>.5?(u+v<0?4:3):(u+v<0?4:3);if(d>.55&&d<.68)k=2;P(A,x,gy+y,St[k]);}}
+      rect(A,cxF-1,gy-1,3,3,I[3]);P(A,cxF-1,gy-1,I[5]);P(A,cxF+1,gy+1,I[1]);}
+    rect(A,gx-9,gy,4,2,I[3]);hl(A,gx-9,gy,4,I[5]);rect(A,gx+7,gy,3,2,I[2]);   // the axle ends standing out of the frame
+    vl(A,gx+9,gy+2,6,I[3]);vl(A,gx+10,gy+2,6,I[1]);rect(A,gx+9,gy+8,5,2,RAMP.honey[3]);hl(A,gx+9,gy+8,5,RAMP.honey[5]);          // the crank and its handle
+    for(const [dx,dy] of [[-5,-11],[-7,-10],[-6,-13],[-9,-12]]){P(B,gx+dx,gy+dy,[255,214,120]);P(B,gx+dx-1,gy+dy,[255,170,80]);}
+    hammer(b.x0+6,b.top+3);
     for(let i=0;i<3;i++){rect(A,b.x0+5+i*7,b.base-9,6,2,RAMP.iron[3]);hl(A,b.x0+5+i*7,b.base-9,6,RAMP.iron[5]);}}
-  else{const b=benchBack(o);grindstone(b.x0+b.w-14,b.top-4,8);boardBack(b.x0+4,b.fy-19,30,20,RAMP.dark);}}
+  else{const b=benchBack(o);grindstone(b.x0+b.w-14,b.top-4,8);
+    for(const hx of [b.x0+10,b.x0+20]){hl(A,hx-3,b.fy-21,7,RAMP.iron[5]);hl(A,hx-3,b.fy-20,7,RAMP.iron[2]);for(let j=0;j<4;j++)P(A,hx,b.fy-25+j,RAMP.leather[j%2?2:4]);P(A,hx,b.fy-26,RAMP.iron[5]);P(A,hx+1,b.fy-26,RAMP.iron[3]);P(A,hx,b.fy-27,RAMP.iron[4]);}   // the hung swords' hilts over the board
+    boardBack(b.x0+4,b.fy-19,30,20,RAMP.dark);}}
 if(V!=='S'&&K==='bench_armor'){
   const o={R:RAMP.oak,w:50,d:13,ap:6,legH:16,shelf:7};
-  if(V==='E'){const b=benchSide(o);
-    // the hide lies along the top, the shears and the rivet tin; the dress form stands behind, seen from its side (narrower)
-    hide(b.x0+3,b.top+3,b.wD-6,b.L-8);shears(b.x0+8,b.top+b.L-6);rivetTin(b.x0+b.wD-6,b.top+4);
-    for(let j=0;j<7;j++)for(let i=0;i<b.wD-8;i++){const l=.4-j/7*.8;P(A,b.x0+4+i,b.base-13+j,RAMP.leather[l>.2?4:l>-.2?3:2]);}
-    const fx=b.cx;const L=RAMP.iron.map((c,i)=>RAMP.iron[Math.min(5,i)]);   // the form stands in front of the bench's near end, overlapping it
-    const fy0=b.base-30;for(let y=0;y<22;y++){const t=y/22;const w=Math.round(t<.12?3+t*18:t<.6?5-(t-.12)*2:4+(t-.6)*3);for(let x=-w;x<=w;x++){const l=-x/w*.6-(t-.4)*.3;P(A,fx+x+(t>.2&&t<.6?1:0),fy0+y,x===-w?RAMP.steel[4]:L[l>.45?5:l>.1?4:l>-.3?3:1]);}}
+  // the dress form in profile, facing the way the bench's front faces
+  const formSide=(fx,fby,dir)=>{const L=RAMP.iron.map((c,i)=>RAMP.iron[Math.min(5,i)]);const fy0=fby-28;
+    for(let y=0;y<22;y++){const t=y/22;const w=Math.round(t<.12?3+t*18:t<.6?5-(t-.12)*2:4+(t-.6)*3);for(let x=-w;x<=w;x++){const l=-x/w*.6-(t-.4)*.3;P(A,fx+x+(t>.2&&t<.6?dir:0),fy0+y,x===-w?RAMP.steel[4]:L[l>.45?5:l>.1?4:l>-.3?3:1]);}}
     {const I=RAMP.iron;for(let y=-7;y<=0;y++)for(let x=-4;x<=5;x++){if(x*x*1.2+(y+1)*(y+1)*1.2>26)continue;const l=-x*.5-y*.4;P(A,fx+x,fy0-2+y,I[l>1.6?5:l>.4?4:l>-1?3:2]);}hl(A,fx-1,fy0-4,6,I[0]);}
-    rect(A,fx-1,fy0+20,3,b.base-fy0-20,RAMP.dark[3]);vl(A,fx-1,fy0+20,b.base-fy0-20,RAMP.dark[5]);for(let i=0;i<5;i++){P(A,fx-1-i,b.base+(i>>1),RAMP.dark[4]);P(A,fx+1+i,b.base+(i>>1),RAMP.dark[2]);}
-    for(let i=-6;i<8;i++)SH(fx+i,b.base+2,150);}
+    rect(A,fx-1,fy0+20,3,fby-fy0-20,RAMP.dark[3]);vl(A,fx-1,fy0+20,fby-fy0-20,RAMP.dark[5]);for(let i=0;i<5;i++){P(A,fx-1-i,fby+(i>>1),RAMP.dark[4]);P(A,fx+1+i,fby+(i>>1),RAMP.dark[2]);}
+    for(let i=-6;i<8;i++)SH(fx+i,fby+2,150);};
+  if(V==='E'||V==='W'){
+    // E: the form (at the front's left end) stands in front of the near end, overlapping it; W: it stands beyond the far end, mostly hidden behind the bench
+    if(V==='W'){const L0=Math.round(o.w/2),bs=H-3;formSide((W>>1)+1,bs-L0-1,-1);}
+    const b=benchSide(o);
+    // the top stays a lit plane running away from you; the hide lies on it smaller, foreshortened, the wood showing round it
+    hide(b.x0+6,b.top+7,b.wD-12,11);shears(b.x0+8,b.top+b.L-6);rivetTin(b.x0+b.wD-6,b.top+4);
+    for(let j=0;j<7;j++)for(let i=0;i<b.wD-8;i++){const l=.4-j/7*.8;P(A,b.x0+4+i,b.base-13+j,RAMP.leather[l>.2?4:l>-.2?3:2]);}
+    if(V==='E')formSide(b.cx,b.base,1);}
   else{const b=benchBack(Object.assign({},o,{x0:3}));
     const cx=W-11;dressForm(cx,b.base-3,22,true);const top=b.base-15-22;for(let y=top+3;y<top+21;y++){P(A,cx,y,RAMP.leather[1]);if(y%2===0){P(A,cx-1,y,RAMP.cream[3]);P(A,cx+1,y,RAMP.cream[2]);}}   // laced up the back, no rivets
     for(let y=top+4;y<top+21;y+=3){P(B,cx-2,y,null);P(B,cx+2,y,null);}
