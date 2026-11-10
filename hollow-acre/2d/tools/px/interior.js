@@ -215,9 +215,9 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
     L=Math.min(front-top-24,Math.round(wh*.55),26),Y0=top+(R.sunY||16),LT=[255,232,196];   /* (b20) shorter: tall church windows still threw stripes */   /* thrown out past the furniture against the wall */
     const GL=(R.theme==='church'||R.lancet)?[[255,214,150],[236,186,186],[190,206,236],[255,232,196]]:null;
     for(let y=Y0;y<Y0+L;y++){const sk=Math.round((y-Y0)*(R.sunSk!=null?R.sunSk:.28))+3,xl=wx+sk,xr=wx+sk+ww-1;
-      for(let x=xl;x<=xr;x++){if(x<x0||x>=x0+fw)continue;const u=x-xl,v=y-Y0;const c=G(A,x,y);if(!c)continue;
+      for(let x=xl;x<=xr;x++){if(x<x0||x>=x0+fw)continue;const u=x-xl,v=y-Y0;const c=G(A,x,y);if(!c)continue;if(GL){const tip=L-v,hw2=ww/2;if(tip<hw2&&Math.abs(u-hw2+.5)>tip*1.1)continue;}   /* (b25) under a lancet the patch ends in a point */
         if(Math.abs(u-(ww>>1))<1||Math.abs(v-(L>>1))<1){P(A,x,y,[Math.min(255,c[0]*1.06+4),Math.min(255,c[1]*1.06+3),Math.min(255,c[2]*1.06+1)]);continue;}   // the bars
-        const rim=u<2||u>ww-3||v<2||v>L-3,k=rim?.16:(GL?.42:.34),f=rim?1.12:1.22;const LT2=GL?GL[((u<(ww>>1))?0:1)+((v<(L>>1))?0:2)]:LT;
+        const rim=u<2||u>ww-3||v<2||v>L-3,k=rim?.2:(GL?.55:.34),f=rim?1.12:1.22;const LT2=GL?GL[((u<(ww>>1))?0:1)+((v<(L>>1))?0:2)]:LT;
         P(A,x,y,[Math.min(255,Math.round((c[0]*f)*(1-k)+LT2[0]*k)),Math.min(255,Math.round((c[1]*f)*(1-k)+LT2[1]*k)),Math.min(255,Math.round((c[2]*f)*(1-k)+LT2[2]*k))]);}}}
   // ---- hanging lamps over the big rooms
   if(R.theme==='store'||R.theme==='church'){for(const f of [.25,.75]){const lx=x0+Math.round(fw*f);vl(B,lx,0,18,PAL.slate[2]);ell(B,lx,22,7,4,N?PAL.lit[4]:PAL.brass[2]);hl(B,lx-7,22,15,PAL.brass[1]);ell(B,lx,25,3,1,N?PAL.lit[5]:PAL.cream[3]);}}

@@ -15,11 +15,11 @@ const BEDF=[-.85,-2.1,.85,0];
 const PRIV={
   store:{key:'priv_store',name:'Caitlyn’s rooms',home:'coyle',pdoor:6.5,owners:['mae','tobias','pip'],spots:{mae:[3.4,2.7],tobias:[5.2,3.9],pip:[2.0,3.9]},
     no:'“Hey. That’s where we live, farm kid. The shop’s out here.”',
-    furn:[['in_bed',1.1,2.6,BEDF],['in_bed',5.9,2.6,BEDF],PF('in_desk',3.5,.95,.45),['in_mirror',2.3,-.45,null,'flat'],PF('in_floursack',6.1,4.5,.3)],
+    furn:[['in_bed',1.1,2.6,BEDF],['in_bed',5.9,2.6,BEDF],PF('in_desk',3.5,.95,.45),['in_mirror',2.3,-.45,null,'flat'],PF('in_floursack',6.55,4.4,.3),PF('in_tincrate',5.75,4.55,.3)],
     look:[3.5,1.45,'Danny’s drawings, kept flat under the blotter. Every one is of the cornfield. In the last one a door stands in the middle of the corn, and a very tall man is holding it open for a boy.']},
   garage:{key:'priv_garage',name:'Hollis’s room',home:'pruitt',pdoor:11.3,owners:['hollis'],spots:{hollis:[3.4,2.9]},
     no:'Hollis doesn’t look up. “Private.” He means it.',
-    furn:[['in_bed',5.9,2.6,BEDF],PF('in_toolbox',1.2,1.1,.4),PF('in_tires',2.15,1.15,.3),PF('in_table',3.4,3.9,.45),PF('in_chair',2.3,3.95,.25),['in_photowall',3.4,-.45,null,'flat']],
+    furn:[['in_bed',5.9,2.6,BEDF],PF('in_toolbox',1.2,1.1,.4),PF('in_tires',2.15,1.15,.3),PF('in_table',3.4,3.9,.45),PF('in_chair',2.3,3.95,.25),PF('in_oildrum',.75,4.3,.3),['in_photowall',3.4,-.45,null,'flat']],
     look:[3.4,.5,'Photographs of Wes, from the year he started at the garage: Wes with grease to the elbows, Wes asleep under a truck. Under the last one, in Hollis’s square capitals: NOT HIM. NOT THIS YEAR.']},
   shop_forge:{key:'priv_forge',name:'The rooms behind the forge',home:'brannock',pdoor:9.6,owners:['gideon'],spots:{gideon:[3.5,3.0]},
     no:'Gideon puts himself between you and the door without seeming to move. “No.”',
@@ -27,7 +27,7 @@ const PRIV={
     look:[3.6,1.15,'A jar on the shelf full of nails, every one bent the same way, toward the Mill Road. A tag tied round the lid: 153. Below it, newer: and one more.']},
   shop_carp:{key:'priv_carp',name:'Nell’s loft',home:'hartley',pdoor:9.6,owners:['nell'],spots:{nell:[3.6,3.2]},
     no:'“Ah ah. The loft’s mine, and it’s a mess.” Nell laughs. She doesn’t move away from the door.',
-    furn:[['in_bed',5.9,2.6,BEDF],PF('in_coffin',1.3,3.7,1.9),PF('in_sawplank',3.6,1.1,.3),PF('in_lumberstack',6.0,4.5,.3)],
+    furn:[['in_bed',5.9,2.6,BEDF],PF('in_coffin',.55,3.7,1.9),PF('in_sawplank',3.6,1.1,.3),PF('in_lumberstack',6.0,4.5,.3)],
     look:[1.3,4.1,'Under a sheet, a long pine box, the lid not nailed down. It’s been measured for someone your height. On the lid Nell has written NOT YET, and then crossed out YET.']},
   shop_feed:{key:'priv_feed',name:'Ezra’s room in the barn',home:'bell',pdoor:9.6,owners:['ezra'],spots:{ezra:[3.0,3.0]},
     no:'“The animals don’t like folk back there,” Ezra says. “Neither do I.”',
@@ -39,11 +39,11 @@ const PRIV={
     look:[2.2,1.45,'A 1979 calendar from the Lusk Oil Company. Every day is crossed out in pen up to October. October has been crossed out so many times the page has torn through.']},
   home_harlow:{key:'priv_harlow',name:'The innkeepers’ rooms',home:'harlow',pdoor:12.9,owners:['tess','hob'],spots:{tess:[2.6,3.1],hob:[4.6,3.3]},
     no:'Tess catches your sleeve, kindly. “Guests stay out front, love.”',
-    furn:[['in_bed',1.1,2.6,BEDF],PF('in_desk',4.0,.95,.45),['in_keyboard',6.3,-.45,null,'flat'],PF('in_rocker',6.0,3.6,.3)],
+    furn:[['in_bed',1.1,2.6,BEDF],PF('in_desk',4.0,.95,.45),PF('in_chairN',4.0,1.55,.2),['in_keyboard',6.3,-.45,null,'flat'],PF('in_linentrunk',6.0,3.9,.3)],
     look:[4.0,1.45,'The old guest book. Every October the same guest signs in, in the same hand, for one night. This year’s line is blank and waiting, and the pen has been laid across it.']},
   home_ashby:{key:'priv_ashby',name:'The Ashbys’ rooms',home:'ashby',pdoor:8.35,owners:['lyle','vera'],spots:{lyle:[3.2,3.0],vera:[4.6,3.4]},
     no:'Lyle shakes his head. “That’s our home, not the surgery. Please.”',
-    furn:[['in_bed',1.1,2.6,BEDF],['in_ironcot',5.9,2.6,[-.6,-2.0,.6,0]],PF('in_desk',3.5,.95,.45),PF('in_doctorbag',4.75,1.25,.2)],
+    furn:[['in_bed',1.1,2.6,BEDF],['in_ironcot',5.9,2.6,[-.6,-2.0,.6,0]],PF('in_desk',3.5,.95,.45),PF('in_doctorbag',4.75,1.25,.2),PF('in_medcab',.6,4.3,.3)],
     look:[5.9,3.0,'A suitcase under Vera’s bed, packed and strapped shut. On top, a bus timetable with every bus circled. None of the buses leave the valley.']}};
 // the rooms themselves, out past every other room
 {let ox=Math.max(...Object.values(ROOMS).map(R=>R.ox||0))+40;

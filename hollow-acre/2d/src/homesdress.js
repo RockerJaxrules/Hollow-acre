@@ -88,10 +88,10 @@ interact.push({x:0,z:0,r:1.1,on:()=>S.room==='back_cora'&&DRESS.back_cora.wardX!
   const mk=(k,name,out,furn)=>{if(!SPR['room_'+k])return;ROOMS[k]={ox,oz:-60,name,shell:'room_'+k,out,furn};ox+=24;};
   mk('cellar_agnes','Under Ruth’s room',{x:0,z:0},[F('in_altar',4,1.3,.6),F('in_candles',2.4,1.1,.3),F('in_candles',5.6,1.1,.3),['in_photowall',4,-.45,null,'flat'],F('in_cradle',1.2,3.4,.3),
     F('in_chair',4,3.2,.25),F('in_hopechest',7.0,.95,.3)]);
-  mk('cellar_hale','The parsonage cellar',{x:TB.hale[1]+4.6,z:TB.hale[2]+1.2},[F('in_shelf_jars',1,.62,.4),F('in_crocks',2.9,.9,.3),['in_walllantern',4.4,-.45,null,'flat'],F('in_shelf_jars',7,.62,.4),
+  mk('cellar_hale','The parsonage cellar',{x:TB.hale[1]+4.6,z:TB.hale[2]+1.2},[F('in_shelf_jars',1,.62,.4),F('in_crocks',2.9,.9,.3),['in_walllantern',4.4,-.45,null,'flat'],F('in_winerack',7,.75,.35),
     F('in_keg',1,3.4,.3),F('in_keg',1.8,3.6,.3),F('in_coffin',6.4,3.8,1.9)]);
   mk('cellar_dunn','Under the sheriff’s house',{x:TB.dunn[1]+4.3,z:TB.dunn[2]+.4},[F('in_filecab',.7,.85,.4),F('in_filecabopen',1.6,.85,.4),F('in_filecab',2.5,.85,.4),['in_mapboard',4.6,-.9,null,'flat'],
-    F('in_desk',4.6,2.4,.45),F('in_chair',4.6,3.3,.25),F('in_tripod',7.2,3.4,.25),F('in_planchest',6.6,4.4,.3),['in_drawings',6.8,-.45,null,'flat']]);}
+    ['in_walllantern',3.4,-.45,null,'flat'],F('in_desk',4.6,2.4,.45),F('in_chair',4.6,3.3,.25),F('in_tripod',7.2,3.4,.25),F('in_planchest',6.6,4.4,.3),['in_drawings',6.8,-.45,null,'flat']]);}
 const CELLAR_LOOKS={
   cellar_agnes:[4,2,'An altar of Ruth’s things on a white cloth: her hairbrush, her school shoes, a bowl. The bowl is fresh. Something in it is still wet, and dark, and the cloth around it has been wiped and wiped and is pink with it.'],
   cellar_hale:[4,1.4,'Jars, floor to ceiling, each labelled in Ida’s round hand with a year and a first name. They go back to 1871. The newest jar has a label but no name yet. It is empty, and washed, and waiting.'],
