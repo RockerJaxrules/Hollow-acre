@@ -97,7 +97,7 @@ interact.push({x:-10.2,z:-7.9,r:1.1,on:()=>!S.room,label:()=>'Look',ok:()=>true,
 {let ox=Math.max(...Object.values(ROOMS).map(R=>R.ox||0))+40;const F=(spr,x,z,dep,kind)=>{const m=SPR[spr];const hw=m?Math.max(.2,m.fw/64-.12):.4;return [spr,x,z,kind==='flat'?null:[-hw,-(dep||.4),hw,0],kind||undefined];};
   ROOMS.tavern={ox,oz:-60,name:'The Lamplighter',shell:'room_tavern',out:tbOut('tavern'),furn:[
     F('in_hearth',3.8,1,.5),F('in_rocker',5.4,2.2,.3),F('in_shelf_jars',10.2,.62,.4),F('in_keg',14.4,.9,.3),F('in_keg',15.2,1.1,.3),['in_photowall',8.4,-.45,null,'flat'],
-    F('in_counter',10.4,3.2,.6),F('in_counter',13.4,3.2,.6),
+    F('in_bar',10.2,3.2,.6),F('in_bar',13.6,3.2,.6),F('in_stool',9.0,3.95,.15),F('in_stool',10.2,3.95,.15),F('in_stool',13.4,3.95,.15),F('in_stool',14.6,3.95,.15),   // a real bar, stools along it (a gap where you order)
     F('in_table',3,4.6,.45),F('in_chair',1.9,4.65,.25),F('in_chair',4.1,4.65,.25),F('in_table',6.8,4.9,.45),F('in_chair',5.7,4.95,.25),F('in_chair',7.9,4.95,.25),
     F('in_table',3.2,7.4,.45),F('in_chair',2.1,7.45,.25),F('in_chair',4.3,7.45,.25),F('in_chess',11.2,7.4,.3),F('in_chair',10.2,7.45,.25),F('in_chair',12.2,7.45,.25),
     F('in_piano',14.4,6.4,.5),['barrel',.7,2.6,[-.4,-.3,.4,0]],['barrel',15.4,4.6,[-.4,-.3,.4,0]],F('in_plant2',15.4,8.4,.3),F('in_plant',.8,8.4,.25),['in_rug',8,8.4,null,'flat']]};

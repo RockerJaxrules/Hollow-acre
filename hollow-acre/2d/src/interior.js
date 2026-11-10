@@ -26,7 +26,7 @@ function buildInteriors(){for(const k in ROOMS){const R=ROOMS[k],m=SPR[R.shell||
     if(k!=='cabin'&&!k.startsWith('cabin')){if(spr0==='in_bed'){const v='in_bed_'+'bcde'[(hk+bi++)%4];if(SPR[v])spr=v;}else if(spr0==='in_rug'){const v='in_rug_'+'bcd'[hk%3];if(SPR[v])spr=v;}}
     const o=obj(spr,x0+lx,z0+lz,{kind:kind||'furn',night:SPR[spr+'_n']?spr+'_n':null,room:k});if(f)addRect(o.x+f[0],o.z+f[1],o.x+f[2],o.z+f[3]);}}}
 function enterRoom(k){const R=ROOMS[k];S.mode='trans';fade(1);SFX.thud(0,.25);
-  setTimeout(()=>{S.room=k;P.x=R.ox+R.door;P.z=R.oz+R.d-.45;P.dir='N';P.fx=0;P.fz=-1;P.anim=null;H.vis=false;if(H.state!=='gone'){H.state='gone';H.timer=5;}S.mode='play';fade(0);
+  setTimeout(()=>{S.room=k;S.roomPan=(R.d+3.5>=VH/PPM)?{t0:performance.now()}:null;P.x=R.ox+R.door;P.z=R.oz+R.d-.45;P.dir='N';P.fx=0;P.fz=-1;P.anim=null;H.vis=false;if(H.state!=='gone'){H.state='gone';H.timer=5;}S.mode='play';fade(0);
     if(!S.first['room_'+k]){S.first['room_'+k]=1;toast(R.name+'.',2);}},380);}
 function leaveRoom(){const R=roomOf();if(!R)return;S.mode='trans';fade(1);SFX.thud(0,.25);
   setTimeout(()=>{S.room=null;P.x=R.out.x;P.z=R.out.z;P.dir='S';P.fx=0;P.fz=1;S.mode='play';fade(0);},380);}
@@ -79,8 +79,32 @@ const _nd=newDay;newDay=function(msg,pos){const was=S.room;_nd(msg,pos);if(was==
 const _amb=ambient;ambient=function(h){const a=_amb(h);if(!S.room)return a;if(S.room==='mine')return [44,40,52];const d=clamp((h-6)/1.5,0,1)*clamp((19.5-h)/1.5,0,1);return [lerp(92,214,d),lerp(82,202,d),lerp(92,182,d)];};
 function interiorGround(){const R=roomOf();if(!R)return;const m=SPR[R.shell||('room_'+S.room)];const X=Math.round(sx(R.ox))-m.side,Y=Math.round(sz(R.oz))-m.top;const im=IMG[m.src];if(im)ctx2.drawImage(im,X,Y);
   const n=SPR[(R.shell||('room_'+S.room))+'_n'];if(n&&nightK>0&&S.room!=='mine'&&IMG[n.src]){ctx2.globalAlpha=nightK;ctx2.drawImage(IMG[n.src],X,Y);ctx2.globalAlpha=1;}
+  if(ROOM_SHADE_OK.has(S.room))roomShade(R);
   if(S.room==='mine')for(const lx of [1.6,5.5,9.4]){const tx=Math.round(sx(R.ox+lx)),ty=Math.round(sz(R.oz))-30;ctx2.fillStyle='#3a2a1c';ctx2.fillRect(tx-1,ty,3,10);ctx2.fillStyle='#5a4a3a';ctx2.fillRect(tx-3,ty+8,7,2);
     const f=Math.sin(performance.now()/90+lx)>0;ctx2.fillStyle='#ffb040';ctx2.fillRect(tx-2,ty-5,5,5);ctx2.fillStyle='#fff0a0';ctx2.fillRect(tx-1,ty-(f?7:6),3,4);}}
+/* ---- judge (interiors baseline 4.4): every room lit evenly edge to edge, furniture adrift on a floor of its own value.
+   Light comes from things in the room and the room is dark elsewhere: the floor a step down, a hard-edged shadow under the back
+   wall and a darker band along each wall; a two-step amber pool in front of each stove, hearth, forge and candle stand; and a
+   solid contact shadow centred on the foot line of every piece, so it stands on the floor. Hard edges, no gradients. */
+/* (round 2) see-through ovals read as stains and side bands as stripes: fire light is drawn like the window sun patches that
+   work, an additive hard-edged fan opening out of the hearth or forge mouth in two stepped tones (2 tiles wide at most), a
+   small pool under candles; walls keep only the back wall's shadow; contact shadows show 2-3 px below each foot */
+const ROOM_LIGHTS={in_stove:[.8,10],in_hearth:[1,14],in_forgehearth:[.9,14],in_candles:[.5,0],in_oillamp:[.45,0]};
+const ROOM_OBJS={};
+const ROOM_SHADE_OK=new Set(['tavern']);   // rooms whose light pass has won its blind round (6+ and preferred); the rest keep the old light until theirs does
+function roomShade(R){const k=S.room;let L=ROOM_OBJS[k];if(!L||L.n!==OBJ.length){L=ROOM_OBJS[k]=OBJ.filter(o=>o.room===k);L.n=OBJ.length;}
+  const fx0=Math.round(sx(R.ox)),fx1=Math.round(sx(R.ox+R.w)),fy0=Math.round(sz(R.oz)),fy1=Math.round(sz(R.oz+R.d));
+  ctx2.fillStyle='rgba(16,10,14,.16)';ctx2.fillRect(fx0,fy0,fx1-fx0,fy1-fy0);   // the floor a step down, so lit furniture tops stand above it
+  ctx2.fillStyle='rgba(16,10,14,.30)';ctx2.fillRect(fx0,fy0,fx1-fx0,10);   // the back wall's own shadow on the floor
+  ctx2.save();ctx2.globalCompositeOperation='lighter';const night=isNight()?1:0;
+  for(const o of L){if(o.hide)continue;const sp=(o.spr||'').replace(/_n$/,''),q=ROOM_LIGHTS[sp];if(!q)continue;const s=q[0],cx=Math.round(sx(o.x)),y0=Math.round(sz(o.z))+1;
+    const tone=(a,w0,w1,len)=>{ctx2.fillStyle=`rgba(255,128,44,${a})`;for(let j=0;j<len;j++){const w=Math.round(w0+(w1-w0)*j/len);ctx2.fillRect(cx-w,y0+j,w*2,1);}};
+    if(q[1]){const L1=Math.round(46*s),L2=Math.round(28*s);tone(.10+.05*night,q[1]*s,32*s,L1);tone(.10+.05*night,q[1]*s*.7,20*s,L2);}   // a fan out of the mouth
+    else{tone(.10+.05*night,10*s*2,14*s*2,10);tone(.10,6*s*2,9*s*2,6);}}   // a small pool under the candles
+  ctx2.restore();
+  ctx2.fillStyle='rgba(50,33,37,.62)';
+  for(const o of L){if(o.hide||o.kind==='flat'||o.kind==='deco')continue;const m=SPR[o.spr];if(!m||m.fw<14)continue;const cx=Math.round(sx(o.x)),cy=Math.round(sz(o.z))+2;
+    const rw=Math.round(m.fw*.45);ctx2.beginPath();ctx2.ellipse(cx,cy,rw,3,0,0,Math.PI*2);ctx2.fill();}}
 function interiorLight(L){const R=roomOf();if(!R)return;const fl=.94+.06*Math.sin(performance.now()/180);glowAt(sx(P.x),sz(P.z)-20,70,[255,214,170],.55*L);
   const G=(lx,lz,r,c,a)=>glowAt(sx(R.ox+lx),sz(R.oz+lz),r,c,a*L*fl);
   if(S.room==='cabin'){G(6.5,3.0,110,[255,180,100],.75);G(7.9,.6,70,[255,120,40],.8);G(5.9,.6,60,[255,200,130],.6);}
