@@ -500,6 +500,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   "racks", a plain backless bench read at once: a pale seat plank (the lightest wood in the room), a dark band under its lip,
   a closed apron to a dark plinth. When a piece's camera angle hides what makes it that piece, change the piece.
 
+## Steps (owner, Nov 10: "steps need to be fixed")
+- Steps read as steps by their silhouette: each lower step juts out a few pixels so the sides zig-zag, and each step's end
+  shows its own face. Even tread-and-riser bands boxed in by cheek walls or stringers read as a slatted crate or a grate.
+- Deep pale treads with the nosing brightest, short dark risers with a black line under each lip: the contrast between
+  tread and riser is what climbs. Keep a flight as wide as the gap it fills (the inn rail), or it reads as a box set in it.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).

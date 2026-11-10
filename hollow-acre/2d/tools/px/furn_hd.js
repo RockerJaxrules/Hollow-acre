@@ -2600,6 +2600,33 @@ if(K==='chbench'||K==='chbenchs'||K==='chbenchb'){const base=H-3,Pn=RAMP.pine,Wn
   for(const ex of [x0,x0+w-3])for(let y=top+8;y<base;y++){P(A,ex,y,Wn[ex===x0?4:1]);P(A,ex+1,y,Wn[3]);P(A,ex+2,y,Wn[ex===x0?2:0]);}   // the slab ends
   if(K==='chbenchb'){const bx=x0+(w>>1)-8,by=top+1;rect(A,bx,by,9,4,RAMP.red[3]);hl(A,bx,by,9,RAMP.red[5]);hl(A,bx,by+4,9,RAMP.red[1]);P(A,bx+8,by+2,RAMP.cream[4]);}   // a hymnal left on the seat
   for(let x=x0-2;x<x0+w+4;x++){SH(x,base,160);SH(x,base+1,110);SH(x+1,base+2,60);}}
+// =================================================================================== steps (owner: "steps need to be fixed"): every flight drawn as real steps, a lit tread with a bright nosing, a dark riser with the shadow line under the lip, each lower step a little wider, cheek walls (stone) or stringers (wood) at the sides, a shadow on the ground
+const STN=hexR(['#2a2a2e','#45454b','#606067','#7c7b80','#99979a','#b5b2b2','#cfcbc8']),SWD=hexR(['#2b1e14','#4a3626','#6b5038','#86643f','#a07a50','#b88f60','#cfa874']);
+function drawFlight(xl,xr,top,base,n,mat,o){o=o||{};const R=mat==='stone'?STN:SWD,cheek=!!o.cheek,cw=mat==='stone'?4:2,spread=o.spread??3;
+  const land=o.land||5,per=Math.floor((base-top-land)/n),rh=Math.max(2,Math.floor(per*.36)),th=per-rh;let y=top;
+  const tread=(i,ty,tH)=>{const ex=i*spread,x0=xl-ex,x1=xr+ex;
+    for(let yy=ty;yy<ty+tH;yy++)for(let x=x0;x<=x1;x++){let k=yy===ty+tH-1?6:yy>=ty+tH-2?5:4;if(yy===ty&&i>0)k=3;   // the tread: pale, its nosing brightest
+      if(mat==='wood'){if(((x-x0)+i*7)%17===0&&yy<ty+tH-1)k=3;if((x===x0+2||x===x1-2)&&yy===ty+1)k=1;}   // board joints, nail heads
+      else{if((x-x0+i*5)%13===0&&yy<ty+tH-1)k=3;if(hsh(x,yy,62)>.94)k=Math.max(3,k-1);}   // slab joints, chips
+      if(Math.abs(x-(x0+x1)/2)<(x1-x0)*.16&&yy>ty&&yy<ty+tH-1)k=mat==='stone'?6:3;   // worn in the middle
+      if(x===x0)k=6;if(x===x1)k=Math.max(2,k-2);P(A,x,yy,R[k]);}
+    if(mat==='stone'&&i>0){const mx=x0+3+Math.floor(hsh(i,1,63)*(x1-x0-6));P(A,mx,ty,RAMP.olive[3]);P(A,mx+1,ty,RAMP.olive[2]);}};   // moss at the back of a tread
+  const riser=(i,ry,rH)=>{const ex=i*spread,x0=xl-ex,x1=xr+ex;for(let yy=ry;yy<ry+rH;yy++)for(let x=x0;x<=x1;x++){let k=yy===ry?0:1;if(x===x0)k=2;P(A,x,yy,R[k]);}
+    if(spread>0)for(let yy=ry-th+1;yy<ry+rH;yy++){for(let s2=1;s2<=spread;s2++){if(yy<ry){continue;}}}};
+  tread(0,y,land);y+=land;for(let i=1;i<=n;i++){riser(i-1,y,rh);y+=rh;tread(i,y,th);y+=th;}riser(n,y,Math.max(1,base-y));
+  // the stepped ends: below each tread, the step's own end face juts out, lit on the left, dark on the right
+  if(spread>0){let yy=top+land;for(let i=1;i<=n;i++){const ex=i*spread;for(let q=0;q<rh+th;q++){for(let s2=0;s2<spread;s2++){P(A,xl-ex+s2,yy+q,R[q<rh?2:(s2===0?6:5)]);P(A,xr+ex-s2,yy+q,R[q<rh?0:1]);}}yy+=rh+th;}}
+  if(cheek){for(const side of [-1,1]){for(let yy=top-(o.post||0);yy<base;yy++){const cx0=side<0?xl-cw:xr+1;for(let i=0;i<cw;i++){let k=side<0?(i===0?5:3):(i===cw-1?1:2);if(yy===top-(o.post||0))k=6;P(A,cx0+i,yy,R[k]);}}}}
+  const gx0=xl-n*spread-(cheek?cw:0)-1,gx1=xr+n*spread+(cheek?cw:0)+2;for(let x=gx0;x<=gx1;x++){SH(x,base,170);SH(x,base+1,120);SH(x+1,base+2,60);}}
+{const m=/^fstep([sw])(\d+)$/.exec(K);if(m){const mat=m[1]==='s'?'stone':'wood',dw=+m[2],cx=W>>1;drawFlight(cx-(dw>>1)-1,cx+(dw>>1),1,27,3,mat,{land:5,spread:3});}}
+{const m=/^framp(\d+)$/.exec(K);if(m){const dw=+m[1],cx=W>>1,R=SWD,top=1,base=27;   // a plank ramp to a barn or garage door: boards running down the slope, cleats across them for grip, a beam down each side
+  for(let y=top;y<base;y++){const t=(y-top)/(base-top),hw=Math.round((dw>>1)+2+t*3);for(let x=cx-hw;x<=cx+hw;x++){const b=Math.floor((x-cx+hw)/6);let k=(x-cx+hw)%6===0?2:(hsh(b,3,64)>.5?4:3);if(y%6===3)k=6;if(y%6===4)k=1;
+      if(x<=cx-hw+1)k=5;if(x>=cx+hw-1)k=1;if(Math.abs(x-cx)<5&&hsh(x,y,65)>.82&&y%6!==3)k=2;P(A,x,y,R[k]);}}   // planks, cleats lit on top and shadowed under
+  for(let x=cx-(dw>>1)-6;x<=cx+(dw>>1)+7;x++){SH(x,base,160);SH(x,base+1,110);SH(x+1,base+2,55);}}}
+if(K==='tstepsw'){const base=44;drawFlight(16,W-17,2,base,7,'wood',{land:4,spread:1});   // the wooden stairs up the terrace wall: seven steps, each lower one a little wider, a handrail post at each side of the foot
+  for(const px of [6,W-8]){for(let y=base-14;y<base;y++){P(A,px,y,SWD[px<20?5:2]);P(A,px+1,y,SWD[px<20?4:1]);}rect(A,px-1,base-15,4,2,SWD[px<20?6:3]);}}
+if(K==='innsteps2'){drawFlight(3,W-4,1,27,3,'wood',{land:4,spread:0});for(const px of [2,W-3])for(let y=1;y<27;y++){P(A,px,y,SWD[px<5?5:1]);}}   // (steps fix) as wide as the gap in the porch rail, a stringer edge each side   // three wooden steps from the deck down to the sidewalk, stringers at their sides
+if(K==='innstoop2'){drawFlight(10,W-11,1,H-3,2,'wood',{land:5,spread:3});}   // two steps up from the deck to the door sill
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
 for(const f of NOOL)for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(f(x,y))for(const L of [O,O2])L.d[(y*W+x)*4+3]=0;
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));
