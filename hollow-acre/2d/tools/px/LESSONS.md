@@ -471,6 +471,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors b36] Check every edit script's asserts before trusting the build: one failed match aborted a whole edit while
   later steps in the same command ran against the old files and placed a sprite that did not exist yet.
 
+- [interiors b37] A plank wall over a plank floor of the same brown reads as one field and says shed, not cellar: a cellar wall
+  is rough fieldstone, cooler and a step lighter than the floor, with a dark line at its foot.
+- [interiors b37] A small anvil seen from the front reads as a grey lump on a crate: draw it big and side-on, horn out to one
+  side, the waist and feet showing, a hammer on the face.
+- [interiors b37] A daytime floor near-black from edge to edge reads as a void: keep the vignette but lift the floor a step.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).

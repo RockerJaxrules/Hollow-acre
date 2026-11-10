@@ -2556,13 +2556,16 @@ if(K==='firetools'){const base=H-3,R=RAMP.pine;   // the ranger's fire tools in 
   pole(W-11,9);rect(A,W-15,1,10,9,RAMP.charcoal[2]);hl(A,W-15,1,10,RAMP.charcoal[4]);for(let y=2;y<10;y+=2)hl(A,W-14,y,8,RAMP.charcoal[1]);   // the beater's rubber flap
   cast(3,W-4,base);}
 // =================================================================================== judge b35
-if(K==='smithcorner'){const base=H-3,I=RAMP.iron,Wd=RAMP.oak;   // a smith's work corner: an anvil on a stump, a hammer lying on its face, the quench bucket pushed up against the stump
-  {const sx=16,sy=base-12;for(let y=sy;y<base;y++)for(let x=-8;x<=8;x++){let k=x<-6?4:x>6?1:3;if((y-sy)%4===0&&Math.abs(x)<6)k=2;P(A,sx+x,y,Wd[k]);}for(let x=-8;x<=8;x++)P(A,sx+x,sy,Wd[5]);   // the stump
-    const ay=sy-7;rect(A,sx-9,ay,19,3,I[3]);hl(A,sx-9,ay,19,I[5]);for(let x=10;x<15;x++)P(A,sx+x,ay+(x-10>>1),I[3]);P(A,sx+14,ay+2,I[2]);rect(A,sx-4,ay+3,8,4,I[2]);vl(A,sx-4,ay+3,4,I[4]);rect(A,sx-7,ay+6,14,2,I[1]);   // the anvil: face, horn, waist, foot
-    hl(A,sx-6,ay-1,9,RAMP.walnut[4]);hl(A,sx-6,ay-2,9,RAMP.walnut[2]);rect(A,sx+3,ay-4,4,4,I[4]);hl(A,sx+3,ay-4,4,I[5]);   // the hammer laid on the face
-    for(const [hx,hy] of [[sx-12,base-2],[sx-6,base-1]]){for(let a=0;a<12;a++){const t=a/11*Math.PI*1.4-.2;P(A,hx+Math.round(Math.cos(t)*3),hy-Math.round(Math.sin(t)*2),I[a<6?4:2]);}}}   // (b36) horseshoes dropped at its foot
-  {const bx=W-11,by=base-13;rect(A,bx-7,by,14,13,Wd[3]);vl(A,bx-7,by,13,Wd[4]);vl(A,bx+6,by,13,Wd[1]);for(const hy of [by+2,by+9])hl(A,bx-7,hy,14,I[3]);ell(A,bx,by,7,2,I[1]);ell(A,bx,by,5,1,RAMP.glass[2]);P(A,bx-2,by,RAMP.glass[4]);}   // the quench bucket, water dark
-  cast(6,W-3,base);}
+if(K==='smithcorner'){const base=H-3,I=RAMP.iron,Wd=RAMP.oak;   // (b37: "a grey lump on a crate") a smith's corner: a big anvil side-on on its stump, horn to the left, a hammer on the face, the quench bucket touching the stump, horseshoes on the floor
+  const sx=24,sy=base-12;for(let y=sy;y<base;y++)for(let x=-9;x<=9;x++){let k=x<-7?4:x>7?1:3;if((y-sy)%4===0&&Math.abs(x)<7)k=2;P(A,sx+x,y,Wd[k]);}for(let x=-9;x<=9;x++)P(A,sx+x,sy,Wd[5]);   // the stump
+  const ay=sy-10,fl=sx-11,fr=sx+13;rect(A,fl,ay,fr-fl,4,I[3]);hl(A,fl,ay,fr-fl,I[5]);hl(A,fl,ay+3,fr-fl,I[1]);   // the face
+  for(let i=0;i<12;i++){const t=i/12,hh=Math.max(1,Math.round(4*(1-t)));for(let j=0;j<hh;j++)P(A,fl-1-i,ay+j+Math.round(t*1.5),I[j===0?5:j===hh-1?1:3]);}   // the horn, tapering left
+  rect(A,fr-3,ay,3,6,I[2]);P(A,fr-2,ay+4,I[0]);                                                                                 // the heel and its hardy hole
+  for(let y=ay+4;y<ay+8;y++){const hw=Math.round(5-(y-ay-4)*.5);for(let x=-hw;x<=hw;x++)P(A,sx+1+x,y,I[x<0?4:2]);}rect(A,sx-8,ay+8,19,2,I[2]);hl(A,sx-8,ay+8,19,I[4]);   // the waist and the feet
+  hl(A,sx-6,ay-2,10,RAMP.walnut[4]);hl(A,sx-6,ay-1,10,RAMP.walnut[2]);rect(A,sx+4,ay-5,5,4,I[4]);hl(A,sx+4,ay-5,5,I[5]);   // the hammer on the face
+  {const bx=sx+17,by=base-13;rect(A,bx-6,by,13,13,Wd[3]);vl(A,bx-6,by,13,Wd[4]);vl(A,bx+6,by,13,Wd[1]);for(const hy of [by+2,by+9])hl(A,bx-6,hy,13,I[3]);ell(A,bx,by,6,2,I[1]);ell(A,bx,by,4,1,RAMP.glass[2]);P(A,bx-2,by,RAMP.glass[4]);}   // the bucket against the stump
+  for(const [hx,hy] of [[sx-14,base-1],[sx-8,base]]){for(let a=0;a<12;a++){const t=a/11*Math.PI*1.4-.2;P(A,hx+Math.round(Math.cos(t)*3),hy-Math.round(Math.sin(t)*2),I[a<6?4:2]);}}
+  cast(4,W-3,base);}
 if(K==='tinsign'){const Rr=RAMP.red;   // (wall) an enamel tin sign, MOTOR OIL, the corners rusted through round the nail holes
   rect(A,1,1,W-2,H-2,Rr[3]);frame(A,1,1,W-2,H-2,Rr[5],Rr[1]);rect(A,3,3,W-6,H-6,RAMP.cream[4]);drawText(A,'MOTOR',(W>>1)-10,4,Rr[2]);drawText(A,'OIL',(W>>1)-6,10,Rr[2]);
   for(const [cx,cy] of [[2,2],[W-3,2],[2,H-3],[W-3,H-3]]){P(A,cx,cy,RAMP.charcoal[1]);for(let i=0;i<3;i++)P(A,cx+(cx<5?i:-i),cy+(cy<5?1:-1)*((i+1)>>1),RAMP.rust[2+(i%2)]);}
