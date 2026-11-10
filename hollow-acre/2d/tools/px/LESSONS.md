@@ -521,6 +521,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   each side (two different ones, not mirror twins), a lidded font with a cross, and a pale stone floor so the dark wood stands out.
 - [judging] When two rounds flip with the slot (new wins in b, loses in a), the rooms are tied: judge the next change in both
   orders at once, and count it only when both prefer it.
+- [props sweep] Flat ground pieces (mud, tarps) must have NO outline and no lit ring parallel to their edge: an outline and
+  a pale terrace make them a raised pancake. Wet is darker than dry, never paler. Hedges are leaf clumps lit on the upper left
+  with a quiet middle, never single-pixel noise; pieces that tile need no outline across the joining edge.
+- [props sweep] A jack-o'-lantern reads when the skin is dull brown-orange and the carved holes are the brightest thing. A
+  marble is a round 4 px ball with one glint (a plus-shaped 3 px "ball" reads as a gem sparkle). A child's toy needs the one
+  silhouette part that names it (a horse's long muzzle and two ears; a shoe's pale sole, laces and ankle opening).
 
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
