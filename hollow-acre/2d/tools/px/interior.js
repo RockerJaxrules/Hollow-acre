@@ -147,7 +147,9 @@ if(K==='table'){topBox(3,10,W-6,12,5,WD);for(const x of [5,W-9])post(A,x,27,4,H-
 if(K==='chair'){rect(A,4,2,W-8,16,WD[2]);frame(A,4,2,W-8,16,WD[4],WD[0]);for(let x=7;x<W-7;x+=4)vl(A,x,4,12,WD[1]);topBox(3,18,W-6,6,3,WD);for(const x of [4,W-7])post(A,x,27,3,H-30);gs(cx+2,base,W/2-2|0,2,70);}
 if(K==='stove'){const ir=PAL.slate;topBox(3,14,W-6,9,H-30,ir,ir[1]);for(const x of [10,W-16]){ell(A,x+3,18,4,2,ir[0]);ell(A,x+3,18,2,1,ir[2]);}
   rect(A,cx-1,0,4,14,ir[2]);vl(A,cx-1,0,14,ir[4]);rect(A,cx-8,30,16,12,ir[0]);frame(A,cx-8,30,16,12,ir[3],ir[0]);
-  for(let i=0;i<14;i+=3)rect(A,cx-7+i,33,2,6,N?PAL.lit[3]:PAL.rust[2]);rect(A,cx-4,46,8,2,PAL.brass[2]);for(const x of [5,W-9])post(A,x,H-10,4,8);gs(cx+3,base,W/2-2|0,3,80);}
+  // (judge: the fire lights nothing, the grill was dull red) the grill glows: hot slots behind dark bars, the brightest in the room
+  rect(A,cx-7,32,14,8,PAL.lit[2]);for(let i=0;i<14;i++){P(A,cx-7+i,36,PAL.lit[4]);P(A,cx-7+i,37,PAL.lit[3]);}for(let i=0;i<14;i+=3)vl(A,cx-7+i+2,32,8,ir[0]);
+  hl(A,cx-8,43,16,PAL.lit[1]);rect(A,cx-4,46,8,2,PAL.brass[2]);for(const x of [5,W-9])post(A,x,H-10,4,8);gs(cx+3,base,W/2-2|0,3,80);}
 // ---- 3/4 cabinet: a lit top you look down on, a front frame, a recessed dark back, each shelf board lit on its top edge, items shading the back behind them
 function cabinet(x0,y0,w,h,top,R,inner){rect(A,x0,y0,w,top,R[4]);hl(A,x0,y0,w,R[5]||R[4]);hl(A,x0,y0+top-1,w,R[2]);for(let i=x0+5;i<x0+w-3;i+=9)P(A,i,y0+2,R[3]);
   rect(A,x0,y0+top,w,h-top,R[2]);vl(A,x0,y0+top,h-top,R[3]);vl(A,x0+1,y0+top,h-top,R[3]);vl(A,x0+w-2,y0+top,h-top,R[1]);vl(A,x0+w-1,y0+top,h-top,R[0]);hl(A,x0,y0+h-1,w,R[0]);
@@ -246,7 +248,7 @@ if(K==='counter'){ // shop counter with a till, a bell and a jar of candy
 if(K==='crates'){topBox(2,8,W/2-2,7,H-18,WD);topBox(W/2+1,14,W/2-3,7,H-24,WD);for(const [x,w,y] of [[2,W/2-2,15],[W/2+1,W/2-3,21]]){for(let i=0;i<w-4;i++)P(A,x+2+i,y+3+Math.round(i*(H-y-12)/(w-4)),WD[4]);}
   for(let i=0;i<4;i++)ell(B,8+i*6,7,3,2,PAL.rust[4]);gs(cx+3,base,W/2-2|0,3,80);}
 if(K==='pew'){const x0=2,w=W-4;rect(A,x0,2,w,16,WD[2]);frame(A,x0,2,w,16,WD[4],WD[0]);hl(A,x0,2,w,WD[5]);topBox(x0,18,w,7,4,WD);
-  for(const x of [x0,x0+w-6])post(A,x,2,6,H-6);for(let x=x0+8;x<x0+w-8;x+=26){rect(B,x,12,8,3,PAL.red[2]);}gs(cx+3,base,W/2-2|0,2,70);}
+  for(const x of [x0,x0+w-6])post(A,x,2,6,H-6);for(let x=x0+8;x<x0+w-8;x+=26){rect(B,x,11,7,4,PAL.slate[2]);hl(B,x,11,7,PAL.cream[2]);vl(B,x+6,11,4,PAL.slate[0]);}/* hymnals: red dashes read as blood */gs(cx+3,base,W/2-2|0,2,70);}
 if(K==='altar'){topBox(4,22,W-8,10,H-36,TR,TR[3]);for(let x=8;x<W-8;x+=12)vl(A,x,34,H-40,TR[2]);rect(B,cx-14,24,28,6,PAL.red[2]);hl(B,cx-14,24,28,PAL.red[4]);
   for(const x of [10,W-14]){rect(B,x,8,4,14,PAL.cream[3]);P(B,x+1,5,N?PAL.lit[5]:PAL.lit[3]);P(B,x+2,6,PAL.lit[4]);rect(B,x-1,21,6,2,PAL.brass[2]);}
   // the ledger, open
@@ -284,8 +286,12 @@ if(K==='hearth'){const ST=PAL.stone,x0=4,w=W-8,top=6;
   for(const [x,c] of [[x0+4,PAL.cream],[x0+w-9,PAL.cream]]){rect(B,x,top+9,3,7,c[3]);P(B,x+1,top+8,N?PAL.lit[5]:PAL.lit[3]);}
   const fx=cx-13,fy=top+28,fw=26,fh=H-fy-10;for(let y=0;y<fh;y++)for(let x=0;x<fw;x++){const r=fw/2;if(y<r&&(x-r+.5)**2+(r-y)**2>r*r)continue;P(A,fx+x,fy+y,PAL.ink[0]);}
   for(let x=4;x<fw-4;x++){P(A,fx+x,fy+fh-3,WD[1]);P(A,fx+x,fy+fh-4,WD[2]);}
-  const F=N?[PAL.lit[2],PAL.lit[3],PAL.lit[4],PAL.lit[5]]:[PAL.lit[1],PAL.lit[2],PAL.lit[3],PAL.lit[4]];
-  for(let i=0;i<9;i++){const x=fx+6+i*1.6|0,h=5+(hsh(i,1,7)*7|0);for(let j=0;j<h;j++)P(B,x,fy+fh-5-j,F[Math.min(3,(j*4/h|0)===0?3:3-(j*4/h|0))]);}
+  // (judge: vertical bars read as a heater grate, and lit nothing) the firebox is warm inside, three flame tongues rise off the log,
+  // deep orange at the edge to a pale core, the brightest pixels in the room, embers glowing on the hearth floor
+  for(let y=fy+fh-14;y<fy+fh-2;y++)for(let x=fx+3;x<fx+fw-3;x++){const t=(y-(fy+fh-14))/12;if(t>.35)P(A,x,y,t>.75?PAL.rust[2]:PAL.rust[1]);}
+  for(let x=fx+5;x<fx+fw-5;x++){P(A,fx+0+x-fx,fy+fh-5,PAL.lit[2]);}
+  for(const [ox,hgt] of [[-6,10],[0,14],[6,11]]){const bx=fx+fw/2+ox|0,by=fy+fh-6;for(let j=0;j<hgt;j++){const t=j/hgt,hw=Math.max(0,Math.round((1-t)*2.6-(t>.7?.6:0)));const sway=Math.round(Math.sin(j*.7+ox)*(t>.4?1:0));
+      for(let i=-hw;i<=hw;i++){const e=Math.abs(i)/(hw+.01);P(B,bx+i+sway,by-j,e>.66?PAL.lit[1]:(e>.3||t>.7)?PAL.lit[3]:PAL.lit[5]);}}}
   rect(A,x0-6,H-7,w+12,4,ST[3]);hl(A,x0-6,H-7,w+12,ST[5]);hl(A,x0-6,H-4,w+12,ST[1]);gs(cx,base,W/2|0,2,60);}
 // ---- the cabin furniture turned, for placing it facing another way. These are the east-facing views; west is the same art flipped.
 // chair from its side: the back upright on the left (a post from the floor to the top rail), the seat running toward where it faces

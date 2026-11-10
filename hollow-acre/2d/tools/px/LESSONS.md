@@ -249,6 +249,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors baseline] A room deeper than the screen shows only floor from the door: open on the back wall and pan down.
   Judge rooms from a few steps in, where the walls are in view.
 
+- [process] An old/new pair must load the OLD sprites: the scratch build shares one sprite pack set, so a copy of the old
+  page still draws the new art. Export the last commit (git archive spr + index.html) and serve it from its own folder.
+- [interiors r2] A fire lights nothing until the source glows: flame tongues (deep orange edge, pale core) and a hot grill
+  must be the brightest pixels in the room before any floor light. Vertical bars read as a heater grate.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).
