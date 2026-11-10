@@ -423,6 +423,16 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors b30] Numbers on archive boxes are read as room numbers and checked against the story (52-63 in a seven-room
   motel); label boxes with scribble unless the number means something.
 
+- [interiors b31] Overlay light turns brown boards red ("a rust stain", "a blood smear"); additive yellow-amber (255,190,80 then
+  255,220,140, strong) lifts wood toward gold. Check a light colour on the actual floor before judging it.
+- [interiors b31] A lamp's pool drawn at the foot of a counter shows only as a crescent below its front: it reads as a smear.
+  No pool under a piece that hides most of it.
+- [interiors b31] The player's own lantern throws shadow wedges away from the player; in a windowless room they read as beams.
+- [interiors b31] A camera that follows the player never shows the far end of a wide shop: a piece placed there doesn't exist
+  for the judge. Check the screenshot before saying a fix is in.
+- [interiors b31] Generated dressing (a wall stub making an L-shaped nook) can appear when furniture moves out of its way:
+  re-check the whole room after moving a big piece.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).

@@ -22,7 +22,7 @@ const SHOPS_BIG={
   shop_carp:{shell:'room_shop_carp3',back:13.4,till:[11.4,3.6],counter:[11.4,5.4],lamp:[7.5,2.4],keeper:'nell',
     browse:[[4.6,5.0],[13.2,7.8],[8.6,1.6]],
     furn:[['lumber',1.2,1.3,[-.75,-.35,.75,0]],['lumber',1.2,2.8,[-.75,-.35,.75,0]],F('bench_furn',4.4,1.15,.45),FL('in_shavings',4.4,1.9),W_('in_clamprack',8.4,-.45),F('in_lathe',11,1.6,.4),F('in_plankrack',13.9,2.0,.4),
-      F('in_sawplank',6.0,4.4,.3),F('in_ctr_carp',11.4,4.6,.6),F('in_chairstack',14.2,4.2,.4),F('in_coffin',10.0,7.8,.4),
+      F('in_sawplank',6.0,4.4,.3),F('in_ctr_carp',11.4,4.6,.6),F('in_chairstack',14.2,4.2,.4),F('in_coffinlids',9.4,1.0,.3),
       F('in_table',13.2,7.0,.45),F('in_chair',12,7.05,.25),F('in_chair',14.4,7.05,.25),F('in_rocker',1.4,6.6,.3),F('in_lumberstack',1.0,4.3,.3),F('in_lumberstack',3.0,5.6,.3),F('in_cradle',3.0,7.0,.3),F('in_plant',.8,8.3,.25),F('in_desk',4.6,7.8,.45),['lumber',13.8,8.3,[-.75,-.35,.75,0]],F('in_shelf_books',2.4,.62,.4)]},
   shop_feed:{shell:'room_shop_feed3',back:13.4,till:[11.4,3.4],counter:[11.4,5.2],lamp:[7.5,2.2],keeper:'ezra',
     browse:[[6.6,3.0],[4.9,5.6],[14.2,4.2]],

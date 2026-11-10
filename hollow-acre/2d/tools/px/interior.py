@@ -32,7 +32,7 @@ ROOMS = {
   'priv_garage': dict(w=7, d=5, door=3.5, theme='home', wall='panel', floor='wide', windows=[[4.3, 0]], sunY=40, mat='slate'),
   'priv_forge': dict(w=7, d=5, door=3.5, theme='home', wall='log', floor='flag', windows=[[2, 0]], mat='rust'),
   'priv_carp': dict(w=7, d=5, door=3.5, theme='home', wall='panel', floor='wide', windows=[[3.5, 0]], sunY=36, mat='mustard'),
-  'priv_feed': dict(w=7, d=5, door=3.5, theme='home', wall='log', floor='planks', windows=[[2, 0], [5, 0]], mat='sage'),
+  'priv_feed': dict(w=7, d=5, door=3.5, theme='home', wall='log', floor='planks', windows=[[2, 0], [5, 0]], sunY=40, mat='sage'),
   'priv_lusk': dict(w=7, d=5, door=3.5, theme='home', wall='plaster', paper='bark', floor='checker', chk='bark', windows=[[5.2, 0]], mat='red'),
   'priv_harlow': dict(w=7, d=5, door=3.5, theme='home', wall='damask', paper='red', floor='parquet', wains='bead', windows=[[2, 0], [5, 0]], mat='curtain'),
   'priv_ashby': dict(w=7, d=5, door=3.5, theme='home', wall='stripe', paper='blue', floor='checker', chk='blue', windows=[[2, 0], [5, 0]], mat='blue'),
