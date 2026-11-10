@@ -24,8 +24,10 @@ function concrete(L,x0,y0,w,h){ /* (b10) poured slabs, not speckle: each slab on
   /* (b14: round black blots read as holes) no oil stains in the shell: the car drips its own */}
 function wallpaper(L,x0,y0,w,h,R,stripe){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){let k=2;const u=(x-x0)%stripe;if(u<2)k=3;if(u===stripe>>1)k=1;if((y-y0)%14===7&&u===stripe>>2)k=3;if(hsh(x>>3,y>>3,8)>.92)k=1;P(L,x,y,R[k]);}}
 function brick(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=Math.floor((y-y0)/6),o=r%2?6:0,b=(x-x0+o)%12;let c=R[(hsh(Math.floor((x-x0+o)/12),r,5)>.6)?3:2];if(b===0||(y-y0)%6===5)c=R[0];else if((y-y0)%6===0)c=R[4];P(L,x,y,c);}}
-function plaster(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const n=hsh(x>>3,(y+(x>>4))>>3,5)*.7+hsh(x,y,6)*.3;P(L,x,y,R[n>.8?4:n<.12?2:3]);}
-  for(let i=0;i<4;i++){const cx=x0+hsh(i,4,2)*w|0,cy=y0+8+hsh(i,5,2)*(h-16)|0;for(let k=0;k<14;k++)P(L,cx+k-(k>>2),cy+(k>>1)+(k%3===0?1:0),R[1]);}}
+function plaster(L,x0,y0,w,h,R){   /* (b14/b19: "speckled wallpaper is banned grit") soft broad patches in two close tones, no per-pixel noise, two hairline cracks */
+  const vn=(x,y,sd)=>{const gx=x/26,gy=y/18,ix=Math.floor(gx),iy=Math.floor(gy),fx=gx-ix,fy=gy-iy,a=hsh(ix,iy,sd),b=hsh(ix+1,iy,sd),c=hsh(ix,iy+1,sd),d=hsh(ix+1,iy+1,sd),u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;};
+  for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const n=vn(x-x0,y-y0,5);P(L,x,y,n<.32?mixC(R[3],R[2],.45):n>.78?mixC(R[3],R[4],.35):R[3]);}
+  for(let i=0;i<2;i++){let cx=x0+(hsh(i,4,2)*w|0),cy=y0+6+(hsh(i,5,2)*(h-20)|0);for(let k=0;k<16;k++){P(L,cx,cy,mixC(R[2],R[1],.5));cx+=k%3===2?1:0;cy+=1;if(k===7){P(L,cx+1,cy,mixC(R[2],R[1],.5));P(L,cx+2,cy+1,mixC(R[2],R[1],.5));}}}}
 function windowW(L,x,y,w,h,arched){if(arched==='lancet'){const ah=Math.round(w*.87);rect(L,x-3,y+ah,w+6,h-ah+4,TR[3]);vl(L,x-3,y+ah,h-ah+4,TR[5]);vl(L,x+w+2,y+ah,h-ah+4,TR[1]);}else{rect(L,x-3,y-3,w+6,h+7,TR[3]);frame(L,x-3,y-3,w+6,h+7,TR[5],TR[1]);}
   if(arched==='lancet'){const ah=Math.round(w*.87);   /* (judge b10: "house windows") a pointed lancet, leaded diamond quarries, a few dull coloured panes */
     for(let j=0;j<h;j++)for(let i=0;i<w;i++){const u=i+.5,v=ah-j;if(j<ah&&((u-w)*(u-w)+v*v>w*w||u*u+v*v>w*w))continue;const p=Math.floor((i+j)/6),q=Math.floor((i-j+90)/6),hp=hsh(p,q,23);
@@ -175,7 +177,21 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   const picture=(x,y,w,h,k)=>{wallShadow(x,y,w,h);rect(B,x,y,w,h,WD[3]);frame(B,x,y,w,h,WD[5],WD[0]);const C=[[PAL.sage,PAL.mustard],[PAL.blue,PAL.cream],[PAL.rust,PAL.slate]][k%3];
     for(let j=2;j<h-2;j++)for(let i=2;i<w-2;i++){const t=j/(h-2);P(B,x+i,y+j,t<.55?C[0][3]:C[1][2]);}hl(B,x+2,y+Math.round(h*.55),w-4,C[1][1]);if(k%2)ell(B,x+(w>>1),y+(h>>1)-1,2,3,C[1][0]);P(B,x+(w>>1),y-2,PAL.slate[4]);};
   const wins=(R.windows||[]).map(w=>w[0]);const gapsAt=[];for(let c=1;c<R.w;c++){if(wins.every(w=>Math.abs(w-c)>1.1)&&Math.abs(c-R.door)>.5&&(R.doors||[]).every(d=>Math.abs(d[0]-c)>1.3))gapsAt.push(c);}
-  if(R.theme==='cabin'||R.theme==='home'){gapsAt.slice(0,3).forEach((c,i)=>{const px=x0+c*32-9;i===1?(()=>{const sx=px-6;wallShadow(sx,40,30,3);rect(B,sx,40,30,3,WD[4]);hl(B,sx,40,30,WD[5]);
+  /* (b19: "the same small picture and four-jar ledge in seven rooms") each room draws its own wall things from a set, by its name */
+  const RH=(()=>{let h=2166136261;for(const c of (CFG.name||'').replace(/_n$/,''))h=Math.imul(h^c.charCodeAt(0),16777619)>>>0;return (h>>>8)&0xffff;})(),WK=['picture','ledge','clock','mirror','sampler','hooks','horseshoe'];
+  const wallThing=(kind,px,i)=>{
+    if(kind==='clock'){const cx=px+9,cy=36;wallShadow(cx-7,cy-7,14,14);for(let y=-7;y<=7;y++)for(let x=-7;x<=7;x++){const d=x*x+y*y;if(d>49)continue;P(B,cx+x,cy+y,d>30?(x<0?PAL.brass[4]:PAL.brass[2]):PAL.cream[d<9?4:3]);}vl(B,cx,cy-4,4,PAL.slate[1]);hl(B,cx,cy,3,PAL.slate[1]);P(B,cx,cy-9,PAL.slate[4]);return;}
+    if(kind==='mirror'){const cx=px+9,cy=36;wallShadow(cx-6,cy-9,12,18);for(let y=-9;y<=9;y++)for(let x=-6;x<=6;x++){const d=x*x/36+y*y/81;if(d>1)continue;P(B,cx+x,cy+y,d>.72?WD[x<0?5:2]:(N?PAL.ink[1]:PAL.glass[(x-y)%7===0?5:3]));}return;}
+    if(kind==='sampler'){const x=px-2,y=26;wallShadow(x,y,22,18);rect(B,x,y,22,18,WD[4]);frame(B,x,y,22,18,WD[5],WD[1]);rect(B,x+2,y+2,18,14,PAL.cream[4]);for(let k=0;k<9;k++){P(B,x+3+k*2,y+3,PAL.red[3]);P(B,x+3+k*2,y+14,PAL.red[3]);}
+      rect(B,x+7,y+8,8,5,PAL.rust[3]);for(let k=0;k<5;k++)hl(B,x+6+k,y+7-k+(k>2?2*(k-2):0),1,PAL.sage[2]);hl(B,x+6,y+7,10,PAL.slate[2]);P(B,x+10,y+11,PAL.ink[0]);return;}
+    if(kind==='hooks'){const x=px-4,y=30;wallShadow(x,y,26,4);rect(B,x,y,26,4,WD[4]);hl(B,x,y,26,WD[5]);for(const k of [4,13,21]){P(B,x+k,y+4,PAL.slate[4]);P(B,x+k,y+5,PAL.slate[2]);}
+      rect(B,x+1,y+5,7,13,PAL.olive?PAL.olive[3]:PAL.sage[2]);hl(B,x+1,y+5,7,PAL.sage[4]);rect(B,x+10,y+6,6,3,PAL.slate[2]);hl(B,x+9,y+9,8,PAL.slate[3]);return;}
+    if(kind==='horseshoe'){const cx=px+9,cy=36;for(let a=0;a<16;a++){const t=a/15*Math.PI*1.3-Math.PI*1.15;P(B,cx+Math.round(Math.cos(t)*5),cy+Math.round(Math.sin(t)*6),PAL.slate[a<8?4:2]);P(B,cx+Math.round(Math.cos(t)*4),cy+Math.round(Math.sin(t)*5),PAL.slate[1]);}P(B,cx,cy-8,PAL.slate[4]);return;}
+    if(kind==='ledge'){const sx=px-6;wallShadow(sx,40,30,3);rect(B,sx,40,30,3,WD[4]);hl(B,sx,40,30,WD[5]);
+      for(let k=0;k<4;k++){const jx=sx+3+k*7;rect(B,jx,32,5,8,[PAL.rust,PAL.sage,PAL.mustard,PAL.glass][(k+RH)%4][3]);hl(B,jx,31,5,PAL.brass[2]);P(B,jx+1,34,PAL.white[5]);}return;}
+    picture(px,26,18,22,i+RH);};
+  if(R.theme==='cabin'||R.theme==='home'){gapsAt.slice(0,R.w<8?2:3).forEach((c,i)=>{const px=x0+c*32-9;wallThing(WK[(RH+i*3)%WK.length],px,i);});}
+  if(false){gapsAt.slice(0,3).forEach((c,i)=>{const px=x0+c*32-9;i===1?(()=>{const sx=px-6;wallShadow(sx,40,30,3);rect(B,sx,40,30,3,WD[4]);hl(B,sx,40,30,WD[5]);
       for(let k=0;k<4;k++){const jx=sx+3+k*7;rect(B,jx,32,5,8,[PAL.rust,PAL.sage,PAL.mustard,PAL.glass][k][3]);hl(B,jx,31,5,PAL.brass[2]);P(B,jx+1,34,PAL.white[5]);}})():picture(px,26,18,22,i+(R.paper||'').length);});}
   if(R.theme==='store'){const sx=x0+fw/2-46;wallShadow(sx,18,92,13);rect(B,sx,18,92,13,PAL.cream[3]);frame(B,sx,18,92,13,PAL.cream[2],WD[0]);drawText(B,'COYLE GENERAL',sx+18,22,PAL.red[1]);
     for(let x=x0+6;x<x0+fw-6;x+=4){const y=12+Math.round(Math.sin((x-x0)/18)*3+3);P(B,x,y,PAL.mustard[(x>>2)%2?3:4]);if((x>>2)%5===0){P(B,x,y+1,PAL.rust[3]);P(B,x,y+2,PAL.rust[2]);}}}

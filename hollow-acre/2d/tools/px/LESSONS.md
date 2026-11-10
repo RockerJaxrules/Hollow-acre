@@ -387,6 +387,14 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors b15] Judges keep naming the shared shell (same two windows, door, mat in every home): vary the window count and
   width per house, not only the paper and floor.
 
+- [interiors b18] Pew backs: three raised panels read as drawers, vertical slats read as a fence; two long horizontal planks
+  with a book rack read as a pew.
+- [interiors b19] Wall dressing drawn by the shell is part of the kit: if every room gets the same picture and jar ledge,
+  judges count it as reuse. Pick wall things per room (clock, mirror, sampler, hooks, horseshoe, picture, ledge).
+- [interiors b19] Plaster drawn with per-pixel noise reads as banned speckle; broad smooth patches in two close tones and a
+  hairline crack or two read as an old wall.
+- [interiors b17] A tall piece set on another (tyres on a drum) reads as one totem; trade pieces stand side by side.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).

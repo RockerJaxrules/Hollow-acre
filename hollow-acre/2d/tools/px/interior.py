@@ -75,7 +75,7 @@ ROOMS = {
   'back_hale': dict(w=7, d=5, door=3.5, theme='home', wall='panel', floor='wide', windows=[[1.6, 0], [4.3, 0]], mat='curtain'),
   'back_dunn': dict(w=7, d=5, door=3.5, theme='home', wall='plaster', paper='slate', floor='planks', windows=[[5.2, 0]], mat='slate'),
   'back_cora': dict(w=7, d=5, door=3.5, theme='home', wall='stripe', paper='rust', floor='parquet', windows=[[2, 0], [5.2, 0]], mat='blue'),
-  'back_june': dict(w=7, d=5, door=3.5, theme='home', wall='damask', paper='mustard', floor='wide', windows=[[3.5, 0]], mat='mustard'),
+  'back_june': dict(w=7, d=5, door=3.5, theme='home', wall='stripe', paper='rust', floor='wide', windows=[[3.5, 0]], mat='mustard'),
   'back_otto': dict(w=7, d=5, door=3.5, theme='home', wall='log', floor='planks', windows=[[2, 0]], mat='blue'),
   'back_silas': dict(w=7, d=5, door=3.5, theme='home', wall='plaster', paper='slate', floor='flag', windows=[[5.2, 0]], mat='slate'),
   'back_quill': dict(w=7, d=5, door=3.5, theme='home', wall='stripe', paper='blue', floor='planks', windows=[[2, 0], [5.2, 0]], mat='sage'),

@@ -23,10 +23,10 @@ const SHOPS_BIG={
     browse:[[4.6,5.0],[13.2,7.8],[8.6,1.6]],
     furn:[['lumber',1.2,1.3,[-.75,-.35,.75,0]],['lumber',1.2,2.8,[-.75,-.35,.75,0]],F('bench_furn',4.4,1.15,.45),FL('in_shavings',4.4,1.9),W_('in_clamprack',8.4,-.45),F('in_lathe',11,1.6,.4),F('in_plankrack',13.9,2.0,.4),
       F('in_sawplank',6.0,4.4,.3),F('in_ctr_carp',11.4,4.6,.6),F('in_chairstack',14.2,4.2,.4),
-      F('in_table',13.2,7.0,.45),F('in_chair',12,7.05,.25),F('in_chair',14.4,7.05,.25),F('in_rocker',1.4,6.6,.3),F('in_cradle',3.0,7.0,.3),F('in_plant',.8,8.3,.25),F('in_desk',4.6,7.8,.45),['lumber',13.8,8.3,[-.75,-.35,.75,0]],F('in_shelf_books',2.4,.62,.4)]},
+      F('in_table',13.2,7.0,.45),F('in_chair',12,7.05,.25),F('in_chair',14.4,7.05,.25),F('in_rocker',1.4,6.6,.3),F('in_lumberstack',1.0,4.3,.3),F('in_cradle',3.0,7.0,.3),F('in_plant',.8,8.3,.25),F('in_desk',4.6,7.8,.45),['lumber',13.8,8.3,[-.75,-.35,.75,0]],F('in_shelf_books',2.4,.62,.4)]},
   shop_feed:{shell:'room_shop_feed3',back:13.4,till:[11.4,3.4],counter:[11.4,5.2],lamp:[7.5,2.2],keeper:'ezra',
     browse:[[6.6,3.0],[4.9,5.6],[14.2,4.2]],
-    furn:[['hay',1.0,1.4,[-.7,-.4,.7,0]],['hay',1.0,2.9,[-.7,-.4,.7,0]],['sacks',2.5,1.1,[-.55,-.3,.55,0]],F('in_sackopen',3.5,1.3,.3),F('in_shelf_cans',8.5,.62,.4),
+    furn:[['hay',1.0,1.4,[-.7,-.4,.7,0]],['hay',1.0,2.9,[-.7,-.4,.7,0]],['sacks',2.5,1.1,[-.55,-.3,.55,0]],F('in_sackopen',3.5,1.3,.3),F('in_shelf_cans',8.5,.62,.4),W_('in_halters',4.6,-.45),W_('in_priceboard',12.0,-.45),F('in_pitchfork',7.6,.8,.15),
       F('in_feedbins',6.6,2.2,.5),F('in_ctr_feed',11.4,4.4,.6),F('in_saddle',14.4,3.2,.3),F('in_chickcrate',4.4,4.6,.4),F('in_eggcrate',5.9,4.9,.35),['barrel',14.4,6.2,[-.4,-.3,.4,0]],
       ['hay',2.6,8.2,[-.7,-.4,.7,0]],['in_cat',3.0,5.6,null],['hay',9.8,7.6,[-.7,-.4,.7,0]],['hay',11.2,7.9,[-.7,-.4,.7,0]],['sacks',13.8,8.2,[-.55,-.3,.55,0]],F('in_seedrack',2.4,5.4,.3)]},
   shop_bait:{shell:'room_shop_bait3',back:null,till:[8.6,3.0],counter:[8.6,4.8],lamp:[6,2.2],keeper:'otto',
@@ -41,12 +41,12 @@ const SHOPS_BIG={
       F('in_table',3.2,8.0,.45),F('in_chair',2.1,8.05,.25),F('in_chair',4.3,8.05,.25),F('in_table',7.6,8.2,.45),F('in_chair',6.5,8.25,.25),F('in_chair',8.7,8.25,.25),
       F('in_piano',15.4,6.8,.5),['barrel',.7,2.6,[-.4,-.3,.4,0]],['barrel',16.4,3.4,[-.4,-.3,.4,0]],F('in_plant2',16.4,9.3,.3),F('in_plant',.8,9.4,.25)]},
   home_lusk:{shell:'room_shop_lusk3',back:11.4,lamp:[6.5,2.2],
-    furn:[F('in_shelf_cans',.9,.62,.4),F('in_oilrack',4.4,.75,.35),F('in_cooler',9.0,.75,.4),W_('in_poster_lost',12.4,-.45),
-      F('in_ctr_gas',8.8,3.4,.6),F('in_candycase',11.4,3.6,.5),F('in_mapspinner',7.0,4.9,.25),F('in_snackrack',7.0,6.3,.3),
+    furn:[F('in_shelf_cans',.9,.62,.4),F('in_cooler',9.0,.75,.4),F('in_mapspinner',1.4,5.4,.25),F('in_oilrack',2.6,5.45,.3),F('in_snackrack',3.8,5.45,.3),W_('in_poster_lost',12.4,-.45),
+      F('in_ctr_gas',8.8,3.4,.6),F('in_candycase',11.4,3.6,.5),
       F('in_tires',12.2,6.8,.3),F('in_drum',.8,6.8,.3),F('in_drum_blue',1.6,7.0,.3),F('in_plant',4.9,7.6,.25)]},
   garage:{shell:'room_shop_garage3',back:13.6,lamp:[7.4,.6],
     furn:[F('in_shelf_parts',1.1,.62,.4),F('in_shelf_tools',3.1,.62,.4),F('in_bench',6.6,1.05,.5),F('in_toolbox',8.6,1.3,.35),W_('in_poster_fair',11.2,-.45),F('in_tires',11.8,1.6,.3),
-      F('in_carlift',3.9,5.0,1.0),F('in_hoist',7.4,4.4,.3),F('in_drum',.7,7.6,.3),F('in_drum_blue',1.5,7.8,.3),F('in_tires',13.8,6.6,.3),['barrel',14.3,4.2,[-.4,-.3,.4,0]]]}};
+      F('in_carlift',3.9,5.0,1.0),F('in_hoist',7.4,4.4,.3),F('in_drum',.7,7.6,.3),F('in_drum_blue',1.5,7.8,.3),F('in_tires',13.8,6.6,.3),F('in_trolleyjack',8.6,7.2,.25),F('in_drainpan',10.1,6.9,.15),['barrel',14.3,4.2,[-.4,-.3,.4,0]]]}};
 for(const [k,B] of Object.entries(SHOPS_BIG)){const R=ROOMS[k];if(!R||!SPR[B.shell])continue;
   const old={till:null};R.shell=B.shell;R.furn=B.furn;if(B.lamp)ROOM_LAMP[k]=B.lamp;
   // the back door to where the keeper lives
