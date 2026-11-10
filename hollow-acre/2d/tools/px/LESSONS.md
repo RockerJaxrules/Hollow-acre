@@ -580,6 +580,9 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Stairs you climb are laid on the ground (a flat decal under whoever is on them), never sorted like a wall: sorted at their base they are drawn over the climber and you seem to walk through them. Their run up the screen must equal the wall's rise, and their sides need collision the whole length, past both ends (owner: "the stair for the chapel is useless... you just walk through it").
 - Every building whose door sits on a foundation needs door steps (steps, door_w, door_dx in its sprite data), the chapels too.
 
+- In a turned view, every loose thing keeps its own footprint: a stool beside the keyboard stands on the floor at its own depth (up the screen), not on the case's near floor line, or its legs grow three times too long.
+- The side of a shelf or cabinet reads as that object only if its open edge shows what is on the shelves, row by row, brighter than the end panel; a blank panel under a long lid reads as a post or clock case.
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline
