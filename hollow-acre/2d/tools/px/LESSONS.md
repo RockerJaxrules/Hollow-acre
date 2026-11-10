@@ -1018,3 +1018,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [c1] Hold one framing; small eased moves only. Jumps of 40 px between beats read as a shaky camera.
 - [c1] Stardew-style events act with bubbles (!, ?, …, a tear, a countdown), turns, small walks and the right portrait face per line.
 - [c1] Background timers move townspeople home: pin the cast to their marks every frame while a scene plays.
+
+## Minigame vehicles / machines (code-drawn on the mg4 canvas)
+- A side-view car must read as hood -> cabin -> trunk in THREE zones: hood the front third (low), the greenhouse cabin in the MIDDLE (not perched at the rear), trunk the back third. A tiny cabin set at the back reads as a flatbed/pickup, not a sedan. [repeated risk]
+- Cut the fender arch INTO the body over each wheel (a dark ellipse clipped to the lower body); a flat sill with wheels stuck under it looks like a toy.
+- One greenhouse window split by a thin B-pillar reads as a car; two separate dark boxes read as two floating panels.
+- Shattered glass: an asymmetric spiderweb of fine cracks from ONE off-centre impact point, plus one short arc. Symmetric chevrons read as a gauge/dial, not damage.
+- Show the repair state by what is PRESENT vs ABSENT (crumpled vs straight nose, open vs closed hood, cracked vs clear glass, wheel vs blocks, dark vs lit headlight), so the same drawer shows every stage of mending from one set of booleans.
