@@ -696,6 +696,14 @@ if(K==='vanity'){const C=RAMP.ivory,base=H-3,x0=4,w=W-8;   // (judge r8: "one th
   {const rx=x0+w-12,ry=top-5;rect(A,rx,ry+2,8,5,RAMP.red[2]);hl(A,rx,ry+2,8,RAMP.red[4]);for(let i=0;i<8;i++){P(A,rx+i,ry-1+(i>>2),RAMP.red[3]);}hl(A,rx+1,ry+3,6,RAMP.red[1]);P(A,rx+4,ry+3,RAMP.cream[5]);P(A,rx+4,ry+2,RAMP.cream[4]);P(A,rx+4,ry+1,RAMP.pumpkin[4]);}   // the music box, lid up, the dancer
   for(let j=0;j<7;j++){P(A,x0+w-3+(j>3?1:0),top+2+j,RAMP.blue[4]);}P(A,x0+w-2,top+9,RAMP.blue[3]);                                     // a blue ribbon over the edge
   cast(x0,x0+w,base);}
+// =================================================================================== Ruth's nightstand
+if(K==='nightstand'){const R=RAMP.oak,base=H-3,x0=3,w=W-6,top=base-17;   // (judge r10) a small table touching the bed head: a drawer,
+  // a framed photograph of a little girl, a glass of water nobody drinks
+  box3(x0,top,w,5,9,R,{faceK:2});hl(A,x0+2,top+8,w-4,R[1]);knob(x0+(w>>1)-1,top+10);
+  for(const lx of [x0+1,x0+w-3])for(let y=top+14;y<base;y++){P(A,lx,y,R[4]);P(A,lx+1,y,R[1]);}fadeUnder(x0+3,x0+w-4,top+14,base-1);
+  {const fx=x0+2,fy=top-7;rect(A,fx,fy,7,8,RAMP.brass[3]);hl(A,fx,fy,7,RAMP.brass[5]);rect(A,fx+1,fy+1,5,6,RAMP.cream[2]);P(A,fx+3,fy+2,RAMP.walnut[2]);P(A,fx+3,fy+3,RAMP.cream[4]);rect(A,fx+2,fy+4,3,3,RAMP.walnut[3]);}   // the photograph
+  {const gx=x0+w-6;for(let j=0;j<5;j++){P(A,gx,top-4+j,RAMP.glass[5]);P(A,gx+1,top-4+j,j<2?RAMP.glass[3]:RAMP.glass[4]);P(A,gx+2,top-4+j,RAMP.glass[2]);}}   // a glass of water
+  cast(x0,x0+w,base);}
 // =================================================================================== the milking stool
 if(K==='stool'){const R=RAMP.oak,base=H-3,cx=W>>1;
   // a milking stool: a round seat two steps lighter than its three splayed legs; floor shows between them

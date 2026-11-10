@@ -305,6 +305,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   pieces by hand.
 - [interiors r9] Props standing in one evenly spaced row along the back wall read as placed: split them between corners.
 - [interiors r9] Flat stones drawn with symmetric cut corners read as capsules: give each stone four sides that slope differently.
+- [interiors r10] In a dark room (the mine runs at full night) light painted on the floor sits under the darkness and never
+  shows: draw light pools into the light mask itself (hard-edged two-step wedges), with a dim lift over the room so the floor reads.
+- [interiors r10] A piece of a group (nightstand, chest) floating alone mid-room reads as dumped: it touches what it serves
+  (the bed head) or stands against a wall under something (the bookcase).
 - [interiors r3] A tall piece standing in front of a window (a bookcase hiding a third of the glass) is a placement error;
   check every tall piece against the window list before judging.
 - [interiors r3] Fading a too-loud quilt to grey made it read as stone: fade toward the room's own warm brown instead
@@ -651,7 +655,7 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Ramps: shades toward purple, lights toward yellow, no pure colours. About 6 colours per 32x32 area (measured on LPC).
 
 ## Process
-- Never end an inline code replacement with a // comment: everything after it on that line (closing braces) is commented out. Use /* */ or put the comment on its own line, and run node --check on furn_hd.js after every edit.
+- [repeated] Never end an inline code replacement with a // comment: everything after it on that line (closing braces) is commented out. Use /* */ or put the comment on its own line, and run node --check on furn_hd.js after every edit.
 
 - When a narrow win is re-run with the slots swapped, it often flips (cellar hatch and red drum, Nov 10: new 6 vs 5 from slot a, old 6 vs 4 from slot b). Never install a narrow win without the swapped re-run.
 - Installing over an existing sprite must keep its anchor when the size is unchanged (floor and wall pieces are anchored their own way; the trapdoor moved 14 px when the installer reset it).

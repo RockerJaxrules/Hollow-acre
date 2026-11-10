@@ -107,8 +107,8 @@ vendors.cook={name:'Grandpa’s stove',sub:'The recipe cards are in his handwrit
 const MINE={x:-6,z:0,mobs:[],ores:[],ladder:null};
 // (interiors: "the mine is bare") the back wall between the timber sets: what the old miners left, out of the way of the ore
 // (ore comes up from z 1.2 m on, never against the back wall)
-ROOMS.mine={ox:430,oz:-60,out:{x:0,z:0},name:'The old Marrow mine',furn:[['in_crates',.95,1.0,[-.7,-.3,.7,0]],['in_shovels',10.3,1.0,[-.45,-.2,.45,0]],   // (r9) not one row: the back corners,
-  ['lumber',1.5,7.65,[-.75,-.3,.75,0]],['barrel',9.5,7.55,[-.4,-.3,.4,0]],['in_drum',10.25,7.7,[-.3,-.25,.3,0]],['in_minecart',5.5,2.1,[-.5,-.3,.5,0]]]};   // the front corners, the cart on the track
+ROOMS.mine={ox:430,oz:-60,out:{x:0,z:0},name:'The old Marrow mine',furn:[['in_crates',3.0,1.0,[-.7,-.3,.7,0]],['in_shovels',10.3,1.0,[-.45,-.2,.45,0]],   // (r9) not one row: the back corners,
+  ['lumber',3.4,7.65,[-.75,-.3,.75,0]],['barrel',9.5,7.55,[-.4,-.3,.4,0]],['in_drum',10.25,7.7,[-.3,-.25,.3,0]],['in_minecart',1.3,2.2,[-.5,-.3,.5,0]]]};   // the front corners, the cart on the track
 // (interiors: "the greenhouse is bare") the margins round the soil bed kept like a working glasshouse: seed jars and a seedling box
 // along the back, compost sacks and a bucket, pots in the corners, a rain barrel, plants hung from the glass. Nothing on the soil.
 ROOMS.greenhouse={ox:462,oz:-60,out:{x:10.5,z:8.3},name:'The greenhouse',furn:[
@@ -120,7 +120,7 @@ const ORE_HITS={stone:1,copper:2,coal:2,iron:3,gem:3};
 function mineFloor(f){S.mineFloor=f;S.mineDeep=Math.max(S.mineDeep,f);const R=ROOMS.mine;for(const o of MINE.ores)o.hide=true;for(const o of MINE.ores)if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}
   MINE.ores.length=0;MINE.mobs.length=0;if(MINE.ladder)MINE.ladder.hide=true;MINE.ladder=null;
   const n=10+Math.min(10,f);const pick=()=>{const r=rand();if(f>=10&&r<.06)return 'gem';if(f>=5&&r<.22)return 'iron';if(f>=3&&r<.36)return 'coal';if(r<.55)return 'copper';return 'stone';};
-  for(let i=0,k=0;i<200&&k<n;i++){const x=R.ox+.8+rand()*(R.w-1.6),z=R.oz+1.2+rand()*(R.d-2.2);if(Math.abs(x-(R.ox+R.door))<1.2&&z>R.oz+R.d-2)continue;if(Math.abs(x-(R.ox+R.door))<.8)continue;   // never on the cart trackif(MINE.ores.some(o=>Math.hypot(o.x-x,o.z-z)<1.1))continue;
+  for(let i=0,k=0;i<200&&k<n;i++){const x=R.ox+.8+rand()*(R.w-1.6),z=R.oz+1.2+rand()*(R.d-2.2);if(Math.abs(x-(R.ox+R.door))<1.2&&z>R.oz+R.d-2)continue;if(Math.abs(x-(R.ox+1.3))<.85)continue;   // never on the cart track (along the left wall)if(MINE.ores.some(o=>Math.hypot(o.x-x,o.z-z)<1.1))continue;
     const kind=pick();const o=obj('ore_'+kind,x,z,{kind:'prop',ore:kind,hits:0});o.col={x,z:z-.1,r:.32};circles.push(o.col);MINE.ores.push(o);k++;}
   MINE.ladderAt=MINE.ores[(rand()*MINE.ores.length)|0];
   const mobs=f<2?0:Math.min(3,1+(f/4|0));for(let i=0;i<mobs;i++)MINE.mobs.push({x:R.ox+1+rand()*(R.w-2),z:R.oz+1+rand()*2,t:0,stun:0});
