@@ -524,6 +524,8 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [props sweep] Flat ground pieces (mud, tarps) must have NO outline and no lit ring parallel to their edge: an outline and
   a pale terrace make them a raised pancake. Wet is darker than dry, never paler. Hedges are leaf clumps lit on the upper left
   with a quiet middle, never single-pixel noise; pieces that tile need no outline across the joining edge.
+- [props sweep] Labels on a cabinet front read as drawer pulls: a produce stand needs open crates or shelves with the fruit
+  IN them and the price cards on stakes. A well must show its wall height and a deep hole, never a low flat ring.
 - [props sweep] A rework can score lower than the draft it fixes: keep every judged draft (the dead tree and the street lamp
   went 6 -> 5 after "fixes"), and when a revision loses, go back to the version that won.
 - [props sweep] A jack-o'-lantern reads when the skin is dull brown-orange and the carved holes are the brightest thing. A
