@@ -479,6 +479,8 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   body tone, a few tapered fold curves (a lit crest with its shadow under it), a frayed selvedge and pins.
 
 ## Furniture and props in four turns (Nov 10: 3D blockouts, 69 pieces judged blind vs the installed art)
+- Gouged eyes (judge, three rounds): pale rims or pale lips round a dark eye read as spectacles. Draw a dark ragged hole, pale scratches running OUT of it and a dark run down the cheek; then it reads as scratched out.
+- One clean ramp per material: a cushion in three or four close reds reads as patchwork. One body tone, a lit top edge, a darker front roll.
 - Shop props (judge, Nov 10): a row of the same thing (chicks, fruit, hammers, reels) reads as a barcode: vary size, facing and height. Blue steel drifts into powder blue: keep iron dark. A trade object must survive at 1x: fruit 3x3 or bigger in mounds, tools 2-3x wider than a line, rods one clean tapering line each.
 - Seats (judge, Nov 10): the seat top is the lightest plane, the back two steps darker; leave a 2-3 px gap between back and seat so they are two things, not one slatted face. The seat seen from above is shallower than the back is tall.
 - Under a seat: a dark shadow right under the lip fading toward the floor; a flat grey slab under it closes it off and reads as the base of a chest. No bottom line across it.
