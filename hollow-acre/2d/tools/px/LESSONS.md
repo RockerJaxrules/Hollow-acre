@@ -412,6 +412,17 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors b29] Judges count shared pieces across rooms (the writing desk in five rooms, the patchwork bed, the jar shelf,
   the till counter): give each trade its own piece for the job (radio table, fire finder, motel counter, washstand).
 
+- [interiors b30] A flat additive pool, even amber, reads as a rug on a pale floor; an 'overlay' pool warms and brightens the
+  boards themselves (red up, blue down) so the grain shows through and it reads as light falling on them. Same for stove fans:
+  an additive pale cone read as a lampshade.
+- [interiors b30] Daylight shadows from "the back windows" in a room with no windows read as phantom beams: a windowless room
+  (cellar, crypt) casts no sun shadows, and its lanterns are always lit (the lit sprite, not the cold glass).
+- [interiors b30] An ivory cover on an iron bed reads as a bare hospital mattress; a dark wool quilt with the sheet turned
+  down over it reads as made up.
+- [interiors b30] A hanging apron (pale shape on a peg) reads as a figure; a sack with FLOUR stencilled on it reads at once.
+- [interiors b30] Numbers on archive boxes are read as room numbers and checked against the story (52-63 in a seven-room
+  motel); label boxes with scribble unless the number means something.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).

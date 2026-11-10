@@ -86,7 +86,7 @@ interact.push({x:0,z:0,r:1.1,on:()=>S.room==='back_cora'&&DRESS.back_cora.wardX!
 // ---- the rooms under the houses
 {let ox=Math.max(...Object.values(ROOMS).map(R=>R.ox||0))+40;const F=(spr,x,z,dep,kind)=>{const m=SPR[spr];const hw=m?Math.max(.2,m.fw/64-.12):.4;return [spr,x,z,kind==='flat'?null:[-hw,-(dep||.4),hw,0],kind||undefined];};
   const mk=(k,name,out,furn)=>{if(!SPR['room_'+k])return;ROOMS[k]={ox,oz:-60,name,shell:'room_'+k,out,furn};ox+=24;};
-  mk('cellar_agnes','Under Ruth’s room',{x:0,z:0},[F('in_altar',4,1.3,.6),F('in_candles',2.4,1.1,.3),F('in_candles',5.6,1.1,.3),['in_photowall',4,-.45,null,'flat'],F('in_cradle',1.2,3.4,.3),
+  mk('cellar_agnes','Under Ruth’s room',{x:0,z:0},[F('in_shrine',4,1.3,.6),F('in_candles',2.4,1.1,.3),F('in_candles',5.6,1.1,.3),['in_photowall',4,-.45,null,'flat'],F('in_cradle',1.2,3.4,.3),
     F('in_chair',4,3.2,.25),F('in_hopechest',7.0,.95,.3)]);
   mk('cellar_hale','The parsonage cellar',{x:TB.hale[1]+4.6,z:TB.hale[2]+1.2},[F('in_shelf_jars',1,.62,.4),F('in_crocks',2.9,.9,.3),['in_walllantern',4.4,-.45,null,'flat'],F('in_winerack',7,.75,.35),
     F('in_keg',1,3.4,.3),F('in_keg',1.8,3.6,.3),F('in_coffin',6.4,3.8,1.9)]);

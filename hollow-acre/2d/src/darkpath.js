@@ -150,7 +150,7 @@ interact.push({x:0,z:0,r:1.3,story:true,on:()=>!S.room&&!!dkTaken()&&(DK().clue.
 // ---------- 7. the room under the church, and the roots
 {let ox=Math.max(...Object.values(ROOMS).map(R=>R.ox||0))+40;const F=(spr,x,z,dep,kind)=>{const m=SPR[spr];const hw=m?Math.max(.2,m.fw/64-.12):.4;return [spr,x,z,kind==='flat'?null:[-hw,-(dep||.4),hw,0],kind||undefined];};
   ROOMS.undercroft={ox,oz:-60,name:'Under the church',shell:SPR.room_undercroft?'room_undercroft':'room_cellar_agnes',out:{x:0,z:0},furn:[F('in_coffin',1,3.7,1.9),F('in_coffinajar',6.8,3.9,1.9),F('in_candles',2.6,.9,.3),F('in_votive',5.6,1.0,.3),
-    ['in_niches',4.0,-.45,null,'flat']]};}
+    ['in_niches',4.0,-.45,null,'flat'],['in_nichestall',1.4,-.3,null,'flat'],['in_nichestall',6.6,-.3,null,'flat'],['in_niches',4.0,-1.4,null,'flat']]};}
 const DK_ROOTS=[[1.7,1.3,.2,.5],[6.3,1.3,7.8,.5],[2.9,2.75,3.1,2.35]];   // where you stand to tear at it, and where it comes out of the wall/floor
 function dkEnterUnder(){const d=DK();if(!dkTaken())return;if(!d.roots)d.roots=DK_ROOTS.map(()=>({hp:6}));d.fear=Math.min(d.fear||0,.2);d.flash=0;
   setTimeout(()=>{const nm=dkNm(d.taken);SFX.stinger&&SFX.stinger();toast(`${nm}. Roots have come out of the walls and the floor and gone into her. Not round her wrists. Into them.`,5,true);mindHit&&mindHit(8);},900);}
