@@ -479,6 +479,8 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   body tone, a few tapered fold curves (a lit crest with its shadow under it), a frayed selvedge and pins.
 
 ## Furniture and props in four turns (Nov 10: 3D blockouts, 69 pieces judged blind vs the installed art)
+- Two equal spikes at the ends of a shape read as ears (a saddle became an owl). Make one end lower and rounder. A rack whose bars match its tools in tone and width reads as a cage or a chair.
+- Each crop on a stall needs its own hue and a full value range, or the heaps read as loaves or mud. Rods that cross and fork read as twigs: lean each at its own angle, never crossing, with the reel at the butt.
 - Gouged eyes (judge, three rounds): pale rims or pale lips round a dark eye read as spectacles. Draw a dark ragged hole, pale scratches running OUT of it and a dark run down the cheek; then it reads as scratched out.
 - One clean ramp per material: a cushion in three or four close reds reads as patchwork. One body tone, a lit top edge, a darker front roll.
 - Shop props (judge, Nov 10): a row of the same thing (chicks, fruit, hammers, reels) reads as a barcode: vary size, facing and height. Blue steel drifts into powder blue: keep iron dark. A trade object must survive at 1x: fruit 3x3 or bigger in mounds, tools 2-3x wider than a line, rods one clean tapering line each.
