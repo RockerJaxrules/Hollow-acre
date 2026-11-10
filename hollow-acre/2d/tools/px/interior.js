@@ -13,8 +13,15 @@ function planks(L,x0,y0,w,h,R0,pw,quiet){pw=pw||8;const mq=(a,b,t)=>a.map((v,k)=
   if(pw>=7&&(u===2||u===41)&&(v===2||v===pw-2))k=1;P(L,x,y,R[Math.max(0,Math.min(R.length-1,k))]);}}
 function tilesF(L,x0,y0,w,h,R,s){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const i=Math.floor((x-x0)/s),j=Math.floor((y-y0)/s),u=(x-x0)%s,v=(y-y0)%s;
   let c=(i+j)%2?shade(R[3],.92):R[3];if(u===0||v===0)c=R[1];else if(u===1||v===1)c=R[4];P(L,x,y,c);}}   // two close tones, a lit edge, a seam: not a quilt of greys
-function concrete(L,x0,y0,w,h){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const n=hsh(x>>2,y>>2,6)*.6+hsh(x,y,7)*.4;let c=ST[n>.7?3:n<.25?1:2];if(((x-x0)%96===0)||((y-y0)%64===0))c=ST[1];P(L,x,y,c);}
-  for(let i=0;i<5;i++){const cx=x0+hsh(i,1,3)*w|0,cy=y0+hsh(i,2,3)*h|0,r=6+hsh(i,3,3)*10|0;for(let y=-r;y<=r;y++)for(let x=-r*1.5;x<=r*1.5;x++){if(x*x/(2.25*r*r)+y*y/(r*r)>1-hsh(cx+x,cy+y,4)*.3)continue;P(L,cx+x,cy+y,PAL.ink[1],150);}}}
+function concrete(L,x0,y0,w,h){ /* (b10) poured slabs, not speckle: each slab one of two close tones, a dark joint with a lit lip under it, a hairline crack on a few slabs, trowel-smooth everywhere else */
+  const SW=96,SH=64;for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const u=x-x0,v=y-y0,su=Math.floor(u/SW),sv=Math.floor(v/SH),n=hsh(su,sv,6);
+    let c=n>.5?ST[2]:mixC(ST[2],ST[3],.35);const iu=u%SW,iv=v%SH;if(iu===0||iv===0)c=ST[1];else if(iv===1)c=mixC(ST[2],ST[3],.7);else if(iu===1)c=mixC(c,ST[3],.4);
+    else if(iv>SH-4&&hsh(su,sv,9)>.6)c=mixC(c,ST[1],.25);P(L,x,y,c);}
+  for(let sv=0;sv*SH<h;sv++)for(let su=0;su*SW<w;su++){if(hsh(su,sv,12)<.7)continue;let cx=x0+su*SW+12+Math.floor(hsh(su,sv,13)*60),cy=y0+sv*SH+8+Math.floor(hsh(su,sv,14)*30);
+    for(let k=0;k<22;k++){if(cx>=x0+w-1||cy>=y0+h-1)break;P(L,cx,cy,ST[1]);if(k%3===0)P(L,cx,cy+1,mixC(ST[2],ST[3],.6));cx+=1;if(hsh(k,su+sv*7,15)>.55)cy+=hsh(k,sv,16)>.5?1:-1;}}
+  if(L.bay!=null){for(const off of [-27,17])for(let y=y0+2;y<y0+h;y++){const T=mixC(ST[2],ST[1],.24*(1-(y-y0)/h*.7));for(let x=L.bay+off;x<L.bay+off+10;x++){if(x<=x0||x>=x0+w)continue;const e=x===L.bay+off||x===L.bay+off+9;if(e&&hsh(x,y>>3,17)>.5)continue;if((y-y0)/h>.55&&hsh(x>>1,y>>2,18)>.75)continue;P(L,x,y,T);}}
+    const gx=L.bay-6,gy=y0+Math.floor(h*.55);rect(L,gx-1,gy-1,14,10,ST[1]);for(let k=0;k<12;k+=2)vl(L,gx+k,gy,8,PAL.ink[1]);hl(L,gx-1,gy+9,14,ST[3]);}
+  for(let i=0;i<5;i++){const cx=x0+hsh(i,1,3)*w|0,cy=y0+hsh(i,2,3)*h|0,r=6+hsh(i,3,3)*10|0;for(let y=-r;y<=r;y++)for(let x=-r*1.5;x<=r*1.5;x++){const d=x*x/(2.25*r*r)+y*y/(r*r),lobe=1-hsh(Math.floor((Math.atan2(y,x)+3.2)*1.6),i,4)*.35;if(d>lobe)continue;P(L,cx+x|0,cy+y,d<lobe*.4?mixC(ST[1],PAL.ink[1],.55):mixC(ST[2],ST[1],.6));}for(let k=-r*.6|0;k<=0;k++)P(L,cx+k,cy-Math.round(r*.55),mixC(ST[2],ST[3],.5));}}
 function wallpaper(L,x0,y0,w,h,R,stripe){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){let k=2;const u=(x-x0)%stripe;if(u<2)k=3;if(u===stripe>>1)k=1;if((y-y0)%14===7&&u===stripe>>2)k=3;if(hsh(x>>3,y>>3,8)>.92)k=1;P(L,x,y,R[k]);}}
 function brick(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=Math.floor((y-y0)/6),o=r%2?6:0,b=(x-x0+o)%12;let c=R[(hsh(Math.floor((x-x0+o)/12),r,5)>.6)?3:2];if(b===0||(y-y0)%6===5)c=R[0];else if((y-y0)%6===0)c=R[4];P(L,x,y,c);}}
 function plaster(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const n=hsh(x>>3,(y+(x>>4))>>3,5)*.7+hsh(x,y,6)*.3;P(L,x,y,R[n>.8?4:n<.12?2:3]);}
@@ -109,7 +116,7 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   if(R.theme==='cabin'||R.theme==='store'||(R.theme==='home'&&(!R.floor||R.floor==='planks')))planks(A,x0,top,fw,fd,WD,8,R.theme==='store');
   if(R.theme==='home'){const fl=R.floor;if(fl==='parquet')parquet(A,x0,top,fw,fd);if(fl==='checker')checker(A,x0,top,fw,fd,PAL[R.chk||'slate'],PAL.cream);if(fl==='flag')flagstone(A,x0,top,fw,fd);if(fl==='painted')painted(A,x0,top,fw,fd,PAL[R.paint||'teal']);if(fl==='hex')hexTile(A,x0,top,fw,fd,TR);if(fl==='wide')wideBoards(A,x0,top,fw,fd);}
   if(R.theme==='church')tilesF(A,x0,top,fw,fd,ST,16);
-  if(R.theme==='garage')concrete(A,x0,top,fw,fd);
+  if(R.theme==='garage'){A.bay=x0+fw-150+52;concrete(A,x0,top,fw,fd);A.bay=null;}
   if(R.theme==='garage'){const bx=x0+fw-150,bw=104;for(let y=14;y<8+wallH;y++)for(let x=bx;x<bx+bw;x++){const j=(y-14)%6;P(A,x,y,j===0?ST[4]:j===5?ST[1]:ST[3]);}frame(A,bx-3,12,bw+6,wallH-2,WD[3],WD[0]);rect(A,bx+bw/2-6,8+wallH-10,12,3,PAL.slate[2]);
     for(let x=bx;x<bx+bw;x++){const k=((x-bx)>>3)%2;for(let j=0;j<4;j++)P(A,x,top+fd-60+j,k?PAL.mustard[4]:PAL.ink[0]);}}
   // (interiors: the mine floor was 16 px noise blocks and sprinkled specks) three flat tones in big soft-edged patches of packed
