@@ -101,7 +101,7 @@ function roomShade(R){const k=S.room;let L=ROOM_OBJS[k];if(!L||L.n!==OBJ.length)
     const hz=(a,b)=>{const v=Math.sin(a*12.9898+b*78.233)*43758.5453;return v-Math.floor(v);};const tone=(a,w0,w1,len,col)=>{ctx2.fillStyle=`rgba(${col||'255,170,72'},${a})`;   /* (b13: the red-orange fan read as blood) amber, the inner step pale */for(let j=0;j<len;j++){const w=Math.round(w0+(w1-w0)*j/len);if(j<len*.86){ctx2.fillRect(cx-w,y0+j,w*2,1);continue;}for(let x=-w;x<w;x+=2)if(hz(x+cx,j)>(j-len*.86)/(len*.14)*.8)ctx2.fillRect(cx+x,y0+j,2,1);}   /* (b15) a ragged far edge, not a ruler */};
     if(q[1]){ctx2.fillStyle=`rgba(255,180,96,${.05+.03*night})`;ctx2.fillRect(cx-Math.round(30*s),y0-Math.round(64*s),Math.round(60*s),Math.round(40*s));ctx2.fillRect(cx-Math.round(18*s),y0-Math.round(78*s),Math.round(36*s),Math.round(20*s));   /* the wall round the fire lit too */
       const L1=Math.round(46*s),L2=Math.round(28*s);tone(.15+.05*night,q[1]*s,32*s,L1);tone(.17+.05*night,q[1]*s*.7,20*s,L2,'255,220,150');   /* (b18) firm amber, a pale inner step */}   // a fan out of the mouth
-    else{tone(.07+.04*night,7,10,6,'255,214,150');tone(.08,4,6,4,'255,230,180');}}   // (r4: a red-orange pool read as blood) a small pale-yellow pool under the candles
+    else{tone(.10+.05*night,10,14,8,'255,214,150');tone(.12,5,8,5,'255,230,180');}   /* (b20) a candle pool you can see */}   // (r4: a red-orange pool read as blood) a small pale-yellow pool under the candles
   ctx2.restore();
   ctx2.fillStyle='rgba(50,33,37,.62)';
   for(const o of L){if(o.hide||o.kind==='flat'||o.kind==='deco')continue;const m=SPR[o.spr];if(!m||m.fw<14)continue;const cx=Math.round(sx(o.x)),cy=Math.round(sz(o.z))+2;

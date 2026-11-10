@@ -59,7 +59,7 @@ function bookLean(x,y,h,R){for(let j=0;j<h;j++){const xx=x+Math.round(j*.35);P(A
 function bookFlat(x,y,w,R){hl(A,x,y,w,R[5]);hl(A,x,y+1,w,R[3]);hl(A,x,y+2,w,R[1]);P(A,x+w-1,y+1,RAMP.cream[4]);}
 const BOOKR=[RAMP.red,RAMP.green,RAMP.blue,RAMP.ochre,RAMP.plum,RAMP.oak,RAMP.cream];
 // =================================================================================== the bookcase
-if(K==='bookcase'){const R=RAMP.walnut,x0=2,w=W-4,base=H-3,topY=4;
+if(K==='bookcase'||K==='bookcaseb'){const R=RAMP.walnut,x0=2,w=W-4,base=H-3,topY=4;
   if(V==='S'){
     rect(A,x0+2,topY+4,w-4,base-topY-8,R[1]);for(let x=x0+6;x<x0+w-4;x+=8)vl(A,x,topY+4,base-topY-8,R[0]);     // the dark back boards
     for(const px of [x0,x0+w-3]){rect(A,px,topY+2,3,base-topY-1,R[3]);vl(A,px,topY+2,base-topY-1,R[5]);vl(A,px+2,topY+2,base-topY-1,R[1]);}
@@ -75,7 +75,9 @@ if(K==='bookcase'){const R=RAMP.walnut,x0=2,w=W-4,base=H-3,topY=4;
         if(r<.22&&x<x0+w-11){for(let k=0;k<3;k++)bookFlat(x,by-3-k*3,8-k,BOOKR[(rr()*6)|0]);x+=9;continue;}
         const bw=2+((rr()*3)|0),bh=9+((rr()*5)|0);if(x+bw>x0+w-4)break;book(x,by-bh,bw,bh,BOOKR[(rr()*BOOKR.length)|0],rr()<.35);x+=bw;}});
     // a candle stub and a small skull on the top shelf's corner, a jar on the middle shelf
-    {const sx=x0+w-12,sy=shelves[0]-6;for(let y=0;y<5;y++)for(let x=0;x<5;x++){if((x-2)*(x-2)*1.2+(y-2)*(y-2)>6)continue;P(A,sx+x,sy+y,RAMP.ivory[x<2&&y<2?5:x>3?2:4]);}
+    if(K==='bookcaseb'){const sx=x0+w-12,sy=shelves[0]-6;ell(A,sx+2,sy+3,2,2,RAMP.red[4]);P(A,sx+1,sy+2,RAMP.red[5]);P(A,sx+2,sy,RAMP.green[4]);   // a teacher's shelf: an apple and a brass hand-bell, not the skull
+      for(let j=0;j<5;j++)hl(A,sx+6-(j>>1),sy+1+j,1+j,RAMP.brass[j<2?5:3]);vl(A,sx+6,sy-3,4,RAMP.walnut[3]);}
+    else{const sx=x0+w-12,sy=shelves[0]-6;for(let y=0;y<5;y++)for(let x=0;x<5;x++){if((x-2)*(x-2)*1.2+(y-2)*(y-2)>6)continue;P(A,sx+x,sy+y,RAMP.ivory[x<2&&y<2?5:x>3?2:4]);}
       P(A,sx+1,sy+2,RAMP.walnut[0]);P(A,sx+3,sy+2,RAMP.walnut[0]);hl(A,sx+1,sy+5,3,RAMP.ivory[3]);}
     // the plinth
     box3(x0,base-4,w,0,5,R,{face:true,facePw:6,faceK:2});hl(A,x0,base-4,w,R[4]);
@@ -569,7 +571,7 @@ if(K==='cans'||K==='mail'||K==='parts'){const R=K==='mail'?RAMP.oak:RAMP.pine,ba
     const r=rr();if(r<.18)return;                                                                                                   // an empty cubby
     if(bottom){const ph=Math.min(h-1,6);rect(A,x+1,by-ph,w2-2,ph,RAMP.ochre[3]);hl(A,x+1,by-ph,w2-2,RAMP.ochre[4]);vl(A,x+w2-2,by-ph,ph,RAMP.ochre[2]);vl(A,x+(w2>>1),by-ph,ph,RAMP.cream[1]);hl(A,x+1,by-(ph>>1),w2-2,RAMP.cream[1]);return;}   // a parcel tied with twine
     if(r<.6){const eh=Math.min(h-1,5);env(x+1,by-eh,w2-2,eh);if(r<.35&&h>7)env(x+1,by-eh-3,w2-2,3);return;}                           // envelopes, flap out
-    if(r<.82){const bh=Math.min(h-1,6);rect(A,x+1,by-bh,w2-2,bh,RAMP.cream[3]);for(let j=0;j<bh;j+=2)hl(A,x+1,by-bh+j,w2-2,RAMP.cream[4]);vl(A,x+(w2>>1),by-bh,bh,RAMP.brick[3]);return;}   // a tied bundle
+    if(r<.82){const eh=Math.min(h-1,5);env(x+1,by-eh,w2-2,eh);if(h>8)env(x+1,by-eh-4,w2-2,4);vl(A,x+(w2>>1),by-eh-1,eh+1,RAMP.brick[3]);return;}   // (b21: cream blocks read as soap) a stack of envelopes, flaps showing, tied with red string
     for(let j=0;j<5;j++){const xx=x+1+Math.round((4-j)*.4);for(let i=0;i<w2-2;i++)P(A,xx+i,by-5+j,RAMP.cream[j===0?5:4]);}P(A,x+2,by-4,RAMP.cream[1]);};   // one leaning
   rows.forEach((ry,ri)=>{const by=shelves[ri];let x=x0+4;
     if(K==='mail'){const NC=4,cw=Math.floor((w-8)/NC);for(let c=0;c<NC;c++){   /* (b3) four wide cubbies, so each envelope shows its flap */const cx=x0+4+c*cw;vl(A,cx,ry,by-ry,R[3]);vl(A,cx+1,ry,by-ry,R[1]);letters(cx+2,by,cw-2,by-ry-1,ri===rows.length-1);}
@@ -2098,13 +2100,28 @@ if(K==='childbed'){const base=H-3,R=RAMP.pine,x0=5,x1=W-6,top=8,Q=RAMP.blue;   /
   rect(A,x0+5,top+5,4,4,RAMP.ivory[4]);P(A,x0+5,top+3,RAMP.ivory[4]);P(A,x0+8,top+3,RAMP.ivory[4]);P(A,x0+6,top+6,RAMP.charcoal[1]);under(x0+1,x1-1,base-4,base-1);cast(x0,x1,base);}
 if(K==='roughblock'){const base=H-3,St=hexR(['#26221f','#3d3833','#57504a','#736b63','#90877e','#ada399']),cx=(W>>1)-3;   // a rough-quarried block (jagged top, chipped corners, drill marks), a sledge leaning on it
   for(let x=-12;x<=12;x++){const tj=Math.round(hsh(x>>1,1,130)*3);for(let y=base-16+tj;y<base;y++){let k=y<base-12+tj?5:3;if(x<-10)k=4;if(x>10)k=1;if(y===base-16+tj)k=5;P(A,cx+x,y,St[k]);}}
-  for(const dx of [-6,2,8])for(let y=base-10;y<base-3;y+=2)P(A,cx+dx,y,St[1]);P(A,cx-12,base-16,0);
+  for(let j=0;j<10;j++)P(A,cx-2+Math.round(j*.6),base-14+j,St[1]);for(const [dx,dy] of [[-12,-15],[-11,-15],[-12,-14],[12,-14],[11,-15]])P(A,cx+dx,base+dy,0);   // (b21) a split, chipped corners, no ruled lines
   for(let j=0;j<22;j++){const x=cx+15+Math.round(j*.1),y=base-1-j;P(A,x,y,RAMP.oak[3]);P(A,x+1,y,RAMP.oak[1]);}rect(A,cx+12,base-26,9,5,RAMP.iron[3]);hl(A,cx+12,base-26,9,RAMP.iron[5]);
   cast(cx-12,cx+20,base);}
 if(K==='clothbasket'){const base=H-3,S2=RAMP.straw,cx=W>>1;   // a wicker basket of cloth bolts: rolled ends in three colours, a tape measure trailing
   for(let y=base-10;y<base;y++){const hw=12-Math.round((y-base+10)*.2);for(let x=-hw;x<=hw;x++){const row=(y-base+10)>>1,col=(x+hw+(row%2))>>1;P(A,cx+x,y,S2[x<-hw+2?5:x>hw-2?1:((row+col)%2?3:2)]);}}
   for(const [bx,C] of [[-8,RAMP.plum],[-1,RAMP.blue],[6,RAMP.cream]]){for(let y=-3;y<=3;y++)for(let x=-3;x<=3;x++){const d=x*x+y*y;if(d>10)continue;P(A,cx+bx+x,base-13+y,d<3?C[2]:C[x<0?5:3]);}}
   for(let i=0;i<10;i++)P(A,cx+12+i,base-3+Math.round(Math.sin(i*.6)),RAMP.ochre[i%3?4:2]);cast(cx-12,cx+12,base);}
+if(K==='hosewall'){const R=RAMP.oak;rect(A,1,2,W-2,5,R[3]);hl(A,1,2,W-2,R[5]);hl(A,1,6,W-2,R[1]);   // (b20) a garage wall board: fan belts and coiled hoses on hooks, a funnel
+  for(const hx of [6,18,30,42,54])if(hx<W-3){P(A,hx,7,RAMP.steel[4]);P(A,hx,8,RAMP.steel[2]);}
+  for(const [cx,r] of [[6,5],[18,4]])for(let a=0;a<22;a++){const t=a/21*Math.PI*2;P(A,cx+Math.round(Math.cos(t)*r*.8),14+Math.round(Math.sin(t)*r*1.4),RAMP.charcoal[a<11?3:1]);}
+  for(let k=0;k<3;k++)for(let a=0;a<20;a++){const t=a/19*Math.PI*2;P(A,30+Math.round(Math.cos(t)*(6-k)),16+Math.round(Math.sin(t)*(6-k)),[RAMP.red,RAMP.green,RAMP.red][k][a<10?4:2]);}
+  if(W>50){for(let j=0;j<7;j++)hl(A,50-(j>>1),9+j,3+j,RAMP.steel[j%2?2:4]);vl(A,51,16,4,RAMP.steel[3]);}for(let y=2;y<H-1;y++)SH(W-1,y,60);}
+if(K==='planchest'){const base=H-3,R=RAMP.oak,x0=3,w=W-6,top=base-18;   // a surveyor's plan chest: wide shallow drawers, rolled maps on top, one tied, one open with its corner curling
+  box3(x0,top,w,5,13,R,{faceK:2});for(let k=0;k<3;k++){hl(A,x0+2,top+8+k*4,w-4,R[1]);for(const hx of [x0+8,x0+w-10])rect(A,hx,top+9+k*4,3,1,RAMP.brass[4]);}
+  for(const [rx,ry,len,C] of [[x0+3,top-3,26,RAMP.cream],[x0+8,top-6,22,RAMP.ivory],[x0+20,top-2,18,RAMP.cream]]){for(let i=0;i<len;i++){P(A,rx+i,ry,C[5]);P(A,rx+i,ry+1,C[4]);P(A,rx+i,ry+2,C[2]);}ell(A,rx+len,ry+1,1,1,C[3]);}
+  vl(A,x0+18,top-6,3,RAMP.red[3]);cast(x0,x0+w,base);}
+if(K==='pallet'){const base=H-3,S2=RAMP.straw,Bl=RAMP.olive,x0=4,x1=W-5,t0=base-22;   // a trapper's straw pallet on the floor, seen from above: a ticking sack of straw, a rough wool blanket thrown back, a rolled coat for a pillow
+  for(let y=t0;y<base-3;y++)for(let x=x0;x<=x1;x++){let k=4;if(y===t0||x===x0)k=5;if(x===x1)k=2;if((x*3+y*5)%13===0)k=3;P(A,x,y,S2[k]);}for(let x=x0;x<=x1;x++){P(A,x,base-3,S2[2]);P(A,x,base-2,S2[1]);}   // the tick's top and its low edge
+  for(let x=x0+1;x<x1;x+=3)if(hsh(x,1,140)>.5)P(A,x,t0-1,S2[4]);
+  for(let y=t0+3;y<base-3;y++)for(let x=x0+16;x<x1-1;x++){let k=3;if(y===t0+3)k=5;if(x>x1-4)k=1;if((x+y)%7===0)k=2;P(A,x,y,Bl[k]);}for(let x=x0+16;x<x1-1;x++)P(A,x,base-3,Bl[1]);   // the blanket
+  for(let y=t0+4;y<t0+13;y++)for(let x=x0+3;x<x0+13;x++)P(A,x,y,RAMP.walnut[(x+y)%3?3:2]);hl(A,x0+3,t0+4,10,RAMP.walnut[5]);   // the rolled coat
+  cast(x0,x1,base);}
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
 for(const f of NOOL)for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(f(x,y))for(const L of [O,O2])L.d[(y*W+x)*4+3]=0;
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));

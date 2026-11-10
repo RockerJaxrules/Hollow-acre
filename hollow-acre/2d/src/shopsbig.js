@@ -45,7 +45,7 @@ const SHOPS_BIG={
       F('in_ctr_gas',8.8,3.4,.6),F('in_candycase',11.4,3.6,.5),
       F('in_tires',12.2,6.8,.3),F('in_drum',.8,6.8,.3),F('in_drum_blue',1.6,7.0,.3),F('in_plant',4.9,7.6,.25)]},
   garage:{shell:'room_shop_garage3',back:13.6,lamp:[7.4,.6],
-    furn:[F('in_shelf_parts',1.1,.62,.4),F('in_shelf_tools',3.1,.62,.4),F('in_bench',6.6,1.05,.5),F('in_toolbox',8.6,1.3,.35),W_('in_poster_fair',11.2,-.45),F('in_tires',11.8,1.6,.3),
+    furn:[F('in_oilrack',1.1,.75,.35),F('in_shelf_tools',3.1,.62,.4),F('in_bench',6.6,1.05,.5),W_('in_hosewall',9.7,-.45),F('in_toolbox',8.6,1.3,.35),W_('in_poster_fair',11.2,-.45),F('in_tires',11.8,1.6,.3),
       F('in_carlift',3.9,5.0,1.0),F('in_hoist',7.4,4.4,.3),F('in_drum',.7,7.6,.3),F('in_drum_blue',1.5,7.8,.3),F('in_tires',13.8,6.6,.3),F('in_trolleyjack',8.6,7.2,.25),F('in_drainpan',10.1,6.9,.15),['barrel',14.3,4.2,[-.4,-.3,.4,0]]]}};
 for(const [k,B] of Object.entries(SHOPS_BIG)){const R=ROOMS[k];if(!R||!SPR[B.shell])continue;
   const old={till:null};R.shell=B.shell;R.furn=B.furn;if(B.lamp)ROOM_LAMP[k]=B.lamp;

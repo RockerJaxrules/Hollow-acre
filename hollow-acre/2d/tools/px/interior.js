@@ -202,6 +202,7 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
     const cx3=x0+40;wallShadow(cx3,30,18,22);rect(B,cx3,30,18,22,PAL.cream[3]);rect(B,cx3,30,18,5,PAL.red[3]);for(let j=0;j<3;j++)for(let i=0;i<4;i++)rect(B,cx3+2+i*4,37+j*5,3,3,PAL.cream[1]);P(B,cx3+10,47,PAL.red[3]);}
   if(R.theme==='home'){for(const d of R.doors||[])backDoor(B,x0+d[0]*32,top,PAL[d[1]||'bark'],d[2]&&PAL[d[2]]);if(R.mat)doormat(A,x0+R.door*32,front-11,PAL[R.mat]);}
   else if(R.theme==='store'||R.theme==='garage'){for(const d of R.doors||[])backDoor(B,x0+d[0]*32,top,PAL[d[1]||'bark'],d[2]&&PAL[d[2]]);if(R.mat)doormat(A,x0+R.door*32,front-11,PAL[R.mat]);}
+  if(R.floorK){const K2=R.floorK;for(let y=top;y<front;y++)for(let x=x0;x<x0+fw;x++){const c=G(A,x,y);if(c)P(A,x,y,[c[0]*K2[0]|0,c[1]*K2[1]|0,c[2]*K2[2]|0]);}}
   // ---- the floor a step down from the furniture, and shade gathering where it meets the walls: cool, toward plum (judge: furniture sank into a floor of its own value)
   {const PL=[46,34,48];for(let y=top;y<front;y++)for(let x=x0;x<x0+fw;x++){const c=G(A,x,y);if(!c)continue;const dB=y-top,dS=Math.min(x-x0,x0+fw-1-x);
     let k=.9,t=0;if(dB<12)t=Math.max(t,(12-dB)/12*.42);if(dS<9)t=Math.max(t,(9-dS)/9*.32);
@@ -211,12 +212,13 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
   /* (b14: "see-through diagonal light stripes") a compact patch the shape of the window, thrown a little way out from the wall, two flat tones
      that wash out the floor's grain, the glazing cross showing as the floor's own colour */
   const ww=w[2]||28,wh=w[4]||34,wx=Math.round(x0+w[0]*32-ww/2),   /* (b14) a fractional x made every G() miss: windows at 3.8 or 4.6 threw no light at all */
-    L=Math.min(front-top-24,Math.round(wh*.85)),Y0=top+16,LT=[255,232,196];   /* thrown out past the furniture against the wall */
-    for(let y=Y0;y<Y0+L;y++){const sk=Math.round((y-Y0)*.38)+3,xl=wx+sk,xr=wx+sk+ww-1;
+    L=Math.min(front-top-24,Math.round(wh*.55),26),Y0=top+(R.sunY||16),LT=[255,232,196];   /* (b20) shorter: tall church windows still threw stripes */   /* thrown out past the furniture against the wall */
+    const GL=(R.theme==='church'||R.lancet)?[[255,214,150],[236,186,186],[190,206,236],[255,232,196]]:null;
+    for(let y=Y0;y<Y0+L;y++){const sk=Math.round((y-Y0)*.28)+3,xl=wx+sk,xr=wx+sk+ww-1;
       for(let x=xl;x<=xr;x++){if(x<x0||x>=x0+fw)continue;const u=x-xl,v=y-Y0;const c=G(A,x,y);if(!c)continue;
         if(Math.abs(u-(ww>>1))<1||Math.abs(v-(L>>1))<1){P(A,x,y,[Math.min(255,c[0]*1.06+4),Math.min(255,c[1]*1.06+3),Math.min(255,c[2]*1.06+1)]);continue;}   // the bars
-        const rim=u<2||u>ww-3||v<2||v>L-3,k=rim?.16:.34,f=rim?1.12:1.22;
-        P(A,x,y,[Math.min(255,Math.round((c[0]*f)*(1-k)+LT[0]*k)),Math.min(255,Math.round((c[1]*f)*(1-k)+LT[1]*k)),Math.min(255,Math.round((c[2]*f)*(1-k)+LT[2]*k))]);}}}
+        const rim=u<2||u>ww-3||v<2||v>L-3,k=rim?.16:(GL?.42:.34),f=rim?1.12:1.22;const LT2=GL?GL[((u<(ww>>1))?0:1)+((v<(L>>1))?0:2)]:LT;
+        P(A,x,y,[Math.min(255,Math.round((c[0]*f)*(1-k)+LT2[0]*k)),Math.min(255,Math.round((c[1]*f)*(1-k)+LT2[1]*k)),Math.min(255,Math.round((c[2]*f)*(1-k)+LT2[2]*k))]);}}}
   // ---- hanging lamps over the big rooms
   if(R.theme==='store'||R.theme==='church'){for(const f of [.25,.75]){const lx=x0+Math.round(fw*f);vl(B,lx,0,18,PAL.slate[2]);ell(B,lx,22,7,4,N?PAL.lit[4]:PAL.brass[2]);hl(B,lx-7,22,15,PAL.brass[1]);ell(B,lx,25,3,1,N?PAL.lit[5]:PAL.cream[3]);}}
   // side walls: dark tops of the left and right walls
