@@ -3,6 +3,7 @@
 Each line is something an attempt taught. Newest and repeated mistakes go to the top of their section.
 
 ## From the owner (strongest)
+- Owner (Nov 10): "benches kind of look weird and not like you would be able to sit on them". A seat must read as a seat at 1x: one bright seat plane (lighter than the back), a separate darker back with a gap under it, and a solid shadow under the seat lip that fades to the floor. Rows of evenly spaced slats or panels read as a crate, a fence or a sideboard.
 - Owner, Nov 10, on the 3D-rendered furniture, props and benches: "redo these all not in blender you lose detail when you do it and it looks bad". Understood: rendering small objects (furniture, props, stations) from 3D models smears the detail at game size. Draw them by hand in code, pixel by pixel, the way the buildings kit and the original furniture were made, and draw each turned view (side, back) by hand too, never render it. All 3D-rendered furniture was taken back out of the game (old art restored).
 
 - "your judge is being too kind on crops: that pumpkin does not look anywhere near good enough, most of them don't; compare
@@ -478,6 +479,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   body tone, a few tapered fold curves (a lit crest with its shadow under it), a frayed selvedge and pins.
 
 ## Furniture and props in four turns (Nov 10: 3D blockouts, 69 pieces judged blind vs the installed art)
+- Seats (judge, Nov 10): the seat top is the lightest plane, the back two steps darker; leave a 2-3 px gap between back and seat so they are two things, not one slatted face. The seat seen from above is shallower than the back is tall.
+- Under a seat: a dark shadow right under the lip fading toward the floor; a flat grey slab under it closes it off and reads as the base of a chest. No bottom line across it.
+- A pew from behind: a solid panelled back with finial ends reads; a full shelf of upright coloured spines reads as a bookcase. Two or three books lying or leaning on a narrow ledge, no more.
+- Eleven identical boards in a row read as a fence or barcode: vary the widths, or use two or three long raised panels.
+- Wall decor (judge, Nov 10): glass stays dark but the frame needs a lit top-left bevel two steps above it, or both merge into one black slab at 1x. A horror beat (a figure in the mirror, gouged eyes) must be drawn hard enough to read at 1x: dark ragged holes, not pale lens shapes (they read as spectacles).
+- A poster is something pinned up: a tack or a tape strip and one curled corner; an empty lower third looks unfinished, and a round beige stain reads as a coin.
 - [repeated] Judges lean toward slot b: re-run every narrow b-slot win with the slots swapped before installing. The oil drum and the signpost won 6-5 from slot b and lost from slot a; so did the barrel, tyres, crate and chopping block (5 of 5 flipped). A 6-5 from slot a held every time (tool chest, bookcase, plant).
 - The trade object must be the biggest, highest-contrast shape, and it must read at 1x: the watering can, the plank and saw, the breastplate and helmet. Small grey tools on brown are invisible.
 - A pale plank reads as paper. Use warm tan pine with end grain.
