@@ -549,6 +549,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A door above a deck needs a stoop up to its sill in the deck's own wood; a pale stoop reads as paper.
 - Mirror-copied halves (two rail sections) get one break: a sprung baluster, a replaced post.
 
+- A net or any mesh must keep its holes open: the outline pass fills every hole next to a strand, so mask the mesh out of the outline (NOOL) or it reads as a tapestry or moss.
+- A hanging net reads from its drapes: 3-4 gathered folds, a lit crest and a dark trough each, the mesh tighter in the troughs, the hem scalloped with sinkers; corks bunched where it is gathered, not evenly spaced.
+- "Crooked" has to show in the outline: a lean of 3-4 px from a mended splice, an arm that droops. A straight grey post reads as a pipe.
+- A lit lantern lights its neighbours: a warm 1 px rim on the arm's underside, the brace and the post's lantern side, and a pale core in the flame.
+- A box seen from above needs its lid lighter than its front (the lit floor through a lid's mesh, the dark inside through the front); a crab clinging on top reads, a crab behind wire does not.
+- Rope coils: two or three thick turns shaded as tubes, the lay twisting across them, dark gaps; thin concentric rings read as a doughnut or a log slice.
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline

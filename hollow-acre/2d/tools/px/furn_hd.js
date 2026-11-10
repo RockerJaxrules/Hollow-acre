@@ -4,6 +4,7 @@
 SEED=CFG.seed||7;
 const W=CFG.w,H=CFG.h,K=CFG.kind,V=CFG.view||'S',NIGHT=!!CFG.night;
 const A=layer('art',W,H),B=layer('details',W,H),SHD=layer('shadow',W,H);
+const NOOL=[];   // regions (x,y)=>true where the outline pass must leave the holes open (a net's mesh)
 const hexR=a=>a.map(HEX);
 const RAMP={
   oak:hexR(['#1e140f','#352418','#4f3724','#694b32','#836142','#9c7a57']),
@@ -1276,27 +1277,67 @@ if(K==='tvase'){const base=H-3,cx=W>>1;   // a clay jug of dried flowers: brown 
     const X=Math.round(x),Y=Math.round(y);for(const [dx,dy,k] of [[0,-1,5],[-1,0,4],[1,0,4],[0,0,3],[0,1,2]])P(A,X+dx,Y+dy,C[k]);}   // a dried head on each stem, lit on top
   for(const [dx,dy,k] of [[3,-6,4],[4,-5,3],[4,-4,2]])P(A,cx+dx,base+dy-9+7,RAMP.brick[k]);}
 // =================================================================================== Wickham's harbour: an upturned rowboat, the net frame, the fish rack, a coil of rope, the fish stall, a crab trap, the bell
-if(K==='wboat'){const base=H-3,cx=W>>1,R=hexR(['#1c2622','#27342f','#34453e','#44584f','#566c62','#6b8378']),In=RAMP.walnut;   // a rowboat drawn up on the shore, seen from above the side: a pointed bow, a square stern, its dark inside, two lit thwarts, an oar laid in it
-  const half=x=>{const t=(x+34)/68;return t<.25?Math.round(Math.sqrt(t/.25)*9):9;};   // the beam: pointed at the bow (left), full to the square stern (right)
-  for(let x=-34;x<=33;x++){const h=half(x);for(let y=-h;y<=h;y++){const rim=Math.abs(y)>=h-1;P(A,cx+x,base-14+Math.round(y*.6),rim?R[y<0?5:3]:In[y<-h+3?1:2]);}}   // the gunwale lit, the inside dark
-  for(let x=-34;x<=33;x++){const h=half(x);for(let j=1;j<6;j++)P(A,cx+x,base-14+Math.round(h*.6)+j,R[j===1?4:(j<4?3:2)]);}       // the hull's side below the gunwale
-  for(const tx of [-6,14])for(let y=-7;y<=7;y++)P(A,cx+tx,base-14+Math.round(y*.6),In[y<0?5:4]);for(const tx of [-6,14])P(A,cx+tx+1,base-14,In[3]);   // two thwarts, lit
-  for(let i=0;i<40;i++){P(A,cx-20+i,base-16+(i>>4),RAMP.oak[i<6?3:4]);}for(let j=0;j<3;j++)P(A,cx+19+j,base-15+j,RAMP.oak[3]);   // an oar laid along it
-  for(let x=-32;x<=32;x++)SH(cx+x,base-2,120);cast(cx-34,cx+34,base);}
-if(K==='wrack'){const base=H-3,R=RAMP.walnut;   // a fish rack: two posts, a pole, split fish hung tail-up to dry, three sizes, lit silver on their left edge
-  for(const px of [6,W-8])for(let y=8;y<base;y++){P(A,px,y,R[5]);P(A,px+1,y,R[3]);P(A,px+2,y,R[2]);}for(let x=4;x<W-4;x++){P(A,x,9,R[5]);P(A,x,10,R[3]);}
-  const fish=(fx,len)=>{P(A,fx-1,11,RAMP.burlap[2]);P(A,fx+1,11,RAMP.burlap[2]);P(A,fx-2,12,RAMP.stone[3]);P(A,fx+2,12,RAMP.stone[2]);P(A,fx,12,RAMP.stone[3]);   // the forked tail at the top
-    for(let j=2;j<len;j++){const w=Math.round(Math.sin(Math.PI*Math.min(1,(j-1)/(len-2)))*2.4);for(let i=-w;i<=w;i++)P(A,fx+i,11+j,RAMP.stone[i===-w?5:(i===w?2:(j>len-3?3:4))]);}P(A,fx,10+len,RAMP.walnut[0]);};   // the body, the head at the bottom
-  [[13,14],[21,11],[30,16],[39,12],[48,15],[57,10]].forEach(([fx,l])=>fish(fx,l));cast(5,W-5,base);}
-if(K==='wrope'){const base=H-3,cx=W>>1,Bp=RAMP.burlap;   // a coil of rope: a spiral, each turn lit along its top with a dark line between turns, a dark hole in the middle, the loose end trailing
-  for(let a=0;a<=4.2*Math.PI*2;a+=.05){const r=2+a*.33,x=Math.round(cx+Math.cos(a)*r*1.35),y=Math.round(base-5+Math.sin(a)*r*.55);P(A,x,y,Bp[Math.sin(a)<0?(Math.cos(a)<0?5:4):3]);P(A,x,y+1,Bp[1]);}
-  P(A,cx,base-5,RAMP.walnut[0]);P(A,cx+1,base-5,RAMP.walnut[0]);for(let i=0;i<6;i++)P(A,cx+11+i,base-3+(i>>1),Bp[4]);cast(cx-11,cx+11,base);}
-if(K==='wtrap'){const base=H-3,x0=3,w=W-6,R=RAMP.oak,I=RAMP.ironW;   // a crab trap: a coarse dark wire grid on a wooden frame, a crab inside, a rope and a cork
-  const top=base-14;for(let y=top;y<base;y++)for(let x=x0;x<x0+w;x++)P(A,x,y,RAMP.walnut[1]);
-  {const cx=x0+(w>>1),cy=base-6;for(let y=-2;y<=1;y++)for(let x=-3;x<=3;x++){if(x*x/9+y*y/4>1)continue;P(A,cx+x,cy+y,RAMP.brick[y<0?5:4]);}for(const d of [-1,1]){P(A,cx+d*4,cy-1,RAMP.brick[4]);P(A,cx+d*5,cy-2,RAMP.brick[5]);P(A,cx+d*4,cy+1,RAMP.brick[3]);}}   // a crab, claws up
-  for(let y=top;y<base;y++)for(let x=x0;x<x0+w;x++){if((x-x0)%5===0||(y-top)%5===0)P(A,x,y,I[(y-top)%5===0?3:2]);}               // the coarse wire grid over it
-  for(const hx of [x0,x0+w-1])for(let y=top-1;y<base;y++)P(A,hx,y,R[hx===x0?5:2]);for(let x=x0;x<x0+w;x++){P(A,x,top-1,R[5]);P(A,x,base-1,R[2]);}
-  for(let j=0;j<5;j++)P(A,x0+w+1-j,top-3-j,RAMP.burlap[4]);rect(A,x0+w-6,top-9,4,3,RAMP.oak[4]);hl(A,x0+w-6,top-9,4,RAMP.oak[5]);cast(x0,x0+w,base);}
+if(K==='wboat'){const base=H-3,G=hexR(['#121c1c','#1c2c2c','#2a4040','#3a5654','#4e6e6a','#6a8a84']),Ok=RAMP.oak,x0=5,x1=W-5,cy=12;   // a rowboat drawn up on the shore: seen from above and its near side, an almond of dark boards inside with two seats and an oar across them, a lit gunwale round it, the near side's lapped planks in flaking teal paint, the square transom at the stern, a ring at the bow
+  const hw=x=>{const t=(x-x0)/(x1-x0);return t<.62?7.5+1.8*Math.sin(t/.62*Math.PI/2):9.3*Math.sqrt(Math.max(0,1-Math.pow((t-.62)/.38,1.6)));};
+  const half=x=>hw(x)*.62,side=x=>Math.round(3+hw(x)*.62);
+  for(let x=x0;x<=x1;x++){const h=half(x),y0=Math.round(cy-h),y1=Math.round(cy+h),sd=side(x);if(h<.6)continue;
+    for(let y=y0;y<=y1;y++){let c=Ok[(y-y0)<2?1:(x%7===0?1:2)];P(A,x,y,c);}                                                                 // the inside: dark boards, ribs across
+    for(let y=y1+1;y<=y1+sd;y++){const k=y-y1;let c=G[k===1?4:(k%3===0?1:(k<sd/2?3:2))];
+      if(hsh(x>>1,y,SEED+2)>.86&&k>1)c=Ok[3];                                                                                              // paint flaked back to the wood
+      P(A,x,y,c);}
+    P(A,x,y0,Ok[5]);P(A,x,y0+1,Ok[3]);P(A,x,y1,Ok[5]);P(A,x,y1+1,G[5]);}                                                                    // the gunwales lit along their tops
+  for(let y=Math.round(cy-half(x0)),k=0;y<=Math.round(cy+half(x0))+side(x0);y++,k++)P(A,x0,y,y>cy+half(x0)?G[2]:Ok[4]);                    // the transom
+  for(const tx of [Math.round(x0+(x1-x0)*.28),Math.round(x0+(x1-x0)*.58)]){const h=Math.round(half(tx));for(let y=cy-h+1;y<=cy+h-1;y++){P(A,tx,y,Ok[5]);P(A,tx+1,y,Ok[4]);P(A,tx+2,y,Ok[3]);P(A,tx+3,y,Ok[1]);}}   // two seats across
+  for(let x=x0+6;x<=x1-16;x++){const y=cy-1+Math.round((x-x0)/34);P(A,x,y,Ok[5]);P(A,x,y+1,Ok[3]);}for(let k=0;k<5;k++){P(A,x1-17+k,cy+1,Ok[4]);P(A,x1-17+k,cy+2,Ok[2]);}P(A,x1-12,cy+1,Ok[3]);   // an oar lying across them, its blade
+  {const px=x0+9;for(let x=0;x<6;x++)for(let y=0;y<3;y++){if((x===0||x===5)&&y!==1)continue;P(A,px+x,cy+2+y,RAMP.glass[y===0?4:2]);}}       // rainwater in the bottom
+  P(A,x1+1,cy,RAMP.ironW[4]);P(A,x1+2,cy+1,RAMP.ironW[3]);P(A,x1+1,cy+2,RAMP.ironW[2]);                                                   // the bow ring
+  for(let x=x0+2;x<=x1-2;x++){const y=Math.round(cy+half(x))+side(x)+1;SH(x,y,150);SH(x+1,y+1,100);SH(x+2,y+2,50);}}
+if(K==='wrack'){const base=H-3,R=RAMP.walnut,Tw=RAMP.burlap;   // a fish rack: two posts and a pole, fish hung by the tail to dry, seen side-on: forked tail tied up top, a dorsal fin, a gill arc, an eye, the mouth open at the bottom; silver ones and smoked ones, one gone (its loop left) and one gnawed to the ribs
+  for(const px of [5,W-9])for(let y=7;y<=base;y++){P(A,px,y,R[5]);P(A,px+1,y,R[4]);P(A,px+2,y,R[2]);P(A,px+3,y,R[1]);}
+  for(const px of [5,W-9]){hl(A,px-1,6,6,R[5]);cast(px,px+3,base);}
+  for(let x=3;x<W-3;x++){P(A,x,9,R[5]);P(A,x,10,R[3]);P(A,x,11,R[1]);}
+  const SIL=hexR(['#1c2228','#323c46','#4d5a66','#6d7a86','#929eaa','#bcc6ce']),SMK=hexR(['#24180e','#3e2a16','#5c4020','#7c5a2e','#9c7840','#ba9658']);
+  const fish=(fx,len,wd,C,gnaw)=>{const t0=13;
+    for(let k=0;k<3;k++){P(A,fx,t0-1-k,Tw[k===0?3:4]);}P(A,fx-1,t0-3,Tw[3]);P(A,fx+1,t0-3,Tw[2]);                                                            // the twine loop over the pole
+    for(const [x,y,c] of [[-2,0,4],[-1,0,3],[1,0,2],[2,0,1],[-2,1,3],[-1,1,4],[1,1,3],[2,1,2],[-1,2,3],[0,2,3],[1,2,2],[0,3,2]])P(A,fx+x,t0+y,C[c]);       // the forked tail
+    const w=j=>{const u=(j-3)/(len-3);return u<0?0:Math.max(.6,wd*Math.sin(Math.PI*Math.min(1,u*.85+.08))*(u>.8?1-(u-.8)*1.6:1));};
+    for(let j=4;j<=len;j++){const ww=Math.round(w(j)),y=t0+j;for(let x=-ww;x<=ww;x++){let c=x<-ww/2?5:(x<0?4:(x<ww/2?3:2));if(x===ww)c=1;if(x===0&&j%2===0&&j<len-5)c=Math.max(1,c-1);
+        if(gnaw&&j>len*.38&&j<len*.72&&x<=0){c=(j%2===0)?-1:-2;}
+        P(A,fx+x,y,c===-1?RAMP.ivory[4]:(c===-2?RAMP.red[1]:C[c]));}}
+    for(let j=Math.round(len*.3);j<=Math.round(len*.52);j++){const ww=Math.round(w(j));P(A,fx+ww+1,t0+j,C[j%2?2:1]);}                                     // the dorsal fin down its back
+    {const j=len-6,ww=Math.round(w(j));P(A,fx-ww-1,t0+j,C[4]);P(A,fx-ww-1,t0+j+1,C[3]);}                                                                  // a pectoral fin
+    for(let x=-Math.round(w(len-5));x<=Math.round(w(len-5));x++)P(A,fx+x,t0+len-5+Math.round(Math.abs(x)*.5),C[1]);                                          // the gill arc
+    P(A,fx-1,t0+len-2,RAMP.charcoal[0]);P(A,fx-2,t0+len-3,C[5]);                                                                                         // the eye
+    P(A,fx,t0+len,RAMP.charcoal[0]);P(A,fx,t0+len+1,C[2]);};                                                                                             // the mouth hanging open
+  fish(13,22,3,SIL);fish(23,17,2.6,SMK);fish(33,24,3.2,SIL,true);fish(53,15,2.4,SMK);fish(61,19,2.8,SIL);
+  for(let k=0;k<4;k++)P(A,43,12+k,Tw[k%2?3:4]);P(A,42,16,Tw[3]);P(A,44,16,Tw[2]);                                                                         // a loop of twine with nothing in it
+  for(let x=-3;x<=3;x++)SH(33+x,base,80);SH(32,base-1,60);SH(34,base-1,60);}                                                                          // what dripped
+if(K==='wrope'){const base=H-3,cx=12,cy=base-6,Bp=RAMP.burlap,asp=.55;   // a coil of thick rope on the boards: three turns stacked a pixel higher each, each lit like a tube on its top-left with the lay twisting across it, dark gaps between, the loose end trailing off the right
+  for(let y=-7;y<=6;y++)for(let x=-12;x<=12;x++){const r=Math.hypot(x,y/asp);if(r<=10.6)P(A,cx+x,cy+y,Bp[0]);}                                                  // the dark under and between the turns
+  const L=[-.5,-.62,.6];const turns=[[8,10.6,0],[5,7.6,1],[1.9,4.6,2]];
+  for(const [r0,r1,k] of turns)for(let y=-8;y<=6;y++)for(let x=-12;x<=12;x++){const yy=y+k,r=Math.hypot(x,yy/asp);if(r<r0||r>r1)continue;
+    const t=(r-r0)/(r1-r0)*2-1,th=Math.atan2(yy/asp,x),nx=Math.cos(th)*t,ny=Math.sin(th)*t,nz=Math.sqrt(Math.max(0,1-t*t));
+    let I=nx*L[0]+ny*L[1]+nz*L[2];let c=I>.62?5:(I>.38?4:(I>.12?3:(I>-.15?2:1)));
+    if((((th*(r0+r1)*.5)+t*1.6)%2.2+2.2)%2.2<.55)c=Math.max(1,c-1);                                                                                         // the lay: strands twisting across the turn
+    P(A,cx+x,cy+y,Bp[c]);}
+  P(A,cx,cy-2,RAMP.walnut[0]);P(A,cx+1,cy-2,RAMP.walnut[0]);P(A,cx,cy-1,RAMP.walnut[1]);                                                                       // the hole in the middle
+  const tail=[[22,cy+1],[23,cy+2],[23,cy+3],[24,cy+4],[24,cy+5],[25,cy+6]];for(const [x,y] of tail){P(A,x,y,Bp[4]);P(A,x-1,y,Bp[3]);P(A,x,y+1,Bp[1]);}           // the loose end over the edge of the coil
+  P(A,25,cy+7,Bp[5]);P(A,24,cy+7,Bp[4]);P(A,25,cy+8,Bp[3]);                                                                                                   // its frayed tip
+  for(let x=cx-10;x<=cx+12;x++){SH(x,base+1,140);SH(x+1,base+2,85);}}
+if(K==='wtrap'){const base=H-3,x0=3,x1=W-4,R=RAMP.oak,I=RAMP.ironW,top=4,fy=13;   // a crab trap seen from above and in front: a wooden frame, a lit top face of wire over the dark inside, a darker front face with a funnel mouth, a crab behind the wire, a rope to a cork
+  for(let y=top;y<=base;y++)for(let x=x0;x<=x1;x++)P(A,x,y,y<fy?RAMP.oak[(y-top)<2?1:2]:RAMP.walnut[0]);                                                                 // the dark inside
+  for(let y=top;y<fy;y++)for(let x=x0;x<=x1;x++)if((x-x0)%5===0||(y-top)%4===0)P(A,x,y,(y-top)%4===0?RAMP.oak[4]:RAMP.oak[5]);                                                // the top face: wire lit from above
+  for(let y=fy;y<=base;y++)for(let x=x0;x<=x1;x++)if(((x-x0)%3===0||(y-fy)%3===0))P(A,x,y,I[(y-fy)%3===0?2:1]);  // the front face: wire in shade
+  {const cx=x1-7,cy=base-5;for(let y=-4;y<=4;y++)for(let x=-4;x<=4;x++){const r=Math.hypot(x,y);if(r>3.9)continue;let c=RAMP.walnut[r<1.2?0:2];                    // the funnel mouth on the front: a wire cone narrowing into the dark
+      if(Math.abs(r-3.5)<.5)c=I[y<0?5:3];else if(Math.abs(r-1.7)<.45)c=I[y<0?4:2];else if(r>1.7&&(x===0||y===0))c=I[3];P(A,cx+x,cy+y,c);}}
+  hl(A,x0,top,x1-x0+1,R[5]);hl(A,x0,fy,x1-x0+1,R[5]);hl(A,x0,fy+1,x1-x0+1,R[3]);hl(A,x0,base,x1-x0+1,R[2]);                                                    // the frame: back edge, the lit front edge of the top, the bottom rail
+  for(const x of [x0,x1]){for(let y=top;y<=base;y++)P(A,x,y,R[x===x0?(y<fy?5:4):(y<fy?3:1)]);}vl(A,x0+1,fy,base-fy+1,R[3]);
+  {const cx=x0+9,cy=top+5,C=RAMP.pumpkin;for(let y=-3;y<=2;y++)for(let x=-4;x<=4;x++){if(x*x/16+y*y/7>1)continue;P(A,cx+x,cy+y,C[y<0?(x<0?5:4):(x<1?3:2)]);}   // a crab clinging to the lid: its shell lit on the left
+    for(const d of [-1,1]){for(const [lx,ly] of [[5,0],[6,1],[5,1],[6,2],[5,2],[6,3]])P(A,cx+d*lx,cy+ly,C[2]);for(const [lx,ly,k] of [[4,-3,4],[5,-4,5],[4,-4,4],[6,-4,3],[5,-5,5],[6,-5,4]])P(A,cx+d*lx,cy+ly,C[k]);}   // legs splayed on the wire, claws raised
+    P(A,cx-1,cy-3,RAMP.charcoal[0]);P(A,cx+1,cy-3,RAMP.charcoal[0]);P(A,cx-2,cy-2,C[5]);SH(cx-3,cy+2,110);SH(cx-2,cy+2,110);for(let x=-1;x<=4;x++)SH(cx+x,cy+2,110);}
+  for(let k=0;k<7;k++)P(A,x1-1-k,top+1+(k>>2),RAMP.burlap[k%2?3:4]);                                                                                           // a rope tied to the back corner
+  for(let dx=0;dx<5;dx++)for(let dy=0;dy<3;dy++){if((dx===0||dx===4)&&dy!==1)continue;P(A,x1-12+dx,top+2+dy,RAMP.ochre[dy===0?5:(dx<2?4:2)]);}SH(x1-12,top+5,120);SH(x1-11,top+5,120);SH(x1-10,top+5,120);   // its cork, resting on the lid
+  cast(x0,x1,base);for(let x=x0;x<=x1+2;x++)SH(x,base+1,170);}
 if(K==='wstall'){const base=H-3,x0=6,w=W-12,R=RAMP.walnut;   // the fish stall: a faded striped awning, a tilted tray of the morning's catch on ice, long front boards, a slate sign
   const top=base-30;box3(x0,top,w,8,22,R,{facePw:11});
   for(let y=top-6;y<top+7;y++){const t=(y-top+6)/13;for(let x=x0+3;x<x0+w-3;x++)P(A,x,y,RAMP.ivory[t<.1?5:(((x+y)%6===0)?3:4)]);}hl(A,x0+3,top+7,w-6,RAMP.walnut[2]);   // a tilted tray of crushed ice
@@ -1306,38 +1347,82 @@ if(K==='wstall'){const base=H-3,x0=6,w=W-12,R=RAMP.walnut;   // the fish stall: 
   for(let y=0;y<10;y++)for(let x=x0-3;x<x0+w+3;x++){const st=Math.floor((x-x0+3)/8)%2;P(A,x,12+y+(y>7&&((x>>2)%2)?1:0),st?RAMP.ivory[y<2?4:3]:hexR(['#1e2c26','#2a3b33','#38493f','#4a5e52','#5e7466','#768c7c'])[y<2?4:3]);}
   rect(A,x0+w-22,top+12,18,8,RAMP.charcoal?RAMP.charcoal[2]:R[1]);drawText(A,'FISH',x0+w-20,top+13,RAMP.cream[4]);
   cast(x0,x0+w,base);}
-if(K==='wnets'){const base=H-3,R=RAMP.walnut,T=hexR(['#16130e','#262019','#3a3124','#524532','#6b5b41','#867354']),px0=3,px1=W-8,poleY=5;   // a tarred fishing net hung to dry: two weathered posts and a pole, the net doubled over it, hanging in folds as a diamond mesh you can see through, cork floats on the head rope, lead sinkers on the hem, the rest heaped on the ground
+if(K==='wnets'){const base=H-3,R=RAMP.walnut,T=hexR(['#170f0b','#2a1c14','#41291d','#5a3b28','#764f35','#936847','#ae8560']),px0=3,px1=W-8,poleY=5;   // a tarred fishing net hung to dry: two weathered posts and a pole, the net gathered into four hanging drapes, each lit on its crest and shaded in its trough, an open mesh you see the ground through, cork floats on the head rope, lead sinkers on the hem, one corner dragged down to the ground
   const post=(x)=>{for(let y=poleY-2;y<=base;y++){P(A,x,y,R[5]);P(A,x+1,y,R[4]);P(A,x+2,y,R[3]);P(A,x+3,y,R[1]);}hl(A,x,poleY-3,4,R[5]);P(A,x+1,poleY+9,R[2]);P(A,x+2,poleY+17,R[2]);P(A,x+1,poleY+30,R[2]);cast(x,x+3,base);};
   post(px0);post(px1);
-  for(let x=px0-1;x<=px1+4;x++){P(A,x,poleY,R[5]);P(A,x,poleY+1,R[4]);P(A,x,poleY+2,R[2]);}                                                     // the pole across, lit along its top
-  for(const jx of [px0,px1])for(let k=0;k<4;k++){P(A,jx+k,poleY-1+k,RAMP.burlap[4]);P(A,jx+3-k,poleY-1+k,RAMP.burlap[3]);}                      // rope lashed round each joint
-  const n0=px0+5,n1=px1-2,top=poleY+3;
-  const hem=x=>Math.round(base-16+2.4*Math.sin(x*.19+1)+1.4*Math.sin(x*.47));
-  const tear=(x,y)=>Math.hypot(x-(n0+21),(y-(top+19))*1.25)<4.4;
-  for(let x=n0;x<=n1;x++){const f=Math.sin((x-n0)*2*Math.PI/12+.6);const shade=f>.45?5:(f>-.2?4:(f>-.7?3:2));               // folds: lit on the ridges, dark and bunched in the valleys
-    const h=hem(x);
-    for(let y=top;y<=h;y++){if(tear(x,y))continue;
-      const lat=((x+y)%4+4)%4===0||((x-y)%4+4)%4===0;const bunch=f<-.7&&((x+y)%2===0);const dbl=y<top+4&&(((x+y+2)%4+4)%4===0||((x-y+2)%4+4)%4===0);
-      if(lat||bunch||dbl)P(A,x,y,T[y>=h-1?Math.max(1,shade-1):shade]);}
-    P(A,x,top,T[Math.max(3,shade)]);if(x%2===0)P(A,x,top+4,T[Math.max(2,shade-1)]);}                                                                   // the head rope, the doubled layer's edge
-  for(const [x,y] of [[n0+17,top+23],[n0+18,top+24],[n0+19,top+24],[n0+24,top+16],[n0+25,top+17],[n0+25,top+18],[n0+21,top+24],[n0+21,top+25]])P(A,x,y,T[3]);   // broken strands hanging in the tear
-  const cork=(fx,fy)=>{for(let dx=0;dx<4;dx++)for(let dy=0;dy<3;dy++){if((dx===0||dx===3)&&dy!==1)continue;P(A,fx+dx,fy+dy,RAMP.ochre[dy===0?5:(dx<2?4:2)]);}};
-  for(let x=n0+4;x<=n1-3;x+=9)cork(x,top+1);                                                                                                             // cork floats along the head rope
-  for(let x=n0+2;x<=n1-2;x+=6){const hy=hem(x)+1;P(A,x,hy,RAMP.iron[4]);P(A,x+1,hy,RAMP.iron[2]);P(A,x,hy+1,RAMP.iron[1]);P(A,x+1,hy+1,RAMP.iron[1]);}   // lead sinkers along the hem
-  const hx=W-29,hy=base-3;                                                                                                                               // the rest of it heaped at the foot of the right post: layers of mesh, the dark inside showing through
-  for(let y=-6;y<=2;y++)for(let x=-15;x<=15;x++){const r=x*x/225+y*y/(y<0?36:4);if(r>1)continue;const X=hx+x,Y=hy+y;
-    const lat=((X+Y)%4+4)%4===0||((X-Y)%4+4)%4===0||((X*2+Y)%7===0);const lvl=y<-4?5:(y<-1?4:3);
-    P(A,X,Y,lat?T[r>.8&&y>0?2:lvl]:(r>.85&&y<0?T[3]:T[1]));}
-  cork(hx-9,hy-4);cork(hx+3,hy-6);cork(hx+10,hy-2);
-  for(let x=hx-16;x<=hx+17;x++){SH(x,hy+3,150);SH(x+1,hy+4,95);}
-  for(let x=n0;x<hx-16;x++)if(((x+base)%4)===0)SH(x,base,55);}                                                                                        // the net's faint lattice shadow on the ground
-if(K==='wbell'){const base=H-3,cx=W>>1,R=RAMP.walnut,St=RAMP.stone;   // the harbour bell: a stone base, two posts and a crossbeam, an old bronze bell gone green: a round crown on its loop, a waist, a flared lip, lit on the left
-  for(let y=base-14;y<base;y++)for(let x=-14;x<=14;x++){const row=(base-y)>>2,o=(row%2)*3;let k=x<-10?4:(x>10?2:3);if((base-y)%4===0||((x+o+20)%7===0))k=1;P(A,cx+x,y,St[k]);}hl(A,cx-14,base-14,29,St[5]);
-  for(const px of [cx-15,cx+13])for(let y=10;y<base-14;y++){P(A,px,y,R[4]);P(A,px+1,y,R[2]);P(A,px+2,y,R[1]);}for(let x=cx-17;x<=cx+17;x++){P(A,x,9,R[5]);P(A,x,10,R[3]);P(A,x,11,R[1]);}
-  const B=hexR(['#1e2a22','#2d3d31','#3f5442','#56704f','#748f5f','#93ab73']);P(A,cx,12,B[3]);P(A,cx-1,13,B[3]);P(A,cx+1,13,B[2]);   // the loop
-  for(let y=0;y<24;y++){const w=y<5?Math.round(3+Math.sqrt(y)*1.3):(y<17?Math.round(5+(y-5)*.12):Math.round(6.5+(y-17)*.75));for(let x=-w;x<=w;x++)P(A,cx+x,14+y,y>=22?B[x<0?3:1]:B[x<-w+2?5:(x<-w*.3?4:(x>w-2?1:(x>w*.4?2:3)))]);}   // crown, waist, flared lip
-  hl(A,cx-11,37,23,B[4]);for(let j=0;j<20;j++)P(A,cx+Math.round(Math.sin(j*.3)),39+j,RAMP.burlap[j%3===0?2:3]);cast(cx-14,cx+14,base);}
-// =================================================================================== a slept-in bed's thrown-back sheet (laid over the bed), and a stain on the floor
+  for(let x=px0-1;x<=px1+4;x++){P(A,x,poleY,R[5]);P(A,x,poleY+1,R[4]);P(A,x,poleY+2,R[2]);}
+  for(const jx of [px0,px1])for(let k=0;k<4;k++){P(A,jx+k,poleY-1+k,RAMP.burlap[4]);P(A,jx+3-k,poleY-1+k,RAMP.burlap[3]);}
+  const n0=px0+5,n1=px1-2,top=poleY+3,span=n1-n0;
+  const drapes=[[0,.27],[.27,.5],[.5,.76],[.76,1]];   // where each drape hangs from (gathered at the floats between them)
+  const hem=x=>{const t=(x-n0)/span;let h=base-17+2*Math.sin(t*9.4+.7);for(const [a,b] of drapes){if(t>=a&&t<=b){const m=(t-a)/(b-a);h+=Math.sin(m*Math.PI)*5;}}if(t>.86)h+=(t-.86)*95;return Math.min(base-1,Math.round(h));};   // each drape sags lower in its middle; the right corner dragged to the ground
+  const fold=x=>{const t=(x-n0)/span;for(const [a,b] of drapes)if(t>=a&&t<=b){const m=(t-a)/(b-a);return Math.cos((m-.38)*Math.PI*1.1);}return 0;};   // +1 on a drape's crest (left of middle, toward the light), -1 in the troughs where drapes meet
+  const isNet=(x,y)=>x>=n0&&x<=n1&&y>top&&y<=hem(x);
+  NOOL.push(isNet);
+  for(let x=n0;x<=n1;x++){const f=fold(x),h=hem(x);const per=f<-.45?3:(f<.2?5:7);                                                                                     // the mesh bunches tighter in the troughs
+    const shade=f>.7?6:(f>.35?5:(f>0?4:(f>-.45?3:2)));
+    for(let y=top+1;y<=h;y++){const sy=y+Math.round((1-Math.abs(f))*2);                                                                                      // the diamonds stretch as the drape falls
+      if(((x+sy)%per+per)%per===0||((x-sy)%per+per)%per===0)P(A,x,y,T[y>=h-1?Math.max(1,shade-1):shade]);}
+    P(A,x,top,T[Math.max(3,shade)]);}
+  for(const [a] of drapes.slice(1)){const x=Math.round(n0+a*span);for(let y=top+1;y<hem(x)-1;y++){P(A,x,y,T[1]);P(A,x+1,y,T[2]);if(y>top+6)P(A,x-1,y,T[2]);}}   // the twine gathered down each trough where two drapes meet
+  const cork=(fx,fy,w)=>{for(let dx=0;dx<w;dx++)for(let dy=0;dy<3;dy++){if((dx===0||dx===w-1)&&dy!==1)continue;P(A,fx+dx,fy+dy,RAMP.ochre[dy===0?5:(dx<2?4:2)]);}};
+  for(const [t,w] of [[.03,4],[.27,5],[.5,4],[.62,3],[.76,5],[.97,4]])cork(Math.round(n0+t*span)-1,top,w);                                                  // corks: bunched where the drapes are gathered, one missing
+  for(const t of [.08,.19,.33,.41,.58,.69,.84])for(let k=0;k<1;k++){const x=Math.round(n0+t*span),hy=hem(x)+1;P(A,x,hy,RAMP.iron[4]);P(A,x+1,hy,RAMP.iron[2]);P(A,x,hy+1,RAMP.iron[1]);}   // sinkers, unevenly spaced
+  for(let x=n0;x<=n1;x++)if(hem(x)<base-2){const sh=Math.abs(fold(x))>.3?55:40;SH(x,base,sh);SH(x,base+1,sh*.6);}                                              // the net's soft shadow on the ground
+  for(let x=n1-7;x<=n1+3;x++){SH(x,base,120);SH(x,base+1,80);}}
+if(K==='wlamp'){const base=H-3,R=hexR(['#1f1915','#362a22','#4f3f33','#6a5646','#86705c','#a08a72']),I=RAMP.ironW,px=7,kink=46;   // Wickham's crooked lamp post: a weathered post spliced once and leaning seaward above the splice, an iron arm drooping under its lantern, a ship's lantern on a short chain; at night a pale-cored flame burns in its panes and lights the arm, the brace and the top of the post
+  const lean=y=>Math.round((base-y)/21+(y<kink?(kink-y)/40:0));                                                // nearly straight below the splice, leaning hard above it
+  for(let y=6;y<=base;y++){const x=px+lean(y);P(A,x,y,R[5]);P(A,x+1,y,R[4]);P(A,x+2,y,R[3]);P(A,x+3,y,R[1]);
+    if((y>12&&y<38)||(y>52&&y<76))P(A,x+1,y,R[3]);if((y>20&&y<44)||(y>58))P(A,x+2,y,R[2]);if(y>kink+6&&y<kink+18){P(A,x+2,y,R[0]);P(A,x+3,y,R[0]);}}   // two long grain grooves, a deep split below the mend
+  for(const [ky,kx] of [[22,1],[63,2]]){const x=px+lean(ky)+kx;P(A,x,ky,R[1]);P(A,x,ky+1,R[2]);P(A,x-1,ky,R[3]);}                    // knots
+  for(let y=kink-4;y<=kink+3;y++){const x=px+lean(y);for(let k=-1;k<=4;k++){const w=((k+y)%3===0);P(A,x+k,y,RAMP.burlap[w?2:(k<1?5:(k<3?4:3))]);}}   // the mend: rope lashed round and round it, lit on the left
+  for(const by of [70]){const x=px+lean(by);hl(A,x,by,4,I[4]);hl(A,x,by+1,4,I[2]);}
+  const tx=px+lean(6);hl(A,tx-1,5,6,R[5]);hl(A,tx-1,6,6,R[3]);
+  const armY=x=>9+Math.round((x-(tx+3))/7);                                                                                           // the arm droops toward its end
+  for(let x=tx+3;x<=W-3;x++){const y=armY(x);P(A,x,y,I[4]);P(A,x,y+1,NIGHT?RAMP.lit[2]:I[2]);}P(A,W-3,armY(W-3)-1,I[3]);
+  for(let k=0;k<7;k++){P(A,tx+3+k,17-k,NIGHT?RAMP.lit[k<4?3:2]:I[k<3?3:4]);}P(A,tx+4,17,I[2]);P(A,tx+5,18,I[3]);P(A,tx+6,18,I[2]);    // the brace, scrolled at the post
+  const lx=W-7,ay=armY(lx+1)+2;
+  for(let y=ay;y<ay+4;y++)P(A,lx+1,y,I[(y%2)?4:2]);
+  P(A,lx,ay+4,I[3]);P(A,lx+2,ay+4,I[3]);P(A,lx+1,ay+3,I[4]);
+  const c0=ay+5;for(let y=c0;y<=c0+3;y++){const w=y-c0;for(let x=-w-1;x<=w+1;x++)P(A,lx+1+x,y,I[x<0?4:(x===0?3:2)]);}
+  const g0=c0+4,g1=g0+10;
+  for(let y=g0;y<=g1;y++)for(let x=-3;x<=3;x++){const X=lx+1+x;let c;
+    if(x===-3||x===3||x===0)c=I[x===-3?3:(x===0?2:1)];
+    else if(NIGHT){const dy=Math.abs(y-(g0+6)),d=Math.abs(x)+dy*.6;c=RAMP.lit[d<1.6?5:(d<2.8?4:(d<4?3:2))];}                         // the flame's pale core, amber round it, deeper at the corners
+    else c=RAMP.glass[(y===g0+1&&x===-2)?5:(x<0?3:2)];
+    P(A,X,y,c);}
+  if(NIGHT){P(A,lx,g0+5,RAMP.lit[5]);P(A,lx,g0+6,RAMP.lit[5]);P(A,lx+2,g0+6,RAMP.lit[5]);P(A,lx+2,g0+5,RAMP.lit[4]);}else{P(A,lx-1,g0+3,RAMP.glass[5]);P(A,lx-1,g0+4,RAMP.glass[4]);}
+  for(let x=-4;x<=4;x++){P(A,lx+1+x,g1+1,I[x<0?4:2]);P(A,lx+1+x,g1+2,I[1]);}for(let x=-1;x<=1;x++)P(A,lx+1+x,g1+3,I[2]);P(A,lx+1,g1+4,I[3]);
+  for(let y=-2;y<=1;y++)for(let x=-7;x<=7;x++){if(x*x/49+y*y/4>1)continue;const X=px+1+x,Y=base+y;if(Math.abs(x)<3&&y<1)continue;
+    P(A,X,Y,RAMP.stone[y<0?(x<0?5:4):(x<0?3:2)]);}
+  cast(px-6,px+8,base);
+  if(NIGHT){for(let y=4;y<=40;y++){const x=px+lean(y)+3,t=1-(Math.abs(y-(g0+5))/26);if(t>0)P(A,x,y,RAMP.lit[t>.6?3:2]);if(t>.45)P(A,x-1,y,RAMP.lit[t>.75?2:1]);}   // warm light on the post's lantern side
+    hl(A,tx-1,5,6,RAMP.lit[3]);hl(A,tx-1,6,6,RAMP.lit[2]);warm(lx+1,g0+6,15,.6);}}
+if(K==='wbell'){const base=H-3,cx=W>>1,R=RAMP.walnut,St=RAMP.stone,Br=RAMP.brass,Vg=hexR(['#16241e','#223a30','#33523f','#4a6c52','#668a68','#88a882']);   // the harbour bell: a stone plinth, two stout posts under a little shingled cap, an old bronze bell gone green, rubbed back to bronze at the lip, a twisted pull rope tied off on a cleat
+  const pb=base-14;                                                                                                                     // the plinth
+  for(let y=pb;y<=base;y++)for(let x=9;x<=W-10;x++){const top=y<pb+3;let c=top?St[y===pb?5:4]:St[(((x+((y-pb)%8<4?0:4))%8)===0||(y-pb)%4===3)?1:(x<14?4:3)];P(A,x,y,c);}
+  cast(9,W-10,base);
+  const p0=13,p1=W-18,py=27;
+  for(const px of [p0,p1])for(let y=py;y<pb;y++){P(A,px,y,R[5]);P(A,px+1,y,R[4]);P(A,px+2,y,R[3]);P(A,px+3,y,R[2]);P(A,px+4,y,R[1]);if(y%9===3)P(A,px+2,y,R[2]);}
+  for(let x=p0-2;x<=p1+6;x++){P(A,x,py,R[5]);P(A,x,py+1,R[4]);P(A,x,py+2,R[3]);P(A,x,py+3,R[1]);}                                         // the beam
+  for(let y=13;y<py;y++){const t=(y-13)/(py-13),x0=Math.round(cx-10-t*16),x1=Math.round(cx+9+t*16);                                    // the shingled cap
+    for(let x=x0;x<=x1;x++){const row=((y-13)/3)|0,sh=((x+row*3)%6===0);let c=y===13?RAMP.bark[5]:((y-13)%3===2?RAMP.bark[1]:(sh?RAMP.bark[2]:(x<cx-4?RAMP.bark[4]:(x<cx+6?RAMP.bark[3]:RAMP.bark[2]))));P(A,x,y,c);}}
+  for(let x=cx-27;x<=cx+26;x++){SH(x,py+4,120);}
+  hl(A,cx-5,py+4,11,R[4]);hl(A,cx-5,py+5,11,R[2]);                                                                                       // the headstock
+  P(A,cx-1,py+6,Br[3]);P(A,cx,py+6,Br[4]);P(A,cx+1,py+6,Br[2]);                                                                           // the crown loop
+  const b0=py+7,bl=26;
+  for(let j=0;j<=bl;j++){const t=j/bl,w=Math.round(5.5+t*2.4+Math.pow(t,3.2)*6.5);const y=b0+j;
+    for(let x=-w;x<=w;x++){const u=x/w;let c;
+      if(t>.92){c=Br[u<-.55?5:(u<-.1?4:(u<.5?3:2))];if(j===bl)c=Br[1];}                                                                    // the lip, rubbed back to bronze
+      else{const k=u<-.6?5:(u<-.25?4:(u<.25?3:(u<.65?2:1)));c=Vg[Math.max(0,k-((hsh(x+cx,y,SEED+5)>.82)?1:0))];}
+      if(t>.86&&t<=.92)c=Vg[1];                                                                                                          // the sound-bow ring
+      P(A,cx+x,y,c);}}
+  for(let y=b0+3;y<b0+bl-4;y++)P(A,cx-3,y,Vg[5]);                                                                                         // a long highlight down its waist
+  for(let x=-4;x<=4;x++)P(A,cx+x,b0+bl+1,RAMP.charcoal[0]);P(A,cx,b0+bl+2,RAMP.ironW[3]);P(A,cx-1,b0+bl+2,RAMP.ironW[2]);P(A,cx+1,b0+bl+2,RAMP.ironW[1]);   // the dark mouth, the clapper
+  const T=RAMP.burlap;let rx=cx+1;                                                                                                         // the pull rope: two pixels wide, its lay twisting, down and across to the cleat on the right post
+  for(let y=b0+bl+3;y<pb-14;y++){P(A,rx,y,T[(y%3===0)?3:4]);P(A,rx+1,y,T[(y%3===1)?1:2]);}
+  for(let k=0;k<=p1-rx-1;k++){const y=pb-14+Math.round(Math.sin(k/(p1-rx)*Math.PI)*4);P(A,rx+k,y,T[(k%3===0)?3:4]);P(A,rx+k,y+1,T[(k%3===1)?1:2]);}
+  hl(A,p1-1,pb-15,7,RAMP.ironW[4]);hl(A,p1-1,pb-14,7,RAMP.ironW[2]);                                                                      // the cleat
+  for(let y=pb-13;y<pb-6;y++){P(A,p1+5,y,T[(y%3===0)?3:4]);P(A,p1+6,y,T[2]);}}                                                            // the tail hanging from it
 if(K==='rumple'){const C=RAMP.ivory;   // the sheet thrown back and bunched across the middle of the bed: folds lit along their tops, the shadows between them, a corner trailing
   for(let x=9;x<W-9;x++){const t=(x-9)/(W-18),h=5+Math.round(Math.sin(t*Math.PI)*3+Math.sin(t*9)*1.5);for(let y=0;y<h;y++){const yy=14-y+Math.round(Math.sin(t*5)*1.2);const fold=((x+Math.round(y*.6))%9);P(A,x,yy,C[y===h-1?5:(fold<2?2:(fold<4?3:4))]);}}   // the bunched sheet, its folds
   for(let x=9;x<W-9;x++)P(A,x,15+Math.round(Math.sin((x-9)/(W-18)*5)*1.2),C[1]);                                                 // its shadow on the quilt
@@ -1381,4 +1466,5 @@ if(K==='innsteps'){const FL=hexR(['#2b1e14','#4a3626','#6b5038','#86643f','#9270
   for(const sx_ of [x0,x1-1])for(let y=0;y<base;y++){P(A,sx_,y,FL[sx_===x0?5:1]);P(A,sx_+1,y,FL[sx_===x0?4:2]);}
   for(let x=x0;x<=x1+1;x++){SH(x,base,175);SH(x,base+1,125);SH(x,base+2,65);}}
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
+for(const f of NOOL)for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(f(x,y))for(const L of [O,O2])L.d[(y*W+x)*4+3]=0;
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));
