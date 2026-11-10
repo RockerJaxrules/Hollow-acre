@@ -62,8 +62,8 @@ def bouquet():
     # green under the twine is a solid wedge: a wrapper or a skirt", "too saturated"): a real maple leaf (five pointed lobes, a dark
     # midrib, rust-crimson), feathery goldenrod plumes of small gold clusters, separate cut stems below the twine, colours dulled
     I = Icon()
-    ST = [(0x26, 0x30, 0x1a), (0x3e, 0x4e, 0x28), (0x58, 0x6c, 0x36), (0x74, 0x88, 0x46)]
-    GR = [(0x7a, 0x5a, 0x16), (0xae, 0x86, 0x22), (0xd2, 0xa8, 0x36), (0xe8, 0xc8, 0x5c)]
+    ST = [(0x2e, 0x3a, 0x20), (0x48, 0x5a, 0x30), (0x64, 0x7a, 0x3e), (0x80, 0x96, 0x50)]   # a step lighter
+    GR = [(0x6a, 0x50, 0x1a), (0x9a, 0x76, 0x26), (0xbe, 0x96, 0x34), (0xd8, 0xb4, 0x52)]   # ochre-gold
     AS = [(0x3c, 0x2c, 0x56), (0x5e, 0x4a, 0x84), (0x84, 0x6e, 0xae), (0xae, 0x9c, 0xd0)]
     LF = [(0x58, 0x1a, 0x16), (0x84, 0x2a, 0x1e), (0xaa, 0x3e, 0x26), (0xc6, 0x5c, 0x34)]
     TW = [(0x6a, 0x52, 0x34), (0x9c, 0x80, 0x56), (0xc8, 0xac, 0x7c)]
@@ -75,22 +75,23 @@ def bouquet():
         line(15.5, 21, x1, y1, ST[2], ST[1])                                           # stems up to each head
     for (x1, y1) in ((11, 29), (13.5, 30), (16, 30), (18.5, 29), (21, 28)):
         line(15.5, 24, x1, y1, ST[2]); I.P(x1, y1, ST[3])                              # separate cut stems below the twine, lit cut ends
-    # goldenrod: two arching fluffy plumes, thin where they leave the bunch and fattening toward the top, lit on the left,
-    # broken up with small gaps so they read soft (not a rod)
-    for (pts, side) in (([(17, 14), (19, 10.5), (21, 7.5), (23, 5), (24.5, 3)], 1), ([(14, 14), (12, 10.5), (10, 7.5), (8, 5), (6.5, 3)], -1)):
+    # goldenrod (r18: "two mirrored smooth arcs read as bananas or tongs"): two plumes of different lengths, each a stem with
+    # knobbly clusters of florets along it, ochre-gold, the long one arching right, the short one leaning left
+    for (pts, side) in (([(17, 14), (19.5, 10.5), (22, 7.5), (24, 5), (25, 2.5)], 1), ([(14, 14), (12, 11), (10.5, 8.5)], -1)):
         S = []
         for i in range(len(pts) - 1):
             (ax, ay), (bx, by) = pts[i], pts[i + 1]
             for j in range(4): t = j / 4; S.append((ax + (bx - ax) * t, ay + (by - ay) * t))
         S.append(pts[-1])
-        for k, (x, y) in enumerate(S):
-            rad = .6 + 1.5 * min(1, k / (len(S) * .7))
-            for yy in range(int(y - rad) - 1, int(y + rad) + 2):
-                for xx in range(int(x - rad) - 1, int(x + rad) + 2):
-                    d = math.hypot(xx + .5 - x, yy + .5 - y)
-                    if d > rad or (xx * 5 + yy * 3) % 7 == 0: continue          # soft gaps between the florets
-                    lit = (xx + .5 - x) + (yy + .5 - y) < -.3
-                    I.P(xx, yy, GR[3] if lit and d > rad * .4 else GR[2] if lit or d < rad * .5 else GR[1])
+        for k_, (x, y) in enumerate(S):
+            I.P(x, y, GR[1])                                                       # the stem
+            if k_ < 2: continue
+            if k_ % 2 == 0:                                                         # a knob of florets, alternating sides
+                o = 1 if (k_ // 2) % 2 else -1
+                for (ox, oy, c) in ((o, -1, GR[3]), (o, 0, GR[2]), (o * 2, -1, GR[2]), (0, -1, GR[3])):
+                    I.P(x + ox, y + oy, c)
+            else:
+                I.P(x - side, y, GR[2])
     for (cx, cy) in ((10, 10), (16, 7), (21, 11), (14, 13), (18, 15)):              # asters: ray petals round a yellow eye
         for y in range(cy - 3, cy + 4):
             for x in range(cx - 3, cx + 4):

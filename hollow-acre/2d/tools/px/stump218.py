@@ -22,13 +22,13 @@ def hexr(a):
 TOP = hexr(['#4e3a24', '#76583a', '#9a784e', '#b89664', '#d0b07c', '#e2c896'])
 WOOD = hexr(['#4a443c', '#706a5e', '#948e80', '#b6b0a0', '#d2ccbc'])       # weathered grey wood
 ASH = hexr(['#2a2828', '#484442', '#6a6662', '#8c8884', '#aaa6a0'])
-RIM = (0x64, 0x6c, 0x7e)
+RIM = (0x7a, 0x6a, 0x5c)                                                  # a warm ash-grey lit edge (blue-grey read as slate)
 SP = {
     'pine': dict(bark=hexr(['#22130d', '#3a2218', '#56321f', '#70442a', '#8a5a38', '#a6724a']), tex='plates', hgt=6),
     'spruce': dict(bark=hexr(['#1a1816', '#2c2824', '#423b34', '#585046', '#706658', '#8a7e6c']), tex='scales', hgt=8),
     'birch': dict(bark=hexr(['#2a2626', '#686460', '#96928c', '#b6b2aa', '#cac6be', '#d6d2ca']), tex='birch', hgt=8),
-    'dead': dict(bark=hexr(['#24242a', '#3c3c42', '#56565c', '#727278', '#8e8e94', '#a8a8ac']), tex='peel', hgt=7, top='snapped'),
-    'snag': dict(bark=hexr(['#100e10', '#1c1818', '#2a2422', '#3a322e', '#4a403a', '#5c5048']), tex='char', hgt=10, top='spear', rootw=.36),
+    'dead': dict(bark=hexr(['#24242a', '#3c3c42', '#56565c', '#727278', '#8e8e94', '#a8a8ac']), tex='peel', hgt=7, top='snapped', rootw=.4),
+    'snag': dict(bark=hexr(['#140e0c', '#22170f', '#322218', '#443024', '#56402e', '#6a503a']), tex='char', hgt=10, top='spear', rootw=.4),   # warm brown-black char
 }
 # per stump: species, roots [(angle as a fraction of pi: 0 right, .5 front, 1 left), length factor], height change, extras
 V = {
@@ -38,10 +38,10 @@ V = {
     'pine_o1': ('pine', [(.88, .9), (.36, .3), (.04, .55)], 1, {}),
     'spruce_0': ('spruce', [(.8, 1.0), (.36, .5), (.05, .22)], 0, {}),
     'spruce_1': ('spruce', [(.95, .28), (.55, .95), (.12, .45)], 0, {}),
-    'birch_green': ('birch', [(.75, 1.0), (.08, .2)], 0, {}),
-    'birch_gold': ('birch', [(.68, .85), (.1, .3), (.42, .15)], -1, {}),
-    'deadtree': ('dead', [(.78, 1.0), (.06, .2), (.45, .35)], 0, {}),
-    'snag': ('snag', [(.85, .8), (.3, .5), (.04, .28)], 0, {}),
+    'birch_green': ('birch', [(.74, 1.3), (.1, .45), (.4, .12)], 0, {}),
+    'birch_gold': ('birch', [(.9, .5), (.3, 1.2), (.62, .12)], -1, {}),
+    'deadtree': ('dead', [(.76, 1.4), (.06, .15), (.42, .3)], 0, {}),
+    'snag': ('snag', [(.8, 1.2), (.32, .3), (.06, .5)], 0, {'r': 5}),
 }
 
 
@@ -49,7 +49,7 @@ def draw(name):
     O = json.load(open(OBJ))
     m = O['stump_of_' + name]; W, H, cx, by = m['fw'], m['fh'], int(m['ax']), int(m['ay'])
     sp, roots, dh, ex = V[name]; st = SP[sp]; B = st['bark']
-    r = max(4, int(round(m['foot'][2] * 32 - 1))); ry = max(2, round(r * .5)); hgt = st['hgt'] + dh + r // 5
+    r = ex.get('r') or max(4, int(round(m['foot'][2] * 32 - 1))); ry = max(2, round(r * .5)); hgt = st['hgt'] + dh + r // 5
     ty = by - hgt
     im = Image.new('RGBA', (W, H), (0, 0, 0, 0)); px = im.load()
 
@@ -84,14 +84,16 @@ def draw(name):
                 if (u * 5 + v * 3) % 11 == 0: k = max(0, k - 2)
             elif t == 'birch':
                 k = 5 if l > .45 else 4 if l > 0 else 3 if l > -.5 else 2
-                if y >= by - 1 or (y == by - 2 and (x * 2 + 1) % 3 == 0): k = 1  # the ragged dark band at the foot
+                if y >= by: k = 2                                                # a darker foot, no notch
             elif t == 'peel':
                 if abs(dx + .45) < .14 and 1 < v < hgt - 1: k = 5               # a strip of bark lifting away
                 if abs(dx + .2) < .1 and 1 < v < hgt - 1: k = 0                  # its shadow
                 if abs(dx - .3) < .14 and 2 < v < 6: P(x, y, WOOD[2]); continue  # where bark has fallen: bare grey wood
             elif t == 'char':
                 k = max(1, k - 1)
-                if dx < -.75 and y < by - 1: P(x, y, RIM); continue              # a cool rim on the lit edge
+                if dx < .2 and (u % 3 == 0 or (v + (u // 3) % 2 * 2) % 3 == 0): k = 0   # blocky alligator char, lit side
+                elif dx < .2: k = min(5, k + 1)
+                if dx < -.8 and y < by - 1: P(x, y, RIM); continue               # the lit edge
             P(x, y, B[k])
     if st['tex'] == 'birch':                                                 # short horizontal dashes, uneven
         for (ox, oy, n) in ((-r + 1, 2, 3), (1, 1, 2), (-2, 4, 4), (r - 3, 5, 2), (-r + 2, 6, 2), (0, 7, 3)):
@@ -120,14 +122,13 @@ def draw(name):
                 P(X, Y, c)
     # the top
     if st.get('top') == 'snapped':                                           # one tall splinter stepping down to a low ragged break
-        prof = [6, 9, 7, 8, 5, 6, 3, 4, 2, 3, 1, 2, 1, 2, 1]                       # jagged points, tall on the left
-        for i, x in enumerate(range(cx - r, cx + r + 1)):
-            h = prof[min(len(prof) - 1, int(i * len(prof) / (2 * r + 1)))]
+        prof = [5, 10, 8, 5, 6, 4, 3, 4, 2, 2, 1, 2, 1, 1, 1]                      # one clearly tallest, the rest stepping down
+        cols = list(range(cx - r, cx + r + 1)); hs = [prof[min(len(prof) - 1, int(i * len(prof) / len(cols)))] for i in range(len(cols))]
+        for i, x in enumerate(cols):
+            h = hs[i]; left_edge = i == 0 or hs[i - 1] < h; right_edge = i == len(cols) - 1 or hs[i + 1] < h
             for j in range(h + 1):
-                y = ty - j; dx = (x + .5 - cx) / r
-                k = 4 if j == h else 3 if dx < -.3 else 2 if dx < .4 else 1
-                if (x - cx) in (-2, 2) and j < h - 1: k = 0                    # splits between the splinters, uneven
-                P(x, y, WOOD[k])
+                k = 4 if j == h else 4 if left_edge else 1 if right_edge else 2
+                P(x, ty - j, WOOD[k])
         for x in range(cx - r, cx + r + 1): P(x, ty + 1, B[1])
     elif st.get('top') == 'spear':                                           # one broad spear of ash-grey wood, two stubs
         SPEAR = {-4: 5, -3: 11, -2: 9, -1: 4, 2: 3, 3: 2}                      # a narrow jagged spear left of centre, two stubs
