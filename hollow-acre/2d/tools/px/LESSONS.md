@@ -565,6 +565,9 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   rectangle at the foot of a stack reads as a door (a tower or kiln): a fireplace is a low arch in a wider base.
 - [props sweep] Thin legs and posts drawn as stepped doubled strokes read as twisted cable: one clean tube on a fixed slope with a
   continuous lit left edge.
+- [props sweep] A small crop or turf repeated on a grid reads as dots or bricks; FEWER, BIGGER units in uneven clumps read as the
+  thing (a dozen 7x5 beets beat forty 5x3 ones). Soot is staining that fans and fades in a darker version of the brick, never
+  one black stripe (a stripe reads as a crack or a tar run).
 
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
