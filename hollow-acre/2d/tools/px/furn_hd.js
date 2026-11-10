@@ -2348,8 +2348,7 @@ if(K==='washstand'||K==='washstandm'){const base=H-3,mill=K==='washstandm',R=mil
   if(!mill){rect(A,x0+2,top-16,w-4,16,R[3]);hl(A,x0+2,top-16,w-4,R[5]);vl(A,x0+2,top-16,16,R[4]);vl(A,x0+w-3,top-16,16,R[1]);   // the splashback
     rect(A,x0+(w>>1)-5,top-14,10,10,RAMP.brass[3]);rect(A,x0+(w>>1)-4,top-13,8,8,RAMP.glass[4]);ln(A,x0+(w>>1)-3,top-7,x0+(w>>1)+1,top-12,RAMP.glass[5]);}   // the mirror
   else{const ry=4;for(let x=1;x<W-1;x++){P(A,x,ry,R[5]);P(A,x,ry+1,R[3]);P(A,x,ry+2,R[1]);}for(const px of [9,W-12]){P(A,px,ry+3,R[4]);P(A,px,ry+4,R[2]);}   // the peg rail,
-    {const cx=9,cy=ry+5,Sk=RAMP.cream;for(let y=0;y<20;y++){const hw=y<2?1:y<4?3:6;for(let x=-hw;x<=hw;x++){let c=Sk[x===-hw?5:x>=hw-1?2:3];if(hsh(x,y,84)>.85)c=RAMP.ivory[5];P(A,cx+x,cy+y,c);}}hl(A,cx-2,cy+1,5,RAMP.burlap[2]);   // (b30: the apron read as a figure) an empty flour sack hung by its neck
-      for(let j=0;j<7;j++){P(A,cx-2+(j>>2),cy+8+j,RAMP.ochre[3]);P(A,cx+2-(j>>2),cy+8+j,RAMP.ochre[3]);}for(const [dx,dy] of [[-3,7],[-1,6],[1,6],[3,7]])P(A,cx+dx,cy+dy,RAMP.straw[4]);hl(A,cx-6,cy+19,13,Sk[1]);}   // (b33: FLOUR twice in one room) a printed wheat sheaf
+    {const cx=9,cy=ry+5;for(let y=0;y<16;y++){const hw=y<1?2:4;for(let x=-hw;x<=hw;x++){let c=RAMP.cream[x===-hw?5:x>=hw-1?2:4];if(y>=10&&y<12)c=RAMP.red[x<0?4:3];P(A,cx+x,cy+y,c);}}hl(A,cx-4,cy+16,9,RAMP.cream[2]);}   // (b35: the hung sack read as a tag) a striped hand towel
     wallSh(0,0,W-3,30,2,2,80);}
   box3(x0,top,w,5,13,R,{faceK:2,facePw:99});if(!mill){rect(A,x0,top,w,5,RAMP.ivory[4]);hl(A,x0,top,w,RAMP.ivory[5]);hl(A,x0,top+4,w,RAMP.ivory[2]);for(let x=x0+3;x<x0+w-2;x+=7)ln(A,x,top+1,x+3,top+3,RAMP.ivory[3]);}   // marble, veined
   for(const dx of [x0+2,x0+(w>>1)+1]){panel(dx,top+7,(w>>1)-3,9,R);}knob(x0+(w>>1)-3,top+11);knob(x0+(w>>1)+1,top+11);
@@ -2555,6 +2554,27 @@ if(K==='firetools'){const base=H-3,R=RAMP.pine;   // the ranger's fire tools in 
   pole(18,4);hl(A,13,4,12,RAMP.steel[4]);hl(A,13,5,12,RAMP.steel[2]);rect(A,12,3,3,4,RAMP.steel[4]);rect(A,23,5,3,4,RAMP.red[3]);P(A,25,8,RAMP.steel[4]);   // the Pulaski, its red-painted axe end
   pole(W-11,9);rect(A,W-15,1,10,9,RAMP.charcoal[2]);hl(A,W-15,1,10,RAMP.charcoal[4]);for(let y=2;y<10;y+=2)hl(A,W-14,y,8,RAMP.charcoal[1]);   // the beater's rubber flap
   cast(3,W-4,base);}
+// =================================================================================== judge b35
+if(K==='smithcorner'){const base=H-3,I=RAMP.iron,Wd=RAMP.oak;   // a smith's work corner: an anvil on a stump, a hammer lying on its face, the quench bucket pushed up against the stump
+  {const sx=16,sy=base-12;for(let y=sy;y<base;y++)for(let x=-8;x<=8;x++){let k=x<-6?4:x>6?1:3;if((y-sy)%4===0&&Math.abs(x)<6)k=2;P(A,sx+x,y,Wd[k]);}for(let x=-8;x<=8;x++)P(A,sx+x,sy,Wd[5]);   // the stump
+    const ay=sy-7;rect(A,sx-9,ay,19,3,I[3]);hl(A,sx-9,ay,19,I[5]);for(let x=10;x<15;x++)P(A,sx+x,ay+(x-10>>1),I[3]);P(A,sx+14,ay+2,I[2]);rect(A,sx-4,ay+3,8,4,I[2]);vl(A,sx-4,ay+3,4,I[4]);rect(A,sx-7,ay+6,14,2,I[1]);   // the anvil: face, horn, waist, foot
+    hl(A,sx-6,ay-1,9,RAMP.walnut[4]);hl(A,sx-6,ay-2,9,RAMP.walnut[2]);rect(A,sx+3,ay-4,4,4,I[4]);hl(A,sx+3,ay-4,4,I[5]);}   // the hammer laid on the face
+  {const bx=W-11,by=base-13;rect(A,bx-7,by,14,13,Wd[3]);vl(A,bx-7,by,13,Wd[4]);vl(A,bx+6,by,13,Wd[1]);for(const hy of [by+2,by+9])hl(A,bx-7,hy,14,I[3]);ell(A,bx,by,7,2,I[1]);ell(A,bx,by,5,1,RAMP.glass[2]);P(A,bx-2,by,RAMP.glass[4]);}   // the quench bucket, water dark
+  cast(6,W-3,base);}
+if(K==='tinsign'){const Rr=RAMP.red;   // (wall) an enamel tin sign, MOTOR OIL, the corners rusted through round the nail holes
+  rect(A,1,1,W-2,H-2,Rr[3]);frame(A,1,1,W-2,H-2,Rr[5],Rr[1]);rect(A,3,3,W-6,H-6,RAMP.cream[4]);drawText(A,'MOTOR',(W>>1)-10,4,Rr[2]);drawText(A,'OIL',(W>>1)-6,10,Rr[2]);
+  for(const [cx,cy] of [[2,2],[W-3,2],[2,H-3],[W-3,H-3]]){P(A,cx,cy,RAMP.charcoal[1]);for(let i=0;i<3;i++)P(A,cx+(cx<5?i:-i),cy+(cy<5?1:-1)*((i+1)>>1),RAMP.rust[2+(i%2)]);}
+  for(let i=0;i<6;i++){const x=3+((hsh(i,1,90)*(W-6))|0),y=3+((hsh(i,2,90)*(H-6))|0);P(A,x,y,RAMP.rust[3]);}for(let y=2;y<H-1;y++)SH(W-1,y,80);}
+if(K==='oarbuoy'){   // (wall) lakeside things in the chapel: an oar hung slantwise, a cork lifebuoy in red and white on its rope, a brass plate under them
+  ln(A,3,H-6,W-6,3,RAMP.pine[4]);ln(A,4,H-6,W-5,3,RAMP.pine[2]);for(let i=0;i<9;i++)for(let j=-2;j<=2;j++)P(A,W-9+i-Math.abs(j)+(i>>2),3+i-3+j,RAMP.pine[j<0?5:3]);   // the oar and its blade
+  {const cx=14,cy=12,r=9;for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){const d=Math.hypot(x,y);if(d>r||d<r-4)continue;const a=Math.atan2(y,x)+Math.PI,q=Math.floor(a/(Math.PI/2));P(A,cx+x,cy+y,q%2?RAMP.red[d>r-1.5?3:4]:RAMP.cream[d>r-1.5?3:5]);}
+    for(let a=0;a<4;a++){const t=a*Math.PI/2+.8;P(A,cx+Math.round(Math.cos(t)*(r+1)),cy+Math.round(Math.sin(t)*(r+1)),RAMP.straw[3]);}}   // the lifebuoy, its rope
+  rect(A,6,H-6,16,4,RAMP.brass[3]);hl(A,6,H-6,16,RAMP.brass[5]);for(let x=8;x<20;x+=2)P(A,x,H-4,RAMP.brass[1]);wallSh(0,0,W-3,H-3,2,2,80);}
+if(K==='millbills'){const R=RAMP.walnut;   // (wall) the miller's rack: two mill bills for dressing the stones (wedge-headed picks in turned handles) and an iron sack hook on its chain
+  for(let x=2;x<W-2;x++){P(A,x,3,R[5]);P(A,x,4,R[3]);P(A,x,5,R[1]);}
+  for(const [bx,l] of [[8,18],[18,15]]){for(let y=6;y<6+l;y++){P(A,bx,y,RAMP.oak[4]);P(A,bx+1,y,RAMP.oak[2]);}rect(A,bx-4,6+l,10,3,RAMP.iron[3]);hl(A,bx-4,6+l,10,RAMP.iron[5]);P(A,bx-5,7+l,RAMP.steel[5]);P(A,bx+6,7+l,RAMP.steel[5]);}   // the bills, their wedge heads
+  {const hx=W-9;for(let y=6;y<18;y+=2){P(A,hx,y,RAMP.iron[4]);P(A,hx,y+1,RAMP.iron[2]);}for(let a=0;a<14;a++){const t=a/13*Math.PI*1.3;P(A,hx+Math.round(Math.sin(t)*3),18+Math.round(-Math.cos(t)*3)+3,RAMP.iron[a<7?4:2]);}P(A,hx-3,20,RAMP.steel[5]);}   // the sack hook
+  wallSh(0,0,W-3,H-3,2,2,80);}
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
 for(const f of NOOL)for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(f(x,y))for(const L of [O,O2])L.d[(y*W+x)*4+3]=0;
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));

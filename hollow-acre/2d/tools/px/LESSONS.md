@@ -458,6 +458,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors b34] A tall red cylinder reads as a fire extinguisher; a gas can reads as a jerrycan (flat oblong, three handles,
   a spout at the corner, the pressed X).
 
+- [interiors b35] A room passes when the subject reads at a glance from its own trade pieces (FIRE DANGER dial, fire finder,
+  peat rick and oilskins); the lower-left corner left bare is the next thing a judge names, so dress it with a trade piece
+  against the wall.
+- [interiors b35] Things in a row along one wall, touching nothing, read as staged; group a trade's pieces into one corner
+  where they touch (anvil on its stump, the quench bucket against it, a hammer lying on the face).
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).
