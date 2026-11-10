@@ -560,6 +560,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A boat needs its sheer: the inside (boards, seats, an oar) seen from above and the near side's lapped planks below the lit gunwale. A symmetric pill reads as a blimp or a seed pod.
 - Patina is one body tone with a lit band and a few streaks running down from the shoulder, never scattered single dark pixels.
 
+- Tiled pieces are judged as runs: a fence tile that runs away from you must stop its rails under the post behind (drawn earlier, so the near tile would paint over it) and keep the outline off the join, or the run reads as beads or capsules.
+- Anything unique on a tile (a rot patch, a broken picket) repeats every tile: keep tile damage small and light, or it becomes a rhythm.
+- A jar of sweets is 2x2 balls in staggered rows, lit top-left; a checker fill reads as dither.
+- A drum or barrel lid is a step lighter than its sides with a lit rim; hoops are raised (a lit ridge over a dark underside) and bow down toward you in the middle.
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline
