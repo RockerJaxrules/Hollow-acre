@@ -23,7 +23,7 @@ COAL = hexr(['#0c0c10', '#16161c', '#22222a', '#30303a'])
 GLINT_C = (120, 140, 170)
 CU = hexr(['#4a2214', '#7a3e22', '#b0663a', '#d89462', '#f2c49a'])
 VERD = hexr(['#2e5a4a', '#4a8a6c', '#7ab898'])
-RUST = hexr(['#3e160e', '#62241a', '#843424', '#a24a30'])
+RUST = hexr(['#3a1c10', '#5e2e16', '#86441e', '#a8622a', '#c88a3e'])   # (ores r1: "maroon blocks read as meat") orange-brown oxide, an ochre top step
 SILVER = (226, 228, 236)
 GEM = hexr(['#0c3a3c', '#14625e', '#22948a', '#5ac8b8', '#b6f2e6'])
 MOSS = hexr(['#2a3418', '#3e4a22', '#56622e'])
@@ -81,6 +81,21 @@ def lump(S, pts, glint):
     S.poly([pts[0], pts[1], (cx, cy)], COAL[3])
     S.poly([pts[-1], pts[-2], (cx, cy)], COAL[0])
     S.line([pts[0], pts[1]], glint)
+
+
+def oxide(S, x, y, length, seed):
+    """a ragged rust streak bleeding down from a crack: a dark crack line, the oxide spreading 1-3 px either side, ochre where it catches the light"""
+    import random
+    R = random.Random(seed)
+    for j in range(length):
+        X = x + (j // 3) * (1 if seed % 2 else -1) + (1 if R.random() < .3 else 0); Y = y + j
+        w = 1 + (j < length - 2) + (R.random() < .4)
+        S.px(X, Y, RUST[0])
+        for i in range(1, w + 1):
+            S.px(X - i, Y, RUST[3] if (i == w and j < length // 2) else RUST[2])
+            S.px(X + i, Y, RUST[1])
+        if j == 0:
+            S.px(X - 1, Y - 1, RUST[4]); S.px(X, Y - 1, RUST[3])
 
 
 def nugget(S, x, y, r):
@@ -143,10 +158,9 @@ def ore(name):
         S = Spr(30, 26); S.shadow(15, 22, 13, 3)
         rock(S, [(4, 9), (7, 4), (14, 3), (17, 6), (25, 7), (27, 12), (16, 13), (6, 12)],
              [(4, 9), (6, 12), (7, 22), (3, 20)], [(6, 12), (16, 13), (27, 12), (26, 20), (17, 23), (7, 22)])
-        for (pts, k) in (([(9, 7), (13, 5), (15, 8), (11, 10)], 3), ([(18, 15), (23, 14), (24, 18), (19, 19)], 1),
-                         ([(9, 15), (13, 15), (12, 19), (9, 19)], 2), ([(20, 8), (24, 9), (22, 11)], 2)):
-            S.poly(pts, RUST[k])                                                     # rust-red oxide patches
-        for (x, y) in ((12, 6), (21, 15), (10, 16), (22, 9), (15, 10)):             # hard silver glints
+        for (x, y, L, sd) in ((11, 5, 6, 1), (21, 8, 4, 2), (10, 14, 7, 3), (20, 14, 6, 4)):
+            oxide(S, x, y, L, sd)                                                    # oxide bleeding down from the cracks
+        for (x, y) in ((14, 5), (24, 11), (8, 17), (16, 9)):                       # hard silver glints where the ore is bare
             S.px(x, y, SILVER); S.px(x + 1, y, (170, 172, 184))
         return S.done()
     if name == 'gem':
@@ -159,12 +173,17 @@ def ore(name):
 
 def icon(name):
     S = Spr(32, 32)
-    if name == 'coal':
-        lump(S, [(6, 22), (10, 13), (17, 12), (18, 21), (11, 26)], (150, 170, 200))
-        lump(S, [(15, 20), (19, 9), (27, 12), (26, 22), (19, 25)], (150, 170, 200))
-        lump(S, [(9, 27), (14, 21), (22, 24), (19, 30), (11, 30)], (150, 170, 200))
-        for (x, y) in ((11, 14), (20, 10), (15, 22)):
-            S.px(x, y, (190, 205, 225))
+    if name == 'coal':   # (ores r1: "two black bricks with a full rim") three uneven matte lumps, a glint or two, no rim
+        for pts in ([(15, 12), (19, 6), (25, 8), (28, 14), (24, 19), (17, 18)],
+                    [(4, 19), (7, 12), (13, 11), (17, 16), (15, 23), (8, 24)],
+                    [(12, 27), (15, 21), (22, 20), (26, 25), (21, 30), (14, 30)]):
+            cx = sum(p[0] for p in pts) / len(pts); cy = sum(p[1] for p in pts) / len(pts)
+            S.poly(pts, COAL[2])
+            S.poly([pts[0], pts[1], pts[2], (cx, cy)], COAL[3])                   # the lit upper facets
+            S.poly([pts[3], pts[4], (cx, cy)], COAL[1]); S.poly([pts[4], pts[5], (cx, cy)], COAL[0])
+        for (x, y) in ((19, 8), (8, 14), (17, 22)):
+            S.px(x, y, (168, 184, 210))
+        S.px(20, 8, (110, 124, 150))
         return S.done()
     if name == 'copper':
         rock(S, [(4, 15), (10, 7), (20, 5), (28, 10), (28, 17), (17, 19), (8, 19)],
@@ -176,10 +195,9 @@ def icon(name):
     if name == 'iron':
         rock(S, [(4, 12), (8, 6), (17, 5), (21, 8), (28, 9), (29, 15), (18, 17), (6, 16)],
              [(4, 12), (6, 16), (7, 27), (3, 24)], [(6, 16), (18, 17), (29, 15), (28, 25), (19, 29), (7, 27)])
-        for (pts, k) in (([(9, 9), (15, 7), (17, 11), (12, 13)], 3), ([(19, 20), (25, 19), (26, 24), (20, 25)], 1),
-                         ([(9, 19), (14, 19), (13, 25), (9, 24)], 2), ([(22, 10), (27, 11), (25, 14)], 2)):
-            S.poly(pts, RUST[k])
-        for (x, y) in ((14, 8), (23, 20), (10, 21), (25, 11), (18, 13)):
+        for (x, y, L, sd) in ((12, 7, 7, 1), (23, 10, 5, 2), (10, 18, 8, 3), (22, 18, 7, 4)):
+            oxide(S, x, y, L, sd)
+        for (x, y) in ((16, 7), (26, 13), (8, 21), (18, 12)):
             S.px(x, y, SILVER); S.px(x + 1, y, (170, 172, 184))
         return S.done()
 
