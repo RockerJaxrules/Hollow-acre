@@ -63,7 +63,7 @@ function wildUpdate(dt){
       if(a.st==='walk')wMove(a,a.vx,a.vz,dt,true);continue;}
     if(a.kind==='rabbit'){
       if(a.st!=='flee'&&d<(pr?8:5)){a.st='flee';a.t=0;}
-      if(a.st==='flee'){if(a.t<=0){wFlee(a,5.6);a.vx+=(rand()-.5)*4;a.dir=a.vx>=0?1:-1;a.t=.32;}wMove(a,a.vx,a.vz,dt,true);continue;}
+      if(a.st==='flee'){if(a.t<=0){wFlee(a,5.6);a.vx+=(rand()-.5)*1.2;a.dir=a.vx>=0?1:-1;a.t=.5;}wMove(a,a.vx,a.vz,dt,true);continue;}
       if(a.st==='hop'){wMove(a,a.vx,a.vz,dt,true);if(a.t<=0){a.st='sit';a.t=1+rand()*3;}continue;}
       if(a.t<=0){a.st='hop';a.t=.42;const ang=rand()*6.28;a.vx=Math.cos(ang)*2;a.vz=Math.sin(ang)*1.3;a.dir=a.vx>=0?1:-1;}continue;}
     if(a.kind==='squirrel'){
@@ -121,7 +121,8 @@ function wClip(a){const fps={walk:6,run:10,trot:9,graze:1.6,hop:10,swim:2,fly:12
         if(a.st!=='dabble'&&!isNight()){ctx2.beginPath();ctx2.moveTo(X-a.dir*8,Y-2);ctx2.lineTo(X-a.dir*16,Y-4);ctx2.moveTo(X-a.dir*8,Y);ctx2.lineTo(X-a.dir*16,Y+2);ctx2.stroke();}}
       else{const h=a.h||0,w=Math.max(4,m.fw*.3)*(a.kind==='bird'&&h>0?Math.max(.3,1-h/80):1);ctx2.fillStyle=`rgba(10,14,8,${a.kind==='bird'&&h>0?.18:.3})`;ctx2.beginPath();ctx2.ellipse(X+1,Y,w,w*.32,0,0,Math.PI*2);ctx2.fill();}
       const [clip,fr]=wClip(a);const alpha=a.kind==='squirrel'&&a.st==='climb'?Math.max(0,1-a.h/70):undefined;const v=wView(a,clip);
-      drawSpr(a.spr,X,Y-(a.h||0),clip,v,fr,{flip:v==='S'&&a.dir<0,alpha});}});}};}
+      const mv=Math.abs(a.vx||0)>.03?(a.vx<0):(a.dir<0),baseLeft=a.spr==='wild_rabbit';   // face the way it actually travels; the rabbit's art faces left, the rest right
+      drawSpr(a.spr,X,Y-(a.h||0),clip,v,fr,{flip:v==='S'&&(baseLeft?!mv:mv),alpha});}});}};}
 // eyeshine: the watcher's eyes, and the eyes in the trees
 {const _ll=lifeLight;lifeLight=function(t,L){_ll(t,L);if(S.room||L<.3)return;
   for(const a of WILD)if(a.watch&&a.st!=='gone'&&onScreen(a.x,a.z,40)){const X=sx(a.x)+a.dir*13,Y=sz(a.z)-33;glowAt(X,Y,5,[255,250,210],.9*L);glowAt(X-a.dir*2,Y,4,[255,250,210],.7*L);}
