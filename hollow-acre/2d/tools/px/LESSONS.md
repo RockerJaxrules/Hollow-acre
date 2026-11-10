@@ -332,6 +332,8 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   diverging bands, an "A": one source of window light only, hard-edged, sheared one way.
 - [interiors b5] Evenly ruled lines on a block read as a grill or radiator: rough stone is a jagged top edge, chipped corners
   and a few scars.
+- [interiors b6] A plain block of anything at game scale reads as an appliance (a box with a lighter top = a toaster); give
+  the material a shape only it has (a headstone's arch and cross says "stone being cut" at once).
 - [interiors r3] A tall piece standing in front of a window (a bookcase hiding a third of the glass) is a placement error;
   check every tall piece against the window list before judging.
 - [interiors r3] Fading a too-loud quilt to grey made it read as stone: fade toward the room's own warm brown instead

@@ -753,12 +753,14 @@ if(K==='banker'){const R=RAMP.oak,St=RAMP.stone,base=H-3,x0=3,w=W-6,top=base-20;
   // heavy timber banker, a block on it dressed square on top and still rough on its far side, chisels laid out, a wooden mallet
   box3(x0,top,w,6,6,R,{faceK:2});for(const lx of [x0+2,x0+w-6]){rect(A,lx,top+12,4,base-top-12,R[2]);vl(A,lx,top+12,base-top-12,R[4]);vl(A,lx+3,top+12,base-top-12,R[0]);}
   hl(A,x0+5,base-5,w-10,R[1]);fadeUnder(x0+6,x0+w-7,top+12,base-1);
-  {const bx=x0+8,by=top-12,bw=24;   /* a rough block: a jagged top edge, chipped corners, a few chisel scars, never ruled lines */
-    for(let i=0;i<bw;i++){const jag=hsh(i>>1,1,85)>.6?1:0;for(let j=jag;j<4;j++)P(A,bx+i+(4-j>>1),by+j,St[j===jag?5:4]);}
-    for(let j=0;j<10;j++)for(let i=0;i<bw;i++){if((i===0||i===bw-1)&&(j===9||(j===0&&hsh(i,j,86)>.5)))continue;let c=St[i<2?4:(i>bw-3?2:3)];const b=hsh(i>>1,j>>1,87);if(b>.86)c=St[2];else if(b<.1)c=St[4];P(A,bx+i,by+4+j,c);}
-    for(const [cx,cy] of [[5,3],[12,6],[18,4],[9,8]]){P(A,bx+cx,by+4+cy,St[1]);P(A,bx+cx+1,by+4+cy+1,St[1]);P(A,bx+cx+1,by+4+cy,St[5]);}
-    hl(A,bx+1,by+13,bw-2,St[1]);}   // the block
-  for(const [cx,len] of [[x0+w-18,9],[x0+w-14,7],[x0+w-10,8]]){for(let i=0;i<len;i++)P(A,cx+(i>>2),top+2+i%4+(i>>2),i<3?RAMP.steel[4]:RAMP.oak[3]);}   // chisels laid out
+  /* (judge b6: "a grey box with marks reads as a typewriter or toaster") a headstone being cut: an arched top, the cross and the
+     first lines of a name chiselled in, the lower third still rough, chips round its foot */
+  {const gx=x0+10,gw=18,gh=22,gy=top-gh+2;
+    for(let j=0;j<gh;j++){const t=j<6?Math.round(Math.sqrt(Math.max(0,36-(6-j)*(6-j)))*1.5):gw/2;for(let i=-t;i<t;i++){const x=gx+gw/2+i;let c=St[i<-t+2?5:(i>t-3?2:4)];if(j>gh-8&&hsh(i,j,88)>.6)c=St[hsh(i,j,89)>.5?2:3];P(A,x,gy+j,c);}}
+    const cx=gx+gw/2;for(let j=0;j<5;j++)P(A,cx-1,gy+4+j,St[1]);for(let i=-2;i<=1;i++)P(A,cx+i-1,gy+6,St[1]);                        // a cross
+    for(const [ly,lw] of [[gy+11,10],[gy+13,7]]){for(let i=0;i<lw;i++)if(hsh(i,ly,90)>.25)P(A,cx-(lw>>1)+i,ly,St[1]);}                // the first lines of a name
+    hl(A,gx+1,gy+gh,gw-2,St[1]);}
+  for(const [cx,cy,len] of [[x0+w-30,top+2,9],[x0+w-22,top+4,7]]){for(let i=0;i<len;i++)P(A,cx+i,cy+(i>>2),i<3?RAMP.steel[4]:RAMP.oak[3]);}   // two chisels lying flat, at angles
   {const mx=x0+w-24,my=top-6;rect(A,mx,my,7,5,RAMP.oak[3]);hl(A,mx,my,7,RAMP.oak[5]);vl(A,mx+6,my,5,RAMP.oak[1]);for(let i=0;i<8;i++)P(A,mx+7+i,my+2+(i>>2),RAMP.oak[4]);}   // the mallet
   for(const [cx,cy] of [[x0+6,base],[x0+w-12,base+1],[x0+w-20,base]]){P(A,cx,cy-1,St[4]);P(A,cx+1,cy-1,St[3]);}                    // chips on the floor
   cast(x0,x0+w,base);}
