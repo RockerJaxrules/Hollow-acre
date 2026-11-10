@@ -343,6 +343,19 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors r2] A fire lights nothing until the source glows: flame tongues (deep orange edge, pale core) and a hot grill
   must be the brightest pixels in the room before any floor light. Vertical bars read as a heater grate.
 
+- [interiors b9] The new version won all 8 homes of batch 3 (hale 6, quill 6 pass). What still holds a room at 5: big pieces
+  stand apart on bare floor and the lower half is empty; Stardew layers big pieces, small things on every surface and
+  something on every wall, with pieces touching. Fill the bottom third with one piece that says the trade.
+- [interiors b9] A fallen chair seen top-down reads as a bracket; a flaw must keep a shape the eye knows (sole and toe for
+  a boot) or go.
+- [interiors b10] BLOCKING across 10 public rooms: one kit reused (the same till counter in 6, the same braided rug in 6,
+  the same crate pair in 5, the cog shelf in 4, church and chapel one shell) kept every room under 6. Each trade gets its
+  own counter and its own pieces; no braided rug in a shop; no two rooms share a shell.
+- [interiors b10] Pew panels read as sideboard drawers: a seat shows a lit seat plane and a gap under the back.
+- [interiors b10] A forge or hearth must be the brightest thing in the room with an amber fan on the floor; a brick box with
+  a yellow smear is not a fire.
+- [interiors b10] A shop's counter needs its trade on top (lure cards and a scale, a vise, a ledger and bell).
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).

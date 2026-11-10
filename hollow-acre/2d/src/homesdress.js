@@ -7,7 +7,7 @@
 const DRESS={
   home_agnes:{walls:['in_calendar','in_coatpegs'],floor:'carpet',table:['t_candle','t_vase'],flaws:['in_papers','in_papers'],nook:1},
   home_hale:{walls:['in_painting_b'],floor:'boards',table:['t_books','t_candle'],flaws:['in_papers']},
-  home_dunn:{walls:['in_calendar','in_coatpegs'],floor:'lino',table:['t_mug','t_plate'],flaws:['in_bottles','in_stain','in_chair_down'],nook:1},
+  home_dunn:{walls:['in_calendar','in_coatpegs'],floor:'lino',table:['t_mug','t_plate'],flaws:['in_bottles','in_stain'],nook:1},
   home_cora:{walls:['in_calendar','in_painting_a'],floor:null,table:['t_books','t_vase'],flaws:['in_papers']},
   home_june:{walls:['in_calendar','in_hangplant'],floor:'carpet',table:['t_mug','t_books'],flaws:[],nook:1},
   home_otto:{walls:['in_coatpegs','in_painting_a'],floor:'boards',table:['t_plate','t_mug'],flaws:['in_bottles','in_stain'],special:'cabinet'},
