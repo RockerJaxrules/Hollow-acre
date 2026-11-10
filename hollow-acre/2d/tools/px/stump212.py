@@ -1,4 +1,5 @@
-"""Stumps for the trees whose blockout stumps failed the baseline (#198): pine and spruce read as clay pots, birch as paper cups,
+"""(r16: every stump gets the willow's pass: uneven roots, one long, one a stub, each species its own arrangement)
+Stumps for the trees whose blockout stumps failed the baseline (#198): pine and spruce read as clay pots, birch as paper cups,
 willow was a copy of the generic stump, the dead trees had neat tan lids. Drawn by hand in flat tones lit from the top-left, each
 cut from its own tree: pine/spruce low with a pale ringed top and a bead of resin, plated red-brown bark, three uneven roots; birch
 white with black marks and a torn rim; willow wide with grey furrowed bark; the dead tree and the snag snapped off in splinters.
@@ -17,13 +18,13 @@ def hexr(a):
 TOP = hexr(['#5a4228', '#7e6040', '#a07c52', '#bc9a68', '#d4b482'])
 RESIN = (214, 150, 52)
 STYLE = {
-    'pine': dict(bark=hexr(['#24140e', '#3a2218', '#523224', '#6a4230', '#80543e']), plates=True, bigplates=True, hgt=6, roots=3),   # (stumps r2) broad red-brown plates, dark fissures
-    'spruce': dict(bark=hexr(['#1c1a18', '#2e2a26', '#433d36', '#5a5248', '#71685c']), scales=True, hgt=6, roots=3),   # (stumps r2) cooler grey-brown, small flaking scales
-    'birch': dict(bark=hexr(['#4a4642', '#8a857e', '#b8b3aa', '#d8d4cc', '#ece9e2']), marks=True, torn=True, hgt=7, roots=3),
+    'pine': dict(bark=hexr(['#24140e', '#3a2218', '#523224', '#6a4230', '#80543e']), plates=True, bigplates=True, hgt=6, roots=3, uneven=True, angs=(.92, .08, .32), lens=(.4, .2, 1.05)),   # (stumps r2) broad red-brown plates, dark fissures
+    'spruce': dict(bark=hexr(['#1c1a18', '#2e2a26', '#433d36', '#5a5248', '#71685c']), scales=True, hgt=6, roots=3, uneven=True, angs=(.9, .62, .1), lens=(.95, .35, .2)),   # (stumps r2) cooler grey-brown, small flaking scales
+    'birch': dict(bark=hexr(['#4a4642', '#8a857e', '#b8b3aa', '#d8d4cc', '#ece9e2']), marks=True, torn=True, hgt=7, roots=3, uneven=True, angs=(.95, .55, .15), lens=(.3, 1.0, .45)),
     'willow': dict(bark=hexr(['#262624', '#3c3b38', '#55534e', '#6e6b65', '#88847d']), furrows=True, hgt=8, roots=4, uneven=True,
                    angs=(.95, .06, .71, .43), lens=(.5, .15, 1.1, .3)),   # (stumps r4: "a molar") one long root to the front-left, a stub on the right
-    'dead': dict(bark=hexr(['#2a2a2c', '#46464a', '#626266', '#808084', '#a0a0a2']), furrows=True, peel=True, snapped=True, hgt=9, roots=3),   # (stumps r2) paler silver-grey, bark peeling
-    'snag': dict(bark=hexr(['#141212', '#24201e', '#36302c', '#4a423c', '#5e544c']), furrows=True, spear=True, charred=True, hgt=7, roots=3),   # (stumps r2) darker, charred
+    'dead': dict(bark=hexr(['#2a2a2c', '#46464a', '#626266', '#808084', '#a0a0a2']), furrows=True, peel=True, snapped=True, hgt=9, roots=3, uneven=True, angs=(.85, .4, .05), lens=(1.0, .3, .5)),   # (stumps r2) paler silver-grey, bark peeling
+    'snag': dict(bark=hexr(['#141212', '#24201e', '#36302c', '#4a423c', '#5e544c']), furrows=True, spear=True, charred=True, hgt=7, roots=3, uneven=True, angs=(.9, .6, .2), lens=(.3, .9, .6)),   # (stumps r2) darker, charred
 }
 WHICH = {'pine_0': 'pine', 'pine_1': 'pine', 'pine_o0': 'pine', 'pine_o1': 'pine', 'spruce_0': 'spruce', 'spruce_1': 'spruce',
          'birch_green': 'birch', 'birch_gold': 'birch', 'willow': 'willow', 'deadtree': 'dead', 'snag': 'snag'}
