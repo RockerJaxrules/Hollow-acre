@@ -753,8 +753,11 @@ if(K==='banker'){const R=RAMP.oak,St=RAMP.stone,base=H-3,x0=3,w=W-6,top=base-20;
   // heavy timber banker, a block on it dressed square on top and still rough on its far side, chisels laid out, a wooden mallet
   box3(x0,top,w,6,6,R,{faceK:2});for(const lx of [x0+2,x0+w-6]){rect(A,lx,top+12,4,base-top-12,R[2]);vl(A,lx,top+12,base-top-12,R[4]);vl(A,lx+3,top+12,base-top-12,R[0]);}
   hl(A,x0+5,base-5,w-10,R[1]);fadeUnder(x0+6,x0+w-7,top+12,base-1);
-  {const bx=x0+8,by=top-12,bw=24;for(let j=0;j<4;j++)for(let i=0;i<bw;i++)P(A,bx+i+(4-j>>1),by+j,St[j===0?5:4]);for(let j=0;j<10;j++)for(let i=0;i<bw;i++){let c=St[i<2?4:(i>bw-3?2:3)];if(i>bw-7&&hsh(i,j,81)>.55)c=St[hsh(i,j,82)>.5?2:4];P(A,bx+i,by+4+j,c);}
-    hl(A,bx,by+13,bw,St[1]);for(let i=bw-6;i<bw;i++)if(hsh(i,1,83)>.4)P(A,bx+i+2,by-1,St[4]);}                                     // the block, rough at the far end
+  {const bx=x0+8,by=top-12,bw=24;   /* a rough block: a jagged top edge, chipped corners, a few chisel scars, never ruled lines */
+    for(let i=0;i<bw;i++){const jag=hsh(i>>1,1,85)>.6?1:0;for(let j=jag;j<4;j++)P(A,bx+i+(4-j>>1),by+j,St[j===jag?5:4]);}
+    for(let j=0;j<10;j++)for(let i=0;i<bw;i++){if((i===0||i===bw-1)&&(j===9||(j===0&&hsh(i,j,86)>.5)))continue;let c=St[i<2?4:(i>bw-3?2:3)];const b=hsh(i>>1,j>>1,87);if(b>.86)c=St[2];else if(b<.1)c=St[4];P(A,bx+i,by+4+j,c);}
+    for(const [cx,cy] of [[5,3],[12,6],[18,4],[9,8]]){P(A,bx+cx,by+4+cy,St[1]);P(A,bx+cx+1,by+4+cy+1,St[1]);P(A,bx+cx+1,by+4+cy,St[5]);}
+    hl(A,bx+1,by+13,bw-2,St[1]);}   // the block
   for(const [cx,len] of [[x0+w-18,9],[x0+w-14,7],[x0+w-10,8]]){for(let i=0;i<len;i++)P(A,cx+(i>>2),top+2+i%4+(i>>2),i<3?RAMP.steel[4]:RAMP.oak[3]);}   // chisels laid out
   {const mx=x0+w-24,my=top-6;rect(A,mx,my,7,5,RAMP.oak[3]);hl(A,mx,my,7,RAMP.oak[5]);vl(A,mx+6,my,5,RAMP.oak[1]);for(let i=0;i<8;i++)P(A,mx+7+i,my+2+(i>>2),RAMP.oak[4]);}   // the mallet
   for(const [cx,cy] of [[x0+6,base],[x0+w-12,base+1],[x0+w-20,base]]){P(A,cx,cy-1,St[4]);P(A,cx+1,cy-1,St[3]);}                    // chips on the floor
@@ -767,6 +770,14 @@ if(K==='quarryrack'){const R=RAMP.oak,I=RAMP.ironW,y0=4;   // (judge b4) a pegge
   for(let j=0;j<24;j++){P(A,16,y0+4+j,I[4]);P(A,17,y0+4+j,I[1]);}P(A,15,y0+27,I[3]);P(A,15,y0+28,I[2]);                           // the pry bar, its claw
   {const cx=W-9,cy=y0+11;for(let r=1;r<=5;r++)for(let a=0;a<24;a++){const t=a/24*Math.PI*2;P(A,Math.round(cx+Math.cos(t)*r),Math.round(cy+Math.sin(t)*r*.8),RAMP.burlap[r%2?4:2]);}P(A,cx,cy,RAMP.walnut[1]);for(let j=0;j<6;j++)P(A,cx+5,cy+3+j,RAMP.burlap[3]);}   /* one coil of rope on its peg, a loose end */
   hl(A,21,y0+22,10,R[4]);hl(A,21,y0+23,10,R[1]);for(let k=0;k<4;k++){const wx=22+k*2;for(let j=0;j<5;j++)P(A,wx,y0+17+j,I[j<1?2:(k%2?3:4)]);P(A,wx+1,y0+21,I[1]);}}   // iron wedges on a ledge
+// =================================================================================== the postmistress's sorting rack (a wall piece)
+if(K==='sortrack'){const R=RAMP.oak,x0=1,y0=2,w=W-2,h=H-5;   // (judge b5: "the job barely shows") a pigeonhole frame on the wall over her
+  // desk: a grid of cubbies, the white tops of letters standing in most of them, a brass plate with the route numbers
+  rect(A,x0,y0,w,h,R[3]);hl(A,x0,y0,w,R[5]);hl(A,x0,y0+h-1,w,R[1]);vl(A,x0,y0,h,R[4]);vl(A,x0+w-1,y0,h,R[1]);
+  const C=6,Rw=3,cw=Math.floor((w-4)/C),ch=Math.floor((h-8)/Rw);
+  for(let r=0;r<Rw;r++)for(let c=0;c<C;c++){const cx=x0+2+c*cw,cy=y0+2+r*ch;rect(A,cx,cy,cw-1,ch-1,RAMP.walnut[1]);hl(A,cx,cy,cw-1,RAMP.walnut[0]);
+    const f=hsh(c,r,91);if(f<.2)continue;const n=f>.7?2:1;for(let k=0;k<n;k++){const ex=cx+1+k*2,eh=ch-3-k;for(let j=0;j<eh;j++){P(A,ex,cy+ch-1-eh+j,RAMP.cream[5]);P(A,ex+1,cy+ch-1-eh+j,RAMP.cream[3]);}P(A,ex,cy+ch-1-eh,RAMP.cream[1]);}}
+  rect(A,x0+(w>>1)-6,y0+h-6,12,4,RAMP.brass[3]);hl(A,x0+(w>>1)-6,y0+h-6,12,RAMP.brass[5]);for(let i=0;i<4;i++)P(A,x0+(w>>1)-4+i*3,y0+h-4,RAMP.brass[1]);}
 // =================================================================================== the milking stool
 if(K==='stool'){const R=RAMP.oak,base=H-3,cx=W>>1;
   // a milking stool: a round seat two steps lighter than its three splayed legs; floor shows between them

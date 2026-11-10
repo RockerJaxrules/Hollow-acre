@@ -328,6 +328,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   (cut stone and a sledge for the quarry, a treadle machine for the seamstress, primers and a hand-bell for the school).
 - [interiors b2] Small cream blocks on a shelf read as jars whatever they are meant to be: letters need the V of the flap.
 - [interiors b4] Two small marks over a dot read as a face: an envelope's flap is one unbroken line, no seal dot under it.
+- [interiors b5] Two light passes for one window (a baked shell patch and a live patch that leans and widens) read as two
+  diverging bands, an "A": one source of window light only, hard-edged, sheared one way.
+- [interiors b5] Evenly ruled lines on a block read as a grill or radiator: rough stone is a jagged top edge, chipped corners
+  and a few scars.
 - [interiors r3] A tall piece standing in front of a window (a bookcase hiding a third of the glass) is a placement error;
   check every tall piece against the window list before judging.
 - [interiors r3] Fading a too-loud quilt to grey made it read as stone: fade toward the room's own warm brown instead

@@ -98,7 +98,8 @@ const KEEPWALK={};
 // before anything standing there (so tables and people cover it), with the window's cross of glazing bars in it. Morning
 // light leans one way, evening light the other, and it is longer when the sun is low.
 const SHAFTS={motes:[]};
-{const _ig=interiorGround;interiorGround=function(){_ig();if(!S.room||S.room==='mine')return;const R=ROOMS[S.room],m=R&&SPR[R.shell||('room_'+S.room)];if(!m||!m.room||!m.room.windows)return;
+{const _ig=interiorGround;interiorGround=function(){_ig();return;   /* (b5) off: the room shells bake their own hard sun patches, and this second, leaning, widening patch over them read as an A or two diverging bands */
+  if(!S.room||S.room==='mine')return;const R=ROOMS[S.room],m=R&&SPR[R.shell||('room_'+S.room)];if(!m||!m.room||!m.room.windows)return;
   const h=S.hour;if(isNight()||h<7||h>18.6)return;const k=clamp((h-7)/1.2,0,1)*clamp((18.6-h)/1.2,0,1)*(S.storm?.35:1);if(k<=.05)return;
   const lean=clamp((h-12.5)/6,-1,1);
   ctx2.save();ctx2.globalCompositeOperation='lighter';ctx2.fillStyle=`rgba(255,220,150,${((SHOPS_BIG[S.room]?.12:.2)*k).toFixed(3)})`;
