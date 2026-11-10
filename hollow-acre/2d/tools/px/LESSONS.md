@@ -3,6 +3,7 @@
 Each line is something an attempt taught. Newest and repeated mistakes go to the top of their section.
 
 ## From the owner (strongest)
+- Owner (Nov 10): "Do not change tool icons for the inventory because you just made the animation tool models match them". Understood: the tool and weapon icons (axe, hoe, pickaxe, watering can, fishing rod and all their upgrade grades; blade, club, machete, sickle) are LOCKED. Never redraw, recolour or swap them, in #198 or any later sweep; the in-hand models were matched to these exact icons.
 - Owner (Nov 10): "benches kind of look weird and not like you would be able to sit on them". A seat must read as a seat at 1x: one bright seat plane (lighter than the back), a separate darker back with a gap under it, and a solid shadow under the seat lip that fades to the floor. Rows of evenly spaced slats or panels read as a crate, a fence or a sideboard.
 - Owner, Nov 10, on the 3D-rendered furniture, props and benches: "redo these all not in blender you lose detail when you do it and it looks bad". Understood: rendering small objects (furniture, props, stations) from 3D models smears the detail at game size. Draw them by hand in code, pixel by pixel, the way the buildings kit and the original furniture were made, and draw each turned view (side, back) by hand too, never render it. All 3D-rendered furniture was taken back out of the game (old art restored).
 
