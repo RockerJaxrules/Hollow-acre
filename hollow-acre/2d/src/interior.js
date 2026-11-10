@@ -20,7 +20,11 @@ function roomOf(){return S.room&&ROOMS[S.room];}
 function buildInteriors(){for(const k in ROOMS){const R=ROOMS[k],m=SPR[R.shell||('room_'+k)];if(!m)continue;R.w=m.room.w;R.d=m.room.d;R.door=m.room.door;const x0=R.ox,z0=R.oz,x1=x0+R.w,z1=z0+R.d;
   addRect(x0-3,z0-4,x1+3,z0+.3);addRect(x0-3,z0-4,x0+.12,z1+3);addRect(x1-.12,z0-4,x1+3,z1+3);
   addRect(x0-3,z1,x0+R.door-.62,z1+3);addRect(x0+R.door+.62,z1,x1+3,z1+3);addRect(x0-3,z1+.5,x1+3,z1+3);
-  for(const [spr,lx,lz,f,kind] of R.furn){const o=obj(spr,x0+lx,z0+lz,{kind:kind||'furn',night:SPR[spr+'_n']?spr+'_n':null,room:k});if(f)addRect(o.x+f[0],o.z+f[1],o.x+f[2],o.z+f[3]);}}}
+  // judge (interiors): one quilted bed and one red rug in every home. Each household keeps its own bed and rug (grandpa's cabin keeps his)
+  let hk=7;for(const ch of k)hk=(hk*31+ch.charCodeAt(0))>>>0;let bi=0;
+  for(const [spr0,lx,lz,f,kind] of R.furn){let spr=spr0;
+    if(k!=='cabin'&&!k.startsWith('cabin')){if(spr0==='in_bed'){const v='in_bed_'+'bcde'[(hk+bi++)%4];if(SPR[v])spr=v;}else if(spr0==='in_rug'){const v='in_rug_'+'bcd'[hk%3];if(SPR[v])spr=v;}}
+    const o=obj(spr,x0+lx,z0+lz,{kind:kind||'furn',night:SPR[spr+'_n']?spr+'_n':null,room:k});if(f)addRect(o.x+f[0],o.z+f[1],o.x+f[2],o.z+f[3]);}}}
 function enterRoom(k){const R=ROOMS[k];S.mode='trans';fade(1);SFX.thud(0,.25);
   setTimeout(()=>{S.room=k;P.x=R.ox+R.door;P.z=R.oz+R.d-.45;P.dir='N';P.fx=0;P.fz=-1;P.anim=null;H.vis=false;if(H.state!=='gone'){H.state='gone';H.timer=5;}S.mode='play';fade(0);
     if(!S.first['room_'+k]){S.first['room_'+k]=1;toast(R.name+'.',2);}},380);}

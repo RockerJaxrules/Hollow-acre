@@ -121,12 +121,22 @@ function topBox(x,y,w,tH,fH,R,face){plk(x,y,w,tH,R,1);const fy=y+tH;rect(A,x,fy,
   for(let yy=fy+fH;yy<H-2;yy++)for(let xx=x+2;xx<x+w-2;xx++)P(SHD,xx,yy,PAL.out[0],Math.round(70+(yy-fy-fH)*6));for(let xx=x-1;xx<x+w+2;xx++)P(SHD,xx,H-3,PAL.out[0],150);
   for(let yy=fy;yy<fy+fH;yy++)for(let xx=x+w-3;xx<x+w;xx++){const c=G(A,xx,yy);if(c)P(A,xx,yy,shade(c,.75));}}
 function plk(x,y,w,h,R,dir){for(let j=0;j<h;j++)for(let i=0;i<w;i++){let c=R[4];if(dir?(i%7===0):(j%5===0))c=R[3];if(j===0)c=R[5]||R[4];P(A,x+i,y+j,c);}}
-if(K==='bed'){ // quilted bed, headboard against the wall, pillow, a dark stain grandpa never washed out
-  const x0=4,w=W-8;post(A,x0,6,5,40);post(A,x0+w-5,6,5,40);rect(A,x0,8,w,18,WD[2]);frame(A,x0,8,w,18,WD[4],WD[0]);for(let i=x0+8;i<x0+w-8;i+=8)vl(A,i,10,14,WD[1]);
-  const q=[PAL.red,PAL.cream,PAL.sage];const qy=26,qh=H-qy-12;for(let j=0;j<qh;j++)for(let i=0;i<w-4;i++){const R=q[(Math.floor(i/9)+Math.floor(j/9))%3];let c=R[2];if(i%9===0||j%9===0)c=R[1];if(j<3)c=R[3];P(A,x0+2+i,qy+j,c);}
+if(K==='bed'){ // a bed against the wall. Variants (judge: one quilted bed in 54 rooms): patchwork in two colourways, a plain wool
+  // blanket with a folded sheet, an iron bedstead. Only grandpa's (the cabin's) carries the stain he never washed out.
+  const V=CFG.v||'patch',iron=V==='iron',x0=4,w=W-8;
+  if(iron){for(const px of [x0,x0+w-4]){rect(A,px,4,4,44,PAL.slate[1]);vl(A,px,4,44,PAL.slate[3]);rect(A,px,2,4,3,PAL.brass[2]);hl(A,px,2,4,PAL.brass[3]);}
+    for(const y of [8,20])hl(A,x0+4,y,w-8,PAL.slate[2]);for(let i=x0+8;i<x0+w-6;i+=6)vl(A,i,9,11,PAL.slate[1]);}
+  else{post(A,x0,6,5,40);post(A,x0+w-5,6,5,40);rect(A,x0,8,w,18,WD[2]);frame(A,x0,8,w,18,WD[4],WD[0]);for(let i=x0+8;i<x0+w-8;i+=8)vl(A,i,10,14,WD[1]);}
+  const qy=26,qh=H-qy-12;let FB=PAL.red;
+  if(V==='patch'||V==='blue'){const q=V==='blue'?[PAL.blue,PAL.cream,PAL.slate]:[PAL.red,PAL.cream,PAL.sage];FB=q[0];
+    for(let j=0;j<qh;j++)for(let i=0;i<w-4;i++){const R=q[(Math.floor(i/9)+Math.floor(j/9))%3];let c=R[2];if(i%9===0||j%9===0)c=R[1];if(j<3)c=R[3];P(A,x0+2+i,qy+j,c);}}
+  else{const R=PAL[CFG.blanket||'rust'];FB=R;for(let j=0;j<qh;j++)for(let i=0;i<w-4;i++){let c=R[2];if(j<3)c=R[3];if(j>=qh-11&&j<qh-8)c=(j===qh-10)?PAL.cream[2]:R[1];if(i<2)c=R[3];if(i>=w-6)c=R[1];P(A,x0+2+i,qy+j,c);}
+    for(let i=0;i<w-4;i++){P(A,x0+2+i,qy-1,PAL.cream[3]);P(A,x0+2+i,qy,PAL.cream[2]);}}   // the sheet turned down over the blanket
   rect(A,x0+6,20,w-12,10,PAL.cream[3]);frame(A,x0+6,20,w-12,10,PAL.cream[3],PAL.cream[1]);hl(A,x0+7,28,w-14,PAL.cream[2]);
-  rect(A,x0+2,qy+qh,w-4,8,PAL.red[1]);hl(A,x0+2,qy+qh,w-4,PAL.red[3]);for(let i=0;i<w-4;i+=4)P(A,x0+2+i,qy+qh+7,PAL.red[0]);
-  post(A,x0,qy+qh-6,5,16);post(A,x0+w-5,qy+qh-6,5,16);ell(B,x0+w*.62|0,qy+qh*.55|0,6,3,PAL.rust[1]);gs(cx+3,base,W/2-2|0,3,80);}
+  rect(A,x0+2,qy+qh,w-4,8,FB[1]);hl(A,x0+2,qy+qh,w-4,FB[3]);for(let i=0;i<w-4;i+=4)P(A,x0+2+i,qy+qh+7,FB[0]);
+  if(iron){for(const px of [x0,x0+w-4]){rect(A,px,qy+qh-6,4,16,PAL.slate[1]);vl(A,px,qy+qh-6,16,PAL.slate[3]);rect(A,px,qy+qh-8,4,3,PAL.brass[2]);}}
+  else{post(A,x0,qy+qh-6,5,16);post(A,x0+w-5,qy+qh-6,5,16);}
+  if(CFG.stain)ell(B,x0+w*.62|0,qy+qh*.55|0,6,3,PAL.rust[1]);gs(cx+3,base,W/2-2|0,3,80);}
 function post(L,x,y,w,h){rect(A,x,y,w,h,WD[2]);vl(A,x,y,h,WD[4]);vl(A,x+w-1,y,h,WD[0]);hl(A,x,y,w,WD[5]);}
 if(K==='table'){topBox(3,10,W-6,12,5,WD);for(const x of [5,W-9])post(A,x,27,4,H-30);
   // supper still laid out: a plate, a cup, a lamp
@@ -208,7 +218,11 @@ if(K==='car'){ // the cruiser on blocks, hood up, seen from the 3/4 view: roof a
   rect(A,rx0+rw/2-6|0,4,5,3,PAL.red[3]);rect(A,rx0+rw/2+1|0,4,5,3,PAL.blue[3]);
   for(let y=0;y<22;y++)for(let x=0;x<20;x++){if(x+y<6)continue;P(A,x0+w-22+x,2+y,y<3?B2[4]:B2[2]);}rect(A,x0+w-30,22,24,6,PAL.ink[1]);for(let i=0;i<4;i++)rect(A,x0+w-28+i*6,23,4,3,PAL.slate[3]);
   for(const x of [x0+14,x0+w-26]){ell(A,x+6,H-14,7,3,[16,14,16]);}gs(cx,base,W/2-2|0,3,110);}
-if(K==='rug'){for(let y=0;y<H;y++)for(let x=0;x<W;x++){const dx=(x-W/2)/(W/2),dy=(y-H/2)/(H/2);const d=dx*dx+dy*dy;if(d>1)continue;let c=PAL.red[2];if(d>.8)c=PAL.mustard[2];else if(d>.7)c=PAL.red[1];else if(d<.18)c=PAL.mustard[3];else if((Math.round(Math.atan2(dy,dx)*4))%2===0&&d>.35&&d<.55)c=PAL.cream[2];P(A,x,y,c);}}
+if(K==='rug'&&CFG.rv){ // braided rag rugs in rings (judge: one red rug in 31 rooms): blue, rag (mixed scraps), sage
+  const RS={blue:[PAL.blue[1],PAL.blue[2],PAL.cream[2],PAL.blue[3],PAL.slate[2],PAL.blue[2],PAL.cream[1]],rag:[PAL.rust[1],PAL.sage[2],PAL.mustard[2],PAL.cream[2],PAL.rust[2],PAL.slate[2],PAL.sage[1]],sage:[PAL.sage[1],PAL.sage[2],PAL.cream[2],PAL.sage[3],PAL.mustard[1],PAL.sage[2]]}[CFG.rv];
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const dx=(x-W/2)/(W/2),dy=(y-H/2)/(H/2);const d=dx*dx+dy*dy;if(d>1)continue;const r=Math.sqrt(d);const k=Math.min(RS.length-1,Math.floor((1-r)*RS.length*1.15));
+    let c=RS[k];const ang=Math.atan2(dy,dx);if(((Math.floor(ang*W/9)+k)%2)===0&&r>.15)c=c.map(v=>Math.max(0,v-14));if(r>.93)c=RS[0];P(A,x,y,c);}}
+else if(K==='rug'){for(let y=0;y<H;y++)for(let x=0;x<W;x++){const dx=(x-W/2)/(W/2),dy=(y-H/2)/(H/2);const d=dx*dx+dy*dy;if(d>1)continue;let c=PAL.red[2];if(d>.8)c=PAL.mustard[2];else if(d>.7)c=PAL.red[1];else if(d<.18)c=PAL.mustard[3];else if((Math.round(Math.atan2(dy,dx)*4))%2===0&&d>.35&&d<.55)c=PAL.cream[2];P(A,x,y,c);}}
 if(K==='counter'){ // shop counter with a till, a bell and a jar of candy
   topBox(2,10,W-4,10,H-24,WD,WD[2]);for(let x=6;x<W-6;x+=16)frame(A,x,24,12,H-32,WD[3],WD[0]);
   rect(B,W-30,1,16,10,PAL.slate[2]);frame(B,W-30,1,16,10,PAL.slate[4],PAL.slate[0]);rect(B,W-27,3,10,3,PAL.cream[3]);for(let i=0;i<4;i++)P(B,W-28+i*3,8,PAL.brass[3]);
