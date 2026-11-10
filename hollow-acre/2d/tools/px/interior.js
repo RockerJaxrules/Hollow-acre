@@ -67,13 +67,14 @@ function parquet(L,x0,y0,w,h){
 function checker(L,x0,y0,w,h,A2,B2){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const fb=frameBoard(x-x0,y-y0,w,h,11);if(fb){P(L,x,y,fb);continue;}const i=Math.floor((x-x0)/16),j=Math.floor((y-y0)/16),u=(x-x0)%16,v=(y-y0)%16;const lt=A2[2].map((v,k)=>Math.round(v*.78+B2[2][k]*.22));let c=(i+j)%2?A2[2]:lt;   // the light tile only a step above the dark one: a quiet floor under louder furniture   // the light tile between two cream steps, close to the dark one
   if(u===0||v===0)c=shade(c,.84);else if(u===1||v===1)c=shade(c,1.05);P(L,x,y,c);}}
 // (b37: a plank wall over a plank floor read as one brown field, a shed not a cellar) rough fieldstone: courses of uneven stones, cooler and a step lighter than the floor, dark mortar, a lit top edge on each stone, a dark line at the wall's foot
-function fieldstone(L,x0,y0,w,h){const FS=[[38,38,44],[56,56,62],[74,73,78],[92,90,94],[110,108,110],[128,125,126]];let y=y0,r=0;
-  while(y<y0+h){const ch=8+((hsh(r,1,41)*5)|0);let x=x0-((hsh(r,2,41)*14)|0);let c=0;
-    while(x<x0+w){const sw=10+((hsh(r,c+3,42)*14)|0),k=2+((hsh(r,c,43)*3)|0);for(let j=0;j<ch;j++)for(let i=0;i<sw;i++){const px=x+i,py=y+j;if(px<x0||px>=x0+w||py>=y0+h)continue;
-        let kk=k;if(i===0||j===0)kk=0;else if(j===1)kk=Math.min(5,k+1);else if(i===sw-1||j===ch-1)kk=Math.max(1,k-1);if(kk&&hsh(px,py,44)>.93)kk=Math.max(1,kk-1);P(L,px,py,FS[kk]);}
-      x+=sw;c++;}
-    y+=ch;r++;}
-  hl(L,x0,y0+h-1,w,FS[0]);hl(L,x0,y0+h-2,w,FS[0]);hl(L,x0,y0+h-3,w,FS[1]);}
+function fieldstone(L,x0,y0,w,h){const FS=[[34,34,40],[52,52,58],[70,69,74],[88,86,90],[106,104,106],[124,121,122]],C=6,cw=Math.ceil(w/C),chh=Math.ceil(h/C),used=new Uint8Array(cw*chh);   // (b38: even courses read as cinder block) rubble: stones of three or four sizes packed with no running course
+  for(let gy=0;gy<chh;gy++)for(let gx=0;gx<cw;gx++){if(used[gy*cw+gx])continue;const n=gy*131+gx*17;let sw=1+((hsh(n,1,45)*3)|0),sh=1+((hsh(n,2,45)*2.2)|0);
+    while(sw>1&&(gx+sw>cw||[...Array(sw).keys()].some(i=>used[gy*cw+gx+i])))sw--;while(sh>1&&gy+sh>chh)sh--;for(let j=0;j<sh;j++)for(let i=0;i<sw;i++)if(!used[(gy+j)*cw+gx+i])used[(gy+j)*cw+gx+i]=1;
+    const k=2+((hsh(n,3,46)*3)|0),X=x0+gx*C,Y=y0+gy*C,SW=sw*C,SH2=sh*C;
+    for(let j=0;j<SH2;j++)for(let i=0;i<SW;i++){const px=X+i,py=Y+j;if(px>=x0+w||py>=y0+h)continue;const corner=(i===0||i===SW-1)&&(j===0||j===SH2-1);let kk=k;
+      if(i===0||j===0||corner)kk=0;else if(j===1)kk=Math.min(5,k+1);else if(i===SW-1||j===SH2-1)kk=Math.max(1,k-1);if(kk&&hsh(px,py,47)>.94)kk=Math.max(1,kk-1);P(L,px,py,FS[kk]);}}
+  for(let x=x0;x<x0+w;x++){const dh=6+((hsh(x>>2,9,48)*4)|0);for(let j=0;j<dh;j++){const c=G(L,x,y0+h-1-j);if(c)P(L,x,y0+h-1-j,[c[0]*.72|0,c[1]*.8|0,c[2]*.74|0]);}}   // damp rising up from the floor, ragged
+  hl(L,x0,y0+h-1,w,FS[0]);hl(L,x0,y0+h-2,w,FS[0]);}
 function flagstone(L,x0,y0,w,h,RS){const SR=RS||ST;for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=Math.floor((y-y0)/18),o=(r*13)%27,s=Math.floor((x-x0+o)/(22+(r%3)*4));const u=(x-x0+o)%(22+(r%3)*4),v=(y-y0)%18;
   /* (b8) two close tones, not three far apart (patchwork); a lit edge on some stones only; cracks on a few stones by the walls */
   const n=hsh(s,r,9);let c=n>.5?SR[3]:mixC(SR[3],SR[2],.45);if(u<2||v<2)c=mixC(SR[1],SR[2],.35);if(v===2&&n>.78&&u>3&&u<14)c=mixC(SR[3],SR[4],.5);   /* (b12) mortar a step quieter, a lit lip on a few stones only */

@@ -477,6 +477,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   side, the waist and feet showing, a hammer on the face.
 - [interiors b37] A daytime floor near-black from edge to edge reads as a void: keep the vignette but lift the floor a step.
 
+- [interiors b38] Fieldstone drawn in even courses reads as modern cinder block; rubble has no running course: pack stones of
+  three or four sizes on a grid so no seam runs the width, and let damp rise ragged from the foot.
+- [interiors b38] A pew seen from behind with the space under the seat left transparent reads as an open rail frame you can
+  see the floor through: close it with a lower back panel under a dark band at the seat lip.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).
