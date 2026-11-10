@@ -161,7 +161,56 @@ def ironnode():
     return im.crop((1, 3, 31, 29))
 
 
-R16 = {'iron': iron, 'bouquet': bouquet, 'ironnode': ironnode}
+def pearl():
+    # 'Reservoir pearl: from a mussel on the drawdown mud. Grey, faintly warm.' (the stand-in read as a white egg in a dish):
+    # an open mussel shell lying on a slant, blue-black outside with a lit lip, its nacre inside pale silver-lilac with a pink
+    # cast; the pearl grey and warm, lit top-left, a placed highlight, its shadow on the nacre below-right
+    I = Icon()
+    SH = hexr(['#141620', '#1e2230', '#2c3244', '#3e465c', '#56607a'])
+    NA = hexr(['#7a7488', '#9e96ae', '#bcb4c8', '#d4ccd8', '#e8e2ea'])
+    PE = hexr(['#4e4844', '#6e6662', '#8e8680', '#aaa29a', '#c6beb6', '#ded8d0', '#f6f2ec'])
+    cx, cy, rx, ry, a = 15.5, 17.5, 13.0, 6.4, -.35
+    ca, sa = math.cos(a), math.sin(a)
+    def inside(x, y, oy=0.0, k=1.0):
+        dx, dy = x + .5 - cx, y + .5 - cy - oy
+        u, v = dx * ca + dy * sa, -dx * sa + dy * ca
+        uu = u / (rx * k); vv = v / (ry * k * (1 - .45 * max(0, -uu)))      # a mussel: pointed at the hinge (left)
+        return uu * uu + vv * vv, uu, vv
+    for y in range(32):                                                     # the outer shell seen below the lip: a dark bowl
+        for x in range(32):
+            d, uu, vv = inside(x, y, 3.0)
+            if d < 1:
+                g = (int((uu + 1) * 5) % 3 == 0)                                # growth lines across it
+                I.P(x, y, SH[0] if g else SH[1] if vv > .2 else SH[2])
+    for y in range(32):
+        for x in range(32):
+            d, uu, vv = inside(x, y)
+            if d >= 1: continue
+            if d > .74:                                                     # the lip, lit along its far edge
+                I.P(x, y, SH[4] if vv < -.3 and uu < .6 else SH[3] if vv < 0 else SH[2])
+            else:                                                           # the nacre, cooler and greyer, a pink cast lower right
+                t = .5 - .55 * vv - .2 * uu
+                c = NA[3] if t > .8 else NA[2] if t > .45 else NA[1] if t > .15 else NA[0]
+                if uu > .2 and vv > .05: c = (min(255, c[0] + 12), c[1] - 4, c[2] - 6)
+                I.P(x, y, c)
+    pcx, pcy, pr = 17.0, 14.8, 4.8
+    for y in range(32):                                                     # the pearl's shadow on the nacre
+        for x in range(32):
+            if math.hypot(x + .5 - pcx - 1.6, (y + .5 - pcy - 2.0) * 1.4) < pr and I.p[x, y][3] and I.p[x, y][:3] not in SH:
+                c = I.p[x, y]; I.P(x, y, (int(c[0] * .72), int(c[1] * .7), int(c[2] * .74)))
+    for y in range(32):
+        for x in range(32):
+            nx, ny = (x + .5 - pcx) / pr, (y + .5 - pcy) / pr; d = nx * nx + ny * ny
+            if d >= 1: continue
+            l = .14 + .9 * sh(nx, ny, math.sqrt(1 - d))
+            c = PE[max(0, min(5, int(l * 5.6)))]                              # grey, faintly warm: the top tone kept for the glint
+            if nx + ny > .9 and d > .55: c = (0xb4, 0x9c, 0x9a)               # a warm reflected light off the nacre
+            I.P(x, y, c)
+    I.P(pcx - 2.5, pcy - 2.5, PE[6]); I.P(pcx - 1.5, pcy - 2.5, PE[5]); I.P(pcx - 2.5, pcy - 1.5, PE[5])   # the placed highlight
+    return I.done()
+
+
+R16 = {'iron': iron, 'bouquet': bouquet, 'ironnode': ironnode, 'pearl': pearl}
 
 if __name__ == '__main__':
     for n in (sys.argv[1:] or R16):
