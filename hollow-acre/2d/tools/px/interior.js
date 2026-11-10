@@ -93,8 +93,8 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
       if(gap<1.6)c=ST[0];else if(idUp!==id||idL!==id)c=ST[3];P(A,x,y,c);}
     for(let x=x0;x<x0+fw;x++){P(A,x,8,WD[4]);P(A,x,9,WD[3]);P(A,x,10,WD[3]);P(A,x,11,WD[2]);P(A,x,12,WD[1]);P(A,x,13,WD[0]);}
     for(const px of PX){for(let y=12;y<8+wallH;y++){P(A,px-3,y,WD[4]);P(A,px-2,y,WD[3]);P(A,px-1,y,WD[3]);P(A,px,y,WD[2]);P(A,px+1,y,WD[2]);P(A,px+2,y,WD[1]);P(A,px+3,y,WD[0]);}
-      for(let j=0;j<7;j++)for(let i=-3;i<=3;i++){const ly=24+j;let c=j===0||j===6?PAL.stone[1]:(Math.abs(i)===3?PAL.stone[2]:(N?[255,214,140]:[226,170,96]));if(j===3&&Math.abs(i)<3)c=N?[255,240,200]:[246,206,140];P(A,px+i,ly,c);}
-      P(A,px,22,PAL.stone[2]);P(A,px,23,PAL.stone[1]);}}
+      for(let j=0;j<11;j++)for(let i=-4;i<=4;i++){const ly=22+j;if(j===0&&Math.abs(i)>2)continue;let c=j<2||j===10?PAL.stone[1]:(Math.abs(i)===4?PAL.stone[2]:[255,214,140]);if(j>=4&&j<=7&&Math.abs(i)<3)c=[255,246,214];if(i===-3&&j>1&&j<10)c=PAL.stone[3];P(A,px+i,ly,c);}   /* (r11) a lantern big enough to be the source of its light */
+      P(A,px,20,PAL.stone[2]);P(A,px,21,PAL.stone[1]);}}
   if(R.theme==='glass'){for(let y=8;y<8+wallH;y++)for(let x=x0;x<x0+fw;x++){const i=(x-x0)%24,j=(y-8)%20;let c=N?PAL.ink[1]:PAL.glass[(y-8)<wallH*.5?4:3];if(!N&&(x+y)%23===0)c=PAL.glass[5];if(i===0||j===0)c=TR[3];P(A,x,y,c);}}
   // ceiling beam line, crown moulding
   rect(A,x0,0,fw,8,WD[1]);hl(A,x0,7,fw,WD[3]);for(let x=x0;x<x0+fw;x+=48)rect(A,x,0,10,8,WD[2]);
@@ -125,10 +125,20 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
       for(let j=0;j<sh;j++){const t=j/(sh-1),jog=hsh(j,k,23)>.75?1:0,L=Math.round(l0+(l1-l0)*t)+jog,Rr=Math.round(r0+(r1-r0)*t)-(hsh(j,k,24)>.8?1:0);
         for(let i=L;i<Rr;i++){let c=mixC(ST[2],RK[3],.45);if(j===0||i===L)c=mixC(ST[3],RK[3],.3);if(j===sh-1||i===Rr-1)c=RK[1];P(A,sx+i,sy+j,c);}}
       P(A,sx+sw-4,sy+sh,RK[0]);P(A,sx+sw-3,sy+sh,RK[0]);}
+    /* (r11) a quiet layer over the packed earth: flat stones and dirt clods of 3-6 px a step off the floor, spaced unevenly (a
+       jittered grid thinned by region): thick along the back wall, beside the track and toward the right edge, almost bare in
+       the middle where the ore comes up. No single pixels. */
+    {const railX=x0+Math.round(1.3*32);for(let gy=top+6;gy<top+fd-6;gy+=13)for(let gx=x0+6;gx<x0+fw-6;gx+=15){const jx=gx+((hsh(gx,gy,41)-.5)*10|0),jy=gy+((hsh(gy,gx,42)-.5)*8|0);
+      const busy=(jy-top<40)||Math.abs(jx-railX)<36||(x0+fw-jx<64);if(hsh(jx,jy,43)>(busy?.75:.1))continue;
+      const stone=hsh(jx,jy,44)>.45,w2=3+(hsh(jx,jy,45)*4|0),h2=2+(hsh(jx,jy,46)*2|0);
+      for(let j=0;j<h2;j++)for(let i=0;i<w2;i++){if((i===0||i===w2-1)&&(j===0||j===h2-1)&&w2>3)continue;
+        P(A,jx+i,jy+j,stone?(j===0?mixC(ST[2],RK[3],.55):mixC(ST[1],RK[3],.6)):(j===h2-1?RK[1]:mixC(RK[2],RK[1],.5)));}
+      if(stone)for(let i=1;i<w2;i++)P(A,jx+i,jy+h2,RK[1]);}}
     // rubble: small heaps of touching stones at the foot of the walls, not a dotted line
     const heap=(hx,hy,n,s)=>{for(let k=0;k<n;k++){const px=hx+((hsh(k,hx,18)-.5)*10|0),py=hy+((hsh(hy,k,19))*4|0),sz=2+(hsh(k,s,20)*3|0);
       for(let j=0;j<sz-1;j++)for(let i=0;i<sz;i++){if(sz>2&&(i===0||i===sz-1)&&(j===0||j===sz-2))continue;P(A,px+i,py+j,j===0||i===0?ST[3]:ST[2]);}for(let i=1;i<sz;i++)P(A,px+i,py+sz-1,RK[0]);}};
     for(let k=0;k<9;k++){const hx=x0+12+k*Math.floor((fw-24)/9)+((hsh(k,3,21)-.5)*14|0);if(Math.abs(hx-(x0+Math.round(1.3*32)))<16)continue;if(hsh(k,4,21)>.3)heap(hx,top+1,4+(k%3),k);}
+    for(const [hx,hy,n] of [[x0+fw-46,top+fd-34,7],[x0+fw-28,top+fd-22,6],[x0+fw-60,top+fd-16,5]])heap(hx,hy,n,hx);   /* rubble drifts by the barrels */
     for(let k=0;k<6;k++)for(const side of [0,1]){if(hsh(k,side,22)<.35)continue;heap(side?x0+fw-8:x0+5,top+20+k*Math.floor((fd-40)/6),3+(k%2),k+side*7);}
     const crack=(cx,cy,n,dir,depth)=>{for(let i=0;i<n;i++){P(A,cx,cy,RK[0]);P(A,cx,cy+1,mixC(RK[2],RK[3],.6));cx+=dir;if(hsh(cx,cy,61)>.55)cy+=hsh(cy,cx,62)>.5?1:-1;
         if(depth<1&&i===(n>>1))crack(cx,cy,n>>1,dir,depth+1),cy+=2;}};

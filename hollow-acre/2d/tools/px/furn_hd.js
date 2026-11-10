@@ -671,7 +671,7 @@ if(K==='minecart'){const I=RAMP.ironW,base=H-3,cx=W>>1;   // a riveted iron tub 
   // two spoked wheels on the near side, rust down from the rivets
   const ty=base-24,tw=32,bw=26;
   for(let j=0;j<5;j++)for(let i=-tw/2;i<tw/2;i++)P(A,cx+i,ty+j,j===0?I[4]:(j===4?I[1]:I[0]));                                          // the rim and the dark inside
-  for(const [ox,oy,c] of [[-8,1,RAMP.charcoal[3]],[-3,0,RAMP.rust[4]],[2,1,RAMP.charcoal[2]],[7,0,RAMP.rust[3]],[-5,2,RAMP.charcoal[4]],[5,2,RAMP.rust[5]]])for(let j=0;j<3;j++)for(let i=0;i<4;i++)P(A,cx+ox+i,ty+oy+j-1,j===0?shade(c,1.15):c);   // the load
+  for(const [ox,oy,c] of [[-8,1,RAMP.charcoal[3]],[-3,0,RAMP.pumpkin[3]],[2,1,RAMP.charcoal[2]],[7,0,RAMP.pumpkin[2]],[-5,2,RAMP.charcoal[4]],[5,2,RAMP.ochre[4]]])for(let j=0;j<3;j++)for(let i=0;i<4;i++)P(A,cx+ox+i,ty+oy+j-1,j===0?shade(c,1.15):c);   // the load
   for(let j=5;j<17;j++){const hw=Math.round(tw/2-(tw-bw)/2*(j-5)/12);for(let i=-hw;i<hw;i++){let k=i<-hw+2?4:(i>hw-3?1:3);if(j===8||j===14)k=Math.min(5,k+1);P(A,cx+i,ty+j,I[k]);}}
   for(const bj of [8,14])for(let i=-12;i<=12;i+=6){P(A,cx+i,ty+bj,I[5]);P(A,cx+i,ty+bj+1,RAMP.rust[2]);P(A,cx+i,ty+bj+2,RAMP.rust[1]);}       // rivets, rust running down
   hl(A,cx-bw/2,ty+17,bw,I[0]);
