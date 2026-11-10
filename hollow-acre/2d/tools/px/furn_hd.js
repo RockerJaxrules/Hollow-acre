@@ -704,6 +704,19 @@ if(K==='nightstand'){const R=RAMP.oak,base=H-3,x0=3,w=W-6,top=base-17;   // (jud
   {const fx=x0+2,fy=top-7;rect(A,fx,fy,7,8,RAMP.brass[3]);hl(A,fx,fy,7,RAMP.brass[5]);rect(A,fx+1,fy+1,5,6,RAMP.cream[2]);P(A,fx+3,fy+2,RAMP.walnut[2]);P(A,fx+3,fy+3,RAMP.cream[4]);rect(A,fx+2,fy+4,3,3,RAMP.walnut[3]);}   // the photograph
   {const gx=x0+w-6;for(let j=0;j<5;j++){P(A,gx,top-4+j,RAMP.glass[5]);P(A,gx+1,top-4+j,j<2?RAMP.glass[3]:RAMP.glass[4]);P(A,gx+2,top-4+j,RAMP.glass[2]);}}   // a glass of water
   cast(x0,x0+w,base);}
+// =================================================================================== Iris's dress form
+if(K==='dressform'){const base=H-3,cx=W>>1,F=RAMP.plum,Lw=RAMP.walnut;   // a tailor's dummy on a three-legged stand, a half-made dress of
+  // faded rose pinned on it (the hem still raw, one sleeve missing), pins catching the light, a tape measure over the shoulder
+  for(const [dx,k] of [[-6,4],[0,2],[6,1]])for(let j=0;j<10;j++)P(A,cx+Math.round(dx*j/10),base-10+j,Lw[k]);                     // the tripod legs
+  for(let y=base-24;y<base-9;y++){P(A,cx,y,Lw[3]);P(A,cx+1,y,Lw[1]);}                                                                // the pole
+  const sh=6,top=sh+2;for(let y=top;y<base-22;y++){const t=(y-top)/(base-22-top);const hw=Math.round(t<.18?5+t*20:t<.45?8-((t-.18)*9):t<.6?5.5:5.5+(t-.6)*9);
+    for(let x=-hw;x<=hw;x++){const lit=x<-hw+3,dk=x>hw-2;P(A,cx+x,y,F[lit?4:dk?2:3]);}if(t>.6&&hsh(y,1,61)>.5)P(A,cx-hw,y,F[5]);}       // the bodice and the flared skirt
+  for(let x=-5;x<=5;x++){P(A,cx+x,top-1,RAMP.cream[3]);}for(let x=-2;x<=2;x++){P(A,cx+x,top-3,RAMP.cream[3]);P(A,cx+x,top-2,RAMP.cream[2]);}   // the neck of the form
+  for(let j=0;j<7;j++){P(A,cx-6-(j>>2),top+2+j,F[4]);P(A,cx-7-(j>>2),top+2+j,F[3]);}                                                 // the one sleeve
+  for(let x=-6;x<=7;x++)if(hsh(x,3,62)>.4)P(A,cx+x,base-23,RAMP.cream[4]);                                                          // the raw hem, threads
+  for(const [px,py] of [[-3,top+5],[2,top+9],[4,top+14],[-4,top+18],[1,top+21]]){P(A,cx+px,py,RAMP.steel[5]);P(A,cx+px+1,py,RAMP.steel[3]);}   // pins
+  for(let j=0;j<16;j++){P(A,cx+3+(j>8?1:0),top-1+j,RAMP.ochre[j%3===0?2:4]);}                                                        // the tape measure
+  cast(cx-7,cx+7,base);}
 // =================================================================================== the milking stool
 if(K==='stool'){const R=RAMP.oak,base=H-3,cx=W>>1;
   // a milking stool: a round seat two steps lighter than its three splayed legs; floor shows between them

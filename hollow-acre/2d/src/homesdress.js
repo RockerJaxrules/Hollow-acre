@@ -54,7 +54,8 @@ function dressRoom(k,D){const R=ROOMS[k],m=R&&SPR[R.shell||('room_'+k)];if(!m||!
   // a change of floor where one part of the room becomes another
   // (interiors r3) never over a floor that is already patterned: a lino patch on a checker read as a pale glitch block
   const shellFl=((SPR[R.shell||('room_'+k)]||{}).room||{}).floor,patterned=['checker','parquet','hex','painted','flag'].includes(shellFl);
-  const floors=D.floor&&!patterned?[['in_floor_'+D.floor,w*(.3+dressH(k.length,1)*.4),d*.62,null,'flat']]:[];
+  /* (interiors r16) no floor patches at all: every one (red boards, red carpet, green lino) read as blocky speckled patchwork or a glitch */
+  const floors=[];void patterned;
   R.furn=[...floors,...R.furn,...add];
   return {w,d,spans,rects,freeSpan,freeRect};}
 const DRESS_INFO={};
