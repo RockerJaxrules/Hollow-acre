@@ -11,14 +11,14 @@ let STG=null;
 #stgTap{position:fixed;inset:0;z-index:59;display:none;cursor:pointer}#stgTap.on{display:block}
 #stgCap{position:fixed;left:50%;bottom:calc(8.5vh + 10px);transform:translateX(-50%);width:min(94vw,780px);display:none;gap:12px;align-items:flex-start;z-index:61;pointer-events:none;
  background:rgba(18,13,10,.9);border:2px solid #6a5238;box-shadow:0 0 0 2px #120c08,0 6px 18px rgba(0,0,0,.5);padding:10px 14px 16px;color:#efe4cc;font-size:15px;box-sizing:border-box}
-#stgCap.on{display:flex}#stgCap canvas{width:88px;height:88px;image-rendering:pixelated;flex:none;background:#221812;border:2px solid #4a3828}
+#stgCap.on{display:flex}#stgCap canvas{width:112px;height:112px;image-rendering:pixelated;flex:none;background:#221812;border:2px solid #4a3828}
 #stgCap .nm{color:#e8b860;margin-bottom:4px;letter-spacing:.5px}#stgCap .tx{line-height:1.4;min-height:2.8em}
 #stgCap.narr{background:rgba(8,8,11,.82);border-color:#34303c}#stgCap.narr canvas,#stgCap.narr .nm{display:none}#stgCap.narr .tx{color:#d6d0c6}
 #stgCap .more{position:absolute;right:10px;bottom:3px;font-size:11px;opacity:.5}
 @media (max-width:600px){#stgCap{font-size:13px;padding:8px 10px 14px}#stgCap canvas{width:64px;height:64px}}`;
   document.head.appendChild(css);
   for(const id of ['stgBars','stgTap','stgCap']){const e=document.createElement('div');e.id=id;document.body.appendChild(e);}
-  $('stgCap').innerHTML='<canvas width="96" height="96"></canvas><div style="flex:1;min-width:0"><div class="nm"></div><div class="tx"></div></div><div class="more"></div>';
+  $('stgCap').innerHTML='<canvas width="112" height="112"></canvas><div style="flex:1;min-width:0"><div class="nm"></div><div class="tx"></div></div><div class="more"></div>';
   $('stgTap').addEventListener('pointerdown',e=>{e.preventDefault();stgNext();});
   addEventListener('keydown',e=>{if(STG&&(e.code==='Space'||e.code==='Enter'||e.code==='KeyE')){e.preventDefault();e.stopPropagation();stgNext();}},true);
 })();
@@ -53,10 +53,11 @@ function stgBeat(i){const st=STG;if(!st)return;const def=st.def;if(i>=def.beats.
     st.movers[id]={x:f[0],z:f[1],next:pts,face:(b.face||{})[id],sp:(b.speed||{})[id]||(id==='you'?1.5:1.15)};}
   for(const [id,d] of Object.entries(b.face||{})){if(st.movers[id])continue;const a=stgActor(id);if(a)a.dir=d;}
   for(const [id,v] of Object.entries(b.sit||{})){const a=stgActor(id);if(a&&!v){a._seat=null;}}
-  for(const [id,k] of Object.entries(b.emote||{}))st.em[id]={k,t:1.6,c:k==='!'?'#a02818':k==='♥'?'#b02848':'#2a1a10'};
+  for(const [id,k] of Object.entries(b.emote||{}))stgEmote(id,k);
   if(b.cam)st.camT={x:b.cam.x,z:b.cam.z};
   b.act&&b.act(st);
   const cap=$('stgCap');cap.classList.remove('on');}
+function stgEmote(id,k,dur){if(!STG)return;STG.em[id]={k,t:dur||1.6,c:k==='!'?'#a02818':k==='♥'?'#b02848':/[0-9]/.test(k)?'#3a2a50':k==='💧'?'#2a5aa0':'#2a1a10'};}
 function stgMoving(){return Object.keys(STG.movers).length>0;}
 function stgUpdate(dt){const st=STG;if(!st||st.ended||st.i<0){if(st)st.t+=dt;return;}const def=st.def,b=def.beats[st.i];st.t+=dt;st.bt+=dt;
   // walkers
@@ -90,7 +91,7 @@ function stgNext(){const st=STG;if(!st||st.ended||st.i<0)return;const b=st.def.b
   stgBeat(st.i+1);}
 function stgEnd(){const st=STG;if(!st||st.ended)return;st.ended=true;const def=st.def;$('stgCap').classList.remove('on');$('stgTap').classList.remove('on');fade(1);
   setTimeout(()=>{for(const n of st.hidden)n.vis=true;for(const n of npcs)if(n._stg){if(!def.keepCast){n.x=n._stg.x;n.z=n._stg.z;n.vis=n._stg.vis;}n._seat=n._stg.seat;n.loc=n._stg.loc;delete n._stg;n.clip='idle';}
-    if(def.restore!==false){if(def.room!==undefined)S.room=st.prev.room;S.storm=st.prev.storm;if(def.room!==undefined&&def.room!==st.prev.room){P.x=st.prev.P.x;P.z=st.prev.P.z;P.dir=st.prev.P.dir;}}
+    if(def.restore!==false){if(def.room!==undefined)S.room=st.prev.room;S.storm=st.prev.storm;if(def.hour!==undefined&&!def.keepHour)S.hour=st.prev.hour;if(def.room!==undefined&&def.room!==st.prev.room){P.x=st.prev.P.x;P.z=st.prev.P.z;P.dir=st.prev.P.dir;}}
     if(def.after)def.after();
     cine=null;STG=null;$('stgBars').classList.remove('on');$('hud').hidden=false;$('buttons').hidden=false;ui.obj.hidden=false;S.mode='play';P.clip='idle';P.spd=0;fade(0);
     def.done&&def.done();},520);}
@@ -105,69 +106,90 @@ function stgHat(X,Y){const o='#1a120c';   // Grandpa's straw hat: a wide pale br
 function stgPhone(X,Y,t){ctx2.fillStyle='#120c08';ctx2.fillRect(X-2,Y-4,5,7);ctx2.fillStyle=(Math.sin(t*3)>0)?'#9ad0e8':'#6aa8c8';ctx2.fillRect(X-1,Y-3,3,4);}
 function stgSlip(X,Y){ctx2.fillStyle='#120c08';ctx2.fillRect(X-3,Y-3,7,5);ctx2.fillStyle='#ece4d0';ctx2.fillRect(X-2,Y-2,5,3);ctx2.fillStyle='#6a5a48';ctx2.fillRect(X-1,Y-1,3,1);}
 
-// 1. Caitlyn at the farm, the first time (after Grandpa's note)
+// 1. Caitlyn at the farm, the first time (after Grandpa's note).  (r1 judges: "show, don't narrate": no narration card; she leans
+// on a real gate post with her phone held up and lowers it when she sees you; the pair framed mid-screen)
+function stgGatePost(X,Y){const o='#1a120c';ctx2.fillStyle=o;ctx2.fillRect(X-3,Y-24,7,25);ctx2.fillRect(X+3,Y-19,22,4);ctx2.fillRect(X+3,Y-11,22,4);ctx2.fillRect(X+22,Y-21,5,22);
+  ctx2.fillStyle='#7a5a3a';ctx2.fillRect(X-2,Y-23,5,23);ctx2.fillStyle='#9a7650';ctx2.fillRect(X-2,Y-23,2,23);ctx2.fillStyle='#5a4028';ctx2.fillRect(X+2,Y-23,1,23);
+  ctx2.fillStyle='#86643e';ctx2.fillRect(X+3,Y-18,20,2);ctx2.fillRect(X+3,Y-10,20,2);ctx2.fillStyle='#a07a52';ctx2.fillRect(X+3,Y-18,20,1);ctx2.fillRect(X+3,Y-10,20,1);
+  ctx2.fillStyle='#6a4c30';ctx2.fillRect(X+23,Y-20,3,20);ctx2.fillStyle='#4a3420';ctx2.fillRect(X-3,Y+1,30,1);}
 function stgCaitlynGate(done){const d=doorPos;MAEV.on=false;
-  const mae={x:d.x-6.4,z:d.z+3.4},meet={x:d.x-1.5,z:d.z+1.55},you={x:d.x+.05,z:d.z+1.25};let phone=true;
-  stage({hour:Math.max(9.5,Math.min(S.hour,16)),player:{x:you.x,z:you.z,dir:'N'},cast:{mae:{x:mae.x,z:mae.z,dir:'E'}},cam:{x:d.x-1,z:d.z+2.6},
-    props:[{get x(){return npcById('mae').x+.18;},get z(){return npcById('mae').z+.02;},draw(X,Y,t){if(phone)stgPhone(X+3,Y-30-Math.round(Math.sin(t*1.3)),t);}}],
+  const post={x:d.x-6.9,z:d.z+3.15},mae={x:d.x-6.25,z:d.z+3.3},meet={x:d.x-1.45,z:d.z+1.6},you={x:d.x+.05,z:d.z+1.25};let phone=1;
+  stage({hour:Math.max(9.5,Math.min(S.hour,16)),player:{x:you.x,z:you.z,dir:'N'},cast:{mae:{x:mae.x,z:mae.z,dir:'E'}},cam:{x:d.x-3.2,z:d.z+3.1},
+    props:[{x:post.x,z:post.z-.05,draw(X,Y){stgGatePost(X,Y);}},
+           {get x(){return npcById('mae').x;},get z(){return npcById('mae').z+.02;},draw(X,Y,t){if(phone<=0)return;const ry=Math.round(-36+(1-phone)*14);
+             ctx2.fillStyle='#120c08';ctx2.fillRect(X+3,Y+ry,6,9);ctx2.fillStyle=(Math.sin(t*2.6)>-.2)?'#a8e0f4':'#78b8d8';ctx2.fillRect(X+4,Y+ry+1,4,6);   // the phone, no bars
+             ctx2.fillStyle='#e8c0a0';ctx2.fillRect(X+3,Y+ry+8,4,2);}}],
+    light(L){},
     beats:[
-      {hold:.6,face:{you:'S'}},
-      {text:'A young woman in a black tee and square glasses is leaning on your gate, holding up a phone that has no signal out here, as if she has been waiting a while.',cam:{x:d.x-3.6,z:d.z+3},wait:.5,emote:{you:'?'}},
-      {who:'mae',text:'Oh. Hi. You must be Elias’s grandkid. You have his walk.',act(){phone=false;},go:{mae:[meet.x,meet.z]},face:{mae:'E',you:'W'},cam:{x:d.x-.8,z:d.z+2},wait:'arrive'},
+      {hold:1.1,face:{you:'N'}},
+      {hold:.9,face:{you:'S'},emote:{you:'?'}},
+      {hold:.8,cam:{x:d.x-4.6,z:d.z+3.0},update(dt){phone=Math.max(.001,phone);}},
+      {who:'mae',text:'Oh. Hi.',expr:'surprised',emote:{mae:'!'},update(dt){phone=Math.max(0,phone-dt*1.4);}},
+      {who:'mae',text:'You must be Elias’s grandkid. You have his walk.',go:{mae:[meet.x,meet.z]},face:{mae:'E',you:'W'},cam:{x:d.x-.75,z:d.z+1.75},wait:'arrive',act(){phone=0;}},
       {who:'mae',text:'I’m Caitlyn. I run the store in town. Coyle’s.',expr:'happy'},
-      {who:'mae',text:'He asked me to look in on you, if you ever came. He said you wouldn’t. I said you would.'},
-      {text:'She smiles. It doesn’t quite reach her eyes.',wait:.3},
-      {who:'mae',text:'I win.',expr:'smug'},
-      {who:'mae',text:'Let me show you how this place works. Then you’ll have a chance, at least.',face:{mae:'S'},cam:{x:d.x-.6,z:d.z+3.6},expr:'neutral'},
+      {who:'mae',text:'He asked me to look in on you, if you ever came. He said you wouldn’t. I said you would.',expr:'neutral'},
+      {who:'mae',text:'I win.',expr:'smug',wait:.6},
+      {who:'mae',text:'Let me show you how this place works. Then you’ll have a chance, at least.',face:{mae:'S'},cam:{x:d.x-.6,z:d.z+2.4},expr:'think'},
     ],
     after(){P.x=you.x;P.z=you.z;P.dir='W';},
     done(){maeCome(14,true);done&&done();}});}
 
-// 2. The drawing, in the church: the whole valley in the pews, one space left in the front row
+// 2. The drawing, in the church.  (r1 judges: "the beats are told, not shown": the empty seat is lit and you sit in it; the
+// straw hat is big and pale above Hale's head; the children turn round counting down; the church claps; Caitlyn cries; a hand
+// on your shoulder; one steady framing, candlelight on the altar; only the lines that cannot be acted stay as words)
+function stgHat2(X,Y){const o='#1a120c',P2=(x,y,w,h,c)=>{ctx2.fillStyle=c;ctx2.fillRect(X+x*2,Y+y*2,w*2,h*2);};   // Grandpa's straw hat at twice the size
+  P2(-9,0,18,3,o);P2(-5,-5,10,6,o);P2(-8,1,16,1,'#e8cc88');P2(-7,2,14,0.5,'#c8a860');P2(-4,-4,8,3,'#f2dc9c');P2(-4,-4,3,1,'#fff0c0');P2(-4,-1,8,1,'#a83a2a');P2(-8,1,3,1,'#f6e2a8');}
 function stgDrawing(done){const R=ROOMS.church,ox=R.ox,oz=R.oz;const at=(x,z)=>({x:ox+x,z:oz+z});
   const dunn=typeof stHas==='function'&&stHas('dunnslip'),dn=stgName('dunn');
-  // who sits where: Caitlyn front right (so she can turn to you), Dunn mid left on the aisle (so he can stand), kids together
   const pews=[[2.4,3.6],[7.6,3.6],[2.4,5.0],[7.6,5.0],[2.4,6.4],[7.6,6.4]],offs=[-1.35,-.45,.45,1.35];
-  const want=['mae','tobias','hollis','agnes','dunn','silas','june','otto','cora','wes','ida','gideon','nell','ezra','pip','orla','bram','abel','della','maud','corwin','tess','hob','lyle','vera','quinn','nan','finn','iris','moss','ada']
-    .filter(id=>npcById(id));
-  const order=['silas','agnes','mae','june','hollis','otto','dunn','cora','wes','ida','pip','nan','finn','gideon','nell','ezra','orla','bram','abel','della','maud','corwin','tess','hob']
+  const want=npcs.map(n=>n.def.id).filter(id=>id!=='hale');
+  const order=['silas','agnes','june','hollis','otto','dunn','cora','wes','ida','pip','nan','finn','gideon','nell','ezra','orla','bram','abel','della','maud','corwin','tess','hob','tobias']
     .filter(id=>want.includes(id));
-  const cast={hale:{...at(5,2.55),dir:'S'}};const seats=[];
-  for(const [pi,[px,pz]] of pews.entries())for(const [k,o] of offs.entries()){if(pi===0&&k===2)continue;seats.push({x:ox+px+o,z:oz+pz+.05,pi});}   // the gap: front left, by the aisle
-  // seat order fills front to back, Caitlyn in the front right pew on its aisle end
-  const placed={};const front=[seats.find(s=>s.pi===1&&Math.abs(s.x-(ox+7.6-1.35))<.01)];const rest=seats.filter(s=>s!==front[0]);
-  const list=['mae',...order.filter(i=>i!=='mae')];const sl=[front[0],...rest];
+  const cast={hale:{...at(5,2.5),dir:'S'}};const seats=[];
+  for(const [pi,[px,pz]] of pews.entries())for(const [k,o] of offs.entries()){if(pi===0&&k===2)continue;seats.push({x:ox+px+o,z:oz+pz+.05,pi});}
+  const placed={};const front=seats.find(s=>s.pi===1&&Math.abs(s.x-(ox+7.6-1.35))<.01);const rest=seats.filter(s=>s!==front);
+  const list=['mae',...order.filter(i=>i!=='mae')];const sl=[front,...rest];
   list.forEach((id,i)=>{const s=sl[i];if(!s)return;placed[id]=s;cast[id]={x:s.x,z:s.z,dir:'N',seat:{x:s.x,z:s.z,lift:2,face:'N'}};});
   const standers=want.filter(id=>!cast[id]);standers.slice(0,6).forEach((id,i)=>{const p=[[.75,7.35],[9.25,7.35],[1.6,7.45],[8.4,7.45],[.7,4.3],[9.3,4.3]][i];cast[id]={...at(p[0],p[1]),dir:p[0]<5?'E':'W'};});
-  const kids=['pip','nan','finn'].filter(id=>placed[id]);
-  const gap=at(2.4+.45,3.65),door=at(5,7.55);let hatUp=0,slip=false,hand=0;
+  const kids=['pip','nan','finn'].filter(id=>placed[id]);const seated=Object.keys(placed);
+  const gap=at(2.4+.45,3.65),door=at(5,7.55);let hatUp=0,slip=0,hand=0,clap=0,seatLit=1;
+  const CAM={x:ox+5,z:oz+3.75};
   const lines=dunn?[
-      {who:'hale',text:`${dn}.`,cam:{x:ox+5,z:oz+3.4}},
-      {text:`${dn} is on his feet before Hale finishes. He looks at you and touches the brim of his hat.`,go:placed.dunn?{dunn:[[placed.dunn.x,placed.dunn.z+.75],[ox+5,placed.dunn.z+.75]]}:{},face:{dunn:'W'},wait:'arrive',cam:{x:ox+4,z:oz+4.4}},
-      {text:'Every slip in that hat had your name on it. He burned sixty. He wrote one.'},
-      {text:'Nobody claps. Then, slowly, everybody does.',act(){SFX.clap&&SFX.clap();}}]
+      {who:'hale',text:`${dn}.`,act(){slip=2;}},
+      {hold:.4,go:placed.dunn?{dunn:[[placed.dunn.x,placed.dunn.z+.75],[ox+5,placed.dunn.z+.75]]}:{},face:{dunn:'W'},emote:{dunn:'…'}},
+      {who:'dunn',text:'Every slip in that hat had their name on it. I burned sixty. I wrote one.',expr:'sad',wait:'arrive'},
+      {hold:2.2,act(){clap=1;SFX.clap&&SFX.clap();}}]
     :[
-      {text:'It is your name. Spelled the way Grandpa spelled it, which is not the way you spell it, and is somehow more right.',cam:{x:ox+4,z:oz+3.6}},
-      {text:'They clap. Politely, all together, like at a recital.',act(){SFX.clap&&SFX.clap();}},
-      {text:'Caitlyn is the only one crying.',face:{mae:'W'},emote:{mae:'…'},cam:{x:ox+5.6,z:oz+4.2}},
-      {text:'A hand rests on your shoulder and stays there,',act(){hand=1;},cam:{x:ox+3.2,z:oz+4.4}},
-      {text:'and when you turn around, nobody is close enough to have done it.',face:{you:'S'},act(){hand=0;SFX.stinger&&SFX.stinger();}}];
-  stage({room:'church',hour:Math.max(S.hour,18.2),player:{x:door.x,z:door.z,dir:'N'},cast,cam:{x:ox+5,z:oz+6},lead:900,
-    props:[{x:ox+5,z:oz+2.6,draw(X,Y,t){if(hatUp>0){const k=hatUp,sx0=X+6,sy0=Y-27,hx=X+8+Math.round(k*3),hy=Y-31-Math.round(k*14);   // his raised arm, the hat in his hand
-          for(let i=0;i<=8;i++){const u=i/8,ax=Math.round(sx0+(hx-sx0)*u),ay=Math.round(sy0+(hy+4-sy0)*u);ctx2.fillStyle='#120c0a';ctx2.fillRect(ax-1,ay,4,2);ctx2.fillStyle='#2a2430';ctx2.fillRect(ax,ay,2,1);}
-          ctx2.fillStyle='#120c0a';ctx2.fillRect(hx-1,hy+2,4,4);ctx2.fillStyle='#e0b898';ctx2.fillRect(hx,hy+3,2,2);stgHat(hx+1,hy-1);}
-        if(slip)stgSlip(X-8,Y-26);}},
-           {get x(){return P.x;},get z(){return P.z+.01;},draw(X,Y){if(!hand)return;ctx2.fillStyle='#0a0808';ctx2.fillRect(X+3,Y-27,7,3);ctx2.fillRect(X+7,Y-29,4,3);ctx2.fillRect(X+2,Y-26,2,2);}}],
+      {who:'hale',text:'Marsh.',act(){slip=2;}},
+      {text:'Your name, spelled the way Grandpa spelled it. Not the way you spell it. Somehow more right.',wait:.3},
+      {hold:2.4,act(){clap=1;SFX.clap&&SFX.clap();}},
+      {hold:1.6,act(){clap=0;},face:{mae:'W'},emote:{mae:'💧'}},
+      {hold:1.5,act(){hand=1;P.clip='sit';stgEmote('you','!');SFX.stinger&&SFX.stinger();}},
+      {hold:1.4,act(){hand=0;P.clip='idle';P.dir='S';}}];
+  stage({room:'church',hour:Math.max(S.hour,18.2),keepHour:true,player:{x:door.x,z:door.z,dir:'N'},cast,cam:{x:CAM.x,z:CAM.z+1.6},lead:900,
+    light(L){glowAt(sx(ox+5),sz(oz+2.2)-18,120,[255,190,110],.32);glowAt(sx(ox+2.5),sz(oz+1.1)-30,46,[255,200,120],.35);glowAt(sx(ox+7.5),sz(oz+1.1)-30,46,[255,200,120],.35);},
+    props:[
+      {x:gap.x,z:gap.z-.04,draw(X,Y,t){if(!seatLit)return;ctx2.fillStyle=`rgba(255,226,170,${.35+.15*Math.sin(t*2)})`;ctx2.fillRect(X-7,Y-9,14,5);}},   // the empty seat, lit
+      {x:ox+5,z:oz+2.55,draw(X,Y,t){if(hatUp>0){const k=hatUp,sx0=X+6,sy0=Y-27,hx=X+10+Math.round(k*3),hy=Y-40-Math.round(k*22);
+          for(let i=0;i<=8;i++){const u=i/8,ax=Math.round(sx0+(hx-sx0)*u),ay=Math.round(sy0+(hy+6-sy0)*u);ctx2.fillStyle='#120c0a';ctx2.fillRect(ax-1,ay,4,2);ctx2.fillStyle='#2a2430';ctx2.fillRect(ax,ay,2,1);}
+          ctx2.fillStyle='#120c0a';ctx2.fillRect(hx-1,hy+4,4,4);ctx2.fillStyle='#e0b898';ctx2.fillRect(hx,hy+5,2,2);stgHat2(hx+1,hy-2);}
+        if(slip){ctx2.fillStyle='#120c08';ctx2.fillRect(X-13,Y-31,10,8);ctx2.fillStyle='#f4ecd8';ctx2.fillRect(X-12,Y-30,8,6);ctx2.fillStyle='#5a4a3a';ctx2.fillRect(X-11,Y-28,6,1);if(slip>1)ctx2.fillRect(X-11,Y-26,4,1);}}},
+      {x:0,z:1e5,draw(X,Y,t){if(!clap)return;for(const id of seated){const n=npcById(id);if(!n)continue;const ph=(Math.floor(t*5)+id.length)%2;if(!ph)continue;   // the clapping
+          const nx=sx(n.x),ny=sz(n.z)-22;ctx2.fillStyle='#f4e8cc';ctx2.fillRect(nx-3,ny,2,1);ctx2.fillRect(nx+2,ny,2,1);ctx2.fillRect(nx,ny-2,1,2);}}},
+      {get x(){return P.x;},get z(){return P.z+.01;},draw(X,Y){if(!hand)return;const o='#060404';ctx2.fillStyle=o;   // a hand on your shoulder: long grey fingers
+          ctx2.fillRect(X+2,Y-28,9,3);ctx2.fillRect(X+8,Y-31,5,4);ctx2.fillRect(X+1,Y-27,2,4);ctx2.fillRect(X+4,Y-26,2,4);ctx2.fillRect(X+7,Y-26,2,3);ctx2.fillStyle='#8a8478';ctx2.fillRect(X+3,Y-27,7,1);ctx2.fillRect(X+2,Y-26,1,2);ctx2.fillRect(X+5,Y-25,1,2);}}],
     beats:[
-      {hold:.4},
-      {text:'The whole valley is in the church. People you have never seen stand along the back wall, from Wickham, from the orchard, from places that aren’t on the map.',go:{you:[ox+5,oz+6.1]},cam:{x:ox+5,z:oz+5},wait:.6},
-      {text:'Every pew is full except one space in the front row, exactly the width of you.',go:{you:[[ox+5,oz+4.25],[gap.x+.2,oz+4.25],[gap.x,gap.z]]},face:{you:'N'},cam:{x:ox+4.2,z:oz+4.2},wait:'arrive'},
-      {text:'Hale holds up the hat.',update(dt){hatUp=Math.min(1,hatUp+dt*1.4);},cam:{x:ox+5,z:oz+3.2}},
-      {text:'It is Grandpa’s straw hat with the faded red band. You left it in the ash. You are sure you left it in the ash.'},
-      {text:'Nobody speaks. The children are counting under their breath. Backwards.',face:Object.fromEntries(kids.map(k=>[k,'S'])),cam:{x:ox+5,z:oz+4.8}},
-      {text:'Hale reaches in without looking and unfolds a slip. He doesn’t need to read it. He reads it anyway.',act(){slip=true;},update(dt){hatUp=Math.max(.3,hatUp-dt);},cam:{x:ox+5,z:oz+3.2},face:Object.fromEntries(kids.map(k=>[k,'N']))},
+      {hold:.6},
+      {hold:2.6,go:{you:[ox+5,oz+5.7]},cam:{x:CAM.x,z:CAM.z+.8}},
+      {hold:.2,go:{you:[[ox+5,oz+4.25],[gap.x+.2,oz+4.25],[gap.x,gap.z]]},face:{you:'N'},cam:CAM,wait:'arrive'},
+      {hold:.9,act(){seatLit=0;P.clip='sit';P.dir='N';}},
+      {hold:1.6,update(dt){hatUp=Math.min(1,hatUp+dt*1.1);}},
+      {text:'Grandpa’s straw hat, the faded red band. You left it in the ash. You are sure you left it in the ash.',who:'you',expr:'scared'},
+      {hold:.4,face:Object.fromEntries(kids.map(k=>[k,'S'])),act(){kids.forEach((k,i)=>{setTimeout(()=>stgEmote(k,'3',.9),i*150);setTimeout(()=>stgEmote(k,'2',.9),1000+i*150);setTimeout(()=>stgEmote(k,'1',.9),2000+i*150);});}},
+      {hold:3.0},
+      {hold:1.2,face:Object.fromEntries(kids.map(k=>[k,'N'])),update(dt){hatUp=Math.max(.35,hatUp-dt);},act(){slip=1;}},
       ...lines,
-      {who:'hale',text:'Tomorrow night. Down the Mill Road. You’ll know the house. You’ve always known the house.',cam:{x:ox+5,z:oz+3.4},expr:'neutral'},
+      {who:'hale',text:'Tomorrow night. Down the Mill Road. You’ll know the house. You’ve always known the house.',cam:{x:CAM.x,z:CAM.z-.3},expr:'neutral'},
     ],
     done});}
 

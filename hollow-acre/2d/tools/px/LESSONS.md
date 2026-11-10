@@ -1009,3 +1009,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A water stream must visibly change every frame at 1x (move its highlight dashes 2 px a frame), and it ends in a splash with a darker wet patch on the soil.
 - Buildings (sweep, Nov 10): the roof is the biggest mass; texture it only where the eye reads the material (eaves, edges, hips, round dormers) and keep the middle of each plane quiet, lit as a volume. A flat roof seen from above shows its top. A pale frame round a roof reads as a box lid. Every eave, awning and porch roof casts a solid shadow (never a checkerboard). One-of-a-kind homes need their own massing, not a recoloured template.
 - Roof light (judge, Nov 10): a light falloff drawn as stepped diagonals reads as painted glare bars or glass shine. Light a roof by its planes: the left hip a step lighter than the front, the front mid with at most one block-shaped lighter step at the upper left, the right hip dark. Never let blue slate's lit step reach powder blue (it reads as ice).
+
+## Cutscenes (#210, Nov 10)
+- [c1] A cutscene SHOWS: if a caption describes a gate, a phone, an empty seat, a hat or a hand, that thing must be in the
+  frame doing it, and then the caption goes. Keep narration for the one line that cannot be acted (and the owner's intro
+  rule: no dialogue other than what people say).
+- [c1] A text box over a dimmed, empty world with the HUD still up scores 2: hide the HUD, put the people in the place.
+- [c1] Hold one framing; small eased moves only. Jumps of 40 px between beats read as a shaky camera.
+- [c1] Stardew-style events act with bubbles (!, ?, …, a tear, a countdown), turns, small walks and the right portrait face per line.
+- [c1] Background timers move townspeople home: pin the cast to their marks every frame while a scene plays.
