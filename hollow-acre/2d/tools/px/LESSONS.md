@@ -379,6 +379,14 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors b14] Things that read at once in a shop: a word on the thing (COLD, MAPS, GAS OIL, FLOUR), a car side-on on a lift
   with its hood up, bottles with long necks (short wide ones read as books).
 
+- [interiors b14] A sun patch that starts at the wall foot and runs 64 px down at a steep slant reads as a see-through beam;
+  a compact patch the window's own shape, a little way out from the wall, two flat tones that wash out the floor grain, the
+  glazing cross in the floor's colour, reads as light on the floor. It must land past the furniture standing at the wall.
+- [interiors b14] Position maths must end in whole pixels before G()/P(): a window at x 3.8 made every read miss and its
+  room had no daylight at all, silently.
+- [interiors b15] Judges keep naming the shared shell (same two windows, door, mat in every home): vary the window count and
+  width per house, not only the paper and floor.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).

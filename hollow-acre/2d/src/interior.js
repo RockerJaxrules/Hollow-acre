@@ -22,9 +22,9 @@ function buildInteriors(){for(const k in ROOMS){const R=ROOMS[k],m=SPR[R.shell||
   addRect(x0-3,z1,x0+R.door-.62,z1+3);addRect(x0+R.door+.62,z1,x1+3,z1+3);addRect(x0-3,z1+.5,x1+3,z1+3);
   // judge (interiors): one quilted bed and one red rug in every home. Each household keeps its own bed and rug (grandpa's cabin keeps his)
   let hk=7;for(const ch of k)hk=(hk*31+ch.charCodeAt(0))>>>0;let bi=0;
-  for(const [spr0,lx,lz,f,kind] of R.furn){let spr=spr0;
+  for(const [spr0,lx,lz,f,kind,flip] of R.furn){let spr=spr0;
     if(k!=='cabin'&&!k.startsWith('cabin')){if(spr0==='in_bed'){const v='in_bed_'+'bcde'[(hk+bi++)%4];if(SPR[v])spr=v;}else if(spr0==='in_rug'){const v='in_rug_'+'bcd'[hk%3];if(SPR[v])spr=v;}}
-    const o=obj(spr,x0+lx,z0+lz,{kind:kind||'furn',night:SPR[spr+'_n']?spr+'_n':null,room:k});if(f)addRect(o.x+f[0],o.z+f[1],o.x+f[2],o.z+f[3]);}}}
+    const o=obj(spr,x0+lx,z0+lz,{kind:kind||'furn',night:SPR[spr+'_n']?spr+'_n':null,room:k,flip:!!flip});if(f)addRect(o.x+f[0],o.z+f[1],o.x+f[2],o.z+f[3]);}}}
 function enterRoom(k){const R=ROOMS[k];S.mode='trans';fade(1);SFX.thud(0,.25);
   setTimeout(()=>{S.room=k;S.roomPan=(R.d+3.5>=VH/PPM)?{t0:performance.now()}:null;P.x=R.ox+R.door;P.z=R.oz+R.d-.45;P.dir='N';P.fx=0;P.fz=-1;P.anim=null;H.vis=false;if(H.state!=='gone'){H.state='gone';H.timer=5;}S.mode='play';fade(0);
     if(!S.first['room_'+k]){S.first['room_'+k]=1;toast(R.name+'.',2);}},380);}
@@ -91,15 +91,16 @@ function interiorGround(){const R=roomOf();if(!R)return;const m=SPR[R.shell||('r
    small pool under candles; walls keep only the back wall's shadow; contact shadows show 2-3 px below each foot */
 const ROOM_LIGHTS={in_stove:[.8,10],in_hearth:[1,14],in_forgehearth:[.9,14],in_candles:[.5,0],in_oillamp:[.45,0],in_walllantern:[.6,0],in_votive:[.45,0]};
 const ROOM_OBJS={};
-const ROOM_SHADE_OK=new Set(['home_harlow','shop_forge','home_fenn','tavern','cabin','home_cora','back_hale','back_quill','back_agnes','mine']);   // rooms whose light pass has won its blind round (6+ and preferred); the rest keep the old light until theirs does
+const ROOM_SHADE_OK=new Set(['home_silas','home_dunn','home_kerrigan','home_harlow','shop_forge','home_fenn','tavern','cabin','home_cora','back_hale','back_quill','back_agnes','mine']);   // rooms whose light pass has won its blind round (6+ and preferred); the rest keep the old light until theirs does
 function roomShade(R){const k=S.room;let L=ROOM_OBJS[k];if(!L||L.n!==OBJ.length){L=ROOM_OBJS[k]=OBJ.filter(o=>o.room===k);L.n=OBJ.length;}
   const fx0=Math.round(sx(R.ox)),fx1=Math.round(sx(R.ox+R.w)),fy0=Math.round(sz(R.oz)),fy1=Math.round(sz(R.oz+R.d));
   ctx2.fillStyle='rgba(16,10,14,.16)';ctx2.fillRect(fx0,fy0,fx1-fx0,fy1-fy0);   // the floor a step down, so lit furniture tops stand above it
   ctx2.fillStyle='rgba(16,10,14,.30)';ctx2.fillRect(fx0,fy0,fx1-fx0,10);   // the back wall's own shadow on the floor
   ctx2.save();ctx2.globalCompositeOperation='lighter';const night=isNight()?1:0;
   for(const o of L){if(o.hide)continue;const sp=(o.spr||'').replace(/_n$/,''),q=ROOM_LIGHTS[sp];if(!q)continue;const s=q[0],cx=Math.round(sx(o.x)),y0=Math.round(sz(o.z+(sp==='in_walllantern'?.75:0)))+1;
-    const tone=(a,w0,w1,len,col)=>{ctx2.fillStyle=`rgba(${col||'255,170,72'},${a})`;   /* (b13: the red-orange fan read as blood) amber, the inner step pale */for(let j=0;j<len;j++){const w=Math.round(w0+(w1-w0)*j/len);ctx2.fillRect(cx-w,y0+j,w*2,1);}};
-    if(q[1]){const L1=Math.round(46*s),L2=Math.round(28*s);tone(.10+.05*night,q[1]*s,32*s,L1);tone(.10+.05*night,q[1]*s*.7,20*s,L2,'255,214,140');}   // a fan out of the mouth
+    const hz=(a,b)=>{const v=Math.sin(a*12.9898+b*78.233)*43758.5453;return v-Math.floor(v);};const tone=(a,w0,w1,len,col)=>{ctx2.fillStyle=`rgba(${col||'255,170,72'},${a})`;   /* (b13: the red-orange fan read as blood) amber, the inner step pale */for(let j=0;j<len;j++){const w=Math.round(w0+(w1-w0)*j/len);if(j<len*.72){ctx2.fillRect(cx-w,y0+j,w*2,1);continue;}for(let x=-w;x<w;x+=2)if(hz(x+cx,j)>(j-len*.72)/(len*.28)*.9)ctx2.fillRect(cx+x,y0+j,2,1);}   /* (b15) a ragged far edge, not a ruler */};
+    if(q[1]){ctx2.fillStyle=`rgba(255,180,96,${.05+.03*night})`;ctx2.fillRect(cx-Math.round(30*s),y0-Math.round(64*s),Math.round(60*s),Math.round(40*s));ctx2.fillRect(cx-Math.round(18*s),y0-Math.round(78*s),Math.round(36*s),Math.round(20*s));   /* the wall round the fire lit too */
+      const L1=Math.round(46*s),L2=Math.round(28*s);tone(.10+.05*night,q[1]*s,32*s,L1);tone(.10+.05*night,q[1]*s*.7,20*s,L2,'255,214,140');}   // a fan out of the mouth
     else{tone(.07+.04*night,7,10,6,'255,214,150');tone(.08,4,6,4,'255,230,180');}}   // (r4: a red-orange pool read as blood) a small pale-yellow pool under the candles
   ctx2.restore();
   ctx2.fillStyle='rgba(50,33,37,.62)';

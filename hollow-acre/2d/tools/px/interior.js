@@ -18,10 +18,10 @@ function concrete(L,x0,y0,w,h){ /* (b10) poured slabs, not speckle: each slab on
     let c=n>.5?ST[2]:mixC(ST[2],ST[3],.35);const iu=u%SW,iv=v%SH;if(iu===0||iv===0)c=ST[1];else if(iv===1)c=mixC(ST[2],ST[3],.7);else if(iu===1)c=mixC(c,ST[3],.4);
     else if(iv>SH-4&&hsh(su,sv,9)>.6)c=mixC(c,ST[1],.25);P(L,x,y,c);}
   for(let sv=0;sv*SH<h;sv++)for(let su=0;su*SW<w;su++){if(hsh(su,sv,12)<.7)continue;let cx=x0+su*SW+12+Math.floor(hsh(su,sv,13)*60),cy=y0+sv*SH+8+Math.floor(hsh(su,sv,14)*30);
-    for(let k=0;k<22;k++){if(cx>=x0+w-1||cy>=y0+h-1)break;P(L,cx,cy,ST[1]);if(k%3===0)P(L,cx,cy+1,mixC(ST[2],ST[3],.6));cx+=1;if(hsh(k,su+sv*7,15)>.55)cy+=hsh(k,sv,16)>.5?1:-1;}}
+    for(let k=0;k<22;k++){if(cx>=x0+w-1||cy>=y0+h-1)break;P(L,cx,cy,ST[1]);if(k%3===0)P(L,cx,cy+1,mixC(ST[2],ST[3],.6));if(k===9){let bx=cx,by=cy;for(let m=0;m<8;m++){by+=1;if(m%2)bx+=1;P(L,bx,by,ST[1]);}}cx+=1;if(k%5===4)cy+=hsh(k,sv,16)>.5?1:-1;}   /* a straight run that kinks, one branch off it (b14: wavy lines read as birds) */}
   if(L.bay!=null){for(const off of [-27,17])for(let y=y0+2;y<y0+h;y++){const T=mixC(ST[2],ST[1],.24*(1-(y-y0)/h*.7));for(let x=L.bay+off;x<L.bay+off+10;x++){if(x<=x0||x>=x0+w)continue;const e=x===L.bay+off||x===L.bay+off+9;if(e&&hsh(x,y>>3,17)>.5)continue;if((y-y0)/h>.55&&hsh(x>>1,y>>2,18)>.75)continue;P(L,x,y,T);}}
     const gx=L.bay-6,gy=y0+Math.floor(h*.55);rect(L,gx-1,gy-1,14,10,ST[1]);for(let k=0;k<12;k+=2)vl(L,gx+k,gy,8,PAL.ink[1]);hl(L,gx-1,gy+9,14,ST[3]);}
-  for(let i=0;i<5;i++){const cx=x0+hsh(i,1,3)*w|0,cy=y0+hsh(i,2,3)*h|0,r=6+hsh(i,3,3)*10|0;for(let y=-r;y<=r;y++)for(let x=-r*1.5;x<=r*1.5;x++){const d=x*x/(2.25*r*r)+y*y/(r*r),lobe=1-hsh(Math.floor((Math.atan2(y,x)+3.2)*1.6),i,4)*.35;if(d>lobe)continue;P(L,cx+x|0,cy+y,d<lobe*.4?mixC(ST[1],PAL.ink[1],.55):mixC(ST[2],ST[1],.6));}for(let k=-r*.6|0;k<=0;k++)P(L,cx+k,cy-Math.round(r*.55),mixC(ST[2],ST[3],.5));}}
+  /* (b14: round black blots read as holes) no oil stains in the shell: the car drips its own */}
 function wallpaper(L,x0,y0,w,h,R,stripe){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){let k=2;const u=(x-x0)%stripe;if(u<2)k=3;if(u===stripe>>1)k=1;if((y-y0)%14===7&&u===stripe>>2)k=3;if(hsh(x>>3,y>>3,8)>.92)k=1;P(L,x,y,R[k]);}}
 function brick(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=Math.floor((y-y0)/6),o=r%2?6:0,b=(x-x0+o)%12;let c=R[(hsh(Math.floor((x-x0+o)/12),r,5)>.6)?3:2];if(b===0||(y-y0)%6===5)c=R[0];else if((y-y0)%6===0)c=R[4];P(L,x,y,c);}}
 function plaster(L,x0,y0,w,h,R){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const n=hsh(x>>3,(y+(x>>4))>>3,5)*.7+hsh(x,y,6)*.3;P(L,x,y,R[n>.8?4:n<.12?2:3]);}
@@ -192,12 +192,15 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
     P(A,x,y,[c[0]*k*(1-t)+PL[0]*t|0,c[1]*k*(1-t)+PL[1]*t|0,c[2]*k*(1-t)+PL[2]*t|0]);}}
   // ---- sunlight through each window: a hard-edged patch thrown down and to the right, two steps of light, the window's glazing bars crossing it (day only)
   if(!N&&R.theme!=='mine')for(const w of (R.theme==='glass'?[[1.5,0,44],[4.5,0,44],[7.5,0,44]]:(R.windows||[]))){   // (r8) a glass wall throws daylight too
-  const ww=w[2]||28,wx=x0+w[0]*32-ww/2,L=Math.min(front-top-8,64);
-    for(let y=top+3;y<top+3+L;y++){const sk=Math.round((y-top)*.55),xl=wx+sk,xr=wx+sk+ww-1;
-      for(let x=xl;x<=xr;x++){if(x<x0||x>=x0+fw)continue;const u=x-xl,v=y-top-3;
-        if(Math.abs(u-(ww>>1))<1||Math.abs(v-(L*.46|0))<1)continue;                                                      // the glazing bars' shadow
-        const inner=u>=3&&u<=ww-4&&v>=3&&v<=L-4;const f=inner?1.48:1.24,wm=inner?24:11;const c=G(A,x,y);if(!c)continue;
-        P(A,x,y,[Math.min(255,c[0]*f+wm),Math.min(255,c[1]*f+wm*.8),Math.min(255,c[2]*f+wm*.3)]);}}}
+  /* (b14: "see-through diagonal light stripes") a compact patch the shape of the window, thrown a little way out from the wall, two flat tones
+     that wash out the floor's grain, the glazing cross showing as the floor's own colour */
+  const ww=w[2]||28,wh=w[4]||34,wx=Math.round(x0+w[0]*32-ww/2),   /* (b14) a fractional x made every G() miss: windows at 3.8 or 4.6 threw no light at all */
+    L=Math.min(front-top-24,Math.round(wh*.85)),Y0=top+16,LT=[255,232,196];   /* thrown out past the furniture against the wall */
+    for(let y=Y0;y<Y0+L;y++){const sk=Math.round((y-Y0)*.38)+3,xl=wx+sk,xr=wx+sk+ww-1;
+      for(let x=xl;x<=xr;x++){if(x<x0||x>=x0+fw)continue;const u=x-xl,v=y-Y0;const c=G(A,x,y);if(!c)continue;
+        if(Math.abs(u-(ww>>1))<1||Math.abs(v-(L>>1))<1){P(A,x,y,[Math.min(255,c[0]*1.06+4),Math.min(255,c[1]*1.06+3),Math.min(255,c[2]*1.06+1)]);continue;}   // the bars
+        const rim=u<2||u>ww-3||v<2||v>L-3,k=rim?.16:.34,f=rim?1.12:1.22;
+        P(A,x,y,[Math.min(255,Math.round((c[0]*f)*(1-k)+LT[0]*k)),Math.min(255,Math.round((c[1]*f)*(1-k)+LT[1]*k)),Math.min(255,Math.round((c[2]*f)*(1-k)+LT[2]*k))]);}}}
   // ---- hanging lamps over the big rooms
   if(R.theme==='store'||R.theme==='church'){for(const f of [.25,.75]){const lx=x0+Math.round(fw*f);vl(B,lx,0,18,PAL.slate[2]);ell(B,lx,22,7,4,N?PAL.lit[4]:PAL.brass[2]);hl(B,lx-7,22,15,PAL.brass[1]);ell(B,lx,25,3,1,N?PAL.lit[5]:PAL.cream[3]);}}
   // side walls: dark tops of the left and right walls

@@ -20,10 +20,10 @@ const DRESS={
   home_kerrigan:{walls:['in_coatpegs'],floor:'boards',table:['t_plate','t_candle'],flaws:[]},
   home_pike:{walls:['in_painting_a'],floor:'boards',table:['t_mug'],flaws:[]},
   home_ward:{walls:['in_calendar'],floor:'boards',table:['t_books'],flaws:['in_papers']},
-  back_agnes:{walls:['in_painting_a'],flaws:[],special:'trapdoor'},back_hale:{walls:['in_painting_b'],flaws:['in_papers'],rumple:1},back_dunn:{walls:['in_calendar'],flaws:['in_bottles','in_stain'],rumple:1},
-  back_cora:{walls:['in_calendar'],flaws:['in_papers'],special:'wardrobe'},back_june:{walls:['in_hangplant'],flaws:['in_papers'],rumple:1},back_otto:{walls:['in_coatpegs'],flaws:['in_bottles'],rumple:1},
-  back_silas:{walls:['in_painting_b'],flaws:['in_stain']},back_quill:{walls:['in_painting_a'],flaws:[],rumple:1},back_thorne:{walls:['in_calendar'],flaws:['in_bottles'],rumple:1},
-  back_kerrigan:{walls:[],flaws:['in_stain'],rumple:1},back_pike:{walls:['in_painting_a'],flaws:[],rumple:1},
+  back_agnes:{walls:['in_painting_a'],flaws:[],special:'trapdoor'},back_hale:{walls:['in_painting_b'],flaws:['in_papers'],rumple:1},back_dunn:{walls:['in_calendar'],flaws:['in_bottles'],rumple:1},
+  back_cora:{walls:['in_calendar'],flaws:['in_papers'],special:'wardrobe'},back_june:{walls:['in_hangplant'],flaws:['in_papers'],rumple:1},back_otto:{walls:['in_coatpegs'],flaws:[],rumple:1},
+  back_silas:{walls:['in_painting_b'],flaws:[]},back_quill:{walls:['in_painting_a'],flaws:[],rumple:1},back_thorne:{walls:['in_calendar'],flaws:[],rumple:1},
+  back_kerrigan:{walls:[],flaws:[],rumple:1},back_pike:{walls:['in_painting_a'],flaws:[],rumple:1},
   cabin:{walls:['in_calendar','in_coatpegs'],table:['t_lamp','t_mug'],flaws:[]},tavern:{walls:['in_painting_a','in_calendar'],table:['t_mug','t_plate','t_candle'],flaws:['in_stain']}};
 const DRESS_TABLES=new Set(['in_table','in_desk','in_kcounter']);
 const dressH=(a,b)=>{const v=Math.sin(a*12.9898+b*78.233)*43758.5453;return v-Math.floor(v);};
