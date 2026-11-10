@@ -294,9 +294,9 @@ if(V!=='S'&&K==='bench_weapon'){
     // a sword lying along the middle of the top, running up the screen
     {const x=b.cx-1,y0=far(14);for(let j=0;j<17;j++){P(A,x,y0+j,RAMP.steel[5]);P(A,x+1,y0+j,RAMP.steel[2]);}hl(A,x-2,y0+17,6,RAMP.iron[4]);for(let j=0;j<4;j++)P(A,x,y0+18+j,RAMP.leather[3]);contact(x,y0+22,3);}
     {const wy=dir>0?far(4):near(10);rect(A,b.cx-3,wy,7,3,RAMP.stone[3]);hl(A,b.cx-3,wy,7,RAMP.stone[5]);hl(A,b.cx-3,wy+2,7,RAMP.stone[1]);}   // the whetstone at the right end's place
-    grindEdge(dir>0?b.x0+b.wD-5:b.x0+4,dir>0?near(14):far(2),dir);                                                                                   // the grindstone at the left end's place
+    grindEdge(dir>0?b.x0+b.wD-5:b.x0+4,dir>0?near(14):far(13),dir);   // the same wheel both sides, standing on the top                                                                                   // the grindstone at the left end's place
     for(let i=0;i<3;i++){rect(A,b.x0+3+i*5,b.base-9,4,2,RAMP.iron[3]);hl(A,b.x0+3+i*5,b.base-9,4,RAMP.iron[5]);}}
-  else{const b=benchBack(o);grindstone(b.x0+b.w-14,b.top-4,8);
+  else{{const x0b=(W-o.w)>>1,topb=H-3-o.legH-o.ap-o.d;grindstone(x0b+o.w-14,topb-3,8);}const b=benchBack(o);   // from behind, the wheel stands on the far side: its lower part hidden by the top
     for(const hx of [b.x0+10,b.x0+20]){hl(A,hx-3,b.fy-21,7,RAMP.iron[5]);hl(A,hx-3,b.fy-20,7,RAMP.iron[2]);for(let j=0;j<4;j++)P(A,hx,b.fy-25+j,RAMP.leather[j%2?2:4]);P(A,hx,b.fy-26,RAMP.iron[5]);P(A,hx+1,b.fy-26,RAMP.iron[3]);P(A,hx,b.fy-27,RAMP.iron[4]);}   // the hung swords' hilts over the board
     boardBack(b.x0+4,b.fy-19,30,20,RAMP.dark);
     for(let i=0;i<3;i++){rect(A,b.x0+b.w-16+i*5,b.base-9,4,2,RAMP.iron[3]);hl(A,b.x0+b.w-16+i*5,b.base-9,4,RAMP.iron[5]);}pot2(b.x0+12,b.base-6);}}
@@ -316,8 +316,7 @@ if(V!=='S'&&K==='bench_armor'){
     hide(b.x0+4,b.top+12,b.wD-8,20);shears(b.x0+5,b.top+b.L-7);rivetTin(b.x0+b.wD-6,b.top+4);
     for(let j=0;j<7;j++)for(let i=0;i<b.wD-8;i++){const l=.4-j/7*.8;P(A,b.x0+4+i,b.base-13+j,RAMP.leather[l>.2?4:l>-.2?3:2]);}
     if(V==='E')formSide(b.x0+b.wD+3,b.base-2,1);}
-  else{const b=benchBack(Object.assign({},o,{x0:3}));
-    const cx=W-11;dressForm(cx,b.base-3,22,true);const top=b.base-15-22;for(let y=top+3;y<top+21;y++){P(A,cx,y,RAMP.leather[1]);if(y%2===0){P(A,cx-1,y,RAMP.cream[3]);P(A,cx+1,y,RAMP.cream[2]);}}   // laced up the back, no rivets
+  else{const cx=W-11;dressForm(cx,H-3-3-12,22,true);const top=H-3-15-22-12;const b=benchBack(Object.assign({},o,{x0:3}));   // from behind, the stand is beyond the bench's end, raised and partly hiddenfor(let y=top+3;y<top+21;y++){P(A,cx,y,RAMP.leather[1]);if(y%2===0){P(A,cx-1,y,RAMP.cream[3]);P(A,cx+1,y,RAMP.cream[2]);}}   // laced up the back, no rivets
     for(let y=top+4;y<top+21;y+=3){P(B,cx-2,y,null);P(B,cx+2,y,null);}
     hide(b.x0+16,b.top+2,22,9);for(let j=0;j<7;j++)for(let i=0;i<20;i++){const l=.4-j/7*.8;P(A,b.x0+10+i,b.base-13+j,RAMP.leather[l>.2?4:l>-.2?3:2]);}}}
 if(V!=='S'&&K==='furnace'){

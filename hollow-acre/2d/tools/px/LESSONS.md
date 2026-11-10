@@ -518,6 +518,9 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A mirror is only a correct turn for a piece that is the same at both ends: when the ends differ (a vise, a grindstone, a stand), draw the left side separately, with that end's things at the far end.
 - Turned sideways, a bench keeps its full length running up the screen (about the front's width) and its depth across (about the front's top depth plus a little); half-length tops read as cabinets.
 - From the front, a rocking chair's runners hide behind its legs: the old splayed feet hint at runners better than straight legs on a flat rail.
+- Outdoor props: never speckle for texture (burlap, bark, rust); use a flat base tone, two or three broad shapes (fold curves, bark grooves, rust streaks) and a lit edge.
+- Wood end grain is dull tan, brightest at the top-left, with one dark heart pixel off centre; dark rings read as doughnuts, cream caps as brackets.
+- A mailbox reads side-on (a long domed tube, its flag up) with its name board; end-on it reads as a mushroom.
 - A barrel reads best side-on (bellied staves, hoops, the tap on its end); end-on it reads as a clock, a beehive or an owl. Draw the side as the front.
 - A small chess board on a deep table top reads as an upright pane or an abacus: keep the old pedestal table until a flat board at half its width beats it.
 - Brass arcs and frames are the brightest, most saturated shape; keep them thin and dull so the object (the globe) stays the main shape.

@@ -6,7 +6,7 @@ const FURN_VIEWS={
   shelf:{S:['in_shelf_jars'],W:['in_shelfE',1],N:['in_shelfN'],E:['in_shelfE']},
   pumpkin:{S:['jack_b'],W:['jack_b_e',1],N:['pumpkin'],E:['jack_b_e']},
   rug:{S:['in_rug'],W:['in_rug_r'],N:['in_rug'],E:['in_rug_r']},
-  crates:{S:['in_crates'],W:['in_crates',1],N:['in_crates'],E:['in_crates',1]}};
+  crates:{S:['in_crates'],W:['in_crates_w'],N:['in_crates_bk'],E:['in_crates_e']}};
 const ROT_NEXT={S:'W',W:'N',N:'E',E:'S'};          // a quarter turn clockwise, seen from above
 const ROT_NAME={S:'facing the door',W:'facing west',N:'facing the back wall',E:'facing east'};
 function furnView(k,rot){const V=FURN_VIEWS[k];const v=V&&V[rot||'S']||[FURN[k][1]];return {spr:SPR[v[0]]?v[0]:FURN[k][1],flip:!!v[1]};}
