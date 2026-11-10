@@ -575,6 +575,8 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A rim light that crosses onto the head reads as a collar: stop it at the neck.
 - Dried flowers are four to six separate stems of different lengths with small dull heads (straw, rust, faded mauve), a dark line where a head meets its stem; round pink balls read as fresh pom-poms or candy.
 
+- Two raised points on either end of a curved shape with a hanging panel between them read as horns over a face (a saddle side-on read as a bull's skull). Keep a saddle's ends low and round, and give it context (a blanket, a rope) before detail.
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline
@@ -583,6 +585,8 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Ramps: shades toward purple, lights toward yellow, no pure colours. About 6 colours per 32x32 area (measured on LPC).
 
 ## Process
+- Never end an inline code replacement with a // comment: everything after it on that line (closing braces) is commented out. Use /* */ or put the comment on its own line, and run node --check on furn_hd.js after every edit.
+
 - When a narrow win is re-run with the slots swapped, it often flips (cellar hatch and red drum, Nov 10: new 6 vs 5 from slot a, old 6 vs 4 from slot b). Never install a narrow win without the swapped re-run.
 - Installing over an existing sprite must keep its anchor when the size is unchanged (floor and wall pieces are anchored their own way; the trapdoor moved 14 px when the installer reset it).
 - [Nov 10] An `if` dropped into the middle of an if/else-if chain adopts the chain's trailing else: the hurt's impact

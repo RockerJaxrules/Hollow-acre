@@ -1298,12 +1298,12 @@ if(K==='tplate'){const base=H-3,cx=W>>1,Pc=hexR(['#3e3a34','#625c52','#86806f','
   for(const [dx,dy,k] of [[3,-5,3],[4,-5,4],[3,-4,2],[4,-4,3]])P(A,cx+dx,base+dy,RAMP.oak[k]);for(let x=-7;x<=8;x++)SH(cx+x,base+1,90);}   // one crumb of crust
 if(K==='tvase'){const base=H-3,cx=W>>1;   // a clay jug of dried flowers: brown stems, the heads faded to dull rose and ochre, one hanging over
   const TC=hexR(['#2a1a12','#3f281c','#553726','#6c4733','#835a41','#9a6e52']);for(let y=0;y<9;y++){const w=y<2?2:(y<7?3+(y>3?1:0):3);for(let x=-w;x<=w;x++)P(A,cx+x,base-y,TC[x<-w+2?4:(x>w-1?1:3)]);}hl(A,cx-2,base-9,5,TC[5]);for(const [dx,dy] of [[5,-7],[6,-6],[6,-5],[6,-4],[5,-3]])P(A,cx+dx,base+dy,TC[2]);   // a brown clay jug with a handle
-  const RUST=hexR(['#2e1a12','#4a2a1a','#683c24','#82502e','#9a643a','#ae7a4c']),MAU=hexR(['#30262e','#463844','#5e4c5a','#76626e','#8c7882','#a08e96']),TAN=hexR(['#3a2e20','#56442e','#72603e','#8c7650','#a48e64','#b8a47a']);
+  const RUST=hexR(['#4a3024','#6a4430','#8a5a40','#a8724e','#c08a62','#d4a27a']),MAU=hexR(['#4a3c48','#64525e','#7e6a76','#98848e','#b09ca4','#c6b4ba']),TAN=hexR(['#3a2e20','#56442e','#72603e','#8c7650','#a48e64','#b8a47a']);
   const stem=(ang,len,bend)=>{let x=cx,y=base-9,a=ang;for(let t=0;t<len;t++){a+=bend;x+=Math.cos(a);y+=Math.sin(a);P(A,Math.round(x),Math.round(y),RAMP.bark[t<3?2:3]);}return [Math.round(x),Math.round(y)];};
   const head=(X,Y,C,shape)=>{for(const [dx,dy,k] of shape)P(A,X+dx,Y+dy,C[k]);P(A,X,Y+1,RAMP.bark[1]);};   // each head with a dark line under it where it meets its stem
-  const round=[[0,-1,5],[-1,0,4],[0,0,4],[1,0,3],[0,1,2]],flat=[[-1,0,5],[0,0,4],[1,0,3],[0,-1,4]],spike=[[0,-2,5],[0,-1,4],[0,0,3],[-1,0,3]];
+  const round=[[0,-1,5],[-1,-1,5],[-1,0,4],[0,0,4],[1,0,3],[1,-1,4],[0,1,3]],flat=[[-1,0,5],[0,0,5],[1,0,4],[0,-1,5],[-1,-1,5],[1,-1,4]],spike=[[0,-2,5],[0,-1,5],[-1,-1,4],[0,0,4],[-1,0,3]];
   {const [X,Y]=stem(-2.45,9,.03);head(X,Y,RUST,round);}                 // a rusty head leaning out to the left
-  {const [X,Y]=stem(-1.95,13,0);head(X,Y,RAMP.straw,flat);}             // straw, tall
+  {const [X,Y]=stem(-1.95,13,0);head(X,Y,RAMP.cream,flat);}             // straw, tall
   {const [X,Y]=stem(-1.6,10,-.02);head(X,Y,MAU,round);}                 // faded mauve
   {const [X,Y]=stem(-1.2,14,.01);for(let k=0;k<4;k++){P(A,X,Y-k,TAN[k%2?4:3]);P(A,X+(k%2?1:-1),Y-k,TAN[2]);}}   // a seed head, the tallest
   {const [X,Y]=stem(-.75,9,.1);head(X,Y+1,RUST,flat);}                  // one drooping over the right side
@@ -1491,7 +1491,7 @@ if(K==='wbell'){const base=H-3,cx=W>>1,R=RAMP.walnut,St=RAMP.stone,Br=RAMP.brass
   hl(A,p1-1,pb-15,7,RAMP.ironW[4]);hl(A,p1-1,pb-14,7,RAMP.ironW[2]);                                                                      // the cleat
   for(let y=pb-13;y<pb-6;y++){P(A,p1+5,y,T[(y%3===0)?3:4]);P(A,p1+6,y,T[2]);}}                                                            // the tail hanging from it
 if(K==='rumple'){const C=RAMP.ivory;   // the sheet thrown back and bunched across the middle of the bed: folds lit along their tops, the shadows between them, a corner trailing
-  for(let x=9;x<W-9;x++){const t=(x-9)/(W-18),h=5+Math.round(Math.sin(t*Math.PI)*3+Math.sin(t*9)*1.5);for(let y=0;y<h;y++){const yy=14-y+Math.round(Math.sin(t*5)*1.2);const fold=((x+Math.round(y*.6))%9);P(A,x,yy,C[y===h-1?5:(fold<2?2:(fold<4?3:4))]);}}   // the bunched sheet, its folds
+  for(let x=9;x<W-9;x++){const t=(x-9)/(W-18),h=5+Math.round(Math.sin(t*Math.PI)*3+Math.sin(t*9)*1.5);for(let y=0;y<h;y++){const yy=14-y+Math.round(Math.sin(t*5)*1.2);const u=x-9+y*.6,R=[0,4,13,17,28,31,38,47,51,60,99];let k=0;while(R[k+1]<=u)k++;const f=(u-R[k])/(R[k+1]-R[k]);P(A,x,yy,C[y===h-1?5:(f<.18?5:(f<.55?4:(f<.82?3:2)))]);/* folds of different widths, each lit along its ridge, darkening into the valley before the next */}}   // the bunched sheet, its folds
   for(let x=9;x<W-9;x++)P(A,x,15+Math.round(Math.sin((x-9)/(W-18)*5)*1.2),C[1]);                                                 // its shadow on the quilt
   for(let j=0;j<7;j++)for(let i=0;i<5-(j>>1);i++)P(A,W-12+i,16+j,C[j===0?4:(i===0?3:2)]);}                                        // a corner trailing down the side
 if(K==='stain'){const cx=W>>1,cy=(H>>1)+1;   // a stain soaked into the floor: a dark heart, a paler ragged edge, a smear dragged away to one side, a few drops
