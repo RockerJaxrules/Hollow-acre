@@ -309,6 +309,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   shows: draw light pools into the light mask itself (hard-edged two-step wedges), with a dim lift over the room so the floor reads.
 - [interiors r10] A piece of a group (nightstand, chest) floating alone mid-room reads as dumped: it touches what it serves
   (the bed head) or stands against a wall under something (the bookcase).
+- [interiors r12 -> PASS] Ruth's room: one piece to each part of the room (bed and nightstand, shelf and candelabra, rug in the
+  middle, vanity and hatch in the two lower corners), each touching a wall or what it serves, reached 6.
+- [interiors r12] Light fans that all stop on one straight line read as a ledge, and a fan with no lamp at its tip comes from
+  nowhere: hang the lamp where the fan starts, make the lamp the brightest pixels, give every fan its own length.
+- [process] Room screenshots must wait for the area-title banner to fade (4.5 s): it covered the wall and its lanterns.
 - [interiors r3] A tall piece standing in front of a window (a bookcase hiding a third of the glass) is a placement error;
   check every tall piece against the window list before judging.
 - [interiors r3] Fading a too-loud quilt to grey made it read as stone: fade toward the room's own warm brown instead

@@ -93,8 +93,8 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
       if(gap<1.6)c=ST[0];else if(idUp!==id||idL!==id)c=ST[3];P(A,x,y,c);}
     for(let x=x0;x<x0+fw;x++){P(A,x,8,WD[4]);P(A,x,9,WD[3]);P(A,x,10,WD[3]);P(A,x,11,WD[2]);P(A,x,12,WD[1]);P(A,x,13,WD[0]);}
     for(const px of PX){for(let y=12;y<8+wallH;y++){P(A,px-3,y,WD[4]);P(A,px-2,y,WD[3]);P(A,px-1,y,WD[3]);P(A,px,y,WD[2]);P(A,px+1,y,WD[2]);P(A,px+2,y,WD[1]);P(A,px+3,y,WD[0]);}
-      for(let j=0;j<11;j++)for(let i=-4;i<=4;i++){const ly=22+j;if(j===0&&Math.abs(i)>2)continue;let c=j<2||j===10?PAL.stone[1]:(Math.abs(i)===4?PAL.stone[2]:[255,214,140]);if(j>=4&&j<=7&&Math.abs(i)<3)c=[255,246,214];if(i===-3&&j>1&&j<10)c=PAL.stone[3];P(A,px+i,ly,c);}   /* (r11) a lantern big enough to be the source of its light */
-      P(A,px,20,PAL.stone[2]);P(A,px,21,PAL.stone[1]);}}
+      const LY=8+wallH-36;for(let j=0;j<11;j++)for(let i=-4;i<=4;i++){const ly=LY+j;if(j===0&&Math.abs(i)>2)continue;let c=j<2||j===10?PAL.stone[1]:(Math.abs(i)===4?PAL.stone[2]:[255,214,140]);if(j>=4&&j<=7&&Math.abs(i)<3)c=[255,246,214];if(i===-3&&j>1&&j<10)c=PAL.stone[3];P(A,px+i,ly,c);}   /* (r11) a lantern big enough to be the source of its light */
+      P(A,px,LY-2,PAL.stone[2]);P(A,px,LY-1,PAL.stone[1]);}}
   if(R.theme==='glass'){for(let y=8;y<8+wallH;y++)for(let x=x0;x<x0+fw;x++){const i=(x-x0)%24,j=(y-8)%20;let c=N?PAL.ink[1]:PAL.glass[(y-8)<wallH*.5?4:3];if(!N&&(x+y)%23===0)c=PAL.glass[5];if(i===0||j===0)c=TR[3];P(A,x,y,c);}}
   // ceiling beam line, crown moulding
   rect(A,x0,0,fw,8,WD[1]);hl(A,x0,7,fw,WD[3]);for(let x=x0;x<x0+fw;x+=48)rect(A,x,0,10,8,WD[2]);
@@ -118,13 +118,7 @@ if(K==='room'){const R=CFG.room,fw=R.w*32,fd=R.d*32,side=12,wallH=92,top=wallH+8
       for(let k=0;k<2+(g%3);k++){const px=gx+((hsh(g,k,7)-.5)*14|0),py=gy+((hsh(k,g,8)-.5)*8|0),sz=k===0?5:[2,3,3][(hsh(g,k,9)*3)|0];
         for(let j=0;j<sz-1;j++)for(let i=0;i<sz;i++){if(sz>2&&(i===0||i===sz-1)&&(j===0||j===sz-2))continue;P(A,px+i,py+j,j===0||i===0?ST[3]:ST[2]);}
         if(sz>2)P(A,px+1,py,ST[4]);for(let i=1;i<sz;i++)P(A,px+i,py+sz-1,RK[0]);}}
-    // (r9) flat stones set in the packed earth: big, a step LIGHTER than the earth, corners cut, lit along the top, dark along the
-    // foot and right side; a few, spread out, flush so ore can sit on them
-    for(let k=0;k<5;k++){const right=k%2===1,sx=right?x0+fw-40-(hsh(k,11,4)*24|0):x0+62+(hsh(k,11,4)*30|0),sy=top+30+(hsh(k,12,4)*(fd-60)|0),sw=14+(hsh(k,13,4)*9|0),sh=7+(hsh(k,14,4)*4|0);   // (r10) by the walls, not in the middle
-      const l0=hsh(k,16,4)*4,l1=hsh(k,17,4)*5,r0=sw-hsh(k,18,4)*5,r1=sw-hsh(k,19,4)*4;   // a skewed four-sided stone, never a capsule
-      for(let j=0;j<sh;j++){const t=j/(sh-1),jog=hsh(j,k,23)>.75?1:0,L=Math.round(l0+(l1-l0)*t)+jog,Rr=Math.round(r0+(r1-r0)*t)-(hsh(j,k,24)>.8?1:0);
-        for(let i=L;i<Rr;i++){let c=mixC(ST[2],RK[3],.45);if(j===0||i===L)c=mixC(ST[3],RK[3],.3);if(j===sh-1||i===Rr-1)c=RK[1];P(A,sx+i,sy+j,c);}}
-      P(A,sx+sw-4,sy+sh,RK[0]);P(A,sx+sw-3,sy+sh,RK[0]);}
+    /* (r12) no big flat slabs: they kept reading as capsules; the quiet layer below carries the floor */
     /* (r11) a quiet layer over the packed earth: flat stones and dirt clods of 3-6 px a step off the floor, spaced unevenly (a
        jittered grid thinned by region): thick along the back wall, beside the track and toward the right edge, almost bare in
        the middle where the ore comes up. No single pixels. */
