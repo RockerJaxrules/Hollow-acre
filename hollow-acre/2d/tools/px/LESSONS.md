@@ -550,6 +550,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [props sweep] Tyre wear drawn as hashed cells reads as camouflage blocks; draw it as continuous wavy wheel tracks, one tone down.
 - [props sweep] Clumps laid over a fill with a gap-toothed top edge get outlined into battlements: wave the fill's top edge so
   nothing is left for the outline to bite.
+- [props sweep] Dress values swing: too pale and the dolls are buds on the bark, too dark and they sink into the twigs. A hung
+  figure needs THREE separate values: pale head, MID dress, dark cord/branch.
+- [props sweep] A woodshed is open-fronted: a dark bay behind the stack makes it read; a closed wall makes it a cabin with a woodpile.
+- [props sweep] When a rework loses or ties, restore the code to the judged winner and check the render byte-for-byte (cmp) before
+  installing, so a later re-render cannot quietly swap in an unjudged version.
+- [process] **[repeated x3]** Edit scripts: a replacement that ends in a `//` comment must END ITS LINE. Check after each script
+  that the text right after every replaced span is a newline, or move the comment to the end of the line.
 
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
