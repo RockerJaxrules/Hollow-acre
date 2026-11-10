@@ -497,6 +497,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A light reads only if the flame is several pixels with a pale core; a 2 px glow inside glass is a blue bottle.
 - Seen from the front at elevation 30, a rocker's runners hide behind the legs. Push the runner tips well forward of the feet and make them lighter than the frame, or the chair reads as a dining chair.
 - Spines must sit two value steps above a dark case back, or the books go to mud.
+- The blockout renderer has no transparency: anything inside a glass shape is hidden. Make the glass itself the lit material (a glowing chimney) or put the flame outside it.
+- Faces turned straight at the camera (log ends, barrel heads) get little light at elevation 30: give cut-end materials extra ambient light or they go dark.
+- Long logs seen end-on show as bark strips; for a woodpile that reads as round ends, keep the logs short in depth.
+- Flat-topped pieces (tables, chess boards) read better from 45 degrees than 30: more of the top shows (furn3d ELEV per piece).
+- The 'iron' ramp reads powder blue next to warm wood: use cast iron (near-black blue-grey) for hoops and frames.
 
 ## Outlines, light, colour
 

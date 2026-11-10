@@ -43,10 +43,10 @@ def turn(parts, k):
     return out
 
 
-from furn3d_pieces import PIECES, SCALE   # name -> (builder, rotatable, canvas); name -> size factor
+from furn3d_pieces import PIECES, SCALE, ELEV   # name -> (builder, rotatable, canvas); name -> size factor
 
 
-def render(name, parts, size, suffix=''):
+def render(name, parts, size, suffix='', elev=30):
     used = []
     for p in parts:
         if p['mat'] not in used: used.append(p['mat'])
@@ -59,7 +59,7 @@ def render(name, parts, size, suffix=''):
     pal['s'] = SHADOW
     Wd, Hd = size
     nm = name + suffix
-    scene = {'size': [Wd, Hd], 'origin': [Wd // 2, Hd - 16], 'elev': 30, 'materials': mats, 'palette': pal, 'shapes': parts,
+    scene = {'size': [Wd, Hd], 'origin': [Wd // 2, Hd - 16], 'elev': elev, 'materials': mats, 'palette': pal, 'shapes': parts,
              'gamma': 1.15, 'shadow_light': [-.13, 1, -.12], 'light': [-.4, 1.0, .5]}
     sp = os.path.join(GEN, nm); json.dump(scene, open(sp + '.json', 'w'))
     fin = {'name': nm, 'anchor': [Wd // 2, Hd - 16], 'leaf': '', 'bark': '', 'palette': pal, 'outline': OUTLINE, 'min_cluster': 3,
@@ -94,7 +94,7 @@ def scaled(parts, f):
 def make(name):
     fn, rot, size = PIECES[name]; parts = scaled(fn(), SCALE.get(name, 1)); meta = {}
     for k, suf in ((0, ''), (1, '_e'), (2, '_bk'), (3, '_w')) if rot else ((0, ''),):
-        p, ax, ay, sz = render(name, turn(parts, k), size, suf); meta[name + suf] = dict(ax=ax, ay=ay, w=sz[0], h=sz[1])
+        p, ax, ay, sz = render(name, turn(parts, k), size, suf, ELEV.get(name, 30)); meta[name + suf] = dict(ax=ax, ay=ay, w=sz[0], h=sz[1])
     return meta
 
 
