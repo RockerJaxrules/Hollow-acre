@@ -108,21 +108,19 @@ const MINE={x:-6,z:0,mobs:[],ores:[],ladder:null};
 // (interiors: "the mine is bare") the back wall between the timber sets: what the old miners left, out of the way of the ore
 // (ore comes up from z 1.2 m on, never against the back wall)
 ROOMS.mine={ox:430,oz:-60,out:{x:0,z:0},name:'The old Marrow mine',furn:[['in_crates',.95,1.0,[-.7,-.3,.7,0]],['lumber',3.6,1.05,[-.75,-.3,.75,0]],
-  ['barrel',7.4,1.0,[-.4,-.3,.4,0]],['in_drum',8.1,1.05,[-.3,-.25,.3,0]],['in_crates',10.3,1.0,[-.6,-.3,.6,0]]]};
+  ['barrel',7.4,1.0,[-.4,-.3,.4,0]],['in_drum',8.1,1.05,[-.3,-.25,.3,0]],['in_shovels',10.3,1.0,[-.45,-.2,.45,0]],['in_minecart',5.5,2.1,[-.5,-.3,.5,0]]]};
 // (interiors: "the greenhouse is bare") the margins round the soil bed kept like a working glasshouse: seed jars and a seedling box
 // along the back, compost sacks and a bucket, pots in the corners, a rain barrel, plants hung from the glass. Nothing on the soil.
 ROOMS.greenhouse={ox:462,oz:-60,out:{x:10.5,z:8.3},name:'The greenhouse',furn:[
-  ['in_shelf_jars',0.85,.62,[-.75,-.4,.75,0]],['sacks',2.5,1.0,[-.5,-.25,.5,0]],['bucket',3.35,1.02,[-.3,-.2,.3,0]],['planter',5.2,1.0,[-.65,-.25,.65,0]],
-  ['in_plant',6.7,1.0,[-.3,-.2,.3,0]],['barrel',8.35,1.0,[-.4,-.3,.4,0]],['in_hangplant',2.9,-.45,null,'flat'],['in_hangplant',7.4,-.45,null,'flat'],
-  ['in_plant2',.5,3.4,[-.3,-.2,.3,0]],['in_plant',.5,4.9,[-.3,-.2,.3,0]],['in_plant',8.5,2.7,[-.3,-.2,.3,0]],['sacks',8.5,4.4,[-.45,-.25,.45,0]],
-  ['in_crates',7.3,5.85,[-.7,-.3,.7,0]]]};
+  ['in_crates',.95,1.0,[-.7,-.3,.7,0]],['bucket',2.6,1.02,[-.3,-.2,.3,0]],['planter',4.4,1.0,[-.65,-.25,.65,0]],['in_shovels',6.4,1.0,[-.45,-.2,.45,0]],
+  ['barrel',8.35,1.0,[-.4,-.3,.4,0]],['in_hangplant',2.9,-.45,null,'flat'],['in_plant2',.5,3.4,[-.3,-.2,.3,0]],['in_plant',8.5,2.7,[-.3,-.2,.3,0]],['sacks',8.5,4.4,[-.45,-.25,.45,0]]]};
 function placeMine(){MINE.z=ridgeZ(MINE.x)+RIDGE.h+.15;obj('mineportal',MINE.x,MINE.z,{kind:'bld',night:'mineportal_n'});addRect(MINE.x-1.3,MINE.z-1.2,MINE.x-.6,MINE.z);addRect(MINE.x+.6,MINE.z-1.2,MINE.x+1.3,MINE.z);
   ROOMS.mine.out={x:MINE.x,z:MINE.z+.9};interact.push({x:MINE.x,z:MINE.z+.3,r:1,label:()=>'Enter mine',ok:()=>true,act(){mineEnter();}});}
 const ORE_HITS={stone:1,copper:2,coal:2,iron:3,gem:3};
 function mineFloor(f){S.mineFloor=f;S.mineDeep=Math.max(S.mineDeep,f);const R=ROOMS.mine;for(const o of MINE.ores)o.hide=true;for(const o of MINE.ores)if(o.col){const k=circles.indexOf(o.col);if(k>=0)circles.splice(k,1);}
   MINE.ores.length=0;MINE.mobs.length=0;if(MINE.ladder)MINE.ladder.hide=true;MINE.ladder=null;
   const n=10+Math.min(10,f);const pick=()=>{const r=rand();if(f>=10&&r<.06)return 'gem';if(f>=5&&r<.22)return 'iron';if(f>=3&&r<.36)return 'coal';if(r<.55)return 'copper';return 'stone';};
-  for(let i=0,k=0;i<200&&k<n;i++){const x=R.ox+.8+rand()*(R.w-1.6),z=R.oz+1.2+rand()*(R.d-2.2);if(Math.abs(x-(R.ox+R.door))<1.2&&z>R.oz+R.d-2)continue;if(MINE.ores.some(o=>Math.hypot(o.x-x,o.z-z)<1.1))continue;
+  for(let i=0,k=0;i<200&&k<n;i++){const x=R.ox+.8+rand()*(R.w-1.6),z=R.oz+1.2+rand()*(R.d-2.2);if(Math.abs(x-(R.ox+R.door))<1.2&&z>R.oz+R.d-2)continue;if(Math.abs(x-(R.ox+R.door))<.8)continue;   // never on the cart trackif(MINE.ores.some(o=>Math.hypot(o.x-x,o.z-z)<1.1))continue;
     const kind=pick();const o=obj('ore_'+kind,x,z,{kind:'prop',ore:kind,hits:0});o.col={x,z:z-.1,r:.32};circles.push(o.col);MINE.ores.push(o);k++;}
   MINE.ladderAt=MINE.ores[(rand()*MINE.ores.length)|0];
   const mobs=f<2?0:Math.min(3,1+(f/4|0));for(let i=0;i<mobs;i++)MINE.mobs.push({x:R.ox+1+rand()*(R.w-2),z:R.oz+1+rand()*2,t:0,stun:0});

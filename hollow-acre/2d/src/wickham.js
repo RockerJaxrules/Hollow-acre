@@ -108,7 +108,7 @@ const wr=(i,paper,name,x,z,furn)=>FROOM(980+i*32,paper,name,{x,z:z+.7},furn);
 const BEDS=(a,b)=>[['in_bed',7.1,2.5,[-0.85,-2.1,0.85,0]],['in_table',4.0,3.6,[-0.85,-0.45,0.85,0]],['in_chair',2.9,3.65,[-0.30,-0.25,0.30,0]],['in_rug',4.4,5.0,null,'flat'],a,b];
 Object.assign(ROOMS,{
   home_harlow:wr(0,'rust','The Lantern Inn',106.5,43.4,[['in_counter',6.5,2.5,[-1.56,-0.6,1.56,0]],['in_shelf_jars',1.2,0.62,[-0.80,-0.4,0.80,0]],['in_keg',11.6,1.2,[-0.40,-0.3,0.40,0]],['in_table',2.5,5.0,[-0.85,-0.45,0.85,0]],['in_chair',1.4,5.05,[-0.30,-0.25,0.30,0]],['in_table',10.5,5.0,[-0.85,-0.45,0.85,0]],['in_chair',9.4,5.05,[-0.30,-0.25,0.30,0]],['in_stove',10.4,0.95,[-0.68,-0.5,0.68,0]],['barrel',12.3,3.0,[-0.40,-0.3,0.40,0]]]),
-  home_ashby:wr(1,'blue','The doctor’s house',115.4,43.4,BEDS(['in_medcab',0.65,0.85,[-0.42,-0.4,0.42,0]],['in_shelf_books',2.4,0.62,[-0.80,-0.4,0.80,0]])),
+  home_ashby:wr(1,'blue','The doctor’s house',115.4,43.4,BEDS(['in_medcab',0.65,0.85,[-0.42,-0.4,0.42,0]],['in_shelf_books',3.35,0.62,[-0.80,-0.4,0.80,0]]).concat([['in_cot',1.25,4.75,[-1.0,-0.45,1.0,0]]])),
   home_vale:wr(2,'sage','The Vale house',132.6,43.4,BEDS(['in_knit',1.2,1.2,[-0.30,-0.3,0.30,0]],['in_shelf_mail',3.0,0.62,[-1.00,-0.4,1.00,0]])),
   home_kerrigan:wr(3,'rust','The Kerrigan house',140,43.4,BEDS(['in_rocker',1.0,1.2,[-0.40,-0.45,0.40,0]],['in_shovels',3.0,0.95,[-0.50,-0.3,0.50,0]])),
   home_pike:wr(4,'blue','The Pike house',103.5,57.4,BEDS(['in_rods',0.6,0.9,[-0.50,-0.3,0.50,0]],['in_netwall',2.6,-0.95,null,'flat'])),

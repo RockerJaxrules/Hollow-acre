@@ -287,6 +287,15 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   every piece must read at a glance or go.
 - [process] kind 'deco' in a room's furniture list draws a LEAVES sprite, not the piece: things on beds and tables use the
   ordinary furniture kind with no footprint (and a tall anchor, ay, to sit up on the surface).
+- [interiors r6] Painted to match the floor, a story piece (Ruth's hatch) vanished and read as "a grey slab": a piece that
+  matters needs a value step against the floor (bare warm oak on cold blue paint) AND no front face to stay flush.
+- [interiors r6] A lone group of pieces in a big room reads as left there; a long piece with the others at its ends reads as an
+  aisle (the store's goods table, barrel and sacks).
+- [interiors r7] Soft blobs on a floor read as stains and two-stroke crack marks read as birds: keep the middle of a floor quiet,
+  put the damp along the walls with a hard ragged edge, pebbles in groups of mixed sizes by the walls, cracks that branch.
+- [interiors r7] Copies on one screen (three identical ferns, twin sack pairs, twin hanging baskets, crate pairs in both
+  corners) read as copy-paste: every piece in view should be a different sprite.
+- [process] A helper that takes a fixed number of pieces (BEDS(a,b)) drops a third argument silently: append with concat.
 - [interiors r3] A tall piece standing in front of a window (a bookcase hiding a third of the glass) is a placement error;
   check every tall piece against the window list before judging.
 - [interiors r3] Fading a too-loud quilt to grey made it read as stone: fade toward the room's own warm brown instead

