@@ -506,6 +506,14 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Rendered grain on dark wood reads as drips or hair: keep grain to mid-tone tops, with long, sparse streaks.
 - Folds drawn as thin lines read as tears; a fold must be a broad soft ridge (lit crest and shadow), or leave the cloth plain.
 - With the new piece always in slot a, close calls go to slot b: only a clear lead from slot a counts.
+- A turned piece keeps its footprint: a long table turned shows its full length running up the screen, not a shrunken square top (table end view 4/10 at 26x26).
+- A cradle's rockers curve along its length only; seen from an end they are two short feet. Its two ends differ: the hood end shows the hood's closed back, the foot end shows the open mouth.
+- In a turned view, things beside one end of the piece end up in front of it (the armour stand at the left end stands in front of the near end when turned), overlapping it.
+- A back view is a turn, not a copy: everything on the piece swaps sides (pots, tools, sack).
+- A back must keep the trade: plank ends and a saw handle over a carpentry bench's back board, planks on its shelf.
+- A hood with a near-black inside reads as a hole; use the darkest plum-brown step, and let the far lip show above the near shell.
+- Open space under a table fills with outline if legs, stretchers and far legs sit 1-3 px apart: draw only the near legs, and only a soft fading shadow under the apron.
+- A barrel on its side needs its body showing behind the head (a band of staves above it with a hoop across), or the head reads as a flat clock or a hooded owl.
 
 ## Outlines, light, colour
 
