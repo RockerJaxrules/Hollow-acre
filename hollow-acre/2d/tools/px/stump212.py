@@ -17,14 +17,15 @@ def hexr(a):
 TOP = hexr(['#5a4228', '#7e6040', '#a07c52', '#bc9a68', '#d4b482'])
 RESIN = (214, 150, 52)
 STYLE = {
-    'pine': dict(bark=hexr(['#2a1610', '#46261a', '#643826', '#844c32', '#a06440']), plates=True, hgt=6, roots=3),
+    'pine': dict(bark=hexr(['#24140e', '#3a2218', '#523224', '#6a4230', '#80543e']), plates=True, hgt=6, roots=3),   # (stumps r1: "candy orange") a duller red-brown
     'spruce': dict(bark=hexr(['#1e1410', '#342218', '#4c3222', '#664430', '#7e583e']), plates=True, hgt=6, roots=3),
-    'birch': dict(bark=hexr(['#4a4642', '#8a857e', '#b8b3aa', '#d8d4cc', '#ece9e2']), marks=True, torn=True, hgt=7, roots=2),
+    'birch': dict(bark=hexr(['#4a4642', '#8a857e', '#b8b3aa', '#d8d4cc', '#ece9e2']), marks=True, torn=True, hgt=7, roots=3),
     'willow': dict(bark=hexr(['#262624', '#3c3b38', '#55534e', '#6e6b65', '#88847d']), furrows=True, hgt=8, roots=4),
     'dead': dict(bark=hexr(['#222020', '#383532', '#504c48', '#6a6560', '#86807a']), furrows=True, snapped=True, hgt=9, roots=3),
+    'snag': dict(bark=hexr(['#1e1c1c', '#34302e', '#4a4542', '#625c58', '#7c7570']), furrows=True, spear=True, hgt=9, roots=3),
 }
 WHICH = {'pine_0': 'pine', 'pine_1': 'pine', 'pine_o0': 'pine', 'pine_o1': 'pine', 'spruce_0': 'spruce', 'spruce_1': 'spruce',
-         'birch_green': 'birch', 'birch_gold': 'birch', 'willow': 'willow', 'deadtree': 'dead', 'snag': 'dead'}
+         'birch_green': 'birch', 'birch_gold': 'birch', 'willow': 'willow', 'deadtree': 'dead', 'snag': 'snag'}
 
 
 def draw(name):
@@ -47,15 +48,17 @@ def draw(name):
                 px[x, y] = (10, 8, 12, 90)
     # roots: uneven wedges spreading at the base, lit on top
     angs = [math.pi * .95, math.pi * .1, math.pi * .62, math.pi * .35][:st['roots']]
-    rw = max(1.6, r * .38)
-    for k, a in enumerate(angs):
-        L = r * (0.95 + R.random() * .4) + 2
-        for t in range(int(L) + 1):
-            f = t / L; x = cx + math.cos(a) * (r * .6 + t); y = by - 1 + math.sin(a) * (ry * .6 + t * .45)
-            hw = rw * (1 - f) + .5                                                    # a root is a flare, thick at the trunk, tapering out
-            for j in range(-int(hw), int(hw) + 1):
-                X = int(round(x - math.sin(a) * j * .5)); Y = int(round(y + j * .5 - hw * .6))
-                P(X, Y, B[4] if j < -hw * .4 else B[3] if j <= 0 else B[2] if j < hw * .6 else B[1])
+    rw = max(1.8, r * .5)
+    for k, a in enumerate(angs):   # (stumps r1: "ragged spurs", "spider legs") short thick roots, lit on top, tapering smoothly
+        L = r * (0.5 + R.random() * .25) + 2.5
+        ux, uy = math.cos(a), math.sin(a) * .55; ql = math.hypot(ux, uy); ux, uy = ux / ql, uy / ql; qx, qy = -uy, ux
+        sx0, sy0 = cx + math.cos(a) * r * .75, by - 1 + math.sin(a) * ry * .75
+        for ti in range(int(L * 2) + 1):
+            tt = ti / 2; hw = rw * (1 - tt / L) ** .8 + .4
+            for si in range(-int(hw * 2), int(hw * 2) + 1):
+                s = si / 2; X = sx0 + ux * tt + qx * s; Y = sy0 + uy * tt + qy * s - hw * .35
+                top = (qy * s) < 0
+                P(int(round(X)), int(round(Y)), B[4] if (top and abs(s) > hw * .5) else B[3] if top else B[2] if abs(s) < hw * .5 else B[1])
     # the trunk: a short cylinder, lit on the left, furrowed or plated or marked
     for y in range(by - hgt, by + 1):
         rr_ = r + max(0, y - (by - 3)) * .7                                           # the trunk flares out at its foot
@@ -76,16 +79,20 @@ def draw(name):
                 k = 0
             P(x, y, B[k])
     ty = by - hgt
-    if st.get('snapped'):
-        # snapped off: splinters standing up in pale weathered wood, the tallest on the left catching the light
-        spl = [(-r + 1, 4), (-r // 2, 7), (0, 3), (r // 2, 5), (r - 1, 2)]
-        for (dx, hh) in spl:
+    if st.get('snapped') or st.get('spear'):
+        # snapped off: splinters of different heights and leans in pale weathered wood, one tall (a snag: one tall jagged spear, its core rotted dark)
+        spl = [(-r + 1, 5, -1), (-r // 2, 9 if st.get('spear') else 8, 0), (1, 3, 1), (r // 2, 5, 1), (r - 1, 2, 0)] if not st.get('spear') else [(-r // 3, 13, -1), (r // 3, 4, 1), (r - 2, 2, 1)]
+        for (dx, hh, lean) in spl:
             for j in range(hh):
-                w = max(1, round((1 - j / hh) * 2))
+                w = max(1, round((1 - j / hh) * (3 if hh > 6 else 2)))
+                x0 = cx + dx + int(lean * j / 3)
                 for i in range(w):
-                    P(cx + dx + i, ty - j, TOP[3] if i == 0 else TOP[1])
+                    P(x0 + i, ty - j, TOP[3] if i == 0 else TOP[1] if i < w - 1 else B[1])
         for x in range(cx - r, cx + r + 1):
             P(x, ty, TOP[2]); P(x, ty + 1, B[1])
+        if st.get('spear'):
+            for x in range(cx - r // 2, cx + r // 2 + 1):
+                P(x, ty, (34, 24, 20)); P(x, ty + 1, (24, 16, 14))                 # the rotted dark core
     else:
         # the sawn top: an ellipse a step lighter than the bark, rings, a dark heart off centre, a lit rim at the front-left
         for y in range(ty - ry, ty + ry + 1):
@@ -103,10 +110,9 @@ def draw(name):
             P(cx + i, ty - i // 3, TOP[0])
         if st.get('plates'):
             P(cx - r + 2, ty + ry - 1, RESIN); P(cx - r + 2, ty + ry, RESIN)          # a bead of resin running down
-        if st.get('torn'):                                                            # the birch tore as it fell: splinters at the back rim
-            for (dx, hh) in ((-r // 2, 3), (r // 3, 2), (r - 2, 2)):
-                for j in range(hh):
-                    P(cx + dx, ty - ry - j, B[3]); P(cx + dx + 1, ty - ry - j + 1, B[1])
+        if st.get('torn'):                                                            # the birch tore as it fell: one splinter at the back rim
+            for j in range(4):
+                P(cx - r // 3, ty - ry - j, B[4]); P(cx - r // 3 + 1, ty - ry - j + 1, B[2])
     # outline
     src = im.copy(); s = src.load()
     for y in range(H):

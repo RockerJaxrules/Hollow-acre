@@ -922,6 +922,15 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Iron bench ends running the full height box the bench in: lean the back uprights back and curl their tops, roll the arm's front end down at seat height, splay the feet. Keep the back low over a 6-8 px seat.
 - Anything lying on a seat makes it a table: put the tin or brush on the floor; a darker back rail with a gap of shadow above the seat says "sit here".
 
+## Resources and items (#198, Nov 10)
+- A family of nodes made from one stamped dome with different flecks reads as one rock: give every material its own shape at 1x (coal as angular black lumps standing proud, copper as fat nuggets, iron as oxide and silver glints, gem as crystals breaking the outline, stone as a slab with moss and a crack), and give each node its own silhouette.
+- A node and its drop must match: the icon is the same material, a hand-sized chunk, not the boulder shrunk.
+- Rust drawn as maroon blocks reads as raw meat or blood: rust is ragged orange-brown oxide bleeding down from cracks, with an ochre step where it catches the light.
+- Coal as round balls reads as bombs; as two bricks with a full rim it reads as obsidian: three uneven matte lumps, a glint or two, no rim.
+- Four identical nuggets spaced evenly read as studs: vary their size and bite a corner off each.
+- A stump that is a straight cylinder with a flat top reads as a pot or a paper cup: cut it low, flare its foot, give it 3-4 short thick roots lit on top, and its own bark (pine plates, birch white with black marks, willow grey furrows); dead trees snap into splinters of different heights, not a neat lid.
+- Thin evenly spaced roots read as spider legs; ragged spurs read as noise: roots are short, thick at the trunk, tapering smoothly, lit on their upper side.
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline
