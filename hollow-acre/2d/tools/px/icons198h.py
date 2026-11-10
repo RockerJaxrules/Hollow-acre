@@ -80,22 +80,24 @@ def bonemeal():
 
 
 def ghostcorn():
-    # (r11: "a thin spindle reads as a white feather") the passed corn's fat, blunt cob in bone-white, straw husk down both sides
-    I = Icon(); K = hexr(['#5a5e5a', '#8c908a', '#b4b8b0', '#d2d4cc', '#e8e8e0', '#fafaf4'])
-    for (pts, l) in (([(3, 29), (6, 15), (13, 23)], .55), ([(3, 29), (18, 26), (12, 21)], .35), ([(5, 28), (9, 19), (14, 26)], .75)):
+    # (r12: "single grey pixels scattered: 2x2 kernels in rows, lit top-left, a cool lilac lower-right; longer, blunter")
+    I = Icon(); KL = [(250, 250, 244), (232, 232, 226), (210, 208, 212), (186, 182, 196)]; SEAM = (138, 132, 152)
+    for (pts, l) in (([(3, 30), (6, 15), (13, 23)], .55), ([(3, 30), (19, 27), (12, 21)], .35), ([(5, 29), (9, 19), (14, 26)], .75)):
         I.poly(pts, 'bu', l)                                                  # straw husk leaves peeled back down both sides
-    ox, oy = 9.5, 23.5
+    ox, oy = 9.0, 24.0
     for y in range(32):
         for x in range(32):
             u = ((x + .5 - ox) - (y + .5 - oy)) * .7071; v = ((x + .5 - ox) + (y + .5 - oy)) * .7071
-            if u < 0 or u > 19.6: continue
-            half = 5.3 * min(1, (u + 2) / 6) * (1 if u < 11 else max(.42, 1 - (u - 11) / 13.5)) * (1 if u < 18 else math.sqrt(max(0, 1 - ((u - 18) / 1.6) ** 2)) + (0 if u < 18 else 0))   # fat, tapering to a rounded tip
+            if u < 0 or u > 21: continue
+            half = 5.4 * min(1, (u + 2) / 6) * (1 if u < 13 else max(.6, 1 - (u - 13) / 16))
+            if u > 19.5: half *= math.sqrt(max(0, 1 - ((u - 19.5) / 1.5) ** 2))
             if abs(v) > half: continue
-            row = math.floor((v + 12) / 2.2); cu = (u + (row % 2) * 1.1) % 2.2; cv = (v + 12) - row * 2.2
-            seam = cu > 1.75 or cv > 1.75
-            lit = .95 - (v + half) / (2 * half + .01) * .5 - u * .01
-            k = 1 if seam else max(2, min(5, int(lit * 5 + .5)))             # seams a soft grey, not black: no speckle
-            I.P(x, y, K[k])
+            cx = x % 3; cy = (y + (x // 3) % 2) % 3                           # kernels: 2x2 blocks on a staggered 3-px grid
+            if cx == 2 or cy == 2:
+                I.P(x, y, SEAM); continue
+            side = (v + half) / (2 * half + .01)                              # 0 lit (upper left) .. 1 shade (lower right)
+            k = 0 if (cx == 0 and cy == 0 and side < .55) else 1 if side < .45 else 2 if side < .75 else 3
+            I.P(x, y, KL[k])
     return I.done()
 
 

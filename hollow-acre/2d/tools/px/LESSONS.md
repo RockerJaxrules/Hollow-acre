@@ -953,6 +953,7 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - (r8) In a horror game a likely misread wins: short upright pink shapes out of a tin read as fingers. Worms drape and coil over the rim, 2 px thick, with segment rings.
 - (r8) A coat reads as a coat from its length and its lapels: hem well below the cuffs, a lit lapel and collar, and a body a value step above the brown slot.
 - (r11) A thin pale spindle reads as a feather or a quill: a cob needs a fat body, a blunt end and husk leaves peeled down both sides.
+- (r12) Kernels sampled from a rotated grid land as scattered single pixels: lay them in screen space instead, 2x2 blocks on a staggered 3-px grid with 1-px seams, masked by the cob's shape.
 - (r11) Round beads in a row on a strip read as berries on a twig; pointed glowing drops read as flames. Resin is one asymmetric drop with a needle or bark fleck caught in it.
 
 ## Outlines, light, colour
