@@ -759,6 +759,14 @@ if(K==='banker'){const R=RAMP.oak,St=RAMP.stone,base=H-3,x0=3,w=W-6,top=base-20;
   {const mx=x0+w-24,my=top-6;rect(A,mx,my,7,5,RAMP.oak[3]);hl(A,mx,my,7,RAMP.oak[5]);vl(A,mx+6,my,5,RAMP.oak[1]);for(let i=0;i<8;i++)P(A,mx+7+i,my+2+(i>>2),RAMP.oak[4]);}   // the mallet
   for(const [cx,cy] of [[x0+6,base],[x0+w-12,base+1],[x0+w-20,base]]){P(A,cx,cy-1,St[4]);P(A,cx+1,cy-1,St[3]);}                    // chips on the floor
   cast(x0,x0+w,base);}
+// =================================================================================== the quarry boss's tool rack (a wall piece)
+if(K==='quarryrack'){const R=RAMP.oak,I=RAMP.ironW,y0=4;   // (judge b4) a pegged plank: a sledge hung head-down, a long pry bar, iron
+  // wedges standing on a ledge, a coil of rope
+  rect(A,1,y0,W-2,5,R[3]);hl(A,1,y0,W-2,R[5]);hl(A,1,y0+4,W-2,R[1]);for(const px of [6,16,26,W-8])P(A,px,y0+2,R[0]);
+  for(let j=0;j<16;j++){P(A,6,y0+5+j,R[4]);P(A,7,y0+5+j,R[2]);}rect(A,3,y0+20,8,5,I[2]);hl(A,3,y0+20,8,I[4]);vl(A,10,y0+20,5,I[0]);   // the sledge
+  for(let j=0;j<24;j++){P(A,16,y0+4+j,I[4]);P(A,17,y0+4+j,I[1]);}P(A,15,y0+27,I[3]);P(A,15,y0+28,I[2]);                           // the pry bar, its claw
+  {const cx=W-9,cy=y0+11;for(let r=1;r<=5;r++)for(let a=0;a<24;a++){const t=a/24*Math.PI*2;P(A,Math.round(cx+Math.cos(t)*r),Math.round(cy+Math.sin(t)*r*.8),RAMP.burlap[r%2?4:2]);}P(A,cx,cy,RAMP.walnut[1]);for(let j=0;j<6;j++)P(A,cx+5,cy+3+j,RAMP.burlap[3]);}   /* one coil of rope on its peg, a loose end */
+  hl(A,21,y0+22,10,R[4]);hl(A,21,y0+23,10,R[1]);for(let k=0;k<4;k++){const wx=22+k*2;for(let j=0;j<5;j++)P(A,wx,y0+17+j,I[j<1?2:(k%2?3:4)]);P(A,wx+1,y0+21,I[1]);}}   // iron wedges on a ledge
 // =================================================================================== the milking stool
 if(K==='stool'){const R=RAMP.oak,base=H-3,cx=W>>1;
   // a milking stool: a round seat two steps lighter than its three splayed legs; floor shows between them
@@ -1150,13 +1158,16 @@ if(K==='mailsacks'){const base=H-3,Bp=RAMP.burlap;   // mail sacks: full bodies,
     for(let j=0;j<9;j++)P(A,cx+3+Math.round(j*.45)+Math.round(lean*.5),nk+4+j,Bp[2]);                                         // a fold curving down the side
     hl(A,cx-2+lean,nk,5,RAMP.walnut[1]);P(A,cx+3+lean,nk+1,RAMP.walnut[1]);P(A,cx+3+lean,nk+2,RAMP.walnut[2]);P(A,cx+4+lean,nk+3,RAMP.walnut[2]);   // the cord, its loose end
     for(let y=1;y<=5;y++){const w=1+Math.round(y*.6);for(let x=-w;x<=w;x++)P(A,cx+x+lean,nk-y,(x===-1||x===2)&&y>1?Bp[2]:Bp[x<0?5:4]);}};   // the gathered neck, pleated, flaring above the cord
-  sack(10,base,8,23,0);sack(26,base,8,14,2);
-  {const mx=28,my=base-14;for(let x=-4;x<=4;x++){P(A,mx+x,my,Bp[2]);P(A,mx+x,my+1,RAMP.walnut[1]);}   // the small sack's mouth open
-    const env=(x,y,dir)=>{for(let j=0;j<4;j++)for(let i=0;i<7;i++)P(A,x+i,y+j+Math.round(i*dir*.3),RAMP.cream[j===0?5:4]);for(const [i,j] of [[1,1],[2,2],[3,2],[4,2],[5,1]])P(A,x+i,y+j+Math.round(i*dir*.3),RAMP.walnut[2]);};   // a tilted envelope, the V of its flap
-    env(20,my-4,1);env(27,my-7,-1);env(24,base-2,0);for(const [ex,ey] of [[23,my-1],[30,my-4],[27,base]])P(A,ex,ey,RAMP.brick[2]);}   // three envelopes, red seals, one fallen to the floor
-  drawText(A,'US',6,base-11,RAMP.blue[1]);drawText(A,'US',23,base-6,RAMP.blue[1]);
-
-  cast(3,33,base);}
+  // (judge b4: "the white bundle reads as a sapling") one tied sack standing, one fallen on its side with its mouth open and the post
+  // spilling out across the floor: envelopes big enough to show the V of the flap, each at its own angle, a red seal on some
+  sack(9,base,8,23,0);
+  {const sy=base-9;for(let x=0;x<16;x++){const t=x/16;const hh=Math.round(4+Math.sin(t*Math.PI)*3);for(let j=-hh;j<=hh;j++){const l=-j/hh*.7-(t-.3)*.4;P(A,17+x,sy+j,Bp[l>.4?5:l>0?4:l>-.4?3:2]);}}
+    for(let j=-4;j<=4;j++){P(A,33,sy+j,Bp[1]);P(A,34,sy+j,RAMP.walnut[1]);}}                                                      // the fallen sack, its mouth to the right
+  const env=(x,y,dir,seal)=>{for(let j=0;j<5;j++)for(let i=0;i<8;i++)P(A,x+i,y+j+Math.round(i*dir*.25),RAMP.cream[j===0?5:(i===7?2:4)]);
+    for(const [i,j] of [[0,0],[1,1],[2,1],[3,2],[4,2],[5,1],[6,1],[7,0]])P(A,x+i,y+j+Math.round(i*dir*.25),RAMP.cream[1]);void seal;};   /* one unbroken pale V, no seal (two marks and a dot read as a face) */
+  env(34,base-14,1,1);env(36,base-8,-1,0);env(41,base-12,.5,1);env(44,base-5,-.5,0);env(39,base-3,0,1);                      // five envelopes trailing away
+  drawText(A,'US',5,base-11,RAMP.blue[1]);
+  cast(3,W-3,base);}
 if(K==='produce'){const base=H-3,R=RAMP.oak,x0=3,w=W-6;   // a produce stand: two shelves of crates, each a heap of a different crop
   const fr=(cx,cy,kind)=>{const [rx,ry,C]={apple:[1,1,RAMP.red],potato:[2,2,RAMP.green],squash:[2,2,RAMP.ochre],pump:[3,2,RAMP.pumpkin]}[kind];
     for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){if(rx>1&&x*x/(rx*rx+.6)+y*y/(ry*ry+.6)>1)continue;P(A,cx+x,cy+y,C[x+y<-1?5:(x+y<1?4:(x+y<2?3:(x+y<3?2:1)))]);}
