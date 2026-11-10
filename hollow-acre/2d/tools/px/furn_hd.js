@@ -2278,8 +2278,9 @@ if(K==='peatstack'){const base=H-3,Pt=hexR(['#22170f','#332217','#45301f','#5a3f
     hl(A,bx-1,by,4,St[5]);for(let y=by+3;y<by+8;y++)P(A,bx+4,y,St[1]);}
   for(let i=0;i<16;i++){const x=4+((hsh(i,3,73)*(W-14))|0),y=base+((hsh(i,4,74)*2)|0);P(A,x,y,Pt[hsh(i,5,75)>.5?4:2]);}cast(3,W-10,base);}
 if(K==='bootbench'){const base=H-3,R=RAMP.pine,L=hexR(['#1a120c','#2a1c12','#3e2a1a','#553a24','#6c4c30','#82603e']),x0=22,w=W-25,top=base-15;   // a boot bench by the door: a pair of tall black lace-up boots standing beside it, a brown one lying on the bench, a tin of dubbin and a brush, mud on the boards
-  box3(x0,top,w,4,4,R,{faceK:3});for(const lx of [x0+1,x0+w-4])for(let y=top+8;y<base;y++){P(A,lx,y,R[4]);P(A,lx+1,y,R[2]);P(A,lx+2,y,R[1]);}fadeUnder(x0+4,x0+w-5,top+8,base-1);
-  {const bx=x0+w-17,by=top+1,LB=L;   // (benches r2: "say the trade") one boot on a last on the seat, side-on: a pale sole, heel, toe, the shaft, laces as a dark V
+  box3(x0,top-2,w,6,4,R,{faceK:3});for(let x=x0+2;x<x0+w-2;x++){SH(x,top+8,220);SH(x,top+9,170);}   // (benches r3: "a 3 px seat") a 6 px lit seat plane, a solid shadow under its edge
+  for(const lx of [x0+1,x0+w-4])for(let y=top+8;y<base;y++){P(A,lx,y,R[4]);P(A,lx+1,y,R[2]);P(A,lx+2,y,R[1]);}fadeUnder(x0+4,x0+w-5,top+8,base-1);
+  {const bx=x0+w-17,by=top+2,LB=L;   // (benches r2: "say the trade") one boot on a last on the seat, side-on: a pale sole, heel, toe, the shaft, laces as a dark V
     for(let y=by-9;y<by-2;y++)for(let i=0;i<4;i++)P(A,bx+i,y,LB[i===0?4:i===3?1:3]);hl(A,bx,by-9,4,LB[5]);   // the shaft
     for(let y=by-3;y<by;y++)for(let i=0;i<10;i++){if(i>7&&y===by-3)continue;P(A,bx+i,y,LB[y===by-3?4:i===9?1:3]);}   // the foot and its rounded toe
     hl(A,bx,by,10,RAMP.cream[2]);P(A,bx,by-1,RAMP.charcoal[1]);P(A,bx+1,by-1,RAMP.charcoal[1]);   // a pale sole, a dark heel
@@ -2289,7 +2290,7 @@ if(K==='bootbench'){const base=H-3,R=RAMP.pine,L=hexR(['#1a120c','#2a1c12','#3e2
     for(let y=by-16;y<by-4;y+=2){P(A,x,y,L2[0]);P(A,x+1,y+1,L2[0]);P(A,x+1,y,L2[5]);}   // (benches r2: "pale dots read as teeth") dark crossed laces, inside the shaft                                                                    // its laces up the front,
     for(let y=by-4;y<by;y++)for(let i=-6;i<6;i++){if(i<-4&&y===by-4)continue;let k=y===by-4?4:3;if(i===-6)k=5;if(i===5)k=1;P(A,x+i,y,L2[k]);}   // the foot, a rounded toe,
     hl(A,x-6,by-1,12,RAMP.charcoal[0]);P(A,x+3,by-2,RAMP.charcoal[1]);P(A,x+4,by-2,RAMP.charcoal[1]);};   // a black sole and heel
-  boot(10,base,L);boot(17,base-1,L);
+  {const LD=L.map((c,i)=>L[Math.max(0,i-1)]);boot(10,base,LD);boot(17,base-1,LD);}   // the standing boots a step darker than the pine
 
   for(let i=0;i<12;i++){const x=2+((hsh(i,1,76)*24)|0),y=base-1+((hsh(i,2,77)*3)|0);P(A,x,y,RAMP.bark[hsh(i,3,78)>.5?3:2]);}cast(3,x0+w,base);}
 if(K==='gunpegs'||K==='gunpegss'){const sher=K==='gunpegss',HX=sher?24:30,R=RAMP.walnut,St=RAMP.steel,Cv=sher?RAMP.oak:RAMP.olive,Ht=sher?RAMP.bark:RAMP.burlap,ry=16;   // (wall) a peg rail: the ranger's rifle on two brackets above it, a long canvas coat, a campaign hat, a canteen on its strap
