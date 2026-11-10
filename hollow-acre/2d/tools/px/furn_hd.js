@@ -1810,14 +1810,20 @@ if(K==='coffinbuild'){const base=H-3,Pn=RAMP.pine,R=RAMP.oak;   // (judge b11: t
     for(let i=-6;i<=6;i++)P(A,cx+i+Math.round((h-2)*.12),base-h,Pn[Math.max(0,2-dk)]);for(let i=-3;i<=3;i++)P(A,cx+i+Math.round(4*.12),base-5,Pn[Math.max(0,2-dk)]);};   // the inset moulding, top and bottom
   lid(W-26,38,1);lid(W-14,34,0);
   for(let x=W-34;x<W-4;x++){SH(x,base-1,110);SH(x,base,80);}cast(3,28,base);}
-if(K==='ironcot'){const base=H-3,Ir=RAMP.iron,Bl=RAMP.olive,M=RAMP.ivory,x0=4,x1=W-5;   // a narrow iron cot: black rails with brass knobs, a thin ticking mattress, a grey army blanket, one flat pillow
+if(K==='ironcot'||K==='ironcotbare'||K==='ironcotdoll'){const bare=K==='ironcotbare',base=H-3,Ir=RAMP.iron,Bl=RAMP.olive,M=RAMP.ivory,x0=4,x1=W-5;   // a narrow iron cot: black rails with brass knobs, a thin ticking mattress, a grey army blanket, one flat pillow
   const top=6;for(const py of [top,base-10]){for(let x=x0;x<=x1;x++){P(A,x,py,Ir[4]);P(A,x,py+1,Ir[2]);}for(let k=0;k<4;k++){const bx=x0+3+k*((x1-x0-4)/3|0);for(let y=py+2;y<py+8;y++)P(A,bx,y,Ir[3]);}}   // head and foot rails
   for(const px of [x0,x1])for(let y=top-2;y<base;y++){P(A,px,y,Ir[px===x0?4:2]);}for(const px of [x0,x1]){P(A,px,top-3,RAMP.brass[5]);P(A,px,base-12,RAMP.brass[4]);}
   rect(A,x0+1,top+3,x1-x0-1,base-top-14,M[3]);for(let y=top+3;y<base-11;y+=3)hl(A,x0+1,y,x1-x0-1,M[2]);                                   // the ticking mattress
-  rect(A,x0+3,top+4,x1-x0-5,6,M[5]);hl(A,x0+3,top+9,x1-x0-5,M[3]);                                                                        // the pillow
+  if(bare){rect(A,x0+3,base-19,x1-x0-5,6,Bl[3]);hl(A,x0+3,base-19,x1-x0-5,Bl[5]);hl(A,x0+3,base-14,x1-x0-5,Bl[1]);hl(A,x0+3,base-16,x1-x0-5,Bl[2]);   // stripped: a blanket folded square at the foot, nothing else
+    for(const [sx,sy,rr] of [[x0+10,top+24,5],[x0+19,top+33,3.5]])for(let j=-5;j<=5;j++)for(let i=-6;i<=6;i++){const d=Math.hypot(i/1.2,j)+hsh(i,j,83)*1.4;if(d>rr)continue;P(A,sx+i,sy+j,M[3].map((v,q)=>Math.round(v+(RAMP.ochre[2][q]-v)*(d>rr-1.2?.5:.28))));}   // old water stains
+    for(const px of [x0,x1])for(let y=base-3;y<base;y++)P(A,px,y,Ir[3]);under(x0+1,x1-1,base-3,base-1);cast(x0,x1,base);}
+  else{rect(A,x0+3,top+4,x1-x0-5,6,M[5]);hl(A,x0+3,top+9,x1-x0-5,M[3]);                                                                        // the pillow
   for(let y=top+12;y<base-11;y++)for(let x=x0+1;x<x1;x++){let k=3;if(y===top+12)k=4;if(x===x0+1)k=4;if(x>=x1-2)k=1;if((y-top)%11===0)k=2;P(A,x,y,Bl[k]);}   // the blanket, folded square
   hl(A,x0+1,top+13,x1-x0-1,Bl[5]);for(let y=base-11;y<base-3;y++)for(let x=x0+1;x<x1;x++)P(A,x,y,Bl[y===base-11?2:1]);                    // its fold-over and the hang at the foot
-  for(const px of [x0,x1])for(let y=base-3;y<base;y++)P(A,px,y,Ir[3]);under(x0+1,x1-1,base-3,base-1);cast(x0,x1,base);}
+  if(K==='ironcotdoll'){const dx=x0+10,dy=top+3,Dr=RAMP.red;for(let j=0;j<6;j++)for(let i=-3;i<=3;i++)if(i*i/9+j*j/9<=1.6)P(A,dx+i,dy+j,RAMP.cream[j<2?5:4]);   // a rag doll propped on the pillow: a cloth face, button eyes, yarn hair, a gingham dress, arms flopped out
+    P(A,dx-1,dy+2,RAMP.charcoal[0]);P(A,dx+1,dy+2,RAMP.charcoal[0]);P(A,dx,dy+4,Dr[3]);for(let i=-4;i<=4;i++){P(A,dx+i,dy-1,RAMP.rust[i%2?4:2]);}P(A,dx-4,dy,RAMP.rust[3]);P(A,dx+4,dy+1,RAMP.rust[2]);P(A,dx-4,dy+2,RAMP.rust[2]);
+    for(let j=6;j<13;j++){const hw=2+((j-6)>>1);for(let i=-hw;i<=hw;i++)P(A,dx+i,dy+j,((i+j)%2)?Dr[4]:RAMP.cream[4]);}hl(A,dx-6,dy+8,3,RAMP.cream[4]);hl(A,dx+4,dy+7,3,RAMP.cream[3]);P(A,dx-2,dy+13,RAMP.cream[3]);P(A,dx+2,dy+13,RAMP.cream[2]);}
+  for(const px of [x0,x1])for(let y=base-3;y<base;y++)P(A,px,y,Ir[3]);under(x0+1,x1-1,base-3,base-1);cast(x0,x1,base);}}
 if(K==='quern'){const base=H-3,R=RAMP.oak,Fl=RAMP.ivory;   // (judge b11: say "mill") a flour bin: FLOUR stencilled on the front, the lid propped up, flour heaped inside, a tin scoop, flour dust on the floor
   const x0=4,w=W-8,top=base-24;for(let y=top-9;y<top;y++){const inset=Math.round((top-y)*.25);for(let x=x0+inset;x<x0+w-inset;x++)P(A,x,y,R[y===top-9?5:(x-x0)%6===0?2:3]);}   // the lid tipped back
   box3(x0,top,w,6,18,R,{faceK:2});for(let x=x0+2;x<x0+w-2;x++){const hh=Math.round(2+Math.sin((x-x0)/w*Math.PI)*3);for(let y=top+5-hh;y<top+5;y++)P(A,x,y,Fl[y===top+5-hh?5:4]);}   // flour heaped above the rim
@@ -1862,8 +1868,8 @@ if(K==='votive'){const base=H-3,Ir=RAMP.iron,cx=W>>1;   // (b18: "reads as a cak
   cast(cx-9,cx+9,base);}
 // =================================================================================== a counter for each trade (judge b10: one till counter in six rooms)
 if(K.startsWith('ctr_')){const base=H-3,x0=3,w=W-6,top=base-26,T=K.slice(4);
-  const TOP={bait:RAMP.oak,inn:RAMP.walnut,feed:RAMP.pine,carp:RAMP.pine,gas:RAMP.bluegrey,forge:RAMP.oak}[T];
-  box3(x0-1,top,w+2,9,3,TOP,{topPw:T==='gas'?9:4});const fy=top+12,fh=base-fy-2;
+  const MINT=hexR(['#1c2422','#2c3a36','#41554e','#5a7268','#789085','#98aea2']);const TOP={bait:RAMP.oak,inn:RAMP.walnut,feed:RAMP.pine,carp:RAMP.pine,gas:RAMP.bluegrey,forge:RAMP.oak,motel:MINT}[T];
+  box3(x0-1,top,w+2,9,3,TOP,{topPw:T==='gas'?9:T==='motel'?99:4});const fy=top+12,fh=base-fy-2;
   if(T==='bait'){const Bl=RAMP.bluegrey;for(let y=fy;y<base-2;y++)for(let x=x0;x<x0+w;x++){const u=(x-x0)%5;P(A,x,y,Bl[u===0?1:u===1?4:3]);}hl(A,x0,fy,w,Bl[1]);vl(A,x0,fy,fh,Bl[5]);vl(A,x0+w-1,fy,fh,Bl[0]);   // painted beadboard
     for(let x=x0+6;x<x0+w-6;x+=19)for(let y=fy+4;y<fy+fh-3;y++)if(hsh(x,y,96)>.82)P(A,x+((y>>2)%3),y,RAMP.oak[3]);}                                  // paint worn to the wood where knees knock
   if(T==='inn'){const R=RAMP.walnut;box3(x0,fy,w,0,fh,R,{facePw:9});for(let k=0;k<3;k++){const px=x0+5+k*((w-10)/3|0);panel(px,fy+3,((w-10)/3|0)-4,fh-6,R);}
@@ -1874,8 +1880,17 @@ if(K.startsWith('ctr_')){const base=H-3,x0=3,w=W-6,top=base-26,T=K.slice(4);
     drawText(A,'GAS  OIL',x0+(w>>1)-16,fy+3,RAMP.cream[5]);hl(A,x0,fy,w,Rr[1]);}                                                                      // red enamel front, a steel kick plate
   if(T==='forge'){const Sx=hexR(['#2a2624','#433d3a','#5e5753','#7a726c','#968d85','#b0a79e']);for(let y=fy;y<base-2;y++){const r=Math.floor((y-fy)/6),o=r%2?7:0;for(let x=x0;x<x0+w;x++){const u=(x-x0+o)%14,v=(y-fy)%6;
       let k=hsh(Math.floor((x-x0+o)/14),r,97)>.5?3:2;if(u===0||v===0)k=1;if(v===1&&u>0)k=4;P(A,x,y,Sx[k]);}}vl(A,x0,fy,fh,Sx[5]);vl(A,x0+w-1,fy,fh,Sx[0]);}   // dressed stone
+  if(T==='motel'){const R=RAMP.oak;for(let y=fy;y<base-2;y++)for(let x=x0;x<x0+w;x++){const u=(x-x0)%3;let k=u===0?2:u===1?4:3;if(x===x0)k=5;if(x===x0+w-1)k=0;if(y>base-6)k=y===base-6?1:2;P(A,x,y,y>base-6?MINT[k]:R[k]);}   // a veneer of thin slats, a mint kick strip
+    hl(A,x0,fy,w,R[1]);{const px=x0+(w>>1)-12,py=fy+5;rect(A,px,py,24,7,RAMP.brass[3]);frame(A,px,py,24,7,RAMP.brass[5],RAMP.brass[1]);drawText(A,'OFFICE',px+1,py+1,RAMP.charcoal[1]);}}   // the brass plate
   hl(A,x0,base-2,w,RAMP.walnut[0]);
   const tY=top-1;   // what stands on top
+  if(T==='motel'){{const lx=x0+10,ly=tY-7;rect(A,lx,ly,30,7,RAMP.cream[5]);vl(A,lx+15,ly,7,RAMP.cream[2]);for(let j=1;j<6;j++){hl(A,lx+2,ly+j,11,j%2?RAMP.cream[3]:RAMP.cream[4]);hl(A,lx+17,ly+j,11,j%2?RAMP.cream[3]:RAMP.cream[4]);}hl(A,lx,ly+7,30,RAMP.green[2]);vl(A,lx+22,ly+7,4,RAMP.red[3]);   // the register, open, its ribbon
+      P(A,lx+27,ly+3,RAMP.charcoal[1]);ln(A,lx+27,ly+3,lx+34,ly+1,RAMP.steel[4]);for(let i=0;i<6;i++)P(A,lx+34+(i>>1),ly+2+i,RAMP.steel[i%2?2:4]);}   // a pen on a bead chain
+    {const bx=x0+52,by=tY-3;for(let i=-3;i<=3;i++)P(A,bx+i,by+1,RAMP.brass[i<0?5:3]);for(let i=-2;i<=2;i++)P(A,bx+i,by,RAMP.brass[i<0?5:3]);P(A,bx,by-1,RAMP.brass[5]);hl(A,bx-4,by+2,9,RAMP.brass[1]);}   // the desk bell
+    {const sx=x0+62,sy=tY-9;rect(A,sx+1,sy,3,4,RAMP.walnut[4]);P(A,sx+1,sy,RAMP.walnut[5]);rect(A,sx,sy+4,5,3,RAMP.walnut[2]);hl(A,sx,sy+7,5,RAMP.charcoal[0]);   // a rubber stamp,
+      rect(A,sx+7,sy+5,8,3,RAMP.charcoal[2]);hl(A,sx+7,sy+5,8,RAMP.charcoal[4]);rect(A,sx+8,sy+6,6,1,RAMP.plum[2]);}                                // its ink pad
+    {const ax=x0+w-18,ay=tY-3;for(let i=-4;i<=4;i++)P(A,ax+i,ay+1,RAMP.glass[i<0?5:3]);hl(A,ax-3,ay,7,RAMP.glass[2]);hl(A,ax-1,ay-1,6,RAMP.cream[5]);P(A,ax+5,ay-1,RAMP.pumpkin[4]);P(A,ax+6,ay-2,RAMP.stone[3]);}}   // an ashtray, a cigarette burning
+
   if(T==='bait'){for(let k=0;k<2;k++){const cx=x0+8+k*13,cy=tY-14;rect(A,cx,cy,11,14,RAMP.cream[4]);hl(A,cx,cy,11,RAMP.cream[5]);vl(A,cx+10,cy,14,RAMP.cream[2]);   // lure cards on a stand
       for(let j=0;j<3;j++){const ly=cy+2+j*4,C=[RAMP.red,RAMP.brass,RAMP.green][(j+k)%3];rect(A,cx+3,ly,4,2,C[4]);P(A,cx+3,ly,C[5]);P(A,cx+7,ly+1,RAMP.steel[4]);P(A,cx+2,ly+1,RAMP.steel[3]);}}
     {const sx=x0+w-24,sy=tY-20;vl(A,sx+5,sy,20,RAMP.oak[3]);hl(A,sx+2,sy,8,RAMP.oak[4]);ell(A,sx+9,sy+7,4,4,RAMP.brass[3]);ell(A,sx+9,sy+7,3,3,RAMP.ivory[5]);P(A,sx+9,sy+5,RAMP.red[3]);P(A,sx+9,sy+6,RAMP.walnut[1]);vl(A,sx+9,sy+12,4,RAMP.steel[3]);P(A,sx+8,sy+16,RAMP.steel[4]);P(A,sx+10,sy+16,RAMP.steel[4]);}   // a spring scale, its dial and hook
@@ -2181,14 +2196,15 @@ if(K==='crocks'){const base=H-3,R=RAMP.oak;   // a low shelf of stoneware pickli
   for(const [cx,h,k] of [[8,13,0],[19,10,1],[30,14,2],[40,11,0]]){if(cx+5>W)continue;for(let y=0;y<h;y++){const hw=y<2?4:5;for(let x=-hw;x<=hw;x++)P(A,cx+x,base-12-h+y,CR[x<-hw+2?5:x>hw-2?1:(y===3?2:3)]);}
     if(k===1){hl(A,cx-5,base-13-h,11,RAMP.cream[5]);hl(A,cx-4,base-12-h,9,RAMP.cream[3]);}if(k===2){hl(A,cx-4,base-13-h,9,CR[4]);ell(A,cx,base-15-h,2,1,RAMP.stone?RAMP.stone[3]:CR[2]);}if(k===0)hl(A,cx-4,base-13-h,9,CR[5]);}
   cast(2,W-3,base);}
-if(K==='niches'){const St=hexR(['#24221f','#3a3631','#524c45','#6b645b','#857d72','#a19789']);   // burial niches cut in the wall: two arched recesses, a dark mouth, a lettered plaque under each, one bricked shut
-  for(const [nx,shut] of [[2,false],[W/2+1|0,true]]){const nw=(W>>1)-4,r=nw/2,cy=r+2;   // (b27: "bread loaves") dark recesses cut into the wall, a lit lip at the bottom, skulls stacked in one, the other mortared shut
-    for(let y=0;y<20;y++)for(let x=-1;x<nw+1;x++){const dx=x-r+.5,inA=y>=cy||dx*dx+(y-cy)*(y-cy)<=r*r,inO=y>=cy-1||dx*dx+(y-cy)*(y-cy)<=(r+1)*(r+1);if(!inO)continue;
-      if(!inA||x<0||x>=nw){P(A,nx+x,y,St[2]);continue;}P(A,nx+x,y,shut?(((y%5===0)||((x+(y/5|0)*4)%8===0))?St[1]:St[3]):St[0]);}
-    hl(A,nx-1,20,nw+2,St[5]);hl(A,nx-1,21,nw+2,St[3]);
-    if(!shut)for(const [sx,sy] of [[4,15],[10,15],[16,15],[7,10],[13,10]])if(sx<nw-3){ell(A,nx+sx,sy,2,2,RAMP.ivory[sy<12?4:3]);P(A,nx+sx-1,sy,St[0]);P(A,nx+sx+1,sy,St[0]);P(A,nx+sx,sy+2,RAMP.ivory[2]);}
-    rect(A,nx+1,23,nw-2,4,RAMP.brass[2]);hl(A,nx+1,23,nw-2,RAMP.brass[4]);}
-  for(let y=2;y<H-1;y++)SH(W-1,y,60);}
+if(K==='niches'){const St=hexR(['#24221f','#3a3631','#524c45','#6b645b','#857d72','#a19789']),Bn=RAMP.ivory;   // (b27, b29: arched recesses read as bread loaves) catacomb shelves: a block of dressed stone cut with two rows of long square slots, bones laid in them end-on, a skull at each mouth, one slot sealed with a slab and a scratched cross
+  rect(A,1,1,W-2,H-2,St[2]);for(let y=1;y<H-1;y+=7)hl(A,1,y,W-2,St[1]);for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){if(((x+((y/7|0)%2)*9)%18)===0)P(A,x,y,St[1]);}hl(A,1,1,W-2,St[4]);vl(A,1,1,H-2,St[3]);   // the stone face, coursed
+  const sw=Math.floor((W-8)/3)-2;for(let r=0;r<2;r++)for(let c=0;c<3;c++){const x=4+c*(sw+3),y=3+r*12,sh=8,shut=r===0&&c===2;
+    if(shut){rect(A,x,y,sw,sh,St[3]);hl(A,x,y,sw,St[4]);vl(A,x+sw-1,y,sh,St[1]);ln(A,x+(sw>>1),y+1,x+(sw>>1),y+6,St[1]);ln(A,x+(sw>>1)-2,y+3,x+(sw>>1)+2,y+3,St[1]);continue;}   // sealed, a cross scratched in
+    rect(A,x,y,sw,sh,St[0]);hl(A,x,y+sh,sw,St[5]);hl(A,x,y+sh+1,sw,St[3]);vl(A,x,y,sh,St[1]);                                                   // the dark slot, its lit sill
+    for(let i=0;i<3;i++)hl(A,x+2+i,y+sh-2-i,sw-6,Bn[1+i]);                                                                                  // bones laid lengthwise, going back into the dark
+    if((r+c)%2===0){const kx=x+sw-6,ky=y+2;rect(A,kx,ky,5,5,Bn[4]);hl(A,kx,ky,5,Bn[5]);P(A,kx+1,ky+2,St[0]);P(A,kx+3,ky+2,St[0]);P(A,kx+2,ky+3,Bn[2]);hl(A,kx+1,ky+4,3,Bn[3]);P(A,kx+2,ky+4,St[0]);}   // a skull at the mouth
+    else{hl(A,x+2,y+sh-1,sw-4,Bn[4]);P(A,x+1,y+sh-1,Bn[5]);P(A,x+sw-2,y+sh-1,Bn[5]);}}                                                        // a long bone along the sill
+  for(let y=2;y<H-1;y++)SH(W-1,y,80);hl(A,2,H-1,W-2,St[0]);}
 if(K==='coffinajar'){const base=H-3,R=RAMP.walnut,cx=W>>1;   // a coffin on the floor with its lid slid half off: a dark inside, a white shroud showing, the lid askew
   const outline=(y)=>{const t=(y-6)/(base-10);return Math.round(t<.25?4+t/.25*6:10-(t-.25)/.75*5);};
   for(let y=6;y<base-2;y++){const hw=outline(y);for(let x=-hw;x<=hw;x++){const edge=Math.abs(x)>=hw-1;P(A,cx+x,y,edge?R[x<0?4:1]:(y<base/2?RAMP.charcoal[0]:RAMP.ivory[2]));}}
@@ -2212,6 +2228,155 @@ if(K==='tincrate'){const base=H-3,R=RAMP.pine,x0=3,w=W-6;   // a crate of labell
 if(K==='winerack'){const base=H-3,R=RAMP.walnut,x0=3,w=W-6;   // a minister's rack of communion wine: long-necked dark bottles laid in a lattice, a box of altar candles on top
   box3(x0,8,w,3,base-11,R,{faceK:1,facePw:7});for(let r=0;r<4;r++)for(let c=0;c<Math.floor((w-4)/7);c++){const bx=x0+3+c*7,by=14+r*8;ell(A,bx+3,by+3,3,3,R[0]);ell(A,bx+3,by+3,2,2,RAMP.plum[2]);P(A,bx+2,by+2,RAMP.plum[5]);}
   rect(A,x0+4,1,w-8,7,RAMP.cream[3]);hl(A,x0+4,1,w-8,RAMP.cream[5]);for(let i=0;i<4;i++)vl(A,x0+7+i*4,2,5,RAMP.ivory[5]);cast(x0,x0+w,base);}
+// =================================================================================== the new land's rooms (judge b28)
+const wallSh=(x0,y0,x1,y1,dx,dy,a)=>{for(let y=y1;y>=y0;y--)for(let x=x1;x>=x0;x--)if(G(A,x,y)&&!G(A,x+dx,y+dy))SH(x+dx,y+dy,a);};   // a hanging thing's shadow on the wall behind it
+if(K==='firefinder'){const base=H-3,R=RAMP.pine,Br=RAMP.brass,O=RAMP.olive,cx=W>>1,cy=21,rx=19,ry=8;   // (b28 first fix) the lookout's fire finder: a pine stand, a round map under a brass ring with degree ticks, the sighting arm bolted one way, binoculars on the corner
+  box3(3,11,W-6,20,5,R,{topPw:6});for(const lx of [4,W-7]){for(let y=36;y<base;y++){P(A,lx,y,R[4]);P(A,lx+1,y,R[2]);P(A,lx+2,y,R[1]);}}hl(A,6,base-4,W-12,R[1]);hl(A,6,base-5,W-12,R[3]);fadeUnder(7,W-8,36,base-1);
+  for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){const d=(x*x)/(rx*rx)+(y*y)/(ry*ry);if(d>1)continue;const din=(x*x)/((rx-2)*(rx-2))+(y*y)/((ry-1.3)*(ry-1.3));
+    if(din>1){P(A,cx+x,cy+y,Br[(x<0&&y<=0)?5:(x>0&&y>=0)?1:3]);continue;}
+    let c=O[3];const h1=Math.hypot((x-5)/1.6,(y+2)),h2=Math.hypot((x+8)/1.6,(y-2));if((h1|0)%3===0&&h1<9)c=O[2];if((h2|0)%3===0&&h2<7)c=O[2];if(h1<1.5||h2<1.2)c=O[4];
+    if(Math.abs(y-Math.round(2*Math.sin(x/3.5)+3))<1&&x>-15)c=RAMP.glass[3];if(x>8&&y<-3)c=O[1];P(A,cx+x,cy+y,c);}
+  for(let a=0;a<36;a++){const t=a/36*Math.PI*2;P(A,cx+Math.round(Math.cos(t)*(rx-1)),cy+Math.round(Math.sin(t)*(ry-.6)),a%9===0?RAMP.cream[5]:Br[0]);}
+  for(const [mx,my] of [[-11,-3],[9,3],[2,-5]]){P(A,cx+mx,cy+my,RAMP.charcoal[1]);P(A,cx+mx+1,cy+my,RAMP.charcoal[2]);}P(A,cx-6,cy+4,RAMP.red[5]);P(A,cx-5,cy+4,RAMP.red[3]);   // farms marked, one in red
+  {const fx=cx-14,fy=cy+6,bx=cx+14,by=cy-6;ln(A,fx,fy,bx,by,Br[4]);ln(A,fx+1,fy+1,bx+1,by+1,Br[1]);ell(A,cx,cy,1,1,Br[5]);P(A,cx+1,cy+1,Br[1]);   // the sighting arm across the hub
+    for(let y=fy-10;y<fy;y++){P(A,fx,y,Br[4]);P(A,fx+1,y,Br[2]);}hl(A,fx-2,fy-6,6,RAMP.charcoal[3]);P(A,fx,fy-11,Br[5]);   // the front sight and its hair
+    rect(A,bx-1,by-8,3,8,Br[3]);vl(A,bx-1,by-8,8,Br[5]);P(A,bx,by-5,RAMP.charcoal[0]);P(A,bx,by-4,RAMP.charcoal[0]);}                        // the rear sight, its peep slot
+  {const gx=W-17,gy=27;for(const ox of [0,6]){rect(A,gx+ox,gy,5,4,RAMP.charcoal[3]);hl(A,gx+ox,gy,5,RAMP.charcoal[5]);P(A,gx+ox+1,gy+3,RAMP.glass[5]);}hl(A,gx+4,gy+1,3,RAMP.charcoal[1]);ln(A,gx+2,gy+4,gx-4,gy+3,RAMP.walnut[3]);}   // binoculars, their strap
+  cast(3,W-4,base);}
+if(K==='radioshelf'){const base=H-3,R=RAMP.oak,O=RAMP.olive,x0=4,w=W-8,top=base-22;   // the two-way radio: an olive-drab set on a plank table, dials, a frequency window, the red pilot light on, a handset on its coiled cord, the aerial lead up the wall, the logbook open
+  box3(x0,top,w,5,8,R,{faceK:2});for(const lx of [x0+1,x0+w-4])for(let y=top+13;y<base;y++){P(A,lx,y,R[4]);P(A,lx+1,y,R[2]);P(A,lx+2,y,R[1]);}fadeUnder(x0+4,x0+w-5,top+13,base-1);
+  const rx0=x0+9,rw=24,ry0=top-15;for(let y=ry0;y<top+3;y++)for(let x=rx0;x<rx0+rw;x++){let k=3;if(y<ry0+3)k=y===ry0?5:4;else if(x===rx0)k=4;else if(x===rx0+rw-1)k=1;if(y===top+2)k=1;P(A,x,y,O[k]);}
+  for(let y=ry0+5;y<top;y+=2)hl(A,rx0+2,y,9,O[1]);                                                                                          // the speaker grille
+  rect(A,rx0+13,ry0+4,9,4,RAMP.cream[4]);hl(A,rx0+13,ry0+4,9,RAMP.cream[2]);for(let x=rx0+14;x<rx0+21;x+=2)P(A,x,ry0+7,RAMP.charcoal[2]);vl(A,rx0+17,ry0+5,3,RAMP.red[4]);   // the frequency window, its needle
+  for(const kx of [rx0+14,rx0+19]){rect(A,kx,ry0+10,3,3,RAMP.charcoal[1]);P(A,kx,ry0+10,RAMP.charcoal[5]);P(A,kx+1,ry0+11,RAMP.steel[4]);}   // two dials
+  P(A,rx0+rw-3,ry0+4,NIGHT?RAMP.lit[5]:RAMP.red[5]);P(A,rx0+rw-3,ry0+5,RAMP.red[3]);                                                       // the pilot light
+  for(let y=1;y<ry0;y++)P(A,rx0+rw-6,y,RAMP.charcoal[y%7===0?4:2]);hl(A,rx0+rw-6,1,8,RAMP.charcoal[2]);                                     // the aerial lead up the wall
+  {const hx=rx0+rw+2,hy=top+1;rect(A,hx,hy,8,3,RAMP.charcoal[2]);hl(A,hx,hy,8,RAMP.charcoal[4]);rect(A,hx-1,hy-1,3,2,RAMP.charcoal[3]);rect(A,hx+6,hy-1,3,2,RAMP.charcoal[3]);
+    for(let i=0;i<5;i++)P(A,rx0+rw+(i%2),top-2+i,RAMP.charcoal[i%2?1:4]);}                                                                   // the handset, its coiled cord
+  {const lx=x0+1,ly=top+1;rect(A,lx,ly,8,3,RAMP.cream[5]);vl(A,lx+4,ly,3,RAMP.cream[2]);hl(A,lx+1,ly+1,2,RAMP.charcoal[3]);hl(A,lx+5,ly+1,2,RAMP.charcoal[3]);hl(A,lx,ly+3,8,RAMP.green[2]);}   // the logbook
+  cast(x0,x0+w,base);}
+if(K==='peatstack'){const base=H-3,Pt=hexR(['#140e0b','#22170f','#332217','#45301f','#5a3f29','#6e4f35']),St=RAMP.steel,Wd=RAMP.pine;   // a rick of cut peat, bricks crossed to dry, the cutter's slane leaning on it, crumbs on the floor
+  const brick=(x,y)=>{for(let j=0;j<6;j++)for(let i=0;i<9;i++){let k=j<2?(j===0?5:4):3;if(i===0&&j>=2)k=4;if(i===8)k=1;if(j===5)k=1;if(j>=2&&hsh(x+i,y+j,71)>.86)k=5;if(j>=2&&hsh(x+i,y+j,72)>.9)k=1;P(A,x+i,y+j,Pt[k]);}};
+  const rows=[[5,4],[4,9],[3,14]];rows.forEach(([n,ox],r)=>{for(let i=0;i<n;i++)brick(3+ox-4+i*9,base-6-r*5);});
+  for(let j=0;j<4;j++)for(let i=0;i<9;i++)P(A,24+i,base-25+j,Pt[j===0?5:j===3?1:3]);                                                     // one laid crossways on top
+  {const hx=W-5,hy=3,bx=W-14,by=base-12;ln(A,hx,hy,bx,by,Wd[4]);ln(A,hx+1,hy,bx+1,by,Wd[2]);hl(A,hx-3,hy-1,7,Wd[5]);hl(A,hx-3,hy,7,Wd[2]);   // the slane: a long handle, a T grip,
+    for(let y=by;y<by+11;y++){P(A,bx-1,y,St[4]);P(A,bx,y,St[3]);P(A,bx+1,y,St[2]);P(A,bx+2,y,St[1]);if(y>by+2)P(A,bx+3,y,St[0]);}P(A,bx,by+11,St[2]);P(A,bx+1,by+11,St[1]);   // the narrow blade and its wing
+    hl(A,bx-1,by,4,St[5]);for(let y=by+3;y<by+8;y++)P(A,bx+4,y,St[1]);}
+  for(let i=0;i<16;i++){const x=4+((hsh(i,3,73)*(W-14))|0),y=base+((hsh(i,4,74)*2)|0);P(A,x,y,Pt[hsh(i,5,75)>.5?4:2]);}cast(3,W-10,base);}
+if(K==='bootbench'){const base=H-3,R=RAMP.pine,L=RAMP.ironW,x0=22,w=W-25,top=base-15;   // a boot bench by the door: a pair of tall black lace-up boots standing beside it, a brown one lying on the bench, a tin of dubbin and a brush, mud on the boards
+  box3(x0,top,w,4,4,R,{faceK:3});for(const lx of [x0+1,x0+w-4])for(let y=top+8;y<base;y++){P(A,lx,y,R[4]);P(A,lx+1,y,R[2]);P(A,lx+2,y,R[1]);}fadeUnder(x0+4,x0+w-5,top+8,base-1);
+  {const tx=x0+w-12,ty=top-3;rect(A,tx,ty,6,4,RAMP.steel[2]);hl(A,tx,ty,6,RAMP.steel[4]);hl(A,tx+1,ty+1,4,RAMP.charcoal[2]);rect(A,tx+7,ty+1,4,3,RAMP.walnut[4]);hl(A,tx+7,ty+1,4,RAMP.walnut[5]);}   // dubbin, a brush
+  const boot=(x,by,L2)=>{for(let y=by-19;y<by-3;y++)for(let i=0;i<6;i++){let k=i===0?4:i===5?1:3;if(y===by-19)k=5;if(y===by-18&&i>0)k=1;P(A,x+i,y,L2[k]);}   // a tall boot, side on: the shaft,
+    for(let y=by-16;y<by-4;y+=2){P(A,x-1,y,RAMP.cream[4]);P(A,x,y,L2[5]);}                                                                    // its laces up the front,
+    for(let y=by-4;y<by;y++)for(let i=-6;i<6;i++){if(i<-4&&y===by-4)continue;let k=y===by-4?4:3;if(i===-6)k=5;if(i===5)k=1;P(A,x+i,y,L2[k]);}   // the foot, a rounded toe,
+    hl(A,x-6,by-1,12,RAMP.charcoal[0]);P(A,x+3,by-2,RAMP.charcoal[1]);P(A,x+4,by-2,RAMP.charcoal[1]);};   // a black sole and heel
+  boot(10,base,L);boot(17,base-1,L);
+  {const fx=x0+3,fy=top-5,Bw=RAMP.walnut;for(let j=0;j<5;j++)for(let i=0;i<14;i++){let k=j===0?5:j===4?1:3;P(A,fx+i,fy+j,Bw[k]);}for(let i=1;i<13;i+=2)P(A,fx+i,fy-1+((i>>1)%2),RAMP.cream[4]);   // a brown boot lying on the bench, laces loose
+    for(let j=-5;j<5;j++)for(let i=14;i<18;i++){if(j<-3&&i>16)continue;P(A,fx+i,fy+j,Bw[j<-3?5:i===17?1:3]);}vl(A,fx+18,fy-4,9,RAMP.charcoal[1]);}
+  for(let i=0;i<12;i++){const x=2+((hsh(i,1,76)*24)|0),y=base-1+((hsh(i,2,77)*3)|0);P(A,x,y,RAMP.bark[hsh(i,3,78)>.5?3:2]);}cast(3,x0+w,base);}
+if(K==='gunpegs'||K==='gunpegss'){const sher=K==='gunpegss',HX=sher?24:30,R=RAMP.walnut,St=RAMP.steel,Cv=sher?RAMP.oak:RAMP.olive,Ht=sher?RAMP.bark:RAMP.burlap,ry=16;   // (wall) a peg rail: the ranger's rifle on two brackets above it, a long canvas coat, a campaign hat, a canteen on its strap
+  for(let x=2;x<W-2;x++){P(A,x,ry,R[5]);P(A,x,ry+1,R[3]);P(A,x,ry+2,R[1]);}for(const px of sher?[9,HX,W-9]:[10,30,47]){P(A,px,ry+3,R[4]);P(A,px+1,ry+3,R[2]);P(A,px,ry+4,R[3]);}
+  for(const bx of [12,W-18]){vl(A,bx,6,4,R[4]);P(A,bx+1,9,R[2]);}                                                                              // the brackets
+  {const y=5;for(let x=4;x<17;x++){const t=(x-4)/13,hh=Math.round(5-t*2.2);for(let j=0;j<hh;j++)P(A,x,y+j-(hh>3?1:0),R[j===0?5:j===hh-1?1:3]);}   // the stock
+    rect(A,17,y,7,3,St[2]);hl(A,17,y,7,St[4]);P(A,19,y+3,St[1]);P(A,20,y+4,St[1]);P(A,21,y+3,St[1]);                                         // the receiver, the trigger guard
+    for(let x=24;x<W-5;x++){P(A,x,y,St[3]);P(A,x,y+1,St[1]);}P(A,W-6,y-1,St[4]);for(let x=24;x<Math.min(36,W-10);x++)P(A,x,y+2,R[3]);                        // the barrel, the forestock
+    for(let x=9;x<Math.min(34,W-12);x++){const sy=y+4+Math.round(Math.sin((x-9)/Math.min(25,W-21)*Math.PI)*5);P(A,x,sy,RAMP.oak[2]);}}                                    // the sling
+  {const cx=sher?9:10,cy=ry+4;for(let y=cy;y<H-2;y++){const t=(y-cy)/(H-2-cy),hw=Math.round(t<.12?3+t*30:7);for(let x=-hw;x<=hw;x++){let k=3;if(x===-hw)k=4;if(x>=hw-1)k=1;if(x===0&&t>.2)k=2;P(A,cx+x,y,Cv[k]);}}   // the coat
+    for(let y=cy+8;y<H-6;y++){P(A,cx-8,y,Cv[4]);P(A,cx-7,y,Cv[2]);}rect(A,cx-5,cy+16,4,2,Cv[1]);rect(A,cx+2,cy+16,4,2,Cv[1]);hl(A,cx-2,cy+1,5,RAMP.oak[2]);}   // a sleeve, pocket flaps, the collar
+  {const hx=HX,hy=ry+9;for(let x=-11;x<=11;x++){const k=x<-6?5:x>6?1:3;P(A,hx+x,hy+2,Ht[k]);P(A,hx+x,hy+3,Ht[k>2?2:1]);P(A,hx+x,hy+4,Ht[0]);}   // the hat's wide brim
+    for(let y=hy-8;y<hy+2;y++){const hw=y<hy-6?3:y<hy-3?5:6;for(let x=-hw;x<=hw;x++)P(A,hx+x,y,Ht[x<-hw+2?5:x>hw-2?1:3]);}for(const dx of [-2,0,2])P(A,hx+dx,hy-8+(dx?1:0),Ht[1]);vl(A,hx,hy-7,4,Ht[2]);   // the crown, pinched in four
+    hl(A,hx-6,hy,13,RAMP.charcoal[2]);hl(A,hx-6,hy+1,13,RAMP.charcoal[1]);vl(A,hx,ry+3,hy-ry-11,R[2]);}                                       // its band, hung on the peg
+  if(sher){const bx=13,by=ry+10;P(A,bx,by-2,RAMP.brass[5]);hl(A,bx-2,by-1,5,RAMP.brass[5]);hl(A,bx-1,by,3,RAMP.brass[4]);P(A,bx-1,by+1,RAMP.brass[3]);P(A,bx+1,by+1,RAMP.brass[2]);   // the tin star
+    const gx=W-10,gy=ry+4;for(let j=0;j<16;j++){const t=j/15;P(A,gx-4+Math.round(Math.sin(t*Math.PI)*-2),gy+j,RAMP.oak[3]);P(A,gx+4+Math.round(Math.sin(t*Math.PI)*2),gy+j,RAMP.oak[2]);}hl(A,gx-4,gy+15,9,RAMP.oak[3]);   // a gun belt hanging in a loop,
+    for(let i=0;i<5;i++)P(A,gx-4+i*2,gy+14,RAMP.brass[4]);rect(A,gx+3,gy+9,4,9,RAMP.oak[4]);vl(A,gx+3,gy+9,9,RAMP.oak[5]);P(A,gx+4,gy+8,RAMP.charcoal[3]);P(A,gx+5,gy+8,RAMP.charcoal[2]);}   // cartridges, the holster
+  else{const cx=48,cy=ry+13,Rp=RAMP.straw;for(let r=0;r<4;r++){const rx=7-r*.6,rr=8-r*.4;for(let a=0;a<64;a++){const t=a/64*Math.PI*2,x=cx+Math.round(Math.cos(t)*rx)+(r%2),y=cy+Math.round(Math.sin(t)*rr);
+      P(A,x,y,Rp[(Math.cos(t+.8)>.3?5:Math.cos(t+.8)<-.4?1:3)-(r===3?1:0)]);}}for(let j=0;j<8;j++)P(A,cx-2+(j%2),cy+8+j,Rp[j%2?4:2]);vl(A,cx,ry+3,3,Rp[2]);}   // a coil of rope on the peg, its tail hanging
+  if(sher){for(let x=-7;x<=7;x++){P(A,HX+x,ry+7+(Math.abs(x)>5?-1:0),Ht[x<-4?4:3]);}}   // the sheriff's brim curls up at the sides
+  wallSh(0,0,W-3,H-3,2,2,85);}
+if(K==='mattress'){const base=H-3,x0=4,x1=W-5,bw=x1-x0+1,FR=RAMP.walnut,Tk=RAMP.ivory;   // Room 6's bed, stripped: a flat motel headboard, the bare ticking mattress, a stain spread in the middle, the sheet balled up at the foot
+  const hbT=10,mT=hbT+12,fbT=base-12;box3(x0,hbT,bw,2,12,FR,{faceK:3,facePw:99});hl(A,x0+3,hbT+6,bw-6,FR[1]);hl(A,x0+3,hbT+7,bw-6,FR[4]);
+  for(let y=mT;y<fbT;y++)for(let x=x0+1;x<x1;x++){let k=(x-x0)%5===0?2:4;if(y===mT)k=5;if(x===x0+1)k=5;if(x>=x1-2)k=1;if(y>=fbT-2)k=Math.min(k,2);P(A,x,y,Tk[k]);}   // ticking stripes
+  for(let y=mT;y<fbT;y+=9)for(let x=x0+4;x<x1-3;x+=8){P(A,x,y+4,Tk[1]);}                                                                     // the tufting buttons
+  {const sx=x0+(bw>>1)+2,sy=mT+18;for(let y=-7;y<=8;y++)for(let x=-10;x<=9;x++){const r=Math.hypot(x/1.3,y)+hsh(x,y,79)*2.2-(y>2?Math.abs(x)*.08:0);if(r>8.2)continue;
+      P(A,sx+x,sy+y,r>7?mixC(RAMP.bark[2],Tk[2],.2):r>5?mixC(RAMP.bark[3],Tk[3],.35):mixC(RAMP.ochre[3],Tk[3],.45));}}                                                // the stain, darker at its tide line
+  {const fx=x0+5,fy=fbT-11;for(let j=0;j<10;j++)for(let i=0;i<bw-10;i++){const bump=Math.sin(i*.55)*1.5+Math.sin(i*.21+1)*2;if(j<3-bump)continue;let k=j<5?5:4;if(i===0)k=5;if(i>=bw-12)k=2;if(j===9)k=2;if((i+j*2)%7===0)k=3;P(A,fx+i,fy+j,RAMP.cream[k]);}}   // the sheet, balled at the foot
+  for(let x=x0+1;x<x1;x++)SH(x,fbT,120);box3(x0,fbT,bw,2,7,FR,{faceK:3,facePw:99});for(const px of [x0,x1-1])for(let y=hbT;y<base;y++)P(A,px,y,FR[px===x0?4:1]);
+  for(const px of [x0+1,x1-2])for(let y=fbT+8;y<base;y++)P(A,px,y,FR[2]);under(x0+2,x1-2,base-3,base-1);cast(x0,x1,base);}
+if(K==='phonetable'){const base=H-3,R=RAMP.walnut,cx=W>>1,ty=base-20;   // a round side table, the black telephone on it, the receiver off the hook, hanging over the edge on its cord
+  for(let y=-4;y<=4;y++)for(let x=-11;x<=11;x++){if(x*x/121+y*y/16>1)continue;P(A,cx+x,ty+y,R[y<-1?5:x>7?2:4]);}hl(A,cx-10,ty+4,21,R[1]);hl(A,cx-9,ty+5,19,R[0]);   // the top and its edge
+  for(let y=ty+6;y<base-3;y++){P(A,cx-1,y,R[4]);P(A,cx,y,R[3]);P(A,cx+1,y,R[1]);}for(let x=-6;x<=6;x++){P(A,cx+x,base-3,R[x<0?4:2]);P(A,cx+x,base-2,R[1]);}   // the column, the foot
+  {const px=cx-5,py=ty-6;for(let y=0;y<7;y++){const hw=y<2?3:5;for(let x=-hw;x<=hw;x++)P(A,cx+x-1,py+y,RAMP.charcoal[y===0?4:x<-hw+2?3:x>hw-2?0:2]);}   // the body
+    ell(A,cx-1,py+4,2,2,RAMP.cream[3]);P(A,cx-1,py+4,RAMP.charcoal[1]);P(A,cx-3,py+4,RAMP.charcoal[0]);P(A,cx+1,py+4,RAMP.charcoal[0]);P(A,cx-1,py+2,RAMP.charcoal[0]);   // the dial
+    P(A,cx-5,py-1,RAMP.charcoal[3]);P(A,cx+3,py-1,RAMP.charcoal[3]);}                                                                       // the empty cradle
+  {let x=cx+4,y=ty-2;for(let i=0;i<14;i++){P(A,x+(i%2),y+i,RAMP.charcoal[i%2?1:4]);}const rx=cx+5,ry=ty+12;rect(A,rx-1,ry,4,3,RAMP.charcoal[3]);rect(A,rx,ry+3,2,6,RAMP.charcoal[2]);rect(A,rx-1,ry+9,4,3,RAMP.charcoal[3]);P(A,rx-1,ry,RAMP.charcoal[5]);}   // the cord, the receiver
+  cast(cx-7,cx+7,base);}
+if(K==='dresser'){const base=H-3,R=RAMP.walnut,x0=3,w=W-6,top=base-24;   // a low motel dresser: three drawers, the top one pulled out with a sleeve hanging from it, a little television with rabbit ears showing snow, the stack of letters nobody opened
+  box3(x0,top,w,5,17,R,{faceK:3,facePw:99});for(const dy of [top+7,top+13]){hl(A,x0+2,dy,w-4,R[1]);}vl(A,x0+(w>>1),top+13,8,R[1]);
+  for(const [kx,ky] of [[x0+(w>>1)-2,top+9],[x0+(w>>2)-1,top+16],[x0+3*(w>>2)-1,top+16]]){hl(A,kx,ky,4,RAMP.brass[4]);hl(A,kx,ky+1,4,RAMP.brass[1]);}
+  hl(A,x0+3,top+6,w-6,RAMP.charcoal[0]);for(let j=0;j<6;j++)P(A,x0+9+(j>>1),top+7+j,RAMP.blue[j<3?4:3]);                                    // the drawer out a crack, a sleeve
+  for(const lx of [x0+1,x0+w-3])for(let y=top+22;y<base;y++){P(A,lx,y,R[3]);P(A,lx+1,y,R[1]);}
+  {const tx=x0+5,ty=top-17,tw=22,th=16;rect(A,tx,ty,tw,th,RAMP.oak[3]);hl(A,tx,ty,tw,RAMP.oak[5]);vl(A,tx,ty,th,RAMP.oak[4]);vl(A,tx+tw-1,ty,th,RAMP.oak[1]);hl(A,tx,ty+th-1,tw,RAMP.oak[1]);   // the television's cabinet
+    for(let y=2;y<th-3;y++)for(let x=2;x<tw-6;x++){const cr=(y===2||y===th-4)&&(x===2||x===tw-7);if(cr)continue;const n=hsh(x,y,80+(NIGHT?1:0));P(A,tx+x,ty+y,n>.7?RAMP.steel[NIGHT?5:4]:n>.35?RAMP.bluegrey[NIGHT?5:4]:RAMP.bluegrey[NIGHT?3:2]);}   // the screen, snow
+    for(const ky of [ty+3,ty+8])rect(A,tx+tw-4,ky,2,2,RAMP.charcoal[2]);ln(A,tx+9,ty-1,tx+3,ty-9,RAMP.steel[4]);ln(A,tx+12,ty-1,tx+19,ty-10,RAMP.steel[3]);P(A,tx+3,ty-10,RAMP.steel[5]);P(A,tx+19,ty-11,RAMP.steel[5]);}   // knobs, rabbit ears
+  {const lx=x0+w-17,ly=top-5;for(let k=0;k<4;k++){rect(A,lx+(k%2),ly+3-k,12,2,RAMP.cream[5-(k%3)]);hl(A,lx+(k%2),ly+4-k,12,RAMP.cream[1]);}vl(A,lx+6,ly,6,RAMP.red[3]);}   // the letters, tied
+  cast(x0,x0+w,base);}
+if(K==='motelstand'){const R=RAMP.walnut,base=H-3,x0=3,w=W-6,top=base-17;   // a motel nightstand: a drawer, a lamp with a pleated shade, an ashtray
+  box3(x0,top,w,5,9,R,{faceK:3,facePw:99});hl(A,x0+2,top+8,w-4,R[1]);knob(x0+(w>>1)-1,top+10);
+  for(const lx of [x0+1,x0+w-3])for(let y=top+14;y<base;y++){P(A,lx,y,R[4]);P(A,lx+1,y,R[1]);}fadeUnder(x0+3,x0+w-4,top+14,base-1);
+  {const lx=x0+(w>>1)-2,sy=top-21;rect(A,lx+1,top-6,4,6,RAMP.brass[3]);vl(A,lx+1,top-6,6,RAMP.brass[5]);for(let y=top-11;y<top-6;y++)P(A,lx+2,y,RAMP.brass[4]);
+    for(let y=sy;y<sy+10;y++){const hw=2+((y-sy)*.5|0);for(let x=-hw;x<=hw+1;x++){const c=NIGHT?RAMP.lit[x<0?5:4]:RAMP.cream[(x+hw)%2?4:5];P(A,lx+2+x,y,x>=hw?(NIGHT?RAMP.lit[3]:RAMP.cream[2]):c);}}hl(A,lx-4,sy+10,13,NIGHT?RAMP.lit[2]:RAMP.cream[1]);}   // the lamp
+  {const ax=x0+w-6,ay=top+1;hl(A,ax,ay,5,RAMP.glass[5]);hl(A,ax,ay+1,5,RAMP.glass[3]);P(A,ax+2,ay,RAMP.charcoal[1]);hl(A,ax+3,ay-1,4,RAMP.cream[5]);P(A,ax+7,ay-1,RAMP.pumpkin[4]);}   // an ashtray, a cigarette left burning down
+  cast(x0,x0+w,base);}
+if(K==='rockhorse'){const base=H-3,Wd=RAMP.walnut,Gy=RAMP.ivory,Mn=RAMP.rust,cx=22,cy=base-17;   // a dapple-grey rocking horse, side on, facing left: bow rockers, yarn mane and tail, a red saddle, paint chipped to the wood
+  const rock=(ox,oy,k)=>{for(let x=3;x<W-3;x++){const t=(x-(W>>1))/((W>>1)-3),y=Math.round(base-1-5.5*t*t);P(A,x+ox,y+oy,Wd[k+1]);P(A,x+ox,y+oy+1,Wd[k]);}};
+  rock(2,-2,1);for(const [lx,dx] of [[cx-8,-4],[cx+7,4]]){ln(A,lx+1,cy+2,lx+dx+1,base-5,Wd[1]);}                                         // the far rocker and far legs
+  for(let y=-4;y<=4;y++)for(let x=-10;x<=10;x++){if(x*x/100+y*y/16>1)continue;let c=Gy[y<-2?5:y>2?2:4];if(x>7)c=Gy[2];if(hsh(x,y,81)>.78&&y>-3)c=Gy[2];if(hsh(x,y,82)>.93)c=RAMP.oak[3];P(A,cx+x,cy+y,c);}   // the dappled body, chipped
+  for(let j=0;j<12;j++){const nx=cx-8-Math.round(j*.55),ny=cy-2-j;for(let i=0;i<5;i++)P(A,nx+i,ny,Gy[i===0?5:i===4?2:4]);P(A,nx+4,ny,Mn[3]);P(A,nx+5,ny,Mn[j%2?2:4]);}   // the neck, the mane
+  {const hx=cx-21,hy=cy-15;for(let j=0;j<5;j++)for(let i=0;i<10;i++){if(j===0&&i<2)continue;let c=Gy[j===0?5:j===4?2:4];if(i<3)c=Gy[j<2?3:2];P(A,hx+i,hy+j,c);}   // the head, the muzzle
+    P(A,hx+5,hy+1,RAMP.charcoal[0]);P(A,hx+1,hy+3,RAMP.charcoal[1]);P(A,hx+8,hy-1,Gy[4]);P(A,hx+9,hy-2,Gy[3]);P(A,hx+9,hy-1,Gy[2]);for(let i=3;i<9;i++)P(A,hx+i,hy+2,i===3||i===8?RAMP.red[4]:null);ln(A,hx+3,hy+2,hx+8,hy+2,RAMP.red[3]);}   // eye, nostril, ear, bridle
+  for(let j=0;j<10;j++){P(A,cx+10+(j>>2),cy-3+j,Mn[j%2?4:2]);P(A,cx+11+(j>>2),cy-2+j,Mn[3]);}                                              // the tail
+  rect(A,cx-4,cy-6,9,3,RAMP.red[3]);hl(A,cx-4,cy-6,9,RAMP.red[5]);P(A,cx,cy-5,RAMP.brass[5]);for(let y=cy-3;y<cy+3;y++)P(A,cx+1,y,RAMP.red[2]);   // the saddle, a stirrup strap
+  for(const [lx,dx] of [[cx-6,-5],[cx+5,5]]){ln(A,lx,cy+2,lx+dx,base-5,Wd[3]);ln(A,lx+1,cy+2,lx+dx+1,base-5,Wd[2]);}rock(0,0,3);cast(4,W-4,base);}
+// =================================================================================== judge b29: washstands, a hose on a crate of oil tins, key boards with big fobs
+if(K==='washstand'||K==='washstandm'){const base=H-3,mill=K==='washstandm',R=mill?RAMP.pine:RAMP.walnut,x0=4,w=W-8,top=base-22;   // the doctor's: a marble-topped stand, a white basin and jug, soap, a towel on the side rail, a small mirror on the splashback. The miller's: plain pine, a tin basin, a blue jug, a peg rail over it with a flour-dusted apron and cap
+  if(!mill){rect(A,x0+2,top-16,w-4,16,R[3]);hl(A,x0+2,top-16,w-4,R[5]);vl(A,x0+2,top-16,16,R[4]);vl(A,x0+w-3,top-16,16,R[1]);   // the splashback
+    rect(A,x0+(w>>1)-5,top-14,10,10,RAMP.brass[3]);rect(A,x0+(w>>1)-4,top-13,8,8,RAMP.glass[4]);ln(A,x0+(w>>1)-3,top-7,x0+(w>>1)+1,top-12,RAMP.glass[5]);}   // the mirror
+  else{const ry=4;for(let x=1;x<W-1;x++){P(A,x,ry,R[5]);P(A,x,ry+1,R[3]);P(A,x,ry+2,R[1]);}for(const px of [9,W-12]){P(A,px,ry+3,R[4]);P(A,px,ry+4,R[2]);}   // the peg rail,
+    {const cx=9,cy=ry+5,Ap=RAMP.cream;for(let y=cy;y<cy+22;y++){const t=(y-cy)/22,hw=Math.round(t<.25?2+t*8:5+(t>.8?1:0));for(let x=-hw;x<=hw;x++){let c=Ap[x===-hw?5:x>=hw-1?2:4];if(hsh(x,y,84)>.8)c=RAMP.ivory[5];P(A,cx+x,y,c);}}   // the apron, dusted white,
+      hl(A,cx-5,cy+7,11,Ap[2]);for(let j=0;j<5;j++){P(A,cx-6-(j>>1),cy+7+j,Ap[3]);P(A,cx+6+(j>>1),cy+7+j,Ap[3]);}rect(A,cx-3,cy+12,6,4,Ap[3]);hl(A,cx-3,cy+12,6,Ap[2]);}   // its ties and pocket
+    wallSh(0,0,W-3,30,2,2,80);}
+  box3(x0,top,w,5,13,R,{faceK:2,facePw:99});if(!mill){rect(A,x0,top,w,5,RAMP.ivory[4]);hl(A,x0,top,w,RAMP.ivory[5]);hl(A,x0,top+4,w,RAMP.ivory[2]);for(let x=x0+3;x<x0+w-2;x+=7)ln(A,x,top+1,x+3,top+3,RAMP.ivory[3]);}   // marble, veined
+  for(const dx of [x0+2,x0+(w>>1)+1]){panel(dx,top+7,(w>>1)-3,9,R);}knob(x0+(w>>1)-3,top+11);knob(x0+(w>>1)+1,top+11);
+  for(const lx of [x0+1,x0+w-4])for(let y=top+18;y<base;y++){P(A,lx,y,R[4]);P(A,lx+1,y,R[2]);P(A,lx+2,y,R[1]);}fadeUnder(x0+4,x0+w-5,top+18,base-1);
+  {const B=mill?RAMP.steel:RAMP.ivory,bx=x0+(w>>1)-1,by=top+1;for(let y=-3;y<=2;y++)for(let x=-8;x<=8;x++){if(x*x/64+y*y/9>1)continue;let c=B[y<0?2:4];if(x*x/64+y*y/9>.6)c=y<0?B[5]:B[3];P(A,bx+x,by+y,c);}   // the basin
+    if(!mill)for(let x=-8;x<=8;x++){const y=Math.round(Math.sqrt(Math.max(0,1-x*x/64))*-3);P(A,bx+x,by+y,RAMP.blue[4]);}hl(A,bx-4,by,7,mill?RAMP.glass[3]:RAMP.glass[4]);}   // a blue rim, water
+  {const J=mill?RAMP.blue:RAMP.ivory,jx=x0+w-6,jy=top-9;for(let y=0;y<11;y++){const hw=y<2?2:y<4?1:y<9?3:2;for(let x=-hw;x<=hw;x++)P(A,jx+x,jy+y,J[x<0?5:x>1?2:4]);}P(A,jx-3,jy,J[5]);for(let y=3;y<8;y++)P(A,jx+4+(y>4&&y<7?1:0),jy+y,J[2]);}   // the jug, its lip and handle
+  if(!mill){rect(A,x0+2,top+1,4,2,RAMP.pumpkin[4]);P(A,x0+2,top+1,RAMP.pumpkin[5]);   // soap
+    for(let y=top+5;y<top+17;y++){P(A,x0-2,y,RAMP.cream[5]);P(A,x0-1,y,RAMP.cream[4]);P(A,x0,y,RAMP.cream[3]);if(y===top+13||y===top+14){P(A,x0-2,y,RAMP.red[4]);P(A,x0-1,y,RAMP.red[3]);}}hl(A,x0-3,top+5,4,R[3]);}   // the towel on its rail
+  cast(x0,x0+w,base);}
+if(K==='hosecrate'){const base=H-3,R=RAMP.pine,x0=3,w=W-6;   // a crate of oil tins, a black hose coiled on top, its brass nozzle hanging over the side
+  box3(x0,base-15,w,4,11,R,{});drawText(A,'OIL',x0+(w>>1)-6,base-9,RAMP.red[4]);
+  for(let i=0;i<Math.floor((w-4)/7);i++){const tx=x0+2+i*7;rect(A,tx,base-20,6,6,RAMP.steel[3]);hl(A,tx,base-20,6,RAMP.steel[5]);rect(A,tx,base-18,6,3,RAMP.red[3]);hl(A,tx,base-18,6,RAMP.red[4]);P(A,tx+4,base-21,RAMP.steel[4]);}   // tins, red labels, spouts
+  {const cx=x0+(w>>1),cy=base-22;for(let r=0;r<3;r++){const rx=12-r*2.5,ry=5-r;for(let a=0;a<80;a++){const t=a/80*Math.PI*2,x=cx+Math.round(Math.cos(t)*rx),y=cy+Math.round(Math.sin(t)*ry)-r;
+      P(A,x,y,RAMP.charcoal[Math.sin(t)<-.3?4:Math.cos(t)>.4?1:2]);P(A,x,y+1,RAMP.charcoal[0]);}}}                                                  // the coiled hose
+  {const nx=x0+w-2,ny=base-22;ln(A,nx-4,ny,nx,ny+5,RAMP.charcoal[2]);rect(A,nx,ny+5,2,6,RAMP.brass[3]);vl(A,nx,ny+5,6,RAMP.brass[5]);rect(A,nx-1,ny+11,4,2,RAMP.brass[2]);}   // the nozzle
+  cast(x0,x0+w,base);}
+if(K==='keyboardb'||K==='keyboardm'){const R=RAMP.walnut,motel=K==='keyboardm';rect(A,1,1,W-2,H-2,R[2]);hl(A,1,1,W-2,R[4]);vl(A,1,1,H-2,R[4]);hl(A,1,H-2,W-2,R[0]);vl(A,W-2,1,H-2,R[0]);   // a key board: brass hooks in two rows, each key on a big wooden fob with its number painted on, the empty hooks plain to see
+  const n=motel?7:8,empty=motel?[5]:[2,5];for(let k=0;k<n;k++){const row=k<4?0:1,col=row?k-4:k,hx=6+col*((W-10)/4|0)+(row&&motel?4:0),hy=4+row*15;P(A,hx,hy,RAMP.brass[5]);P(A,hx,hy+1,RAMP.brass[2]);
+    if(empty.includes(k)){if(motel){rect(A,hx-3,hy+3,7,8,R[4]);for(let y=hy+3;y<hy+11;y++)P(A,hx-3+((y*3)%7),y,RAMP.oak[4]);}continue;}   // (motel) round the Room 6 hook the paint is worn to the wood
+    P(A,hx,hy+2,RAMP.steel[4]);P(A,hx,hy+3,RAMP.steel[3]);const F=motel?RAMP.red:RAMP.oak;
+    for(let y=0;y<9;y++){const hw=y<1||y>7?1:2;for(let x=-hw;x<=hw;x++)P(A,hx+x,hy+4+y,F[x<0?5:x>0?2:4]);}drawText(A,String(k+1),hx-1,hy+6,RAMP.cream[5]);}
+  for(let y=2;y<H-2;y++)SH(W-1,y,80);}
+if(K==='archboxes'){const base=H-3,St=RAMP.bluegrey,Bx=hexR(['#3a2c18','#5a4426','#7a5e36','#977a4a','#b0945e','#c6ac76']),x0=3,w=W-6;   // the motel's archive: a steel shelf of cardboard file boxes, a year on each end label, one lid off with papers sticking up
+  for(const lx of [x0,x0+w-2]){for(let y=4;y<base;y++){P(A,lx,y,St[lx===x0?4:2]);P(A,lx+1,y,St[1]);}}
+  const shelves=[base-2,base-17,base-32];for(const sy of shelves){hl(A,x0,sy,w,St[4]);hl(A,x0,sy+1,w,St[1]);}
+  const box=(x,y,bw,bh,lbl,open)=>{for(let j=0;j<bh;j++)for(let i=0;i<bw;i++){let k=3;if(j===0)k=5;if(i===0)k=4;if(i===bw-1)k=1;if(j===bh-1)k=2;P(A,x+i,y+j,Bx[k]);}
+    rect(A,x+2,y+3,bw-4,5,RAMP.cream[5]);drawText(A,lbl,x+3,y+3,RAMP.charcoal[1]);rect(A,x+(bw>>1)-1,y+bh-4,3,2,Bx[0]);   // the label, the hand hole
+    if(open){for(let i=1;i<bw-1;i+=2)vl(A,x+i,y-3+(i%3),3-(i%3),RAMP.cream[i%4?5:3]);hl(A,x,y,bw,Bx[2]);}};
+  box(x0+3,base-15,13,13,'61');box(x0+17,base-15,13,13,'62',true);box(x0+31,base-15,w-34,13,'63');
+  box(x0+3,base-30,13,13,'58');box(x0+17,base-30,13,13,'59');box(x0+31,base-28,w-34,11,'60');
+  box(x0+4,base-45,13,13,'52');box(x0+19,base-45,13,13,'55');
+  cast(x0,x0+w,base);}
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
 for(const f of NOOL)for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(f(x,y))for(const L of [O,O2])L.d[(y*W+x)*4+3]=0;
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));

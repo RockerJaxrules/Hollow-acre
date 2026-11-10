@@ -400,6 +400,18 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors b24] A cellar has no windows and no parlour things: no wall clock, no jar ledge, no picture; its light is a
   lantern with a hard pool.
 
+- [interiors b29] A small light (candle, lantern, votive) needs its own hard-edged pool on the floor in two warm steps, big
+  enough to see (a 60 px oval at least); a faint additive wedge reads as a grey smudge, and a pale beige oval reads as a rug.
+  Amber (255,150,46 and 255,204,104), stronger in a dark cellar.
+- [interiors b29] A stained-glass patch cut into four tinted quarters with a pointed tip reads as a heraldic shield lying in
+  the aisle: scatter the colour as small diamonds and skew the patch so it reads as light thrown from the window.
+- [interiors b29] Round-topped wall recesses read as bread loaves twice running; catacomb shelves read at once as long square
+  slots with bones laid lengthwise and a skull at the mouth.
+- [interiors b29] A sprite named for one trade (the stonemason's banker) dropped into another room by name reads as nonsense:
+  check what a reused sprite actually shows before placing it.
+- [interiors b29] Judges count shared pieces across rooms (the writing desk in five rooms, the patchwork bed, the jar shelf,
+  the till counter): give each trade its own piece for the job (radio table, fire finder, motel counter, washstand).
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).
