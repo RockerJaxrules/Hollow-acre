@@ -130,7 +130,7 @@ function stgFarmGate(X,Y,open){const o='#1a120c';   // a five-bar farm gate betw
   for(let i=0;i<w-4;i++){const yy=Math.round(Y-6-i*(17/(w-4)));ctx2.fillStyle='#7a5a3a';ctx2.fillRect(gx0+2+i,yy,2,2);}                // the diagonal brace
   ctx2.fillStyle='#3a3a40';ctx2.fillRect(gx0+w-6,Y-17,4,3);ctx2.fillRect(gx0-1,Y-22,3,2);ctx2.fillRect(gx0-1,Y-9,3,2);}                // latch and hinges
 function stgCaitlynGate(done){const d=doorPos;MAEV.on=false;
-  const gate={x:d.x-1.3,z:d.z+4.3},mae={x:gate.x,z:gate.z+.42},you0={x:d.x+.05,z:d.z+1.25},youM={x:gate.x+.05,z:gate.z-.95},in1={x:gate.x-.65,z:gate.z-.7};
+  const gate={x:d.x-1.3,z:d.z+4.3},mae={x:gate.x,z:gate.z+.42},you0={x:d.x+.05,z:d.z+1.25},youM={x:gate.x+.95,z:gate.z-.55},in1={x:gate.x-.65,z:gate.z-.7};
   let phone=1,open=0;const CAM={x:gate.x+.4,z:d.z+2.95};
   stage({hour:Math.max(9.5,Math.min(S.hour,16)),player:{x:you0.x,z:you0.z,dir:'N'},cast:{mae:{x:mae.x,z:mae.z,dir:'N'}},cam:CAM,
     props:[{x:gate.x,z:gate.z+.06,draw(X,Y){stgFence(X-170,X+170,Y,X,1);stgFarmGate(X,Y,open);}},
@@ -140,14 +140,14 @@ function stgCaitlynGate(done){const d=doorPos;MAEV.on=false;
     beats:[
       {hold:1.0,face:{you:'N'},act(){stgEmote('mae','…',2.2);}},
       {hold:.9,face:{you:'S'},emote:{you:'?'}},
-      {hold:.2,go:{you:[[you0.x,youM.z-.6],[youM.x,youM.z]]},face:{you:'S'},wait:'arrive'},
+      {hold:.2,go:{you:[[you0.x+.6,youM.z-.6],[youM.x,youM.z]]},face:{you:'W',mae:'N'},wait:'arrive'},
       {who:'mae',text:'Oh. Hi.',expr:'surprised',emote:{mae:'!'},update(dt){phone=Math.max(0,phone-dt*1.2);}},
       {who:'mae',text:'You must be Elias’s grandkid. You have his walk.',act(){phone=0;},expr:'happy'},
       {who:'mae',text:'I’m Caitlyn. I run the store in town. Coyle’s.',expr:'happy'},
       {who:'mae',text:'He asked me to look in on you, if you ever came. He said you wouldn’t. I said you would.',expr:'sad'},
       {who:'mae',text:'I win.',expr:'smug',wait:.5},
       {who:'mae',text:'Let me show you how this place works. Then you’ll have a chance, at least.',expr:'think',update(dt){open=Math.min(1,open+dt*1.6);},
-        go:{mae:[[mae.x,gate.z-.2],[in1.x,in1.z]],you:[youM.x+.35,youM.z-.1]},face:{mae:'E',you:'W'},speed:{mae:.9,you:.7},wait:'arrive'},
+        go:{mae:[[mae.x,gate.z-.2],[in1.x,in1.z]],you:[youM.x,youM.z]},face:{mae:'N',you:'W'},speed:{mae:.9,you:.7},wait:'arrive'},
     ],
     after(){P.x=youM.x+.35;P.z=youM.z-.1;P.dir='W';},
     done(){maeCome(14,true);done&&done();}});}
@@ -190,7 +190,7 @@ function stgDrawing(done){const R=ROOMS.church,ox=R.ox,oz=R.oz;const at=(x,z)=>(
   stage({room:'church',hour:Math.max(S.hour,18.2),keepHour:true,player:{x:door.x,z:door.z,dir:'N'},cast,cam:{x:CAM.x,z:CAM.z+.6},lead:900,
     light(L){glowAt(sx(ox+5),sz(oz+2.2)-18,120,[255,190,110],.32);glowAt(sx(ox+2.5),sz(oz+1.1)-30,46,[255,200,120],.35);glowAt(sx(ox+7.5),sz(oz+1.1)-30,46,[255,200,120],.35);},
     props:[
-      {x:gap.x,z:gap.z-.04,draw(X,Y,t){if(!seatLit)return;ctx2.fillStyle=`rgba(255,226,170,${.35+.15*Math.sin(t*2)})`;ctx2.fillRect(X-7,Y-9,14,5);}},   // the empty seat, lit
+      {get x(){return seatLit===2?P.x:gap.x;},get z(){return (seatLit===2?P.z:gap.z)-.04;},draw(X,Y,t){if(!seatLit)return;const a=seatLit===2?.22:.35+.15*Math.sin(t*2);ctx2.fillStyle=`rgba(255,228,172,${a})`;ctx2.fillRect(X-8,Y-7,16,5);}},   // the empty seat, lit
       {x:ox+5,z:oz+2.55,draw(X,Y,t){if(hatUp>0){const k=hatUp,sx0=X+6,sy0=Y-27,hx=X+14+Math.round(k*8),hy=Y-34-Math.round(k*14);
           for(let i=0;i<=8;i++){const u=i/8,ax=Math.round(sx0+(hx-sx0)*u),ay=Math.round(sy0+(hy+6-sy0)*u);ctx2.fillStyle='#120c0a';ctx2.fillRect(ax-1,ay,4,2);ctx2.fillStyle='#2a2430';ctx2.fillRect(ax,ay,2,1);}
           stgHat2(hx+2,hy-6);ctx2.fillStyle='#120c0a';ctx2.fillRect(hx-1,hy+4,4,4);ctx2.fillStyle='#e0b898';ctx2.fillRect(hx,hy+5,2,2);}
@@ -209,7 +209,7 @@ function stgDrawing(done){const R=ROOMS.church,ox=R.ox,oz=R.oz;const at=(x,z)=>(
       {hold:.6},
       {hold:2.6,go:{you:[ox+5,oz+5.7]}},
       {hold:.2,go:{you:[[ox+5,oz+4.25],[gap.x+.2,oz+4.25],[gap.x,gap.z]]},face:{you:'N'},cam:CAM,wait:'arrive'},
-      {hold:.9,act(){seatLit=0;P.clip='sit';P.dir='N';}},
+      {hold:.9,act(){seatLit=2;P.clip='sit';P.dir='N';}},
       {hold:1.6,update(dt){hatUp=Math.min(1,hatUp+dt*1.1);}},
       {text:'Grandpa’s straw hat, the faded red band. You left it in the ash. You are sure you left it in the ash.',who:'you',expr:'scared'},
       {hold:.4,face:Object.fromEntries(kids.map(k=>[k,'S'])),act(){kids.forEach((k,i)=>{setTimeout(()=>stgEmote(k,'3',.9),i*150);setTimeout(()=>stgEmote(k,'2',.9),1000+i*150);setTimeout(()=>stgEmote(k,'1',.9),2000+i*150);});}},
@@ -269,7 +269,7 @@ function stgDance(id,html,done){const n=npcById(id);if(!n){done&&done();return;}
   ring.forEach((k,i)=>{const a=Math.PI*(1.1+1.8*i/Math.max(1,ring.length-1)),r=3.6;cast[k]={x:C.x+Math.cos(a)*r*1.3,z:C.z+Math.sin(a)*r*.75,dir:dirOf(-Math.cos(a),-Math.sin(a))};});
   const centres=[{x:C.x-2.1,z:C.z+.9},{x:C.x+2.2,z:C.z+.8}];pairs.forEach((p,i)=>{cast[p[0]]={x:centres[i].x+.5,z:centres[i].z,dir:'W'};cast[p[1]]={x:centres[i].x-.5,z:centres[i].z,dir:'E'};});
   let ang=0,spd=1.25;
-  const spin=(a,b,c,ph,st)=>{const r=.5,ax=c.x+Math.cos(ang+ph)*r,az=c.z+Math.sin(ang+ph)*r*.55,bx=c.x-Math.cos(ang+ph)*r,bz=c.z-Math.sin(ang+ph)*r*.55;const A=a==='you'?P:npcById(a),B=npcById(b);if(!A||!B)return;
+  const spin=(a,b,c,ph,st)=>{const r=.82,ax=c.x+Math.cos(ang+ph)*r,az=c.z+Math.sin(ang+ph)*r*.6,bx=c.x-Math.cos(ang+ph)*r,bz=c.z-Math.sin(ang+ph)*r*.6;const A=a==='you'?P:npcById(a),B=npcById(b);if(!A||!B)return;
     A.x=ax;A.z=az;B.x=bx;B.z=bz;if(a!=='you')st.pin[a]={x:ax,z:az};st.pin[b]={x:bx,z:bz};A.dir=dirOf(bx-ax,bz-az);B.dir=dirOf(ax-bx,az-bz);const mv=spd>.05;A.clip=mv?'walk':'idle';B.clip=mv?'walk':'idle';if(a==='you')P.spd=mv?1:0;};
   stage({hour:20.6,player:{x:C.x-.55,z:C.z,dir:'E'},cast,cam:{x:C.x,z:C.z+.3},keepCast:false,
     light(L){const X=sx(C.x),Y=sz(C.z);for(const [y0,sag] of [[Y-74,10],[Y-38,8]])for(let i=1;i<8;i++){const u=i/8;glowAt(X-230+u*460,y0+Math.sin(u*Math.PI)*sag+6,46,[255,190,100],.5);}
@@ -284,11 +284,11 @@ function stgDance(id,html,done){const n=npcById(id);if(!n){done&&done();return;}
 function stgWedding(id,html,done){const n=npcById(id);if(!n){done&&done();return;}const C={x:F_SQ.x,z:F_SQ.z},nm=n.def.name;
   const cast={[id]:{x:C.x+.4,z:C.z+3.4,dir:'N'},hale:{x:C.x,z:C.z-2.2,dir:'S'}};
   const crowd=npcs.map(m=>m.def.id).filter(k=>k!==id&&k!=='hale'&&k!=='dunn');
-  crowd.forEach((k,i)=>{const side=i%2?1:-1,row=Math.floor(i/2)%4,col=Math.floor(i/8);cast[k]={x:C.x+side*(1.3+col*.9+(row%2)*.2),z:C.z-1+row*.9,dir:side>0?'W':'E'};});
-  if(npcById('dunn'))cast.dunn={x:C.x+2.6,z:C.z+2.7,dir:'N'};
+  crowd.forEach((k,i)=>{const side=i%2?1:-1,row=Math.floor(i/2)%4,col=Math.floor(i/8);cast[k]={x:C.x+side*(1.9+col*.95+(row%2)*.25),z:C.z-1.4+row*.95,dir:side>0?'W':'E'};});
+  if(npcById('dunn'))cast.dunn={x:C.x,z:C.z+4.6,dir:'N'};
   let cheer=0,ang=0,dance=0;const dpairs=[[crowd[0],crowd[1]],[crowd[2],crowd[3]],[crowd[4],crowd[5]]].filter(p=>p[0]&&p[1]);const dcs=[{x:C.x-1.6,z:C.z+1.6},{x:C.x+1.7,z:C.z+1.4},{x:C.x,z:C.z+2.4}];
   stage({hour:10,player:{x:C.x-.4,z:C.z+3.4,dir:'N'},cast,cam:{x:C.x,z:C.z+1.2},keepHour:true,
-    props:[{get x(){const m=npcById('dunn');return m?m.x:0;},get z(){const m=npcById('dunn');return m?m.z+.02:0;},draw(X,Y){if(!npcById('dunn'))return;stgHat(X+1,Y-14);}},   // Dunn, his hat in his hands
+    props:[{get x(){const m=npcById('dunn');return m?m.x:0;},get z(){const m=npcById('dunn');return m?m.z+.02:0;},draw(X,Y){if(!npcById('dunn'))return;const o='#120c08';ctx2.fillStyle=o;ctx2.fillRect(X-4,Y-12,9,4);ctx2.fillStyle='#8a6a40';ctx2.fillRect(X-3,Y-11,7,2);ctx2.fillStyle='#a07a52';ctx2.fillRect(X-3,Y-11,7,1);ctx2.fillStyle=o;ctx2.fillRect(X-1,Y-13,4,2);}},   // Dunn, his hat held at his chest
       {x:C.x,z:C.z-2.6,draw(X,Y,t){const o='#1a120c';ctx2.fillStyle=o;ctx2.fillRect(X-26,Y-46,6,46);ctx2.fillRect(X+20,Y-46,6,46);ctx2.fillRect(X-26,Y-50,52,6);   // an arch of autumn branches
           ctx2.fillStyle='#6a4a2a';ctx2.fillRect(X-25,Y-45,4,45);ctx2.fillRect(X+21,Y-45,4,45);ctx2.fillRect(X-25,Y-49,50,4);
           for(let i=0;i<14;i++){const a=i/13,lx=X-26+a*52,ly=Y-52+Math.sin(a*Math.PI)*-4;ctx2.fillStyle=['#c8402a','#e0a030','#a83020','#f0c050'][i%4];ctx2.fillRect(lx-2,ly-2,5,4);}}},
@@ -321,9 +321,13 @@ function stgExile(id,html,done,chose){const n=npcById(id);if(!n){done&&done();re
   const back={hale:[start.x-.9,start.z+1.0]};walkers.forEach((k,i)=>{back[k]=[start.x-1.6+(i%3)*1.1,start.z+1.6+Math.floor(i/3)*.7];});
   const turnS=Object.fromEntries(['hale',...walkers].map(k=>[k,'S']));
   let lit=0;
-  stage({hour:12.2,player:{x:start.x+1.3,z:start.z+.9,dir:'N'},cast,cam:{x:start.x,z:start.z-.4},
-    light(L){if(lit)glowAt(sx(n.x)+4,sz(n.z)-20,60,[255,200,110],.55);},
-    props:[{get x(){return n.x;},get z(){return n.z+.03;},draw(X,Y,t){stgLantern(X+6,Y-16,t);}}],
+  stage({hour:17.6,player:{x:start.x+1.3,z:start.z+.9,dir:'N'},cast,cam:{x:start.x,z:start.z-.4},
+    light(L){glowAt(VW*.5,VH*.42,Math.max(VW,VH)*.7,[28,26,40],.42);if(lit)glowAt(sx(n.x)+5,sz(n.z)-20,90,[255,196,104],.8);},
+    props:[{x:edge.x,z:edge.z-1.2,draw(X,Y){const base=Y;for(const dx of [-78,-40,-6,30,66,100,-100]){const tx=X+dx,o='#140f0c';
+          ctx2.fillStyle='#0d1510';ctx2.beginPath();ctx2.ellipse(tx,base-46,30,34,0,0,6.283);ctx2.fill();ctx2.fillStyle='#09100c';ctx2.beginPath();ctx2.ellipse(tx-8,base-54,18,20,0,0,6.283);ctx2.fill();
+          ctx2.fillStyle=o;ctx2.fillRect(tx-4,base-30,8,34);ctx2.fillStyle='#241a14';ctx2.fillRect(tx-3,base-30,3,34);}
+        ctx2.fillStyle='rgba(6,8,10,.55)';ctx2.fillRect(X-150,base-2,300,30);}},   // the tree line: it is dark under them at noon
+      {get x(){return n.x;},get z(){return n.z+.03;},draw(X,Y,t){stgLantern(X+6,Y-16,t);}}],
     beats:[
       {hold:.6,act(){stgTitle('Into the woods');}},
       chose?{who:'you',text:`${nm}.`}:{who:'hale',text:`${nm}.`,expr:'sad'},
