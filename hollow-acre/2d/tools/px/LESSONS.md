@@ -506,6 +506,9 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Deep pale treads with the nosing brightest, short dark risers with a black line under each lip: the contrast between
   tread and riser is what climbs. Keep a flight as wide as the gap it fills (the inn rail), or it reads as a box set in it.
 
+- [interiors b45] The chapel's window patch misread a fifth way (a feather): a lancet's light on a dark plank floor never reads
+  in this room in any shape or tint. Cut it for good; the whitewashed wall is its daylight.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).

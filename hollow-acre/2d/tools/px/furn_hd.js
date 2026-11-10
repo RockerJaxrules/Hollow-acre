@@ -2512,8 +2512,8 @@ if(K==='altardais'){const base=H-3,R=RAMP.oak,Lt=RAMP.pine,Cl=RAMP.ivory,cx=W>>1
   {const x0=cx-16,w=32,top=base-38;box3(x0,top,w,6,11,R,{faceK:2});rect(A,cx-6,top,12,15,Cl[4]);hl(A,cx-6,top,12,Cl[5]);vl(A,cx-6,top,15,Cl[5]);vl(A,cx+5,top,15,Cl[2]);for(let x=cx-5;x<cx+5;x+=2)P(A,x,top+14,RAMP.brass[3]);   // the altar and its runner
     for(let y=top-12;y<top+1;y++){P(A,cx,y,RAMP.brass[y<top-9?5:3]);P(A,cx+1,y,RAMP.brass[2]);}hl(A,cx-3,top-9,8,RAMP.brass[4]);
     for(const sx of [x0+3,x0+w-4]){vl(A,sx,top-6,7,RAMP.brass[3]);vl(A,sx,top-10,4,RAMP.cream[5]);P(A,sx,top-12,NIGHT?RAMP.lit[5]:RAMP.lit[4]);P(A,sx,top-11,RAMP.lit[3]);}}
-  {const ry=base-9;for(let x=3;x<W-3;x++){P(A,x,ry,R[5]);P(A,x,ry+1,R[3]);P(A,x,ry+2,R[1]);}for(let x=5;x<W-4;x+=4){if(Math.abs(x-cx)<4)continue;for(let y=ry+3;y<base-1;y++)P(A,x,y,R[(y-ry)%3===1?4:2]);}   // the rail, its balusters, a gap in the middle
-    rect(A,3,base-1,W-6,2,RAMP.red[1]);hl(A,3,base-1,W-6,RAMP.red[3]);}   /* (b44) duller */                                 // the red kneeling cushion
+  {const ry=base-9;for(let x=3;x<W-3;x++){P(A,x,ry,R[5]);P(A,x,ry+1,R[3]);P(A,x,ry+2,R[1]);}for(let y=ry+3;y<base-1;y++)for(let x=3;x<W-3;x++){if(Math.abs(x-cx)<4)continue;P(A,x,y,R[y===ry+3?1:2]);}   // (b45: ruled balusters read as a grille) a plain low rail, closed, a gap in the middle
+    rect(A,3,base-1,W-6,2,RAMP.plum[1]);hl(A,3,base-1,W-6,RAMP.plum[2]);}
   cast(4,W-5,base);}
 if(K==='coffinlids'){const base=H-3,Pn=RAMP.pine,Wn=RAMP.walnut;   // two coffin lids leaning on the wall: a full one in raw pale pine, not yet stained, and a small one for a child, finished dark
   const lid=(x0,w,h,R,cross)=>{const top=base-h;for(let y=top;y<base;y++){const t=(y-top)/h,hw=Math.round(t<.25?w*.35+t*w*.6:w/2-(t-.25)*w*.35);for(let x=-hw;x<=hw;x++){let k=3;if(x===-hw)k=5;if(x>=hw-1)k=1;if(y===top)k=5;P(A,x0+x,y,R[k]);}
@@ -2627,6 +2627,12 @@ if(K==='tstepsw'){const base=44;drawFlight(16,W-17,2,base,7,'wood',{land:4,sprea
   for(const px of [6,W-8]){for(let y=base-14;y<base;y++){P(A,px,y,SWD[px<20?5:2]);P(A,px+1,y,SWD[px<20?4:1]);}rect(A,px-1,base-15,4,2,SWD[px<20?6:3]);}}
 if(K==='innsteps2'){drawFlight(3,W-4,1,27,3,'wood',{land:4,spread:0});for(const px of [2,W-3])for(let y=1;y<27;y++){P(A,px,y,SWD[px<5?5:1]);}}   // (steps fix) as wide as the gap in the porch rail, a stringer edge each side   // three wooden steps from the deck down to the sidewalk, stringers at their sides
 if(K==='innstoop2'){drawFlight(10,W-11,1,H-3,2,'wood',{land:5,spread:3});}   // two steps up from the deck to the door sill
+if(K==='chbenchn'){const base=H-3,Pn=RAMP.pine,Wn=RAMP.walnut,x0=4,w=W-8,top=base-17;   // (b45) a chapel bench with a fisherman's things left on it: a folded net, a yellow oilskin
+  for(let y=top;y<top+7;y++)for(let x=x0;x<x0+w;x++){let k=y===top?5:y===top+6?3:4;if(x===x0)k=5;if(x===x0+w-1)k=2;P(A,x,y,Pn[k]);}hl(A,x0,top+7,w,Pn[2]);hl(A,x0,top+8,w,Wn[0]);hl(A,x0,top+9,w,Wn[0]);
+  for(let y=top+10;y<base-1;y++)for(let x=x0+2;x<x0+w-2;x++)P(A,x,y,Wn[y===top+10?3:2]);hl(A,x0+2,base-1,w-4,Wn[0]);for(const ex of [x0,x0+w-3])for(let y=top+8;y<base;y++){P(A,ex,y,Wn[ex===x0?4:1]);P(A,ex+1,y,Wn[3]);P(A,ex+2,y,Wn[ex===x0?2:0]);}
+  {const nx=x0+6,ny=top-3;for(let y=0;y<6;y++)for(let x=0;x<16;x++){if((x+y)%3===0||(x-y+30)%3===0)P(A,nx+x,ny+y,RAMP.olive[y===0?4:3]);}hl(A,nx,ny+6,16,RAMP.olive[1]);for(const fx of [nx+2,nx+8,nx+13])P(A,fx,ny+5,RAMP.cream[5]);}   // the folded net, its corks
+  {const ox=x0+w-20,oy=top-2;for(let y=0;y<6;y++)for(let x=0;x<12;x++)P(A,ox+x,oy+y,RAMP.straw[y===0?5:x<2?5:x>9?2:4]);hl(A,ox,oy+6,12,RAMP.straw[1]);P(A,ox+6,oy+3,RAMP.charcoal[2]);}   // the oilskin, folded
+  for(let x=x0-2;x<x0+w+4;x++){SH(x,base,160);SH(x,base+1,110);SH(x+1,base+2,60);}}
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
 for(const f of NOOL)for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(f(x,y))for(const L of [O,O2])L.d[(y*W+x)*4+3]=0;
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));
