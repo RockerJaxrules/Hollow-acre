@@ -37,7 +37,7 @@ def turn(parts, k):
         if odd and t == 'cylinder' and p.get('axis', 'y') in ('x', 'z'): q['axis'] = 'z' if p.get('axis') == 'x' else 'x'
         if odd and t == 'torus' and p.get('axis') != 'y': q['axis'] = 'x' if p.get('axis', 'z') != 'x' else 'z'
         if odd and 'rr' in p: q['rr'] = [p['rr'][2], p['rr'][1], p['rr'][0]]
-        if odd and p.get('pattern') and p['pattern'][0] == 'planks' and p['pattern'][2] in ('x', 'z'):
+        if odd and p.get('pattern') and p['pattern'][0] in ('planks', 'grain') and p['pattern'][2] in ('x', 'z'):
             pt = list(p['pattern']); pt[2] = 'z' if pt[2] == 'x' else 'x'; q['pattern'] = pt
         out.append(q)
     return out

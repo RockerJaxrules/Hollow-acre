@@ -169,6 +169,13 @@ def render(scene):
                     cu, cv = math.floor(u / sp), math.floor(v / sp)
                     if (u % sp) < .9 or (v % sp) < .9: b = 0
                     else: b = 1 + (cu * 7 + cv * 13) % (nk - 1)
+                elif kind == 'grain':         # wood grain: broken streaks along an axis, mostly a step darker, a few a step lighter
+                    axn = pat[2]; along = {'x': X_, 'y': Y_, 'z': Z_}[axn]
+                    uax = 'x' if face in (1, 2) else 'z'; across = v if uax == axn else u
+                    row = math.floor(across / sp); seg = math.floor((along + row * 3.7) / (pat[3] if len(pat) > 3 else 7))
+                    hh = ((row * 73856093) ^ (seg * 19349663) ^ 0x5bd1e995) % 100
+                    if hh < 26: b = max(0, b - 1)
+                    elif hh > 94: b = min(nk - 1, b + 1)
                 elif kind == 'glint':         # a diagonal glint across glass (lighter, not darker)
                     if ((u - v) % sp) < 2.2: b = min(nk - 1, b + 2)
                 if seam: b = max(0, b - pat[3] if len(pat) > 3 else b - 1)
