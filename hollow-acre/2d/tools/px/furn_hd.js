@@ -3219,6 +3219,23 @@ if(K==='fountain2'){const base=86,cx=52,St=hexR(['#2c282a','#46403f','#635b58','
   for(let y=-4;y<=3;y++)for(let x=-16;x<=16;x++){if(x*x/256+y*y/16>1)continue;P(A,cx+x,base-46+y,y<-1?WA[2]:St[y<1?4:(x>10?1:2)]);}
   for(let y=base-58;y<base-48;y++){P(A,cx,y,St[3]);}P(A,cx,base-59,St[4]);
   const SP=hexR(['#9ab0a4','#c8d8ce']);for(const sd of [-1,1]){for(let i=0;i<22;i++){const t=i/22,x=Math.round(cx+sd*(2+t*24)),y=Math.round(base-58+t*t*30-t*6);P(A,x,y,SP[1]);P(A,x+sd,y,SP[0]);}const rx=cx+sd*27,ry=base-12-4;for(let a=0;a<24;a++){const t=a/24*6.28;P(A,Math.round(rx+Math.cos(t)*6),Math.round(ry+Math.sin(t)*2),WA[3]);}P(A,rx,ry-1,SP[1]);P(A,rx-1,ry-2,SP[0]);P(A,rx+1,ry-2,SP[0]);}}   // a flat splash ring, the splash rising at its centre
+// =================================================================================== props sweep batch 6b: the doll trees
+// a pale birch hung with dolls: the trunk tapering and leaning, forked under the crown, bark marked with dark lenticel dashes and black knots, limbs thinning to twigs; dolls the size of dolls on strings, heads and faded dresses
+if(K==='dolltreea'||K==='dolltreeb'){const BI=hexR(['#26262a','#4a4848','#8a8682','#b4b0a8','#d4d0c6','#e8e4da']),V=K==='dolltreea'?0:1,bx=46,base=171;
+  for(let y=-3;y<=3;y++)for(let x=-14;x<=18;x++){const d=x*x/(16*16)+y*y/9;if(d<=1)SH(bx+2+x,base+1+y,Math.round(140*(1-d*.6)));}
+  const lean=V?-.12:.1;const trunk=[];
+  for(let y=base;y>=base-96;y--){const t=(base-y)/96,w=7-t*3.6,x=bx+(base-y)*lean;trunk.push([x,y,w]);for(let k=-Math.ceil(w/2);k<=Math.ceil(w/2);k++){if(Math.abs(k)>w/2+.3)continue;const u=(k+w/2)/w;let c=u<.25?5:u<.65?4:u<.85?3:2;const hz=hsh(Math.floor(y/3),k+9,V+5);if(hz>.82&&u>.15&&u<.9&&y%3===0)c=1;P(A,Math.round(x+k),y,BI[c]);}}
+  for(const [ky,kx] of (V?[[base-30,0],[base-62,1]]:[[base-40,-1],[base-74,0]]))for(let j=0;j<3;j++)for(let i=0;i<2;i++)P(A,Math.round(bx+(base-ky)*lean)+kx+i,ky+j,BI[0]);
+  const limb=(x0,y0,ang,len,th,dep,seed)=>{let x=x0,y=y0;const n=Math.round(len);for(let i=0;i<=n;i++){const t=i/n,w=th*(1-t*.6),dx=Math.sin(ang),dy=-Math.cos(ang);for(let k=0;k<Math.max(1,Math.round(w));k++)P(A,Math.round(x+k*(dy<0?1:0)),Math.round(y+k*(dy<0?0:1)),BI[w<1.5?2:(k===0?4:3)]);x+=dx;y+=dy;
+      if(dep>0&&i===Math.round(n*(.5+hsh(i,dep,seed)*.15)))limb(x,y,ang+(hsh(dep,i,seed)>.5?.6:-.6),len*.5,th*.55,dep-1,seed+7);}
+    if(dep>0){limb(x,y,ang-.4,len*.55,Math.max(1,th*.45),dep-1,seed+3);limb(x,y,ang+.45,len*.5,Math.max(1,th*.4),dep-1,seed+5);}};
+  const top=trunk[trunk.length-1];const fx=top[0],fy=top[1];
+  if(V===0){limb(fx,fy+2,-.55,30,3,2,11);limb(fx+1,fy,.5,34,3,2,23);limb(fx,fy+16,-1.0,18,2,1,31);}else{limb(fx,fy,-.4,36,3,2,17);limb(fx+1,fy+4,.75,26,3,2,29);limb(fx+1,fy+20,1.1,16,2,1,41);}
+  const DR=[hexR(['#4a2a30','#6e4048','#8a5a60']),hexR(['#2e3a4a','#46566a','#62748a']),hexR(['#4a4430','#6e6646','#8e8660']),hexR(['#3a2e40','#584a5e','#76687c'])];
+  const doll=(x,y,c,tilt)=>{for(let j=0;j<6;j++)P(A,x,y-6+j,hexR(['#3a3430'])[0]);const dy=y;for(let j=0;j<3;j++)for(let i=-1;i<=1;i++)P(A,x+i+(j>1?tilt:0),dy+j,hexR(['#d8c8b4','#c0ae98'])[i<1?0:1]);P(A,x-1,dy+1,BI[0]);P(A,x+1,dy+1,BI[0]);
+    for(let j=0;j<5;j++){const w=j<2?1:2;for(let i=-w;i<=w;i++)P(A,x+i+tilt,dy+3+j,DR[c][i<0?2:(i>0?0:1)]);}P(A,x-1+tilt,dy+8,hexR(['#c0ae98'])[0]);P(A,x+1+tilt,dy+8,hexR(['#c0ae98'])[0]);};   // a string, a pale head with two dark eyes, a dress, two legs
+  const spots=V?[[22,46,0,0],[34,30,1,1],[60,38,2,0],[70,56,3,-1],[46,24,0,0]]:[[18,52,1,0],[30,38,0,1],[58,30,3,0],[72,46,2,-1],[42,60,1,0],[66,64,0,0]];
+  for(const [dx,dy,c,t] of spots)doll(dx,dy,c,t);}
 const flat=flatten([A,B],W,H);const O=outline(flat);for(let i=0;i<O.d.length;i+=4)if(O.d[i+3]){O.d[i]=Math.max(O.d[i],40);O.d[i+1]=Math.max(O.d[i+1],25);O.d[i+2]=Math.max(O.d[i+2],22);}const O2=outline(flatten([O,flat],W,H),'outline2');for(let i=0;i<O2.d.length;i+=4)if(O2.d[i+3]){O2.d[i]*=.6;O2.d[i+1]*=.6;O2.d[i+2]*=.6;O2.d[i+3]=150;}
 for(const f of NOOL)for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(f(x,y))for(const L of [O,O2])L.d[(y*W+x)*4+3]=0;
 emit([SHD,O2,O,A,B],CFG.out);console.log('META '+JSON.stringify({w:W,h:H}));
