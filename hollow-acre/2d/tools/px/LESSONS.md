@@ -238,6 +238,17 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   most of it hides under the piece.
 - A home without the shop's daytime lighting needs a stronger sun patch, or the room has no visible light source.
 
+- [repeated, interiors r1] Light as a see-through oval over the floor reads as a stain (fire, candles, forge): draw it like
+  the window sun patches, additive and hard-edged in two stepped tones, shaped by the opening (a fan out of a hearth mouth,
+  2 tiles wide at most), on the floor layer before the furniture.
+- [interiors r1] A darker band down each side wall reads as dark stripes under whatever stands there (beds): keep only the
+  back wall's own shadow (10 px) and take the whole floor down one step instead.
+- [interiors r1] A contact shadow centred on the foot line hides under the sprite's last 3 px: drop it 2 px so 2-3 px show.
+- [interiors r1] Effects keyed to furniture must skip hidden pieces (o.hide): the cabin's upgrade furniture threw light and
+  shadow into the black void beside the room.
+- [interiors baseline] A room deeper than the screen shows only floor from the door: open on the back wall and pan down.
+  Judge rooms from a few steps in, where the walls are in view.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).
