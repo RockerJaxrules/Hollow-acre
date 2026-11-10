@@ -51,8 +51,9 @@ function parquet(L,x0,y0,w,h){
 function checker(L,x0,y0,w,h,A2,B2){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const fb=frameBoard(x-x0,y-y0,w,h,11);if(fb){P(L,x,y,fb);continue;}const i=Math.floor((x-x0)/16),j=Math.floor((y-y0)/16),u=(x-x0)%16,v=(y-y0)%16;const lt=A2[2].map((v,k)=>Math.round(v*.62+B2[2][k]*.38));let c=(i+j)%2?A2[2]:lt;   // the light tile only a step above the dark one: a quiet floor under louder furniture   // the light tile between two cream steps, close to the dark one
   if(u===0||v===0)c=shade(c,.84);else if(u===1||v===1)c=shade(c,1.05);P(L,x,y,c);}}
 function flagstone(L,x0,y0,w,h){for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const r=Math.floor((y-y0)/18),o=(r*13)%27,s=Math.floor((x-x0+o)/(22+(r%3)*4));const u=(x-x0+o)%(22+(r%3)*4),v=(y-y0)%18;
-  const n=hsh(s,r,9);let c=ST[n>.66?4:n>.33?3:2];if(u<2||v<2)c=ST[1];if(u===2||v===2)c=ST[n>.5?5:4];
-  if(hsh(s,r,11)>.62&&u>3&&v>3){const cu=6+Math.floor(hsh(s,r,12)*10),cv=5+Math.floor(hsh(s,r,13)*6),dir=hsh(s,r,14)>.5?1:-1,dv=v-cv;if(dv>=0&&dv<6&&u===cu+dir*Math.floor(dv*.7))c=ST[1];}   // a crack, not specks
+  /* (b8) two close tones, not three far apart (patchwork); a lit edge on some stones only; cracks on a few stones by the walls */
+  const n=hsh(s,r,9);let c=n>.5?ST[3]:mixC(ST[3],ST[2],.45);if(u<2||v<2)c=ST[1];if((u===2||v===2)&&n>.35)c=mixC(ST[3],ST[4],.5);
+  const nearWall=r===0||x-x0<30||x0+w-x<30;if(nearWall&&hsh(s,r,11)>.75&&u>3&&v>3){const cu=6+Math.floor(hsh(s,r,12)*10),cv=5+Math.floor(hsh(s,r,13)*6),dir=hsh(s,r,14)>.5?1:-1,dv=v-cv;if(dv>=0&&dv<6&&u===cu+dir*Math.floor(dv*.7))c=ST[1];}   // a crack, not specks
   P(L,x,y,c);}}
 // (interiors r4) the wear was 4 px chips scattered down the path and read as footprints or specks: the paint wears through in long
 // streaks along the boards where feet go, first thinning (the wood's warmth showing through), then bare wood in the middle
