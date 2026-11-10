@@ -1810,7 +1810,7 @@ if(K==='coffinbuild'){const base=H-3,Pn=RAMP.pine,R=RAMP.oak;   // (judge b11: t
     for(let i=-6;i<=6;i++)P(A,cx+i+Math.round((h-2)*.12),base-h,Pn[Math.max(0,2-dk)]);for(let i=-3;i<=3;i++)P(A,cx+i+Math.round(4*.12),base-5,Pn[Math.max(0,2-dk)]);};   // the inset moulding, top and bottom
   lid(W-26,38,1);lid(W-14,34,0);
   for(let x=W-34;x<W-4;x++){SH(x,base-1,110);SH(x,base,80);}cast(3,28,base);}
-if(K==='ironcot'||K==='ironcotbare'||K==='ironcotdoll'){const bare=K==='ironcotbare',base=H-3,Ir=RAMP.iron,Bl=RAMP.olive,M=RAMP.ivory,x0=4,x1=W-5;   // a narrow iron cot: black rails with brass knobs, a thin ticking mattress, a grey army blanket, one flat pillow
+if(K==='ironcot'||K==='ironcotbare'||K==='ironcotdoll'||K==='ironcotmade'){const bare=K==='ironcotbare',made=K==='ironcotmade',base=H-3,Ir=RAMP.iron,Bl=made?RAMP.blue:RAMP.olive,M=RAMP.ivory,x0=4,x1=W-5;   // a narrow iron cot: black rails with brass knobs, a thin ticking mattress, a grey army blanket, one flat pillow
   const top=6;for(const py of [top,base-10]){for(let x=x0;x<=x1;x++){P(A,x,py,Ir[4]);P(A,x,py+1,Ir[2]);}for(let k=0;k<4;k++){const bx=x0+3+k*((x1-x0-4)/3|0);for(let y=py+2;y<py+8;y++)P(A,bx,y,Ir[3]);}}   // head and foot rails
   for(const px of [x0,x1])for(let y=top-2;y<base;y++){P(A,px,y,Ir[px===x0?4:2]);}for(const px of [x0,x1]){P(A,px,top-3,RAMP.brass[5]);P(A,px,base-12,RAMP.brass[4]);}
   rect(A,x0+1,top+3,x1-x0-1,base-top-14,M[3]);for(let y=top+3;y<base-11;y+=3)hl(A,x0+1,y,x1-x0-1,M[2]);                                   // the ticking mattress
@@ -1820,6 +1820,7 @@ if(K==='ironcot'||K==='ironcotbare'||K==='ironcotdoll'){const bare=K==='ironcotb
   else{rect(A,x0+3,top+4,x1-x0-5,6,M[5]);hl(A,x0+3,top+9,x1-x0-5,M[3]);                                                                        // the pillow
   for(let y=top+12;y<base-11;y++)for(let x=x0+1;x<x1;x++){let k=3;if(y===top+12)k=4;if(x===x0+1)k=4;if(x>=x1-2)k=1;if((y-top)%11===0)k=2;P(A,x,y,Bl[k]);}   // the blanket, folded square
   hl(A,x0+1,top+13,x1-x0-1,Bl[5]);for(let y=base-11;y<base-3;y++)for(let x=x0+1;x<x1;x++)P(A,x,y,Bl[y===base-11?2:1]);                    // its fold-over and the hang at the foot
+  if(made){for(let y=top+11;y<top+15;y++)hl(A,x0+1,y,x1-x0-1,M[y===top+11?5:4]);hl(A,x0+1,top+15,x1-x0-1,M[2]);for(let y=top+16;y<base-11;y+=6)hl(A,x0+2,y,x1-x0-3,Bl[2]);for(const px of [x0,x1]){P(A,px,top-4,RAMP.brass[5]);P(A,px,top-3,RAMP.brass[3]);}}   // (b36: a green cot read as a stretcher) a made bed: a blue wool quilt, the sheet turned down over it, posts with brass knobs
   if(K==='ironcotdoll'){const dx=x0+10,dy=top+3,Dr=RAMP.red;for(let j=0;j<6;j++)for(let i=-3;i<=3;i++)if(i*i/9+j*j/9<=1.6)P(A,dx+i,dy+j,RAMP.cream[j<2?5:4]);   // a rag doll propped on the pillow: a cloth face, button eyes, yarn hair, a gingham dress, arms flopped out
     P(A,dx-1,dy+2,RAMP.charcoal[0]);P(A,dx+1,dy+2,RAMP.charcoal[0]);P(A,dx,dy+4,Dr[3]);for(let i=-4;i<=4;i++){P(A,dx+i,dy-1,RAMP.rust[i%2?4:2]);}P(A,dx-4,dy,RAMP.rust[3]);P(A,dx+4,dy+1,RAMP.rust[2]);P(A,dx-4,dy+2,RAMP.rust[2]);
     for(let j=6;j<13;j++){const hw=2+((j-6)>>1);for(let i=-hw;i<=hw;i++)P(A,dx+i,dy+j,((i+j)%2)?Dr[4]:RAMP.cream[4]);}hl(A,dx-6,dy+8,3,RAMP.cream[4]);hl(A,dx+4,dy+7,3,RAMP.cream[3]);P(A,dx-2,dy+13,RAMP.cream[3]);P(A,dx+2,dy+13,RAMP.cream[2]);}
@@ -2558,7 +2559,8 @@ if(K==='firetools'){const base=H-3,R=RAMP.pine;   // the ranger's fire tools in 
 if(K==='smithcorner'){const base=H-3,I=RAMP.iron,Wd=RAMP.oak;   // a smith's work corner: an anvil on a stump, a hammer lying on its face, the quench bucket pushed up against the stump
   {const sx=16,sy=base-12;for(let y=sy;y<base;y++)for(let x=-8;x<=8;x++){let k=x<-6?4:x>6?1:3;if((y-sy)%4===0&&Math.abs(x)<6)k=2;P(A,sx+x,y,Wd[k]);}for(let x=-8;x<=8;x++)P(A,sx+x,sy,Wd[5]);   // the stump
     const ay=sy-7;rect(A,sx-9,ay,19,3,I[3]);hl(A,sx-9,ay,19,I[5]);for(let x=10;x<15;x++)P(A,sx+x,ay+(x-10>>1),I[3]);P(A,sx+14,ay+2,I[2]);rect(A,sx-4,ay+3,8,4,I[2]);vl(A,sx-4,ay+3,4,I[4]);rect(A,sx-7,ay+6,14,2,I[1]);   // the anvil: face, horn, waist, foot
-    hl(A,sx-6,ay-1,9,RAMP.walnut[4]);hl(A,sx-6,ay-2,9,RAMP.walnut[2]);rect(A,sx+3,ay-4,4,4,I[4]);hl(A,sx+3,ay-4,4,I[5]);}   // the hammer laid on the face
+    hl(A,sx-6,ay-1,9,RAMP.walnut[4]);hl(A,sx-6,ay-2,9,RAMP.walnut[2]);rect(A,sx+3,ay-4,4,4,I[4]);hl(A,sx+3,ay-4,4,I[5]);   // the hammer laid on the face
+    for(const [hx,hy] of [[sx-12,base-2],[sx-6,base-1]]){for(let a=0;a<12;a++){const t=a/11*Math.PI*1.4-.2;P(A,hx+Math.round(Math.cos(t)*3),hy-Math.round(Math.sin(t)*2),I[a<6?4:2]);}}}   // (b36) horseshoes dropped at its foot
   {const bx=W-11,by=base-13;rect(A,bx-7,by,14,13,Wd[3]);vl(A,bx-7,by,13,Wd[4]);vl(A,bx+6,by,13,Wd[1]);for(const hy of [by+2,by+9])hl(A,bx-7,hy,14,I[3]);ell(A,bx,by,7,2,I[1]);ell(A,bx,by,5,1,RAMP.glass[2]);P(A,bx-2,by,RAMP.glass[4]);}   // the quench bucket, water dark
   cast(6,W-3,base);}
 if(K==='tinsign'){const Rr=RAMP.red;   // (wall) an enamel tin sign, MOTOR OIL, the corners rusted through round the nail holes

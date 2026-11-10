@@ -464,6 +464,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [interiors b35] Things in a row along one wall, touching nothing, read as staged; group a trade's pieces into one corner
   where they touch (anvil on its stump, the quench bucket against it, a hammer lying on the face).
 
+- [interiors b36] A light cone drawn from the lamp down to the wall's foot (narrow at the lamp, wide at the floor) reads as a
+  heap of sand or a lampshade: light on the floor is widest at the wall and falls off outward, never a triangle.
+- [interiors b36] After six rounds of a floor pool under one lantern misreading six ways, the lantern glow on the wall alone
+  says "lit"; cut the floor pool (the rule from b33, followed late).
+- [interiors b36] Check every edit script's asserts before trusting the build: one failed match aborted a whole edit while
+  later steps in the same command ran against the old files and placed a sprite that did not exist yet.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).

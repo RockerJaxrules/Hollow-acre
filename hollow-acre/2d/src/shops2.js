@@ -23,7 +23,7 @@ const PRIV={
     look:[3.4,.5,'Photographs of Wes, from the year he started at the garage: Wes with grease to the elbows, Wes asleep under a truck. Under the last one, in Hollis’s square capitals: NOT HIM. NOT THIS YEAR.']},
   shop_forge:{key:'priv_forge',name:'The rooms behind the forge',home:'brannock',pdoor:9.6,owners:['gideon'],spots:{gideon:[3.5,3.0]},
     no:'Gideon puts himself between you and the door without seeming to move. “No.”',
-    furn:[['in_bed',1.1,2.6,BEDF],PF('in_stove',5.9,.95,.5),['in_smithhooks',3.6,-.45,null,'flat'],PF('in_candles',3.6,1.0,.3),PF('in_keg',.8,4.45,.4),PF('in_smithcorner',6.15,2.5,.35)],
+    furn:[['in_bed',1.1,2.6,BEDF],PF('in_stove',5.9,.95,.5),['in_smithhooks',3.6,-.45,null,'flat'],PF('in_candles',3.6,1.0,.3),PF('in_keg',.8,4.45,.4),PF('in_smithcorner',6.0,4.5,.35)],
     look:[3.6,1.15,'A jar on the shelf full of nails, every one bent the same way, toward the Mill Road. A tag tied round the lid: 153. Below it, newer: and one more.']},
   shop_carp:{key:'priv_carp',name:'Nell’s loft',home:'hartley',pdoor:9.6,owners:['nell'],spots:{nell:[3.6,3.2]},
     no:'“Ah ah. The loft’s mine, and it’s a mess.” Nell laughs. She doesn’t move away from the door.',
