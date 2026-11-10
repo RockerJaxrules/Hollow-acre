@@ -556,6 +556,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A box seen from above needs its lid lighter than its front (the lit floor through a lid's mesh, the dark inside through the front); a crab clinging on top reads, a crab behind wire does not.
 - Rope coils: two or three thick turns shaded as tubes, the lay twisting across them, dark gaps; thin concentric rings read as a doughnut or a log slice.
 
+- Hung fish read as fish only with a fish's parts: a forked tail tied up, a dorsal fin, a gill arc, an eye, an open mouth. Identical evenly spaced shapes read as a barcode, bats or bottles.
+- A boat needs its sheer: the inside (boards, seats, an oar) seen from above and the near side's lapped planks below the lit gunwale. A symmetric pill reads as a blimp or a seed pod.
+- Patina is one body tone with a lit band and a few streaks running down from the shoulder, never scattered single dark pixels.
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline
