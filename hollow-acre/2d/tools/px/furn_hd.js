@@ -982,10 +982,10 @@ if(K==='parkbench'){const base=H-3,x0=7,w=W-14,R=RAMP.oak,I=RAMP.ironW;   // own
   const sF=base-12,sB=sF-7;
   for(let y=sF+3;y<base;y++){const a=Math.round(210-(y-sF-3)*(150/(base-sF-3)));for(let x=x0;x<x0+w;x++)SH(x,y,a);}               // under the seat: darkest right under the lip, fading to the ground
   // the back: two slats and a broad top rail, two steps darker than the seat, with daylight under it and between
-  for(const [y,h] of [[sB-9,5],[sB-17,6]])for(let j=0;j<h;j++)for(let i=0;i<w;i++){const fall=i>w*.66?1:0;let k=j===0?3:(j===h-1?0:2);if(k>1)k-=fall;P(A,x0+i,y+j,R[Math.max(0,k)]);}   // (props sweep: "the back runs straight into the seat, the seat barely lighter") the back two steps under the seat
+  for(const [y,h] of [[sB-8,4],[sB-14,5]])for(let j=0;j<h;j++)for(let i=0;i<w;i++){const fall=i>w*.66?1:0;let k=j===0?3:(j===h-1?0:2);if(k>1)k-=fall;P(A,x0+i,y+j,R[Math.max(0,k)]);}   // (props sweep: "the back runs straight into the seat, the seat barely lighter") the back two steps under the seat
   for(let y=sB-4;y<sB;y++)for(let i=0;i<w;i++)SH(x0+i,y,y>=sB-2?200:150);   // daylight under the back: a dark gap of shadow
-  for(const bx of [x0+3,x0+w-5])for(let y=sB-17;y<sB;y++){if(G(A,bx,y))continue;P(A,bx,y,I[2]);P(A,bx+1,y,I[1]);}         // the back's iron straps, seen through the gaps, down to the seat
-  for(let i=0;i<7;i++)for(let j=0;j<3;j++)P(A,x0+(w>>1)-3+i,sB-16+j,RAMP.brass[j===0?4:(i===6?1:3)]);P(A,x0+(w>>1)-1,sB-15,RAMP.brass[1]);P(A,x0+(w>>1)+1,sB-15,RAMP.brass[1]);   // a small dull brass plaque on the rail
+  for(const bx of [x0+3,x0+w-5])for(let y=sB-14;y<sB;y++){if(G(A,bx,y))continue;P(A,bx,y,I[2]);P(A,bx+1,y,I[1]);}         // the back's iron straps, seen through the gaps, down to the seat
+  for(let i=0;i<7;i++)for(let j=0;j<3;j++)P(A,x0+(w>>1)-3+i,sB-13+j,RAMP.brass[j===0?4:(i===6?1:3)]);P(A,x0+(w>>1)-1,sB-12,RAMP.brass[1]);P(A,x0+(w>>1)+1,sB-12,RAMP.brass[1]);   // a small dull brass plaque on the rail
   // the seat top: three broad slats, the lightest thing on it, soft seams, the light falling off toward the right
   for(let y=sB;y<sF;y++){const r=y-sB;for(let i=0;i<w;i++){const fall=i>w*.7?1:0;let k=(r===2||r===5)?3:(r===0||r===3||r===6?5:4);if(k>3)k-=fall;P(A,x0+i,y,R[k]);}}
   for(const gx of [x0+14,x0+33])P(A,gx,sB+1,R[3]);                                                                          // two knots
@@ -993,11 +993,13 @@ if(K==='parkbench'){const base=H-3,x0=7,w=W-14,R=RAMP.oak,I=RAMP.ironW;   // own
   for(const ex of [x0,x0+w-1])for(let y=sB;y<=sF+2;y++)P(A,ex,y,R[y<sF?3:1]);                                                // end grain where the slats stop
   // cast-iron ends: an upright behind, an arm at elbow height that scrolls down into the front leg, a splayed foot
   for(const [ex,s_] of [[x0-4,-1],[x0+w,1]]){const L=s_<0;
-    for(let y=sB-18;y<sB-4;y++){P(A,ex,y,I[L?3:1]);P(A,ex+1,y,I[1]);P(A,ex+2,y,I[0]);}   // (benches r1: "cut the posts down to armrests") the back upright, darker, standing behind
-    for(let y=sB-4;y<sB-1;y++)for(let i=-1;i<=3;i++)P(A,ex+i,y,y===sB-4?I[L?5:4]:(i===3?I[0]:I[2]));   // the arm at elbow height, its top lit
-    for(let y=sB-1;y<base;y++){const x=ex+(y>base-3?(L?-1:1):0);P(A,x,y,I[L?4:2]);P(A,x+1,y,I[2]);P(A,x+2,y,I[1]);}   // the front leg, from under the arm to a splayed foot
-    P(A,ex+(L?-2:4),sF-4,I[3]);P(A,ex+(L?-2:4),sF-3,I[2]);P(A,ex+(L?-1:3),sF-2,I[1]);                                        // the scroll at the front of the arm
-    hl(A,ex-1,base-1,5,I[2]);hl(A,ex-1,base,5,I[0]);P(A,ex+1,sB-19,I[4]);}
+    const o=L?-1:1;   // (benches r2: "boxed in by iron ends") every part curves, so the ends no longer make a frame
+    for(let y=sB-15;y<sB-4;y++){const x=ex+Math.round((sB-4-y)*.22)*o;P(A,x,y,I[L?3:1]);P(A,x+1,y,I[1]);}   // the back upright, darker, leaning back as it rises
+    {const tx=ex+Math.round(11*.22)*o;P(A,tx-o,sB-17,I[3]);P(A,tx,sB-17,I[3]);P(A,tx+o,sB-16,I[2]);P(A,tx+o,sB-15,I[1]);P(A,tx,sB-16,I[0]);}   // its top curls over in a little scroll
+    for(let i=-1;i<=3;i++){P(A,ex+i,sB-4,I[L?5:4]);P(A,ex+i,sB-3,I[2]);}   // the arm at seat height, its top lit
+    {const fx=ex+(L?-2:4);P(A,fx,sB-4,I[4]);P(A,fx-o,sB-3,I[3]);P(A,fx-o,sB-2,I[2]);P(A,fx,sB-1,I[1]);P(A,fx+o*0,sB-2,I[0]);}   // the arm's front end rolls down in a scroll
+    for(let y=sB-2;y<base;y++){const sp=y>base-5?Math.round((y-(base-5))*.8):0,x=ex+sp*o;P(A,x,y,I[L?4:2]);P(A,x+1,y,I[2]);P(A,x+2,y,I[1]);}   // the front leg, splaying out toward the foot
+    {const fx=ex+Math.round(4*.8)*o;hl(A,fx-1,base-1,5,I[3]);hl(A,fx-1,base,5,I[0]);}}
   for(let y=sF+3;y<base;y++){P(A,x0+(w>>1)-1,y,I[3]);P(A,x0+(w>>1),y,I[1]);}                                                 // a middle leg in the shadow
   cast(x0-5,x0+w+3,base);}
 // =================================================================================== outdoor: a planter box of autumn mums
@@ -2275,8 +2277,10 @@ if(K==='peatstack'){const base=H-3,Pt=hexR(['#22170f','#332217','#45301f','#5a3f
     hl(A,bx-1,by,4,St[5]);for(let y=by+3;y<by+8;y++)P(A,bx+4,y,St[1]);}
   for(let i=0;i<16;i++){const x=4+((hsh(i,3,73)*(W-14))|0),y=base+((hsh(i,4,74)*2)|0);P(A,x,y,Pt[hsh(i,5,75)>.5?4:2]);}cast(3,W-10,base);}
 if(K==='bootbench'){const base=H-3,R=RAMP.pine,L=hexR(['#1a120c','#2a1c12','#3e2a1a','#553a24','#6c4c30','#82603e']),x0=22,w=W-25,top=base-15;   // a boot bench by the door: a pair of tall black lace-up boots standing beside it, a brown one lying on the bench, a tin of dubbin and a brush, mud on the boards
+  for(const px of [x0+1,x0+w-3]){for(let y=top-8;y<top+1;y++){P(A,px,y,R[2]);P(A,px+1,y,R[1]);}}for(let j=0;j<3;j++)for(let i=0;i<w;i++)P(A,x0+i,top-9+j,R[j===0?3:j===1?2:0]);   // (benches r2: "a low table") a back rail, two steps darker than the seat, on two posts,
+  for(let y=top-6;y<top;y++)for(let i=3;i<w-3;i++)SH(x0+i,y,y===top-6?190:130);   // daylight under it: a gap of shadow above the seat
   box3(x0,top,w,4,4,R,{faceK:3});for(const lx of [x0+1,x0+w-4])for(let y=top+8;y<base;y++){P(A,lx,y,R[4]);P(A,lx+1,y,R[2]);P(A,lx+2,y,R[1]);}fadeUnder(x0+4,x0+w-5,top+8,base-1);
-  {const tx=x0+w-8,ty=top-2;rect(A,tx,ty,5,3,RAMP.walnut[3]);hl(A,tx,ty,5,RAMP.walnut[5]);}   // (benches r1: "clutter makes it a table") only a brush left at the end; the seat plane clear
+  {const tx=x0+w-12,ty=base-3,I=RAMP.iron;hl(A,tx+1,ty,3,I[4]);hl(A,tx,ty+1,5,I[3]);P(A,tx+1,ty+1,I[5]);hl(A,tx,ty+2,5,I[1]);hl(A,tx+1,ty+3,3,I[0]);}   // (benches r2: "keep the seat clear") a little tin of dubbin down on the floor; nothing on the seat
   const boot=(x,by,L2)=>{for(let y=by-19;y<by-3;y++)for(let i=0;i<6;i++){let k=i===0?4:i===5?1:3;if(y===by-19)k=5;if(y===by-18&&i>0)k=1;P(A,x+i,y,L2[k]);}   // a tall boot, side on: the shaft,
     for(let y=by-16;y<by-4;y+=2){P(A,x-1,y,RAMP.cream[4]);P(A,x,y,L2[5]);}                                                                    // its laces up the front,
     for(let y=by-4;y<by;y++)for(let i=-6;i<6;i++){if(i<-4&&y===by-4)continue;let k=y===by-4?4:3;if(i===-6)k=5;if(i===5)k=1;P(A,x+i,y,L2[k]);}   // the foot, a rounded toe,

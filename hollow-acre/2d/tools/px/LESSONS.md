@@ -898,6 +898,21 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 
 - A tall narrow side view needs its lid a full step lighter than the end panel and the contents strip wider (5-6 px) and brighter than the panel, or it reads as a post or clock case; a candle flame must be 3-4 px with a pale core and the brightest thing on the piece.
 
+## Benches (Nov 10: round 1, 10 pieces both orders; the garage workbench 6 installed)
+- A grindstone drawn as a grey disc with a stepped rim reads as a saw blade: draw it in warm sandstone, round (no single-pixel pips at the four ends, they become teeth once outlined), show its thickness as the same disc pushed 2-3 px aside in shadow, and dip its foot in a trough.
+- A garage bench needs the mechanic's things (vise, battery, toolbox, oil can); a hand saw on it says carpenter. A worktop in bright honey wood is the loudest mass: keep it two steps duller.
+- A flat stone slab on a furnace reads as blank, and speckle on it as grit: a few big cap stones with joints, each lit on its left, and a lit front lip chipped in two places.
+- Smoke drawn as 1 px dots reads as hairs: two soft puffs (alpha under the outline threshold, so no outline), lit top-left, fading as they rise.
+- Soot and firelight are flat steps along the stone ramp (down a step for soot, a warm ramp for firelight), never a smooth blend: a blend reads as a blur.
+- Seen from the side, a furnace hides its fire: show it with a sliver of the lit arch at the front edge, warm stones beside it, and the glow spilling on the ground.
+- A turned bench top framed by darker edges and a shelf line reads as a glass door; pots stacked up a hutch board turned edge-on read as a totem. Make the top one lit plane (the lightest of the piece), the hutch a thin strip, and the pots in a row along the top on contact shadows.
+- From behind, pots on a 1 px rail balance in mid-air: give them a lit strip of shelf to stand on.
+- Rows of rivets down a breastplate read as coat buttons: a centre ridge (lit left, dark crease right), two or three hip lames, rivets only at the plate ends.
+- Salmon leather with pale flecks reads as raw meat: a duller brown hide in flat bands, one row of dark stitching.
+- A tall tool board makes a bench read as a desk or hutch: half its height, the saw in dark steel, the worktop the lightest surface.
+- Iron bench ends running the full height box the bench in: lean the back uprights back and curl their tops, roll the arm's front end down at seat height, splay the feet. Keep the back low over a 6-8 px seat.
+- Anything lying on a seat makes it a table: put the tin or brush on the floor; a darker back rail with a gap of shadow above the seat says "sit here".
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline
