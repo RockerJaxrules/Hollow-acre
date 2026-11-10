@@ -565,6 +565,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A jar of sweets is 2x2 balls in staggered rows, lit top-left; a checker fill reads as dither.
 - A drum or barrel lid is a step lighter than its sides with a lit rim; hoops are raised (a lit ridge over a dark underside) and bow down toward you in the middle.
 
+- A prop must stay apart from the ground in greyscale: fence rails at the grass value vanish; lighten them a full step above it.
+- Runs of rust are orange-brown and start at a seam; crimson runs read as blood, yellow-green as slime.
+- Steam is two or three soft puffs over the source, not thin hooked lines (they read as hairs).
+- A plate from above is about 1.6:1, its well an inner ellipse a step darker with a lit far lip; a long ellipse reads as a tray.
+- A small creature on a busy surface (a crab on a wire lid) needs its own dark outline and to break the object's silhouette.
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline
