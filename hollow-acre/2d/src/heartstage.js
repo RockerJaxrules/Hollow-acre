@@ -352,7 +352,10 @@ function hsLakeBelow(done){const bx=pond.x,bz=pond.z;
   stage({hour:Math.min(Math.max(S.hour,14),17),player:{x:bx+8,z:bz,dir:'E',hide:true},cast:{},cam:CAM,lead:850,restore:true,   // the hidden player stands off to the side (not in the boat), so nothing player-anchored draws over the open water by the boat — Otto in the boat is the whole focus
     light(L){hsVignette(.26);},
     tick(dt){if(drop>0&&run<96)run+=dt*34;if(tug>0)tug+=dt;},
-    props:[{x:bx,z:bz+.4,draw(X,Y,t){drawSpr('otto',X,Y-2,'walk','S',0);drawSpr('wk_boat',X,Y+6);}},   // Otto seated in the real rowboat; the pond's own water reflection beneath the hull grounds it
+    props:[{x:bx,z:bz+.4,draw(X,Y,t){const RX=Math.round(X),RY=Math.round(Y);
+        drawSpr('wk_boat',X,Y+6);                                                                      // 1) the whole boat: far gunwale at the back, the seats, the near gunwale at the front (measured: seats at screen Y-22..Y-10, near gunwale Y-9..Y-2, hull bottom to Y+3)
+        ctx2.save();ctx2.beginPath();ctx2.rect(RX-40,-3000,80,(RY+3)+3000);ctx2.clip();drawSpr('otto',X,Y+11,'walk','S',0);ctx2.restore();   // 2) Otto sat ON the seats inside the hull (head up in the interior), clipped to the hull bottom
+        ctx2.save();ctx2.beginPath();ctx2.rect(RX-40,RY-9,80,3000);ctx2.clip();drawSpr('wk_boat',X,Y+6);ctx2.restore();}},                   // 3) the near gunwale redrawn OVER his lap — he now sits DOWN IN the boat, framed by the far rim behind and the near rim in front
       {x:bx+.02,z:bz+.5,draw(X,Y,t){if(drop>0&&!cut)hsLine(X+26,Y-4,Math.min(run,VH-Y-8),tug>0?tug:0);}}],   // the weighted line drops off the boat's bow into clear water, clear of the reflection so it never reads as a catch on the line
     beats:[
       {hold:1.2,act(){stgTitle('Otto — The lake below');}},
