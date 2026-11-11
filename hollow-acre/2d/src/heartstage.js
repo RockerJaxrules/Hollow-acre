@@ -63,8 +63,8 @@ function hsMusicBox(X,Y,open){   // a little wooden box on the rail; lid open sh
   hsBoxO(X-7,Y-5,15,6,W,WO);   // the box body: outline, ramp, lit top+left
   if(open){ctx2.fillStyle=WO;ctx2.fillRect(X-7,Y-12,15,4);ctx2.fillStyle=W[2];ctx2.fillRect(X-6,Y-11,13,2);ctx2.fillStyle=W[3];ctx2.fillRect(X-6,Y-11,13,1);   // the raised lid
     ctx2.fillStyle=B[0];ctx2.fillRect(X-5,Y-5,11,2);ctx2.fillStyle=B[2];ctx2.fillRect(X-5,Y-5,11,1);ctx2.fillStyle=B[3];ctx2.fillRect(X-4+((Date.now()/90|0)%10),Y-5,1,1);}}   // the brass cylinder + a turning pin
-function hsGrave(X,Y,dug){   // a freshly dug grave, drawn to the GAME's sprite conventions: a 5-step hue-shifted dirt ramp, bold outlines, hand-placed clod texture, strong lit-top vs shaded-sides, a #322125 drop shadow, no gradients
-  const w=28,h=Math.round(16+dug*5);
+function hsGrave(X,Y,dug,W){   // a freshly dug grave, drawn to the GAME's sprite conventions: a 5-step hue-shifted dirt ramp, bold outlines, hand-placed clod texture, strong lit-top vs shaded-sides, a #322125 drop shadow, no gradients
+  const w=W||28,h=Math.round(16+dug*5);
   const OUT='#1a1016',D='#2c1d14',M='#46301c',L='#664526',HI='#8a6338',PIT='#0a0a10';
   ctx2.fillStyle='rgba(50,33,37,.55)';ctx2.beginPath();ctx2.ellipse(X+2,Y+h,w*0.6,5,0,0,6.283);ctx2.fill();   // the drop shadow (#322125 @ ~55%)
   ctx2.fillStyle=OUT;ctx2.fillRect(X-w*0.5-2,Y-3,w+4,h+6);                                                     // one bold outline round the whole rim
@@ -313,23 +313,19 @@ function hsFreshHole(done){const gx=62,gz=-36.2;
   stage({hour:Math.min(Math.max(S.hour,13),16),storm:true,player:{x:you.x,z:you.z,dir:'W'},cast:{silas:{x:sil.x,z:sil.z,dir:'S'}},cam:CAM,lead:800,
     tick(dt,st){const n=npcById('silas');if(!n)return;if(digging){swing+=dt*3.2;n.z=sil.z-Math.abs(Math.sin(swing))*.12;}else if(!inpit){n.z=out.z;}},
     props:[{x:0,z:9e5,draw(X,Y,t){hsRain(t,true);}},   // the storm: a cold wash and rain over the whole frame, drawn on top
-      {x:pit.x,z:pit.z+.12,draw(X,Y){const E=HSP.earth,EO=HSP.earthO,RX=Math.round(X),RY=Math.round(Y);
-        // 1) a wide apron of turned earth the pit is dug INTO, so the hole never reads as a crate sitting on the lawn
-        hsSh(X+4,Y+4,34,8);
-        ctx2.fillStyle=EO;ctx2.beginPath();ctx2.ellipse(X,Y,33,16,0,0,6.283);ctx2.fill();
-        ctx2.fillStyle=E[1];ctx2.beginPath();ctx2.ellipse(X,Y-1,30,14,0,0,6.283);ctx2.fill();
-        ctx2.fillStyle=E[2];ctx2.beginPath();ctx2.ellipse(X-1,Y-2,26,12,0,0,6.283);ctx2.fill();
-        for(let i=0;i<10;i++){const a=i*2.0,r=22+((i*7)%6);ctx2.fillStyle=i%2?EO:E[1];ctx2.fillRect(RX+Math.round(Math.cos(a)*r)-1,RY+Math.round(Math.sin(a)*r*.46)-1,2,2);}   // clods scattered round the rim
-        drawSpr('g_grave',X,Y);   // the real open-grave sprite dropped into the dug earth
-        // 2) a lit sliver of the far pit wall behind the man, so his dark body separates from the black hole
-        ctx2.fillStyle=E[3];ctx2.fillRect(RX-15,RY-24,30,2);ctx2.fillStyle=E[2];ctx2.fillRect(RX-15,RY-22,30,1);
-        // 3) the dug soil heaped to the left: a real domed mound, lit top-left, its own cast shadow down-right
-        const mx=X-34,my=Y-4;hsSh(mx+5,my+6,16,4);
-        ctx2.fillStyle=EO;ctx2.beginPath();ctx2.ellipse(mx,my,15,9,0,0,6.283);ctx2.fill();
-        ctx2.fillStyle=E[1];ctx2.beginPath();ctx2.ellipse(mx-1,my-3,13,8,0,0,6.283);ctx2.fill();
-        ctx2.fillStyle=E[2];ctx2.beginPath();ctx2.ellipse(mx-2,my-5,10,6,0,0,6.283);ctx2.fill();
-        ctx2.fillStyle=E[3];ctx2.beginPath();ctx2.ellipse(mx-3,my-7,6,3,0,0,6.283);ctx2.fill();
-        ctx2.fillStyle=EO;ctx2.fillRect(mx-8,my-1,2,2);ctx2.fillRect(mx+6,my,2,2);ctx2.fillRect(mx-1,my-8,2,2);}},
+      {x:pit.x,z:pit.z+.12,draw(X,Y){const E=HSP.earth,EO=HSP.earthO;
+        // a proper grave-sized dug pit (sloped walls, lit rim, dark mouth), drawn up over Silas's legs so its near rim crosses his waist and he reads as standing DOWN in it
+        hsGrave(X,Y-24,1,46);
+        // a lit near wall at the front of the mouth, so the hole reads as earth going down, not a flat black box face
+        ctx2.fillStyle=E[1];ctx2.beginPath();ctx2.moveTo(X-13,Y-9);ctx2.lineTo(X+13,Y-9);ctx2.lineTo(X+10,Y-6);ctx2.lineTo(X-10,Y-6);ctx2.closePath();ctx2.fill();
+        ctx2.fillStyle=E[2];ctx2.fillRect(Math.round(X)-10,Math.round(Y)-7,20,1);
+        // the dug soil heaped to the right of the pit: a rough, irregular heap of loose clods, lit top-left, its own cast shadow down-right
+        const mx=X+34,my=Y-4;hsSh(mx+4,my+6,17,4);
+        ctx2.fillStyle=EO;for(const[lx,ly,r] of [[0,0,10],[-7,2,7],[8,1,7],[2,-4,7],[-4,-2,6],[6,-3,5]]){ctx2.beginPath();ctx2.ellipse(mx+lx,my+ly,r,r*.72,0,0,6.283);ctx2.fill();}
+        ctx2.fillStyle=E[1];for(const[lx,ly,r] of [[-6,0,5],[7,-1,5],[1,-4,5],[-2,-1,6]]){ctx2.beginPath();ctx2.ellipse(mx+lx,my+ly-1,r,r*.66,0,0,6.283);ctx2.fill();}
+        ctx2.fillStyle=E[2];for(const[lx,ly,r] of [[-4,-2,3],[3,-4,3],[-1,-3,3]]){ctx2.beginPath();ctx2.ellipse(mx+lx-1,my+ly-1,r,r*.6,0,0,6.283);ctx2.fill();}
+        ctx2.fillStyle=E[3];ctx2.fillRect(mx-4,my-6,2,1);ctx2.fillRect(mx+1,my-5,2,1);
+        ctx2.fillStyle=EO;ctx2.fillRect(mx-9,my+1,2,2);ctx2.fillRect(mx+9,my+2,1,1);ctx2.fillRect(mx+4,my+3,1,1);}},
       {get x(){const n=npcById('silas');return n?n.x+.5:gx;},get z(){const n=npcById('silas');return (n?n.z:gz)-.01;},draw(X,Y,t){if(digging){const a=Math.sin(swing)*.8-.3;hsShovel(X+2,Y-16,a);}else if(shov>0){hsShovel(sx(you.x)-2,sz(you.z)-18,.5);}}}],
     beats:[
       {hold:1.0,face:{silas:'S',you:'W'},act(){stgTitle('Silas — The fresh hole');}},
