@@ -543,7 +543,7 @@ class Painter:
         hw_row = np.interp(Y, np.linspace(20, chin, 200), s.face_hw(np.linspace(20, chin, 200)))
         lit -= .06 * sstep(chin - 4, chin, Y)
         if C.get('kind') in ('man', 'oldman'):
-            pass   # (judge r3-r4: a cheek-hollow disc crossed a colour step and read as a bruise; removed)
+            lit = lit - .07 * G(CX + 10, 44, 8, 6)   # (judge r6: top light made a hard lit wedge on the upper-right forehead)   # (judge r3-r4: a cheek-hollow disc crossed a colour step and read as a bruise; removed)
             lit = lit - .12 * G(CX - 11.5, 55.5, 7.5, 1.6) - .14 * G(CX + 11.5, 55.5, 7.5, 1.6) + .08 * G(CX - 11, 53.5, 6, 1.2)
             lit = lit - .14 * G(66.4, 64, 1.0, 4.4) + .08 * np.exp(-((X - 62.6) / .8) ** 2) * sstep(56, 59, Y) * sstep(68, 66, Y)
             lit = lit + .06 * G(CX - 19, 81, 3, 2) - .08 * G(CX, chin - 1.5, 3.5, 1.5) * 0 + .05 * G(CX - 1, chin - 3, 3, 1.6)
@@ -736,7 +736,7 @@ class Painter:
         cv.put(lo_lip, 'lip', .56 + .26 * G(mx - 1.7, my + lh * .55, 2.3, .8) + .06 * (X < mx))
         ln = np.stack([np.concatenate([[xs[0] - .5], xs, [xs[-1] + .5]]), np.concatenate([[line[0] + .1], line, [line[-1] + .1]])], 1)
         cv.put(ribbon(ln, [.5, .9, 1.0, .9, .5])[0], 'lipline', .4)
-        if ex == 'smug':   # a dimple tucks in at the lifted corner, so the smirk reads at 1x
+        if ex == 'smug' and C.get('age', 0) < .8:   # a dimple tucks in at the lifted corner, so the smirk reads at 1x
             ex_, ey_ = xs[-1], line[-1]; cv.put(ell(ex_ + 1.1, ey_ + .9, .55, .7) & s.face_m, 'crease', .55)   # (judge r3: the slash read as a scar) a 1-2 px dimple in the shadow tone
 
     # ------------------------------------------------------------ hairstyles: lists of locks, back to front
@@ -1074,7 +1074,7 @@ class Painter:
             # a beard line, not a straight band: high at the sideburn, slanting down the cheek to the mouth corners
             dx = np.abs(X - CX)
             y_top = 59.5 + (my - 3.2 - 59.5) * np.clip((fw - dx) / (fw - 9.0), 0, 1) + .7 * np.sin(X * 1.1 + 1.3)
-            lip = reg & (dx < 7.5) & (Y > my - 4.2) & (Y < my - 1.6)
+            lip = reg & (dx < 7.5) & (Y > my - 4.2 + .045 * dx * dx) & (Y < my - 1.6)   # (judge r6: a straight top edge read as a dirt smear)
             area = ((reg & (Y > y_top)) | lip) & fm & ~mouth_hole
             cv.put(area, 'stubble', s.face_lit - .02 + .05 * (X < CX))   # one step lighter on the lit side
             # denser along the jaw and under the chin, and over the lip: shapes, not speckle (owner: no grit)
@@ -1255,16 +1255,17 @@ class Painter:
 
 def cool_rim(img, var='day'):
     """(judge: dark coats and black hair sank into the dark backdrop) a 2 px cool lavender rim just inside the outline on the
-    shadow side (right) of dark materials only, so the silhouette holds; lit side and mid tones untouched"""
+    lit (top-left) edges of dark materials only, as on the Hollow, so the silhouette holds; mid tones untouched"""
     a = img[..., 3] > 0; rgb = img[..., :3].astype(np.float32); lum = rgb @ np.array([.3, .59, .11], np.float32)
     out = img.copy(); H_, W_ = a.shape; RIM = np.array([122, 112, 150], np.float32); k = .42 if var != 'night' else .3
-    for y in range(H_):
-        for x in range(W_ - 3):
+    for y in range(2, H_):
+        for x in range(2, W_):
             if not a[y, x] or lum[y, x] > 64: continue
-            if a[y, x + 1] and not a[y, x + 2]: kk = k              # x+1 is the outline: this is the first pixel inside it
-            elif a[y, x + 1] and a[y, x + 2] and not a[y, x + 3]: kk = k * .55
-            else: continue
-            out[y, x, :3] = (rgb[y, x] * (1 - kk) + RIM * kk).astype(np.uint8)
+            kk = 0
+            if a[y, x - 1] and not a[y, x - 2]: kk = k              # x-1 is the outline on the lit left side
+            elif a[y - 1, x] and not a[y - 2, x]: kk = k * .8       # or the outline above
+            elif a[y, x - 1] and a[y, x - 2] and x > 2 and not a[y, x - 3]: kk = k * .5
+            if kk: out[y, x, :3] = (rgb[y, x] * (1 - kk) + RIM * kk).astype(np.uint8)
     return out
 
 def portrait(C, ex, var='day'): return Painter(C, ex, var).paint()

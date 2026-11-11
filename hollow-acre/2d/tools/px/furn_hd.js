@@ -2760,24 +2760,25 @@ if(/^stepst[012]$/.test(K)){const SS=hexR(['#2c2a27','#48443f','#67625a','#857e7
   if(v===0){for(const [dx,dy] of [[11,5],[12,5],[13,5],[11,6],[12,6]])P(A,dx,dy,SS[2]);P(A,11,7,SS[4]);P(A,12,7,SS[4]);for(const [gx,gy,h] of [[3,7,2],[4,8,3],[15,7,2]])for(let j=0;j<h;j++)P(A,gx+(j>1?1:0),gy-j,hexR(['#3a4424','#4d5a2c','#66733a'])[j]);for(let x=7;x<16;x++)P(A,x,9,hexR(['#2a2216'])[0]);for(let x=6;x<13;x++)P(A,x,2,SS[2]);}   // a worn dip; grass blades over the rim, a soil line at the lower right, a damp upper lip   // (props r6) a worn dip, its near lip catching light
   const GB=hexR(['#4d5a2c','#66733a']);for(const [gx,gy] of [[2,7],[3,8],[15,6],[16,7],[9,9]]){P(A,gx,gy,GB[1]);P(A,gx,gy-1,GB[0]);}}
 // jack-o'-lanterns: dull brown-orange skin with dark grooves, carved holes the brightest thing, amber round a pale core, a woody stem; three faces, three shapes
-if(K==='jack2'||K==='jackb2'||K==='jackc2'){const PK=hexR(['#2c160c','#4a2512','#6b3818','#8a4c22','#a66130','#bd7a44']),LT=RAMP.lit,base=19,cx=13,V={jack2:0,jackb2:1,jackc2:2}[K];
+if(K==='jack2'||K==='jackb2'||K==='jackc2'){const PK=hexR(['#24120a','#3c1e0f','#582e15','#72401d','#8a5127','#9e6434']),LT=RAMP.lit,base=19,cx=13,V={jack2:0,jackb2:1,jackc2:2}[K];
   const rx=[9.5,11,8][V],ry=[7.5,6.5,8.5][V],cy=base-ry-1;
   for(let x=-11;x<=12;x++){SH(cx+x,base,140);SH(cx+x+1,base+1,70);}
   for(let y=-Math.ceil(ry);y<=Math.ceil(ry);y++)for(let x=-Math.ceil(rx);x<=Math.ceil(rx);x++){const d=(x*x)/(rx*rx)+(y*y)/(ry*ry);if(d>1)continue;
     const lobe=Math.abs(Math.sin((x/rx)*Math.PI*1.5));let k=4;const lit=-x/rx*.6-y/ry*.8;if(lit>.45)k=5;if(lit<-.3)k=3;if(lit<-.7||d>.86&&lit<0)k=2;if(lobe<.18&&Math.abs(x)>1)k=Math.max(1,k-2);P(A,cx+x,cy+y,PK[k]);}   // the ribs as dark grooves
   for(let j=0;j<4;j++){P(A,cx+(j>2?1:0),cy-Math.ceil(ry)-j+1,hexR(['#3d3420','#5a4e2c'])[j<2?1:0]);}P(A,cx+1,cy-Math.ceil(ry)-3,hexR(['#5a4e2c'])[0]);   // the stem
   const hole=(x,y,c)=>P(A,cx+x,cy+y,c);
-  const glow=(pts)=>{for(const [x,y,core] of pts)hole(x,y,core?LT[5]:LT[3]);};
+  const glow=(pts)=>{for(const [x,y,core] of pts)hole(x,y,core?LT[5]:LT[4]);};   // (props family r1: the face barely stood out) the holes the brightest pixels
   if(V===0){glow([[-5,-2],[-4,-2],[-4,-3],[-5,-1,1],[-4,-1,1],[-3,-1],[3,-2],[4,-2],[3,-3],[3,-1,1],[4,-1,1],[5,-1]]);for(let x=-4;x<=4;x++){hole(x,3,x%3===0?LT[2]:LT[4]);if(Math.abs(x)<4)hole(x,2,LT[x%2?5:3]);}}
-  if(V===1){glow([[-6,-2],[-5,-2],[-5,-1,1],[-6,-1],[-4,-1],[4,-2],[5,-2],[5,-1,1],[4,-1],[6,-1]]);for(let x=-6;x<=6;x++){hole(x,2,LT[(x+6)%3===0?2:4]);if(x>-6&&x<6)hole(x,3,LT[(x+6)%2?5:3]);if(Math.abs(x)<5&&x%2===0)hole(x,4,LT[3]);}}
+  if(V===1){glow([[-6,-2],[-5,-2],[-5,-1,1],[-6,-1],[-4,-1],[4,-2],[5,-2],[5,-1,1],[4,-1],[6,-1]]);for(let x=-6;x<=6;x++){hole(x,2,LT[(x+6)%3===0?2:4]);if(x>-6&&x<6)hole(x,3,LT[(x+6)%2?5:3]);if(Math.abs(x)<5&&x%2===0)hole(x,4,LT[4]);}}
   if(V===2){glow([[-4,-3],[-4,-2,1],[-3,-2],[3,-3],[3,-2,1],[4,-2]]);for(let x=-3;x<=3;x++)hole(x,4-Math.round(Math.abs(x)*.5),LT[x===0?5:3]);hole(-1,5,LT[2]);}
   hl(A,cx-Math.round(rx*.6),cy+Math.ceil(ry),Math.round(rx*1.2),PK[1]);}
 // hay bales: two on the ground and a smaller one on top, each with a lit top face, straw drawn as long streaks, twine running over the top and down the front
-if(K==='hay2'){const HY=hexR(['#3a2e14','#5a4820','#7c652e','#9b823e','#b69c52','#cdb46a','#e0cb85']),TW=hexR(['#4a2a18','#6e4224']),base=33;   // (props sweep: "identical bales, no twine")
+if(K==='hay2'){const HY=hexR(['#382f19','#554826','#736235','#8c7a45','#a39158','#b5a46c','#c6b780']),TW=hexR(['#4a2a18','#6e4224']),base=33;   // (props sweep: "identical bales, no twine")
   const bale=(x0,y0,w,fh,td,seed,slump)=>{for(let y=y0;y<y0+td;y++)for(let x=x0;x<x0+w;x++){const sy=slump?Math.round(Math.sin((x-x0)/w*Math.PI)*-1):0;let k=y===y0?6:5;if(hsh(x>>2,y,seed)>.8)k=4;if(x===x0+w-1)k=4;P(A,x,y+sy,HY[k]);}
     for(let y=y0+td;y<y0+td+fh;y++)for(let x=x0;x<x0+w;x++){const r=y-y0-td;let k=3;if(r===0)k=4;if(r>=fh-2)k=2;const st=hsh(Math.floor((x-x0+r*2)/4),r>>1,seed);if(st>.75&&r>0&&r<fh-2)k=st>.92?4:2;if(x===x0)k=Math.min(4,k+1);if(x===x0+w-1)k=1;P(A,x,y,HY[k]);}
     for(const tx of [x0+Math.round(w*.3),x0+Math.round(w*.7)]){for(let y=y0;y<y0+td+fh;y++)P(A,tx,y,y<y0+td?TW[1]:TW[0]);}
-    P(A,x0-1,y0+td+2,HY[5]);P(A,x0-1,y0+td+5,HY[4]);P(A,x0+w,y0+td+3,HY[3]);
+    for(let y=y0+1;y<y0+td+fh-1;y++){if(hsh(y,x0,seed)<.55)P(A,x0-1,y,HY[hsh(y,1,seed)<.5?5:4]);if(hsh(y,x0+w,seed)<.45)P(A,x0+w,y,HY[2]);}   // (props family r1: smooth blocks read as sponge) ragged cut ends
+    for(let x=x0+1;x<x0+w-1;x+=2+((x*7+seed)%3)){P(A,x,y0-1,HY[5]);if(hsh(x,2,seed)<.4)P(A,x+1,y0-2,HY[4]);}   // straws sticking up along the top
     for(let x=x0;x<x0+w;x++){SH(x+2,y0+td+fh,150);SH(x+3,y0+td+fh+1,70);}};
   bale(2,base-15,26,10,5,3,0);bale(29,base-12,15,8,4,8,1);bale(8,base-27,20,8,5,13,0);for(const [lx,ly] of [[30,base],[34,base+1],[40,base]])P(A,lx,ly,HY[5]);}
 // =================================================================================== props sweep batch 2, drawn by hand
@@ -2794,7 +2795,8 @@ if(K==='planter2'){const Wd=hexR(['#22180f','#3a2a1b','#523c27','#6c5034','#8766
   let bx=x0;const bw=[7,5,8,6,7,5];let bi=0;while(bx<x1){const w=Math.min(bw[bi%6],x1-bx);for(let x=bx;x<bx+w;x++)for(let y=ty+4;y<base;y++){let k=3;if(x===bx)k=4;if(x===bx+w-1)k=1;if(y===base-1)k=1;if(x>x1-8&&k>1)k-=1;if(hsh(x>>2,y>>3,bi)>.9)k=2;P(A,x,y,Wd[k]);}bx+=w;bi++;}
   for(let x=x0-1;x<=x1;x++){P(A,x,ty,Wd[5]);P(A,x,ty+1,Wd[4]);P(A,x,ty+2,Wd[x<x0+1||x>x1-1?3:0]);P(A,x,ty+3,Wd[2]);}                 // the lit rim, the soil just inside it
   const M=[RAMP.ochre,RAMP.pumpkin,hexR(['#3c1a1a','#5c2626','#7e3a30','#9e5040','#b8684c','#cc8462'])];
-  for(const [fx,fy,r,c] of [[8,ty-3,4,1],[16,ty-4,4.5,0],[25,ty-3,4,2],[33,ty-4,4.5,1],[39,ty-2,3,0]]){for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){const d=(x*x+y*y)/(r*r);if(d>1)continue;const lit=(-x-y)/r;P(A,fx+x,fy+y,M[c][lit>.6?5:lit>-.2?4:lit>-.8?3:2]);}
+  for(const [lx,len] of [[6,3],[13,4],[22,2],[29,4],[36,3]])for(let j=0;j<len;j++){P(A,lx+(j>1?1:0),ty+1+j,hexR(['#4d5e2c','#3d4a25','#2e3a1d'])[Math.min(2,j)]);P(A,lx+1+(j>1?1:0),ty+1+j,hexR(['#3d4a25'])[0]);}   // (props family r1: an even row read as a stamp) leaves spilling over the lip
+  for(const [fx,fy,r,c] of [[8,ty-2,3,1],[15,ty-7,4.8,0],[24,ty-3,3.4,2],[31,ty-6,4.2,1],[38,ty-1,2.6,0]]){for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){const d=(x*x+y*y)/(r*r);if(d>1)continue;const lit=(-x-y)/r;P(A,fx+x,fy+y,M[c][lit>.6?5:lit>-.2?4:lit>-.8?3:2]);}
     P(A,fx-1,fy-1,M[c][5]);P(A,fx+1,fy+1,M[c][1]);for(let i=-2;i<=2;i+=2)P(A,fx+i,fy+r,hexR(['#3d4a25'])[0]);}}
 // the remembrance toys left at the memorial: each one shape a child would own, shaded as a solid, the colours faded
 if(K==='remcap2'){const BL=hexR(['#1c2129','#2a313c','#3b4452','#4f5a69','#667280','#808a96']),cx=15,base=22;   // a boy's cap lying on the grass: six panels to a button, a brim with a dark shadow under it
@@ -2954,7 +2956,7 @@ if(K==='sacks2'){const BU=hexR(['#2e2416','#47371f','#62502e','#7c693f','#978253
 if(K==='firewd2'){const EN=hexR(['#5e4a32','#7b6444','#97805a','#ae9970']),BK=hexR(['#241a12','#3a2a1c','#53402b']),base=27;
   for(let x=2;x<42;x++){SH(x+1,base,150);SH(x+2,base+1,70);}
   const round=(cx,cy,r,split)=>{for(let y=-r-1;y<=r+1;y++)for(let x=-r-1;x<=r+1;x++){const d=Math.sqrt(x*x+y*y);if(d>r+.5)continue;if(split===1&&x>0&&y<0)continue;if(split===2&&y>x)continue;
-      const rim=d>r-.6||(split===1&&((x===1&&y<=0)||(y===-1&&x>=0)))||(split===2&&y===x);const lit=(-x-y)/r;P(A,cx+x,cy+y,rim?BK[d>r-.6?1:2]:EN[lit>.5?3:lit>-.3?2:1]);}
+      const lit=(-x-y)/r;const rim=(d>r-.6&&lit<.25)||(split===1&&((x===1&&y<=0)||(y===-1&&x>=0)))||(split===2&&y===x);P(A,cx+x,cy+y,rim?BK[d>r-.6?1:2]:EN[lit>.5?3:lit>-.3?2:1]);}
     P(A,cx+(split?-1:1),cy+1,EN[0]);};
   const L=[[7,22,4,0],[16,22,4,1],[25,22,4,0],[34,22,4,2],[11,14,3,2],[19,14,4,0],[28,14,3,1],[36,15,3,0],[15,7,3,0],[24,7,3,2]];
   for(const [x,y,r,sp] of L)round(x,y,r,sp);
@@ -3097,12 +3099,12 @@ if(K==='cline2'||K==='clineb2'){const base=66,p0=6,p1=104,ty=12,CL=hexR(['#5e585
   cloth(14,16,22,BLU,'shirt');cloth(36,22,30,CL,'sheet');cloth(64,14,26,hexR(['#2e2a24','#423c32','#585042','#6e6454','#847866']),'trs');cloth(84,14,18,CL,'sheet');
   if(K==='clineb2'){const sx=43,sy=lineY(43)+9;for(let y=0;y<8;y++)for(let x=0;x<7;x++){const d=((x-3)/3.5)**2+((y-3)/4)**2+Math.sin(x*2+y)*.15;if(d>1)continue;P(A,sx+x,sy+y,ST[d>.7?2:1]);}for(const [rx,rl] of [[45,9],[48,6]])for(let j=0;j<rl;j++)P(A,rx,sy+7+j,ST[j<rl-2?1:2]);P(A,sx+5,sy-1,ST[2]);}}
 // a dented trash can: a cylinder lit up its left, the right third in shade, ribs that follow the curve, a dent, a lid lifted a little
-if(K==='trash2'){const GM=hexR(['#24262a','#363a3e','#4c5056','#62676c','#7a7f84','#9298a0']),cx=11,base=29;
+if(K==='trash2'){const GM=hexR(['#262724','#383a35','#4e5049','#656860','#7d8076','#979a8d']),cx=11,base=29;
   for(let x=-8;x<=9;x++){SH(cx+x+1,base,150);SH(cx+x+2,base+1,80);}
-  for(let y=base-20;y<base;y++)for(let x=-7;x<=7;x++){const u=x/7;let k=u<-.6?4:u<-.1?5:u<.35?3:u<.7?2:1;if((y-base+20-Math.round(Math.sqrt(Math.max(0,1-u*u))*1.5))%6===3)k=Math.max(1,k-1);if(x>=2&&x<=5&&y>base-12&&y<base-7)k=Math.max(1,k-1);if(x===3&&y===base-10)k=0;P(A,cx+x,y,GM[k]);}
+  for(let y=base-20;y<base;y++)for(let x=-7;x<=7;x++){const u=x/7;let k=u<-.6?4:u<-.1?5:u<.35?3:u<.7?2:1;{const ry=y-base+20-Math.round(Math.sqrt(Math.max(0,1-u*u))*1.5);if(ry===3||ry===16)k=Math.max(1,k-1);if(ry===2||ry===15)k=Math.min(5,k+1);}if(x>=-5&&x<=-2&&y>base-13&&y<base-8)k=(x+y)%3===0?Math.max(1,k-2):Math.min(5,k+1);P(A,cx+x,y,GM[k]);}
   for(let y=-2;y<=1;y++)for(let x=-7;x<=7;x++){if(x*x/49+y*y/4>1)continue;const rim=x*x/49+y*y/4>.6;P(A,cx+x,base-21+y,rim?GM[y<0?4:2]:hexR(['#121416'])[0]);}   // (props r11) the open top: a lit rim round the dark inside
   for(let y=-2;y<=1;y++)for(let x=-6;x<=6;x++){if(x*x/36+y*y/4>1)continue;P(A,cx+x+9,base-3+y-Math.round(x*.3),GM[y<0?4:2]);}   // the lid knocked off, lying against the foot
-  for(let j=0;j<6;j++)P(A,cx-3,base-17+j,hexR(['#5a3a22','#6e4a2a'])[j<2?1:0]);
+  for(let j=0;j<7;j++){P(A,cx+1,base-19+j,hexR(['#7a4a26','#946030'])[j<3?1:0]);if(j<3)P(A,cx+2,base-19+j,hexR(['#7a4a26'])[0]);}   // a rust run from the rim, orange-brown
   hl(A,cx-7,base-1,15,GM[0]);}
 // a fire hydrant: the dome cap a step lighter than the body, a lit band down the left of the barrel, the side outlets, chipped red over rust
 if(K==='hydr2'){const RD=hexR(['#2a1612','#42221a','#5a3024','#704030','#82503c','#92604a']),cx=10,base=27;   // (props r11) dulled toward rust-brick
