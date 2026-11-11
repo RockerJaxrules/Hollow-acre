@@ -333,8 +333,8 @@ function hsLakeBelow(done){const bx=pond.x,bz=pond.z;
   stage({hour:Math.min(Math.max(S.hour,14),17),player:{x:bx,z:bz,dir:'E',hide:true},cast:{},cam:CAM,lead:850,restore:true,
     light(L){hsVignette(.26);},
     tick(dt){if(drop>0&&run<96)run+=dt*34;if(tug>0)tug+=dt;},
-    props:[{x:bx,z:bz+.4,draw(X,Y,t){hsRowboat(X,Y,t);}},
-      {x:bx+.02,z:bz+.5,draw(X,Y,t){if(drop>0&&!cut)hsLine(X+9,Y-4,Math.min(run,VH-Y-8),tug>0?tug:0);}}],
+    props:[{x:bx,z:bz+.4,draw(X,Y,t){drawSpr('otto',X-2,Y-12,'walk','S',0);drawSpr('wk_boat',X,Y+2);}},   // the real rowboat, with Otto sitting in it (the boat hull covers his legs)
+      {x:bx+.02,z:bz+.5,draw(X,Y,t){if(drop>0&&!cut)hsLine(X+9,Y-8,Math.min(run,VH-Y-8),tug>0?tug:0);}}],
     beats:[
       {hold:1.2,act(){stgTitle('Otto — The lake below');}},
       {who:'otto',text:'Easy now. Don’t rock her. Watch the line.',expr:'neutral',act(){drop=1;SFX.splash&&SFX.splash();}},
@@ -543,7 +543,10 @@ function hsNailBladeScene(done){const R=ROOMS.shop_forge||ROOMS.store,ox=R.ox,oz
   const gid={x:ox+4.4,z:oz+3.0},you={x:ox+5.8,z:oz+4.2},blade={x:ox+5.1,z:oz+3.5};let wrap=0,glow=0;const CAM={x:ox+4.6,z:oz+3.4};
   stage({room:ROOMS.shop_forge?'shop_forge':'store',hour:Math.min(Math.max(S.hour,9),17),player:{x:you.x,z:you.z,dir:'N'},cast:{gideon:{x:gid.x,z:gid.z,dir:'E'}},cam:CAM,lead:800,
     light(L){glowAt(sx(ox+2.2),sz(oz+1.3)-16,70,[255,150,60],.5+.12*Math.sin(STG.t*5));hsVignette(.3);},
-    props:[{get x(){return P.x;},get z(){return P.z+.01;},draw(X,Y){if(wrap<=0)return;hsNailBlade(X,Y-24,wrap,glow);}}],
+    props:[{get x(){return P.x;},get z(){return P.z+.01;},draw(X,Y){if(wrap<=0)return;
+        if(wrap<1){ctx2.fillStyle='#3a3630';ctx2.fillRect(X-9,Y-30,18,8);ctx2.fillStyle='#4a463e';ctx2.fillRect(X-9,Y-30,18,2);ctx2.fillStyle='#2a2620';ctx2.fillRect(X-2,Y-31,4,10);return;}   // the oilcloth bundle
+        drawSpr('icon32_blade',X,Y-30,'','',0,{scale:.9});   // the real forged blade, held up
+        if(glow>0){ctx2.save();ctx2.globalAlpha=Math.min(1,glow)*.5;ctx2.globalCompositeOperation='lighter';ctx2.fillStyle='#ff8a2a';ctx2.fillRect(Math.round(X)-1,Math.round(Y)-42,2,16);ctx2.restore();}}}],   // forge-warm along the blade
     beats:[
       {hold:1.0,face:{gideon:'E',you:'N'},act(){stgTitle('Gideon — A blade that remembers');}},
       {who:'gideon',text:'Made you something. Don’t thank me yet. Here — it’s wrapped in oilcloth for a reason.',expr:'neutral',act(){wrap=.3;},update(dt){wrap=Math.min(.95,wrap+dt*1.5);}},
