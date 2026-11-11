@@ -171,8 +171,8 @@ function makeDebris(spr,x,z,tile){const kind=spr.split('_')[0];const o=obj(spr,x
       if(kind==='rock')addInv('stone',1+(rand()<.3?1:0));if(kind==='weeds'){addInv('fiber');if(rand()<.15){S.seeds.turnip++;toast('A turnip seed was tangled in the roots.',1.6);}}if(kind==='twig')addInv('wood');if(kind==='stump')addInv('wood',3);updateHud();});}});return o;}
 function fieldDebris(){for(const t of tiles){if(t.gh)continue;const inStart=t.i>=FSTART.i0&&t.i<FSTART.i0+FSTART.w&&t.j>=FSTART.j0&&t.j<FSTART.j0+FSTART.h;if(inStart)continue;
   const r=rand();if(r>.82)continue;const spr=r<.4?'weeds_'+((rand()*2)|0):r<.66?'rock_'+((rand()*2)|0):'twig';makeDebris(spr,t.x+(rand()-.5)*.25,t.z+.2+(rand()-.5)*.15,t);}}
-// a tile with something still on it can't be tilled
-{const _tt2=targetTile;targetTile=function(){const t=_tt2();if(t&&t.debris&&!t.debris.hide)return null;return t;};}
+// a tile with something still on it can't be tilled — but a rock on a NEARBY tile must not block the clear one you're aiming at, so skip debris tiles and take the next distance
+{targetTile=function(){for(const dd of[.8,.35,1.3]){const x=P.x+P.fx*dd,z=P.z+P.fz*dd+.1;const t=tileAt(Math.floor(x-FIELD.x0),Math.floor(z-FIELD.z0));if(t&&!(t.debris&&!t.debris.hide))return t;}return null;};}
 // the note nailed to Grandpa's door, until you read it
 function noteDrawables(D){if(S.readLetter||S.room)return;D.push({z:-9.38,mind:1,draw(){const X=sx(doorPos.x+.18),Y=sz(-9.4)-26+Math.round(Math.sin(performance.now()/500)*.6);drawSpr('doornote',X,Y);
   if(Math.sin(performance.now()/260)>.6){ctx2.fillStyle='rgba(255,250,220,.9)';ctx2.fillRect(X+3,Y-13,1,1);ctx2.fillRect(X+2,Y-12,3,1);ctx2.fillRect(X+3,Y-11,1,1);}}});}

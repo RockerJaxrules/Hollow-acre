@@ -183,7 +183,8 @@ function maeCome(stay,instant){const v=MAEV;
   Object.assign(v,{on:true,tx,tz,stay:Math.max(v.stay,stay+1.5),room:S.room||null,leave:false});}
 function maeUpdate(dt){const v=MAEV;if(!v.on)return;v.t+=dt;if((S.room||null)!==v.room){v.on=false;return;}
   {const e=typeof encLive==='function'&&encLive();if(e&&e.who==='mae'){v.on=false;return;}}
-  if(!S.paused)v.stay-=dt;if(v.stay<=0&&!v.leave){v.leave=true;const a=Math.atan2(v.z-P.z,v.x-P.x)||0;v.tx=v.x+Math.cos(a)*9;v.tz=v.z+Math.sin(a)*6;}
+  if(!S.paused)v.stay-=dt;const talking=typeof maeT!=='undefined'&&maeT>0;if(talking)v.stay=Math.max(v.stay,.8);  // don't walk off mid-lesson
+  if(v.stay<=0&&!v.leave&&!talking){v.leave=true;const a=Math.atan2(v.z-P.z,v.x-P.x)||0;v.tx=v.x+Math.cos(a)*9;v.tz=v.z+Math.sin(a)*6;}
   const dx=v.tx-v.x,dz=v.tz-v.z,d=Math.hypot(dx,dz);
   if(d>.15){const sp=v.leave?2.2:2.8;const st=Math.min(d,sp*dt);const ox=v.x,oz=v.z;v.x+=dx/d*st;v.z+=dz/d*st;const p={x:v.x,z:v.z};collide(p,.32);v.x=p.x;v.z=p.z;
     if(!S.room&&LAYERS.water&&LAYERS.water(v.x,v.z)){v.x=ox;v.z=oz;}
@@ -192,7 +193,10 @@ function maeUpdate(dt){const v=MAEV;if(!v.on)return;v.t+=dt;if((S.room||null)!==
   if(v.leave&&(!onScreen(v.x,v.z,60)||Math.hypot(v.x-P.x,v.z-P.z)>12))v.on=false;
   // she follows if you wander off while she's still talking
   if(!v.leave&&Math.hypot(P.x-v.tx,P.z-v.tz)>3.2){const side=v.x<P.x?-1:1;let x=P.x+side*1.7,z=P.z+.25;if(!mFree(x,z)){x=P.x-side*1.7;}v.tx=x;v.tz=z;}}
-{const _lu=lifeUpdate;lifeUpdate=function(dt){_lu(dt);maeUpdate(dt);if(MAEV.on){const n=npcById('mae');if(n)n.vis=false;}};}
+{const _lu=lifeUpdate;lifeUpdate=function(dt){_lu(dt);const was=MAEV.on;maeUpdate(dt);const n=npcById('mae');
+  if(n){if(MAEV.on)n.vis=false;else if(was)n.vis=true;}   // when the scripted Caitlyn ends, hand her real self back — never leave her hidden
+  // if she's mid-lesson (her card is up) but her scripted self was dropped by a stumble or a room blip, bring her back so she doesn't vanish
+  if(typeof maeT!=='undefined'&&maeT>0&&!MAEV.on&&!S.room&&typeof maeCome==='function')maeCome(Math.max(3,maeT));};}
 {const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld(D,t);const v=MAEV;if(!v.on||(S.room||null)!==v.room||!onScreen(v.x,v.z,80))return;
   const m=SPR.mae;if(!m)return;const clip=v.mv?'walk':(m.clips.idle?'idle':'walk');
   D.push({z:v.z,mind:1,draw(){shadow(sx(v.x),sz(v.z),9);drawSpr('mae',sx(v.x),sz(v.z),clip,v.dir,v.mv?frameOf('mae','walk',v.t):(m.clips.idle?frameOf('mae','idle',v.t):0));}});};}

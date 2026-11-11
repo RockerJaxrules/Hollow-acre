@@ -96,7 +96,7 @@ function renderItems(){const B=$('bagBody');syncSlots();
   const tip=(i)=>{const it=itemInfo(S.slots[i]);const T=$('invTip');if(!it){T.innerHTML='Empty slot.';return;}
     let act='';if(it.food)act=`<button class="chip" data-eat="${i}" style="margin-left:6px">Eat</button>`;if(it.type==='F'||it.type==='K')act=`<button class="chip" data-place="${it.key}" style="margin-left:6px">Hold</button>`;
     T.innerHTML=`<b>${it.name}</b>${it.qty>1?` ×${it.qty}`:''}${act}<br>${it.desc}`;
-    const eb=T.querySelector('[data-eat]');if(eb)eb.addEventListener('click',()=>{S.paused=false;S.slotSel=i;slotUse(i);slotUse(i);S.paused=true;renderItems();});
+    const eb=T.querySelector('[data-eat]');if(eb)eb.addEventListener('click',()=>{S.paused=false;S.slotSel=i;slotUse(i);S.paused=true;renderItems();});
     const pb=T.querySelector('[data-place]');if(pb)pb.addEventListener('click',()=>{holdItem(pb.dataset.place);});};
   paint();
   // drag and drop (mouse and touch): press, move past a few pixels to drag; release on a slot to swap, on the bin to throw away
