@@ -287,7 +287,7 @@ function hsMusicBoxScene(done){const px=-46,pz=-8.6;
   let open=0,ca=0,pt=0,song=0;const CAM={x:px-1.1,z:pz+.4};
   stage({hour:Math.min(Math.max(S.hour,16),18),player:{x:you.x,z:you.z,dir:'W'},cast:{agnes:{x:agn.x,z:agn.z,dir:'S'}},cam:CAM,lead:700,
     light(L){if(ca>0)glowAt(sx(child.x)+5,sz(child.z)-18,54,[150,160,180],.14*ca);hsVignette(.22);},
-    props:[{x:well.x,z:well.z,draw(X,Y){drawSpr('well',X,Y);}},
+    props:[{x:well.x,z:well.z,draw(X,Y){shadow(X,Y,16);drawSpr('well',X,Y);}},
       {x:child.x,z:child.z+.01,draw(X,Y,t){hsChild(X,Y,ca,pt);}},
       {get x(){return agn.x-.55;},get z(){return agn.z-.02;},draw(X,Y){if(open>0)hsMusicBox(X,Y-30,open>.4);}}],
     tick(dt){if(song>0){song-=dt;}},
@@ -333,7 +333,7 @@ function hsLakeBelow(done){const bx=pond.x,bz=pond.z;
   stage({hour:Math.min(Math.max(S.hour,14),17),player:{x:bx,z:bz,dir:'E',hide:true},cast:{},cam:CAM,lead:850,restore:true,
     light(L){hsVignette(.26);},
     tick(dt){if(drop>0&&run<96)run+=dt*34;if(tug>0)tug+=dt;},
-    props:[{x:bx,z:bz+.4,draw(X,Y,t){drawSpr('otto',X-2,Y-12,'walk','S',0);drawSpr('wk_boat',X,Y+2);}},   // the real rowboat, with Otto sitting in it (the boat hull covers his legs)
+    props:[{x:bx,z:bz+.4,draw(X,Y,t){shadow(X,Y+9,30);drawSpr('otto',X,Y-2,'walk','S',0);drawSpr('wk_boat',X,Y+6);}},   // the real rowboat with a contact shadow; Otto sits so the boat's near rim crosses his lap
       {x:bx+.02,z:bz+.5,draw(X,Y,t){if(drop>0&&!cut)hsLine(X+9,Y-8,Math.min(run,VH-Y-8),tug>0?tug:0);}}],
     beats:[
       {hold:1.2,act(){stgTitle('Otto — The lake below');}},
@@ -490,7 +490,7 @@ function hsTheGuest(done){const R=ROOMS.home_harlow||ROOMS.store,ox=R.ox,oz=R.oz
   stage({room:ROOMS.home_harlow?'home_harlow':'store',hour:3.0,keepHour:true,player:{x:you.x,z:you.z,dir:'N'},cast:{hob:{x:hob.x,z:hob.z,dir:'E'}},cam:CAM,lead:850,
     light(L){glowAt(sx(ox+6)+66,sz(tz)-16,38,[255,196,120],.36-.12*lean);hsVignette(.5);},
     props:[{x:0,z:9e5,draw(){ctx2.fillStyle='rgba(5,5,9,.62)';ctx2.fillRect(0,0,VW,VH);}},   // the dead of night
-      {x:ox+6,z:tz,draw(X,Y,t){drawSpr('in_goodstable',X,Y);const px=X+40,py=Y-20;hsPlate(px,py,eaten);hsCandle(px+15,py+2,lean,1);   // the real laden banquet table; the plate + candle at the far end sit on it
+      {x:ox+6,z:tz,draw(X,Y,t){shadow(X,Y,28);drawSpr('in_goodstable',X,Y);const px=X+26,py=Y-26;hsPlate(px,py,eaten);hsCandle(px+14,py+1,lean,1);   // the real laden banquet table (grounded); the player's plate + candle sit ON the table top
         if(fork>0&&!eaten){ctx2.fillStyle='#b8b0a0';ctx2.fillRect(px-8+Math.round(fork*3),py-2,1,5);}}}],
     beats:[
       {hold:1.0,face:{hob:'E',you:'N'},act(){stgTitle('Hob — Who eats it');}},
@@ -509,7 +509,7 @@ function hsNellBox(done){const R=ROOMS.shop_carp||ROOMS.store,ox=R.ox,oz=R.oz;
   const nell={x:ox+5,z:oz+2.5},you={x:ox+5,z:oz+4.6},box={x:ox+5,z:oz+3.55};let show=0;const CAM={x:ox+5,z:oz+3.5};
   stage({room:ROOMS.shop_carp?'shop_carp':'store',hour:Math.min(Math.max(S.hour,10),16),player:{x:you.x,z:you.z,dir:'N'},cast:{nell:{x:nell.x,z:nell.z,dir:'S'}},cam:CAM,lead:750,
     light(L){glowAt(sx(box.x),sz(box.z)-18,34,[255,214,140],.26);hsVignette(.22);},
-    props:[{x:box.x,z:box.z,draw(X,Y){if(show>0){ctx2.save();ctx2.globalAlpha=Math.min(1,show);drawSpr('in_hopechest',X,Y);ctx2.restore();}}}],   // the real carved hope-chest
+    props:[{x:box.x,z:box.z,draw(X,Y){if(show>0){ctx2.save();ctx2.globalAlpha=Math.min(1,show);shadow(X,Y,16);drawSpr('in_hopechest',X,Y);ctx2.restore();}}}],   // the real carved hope-chest, grounded
     beats:[
       {hold:.9,face:{nell:'S',you:'N'},act(){stgTitle('Nell — The box is finished');}},
       {who:'nell',text:'It’s done. Oak, dovetailed, lined with felt. Best thing these hands ever made.',expr:'happy',act(){show=.01;},update(dt){show=Math.min(1,show+dt*1.4);}},
@@ -526,7 +526,7 @@ function hsBellRopeScene(done){const R=ROOMS.church,ox=R.ox,oz=R.oz;
   const hale={x:ox+5.9,z:oz+3.0},you={x:ox+4.2,z:oz+3.6},rope={x:ox+5,z:oz+3.2};const CAM={x:ox+5,z:oz+3.2};
   stage({room:'church',hour:Math.min(Math.max(S.hour,9),17),player:{x:you.x,z:you.z,dir:'N'},cast:{hale:{x:hale.x,z:hale.z,dir:'S'}},cam:{x:CAM.x,z:CAM.z+.4},lead:850,
     light(L){glowAt(sx(ox+5),sz(oz+1.6)-20,90,[255,196,120],.26);hsVignette(.28);},
-    props:[{x:rope.x,z:rope.z,draw(X,Y,t){drawSpr('wk_bell',X,Y);drawSpr('wk_rope',X+20,Y+2);drawSpr('wk_rope',X+30,Y+5);}}],   // the real bell on its frame, with coils of the cut old rope on the floor
+    props:[{x:rope.x,z:rope.z,draw(X,Y,t){shadow(X,Y,20);drawSpr('wk_bell',X,Y);shadow(X+26,Y+7,9);drawSpr('wk_rope',X+26,Y+6);}}],   // the real bell on its frame, grounded, with one coil of the cut old rope on the floor
     beats:[
       {hold:1.0,face:{hale:'S',you:'N'},act(){stgTitle('Hale — The bell rope');}},
       {who:'hale',text:'This rope is new. White, smooth. I replace it every year. Do you want to know why?',expr:'neutral'},
@@ -540,7 +540,7 @@ function hsBellRopeScene(done){const R=ROOMS.church,ox=R.ox,oz=R.oz;
 
 // ---------- 14. Gideon — "A blade that remembers": the forge, a knife made from thirty years of Tithe nails ----------
 function hsNailBladeScene(done){const R=ROOMS.shop_forge||ROOMS.store,ox=R.ox,oz=R.oz;
-  const gid={x:ox+4.4,z:oz+3.0},you={x:ox+5.8,z:oz+4.2},blade={x:ox+5.1,z:oz+3.5};let wrap=0,glow=0;const CAM={x:ox+4.6,z:oz+3.4};
+  const gid={x:ox+3.4,z:oz+4.0},you={x:ox+5.8,z:oz+4.2},blade={x:ox+5.1,z:oz+3.5};let wrap=0,glow=0;const CAM={x:ox+4.6,z:oz+3.6};
   stage({room:ROOMS.shop_forge?'shop_forge':'store',hour:Math.min(Math.max(S.hour,9),17),player:{x:you.x,z:you.z,dir:'N'},cast:{gideon:{x:gid.x,z:gid.z,dir:'E'}},cam:CAM,lead:800,
     light(L){glowAt(sx(ox+2.2),sz(oz+1.3)-16,70,[255,150,60],.5+.12*Math.sin(STG.t*5));hsVignette(.3);},
     props:[{get x(){return P.x;},get z(){return P.z+.01;},draw(X,Y){if(wrap<=0)return;
@@ -581,7 +581,7 @@ function hsDunnSlips(done){const R=ROOMS.home_dunn||ROOMS.store,ox=R.ox,oz=R.oz;
   stage({room:ROOMS.home_dunn?'home_dunn':'store',hour:Math.min(Math.max(S.hour,17),19),player:{x:you.x,z:you.z,dir:'N'},cast:{dunn:{x:dunn.x,z:dunn.z,dir:'S'}},cam:CAM,lead:800,
     light(L){glowAt(sx(stove.x),sz(stove.z)-14,40,[255,150,60],.3+(burn>0?.3*burn:0));hsVignette(.3);},
     props:[{get x(){const n=npcById('dunn');return n?n.x:dunn.x;},get z(){const n=npcById('dunn');return (n?n.z:dunn.z)+.01;},draw(X,Y){if(hat>0){ctx2.save();ctx2.globalAlpha=Math.min(1,hat);hsSheriffHat(X,Y-20,slip<2?1:0);ctx2.restore();}}},
-      {x:stove.x,z:stove.z,draw(X,Y,t){drawSpr('in_stove',X,Y);if(burn>0){ctx2.save();ctx2.globalAlpha=Math.min(1,burn);ctx2.fillStyle='#ffd867';ctx2.fillRect(Math.round(X)-6,Math.round(Y)-34-burn*8,12,8);ctx2.fillStyle='#ff8c2a';ctx2.fillRect(Math.round(X)-4,Math.round(Y)-32-burn*10,8,6);ctx2.restore();}}}],   // the real cast-iron stove; the slips flare up the flue as they burn
+      {x:stove.x,z:stove.z,draw(X,Y,t){shadow(X,Y,13);drawSpr('in_stove',X,Y);if(burn>0){ctx2.save();ctx2.globalAlpha=Math.min(1,burn);ctx2.fillStyle='#ffd867';ctx2.fillRect(Math.round(X)-6,Math.round(Y)-34-burn*8,12,8);ctx2.fillStyle='#ff8c2a';ctx2.fillRect(Math.round(X)-4,Math.round(Y)-32-burn*10,8,6);ctx2.restore();}}}],   // the real cast-iron stove; the slips flare up the flue as they burn
     tick(dt){if(burn>0)burn=Math.max(0,burn-dt*.7);},
     beats:[
       {hold:.9,face:{dunn:'S',you:'N'},act(){stgTitle('Dunn — His own name');}},
@@ -631,7 +631,7 @@ function hsHusbandTree(done){const tx=46,tz=58;
   const orla={x:tx+1.1,z:tz+.4},you={x:tx-1.2,z:tz+.6},grave={x:tx,z:tz-.6};let ap=0;const CAM={x:tx,z:tz+.3};
   stage({hour:Math.min(Math.max(S.hour,10),16),player:{x:you.x,z:you.z,dir:'E'},cast:{orla:{x:orla.x,z:orla.z,dir:'W'}},cam:CAM,lead:800,
     light(L){hsVignette(.2);},
-    props:[{x:grave.x,z:grave.z,draw(X,Y){drawSpr('grave_0',X,Y);}},
+    props:[{x:grave.x,z:grave.z,draw(X,Y){shadow(X,Y,12);drawSpr('grave_0',X,Y);}},
       {get x(){const n=npcById('orla');return n?n.x:orla.x;},get z(){const n=npcById('orla');return (n?n.z:orla.z)+.01;},draw(X,Y){if(ap>0){ctx2.save();ctx2.globalAlpha=Math.min(1,ap);hsAppleHeld(X-6,Y-20);ctx2.restore();}}}],
     beats:[
       {hold:1.0,face:{orla:'W',you:'E'},act(){stgTitle('Orla — The husband tree');}},
