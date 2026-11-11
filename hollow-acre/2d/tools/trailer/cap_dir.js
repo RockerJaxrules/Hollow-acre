@@ -48,7 +48,7 @@ window.__startShot=function(name){
     cine={hidePlayer:true,cam:C.cam,
       update(dt){C.u+=dt; C.cam.x=6+Math.sin(C.u*.4)*.35;},   // a lone lamp in the black, drifting — the subliminal face is laid in at the edit
       drawables(D){},
-      draw(){const px=sx(6),py=sz(-8.6); const br=180+Math.sin(C.u*7)*6; __dark(px,py,66,br,.975); __vig(.64);}};
+      draw(){__vig(.3);}};
   }
   // ---- the approach: you face us; it comes down out of the dark behind you and grows
   else if(name==='approach'){
@@ -65,15 +65,13 @@ window.__startShot=function(name){
         const al=__cl(.3,1.0,u);
         const wf=frameOf('hollow','walk',u*5.0);
         D.push({z:hz,mind:1,draw(){__hol(6+lean*0.01,hz,'walk','S',wf,sc,al);if(t>.3)__ember(6,hz,sc,Math.min(.9,(t-.3)*1.5));}});},
-      draw(){const px=sx(6),py=sz(-8.4);
-        const pool=185-52*__cl(2.4,3.6,C.u);     // the safe pool tightens as it arrives over you
-        __dark(px,py,56,pool,.93); __vig(.5);}};
+      draw(){__vig(.32);}};
   }
   // ---- the well: a pale girl rises out of the mouth and points back down into the water
   else if(name==='well'){
     // faithful to the Agnes heart event: the ghost girl (Ruth) COMES TO STAND just left of the well,
     // translucent, looking at you, then lifts an arm and points down into the well.
-    S.hour=20.4; P.x=7.3; P.z=-7.6; P.dir='N'; P.clip='idle'; P.spd=0;
+    S.hour=19.0; P.x=7.0; P.z=-8.4; P.dir='N'; P.clip='idle'; P.spd=0;   // the Agnes event is at dusk, not deep night
     C.cam={x:6.8,z:-9.0};
     cine={hidePlayer:true,cam:C.cam,
       update(dt){C.u+=dt;},
@@ -84,7 +82,7 @@ window.__startShot=function(name){
         D.push({z:-9.86,mind:1,draw(){const X=sx(6.18),Y=sz(-9.86)-bob;
           const g=ctx2.createRadialGradient(X,Y-30,0,X,Y-30,66);g.addColorStop(0,'rgba(188,218,228,'+(a*.55)+')');g.addColorStop(1,'rgba(170,205,215,0)');ctx2.fillStyle=g;ctx2.fillRect(X-66,Y-92,132,120);  // a cold drowned pallor
           drawSpr('ruth',X,Y,pt?'point':'walk',pt?'E':'S',0,{alpha:a,scale:1.3});}});},
-      draw(){const px=sx(6.8),py=sz(-9.6); __dark(px,py,150,330,.64); __vig(.55);}};
+      draw(){__vig(.34);}};
   }
   // ---- the corn: push down the row; the scarecrow's head turns to you; then it is off the post and nearer
   else if(name==='corn'){
@@ -111,7 +109,7 @@ window.__startShot=function(name){
         const cz=-8.2 + (-5.4-(-8.2))*gain;         // crawls from behind, closing on you
         const sc=1.0+gain*.3;
         D.push({z:cz,mind:1,draw(){__hol(.1,cz,'crawl','S',frameOf('hollow','crawl',u*6)||0,sc,1);__ember(.1,cz,sc*.8,.85);}});},
-      draw(){const px=sx(0),py=sz(-3); __dark(px,py,120,320,.82); __vig(.5);}};
+      draw(){__vig(.32);}};
   }
   // ---- the button: the face, held
   else if(name==='face'){
