@@ -974,6 +974,15 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 
 - A tall narrow side view needs its lid a full step lighter than the end panel and the contents strip wider (5-6 px) and brighter than the panel, or it reads as a post or clock case; a candle flame must be 3-4 px with a pale core and the brightest thing on the piece.
 
+## Furniture family round 2 (Nov 11)
+- A wall mirror reads at 1x with a lit top-left frame bevel, a thin dull gilt slip and grey-green glass carrying one diagonal sheen; a plain blue pane reads as a window or cabinet door.
+- A bench back of planks with a see-through gap between them reads as a fence; three raised panels read as drawers; two long raised panels and a dark under-seat that fades to the floor read as a pew.
+- A lying barrel's staves run its length: bowed horizontal seams following the belly, hoops as 2 px vertical bands (lit ridge, dark underside). Vertical stave lines make it an upright cask squashed wide.
+- A hood drawn as stacked curved bands (far lip, dark inside, lit rim) reads as a fan, harp or piano lid: one closed shell, lit top-left, the inside only as a plum crescent under the open edge.
+- A rolling tool chest in oxblood needs the lid a full step lighter than the floor and each drawer a lit lip with a dark seam under it, or it sinks into a brown floor.
+- A leaning crate lid at 1x reads as a rolled mat or a ladder; leave it out.
+- Dimming a quilt makes any stain or speckled hem the loudest thing on it: drop the blotches when the patches go down a step.
+
 ## Benches (Nov 10: round 1, 10 pieces both orders; the garage workbench 6 installed)
 - A long bench turned end-on (its length running up the screen) reads as a cabinet or glass door whenever its top has a frame or a different tone from the front's worktop: the turned top must be the same lit worktop green as the front, edge to edge, with the props spaced up it and overlapping. Parked after 2 more rounds at 4 (Nov 11). (bench views r1-r2)
 - [parked after 6 rounds, Nov 11] A cobbler's bench stuck at 5-5.5 as "a table with an icon on it": the trade needs its own silhouette (a low sloped bench seat with the last post rising from it), not a tabletop. Laces as a column of alternating 1 px checks read as a zip: draw crossed laces or eyelet pairs. Fill an empty half of a worktop with a different-hue piece (oxblood hide, a spool), and keep tool heads pale and lying flat so they read at 1x.
