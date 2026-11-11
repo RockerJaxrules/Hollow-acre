@@ -39,21 +39,26 @@ function hsWell(X,Y){   // a round stone well: outlined stones with a top-left-l
   for(const px of [X-13,X+9]){ctx2.fillStyle=WO;ctx2.fillRect(px,Y-36,4,31);ctx2.fillStyle=W[1];ctx2.fillRect(px+1,Y-35,3,30);ctx2.fillStyle=W[3];ctx2.fillRect(px+1,Y-35,1,30);}   // two wood posts, lit on the left
   ctx2.fillStyle=WO;ctx2.fillRect(X-20,Y-44,40,9);ctx2.fillStyle=W[1];ctx2.fillRect(X-19,Y-43,38,7);ctx2.fillStyle=W[2];ctx2.fillRect(X-19,Y-43,38,2);ctx2.fillStyle=W[3];ctx2.fillRect(X-19,Y-43,38,1);
   ctx2.fillStyle=WO;for(let i=-16;i<18;i+=5)ctx2.fillRect(X+i,Y-41,1,5);ctx2.fillStyle=W[0];ctx2.fillRect(X-19,Y-37,38,1);}   // the shingle seams + eave shade
-function hsChild(X,Y,a,point){   // a small faceless child in a pale dress; point 0..1 extends one arm down over the well rim
-  if(a<=0)return;ctx2.save();ctx2.globalAlpha=Math.min(1,a);
-  const dr='#d6d2c6',drS='#9a94a0',sh='#6a6670',sk='#c6b69a',skS='#9e8a70',hair='#4e3c2c';   // light from top-left: lit left, plum-leaning shadow on the right
-  ctx2.fillStyle='rgba(18,12,14,.5)';ctx2.beginPath();ctx2.ellipse(X,Y+4,7,2.2,0,0,6.283);ctx2.fill();   // a drop shadow, so she stands on the ground and doesn't float
-  ctx2.fillStyle=sk;ctx2.fillRect(X-3,Y-1,2,4);ctx2.fillRect(X+1,Y-1,2,4);ctx2.fillStyle=skS;ctx2.fillRect(X-1,Y-1,1,4);ctx2.fillRect(X+3,Y-1,1,4);ctx2.fillStyle='#2a1c12';ctx2.fillRect(X-3,Y+2,2,1);ctx2.fillRect(X+1,Y+2,2,1);   // two little legs with a shaded inner edge
-  ctx2.fillStyle=sh;ctx2.beginPath();ctx2.moveTo(X-4,Y-14);ctx2.lineTo(X+4,Y-14);ctx2.lineTo(X+7,Y-1);ctx2.lineTo(X-7,Y-1);ctx2.closePath();ctx2.fill();   // the dress: a triangle, narrow at the shoulders, flaring to the hem
+function hsChild(X,Y,a,point,s){   // a ghost girl in a white dress, facing us; point 0..1 raises her right arm to point down into the well; s scales her up
+  if(a<=0)return;ctx2.save();if(s&&s!==1){ctx2.translate(Math.round(X),Math.round(Y));ctx2.scale(s,s);X=0;Y=0;}
+  const app=Math.min(1,a);
+  // cool, luminous, desaturated-blue ghost palette (contrasts the warm grass/dirt so she reads as a WHITE-dress girl, not a grey wisp)
+  const dr='#eaf0f8',drL='#ffffff',drS='#aab6cc',sh='#808ca6',sk='#dfe6f0',skS='#aab6cc',hair='#79819a',hairL='#99a2ba',eye='#3a4258';
+  // (1) a soft cold back-glow hugging the figure, so her silhouette separates from the busy background without becoming a light column
+  ctx2.globalAlpha=app*.42;const gg=ctx2.createRadialGradient(X,Y-11,1,X,Y-11,14);gg.addColorStop(0,'rgba(206,218,242,.85)');gg.addColorStop(.6,'rgba(196,210,238,.35)');gg.addColorStop(1,'rgba(196,210,238,0)');ctx2.fillStyle=gg;ctx2.beginPath();ctx2.ellipse(X,Y-11,9,14,0,0,6.283);ctx2.fill();
+  ctx2.globalAlpha=app;
+  ctx2.fillStyle='rgba(40,44,60,.28)';ctx2.beginPath();ctx2.ellipse(X,Y+4,7,2.2,0,0,6.283);ctx2.fill();   // a faint cold pool beneath her — present but ghost-light
+  ctx2.fillStyle=sk;ctx2.fillRect(X-3,Y-1,2,4);ctx2.fillRect(X+1,Y-1,2,4);ctx2.fillStyle=skS;ctx2.fillRect(X-1,Y-1,1,4);ctx2.fillRect(X+3,Y-1,1,4);ctx2.fillStyle=sh;ctx2.fillRect(X-3,Y+2,2,1);ctx2.fillRect(X+1,Y+2,2,1);   // two little legs with a shaded inner edge
+  ctx2.fillStyle=sh;ctx2.beginPath();ctx2.moveTo(X-4,Y-14);ctx2.lineTo(X+4,Y-14);ctx2.lineTo(X+7,Y-1);ctx2.lineTo(X-7,Y-1);ctx2.closePath();ctx2.fill();   // the dress: a triangle, narrow at the shoulders, flaring to the hem (dark edge)
   ctx2.fillStyle=dr;ctx2.beginPath();ctx2.moveTo(X-3,Y-13);ctx2.lineTo(X+3,Y-13);ctx2.lineTo(X+5,Y-2);ctx2.lineTo(X-5,Y-2);ctx2.closePath();ctx2.fill();
-  ctx2.fillStyle=drS;ctx2.beginPath();ctx2.moveTo(X+2,Y-12);ctx2.lineTo(X+3,Y-13);ctx2.lineTo(X+5,Y-2);ctx2.lineTo(X+2,Y-2);ctx2.closePath();ctx2.fill();   // the dress' plum shadow side (light is top-left, so the right falls dark)
-  ctx2.fillStyle='#e6e2d6';ctx2.beginPath();ctx2.moveTo(X-3,Y-13);ctx2.lineTo(X-1,Y-13);ctx2.lineTo(X-3,Y-2);ctx2.lineTo(X-5,Y-2);ctx2.closePath();ctx2.fill();   // the lit left side
+  ctx2.fillStyle=drS;ctx2.beginPath();ctx2.moveTo(X+2,Y-12);ctx2.lineTo(X+3,Y-13);ctx2.lineTo(X+5,Y-2);ctx2.lineTo(X+2,Y-2);ctx2.closePath();ctx2.fill();   // the dress' cold shadow side (light is top-left, so the right falls dark)
+  ctx2.fillStyle=drL;ctx2.beginPath();ctx2.moveTo(X-3,Y-13);ctx2.lineTo(X-1,Y-13);ctx2.lineTo(X-3,Y-2);ctx2.lineTo(X-5,Y-2);ctx2.closePath();ctx2.fill();   // the lit left side, brightest white
   ctx2.fillStyle=hair;ctx2.beginPath();ctx2.ellipse(X,Y-18,5,5.5,0,0,6.283);ctx2.fill();ctx2.fillStyle=sk;ctx2.beginPath();ctx2.ellipse(X-0.3,Y-17,3.4,4,0,0,6.283);ctx2.fill();ctx2.fillStyle=skS;ctx2.beginPath();ctx2.ellipse(X+1.6,Y-16,1.6,3,0,0,6.283);ctx2.fill();   // round head, lit left / shaded right
-  ctx2.fillStyle='rgba(28,20,24,.6)';ctx2.fillRect(X-2,Y-19,1,3);ctx2.fillRect(X+1,Y-19,1,3);   // two hollow, featureless eyes — it reads as a face, and it is wrong
-  ctx2.fillStyle=hair;ctx2.fillRect(X-5,Y-22,10,5);ctx2.fillRect(X-5,Y-19,2,6);ctx2.fillRect(X+3,Y-19,2,6);   // hair frames the face
-  {ctx2.fillStyle='#2a2024';ctx2.fillRect(X-7,Y-12,2,7);ctx2.fillStyle=sk;ctx2.fillRect(X-6.5,Y-11,1.4,6);ctx2.fillStyle=skS;ctx2.fillRect(X-6.5,Y-6,2,2);}   // the LEFT arm, resting at her side (so she isn't one-armed), tapered and shaded
-  if(point>0){const hy=Y-8+Math.round(point*6);   // a short BENT arm at the right side pointing down at the well — tapered, connected at the shoulder, not a reaching tube
-    ctx2.fillStyle='#2a2024';ctx2.beginPath();ctx2.moveTo(X+3,Y-13);ctx2.lineTo(X+6,Y-12);ctx2.lineTo(X+8,hy);ctx2.lineTo(X+5,hy);ctx2.closePath();ctx2.fill();   // a soft dark edge, outside the dress
+  ctx2.fillStyle=eye;ctx2.fillRect(X-2,Y-19,1,3);ctx2.fillRect(X+1,Y-19,1,3);   // two hollow, featureless eyes — reads as a face that is wrong
+  ctx2.fillStyle=hair;ctx2.fillRect(X-5,Y-22,10,5);ctx2.fillRect(X-5,Y-19,2,6);ctx2.fillRect(X+3,Y-19,2,6);ctx2.fillStyle=hairL;ctx2.fillRect(X-5,Y-22,5,2);ctx2.fillRect(X-5,Y-19,1,5);   // hair frames the face, lit top-left
+  {ctx2.fillStyle=sh;ctx2.fillRect(X-7,Y-12,2,7);ctx2.fillStyle=sk;ctx2.fillRect(X-6.5,Y-11,1.4,6);ctx2.fillStyle=skS;ctx2.fillRect(X-6.5,Y-6,2,2);}   // the LEFT arm, resting at her side, tapered and shaded
+  if(point>0){const hy=Y-8+Math.round(point*6);   // a short BENT arm at the right side pointing down into the well — tapered, connected at the shoulder, not a reaching tube
+    ctx2.fillStyle=sh;ctx2.beginPath();ctx2.moveTo(X+3,Y-13);ctx2.lineTo(X+6,Y-12);ctx2.lineTo(X+8,hy);ctx2.lineTo(X+5,hy);ctx2.closePath();ctx2.fill();   // a soft dark edge, outside the dress
     ctx2.fillStyle=sk;ctx2.beginPath();ctx2.moveTo(X+4,Y-12);ctx2.lineTo(X+6,Y-11.5);ctx2.lineTo(X+7.5,hy-1);ctx2.lineTo(X+5.5,hy-1);ctx2.closePath();ctx2.fill();   // the arm, tapering shoulder→wrist
     ctx2.fillStyle=skS;ctx2.fillRect(X+6,Y-10,1.5,hy-Y+9);   // its shaded right side
     ctx2.fillStyle=sk;ctx2.fillRect(X+5,hy-1,3,3);ctx2.fillStyle=skS;ctx2.fillRect(X+5,hy+1,3,1);}   // the little hand, pointing down
@@ -61,8 +66,14 @@ function hsChild(X,Y,a,point){   // a small faceless child in a pale dress; poin
 function hsMusicBox(X,Y,open){   // a little wooden box on the rail; lid open shows a turning brass cylinder
   const WO=HSP.woodO,W=HSP.wood,B=HSP.brass;hsSh(X,Y+2,9,2.5);
   hsBoxO(X-7,Y-5,15,6,W,WO);   // the box body: outline, ramp, lit top+left
-  if(open){ctx2.fillStyle=WO;ctx2.fillRect(X-7,Y-12,15,4);ctx2.fillStyle=W[2];ctx2.fillRect(X-6,Y-11,13,2);ctx2.fillStyle=W[3];ctx2.fillRect(X-6,Y-11,13,1);   // the raised lid
-    ctx2.fillStyle=B[0];ctx2.fillRect(X-5,Y-5,11,2);ctx2.fillStyle=B[2];ctx2.fillRect(X-5,Y-5,11,1);ctx2.fillStyle=B[3];ctx2.fillRect(X-4+((Date.now()/90|0)%10),Y-5,1,1);}}   // the brass cylinder + a turning pin
+  ctx2.fillStyle=W[4];ctx2.fillRect(X-6,Y-5,13,1);   // a lit top rim so the box reads out of the dark stump
+  if(open){
+    ctx2.fillStyle=WO;ctx2.fillRect(X-6,Y-7,13,2);   // the dark recessed interior the comb sits in
+    ctx2.fillStyle=B[1];ctx2.fillRect(X-5,Y-7,11,3);ctx2.fillStyle=B[2];ctx2.fillRect(X-5,Y-7,11,1);   // the bright brass comb/cylinder
+    ctx2.fillStyle=B[3];ctx2.fillRect(X-5+((Date.now()/90|0)%10),Y-7,2,2);   // a turning pin, glinting
+    ctx2.fillStyle=W[1];ctx2.fillRect(X-6,Y-8,13,1);   // the hinge/back panel joining lid to body (so the lid doesn't float)
+    ctx2.fillStyle=WO;ctx2.fillRect(X-7,Y-13,15,4);ctx2.fillStyle=W[2];ctx2.fillRect(X-6,Y-12,13,2);ctx2.fillStyle=W[3];ctx2.fillRect(X-6,Y-12,13,1);   // the raised, tilted-back lid
+    ctx2.fillStyle=W[0];ctx2.fillRect(X-6,Y-9,13,1);}}   // the lid's shaded underside
 function hsGrave(X,Y,dug,W){   // a freshly dug grave, drawn to the GAME's sprite conventions: a 5-step hue-shifted dirt ramp, bold outlines, hand-placed clod texture, strong lit-top vs shaded-sides, a #322125 drop shadow, no gradients
   const w=W||28,h=Math.round(16+dug*5);
   const OUT='#1a1016',D='#2c1d14',M='#46301c',L='#664526',HI='#8a6338',PIT='#0a0a10';
@@ -111,14 +122,14 @@ function hsFacade(X,Y,w){   // just the tall dark house front that hides the wor
   const o='#07060a',H=132;ctx2.fillStyle=o;ctx2.fillRect(X-w/2,Y-H,w,H+4);ctx2.fillStyle='#13101a';ctx2.fillRect(X-w/2+3,Y-H+3,w-6,H);
   for(let i=1;i<4;i++){ctx2.fillStyle='rgba(6,5,9,.6)';ctx2.fillRect(X-w/2+3,Y-H+3+i*Math.round(H/4),w-6,2);}
   ctx2.fillStyle=o;ctx2.fillRect(X-w/2-7,Y-H-14,w+14,18);ctx2.fillStyle='#1a1622';ctx2.fillRect(X-w/2-5,Y-H-12,w+10,13);}   // the eave/roof
-function hsLitWin(X,Y,eyes){   // a bright, warm lit window with a dark figure; drawn in the light pass so it glows over the night
+function hsLitWin(X,Y,eyes){   // a bright, warm lit window with a dark watcher at the glass; drawn in the light pass so it glows over the night
   ctx2.save();ctx2.globalCompositeOperation='source-over';ctx2.globalAlpha=1;
-  const ww=30,wh=36,wx=X-ww/2,wy=Y-96;ctx2.fillStyle='#060507';ctx2.fillRect(wx-4,wy-4,ww+8,wh+8);
-  ctx2.fillStyle='#e7b85c';ctx2.fillRect(wx,wy,ww,wh);ctx2.fillStyle='#f7d98a';ctx2.fillRect(wx+1,wy+1,ww-2,wh-2);ctx2.fillStyle='#ffeeb4';ctx2.fillRect(wx+2,wy+2,ww-4,7);
-  const fx=X,fb=wy+wh;ctx2.fillStyle='#0a0709';ctx2.fillRect(fx-10,fb-27,20,27);ctx2.fillStyle='#0f0b0d';ctx2.fillRect(fx-9,fb-26,18,26);
-  ctx2.fillStyle='#0a0709';ctx2.fillRect(fx-7,fb-36,14,12);ctx2.fillStyle='#120d10';ctx2.fillRect(fx-6,fb-35,12,11);           // head + shoulders
-  if(eyes){ctx2.fillStyle='#070405';ctx2.fillRect(fx-6,fb-36,14,3);ctx2.fillStyle='#e8f0f2';ctx2.fillRect(fx-4,fb-31,3,2);ctx2.fillRect(fx+2,fb-31,3,2);}   // facing out: two pale eyes
-  ctx2.fillStyle='#060507';ctx2.fillRect(wx+ww/2-1,wy,2,wh);ctx2.fillRect(wx,wy+wh/2-1,ww,2);ctx2.restore();}                   // mullions
+  const ww=38,wh=46,wx=X-ww/2,wy=Y-82;ctx2.fillStyle='#050406';ctx2.fillRect(wx-5,wy-5,ww+10,wh+10);   // the dark frame
+  ctx2.fillStyle='#caa050';ctx2.fillRect(wx,wy,ww,wh);ctx2.fillStyle='#f0cf7e';ctx2.fillRect(wx+1,wy+1,ww-2,wh-2);ctx2.fillStyle='#fff0bf';ctx2.fillRect(wx+2,wy+2,ww-4,10);   // warm pane: mid, bright, hottest top
+  const fx=X,fb=wy+wh;ctx2.fillStyle='#090608';ctx2.fillRect(fx-12,fb-33,24,33);ctx2.fillStyle='#0f0b0d';ctx2.fillRect(fx-11,fb-32,22,32);   // the body, a dark back to the glass
+  ctx2.fillStyle='#090608';ctx2.fillRect(fx-8,fb-44,16,14);ctx2.fillStyle='#120d10';ctx2.fillRect(fx-7,fb-43,14,13);           // head + shoulders
+  if(eyes){ctx2.fillStyle='#060304';ctx2.fillRect(fx-8,fb-44,16,4);ctx2.fillStyle='#e8f0f2';ctx2.fillRect(fx-5,fb-38,3,2);ctx2.fillRect(fx+3,fb-38,3,2);}   // facing OUT: two pale eyes
+  ctx2.fillStyle='#050406';ctx2.fillRect(wx+ww/2-1,wy,2,wh);ctx2.fillRect(wx,wy+wh/2-1,ww,2);ctx2.restore();}                   // mullions
 function hsTallFig(X,Y,h,k){   // a too-tall figure in a window; k=0 a plain man, k=1 the carved-pumpkin Hollow lit from within
   const hy=Y-h-1,sy=Y-h+8;   // the head centre, and the shoulder line below a thin neck
   if(k){ctx2.fillStyle='#14141e';ctx2.beginPath();ctx2.moveTo(X-12,sy+1);ctx2.lineTo(X-11,hy-5);ctx2.lineTo(X-6,hy-10);ctx2.lineTo(X,hy-11);ctx2.lineTo(X+6,hy-10);ctx2.lineTo(X+11,hy-5);ctx2.lineTo(X+12,sy+1);ctx2.closePath();ctx2.fill();   // a cloth HOOD framing the head — hard-edged (not a gradient halo), so the head reads attached to a cloaked body
@@ -255,11 +266,22 @@ function hsClosingTime(done){const R=ROOMS.store,ox=R.ox,oz=R.oz;MAEV.on=false;
   let sign=0,keys=0,fig=-1,figK=0;const CAM={x:ox+14,z:oz+4.5};
   stage({room:'store',hour:Math.min(Math.max(S.hour,11.5),13),player:{x:you0.x,z:you0.z,dir:'N'},cast:{mae:{x:ox+14,z:cz,dir:'S'}},cam:CAM,lead:700,
     light(L){glowAt(sx(ox+9),sz(oz+2.4)-40,120,[255,186,110],.30);if(fig>=0)glowAt(sx(ox+14),sz(oz+1.5)-24,66,[150,170,190],.2+.12*Math.sin(STG.t*3));},
-    props:[{x:ox+14,z:oz+1.5,draw(X,Y,t){   // a window set in the wall behind the counter; the figure rises in it, becomes the Hollow, then is gone
-        ctx2.fillStyle='#06060a';ctx2.fillRect(X-20,Y-46,40,42);
-        ctx2.fillStyle=fig>=0?'#5c6672':'#161b24';ctx2.fillRect(X-17,Y-43,34,36);ctx2.fillStyle=fig>=0?'#6e7886':'#1e2630';ctx2.fillRect(X-17,Y-43,34,7);   // the pane: dusk sky, moonlit when it is there
-        if(fig>=0)drawSpr('hollow',X,Y+8,'walk','S',0,{scale:.32+fig*.14,alpha:Math.min(1,.4+fig)});   // the real Hollow, small and distant in the back window
-        ctx2.fillStyle='#06060a';ctx2.fillRect(X-1,Y-43,2,36);ctx2.fillRect(X-17,Y-26,34,2);}},   // mullions over the figure
+    props:[{x:ox+14,z:oz+1.5,draw(X,Y,t){   // a real wood-framed window set in the wall behind the counter; the Hollow rises in the pane, then is gone
+        const W=HSP.wood,WO=HSP.woodO,lit=fig>=0,RX=Math.round(X);
+        const wx=RX-20,wy=Math.round(Y)-48,ww=40,wh=44;
+        ctx2.fillStyle=WO;ctx2.fillRect(wx-2,wy-2,ww+4,wh+4);                                           // frame outline
+        ctx2.fillStyle=W[2];ctx2.fillRect(wx,wy,ww,wh);                                                 // wood frame
+        ctx2.fillStyle=W[3];ctx2.fillRect(wx,wy,ww,3);ctx2.fillStyle=W[1];ctx2.fillRect(wx,wy+wh-3,ww,3);ctx2.fillRect(wx+ww-3,wy,3,wh);   // lit top, shaded bottom+right
+        const px=wx+4,py=wy+4,pw=ww-8,ph=wh-9;
+        ctx2.fillStyle=WO;ctx2.fillRect(px-1,py-1,pw+2,ph+2);                                           // inner reveal
+        ctx2.fillStyle=lit?'#39465c':'#161d2b';ctx2.fillRect(px,py,pw,ph);                              // night sky
+        ctx2.fillStyle=lit?'#4b5a74':'#1c2636';ctx2.fillRect(px,py,pw,Math.round(ph*0.24));             // lighter top band
+        ctx2.fillStyle=lit?'#d7dde8':'#2a3344';ctx2.beginPath();ctx2.arc(px+7,py+7,3,0,6.283);ctx2.fill(); // a low moon
+        if(fig>=0){ctx2.save();ctx2.beginPath();ctx2.rect(px,py,pw,ph);ctx2.clip();drawSpr('hollow',X,py+ph+Math.round((1-fig)*16),'walk','S',0,{scale:.44,alpha:Math.min(1,.55+fig)});ctx2.restore();}  // the Hollow rising, clipped to the glass
+        ctx2.fillStyle=lit?'#0e1420':'#0b0f18';for(let i=0;i<pw;i+=4){const th=2+((i*7)%4);ctx2.fillRect(px+i,py+ph-th,4,th);}   // far treeline along the sill
+        ctx2.fillStyle=W[2];ctx2.fillRect(RX-1,py,2,ph);ctx2.fillRect(px,Math.round(wy+wh/2)-1,pw,2);   // cross mullions
+        ctx2.fillStyle=WO;ctx2.fillRect(RX+1,py,1,ph);ctx2.fillRect(px,Math.round(wy+wh/2)+1,pw,1);
+        ctx2.fillStyle=W[3];ctx2.fillRect(wx-3,wy+wh,ww+6,3);ctx2.fillStyle=WO;ctx2.fillRect(wx-3,wy+wh+3,ww+6,1);}},   // the sill
       {x:ox+14.9,z:counter-.02,draw(X,Y,t){   // a little OPEN / CLOSED placard on the counter edge
         ctx2.fillStyle='#120c08';ctx2.fillRect(X+6,Y-16,16,9);ctx2.fillStyle=sign?'#7a2420':'#2d5a30';ctx2.fillRect(X+7,Y-15,14,7);ctx2.fillStyle='#f0e4c8';ctx2.font='6px monospace';ctx2.textAlign='center';ctx2.fillText(sign?'CLOSED':'OPEN',X+14,Y-9);ctx2.textAlign='left';}},
       {get x(){return P.x;},get z(){return P.z+.01;},draw(X,Y){if(keys<=0)return;const yy=Y-26-Math.round(keys*4);ctx2.fillStyle='#caa24a';ctx2.fillRect(X-1,yy,2,5);ctx2.fillStyle='#e6c968';ctx2.fillRect(X-2,yy+4,5,3);ctx2.fillRect(X-3,yy+5,2,2);ctx2.fillRect(X+2,yy+5,2,2);}}],
@@ -283,13 +305,16 @@ function hsClosingTime(done){const R=ROOMS.store,ox=R.ox,oz=R.oz;MAEV.on=false;
 
 // ---------- 2. Agnes — "The music box, played": the box on the rail, a child at the well, pointing down ----------
 function hsMusicBoxScene(done){const wx=wellPos.x,wz=wellPos.z;   // staged at the REAL farm well (world.js wellPos) — the event uses the well that already stands here, it does not spawn one
-  const well={x:wx,z:wz+.9},child={x:well.x,z:well.z-.6},agn={x:wx-2.2,z:wz+1.2},you={x:wx-.2,z:wz+2.6};
+  const well={x:wx,z:wz+.9},child={x:wx-1.12,z:wz+.62},agn={x:wx-2.3,z:wz+2.15},you={x:wx-.1,z:wz+2.7};   // the ghost girl stands just left of the well (fully clear of its stone); Agnes stands down on the open path, clear of the farmyard's woodpile/chopping block, her music box on a stump before her where it reads against the dirt
   let open=0,ca=0,pt=0,song=0;const CAM={x:wx-.4,z:wz+1.3};   // framed on the real well; Agnes to its west, you below it, clear of the farm's notice board to the east
   stage({hour:Math.min(Math.max(S.hour,16),18),player:{x:you.x,z:you.z,dir:'W'},cast:{agnes:{x:agn.x,z:agn.z,dir:'W'}},cam:CAM,lead:700,
-    light(L){if(ca>0)glowAt(sx(child.x)+5,sz(child.z)-18,54,[150,160,180],.14*ca);hsVignette(.22);},
+    light(L){if(ca>0)glowAt(sx(child.x),sz(child.z)-26,64,[170,180,200],.34*ca);hsVignette(.28);},
     props:[  // the well is the real world object standing at wellPos; only the ghost child and Agnes's music box are staged
-      {x:child.x,z:child.z+.01,draw(X,Y,t){hsChild(X,Y,ca,pt);}},
-      {get x(){return agn.x-.55;},get z(){return agn.z-.02;},draw(X,Y){if(open>0)hsMusicBox(X,Y-30,open>.4);}}],
+      {x:child.x,z:child.z+.01,draw(X,Y,t){hsChild(X,Y,ca,pt,1.65);}},   // scaled up so a stranger reads her as a child in a pale dress, not a wisp
+      {get x(){return agn.x+.9;},get z(){return agn.z+.05;},draw(X,Y){if(open>0){   // the music box sits on a little stump beside Agnes, grounded, not floating
+        const W=HSP.wood,WO=HSP.woodO;ctx2.fillStyle=HSP.SH;ctx2.beginPath();ctx2.ellipse(X,Y,9,3,0,0,6.283);ctx2.fill();
+        ctx2.fillStyle=WO;ctx2.fillRect(X-7,Y-8,14,8);ctx2.fillStyle=W[1];ctx2.fillRect(X-6,Y-7,12,7);ctx2.fillStyle=W[2];ctx2.beginPath();ctx2.ellipse(X,Y-8,7,2.4,0,0,6.283);ctx2.fill();ctx2.fillStyle=W[3];ctx2.beginPath();ctx2.ellipse(X,Y-8,7,2,0,Math.PI,2*Math.PI);ctx2.fill();   // the stump top
+        hsMusicBox(X,Y-8,open>.4);}}}],
     tick(dt){if(song>0){song-=dt;}},
     beats:[
       {hold:.9,face:{agnes:'S',you:'W'},act(){stgTitle('Agnes — The music box');}},
@@ -403,16 +428,21 @@ function hsCountdown(done){const R=ROOMS.home_cora,ox=R.ox,oz=R.oz;
     done(){done&&done();}});}
 
 // ---------- 6. June — "The route": the street after dark, a back at every lit window, the last window yours ----------
-function hsRoute(done){const rx=-70,z0=-5.4;   // staged out on open Route 9 west, so only the lit windows and the two of you read in the dark
+function hsRoute(done){const rx=-70,z0=-5.4;   // staged out on open Route 9 west; the lit windows (each with a watcher) and the two of you read in the dark
   const stops=[{x:rx+9},{x:rx+4},{x:rx-1},{x:rx-6}],cabin={x:rx-11};
-  const you={x:rx+15,z:z0+1.1},jun={x:rx+13.6,z:z0+1.3};
-  stage({hour:21.4,player:{x:you.x,z:you.z,dir:'W'},cast:{june:{x:jun.x,z:jun.z,dir:'W'}},cam:{x:rx+10,z:z0+.4},lead:850,restore:true,
-    light(L){for(const s of stops){glowAt(sx(s.x),sz(z0-2.2)-50,58,[255,198,112],.5);hsLitWin(sx(s.x),sz(z0-2.2),false);}
-      glowAt(sx(cabin.x),sz(z0-2.2)-50,62,[232,166,116],.6);hsLitWin(sx(cabin.x),sz(z0-2.2),true);hsVignette(.5);},
-    props:[{x:0,z:z0-3.2,draw(){ctx2.fillStyle='rgba(4,4,8,.95)';ctx2.fillRect(0,0,VW,VH);   // a blackout behind the houses swallows the open road's clutter
-        ctx2.fillStyle='rgba(16,16,22,.6)';ctx2.fillRect(0,VH*.66,VW,VH*.34);ctx2.fillStyle='rgba(26,26,32,.4)';for(let i=0;i<VW;i+=46)ctx2.fillRect(i,VH*.72,40,2);}},   // a hint of wet cobbles
-      ...stops.map(s=>({x:s.x,z:z0-2.2,draw(X,Y){hsFacade(X,Y,58);}})),
-      {x:cabin.x,z:z0-2.2,draw(X,Y){hsFacade(X,Y,58);}}],
+  const you={x:rx+11,z:z0+1.1},jun={x:rx+9.6,z:z0+1.3};   // start the pair right beside the first lit window, not far east of it
+  const FZ=z0-0.4;   // the house-front row, close behind the sidewalk so each lit window sits just above the pair as they pass — no dead gap
+  stage({hour:21.4,player:{x:you.x,z:you.z,dir:'W'},cast:{june:{x:jun.x,z:jun.z,dir:'W'}},cam:{x:rx+8.5,z:z0+.5},lead:850,restore:true,
+    light(L){for(const s of stops){glowAt(sx(s.x),sz(FZ)-56,70,[255,196,112],.62);hsLitWin(sx(s.x),sz(FZ),false);}
+      glowAt(sx(cabin.x),sz(FZ)-56,76,[236,168,118],.72);hsLitWin(sx(cabin.x),sz(FZ),true);
+      glowAt(sx(you.x),sz(you.z)-18,48,[255,198,120],.6);glowAt(sx(jun.x),sz(jun.z)-18,44,[255,198,120],.5);   // the two lanterns light the pair so they aren't lost in the dark
+      hsVignette(.42);},
+    props:[{x:0,z:FZ-1.4,draw(){ctx2.fillStyle='rgba(5,5,9,.97)';ctx2.fillRect(0,0,VW,Math.round(sz(FZ))+8);}},   // a night wall behind the houses (top band only) hides the open road's clutter without swallowing the street
+      ...stops.map(s=>({x:s.x,z:FZ,draw(X,Y){hsFacade(X,Y,58);}})),
+      {x:cabin.x,z:FZ,draw(X,Y){hsFacade(X,Y,58);}},
+      {x:0,z:FZ+0.15,draw(){const gy=Math.round(sz(FZ))+8;ctx2.fillStyle='#0a0b11';ctx2.fillRect(0,gy,VW,VH-gy);   // a dim wet night street so the pair stand on something, not a void
+        ctx2.fillStyle='#10121b';for(let i=0;i<VW;i+=50)ctx2.fillRect(i,gy+Math.round((VH-gy)*.45),44,3);
+        ctx2.fillStyle='rgba(44,48,66,.18)';ctx2.fillRect(0,gy,VW,5);}}],
     beats:[
       {hold:1.0,face:{june:'W',you:'W'},act(){stgTitle('June — The route');}},
       {who:'june',text:'I never walk the route after dark. Not once in fifteen years. Tonight I want you to see it.',expr:'scared'},

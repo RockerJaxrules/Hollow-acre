@@ -1059,3 +1059,16 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - **Measure the sprite, don't guess the Y offsets.** Dump the prop sprite's non-transparent rows (rgb per row) to find the interior band, the near-rim band and the hull bottom in sprite-space, then map through the draw anchor to screen Y. (wk_boat @ (X,Y+6): seats screen Y-22..Y-10, near gunwale Y-9..Y-2, hull bottom to Y+3. Figure foot ≈ Y+11, clip to the hull, redraw near gunwale from Y-9 down.)
 - **ctx2 is at identity during a scene prop draw** (drawSpr's flip math `translate(x*2,0)` proves it), so `ctx2.rect(...);ctx2.clip()` in screen coords works on drawSpr. Use it to clip the figure to the hull and to redraw only the near rim.
 - **For an engine NPC in the prop (e.g. Silas digging in the grave):** hide the floor-level NPC (`n.vis=false`) while they're in the hole and draw them yourself inside the prop with the same 3 layers + their bob; set `n.vis=true` again when they climb out so the normal walking NPC takes over.
+
+## Ghosts / faint figures in a scene (Agnes well, the child)
+- [repeated] A pale-grey/bone figure at small scale DISSOLVES into a warm grass/dirt background — reads as smoke, not a person. Use a COOL luminous palette (white-blue dress, desaturated skin) so it contrasts the warm scene.
+- Give a faint figure a tight cold back-glow (a small radial hugging the silhouette, ~0.4 alpha) — NOT a tall column; a tall gradient reads as a light-beam, not a girl.
+- A reveal driven by a ramped var (ca, pt, open) only reaches full value if the beat's hold runs in REAL TIME. A render harness that stgNext's rapidly skips the ramp and captures a half-faded figure. Step one beat at a time with ~1.5s holds.
+- Don't fight prop placement against existing world clutter: if an NPC + story prop land on a farmyard's woodpile/chopping-block, MOVE them to a clear patch (the open dirt path) rather than drawing over the clutter. The box's position was derived from the NPC's, so moving the NPC moved the box into clear space.
+- A small story prop in dark surroundings needs a lit top rim + a bright accent (brass comb) to read; dark-on-dark vanishes.
+
+## Night / dark exterior scenes (June "The route": watchers in lit windows)
+- A horror prop that is the whole point (a watcher in a lit window) must be BIG and BRIGHT enough to read the silhouette. Tiny dim windows at the top of frame = the scare is invisible. Enlarge the window, brighten the pane (4-step warm ramp, hottest at top), draw a clear dark head+shoulders back-to-glass silhouette.
+- Don't let a dark scene become a black void with figures stranded in a corner. Keep the key props CLOSE to the figures (small depth gap) so they compose together; add a dim but visible ground plane so the figures stand on something; give each figure a lantern glow so they read.
+- Blackout props should cover only the band they need to hide (the clutter behind the houses), not the whole screen — a full-screen blackout kills all context and grounding.
+- Start a walking pair NEAR the first key prop, not far off to one side, or the establishing shot is lopsided with a dead half.
