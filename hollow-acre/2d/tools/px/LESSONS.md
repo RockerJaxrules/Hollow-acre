@@ -981,6 +981,7 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A hood drawn as stacked curved bands (far lip, dark inside, lit rim) reads as a fan, harp or piano lid: one closed shell, lit top-left, the inside only as a plum crescent under the open edge.
 - A rolling tool chest in oxblood needs the lid a full step lighter than the floor and each drawer a lit lip with a dark seam under it, or it sinks into a brown floor.
 - A leaning crate lid at 1x reads as a rolled mat or a ladder; leave it out.
+- [parked, three rounds] Fixing what each judge names moves a piece from 4.5 to 5.5 but not to 6: past 5.5 the gap is the whole surface - hue-shifted form across every front, wear drawn by hand in a few places, no part repeated at even spacing - and the one naming detail (apples, flame, hood, runner tips) drawn big and bright enough to carry at 1x. Start the next furniture redraw from those, not from a list of fixes.
 - Dimming a quilt makes any stain or speckled hem the loudest thing on it: drop the blotches when the patches go down a step.
 
 ## Benches (Nov 10: round 1, 10 pieces both orders; the garage workbench 6 installed)
