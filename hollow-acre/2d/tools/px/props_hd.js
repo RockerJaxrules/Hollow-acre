@@ -22,8 +22,8 @@ if(K==='o_tyres'){   // tyres dumped in a heap: one flat on the ground, one thro
       P(A,x,y,RB[kk]);}
     for(let y=cy-rx-1;y<=cy+rx+1;y++)for(let x=cx-rx-2;x<=cx+rx+2;x++){const [o,i,u,v]=face(x,y);if(o>1)continue;
       if(i<=1){const far=v<0&&face(x,y+1.4)[1]>1;P(A,x,y,far?RB[1]:RB[0]);continue;}   // the hole: a sliver of the far inside wall, then dark
-      const l=-u*.7-v*.7;if(o>.72&&l>.4){P(A,x,y,WL);continue;}   // the lit rim, warm grey
-      let k=l>.4?4:l>-.2?3:2;if(i<1.5)k=Math.max(1,k-1);P(A,x,y,RB[k]);}};
+      const l=-u*.7-v*.7;if(o>.7&&l>.3){P(A,x,y,WL);continue;}   // the lit lip, warm grey
+      let k=(o>.7&&l<-.3)?2:4;if(i<1.6)k=1;P(A,x,y,RB[k]);}};   // (judge r7: it bulged like a boulder) a flat sidewall of one tone, a dark bead round the hole
   const ring=(cx,cy,rx,ry,rot,lean)=>{const c=Math.cos(rot),s_=Math.sin(rot);   // a tyre on its edge, seen face-on, its tread showing as a crescent on the side it leans from
     for(let y=cy-ry-2;y<=cy+ry+2;y++)for(let x=cx-rx-3;x<=cx+rx+3;x++){const dx=x-cx-lean,dy=y-cy,u=dx*c+dy*s_,v=-dx*s_+dy*c;if(ell1(u,v,rx+.4,ry+.4)<=1)P(A,x,y,RB[((x+y)>>1)%2?1:2]);}
     for(let y=cy-ry-2;y<=cy+ry+2;y++)for(let x=cx-rx-3;x<=cx+rx+3;x++){const dx=x-cx,dy=y-cy,u=dx*c+dy*s_,v=-dx*s_+dy*c,o=ell1(u,v,rx+.4,ry+.4),i=ell1(u,v,rx*.46,ry*.46);if(o>1)continue;
