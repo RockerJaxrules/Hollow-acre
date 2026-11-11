@@ -184,6 +184,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   away, and two judges reported the idle as "showing the back of the head".
 
 ## Animals (Nov 9: cows 4 -> 6, installed; dead deer 2 -> 5)
+- A generic relight (height from the silhouette, one hue-shifted ramp per material) LOST to the hand-shaded originals on
+  all three small animals: it pulls species toward the same ramp (rabbits and ducks became one family of pale lumps)
+  and dims the key accent (the duck's bill). Small animals keep their own colour identity and one saturated key detail.
+- A sprite that rises inside its cell (a hop) must have headroom: the rabbit's ear tips were cropped on every mid-hop
+  frame, so each hop blinked into an owl/onion. Check the top rows of every frame of a sheet for content touching the edge.
 - Volume by surface normal, not by height bands: a barrel lit from the top-left with a cool lilac (white coat) or
   plum-brown (tan coat) shade reads as a body; bands parallel to the belly read as a table or a loaf.
 - Legs read as legs when the far pair sits 4-5 px off the near pair and one step darker, the front leg has a knee

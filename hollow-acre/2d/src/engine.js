@@ -114,7 +114,7 @@ function texData(k){if(TEXD[k])return TEXD[k];const m=SPR['tex_'+k],im=m&&IMG[m.
 const GPAL={curb:[[150,144,134],[112,106,100]],gutter:[30,28,33],line:[176,150,70],dirt:[[78,48,36],[98,64,42],[146,106,64]],stone:[[54,52,62],[74,71,84]],grassTuft:[[78,138,58],[100,160,64]],wet:[[60,130,162],[148,196,216]]};
 function jnoise(x,y){const xi=x>>3,yi=y>>3,fx=(x&7)/8,fy=(y&7)/8;const h=(a,b)=>hash(a*7+13,b*11+5);const a=h(xi,yi),b=h(xi+1,yi),c=h(xi,yi+1),d=h(xi+1,yi+1);
   const u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;}
-function groundPixels(g,x0,z0,N){const LY=['dark','dirt','stone','walk','tar','water'],TX=['forest','dirt','stone','walk','tar','water'],NL=LY.length,WI=NL-1;const tg=texData('grass');if(!tg)return;
+function groundPixels(g,x0,z0,N){const LY=['dark','dirt','stone','walk','tar','gravel','water'],TX=['forest','dirt','stone','walk','tar','gravel','water'],NL=LY.length,WI=NL-1;const tg=texData('grass');if(!tg)return;
   const tl=TX.map(texData);const M=N+1;const corner=LY.map(l=>{const a=new Uint8Array(M*M),fn=LAYERS[l];for(let j=0;j<M;j++)for(let i=0;i<M;i++)a[j*M+i]=fn(x0+i,z0+j)?1:0;return a;});
   const id=g.createImageData(CH,CH),D=id.data;const wm=new Uint8Array(CH*CH);let anyW=0;
   for(let py=0;py<CH;py++){const j=py>>5,v=((py&31)+.5)/32;const wy=z0*32+py,ty=((wy%TP)+TP)%TP;
@@ -124,13 +124,13 @@ function groundPixels(g,x0,z0,N){const LY=['dark','dirt','stone','walk','tar','w
         if(f>=.5){top=l;edge=f-.5;gy=(cc+d)-(a+b);gx=(b+d)-(a+cc);}}
       const o=(py*CH+px)*4,ti=(ty*TP+tx)*4;let T=top<0?tg:(tl[top]||tg);let r=T[ti],gg=T[ti+1],bb=T[ti+2];
       if(top>=0&&edge<1){const L=LY[top];
-        if(L==='dirt'||L==='stone'){if(edge<.07){const q=L==='dirt'?GPAL.dirt[1]:GPAL.stone[1];r=q[0];gg=q[1];bb=q[2];if(hash(wx,wy)>.62&&gy<=0){const t=GPAL.grassTuft[hash(wx+3,wy)>.5?1:0];r=t[0];gg=t[1];bb=t[2];}}
+        if(L==='dirt'||L==='stone'||L==='gravel'){if(edge<.07){const q=L==='dirt'?GPAL.dirt[1]:GPAL.stone[1];r=q[0];gg=q[1];bb=q[2];if(hash(wx,wy)>.62&&gy<=0){const t=GPAL.grassTuft[hash(wx+3,wy)>.5?1:0];r=t[0];gg=t[1];bb=t[2];}}
           else if(edge<.17&&gy>0){r*=.74;gg*=.74;bb*=.74;}else if(edge<.13&&gx>0){r*=.84;gg*=.84;bb*=.84;}else if(edge<.12&&gy<0){r=Math.min(255,r*1.1);gg=Math.min(255,gg*1.1);bb=Math.min(255,bb*1.08);}}
         else if(L==='water'){if(edge<.06){const q=GPAL.dirt[2];r=q[0];gg=q[1];bb=q[2];}else if(edge<.1){const q=GPAL.dirt[1];r=q[0];gg=q[1];bb=q[2];}
           else if(edge<.22&&gy>0){r*=.68;gg*=.72;bb*=.8;}else if(edge<.15){const q=GPAL.wet[(wx+wy)%5===0?1:0];r=q[0];gg=q[1];bb=q[2];}}
         else if(L==='tar'){if(edge<.045){const q=GPAL.curb[gy<0?0:1];r=q[0];gg=q[1];bb=q[2];}else if(edge<.085){const q=GPAL.gutter;r=q[0];gg=q[1];bb=q[2];}}
         else if(L==='walk'){if(edge<.05){const q=GPAL.dirt[0];r=q[0];gg=q[1];bb=q[2];}else if(edge<.1&&gy>0){r*=.82;gg*=.82;bb*=.82;}}
-        else if(L==='dark'&&edge<.05){r*=.7;gg*=.7;bb*=.7;}}
+        else if(L==='dark'&&edge<.09){if(hash(wx,wy)<1-edge/.09){r=tg[ti];gg=tg[ti+1];bb=tg[ti+2];}else if(edge<.03){r*=.86;gg*=.86;bb*=.86;}}}   // the wood's edge: grass blades break over the floor, no dark rim (a rim read as a hole)
       // a faded centre line down the town streets
       if(top===4&&typeof tarLine==='function'&&tarLine(wx/32,wy/32)){const q=GPAL.line;const k=.78+hash(wx>>1,wy)*.22;r=q[0]*k;gg=q[1]*k;bb=q[2]*k;}
       if(top===WI&&edge>=.1){wm[py*CH+px]=1;anyW=1;}

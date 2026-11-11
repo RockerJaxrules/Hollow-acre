@@ -26,6 +26,7 @@ const southWoods=(x,z)=>z>108+wdj(x,3)||(z>74+wdj(x,4)&&x<-40+wdj(z,5))||(x>78+w
   LAYERS.dirt=(x,z)=>(Dt(x,z)||Math.hypot(x-TITHE.x,z-TITHE.z)<7+(fbm(x*.5,z*.5)-.5)*2||Math.hypot(x-HOLLOW_TREE.x,z-HOLLOW_TREE.z)<4.5+(fbm(x*.6,z*.6)-.5)*1.4||
     (riverD(x,z)<3.3&&riverD(x,z)>1.6&&(x>OLD.x1||z>OLD.z1))||(Math.abs(x-LAKE.x)<LAKE.rx+2.5&&inLake(x*.94+LAKE.x*.06,z*.9+LAKE.z*.1)&&!inLake(x,z)))&&!newWater(x,z);
   LAYERS.stone=(x,z)=>St(x,z)||inQuarry(x,z);
+  LAYERS.gravel=(x,z)=>inQuarry(x,z)||inQuarry(x+(fbm(z*.31+3,x*.05)-.5)*7,z+(fbm(x*.31+8,z*.05)-.5)*7);   // spills a little past the quarry's ruled bounds   // the quarry floor is loose crushed rock, not the town's paving (it still counts as stone underfoot)
   LAYERS.dark=(x,z)=>{if(Math.max(B.x0-x,x-B.x1,B.z0-z,z-B.z1)>-1.5-2.5*fbm(x*.3+11,z*.3+7))return true;   // a ragged woodland edge round the world, not a ruled line
   if(x<=OLD.x1&&z<=OLD.z1)return Dk(x,z)&&!(z>28&&z<=40.5&&x>-16);
     if(onRoad(x,z,0))return false;return (hollowWoods(x,z)&&fbm(x*.2+5,z*.2)>.42)||(southWoods(x,z)&&fbm(x*.18,z*.2+9)>.46);};}

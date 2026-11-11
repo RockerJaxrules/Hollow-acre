@@ -77,6 +77,7 @@ const STREETS=[{x0:21.4,x1:76,z:-6,hw:1.55,sw:.9}];
 const inStreet=(x,z,w)=>{for(const s of STREETS)if(x>s.x0&&x<s.x1&&Math.abs(z-s.z)<s.hw+(w?s.sw:0))return true;return false;};
 function tarLine(x,z){for(const s of STREETS)if(x>s.x0+1&&x<s.x1-1&&Math.abs(z-s.z)<.06&&((x*32)%96)<52)return true;return false;}
 const LAYERS={
+  gravel:()=>false,   // set over the quarry in expand.js
   tar:(x,z)=>inStreet(x,z,false),
   walk:(x,z)=>inStreet(x,z,true),
   dirt:(x,z)=>{const j=(fbm(x*.7,z*.7)-.5)*.8;return onRoadRag(x,z,j)||(Math.hypot(x-pond.x,z-pond.z)<pond.r+1.6+j&&Math.hypot(x-pond.x,z-pond.z)>pond.r-.4)
