@@ -1,0 +1,1 @@
+{"name": "stump_of_birch_gold_b", "anchor": [40, 48], "leaf": "", "bark": "WVUT", "palette": {"W": "#3a3440", "V": "#6e6a72", "U": "#aaa4a6", "T": "#d6d0c6", "P": "#5a3a2c", "Q": "#86603e", "R": "#a8804e", "S": "#c4a066", "s": "#32212599"}, "outline": ["#1a1418", "#3a2c2c"], "tuft_odds": 5, "min_cluster": 4, "lit_merge": 8, "bark_style": "birch", "rings": "PQRS"}

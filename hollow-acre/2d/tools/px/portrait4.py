@@ -25,6 +25,8 @@ def skin_ramp(base):
     h, sa, v = colorsys.rgb_to_hsv(r, g, b)
     def hv(dh, ks, kv): rr, gg, bb = colorsys.hsv_to_rgb((h + dh) % 1, min(1, sa * ks), min(1, v * kv)); return (int(rr * 255), int(gg * 255), int(bb * 255))
     B = hexc(base) if isinstance(base, str) else base
+    if v < .82:   # medium and dark skin (judge: its shadow side read as a hard saturated red-brown bruise): shade toward plum, not more red
+        return [hv(-.075, 1.32, .52), hv(-.055, 1.26, .69), hv(-.03, 1.14, .86), tuple(B), mix(B, (255, 238, 222), .26), mix(B, (255, 246, 234), .5)]
     return [hv(-.05, 2.0, .5), hv(-.035, 1.8, .68), hv(-.018, 1.42, .85), tuple(B), mix(B, (255, 242, 226), .28), mix(B, (255, 248, 236), .55)]
 def ramp(base, n=6, dark=.36, light=1.32, shade_hue=.98, shade_amt=.22, lit_amt=.18, sat=1.0, base_i=3):
     """a hue-shifted ramp, the base colour sitting at index base_i: shadows turn toward shade_hue and get richer,

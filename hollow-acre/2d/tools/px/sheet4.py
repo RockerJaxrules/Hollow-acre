@@ -5,10 +5,11 @@ from PIL import Image
 from concurrent.futures import ProcessPoolExecutor
 from portrait4 import portrait, EXPRS, VARIANTS
 from chars4 import CH
+from faces4 import face
 IDS = ['nell', 'june', 'cora', 'ida', 'tess', 'iris', 'della', 'maud', 'mae',
        'hale', 'tobias', 'hollis', 'agnes', 'dunn', 'ruth', 'gideon', 'ezra', 'pip', 'silas', 'otto', 'wes', 'hob', 'lyle', 'vera', 'quinn',
        'nan', 'finn', 'moss', 'ada', 'orla', 'bram', 'abel', 'corwin']
-def one(a): i, e, v = a; return a, portrait(CH[i], e, v)
+def one(a): i, e, v = a; return a, portrait(face(i, CH[i]), e, v)
 if __name__ == '__main__':
     only = sys.argv[1].split(',') if len(sys.argv) > 1 else None
     for v in VARIANTS:

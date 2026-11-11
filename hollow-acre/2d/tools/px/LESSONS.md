@@ -67,6 +67,15 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   highlights, fallen leaves round the foot (it's autumn).
 
 ## Trees and foliage
+- [Nov 11, family 5 -> 6] A wood built from two pine sprites at one size, placed with a minimum spacing, reads as a plantation:
+  identical cones on a grid with their hems in rows. Give every common tree 3+ outlines (different silhouettes, not palette
+  swaps), pick the outline by a hash of the position AFTER the world is built (so the random layout isn't reshuffled), and
+  thin by a slow noise so trees stand in clumps with gaps.
+- Never run two installers that rewrite objects.json at the same time: parallel writes corrupted it. Render in parallel,
+  install one at a time.
+- A birch crown made of a few big spheres reads as a cotton bud, of many medium ones as broccoli; open drooping sprays of
+  small clusters hung off thin dark branches, with gaps showing the white trunk, read as birch. The trunk must stop inside
+  the crown with sprays in front of it, or it reads as a pole with leaves stuck on.
 
 - [maple 3D v3] Texture tufts placed on a fixed step ((x+3y) % 4) made diagonal hatching across the crown. Place leaf
   shapes at hashed, uneven spacing with a no-touch radius.
