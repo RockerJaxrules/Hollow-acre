@@ -1083,3 +1083,15 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - If a "something moved it" cue only shifts a tiny sub-part (the candle FLAME shifted but the wax body stayed upright), the change is invisible and the scare dies. Tip the WHOLE object: shear the column so the top leans furthest and the base stays — a visible 30°+ lean reads as "someone just knocked it."
 - A vanish ("the food is gone") reads better as a state with a trace than a bare empty: leave a scraped smear / grease streaks so it says "licked clean," not just "nothing there."
 - In a deliberately dark scene, still give the ONE focal prop enough glow to read the state change; dim the rest, not the thing the whole beat hinges on.
+
+## Judging against the right "old" (Nov 11)
+- [repeated, costly] The baseline for a blind judge is the PNG that is INSTALLED in the game (take it from spr/ or git), never a
+  fresh render of a generator: the installed art may come from a later, uncommitted script. Check with an image diff before
+  judging. Dirt and stone were installed on a win against an old that never shipped, then reverted.
+- Ground must also pass an IN-GAME A/B before install: hot-swap the new PNG into the running engine (IMG[SPR['tex_k'].src] =
+  new image; delete TEXD[k]; chunks.clear()) and shoot the same framing before/after. An isolated tile can win on craft and
+  still be far too light or saturated next to the rest of the game's art.
+- A small-seed Lehmer LCG (seed*16807 mod 2^31-1) gives tiny values for its first ~dozen draws: warm it up or hash per cell,
+  or the first rows of a texture all take the same (dark) choice and band.
+- Cracks are grooves: draw them in the joint/shadow colour with a 1 px lit lip; a crack lighter than its surface reads as
+  chalk or a letter.
