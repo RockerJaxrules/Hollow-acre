@@ -73,6 +73,35 @@ function hsTallFig(X,Y,h,k){   // a too-tall dark figure in a window; k=0 a plai
   if(k){ctx2.fillStyle='#3a1b12';ctx2.fillRect(X-6,Y-h-9,12,11);ctx2.fillStyle='#5a2a16';ctx2.fillRect(X-5,Y-h-8,10,9);   // the rotting pumpkin head
     ctx2.fillStyle='#1a0d08';ctx2.fillRect(X-3,Y-h-5,2,2);ctx2.fillRect(X+1,Y-h-5,2,2);ctx2.fillRect(X-1,Y-h-2,2,2);}
   else{ctx2.fillStyle='#0a0606';ctx2.fillRect(X-4,Y-h-7,8,8);}}
+function hsLoom(X,Y,h,k){   // the Tall Man looming behind you: a smear of dark, almost a man, no light on it
+  ctx2.fillStyle='rgba(4,3,5,.5)';ctx2.fillRect(X-12,Y-h-6,24,h+6);                                // its shadow bleeding out
+  ctx2.fillStyle='rgba(6,5,8,.96)';ctx2.fillRect(X-7,Y-h,14,h);ctx2.fillStyle='#0d0a10';ctx2.fillRect(X-6,Y-h,12,h);
+  ctx2.fillStyle='#070509';ctx2.fillRect(X-5,Y-h-13,10,15);                                        // a long head
+  if(k){ctx2.fillStyle='#14212a';ctx2.fillRect(X-3,Y-h-9,2,2);ctx2.fillRect(X+1,Y-h-9,2,2);}}      // when it is close, two cold eyes
+function hsEnvelope(X,Y){ctx2.fillStyle='#0f0a07';ctx2.fillRect(X-9,Y-6,19,12);ctx2.fillStyle='#e6dabd';ctx2.fillRect(X-8,Y-5,17,10);
+  ctx2.fillStyle='#ccbc96';for(let i=0;i<=8;i++){ctx2.fillRect(X-8+i,Y-5+Math.round(i*.55),1,1);ctx2.fillRect(X+8-i,Y-5+Math.round(i*.55),1,1);}   // the flap crease
+  ctx2.fillStyle='#8a2a22';ctx2.fillRect(X-1,Y-1,3,3);}
+function hsLetter(X,Y,k){const w=30,h=40;ctx2.fillStyle='#0f0a07';ctx2.fillRect(X-w/2-1,Y-h-1,w+2,h+2);ctx2.fillStyle='#ece2cc';ctx2.fillRect(X-w/2,Y-h,w,h);ctx2.fillStyle='#ddd1b6';ctx2.fillRect(X-w/2,Y-h,w,2);
+  ctx2.fillStyle='#9a8f74';ctx2.fillRect(X-w/2+4,Y-h+5,w-14,2);                                     // a child's heading
+  ctx2.fillStyle='#5a5240';const n=Math.floor(k*10);for(let i=0;i<n;i++){const ww=[w-8,w-12,w-7,w-16,w-9][i%5];ctx2.fillRect(X-w/2+4,Y-h+12+i*3,ww,1);}}
+function hsFog(X,Y,w,t){for(let i=0;i<5;i++){ctx2.fillStyle=`rgba(202,208,216,${.16-i*.025})`;ctx2.fillRect(X-w/2,Y-8-i*7,w,9);}
+  for(let i=0;i<7;i++){const px=X-w/2+((i*97+t*16)%(w+40))-20,py=Y-6-(i%3)*10;ctx2.fillStyle='rgba(212,218,226,.12)';ctx2.beginPath();ctx2.ellipse(px,py,18,6,0,0,6.283);ctx2.fill();}}
+function hsWaterBand(X,Y,w,h,t){ctx2.fillStyle='#0a1418';ctx2.fillRect(X-w/2,Y,w,h);ctx2.fillStyle='#0d1b20';ctx2.fillRect(X-w/2,Y,w,Math.round(h*.5));
+  for(let i=0;i<w;i+=18){const yy=Y+6+((i*7+t*30|0)%(h-8));ctx2.fillStyle='rgba(120,150,160,.18)';ctx2.fillRect(X-w/2+i+(t*10|0)%12,yy,8,1);}}
+function hsFarShore(X,Y,t,wave){   // a thin far bank across the black lake: a steeple, lit windows, one porch with a figure waving
+  ctx2.fillStyle='#070c0f';ctx2.fillRect(X-220,Y-8,440,12);ctx2.fillStyle='#0b1216';ctx2.fillRect(X-220,Y-13,440,6);
+  for(const dx of [-150,-120,-78,-30,36,96,150]){ctx2.fillStyle='#0d141a';ctx2.fillRect(X+dx-8,Y-20,16,12);ctx2.fillStyle='#0a0f14';ctx2.fillRect(X+dx-10,Y-24,20,5);ctx2.fillStyle='#f0c25e';ctx2.fillRect(X+dx-2,Y-17,4,5);}   // cottages, lit
+  ctx2.fillStyle='#0d141a';ctx2.fillRect(X-6,Y-30,12,22);ctx2.beginPath();ctx2.moveTo(X-6,Y-30);ctx2.lineTo(X,Y-40);ctx2.lineTo(X+6,Y-30);ctx2.fill();ctx2.fillStyle='#e8d090';ctx2.fillRect(X-2,Y-24,4,5);   // the steeple
+  const px=X+78;ctx2.fillStyle='#0d141a';ctx2.fillRect(px-11,Y-22,22,14);ctx2.fillStyle='#ffdf9a';ctx2.fillRect(px-7,Y-18,6,7);ctx2.fillRect(px+2,Y-18,5,7);   // your farmhouse, every window lit
+  ctx2.fillStyle='#0a0a0c';ctx2.fillRect(px-1,Y-9,2,6);const a=wave?Math.sin(t*3)*4:0;ctx2.fillStyle='#0a0a0c';ctx2.save();ctx2.translate(px,Y-8);ctx2.fillRect(-1,-1,2,2);ctx2.fillRect(2,-3+Math.round(a),2,4);ctx2.restore();}   // a small figure, waving
+function hsLongTable(X,Y){const o='#120c08';ctx2.fillStyle=o;ctx2.fillRect(X-88,Y-6,176,16);ctx2.fillStyle='#5a3c22';ctx2.fillRect(X-86,Y-5,172,13);ctx2.fillStyle='#6e4a2a';ctx2.fillRect(X-86,Y-5,172,3);
+  for(const lx of [-78,-20,20,78]){ctx2.fillStyle=o;ctx2.fillRect(X+lx-2,Y+8,5,10);ctx2.fillStyle='#4a3218';ctx2.fillRect(X+lx-1,Y+8,3,10);}
+  for(let i=-80;i<84;i+=10){ctx2.fillStyle='rgba(20,14,8,.4)';ctx2.fillRect(X+i,Y-4,1,10);}}   // plank seams
+function hsPlate(X,Y,eaten){ctx2.fillStyle='#120c08';ctx2.beginPath();ctx2.ellipse(X,Y,11,5,0,0,6.283);ctx2.fill();ctx2.fillStyle='#d8d2c4';ctx2.beginPath();ctx2.ellipse(X,Y,9,4,0,0,6.283);ctx2.fill();ctx2.fillStyle='#b4ad9c';ctx2.beginPath();ctx2.ellipse(X,Y,5,2,0,0,6.283);ctx2.fill();
+  if(!eaten){ctx2.fillStyle='#6a3426';ctx2.beginPath();ctx2.ellipse(X,Y-1,4,2,0,0,6.283);ctx2.fill();ctx2.fillStyle='#813f2c';ctx2.fillRect(X-2,Y-2,4,2);}}   // the best cut, then gone
+function hsCandle(X,Y,lean,lit){const lx=Math.round(lean*5);ctx2.fillStyle='#1a120c';ctx2.fillRect(X-2,Y-12,4,12);ctx2.fillStyle='#e8dcc0';ctx2.fillRect(X-2,Y-12,3,12);
+  if(lit){ctx2.fillStyle='#ffd070';ctx2.fillRect(X-1+lx,Y-17,2,5);ctx2.fillStyle='#fff2c0';ctx2.fillRect(X+lx,Y-16,1,2);}}
+function hsSkipStone(X,Y){ctx2.fillStyle='rgba(220,224,228,.9)';ctx2.fillRect(X-1,Y-1,3,2);ctx2.fillStyle='rgba(150,170,180,.5)';ctx2.fillRect(X-2,Y+2,5,1);}   // a stone mid-skip + its splash
 
 // ---------- 1. Caitlyn — "Closing time": the store locked at noon, the keys, the man at the window ----------
 function hsClosingTime(done){const R=ROOMS.store,ox=R.ox,oz=R.oz;MAEV.on=false;
@@ -222,10 +251,119 @@ function hsRoute(done){const rx=-70,z0=-5.4;   // staged out on open Route 9 wes
     ],
     done(){done&&done();}});}
 
+// ---------- 7. Caitlyn — "Danny's last letter": the store at dusk, the envelope, the boy who is still pushing ----------
+function hsDannyLetter(done){const R=ROOMS.store,ox=R.ox,oz=R.oz;MAEV.on=false;
+  const cz=oz+2.66,you0={x:ox+14,z:oz+5.3};let env=0,read=0;const CAM={x:ox+14,z:oz+4.4};
+  stage({room:'store',hour:18.4,keepHour:true,player:{x:you0.x,z:you0.z,dir:'N'},cast:{mae:{x:ox+14,z:cz,dir:'S'}},cam:CAM,lead:750,
+    light(L){glowAt(sx(ox+9),sz(oz+2.4)-40,110,[255,180,104],.3);},
+    props:[{x:0,z:9e5,draw(){hsVignette(.3);}},
+      {get x(){return P.x;},get z(){return P.z+.01;},draw(X,Y){if(read>0){ctx2.save();ctx2.globalAlpha=Math.min(1,read);hsLetter(X,Y-26,read);ctx2.restore();}   // the letter, held up in your hands
+        else if(env>0){ctx2.save();ctx2.globalAlpha=Math.min(1,env);hsEnvelope(X,Y-24);ctx2.restore();}}}],
+    beats:[
+      {hold:.9,face:{mae:'S',you:'N'},act(){stgTitle('Caitlyn — Danny’s last letter');}},
+      {who:'mae',text:'He wrote this the night before he was taken. He was ten. He knew — children always know.',expr:'sad',act(){env=1;SFX.page&&SFX.page();}},
+      {who:'mae',text:'It’s addressed “To whoever comes after me.” That’s you. I think it was always going to be you.',expr:'sad'},
+      {hold:1.8,update(dt){read=Math.min(1,read+dt*.5);},act(){SFX.page&&SFX.page();}},
+      {who:'you',text:'“It is not a man. It is a door. Everyone it takes is still inside, holding it shut.”',expr:'scared'},
+      {who:'you',text:'“If enough of us push at once, it opens the other way. Tell Mom I pushed.”',expr:'sad',wait:.3},
+      {hold:1.0,update(dt){read=Math.max(0,read-dt*.8);},face:{mae:'S'}},
+      {who:'mae',text:'I don’t cry about it any more. I think he’s still in there. Twenty-five years, still pushing.',expr:'cry'},
+      {who:'mae',text:'Maybe that’s where Mom went. Not giving up. Going to help him push. …Would you? When it comes to it?',expr:'sad',wait:.4},
+    ],
+    done(){maeCome(7,true);done&&done();}});}
+
+// ---------- 8. Finn — "Skipping stones": the river, and a stone that skips back out of the fog ----------
+function hsSkipStones(done){const rx=133.1,rz=64.1;
+  const you={x:rx-1.2,z:rz+.4},fin={x:rx+.3,z:rz+.5},wz=rz-1.4;
+  let sx0=0,sy=0,skip=0,dir=1,back=0;const CAM={x:rx-.2,z:rz+.2};
+  stage({hour:Math.min(Math.max(S.hour,9),16),player:{x:you.x,z:you.z,dir:'N'},cast:{finn:{x:fin.x,z:fin.z,dir:'N'}},cam:CAM,lead:750,
+    light(L){hsVignette(.16);},
+    tick(dt){if(skip>0){skip+=dt;sx0+=dir*180*dt;sy=Math.abs(Math.sin(skip*7))*-10;if(skip>1.4)skip=0;}if(back>0){back+=dt;if(back>1.8)back=0;}},
+    props:[{x:rx,z:wz,draw(X,Y,t){hsWaterBand(X,Y-6,460,70,t);}},   // the river, sliced across
+      {x:rx,z:wz-.9,draw(X,Y,t){hsFog(X,Y,460,t);}},               // the far side is fog
+      {x:rx,z:rz-.2,draw(X,Y,t){if(skip>0)hsSkipStone(sx(you.x)+28+sx0,sz(wz)+6+sy);
+        if(back>0){const bx=sx(you.x)+120-back*150,by=sz(wz)+4+Math.abs(Math.sin(back*7))*-8;hsSkipStone(bx,by);}}}],
+    beats:[
+      {hold:.9,face:{finn:'N',you:'N'},act(){stgTitle('Finn — Skipping stones');}},
+      {who:'finn',text:'Watch this! Flat ones skip best. You have to throw it low, like you’re mad at the water.',expr:'happy',act(){sx0=0;skip=.01;dir=1;SFX.splash&&SFX.splash();}},
+      {hold:1.6},
+      {who:'finn',text:'Seven! Did you see? Sometimes Ollie throws one back. Watch the fog.',expr:'happy',act(){back=.01;}},
+      {hold:1.8,act(){stgEmote('you','!',1.6);SFX.splash&&SFX.splash();}},
+      {who:'you',text:'Finn — a stone just came back. Out of the fog. On its own.',expr:'scared'},
+      {who:'finn',text:'That’s Ollie! He’s my best friend. He’s been in the river ages and ages.',expr:'happy'},
+      {who:'finn',text:'He says you’re nice. He says… don’t go in the house. He always says that one.',expr:'neutral',wait:.4},
+    ],
+    done(){done&&done();}});}
+
+// ---------- 9. Corwin — "The far shore": the Black Lake at night, another Marrow Hollow, someone waving from your porch ----------
+function hsFarShoreScene(done){const dx=186,dz=4.6;
+  const you={x:dx-.6,z:dz+.3},cor={x:dx+.7,z:dz+.2},wz=dz-1.0;let wave=0;const CAM={x:dx,z:dz+.3};
+  stage({hour:21.6,player:{x:you.x,z:you.z,dir:'N'},cast:{corwin:{x:cor.x,z:cor.z,dir:'N'}},cam:CAM,lead:850,restore:true,
+    light(L){const FX=sx(dx),FY=sz(wz-1.2);ctx2.save();ctx2.globalCompositeOperation='source-over';   // the far shore's lights, bright over the night
+      for(const ddx of [-150,-120,-78,-30,36,96,150]){glowAt(FX+ddx,FY-22,22,[255,205,120],.5);ctx2.fillStyle='#ffd37a';ctx2.fillRect(FX+ddx-2,FY-17,4,5);}
+      glowAt(FX+78,FY-24,34,[255,214,130],.65);ctx2.fillStyle='#ffe6a0';ctx2.fillRect(FX+71,FY-18,6,7);ctx2.fillRect(FX+80,FY-18,5,7);   // your farmhouse, every window lit
+      glowAt(FX,FY-36,20,[240,220,150],.4);ctx2.restore();hsVignette(.5);},
+    tick(dt){wave+=dt;},
+    props:[{x:0,z:9e5,draw(){ctx2.fillStyle='rgba(4,5,9,.72)';ctx2.fillRect(0,0,VW,VH*.52);}},   // the night sky over the lake
+      {x:dx,z:wz,draw(X,Y,t){hsWaterBand(X,Y,520,120,t);}},
+      {x:dx,z:wz-1.2,draw(X,Y,t){hsFarShore(X,Y,wave,1);}}],
+    beats:[
+      {hold:1.0,face:{corwin:'N',you:'N'},act(){stgTitle('Corwin — The far shore');}},
+      {who:'corwin',text:'Look across. Nights like this you can see the lights on the far shore. People don’t believe me.',expr:'neutral'},
+      {who:'corwin',text:'It’s Marrow Hollow. Ours, exactly — but over there the bell’s silent and the corn is cut.',expr:'sad',wait:.3},
+      {hold:1.6,emote:{you:'?'}},
+      {who:'you',text:'There’s a farm with every window lit. And someone on the porch… waving. At us.',expr:'scared'},
+      {who:'corwin',text:'That’s your place. That’s where they go, the ones who get through the door. I think. I hope.',expr:'sad'},
+      {who:'corwin',text:'They always look so happy over there. Forty-five years I’ve watched them wave. I never wave back.',expr:'wrong',wait:.4},
+    ],
+    done(){done&&done();}});}
+
+// ---------- 10. Ada — "What stands behind you": she takes your hands, and the Tall Man leans closer ----------
+function hsBehindYou(done){const R=ROOMS.home_kerrigan||ROOMS.store,ox=R.ox,oz=R.oz;
+  const ada={x:ox+2.2,z:oz+2.8},you={x:ox+4.2,z:oz+4.2},loomAt={x:ox+5.4,z:oz+3.7};
+  let loom=0,eyes=0;const CAM={x:ox+3.6,z:oz+3.9};
+  stage({room:ROOMS.home_kerrigan?'home_kerrigan':'store',hour:Math.min(Math.max(S.hour,10),13),player:{x:you.x,z:you.z,dir:'N'},cast:{ada:{x:ada.x,z:ada.z,dir:'S'}},cam:CAM,lead:800,
+    tick(dt){if(loom>0)loom=Math.min(1,loom+dt*.22);},
+    props:[{x:0,z:9e5,draw(){if(loom>0){ctx2.fillStyle=`rgba(5,4,8,${.3*loom})`;ctx2.fillRect(0,0,VW,VH);}hsVignette(.26+.22*loom);}},
+      {x:loomAt.x,z:loomAt.z,draw(X,Y){if(loom<=0)return;hsLoom(X,Y-4,52+loom*46,eyes);}}],   // it rises behind your shoulder, taller than the room
+    beats:[
+      {hold:.9,face:{ada:'S',you:'N'},act(){stgTitle('Ada — What stands behind you');}},
+      {who:'ada',text:'Give me your hands, child. There. Let an old blind woman see you properly.',expr:'neutral'},
+      {who:'ada',text:'Oh. Oh, he’s tall. Taller than the door. He stands behind every one of them, the month before.',expr:'scared',act(){loom=.01;SFX.breath&&SFX.breath();}},
+      {who:'ada',text:'He doesn’t touch. He just waits. He’s behind you right now. Don’t turn round —',expr:'scared',wait:.3},
+      {hold:1.8,act(){eyes=1;stgEmote('you','!',2);SFX.stinger&&SFX.stinger();}},
+      {who:'ada',text:'— it only makes him lean closer. There. He’s backing off. He doesn’t like me seeing him.',expr:'neutral',act(){eyes=0;}},
+      {who:'ada',text:'On the night, look at him. Straight at him. Don’t look away, whatever it costs. It cost me my eyes. Worth it.',expr:'sad',wait:.4},
+    ],
+    done(){done&&done();}});}
+
+// ---------- 11. Hob — "Who eats it": the inn's long table at three in the morning, and the guest nobody sees ----------
+function hsTheGuest(done){const R=ROOMS.home_harlow||ROOMS.store,ox=R.ox,oz=R.oz;
+  const tz=oz+4.6,you={x:ox+5.4,z:oz+6.0},hob={x:ox+3.2,z:oz+5.8};
+  let lean=0,eaten=0,fork=0;const CAM={x:ox+6,z:oz+5.0};
+  stage({room:ROOMS.home_harlow?'home_harlow':'store',hour:3.0,keepHour:true,player:{x:you.x,z:you.z,dir:'N'},cast:{hob:{x:hob.x,z:hob.z,dir:'E'}},cam:CAM,lead:850,
+    light(L){glowAt(sx(ox+6)+66,sz(tz)-16,38,[255,196,120],.36-.12*lean);hsVignette(.5);},
+    props:[{x:0,z:9e5,draw(){ctx2.fillStyle='rgba(5,5,9,.62)';ctx2.fillRect(0,0,VW,VH);}},   // the dead of night
+      {x:ox+6,z:tz,draw(X,Y,t){hsLongTable(X,Y);const px=X+66,py=Y-5;hsPlate(px,py,eaten);hsCandle(px+15,py+2,lean,1);   // the plate + candle at the far end, on the same table
+        if(fork>0&&!eaten){ctx2.fillStyle='#b8b0a0';ctx2.fillRect(px-8+Math.round(fork*3),py-2,1,5);}}}],
+    beats:[
+      {hold:1.0,face:{hob:'E',you:'N'},act(){stgTitle('Hob — Who eats it');}},
+      {who:'hob',text:'Every night I set the best cut at the end of the table. For the guest. Don’t you sit there.',expr:'neutral'},
+      {who:'hob',text:'Stay up with me. Just watch the candle. Three in the morning’s when he comes.',expr:'sad',wait:.4},
+      {hold:2.2,update(dt){lean=Math.min(1,lean+dt*.5);},act(){SFX.breath&&SFX.breath();}},
+      {who:'you',text:'The candle’s leaning. Like someone just sat down beside it. There’s no one there.',expr:'scared'},
+      {hold:1.8,act(){fork=.01;setTimeout(()=>{eaten=1;SFX.thud&&SFX.thud(0,.2);stgEmote('you','!',1.6);},900);},update(dt){fork=Math.min(1,fork+dt);}},
+      {who:'hob',text:'Gone. All at once, the way a dog takes it. He was a boy, once. The first one. 1871.',expr:'sad'},
+      {who:'hob',text:'Nobody fed him on the night they drew him. So I feed him. Every night since. Somebody has to.',expr:'cry',wait:.4,act(){lean=0;}},
+    ],
+    done(){done&&done();}});}
+
 // ---------- route the iconic heart events to their staged versions; everything else still plays via stgGeneric ----------
 const HS_SCENES={
   'mae|Closing time':hsClosingTime,'agnes|The music box, played':hsMusicBoxScene,'silas|The fresh hole':hsFreshHole,
-  'otto|The lake below the pond':hsLakeBelow,'cora|The countdown':hsCountdown,'june|The route':hsRoute};
+  'otto|The lake below the pond':hsLakeBelow,'cora|The countdown':hsCountdown,'june|The route':hsRoute,
+  'mae|Danny’s last letter':hsDannyLetter,'corwin|The far shore':hsFarShoreScene,
+  'ada|What stands behind you':hsBehindYou,'hob|Who eats it':hsTheGuest};
 {const _ps=playScene;playScene=function(id,title,html,done){
   const fn=HS_SCENES[id+'|'+title];
   if(fn&&!STG&&S.mode==='play'&&!S.paused&&typeof stage==='function')return fn(done);
