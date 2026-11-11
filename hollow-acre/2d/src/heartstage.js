@@ -258,7 +258,7 @@ function hsClosingTime(done){const R=ROOMS.store,ox=R.ox,oz=R.oz;MAEV.on=false;
     props:[{x:ox+14,z:oz+1.5,draw(X,Y,t){   // a window set in the wall behind the counter; the figure rises in it, becomes the Hollow, then is gone
         ctx2.fillStyle='#06060a';ctx2.fillRect(X-20,Y-46,40,42);
         ctx2.fillStyle=fig>=0?'#5c6672':'#161b24';ctx2.fillRect(X-17,Y-43,34,36);ctx2.fillStyle=fig>=0?'#6e7886':'#1e2630';ctx2.fillRect(X-17,Y-43,34,7);   // the pane: dusk sky, moonlit when it is there
-        if(fig>=0)hsTallFig(X,Y-9,26+fig*11,figK);
+        if(fig>=0)drawSpr('hollow',X,Y+8,'walk','S',0,{scale:.32+fig*.14,alpha:Math.min(1,.4+fig)});   // the real Hollow, small and distant in the back window
         ctx2.fillStyle='#06060a';ctx2.fillRect(X-1,Y-43,2,36);ctx2.fillRect(X-17,Y-26,34,2);}},   // mullions over the figure
       {x:ox+14.9,z:counter-.02,draw(X,Y,t){   // a little OPEN / CLOSED placard on the counter edge
         ctx2.fillStyle='#120c08';ctx2.fillRect(X+6,Y-16,16,9);ctx2.fillStyle=sign?'#7a2420':'#2d5a30';ctx2.fillRect(X+7,Y-15,14,7);ctx2.fillStyle='#f0e4c8';ctx2.font='6px monospace';ctx2.textAlign='center';ctx2.fillText(sign?'CLOSED':'OPEN',X+14,Y-9);ctx2.textAlign='left';}},
@@ -287,7 +287,7 @@ function hsMusicBoxScene(done){const px=-46,pz=-8.6;
   let open=0,ca=0,pt=0,song=0;const CAM={x:px-1.1,z:pz+.4};
   stage({hour:Math.min(Math.max(S.hour,16),18),player:{x:you.x,z:you.z,dir:'W'},cast:{agnes:{x:agn.x,z:agn.z,dir:'S'}},cam:CAM,lead:700,
     light(L){if(ca>0)glowAt(sx(child.x)+5,sz(child.z)-18,54,[150,160,180],.14*ca);hsVignette(.22);},
-    props:[{x:well.x,z:well.z,draw(X,Y){hsWell(X,Y);}},
+    props:[{x:well.x,z:well.z,draw(X,Y){drawSpr('well',X,Y);}},
       {x:child.x,z:child.z+.01,draw(X,Y,t){hsChild(X,Y,ca,pt);}},
       {get x(){return agn.x-.55;},get z(){return agn.z-.02;},draw(X,Y){if(open>0)hsMusicBox(X,Y-30,open>.4);}}],
     tick(dt){if(song>0){song-=dt;}},
@@ -313,7 +313,7 @@ function hsFreshHole(done){const gx=62,gz=-36.2;
   stage({hour:Math.min(Math.max(S.hour,13),16),storm:true,player:{x:you.x,z:you.z,dir:'W'},cast:{silas:{x:sil.x,z:sil.z,dir:'S'}},cam:CAM,lead:800,
     tick(dt,st){const n=npcById('silas');if(!n)return;if(digging){swing+=dt*3.2;n.z=sil.z-Math.abs(Math.sin(swing))*.12;}else if(!inpit){n.z=out.z;}},
     props:[{x:0,z:9e5,draw(X,Y,t){hsRain(t,true);}},   // the storm: a cold wash and rain over the whole frame, drawn on top
-      {x:pit.x,z:pit.z+.12,draw(X,Y){hsGrave(X,Y-6,dug);}},   // the pit draws just in front of Silas, so he stands waist-deep in it
+      {x:pit.x,z:pit.z+.12,draw(X,Y){drawSpr('g_grave',X,Y);}},   // the real open-grave sprite, drawn just in front of Silas so he stands waist-deep in it
       {get x(){const n=npcById('silas');return n?n.x+.5:gx;},get z(){const n=npcById('silas');return (n?n.z:gz)-.01;},draw(X,Y,t){if(digging){const a=Math.sin(swing)*.8-.3;hsShovel(X+2,Y-16,a);}else if(shov>0){hsShovel(sx(you.x)-2,sz(you.z)-18,.5);}}}],
     beats:[
       {hold:1.0,face:{silas:'S',you:'W'},act(){stgTitle('Silas — The fresh hole');}},
@@ -471,7 +471,7 @@ function hsBehindYou(done){const R=ROOMS.home_kerrigan||ROOMS.store,ox=R.ox,oz=R
   stage({room:ROOMS.home_kerrigan?'home_kerrigan':'store',hour:Math.min(Math.max(S.hour,10),13),player:{x:you.x,z:you.z,dir:'N'},cast:{ada:{x:ada.x,z:ada.z,dir:'S'}},cam:CAM,lead:800,
     tick(dt){if(loom>0)loom=Math.min(1,loom+dt*.22);},
     props:[{x:0,z:9e5,draw(){if(loom>0){ctx2.fillStyle=`rgba(5,4,8,${.3*loom})`;ctx2.fillRect(0,0,VW,VH);}hsVignette(.26+.22*loom);}},
-      {x:loomAt.x,z:loomAt.z,draw(X,Y){if(loom<=0)return;hsLoom(X,Y-4,52+loom*46,eyes);}}],   // it rises behind your shoulder, taller than the room
+      {x:loomAt.x,z:loomAt.z,draw(X,Y){if(loom<=0)return;drawSpr('hollow',X,Y,'walk','S',0,{scale:.85+loom*.5,alpha:Math.min(1,.5+loom*.6)});}}],   // the real Hollow rises behind your shoulder, taller than the room
     beats:[
       {hold:.9,face:{ada:'S',you:'N'},act(){stgTitle('Ada — What stands behind you');}},
       {who:'ada',text:'Give me your hands, child. There. Let an old blind woman see you properly.',expr:'neutral'},
@@ -490,7 +490,7 @@ function hsTheGuest(done){const R=ROOMS.home_harlow||ROOMS.store,ox=R.ox,oz=R.oz
   stage({room:ROOMS.home_harlow?'home_harlow':'store',hour:3.0,keepHour:true,player:{x:you.x,z:you.z,dir:'N'},cast:{hob:{x:hob.x,z:hob.z,dir:'E'}},cam:CAM,lead:850,
     light(L){glowAt(sx(ox+6)+66,sz(tz)-16,38,[255,196,120],.36-.12*lean);hsVignette(.5);},
     props:[{x:0,z:9e5,draw(){ctx2.fillStyle='rgba(5,5,9,.62)';ctx2.fillRect(0,0,VW,VH);}},   // the dead of night
-      {x:ox+6,z:tz,draw(X,Y,t){hsLongTable(X,Y);const px=X+66,py=Y-5;hsPlate(px,py,eaten);hsCandle(px+15,py+2,lean,1);   // the plate + candle at the far end, on the same table
+      {x:ox+6,z:tz,draw(X,Y,t){drawSpr('in_goodstable',X,Y);const px=X+40,py=Y-20;hsPlate(px,py,eaten);hsCandle(px+15,py+2,lean,1);   // the real laden banquet table; the plate + candle at the far end sit on it
         if(fork>0&&!eaten){ctx2.fillStyle='#b8b0a0';ctx2.fillRect(px-8+Math.round(fork*3),py-2,1,5);}}}],
     beats:[
       {hold:1.0,face:{hob:'E',you:'N'},act(){stgTitle('Hob — Who eats it');}},
@@ -509,7 +509,7 @@ function hsNellBox(done){const R=ROOMS.shop_carp||ROOMS.store,ox=R.ox,oz=R.oz;
   const nell={x:ox+5,z:oz+2.5},you={x:ox+5,z:oz+4.6},box={x:ox+5,z:oz+3.55};let show=0;const CAM={x:ox+5,z:oz+3.5};
   stage({room:ROOMS.shop_carp?'shop_carp':'store',hour:Math.min(Math.max(S.hour,10),16),player:{x:you.x,z:you.z,dir:'N'},cast:{nell:{x:nell.x,z:nell.z,dir:'S'}},cam:CAM,lead:750,
     light(L){glowAt(sx(box.x),sz(box.z)-18,34,[255,214,140],.26);hsVignette(.22);},
-    props:[{x:box.x,z:box.z,draw(X,Y){if(show>0){ctx2.save();ctx2.globalAlpha=Math.min(1,show);hsCarvedBox(X,Y-18);ctx2.restore();}}}],
+    props:[{x:box.x,z:box.z,draw(X,Y){if(show>0){ctx2.save();ctx2.globalAlpha=Math.min(1,show);drawSpr('in_hopechest',X,Y);ctx2.restore();}}}],   // the real carved hope-chest
     beats:[
       {hold:.9,face:{nell:'S',you:'N'},act(){stgTitle('Nell — The box is finished');}},
       {who:'nell',text:'It’s done. Oak, dovetailed, lined with felt. Best thing these hands ever made.',expr:'happy',act(){show=.01;},update(dt){show=Math.min(1,show+dt*1.4);}},
@@ -526,7 +526,7 @@ function hsBellRopeScene(done){const R=ROOMS.church,ox=R.ox,oz=R.oz;
   const hale={x:ox+5.9,z:oz+3.0},you={x:ox+4.2,z:oz+3.6},rope={x:ox+5,z:oz+3.2};const CAM={x:ox+5,z:oz+3.2};
   stage({room:'church',hour:Math.min(Math.max(S.hour,9),17),player:{x:you.x,z:you.z,dir:'N'},cast:{hale:{x:hale.x,z:hale.z,dir:'S'}},cam:{x:CAM.x,z:CAM.z+.4},lead:850,
     light(L){glowAt(sx(ox+5),sz(oz+1.6)-20,90,[255,196,120],.26);hsVignette(.28);},
-    props:[{x:rope.x,z:rope.z,draw(X,Y,t){hsBellRope(X,Y,t);}}],
+    props:[{x:rope.x,z:rope.z,draw(X,Y,t){drawSpr('wk_bell',X,Y);drawSpr('wk_rope',X+20,Y+2);drawSpr('wk_rope',X+30,Y+5);}}],   // the real bell on its frame, with coils of the cut old rope on the floor
     beats:[
       {hold:1.0,face:{hale:'S',you:'N'},act(){stgTitle('Hale — The bell rope');}},
       {who:'hale',text:'This rope is new. White, smooth. I replace it every year. Do you want to know why?',expr:'neutral'},
@@ -560,7 +560,7 @@ function hsBirthScene(done){const R=ROOMS.home_fenn||ROOMS.store,ox=R.ox,oz=R.oz
   const del={x:ox+4,z:oz+2.6},you={x:ox+4,z:oz+4.4},book={x:ox+4,z:oz+3.5};let open=0,page=0;const CAM={x:ox+4,z:oz+3.5};
   stage({room:ROOMS.home_fenn?'home_fenn':'store',hour:Math.min(Math.max(S.hour,16),18.4),player:{x:you.x,z:you.z,dir:'N'},cast:{della:{x:del.x,z:del.z,dir:'S'}},cam:CAM,lead:750,
     light(L){glowAt(sx(ox+1),sz(oz+1.1)-30,60,[255,196,120],.3);hsVignette(.22);},
-    props:[{x:book.x,z:book.z,draw(X,Y,t){if(open>0){ctx2.save();ctx2.globalAlpha=Math.min(1,open);hsBook(X,Y-8,page);ctx2.restore();}}}],
+    props:[{x:book.x,z:book.z,draw(X,Y,t){if(open>0){ctx2.save();ctx2.globalAlpha=Math.min(1,open);drawSpr('t_books',X,Y);if(page>0){ctx2.fillStyle='#b05438';ctx2.fillRect(Math.round(X)+1,Math.round(Y)-6+Math.min(4,Math.floor(page*4)),8,1);}ctx2.restore();}}}],   // the real ledger, your entry underlined in rust
     beats:[
       {hold:.9,face:{della:'S',you:'N'},act(){stgTitle('Della — Your birth');}},
       {who:'della',text:'I write down every baby I ever catch. Name, weight, time, and one line about the first cry.',expr:'neutral',act(){open=.01;},update(dt){open=Math.min(1,open+dt*1.4);}},
@@ -578,7 +578,7 @@ function hsDunnSlips(done){const R=ROOMS.home_dunn||ROOMS.store,ox=R.ox,oz=R.oz;
   stage({room:ROOMS.home_dunn?'home_dunn':'store',hour:Math.min(Math.max(S.hour,17),19),player:{x:you.x,z:you.z,dir:'N'},cast:{dunn:{x:dunn.x,z:dunn.z,dir:'S'}},cam:CAM,lead:800,
     light(L){glowAt(sx(stove.x),sz(stove.z)-14,40,[255,150,60],.3+(burn>0?.3*burn:0));hsVignette(.3);},
     props:[{get x(){const n=npcById('dunn');return n?n.x:dunn.x;},get z(){const n=npcById('dunn');return (n?n.z:dunn.z)+.01;},draw(X,Y){if(hat>0){ctx2.save();ctx2.globalAlpha=Math.min(1,hat);hsSheriffHat(X,Y-20,slip<2?1:0);ctx2.restore();}}},
-      {x:stove.x,z:stove.z,draw(X,Y,t){hsStove(X,Y,burn);}}],
+      {x:stove.x,z:stove.z,draw(X,Y,t){drawSpr('in_stove',X,Y);if(burn>0){ctx2.save();ctx2.globalAlpha=Math.min(1,burn);ctx2.fillStyle='#ffd867';ctx2.fillRect(Math.round(X)-6,Math.round(Y)-34-burn*8,12,8);ctx2.fillStyle='#ff8c2a';ctx2.fillRect(Math.round(X)-4,Math.round(Y)-32-burn*10,8,6);ctx2.restore();}}}],   // the real cast-iron stove; the slips flare up the flue as they burn
     tick(dt){if(burn>0)burn=Math.max(0,burn-dt*.7);},
     beats:[
       {hold:.9,face:{dunn:'S',you:'N'},act(){stgTitle('Dunn — His own name');}},
@@ -628,7 +628,7 @@ function hsHusbandTree(done){const tx=46,tz=58;
   const orla={x:tx+1.1,z:tz+.4},you={x:tx-1.2,z:tz+.6},grave={x:tx,z:tz-.6};let ap=0;const CAM={x:tx,z:tz+.3};
   stage({hour:Math.min(Math.max(S.hour,10),16),player:{x:you.x,z:you.z,dir:'E'},cast:{orla:{x:orla.x,z:orla.z,dir:'W'}},cam:CAM,lead:800,
     light(L){hsVignette(.2);},
-    props:[{x:grave.x,z:grave.z,draw(X,Y){hsHeadstone(X,Y);}},
+    props:[{x:grave.x,z:grave.z,draw(X,Y){drawSpr('grave_0',X,Y);}},
       {get x(){const n=npcById('orla');return n?n.x:orla.x;},get z(){const n=npcById('orla');return (n?n.z:orla.z)+.01;},draw(X,Y){if(ap>0){ctx2.save();ctx2.globalAlpha=Math.min(1,ap);hsAppleHeld(X-6,Y-20);ctx2.restore();}}}],
     beats:[
       {hold:1.0,face:{orla:'W',you:'E'},act(){stgTitle('Orla — The husband tree');}},
