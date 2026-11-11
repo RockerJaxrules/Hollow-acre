@@ -3,6 +3,9 @@
 Each line is something an attempt taught. Newest and repeated mistakes go to the top of their section.
 
 ## From the owner (strongest)
+- [OWNER, Nov 11, verbatim] "I never said stop remember continue until and assume the answer is always continue until everything
+  is 6 unless you don't feel you can improve it to 6." Standing order: never stop to report or ask; keep working down the list
+  until every family is judged 6+, and only park a piece when it genuinely can't be brought to 6 (log why).
 - [OWNER, Nov 11, verbatim] "I meant the bucket hangin on the string is behind the well not the other bucket." I had moved the
   separate bucket prop beside the well. Ask which object a complaint is about when two match, or fix both: here the well's own
   pail sat with its base on the back rim, so the front wall cut it and it read as hanging behind the well. A thing hanging
