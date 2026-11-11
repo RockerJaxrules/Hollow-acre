@@ -2770,7 +2770,7 @@ if(K==='jack2'||K==='jackb2'||K==='jackc2'){const PK=hexR(['#24120a','#3c1e0f','
   const glow=(pts)=>{for(const [x,y,core] of pts)hole(x,y,core?LT[5]:LT[4]);};   // (props family r1: the face barely stood out) the holes the brightest pixels
   if(V===0){glow([[-5,-2],[-4,-2],[-4,-3],[-5,-1,1],[-4,-1,1],[-3,-1],[3,-2],[4,-2],[3,-3],[3,-1,1],[4,-1,1],[5,-1]]);for(let x=-4;x<=4;x++){hole(x,3,x%3===0?LT[2]:LT[4]);if(Math.abs(x)<4)hole(x,2,LT[x%2?5:3]);}}
   if(V===1){glow([[-6,-2],[-5,-2],[-5,-1,1],[-6,-1],[-4,-1],[4,-2],[5,-2],[5,-1,1],[4,-1],[6,-1]]);for(let x=-6;x<=6;x++){hole(x,2,LT[(x+6)%3===0?2:4]);if(x>-6&&x<6)hole(x,3,LT[(x+6)%2?5:3]);if(Math.abs(x)<5&&x%2===0)hole(x,4,LT[4]);}}
-  if(V===2){glow([[-4,-3],[-4,-2,1],[-3,-2],[3,-3],[3,-2,1],[4,-2]]);for(let x=-3;x<=3;x++)hole(x,4-Math.round(Math.abs(x)*.5),LT[x===0?5:3]);hole(-1,5,LT[2]);}
+  if(V===2){glow([[-5,-3],[-4,-3],[-3,-3],[-5,-2],[-4,-2,1],[-3,-2],[-4,-1],[3,-3],[4,-3],[5,-3],[3,-2],[4,-2,1],[5,-2],[4,-1]]);for(let x=-5;x<=5;x++){const yy=3-Math.round(Math.abs(x)*.45);hole(x,yy,LT[Math.abs(x)<2?5:4]);if(Math.abs(x)<4)hole(x,yy+1,LT[Math.abs(x)<2?5:4]);}hole(-2,4,LT[2]);hole(2,4,LT[2]);}   // (props fam r2: two dots and a V vanished at 1x) 3 px eyes and a wide grin with a pale core
   hl(A,cx-Math.round(rx*.6),cy+Math.ceil(ry),Math.round(rx*1.2),PK[1]);}
 // hay bales: two on the ground and a smaller one on top, each with a lit top face, straw drawn as long streaks, twine running over the top and down the front
 if(K==='hay2'){const HY=hexR(['#382f19','#554826','#736235','#8c7a45','#a39158','#b5a46c','#c6b780']),TW=hexR(['#4a2a18','#6e4224']),base=33;   // (props sweep: "identical bales, no twine")
@@ -2792,12 +2792,14 @@ if(K==='gravex'){const Wd=hexR(['#1e1611','#33261b','#4a3828','#644d37','#7e6449
 // a planter box: boards of different widths, a lit top rim with dark soil showing, autumn mums in clumps
 if(K==='planter2'){const Wd=hexR(['#22180f','#3a2a1b','#523c27','#6c5034','#876644','#a28058']),base=31,x0=3,x1=40,ty=base-17;
   for(let x=x0;x<x1+4;x++){SH(x+1,base,150);SH(x+2,base+1,80);}
-  let bx=x0;const bw=[7,5,8,6,7,5];let bi=0;while(bx<x1){const w=Math.min(bw[bi%6],x1-bx);for(let x=bx;x<bx+w;x++)for(let y=ty+4;y<base;y++){let k=3;if(x===bx)k=4;if(x===bx+w-1)k=1;if(y===base-1)k=1;if(x>x1-8&&k>1)k-=1;if(hsh(x>>2,y>>3,bi)>.9)k=2;P(A,x,y,Wd[k]);}bx+=w;bi++;}
+  let bx=x0;const bw=[14,9,15,14];let bi=0;while(bx<x1){const w=Math.min(bw[bi%4],x1-bx);/* (props fam r2: eight even slats read as a crate) three boards of different widths */for(let x=bx;x<bx+w;x++)for(let y=ty+4;y<base;y++){let k=3;if(x===bx)k=4;if(x===bx+w-1)k=1;if(y===base-1)k=1;if(x>x1-8&&k>1)k-=1;if(hsh(x>>2,y>>3,bi)>.9)k=2;P(A,x,y,Wd[k]);}bx+=w;bi++;}
   for(let x=x0-1;x<=x1;x++){P(A,x,ty,Wd[5]);P(A,x,ty+1,Wd[4]);P(A,x,ty+2,Wd[x<x0+1||x>x1-1?3:0]);P(A,x,ty+3,Wd[2]);}                 // the lit rim, the soil just inside it
   const M=[RAMP.ochre,RAMP.pumpkin,hexR(['#3c1a1a','#5c2626','#7e3a30','#9e5040','#b8684c','#cc8462'])];
   for(const [lx,len] of [[6,3],[13,4],[22,2],[29,4],[36,3]])for(let j=0;j<len;j++){P(A,lx+(j>1?1:0),ty+1+j,hexR(['#4d5e2c','#3d4a25','#2e3a1d'])[Math.min(2,j)]);P(A,lx+1+(j>1?1:0),ty+1+j,hexR(['#3d4a25'])[0]);}   // (props family r1: an even row read as a stamp) leaves spilling over the lip
-  for(const [fx,fy,r,c] of [[8,ty-2,3,1],[15,ty-7,4.8,0],[24,ty-3,3.4,2],[31,ty-6,4.2,1],[38,ty-1,2.6,0]]){for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){const d=(x*x+y*y)/(r*r);if(d>1)continue;const lit=(-x-y)/r;P(A,fx+x,fy+y,M[c][lit>.6?5:lit>-.2?4:lit>-.8?3:2]);}
-    P(A,fx-1,fy-1,M[c][5]);P(A,fx+1,fy+1,M[c][1]);for(let i=-2;i<=2;i+=2)P(A,fx+i,fy+r,hexR(['#3d4a25'])[0]);}}
+  const ST=hexR(['#2e3a1d','#3d4a25','#4d5e2c']);   // (props fam r2: big round blooms read as oranges) small five-petal heads on stems of different heights
+  for(const [fx,fy,c] of [[7,ty-3,1],[11,ty-8,0],[16,ty-5,2],[21,ty-10,1],[26,ty-4,0],[31,ty-7,2],[36,ty-3,1],[39,ty-6,0]]){
+    for(let y=fy+2;y<ty+1;y++)P(A,fx,y,ST[y%3===0?2:1]);P(A,fx+1,Math.round((fy+ty)/2),ST[2]);P(A,fx+2,Math.round((fy+ty)/2)-1,ST[1]);   // the stem and a leaf
+    for(const [dx,dy,k] of [[0,-1,5],[-1,0,4],[1,0,3],[0,1,2],[-1,-1,4],[1,1,2]])P(A,fx+dx,fy+dy,M[c][k]);P(A,fx,fy,hexR(['#5a4220'])[0]);}}
 // the remembrance toys left at the memorial: each one shape a child would own, shaded as a solid, the colours faded
 if(K==='remcap2'){const BL=hexR(['#1c2129','#2a313c','#3b4452','#4f5a69','#667280','#808a96']),cx=15,base=22;   // a boy's cap lying on the grass: six panels to a button, a brim with a dark shadow under it
   for(let x=-10;x<=11;x++){SH(cx+x,base,150);SH(cx+x+1,base+1,70);}
