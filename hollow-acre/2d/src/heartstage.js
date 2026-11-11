@@ -282,12 +282,12 @@ function hsClosingTime(done){const R=ROOMS.store,ox=R.ox,oz=R.oz;MAEV.on=false;
     done(){maeCome(6,true);done&&done();}});}
 
 // ---------- 2. Agnes — "The music box, played": the box on the rail, a child at the well, pointing down ----------
-function hsMusicBoxScene(done){const px=-46,pz=-8.6;
-  const agn={x:px,z:pz-.3},you={x:px+1.4,z:pz+1.1},well={x:px-3.6,z:pz+2.2},child={x:well.x,z:well.z-.7};
-  let open=0,ca=0,pt=0,song=0;const CAM={x:px-2.0,z:pz+1.0};   // framed between Agnes's porch and the well, so the child + well read as the focal
-  stage({hour:Math.min(Math.max(S.hour,16),18),player:{x:you.x,z:you.z,dir:'W'},cast:{agnes:{x:agn.x,z:agn.z,dir:'S'}},cam:CAM,lead:700,
+function hsMusicBoxScene(done){const wx=wellPos.x,wz=wellPos.z;   // staged at the REAL farm well (world.js wellPos) — the event uses the well that already stands here, it does not spawn one
+  const well={x:wx,z:wz+.9},child={x:well.x,z:well.z-.6},agn={x:wx-2.2,z:wz+1.2},you={x:wx-.2,z:wz+2.6};
+  let open=0,ca=0,pt=0,song=0;const CAM={x:wx-.4,z:wz+1.3};   // framed on the real well; Agnes to its west, you below it, clear of the farm's notice board to the east
+  stage({hour:Math.min(Math.max(S.hour,16),18),player:{x:you.x,z:you.z,dir:'W'},cast:{agnes:{x:agn.x,z:agn.z,dir:'W'}},cam:CAM,lead:700,
     light(L){if(ca>0)glowAt(sx(child.x)+5,sz(child.z)-18,54,[150,160,180],.14*ca);hsVignette(.22);},
-    props:[{x:well.x,z:well.z,draw(X,Y){shadow(X,Y,16);drawSpr('well',X,Y);}},
+    props:[  // the well is the real world object standing at wellPos; only the ghost child and Agnes's music box are staged
       {x:child.x,z:child.z+.01,draw(X,Y,t){hsChild(X,Y,ca,pt);}},
       {get x(){return agn.x-.55;},get z(){return agn.z-.02;},draw(X,Y){if(open>0)hsMusicBox(X,Y-30,open>.4);}}],
     tick(dt){if(song>0){song-=dt;}},
@@ -313,7 +313,14 @@ function hsFreshHole(done){const gx=62,gz=-36.2;
   stage({hour:Math.min(Math.max(S.hour,13),16),storm:true,player:{x:you.x,z:you.z,dir:'W'},cast:{silas:{x:sil.x,z:sil.z,dir:'S'}},cam:CAM,lead:800,
     tick(dt,st){const n=npcById('silas');if(!n)return;if(digging){swing+=dt*3.2;n.z=sil.z-Math.abs(Math.sin(swing))*.12;}else if(!inpit){n.z=out.z;}},
     props:[{x:0,z:9e5,draw(X,Y,t){hsRain(t,true);}},   // the storm: a cold wash and rain over the whole frame, drawn on top
-      {x:pit.x,z:pit.z+.12,draw(X,Y){drawSpr('g_grave',X,Y);}},   // the real open-grave sprite, drawn just in front of Silas so he stands waist-deep in it
+      {x:pit.x,z:pit.z+.12,draw(X,Y){shadow(X,Y,15);drawSpr('g_grave',X,Y);   // the real open-grave sprite, drawn just in front of Silas so he stands waist-deep in it
+        // a spoil mound of fresh-dug earth to the left, so the hole reads as a dug grave and not a crate
+        const E=HSP.earth,EO=HSP.earthO,mx=X-30,my=Y-2;hsSh(mx,my+3,13,3);
+        ctx2.fillStyle=EO;ctx2.beginPath();ctx2.ellipse(mx,my,13,7,0,0,6.283);ctx2.fill();
+        ctx2.fillStyle=E[1];ctx2.beginPath();ctx2.ellipse(mx,my-1,11,6,0,0,6.283);ctx2.fill();
+        ctx2.fillStyle=E[2];ctx2.beginPath();ctx2.ellipse(mx-1,my-3,8,4,0,0,6.283);ctx2.fill();
+        ctx2.fillStyle=E[3];ctx2.beginPath();ctx2.ellipse(mx-2,my-4,4,2,0,0,6.283);ctx2.fill();
+        ctx2.fillStyle=EO;ctx2.fillRect(mx-6,my-2,2,2);ctx2.fillRect(mx+4,my-1,2,2);ctx2.fillRect(mx-1,my-5,2,2);}},
       {get x(){const n=npcById('silas');return n?n.x+.5:gx;},get z(){const n=npcById('silas');return (n?n.z:gz)-.01;},draw(X,Y,t){if(digging){const a=Math.sin(swing)*.8-.3;hsShovel(X+2,Y-16,a);}else if(shov>0){hsShovel(sx(you.x)-2,sz(you.z)-18,.5);}}}],
     beats:[
       {hold:1.0,face:{silas:'S',you:'W'},act(){stgTitle('Silas — The fresh hole');}},
@@ -333,8 +340,8 @@ function hsLakeBelow(done){const bx=pond.x,bz=pond.z;
   stage({hour:Math.min(Math.max(S.hour,14),17),player:{x:bx,z:bz,dir:'E',hide:true},cast:{},cam:CAM,lead:850,restore:true,
     light(L){hsVignette(.26);},
     tick(dt){if(drop>0&&run<96)run+=dt*34;if(tug>0)tug+=dt;},
-    props:[{x:bx,z:bz+.4,draw(X,Y,t){shadow(X,Y+9,30);drawSpr('otto',X,Y-2,'walk','S',0);drawSpr('wk_boat',X,Y+6);}},   // the real rowboat with a contact shadow; Otto sits so the boat's near rim crosses his lap
-      {x:bx+.02,z:bz+.5,draw(X,Y,t){if(drop>0&&!cut)hsLine(X+9,Y-8,Math.min(run,VH-Y-8),tug>0?tug:0);}}],
+    props:[{x:bx,z:bz+.4,draw(X,Y,t){drawSpr('otto',X,Y-2,'walk','S',0);drawSpr('wk_boat',X,Y+6);}},   // Otto seated in the real rowboat; the pond's own water reflection beneath the hull grounds it
+      {x:bx+.02,z:bz+.5,draw(X,Y,t){if(drop>0&&!cut)hsLine(X+26,Y-4,Math.min(run,VH-Y-8),tug>0?tug:0);}}],   // the weighted line drops off the boat's bow into clear water, clear of the reflection so it never reads as a catch on the line
     beats:[
       {hold:1.2,act(){stgTitle('Otto — The lake below');}},
       {who:'otto',text:'Easy now. Don’t rock her. Watch the line.',expr:'neutral',act(){drop=1;SFX.splash&&SFX.splash();}},
