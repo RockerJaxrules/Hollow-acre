@@ -242,21 +242,20 @@ if(K==='o_clothesline'){   // a clothesline: T-topped posts, a sagging line, a s
   cloth(86,98,t=>15,TOW,null,1.5);for(const yy of [11,13])for(let x=86;x<=98;x++){const y=lineY(x)+1+yy;if(G(A,x,y))P(A,x,y,SHEET[3]);}   // a towel with two stripes
   drop(P1,P1+2,base);drop(P2,P2+2,base);}
 
-if(K==='b_boot'){   // (benches fam r2: a full-height board read as a hutch) a low cobbler's seat-bench: a short tool rail, a lit seat, one warm tan boot on an iron last as the brightest shape, a tin of tacks and a pot of wax
-  const base=H-3,R=RAMP.walnut,I=RAMP.ironW,TN=hexR(['#3a2414','#5a3a20','#7c5430','#9c6e40','#b88a54','#cfa56c']);
-  const x0=5,w=48,top=base-17;
-  for(const px_ of [x0+w-12,x0+w-4])for(let y=top-11;y<top;y++){P(A,px_,y,R[4]);P(A,px_+1,y,R[3]);P(A,px_+2,y,R[1]);}   // a short rail at the far end only
-  for(let x=x0+w-13;x<x0+w-1;x++){P(A,x,top-12,R[5]);P(A,x,top-11,R[3]);P(A,x,top-10,R[1]);}
-  for(const [tx,len,c] of [[x0+w-9,6,I[4]],[x0+w-7,4,I[3]],[x0+w-5,5,RAMP.oak[4]]]){for(let j=0;j<len;j++)P(A,tx,top-9+j,c);}   // awls and a knife hanging from it
-  box3(x0,top,w,6,4,R,{faceK:3});for(let x=x0+2;x<x0+w-2;x++){SH(x,top+10,220);SH(x,top+11,150);}   // the seat: a 6 px lit plane
-  for(const lx of [x0+1,x0+w-4])for(let y=top+10;y<base;y++){P(A,lx,y,R[4]);P(A,lx+1,y,R[2]);P(A,lx+2,y,R[1]);}
-  for(let x=x0+4;x<x0+w-4;x++){P(A,x,base-5,R[4]);P(A,x,base-4,R[1]);}   // the lower shelf
-  for(const [sx,c] of [[x0+9,0],[x0+15,1],[x0+21,0]]){for(let y=base-10;y<base-5;y++)for(let i=0;i<4;i++)P(A,sx+i,y,TN[i===0?3:i===3?0:1]);hl(A,sx,base-10,4,TN[3]);}   // boot lasts waiting on the shelf, dark, a hue off the wood
-  {const tx=x0+6,ty=top-2;for(let y=ty;y<ty+3;y++)for(let x=tx;x<tx+5;x++)P(A,x,y,I[x===tx?4:x===tx+4?1:3]);hl(A,tx,ty,5,I[5]);}   // a tin of tacks
-  {const wx=x0+13,wy=top-1;for(let y=wy;y<wy+2;y++)for(let x=wx;x<wx+3;x++)P(A,x,y,RAMP.straw[y===wy?4:2]);}   // a cake of wax
-  {const lx=26,ly=top+2;for(let y=ly-6;y<ly+1;y++){P(A,lx,y,I[3]);P(A,lx+1,y,I[1]);}   // the iron last's post, and the tan boot on it, the brightest thing on the bench
-    const bx=lx-3,by=ly-6;for(let y=by-9;y<by;y++)for(let i=0;i<5;i++)P(A,bx+i,y,TN[i===0?5:i===4?2:4]);hl(A,bx,by-9,5,TN[5]);
-    for(let y=by;y<by+4;y++)for(let i=0;i<12;i++){if(i>9&&y===by)continue;P(A,bx+i,y,TN[y===by?5:i===11?2:4]);}
-    hl(A,bx,by+4,12,RAMP.charcoal[1]);P(A,bx,by+3,RAMP.charcoal[0]);P(A,bx+1,by+3,RAMP.charcoal[0]);
-    for(const [dx,dy] of [[2,-7],[3,-6],[2,-4],[3,-3],[4,-1],[5,0]])P(A,bx+dx,by+dy,TN[1]);}
+if(K==='b_boot'){   // (benches fam r3: a 2 px ledge, blocks under it) a cobbler's bench with a real 3/4 worktop two steps lighter than its front, everything standing on it, open below; a short rack of awls; one tan boot on an iron last as the brightest shape
+  const base=H-3,R=RAMP.walnut,T=RAMP.oak,I=RAMP.ironW,TN=hexR(['#3a2414','#5a3a20','#7c5430','#9c6e40','#b88a54','#cfa56c']),TNc=hexR(['#4a3326','#6a4a36']);
+  const x0=5,w=48,dT=9,hF=5,top=base-12-dT-hF;
+  for(let y=top;y<top+dT;y++){const r=y-top;for(let x=x0;x<x0+w;x++){let k=r===0?3:r===dT-1?5:4;if((r===3||r===6)&&((x*3+r)%13)<9)k=3;P(A,x,y,T[k]);}P(A,x0,y,T[5]);P(A,x0+w-1,y,T[2]);}   // the worktop: lit planks, the lightest wood on the piece
+  for(let y=top+dT;y<top+dT+hF;y++)for(let x=x0;x<x0+w;x++){const r=y-top-dT;P(A,x,y,R[r===0?3:r===hF-1?0:2]);}P(A,x0,top+dT+1,R[4]);   // the front edge, two steps darker
+  for(const lx of [x0+1,x0+w-4])for(let y=top+dT+hF;y<base;y++){P(A,lx,y,R[4]);P(A,lx+1,y,R[2]);P(A,lx+2,y,R[1]);}   // only the near legs
+  fadeUnder(x0+4,x0+w-5,top+dT+hF,base-1);
+  {const rx=x0+w-12;for(const px_ of [rx,rx+9])for(let y=top-9;y<top+2;y++){P(A,px_,y,R[4]);P(A,px_+1,y,R[1]);}for(let x=rx;x<rx+11;x++){P(A,x,top-10,R[5]);P(A,x,top-9,R[2]);}   // a short rack of awls at the far end
+    for(const ax of [rx+3,rx+5,rx+7]){for(let j=0;j<3;j++)P(A,ax,top-8+j,T[5-j]);for(let j=3;j<6;j++)P(A,ax,top-8+j,I[j===5?5:4]);}contact(rx,top+2,11);}
+  {const tx=x0+5,ty=top+1;for(let y=ty;y<ty+3;y++)for(let x=tx;x<tx+5;x++)P(A,x,y,I[x===tx?5:x===tx+4?1:3]);hl(A,tx,ty,5,I[5]);contact(tx,ty+3,6);}   // a tin of tacks, lit steel
+  {const wx=x0+12,wy=top+2;for(let y=wy;y<wy+2;y++)for(let x=wx;x<wx+3;x++)P(A,x,y,RAMP.straw[y===wy?5:3]);contact(wx,wy+2,4);}   // a cake of wax
+  {const lx=24,ly=top+5;for(let y=ly-5;y<ly+1;y++){P(A,lx,y,I[3]);P(A,lx+1,y,I[1]);}contact(lx-1,ly+1,4);   // the iron last, and the tan boot on it, three tones, a sole line
+    const bx=lx-3,by=ly-5;for(let y=by-10;y<by;y++)for(let i=0;i<5;i++)P(A,bx+i,y,i===0?TN[5]:i===4?TNc[0]:TN[4]);hl(A,bx,by-10,5,TN[5]);
+    for(let y=by;y<by+4;y++)for(let i=0;i<12;i++){if(i>9&&y===by)continue;P(A,bx+i,y,y===by?TN[5]:i>=10?TNc[0]:i>=7?TN[3]:TN[4]);}
+    hl(A,bx,by+4,12,RAMP.charcoal[0]);hl(A,bx+1,by+3,10,TN[2]);P(A,bx,by+3,RAMP.charcoal[1]);   // the sole line and heel
+    for(const [dx,dy] of [[2,-8],[2,-6],[2,-4],[3,-2]])P(A,bx+dx,by+dy,TN[1]);}   // laces down the instep
   contact(x0,base,w,.7);drop(x0,x0+w,base);}
