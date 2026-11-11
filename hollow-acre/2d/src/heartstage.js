@@ -313,14 +313,23 @@ function hsFreshHole(done){const gx=62,gz=-36.2;
   stage({hour:Math.min(Math.max(S.hour,13),16),storm:true,player:{x:you.x,z:you.z,dir:'W'},cast:{silas:{x:sil.x,z:sil.z,dir:'S'}},cam:CAM,lead:800,
     tick(dt,st){const n=npcById('silas');if(!n)return;if(digging){swing+=dt*3.2;n.z=sil.z-Math.abs(Math.sin(swing))*.12;}else if(!inpit){n.z=out.z;}},
     props:[{x:0,z:9e5,draw(X,Y,t){hsRain(t,true);}},   // the storm: a cold wash and rain over the whole frame, drawn on top
-      {x:pit.x,z:pit.z+.12,draw(X,Y){shadow(X,Y,15);drawSpr('g_grave',X,Y);   // the real open-grave sprite, drawn just in front of Silas so he stands waist-deep in it
-        // a spoil mound of fresh-dug earth to the left, so the hole reads as a dug grave and not a crate
-        const E=HSP.earth,EO=HSP.earthO,mx=X-30,my=Y-2;hsSh(mx,my+3,13,3);
-        ctx2.fillStyle=EO;ctx2.beginPath();ctx2.ellipse(mx,my,13,7,0,0,6.283);ctx2.fill();
-        ctx2.fillStyle=E[1];ctx2.beginPath();ctx2.ellipse(mx,my-1,11,6,0,0,6.283);ctx2.fill();
-        ctx2.fillStyle=E[2];ctx2.beginPath();ctx2.ellipse(mx-1,my-3,8,4,0,0,6.283);ctx2.fill();
-        ctx2.fillStyle=E[3];ctx2.beginPath();ctx2.ellipse(mx-2,my-4,4,2,0,0,6.283);ctx2.fill();
-        ctx2.fillStyle=EO;ctx2.fillRect(mx-6,my-2,2,2);ctx2.fillRect(mx+4,my-1,2,2);ctx2.fillRect(mx-1,my-5,2,2);}},
+      {x:pit.x,z:pit.z+.12,draw(X,Y){const E=HSP.earth,EO=HSP.earthO,RX=Math.round(X),RY=Math.round(Y);
+        // 1) a wide apron of turned earth the pit is dug INTO, so the hole never reads as a crate sitting on the lawn
+        hsSh(X+4,Y+4,34,8);
+        ctx2.fillStyle=EO;ctx2.beginPath();ctx2.ellipse(X,Y,33,16,0,0,6.283);ctx2.fill();
+        ctx2.fillStyle=E[1];ctx2.beginPath();ctx2.ellipse(X,Y-1,30,14,0,0,6.283);ctx2.fill();
+        ctx2.fillStyle=E[2];ctx2.beginPath();ctx2.ellipse(X-1,Y-2,26,12,0,0,6.283);ctx2.fill();
+        for(let i=0;i<10;i++){const a=i*2.0,r=22+((i*7)%6);ctx2.fillStyle=i%2?EO:E[1];ctx2.fillRect(RX+Math.round(Math.cos(a)*r)-1,RY+Math.round(Math.sin(a)*r*.46)-1,2,2);}   // clods scattered round the rim
+        drawSpr('g_grave',X,Y);   // the real open-grave sprite dropped into the dug earth
+        // 2) a lit sliver of the far pit wall behind the man, so his dark body separates from the black hole
+        ctx2.fillStyle=E[3];ctx2.fillRect(RX-15,RY-24,30,2);ctx2.fillStyle=E[2];ctx2.fillRect(RX-15,RY-22,30,1);
+        // 3) the dug soil heaped to the left: a real domed mound, lit top-left, its own cast shadow down-right
+        const mx=X-34,my=Y-4;hsSh(mx+5,my+6,16,4);
+        ctx2.fillStyle=EO;ctx2.beginPath();ctx2.ellipse(mx,my,15,9,0,0,6.283);ctx2.fill();
+        ctx2.fillStyle=E[1];ctx2.beginPath();ctx2.ellipse(mx-1,my-3,13,8,0,0,6.283);ctx2.fill();
+        ctx2.fillStyle=E[2];ctx2.beginPath();ctx2.ellipse(mx-2,my-5,10,6,0,0,6.283);ctx2.fill();
+        ctx2.fillStyle=E[3];ctx2.beginPath();ctx2.ellipse(mx-3,my-7,6,3,0,0,6.283);ctx2.fill();
+        ctx2.fillStyle=EO;ctx2.fillRect(mx-8,my-1,2,2);ctx2.fillRect(mx+6,my,2,2);ctx2.fillRect(mx-1,my-8,2,2);}},
       {get x(){const n=npcById('silas');return n?n.x+.5:gx;},get z(){const n=npcById('silas');return (n?n.z:gz)-.01;},draw(X,Y,t){if(digging){const a=Math.sin(swing)*.8-.3;hsShovel(X+2,Y-16,a);}else if(shov>0){hsShovel(sx(you.x)-2,sz(you.z)-18,.5);}}}],
     beats:[
       {hold:1.0,face:{silas:'S',you:'W'},act(){stgTitle('Silas — The fresh hole');}},
@@ -337,7 +346,7 @@ function hsFreshHole(done){const gx=62,gz=-36.2;
 // ---------- 4. Otto — "The lake below the pond": the weighted line that goes down and down, three tugs ----------
 function hsLakeBelow(done){const bx=pond.x,bz=pond.z;
   let run=0,drop=0,tug=0,cut=0;const CAM={x:bx,z:bz+.6};
-  stage({hour:Math.min(Math.max(S.hour,14),17),player:{x:bx,z:bz,dir:'E',hide:true},cast:{},cam:CAM,lead:850,restore:true,
+  stage({hour:Math.min(Math.max(S.hour,14),17),player:{x:bx+8,z:bz,dir:'E',hide:true},cast:{},cam:CAM,lead:850,restore:true,   // the hidden player stands off to the side (not in the boat), so nothing player-anchored draws over the open water by the boat — Otto in the boat is the whole focus
     light(L){hsVignette(.26);},
     tick(dt){if(drop>0&&run<96)run+=dt*34;if(tug>0)tug+=dt;},
     props:[{x:bx,z:bz+.4,draw(X,Y,t){drawSpr('otto',X,Y-2,'walk','S',0);drawSpr('wk_boat',X,Y+6);}},   // Otto seated in the real rowboat; the pond's own water reflection beneath the hull grounds it
@@ -350,7 +359,7 @@ function hsLakeBelow(done){const bx=pond.x,bz=pond.z;
       {hold:1.6},
       {who:'otto',text:'There’s another lake under this one. Black water. No bottom anyone’s found.',expr:'sad'},
       {who:'otto',text:'That’s where they come up from. Your grandfather’s knife. Ruth’s ribbon. All of it.',expr:'wrong',wait:.3},
-      {hold:1.8,act(){tug=.01;SFX.thud&&SFX.thud(0,.2);stgEmote('you','!',1.6);}},
+      {hold:1.8,act(){tug=.01;SFX.thud&&SFX.thud(0,.2);}},
       {who:'you',text:'Something’s pulling. Three times — gentle. Like it knows I’m here.',expr:'scared'},
       {hold:1.2,act(){cut=1;tug=0;SFX.deny&&SFX.deny();},emote:{otto:'!'}},
       {who:'otto',text:'We don’t answer that. Not today. Row us in.',expr:'scared',wait:.3},

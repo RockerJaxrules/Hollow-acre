@@ -25,7 +25,7 @@ function dxMirror(g,im,sx0,sy0,m,X,Y,flip){const fw=m.fw,fh=m.fh,ax=Math.round(m
     q.globalCompositeOperation='destination-in';q.fillStyle=gr;q.fillRect(0,0,fw,fh);q.globalCompositeOperation='source-over';
     if(im.complete!==false&&(im.naturalWidth||im.width))DX_MC.set(key,t);}
   g.drawImage(t,0,0,fw,fh,flip?X+ax-fw+1:X-ax,Y+ay-fh+1,fw,fh);}
-function depthWater(t){if(DX.off||S.room||!dxWaterOnScreen())return;const g=dxCanvas();
+function depthWater(t){if(DX.off||S.room||(cine&&cine.stage)||!dxWaterOnScreen())return;const g=dxCanvas();   // staged cutscenes freeze the world as a backdrop, so its water reflections (of hidden/placed actors) would be wrong — skip them and let the night water read flat and black
   // 1) mirrored world: everything standing near the water, flipped about its feet, darkened and tinted by the water
   g.clearRect(0,0,VW,VH);
   if(!DX.refl){DX.refl=OBJ.filter(o=>DX_REFLECT.has(o.kind)&&[[0,1.5],[0,3],[0,5],[1.5,2],[-1.5,2]].some(([dx,dz])=>terr(o.x+dx,o.z+dz)==='water'));}
