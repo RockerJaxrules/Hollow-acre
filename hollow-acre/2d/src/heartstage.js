@@ -284,7 +284,7 @@ function hsClosingTime(done){const R=ROOMS.store,ox=R.ox,oz=R.oz;MAEV.on=false;
 // ---------- 2. Agnes — "The music box, played": the box on the rail, a child at the well, pointing down ----------
 function hsMusicBoxScene(done){const px=-46,pz=-8.6;
   const agn={x:px,z:pz-.3},you={x:px+1.4,z:pz+1.1},well={x:px-3.6,z:pz+2.2},child={x:well.x,z:well.z-.7};
-  let open=0,ca=0,pt=0,song=0;const CAM={x:px-1.1,z:pz+.4};
+  let open=0,ca=0,pt=0,song=0;const CAM={x:px-2.0,z:pz+1.0};   // framed between Agnes's porch and the well, so the child + well read as the focal
   stage({hour:Math.min(Math.max(S.hour,16),18),player:{x:you.x,z:you.z,dir:'W'},cast:{agnes:{x:agn.x,z:agn.z,dir:'S'}},cam:CAM,lead:700,
     light(L){if(ca>0)glowAt(sx(child.x)+5,sz(child.z)-18,54,[150,160,180],.14*ca);hsVignette(.22);},
     props:[{x:well.x,z:well.z,draw(X,Y){shadow(X,Y,16);drawSpr('well',X,Y);}},
