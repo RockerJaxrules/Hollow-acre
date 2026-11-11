@@ -36,7 +36,7 @@ function stage(def){if(STG)return;
     for(const n of npcs){if(def.cast&&def.cast[n.def.id])continue;if(n.vis){st.hidden.push(n);n.vis=false;}}           // only the cast is on stage
     for(const [id,c] of Object.entries(def.cast||{})){const n=npcById(id);if(!n)continue;n._stg={x:n.x,z:n.z,vis:n.vis,seat:n._seat,loc:n.loc};n.loc='stage';st.pin[id]={x:c.x,z:c.z};
       n.x=c.x;n.z=c.z;n.dir=c.dir||'S';n.clip='idle';n.vis=true;n._seat=c.seat||null;if(c.seat)st.seated.push(n);}
-    H.vis=false;$('hud').hidden=true;$('buttons').hidden=true;ui.obj.hidden=true;try{ui.arrow.style.display='none';}catch(e){}
+    H.vis=false;$('hud').hidden=true;$('buttons').hidden=true;ui.obj.hidden=true;try{$('hotbar').hidden=true;}catch(e){}try{ui.arrow.style.display='none';}catch(e){}
     cine={stage:true,hidePlayer:!!pl.hide,cam:{x:def.cam.x,z:def.cam.z},
       drawables(D){const t=st.t;for(const p of def.props||[])D.push({z:p.z,mind:1,draw(){p.draw(sx(p.x),sz(p.z),t);}});
         for(const [id,e] of Object.entries(st.em)){const a=stgActor(id);if(!a||e.t<=0)continue;const X=sx(a.x),Y=sz(a.z)-46-Math.sin(Math.min(1,(1.2-e.t)*6)*Math.PI)*3;
@@ -94,7 +94,7 @@ function stgEnd(){const st=STG;if(!st||st.ended)return;st.ended=true;const def=s
   setTimeout(()=>{for(const n of st.hidden)n.vis=true;for(const n of npcs)if(n._stg){if(!def.keepCast){n.x=n._stg.x;n.z=n._stg.z;n.vis=n._stg.vis;}n._seat=n._stg.seat;n.loc=n._stg.loc;delete n._stg;n.clip='idle';}
     if(def.restore!==false){if(def.room!==undefined)S.room=st.prev.room;S.storm=st.prev.storm;if(def.hour!==undefined&&!def.keepHour)S.hour=st.prev.hour;if(def.room!==undefined&&def.room!==st.prev.room){P.x=st.prev.P.x;P.z=st.prev.P.z;P.dir=st.prev.P.dir;}}
     if(def.after)def.after();
-    cine=null;STG=null;$('stgBars').classList.remove('on');if(!def.endMode){$('hud').hidden=false;$('buttons').hidden=false;ui.obj.hidden=false;}S.mode=def.endMode||'play';P.clip='idle';P.spd=0;if(!def.endMode)fade(0);
+    cine=null;STG=null;$('stgBars').classList.remove('on');if(!def.endMode){$('hud').hidden=false;$('buttons').hidden=false;ui.obj.hidden=false;try{$('hotbar').hidden=false;}catch(e){}}S.mode=def.endMode||'play';P.clip='idle';P.spd=0;if(!def.endMode)fade(0);
     def.done&&def.done();},520);}
 
 // ======================= the scenes =======================
