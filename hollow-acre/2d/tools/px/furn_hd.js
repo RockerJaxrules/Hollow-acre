@@ -2761,7 +2761,7 @@ if(/^stepst[012]$/.test(K)){const SS=hexR(['#2c2a27','#48443f','#67625a','#857e7
   const GB=hexR(['#4d5a2c','#66733a']);for(const [gx,gy] of [[2,7],[3,8],[15,6],[16,7],[9,9]]){P(A,gx,gy,GB[1]);P(A,gx,gy-1,GB[0]);}}
 // jack-o'-lanterns: dull brown-orange skin with dark grooves, carved holes the brightest thing, amber round a pale core, a woody stem; three faces, three shapes
 if(K==='jack2'||K==='jackb2'||K==='jackc2'){const PK=hexR(['#24120a','#3c1e0f','#582e15','#72401d','#8a5127','#9e6434']),LT=RAMP.lit,base=19,cx=13,V={jack2:0,jackb2:1,jackc2:2}[K];
-  const rx=[9.5,11,8][V],ry=[7.5,6.5,8.5][V],cy=base-ry-1;
+  const rx=[9.5,11,10.5][V],ry=[7.5,6.5,7.5][V],cy=base-ry-1;   // (props fam r3: the third read as a ball wearing a face) squat, about 1.4x wider than tall
   for(let x=-11;x<=12;x++){SH(cx+x,base,140);SH(cx+x+1,base+1,70);}
   for(let y=-Math.ceil(ry);y<=Math.ceil(ry);y++)for(let x=-Math.ceil(rx);x<=Math.ceil(rx);x++){const d=(x*x)/(rx*rx)+(y*y)/(ry*ry);if(d>1)continue;
     const lobe=Math.abs(Math.sin((x/rx)*Math.PI*1.5));let k=4;const lit=-x/rx*.6-y/ry*.8;if(lit>.45)k=5;if(lit<-.3)k=3;if(lit<-.7||d>.86&&lit<0)k=2;if(lobe<.18&&Math.abs(x)>1)k=Math.max(1,k-2);P(A,cx+x,cy+y,PK[k]);}   // the ribs as dark grooves
@@ -2770,7 +2770,11 @@ if(K==='jack2'||K==='jackb2'||K==='jackc2'){const PK=hexR(['#24120a','#3c1e0f','
   const glow=(pts)=>{for(const [x,y,core] of pts)hole(x,y,core?LT[5]:LT[4]);};   // (props family r1: the face barely stood out) the holes the brightest pixels
   if(V===0){glow([[-5,-2],[-4,-2],[-4,-3],[-5,-1,1],[-4,-1,1],[-3,-1],[3,-2],[4,-2],[3,-3],[3,-1,1],[4,-1,1],[5,-1]]);for(let x=-4;x<=4;x++){hole(x,3,x%3===0?LT[2]:LT[4]);if(Math.abs(x)<4)hole(x,2,LT[x%2?5:3]);}}
   if(V===1){glow([[-6,-2],[-5,-2],[-5,-1,1],[-6,-1],[-4,-1],[4,-2],[5,-2],[5,-1,1],[4,-1],[6,-1]]);for(let x=-6;x<=6;x++){hole(x,2,LT[(x+6)%3===0?2:4]);if(x>-6&&x<6)hole(x,3,LT[(x+6)%2?5:3]);if(Math.abs(x)<5&&x%2===0)hole(x,4,LT[4]);}}
-  if(V===2){glow([[-5,-3],[-4,-3],[-3,-3],[-5,-2],[-4,-2,1],[-3,-2],[-4,-1],[3,-3],[4,-3],[5,-3],[3,-2],[4,-2,1],[5,-2],[4,-1]]);for(let x=-5;x<=5;x++){const yy=3-Math.round(Math.abs(x)*.45);hole(x,yy,LT[Math.abs(x)<2?5:4]);if(Math.abs(x)<4)hole(x,yy+1,LT[Math.abs(x)<2?5:4]);}hole(-2,4,LT[2]);hole(2,4,LT[2]);}   // (props fam r2: two dots and a V vanished at 1x) 3 px eyes and a wide grin with a pale core
+  if(V===2){   // angled eyes and an uneven saw-tooth grin, amber edges round a pale core
+    glow([[-6,-3],[-5,-3],[-4,-2],[-5,-2,1],[-6,-2],[-4,-1],[-5,-1],[6,-3],[5,-3],[4,-2],[5,-2,1],[6,-2],[4,-1],[5,-1]]);
+    for(let x=-6;x<=6;x++){const yy=2-Math.round(Math.abs(x)*.35);hole(x,yy,LT[Math.abs(x)<3?5:4]);hole(x,yy+1,LT[Math.abs(x)<3?5:3]);if((x+7)%3===0&&Math.abs(x)<6)hole(x,yy,PK[2]);if((x+6)%4===0&&Math.abs(x)<5)hole(x,yy+2,LT[3]);}   // teeth left standing, uneven
+    for(const gx of [-7,-3,3,7])for(let y=-Math.round(ry)+1;y<Math.round(ry);y++){const xx=gx+Math.round(y*y*.02*Math.sign(gx));const c=G(A,cx+xx,cy+y);if(c&&(c[0]<200))P(A,cx+xx,cy+y,PK[Math.max(0,PK.indexOf?1:1)]);}   // rib grooves running from the stem
+    for(const [sx,sy,k] of [[0,-9,1],[1,-9,1],[0,-10,1],[1,-10,0],[1,-11,1],[2,-11,1],[3,-11,0],[-1,-9,0]])P(A,cx+sx,cy+sy,hexR(['#3d3420','#5a4e2c'])[k]);}   // a thick stem with a curl   // (props fam r2: two dots and a V vanished at 1x) 3 px eyes and a wide grin with a pale core
   hl(A,cx-Math.round(rx*.6),cy+Math.ceil(ry),Math.round(rx*1.2),PK[1]);}
 // hay bales: two on the ground and a smaller one on top, each with a lit top face, straw drawn as long streaks, twine running over the top and down the front
 if(K==='hay2'){const HY=hexR(['#382f19','#554826','#736235','#8c7a45','#a39158','#b5a46c','#c6b780']),TW=hexR(['#4a2a18','#6e4224']),base=33;   // (props sweep: "identical bales, no twine")
@@ -2790,16 +2794,18 @@ if(K==='gravex'){const Wd=hexR(['#1e1611','#33261b','#4a3828','#644d37','#7e6449
   for(let x=cx-6;x<=cx+7;x++){P(A,x,8,Wd[x<cx-1?5:4]);P(A,x,9,Wd[3]);P(A,x,10,Wd[1]);}P(A,cx-6,9,Wd[4]);P(A,cx+7,9,Wd[2]);           // the crosspiece, lit on its top
   hl(A,cx-1,2,4,Wd[5]);P(A,cx+2,2,Wd[3]);}
 // a planter box: boards of different widths, a lit top rim with dark soil showing, autumn mums in clumps
-if(K==='planter2'){const Wd=hexR(['#22180f','#3a2a1b','#523c27','#6c5034','#876644','#a28058']),base=31,x0=3,x1=40,ty=base-17;
+if(K==='planter2'){const Wd=hexR(['#22180f','#3a2a1b','#523c27','#6c5034','#876644','#a28058']),base=31,x0=3,x1=40,ty=base-14;   // (props fam r3: a door-like panel read as a cabinet; matchstick stems) planks, posts, soil, leafy clumps
   for(let x=x0;x<x1+4;x++){SH(x+1,base,150);SH(x+2,base+1,80);}
-  let bx=x0;const bw=[14,9,15,14];let bi=0;while(bx<x1){const w=Math.min(bw[bi%4],x1-bx);/* (props fam r2: eight even slats read as a crate) three boards of different widths */for(let x=bx;x<bx+w;x++)for(let y=ty+4;y<base;y++){let k=3;if(x===bx)k=4;if(x===bx+w-1)k=1;if(y===base-1)k=1;if(x>x1-8&&k>1)k-=1;if(hsh(x>>2,y>>3,bi)>.9)k=2;P(A,x,y,Wd[k]);}bx+=w;bi++;}
-  for(let x=x0-1;x<=x1;x++){P(A,x,ty,Wd[5]);P(A,x,ty+1,Wd[4]);P(A,x,ty+2,Wd[x<x0+1||x>x1-1?3:0]);P(A,x,ty+3,Wd[2]);}                 // the lit rim, the soil just inside it
-  const M=[RAMP.ochre,RAMP.pumpkin,hexR(['#3c1a1a','#5c2626','#7e3a30','#9e5040','#b8684c','#cc8462'])];
-  for(const [lx,len] of [[6,3],[13,4],[22,2],[29,4],[36,3]])for(let j=0;j<len;j++){P(A,lx+(j>1?1:0),ty+1+j,hexR(['#4d5e2c','#3d4a25','#2e3a1d'])[Math.min(2,j)]);P(A,lx+1+(j>1?1:0),ty+1+j,hexR(['#3d4a25'])[0]);}   // (props family r1: an even row read as a stamp) leaves spilling over the lip
-  const ST=hexR(['#2e3a1d','#3d4a25','#4d5e2c']);   // (props fam r2: big round blooms read as oranges) small five-petal heads on stems of different heights
-  for(const [fx,fy,c] of [[7,ty-3,1],[11,ty-8,0],[16,ty-5,2],[21,ty-10,1],[26,ty-4,0],[31,ty-7,2],[36,ty-3,1],[39,ty-6,0]]){
-    for(let y=fy+2;y<ty+1;y++)P(A,fx,y,ST[y%3===0?2:1]);P(A,fx+1,Math.round((fy+ty)/2),ST[2]);P(A,fx+2,Math.round((fy+ty)/2)-1,ST[1]);   // the stem and a leaf
-    for(const [dx,dy,k] of [[0,-1,5],[-1,0,4],[1,0,3],[0,1,2],[-1,-1,4],[1,1,2]])P(A,fx+dx,fy+dy,M[c][k]);P(A,fx,fy,hexR(['#5a4220'])[0]);}}
+  const rows=[[ty+3,4],[ty+7,3],[ty+10,4]];   // three horizontal planks of different heights
+  for(const [y0,h] of rows)for(let y=y0;y<y0+h&&y<base;y++)for(let x=x0;x<=x1;x++){let k=y===y0?4:y===y0+h-1?2:3;if(((x*5+y0)%23)<3&&y===y0+1)k=2;P(A,x,y,Wd[k]);}
+  for(const px_ of [x0,x1-2])for(let y=ty;y<base;y++){P(A,px_,y,Wd[5]);P(A,px_+1,y,Wd[3]);P(A,px_+2,y,Wd[1]);}   // the corner posts, lit on the left
+  for(let x=x0;x<=x1;x++){P(A,x,ty,Wd[5]);P(A,x,ty+1,Wd[4]);P(A,x,ty+2,hexR(['#2a1e14'])[0]);}   // the lit rim and the soil line inside it
+  const LV=hexR(['#24301a','#33421f','#435627','#56692f','#6b7d3a']),FL=[RAMP.ochre,hexR(['#3a1e24','#5a2e36','#7a4048','#965660','#ad6e74','#c28a8a']),RAMP.pumpkin,hexR(['#3c1a1a','#5c2626','#7e3a30','#9e5040','#b8684c','#cc8462'])];
+  for(const [mx,my,rx,ry] of [[12,ty-2,9,5],[31,ty-1,8,4]])for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){const d=(x*x)/(rx*rx)+(y*y)/(ry*ry);if(d>1||my+y>ty+1)continue;   // two leafy clumps with a gap of soil between
+    const lit=(-x/rx-y/ry);let k=lit>.7?4:lit>0?3:lit>-.6?2:1;if(hsh(x+mx,y+my,5)<.18)k=Math.max(0,k-1);P(A,mx+x,my+y,LV[k]);}
+  const head=(fx,fy,r,c)=>{for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){if(x*x+y*y>r*r+.5)continue;const lit=(-x-y)/(r+.5);P(A,fx+x,fy+y,FL[c][lit>.4?5:lit>-.3?4:3]);}P(A,fx,fy,hexR(['#4a3418'])[0]);};
+  for(const [fx,fy,r,c] of [[8,ty-5,2,0],[13,ty-7,1,1],[16,ty-4,1.5,2],[6,ty-1,1,1],[28,ty-4,2,2],[33,ty-6,1,0],[35,ty-2,1.5,1],[22,ty-3,1,3]])head(fx,fy,r,c);   // three sizes, three heights, one red
+  head(38,ty+2,1,0);for(let j=0;j<5;j++){P(A,39+(j>2?1:0),ty+1+j,LV[j<2?3:2]);if(j%2)P(A,40+(j>2?1:0),ty+1+j,LV[1]);}}   // one head hanging over the lip, the vine trailing off the corner
 // the remembrance toys left at the memorial: each one shape a child would own, shaded as a solid, the colours faded
 if(K==='remcap2'){const BL=hexR(['#1c2129','#2a313c','#3b4452','#4f5a69','#667280','#808a96']),cx=15,base=22;   // a boy's cap lying on the grass: six panels to a button, a brim with a dark shadow under it
   for(let x=-10;x<=11;x++){SH(cx+x,base,150);SH(cx+x+1,base+1,70);}
