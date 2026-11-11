@@ -12,35 +12,29 @@ const ell1=(dx,dy,rx,ry)=>(dx*dx)/(rx*rx)+(dy*dy)/(ry*ry);
 // (judge props r3: one tuft stamp on every prop; no real shadow) a solid drop shadow, #322125 at 60%, an ellipse under the foot pushed down and right
 function drop(x0,x1,base){const cx=(x0+x1)/2+2.5,rx=(x1-x0)/2+3,ry=2.6;for(let y=base-3;y<=base+2;y++)for(let x=x0-2;x<=x1+6;x++){if(ell1(x-cx,y-(base+.2),rx,ry)<=1)SH(x,y,153);}}
 
-if(K==='o_tyres'){   // three tyres in a slightly crooked stack: lit top-left rims, one continuous wavy tread line, the hole going down into the dark
-  const base=H-3,rx=9,ry=4,th=5;
-  const tyre=(cx,cyT,top)=>{
-    for(let x=cx-rx;x<=cx+rx;x++){const dx=x-cx,t=dx/rx,e=Math.sqrt(Math.max(0,1-t*t)),yl=cyT+Math.round(ry*e);
-      for(let j=0;j<th;j++){if((j===0||j===th-1)&&Math.abs(dx)>=rx-1)continue;   // each tyre bulges: its sides round off top and bottom, so the stack's outline notches between tyres
-        let k=t<-.55?3:t<.3?2:1;if(Math.abs(t)>.93)k=Math.max(0,k-1);
-        if(j===0)k=t<.25?4:2;else if(j===th-1)k=Math.max(0,k-2);
-        else{const wv=Math.round(.6+.6*Math.sin((x+40)*1.05));if(j===1+wv)k=Math.max(0,k-1);}   // the tread: one continuous wavy line, a tone darker
-        P(A,x,yl+j,j===th-1?RUB[0]:(j===0&&t<-.25)?COOL:RUB[clampK(k+1)]);}
-      for(const sx of [cx-rx-1,cx+rx+1])for(let j=1;j<th-1;j++)if(Math.abs(x-sx)===1&&false)P(A,sx,yl+j,RUB[1]);}   // (judge r5: black cushions) the rubber a step lighter, a cool lit rim on the top-left of every tyre
-    for(let y=cyT-ry;y<=cyT+ry;y++)for(let x=cx-rx;x<=cx+rx;x++){const dx=x-cx,dy=y-cyT,o=ell1(dx,dy,rx+.4,ry+.4),i=ell1(dx,dy,rx*.5,ry*.5);
-      if(o>1)continue;if(!top&&Math.abs(dx)>=rx-1)continue;
-      if(i<=1){if(!top)continue;const far=dy<0&&ell1(dx,dy+1.6,rx*.5,ry*.5)>1;P(A,x,y,far?RUB[1]:mixC(RUB[0],[6,6,10],.4));continue;}   // the hole: a sliver of the far inside wall, then black
-      const l=-(dx/rx)*.7-(dy/ry)*.7;let k=l>.45?4:l>-.2?3:2;
-      if(o>.72&&l>.35){P(A,x,y,COOL);continue;}   // the lit outer rim on the upper left, a cool grey
-      if(i<1.45)k=Math.max(1,k-1);        // the bead round the hole
-      P(A,x,y,RUB[k]);}};
-  const cx=11,c0=base-ry-th+1;
-  tyre(cx,c0,false);tyre(cx+1,c0-th,false);tyre(cx-1,c0-2*th,true);   // three stacked, a little crooked
-  {const ux=20,uy=base-8,orx=7.5,ory=8.6;   // and one stood on end, leaning on the stack: a ring seen face-on
-    for(let y=uy-9;y<=uy+9;y++)for(let x=ux-8;x<=ux+8;x++){const dx=x-ux,dy=y-uy,o=ell1(dx,dy,orx,ory),i=ell1(dx,dy,orx*.45,ory*.5);if(o>1)continue;
-      if(i<=1){const c=G(A,x,y);P(A,x,y,c?mixC(c,[8,8,12],.55):RUB[0]);continue;}   // the hole: the stack behind it, in shade
-      const a=Math.atan2(dy,dx),l=-(dx/orx)*.7-(dy/ory)*.7;let k=l>.4?4:l>-.25?3:2;
-      if(o>.78){k=Math.max(0,k-1);if(((Math.round((a+Math.PI)*9))%2)===0)k=Math.max(0,k-1);if(l>.45){P(A,x,y,COOL);continue;}}   // the tread round the rim, blocky, lit top-left
-      else if(i<1.5)k=Math.max(1,k-1);   // the bead round the hole
-      P(A,x,y,RUB[k]);}}
-  
-  
-  drop(cx-rx,W-3,base);}
+if(K==='o_tyres'){   // tyres dumped in a heap: one flat on the ground, one thrown on it off-centre and tilted, one rolled against the heap on its edge; warm-grey lights, a wavy tread, holes going dark
+  const base=H-3,RB=hexR(['#141417','#1e1e22','#2a2a2f','#38373c','#4a4848','#64605c']),WL=hexR(['#827c76'])[0];
+  // a tyre is its face (an ellipse ring, turned by rot) pushed down th px to make the band
+  const tyre=(cx,cy,rx,ry,rot,th)=>{const c=Math.cos(rot),s_=Math.sin(rot);
+    const face=(x,y)=>{const dx=x-cx,dy=y-cy,u=dx*c+dy*s_,v=-dx*s_+dy*c;return [ell1(u,v,rx+.4,ry+.4),ell1(u,v,rx*.48,ry*.48),u/rx,v/ry];};
+    for(let y=cy-rx-1;y<=cy+rx+th+1;y++)for(let x=cx-rx-2;x<=cx+rx+2;x++){if(face(x,y)[0]<=1)continue;let j=0;for(let k=1;k<=th;k++)if(face(x,y-k)[0]<=1){j=k;break;}if(!j)continue;
+      const [,, u]=face(x,y-j);let kk=u<-.5?4:u<.3?3:2;if(j===1&&u<.2)kk=5;if(j===th)kk=0;else if(j===Math.round(th/2)+(((x>>1)+(y>>2))%2))kk=Math.max(0,kk-1);   // the band, a wavy tread line
+      P(A,x,y,RB[kk]);}
+    for(let y=cy-rx-1;y<=cy+rx+1;y++)for(let x=cx-rx-2;x<=cx+rx+2;x++){const [o,i,u,v]=face(x,y);if(o>1)continue;
+      if(i<=1){const far=v<0&&face(x,y+1.4)[1]>1;P(A,x,y,far?RB[1]:RB[0]);continue;}   // the hole: a sliver of the far inside wall, then dark
+      const l=-u*.7-v*.7;if(o>.72&&l>.4){P(A,x,y,WL);continue;}   // the lit rim, warm grey
+      let k=l>.4?4:l>-.2?3:2;if(i<1.5)k=Math.max(1,k-1);P(A,x,y,RB[k]);}};
+  const ring=(cx,cy,rx,ry,rot,lean)=>{const c=Math.cos(rot),s_=Math.sin(rot);   // a tyre on its edge, seen face-on, its tread showing as a crescent on the side it leans from
+    for(let y=cy-ry-2;y<=cy+ry+2;y++)for(let x=cx-rx-3;x<=cx+rx+3;x++){const dx=x-cx-lean,dy=y-cy,u=dx*c+dy*s_,v=-dx*s_+dy*c;if(ell1(u,v,rx+.4,ry+.4)<=1)P(A,x,y,RB[((x+y)>>1)%2?1:2]);}
+    for(let y=cy-ry-2;y<=cy+ry+2;y++)for(let x=cx-rx-3;x<=cx+rx+3;x++){const dx=x-cx,dy=y-cy,u=dx*c+dy*s_,v=-dx*s_+dy*c,o=ell1(u,v,rx+.4,ry+.4),i=ell1(u,v,rx*.46,ry*.46);if(o>1)continue;
+      if(i<=1){const ii=(y*W+x)*4;A.d[ii]=A.d[ii+1]=A.d[ii+2]=A.d[ii+3]=0;continue;}   // the hole: the ground shows through (kept clear of the outline pass below)
+      const l=-(u/rx)*.7-(v/ry)*.7;if(o>.74&&l>.4){P(A,x,y,WL);continue;}let k=l>.4?4:l>-.25?3:2;if(i<1.5)k=Math.max(1,k-1);if(o>.8&&l<-.3)k=1;P(A,x,y,RB[k]);}};
+  tyre(14,base-8,10,4,0,5);          // flat on the ground
+  tyre(17,base-14,9,5,-.18,4);       // thrown on top, off-centre and tilted up on one side
+  ring(31,base-8,6.5,8,.22,-2);      // rolled against the heap on its edge
+  {const c=Math.cos(.22),s_=Math.sin(.22);NOOL.push((x,y)=>{const dx=x-31,dy=y-(base-8),u=dx*c+dy*s_,v=-dx*s_+dy*c;return ell1(u,v,6.5*.46,8*.46)<=1;});}
+  contact(4,base,32,.7);drop(4,37,base);
+  {const c=Math.cos(.22),s_=Math.sin(.22);for(let y=0;y<H;y++)for(let x=0;x<W;x++){const dx=x-31,dy=y-(base-8),u=dx*c+dy*s_,v=-dx*s_+dy*c;if(ell1(u,v,6.5*.46,8*.46)<=1)SHD.d[(y*W+x)*4+3]=y>base-6?70:0;}}}   // the ground through the hole, only lightly shaded
 
 if(K==='o_drum'){   // an upright oil drum, green-grey paint: a lit band left of centre, two rolling hoops, rust running from the chime, a bung in the lid
   const base=H-3,cx=10,rx=8,ry=3,cyT=6,cyB=base-ry;

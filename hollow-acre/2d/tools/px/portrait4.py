@@ -26,7 +26,7 @@ def skin_ramp(base):
     def hv(dh, ks, kv): rr, gg, bb = colorsys.hsv_to_rgb((h + dh) % 1, min(1, sa * ks), min(1, v * kv)); return (int(rr * 255), int(gg * 255), int(bb * 255))
     B = hexc(base) if isinstance(base, str) else base
     if v < .86:   # medium and dark skin (judge: its shadow side read as a hard saturated red-brown bruise): shade toward plum, not more red
-        return [hv(-.08, 1.2, .53), hv(-.06, 1.15, .7), hv(-.034, 1.08, .87), tuple(B), mix(B, (255, 238, 222), .26), mix(B, (255, 246, 234), .5)]
+        return [hv(-.06, .92, .52), hv(-.045, .9, .7), hv(-.03, 1.02, .87), tuple(B), mix(B, (255, 238, 222), .26), mix(B, (255, 246, 234), .5)]   # (judge r4: saturated dark steps made shadow islands read as bruises)
     return [hv(-.05, 2.0, .5), hv(-.035, 1.8, .68), hv(-.018, 1.42, .85), tuple(B), mix(B, (255, 242, 226), .28), mix(B, (255, 248, 236), .55)]
 def ramp(base, n=6, dark=.36, light=1.32, shade_hue=.98, shade_amt=.22, lit_amt=.18, sat=1.0, base_i=3):
     """a hue-shifted ramp, the base colour sitting at index base_i: shadows turn toward shade_hue and get richer,
@@ -543,7 +543,7 @@ class Painter:
         hw_row = np.interp(Y, np.linspace(20, chin, 200), s.face_hw(np.linspace(20, chin, 200)))
         lit -= .06 * sstep(chin - 4, chin, Y)
         if C.get('kind') in ('man', 'oldman'):
-            lit = lit - .1 * G(CX - 15.5, 73, 3.2, 4.5) - .14 * G(CX + 15.5, 73, 3.2, 4.5)
+            pass   # (judge r3-r4: a cheek-hollow disc crossed a colour step and read as a bruise; removed)
             lit = lit - .12 * G(CX - 11.5, 55.5, 7.5, 1.6) - .14 * G(CX + 11.5, 55.5, 7.5, 1.6) + .08 * G(CX - 11, 53.5, 6, 1.2)
             lit = lit - .14 * G(66.4, 64, 1.0, 4.4) + .08 * np.exp(-((X - 62.6) / .8) ** 2) * sstep(56, 59, Y) * sstep(68, 66, Y)
             lit = lit + .06 * G(CX - 19, 81, 3, 2) - .08 * G(CX, chin - 1.5, 3.5, 1.5) * 0 + .05 * G(CX - 1, chin - 3, 3, 1.6)
@@ -606,6 +606,7 @@ class Painter:
             sh = poly(list(zip(xs, yu - .4)) + list(zip(xs[::-1], (yu - 2.9 - .5 * (1 - u * u))[::-1])))
             cv.put(sh & s.face_m, 'shadow', s.face_lit - .04)
         cv.put(scl, 'sclera', s_l)
+        if C.get('hollow'): look = (max(-1.2, min(1.2, look[0])), max(-.8, min(.8, look[1])))   # the pinprick stays inside a hollow eye
         icx = ecx - sg * .35 + look[0]; icy = ecy + .25 + look[1]
         ir = ell(icx, icy, iris_r, iris_r * 1.04) & scl
         d = np.sqrt((X - icx) ** 2 + (Y - icy) ** 2)
@@ -662,7 +663,7 @@ class Painter:
         elif ex == 'love': di, dp, do = -.9, -1.1, -.6
         elif ex == 'laugh': di, dp, do = -1.6, -1.6, -1.0
         elif ex == 'cry': di, dp, do = -2.8, -.4, 1.0
-        elif ex == 'think': di, dp, do = .9, -.3, -.2   # (judge r3: think and smug both used one raised brow) level, slightly knit
+        elif ex == 'think': di, dp, do = 2.2, .2, -.4   # (judge r3: think and smug both used one raised brow) level, slightly knit
         side = {'smug': {-1: (-3.0, -4.4, -2.6), 1: (1.6, 1.2, .6)}, }.get(ex)   # bigger, one-sided (judge: within 1-2 px of neutral)
         for sg in (-1, 1):
             if side: di, dp, do = side[sg]
@@ -686,12 +687,12 @@ class Painter:
         C, cv, ex = s.C, s.cv, s.ex
         mx, my = CX + .3, C.get('mouth_y', 76.5); hw = C.get('lip_w', 6.6); uh = C.get('lip_up', 2.2); lh = C.get('lip_lo', 2.9)
         u = np.linspace(-1, 1, 41); xs = mx + u * hw
-        corner = {'neutral': .7, 'happy': 1.8, 'sad': -3.0, 'angry': -.7, 'surprised': 0, 'scared': -.9, 'wrong': 2.6, 'love': 1.3, 'laugh': 2.0, 'cry': -1.5, 'smug': 0, 'think': -.6}[ex]
-        if ex == 'sad': hw = hw * .86; xs = mx + u * hw   # a smaller, pulled-down mouth
-        if ex == 'think': hw = hw * .6; mx = mx + 2.8; xs = mx + u * hw; lh = lh * .45; uh = uh * .8   # a flat mouth pulled aside (a full lower lip read as a pout)
+        corner = {'neutral': .7, 'happy': 1.8, 'sad': -2.6, 'angry': -.7, 'surprised': 0, 'scared': -.9, 'wrong': 2.6, 'love': 1.3, 'laugh': 2.0, 'cry': -1.5, 'smug': 0, 'think': -.6}[ex]
+        if ex == 'sad': lh = lh * .7   # a thinner lower lip, corners down (narrowing it read as a sulky pucker)
+        if ex == 'think': hw = max(hw * .6, 3.4); mx = mx + 2.8; xs = mx + u * hw; lh = lh * .3; uh = uh * .45   # a flat mouth pulled aside (a full lower lip read as a pout)
         if ex == 'wrong': hw = hw * 1.55; xs = mx + u * hw
         if ex == 'laugh' and not C.get('teeth_v1'): hw = hw * 1.14; xs = mx + u * hw   # a laugh widens as well as opens
-        line = my - corner * u * u + .15 * np.exp(-(u / .2) ** 2) - (C.get('smirk', 0) + (4.6 if ex == 'smug' else 0)) * np.clip(u, 0, 1) ** 2 * (0 if ex in ('sad', 'scared', 'wrong', 'cry') else 1) + (.9 * np.clip(-u, 0, 1) ** 2 if ex == 'smug' else 0)
+        line = my - corner * u * u + .15 * np.exp(-(u / .2) ** 2) - (C.get('smirk', 0) + (2.6 if ex == 'smug' else 0)) * np.clip(u, 0, 1) ** 2 * (0 if ex in ('sad', 'scared', 'wrong', 'cry') else 1) + (.9 * np.clip(-u, 0, 1) ** 2 if ex == 'smug' else 0)
         top = line - uh * (1 - u * u) ** .55 + .7 * np.exp(-(u / .16) ** 2) - .25 * np.exp(-((np.abs(u) - .32) / .14) ** 2)
         if ex in ('happy', 'scared', 'wrong', 'laugh', 'cry'):
             op = {'happy': 2.7, 'scared': 2.6, 'wrong': 4.2, 'laugh': 4.0 if C.get('teeth_v1') else 7.4, 'cry': 2.2}[ex]   # a laugh opens the jaw (judge: it read as the smile with the eyes shut)
@@ -733,7 +734,7 @@ class Painter:
         ln = np.stack([np.concatenate([[xs[0] - .5], xs, [xs[-1] + .5]]), np.concatenate([[line[0] + .1], line, [line[-1] + .1]])], 1)
         cv.put(ribbon(ln, [.5, .9, 1.0, .9, .5])[0], 'lipline', .4)
         if ex == 'smug':   # a dimple tucks in at the lifted corner, so the smirk reads at 1x
-            ex_, ey_ = xs[-1], line[-1]; cv.put(ell(ex_ + 1.3, ey_ + .4, .75, 1.05) & s.face_m, 'crease', .3)   # (judge r3: the slash read as a scar) a 1-2 px dimple in the shadow tone
+            ex_, ey_ = xs[-1], line[-1]; cv.put(ell(ex_ + 1.1, ey_ + .9, .55, .7) & s.face_m, 'crease', .55)   # (judge r3: the slash read as a scar) a 1-2 px dimple in the shadow tone
 
     # ------------------------------------------------------------ hairstyles: lists of locks, back to front
     def mass(s, mask, out, d=-.16):

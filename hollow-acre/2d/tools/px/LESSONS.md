@@ -116,6 +116,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   texture.
 
 ## Props (small objects, 20-40 px) [owner: "not good enough"]
+- To cut a hole in a sprite in the furniture kit, zero all four channels and add the hole to NOOL (the outline pass fills small holes). Zeroing only alpha left the colour behind and the export turned it purple. (props r6)
+- Clothesline: T-topped posts, a sagging line, pegs, each garment its own hue with broad folds lit on the left, and a faint shade on the grass below. Won in both slot orders. (props r5-r6)
+- A stack of identical tyres drawn crooked still reads as one ribbed drum. Stand one tyre on end against the stack: a ring with its hole is unmistakable. (props r5)
+- When my redraw keeps losing (firewood 3 rounds, bin 2), check the installed piece's score: if it now judges 6, keep it and move on. (props r5)
+- A lid wider than the body turns a can into a jug or bucket. The lid is at most 1 px wider than the body, domed and a step lighter. (props r5)
 - Never stamp the same grass tuft on every prop: it repeats across the family and shows green on dirt. Use one solid drop shadow instead (#322125 at 60%, an ellipse under the foot, pushed down and right). (props r3)
 - A frame or brace over boards is a step DARKER than the boards between it, not lighter, and a crate lid is a full step lighter than its front. (props r3)
 - A mine "way down" reads from a ragged dark shaft with the ladder's top poking out, not from a ladder lying flat. Give the lip broken stones, lit on the near edge, and no straight frame (a straight lip reads as a TV). (props r3)
@@ -271,6 +276,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   lit upper-left, short shadow) read as grass. Lone 2-4 px marks and leaves in a lawn read as specks or eyes.
 
 ## Portraits: check before installing (Nov 9)
+- A dimple is 1-2 px in the skin's shadow tone. A line in the lip colour running up the cheek reads as a scar. (portraits r3)
+- Smug and think must not share a cue. Smug = one brow up, one corner up. Think = level, slightly knit brows, eyes up and aside, a small flat mouth pulled to one side. (portraits r3)
+- No blush on a grown man's shadowed cheek: on medium skin it reads as a bruise. (portraits r3)
+- Caitlyn's face stays exactly as installed. Any portrait install copies her row from the installed sheet (sheet4.py KEEP). (owner rule, re-applied Nov 11)
 - A curved cloth pattern (floor() of a warped coordinate) steps into diagonal hatch at 128 px and reads as rain. Keep checks and stripes straight. (portraits r2)
 - Two characters with the same hair style and colour read as one person whatever the face does. Change the hair or the beard first, then the face. (portraits r2)
 - An expression must move brow, lids and mouth together by 2-3 px each, or it disappears at 1x: smug = one brow up and one mouth corner up with a dimple, while that eye stays open; sad = inner brows up, outer eye corners down, both mouth corners down. (portraits r2)
