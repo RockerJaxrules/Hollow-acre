@@ -9,6 +9,7 @@ const SHOTS=[
   {name:'hs_agnes', id:'agnes', title:'The music box, played', target:6, ramp:1400, sec:3.4},   // Ruth at the well, pointing in
   {name:'hs_june',  id:'june',  title:'The route',             target:5, ramp:200,  sec:3.2},   // a watcher at every lit window
   {name:'hs_ada',   id:'ada',   title:'What stands behind you',target:3, ramp:4200, sec:3.2},   // the Hollow looms behind you
+  {name:'hs_silas', id:'silas', title:'The fresh hole',         target:2, ramp:900,  sec:3.0},   // digging your grave, in the rain
 ];
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{fs.mkdirSync(OUT,{recursive:true});const b=await chromium.launch();

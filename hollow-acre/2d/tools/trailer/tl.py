@@ -12,17 +12,27 @@ TL = [
     ('shot', 'field_work', 0, 149),
     ('shot', 'chop', 0, 131),
     ('card', ['Marrow Hollow is glad you came.'], 2.4),
-    ('shot', 'town', 0, 107),
-    ('shot', 'caitlyn', 0, 107),
-    ('shot', 'festival', 0, 101),
-    ('card', ['Every October,', 'the valley draws one name.'], 3.2),
-    ('card', ['This year, it drew yours.'], 2.6),
-    ('shot', 'tithe_night', 0, 101),
-    ('shot', 'lake_night', 0, 89),
-    ('shot', 'graves_night', 12, 89),
-    ('flash', 0.067),
-    ('shot', 'corn_watch', 0, 137),
-    ('black', 0.45),
+    ('shot', 'town', 0, 95),
+    ('shot', 'caitlyn', 0, 95),
+    ('shot', 'festival', 0, 95),
+    ('card', ['Every October,', 'the valley draws one name.'], 3.0),
+    ('card', ['This year, it drew yours.'], 2.4),
+    # --- the hauntings: fast cuts, one horror after another ---
+    ('shot', 'tithe_night', 0, 58),                       # the standing stones at dark
+    ('shot', 'hs_june', 16, 72),                          # a back at every lit window
+    ('card', ['A back at every window.'], 1.9),
+    ('shot', 'hs_agnes', 26, 82),                         # the drowned girl at the well, pointing in
+    ('shot', 'lake_night', 0, 52),                        # the black water
+    ('card', ['The valley keeps what it takes.'], 2.0),
+    ('shot', 'hs_ada', 22, 80),                           # the Hollow, stood at your back
+    ('card', ['He is always just behind you.'], 2.0),
+    ('shot', 'hs_silas', 22, 78),                         # a fresh grave, cut in the rain
+    ('card', ['They dug it to your size.'], 2.0),
+    ('shot', 'graves_night', 12, 70),                     # the headstones
+    ('flash', 0.067),                                     # a frame of the face, buried in the cut
+    ('shot', 'corn_watch', 24, 138),                      # it comes through the corn
+    ('card', ["You've done all this before."], 2.3),
+    ('black', 0.4),
     ('shot', 'scare', 4, 58),
     ('black', 1.3),
     ('title', 6.5),

@@ -67,16 +67,18 @@ def faceframe():
     return _FACE
 
 
-def nightgrade(im):
+def nightgrade(im, mul=(0.80, 0.85, 0.97)):
     """colder and darker so the nights feel wrong, not just dim"""
-    a = np.asarray(im).astype(np.float32) * [0.80, 0.85, 0.97]
+    a = np.asarray(im).astype(np.float32) * list(mul)
     return Image.fromarray(a.clip(0, 255).astype(np.uint8))
 
 
 def frames():
     segs, tot = timeline()
     cozy = {'farm_dawn', 'field_work', 'chop', 'town', 'caitlyn', 'festival'}
-    nights = {'tithe_night', 'lake_night', 'graves_night', 'corn_watch'}
+    nights = {'tithe_night', 'lake_night', 'graves_night', 'corn_watch',
+              'hs_june', 'hs_agnes', 'hs_ada', 'hs_silas'}
+    dusk = {'hs_agnes': (0.52, 0.60, 0.80)}          # a bright daytime shot pushed to a cold, wrong twilight
     for (a, b, seg) in segs:
         n = int(round((b - a) * FPS))
         if seg[0] == 'black':
@@ -97,6 +99,8 @@ def frames():
                 if name in cozy:                                  # soft dips at the cozy cuts; the nights cut hard
                     e = min(1, (i + 1) / 4, (f1 - k + 1) / 4)
                     if e < 1: im = Image.fromarray((np.asarray(im) * e).astype(np.uint8))
+                elif name in dusk:
+                    im = nightgrade(im, dusk[name])
                 elif name in nights:
                     im = nightgrade(im)
                 yield im
