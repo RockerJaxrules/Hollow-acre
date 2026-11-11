@@ -48,8 +48,10 @@
     MG.tn=clamp(MG.tn+strain*dt,0,1);if(MG.snapT>0)MG.snapT-=dt;
     if(MG.tn>.82&&MG.snapT<=0){MG.snapT=.6;cam&&(cam.shake=Math.max(cam.shake||0,.18));}
     if(MG.tn>=1){MG.snapped=true;endMG(false);return;}
+    if(MG.prog>=1&&!MG.landed){MG.landed=.001;MG.splash=[];for(let i=0;i<14;i++)MG.splash.push({x:(Math.random()-.5)*16,vy:-30-Math.random()*40,vx:(Math.random()-.5)*40,t:0});SFX.splash&&SFX.splash();cam&&(cam.shake=.45);const h=E.querySelector('.fhint');if(h)h.textContent='Landed!';}
+    if(MG.landed){MG.landed+=dt;for(const s of MG.splash){s.t+=dt;s.vy+=180*dt;s.x+=s.vx*dt;s.y=(s.y||0)+s.vy*dt;}draw(now/1000,true);if(MG.landed>.55){endMG(true);return;}raf=requestAnimationFrame(loop);return;}
     draw(now/1000,inside);
-    if(MG.prog>=1){endMG(true);return;}if(MG.prog<=0){endMG(false);return;}
+    if(MG.prog<=0){endMG(false);return;}
     raf=requestAnimationFrame(loop);}
 
   function draw(t,inside){const cv=el().querySelector('.fg');if(!cv)return;const g=cv.getContext('2d');g.imageSmoothingEnabled=false;const {W,H,tnx,tnw,tx,ty,tw,th,px,pw}=FG;g.clearRect(0,0,W,H);const p=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h);};
@@ -63,8 +65,12 @@
     // a lit line at the surface (the top): hauling it here is the goal
     p(tx,ty,tw,1,'#e8ecf0');p(tx,ty+1,tw,1,'rgba(255,255,255,.25)');
     const bh=Math.round(MG.size*th),by=ty+Math.round((1-MG.zone-MG.size)*th);p(tx+1,by,tw-2,bh,inside?'rgba(150,240,110,.62)':'rgba(120,210,90,.45)');p(tx+1,by,tw-2,1,inside?'#d8ffb0':'#b8f080');p(tx+1,by+bh-1,tw-2,1,'#3a7a2a');p(tx+1,by,1,bh,'rgba(220,255,200,.5)');
-    const im=MG.sp?fishIconCanvas(MG.sp):null;const fy=ty+Math.round((1-MG.fy)*th);const sh=(inside?0:Math.round(Math.sin(t*50)))+(MG.lunge>0?Math.round(Math.sin(t*90)*2):0);
-    if(im){g.save();g.translate(tx+tw/2+sh,fy);if(MG.horror)g.filter='hue-rotate(160deg) brightness(.8)';g.rotate(-Math.PI/2*.85+Math.sin(t*6)*.08);g.drawImage(im,0,0,32,32,-9,-9,18,18);g.restore();}
+    const im=MG.sp?fishIconCanvas(MG.sp):null;
+    const fy=MG.landed?ty-Math.round(Math.min(1,MG.landed/.55)*34):ty+Math.round((1-MG.fy)*th);
+    const sh=(inside?0:Math.round(Math.sin(t*50)))+(MG.lunge>0?Math.round(Math.sin(t*90)*2):0);
+    if(MG.landed){for(const s of (MG.splash||[]))p(tx+tw/2+s.x,ty+(s.y||0),1,2,'#cfe8f2');p(tx,ty-1,tw,2,'#dfeef4');}  // it breaks the surface
+    const fr=MG.landed?(-Math.PI/2*.85-0.6*Math.min(1,MG.landed/.3)):(-Math.PI/2*.85+Math.sin(t*6)*.08);
+    if(im){g.save();g.translate(tx+tw/2+sh,fy);if(MG.horror)g.filter='hue-rotate(160deg) brightness(.8)';g.rotate(fr);g.drawImage(im,0,0,32,32,-9,-9,18,18);g.restore();}
     else{p(tx+5+sh,fy-3,9,6,'#5a5a5a');p(tx+6+sh,fy-3,7,1,'#9a9a9a');}
     p(px-1,ty-1,pw+2,th+2,'#1a0e06');p(px,ty,pw,th,'#2a1608');const ph=Math.round(clamp(MG.prog,0,1)*th);const pc=MG.prog<.33?'#d84a2a':MG.prog<.66?'#e8b030':'#7cc04a';p(px+1,ty+th-ph,pw-2,ph,pc);p(px+1,ty+th-ph,pw-2,1,'#fff4c0');
     if(MG.perfect&&MG.age>.6)for(let k=0;k<2;k++)p(px+1+((Math.round(t*8)+k*3)%(pw-2)),ty+th-ph+1+k,1,1,'#ffffff');
