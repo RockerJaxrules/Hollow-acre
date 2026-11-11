@@ -302,12 +302,13 @@ if(V!=='S'&&K==='bench_farm'){
     for(let y=b.top+1;y<b.top+b.L-1;y++)for(let x=b.x0;x<b.x0+b.wD;x++){const c=G(A,x,y);if(c)P(A,x,y,[0,1,2].map(k=>Math.round(c[k]+([0xc4,0xd6,0xae][k]-c[k])*.36)));}   // the whole top one lit plane, the lightest green
     edgeWall(b.x0+1,b.top,b.L,2,RAMP.sage,null,3);   // (benches r3: "a standing board") the hutch only a low lit strip along the far (left) edge
     for(let y=b.fy+1;y<b.fy+(o.ap||6);y++)for(let x=b.x0;x<b.x0+b.wD;x++){const c=G(A,x,y);if(c)P(A,x,y,shade(c,.82));}   // the near end panel a step darker under the lit lip of the top
-    tray(b.x0+13,b.top+12,6,14);packet(b.x0+13,b.top+29,[200,70,50]);   // the seed tray turned to run up the screen
-    for(const [py,s,r] of [[b.top+10,1,3],[b.top+22,2,3],[b.top+34,0,2]]){contact(b.x0+6,py+1,8);pot(b.x0+8,py,r,s);}   // the pots in a row along the top, each with its shadow down-right
+    {const lc=G(A,b.x0+b.wD>>1,b.top+b.L>>1);if(lc)for(let y=b.top+1;y<b.top+b.L-1;y++){P(A,b.x0+1,y,lc);P(A,b.x0+b.wD-2,y,shade(lc,.92));}}   // (benches views r1: a darker frame read as a glass door) no frame round the lit top
+    tray(b.x0+12,b.top+8,6,12);packet(b.x0+13,b.top+22,[200,70,50]);   // the seed tray turned to run up the screen, at the far end
+    for(const [py,s,r] of [[b.top+28,2,3],[b.top+33,1,3],[b.top+38,0,2]]){contact(b.x0+6,py+1,8);pot(b.x0+8,py,r,s);}   // the pots in a close, overlapping file at the near end   // the pots in a row along the top, each with its shadow down-right
     sack(b.cx,b.base-7,5,9);}
   else{const b=benchBack(o),m=x=>b.x0+b.w-(x-b.x0),R=RAMP.sage;for(let j=0;j<3;j++)hl(A,b.x0+4,b.fy-22+j,b.w-8,R[j===0?3:j===1?4:5]);   // (benches r2: "pots on a 1 px rail") the hutch shelf: a lit strip they stand on
     pot(m(b.x0+14),b.fy-19,3,2);pot(m(b.x0+24),b.fy-19,2,1);pot(m(b.x0+42),b.fy-19,3,0);farmBack(b.x0+6,b.fy-19,b.w-12,20,R);   // (benches r3: "one box") the hutch narrower than the worktop, whose lit ends step out on both sides   // a turn, not a copy: the pots in mirrored order, their feet hidden behind the board
-    sack(b.x0+40,b.base-7,6,9);}}
+    sack(b.x0+40,b.base-7,6,9);for(const [px_,r,s] of [[b.x0+9,2,0],[b.x0+15,2,1],[b.x0+21,2,0]])pot(px_,b.base-9,r,s);}}   // (benches views r1: an empty void) small pots on the lower shelf's left
 if(V!=='S'&&K==='bench_furn'){
   const o={R:RAMP.oak,w:58,d:14,ap:7,legH:16,shelf:7};
   if(V==='E'||V==='W'){const dir=V==='E'?1:-1;const b=benchSide(Object.assign({},o,{sideW:18,sideL:50}));const near=y=>b.top+b.L-y,far=y=>b.top+y;
@@ -379,7 +380,8 @@ if(V!=='S'&&K==='furnace'){
     for(let y=topY-23;y<topY-20;y++)for(let x=-5;x<=5;x++)P(A,chx+x,y,S[y===topY-23?5:x>3?2:4]);for(let x=-3;x<=3;x++)P(A,chx+x,topY-23,[24,22,26]);
     puffs(chx,topY-23);};
   if(V==='E'){   // turned so the mouth faces right: a narrower stone body, the chimney at the back (left), the fire's glow spilling out on the right
-    const cx=W>>1,w=20,topY=base-36,d=12;chim(cx-4,topY+4,3);body(cx,w,topY,d);   // one row of big cap stones lit as a top, not a pale coursed block
+    const cx=W>>1,w=20,topY=base-36,d=12;chim(cx-4,topY+4,3);body(cx,w,topY,d);
+    for(const jx of [cx-3,cx+4])for(let y=topY+1;y<topY+d+2;y++){const c=G(A,jx,y);if(c){P(A,jx,y,shade(c,.62));const c2=G(A,jx+1,y);if(c2)P(A,jx+1,y,[0,1,2].map(k=>Math.min(255,Math.round(c2[k]*1.12))));}}   // (benches views r1: a blank slab) the top broken into lit cap stones   // one row of big cap stones lit as a top, not a pale coursed block
     {const lx=cx+w/2;for(let y=base-15;y<base;y++){const r=y<base-12?(y-(base-15)):3;for(let i=0;i<Math.min(3,r+1);i++){let k=i===0?4:i===2?1:3;if(y===base-15)k=5;P(A,lx+i,y,S[k]);}}   // (benches r1: "orange planks") the mouth's arched stone lip seen edge-on, a sliver standing out past the side
       for(let y=base-6;y<base;y++){P(B,lx+3,y,[255,150,60],Math.max(0,150-(base-y)*18));}   // only a thin warm glow at the foot of the lip
       for(let y=base-12;y<base;y++){const t=(y-(base-12))/12;P(A,lx-1,y,t>.6?[255,200,90]:t>.25?[240,130,46]:[150,52,22]);}   // a sliver of the lit arch, seen at a grazing angle
