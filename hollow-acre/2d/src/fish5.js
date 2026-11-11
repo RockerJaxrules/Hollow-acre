@@ -6,7 +6,7 @@
    surface. Self-contained — its own hold input, loop, draw and catch recording — so it replaces
    fish3's reel-to-net fight cleanly while keeping the cast, the fish list and the catch card. ====== */
 (function(){ if(typeof startMG!=='function'||typeof MG==='undefined') return;
-  const FG={W:46,H:160,tx:7,ty:9,tw:19,th:134,px:31,pw:7};
+  const FG={W:54,H:160,tnx:6,tnw:5,tx:14,ty:9,tw:19,th:134,px:38,pw:7};  // left: line tension · middle: the water · right: the catch meter
   const el=()=>$('fishMG');
   let raf=0;
   const hold=v=>{if(MG.on)MG.hold=v;};
@@ -22,9 +22,9 @@
     Object.assign(MG,{on:true,f,hold:false,zone:.1,zv:0,fy:.3,fv:0,ft:.3,tt:0,prog:.34,
       size:S.rod>=4?.40:S.rod>=3?.36:S.rod>=2?.31:.26,d:f?f[2]:.25,beh:f?f[3]:'smooth',
       last:performance.now(),scare:false,perfect:true,age:0,reelA:0,sp:f?FISH_SP[f[0]]:null,
-      horror:night&&!!f&&f[2]>.6,lunge:0,tr:null});
+      horror:night&&!!f&&f[2]>.6,lunge:0,tr:null,tn:0,snapT:0,snapped:false});
     if(cv){const k=Math.max(2,Math.min(4,Math.floor(innerHeight*.62/FG.H)));cv.width=FG.W;cv.height=FG.H;cv.style.width=FG.W*k+'px';cv.style.height=FG.H*k+'px';}
-    const h=E.querySelector('.fhint');if(h)h.textContent=fineP()?'Hold the mouse (or Space) to raise the bar — keep it on the fish':'Hold anywhere to raise the bar — keep it on the fish';
+    const h=E.querySelector('.fhint');if(h)h.textContent=fineP()?'Hold to raise the bar onto the fish — but ease off before the line (left) snaps':'Hold to raise the bar onto the fish — ease off before the line snaps';
     E.style.display='flex';S.paused=true;fish.state='reel';attach();MG.last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);};
 
   function loop(now){if(!MG.on)return;const dt=Math.min(.05,(now-MG.last)/1000);MG.last=now;MG.age+=dt;const E=el();
@@ -43,11 +43,16 @@
     const inside=MG.fy>=MG.zone&&MG.fy<=MG.zone+MG.size;
     MG.prog+=(inside?.24:-.17*(1+d*.6))*dt;if(!inside&&MG.age>.6)MG.perfect=false;
     if(MG.hold)MG.reelA+=dt*14;else if(inside)MG.reelA+=dt*5;
+    // LINE TENSION: reeling (holding) strains the line, and it strains faster against a fighting fish or a lunge — ease off or it snaps
+    const strain=(MG.hold?(.40+(!inside?.30:0)+(MG.lunge>0?.45:0)):-.62)*(.72+d*.8);
+    MG.tn=clamp(MG.tn+strain*dt,0,1);if(MG.snapT>0)MG.snapT-=dt;
+    if(MG.tn>.82&&MG.snapT<=0){MG.snapT=.6;cam&&(cam.shake=Math.max(cam.shake||0,.18));}
+    if(MG.tn>=1){MG.snapped=true;endMG(false);return;}
     draw(now/1000,inside);
     if(MG.prog>=1){endMG(true);return;}if(MG.prog<=0){endMG(false);return;}
     raf=requestAnimationFrame(loop);}
 
-  function draw(t,inside){const cv=el().querySelector('.fg');if(!cv)return;const g=cv.getContext('2d');g.imageSmoothingEnabled=false;const {W,H,tx,ty,tw,th,px,pw}=FG;g.clearRect(0,0,W,H);const p=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h);};
+  function draw(t,inside){const cv=el().querySelector('.fg');if(!cv)return;const g=cv.getContext('2d');g.imageSmoothingEnabled=false;const {W,H,tnx,tnw,tx,ty,tw,th,px,pw}=FG;g.clearRect(0,0,W,H);const p=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h);};
     p(0,0,W,H,'#1a0e06');p(1,1,W-2,H-2,'#7a4a20');for(let x=2;x<W-2;x+=5)p(x,1,1,H-2,'#6a3e1a');p(1,1,W-2,1,'#b8823c');p(1,1,1,H-2,'#a8763a');p(W-2,1,1,H-2,'#4a2a10');p(1,H-2,W-2,1,'#4a2a10');
     for(const [cx,cy] of [[3,3],[W-4,3],[3,H-4],[W-4,H-4]]){p(cx,cy,2,2,'#e8c060');p(cx,cy,1,1,'#fff2c8');}
     p(tx-1,ty-1,tw+2,th+2,'#1a0e06');const top=MG.horror?[58,10,10]:[58,122,176],bot=MG.horror?[18,4,4]:[18,48,80];
@@ -63,13 +68,19 @@
     else{p(tx+5+sh,fy-3,9,6,'#5a5a5a');p(tx+6+sh,fy-3,7,1,'#9a9a9a');}
     p(px-1,ty-1,pw+2,th+2,'#1a0e06');p(px,ty,pw,th,'#2a1608');const ph=Math.round(clamp(MG.prog,0,1)*th);const pc=MG.prog<.33?'#d84a2a':MG.prog<.66?'#e8b030':'#7cc04a';p(px+1,ty+th-ph,pw-2,ph,pc);p(px+1,ty+th-ph,pw-2,1,'#fff4c0');
     if(MG.perfect&&MG.age>.6)for(let k=0;k<2;k++)p(px+1+((Math.round(t*8)+k*3)%(pw-2)),ty+th-ph+1+k,1,1,'#ffffff');
-    const rx=17,ry=H-9;g.fillStyle='#1a0e06';g.beginPath();g.arc(rx,ry,6.5,0,Math.PI*2);g.fill();g.fillStyle='#c8a050';g.beginPath();g.arc(rx,ry,5.5,0,Math.PI*2);g.fill();g.fillStyle='#8a6a2a';g.beginPath();g.arc(rx,ry,3,0,Math.PI*2);g.fill();
+    // the line-tension gauge (left): green when slack, amber, then red near snapping — ease off before it fills
+    p(tnx-1,ty-1,tnw+2,th+2,'#1a0e06');p(tnx,ty,tnw,th,'#241208');
+    const th2=Math.round(clamp(MG.tn,0,1)*th),tc=MG.tn<.5?'#4a8a3a':MG.tn<.8?'#e0a828':'#e23a1a';
+    p(tnx,ty+th-th2,tnw,th2,tc);if(th2)p(tnx,ty+th-th2,tnw,1,'#ffeab0');
+    p(tnx-1,ty+Math.round(th*.17),tnw+2,1,'#8a1a10');                    // the red line: hold past here and it goes
+    if(MG.tn>.82&&Math.floor(t*10)%2)for(let y=ty;y<ty+th;y+=2)p(tnx,y,tnw,1,'rgba(255,70,40,.55)');
+    const rx=tx+Math.round(tw/2),ry=H-8;g.fillStyle='#1a0e06';g.beginPath();g.arc(rx,ry,6.5,0,Math.PI*2);g.fill();g.fillStyle='#c8a050';g.beginPath();g.arc(rx,ry,5.5,0,Math.PI*2);g.fill();g.fillStyle='#8a6a2a';g.beginPath();g.arc(rx,ry,3,0,Math.PI*2);g.fill();
     const a=MG.reelA;p(Math.round(rx+Math.cos(a)*5)-1,Math.round(ry+Math.sin(a)*5)-1,3,3,'#efe2b8');p(Math.round(rx+Math.cos(a)*5),Math.round(ry+Math.sin(a)*5),1,1,'#5a3a1a');p(rx,ry,1,1,'#fff2c8');
     const bend=MG.hold?3:1+Math.round(Math.abs(Math.sin(t*9)));for(let k=0;k<12;k++)p(W-9+Math.round(k*k*bend/90),ty+3+k*2,2,2,k<4?'#5a3a1a':'#8a5a2a');}
 
   endMG=function(ok){if(!MG.on&&!ok&&raf===0){/*already closed*/}MG.on=false;MG.hold=false;detach();cancelAnimationFrame(raf);raf=0;
     el().style.display='none';S.paused=false;fish.state='off';if(typeof F2!=='undefined')F2.rip=[];
-    if(!ok){toast(MG.f?`The ${MG.f[0].toLowerCase()} got away.`:'It got away.',1.6);SFX.thud&&SFX.thud(0,.2);return;}
+    if(!ok){const snap=MG.snapped;toast(snap?(MG.f?`The line snaps. The ${MG.f[0].toLowerCase()} takes it down with it.`:'The line snaps.'):(MG.f?`The ${MG.f[0].toLowerCase()} got away.`:'It got away.'),snap?2.2:1.6,snap);SFX.thud&&SFX.thud(0,.2);if(snap&&cam)cam.shake=.4;return;}
     if(!MG.f){SFX.splash&&SFX.splash();toast('You reel in a tangle of weed and nothing else.',2);return;}
     const f=MG.f,sp=MG.sp;const len=Math.round(f[6]+rand()*(f[7]-f[6]));const big=(len-f[6])/Math.max(1,(f[7]-f[6]));const q=MG.perfect?2:big>.7?1:0;
     const v=Math.round(f[1]*(.8+big*.5)*(S.rod>=4?2.5:S.rod>=3?2:S.rod>=2?1.5:1)*[1,1.25,1.5][q]);
