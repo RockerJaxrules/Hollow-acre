@@ -3,6 +3,7 @@
 Each line is something an attempt taught. Newest and repeated mistakes go to the top of their section.
 
 ## From the owner (strongest)
+- Owner (Nov 11): "Continue until everything is 6 or if you think that the ai is being too picky and it will never reach a 6". Understood: keep working down every family until each piece judges 6+; when a piece keeps scoring 5-5.5 across several rounds and judges contradict each other (e.g. rings on log ends wanted by one judge, rejected by the next), park it at its best installed version, log why, and move on.
 - [OWNER, Nov 11, verbatim] "I never said stop remember continue until and assume the answer is always continue until everything
   is 6 unless you don't feel you can improve it to 6." Standing order: never stop to report or ask; keep working down the list
   until every family is judged 6+, and only park a piece when it genuinely can't be brought to 6 (log why).
