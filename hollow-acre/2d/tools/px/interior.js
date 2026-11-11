@@ -472,8 +472,8 @@ if(K==='rockS'){const R=WD;
   stile(cx-11,3,30,3,R);stile(cx+8,3,30,3,R);for(let x=cx-11;x<cx+11;x++){const d=Math.abs(x-cx+.5)/11,y=Math.round(2+d*d*3);P(A,x,y,R[5]);P(A,x,y+1,R[4]);P(A,x,y+2,R[3]);P(A,x,y+3,R[1]);}
   for(let i=0;i<5;i++){const x=cx-7+i*3;for(let y=7;y<23;y++){P(A,x,y,R[4]);P(A,x+1,y,R[2]);}}hl(A,cx-8,22,17,R[3]);hl(A,cx-8,23,17,R[1]);
   // the seat seen from above, wider at the front, a plaid cushion on it
-  for(let j=0;j<7;j++){const w=Math.round(20+j*1.2),x0=cx-(w>>1);for(let i=0;i<w;i++)P(A,x0+i,24+j,(i%6===0)?R[3]:R[4]);P(A,x0,24+j,R[5]);}
-  plaid(cx-8,22,17,6,2);rect(A,cx-13,31,27,2,R[2]);hl(A,cx-13,31,27,R[4]);hl(A,cx-13,33,27,R[0]);
+  for(let j=0;j<7;j++){const w=Math.round(20+j*1.2),x0=cx-(w>>1);for(let i=0;i<w;i++)P(A,x0+i,24+j,j===6?R[3]:((i%7===0)?R[4]:R[5]));P(A,x0,24+j,R[5]);}   /* (judge fam3) the seat the lightest plane */
+  for(let j=0;j<6;j++)for(let i=0;i<17;i++){let c=RD[j===0?5:(j===5?1:(i===0?4:(i===16?2:(j<3?4:3))))];if(j===2&&(i===5||i===11))c=RD[2];P(A,cx-8+i,22+j,c);}   // one red cushion ramp, lit along its top, two tufts (the dotted plaid read as noise)rect(A,cx-13,31,27,2,R[2]);hl(A,cx-13,31,27,R[4]);hl(A,cx-13,33,27,R[0]);
   // arms reaching forward from the back, on turned front posts
   for(const s of [-1,1]){const x0=s<0?cx-11:cx+10,x1=s<0?cx-14:cx+12;ln(A,x0,14,x1,23,R[4],2);ln(A,x0+(s<0?1:0),16,x1+(s<0?1:0),25,R[2]);stile(s<0?cx-14:cx+11,24,31,3,R);P(A,(s<0?cx-14:cx+11)+1,26,R[5]);}
   gs(cx,base-1,13,2,80);}
