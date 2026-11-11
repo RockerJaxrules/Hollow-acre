@@ -59,6 +59,24 @@ drawScare=function(k){const c=$('scare');const {W,H}=SC;if(c.width!==W){c.width=
       const vg=Math.hypot((x-96)/110,(y-128)/150);if(vg>.75){const m=Math.max(.2,1-(vg-.75)*2.2);D[i]*=m;D[i+1]*=m;D[i+2]*=m;}
       if(y%3===0){D[i]*=.86;D[i+1]*=.86;D[i+2]*=.86;}}}
   g.putImageData(id,0,0);c.style.imageRendering='pixelated';};
-// faceSlam keeps it alive while it's on screen: the face moves for as long as it's there
-{const _fs=faceSlam;faceSlam=function(dur,loud){SC.t0=performance.now();SC.dur=dur||.38;_fs.apply(this,arguments);cancelAnimationFrame(SC.raf);
-  const tick=()=>{const c=$('scare');if(c.hidden)return;const k=Math.min(1,(performance.now()-SC.t0)/1000/Math.max(.3,Math.min(SC.dur,1.2)));drawScare(k);SC.raf=requestAnimationFrame(tick);};tick();};}
+// a second scare: the Hollow's two carved candle-eyes ignite in pitch dark and rush the glass, the rotting shell and a glint of grin emerging behind them
+function drawScare2(k){const c=$('scare');const {W,H}=SC;if(c.width!==W){c.width=W;c.height=H;}const g=c.getContext('2d');g.imageSmoothingEnabled=false;k=k==null?1:k;
+  g.fillStyle='#050203';g.fillRect(0,0,W,H);const t=performance.now()/1000;
+  const grow=Math.pow(Math.min(1,k/.92),1.5),cx=96,cy=96+grow*26,sp=16+grow*42,er=3+grow*13,flare=(.5+.5*Math.min(1,k*1.6))*(.82+.18*Math.sin(t*40));
+  // the rotting shell looming out of the black as it nears (one of the Hollow's own ramp tones)
+  if(grow>.25){const rr=44+grow*130,sg=g.createRadialGradient(cx,cy,rr*.25,cx,cy,rr);sg.addColorStop(0,`rgba(74,34,20,${((grow-.25)*.6).toFixed(3)})`);sg.addColorStop(1,'rgba(10,5,4,0)');g.fillStyle=sg;g.fillRect(0,0,W,H);}
+  for(const s of [-1,1]){const ex=cx+s*sp,ey=cy,wob=s<0?1:.9;   // the two eyes are not identical
+    const p=[[ex-s*er*1.9,ey-er*.7],[ex+s*er*1.5,ey-er*.05],[ex-s*er*.2,ey+er*1.3*wob]];
+    g.fillStyle='#0e0603';g.beginPath();g.moveTo(...p[0]);g.lineTo(...p[1]);g.lineTo(...p[2]);g.closePath();g.fill();   // the carved socket rim
+    g.save();g.beginPath();g.moveTo(...p[0]);g.lineTo(...p[1]);g.lineTo(...p[2]);g.closePath();g.clip();   // the candle fills only the slit, so it reads as a slanted cut, not a round orb
+    const eg=g.createRadialGradient(ex,ey,0,ex,ey,er*2.3);eg.addColorStop(0,flare>.86?'#fff4c8':'#ffce78');eg.addColorStop(.45,'#ff9a30');eg.addColorStop(.85,'#b43208');eg.addColorStop(1,'rgba(70,10,0,0)');g.fillStyle=eg;g.fillRect(ex-er*3,ey-er*3,er*6,er*6);g.restore();
+    const bl=g.createRadialGradient(ex,ey,0,ex,ey,er*1.3);bl.addColorStop(0,`rgba(255,150,50,${(.22*flare).toFixed(2)})`);bl.addColorStop(1,'rgba(255,80,10,0)');g.fillStyle=bl;g.fillRect(ex-er*2,ey-er*2,er*4,er*4);   // a little candlelight leaks onto the shell
+    g.fillStyle='#180400';g.fillRect(Math.round(ex)-1,Math.round(ey-er*.7),2,Math.round(er*1.5));}   // the slit pupil
+  if(grow>.72){const my=cy+er*3.1;g.strokeStyle='#5e2814';g.lineWidth=2;g.beginPath();g.moveTo(cx-sp,my);for(let x=cx-sp;x<=cx+sp;x+=5)g.lineTo(x,my+Math.sin((x-cx)*.3)*2);g.stroke();
+    for(let x=cx-sp+4;x<cx+sp-2;x+=7){g.fillStyle='#e6dcc0';g.fillRect(Math.round(x),Math.round(my),2,Math.round(3+grow*4+((Math.round(x)*5)%3)));}}   // the grin glints below, needle teeth of uneven length
+  const id=g.getImageData(0,0,W,H),D=id.data;SC.seed=(SC.seed+1)%9973;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=(y*W+x)*4;const n=hash(x+SC.seed*13,y)*(k<.4?.4:.14);if(n>.12){const v=n*255;D[i]=D[i]*.7+v*.3;D[i+1]=D[i+1]*.7+v*.28;D[i+2]=D[i+2]*.7+v*.28;}if(y%3===0){D[i]*=.86;D[i+1]*=.86;D[i+2]*=.86;}}
+  g.putImageData(id,0,0);c.style.imageRendering='pixelated';}
+// faceSlam keeps it alive while it's on screen: the scare moves for as long as it is there. Loud/long scares (death, caught) are always the full face; a shorter quiet scare sometimes opens on the eyes instead.
+{const _fs=faceSlam;faceSlam=function(dur,loud){SC.t0=performance.now();SC.dur=dur||.38;SC.variant=(!loud&&(dur||.38)<1&&Math.random()<.5)?1:0;_fs.apply(this,arguments);cancelAnimationFrame(SC.raf);if(SC.variant)drawScare2(.001);
+  const tick=()=>{const c=$('scare');if(c.hidden)return;const k=Math.min(1,(performance.now()-SC.t0)/1000/Math.max(.3,Math.min(SC.dur,1.2)));(SC.variant?drawScare2:drawScare)(k);SC.raf=requestAnimationFrame(tick);};tick();};}
