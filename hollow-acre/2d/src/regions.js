@@ -55,11 +55,11 @@ const rgWater=(x,z)=>inNewLand(x,z)&&(inRes(x,z)||inSpill(x,z)||inFenPool(x,z));
 // ---- woods: each region grows its own
 const rgDark=(x,z,r)=>{const n=fbm(x*.13+r.x0*.01,z*.13+7);
   switch(r.k){
-    case 'r9w':return (z<-14||z>3)&&n>.42&&!(Math.abs(x-RGP.motel.x)<14&&z>-26)&&!(Math.abs(x-RGP.cars.x)<22&&Math.abs(z-RGP.cars.z)<11)&&!(x<RGP.county.x+8&&x>RGP.county.x-4);
+    case 'r9w':{const jz=(fbm(x*.27+2,9)-.5)*5;return (z<-14+jz||z>3+jz)&&n>.42&&!(Math.abs(x-RGP.motel.x)<14&&z>-26)&&!(Math.abs(x-RGP.cars.x)<22&&Math.abs(z-RGP.cars.z)<11)&&!(x<RGP.county.x+8&&x>RGP.county.x-4);}
     case 'grey':return n>.5&&!(x>-232&&x<-160&&z>24&&z<74);
     case 'fen':return fbm(x*.11+3,z*.11)>.6;
     case 'corn':return (x>50||x<DCF.x0-6||z>DCF.z1+14)&&n>.4&&!(x>DCF.x0-2&&x<DCF.x1+2&&z>DCF.z0-2&&z<DCF.z1+2);
-    case 'drown':{const R=RGP.res,d=Math.hypot((x-R.x)/(R.rx+14),(z-R.z)/(R.rz+14));return d>1&&n>.44;}
+    case 'drown':{const R=RGP.res,d=Math.hypot((x-R.x)/(R.rx+14),(z-R.z)/(R.rz+14))+(fbm(x*.21+5,z*.21+3)-.5)*.3;return d>1&&n>.44;}   // the clearing round the reservoir wanders (its flat bottom ran dead straight past the dam)
     case 'ridge':return n>.36&&Math.hypot(x-RGP.tower.x-6,z-RGP.tower.z-4)>16;
     case 'marrow':return n>.64&&Math.hypot(x-RGP.chapel.x-10,z-RGP.chapel.z-8)>34;
     case 'birch':return n>.4&&Math.hypot(x-RGP.dolls.x,z-RGP.dolls.z)>12;}return false;};
