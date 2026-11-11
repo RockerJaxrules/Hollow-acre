@@ -17,8 +17,10 @@ const DOCKS=[];
 function addDock(x,z){if(!DOCKS.some(d=>Math.abs(d.x-x)<.01&&Math.abs(d.z-z)<.01))DOCKS.push({x,z,x0:x-.85,x1:x+.85,z0:z-2.4,z1:z+1.95});}
 const onDock=(x,z)=>DOCKS.some(d=>x>d.x0&&x<d.x1&&z>d.z0&&z<d.z1);
 const inQuarry=(x,z)=>x>QUARRY.x0+(fbm(x*.3,z*.3)-.5)*4&&x<QUARRY.x1&&z>QUARRY.z0&&z<QUARRY.z1+(fbm(x*.2,z*.2)-.5)*3;
-const hollowWoods=(x,z)=>x>78&&x<136&&Math.abs(z+6)>3.2&&Math.hypot(x-HOLLOW_TREE.x,z-HOLLOW_TREE.z)>6&&!(Math.abs(x-108)<1.6&&z>-6&&z<10);
-const southWoods=(x,z)=>z>108||(z>74&&x<-40)||(x>78&&z>40&&riverD(x,z)>4);
+// the woods' bounds wander (a slow noise moves each edge a few tiles either way), so no wood ends on a ruled line
+const wdj=(a,k)=>(fbm(a*.33+k*7.3,k*3.1+.5)-.5)*10;
+const hollowWoods=(x,z)=>x>78+wdj(z,1)&&x<136+wdj(z,2)&&Math.abs(z+6)>3.2&&Math.hypot(x-HOLLOW_TREE.x,z-HOLLOW_TREE.z)>6&&!(Math.abs(x-108)<1.6&&z>-6&&z<10);
+const southWoods=(x,z)=>z>108+wdj(x,3)||(z>74+wdj(x,4)&&x<-40+wdj(z,5))||(x>78+wdj(z,6)&&z>40+wdj(x,7)&&riverD(x,z)>4);
 {const W=LAYERS.water,Dt=LAYERS.dirt,St=LAYERS.stone,Dk=LAYERS.dark;
   LAYERS.water=(x,z)=>W(x,z)||newWater(x,z);
   LAYERS.dirt=(x,z)=>(Dt(x,z)||Math.hypot(x-TITHE.x,z-TITHE.z)<7+(fbm(x*.5,z*.5)-.5)*2||Math.hypot(x-HOLLOW_TREE.x,z-HOLLOW_TREE.z)<4.5+(fbm(x*.6,z*.6)-.5)*1.4||

@@ -60,11 +60,38 @@ function chunk(cx,cz){const k=cx+','+cz;let c=chunks.get(k);if(c){if(c.used!==FR
   // no water shows through the bridge decks: they come out of the water mask, so reflections and ripples stop at the planks
   if(c.wm){const wg=c.wm.getContext('2d');const cut=(ax,az,bx,bz)=>wg.clearRect(Math.round((ax-x0)*32),Math.round((az-z0)*32),Math.round((bx-ax)*32),Math.round((bz-az)*32));
     cut(BRIDGE.x-4.45,-9.3,BRIDGE.x+4.45,-2.8);cut(FOOT.x-3,FOOT.z-.8,FOOT.x+3,FOOT.z+.8);}
+  // forest litter: leaf piles, moss, tufts, twigs and pebbles strewn over the woods by world position, gathered by a slow
+  // noise into drifts of every size with bare soil between, so the forest floor never repeats with its 192 px tile.
+  // Cells round the chunk's edge are visited too, so a pile that straddles two chunks is drawn whole in both.
+  const lit=SPR.litter&&IMG[SPR.litter.src];
+  if(lit){const cw=SPR.litter.fw,chh=SPR.litter.fh;for(let j=-2;j<N+2;j++)for(let i=-2;i<N+2;i++){const X=x0+i,Z=z0+j,h=hash(X*13+5,Z*7+11);
+      // atlas (forest8.py): 0-5 loose leaves, 6-9 big piles, 10-13 medium, 14-17 small, 18-20 moss, 21-22 tufts, 23-25 sticks, 26-28 stones.
+      // A drift is graded: big piles at its heart, smaller ones round them, loose leaves thinning out at its rim, bare soil beyond.
+      const dr=fbm(X*.16+40,Z*.16+17),p=dr>.64?.62:dr>.55?.46:dr>.47?.3:.1;if(h>p)continue;
+      if(!LAYERS.dark(X+.5,Z+.5)||!LAYERS.dark(X-.7,Z+.5)||!LAYERS.dark(X+1.7,Z+.5)||!LAYERS.dark(X+.5,Z+1.4)||terr(X+.5,Z+.5)!=='grass')continue;
+      const r=hash(X+31,Z+17),q=hash(X*3+1,Z*5+2),pk=(a,n)=>a+((q*n)|0)%n;
+      const v=dr>.64?(r<.5?pk(6,4):r<.72?pk(10,4):r<.84?pk(18,3):r<.93?pk(23,3):pk(0,6))
+             :dr>.55?(r<.4?pk(10,4):r<.6?pk(14,4):r<.85?pk(0,6):r<.93?pk(18,3):pk(23,3))
+             :dr>.47?(r<.6?pk(0,6):r<.78?pk(14,4):r<.88?pk(21,2):pk(26,3))
+             :(r<.5?pk(0,6):r<.68?pk(26,3):r<.84?pk(23,3):pk(21,2));
+      const ox=((hash(X,Z+3)*24)|0)-12,oy=((hash(X+5,Z)*24)|0)-12,cx=i*32+16+ox,cy=j*32+16+oy;
+      g.drawImage(lit,v*cw,0,cw,chh,cx-(cw>>1),cy-(chh>>1),cw,chh);}}   // never mirrored: the light stays top-left
+  // stones on the dirt: clusters of 2-4 strewn by world position, gathered toward a lane's edges and corners so its
+  // middle reads as trodden (the dirt tile itself carries only grit, so no stone marks its 192 px repeat)
+  const grit=SPR.dirt_grit&&IMG[SPR.dirt_grit.src];
+  if(grit){const gw=SPR.dirt_grit.fw,gh=SPR.dirt_grit.fh,nc=Math.round(grit.width/gw);
+    for(let j=-1;j<N+1;j++)for(let i=-1;i<N+1;i++){const X=x0+i,Z=z0+j,h=hash(X*11+3,Z*13+7);if(h>.34)continue;
+      if(terr(X+.5,Z+.5)!=='dirt'||(X>CORN.x0-1&&X<CORN.x1+1&&Z>CORN.z0-1&&Z<CORN.z1+1)||(X>FIELD.x0-1&&X<FIELD.x0+FIELD.w+1&&Z>FIELD.z0-1&&Z<FIELD.z0+FIELD.h+1))continue;
+      const nearEdge=terr(X+1.8,Z+.5)!=='dirt'||terr(X-.8,Z+.5)!=='dirt'||terr(X+.5,Z+1.8)!=='dirt'||terr(X+.5,Z-.8)!=='dirt';
+      if(!nearEdge&&h>.07)continue;
+      const v=(hash(X+19,Z+23)*nc)|0,ox=((hash(X,Z+31)*22)|0)-11,oy=((hash(X+37,Z)*22)|0)-11;
+      g.drawImage(grit,v*gw,0,gw,gh,i*32+16+ox-(gw>>1),j*32+16+oy-(gh>>1),gw,gh);}}
   // ground clutter: tufts, stones, wildflowers, twigs on open grass
   const dec=SPR.decor&&IMG[SPR.decor.src];
   if(dec)for(let j=0;j<N;j++)for(let i=0;i<N;i++){const X=x0+i,Z=z0+j,h=hash(X*7+3,Z*5+1);if(terr(X+.5,Z+.5)!=='grass')continue;
     const edge=terr(X+.5,Z-.5)!=='grass'||terr(X+.5,Z+1.5)!=='grass'||terr(X-.5,Z+.5)!=='grass'||terr(X+1.5,Z+.5)!=='grass',woods=LAYERS.dark(X+.5,Z+.5)||LAYERS.dark(X+.5,Z+2),cliff=ridgeH(X)>.3&&Z>ridgeZ(X)+RIDGE.h-1&&Z<ridgeZ(X)+RIDGE.h+2;
-    if(!(edge&&h>.35||woods&&h>.45||cliff&&h>.3||h>.94))continue;
+    const deep=lit&&LAYERS.dark(X+.5,Z+.5)&&!edge;   // under the trees the litter (with its own sticks and stones) carries the floor: no bright grass, flowers or pale pebbles
+    if(deep||!(edge&&h>.35||woods&&h>.45||cliff&&h>.3||h>.94))continue;
     const r=hash(X+2,Z+9);const v=r<.45?(r*6.6|0)%3:r<.62?3+(r*10|0)%2:r<.82?5+(r*10|0)%2:7;const ox=(hash(X,Z+3)*16)|0,oy=(hash(X+5,Z)*16)|0;g.drawImage(dec,v*16,0,16,16,i*32+ox,j*32+oy,16,16);}
   // the ridge: a cliff face drawn column by column, with ambient occlusion at its foot
   const cl=SPR.cliff&&IMG[SPR.cliff.src];

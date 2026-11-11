@@ -154,3 +154,16 @@ COPSES.push({x:101,z:35.4,rx:4.2,rz:3.2});
   D('mud_a',128.4,66.4);D('mud_b',133.6,63.2);Y('wheel',139.6,56.6);W('stonewall',100.2,104.2,54.6);W('stonewall_b',104.2,106.2,54.6);
   // the farm: Grandpa's barn roof patched with a tarp, the axe left in the block by the woodpile, the yard worn to mud at the trough
   obj('tarp',16.4,-9.58,{kind:'prop',noCol:true,town:1});Y('choppingblock',5.8,-9.2);D('mud_a',8.6,-7.8);Y('bucket',8.05,-9.0);};}   // the bucket is set down at the foot of the well, in front of its right corner and clear of the notice board (it used to sit behind the base line and read as hanging off the back)
+// ---- the blacktop's wear: repair patches, oil where cars stand, cracks and sealed seams, each set down by position along the
+//      street (the road tile itself carries only aggregate, so no mark repeats every six tiles down the road)
+{const _bw=buildWorld;buildWorld=function(){_bw();
+  const h=(a,b)=>{const s=Math.sin(a*127.1+b*311.7)*43758.5453;return s-Math.floor(s);};
+  const SET={patch:['tar_patch_a','tar_patch_b','tar_patch_c','tar_patch_d'],oil:['tar_oil_a','tar_oil_b','tar_oil_c'],
+    crack:['tar_crack_a','tar_crack_b','tar_crack_c','tar_crack_d','tar_crack_e'],seal:['tar_seal_a','tar_seal_b','tar_seal_c']};
+  const put=(k,x,z,i)=>{const L=SET[k],m=SPR[L[Math.floor(h(x,i*3.1)*L.length)%L.length]];if(!m)return;obj(L[Math.floor(h(x,i*3.1)*L.length)%L.length],x,z,{kind:'flat',noCol:true,town:1});};
+  STREETS.forEach((s,si)=>{let x=s.x0+1.2+h(si,s.z)*2.5,i=0;
+    while(x<s.x1-1.2){const r=h(x,i+si*50),side=h(i,x)<.5?-1:1,room=s.hw-.55;
+      const dz=side*(.32+h(x*.7,i)*Math.max(.05,room-.32));       // in a lane, clear of the centre line and the gutter
+      const k=r<.34?'crack':r<.6?'patch':r<.82?'oil':'seal';put(k,x,s.z+dz,i);
+      if(k==='patch'&&h(i,x*1.3)<.45)put('crack',x+.7+h(x,i)*.4,s.z+dz+side*.15,i+97);   // a crack running out from a patch's corner
+      x+=1.6+h(i*1.7,x)*h(x,si+i)*6;i++;}});};}

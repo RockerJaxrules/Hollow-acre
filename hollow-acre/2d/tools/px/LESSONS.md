@@ -195,6 +195,26 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A round wound reads as a target or an eye; a ragged tear along the flank reads as a wound.
 
 ## Ground tiles (grass, 8 versions, stuck at 5)
+- **Distinct marks do not belong in a 192 px tile at all (tarmac Nov 11: 3 -> 6).** A patch, an oil stain, a crack or a
+  leaf drift baked into the tile marches across the screen every six tiles however it is drawn ("wallpaper with
+  stickers"). Keep the tile quiet (zones + an aggregate or lying-leaf layer with many small siblings) and put every
+  distinct mark down by WORLD position: flat decal objects along a street (`tar_decals.py`, newtown.js), or strewn
+  by hash per ground chunk over a layer (forest litter atlas, engine.js), with a slow noise gathering them into drifts.
+- Zones from a few summed sines with integer frequencies make a LATTICE of round discs (forest v8); wrapping value noise
+  (32/16/4 px octaves, half-step tones, thresholds ~.36/.62) gives irregular zones none of which marks the repeat.
+- A strewn atlas needs many cells per kind (forest v8 r1: 16 cells -> "one clump copy-pasted 10x a screen"); 29 cells
+  with 4 outlines per pile size held. Never mirror a lit sprite to get variety: the light flips to top-right.
+- Grade a drift by a density field: big piles at the core, smaller ones round them, loose single leaves at the rim, bare
+  soil beyond. Even same-size clumps read as stickers.
+- Keep pebbles out of a dirt tile (they were the only repeat marker left); strew 2-4 stone clusters of mixed sizes by world
+  position, gathered at lane edges so the middle reads trodden. A 3x1 stone reads as a dash, two of them as eyes.
+- Strewn per chunk: visit the cells in a 2-cell margin round the chunk too, so a decal that straddles two chunks is
+  drawn whole in both (each canvas clips its own half) and no seam shows.
+- Round dark ovals on a road read as eyes, twin ones worst (tarmac judge): oil is a flat, ragged drip stretched along
+  the lane, one tone with a faint sheen rim, single, sizes varied.
+- Cracks need a lit lip a clear step above the surface (the near-surface lip was invisible), and should run mostly one
+  way with gentle turns: short wandering ones read as scribbles or birds.
+- Two stepped patches of the same outline on one screen read as a copy: vary the outlines (plain, L-step, long strip).
 - Forest floor (Nov 10, five drafts): a carpet of separate leaves is confetti at 1x whatever the tones (v3, dense or
   sparse); raised litter "mats" with lit and shaded rims read as rugs or slabs (v2, v5b: boxy, "crates or dead birds");
   an even jittered grid of objects reads as "wallpaper with stickers" (v1). What scored best: well-made parts (two-tone

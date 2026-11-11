@@ -35,6 +35,7 @@ def spread(R, k, min_d, taken=()):
 # ---------------------------------------------------------------- tarmac
 TA = HEX('#2e2d33'); TA_LO, TA_HI = HEX('#2c2b31'), HEX('#302f35')   # barely there: zones, not stains
 WEAR_L, WEAR_D = HEX('#333137'), HEX('#2a2730')   # wear clusters within one value step: warm grey light, plum dark
+WEAR_L2 = HEX('#37353b')   # a third, rarer aggregate tone: worn-through stone at the surface
 CRACK, LIP = HEX('#1d1a22'), HEX('#3c3a40')
 PATCH, SEAM, PATCH_LIT = HEX('#26252b'), HEX('#1d1c21'), HEX('#34333a')
 SNAKE, SNAKE_HI = HEX('#18151c'), HEX('#3e3c46')
@@ -57,7 +58,9 @@ def crack(t, x, y, R, steps):
     for (px, py) in pts: t.put(px, py, CRACK)
 
 
-def tar(seed=21):
+def tar(seed=21, decals=False):
+    """the tile is only aggregate + faint zones; patches, stains and cracks are world decals (tar_decals.py), placed by
+    position along the street, because any distinct mark baked into a 192 px tile repeats every six tiles down a street"""
     R = random.Random(seed); t = Tile(TA)
     zf = wfield(seed, [(2, 1, 1), (-1, 3, .8), (3, -2, .5)])
     for y in range(N):
@@ -69,15 +72,16 @@ def tar(seed=21):
     # and plum, on a Poisson spacing whose density drifts across the tile
     dens = wfield(seed + 3, [(1, 2, 1), (2, -1, .7), (-1, 3, .4)])
     for (x, y) in poisson(R, 170, 7, 15, ok=lambda a, b: R.random() < .55 + .45 * dens(a, b)):
-        col = WEAR_L if R.random() < .55 else WEAR_D; w = R.randint(2, 4); h = R.randint(1, 2); ph = R.uniform(0, 6.28)
+        q = R.random(); col = WEAR_L2 if q < .14 else WEAR_L if q < .58 else WEAR_D; w = R.randint(2, 4); h = R.randint(1, 2); ph = R.uniform(0, 6.28)
         for yy in range(-h, h + 1):
             for xx in range(-w, w + 1):
                 if (xx / (w + .5)) ** 2 + (yy / (h + .5)) ** 2 < 1 + .25 * math.sin(xx * 1.7 + ph): t.put(int(x) + xx, int(y) + yy, col)
+    if not decals: return t
     # repair patches: two, flush with the road (no lit edge: lit edges read as raised drain covers), irregular (two
     # overlapping rectangles), a shade darker inside, sealed round the edge with a black tar line
     taken = []
-    for (w, h) in ((28, 14), (20, 12)):
-        (cx, cy), = spread(R, 1, 70, taken); taken.append((cx, cy)); x0, y0 = int(cx - w / 2), int(cy - h / 2)
+    for (w, h) in ((22, 12), (16, 10), (12, 8)):   # three of different sizes, so no single patch marks the repeat
+        (cx, cy), = spread(R, 1, 55, taken); taken.append((cx, cy)); x0, y0 = int(cx - w / 2), int(cy - h / 2)
         ox, oy, w2, h2 = R.randint(4, w // 2), R.choice((-1, 1)) * R.randint(3, 5), R.randint(w // 2, w - 4), R.randint(h // 2, h)
         inside = lambda x, y: (0 <= x < w and 0 <= y < h) or (ox <= x < ox + w2 and oy <= y < oy + h2)
         for y in range(-6, h + 7):
@@ -88,8 +92,8 @@ def tar(seed=21):
         for (x, y) in poisson(R, int(w * h / 30), 4, 6, ok=lambda a, b: inside(int(a) - x0, int(b) - y0) and inside(int(a) - x0 + 2, int(b) - y0 + 1) and inside(int(a) - x0 - 1, int(b) - y0 - 1), tries=800):
             t.put(int(x), int(y), TA_LO); t.put(int(x) + 1, int(y), TA_LO)
     # oil stains: two, hard edged, a darker heart and a faint sheen streak
-    for (cx, cy) in spread(R, 2, 60, taken):
-        taken.append((cx, cy)); rx, ry = R.uniform(7, 10), R.uniform(3.5, 5); ph = R.uniform(0, 6.28)
+    for (cx, cy) in spread(R, 3, 50, taken):
+        taken.append((cx, cy)); rx, ry = R.uniform(4.5, 8), R.uniform(2.5, 4); ph = R.uniform(0, 6.28)
         for y in range(-7, 8):
             for x in range(-12, 13):
                 a = math.atan2(y, x); rr = 1 + .15 * math.sin(3 * a + ph) + .1 * math.sin(5 * a + ph * 2)
@@ -97,21 +101,17 @@ def tar(seed=21):
                 if e < rr * rr: t.put(int(cx) + x, int(cy) + y, OIL_DK if e < .3 else OIL)
         for k in range(R.randint(3, 5)): t.put(int(cx) - 3 + k, int(cy) - 1, OIL_SHEEN)
     # cracks, four of them, of different lengths
-    for i, (cx, cy) in enumerate(spread(R, 4, 40)):
-        crack(t, cx, cy, R, (40, 30, 24, 18)[i])
+    for i, (cx, cy) in enumerate(spread(R, 6, 30)):
+        crack(t, cx, cy, R, (34, 28, 24, 20, 16, 12)[i])
     # sealed cracks: black glossy tar lines with a short highlight
-    for (cx, cy) in spread(R, 2, 70, taken):
+    for (cx, cy) in spread(R, 3, 50, taken):
         a = R.uniform(0, 6.28); x, y = cx, cy; pts = []
-        for i in range(R.randint(22, 34)):
+        for i in range(R.randint(14, 26)):
             a += R.uniform(-.3, .3); x += math.cos(a); y += math.sin(a); pts.append((int(round(x)), int(round(y))))
         pts = list(dict.fromkeys(pts))
         for (px, py) in pts: t.put(px, py, SNAKE); t.put(px + 1, py, SNAKE)
         for (px, py) in pts[3:9]: t.put(px, py - 1, SNAKE_HI)
-    # a few leaves blown onto the road, in twos and threes
-    for (cx, cy) in spread(R, 4, 40, taken):
-        for k in range(R.choice((2, 3))):
-            stamp4(t, cx + R.uniform(-5, 5), cy + R.uniform(-3, 3), R.choice(SHAPES3), R.choice((DEAD6, RUST6, OCHRE6))[1:4], R,
-                   shadow_of=lambda c: HEX('#222127') if c in (TA, TA_LO, TA_HI, WEAR_L, WEAR_D) else None)
+    # (no baked leaves: anything loose on the road repeats as a stamp; the world scatters real leaves by position)
     return t
 
 
