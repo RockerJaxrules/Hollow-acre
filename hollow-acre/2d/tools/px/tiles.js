@@ -25,10 +25,19 @@ function paint(kind){const A=[];for(let y=0;y<PER;y++){A.push([]);for(let x=0;x<
     for(let i=0;i<(kind==='grass'?330:200)*(PER*PER)/4096;i++){const x=r()*PER|0,y=r()*PER|0,h=2+(r()*3|0),lean=r()<.5?0:(r()<.5?-1:1);
       for(let k=0;k<h;k++){const c=k===h-1?R[Math.min(R.length-1,b0+2)]:k===0?R[b0-1]:R[b0+1];put(x+(k===h-1?lean:0),y-k,c);}}
     if(kind==='grass')for(let i=0;i<6*(PER*PER)/4096;i++){const x=r()*PER|0,y=r()*PER|0;put(x,y,R[R.length-1]);put(x+1,y,R[5]);}}
-  if(kind==='dirt'){for(let y=0;y<PER;y++)for(let x=0;x<PER;x++){const n=vn(x,y,32)*.45+vn(x,y,8)*.35+vn(x,y,4)*.2;put(x,y,DIRT[n>.62?4:n<.36?2:3]);}
+  if(kind==='dirt'){
+    // broad trodden ground in three flat tones (coherent patches, not per-pixel grain)
+    for(let y=0;y<PER;y++)for(let x=0;x<PER;x++){const n=vn(x,y,48)*.62+vn(x,y,24)*.38;put(x,y,DIRT[n>.60?4:n<.40?2:3]);}
     let s=7;const r=()=>{s=(s*16807)%2147483647;return s/2147483647;};
-    for(let i=0;i<46*(PER*PER)/4096;i++){const x=r()*PER|0,y=r()*PER|0,big=r()<.3;put(x,y,DIRT[5]);put(x+1,y+1,DIRT[1]);if(big){put(x+1,y,DIRT[4]);put(x,y+1,DIRT[2]);}}
-    for(let i=0;i<9*(PER*PER)/4096;i++){const x=r()*PER|0,y=r()*PER|0;for(let k=0;k<4;k++)put(x+k,y+(k>1?1:0),DIRT[2]);}}
+    // sparse clods of earth: each a little mound, lit top-left, shaded under
+    for(let i=0;i<12*(PER*PER)/4096;i++){const x=r()*PER|0,y=r()*PER|0,big=r()<.4;
+      put(x,y,DIRT[4]);put(x+1,y,DIRT[3]);put(x,y+1,DIRT[2]);put(x+1,y+1,DIRT[1]);
+      if(big){put(x,y-1,DIRT[5]);put(x-1,y,DIRT[4]);put(x+2,y+1,DIRT[1]);put(x+1,y+2,DIRT[1]);}}
+    // a few embedded pebbles: a dark stone with a lit top-left corner
+    for(let i=0;i<4*(PER*PER)/4096;i++){const x=r()*PER|0,y=r()*PER|0;put(x,y,DIRT[1]);put(x+1,y,DIRT[1]);put(x,y+1,DIRT[1]);put(x+1,y+1,DIRT[0]||DIRT[1]);put(x,y,DIRT[5]);}
+    // shallow dry cracks: short dark furrows with a lit lip along the top edge
+    for(let i=0;i<5*(PER*PER)/4096;i++){const x=r()*PER|0,y=r()*PER|0,l=3+(r()*3|0),dir=r()<.5;
+      for(let k=0;k<l;k++){const px=dir?x+k:x,py=dir?y:y+k;put(px,py,DIRT[1]);put(dir?px:px-1,dir?py-1:py,DIRT[4]);}}}
   if(kind==='water'){for(let y=0;y<PER;y++)for(let x=0;x<PER;x++){const n=vn(x,y,32)*.6+vn(x,y,16)*.4;const nn=vn(x,y,8);put(x,y,n>.74&&nn>.5?WATER[3]:WATER[2]);}
     let s=5;const r=()=>{s=(s*16807)%2147483647;return s/2147483647;};
     for(let i=0;i<10*(PER*PER)/4096;i++){const x=r()*PER|0,y=r()*PER|0,l=3+(r()*4|0);for(let k=0;k<l;k++)put(x+k,y,WATER[k===0||k===l-1?4:5]);}}
@@ -36,7 +45,7 @@ function paint(kind){const A=[];for(let y=0;y<PER;y++){A.push([]);for(let x=0;x<
 function tex(x,y){
   if(K==='stone'){if(!TX.pts){let q=3;const r=()=>{q=(q*16807)%2147483647;return q/2147483647;};TX.pts=[];const g=13;for(let gy=0;gy<PER;gy+=g)for(let gx=0;gx<PER;gx+=g)TX.pts.push([gx+r()*g,gy+r()*g,r()]);}
     const bx=wrap(x),by=wrap(y);let d1=1e9,d2=1e9,best=null;for(const pt of TX.pts){for(const ox of [-PER,0,PER])for(const oy of [-PER,0,PER]){const dx=bx-(pt[0]+ox),dy=(by-(pt[1]+oy))*1.25,d=dx*dx+dy*dy;if(d<d1){d2=d1;d1=d;best=[pt,dx,dy];}else if(d<d2)d2=d;}}
-    if(Math.sqrt(d2)-Math.sqrt(d1)<1.6)return STONE[1];const [pt,dx,dy]=best;let k=pt[2]>.66?4:pt[2]>.33?3:2;const l=-dx*.5-dy*.6;if(l>3)k++;if(l<-3.5)k--;return STONE[Math.max(1,Math.min(5,k))];}
+    if(Math.sqrt(d2)-Math.sqrt(d1)<1.7)return STONE[0];const [pt,dx,dy]=best;let k=pt[2]>.66?4:pt[2]>.33?3:2;const l=-dx*.62-dy*.72;if(l>2)k++;if(l>5)k++;if(l<-2)k--;if(l<-5)k--;return STONE[Math.max(1,Math.min(5,k))];}
   if(!TX[K])TX[K]=paint(K);return TX[K][wrap(y)][wrap(x)];}
 // draw one cell for a corner mask
 function cell(mask,cx,cy,variant){const c=[(mask>>3)&1,(mask>>2)&1,(mask>>1)&1,mask&1];   // TL,TR,BL,BR
