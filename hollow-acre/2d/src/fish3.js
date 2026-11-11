@@ -21,19 +21,22 @@ fishAct=function(){if(MG.on)return;const now=performance.now();
     if(!aim){toast('Face the water and tap where you want to cast.',1.8);return;}
     if(!spend(1))return;faceTo&&faceTo(aim[0],aim[1]);
     fish.state='power';fish.t=0;fish.power=0;fish.p0=now;fish.aim=aim;fish.bx=P.x+P.fx*.8;fish.bz=P.z+P.fz*.8;
-    if(!S.castTold||S.castTold<3){S.castTold=(S.castTold||0)+1;toast(fineP()?'Hold to wind up; let go when the power is in the bright band for a perfect cast.':'Hold to wind up; let go in the bright band for a perfect cast.',2.4);}return;}
+    if(!S.castTold||S.castTold<3){S.castTold=(S.castTold||0)+1;toast(fineP()?'Hold to wind up; let go at the top of the meter for a max cast — the further it reaches, the better.':'Hold to wind up; let go at the top for a max cast — the further, the better.',2.8);}return;}
   if(fish.state==='power'){fishCast3();return;}   // let go: cast now, at whatever power the meter is at
   if(fish.state==='wait'){fish.state='off';F2.rip=[];toast(now-(fish.lastNib||0)<800?'Too soon: that was only a nibble, and now it’s gone. Wait for the float to be pulled right under.':'Nothing has taken it yet. Wait for the float to be pulled right under.',2.2);return;}
   if(fish.state==='bite'){const night=isNight();
     if(night&&!S.bound&&rand()<.12){fish.state='off';SFX.stinger();cam.shake=.4;mindHit&&mindHit(4);toast(pick(['A grey hand comes up with the hook in its palm. It lets go.','The line goes slack. Something below the water says your name, very politely.','You pull up a fistful of long hair. It is the same colour as yours.']),3.2,true);return;}
     const f=rand()<(night?.07:.04)?null:pickFish(fish.where,night);startMG(f);}};
-// the throw itself: a perfect cast (let go inside the sweet band) bites sooner and makes treasure far likelier
-function fishCast3(){if(fish.state!=='power')return;const pw=fish.power,good=pw>=FC.lo&&pw<=FC.hi;fish.goodCast=good;
-  const [bx,bz]=fish.aim;fish.bx=bx;fish.bz=bz;fish.where=fishWhere(bx,bz);fish.state='wait';const reach=Math.hypot(bx-P.x,bz-P.z)/rodRange();
-  let w=(2+rand()*4.5)*(inv('bait')>0?.4:1)*(typeof hasProf==='function'&&hasProf('trapper')?.5:1)*(good?.66:1);if(inv('bait')>0)takeInv('bait');
-  fish.t=w;fish.nib=good?(rand()<.6?0:1):(rand()<.25?0:1+Math.floor(rand()*3));fish.dip=0;fish.reach=reach;
+// how far the float goes is set by the power you let go at — the FURTHER (deeper water) the better the fishing
+function castLand(pw){let dx=fish.aim[0]-P.x,dz=fish.aim[1]-P.z;const d=Math.hypot(dx,dz)||1;dx/=d;dz/=d;const want=rodRange()*(.38+.62*pw);
+  for(let s=want;s>.8;s-=.18){const x=P.x+dx*s,z=P.z+dz*s;if(waterAt(x,z))return [x,z];}return [P.x+dx*.9,P.z+dz*.9];}
+// the throw: time the release at the TOP of the swing for a max cast (farthest, bites soonest, best treasure odds)
+function fishCast3(){if(fish.state!=='power')return;const pw=fish.power;fish.castPow=pw;const max=pw>=FC.lo,good=pw>=FC.good;
+  const [bx,bz]=castLand(pw);fish.bx=bx;fish.bz=bz;fish.where=fishWhere(bx,bz);fish.state='wait';const reach=Math.hypot(bx-P.x,bz-P.z)/rodRange();
+  let w=(2+rand()*4.5)*(inv('bait')>0?.4:1)*(typeof hasProf==='function'&&hasProf('trapper')?.5:1)*(1.25-pw*.6);if(inv('bait')>0)takeInv('bait');   // the stronger the cast, the sooner it bites
+  fish.t=w;fish.nib=max?(rand()<.6?0:1):good?(rand()<.35?0:1):(rand()<.2?0:1+Math.floor(rand()*3));fish.dip=0;fish.reach=reach;
   F2.cast=performance.now();F2.landed=false;F2.pw=reach;F2.rip=[];SFX.swing&&SFX.swing();
-  if(good){toast('Perfect cast!',1.0);SFX.coin&&SFX.coin();cam&&(cam.shake=Math.max(cam.shake||0,.1));}else if(pw>.95)toast('A wild cast — it slaps the water.',.9);}
+  if(max){toast('Max cast!',1.0);SFX.coin&&SFX.coin();cam&&(cam.shake=Math.max(cam.shake||0,.12));}else if(good)toast('Good cast — reach a little further.',.9);else toast('A short cast.',.8);}
 fishUpdate=function(dt){if(fish.state==='off'||MG.on)return;const now=performance.now();
   // wind-up: the power swings up and down — let go (tap/Space up) in the bright band; a safety throw if you never do
   if(fish.state==='power'){fish.t+=dt;fish.power=.5-.5*Math.cos(fish.t*3.0);if(fish.t>4.2)fishCast3();return;}

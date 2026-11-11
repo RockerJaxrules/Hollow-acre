@@ -81,7 +81,7 @@ openGift=function(n){if(!n)return;const id=n.def.id,P_=PEOPLE[id];const kinds=[.
 
 // ---------- the cast: hold to wind up, let go to cast (tap twice still works)
 const F2={cast:0,landed:true,pw:0,rip:[],show:null,kd:0,pd:null};
-const FC={lo:.64,hi:.88};  // the cast sweet spot: let go of the power meter inside this band for a perfect cast (faster bite, better odds of treasure)
+const FC={good:.6,lo:.86,hi:1.0};  // the cast: the FURTHER the better, and the skill is timing the release at MAX — the top band (lo..hi) is a max cast, .good is "good enough"
 {const fp=$('fishPow');if(fp)fp.remove();}
 fishAct=function(){if(MG.on)return;const now=performance.now();
   if(fish.state==='off'){const w=waterAhead()||(Math.hypot(P.x-fishSpot.x,P.z-fishSpot.z)<1.6?[fishSpot.x,fishSpot.z+3]:null);if(!w){toast('Stand at the water’s edge, then use your rod on the water.',1.8);return;}
@@ -124,8 +124,10 @@ function fishBang(g,x,y,t){const by=Math.round(y-Math.abs(Math.sin(t*9))*2),bx=M
   fpx(g,bx+3,by+2,3,5,'#e0302a');fpx(g,bx+4,by+2,1,5,'#ff7060');fpx(g,bx+3,by+8,3,2,'#e0302a');}
 function fishMeter(g,x,y,p){x=Math.round(x);y=Math.round(y);fpx(g,x-1,y-1,10,40,'#1a0e06');fpx(g,x,y,8,38,'#8a5a2a');fpx(g,x,y,8,1,'#c08a4a');fpx(g,x+1,y+1,6,36,'#2a1608');const h=Math.round(p*34);
   for(let k=0;k<h;k++){const u=k/34;fpx(g,x+2,y+36-k,4,1,u<.33?'#d84a2a':u<.66?'#e8b030':'#7cc04a');}fpx(g,x+2,y+36-h,4,1,'#fff4c0');
-  const by0=y+36-Math.round(FC.hi*34),by1=y+36-Math.round(FC.lo*34),inB=p>=FC.lo&&p<=FC.hi;   // the sweet spot: let go here for a perfect cast
-  fpx(g,x+2,by0,4,by1-by0,inB?'rgba(226,255,170,.5)':'rgba(230,255,190,.2)');fpx(g,x-2,by0,12,1,inB?'#f4ffd0':'#cde68a');fpx(g,x-2,by1,12,1,inB?'#f4ffd0':'#cde68a');
+  const by0=y+36-Math.round(FC.hi*34),by1=y+36-Math.round(FC.lo*34),inB=p>=FC.lo;   // the MAX band at the top: time your release here, the further the better
+  fpx(g,x+2,by0,4,by1-by0,inB?'rgba(236,255,150,.65)':'rgba(230,255,190,.28)');fpx(g,x-3,by0-1,14,1,inB?'#f8ffc0':'#cde68a');
+  if(inB)for(let k=0;k<2;k++)fpx(g,x+2+((Math.round(performance.now()/90)+k*2)%4),by0+k,1,1,'#ffffff');
+  const gy=y+36-Math.round(FC.good*34);fpx(g,x-2,gy,12,1,'rgba(226,214,120,.55)');   // the "good enough" line
   fpx(g,x-2,y+17,2,4,'#c08a4a');}
 function fishDraw(g,tip,X,Y,t){const now=performance.now();
   if(F2.show&&now<F2.show.until){const im=fishIconCanvas(F2.show.sp);const bob=Math.round(Math.sin(t*4));g.drawImage(im,0,0,32,32,Math.round(X-11),Math.round(Y-76+bob),22,22);}

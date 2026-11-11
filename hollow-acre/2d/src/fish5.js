@@ -26,8 +26,8 @@
   startMG=function(f){const E=el();const night=isNight();
     const f3=E.querySelector('.f3');if(f3)f3.style.setProperty('display','none','important');  // hide the old reel canvas
     const cv=E.querySelector('.fg');if(cv)cv.style.setProperty('display','block','important'); // show the bar canvas (beat fish3's display:none!important)
-    const gc=fish.goodCast;fish.goodCast=false;   // a perfect cast makes treasure far likelier (pairs the throw skill with the reward)
-    const tr=(f&&!(night&&f[2]>.6)&&rand()<(gc?.52:.17))?{at:1+rand()*2,y:.2+rand()*.6,vy:0,prog:0,got:false,pop:0}:null;
+    const pw=fish.castPow||0;fish.castPow=0;   // the further you cast, the better the odds of a treasure (pairs the throw skill with the reward)
+    const tr=(f&&!(night&&f[2]>.6)&&rand()<clamp(.08+pw*.5,.08,.6))?{at:1+rand()*2,y:.2+rand()*.6,vy:0,prog:0,got:false,pop:0}:null;
     Object.assign(MG,{on:true,f,hold:false,zone:.1,zv:0,fy:.3,fv:0,ft:.3,tt:0,prog:.34,
       size:S.rod>=4?.40:S.rod>=3?.36:S.rod>=2?.31:.26,d:f?f[2]:.25,beh:f?f[3]:'smooth',
       last:performance.now(),scare:false,perfect:true,age:0,reelA:0,sp:f?FISH_SP[f[0]]:null,
