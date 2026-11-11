@@ -42,44 +42,55 @@ function CARV(K,cx,by,s,state,t,opt){opt=opt||{};const g=K.g;
   const fr=!!state.frame,bob=state.running?Math.sin(t*20)*.7:0;
   // when still on the tree the whole front rides up; the winch minigame lowers it as you crank
   const nose=state.winched?0:(opt.active==='winch'?(1-(opt.p||0))*6:6);
-  const FW=-30,RW=30,wheelY=-7,wr=7;// wheel centres
+  const FW=-30,RW=30,wheelY=-5,wr=6;// wheel centres; the body hides their top half, leaving them in arches
   // ground shadow
   g.globalAlpha=.38;K.ell(cx+2*s,by+1*s,52*s,7*s,'#0a0608');g.globalAlpha=1;
   // oak trunk the nose is folded into (right side, behind) or the jack under the front (once off)
   if(!state.winched){px(50,-30,13,34,'#281d18');px(50,-30,13,2,'#36271f');px(52,-30,2,34,'#1c140f');}
   else {px(FW-4,-3,8,4,'#30303a');px(FW-3,-6,6,4,'#3a3a46');px(FW-1,1,4,3,'#1c1c22');}// floor jack
-  // --- wheels
-  const wheel=(wx,wy)=>{const X=cx+wx*s,Y=by+wy*s;
-    g.fillStyle='#0a0a0e';g.beginPath();g.arc(X,Y,wr*s,0,6.29);g.fill();
-    g.fillStyle='#1c1c22';g.beginPath();g.arc(X,Y,(wr-1)*s,0,6.29);g.fill();
-    g.fillStyle='#060608';g.beginPath();g.arc(X,Y,(wr-2.3)*s,0,6.29);g.fill();
-    g.fillStyle='#53535e';g.beginPath();g.arc(X,Y,2.4*s,0,6.29);g.fill();g.fillStyle='#24242c';g.beginPath();g.arc(X,Y,1*s,0,6.29);g.fill();
-    g.fillStyle='#2c2c34';for(let k=0;k<5;k++){const a=k/5*6.28+.3;g.fillRect(X+Math.cos(a)*3.4*s-.5,Y+Math.sin(a)*3.4*s-.5,1.4,1.4);}};
+  // --- wheels (drawn first; the body covers their top half)
+  const wheel=(wx,wy)=>{const X=cx+wx*s,Y=by+wy*s,arc=(r,c)=>{g.fillStyle=c;g.beginPath();g.arc(X,Y,r*s,0,6.29);g.fill();};
+    arc(wr,'#0a0a0e');                 // tyre
+    arc(wr-1,'#242430');               // rim, lighter ring
+    arc(wr-2.1,'#121218');             // inner tyre, dark
+    arc(3,'#4a4a56');arc(2.1,'#70707e');arc(.9,'#1a1a20');  // hub: ring, lit centre, pin
+    g.strokeStyle='#2a2a34';g.lineWidth=Math.max(1,.8*s);for(let k=0;k<5;k++){const a=k/5*6.28+.4;g.beginPath();g.moveTo(X,Y);g.lineTo(X+Math.cos(a)*(wr-2)*s,Y+Math.sin(a)*(wr-2)*s);g.stroke();}
+    g.strokeStyle='#3c4150';g.lineWidth=Math.max(1,1.2*s);g.beginPath();g.arc(X,Y,(wr-.6)*s,Math.PI*1.08,Math.PI*1.5);g.stroke();};// cool top-left shoulder light
   wheel(RW,wheelY);
   if(state.wheel)wheel(FW,wheelY);
-  else {px(FW-5,-3,10,4,'#2a241c');px(FW-5,-5,10,2,'#201a14');px(FW-4,-1,8,2,'#332b20');}// on blocks
-  // === lower body: one mass from nose to tail, fender arches over the wheels ===
-  const bC=fr?RED[4]:RED[3];
-  px(-47,-11+bob,94,10,bC);           // flank
-  px(-47,-11+bob,94,1,RED[6]);        // lit top edge of the flank
-  px(-44,-1+bob,88,1,RED[1]);         // sill shadow
-  // fender arches
-  for(const wx of (state.wheel?[FW,RW]:[RW])){K.ell(cx+wx*s,by+(-10+bob)*s,10*s,6*s,bC);K.ell(cx+wx*s,by+(-11+bob)*s,10*s,5*s,'#1a0c0a');}
-  px(-47,-11+bob,94,10,null==null?bC:bC);// (re-lay flank over arch tops)
-  for(const wx of (state.wheel?[FW,RW]:[RW])){g.save();g.beginPath();g.rect(cx+(wx-10)*s,by+(-2+bob)*s,20*s,8*s);g.clip();g.fillStyle='#120807';g.beginPath();g.arc(cx+wx*s,by+(wheelY+bob)*s,(wr+1.5)*s,Math.PI,6.29);g.fill();g.restore();}
+  else {px(FW-5,-4,10,4,'#2a241c');px(FW-5,-6,10,2,'#201a14');px(FW-4,-2,8,2,'#332b20');}// on blocks
+  // === lower body: one mass from nose to tail; the wheels sit in arches below it ===
+  // the flank as a vertical hue-shifted ramp: lit steel shoulder at the top down to plum at the sill
+  px(-47,-13+bob,94,8,fr?RED[4]:RED[3]); // base
+  px(-47,-13+bob,94,1,RED[6]);        // top shoulder, lit
+  px(-47,-12+bob,94,1,RED[5]);
+  px(-46,-11+bob,92,1,RED[5]);        // a crisp highlight line under the top edge
+  px(-47,-9+bob,94,2,fr?RED[3]:RED[2]);  // door face, mid
+  px(-47,-7+bob,94,2,fr?RED[2]:RED[1]);  // lower door, into shadow
+  px(-47,-5+bob,94,1,RED[1]);         // dark sill plum (where the arches cut up)
+  px(-16,-11.4+bob,34,1,RED[4]);      // a door-swage crease catching light across the middle
+  // arch lips: a dark curve where each fender meets its wheel
+  g.strokeStyle='#160a08';g.lineWidth=Math.max(1,1.3*s);
+  for(const wx of (state.wheel?[FW,RW]:[RW])){g.beginPath();g.arc(cx+wx*s,by+(wheelY+bob)*s,(wr+1.2)*s,Math.PI*1.04,Math.PI*1.96);g.stroke();}
+  // a sliver of body colour arching just over each wheel, so the fender reads as metal not a hole
+  g.strokeStyle=RED[2];g.lineWidth=Math.max(1,1*s);
+  for(const wx of (state.wheel?[FW,RW]:[RW])){g.beginPath();g.arc(cx+wx*s,by+(wheelY+bob)*s,(wr+2.3)*s,Math.PI*1.1,Math.PI*1.9);g.stroke();}
   // === front: hood (straight) or a crumpled, primered mass (folded) ===
   if(fr){
-    px(-47,-12+bob+nose*.2,30,2,RED[5]);     // hood top, lit
-    px(-48,-9+bob,3,8,RED[2]);               // nose cap
-    px(-48,-6+bob,3,4,'#15151a');            // front grille
-    for(let k=0;k<3;k++)px(-48,-6+bob+k*1.3,3,.7,'#33333c');
-    const lit=state.wires||state.running;px(-48,-9+bob,2,3,lit?'#ffe9b0':'#6a6652');if(lit)K.glow(cx-47*s,by+(-8+bob)*s,20,'255,226,150',.55);
-    px(-49,-2+bob,5,2,'#2a2a32');            // front bumper
+    px(-48,-13+bob,3,8,RED[2]);              // nose cap, full body height
+    px(-47,-13+bob,29,1,RED[6]);             // hood lit edge
+    px(-48,-9+bob,3,3,'#15151a');            // grille recess
+    px(-48,-9+bob,3,.8,'#34343c');px(-48,-7.4+bob,3,.8,'#34343c');
+    const lit=state.wires||state.running;    // headlight: a hard two-step lamp, no gradient
+    if(lit){K.ell(cx-46.2*s,by+(-10.5+bob)*s,3*s,2.4*s,'#5a4a1e');K.ell(cx-46.8*s,by+(-10.5+bob)*s,1.8*s,1.5*s,'#e8c25a');px(-48,-11.5+bob,2,2,'#fff4d0');}
+    else px(-48,-11+bob,2,2,'#6a6652');
+    px(-49,-6+bob,5,1,'#2a2a32');            // front bumper just under the sill
   } else {
-    // crushed: a bank of jagged, caved panels, bare primer, bumper hanging — all ridden up
-    for(let i=0;i<11;i++){const jx=-47+i*2.6,jh=(5+Math.sin(i*1.7+1)*3+(i<5?3:0));px(jx,-7-jh*.5-nose+bob,2.6,jh+5,i%2?RED[2]:PRM[2]);}
-    px(-48,-10-nose+bob,6,10,PRM[1]);        // torn-paint primer
-    px(-47,-1+bob,8,3,'#1a1a1e');px(-45,1+bob,5,2,'#101014');// bumper torn loose and hanging
+    // crushed: a bank of jagged, caved RED panels (this car's paint), a torn primer patch, bumper hanging
+    for(let i=0;i<11;i++){const jx=-47+i*2.6,jh=(5+Math.sin(i*1.7+1)*3+(i<5?3:0));px(jx,-8-jh*.5-nose+bob,2.6,jh+6,i%4===2?PRM[2]:(i%2?RED[1]:RED[3]));}
+    px(-47,-13-nose+bob,3,6,RED[2]);         // a buckled strip of the hood, still red and lit
+    px(-48.5,-9-nose+bob,4,6,PRM[1]);        // a patch of torn-paint primer
+    px(-47,-4+bob,8,3,'#1a1a1e');px(-45,-2+bob,5,2,'#101014');// bumper torn loose and hanging
     if(opt.active==='frame'){const d=opt.p||0;for(let i=0;i<11;i++){const jx=-47+i*2.6,jh=(5+Math.sin(i*1.7+1)*3)*(1-d)+2;px(jx,-2-jh+bob,2.6,jh,RED[3+(i%2)]);}}
   }
   // === hood seam / open radiator bay with steam, until the rad is done ===
@@ -91,9 +102,10 @@ function CARV(K,cx,by,s,state,t,opt){opt=opt||{};const g=K.g;
   // === the greenhouse cabin, in the MIDDLE, with pillars ===
   // roof
   px(-14,-25+bob,30,2,RED[4]);px(-14,-26+bob,30,1,RED[6]);
-  // pillars (front slants forward, rear slants back)
-  for(let i=0;i<13;i++){px(-15-i*.5,-24+i+bob,2,1,RED[3]);px(16+i*.5,-24+i+bob,2,1,RED[3]);}
-  px(-16,-13+bob,34,2,RED[2]);// belt line under the glass
+  // pillars (front slants forward, rear slants back) — dark and solid so the glass reads framed
+  for(let i=0;i<12;i++){px(-15-i*.5,-24+i+bob,2,1,RED[1]);px(16+i*.5,-24+i+bob,2,1,RED[1]);}
+  px(-15,-24+bob,1,11,RED[2]);px(16,-24+bob,1,11,RED[2]);// a lit inner edge on each pillar
+  px(-16,-13+bob,34,2,RED[1]);// belt line under the glass
   // windows: one greenhouse split by a B-pillar
   const winT=-23,winX=-10,winW=24;
   if(state.glass){
@@ -116,7 +128,7 @@ function CARV(K,cx,by,s,state,t,opt){opt=opt||{};const g=K.g;
   // door line + handle
   px(2,-13+bob,1,12,RED[1]);px(-4,-16+bob,4,1,'#15151a');
   // wiring tell: a faint green dash glow once wired, before it runs
-  if(state.wires&&!state.running)K.glow(cx+(-2)*s,by+(-17+bob)*s,13,'120,200,160',.32);
+  if(state.wires&&!state.running){px(-8,-12+bob,5,1,'#24402f');px(-6,-12+bob,1,1,'#6ac090');}// a small lit dash light below the glass, not in it
   // running: exhaust puff off the tail and a lit headlight
   if(state.running){for(let i=0;i<3;i++){const a=(t*1.1+i*.33)%1;K.pa(cx+(49+a*10)*s,by+(-2-a*4+bob)*s,3*s,3*s,'#6a6a70',(1-a)*.5);}}
 }
