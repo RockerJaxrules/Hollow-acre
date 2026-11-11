@@ -79,7 +79,7 @@ sw = (np.exp(tt(.7)*4)-1)/(np.exp(2.8)-1)
 put(lp(rng.normal(0, 1, len(sw)), 2600) * sw * .22, CALM_END-.7)
 
 # ============ the turn + the hauntings: the drone swells, a heartbeat quickens, a screech climbs
-ap0 = at('approach')[0]              # the Hollow starts down over you here
+ap0 = at('stalk')[0]              # the Hollow starts down over you here
 sa, sb = at('scare')                 # the face
 slam = sa + 0.06                     # the hit, right as we cut to the face
 hush = slam - 2.0                    # the held breath: everything drops out here (the 2s black)

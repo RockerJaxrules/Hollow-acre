@@ -11,11 +11,10 @@ const HIDE=`#arrow,#hud,#toast,#joy,#joyHint,#buttons,#saved,#fsBtn,#sndBtn,#fsX
 
 // Each shot: how long to roll, and a settle before capture. The director logic lives in INSTALL below.
 const SHOTS=[
-  {name:'lantern', sec:3.6, settle:300},   // cold open: a pool of light in the dark, a shape at its edge — then gone
-  {name:'approach',sec:6.0, settle:300},   // you face us, unaware; the Hollow walks down out of the dark, growing, to right behind you
-  {name:'well',    sec:3.8, settle:300},   // the drowned girl rises out of the well and points back down into it
-  {name:'corn',    sec:4.2, settle:300},   // down the row toward the scarecrow; its head turns to you; then it is off the post, nearer
-  {name:'chase',   sec:3.0, settle:300},   // you run at us, lantern swinging; it crawls after you, gaining
+  {name:'lantern', sec:3.6, settle:300},   // cold open: a pool of light in the dark
+  {name:'stalk',   sec:5.0, settle:400},   // the REAL Hollow stands in the dark, watching, then walks across the yard toward you
+  {name:'well',    sec:3.8, settle:300},   // the Agnes heart event: the ghost girl stands by the well and points down into it
+  {name:'chase',   sec:3.4, settle:400},   // you run; the REAL Hollow crawls after you down the path, gaining
   {name:'face',    sec:1.8, settle:200},   // the button: the face, held
 ];
 
@@ -36,7 +35,7 @@ window.__ember=function(x,z,scale,a){const X=sx(x),Y=sz(z)-Math.round(42*scale);
     g.addColorStop(0,'rgba(255,150,40,'+a+')');g.addColorStop(1,'rgba(255,120,30,0)');ctx2.fillStyle=g;ctx2.fillRect(X+dx-r,Y-r,r*2,r*2);}
   const gm=ctx2.createRadialGradient(X,Y+Math.round(10*scale),0,X,Y+Math.round(10*scale),r*1.1);
   gm.addColorStop(0,'rgba(255,110,20,'+(a*.8)+')');gm.addColorStop(1,'rgba(255,90,20,0)');ctx2.fillStyle=gm;ctx2.fillRect(X-r,Y,r*2.2,r*2.2);};
-window.__endShot=function(){cine=null;S.paused=false;window.__shot=null;};
+window.__endShot=function(){cine=null;S.paused=false;window.__shot=null;try{H.vis=false;H.state='gone';}catch(e){}};
 window.__startShot=function(name){
   S.mode='play';S.paused=true;S.room=null;window.__shot=name;
   if(npcs)npcs.forEach(n=>n.vis=false); if(typeof ruth!=='undefined')ruth.vis=false; H.vis=false;
@@ -50,22 +49,21 @@ window.__startShot=function(name){
       drawables(D){},
       draw(){__vig(.3);}};
   }
-  // ---- the approach: you face us; it comes down out of the dark behind you and grows
-  else if(name==='approach'){
-    S.hour=23.0; P.x=6; P.z=-8.4; P.dir='S'; P.clip='idle'; P.spd=0;
-    C.cam={x:6,z:-7.8};
+  // ---- the stalk: the REAL Hollow (the game's own entity, true size, shadow, burning eyes) stands in the
+  //      dark watching, then walks across the yard toward you. Nothing scaled or floating — it's on the ground.
+  else if(name==='stalk'){
+    S.hour=22.6; P.x=2; P.z=-6.2; P.dir='N'; P.clip='idle'; P.spd=0;   // you stand in your lantern pool, facing it
+    C.cam={x:2,z:-7.4};
+    H.vis=true; H.x=2; H.z=-13.2; H.dir='S'; H.clip='frozen'; H.rise=1; H.alpha=1; H.burn=0; H.crawl=0; H.ft=0; H.lit=false;
     cine={hidePlayer:false,cam:C.cam,
-      update(dt){C.u+=dt; C.cam.z=-7.8-.24*__ss(__cl(.5,3.0,C.u));},   // a slow creep in while it descends
-      drawables(D){const u=C.u;
-        const t=__ss(__cl(.3,2.9,u));            // it ARRIVES by ~2.9s, then looms over you the rest of the shot
-        const hz=-15.5+(-9.4-(-15.5))*t;         // from far up-screen to right behind you (you at -8.4)
-        const arr=u>2.9?(u-2.9):0;               // once arrived: it breathes, huge, and leans in
-        const sc=(.55+1.6*t)*(1+.05*Math.sin(arr*2.6));
-        const lean=Math.round(Math.sin(arr*1.3)*5);
-        const al=__cl(.3,1.0,u);
-        const wf=frameOf('hollow','walk',u*5.0);
-        D.push({z:hz,mind:1,draw(){__hol(6+lean*0.01,hz,'walk','S',wf,sc,al);if(t>.3)__ember(6,hz,sc,Math.min(.9,(t-.3)*1.5));}});},
-      draw(){__vig(.32);}};
+      update(dt){C.u+=dt;
+        if(C.u<1.8){ H.clip='frozen'; H.dir='S'; }                    // it stands still, watching, eyes burning
+        else { const dx=P.x-H.x,dz=P.z-H.z,d=Math.hypot(dx,dz)||1;    // then it walks, steadily, over the ground toward you
+          if(d>1.5){ H.clip='walk'; H.ft+=dt; const sp=1.9*dt; H.x+=dx/d*sp; H.z+=dz/d*sp;
+            H.dir=(Math.abs(dx)>Math.abs(dz))?(dx>0?'E':'W'):(dz>0?'S':'N'); }
+          else H.clip='frozen'; }
+      },
+      drawables(D){}, draw(){__vig(.3);}};
   }
   // ---- the well: a pale girl rises out of the mouth and points back down into the water
   else if(name==='well'){
@@ -84,32 +82,20 @@ window.__startShot=function(name){
           drawSpr('ruth',X,Y,pt?'point':'walk',pt?'E':'S',0,{alpha:a,scale:1.3});}});},
       draw(){__vig(.34);}};
   }
-  // ---- the corn: push down the row; the scarecrow's head turns to you; then it is off the post and nearer
-  else if(name==='corn'){
-    S.hour=22.4; P.x=-2; P.z=20; P.dir='N'; P.clip='idle'; P.spd=0;
-    C.cam={x:-2,z:19.2};
-    cine={hidePlayer:true,cam:C.cam,
-      update(dt){C.u+=dt; C.cam.z=19.4-3.0*__ss(__cl(0,3.6,C.u));},   // a long slow push up the row toward it
-      drawables(D){const u=C.u;
-        const post=(X)=>{ctx2.fillStyle='#241810';ctx2.fillRect(Math.round(X)-1,Math.round(sz(13))-64,3,64);ctx2.fillRect(Math.round(X)-20,Math.round(sz(13))-52,41,3);};
-        // the scarecrow hangs with its back to you; its head comes round to face you and the carved face lights
-        const dir=u<1.8?'N':'S';
-        D.push({z:12.9,mind:1,draw(){post(sx(-2));}});
-        D.push({z:13,mind:1,draw(){__hol(-2,13,'walk',dir,0,.9,.99);if(dir==='S')__ember(-2,13,.9,__cl(1.8,2.4,u)*.95);}});},
-      draw(){__vig(.5);}};
-  }
-  // ---- the chase: you run at us, lantern swinging; it crawls after you and gains
+  // ---- the chase: you run south down the path; the REAL Hollow crawls after you, gaining. World scrolls with you.
   else if(name==='chase'){
-    S.hour=23.0; P.x=0; P.z=-3; P.dir='S'; P.clip='walk'; P.spd=3;
-    C.cam={x:0,z:-2.2};
+    S.hour=23.0; P.x=2; P.z=-4; P.dir='S'; P.clip='walk'; P.spd=3;
+    C.cam={x:2,z:-3.4};
+    H.vis=true; H.x=2; H.z=-9.5; H.dir='S'; H.clip='crawl'; H.rise=1; H.alpha=1; H.burn=0; H.crawl=1; H.ft=0; H.lit=false;
     cine={hidePlayer:false,cam:C.cam,
-      update(dt){C.u+=dt; P.t=(P.t||0)+dt*2.2;},   // drive the run cycle while paused
-      drawables(D){const u=C.u;
-        const gain=__ss(__cl(0,3,u));
-        const cz=-8.2 + (-5.4-(-8.2))*gain;         // crawls from behind, closing on you
-        const sc=1.0+gain*.3;
-        D.push({z:cz,mind:1,draw(){__hol(.1,cz,'crawl','S',frameOf('hollow','crawl',u*6)||0,sc,1);__ember(.1,cz,sc*.8,.85);}});},
-      draw(){__vig(.32);}};
+      update(dt){C.u+=dt;
+        const run=2.5;                                   // you run south; the camera and the whole yard scroll with you
+        P.z+=run*dt; P.t=(P.t||0)+dt*2.4; P.clip='walk'; P.dir='S'; P.spd=3;
+        C.cam.x=2; C.cam.z=P.z-.6;
+        const gap=3.3-1.2*__ss(__cl(0,3.2,C.u));         // it closes from ~3.3 tiles behind to ~2.1
+        H.x=2; H.z=P.z-gap; H.clip='crawl'; H.dir='S'; H.ft+=dt;
+      },
+      drawables(D){}, draw(){__vig(.3);}};
   }
   // ---- the button: the face, held
   else if(name==='face'){

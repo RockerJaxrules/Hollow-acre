@@ -21,14 +21,14 @@ TL = [
     ('shot', 'festival', 8, 64),           # ~1.9s
     ('shot', 'caitlyn', 10, 58),           # ~1.6s
     ('black', 0.4),
-    # THE TURN — it comes down out of the dark, right over you. Hold on it as it arrives and looms.
-    ('shot', 'approach', 28, 152),         # ~4.2s: descends, then looms huge and breathing right over you
+    # THE TURN — the Hollow stands in the dark, then walks across the yard toward you. Hold on it.
+    ('shot', 'stalk', 36, 148),            # ~3.7s: it watches, then comes for you over the ground
     ('black', 0.22),
     # THE HAUNTINGS — faster now, a different wrongness each cut
     ('shot', 'well', 46, 108),             # ~2.1s  the ghost girl stands by the well and points down into it (Agnes heart event)
     ('shot', 'corn_watch', 30, 96),        # ~2.2s  REAL gameplay: walking the corn row at night toward the scarecrow that is the Hollow
     ('shot', 'chase', 12, 82),             # ~2.37s it is behind you and gaining
-    ('shot', 'approach', 152, 179),        # ~0.93s snap back: the mass, right on top of you
+    ('shot', 'stalk', 134, 149),           # ~0.53s snap back: it is right on you
     # THE HELD BREATH — everything stops, the sound drops out
     ('black', 2.0),
     # THE BUTTON — the face
