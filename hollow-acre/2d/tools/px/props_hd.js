@@ -245,14 +245,15 @@ if(K==='o_clothesline'){   // a clothesline: T-topped posts, a sagging line, a s
 if(K==='b_boot'){   // (benches fam r3: a 2 px ledge, blocks under it) a cobbler's bench with a real 3/4 worktop two steps lighter than its front, everything standing on it, open below; a short rack of awls; one tan boot on an iron last as the brightest shape
   const base=H-3,R=RAMP.walnut,T=RAMP.oak,I=RAMP.ironW,TN=hexR(['#3a2414','#5a3a20','#7c5430','#9c6e40','#b88a54','#cfa56c']),TNc=hexR(['#4a3326','#6a4a36']);
   const x0=5,w=48,dT=9,hF=5,top=base-12-dT-hF;
-  for(let y=top;y<top+dT;y++){const r=y-top;for(let x=x0;x<x0+w;x++){let k=r===0?3:r===dT-1?5:4;if((r===3||r===6)&&((x*3+r)%13)<9)k=3;P(A,x,y,T[k]);}P(A,x0,y,T[5]);P(A,x0+w-1,y,T[2]);}   // the worktop: lit planks, the lightest wood on the piece
+  for(let y=top;y<top+dT;y++){const r=y-top;for(let x=x0;x<x0+w;x++){let k=r===0?3:r===dT-1?5:4;P(A,x,y,T[k]);}P(A,x0,y,T[5]);P(A,x0+w-1,y,T[2]);}   // the worktop: lit planks, the lightest wood on the piece
+  for(let r=1;r<dT-1;r++){let x=x0+2+((hsh(r,1,9)*8)|0);while(x<x0+w-3){const len=5+((hsh(x,r,9)*10)|0);if(hsh(x,r,10)<.6)for(let i=0;i<len&&x+i<x0+w-2;i++)P(A,x+i,top+r,T[3]);x+=len+4+((hsh(x,r,11)*9)|0);}}   // (benches fam r4: ruled dashes read as stitching) long uneven grain streaks
   for(let y=top+dT;y<top+dT+hF;y++)for(let x=x0;x<x0+w;x++){const r=y-top-dT;P(A,x,y,R[r===0?3:r===hF-1?0:2]);}P(A,x0,top+dT+1,R[4]);   // the front edge, two steps darker
   for(const lx of [x0+1,x0+w-4])for(let y=top+dT+hF;y<base;y++){P(A,lx,y,R[4]);P(A,lx+1,y,R[2]);P(A,lx+2,y,R[1]);}   // only the near legs
   fadeUnder(x0+4,x0+w-5,top+dT+hF,base-1);
-  {const rx=x0+w-12;for(const px_ of [rx,rx+9])for(let y=top-9;y<top+2;y++){P(A,px_,y,R[4]);P(A,px_+1,y,R[1]);}for(let x=rx;x<rx+11;x++){P(A,x,top-10,R[5]);P(A,x,top-9,R[2]);}   // a short rack of awls at the far end
-    for(const ax of [rx+3,rx+5,rx+7]){for(let j=0;j<3;j++)P(A,ax,top-8+j,T[5-j]);for(let j=3;j<6;j++)P(A,ax,top-8+j,I[j===5?5:4]);}contact(rx,top+2,11);}
-  {const tx=x0+5,ty=top+1;for(let y=ty;y<ty+3;y++)for(let x=tx;x<tx+5;x++)P(A,x,y,I[x===tx?5:x===tx+4?1:3]);hl(A,tx,ty,5,I[5]);contact(tx,ty+3,6);}   // a tin of tacks, lit steel
-  {const wx=x0+12,wy=top+2;for(let y=wy;y<wy+2;y++)for(let x=wx;x<wx+3;x++)P(A,x,y,RAMP.straw[y===wy?5:3]);contact(wx,wy+2,4);}   // a cake of wax
+  {const bx=x0+w-14,by=top+3;for(let y=by;y<by+4;y++)for(let x=bx;x<bx+9;x++)P(A,x,y,R[y===by?5:x===bx?4:x===bx+8?1:3]);contact(bx,by+4,10);   // (benches fam r4: a rack read as a chair back) a low tool block, three tools at different angles
+    for(let j=0;j<7;j++)P(A,bx+2-Math.round(j*.3),by-1-j,T[4]);for(const [dx,dy] of [[-1,-8],[0,-8],[1,-8],[-1,-9],[0,-9],[1,-9],[2,-9]])P(A,bx+2+dx-2,by+dy,dy===-9?RAMP.steel[4]:RAMP.steel[3]);   // a cobbler's hammer, its round steel face
+    for(let j=0;j<4;j++)P(A,bx+5,by-1-j,T[5]);for(let j=4;j<8;j++)P(A,bx+5,by-1-j,RAMP.steel[j===7?4:3]);   // an awl, its steel point
+    for(let j=0;j<4;j++)P(A,bx+7+Math.round(j*.4),by-1-j,T[3]);for(const [dx,dy] of [[2,-5],[3,-6],[3,-7],[2,-8],[1,-8]])P(A,bx+7+dx,by+dy,RAMP.steel[4]);}   // a curved knife
   {const lx=24,ly=top+5;for(let y=ly-5;y<ly+1;y++){P(A,lx,y,I[3]);P(A,lx+1,y,I[1]);}contact(lx-1,ly+1,4);   // the iron last, and the tan boot on it, three tones, a sole line
     const bx=lx-3,by=ly-5;for(let y=by-10;y<by;y++)for(let i=0;i<5;i++)P(A,bx+i,y,i===0?TN[5]:i===4?TNc[0]:TN[4]);hl(A,bx,by-10,5,TN[5]);
     for(let y=by;y<by+4;y++)for(let i=0;i<12;i++){if(i>9&&y===by)continue;P(A,bx+i,y,y===by?TN[5]:i>=10?TNc[0]:i>=7?TN[3]:TN[4]);}
