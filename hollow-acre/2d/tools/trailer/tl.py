@@ -25,8 +25,8 @@ TL = [
     ('shot', 'approach', 28, 152),         # ~4.2s: descends, then looms huge and breathing right over you
     ('black', 0.22),
     # THE HAUNTINGS — faster now, a different wrongness each cut
-    ('shot', 'well', 40, 108),             # ~2.3s  a pale thing stands up out of the well
-    ('shot', 'corn', 50, 104),             # ~1.8s  a figure hung in the far row, its face coming round
+    ('shot', 'well', 46, 108),             # ~2.1s  the ghost girl stands by the well and points down into it (Agnes heart event)
+    ('shot', 'corn_watch', 30, 96),        # ~2.2s  REAL gameplay: walking the corn row at night toward the scarecrow that is the Hollow
     ('shot', 'chase', 12, 82),             # ~2.37s it is behind you and gaining
     ('shot', 'approach', 152, 179),        # ~0.93s snap back: the mass, right on top of you
     # THE HELD BREATH — everything stops, the sound drops out

@@ -71,19 +71,20 @@ window.__startShot=function(name){
   }
   // ---- the well: a pale girl rises out of the mouth and points back down into the water
   else if(name==='well'){
-    S.hour=20.6; P.x=7.3; P.z=-8.0; P.dir='N'; P.clip='idle'; P.spd=0;
-    C.cam={x:7.3,z:-9.4};
+    // faithful to the Agnes heart event: the ghost girl (Ruth) COMES TO STAND just left of the well,
+    // translucent, looking at you, then lifts an arm and points down into the well.
+    S.hour=20.4; P.x=7.3; P.z=-7.6; P.dir='N'; P.clip='idle'; P.spd=0;
+    C.cam={x:6.8,z:-9.0};
     cine={hidePlayer:true,cam:C.cam,
       update(dt){C.u+=dt;},
       drawables(D){const u=C.u;
-        const rise=__ss(__cl(.5,2.6,u));          // she comes up out of the shaft and keeps rising, lifting clear of it
-        const yoff=40-96*rise;                    // from deep in the dark shaft to floating above the well mouth
-        const al=__cl(.5,1.6,u);
-        const pt=u>2.9;                            // then lifts an arm and points back down into the water
-        D.push({z:-9.9,mind:1,draw(){const X=sx(7.3),Y=sz(-10.5)-Math.round(yoff);
-          const g=ctx2.createRadialGradient(X,Y-36,0,X,Y-36,92);g.addColorStop(0,'rgba(188,222,230,'+(al*.72)+')');g.addColorStop(.5,'rgba(150,200,214,'+(al*.3)+')');g.addColorStop(1,'rgba(150,200,214,0)');ctx2.fillStyle=g;ctx2.fillRect(X-92,Y-130,184,170);  // a cold drowned pallor, bright enough to read as a ghost
-          drawSpr('ruth',X,Y,pt?'point':'walk','S',0,{alpha:al,scale:2.0});}});},
-      draw(){const px=sx(7.3),py=sz(-12.2); __dark(px,py,110,270,.8); __vig(.6);}};
+        const a=Math.min(.64,__cl(.5,2.2,u)*.64);  // she fades in, translucent — a child in a white dress
+        const pt=u>2.5;                              // then turns to the well and points down into it
+        const bob=Math.round(Math.sin(u*1.9));
+        D.push({z:-9.86,mind:1,draw(){const X=sx(6.18),Y=sz(-9.86)-bob;
+          const g=ctx2.createRadialGradient(X,Y-30,0,X,Y-30,66);g.addColorStop(0,'rgba(188,218,228,'+(a*.55)+')');g.addColorStop(1,'rgba(170,205,215,0)');ctx2.fillStyle=g;ctx2.fillRect(X-66,Y-92,132,120);  // a cold drowned pallor
+          drawSpr('ruth',X,Y,pt?'point':'walk',pt?'E':'S',0,{alpha:a,scale:1.3});}});},
+      draw(){const px=sx(6.8),py=sz(-9.6); __dark(px,py,150,330,.64); __vig(.55);}};
   }
   // ---- the corn: push down the row; the scarecrow's head turns to you; then it is off the post and nearer
   else if(name==='corn'){

@@ -101,7 +101,7 @@ scr = bp(rng.normal(0, 1, len(f)), 800, 3600) * (np.sin(2*np.pi*np.cumsum(f)/SR)
 put(scr * .13, ap0 + .6, 1, .2)
 # the breath comes back, closer, over the turn; and a per-cut tick at each haunting
 put(breath(2.6, 0, .13), ap0 + .5)
-for nm in ('well', 'corn', 'chase'):
+for nm in ('well', 'corn_watch', 'chase'):
     T = at(nm)[0]
     put(M(saw(hz(91), .5)*env(.5, .002, .45)*.045, noiseburst(.4, 3500, 9000, 9)*.09), T+.05, 1, rng.uniform(-.5, .5))
     put(breath(1.6, rng.uniform(-.3, .3), .07), T+.2)
