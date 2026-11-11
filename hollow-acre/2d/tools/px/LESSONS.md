@@ -1078,3 +1078,8 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A cleared patch around a lone staged tree/grave actually reads BETTER ("the oldest tree, standing apart") and gives the figures a clean stage.
 - Always pair the hide with a restore in done(), or the world stays decluttered after the cutscene.
 - A ground-impression prop (footprints, stains) in a dark scene must have real contrast: a bold dark outline + a mid fill a clear step above the floor + a lit top-left rim. "Matte, barely above the floor" reads as nothing — the whole scare vanishes. Keep it grounded (not a glowing mound) but make the shape legible.
+
+## Animating a prop's state change so the scare READS (Hob "Who eats it")
+- If a "something moved it" cue only shifts a tiny sub-part (the candle FLAME shifted but the wax body stayed upright), the change is invisible and the scare dies. Tip the WHOLE object: shear the column so the top leans furthest and the base stays — a visible 30°+ lean reads as "someone just knocked it."
+- A vanish ("the food is gone") reads better as a state with a trace than a bare empty: leave a scraped smear / grease streaks so it says "licked clean," not just "nothing there."
+- In a deliberately dark scene, still give the ONE focal prop enough glow to read the state change; dim the rest, not the thing the whole beat hinges on.

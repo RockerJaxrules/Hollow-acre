@@ -149,9 +149,13 @@ function hsLongTable(X,Y){const WO=HSP.woodO,W=HSP.wood;hsSh(X,Y+16,92,5);
 function hsPlate(X,Y,eaten){const PO=HSP.paleO,P=HSP.pale;ctx2.fillStyle=PO;ctx2.beginPath();ctx2.ellipse(X,Y,11,5,0,0,6.283);ctx2.fill();
   ctx2.fillStyle=P[2];ctx2.beginPath();ctx2.ellipse(X,Y,9,4,0,0,6.283);ctx2.fill();ctx2.fillStyle=P[3];ctx2.beginPath();ctx2.ellipse(X-1,Y-1,7,2.6,0,0,6.283);ctx2.fill();   // the rim, lit top-left
   ctx2.fillStyle=P[1];ctx2.beginPath();ctx2.ellipse(X,Y,5,2,0,0,6.283);ctx2.fill();   // the well of the plate, shaded
-  if(!eaten){ctx2.fillStyle='#5a2c1e';ctx2.beginPath();ctx2.ellipse(X,Y-1,4,2,0,0,6.283);ctx2.fill();ctx2.fillStyle='#7a3c28';ctx2.fillRect(X-2,Y-2,4,2);ctx2.fillStyle='#9a5038';ctx2.fillRect(X-2,Y-2,2,1);}}   // the best cut (a meat ramp), then gone
-function hsCandle(X,Y,lean,lit){const lx=Math.round(lean*5),PO=HSP.paleO,P=HSP.pale;ctx2.fillStyle=PO;ctx2.fillRect(X-2,Y-12,4,12);ctx2.fillStyle=P[2];ctx2.fillRect(X-2,Y-12,3,12);ctx2.fillStyle=P[3];ctx2.fillRect(X-2,Y-12,1,12);ctx2.fillStyle=P[1];ctx2.fillRect(X+1,Y-12,1,12);   // wax: lit left, shaded right
-  if(lit){ctx2.fillStyle='#ff9e2a';ctx2.fillRect(X-1+lx,Y-16,2,4);ctx2.fillStyle='#ffd070';ctx2.fillRect(X-1+lx,Y-17,2,3);ctx2.fillStyle='#fff2c0';ctx2.fillRect(X+lx,Y-17,1,2);}}   // the flame, hard steps
+  if(!eaten){ctx2.fillStyle='#5a2c1e';ctx2.beginPath();ctx2.ellipse(X,Y-1,4,2,0,0,6.283);ctx2.fill();ctx2.fillStyle='#7a3c28';ctx2.fillRect(X-2,Y-2,4,2);ctx2.fillStyle='#9a5038';ctx2.fillRect(X-2,Y-2,2,1);}   // the best cut (a meat ramp)...
+  else{ctx2.fillStyle=P[0];ctx2.fillRect(X-4,Y,2,1);ctx2.fillRect(X,Y-1,3,1);ctx2.fillRect(X+2,Y+1,2,1);ctx2.fillStyle='#6a3826';ctx2.fillRect(X-1,Y,1,1);}}   // ...then gone, the plate scraped clean — a few grease streaks, one smear of what was there
+function hsCandle(X,Y,lean,lit){const PO=HSP.paleO,P=HSP.pale,H=12;   // the whole wax column TIPS with lean — as if someone unseen just brushed it sitting down (the top leans most, the base stays put)
+  for(let i=0;i<H;i++){const yy=Y-12+i,sx=Math.round(lean*(1-i/H)*8);   // i=0 is the top (leans furthest), i=H-1 the base (stays)
+    ctx2.fillStyle=PO;ctx2.fillRect(X-2+sx,yy,4,1);ctx2.fillStyle=P[2];ctx2.fillRect(X-2+sx,yy,3,1);ctx2.fillStyle=P[3];ctx2.fillRect(X-2+sx,yy,1,1);ctx2.fillStyle=P[1];ctx2.fillRect(X+1+sx,yy,1,1);}
+  const tx=Math.round(lean*8);   // the flame rides the leaned top, and guts sideways as the unseen guest leans in
+  if(lit){ctx2.fillStyle='#ff9e2a';ctx2.fillRect(X-1+tx,Y-16,2,4);ctx2.fillStyle='#ffd070';ctx2.fillRect(X-1+tx,Y-17,2,3);ctx2.fillStyle='#fff2c0';ctx2.fillRect(X+tx,Y-17,1,2);}}
 function hsSkipStone(X,Y){ctx2.fillStyle='rgba(220,224,228,.9)';ctx2.fillRect(X-1,Y-1,3,2);ctx2.fillStyle='rgba(150,170,180,.5)';ctx2.fillRect(X-2,Y+2,5,1);}   // a stone mid-skip + its splash
 function hsCarvedBox(X,Y){   // a dovetailed oak box on a cloth; carved on the lid, your farmhouse with one lit window and a figure turned away inside it
   const WO=HSP.woodO,W=HSP.wood,B=HSP.brass;hsSh(X,Y+6,24,5);
@@ -525,7 +529,7 @@ function hsTheGuest(done){const R=ROOMS.home_harlow||ROOMS.store,ox=R.ox,oz=R.oz
   const tz=oz+4.6,you={x:ox+5.4,z:oz+6.0},hob={x:ox+3.2,z:oz+5.8};
   let lean=0,eaten=0,fork=0;const CAM={x:ox+6,z:oz+5.0};
   stage({room:ROOMS.home_harlow?'home_harlow':'store',hour:3.0,keepHour:true,player:{x:you.x,z:you.z,dir:'N'},cast:{hob:{x:hob.x,z:hob.z,dir:'E'}},cam:CAM,lead:850,
-    light(L){glowAt(sx(ox+6)+66,sz(tz)-16,38,[255,196,120],.36-.12*lean);hsVignette(.5);},
+    light(L){glowAt(sx(ox+6)+66,sz(tz)-18,50,[255,200,128],.5-.1*lean);hsVignette(.48);},
     props:[{x:0,z:9e5,draw(){ctx2.fillStyle='rgba(5,5,9,.62)';ctx2.fillRect(0,0,VW,VH);}},   // the dead of night
       {x:ox+6,z:tz,draw(X,Y,t){shadow(X,Y,28);drawSpr('in_goodstable',X,Y);const px=X+26,py=Y-26;hsPlate(px,py,eaten);hsCandle(px+14,py+1,lean,1);   // the real laden banquet table (grounded); the player's plate + candle sit ON the table top
         if(fork>0&&!eaten){ctx2.fillStyle='#b8b0a0';ctx2.fillRect(px-8+Math.round(fork*3),py-2,1,5);}}}],
