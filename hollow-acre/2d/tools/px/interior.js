@@ -465,7 +465,7 @@ function stile(x,y0,y1,w,R){for(let y=y0;y<y1;y++){P(A,x,y,R[4]);for(let i=1;i<w
 function plaid(x0,y0,w,h,top){for(let j=0;j<h;j++)for(let i=0;i<w;i++){const a=(Math.floor(i/3)+Math.floor(j/3))%2;let c=a?RD[3]:RD[4];if(i%3===1&&j%3===1)c=PAL.cream[2];if(j<top)c=shade(c,1.12);if(j===h-1)c=RD[1];P(A,x0+i,y0+j,c);}}
 if(K==='rockS'){const R=WD;
   // rockers first: two curved runners coming toward you, toes curling up at the front
-  for(const s of [-1,1]){const bx=cx+s*8,fx=cx+s*13;for(let k=0;k<=18;k++){const u=k/18,x=Math.round(bx+(fx-bx)*u),y=Math.round(32+u*14-(u>.84?(u-.84)*20:0));P(A,x,y,R[5]);P(A,x,y+1,R[4]);P(A,x+(s>0?1:-1),y+1,R[3]);P(A,x,y+2,R[2]);}}   /* (judge fam1: "reads as a Windsor chair") the runners run on well past the feet, a step lighter than the frame, their toes curling up */
+  for(const s of [-1,1]){const bx=cx+s*8,fx=cx+s*13;for(let k=0;k<=18;k++){const u=k/18,x=Math.round(bx+(fx-bx)*u),y=Math.round(32+u*14-(u>.84?(u-.84)*20:0));const LT=['#d4ad78','#bd9562','#9c774c'].map(HEX);P(A,x,y,LT[0]);P(A,x,y+1,LT[1]);P(A,x+(s>0?1:-1),y+1,LT[2]);P(A,x,y+2,R[2]);if(k===18){P(A,x,y-1,LT[0]);P(A,x+(s>0?1:-1),y,LT[1]);}}}   /* (judge fam2: "lighter curved runner tips well forward of both feet") pale pine runners; (judge fam1: "reads as a Windsor chair") the runners run on well past the feet, a step lighter than the frame, their toes curling up */
   // back legs (half hidden), front legs
   stile(cx-9,31,38,2,R);stile(cx+7,31,38,2,R);stile(cx-12,30,40,3,R);stile(cx+9,30,40,3,R);
   // the tall back: arched top rail, two stiles, five spindles
