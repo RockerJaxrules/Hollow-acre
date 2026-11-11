@@ -251,12 +251,14 @@ if(K==='b_boot'){   // (benches fam r3: a 2 px ledge, blocks under it) a cobbler
   for(const lx of [x0+1,x0+w-4])for(let y=top+dT+hF;y<base;y++){P(A,lx,y,R[4]);P(A,lx+1,y,R[2]);P(A,lx+2,y,R[1]);}   // only the near legs
   fadeUnder(x0+4,x0+w-5,top+dT+hF,base-1);
   {const bx=x0+w-14,by=top+3;for(let y=by;y<by+4;y++)for(let x=bx;x<bx+9;x++)P(A,x,y,R[y===by?5:x===bx?4:x===bx+8?1:3]);contact(bx,by+4,10);   // (benches fam r4: a rack read as a chair back) a low tool block, three tools at different angles
-    for(let j=0;j<7;j++)P(A,bx+2-Math.round(j*.3),by-1-j,T[4]);for(const [dx,dy] of [[-1,-8],[0,-8],[1,-8],[-1,-9],[0,-9],[1,-9],[2,-9]])P(A,bx+2+dx-2,by+dy,dy===-9?RAMP.steel[4]:RAMP.steel[3]);   // a cobbler's hammer, its round steel face
+    for(let j=0;j<7;j++)P(A,bx+2-Math.round(j*.3),by-1-j,T[4]);for(const [dx,dy] of [[-1,-8],[0,-8],[1,-8],[-1,-9],[0,-9],[1,-9],[2,-9]])P(A,bx+2+dx-2,by+dy,dy===-9?RAMP.steel[3]:RAMP.charcoal[1]);   // a cobbler's hammer, cast iron with a lit rim, its round steel face
     for(let j=0;j<4;j++)P(A,bx+5,by-1-j,T[5]);for(let j=4;j<8;j++)P(A,bx+5,by-1-j,RAMP.steel[j===7?4:3]);   // an awl, its steel point
-    for(let j=0;j<4;j++)P(A,bx+7+Math.round(j*.4),by-1-j,T[3]);for(const [dx,dy] of [[2,-5],[3,-6],[3,-7],[2,-8],[1,-8]])P(A,bx+7+dx,by+dy,RAMP.steel[4]);}   // a curved knife
-  {const lx=24,ly=top+5;for(let y=ly-5;y<ly+1;y++){P(A,lx,y,I[3]);P(A,lx+1,y,I[1]);}contact(lx-1,ly+1,4);   // the iron last, and the tan boot on it, three tones, a sole line
-    const bx=lx-3,by=ly-5;for(let y=by-10;y<by;y++)for(let i=0;i<5;i++)P(A,bx+i,y,i===0?TN[5]:i===4?TNc[0]:TN[4]);hl(A,bx,by-10,5,TN[5]);
-    for(let y=by;y<by+4;y++)for(let i=0;i<12;i++){if(i>9&&y===by)continue;P(A,bx+i,y,y===by?TN[5]:i>=10?TNc[0]:i>=7?TN[3]:TN[4]);}
-    hl(A,bx,by+4,12,RAMP.charcoal[0]);hl(A,bx+1,by+3,10,TN[2]);P(A,bx,by+3,RAMP.charcoal[1]);   // the sole line and heel
-    for(const [dx,dy] of [[2,-8],[2,-6],[2,-4],[3,-2]])P(A,bx+dx,by+dy,TN[1]);}   // laces down the instep
+    for(let j=0;j<8;j++){P(A,bx+7+(j<4?0:Math.round((j-4)*.4)),by-1-j,j<4?T[3]:RAMP.charcoal[1]);P(A,bx+8+(j<4?0:Math.round((j-4)*.6)),by-1-j,j<4?T[2]:RAMP.charcoal[0]);}P(A,bx+7,by-8,RAMP.steel[3]);}   // straight pincers, iron jaws with a lit tip
+  {const lx=24,ly=top+5,PL=hexR(['#4a2e2c','#5e3c34']);for(let y=ly-5;y<ly+1;y++){P(A,lx,y,I[3]);P(A,lx+1,y,I[1]);}contact(lx-1,ly+1,4);   // the iron last; the boot on it with volume
+    const bx=lx-3,by=ly-5;
+    for(let y=by-10;y<by;y++)for(let i=0;i<6;i++){let c=i===0?TN[5]:i===1?TN[4]:i===2?TN[4]:i===3?TN[3]:i===4?PL[1]:PL[0];P(A,bx+i,y,c);}hl(A,bx,by-10,6,TN[5]);   // the shaft: lit left, a plum-shifted shaded back
+    for(let j=0;j<5;j++){P(A,bx+2,by-9+j*2,TN[1]);P(A,bx+3,by-8+j*2,TN[1]);}for(let y=by-9;y<by-2;y++)P(A,bx+1,y,TN[3]);   // a laced throat: crossed laces and the tongue's edge
+    for(let y=by;y<by+4;y++)for(let i=0;i<13;i++){if(i>10&&y===by)continue;if(i>11&&y===by+1)continue;let c=y===by?TN[5]:i>=10?TN[3]:i>=7?TN[4]:TN[4];if(y===by+3)c=i>=8?PL[0]:TN[3];P(A,bx+i,y,c);}   // the foot, its toe cap rounded, shaded underneath
+    P(A,bx+9,by,TN[5]);P(A,bx+10,by+1,[236,206,160]);   // a lit glint on the toe cap
+    hl(A,bx,by+4,13,RAMP.charcoal[0]);for(let y=by+1;y<by+5;y++){P(A,bx,y,RAMP.charcoal[1]);P(A,bx+1,y,RAMP.charcoal[0]);P(A,bx+2,y,RAMP.charcoal[0]);}hl(A,bx+3,by+3,9,RAMP.charcoal[1]);}   // a dark heel block, the welt line
   contact(x0,base,w,.7);drop(x0,x0+w,base);}
