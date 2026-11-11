@@ -39,30 +39,6 @@ function hsWell(X,Y){   // a round stone well: outlined stones with a top-left-l
   for(const px of [X-13,X+9]){ctx2.fillStyle=WO;ctx2.fillRect(px,Y-36,4,31);ctx2.fillStyle=W[1];ctx2.fillRect(px+1,Y-35,3,30);ctx2.fillStyle=W[3];ctx2.fillRect(px+1,Y-35,1,30);}   // two wood posts, lit on the left
   ctx2.fillStyle=WO;ctx2.fillRect(X-20,Y-44,40,9);ctx2.fillStyle=W[1];ctx2.fillRect(X-19,Y-43,38,7);ctx2.fillStyle=W[2];ctx2.fillRect(X-19,Y-43,38,2);ctx2.fillStyle=W[3];ctx2.fillRect(X-19,Y-43,38,1);
   ctx2.fillStyle=WO;for(let i=-16;i<18;i+=5)ctx2.fillRect(X+i,Y-41,1,5);ctx2.fillStyle=W[0];ctx2.fillRect(X-19,Y-37,38,1);}   // the shingle seams + eave shade
-function hsChild(X,Y,a,point,s){   // a ghost girl in a white dress, facing us; point 0..1 raises her right arm to point down into the well; s scales her up
-  if(a<=0)return;ctx2.save();if(s&&s!==1){ctx2.translate(Math.round(X),Math.round(Y));ctx2.scale(s,s);X=0;Y=0;}
-  const app=Math.min(1,a);
-  // cool, luminous, desaturated-blue ghost palette (contrasts the warm grass/dirt so she reads as a WHITE-dress girl, not a grey wisp)
-  const dr='#eaf0f8',drL='#ffffff',drS='#aab6cc',sh='#808ca6',sk='#dfe6f0',skS='#aab6cc',hair='#79819a',hairL='#99a2ba',eye='#3a4258';
-  // (1) a soft cold back-glow hugging the figure, so her silhouette separates from the busy background without becoming a light column
-  ctx2.globalAlpha=app*.42;const gg=ctx2.createRadialGradient(X,Y-11,1,X,Y-11,14);gg.addColorStop(0,'rgba(206,218,242,.85)');gg.addColorStop(.6,'rgba(196,210,238,.35)');gg.addColorStop(1,'rgba(196,210,238,0)');ctx2.fillStyle=gg;ctx2.beginPath();ctx2.ellipse(X,Y-11,9,14,0,0,6.283);ctx2.fill();
-  ctx2.globalAlpha=app;
-  ctx2.fillStyle='rgba(40,44,60,.28)';ctx2.beginPath();ctx2.ellipse(X,Y+4,7,2.2,0,0,6.283);ctx2.fill();   // a faint cold pool beneath her — present but ghost-light
-  ctx2.fillStyle=sk;ctx2.fillRect(X-3,Y-1,2,4);ctx2.fillRect(X+1,Y-1,2,4);ctx2.fillStyle=skS;ctx2.fillRect(X-1,Y-1,1,4);ctx2.fillRect(X+3,Y-1,1,4);ctx2.fillStyle=sh;ctx2.fillRect(X-3,Y+2,2,1);ctx2.fillRect(X+1,Y+2,2,1);   // two little legs with a shaded inner edge
-  ctx2.fillStyle=sh;ctx2.beginPath();ctx2.moveTo(X-4,Y-14);ctx2.lineTo(X+4,Y-14);ctx2.lineTo(X+7,Y-1);ctx2.lineTo(X-7,Y-1);ctx2.closePath();ctx2.fill();   // the dress: a triangle, narrow at the shoulders, flaring to the hem (dark edge)
-  ctx2.fillStyle=dr;ctx2.beginPath();ctx2.moveTo(X-3,Y-13);ctx2.lineTo(X+3,Y-13);ctx2.lineTo(X+5,Y-2);ctx2.lineTo(X-5,Y-2);ctx2.closePath();ctx2.fill();
-  ctx2.fillStyle=drS;ctx2.beginPath();ctx2.moveTo(X+2,Y-12);ctx2.lineTo(X+3,Y-13);ctx2.lineTo(X+5,Y-2);ctx2.lineTo(X+2,Y-2);ctx2.closePath();ctx2.fill();   // the dress' cold shadow side (light is top-left, so the right falls dark)
-  ctx2.fillStyle=drL;ctx2.beginPath();ctx2.moveTo(X-3,Y-13);ctx2.lineTo(X-1,Y-13);ctx2.lineTo(X-3,Y-2);ctx2.lineTo(X-5,Y-2);ctx2.closePath();ctx2.fill();   // the lit left side, brightest white
-  ctx2.fillStyle=hair;ctx2.beginPath();ctx2.ellipse(X,Y-18,5,5.5,0,0,6.283);ctx2.fill();ctx2.fillStyle=sk;ctx2.beginPath();ctx2.ellipse(X-0.3,Y-17,3.4,4,0,0,6.283);ctx2.fill();ctx2.fillStyle=skS;ctx2.beginPath();ctx2.ellipse(X+1.6,Y-16,1.6,3,0,0,6.283);ctx2.fill();   // round head, lit left / shaded right
-  ctx2.fillStyle=eye;ctx2.fillRect(X-2,Y-19,1,3);ctx2.fillRect(X+1,Y-19,1,3);   // two hollow, featureless eyes — reads as a face that is wrong
-  ctx2.fillStyle=hair;ctx2.fillRect(X-5,Y-22,10,5);ctx2.fillRect(X-5,Y-19,2,6);ctx2.fillRect(X+3,Y-19,2,6);ctx2.fillStyle=hairL;ctx2.fillRect(X-5,Y-22,5,2);ctx2.fillRect(X-5,Y-19,1,5);   // hair frames the face, lit top-left
-  {ctx2.fillStyle=sh;ctx2.fillRect(X-7,Y-12,2,7);ctx2.fillStyle=sk;ctx2.fillRect(X-6.5,Y-11,1.4,6);ctx2.fillStyle=skS;ctx2.fillRect(X-6.5,Y-6,2,2);}   // the LEFT arm, resting at her side, tapered and shaded
-  if(point>0){const hy=Y-8+Math.round(point*6);   // a short BENT arm at the right side pointing down into the well — tapered, connected at the shoulder, not a reaching tube
-    ctx2.fillStyle=sh;ctx2.beginPath();ctx2.moveTo(X+3,Y-13);ctx2.lineTo(X+6,Y-12);ctx2.lineTo(X+8,hy);ctx2.lineTo(X+5,hy);ctx2.closePath();ctx2.fill();   // a soft dark edge, outside the dress
-    ctx2.fillStyle=sk;ctx2.beginPath();ctx2.moveTo(X+4,Y-12);ctx2.lineTo(X+6,Y-11.5);ctx2.lineTo(X+7.5,hy-1);ctx2.lineTo(X+5.5,hy-1);ctx2.closePath();ctx2.fill();   // the arm, tapering shoulder→wrist
-    ctx2.fillStyle=skS;ctx2.fillRect(X+6,Y-10,1.5,hy-Y+9);   // its shaded right side
-    ctx2.fillStyle=sk;ctx2.fillRect(X+5,hy-1,3,3);ctx2.fillStyle=skS;ctx2.fillRect(X+5,hy+1,3,1);}   // the little hand, pointing down
-  ctx2.restore();}
 function hsMusicBox(X,Y,open){   // a little wooden box on the rail; lid open shows a turning brass cylinder
   const WO=HSP.woodO,W=HSP.wood,B=HSP.brass;hsSh(X,Y+2,9,2.5);
   hsBoxO(X-7,Y-5,15,6,W,WO);   // the box body: outline, ramp, lit top+left
@@ -312,7 +288,7 @@ function hsMusicBoxScene(done){const wx=wellPos.x,wz=wellPos.z;   // staged at t
   stage({hour:Math.min(Math.max(S.hour,16),18),player:{x:you.x,z:you.z,dir:'W'},cast:{agnes:{x:agn.x,z:agn.z,dir:'W'}},cam:CAM,lead:700,
     light(L){if(ca>0)glowAt(sx(child.x),sz(child.z)-26,64,[170,180,200],.34*ca);hsVignette(.28);},
     props:[  // the well is the real world object standing at wellPos; only the ghost child and Agnes's music box are staged
-      {x:child.x,z:child.z+.01,draw(X,Y,t){hsChild(X,Y,ca,pt,1.65);}},   // scaled up so a stranger reads her as a child in a pale dress, not a wisp
+      {x:child.x,z:child.z+.01,draw(X,Y,t){if(ca<=0)return;const a=Math.min(.62,ca*.62),bob=Math.round(Math.sin(t*2.2));drawSpr('ruth',X,Y-bob,'walk',pt>.45?'E':'S',0,{alpha:a});}},   // Ruth herself — the game's OWN ghost-girl sprite (as seen by the corn), drawn translucent, facing you, turning to the well as she points
       {get x(){return agn.x+.9;},get z(){return agn.z+.05;},draw(X,Y){if(open>0){   // the music box sits on a little stump beside Agnes, grounded, not floating
         const W=HSP.wood,WO=HSP.woodO;ctx2.fillStyle=HSP.SH;ctx2.beginPath();ctx2.ellipse(X,Y,9,3,0,0,6.283);ctx2.fill();
         ctx2.fillStyle=WO;ctx2.fillRect(X-7,Y-8,14,8);ctx2.fillStyle=W[1];ctx2.fillRect(X-6,Y-7,12,7);ctx2.fillStyle=W[2];ctx2.beginPath();ctx2.ellipse(X,Y-8,7,2.4,0,0,6.283);ctx2.fill();ctx2.fillStyle=W[3];ctx2.beginPath();ctx2.ellipse(X,Y-8,7,2,0,Math.PI,2*Math.PI);ctx2.fill();   // the stump top
