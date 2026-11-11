@@ -124,6 +124,31 @@ function hsBook(X,Y,page){   // a ledger laid open: two cream pages, ruled lines
   ctx2.fillStyle='#ece2c8';ctx2.fillRect(X-18,Y-12,17,14);ctx2.fillRect(X+1,Y-12,17,14);ctx2.fillStyle='#3a2614';ctx2.fillRect(X-1,Y-13,2,16);   // spine
   ctx2.fillStyle='#b4a988';for(let i=0;i<5;i++){ctx2.fillRect(X-16,Y-9+i*3,13,1);ctx2.fillRect(X+3,Y-9+i*3,13,1);}
   if(page>0){const yy=Y-9+Math.min(4,Math.floor(page*4))*3;ctx2.fillStyle='#7a2a1e';ctx2.fillRect(X+3,yy,13,1);ctx2.fillStyle='rgba(180,60,40,'+(.3+.2*Math.sin(page*20))+')';ctx2.fillRect(X+3,yy-1,13,3);}}   // your entry, underlined in rust
+function hsSheriffHat(X,Y,slips){   // a wide-brim hat held at the chest, brim up, full of folded paper slips
+  const o='#120c08';ctx2.fillStyle='rgba(10,8,6,.5)';ctx2.beginPath();ctx2.ellipse(X,Y+5,16,4,0,0,6.283);ctx2.fill();
+  ctx2.fillStyle=o;ctx2.fillRect(X-15,Y-2,31,6);ctx2.fillStyle='#2a1c12';ctx2.fillRect(X-14,Y-1,29,4);ctx2.fillStyle='#3a2816';ctx2.fillRect(X-14,Y-1,29,1);   // the brim
+  ctx2.fillStyle=o;ctx2.fillRect(X-9,Y-13,19,12);ctx2.fillStyle='#352314';ctx2.fillRect(X-8,Y-12,17,11);ctx2.fillStyle='#4a3420';ctx2.fillRect(X-8,Y-12,17,2);ctx2.fillStyle='#1a120a';ctx2.fillRect(X-8,Y-4,17,2);   // crown + band
+  if(slips>0)for(let i=0;i<11;i++){const px=X-7+(i%6)*3,py=Y-10-((i*7)%4);ctx2.fillStyle=i%3?'#e8e0cc':'#d8cdb4';ctx2.fillRect(px,py,2,3);}}   // the folded slips
+function hsStove(X,Y,burn){   // a little cast-iron stove, a door of fire; burn>0 flares as slips go in
+  const o='#120c08';ctx2.fillStyle=o;ctx2.fillRect(X-10,Y-22,20,24);ctx2.fillStyle='#2b2b30';ctx2.fillRect(X-9,Y-21,18,22);ctx2.fillStyle='#3a3a42';ctx2.fillRect(X-9,Y-21,18,3);
+  ctx2.fillStyle=o;ctx2.fillRect(X-3,Y-29,6,7);ctx2.fillStyle='#24242a';ctx2.fillRect(X-2,Y-28,4,6);   // the flue
+  ctx2.fillStyle=o;ctx2.fillRect(X-6,Y-14,12,10);ctx2.fillStyle='#e0601a';ctx2.fillRect(X-5,Y-13,10,8);ctx2.fillStyle='#ffb040';ctx2.fillRect(X-3,Y-11,6,6);ctx2.fillStyle='#fff0a0';ctx2.fillRect(X-1,Y-9,2,4);
+  if(burn>0){ctx2.save();ctx2.globalAlpha=Math.min(1,burn);ctx2.fillStyle='#ffd867';ctx2.fillRect(X-6,Y-18-burn*8,12,8);ctx2.fillStyle='#ff8c2a';ctx2.fillRect(X-4,Y-16-burn*10,8,6);ctx2.restore();}}
+function hsRibbon(X,Y,t){   // Ruth's blue hair ribbon held out, a bow, always damp (a slow drip)
+  ctx2.fillStyle='#2a4a7a';ctx2.fillRect(X-7,Y-1,14,3);ctx2.fillStyle='#3a5f9a';ctx2.fillRect(X-7,Y-1,14,1);
+  ctx2.fillStyle='#2a4a7a';ctx2.fillRect(X-3,Y-4,6,8);ctx2.fillStyle='#24416e';ctx2.fillRect(X-6,Y+2,3,5);ctx2.fillRect(X+3,Y+2,3,5);ctx2.fillStyle='#4a6faa';ctx2.fillRect(X-1,Y-4,2,8);   // bow + tails
+  const dy=(t*26)%14;ctx2.fillStyle='rgba(150,195,235,.75)';ctx2.fillRect(X,Y+6+dy,1,2);}
+function hsBackTracks(X,Y){   // a trail of bare footprints receding into the woods (up-left), but the TOES point back down toward you
+  for(let i=0;i<5;i++){const cx=X-i*19,cy=Y-i*13,s=(i%2?1:-1)*5,fx=cx+s;
+    ctx2.fillStyle='rgba(66,52,34,.45)';ctx2.beginPath();ctx2.ellipse(fx,cy,5,8,0,0,6.283);ctx2.fill();   // the wet mud rim
+    ctx2.fillStyle='rgba(22,15,9,.82)';ctx2.beginPath();ctx2.ellipse(fx,cy-1,3.4,6,0,0,6.283);ctx2.fill();   // the sole, pressed in
+    ctx2.fillStyle='rgba(10,7,4,.9)';ctx2.beginPath();ctx2.ellipse(fx,cy+4,3,2.4,0,0,6.283);ctx2.fill();   // the ball/toes at the NEAR end (pointing at you)
+    for(let k=0;k<5;k++)ctx2.fillRect(Math.round(fx-3.2+k*1.5),cy+6,1,2);   // five little toe dabs, toward you
+    ctx2.fillStyle='rgba(130,160,180,.2)';ctx2.beginPath();ctx2.ellipse(fx-1,cy-2,1.6,3,0,0,6.283);ctx2.fill();}}   // a cold wet sheen
+function hsHeadstone(X,Y){const o='#120c08';ctx2.fillStyle='rgba(10,8,6,.5)';ctx2.beginPath();ctx2.ellipse(X,Y+2,11,4,0,0,6.283);ctx2.fill();
+  ctx2.fillStyle=o;ctx2.fillRect(X-9,Y-17,18,18);ctx2.fillStyle='#6b675d';ctx2.fillRect(X-8,Y-16,16,16);ctx2.beginPath();ctx2.arc(X,Y-16,8,Math.PI,0);ctx2.fillStyle='#6b675d';ctx2.fill();ctx2.fillStyle='#120c08';ctx2.beginPath();ctx2.arc(X,Y-16,9,Math.PI,0);ctx2.lineTo(X-9,Y-16);ctx2.closePath();ctx2.fill();ctx2.fillStyle='#6b675d';ctx2.beginPath();ctx2.arc(X,Y-16,7,Math.PI,0);ctx2.fill();
+  ctx2.fillStyle='#565248';ctx2.fillRect(X-5,Y-12,10,1);ctx2.fillRect(X-5,Y-9,10,1);ctx2.fillStyle='#3a5a2a';ctx2.fillRect(X-8,Y-1,16,2);}
+function hsAppleHeld(X,Y){ctx2.fillStyle='#8e1a1a';ctx2.beginPath();ctx2.arc(X,Y,4,0,6.283);ctx2.fill();ctx2.fillStyle='#c23030';ctx2.beginPath();ctx2.arc(X-1,Y-1,3,0,6.283);ctx2.fill();ctx2.fillStyle='#e85c5c';ctx2.fillRect(X-2,Y-2,2,1);ctx2.fillStyle='#3a2410';ctx2.fillRect(X,Y-6,1,3);ctx2.fillStyle='#4a7a2a';ctx2.fillRect(X+1,Y-6,2,2);}
 
 // ---------- 1. Caitlyn — "Closing time": the store locked at noon, the keys, the man at the window ----------
 function hsClosingTime(done){const R=ROOMS.store,ox=R.ox,oz=R.oz;MAEV.on=false;
@@ -448,6 +473,74 @@ function hsBirthScene(done){const R=ROOMS.home_fenn||ROOMS.store,ox=R.ox,oz=R.oz
     ],
     done(){done&&done();}});}
 
+// ---------- 16. Dunn — "His own name": the hat full of your name, burned, and one slip he writes instead ----------
+function hsDunnSlips(done){const R=ROOMS.home_dunn||ROOMS.store,ox=R.ox,oz=R.oz;
+  const dunn={x:ox+3.4,z:oz+3.0},you={x:ox+3.4,z:oz+4.6},stove={x:ox+6.2,z:oz+3.0};let hat=0,burn=0,slip=0;const CAM={x:ox+4.4,z:oz+3.4};
+  stage({room:ROOMS.home_dunn?'home_dunn':'store',hour:Math.min(Math.max(S.hour,17),19),player:{x:you.x,z:you.z,dir:'N'},cast:{dunn:{x:dunn.x,z:dunn.z,dir:'S'}},cam:CAM,lead:800,
+    light(L){glowAt(sx(stove.x),sz(stove.z)-14,40,[255,150,60],.3+(burn>0?.3*burn:0));hsVignette(.3);},
+    props:[{get x(){const n=npcById('dunn');return n?n.x:dunn.x;},get z(){const n=npcById('dunn');return (n?n.z:dunn.z)+.01;},draw(X,Y){if(hat>0){ctx2.save();ctx2.globalAlpha=Math.min(1,hat);hsSheriffHat(X,Y-20,slip<2?1:0);ctx2.restore();}}},
+      {x:stove.x,z:stove.z,draw(X,Y,t){hsStove(X,Y,burn);}}],
+    tick(dt){if(burn>0)burn=Math.max(0,burn-dt*.7);},
+    beats:[
+      {hold:.9,face:{dunn:'S',you:'N'},act(){stgTitle('Dunn — His own name');}},
+      {who:'dunn',text:'Came to show you the hat before the drawing. Go on. Every slip in it. Read a few.',expr:'sad',act(){hat=.01;},update(dt){hat=Math.min(1,hat+dt*1.3);}},
+      {hold:1.4,emote:{you:'!'}},
+      {who:'you',text:'They all say my name. Every one. In your handwriting.',expr:'scared'},
+      {who:'dunn',text:'Sixty of them. I write them myself, every year. Watch.',expr:'neutral',act(){burn=1;slip=1;SFX.till&&SFX.till();}},
+      {hold:1.8,who:'dunn',text:'There. Your name, burning. Now I write one more, and I don’t show you whose it is. You don’t need telling.',expr:'wrong',act(){slip=2;}},
+      {who:'dunn',text:'Look after my boy. And don’t you let it wear me — I’d hate to come up your lane next year with a smile on.',expr:'sad',wait:.4},
+    ],
+    done(){done&&done();}});}
+
+// ---------- 17. Agnes — "Let her go": Ruth's ribbon, always damp, to burn at the stones so she can leave ----------
+function hsRibbonScene(done){const px=-46,pz=-8.6;
+  const agn={x:px,z:pz-.3},you={x:px+1.4,z:pz+1.1};let rib=0;const CAM={x:px+.6,z:pz+.4};
+  stage({hour:Math.min(Math.max(S.hour,16),18),player:{x:you.x,z:you.z,dir:'W'},cast:{agnes:{x:agn.x,z:agn.z,dir:'S'}},cam:CAM,lead:700,
+    light(L){hsVignette(.22);},
+    props:[{x:0,z:9e5,draw(){}},
+      {get x(){return (P.x+agn.x)/2;},get z(){return (P.z+agn.z)/2+.01;},draw(X,Y,t){if(rib>0){ctx2.save();ctx2.globalAlpha=Math.min(1,rib);hsRibbon(X,Y-26,t);ctx2.restore();}}}],
+    beats:[
+      {hold:.9,face:{agnes:'S',you:'W'},act(){stgTitle('Agnes — Let her go');}},
+      {who:'agnes',text:'I want you to do something I can’t. Here. Ruth’s ribbon. Mind — it’s damp.',expr:'sad',act(){rib=.01;},update(dt){rib=Math.min(1,rib+dt*1.3);}},
+      {who:'you',text:'It’s been in a drawer thirty-seven years. How is it still wet?',expr:'scared'},
+      {who:'agnes',text:'It always is. When you light the stones, burn this in the flame. She’ll be able to leave.',expr:'cry'},
+      {who:'agnes',text:'She’ll leave me too. I know that. Don’t tell me when you do it. Let me keep thinking she’s at the window a little longer.',expr:'sad',wait:.4},
+    ],
+    done(){done&&done();}});}
+
+// ---------- 18. Moss — "The wrong tracks": small bare footprints at the woods' edge, walking backwards ----------
+function hsBackTracksScene(done){const mx=96,mz=30;
+  const moss={x:mx+.9,z:mz+.3},you={x:mx-.9,z:mz+.4},tr={x:mx+.6,z:mz-.2};let show=0;const CAM={x:mx,z:mz+.2};
+  stage({hour:Math.min(Math.max(S.hour,9),16),player:{x:you.x,z:you.z,dir:'N'},cast:{moss:{x:moss.x,z:moss.z,dir:'W'}},cam:CAM,lead:800,
+    light(L){glowAt(VW*.5,VH*.4,Math.max(VW,VH)*.6,[26,24,34],.3);hsVignette(.3);},
+    props:[{x:tr.x,z:tr.z,draw(X,Y){if(show>0){ctx2.save();ctx2.globalAlpha=Math.min(1,show);hsBackTracks(X,Y+6);ctx2.restore();}}}],
+    beats:[
+      {hold:1.0,face:{moss:'W',you:'N'},act(){stgTitle('Moss — The wrong tracks');}},
+      {who:'moss',text:'Here. In the mud. Every October I find them at the edge of the trees.',expr:'neutral',act(){show=.01;},update(dt){show=Math.min(1,show+dt*1.2);}},
+      {hold:1.2,emote:{you:'?'}},
+      {who:'you',text:'Bare feet. Small. But the toes point this way — like whoever it was walked backwards, into the woods.',expr:'scared'},
+      {who:'moss',text:'Never find what makes them. Never find where they start. This set’s new. This year.',expr:'wrong'},
+      {who:'moss',text:'Your size, about. A bit smaller. I’d keep to the lit paths, if I were you.',expr:'sad',wait:.4},
+    ],
+    done(){done&&done();}});}
+
+// ---------- 19. Orla — "The husband tree": the oldest tree in the orchard, where Fergus is buried ----------
+function hsHusbandTree(done){const tx=46,tz=58;
+  const orla={x:tx+1.1,z:tz+.4},you={x:tx-1.2,z:tz+.6},grave={x:tx,z:tz-.6};let ap=0;const CAM={x:tx,z:tz+.3};
+  stage({hour:Math.min(Math.max(S.hour,10),16),player:{x:you.x,z:you.z,dir:'E'},cast:{orla:{x:orla.x,z:orla.z,dir:'W'}},cam:CAM,lead:800,
+    light(L){hsVignette(.2);},
+    props:[{x:grave.x,z:grave.z,draw(X,Y){hsHeadstone(X,Y);}},
+      {get x(){const n=npcById('orla');return n?n.x:orla.x;},get z(){const n=npcById('orla');return (n?n.z:orla.z)+.01;},draw(X,Y){if(ap>0){ctx2.save();ctx2.globalAlpha=Math.min(1,ap);hsAppleHeld(X-6,Y-20);ctx2.restore();}}}],
+    beats:[
+      {hold:1.0,face:{orla:'W',you:'E'},act(){stgTitle('Orla — The husband tree');}},
+      {who:'orla',text:'Fergus. My husband. He planted every tree in this orchard with his own hands.',expr:'sad'},
+      {who:'orla',text:'Then the year he was drawn, he planted himself. Asked to be buried right here, under the oldest one.',expr:'cry'},
+      {who:'orla',text:'It gives the sweetest apples in the valley. See?',expr:'neutral',act(){ap=.01;},update(dt){ap=Math.min(1,ap+dt*1.3);}},
+      {hold:1.2},
+      {who:'orla',text:'Thirty years. I’ve never once eaten one. I pick them, and I hold them, and I put them back.',expr:'sad',wait:.4},
+    ],
+    done(){done&&done();}});}
+
 // ---------- route the iconic heart events to their staged versions; everything else still plays via stgGeneric ----------
 const HS_SCENES={
   'mae|Closing time':hsClosingTime,'agnes|The music box, played':hsMusicBoxScene,'silas|The fresh hole':hsFreshHole,
@@ -455,7 +548,9 @@ const HS_SCENES={
   'mae|Danny’s last letter':hsDannyLetter,'corwin|The far shore':hsFarShoreScene,
   'ada|What stands behind you':hsBehindYou,'hob|Who eats it':hsTheGuest,
   'nell|The box is finished':hsNellBox,'hale|The bell rope':hsBellRopeScene,
-  'gideon|A blade that remembers':hsNailBladeScene,'della|Your birth':hsBirthScene};
+  'gideon|A blade that remembers':hsNailBladeScene,'della|Your birth':hsBirthScene,
+  'dunn|His own name':hsDunnSlips,'agnes|Let her go':hsRibbonScene,
+  'moss|The wrong tracks':hsBackTracksScene,'orla|The husband tree':hsHusbandTree};
 {const _ps=playScene;playScene=function(id,title,html,done){
   const fn=HS_SCENES[id+'|'+title];
   if(fn&&!STG&&S.mode==='play'&&!S.paused&&typeof stage==='function')return fn(done);
