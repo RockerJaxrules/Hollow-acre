@@ -311,7 +311,7 @@ function hsFreshHole(done){const gx=62,gz=-36.2;
   const pit={x:gx,z:gz},sil={x:gx,z:gz-.05},you={x:gx+2.0,z:gz+1.0},out={x:gx+1.2,z:gz+.5};
   let dug=.4,swing=0,digging=1,shov=0,inpit=1;const CAM={x:gx+.5,z:gz+.9};
   stage({hour:Math.min(Math.max(S.hour,13),16),storm:true,player:{x:you.x,z:you.z,dir:'W'},cast:{silas:{x:sil.x,z:sil.z,dir:'S'}},cam:CAM,lead:800,
-    tick(dt,st){const n=npcById('silas');if(!n)return;if(digging){swing+=dt*3.2;n.z=sil.z-Math.abs(Math.sin(swing))*.12;}else if(!inpit){n.z=out.z;}},
+    tick(dt,st){const n=npcById('silas');if(!n)return;if(digging){swing+=dt*3.2;n.z=sil.z-Math.abs(Math.sin(swing))*.12;}else if(!inpit){n.z=out.z;}n.vis=!inpit;},   // while he's down in the grave the engine's floor-level sprite is hidden; the pit prop draws him sunk into the hole
     props:[{x:0,z:9e5,draw(X,Y,t){hsRain(t,true);}},   // the storm: a cold wash and rain over the whole frame, drawn on top
       {x:pit.x,z:pit.z+.12,draw(X,Y){const E=HSP.earth,EO=HSP.earthO,PI=Math.PI;
         // a grave cut straight INTO the ground — no raised box faces: a disturbed-earth apron flush with the grass, an earthen rim, a lit far wall raking up at the back, a black deep bottom
@@ -325,7 +325,14 @@ function hsFreshHole(done){const gx=62,gz=-36.2;
         ctx2.fillStyle=E[1];ctx2.beginPath();ctx2.ellipse(X,cy-1,hw-5,hh-3,0,PI,2*PI);ctx2.fill();             // the far wall of the pit, lit, raking up at the back
         ctx2.fillStyle=E[2];ctx2.beginPath();ctx2.ellipse(X,cy-2,hw-7,hh-5,0,PI,2*PI);ctx2.fill();
         ctx2.fillStyle='#0a0a0e';ctx2.beginPath();ctx2.ellipse(X,cy+2,hw-6,hh-3,0,0,6.283);ctx2.fill();        // the deep bottom stays black
-        ctx2.fillStyle=EO;for(const[a,b] of [[-20,2],[-13,6],[16,3],[19,-2],[-7,-8],[9,-8],[2,8]])ctx2.fillRect(Math.round(X)+a,Math.round(cy)+b,2,2);   // loose clods round the rim
+        ctx2.fillStyle=EO;for(const[a,b] of [[-20,2],[-13,6],[16,3],[19,-2],[-7,-8],[9,-8]])ctx2.fillRect(Math.round(X)+a,Math.round(cy)+b,2,2);   // loose clods round the back rim
+        // --- Silas sunk DOWN in the grave: drawn here (not as a floor NPC), framed by the far wall behind and the near rim in front ---
+        if(inpit){const bob=Math.abs(Math.sin(swing))*3;
+          ctx2.save();ctx2.beginPath();ctx2.rect(Math.round(X)-24,-3000,48,(Math.round(cy)+hh-3)+3000);ctx2.clip();drawSpr('silas',X,Y+9-bob,'walk','S',0);ctx2.restore();   // only his upper body shows above the near rim
+          ctx2.save();ctx2.beginPath();ctx2.rect(Math.round(X)-hw-6,Math.round(cy)+hh-4,2*(hw+6),hh+12);ctx2.clip();                                                        // redraw the near rim over his waist
+          ctx2.fillStyle=E[2];ctx2.beginPath();ctx2.ellipse(X,cy,hw,hh,0,0,6.283);ctx2.fill();
+          ctx2.fillStyle=E[3];ctx2.beginPath();ctx2.ellipse(X,cy+1,hw-2,hh-1,0,0,PI);ctx2.fill();
+          ctx2.fillStyle=EO;for(const[a,b] of [[-13,6],[2,8],[14,5]])ctx2.fillRect(Math.round(X)+a,Math.round(cy)+b,2,2);ctx2.restore();}
         // the dug soil heaped to the right of the pit: a rough, irregular heap of loose clods, lit top-left, its own cast shadow down-right
         const mx=X+34,my=Y-4;hsSh(mx+4,my+6,17,4);
         ctx2.fillStyle=EO;for(const[lx,ly,r] of [[0,0,10],[-7,2,7],[8,1,7],[2,-4,7],[-4,-2,6],[6,-3,5]]){ctx2.beginPath();ctx2.ellipse(mx+lx,my+ly,r,r*.72,0,0,6.283);ctx2.fill();}
