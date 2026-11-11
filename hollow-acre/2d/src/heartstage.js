@@ -18,25 +18,46 @@ function hsWell(X,Y){   // a round stone well: a dark mouth, a low ring of stone
   for(let a=0;a<6.283;a+=.42){const rx=X+Math.cos(a)*13,ry=Y-5+Math.sin(a)*7;ctx2.fillStyle=o;ctx2.fillRect(Math.round(rx)-3,Math.round(ry)-3,6,6);ctx2.fillStyle=st[(a*3|0)%4];ctx2.fillRect(Math.round(rx)-2,Math.round(ry)-2,4,4);}
   ctx2.fillStyle=o;ctx2.fillRect(X-13,Y-36,4,31);ctx2.fillRect(X+9,Y-36,4,31);ctx2.fillStyle='#4a3626';ctx2.fillRect(X-12,Y-35,2,30);ctx2.fillRect(X+10,Y-35,2,30);
   ctx2.fillStyle=o;ctx2.fillRect(X-19,Y-43,38,8);ctx2.fillStyle='#53351f';ctx2.fillRect(X-18,Y-42,36,6);ctx2.fillStyle='#6a452a';ctx2.fillRect(X-18,Y-42,36,2);for(let i=-16;i<18;i+=4){ctx2.fillStyle='#3c2817';ctx2.fillRect(X+i,Y-42,1,6);}}
-function hsChild(X,Y,a,point){   // a small figure in a pale dress, no face; point 0..1 raises one arm toward the ground
+function hsChild(X,Y,a,point){   // a small faceless child in a pale dress; point 0..1 extends one arm down over the well rim
   if(a<=0)return;ctx2.save();ctx2.globalAlpha=Math.min(1,a);
-  const dr='#dcd8cc',sh='#9c988c',sk='#c4b49c',hair='#4e3c2c';
-  ctx2.fillStyle=sh;ctx2.fillRect(X-6,Y-13,12,11);ctx2.fillStyle=dr;ctx2.fillRect(X-5,Y-13,9,10);ctx2.fillRect(X-6,Y-3,12,2);
-  ctx2.fillStyle='#8a8578';ctx2.fillRect(X-3,Y-1,2,3);ctx2.fillRect(X+1,Y-1,2,3);
-  ctx2.fillStyle=hair;ctx2.fillRect(X-4,Y-22,8,9);ctx2.fillStyle=sk;ctx2.fillRect(X-3,Y-20,6,6);ctx2.fillStyle=hair;ctx2.fillRect(X-4,Y-22,8,3);ctx2.fillRect(X-4,Y-20,2,7);ctx2.fillRect(X+2,Y-20,2,7);
-  if(point>0){const ex=X+7,ey=Y-8+Math.round(point*9);ctx2.strokeStyle='#120c08';ctx2.lineWidth=3;ctx2.beginPath();ctx2.moveTo(X+4,Y-12);ctx2.lineTo(ex,ey);ctx2.stroke();   // dark outline so the arm reads against the dress
-    ctx2.strokeStyle=sk;ctx2.lineWidth=2;ctx2.beginPath();ctx2.moveTo(X+4,Y-12);ctx2.lineTo(ex,ey);ctx2.stroke();ctx2.fillStyle=sk;ctx2.fillRect(ex-1,ey-1,3,3);
-    if(point>.6){ctx2.fillStyle='rgba(216,228,232,.5)';for(let i=0;i<3;i++)ctx2.fillRect(ex-1,ey+3+i*4,2,2);}}   // a faint line of light dripping down into the well
+  const dr='#d6d2c6',drS='#9a94a0',sh='#6a6670',sk='#c6b69a',skS='#9e8a70',hair='#4e3c2c';   // light from top-left: lit left, plum-leaning shadow on the right
+  ctx2.fillStyle='rgba(18,12,14,.5)';ctx2.beginPath();ctx2.ellipse(X,Y+4,7,2.2,0,0,6.283);ctx2.fill();   // a drop shadow, so she stands on the ground and doesn't float
+  ctx2.fillStyle=sk;ctx2.fillRect(X-3,Y-1,2,4);ctx2.fillRect(X+1,Y-1,2,4);ctx2.fillStyle=skS;ctx2.fillRect(X-1,Y-1,1,4);ctx2.fillRect(X+3,Y-1,1,4);ctx2.fillStyle='#2a1c12';ctx2.fillRect(X-3,Y+2,2,1);ctx2.fillRect(X+1,Y+2,2,1);   // two little legs with a shaded inner edge
+  ctx2.fillStyle=sh;ctx2.beginPath();ctx2.moveTo(X-4,Y-14);ctx2.lineTo(X+4,Y-14);ctx2.lineTo(X+7,Y-1);ctx2.lineTo(X-7,Y-1);ctx2.closePath();ctx2.fill();   // the dress: a triangle, narrow at the shoulders, flaring to the hem
+  ctx2.fillStyle=dr;ctx2.beginPath();ctx2.moveTo(X-3,Y-13);ctx2.lineTo(X+3,Y-13);ctx2.lineTo(X+5,Y-2);ctx2.lineTo(X-5,Y-2);ctx2.closePath();ctx2.fill();
+  ctx2.fillStyle=drS;ctx2.beginPath();ctx2.moveTo(X+2,Y-12);ctx2.lineTo(X+3,Y-13);ctx2.lineTo(X+5,Y-2);ctx2.lineTo(X+2,Y-2);ctx2.closePath();ctx2.fill();   // the dress' plum shadow side (light is top-left, so the right falls dark)
+  ctx2.fillStyle='#e6e2d6';ctx2.beginPath();ctx2.moveTo(X-3,Y-13);ctx2.lineTo(X-1,Y-13);ctx2.lineTo(X-3,Y-2);ctx2.lineTo(X-5,Y-2);ctx2.closePath();ctx2.fill();   // the lit left side
+  ctx2.fillStyle=hair;ctx2.beginPath();ctx2.ellipse(X,Y-18,5,5.5,0,0,6.283);ctx2.fill();ctx2.fillStyle=sk;ctx2.beginPath();ctx2.ellipse(X-0.3,Y-17,3.4,4,0,0,6.283);ctx2.fill();ctx2.fillStyle=skS;ctx2.beginPath();ctx2.ellipse(X+1.6,Y-16,1.6,3,0,0,6.283);ctx2.fill();   // round head, lit left / shaded right
+  ctx2.fillStyle='rgba(28,20,24,.6)';ctx2.fillRect(X-2,Y-19,1,3);ctx2.fillRect(X+1,Y-19,1,3);   // two hollow, featureless eyes — it reads as a face, and it is wrong
+  ctx2.fillStyle=hair;ctx2.fillRect(X-5,Y-22,10,5);ctx2.fillRect(X-5,Y-19,2,6);ctx2.fillRect(X+3,Y-19,2,6);   // hair frames the face
+  {ctx2.fillStyle='#2a2024';ctx2.fillRect(X-7,Y-12,2,7);ctx2.fillStyle=sk;ctx2.fillRect(X-6.5,Y-11,1.4,6);ctx2.fillStyle=skS;ctx2.fillRect(X-6.5,Y-6,2,2);}   // the LEFT arm, resting at her side (so she isn't one-armed), tapered and shaded
+  if(point>0){const hy=Y-8+Math.round(point*6);   // a short BENT arm at the right side pointing down at the well — tapered, connected at the shoulder, not a reaching tube
+    ctx2.fillStyle='#2a2024';ctx2.beginPath();ctx2.moveTo(X+3,Y-13);ctx2.lineTo(X+6,Y-12);ctx2.lineTo(X+8,hy);ctx2.lineTo(X+5,hy);ctx2.closePath();ctx2.fill();   // a soft dark edge, outside the dress
+    ctx2.fillStyle=sk;ctx2.beginPath();ctx2.moveTo(X+4,Y-12);ctx2.lineTo(X+6,Y-11.5);ctx2.lineTo(X+7.5,hy-1);ctx2.lineTo(X+5.5,hy-1);ctx2.closePath();ctx2.fill();   // the arm, tapering shoulder→wrist
+    ctx2.fillStyle=skS;ctx2.fillRect(X+6,Y-10,1.5,hy-Y+9);   // its shaded right side
+    ctx2.fillStyle=sk;ctx2.fillRect(X+5,hy-1,3,3);ctx2.fillStyle=skS;ctx2.fillRect(X+5,hy+1,3,1);}   // the little hand, pointing down
   ctx2.restore();}
 function hsMusicBox(X,Y,open){   // a little wooden box on the rail; lid open shows a turning brass cylinder
   const o='#120c08';ctx2.fillStyle=o;ctx2.fillRect(X-7,Y-5,15,6);ctx2.fillStyle='#6a3f22';ctx2.fillRect(X-6,Y-4,13,4);ctx2.fillStyle='#8a5a30';ctx2.fillRect(X-6,Y-4,13,1);ctx2.fillStyle='#4a2c18';ctx2.fillRect(X-6,Y-1,13,1);
   if(open){ctx2.fillStyle=o;ctx2.fillRect(X-7,Y-12,15,4);ctx2.fillStyle='#7a4a28';ctx2.fillRect(X-6,Y-11,13,2);ctx2.fillStyle='#caa24a';ctx2.fillRect(X-5,Y-5,11,1);ctx2.fillStyle='#e6c968';ctx2.fillRect(X-4+((Date.now()/90|0)%10),Y-5,1,1);}}
-function hsGrave(X,Y,dug){   // an open grave: a dark rectangular pit, a heaped mound of wet earth to one side
-  const w=26,h=Math.round(6+dug*8);
-  ctx2.fillStyle='#2a1d12';ctx2.fillRect(X-w/2-2,Y-2,w+4,h+5);                       // the cut earth wall
-  ctx2.fillStyle='#0a0705';ctx2.fillRect(X-w/2,Y,w,h);                               // the pit, black
-  ctx2.fillStyle='#07100b';ctx2.fillRect(X-w/2+2,Y+2,w-4,h-3);
-  for(const [mx,my,mw] of [[X+w/2+6,Y+2,12],[X+w/2+9,Y-2,8]]){ctx2.fillStyle='#3a2816';ctx2.beginPath();ctx2.ellipse(mx,my+4,mw,5,0,0,6.283);ctx2.fill();ctx2.fillStyle='#4a3420';ctx2.beginPath();ctx2.ellipse(mx,my+2,mw-2,4,0,0,6.283);ctx2.fill();ctx2.fillStyle='#593f26';ctx2.fillRect(mx-mw+2,my,2,2);ctx2.fillRect(mx+1,my-1,2,2);}}
+function hsGrave(X,Y,dug){   // a freshly dug grave seen 3/4: a dark RECTANGULAR pit, its earth rim lit top-left, the dug spoil heaped to one SIDE
+  const w=26,h=Math.round(16+dug*5);
+  // 1) a thin matte border of torn earth around the pit (sets the hole into ground without an oval basin that reads as a well)
+  ctx2.fillStyle='#2a2012';ctx2.fillRect(X-w*0.5-3,Y-3,w+6,h+6);
+  for(let i=0;i<6;i++){ctx2.fillStyle=i%2?'#3a2c18':'#2c3a18';ctx2.fillRect(X-w*0.5-2+i*6,Y-3,2,1);}   // flecks of soil / grass at the torn top edge
+  // 2) the earth rim, lit along the TOP and LEFT only (light from above-left) — no bright bottom/right edge that would read as a box front
+  ctx2.fillStyle='#5c4428';ctx2.fillRect(X-w*0.5-2,Y-2,w+4,3);
+  ctx2.fillStyle='#6e532f';ctx2.fillRect(X-w*0.5-2,Y-2,4,h+3);
+  // 3) the pit — the darkest shape, a rectangle narrowing a touch with depth
+  const tn=w*0.4,tf=w*0.34;
+  ctx2.fillStyle='#14100a';ctx2.beginPath();ctx2.moveTo(X-tf,Y+1);ctx2.lineTo(X+tf,Y+1);ctx2.lineTo(X+tn,Y+h-1);ctx2.lineTo(X-tn,Y+h-1);ctx2.closePath();ctx2.fill();
+  ctx2.fillStyle='#07080b';ctx2.beginPath();ctx2.moveTo(X-tf+2,Y+2);ctx2.lineTo(X+tf-2,Y+2);ctx2.lineTo(X+tn-3,Y+h-3);ctx2.lineTo(X-tn+3,Y+h-3);ctx2.closePath();ctx2.fill();   // the black depths
+  ctx2.fillStyle='#3a2a14';ctx2.beginPath();ctx2.moveTo(X-tf,Y+1);ctx2.lineTo(X+tf,Y+1);ctx2.lineTo(X+tf-2,Y+4);ctx2.lineTo(X-tf+2,Y+4);ctx2.closePath();ctx2.fill();   // a sliver of lit FAR wall at the top interior (depth)
+  // 4) the dug spoil heaped on the ground to the RIGHT — a clear pile of clods with a cast shadow (the grave's plainest cue)
+  const gx=X+w*0.5+9,gy=Y+h*0.42;
+  ctx2.fillStyle='rgba(6,4,2,.45)';ctx2.beginPath();ctx2.ellipse(gx,gy+6,12,4,0,0,6.283);ctx2.fill();
+  ctx2.fillStyle='#241708';ctx2.beginPath();ctx2.ellipse(gx,gy+3,12,7,0,0,6.283);ctx2.fill();
+  for(const [cx,cy,cr] of [[gx-6,gy+1,4.5],[gx+1,gy-3,5.5],[gx+7,gy+1,4.5],[gx-2,gy+4,4],[gx+4,gy+4,3.5]]){ctx2.fillStyle='#45321a';ctx2.beginPath();ctx2.ellipse(cx,cy,cr,cr*.72,0,0,6.283);ctx2.fill();ctx2.fillStyle='#5e4626';ctx2.beginPath();ctx2.ellipse(cx-1.3,cy-1.3,cr*.5,cr*.34,0,0,6.283);ctx2.fill();}}
 function hsShovel(X,Y,ang){const o='#120c08';ctx2.save();ctx2.translate(X,Y);ctx2.rotate(ang);ctx2.fillStyle='#5a4028';ctx2.fillRect(-1,-16,2,16);ctx2.fillStyle='#7a5a38';ctx2.fillRect(-1,-16,1,16);
   ctx2.fillStyle=o;ctx2.fillRect(-4,0,8,8);ctx2.fillStyle='#8e949c';ctx2.fillRect(-3,1,6,6);ctx2.fillStyle='#b4bac2';ctx2.fillRect(-3,1,6,2);ctx2.restore();}
 function hsRowboat(X,Y,t){   // a clinker rowboat seen three-quarter on dark water, with the two of you sat in it
@@ -51,6 +72,7 @@ function hsRowboat(X,Y,t){   // a clinker rowboat seen three-quarter on dark wat
   const fig=(fx,fy,coat,skin,cap)=>{ctx2.fillStyle=o;ctx2.fillRect(fx-5,fy-14,11,14);ctx2.fillStyle=coat;ctx2.fillRect(fx-4,fy-13,9,12);ctx2.fillStyle=skin;ctx2.fillRect(fx-3,fy-19,6,6);ctx2.fillStyle=o;ctx2.fillRect(fx-3,fy-19,6,2);if(cap){ctx2.fillStyle=cap;ctx2.fillRect(fx-4,fy-21,8,3);}};
   fig(X+9,Y-2,'#3a4a5a','#c6a886',null);              // you
   fig(X-10,Y-3,'#45321f','#b89a78','#2a1d12');         // Otto, in his cap
+  ctx2.fillStyle='#b89a78';ctx2.fillRect(X-15,Y-6,3,2);ctx2.fillRect(X+13,Y-5,3,2);   // a hand on the gunwale each: Otto reaching to the oar, you steadying the rail
   ctx2.strokeStyle='#3a2616';ctx2.lineWidth=2;const oa=Math.sin(t*1.2)*.3;ctx2.beginPath();ctx2.moveTo(X-12,Y-4);ctx2.lineTo(X-30,Y-2+oa*14);ctx2.moveTo(X-8,Y-4);ctx2.lineTo(X+10,Y-16);ctx2.stroke();}
 function hsLine(X,Y,run,tug){   // a taut line from the boat straight down into black water; tug jolts it
   const jx=tug>0?Math.round(Math.sin(tug*40)*2):0;ctx2.strokeStyle='rgba(220,220,210,.75)';ctx2.lineWidth=1;ctx2.beginPath();ctx2.moveTo(X,Y);ctx2.lineTo(X+jx,Y+run);ctx2.stroke();
@@ -68,11 +90,21 @@ function hsLitWin(X,Y,eyes){   // a bright, warm lit window with a dark figure; 
   ctx2.fillStyle='#0a0709';ctx2.fillRect(fx-7,fb-36,14,12);ctx2.fillStyle='#120d10';ctx2.fillRect(fx-6,fb-35,12,11);           // head + shoulders
   if(eyes){ctx2.fillStyle='#070405';ctx2.fillRect(fx-6,fb-36,14,3);ctx2.fillStyle='#e8f0f2';ctx2.fillRect(fx-4,fb-31,3,2);ctx2.fillRect(fx+2,fb-31,3,2);}   // facing out: two pale eyes
   ctx2.fillStyle='#060507';ctx2.fillRect(wx+ww/2-1,wy,2,wh);ctx2.fillRect(wx,wy+wh/2-1,ww,2);ctx2.restore();}                   // mullions
-function hsTallFig(X,Y,h,k){   // a too-tall dark figure in a window; k=0 a plain man, k=1 the carved-pumpkin Hollow
-  ctx2.fillStyle='rgba(8,6,6,.96)';ctx2.fillRect(X-6,Y-h,12,h);ctx2.fillStyle='#120b0a';ctx2.fillRect(X-5,Y-h,10,h);
-  if(k){ctx2.fillStyle='#3a1b12';ctx2.fillRect(X-6,Y-h-9,12,11);ctx2.fillStyle='#5a2a16';ctx2.fillRect(X-5,Y-h-8,10,9);   // the rotting pumpkin head
-    ctx2.fillStyle='#1a0d08';ctx2.fillRect(X-3,Y-h-5,2,2);ctx2.fillRect(X+1,Y-h-5,2,2);ctx2.fillRect(X-1,Y-h-2,2,2);}
-  else{ctx2.fillStyle='#0a0606';ctx2.fillRect(X-4,Y-h-7,8,8);}}
+function hsTallFig(X,Y,h,k){   // a too-tall figure in a window; k=0 a plain man, k=1 the carved-pumpkin Hollow lit from within
+  const hy=Y-h-1,sy=Y-h+8;   // the head centre, and the shoulder line below a thin neck
+  if(k){ctx2.fillStyle='#14141e';ctx2.beginPath();ctx2.moveTo(X-12,sy+1);ctx2.lineTo(X-11,hy-5);ctx2.lineTo(X-6,hy-10);ctx2.lineTo(X,hy-11);ctx2.lineTo(X+6,hy-10);ctx2.lineTo(X+11,hy-5);ctx2.lineTo(X+12,sy+1);ctx2.closePath();ctx2.fill();   // a cloth HOOD framing the head — hard-edged (not a gradient halo), so the head reads attached to a cloaked body
+    ctx2.fillStyle='#2e3050';ctx2.beginPath();ctx2.moveTo(X-12,sy+1);ctx2.lineTo(X-11,hy-5);ctx2.lineTo(X-6,hy-10);ctx2.lineTo(X-4,hy-9);ctx2.lineTo(X-8,hy-4);ctx2.lineTo(X-9,sy);ctx2.closePath();ctx2.fill();}   // the hood's hard top-left-lit rim
+  ctx2.fillStyle='rgba(150,160,200,.42)';ctx2.beginPath();ctx2.moveTo(X-11,Y+1);ctx2.lineTo(X-10,sy);ctx2.lineTo(X+10,sy);ctx2.lineTo(X+11,Y+1);ctx2.closePath();ctx2.fill();   // a cool rim so the black robe holds against the bright pane
+  ctx2.fillStyle='#07070d';ctx2.fillRect(X-2,hy+5,4,sy-hy-4);   // a thin NECK, so the head sits above a shoulder break, not merged into a keyhole
+  ctx2.fillStyle='#0b0b12';ctx2.beginPath();ctx2.moveTo(X-9,Y+1);ctx2.lineTo(X-10,sy+1);ctx2.lineTo(X-4,sy-1);ctx2.lineTo(X+4,sy-1);ctx2.lineTo(X+10,sy+1);ctx2.lineTo(X+9,Y+1);ctx2.closePath();ctx2.fill();   // wide shoulders dropping to a tapering robe
+  ctx2.fillStyle='#2e3050';ctx2.beginPath();ctx2.moveTo(X-9,Y+1);ctx2.lineTo(X-10,sy+1);ctx2.lineTo(X-6.5,sy);ctx2.lineTo(X-5.5,Y+1);ctx2.closePath();ctx2.fill();   // ONE clean cool-lit edge down the robe's left side — no stripes (vertical bars read as a barrel)
+  if(k){ctx2.fillStyle='#160a06';ctx2.beginPath();ctx2.ellipse(X,hy,8,7.5,0,0,6.283);ctx2.fill();   // the rotting pumpkin head — a dark plum rind, so only the carved light glows (not a Halloween lantern)
+    ctx2.fillStyle='#2e1810';ctx2.beginPath();ctx2.ellipse(X,hy,7,6.5,0,0,6.283);ctx2.fill();ctx2.fillStyle='#3e2214';ctx2.beginPath();ctx2.ellipse(X-2,hy-2,3.5,2.6,0,0,6.283);ctx2.fill();
+    for(let i=-6;i<=6;i+=3){ctx2.fillStyle='rgba(16,10,5,.6)';ctx2.fillRect(X+i,hy-6,1,13);}   // carved ribs
+    ctx2.fillStyle='#ffb43a';ctx2.beginPath();ctx2.moveTo(X-5,hy-1);ctx2.lineTo(X-1,hy-3);ctx2.lineTo(X-1,hy+1);ctx2.closePath();ctx2.fill();   // two carved candle-eyes
+    ctx2.beginPath();ctx2.moveTo(X+5,hy-1);ctx2.lineTo(X+1,hy-3);ctx2.lineTo(X+1,hy+1);ctx2.closePath();ctx2.fill();
+    ctx2.fillStyle='#ff8a1e';for(let i=0;i<4;i++)ctx2.fillRect(X-4+i*2,hy+3+(i%2),2,2);ctx2.fillStyle='#ffe0a0';ctx2.fillRect(X-1,hy-1,1,1);ctx2.fillRect(X+3,hy-1,1,1);}   // the jagged lit mouth + eye sparks
+  else{ctx2.fillStyle='#07070d';ctx2.beginPath();ctx2.ellipse(X,hy,6,7,0,0,6.283);ctx2.fill();}}
 function hsLoom(X,Y,h,k){   // the Tall Man looming behind you: a smear of dark, almost a man, no light on it
   ctx2.fillStyle='rgba(4,3,5,.5)';ctx2.fillRect(X-12,Y-h-6,24,h+6);                                // its shadow bleeding out
   ctx2.fillStyle='rgba(6,5,8,.96)';ctx2.fillRect(X-7,Y-h,14,h);ctx2.fillStyle='#0d0a10';ctx2.fillRect(X-6,Y-h,12,h);
@@ -113,12 +145,27 @@ function hsCarvedBox(X,Y){   // a dovetailed oak box on a cloth; carved on the l
 function hsBellRope(X,Y,t){   // a new white rope hanging from above, swaying; a coil of old rope cut into yard-pieces on the floor
   const sw=Math.round(Math.sin(t*1.3)*2);ctx2.fillStyle='#e8e2d2';ctx2.fillRect(X-1+sw,Y-80,3,66);ctx2.fillStyle='#cfc8b6';ctx2.fillRect(X-1+sw,Y-80,1,66);
   ctx2.fillStyle='#b8ad94';ctx2.fillRect(X-2+sw,Y-16,5,5);ctx2.fillStyle='#8a7e64';ctx2.fillRect(X-2+sw,Y-12,5,1);   // the handle knot
-  for(let i=0;i<9;i++){const cx=X-18+(i%5)*9+(i>4?4:0),cy=Y+6+(i>4?5:0);ctx2.strokeStyle='#5a4a30';ctx2.lineWidth=2;ctx2.beginPath();ctx2.ellipse(cx,cy,4,2,0,0,6.283);ctx2.stroke();}}   // the cut coils
+  const piece=(cx,cy,len,ang,col)=>{ctx2.save();ctx2.translate(cx,cy);ctx2.rotate(ang);
+    ctx2.strokeStyle=col;ctx2.lineWidth=3;ctx2.lineCap='round';ctx2.beginPath();ctx2.moveTo(-len/2,0);ctx2.quadraticCurveTo(0,-2,len/2,0);ctx2.stroke();   // one cut length of old rope, a shallow curve
+    ctx2.strokeStyle='#8a7c5c';ctx2.lineWidth=1;ctx2.lineCap='butt';for(const e of [-1,1])for(let f=0;f<3;f++){ctx2.beginPath();ctx2.moveTo(e*len/2,0);ctx2.lineTo(e*len/2+e*3,(f-1)*1.6);ctx2.stroke();}   // the frayed ends
+    ctx2.restore();};
+  piece(X-15,Y+7,16,.18,'#6a5838');piece(X+3,Y+9,14,-.12,'#5e4e32');piece(X-6,Y+13,12,.3,'#625234');piece(X+14,Y+6,13,-.24,'#6a5838');}   // four separate cut pieces on the floor
 function hsNailBlade(X,Y,wrap,glow){   // oilcloth bundle, then a short black blade, warm from the forge, that sometimes points
   if(wrap<1){ctx2.fillStyle='#3a3630';ctx2.fillRect(X-9,Y-4,18,8);ctx2.fillStyle='#4a463e';ctx2.fillRect(X-9,Y-4,18,2);ctx2.fillStyle='#2a2620';ctx2.fillRect(X-2,Y-5,4,10);return;}
-  ctx2.save();ctx2.translate(X,Y);ctx2.rotate(-.5);ctx2.fillStyle='#120c08';ctx2.fillRect(-2,2,4,9);ctx2.fillStyle='#4a3a26';ctx2.fillRect(-1,2,2,9);   // the grip
-  ctx2.fillStyle='#14202a';ctx2.fillRect(-2,-16,4,18);ctx2.fillStyle='#24384a';ctx2.fillRect(-2,-16,2,18);ctx2.fillStyle='#4a6a86';ctx2.fillRect(-2,-16,1,18);   // blued steel
-  if(glow>0){ctx2.globalAlpha=glow;ctx2.fillStyle='#e06a2a';ctx2.fillRect(-1,-16,2,18);ctx2.globalAlpha=1;}ctx2.restore();}
+  ctx2.fillStyle='rgba(6,4,2,.4)';ctx2.beginPath();ctx2.ellipse(X+5,Y+9,9,2.6,0,0,6.283);ctx2.fill();   // a soft drop shadow so the blade sits where it's laid/held, not floating
+  ctx2.save();ctx2.translate(X,Y);ctx2.rotate(-.5);
+  ctx2.fillStyle='#120c08';ctx2.fillRect(-2,2,5,9);ctx2.fillStyle='#3a2a18';ctx2.fillRect(-1,3,3,7);ctx2.fillStyle='#4e3a24';ctx2.fillRect(-1,3,1,7);   // short wrapped-leather grip, lit on the left
+  for(let w=4;w<10;w+=2){ctx2.fillStyle='#241a10';ctx2.fillRect(-1,w,3,1);}   // the wrap seams
+  ctx2.fillStyle='#241a12';ctx2.fillRect(-2,10,5,2);ctx2.fillStyle='#3a3228';ctx2.fillRect(-2,10,5,1);   // the pommel cap
+  ctx2.fillStyle='#14141a';ctx2.fillRect(-4,1,9,2);ctx2.fillStyle='#2a2a34';ctx2.fillRect(-4,1,9,1);   // the cross-guard
+  ctx2.fillStyle='#46586a';ctx2.beginPath();ctx2.moveTo(-3,1);ctx2.lineTo(3,1);ctx2.lineTo(1,-13);ctx2.lineTo(-1,-13);ctx2.closePath();ctx2.fill();   // the blade: one cool steel ramp
+  ctx2.fillStyle='#2b3844';ctx2.beginPath();ctx2.moveTo(0,1);ctx2.lineTo(3,1);ctx2.lineTo(1,-13);ctx2.lineTo(0,-13);ctx2.closePath();ctx2.fill();   // the shadow (right) half, purple-leaning
+  ctx2.fillStyle='#e8f0f8';ctx2.beginPath();ctx2.moveTo(-3,1);ctx2.lineTo(-2,1);ctx2.lineTo(-1,-13);ctx2.lineTo(-1.7,-13);ctx2.closePath();ctx2.fill();   // a narrow near-white lit edge, TOP-LEFT only
+  ctx2.fillStyle='#8fa6b6';ctx2.fillRect(-2,-12,1,12);ctx2.fillStyle='#cdd8e2';ctx2.fillRect(-1,-13,1,3);   // the inner bevel + a glint at the point
+  if(glow>0){ctx2.save();ctx2.globalAlpha=Math.min(1,glow)*.8;ctx2.globalCompositeOperation='lighter';
+    ctx2.fillStyle='#ff7a22';for(const gy of [-11,-7,-3]){ctx2.fillRect(1,gy,1,2);}   // forge heat in broken patches along the spine (not a clean rust line)
+    ctx2.fillStyle='#ffb152';ctx2.fillRect(-1,-13,2,3);ctx2.restore();}   // the tip still glowing hot
+  ctx2.restore();}
 function hsBook(X,Y,page){   // a ledger laid open: two cream pages, ruled lines of births, one entry on the right page underlined
   const o='#120c08';ctx2.fillStyle=o;ctx2.fillRect(X-20,Y-14,40,18);ctx2.fillStyle='#6a4228';ctx2.fillRect(X-19,Y-13,38,16);
   ctx2.fillStyle='#ece2c8';ctx2.fillRect(X-18,Y-12,17,14);ctx2.fillRect(X+1,Y-12,17,14);ctx2.fillStyle='#3a2614';ctx2.fillRect(X-1,Y-13,2,16);   // spine
@@ -138,13 +185,21 @@ function hsRibbon(X,Y,t){   // Ruth's blue hair ribbon held out, a bow, always d
   ctx2.fillStyle='#2a4a7a';ctx2.fillRect(X-7,Y-1,14,3);ctx2.fillStyle='#3a5f9a';ctx2.fillRect(X-7,Y-1,14,1);
   ctx2.fillStyle='#2a4a7a';ctx2.fillRect(X-3,Y-4,6,8);ctx2.fillStyle='#24416e';ctx2.fillRect(X-6,Y+2,3,5);ctx2.fillRect(X+3,Y+2,3,5);ctx2.fillStyle='#4a6faa';ctx2.fillRect(X-1,Y-4,2,8);   // bow + tails
   const dy=(t*26)%14;ctx2.fillStyle='rgba(150,195,235,.75)';ctx2.fillRect(X,Y+6+dy,1,2);}
-function hsBackTracks(X,Y){   // a trail of bare footprints receding into the woods (up-left), but the TOES point back down toward you
-  for(let i=0;i<5;i++){const cx=X-i*19,cy=Y-i*13,s=(i%2?1:-1)*5,fx=cx+s;
-    ctx2.fillStyle='rgba(66,52,34,.45)';ctx2.beginPath();ctx2.ellipse(fx,cy,5,8,0,0,6.283);ctx2.fill();   // the wet mud rim
-    ctx2.fillStyle='rgba(22,15,9,.82)';ctx2.beginPath();ctx2.ellipse(fx,cy-1,3.4,6,0,0,6.283);ctx2.fill();   // the sole, pressed in
-    ctx2.fillStyle='rgba(10,7,4,.9)';ctx2.beginPath();ctx2.ellipse(fx,cy+4,3,2.4,0,0,6.283);ctx2.fill();   // the ball/toes at the NEAR end (pointing at you)
-    for(let k=0;k<5;k++)ctx2.fillRect(Math.round(fx-3.2+k*1.5),cy+6,1,2);   // five little toe dabs, toward you
-    ctx2.fillStyle='rgba(130,160,180,.2)';ctx2.beginPath();ctx2.ellipse(fx-1,cy-2,1.6,3,0,0,6.283);ctx2.fill();}}   // a cold wet sheen
+function hsBackTracks(X,Y){   // bare footprints receding up-left into the woods, but every print's TOES point back DOWN at you — a dark foot pressed into a matte mud patch, lit only on its top-left rim
+  for(let i=0;i<5;i++){const sc=1.14-i*0.06,cx=X-i*20,cy=Y-i*13;
+    // a MATTE mud patch, only a shade above the forest floor (never a bright glowing mound)
+    ctx2.fillStyle='#352a1a';ctx2.beginPath();ctx2.ellipse(cx,cy,5.6*sc,9*sc,0,0,6.283);ctx2.fill();
+    // the pressed-in foot — the DARKEST shape, with hard edges: heel (far), ball (near), arch, five toes toward you
+    ctx2.fillStyle='#120c07';
+    ctx2.beginPath();ctx2.ellipse(cx,cy-3*sc,2.6*sc,3.8*sc,0,0,6.283);ctx2.fill();          // heel
+    ctx2.beginPath();ctx2.ellipse(cx+0.3*sc,cy+2.4*sc,3.1*sc,2.9*sc,0,0,6.283);ctx2.fill();  // ball
+    ctx2.beginPath();ctx2.moveTo(cx-1*sc,cy-3*sc);ctx2.lineTo(cx+1*sc,cy-3*sc);ctx2.lineTo(cx+1.4*sc,cy+3*sc);ctx2.lineTo(cx-1.4*sc,cy+3*sc);ctx2.closePath();ctx2.fill();   // the narrow arch
+    for(let k=0;k<5;k++){const tx=cx-3.1*sc+k*1.6*sc,tr=(k===0?1.6:k===4?0.95:1.25)*sc;ctx2.beginPath();ctx2.ellipse(tx,cy+6.2*sc,tr,1.5*sc,0,0,6.283);ctx2.fill();}   // five graduated toes at the NEAR end
+    // a single hard-edged lit rim on the TOP-LEFT of the depression (one light step, offset — the raised mud catching light on one side only)
+    ctx2.fillStyle='#6a5230';ctx2.beginPath();ctx2.ellipse(cx-2.3*sc,cy-2.5*sc,1.3*sc,4*sc,-0.3,0,6.283);ctx2.fill();
+    ctx2.fillStyle='#8a6c40';ctx2.fillRect(Math.round(cx-3*sc),Math.round(cy-5*sc),1,Math.round(5*sc));   // the brightest sliver, top-left
+    // a hard dark contact at the bottom-right, so the print sits IN the ground
+    ctx2.fillStyle='#0a0704';ctx2.beginPath();ctx2.ellipse(cx+2.6*sc,cy+5.5*sc,2.2*sc,1.3*sc,0,0,6.283);ctx2.fill();}}
 function hsHeadstone(X,Y){const o='#120c08';ctx2.fillStyle='rgba(10,8,6,.5)';ctx2.beginPath();ctx2.ellipse(X,Y+2,11,4,0,0,6.283);ctx2.fill();
   ctx2.fillStyle=o;ctx2.fillRect(X-9,Y-17,18,18);ctx2.fillStyle='#6b675d';ctx2.fillRect(X-8,Y-16,16,16);ctx2.beginPath();ctx2.arc(X,Y-16,8,Math.PI,0);ctx2.fillStyle='#6b675d';ctx2.fill();ctx2.fillStyle='#120c08';ctx2.beginPath();ctx2.arc(X,Y-16,9,Math.PI,0);ctx2.lineTo(X-9,Y-16);ctx2.closePath();ctx2.fill();ctx2.fillStyle='#6b675d';ctx2.beginPath();ctx2.arc(X,Y-16,7,Math.PI,0);ctx2.fill();
   ctx2.fillStyle='#565248';ctx2.fillRect(X-5,Y-12,10,1);ctx2.fillRect(X-5,Y-9,10,1);ctx2.fillStyle='#3a5a2a';ctx2.fillRect(X-8,Y-1,16,2);}
