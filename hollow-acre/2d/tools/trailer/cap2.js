@@ -19,7 +19,9 @@ const SHOTS=[
  {name:'graves_night',sec:3.0,setup:`S.day=12;S.hour=0.5;P.x=54;P.z=-38.6;P.dir='E';P.fx=1;P.fz=0;camSet(55.4,-39.6);`,each:{0:`camFollow(1.2,-1.0,1.4)`,4:`walkLine(59.0,-38.6,.5)`}},
  {name:'corn_watch',sec:4.6,setup:`S.day=12;S.hour=22.5;window.__hfreeze=false;S.fuel=100;sputCD=99;sputT=0;P.x=-1.3;P.z=9.6;P.dir='S';P.fx=0;P.fz=1;H.state='gone';H.vis=false;H.timer=99;camSet(-1.3,9.0);`,
    each:{0:`camFollow(0,-2.3,2)`,2:`walkLine(-1.3,13.4,.55)`,14:`H.x=P.x+.4;H.z=P.z-5.0;collide(H,.4);H.state='stalk';H.vis=true;H.alpha=1;H.rise=.4;H.crawl=0;H.burn=0;H.stung=false;H.grace=0;H.spd=2.3;H.t=0;`,30:`window.__drive=null;`,44:`faceTo(H.x,H.z);`,46:`faceTo(H.x,H.z);`}},
- {name:'scare',sec:1.3,setup:`window.__hfreeze=false;S.day=12;S.hour=23.2;S.fuel=100;sputCD=99;sputT=0;P.x=-5.5;P.z=-6.3;P.dir='E';H.state='gone';H.vis=false;H.timer=99;H.grace=0;camSet(-3.6,-6.6);`,each:{0:`camFollow(.9,-.4,2)`,1:`walkLine(4,-6.3,.62)`,10:`sputT=1.4;SFX.sputter&&SFX.sputter();`,24:`window.__drive=null;jumpScare('dark')`}},
+ {name:'scare',sec:2.0,setup:`window.__hfreeze=false;S.day=12;S.hour=23.2;S.fuel=100;sputCD=99;sputT=0;P.x=-5.5;P.z=-6.3;P.dir='E';H.state='gone';H.vis=false;H.timer=99;H.grace=0;camSet(-3.6,-6.6);window.__face=0;`,
+   every:`if(window.__face){var c=document.getElementById('scare');c.hidden=false;c.classList.remove('slam','on');c.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;z-index:99998;image-rendering:pixelated';try{drawScare(1);}catch(e){}}`,
+   each:{0:`camFollow(.9,-.4,2)`,1:`walkLine(4,-6.3,.62)`,10:`sputT=1.4;SFX.sputter&&SFX.sputter();`,18:`window.__drive=null;window.__face=1;cam.shake=.8;SFX.scream&&SFX.scream();`}},   // the lantern dies, then the pumpkin-Hollow face SLAMS in and holds, full-screen and clear
 ];
 (async()=>{fs.mkdirSync(OUT,{recursive:true});const b=await chromium.launch();
  const pg=await b.newPage({viewport:{width:1920,height:1080}});const errs=[];pg.on('pageerror',e=>errs.push(e.message));
