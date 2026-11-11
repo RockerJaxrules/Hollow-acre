@@ -104,24 +104,30 @@ put(lp(rng.normal(0, 1, len(sw)), 3000) * sw * .25, mb - .9)
 put(reverb(pluck(38, 4.0) * .9 + sine(hz(38), 4.0) * np.exp(-tt(4.0) * .8) * .3, 3.2, .5), mb + .15)
 
 # ---------- the nights: drone with a minor second, a heartbeat quickening, a bowed screech climbing
-na, _ = at('tithe_night'); sa, sb = at('scare'); slam = sa + 12 / FPS
-dd = slam - na + .2
-drone = lp(saw(hz(38), dd) + saw(hz(38) * 1.006, dd) + .7 * saw(hz(39), dd) + .5 * saw(hz(45), dd), 420) * env(dd, 2.0, .05) * .13
+na, _ = at('tithe_night'); sa, sb = at('scare'); slam = sa + 14 / FPS
+hush = slam - .42                                                  # everything drops out here: a held-breath gap, then the hit
+dd = hush - na + .2
+drone = lp(saw(hz(38), dd) + saw(hz(38) * 1.006, dd) + .7 * saw(hz(39), dd) + .5 * saw(hz(45), dd), 420) * env(dd, 2.0, .16) * .14
 put(drone, na - .4)
+sub = (sine(27, dd) + .3 * sine(40.5, dd)) * env(dd, 2.6, .2) * .17                       # a sub-bass rumble of dread under it
+put(sub, na - .4)
 hb_t = at('This year')[0] + .4; per = 1.05
-while hb_t < slam - .3:
+while hb_t < hush - .1:
     for off, gg in ((0, 1.0), (.17, .7)):
-        put(lp(sine(52, .25) * np.exp(-tt(.25) * 18), 150) * .55 * gg, hb_t + off)
-    hb_t += per; per = max(.42, per * .93)
-scr_d = slam - (na + 2.0)
-f = np.linspace(1200, 2600, int(scr_d * SR))
-scr = bp(rng.normal(0, 1, len(f)), 1100, 3400) * (np.sin(2 * np.pi * np.cumsum(f) / SR) * .5 + .5) * np.linspace(0, 1, len(f)) ** 2
-put(scr * .12, na + 2.0, 1, .25)
+        put(lp(sine(52, .25) * np.exp(-tt(.25) * 18), 150) * .6 * gg, hb_t + off)        # a heartbeat, quickening
+    hb_t += per; per = max(.40, per * .92)
+scr_d = hush - (na + 2.0)
+f = np.linspace(1200, 2900, int(scr_d * SR))
+scr = bp(rng.normal(0, 1, len(f)), 1100, 3600) * (np.sin(2 * np.pi * np.cumsum(f) / SR) * .5 + .5) * np.linspace(0, 1, len(f)) ** 2
+put(scr * .14, na + 2.0, 1, .25)
 for T in (na + 1.2, at('lake_night')[0] + .8, at('graves_night')[0] + 1.0, at('corn_watch')[0] + 1.6):
     put(M(saw(hz(93), .6) * env(.6, .002, .5) * .04, noiseburst(.4, 4000, 9000, 9) * .08), T, 1, rng.uniform(-.5, .5))   # a tick, a creak
-put(np.linspace(0, 1, int(.8 * SR)) ** 3 * lp(rng.normal(0, 1, int(.8 * SR)), 5000) * .45, slam - .8)              # the breath in
-stg = M(sum(saw(hz(n), 1.6) for n in (61, 62, 68, 73, 74)) / 5 * env(1.6, .003, 1.4) * .5, noiseburst(1.0, 800, 9000, 3) * .7, boom(2.0, 120, 35) * .8)
-put(stg * 2.0, slam)
+put(M(noiseburst(.18, 2000, 9000, 20) * .5, sine(1500, .12) * np.exp(-tt(.12) * 20) * .3), at('corn_watch')[0] - .03)    # the subliminal face flash: a stab
+put(np.linspace(0, 1, int(.8 * SR)) ** 3 * lp(rng.normal(0, 1, int(.8 * SR)), 5000) * .5, slam - .8)              # the breath in
+stg = M(sum(saw(hz(n), 1.8) for n in (49, 61, 62, 68, 73, 74, 85, 86)) / 8 * env(1.8, .002, 1.5) * .5,            # a wider, more dissonant cluster
+        noiseburst(1.1, 700, 11000, 3) * .8, boom(2.2, 120, 32) * .9,
+        bp(rng.normal(0, 1, int(.5 * SR)), 3000, 8000) * np.exp(-tt(.5) * 7) * .5)                                 # + a high shriek on the hit
+put(stg * 2.6, slam)
 
 # ---------- the title: a deep boom, then the waltz's first bar again, slow and out of tune
 ta, tb = at('title')

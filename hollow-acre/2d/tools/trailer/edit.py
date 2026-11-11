@@ -58,13 +58,32 @@ def title(u, dur):
     return im
 
 
+_FACE = None
+def faceframe():
+    global _FACE
+    if _FACE is None:
+        f = sorted(x for x in os.listdir('full') if x.startswith('scare_'))[30]   # a clear, full-on face frame
+        _FACE = Image.open('full/' + f).convert('RGB')
+    return _FACE
+
+
+def nightgrade(im):
+    """colder and darker so the nights feel wrong, not just dim"""
+    a = np.asarray(im).astype(np.float32) * [0.80, 0.85, 0.97]
+    return Image.fromarray(a.clip(0, 255).astype(np.uint8))
+
+
 def frames():
     segs, tot = timeline()
     cozy = {'farm_dawn', 'field_work', 'chop', 'town', 'caitlyn', 'festival'}
+    nights = {'tithe_night', 'lake_night', 'graves_night', 'corn_watch'}
     for (a, b, seg) in segs:
         n = int(round((b - a) * FPS))
         if seg[0] == 'black':
             for i in range(n): yield Image.new('RGB', (1920, 1080))
+        elif seg[0] == 'flash':                                   # a subliminal hit of the face, a frame or two
+            fr = faceframe()
+            for i in range(n): yield fr
         elif seg[0] == 'card':
             col = BLOOD if 'drew yours' in seg[1][0] else PARCH
             for i in range(n): yield card(seg[1], i / n, seg[2], col).convert('RGB')
@@ -78,6 +97,8 @@ def frames():
                 if name in cozy:                                  # soft dips at the cozy cuts; the nights cut hard
                     e = min(1, (i + 1) / 4, (f1 - k + 1) / 4)
                     if e < 1: im = Image.fromarray((np.asarray(im) * e).astype(np.uint8))
+                elif name in nights:
+                    im = nightgrade(im)
                 yield im
 
 

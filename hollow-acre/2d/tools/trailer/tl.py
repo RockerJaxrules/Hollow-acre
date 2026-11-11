@@ -20,7 +20,9 @@ TL = [
     ('shot', 'tithe_night', 0, 101),
     ('shot', 'lake_night', 0, 89),
     ('shot', 'graves_night', 12, 89),
+    ('flash', 0.067),
     ('shot', 'corn_watch', 0, 137),
+    ('black', 0.45),
     ('shot', 'scare', 4, 58),
     ('black', 1.3),
     ('title', 6.5),
@@ -31,7 +33,7 @@ def timeline():
     """start/end seconds of every segment"""
     t = 0; out = []
     for seg in TL:
-        d = seg[-1] if seg[0] in ('black', 'card', 'title') else (seg[3] - seg[2] + 1) / FPS
+        d = seg[-1] if seg[0] in ('black', 'card', 'title', 'flash') else (seg[3] - seg[2] + 1) / FPS
         out.append((t, t + d, seg)); t += d
     return out, t
 
