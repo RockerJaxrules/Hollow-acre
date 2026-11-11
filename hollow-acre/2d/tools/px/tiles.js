@@ -39,41 +39,42 @@ function paint(kind){const A=[];for(let y=0;y<PER;y++){A.push([]);for(let x=0;x<
     for(let i=0;i<5*(PER*PER)/4096;i++){const x=r()*PER|0,y=r()*PER|0,l=3+(r()*3|0),dir=r()<.5;
       for(let k=0;k<l;k++){const px=dir?x+k:x,py=dir?y:y+k;put(px,py,DIRT[1]);put(dir?px:px-1,dir?py-1:py,DIRT[4]);}}}
   if(kind==='walk'){
-    // concrete sidewalk: 32 px slabs (one world tile each), flat tones, a lit top-left bevel and a shaded
-    // bottom-right edge on every slab, dark joints. Details are hand-placed in several varied copies so
-    // nothing appears only once per 192 px repeat.
-    const WK=['#38323a','#4a4448','#5a5456','#69635f','#77716a','#857f76','#968f83','#a8a192','#b8b0a0'].map(HEX);
-    const JN=WK[0],DEEP=WK[1],SH=WK[2],LIT=WK[7],HI=WK[8];
-    const B=['#79736c','#7f7971','#868077'].map(HEX);   // slab tones only a few levels apart: concrete varies subtly
+    // concrete sidewalk: 32 px slabs (one world tile each). Flat tones; each slab has a lit top-left lip and a
+    // two-step shaded bottom-right; dark joints. Details are grooves and chips spread over every slab column and
+    // row in several varied copies, so nothing marks the 192 px repeat; no lone 1-2 px specks anywhere.
+    const JN=HEX('#38323a'),DEEP=HEX('#4a4448'),SH=HEX('#5c5658'),SH2=HEX('#6b6562'),LIT=HEX('#a8a192'),HI=HEX('#b6ae9e');
+    const B=['#79736c','#7f7971','#868077'].map(HEX),UP=['#827c74','#88827a','#8f897f'].map(HEX),DN=['#726c66','#78726b','#7e7870'].map(HEX);
     let s=19;const r=()=>{s=(s*16807)%2147483647;return s/2147483647;};
-    for(let q=0;q<64;q++)r();   // a small Lehmer seed starts with tiny values: warm it up or the first rows all come out dark
+    for(let q=0;q<64;q++)r();   // a small Lehmer seed starts with tiny values: warm it up or the first rows band
     const ns=PER/32,tone=[];
     for(let j=0;j<ns;j++){tone.push([]);for(let i=0;i<ns;i++){const h=hsh(i*7+3,j*13+5,77);tone[j].push(h<.3?0:h<.72?1:2);}}
+    const inSlab=(x,y,m)=>{const lx=((x%32)+32)%32,ly=((y%32)+32)%32;return lx>=m&&ly>=m&&lx<=31-m&&ly<=31-m;};
     for(let y=0;y<PER;y++)for(let x=0;x<PER;x++){const i=x>>5,j=y>>5,lx=x&31,ly=y&31;const t=tone[j][i];let c=B[t];
-      if(lx===0||ly===0)c=JN;else if(ly===1||lx===1)c=t===2?HI:LIT;else if(ly===31||lx===31)c=SH;
+      if(lx===0||ly===0)c=JN;else if(ly===1||lx===1)c=t===2?HI:LIT;else if(ly===31||lx===31)c=SH;else if(ly===30||lx===30)c=SH2;
       put(x,y,c);}
-    // worn patches: flat hard-edged shapes one step off the slab tone, in about a third of the slabs
+    // a quiet in-tone surface: 3-6 px clusters one step lighter or darker than their slab
+    for(let k=0;k<70;k++){const x=r()*PER|0,y=r()*PER|0;if(!inSlab(x,y,4))continue;const t=tone[y>>5][x>>5];const col=r()<.5?UP[t]:DN[t];
+      const n=3+(r()*4|0);let px=x,py=y;for(let q=0;q<n;q++){if(inSlab(px,py,3))put(px,py,col);if(r()<.6)px++;else py++;}}
+    // worn patches: flat, hard-edged, either orientation, in about a third of the slabs
     for(let j=0;j<ns;j++)for(let i=0;i<ns;i++){if(r()>.38)continue;const dark=r()<.6;const col=dark?HEX('#6f6964'):HEX('#8f897e');
-      const cx=i*32+5+r()*22,cy=j*32+5+r()*22,a1=3+r()*6,a2=2+r()*4,tall=r()<.45,rx=tall?a2:a1,ry=tall?a1:a2;
-      for(let y=-ry|0;y<=ry;y++)for(let x=-rx|0;x<=rx;x++){const px=Math.round(cx+x),py=Math.round(cy+y);const lx=px&31,ly=py&31;if(lx<3||ly<3||lx>29||ly>29)continue;
+      const cx=i*32+6+r()*20,cy=j*32+6+r()*20,a1=3+r()*6,a2=2+r()*4,tall=r()<.45,rx=tall?a2:a1,ry=tall?a1:a2;
+      for(let y=-ry|0;y<=ry;y++)for(let x=-rx|0;x<=rx;x++){const px=Math.round(cx+x),py=Math.round(cy+y);if(!inSlab(px,py,3))continue;
         const e=(x*x)/(rx*rx)+(y*y)/(ry*ry)+(hsh(px,py,9)-.5)*.35;if(e<1)put(px,py,col);}}
-    // hairline cracks with a lit lip on the upper side, wandering across a slab
-    for(let k=0;k<6;k++){const i=r()*ns|0,j=r()*ns|0;let x=i*32+4+(r()*24|0),y=j*32+3+(r()*8|0);const len=8+(r()*12|0);let dx=r()<.5?1:-1;
-      for(let n=0;n<len;n++){const lx=x&31,ly=y&31;if(lx<3||lx>29||ly<3||ly>29)break;put(x,y,DEEP);put(x,y-1,LIT);
-        if(r()<.55)y++;else x+=dx;if(r()<.12)dx=-dx;}}
-    // chipped slab corners: a 3-6 px bite out of the corner that breaks the lit lip and shows the joint
-    for(let k=0;k<9;k++){const i=r()*ns|0,j=r()*ns|0,cr=r()*4|0,sz=3+(r()*4|0);const sxn=cr&1?-1:1,syn=cr&2?-1:1;
+    // cracks: dark grooves with a lit lip on the lower-right wall (it faces the top-left light), one per chosen
+    // slab, spread so every slab column and row gets some, varied length and angle
+    const order=[[0,1],[1,4],[2,0],[3,3],[4,5],[5,2],[0,4],[2,3],[4,1],[1,1],[3,0],[5,5]];
+    for(const [i,j] of order){if(r()<.25)continue;let x=i*32+5+(r()*20|0),y=j*32+4+(r()*6|0);const len=7+(r()*12|0);let dx=r()<.5?1:-1;
+      for(let n=0;n<len;n++){if(!inSlab(x,y,3))break;put(x,y,DEEP);if(inSlab(x+1,y+1,3))put(x+1,y+1,LIT);
+        if(r()<.55)y++;else x+=dx;if(r()<.15)dx=-dx;}}
+    // chipped corners: a 3-6 px bite that breaks the lit lip and shows the joint, in several slabs
+    for(let k=0;k<9;k++){const i=(k*5+2)%ns,j=(k*7+1)%ns,cr=r()*4|0,sz=3+(r()*4|0);const sxn=cr&1?-1:1,syn=cr&2?-1:1;
       const ox=i*32+(cr&1?31:1),oy=j*32+(cr&2?31:1);
-      for(let a=0;a<sz;a++)for(let b=0;b<sz-a;b++){const e=a+b;put(ox+sxn*a,oy+syn*b,e<sz-2?JN:DEEP);}}
-    // stains: a few broken low-contrast shapes of different sizes (no lone dots, none one of a kind)
-    for(let k=0;k<7;k++){const i=r()*ns|0,j=r()*ns|0;const cx=i*32+7+(r()*18|0),cy=j*32+7+(r()*18|0);const n=4+(r()*5|0);
-      let x=cx,y=cy;for(let q=0;q<n;q++){put(x,y,HEX('#6d6762'));const d=r()*4|0;x+=d===0?1:d===1?-1:0;y+=d===2?1:d===3?-1:0;}}
-    // weeds and moss pushing up in the joints, at many crossings and along a few seams
+      for(let a=0;a<sz;a++)for(let b=0;b<sz-a;b++){put(ox+sxn*a,oy+syn*b,a+b<sz-2?JN:DEEP);}}
+    // weeds: real little tufts (5-9 px) at joint crossings only — never single green pixels along a seam
     const GW=[HEX('#2c4a24'),HEX('#3d6630'),HEX('#56853c')];
-    for(let k=0;k<11;k++){const i=r()*ns|0,j=r()*ns|0;const x=i*32,y=j*32;const big=r()<.4;
-      put(x,y,GW[0]);put(x,y-1,GW[1]);put(x+1,y,GW[1]);if(big){put(x-1,y-1,GW[1]);put(x,y-2,GW[2]);put(x+1,y-1,GW[2]);}}
-    for(let k=0;k<6;k++){const horiz=r()<.5;const i=r()*ns|0,j=r()*ns|0;const l=3+(r()*5|0);const x0=i*32+(horiz?6+(r()*18|0):0),y0=j*32+(horiz?0:6+(r()*18|0));
-      for(let n=0;n<l;n++)put(horiz?x0+n:x0,horiz?y0:y0+n,n%3===1?GW[1]:GW[0]);}}
+    for(let k=0;k<8;k++){const i=(k*4+1)%ns,j=(k*5+3)%ns;if(r()<.3)continue;const x=i*32,y=j*32;
+      put(x,y,GW[0]);put(x+1,y,GW[0]);put(x,y+1,GW[0]);put(x,y-1,GW[1]);put(x-1,y-1,GW[1]);put(x+1,y-1,GW[1]);put(x,y-2,GW[2]);
+      if(r()<.6){put(x-1,y-2,GW[2]);put(x+2,y-1,GW[1]);}}}
   if(kind==='water'){for(let y=0;y<PER;y++)for(let x=0;x<PER;x++){const n=vn(x,y,32)*.6+vn(x,y,16)*.4;const nn=vn(x,y,8);put(x,y,n>.74&&nn>.5?WATER[3]:WATER[2]);}
     let s=5;const r=()=>{s=(s*16807)%2147483647;return s/2147483647;};
     for(let i=0;i<10*(PER*PER)/4096;i++){const x=r()*PER|0,y=r()*PER|0,l=3+(r()*4|0);for(let k=0;k<l;k++)put(x+k,y,WATER[k===0||k===l-1?4:5]);}}

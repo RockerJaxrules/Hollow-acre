@@ -10,9 +10,10 @@ from PIL import Image
 
 N = 192
 def hx(s): return tuple(int(s[i:i + 2], 16) for i in (1, 3, 5))
+def lift(c, k=1.07): return tuple(min(255, round(v * k)) for v in c)   # in-game the field read a touch dark
 # olive greens, hue-shifted: shadows toward teal-blue, lights toward yellow
-G = [hx(c) for c in ('#243a2a', '#2f4a2f', '#3b5a33', '#466838', '#51743c', '#5e8142', '#719049', '#88a452')]
-D = [hx(c) for c in ('#6f6a3a', '#8d7f45', '#ab9654', '#c4ad68')]   # dry straw
+G = [lift(hx(c)) for c in ('#283a26', '#33492c', '#405834', '#4d6739', '#58733e', '#667f44', '#7a904b', '#93a656')]
+D = [hx(c) for c in ('#5f6236', '#77723f', '#8f8549', '#a59757')]   # dry straw, muted so it never pops as an orange dot
 BASE = 3
 
 random.seed(9)
@@ -31,13 +32,13 @@ def vn(x, y, s, seed):
 
 # --- base: one tone. Zones are only a HALF step either way (their own in-between tones), smaller and many,
 #     with ragged edges, so no single zone is big enough to mark the 192 px repeat.
-ZONE = {-1: hx('#405e35'), 0: G[BASE], 1: hx('#4b6b3a')}
+ZONE = {-1: lift(hx('#4b5b34')), 0: G[BASE], 1: lift(hx('#57723e'))}   # a browner and a yellower olive, a step either way
 px = [[BASE] * N for _ in range(N)]
 Z = [[0] * N for _ in range(N)]
 for y in range(N):
     for x in range(N):
-        n = vn(x, y, 48, 1) * .55 + vn(x, y, 24, 2) * .45 + (vn(x, y, 6, 3) - .5) * .3
-        Z[y][x] = -1 if n < .32 else 1 if n > .70 else 0
+        n = vn(x, y, 96, 1) * .55 + vn(x, y, 48, 2) * .45 + (vn(x, y, 8, 3) - .5) * .16
+        Z[y][x] = -1 if n < .38 else 1 if n > .64 else 0
 touched = set()
 
 def put(x, y, k):
@@ -71,7 +72,7 @@ def poisson(spacing, tries=60000, cell=4):
     return pts
 
 # --- quiet blade layer: 2-4 px blades one step off the base under them
-blades = poisson(lambda p: 4.2 + 3.2 * vn(int(p[0]), int(p[1]), 64, 5), 40000)
+blades = poisson(lambda p: 4.0 + 2.4 * vn(int(p[0]), int(p[1]), 64, 5), 60000)
 def blade(x, y, h, lean, base, tipup):
     for k in range(h):
         xx = x + round(lean * k / max(1, h - 1))
@@ -79,12 +80,11 @@ def blade(x, y, h, lean, base, tipup):
 for (bx, by) in blades:
     x, y = int(bx), int(by)
     base = px[wrap(y)][wrap(x)]
-    h = 2 + int(random.random() * 3)
+    h = 3 + int(random.random() * 3)
     if random.random() < .4:      # a small V: two blades from one root, splaying apart
         blade(x, y, h, -1, base, random.random() < .3); blade(x + 1, y, h - (random.random() < .5), 1, base, False)
     else:
         blade(x, y, h, random.choice((-1, -1, 0, 1, 1)), base, random.random() < .35)
-    put(x + (2 if random.random() < .5 else 1), y, base - 1)   # its foot sits in a sliver of shade
 
 # --- clumps: domes of blades, gathered in drifts of different sizes and shapes
 def clump(cx, cy, w, h, drystraw):
@@ -93,7 +93,7 @@ def clump(cx, cy, w, h, drystraw):
     w = max(4, w); half = (w - 1) / 2
     for c in range(int(half), w + 1):     # short soft shadow under the right side only
         put(cx + c + 1, cy + 1, 2)
-    strawcols = set(random.sample(range(1, w - 1), 1 if random.random() < .7 else 2)) if drystraw else set()
+    strawcols = {random.randrange(1, w - 1)} if drystraw else set()
     for c in range(w):
         off = (c - half) / max(1, half)                     # -1 .. 1 across the tuft
         hc = max(2, round(h * (1 - .55 * off * off)) + (1 if c % 2 == 0 else -1 if random.random() < .4 else 0))
@@ -112,17 +112,20 @@ def clump(cx, cy, w, h, drystraw):
     for c in range(1, w - 1):                                # fill the base so the tuft reads as one mass
         put(cx + c, cy - 1, 3); put(cx + c, cy - 2, 4 if c > half else 5)
 
-drifts = poisson(lambda p: 40, 4000)
+drifts = poisson(lambda p: 22 + 12 * vn(int(p[0]), int(p[1]), 96, 8), 6000)
 for (dx_, dy_) in drifts:
     shape = random.choice(('round', 'diag', 'diag2', 'long'))
-    k = 3 + int(random.random() * 4)
+    k = random.choice((1, 2, 3, 4, 5, 6, 7, 9, 12))          # some dense patches, some lone tufts, most in between
+    spread = 4 + k * 1.1
     for _ in range(k):
-        if shape == 'round': ox, oy = random.gauss(0, 6), random.gauss(0, 5)
-        elif shape == 'diag': t = random.uniform(-12, 12); ox, oy = t + random.gauss(0, 2), t * .7 + random.gauss(0, 2)
-        elif shape == 'diag2': t = random.uniform(-12, 12); ox, oy = t + random.gauss(0, 2), -t * .7 + random.gauss(0, 2)
-        else: ox, oy = random.uniform(-14, 14), random.gauss(0, 3)
-        w = random.choice((5, 6, 7, 7, 8, 9)); h = random.choice((5, 6, 7, 7, 8, 9))
-        clump(int(dx_ + ox), int(dy_ + oy), w, h, random.random() < .42)
+        if shape == 'round': ox, oy = random.gauss(0, spread), random.gauss(0, spread * .8)
+        elif shape == 'diag': t = random.uniform(-spread * 1.6, spread * 1.6); ox, oy = t + random.gauss(0, 2), t * .7 + random.gauss(0, 2)
+        elif shape == 'diag2': t = random.uniform(-spread * 1.6, spread * 1.6); ox, oy = t + random.gauss(0, 2), -t * .7 + random.gauss(0, 2)
+        else: ox, oy = random.uniform(-spread * 1.8, spread * 1.8), random.gauss(0, 3)
+        big = random.random() < .5
+        w = random.choice((6, 7, 8, 9)) if big else random.choice((4, 5, 5, 6))
+        h = random.choice((6, 7, 8, 9)) if big else random.choice((4, 5, 5, 6))
+        clump(int(dx_ + ox), int(dy_ + oy), w, h, random.random() < .3)
 
 im = Image.new('RGB', (N, N))
 pix = im.load()
