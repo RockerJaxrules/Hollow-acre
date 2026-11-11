@@ -153,4 +153,4 @@ COPSES.push({x:101,z:35.4,rx:4.2,rz:3.2});
   Y('firewood',109.4,35.4);Y('choppingblock',111,35.6);Y('bucket',125.8,52.6);obj('tarp',146.5,43.42,{kind:'prop',noCol:true,town:1});
   D('mud_a',128.4,66.4);D('mud_b',133.6,63.2);Y('wheel',139.6,56.6);W('stonewall',100.2,104.2,54.6);W('stonewall_b',104.2,106.2,54.6);
   // the farm: Grandpa's barn roof patched with a tarp, the axe left in the block by the woodpile, the yard worn to mud at the trough
-  obj('tarp',16.4,-9.58,{kind:'prop',noCol:true,town:1});Y('choppingblock',5.8,-9.2);D('mud_a',8.6,-7.8);Y('bucket',8.4,-9.8);};}
+  obj('tarp',16.4,-9.58,{kind:'prop',noCol:true,town:1});Y('choppingblock',5.8,-9.2);D('mud_a',8.6,-7.8);Y('bucket',8.05,-9.0);};}   // the bucket is set down at the foot of the well, in front of its right corner and clear of the notice board (it used to sit behind the base line and read as hanging off the back)
