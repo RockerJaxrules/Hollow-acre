@@ -116,6 +116,8 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   texture.
 
 ## Props (small objects, 20-40 px) [owner: "not good enough"]
+- Judge a raised prop (a tarp on a roof, a sign on a wall) in its in-game spot too: the judge read the tarp as a flat ground piece, and the in-game view showed it floating behind the house's ridge (anchor 162 px; the house needed 122). Each roof gets its own entry (tarp, tarp_barn) with its own anchor. (props family r1)
+- Saturated cobalt is the loudest colour in a muted family: weathered grey-blue (#454d59 range) for tarps. (props family r1)
 - To cut a hole in a sprite in the furniture kit, zero all four channels and add the hole to NOOL (the outline pass fills small holes). Zeroing only alpha left the colour behind and the export turned it purple. (props r6)
 - Clothesline: T-topped posts, a sagging line, pegs, each garment its own hue with broad folds lit on the left, and a faint shade on the grass below. Won in both slot orders. (props r5-r6)
 - A stack of identical tyres drawn crooked still reads as one ribbed drum. Stand one tyre on end against the stack: a ring with its hole is unmistakable. (props r5)

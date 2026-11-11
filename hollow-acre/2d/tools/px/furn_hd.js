@@ -2877,7 +2877,7 @@ if(K==='muda'||K==='mudb'){const MD=hexR(['#22170f','#2e2016','#3b2a1d','#4a3626
   for(const [tx,ty] of [[-40,-6],[-22,-16],[8,-17],[34,-10],[40,8],[-30,12],[14,17]])tuft(cx+tx+(V?5:0),cy+ty,2);
   for(let i=0;i<4;i++){const fx=cx-2+i*8+(V?-14:0),fy=cy+10-i*4+(i%2)*2;for(const [a,b] of [[0,0],[1,0],[0,1],[1,1],[0,2],[1,2],[0,3]])P(A,fx+a,fy+b,MD[0]);P(A,fx+2,fy,MD[0]);P(A,fx+1,fy-1,MD[1]);}}   // a line of bare footprints crossing it
 // a tarp pegged over something: one dull blue, broad folds running in from the pegs, the edges sagging between them
-if(K==='tarp2'){const TP=hexR(['#141c2a','#1f2b3e','#2c3c54','#3b4e68','#4d627c','#627890']),x0=4,x1=71,y0=6,y1=38,mx=28,my=19;   // (props sweep: "a symmetric oval dead centre, straight creases, ruler hems")
+if(K==='tarp2'){const TP=hexR(['#191d24','#252b34','#343b46','#454d59','#58606c','#6d7581']),x0=4,x1=71,y0=6,y1=38,mx=28,my=19;   // (props sweep: "a symmetric oval dead centre, straight creases, ruler hems"; props family r1: the cobalt was the loudest thing in the family -> weathered grey-blue)
   const sagX=(x)=>Math.round(Math.sin((x-x0)/(x1-x0)*Math.PI)*4),sagY=(y)=>Math.round(Math.sin((y-y0)/(y1-y0)*Math.PI)*3);
   for(let x=x0;x<x1+5;x++){SH(x+2,y1+1-sagX(Math.min(x,x1)),140);SH(x+3,y1+2-sagX(Math.min(x,x1)),60);}
   const C=[[x0,y0],[x1,y0],[x0,y1],[x1,y1]];
