@@ -233,17 +233,19 @@ function hsRibbon(X,Y,t){   // Ruth's blue hair ribbon held out, a bow, always d
   const dy=(t*26)%14;ctx2.fillStyle='#96c3eb';ctx2.fillRect(X,Y+6+dy,1,2);}   // the slow drip
 function hsBackTracks(X,Y){   // bare footprints receding up-left into the woods, but every print's TOES point back DOWN at you — a dark foot pressed into a matte mud patch, lit only on its top-left rim
   for(let i=0;i<5;i++){const sc=1.14-i*0.06,cx=X-i*20,cy=Y-i*13;
-    // a MATTE mud patch, only a shade above the forest floor (never a bright glowing mound)
-    ctx2.fillStyle='#352a1a';ctx2.beginPath();ctx2.ellipse(cx,cy,5.6*sc,9*sc,0,0,6.283);ctx2.fill();
+    // a wet-mud patch, clearly turned earth against the forest floor (readable, but not a glowing mound): a bold dark outline, a mid mud fill, a cool damp sheen top-left
+    ctx2.fillStyle='#1a140c';ctx2.beginPath();ctx2.ellipse(cx,cy,6.6*sc,10*sc,0,0,6.283);ctx2.fill();           // bold dark rim around the disturbed patch
+    ctx2.fillStyle='#4a3a22';ctx2.beginPath();ctx2.ellipse(cx,cy,5.6*sc,9*sc,0,0,6.283);ctx2.fill();            // the turned mud, a clear step up from the floor
+    ctx2.fillStyle='#5c4a2c';ctx2.beginPath();ctx2.ellipse(cx-1*sc,cy-1.5*sc,4.2*sc,6.6*sc,0,0,6.283);ctx2.fill();   // lit upper-left half of the mud
     // the pressed-in foot — the DARKEST shape, with hard edges: heel (far), ball (near), arch, five toes toward you
-    ctx2.fillStyle='#120c07';
+    ctx2.fillStyle='#0e0905';
     ctx2.beginPath();ctx2.ellipse(cx,cy-3*sc,2.6*sc,3.8*sc,0,0,6.283);ctx2.fill();          // heel
     ctx2.beginPath();ctx2.ellipse(cx+0.3*sc,cy+2.4*sc,3.1*sc,2.9*sc,0,0,6.283);ctx2.fill();  // ball
     ctx2.beginPath();ctx2.moveTo(cx-1*sc,cy-3*sc);ctx2.lineTo(cx+1*sc,cy-3*sc);ctx2.lineTo(cx+1.4*sc,cy+3*sc);ctx2.lineTo(cx-1.4*sc,cy+3*sc);ctx2.closePath();ctx2.fill();   // the narrow arch
     for(let k=0;k<5;k++){const tx=cx-3.1*sc+k*1.6*sc,tr=(k===0?1.6:k===4?0.95:1.25)*sc;ctx2.beginPath();ctx2.ellipse(tx,cy+6.2*sc,tr,1.5*sc,0,0,6.283);ctx2.fill();}   // five graduated toes at the NEAR end
     // a single hard-edged lit rim on the TOP-LEFT of the depression (one light step, offset — the raised mud catching light on one side only)
-    ctx2.fillStyle='#6a5230';ctx2.beginPath();ctx2.ellipse(cx-2.3*sc,cy-2.5*sc,1.3*sc,4*sc,-0.3,0,6.283);ctx2.fill();
-    ctx2.fillStyle='#8a6c40';ctx2.fillRect(Math.round(cx-3*sc),Math.round(cy-5*sc),1,Math.round(5*sc));   // the brightest sliver, top-left
+    ctx2.fillStyle='#9a7a46';ctx2.beginPath();ctx2.ellipse(cx-2.3*sc,cy-2.5*sc,1.5*sc,4.4*sc,-0.3,0,6.283);ctx2.fill();
+    ctx2.fillStyle='#c0975a';ctx2.fillRect(Math.round(cx-3*sc),Math.round(cy-5*sc),1,Math.round(6*sc));   // the brightest sliver, top-left
     // a hard dark contact at the bottom-right, so the print sits IN the ground
     ctx2.fillStyle='#0a0704';ctx2.beginPath();ctx2.ellipse(cx+2.6*sc,cy+5.5*sc,2.2*sc,1.3*sc,0,0,6.283);ctx2.fill();}}
 function hsHeadstone(X,Y){   // Fergus's headstone — matched to the game's real graveyard headstones: outlined slab, stone ramp, carved cross, moss, a base plinth
@@ -672,6 +674,9 @@ function hsRibbonScene(done){const px=-46,pz=-8.6;
 // ---------- 18. Moss — "The wrong tracks": small bare footprints at the woods' edge, walking backwards ----------
 function hsBackTracksScene(done){const mx=96,mz=30;
   const moss={x:mx+.9,z:mz+.3},you={x:mx-.9,z:mz+.4},tr={x:mx+.6,z:mz-.2};let show=0;const CAM={x:mx,z:mz+.2};
+  // clear the tall-grass/plant tufts sitting on the mud where the tracks appear, so the footprints read as prints and not foliage
+  const hidden=[];
+  try{for(const o of OBJ){if(o.room||o.hide)continue;if(o.kind==='plant'||o.kind==='bush'||o.kind==='grass'){if(o.x>mx-2.4&&o.x<mx+1.8&&o.z>mz-1.8&&o.z<mz+1.0){o.hide=true;hidden.push(o);}}}}catch(e){}
   stage({hour:Math.min(Math.max(S.hour,9),16),player:{x:you.x,z:you.z,dir:'N'},cast:{moss:{x:moss.x,z:moss.z,dir:'W'}},cam:CAM,lead:800,
     light(L){glowAt(VW*.5,VH*.4,Math.max(VW,VH)*.6,[26,24,34],.3);hsVignette(.3);},
     props:[{x:tr.x,z:tr.z,draw(X,Y){if(show>0){ctx2.save();ctx2.globalAlpha=Math.min(1,show);hsBackTracks(X,Y+6);ctx2.restore();}}}],
@@ -683,14 +688,19 @@ function hsBackTracksScene(done){const mx=96,mz=30;
       {who:'moss',text:'Never find what makes them. Never find where they start. This set’s new. This year.',expr:'wrong'},
       {who:'moss',text:'Your size, about. A bit smaller. I’d keep to the lit paths, if I were you.',expr:'sad',wait:.4},
     ],
-    done(){done&&done();}});}
+    done(){for(const o of hidden)o.hide=false;done&&done();}});}
 
 // ---------- 19. Orla — "The husband tree": the oldest tree in the orchard, where Fergus is buried ----------
 function hsHusbandTree(done){const tx=46,tz=58;
-  const orla={x:tx+1.1,z:tz+.4},you={x:tx-1.2,z:tz+.6},grave={x:tx,z:tz-.6};let ap=0;const CAM={x:tx,z:tz+.3};
+  const orla={x:tx+1.5,z:tz+1.0},you={x:tx-1.5,z:tz+1.0},grave={x:tx,z:tz+.1};let ap=0;const CAM={x:tx,z:tz+.6};
+  // Clear the world orchard trees crowding this spot (they occlude the grave and the two of them), and stand ONE dedicated husband tree here instead — the oldest tree, apart, with the grave at its foot.
+  const hidden=[];let htSpr='tree';
+  try{for(const o of OBJ){if(o.room||o.hide)continue;if(o.kind==='tree'||o.kind==='pine'||o.kind==='bush'||o.kind==='plant'){if(Math.hypot(o.x-tx,o.z-tz)<4.4){if(o.kind==='tree'&&o.spr)htSpr=o.spr;o.hide=true;hidden.push(o);}}}}catch(e){}
+  const ht={x:tx+.1,z:tz-1.5};
   stage({hour:Math.min(Math.max(S.hour,10),16),player:{x:you.x,z:you.z,dir:'E'},cast:{orla:{x:orla.x,z:orla.z,dir:'W'}},cam:CAM,lead:800,
     light(L){hsVignette(.2);},
-    props:[{x:grave.x,z:grave.z,draw(X,Y){shadow(X,Y,12);drawSpr('grave_0',X,Y);}},
+    props:[{x:ht.x,z:ht.z,draw(X,Y){drawSpr(htSpr,X,Y,null,null,0,{scale:1.22});}},   // the oldest tree in the orchard, standing alone
+      {x:grave.x,z:grave.z,draw(X,Y){shadow(X,Y,12);drawSpr('grave_0',X,Y);}},
       {get x(){const n=npcById('orla');return n?n.x:orla.x;},get z(){const n=npcById('orla');return (n?n.z:orla.z)+.01;},draw(X,Y){if(ap>0){ctx2.save();ctx2.globalAlpha=Math.min(1,ap);hsAppleHeld(X-6,Y-20);ctx2.restore();}}}],
     beats:[
       {hold:1.0,face:{orla:'W',you:'E'},act(){stgTitle('Orla — The husband tree');}},
@@ -700,7 +710,7 @@ function hsHusbandTree(done){const tx=46,tz=58;
       {hold:1.2},
       {who:'orla',text:'Thirty years. I’ve never once eaten one. I pick them, and I hold them, and I put them back.',expr:'sad',wait:.4},
     ],
-    done(){done&&done();}});}
+    done(){for(const o of hidden)o.hide=false;done&&done();}});}
 
 // ---------- route the iconic heart events to their staged versions; everything else still plays via stgGeneric ----------
 const HS_SCENES={

@@ -1072,3 +1072,9 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Don't let a dark scene become a black void with figures stranded in a corner. Keep the key props CLOSE to the figures (small depth gap) so they compose together; add a dim but visible ground plane so the figures stand on something; give each figure a lantern glow so they read.
 - Blackout props should cover only the band they need to hide (the clutter behind the houses), not the whole screen — a full-screen blackout kills all context and grounding.
 - Start a walking pair NEAR the first key prop, not far off to one side, or the establishing shot is lopsided with a dead half.
+
+## Staging a cutscene prop among world objects (Orla's grave, Moss's tracks)
+- When a staged prop/figure lands in an area full of world objects (orchard trees, tall grass) they OCCLUDE each other and fuse into blobs. Don't fight the z-sort: collect the nearby world objects (OBJ, by kind tree/pine/bush/plant/grass within a radius) and set o.hide=true for the scene, then restore o.hide=false in done().
+- A cleared patch around a lone staged tree/grave actually reads BETTER ("the oldest tree, standing apart") and gives the figures a clean stage.
+- Always pair the hide with a restore in done(), or the world stays decluttered after the cutscene.
+- A ground-impression prop (footprints, stains) in a dark scene must have real contrast: a bold dark outline + a mid fill a clear step above the floor + a lit top-left rim. "Matte, barely above the floor" reads as nothing — the whole scare vanishes. Keep it grounded (not a glowing mound) but make the shape legible.
