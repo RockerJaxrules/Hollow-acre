@@ -18,7 +18,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Collect the game files
-        run: mkdir -p site && cp -r hollow-acre/2d/index.html hollow-acre/2d/spr hollow-acre/2d/CREDITS.txt hollow-acre/2d/vendor site/
+        # the service worker, manifest, version file and icons MUST ship too, or the page can't install or run offline
+        run: mkdir -p site && cp -r hollow-acre/2d/index.html hollow-acre/2d/sw.js hollow-acre/2d/manifest.webmanifest hollow-acre/2d/version.json hollow-acre/2d/icon-192.png hollow-acre/2d/icon-512.png hollow-acre/2d/spr hollow-acre/2d/CREDITS.txt hollow-acre/2d/vendor site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with: {path: site}
