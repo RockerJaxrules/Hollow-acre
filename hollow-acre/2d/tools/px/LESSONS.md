@@ -975,6 +975,8 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A tall narrow side view needs its lid a full step lighter than the end panel and the contents strip wider (5-6 px) and brighter than the panel, or it reads as a post or clock case; a candle flame must be 3-4 px with a pale core and the brightest thing on the piece.
 
 ## Benches (Nov 10: round 1, 10 pieces both orders; the garage workbench 6 installed)
+- A long bench turned end-on (its length running up the screen) reads as a cabinet or glass door whenever its top has a frame or a different tone from the front's worktop: the turned top must be the same lit worktop green as the front, edge to edge, with the props spaced up it and overlapping. Parked after 2 more rounds at 4 (Nov 11). (bench views r1-r2)
+- A cobbler's bench says its trade with one tan boot on an iron last on a real lit worktop (8-10 px deep, two steps lighter than the front); a full-height tool board makes it a hutch, a short rail of equal bars reads as a chair back. (benches r1-r4)
 - [round 2 overturned round 1] The trade object must be the highest-contrast shape on the bench: my sandstone grindstone sank into the brown wood and lost both ways to the old grey disc. Keep a grey wheel lighter than the wood; shade its edge-on view as a rim (lit left, dark right, proud hub, water in the trough), never with even ribs (a wrapped sack).
 - A pale saw reads at 1x; the same saw in dark steel goes to a grey smear (the old carpentry bench won both ways). Darkening the trade object to tame it loses the read.
 - Brown leather on brown wood disappears; a work piece needs a hue step from the bench (a dull oxblood hide on oak), not just a value step.
