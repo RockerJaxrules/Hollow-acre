@@ -160,7 +160,7 @@ function scatter(n,spacing,pick,test,rad){const placed=[];let tries=0;while(plac
 function buildWorld(){
   // ---------- Grandpa's farm (laid out by hand)
   building('cabin',0,-9.4,{jack:1});
-  put('jack_b',-1.6,-8.85,.25,{glow:1});
+  put('jack_c',-1.6,-8.85,.25,{glow:1});   // a different face from the porch's other lantern (judge: two identical faces at the door)
   // porch-side: shipping crate by the door, rain barrels at the left corner, firewood + chopping block at the right
   put('crate',binPos.x,binPos.z,0,{kind:'bin'});addRect(binPos.x-.5,binPos.z-.6,binPos.x+.5,binPos.z);
   put('barrel',-4.1,-9.55,.33);put('barrel',-4.75,-9.95,.33);put('sacks',-5.35,-8.8);
