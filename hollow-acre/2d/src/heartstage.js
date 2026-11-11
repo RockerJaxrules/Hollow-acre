@@ -102,6 +102,28 @@ function hsPlate(X,Y,eaten){ctx2.fillStyle='#120c08';ctx2.beginPath();ctx2.ellip
 function hsCandle(X,Y,lean,lit){const lx=Math.round(lean*5);ctx2.fillStyle='#1a120c';ctx2.fillRect(X-2,Y-12,4,12);ctx2.fillStyle='#e8dcc0';ctx2.fillRect(X-2,Y-12,3,12);
   if(lit){ctx2.fillStyle='#ffd070';ctx2.fillRect(X-1+lx,Y-17,2,5);ctx2.fillStyle='#fff2c0';ctx2.fillRect(X+lx,Y-16,1,2);}}
 function hsSkipStone(X,Y){ctx2.fillStyle='rgba(220,224,228,.9)';ctx2.fillRect(X-1,Y-1,3,2);ctx2.fillStyle='rgba(150,170,180,.5)';ctx2.fillRect(X-2,Y+2,5,1);}   // a stone mid-skip + its splash
+function hsCarvedBox(X,Y){   // a dovetailed oak box on a cloth; carved on the lid, your farmhouse with one lit window and a figure turned away inside it
+  const o='#120c08';ctx2.fillStyle='rgba(10,8,6,.5)';ctx2.beginPath();ctx2.ellipse(X,Y+6,26,6,0,0,6.283);ctx2.fill();   // a soft contact shadow so it reads as sitting out, shown to you
+  ctx2.fillStyle=o;ctx2.fillRect(X-21,Y-17,43,23);ctx2.fillStyle='#6a4a28';ctx2.fillRect(X-20,Y-16,41,21);ctx2.fillStyle='#845e34';ctx2.fillRect(X-20,Y-16,41,4);
+  ctx2.fillStyle='#5a3c20';for(let x=-20;x<21;x+=6)ctx2.fillRect(X+x,Y-16,1,21);ctx2.fillStyle='#4a3018';ctx2.fillRect(X-20,Y+2,41,3);   // slats + dovetail shadow
+  ctx2.fillStyle='#e8c060';ctx2.fillRect(X+15,Y-6,3,3);ctx2.fillStyle='#8a6a30';ctx2.fillRect(X+15,Y-6,3,1);   // a brass clasp
+  ctx2.fillStyle='#34220f';ctx2.fillRect(X-13,Y-13,24,13);ctx2.fillStyle='#4e331b';ctx2.fillRect(X-13,Y-13,24,2);   // the carved panel, sunk
+  ctx2.fillStyle='#241607';ctx2.fillRect(X-7,Y-9,14,9);ctx2.beginPath();ctx2.moveTo(X-9,Y-9);ctx2.lineTo(X,Y-15);ctx2.lineTo(X+9,Y-9);ctx2.fill();   // the little house + gable roof
+  ctx2.fillStyle='#3a2410';ctx2.fillRect(X-9,Y-9,18,1);ctx2.fillStyle='#f0d070';ctx2.fillRect(X-3,Y-6,6,6);ctx2.fillStyle='#1a1008';ctx2.fillRect(X-1,Y-5,3,5);}   // the lit window, a dark figure turned away in it
+function hsBellRope(X,Y,t){   // a new white rope hanging from above, swaying; a coil of old rope cut into yard-pieces on the floor
+  const sw=Math.round(Math.sin(t*1.3)*2);ctx2.fillStyle='#e8e2d2';ctx2.fillRect(X-1+sw,Y-80,3,66);ctx2.fillStyle='#cfc8b6';ctx2.fillRect(X-1+sw,Y-80,1,66);
+  ctx2.fillStyle='#b8ad94';ctx2.fillRect(X-2+sw,Y-16,5,5);ctx2.fillStyle='#8a7e64';ctx2.fillRect(X-2+sw,Y-12,5,1);   // the handle knot
+  for(let i=0;i<9;i++){const cx=X-18+(i%5)*9+(i>4?4:0),cy=Y+6+(i>4?5:0);ctx2.strokeStyle='#5a4a30';ctx2.lineWidth=2;ctx2.beginPath();ctx2.ellipse(cx,cy,4,2,0,0,6.283);ctx2.stroke();}}   // the cut coils
+function hsNailBlade(X,Y,wrap,glow){   // oilcloth bundle, then a short black blade, warm from the forge, that sometimes points
+  if(wrap<1){ctx2.fillStyle='#3a3630';ctx2.fillRect(X-9,Y-4,18,8);ctx2.fillStyle='#4a463e';ctx2.fillRect(X-9,Y-4,18,2);ctx2.fillStyle='#2a2620';ctx2.fillRect(X-2,Y-5,4,10);return;}
+  ctx2.save();ctx2.translate(X,Y);ctx2.rotate(-.5);ctx2.fillStyle='#120c08';ctx2.fillRect(-2,2,4,9);ctx2.fillStyle='#4a3a26';ctx2.fillRect(-1,2,2,9);   // the grip
+  ctx2.fillStyle='#14202a';ctx2.fillRect(-2,-16,4,18);ctx2.fillStyle='#24384a';ctx2.fillRect(-2,-16,2,18);ctx2.fillStyle='#4a6a86';ctx2.fillRect(-2,-16,1,18);   // blued steel
+  if(glow>0){ctx2.globalAlpha=glow;ctx2.fillStyle='#e06a2a';ctx2.fillRect(-1,-16,2,18);ctx2.globalAlpha=1;}ctx2.restore();}
+function hsBook(X,Y,page){   // a ledger laid open: two cream pages, ruled lines of births, one entry on the right page underlined
+  const o='#120c08';ctx2.fillStyle=o;ctx2.fillRect(X-20,Y-14,40,18);ctx2.fillStyle='#6a4228';ctx2.fillRect(X-19,Y-13,38,16);
+  ctx2.fillStyle='#ece2c8';ctx2.fillRect(X-18,Y-12,17,14);ctx2.fillRect(X+1,Y-12,17,14);ctx2.fillStyle='#3a2614';ctx2.fillRect(X-1,Y-13,2,16);   // spine
+  ctx2.fillStyle='#b4a988';for(let i=0;i<5;i++){ctx2.fillRect(X-16,Y-9+i*3,13,1);ctx2.fillRect(X+3,Y-9+i*3,13,1);}
+  if(page>0){const yy=Y-9+Math.min(4,Math.floor(page*4))*3;ctx2.fillStyle='#7a2a1e';ctx2.fillRect(X+3,yy,13,1);ctx2.fillStyle='rgba(180,60,40,'+(.3+.2*Math.sin(page*20))+')';ctx2.fillRect(X+3,yy-1,13,3);}}   // your entry, underlined in rust
 
 // ---------- 1. Caitlyn — "Closing time": the store locked at noon, the keys, the man at the window ----------
 function hsClosingTime(done){const R=ROOMS.store,ox=R.ox,oz=R.oz;MAEV.on=false;
@@ -358,12 +380,82 @@ function hsTheGuest(done){const R=ROOMS.home_harlow||ROOMS.store,ox=R.ox,oz=R.oz
     ],
     done(){done&&done();}});}
 
+// ---------- 12. Nell — "The box is finished": the carpentry, a box carved with your house and a figure in the window ----------
+function hsNellBox(done){const R=ROOMS.shop_carp||ROOMS.store,ox=R.ox,oz=R.oz;
+  const nell={x:ox+5,z:oz+2.5},you={x:ox+5,z:oz+4.6},box={x:ox+5,z:oz+3.55};let show=0;const CAM={x:ox+5,z:oz+3.5};
+  stage({room:ROOMS.shop_carp?'shop_carp':'store',hour:Math.min(Math.max(S.hour,10),16),player:{x:you.x,z:you.z,dir:'N'},cast:{nell:{x:nell.x,z:nell.z,dir:'S'}},cam:CAM,lead:750,
+    light(L){glowAt(sx(box.x),sz(box.z)-18,34,[255,214,140],.26);hsVignette(.22);},
+    props:[{x:box.x,z:box.z,draw(X,Y){if(show>0){ctx2.save();ctx2.globalAlpha=Math.min(1,show);hsCarvedBox(X,Y-18);ctx2.restore();}}}],
+    beats:[
+      {hold:.9,face:{nell:'S',you:'N'},act(){stgTitle('Nell — The box is finished');}},
+      {who:'nell',text:'It’s done. Oak, dovetailed, lined with felt. Best thing these hands ever made.',expr:'happy',act(){show=.01;},update(dt){show=Math.min(1,show+dt*1.4);}},
+      {who:'nell',text:'Thing is — I don’t remember making it. I carved that lid in my sleep. Look what’s on it.',expr:'think',wait:.3},
+      {hold:1.6,emote:{you:'?'}},
+      {who:'you',text:'That’s… my farmhouse. With someone in the window. Turned away, looking into the house.',expr:'scared'},
+      {who:'nell',text:'At something behind them, I’d say. I didn’t carve a face. My hands knew not to.',expr:'wrong'},
+      {who:'nell',text:'Take it. I can’t have it on the bench. It watches the shop when my back’s turned. Felt-lined, mind. For keeping something soft.',expr:'sad',wait:.4},
+    ],
+    done(){done&&done();}});}
+
+// ---------- 13. Hale — "The bell rope": the church, the new rope, and the coil of old rope cut by the Tithe ----------
+function hsBellRopeScene(done){const R=ROOMS.church,ox=R.ox,oz=R.oz;
+  const hale={x:ox+5.9,z:oz+3.0},you={x:ox+4.2,z:oz+3.6},rope={x:ox+5,z:oz+3.2};const CAM={x:ox+5,z:oz+3.2};
+  stage({room:'church',hour:Math.min(Math.max(S.hour,9),17),player:{x:you.x,z:you.z,dir:'N'},cast:{hale:{x:hale.x,z:hale.z,dir:'S'}},cam:{x:CAM.x,z:CAM.z+.4},lead:850,
+    light(L){glowAt(sx(ox+5),sz(oz+1.6)-20,90,[255,196,120],.26);hsVignette(.28);},
+    props:[{x:rope.x,z:rope.z,draw(X,Y,t){hsBellRope(X,Y,t);}}],
+    beats:[
+      {hold:1.0,face:{hale:'S',you:'N'},act(){stgTitle('Hale — The bell rope');}},
+      {who:'hale',text:'This rope is new. White, smooth. I replace it every year. Do you want to know why?',expr:'neutral'},
+      {hold:1.2,emote:{you:'…'}},
+      {who:'hale',text:'Every Tithe night it wears clean through. Exactly through. I keep the pieces. I don’t know why I keep them.',expr:'sad'},
+      {who:'you',text:'There’s a whole coil of them. All cut to a yard. You’ve counted them.',expr:'scared'},
+      {who:'hale',text:'A hundred and fifty-three. You’ve been here less than a month. So tell me —',expr:'wrong',wait:.3},
+      {who:'hale',text:'— why are you so sure you’ve counted them before?',expr:'scared',wait:.4},
+    ],
+    done(){done&&done();}});}
+
+// ---------- 14. Gideon — "A blade that remembers": the forge, a knife made from thirty years of Tithe nails ----------
+function hsNailBladeScene(done){const R=ROOMS.shop_forge||ROOMS.store,ox=R.ox,oz=R.oz;
+  const gid={x:ox+4.4,z:oz+3.0},you={x:ox+5.8,z:oz+4.2},blade={x:ox+5.1,z:oz+3.5};let wrap=0,glow=0;const CAM={x:ox+4.6,z:oz+3.4};
+  stage({room:ROOMS.shop_forge?'shop_forge':'store',hour:Math.min(Math.max(S.hour,9),17),player:{x:you.x,z:you.z,dir:'N'},cast:{gideon:{x:gid.x,z:gid.z,dir:'E'}},cam:CAM,lead:800,
+    light(L){glowAt(sx(ox+2.2),sz(oz+1.3)-16,70,[255,150,60],.5+.12*Math.sin(STG.t*5));hsVignette(.3);},
+    props:[{get x(){return P.x;},get z(){return P.z+.01;},draw(X,Y){if(wrap<=0)return;hsNailBlade(X,Y-24,wrap,glow);}}],
+    beats:[
+      {hold:1.0,face:{gideon:'E',you:'N'},act(){stgTitle('Gideon — A blade that remembers');}},
+      {who:'gideon',text:'Made you something. Don’t thank me yet. Here — it’s wrapped in oilcloth for a reason.',expr:'neutral',act(){wrap=.3;},update(dt){wrap=Math.min(.95,wrap+dt*1.5);}},
+      {hold:1.0,act(){wrap=1;setTimeout(()=>{glow=1;SFX.till&&SFX.till();},400);},update(dt){if(glow>0)glow=Math.max(.35,glow-dt*.3);}},
+      {who:'gideon',text:'Forged from the nails. Every nail ever pulled from the Tithe House door. Thirty years of them, melted down.',expr:'sad'},
+      {who:'you',text:'It’s warm. It’s always warm, isn’t it. And it just… moved. In my hand.',expr:'scared'},
+      {who:'gideon',text:'Iron remembers. It remembers every hand that was held shut by it. Cut the thing with that and it’ll feel every one of them at once.',expr:'wrong',wait:.3},
+      {who:'gideon',text:'Keep it on you. When it points — and it will — don’t argue with it.',expr:'neutral',wait:.4},
+    ],
+    done(){done&&done();}});}
+
+// ---------- 15. Della — "Your birth": the midwife's book, the page thirty years old, why it wants you ----------
+function hsBirthScene(done){const R=ROOMS.home_fenn||ROOMS.store,ox=R.ox,oz=R.oz;
+  const del={x:ox+4,z:oz+2.6},you={x:ox+4,z:oz+4.4},book={x:ox+4,z:oz+3.5};let open=0,page=0;const CAM={x:ox+4,z:oz+3.5};
+  stage({room:ROOMS.home_fenn?'home_fenn':'store',hour:Math.min(Math.max(S.hour,16),18.4),player:{x:you.x,z:you.z,dir:'N'},cast:{della:{x:del.x,z:del.z,dir:'S'}},cam:CAM,lead:750,
+    light(L){glowAt(sx(ox+1),sz(oz+1.1)-30,60,[255,196,120],.3);hsVignette(.22);},
+    props:[{x:book.x,z:book.z,draw(X,Y,t){if(open>0){ctx2.save();ctx2.globalAlpha=Math.min(1,open);hsBook(X,Y-8,page);ctx2.restore();}}}],
+    beats:[
+      {hold:.9,face:{della:'S',you:'N'},act(){stgTitle('Della — Your birth');}},
+      {who:'della',text:'I write down every baby I ever catch. Name, weight, time, and one line about the first cry.',expr:'neutral',act(){open=.01;},update(dt){open=Math.min(1,open+dt*1.4);}},
+      {who:'della',text:'Let me turn to a page thirty years old. There. Read your own first cry.',expr:'think',act(){page=.01;},update(dt){page=Math.min(1,page+dt*.7);}},
+      {hold:1.4,emote:{you:'!'}},
+      {who:'you',text:'“Loud. Very loud. Angry at the whole valley.” …This is me. I was born here?',expr:'scared'},
+      {who:'della',text:'Your mother was visiting Elias. You came early. You were born in this valley, child. One of ours.',expr:'sad'},
+      {who:'della',text:'That’s why it wants you. And that’s why it can’t have you without a fight. I’ve seen how you cry.',expr:'neutral',wait:.4},
+    ],
+    done(){done&&done();}});}
+
 // ---------- route the iconic heart events to their staged versions; everything else still plays via stgGeneric ----------
 const HS_SCENES={
   'mae|Closing time':hsClosingTime,'agnes|The music box, played':hsMusicBoxScene,'silas|The fresh hole':hsFreshHole,
   'otto|The lake below the pond':hsLakeBelow,'cora|The countdown':hsCountdown,'june|The route':hsRoute,
   'mae|Danny’s last letter':hsDannyLetter,'corwin|The far shore':hsFarShoreScene,
-  'ada|What stands behind you':hsBehindYou,'hob|Who eats it':hsTheGuest};
+  'ada|What stands behind you':hsBehindYou,'hob|Who eats it':hsTheGuest,
+  'nell|The box is finished':hsNellBox,'hale|The bell rope':hsBellRopeScene,
+  'gideon|A blade that remembers':hsNailBladeScene,'della|Your birth':hsBirthScene};
 {const _ps=playScene;playScene=function(id,title,html,done){
   const fn=HS_SCENES[id+'|'+title];
   if(fn&&!STG&&S.mode==='play'&&!S.paused&&typeof stage==='function')return fn(done);
