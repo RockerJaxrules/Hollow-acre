@@ -313,12 +313,19 @@ function hsFreshHole(done){const gx=62,gz=-36.2;
   stage({hour:Math.min(Math.max(S.hour,13),16),storm:true,player:{x:you.x,z:you.z,dir:'W'},cast:{silas:{x:sil.x,z:sil.z,dir:'S'}},cam:CAM,lead:800,
     tick(dt,st){const n=npcById('silas');if(!n)return;if(digging){swing+=dt*3.2;n.z=sil.z-Math.abs(Math.sin(swing))*.12;}else if(!inpit){n.z=out.z;}},
     props:[{x:0,z:9e5,draw(X,Y,t){hsRain(t,true);}},   // the storm: a cold wash and rain over the whole frame, drawn on top
-      {x:pit.x,z:pit.z+.12,draw(X,Y){const E=HSP.earth,EO=HSP.earthO;
-        // a proper grave-sized dug pit (sloped walls, lit rim, dark mouth), drawn up over Silas's legs so its near rim crosses his waist and he reads as standing DOWN in it
-        hsGrave(X,Y-24,1,46);
-        // a lit near wall at the front of the mouth, so the hole reads as earth going down, not a flat black box face
-        ctx2.fillStyle=E[1];ctx2.beginPath();ctx2.moveTo(X-13,Y-9);ctx2.lineTo(X+13,Y-9);ctx2.lineTo(X+10,Y-6);ctx2.lineTo(X-10,Y-6);ctx2.closePath();ctx2.fill();
-        ctx2.fillStyle=E[2];ctx2.fillRect(Math.round(X)-10,Math.round(Y)-7,20,1);
+      {x:pit.x,z:pit.z+.12,draw(X,Y){const E=HSP.earth,EO=HSP.earthO,PI=Math.PI;
+        // a grave cut straight INTO the ground — no raised box faces: a disturbed-earth apron flush with the grass, an earthen rim, a lit far wall raking up at the back, a black deep bottom
+        const cy=Y-15,hw=23,hh=11;
+        hsSh(X+2,cy+hh-1,hw+4,5);                                                                              // soft ground shadow at the lower edge
+        ctx2.fillStyle=EO;ctx2.beginPath();ctx2.ellipse(X,cy,hw+6,hh+5,0,0,6.283);ctx2.fill();                 // turned-earth apron, flush with the lawn
+        ctx2.fillStyle=E[1];ctx2.beginPath();ctx2.ellipse(X-1,cy-1,hw+3,hh+3,0,0,6.283);ctx2.fill();
+        ctx2.fillStyle=E[2];ctx2.beginPath();ctx2.ellipse(X,cy,hw,hh,0,0,6.283);ctx2.fill();                   // the earth rim around the opening
+        ctx2.fillStyle=E[3];ctx2.beginPath();ctx2.ellipse(X-1,cy-1,hw-1,hh-1,0,PI*1.02,PI*1.92);ctx2.fill();   // rim lit on the top-left arc
+        ctx2.fillStyle='#0a0a0e';ctx2.beginPath();ctx2.ellipse(X,cy,hw-3,hh-2,0,0,6.283);ctx2.fill();          // the hole opens, inset inside the rim
+        ctx2.fillStyle=E[1];ctx2.beginPath();ctx2.ellipse(X,cy-1,hw-5,hh-3,0,PI,2*PI);ctx2.fill();             // the far wall of the pit, lit, raking up at the back
+        ctx2.fillStyle=E[2];ctx2.beginPath();ctx2.ellipse(X,cy-2,hw-7,hh-5,0,PI,2*PI);ctx2.fill();
+        ctx2.fillStyle='#0a0a0e';ctx2.beginPath();ctx2.ellipse(X,cy+2,hw-6,hh-3,0,0,6.283);ctx2.fill();        // the deep bottom stays black
+        ctx2.fillStyle=EO;for(const[a,b] of [[-20,2],[-13,6],[16,3],[19,-2],[-7,-8],[9,-8],[2,8]])ctx2.fillRect(Math.round(X)+a,Math.round(cy)+b,2,2);   // loose clods round the rim
         // the dug soil heaped to the right of the pit: a rough, irregular heap of loose clods, lit top-left, its own cast shadow down-right
         const mx=X+34,my=Y-4;hsSh(mx+4,my+6,17,4);
         ctx2.fillStyle=EO;for(const[lx,ly,r] of [[0,0,10],[-7,2,7],[8,1,7],[2,-4,7],[-4,-2,6],[6,-3,5]]){ctx2.beginPath();ctx2.ellipse(mx+lx,my+ly,r,r*.72,0,0,6.283);ctx2.fill();}
