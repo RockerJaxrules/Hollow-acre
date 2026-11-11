@@ -288,7 +288,7 @@ function hsMusicBoxScene(done){const wx=wellPos.x,wz=wellPos.z;   // staged at t
   stage({hour:Math.min(Math.max(S.hour,16),18),player:{x:you.x,z:you.z,dir:'W'},cast:{agnes:{x:agn.x,z:agn.z,dir:'W'}},cam:CAM,lead:700,
     light(L){if(ca>0)glowAt(sx(child.x),sz(child.z)-26,64,[170,180,200],.34*ca);hsVignette(.28);},
     props:[  // the well is the real world object standing at wellPos; only the ghost child and Agnes's music box are staged
-      {x:child.x,z:child.z+.01,draw(X,Y,t){if(ca<=0)return;const a=Math.min(.62,ca*.62),bob=Math.round(Math.sin(t*2.2));drawSpr('ruth',X,Y-bob,'walk',pt>.45?'E':'S',0,{alpha:a});}},   // Ruth herself — the game's OWN ghost-girl sprite (as seen by the corn), drawn translucent, facing you, turning to the well as she points
+      {x:child.x,z:child.z+.01,draw(X,Y,t){if(ca<=0)return;const a=Math.min(.62,ca*.62),bob=Math.round(Math.sin(t*2.2)),ptn=pt>.45;drawSpr('ruth',X,Y-bob,ptn?'point':'walk',ptn?'E':'S',0,{alpha:a});}},   // Ruth herself — the game's OWN ghost-girl sprite (as seen by the corn), translucent, facing you; on the beat she lifts her arm she turns to the well and her new 'point' frame extends an arm down into it
       {get x(){return agn.x+.9;},get z(){return agn.z+.05;},draw(X,Y){if(open>0){   // the music box sits on a little stump beside Agnes, grounded, not floating
         const W=HSP.wood,WO=HSP.woodO;ctx2.fillStyle=HSP.SH;ctx2.beginPath();ctx2.ellipse(X,Y,9,3,0,0,6.283);ctx2.fill();
         ctx2.fillStyle=WO;ctx2.fillRect(X-7,Y-8,14,8);ctx2.fillStyle=W[1];ctx2.fillRect(X-6,Y-7,12,7);ctx2.fillStyle=W[2];ctx2.beginPath();ctx2.ellipse(X,Y-8,7,2.4,0,0,6.283);ctx2.fill();ctx2.fillStyle=W[3];ctx2.beginPath();ctx2.ellipse(X,Y-8,7,2,0,Math.PI,2*Math.PI);ctx2.fill();   // the stump top
