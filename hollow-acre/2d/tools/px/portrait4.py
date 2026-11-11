@@ -26,7 +26,7 @@ def skin_ramp(base):
     def hv(dh, ks, kv): rr, gg, bb = colorsys.hsv_to_rgb((h + dh) % 1, min(1, sa * ks), min(1, v * kv)); return (int(rr * 255), int(gg * 255), int(bb * 255))
     B = hexc(base) if isinstance(base, str) else base
     if v < .86:   # medium and dark skin (judge: its shadow side read as a hard saturated red-brown bruise): shade toward plum, not more red
-        return [hv(-.06, .92, .52), hv(-.045, .9, .7), hv(-.03, 1.02, .87), tuple(B), mix(B, (255, 238, 222), .26), mix(B, (255, 246, 234), .5)]   # (judge r4: saturated dark steps made shadow islands read as bruises)
+        return [hv(-.05, .92, .52), hv(-.03, .9, .7), hv(-.012, 1.0, .86), tuple(B), mix(B, (255, 238, 222), .26), mix(B, (255, 246, 234), .5)]   # (judge r4: saturated dark steps made shadow islands read as bruises)
     return [hv(-.05, 2.0, .5), hv(-.035, 1.8, .68), hv(-.018, 1.42, .85), tuple(B), mix(B, (255, 242, 226), .28), mix(B, (255, 248, 236), .55)]
 def ramp(base, n=6, dark=.36, light=1.32, shade_hue=.98, shade_amt=.22, lit_amt=.18, sat=1.0, base_i=3):
     """a hue-shifted ramp, the base colour sitting at index base_i: shadows turn toward shade_hue and get richer,
@@ -527,7 +527,7 @@ class Painter:
         fm = poly(s.face_poly())
         lit = sphere_lit(61.5, 52, 27, C.get('face_ry', 50), flat=.72, amb=.44, k=.32)   # a smaller face_ry curves the light-to-shadow edge round the cheek (a tall one makes a straight vertical 'mask' edge)
         lit += .07 * G(55, 37, 8, 5)                                  # forehead
-        lit += .1 * G(50, 64.5, 5, 3) + .04 * G(78, 64.5, 4, 3)       # cheekbones
+        lit += .1 * G(50, 64.5, 5, 3) + (0 if C.get('kind') in ('man', 'oldman') else .04) * G(78, 64.5, 4, 3)       # cheekbones (none on a man's shaded side: it read as a bruise)
         lit -= .07 * G(52, 56.5, 7, 2.6) + .09 * G(76.5, 56.5, 7, 2.6)  # under the brow ridge
         # the nose: a lit bridge, its right side and underside in shadow, a lit tip
         ns_ = C.get('nose', 1.0)
@@ -663,7 +663,7 @@ class Painter:
         elif ex == 'love': di, dp, do = -.9, -1.1, -.6
         elif ex == 'laugh': di, dp, do = -1.6, -1.6, -1.0
         elif ex == 'cry': di, dp, do = -2.8, -.4, 1.0
-        elif ex == 'think': di, dp, do = 2.2, .2, -.4   # (judge r3: think and smug both used one raised brow) level, slightly knit
+        elif ex == 'think': di, dp, do = 1.3, .1, -.3   # (judge r3: think and smug both used one raised brow) level, slightly knit
         side = {'smug': {-1: (-3.0, -4.4, -2.6), 1: (1.6, 1.2, .6)}, }.get(ex)   # bigger, one-sided (judge: within 1-2 px of neutral)
         for sg in (-1, 1):
             if side: di, dp, do = side[sg]
@@ -725,6 +725,9 @@ class Painter:
             cv.put(ell(mx, my + .9, 2.2, 2.2), 'mouth', .35 + .3 * sstep(my, my + 2.5, Y))
             cv.add(ell(mx, my - .3, 3.6, 1.7) & ~ell(mx, my + .9, 2.2, 2.2), 'lip', -.2)
             return
+        if ex == 'think':   # (judge r5: lips split into two dashes) one small flat line pulled to one side, its far end a touch lower
+            ln = np.stack([np.linspace(mx - hw, mx + hw, 12), my + .2 + np.linspace(-.2, .7, 12)], 1)
+            cv.put(ribbon(ln, [.6, 1.0, 1.0, .7])[0], 'lipline', .4); return
         if ex == 'angry': uh, lh = uh * .75, lh * .7
         bot = line + lh * (1 - u * u) ** .65
         up_lip = poly(list(zip(xs, top)) + list(zip(xs[::-1], line[::-1])))
@@ -1248,6 +1251,20 @@ class Painter:
             cv.lit[~keep] = cv.lit[~keep] * .8 - .03 + .1 * G(CX - 34, 96, 26, 30)[~keep]   # a lantern held low on the left
         img, bid, blit = reduce(cv)
         img = outline(img, bid, s.pal)
-        return img
+        return cool_rim(img, s.var)
+
+def cool_rim(img, var='day'):
+    """(judge: dark coats and black hair sank into the dark backdrop) a 2 px cool lavender rim just inside the outline on the
+    shadow side (right) of dark materials only, so the silhouette holds; lit side and mid tones untouched"""
+    a = img[..., 3] > 0; rgb = img[..., :3].astype(np.float32); lum = rgb @ np.array([.3, .59, .11], np.float32)
+    out = img.copy(); H_, W_ = a.shape; RIM = np.array([122, 112, 150], np.float32); k = .42 if var != 'night' else .3
+    for y in range(H_):
+        for x in range(W_ - 3):
+            if not a[y, x] or lum[y, x] > 64: continue
+            if a[y, x + 1] and not a[y, x + 2]: kk = k              # x+1 is the outline: this is the first pixel inside it
+            elif a[y, x + 1] and a[y, x + 2] and not a[y, x + 3]: kk = k * .55
+            else: continue
+            out[y, x, :3] = (rgb[y, x] * (1 - kk) + RIM * kk).astype(np.uint8)
+    return out
 
 def portrait(C, ex, var='day'): return Painter(C, ex, var).paint()
