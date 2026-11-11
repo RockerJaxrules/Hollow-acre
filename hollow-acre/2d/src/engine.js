@@ -39,6 +39,7 @@ function maskAt(fn,x,z){return (fn(x,z)?8:0)|(fn(x+1,z)?4:0)|(fn(x,z+1)?2:0)|(fn
 // the ground is drawn in chunks and kept; the valley is big enough now that only the most recently seen ones are kept (the rest are redrawn if you come back)
 const CHUNK_MAX=150;
 function chunkKeep(k,c){chunks.set(k,c);if(chunks.size>CHUNK_MAX){let n=chunks.size-CHUNK_MAX;for(const key of chunks.keys()){if(n--<=0)break;chunks.delete(key);}}}
+let _litFeet=null;   // the woodland trees, boulders and stumps that gather leaves at their feet (rebuilt when OBJ changes size)
 function chunk(cx,cz){const k=cx+','+cz;let c=chunks.get(k);if(c){if(c.used!==FRAME_NO){c.used=FRAME_NO;chunks.delete(k);chunks.set(k,c);}return c;}
   c=document.createElement('canvas');c.width=CH;c.height=CH;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
   const N=CH/32,x0=cx*N,z0=cz*N;
@@ -77,8 +78,8 @@ function chunk(cx,cz){const k=cx+','+cz;let c=chunks.get(k);if(c){if(c.used!==FR
              :(r<.4?pk(26,3):r<.75?pk(23,3):pk(21,2));
       const ox=((hash(X,Z+3)*24)|0)-12,oy=((hash(X+5,Z)*24)|0)-12,cx=i*32+16+ox,cy=j*32+16+oy;
       g.drawImage(lit,v*cw,0,cw,chh,cx-(cw>>1),cy-(chh>>1),cw,chh);}}   // never mirrored: the light stays top-left
-    if(lit){const cw=SPR.litter.fw,chh=SPR.litter.fh;for(const o of OBJ){if(o.hide||o.room||o.x<x0-2||o.x>x0+N+2||o.z<z0-2||o.z>z0+N+2)continue;
-      if(!(o.kind==='tree'||o.kind==='pine'||/boulder|rock_big|stump/.test(o.spr||'')))continue;if(!LAYERS.dark(o.x,o.z)||hash(o.x*7|0,o.z*3|0)>.75)continue;
+    if(lit){const cw=SPR.litter.fw,chh=SPR.litter.fh;if(!_litFeet||_litFeet.n!==OBJ.length){_litFeet=OBJ.filter(o=>(o.kind==='tree'||o.kind==='pine'||/boulder|rock_big|stump/.test(o.spr||''))&&!o.room&&LAYERS.dark(o.x,o.z)&&hash(o.x*7|0,o.z*3|0)<=.75);_litFeet.n=OBJ.length;}
+      for(const o of _litFeet){if(o.hide||o.x<x0-2||o.x>x0+N+2||o.z<z0-2||o.z>z0+N+2)continue;
       const r=hash((o.x*13)|0,(o.z*11)|0),v=r<.35?29+((r*11.4)|0)%4:r<.75?6+((r*10)|0)%4:10+((r*10)|0)%4;
       g.drawImage(lit,v*cw,0,cw,chh,Math.round((o.x-x0)*32+10-(cw>>1)),Math.round((o.z-z0)*32+6-(chh>>1)),cw,chh);}}   // leaves gathered against what stops them
   // stones on the dirt: clusters of 2-4 strewn by world position, gathered toward a lane's edges and corners so its
