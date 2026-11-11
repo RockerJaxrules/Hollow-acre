@@ -3552,7 +3552,8 @@ if(K==='band2'){   // the town bandstand: an octagonal deck lit as a board plane
   for(let y=apex-6;y<apex+2;y++){P(A,cx,y,PT[y<apex-3?5:3]);P(A,cx+1,y,PT[2]);}for(let x=-2;x<=2;x++)P(A,cx+x,apex-4,PT[x<0?5:3]);P(A,cx,apex-7,PT[5]);
   tuft(cx-rx-2,base,3);tuft(cx+rx,base,3);tuft(cx-30,base+1,2);}
 if(K==='inbench2'){   // (benches: "a wall cabinet with a pegboard") a garage workbench in 3/4: a deep lit top with the work on it, a vise, a pegboard behind, drawers, a lower shelf
-  const base=H-3,R=RAMP.pine,D=RAMP.walnut,I=RAMP.iron,St=RAMP.steel,x0=5,w=74,top=27,dT=12,hF=7;
+  const base=H-3,R=RAMP.oak,   // (benches fam r1: the honey worktop was the loudest mass in the family) two steps duller
+  D=RAMP.walnut,I=RAMP.iron,St=RAMP.steel,x0=5,w=74,top=27,dT=12,hF=7;
   for(let x=x0-2;x<x0+w+5;x++){SH(x+1,base+1,150);SH(x+2,base+2,80);}
   // the pegboard behind: a darker board, holes one tone down, the tools hanging on it with their own light
   for(let y=4;y<top+2;y++)for(let x=x0+3;x<x0+w-3;x++){let c=D[(x<x0+8)?3:2];if((x-x0)%4===2&&(y-4)%4===2)c=D[1];if(y===4)c=D[4];if(x===x0+w-4)c=D[0];P(A,x,y,c);}
@@ -3560,7 +3561,8 @@ if(K==='inbench2'){   // (benches: "a wall cabinet with a pegboard") a garage wo
   hang(14,8);for(let y=9;y<20;y++){P(A,13,y,RAMP.oak[4]);P(A,14,y,RAMP.oak[2]);}for(let i=-3;i<=3;i++){P(A,13+i,9,I[i<0?4:2]);P(A,13+i,10,I[1]);}   // a hammer
   hang(24,8);for(let y=9;y<21;y++){P(A,24,y,St[3]);P(A,25,y,St[1]);}for(const [dx,dy] of [[-1,9],[2,9],[-1,10],[2,10],[-1,20],[2,20],[0,21],[1,21]])P(A,24+dx,dy,St[3]);   // a wrench
   for(const [sx,c] of [[33,'#8a2a22'],[36,'#2a4a6a'],[39,'#8a7a2a']]){hang(sx,8);for(let y=9;y<14;y++){P(A,sx,y,hexR([c])[0]);P(A,sx+1,y,mixC(hexR([c])[0],[0,0,0],.4));}for(let y=14;y<19;y++)P(A,sx,y,St[3]);}   // screwdrivers
-  hang(50,7);for(let y=8;y<20;y++)for(let x=46;x<60;x++){const t=(y-8)/12;if(x>46+t*2&&x<60-(1-t)*8)P(A,x,y,y===8?St[4]:(x%2&&y===19?St[1]:St[2]));}for(let y=8;y<14;y++)for(let x=58;x<63;x++)P(A,x,y,RAMP.oak[x<60?4:2]);   // a handsaw
+  hang(52,7);for(let j=0;j<12;j++){P(A,50+Math.round(j*.15),8+j,I[3]);P(A,51+Math.round(j*.15),8+j,I[1]);}for(let i=0;i<6;i++){P(A,49+i,20,I[i<2?4:2]);P(A,49+i,21,I[1]);}   // (benches fam r1: a saw said carpenter) a tyre iron
+  hang(60,7);for(let j=0;j<9;j++){P(A,59+(j>5?-1:0),8+j,RAMP.charcoal[3]);P(A,61+(j>5?1:0),8+j,RAMP.charcoal[2]);}P(A,60,8,St[4]);P(A,59,17,hexR(['#8a2a22'])[0]);P(A,62,17,hexR(['#8a2a22'])[0]);   // pliers with red grips
   hang(69,8);for(let a=0;a<30;a++){const t=a/30*6.28;P(A,Math.round(69+Math.cos(t)*4),Math.round(14+Math.sin(t)*4),RAMP.brass[a%3?2:4]);P(A,Math.round(69+Math.cos(t)*3),Math.round(14+Math.sin(t)*3),RAMP.brass[1]);}   // a coil of wire
   // the bench: a deep lit top, a front apron, legs
   const b=box3(x0,top,w,dT,hF,R,{faceK:2});

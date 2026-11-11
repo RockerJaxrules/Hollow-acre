@@ -136,7 +136,7 @@ function dressForm(cx,by,h,back){const L=RAMP.steel.map((c,i)=>RAMP.iron[Math.mi
 }
 // a leather hide spread on the top, stitched round the edge
 // (benches r2: "brown on brown disappears") the hide in a dull oxblood, a hue away from the oak
-const HIDE=hexR(['#24100c','#401a14','#5c2420','#78302a','#904036','#a4564a']),ROLL=hexR(['#2e2014','#4a3622','#6a4e32','#866642','#a07e54']);   // the roll below a tan leather, so it is not a second hide
+const HIDE=hexR(['#1e100c','#32180f','#462217','#5a2e1f','#6c3a29','#7e4a35']),ROLL=hexR(['#2a2016','#423424','#5c4a34','#746044','#8a7656']);   // (benches fam r1: the hide and roll read as a red brick at 1x) browner, two steps duller   // the roll below a tan leather, so it is not a second hide
 function hide(x,y,w,d){const L=HIDE,top=i=>(hsh(i>>2,1,SEED)>.55?1:0),bot=i=>(hsh(i>>2,2,SEED)>.5?1:0);for(let j=0;j<d;j++)for(let i=0;i<w;i++){const ex=Math.min(i,w-1-i),ey=Math.min(j,d-1-j);if(ex+ey<2)continue;if(j<top(i)||d-1-j<bot(i))continue;if((i<2||i>w-3)&&(j===2||j===d-3))continue;   // (benches r3: "a cushion") a ragged pelt edge, not a neat rectangle
     P(A,x+i,y+j,L[j<2?4:j>d-3?2:3]);}   // flat tones: a lit near-top band, a body, a shaded far edge; no mottle
   for(let i=3;i<w-3;i+=3){P(A,x+i,y+2,L[1]);P(A,x+i+1,y+2,L[1]);}contact(x+2,y+d,w-2);}   // one row of dark stitching, in dashes
