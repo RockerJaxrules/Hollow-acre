@@ -1,4 +1,4 @@
-/* ================= the profiles panel on the title screen: who is playing, switch, make a new profile (name and optional PIN),
+/* ================= the profiles panel on the title screen: who is playing, switch, make a new profile (name and optional password),
    rename, delete, and a transfer code to move a profile's farm to another device ================= */
 {const css=document.createElement('style');css.textContent=`#acctBar{display:flex;gap:10px;align-items:center;justify-content:center;margin:0 0 14px;font-size:14px;color:#f4e6c8;background:rgba(30,18,10,.55);padding:6px 8px 6px 14px;border-radius:999px;box-shadow:0 0 0 2px rgba(232,146,63,.35)}
 #acctBar b{color:#ffd27a}#acctBar button{font:inherit;font-size:13px;padding:4px 12px;border-radius:999px;border:1px solid rgba(232,146,63,.6);background:#3a2210;color:#f4e6c8;cursor:pointer}
@@ -26,22 +26,22 @@ function acctShow(view,arg){const box=$('acctPanel').querySelector('.box');$('ac
     box.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{const id=b.closest('.row')&&b.closest('.row').dataset.id,a=b.dataset.a;
       if(a==='close')$('acctPanel').hidden=true;else if(a==='new')acctShow('new');else if(a==='import')acctShow('import');else if(a==='rename')acctShow('rename',id);else if(a==='more')acctShow('more',id);
       else if(a==='play'){const p=ACCT.list.find(q=>q.id===id);if(p.pin)acctShow('pin',id);else acctSwitch(id);}}));return;}
-  if(view==='pin'){const p=ACCT.list.find(q=>q.id===arg);box.innerHTML=`<h3>${acctEsc(p.name)}</h3>Enter the PIN for this profile.<input id="acctPin" inputmode="numeric" maxlength="4" autocomplete="off"><div class="acts"><button data-a="ok">Play</button><button data-a="back">Back</button></div><div class="msg"></div>`;
+  if(view==='pin'){const p=ACCT.list.find(q=>q.id===arg);box.innerHTML=`<h3>${acctEsc(p.name)}</h3>Log in — enter your password.<input id="acctPin" type="password" maxlength="32" autocomplete="off"><div class="acts"><button data-a="ok">Log in</button><button data-a="back">Back</button></div><div class="msg"></div>`;
     const go=async()=>{const h=await acctHash(p.id,$('acctPin').value.trim());if(h===p.pin)acctSwitch(p.id);else{msg('That isn’t it.');$('acctPin').value='';}};
     box.querySelector('[data-a=ok]').addEventListener('click',go);$('acctPin').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')go();});box.querySelector('[data-a=back]').addEventListener('click',()=>acctShow('list'));$('acctPin').focus();return;}
   if(view==='new'||view==='rename'){const p=view==='rename'?ACCT.list.find(q=>q.id===arg):null;
-    box.innerHTML=`<h3>${p?'Rename profile':'New profile'}</h3>Name<input id="acctName" maxlength="16" value="${p?acctEsc(p.name):''}" autocomplete="off">${p?'':'PIN (optional, 4 digits) so nobody else plays your farm<input id="acctNewPin" inputmode="numeric" maxlength="4" autocomplete="off">'}
+    box.innerHTML=`<h3>${p?'Rename profile':'New profile'}</h3>Name<input id="acctName" maxlength="16" value="${p?acctEsc(p.name):''}" autocomplete="off">${p?'':'Password (optional) so only you can open this farm<input id="acctNewPin" type="password" maxlength="32" autocomplete="off">'}
       <div class="acts"><button data-a="ok">${p?'Save':'Create and play'}</button><button data-a="back">Back</button></div><div class="msg"></div>`;
     box.querySelectorAll('input').forEach(i=>i.addEventListener('keydown',e=>e.stopPropagation()));
     box.querySelector('[data-a=back]').addEventListener('click',()=>acctShow('list'));
     box.querySelector('[data-a=ok]').addEventListener('click',async()=>{const name=$('acctName').value.trim().slice(0,16);if(!name){msg('Give it a name.');return;}
       if(p){p.name=name;acctStore();$('acctBar').querySelector('b').textContent=name;acctShow('list');return;}
-      const pin=$('acctNewPin').value.trim();if(pin&&!/^\d{4}$/.test(pin)){msg('A PIN is four numbers.');return;}const id='p'+Date.now().toString(36);const np={id,name,created:Date.now()};if(pin)np.pin=await acctHash(id,pin);ACCT.list.push(np);acctSwitch(id);});
+      const pin=$('acctNewPin').value.trim();if(pin&&pin.length<4){msg('A password needs 4 or more characters.');return;}const id='p'+Date.now().toString(36);const np={id,name,created:Date.now()};if(pin)np.pin=await acctHash(id,pin);ACCT.list.push(np);acctSwitch(id);});
     $('acctName').focus();return;}
   if(view==='more'){const p=ACCT.list.find(q=>q.id===arg);box.innerHTML=`<h3>${acctEsc(p.name)}</h3><small>${acctSummary(p.id)}</small>
-      <div class="acts"><button data-a="code">Make a transfer code</button>${p.id!=='default'?'<button data-a="pin">'+(p.pin?'Remove PIN':'Set a PIN')+'</button>':''}<button class="warn" data-a="del">${p.id==='default'?'Erase this farm':'Delete profile'}</button><button data-a="back">Back</button></div><div class="msg"></div>`;
+      <div class="acts"><button data-a="code">Make a transfer code</button>${p.id!=='default'?'<button data-a="pin">'+(p.pin?'Remove password':'Set a password')+'</button>':''}<button class="warn" data-a="del">${p.id==='default'?'Erase this farm':'Delete profile'}</button><button data-a="back">Back</button></div><div class="msg"></div>`;
     box.querySelector('[data-a=back]').addEventListener('click',()=>acctShow('list'));box.querySelector('[data-a=code]').addEventListener('click',()=>acctShow('export',p.id));
-    const pb=box.querySelector('[data-a=pin]');if(pb)pb.addEventListener('click',async()=>{if(p.pin){delete p.pin;acctStore();acctShow('more',p.id);}else{const v=prompt('A 4-digit PIN for '+p.name+':')||'';if(/^\d{4}$/.test(v.trim())){p.pin=await acctHash(p.id,v.trim());acctStore();acctShow('more',p.id);}else msg('A PIN is four numbers.');}});
+    const pb=box.querySelector('[data-a=pin]');if(pb)pb.addEventListener('click',async()=>{if(p.pin){delete p.pin;acctStore();acctShow('more',p.id);}else{const v=(prompt('Set a password for '+p.name+' (4+ characters):')||'').trim();if(v.length>=4){p.pin=await acctHash(p.id,v);acctStore();acctShow('more',p.id);}else msg('A password needs 4 or more characters.');}});
     let arm=0;box.querySelector('[data-a=del]').addEventListener('click',()=>{if(!arm){arm=1;msg(p.id==='default'?'Tap again to erase this farm for good.':'Tap again to delete this profile and its farm for good.');return;}
       const k=acctKeys(p.id);try{localStorage.removeItem(k.save);localStorage.removeItem(k.morning);localStorage.removeItem(k.look);}catch(e){}
       if(p.id!=='default')ACCT.list=ACCT.list.filter(q=>q.id!==p.id);if(ACCT.cur===p.id)acctSwitch('default');else{acctStore();acctShow('list');}});return;}
