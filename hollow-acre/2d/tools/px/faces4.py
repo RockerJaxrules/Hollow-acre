@@ -6,8 +6,8 @@ higher p and lower taper = square), eye_a (eye size), eye_dx (half the eye spaci
 (low = round, high = almond), eye_open, heavy (heavy lids), nose (size), lip_w (mouth width), brow_w (brow weight), freckles."""
 FACES = {
     # the young women: nine different faces, not one face in nine hairstyles
-    'nell':  dict(eye_round=.66, tilt=1.15, lip_w=5.8),                                   # heart-shaped, cat-eyed
-    'june':  dict(face_w=26.3, chin=84.5, jaw_p=1.6, jaw_taper=.16, eye_a=6.7, eye_round=.6, tilt=.45, nose=.84, lip_w=5.2),   # round and soft
+    'nell':  dict(face_w=24.4, chin=87.6, jaw_taper=.34, eye_round=.86, eye_a=5.8, tilt=1.35, nose=1.0, lip_w=5.4),   # heart-shaped, pointed chin, cat-eyed
+    'june':  dict(face_w=26.9, chin=84.0, jaw_p=1.5, jaw_taper=.08, eye_a=7.1, eye_dx=12.3, eye_round=.5, tilt=.15, nose=.78, lip_w=4.6, mouth_y=75.8),   # round face, round wide-set eyes, small mouth
     'cora':  dict(face_w=23.8, chin=88.6, jaw_taper=.32, eye_a=5.7, eye_dx=11.0, nose=1.14, lip_w=5.0, tilt=.7),                 # long and narrow
     'ida':   dict(face_w=25.7, jaw_p=2.45, jaw_q=.6, jaw_taper=.13, chin=87.2, eye_a=5.9, eye_round=.82, tilt=.55, brow_w=1.35, lip_w=6.1),   # square jaw
     'tess':  dict(face_w=24.3, chin=84.8, eye_a=6.7, eye_dx=10.9, nose=.78, lip_w=4.7, tilt=1.0),                                # small and delicate
@@ -17,29 +17,29 @@ FACES = {
     'mae':   dict(face_w=25.9, chin=85.0, eye_a=6.4, eye_round=.6, tilt=.3, nose=.9, lip_w=6.0),                                 # round, level eyes
     # the men
     'hollis': dict(face_w=27.3, jaw_taper=.06, brow_w=1.9, eye_a=4.8, nose=1.26),                                                # broad
-    'dunn':   dict(face_w=25.3, chin=90.2, jaw_p=2.8, eye_a=4.9, eye_open=.66, brow_w=1.85, nose=1.3),                           # long, rugged, squinting
-    'gideon': dict(face_w=27.9, chin=89.0, jaw_taper=.04, eye_dx=12.2, eye_a=4.6, nose=1.36, brow_w=2.0),                        # huge
-    'silas':  dict(face_w=24.5, chin=89.6, jaw_taper=.23, eye_a=5.2, tilt=.5, eye_open=.7, nose=1.05, lip_w=5.6, skin='#caa082'),   # narrow and sly (skin warmed: it read grey-green)
+    'dunn':   dict(face_w=25.3, chin=90.4, jaw_p=2.8, eye_a=5.3, eye_open=.62, tilt=-.25, brow_arch=.95, brow_w=1.7, nose=1.3),   # long, rugged, squinting, outer corners down
+    'gideon': dict(face_w=28.0, chin=89.0, jaw_taper=.04, eye_dx=12.7, eye_a=4.2, eye_open=.6, nose=1.52, brow_w=2.5, brow_arch=.2),   # huge: small deep-set eyes under one heavy flat brow
+    'silas':  dict(face_w=24.5, chin=89.6, jaw_taper=.23, eye_a=5.2, tilt=.5, eye_open=.7, nose=1.05, lip_w=5.6, skin='#d6a47e'),   # narrow and sly (skin warmed twice: it read grey-green)
     'wes':    dict(face_w=25.2, chin=87.0, jaw_p=2.0, jaw_taper=.2, eye_a=5.6, eye_open=.86, nose=.95, lip_w=5.8),               # young and soft
     'hob':    dict(face_w=27.7, chin=87.0, jaw_p=1.9, eye_a=4.6, eye_dx=11.0, nose=1.42),                                        # round and heavy, close-set eyes
     'quinn':  dict(face_w=25.0, chin=89.2, jaw_p=3.0, jaw_q=.7, eye_a=5.3, tilt=.3, nose=1.16, lip_w=6.0),                       # angular
     'moss':   dict(face_w=24.2, chin=90.0, jaw_taper=.3, eye_a=5.4, eye_open=.8, nose=1.22, lip_w=5.8),                         # gaunt
     'abel':   dict(face_w=26.9, jaw_p=3.0, jaw_taper=.05, chin=88.6, eye_a=4.8, nose=1.2),                                       # square
     # the old men: heavy lids, and each his own shape
-    'hale':   dict(face_w=24.8, chin=90.0, nose=1.3, heavy=True),
-    'ezra':   dict(face_w=26.4, chin=87.0, eye_a=4.6, nose=1.42, heavy=True),
-    'otto':   dict(face_w=27.4, chin=87.6, nose=1.3, heavy=True),
-    'lyle':   dict(face_w=25.0, chin=89.0, nose=1.15, eye_dx=11.0, heavy=True),
-    'corwin': dict(face_w=24.6, chin=90.6, eye_open=.62, nose=1.25, heavy=True),
+    'hale':   dict(face_w=24.8, chin=90.0, nose=1.3, heavy=True, age=.9),
+    'ezra':   dict(face_w=26.4, chin=87.0, eye_a=4.6, nose=1.42, heavy=True, age=.9),
+    'otto':   dict(face_w=27.4, chin=87.6, nose=1.3, heavy=True, age=.95),
+    'lyle':   dict(face_w=25.0, chin=89.0, nose=1.15, eye_dx=11.0, heavy=True, age=.9),
+    'corwin': dict(face_w=24.6, chin=90.6, eye_open=.62, nose=1.25, heavy=True, age=.95, skin='#dfb492'),   # skin warmed: it read washed-out grey
     # the old women
-    'agnes':  dict(face_w=25.0, chin=86.6, nose=1.0, eye_a=5.2, heavy=True),
-    'nan':    dict(face_w=26.0, chin=85.6, nose=1.15, lip_w=6.0, heavy=True),
-    'ada':    dict(face_w=24.2, chin=88.6, nose=1.1, tilt=.4, heavy=True),
-    'orla':   dict(face_w=26.4, chin=85.0, nose=.95, heavy=True),
+    'agnes':  dict(face_w=25.0, chin=86.6, nose=1.05, eye_a=5.2, heavy=True, age=.95),
+    'nan':    dict(face_w=26.0, chin=85.6, nose=1.15, lip_w=6.0, heavy=True, age=.9),
+    'ada':    dict(face_w=24.2, chin=88.6, nose=1.1, tilt=.4, heavy=True, age=.95),
+    'orla':   dict(face_w=26.4, chin=85.0, nose=.95, heavy=True, age=.9),
     # the children: round cheeks, big eyes, button noses, and not one boy twice
-    'tobias': dict(face_w=26.0, chin=81.6, eye_a=7.0, eye_dx=11.0, nose=.66, freckles=True),
-    'pip':    dict(face_w=27.7, chin=79.4, eye_a=7.9, eye_dx=12.1, nose=.5),
+    'tobias': dict(face_w=25.4, chin=82.8, jaw_taper=.2, eye_a=6.3, eye_dx=10.6, eye_round=.82, nose=.76, freckles=16),   # narrower, almond eyes, freckled
+    'pip':    dict(face_w=28.1, chin=79.0, eye_a=8.3, eye_dx=12.5, eye_round=.48, nose=.44, lip_w=3.8),   # moon face, huge round eyes, tiny mouth
     'finn':   dict(face_w=26.6, chin=80.8, eye_a=7.2, nose=.6),
-    'bram':   dict(face_w=27.2, chin=80.0, eye_a=7.6, eye_dx=11.4, nose=.55, freckles=True),
+    'bram':   dict(face_w=27.2, chin=80.0, eye_a=7.6, eye_dx=11.4, nose=.55, freckles=10),
 }
 def face(cid, C): return dict(C, **FACES.get(cid, {}))
