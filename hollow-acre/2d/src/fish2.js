@@ -81,14 +81,17 @@ openGift=function(n){if(!n)return;const id=n.def.id,P_=PEOPLE[id];const kinds=[.
 
 // ---------- the cast: hold to wind up, let go to cast (tap twice still works)
 const F2={cast:0,landed:true,pw:0,rip:[],show:null,kd:0,pd:null};
+const FC={lo:.64,hi:.88};  // the cast sweet spot: let go of the power meter inside this band for a perfect cast (faster bite, better odds of treasure)
 {const fp=$('fishPow');if(fp)fp.remove();}
 fishAct=function(){if(MG.on)return;const now=performance.now();
   if(fish.state==='off'){const w=waterAhead()||(Math.hypot(P.x-fishSpot.x,P.z-fishSpot.z)<1.6?[fishSpot.x,fishSpot.z+3]:null);if(!w){toast('Stand at the water’s edge, then use your rod on the water.',1.8);return;}
     if(!spend(1))return;fish.state='power';fish.t=0;fish.p0=now;fish.aim=w;fish.bx=P.x+P.fx*.8;fish.bz=P.z+P.fz*.8;
-    if(!S.castTold||S.castTold<3){S.castTold=(S.castTold||0)+1;toast(fineP()?'Hold to wind up, let go to cast. (Or click again.)':'Hold to wind up, let go to cast. (Or tap again.)',1.8);}return;}
+    if(!S.castTold||S.castTold<3){S.castTold=(S.castTold||0)+1;toast(fineP()?'Hold to wind up; let go when the power is in the bright band for a perfect cast.':'Hold to wind up; let go in the bright band for a perfect cast.',2.2);}return;}
   if(fish.state==='power'){const pw=fish.power;const [wx,wz]=fish.aim;let bx=P.x+P.fx*(1.4+pw*3.2),bz=P.z+P.fz*(1.4+pw*3.2);if(!waterAt(bx,bz)){bx=wx;bz=wz;}
-    fish.bx=bx;fish.bz=bz;fish.where=fishWhere(bx,bz);fish.state='wait';fish.cast=pw;fish.t=(2+rand()*5)*(inv('bait')>0?.4:1)*(1.15-pw*.3);if(inv('bait')>0)takeInv('bait');
-    F2.cast=now;F2.landed=false;F2.pw=pw;F2.rip=[];SFX.swing&&SFX.swing();if(pw>.92)toast('Max!',.7);return;}
+    const good=pw>=FC.lo&&pw<=FC.hi;fish.goodCast=good;
+    fish.bx=bx;fish.bz=bz;fish.where=fishWhere(bx,bz);fish.state='wait';fish.cast=pw;fish.t=(2+rand()*5)*(inv('bait')>0?.4:1)*(1.15-pw*.3)*(good?.68:1);if(inv('bait')>0)takeInv('bait');
+    F2.cast=now;F2.landed=false;F2.pw=pw;F2.rip=[];SFX.swing&&SFX.swing();
+    if(good){toast('Perfect cast!',1.0);SFX.coin&&SFX.coin();cam&&(cam.shake=Math.max(cam.shake||0,.12));}else if(pw>.95)toast('A wild cast — it slaps the water.',.9);return;}
   if(fish.state==='wait'){fish.state='off';toast('You reel in too early. Nothing.',1.4);return;}
   if(fish.state==='bite'){const night=isNight();
     if(night&&!S.bound&&rand()<.12){fish.state='off';SFX.stinger();cam.shake=.4;mindHit&&mindHit(4);toast(pick(['A grey hand comes up with the hook in its palm. It lets go.','The line goes slack. Something below the water says your name, very politely.','You pull up a fistful of long hair. It is the same colour as yours.']),3.2,true);return;}
@@ -120,7 +123,10 @@ function fishRipples(g,x,y,now,fast){if(!F2.rip.length||now-F2.rip[F2.rip.length
 function fishBang(g,x,y,t){const by=Math.round(y-Math.abs(Math.sin(t*9))*2),bx=Math.round(x)-4;fpx(g,bx-1,by-1,11,14,'#1a0e06');fpx(g,bx,by,9,12,'#fff8e4');fpx(g,bx,by+11,9,1,'#d8ccb0');fpx(g,bx+3,by+12,3,2,'#1a0e06');fpx(g,bx+4,by+12,1,1,'#fff8e4');
   fpx(g,bx+3,by+2,3,5,'#e0302a');fpx(g,bx+4,by+2,1,5,'#ff7060');fpx(g,bx+3,by+8,3,2,'#e0302a');}
 function fishMeter(g,x,y,p){x=Math.round(x);y=Math.round(y);fpx(g,x-1,y-1,10,40,'#1a0e06');fpx(g,x,y,8,38,'#8a5a2a');fpx(g,x,y,8,1,'#c08a4a');fpx(g,x+1,y+1,6,36,'#2a1608');const h=Math.round(p*34);
-  for(let k=0;k<h;k++){const u=k/34;fpx(g,x+2,y+36-k,4,1,u<.33?'#d84a2a':u<.66?'#e8b030':'#7cc04a');}fpx(g,x+2,y+36-h,4,1,'#fff4c0');fpx(g,x-2,y+17,2,4,'#c08a4a');}
+  for(let k=0;k<h;k++){const u=k/34;fpx(g,x+2,y+36-k,4,1,u<.33?'#d84a2a':u<.66?'#e8b030':'#7cc04a');}fpx(g,x+2,y+36-h,4,1,'#fff4c0');
+  const by0=y+36-Math.round(FC.hi*34),by1=y+36-Math.round(FC.lo*34),inB=p>=FC.lo&&p<=FC.hi;   // the sweet spot: let go here for a perfect cast
+  fpx(g,x+2,by0,4,by1-by0,inB?'rgba(226,255,170,.5)':'rgba(230,255,190,.2)');fpx(g,x-2,by0,12,1,inB?'#f4ffd0':'#cde68a');fpx(g,x-2,by1,12,1,inB?'#f4ffd0':'#cde68a');
+  fpx(g,x-2,y+17,2,4,'#c08a4a');}
 function fishDraw(g,tip,X,Y,t){const now=performance.now();
   if(F2.show&&now<F2.show.until){const im=fishIconCanvas(F2.show.sp);const bob=Math.round(Math.sin(t*4));g.drawImage(im,0,0,32,32,Math.round(X-11),Math.round(Y-76+bob),22,22);}
   if(fish.state==='off'&&!MG.on)return;const from=tip||[X+8,Y-36];

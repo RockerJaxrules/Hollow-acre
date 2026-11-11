@@ -16,13 +16,22 @@
   function attach(){const E=el();E.addEventListener('pointerdown',pd);addEventListener('pointerup',pu,true);addEventListener('pointercancel',pu,true);addEventListener('keydown',kd,true);addEventListener('keyup',ku,true);}
   function detach(){const E=el();E.removeEventListener('pointerdown',pd);removeEventListener('pointerup',pu,true);removeEventListener('pointercancel',pu,true);removeEventListener('keydown',kd,true);removeEventListener('keyup',ku,true);}
 
+  function fishTreasure(){const coins=16+Math.floor(rand()*34)+(S.rod>=4?40:S.rod>=3?22:S.rod>=2?10:0);S.coins=(S.coins||0)+coins;
+    let item=null,n=1;const r=rand();
+    if(r<.42){item='bait';n=2+Math.floor(rand()*3);}else if(r<.66){item='coal';n=1+Math.floor(rand()*2);}
+    else if(r<.82){item=rand()<.5?'copper_bar':'iron_bar';}else if(r<.95){item='gem';}
+    if(item&&typeof addInv==='function')addInv(item,n);
+    const nm=item?` and ${n>1?n+' ':'a '}${(((typeof ITEMS!=='undefined'&&ITEMS[item])||{name:item}).name||item).toLowerCase()}${n>1?'s':''}`:'';
+    toast(`A treasure chest! +${coins} coins${nm}.`,3.2);SFX.coin&&SFX.coin();if(typeof updateHud==='function')updateHud();}
   startMG=function(f){const E=el();const night=isNight();
     const f3=E.querySelector('.f3');if(f3)f3.style.setProperty('display','none','important');  // hide the old reel canvas
     const cv=E.querySelector('.fg');if(cv)cv.style.setProperty('display','block','important'); // show the bar canvas (beat fish3's display:none!important)
+    const gc=fish.goodCast;fish.goodCast=false;   // a perfect cast makes treasure far likelier (pairs the throw skill with the reward)
+    const tr=(f&&!(night&&f[2]>.6)&&rand()<(gc?.52:.17))?{at:1+rand()*2,y:.2+rand()*.6,vy:0,prog:0,got:false,pop:0}:null;
     Object.assign(MG,{on:true,f,hold:false,zone:.1,zv:0,fy:.3,fv:0,ft:.3,tt:0,prog:.34,
       size:S.rod>=4?.40:S.rod>=3?.36:S.rod>=2?.31:.26,d:f?f[2]:.25,beh:f?f[3]:'smooth',
       last:performance.now(),scare:false,perfect:true,age:0,reelA:0,sp:f?FISH_SP[f[0]]:null,
-      horror:night&&!!f&&f[2]>.6,lunge:0,tr:null,tn:0,snapT:0,snapped:false});
+      horror:night&&!!f&&f[2]>.6,lunge:0,tr,tn:0,snapT:0,snapped:false});
     if(cv){const k=Math.max(2,Math.min(4,Math.floor(innerHeight*.62/FG.H)));cv.width=FG.W;cv.height=FG.H;cv.style.width=FG.W*k+'px';cv.style.height=FG.H*k+'px';}
     const h=E.querySelector('.fhint');if(h)h.textContent=fineP()?'Hold to raise the bar onto the fish — but ease off before the line (left) snaps':'Hold to raise the bar onto the fish — ease off before the line snaps';
     E.style.display='flex';S.paused=true;fish.state='reel';attach();MG.last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);};
@@ -43,6 +52,10 @@
     const inside=MG.fy>=MG.zone&&MG.fy<=MG.zone+MG.size;
     MG.prog+=(inside?.24:-.17*(1+d*.6))*dt;if(!inside&&MG.age>.6)MG.perfect=false;
     if(MG.hold)MG.reelA+=dt*14;else if(inside)MG.reelA+=dt*5;
+    // TREASURE: a chest you can also haul up — keep the bar over it (as well as the fish) to fill it before you land the catch
+    const tr=MG.tr;if(tr&&!tr.got&&MG.age>tr.at){if(!tr.shown){tr.shown=1;const hh=E.querySelector('.fhint');if(hh)hh.textContent='Treasure! Cover it with the bar too — without losing the fish.';}
+      tr.vy+=(rand()-.5)*dt*.8;tr.vy*=.98;tr.y=clamp(tr.y+tr.vy*dt,.05,.92);const tin=tr.y>=MG.zone&&tr.y<=MG.zone+MG.size;tr.prog=clamp(tr.prog+(tin?.5:-.3)*dt,0,1);if(tr.prog>=1){tr.got=true;tr.pop=1;SFX.coin&&SFX.coin();const hh=E.querySelector('.fhint');if(hh)hh.textContent='Got the treasure! Now land the fish.';}}
+    if(tr&&tr.pop>0)tr.pop=Math.max(0,tr.pop-dt*1.5);
     // LINE TENSION: reeling (holding) strains the line, and it strains faster against a fighting fish or a lunge — ease off or it snaps
     const strain=(MG.hold?(.40+(!inside?.30:0)+(MG.lunge>0?.45:0)):-.62)*(.72+d*.8);
     MG.tn=clamp(MG.tn+strain*dt,0,1);if(MG.snapT>0)MG.snapT-=dt;
@@ -65,6 +78,11 @@
     // a lit line at the surface (the top): hauling it here is the goal
     p(tx,ty,tw,1,'#e8ecf0');p(tx,ty+1,tw,1,'rgba(255,255,255,.25)');
     const bh=Math.round(MG.size*th),by=ty+Math.round((1-MG.zone-MG.size)*th);p(tx+1,by,tw-2,bh,inside?'rgba(150,240,110,.62)':'rgba(120,210,90,.45)');p(tx+1,by,tw-2,1,inside?'#d8ffb0':'#b8f080');p(tx+1,by+bh-1,tw-2,1,'#3a7a2a');p(tx+1,by,1,bh,'rgba(220,255,200,.5)');
+    // the treasure chest (when there is one): a little strongbox in the water, a fill bar under it; it bursts gold when hauled
+    const tr=MG.tr;if(tr&&MG.age>tr.at&&(!tr.got||tr.pop>0)){const cy=ty+Math.round((1-tr.y)*th)-4,cx=tx+6,open=tr.got;
+      p(cx-1,cy-1,11,9,'#1a0e06');p(cx,cy+(open?2:0),9,7-(open?2:0),'#8a5a2a');p(cx,cy+3,9,1,'#e8c060');p(cx+4,cy+3,1,2,'#fff2c8');
+      if(!open)p(cx,cy,9,2,'#a87038');else{p(cx,cy-2,9,2,'#a87038');for(let k=0;k<5;k++)p(cx+((k*3+Math.round(t*20))%9),cy-3-((k*5)%5),1,1,'#fff2a0');}
+      if(!open){p(cx-1,cy+9,11,2,'#1a0e06');p(cx,cy+9,Math.round(9*tr.prog),1,'#ffd27a');}}
     const im=MG.sp?fishIconCanvas(MG.sp):null;
     const fy=MG.landed?ty-Math.round(Math.min(1,MG.landed/.55)*34):ty+Math.round((1-MG.fy)*th);
     const sh=(inside?0:Math.round(Math.sin(t*50)))+(MG.lunge>0?Math.round(Math.sin(t*90)*2):0);
@@ -95,6 +113,7 @@
     SFX.splash&&SFX.splash();if(typeof burst==='function')burst(fish.bx,fish.bz,16,'#9fc0e0',2,.7,3);if(typeof F2!=='undefined')F2.show={sp,until:performance.now()+2400};
     if(MG.perfect&&typeof addXP==='function')addXP('fishing',6);
     if(typeof fishCard==='function')fishCard(f,sp,len,v,q,isNew,rec,MG.perfect);
+    if(MG.tr&&MG.tr.got)setTimeout(fishTreasure,1100);   // the chest you also hauled up pays out after the catch card
     if(FISH_ODD[f[0]]){setTimeout(()=>toast(FISH_ODD[f[0]],3.4,true),700);mindHit&&mindHit(2);}
     if(typeof updateHud==='function')updateHud();};
 })();
