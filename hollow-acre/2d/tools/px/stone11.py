@@ -12,11 +12,11 @@ from PIL import Image
 N = 192
 def hx(s): return tuple(int(s[i:i + 2], 16) for i in (1, 3, 5))
 MORT, MORT2 = hx('#2f2d36'), hx('#26252c')
-TONES = [hx('#625f69'), hx('#6e6b75'), hx('#7b7881')]   # a step darker: in the square v11a read lighter and flatter than the installed cobbles
-SHADE = {TONES[0]: hx('#4b4953'), TONES[1]: hx('#56545e'), TONES[2]: hx('#625f69')}
-SHADE2 = {TONES[0]: hx('#413f49'), TONES[1]: hx('#4b4953'), TONES[2]: hx('#56545e')}
-LIT = {TONES[0]: hx('#7b7881'), TONES[1]: hx('#88858e'), TONES[2]: hx('#96939b')}
-CAP = {TONES[0]: hx('#88858e'), TONES[1]: hx('#96939b'), TONES[2]: hx('#a5a2a9')}
+TONES = [hx('#56545e'), hx('#625f69'), hx('#6e6b75')]   # two steps under v11a: the square was the lightest thing on screen
+SHADE = {TONES[0]: hx('#47434f'), TONES[1]: hx('#4f4b57'), TONES[2]: hx('#5a5662')}        # shades lean purple
+SHADE2 = {TONES[0]: hx('#3b3843'), TONES[1]: hx('#433f4b'), TONES[2]: hx('#4b4753')}
+LIT = {TONES[0]: hx('#6c6869'), TONES[1]: hx('#79746f'), TONES[2]: hx('#868079')}     # lights lean warm
+CAP = {TONES[0]: hx('#7d776f'), TONES[1]: hx('#8b847a'), TONES[2]: hx('#999084')}
 GRIT, MOSS = hx('#4b4953'), hx('#3d4627')
 R = random.Random(11)
 
@@ -24,10 +24,11 @@ def wd(a, b):
     dx = abs(a[0] - b[0]); dy = abs(a[1] - b[1]); return min(dx, N - dx), min(dy, N - dy)
 
 # a relaxed point set: Poisson darts, then two Lloyd steps (on a coarse grid) so cells are even
-pts = []
-for _ in range(30000):
-    p = (R.uniform(0, N), R.uniform(0, N))
-    if all(math.hypot(*wd(p, q)) > 14 for q in pts): pts.append(p)
+pts = []; rad = []   # mixed sizes (judge: 'all one size reads as a net'): big setts first, then smaller ones in the gaps
+for want in (19, 15, 12, 9):
+    for _ in range(9000):
+        p = (R.uniform(0, N), R.uniform(0, N))
+        if all(math.hypot(*wd(p, q)) > (want + rq) / 2 for q, rq in zip(pts, rad)): pts.append(p); rad.append(want)
 def owner_map(pts):
     own = [[0] * N for _ in range(N)]
     for y in range(N):
@@ -39,7 +40,7 @@ def owner_map(pts):
                 elif d < sec: sec = d
             own[y][x] = bi
     return own
-for it in range(2):
+for it in range(1):
     own = owner_map(pts); acc = [[0, 0, 0, 0, 0] for _ in pts]
     for y in range(N):
         for x in range(N):
@@ -76,14 +77,16 @@ for y in range(N):
         elif d2 or (r2 and lt < 0): c = MORT                # 2 px joints below and right: the stones stand proud
         elif own[(y + 1) % N][(x + 1) % N] != i or own[(y + 3) % N][x] != i: c = SHADE2[t]  # the shaded crescent, bottom-right
         elif own[(y + 4) % N][x] != i and lt < 0: c = SHADE[t]
-        elif l_ or u_: c = LIT[t]                           # the lit rim, top-left
-        else: c = CAP[t] if lt > 4 and (dx * dx + dy * dy) < 30 else LIT[t] if lt > 1.5 and (dx * dx + dy * dy) < 40 else t   # a flat lit cap on the top-left of the dome
+        elif l_ or u_ or own[(y - 2) % N][x] != i: c = LIT[t]   # each stone's own lit top-left edge, 1-2 px, following its outline
+        else: c = CAP[t] if (lt > 4 and (dx * dx + dy * dy) < 30 and i % 4 == 0) else t   # the brightest step on one stone in four only   # a flat lit cap on the top-left of the dome
         P[x, y] = c
 # grit and moss threads in some joints (a few, each with siblings)
 for k in range(26):
     x, y = R.randrange(N), R.randrange(N)
-    for s in range(R.randint(3, 7)):
-        if P[x % N, y % N] == MORT:
-            P[x % N, y % N] = MOSS if k % 3 == 0 else GRIT
+    run = []
+    for s in range(R.randint(5, 9)):
+        if P[x % N, y % N] in (MORT, MORT2): run.append((x % N, y % N))
         x += R.choice((-1, 0, 1)); y += R.choice((0, 1))
+    if len(run) >= 3:
+        for q in run: P[q] = MOSS if k % 3 == 0 else GRIT
 im.save(sys.argv[1] if len(sys.argv) > 1 else 'out/NEW_stone.png'); print('stones', len(pts))

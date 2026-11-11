@@ -65,17 +65,22 @@ function chunk(cx,cz){const k=cx+','+cz;let c=chunks.get(k);if(c){if(c.used!==FR
   // Cells round the chunk's edge are visited too, so a pile that straddles two chunks is drawn whole in both.
   const lit=SPR.litter&&IMG[SPR.litter.src];
   if(lit){const cw=SPR.litter.fw,chh=SPR.litter.fh;for(let j=-2;j<N+2;j++)for(let i=-2;i<N+2;i++){const X=x0+i,Z=z0+j,h=hash(X*13+5,Z*7+11);
-      // atlas (forest8.py): 0-5 loose leaves, 6-9 big piles, 10-13 medium, 14-17 small, 18-20 moss, 21-22 tufts, 23-25 sticks, 26-28 stones.
-      // A drift is graded: big piles at its heart, smaller ones round them, loose leaves thinning out at its rim, bare soil beyond.
-      const dr=fbm(X*.16+40,Z*.16+17),p=dr>.64?.62:dr>.55?.46:dr>.47?.3:.1;if(h>p)continue;
+      // atlas (forest8.py): 0-5 loose leaves, 6-9 big piles, 10-13 medium, 14-17 small, 18-20 moss, 21-22 tufts, 23-25 sticks, 26-28 stones,
+      // 29-32 heaps. A drift is graded: a merged heap at its heart, piles round it, loose leaves at its rim; open soil gets no lone leaves.
+      const dr=fbm(X*.16+40,Z*.16+17),p=dr>.64?.62:dr>.55?.46:dr>.47?.3:.06;if(h>p)continue;
       if(!LAYERS.dark(X+.5,Z+.5)||!LAYERS.dark(X-.7,Z+.5)||!LAYERS.dark(X+1.7,Z+.5)||!LAYERS.dark(X+.5,Z+1.4)||terr(X+.5,Z+.5)!=='grass')continue;
       const r=hash(X+31,Z+17),q=hash(X*3+1,Z*5+2),pk=(a,n)=>a+((q*n)|0)%n;
-      const v=dr>.64?(r<.5?pk(6,4):r<.72?pk(10,4):r<.84?pk(18,3):r<.93?pk(23,3):pk(0,6))
-             :dr>.55?(r<.4?pk(10,4):r<.6?pk(14,4):r<.85?pk(0,6):r<.93?pk(18,3):pk(23,3))
-             :dr>.47?(r<.6?pk(0,6):r<.78?pk(14,4):r<.88?pk(21,2):pk(26,3))
-             :(r<.5?pk(0,6):r<.68?pk(26,3):r<.84?pk(23,3):pk(21,2));
+      const v=dr>.68?(r<.45?pk(29,4):r<.8?pk(6,4):r<.9?pk(18,3):pk(23,3))
+             :dr>.6?(r<.45?pk(6,4):r<.75?pk(10,4):r<.87?pk(18,3):pk(23,3))
+             :dr>.53?(r<.4?pk(10,4):r<.65?pk(14,4):r<.85?pk(0,6):pk(18,3))
+             :dr>.47?(r<.5?pk(0,6):r<.75?pk(14,4):r<.88?pk(21,2):pk(26,3))
+             :(r<.4?pk(26,3):r<.75?pk(23,3):pk(21,2));
       const ox=((hash(X,Z+3)*24)|0)-12,oy=((hash(X+5,Z)*24)|0)-12,cx=i*32+16+ox,cy=j*32+16+oy;
       g.drawImage(lit,v*cw,0,cw,chh,cx-(cw>>1),cy-(chh>>1),cw,chh);}}   // never mirrored: the light stays top-left
+    if(lit){const cw=SPR.litter.fw,chh=SPR.litter.fh;for(const o of OBJ){if(o.hide||o.room||o.x<x0-2||o.x>x0+N+2||o.z<z0-2||o.z>z0+N+2)continue;
+      if(!(o.kind==='tree'||o.kind==='pine'||/boulder|rock_big|stump/.test(o.spr||'')))continue;if(!LAYERS.dark(o.x,o.z)||hash(o.x*7|0,o.z*3|0)>.75)continue;
+      const r=hash((o.x*13)|0,(o.z*11)|0),v=r<.35?29+((r*11.4)|0)%4:r<.75?6+((r*10)|0)%4:10+((r*10)|0)%4;
+      g.drawImage(lit,v*cw,0,cw,chh,Math.round((o.x-x0)*32+10-(cw>>1)),Math.round((o.z-z0)*32+6-(chh>>1)),cw,chh);}}   // leaves gathered against what stops them
   // stones on the dirt: clusters of 2-4 strewn by world position, gathered toward a lane's edges and corners so its
   // middle reads as trodden (the dirt tile itself carries only grit, so no stone marks its 192 px repeat)
   const grit=SPR.dirt_grit&&IMG[SPR.dirt_grit.src];

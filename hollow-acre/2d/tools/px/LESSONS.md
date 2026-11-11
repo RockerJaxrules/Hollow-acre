@@ -208,6 +208,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   soil beyond. Even same-size clumps read as stickers.
 - Keep pebbles out of a dirt tile (they were the only repeat marker left); strew 2-4 stone clusters of mixed sizes by world
   position, gathered at lane edges so the middle reads trodden. A 3x1 stone reads as a dash, two of them as eyes.
+- Cobbles (Nov 11, 4 -> 6): one flat tone per stone, neighbours different, a 2 px joint under and right of each, a shaded
+  crescent bottom-right, the stone's own warm lit edge top-left. The SAME bright highlight on every stone reads as bubble
+  wrap: the brightest step on one stone in four. Pack four sizes (big setts first, small ones in the gaps), or it reads
+  as a net. Radial gradients per stone read as smears, and dark knots where cells crowd mark the repeat.
 - Strewn per chunk: visit the cells in a 2-cell margin round the chunk too, so a decal that straddles two chunks is
   drawn whole in both (each canvas clips its own half) and no seam shows.
 - Round dark ovals on a road read as eyes, twin ones worst (tarmac judge): oil is a flat, ragged drip stretched along

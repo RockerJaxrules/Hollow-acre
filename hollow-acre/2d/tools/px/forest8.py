@@ -151,6 +151,19 @@ def stones(sizes):
     return d
 
 
+def heap(r, n, ang):
+    """a drift's heart: one continuous heap 2-3x a pile (three drifts on one centre, densest in the middle, so no soil
+    shows through), ringed by small piles, then loose leaves"""
+    def d(t, R, gs):
+        for k, f in enumerate((1.0, .72, .45)): put_drift(t, 96 + R.uniform(-1, 1), 96 + R.uniform(-1, 1) - k, max(4, int(r * f)), R, gs)
+        ca, sa = math.cos(ang), math.sin(ang)
+        for k in range(n):
+            u = R.choice((-1, 1)) * R.uniform(r * 1.1, r * 1.6); v = R.uniform(-1, 1) * r * .4
+            put_drift(t, 96 + u * ca - v * sa, 96 + (u * sa + v * ca) * .6, R.randint(4, 6), R, gs)
+        loose(R.randint(2, 4))(t, R, gs)
+    return d
+
+
 # the atlas layout the engine reads (engine.js, forest litter): ranges by kind
 CELLS = ([loose(1), loose(1), loose(2), loose(2), loose(3), loose(4)] +                                     # 0-5 loose leaves
          [piles(11, 5, .3), piles(10, 4, -.5), piles(12, 6, 1.1), piles(10, 3, 2.4)] +                     # 6-9 big piles
@@ -158,7 +171,8 @@ CELLS = ([loose(1), loose(1), loose(2), loose(2), loose(3), loose(4)] +         
          [piles(5, 1, .4), piles(6, 1, -.8), piles(5, 0, 0), piles(4, 2, 1.6)] +                           # 14-17 small
          [moss(2), moss(3), moss(4)] + [tufts(2), tufts(3)] +                                                # 18-20 moss, 21-22 tufts
          [stick(14, .15, False), stick(11, -.35, True), stick(18, 2.9, False)] +                           # 23-25 sticks
-         [stones((3, 2)), stones((2, 1, 1)), stones((4, 2, 1))])                                            # 26-28 stones
+         [stones((3, 2)), stones((2, 1, 1)), stones((4, 2, 1))] +                                           # 26-28 stones
+         [heap(16, 3, .2), heap(18, 2, -.4), heap(15, 4, .9), heap(17, 3, 2.6)])                          # 29-32 heaps
 
 
 if __name__ == '__main__':
