@@ -9,6 +9,7 @@ from faces4 import face
 IDS = ['nell', 'june', 'cora', 'ida', 'tess', 'iris', 'della', 'maud', 'mae',
        'hale', 'tobias', 'hollis', 'agnes', 'dunn', 'ruth', 'gideon', 'ezra', 'pip', 'silas', 'otto', 'wes', 'hob', 'lyle', 'vera', 'quinn',
        'nan', 'finn', 'moss', 'ada', 'orla', 'bram', 'abel', 'corwin']
+KEEP = ['mae']   # Caitlyn: her face stays exactly as it is (owner)
 def one(a): i, e, v = a; return a, portrait(face(i, CH[i]), e, v)
 if __name__ == '__main__':
     only = sys.argv[1].split(',') if len(sys.argv) > 1 else None
@@ -17,9 +18,14 @@ if __name__ == '__main__':
         try: sheet = Image.open(path).convert('RGBA') if only else None
         except Exception: sheet = None
         if sheet is None or sheet.size != (128 * len(EXPRS), 128 * len(IDS)): sheet = Image.new('RGBA', (128 * len(EXPRS), 128 * len(IDS)))
-        todo = [(i, e, v) for i in IDS if not only or i in only for e in EXPRS]
+        todo = [(i, e, v) for i in IDS if (not only or i in only) and i not in KEEP for e in EXPRS]
         with ProcessPoolExecutor(4) as ex:
             for (i, e, _), img in ex.map(one, todo):
                 sheet.paste(Image.fromarray(img), (EXPRS.index(e) * 128, IDS.index(i) * 128))
+        for k in KEEP:   # rows copied from the installed sheet, never re-rendered
+            try:
+                inst = Image.open(f'../../spr/portraits/portraits_hd_{v}.png').convert('RGBA'); j = IDS.index(k)
+                sheet.paste(inst.crop((0, j * 128, inst.width, j * 128 + 128)), (0, j * 128))
+            except Exception as err: print('keep failed', k, err)
         sheet.save(path, optimize=True); print(v, sheet.size, flush=True)
     json.dump(dict(ids=IDS, vars=VARIANTS, pw=128, ph=128, expr=EXPRS), open('out/portraits_hd.json', 'w'))

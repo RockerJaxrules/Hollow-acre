@@ -6,15 +6,15 @@ higher p and lower taper = square), eye_a (eye size), eye_dx (half the eye spaci
 (low = round, high = almond), eye_open, heavy (heavy lids), nose (size), lip_w (mouth width), brow_w (brow weight), freckles."""
 FACES = {
     # the young women: nine different faces, not one face in nine hairstyles
-    'nell':  dict(face_w=24.4, chin=87.6, jaw_taper=.34, eye_round=.86, eye_a=5.8, tilt=1.35, nose=1.0, lip_w=5.4),   # heart-shaped, pointed chin, cat-eyed
-    'june':  dict(face_w=26.9, chin=84.0, jaw_p=1.5, jaw_taper=.08, eye_a=7.1, eye_dx=12.3, eye_round=.5, tilt=.15, nose=.78, lip_w=4.6, mouth_y=75.8),   # round face, round wide-set eyes, small mouth
+    'nell':  dict(face_w=23.4, chin=89.4, jaw_taper=.46, eye_round=.88, eye_a=5.5, tilt=1.6, nose=1.0, lip_w=5.4),   # heart-shaped, pointed chin, cat-eyed
+    'june':  dict(face_w=28.2, chin=82.6, jaw_p=1.4, jaw_taper=.04, eye_a=7.5, eye_dx=13.0, eye_round=.46, tilt=.05, nose=.7, lip_w=4.3, mouth_y=75.4),   # round face, round wide-set eyes, small mouth
     'cora':  dict(face_w=23.8, chin=88.6, jaw_taper=.32, eye_a=5.7, eye_dx=11.0, nose=1.14, lip_w=5.0, tilt=.7),                 # long and narrow
     'ida':   dict(face_w=25.7, jaw_p=2.45, jaw_q=.6, jaw_taper=.13, chin=87.2, eye_a=5.9, eye_round=.82, tilt=.55, brow_w=1.35, lip_w=6.1),   # square jaw
     'tess':  dict(face_w=24.3, chin=84.8, eye_a=6.7, eye_dx=10.9, nose=.78, lip_w=4.7, tilt=1.0),                                # small and delicate
     'iris':  dict(face_w=25.3, chin=86.6, eye_dx=12.5, eye_round=.67, nose=.94, lip_w=5.6, tilt=.35),                            # wide-set eyes
     'della': dict(face_w=25.9, chin=87.6, jaw_p=2.1, eye_a=6.0, eye_round=.78, nose=1.2, lip_w=6.5, tilt=.7),                    # strong cheekbones, full mouth
     'maud':  dict(face_w=24.6, chin=88.2, eye_y=58.6, eye_a=5.8, tilt=1.25, nose=1.05, lip_w=5.4),                               # long oval, upturned eyes
-    'mae':   dict(face_w=25.9, chin=85.0, eye_a=6.4, eye_round=.6, tilt=.3, nose=.9, lip_w=6.0),                                 # round, level eyes
+    # 'mae' (Caitlyn) has no entry: her face stays exactly as it is (owner). sheet4 renders her row; the install keeps the installed row.
     # the men
     'hollis': dict(face_w=27.3, jaw_taper=.06, brow_w=1.9, eye_a=4.8, nose=1.26),                                                # broad
     'dunn':   dict(face_w=25.3, chin=90.4, jaw_p=2.8, eye_a=5.3, eye_open=.62, tilt=-.25, brow_arch=.95, brow_w=1.7, nose=1.3),   # long, rugged, squinting, outer corners down
@@ -42,4 +42,6 @@ FACES = {
     'finn':   dict(face_w=26.6, chin=80.8, eye_a=7.2, nose=.6),
     'bram':   dict(face_w=27.2, chin=80.0, eye_a=7.6, eye_dx=11.4, nose=.55, freckles=10),
 }
-def face(cid, C): return dict(C, **FACES.get(cid, {}))
+# (judge r2: rows looked alike: Tobias and Pip one kid, Gideon and Hollis one beard) hair and beards differ as well as the face
+LOOK = {'pip': dict(style='curly'), 'hollis': dict(beard='moustache')}
+def face(cid, C): return dict(C, **FACES.get(cid, {}), **LOOK.get(cid, {}))

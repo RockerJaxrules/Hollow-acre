@@ -464,11 +464,9 @@ class Painter:
                 hem = stroke(bez([(CX + sg * (sw - 7), 125 + o), (CX + sg * (sw - 3), 122 + o), (CX + sg * (sw + 2), 121.5 + o)], 16), [.6, 1.4, 1.2])
                 cv.add(hem & tor, 'top', -.18)
         pat = C.get('pattern')
-        if pat == 'plaid':   # (judge: one even grid over the whole torso) the checks wrap round the body and go quiet across the lit chest
-            dxc = X - CX; Xw = CX + dxc * (1 + .22 * (dxc / 40) ** 2); Yw = Y + .0042 * dxc ** 2
-            q = .45 + .55 * sstep(8, 30, np.abs(dxc))
-            pl = ((np.floor(Xw) % 7) < 1.3) | ((np.floor(Yw + 2) % 7) < 1.3)
-            cv.add(cloth & pl, 'top', -.11 * q); cv.add(cloth & ((np.floor(Xw + 3) % 7) < .8), 'top', .07 * q)
+        if pat == 'plaid':   # straight checks (judge r2: the curved grid stepped into diagonal hatch that read as rain; the straight check won)
+            pl = ((np.floor(X) % 7) < 1.3) | ((np.floor(Y + 2) % 7) < 1.3)
+            cv.add(cloth & pl, 'top', -.11); cv.add(cloth & ((np.floor(X + 3) % 7) < .8), 'top', .07)
         half = s.neck_half
         trim_pts = np.array([(CX - x, y) for x, y in half[::-1]] + [(CX + x, y) for x, y in half])
         tw = C.get('trim_w', 1.3)
@@ -557,7 +555,7 @@ class Painter:
         # blush
         bl = C.get('blush', .5) + {'happy': .35, 'love': .7, 'laugh': .45, 'cry': .3}.get(s.ex, 0) - (.4 if s.ex in ('scared', 'wrong') else 0)
         if bl > .2:
-            for sg in (-1, 1):
+            for sg in ((-1,) if C.get('kind') in ('man', 'oldman') else (-1, 1)):
                 bm = ell(CX + sg * 14.5, 67.5, 4.6 * min(1.3, bl + .4), 2.4 * min(1.3, bl + .4)) & fm
                 cv.put(bm, 'blush', lit)
                 if s.ex == 'love':
@@ -576,7 +574,7 @@ class Painter:
         up, lo, tilt, inner_drop, iris_r, pup = 3.5, 2.1, C.get('tilt', .9), 0.0, C.get('iris', 3.8), 1.55
         look = (0.0, 0.0)
         if ex == 'happy': up, lo = 3.0, .9
-        elif ex == 'sad': up, lo, tilt, look = 2.8, 2.0, -.5, (0, .9)
+        elif ex == 'sad': up, lo, tilt, look = 2.4, 2.0, -1.1, (0, 1.0)   # (judge r2: sad must move brow, lid and mouth together) lids lower, outer corners drop
         elif ex == 'angry': up, lo, inner_drop = 2.8, 1.7, 1.5
         elif ex == 'surprised': up, lo, iris_r, pup = 4.4, 2.7, iris_r * .86, 1.15
         elif ex == 'scared': up, lo, iris_r, pup, look = 4.6, 2.8, iris_r * .74, .85, (1.1, 0)
@@ -587,8 +585,8 @@ class Painter:
         if C.get('heavy'): up = up * .82
         if ex == 'love': up, lo, iris_r, pup = 2.8, 1.0, iris_r * 1.08, 1.2
         elif ex == 'cry': up, lo, tilt, look = 2.4, 1.9, -.7, (0, .9)
-        elif ex == 'smug': up, lo, look = 1.9, 1.9, (-1.5, .3)
-        elif ex == 'think': up, lo, look = 3.4, 1.9, (1.8, -1.8)
+        elif ex == 'smug': up, lo, look = (2.5 if sg < 0 else 1.7), 1.9, (-1.5, .3)   # (judge r2: smug read as sleepy) the eye under the raised brow stays open
+        elif ex == 'think': up, lo, look = 3.2, 1.9, (2.3, -2.4)   # eyes up and to the side
         if ex == 'laugh':   # squeezed shut: a thick upward arc and a small flick
             u = np.linspace(-1, 1, 30); xs = ecx + sg * u * a; ys = ecy + 1.4 - 3.0 * (1 - u * u) ** .8 - tilt * (u + 1) / 2 * .6
             cv.put(ribbon(np.stack([xs, ys], 1), [.9, 1.7, 1.9, 1.3])[0], 'lash', .3)
@@ -617,7 +615,7 @@ class Painter:
         if pup: cv.put(ell(icx, icy, pup, pup * 1.05) & scl, 'pupil', .3)
         if ex == 'wrong':
             cv.put(ell(icx, icy, .9, .9) & scl, 'iris', .9)
-        elif C.get('hollow'): pass
+        elif C.get('hollow'): cv.put(ell(icx, icy - .3, .75, .75) & scl, 'glint2', 1)   # (judge r2: hollow eyes had no expression) a pinprick of light that follows the look
         else:
             cv.put(ell(icx - 1.35, icy - 1.25, 1.1, 1.0) & scl, 'glint', 1)
             cv.put(ell(icx + 1.5, icy + 1.6, .6, .55) & scl, 'glint2', 1)
@@ -656,7 +654,7 @@ class Painter:
         by = C.get('brow_y', 50.6); bw = C.get('brow_w', 1.0)
         di, dp, do = 0.0, 0.0, 0.0
         if ex == 'angry': di, dp, do = 2.5, .6, -.4
-        elif ex == 'sad': di, dp, do = -3.2, -.4, 1.3
+        elif ex == 'sad': di, dp, do = -4.4, -.9, 1.9
         elif ex == 'surprised': di, dp, do = -2.6, -2.8, -1.8
         elif ex == 'scared': di, dp, do = -3.0, -2.0, -.6
         elif ex == 'happy': di, dp, do = -.8, -1.0, -.6
@@ -664,7 +662,8 @@ class Painter:
         elif ex == 'love': di, dp, do = -.9, -1.1, -.6
         elif ex == 'laugh': di, dp, do = -1.6, -1.6, -1.0
         elif ex == 'cry': di, dp, do = -2.8, -.4, 1.0
-        side = {'smug': {-1: (-2.4, -3.4, -1.8), 1: (1.2, .9, .4)}, 'think': {-1: (-1.8, -2.8, -1.4), 1: (1.0, .5, .2)}}.get(ex)   # bigger, one-sided (judge: within 1-2 px of neutral)
+        elif ex == 'think': di, dp, do = .9, -.3, -.2   # (judge r3: think and smug both used one raised brow) level, slightly knit
+        side = {'smug': {-1: (-3.0, -4.4, -2.6), 1: (1.6, 1.2, .6)}, }.get(ex)   # bigger, one-sided (judge: within 1-2 px of neutral)
         for sg in (-1, 1):
             if side: di, dp, do = side[sg]
             ar = C.get('brow_arch', 1.0)
@@ -674,6 +673,8 @@ class Painter:
             cv.put(whole, 'brow', .45 + .2 * (X < CX))
             # the lower edge of the brow a step darker
             cv.add(whole & ~shift(whole, 0, -.7), 'brow', -.2)
+        if ex in ('sad', 'cry'):   # the knit between raised inner brows
+            for sg in (-1, 1): cv.put(stroke([(CX + sg * 2.6, by - 3.4), (CX + sg * 1.9, by - .6)], [.55, .4]), 'crease', .5)
 
     def nose(s):
         cv = s.cv; n = s.C.get('nose', 1.0)
@@ -685,11 +686,12 @@ class Painter:
         C, cv, ex = s.C, s.cv, s.ex
         mx, my = CX + .3, C.get('mouth_y', 76.5); hw = C.get('lip_w', 6.6); uh = C.get('lip_up', 2.2); lh = C.get('lip_lo', 2.9)
         u = np.linspace(-1, 1, 41); xs = mx + u * hw
-        corner = {'neutral': .7, 'happy': 1.8, 'sad': -2.0, 'angry': -.7, 'surprised': 0, 'scared': -.9, 'wrong': 2.6, 'love': 1.3, 'laugh': 2.0, 'cry': -1.5, 'smug': .3, 'think': -.6}[ex]
-        if ex == 'think': hw = hw * .55; mx = mx + 2.8; xs = mx + u * hw
+        corner = {'neutral': .7, 'happy': 1.8, 'sad': -3.0, 'angry': -.7, 'surprised': 0, 'scared': -.9, 'wrong': 2.6, 'love': 1.3, 'laugh': 2.0, 'cry': -1.5, 'smug': 0, 'think': -.6}[ex]
+        if ex == 'sad': hw = hw * .86; xs = mx + u * hw   # a smaller, pulled-down mouth
+        if ex == 'think': hw = hw * .6; mx = mx + 2.8; xs = mx + u * hw; lh = lh * .45; uh = uh * .8   # a flat mouth pulled aside (a full lower lip read as a pout)
         if ex == 'wrong': hw = hw * 1.55; xs = mx + u * hw
         if ex == 'laugh' and not C.get('teeth_v1'): hw = hw * 1.14; xs = mx + u * hw   # a laugh widens as well as opens
-        line = my - corner * u * u + .15 * np.exp(-(u / .2) ** 2) - (C.get('smirk', 0) + (3.0 if ex == 'smug' else 0)) * np.clip(u, 0, 1) ** 2 * (0 if ex in ('sad', 'scared', 'wrong', 'cry') else 1)
+        line = my - corner * u * u + .15 * np.exp(-(u / .2) ** 2) - (C.get('smirk', 0) + (4.6 if ex == 'smug' else 0)) * np.clip(u, 0, 1) ** 2 * (0 if ex in ('sad', 'scared', 'wrong', 'cry') else 1) + (.9 * np.clip(-u, 0, 1) ** 2 if ex == 'smug' else 0)
         top = line - uh * (1 - u * u) ** .55 + .7 * np.exp(-(u / .16) ** 2) - .25 * np.exp(-((np.abs(u) - .32) / .14) ** 2)
         if ex in ('happy', 'scared', 'wrong', 'laugh', 'cry'):
             op = {'happy': 2.7, 'scared': 2.6, 'wrong': 4.2, 'laugh': 4.0 if C.get('teeth_v1') else 7.4, 'cry': 2.2}[ex]   # a laugh opens the jaw (judge: it read as the smile with the eyes shut)
@@ -730,6 +732,8 @@ class Painter:
         cv.put(lo_lip, 'lip', .56 + .26 * G(mx - 1.7, my + lh * .55, 2.3, .8) + .06 * (X < mx))
         ln = np.stack([np.concatenate([[xs[0] - .5], xs, [xs[-1] + .5]]), np.concatenate([[line[0] + .1], line, [line[-1] + .1]])], 1)
         cv.put(ribbon(ln, [.5, .9, 1.0, .9, .5])[0], 'lipline', .4)
+        if ex == 'smug':   # a dimple tucks in at the lifted corner, so the smirk reads at 1x
+            ex_, ey_ = xs[-1], line[-1]; cv.put(ell(ex_ + 1.3, ey_ + .4, .75, 1.05) & s.face_m, 'crease', .3)   # (judge r3: the slash read as a scar) a 1-2 px dimple in the shadow tone
 
     # ------------------------------------------------------------ hairstyles: lists of locks, back to front
     def mass(s, mask, out, d=-.16):
@@ -1193,12 +1197,11 @@ class Painter:
             cv.put(sc, 'acc', .5 + .15 * (X < CX)); cv.add(sc & (np.floor(X) % 4 == 0), 'acc', -.08)
             tail = ribbon(bez([(CX + 7, 97 + o), (CX + 9, 110 + o), (CX + 8, 126 + o)], 20), [5, 5, 4.6])[0]
             cv.put(tail, 'acc', .44); cv.add(tail & ~shift(tail, 0, -1) & (Y > 124 + o), 'acc', -.15)
-        dxc = X - CX; Yw = Y + .0042 * dxc ** 2; q = .45 + .55 * sstep(8, 30, np.abs(dxc))   # (judge: even horizontal bands) bands curve round the body, quieter on the lit chest
-        if 'knit' in w:
-            cv.add(s.cloth_m & ((np.floor(X + .06 * dxc) % 3) == 0), 'top', -.07 * q)
-            cv.add(s.cloth_m & ((np.floor(Yw) % 6) == 0) & (Y > 120 + o), 'top', -.05)
+        if 'knit' in w:   # straight rows (judge r2: curved rows stepped into hatch)
+            cv.add(s.cloth_m & ((np.floor(X) % 3) == 0), 'top', -.07)
+            cv.add(s.cloth_m & ((np.floor(Y) % 6) == 0) & (Y > 120 + o), 'top', -.05)
         if 'stripes' in w:
-            cv.add(s.cloth_m & ((np.floor(Yw) % 6) < 2), 'top', -.13 * q)
+            cv.add(s.cloth_m & ((np.floor(Y) % 6) < 2), 'top', -.13)
     # ------------------------------------------------------------ the whole portrait
     def paint(s):
         C, cv = s.C, s.cv

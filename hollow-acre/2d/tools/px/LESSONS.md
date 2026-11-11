@@ -116,6 +116,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   texture.
 
 ## Props (small objects, 20-40 px) [owner: "not good enough"]
+- Never stamp the same grass tuft on every prop: it repeats across the family and shows green on dirt. Use one solid drop shadow instead (#322125 at 60%, an ellipse under the foot, pushed down and right). (props r3)
+- A frame or brace over boards is a step DARKER than the boards between it, not lighter, and a crate lid is a full step lighter than its front. (props r3)
+- A mine "way down" reads from a ragged dark shaft with the ladder's top poking out, not from a ladder lying flat. Give the lip broken stones, lit on the near edge, and no straight frame (a straight lip reads as a TV). (props r3)
+- Rust is brown-orange (#77461f range), never saturated red: red streaks on a drum read as blood. (props r3)
+- Lettering on a sign: abstract strokes, not real 3x5 letters. Random letters spell words by accident ("HECCO" read as HELLO). (props r3)
+- Firewood: logs off any grid in three sizes, dull tan ends lit top-left with one dark heart pixel off centre, some half-moon splits, and a dark interior behind them. Plain pale ends in a 3x3 grid read as bread rolls. (props r3)
+- Lumber: a straight left edge, boards of different lengths, tan sawn ends, and a dark gap with battens under each layer. Ends-toward-you blocks read as bricks, and a stepped stack reads as stairs. (props r3)
 
 - [props v1] 3D toon shading alone gives plastic toys at this size: the drawn props win on hand detail. Every prop
   needs a material pass after the render: wood = dark board seams, grain streaks, nail heads; metal = a bright rim
@@ -264,6 +271,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   lit upper-left, short shadow) read as grass. Lone 2-4 px marks and leaves in a lawn read as specks or eyes.
 
 ## Portraits: check before installing (Nov 9)
+- A curved cloth pattern (floor() of a warped coordinate) steps into diagonal hatch at 128 px and reads as rain. Keep checks and stripes straight. (portraits r2)
+- Two characters with the same hair style and colour read as one person whatever the face does. Change the hair or the beard first, then the face. (portraits r2)
+- An expression must move brow, lids and mouth together by 2-3 px each, or it disappears at 1x: smug = one brow up and one mouth corner up with a dimple, while that eye stays open; sad = inner brows up, outer eye corners down, both mouth corners down. (portraits r2)
+- Hollow or blank eyes need something that moves (a pinprick of light that follows the look), or every expression on that face reads the same. (portraits r2)
 - Before installing a re-rendered sheet, diff it cell by cell against the installed one and explain every changed
   pixel. PIL's getbbox() on an RGBA difference looks only at alpha, so colour changes report as "same": use
   getbbox(alpha_only=False) or numpy.

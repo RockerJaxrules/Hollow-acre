@@ -6,7 +6,9 @@ import sys, os, json, shutil
 from PIL import Image
 HERE = os.path.dirname(os.path.abspath(__file__)); GAME = os.path.abspath(os.path.join(HERE, '..', '..'))
 BUILD = os.environ.get('HA_SCRATCH', '/tmp/claude-0/-home-user-Minecraftbot/f193b802-e794-5104-89ce-994e8f157fdf/scratchpad')
-SPR = {'bookcase': 'in_shelf_books', 'desk': 'in_desk', 'table': 'in_table', 'clock': 'in_clock', 'keg': 'in_keg', 'cradle': 'in_cradle',
+SPR = {'o_tyres': 'tyres', 'o_drum': 'drum', 'o_crate': 'crate', 'o_lumber': 'lumber', 'o_ladder': 'ladder', 'o_wheel': 'wheel', 'o_firewood': 'firewood', 'o_trash': 'trashcan',
+       'o_birdbath': 'birdbath', 'o_signpost': 'signpost', 'o_hay': 'hay', 'o_parkbench': 'parkbench', 'o_pumpkin': 'pumpkin', 'o_clothesline': 'clothesline',
+       'bookcase': 'in_shelf_books', 'desk': 'in_desk', 'table': 'in_table', 'clock': 'in_clock', 'keg': 'in_keg', 'cradle': 'in_cradle',
        'piano': 'in_piano', 'chess': 'in_chess', 'rocker': 'in_rockS', 'jars': 'in_shelf_jars', 'crates': 'in_crates', 'globe': 'in_globe',
        'candles': 'in_candles', 'lamp': 'in_oillamp', 'rug': 'in_rug',
        'beda': 'in_bed', 'bedb': 'in_bed_b', 'bedc': 'in_bed_c', 'bedd': 'in_bed_d', 'bede': 'in_bed_e', 'wardrobe': 'in_wardrobe', 'cabinet': 'in_cabinet', 'stove': 'in_stove',
