@@ -6,22 +6,34 @@
    camera goes where to look. ================= */
 (function(){const css=document.createElement('style');css.textContent=`
 body.stgShow #stgCap{display:none!important}
-#stgBub{position:fixed;z-index:61;pointer-events:none;display:none;transform:translate(-50%,-100%);max-width:min(46vw,20em);
- background:#f3ead6;color:#1e1610;border:2px solid #1e1610;box-shadow:3px 3px 0 rgba(0,0,0,.45);padding:6px 10px 7px;
- font:clamp(12px,1.45vw,21px)/1.35 'Hollow Pixel',monospace;text-align:center;box-sizing:border-box}
+#stgBub{position:fixed;z-index:61;pointer-events:none;display:none;transform:translate(-50%,-100%);max-width:min(46vw,19em);margin-top:-22px;
+ background:#f3ead6;color:#1e1610;padding:7px 11px 8px;font:14px/1.4 'Hollow Pixel',monospace;text-align:center;box-sizing:border-box;text-wrap:balance;
+ -webkit-font-smoothing:none;font-smooth:never;filter:drop-shadow(3px 3px 0 rgba(0,0,0,.45));
+ box-shadow:0 -3px 0 0 #1e1610,0 3px 0 0 #1e1610,-3px 0 0 0 #1e1610,3px 0 0 0 #1e1610,inset 0 2px 0 0 #fffaf0,inset 0 -2px 0 0 #d8ccb0}
+@media (min-width:1100px){#stgBub{font-size:18px;padding:8px 13px 9px}}@media (min-width:1700px){#stgBub{font-size:24px;padding:10px 16px 12px}}
 #stgBub.on{display:block}
-#stgBub:after{content:'';position:absolute;left:var(--tail,50%);bottom:-9px;width:10px;height:8px;margin-left:-5px;background:#f3ead6;border:2px solid #1e1610;border-top:none;
- clip-path:polygon(0 0,100% 0,30% 100%);}
-#stgBub.you{background:#e2ecf0}#stgBub.you:after{background:#e2ecf0}
-#stgBub.thing{background:#1e1a16;color:#e8dcc0;border-color:#8a7a5a;font-style:italic}#stgBub.thing:after{background:#1e1a16;border-color:#8a7a5a}`;
+#stgBub .tl,#stgBub .tl2{position:absolute;top:100%;left:var(--tail,50%);width:21px;height:21px;background:#1e1610;margin-left:-3px;
+ clip-path:polygon(0 0,21px 0,21px 3px,18px 3px,18px 6px,15px 6px,15px 9px,12px 9px,12px 12px,9px 12px,9px 15px,6px 15px,6px 18px,3px 18px,3px 21px,0 21px)}
+#stgBub .tl2{background:#f3ead6;width:15px;height:15px;top:calc(100% - 1px);margin-left:0;clip-path:polygon(0 0,15px 0,15px 3px,12px 3px,12px 6px,9px 6px,9px 9px,6px 9px,6px 12px,3px 12px,3px 15px,0 15px)}
+#stgBub.flip .tl{transform:scaleX(-1);margin-left:-18px}#stgBub.flip .tl2{transform:scaleX(-1);margin-left:-12px}
+#stgBub .nm{position:absolute;left:8px;top:-1.45em;font-size:.72em;line-height:1;padding:3px 6px 2px;color:#fff6e0;background:var(--nc,#7a5a3a);
+ box-shadow:0 -2px 0 0 #1e1610,-2px 0 0 0 #1e1610,2px 0 0 0 #1e1610;letter-spacing:.04em}
+#stgBub.you{background:#e2ecf0}#stgBub.you .tl2{background:#e2ecf0}
+#stgBub.thing{background:#1e1a16;color:#e8dcc0;box-shadow:0 -3px 0 0 #8a7a5a,0 3px 0 0 #8a7a5a,-3px 0 0 0 #8a7a5a,3px 0 0 0 #8a7a5a}#stgBub.thing .tl{background:#8a7a5a}#stgBub.thing .tl2{background:#1e1a16}`;
   document.head.appendChild(css);const b=document.createElement('div');b.id='stgBub';document.body.appendChild(b);})();
+const HS_NC={mae:'#a8405a',tobias:'#3e6a9a',you:'#3e7a5a',radio:'#5a5048'};
 // where a speaker's head is on the page
 function hsBubAt(b){const c=($('view')||$('c'));if(!c)return null;const r=c.getBoundingClientRect();let X,Y;
   if(b.at){X=sx(b.at.x);Y=sz(b.at.z)-(b.at.h||20);}else{const a=stgActor(b.who);if(!a)return null;X=sx(a.x);Y=sz(a.z)-48;}
   return {x:r.left+X*r.width/c.width,y:r.top+Y*r.height/c.height};}
-function hsBub(b,txt){const e=$('stgBub');if(!b||!txt){e.classList.remove('on');return;}e.className='on'+(b.who==='you'?' you':!b.who||b.at?' thing':'');e.innerHTML=txt;
-  const p=hsBubAt(b);if(!p){e.style.left='50%';e.style.top='22%';return;}const w=e.offsetWidth||200,h=e.offsetHeight||40,x=Math.max(w/2+8,Math.min(innerWidth-w/2-8,p.x)),y=Math.max(h+8,p.y-6);
-  e.style.left=x+'px';e.style.top=y+'px';e.style.setProperty('--tail',Math.max(12,Math.min(w-12,w/2+(p.x-x)))+'px');}
+function hsBub(b,txt){const e=$('stgBub');if(!b||!txt){e.classList.remove('on');return;}
+  const nm=b.who==='you'?'You':b.who==='radio'?'The radio':b.who?stgName(b.who):'';
+  e.innerHTML=(nm?`<span class="nm">${nm}</span>`:'')+txt+'<span class="tl"></span><span class="tl2"></span>';e.style.setProperty('--nc',HS_NC[b.who]||'#7a5a3a');
+  const p=hsBubAt(b);let cls='on'+(b.who==='you'?' you':!b.who||b.at?' thing':'');if(!p){e.className=cls;e.style.left='50%';e.style.top='22%';return;}
+  // the bubble sits to the speaker's own side of the shot, so its tail drops straight onto them and nobody else
+  const w=e.offsetWidth||200,h=e.offsetHeight||40;let side=0;try{const a=b.at?null:stgActor(b.who);if(a)for(const id of Object.keys(STG.def.cast||{}).concat(['you'])){if(id===b.who)continue;const o=stgActor(id);if(o&&o.vis!==false&&Math.abs(o.x-a.x)<2.5)side=a.x<o.x?-1:1;}}catch(er){}
+  const want=p.x+side*w*.32,x=Math.max(w/2+8,Math.min(innerWidth-w/2-8,want)),y=Math.max(h+34,p.y-14);if(side<0)cls+=' flip';e.className=cls;
+  e.style.left=x+'px';e.style.top=y+'px';e.style.setProperty('--tail',Math.max(10,Math.min(w-14,w/2+(p.x-x)))+'px');}
 {const _u=stgUpdate;stgUpdate=function(dt){const r=_u.apply(this,arguments);const st=STG;document.body.classList.toggle('stgShow',!!(st&&st.def.show));
   if(!st||!st.def.show||st.ended||st.i<0){hsBub(null);return r;}const b=st.def.beats[st.i];
   if(!b||!b.text||!$('stgCap').classList.contains('on')){hsBub(null);st._read=0;return r;}

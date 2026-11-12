@@ -437,10 +437,13 @@ function hsRoute(done){const rx=-70,z0=-5.4;   // staged out on open Route 9 wes
     done(){done&&done();}});}
 
 // ---------- 7. Caitlyn — "Danny's last letter": the store at dusk, the envelope, the boy who is still pushing ----------
-function hsDannyCard(){return hmCard('dannyletter',92,66,(P)=>{P(0,0,92,66,'#120c08');P(1,1,90,64,'#e8dcc0');P(1,1,90,2,'#f4ecd8');for(let y=12;y<62;y+=8)P(3,y,86,1,'#b8c8d8');P(10,3,1,61,'#d89090');
-  P(70,40,14,10,'#d8ccb0');P(1,62,90,3,'#c8bca0');   // a fold, a thumb-mark
-  const L=['TO WHOEVER','COMES AFTER ME','IT IS NOT A MAN','IT IS A DOOR','PUSH','TELL MOM I PUSHED'];L.forEach((t,i)=>sgtT(P,t,13+(i%2),5+i*8+(i===4?0:0),i===4?'#5a1e14':'#3a3a48'));
-  P(13,45,18,1,'#5a1e14');});}
+function hsDannyCard(){return hmCard('dannyletter2',96,68,(P)=>{P(0,0,96,68,'#120c08');P(1,1,94,66,'#e8dcc0');P(1,1,94,2,'#f4ecd8');for(let y=12;y<64;y+=8)P(3,y,90,1,'#b8c8d8');P(10,3,1,63,'#d89090');P(1,64,94,3,'#cfc3a6');
+  // pencil capitals by a ten-year-old: every letter a pixel up or down, the gaps uneven, the last line running downhill, PUSH pressed hard in red
+  const L=['TO WHOEVER','COMES AFTER ME','IT IS NOT A MAN','IT IS A DOOR','PUSH','TELL MOM I PUSHED'];
+  L.forEach((t,li)=>{let X=13+(li%2);const red=li===4;[...t].forEach((ch,ci)=>{const h=((li*31+ci*17)*2654435761>>>0)%7;const dy=(h>4?1:0)+(li===5?Math.floor(ci*.28):0);   // (one pixel of drift, not two)
+    const f=(typeof PXFONT!=='undefined'&&PXFONT[ch])||null;if(f){const col=red?'#8a2416':(h===3?'#6a6a76':'#4a4a56');for(let r=0;r<5;r++)for(let c=0;c<3;c++)if(f[r*3+c]==='1')P(X+c,5+li*8+r+dy,1,1,col);}
+    X+=ch===' '?3+(h%2):4+(h===6?1:0);});});
+  P(13,43,16,1,'#8a2416');P(14,44,13,1,'#a04030');});}
 function hsDannyLetter(done){const R=ROOMS.store,ox=R.ox,oz=R.oz;MAEV.on=false;let card=0;const dImg=hsDannyCard();
   const cz=oz+2.66,you0={x:ox+14,z:oz+5.3};let env=0,read=0;const CAM={x:ox+14,z:oz+4.4};
   stage({show:true,room:'store',hour:18.4,keepHour:true,player:{x:you0.x,z:you0.z,dir:'N'},cast:{mae:{x:ox+14,z:cz,dir:'S'}},cam:CAM,lead:750,

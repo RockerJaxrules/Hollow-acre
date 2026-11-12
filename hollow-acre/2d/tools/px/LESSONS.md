@@ -1411,3 +1411,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Cloth tied at the neck: a flared, pleated ruffle above a cord wound twice, a knot and a hanging end. A flat block on top reads as a lid.
 - Say where the thing lies: if the caption says "under the bridge", show the beam overhead and its shadow.
 - A stitched line is dashes with gaps (2 on, 1 off). Even square dots read as rivets.
+
+## Showing a scene instead of reading it (owner: Caitlyn's heart events "read instead of show", Nov 12)
+- The owner said "you have them read instead of show". Understood: a caption box with a portrait, tapped through line after line, reads like a book even when there's art behind it. Act it out: walking, gestures, props handed over, people coming in. Keep 2-4 short lines, said in bubbles over the speaker's head.
+- Never write a line that describes what is on screen ("There's a man at the window"). Show it, or cut it.
+- A speech bubble is game UI. Give it a 3 px cut-corner frame, the pixel font with smoothing off, a staircase tail of 15 px or more aimed at the mouth, and a name tab in the speaker's colour. Slide the bubble to the speaker's side in a two-shot.
+- Balance the line breaks. Never leave one word alone on the last line.
+- A child's handwriting has one pixel of baseline drift, uneven gaps and a last line running downhill. Two pixels of jump reads as a ransom note.
+- Close-up cards in a scene sit below the letterbox bar.

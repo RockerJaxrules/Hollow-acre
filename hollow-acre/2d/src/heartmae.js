@@ -12,7 +12,7 @@ const HM={};
 // ---- a close-up: a small picture drawn once, shown pixel-doubled in a card at the top of the view
 function hmCard(key,w,h,fn){if(HM[key])return HM[key];const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
   const P=(x,y,ww,hh,col)=>{g.fillStyle=col;g.fillRect(x,y,ww||1,hh||1);};fn(P,g,w,h);return HM[key]=c;}
-function hmShowCard(img,k,cap){if(k<=0)return;const sc=Math.max(2,Math.min(3,Math.floor(VH*.42/img.height))),w=img.width*sc,h=img.height*sc,x=Math.round(VW/2-w/2),y=Math.round(VH*.08+(1-k)*8);
+function hmShowCard(img,k,cap){if(k<=0)return;const sc=Math.max(2,Math.min(3,Math.floor(VH*.42/img.height))),w=img.width*sc,h=img.height*sc,x=Math.round(VW/2-w/2),y=Math.round((typeof STG!=='undefined'&&STG?VH*.105:VH*.08)+(1-k)*8);   // (below the letterbox bar in a scene)
   ctx2.save();ctx2.globalAlpha=Math.min(1,k);ctx2.fillStyle='rgba(8,6,10,.45)';ctx2.fillRect(0,0,VW,VH);
   ctx2.fillStyle='#120c08';ctx2.fillRect(x-4,y-4,w+8,h+8);ctx2.fillStyle=HSP.wood[3];ctx2.fillRect(x-3,y-3,w+6,h+6);ctx2.fillStyle=HSP.wood[4];ctx2.fillRect(x-3,y-3,w+6,1);ctx2.fillStyle=HSP.wood[1];ctx2.fillRect(x-3,y+h+2,w+6,1);
   ctx2.imageSmoothingEnabled=false;ctx2.drawImage(img,x,y,w,h);ctx2.restore();}
