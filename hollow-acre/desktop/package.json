@@ -7,7 +7,7 @@
     "name": "Hollow Acre",
     "email": "hollowacre@users.noreply.github.com"
   },
-  "homepage": "https://github.com/RockerJaxrules/Minecraftbot",
+  "homepage": "https://github.com/RockerJaxrules/Hollow-acre",
   "main": "main.js",
   "scripts": {
     "copy": "node copy-game.js",
