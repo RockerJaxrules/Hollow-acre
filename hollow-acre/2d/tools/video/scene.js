@@ -1,5 +1,5 @@
-// node scene.js URL OUTDIR TAG shots.js BUILD(old|new) [record=1]  — records a shot list (see shots.js); compose.py cuts it into the trailer
-// node scene.js URL OUTDIR TAG SCENEFILE BUILD(old|new) [record=1]
+const {chromium}=require('playwright');const fs=require('fs');
+// node scene.js URL OUTDIR TAG shots.js BUILD(old|new) [record=1]  (shots.js is the trailer's shot list; compose.py cuts it)
 // A scene file exports [{name,steps,phase?}]. phase 'creator' runs on the character screen (before Go), phase 'intro'
 // runs right after Go (the opening cutscene still playing); the rest run in play after the intro is skipped.
 // A step is [op,...args] or {old:[...steps],new:[...steps]}.
