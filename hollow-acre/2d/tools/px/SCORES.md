@@ -44,3 +44,4 @@ orders. Latest round first.
 | Survey stake (land for sale, Nov 12) | 6 (r2) | yes | an 8 needs 2-3 tone clusters per face, a 1 px lit front edge, end-grain rings on the sawn top, a visible knot where the cloth wraps |
 | Loading screen (Nov 12) | 5 -> 5.5 -> 6 (PC 6, phone 6) | yes | toward 7: the nearest objects the best-drawn on screen (Stardew puts its finest drawing in front), far rows merged into flat tone, no 1 px converging lines that step into moire |
 | Title screen (Nov 12) | 6, preferred over the old | yes | toward 7: buttons as pixel objects that belong to the scene (frame, bevel, grain), not web UI; nothing anti-aliased or rounded |
+| Reading close-ups (Nov 12) | 5.5 -> 6.5, preferred over the old text line | yes | toward 7: the county sign (flat panel, few details), a real tally at eye height on the farm post |

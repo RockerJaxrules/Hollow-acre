@@ -1254,3 +1254,17 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Keep the story objects (cabin, scarecrow) clear of the menu on every screen shape; on a phone lower the horizon rather than
   let the buttons sit across it. Never show debug text or repeated control lists in the small print.
 - Nine identical props in a row on a still screen read as a stamp: give them 2-3 variants (carved faces).
+
+## Close-ups of objects with writing on them (#258, Nov 12)
+- A snapshot of the game world used as a backdrop shows the object again and the player (a face peering round the post): re-render
+  one frame with the player and that object hidden, then blur it. Out of focus reads as depth; a sharp 4x zoom reads as glitches.
+- Never "wear" a 1 px letter by removing pixels: one missing pixel turns D into V and O into C. Wear the paint by tone (a darker
+  shade), keep every stroke; only a stone meant to be illegible may lose pixels.
+- Carved letters are dark grooves (the shadow colour) with at most a slightly lit lower-right inner wall or a 1 px lip below;
+  letters paler than the stone read as chalk or paint. Use the 2x font for the main name so a groove has room for two tones.
+- The game's pixel font leaves 2-3 blank columns after a narrow glyph (the 1): collapse blank runs of 2-4 columns inside a line or
+  "1965" reads "1 965".
+- Moss grows along the top edge and the foot as a ragged strip; scattered round blobs with a highlight read as toys or lizards.
+- Nails, rivets and screws never sit on the letters (they read as accents: HÄRTLEY).
+- Ground under a cut-out object varies by kind (grass, paving with 2-3 paver sizes and offset joints, gravel in small two-tone
+  clusters); one identical grass lens under everything reads as a stamp, and checker noise reads as static.
