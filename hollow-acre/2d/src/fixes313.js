@@ -21,7 +21,7 @@ function mirEnsure(){if(MIR.box)return;const b=document.createElement('div');b.i
   b.addEventListener('pointerdown',close);addEventListener('keydown',e=>{if(MIR.on)close(e);},true);}
 // how bad it is: the nights' horror and your nerve, whichever is further gone
 function mirLevel(){if(MIR.forceL!=null)return MIR.forceL;let L=0;try{L=Math.max(L,typeof hl==='function'?hl():0);}catch(e){}try{if(typeof tierOf==='function'&&typeof M!=='undefined')L=Math.max(L,tierOf(M.v));}catch(e){}return Math.max(0,Math.min(4,L|0));}
-function mirOpen(){if(MIR.on)return;mirEnsure();const L=mirLevel();MIR.L=L;MIR.on=true;MIR.stung=false;MIR.openAt=performance.now();MIR.wasPaused=!!S.paused;S.paused=true;
+function mirOpen(){if(MIR.on)return;mirEnsure();const L=mirLevel();MIR.L=L;MIR.on=true;MIR.stung=false;MIR.st=null;MIR.skin=undefined;MIR.openAt=performance.now();MIR.wasPaused=!!S.paused;S.paused=true;
   const vw=innerWidth,vh=innerHeight,K=Math.max(2,Math.floor(Math.min(vw/170,vh/150))),W=Math.ceil(vw/K),H=Math.ceil(vh/K);MIR.K=K;MIR.W=W;MIR.H=H;
   const cv=MIR.cv;cv.width=W;cv.height=H;cv.style.width=W*K+'px';cv.style.height=H*K+'px';MIR.g.imageSmoothingEnabled=false;
   MIR.hint.textContent=matchMedia('(pointer:coarse)').matches?'Tap to look away':'Click or press E to look away';
@@ -35,68 +35,96 @@ function mirClose(){if(!MIR.on)return;MIR.on=false;cancelAnimationFrame(MIR.raf)
 // the player's own sprite, one frame of a clip, from the composed sheet (hair, clothes, glasses and hat as they look now)
 function mirFrameImg(dir,i){const m=SPR.farmer;if(!m)return null;const im=IMG[m.src];if(!im)return null;const c=m.clips&&m.clips.idle&&m.clips.idle[dir];if(!c)return null;
   const n=c[1]||1;return {im,sx:(i%n)*m.fw,sy:c[0]*m.fh,fw:m.fw,fh:m.fh};}
-function mirFrame(){const g=MIR.g,W=MIR.W,H=MIR.H,t=MIR.t,L=MIR.L;const P_=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x|0,y|0,w|0,h|0);};
-  const night=typeof isNight==='function'&&(isNight()||S.hour<5.5);
-  // the wall of the cabin round the mirror: boards, a grain line in each, a nail head here and there
-  P_(0,0,W,H,'#24170e');for(let y=0,k=0;y<H;y+=9,k++){P_(0,y,W,1,'#160d07');P_(0,y+1,W,1,'#33221a');for(let x=(k*23)%37;x<W;x+=37+(k%3)*6){P_(x,y+4,9,1,'#2c1d13');}if(k%2)for(let x=(k*41)%61+5;x<W;x+=61)P_(x,y+2,1,1,'#0e0805');}
-  // the mirror: an arched top, a wide frame lit from the top left, a wire and a nail above it
-  const gw=Math.min(Math.round(W*.36),104),gh=Math.min(Math.round(H*.66),Math.round(gw*1.32)),gx=Math.round(W/2-gw/2),gy=Math.round(H*.13);const arch=Math.round(gw*.22);
-  const inGlass=(x,y)=>{if(x<0||x>=gw||y<0||y>=gh)return false;if(y>=arch)return true;const cx=gw/2,r=gw/2,dy=arch-y,dx=x+.5-cx;return dx*dx/(r*r)+dy*dy/(arch*arch)<=1;};
-  P_(W/2-1,gy-arch*.2-10,2,2,'#8a7a62');for(let i=0;i<8;i++){P_(W/2-1-i*1.6-6,gy-6-i*.3+arch*.0,2,1,'#5a4a38');P_(W/2+1+i*1.6+4,gy-6-i*.3,2,1,'#5a4a38');}
-  const fr=5;for(let y=-fr;y<gh+fr;y++)for(let x=-fr;x<gw+fr;x++){if(inGlass(x,y))continue;let near=false;for(let d=1;d<=fr&&!near;d++)if(inGlass(x+d,y)||inGlass(x-d,y)||inGlass(x,y+d)||inGlass(x,y-d))near=true;if(!near)continue;
-    const edge=!(inGlass(x+fr+1,y)||inGlass(x-fr-1,y)||inGlass(x,y+fr+1)||inGlass(x,y-fr-1));const lit=(x<gw/2?1:0)+(y<gh/3?1:0);
-    let c=['#4a2c16','#6a4222','#8a5a2e'][lit];if(edge)c='#1a0e06';else if(inGlass(x+1,y)||inGlass(x-1,y)||inGlass(x,y+1)||inGlass(x,y-1))c=lit?'#2e1a0c':'#24140a';
-    P_(gx+x,gy+y,1,1,c);}
-  // a carved crest on the top of the frame
-  for(let i=-6;i<=6;i++)P_(W/2+i,gy-arch-fr-1-Math.round(2.5-Math.abs(i)*.35),1,Math.round(3-Math.abs(i)*.3),Math.abs(i)<3?'#9a6a36':'#6a4222');
-  // what the glass shows: the cabin behind you (the wall with the window and the coat hook, the end of the bed)
-  const G=document.createElement('canvas');G.width=gw;G.height=gh;const q=G.getContext('2d');q.imageSmoothingEnabled=false;const Q=(x,y,w,h,c)=>{q.fillStyle=c;q.fillRect(x|0,y|0,w|0,h|0);};
-  Q(0,0,gw,gh,'#2a2420');for(let y=0;y<gh;y+=8){Q(0,y,gw,1,'#1a1612');Q(0,y+1,gw,1,'#342c26');}
-  // the window, back to front: night is deep blue with a moon; at the worst it is daylight in there whatever the hour
-  const day=L>=4?true:!night;const wx=Math.round(gw*.5),wy=Math.round(gh*.16),ww=Math.round(gw*.26),wh=Math.round(gh*.22);
-  Q(wx-2,wy-2,ww+4,wh+4,'#1a120c');Q(wx,wy,ww,wh,day?'#9ab0c0':'#141c34');if(day){Q(wx,wy+wh*.6,ww,wh*.4,'#b8c4c8');}else{Q(wx+ww*.65,wy+3,3,3,'#d8dcc8');}
+// the still parts (the wall, the mirror's shadow on it, the frame, the wire) are drawn once per look; the glass is drawn every frame
+function mirStatic(W,H,dark){const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');const P_=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x|0,y|0,w|0,h|0);};
+  // the cabin wall: boards with their seams, a grain line or two, the odd nail head
+  P_(0,0,W,H,'#2a1b10');for(let y=0,k=0;y<H;y+=9,k++){P_(0,y,W,1,'#150c06');P_(0,y+1,W,1,'#3a281a');for(let x=(k*23)%37;x<W;x+=37+(k%3)*6)P_(x,y+4,9,1,'#321f13');if(k%2)for(let x=(k*41)%61+5;x<W;x+=61)P_(x,y+2,1,1,'#0e0805');}
+  const gw=Math.min(Math.round(W*.32),92),gh=Math.min(Math.round(H*.7),Math.round(gw*1.36)),gx=Math.round(W/2-gw/2),gy=Math.round(H*.14),fr=8;
+  const rx=gw/2,ry=gh/2,cx=gx+rx,cy=gy+ry;const ring=(x,y)=>{const dx=x+.5-cx,dy=y+.5-cy;for(let d=0;d<=fr;d++){const a=rx+d,b=ry+d;if(dx*dx/(a*a)+dy*dy/(b*b)<=1)return d;}return -1;};
+  // the shadow the mirror casts down and to the right on the boards
+  for(let y=gy-fr-12;y<gy+gh+fr+8;y++)for(let x=gx-fr;x<gx+gw+fr+8;x++){const r=ring(x-5,y-6);if(r<0)continue;g.fillStyle='rgba(6,3,2,.5)';g.fillRect(x,y,1,1);}
+  // the wire from the frame to a nail, and the nail
+  const ny=gy-fr-13;for(let i=0;i<=16;i++){const t=i/16;P_(Math.round(cx-14+(14)*t),Math.round(gy-fr+2+(ny-(gy-fr+2))*t),1,1,'#7a6a52');P_(Math.round(cx+14-(14)*t),Math.round(gy-fr+2+(ny-(gy-fr+2))*t),1,1,'#7a6a52');}
+  P_(cx-1,ny-1,3,3,'#1a120a');P_(cx-1,ny-1,2,1,'#9a8a6a');
+  // the frame: a moulded oval. Outer edge dark; a raised bead; a wide flat face; a dark cove; a gilt inner lip. Lit from the top left.
+  const PROF={1:['#d8a456','#5a3a18'],2:['#2a1608','#2a1608'],3:['#8a5a2e','#4a2c14'],4:['#7a4e26','#40260f'],5:['#6a4220','#38220e'],6:['#a87440','#3a2410'],7:['#5a3818','#2a180a'],8:['#1a0e06','#1a0e06']};
+  for(let y=gy-fr-1;y<gy+gh+fr+1;y++)for(let x=gx-fr-1;x<gx+gw+fr+1;x++){const r=ring(x,y);if(r<1)continue;const nx=(x+.5-cx)/rx,ny2=(y+.5-cy)/ry,l=Math.hypot(nx,ny2)||1;
+    // the outward normal against the light from the top left: lit faces point up-left; the cove (2) is concave, so it lights the other way
+    let lit=-(nx/l*.7+ny2/l*.7);if(r===2)lit=-lit;const pal=PROF[r];const col=lit>.25?pal[0]:lit<-.25?pal[1]:(r===1||r===6?'#8a5e30':r===2||r===8?pal[0]:mixHex(pal[0],pal[1],.5));P_(x,y,1,1,col);}
+  // a carved crest at the top of the frame: a shell of five lobes
+  for(let k=-2;k<=2;k++){const bx=Math.round(cx+k*4),by=gy-fr-2-(2-Math.abs(k));for(let j=0;j<4;j++)for(let i=-1;i<=1;i++)P_(bx+i,by+j,1,1,i<0||j===0?'#b07a3e':j===3?'#3a2410':'#7a4e26');}
+  P_(cx-1,gy-fr-7,3,2,'#c8904a');
+  if(dark){g.fillStyle='rgba(4,4,12,.5)';g.fillRect(0,0,W,H);}
+  return {c,gw,gh,gx,gy,rx,ry,cx,cy};}
+function mixHex(a,b,t){const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));const A=p(a),B=p(b);return '#'+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,'0')).join('');}
+function mirFrame(){const g=MIR.g,W=MIR.W,H=MIR.H,t=MIR.t,L=MIR.L;
+  const night=typeof isNight==='function'&&(isNight()||S.hour<5.5);const dark=night||L===3;
+  if(!MIR.st||MIR.st.W!==W||MIR.st.H!==H||MIR.st.dark!==dark){MIR.st=Object.assign(mirStatic(W,H,dark),{W,H,dark});}
+  const ST=MIR.st,gw=ST.gw,gh=ST.gh;g.drawImage(ST.c,0,0);
+  const inGlass=(x,y)=>{const dx=(x+.5-gw/2)/(gw/2),dy=(y+.5-gh/2)/(gh/2);return dx*dx+dy*dy<=1;};
+  // what the glass shows: the cabin behind you, a step cooler and dimmer than the wall it hangs on
+  const G=MIR.G||(MIR.G=document.createElement('canvas'));if(G.width!==gw||G.height!==gh){G.width=gw;G.height=gh;}const q=G.getContext('2d',{willReadFrequently:true});q.imageSmoothingEnabled=false;
+  const Q=(x,y,w,h,c)=>{q.fillStyle=c;q.fillRect(x|0,y|0,w|0,h|0);};q.clearRect(0,0,gw,gh);
+  Q(0,0,gw,gh,'#262220');for(let y=0;y<gh;y+=8){Q(0,y,gw,1,'#171412');Q(0,y+1,gw,1,'#302a26');}
+  // the window: night is black with a moon; at the worst it is daylight in there whatever the hour
+  const day=L>=4?true:!dark;const wx=Math.round(gw*.52),wy=Math.round(gh*.17),ww=Math.round(gw*.26),wh=Math.round(gh*.2);
+  Q(wx-2,wy-2,ww+4,wh+4,'#1a120c');Q(wx,wy,ww,wh,day?'#9ab0c0':'#080c1a');if(day)Q(wx,wy+wh*.6,ww,wh*.4,'#b8c4c8');else{Q(wx+ww*.62,wy+2,3,3,'#e0e4d0');Q(wx+ww*.62+1,wy+2,2,1,'#fffff0');}
   Q(wx+ww/2-1,wy,2,wh,'#1a120c');Q(wx,wy+wh/2-1,ww,2,'#1a120c');
   // the coat on its hook (gone at the worst)
-  const hx=Math.round(gw*.88),hy=Math.round(gh*.18);Q(hx,hy,3,2,'#8a7a62');
-  if(L<4){Q(hx-5,hy+2,13,4,'#4a3a2a');Q(hx-6,hy+6,15,Math.round(gh*.28),'#3e3024');Q(hx-6,hy+6,2,Math.round(gh*.28),'#2a2018');Q(hx+1,hy+6,1,Math.round(gh*.24),'#2a2018');}
-  // the end of the bed, low on the right: the footboard, the blanket over it
-  const bx=Math.round(gw*.5),by=Math.round(gh*.68);Q(bx,by,gw-bx,gh-by,'#3a2416');Q(bx,by,gw-bx,3,'#5a3a22');
-  const breathe=L>=3&&L<4?Math.round(2.5+2.5*Math.sin(t*1.7)):0;
-  if(L>=4){Q(bx+2,by-6,gw-bx-2,6,'#6a6a7a');Q(bx+2,by-6,gw-bx-2,1,'#8a8a9a');}   // made: flat, tucked tight
-  else{const base=by-7;Q(bx+2,base,gw-bx-2,by-base,'#6a4a5a');Q(bx+2,base,gw-bx-2,1,'#8a6a7a');
-    // the pillow at the far end
-    Q(gw-12,base-5,12,5,'#c8c0b0');Q(gw-12,base-5,12,1,'#e0d8c8');
-    if(L>=3){// somebody under the covers, the length of the bed, breathing; their hair on the pillow
-      const x0=bx+3,x1=gw-4;for(let x=x0;x<x1;x++){const u=(x-x0)/(x1-x0),hh=Math.round((7+breathe*.8)*Math.sin(Math.PI*Math.min(1,u*1.15))*(u>.82?.75:1));if(hh<=0)continue;
-        Q(x,base-hh,1,hh,'#6a4a5a');Q(x,base-hh,1,1,u<.5?'#8a6a7a':'#7a5a6a');if(u>.3&&u<.7)Q(x,base-hh+2,1,1,'#5a3a4a');}
-      Q(gw-9,base-8,7,4,'#1e1610');Q(gw-10,base-6,2,2,'#1e1610');Q(gw-8,base-9,4,1,'#2e2418');
-      if(t>2.2){Q(x0+6,by-2,4,2,'#d8c0b0');Q(x0+5,by-1,1,1,'#d8c0b0');Q(x0+6,by-2,4,1,'#e8d0c0');}}}   // a hand at the edge of the blanket
-  // you, flipped as a mirror flips you: front on, from the chest up
-  if(L<4){let dir='S',fi=Math.floor(t*2.2)%4;let still=false;
-    if(L===1&&t<.9)dir='W';                         // it turns to you a beat after you look
-    if(L===2&&t<2.6){dir='W';still=true;}             // it is watching the door
+  const hx=Math.round(gw*.84),hy=Math.round(gh*.28);Q(hx,hy,3,2,'#8a7a62');
+  if(L<4){const ch=Math.round(gh*.24);Q(hx-4,hy+2,11,4,'#4a3a2a');Q(hx-5,hy+6,13,ch,'#3e3024');Q(hx-5,hy+6,2,ch,'#2a2018');Q(hx+1,hy+6,1,ch-3,'#2a2018');}
+  // the bed, low on the right: the frame, the blanket, the pillow at the far end
+  const bx=Math.round(gw*.46),by=Math.round(gh*.7),base=by-7;Q(bx,by,gw-bx,gh-by,'#3a2416');Q(bx,by,gw-bx,2,'#5a3a22');
+  if(L>=4){Q(bx+2,by-6,gw-bx-2,6,'#6a6a7a');Q(bx+2,by-6,gw-bx-2,1,'#8a8a9a');Q(gw-14,by-10,12,4,'#c8c0b0');}   // made: flat, tucked tight
+  else{Q(bx+2,base,gw-bx-2,by-base,'#6a4a5a');Q(bx+2,base,gw-bx-2,1,'#8a6a7a');Q(gw-14,base-5,12,5,'#c8c0b0');Q(gw-14,base-5,12,1,'#e0d8c8');
+    if(L>=3){// somebody under the covers, breathing: a shoulder at the pillow end, the dip of the waist, a hip, the legs to the foot
+      const br=1.5+1.5*Math.sin(t*1.7),x0=bx+3,x1=gw-13;
+      for(let x=x0;x<x1;x++){const u=(x-x0)/(x1-x0);const prof=u>.78?9:u>.62?6.5:u>.46?8:u>.25?5.5:4-1.5*(1-u/.25);const hh=Math.round(Math.max(1,prof+(u>.6?br:br*.4)));
+        Q(x,base-hh,1,hh,'#6a4a5a');Q(x,base-hh,1,1,'#8a6a7a');if(u>.62&&u<.78)Q(x,base-hh+1,1,1,'#5a3a4a');}
+      Q(gw-12,base-9,8,5,'#1e1610');Q(gw-13,base-7,2,3,'#1e1610');Q(gw-11,base-10,5,1,'#2e2418');   // the hair on the pillow
+      if(t>1.8){const fx0=Math.round(x0+(x1-x0)*.7);for(let f=0;f<4;f++){Q(fx0+f*2,by-1,1,3,'#e0c8b8');Q(fx0+f*2,by+2,1,1,'#b89a8a');}Q(fx0-1,by-2,9,1,'#e0c8b8');}}}   // four fingers curled over the edge
+  // you, flipped as a mirror flips you, from the chest up
+  if(L<4){let dir='S',fi=Math.floor(t*2.2)%4,still=false;
+    if(L===1&&t<.9)dir='W';
+    if(L===2&&t<2.6){dir='W';still=true;}
     if(L===2&&t>=2.6)still=true;
     if(still)fi=0;const F=mirFrameImg(dir,fi);
-    if(F){const y0=12,y1=54,s=Math.max(2,Math.floor((gh*.8)/(y1-y0)));const dw=F.fw*s,dh=(y1-y0)*s;const dx=Math.round(gw*.3-dw/2),dy=gh-dh+(still?0:(Math.floor(t*1.1)%2));
+    if(F){const y0=12,y1=54,s=Math.max(2,Math.floor((gh*.8)/(y1-y0)));const dw=F.fw*s,dh=(y1-y0)*s;const dx=Math.round(gw*.34-dw/2),dy=gh-dh+(still?0:(Math.floor(t*1.1)%2));
       q.save();q.translate(dx+dw,dy);q.scale(-1,1);q.drawImage(F.im,F.sx,F.sy+y0,F.fw,y1-y0,0,0,dw,dh);q.restore();
-      // the face, in the frame's own pixels: skin sampled from the cheek, the eyes at 19-21 and 28-30 across, 28-31 down
       const fx=x=>dx+dw-(x+1)*s,fy=y=>dy+(y-y0)*s;
-      if(dir==='S'){let skin=null;try{const tc=document.createElement('canvas');tc.width=1;tc.height=1;const tg=tc.getContext('2d');tg.drawImage(F.im,F.sx+24,F.sy+34,1,1,0,0,1,1);const d=tg.getImageData(0,0,1,1).data;if(d[3])skin=`rgb(${d[0]},${d[1]},${d[2]})`;}catch(e){}
-        // it blinks when you don't
-        if(L===1&&skin&&((t>1.5&&t<2.0)||(t>4.4&&t<4.8))){for(const ex of [[19,21],[28,30]])q.fillStyle=skin,q.fillRect(fx(ex[1]),fy(28),(ex[1]-ex[0]+1)*s,4*s);}
+      if(dir==='S'){if(MIR.skin===undefined){MIR.skin=null;try{const tc=document.createElement('canvas');tc.width=1;tc.height=1;const tg=tc.getContext('2d');tg.drawImage(F.im,F.sx+24,F.sy+34,1,1,0,0,1,1);const d=tg.getImageData(0,0,1,1).data;if(d[3])MIR.skin=[d[0],d[1],d[2]];}catch(e){}}
+        const sk=MIR.skin,skin=sk&&`rgb(${sk[0]},${sk[1]},${sk[2]})`,shade=sk&&`rgb(${sk[0]*.72|0},${sk[1]*.62|0},${sk[2]*.66|0})`;
+        // tired: the skin under each eye a shade darker
+        if(shade&&L===0)for(const ex of [[19,21],[28,30]]){q.fillStyle=shade;q.fillRect(fx(ex[1]),fy(32),(ex[1]-ex[0]+1)*s,s);}
+        // it blinks when you don't, and after the first blink one lid never quite comes back up
+        if(L===1&&skin){const shut=(t>1.5&&t<2.0)||(t>4.4&&t<4.8);for(const [i,ex] of [[19,21],[28,30]].entries()){const rows=shut?4:(t>=2.0&&i===1?2:0);if(rows){q.fillStyle=skin;q.fillRect(fx(ex[1]),fy(28),(ex[1]-ex[0]+1)*s,rows*s);q.fillStyle=shade;q.fillRect(fx(ex[1]),fy(28+rows-1),(ex[1]-ex[0]+1)*s,s>>1);}}}
         // and then it smiles, too wide, with every tooth
         if(L===2&&t>=2.6){if(!MIR.stung){MIR.stung=true;try{SFX.stinger&&SFX.stinger();}catch(e){}}
-          const my=36,xs=[17,18,19,20,21,22,23,24,25,26,27,28,29,30];for(const x of xs){const c=Math.abs(x-23.5);const lift=Math.round(Math.max(0,c-3.5)*.6);
-            q.fillStyle='#1a0808';q.fillRect(fx(x),fy(my-lift),s,s*2);if(c<6.5){q.fillStyle='#e8e0d0';q.fillRect(fx(x),fy(my-lift),s,s);if(x%2){q.fillStyle='#9a8a80';q.fillRect(fx(x),fy(my-lift),Math.max(1,s>>1),s);}}}}}}}
-  // the old glass: grey-blue over everything, silvering gone in blotches at the edges, a streak of light across
-  q.fillStyle='rgba(150,170,190,.12)';q.fillRect(0,0,gw,gh);
-  for(let i=0;i<26;i++){const a=(i*137.5)%360*Math.PI/180,r=.42+.08*((i*7)%5)/5;const x=gw/2+Math.cos(a)*gw*r,y=gh/2+Math.sin(a)*gh*r;q.fillStyle=i%3?'rgba(20,16,14,.55)':'rgba(60,52,44,.5)';q.fillRect(x|0,y|0,2+(i%3),1+(i%2));}
-  q.fillStyle='rgba(255,255,255,.07)';for(let i=0;i<gh;i++){q.fillRect(Math.round(gw*.15+i*.45),i,3,1);q.fillRect(Math.round(gw*.15+i*.45)+7,i,1,1);}
-  if(night){q.fillStyle='rgba(8,10,26,.45)';q.fillRect(0,0,gw,gh);}
-  // into the arch: only the pixels inside the glass
-  const id=q.getImageData(0,0,gw,gh),dd=id.data;for(let y=0;y<gh;y++)for(let x=0;x<gw;x++)if(!inGlass(x,y))dd[(y*gw+x)*4+3]=0;q.putImageData(id,0,0);g.drawImage(G,gx,gy);
-  // the lantern in your hand lights the frame from below left at night
-  if(night){g.fillStyle='rgba(6,6,16,.5)';g.fillRect(0,0,W,H);g.globalAlpha=.1+.03*Math.sin(t*9)*Math.sin(t*3.1);g.fillStyle='#f0a040';g.beginPath();g.arc(W*.3,H*.95,H*.7,0,6.29);g.fill();g.globalAlpha=1;}}
+          for(let x=17;x<=30;x++){const c=Math.abs(x-23.5);const lift=Math.round(Math.max(0,c-3.5)*.6);q.fillStyle='#1a0808';q.fillRect(fx(x),fy(36-lift),s,s*2);
+            if(c<6.5){q.fillStyle='#e8e0d0';q.fillRect(fx(x),fy(36-lift),s,s);if(x%2){q.fillStyle='#9a8a80';q.fillRect(fx(x),fy(36-lift),Math.max(1,s>>1),s);}}}}}}}
+  // the reflection is a step cooler and dimmer than the room
+  q.fillStyle='rgba(110,140,170,.16)';q.fillRect(0,0,gw,gh);q.fillStyle='rgba(10,12,20,.12)';q.fillRect(0,0,gw,gh);
+  // dark by night (or when something is in the bed): the lantern you hold, low on the left, the only warm light
+  if(dark){q.fillStyle='rgba(4,6,16,.62)';q.fillRect(0,0,gw,gh);q.globalCompositeOperation='lighter';const fl=.9+.1*Math.sin(t*9)*Math.sin(t*3.1);
+    for(const [r,a] of [[gh*.75,.07],[gh*.5,.08],[gh*.3,.09]]){q.fillStyle=`rgba(255,150,60,${a*fl})`;q.beginPath();q.arc(gw*.22,gh*1.02,r,0,6.29);q.fill();}
+    // moonlight from the window falls across the bed, so what is in it can be seen
+    q.fillStyle='rgba(110,130,180,.22)';q.beginPath();q.moveTo(wx,wy+wh);q.lineTo(wx+ww,wy+wh);q.lineTo(gw,gh*.95);q.lineTo(bx-4,gh*.95);q.closePath();q.fill();q.globalCompositeOperation='source-over';}
+  // the old glass: a pale bevel just inside the frame, silvering lost in dark freckles creeping in from the edges, a streak of light
+  const id=q.getImageData(0,0,gw,gh),dd=id.data;const hsh=(x,y)=>{const n=Math.sin(x*12.9898+y*78.233)*43758.5453;return n-Math.floor(n);};
+  for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){const i=(y*gw+x)*4;if(!inGlass(x,y)){dd[i+3]=0;continue;}
+    const ex=(x+.5-gw/2)/(gw/2),ey=(y+.5-gh/2)/(gh/2),e=Math.sqrt(ex*ex+ey*ey);
+    if(e>.93){const k=(ex<0&&ey<0)?.34:.12;dd[i]+= (255-dd[i])*k;dd[i+1]+=(255-dd[i+1])*k;dd[i+2]+=(255-dd[i+2])*k;continue;}   // the bevel
+    const blot=hsh(Math.floor(x/3),Math.floor(y/3))*.6+hsh(x,y)*.4;const edge=Math.max(0,(e-.66)/.27);
+    if(blot<edge*edge*.4){const m=.45+.3*hsh(y,x);dd[i]*=1-m;dd[i+1]*=1-m*.95;dd[i+2]*=1-m*.85;}   // foxing
+    else if(hsh(x*3,y*7)>.996){dd[i]=dd[i+1]=dd[i+2]=40;}}
+  q.putImageData(id,0,0);q.fillStyle='rgba(255,255,255,.06)';for(let y=0;y<gh;y++){const x=Math.round(gw*.18+y*.42);if(inGlass(x,y))q.fillRect(x,y,3,1);if(inGlass(x+7,y))q.fillRect(x+7,y,1,1);}
+  g.drawImage(G,ST.gx,ST.gy);
+  // nobody in the mirror, but you are here: your shadow on the boards beside the frame
+  if(L>=4){const F=mirFrameImg('S',0);if(F){const s=2,y0=4;const sc=document.createElement('canvas');sc.width=F.fw*s;sc.height=(F.fh-y0)*s;const sg=sc.getContext('2d');sg.imageSmoothingEnabled=false;
+      sg.drawImage(F.im,F.sx,F.sy+y0,F.fw,F.fh-y0,0,0,sc.width,sc.height);sg.globalCompositeOperation='source-in';sg.fillStyle='rgba(4,2,2,.62)';sg.fillRect(0,0,sc.width,sc.height);
+      g.drawImage(sc,Math.round(ST.gx-sc.width*.62),Math.round(ST.gy+gh*.3));}}
+  // the room you're standing in: dim at night, warm where the lantern reaches
+  if(dark){g.globalAlpha=.08+.03*Math.sin(t*9)*Math.sin(t*3.1);g.fillStyle='#f0a040';g.beginPath();g.arc(W*.28,H*1.05,H*.75,0,6.29);g.fill();g.globalAlpha=1;}}
 // both of the cabin's mirror spots, and every other mirror on a wall (the motel, the farmhands' cabins, the house rooms) open the close-up
 {const hook=()=>{for(const it of interact){if(it._mir||!it.label)continue;let lb='';try{lb=it.label();}catch(e){}if(lb!=='Mirror')continue;it._mir=1;it.act=function(){mirOpen();};}
   for(const [k,R] of Object.entries(ROOMS)){if(!R||!R.furn)continue;for(const f of R.furn){if(!Array.isArray(f)||f[0]!=='in_mirror')continue;const x=R.ox+f[1],z=R.oz+f[2]+.75;

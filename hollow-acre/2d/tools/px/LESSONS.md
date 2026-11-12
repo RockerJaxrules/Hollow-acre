@@ -1446,3 +1446,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Portraits behind tinted lenses: lighten the tint (lens_k .36) so the eyes still change between expressions. Give a quiet face more range (expr_amp): a wider smile with the corners up, and a scared O mouth under raised brows. Otherwise happy and scared read as neutral at 1x. (judge r1)
 - Renaming a character means checking the story for their name's letters. The scratched P under the till became an E.
 - On a walker, the near arm swinging across the body in a side stride must be a sleeve-coloured shape with a darker outline. A skin-pink diagonal over the shirt reads as a stain. This applies to every walker. (judge r2, Everett)
+
+## Mirrors and things seen through glass (owner: "the mirror should be visual instead of text", Nov 12)
+- The owner said looking in the mirror should be visual, not text. Understood: open a close-up of the mirror itself and put the horror in the reflection. The player's own composed sprite, flipped, is the reflection.
+- An arched top over a flat bottom, in a thin frame flush with the wall, reads as a window or a doorway. A mirror reads as a mirror from an oval (or a bevelled rectangle), a thick moulded frame lit top-left, a wire to a nail, and a cast shadow on the wall. (judge r1, 4.5)
+- Old glass reads from silvering failure: dark foxing creeping in from the edges, a pale bevel just inside the frame, and the reflected room a step cooler and dimmer than the real wall.
+- "Nobody in the mirror" only lands if we can see someone is standing there: draw the player's shadow on the wall beside the frame.
+- A night state must be dark everywhere: a black window with a moon, the lantern as the only warm light, low on one side. Moonlight through the reflected window lights whatever must be seen, such as the bed.
+- A blink shows only against something that didn't blink. Leave one lid half down afterwards so the change stays visible.
+
