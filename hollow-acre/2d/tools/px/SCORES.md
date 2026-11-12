@@ -47,3 +47,4 @@ orders. Latest round first.
 | Reading close-ups (Nov 12) | 5.5 -> 6.5, preferred over the old text line | yes | toward 7: the county sign (flat panel, few details), a real tally at eye height on the farm post |
 | House expansion rooms (Nov 12) | 5.5 -> 6 (big house 6, dining 6, upstairs 6, attic 6, cellar 6.5) | yes | toward 7: the attic's planks as boards not logs, a lower third with something in it in the dining room |
 | Business ledger (Nov 12) | 5 -> 6.5 | yes | toward 7: make the shop page something you see (shelf icons, coin icons, hire portraits) |
+| Business war ledger (Nov 12) | 5.5 -> 6 | yes | toward 7: faces on the workers you can poach, coin icons on prices |

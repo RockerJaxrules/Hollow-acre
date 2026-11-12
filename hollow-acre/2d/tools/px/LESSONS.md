@@ -1292,3 +1292,9 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [r2 6.5] Nails, rivets and knots on a board must sit clear of the lettering: next to a letter they read as accents (the same lesson as the crosses on headstones). When the letters cross a post, nail the board at its ends.
 - A 5x5 "&" built as two stacked loops reads as "8" at 1x. It needs the stroke crossing down to the right and an open bowl with a tail kicking up.
 - What lifts a UI page from 6 to 7 is showing things, not saying them: item icons with counts, the coin icon beside every price, faces beside names.
+- [war r1 5.5] A contest page needs a front line before anything else: who's ahead, by how much, the change since yesterday, and why ("Vance went cheap"). Identical status cards read as a spreadsheet.
+- A risky button must say what it does and what it costs if it goes wrong, on the page and not in a tooltip.
+- When the player loses money, say why on the same screen in red ("shelves empty: wages still paid"). A negative number with no reason reads as a bug.
+- The same small slashed zero at a smaller size reads as 8 ("0 (8)"). Keep a number's size when it sits beside another number.
+- [war r2 6] A scoreboard row must read in words: rank, name, the unit after every number ("1st The Dunn Tap · 198 coins · 7 served · −50"). A bare "198 · 7 −50" has to be decoded. No change is grey, not green.
+- Never shorten a label by taking its first word ("An advert in the Courier" became "an"). Keep a short label for every long name.
