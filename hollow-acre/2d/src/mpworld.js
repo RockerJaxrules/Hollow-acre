@@ -85,7 +85,8 @@ function mpWorldOut(){return JSON.parse(JSON.stringify(S.world||null));}
     on('mpw',m=>{if(HOST.role!=='guest'||!m.data||!m.data.world)return;const had=mySlot();S.world=m.data.world;mpPersonal();MPC.ready=1;fhPlaceAll();
       const now=mySlot();if(now>=0&&had<0&&HOST.joined){toast(`The ${FH_PAINT[now].n} cabin is yours. Your bed is made.`,3.4);mpGoHome(false);}});
     on('mpay',m=>{if(HOST.role!=='guest'||!m.data)return;const d=m.data;if(clean(d.n)!==(NAME()||'Farmhand'))return;const t=Math.max(0,Math.min(1e6,d.total|0));
-      S.coins+=t;updateHud&&updateHud();if(typeof showSale==='function'&&Array.isArray(d.items))setTimeout(()=>showSale(d.items.slice(0,400),t,d.day|0),400);});}
+      S.coins+=t;updateHud&&updateHud();if(typeof showSale==='function'&&Array.isArray(d.items)&&d.items.length)setTimeout(()=>showSale(d.items.slice(0,400),t,d.day|0),400);
+      else toast(d.msg?String(d.msg).slice(0,200):`+${t} coins.`,4);});}
   return _hw.apply(this,arguments);};}
 // a farmhand starts at their own door, and every later morning wakes up in their own bed
 function mpGoHome(inside){const i=mySlot();if(i<0||!FH_SPOTS[i])return;const s=FH_SPOTS[i];
