@@ -63,18 +63,19 @@ function mmPins(){const inner=$('mapInner');if(!inner||!MAPX.cv)return;inner.que
 // ---- in the world: a little flag on a stake where each mark is
 // the flag: a stake two-thirds the farmer's height, a cloth flag with a swallowtail, lit from the top left with a darker
 // fold, the mark's sign inked on it pale, an outline, and a shadow at its foot (two frames, so the cloth stirs)
-const MK_GLYPH={star:['..#..','.###.','#####','.#.#.','#...#'],heart:['.#.#.','#####','#####','.###.','..#..'],fish:['.....','.#..#','#.##.','.....','.....'],
+const MK_GLYPH={star:['..#..','.###.','#####','.#.#.','#...#'],heart:['.#.#.','#####','#####','.###.','..#..'],fish:['.##..','#..##','.....','.##..','#..##'],
   danger:['#...#','.#.#.','..#..','.#.#.','#...#'],done:['....#','...#.','#.#..','.#...','.....']};
 const MKF={};
 function mmFlag(k,f){const key=k+f;if(MKF[key])return MKF[key];const s=MK_SIGNS[k]||MK_SIGNS.star;const W=24,H=46;const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
   const hex=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];const mix=(a,b,t)=>'rgb('+a.map((v,i)=>Math.round(v+(b[i]-v)*t)).join(',')+')';
   const base=hex(s.c),P=(x,y,col)=>{g.fillStyle=col;g.fillRect(x,y,1,1);};
   g.fillStyle='rgba(10,8,4,.32)';for(let y=-2;y<=2;y++)for(let x=-6;x<=6;x++)if((x/6.5)**2+(y/2.3)**2<=1)g.fillRect(7+x,42+y,1,1);   // shadow, down and to the right
-  for(let y=4;y<=43;y++){P(3,y,'#1a0e06');P(4,y,'#9a7a50');P(5,y,'#5a3e22');P(6,y,'#1a0e06');}P(4,3,'#1a0e06');P(5,3,'#1a0e06');P(4,2,'#c8a050');P(5,2,'#8a6430');   // the stake and its knob
+  for(let y=4;y<=43;y++){P(3,y,'#1a0e06');P(4,y,y>39?'#6a4e30':'#9a7a50');P(5,y,y>39?'#3a2614':'#5a3e22');P(6,y,'#1a0e06');}
+  for(const [x,y,c] of [[1,43,'#4a3420'],[2,42,'#5a4028'],[2,43,'#3a2614'],[7,42,'#5a4028'],[7,43,'#3a2614'],[8,43,'#4a3420'],[3,44,'#2a1a0c'],[4,44,'#3a2614'],[5,44,'#3a2614'],[6,44,'#2a1a0c']])P(x,y,c);   // driven in: a little heaped earth at the footP(4,3,'#1a0e06');P(5,3,'#1a0e06');P(4,2,'#c8a050');P(5,2,'#8a6430');   // the stake and its knob
   const wav=x=>f?Math.round(Math.sin((x-7)/3)*1):0;
   for(let x=7;x<=21;x++){const notch=x>=18?Math.abs(x-18)+1:0;const y0=5+wav(x),y1=17+wav(x);
     for(let y=y0;y<=y1;y++){const mid=(y0+y1)/2;if(notch&&Math.abs(y-mid)<notch*1.1)continue;
-      let col=mix(base,[0,0,0],.0);if(y<=y0+1||x<=8)col=mix(base,[255,255,255],.22);if(x===13||x===14)col=mix(base,[0,0,0],.28);if(y>=y1-1)col=mix(base,[0,0,0],.35);P(x,y,col);}}
+      let col=mix(base,[0,0,0],.0);if(y<=y0+1||x<=8)col=mix(base,[255,255,255],.22);{const fx=13+Math.round(Math.sin((y-y0)/(y1-y0)*Math.PI*2)*1);if(x===fx||x===fx+1)col=mix(base,[0,0,0],.28);}if(y>=y1-1)col=mix(base,[0,0,0],.35);P(x,y,col);}}
   const G=MK_GLYPH[k]||MK_GLYPH.star;G.forEach((row,yy)=>[...row].forEach((ch,xx)=>{if(ch==='#')P(8+xx,8+yy+wav(8+xx),'#f4ecd8');}));
   // outline the cloth (only its outside edge)
   const id=g.getImageData(0,0,W,H),d=id.data,A=(x,y)=>x>=0&&y>=0&&x<W&&y<H?d[(y*W+x)*4+3]:0;const add=[];
@@ -90,7 +91,7 @@ function mmFlag(k,f){const key=k+f;if(MKF[key])return MKF[key];const s=MK_SIGNS[
 #mapWrap .umk .g{display:grid;place-items:center;width:20px;height:20px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--c);box-shadow:0 0 0 2px #f4e6c8,1px 2px 0 2px rgba(0,0,0,.35);color:#fff;font:13px/1 'Hollow Pixel',monospace}
 #mapWrap .umk .n{font:11px/1.1 'Hollow Pixel',monospace;color:#2a1608;background:rgba(244,230,200,.95);border:1px solid #6a4422;padding:1px 4px;white-space:nowrap;margin-top:3px}
 #mapWrap .umk.go .g{box-shadow:0 0 0 2px #ffd27a,0 0 8px 3px rgba(255,210,122,.8)}#mapWrap .umk.draft{opacity:.8;pointer-events:none}
-#mmHost{position:relative}#mmPanel{position:absolute;left:8px;right:8px;bottom:8px;z-index:6;box-shadow:inset 0 0 0 2px #b89860,2px 3px 0 rgba(0,0,0,.45)!important;padding:8px;background:#e8d6a8;color:#3a2414;box-shadow:inset 0 0 0 2px #b89860}#mmPanel .mmrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:3px 0}
+#mmHost{position:relative}#bagBody:has(#mmList) #mapWrap{max-height:min(52vh,520px)!important}#mmList{flex-wrap:wrap}#mmPanel{position:absolute;left:8px;right:8px;bottom:8px;z-index:6;box-shadow:inset 0 0 0 2px #b89860,2px 3px 0 rgba(0,0,0,.45)!important;padding:8px;background:#e8d6a8;color:#3a2414;box-shadow:inset 0 0 0 2px #b89860}#mmPanel .mmrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:3px 0}
 #mmPanel input{font:inherit;flex:1;min-width:160px;padding:5px;background:#fbf3e0;color:#3a2414;border:1px solid #6a4a2a}#mmPanel small{opacity:.75}
 #mmPanel .mmsigns button{width:34px;height:30px;font:16px/1 'Hollow Pixel',monospace;color:#fff;background:var(--c);border:0;box-shadow:inset 0 0 0 2px rgba(0,0,0,.35);cursor:pointer}#mmPanel .mmsigns button.on{box-shadow:inset 0 0 0 2px #fff,0 0 0 2px #3a2414}
 #mmPanel .mmg,#mmList .g{display:inline-grid;place-items:center;width:18px;height:18px;background:var(--c);color:#fff;font:12px/1 'Hollow Pixel',monospace;margin-right:4px;border-radius:3px}

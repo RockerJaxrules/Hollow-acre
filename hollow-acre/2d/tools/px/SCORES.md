@@ -50,3 +50,4 @@ orders. Latest round first.
 | Business war ledger (Nov 12) | 5.5 -> 6 | yes | toward 7: faces on the workers you can poach, coin icons on prices |
 | Tractor (Nov 12) | 5.5 -> 6.5 | yes | toward 7: each implement says its job (harrow tines, a seed-drill hopper) |
 | Farm book (Nov 12) | 6 -> 6 (map added, labels fixed) | yes | toward 7: the farm map's names never overlap a neighbour |
+| Map marks (Nov 12) | UI 5.5 -> 6, flag 5 -> 6 | yes | toward 7: the page never taller than its frame on any screen |
