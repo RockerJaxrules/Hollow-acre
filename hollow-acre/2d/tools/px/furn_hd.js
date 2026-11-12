@@ -1154,20 +1154,22 @@ if(K==='mirror'){// (#313, owner: "for the mirror to be oval you have to make th
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){const d=dist(x,y),lit=litOf(x,y);
     if(d<=0){// the glass: silvered grey-green, a shade lighter in the upper third; the bevel catches the light along the top-left rim
       let c=NIGHT?MG[(y-cy)<-3?1:0]:MG[(y-cy)<-3?3:2];if(!NIGHT&&d>-1.1&&lit>.35)c=MG[4];P(A,x,y,c);continue;}
-    if(d<=1.05)P(A,x,y,lit>.35?Bz[5]:lit<-.35?Bz[2]:Bz[3]);              // the gilt lip
-    else if(d<=2.7)P(A,x,y,lit>.35?R[3]:lit<-.35?R[1]:R[2]);              // the walnut face
-    else if(d<=3.7)P(A,x,y,lit>.35?Bz[4]:lit<-.35?Bz[1]:Bz[3]);}          // the gilt bead
+    // lit from the top left in steps: the gilt brightest on the upper-left arc, down to dull bronze on the lower right
+    const gilt=lit>.5?Bz[5]:lit>.1?Bz[4]:lit>-.35?Bz[2]:Bz[1],wal=lit>.3?R[3]:lit>-.3?R[2]:R[1];
+    if(d<=1.05)P(A,x,y,gilt);                                              // the gilt lip
+    else if(d<=2.7)P(A,x,y,wal);                                           // the walnut face
+    else if(d<=3.7)P(A,x,y,lit>.5?Bz[4]:lit>.1?Bz[3]:lit>-.35?Bz[2]:R[1]);}   // the gilt bead
   if(!NIGHT){// one clean streak of light across the glass, a shorter one beside it; the silvering gone in a few patches at the rim
-    ln(A,Math.round(cx-2),Math.round(cy-5),Math.round(cx+1),Math.round(cy+1),MG[5]);
+    for(let i=0;i<3;i++){P(A,Math.round(cx-3)+i,Math.round(cy-5)+i,MG[5]);if(i<2)P(A,Math.round(cx-1)+i,Math.round(cy-6)+i,MG[4]);}   // two short straight glints, top left
     for(const [x,y] of [[cx+3,cy+6],[cx+4,cy+5],[cx+2,cy+7],[cx-4,cy+6],[cx+4,cy-6],[cx-4,cy-2]])if(dist(x|0,y|0)<0)P(A,x|0,y|0,MG[0]);}
   else{const fx=Math.round(cx),fy=Math.round(cy-5);for(let y=0;y<14;y++)for(let x=-4;x<=4;x++){const head=y<8&&x*x/10+(y-3.5)*(y-3.5)/14<=1,sh=y>=8&&Math.abs(x)<=1+((y-8)>>1);const X=fx+x,Y=fy+y;
       if((head||sh)&&dist(X,Y)<=0)P(A,X,Y,RAMP.ivory[head?(x<-1?2:(x>1?1:3)):(x<0?2:1)]);}   // a pale face and shoulders that are not yours
     for(const ex of [-2,1])for(const [dx,dy] of [[0,0],[1,0],[0,1],[1,1],[0,2]])P(A,fx+ex+dx,fy+3+dy,RAMP.walnut[0]);hl(A,fx-1,fy+7,3,RAMP.walnut[1]);}
-  // a small shell crest on top of the frame: a fan of ribs, rounded, gilt; the nail above it
-  {const top=Math.round(cy-b-4),c0=Math.round(cx-.5);const rows=[[-1,1],[-2,2],[-2,2]];for(let j=0;j<3;j++){const [l,r]=rows[j];for(let i=l;i<=r;i++)P(A,c0+i,top-2+j,j===0?Bz[5]:(i%2===0?(i<0?Bz[4]:Bz[3]):Bz[1]));}
-    P(A,c0,top-3,RAMP.ironW[4]);}
+  // a shell crest on top of the frame: a fan of five ribs, gilt, lit on the left; the nail above it
+  {const top=Math.round(cy-b-4),c0=Math.round(cx-.5);const rows=[[-1,1],[-2,2],[-3,3]];for(let j=0;j<3;j++){const [l,r]=rows[j];for(let i=l;i<=r;i++)P(A,c0+i,top-3+j,j===0?Bz[5]:(Math.abs(i)%2===0?(i<=0?Bz[5]:Bz[3]):Bz[1]));}
+    P(A,c0,top-4,RAMP.ironW[4]);}
   // the shadow it casts down and to the right on the wall
-  for(let y=0;y<H;y++)for(let x=0;x<W;x++){if(G(A,x,y))continue;const d1=dist(x-1,y-1),d2=dist(x-1,y-2);if(d1<=3.7)SH(x,y,95);else if(d2<=3.7)SH(x,y,55);}}
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){if(G(A,x,y))continue;const d1=dist(x-1,y-1),d2=dist(x-2,y-2);if(d1<=3.7)P(A,x,y,[22,13,9],120);else if(d2<=3.7)P(A,x,y,[22,13,9],70);}}   // its shadow on the wall, 2 px down and right
 if(K==='painting_a'){const x0=1,y0=1,w=W-2,h=H-2;   // the farm at dusk: hills, the field, the barn, a lone figure
   for(let y=y0+2;y<y0+h-2;y++)for(let x=x0+2;x<x0+w-2;x++){const t=(y-y0)/h;let c=t<.25?RAMP.plum[3]:t<.42?RAMP.brick[3]:RAMP.green[2];if(t>.42&&t<.6&&Math.sin(x*.4)+(y-y0)*.3>4.5)c=RAMP.green[1];if(t>=.6)c=RAMP.ochre[(x+y)%5===0?2:3];P(A,x,y,c);}
   for(let x=x0+2;x<x0+w-2;x++){const hy=y0+8+Math.round(Math.sin(x*.3)*1.5);for(let y=hy;y<y0+13;y++)P(A,x,y,RAMP.green[1]);}                       // the hills against the sky

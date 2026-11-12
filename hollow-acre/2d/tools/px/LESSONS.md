@@ -1457,3 +1457,6 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Foxing on old glass goes in ragged patches at the rim and corners, never as single specks over the middle: specks on a face read as pox or flies. (judge r2, mirror)
 - Anything that must be seen in a dark scene (fingers on a blanket) is drawn after the darkness, as the brightest pixels in the frame. (judge r2, mirror)
 - A cast shadow, a figure's included, falls away from the room's light: down and to the right when the light is top-left. (judge r2, mirror)
+- Small ovals: draw 1 px rings by signed distance (the ellipse function over its gradient), not by testing ellipses one pixel apart. Those break into dots where the curve is steep. (wall mirror, Nov 12)
+- A ring frame lit evenly all round reads as a target or an egg. Step the light: brightest on the upper-left arc, dull on the lower right. (judge, wall mirror)
+- A highlight on glass is short and straight (45 degrees). A long kinked stroke reads as a crack, which is a different story beat in a horror game. (judge, wall mirror)
