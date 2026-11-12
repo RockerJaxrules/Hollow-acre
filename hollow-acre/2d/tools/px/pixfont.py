@@ -155,6 +155,18 @@ def bold(rows):
     return out
 
 
+# The bold cut is the regular one thickened to the right, except where that would fill a one-pixel counter and turn a
+# letter into a block (judge, business ledger: bold m printed as a solid block, M and W read as H). These are drawn by hand:
+# two-pixel stems, the counters kept open, and the M's diagonals meeting two pixels below the cap line (the W mirrors it).
+BOLD = {
+    'M': ['##...##', '###.###', '##.#.##', '##.#.##', '##...##', '##...##', '##...##'],
+    'W': ['##...##', '##...##', '##...##', '##.#.##', '##.#.##', '###.###', '##...##'],
+    'N': ['##...##', '###..##', '####.##', '##.####', '##..###', '##...##', '##...##'],
+    'm': ['.......', '.......', '######.', '##.#.##', '##.#.##', '##.#.##', '##.#.##'],
+    'w': ['.......', '.......', '##...##', '##...##', '##.#.##', '##.#.##', '.##.##.'],
+}
+
+
 def build(name, style, glyphs):
     order = ['.notdef'] + ['u%04X' % ord(c) for c in glyphs]
     fb = FontBuilder(1000, isTTF=True)
@@ -189,7 +201,7 @@ def build(name, style, glyphs):
 
 if __name__ == '__main__':
     reg = build('Hollow Pixel Regular', 'Regular', G)
-    bld = build('Hollow Pixel Bold', 'Bold', {c: bold(r) for c, r in G.items()})
+    bld = build('Hollow Pixel Bold', 'Bold', {c: BOLD.get(c) or bold(r) for c, r in G.items()})
     os.makedirs('spr/fonts', exist_ok=True)
     open('spr/fonts/HollowPixel-Regular.ttf', 'wb').write(reg); open('spr/fonts/HollowPixel-Bold.ttf', 'wb').write(bld)
     out = sys.argv[1] if len(sys.argv) > 1 else '/tmp/claude-0/-home-user-Minecraftbot/f193b802-e794-5104-89ce-994e8f157fdf/scratchpad/g2d/fontdata.js'

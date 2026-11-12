@@ -1278,3 +1278,17 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Each room needs one thing only it has that's a bit wrong, and it must read at a glance in the picture (a chair pulled out at
   a place laid in pale china), not only in its Look text.
 - An attic is the roof: dark sloped boards cutting the top corners of the back wall, the last rafter lit along each slope.
+
+## Game UI pages and the pixel font (#253 business ledger, Nov 12)
+- [r1 5] A bold cut made by thickening every stroke one pixel to the right fills every one-pixel counter: bold m prints as a solid block, M and W read as H. Check the bold cut with a specimen sheet ("Mrs. Bell", "Taproom", "WAGES") before any page leans on bold names; draw m, M, W, N and w by hand (2 px stems, open counters, M's diagonals meeting 2 px below the cap line).
+- In a ledger or shop page the words are the whole UI: a misprinted letter in a name costs more than any layout flaw.
+- A small sign font (3x5) has no room for "&". Draw a wider glyph (5x5: loop, bowl, tail kicking right) rather than dropping the character and leaving a gap.
+- Put the price on the button that spends it ("Open as a farm stand · 1500"). Cards that look like choices must not silently charge.
+- Two numbers with the same unit side by side ("4 a day, 24 a day") read as a typo. Label the second ("Serves 4 a day · wage 24").
+- Ruled paper lines must match the text's line pitch, or leave them out of pages with mixed row heights. The rule otherwise strikes through text.
+- A tall panel must not cover the HUD and cut its numbers. Hide the HUD while the panel is open and show what it held (coins) in the panel header.
+- A progress bar needs a stated full. If the cap is 49%, full is 49% and the label says "20 of 49%".
+- On phone, a three-column row (text | bar | button) squeezes names into wrapped one-word lines. Drop the middle column under the text.
+- [r2 6.5] Nails, rivets and knots on a board must sit clear of the lettering: next to a letter they read as accents (the same lesson as the crosses on headstones). When the letters cross a post, nail the board at its ends.
+- A 5x5 "&" built as two stacked loops reads as "8" at 1x. It needs the stroke crossing down to the right and an open bowl with a tail kicking up.
+- What lifts a UI page from 6 to 7 is showing things, not saying them: item icons with counts, the coin icon beside every price, faces beside names.

@@ -4,9 +4,10 @@
 const SIGN_BLANKS={'-180':'MARROW HOLLOW 9 MI','-136':'NO SERVICES','-110':'DEER XING','-92':'MARROW HOLLOW 2 MI','-88':'!TURN BACK'};
 // a proper signpost: a thick two-tone board with a bevelled top, its edge showing underneath, grain and knots, an arrow tip cut to a point,
 // nailed onto a squared post that stands in the middle of it (two posts under a long board), grass round the foot, the name carved in
-function signSprite(label,flip){const red=label[0]==='!';const L=(red?label.slice(1):label).toUpperCase().replace(/[^A-Z0-9 .]/g,'');const plain=flip==='plain';if(plain)flip=false;
+const SIGN_AMP='0100010100010011011001101';   // a 5x5 ampersand for the boards (the 3x5 letters have none): a small loop, the stroke crossing down to the right, the bowl open with its tail kicking up
+function signSprite(label,flip){const red=label[0]==='!';const L=(red?label.slice(1):label).toUpperCase().replace(/[^A-Z0-9 .&]/g,'');const plain=flip==='plain';if(plain)flip=false;
   const key='sign:'+label+(plain?':P':flip?':L':'');if(SPR[key])return key;
-  const tw=L.length*4-1,bw=Math.max(24,tw+12),tip=plain?0:6,fh=11,th=2,by=7,Hh=42,W=bw+tip+4;
+  const tw=[...L].reduce((n,ch)=>n+(ch==='&'?6:4),0)-1,bw=Math.max(24,tw+12),tip=plain?0:6,fh=11,th=2,by=7,Hh=42,W=bw+tip+4;
   const bx0=flip?2+tip:2,bx1=bx0+bw-1;   // the square part of the board; the tip carries on past bx1 (or before bx0 when it points left)
   const c=document.createElement('canvas');c.width=W;c.height=Hh;const g=c.getContext('2d');const p=(x,y,col)=>{g.fillStyle=col;g.fillRect(x,y,1,1);};
   const H=(x,y,s)=>{const n=Math.sin(x*127.1+y*311.7+s*74.7+L.length*13.3)*43758.5453;return n-Math.floor(n);};
@@ -32,7 +33,9 @@ function signSprite(label,flip){const red=label[0]==='!';const L=(red?label.slic
     for(let k=1;k<=th;k++)p(x,t1+k,k===1?'#7a4e2c':'#5a381c');}
   // a knot and a crack, and the nails holding it to the post(s)
   {const kx=bx0+Math.round(bw*(H(1,2,5)<.5?.12:.88)),ky=by+fh-4;p(kx,ky,'#8a5c34');p(kx+1,ky,'#7a4e2c');p(kx,ky-1,'#a07040');}
-  for(const px0 of posts)for(const ny of [by+1,by+fh-2]){p(px0+1,ny,'#3a2e28');p(px0+2,ny,'#5a4a40');}   // above and below the letters, never through them
+  // the nails: over the posts, unless the lettering runs across the post (they'd read as accents on the letters), then out at the board's ends
+  {const lx0=Math.round((bx0+bx1+1)/2-tw/2)-1,lx1=lx0+tw+2;for(const px0 of posts){const nx=(px0+3<lx0||px0>lx1)?px0+1:(px0<(bx0+bx1)/2?bx0+2:bx1-3);
+    for(const ny of [by+1,by+fh-2]){p(nx,ny,'#3a2e28');p(nx+1,ny,'#5a4a40');}}}   // above and below the letters, never through them
   // a dark outline round everything
   const id=g.getImageData(0,0,W,Hh),D=id.data,A=i=>D[i*4+3]>0;const out=[];
   for(let y=0;y<Hh;y++)for(let x=0;x<W;x++){const i=y*W+x;if(A(i))continue;if((x>0&&A(i-1))||(x<W-1&&A(i+1))||(y>0&&A(i-W))||(y<Hh-1&&A(i+W)))out.push(i);}
@@ -42,8 +45,8 @@ function signSprite(label,flip){const red=label[0]==='!';const L=(red?label.slic
     for(const [dx,h,col] of [[-2,3,'#4f7d36'],[-1,2,'#6a9a44'],[4,3,'#5a8a3c'],[5,2,'#78a84e'],[1,1,'#6a9a44']])for(let j=0;j<h;j++)p(px0+dx+(j===h-1&&dx<0?-1:0),ground-j,col);}
   // the letters, carved in (dark, with a light lip under each stroke), or daubed in red paint that has run
   let X=Math.round((bx0+bx1+1)/2-tw/2);const tc=red?'#9a1a14':'#3a2410';
-  for(const ch of L){const f=PXFONT[ch]||PXFONT[' '];for(let j=0;j<5;j++)for(let i=0;i<3;i++)if(f[j*3+i]==='1'){g.fillStyle=tc;g.fillRect(X+i,by+3+j,1,1);
-      if(!red&&!(j<4&&f[(j+1)*3+i]==='1')){g.fillStyle='rgba(255,226,170,.45)';g.fillRect(X+i,by+4+j,1,1);}}X+=4;}
+  for(const ch of L){const cw=ch==='&'?5:3;const f=ch==='&'?SIGN_AMP:(PXFONT[ch]||PXFONT[' ']);for(let j=0;j<5;j++)for(let i=0;i<cw;i++)if(f[j*cw+i]==='1'){g.fillStyle=tc;g.fillRect(X+i,by+3+j,1,1);
+      if(!red&&!(j<4&&f[(j+1)*cw+i]==='1')){g.fillStyle='rgba(255,226,170,.45)';g.fillRect(X+i,by+4+j,1,1);}}X+=cw+1;}
   if(red)for(let i=0;i*7<tw;i++){const dx=Math.round((bx0+bx1+1)/2-tw/2)+1+i*7;g.fillStyle='#7a1410';g.fillRect(dx,by+8,1,2+(i%2));if(i%3===0)g.fillRect(dx,by+fh+th+1,1,2);}
   const ax=posts.length>1?(posts[0]+posts[1]+4)/2:posts[0]+2;
   IMG[key]=c;SPR[key]={src:key,fw:W,fh:Hh,ax,ay:ground+1,foot:[-.15,-.1,.15,0]};return key;}
