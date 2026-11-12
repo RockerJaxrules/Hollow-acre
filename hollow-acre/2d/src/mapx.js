@@ -104,15 +104,25 @@ function mapLive(g,base){const s=MAPX.s,pad=MAPX.pad,X=x=>pad+(x-B.x0)*s,Y=z=>pa
   text-shadow:0 0 2px rgba(240,226,190,.95),0 0 4px rgba(240,226,190,.9),1px 1px 0 rgba(240,226,190,.9)}
 #mapWrap .plq,#mapWrap .rgn{z-index:2}#mapWrap .pin{z-index:1;position:absolute;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#3a2210;box-shadow:0 0 0 1.5px #f0e2be;pointer-events:none}
 #mapWrap .plq{position:absolute;transform:translate(-50%,-50%);font:600 11px/1.1 Georgia,serif;color:#2a1608;background:rgba(236,220,178,.9);padding:2px 6px;border:1px solid #6a4422;box-shadow:1px 1px 0 rgba(0,0,0,.35);white-space:nowrap;pointer-events:none}
-#mapWrap .you{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;pointer-events:none}
+#mapWrap .you{position:absolute;width:10px;height:10px;margin:-5px 0 0 -5px;pointer-events:none;z-index:4}#mapWrap .you .dir{position:absolute;left:50%;top:50%;width:0;height:0;transform-origin:0 0}#mapWrap .you .dir:after{content:'';position:absolute;left:7px;top:-4px;border-left:7px solid #e8402a;border-top:4px solid transparent;border-bottom:4px solid transparent;filter:drop-shadow(0 0 1px #fff)}
 #mapWrap .you:before{content:'';position:absolute;inset:0;border-radius:50%;background:#e8402a;box-shadow:0 0 0 2px #fff,0 0 0 4px rgba(0,0,0,.4)}
-#mapWrap .you:after{content:'';position:absolute;inset:-10px;border-radius:50%;border:2px solid rgba(232,64,42,.8);animation:mapRing 1.4s ease-out infinite}
+#mapWrap .you:after{content:'';position:absolute;inset:-7px;border-radius:50%;border:2px solid rgba(232,64,42,.8);animation:mapRing 1.4s ease-out infinite}
 @keyframes mapRing{from{transform:scale(.4);opacity:1}to{transform:scale(1.4);opacity:0}}
 #mapWrap .you.ghost:before{background:#2a2a2a;box-shadow:0 0 0 2px #888}#mapWrap .you.ghost:after{border-color:rgba(40,40,40,.7)}
 #mapBar{display:flex;gap:6px;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:12px}#mapBar .z{display:flex;gap:4px}#mapBar button{min-width:34px}
 #mapLegend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:6px;font-size:11.5px;opacity:.85}#mapLegend i{display:inline-block;width:10px;height:10px;margin-right:4px;vertical-align:-1px;border:1px solid #1a0e06}`;document.head.appendChild(c);}
 function mapZoom(z){MAPX.zoom=clamp(z,1,4);renderMap(true);}
-renderMap=function(keep){const B2=$('bagBody');$('bagSub').textContent=S.room?'You are indoors. The mark shows the door you came in by.':'You are the red mark. The star is where you’re headed.';
+// #275: the place names were typed-in spots from an older layout of the town, so after the redesign several sat well away
+// from their buildings (the old mine 15 paces off, the church 7, the graveyard 6), and "you" looked wrong beside them. Now each
+// name is pinned to the real building it names, wherever it stands.
+const MAP_PIN={'Church':'church','Coyle’s store':'store','Post office':'postoffice','Town hall':'townhall','Schoolhouse':'schoolhouse','Pruitt’s Garage':'garage',
+  'Feed & Stock':'shop_feed','Forge':'shop_forge','Bait & Tackle':'shop_bait','Hartley Carpentry':'shop_carp','Lantern Inn':'inn','Gas station':'fuel',
+  'The Marsh place':'h_marsh','Tithe House':'h_tithe','Covered bridge':'cbridge','Old mine':'mineportal'};
+function mapPlacesLive(){const by={};for(const o of OBJ){if(o.kind!=='bld'||o.room||o.hide)continue;if(!by[o.spr])by[o.spr]=o;}
+  for(const p of MAP_PLACES){const k=MAP_PIN[p[0]],o=k&&by[k];if(o){p[1]=o.x;p[2]=o.z;continue;}
+    try{if(p[0]==='Graveyard'){p[1]=(GYARD.x0+GYARD.x1)/2;p[2]=(GYARD.z0+GYARD.z1)/2;}else if(p[0]==='The pond'){p[1]=pond.x;p[2]=pond.z;}
+      else if(p[0]==='Your car'){p[1]=carPos.x;p[2]=carPos.z;}else if(p[0]==='Crossroads'){p[1]=crossPos.x;p[2]=crossPos.z;}else if(p[0]==='The green'){p[1]=squarePos.x;p[2]=squarePos.z;}}catch(e){}}}
+renderMap=function(keep){try{mapPlacesLive();}catch(e){}const B2=$('bagBody');$('bagSub').textContent=S.room?'You are indoors. The mark shows the door you came in by.':'You are the red mark. The star is where you’re headed.';
   if(!MAPX.cv){B2.innerHTML='<p class="jsub" style="padding:30px;text-align:center">Inking the map…</p>';$('bag').hidden=false;setTimeout(()=>{MAPX.cv=mapPaint();if(GM_TAB==='map'&&!$('bag').hidden)renderMap();},30);return;}
   const prev=$('mapWrap');const keepX=keep&&prev?(prev.scrollLeft+prev.clientWidth/2)/prev.scrollWidth:null,keepY=keep&&prev?(prev.scrollTop+prev.clientHeight/2)/prev.scrollHeight:null;
   B2.innerHTML=`<div id="mapBar"><span>Drag to look around.</span><span class="z"><button class="btn" id="mzOut">−</button><button class="btn" id="mzIn">+</button></span></div><div id="mapWrap"><div id="mapInner"><canvas id="mapCv"></canvas></div></div>
@@ -127,7 +137,9 @@ renderMap=function(keep){const B2=$('bagBody');$('bagSub').textContent=S.room?'Y
   const pct=(x,z)=>[(MAPX.pad+(x-B.x0)*MAPX.s)/base.width*100,(MAPX.pad+(z-B.z0)*MAPX.s)/base.height*100];
   for(const [n,x,z] of MAP_PLACES){const nn=x=>x.toLowerCase().replace(/^the /,'');if(REGIONS.some(r=>nn(r[0])===nn(n)))continue;const [l,t]=pct(x,z);const dv=document.createElement('div');dv.className='plq';dv.dataset.ax=l;dv.dataset.ay=t;dv.dataset.pri=10;dv.textContent=n;inner.appendChild(dv);}
   for(const [n,x,z] of REGIONS){const [l,t]=pct(x,z);const dv=document.createElement('div');dv.className='rgn';dv.dataset.ax=l;dv.dataset.ay=t;dv.dataset.pri=5;dv.style.fontSize=Math.round(11+MAPX.zoom*2)+'px';dv.textContent=n;inner.appendChild(dv);}
-  let px=P.x,pz=P.z;const R=roomOf&&roomOf();if(R&&R.out){px=R.out.x;pz=R.out.z;}const [l,t]=pct(px,pz);const y=document.createElement('div');y.className='you';y.style.left=l+'%';y.style.top=t+'%';inner.appendChild(y);
+  let px=P.x,pz=P.z;const R=roomOf&&roomOf();if(R&&R.out){px=R.out.x;pz=R.out.z;}const [l,t]=pct(px,pz);const y=document.createElement('div');y.className='you';y.style.left=l+'%';y.style.top=t+'%';
+  // which way you're facing, so the exact spot reads at a glance
+  if(!R){const ang=Math.atan2(P.fz||0,P.fx||0)*180/Math.PI;const ar=document.createElement('i');ar.className='dir';ar.style.transform=`rotate(${ang}deg)`;y.appendChild(ar);}inner.appendChild(y);
   // late in the story the map knows something you don't: a second mark, at the Marsh place
   if(typeof hl==='function'&&hl()>=3&&isNight()&&rand()<.5){const [l2,t2]=pct(-20,LANE_W-1);const g2=document.createElement('div');g2.className='you ghost';g2.style.left=l2+'%';g2.style.top=t2+'%';inner.appendChild(g2);setTimeout(()=>g2.remove(),2400);}
   $('mzIn').onclick=()=>mapZoom(MAPX.zoom*1.5);$('mzOut').onclick=()=>mapZoom(MAPX.zoom/1.5);

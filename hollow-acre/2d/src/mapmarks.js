@@ -71,7 +71,8 @@ function mmFlag(k,f){const key=k+f;if(MKF[key])return MKF[key];const s=MK_SIGNS[
   const base=hex(s.c),P=(x,y,col)=>{g.fillStyle=col;g.fillRect(x,y,1,1);};
   g.fillStyle='rgba(10,8,4,.32)';for(let y=-2;y<=2;y++)for(let x=-6;x<=6;x++)if((x/6.5)**2+(y/2.3)**2<=1)g.fillRect(7+x,42+y,1,1);   // shadow, down and to the right
   for(let y=4;y<=43;y++){P(3,y,'#1a0e06');P(4,y,y>39?'#6a4e30':'#9a7a50');P(5,y,y>39?'#3a2614':'#5a3e22');P(6,y,'#1a0e06');}
-  for(const [x,y,c] of [[1,43,'#4a3420'],[2,42,'#5a4028'],[2,43,'#3a2614'],[7,42,'#5a4028'],[7,43,'#3a2614'],[8,43,'#4a3420'],[3,44,'#2a1a0c'],[4,44,'#3a2614'],[5,44,'#3a2614'],[6,44,'#2a1a0c']])P(x,y,c);   // driven in: a little heaped earth at the footP(4,3,'#1a0e06');P(5,3,'#1a0e06');P(4,2,'#c8a050');P(5,2,'#8a6430');   // the stake and its knob
+  for(const [x,y,c] of [[1,43,'#4a3420'],[2,42,'#5a4028'],[2,43,'#3a2614'],[7,42,'#5a4028'],[7,43,'#3a2614'],[8,43,'#4a3420'],[3,44,'#2a1a0c'],[4,44,'#3a2614'],[5,44,'#3a2614'],[6,44,'#2a1a0c']])P(x,y,c);   // driven in: a little heaped earth at the foot
+    P(4,3,'#1a0e06');P(5,3,'#1a0e06');P(4,2,'#c8a050');P(5,2,'#8a6430');   // the stake and its knob
   const wav=x=>f?Math.round(Math.sin((x-7)/3)*1):0;
   for(let x=7;x<=21;x++){const notch=x>=18?Math.abs(x-18)+1:0;const y0=5+wav(x),y1=17+wav(x);
     for(let y=y0;y<=y1;y++){const mid=(y0+y1)/2;if(notch&&Math.abs(y-mid)<notch*1.1)continue;

@@ -1143,7 +1143,7 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Ramps: shades toward purple, lights toward yellow, no pure colours. About 6 colours per 32x32 area (measured on LPC).
 
 ## Process
-- [repeated] Never end an inline code replacement with a // comment: everything after it on that line (closing braces) is commented out. Use /* */ or put the comment on its own line, and run node --check on furn_hd.js after every edit.
+- [repeated] Never end an inline code replacement with a // comment: everything after it on that line (closing braces) is commented out. Use /* */ or put the comment on its own line, and run node --check on furn_hd.js after every edit. **[repeated, Nov 12, the worst one]** A comment dropped mid-line in land.js commented out landClearArea's bounds check, so clearing the cabin lane hid every stone, weed and stick in Grandpa's field (and every OBJ tree and bush in the world) from the first frame; two more were found in the mine and the map. The build now runs tools/lintcomments.py and stops on any comment that swallows code.
 
 - When a narrow win is re-run with the slots swapped, it often flips (cellar hatch and red drum, Nov 10: new 6 vs 5 from slot a, old 6 vs 4 from slot b). Never install a narrow win without the swapped re-run.
 - Installing over an existing sprite must keep its anchor when the size is unchanged (floor and wall pieces are anchored their own way; the trapdoor moved 14 px when the installer reset it).

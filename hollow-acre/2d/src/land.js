@@ -37,7 +37,9 @@ function landWanted(){return LAND_PARCELS.filter(p=>landOwns(p.id)).concat(landA
 // the lane's ground is open meadow: no dark woodland floor left behind where the copse was cleared (it read as mud)
 {const Dk=LAYERS.dark;LAYERS.dark=(x,z)=>{if(x>-67+(fbm(z*.3,x*.3)-.5)*2&&x<-33+(fbm(z*.3+5,x*.3)-.5)*2&&z>1+(fbm(x*.3,z*.3+9)-.5)*2&&z<33)return false;return Dk(x,z);};}
 // clear the lane's ground once: the trees and scrub that stood where the cabins and plots go
-function landClearArea(x0,z0,x1,z1){for(const o of OBJ){if(o.hide||o.room||o.town||o.crashOak||o.mile||o.story||o.landDeb)continue;   // (the land's own stones and weeds stay until you clear them)if(o.x<x0||o.x>x1||o.z<z0||o.z>z1)continue;
+function landClearArea(x0,z0,x1,z1){for(const o of OBJ){if(o.hide||o.room||o.town||o.crashOak||o.mile||o.story||o.landDeb)continue;
+    // (the land's own stones and weeds stay until you clear them)
+    if(o.x<x0||o.x>x1||o.z<z0||o.z>z1)continue;
     if(!/^(tree|pine|bush|deco|anim|grass|plant)$/.test(o.kind||'')&&!o.debris)continue;o.hide=true;
     for(let j=circles.length-1;j>=0;j--)if(Math.hypot(circles[j].x-o.x,circles[j].z-(o.z-.1))<.6)circles.splice(j,1);}}
 function landClearLane(){if(OBJ.length<1000)return;   // (the world isn't built yet)
@@ -114,3 +116,14 @@ setInterval(()=>{try{if(S.mode==='play'&&!(typeof HOST!=='undefined'&&HOST.apply
 // a new game, or the first time an old save is played with this: the lane is there and the land is staked
 {const _bw=typeof buildWorld==='function'?buildWorld:null;if(_bw){buildWorld=function(){const r=_bw.apply(this,arguments);try{landSync();}catch(e){}return r;};}}
 setTimeout(()=>{try{landSync();}catch(e){}},0);
+// ---- #276: a comment dropped into the middle of a line above once commented out landClearArea's bounds check, so clearing
+// the lane cleared the whole world, and every stone, weed and stick in Grandpa's field was gone from the start. A save made
+// while that was true has the field down as cleared; the first time such a save loads, the field grows over again (every
+// square you haven't tilled or planted gets its stone, weeds or sticks back). New games are marked so it never happens twice.
+{const _sd=saveData;saveData=function(){if(S.fieldFix276==null)S.fieldFix276=1;return _sd.apply(this,arguments);};}
+{const _lg=loadGame;loadGame=function(d){const had=!!(d&&d.S&&d.S.fieldFix276);const r=_lg.apply(this,arguments);
+  try{if(!had){S.fieldFix276=1;let n=0;
+    for(const t of tiles){if(t.parcel||t.gh||t.tilled||t.crop)continue;if(t.i>=FSTART.i0&&t.i<FSTART.i0+FSTART.w&&t.j>=FSTART.j0&&t.j<FSTART.j0+FSTART.h)continue;
+      const o=t.debris;if(!o||!o.hide||o.stumpOf)continue;o.hide=false;o.goneDay=null;if(o.col&&!circles.includes(o.col))circles.push(o.col);n++;}
+    if(n)setTimeout(()=>toast('Grandpa’s field has grown over again: stones, weeds and sticks to clear before you can plant it.',4.4),2600);}}catch(e){console.warn('field regrow',e);}
+  return r;};}
