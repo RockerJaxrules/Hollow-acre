@@ -8453,9 +8453,9 @@
 "f_bunting": {
 "src": "spr/lpc/obj/f_bunting.png",
 "fw": 136,
-"fh": 64,
+"fh": 116,
 "ax": 68.0,
-"ay": 61.0,
+"ay": 113.0,
 "foot": [
 -2.1,
 -0.1,
@@ -8468,9 +8468,9 @@
 "f_lanterns": {
 "src": "spr/lpc/obj/f_lanterns.png",
 "fw": 136,
-"fh": 64,
+"fh": 116,
 "ax": 68.0,
-"ay": 61.0,
+"ay": 113.0,
 "foot": [
 -2.1,
 -0.1,
