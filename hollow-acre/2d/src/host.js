@@ -43,7 +43,8 @@ async function hostJoinNow(code){HOST.role='guest';HOST.code=code;HOST.joined=fa
   if(jc){const b=document.createElement('button');b.className='begin';b.textContent=`Join farm ${jc}`;b.style.marginBottom='10px';$('begin').before(b);
     const c=$('cont');if(c)c.style.display='none';$('begin').textContent='Cancel';
     $('begin').addEventListener('click',e=>{e.stopImmediatePropagation();e.preventDefault();location.reload();},true);
-    b.addEventListener('click',()=>{A.init&&A.init();$('title').hidden=true;finishIntro();S.readLetter=true;S.foundCabin=true;S.tut.off=true;S.mode='paused';
+    b.addEventListener('click',()=>{A.init&&A.init();$('title').hidden=true;finishIntro();S.readLetter=true;S.foundCabin=true;S.mode='paused';   // (the tutorial is each player's own now, #241)
+      
       const go=()=>{if(CO.lobby)hostJoinNow(jc);else setTimeout(go,300);};go();});}}
 function hostLeave(quiet){const was=HOST.role;try{CO.room&&CO.room.emit&&CO.room.emit('bye',{});}catch(e){}HOST.role=null;HOST.code='';for(const f of HOST.off)try{f();}catch(e){}HOST.off=[];
   if(was==='guest'){guestPersist();if(!quiet){toast('Going home…',1.6);}setTimeout(()=>location.reload(),quiet?50:900);return;}coopJoin('');if(GM_TAB==='coop'&&!$('bag').hidden)renderCoop();}
