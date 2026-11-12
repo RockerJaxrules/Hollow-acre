@@ -84,3 +84,39 @@ function ssMerge(d){if(!d||typeof d!=='object')return false;let ch=false;
 setInterval(()=>{try{if(typeof HOST==='undefined'||!HOST.role||!CO.room||!CO.room.emit)return;if(HOST.role==='guest'&&!HOST.joined)return;if(HOST.applying||S.mode==='title'||S.mode==='load')return;
   const sig=JSON.stringify(ssOut());if(sig===SS.last)return;SS.last=sig;CO.room.emit('story8',JSON.parse(sig));}catch(e){}},600);
 {const _hw=hostWire;hostWire=function(){_hw();const r=CO.room;if(!r||!r.on)return;HOST.off.push(r.on('story8',m=>{if(!m||m.isMe||!HOST.role)return;try{ssMerge(m.data);}catch(e){}}));};}
+// ---- #297: with a cabin each, your land is yours. Grandpa's field, the greenhouse and anything the main player bought are the
+// main player's; each friend's garden plot and anything they bought are theirs; husbands and wives share. Nobody else can till it,
+// plant it, water it or pick from it. (Shared-cabin farms and single player are as before: everyone farms everything.)
+function landHomeOf(t){if(!t)return null;const p=t.parcel;if(p&&/^home\d+$/.test(p))return +p.slice(4);
+  if(p){const own=(S.land&&S.land.own&&S.land.own[p])||{};const by=own.by;if(by&&typeof homeOf==='function'){const h=homeOf(by);if(h!==undefined)return h;}return 'cabin';}
+  return 'cabin';}
+function landWhose(t){const h=landHomeOf(t);if(h==='cabin')return HOST.role==='guest'?(HOST.hostName||'the farm'):(typeof mlMe==='function'?mlMe():'');return (typeof fhOwner==='function'&&fhOwner(h))||'a neighbour';}
+function landMayFarm(t){if(typeof mpOwn!=='function'||!mpOwn()||!t)return true;const me=typeof mlMe==='function'?mlMe():'';
+  let mine=typeof homeOf==='function'?homeOf(me):undefined;if(mine===undefined)mine=HOST.role==='guest'?null:'cabin';return landHomeOf(t)===mine;}
+const landNo=t=>{const w=landWhose(t);toast(w?`This is ${w}’s land. Only they can farm it.`:'This land isn’t yours to farm.',2);};
+const landGuard=f=>function(t){if(!landMayFarm(t)){landNo(t);return;}return f.apply(this,arguments);};
+doTill=landGuard(doTill);doPlant=landGuard(doPlant);doWater=landGuard(doWater);doHarvest=landGuard(doHarvest);
+{const _tu=tileUse;tileUse=function(t){if(t&&!landMayFarm(t)){landNo(t);return false;}return _tu.apply(this,arguments);};}
+{const _cc=computeContext;computeContext=function(){const r=_cc.apply(this,arguments);try{if(hlTile&&!landMayFarm(hlTile)){const w=landWhose(hlTile);return {label:w?w+'’s land':'Not yours',ok:false};}}catch(e){}return r;};}
+// ---- #295: each friend's cabin has its own letter nailed to the door, the way Grandpa's cabin has his. It's for whoever lives
+// there: Nell Hartley, who built the cabin, says it's theirs and how to make a start, and reading it starts their own tour.
+const fhLetter=i=>{const who=fhOwner(i)||NAME()||'Neighbour';return `<p class="dear">${who},</p>
+<p>The cabin's yours. Hartley Carpentry put it up on the old Homestead Lane footings, and the county says it's yours for as long as you work the ground beside it.</p>
+<p>It isn't much yet. The west wall lets the wind in and the stove smokes. When you've some coin, come and see me on Market Lane about mending it, and later about making it bigger.</p>
+<p>How to make a start:</p>
+<p>· The garden plot beside the cabin is yours, and nobody else can farm it. Till it with the hoe, plant it, and water it every day.<br>
+· Your own shipping bin is by the door. Whatever you put in it is sold overnight, and the money's yours.<br>
+· Sleep in your own bed. The night only ends once everyone on the farm has gone to bed.<br>
+· The rest of the valley you share with everyone.</p>
+<p>Lock the door at night. Folk say that a lot round here. I'd listen.</p>
+<p class="sig">— Nell Hartley, Hartley Carpentry</p>`;};
+FH_STEPS.unshift({k:'letter',title:'A letter for you',text:'There’s a letter nailed to your cabin door on Homestead Lane. Go and read it.',at:i=>({x:FH_SPOTS[i].x,z:FH_SPOTS[i].z+.5}),done:i=>!!fhT().letter});
+function fhLetterPatch(i){const it=MPC.its&&MPC.its[i];if(!it||it._letter)return;it._letter=true;const lb=it.label,ac=it.act;
+  it.label=function(){return fhMine()===i&&!fhT().letter?'Read letter':lb.apply(this,arguments);};
+  it.act=function(){if(fhMine()===i&&!fhT().letter){fhT().letter=S.day;openNote(fhLetter(i),'Fold it away');return;}return ac.apply(this,arguments);};}
+{const _fp=fhPlace;fhPlace=async function(i){const r=await _fp.apply(this,arguments);try{fhLetterPatch(i);}catch(e){}return r;};}
+setInterval(()=>{try{for(const k of Object.keys(MPC.its||{}))fhLetterPatch(+k);}catch(e){}},1000);
+// the letter on the door, until it's read (only the one who lives there sees it)
+{const _nd=noteDrawables;noteDrawables=function(D){_nd(D);if(S.room)return;const i=fhMine();if(i<0||fhT().letter||!MPC.objs[i])return;const s=FH_SPOTS[i];
+  D.push({z:s.z+.02,mind:1,draw(){const X=sx(s.x+.18),Y=sz(s.z)-26+Math.round(Math.sin(performance.now()/500)*.6);drawSpr('doornote',X,Y);
+    if(Math.sin(performance.now()/260)>.6){ctx2.fillStyle='rgba(255,250,220,.9)';ctx2.fillRect(X+3,Y-13,1,1);ctx2.fillRect(X+2,Y-12,3,1);ctx2.fillRect(X+3,Y-11,1,1);}}});};}

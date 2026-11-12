@@ -66,7 +66,7 @@ function empMorning(){if(!empHost())return;const E=EMP(),notes=[];let spent=0;
     rows.push({k:'mort_'+P.id,name:`${P.name}, on the bank’s money`,desc:`Marrow Hollow Savings & Loan: ${down} down, then ${per} a morning for 30 mornings (${per*30} in all). A short morning waits, with a little on top. “We’ve taken enough land off people in this valley,” says old Abernathy. “We’d sooner see it worked.”`,
       price:down,can:host&&!E.loans.some(L=>L.p===P.id),btn:'Sign',buy(){empMortgage(P);}});}
   return rows;};}
-function empMortgage(P){const E=EMP();landOwnedSet()[P.id]={day:S.day,bank:1};E.loans.push({p:P.id,per:empPer(P),left:30,owed:0,day:S.day});landSync();try{saveGame&&saveGame();}catch(e){}
+function empMortgage(P){const E=EMP();landOwnedSet()[P.id]={day:S.day,by:(typeof mlMe==='function'?mlMe():''),bank:1};E.loans.push({p:P.id,per:empPer(P),left:30,owed:0,day:S.day});landSync();try{saveGame&&saveGame();}catch(e){}
   SFX.page&&SFX.page();toast(`You sign for ${P.name.replace(/^The /,'the ')}. The bank will take ${empPer(P)} every morning for thirty mornings.`,4);}
 // ---- the tractor: parked in the yard, ridden over the field
 const TR={ride:false,obj:null,col:null,it:null,last:'',work:0,hum:0};
@@ -154,7 +154,7 @@ function empOpen(tab){tab=tab||'land';const E=EMP(),host=empHost();const T=(k,l)
   N.querySelectorAll('[data-emtab]').forEach(b=>b.onclick=()=>re(b.dataset.emtab));
   N.querySelectorAll('[data-emjump]').forEach(a=>a.onclick=e=>{e.preventDefault();const r=$('emrow_'+a.dataset.emjump);if(r){r.scrollIntoView({block:'center'});r.style.background='rgba(216,160,80,.25)';setTimeout(()=>r.style.background='',1200);}});
   N.querySelectorAll('[data-empay]').forEach(b=>b.onclick=()=>{const L=E.loans.find(q=>q.p===b.dataset.empay);if(!L)return;const rest=L.left*L.per+(L.owed||0);if(!pay(rest))return;E.loans=E.loans.filter(q=>q!==L);toast('Paid off. The deed is clear.',2.4);re('land');});
-  N.querySelectorAll('[data-embuy]').forEach(b=>b.onclick=()=>{const P=empParcel(b.dataset.embuy);if(!P||landOwns(P.id)||!pay(P.price))return;landOwnedSet()[P.id]={day:S.day};landSync();try{saveGame&&saveGame();}catch(e){}toast(`${P.name} is yours.`,2.6);re('land');});
+  N.querySelectorAll('[data-embuy]').forEach(b=>b.onclick=()=>{const P=empParcel(b.dataset.embuy);if(!P||landOwns(P.id)||!pay(P.price))return;landOwnedSet()[P.id]={day:S.day,by:(typeof mlMe==='function'?mlMe():'')};landSync();try{saveGame&&saveGame();}catch(e){}toast(`${P.name} is yours.`,2.6);re('land');});
   N.querySelectorAll('[data-emmort]').forEach(b=>b.onclick=()=>{const P=empParcel(b.dataset.emmort);if(!P||landOwns(P.id))return;if(!pay(Math.ceil(P.price*.2)))return;empMortgage(P);re('land');});
   N.querySelectorAll('[data-emhire]').forEach(b=>b.onclick=()=>{if(!E.hands.includes(b.dataset.emhire))E.hands.push(b.dataset.emhire);const H=EMP_HANDS.find(h=>h.id===b.dataset.emhire);toast(`${H.name} will be at the gate at dawn.`,2.4);re('hands');});
   N.querySelectorAll('[data-emfire]').forEach(b=>b.onclick=()=>{E.hands=E.hands.filter(x=>x!==b.dataset.emfire);re('hands');});
