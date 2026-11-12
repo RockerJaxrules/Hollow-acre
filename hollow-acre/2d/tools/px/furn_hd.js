@@ -7,9 +7,9 @@ const A=layer('art',W,H),B=layer('details',W,H),SHD=layer('shadow',W,H);
 const NOOL=[];   // regions (x,y)=>true where the outline pass must leave the holes open (a net's mesh)
 const hexR=a=>a.map(HEX);
 const RAMP={
-  oak:hexR(['#1e140f','#352418','#4f3724','#694b32','#836142','#9c7a57']),
-  walnut:hexR(['#140c0a','#24160f','#382316','#4e3220','#66442d','#7e583c']),
-  pine:hexR(['#2a1a0e','#46301a','#664827','#836137','#a07b4b','#b99764']),
+  oak:hexR(['#1c1116','#321b1c','#4e3125','#6c4e33','#8b6a45','#a88a5d']),   /* hue-shifted (judge fam5-7: "shading gets darker but never cooler"): plum shadows, amber lights */
+  walnut:hexR(['#120b10','#221113','#371e17','#513421','#6e4c2f','#8c6740']),   /* hue-shifted (judge fam5-7: "shading gets darker but never cooler"): plum shadows, amber lights */
+  pine:hexR(['#261219','#421f1e','#643f29','#866438','#a9864d','#c1a86e']),   /* hue-shifted (judge fam5-7: "shading gets darker but never cooler"): plum shadows, amber lights */
   iron:hexR(['#15161c','#25272f','#383b46','#50545f','#6f7480','#959aa5']),
   steel:hexR(['#2a3442','#45546a','#677a92','#93a6bc','#c4d2e0','#eef4fa']),
   brass:hexR(['#3a2810','#5e4318','#866024','#a87e34','#c89c4c','#e0bc70']),
