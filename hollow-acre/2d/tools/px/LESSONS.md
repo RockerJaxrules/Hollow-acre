@@ -661,6 +661,14 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   they never cover the work.
 
 ## Crops (strict judge against the reference set, Nov 10: rounds 1-6, 0 -> 8 of 11 stages at 6)
+- [new crops, Nov 12] Draw new crops with the crops.py kit (spoon/oval leaflets, pleaf4 lobed leaves, ball(), contact(), outline(), begin/end for the dark overlap line), never with ad-hoc canvas code: the on-the-fly JS versions were blobs at half the size of the turnip.
+- A root or tuber showing above the soil is CUT at the soil line and left to the outline for its lip; drawing a soil band under it reads as a pot or a mat.
+- A carrot's shoulder is narrow (7-8 px), domed, the stems rising from its middle, tapering in to the cut; a round-bottomed orange shape on the soil reads as a tangerine.
+- Cabbage leaves: blunt ends (superellipse ^2.6, a gently waved rim), one body tone, ONLY a pale midrib; branch veins as bright as the rim read as fishbones, and polygon edges with a dark grid read as stone or turtle shell.
+- Stems of a grain: one base clump about 6 px wide fanning out, outer stems 25-30 degrees, no joint bands at matching heights; parallel stems 1-2 px apart become stripes once outlined (bamboo, asparagus).
+- Small hanging fruit (hop cones): round the position to whole pixels before drawing detail, or the marks miss the shape; a tapered point at the bottom and darker chevrons (each scale's lower edge a V) read as cones; a smooth pale oval reads as a pod or popcorn.
+- A trellis reads when the post is straight and planed (no knots), the crossbar's ends stick out clear of the leaves with a lit top face, and the leaves hang in uneven clumps; a solid leaf crown on a knobbly post reads as a little tree.
+- Hanging bunches must not touch: three separate bunches with gaps; touching ones fuse into one band (a bat shape).
 - The turnip is the standard: spoon leaves with a bright midrib, a plum shoulder, a round bulb with a taproot. Every crop
   gets the same things: a full value range (lights near 210 lum), a soft contact shadow (not a soil dish), and a darker
   separation line wherever one leaf overlaps another.

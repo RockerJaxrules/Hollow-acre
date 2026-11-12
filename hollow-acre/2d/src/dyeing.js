@@ -1,5 +1,5 @@
 /* ================= #232 dyeing. Nine dyes, each boiled down at Grandpa's stove from something you grow, forage or dig up
-   (the same pot game as the soups: get the heat right, stir, skim), then used two ways: in the backpack a Dye button sits
+   (its own short game made of the kitchen's parts: chop, crack, scoop or grind it, boil it to the shade, funnel and cork it), then used two ways: in the backpack a Dye button sits
    next to the Wardrobe, for your top, bottoms, jacket, shoes, hat and accessory; and the pattern book has a page for
    dyeing the furniture you've placed. One dye colours one thing. ================================================ */
 const DYE={red:{name:'Madder red',col:['#5e1a14','#9a2f24','#c8513e'],from:'mushroom',n:2,how:'fly-cap mushrooms'},
@@ -21,7 +21,16 @@ for(const [c,D] of Object.entries(DYE)){const key='dye_'+c;const [dk,md,lt]=D.co
 {const _c=vendors.cook.rows;vendors.cook.rows=()=>{const r=_c();for(const [c,D] of Object.entries(DYE)){const have=D.from?S.basket.filter(b=>b.kind===D.from).length:inv(D.item);
     r.push({k:'dye_'+c,name:D.name,desc:`${D.n} ${D.how} → a bottle of ${D.name.toLowerCase()}. Burns 1 wood.`,price:0,btn:'Boil',need:Object.assign({wood:1},D.item?{[D.item]:D.n}:{}),
       can:have>=D.n&&inv('wood')>=1,buy(){if(D.from){for(let i=0;i<D.n;i++){const j=S.basket.findIndex(b=>b.kind===D.from);if(j>=0)S.basket.splice(j,1);}}else takeInv(D.item,D.n);takeInv('wood',1);addInv('dye_'+c,1);updateHud&&updateHud();}});}return r;};
-  for(const c of Object.keys(DYE))if(typeof CG3_RECIPES!=='undefined'&&CG3_RECIPES['cook:soup'])CG3_RECIPES['cook:dye_'+c]=CG3_RECIPES['cook:soup'];}
+  // each dye has its own game, built from the kitchen's parts: get the colour out of what it's made from (chop it, crack it,
+  // scoop it or grind it in the mortar), boil it down to the right shade, then funnel it into the bottle and cork it.
+  // (Each gets its own recipe entry: sharing the soup's would send the soup itself to the older game.)
+  const PREP={red:{k:'chop',t:'Chop the fly-caps',veg:['shroom','shroom']},orange:{k:'scoop',t:'Scoop the pumpkin flesh',n:22},yellow:{k:'crack',t:'Crack the yolks into the pot',n:2},
+    green:{k:'crank',t:'Grind the fibre to a paste',look:'mortar',n:10},blue:{k:'crank',t:'Grind the copper green',look:'mortar',n:14},purple:{k:'chop',t:'Chop the turnip skins',veg:['turnip','turnip']},
+    brown:{k:'crank',t:'Grind the bark',look:'mortar',n:10},black:{k:'crank',t:'Grind the coal to soot',look:'mortar',n:12},white:{k:'crank',t:'Grind the stone to lime',look:'mortar',n:14}};
+  for(const [c,D] of Object.entries(DYE)){const key='cook:dye_'+c;if(typeof CG3_RECIPES!=='undefined')CG3_RECIPES[key]={dye:c};
+    if(typeof MG4R!=='undefined')MG4R[key]={scene:'kitchen',reveal:m4ico('ico_dye_'+c),steps:[PREP[c],
+      {k:'simmer',t:'Boil it down to '+D.name.toLowerCase(),scene:'stove',col:[D.col[1],D.col[2]],bits:[D.col[0],D.col[2],D.col[0]],slow:.9},
+      {k:'pour',t:'Funnel it into the bottle',col:[D.col[1],D.col[2]],bowl:'flask',line:.8},{k:'cork',t:'Cork it',col:[D.col[1],D.col[2]]}]};}}
 const dyeHave=()=>Object.keys(DYE).filter(c=>inv('dye_'+c)>0);
 const dyeBtns=(attr)=>{const h=dyeHave();if(!h.length)return '<small style="opacity:.6">No dyes. Boil some at the stove.</small>';return h.map(c=>`<button class="dyeb" ${attr}="${c}" title="${DYE[c].name} (${inv('dye_'+c)})" aria-label="${DYE[c].name}" style="--d0:${DYE[c].col[0]};--d1:${DYE[c].col[1]};--d2:${DYE[c].col[2]}"></button>`).join('');};
 {const css=document.createElement('style');css.textContent='.dyeb{width:28px;height:24px;padding:0;border:0;cursor:pointer;background:var(--d1);box-shadow:inset 0 0 0 2px var(--d0),inset 2px 2px 0 2px var(--d2),0 0 0 1px rgba(20,14,10,.8)}.dyeb:hover{transform:translateY(-1px);box-shadow:inset 0 0 0 2px var(--d0),inset 2px 2px 0 2px var(--d2),0 0 0 2px #e8923f}';document.head.appendChild(css);}
