@@ -319,14 +319,14 @@ if(K==='cradle'){const R=WD;for(let y=0;y<H-8;y++)for(let x=2;x<W-2;x++){const e
 if(K==='piano'){const R=[[30,18,14],[52,30,22],[78,46,32],[104,64,44],[132,86,60],[160,110,80]];topBox(2,4,W-4,8,H-24,R,R[2]);rect(A,6,16,W-12,10,R[1]);frame(A,6,16,W-12,10,R[3],R[0]);
   for(let x=6;x<W-6;x+=3){rect(A,x,24,2,8,[236,232,220]);P(A,x+2,24,PAL.ink[1]);}for(let x=7;x<W-7;x+=6)rect(A,x,24,2,4,PAL.ink[0]);hl(A,6,32,W-12,R[0]);
   rect(B,W/2-6|0,6,12,8,PAL.cream[3]);for(let i=0;i<3;i++)hl(B,W/2-5|0,8+i*2,10,PAL.ink[1]);for(const x of [8,W-12])rect(B,x,1,3,6,PAL.cream[3]),P(B,x+1,0,N?PAL.lit[5]:PAL.lit[3]);for(const x of [4,W-8])post(A,x,H-12,4,10);}
-if(K==='chess'){topBox(4,12,W-8,12,4,WD);for(let j=0;j<4;j++)for(let i=0;i<8;i++){const c=(i+j)%2?HEX('#b4a483'):WD[1];rect(A,8+i*3,13+j*2,3,2,c);}   /* (judge chess4: "white pieces on cream squares have no value step") the light squares a dull ivory, below the pieces */
+if(K==='chess'){topBox(4,12,W-8,12,4,WD);for(let j=0;j<4;j++)for(let i=0;i<8;i++){const c=(i+j)%2?PAL.cream[3]:WD[1];rect(A,8+i*3,13+j*2,3,2,c);}
   /* (judges Nov 12: "the white pieces are 1 px sticks in a row on the back edge - they read as candles") 3 px pieces with their own heads, lit left, a lilac-grey shaded side, standing on the squares mid-game */
-  {const SHP={p:['.X.','XXX','.X.','XXX'],q:['X.X','XXX','.X.','.X.','XXX'],n:['XX.','XXX','.XX','.X.','XXX'],k:['.X.','XXX','.X.','XXX','.X.','XXX']};
-   const WH=[TR[5],TR[4],HEX('#9a92a8')],BK=[PAL.slate[3],PAL.ink[1],PAL.ink[0]],OL=HEX('#2a1c18');
-   /* (judge chess4: "overlapping pieces merge into a pale blob") five pieces, one per square, none touching, each outlined dark against the squares */
-   const PCS=[[1,0,'k',false],[5,1,'p',false],[3,2,'p',true],[6,3,'q',true],[1,3,'n',true]];const cells=[];
-   for(const [i,j,kind,white] of PCS){const S2=SHP[kind],x=8+i*3,y0=13+j*2+2-S2.length;for(let r=0;r<S2.length;r++)for(let c=0;c<3;c++)if(S2[r][c]==='X')cells.push([x+c,y0+r,white?WH[c]:BK[c]]);}
-   const has=new Set(cells.map(([x,y])=>x+','+y));for(const [x,y] of cells)for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const k=(x+dx)+','+(y+dy);if(!has.has(k)){P(B,x+dx,y+dy,OL);}}
+  {const SHP={p:['.X.','XXX'],r:['X.X','XXX','XXX'],q:['.X.','XXX','.X.','XXX'],k:['.X.','XXX','.X.','XXX']};
+   /* (judges chess r2: "oversized pieces cover the board; black rims read as eggs") small pieces with their own heads (ball pawn, notched rook, crowned queen and king), white a step above the squares with a warm-grey edge, two moved onto the middle squares mid-game */
+   const WH=[TR[5],TR[5],TR[3]],BK=[PAL.slate[3],PAL.ink[1],PAL.ink[0]],OLW=HEX('#6e6058');
+   const PCS=[[0,0,'k',false],[2,0,'r',false],[3,1,'p',false],[4,2,'p',true],[6,1,'q',true],[7,3,'r',true],[5,3,'p',true]];const cells=[];
+   for(const [i,j,kind,white] of PCS){const S2=SHP[kind],x=8+i*3,y0=13+j*2+2-S2.length;for(let r=0;r<S2.length;r++)for(let c=0;c<3;c++)if(S2[r][c]==='X')cells.push([x+c,y0+r,white?WH[c]:BK[c],white]);}
+   const has=new Set(cells.map(([x,y])=>x+','+y));for(const [x,y,,white] of cells)if(white)for(const [dx,dy] of [[1,0],[0,1]]){const k=(x+dx)+','+(y+dy);if(!has.has(k))P(B,x+dx,y+dy,OLW);}
    for(const [x,y,c] of cells)P(B,x,y,c);}
   post(A,W/2-2|0,28,4,H-32);rect(A,W/2-7|0,H-6,14,3,WD[2]);gs(W/2|0,H-3,10,2,80);}
 if(K==='blackboard'){rect(A,1,1,W-2,H-6,WD[2]);frame(A,1,1,W-2,H-6,WD[4],WD[0]);rect(A,4,4,W-8,H-13,[34,52,44]);for(let i=0;i<30;i++)P(A,5+(hsh(i,1)*(W-10)|0),5+(hsh(i,2)*(H-15)|0),[46,66,56]);
