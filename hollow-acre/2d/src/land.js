@@ -90,7 +90,7 @@ function landMarkers(){for(const P of LAND_PARCELS){const sale=!landOwns(P.id);
 for(const P of LAND_PARCELS)interact.push({x:P.sign[0],z:P.sign[1]+.3,r:1.1,on:()=>!S.room&&!landOwns(P.id),label:()=>'Read',ok:()=>true,
   act(){toast(`FOR SALE: ${P.name.replace(/^The /,'the ')}, ${P.w*P.h} squares of ground. ${P.price} coins. Deeds at the land office in the Town Hall.`,4.6);}});
 // ---- the land office, at the Town Hall door
-vendors.land={name:'Land office',sub:'The town clerk keeps the deeds in a tin box. She doesn’t ask what you want it for.',rows:()=>{
+vendors.land={name:'Land office',sub:'Agnes Abernathy keeps the deeds in a tin box under the counter. She doesn’t ask what you want them for.',rows:()=>{
   const rs=LAND_PARCELS.map(P=>{const mine=landOwns(P.id);return {k:'land_'+P.id,name:P.name,desc:mine?'Yours. The deed is in Grandpa’s desk.':`${P.desc} <b>${P.w*P.h} squares of ground, ${P.price} coins.</b>`,price:P.price,can:!mine&&(typeof HOST==='undefined'||HOST.role!=='guest'),btn:'Buy the deed',
     buy(){landOwnedSet()[P.id]={day:S.day,by:(typeof mlMe==='function'?mlMe():'')};landSync();try{saveGame&&saveGame();}catch(e){}SFX.page&&SFX.page();
       toast(`The deed to ${P.name.toLowerCase()} is yours. Out there, the stakes are coming up and the scrub's been cut. The stones are your problem.`,4.8);}};});

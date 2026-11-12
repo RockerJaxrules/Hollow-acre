@@ -71,13 +71,13 @@ function rgnTick(dt){RGN_EV.t+=dt;if(!rgnNight()){RGN_HEADS.length=0;return;}con
   if(Math.hypot(P.x-RGP.tower.x,P.z-RGP.tower.z)<40&&onScreen(RGP.tower.x,RGP.tower.z,400))D.push({z:RGP.tower.z+.02,mind:1,draw(){const X=Math.round(sx(RGP.tower.x)),Y=Math.round(sz(RGP.tower.z))-334+102;
     for(let i=0;i<4;i++){g.fillStyle='rgba(255,214,130,.85)';g.fillRect(X-27+i*14,Y,11,9);}const fx=X-24+((Math.floor(t*.7)%5)*12);g.fillStyle='#0a0806';g.fillRect(fx,Y+1,4,8);}});
   // Old Marrow: the chapel windows burning
-  if(Math.hypot(P.x-RGP.chapel.x,P.z-RGP.chapel.z)<40&&onScreen(RGP.chapel.x,RGP.chapel.z,400))D.push({z:RGP.chapel.z+.02,mind:1,draw(){const X=Math.round(sx(RGP.chapel.x)),Y=Math.round(sz(RGP.chapel.z));
+  if(!(typeof twStarted==='function'&&twStarted('church'))&&Math.hypot(P.x-RGP.chapel.x,P.z-RGP.chapel.z)<40&&onScreen(RGP.chapel.x,RGP.chapel.z,400))D.push({z:RGP.chapel.z+.02,mind:1,draw(){const X=Math.round(sx(RGP.chapel.x)),Y=Math.round(sz(RGP.chapel.z));
     for(let i=0;i<4;i++){const wx=X-168+14+26+i*50,wy=Y-224+130;const fl=.6+.4*Math.sin(t*7+i*2);g.fillStyle=`rgba(255,${110+fl*60|0},40,${.55+.3*fl})`;g.fillRect(wx+2,wy+6,13,40);g.fillRect(wx+5,wy,7,6);}}});
   // a doll at your feet
   if(RGN_DOLL.on)D.push({z:RGN_DOLL.z,mind:1,draw(){const X=Math.round(sx(RGN_DOLL.x)),Y=Math.round(sz(RGN_DOLL.z));g.fillStyle='rgba(10,8,8,.35)';g.fillRect(X-6,Y-1,12,3);
     g.fillStyle='#d8ccb8';g.fillRect(X-6,Y-5,4,4);g.fillStyle='#8a6a7a';g.fillRect(X-2,Y-6,8,5);g.fillStyle='#c8b8a0';g.fillRect(X+6,Y-5,2,2);g.fillStyle='#6a4a30';g.fillRect(X-7,Y-6,2,3);}});};}
 {const _ll=lifeLight;lifeLight=function(t,L){_ll(t,L);try{if(S.room)return;
   if(Math.hypot(P.x-RGP.tower.x,P.z-RGP.tower.z)<40)glowAt(sx(RGP.tower.x),sz(RGP.tower.z)-228,70,[255,200,120],.75*L);
-  if(Math.hypot(P.x-RGP.chapel.x,P.z-RGP.chapel.z)<50){for(let i=0;i<4;i++)glowAt(sx(RGP.chapel.x)-168+14+34+i*50,sz(RGP.chapel.z)-70,42,[255,120,40],(.55+.25*Math.sin(t*7+i*2))*L);
+  if(Math.hypot(P.x-RGP.chapel.x,P.z-RGP.chapel.z)<50){if(!(typeof twStarted==='function'&&twStarted('church')))for(let i=0;i<4;i++)glowAt(sx(RGP.chapel.x)-168+14+34+i*50,sz(RGP.chapel.z)-70,42,[255,120,40],(.55+.25*Math.sin(t*7+i*2))*L);
     for(const [x,z] of RGN_HEARTHS)if(onScreen(x,z,80))glowAt(sx(x),sz(z)-14,30,[255,90,30],(.6+.3*Math.sin(t*5+x))*L);}
   {const d=RGN_R6();if(Math.hypot(P.x-d.x,P.z-d.z)<30&&S.rgNight.r9w!==S.day)glowAt(sx(d.x),sz(d.z)-36,30,[220,230,255],.4*L);}}catch(e){}};}

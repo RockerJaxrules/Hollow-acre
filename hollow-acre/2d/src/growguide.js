@@ -21,7 +21,7 @@ const guideBusy=()=>['land','invest','hands','bouquet'].some(id=>S.ls&&S.ls.side
 const guideCrush=()=>{try{return Object.keys(ROMANCE||{}).some(id=>hearts(id)>=7);}catch(e){return false;}};
 LS_SIDE.push(
   {id:'land',title:'More land',when:()=>!guideBusy()&&S.day>=4&&(S.coins>=300||S.day>=7)&&!guideOwnsLand(),
-   say:'Want a bigger field? Deeds are sold at the land office, by the Town Hall door in Marrow Hollow. Every plot for sale has a FOR SALE sign on it. The bank counter next to it lends on land: a fifth down, a little each morning. I’ve put a pin on your map.',
+   say:'Want a bigger field? Deeds are sold at the land office, inside the Town Hall in Marrow Hollow: Agnes Abernathy keeps the counter, nine till three. Every plot for sale has a FOR SALE sign on it. The bank counter next to it lends on land: a fifth down, a little each morning. I’ve put a pin on your map.',
    begin:b=>{guidePin('land',guideHall(),'Land office','star');},ok:()=>!!guideS().land,coins:20,done:'That’s the land office. Buy a plot whenever you’re ready, and it’s yours to clear and plant.'},
   {id:'invest',title:'Make money work',when:()=>!guideBusy()&&S.day>=8&&(S.coins>=500||S.day>=12),
    say:'Money can make money here. In the land office there’s a ledger: buy a share of a town shop and it pays you every morning, or lease the empty storefront on the square, name it, hire people from town and keep it stocked. I pinned it.',
