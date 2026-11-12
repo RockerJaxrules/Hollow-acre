@@ -34,7 +34,7 @@ const LANEFOLK=[
   {id:'ezra',name:'Ezra Bell',role:'Keeps the animals, runs the feed barn',nightPos:[-11,-3.6],
     lines:['Animals know before we do. The cows won’t face west since September.','Hens laid nothing but shells last week. Empty. Neat little holes in the top.','You want stock? I’ll sell you stock. Treat ’em kind. They’re all that sleeps easy here.'],
     night:['Cows are lowing.','Something’s in the pasture.','They count heads too, you know.']},
-  {id:'pip',name:'Pip Coyle',role:'Store clerk, Caitlyn’s cousin',nightPos:[28,-5],
+  {id:'pip',name:'Everett Coyle',role:'Store clerk, Caitlyn’s cousin',nightPos:[28,-5],
     lines:['Cait lets me work the till! Mostly. Sometimes. When she’s on her lunch.','You’re the one with the farm! Is it true the scarecrow moves? Tobias says it moves.','Want to know a secret? The price tags change by themselves after dark. They all say the same number.'],
     night:['I’m not supposed to be out.','Cait says don’t look.','Seven. The tags all say seven.']}];
 for(const d of LANEFOLK){d.day=[0,0];d.path=[[0,0]];NPCDEF.push(d);const n={def:d,x:0,z:0,dir:'S',clip:'idle',t:Math.random()*4,wp:0,wait:0,vis:true,spd:0};npcs.push(n);
@@ -55,9 +55,9 @@ Object.assign(PEOPLE,{
   pip:{voice:'bright',loves:['egg','pumpkin'],likes:['corn','turnip'],hates:['fish'],
     talk:[['Cait says I count change like a banker. I think that’s good?','Tobias is my cousin. He’s braver than me. That’s what worries Cait.'],['Danny used to work the till. Before me. He left his name scratched under the counter.','Cousin Danny… I mean, Danny. Cait says not to say cousin. Tobias might hear.'],['I counted everyone in town. There’s one more than there should be. There always is in October.']],
     gift:{love:'For me?! I’m putting it in the window!',like:'Thanks!',hate:'Eugh, the eyes.',meh:'Oh. Okay!'},
-    events:[{h:3,title:'Under the counter',text:`Pip lifts the till drawer out. Scratched into the wood beneath it, one name per line, in different children’s hands: everyone who has ever worked the store counter.<br><br>The last name is Danny’s. Under it, freshly scratched, half a letter: the start of a P.`,lore:'Under the Coyles’ till are the names of every child who worked it. Someone has begun to scratch a P.'}]}});
+    events:[{h:3,title:'Under the counter',text:`Everett lifts the till drawer out. Scratched into the wood beneath it, one name per line, in different children’s hands: everyone who has ever worked the store counter.<br><br>The last name is Danny’s. Under it, freshly scratched, half a letter: the start of an E.`,lore:'Under the Coyles’ till are the names of every child who worked it. Someone has begun to scratch an E.'}]}});
 
-// ---- homes and routines (Pip lives over the store with Caitlyn and Tobias; the other three live behind their shops)
+// ---- homes and routines (Everett lives over the store with Caitlyn and Tobias; the other three live behind their shops)
 const LROOM=(ox,shell,name,out,furn)=>({ox,oz:-60,shell,name,out,furn,paper:shell.slice(10)});
 Object.assign(ROOMS,{
   shop_forge:LROOM(724,'room_garage','Brannock’s Forge',shopOut('forge'),[['furnace',1.3,1.25,[-0.70,-0.5,0.70,0]],['in_shelf_tools',3.4,0.62,[-1.00,-0.4,1.00,0]],['bench_weapon',5.6,1.15,[-1.10,-0.45,1.10,0]],['bench_armor',8.0,1.3,[-0.70,-0.45,0.70,0]],
@@ -100,9 +100,9 @@ for(const [job,s] of Object.entries(SHOPS_AT)){const R='shop_'+job;
   interact.push({...rp(R,cx,cz),r:1.3,on:inRoom(R),label:()=>'Counter',ok:()=>true,act(){const k=npcById(KEEP[job]);
     if(!keeperIn(job))toast(`${k.def.name.split(' ')[0]} isn’t at the counter. A note: “Leave the coins. I’ll know.”`,2.6);
     openShop('v_'+job);}});}
-// the store counter knows about Pip now
+// the store counter knows about Everett now
 {const it=interact.find(q=>q.x===ROOMS.store.ox+6.5&&q.z===ROOMS.store.oz+3.0);if(it){it.act=function(){const m=npcById('mae'),p=npcById('pip');const at=n=>n&&n.loc==='in'&&n.inWant==='store';
-  if(at(m)&&Math.abs(m.x-(ROOMS.store.ox+6.5))<1)toast('“What’ll it be, farm kid?”',1.6);else if(at(p))toast('Pip stands on a crate to reach the till. “I can do it! I can totally do it.”',2.4);else toast('Caitlyn calls from the back room: “Take what you need. Leave the coins by the till. I trust you. Mostly.”',2.8);openShop('mae');};}}
+  if(at(m)&&Math.abs(m.x-(ROOMS.store.ox+6.5))<1)toast('“What’ll it be, farm kid?”',1.6);else if(at(p))toast('Everett stands on a crate to reach the till. “I can do it! I can totally do it.”',2.4);else toast('Caitlyn calls from the back room: “Take what you need. Leave the coins by the till. I trust you. Mostly.”',2.8);openShop('mae');};}}
 
 // ---- what they sell
 Object.assign(ITEMS,{milk:{name:'Milk',icon:'milk',food:[20,8],sell:14,desc:'Fresh from the barn. +20 energy. Sells for 14.'},bait:{name:'Bait',icon:'bait',desc:'A tin of worms. Fish bite three times as fast while you have some.'},

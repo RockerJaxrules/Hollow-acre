@@ -1436,3 +1436,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Two props of the same kind need different silhouettes (keg and chalkboard against jars and a crate). A recolour reads as a copy.
 - A label needs room for its letters: four letters of 3x5 text need 15 px plus padding.
 - (UI) A new panel takes the HUD's frame exactly: tan 3 px outer border, dark inner line, warm lines only (no grey), the prompt in the HUD's accent orange.
+
+## A townsperson drawn from the owner's photos (Pip becomes Everett, Nov 12)
+- The owner said: "replace Pip with this person who is Everett" and sent photos. Understood: the photos are a reference for hair, glasses and clothes only. Draw every pixel ourselves, keep the id ('pip') so saves keep working, and never commit the photos.
+- Pick the outfit from the clearest full-body photo (green polo, grey shorts, purple socks, black sneakers) and the face details from the ones most like him (round glasses in most photos).
+- Tinted lenses on a 48x64 walker: mid smoky grey with a 1 px dark pupil and a 1 px glint. Near-black lenses that fill the eye read as bug eyes or goggles, and that reads creepy in this game. (judge r1)
+- Shorts need longer legs: on a kid's three-row leg the shorts, shins and socks merge into one band. Use the 'tall' build: three rows of shorts, two of skin, one of sock.
+- A polo collar on a walker needs a light V two shades above the shirt, plus a dark placket pixel under it. Otherwise the front reads as one flat green. (judge r1)
+- Portraits behind tinted lenses: lighten the tint (lens_k .36) so the eyes still change between expressions. Give a quiet face more range (expr_amp): a wider smile with the corners up, and a scared O mouth under raised brows. Otherwise happy and scared read as neutral at 1x. (judge r1)
+- Renaming a character means checking the story for their name's letters. The scratched P under the till became an E.
+- On a walker, the near arm swinging across the body in a side stride must be a sleeve-coloured shape with a darker outline. A skin-pink diagonal over the shirt reads as a stain. This applies to every walker. (judge r2, Everett)

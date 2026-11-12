@@ -251,6 +251,11 @@ class Painter:
             P.define('iris', [(170, 172, 168), (200, 202, 198), (226, 228, 224)], prio=1.6, thr=[.35, .65], outline=False)
         P.define('freckle', [mix(s.SK[2], (170, 90, 60), .25)], prio=1.6, thr=[], outline=False)
         P.define('glass', [(255, 255, 255)], prio=2.0, thr=[], outline=False)
+        if C.get('lens'):   # tinted lenses (Everett): the skin and the whites behind them go smoky, the iris stays readable
+            tn = hexc(C['lens'])
+            lk = C.get('lens_k', .58)
+            P.define('lens', [mix(c, tn, lk) for c in s.SK], prio=1.4, outline=False)
+            P.define('lsclera', [mix(c, tn, lk * .85) for c in [(214, 208, 220), (238, 234, 236), (250, 248, 246)]], prio=1.4, thr=[.5, .75], outline=False)
 
     # ------------------------------------------------------------ geometry
     def face_hw(s, y):
@@ -507,6 +512,15 @@ class Painter:
                 col = poly([(CX + sg * 10.5, 86.5 + o), (CX + sg * 17, 89 + o), (CX + sg * 22, 99.5 + o), (CX + sg * 14.5, 96.5 + o), (CX + sg * 11.2, 92 + o)])
                 cv.put(col, 'top', .74 - .1 * sg)
                 cv.add(shift(col, 0, 1.0) & ~col & tor, 'top', -.15)
+            if C.get('placket'):   # a polo: a short button strip down from the open neck, two buttons, the collar's shadow under both points
+                pk = poly([(CX - 2.2, 99 + o), (CX + 2.2, 99 + o), (CX + 2.2, 112 + o), (CX - 2.2, 112 + o)]) & tor
+                cv.put(pk & ~cv.where('skin'), 'top', .5)
+                cv.add(ribbon(bez([(CX + 2.4, 99 + o), (CX + 2.4, 112.5 + o)], 8), [.7, .7])[0] & tor, 'top', -.2)
+                cv.add(ribbon(bez([(CX - 2.4, 101 + o), (CX - 2.4, 112.5 + o)], 8), [.6, .6])[0] & tor, 'top', .12)
+                for by in (104.5, 109.5): cv.put(ell(CX, by + o, 1.1, 1.0), 'collarw', .7)
+                for sg in (-1, 1):
+                    edge = ribbon(bez([(CX + sg * 11.2, 92 + o), (CX + sg * 14.5, 96.8 + o), (CX + sg * 22, 99.8 + o)], 12), [.8, .8, .8])[0]
+                    cv.add(edge & tor & ~cv.where('skin'), 'top', -.22)
         if kind == 'apron':
             for sg in (-1, 1):
                 st = stroke(bez([(CX + sg * 24, 92 + o), (CX + sg * 21.5, 108 + o), (CX + sg * 18.5, max(129 + o, 132))], 20), [4.2, 4.2, 4.6])
@@ -657,7 +671,7 @@ class Painter:
         if ex == 'angry': di, dp, do = 2.5, .6, -.4
         elif ex == 'sad': di, dp, do = -4.4, -.9, 1.9
         elif ex == 'surprised': di, dp, do = -2.6, -2.8, -1.8
-        elif ex == 'scared': di, dp, do = -3.0, -2.0, -.6
+        elif ex == 'scared': di, dp, do = -3.0 - 1.6 * C.get('expr_amp', 0), -2.0 - 1.0 * C.get('expr_amp', 0), -.6
         elif ex == 'happy': di, dp, do = -.8, -1.0, -.6
         elif ex == 'wrong': di, dp, do = -1.4, -1.6, -1.2
         elif ex == 'love': di, dp, do = -.9, -1.1, -.6
@@ -688,6 +702,14 @@ class Painter:
         mx, my = CX + .3, C.get('mouth_y', 76.5); hw = C.get('lip_w', 6.6); uh = C.get('lip_up', 2.2); lh = C.get('lip_lo', 2.9)
         u = np.linspace(-1, 1, 41); xs = mx + u * hw
         corner = {'neutral': .7, 'happy': 1.8, 'sad': -2.6, 'angry': -.7, 'surprised': 0, 'scared': -.9, 'wrong': 2.6, 'love': 1.3, 'laugh': 2.0, 'cry': -1.5, 'smug': 0, 'think': -.6}[ex]
+        amp = C.get('expr_amp', 0)
+        if ex == 'happy' and amp: corner += 1.4 * amp; hw *= 1 + .3 * amp; xs = mx + u * hw
+        if ex == 'scared' and amp:   # an open O, taller than wide, the lower lip lit
+            oy = my + 1.6; rx, ry = 2.2 + .6 * amp, 2.8 + .9 * amp
+            cv.put(ell(mx, oy, rx + 1.3, ry + 1.2), 'lip', .5 + .2 * G(mx - 1.2, oy + ry, 1.5, .8))
+            cv.put(ell(mx, oy, rx, ry), 'mouth', .3 + .3 * sstep(oy - ry * .2, oy + ry, Y))
+            cv.add(ell(mx, oy - ry * .6, rx + 1.2, 1.4) & ~ell(mx, oy, rx, ry), 'lip', -.2)
+            return
         if ex == 'sad': lh = lh * .7   # a thinner lower lip, corners down (narrowing it read as a sulky pucker)
         if ex == 'think': hw = max(hw * .6, 3.4); mx = mx + 2.8; xs = mx + u * hw; lh = lh * .3; uh = uh * .45   # a flat mouth pulled aside (a full lower lip read as a pout)
         if ex == 'wrong': hw = hw * 1.55; xs = mx + u * hw
@@ -695,7 +717,7 @@ class Painter:
         line = my - corner * u * u + .15 * np.exp(-(u / .2) ** 2) - (C.get('smirk', 0) + (2.6 if ex == 'smug' else 0)) * np.clip(u, 0, 1) ** 2 * (0 if ex in ('sad', 'scared', 'wrong', 'cry') else 1) + (.9 * np.clip(-u, 0, 1) ** 2 if ex == 'smug' else 0)
         top = line - uh * (1 - u * u) ** .55 + .7 * np.exp(-(u / .16) ** 2) - .25 * np.exp(-((np.abs(u) - .32) / .14) ** 2)
         if ex in ('happy', 'scared', 'wrong', 'laugh', 'cry'):
-            op = {'happy': 2.7, 'scared': 2.6, 'wrong': 4.2, 'laugh': 4.0 if C.get('teeth_v1') else 7.4, 'cry': 2.2}[ex]   # a laugh opens the jaw (judge: it read as the smile with the eyes shut)
+            op = {'happy': 2.7 + 1.2 * amp, 'scared': 2.6, 'wrong': 4.2, 'laugh': 4.0 if C.get('teeth_v1') else 7.4, 'cry': 2.2}[ex]   # a laugh opens the jaw (judge: it read as the smile with the eyes shut)
             o_top = line - .2 * (1 - u * u)
             o_bot = line + op * (1 - u * u) ** .8
             if ex in ('scared', 'cry'): o_bot = line + op * (1 - u * u) ** .9 + .6 * np.sin(u * 7) * (1 - u * u)
@@ -892,7 +914,7 @@ class Painter:
             elif st == 'shaggy':
                 for sg in (-1, 1):
                     for j in range(4):
-                        s.lock([(CX + sg * (fw - 6 - j * 2), 30 + j), (CX + sg * (fw + 3 + j * .5), 50 + j * 2), (CX + sg * (fw + 1 + j), 64 + j * 2.5)], [5, 6, 1.5], front, tone=.02 - (j % 2) * .05)
+                        su = C.get('side_up', 0); s.lock([(CX + sg * (fw - 6 - j * 2), 30 + j), (CX + sg * (fw + 3 + j * .5), 50 + j * 2 - su * .4), (CX + sg * (fw + 1 + j), 64 + j * 2.5 - su)], [5, 6, 1.5 + su * .12], front, tone=.02 - (j % 2) * .05)
                 for k in range(7):
                     xx = CX - 15 + k * 5; s.lock([(xx + 2, 26), (xx, 36), (xx - 1.5, 42 + (k % 3) * 2)], [5, 4.5, .8], front, tone=.04 - (k % 2) * .05)
             elif st == 'bangs' or st == 'bob':
@@ -972,6 +994,12 @@ class Painter:
                 rings |= o & ~i
                 arm_x = ecx + sg * 9.5
             cv.put(stroke([(arm_x, ecy - 2.5), (CX + sg * (C.get('face_w', 24.5) + 1), ecy - 3.2)], [1.0, .8]), 'frame', .4)
+            if C.get('lens'):
+                inner = ell(ecx, ecy, 7.4, 6.8) if kind == 'round' else i
+                sk = inner & np.isin(cv.mat, [s.pal.id(n) for n in ('skin', 'blush', 'crease', 'lidlow', 'wrinkle', 'freckle', 'shadow') if n in s.pal.names])
+                cv.put(sk, 'lens', cv.lit - .04 * (Y > ecy))
+                cv.put(inner & cv.where('sclera'), 'lsclera', cv.lit.copy())
+                cv.add(inner, 'iris', -.12 * C.get('lens_k', .58) / .58)
             gx, gy = ecx - 4.6, ecy - 2.6
             cv.put(stroke([(gx, gy + 1.6), (gx + 1.7, gy - .6)], [.55, .55]), 'glass', 1)
         cv.put(rings, 'frame', .45 + .25 * (Y < ecy - 3) - .1 * (X > CX))

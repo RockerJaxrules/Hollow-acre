@@ -46,9 +46,14 @@ const PLAYER=PART!=='all';
 const SHTC=PLAYER?SHIRT_BASES.map(ramp):[0,1,2,3,4,5,6,7].map(cls=>shiftR(SHT,patShift(PAT,cls)));
 const shirtAt=(i,j)=>SHTC[((((j|0)%4)+4)%4)*2+((((i|0)%4)+4)%4===1?1:0)];
 const SH0=SHTC[0];
-const LONG=!['tee','dress','tank','skirt'].includes(OUT)||C.longSleeves;
+const LONG=!['tee','dress','tank','skirt','polo'].includes(OUT)||C.longSleeves;
 const OPENFRONT={jacket:2,cardigan:2,longcoat:2,vest:2,openshirt:2};
 const LEGSKIN=OUT==='dress'||OUT==='skirt'||!!C.skirt;
+// shorts (Everett): the trouser colour stops two rows under the hip, bare shins below, a sock band over each shoe
+const SHORTS=!!C.shorts,SOX=C.socks?ramp(C.socks):null;
+// knee-length: three rows on long legs, two on short ones
+const shortRows=()=>LEGH>=6?3:2;
+function legRamp(y,hip,bot,R,far){if(!SHORTS||y<=hip+shortRows())return R;if(SOX&&y>=bot)return far?dk(SOX,1):SOX;return far?dk(SK,1):SK;}
 const ALL=!!C.allure&&!KID;   // a young adult woman: a fuller bust, a narrower waist, a low neckline
 // ---------------------------------------------------------------- proportions (adult / child). All rows count up from the shoe soles.
 // builds (judge, townsfolk 4/10: "one body for everyone"): broad or stout men, tall or short, elders stooped
@@ -66,12 +71,13 @@ function legsFront(cx,hip,dyL,dyR,back,squat){const R=LEGSKIN?SK:PNT;const len=F
     for(const [k0,k1] of [[cx-6,cx],[cx+2,cx+8]]){const w=k1-k0;
       for(let i=0;i<w;i++){const edge=i===0||i===w-1;p(k0+i,hip+3,R[back?1:edge?2:4]);p(k0+i,hip+4,R[back?1:edge?1:3]);}}
     p(cx+1,hip+3,R[0]);p(cx+1,hip+4,R[0]);
-    for(let y=hip+5;y<=FOOT-3;y++){for(let i=0;i<4;i++){p(cx-4+i,y,R[back?0:i===3?0:1]);p(cx+3+i,y,R[back?0:i===0?0:1]);}}
+    for(let y=hip+5;y<=FOOT-3;y++){const RS=SHORTS?(SOX&&y===FOOT-3?SOX:SK):R;for(let i=0;i<4;i++){p(cx-4+i,y,RS[back?0:i===3?0:1]);p(cx+3+i,y,RS[back?0:i===0?0:1]);}}
     shoeFront(cx-5,FOOT-2,-1,back);shoeFront(cx+2,FOOT-2,1,back);return;}
   for(const [s,dy] of [[-1,dyL],[1,dyR]]){const x0=s<0?cx-4:cx+2,w=4,bot=hip+len+dy;
-    for(let y=hip+1;y<=bot;y++)for(let i=0;i<w;i++){let k=i===0?(s<0?4:3):i===w-1?(s<0?2:1):3;if(y===bot)k=Math.min(k,2);p(x0+i,y,R[k]);}
+    for(let y=hip+1;y<=bot;y++){const RR=legRamp(y,hip,bot,R,false);for(let i=0;i<w;i++){let k=i===0?(s<0?4:3):i===w-1?(s<0?2:1):3;if(y===bot&&!SHORTS)k=Math.min(k,2);p(x0+i,y,RR[k]);}
+      if(SHORTS&&y===hip+shortRows())for(let i=0;i<w;i++)p(x0+i,y,R[i===0||i===w-1?1:2]);}
     // a little knee crease halfway down
-    if(len>5&&!LEGSKIN)p(x0+(s<0?2:1),hip+(len>>1)+1+dy,R[2]);
+    if(len>5&&!LEGSKIN&&!SHORTS)p(x0+(s<0?2:1),hip+(len>>1)+1+dy,R[2]);
     shoeFront(s<0?cx-5:cx+2,bot+1,s,back);}
   // the crotch and the seam
   if(!LEGSKIN){for(let i=-4;i<=5;i++)p(cx+i,hip+1,R[i<-2?4:i>3?2:3]);p(cx,hip+2,R[1]);p(cx+1,hip+2,R[1]);}}
@@ -80,14 +86,14 @@ function shoeFront(x,y,s,back){const R=SHO;const w=5;for(let i=0;i<w;i++){const 
 // side view: two columns that lean from the hip to the foot; the far one is darker. off: foot offset along the facing; lift: raised.
 function legSide(hx,hip,off,lift,fl,far,crouch){const R=far?dk(LEGSKIN?SK:PNT,1):(LEGSKIN?SK:PNT);const len=FOOT-3-hip,fx=hx+off*fl,bot=hip+len-lift;
   if(SIT){const kx=hx+fl*(far?6:8);for(let y=hip+1;y<=hip+3;y++)for(let x=Math.min(hx-1,kx);x<=Math.max(hx-1,kx);x++)p(x,y,R[y===hip+1?4:y===hip+3?1:3]);
-    segLeg(kx,hip+3,kx,FOOT-3,R);shoeSide(kx,FOOT-2,fl,far);return;}   /* seated (judge: the shortened legs read as a crouch) */
+    segLeg(kx,hip+3,kx,FOOT-3,R,hip,FOOT-3,far);shoeSide(kx,FOOT-2,fl,far);return;}   /* seated (judge: the shortened legs read as a crouch) */
   if(crouch>2){// knees forward: thigh out, shin back down
-    const kx=hx+fl*(2+Math.round(crouch/2)),ky=hip+Math.round(len*.45);segLeg(hx,hip+1,kx,ky,R);segLeg(kx,ky,fx,bot,R);}
+    const kx=hx+fl*(2+Math.round(crouch/2)),ky=hip+Math.round(len*.45);segLeg(hx,hip+1,kx,ky,R,hip,bot,far);segLeg(kx,ky,fx,bot,R,hip,bot,far);}
   else if(lift>=2){// the swinging leg: thigh forward to the knee, shin back down to the raised foot
-    const kx=hx+fl*(Math.max(0,off)+2),ky=hip+Math.round(len*.5)-1;segLeg(hx,hip+1,kx,ky,R);segLeg(kx,ky,fx,bot,R);}
-  else segLeg(hx,hip+1,fx,bot,R);
+    const kx=hx+fl*(Math.max(0,off)+2),ky=hip+Math.round(len*.5)-1;segLeg(hx,hip+1,kx,ky,R,hip,bot,far);segLeg(kx,ky,fx,bot,R,hip,bot,far);}
+  else segLeg(hx,hip+1,fx,bot,R,hip,bot,far);
   shoeSide(fx,bot+1,fl,far);}
-function segLeg(x0,y0,x1,y1,R){const n=Math.max(1,Math.abs(y1-y0));for(let j=0;j<=n;j++){const x=Math.round(x0+(x1-x0)*j/n)-2,y=Math.round(y0+(y1-y0)*j/n);for(let i=0;i<4;i++)p(x+i,y,R[i===0?4:i===3?1:3]);}}
+function segLeg(x0,y0,x1,y1,R,hip,bot,far){const n=Math.max(1,Math.abs(y1-y0));for(let j=0;j<=n;j++){const x=Math.round(x0+(x1-x0)*j/n)-2,y=Math.round(y0+(y1-y0)*j/n);const RR=hip==null?R:legRamp(y,hip,bot,R,far);for(let i=0;i<4;i++)p(x+i,y,RR[i===0?4:i===3?1:3]);}}
 function shoeSide(x,y,fl,far){const R=far?dk(SHO,1):SHO;const L=6;for(let i=0;i<L;i++){const xx=x+fl*(i-2);p(xx,y,R[i===L-1?3:i<2?2:4]);p(xx,y+1,R[i===0?1:3]);p(xx,y+2,R[0]);}p(x+fl*3,y-1,R[3]);}
 // ---------------------------------------------------------------- arms: a 3-px sleeve from the shoulder to the hand, its inner edge dark so it reads
 // against the body, a cuff, and a small hand. Hands are given relative to the shoulder.
@@ -132,9 +138,14 @@ function torsoFront(cx,top,hip,back){const half=6+WIDE;
     if(OUT==='sweater'||OUT==='turtleneck'){if(OUT==='turtleneck'){for(let y=top-2;y<=top+1;y++)for(let u=-2;u<=3;u++)p(cx+u,y,SH0[y===top-2?4:(u&1)?2:3]);}
       else{for(let u=-1;u<=2;u++)p(cx+u,top,SK[2]);for(let u=-2;u<=3;u++)p(cx+u,top+1,SH0[1]);}}
     if(OUT==='tank'){for(let u=-1;u<=2;u++){p(cx+u,top,SK[2]);p(cx+u,top+1,SK[2]);}for(let u=-1;u<=2;u++)p(cx+u,top+2,SH0[1]);}
+    if(OUT==='polo'){// a polo: two collar points turned down in a light V (judge: the front read as one flat green), the open neck, a dark placket with one button
+      const CL=SH0[4].map(c=>Math.min(255,Math.round(c*1.2+14))),CD=SH0[1];
+      p(cx,top,SK[2]);p(cx+1,top,SK[2]);p(cx,top+1,SK[1]);p(cx+1,top+1,SK[1]);
+      for(const u of [-3,-2,-1])p(cx+u,top,CL);for(const u of [2,3,4])p(cx+u,top,SH0[4]);p(cx-1,top+1,CL);p(cx-2,top+1,SH0[3]);p(cx+2,top+1,SH0[4]);p(cx+3,top+1,SH0[2]);
+      p(cx-3,top+1,CD);p(cx+4,top+1,CD);p(cx,top+2,CD);p(cx+1,top+2,CD);p(cx+1,top+3,CD);p(cx,top+3,[226,222,206]);}
     if(C.collar){for(let u=-1;u<=2;u++)p(cx+u,top,WHITE);}
     if(C.badge){p(cx-4,top+3,[255,228,120]);p(cx-3,top+3,[240,200,80]);p(cx-4,top+4,[200,150,40]);p(cx-3,top+2,[255,228,120]);}}
-  else{for(let u=-1;u<=2;u++)p(cx+u,top,SK[1]);if(OUT==='hoodie'){for(let j=0;j<4;j++){const hw=4-(j>2?1:0);for(let u=-hw+1;u<=hw;u++)p(cx+u,top+j,SH0[j===3?1:u<-1?4:u>2?2:3]);}}
+  else{for(let u=-1;u<=2;u++)p(cx+u,top,SK[1]);if(OUT==='polo')for(let u=-2;u<=3;u++)p(cx+u,top,SH0[u<1?4:3]);if(OUT==='hoodie'){for(let j=0;j<4;j++){const hw=4-(j>2?1:0);for(let u=-hw+1;u<=hw;u++)p(cx+u,top+j,SH0[j===3?1:u<-1?4:u>2?2:3]);}}
     else for(let y=top+2;y<hip-1;y++)p(cx+1,y,((OPENFRONT[OUT]&&OUT!=='openshirt')?JK:SH0)[2]);}
   // hems: ribbed for knits, a belt for shirts, the bib for overalls
   if(OUT==='sweater'||OUT==='turtleneck'||OUT==='hoodie')for(let u=-5;u<=6;u++){p(cx+u,hem,SH0[(u&1)?1:2]);p(cx+u,hem-1,SH0[(u&1)?2:3]);}
@@ -163,6 +174,7 @@ function torsoSide(cx,top,hip,fl){const hw=4+WIDE;for(let y=top;y<=hip;y++){cons
   if(OUT==='overalls'){for(let y=top+4;y<=hip;y++)for(let u=-1;u<=hw;u++)p(cx+u*fl+(fl<0?1:0),y,PNT[u===hw?2:3]);for(let y=top+1;y<top+4;y++)p(cx+fl*1,y,PNT[2]);}
   if(OUT==='hoodie')for(let j=0;j<4;j++)for(let u=-hw;u<=-1;u++)p(cx+u*fl+(fl<0?1:0),top+j,SH0[j===3?1:2]);
   if(OUT==='tee'||OUT==='shirt'||OUT==='openshirt')for(let u=-hw;u<=hw;u++)p(cx+u*fl+(fl<0?1:0),hip,BELT[1]);
+  if(OUT==='polo'){for(let u=-2;u<=1;u++)p(cx+u*fl+(fl<0?1:0),top,SH0[4]);p(cx+2*fl+(fl<0?1:0),top+1,SH0[4]);}
   if(OUT==='sweater'||OUT==='hoodie'||OUT==='turtleneck')for(let u=-hw;u<=hw;u++)p(cx+u*fl+(fl<0?1:0),hip,SH0[(u&1)?1:2]);
   if(OUT==='turtleneck')for(let y=top-2;y<top;y++)for(let u=-2;u<=2;u++)p(cx+u*fl,y,SH0[y===top-2?4:3]);
   if(C.apron)for(let y=top+3;y<=hip+(LEGSKIN?5:2);y++)for(let u=hw-1;u<=hw;u++)p(cx+u*fl+(fl<0?1:0),y,EX[u===hw?2:3]);}
@@ -351,10 +363,12 @@ function glasses(cx,hy,view,fl,gt){if(view==='N')return;
   if(gt==='monocle'){const G=[[150,118,52],[214,176,82]],GLs=[200,214,226];const x0=view==='S'?cx+3:cx+fl*3;
     for(const [dx,dy] of [[1,-1],[2,-1],[3,-1],[0,0],[4,0],[0,1],[4,1],[0,2],[4,2],[1,3],[2,3],[3,3]])p(x0+(view==='S'?dx:fl*dx),hy+dy,G[dy<1?1:0]);
     p(x0+(view==='S'?1:fl),hy,GLs);for(let i=1;i<6;i++)p(x0+(view==='S'?4:fl*4),hy+3+i,G[i%2]);return;}gt=gt===true?'round':gt;const F=gt==='shades'?[[20,16,22],[34,30,38]]:[[40,34,44],[64,58,70]],GL=[196,212,224];
-  if(view==='S'){for(const s of [-1,1]){const x0=s<0?cx-6:cx+3;for(let i=0;i<5;i++){if(gt==='round'&&(i===0||i===4)){}else{p(x0+i,hy-1,F[1]);p(x0+i,hy+3,F[0]);}}for(let j=0;j<3;j++){p(x0,hy+j,F[1]);p(x0+4,hy+j,F[0]);}
-      if(gt==='shades'){for(let j=0;j<3;j++)for(let i=1;i<4;i++)p(x0+i,hy+j,j===0&&i===1?[90,90,100]:F[0]);}else p(x0+1,hy,GL);}
+  if(view==='S'){for(const s of [-1,1]){const x0=s<0?cx-6:cx+3;for(let i=0;i<5;i++){if((gt==='round'||gt==='tint')&&(i===0||i===4)){}else{p(x0+i,hy-1,F[1]);p(x0+i,hy+3,F[0]);}}for(let j=0;j<3;j++){p(x0,hy+j,F[1]);p(x0+4,hy+j,F[0]);}
+      if(gt==='shades'){for(let j=0;j<3;j++)for(let i=1;i<4;i++)p(x0+i,hy+j,j===0&&i===1?[90,90,100]:F[0]);}
+      else if(gt==='tint'){for(let j=0;j<3;j++)for(let i=1;i<4;i++)p(x0+i,hy+j,j===0?[150,142,150]:[128,120,130]);p(x0+2,hy+1,[34,26,34]);p(x0+(s<0?2:2),hy+2,[96,86,98]);p(x0+1,hy,[214,220,230]);}else p(x0+1,hy,GL);}
     p(cx,hy,F[1]);p(cx+1,hy,F[1]);p(cx-7,hy,F[1]);p(cx+8,hy,F[1]);}
   else{const x0=cx+fl*3;for(let i=0;i<4;i++){p(x0+fl*i,hy-1,F[1]);p(x0+fl*i,hy+3,F[0]);}for(let j=0;j<3;j++){p(x0,hy+j,F[1]);p(x0+fl*3,hy+j,F[0]);}if(gt==='shades')for(let j=0;j<3;j++)for(let i=1;i<3;i++)p(x0+fl*i,hy+j,F[0]);
+    if(gt==='tint'){for(let j=0;j<3;j++)for(let i=1;i<3;i++)p(x0+fl*i,hy+j,j===0?[150,142,150]:[128,120,130]);p(x0+fl*1,hy+1,[34,26,34]);p(x0+fl*2,hy,[214,220,230]);}
     for(let i=1;i<=5;i++)p(x0-fl*i,hy,F[1]);}}
 function hat(cx,hy,view,fl,h,hairTop){if(!h)return;const H=HAT,side=view!=='S'&&view!=='N',chin=hy+9,top=chin-HEADH+1;const T0=Math.min(top-2,hairTop!=null?hairTop+1:top-2);
   const dome=(t,b,rx,R2,shift)=>{const ry=b-t;for(let y=t;y<=b;y++)for(let x=-rx;x<=rx+1;x++){const yy=(y-b)/ry,xx=(x-.5)/(rx+.5);if(xx*xx+yy*yy>1)continue;const l=-xx*.55-yy*.5;p(cx+x+(shift||0),y,R2[l>.6?4:l>.1?3:l>-.4?2:1]);}};

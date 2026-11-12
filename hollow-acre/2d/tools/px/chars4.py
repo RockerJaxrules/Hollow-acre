@@ -45,7 +45,8 @@ CH.update({
                  eye='#3a2414', shoulder=60.0, seed=47),
   'ezra': dict(kind='oldman', skin='#d8a070', hair='#c8c0a8', style='short', beard='goatee', hat='cap', hatColor='#6a5a3a', top='#8a3a2a', pattern='plaid', neck='smallv',
                wear=['vest'], top2='#5a3a24', eye='#5a6a3a', age=.6, seed=48),
-  'pip': dict(kind='kid', skin='#f0c8a8', hair='#d87a3a', style='spiky', top='#d8d0b0', neck='crew', wear=['stripes'], over='apron', top2='#5a7a4a', freckles=18, eye='#4a7a9a', seed=49),
+  # Everett (id 'pip'): brown hair in a straight fringe, round tinted glasses, a green polo (owner's photos, reference only)
+  'pip': dict(kind='kid', skin='#f2ceb2', hair='#5e3c26', style='shaggy', glasses='round', frame='#2a2226', lens='#5a4a52', lens_k=.36, expr_amp=1, top='#4e8a50', neck='crew', over='collar', placket=1, side_up=7, eye='#5a4630', seed=49),
   'silas': dict(kind='man', skin='#c8a890', hair='#4a4440', style='short', beard='stubble', hat='cap', hatColor='#2a2a2a', top='#4b5143', neck='crew', wear=['coat', 'scarf'],
                 top2='#2e302a', acc='#4a4a50', eye='#5a5a5a', heavy=1, age=.5, seed=50),
   'otto': dict(kind='oldman', skin='#d8a888', hair='#e0e0dc', style='short', beard='full', hat='cap', hatColor='#c8a030', top='#c8a030', neck='crew', wear=['knit', 'stripes'],

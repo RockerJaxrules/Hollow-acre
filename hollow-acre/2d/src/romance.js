@@ -6,7 +6,7 @@ const ROMANCE={mae:{name:'Caitlyn',
   yes:'Okay. Yes. If that’s what you’re asking. Yes.',
   early:'That’s really sweet. Ask me again when you actually know me. …I mean it, though. Ask me again.',
   again:'You don’t have to keep bringing me flowers. …Keep bringing me flowers.',
-  lines:['Pip asked if we’re dating. I said “define dating.” He wrote it down in his notebook.','Come by after close. I’ll make the bad coffee.',
+  lines:['Everett asked if we’re dating. I said “define dating.” He wrote it down in his notebook.','Come by after close. I’ll make the bad coffee.',
     'Tobias drew a picture of you. You have very long arms in it. He says that’s accurate.','I turned the porch light off last night. For a whole minute. Baby steps.',
     'You smell like turnips. It’s fine. It’s weirdly fine.','If the bell rings while you’re out, you come here. Not home. Here.',
     'Hi. Hey. Hi. …I practised saying something cooler than that.','You look tired. Sit on the counter. I won’t tell anyone. Everyone knows anyway.']}};

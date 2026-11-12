@@ -63,7 +63,7 @@ for(const [k,B] of Object.entries(SHOPS_BIG)){const R=ROOMS[k];if(!R||!SPR[B.she
 const STORE_TILL=SHOPS_BIG.store.till[0];
 {const it=interact.find(q=>{try{return q.label()==='Counter'&&Math.abs(q.x-(ROOMS.store.ox+SHOPS_BIG.store.counter[0]))<.01;}catch(e){return false;}});
   if(it){it.act=function(){const m=npcById('mae'),p=npcById('pip');const at=n=>n&&n.loc==='in'&&n.inWant==='store';
-    if(at(m)&&Math.abs(m.x-(ROOMS.store.ox+STORE_TILL))<1.6)toast('“What’ll it be, farm kid?”',1.6);else if(at(p))toast('Pip stands on a crate to reach the till. “I can do it! I can totally do it.”',2.4);
+    if(at(m)&&Math.abs(m.x-(ROOMS.store.ox+STORE_TILL))<1.6)toast('“What’ll it be, farm kid?”',1.6);else if(at(p))toast('Everett stands on a crate to reach the till. “I can do it! I can totally do it.”',2.4);
     else toast('Caitlyn calls from the back room: “Take what you need. Leave the coins by the till. I trust you. Mostly.”',2.8);openShop('mae');};}}
 // things to look at in the bigger shops
 const SHOP_LOOKS=[

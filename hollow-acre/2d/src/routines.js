@@ -3,7 +3,7 @@
    after school, the sheriff's laps of the green every Tuesday, Gideon in his yard all Wednesday. On rainy days everyone who can stays
    in. Silas goes through the trash on Route 9 at dusk. Then it starts to go wrong. For three days the town is a comfort. After that,
    people are not where they always are: you find them in the woods, facing a rock, not blinking. When she thinks nobody is watching,
-   Ida stirs an empty pot on a cold stove, and June walks circles in her front room. Pip is gone for three days, and then Nell, and
+   Ida stirs an empty pot on a cold stove, and June walks circles in her front room. Everett is gone for three days, and then Nell, and
    everybody tells you they were there all along. ================= */
 const WEEKDAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 const dow=()=>((S.day-1)%7+7)%7;
@@ -42,7 +42,7 @@ const BREAKS=[
 const breakNow=n=>{for(const b of BREAKS)if(b.id===n.def.id&&S.day>=b.day&&(S.day-b.day)%7===0&&S.hour>=b.from&&S.hour<b.to)return b;return null;};
 for(const b of BREAKS)PL['brk_'+b.id]=[b.at[0],b.at[1],.05];
 // ---- the missing: gone for days, and nobody admits it
-const MISSING=[{id:'pip',from:5,to:8,name:'Pip'},{id:'nell',from:12,to:14,name:'Nell'}];
+const MISSING=[{id:'pip',from:5,to:8,name:'Everett'},{id:'nell',from:12,to:14,name:'Nell'}];
 const missingNow=()=>MISSING.filter(m=>S.day>=m.from&&S.day<m.to&&!S.bound);
 const isMissing=id=>missingNow().some(m=>m.id===id);
 // a rock face in the hill copse for the pastor to stare at

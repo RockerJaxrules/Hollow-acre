@@ -59,6 +59,10 @@ STANCES = {'hollis': 'hips', 'hob': 'hips', 'maud': 'hips', 'dunn': 'folded', 'g
            'lyle': 'behind', 'ezra': 'behind', 'corwin': 'behind'}
 for _k, _s in STANCES.items(): NPC[_k]['stance'] = _s
 # Caitlyn runs the store now (id 'mae' so saves and scripts keep working): blonde with pink lengths, square black glasses, black tee, jeans, white sneakers
+# Everett (id 'pip' so saves and scripts keep working; the owner's photos as reference only): a boy of about twelve, brown hair cut in a straight fringe,
+# round tinted glasses, a green polo, grey shorts, purple socks, black sneakers
+NPC['pip'] = dict(kid=True, skin='#f2ceb2', hair='#7e5434', hairStyle='pixie', build='tall', outfit='polo', shirt='#4e8a50', pants='#8c8c88', shoes='#1e1c22',
+                  shorts=True, socks='#7a4e9e', glasses='tint', eye='#5a4630')
 NPC['mae'] = dict(skin='#f3d2b8', hair='#e2c27e', hairTip='#e58fb0', tipDy=7, hairStyle='long', outfit='tank', shirt='#1e1c22', pants='#7a96bc', shoes='#e8e4dc',
                   glasses='square', accessory=None, eye='#6a8aa4', allure=1)   # no cord at sprite scale: it read as a black U over her cleavage (judge); her portrait keeps it
 # the young adult women: fitted low-cut tops (no scarves over the neckline), lashes, lipstick

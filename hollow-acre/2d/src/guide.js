@@ -48,7 +48,7 @@ const ENC=[
    act(e){e.watch=S.fishCaught||0;say(e,'Otto is at the pond. “Catch me a fish before four and I’ll pay you sixty for the story.”');},
    tick(e){if(e.watch!=null&&(S.fishCaught||0)>e.watch&&S.hour<16){S.coins+=60;addFriend('otto',40);e.watch=null;toast('Otto whoops from the bank. “That’s a story!” +60 coins.',3);}}},
   {id:'pip_lost',who:'pip',x:84,z:2.5,dir:'S',h:[14,18.5],when:()=>S.day>=3&&npcById('pip'),escort:true,
-   act(e){e.follow=true;say(e,'Pip is crying at the edge of the Hollow Woods. “The trees moved. I can’t find the road.” Walk her back to the town square.');}},
+   act(e){e.follow=true;say(e,'Everett is crying at the edge of the Hollow Woods. “The trees moved. I can’t find the road.” Walk him back to the town square.');}},
   {id:'della_herbs',who:'della',x:42,z:51.5,dir:'S',h:[10,14],when:()=>S.day>=3&&npcById('della'),
    act(e){if(inv('fiber')>=4){takeInv('fiber',4);S.coins+=40;addFriend('della',50);say(e,'Della takes four fiber for her poultices and pays you forty. “You’ve got good hands. Steady. That’s rare this time of year.”');}
      else{addFriend('della',15);say(e,'Della is gathering herbs in the orchard. “Bring me four fiber sometime and I’ll pay you. Fiber’s just weeds that learned to be useful.”');}}},
@@ -75,8 +75,8 @@ const this_enc=interact[interact.length-1];
 function encUpdate(dt){const e=encLive();for(const [k,o] of Object.entries(encObjs))o.hide=!(e&&e.id===k);if(!e)return;const L=ENCX[e.id]||(ENCX[e.id]={x:e.x,z:e.z});
   if(e.tick)e.tick(L);
   if(L.follow){const dx=P.x-L.x,dz=P.z-L.z,d=Math.hypot(dx,dz);if(d>1.8){const sp=Math.min(4.2,d*1.4);L.x+=dx/d*sp*dt;L.z+=dz/d*sp*dt;L.dir=dirOf(dx,dz);L.mv=1;}else L.mv=0;L.t=(L.t||0)+dt;
-    if(Math.hypot(L.x-squarePos.x,L.z-squarePos.z)<7){L.follow=false;S.enc.done=true;S.coins+=50;addFriend('pip',80);toast('Pip lets go of your hand and runs to the bakery. “I won’t tell anyone you were nice,” she shouts. +50 coins.',4);}
-    if(d>30){L.follow=false;L.x=e.x;L.z=e.z;toast('You lost Pip. She’s gone back to where you found her.',3);}}}
+    if(Math.hypot(L.x-squarePos.x,L.z-squarePos.z)<7){L.follow=false;S.enc.done=true;S.coins+=50;addFriend('pip',80);toast('Everett lets go of your hand and runs to the bakery. “I won’t tell anyone you were nice,” he shouts. +50 coins.',4);}
+    if(d>30){L.follow=false;L.x=e.x;L.z=e.z;toast('You lost Everett. He’s gone back to where you found him.',3);}}}
 {const _lu=lifeUpdate;lifeUpdate=function(dt){_lu(dt);encUpdate(dt);if(stepGuideT<=0){stepGuideT=1;try{stepGuideCache=null;stepGuideCache=stepGuide();}catch(e){}}else stepGuideT-=dt;
   const e=encLive();if(e&&e.who&&e.who!=='farmer'){const n=npcById(e.who);if(n)n.vis=false;}};}
 {const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld(D,t);const e=encLive();if(!e||e.obj||S.room)return;const L=ENCX[e.id]||e;if(!e.who){if(onScreen(L.x,L.z,40))D.push({z:L.z,mind:1,draw(){const k=(Math.sin(t*6)+1)/2;ctx2.fillStyle=`rgba(255,230,140,${.4+k*.6})`;const X=Math.round(sx(L.x)),Y=Math.round(sz(L.z));ctx2.fillRect(X-1,Y-4,2,8);ctx2.fillRect(X-4,Y-1,8,2);}});return;}const m=SPR[e.who];if(!m)return;

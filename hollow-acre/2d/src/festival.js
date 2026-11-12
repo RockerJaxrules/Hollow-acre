@@ -36,7 +36,7 @@ function fDress(){const f=fToday(),w=fWedding();const on=!!(f||w)&&!S.room;
   sub.insertAdjacentHTML('afterend',`<h4 class="fcal">Festivals</h4>`+next.map(([k,f])=>`<p>${k===d?'<b>Today</b>':((k-d+28)%28===1?'Tomorrow':`In ${(k-d+28)%28} days`)} · <b>${f.name}</b>, the town square, ${clockH(f.from)}–${clockH(f.to)}</p>`).join(''));}catch(e){}return r;};}
 // ---- the market stall
 ITEMS.candy_apple=ITEMS.candy_apple||{name:'Candied apple',food:[30,6],icon:'it_candy_apple',desc:'Bright red, sticky, a little bit too sweet. Sold only at the Harvest Market. +30 energy.'};
-vendors.fest_market={name:'Harvest Market stall',sub:'Caitlyn and Pip, behind a stall full of jars. “Market prices. Real ones, for once.”',rows:()=>{const v=S.basket.reduce((a,b)=>a+(b.value||0),0);return [
+vendors.fest_market={name:'Harvest Market stall',sub:'Caitlyn and Everett, behind a stall full of jars. “Market prices. Real ones, for once.”',rows:()=>{const v=S.basket.reduce((a,b)=>a+(b.value||0),0);return [
   {k:'sellall',name:'Sell your basket at market prices',desc:S.basket.length?`${S.basket.length} things in your basket. Half again what the bin pays: ${Math.round(v*1.5)} coins.`:'Your basket is empty.',price:0,can:S.basket.length>0,
    buy(){const c=Math.round(v*1.5);S.coins+=c;S.basket.length=0;toast(`Sold. +${c} coins.`,2);for(const id of ['mae','pip'])if(npcById(id))addFriend(id,10);updateHud();}},
   {k:'apple',name:'Candied apple',desc:'+30 energy. Only at the market.',price:8,can:true,buy(){addInv('candy_apple');}},

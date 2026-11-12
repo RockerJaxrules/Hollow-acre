@@ -4,7 +4,7 @@ const FARFOLK=[
     lines:['Apples don’t grow in October. Ours do. Ask me why and I’ll give you an apple instead.','My husband planted every tree in that orchard. Then he planted himself, the year Ruth went. That’s a joke. That’s how we say it here.','You look hungry. Everyone looks hungry the last week.'],
     night:['The trees are counting.','Don’t eat the red ones tonight.','Bram’s inside. Bram is inside.']},
   {id:'bram',name:'Bram Quill',role:'Orla’s boy, climbs everything',nightPos:[18,26],kid:1,
-    lines:['I can see your farm from the top of the big tree. Something walks around it at night in a circle. Like a dog before it lies down.','Pip says I’m next. Pip is stupid.','Did you know there’s a house down the lane that’s exactly like yours? Inside too. I checked.'],
+    lines:['I can see your farm from the top of the big tree. Something walks around it at night in a circle. Like a dog before it lies down.','Everett says I’m next. Everett is stupid.','Did you know there’s a house down the lane that’s exactly like yours? Inside too. I checked.'],
     night:['Mom says don’t wave at it.','I waved at it.','It waved back with my hand.']},
   {id:'abel',name:'Abel Fenn',role:'Miller at the old mill',nightPos:[24,40],
     lines:['The wheel turns whether the river runs or not. I stopped asking it questions.','Flour’s ground fine this year. Too fine. Like ash.','Della brings the babies. I grind the grain for the funeral bread. Between us we’ve got the whole town covered.'],
