@@ -1310,3 +1310,9 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [r2 6.5] Before taking a critique of a screenshot as fact, check what really stands there: the 'trailing toy horse' was a toy horse prop in the world, not the tractor.
 - Labels on a small map: every name on a paper tag in one dark ink, inside its shape when it fits and under it when it doesn't. Never light text that can spill onto a light ground.
 - A toast is the size of a phone screen's middle: one line, or it covers what the player just did.
+
+## Things the player adds to a map (#260 marks, Nov 12)
+- [r1 5.5] Never reuse a colour the legend already means something by: a gold star mark read as 'where you're headed', a red heart as 'you', a blue pin as a friend. Pick colours the legend doesn't have (violet, rose, teal).
+- A card that appears after a tap must appear where the tap was looked at: float it over the map rather than below it, or PC players never see its Save button.
+- A player's tag on a map must never sit on top of a printed place name: hide the place label under it, or move the tag.
+- A flag in the world needs the prop rules too: an outline, a shadow at the foot, a stake about two-thirds the farmer's height, and the mark's sign on the cloth. A plain coloured rectangle reads as a golf flag.
