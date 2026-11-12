@@ -674,6 +674,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A pattern must pass greyscale: patches one step off the base vanish (tan on tan); cream with dark-chocolate patches reads as a cowhide at once.
 - Steam is two soft puffs below full alpha (no outline); 1 px squiggles read as hairs.
 
+- [pantry icons] Food and goods read by silhouette first: a cheese is a flat wheel with a V notch and two pale cut faces; a cake slice turns its cut face (layers) to you; a crock has straight sides, a lip and a glaze line, or it is a garlic bulb; a bowl of shredded things is long curving 1 px shreds, not crosshatch (grain).
+- A tin or tray seen straight down reads as a picture frame or a TV: show it three-quarters, the front wall as a darker band and the food bulging above the rim, and show a cut as a pale standing face, never a dark void.
+- A coil of rope is ONE twisted ring with a dark hollow centre; stacked loops with an all-over twist texture merge into a hay bale or a mat, and a straight tail makes it a magnifying glass or a lasso.
+- A sack of something: a rolled-down mouth (a thick folded rim) and the contents heaped above it with a lumpy outline; a smooth trapezoid is a paper bag.
+
 ## Crops (strict judge against the reference set, Nov 10: rounds 1-6, 0 -> 8 of 11 stages at 6)
 - [new crops, Nov 12] Draw new crops with the crops.py kit (spoon/oval leaflets, pleaf4 lobed leaves, ball(), contact(), outline(), begin/end for the dark overlap line), never with ad-hoc canvas code: the on-the-fly JS versions were blobs at half the size of the turnip.
 - A root or tuber showing above the soil is CUT at the soil line and left to the outline for its lip; drawing a soil band under it reads as a pot or a mat.
