@@ -31,7 +31,7 @@
     Object.assign(MG,{on:true,f,hold:false,zone:.1,zv:0,fy:.3,fv:0,ft:.3,tt:0,prog:.34,
       size:S.rod>=4?.40:S.rod>=3?.36:S.rod>=2?.31:.26,d:f?f[2]:.25,beh:f?f[3]:'smooth',
       last:performance.now(),scare:false,perfect:true,age:0,reelA:0,sp:f?FISH_SP[f[0]]:null,
-      horror:night&&!!f&&f[2]>.6,lunge:0,tr,tn:0,snapT:0,snapped:false});
+      horror:night&&!!f&&f[2]>.6,lunge:0,tr,tn:0,snapT:0,snapped:false,landed:0,splash:[]});   // (landed must start at 0: left over from the last catch it ended every later fight at once with a free fish)
     if(cv){const k=Math.max(2,Math.min(4,Math.floor(innerHeight*.62/FG.H)));cv.width=FG.W;cv.height=FG.H;cv.style.width=FG.W*k+'px';cv.style.height=FG.H*k+'px';}
     const h=E.querySelector('.fhint');if(h)h.textContent=fineP()?'Hold to raise the bar onto the fish — but ease off before the line (left) snaps':'Hold to raise the bar onto the fish — ease off before the line snaps';
     E.style.display='flex';S.paused=true;fish.state='reel';attach();MG.last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);};
@@ -102,7 +102,7 @@
     const a=MG.reelA;p(Math.round(rx+Math.cos(a)*5)-1,Math.round(ry+Math.sin(a)*5)-1,3,3,'#efe2b8');p(Math.round(rx+Math.cos(a)*5),Math.round(ry+Math.sin(a)*5),1,1,'#5a3a1a');p(rx,ry,1,1,'#fff2c8');
     const bend=MG.hold?3:1+Math.round(Math.abs(Math.sin(t*9)));for(let k=0;k<12;k++)p(W-9+Math.round(k*k*bend/90),ty+3+k*2,2,2,k<4?'#5a3a1a':'#8a5a2a');}
 
-  endMG=function(ok){if(!MG.on&&!ok&&raf===0){/*already closed*/}MG.on=false;MG.hold=false;detach();cancelAnimationFrame(raf);raf=0;
+  endMG=function(ok){if(!MG.on&&!ok&&raf===0){/*already closed*/}MG.on=false;MG.hold=false;MG.landed=0;detach();cancelAnimationFrame(raf);raf=0;
     el().style.display='none';S.paused=false;fish.state='off';if(typeof F2!=='undefined')F2.rip=[];
     if(!ok){const snap=MG.snapped;toast(snap?(MG.f?`The line snaps. The ${MG.f[0].toLowerCase()} takes it down with it.`:'The line snaps.'):(MG.f?`The ${MG.f[0].toLowerCase()} got away.`:'It got away.'),snap?2.2:1.6,snap);SFX.thud&&SFX.thud(0,.2);if(snap&&cam)cam.shake=.4;return;}
     if(!MG.f){SFX.splash&&SFX.splash();toast('You reel in a tangle of weed and nothing else.',2);return;}
