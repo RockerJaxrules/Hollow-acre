@@ -660,6 +660,14 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   shaded as one cylinder with two creases at most, in a muted wool clearly apart from the scene's reds, and routed so
   they never cover the work.
 
+## Brewery stations and drink icons (Nov 12)
+- A liquid seen in an open vessel: a thin lip, a FLAT surface in two tones, one 3-4 px sheen line at the top left, foam only as a thin broken line hugging the back rim. A broad pale rim round a dark centre reads as a pie crust; specks on it read as stew or porridge.
+- What makes a pot a brewer's and not a cook's: a tap on the belly (4 px spout + key, not a 2 px blob), no handle lugs, hop cones on the tun. At 1x the tun and hops carry the trade.
+- A slatted basket of fruit: show the fruit as 2 px berries with a lit pixel heaped above the rim and bulging through the gaps; evenly alternating dark slat / colour stripe reads as a barcode.
+- Glass at icon size: mostly the dark behind it showing through, pale edges, one glint, and where there's spirit a full-width bright line with a step-paler fill below; an evenly pale body reads as milk, an even grey body as a tin can.
+- Two stations side by side must not share a kit: vary the firebox (stone vs brick) or the tub, or they read as one kit.
+- Icons in one family must separate by hue at 1x (amber, orange, yellow, cream, purple), not only by a label.
+
 ## Crops (strict judge against the reference set, Nov 10: rounds 1-6, 0 -> 8 of 11 stages at 6)
 - [new crops, Nov 12] Draw new crops with the crops.py kit (spoon/oval leaflets, pleaf4 lobed leaves, ball(), contact(), outline(), begin/end for the dark overlap line), never with ad-hoc canvas code: the on-the-fly JS versions were blobs at half the size of the turnip.
 - A root or tuber showing above the soil is CUT at the soil line and left to the outline for its lip; drawing a soil band under it reads as a pot or a mat.

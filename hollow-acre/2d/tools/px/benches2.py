@@ -3,7 +3,7 @@ import sys, json, shutil
 sys.path.insert(0, '.')
 from run import run
 from PIL import Image
-B = {'bench_farm': (64, 64), 'bench_furn': (64, 62), 'bench_weapon': (64, 66), 'bench_armor': (72, 62), 'furnace': (48, 68)}
+B = {'bench_farm': (64, 64), 'bench_furn': (64, 62), 'bench_weapon': (64, 66), 'bench_armor': (72, 62), 'furnace': (48, 68), 'bench_brew': (64, 64), 'bench_press': (60, 66), 'bench_still': (68, 70)}
 only = sys.argv[1:] or list(B)
 objs = json.load(open('../spr/lpc/objects.json'))
 for n in only:
