@@ -191,20 +191,19 @@ if(K==='keg'){const R=RAMP.oak,base=H-3,I=RAMP.ironW;
   const stand=(x0,w)=>{for(const lx of [x0,x0+w-3]){rect(A,lx,base-9,3,9,R[2]);vl(A,lx,base-9,9,R[4]);vl(A,lx+2,base-9,9,R[0]);}hl(A,x0,base-9,w,R[3]);hl(A,x0,base-8,w,R[1]);};
   const cup=(x)=>{rect(A,x,base-4,6,4,RAMP.pine[2]);hl(A,x,base-4,6,RAMP.pine[4]);vl(A,x+5,base-4,4,RAMP.pine[1]);for(let i=1;i<5;i++)P(B,x+i,base-4,RAMP.ochre[4],140);};
   // lying on its side along the screen: bellied staves lit along the top, cast-iron hoops, the tap end's head showing as a narrow lit disc
-  const side=(dir)=>{const w=W-12,x0=dir>0?4:8,cy=base-16,rr=9;   /* (judge fam1: "the stand doesn't show") two trestles with lit tops, the floor showing under the barrel */
-    const RF=x=>rr-2+4*Math.sin((x/(w-1))*Math.PI);   /* (judge fam2: "it is a box, not a barrel") a real belly: 7 at the chimes, 11 at the middle */
-    for(let x=0;x<w;x++){const rf=RF(x),r=Math.round(rf);for(let y=-r;y<=r;y++){const l=-y/r;let k=l>.6?5:l>.2?4:l>-.3?3:2;if(y===-r)k=4;P(A,x0+x,cy+y,R[k]);}
-      for(const sv of [-.72,-.36,.05,.45])P(A,x0+x,cy+Math.round(rf*sv),R[Math.max(1,(sv<0?4:3)-2)]);}   /* (judge fam2: "staves running vertically read as an upright cask squashed wide") staves run the length of a lying barrel: bowed seams following its belly */
-    for(const hx of [x0+2,x0+7,x0+w-9,x0+w-4]){const r=Math.round(RF(hx-x0+1));for(let y=-r;y<=r;y++){const b=Math.round(1-(y*y)/(r*r));P(A,hx+b,cy+y,I[y<-r*.5?5:y<r*.3?3:2]);P(A,hx+b+1,cy+y,I[y<-r*.5?3:1]);}}   // iron hoops: a lit ridge over a dark underside, bowing with the belly
-    const ex=dir>0?x0+w:x0-1;   // the head: 3 px of end grain, two steps lighter than the staves, in a dark chime
-    {const re=Math.round(RF(dir>0?w-1:0));for(let y=-re;y<=re;y++){const ww=Math.abs(y)>re-2?1:3;for(let i=0;i<ww;i++){const X=ex+dir*i;P(A,X,cy+y,i===ww-1?I[1]:RAMP.pine[y<0?5:4]);}}
-    for(let y=-re+1;y<re;y+=4)P(A,ex,cy+y,RAMP.pine[3]);}
-    {const tx=dir>0?ex+2:ex-4;rect(A,tx,cy+3,3,3,RAMP.brass[3]);hl(A,tx,cy+3,3,RAMP.brass[5]);hl(A,tx,cy+5,3,RAMP.brass[1]);const sx=dir>0?tx+2:tx;vl(A,sx,cy+6,3,RAMP.brass[2]);P(A,sx,cy+9,RAMP.brass[4]);cup(dir>0?tx-2:tx-2);}
-    rect(A,x0+(w>>1)-1,cy-rr-2,3,2,RAMP.walnut[1]);P(A,x0+(w>>1)-1,cy-rr-2,RAMP.pine[4]);                                         // the bung on top
-    for(const tx of [x0+3,x0+w-10]){const by=cy+Math.round(RF(tx-x0+3))+1;for(let i=0;i<7;i++){const horn=i<1||i>5;const yt=by-(horn?2:0);for(let y=yt;y<by+3;y++){let k=y===yt?5:(y===by+2?1:(i===0?4:(i===6?1:3)));P(A,tx+i,y,R[k]);}}   // the cradle block: horns up either side, a lit top
-      for(let j=0;j<base-by-2;j++){const y=by+3+j,o=Math.round(j*.45);P(A,tx+1-o,y,R[4]);P(A,tx+2-o,y,R[2]);P(A,tx+4+o,y,R[3]);P(A,tx+5+o,y,R[1]);}   // two splayed legs
-      for(let x=tx-1;x<tx+8;x++){SH(x+1,base,150);SH(x+2,base+1,90);}}
-    {const by=cy+rr+1;for(let y=by-2;y<base;y++)for(let x=x0;x<x0+w;x++){if(G(A,x,y))continue;SH(x,y,Math.max(0,95-(y-by)*16));}}cast(x0,x0+w,base);};
+  const side=(dir)=>{const w=W-13,x0=dir>0?4:9,cy=base-14,PL=RAMP.pine;   /* (judges Nov 12: "lumpy outline and stubby feet read as a woolly animal; dark hoops on dark staves; no lit top; no barrel head at the tap") */
+    const RF=x=>7+3.2*Math.sin(Math.min(1,Math.max(0,x/(w-1)))*Math.PI);
+    for(let x=x0+1;x<x0+w-1;x++){P(A,x,base-2,R[4]);P(A,x,base-1,R[2]);P(A,x,base,R[1]);}                                    // one flat plank along the floor
+    for(const tx of [x0+4,x0+w-11]){const yt=cy+Math.round(RF(tx-x0+3))-2;for(let i=0;i<7;i++){const horn=i<1||i>5;const y0=yt-(horn?1:0)+(i>1&&i<5?1:0);for(let y=y0;y<base-2;y++){let k=y===y0?5:(i===0?4:(i===6?1:3));if(y===base-3)k=1;P(A,tx+i,y,R[k]);}}}   // two curved saddle blocks on it
+    for(let x=0;x<w;x++){const rf=RF(x),r=Math.round(rf);for(let y=-r;y<=r;y++){const l=-y/r;let k=l>.55?5:l>.15?4:l>-.35?3:2;if(y===-r)k=4;P(A,x0+x,cy+y,R[k]);}   // the barrel: smooth belly, lit along the top
+      for(const sv of [-.62,-.22,.2,.6])P(A,x0+x,cy+Math.round(rf*sv),R[Math.max(1,(sv<0?4:3)-2)]);}                                     // staves along its length
+    for(const hx of [x0+3,x0+8,x0+w-10,x0+w-5]){const r=Math.round(RF(hx-x0));for(let y=-r;y<=r;y++){const b=Math.round(.8*(1-(y*y)/(r*r)));P(A,hx+b,cy+y,I[y<-r*.4?5:y<r*.3?4:2]);P(A,hx+b+1,cy+y,I[y<-r*.4?3:1]);}}   // hoops: a lit iron ridge, lighter than the staves
+    {const ex=dir>0?x0+w-1:x0,re=Math.round(RF(dir>0?w-1:0));for(let y=-re;y<=re;y++){const ww=Math.abs(y)>re-2?1:3;for(let i=0;i<ww;i++){const X=ex+dir*(i+1);P(A,X,cy+y,i===ww-1?I[1]:PL[y<0?5:(y<re*.5?4:3)]);}}   // the head: end grain in a dark chime
+      for(let y=-re+2;y<re-1;y+=3)P(A,ex+dir*2,cy+y,PL[3]);
+      const tx=dir>0?ex+3:ex-5;rect(A,tx,cy+1,3,3,RAMP.brass[3]);hl(A,tx,cy+1,3,RAMP.brass[5]);hl(A,tx,cy+3,3,RAMP.brass[1]);const sx=dir>0?tx+2:tx;vl(A,sx,cy+4,3,RAMP.brass[2]);P(A,sx,cy+7,RAMP.brass[4]);
+      cup(tx-1);}
+    {const r=Math.round(RF(w>>1));rect(A,x0+(w>>1)-1,cy-r-1,3,2,RAMP.walnut[1]);P(A,x0+(w>>1)-1,cy-r-1,PL[4]);}            // the bung on top
+    for(let y=cy+5;y<base-2;y++)for(let x=x0+11;x<x0+w-11;x++){if(G(A,x,y))continue;SH(x,y,Math.max(0,110-(y-cy-5)*14));}cast(x0,x0+w,base);};
   // end-on: the head toward you, one lit end-grain disc inside a dark iron ring, a sliver of the staves above it, the tap low
   const end=(tap)=>{const cx=W>>1,cy=base-13,r=10,L=22;stand(cx-11,22);
     for(let t=L;t>=1;t--)for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){if(x*x+y*y>r*r)continue;const yy=cy-t+y;if(G(A,cx+x,yy))continue;
@@ -220,22 +219,22 @@ if(K==='keg'){const R=RAMP.oak,base=H-3,I=RAMP.ironW;
 if(K==='cradle'){const R=RAMP.oak,base=H-3,DOX=hexR(['#24141a','#3a1f25','#522c31','#683b3d','#7c4d4b','#8e605a']);   /* (judge fam1: "salmon bedding reads as candy; the hood a grid that reads as a cage") */
   const rocker=(x0,x1,y)=>{const Q=RAMP.pine;for(let x=x0-3;x<=x1+3;x++){const u=(x-(x0+x1)/2)/((x1-x0)/2),yy=Math.round(y-u*u*3-(Math.abs(u)>.95?(Math.abs(u)-.95)*14:0));P(A,x,yy,Q[5]);P(A,x,yy+1,Q[4]);P(A,x,yy+2,Q[2]);}};
   if(V==='S'||V==='N'){const x0=4,w=W-8,top=base-17,hoodL=V==='S';rocker(x0-2,x0+w+1,base-2);
-    /* (judges Nov 12: "reads as a sleigh or slipper; the hood is a thin arc; dull the pink") a deep basket: the bedding sits INSIDE it,
-       a far rail behind, a lit near rail in front so only the pillow and a fold show above it, spindles over the dark inside below,
-       a broad hood with a thick lit rim */
-    const DQ=hexR(['#2a1c1c','#3e2a28','#543a36','#6a4b45','#7e5d55','#8f6e64']);
-    for(let x=x0+1;x<x0+w-1;x++){P(A,x,top-4,R[4]);P(A,x,top-3,R[3]);P(A,x,top-2,R[1]);}vl(A,x0+1,top-4,3,R[5]);   // the far rail, behind the bedding
-    for(let x=x0+2;x<x0+w-2;x++){const u=(x-(x0+w/2))/(w/2),m=Math.round(1.6*Math.max(0,1-u*u*1.4));for(let y=top-1-m;y<top+3;y++){const k=y===top-1-m?5:(y<top+1?4:3);P(A,x,y,DQ[k]);}}   // the quilt's mound inside the basket
-    {const px=hoodL?x0+13:x0+w-20;for(let y=top-2;y<top+2;y++)for(let x=px;x<px+7;x++){const ex=Math.min(x-px,px+6-x);if(ex<1&&(y===top-2||y===top+1))continue;P(A,x,y,RAMP.ivory[y===top-2?5:(y<top+1?4:3)]);}   // the pillow
-      const fx=hoodL?px+7:px-3;   // (the pillow just out of the hood's mouth, the turned-down sheet beside it)
-     for(let y=top-1;y<top+3;y++)for(let x=fx;x<fx+3;x++)P(A,x,y,RAMP.cream[y===top-1?4:3]);}       // the sheet turned down beside it
-    for(let x=x0;x<x0+w;x++){P(A,x,top+3,R[5]);P(A,x,top+4,R[4]);P(A,x,top+5,R[2]);}                                         // the near rail, lit, in front of the bedding
-    rect(A,x0+1,top+6,w-2,7,R[0]);{let x=x0+3,i=0;while(x<x0+w-4){vl(A,x,top+6,7,R[4]);vl(A,x+1,top+6,7,R[2]);x+=[4,5,4,4,5][i++%5];}}   // spindles over the dark inside
-    for(let x=x0;x<x0+w;x++){P(A,x,top+13,R[4]);P(A,x,top+14,R[1]);}vl(A,x0,top+3,12,R[5]);vl(A,x0+w-1,top+3,12,R[1]);        // the bottom rail, the corner posts
-    {const L=16,Hh=10,hx=hoodL?x0:x0+w-1,dir=hoodL?1:-1,yb=top+3,yt=x=>yb-Math.round(Hh*Math.sqrt(Math.max(0,1-(x/L)*(x/L))));   // the hood: a broad quarter-dome, one shell, a thick lit rim, the plum inside under its open edge
-      for(let x=0;x<L;x++){const X=hx+dir*x,y0=yt(x);for(let y=y0;y<yb;y++){const dd=(y-y0)/Math.max(1,yb-y0),lx=x/L;let k=y<=y0+1?5:(dd+lx*.5<.5?4:dd+lx*.5<1?3:2);P(A,X,y,R[k]);}}
-      for(let y=yt(0)+2;y<yb-1;y++){let e=0;while(e<L-1&&yt(e+1)<=y)e++;if(e<5)continue;P(A,hx+dir*e,y,R[5]);P(A,hx+dir*(e-1),y,RAMP.plum[2]);P(A,hx+dir*(e-2),y,RAMP.plum[1]);P(A,hx+dir*(e-3),y,RAMP.plum[1]);}
-      for(let y=yt(0);y<yb;y++)P(A,hx,y,R[y<yt(0)+2?5:4]);}
+    box3(x0,top,w,5,10,R,{});rect(A,x0+2,top+6,w-4,8,R[1]);
+    {let x=x0+3,i=0;while(x<x0+w-4){vl(A,x,top+6,8,R[4]);vl(A,x+1,top+6,8,R[3]);P(A,x,top+6,R[5]);x+=[4,5,4,4,5][i++%5];}}           // turned spindles, soft contrast, uneven gaps
+    // the hood: a quarter-dome over the head end. The near shell is wood with ribs along its curve; above it the far shell's lip, and between them the plum-dark inside
+    {const L=14,Hh=11,hx=hoodL?x0:x0+w-1,dir=hoodL?1:-1,yt=x=>top-Math.round(Hh*Math.sqrt(Math.max(0,1-(x/L)*(x/L))));
+      for(let x=0;x<L;x++){const X=hx+dir*x,y0=yt(x);
+        for(let y=y0;y<=top;y++){const dd=(y-y0)/Math.max(1,top-y0+1),lx=x/L;let k=y<=y0+1?5:(dd+lx*.6<.45?4:dd+lx*.6<.95?3:2);if(x===0)k=Math.max(k,4);P(A,X,y,R[k]);}}   // one shell, lit toward the upper left, two rib lines
+      for(let y=yt(0);y<=top;y++)P(A,hx,y,R[y<yt(0)+2?5:4]);
+      for(let y=yt(0)+2;y<top-1;y++){let e=0;while(e<L-1&&yt(e+1)<=y)e++;if(e<4)continue;P(A,hx+dir*e,y,R[4]);P(A,hx+dir*(e-1),y,RAMP.plum[2]);P(A,hx+dir*(e-2),y,RAMP.plum[1]);if(e>7)P(A,hx+dir*(e-3),y,RAMP.plum[2]);}}   /* (judge fam2: "the fanned hood slats read as a piano lid") one closed shell; the inside shows only as a plum crescent under the open edge */
+    // the blanket: a mound over the baby's shape with a sheet turned down at the head, hanging over the near rail in soft folds
+    const hb=hoodL?x0+10:x0+2,he=hoodL?x0+w-2:x0+w-10;
+    for(let x=x0+2;x<x0+w-2;x++){const u=(x-(x0+w/2))/(w/2),m=Math.round(2.2*Math.max(0,1-u*u*1.6));
+      for(let y=top-m;y<top+2;y++){const k=y===top-m?5:4;P(A,x,y,DOX[k]);}
+      P(A,x,top+2,DOX[5]);P(A,x,top+3,DOX[4]);                                                                                 /* (judge fam3: "a scalloped blanket over a cream band reads as cake icing") the blanket rolls over the near rail */
+      const fold=((x-x0)%7===3)?1:(((x-x0)%7===4)?-1:0);for(let y=top+4;y<top+9;y++)P(A,x,y,DOX[y===top+8?1:Math.max(1,Math.min(5,3+fold-(y>top+6?1:0)))]);}   // hanging straight down the near side in soft folds, a dark hem
+    {const sx=hoodL?x0+9:x0+w-13;for(let x=sx;x<sx+4;x++)for(let y=top-2;y<top+4;y++)if(G(A,x,y))P(A,x,y,RAMP.cream[x===sx?3:2]);}   // the sheet turned down at the head, under the pillow
+    {const px=hoodL?x0+5:x0+w-9;hl(A,px,top-1,5,RAMP.ivory[5]);hl(A,px,top,5,RAMP.ivory[3]);}
     under(x0,x0+w,top+15,base);cast(x0,x0+w,base);}
   // end-on, a rocker is just its end: a short lit nub under each corner post, the curl of its tip showing
   const feet=(x0,w)=>{const Q=RAMP.pine;for(const fx of [x0,x0+w-4]){rect(A,fx,base-3,4,3,Q[3]);hl(A,fx,base-3,4,Q[5]);vl(A,fx+3,base-3,3,Q[1]);P(A,fx+(fx===x0?0:3),base-4,Q[4]);}
