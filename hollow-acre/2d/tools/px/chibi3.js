@@ -147,11 +147,9 @@ function torsoFront(cx,top,hip,back){const half=6+WIDE;
       for(let u=a;u<=b;u++){const L=u<=0,iu=L?-u:u-1;let k;
         if(j<=1)k=L?4:3;
         else{k=L?(iu>=2?4:iu===1?3:2):(iu>=3?2:3);if(j>=4)k=Math.max(1,k-1);if(iu===0)k=j>=5?(L?0:1):j>=2?(L?1:2):(L?2:3);}   // the cleft from row 2 in two soft steps, darkest only at its base: a form, not a streak (judge)
-        const nb=j+1<SKN.length?SKN[j+1]:[9,-9];if((u<nb[0]||u>nb[1])&&j>=3&&iu>0)k=Math.max(0,k-2);   // (judge necklines: "draw each as a form") a 1 px darker curve where each form turns under into the cloth
-        if(j>=1&&j<=2&&(u===-3||u===-2||u===2||u===3))k=Math.max(k,(u===-3||u===2)?5:4);                // a lit patch on the upper left of each form
-        p(cx+u,y,SK[Math.min(SK.length-1,k)]);}
-      const T1=shirtAt(cx+a-1,y),T2=shirtAt(cx+b+1,y);p(cx+a-1,y,T1[0].map(v=>Math.round(v*.8)));p(cx+b+1,y,T2[0].map(v=>Math.round(v*.8)));}   // a dark trim at the neckline, darker than any top, so light tops part from the skin (judge: Ida, Tess, Della)
-    for(let u=-5;u<=6;u++){const T=shirtAt(cx+u,top+7);p(cx+u,top+7,T[0].map(v=>Math.round(v*.8)));}}
+        p(cx+u,y,SK[k]);}
+      p(cx+a-1,y,shirtAt(cx+a-1,y)[1]);p(cx+b+1,y,shirtAt(cx+b+1,y)[0]);}   // a dark edge to the neckline: a clear break between cloth and skin
+    for(let u=-5;u<=6;u++)p(cx+u,top+7,shirtAt(cx+u,top+7)[u<1?1:0]);}
   if(C.apron&&!back){const R=EX;for(let y=top+(ALL?7:3);y<=hem+(LEGSKIN?5:2);y++)for(let u=-3;u<=4;u++)p(cx+u,y,R[u===-3?4:u===4?1:y===top+3?4:3]);p(cx-4,top+3,R[2]);p(cx+5,top+3,R[2]);}}
 // skirts and long coats hang over the legs
 function skirtFront(cx,hip,back){if(OUT==='longcoat'){const len=KID?5:7;for(let j=0;j<len;j++){const hw=6+(j>>1);for(let u=-hw+1;u<=hw;u++){if(!back&&Math.abs(u-.5)<1.6)continue;p(cx+u,hip+1+j,JK[u<-hw+3?4:u>hw-2?1:u>hw-4?2:3]);}}for(let u=-8;u<=9;u++)p(cx+u,hip+len,JK[0]);}
