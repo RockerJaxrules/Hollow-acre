@@ -6,7 +6,8 @@ a darker outline of each colour, one highlight mass, no speckle. Each its own hu
 """
 import sys, os, json, math
 from PIL import Image
-from crops import Canvas, HEX, outline, FERN
+from crops import Canvas, HEX, outline
+from crops_more import FERN
 from crops_more import ball, CABB
 from brew_icons import CROCK, CORK, OAKB, bottle, GOLD
 
@@ -45,52 +46,74 @@ def icon_butter():
 
 
 def icon_cheese():
-    """a wheel of cheese with a wedge cut out: the pale cut face shows, a waxed rind round the rest"""
-    cv = Canvas(32, 32); cx, cy = 16, 18
-    for y in range(-9, 10):
-        for x in range(-13, 14):
-            if x * x / 169 + y * y / 81 > 1: continue
-            if x > 0 and y < 0 and y > -x * .8: continue                                     # the wedge cut away
-            side = y > 3
-            if side: cv.put(cx + x, cy + y, RIND[1] if x < 3 else RIND[0])
-            else:
-                l = -x / 13 * .6 - y / 9 * .6
-                cv.put(cx + x, cy + y, CHEESE[4] if l > .3 else CHEESE[3] if l > -.2 else CHEESE[2])
-    for x in range(1, 12):                                                                  # the cut face, pale, with two holes
-        for y in range(-int(x * .8), 1): cv.put(cx + x, cy + y, CHEESE[5] if x < 6 else CHEESE[4])
-    for (x, y) in ((5, -2), (8, -3), (-5, -2), (-8, 1)): cv.put(cx + x, cy + y, CHEESE[1])
+    """a flat wheel of cheese: a lit top, a darker rind band for its side, and a V cut out of it showing two pale cut faces"""
+    cv = Canvas(32, 32); cx, cy, rx, ry, h = 16, 13, 13, 5.5, 9
+    a1, a2 = -1.25, -.15
+    cut = lambda x, y: a1 < math.atan2((y - cy) / ry, (x - cx) / rx) < a2
+    for x in range(cx - rx, cx + rx + 1):                                                   # the rind band
+        u = (x - cx) / rx
+        if abs(u) > 1: continue
+        ytop = cy + ry * math.sqrt(1 - u * u)
+        for y in range(int(cy), int(ytop + h) + 1):
+            cv.put(x, y, HEX('#c08a2a') if u < -.4 else HEX('#a8761e') if u < .4 else HEX('#86581a'))
+    for y in range(int(cy - ry), int(cy + ry) + 1):
+        for x in range(cx - rx, cx + rx + 1):
+            if (x - cx) ** 2 / rx ** 2 + (y - cy) ** 2 / ry ** 2 > 1: continue
+            if cut(x, y): cv.px.pop((x, y), None); continue
+            l = -(x - cx) / rx - (y - cy) / ry
+            cv.put(x, y, CHEESE[5] if l > .7 else CHEESE[4] if l > -.2 else CHEESE[3])
+    for y in range(int(cy - ry), int(cy + 1)):                                             # clear the band behind the notch
+        for x in range(cx, cx + rx + 1):
+            if cut(x, y): cv.px.pop((x, y), None)
+    for (a, col) in ((a1, CHEESE[5]), (a2, CHEESE[3])):                                    # the two pale cut faces, down through the wheel
+        for k in range(40):
+            t = k / 39; x, y = cx + math.cos(a) * rx * t, cy + math.sin(a) * ry * t
+            for d in range(h + 1): cv.put(x, y + d, col)
+    for (x, y) in ((cx + 4, cy + 3), (cx + 7, cy + 5)): cv.put(x, y, CHEESE[2])
     return outline(cv.image())
 
 
 def icon_cornbread():
-    """a square of cornbread in its tin: a golden domed top, cracked, lit top-left"""
-    cv = Canvas(32, 32)
-    for y in range(9, 27):
-        for x in range(5, 28):
-            if y > 22: cv.put(x, y, HEX('#4a4e5a') if x > 20 else HEX('#6f7480')); continue   # the tin's lip
-            l = -(x - 16) / 14 - (y - 15) / 10
-            k = 5 if l > .8 else 4 if l > .2 else 3 if l > -.4 else 2
-            cv.put(x, y, BREAD[k])
-    for (x0, y0, x1, y1) in ((9, 13, 14, 16), (17, 12, 22, 17), (11, 19, 18, 20)):
-        n = max(abs(x1 - x0), abs(y1 - y0))
-        for i in range(n + 1): cv.put(x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n, BREAD[1])
+    """cornbread in its square tin, seen three-quarters: the tin's front wall a darker band below the rim, the domed golden top
+    bulging above it with a few short cracks, and where a square was cut, a pale vertical face of crumb"""
+    cv = Canvas(32, 32); x0, x1 = 4, 28; rim, front = 13, 7
+    for y in range(rim, rim + front):                                                        # the tin's front wall
+        for x in range(x0, x1 + 1): cv.put(x, y, HEX('#5a5e6a') if y == rim else HEX('#3e424c') if x > 20 else HEX('#4a4e5a'))
+    for x in range(x0, x1 + 1): cv.put(x, rim + front, HEX('#2a2c34'))
+    for y in range(4, rim + 1):                                                              # the top, domed above the rim
+        for x in range(x0 + 1, x1):
+            u = (x - 16) / 12; dome = rim - 1 - 6 * (1 - u * u) ** .5 + (y * 0)
+            if y < dome: continue
+            if x > 18 and y > 7: continue                                                   # the square already taken
+            l = -u - (y - 8) / 5
+            cv.put(x, y, BREAD[5] if l > .9 else BREAD[4] if l > .1 else BREAD[3])
+    for y in range(8, rim + front):                                                          # the cut: a pale face of crumb, standing up
+        for x in range(19, x1):
+            if y < rim: cv.put(x, y, HEX('#f4e0a0') if x < 21 else HEX('#e8d088'))
+    for x in range(19, x1): cv.put(x, 8, BREAD[3])
+    for (xa, ya, xb) in ((8, 8, 11), (12, 6, 15), (9, 11, 12)):
+        for x in range(xa, xb + 1): cv.put(x, ya + (x - xa) % 2, BREAD[2])
     return outline(cv.image())
 
 
 def icon_carrot_cake():
-    """a slice of carrot cake on its side: two sponge layers, cream between and on top, a candied carrot on it"""
-    cv = Canvas(32, 32)
-    for y in range(11, 27):
-        w = 4 + (y - 11) * 1.2
-        for x in range(int(16 - w), int(16 + w) + 1):
-            if y < 13 or 18 <= y <= 19: c = ICING[2] if x < 16 else ICING[1]
+    """a slice of carrot cake, cut face to you: sponge, a stripe of cream, sponge, frosting on top, the wedge's top running back
+    to its point; a candied carrot"""
+    cv = Canvas(32, 32); x0, x1, ytop, ybot = 6, 26, 13, 27
+    for y in range(7, ytop):
+        t = (y - 7) / (ytop - 7)
+        xa, xb = 20 - (20 - x0) * t, 22 + (x1 - 22) * t
+        for x in range(int(xa), int(xb) + 1): cv.put(x, y, ICING[3] if x < 18 else ICING[2])
+    for y in range(ytop, ybot + 1):
+        for x in range(x0, x1 + 1):
+            band = y - ytop
+            if band < 2 or 7 <= band <= 8: c = ICING[2] if x < 16 else ICING[1]
             else:
-                l = -(x - 16) / 16 - (y - 18) / 14
-                c = CAKE[4] if l > .3 else CAKE[3] if l > -.3 else CAKE[2]
+                u = (x - x0) / (x1 - x0); c = CAKE[4] if u < .3 else CAKE[3] if u < .75 else CAKE[2]
             cv.put(x, y, c)
-    for (x, y) in ((10, 15), (21, 16), (15, 23), (8, 24)): cv.put(x, y, HEX('#e4741e'))     # flecks of carrot
-    for k in range(5): cv.put(14 + k, 9 + k * .3, HEX('#f69a3e') if k < 3 else HEX('#c25014'))
-    cv.put(13, 8, FERN[4]); cv.put(12, 7, FERN[3])
+    for (x, y) in ((10, 17), (19, 18), (14, 23), (22, 24), (9, 25)): cv.put(x, y, HEX('#e4741e'))
+    for k in range(5): cv.put(15 + k, 9 + k * .3, HEX('#f69a3e') if k < 3 else HEX('#c25014'))
+    cv.put(14, 8, FERN[4]); cv.put(13, 7, FERN[3])
     return outline(cv.image())
 
 
@@ -105,20 +128,30 @@ def icon_jam():
 
 
 def icon_kraut():
-    """a stoneware crock of salted cabbage under a weight stone: cabbage shreds showing at the rim"""
-    cv = Canvas(32, 32)
-    ball(cv, 16, 20, 10, 9, CROCK)
-    for y in range(9, 13):
-        for x in range(-9, 10): cv.put(16 + x, y, CROCK[4] if x < 0 else CROCK[2])
-    for x in range(-8, 9):
-        for y in range(8, 11): cv.put(16 + x, y, CABB[5] if (x + y) % 3 else CABB[6])
-    ball(cv, 17, 8, 4, 2.5, R('#3a3836', '#565250', '#76726c', '#9a948c', '#bcb6ac'))
-    for x in range(-9, 10): cv.put(16 + x, 20, HEX('#5a7a5c') if x < 2 else HEX('#46624a'))
+    """a straight-sided stoneware crock: a flat base, a lip at the rim, the upper half in brown glaze, cabbage leaves curling
+    over the rim under a flat weight stone"""
+    cv = Canvas(32, 32); x0, x1, top, bot = 8, 24, 12, 28
+    GL = R('#3e2412', '#5a361c', '#764a28', '#92603a')
+    for y in range(top, bot + 1):
+        bel = round(math.sin((y - top) / (bot - top) * math.pi) * 1.2)
+        for x in range(x0 - bel, x1 + bel + 1):
+            u = (x - 16) / (8 + bel)
+            c = (GL[3] if u < -.5 else GL[2] if u < .3 else GL[1]) if y < 20 else (CROCK[4] if u < -.5 else CROCK[3] if u < .3 else CROCK[2])
+            cv.put(x, y, c)
+    for x in range(x0 - 1, x1 + 2): cv.put(x, top - 1, GL[3] if x < 16 else GL[2]); cv.put(x, top, GL[1])
+    for x in range(x0, x1 + 1):
+        if x % 4 == 1: cv.put(x, 20, GL[2])
+    for (cx_, d) in ((10, -1), (22, 1)):
+        for k in range(6): cv.put(cx_ + d * (k // 2), top - 2 - (k % 3), CABB[5] if k % 2 else CABB[6])
+    for y in range(-2, 2):
+        for x in range(-7, 8):
+            if x * x / 49 + (y + .5) ** 2 / 4 > 1: continue
+            cv.put(16 + x, top - 3 + y, HEX('#9a948c') if y < 0 and x < 2 else HEX('#76726c'))
     return outline(cv.image())
 
 
 def icon_sauerkraut():
-    """a bowl of sauerkraut: pale gold shreds heaped in a wooden bowl"""
+    """a bowl of sauerkraut: long curving shreds in two pale yellow-greens, a few dark caraway seeds"""
     cv = Canvas(32, 32); cx = 16
     for y in range(16, 28):
         t = (y - 16) / 12; w = 13 - t * t * 5
@@ -127,10 +160,10 @@ def icon_sauerkraut():
     for y in range(-6, 3):
         for x in range(-12, 13):
             if x * x / 144 + (y + 1) ** 2 / 30 > 1: continue
-            l = -x / 12 - y / 6
-            cv.put(cx + x, 16 + y, HEX('#f0e0a0') if l > .5 else HEX('#d8c47a') if l > -.2 else HEX('#b8a25a'))
-    for (x0, y0) in ((-7, -2), (-2, -4), (3, -1), (7, -3), (-4, 1)):
-        for k in range(4): cv.put(cx + x0 + k, 16 + y0 + (k % 2), HEX('#a08a46'))
+            cv.put(cx + x, 16 + y, HEX('#c8c48a') if (x + y) > 4 else HEX('#d8d4a0'))
+    for i, (x0, y0, ln, ph) in enumerate(((-10, -1, 9, 0), (-6, -4, 10, 1.2), (-2, -2, 11, 2.0), (1, -5, 9, .6), (4, 0, 8, 1.7), (-8, 1, 8, 2.6))):
+        for k in range(ln): cv.put(cx + x0 + k, 16 + y0 + round(math.sin(k * .55 + ph) * 1.2), HEX('#ece8c0') if i % 2 == 0 else HEX('#b8b47a'))
+    for (x, y) in ((-5, -2), (3, -3), (6, 1), (-1, 1)): cv.put(cx + x, 16 + y, HEX('#4a3a24'))
     return outline(cv.image())
 
 
@@ -153,17 +186,27 @@ def icon_potato_soup():
 
 
 def icon_rope():
-    """a coil of rope: three loops one behind the other, the strands' twist showing as a lit diagonal on each"""
-    cv = Canvas(32, 32)
-    for (cy, rx, ry, back) in ((14, 11, 6, True), (17, 11, 6, False), (20, 11, 6, False)):
-        for k in range(90):
-            t = k / 90 * math.pi * 2; x, y = 16 + math.cos(t) * rx, cy + math.sin(t) * ry
-            for w in (0, 1):
-                xx, yy = x, y + w
-                lit = (k + w) % 4 < 2
-                c = ROPE[(4 if lit else 2) - (1 if back else 0) - (1 if math.sin(t) < 0 and not back else 0)]
-                cv.put(xx, yy, c)
-    for k in range(8): cv.put(25 + k * .5, 21 + k * .7, ROPE[3] if k % 2 else ROPE[1])          # the loose end
+    """a single twisted ring of rope with its centre dark, the twist as diagonal strands lit at the top left, and a short frayed
+    end curling along the bottom of the ring"""
+    cv = Canvas(32, 32); cx, cy, rx, ry = 16, 15, 11, 8
+    for y in range(-ry + 3, ry - 2):                                                         # the hollow in the middle, in shadow
+        for x in range(-rx + 3, rx - 2):
+            if x * x / (rx - 3) ** 2 + y * y / (ry - 3) ** 2 <= 1: cv.put(cx + x, cy + y, HEX('#3a2c1a') if y > -2 else HEX('#4a3a24'))
+    N = 140
+    for i in range(N):
+        t = i / N * math.pi * 2; x, y = cx + math.cos(t) * rx, cy + math.sin(t) * ry
+        nx, ny = math.cos(t), math.sin(t) * rx / ry
+        nl = math.hypot(nx, ny); nx, ny = nx / nl, ny / nl
+        for o in (-1.5, -.5, .5, 1.5):
+            stripe = (i // 2 + int(o + 2)) % 3
+            lit = (nx * o + ny * o) < 0
+            k = 4 if stripe == 0 and lit else 3 if stripe == 0 else 2 if stripe == 1 else 1
+            cv.put(x + nx * o, y + ny * o, ROPE[k])
+    for k in range(8):                                                                        # the end, curling along the bottom of the ring
+        t = .9 + k * .09; x, y = cx + math.cos(t) * (rx + 2.2), cy + math.sin(t) * (ry + 2.2)
+        cv.put(x, y, ROPE[3] if k % 2 else ROPE[2]); cv.put(x, y + 1, ROPE[1])
+    ex, ey = cx + math.cos(1.62) * (rx + 2.2), cy + math.sin(1.62) * (ry + 2.2)
+    for (dx, dy) in ((-1, 1), (-2, 1), (-1, 2), (-2, 0)): cv.put(ex + dx, ey + dy, ROPE[4])   # frayed
     return outline(cv.image())
 
 
@@ -184,19 +227,24 @@ def icon_basket():
 
 
 def icon_compost():
-    """a sack of compost, its top rolled open on dark crumbly earth with a curl of eggshell and a leaf"""
+    """a sack of compost with its mouth rolled down into a thick folded rim, a mound of dark crumbly earth heaped above it,
+    lit lumps, a leaf and a fleck of eggshell"""
     cv = Canvas(32, 32)
-    for y in range(10, 29):
-        w = 9 + (y - 10) * .2
+    for y in range(15, 29):
+        w = 10 + (y - 15) * .15
         for x in range(int(16 - w), int(16 + w) + 1):
             u = (x - 16) / w; cv.put(x, y, HEX('#c9b386') if u < -.5 else HEX('#ad966a') if u < .3 else HEX('#8e7750'))
-    for x in range(6, 27): cv.put(x, 10, HEX('#e0cfa6')); cv.put(x, 11, HEX('#ad966a'))
-    for y in range(6, 11):
-        for x in range(8, 25):
-            if (x - 16) ** 2 / 64 + (y - 9) ** 2 / 9 > 1: continue
-            l = -(x - 16) / 8 - (y - 8) / 3
-            cv.put(x, y, SOIL[4] if l > .6 else SOIL[3] if l > -.2 else SOIL[2])
-    for (x, y, c) in ((12, 7, '#f0ece0'), (13, 7, '#d8d0c0'), (19, 8, '#7a6a3a'), (20, 7, '#a88a3a'), (21, 8, '#7a6a3a')): cv.put(x, y, HEX(c))
+    for x in range(5, 28):
+        cv.put(x, 13, HEX('#e0cfa6') if x < 16 else HEX('#c9b386')); cv.put(x, 14, HEX('#ad966a')); cv.put(x, 15, HEX('#6c583a'))
+    for y in range(4, 14):
+        for x in range(6, 27):
+            r = (x - 16) ** 2 / 100 + (y - 13) ** 2 / 81 + .12 * math.sin(x * 1.3) * (y < 9)    # a lumpy outline, not a smooth bun
+            if r > 1: continue
+            l = -(x - 16) / 10 - (y - 9) / 6
+            cv.put(x, y, SOIL[3] if l > .5 else SOIL[2] if l > -.3 else SOIL[1])
+    for (x, y) in ((11, 8), (14, 6), (18, 9), (12, 11), (20, 11), (16, 10)):
+        cv.put(x, y, SOIL[4]); cv.put(x + 1, y, SOIL[3])
+    for (x, y, c) in ((19, 6, '#f0ece0'), (20, 6, '#d8d0c0'), (9, 10, '#7a6a3a'), (8, 9, '#a88a3a'), (10, 9, '#7a6a3a')): cv.put(x, y, HEX(c))
     return outline(cv.image())
 
 
