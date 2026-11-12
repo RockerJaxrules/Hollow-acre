@@ -1454,4 +1454,6 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - "Nobody in the mirror" only lands if we can see someone is standing there: draw the player's shadow on the wall beside the frame.
 - A night state must be dark everywhere: a black window with a moon, the lantern as the only warm light, low on one side. Moonlight through the reflected window lights whatever must be seen, such as the bed.
 - A blink shows only against something that didn't blink. Leave one lid half down afterwards so the change stays visible.
-
+- Foxing on old glass goes in ragged patches at the rim and corners, never as single specks over the middle: specks on a face read as pox or flies. (judge r2, mirror)
+- Anything that must be seen in a dark scene (fingers on a blanket) is drawn after the darkness, as the brightest pixels in the frame. (judge r2, mirror)
+- A cast shadow, a figure's included, falls away from the room's light: down and to the right when the light is top-left. (judge r2, mirror)

@@ -74,3 +74,4 @@ orders. Latest round first.
 | Seed box (Nov 12) | 5 -> 6 | yes (new) | toward 7: lid at 30-45 degrees, rim line |
 | Closing time: the face in the store's own window; the dance without drawn arms (Nov 12) | 6 -> 6.5 / 6 | yes | toward 7: her head at his shoulder, a 2 px gap |
 | Everett (was Pip): walking sprite / HD portrait (Nov 12) | 6 / 6 -> 6.5 / 6.5 | yes (new look from the owner's photos) | toward 7: the side-stride arm as a solid sleeve over a short forearm; flat pointed polo collar tips on the portrait |
+| Mirror close-up: five states (Nov 12) | 4.5 -> 6 | yes (was a line of text) | toward 7: the reflection's eyes change between states; the body in the bed shaped more clearly in the moonlight |
