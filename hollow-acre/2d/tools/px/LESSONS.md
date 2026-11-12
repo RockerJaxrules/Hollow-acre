@@ -1435,3 +1435,4 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Several figures doing the same thing must not move on the same beat: give each its own phase. Keep a tile between figures, the player included, and never stack two in one column.
 - Two props of the same kind need different silhouettes (keg and chalkboard against jars and a crate). A recolour reads as a copy.
 - A label needs room for its letters: four letters of 3x5 text need 15 px plus padding.
+- (UI) A new panel takes the HUD's frame exactly: tan 3 px outer border, dark inner line, warm lines only (no grey), the prompt in the HUD's accent orange.
