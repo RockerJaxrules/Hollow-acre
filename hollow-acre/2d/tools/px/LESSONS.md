@@ -227,6 +227,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Size carries status: the stand-in had to be a full head taller than the children's scarecrows to rule the ring.
 - Code trap: `'text'.strike` is truthy (String.prototype.strike is a built-in), so a `ln.strike` flag on a plain string struck through every chalk line and made MOLLY, ALICE and the sum unreadable. Test `typeof ln==='object'` first.
 - A slate, a carving, a label: dump the text pixels and look at them at 6x before judging; garbled text costs a whole round.
+- Small found objects (the Count, Nov 12: 5 -> 6): silhouette is everything at 30-40 px. A spinning top needs a rounded shoulder under the crown curving in to a short point (straight cones read as party hats, carrots, Christmas trees); the peg out of a lit crown ellipse and a spin dent or string loop finish it.
+- An opening drawn as a solid black oval in an even frame reads as a porthole or a lamp. Fill a hat's opening with its lining (pale cloth darkening toward the back) inside a soft edge.
+- Ties hanging below a hat read as legs. Make them flat 2-3 px ribbons that go somewhere (up to the knot it hangs from, or out flat to a bow).
+- Anything seen straight down into its hollow reads as a plate or a lid. Three-quarter view, showing the side wall.
+- A cap's peak seen side-on next to a round crown reads as a snout; any seam or button beside it becomes an eye. Point the peak at the viewer: a flat lighter half-moon along the near edge with its shadow line.
+- Fine texture (herringbone, tweed) at this size reads as fur. Two smooth tones and two or three short bands of pattern.
+- One sprite reused across several sights reads as a kit: vary the pose (standing, grazing, tipped over with a broken leg), not just the colour.
 
 ## Judging (Nov 9)
 - Blind judges vary by about a point between rounds and lean toward whichever image is in slot b: in tree round 4 the
