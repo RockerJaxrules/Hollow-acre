@@ -11,7 +11,8 @@ const IDN={off:[],wait:0,waitT:null,card:null};
 function myFarmName(){const n=NAME()||(HOST.ownPersonal&&HOST.ownPersonal.look&&String(HOST.ownPersonal.look.name||'').trim())||'';return clean(n||'Farmhand');}
 // ---- the host: one name per player id
 function idnMap(){S.fhIds=S.fhIds&&typeof S.fhIds==='object'?S.fhIds:{};return S.fhIds;}
-function idnTaken(nm,id){return Object.entries(idnMap()).some(([k,v])=>k!==id&&v===nm);}
+function idnTaken(nm,id){if(HOST.role==='host'&&nm===(NAME()||''))return true;   // (the host's own name is taken: a farmhand called the same would share their cabin and their wedding)
+  return Object.entries(idnMap()).some(([k,v])=>k!==id&&v===nm);}
 function idnRename(a,b){if(!a||!b||a===b)return;const w=S.world||{};
   for(const M of [w.slots,w.homes,w.owed,S.farmhands])if(M&&typeof M==='object'&&Object.prototype.hasOwnProperty.call(M,a)){if(!Object.prototype.hasOwnProperty.call(M,b))M[b]=M[a];delete M[a];}
   for(const c of (w.couples||[])){if(c.a===a)c.a=b;if(c.b===a)c.b=b;}
