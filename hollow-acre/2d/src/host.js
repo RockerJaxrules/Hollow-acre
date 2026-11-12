@@ -31,7 +31,7 @@ function applySnap(data,first,hand){const mine=first?(HOST.ownPersonal||hand||ta
   if(!first&&typeof regenPass==='function')regenPass();hostReset();S.mode='play';S.paused=false;$('title').hidden=true;$('hud').hidden=false;$('buttons').hidden=false;ui.obj.hidden=false;
   toast(first?`You’re on ${HOST.hostName}’s farm. Everything you grow here is shared. Your backpack is still yours.`:`Day ${S.day}. ${HOST.hostName} went to bed, so the night is over for everyone.`,4.2);}
 async function hostStart(){if(!canHost()){toast('Hosting needs an internet connection.',2.6);return;}HOST.role='host';HOST.code=newCode();await coopJoin('host-'+HOST.code.toLowerCase());hostWire();hostReset();
-  toast(`You’re hosting. Farm code: ${HOST.code}. Friends type it under Join a farm.`,5);if(GM_TAB==='coop'&&!$('bag').hidden)renderCoop();}
+  toast(`You’re hosting. Farm code: ${HOST.code}. Friends choose Play with friends, then Join a friend’s world, and type it.`,5);if(GM_TAB==='coop'&&!$('bag').hidden)renderCoop();}
 function hostJoin(code){code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8);if(!code){toast('Type the host’s farm code first.',2.2);return;}
   if(!canHost()){toast('Joining needs an internet connection.',2.6);return;}try{flushSave&&flushSave();sessionStorage.setItem('hollowJoin',code);}catch(e){}S.mode='trans';fade(1);setTimeout(()=>location.reload(),400);}
 async function hostJoinNow(code){HOST.role='guest';HOST.code=code;HOST.joined=false;const own=readSave();HOST.ownPersonal=own?Object.fromEntries(PERSONAL.filter(k=>own.S[k]!==undefined).map(k=>[k,own.S[k]])):null;
