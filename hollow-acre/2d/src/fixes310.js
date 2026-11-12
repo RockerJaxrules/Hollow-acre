@@ -2,15 +2,15 @@
    opens at the top of the screen. The owner's code is checked by its hash, like the profile codes, so it isn't written in the
    game in plain text: Jaxon0419 puts 5,000 coins in your purse. Enter to run it, Esc to close. ================= */
 const CONSOLE_CODES={[perkHash('jaxon0419')]:'coins5k'};
+function consoleRun(v){const k=CONSOLE_CODES[perkHash(String(v||'').replace(/\s+/g,'').toLowerCase())];
+  if(k==='coins5k'){S.coins+=5000;SFX.coin&&SFX.coin();updateHud&&updateHud();toast('5,000 coins. Spend it before anyone asks where it came from.',2.6);try{saveGame(true);}catch(er){}return true;}return false;}
 (function(){const css=document.createElement('style');css.textContent=`#cheatBox{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 70px);transform:translateX(-50%);z-index:90;display:none;
  background:#2a1a0e;border:3px solid #c89a5a;box-shadow:inset 0 0 0 2px #1a0e06,0 0 0 2px #1a0e06,0 6px 18px rgba(0,0,0,.6);padding:9px 12px;font:14px 'Hollow Pixel',monospace;color:#f0e4c8;gap:8px;align-items:center}
 #cheatBox span{color:#e8923a;font-size:16px}
 #cheatBox.on{display:flex}#cheatBox input{font:14px 'Hollow Pixel',monospace;background:#1a0e06;color:#f6eedc;border:2px solid #8a6440;padding:5px 8px;width:min(60vw,260px);outline:none;caret-color:#e8923a}`;document.head.appendChild(css);
   const b=document.createElement('div');b.id='cheatBox';b.innerHTML='<span>&gt;</span><input id="cheatIn" maxlength="40" autocomplete="off" spellcheck="false" placeholder="type a code, Enter">';document.body.appendChild(b);
   const inp=b.querySelector('input');const close=()=>{b.classList.remove('on');inp.value='';inp.blur();if(cheatOpen.paused){S.paused=false;cheatOpen.paused=false;}};
-  inp.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Escape'){e.preventDefault();close();return;}if(e.key==='Enter'){e.preventDefault();const k=CONSOLE_CODES[perkHash(String(inp.value||'').replace(/\s+/g,'').toLowerCase())];
-      if(k==='coins5k'){S.coins+=5000;SFX.coin&&SFX.coin();updateHud&&updateHud();toast('5,000 coins. Spend it before anyone asks where it came from.',2.6);try{saveGame(true);}catch(er){}}
-      else{SFX.deny&&SFX.deny();toast('Nothing happens.',1.4);}close();}});
+  inp.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Escape'){e.preventDefault();close();return;}if(e.key==='Enter'){e.preventDefault();if(!consoleRun(inp.value)){SFX.deny&&SFX.deny();toast('Nothing happens.',1.4);}close();}});
   inp.addEventListener('keyup',e=>e.stopPropagation());inp.addEventListener('keypress',e=>e.stopPropagation());
   window.cheatOpen=function(){if(b.classList.contains('on'))return;b.classList.add('on');cheatOpen.paused=!S.paused;S.paused=true;setTimeout(()=>inp.focus(),0);};
   addEventListener('keydown',e=>{if(e.code!=='KeyT'||e.repeat||(typeof typing==='function'&&typing(e)))return;if(S.mode!=='play'||S.paused||(typeof STG!=='undefined'&&STG))return;e.preventDefault();cheatOpen();});})();

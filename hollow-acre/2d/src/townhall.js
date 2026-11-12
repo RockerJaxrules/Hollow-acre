@@ -73,7 +73,7 @@ const HALL_ICON={dflt:(P,x,y)=>{P(x,y,6,1,'#5a5a62');P(x,y+2,5,1,'#5a5a62');P(x,
 if(typeof INDOOR!=='undefined'){const d=tbDoor('hall');INDOOR.hall={room:'hall',door:[d[0],d[1]],spots:{agnes:[4.2,2.45]},browse:[[12.6,4.2],[9.0,6.0],[8,6.2]]};}
 if(typeof LIFE!=='undefined'&&LIFE.agnes){LIFE.agnes.day=[[6,'home'],[8,'porch_agnes'],[9,'hall'],[15,'graves'],[16.5,'porch_agnes'],[18.5,'home']];LIFE.agnes.job='Retired; clerks the land office at the town hall, nine till three';}
 const hallClerkIn=()=>{const n=npcById('agnes');return !!(n&&n.loc==='in'&&n.inWant==='hall');};
-const hallOpen=()=>S.hour>=7.5&&S.hour<18.5;
+const hallOpen=()=>true;   // (#313, owner: "the land office should never be locked") the hall is open at every hour
 {const _bw=buildWorld;buildWorld=function(){_bw();try{
   const [hx,hz]=tbDoor('hall');
   // the hall door now opens (the old knock and the outdoor land office go)
@@ -81,8 +81,9 @@ const hallOpen=()=>S.hour>=7.5&&S.hour<18.5;
   interact.push({x:hx,z:hz+.05,r:1.2,_hall:2,on:()=>!S.room,label:()=>'Town hall',ok:()=>true,act(){
     if(!hallOpen()){SFX.deny&&SFX.deny();toast('Locked for the night. A card in the glass: LAND OFFICE · WEEKDAYS NINE TILL THREE · A. ABERNATHY, CLERK.',3.4);return;}enterRoom('hall');}});
   const R=ROOMS.hall;if(!R)return;
-  interact.push({x:R.ox+4.2,z:R.oz+4.15,r:1.3,on:()=>S.room==='hall',label:()=>hallClerkIn()?'Land office':'The counter',ok:()=>true,act(){
-    if(!hallClerkIn()){toast(S.hour<9?'A card on the counter, in a sharp hand: OPEN AT NINE. DON’T TOUCH THE LEDGER.':'A card on the counter: GONE TO THE GRAVES. BACK TOMORROW AT NINE. — A.A.',3);return;}openShop('land');}});
+  interact.push({x:R.ox+4.2,z:R.oz+4.15,r:1.3,on:()=>S.room==='hall',label:()=>'Land office',ok:()=>true,act(){
+    // (#313) the land office works at every hour: when Agnes is out, the deeds and the ledger are left on the counter and you sign for yourself
+    if(!hallClerkIn())toast('Agnes is out. The tin box of deeds and the ledger sit on the counter with a pen on a string. You sign for yourself.',2.6);openShop('land');}});
   interact.push({x:R.ox+7.2,z:R.oz+2.4,r:1.2,on:()=>S.room==='hall',label:()=>'Survey plat',ok:()=>true,act(){hallPlat();SFX.page&&SFX.page();
     const own=Object.keys((S.land&&S.land.own)||{}).filter(k=>typeof LAND_PARCELS!=='undefined'&&LAND_PARCELS.some(p=>p.id===k));
     toast(`The Marsh plat, surveyed 1952 and ruled out by hand: the home field, and around it ${typeof LAND_PARCELS!=='undefined'?LAND_PARCELS.length:'the'} parcels in dotted ink. ${own.length?`${own.length===1?'One is':own.length+' are'} hatched red: yours.`:'None of them hatched yet. The deeds are at the counter.'}`,4.2);}});
