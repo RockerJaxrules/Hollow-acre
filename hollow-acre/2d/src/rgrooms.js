@@ -1,13 +1,14 @@
 /* ================= inside, out in the new land: the Pine Rest's office and Room 6 (your key fits), Greyfield's dormitory, the
    peat cutter's hut, the ranger's cabin, and the cab at the top of the fire lookout. Each has things to look at, and each tells
    a little more. ================= */
+// (#265) the office and Room 6 doors sit where the building draws them (the office under its sign at the middle, Room 6 at 6)
 const RG_ROOMS={
- rg_office:{name:'The Pine Rest office',out:()=>({x:RGP.motel.x-2.8,z:RGP.motel.z+.7}),door:()=>({x:RGP.motel.x-2.8,z:RGP.motel.z+.35}),
+ rg_office:{name:'The Pine Rest office',out:()=>({x:RGP.motel.x+.01,z:RGP.motel.z+.7}),door:()=>({x:RGP.motel.x+.01,z:RGP.motel.z+.35}),
   furn:[BF('in_ctr_motel',2.3,2.5,.5),BF('in_chair',2.3,1.3,.25),['in_keyboard_m',5.4,-.45,null,'flat'],BF('in_archboxes',6.95,.8,.4),['in_photowall',4.0,-.45,null,'flat'],['in_calendar',3.1,-.45,null,'flat'],BF('in_clock',.6,.55,.3),['in_rugrect',4.2,4.3,null,'flat'],BF('in_mapspinner',.7,4.1,.3),BF('in_plant',7.3,4.7,.3),BF('in_chair',7.4,3.1,.25)],
   looks:[[2.2,1.8,'The register again. Leafing back past your own line, past forty years of strangers, you find Grandpa: <i>Elias Marsh, 1952, Room 6. Purpose of visit: bringing her home.</i> Her. The page after it has been torn out.'],
    [5.4,1.2,'Seven hooks, six keys. The paint round the Room 6 hook is worn through to the wood, as if somebody takes that key down every night and puts it back every morning.'],
    [4.0,.6,'Polaroids of every guest, all taken in the same doorway: Room 6. The flash has caught something in the room behind each of them, further back, in the dark. It is a little taller in every photograph.']]},
- rg_room6:{name:'Room 6',out:()=>({x:RGP.motel.x+3.33,z:RGP.motel.z+.7}),door:()=>({x:RGP.motel.x+3.33,z:RGP.motel.z+.35}),
+ rg_room6:{name:'Room 6',out:()=>({x:RGP.motel.x+4.05,z:RGP.motel.z+.7}),door:()=>({x:RGP.motel.x+4.05,z:RGP.motel.z+.35}),
   gate:()=>stHas('room6')?null:'Locked. Room 6’s key is missing from the board in the office.',enterMsg:'Your key fits. Of course it does.',
   furn:[['in_mattress',1.2,2.6,BED_F],BF('in_motelstand',2.5,1.05,.25),BF('in_phonetable',2.55,3.4,.25),['in_mirror',6.75,-.45,null,'flat'],BF('in_dresser',5.6,1.0,.45),['in_rugmotel',3.7,3.4,null,'flat'],BF('in_chair',6.3,3.8,.25)],
   looks:[[1.4,3.2,'The bed has been stripped to the ticking. The stain in the middle has been scrubbed so often the stripes have worn away round it. Where the pillow should be, there is a child’s milk tooth.'],

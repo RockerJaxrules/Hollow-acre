@@ -16,7 +16,7 @@ const RG_LINE={r9w:'The road you came in on. It goes on, and on, to the county l
   marrow:'The first town, burnt in 1872. The ground is still ash.',birch:'White trees, and in them, little shapes turning on strings.'};
 // ---- the beats
 const RG_BEATS=[
- {after:'graves',id:'motel',gate:'c1',name:'The Pine Rest register',at:()=>({x:RGP.motel.x-2.8,z:RGP.motel.z+.7}),r:2,
+ {after:'graves',id:'motel',gate:'c1',name:'The Pine Rest register',at:()=>({x:RGP.motel.x+.01,z:RGP.motel.z+.7}),r:2,
   goal:'West along Route 9, past where you crashed, the Pine Rest Motel was lit the night you arrived. Go and look in the office.',
   title:'The Pine Rest register',text:`The office door is unlocked. The bell over it has had its clapper pulled out. On the board behind the desk, seven hooks, six keys. Room 6 is missing.<br><br>The register lies open on the counter. One guest a year, every autumn, back to 1952, each in a different hand. All of them in Room 6. None of them signed out.<br><br>The last line is in your handwriting. Your name, your car, your plate. The date is the night you crashed. Under <i>purpose of visit</i> you have written, neatly: <i>coming home.</i><br><br>You didn’t stop here. You’re sure you didn’t stop here. The ink is still wet.`,
   lore:'The Pine Rest register has one guest a year since 1952, all in Room 6, none signed out. The last line is yours, in your hand, dated the night you crashed: coming home.',hit:6,fx:'cold',key:'room6'},
