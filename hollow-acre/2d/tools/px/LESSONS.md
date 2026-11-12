@@ -1419,3 +1419,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Balance the line breaks. Never leave one word alone on the last line.
 - A child's handwriting has one pixel of baseline drift, uneven gaps and a last line running downhill. Two pixels of jump reads as a ransom note.
 - Close-up cards in a scene sit below the letterbox bar.
+
+## Mending a building on screen (owner: "fix the burnt down church, open the school", Nov 12)
+- The owner said: "When I say improve the town I mean you fix it, clean it, fix the buildings, fix the burnt down church, open the school." Understood: an improvement has to change what you see in the world. Changed text doesn't count.
+- A mended building is the same building mended. Build it from the ruin's own sprite: keep the old walls, add new material where the damage was, and leave a visible line between new and old. A swapped-in different building reads as a replacement.
+- New stone is one step lighter and warmer than the old, never white. Shade it like everything else: lit on the left, dark under the eaves and beside towers.
+- "Being built" needs a whole scaffold: poles, braces, walkways at the eaves, ladders, a rope and bucket. One ladder reads as nothing.
+- Check every furniture sprite's look before using it by name: in_bench is a workbench, and in_banker's ledger stand reads as a gravestone.
+- A map prop needs a title band of its own, washed fills (field tones), the road as a dark double line, water in clear blue, and a compass star, all inside the paper.

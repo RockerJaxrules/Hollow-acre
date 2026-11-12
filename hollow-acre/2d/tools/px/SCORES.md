@@ -67,3 +67,5 @@ orders. Latest round first.
 | The Count's marble bag under the bridge (Nov 12) | 5 -> 6.5 | yes (fold lines used to cross "M.P."; marbles read as gems) | toward 7: vary the gold stitch lengths; a glint of light beyond the far pier so it can't read as a fireplace |
 | Heart-event speech bubbles (Nov 12) | 5.5 -> 6 | yes (replace the caption box with portrait in Caitlyn's events) | toward 7: keep the bubble off the scene's focal point; balanced lines everywhere |
 | Danny's letter close-up (Nov 12) | 5.5 -> 6.5 | yes (the letter used to be read out in captions) | toward 7: one pixel of drift only; a pencil smudge or two |
+| Town hall land office and lobby (Nov 12) | 6 | yes (the land office used to be a counter outside the hall door) | toward 7: fill the bottom third of the room; the works board's cards in a less even grid |
+| Old Marrow chapel: building stage and rebuilt (Nov 12) | 5 -> 6 | yes (the burnt chapel stayed burnt for ever) | toward 7: new stones stepping down into the old courses everywhere, not only at the corners |

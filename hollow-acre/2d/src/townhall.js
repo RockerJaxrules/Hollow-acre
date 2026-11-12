@@ -15,15 +15,19 @@ function hallFrame(P,w,h){P(0,0,w,h,'#120c08');P(1,1,w-2,h-2,HW[2]);P(1,1,w-2,1,
 function hallPlat(){const own=Object.keys((S.land&&S.land.own)||{}).sort().join(',');const key='hall_plat';if(HALL_SPR[key]&&hallPlat.sig===own)return;hallPlat.sig=own;
   hallSprite(key,60,66,30,63,(P,g,w,H)=>{const h=44;for(const lx of [8,50]){P(lx,40,3,26,'#120c08');P(lx+1,40,1,25,HW[3]);}P(28,40,4,24,'#120c08');P(29,40,2,23,HW[2]);P(6,60,48,2,'#120c08');P(7,60,46,1,HW[3]);P(4,63,52,3,'rgba(0,0,0,.35)');   // the easel
     hallFrame(P,w,h);P(4,4,w-8,h-8,'#e4d6b4');P(4,4,w-8,1,'#f2e8cc');P(4,h-5,w-8,1,'#c8b890');
-    const X=x=>Math.round(8+(x+24)*1.0),Z=z=>Math.round(10+z*.78);
-    P(4,Z(-1.6),w-8,1,'#9a8a6a');P(4,Z(-1.6)+1,w-8,1,'#b8a888');   // the road along the top
-    for(let x=4;x<w-4;x++)P(x,Z(36)+Math.round(Math.sin(x*.5)),1,1,'#6a8aa0');   // the creek along the bottom
-    const box=(x0,z0,x1,z1,col,hatch)=>{const a=X(x0),b=Z(z0),c=X(x1),d=Z(z1);if(hatch)for(let y=b+1;y<d;y++)for(let x=a+1;x<c;x++)if((x+y)%3===0)P(x,y,1,1,'#c8705a');
-      for(let x=a;x<=c;x+=2){P(x,b,1,1,col);P(x,d,1,1,col);}for(let y=b;y<=d;y+=2){P(a,y,1,1,col);P(c,y,1,1,col);}};
-    P(X(-5),Z(0),X(5)-X(-5)+1,Z(8)-Z(0)+1,'#c8b48a');box(-5,0,5,8,'#3a2a1a');   // the home field, solid
-    const all=(typeof LAND_PARCELS!=='undefined'?LAND_PARCELS:[]);for(const p of all){const mine=!!(S.land&&S.land.own&&S.land.own[p.id]);box(p.x0,p.z0,p.x0+p.w,p.z0+p.h,mine?'#8a2416':'#3a3a48',mine);}
-    P(w-11,6,1,5,'#3a2a1a');P(w-12,7,3,1,'#3a2a1a');HT(P,'N',w-12,12,'#3a2a1a');   // north
-    HT(P,'MARSH',7,6,'#3a2a1a');P(7,12,19,1,'#8a2416');});}
+    const X=x=>Math.round(8+(x+24)*1.0),Z=z=>Math.round(16+z*.66);P(4,4,w-8,9,'#ece0c0');P(4,13,w-8,1,'#8a7a5a');   // title band
+    // the road: a dark double line along the top; the creek: a clear blue curve along the bottom
+    P(4,Z(-1.6)-1,w-8,1,'#3a2a1a');P(4,Z(-1.6)+2,w-8,1,'#3a2a1a');P(4,Z(-1.6),w-8,2,'#c8b48a');
+    for(let x=4;x<w-4;x++){const y=Math.min(h-7,Z(35))+Math.round(Math.sin(x*.32)*1);P(x,y,1,2,'#3a78a8');P(x,y-1,1,1,'#8ab8d8');}
+    // every parcel washed in a field tone (tan or sage) and ruled in ink; yours hatched red
+    const box=(x0,z0,x1,z1,i,mine)=>{const a=Math.max(5,X(x0)),b=Math.max(15,Z(z0)),c=Math.min(w-6,X(x1)),d=Math.min(h-6,Z(z1));if(c<=a||d<=b)return;const wash=mine?'#e0b8a0':['#d4c08c','#b8c49a','#cdb888','#a8b88e','#c4c896'][i%5];
+      P(a,b,c-a+1,d-b+1,wash);if(mine)for(let y=b+1;y<d;y++)for(let x=a+1;x<c;x++)if((x+y)%3===0)P(x,y,1,1,'#a83a24');
+      for(let x=a;x<=c;x++){if(x%2===0||mine){P(x,b,1,1,mine?'#8a2416':'#3a2a1a');P(x,d,1,1,mine?'#8a2416':'#3a2a1a');}}for(let y=b;y<=d;y++){if(y%2===0||mine){P(a,y,1,1,mine?'#8a2416':'#3a2a1a');P(c,y,1,1,mine?'#8a2416':'#3a2a1a');}}};
+    P(X(-5),Z(0),X(5)-X(-5)+1,Z(8)-Z(0)+1,'#8a6a40');P(X(-5)+1,Z(0)+1,X(5)-X(-5)-1,Z(8)-Z(0)-1,'#a8804e');for(let y=Z(0)+2;y<Z(8);y+=2)P(X(-5)+1,y,X(5)-X(-5)-1,1,'#8a6a40');   // the home field: furrowed
+    const all=(typeof LAND_PARCELS!=='undefined'?LAND_PARCELS:[]);all.forEach((p,i)=>box(p.x0,p.z0,p.x0+p.w,p.z0+p.h,i,!!(S.land&&S.land.own&&S.land.own[p.id])));
+    // a compass star with N
+    const cx=w-10,cy=8;P(cx,cy-4,1,9,'#3a2a1a');P(cx-4,cy,9,1,'#3a2a1a');P(cx-1,cy-2,3,5,'#3a2a1a');P(cx-2,cy-1,5,3,'#3a2a1a');P(cx,cy-4,1,4,'#8a2416');HT(P,'N',cx-8,cy-2,'#3a2a1a');
+    HT(P,'MARSH',7,6,'#3a2a1a');});}
 hallSprite('hall_landsign',54,22,27,20,(P,g,w,h)=>{P(9,0,1,6,'#5a5a60');P(44,0,1,6,'#5a5a60');P(8,1,3,1,'#8a8a90');P(43,1,3,1,'#8a8a90');P(8,4,3,1,'#8a8a90');P(43,4,3,1,'#8a8a90');   // chains
   P(0,6,w,h-6,'#120c08');P(1,7,w-2,h-8,HW[2]);P(1,7,w-2,1,HW[4]);P(1,h-2,w-2,1,HW[1]);P(3,9,w-6,h-12,HW[1]);P(3,9,w-6,1,'#120c08');
   HT(P,'LAND OFFICE',5,11,'#f0dca8');HT(P,'LAND OFFICE',5,12,'#2a1a0e');HT(P,'LAND OFFICE',5,11,'#e8c878');});
@@ -121,24 +125,66 @@ if(typeof mendGive==='function'){const _g=mendGive;mendGive=function(k){TW_PAYIN
 {const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);try{for(const k of Object.keys(TW_DAYS)){const v=twV(k);if(v&&typeof v==='object'&&S.day>=v.ready&&!v.told){v.told=1;twApply(k);
     setTimeout(()=>toast(k==='church'?'Word from Old Marrow: the new chapel is finished.':k==='school'?'The schoolhouse is open. The bell rang at eight.':'The streets are clean.',3.4),1500);}else if(v)twApply(k);}}catch(e){}return r;};}
 // ---- what each job does to the world
+// scaffolding across the front while the work goes on: poles, braces, two plank walkways (one at the eaves), ladders up to them,
+// and a rope and bucket hanging off the top: work in progress you can read from across the screen
+function twScafSprite(w,h){const key='tw_scaf_'+w+'x'+h;if(SPR[key])return key;hallSprite(key,w,h+6,w>>1,h+3,(P)=>{
+  const pole=x=>{P(x-1,4,4,h,'#120c08');P(x,4,2,h-1,'#a8804e');P(x,4,1,h-1,'#c8a06a');};
+  const plank=(y)=>{P(0,y-1,w,6,'#120c08');P(1,y,w-2,4,'#8a6440');P(1,y,w-2,1,'#b89060');for(let x=12;x<w;x+=17)P(x,y,1,4,'#5a3e24');};
+  const n=Math.max(3,Math.round(w/52)),gap=(w-8)/(n-1);const xs=[...Array(n).keys()].map(i=>Math.round(4+i*gap));
+  for(let i=0;i<n-1;i++){const a=xs[i],b=xs[i+1],y0=Math.round(h*.55),y1=h-2;for(let t=0;t<=1;t+=1/(b-a)){P(Math.round(a+(b-a)*t),Math.round(y0+(y1-y0)*t),2,1,'#6a4a2e');P(Math.round(a+(b-a)*t),Math.round(y1+(y0-y1)*t),2,1,'#6a4a2e');}}   // braces
+  xs.forEach(pole);plank(8);plank(Math.round(h*.52));
+  const ladder=(x,y0,y1)=>{for(let y=y0;y<y1;y++){P(x,y,2,1,'#120c08');P(x+9,y,2,1,'#120c08');}for(let y=y0;y<y1;y++){P(x,y,1,1,'#c8a06a');P(x+9,y,1,1,'#a8804e');}for(let y=y0+3;y<y1;y+=5)P(x+1,y,8,1,'#8a6440');};
+  ladder(xs[0]+10,Math.round(h*.52)+4,h);ladder(xs[n-1]-22,12,Math.round(h*.52));
+  const rx=xs[1]+gap*.5|0;P(rx,13,1,Math.round(h*.3),'#d8c8a0');P(rx-4,13+Math.round(h*.3),9,7,'#120c08');P(rx-3,14+Math.round(h*.3),7,5,'#7a7a82');P(rx-3,14+Math.round(h*.3),7,1,'#b0b0b8');});return key;}
 const TW_SCAF={};
-function twScaffold(k,on,x,z){const L=TW_SCAF[k]=TW_SCAF[k]||[];if(on&&!L.length){
-    for(const [s,dx,dz,o] of [['ladder',-3.2,.25,{}],['ladder',3.4,.25,{flip:true}],['lumber',-5.6,1.6,{}],['in_lumberstack',5.4,1.5,{}],['in_sawhorse',-1.8,1.9,{}],['in_sawhorse',2.2,2.1,{flip:true}]]){
+function twScaffold(k,on,x,z,w,h){const L=TW_SCAF[k]=TW_SCAF[k]||[];if(on&&!L.length){
+    L.push(obj(twScafSprite(w,h),x,z+.12,{kind:'prop',noCol:true,tw:k}));
+    for(const [s,dx,dz,o] of [['lumber',-w/64-1.2,1.6,{}],['in_lumberstack',w/64+1,1.5,{}],['in_sawhorse',-1.8,1.9,{}],['in_sawhorse',2.2,2.1,{flip:true}]]){
       if(!SPR[s])continue;L.push(obj(s,x+dx,z+dz,Object.assign({kind:'prop',noCol:true,tw:k},o)));}}
   else if(!on&&L.length){for(const o of L)o.hide=true;L.length=0;}}
 function twApply(k){try{if(TW_PAYING===k)return;const ready=twReady(k),started=twStarted(k);if(!started)return;
   if(k==='streets'&&ready){for(const o of OBJ){if(o.hide||o.room)continue;const s=String(o.spr||'');
       if((/^tar_(crack|oil)_/.test(s))||((s==='rg_car_b'||s==='rg_car_c'||s==='tyres'||s==='drum')&&o.x>-42&&o.x<-29&&o.z>-18&&o.z<-13)||s==='applespill'||s==='wheel'){o.hide=true;if(o.col){const q=circles.indexOf(o.col);if(q>=0)circles.splice(q,1);}}}
     if(typeof NAV!=='undefined')NAV.sig='';}
-  if(k==='school'){const sb=TB.school;twScaffold('school',!ready,sb[1],sb[2]);if(ready&&typeof INDOOR!=='undefined'&&ROOMS.school){const d=tbDoor('school');INDOOR.school={room:'school',door:[d[0],d[1]],spots:{cora:[4.3,1.5]},browse:[[2.6,3.0],[4.0,3.0],[5.4,3.0],[2.6,4.4],[4.0,4.4],[5.4,4.4]]};}}
-  if(k==='church'){const o=OBJ.find(q=>q.spr==='rg_chapel'||q.spr==='rg_chapel_new');if(!o)return;twScaffold('church',!ready,o.x,o.z);if(ready)twChapel(o);}
+  if(k==='school'){const sb=TB.school;twScaffold('school',!ready,sb[1],sb[2],250,92);if(ready&&typeof INDOOR!=='undefined'&&ROOMS.school){const d=tbDoor('school');INDOOR.school={room:'school',door:[d[0],d[1]],spots:{cora:[4.3,1.5]},browse:[[2.6,3.0],[4.0,3.0],[5.4,3.0],[2.6,4.4],[4.0,4.4],[5.4,4.4]]};}}
+  if(k==='church'){const o=OBJ.find(q=>q.spr==='rg_chapel'||q.spr==='rg_chapel_new');if(!o)return;twScaffold('church',!ready,o.x,o.z,330,108);if(ready)twChapel(o);}
   }catch(e){console.warn('town works',k,e);}}
-// the new chapel: Wickham's sister chapel, built new in Old Marrow's own stone-grey; the burnt trees round it cleared
-async function twChapel(o){if(o.spr==='rg_chapel_new')return;const m=SPR.wk_chapel;if(!m)return;
+// the mended chapel: the same chapel, put back. Fresh pale stone where the fire took the gable, a new slate verge and ridge,
+// the tower squared off under a new slate cap, glass in every window, a new pale-wood door; the old grey walls below untouched
+function twMendChapel(im){const W=im.width,H=im.height,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.drawImage(im,0,0);
+  const D=g.getImageData(0,0,W,H),d=D.data,at=(x,y)=>(y*W+x)*4,set=(x,y,col)=>{if(x<0||y<0||x>=W||y>=H)return;const k=at(x,y);d[k]=col[0];d[k+1]=col[1];d[k+2]=col[2];d[k+3]=255;},
+    clr=(x,y)=>{const k=at(x,y);d[k+3]=0;},is=(x,y,r,gg,b)=>{const k=at(x,y);return d[k+3]>0&&Math.abs(d[k]-r)<6&&Math.abs(d[k+1]-gg)<6&&Math.abs(d[k+2]-b)<6;};
+  const FS=[[150,142,128],[166,158,142],[116,108,98],[138,130,118]],SL=[[78,94,112],[104,122,142],[52,62,76],[22,24,32]],WOOD=[[120,82,50],[176,128,80],[206,160,108],[60,40,28]],GL=[[96,136,166],[150,186,206],[40,48,62]];
+  const peak={x:179,y:138},eL={x:18,y:214},eR={x:340,y:214},wallTop=296,tw={x0:143,x1:219,top:112,old:206};
+  const roofY=x=>x<peak.x?peak.y+(peak.x-x)*(eL.y-peak.y)/(peak.x-eL.x):peak.y+(x-peak.x)*(eR.y-peak.y)/(eR.x-peak.x);
+  // 1) the gable: everything between the new roof line and the old wall top becomes fresh stone courses (bricks laid anew)
+  for(let y=0;y<wallTop;y++)for(let x=0;x<W;x++){const inTower=x>=tw.x0&&x<tw.x1;const ry=roofY(x);
+    if(inTower){if(y<tw.top){clr(x,y);continue;}if(y<tw.old){const k=at(x,y);const oldStone=d[k+3]>0&&d[k]>100;if(!oldStone){const row=Math.floor((y-tw.top)/5),bx=(x+(row%2)*6)%12,by=(y-tw.top)%5;
+        set(x,y,x===tw.x0||x===tw.x1-1?[12,10,14]:x<tw.x0+3?FS[1]:x>tw.x1-4?FS[2]:by===4||bx===0?FS[2]:by===0?FS[1]:FS[0]);}}continue;}
+    if(x<eL.x||x>eR.x){if(y<wallTop-4)clr(x,y);continue;}
+    if(y<ry){clr(x,y);continue;}
+    const row=Math.floor((y-ry)/5),off=(row%2)*6,bx=(x+off)%12,by=Math.floor(y-ry)%5;let col=by===4||bx===0?FS[2]:by===0?FS[1]:((x*7+row*3)%11===0?FS[3]:FS[0]);
+    const under=y-ry<5,lit=x<peak.x-6,nearT=Math.abs(x-tw.x0)<4||Math.abs(x-tw.x1)<4,step=y>wallTop-6&&((x>>3)%3===0);   // shade under the verge and by the tower; lit on the left slope; new stones stepping down into the old
+    if(under||nearT)col=col.map(v=>v-22);else if(lit&&by!==4&&bx!==0)col=col.map(v=>v+8);if(step&&y>=wallTop-2)col=[119,112,117];set(x,y,col);}
+  // 2) the slate verge along both slopes, a ridge at the peak, and the drip edge
+  for(let x=eL.x-3;x<=eR.x+3;x++){if(x>=tw.x0&&x<tw.x1)continue;const ry=Math.round(roofY(Math.max(eL.x,Math.min(eR.x,x))));for(let k=-6;k<=1;k++){const y=ry+k;const col=k===-6||k===1?SL[3]:k===-5?SL[1]:k===0?SL[2]:((x+k*2)%7===0?SL[2]:SL[0]);set(x,y,col);}}
+  // 3) the tower squared off, with a new pyramid cap of slate
+  for(let x=tw.x0-2;x<tw.x1+2;x++)for(let y=tw.top;y<tw.top+5;y++)set(x,y,y===tw.top||y===tw.top+4?[12,10,14]:y===tw.top+1?FS[1]:FS[2]);   // a stone string course round the top
+  for(const bx of [tw.x0+12,tw.x1-24]){for(let y=tw.top+14;y<tw.top+40;y++)for(let x=bx;x<bx+12;x++){const arch=y<tw.top+19&&Math.abs(x-bx-5.5)>(y-tw.top-14)*1.3+1;if(arch)continue;
+      set(x,y,x===bx||x===bx+11||y===tw.top+39?[12,10,14]:[30,26,34]);}}   // two belfry openings, louvred dark
+  const cx=(tw.x0+tw.x1)/2;for(let y=tw.top-30;y<tw.top;y++){const hw=Math.round((y-(tw.top-30))*(tw.x1-tw.x0+4)/2/30)+1;for(let x=Math.round(cx-hw);x<=Math.round(cx+hw);x++){const edge=x<=Math.round(cx-hw)||x>=Math.round(cx+hw);set(x,y,edge?SL[3]:x<cx?SL[1]:SL[0]);}}
+  for(let y=tw.top-38;y<tw.top-29;y++)set(Math.round(cx),y,[60,56,52]);for(let x=Math.round(cx)-2;x<=Math.round(cx)+2;x++)set(x,tw.top-35,[60,56,52]);   // a small iron cross
+  // 4) soot gone from above the windows, burnt timbers gone; 5) glass in the windows; 6) a new door
+  for(let y=wallTop-14;y<H;y++)for(let x=0;x<W;x++){if(is(x,y,62,56,69)&&y<wallTop+8&&!(x>=tw.x0&&x<tw.x1))set(x,y,[119,112,117]);if(is(x,y,56,30,29))set(x,y,[119,112,117]);}
+  for(const [x0,x1] of [[55,71],[110,126],[231,247],[286,302]])for(let y=298;y<348;y++)for(let x=x0;x<x1;x++){const k=at(x,y);if(d[k+3]>0&&d[k]<30){   // dark glass in a lead diamond grid, one pane catching the light
+      const u=x-x0,v=y-298,lead=((u+v)%6===0)||((u-v+600)%6===0),litp=u>=3&&u<6&&v>=12&&v<18;set(x,y,lead?[30,34,42]:litp?[176,200,214]:((u+v)%5===0?[70,96,120]:[52,72,94]));}}
+  for(let y=300;y<378;y++)for(let x=158;x<199;x++){const k=at(x,y);if(d[k+3]===0||d[k]>34)continue;if(y<316){set(x,y,(x+y)%5===0?GL[1]:GL[0]);continue;}
+    set(x,y,(x-160)%6===0?WOOD[0]:x<164?WOOD[2]:((y===328||y===362)&&x>164&&x<190)?WOOD[3]:WOOD[1]);}
+  set(186,345,[230,190,90]);set(187,345,[200,160,70]);
+  g.putImageData(D,0,0);return c;}
+async function twChapel(o){if(o.spr==='rg_chapel_new')return;const m=SPR.rg_chapel;if(!m)return;
   try{if(!IMG[m.src]&&typeof loadImages==='function')await loadImages([m.src]);}catch(e){}const im=IMG[m.src];if(!im||!im.width)return;
-  const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const g=c.getContext('2d');g.filter='saturate(.7) brightness(1.06) sepia(.12)';g.drawImage(im,0,0);
-  IMG['mem:rg_chapel_new']=c;SPR.rg_chapel_new=Object.assign({},m,{src:'mem:rg_chapel_new'});o.spr='rg_chapel_new';o.night=SPR.wk_chapel_n?'wk_chapel_n':null;
-  if(!o._twRect){o._twRect=1;addRect(o.x-4.9,o.z-4.2,o.x+4.9,o.z-3.3);}
+  IMG['mem:rg_chapel_new']=twMendChapel(im);SPR.rg_chapel_new=Object.assign({},m,{src:'mem:rg_chapel_new'});o.spr='rg_chapel_new';o.night=null;
   for(const q of OBJ)if(!q.hide&&/^rg_burnt_/.test(String(q.spr))&&Math.hypot(q.x-o.x,q.z-o.z)<14){q.hide=true;if(q.col){const i=circles.indexOf(q.col);if(i>=0)circles.splice(i,1);}}
   try{const h=HOUSES.find(h=>h.e===o);if(h)h.lit=true;}catch(e){}}
 // ---- the schoolroom (only open once the job is done): Miss Vance's desk, the blackboard, rows of small desks, the stove
@@ -154,3 +200,6 @@ async function twChapel(o){if(o.spr==='rg_chapel_new')return;const m=SPR.wk_chap
   for(const k of Object.keys(TW_DAYS))twApply(k);
   }catch(e){console.warn('town works build',e);}};}
 {const _lg=loadGame;loadGame=function(){const r=_lg.apply(this,arguments);setTimeout(()=>{try{for(const k of Object.keys(TW_DAYS))twApply(k);}catch(e){}},300);return r;};}
+// on a shared farm the town is everyone's: the mending ledger travels with the world, and what's been mended shows for everybody
+if(typeof WORLD_KEYS!=='undefined'&&!WORLD_KEYS.includes('mend'))WORLD_KEYS.push('mend');
+{const _wr=worldRebuild;worldRebuild=function(keys){const r=_wr.apply(this,arguments);try{if(!keys||keys.has('mend')){for(const m of (typeof MEND!=='undefined'?MEND:[]))if(mendS()[m.k]){try{m.apply();}catch(e){}}}}catch(e){}return r;};}
