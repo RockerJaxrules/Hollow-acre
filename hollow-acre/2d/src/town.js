@@ -131,12 +131,15 @@ function townTick(dt){const vigil=S.hour>=20&&S.day>=2&&!S.bound;if(vigil)return
       else{[tx,tz]=placeXY(want,n);n.goingHome=false;}
       n.route=routeTo(n.x,n.z,tx,tz);n.waitT=want==='route'?6+rand()*5:9+rand()*14;}
     const near=Math.hypot(P.x-n.x,P.z-n.z)<1.6;if(talkingTo===n||near){n.clip=talkingTo===n?'talk':'idle';n.dir=dirOf(P.x-n.x,P.z-n.z);continue;}
-    if(n.route&&n.route.length){const [tx,tz]=n.route[0];const dx=tx-n.x,dz=tz-n.z,d=Math.hypot(dx,dz);const sp=(n.def.id==='tobias'?1.6:n.def.id==='agnes'?.75:1.15);
-      if(d<.12){n.route.shift();if(!n.route.length){n.route=null;if(n.goingHome){goInside(n,n.goingHome===true?null:n.goingHome);continue;}}}
-      else{const ox=n.x,oz=n.z,st_=Math.min(d,sp*dt);n.x+=dx/d*st_;n.z+=dz/d*st_;collide(n,.3);n.dir=dirOf(dx,dz);n.clip='walk';
-        // caught on a corner: try the next bend, or find a fresh way
-        if(Math.hypot(n.x-ox,n.z-oz)<st_*.3){n.stuckT=(n.stuckT||0)+dt;if(n.stuckT>1.2){n.stuckT=0;if(n.route.length>1)n.route.shift();else{const L_=n.route[0];n.route=routeTo(n.x,n.z,L_[0],L_[1]);}}}else n.stuckT=0;}}
-    else{n.clip='idle';n.waitT=(n.waitT||0)-dt;
+    if(n.route&&n.route.length){const [tx,tz]=n.route[0];const dx=tx-n.x,dz=tz-n.z,d=Math.hypot(dx,dz);const sp=npcSpeed(n);
+      // (#247 #259) a walking pace that starts and stops like a person's, legs that keep time with the ground they cover, and a
+      // fresh way found when something is in the road instead of leaning on it
+      n._v=Math.min(sp,(n._v||0)+sp*3.5*dt);if(n.route.length===1)n._v=Math.min(n._v,Math.max(.45,d*2.4));const step=Math.min(d,n._v*dt);
+      if(d<.05||d<=step){n.x=tx;n.z=tz;n.route.shift();npcStride(n,d);if(!n.route.length){n.route=null;n._v=0;if(n.goingHome){goInside(n,n.goingHome===true?null:n.goingHome);continue;}}}
+      else{const ox=n.x,oz=n.z;n.x+=dx/d*step;n.z+=dz/d*step;collide(n,.3);const moved=Math.hypot(n.x-ox,n.z-oz);n.dir=dirOf(dx,dz);
+        npcStride(n,moved);n.clip=moved>step*.3?'walk':'idle';
+        if(moved<step*.3){n.stuckT=(n.stuckT||0)+dt;if(n.stuckT>.7){n.stuckT=0;npcUnstick(n);}}else n.stuckT=0;}}
+    else{n.clip='idle';n._v=0;n.waitT=(n.waitT||0)-dt;
       // little bits of business at the job: face the work, not the street
       const face={store:'N',church:'N',graves:'N',garage:'N',dock:'S',board:'N',porch_agnes:'S',school:'N',bake:'S',corn:'S',road_w:'W',farmgate:'W',bridge:'W'}[n.target];if(face&&!n.facedT){n.dir=face;}}}}
 {const _u7=update;update=function(dt){_u7(dt);townTick(dt);};}

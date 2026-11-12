@@ -90,7 +90,8 @@ const KEEPWALK={};
       const pick=keeper&&!atHome?home:B.browse[(Math.random()*B.browse.length)|0];st.to=[R.ox+pick[0],R.oz+pick[1]];st.back=keeper&&!atHome;}
     const dx=st.to[0]-n.x,dz=st.to[1]-n.z,d=Math.hypot(dx,dz);
     if(d<.08){n.x=st.to[0];n.z=st.to[1];st.to=null;st.t=st.back?8+Math.random()*10:3+Math.random()*4;n.clip='idle';n.dir=st.back?'S':'N';continue;}
-    const s=Math.min(d,.9*dt),ox=n.x,oz=n.z;n.x+=dx/d*s;n.z+=dz/d*s;collide(n,.28);n.dir=dirOf(dx,dz);n.clip='walk';
+    const ax=Math.abs(dx)>.04,mx=ax?Math.sign(dx):0,mz=ax?0:Math.sign(dz),s=Math.min(ax?Math.abs(dx):Math.abs(dz),1.2*dt),ox=n.x,oz=n.z;   // along the aisle, then across
+    n.x+=mx*s;n.z+=mz*s;collide(n,.28);n.dir=dirOf(mx,mz);n.clip='walk';if(typeof npcStride==='function')npcStride(n,Math.hypot(n.x-ox,n.z-oz));
     if(Math.hypot(n.x-ox,n.z-oz)<s*.3){st.stuck=(st.stuck||0)+dt;if(st.stuck>1){st.stuck=0;st.to=null;st.t=1;}}else st.stuck=0;}};}
 
 // ---- daylight through the windows (judge, interiors 4: "remove the see-through beam and oval light layers"): no beams

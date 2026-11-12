@@ -62,7 +62,7 @@ const isMissing=id=>missingNow().some(m=>m.id===id);
 // people facing what they're doing: the stone, the trash can, the water
 {const _u=update;update=function(dt){_u(dt);if(S.room)return;for(const n of npcs){if(n.loc!=='out'||n.route||talkingTo===n)continue;const b=breakNow(n);
     if(b&&Math.hypot(n.x-b.at[0],n.z-b.at[1])<.5){n.dir=b.face;n.clip='idle';continue;}
-    for(const x of HABITS)if(x.id===n.def.id&&n.target===x.place){n.dir=x.face;n.clip=((S.hour*600)|0)%3?'idle':'walk';}}};}
+    for(const x of HABITS)if(x.id===n.def.id&&n.target===x.place){n.dir=x.face;n.clip='idle';}}};}   // (was the walk cycle played on the spot: walking on air)
 // the missing are simply not there: take them out of the town's day while they're gone
 {const _tt=townTick;townTick=function(dt){const gone=missingNow(),saved={};for(const m of gone){saved[m.id]=LIFE[m.id];delete LIFE[m.id];const n=npcById(m.id);if(n){n.vis=false;n.loc='gone';n.route=null;}}
   try{_tt(dt);}finally{for(const [id,L] of Object.entries(saved))LIFE[id]=L;}
