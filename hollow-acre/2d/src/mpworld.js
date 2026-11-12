@@ -95,7 +95,7 @@ function mpGoHome(inside){const i=mySlot();if(i<0||!FH_SPOTS[i])return;const s=F
 {const _as=applySnap;applySnap=function(data,first,hand){const r=_as.apply(this,arguments);try{
     if(mpOn()){mpPersonal();MPC.ready=1;fhPlaceAll();
       if(first&&mpSplit())S.coins=hand&&isFinite(hand.coins)?Math.max(0,hand.coins|0):10;   // separate wallets: a farmhand's money lives in this world, not their own
-      if(mpOwn())mpGoHome(!first);updateHud&&updateHud();}}catch(e){}return r;};}
+      if(mpOwn()&&!HOST.quiet)mpGoHome(!first);updateHud&&updateHud();}}catch(e){}return r;};}
 // separate wallets: nobody's coins move to anyone else's, and what a farmhand earns stays in the host's world
 {const _hs=hostSync;hostSync=function(dt){if(mpSplit())HOST.coins=S.coins;return _hs.apply(this,arguments);};}
 guestPersist=function(){try{if(CO.room&&CO.room.emit&&HOST.hostPeer)CO.room.emit('mine',{n:myFarmName(),id:myPid(),p:takePersonal()},HOST.hostPeer);}catch(e){}

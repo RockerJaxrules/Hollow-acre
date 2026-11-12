@@ -15,21 +15,29 @@ function newCode(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ';let c='';for(let i=0;i<4;i
 function hostWire(){for(const f of HOST.off)try{f();}catch(e){}HOST.off=[];const r=CO.room;if(!r||!r.on)return;
   const on=(t,f)=>HOST.off.push(r.on(t,m=>{if(!m||m.isMe)return;try{f(m.data,m.peer);}catch(e){}}));
   on('hello',(d,peer)=>{if(HOST.role!=='host')return;const n=clean(d&&d.n);HOST.members[peer]=n;const hand=(S.farmhands||{})[n]||null;r.emit('snap',{data:saveData(true),host:NAME()||'The host',hand},peer);toast(`${clean(d&&d.n)} has joined your farm as a farmhand.`,3);});
-  on('snap',(d,peer)=>{if(HOST.role!=='guest'||!d||!d.data)return;HOST.hostPeer=peer;HOST.hostName=clean(d.host);applySnap(d.data,!HOST.joined,d.hand);HOST.joined=true;});
+  on('snap',(d,peer)=>{if(HOST.role!=='guest'||!d||!d.data)return;HOST.hostPeer=peer;HOST.hostName=clean(d.host);
+    // (#263) a farm sent again because this game asked for it: if the morning already came, there's nothing to redo
+    const same=HOST.joined&&d.data.S&&(d.data.S.day|0)===S.day;if(d.re&&same&&HOST.snapDay===S.day)return;
+    // the morning was already taken from the clock (the farm was slow to come): bring the farm in without moving anyone
+    HOST.quiet=!!(same&&HOST.snapDay!==S.day&&typeof WC!=='undefined'&&WC.adopted===S.day);
+    try{applySnap(d.data,!HOST.joined,d.hand);}finally{HOST.quiet=false;}HOST.joined=true;HOST.snapDay=S.day;});
+  on('resync',(d,peer)=>{if(HOST.role!=='host')return;r.emit('snap',{data:saveData(true),host:NAME()||'The host',re:1},peer);});
   on('tile',d=>{if(!HOST.role||!d)return;const t=tiles[d.i|0];if(!t)return;t.tilled=!!d.t;t.wet=!!d.w;t.crop=d.c&&typeof d.c==='object'?d.c:null;HOST.known[d.i|0]=tileSig(t);});
   on('deb',d=>{if(!HOST.role||!d||!Array.isArray(d.ids))return;const want=new Set(d.ids.map(String));for(const o of debrisObjs()){const k=dKey(o);if(!want.has(k)||o.hide)continue;o.hide=true;o.goneDay=S.day;if(o.col){const q=circles.indexOf(o.col);if(q>=0)circles.splice(q,1);}HOST.debKnown.add(k);}});
   on('tree',d=>{if(!HOST.role||!d||typeof d.k!=='string')return;fellRemote(d.k);});
   on('coin',d=>{if(!HOST.role||!d||!isFinite(d.d))return;const n=Math.max(-100000,Math.min(100000,d.d|0));S.coins=Math.max(0,S.coins+n);HOST.coins=S.coins;updateHud&&updateHud();});
-  on('time',(d,peer)=>{if(HOST.role!=='guest'||!d)return;HOST.hostPeer=peer;if((d.day|0)!==S.day){if(performance.now()-HOST.helloT>3000){HOST.helloT=performance.now();r.emit('hello',{n:myFarmName(),id:myPid()},peer);}return;}
-    if(isFinite(d.hour)&&Math.abs(S.hour-d.hour)>.08)S.hour=d.hour;});
+  on('time',(d,peer)=>{if(HOST.role!=='guest'||!d)return;HOST.hostPeer=peer;wcGuestTime(d);});   // (#263) the host's world clock: see mpsync.js
   on('mine',(d,peer)=>{if(HOST.role!=='host'||!d||!d.p||typeof d.p!=='object')return;const n=clean(d.n);let js='';try{js=JSON.stringify(d.p);}catch(e){return;}if(js.length>200000)return;S.farmhands=S.farmhands||{};S.farmhands[n]=JSON.parse(js);});
   on('bye',(d,peer)=>{if(HOST.role==='guest'&&peer===HOST.hostPeer){if(d&&d.reload)hostWait();else hostGone();}});}
-function applySnap(data,first,hand){const mine=first?(HOST.ownPersonal||hand||takePersonal()):takePersonal();HOST.applying=true;
+function applySnap(data,first,hand){const mine=first?(HOST.ownPersonal||hand||takePersonal()):takePersonal();const nerve=M.v,was=S.day,rested=typeof ZZ!=='undefined'&&ZZ.me;
+  const quiet=!first&&HOST.quiet,keep=quiet?{x:P.x,z:P.z,dir:P.dir,room:S.room,night:S.night,storm:S.storm,H:Object.assign({},H)}:null;HOST.applying=true;
   try{for(const t of tiles){t.tilled=false;t.crop=null;}loadGame(data);}finally{HOST.applying=false;}
-  putPersonal(mine);applyLook();try{syncSlots&&syncSlots();renderHotbar&&renderHotbar();}catch(e){}
-  P.x=1.6;P.z=-6.6;P.dir='S';P.fx=0;P.fz=1;S.room=null;
+  putPersonal(mine);if(!first){M.v=nerve;if(S.day!==was)try{wcMorning(rested);}catch(e){}}   // (#263) your nerve and your night's rest are your own, not the host's
+  applyLook();try{syncSlots&&syncSlots();renderHotbar&&renderHotbar();}catch(e){}
+  if(quiet){P.x=keep.x;P.z=keep.z;P.dir=keep.dir;S.room=keep.room;S.night=keep.night;S.storm=keep.storm;Object.assign(H,keep.H);}
+  else{P.x=1.6;P.z=-6.6;P.dir='S';P.fx=0;P.fz=1;S.room=null;}
   if(!first&&typeof regenPass==='function')regenPass();hostReset();S.mode='play';S.paused=false;$('title').hidden=true;$('hud').hidden=false;$('buttons').hidden=false;ui.obj.hidden=false;
-  toast(first?`You’re on ${HOST.hostName}’s farm. Everything you grow here is shared. Your backpack is still yours.`:`Day ${S.day}. ${HOST.hostName} went to bed, so the night is over for everyone.`,4.2);}
+  if(!quiet)toast(first?`You’re on ${HOST.hostName}’s farm. Everything you grow here is shared. Your backpack is still yours.`:`Day ${S.day}. ${HOST.hostName} went to bed, so the night is over for everyone.`,4.2);}
 async function hostStart(){if(!canHost()){toast('Hosting needs an internet connection.',2.6);return;}HOST.role='host';HOST.code=newCode();await coopJoin('host-'+HOST.code.toLowerCase());hostWire();hostReset();
   toast(`You’re hosting. Farm code: ${HOST.code}. Friends choose Play with friends, then Join a friend’s world, and type it.`,5);if(GM_TAB==='coop'&&!$('bag').hidden)renderCoop();}
 function hostJoin(code){code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8);if(!code){toast('Type the host’s farm code first.',2.2);return;}
@@ -61,8 +69,7 @@ function hostSync(dt){if(!HOST.role||!CO.room||!CO.room.emit||HOST.applying)retu
   if(HOST.role==='guest'&&!HOST.joined)return;
   for(let i=0;i<tiles.length;i++){const sg=tileSig(tiles[i]);if(sg!==HOST.known[i]){HOST.known[i]=sg;const t=tiles[i];r.emit('tile',{i,t:t.tilled?1:0,w:t.wet?1:0,c:t.crop?JSON.parse(JSON.stringify(t.crop)):null});}}
   const nw=[];for(const o of debrisObjs()){if(!o.hide)continue;const k=dKey(o);if(!HOST.debKnown.has(k)){HOST.debKnown.add(k);nw.push(k);}}if(nw.length)r.emit('deb',{ids:nw.slice(0,200)});
-  if(S.coins!==HOST.coins){r.emit('coin',{d:S.coins-HOST.coins});HOST.coins=S.coins;}
-  if(HOST.role==='host'){HOST.timeT-=.3;if(HOST.timeT<=0){HOST.timeT=2;r.emit('time',{day:S.day,hour:S.hour});}}}
+  if(S.coins!==HOST.coins){r.emit('coin',{d:S.coins-HOST.coins});HOST.coins=S.coins;}}   // (#263) the clock goes out from mpsync.js, on real time
 {const _mu=mindUpdate;mindUpdate=function(dt){_mu(dt);try{hostSync(dt);}catch(e){}};}
 // the host is marked in presence so farmhands can tell who it is
 {setInterval(()=>{if(!CO.room||!HOST.role)return;CO.room.presence({h:HOST.role==='host'?1:0}).catch(()=>{});},3000);}

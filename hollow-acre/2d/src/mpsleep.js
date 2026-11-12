@@ -46,11 +46,10 @@ setInterval(()=>{try{if(HOST.role!=='host'||!ZZ.me||S.mode!=='play')return;const
     on('zzs',d=>{if(HOST.role!=='guest'||!d||!Array.isArray(d.asleep)||!Array.isArray(d.awake))return;ZZ.names={asleep:d.asleep.map(clean),awake:d.awake.map(clean)};if(ZZ.me)zzCardShow();
       else if(d.asleep.length&&!ZZ.saidT){ZZ.saidT=1;toast(`${d.asleep.map(clean).join(', ')} ${d.asleep.length>1?'are':'is'} in bed. The night ends when everyone is.`,3);setTimeout(()=>ZZ.saidT=0,20000);}});
     on('wx',d=>{if(HOST.role!=='guest'||!d)return;HOST.hostPeer=HOST.hostPeer||null;
-      if((d.day|0)!==S.day){if(performance.now()-(HOST.helloT||0)>3000){HOST.helloT=performance.now();try{r.emit('hello',{n:myFarmName(),id:myPid()});}catch(e){}}return;}
-      S.storm=!!d.storm;if(typeof d.bound==='boolean')S.bound=d.bound;});}
+      if(typeof STG!=='undefined'&&STG)return;S.storm=!!d.storm;if(typeof d.bound==='boolean')S.bound=d.bound;});}   // (#263) whatever the day; the clock fixes the day
   return _hw.apply(this,arguments);};}
 // the host sends the weather every two seconds, and whenever it changes
 {let t=0,last='';const _mu=mindUpdate;mindUpdate=function(dt){_mu(dt);try{if(HOST.role!=='host'||!CO.room||!CO.room.emit)return;t-=dt;const k=S.day+'|'+S.storm+'|'+S.bound;
-    if(t<=0||k!==last){t=2;last=k;CO.room.emit('wx',{day:S.day,storm:!!S.storm,bound:!!S.bound});}
+    // (#263) the weather now rides on the world clock (mpsync.js), so a cutscene's staged storm never goes out to anyone
     // someone who left while lying in bed shouldn't keep the night going
     if(ZZ.me){const on=zzOnline();for(const p of Object.keys(ZZ.asleep))if(!(p in on))delete ZZ.asleep[p];}}catch(e){}};}
