@@ -475,9 +475,20 @@ if(K==='bed'){const R=RAMP.walnut,base=H-3,x0=6,w=W-12,Q=CFG.q||'a';
   {const px0=x0+5,pw=w-10;for(let j=0;j<9;j++)for(let i=0;i<pw;i++){const ex=Math.min(i,pw-1-i);if(ex<2&&(j<2||j>6))continue;const l=j<3?5:j<6?4:3;P(A,px0+i,my+1+j,RAMP.cream[ex<2?Math.max(2,l-1):l]);}
     hl(A,px0+3,my+9,pw-6,RAMP.cream[1]);for(let j=2;j<7;j++)P(A,px0+(pw>>1),my+1+j,RAMP.cream[3]);}                                    // a plump pillow with a dent
   const qy=my+12;for(let x=x0-1;x<x0+w+1;x++){P(A,x,qy,RAMP.cream[5]);P(A,x,qy+1,RAMP.cream[4]);P(A,x,qy+2,RAMP.cream[2]);}               // the sheet turned down: a broad lit crest
-  for(let y=qy+3;y<fy;y++)for(let x=x0;x<x0+w;x++){const j=Math.floor((y-qy-3)/7),off=Math.floor(hsh(j,3,SEED*5)*7),pw=6+((hsh(j,4,SEED)*3)|0),i=Math.floor((x-x0+off)/pw);const C=QUILT[Math.floor(hsh(i,j,SEED*9+Q.charCodeAt(0))*3)];
+  if(Q==='a'){   /* (judges fam5-hs: "an even grid of equal squares reads as tiles or flagstones") mixed patches in staggered rows, a turned-down fold, a drape over the rails */
+    const L=RAMP.burlap;for(let x=x0-1;x<x0+w+1;x++){P(A,x,qy+3,L[4]);P(A,x,qy+4,L[3]);P(A,x,qy+5,L[3]);P(A,x,qy+6,L[1]);}   // the quilt's edge folded back: its plain lining, lit along the fold, a shadow under it
+    const rows=[];{let y=qy+7,r=0;while(y<fy){const h=5+((hsh(r,11,SEED)*4)|0);rows.push([y,Math.min(h,fy-y),r]);y+=h;r++;}}
+    const PAL=[RAMP.brick,RAMP.green,L,RAMP.plum];
+    for(const [ry,rh,r] of rows){let x=x0-((hsh(r,12,SEED)*5)|0),n=0,last=-1;while(x<x0+w){const pw=4+((hsh(r*7+n,13,SEED)*8)|0);let ci=(hsh(r*5+n,14,SEED)*4)|0;if(ci===last)ci=(ci+1)%4;last=ci;const C=PAL[ci];
+      const split=pw<=7&&rh>=6&&hsh(r*3+n,17,SEED)>.45,sy=ry+2+((hsh(r+n,18,SEED)*(rh-4))|0),C2=PAL[(ci+1+((hsh(n,19,SEED)*2)|0))%4];   // some patches split in two, so the rows don't read as brickwork
+      for(let y=ry;y<ry+rh;y++)for(let xx=Math.max(x,x0);xx<Math.min(x+pw,x0+w);xx++){const e=Math.min(xx-x0,x0+w-1-xx),t=(y-qy)/(fy-qy);let k=t<.75?4:3;if(e<3)k--;const CC=split&&y>=sy?C2:C;
+        if(y===ry||xx===x||(split&&y===sy))k=Math.max(1,k-2);else if(y===ry+1||xx===x+1||(split&&y===sy+1))k=Math.min(5,k+(t<.5?1:0));P(A,xx,y,CC[Math.max(1,k)]);}
+      x+=pw;n++;}}
+    for(let y=qy+3;y<fy+5;y++){const r=rows.find(R=>y>=R[0]&&y<R[0]+R[1])||rows[rows.length-1];const C=PAL[(hsh(r[2],15,SEED)*4)|0];   // the drape over each side rail, darker, a fold down it, a ragged hem
+      for(const [sx,k] of [[x0-3,2],[x0-2,2],[x0-1,1],[x0+w,1],[x0+w+1,1],[x0+w+2,0]]){const hem=fy+3+((hsh(sx,16,SEED)*3)|0);if(y>hem)continue;P(A,sx,y,C[(y===hem)?Math.max(0,k-1):((y-qy)%6===0&&(sx===x0-2||sx===x0+w+1))?Math.max(0,k-1):k]);}}}
+  else for(let y=qy+3;y<fy;y++)for(let x=x0;x<x0+w;x++){const j=Math.floor((y-qy-3)/7),off=Math.floor(hsh(j,3,SEED*5)*7),pw=6+((hsh(j,4,SEED)*3)|0),i=Math.floor((x-x0+off)/pw);const C=QUILT[Math.floor(hsh(i,j,SEED*9+Q.charCodeAt(0))*3)];
     const st=((x-x0+off)%pw===0)||((y-qy-3)%7===0);const l=(y-qy)/(fy-qy);let k=st?2:(l<.3?4:3);if((((x-x0+off)%pw)===1||(y-qy-3)%7===1)&&!st)k=Math.min(5,k+1);P(A,x,y,C[k]);}
-  for(let y=qy+3;y<fy+4;y++){for(const [sx,k] of [[x0-2,3],[x0-1,2],[x0+w,2],[x0+w+1,1]]){const C=QUILT[(Math.floor((y-qy)/7))%3];P(A,sx,y,C[k]);}}   // the drape over the sides
+  if(Q!=='a')for(let y=qy+3;y<fy+4;y++){for(const [sx,k] of [[x0-2,3],[x0-1,2],[x0+w,2],[x0+w+1,1]]){const C=QUILT[(Math.floor((y-qy)/7))%3];P(A,sx,y,C[k]);}}   // the drape over the sides
   // the footboard: lower than the head, a lit rail, a raised panel, posts
   const fb=fy;rect(A,x0,fb,w,base-fb-2,R[2]);hl(A,x0,fb,w,R[5]);hl(A,x0,fb+1,w,R[3]);panel(x0+4,fb+3,w-8,base-fb-6,R);hl(A,x0,base-3,w,R[1]);
   post(x0-3,fb-2,base-2);post(x0+w-1,fb-2,base-2);
@@ -486,11 +497,10 @@ if(K==='bed'){const R=RAMP.walnut,base=H-3,x0=6,w=W-12,Q=CFG.q||'a';
   // washed out, the bottom edge worn ragged with threads hanging over the footboard rail
   if(Q==='a'){const mixc=(c,t,k,f)=>[Math.round((c[0]*(1-k)+t[0]*k)*f),Math.round((c[1]*(1-k)+t[1]*k)*f),Math.round((c[2]*(1-k)+t[2]*k)*f)];
     for(let y=my;y<qy+3;y++)for(let x=x0-1;x<x0+w+1;x++){const c=G(A,x,y);if(c)P(A,x,y,mixc(c,[128,106,82],.3,.94));}
-    for(let y=qy+3;y<fy;y++)for(let x=x0-2;x<x0+w+2;x++){const c=G(A,x,y);if(c)P(A,x,y,mixc(c,[104,80,60],.45,.84));}
-    const sx=x0+(w>>1)+4,sy=qy+12;for(let y=-4;y<=4;y++)for(let x=-7;x<=7;x++){const d=x*x/49+y*y/14+(hsh(x,y,31)-.5)*.35;if(d>1)continue;const c=G(A,sx+x,sy+y);if(!c)continue;
+    for(let y=qy+3;y<fy+6;y++)for(let x=x0-3;x<x0+w+3;x++){if(y>=fy&&x>=x0&&x<x0+w)continue;const c=G(A,x,y);if(c)P(A,x,y,mixc(c,[104,80,60],.3,.93));}
+    const sx=x0+(w>>1)+4,sy=qy+12;for(let y=-3;y<=3;y++)for(let x=-5;x<=5;x++){const d=x*x/25+y*y/9+(hsh(x,y,31)-.5)*.35;if(d>1)continue;const c=G(A,sx+x,sy+y);if(!c)continue;
       P(A,sx+x,sy+y,mixc(c,[92,64,38],d>.65?.35:.2,d>.65?.82:.9));}
-    for(let i=0;i<w;i++)if(hsh(i,7,SEED)>.62)P(A,x0+i,fy-1,RAMP.cream[1]);
-    for(const [tx,n] of [[x0+5,3],[x0+7,2],[x0+w-9,2]])for(let j=0;j<n;j++)P(A,tx+(j===2?1:0),fy+j,mixc(RAMP.brick[3],[104,80,60],.45,.84));}
+    }
   cast(x0-3,x0+w+2,base);}
 // =================================================================================== the wardrobe
 if(K==='wardrobe'){const R=RAMP.walnut,base=H-3,x0=4,w=W-8;
