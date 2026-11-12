@@ -181,14 +181,19 @@ function ruOpen(o,cap){if(RU.on||!o)return;ruEnsure();const spec=ruSpec(o,cap);i
     lg.globalCompositeOperation='destination-in';lg.drawImage(mk2,0,0);lg.globalCompositeOperation='source-atop';lg.fillStyle='rgba(255,168,80,.4)';lg.fillRect(0,0,W,H);
     og.globalCompositeOperation='lighter';og.drawImage(lc,0,0);og.globalCompositeOperation='source-over';}
   RU.objC=oc;RU.bg=g.getImageData(0,0,W,H);
-  RU.cap.textContent=spec.cap||'';RU.cap.hidden=!spec.cap;RU.cap.style.fontSize='';RU.cap.style.top=Math.min(vh-70,(ext.bot+6)*K)+'px';
-  // (#287) the whole caption on screen, whatever the monitor: below the picture if it fits, else lifted, else in smaller letters
-  if(spec.cap){const room=vh-Math.max(28,vh*.05);let fs=parseFloat(getComputedStyle(RU.cap).fontSize)||16;
-    for(let i=0;i<12;i++){const h=RU.cap.offsetHeight,top0=Math.min(vh-70,(ext.bot+6)*K);let top=top0;if(top+h>room)top=Math.max(8,room-h);RU.cap.style.top=top+'px';
-      if(top+h<=room&&top>=Math.min(top0,vh*.55))break;fs=Math.max(12,fs*.88);RU.cap.style.fontSize=fs+'px';if(fs<=12)break;}}
+  RU.cap.textContent=spec.cap||'';RU.cap.hidden=!spec.cap;RU.capBot=ext.bot;
+  // (the box has to be showing, though not yet faded in, for the caption to be measured: it used to be measured while still hidden
+  // from the last close-up, as nothing, and a long caption ran off the bottom of the screen)
+  RU.box.hidden=false;RU.box.classList.remove('on');ruFitCap();
   RU.hint.textContent=matchMedia('(pointer:coarse)').matches?'Tap to step back':'Click or press E to step back';
-  RU.box.hidden=false;RU.box.classList.remove('on');void RU.box.offsetWidth;RU.box.classList.add('on');RU.t=0;
+  void RU.box.offsetWidth;RU.box.classList.add('on');RU.t=0;try{document.fonts&&document.fonts.ready.then(()=>{if(RU.on)ruFitCap();});}catch(e){}
   cancelAnimationFrame(RU.raf);let last=performance.now();const tick=now=>{if(!RU.on)return;RU.t+=(now-last)/1000;last=now;ruFrame();RU.raf=requestAnimationFrame(tick);};RU.raf=requestAnimationFrame(tick);ruFrame();}
+// (#287) the whole caption on screen, whatever the monitor: below the picture if it fits, else lifted, else in smaller letters
+function ruFitCap(){if(!RU.spec||!RU.spec.cap||RU.box.hidden)return;const vh=innerHeight,K=RU.K,room=vh-Math.max(34,vh*.06),top0=Math.min(vh-70,(RU.capBot+6)*K);
+  RU.cap.style.fontSize='';let fs=parseFloat(getComputedStyle(RU.cap).fontSize)||16;
+  for(let i=0;i<14;i++){const h=RU.cap.offsetHeight;let top=top0;if(top+h>room)top=Math.max(8,room-h);RU.cap.style.top=top+'px';
+    if(top+h<=room&&top>=Math.min(top0,vh*.55))break;fs=Math.max(11,fs*.88);RU.cap.style.fontSize=fs+'px';if(fs<=11)break;}}
+addEventListener('resize',()=>{if(RU.on)ruFitCap();});
 function ruFrame(){const g=RU.g,spec=RU.spec;g.putImageData(RU.bg,0,0);g.drawImage(RU.objC,0,0);const t=RU.t;
   if(spec.candles)for(const [i,[x,y]] of spec.candles.entries()){const f=Math.sin(t*11+i*2.3)+Math.sin(t*17+i);const h=3+(f>0?1:0);g.fillStyle='#ffd27a';g.fillRect(x+1,y-11-h,2,h);g.fillStyle='#fff4c0';g.fillRect(x+1,y-12-(f>.8?1:0),1,1);
     g.globalAlpha=.09+.03*f;g.fillStyle='#f0a040';g.beginPath();g.arc(x+2,y-13,9,0,6.29);g.fill();g.globalAlpha=1;}

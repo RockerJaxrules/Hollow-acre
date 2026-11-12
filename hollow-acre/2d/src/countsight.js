@@ -142,7 +142,7 @@ function cgCap(P,x,y,o){const c=o.c||'#6a5a4a',R=['#120c08',sgtShade(c,.6),c,sgt
 function cgMarbles(P,x,y,o){const pal=['#2a6aba','#c83a2a','#2a9a5a','#d8b83a','#e8e8f0','#7a3aa8'];
   if(o.st==='bag'||o.st==='flour'||o.st==='stones'){const c=o.st==='flour'?'#d8d0bc':(o.c||'#8a7a5a'),R=['#120c08',sgtShade(c,.6),c,sgtShade(c,1.25)];P(x-18,y+14,36,3,'#00000055');
     sgtBlob(P,[[x-10,y+5,x+10,y+5,9],[x-6,y-5,x+6,y-5,6.5],[x-3,y-13,x+3,y-13,3]],R);for(let i=0;i<12;i++)P(x-6+i,y-10+(i%2),1,1,'#3a2a14');P(x+6,y-10,4,1,'#3a2a14');P(x+9,y-10,1,6,'#3a2a14');
-    for(let i=0;i<5;i++)P(x-8+i*4,y-2+(i%2),1,8,R[1]);
+    for(let i=0;i<5;i++)P(x-8+i*4,y-4+(i%2),1,3+(i%2),R[1]);for(const fx of [x-13,x+13])P(fx,y+1,1,7,R[1]);   // (gathers under the neck and folds at the sides, clear of what's stitched on it)
     if(o.t){const w=o.t.length*4-1;for(let i=0;i<w;i+=2)P(x-(w>>1)+i,y+9,1,1,'#c8a03a');sgtT(P,o.t,x-(w>>1),y+2,'#c83a2a');}
     if(o.st==='flour'){sgtT(P,'FLOUR',x-9,y+1,'#9a8a6a');for(let i=0;i<20;i++)P(x-20+cgH(i,1)%40,y+12+cgH(1,i)%6,1,1,'#ece4d4');}
     if(o.st==='stones'){for(const [sx,sy,f] of [[x-20,y+12,0],[x+16,y+10,1],[x+4,y+16,2]]){sgtBlob(P,[[sx-2,sy,sx+2,sy,3.6]],['#1a1a18','#6a6660','#8a867c','#b4b0a6']);P(sx-2,sy-1,1,1,'#ffffff');P(sx+2,sy-1,1,1,'#ffffff');P(sx-1,sy+1+(f===1?0:1),3,1,f===2?'#c83a2a':'#ffffff');}}
@@ -230,8 +230,12 @@ function cgArt(id){const d=CG_FIND[id];if(!d)return null;const [cx0,cy0]=d.at||[
   const [x,y]=d.pos||d.at||[80,52];(CG_DRAW[d.k]||cgShoe)(P,x,y,d.o||{});
   if(d.over==='long')for(let i=0;i<70;i++){const bx=cgH(i,9)%160,by=60+cgH(9,i)%44,h=8+cgH(i,2)%10;for(let j=0;j<h;j++)P(bx+Math.round(j*.3*((i%2)?1:-1)),by-j,1,1,j>h-3?'#9a9a50':'#5e6e2e');}
   if(d.over==='long')for(const [ax,ay] of [[46,78],[112,74]]){sgtBlob(P,[[ax,ay,ax,ay,3.4]],['#2a0e0a','#7a1e14','#a8301e','#d8583a']);P(ax,ay-4,1,2,'#3a2a14');}});}
+// the text after its first sentence (a full stop after an initial, as in "M.P. stitched on it", or after Mr/Mrs/Dr/St, doesn't end one)
+function cgAfterFirst(t){for(let i=0;i<t.length;i++){if(t[i]!=='.'||!/^\s+[A-Z]/.test(t.slice(i+1,i+4)))continue;const w=(t.slice(0,i).match(/([A-Za-z]+)$/)||['',''])[1];
+  if(/^([A-Z]|Mr|Mrs|Ms|Dr|St)$/.test(w))continue;return t.slice(i+1).trimStart();}return t;}
 // ---- finding one: the screen goes in on it; closing it, you say their name
 function rgcSight(c,fin){if(typeof ruOpen!=='function')return false;let img=null;try{img=cgArt(c.id);}catch(e){return false;}if(!img)return false;
   // the picture shows what the first sentence used to describe; the caption keeps who they were and how the place gave them up
-  let rest=String(c.text||'').replace(/<[^>]+>/g,'').replace(/^[^.]*?\.\s+(?=[A-Z])/,'');if(rest.startsWith(c.who+', '))rest=rest.slice(c.who.length+2).replace(/^./,m=>m.toUpperCase());ruOpen({x:c.x,z:c.z,_sight:{img,fx:{}}},`${c.who}, ${c.yr}. ${rest||c.text}`);if(!RU.on)return false;RU.after=fin||null;
+  let rest=cgAfterFirst(String(c.text||'').replace(/<[^>]+>/g,''));if(rest.startsWith(c.who+', '))rest=rest.slice(c.who.length+2).replace(/^./,m=>m.toUpperCase());const cap=!rest?c.text:rest.startsWith(c.who+' ')||rest.startsWith(c.who+'’')?(rest.includes(String(c.yr))?rest:`${c.yr}. ${rest}`):`${c.who}, ${c.yr}. ${rest}`;   // (no name twice: "Mary Pruitt, 1919. Mary Pruitt hid...")
+  ruOpen({x:c.x,z:c.z,_sight:{img,fx:{}}},cap);if(!RU.on)return false;RU.after=fin||null;
   try{RU.hint.textContent=matchMedia('(pointer:coarse)').matches?'Tap to say their name':'Click or press E to say their name';}catch(e){}return true;}
