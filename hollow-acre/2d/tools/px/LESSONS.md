@@ -977,6 +977,9 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Owner (Nov 12), verbatim: "If you think you can get them to six keep going if not put them in and continue". Understood: when a redraw is preferred over the installed art in every blind round but stalls at 5-5.5, and more fix rounds will not reach 6, install it (old kept as backup) and move on; do not leave the better art out of the game.
 
 ## Small objects on a surface (chess, Nov 12)
+- Sprite stubble drawn as a checker of single pixels reads as a mesh mask or censor mosaic; one soft hair-and-skin shadow along the jaw reads as stubble (5-5.5 vs 3-3.5, both orders).
+- At walking-sprite scale a 1 px shading change on the chest is invisible to the judge (tie both orders): change shapes or values by a full step, not one pixel.
+
 - The cradle's tall hood is what names it: a low broad hood plus a row of high-contrast spindles turned it into a crate. Keep the naming silhouette when fixing everything else.
 
 - Pieces on a board: few and spread (one per square, none touching), each outlined dark, and the light squares a step below the white pieces; crowded pieces of the board's own value merge into one pale lump that hides the board.
