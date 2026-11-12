@@ -67,6 +67,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - "maybe a bit more improvement" (v4): leaf clumps through the crown (a second, finer lump octave), small sunlit
   highlights, fallen leaves round the foot (it's autumn).
 
+## Small wooden markers: stakes, pegs, posts (Nov 12: survey stake 5.5 -> 6)
+- A round section with a domed top reads as turned (a bollard, a pawn, a candle): cut wood has flat faces. Two faces in 3/4 with a hard 1 px edge between, lit left and two steps darker right.
+- The sawn end is the palest thing on it: a flat cap 2 px tall, darker rim on the shadow side. A tip darker than the shaft kills the read.
+- Something driven into the ground has no flared foot: give it a collar of turned earth (two browns, a lit crumb top-left) and let a grass blade overlap it. One blade, not two symmetric ones (they read as little feet).
+- Draw the drop shadow after the outline (or it gets outlined into a grey block), as one flat ellipse joined to the foot, pushed down-right.
+- A cloth tail needs 5-6 px, rising, with a notched end to read as cloth in wind; a 3 px horizontal nub reads as a band.
+
 ## Trees and foliage
 - [Nov 11, family 5 -> 6] A wood built from two pine sprites at one size, placed with a minimum spacing, reads as a plantation:
   identical cones on a grid with their hems in rows. Give every common tree 3+ outlines (different silhouettes, not palette
