@@ -16,7 +16,12 @@ function cgGround(P,t){const H=cgH,fill=f=>{for(let y=0;y<104;y++)for(let x=0;x<
       for(let y=0;y<104;y++){P(118,y,4,1,'#8a7434');P(118,y,1,1,'#b09a4c');P(121,y,1,1,'#5a4a20');}for(const [ly,d] of [[18,-1],[40,1],[62,-1]])for(let i=0;i<22;i++)P(119+d*i,ly+Math.round(i*.35+Math.sin(i*.3)*2),2,1,'#8a7a38');break;
     case 'bank':fill((x,y)=>{const e=70+Math.round(Math.sin(x*.07)*3);return y<e?'#3e3020':y===e?'#5a4630':y<e+3?'#1a140e':'#16262c';});stones(8,['#4e3e2a','#6a5640','#2a2016'],5);
       for(const rx of [8,30,132,150])for(let i=0;i<5;i++){P(rx+i,58+(i*3)%7,1,12,i%2?'#4a4a24':'#5e5a2c');P(rx+i,58+(i*3)%7,1,1,'#9a8a48');}for(const [x,y] of [[40,84],[96,92],[120,80]])P(x,y,8,1,'#2a3e46');break;
-    case 'under':fill((x,y)=>y<14?((x%12)===0?'#140e08':'#2a1e12'):y<18?'#0c0806':'#2e261c');for(let x=0;x<160;x+=22){P(x,0,6,18,'#1a120a');P(x,0,1,18,'#3a2a1a');}stones(14,['#3a3226','#4e4434','#1e1810'],8);break;
+    case 'under':fill((x,y)=>y<14?((x%12)===0?'#140e08':'#2a1e12'):y<18?'#0c0806':'#2e261c');for(let x=0;x<160;x+=22){P(x,0,6,18,'#1a120a');P(x,0,1,18,'#3a2a1a');}stones(14,['#3a3226','#4e4434','#1e1810'],8);
+      // the end of the covered bridge overhead: its sill beam across the top, the deck planks' ends in it, and a stone pier at the side
+      P(0,16,160,9,'#3a2816');for(let x=0;x<160;x+=11){P(x,16,1,8,'#1e140a');P(x+1,16,1,8,'#4e3820');}P(0,16,160,1,'#5e4428');P(0,24,160,1,'#6a4e2e');P(0,25,160,1,'#120c06');
+      for(let x=4;x<160;x+=33){P(x,18,1,1,'#8a8a90');P(x+16,21,1,1,'#8a8a90');}
+      for(const px of [36,122]){P(px-1,25,15,40,'#16120e');P(px,25,13,39,'#4a463e');for(let yy=25;yy<64;yy+=6){P(px,yy,13,1,'#2a2620');P(px+((yy/6|0)%2?6:3),yy,1,6,'#2a2620');P(px,yy+1,13,1,'#5e5a50');}P(px,25,2,39,'#5a564c');P(px-2,63,17,3,'#00000055');}
+      P(0,26,160,3,'#00000066');P(0,29,160,3,'#00000033');break;
     case 'ditch':fill((x,y)=>y<30?'#4e5428':y<70?'#3e3a20':'#2a2c1e');tufts(40,['#3a4020','#6a7034'],5);for(let y=74;y<104;y+=7)P(0,y,160,1,'#1e2420');stones(6,['#4a4030','#6a5a44','#1e1810'],2);leaves(8,4);break;
     case 'cobble':fill((x,y)=>{const row=y/7|0,cx=(x+(row&1)*5)%10,cy=y%7;return cx===0||cy===0?'#1e1e20':cy===1?'#7a7670':(H(x>>3,row)%3?'#5a5852':'#64625c');});break;
     case 'wall':fill((x,y)=>{const row=y/16|0,cx=(x+(row&1)*14)%28,cy=y%16;return cx===0||cy===0?'#24242a':cy<2?'#8a8890':(H(x/28|0,row)%2?'#5e5e66':'#6a6a72');});for(const [x,y] of [[20,30],[110,70],[60,90]]){P(x,y,10,2,'#4a5a3a');P(x+2,y-1,5,1,'#6a7a4a');}break;
@@ -139,8 +144,40 @@ function cgCap(P,x,y,o){const c=o.c||'#6a5a4a',R=['#120c08',sgtShade(c,.6),c,sgt
   else if(o.st==='sunhat'){const S=['#3a2a10','#9a7a3a','#c8a456','#e8cc80'];for(let a=0;a<6.283;a+=.02)for(let r=12;r<23;r++){const px=Math.round(x+Math.cos(a)*r),py=Math.round(y+4+Math.sin(a)*r*.42);P(px,py,1,1,r>21?S[0]:((r+Math.round(a*12))%3===0?S[1]:Math.sin(a)<-.2?S[3]:S[2]));}
     sgtBlob(P,[[x-8,y-1,x+8,y-1,7]],S);for(let rx=x-14;rx<=x+14;rx++)P(rx,y+3,1,2,Math.abs(rx-x)<15?'#3a5a9a':'#3a5a9a');P(x-15,y+3,30,1,'#5a7aba');}
   }
+// ---- the cloth bag (Mary Pruitt's): a round glass marble, letters stitched big enough to read, and the bag itself
+const CG_GLASS=['..oooo..','.owlbbo.','owlbssbo','olbsbbdo','obbssbdo','obbbsddo','.odssdo.','..oooo..'];   // (a hooked S of colour inside the glass)
+function cgGlass(P,x,y,c,sw){const k={o:'#0e0e12',w:'#ffffff',l:sgtShade(c,1.45),b:c,d:sgtShade(c,.58),s:sw||sgtShade(c,1.9)};
+  CG_GLASS.forEach((r,j)=>{for(let i=0;i<8;i++){const ch=r[i];if(ch!=='.')P(x-4+i,y-4+j,1,1,k[ch]);}});P(x-1,y+4,4,1,'#00000066');P(x+3,y+3,1,1,'#00000055');P(x+4,y+1,1,2,'#00000044');}   // (its shadow tucked under it, down-right)
+const CG_STITCH={M:['11...11','111.111','11.1.11','11...11','11...11','11...11','11...11'],P:['11111.','11..11','11..11','11111.','11....','11....','11....'],
+  '.':['..','..','..','..','..','11','11']};
+function cgStitch(P,t,x,y,col){const sh=sgtShade(col,.55),hi=sgtShade(col,1.35);let w=0;for(const ch of t){const g=CG_STITCH[ch];if(g)w+=g[0].length+1;}w--;let X=x-(w>>1);
+  for(const ch of t){const g=CG_STITCH[ch];if(!g)continue;g.forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]==='1'){P(X+i,y+j+1,1,1,sh);}});
+    g.forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]==='1')P(X+i,y+j,1,1,(j===0||r[i-1]!=='1')&&j<2?hi:col);});X+=g[0].length+1;}return w;}
+const cgCanStitch=t=>!!t&&t.length<=4&&[...t].every(ch=>CG_STITCH[ch]);
+function cgClothBag(P,x,y,o,pal){const c=o.c||'#8a7a5a',R=['#120c08',sgtShade(c,.62),c,sgtShade(c,1.22)],cord='#5a3a1a',cordL='#8a6038';
+  P(x-20,y+13,40,3,'#00000055');
+  cgGlass(P,x+19,y+12,pal[3],'#fff4c0');   // (this one has rolled half under the cloth)
+  // the body, the shoulders narrowing to the neck, the gathered ruffle above the tie
+  sgtBlob(P,[[x-9,y+5,x+9,y+5,9.5],[x-4,y-3,x+4,y-3,6.5]],R);
+  sgtBlob(P,[[x-2,y-11,x+2,y-11,2.6]],R);
+  // the ruffle flares out above the tie like a skirt turned up: pleats fanning from the cord, a ragged lip, its inside dark
+  {const H=8;for(let r=0;r<H;r++){const fy=y-11-r,hw=Math.round(3+r*.62);for(let dx=-hw;dx<=hw;dx++){const lip=r>=H-1-((dx+hw*3+r)%3===0?1:0)&&r>=H-2;
+      const pl=Math.round(dx*3/hw*.9+3)%2;let col=dx===-hw||dx===hw?R[0]:pl?R[1]:(dx<0?R[3]:R[2]);if(r===H-1)col=(dx+hw)%3===1?R[0]:R[3];P(x+dx,fy,1,1,col);}}
+    for(let dx=-6;dx<=6;dx+=3)P(x+dx,y-11-H,2,1,R[0]);P(x-3,y-11-H+1,7,1,'#2a1e12');}
+  // the cord, wound twice round the neck, knotted, with its end hanging
+  for(const cy of [y-10,y-8]){P(x-4,cy,9,1,cord);P(x-3,cy,7,1,cordL);P(x-4,cy+1,9,1,'#2a1a0a');}
+  P(x+5,y-10,3,3,cord);P(x+6,y-10,1,1,cordL);for(let i=0;i<6;i++)P(x+7+(i>>1),y-7+i,1,1,i%2?cord:cordL);
+  // the folds run down and out from the tie, and stop short of the letters
+  for(const [fx,d] of [[-5,-1],[-2,0],[2,0],[5,1]])for(let i=0;i<4;i++)P(x+fx+Math.round(d*i*.7),y-6+i,1,1,R[1]);
+  for(const fx of [x-14,x+14])for(let i=0;i<6;i++)P(fx+(fx<x?-(i>>2):(i>>2)),y+1+i,1,1,R[1]);
+  // her initials in red thread, and a running stitch under them
+  if(cgCanStitch(o.t))cgStitch(P,o.t,x,y-1,'#c83a2a');else if(o.t){const w=o.t.length*4-1;sgtT(P,o.t,x-(w>>1),y+2,'#c83a2a');}
+  for(let i=0;i<22;i++)if(i%3!==2)P(x-11+i,y+9,1,1,i%3===0?'#d8b04a':'#a8802a');
+  // the rest, spilled where they rolled: not in a row
+  for(const [dx,dy,k,sw] of [[-14,13,0,'#bfe0ff'],[-5,17,1,'#ffd0c0'],[7,15,2,'#d8ffd8'],[27,19,4,'#c8d0e8']])cgGlass(P,x+dx,y+dy,pal[k],sw);}
 function cgMarbles(P,x,y,o){const pal=['#2a6aba','#c83a2a','#2a9a5a','#d8b83a','#e8e8f0','#7a3aa8'];
-  if(o.st==='bag'||o.st==='flour'||o.st==='stones'){const c=o.st==='flour'?'#d8d0bc':(o.c||'#8a7a5a'),R=['#120c08',sgtShade(c,.6),c,sgtShade(c,1.25)];P(x-18,y+14,36,3,'#00000055');
+  if(o.st==='bag'){cgClothBag(P,x,y,o,pal);}
+  else if(o.st==='flour'||o.st==='stones'){const c=o.st==='flour'?'#d8d0bc':(o.c||'#8a7a5a'),R=['#120c08',sgtShade(c,.6),c,sgtShade(c,1.25)];P(x-18,y+14,36,3,'#00000055');
     sgtBlob(P,[[x-10,y+5,x+10,y+5,9],[x-6,y-5,x+6,y-5,6.5],[x-3,y-13,x+3,y-13,3]],R);for(let i=0;i<12;i++)P(x-6+i,y-10+(i%2),1,1,'#3a2a14');P(x+6,y-10,4,1,'#3a2a14');P(x+9,y-10,1,6,'#3a2a14');
     for(let i=0;i<5;i++)P(x-8+i*4,y-4+(i%2),1,3+(i%2),R[1]);for(const fx of [x-13,x+13])P(fx,y+1,1,7,R[1]);   // (gathers under the neck and folds at the sides, clear of what's stitched on it)
     if(o.t){const w=o.t.length*4-1;for(let i=0;i<w;i+=2)P(x-(w>>1)+i,y+9,1,1,'#c8a03a');sgtT(P,o.t,x-(w>>1),y+2,'#c83a2a');}
@@ -210,7 +247,7 @@ function cgTop(P,x,y,o){const c=o.c||'#8a5a34',c2=o.c2||'#c8a03a',th=o.th!=null?
 // ---- each find: where it lies and what's on it
 const CG_FIND={
   field:{g:'furrow',k:'horse',o:{base:['EDWIN MARSH','HIS HORSE']}},corn:{g:'corn2',k:'cap',o:{st:'bonnet',c:'#7e94b0',hang:1,rib:'#6a7e98'},at:[80,52]},
-  pond:{g:'bank',k:'top',o:{t:'N.L.',c:'#a87a4a',c2:'#3a6a4a',string:1,shape:'squat',th:.2},at:[80,48]},bridge:{g:'under',k:'marbles',o:{st:'bag',t:'M.P.',c:'#8a7a5a'}},
+  pond:{g:'bank',k:'top',o:{t:'N.L.',c:'#a87a4a',c2:'#3a6a4a',string:1,shape:'squat',th:.2},at:[80,48]},bridge:{g:'under',k:'marbles',o:{st:'bag',t:'M.P.',c:'#8a7a5a'},at:[80,46],pos:[80,48]},
   oak:{g:'ditch',k:'shoe',o:{st:'sneaker',c:'#d0d0c8',c2:'#2a4a9a'}},square:{g:'cobble',k:'slate',o:{draw:'hop'}},
   church:{g:'chstep',k:'cap',o:{st:'folded',c:'#6a1a28'},at:[80,50]},graveyard:{g:'wall',k:'shoe',o:{st:'boot'}},store:{g:'boards',k:'marbles',o:{st:'twist'}},
   crossroads:{g:'road',k:'top',o:{c:'#2a4a7a',c2:'#c8a03a',shape:'squat',th:-.2,scuff:'#5a5244',bands:[.3]},at:[74,52]},lane:{g:'step',k:'shoe',o:{st:'mary',c:'#6a3c22'},at:[80,46]},

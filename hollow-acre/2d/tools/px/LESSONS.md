@@ -1401,3 +1401,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A tiny white square on a roof reads as a sticker: use the building's own vocabulary (another dormer) instead.
 - Recoloured copies of one house side by side need one detail each of their own (door colour at least), or they read as a kit.
 - Keep the door where it was when a building grows (grow away from it), so nothing tied to the door has to move.
+
+## Close-ups of story finds (owner's photo of the marble bag, Nov 12)
+- The owner sent a photo of the marble bag close-up with its caption running off the bottom of the screen. Understood: every close-up must fit the screen, and its picture must show what the caption says.
+- Never draw lines (folds, seams, grain) through lettering. Stop them 2+ px short of the text.
+- Initials that must read full screen need 7 px letters with 2 px stems. In the 3x5 font, M reads as H and P reads as F.
+- A marble is a round 8 px circle: dark lower-right, a swirl, one white glint top-left. A radius-3 pixel circle reads as a four-point star or a gem.
+- Things that spilled are scattered: different gaps, one rolled away, one half hidden. Never in a row.
+- Cloth tied at the neck: a flared, pleated ruffle above a cord wound twice, a knot and a hanging end. A flat block on top reads as a lid.
+- Say where the thing lies: if the caption says "under the bridge", show the beam overhead and its shadow.
+- A stitched line is dashes with gaps (2 on, 1 off). Even square dots read as rivets.

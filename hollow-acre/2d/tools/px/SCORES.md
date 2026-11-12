@@ -64,3 +64,4 @@ orders. Latest round first.
 | Map: players as facing arrows (Nov 12) | 5.5 -> 6 | yes (replaces the dot and its ring) | toward 7: keep the star clear of your arrow in every shot |
 | Grandpa's house growing outside (big house, dining, upstairs, attic, cellar) (Nov 12) | 5.5 -> 6 (B 6.5, BUAC 6.5, BDUAC 6) | yes (the house used to stay the same size outside) | toward 7: dormers on the window rhythm; one continuous strap per cellar door with a hinge knuckle |
 | Friends' cabins in their own colours on Homestead Lane (Nov 12) | 6 | yes | toward 7: a different porch piece by each house instead of the same crate |
+| The Count's marble bag under the bridge (Nov 12) | 5 -> 6.5 | yes (fold lines used to cross "M.P."; marbles read as gems) | toward 7: vary the gold stitch lengths; a glint of light beyond the far pier so it can't read as a fireplace |
