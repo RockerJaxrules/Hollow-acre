@@ -54,3 +54,4 @@ orders. Latest round first.
 | Festival lantern string (Nov 12) | 6, preferred over the old | yes | toward 7: shuffled lanterns on their own cords, one gone dark |
 | Everyone-here card (Nov 12) | 5.5 -> 6.5 | yes | toward 7: never covers what everyone is meeting at, on any screen |
 | Stay-logged-in checkbox (Nov 12) | 6.5 | yes | toward 7: the panel fully opaque at rest (title text showed through mid-fade) |
+| Car repair minigames, 11 scenes (Nov 12) | set 6 -> 6.5; weakest 4.5 -> 6 | yes (replaces the one tap-the-bar game) | toward 7: a foreshortened battery tray; studs with round caps |

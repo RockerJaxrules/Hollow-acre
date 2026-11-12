@@ -1324,3 +1324,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - While the player is asked to wait somewhere, the objective bar must say so ("Waiting for Jo at the car. Stay close."), not keep sending them to chores.
 - Say the count ("1 of 2") and what happens next ("you'll drive out together"): a wait with no end in sight reads as broken.
 - A checkbox is the whole row, not the 20 px box: 44 px tall strip, hover and press steps like the wood buttons, a bigger box on phones. Native browser checkboxes don't match the pixel panels; draw the box (lit top edge, dark bottom edge, chunky pixel tick).
+
+## Minigames that show the job (#266 car repair, Nov 12)
+- **[owner]** "Better car minigames that actually have you doing the stuff it says you're doing": one tap-the-marker bar dressed up for every step is not a game of that step. Each step gets its own close-up of the actual part and the actual motion (hammer the dent, loop the belt, carry the wheel onto the studs, pour to the mark, turn the key).
+- A green zone floating beside the object is the old bar in disguise: put the zone ON the object (a dial painted round the clamp screw, a torque arc round the nut, the green arc on the tachometer).
+- A scene has to say where you are: a tach in a void isn't "the driver's seat"; give it the windscreen, the dash, the wheel's rim, the column, and keep the key visible (the hand pinches it from the side).
+- Targets you line things up against must be big and readable at phone size: proud studs with a cast shadow, holes cut right through with a rim, so the alignment shows itself.
+- Rust is patches with a dark core and a lighter crust, never a speckle strip (a speckle row reads as garbled text).
+- Things you lower into something are drawn in the same view as what they go into (a battery seen from three-quarters needs a tray seen from three-quarters, with its floor showing).
+- Hardware laid side by side reads as a letter ("E", "3"): lay pieces apart, at different angles.
