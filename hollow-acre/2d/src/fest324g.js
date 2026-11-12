@@ -69,9 +69,9 @@ S4.f2toss=(sp,K)=>{const g=K.g,N=5;const st={ring:0,phase:'aim',ax:160,aw:0,pw:0
       K.px(34,22,252,6,'#3a2414');K.px(34,22,252,1,'#6a4424');for(let i=0;i<7;i++){const x=48+i*34;K.px(x,12,10,10,['#c8402a','#3a6aa8','#e8c060','#4a8a3a','#8a3a8a','#c8402a','#e8a040'][i]);K.px(x+1,13,3,8,'rgba(255,255,255,.35)');K.px(x-1,10,12,2,'#5a3a1a');}
       g.drawImage(board,42,48);K.shadow(160,122,124,6,.3);
       for(const R of F2PEG)for(const px of R.xs){const h=[0,9,7,6][R.v],w=[0,6,5,4][R.v],x0=Math.round(px-w/2),y0=R.y-h,hw=Math.ceil(w/2);
-        for(let k=0;k<h+2;k++)K.pa(x0+w+k*.9,R.y-1+k*.45,2,1,'#2a0c06',.42*(1-k/(h+2)));                 // its shadow, down and to the right
+        for(let k=0;k<3;k++)K.pa(x0+k,R.y+1+k,Math.max(2,w-k),1,'#2a0c06',.32-k*.06);   // its shadow: a short wedge joined to its foot, as wide as the peg, falling down and right
         K.px(x0-1,y0+1,w+2,h,'#2a1408');K.px(x0,y0+1,w,h-1,'#cbb898');K.px(x0,y0+1,1,h-1,'#ede0c4');K.px(x0+w-1,y0+1,1,h-1,'#8a7a5e');
-        K.ell(px,y0+1,hw+1,2,'#2a1408');K.ell(px,y0+1,hw,1,'#e8dcc0');K.px(px-hw,y0+1,hw,1,'#fbf2de');}
+        K.ell(px,y0+1,hw+1,2,'#2a1408');K.ell(px,y0+1,hw,1,'#e8dcc0');K.px(px,y0+2,hw,1,'#a8987a');K.px(px-hw+1,y0,Math.max(1,hw-1),1,'#f6ecd4');}
       for(const R of F2PEG){K.text(String(R.v),38,R.y-8,'#f4e6c8');}
       for(const o of st.on)ringAt(o.x,o.y-3,o.y<80?.55:o.y<95?.75:.95,RC);
       // the counter at the front
@@ -80,7 +80,7 @@ S4.f2toss=(sp,K)=>{const g=K.g,N=5;const st={ring:0,phase:'aim',ax:160,aw:0,pw:0
       // the aim and the power
       if(st.phase==='aim'||st.phase==='power'){const x=st.ax,ty=st.phase==='power'?112-st.pw*48:96;for(let k=0;k<1;k+=.06){const xx=160+(x-160)*k,yy=166+(ty-166)*k-Math.sin(k*Math.PI)*30;if(((k*16)|0)%2===0)K.px(xx,yy,2,2,'#ffd27a');}K.px(x-3,ty,7,1,'#ffd27a');K.px(x,ty-3,1,7,'#ffd27a');}
       if(st.fly){const f=st.fly,u=f.u,x=f.x0+(f.x1-f.x0)*u,y=f.y0+(f.y1-f.y0)*u-Math.sin(u*Math.PI)*(40+(112-f.y1)*.6),s=1.6-u*(1.6-(f.y1<80?.55:f.y1<95?.75:.95));ringAt(x,y,s,RC,.7+Math.sin(t*20)*.3);}
-      else if(st.ring<N){ringAt(160,166,1.5,RC);}
+      else if(st.ring<N){ringAt(157,163,1.4,RC);}   // in the fist: the fingers close over its near rim
       m4hand(K,150,158);if(st.msg)K.textO(st.msg.t,st.msg.x,Math.round(st.msg.y-st.msg.u*10),st.msg.c,2);},
     hud(){K.label('POWER',296,14,'#f4ecd8');K.gauge(292,24,8,90,.66,1,st.phase==='power'?st.pw:0);K.label(`RINGS ${N-st.ring}`,40,150,'#f4ecd8','l');K.label(`PEGS ${st.pts}`,40,160,'#ffd27a','l');K.meter(st.ring/N,st.pts/Math.max(1,st.ring*2));},
     auto(dt,AP){const a=m4ai(this,AP,dt);const R=F2PEG[1],tx=R.xs[(st.ring+1)%5];
@@ -320,17 +320,35 @@ MG4ART.anim.dance=function(K,t){// the lantern strings overhead, glowing; couple
   const body=(id,dir,f,x,y)=>{const m=SPR[id],im=m&&IMG[m.src];if(!im||!im.complete)return false;const C=m.clips||{};const row=((C.walk||{})[dir]||[3,9]);g.drawImage(im,(f%row[1])*m.fw,row[0]*m.fh,m.fw,m.fh,Math.round(x-m.ax),Math.round(y-m.ay),m.fw,m.fh);return true;};
   PAIRS.forEach(([a,b],i)=>{const cx=62+i*98,ph=(t*.5+i*.37)%4,turn=ph>3.4?(ph-3.4)/.6:0,sw=Math.sin(t*2.6+i)*2,f=Math.floor(t*6+i*3);
     const side=turn>0?Math.cos(turn*Math.PI):1;const y=104;   // every few bars they turn once round each other
-    const xa=cx-11*side+sw,xb=cx+11*side+sw;const da=side>0?'E':'W',db=side>0?'W':'E';
-    K.shadow(cx,y+1,22,3,.35);if(body(a,da,f,xa,y)&&body(b,db,f+4,xb,y)){K.line(Math.min(xa,xb)+6,y-23,Math.max(xa,xb)-6,y-23,'#d8a880',1);}});};
+    const gap=i===0?15:14,xa=cx-gap*side+sw,xb=cx+gap*side+sw;   // a half-step between partners (the old pair stood so close they read as a hug)
+const da=side>0?'E':'W',db=side>0?'W':'E';
+    K.shadow(cx,y+1,26,3,.35);if(body(a,da,f,xa,y)&&body(b,db,f+4,xb,y)){const L=Math.min(xa,xb),R=Math.max(xa,xb),hy=y-15+Math.round(Math.sin(t*2.6+i)*.6);
+      // the hold: each partner's near arm, in their own sleeve, reaching to clasped hands at chest height between them
+      f2Arm(K,L+4,y-19,cx-1,hy,f2Sleeve(xa<xb?a:b));f2Arm(K,R-4,y-19,cx+1,hy,f2Sleeve(xa<xb?b:a));K.px(cx-2,hy-1,4,3,'#3a2414');K.px(cx-1,hy-1,2,2,'#e8b890');K.px(cx-1,hy-1,1,1,'#f6d0a8');}});};
+// an arm as thick as the dancers' own (3 px of sleeve, outlined), bent at the elbow a little below the line to the hands
+function f2Arm(K,x0,y0,x1,y1,c){const ex=Math.round((x0+x1)/2),ey=Math.round(Math.max(y0,y1)+2);const seg=(a,b,cc,dy,th)=>{const n=Math.max(1,Math.round(Math.hypot(b[0]-a[0],b[1]-a[1])));
+    for(let k=0;k<=n;k++){const x=Math.round(a[0]+(b[0]-a[0])*k/n),y=Math.round(a[1]+(b[1]-a[1])*k/n);K.px(x,y+dy,1,th,cc);}};
+  seg([x0,y0],[ex,ey],'#2a1a10',-1,5);seg([ex,ey],[x1,y1],'#2a1a10',-1,5);seg([x0,y0],[ex,ey],c,0,3);seg([ex,ey],[x1,y1],c,0,3);}
+// the colour of someone's sleeve: the commonest strong colour across their chest in the side-facing idle frame
+const F2SL={};function f2Sleeve(id){if(F2SL[id])return F2SL[id];const m=SPR[id],im=m&&IMG[m.src];if(!im||!im.complete||!im.width)return '#6a4a32';
+  try{const C=m.clips||{},row=((C.idle||{}).E||[11,4])[0],c=document.createElement('canvas');c.width=m.fw;c.height=m.fh;const g=c.getContext('2d');g.drawImage(im,0,row*m.fh,m.fw,m.fh,0,0,m.fw,m.fh);
+    const d=g.getImageData(0,0,m.fw,m.fh).data;let top=m.fh,bot=0;for(let y=0;y<m.fh;y++)for(let x=0;x<m.fw;x++)if(d[(y*m.fw+x)*4+3]>8){top=Math.min(top,y);bot=Math.max(bot,y);}
+    const H=bot-top,cnt={};for(let y=Math.round(top+H*.42);y<top+H*.62;y++)for(let x=0;x<m.fw;x++){const i=(y*m.fw+x)*4;if(d[i+3]<200)continue;const r=d[i],gg=d[i+1],b=d[i+2];
+      if(r+gg+b<120)continue;if(r>gg&&gg>b&&r-b>40&&r>170&&gg>120)continue;   /* not outline, not skin */const k=((r>>4)<<8)|((gg>>4)<<4)|(b>>4);cnt[k]=(cnt[k]||0)+1;}
+    let best=null,bn=0;for(const [k,n] of Object.entries(cnt))if(n>bn){bn=n;best=+k;}F2SL[id]=best==null?'#6a4a32':'#'+[best>>8,(best>>4)&15,best&15].map(v=>(v*16+8).toString(16).padStart(2,'0')).join('');}catch(e){F2SL[id]='#6a4a32';}return F2SL[id];}
 MG4ART.LIGHT.dance={x:160,y:30,r:260,c:'255,170,90',a:.3,ember:0};MAMB.dance={bed:['bandpass',420,.4,.014],ev:[[3,()=>A.tone(660+Math.random()*120,.18,'triangle',.012)]]};
-S4.f2dance=(sp,K)=>{const g=K.g,N=16,BEAT=.66,T0=1.6,RX=64,RY=124;
+S4.f2dance=(sp,K)=>{const g=K.g,N=16,BEAT=.66,T0=1.6,RX=64,RY=150;
   const notes=Array.from({length:N},(_,i)=>({t:T0+i*BEAT*(i%4===3?1.5:1)+(i>7?.33:0)+(i>11?.2:0),hit:null}));const st={t:0,end:0,score:0,flash:0,hearts:[]};
-  const path=u=>[RX+u*230,RY-Math.sin(Math.min(1,u)*Math.PI)*36-u*10];   // lanterns come down a string from the right to the ring
+  // the lanterns come down a string from the overhead rows at the far right, past the end of the line of dancers, and along the
+  // front of the floor to the ring: never across a face or a pair of joined hands
+  const DP=[[RX,RY],[288,140],[297,44]],DL1=Math.hypot(DP[1][0]-DP[0][0],DP[1][1]-DP[0][1]),DL2=Math.hypot(DP[2][0]-DP[1][0],DP[2][1]-DP[1][1]);
+  const path=u=>{const d=Math.max(0,Math.min(1,u))*(DL1+DL2);if(d<=DL1){const f=d/DL1;return [DP[0][0]+(DP[1][0]-DP[0][0])*f,DP[0][1]+(DP[1][1]-DP[0][1])*f+Math.sin(f*Math.PI)*5];}
+    const f=(d-DL1)/DL2;return [DP[1][0]+(DP[2][0]-DP[1][0])*f,DP[1][1]+(DP[2][1]-DP[1][1])*f];};
   return {title:'Keep time',how:K.fine?'Lanterns come down the string to the ring. Click (or press Space) just as each one reaches it.':'Lanterns come down the string to the ring. Tap just as each one reaches it.',hint:'Press as each lantern reaches the ring.',st,
     update(dt,I){st.t+=dt;if(st.end){st.end+=dt;if(st.end>1.2){st.done=true;st.score=st.score/N;F2R.dance={hits:st.score};}return;}
       if(I.pressed){let best=null,bd=.22;for(const n of notes){if(n.hit!==null)continue;const d=Math.abs(n.t-st.t);if(d<bd){bd=d;best=n;}}
-        if(best){best.hit=true;st.score++;st.flash=.6;const q=bd<.07?1:bd<.14?.8:.62;K.judge(q,RX,RY-40);A.tone(440+st.score*28,.14,'triangle',.07);if(q>=1)st.hearts.push({x:RX+10,y:RY-10,t:0});}
-        else{A.tone(150,.1,'square',.03);K.judge(.1,RX,RY-40,true);}}
+        if(best){best.hit=true;st.score++;st.flash=.6;const q=bd<.07?1:bd<.14?.8:.62;K.judge(q,RX+34,RY-24);A.tone(440+st.score*28,.14,'triangle',.07);if(q>=1)st.hearts.push({x:RX+10,y:RY-10,t:0});}
+        else{A.tone(150,.1,'square',.03);K.judge(.1,RX+34,RY-24,true);}}
       for(const n of notes)if(n.hit===null&&st.t-n.t>.24){n.hit=false;K.combo=0;}
       for(const h of st.hearts)h.t+=dt;st.hearts=st.hearts.filter(h=>h.t<1.4);if(st.flash>0)st.flash-=dt;
       if(st.t>notes[N-1].t+1)st.end=.001;},

@@ -78,3 +78,7 @@ orders. Latest round first.
 | Wall mirror sprite, oval (Nov 12) | 6 | yes (owner asked for oval) | toward 7: a finer bevel line inside the lip |
 | Butchery knife game: hen / side of beef (t325, Nov 12) | hen 6 -> 6.5 (both orders); beef 5.5 -> 5.5 -> 6 -> 6 (both orders) | yes (art325.js; was a pink blob and a red oval, and a sack on the scale) | toward 7: ribs fanning more steeply; move the shared READY plaque off the subject |
 | Butcher's block in the yard + turned views (t325, Nov 12) | front 6 (both orders), turned set 6 | yes: bench_butcher, _e, _bk, _w | toward 7: the hen's darker wing edge at 1x; a little more bark texture on the edge-on views |
+| Farm hands' props at work: basket, pouch, cans, pick, stones (t325, Nov 12) | 6.5 | yes (art325.js; were coloured boxes) | the hands still wear the old farmer sheets: new character art is t332 |
+| Tractor with seed drill and reaper at work (t325, Nov 12) | 6 -> 6.5 | yes | toward 7: seed slots on the drill |
+| Brewing benches, turned views (t325, Nov 12) | 6 | yes | toward 7: press frame shading, the still's neck |
+| Festival booths, prizes and fair games (t324, Nov 12) | r1 6/15 at 6, r2 11/15, r3 14/16, r4-r6 16/16 (toss 6, dance 6) | yes (festart2.py, fest324g.js) | toward 7: couples at more than one depth; pegs with real form and a worn board |

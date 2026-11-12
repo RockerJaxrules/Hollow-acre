@@ -1151,6 +1151,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A dark hard-edged square at the point of play reads as a glitch: a shadow under the cursor must be the shape of the thing (an apple) with a ripple, never a box.
 - A cut-out figure needs its outline (a flared hem, arms, a bow in the hair), or a white column reads as a milk bottle.
 - A doll must carry the one naming detail of what it is (a scarecrow: crossbar arms, sack face, straw at neck and cuffs), not just clothes and a hat.
+- (r3-r7) A game's own path (a lantern string, an aim line) must never cross its subject: route it in front of or beside the people, or it reads as a skewer, a cord or a drawn arm.
+- Two people holding hands: never a 1 px line between them (it reads as a skewer between their mouths). Draw each near arm in their own sleeve, as thick as their hanging arm (3 px, outlined), bent at the elbow, meeting in clasped hands at chest height, with 2+ px between the faces.
+- A shadow joined at an object's side reads as a handle (a peg became a mug): start the shadow under the base and let it fall away clear of the side.
+- A small cap lit with a cross-shaped highlight reads as a wick: a plain lit oval with a darker lower-right rim.
+- A held thing must touch the hand: a ring floating beside the fist reads as a separate pickup.
+- Partners pressed together read as a hug: leave a half-step between bodies.
+- Keep verdict text (PERFECT) and HUD meters clear of the people and the moving pieces; a lantern dropping beside a gauge reads as part of the HUD.
 
 ## Outlines, light, colour
 

@@ -92,3 +92,27 @@ const f6Seed=q=>q&&(/^seed_?/.test(q.k)||q.k==='seedc'||(SEEDS[q.k]&&/seed/i.tes
 for(const v of ['mae','v_feed']){if(!vendors[v])continue;const _r=vendors[v].rows;vendors[v].rows=()=>{const r=_r();const s=r.filter(f6Seed),o=r.filter(q=>!f6Seed(q));return s.concat(o);};}
 // a save made in the middle of a free click never keeps the borrowed coins
 {const _sg=saveGame;saveGame=function(){if(F6.b){S.coins-=F6.b;try{return _sg.apply(this,arguments);}finally{S.coins+=F6.b;}}return _sg.apply(this,arguments);};}
+
+// ---------------------------------------------------------------- 5. everything works and can be had (the audit)
+// the fair's scarecrow doll and ribbon board had no footprint, so neither could ever be put down; and they're prizes only,
+// not things the furniture bench or Nell make (they showed there at 99 fibre / 99 wood)
+if(typeof FURN_FP!=='undefined'){FURN_FP.f2_plush=FURN_FP.f2_plush||[.9,.5];FURN_FP.f2_board=FURN_FP.f2_board||[1.4,.45];}
+const F6_PRIZE=new Set(['f2_plush','f2_board']);
+const f6Keep=k=>F6_PRIZE.has(k)||/^sp_/.test(k);   // prizes, and a spouse's own keepsakes (they come with the person who moves in)
+if(vendors.b_furn){const _r=vendors.b_furn.rows;vendors.b_furn.rows=()=>_r().filter(q=>!(q&&f6Keep(q.k)));}
+if(vendors.v_carp){const _r=vendors.v_carp.rows;vendors.v_carp.rows=()=>_r().filter(q=>!(q&&/^f_/.test(q.k)&&f6Keep(q.k.slice(2)))).map(q=>q&&/^f_/.test(q.k)&&q.price<20?Object.assign({},q,{price:20}):q);}
+// the cowhide coat: wearing it now really turns teeth (it was only a thing in the bag)
+if(typeof ARMORS!=='undefined'&&!ARMORS.hidecoat)Object.defineProperty(ARMORS,'hidecoat',{value:['Cowhide coat',.46,40],enumerable:false,writable:true});
+if(vendors.b_armor){const _r=vendors.b_armor.rows;vendors.b_armor.rows=()=>_r().map(q=>{if(!q||q.k!=='hidecoat'||q._f6)return q;const b=q.buy;
+  return Object.assign({},q,{_f6:1,desc:'A long coat cut from your own cowhide, waxed. Takes 46% off every bite, +40 max health: better than anything sold in the valley. You put it on as soon as it’s done.',
+    buy(){const r=b.apply(this,arguments);S.gear=S.gear||{};S.gear.armor='hidecoat';S.hpMax=140;S.hp=Math.min(S.hpMax,(S.hp||0)+40);try{updateHud&&updateHud();}catch(e){}return r;}});});}
+// dyes were paid for twice (the bench takes what a row needs, then the row took it all again), and walnut brown asked for 4 wood
+// where it says 4 and 1 to burn
+if(typeof DYE!=='undefined'&&vendors.cook){const _r=vendors.cook.rows;vendors.cook.rows=()=>_r().map(q=>{if(!q||!/^dye_/.test(q.k)||q._f6)return q;const c=q.k.slice(4),D=DYE[c];if(!D)return q;
+  const need=D.item==='wood'?{wood:D.n+1}:Object.assign({wood:1},D.item?{[D.item]:D.n}:{});
+  const ok=(!D.from||S.basket.filter(b=>b.kind===D.from).length>=D.n)&&Object.entries(need).every(([k,n])=>inv(k)>=n);
+  return Object.assign({},q,{_f6:1,need,can:ok,buy(){if(D.from){for(let i=0;i<D.n;i++){const j=S.basket.findIndex(b=>b.kind===D.from);if(j>=0)S.basket.splice(j,1);}}
+    addInv('dye_'+c,1);updateHud&&updateHud();}});});}
+// the furnace bench had its own bricklaying game, filed under a name the plans never asked for
+if(typeof MG4R!=='undefined'&&MG4R['build:furnace']&&!MG4R['build:bench_furnace'])MG4R['build:bench_furnace']=MG4R['build:furnace'];
+if(typeof CG3_RECIPES!=='undefined'&&CG3_RECIPES['build:furnace']&&!CG3_RECIPES['build:bench_furnace'])CG3_RECIPES['build:bench_furnace']=CG3_RECIPES['build:furnace'];
