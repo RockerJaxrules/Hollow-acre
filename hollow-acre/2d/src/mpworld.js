@@ -36,8 +36,8 @@ async function fhSprite(i){const key='fhcab_'+i;if(SPR[key])return key;const bas
       ['in_bed',1.3,2.6,[-.85,-2.1,.85,0]],['in_shelf_books',3.2,.62,[-.8,-.4,.8,0]],['in_stove',7.9,.95,[-.68,-.5,.68,0]],
       ['in_rug',4.4,4.0,null,'flat'],['in_table',6.3,3.5,[-.85,-.45,.85,0]],['in_chair',5.2,3.55,[-.3,-.25,.3,0]],
       ['barrel',8.4,5.2,[-.4,-.3,.4,0]],['in_clock',4.6,.55,[-.3,-.3,.3,0]]]};ox+=40;}}
-const fhOwner=i=>{const sl=(S.world&&S.world.slots)||{};for(const [n,k] of Object.entries(sl))if(k===i)return n;return '';};
-const mySlot=()=>{const sl=(S.world&&S.world.slots)||{};const k=sl[NAME()||'Farmhand'];return Number.isInteger(k)?k:-1;};
+let fhOwner=i=>{const sl=(S.world&&S.world.slots)||{};for(const [n,k] of Object.entries(sl))if(k===i)return n;return '';};
+let mySlot=()=>{const sl=(S.world&&S.world.slots)||{};const k=sl[NAME()||'Farmhand'];return Number.isInteger(k)?k:-1;};
 // the beds in them: a farmhand sleeps in their own cabin
 for(let i=0;i<FH_SPOTS.length;i++){const k='fcab'+i;
   interact.push({x:ROOMS[k].ox+1.3,z:ROOMS[k].oz+2.9,r:1.3,on:()=>S.room===k,label:()=>'Sleep',ok:()=>true,act(){if(S.hour<18&&typeof sleepEarly==='function'){sleepEarly();return;}sleep();}});}
