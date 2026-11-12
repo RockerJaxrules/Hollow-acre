@@ -1316,3 +1316,4 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A card that appears after a tap must appear where the tap was looked at: float it over the map rather than below it, or PC players never see its Save button.
 - A player's tag on a map must never sit on top of a printed place name: hide the place label under it, or move the tag.
 - A flag in the world needs the prop rules too: an outline, a shadow at the foot, a stake about two-thirds the farmer's height, and the mark's sign on the cloth. A plain coloured rectangle reads as a golf flag.
+- [owner] Anything strung over a walkway must hang above the farmer's head (64 px): the first festival string had posts the farmer's height, and the owner sent a photo of him walking through the lanterns. Check a prop's height against the farmer before it ships.
