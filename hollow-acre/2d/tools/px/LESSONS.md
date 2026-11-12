@@ -976,6 +976,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 
 - Owner (Nov 12), verbatim: "If you think you can get them to six keep going if not put them in and continue". Understood: when a redraw is preferred over the installed art in every blind round but stalls at 5-5.5, and more fix rounds will not reach 6, install it (old kept as backup) and move on; do not leave the better art out of the game.
 
+## Furniture family pass (Nov 12)
+- Grain on dark door panels: the same pair of streaks on every panel reads as claw marks or hair. Grain goes on one or two panels at most, never repeated in the same place.
+- Judges contradict each other on family-wide advice (a family judge called the deep pantry top a camera change and the rocker's honey wood candy; the A/B judge preferred both). Test family advice piece by piece in blind A/B before believing it.
+- Shelf contents: varying them by leaving dark empty cells makes a hutch look bare; vary shape and height inside a full row instead, and keep every item inside the frame.
+
 ## Furniture family round 2 (Nov 11)
 - A wall mirror reads at 1x with a lit top-left frame bevel, a thin dull gilt slip and grey-green glass carrying one diagonal sheen; a plain blue pane reads as a window or cabinet door.
 - A bench back of planks with a see-through gap between them reads as a fence; three raised panels read as drawers; two long raised panels and a dark under-seat that fades to the floor read as a pew.

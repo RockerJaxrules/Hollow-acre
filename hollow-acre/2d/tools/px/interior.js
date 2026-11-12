@@ -463,9 +463,9 @@ if(K==='shelfN'){const x0=2,w=W-4,top=6,fh=H-4-top;topBox(x0,1,w,top,fh,WD,WD[2]
 function ln(L,x0,y0,x1,y1,c,t){t=t||1;const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0))*2+1;for(let i=0;i<=n;i++){const u=i/n,x=Math.round(x0+(x1-x0)*u),y=Math.round(y0+(y1-y0)*u);for(let a=0;a<t;a++)for(let b=0;b<t;b++)P(L,x+a,y+b,c);}}
 function stile(x,y0,y1,w,R){for(let y=y0;y<y1;y++){P(A,x,y,R[4]);for(let i=1;i<w-1;i++)P(A,x+i,y,R[3]);P(A,x+w-1,y,R[1]);}}
 function plaid(x0,y0,w,h,top){for(let j=0;j<h;j++)for(let i=0;i<w;i++){const a=(Math.floor(i/3)+Math.floor(j/3))%2;let c=a?RD[3]:RD[4];if(i%3===1&&j%3===1)c=PAL.cream[2];if(j<top)c=shade(c,1.12);if(j===h-1)c=RD[1];P(A,x0+i,y0+j,c);}}
-if(K==='rockS'){const R=['#1e140f','#352418','#4f3724','#694b32','#836142','#9c7a57'].map(HEX);   /* (judge fam5: "honey-orange wood, the most candy-coloured in the set") the family's dull oak */
+if(K==='rockS'){const R=WD;
   // rockers first: two curved runners coming toward you, toes curling up at the front
-  for(const s of [-1,1]){const bx=cx+s*8,fx=cx+s*13;for(let k=0;k<=18;k++){const u=k/18,x=Math.round(bx+(fx-bx)*u),y=Math.round(32+u*14-(u>.84?(u-.84)*20:0));const LT=['#bc9a6c','#a3845c','#856846'].map(HEX);P(A,x,y,LT[0]);P(A,x,y+1,LT[1]);P(A,x+(s>0?1:-1),y+1,LT[2]);P(A,x,y+2,R[2]);if(k===18){P(A,x,y-1,LT[0]);P(A,x+(s>0?1:-1),y,LT[1]);}}}   /* (judge fam2: "lighter curved runner tips well forward of both feet") pale pine runners; (judge fam1: "reads as a Windsor chair") the runners run on well past the feet, a step lighter than the frame, their toes curling up */
+  for(const s of [-1,1]){const bx=cx+s*8,fx=cx+s*13;for(let k=0;k<=18;k++){const u=k/18,x=Math.round(bx+(fx-bx)*u),y=Math.round(32+u*14-(u>.84?(u-.84)*20:0));const LT=['#d4ad78','#bd9562','#9c774c'].map(HEX);P(A,x,y,LT[0]);P(A,x,y+1,LT[1]);P(A,x+(s>0?1:-1),y+1,LT[2]);P(A,x,y+2,R[2]);if(k===18){P(A,x,y-1,LT[0]);P(A,x+(s>0?1:-1),y,LT[1]);}}}   /* (judge fam2: "lighter curved runner tips well forward of both feet") pale pine runners; (judge fam1: "reads as a Windsor chair") the runners run on well past the feet, a step lighter than the frame, their toes curling up */
   // back legs (half hidden), front legs
   stile(cx-9,31,38,2,R);stile(cx+7,31,38,2,R);stile(cx-12,30,40,3,R);stile(cx+9,30,40,3,R);
   // the tall back: arched top rail, two stiles, five spindles
@@ -477,7 +477,7 @@ if(K==='rockS'){const R=['#1e140f','#352418','#4f3724','#694b32','#836142','#9c7
   // arms reaching forward from the back, on turned front posts
   for(const s of [-1,1]){const x0=s<0?cx-11:cx+10,x1=s<0?cx-14:cx+12;ln(A,x0,14,x1,23,R[4],2);ln(A,x0+(s<0?1:0),16,x1+(s<0?1:0),25,R[2]);stile(s<0?cx-14:cx+11,24,31,3,R);P(A,(s<0?cx-14:cx+11)+1,26,R[5]);}
   gs(cx,base-1,13,2,80);}
-if(K==='rockE'){const R=['#1e140f','#352418','#4f3724','#694b32','#836142','#9c7a57'].map(HEX);   /* (judge fam5: "honey-orange wood, the most candy-coloured in the set") the family's dull oak */
+if(K==='rockE'){const R=WD;
   // a long curved runner under it all
   for(let x=3;x<W-3;x++){const u=(x-W/2)/(W/2-3),y=Math.round(41-u*u*5);P(A,x,y,R[4]);P(A,x,y+1,R[3]);P(A,x,y+2,R[1]);}
   // legs down to the runner
@@ -489,7 +489,7 @@ if(K==='rockE'){const R=['#1e140f','#352418','#4f3724','#694b32','#836142','#9c7
   // the arm and its front post
   ln(A,11,13,31,15,R[4],2);hl(A,12,13,19,R[5]);stile(29,16,25,3,R);
   gs(W/2|0,base-1,18,2,80);}
-if(K==='rockN'){const R=['#1e140f','#352418','#4f3724','#694b32','#836142','#9c7a57'].map(HEX);   /* (judge fam5: "honey-orange wood, the most candy-coloured in the set") the family's dull oak */
+if(K==='rockN'){const R=WD;
   for(const s of [-1,1]){const bx=cx+s*12,fx=cx+s*8;for(let k=0;k<=12;k++){const u=k/12,x=Math.round(bx+(fx-bx)*u),y=Math.round(44-u*8+(u<.15?(.15-u)*12:0));P(A,x,y,R[3]);P(A,x,y+1,R[1]);}}
   stile(cx-12,30,42,3,R);stile(cx+9,30,42,3,R);stile(cx-9,30,37,2,R);stile(cx+7,30,37,2,R);
   for(const s of [-1,1]){const x0=s<0?cx-11:cx+10,x1=s<0?cx-14:cx+12;ln(A,x0,14,x1,23,R[3],2);stile(s<0?cx-14:cx+11,24,30,3,R);}
