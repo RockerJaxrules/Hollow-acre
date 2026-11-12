@@ -155,13 +155,15 @@ S4.crClamps=(sp,K)=>{const g=K.g,HY=104,HR=13;const CL=[{x:128,tq:0,done:0},{x:2
   const bay=M4.pre('crclampbay',320,180,k=>{crBay(k,320,180,17,{cover:[150,12,160,24],loom:[110,160,310,150],bolts:[[180,150],[300,60]]});},false);
   const rad=M4.pre('crradiator',90,140,k=>{const I=CA_P.iron;for(let y=0;y<140;y++)for(let x=0;x<90;x++){let v=x%3===0?2:3.6-(y/140)*.8;if(y<18||y>126)v=4.6-(y<18?0:1.5)-(x/90)*.6;k.px(x,y,1,1,crT(I,v));}k.px(0,0,90,1,I[7]);k.px(0,18,90,1,I[2]);k.px(0,126,90,1,I[6]);
       k.px(84,26,6,14,I[5]);k.px(84,26,6,1,I[7]);},false);
-  const st={t:0,i:0,res:[],end:0,spray:0,turn:0};
+  const st={t:0,i:0,res:[],end:0,spray:0,turn:0,nudge:0};
   const hose=(K,x0,x1)=>{for(let x=x0;x<x1;x++){const wob=Math.sin(x*.05)*1.5;for(let y=-HR;y<=HR;y++){const u=y/HR;let k=3.4-u*1.6;if(Math.abs(u)>.86)k=1;K.px(x,HY+wob+y,1,1,crT(CRP.RUB,k));}}};
   const LO=.66,HI=.86;
   return {title:sp.t||'Clamp the hoses',how:'Hold to turn the screw: the clamp band closes round the hose. Let go when the needle is in the green. Keep going and it cuts the hose.',hint:'Hold to turn. Let go in the green.',st,
-    update(dt,I){st.t+=dt;if(st.spray>0)st.spray-=dt;
+    update(dt,I){st.t+=dt;if(st.spray>0)st.spray-=dt;if(st.nudge>0)st.nudge-=dt;
       if(st.end){st.end+=dt;if(st.end>.7){st.done=true;st.score=M4.cl(M4.avg(st.res),.05,1);}return;}
-      const c=CL[st.i];if(!c)return;
+      const c=CL[st.i];if(!c||c.done)return;
+      // (#279) a quick click barely turns the screw: say to keep holding, rather than seem to do nothing
+      if(I.released&&c.tq<=.05){st.nudge=1.6;c.tq=0;}
       if(I.down){const rate=c.tq<.5?.7:.42;c.tq=Math.min(1.2,c.tq+dt*rate);st.turn+=dt*9;if(Math.random()<dt*10)A.tone(1400+c.tq*600,.02,'square',.01);if(c.tq>1.02&&!c.cut){c.cut=1;st.spray=.8;A.hiss(.5,.12,'highpass',2400);}}
       else if(c.tq>.05&&!c.done){c.done=1;const mid=(LO+HI)/2;const q=c.cut?.12:c.tq>=LO&&c.tq<=HI?(1-Math.abs(c.tq-mid)/(HI-mid)>.5?1:.75):c.tq<LO?Math.max(.15,c.tq/LO*.5):.4;
         st.res.push(q);K.judge(q,c.x,HY-44,true);if(q>=.6){MS.good();A.tone(700,.05,'triangle',.05);}else MS.miss();
@@ -181,6 +183,7 @@ S4.crClamps=(sp,K)=>{const g=K.g,HY=104,HR=13;const CL=[{x:128,tq:0,done:0},{x:2
           // the dial painted round the screw: a dark track, the green where it bites, a needle that follows the turns
           for(let a=Math.PI;a<=Math.PI*2;a+=.04){const u=(a-Math.PI)/Math.PI,on=u>=LO/1.2&&u<=HI/1.2;K.px(dx+Math.cos(a)*R-1,dy+Math.sin(a)*R-1,2,2,on?'#7cc04a':'#1a0e06');}
           const na=Math.PI+Math.min(1.2,c.tq)/1.2*Math.PI;K.line(dx+Math.cos(na)*6,dy+Math.sin(na)*6,dx+Math.cos(na)*(R+3),dy+Math.sin(na)*(R+3),'#fff4c0',1);}}
+      if(st.nudge>0&&!st.end){const c=CL[Math.min(st.i,CL.length-1)];g.globalAlpha=Math.min(1,st.nudge*2);K.label('KEEP HOLDING',c.x,HY+HR+10,'#ffd27a','c');g.globalAlpha=1;}
       if(st.spray>0){const c=CL[st.i];K.emit(c.x+4,HY-4,2,{c:['#9ad0b0','#58a090'],v:60,ang:-1.2,spread:1.2,g:200,life:.5});}
       // the screwdriver on the screw being turned, yellow handle stripes rolling as it turns
       const c=CL[Math.min(st.i,CL.length-1)];const gap=Math.round((1-Math.min(1,c.tq))*3),sx=c.x,sy=HY-HR-14+gap;
@@ -314,15 +317,15 @@ S4.crGlass=(sp,K)=>{const g=K.g;const W0=CR_WIN;
 // ================================================================= THE GLASS, 2: run the seal round the edge, steady
 S4.crSeal=(sp,K)=>{const g=K.g;const W0=CR_WIN,o=2;
   const PATH=[[W0.tl[0]-o,W0.tl[1]-o],[W0.tr[0]+o,W0.tr[1]-o],[W0.br[0]+o,W0.br[1]+o],[W0.bl[0]-o,W0.bl[1]+o],[W0.tl[0]-o,W0.tl[1]-o]];
-  const L=m4len(PATH),N=90;const seg=Array(N).fill(0);const st={t:0,s:0,x:PATH[0][0],y:PATH[0][1],res:[],smear:0,end:0,blobs:[],lx:null,ly:null};
+  const L=m4len(PATH),N=90;const seg=Array(N).fill(0);const st={seg,t:0,s:0,x:PATH[0][0],y:PATH[0][1],res:[],smear:0,end:0,blobs:[],lx:null,ly:null};
   return {title:sp.t||'Run the seal',how:'Hold and draw the bead of sealant round the edge of the glass, all the way round, at a steady pace. Off the seam it smears.',hint:'Hold and go round the seam. Steady, not fast.',st,
     update(dt,I){st.t+=dt;if(st.end){st.end+=dt;if(st.end>.6){st.done=true;const cov=seg.filter(v=>v>0).length/N;st.score=M4.cl(cov*M4.avg(seg.filter(v=>v>0))-st.smear*.02,.05,1);}return;}
       st.x+=(I.x-st.x)*Math.min(1,dt*25);st.y+=(I.y-st.y)*Math.min(1,dt*25);
-      if(I.down){const [s,d]=m4near(PATH,st.x,st.y);const sp_=st.lx==null?0:Math.hypot(st.x-st.lx,st.y-st.ly)/Math.max(dt,.001);
+      if(I.down){const [d,s]=m4near(PATH,st.x,st.y);const sp_=st.lx==null?0:Math.hypot(st.x-st.lx,st.y-st.ly)/Math.max(dt,.001);
         if(d<5){const i=Math.min(N-1,Math.floor(s/L*N));const q=sp_>170?.45:sp_<12?.6:1-Math.max(0,(sp_-110)/120);if(!seg[i])seg[i]=M4.cl(q,.3,1);if(sp_<12&&Math.random()<dt*3)st.blobs.push([st.x,st.y]);if(Math.random()<dt*12)A.hiss(.04,.02,'bandpass',600);}
         else if(d<16){if(Math.random()<dt*6){st.smear++;st.blobs.push([st.x,st.y]);}}
         st.lx=st.x;st.ly=st.y;}else{st.lx=null;}
-      if(seg.filter(v=>v>0).length>=N*.97&&!st.end){st.end=.001;MS.good();}},
+      if(seg.filter(v=>v>0).length>=N*.95&&!st.end){st.end=.001;MS.good();}},
     draw(t){crWinFrame(K,t);
       // the glass in place
       for(let y=46;y<119;y++){const u=(y-44)/76;const l=Math.round(96-24*u)+2,r=Math.round(224+24*u)-2;g.globalAlpha=.55;K.px(l,y,r-l,1,crT(CRP.GL,2.6+((y*3)%40<4?1.4:0)));g.globalAlpha=1;}

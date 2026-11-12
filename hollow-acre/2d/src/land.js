@@ -127,3 +127,23 @@ setTimeout(()=>{try{landSync();}catch(e){}},0);
       const o=t.debris;if(!o||!o.hide||o.stumpOf)continue;o.hide=false;o.goneDay=null;if(o.col&&!circles.includes(o.col))circles.push(o.col);n++;}
     if(n)setTimeout(()=>toast('Grandpa’s field has grown over again: stones, weeds and sticks to clear before you can plant it.',4.4),2600);}}catch(e){console.warn('field regrow',e);}
   return r;};}
+// ---- #278: the field's layout goes in the save, square by square (what lies there and exactly where), and comes back exactly.
+// It used to be scattered fresh each time the game opened, from the same random stream the rest of the world is built from,
+// so any update that added a tree or a fence somewhere shifted the whole field: squares you'd cleared grew over again and the
+// "cleared" marks landed on empty ground. Now the stones you broke stay broken, nothing grows on a square you've tilled or
+// planted, and a friend who joins gets the host's field stone for stone.
+const fdBase=()=>tiles.filter(t=>!t.parcel);
+const FD_SPR=/^(weeds_[01]|rock_[01]|twig)$/;
+function fdDrop(o){o.hide=true;o.debris=null;o.goneDay=null;if(o.col){const q=circles.indexOf(o.col);if(q>=0)circles.splice(q,1);}}
+function fdLayout(arr){const base=fdBase();let n=0;
+  for(let i=0;i<base.length&&i<arr.length;i++){const t=base[i];if(t.gh)continue;const a=arr[i];
+    const want=Array.isArray(a)&&FD_SPR.test(a[0])&&isFinite(a[1])&&isFinite(a[2])&&Math.abs(a[1]-t.x)<1&&Math.abs(a[2]-t.z)<1?a:null;
+    const o=t.debris;if(o&&o.stumpOf)continue;
+    if(want&&o&&o.spr===want[0]&&Math.abs(o.x-want[1])<.006&&Math.abs(o.z-want[2])<.006)continue;if(!want&&!o)continue;
+    if(o)fdDrop(o);t.debris=null;if(want)makeDebris(want[0],+want[1],+want[2],t);n++;}
+  if(n&&typeof NAV!=='undefined')NAV.sig='';return n;}
+function fdTidy(){for(const t of fdBase()){const o=t.debris;if(!o||o.hide||!(t.tilled||t.crop))continue;o.hide=true;o.goneDay=S.day;if(o.col){const q=circles.indexOf(o.col);if(q>=0)circles.splice(q,1);}}}
+{const _sd=saveData;saveData=function(){const d=_sd.apply(this,arguments);
+  try{d.fdeb=fdBase().map(t=>{const o=t.debris;return t.gh||!o||o.stumpOf||!FD_SPR.test(o.spr)?0:[o.spr,+o.x.toFixed(3),+o.z.toFixed(3)];});}catch(e){}return d;};}
+{const _lg=loadGame;loadGame=function(d){try{if(d&&Array.isArray(d.fdeb))fdLayout(d.fdeb);}catch(e){console.warn('field layout',e);}
+  const r=_lg.apply(this,arguments);try{fdTidy();}catch(e){}return r;};}

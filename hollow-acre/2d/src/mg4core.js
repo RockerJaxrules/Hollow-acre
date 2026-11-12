@@ -105,7 +105,7 @@ function mg4Run(def,name,done,icon){if(MG4.closeCur)MG4.closeCur(true);const box
   let cur=null,phase='title',pt=0,last=performance.now(),result=null,banner=null,reveal=0,ended=false;const I={x:160,y:90,down:false,pressed:false,released:false,dx:0,dy:0,side:0,ax:0,ay:0,demo:false};const AP={};
   box.style.display='flex';MG4.on=true;CG.on=true;S.paused=true;$('mg4T').textContent=name;
   const spd=()=>steps[run.i];
-  const mk=demo=>{if(cur&&cur.stop)cur.stop();const sp=spd();cur=S4[sp.k](sp,K,run,def);cur.demo=demo;K.combo=0;window.__mg4cur=cur;
+  const mk=demo=>{if(cur&&cur.stop)cur.stop();const sp=spd();cur=S4[sp.k](sp,K,run,def);cur.demo=demo;K.combo=0;window.__mg4cur=cur;window.__mg4I=I;
     // a step may keep its finish on its state
     if(cur.st&&!('done' in cur))Object.defineProperties(cur,{done:{get(){return !!cur.st.done;}},score:{get(){return cur.st.score||0;}}});};
   const hint=()=>{const sp=spd(),tr=run.tries[run.i]||0;$('mg4H').innerHTML=`<b>${steps.length>1?`${run.i+1}/${steps.length} · `:''}${sp.t||cur.title}.</b> ${cur.hint}${tr>0?` <span style="color:#e8b030">Try ${tr+1} of ${MG4_TRIES}</span>`:''}`;};
@@ -121,18 +121,21 @@ function mg4Run(def,name,done,icon){if(MG4.closeCur)MG4.closeCur(true);const box
   const press=()=>{A.init&&A.init();if(result!==null)return;
     if(phase==='title'){afterTitle();return;}
     if(phase==='demo'){phase='your';pt=0;$('mg4H').innerHTML=`<b>Your turn.</b> ${cur.how} ${K.fine?'Click or press Space':'Tap'} to start.`;return;}
-    if(phase==='your'){if(pt<.3)return;S.cgTut['v4'+spd().k]=1;mk(false);phase='ready';pt=0;hint();return;}
-    if(phase!=='play')return;I.down=true;I.pressed=true;};
-  cv.onpointerdown=e=>{e.preventDefault();cv.setPointerCapture&&cv.setPointerCapture(e.pointerId);[I.x,I.y]=toXY(e);I.px=I.x;I.py=I.y;press();};
+    if(phase==='your'){if(pt<.3){I.goQ=true;return;}S.cgTut['v4'+spd().k]=1;mk(false);phase='ready';pt=0;I.goQ=false;hint();return;}
+    // (#279) a press made during the count-in is not lost: if it is still held when play starts, it counts as holding
+    if(phase!=='play')return;I.down=true;I.pressed=true;I.fresh=true;};
+  // (#279) a quick click can go down and up between two frames; the game must still see it held for one frame and let go the next
+  const lift=()=>{if(I.fresh){I.upQ=true;return;}if(I.down)I.released=true;I.down=false;};
+  cv.onpointerdown=e=>{e.preventDefault();try{cv.setPointerCapture&&cv.setPointerCapture(e.pointerId);}catch(_){}[I.x,I.y]=toXY(e);I.px=I.x;I.py=I.y;I.raw=true;press();};
   cv.onpointermove=e=>{const [x,y]=toXY(e);I.x=x;I.y=y;I.ptrT=performance.now();};
-  cv.onpointerup=cv.onpointercancel=()=>{if(I.down)I.released=true;I.down=false;};
+  cv.onpointerup=cv.onpointercancel=()=>{I.raw=false;lift();};
   // keys held for steering (move the pan, guide the knife): A/D or arrows across, W/S or arrows up and down
   const HK={KeyA:'l',ArrowLeft:'l',KeyD:'r',ArrowRight:'r',KeyW:'u',ArrowUp:'u',KeyS:'d',ArrowDown:'d'};const held={l:0,r:0,u:0,d:0};
   const axes=()=>{I.ax=held.r-held.l;I.ay=held.d-held.u;};
   const kd=e=>{if(e.code==='Escape'){e.preventDefault();e.stopPropagation();while(run.scores.length<steps.length)run.scores.push(.5);finish();return;}
     if(HK[e.code]){e.preventDefault();e.stopPropagation();held[HK[e.code]]=1;axes();if(!e.repeat&&phase==='play'&&/KeyA|ArrowLeft|KeyD|ArrowRight/.test(e.code)){I.side=/KeyA|ArrowLeft/.test(e.code)?-1:1;I.sideT=performance.now();}return;}
-    if(e.code==='Space'||e.code==='Enter'||e.code==='KeyC'){e.preventDefault();e.stopPropagation();if(!e.repeat){I.key=true;press();}}};
-  const ku=e=>{if(HK[e.code]){held[HK[e.code]]=0;axes();return;}if(e.code==='Space'||e.code==='Enter'||e.code==='KeyC'){if(I.down)I.released=true;I.down=false;I.key=false;}};addEventListener('keydown',kd,true);addEventListener('keyup',ku,true);
+    if(e.code==='Space'||e.code==='Enter'||e.code==='KeyC'){e.preventDefault();e.stopPropagation();if(!e.repeat){I.key=true;I.raw=true;press();}}};
+  const ku=e=>{if(HK[e.code]){held[HK[e.code]]=0;axes();return;}if(e.code==='Space'||e.code==='Enter'||e.code==='KeyC'){I.raw=false;lift();I.key=false;}};addEventListener('keydown',kd,true);addEventListener('keyup',ku,true);
   $('mg4Skip').onclick=()=>{while(run.scores.length<steps.length)run.scores.push(.5);finish();};
   const amb=mg4Ambience(def.scene);MG4.closeCur=close;begin();
   const frame=now=>{if(ended)return;const dt=Math.min(.05,(now-last)/1000)*(window.CG2_SPEED||1);last=now;const t=now/1000;pt+=dt;
@@ -140,8 +143,14 @@ function mg4Run(def,name,done,icon){if(MG4.closeCur)MG4.closeCur(true);const box
     I.dx=I.x-(I.lx==null?I.x:I.lx);I.dy=I.y-(I.ly==null?I.y:I.ly);I.lx=I.x;I.ly=I.y;
     if(phase==='title'){if(pt>1.1)afterTitle();}
     else if(phase==='demo'){I.demo=true;cur.auto(dt,AP,t);cur.update(dt,AP.I||I,t);if(cur.done||pt>8){phase='your';pt=0;$('mg4H').innerHTML=`<b>Your turn.</b> ${cur.how} ${K.fine?'Click or press Space':'Tap'} to start.`;}}
-    else if(phase==='ready'){if(pt>.9){phase='play';pt=0;I.pressed=I.released=false;}}
-    else if(phase==='play'){I.demo=false;if(window.MG4_AUTO){cur.auto(dt,AP,t);cur.update(dt,AP.I||I,t);}else cur.update(dt,I,t);
+    else if(phase==='your'){if(I.goQ&&pt>=.3){I.goQ=false;press();}}
+    else if(phase==='ready'){if(pt>.9){phase='play';pt=0;I.pressed=I.released=false;I.fresh=I.upQ=false;I.down=!!I.raw;}}
+    else if(phase==='play'){I.demo=false;if(window.MG4_AUTO){cur.auto(dt,AP,t);cur.update(dt,AP.I||I,t);}
+      else if(window.MG4_SHADOW){cur.auto(dt,AP,t);const q=AP.I||{};const r=cv.getBoundingClientRect(),ex=r.left+(q.x==null?I.x:q.x)/W*r.width,ey=r.top+(q.y==null?I.y:q.y)/H*r.height;   // (tests only: the auto-player's moves sent as real pointer events)
+        const fire=ty=>cv.dispatchEvent(new PointerEvent(ty,{clientX:ex,clientY:ey,pointerId:7,bubbles:true}));fire('pointermove');if(q.down&&!I.down)fire('pointerdown');else if(!q.down&&I.down)fire('pointerup');
+        const kb=(code,on)=>{const k=window.__mg4K||(window.__mg4K={});if(!!k[code]===on)return;k[code]=on;dispatchEvent(new KeyboardEvent(on?'keydown':'keyup',{code,bubbles:true}));};
+        kb('KeyW',(q.ay||0)<-.25);kb('KeyS',(q.ay||0)>.25);kb('KeyA',(q.ax||0)<-.25||q.side<0);kb('KeyD',(q.ax||0)>.25||q.side>0);cur.update(dt,I,t);}
+      else cur.update(dt,I,t);
       if(cur.done){const s=Math.max(0,Math.min(1,cur.score||0));window.__mg4last=+s.toFixed(2);const tr=run.tries[run.i]=(run.tries[run.i]||0)+1;run.best[run.i]=Math.max(s,run.best[run.i]||0);
         if(s<.5&&tr<MG4_TRIES){banner={txt:`Again: ${MG4_TRIES-tr} left`,c:'#e8b030',t:0};phase='retry';pt=0;}
         else{const b=run.best[run.i];run.scores[run.i]=b;banner={txt:b>.9?'Perfect':b>.65?'Good':b>.35?'Rough':'Ruined',c:b>.9?'#ffd27a':b>.65?'#9be07a':b>.35?'#e8c070':'#c04a2a',t:0};
@@ -149,7 +158,7 @@ function mg4Run(def,name,done,icon){if(MG4.closeCur)MG4.closeCur(true);const box
     else if(phase==='retry'){if(pt>1.3){mk(false);phase='ready';pt=0;hint();}}
     else if(phase==='next'){if(pt>1){run.i++;begin();}}
     if(phase!=='demo'&&phase!=='play'&&cur&&cur.quiet)cur.quiet();
-    I.pressed=false;I.released=false;I.side=0;
+    I.pressed=false;I.released=false;I.side=0;I.fresh=false;if(I.upQ){I.upQ=false;if(I.down)I.released=true;I.down=false;}
     // ---- draw
     g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';g.clearRect(0,0,W,H);
     if(K.shk>0){K.shk-=dt;g.setTransform(1,0,0,1,Math.round((Math.random()-.5)*3),Math.round((Math.random()-.5)*3));}

@@ -1372,3 +1372,15 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - No two close-ups may share a picture: each sight gets its own drawing.
 - A body is shoulders, sleeves, hands, two legs and boots; blocks of colour in a row read as a flag and a towel. A coffin reads by its six-sided outline, not a rectangle with a plaque.
 - Ground every object with an attached shadow under its foot; a shadow bar below a gap reads as floating.
+
+## Minigames that have to work by hand (#279, Nov 12)
+- **[owner]** "Some of the car minigames like the dial one aren't working": a game the auto-player finishes is not a game a person can finish. Test every minigame by sending the auto-player's moves through real pointer and key events (`MG4_SHADOW`), and one with Playwright's own mouse, before calling it done.
+- A click can go down and up between two frames: latch it so the game sees one held frame and the release the next, or a hold game (the clamp dial, the fuel can, the key) never notices the click.
+- Never drop an early click silently: a "your turn" click that comes a moment too soon is queued, and a press made during the count-in counts as holding once play starts.
+- If a quick click does nothing in a hold game, say so on screen ("KEEP HOLDING"); nothing happening reads as broken.
+- Check which way a helper returns its values before destructuring: `m4near` gives [distance, position along], and `[s,d]=` swapped them, so the windscreen seal never counted for anyone.
+- A test harness that checks `offsetParent` to see if the loading screen is gone is wrong for fixed elements (always null): wait for the element to be removed and the title mode instead, or the test clicks before the world exists.
+
+## Saved state that depends on a layout (#278, Nov 12)
+- Anything saved by index (cleared stones per field square) must save the layout too: the field was re-scattered from the shared random stream every launch, so any update that added a random tree elsewhere moved every stone, and cleared squares grew back.
+- When fixing a glitch that already went into saves, load a real save from the broken build (`git show <commit>:hollow-acre/2d/index.html`) in the fixed build, single player and hosted, and count what came back.
