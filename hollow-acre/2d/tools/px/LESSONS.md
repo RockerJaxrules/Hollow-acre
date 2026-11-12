@@ -1268,3 +1268,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Nails, rivets and screws never sit on the letters (they read as accents: HÄRTLEY).
 - Ground under a cut-out object varies by kind (grass, paving with 2-3 paver sizes and offset joints, gravel in small two-tone
   clusters); one identical grass lens under everything reads as a stamp, and checker noise reads as static.
+
+## Rooms built from existing pieces (#252, Nov 12)
+- A bigger room is not more floor: give it zones (a corner facing the fire, a kitchen end, a walk between the doors with a
+  runner on it) or it reads as the old room stretched.
+- Never put two copies of the same piece side by side or twice in one house (twin tables, a second identical clock, paired
+  crates): stitch a longer piece from the art instead (continue each row of the planks from one clean column, then add joints
+  at uneven spacing; tiling a 4 px slice prints a stripe pattern).
+- Each room needs one thing only it has that's a bit wrong, and it must read at a glance in the picture (a chair pulled out at
+  a place laid in pale china), not only in its Look text.
+- An attic is the roof: dark sloped boards cutting the top corners of the back wall, the last rafter lit along each slope.

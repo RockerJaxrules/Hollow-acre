@@ -45,3 +45,4 @@ orders. Latest round first.
 | Loading screen (Nov 12) | 5 -> 5.5 -> 6 (PC 6, phone 6) | yes | toward 7: the nearest objects the best-drawn on screen (Stardew puts its finest drawing in front), far rows merged into flat tone, no 1 px converging lines that step into moire |
 | Title screen (Nov 12) | 6, preferred over the old | yes | toward 7: buttons as pixel objects that belong to the scene (frame, bevel, grain), not web UI; nothing anti-aliased or rounded |
 | Reading close-ups (Nov 12) | 5.5 -> 6.5, preferred over the old text line | yes | toward 7: the county sign (flat panel, few details), a real tally at eye height on the farm post |
+| House expansion rooms (Nov 12) | 5.5 -> 6 (big house 6, dining 6, upstairs 6, attic 6, cellar 6.5) | yes | toward 7: the attic's planks as boards not logs, a lower third with something in it in the dining room |

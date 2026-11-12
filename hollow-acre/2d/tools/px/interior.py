@@ -26,6 +26,12 @@ ROOMS = {
   'undercroft': dict(noDress=True, w=8, d=5, door=4, theme='home', wall='plaster', paper='slate', floor='flag', flagRamp='slate', wains='none', windows=[], mat='slate'),
   'cellar_agnes': dict(noDress=True, w=8, d=5, door=4, theme='home', wall='plaster', paper='slate', floor='flag', wains='none', windows=[], mat='rust'),
   'cellar_hale': dict(noDress=True, w=8, d=5, door=4, theme='home', wall='fieldstone', floor='planks', windows=[], mat='slate'),
+  # ---- the house grows (#252): a cellar under the floor, a dining room on the side, an upstairs, an attic under the roof
+  'cabin_cellar': dict(noDress=True, w=8, d=5, door=4, theme='home', wall='fieldstone', floor='flag', wains='none', windows=[], mat='slate'),
+  'cabin_dining': dict(w=8, d=6, door=4, theme='home', wall='panel', floor='parquet', wains='bead', windows=[[2, 0], [6, 0]], mat='red'),
+  'cabin_up': dict(w=10, d=6, door=5, theme='home', wall='stripe', paper='sage', floor='wide', windows=[[2, 0], [6.2, 0]], doors=[[9.0, 'slate']], mat='blue'),
+  'cabin3': dict(w=16, d=7, door=8, theme='home', paper='mustard', windows=[[6.0, 0], [10.8, 0]], doors=[[1.0, 'bark'], [14.9, 'bark']]),
+  'cabin_attic': dict(noDress=True, w=9, d=5, door=4.5, theme='home', wall='log', floor='planks', wains='none', windows=[[4.5, 0]], sunY=30, mat='rust'),
   'cellar_dunn': dict(noDress=True, w=8, d=5, door=4, theme='home', wall='plaster', paper='mustard', floor='flag', wains='none', windows=[], mat='slate'),
   # ---- where the keepers live
   'priv_store': dict(w=7, d=5, door=3.5, theme='home', wall='stripe', paper='rust', floor='planks', windows=[[2, 0], [5.2, 0]], mat='rust'),
