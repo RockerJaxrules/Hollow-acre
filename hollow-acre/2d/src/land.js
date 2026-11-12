@@ -20,7 +20,7 @@ const LAND_PARCELS=[
     desc:'The whole stretch below the corn: twenty-seven paces of open ground. Enough to feed the valley, if anyone would let you.'}];
 // Homestead Lane: friends' cabins, each with a garden plot of its own (west side, east side, then the west side again)
 const LANE={x:-50,z0:-4,z1:33};
-const LANE_SPOTS=[{x:-58,z:11,side:-1},{x:-42,z:11,side:1},{x:-58,z:23,side:-1}];
+const LANE_SPOTS=[{x:-58,z:11,side:-1},{x:-42,z:11,side:1},{x:-58,z:26.5,side:-1}];   // (#291) the third far enough down the lane for the biggest cabin above it
 for(let i=0;i<FH_SPOTS.length&&i<LANE_SPOTS.length;i++){FH_SPOTS[i].x=LANE_SPOTS[i].x;FH_SPOTS[i].z=LANE_SPOTS[i].z;}
 const homePlot=i=>{const s=LANE_SPOTS[i];return {id:'home'+i,home:i,name:'Your garden plot',x0:s.x-3,z0:s.z+2.2,w:6,h:4};};
 const LAND={built:{},order:[],signs:{},stakes:{},cleared:false};
@@ -43,7 +43,7 @@ function landClearArea(x0,z0,x1,z1){for(const o of OBJ){if(o.hide||o.room||o.tow
     if(!/^(tree|pine|bush|deco|anim|grass|plant)$/.test(o.kind||'')&&!o.debris)continue;o.hide=true;
     for(let j=circles.length-1;j>=0;j--)if(Math.hypot(circles[j].x-o.x,circles[j].z-(o.z-.1))<.6)circles.splice(j,1);}}
 function landClearLane(){if(OBJ.length<1000)return;   // (the world isn't built yet)
-  if(LAND.clearN!==OBJ.length){landClearArea(-66,2,-34,32);landClearArea(LANE.x-1.6,-4,LANE.x+1.6,2);LAND.clearN=OBJ.length;}
+  if(LAND.clearN!==OBJ.length){landClearArea(-66,2,-34,34);landClearArea(LANE.x-1.6,-4,LANE.x+1.6,2);LAND.clearN=OBJ.length;}
   if(LAND.cleared)return;LAND.cleared=true;
   const sg=obj('signpost',LANE.x+1.5,-3.1,{kind:'prop',label:'HOMESTEAD LANE',face:'P'});try{sg.spr=signSprite(sg.label,'plain');}catch(e){}if(typeof NAV!=='undefined')NAV.sig='';}
 // ---- the squares of a piece of land

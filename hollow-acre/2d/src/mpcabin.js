@@ -6,7 +6,7 @@
 const FHB={bins:{}};
 if(typeof PERSONAL!=='undefined'&&!PERSONAL.includes('fhT'))PERSONAL.push('fhT');
 // beside the door, on the side away from the path down to the lane
-const fhBinAt=i=>{const s=FH_SPOTS[i],side=(LANE_SPOTS[i]&&LANE_SPOTS[i].side)||-1;return {x:s.x-side*1.9,z:s.z+.55};};
+const fhBinAt=i=>{const s=FH_SPOTS[i],side=(LANE_SPOTS[i]&&LANE_SPOTS[i].side)||-1;return {x:s.x-side*4.9,z:s.z+.55};};   // (#291: clear of the widest walls the cabin will grow to)
 function fhBin(i){if(FHB.bins[i]||!FH_SPOTS[i]||!MPC.objs[i])return;const b=fhBinAt(i);
   for(const o of OBJ){if(o.hide||!(o.debris||o.kind==='grass'||o.kind==='deco'))continue;if(Math.abs(o.x-b.x)<1&&Math.abs(o.z-b.z)<.9){o.hide=true;if(o.col){const q=circles.indexOf(o.col);if(q>=0)circles.splice(q,1);}}}
   const o=obj('crate',b.x,b.z,{kind:'bin',fhbin:i});addRect(b.x-.5,b.z-.6,b.x+.5,b.z);

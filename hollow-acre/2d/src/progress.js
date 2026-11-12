@@ -97,7 +97,7 @@ function lsSideUpdate(){if(S.ls.i<0||S.tut.off||S.paused)return;S.ls.side=S.ls.s
   if(!S.ls.v2){S.ls.v2=1;const oldI=S.ls.i,id=LS_OLD[oldI];let j=LESSONS.findIndex(L=>L.id===id);if(j<0)j=LESSONS.findIndex(L=>L.id==='store');if(id&&j>=0&&j!==S.ls.i){S.ls.i=j;S.ls.base={};const L=LESSONS[j];if(L&&L.begin)L.begin(S.ls.base);}
     if(oldI>LS_OLD.indexOf('ship'))for(const L of LS_SIDE)S.ls.side[L.id]={st:'done'};}
   for(const L of LS_SIDE){const e=S.ls.side[L.id]=S.ls.side[L.id]||{st:'wait'};if(e.st==='done')continue;
-    if(e.st==='wait'&&L.when()){e.st='on';e.b={};L.begin(e.b);if(maeT<=0)maeSay(L.say,'Side lesson: '+(L.id==='sleep'?'Sleep':'Harvest and ship'),9);}
+    if(e.st==='wait'&&L.when()){e.st='on';e.b={};L.begin(e.b);if(maeT<=0)maeSay(L.say,'Side lesson: '+(L.title||(L.id==='sleep'?'Sleep':'Harvest and ship')),9);}
     else if(e.st==='on'&&L.ok(e.b)&&maeT<=0){e.st='done';const rw=lsReward(L);maeSay(L.done,rw,6);SFX.coin&&SFX.coin();}}}
 // ---- where the guide arrow points: Caitlyn's lesson while she's teaching, the story's objective after
 const LS_NEAR=list=>{let b=null,bd=1e9;for(const t of list){const d=Math.hypot(t.x-P.x,t.z-P.z);if(d<bd){bd=d;b=t;}}return b?{x:b.x,z:b.z}:null;};

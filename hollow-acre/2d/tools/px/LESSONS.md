@@ -1392,3 +1392,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Footprints say which way they go only with a separate heel and a lighter toe edge; paired dark dots read as pebbles.
 - A map marker in red on an autumn map disappears among red tree crowns: give it a cream outline, a dark shadow, a size above everything else, and keep it off the star.
 - Nothing drawn over the first line of a document: the knife pinning the list hid the year that starts it.
+
+## Growing a building from its own sprite (#291/#292, Nov 12)
+- To make a house bigger, insert whole bays cut from the house itself (roof from the flat ridge, wall from a plain stretch plus one window) at the window rhythm; it reads as the same house grown, not a new drawing.
+- Copy only plain wall into a new bay: a column taken from beside a corner brings its porch post and nail ticks along, and every join shows.
+- Added dormers go evenly between the existing ones; one dropped over the new bay reads as patched.
+- A cellar door must slope out from the wall onto the ground (narrow at the wall, wide at the ground, stone cheeks, a contact shadow); upright doors in the plinth read as a chest or a gate.
+- A tiny white square on a roof reads as a sticker: use the building's own vocabulary (another dormer) instead.
+- Recoloured copies of one house side by side need one detail each of their own (door colour at least), or they read as a kit.
+- Keep the door where it was when a building grows (grow away from it), so nothing tied to the door has to move.

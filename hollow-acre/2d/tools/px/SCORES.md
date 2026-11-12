@@ -62,3 +62,5 @@ orders. Latest round first.
 | The Count: 34 found things (Nov 12) | set 5 -> 6, all 34 at 6+ (square 7; wksquare, birches, motel, ridge, mine, quarry, county 6.5) | yes (replace the text pages) | toward 7: the hats (both bonnets, the falls cap) are the thinnest passes; lining without concentric rings |
 | Story finds x3: barn calendar, county line, Dunn's list (Nov 12) | 5.5 -> 6 (barn 6.5, county 6, list 6) | yes (replace the text cards) | toward 7: boot prints that say direction at 1x; scratches on the photos that read as scratching, not blindfolds |
 | Map: players as facing arrows (Nov 12) | 5.5 -> 6 | yes (replaces the dot and its ring) | toward 7: keep the star clear of your arrow in every shot |
+| Grandpa's house growing outside (big house, dining, upstairs, attic, cellar) (Nov 12) | 5.5 -> 6 (B 6.5, BUAC 6.5, BDUAC 6) | yes (the house used to stay the same size outside) | toward 7: dormers on the window rhythm; one continuous strap per cellar door with a hinge knuckle |
+| Friends' cabins in their own colours on Homestead Lane (Nov 12) | 6 | yes | toward 7: a different porch piece by each house instead of the same crate |
