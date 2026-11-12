@@ -8,7 +8,9 @@
   function check(){if(busy)return;busy=true;fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(v=>{busy=false;if(!v||!v.id||v.id===BUILD_ID)return;
       let tried=null;try{tried=sessionStorage.getItem('hollowUpd');}catch(e){}if(tried===v.id)return;try{sessionStorage.setItem('hollowUpd',v.id);}catch(e){}
       const playing=S.mode==='play'||S.mode==='scare'||S.mode==='trans';
-      if(playing){if(S.paused&&!$('note').hidden)return;try{flushSave&&flushSave();}catch(e){}try{sessionStorage.setItem('hollowAutoCont','update');}catch(e){}}
+      // a farmhand on a friend's farm goes straight back to that farm after the update, not to their own
+      const onFarm=typeof HOST!=='undefined'&&HOST.role==='guest'&&HOST.code;
+      if(playing||onFarm){if(!onFarm&&S.paused&&!$('note').hidden)return;try{flushSave&&flushSave();}catch(e){}try{if(onFarm){sessionStorage.setItem('hollowJoin',HOST.code);sessionStorage.setItem('hollowAutoJoin','1');}else sessionStorage.setItem('hollowAutoCont','update');}catch(e){}}
       else if(S.mode!=='title'&&S.mode!=='load')return;
       const u=new URL(location.href);u.searchParams.set('v',v.id);location.replace(u.toString());}).catch(()=>{busy=false;});}
   check();setInterval(check,10*60*1000);

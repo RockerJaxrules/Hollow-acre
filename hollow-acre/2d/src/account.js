@@ -6,3 +6,5 @@ const ACCT_SUFFIX=ACCT.cur==='default'?'':'@'+ACCT.cur;
 const acctKeys=id=>{const s=id==='default'?'':'@'+id;return {save:'hollowSave1'+s,morning:'hollowSave1'+s+'_morning',look:'hollowLook'+s};};
 function acctStore(){try{localStorage.setItem('hollowAccounts',JSON.stringify(ACCT.list));localStorage.setItem('hollowProfile',ACCT.cur);}catch(e){}}
 const acctMe=()=>ACCT.list.find(p=>p.id===ACCT.cur);
+// a player's own permanent id on shared farms (names can be blank, change, or match someone else's; this never does)
+function myPid(){const p=acctMe();if(!p)return 'anon';if(p.uid)return 'u:'+p.uid;if(!p.pid){p.pid='p'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);acctStore();}return p.pid;}

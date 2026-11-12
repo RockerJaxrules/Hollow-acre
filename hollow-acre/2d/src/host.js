@@ -20,10 +20,10 @@ function hostWire(){for(const f of HOST.off)try{f();}catch(e){}HOST.off=[];const
   on('deb',d=>{if(!HOST.role||!d||!Array.isArray(d.ids))return;const want=new Set(d.ids.map(String));for(const o of debrisObjs()){const k=dKey(o);if(!want.has(k)||o.hide)continue;o.hide=true;o.goneDay=S.day;if(o.col){const q=circles.indexOf(o.col);if(q>=0)circles.splice(q,1);}HOST.debKnown.add(k);}});
   on('tree',d=>{if(!HOST.role||!d||typeof d.k!=='string')return;fellRemote(d.k);});
   on('coin',d=>{if(!HOST.role||!d||!isFinite(d.d))return;const n=Math.max(-100000,Math.min(100000,d.d|0));S.coins=Math.max(0,S.coins+n);HOST.coins=S.coins;updateHud&&updateHud();});
-  on('time',(d,peer)=>{if(HOST.role!=='guest'||!d)return;HOST.hostPeer=peer;if((d.day|0)!==S.day){if(performance.now()-HOST.helloT>3000){HOST.helloT=performance.now();r.emit('hello',{n:NAME()||'Farmhand'},peer);}return;}
+  on('time',(d,peer)=>{if(HOST.role!=='guest'||!d)return;HOST.hostPeer=peer;if((d.day|0)!==S.day){if(performance.now()-HOST.helloT>3000){HOST.helloT=performance.now();r.emit('hello',{n:myFarmName(),id:myPid()},peer);}return;}
     if(isFinite(d.hour)&&Math.abs(S.hour-d.hour)>.08)S.hour=d.hour;});
   on('mine',(d,peer)=>{if(HOST.role!=='host'||!d||!d.p||typeof d.p!=='object')return;const n=clean(d.n);let js='';try{js=JSON.stringify(d.p);}catch(e){return;}if(js.length>200000)return;S.farmhands=S.farmhands||{};S.farmhands[n]=JSON.parse(js);});
-  on('bye',(d,peer)=>{if(HOST.role==='guest'&&peer===HOST.hostPeer)hostGone();});}
+  on('bye',(d,peer)=>{if(HOST.role==='guest'&&peer===HOST.hostPeer){if(d&&d.reload)hostWait();else hostGone();}});}
 function applySnap(data,first,hand){const mine=first?(HOST.ownPersonal||hand||takePersonal()):takePersonal();HOST.applying=true;
   try{for(const t of tiles){t.tilled=false;t.crop=null;}loadGame(data);}finally{HOST.applying=false;}
   putPersonal(mine);applyLook();try{syncSlots&&syncSlots();renderHotbar&&renderHotbar();}catch(e){}
@@ -37,7 +37,7 @@ function hostJoin(code){code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g
 async function hostJoinNow(code){HOST.role='guest';HOST.code=code;HOST.joined=false;const own=readSave();HOST.ownPersonal=own?Object.fromEntries(PERSONAL.filter(k=>own.S[k]!==undefined).map(k=>[k,own.S[k]])):null;
   await coopJoin('host-'+code.toLowerCase());hostWire();HOST.helloT=0;toast(`Looking for farm ${code}…`,3);let tries=0;
   const knock=setInterval(()=>{if(HOST.joined||HOST.role!=='guest'||tries++>15){clearInterval(knock);if(!HOST.joined&&HOST.role==='guest'){toast('Couldn’t find that farm. Check the code, and that the host is playing.',3.6);setTimeout(()=>{HOST.role=null;location.reload();},3600);}return;}
-    CO.room.emit('hello',{n:NAME()||'Farmhand'});},2000);CO.room.emit('hello',{n:NAME()||'Farmhand'});}
+    CO.room.emit('hello',{n:myFarmName(),id:myPid()});},2000);CO.room.emit('hello',{n:myFarmName(),id:myPid()});}
 // the title screen in join mode
 {let jc=null;try{jc=sessionStorage.getItem('hollowJoin');sessionStorage.removeItem('hollowJoin');}catch(e){}
   if(jc){const b=document.createElement('button');b.className='begin';b.textContent=`Join farm ${jc}`;b.style.marginBottom='10px';$('begin').before(b);
@@ -65,7 +65,7 @@ function hostSync(dt){if(!HOST.role||!CO.room||!CO.room.emit||HOST.applying)retu
 {const _mu=mindUpdate;mindUpdate=function(dt){_mu(dt);try{hostSync(dt);}catch(e){}};}
 // the host is marked in presence so farmhands can tell who it is
 {setInterval(()=>{if(!CO.room||!HOST.role)return;CO.room.presence({h:HOST.role==='host'?1:0}).catch(()=>{});},3000);}
-addEventListener('pagehide',()=>{if(HOST.role&&CO.room&&CO.room.emit)try{CO.room.emit('bye',{});}catch(e){}});
+addEventListener('pagehide',()=>{if(HOST.role&&CO.room&&CO.room.emit)try{CO.room.emit('bye',{reload:1});}catch(e){}});
 // the co-op section of the Together tab
 {const _rc=renderCoop;renderCoop=function(){_rc();const B=$('bagBody');const box=document.createElement('div');box.style.cssText='margin-top:12px;padding:8px 10px;background:rgba(0,0,0,.18)';
   const fh=others().filter(p=>p.presence).map(p=>clean(p.presence.n));

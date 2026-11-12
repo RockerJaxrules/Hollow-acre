@@ -98,7 +98,7 @@ function mpGoHome(inside){const i=mySlot();if(i<0||!FH_SPOTS[i])return;const s=F
       if(mpOwn())mpGoHome(!first);updateHud&&updateHud();}}catch(e){}return r;};}
 // separate wallets: nobody's coins move to anyone else's, and what a farmhand earns stays in the host's world
 {const _hs=hostSync;hostSync=function(dt){if(mpSplit())HOST.coins=S.coins;return _hs.apply(this,arguments);};}
-guestPersist=function(){try{if(CO.room&&CO.room.emit&&HOST.hostPeer)CO.room.emit('mine',{n:NAME()||'Farmhand',p:takePersonal()},HOST.hostPeer);}catch(e){}
+guestPersist=function(){try{if(CO.room&&CO.room.emit&&HOST.hostPeer)CO.room.emit('mine',{n:myFarmName(),id:myPid(),p:takePersonal()},HOST.hostPeer);}catch(e){}
   try{const own=readSave();if(!own)return;const mine=takePersonal();for(const [k,v] of Object.entries(mine)){if(k==='look'||(k==='coins'&&mpSplit()))continue;own.S[k]=v;}localStorage.setItem(SAVE_KEY,JSON.stringify(own));}catch(e){}};
 // whatever goes in the shipping bin remembers who put it there, and with separate wallets the money goes to them
 {const _sp=shipPut;shipPut=function(){const n0=S.ship.length;const r=_sp.apply(this,arguments);const me=NAME()||'Farmhand';for(let i=n0;i<S.ship.length;i++)if(!S.ship[i].by)S.ship[i].by=me;return r;};}
