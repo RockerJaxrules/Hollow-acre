@@ -319,30 +319,34 @@ if(V==='S'&&K==='bench_still'){  // the copper still: an onion pot on a brick fi
     for(let x=-3;x<=3;x++)P(A,jx+x,jy-8,RAMP.iron[x<0?4:2]);P(A,jx,jy-9,[200,214,224]);}   // glass: the dark behind it, a pale rim, one glint, a band of spirit, a drip from the spout
   for(let x=fx-18;x<W-2;x++){SH(x,base,150);SH(x,base+1,110);}cast(fx-15,W-5,base);}
 
-if(V==='S'&&K==='bench_butcher'){   // #235 the butcher's block: a thick end-grain round with its rings and a worn, stained hollow, a cleaver bitten into it, a rack of hooks behind, a bucket at its foot
-  const base=H-3,cx=(W>>1)-3,O=RAMP.oak,D=RAMP.dark,I=RAMP.iron,S=RAMP.steel,BK=hexR(['#1a120c','#2a1c12','#3c2a1a','#503a24']);
-  // the rack behind: two posts, a crossbar, two hooks, a coil of rope on one
-  for(const px of [cx-16,cx+16]){for(let y=base-44;y<base-8;y++){P(A,px,y,D[4]);P(A,px+1,y,D[3]);P(A,px+2,y,D[1]);}}
-  for(let x=cx-18;x<=cx+19;x++){P(A,x,base-46,D[5]);P(A,x,base-45,D[3]);P(A,x,base-44,D[1]);}
-  for(const hx of [cx-7,cx+6]){P(A,hx,base-43,I[4]);P(A,hx,base-42,I[3]);P(A,hx+1,base-41,I[3]);P(A,hx+1,base-40,I[2]);P(A,hx,base-39,I[4]);P(A,hx-1,base-38,I[3]);}
-  {const R=RAMP.burlap;for(const [ox,oy] of [[0,0],[1,2]])for(let k=0;k<26;k++){const t=k/26*Math.PI*2;P(A,Math.round(cx+6+ox+Math.cos(t)*3.2),Math.round(base-34+oy+Math.sin(t)*4.4),R[Math.cos(t+.8)>0?4:2]);}}   // a coil of rope, open loops
-  // the block: bark round its sides, the end grain on top with its rings
-  const top=base-18,rx=15,ry=6;
-  for(let y=top;y<base;y++)for(let x=-rx;x<=rx;x++){const u=x/rx;let k=u<-.6?3:u<.1?2:u<.6?1:0;if((x+31)%5===0)k=Math.max(0,k-1);if(y===base-1)k=0;P(A,cx+x,y,BK[k]);}
-  for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){const d=x*x/(rx*rx)+y*y/(ry*ry);if(d>1)continue;const ring=Math.floor(Math.sqrt(d)*6);
-    let k=d>.86?(y<0?5:3):ring%2?3:4;if(x>rx*.45&&d>.3)k=Math.max(2,k-1);P(A,cx+x,top+y,O[k]);}
-  for(let y=-2;y<=2;y++)for(let x=-6;x<=5;x++){if(x*x/36+y*y/4>1)continue;P(A,cx+x-1,top+y,x+y<0?[96,58,40]:[78,42,30]);}   // the worn hollow, darkened by years of use
-  for(const [sx0,sy0,w2] of [[cx+8,top+3,3],[cx-11,top+2,2]])for(let i=0;i<w2;i++){P(A,sx0+i,sy0,[92,36,28]);P(A,sx0+i,sy0+1,[64,24,20]);}   // old stains run over the lip
-  for(let j=0;j<4;j++)P(A,cx+9,top+5+j,[74,28,22]);
-  // the cleaver, bitten into the block at an angle
-  {const bx=cx-4,by=top+1,Sd=hexR(['#1e242c','#343e4a','#4e5c6c','#6e7e90','#98a8b8','#c8d4de']);   // a side-on cleaver bitten into the block: dark steel, a bright bevel, a hole by the spine
-    for(let j=0;j<7;j++)for(let i=0;i<13;i++){let k=j===0?1:j>=5?4:i<3?3:2;if(j===5&&i>1)k=5;P(A,bx+i,by-7+j,Sd[k]);}
-    P(A,bx+10,by-5,Sd[0]);P(A,bx+11,by-5,Sd[0]);P(A,bx+10,by-4,Sd[1]);
-    const W2=RAMP.honey;for(let i=0;i<9;i++){P(A,bx+13+i,by-6-Math.round(i*.3),W2[4]);P(A,bx+13+i,by-5-Math.round(i*.3),W2[2]);}P(A,bx+15,by-6,RAMP.brass[4]);P(A,bx+18,by-7,RAMP.brass[4]);}
-  // the bucket at its foot, something dark in it
-  {const bx=cx+22,R=RAMP.oak;for(let y=base-9;y<base;y++){const w=y<base-7?5:4;for(let x=-w;x<=w;x++){const u=x/w;P(A,bx+x,y,R[u<-.4?4:u<.3?3:1]);}}
+if(V==='S'&&K==='bench_butcher'){   // #235 the butcher's block: a squat oak round with its bark on and its end grain up, checked with radial cracks and darkened in a worn hollow, a cleaver bitten upright into it; a single post with hooks beside it; a bucket
+  const base=H-3,cx=26,O=RAMP.oak,I=RAMP.iron,BK=hexR(['#140e0a','#24180e','#362416','#4a3220','#5e422a']);
+  // the post to one side: one upright, a crossarm, two hooks
+  {const px=cx+27,D=RAMP.dark;for(let y=base-30;y<base;y++){P(A,px,y,D[4]);P(A,px+1,y,D[3]);P(A,px+2,y,D[1]);}for(let x=px-4;x<=px+13;x++){P(A,x,base-30,D[5]);P(A,x,base-29,D[2]);}
+    for(const hx of [px-3,px+9]){P(A,hx,base-28,I[4]);P(A,hx,base-27,I[3]);P(A,hx+1,base-26,I[3]);P(A,hx,base-25,I[4]);}
+    {const SK=hexR(['#6a3c30','#94584a','#c08470','#dca896','#f0ccb8','#fae6d8']),hx=px+9,hy=base-24;   // a plucked hen hung by her feet, clear of the post and the block, her neck tapering to a point
+      P(A,hx-1,hy,SK[2]);P(A,hx+1,hy,SK[2]);P(A,hx-1,hy+1,SK[3]);P(A,hx+1,hy+1,SK[3]);
+      for(let j=0;j<8;j++){const w=j<1?1:j<5?2:1;for(let i=-w;i<=w;i++){const k=i<0?5:i<1?4:3;P(A,hx+i,hy+2+j,SK[j>5?k-1:k]);}}
+      P(A,hx,hy+10,SK[2]);P(A,hx,hy+11,SK[2]);P(A,hx,hy+12,SK[1]);}}
+  // the round: bark sides with uneven fissures (never even staves), a rough bark rim at the top
+  const top=base-14,rx=16,ry=6;
+  for(let y=top;y<base;y++)for(let x=-rx;x<=rx;x++){const u=x/rx;let k=u<-.55?4:u<0?3:u<.55?2:1;if(y===base-1)k=0;P(A,cx+x,y,BK[k]);}
+  for(const [fx,len,o] of [[-12,9,1],[-7,6,4],[-2,10,2],[3,5,6],[7,8,1],[11,6,3],[14,7,5]])for(let j=0;j<len;j++)P(A,cx+fx+(j>len/2?1:0),top+o+j,BK[0]);
+  for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){const d=x*x/(rx*rx)+y*y/(ry*ry);if(d>1)continue;
+    if(d>.84){P(A,cx+x,top+y,BK[y<0?4:2]);continue;}const ring=Math.floor(Math.sqrt(d)*5);let k=ring%2?3:4;if(x>rx*.4)k=Math.max(2,k-1);P(A,cx+x,top+y,O[k]);}
+  for(const [ang,len] of [[-2.4,9],[-.5,11],[1.2,7]])for(let r=3;r<len;r++){const x=Math.round(cx+Math.cos(ang)*r),y=Math.round(top+Math.sin(ang)*r*ry/rx);P(A,x,y,O[1]);}   // radial cracks
+  for(let y=-2;y<=2;y++)for(let x=-5;x<=4;x++){if(x*x/25+y*y/4>1)continue;P(A,cx+x-2,top+y,x+y<0?[92,56,40]:[76,42,30]);}   // the worn hollow
+  for(let i=0;i<3;i++){P(A,cx+11+i,top+3,[86,34,26]);}for(let j=0;j<5;j++)P(A,cx+12,top+4+j,[70,26,20]);   // one old stain running over the lip
+  // the cleaver, bitten upright into the top: the blade rises out of a dark slit, its handle angled up and back
+  {const bx=cx+1,by=top-1,Sd=hexR(['#1e242c','#343e4a','#4e5c6c','#6e7e90','#98a8b8','#c8d4de']);
+    for(let x=-1;x<=10;x++)P(A,bx+x,by+1,[40,22,14]);                                                     // the slit it bit into
+    for(let j=0;j<10;j++)for(let i=0;i<10;i++){const xx=bx+i+Math.round(j*.15);let k=i===0?4:j===9?1:i>7?1:i<3?3:2;if(i===1&&j<9)k=5;P(A,xx,by-j,Sd[k]);}
+    P(A,bx+7,by-7,Sd[0]);P(A,bx+8,by-7,Sd[0]);P(A,bx+7,by-6,Sd[1]);
+    const W2=RAMP.honey;for(let i=0;i<9;i++){P(A,bx+10+i,by-9-Math.round(i*.6),W2[4]);P(A,bx+11+i,by-9-Math.round(i*.6),W2[2]);}P(A,bx+13,by-11,RAMP.brass[4]);P(A,bx+16,by-13,RAMP.brass[4]);}
+  // the bucket, something dark in it
+  {const bx=cx-20,R=RAMP.oak;for(let y=base-9;y<base;y++){const w=y<base-7?5:4;for(let x=-w;x<=w;x++){const u=x/w;P(A,bx+x,y,R[u<-.4?4:u<.3?3:1]);}}
     for(let x=-5;x<=5;x++){P(A,bx+x,base-10,R[5]);P(A,bx+x,base-6,I[3]);}for(let x=-4;x<=4;x++)P(A,bx+x,base-9,x<0?[70,24,22]:[52,16,16]);}
-  for(let x=cx-20;x<cx+30;x++){SH(x,base,150);SH(x,base+1,110);}cast(cx-16,cx+28,base);}
+  for(let x=cx-26;x<cx+34;x++){SH(x,base,150);SH(x,base+1,110);}cast(cx-24,cx+30,base);}
 
 // ================================================================ turned views (owner: every bench turns; each view drawn, never rendered)
 // E: the bench turned so its front faces right. You see its left end: the planked top running away from you (boards now run

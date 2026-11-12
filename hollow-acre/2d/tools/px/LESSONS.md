@@ -668,6 +668,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Two stations side by side must not share a kit: vary the firebox (stone vs brick) or the tub, or they read as one kit.
 - Icons in one family must separate by hue at 1x (amber, orange, yellow, cream, purple), not only by a label.
 
+- [butcher] A frame over a round with a rope hanging from it reads as a well (and the rope as a noose). A stump with a blade in it reads as a woodcutter's. The trade cue for a butcher is something hanging from a hook, a pale shape clear of everything with 3+ px of background round it; an overlap turns it into a bulge on whatever it touches.
+- A thing that is a round of wood shows bark and uneven fissures on its side; even vertical staves make it a barrel or a tub.
+- A cut of meat: an irregular kidney outline, a fat cap on one side, a darker cut face below for its thickness; a round with a dark dot reads as a ham slice with an eye. Bone is an off-white ring with pale marrow, never a dark dot.
+- A pattern must pass greyscale: patches one step off the base vanish (tan on tan); cream with dark-chocolate patches reads as a cowhide at once.
+- Steam is two soft puffs below full alpha (no outline); 1 px squiggles read as hairs.
+
 ## Crops (strict judge against the reference set, Nov 10: rounds 1-6, 0 -> 8 of 11 stages at 6)
 - [new crops, Nov 12] Draw new crops with the crops.py kit (spoon/oval leaflets, pleaf4 lobed leaves, ball(), contact(), outline(), begin/end for the dark overlap line), never with ad-hoc canvas code: the on-the-fly JS versions were blobs at half the size of the turnip.
 - A root or tuber showing above the soil is CUT at the soil line and left to the outline for its lip; drawing a soil band under it reads as a pot or a mat.
