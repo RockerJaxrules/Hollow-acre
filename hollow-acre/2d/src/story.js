@@ -72,7 +72,7 @@ function stStart(){const st=S.st;st.started=true;st.tithe=0;st.act=2;
 
 // ---- interactions
 interact.push({x:MAILPOS.x,z:MAILPOS.z,r:1.1,story:true,on:()=>!!S.st.mail,label:()=>'Read',ok:()=>true,act(){const L=S.st.mail;S.st.mail=null;S.st.lettersRead++;SFX.page&&SFX.page();
-  const day=S.day+1;openNote(`<h3>Day ${day}</h3><p>${ST_LETTERS[L]}</p>${L==='epi_door'?'':'<p style="text-align:right">— you</p>'}`,'Keep it',()=>{mindHit(L==='first'?6:4);if(L==='first'){S.st.act=3;addLore('A letter in my handwriting: the three stones are under the dock, in the hollow tree at noon, and under my bed. Put them back.');}});}});
+  const day=S.day+1;try{(S.st.lt=S.st.lt||[]).push([L,day]);}catch(e){}openNote(`<h3>Day ${day}</h3><p>${ST_LETTERS[L]}</p>${L==='epi_door'?'':'<p style="text-align:right">— you</p>'}`,'Keep it',()=>{mindHit(L==='first'?6:4);if(L==='first'){S.st.act=3;addLore('A letter in my handwriting: the three stones are under the dock, in the hollow tree at noon, and under my bed. Put them back.');}});}});
 // before the letter, the cord is only something you notice at the end of the dock
 interact.push({x:LAKE.x,z:LAKE.z-LAKE.rz+2.6,r:1.4,story:true,on:()=>!S.st||S.st.act<3||S.st.got.dock,label:()=>'Look',ok:()=>true,act(){
   if(S.st&&S.st.got.dock){toast('The cord hangs slack off the last plank now, frayed at the end. You already have the lake’s stone.',3.6);return;}

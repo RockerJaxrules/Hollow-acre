@@ -34,6 +34,9 @@ function tapTarget(wx,wz){
     let bo=null,bd=.62;for(const o of MINE.ores||[]){if(o.hide)continue;const d=Math.hypot(o.x-wx,(o.z-.2)-wz);if(d<bd){bd=d;bo=o;}}if(bo)return {kind:'ore',o:bo,x:bo.x,z:bo.z,r:.85};}
   let best=null,bd=1e9;for(const it of interact){if(it.on&&!it.on())continue;if(it.npc!==undefined&&npcs[it.npc]){it.x=npcs[it.npc].x;it.z=npcs[it.npc].z;}
     if(!isFinite(it.x)||!isFinite(it.z))continue;const up=(it.z-.3)-wz;const d=Math.hypot(it.x-wx,up>0?up*.55:up);if(d<Math.max(.75,(it.r||1)*.6)&&d<bd){bd=d;best=it;}}
+  // a hoe, can or seeds over a free tile works that tile: a stone or weed on the next tile (its tap box reaches up over its sprite)
+  // used to win the tap, and you had to break it before you could till beside it
+  if(best&&['hoe','can','seed','fert'].includes(heldKind())){const tt=tileAtW(wx,wz);if(tt&&!(tt.debris&&!tt.debris.hide)&&!(Math.abs(best.x-tt.x)<.5&&Math.abs(best.z-tt.z)<.5))best=null;}
   if(best)return {kind:'item',it:best,x:best.x,z:best.z,r:Math.min(1.1,(best.r||1)*.8),reach:(best.r||1)+.3};
   const t=tileAtW(wx,wz);if(t){if(t.debris&&!t.debris.hide){const q=debrisItem(t.debris);if(q)return {kind:'item',it:q,x:q.x,z:q.z,r:.8};}return {kind:'tile',t,x:t.x,z:t.z,r:.85};}
   if(!S.room&&typeof waterAt==='function'&&waterAt(wx,wz)){// stand on the nearest dry ground between you and where you clicked

@@ -8,9 +8,10 @@ const TURN_FP=(w,d,rot)=>rot==='E'||rot==='W'?[d+.15,Math.max(.5,w-.2)]:[w,d];
 for(const k in FURN){const v=sprViews(FURN[k][1]);if(v&&!FURN_VIEWS[k])FURN_VIEWS[k]=v;}
 // the benches and the furnace
 {const _pb=placeBench;placeBench=function(k,x,z,rot){const d=BENCHES.find(b=>b[0]===k);if(!d)return _pb.apply(this,arguments);
-  rot=rot||(BENCH_POS[k]&&BENCH_POS[k].rot)||'S';const v=sprViews(d[1]);const s0=d[1],f0=BENCH_FP[k];
-  if(v&&rot!=='S'&&v[rot]&&!v[rot][1]){d[1]=v[rot][0];BENCH_FP[k]=TURN_FP(f0[0],f0[1],rot);}
-  try{return _pb.call(this,k,x,z);}finally{d[1]=s0;BENCH_FP[k]=f0;if(BENCH_POS[k])BENCH_POS[k].rot=rot;}};}
+  rot=rot||(BENCH_POS[k]&&BENCH_POS[k].rot)||'S';const v=sprViews(d[1]);const s0=d[1],f0=BENCH_FP[k];let flip=false;
+  // (facing west is the east art mirrored: that one used to be skipped, so a bench turned west was set down facing the door)
+  if(v&&rot!=='S'&&v[rot]){d[1]=v[rot][0];flip=!!v[rot][1];BENCH_FP[k]=TURN_FP(f0[0],f0[1],rot);}
+  const o0=OBJ.length;try{const r=_pb.call(this,k,x,z);if(flip)for(const o of OBJ.slice(o0))if(o.spr===d[1])o.flip=true;return r;}finally{d[1]=s0;BENCH_FP[k]=f0;if(BENCH_POS[k])BENCH_POS[k].rot=rot;}};}
 {const _sb=startBench;startBench=function(k,held){_sb.apply(this,arguments);const sp=PLACE.on&&PLACE.spec;const d=BENCHES.find(b=>b[0]===k);if(!sp||!d)return;
   const v=sprViews(d[1]);if(!v)return;sp.views=v;sp.rot='S';sp.fp=BENCH_FP[k];const d0=sp.done;
   sp.done=function(x,z){BENCH_POS[k]=Object.assign(BENCH_POS[k]||{},{rot:this.rot||'S'});return d0.call(this,x,z);};

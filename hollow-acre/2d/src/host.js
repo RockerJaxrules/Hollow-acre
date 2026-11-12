@@ -108,7 +108,7 @@ function worldRebuild(keys){const all=!keys,has=k=>all||keys.has(k);
   if(typeof updateHud==='function')updateHud();}
 function worldApply(d){if(!d||typeof d!=='object')return;const keys=new Set();
   for(const k of WORLD_KEYS){if(!(k in d))continue;const v=d[k];
-    if(k==='_bp'){if(!v||typeof v!=='object')continue;for(const b of Object.keys(BENCH_POS))delete BENCH_POS[b];for(const [b,p] of Object.entries(v))if(p&&isFinite(p.x)&&isFinite(p.z))BENCH_POS[b]={x:+p.x,z:+p.z};}
+    if(k==='_bp'){if(!v||typeof v!=='object')continue;for(const b of Object.keys(BENCH_POS))delete BENCH_POS[b];for(const [b,p] of Object.entries(v))if(p&&isFinite(p.x)&&isFinite(p.z))BENCH_POS[b]=Object.assign({x:+p.x,z:+p.z},/^[SENW]$/.test(p.rot)?{rot:p.rot}:{});}   // (with its facing: without it everyone's copy turned back)
     else if(k==='_gh'){if(v&&isFinite(v.x)&&isFinite(v.z)&&!ghUp()){GH.x=+v.x;GH.z=+v.z;}}
     else if(k==='ship'||k==='furnPlaced'){if(!Array.isArray(v))continue;S[k]=v.slice(0,400);}
     else if(k==='benches'){if(!v||typeof v!=='object')continue;S[k]=v;}

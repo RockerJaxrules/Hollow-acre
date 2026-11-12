@@ -87,7 +87,8 @@ function renderItems(){const B=$('bagBody');syncSlots();
   // keep what other systems appended (furniture, wardrobe) and swap the old lists for the grid
   [...B.children].forEach(el=>{if(el.tagName==='H3'||el.classList.contains('grid')||(el.tagName==='P'&&el.classList.contains('sub')))el.remove();});
   [...B.querySelectorAll('div')].forEach(d=>{if(d.querySelector('[data-place]'))d.remove();});
-  const wrap=document.createElement('div');B.prepend(wrap);
+  // (redrawn in place: eating or throwing something away used to stack a second copy of the whole grid on top of the first)
+  const old=$('invWrap');const wrap=document.createElement('div');wrap.id='invWrap';if(old&&old.parentNode===B)B.replaceChild(wrap,old);else B.prepend(wrap);
   let h='<div class="invgrid" id="invGrid">';for(let i=0;i<36;i++){const lock=i>=S.bagSize;h+=`<div class="is${i<12?' row0':''}${lock?' locked':''}${i===S.slotSel?' sel':''}" data-i="${i}"></div>`;}h+='</div>';
   h+=`<div id="invTip">Tap an item to see it. Drag to move it; the top row is your toolbar.</div>`;
   h+=`<div class="invbar"><div class="trash" id="invTrash" title="Trash">🗑</div><button class="chip" id="invSort">Sort</button><span class="invstats">${S.coins} coins · Energy ${Math.round(S.energy)}/${S.energyMax} · Health ${Math.round(S.hp)}/${S.hpMax}${S.bagSize<36?` · ${S.bagSize} slots (Caitlyn sells a bigger pack)`:''}${BAG_OVER.length?` · <b style="color:#e8504a">${BAG_OVER.length} won’t fit</b>`:''}</span></div>`;
