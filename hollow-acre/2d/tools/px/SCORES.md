@@ -57,3 +57,5 @@ orders. Latest round first.
 | Car repair minigames, 11 scenes (Nov 12) | set 6 -> 6.5; weakest 4.5 -> 6 | yes (replaces the one tap-the-bar game) | toward 7: a foreshortened battery tray; studs with round caps |
 | Caitlyn heart events x5 (Nov 12) | 5-6.5 -> 6-6.5 | yes (replace the captions) | toward 7: the frame lift big enough to see; the camera finds the corn |
 | Story sight close-ups x11 (Nov 12) | set 4.5 -> 6 | yes (replace the text cards) | toward 7: the small bundle with a body's outline; sleeves down the grave figure's sides |
+| Region story sights x5 (Nov 12) | set 5.5 -> 6 (corn 7, birches 6.5, lookout 6.5, drowned 6.5, fen 6) | yes (replace the text cards) | toward 7: the bog child clearly lying on its side; three-quarter backs on the drowned |
+| Chapter-two places x5 (Nov 12) | set 5.5 -> 6.5 (lake 7, wick 7, marsh 6.5, tithe 6, tree 6) | yes (replace the text pages) | toward 7: deeper lit lips on the carved letters; the shoes lower and wider |

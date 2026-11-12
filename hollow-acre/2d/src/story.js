@@ -204,7 +204,7 @@ function storyUpdate(dt){const st=S.st;stHud();if(!S.bound)return;if(!st.started
   const L=stLeft(),out=!S.room;
   // the places
   if(out&&st.act>=2)for(const p of ST_PLACES){if(st.seen[p.k])continue;if(Math.hypot(P.x-p.x,P.z-p.z)<p.r&&!S.paused&&S.mode==='play'){st.seen[p.k]=1;SFX.page&&SFX.page();
-    openNote(`<h3>${p.name}</h3><p>${p.text}</p>`,'Remember this',()=>{addLore(p.lore);mindHit(4);});break;}}
+    {const fin=()=>{addLore(p.lore);mindHit(4);};if(!(typeof stPlaceSight==='function'&&stPlaceSight(p,fin)))openNote(`<h3>${p.name}</h3><p>${p.text}</p>`,'Remember this',fin);}break;}}
   if(st.act===2&&ST_PLACES.every(p=>st.seen[p.k])&&stKnown()>=8&&wardDone()>=2&&(typeof sagaReady!=='function'||sagaReady('c2a'))){st.act=3;st.mail='first';st.mailDay=S.day;toast('Back at the farm, the flag on your mailbox goes up. Nobody walked past it.',4,true);}
   // the drawing at six on the eve
   if(L===1&&!st.drawn&&S.hour>=18&&S.mode==='play'&&!S.paused)stDrawing();

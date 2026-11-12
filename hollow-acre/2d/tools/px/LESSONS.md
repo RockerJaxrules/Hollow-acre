@@ -212,6 +212,20 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [judging] A judge given only 1x and 2x sheets could not see 2-3 px mouth changes and called it a tie; send an
   enlarged crop of the changed part beside the 1x sheet.
 
+## Story sights: pictures that carry a caption's facts (Nov 12: regions 5.5 -> 6, places 5.5 -> 6.5)
+- A sight is judged on one thing first: does the picture SHOW the caption's key fact. The drowned scored 5 because the people faced the viewer when the caption says they face away; nothing else mattered until that was fixed.
+- "Facing away" needs the back of the head to be ALL hair: a skin pixel on the side plus a highlight reads as a face.
+- A body folded at the knee is a "<": the thigh goes forward to the knee, the shin angles back down to the foot. Thigh and shin drawn parallel read as stacked logs.
+- Separate outlines for torso, thigh, shin, arm and head make limbs read; one merged mask reads as a sack, a bear or a log pile. Draw the head last so arms and rope don't hide it.
+- Speckle reads as fur on skin, as woodworm on a door, as grit on a step. Use smooth 3-tone ramps, and draw marks as clusters with a purpose (nail heads with rust streaks under them).
+- Text that should look carved: dark groove + a lit lower lip, per-letter jitter, on ragged fresh wood. Dark letters on a clean pale rectangle read as a paper notice.
+- Hair floating in water: one tapering mass drifting off the back of the head. Single stiff strands from the crown read as antlers, feather dusters or flames.
+- A shoe seen from behind is wider than it is tall: heel counter, a wide dark opening, the toe box short. Tall ovals read as candles, bottles or beetles.
+- "Reflects nothing": anything continuing below the waterline (pilings) reads as a reflection. Stop everything at the surface.
+- A view from a tower is foreshortened: squash the far half, hills at the top of the glass. A straight top-down plan reads as a map or a dartboard.
+- Age on paper: yellow it, fox it with a few spots, curl a corner; a stack of thin paper lips shows years at a glance.
+- Size carries status: the stand-in had to be a full head taller than the children's scarecrows to rule the ring.
+
 ## Judging (Nov 9)
 - Blind judges vary by about a point between rounds and lean toward whichever image is in slot b: in tree round 4 the
   same pair scored new 6 / old 5 with new as b and old 6 / new 5 with old as b. For a close call, judge both orders

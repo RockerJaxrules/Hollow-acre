@@ -42,7 +42,7 @@ const SGT_DRAW={
     for(let j=2;j<9;j++)for(let i=-6;i<=4;i++){if(Math.hypot(i,j-3)<5.5)P(28+i,14+j,1,1,j<5?'#4a1e14':'#3a120c');}P(23,19,2,4,'#5a1408');P(30,20,1,5,'#5a1408');   // the face, soaked dark from the inside, running
     P(19,6,18,2,'#2a1a0c');P(16,8,24,2,'#4a3418');P(16,8,24,1,'#6a4c24');P(25,3,6,4,'#4a3418');P(25,3,6,1,'#6a4c24');P(26,8,4,1,'#a02818');}),   // the hat, its red band
   // the rehearsal: a straw dummy on the altar steps in your clothes, a face painted on a flour sack
-  rehearsal:()=>sgtC('rehearsal',56,64,(P)=>{const L=(typeof S!=='undefined'&&S.look)||{};const top=/^#[0-9a-f]{6}$/i.test(L.top||'')?L.top:'#a83a2a';
+  rehearsal:()=>sgtC('rehearsal',56,64,(P)=>{const L=(typeof S!=='undefined'&&S.look)||{};const top=/^#[0-9a-f]{6}$/i.test(L.shirt||'')?L.shirt:'#a83a2a';
     for(let y=52;y<64;y++)P(0,y,56,1,y===52?'#6a5a4a':y<58?'#4a3a2e':'#3a2e24');for(let x=0;x<56;x+=8)P(x,53,1,5,'#2a2018');   // the altar steps
     P(18,26,20,20,'#120c08');P(19,27,18,18,top);P(19,27,18,2,'#ffffff30');for(let y=29;y<45;y+=4)P(19,y,18,1,'#00000030');   // your shirt
     P(20,46,6,7,'#2a2a3a');P(30,46,6,7,'#2a2a3a');P(12,28,7,3,top);P(37,28,7,3,top);for(const [x,y] of [[11,31],[44,31],[24,52],[32,52]])P(x,y,2,3,'#c8a050');   // straw where the hands and feet should be
@@ -75,7 +75,7 @@ const SGT_ART={
     P(cx+9,cy-24,24,15,'#1a120a');P(cx+10,cy-23,22,13,'#f2ead2');P(cx+10,cy-23,22,1,'#ffffff');sgtT(P,'FOR',cx+15,cy-21,'#2a1a2e');sgtT(P,'LATER',cx+11,cy-15,'#2a1a2e');}),
   // your grave: you, older, in the clothes you have on; the face gone to the bone and grinning; a folded note in the hand
   yourgrave:()=>sgtC('a_yourgrave2',168,104,(P)=>{sgtPit(P,168,104,14,22,124,64,7);sgtSpoil(P,150,30,16,12);sgtSpade(P,146,28);
-    const L=(typeof S!=='undefined'&&S.look)||{},top=/^#[0-9a-f]{6}$/i.test(L.top||'')?L.top:'#a83a2a',T=[sgtShade(top,.45),sgtShade(top,.7),top,sgtShade(top,1.25)];const y0=60,o='#120c08';
+    const L=(typeof S!=='undefined'&&S.look)||{},top=/^#[0-9a-f]{6}$/i.test(L.shirt||'')?L.shirt:'#a83a2a',T=[sgtShade(top,.45),sgtShade(top,.7),top,sgtShade(top,1.25)];const y0=60,o='#120c08';
     // the skull on its neck, a fringe of grey hair round it
     for(let y=-7;y<=7;y++)for(let x=-7;x<=7;x++){const e=(x/7)**2+(y/7)**2;if(e>1)continue;P(30+x,y0+y,1,1,e>.8?'#8a8274':x+y<-3?'#f2e8d0':'#d8ccb0');}
     for(let a=-2.4;a<=2.4;a+=.12){P(30+Math.cos(a+Math.PI)*8,y0+Math.sin(a+Math.PI)*8,2,2,a>-1&&a<1?'#a8a8a4':'#cacac6');}
@@ -139,7 +139,7 @@ const SGT_ART={
   rehearsal:()=>sgtC('a_rehearsal',150,104,(P)=>{for(let y=0;y<104;y++)for(let x=0;x<150;x++)P(x,y,1,1,y<56?((x%30===0)?'#16121a':'#1e1820'):'#2a2630');
     for(let s=0;s<3;s++){const y=60+s*14,x0=20-s*8,x1=130+s*8;P(x0,y,x1-x0,14,'#4a4650');P(x0,y,x1-x0,2,'#7a7680');P(x0,y+12,x1-x0,2,'#1a181e');}   // the stone steps
     for(const cx of [30,120]){P(cx-2,38,5,22,'#e8e0cc');P(cx-2,38,5,1,'#ffffff');P(cx,34,1,4,'#ffd27a');P(cx-1,32,3,3,'#fff4c0');}   // the candles
-    const L=(typeof S!=='undefined'&&S.look)||{},top=/^#[0-9a-f]{6}$/i.test(L.top||'')?L.top:'#a83a2a',T=[sgtShade(top,.45),sgtShade(top,.7),top,sgtShade(top,1.25)];const cx=75,o='#120c08';
+    const L=(typeof S!=='undefined'&&S.look)||{},top=/^#[0-9a-f]{6}$/i.test(L.shirt||'')?L.shirt:'#a83a2a',T=[sgtShade(top,.45),sgtShade(top,.7),top,sgtShade(top,1.25)];const cx=75,o='#120c08';
     // slumped on the top step: legs over the edge in trousers, straw at the cuffs
     for(const lx of [cx-8,cx+2]){P(lx,46,7,16,o);P(lx+1,47,5,14,'#3a3a4a');P(lx+1,47,1,14,'#5a5a6a');for(const [dx,dy] of [[0,0],[2,1],[4,0]])P(lx+dx+1,62+dy,1,3,'#c8a050');}
     // the shirt: a body sagging forward, collar, two sleeves hanging, checks in two close tones, lit on the left
@@ -152,16 +152,304 @@ const SGT_ART={
     P(cx-4,12,4,4,o);P(cx+4,12,4,4,o);P(cx-3,13,1,1,'#5a5a5a');P(cx-4,20,12,2,'#8a1a14');P(cx-2,22,8,1,'#8a1a14');P(cx+1,15,2,3,'#a08070');for(const [x,y] of [[-12,10],[12,14]])P(cx+x+2,y,3,1,'#c8a050');
     for(let i=0;i<34;i++){const x=cx-2+Math.sin(i*.4)*2,y=40+i;P(x,y,3+(i>16?2:0),1,i<18?'#5a0a06':'#7a1008');}P(cx-6,72,16,3,'#5a0a06');P(cx-10,86,22,3,'#4a0806');}),   // and it bled, all the way down
 };
+// ---- shapes built from capsules and lit from the top left, so bodies read as bodies: parts are [ax,ay,bx,by,radius];
+// ramp is [outline, shadow, mid, light]
+const sgtSeg=(x,y,ax,ay,bx,by)=>{const dx=bx-ax,dy=by-ay,L=dx*dx+dy*dy||1,t=Math.max(0,Math.min(1,((x-ax)*dx+(y-ay)*dy)/L));return Math.hypot(x-ax-t*dx,y-ay-t*dy);};
+const sgtBlob=(P,parts,ramp,noise)=>{let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const p of parts){x0=Math.min(x0,p[0]-p[4],p[2]-p[4]);y0=Math.min(y0,p[1]-p[4],p[3]-p[4]);x1=Math.max(x1,p[0]+p[4],p[2]+p[4]);y1=Math.max(y1,p[1]+p[4],p[3]+p[4]);}
+  x0=Math.floor(x0)-1;y0=Math.floor(y0)-1;x1=Math.ceil(x1)+1;y1=Math.ceil(y1)+1;const W=x1-x0+1,M=new Uint8Array(W*(y1-y0+1));
+  const at=(x,y)=>x<x0||x>x1||y<y0||y>y1?0:M[(y-y0)*W+x-x0];
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)for(const p of parts)if(sgtSeg(x+.5,y+.5,p[0],p[1],p[2],p[3])<=p[4]){M[(y-y0)*W+x-x0]=1;break;}
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){if(!at(x,y))continue;let c;
+    if(!at(x-1,y)||!at(x+1,y)||!at(x,y-1)||!at(x,y+1))c=ramp[0];
+    else if(!at(x-1,y-1)||!at(x,y-2)||!at(x-2,y))c=ramp[3];
+    else if(!at(x+1,y+1)||!at(x,y+2)||!at(x+2,y))c=ramp[1];
+    else c=noise&&((x*7+y*13)%noise===0)?ramp[1]:ramp[2];
+    P(x,y,1,1,c);}};
+// ---- the new land's sights
+const sgtLook=()=>{const L=(typeof S!=='undefined'&&S.look)||{};const ok=c=>/^#[0-9a-f]{6}$/i.test(c||'');return {shirt:ok(L.shirt)?L.shirt:'#b8402c',pants:ok(L.pants)?L.pants:'#3a4e7a',hair:ok(L.hair)?L.hair:'#6a4224'};};
+Object.assign(SGT_ART,{
+  // the Weeping Birches: white trunks, dolls on strings at every height; Ruth's with its blue ribbon; the newest at the height of your face, your hair, its dress half-sewn, the needle hanging
+  birches:()=>sgtC('a_birches',160,104,(P)=>{const lk=sgtLook();for(let y=0;y<104;y++)for(let x=0;x<160;x++){const h=(((x*73856093)^(y*19349663))>>>0)%89;P(x,y,1,1,y>84?(h<5?'#4a3a22':h<9?'#3a3424':'#2c281c'):(h<3?'#1c2220':'#161c1a'));}
+    for(const [tx,tw] of [[14,8],[52,6],[98,7],[140,9]]){for(let y=0;y<92;y++)for(let x=0;x<tw;x++){P(tx+x,y,1,1,x===0||x===tw-1?'#6a6a62':x<2?'#f0ece0':'#d4d0c4');}for(let y=4;y<90;y+=7+((tx+y)%5))P(tx+1+(y%3),y,tw-3,1,'#1a1a18');}
+    for(const [bx,by,bw] of [[18,14,40],[56,22,48],[100,10,44],[22,40,32]]){for(let x=0;x<bw;x++)P(bx+x,by+Math.round(Math.sin(x/bw*3)*2),1,2,'#bab6aa');}
+    const doll=(x,y,dress,hair,big)=>{const k=big?2:1;for(let i=0;i<(big?6:y-14);i++)P(x+2*k,y-i-1,1,1,'#8a8270');P(x+k,y,4*k,4*k,'#e8dcc8');P(x+k,y,4*k,1,'#f8f0e0');P(x+k,y,4*k,k,hair);P(x+2*k,y+2*k,1,1,'#2a1a10');P(x+3*k,y+2*k,1,1,'#2a1a10');
+      P(x,y+4*k,6*k,6*k,dress);P(x,y+4*k,6*k,1,'#ffffff40');P(x+k,y+10*k,k,2*k,'#e8dcc8');P(x+4*k,y+10*k,k,2*k,'#e8dcc8');};
+    for(const [x,y,c] of [[26,22,'#8a5a7a'],[64,30,'#6a7a4a'],[44,50,'#7a4a3a'],[108,18,'#4a5a7a'],[124,44,'#8a7a4a'],[80,58,'#5a4a6a'],[34,66,'#7a6a5a']])doll(x,y,c,'#6a4a2a');
+    doll(110,52,'#7a8aa8','#d8c27a');P(110,53,7,2,'#2a4a9a');P(116,52,2,4,'#3a5aba');   // Ruth's: the blue ribbon in her wool hair
+    // the newest, low and close: your hair in a braid, the dress only half sewn, the needle hanging on its thread
+    const nx=66,ny=60,ol='#2a2018',hr=lk.hair,cal='#d8ccb0',dr='#8a7aa0';for(let i=0;i<7;i++)P(nx+5,ny-i-1,1,1,'#8a8270');
+    P(nx+1,ny+8,10,14,ol);P(nx+2,ny+8,8,13,cal);P(nx+2,ny+8,1,13,'#ece2c8');P(nx+2,ny+21,3,5,ol);P(nx+7,ny+21,3,5,ol);P(nx+3,ny+21,1,4,cal);P(nx+8,ny+21,1,4,cal);
+    P(nx-1,ny+9,3,8,ol);P(nx+10,ny+9,3,8,ol);P(nx,ny+9,1,7,cal);P(nx+11,ny+9,1,7,cal);
+    P(nx+1,ny-1,10,10,ol);P(nx+2,ny,8,8,'#e8dcc8');P(nx+2,ny,8,2,hr);P(nx+2,ny,3,1,sgtShade(hr,1.35));P(nx+2,ny+2,1,3,hr);P(nx+9,ny+2,1,3,hr);
+    P(nx+4,ny+4,1,1,'#2a1a10');P(nx+7,ny+4,1,1,'#2a1a10');P(nx+5,ny+6,2,1,'#8a5a4a');
+    for(let i=0;i<10;i++)P(nx+10+(i%2),ny+2+i,2,1,i%2?sgtShade(hr,.7):hr);P(nx+10,ny+12,3,1,'#a8a080');
+    P(nx+1,ny+8,10,6,dr);P(nx+1,ny+8,10,1,sgtShade(dr,1.3));P(nx+1,ny+8,1,6,sgtShade(dr,1.2));P(nx+3,ny+8,6,1,'#e8e0d0');
+    for(let x=0;x<12;x++){const L=3+((x*5)%3);P(nx+x,ny+14,1,L,x<2?sgtShade(dr,1.15):x>9?sgtShade(dr,.75):dr);P(nx+x,ny+14+L,1,1,sgtShade(dr,.5));}
+    for(const sx of [2,5,8]){P(nx+sx,ny+19,1,1,'#3a3040');P(nx+sx+1,ny+20,1,1,'#3a3040');}
+    for(let i=0;i<7;i++)P(nx+9+Math.round(i*.5),ny+21+i,1,1,'#c8bca0');P(nx+12,ny+28,1,4,'#b8bcc8');P(nx+12,ny+28,1,1,'#ffffff');P(nx+12,ny+31,1,1,'#6a6e7a');}),
+  // the fen: the peat bank and black water, the turf-cutter's hut; a child curled on its side, brown as an old glove, a
+  // plaited grass rope round its neck and a wooden tag burnt 1872; more of them curled under the water; and by the hut's
+  // door, face down, one in your coat
+  fen:()=>sgtC('a_fen2',160,104,(P)=>{const lk=sgtLook(),hs=(x,y)=>(((x*73856093)^(y*19349663))>>>0)%97;
+    const edge=x=>Math.round(52+Math.sin(x*.05)*4+Math.sin(x*.19)*1.5);
+    for(let y=0;y<104;y++)for(let x=0;x<160;x++){const e=edge(x),h=hs(x,y);
+      P(x,y,1,1,y<e?(h<3?'#45311c':h<9?'#221710':'#2d2015'):y===e?'#5a4428':y<e+4?(y===e+3?'#0a0806':'#1a120c'):(h<2?'#1a2a30':'#0b1215'));}
+    for(const [rx,ry,rw] of [[18,70,8],[66,62,6],[100,82,10],[140,66,7],[40,94,5]])P(rx,ry,rw,1,'#1e3036');
+    // the hut: plank wall, the doorway, its shadow on the bank
+    for(let y=0;y<28;y++)for(let x=118;x<160;x++)P(x,y,1,1,(x-118)%5===0?'#1e1810':y<3?'#141008':(x+y)%13===0?'#4a3e2c':'#3a3024');
+    P(118,0,1,28,'#4e4232');P(131,9,12,19,'#100c08');P(130,8,14,1,'#5a4a36');P(130,8,1,20,'#5a4a36');P(143,8,1,20,'#2a2218');P(118,28,42,2,'#150f0a');
+    for(const rx of [6,30,58,92,150]){const e=edge(rx);for(let i=0;i<6;i++){const hh=5+((rx+i*7)%5);P(rx+i,e-hh+2,1,hh,i%2?'#4a4a24':'#5e5a2c');P(rx+i,e-hh+2,1,1,'#9a8a48');}}
+    // a child curled on its side: back rounded, knees drawn up, head bowed onto them, one arm across the shins
+    const curl=(cx,cy,s,f,rot)=>{const c=Math.cos(rot||0),sn=Math.sin(rot||0),T=(u,v)=>{u*=f;return [cx+(u*c-v*sn)*s,cy+(u*sn+v*c)*s];},C=(a,b,r)=>{const A=T(a[0],a[1]),B=T(b[0],b[1]);return [A[0],A[1],B[0],B[1],r*s];};
+      // folded at the knee: the thigh runs forward to the knee, the shin angles back down to the foot (a "<", not two logs)
+      return {torso:[C([-10,2],[-5,-3],4.6),C([-5,-3],[2,-4],4.6),C([2,-4],[8,1],2.6)],
+        thigh:[C([-7,4],[6,6],3.5)],shin:[C([6,7],[0,12.5],2.4),C([0,12.5],[-5,13],1.6)],
+        head:[C([10.5,4],[10.6,4.1],4.2)],arm:[C([2,-2],[5.5,4.5],1.8),C([5.5,4.5],[2.5,10],1.6),C([2.5,10],[.8,10.6],1.5)],T};};
+    const curlDraw=(q,L,face)=>{const lo=[L[0],L[1],sgtShade(L[2],.88),sgtShade(L[3],.9)];sgtBlob(P,q.shin,lo);sgtBlob(P,q.torso,L);sgtBlob(P,q.thigh,L);sgtBlob(P,q.arm,L);sgtBlob(P,q.head,L);
+      if(!face)return;const D=(u,v,c,w)=>{const [x,y]=q.T(u,v);P(Math.round(x),Math.round(y),w||1,1,c);};
+      for(let u=-10;u<=4;u+=.5)D(u,-7.3-Math.sin((u+10)/14*3.1)*.9,L[3]);
+      D(9.2,3.6,L[0]);D(9.2,4.4,L[1]);D(12.2,4.2,L[0]);D(12.9,4.6,L[0]);D(14.6,5.4,L[0]);D(13.2,7,L[1]);D(13.8,6.8,L[1]);
+      for(const [u,v] of [[7.4,1],[8,.2],[9,-.3],[10,-.4],[11,-.2],[7.2,2]])D(u,v,'#8a3a18');
+      D(1,10,L[3]);D(.2,11,L[0]);D(1.4,11.4,L[0]);D(-6,13.2,L[0]);};
+    const deep=['#081014','#0e1a1f','#142329','#1c3036'];
+    for(const [cx,cy,s,f,r] of [[30,74,1,1,.5],[86,88,.95,-1,-1.1],[134,72,1,1,2.6]])curlDraw(curl(cx,cy,s,f,r),deep,false);
+    const cx=34,cy=24,L=['#1a0e06','#4a2a12','#6a4024','#94643a'],q=curl(cx,cy,1.45,1,0);sgtBlob(P,[[cx-14,cy+19,cx+16,cy+19,4]],['#170f0a','#170f0a','#170f0a','#170f0a']);
+    curlDraw(q,L,true);
+    // the plaited grass rope round its neck, and the tag hanging off it
+    const [nx,ny]=q.T(7,-.6);for(let i=0;i<7;i++){const a=.2+i/6*2.8;P(nx+Math.round(Math.cos(a)*2.4),ny+Math.round(Math.sin(a)*1.8),1,1,i%2?'#6a5a2a':'#c8b468');}
+    for(let i=0;i<11;i++)P(nx+2+Math.round(i*.9),ny+2+i,1,1,i%2?'#6a5a2a':'#c8b468');
+    const tx=nx+6,ty=ny+13;P(tx,ty,20,10,'#2a1a0a');P(tx+1,ty+1,18,8,'#c8a878');P(tx+1,ty+1,18,1,'#e2c89a');P(tx+1,ty+8,18,1,'#9a7a50');P(tx+12,ty-1,2,2,'#2a1a0a');sgtT(P,'1872',tx+2,ty+3,'#2a1406');
+    // the newest, face down by the hut's door, in your coat: arms out, your hair, boots still on
+    const x0=110,y0=40,sh=lk.shirt,pa=lk.pants,ol='#120c08';sgtBlob(P,[[x0-6,y0+3,x0+26,y0+3,5.5]],['#140e0a','#140e0a','#140e0a','#140e0a']);
+    sgtBlob(P,[[x0+12,y0-2,x0+24,y0-3,2.4],[x0+12,y0+2,x0+23,y0+5,2.4]],[ol,sgtShade(pa,.6),pa,sgtShade(pa,1.3)]);
+    sgtBlob(P,[[x0+24,y0-3,x0+27,y0-3,2.2],[x0+23,y0+5,x0+26,y0+6,2.2]],[ol,'#140e08','#2a2018','#4a3a2c']);
+    sgtBlob(P,[[x0,y0,x0+12,y0,5]],[ol,sgtShade(sh,.6),sh,sgtShade(sh,1.3)]);
+    sgtBlob(P,[[x0+1,y0-4,x0-8,y0-8,2.5],[x0+3,y0+4,x0+11,y0+6,2.4]],[ol,sgtShade(sh,.55),sgtShade(sh,.85),sgtShade(sh,1.2)]);
+    sgtBlob(P,[[x0-10,y0-9,x0-10,y0-9,1.8],[x0+13,y0+6,x0+13,y0+6,1.7]],[ol,'#8a6a58','#c8a088','#e0c0a8']);
+    sgtBlob(P,[[x0-6,y0,x0-6,y0,3.8]],[ol,sgtShade(lk.hair,.6),lk.hair,sgtShade(lk.hair,1.35)]);
+    P(x0+6,y0+2,4,2,sgtShade(sh,.4));P(x0+6,y0+2,4,1,sgtShade(sh,.3));P(x0+3,y0-1,1,3,sgtShade(sh,.5));}),
+  // from the fire lookout: the valley from above through the cab's window. Its roads and the creek run out like the spokes of a
+  // wheel through the fields to a rim of woods; at the hub, your field, a light in it. The logbook lies open on the sill.
+  lookout:()=>sgtC('a_lookout3',160,104,(P)=>{const cx=64,cy=58,K=.55,hs=(x,y)=>(((x*73856093)^(y*19349663))>>>0)%101,N=9,A0=.2;
+    const FL=['#4a3e22','#3a3a1e','#52462a','#403420','#36381c'];
+    const toS=(u,v)=>{const w=1+v/110;return [cx+u*1.45*w,cy+v*(v<0?K:1)];},hill=x=>Math.round(13+Math.sin(x*.045+1)*4+Math.sin(x*.13)*2),hill2=x=>Math.round(21+Math.sin(x*.07+2.5)*3);
+    for(let y=0;y<104;y++)for(let x=0;x<160;x++){const v=(y-cy)/(y<cy?K:1),w=1+v/110,u=(x-cx)/(1.45*w),d=Math.hypot(u,v),h=hs(x,y);let c;
+      if(y<hill(x)-7)c=h<4?'#3a3a4c':'#2c2e3e';else if(y<hill(x))c=y===hill(x)-7?'#3a4440':'#121c1a';else if(y<hill2(x))c=y===hill(x)?'#24302a':'#16241c';
+      else if(d>43)c=h<20?'#0c150f':h<45?'#15231a':'#111d15';
+      else{let a=Math.atan2(v,u)-A0;while(a<0)a+=6.283;const sec=Math.floor(a/(6.283/N)),ring=d>24?1:0;c=FL[(sec*2+ring*3)%5];
+        if(Math.abs(d-24)<.7)c='#24301a';else if(h<4)c='#2a2a16';else if((sec+ring)%2===0&&((y+sec)%3===0))c=sgtShade(c,.85);}
+      P(x,y,1,1,c);}
+    for(let i=0;i<52;i++){const a=i/52*6.283+.05,r=47+(i*7)%6,[x,y]=toS(Math.cos(a)*r,Math.sin(a)*r);if(y<hill2(Math.round(x))+1)continue;const sc=y<cy?.75:1.15;sgtBlob(P,[[x,y,x,y,(3+(i%3)*.6)*sc]],['#08100b','#13221a','#1c3022','#2a4430']);}
+    for(let k=0;k<N;k++){const a=k/N*6.283+A0,wet=k===2||k===6;for(let r=6;r<110;r+=.3){const ww=wet?Math.sin(r*.35)*1.3:0;
+        let [x,y]=toS(Math.cos(a)*r-Math.sin(a)*ww,Math.sin(a)*r+Math.cos(a)*ww);x=Math.round(x);y=Math.round(y);if(y<hill2(x)||x<0||x>159||y>103)continue;
+        if(wet){P(x,y,2,y<cy?1:2,'#3e6e7e');P(x,y,1,1,'#6a9aa8');}else{P(x,y+1,1,1,'#2a2214');P(x,y,1,1,'#b0a070');}}
+      if(!wet)for(const r of [17,31]){let [x,y]=toS(Math.cos(a)*r,Math.sin(a)*r);x=Math.round(x)+2;y=Math.round(y)-2;P(x,y,3,1,'#7a3a2a');P(x,y+1,3,2,'#c8b890');P(x+1,y+2,1,1,'#2a1a10');}}
+    for(let y=-4;y<=5;y++)for(let x=-8;x<=8;x++)P(cx+x,cy+y,1,1,Math.abs(x)===8||y===-4||y===5?'#1e160c':(y&1)?'#4e3c1e':'#3a2c14');
+    const lx=cx+4,ly=cy-2;for(let y=-9;y<=9;y++)for(let x=-12;x<=12;x++){const d=Math.hypot(x/1.3,y);if(d<4.5)P(lx+x,ly+y,1,1,'#ffd8604a');else if(d<8.5)P(lx+x,ly+y,1,1,'#ffc85026');}
+    P(cx+2,cy-5,5,2,'#5a2a1e');P(cx+2,cy-3,5,3,'#b8a888');P(cx+3,cy-3,2,2,'#ffe6a0');P(cx+3,cy-3,1,1,'#ffffff');
+    // the cab's window: a frame round the view, one mullion well off the hub, the sill, the logbook open on it
+    const F='#2a2420',B='#4a3e30';for(let y=0;y<92;y++){P(0,y,5,1,F);P(155,y,5,1,F);P(116,y,4,1,F);P(5,y,1,1,B);P(120,y,1,1,B);}
+    for(let x=0;x<160;x++){P(x,0,1,4,F);P(x,4,1,1,B);P(x,92,1,12,'#3a3028');P(x,92,1,1,'#6a5a46');}
+    P(12,93,42,11,'#2a1a0e');P(13,94,19,9,'#e2d6b8');P(33,94,20,9,'#d8ccae');P(32,94,1,9,'#8a7a5a');
+    for(let i=0;i<4;i++){P(15,96+i*2,14-(i%2)*4,1,'#6a5a44');P(35,96+i*2,9,1,'#6a5a44');P(47,96+i*2,2,1,'#c89a3a');}
+    P(60,97,16,2,'#c89a3a');P(60,97,2,2,'#2a2018');}),
+  // under the reservoir: down through clear green water, the old street. The roofs and the walls, a lamp post, a bicycle on its side;
+  // the drowned stand in the street in their Sunday clothes, hair lifting, every one turned away toward the north-west
+  drowned:()=>sgtC('a_drowned2',160,104,(P)=>{const hs=(x,y)=>(((x*73856093)^(y*19349663))>>>0)%89;
+    for(let y=0;y<104;y++)for(let x=0;x<160;x++){const h=hs(x,y);let c;
+      if(y<46)c=h<4?'#21403c':'#1c3a37';else{const row=Math.floor((y-46)/4),cx=(x+(row%2)*3)%6,cy=(y-46)%4;c=cx===0||cy===0?'#132a28':h<6?'#24443f':'#1d3b37';}
+      if(((x+y*2)>>3)%9===0)c=sgtShade(c,1.12);
+      P(x,y,1,1,c);}
+    P(0,45,160,1,'#2e524c');P(0,46,160,1,'#10221f');
+    // the houses on the far side of the street, roofs toward us, weed up their walls
+    for(const [hx,hw] of [[4,40],[54,44],[110,46]]){for(let y=0;y<16;y++)P(hx-1,6+y,hw+2,1,y%3===0?'#14282a':y<2?'#3a5e58':'#25423f');
+      P(hx-1,22,hw+2,1,'#0e1e1e');for(let y=23;y<44;y++)P(hx,y,hw,1,y===23?'#0e1e1e':'#2c4c47');P(hx,23,1,21,'#3a605a');
+      for(let wx=hx+5;wx<hx+hw-8;wx+=14){P(wx,28,7,7,'#0a1616');P(wx,28,7,1,'#3e625c');P(wx+3,28,1,7,'#2c4c47');P(wx,31,7,1,'#2c4c47');}
+      P(hx+hw-11,32,7,12,'#0a1414');P(hx+hw-12,31,9,1,'#3e625c');
+      for(let i=0;i<4;i++){const sx=hx+3+i*((hw/4)|0);for(let y=0;y<8+i%3*3;y++)P(sx+Math.round(Math.sin(y*.6+i)),43-y,1,1,'#2e5a3a');}}
+    // a lamp post, lit from the top left
+    P(102,22,2,46,'#2a4a46');P(102,22,1,46,'#4a6e66');P(99,18,8,5,'#1a3230');P(100,19,6,3,'#5a8a7e');P(98,17,10,1,'#3a5e58');P(100,67,6,2,'#132826');
+    // a bicycle on its side in the road
+    const ring=(x,y,r)=>{for(let a=0;a<6.283;a+=.09)P(Math.round(x+Math.cos(a)*r),Math.round(y+Math.sin(a)*r*.7),1,1,'#5e8a80');};
+    ring(124,92,6);ring(142,92,6);for(let i=0;i<=10;i++){P(124+i*.9,92-i*.5,1,1,'#7aa89c');P(133+i*.9,87+i*.5,1,1,'#7aa89c');}P(132,86,4,1,'#9ac8bc');P(142,86,1,6,'#7aa89c');P(141,85,4,1,'#9ac8bc');
+    // the people, from behind: a man in his suit and hat, women in their church dresses, a girl; their hair lifting in the water,
+    // every one turned the same way, up and to the left
+    const skin='#9ab8b0',ol='#0a1414';
+    const who=(x,y,o)=>{const c=o.c,hk=o.hair,s=o.s||1,R=(a,b,w,h,col)=>P(Math.round(x+a*s),Math.round(y+b*s),Math.max(1,Math.round(w*s)),Math.max(1,Math.round(h*s)),col);
+      if(o.dress){R(-6,-12,12,13,ol);R(-5,-12,10,12,c);R(-5,-12,2,12,sgtShade(c,1.25));R(3,-12,2,12,sgtShade(c,.7));R(-6,0,3,1,'#060c0c');R(1,0,3,1,'#060c0c');}
+      else{R(-4,-8,3,9,ol);R(1,-8,3,9,ol);R(-3,-8,2,8,sgtShade(c,.8));R(2,-8,2,8,sgtShade(c,.7));R(-5,0,4,1,'#060c0c');R(0,0,4,1,'#060c0c');}
+      // the back of the coat: a seam down the middle, the collar, the right arm hanging, the left half hidden as they turn away left
+      R(-6,-22,12,13,ol);R(-5,-21,10,12,c);R(-5,-21,2,12,sgtShade(c,1.25));R(3,-21,2,12,sgtShade(c,.7));R(0,-20,1,11,sgtShade(c,.75));R(-4,-22,7,2,sgtShade(c,.6));
+      R(-7,-20,2,8,sgtShade(c,.8));R(5,-20,2,10,sgtShade(c,.65));R(5,-11,2,2,sgtShade(skin,.75));
+      // the back of the head: all hair, nudged left the way they're looking
+      R(-5,-30,7,9,ol);R(-4,-29,5,8,hk);R(-4,-29,2,1,sgtShade(hk,1.35));R(-4,-29,1,3,sgtShade(hk,1.2));R(0,-26,1,4,sgtShade(hk,.75));
+      if(o.hat){R(-7,-31,11,2,ol);R(-6,-31,9,1,o.hat);R(-4,-35,6,4,ol);R(-3,-34,4,3,o.hat);R(-3,-34,1,3,sgtShade(o.hat,1.4));}
+      if(o.lift){const n=o.lift+4;for(let j=0;j<n;j++){const px=1+j*.85,py=-27-j*.5+Math.sin(j*.55)*1.3,w=Math.max(1,3.6*(1-j/n)+.6);
+          for(let k=0;k<Math.ceil(w);k++){const col=k===0?sgtShade(hk,1.3):k>=Math.ceil(w)-1?sgtShade(hk,.6):hk;R(px,py-w/2+k,1,1,col);}}}};
+    for(const [x,y,o] of [[26,72,{c:'#2a2e3c',hair:'#4a3a2a',hat:'#1a1e26'}],[52,64,{c:'#4a3448',hair:'#8a7a5a',dress:1,lift:13}],[80,70,{c:'#2a3a4a',hair:'#2a2420',hat:'#3a4a5a',dress:1,lift:8}],
+        [64,92,{c:'#3a4a3a',hair:'#c8b880',dress:1,lift:14,s:.8}],[116,74,{c:'#30303a',hair:'#8a8a84',hat:'#202028'}],[92,98,{c:'#44303a',hair:'#5a3a24',dress:1,lift:12}]])who(x,y,o);
+    // bubbles going up, and the light coming down
+    for(const [x,y] of [[50,30],[51,25],[81,28],[66,58],[67,52],[117,30],[118,22]])P(x,y,1,1,'#9ad0c4');
+    for(let i=0;i<18;i++){const x=(i*41)%156,y=(i*29)%100;P(x,y,4+(i%3)*2,1,'#5e9a8c');}}),
+  // the deep corn: a clearing trampled flat with the corn standing all round; a ring of scarecrows in children's clothes, all facing
+  // in. In the middle, a new one your size, in your clothes, your hair and your face painted on, a card on its chest: STAND-IN
+  corn:()=>sgtC('a_corn2',160,104,(P)=>{const lk=sgtLook(),hs=(x,y)=>(((x*73856093)^(y*19349663))>>>0)%97;
+    for(let y=0;y<104;y++)for(let x=0;x<160;x++){const h=hs(x,y);P(x,y,1,1,y<34?(h<8?'#0e0c06':'#16130a'):(h<5?'#6a5a2a':h<9?'#2a2214':'#3a2e1a'));}
+    // the wall of corn behind
+    for(let x=-2;x<162;x+=4){const top=2+((x*7)%9),sh=(x*13)%3;for(let y=top;y<38;y++)P(x+(y>>4)%2,y,2,1,y<top+4?'#b89a48':sh?'#6a5a24':'#56481c');
+      for(let y=top+6;y<36;y+=7){const d=(x+y)%2?1:-1;for(let i=0;i<5;i++)P(x+d*i,y+i*.6,1,1,'#7a6a2c');}}
+    P(0,36,160,2,'#120e08');
+    const ol='#120c08';
+    const crow=(x,y,s,o)=>{const X=v=>Math.round(x+v*s),Y=v=>Math.round(y+v*s),B=(a,b,c,d,col,line)=>{if(line!==false)P(X(a)-1,Y(b)-1,X(c)-X(a)+2,Y(d)-Y(b)+2,ol);P(X(a),Y(b),X(c)-X(a),Y(d)-Y(b),col);};
+      P(X(-8),Y(41),X(8)-X(-8),2,'#00000066');B(-1,8,1,41,'#4a3418');
+      if(o.pants){B(-4,20,0,33,o.pants);B(0,20,4,33,sgtShade(o.pants,.85));P(X(-4),Y(33),X(4)-X(-4),1,'#c8a848');}
+      const sh=o.sh;B(-13,9,13,14,sh);B(-5,8,5,22,sh);P(X(-5),Y(8),2,Y(22)-Y(8),sgtShade(sh,1.25));P(X(5)-2,Y(8),2,Y(22)-Y(8),sgtShade(sh,.7));P(X(-13),Y(9),X(13)-X(-13),1,sgtShade(sh,1.2));
+      if(o.stripe)for(let b=11;b<22;b+=3)P(X(-5),Y(b),X(5)-X(-5),1,o.stripe);
+      if(o.apron&&o.front){P(X(-3),Y(12),X(3)-X(-3),Y(22)-Y(12),'#d8d0bc');P(X(-3),Y(12),1,Y(22)-Y(12),'#f0e8d4');}
+      if(o.kerchief&&o.front){P(X(-3),Y(8),X(3)-X(-3),2,o.kerchief);P(X(-1),Y(10),2,2,o.kerchief);}
+      for(const sx of [-15,13])for(let i=0;i<3;i++)P(X(sx)+i,Y(10)+i,1,2,'#d8b850');
+      for(let i=0;i<4;i++)P(X(-3)+i*2,Y(22),1,2+(i%2),'#d8b850');
+      B(-4,-1,4,9,'#b89a68');P(X(-4),Y(-1),1,Y(9)-Y(-1),'#d8bc88');P(X(4)-1,Y(-1),1,Y(9)-Y(-1),'#8a6e46');for(let i=0;i<5;i++)P(X(-3)+((i*3)%7),Y(1)+i*2,1,1,'#9a7e52');
+      P(X(-4),Y(8),X(4)-X(-4),1,'#5a4220');for(let i=0;i<3;i++)P(X(-2)+i*2,Y(9),1,1,'#d8b850');
+      if(o.front&&!o.you){P(X(-2.5),Y(3),2,2,'#1a120a');P(X(1.5),Y(3),2,2,'#1a120a');for(let i=0;i<4;i++)P(X(-2)+i*1,Y(6.4),1,1,i%2?'#1a120a':'#6a5030');}
+      if(!o.front){for(let b=0;b<8;b+=2)P(X(0),Y(b),1,1,'#6a5030');}};
+    const kids=[[30,44,.8,{sh:'#7a8a6a',front:1,apron:1}],[58,38,.8,{sh:'#6a6a8a',front:1,kerchief:'#a82a20'}],[104,38,.8,{sh:'#8a4a3a',front:1,stripe:'#c8b890'}],[130,44,.8,{sh:'#a89060',front:1}],
+      [12,60,.9,{sh:'#5a6a8a',front:1,stripe:'#2a3448'}],[148,60,.9,{sh:'#8a7a5a',front:1,apron:1}]];
+    for(const k of kids)crow(...k);
+    // you, in the middle, your size
+    const mx=80,my=28,s=1.55;crow(mx,my,s,{sh:lk.shirt,pants:lk.pants,front:1,you:1});
+    const X=v=>Math.round(mx+v*s),Y=v=>Math.round(my+v*s);
+    P(X(-5),Y(-3),X(5)-X(-5),Y(1)-Y(-3),lk.hair);P(X(-5),Y(-3),X(5)-X(-5),1,sgtShade(lk.hair,1.35));P(X(-5),Y(1),2,3,lk.hair);P(X(4),Y(1),2,3,lk.hair);P(X(-5),Y(-4),X(5)-X(-5)+2,1,ol);
+    P(X(-3),Y(2.6),3,2,'#f2ead2');P(X(1.2),Y(2.6),3,2,'#f2ead2');P(X(-2),Y(2.6),2,2,'#2a3a5a');P(X(2),Y(2.6),2,2,'#2a3a5a');P(X(-3),Y(2),3,1,'#3a2414');P(X(1.2),Y(2),3,1,'#3a2414');
+    P(X(-1.6),Y(6.4),5,1,'#a82018');P(X(-2.2),Y(6),1,1,'#a82018');P(X(2.6),Y(6),1,1,'#a82018');P(X(-1),Y(7.2),1,2,'#8a1a14');
+    // the card, tied on with string
+    const cw=36,cx0=mx-18,cy0=Y(13);P(mx-8,Y(9),1,cy0-Y(9),'#d8d0bc');P(mx+8,Y(9),1,cy0-Y(9),'#d8d0bc');P(cx0,cy0,cw,10,ol);P(cx0+1,cy0+1,cw-2,8,'#f2ead2');P(cx0+1,cy0+1,cw-2,1,'#ffffff');
+    sgtT(P,'STAND',cx0+3,cy0+3,'#2a1a2e');P(cx0+23,cy0+5,2,1,'#2a1a2e');sgtT(P,'IN',cx0+26,cy0+3,'#2a1a2e');
+    // the near side of the ring, their backs to us
+    crow(42,72,1,{sh:'#6a4a5a'});crow(118,72,1,{sh:'#4a6a5a',stripe:'#2a3a30'});
+    // corn close in front at the corners
+    for(const [x0,x1] of [[0,22],[140,160]])for(let x=x0;x<x1;x+=3){const top=74+((x*5)%11);for(let y=top;y<104;y++)P(x,y,2,1,y<top+3?'#c8aa58':'#6a5a24');for(let y=top+5;y<104;y+=6)P(x-1,y,4,1,'#7a6a2c');}}),
+});
+// ---- the story places (chapter two): what you actually see when you get there
+const sgtH=(x,y)=>(((x*73856093)^(y*19349663))>>>0)%97;
+Object.assign(SGT_ART,{
+  // the Marsh place: your cabin, to the board. The window crack shaped like a river, the porch board that sticks, and on the door
+  // a note in Grandpa's hand, addressed to you
+  p_marsh:()=>sgtC('p_marsh',160,104,(P)=>{const ol='#140c06';
+    for(let y=0;y<82;y++)for(let x=0;x<160;x++){const r=y%9,h=sgtH(x,y);P(x,y,1,1,r===8?'#8a8070':r===0?'#24180c':r===1?'#7a5a3a':r<6?(h<6?'#4a3420':'#5e4428'):'#3e2c1a');}
+    // the window, four panes, and the crack running across them like a river with its creeks
+    P(8,12,44,46,ol);P(10,14,40,42,'#5a4228');for(const [px,py] of [[12,16],[31,16],[12,36],[31,36]]){P(px,py,17,18,'#1e2a34');P(px,py,17,2,'#3a4a58');P(px,py,2,18,'#2a3844');}
+    const glass=(x,y)=>x>=12&&x<48&&y>=16&&y<54&&!(x>=29&&x<31)&&!(y>=34&&y<36);
+    for(let t=0;t<=1;t+=.006){const x=Math.round(13+t*34+Math.sin(t*7)*3),y=Math.round(17+t*35+Math.sin(t*11)*4);if(glass(x,y)){P(x,y,1,1,'#c8d4dc');if(glass(x+1,y+1))P(x+1,y+1,1,1,'#0c1418');}}
+    for(const [t0,dx,dy,n] of [[.18,1,-.6,7],[.42,-.4,1,6],[.6,1,-.8,8],[.8,-.7,.9,5]]){let x=13+t0*34+Math.sin(t0*7)*3,y=17+t0*35+Math.sin(t0*11)*4;for(let j=0;j<n;j++){x+=dx;y+=dy+Math.sin(j)*.4;if(glass(Math.round(x),Math.round(y)))P(x,y,1,1,'#9aa8b2');}}
+    P(6,58,48,3,'#6a4e30');P(6,58,48,1,'#9a7a52');
+    // the door, planks and a Z brace, the latch
+    P(66,4,50,79,ol);for(let x=68;x<114;x++)for(let y=6;y<82;y++)P(x,y,1,1,(x-68)%9===0?'#2a1c10':(x-68)%9===1?'#8a6a44':sgtH(x,y)<5?'#5a4028':'#6e5034');
+    for(let i=0;i<46;i++){P(68+i,64-Math.round(i*.9),1,3,'#4a3420');P(68+i,64-Math.round(i*.9),1,1,'#9a7a52');}P(68,18,46,4,'#4a3420');P(68,66,46,4,'#4a3420');P(68,18,46,1,'#9a7a52');P(68,66,46,1,'#9a7a52');
+    P(106,40,4,6,'#1a1a1a');P(106,40,1,6,'#6a6a6a');
+    // the note: nailed at eye height, the paper curling, your name in his hand
+    P(72,23,40,32,'#00000055');P(70,21,40,32,'#3a2a18');P(71,22,38,30,'#d4c494');P(71,22,38,1,'#e8dab0');P(71,22,1,30,'#e0d2a4');P(108,22,1,30,'#a8966a');P(71,51,38,1,'#a8966a');
+    for(const [fx,fy] of [[75,24],[101,27],[93,42],[78,47],[104,45],[86,30]])P(fx,fy,2,1,'#b0905a');P(102,46,7,6,'#6e5034');for(let i=0;i<6;i++)P(102+i,51-i,7-i,1,i<2?'#b8a070':'#e6d6a8');
+    P(89,23,2,2,'#2a2a2a');P(89,23,1,1,'#8a8a8a');
+    const ink='#2a2440',nm=sgtName().slice(0,8);sgtT(P,'FOR',74,27,ink);let X=74;for(let i=0;i<nm.length;i++){X=sgtT(P,nm[i],X,35+(i%2),ink);}
+    for(const [ly,lw] of [[43,30],[47,24]])for(let i=0;i<lw;i++)P(74+i,ly+Math.round(Math.sin(i*.9)),1,1,i%7===6?'#e6dac0':'#5a5470');sgtT(P,'G',98,46,ink);P(102,50,1,1,ink);
+    // the porch boards, and the one that sticks up
+    for(let y=82;y<104;y++)for(let x=0;x<160;x++){const r=(y-82)%6;P(x,y,1,1,r===0?'#1e140a':r===1?'#9a7a52':sgtH(x,y)<6?'#5e4428':'#74583a');}
+    for(let i=0;i<22;i++){const lf=Math.round((i/21)**1.4*8),x=80+i;P(x,94-lf-6,1,1,'#1e140a');P(x,94-lf-5,1,1,'#d0aa78');P(x,94-lf-4,1,4,'#8a6a44');P(x,94-lf,1,lf,'#060402');}
+    P(101,80,2,6,'#a8875c');P(101,80,2,1,'#d0aa78');P(80,88,1,6,'#1e140a');P(78,89,2,2,'#b0b0b0');P(78,89,1,1,'#e8e8e8');}),
+  // the Tithe House: no windows, a ring of stones, the door nailed shut over and over, holes right through; a child's shoes on the step
+  p_tithe:()=>sgtC('p_tithe',160,104,(P)=>{const ol='#0e0c0c';
+    for(let y=0;y<104;y++)for(let x=0;x<160;x++)P(x,y,1,1,y<30?'#1c1e24':y<92?'#1a1c18':sgtH(x,y)<10?'#2e3a22':'#242e1a');
+    for(const [sx,sw,sh,gy,dk] of [[20,7,16,86,1],[133,7,15,86,1],[2,11,30,94,0],[147,11,28,94,0]]){const c=dk?['#3e3e44','#4a4a50','#2e2e34','#5a5a60']:['#5a5a5e','#7a7a80','#3e3e44','#8a8a90'];
+      P(sx-1,gy-sh-1,sw+2,sh+1,ol);P(sx,gy-sh,sw,sh,c[0]);P(sx,gy-sh,2,sh,c[1]);P(sx+sw-2,gy-sh,2,sh,c[2]);P(sx,gy-sh,sw,1,c[3]);P(sx-2,gy,sw+4,1,'#141a10');}
+    // the wall: coursed stone, no window anywhere
+    for(let y=6;y<88;y++)for(let x=30;x<130;x++){const row=Math.floor((y-6)/7),off=(row%2)*6,cx=(x-30+off)%12,cy=(y-6)%7;P(x,y,1,1,cx===0||cy===0?'#24242a':cy===1?'#7a7880':sgtH(x,y)<8?'#4a4a52':'#5a5a62');}
+    P(30,6,100,2,'#8a8890');P(28,4,104,2,ol);P(28,6,2,82,ol);P(130,6,2,82,ol);
+    // the door, and a hundred and fifty years of nails
+    P(54,18,52,70,ol);P(52,14,56,5,'#6a686e');P(52,14,56,1,'#9a98a0');
+    for(let x=56;x<104;x++)for(let y=20;y<88;y++)P(x,y,1,1,(x-56)%8===0?'#1a120c':(x-56)%8===1?'#6a5038':'#4a3826');
+    // a hundred and fifty years of nailing: heads in clusters where each year's boards went across, rust bleeding down from them
+    for(let c=0;c<9;c++){const cy=24+c*7+(c%2)*2;for(let i=0;i<5+(c%3);i++){const x=58+((sgtH(c,i)%44)),y=cy+(sgtH(i,c)%4);if((x-56)%8<2)continue;
+        const L=2+sgtH(x,y)%5;for(let j=1;j<=L;j++)P(x,y+1+j,1,1,j<L?'#7a3a1a':'#5a2a12');P(x-1,y-1,3,3,'#1a1414');P(x,y,2,2,'#7a7a80');P(x,y,1,1,'#c8c8d0');}}
+    for(const [x,y] of [[62,38],[90,30],[74,58],[96,70],[66,76]]){P(x,y,2,2,'#000000');P(x,y+2,2,1,'#5a4430');}
+    // the step and the shoes: side by side, neat, toes pointing in at the door
+    P(44,88,72,8,ol);P(45,88,70,7,'#6a686e');P(45,88,70,1,'#9a98a0');P(45,94,70,1,'#3a3a40');
+    // the shoes from behind: heels toward you, open, laced, the toes against the door
+    // the shoes, from behind and a little above: scuffed buckle shoes, heels to you, toes to the door, a shade apart
+    const shoe=(x,f)=>{const y=76;sgtBlob(P,[[x-.5,y+5,x+.5,y+11,5.4]],['#0e0806','#24160e','#3a2418','#5e3e2a']);P(x-2,y+1,3,1,'#6e4c34');P(x+2,y+2,1,1,'#6e4c34');
+      sgtBlob(P,[[x-1.6,y+11,x+1.6,y+11,3]],['#6e4c34','#0a0604','#140c08','#140c08']);P(x-4,y+15,9,1,'#6e4c34');P(x-3,y+16,7,1,'#24160e');
+      P(x-5,y+6,11,1,'#140c08');P(x-5,y+5,11,1,'#4a3020');const bx=f?x-6:x+4;P(bx,y+4,2,3,'#9a9aa2');P(bx,y+4,1,1,'#ffffff');P(x-5,y+18,11,2,'#00000055');};
+    P(64,93,32,2,'#2a2a30');shoe(73,0);shoe(87,1);}),
+  // the hollow tree: split like a door left ajar; inside, at a child's height, carved over and over, fresh: WHEN THE SUN IS IN
+  p_tree:()=>sgtC('p_tree',160,104,(P)=>{const ol='#0a0806';
+    for(let y=0;y<104;y++)for(let x=0;x<160;x++)P(x,y,1,1,y>90?(sgtH(x,y)<12?'#3a2e1c':'#2a2214'):(sgtH(x,y)<4?'#141a14':'#0e130f'));
+    const L=y=>58-Math.round(Math.sin(y*.21)*2+Math.sin(y*.07)*3+(y>40?(y-40)*.05:0)),R=y=>102+Math.round(Math.sin(y*.17+1)*2+(y>40?(y-40)*.12:0));
+    for(let y=0;y<92;y++){for(let x=34;x<128;x++){const l=L(y),r=R(y);let c;
+        if(x<l||x>r+8){const g=sgtH(x,(y+(x*5)%9)>>3)%4;c=(x===34||x===127)?ol:['#b8b6ae','#a4a29a','#a4a29a','#8a8a84'][g];if(sgtH(x,7)%9===0)c='#6e6e68';if(x<38)c='#6a6a64';if(x>123)c='#5a5a54';}
+        else if(x<=r){c=y<44?'#0a0705':(sgtH(x,y)<6?'#c8a878':'#d8bc8a');if(x===l)c='#4a3420';}
+        else c=x<=r+2?'#4a3420':(sgtH(x,y)<8?'#a88a5e':'#bc9e70');
+        P(x,y,1,1,c);}}
+    for(let x=34;x<128;x++)for(let i=0;i<3;i++)P(x+i*2-2,90+i,1,1,'#4a3a26');
+    // the carving, three times down the inside, fresh-cut wood round each letter, sap still running
+    // carved into the wood: dark grooves with a lit lower lip, three goes at it, uneven, the last one over the second
+    const cut='#2e1c0c',lip='#f6e2b8',fresh='#e6cc98';
+    for(const [y,dx] of [[47,1],[61,4],[74,0]]){const x=L(y)+4+dx;for(let i=-1;i<42;i++)for(let j=-2;j<13;j++)if(x+i<R(y+j)-1&&!(i<1&&sgtH(i,y+j)%2)&&!(j>10&&sgtH(x+i,j)%3))P(x+i,y+j,1,1,fresh);
+      let X=x;for(const [i,ch] of [...'WHEN THE'].entries()){const jy=y+((sgtH(i,y)%3)-1);sgtT(P,ch,X,jy+1,lip);sgtT(P,ch,X,jy,cut);X+=4+(sgtH(y,i)%2);}
+      X=x+1;for(const [i,ch] of [...'SUN IS IN'].entries()){const jy=y+6+((sgtH(i+9,y)%3)-1);sgtT(P,ch,X,jy+1,lip);sgtT(P,ch,X,jy,cut);X+=4+(sgtH(y,i+5)%2);}}
+    // the sap: welling out of the lowest letters and running down, glossy
+    for(const [sx,sy,len] of [[L(80)+8,86,6],[L(80)+21,86,4],[L(80)+33,86,7]])
+      {for(let j=0;j<len;j++){P(sx,sy+j,2,1,'#b8640e');P(sx,sy+j,1,1,'#e89a2a');}P(sx-1,sy+len,4,2,'#a8540a');P(sx,sy+len,1,1,'#ffd890');P(sx,sy+2,1,2,'#fff0c0');}
+    for(let y=0;y<44;y+=6)P(L(y)+3,y+2,2,1,'#2a1c10');}),
+  // the Black Lake: the dock, the sky, you standing there, and none of it in the water. Under the last plank, a cord pulled
+  // straight down into the dark
+  p_lake:()=>sgtC('p_lake',160,104,(P)=>{const lk=sgtLook(),ol='#060606';
+    for(let y=0;y<104;y++)for(let x=0;x<160;x++){const tl=Math.round(18+Math.sin(x*.21)*3+Math.sin(x*.07)*2+((x*7)%5===0?-3:0));
+      P(x,y,1,1,y<tl?(y<6?'#262a32':'#20242c'):y<26?'#0a0e0c':y<66?(sgtH(x,y)<2?'#0a0c0d':'#050607'):y===66?'#141c20':(y>90?'#04070a':'#060a0d'));}
+    // the dock from the side: planks on top, the beam, the posts going down into the water
+    for(let x=0;x<104;x++){P(x,50,1,1,'#b09a72');P(x,51,1,3,(x%9===0)?'#2a2014':'#8a7656');P(x,54,1,5,'#4a3a28');P(x,58,1,1,'#2a2014');}P(103,50,1,9,'#2a2014');
+    for(const px of [6,46,86]){P(px,59,5,8,ol);P(px+1,59,3,7,'#4a3a28');P(px+1,59,1,7,'#6a5a40');}
+    // you, at the end, looking down
+    const sx=78,sh=lk.shirt,pa=lk.pants;P(sx-1,30,9,20,ol);P(sx,46,3,4,'#2a2018');P(sx+4,46,3,4,'#2a2018');P(sx,38,7,8,pa);P(sx,38,2,8,sgtShade(pa,1.2));
+    P(sx-1,29,9,10,ol);P(sx,30,7,9,sh);P(sx,30,2,9,sgtShade(sh,1.25));P(sx+5,31,2,8,sgtShade(sh,.7));P(sx+1,22,7,8,ol);P(sx+2,23,5,6,'#d8a888');P(sx+2,22,5,3,lk.hair);P(sx+1,23,2,4,lk.hair);P(sx+6,26,1,1,'#2a1a10');
+    // the cord: tied round the last plank, pulled tight, straight down; the only ring on the water
+    P(98,54,5,4,'#c8b890');P(98,54,5,1,'#e8dcc0');for(let y=58;y<104;y++){P(100,y,1,1,y<66?'#c8b890':y<84?'#8a7c60':'#4a4234');}
+    for(let a=0;a<6.283;a+=.2)P(Math.round(100+Math.cos(a)*6),Math.round(66+Math.sin(a)*1.2),1,1,'#2e3a40');}),
+  // Wickham's noticeboard: the same notice pinned over itself for a hundred and fifty years; this year's on top, the date ringed
+  p_wick:()=>sgtC('p_wick',160,104,(P)=>{const ol='#100a06';
+    for(let y=0;y<104;y++)for(let x=0;x<160;x++)P(x,y,1,1,y>92?(sgtH(x,y)<10?'#4a4a48':'#3a3a3a'):sgtH(x,y)<4?'#1e2226':'#181c20');
+    P(18,10,6,94,ol);P(136,10,6,94,ol);P(19,10,4,94,'#5a4028');P(137,10,4,94,'#4a3420');P(19,10,1,94,'#7a5a3a');
+    P(12,2,136,10,ol);for(let x=13;x<147;x++)for(let y=3;y<11;y++)P(x,y,1,1,(x+((y>>2)%2)*3)%6===0?'#2a1a12':y<5?'#6a3a2a':'#4e2a1e');
+    P(22,12,116,74,ol);P(23,13,114,72,'#6a5034');
+    // the old notices underneath, yellowed and torn, every one the same
+    for(let i=0;i<14;i++){const x=24+sgtH(i,3)%70,y=14+sgtH(i,9)%30,w=36+sgtH(i,5)%10,h=40;const c=['#a89868','#9a8a5a','#b8a878','#8a7a50'][i%4];P(x,y,w,h,'#2a2014');P(x+1,y+1,w-2,h-2,c);for(let k=0;k<5;k++)P(x+4,y+5+k*6,w-10,1,sgtShade(c,.7));P(x+w-4,y+h-5,3,4,'#6a5034');}
+    // this year's
+    const nx=46,ny=16;for(let i=12;i>0;i--){const c=['#c8b88a','#a89868','#d8c89a','#8a7a50'][i%4],ox=-1-(sgtH(i,1)%3),oy=-(i*.7|0)-1;P(nx+ox,ny+oy,66,1,c);P(nx+ox-(i%2),ny+oy,1,64,sgtShade(c,.85));P(nx+ox,ny+oy+1,66,1,'#3a2a18');}
+    P(nx+2,ny+2,66,66,'#00000066');P(nx,ny,66,66,'#2a2014');P(nx+1,ny+1,64,64,'#ece4d0');P(nx+1,ny+1,64,1,'#fffaf0');P(nx+32,ny-1,3,3,'#a82a20');
+    const ink='#1e1a24';let y=ny+5;for(const ln of ['THE DRAWING','WILL BE HELD','AT MARROW','HOLLOW CHURCH','ATTENDANCE','IS KIND'])
+      {const w=ln.length*4-1;sgtT(P,ln,nx+33-Math.floor(w/2),y,ink);y+=7;}
+    P(nx+8,y+1,48,1,'#8a8478');sgtT(P,'FALL 28',nx+19,y+4,ink);for(let a=0;a<6.283;a+=.08)P(Math.round(nx+32+Math.cos(a)*17),Math.round(y+6+Math.sin(a)*5),1,1,'#b82a20');}),
+});
+const SGT_PLACE={
+  marsh:{art:'p_marsh',cap:'It is your cabin. Not like it: yours, down to the porch board that sticks and the crack in the window shaped like a river. The note on the door is in Grandpa’s hand, addressed to you, dated thirty years ago.'},
+  tithe:{art:'p_tithe',cap:'A house with no windows inside a ring of stones. Its door has been nailed shut a hundred and fifty times; the holes go right through. On the step, a child’s shoes, toes pointing in.'},
+  tree:{art:'p_tree',cap:'The dead tree is split like a door left ajar. Carved inside, over and over, at the height of a child: WHEN THE SUN IS IN. The carving is fresh. The sap is still wet.'},
+  lake:{art:'p_lake',cap:'The water reflects nothing. Not the dock, not the sky, not you. Under the last plank a cord goes straight down, pulled tight, the way a cord is when someone at the other end is holding on.'},
+  wick:{art:'p_wick',cap:'Wickham’s noticeboard: the same notice, pinned over itself every year for a hundred and fifty years. THE DRAWING WILL BE HELD AT MARROW HOLLOW CHURCH. This year’s has your birthday on it.'},
+};
+// a chapter-two place: the screen goes in on it instead of a page of text (false: nothing opened, the page comes instead)
+function stPlaceSight(p,fin){const d=SGT_PLACE[p&&p.k];if(!d||!SGT_ART[d.art]||typeof ruOpen!=='function')return false;let img=null;try{img=SGT_ART[d.art]();}catch(e){return false;}if(!img)return false;
+  ruOpen({x:p.x,z:p.z,_sight:{img,fx:d.fx||{}}},d.cap);if(!RU.on)return false;RU.after=fin||null;return true;}
 // ---- which beats are sights, what to show, and the one line that stays underneath (the beat's own takeaway)
 const SGT_BEATS={deer:{sp:[['g_deer_open',0,0]],fx:{pulse:[36,8],flies:5,ribs:1}},graves:{art:'graves',fx:{flies:3}},crypt:{art:'crypt'},
   cold:{sp:[['g_hooks',0,0]],fx:{drip:1}},yourgrave:{art:'yourgrave',fx:{flies:2}},jars:{art:'jars'},
-  well:{art:'well',fx:{drip:1}},orchard:{draw:'orchard'},quarry:{draw:'quarry'},scare:{draw:'scare'},rehearsal:{art:'rehearsal'}};
+  well:{art:'well',fx:{drip:1}},orchard:{draw:'orchard'},quarry:{draw:'quarry'},scare:{draw:'scare'},rehearsal:{art:'rehearsal'},
+  birches:{art:'birches'},fen:{art:'fen',fx:{flies:2}},lookout:{art:'lookout'},drowned:{art:'drowned'},corn:{art:'corn'}};
 function sgtImage(id){const d=SGT_BEATS[id];if(!d)return null;if(d.art&&SGT_ART[d.art])return SGT_ART[d.art]();if(d.draw&&SGT_DRAW[d.draw])return SGT_DRAW[d.draw]();if(d.sp)return sgtSprites('beat_'+id,d.sp,d.paint);return null;}
 // in the open small grave: a shape wrapped in a bedsheet, soaked dark from the inside, a jar label pinned to its chest
 function sgtWrapped(P,pos){const p=pos.g_grave;if(!p)return;const [gx,gy]=p;for(let y=0;y<11;y++)for(let x=0;x<26;x++){const e=((x-13)/13)**2+((y-5.5)/5.6)**2;if(e>1)continue;const soak=((x*5+y*7)%11)/11+(x>8&&x<20?.4:0);
     P(gx+14+x,gy+10+y,1,1,e>.8?'#3a2a20':soak>.9?'#4a0c08':soak>.6?'#7a3428':y<3?'#e8e0d0':'#c8bca8');}P(gx+21,gy+13,5,4,'#f4ecd8');P(gx+21,gy+13,5,1,'#ffffff');P(gx+22,gy+15,3,1,'#6a5a4a');}
 // in your grave: a body in your clothes, grey-haired, the face gone to the teeth
-function sgtDouble(P,pos){const p=pos.g_grave;if(!p)return;const [gx,gy]=p;const L=(typeof S!=='undefined'&&S.look)||{};const top=/^#[0-9a-f]{6}$/i.test(L.top||'')?L.top:'#a83a2a';
+function sgtDouble(P,pos){const p=pos.g_grave;if(!p)return;const [gx,gy]=p;const L=(typeof S!=='undefined'&&S.look)||{};const top=/^#[0-9a-f]{6}$/i.test(L.shirt||'')?L.shirt:'#a83a2a';
   P(gx+14,gy+11,22,8,'#14100c');P(gx+15,gy+12,14,6,top);P(gx+29,gy+12,6,6,'#3a3a4a');P(gx+12,gy+11,5,8,'#9a9a98');P(gx+12,gy+11,5,2,'#c8c8c4');P(gx+13,gy+15,3,1,'#f0ead8');P(gx+14,gy+15,1,1,'#14100c');P(gx+20,gy+18,4,2,'#d8c0a0');}
 // ---- the close-up itself: a picture of the thing, on the blurred world, with a little life in it
 {const _rs=ruSpec;ruSpec=function(o,cap){if(o&&o._sight)return Object.assign({kind:'sight',seed:1,cap:cap||''},o._sight);return _rs.apply(this,arguments);};}
