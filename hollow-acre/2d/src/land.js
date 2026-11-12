@@ -67,7 +67,7 @@ function landTeardown(){for(const B of Object.values(LAND.built))for(const o of 
 // bring the land in the world into line with who owns what (a deed bought, a save loaded, a friend's farm joined)
 function landSync(){landClearLane();const want=landWanted();const ids=want.map(p=>p.id).join(',');const have=LAND.order.join(',');
   if(ids!==have){const old=landDetach();
-    want.forEach((P,k)=>{const kk=P.home!=null?LAND_PARCELS.length+P.home:LAND_PARCELS.findIndex(q=>q.id===P.id);landBuild(P,kk);});
+    want.forEach((P,k)=>{const kk=P.home!=null?4+P.home:P.kk!=null?P.kk:LAND_PARCELS.findIndex(q=>q.id===P.id);landBuild(P,kk);});
     for(const P of want)landAttach(LAND.built[P.id].tiles);LAND.order=want.map(p=>p.id);
     for(const t of old)if(!want.some(P=>P.id===t.parcel)){}   // land that's no longer yours (a cabin moved out): its squares simply go
     if(typeof NAV!=='undefined')NAV.sig='';}
