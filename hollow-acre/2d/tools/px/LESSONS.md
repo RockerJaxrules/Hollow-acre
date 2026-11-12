@@ -1135,6 +1135,23 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - (r12) Kernels sampled from a rotated grid land as scattered single pixels: lay them in screen space instead, 2x2 blocks on a staggered 3-px grid with 1-px seams, masked by the cob's shape.
 - (r11) Round beads in a row on a strip read as berries on a twig; pointed glowing drops read as flames. Resin is one asymmetric drop with a needle or bark fleck caught in it.
 
+## Festival booths and fair games (t324, Nov 12: round 1, 6 of 15 at 6)
+- A recoloured copy of another booth reads as a copy: every booth needs its own silhouette (a gabled board top, a tent, a low counter), not the same frame in new colours.
+- Things spaced evenly and pasted as copies (crows on a shelf, toys on a string, four identical tables) read as wallpaper or a fence: stagger heights, flip some, vary each copy.
+- A top-down view (a tub from above) must fill the stage with top-down ground: never set it on an eye-level horizon.
+- A minigame stage that is mostly empty wall fails: the targets must fill the rails at all times (5+ per rail), and every special target (the girl) must be in frame often.
+- The verdict pop-up (GOOD, PERFECT) must rise from above the target, never sit on it.
+- A glowing cut (a carved pumpkin's face) must be the brightest thing: take the skin two steps toward burnt orange.
+- A big round fruit needs ribs: 6-8 vertical ribs lit upper-left with plum grooves, not swirl bands (pillow shading).
+- Tiny 2-3 px fruit reads as berries: apples need 4x4 with a lit pixel and a stalk.
+- A rosette lit evenly all round reads as a target: lighter petals upper-left, darker lower-right.
+- A draped cloth is tapered folds at uneven spacing, never equal vertical blocks over a checker row; and white is too loud for the square: linen.
+- A recolour of the same table reads as a copy even in four colours: vary the outline (a cloth to the ground, a short one with legs showing) and the fold count.
+- Small round things on a board must keep 2+ px of board between them or they merge into one clump at 1x.
+- A dark hard-edged square at the point of play reads as a glitch: a shadow under the cursor must be the shape of the thing (an apple) with a ripple, never a box.
+- A cut-out figure needs its outline (a flared hem, arms, a bow in the hair), or a white column reads as a milk bottle.
+- A doll must carry the one naming detail of what it is (a scarecrow: crossbar arms, sack face, straw at neck and cuffs), not just clothes and a hat.
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline
@@ -1461,3 +1478,20 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A ring frame lit evenly all round reads as a target or an egg. Step the light: brightest on the upper-left arc, dull on the lower right. (judge, wall mirror)
 - A highlight on glass is short and straight (45 degrees). A long kinked stroke reads as a crack, which is a different story beat in a horror game. (judge, wall mirror)
 - Two people dancing in a scene: don't circle them all the way round. Halfway round one stands in front of the other, and facing worked out from movement turns them back to back. Keep them on one line facing each other, rock the pair a few degrees, and set both facings every frame. (owner asked again: "did you fix the dancing", Nov 12)
+
+## Butchery minigame (t325, Nov 12: hen 6, beef 5.5 in round 1)
+- A whole bird reads from its parts' places, not from round blobs: the thighs bulge at the lower sides and the drumsticks lie along the body to knuckles that meet at the tail; the wings fold tight at the shoulders. Cones stuck out at the corners read as a crab or a robot.
+- Shade organic forms from a height field (each part a dome; the creases come free where domes meet), not part by part: shading each ellipse on its own gives rings and seams that read as a toy.
+- Raw is pale and cool (cream-pink, mauve shadows); golden-tan with warm shadows reads as already roasted.
+- A thing being taken apart must come apart: 1-2 px gaps are invisible; slide each freed piece 6-12 px and tilt it, and leave a mark where it was (a cut face, a red line on the board).
+- A side of beef reads by its silhouette first: long, tapering at both ends, hung from a narrow hock. A symmetric round-topped shape reads as a bell, a sack or a bottle, and a pill shape with two bone stubs at the bottom corners reads as a sofa on legs.
+- Ribs are arcs that slant down from the spine at uneven spacing; evenly spaced level bars across the whole width read as a radiator, a barcode or a ladder.
+- A fat seam drawn as a whole ring (or a smile-shaped arc in the middle of a muscle) reads as a drawn-on circle; suet is a cluster of lit lumps, not a pale star.
+- A weighing step needs a visible target on the dial (a red tick at the wanted weight) or it reads as a display, not a goal.
+- A table that is a pattern of staggered blocks seen straight on reads as a brick wall: a work surface needs long boards running across, a lit front lip and its thickness showing below.
+- A cut face is meat: a 2-3 px band of flesh along each cut edge, darkest at the edge, a pale cartilage pixel at a joint. A cut that shows the skin's own pale shading reads as folded paper or eggshell. (judge r2, hen)
+- A hanging side is narrow at the hook and widest low down at the ribs, then tapers to the neck; the widest point near the top makes a bell. A perfectly smooth teardrop reads as a punching bag: break it with a thigh bulge, a dent at the flank and the foreshank stub. (judge r2-r3, beef)
+- A small cluster of round pale lumps reads as popcorn or cauliflower; three parallel pale streaks near an edge can read as a letter. Leave a detail out if it can't be drawn big enough to read. (judge r2, beef)
+- Ribs fan out from the spine, each a little steeper than the one above: parallel arcs still read as a radiator. (judge r2, beef)
+- A bird hung by its feet: feet together at the hook, a 1 px gap below it, then a teardrop widest at the thighs and breast, the wings hanging close against the sides (one side darker), a small drooping head. Splayed wings and legs read as a star or a bat at 1x; a spindle pointed at both ends reads as a cocoon. (judge blk1-c1)
+- Turned views of a group of objects: move each piece where the turn puts it (right goes behind, left comes in front), keep every piece's light on its upper left, and keep one size; something tucked behind a round makes it look bigger, so leave a gap. (judge blk1)

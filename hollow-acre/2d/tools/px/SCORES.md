@@ -76,3 +76,5 @@ orders. Latest round first.
 | Everett (was Pip): walking sprite / HD portrait (Nov 12) | 6 / 6 -> 6.5 / 6.5 | yes (new look from the owner's photos) | toward 7: the side-stride arm as a solid sleeve over a short forearm; flat pointed polo collar tips on the portrait |
 | Mirror close-up: five states (Nov 12) | 4.5 -> 6 | yes (was a line of text) | toward 7: the reflection's eyes change between states; the body in the bed shaped more clearly in the moonlight |
 | Wall mirror sprite, oval (Nov 12) | 6 | yes (owner asked for oval) | toward 7: a finer bevel line inside the lip |
+| Butchery knife game: hen / side of beef (t325, Nov 12) | hen 6 -> 6.5 (both orders); beef 5.5 -> 5.5 -> 6 -> 6 (both orders) | yes (art325.js; was a pink blob and a red oval, and a sack on the scale) | toward 7: ribs fanning more steeply; move the shared READY plaque off the subject |
+| Butcher's block in the yard + turned views (t325, Nov 12) | front 6 (both orders), turned set 6 | yes: bench_butcher, _e, _bk, _w | toward 7: the hen's darker wing edge at 1x; a little more bark texture on the edge-on views |

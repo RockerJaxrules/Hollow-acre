@@ -283,8 +283,8 @@ if(V==='S'&&K==='bench_press'){  // the fruit press: a heavy oak frame, an iron 
   const ty=base-9;for(let j=0;j<6;j++)for(let i=-21;i<=21;i++){let k=j===0?5:j===5?1:j===4?2:3;if(j>0&&j<4&&(i+21)%7===0)k=2;P(A,cx+i,ty+j,O[k]);}
   for(let i=-21;i<=21;i++){P(A,cx+i,ty+6,O[1]);P(A,cx+i,ty+7,O[0]);}
   for(const lx of [cx-20,cx+17])for(let y=ty+6;y<base;y++){P(A,lx,y,O[3]);P(A,lx+1,y,O[2]);P(A,lx+2,y,O[1]);}
-  for(const px of [cx-19,cx+14]){for(let y=base-50;y<ty;y++){P(A,px,y,D[4]);P(A,px+1,y,D[3]);P(A,px+2,y,D[3]);P(A,px+3,y,D[1]);}}
-  for(let j=0;j<6;j++)for(let i=-21;i<=21;i++){let k=j===0?5:j===1?4:j===5?1:3;P(A,cx+i,base-52+j,D[k]);}
+  for(const px of [cx-19,cx+14])pressPost(px,base-50,ty);
+  pressBeam(cx,base-52,21);
   for(const bx of [cx-17,cx+16]){P(A,bx,base-50,I[4]);P(A,bx,base-48,I[4]);}
   for(let y=base-58;y<ty-18;y++){P(A,cx-1,y,I[4]);P(A,cx,y,I[3]);P(A,cx+1,y,I[1]);if((y&1)===0)P(A,cx,y,I[5]);}
   for(let i=-10;i<=10;i++){P(A,cx+i,base-58,I[i<0?5:3]);P(A,cx+i,base-57,I[1]);}for(const e of [-11,11]){P(A,cx+e,base-59,I[4]);P(A,cx+e,base-58,I[4]);P(A,cx+e,base-57,I[2]);}
@@ -319,7 +319,7 @@ if(V==='S'&&K==='bench_still'){  // the copper still: an onion pot on a brick fi
     for(let x=-3;x<=3;x++)P(A,jx+x,jy-8,RAMP.iron[x<0?4:2]);P(A,jx,jy-9,[200,214,224]);}   // glass: the dark behind it, a pale rim, one glint, a band of spirit, a drip from the spout
   for(let x=fx-18;x<W-2;x++){SH(x,base,150);SH(x,base+1,110);}cast(fx-15,W-5,base);}
 
-if(V==='S'&&K==='bench_butcher'){   // #235 the butcher's block: a squat oak round with its bark on and its end grain up, checked with radial cracks and darkened in a worn hollow, a cleaver bitten upright into it; a single post with hooks beside it; a bucket
+if(V==='S'&&K==='bench_butcher'&&CFG.old235){   // the first block (#235), kept for reference; t325's set below is the default   // #235 the butcher's block: a squat oak round with its bark on and its end grain up, checked with radial cracks and darkened in a worn hollow, a cleaver bitten upright into it; a single post with hooks beside it; a bucket
   const base=H-3,cx=26,O=RAMP.oak,I=RAMP.iron,BK=hexR(['#140e0a','#24180e','#362416','#4a3220','#5e422a']);
   // the post to one side: one upright, a crossarm, two hooks
   {const px=cx+27,D=RAMP.dark;for(let y=base-30;y<base;y++){P(A,px,y,D[4]);P(A,px+1,y,D[3]);P(A,px+2,y,D[1]);}for(let x=px-4;x<=px+13;x++){P(A,x,base-30,D[5]);P(A,x,base-29,D[2]);}
@@ -348,6 +348,116 @@ if(V==='S'&&K==='bench_butcher'){   // #235 the butcher's block: a squat oak rou
     for(let x=-5;x<=5;x++){P(A,bx+x,base-10,R[5]);P(A,bx+x,base-6,I[3]);}for(let x=-4;x<=4;x++)P(A,bx+x,base-9,x<0?[70,24,22]:[52,16,16]);}
   for(let x=cx-26;x<cx+34;x++){SH(x,base,150);SH(x,base+1,110);}cast(cx-24,cx+30,base);}
 
+// ---- t325 the butcher's block from every side. The same pieces as the front view (the oak round with its bark on, the cleaver
+// bitten into it, the post with its hooks and a hen hung by her feet, the bucket), each moved where the turn puts it: what
+// stood to the right goes behind (E) or in front (W), and from behind (N) the layout is reversed. The light stays top-left.
+function bkHen(hx,hy){   // a plucked hen hung by her feet: feet together at the hook, the legs widening into a plump teardrop, widest at the thighs and breast, the wings hanging close against her sides, the neck narrowing to a small drooping head
+  const SK=hexR(['#56383e','#7a5a60','#a07e80','#c4a29e','#dfc2ba','#efd9d0','#f9ebe4']),LEG=hexR(['#8a6a4a','#b8946a']);
+  hy+=1;   // a dark pixel's gap under the hook, so she hangs clear of the post
+  P(A,hx,hy,LEG[0]);P(A,hx-1,hy+1,LEG[1]);P(A,hx+1,hy+1,LEG[0]);
+  const rows=[1,2,3,3,3,3,2,2,1,1];
+  rows.forEach((w,j)=>{for(let i=-w;i<=w;i++){const u=(i+w)/(2*w+.01);let k=u<.3?6:u<.55?5:u<.8?4:3;if(j>=6)k--;
+      const wing=(Math.abs(i)===w)&&j>=2&&j<=7;if(wing)k=i<0?3:1;P(A,hx+i,hy+2+j,SK[Math.max(1,k)]);}});
+  P(A,hx,hy+12,SK[3]);P(A,hx,hy+13,SK[2]);P(A,hx-1,hy+14,SK[2]);P(A,hx,hy+14,SK[1]);   // the neck, and the small head drooping to one side
+}
+function bkRound(cx,base,flipCracks){const O=RAMP.oak,BK=hexR(['#140e0a','#24180e','#362416','#4a3220','#5e422a']);const top=base-14,rx=16,ry=6;
+  for(let y=top;y<base;y++)for(let x=-rx;x<=rx;x++){const u=x/rx;let k=u<-.55?4:u<0?3:u<.55?2:1;if(y===base-1)k=0;P(A,cx+x,y,BK[k]);}
+  for(const [fx,len,o] of [[-12,9,1],[-7,6,4],[-2,10,2],[3,5,6],[7,8,1],[11,6,3],[14,7,5]])for(let j=0;j<len;j++)P(A,cx+(flipCracks?-fx:fx)+(j>len/2?1:0),top+o+j,BK[0]);
+  for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){const d=x*x/(rx*rx)+y*y/(ry*ry);if(d>1)continue;if(d>.84){P(A,cx+x,top+y,BK[y<0?4:2]);continue;}const ring=Math.floor(Math.sqrt(d)*5);let k=ring%2?3:4;if(x>rx*.4)k=Math.max(2,k-1);P(A,cx+x,top+y,O[k]);}
+  for(const [ang,len] of [[-2.4,9],[-.5,11],[1.2,7]])for(let r=3;r<len;r++){const a=flipCracks?Math.PI-ang:ang;P(A,Math.round(cx+Math.cos(a)*r),Math.round(top+Math.sin(a)*r*ry/rx),O[1]);}
+  for(let y=-2;y<=2;y++)for(let x=-5;x<=4;x++){if(x*x/25+y*y/4>1)continue;P(A,cx+x-2,top+y,x+y<0?[92,56,40]:[76,42,30]);}
+  const sx=flipCracks?cx-13:cx+11;for(let i=0;i<3;i++)P(A,sx+i,top+3,[86,34,26]);for(let j=0;j<5;j++)P(A,sx+1,top+4+j,[70,26,20]);
+  for(let x=cx-rx-2;x<cx+rx+3;x++){SH(x,base,150);SH(x,base+1,110);}cast(cx-rx,cx+rx,base);return top;}
+function bkCleaver(view,bx,by){const Sd=hexR(['#1e242c','#343e4a','#4e5c6c','#6e7e90','#98a8b8','#c8d4de']),W2=RAMP.honey;
+  if(view==='S'){for(let x=-1;x<=10;x++)P(A,bx+x,by+1,[40,22,14]);
+    for(let j=0;j<10;j++)for(let i=0;i<10;i++){const xx=bx+i+Math.round(j*.15);let k=i===0?4:j===9?1:i>7?1:i<3?3:2;if(i===1&&j<9)k=5;P(A,xx,by-j,Sd[k]);}
+    for(let i=0;i<9;i++){P(A,bx+10+i,by-9-Math.round(i*.6),W2[4]);P(A,bx+11+i,by-9-Math.round(i*.6),W2[2]);}P(A,bx+13,by-11,RAMP.brass[4]);P(A,bx+16,by-13,RAMP.brass[4]);}
+  else if(view==='N'){   // from behind: the blade leans the other way and the handle points left; still lit from the top left
+    for(let x=-10;x<=1;x++)P(A,bx+x,by+1,[40,22,14]);
+    for(let j=0;j<10;j++)for(let i=0;i<10;i++){const xx=bx-9+i-Math.round(j*.15);let k=i===0?4:j===9?1:i>7?1:i<3?3:2;if(i===1&&j<9)k=5;P(A,xx,by-j,Sd[k]);}
+    for(let i=0;i<9;i++){P(A,bx-11-i,by-9-Math.round(i*.6),W2[4]);P(A,bx-10-i,by-9-Math.round(i*.6),W2[2]);}P(A,bx-14,by-11,RAMP.brass[4]);P(A,bx-17,by-13,RAMP.brass[4]);}
+  else{   // turned: the blade seen on its edge, a bright sliver; the handle runs away from you, up the sprite
+    for(let x=-1;x<=2;x++)P(A,bx+x,by+1,[40,22,14]);for(let j=0;j<10;j++){P(A,bx,by-j,Sd[5]);P(A,bx+1,by-j,Sd[2]);}
+    for(let i=0;i<6;i++){P(A,bx,by-10-i,W2[4]);P(A,bx+1,by-10-i,W2[2]);}P(A,bx,by-12,RAMP.brass[4]);}}
+function bkPost(px,base,armL,armR,hooks,hen){const D=RAMP.dark,I=RAMP.iron;for(let y=base-30;y<base;y++){P(A,px,y,D[4]);P(A,px+1,y,D[3]);P(A,px+2,y,D[1]);}
+  for(let x=px-armL;x<=px+armR;x++){P(A,x,base-30,D[5]);P(A,x,base-29,D[2]);}
+  for(const hx of hooks){P(A,hx,base-28,I[4]);P(A,hx,base-27,I[3]);P(A,hx+1,base-26,I[3]);P(A,hx,base-25,I[4]);}
+  if(hen!=null)bkHen(hen,base-24);for(let x=px-1;x<px+5;x++)SH(x,base,140);}
+function bkPostEnd(px,base,hen){   // the post turned so its arm points at you: the arm's square end-grain at the top, one hook hanging from it
+  const D=RAMP.dark,I=RAMP.iron;for(let y=base-30;y<base;y++){P(A,px,y,D[4]);P(A,px+1,y,D[3]);P(A,px+2,y,D[1]);}
+  for(let y=base-33;y<base-28;y++)for(let x=px-1;x<px+4;x++)P(A,x,y,D[y===base-33?5:x===px-1?4:x===px+3?1:3]);P(A,px,base-31,D[1]);P(A,px+1,base-31,D[2]);
+  P(A,px+1,base-28,I[4]);P(A,px+1,base-27,I[3]);P(A,px+2,base-26,I[3]);P(A,px+1,base-25,I[4]);if(hen!=null)bkHen(hen,base-24);for(let x=px-1;x<px+5;x++)SH(x,base,140);}
+function bkBucket(bx,base){const R=RAMP.oak,I=RAMP.iron;for(let y=base-9;y<base;y++){const w=y<base-7?5:4;for(let x=-w;x<=w;x++){const u=x/w;P(A,bx+x,y,R[u<-.4?4:u<.3?3:1]);}}
+  for(let x=-5;x<=5;x++){P(A,bx+x,base-10,R[5]);P(A,bx+x,base-6,I[3]);}for(let x=-4;x<=4;x++)P(A,bx+x,base-9,x<0?[70,24,22]:[52,16,16]);for(let x=bx-6;x<bx+7;x++)SH(x,base,130);}
+if(K==='bench_butcher'&&!CFG.old235){const base=H-3;
+  if(V==='S'){const cx=26;bkBucket(cx-20,base);bkPost(cx+27,base,4,13,[cx+24,cx+36],cx+36);const top=bkRound(cx,base,false);bkCleaver('S',cx+1,top-1);}
+  if(V==='N'){const cx=42;bkBucket(cx+20,base);bkPost(cx-30,base,13,4,[cx-33,cx-21],cx-33);const top=bkRound(cx,base,true);bkCleaver('N',cx-1,top-1);}
+  if(V==='E'){const cx=30;bkPostEnd(cx+14,base-10,cx+15);const top=bkRound(cx,base,false);bkCleaver('E',cx+2,top-1);bkBucket(cx-19,base+1);}
+  if(V==='W'){const cx=36;bkBucket(cx+24,base-7);const top=bkRound(cx,base-4,true);bkCleaver('W',cx-2,top-1);bkPostEnd(cx-22,base,cx-21);}}
+// ---- t325 the brewery stations from every side (turned views: the same parts moved where the turn puts them; a firebox's
+// mouth faces the way the station faces, so it shows as a lit slot on the side when turned, and not at all from behind)
+function fireboxSide(cx,base,w,h,mouthAt){const S=RAMP.stone,topY=base-h;   // mouthAt: 'E' (lit slot on the right edge), 'W' (left edge) or 'N' (none)
+  for(let y=topY;y<base;y++)for(let x=cx-w/2;x<cx+w/2;x++)P(A,x,y,S[1]);
+  for(let y=topY+3;y<base;y+=4)for(let x=cx-w/2+((y/4|0)%2?2:0);x<cx+w/2;x+=5+((hsh(x,y,SEED)*3)|0)){const sw=4+((hsh(x,y,4)*3)|0);
+    for(let j=0;j<3;j++)for(let i=0;i<sw;i++){const X=x+i,Y=y+j;if(X>=cx+w/2||Y>=base)continue;if((i===0||i===sw-1)&&(j===0||j===2))continue;const side=(X-(cx-w/2))/w;
+      let k=j===0||i===0?4:j===2||i===sw-1?2:3;if(side>.75)k=Math.max(1,k-1);if(side<.2)k=Math.min(5,k+1);P(A,X,Y,S[k]);}}
+  for(let x=cx-w/2;x<cx+w/2;x++){P(A,x,topY,S[5]);P(A,x,topY+1,S[4]);P(A,x,topY+2,S[2]);}
+  if(mouthAt==='E'||mouthAt==='W'){const ex=mouthAt==='E'?cx+w/2-2:cx-w/2;for(let y=base-9;y<base-1;y++){const t=(y-(base-9))/8;for(let i=0;i<2;i++)P(A,ex+i,y,t>.6?[255,196,86]:t>.25?[238,128,44]:[150,52,22]);}
+    for(let x=0;x<8;x++)for(let j=0;j<2;j++){const a=Math.max(0,120-x*15-j*30);if(a>0)P(B,mouthAt==='E'?ex+3+x:ex-2-x,base-1+j,[255,150,60],a);}}
+  if(mouthAt==='N'){rect(A,cx+2,base-8,7,5,RAMP.iron[2]);hl(A,cx+2,base-8,7,RAMP.iron[4]);vl(A,cx+8,base-8,5,RAMP.iron[0]);P(A,cx+7,base-6,RAMP.iron[5]);}
+  for(let x=cx-w/2-2;x<cx+w/2+3;x++){SH(x,base,150);SH(x,base+1,110);}return topY;}
+function brickBoxSide(fx,base,mouthAt){const BR=hexR(['#2a120c','#4a2216','#6e3420','#8e4a2c','#ac6440','#c4805a']),fTop=base-12;
+  for(let y=fTop;y<base;y++)for(let x=fx-15;x<fx+15;x++){const row=(y-fTop)/3|0,off=row%2?3:0,jx=(x-(fx-15)+off)%6;let k=(y-fTop)%3===2||jx===5?1:jx===0?4:3;if(x>fx+9)k=Math.max(1,k-1);if(y===fTop)k=5;P(A,x,y,BR[k]);}
+  if(mouthAt==='E'||mouthAt==='W'){const ex=mouthAt==='E'?fx+13:fx-15;for(let y=base-8;y<base-1;y++){const t=(y-(base-8))/7;for(let i=0;i<2;i++)P(A,ex+i,y,t>.6?[250,180,70]:t>.25?[236,130,44]:[140,50,20]);}}
+  if(mouthAt==='N'){rect(A,fx-3,base-7,6,4,RAMP.iron[2]);hl(A,fx-3,base-7,6,RAMP.iron[4]);}
+  for(let x=fx-17;x<fx+18;x++){SH(x,base,150);SH(x,base+1,110);}return fTop;}
+function brewKettle(fx,fTop){copperBody(fx,fTop-7,12,9);const C=RAMP.copper,WT=[[92,44,14],[124,64,20]],SHN=[214,160,88],ry=5,cy=fTop-15;
+  for(let x=-12;x<=12;x++)for(let y=-ry;y<=ry;y++){const d=x*x/144+y*y/(ry*ry);if(d>1)continue;const rim=d>.8;P(A,fx+x,cy+y,rim?(y<0?C[4]:y>1?C[2]:C[3]):(x<1&&y<1?WT[1]:WT[0]));}
+  for(let x=-7;x<=-4;x++)P(A,fx+x,cy-1,SHN);for(const x of [-3,-2,0,1,2,4,5])P(A,fx+x,cy-3,[232,216,176]);puffs(fx-2,fTop-20);}
+function mashTun(tx,base){const tTop=tub(tx,base,10,19,(x,y)=>{const ridge=[[-5,0],[1,-1],[5,1]].some(([cx2,cy2])=>Math.abs(x-cx2)<3&&y===cy2);const lit=[[-5,-1],[1,-2],[5,0]].some(([cx2,cy2])=>Math.abs(x-cx2)<2&&y===cy2);
+    return lit?[232,208,140]:ridge?[206,176,108]:x+y<0?[184,152,92]:[160,128,76];});
+  const HG=[[52,84,30],[86,124,44],[128,164,70]];for(const [hx,hy] of [[tx-6,tTop-2],[tx-2,tTop-3],[tx+5,tTop-2]]){for(const [dx,dy,k] of [[0,0,2],[1,0,1],[0,1,1],[1,1,0],[0,2,1],[1,2,0],[0,3,0]])P(A,hx+dx,hy+dy,HG[k]);P(A,hx,hy-1,[40,64,24]);}
+  const R=RAMP.honey;for(let i=0;i<17;i++){const x=Math.round(tx+2+i*.42),y=tTop-i;P(A,x,y,R[4]);P(A,x+1,y,R[2]);}rect(A,tx+8,tTop-22,4,5,R[3]);vl(A,tx+8,tTop-22,5,R[5]);vl(A,tx+11,tTop-22,5,R[1]);
+  for(let x=tx-12;x<tx+13;x++)SH(x,base,120);return tTop;}
+if(K==='bench_brew'&&V!=='S'){const base=H-3;
+  if(V==='E'){const fx=28;mashTun(fx+9,base-9);const fTop=fireboxSide(fx,base,26,14,'E');brewKettle(fx,fTop);sack(fx-19,base,5,9);for(let i=0;i<4;i++)P(A,fx-21+i,base-10,[230,204,120]);cast(fx-22,fx+16,base);}
+  if(V==='W'){const fx=36;const fTop=fireboxSide(fx,base-8,26,14,'W');brewKettle(fx,fTop);mashTun(fx-12,base);sack(fx+19,base-6,5,9);for(let i=0;i<4;i++)P(A,fx+17+i,base-16,[230,204,120]);cast(fx-22,fx+22,base);}
+  if(V==='N'){const fx=W-19;mashTun(16,base);const fTop=fireboxSide(fx,base,30,14,'N');copperBody(fx,fTop-7,12,9);{const C=RAMP.copper;for(let x=-12;x<=12;x++)for(let y=-4;y<=4;y++){const d=x*x/144+y*y/16;if(d>1)continue;P(A,fx+x,fTop-15+y,d>.8?(y<0?C[4]:C[2]):(x<1&&y<1?[124,64,20]:[92,44,14]));}}puffs(fx-2,fTop-20);
+    sack(30,base,5,9);for(let i=0;i<4;i++)P(A,28+i,base-10,[230,204,120]);cast(4,W-4,base);}}
+function stillPot(fx,fTop,neckDir){copperBody(fx,fTop-9,13,10);const C=RAMP.copper;for(let y=fTop-24;y<fTop-17;y++){const w=y<fTop-21?3:2;for(let x=-w;x<=w;x++)P(A,fx+x,y,C[x<-1?5:x<1?4:2]);}copperBody(fx,fTop-27,6,5);
+  const Bz=RAMP.brass;P(A,fx-7,fTop-13,Bz[5]);P(A,fx-6,fTop-13,Bz[4]);P(A,fx-7,fTop-12,Bz[3]);P(A,fx-6,fTop-12,Bz[2]);}
+function stillJar(jx,jy){const GL=[[44,52,58],[66,78,86],[150,170,182],[214,228,236]];for(let y=-7;y<0;y++)for(let x=-3;x<=3;x++){const edge=Math.abs(x)===3||y===-7;P(A,jx+x,jy+y,edge?(x<0||y===-7?GL[2]:GL[1]):y>-3?[186,168,120]:GL[0]);}
+  for(let x=-2;x<=2;x++)P(A,jx+x,jy-3,[214,196,140]);P(A,jx-2,jy-6,GL[3]);P(A,jx-2,jy-5,GL[3]);for(let x=-3;x<=3;x++)P(A,jx+x,jy-8,RAMP.iron[x<0?4:2]);for(let x=jx-4;x<jx+5;x++)SH(x,jy,110);}
+function wormTub(tx,base){return tub(tx,base,9,22,(x,y)=>[(x+y)<0?62:40,(x+y)<0?88:62,(x+y)<0?96:70]);}
+if(K==='bench_still'&&V!=='S'){const base=H-3;
+  if(V==='E'){const fx=28,tx=fx+12;const tTop=wormTub(tx,base-12);const fTop=brickBoxSide(fx,base,'E');stillPot(fx,fTop);pipe([[fx+3,fTop-30],[fx+8,fTop-34],[tx-1,tTop-4],[tx,tTop]],2);stillJar(fx+20,base);cast(fx-16,fx+24,base);}
+  if(V==='W'){const fx=40,tx=fx-14;const fTop=brickBoxSide(fx,base-10,'W');stillPot(fx,fTop);const tTop=wormTub(tx,base);pipe([[fx-3,fTop-30],[fx-10,fTop-32],[tx+2,tTop-3],[tx+1,tTop]],2);stillJar(fx+18,base-8);cast(tx-12,fx+20,base);}
+  if(V==='N'){const fx=W-20,tx=13;const tTop=wormTub(tx,base);const fTop=brickBoxSide(fx,base,'N');stillPot(fx,fTop);pipe([[fx-4,fTop-29],[fx-12,fTop-31],[fx-22,fTop-30],[tx+2,tTop-3],[tx+1,tTop]],2);stillJar(tx+14,base);cast(4,W-4,base);}}
+function pressPost(px,y0,y1){const O=RAMP.oak;for(let y=y0;y<y1;y++){P(A,px,y,O[5]);P(A,px+1,y,O[4]);P(A,px+2,y,O[3]);P(A,px+3,y,O[1]);}
+  for(let y=y0+5;y<y1-2;y+=7)P(A,px+1,y,O[3]);P(A,px,y0,O[5]);}                                     // a lit left edge, a dark right, a grain check now and then
+function pressBeam(cx,y,h2){const O=RAMP.oak;for(let j=0;j<6;j++)for(let i=-h2;i<=h2;i++){let k=j===0?5:j===1?4:j===4?2:j===5?1:3;if(j===2&&(i+h2)%9===4)k=2;P(A,cx+i,y+j,O[k]);}}
+function pressFrame(cx,base,half,jugAt){const O=RAMP.oak,D=RAMP.dark,I=RAMP.iron,ty=base-9;   // half: the tray and beam's half-width (21 front/back, 9 turned)
+  for(let j=0;j<6;j++)for(let i=-half;i<=half;i++){let k=j===0?5:j===5?1:j===4?2:3;if(j>0&&j<4&&(i+half)%7===0)k=2;P(A,cx+i,ty+j,O[k]);}
+  for(let i=-half;i<=half;i++){P(A,cx+i,ty+6,O[1]);P(A,cx+i,ty+7,O[0]);}
+  for(const lx of [cx-half+1,cx+half-4])for(let y=ty+6;y<base;y++){P(A,lx,y,O[3]);P(A,lx+1,y,O[2]);P(A,lx+2,y,O[1]);}
+  const turned=half<=12;if(!turned)for(const px of [cx-19,cx+14])pressPost(px,base-50,ty);
+  pressBeam(cx,base-52,turned?6:half);
+  for(let y=base-58;y<ty-18;y++){P(A,cx-1,y,I[4]);P(A,cx,y,I[3]);P(A,cx+1,y,I[1]);if((y&1)===0)P(A,cx,y,I[5]);}
+  const bar=half>12?10:3;for(let i=-bar;i<=bar;i++){P(A,cx+i,base-58,I[i<0?5:3]);P(A,cx+i,base-57,I[1]);}for(const e of [-bar-1,bar+1]){P(A,cx+e,base-59,I[4]);P(A,cx+e,base-58,I[4]);P(A,cx+e,base-57,I[2]);}
+  {const by=ty-24;for(let x=-12;x<=12;x++)for(let y=-2;y<=2;y++){if(x*x/144+y*y/4>1)continue;P(A,cx+x,by+y,O[y<0?5:y>0?2:4]);}}
+  {const bTop=ty-15;for(let x=-1;x<=1;x++)for(let y=ty-22;y<bTop-7;y++)P(A,cx+x,y,I[x<0?4:x>0?1:3]);for(let y=bTop;y<ty+1;y++)for(let x=-11;x<=11;x++){const stave=((x+11)%4)!==3;const u=x/11;
+      if(stave){let k=u<-.5?4:u<0?3:u<.5?2:1;P(A,cx+x,y,O[k]);}else{const gy=(y-bTop)%3;P(A,cx+x,y,gy===0?[132,84,160]:gy===1?[92,46,110]:[58,24,72]);}}
+    for(const hy of [bTop+2,ty-3]){for(let x=-12;x<=12;x++){P(A,cx+x,hy,I[x<-4?4:x<5?3:1]);}}
+    const GR=[[46,18,58],[82,38,100],[118,66,142],[158,112,186]];for(const [gx,gy] of [[-9,-2],[-6,-3],[-3,-2],[0,-3],[3,-2],[6,-3],[9,-2],[-7,-5],[-4,-6],[-1,-5],[2,-6],[5,-5]]){
+      for(const [dx,dy,k] of [[0,0,2],[1,0,1],[0,1,1],[1,1,0]])P(A,cx+gx+dx,bTop+gy+dy,GR[k]);P(A,cx+gx,bTop+gy,GR[3]);}}
+  if(turned){pressPost(cx-2+(cx>0?0:0)+5,base-46,ty);for(let y=base-50;y<base-46;y++){P(A,cx+3,y,RAMP.oak[4]);P(A,cx+4,y,RAMP.oak[3]);}}   // seen from the side the near post stands in front of the basket, off the screw's line
+  if(jugAt){const sx=jugAt>0?cx+half+1:cx-half-3;for(let j=0;j<3;j++){P(A,sx+j,ty+3,O[3]);P(A,sx+j,ty+4,O[1]);}const jx=jugAt>0?cx+half+3:cx-half-3;for(let y=ty+5;y<base-8;y++)P(A,jx,y,[96,30,84]);
+    const R=RAMP.clay;for(let y=0;y<9;y++){const w=y<2?2:y<4?3:4;for(let x=-w;x<=w;x++){const u=x/w;P(A,jx+x,base-9+y,R[u<-.4?4:u<.3?3:1]);}}hl(A,jx-2,base-9,5,[96,30,90]);}
+  for(let x=cx-half-3;x<cx+half+8;x++){SH(x,base,150);SH(x,base+1,110);}cast(cx-half,cx+half+4,base);}
+if(K==='bench_press'&&V!=='S'){const base=H-3;
+  if(V==='N')pressFrame((W>>1)+4,base,21,-1);
+  if(V==='E'){const R=RAMP.clay,jx=(W>>1)+10,jy=base-8;for(let y=0;y<9;y++){const w=y<2?2:y<4?3:4;for(let x=-w;x<=w;x++){const u=x/w;P(A,jx+x,jy-9+y,R[u<-.4?4:u<.3?3:1]);}}hl(A,jx-2,jy-9,5,[96,30,90]);pressFrame((W>>1)-2,base,9,0);}
+  if(V==='W'){pressFrame((W>>1)+2,base,9,0);const R=RAMP.clay,jx=(W>>1)-8,jy=base;for(let y=0;y<9;y++){const w=y<2?2:y<4?3:4;for(let x=-w;x<=w;x++){const u=x/w;P(A,jx+x,jy-9+y,R[u<-.4?4:u<.3?3:1]);}}hl(A,jx-2,jy-9,5,[96,30,90]);for(let x=jx-5;x<jx+6;x++)SH(x,jy,110);}}
 // ================================================================ turned views (owner: every bench turns; each view drawn, never rendered)
 // E: the bench turned so its front faces right. You see its left end: the planked top running away from you (boards now run
 // up the sprite), the end rail, the near legs, the far legs higher up; the back board or rack is a thin wall along the left edge.
