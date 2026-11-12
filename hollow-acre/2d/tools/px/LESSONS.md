@@ -1333,3 +1333,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Rust is patches with a dark core and a lighter crust, never a speckle strip (a speckle row reads as garbled text).
 - Things you lower into something are drawn in the same view as what they go into (a battery seen from three-quarters needs a tray seen from three-quarters, with its floor showing).
 - Hardware laid side by side reads as a letter ("E", "3"): lay pieces apart, at different angles.
+
+## Heart events that show, not tell (#267, Nov 12)
+- **[owner]** "Caitlyn's heart events don't appear to be reworked, they are still text boxes, not actual cutscenes where it shows it": every heart event needs its own staging; the generic "walks up and talks" fallback reads as a text box.
+- When the text says someone looks at a thing (a photo, a slip, an engraving), bring the thing up close in a card; draw it big enough to read at phone size.
+- Lettering in close-ups: plain 2x pixel letters. Don't slant them for "handwriting" and don't fake wear by deleting strokes (the O read as a V).
+- A dance is two people facing each other with their hands on each other and joined, moving together; two walking sprites side by side reads as nothing, and pressed together reads as a hug. Leave a half-step between them.
+- Small held props (a frame, a towel) must be big enough to see at 1x; something "dropped on the counter" goes on the counter TOP.
+- Test scripts must name their output files by scene, never by run order (a partial rerun silently overwrote one scene with another).

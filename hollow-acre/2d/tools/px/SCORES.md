@@ -55,3 +55,4 @@ orders. Latest round first.
 | Everyone-here card (Nov 12) | 5.5 -> 6.5 | yes | toward 7: never covers what everyone is meeting at, on any screen |
 | Stay-logged-in checkbox (Nov 12) | 6.5 | yes | toward 7: the panel fully opaque at rest (title text showed through mid-fade) |
 | Car repair minigames, 11 scenes (Nov 12) | set 6 -> 6.5; weakest 4.5 -> 6 | yes (replaces the one tap-the-bar game) | toward 7: a foreshortened battery tray; studs with round caps |
+| Caitlyn heart events x5 (Nov 12) | 5-6.5 -> 6-6.5 | yes (replace the captions) | toward 7: the frame lift big enough to see; the camera finds the corn |
