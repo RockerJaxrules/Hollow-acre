@@ -1,0 +1,180 @@
+<div id="loadScr" role="status" aria-live="polite">
+  <canvas id="loadCv" width="320" height="180" aria-hidden="true"></canvas>
+  <div class="lwrap">
+    <div class="lt" aria-label="Hollow Acre"><span>H</span><span>o</span><span>l</span><span>l</span><span>o</span><span>w</span><span class="sp"> </span><span>A</span><span>c</span><span>r</span><span>e</span></div>
+    <div class="lk">a farm at the end of Route 9</div>
+    <div class="ls" id="loadTip">Grandpa called three days ago and told you not to come.</div>
+  </div>
+  <div class="lfoot">
+    <div class="lc"><span id="loadTxt">Loading the valley…</span></div>
+    <div class="lb" aria-hidden="true"><i id="loadBar"></i></div>
+  </div>
+</div>
+<script>
+/* The loading screen: a night on Hollow Acre while the valley loads. It is drawn small and scaled up by a whole number,
+   so every pixel stays a pixel. The canvas takes the screen's shape (wide on a PC, tall on a phone) and the farm is laid
+   out on it with the horizon at the middle:
+   - far hills, a wind pump and Grandpa's cabin on the skyline;
+   - a path down to the gate, a tilled field on one side and corn on the other, with the scarecrow standing in it;
+   - a split-rail fence across the front. Nine jack-o'-lanterns stand on its top rail and light one by one as the
+     progress bar. */
+// (the scene is a function so the title screen can draw the same night behind its menu: window.HAScene(canvas,{host,pct,alive,paused}))
+window.HAScene=function(cv,opt){const scr=opt.host;if(!cv||!scr)return;const g=cv.getContext('2d');
+  let W=320,H=180,K=3,HZ=90,FY=156,seed=7;const rnd=()=>((seed=(seed*16807)%2147483647)/2147483647);
+  let skyC,landC,stars,rows,flies,fogA,posts,pathC,pathW,crowsY;const L={};
+  const mk=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.imageSmoothingEnabled=false;return [c,x];};
+  const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)),mix=(a,b,t)=>'#'+hex(a).map((v,i)=>Math.round(v+(hex(b)[i]-v)*t).toString(16).padStart(2,'0')).join('');
+  function lay(){const vw=innerWidth||960,vh=innerHeight||540;K=Math.max(2,Math.floor(Math.min(vw/170,vh/150)));W=Math.ceil(vw/K);H=Math.ceil(vh/K);
+    cv.width=W;cv.height=H;cv.style.width=W*K+'px';cv.style.height=H*K+'px';g.imageSmoothingEnabled=false;seed=7;
+    HZ=Math.round(H*(H>W*1.2?.56:.5));FY=H-24;
+    L.cab=Math.round(W*.3);L.mill=Math.max(14,Math.round(W*.1));L.scx=Math.round(W*.76);L.scy=HZ+Math.min(16,Math.round((FY-HZ)*.3));
+    // the path: from the cabin door down to the gate, wider as it comes nearer
+    pathC=[];pathW=[];for(let y=HZ;y<=H;y++){const t=(y-HZ)/(H-HZ);pathC[y]=L.cab+3+(W*.5-L.cab-3)*Math.sin(t*Math.PI/2);pathW[y]=2+t*W*.2;}
+    // ---- the sky, once: bands from black to a moonlit haze at the horizon, joined by two rows of dither
+    let x;[skyC,x]=mk(W,H);const n=Math.max(6,Math.min(14,Math.round(HZ/10))),bh=Math.ceil(HZ/n);
+    for(let i=0;i<n;i++){const c=mix('#06060d','#262b45',i/(n-1));x.fillStyle=c;x.fillRect(0,i*bh,W,bh);
+      if(i){const p=mix('#06060d','#262b45',(i-1)/(n-1));x.fillStyle=p;for(let xx=0;xx<W;xx+=2){x.fillRect(xx,i*bh,1,1);x.fillRect(xx+1,i*bh+1,1,1);}}}
+    x.fillStyle='#262b45';x.fillRect(0,n*bh,W,H);
+    stars=[...Array(Math.round(W*(HZ-34)/300))].map(()=>({x:rnd()*W|0,y:rnd()*(HZ-34)|0,p:rnd()*6.28,b:rnd()<.14}));
+    // ---- the land, once: two ranges of hills, the treeline, the field, the path and the furrows
+    [landC,x]=mk(W,H);const P=(c,a,b,w,h)=>{x.fillStyle=c;x.fillRect(a|0,b|0,w,h);};
+    for(let i=0;i<W;i++){const h1=HZ-22+Math.sin(i*.018+.4)*5+Math.sin(i*.061)*2;P('#1a2034',i,h1,1,HZ-h1+1);}
+    for(let i=0;i<W;i++){const h2=HZ-11+Math.sin(i*.027+2)*4+Math.sin(i*.09)*1.5;P('#131827',i,h2,1,HZ-h2+1);}
+    const pine=(cx,h)=>{for(let k=0;k<h;k++){const w=Math.max(0,Math.round((k/h)*h*.32-(k%3===0?1:0)));P('#0b0e15',cx-w,HZ-h+k,w*2+1,1);}};
+    for(let i=0;i<W;i+=3){const f=i/W;if(f>.52&&f<.86)continue;if(rnd()<.75)pine(i,5+(rnd()*9|0));}
+    P('#0b0e0b',0,HZ,W,H-HZ);
+    // tilled field left of the path: furrows that run back to the cabin, the moon catching each ridge
+    {const vx=L.cab-2,vy=HZ+1,xl=pathC[H]-pathW[H]/2-2,N=Math.max(10,Math.round((xl+W*1.6)/13));
+      for(let k=0;k<N;k++){const xb=xl-(k+.6)*(xl+W*1.6)/N;for(let y=vy+2;y<=H;y++){const t=(y-vy)/(H-vy),xx=Math.round(vx+(xb-vx)*t);if(xx>pathC[y]-pathW[y]/2-1)continue;if(xx<-4)break;if(t<.3&&k%2||t<.12&&k%4)continue;
+        const tw=1+Math.round(t*2.2);P('#050705',xx-tw,y,tw,1);P(mix('#141b15','#26302a',t),xx,y,2+Math.round(t),1);}}}
+    for(let y=HZ;y<=H;y++){const c=pathC[y],w=pathW[y],t=(y-HZ)/(H-HZ),nf=y>FY-6?Math.min(1,(y-FY+6)/8):0;P(mix(mix('#1a1813','#2a251d',t),'#0b0e0b',nf),c-w/2,y,w,1);
+      if(t>.08&&!nf){P('#14120e',c-w*.22,y,Math.max(1,w*.06),1);P('#14120e',c+w*.16,y,Math.max(1,w*.06),1);}
+      if(!nf&&rnd()<.25*t)P('#3a3428',c-w/2+rnd()*w,y,1,1);}
+    // the corn rows right of the path (drawn live so they sway), scarecrow among them
+    // corn rows: each row is one continuous mass, its top edge built from plants of four kinds (tall with a tassel, bushy,
+    // leaning, young) at jittered spacing and height; lit only where the edge faces the moon; darker toward its foot so the
+    // row in front stands off it
+    const plantInto=(prof,leaves,c,h)=>{const k=rnd(),put=(dx,v)=>{const xx=c+dx;if(xx>=0&&xx<prof.length&&v>prof[xx])prof[xx]=v;};
+      let hh=h,lean=0,nl=3,spread=.5,tas=h>7&&rnd()<.85;if(k<.18){hh=h*.62;nl=2;spread=.55;tas=false;}else if(k<.42){hh=h*.85;spread=.75;nl=3;}else if(k<.58){lean=rnd()<.5?-1:1;}
+      hh=Math.max(2,Math.round(hh*(.88+rnd()*.24)));const sw=h>=16?2:1;for(let d=0;d<sw;d++)put(d+Math.round(lean*hh*.12),hh);
+      if(tas){const tx=Math.round(lean*hh*.15);put(tx,hh+1+(rnd()*Math.min(3,1+h*.08)|0));if(h>=12){put(tx-1,hh+1);put(tx+sw,hh+1+(rnd()<.5?1:0));}}
+      let side=rnd()<.5?1:-1;for(let i=0;i<nl;i++){const at=Math.round(hh*(.35+i*(.45/nl)+rnd()*.08)),len=Math.max(2,Math.round(hh*spread*(1-i*.15)*(.8+rnd()*.4)));
+        for(let j=1;j<=len;j++){const u=j/len,v=at+Math.round(Math.sin(u*2.3)*len*.32)-Math.round(Math.max(0,u-.55)*len*.75);put(side>0?sw-1+j:-j,Math.max(1,v));if(side>0&&h>=12)leaves.push([c+sw-1+j,v]);}
+        side=-side;}};
+    rows=[];for(let r=1;r<40;r++){const y=HZ+Math.round((FY+8-HZ)*Math.pow(r/13,1.7));if(y>FY+8)break;const d=y-HZ,f=Math.min(1,d/(FY-HZ)),h=Math.round(3+d*.36),
+        x0=Math.ceil(pathC[y]+pathW[y]/2+2+d*.08),RW=W+8,prof=new Array(RW).fill(0),leaves=[],sp=Math.max(2,h*.42);
+      for(let c=RW+2;c>x0+1;c-=sp*(.6+rnd()*.8))plantInto(prof,leaves,Math.round(c),h);
+      const top=Math.max(...prof)+1,[rc,x]=mk(RW,top+1),P=(cl,a2,b2,w2,h2)=>{x.fillStyle=cl;x.fillRect(a2,b2,w2,h2);};
+      const lt=mix('#283436','#3a4a3c',f),md=mix('#18221f','#16201a',f),bd=mix('#121a1a','#0b100b',f),ft=mix('#0e1414','#060906',f),foot=Math.max(1,Math.round(h*.35));
+      for(let i=0;i<RW;i++){const v=prof[i];if(!v)continue;const yt=top-v;P(bd,i,yt,1,v+1);P(ft,i,top-foot+1,1,foot);P(md,i,yt+1,1,Math.min(2,v));
+        if(h>=7)P(v>(prof[i+1]||0)||v>=(prof[i-1]||0)&&v>(prof[i+1]||0)-1&&(i+r)%3?lt:md,i,yt,1,1);else if(v>(prof[i+1]||0)&&v>(prof[i-1]||0))P(mix(md,lt,.5),i,yt,1,1);}
+      for(const [lx,lv] of leaves)if(lx<RW&&prof[lx]>lv+1)P(mix(md,lt,.55),lx,top-lv,1,1);
+      rows.push({y,d,h,x0,rc,top,r});}
+    // ground fog: low banks with flat, stepped edges
+    [fogA,x]=mk(W*2,22);x.fillStyle='rgba(150,160,184,.06)';for(let i=0;i<Math.round(W/8);i++){const cx=rnd()*W*2|0,hh=2+(rnd()*4|0),cy=hh+1+(rnd()*(20-2*hh)|0),w=16+rnd()*40;
+      for(let r=-hh;r<=hh;r++){const ww=Math.round(w*Math.sqrt(1-(r/(hh+.5))**2));for(const o of [0,-W*2,W*2])x.fillRect(o+cx-ww,cy+r,ww*2,1);}}
+    flies=[...Array(Math.max(6,Math.round(W/26)))].map(()=>({x:rnd()*W,y:HZ+6+rnd()*(FY-HZ-14),p:rnd()*6.28,s:.3+rnd()*.5}));
+    {const hb=Math.round(Math.min((H-HZ)*.8,W*.6));L.big=[[bigPlant(hb,11),W-Math.round(hb*.9*.62)+2,hb],[bigPlant(Math.round(hb*.72),23),W-Math.round(hb*.72*.9*.62)-Math.round(hb*.32),Math.round(hb*.72)]];}
+    posts=[];for(let px0=4;px0<W;px0+=26+(rnd()*4|0))posts.push(px0);
+    crowsY=[Math.round(HZ*.25),Math.round(HZ*.55)];
+    scr.style.setProperty('--lfy',(H-FY)*K+'px');scr.style.setProperty('--K',K);}
+  lay();addEventListener('resize',lay);
+  let crows=[],crowT=2.5,last=performance.now(),lastDraw=0,t=0,on=true,blink=0;
+  const px=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x|0,y|0,w,h);};
+  const disc=(cx,cy,r,c)=>{g.fillStyle=c;for(let y=-r;y<=r;y++){const w=Math.round(Math.sqrt(r*r-y*y+.5));g.fillRect(cx-w|0,cy+y|0,w*2+1,1);}};
+  function stalk(x,base,h,sw,c,rim){const a=Math.round(sw*.4),b=Math.round(sw);const s1=Math.ceil(h*.45),s2=Math.ceil(h*.35),s3=Math.max(1,h-s1-s2);const th=h>22?2:1;
+    px(x,base-s1,th,s1,c);px(x+a,base-s1-s2,th,s2,c);px(x+b,base-h,1,s3,c);
+    if(h>=6){const l=Math.max(2,Math.round(h*.18));for(const [f,dir] of [[.4,-1],[.6,1],[.78,-1]]){const yy=base-Math.round(h*f),xx=x+(f<.5?0:a)+(dir>0?th:0);
+      px(dir>0?xx:xx-l,yy,l,1,c);px(dir>0?xx+l:xx-l-1,yy+1,1,1+(h>16?1:0),c);if(rim&&dir>0)px(xx+1,yy-1,l-1,1,rim);}}
+    px(x+b-1,base-h-1,3,1,c);if(rim)px(x+b+th,base-h+2,1,Math.max(1,s3-2),rim);}
+  function frame(now){if(!on||!opt.alive()){on=false;removeEventListener('resize',lay);return;}requestAnimationFrame(frame);if(opt.paused&&opt.paused()){last=now;return;}
+    if(now-lastDraw<32)return;lastDraw=now;const dt=Math.min(.06,(now-last)/1000);last=now;t+=dt;
+    g.drawImage(skyC,0,0);
+    for(const s of stars){const a=.35+.65*Math.max(0,Math.sin(t*1.7+s.p));g.globalAlpha=a;px(s.x,s.y,1,1,s.b?'#fff4d8':'#9aa4c8');if(s.b&&a>.8){g.globalAlpha=a*.5;px(s.x-1,s.y,1,1,'#9aa4c8');px(s.x+1,s.y,1,1,'#9aa4c8');px(s.x,s.y-1,1,1,'#9aa4c8');px(s.x,s.y+1,1,1,'#9aa4c8');}}g.globalAlpha=1;
+    // the moon, up in the corner, with two rings of haze
+    const tall=H>W*1.2,mx=Math.round(W*(tall?.9:.86)),my=tall?Math.round(HZ*.17):Math.round(Math.min(26,HZ*.3));g.globalAlpha=.05;disc(mx,my,19,'#c8be96');g.globalAlpha=.07;disc(mx,my,15,'#c8be96');g.globalAlpha=1;
+    for(let y=-10;y<=10;y++)for(let x=-10;x<=10;x++){if(x*x+y*y>100)continue;const l=-(x+y)/20;px(mx+x,my+y,1,1,l>.25?'#f4ecd0':l>-.2?'#dcd2b0':'#b8ae8c');}
+    for(const [cx,cy,r] of [[-3,-2,2],[4,3,3],[-4,5,1],[2,-6,1]])disc(mx+cx,my+cy,r,'#a89e7e');
+    // crows cross now and then
+    crowT-=dt;if(crowT<=0){crowT=5+rnd()*6;const n=3+(rnd()*4|0);for(let i=0;i<n;i++)crows.push({x:-10-i*9-rnd()*6,y:crowsY[0]+rnd()*(crowsY[1]-crowsY[0])+i*2,v:22+rnd()*8,p:rnd()*6});}
+    crows=crows.filter(c=>c.x<W+12);for(const c of crows){c.x+=c.v*dt;const f=Math.sin(t*14+c.p)>0;px(c.x,c.y,3,1,'#06070b');const o=f?-1:1;px(c.x-2,c.y+o,2,1,'#06070b');px(c.x+3,c.y+o,2,1,'#06070b');}
+    g.drawImage(landC,0,0);
+    // the wind pump on the skyline, turning slowly
+    {const m=L.mill,top=HZ-30,C='#0a0c13';for(let k=0;k<=30;k++){const w=Math.round(6*(k/30));px(m-w,top+k,1,1,C);px(m+w,top+k,1,1,C);if(k%7===3)px(m-w,top+k,w*2+1,1,C);}
+      const a=t*.7;for(let i=0;i<12;i++){const an=a+i*Math.PI/6;for(let r=3;r<=7;r++)px(m+Math.round(Math.cos(an)*r),top-2+Math.round(Math.sin(an)*r),1,1,C);}for(let i=0;i<40;i++){const an=i/40*6.283;px(m+Math.round(Math.cos(an)*8),top-2+Math.round(Math.sin(an)*8),1,1,C);}
+      disc(m,top-2,1,C);px(m-11,top-3,9,1,C);px(m-14,top-5,4,5,C);}
+    // Grandpa's cabin, a window that won't stay lit, and chimney smoke in soft puffs
+    {const hx=L.cab,hy=HZ+3,C='#07080b';px(hx-14,hy-11,28,11,C);for(let i=0;i<9;i++)px(hx-16+i*1.6,hy-11-i,32-i*3.2,1,'#06070a');px(hx+6,hy-22,4,8,'#06070a');px(hx+1,hy-6,4,6,'#040405');
+      const lit=.6+.3*Math.sin(t*9)*Math.sin(t*2.3)+(Math.sin(t*31)>.92?.3:0),la=Math.max(.3,Math.min(1,lit));g.globalAlpha=.08*la;disc(hx-6,hy-6,7,'#f0a040');px(hx-12,hy,14,2,'#f0a040');g.globalAlpha=la;
+      px(hx-9,hy-8,5,4,'#f0a040');px(hx-8,hy-7,3,2,'#ffd27a');px(hx-7,hy-8,1,4,'#6a3412');px(hx-9,hy-6,5,1,'#6a3412');g.globalAlpha=1;
+      for(let i=0;i<6;i++){const u=((t*.11+i/6)%1),r=Math.round(1+u*3.2);g.globalAlpha=.30*(1-u)*(u<.08?u/.08:1);disc(hx+8+u*12+Math.sin(u*5+i)*1.5,hy-24-u*24,r,u<.5?'#565c70':'#4a5064');}g.globalAlpha=1;}
+    {const f1=-((t*5)%(W*2))|0;g.drawImage(fogA,f1,HZ-12);g.drawImage(fogA,f1+W*2,HZ-12);}
+    // the corn, far rows first; the scarecrow stands among them
+    let scDone=false;
+    for(const r of rows){if(!scDone&&r.y>L.scy){scDone=true;scare();}
+      const lean=Math.round(Math.sin(t*1.1-r.r*.55)*Math.min(2,r.d*.05));g.drawImage(r.rc,lean,r.y-r.top);}
+    if(!scDone)scare();
+    // fireflies: a warm point with a small cross of glow
+    for(const f of flies){f.x+=Math.sin(t*f.s+f.p)*.15;f.y+=Math.cos(t*f.s*1.3+f.p)*.08;const a=Math.max(0,Math.sin(t*2+f.p));if(a<.25)continue;const X=f.x|0,Y=f.y|0;
+      g.globalAlpha=a*.45;px(X-1,Y,3,1,'#c8d060');px(X,Y-1,1,3,'#c8d060');g.globalAlpha=a;px(X,Y,1,1,'#fbffc0');}g.globalAlpha=1;
+    for(const [c,bx,hb] of L.big)for(let yy=0;yy<c.height;yy+=3){const k=1-yy/c.height,ox=Math.round(Math.sin(t*.8+bx)*2.2*k*k);g.drawImage(c,0,yy,c.width,3,bx+ox,FY+12-c.height+yy,c.width,3);}
+    // the near ground and the split-rail fence
+    px(0,FY+10,W,H-FY-10,'#090b08');
+    for(let i=0;i<W;i+=2){const h=2+((Math.sin(i*1.9)+1)*1.6|0);px(i,FY+10-h,1,h,'#090b08');}
+    const rail=(y)=>{px(0,y,W,1,'#3a2c20');px(0,y+1,W,1,'#20170f');px(0,y+2,W,1,'#100b07');};rail(FY);rail(FY+8);
+    for(const p of posts){px(p,FY-3,3,H-FY,'#1c140d');px(p,FY-3,3,1,'#3d2f22');px(p+2,FY-2,1,H-FY-1,'#2c2218');px(p,FY-2,1,H-FY-1,'#0e0a06');}
+    for(let i=0;i<W;i+=3){const h=1+((Math.sin(i*2.7+1)+1)*2.2|0);px(i,H-h,1,h,'#050605');}
+    // the progress: nine jack-o'-lanterns standing on the top rail, lit one by one
+    const pct=opt.pct();const N=9,lw=Math.min(18,Math.floor((W-6)/N)),x0=Math.round((W-N*lw)/2+(lw-13)/2),y0=FY-9;
+    for(let i=0;i<N;i++){const x=x0+i*lw,y=y0,litK=Math.max(0,Math.min(1,pct/100*N-i)),fl=.75+.25*Math.sin(t*12+i*2.1);
+      if(litK>0){g.globalAlpha=.06*litK;disc(x+6,y+6,13,'#f0a040');g.globalAlpha=.08*litK*fl;disc(x+6,y+6,9,'#f6b050');g.globalAlpha=litK*.6;px(x,FY,13,1,'#8a5a30');g.globalAlpha=1;}
+      px(x+1,y+9,11,1,'#100b07');
+      for(let yy=0;yy<9;yy++)for(let xx=0;xx<13;xx++){const u=(xx-6)/6.5,v=(yy-4.5)/4.5;if(u*u+v*v>1)continue;const rib=xx===3||xx===9;px(x+xx,y+yy,1,1,litK>0?(rib?'#a8441a':u>.3&&v<0?'#f08a36':'#d2621e'):(rib?'#1c120c':u>.3&&v<0?'#3a2414':'#2a1a10'));}
+      px(x+6,y-2,2,2,litK>0?'#4a6a24':'#16200e');
+      if(litK>0){const c=`rgba(255,${200+40*fl|0},90,${litK})`,f=i%3;
+        if(f===0){px(x+3,y+3,2,2,c);px(x+8,y+3,2,2,c);for(let k=0;k<5;k++)px(x+4+k,y+6+(k%2),1,1,c);}
+        else if(f===1){px(x+3,y+2,1,1,c);px(x+3,y+3,2,1,c);px(x+9,y+2,1,1,c);px(x+8,y+3,2,1,c);px(x+3,y+6,7,1,c);px(x+4,y+7,5,1,c);px(x+6,y+6,1,1,'#a8441a');}
+        else{px(x+4,y+3,1,2,c);px(x+3,y+4,1,1,c);px(x+8,y+3,1,2,c);px(x+9,y+4,1,1,c);px(x+6,y+5,1,1,c);px(x+4,y+7,1,1,c);px(x+5,y+6,3,2,c);px(x+8,y+7,1,1,c);}}}
+  }
+  function bigCorn(x,base,h,sw,dir){const C='#040504',R='#1f2829',at=k=>x+Math.round(sw*(k/h)**2);
+    for(let k=0;k<h;k++)px(at(k),base-k,k<h*.7?3:2,1,C);
+    const Lm=Math.max(6,Math.min(h*.34,W*.07));let side=dir;
+    for(const f of [.22,.36,.5,.63,.76,.86]){const k=Math.round(h*f),sx=at(k)+(side>0?2:0),sy=base-k,len=Math.round(Lm*(1.1-f*.5));
+      for(let i=1;i<=len;i++){const u=i/len,ly=sy-Math.round(Math.sin(u*2.4)*len*.28)+Math.round(Math.max(0,u-.55)*len*.55);px(sx+side*i,ly,1,u<.6?2:1,C);if(side>0&&u<.85)px(sx+side*i,ly-1,1,1,R);}
+      side=-side;}
+    const ek=Math.round(h*.45);px(at(ek)+(dir>0?3:-2),base-ek-6,2,6,C);px(at(ek)+(dir>0?4:-2),base-ek-8,1,2,C);
+    const tk=at(h);for(const [ox,oy] of [[-2,2],[0,3],[2,1],[1,4]])px(tk+ox,base-h-oy,1,oy,C);px(tk+2,base-h+2,1,h*.25|0,R);}
+  // the nearest corn: big, solid plants at the right edge (drawn once, swayed by slices)
+  function bigPlant(hb,seed0){const w=Math.round(hb*.95),[c,x]=mk(w,hb+4),P=(cl,a,b,ww,hh)=>{x.fillStyle=cl;x.fillRect(a|0,b|0,ww,hh);},cx=Math.round(w*.62),base=hb+3;
+    const D='#050705',B='#152018',M='#1f2c22',L1='#33443a',L2='#4a5e4e';let sd=seed0;const rr=()=>((sd=(sd*16807)%2147483647)/2147483647);
+    const T=Math.max(2,Math.round(hb*.055)),sx=k=>cx+Math.round(Math.sin(k/hb*1.4)*2);
+    let side=-1;const n=6,lv=[];for(let i=0;i<n;i++){const at=Math.round(hb*(.16+i*.13)),len=Math.round(hb*(.52-i*.05)*(.85+rr()*.3));lv.push([at,len,side]);side=-side;}
+    const leaf=([at,len,sd2],back)=>{for(let j=1;j<=len;j++){const u=j/len,cy=base-at-Math.round(Math.sin(u*2.0)*len*.3)+Math.round(Math.max(0,u-.45)**1.5*len*1.1),th=Math.max(1,Math.round((T+1)*(1-u)**.55)),xx=sx(at)+(sd2>0?3:-1)+sd2*j;
+      if(xx<0||xx>=w)continue;P(D,xx,cy-1,1,th+2);P(back?B:M,xx,cy,1,th);if(th>2)P(back?D:B,xx,cy+th-1,1,1);P(back?M:(sd2>0?L2:L1),xx,cy,1,1);if(th>3&&!back)P(L1,xx,cy+1,1,1);}};
+    for(const l of lv)if(l[2]<0)leaf(l,true);
+    for(let k=0;k<hb;k++){const X=sx(k);P(D,X-1,base-k,5,1);P(B,X,base-k,1,1);P(M,X+1,base-k,1,1);P(L1,X+2,base-k,1,1);if(k%Math.round(hb/6)===0&&k)P(L2,X,base-k,3,1);}
+    for(const l of lv)if(l[2]>0)leaf(l,false);
+    // the ear: a fat husked cob angled up and away from the stalk, silk spilling from its tip
+    {const ek=Math.round(hb*.42),ox=sx(ek)-1,oy=base-ek,len=Math.max(8,Math.round(hb*.17)),ang=-2.2,ca=Math.cos(ang),sa=Math.sin(ang),wd=Math.max(2,Math.round(len*.28));
+      for(let i=0;i<=len;i++){const u=i/len,r=Math.round(wd*Math.sin(Math.min(1,u*1.25)*Math.PI*.5)*(1-u*.35)),X=ox+ca*i,Y=oy+sa*i;for(let q=-r-1;q<=r+1;q++){const xx=Math.round(X-sa*q),yy=Math.round(Y+ca*q);P(Math.abs(q)>r?D:q<0?L1:q===0?M:B,xx,yy,1,1);}}
+      const tx=ox+ca*len,ty=oy+sa*len;for(const [dx,ln] of [[-1,4],[0,6],[1,5],[2,3]])for(let k=0;k<ln;k++)P(k<2?'#c8b888':'#9a8c60',Math.round(tx+dx-k*.5),Math.round(ty+k*.6),1,1);}
+    // the tassel: branched spikes that rise and arc out and down
+    {const tx=sx(hb)+1,ty=base-hb;P(D,tx-1,ty-3,3,5);P('#6a6448',tx,ty-3,1,4);
+      for(const [dir,len] of [[-1,6],[1,7],[-1,4],[1,4],[0,3]])for(let i=0;i<=len;i++){const xx=tx+dir*i,yy=ty-3-(dir?Math.round(Math.sin(i/len*2.2)*2.4)-Math.round((i/len)**2*3):i)+(len<5?2:0);P(i%3===2?'#4a4636':'#8a8460',xx,yy,1,1);}}
+    return c;}
+  // the scarecrow on its post: a sack head under a hat, a coat with ragged sleeves on the crossbar, lit along its right side
+  // by the moon. It sways a little more than the wind does. Now and then its eyes are lit.
+  function scare(){const sx=L.scx,sy=L.scy,s2=Math.round(Math.sin(t*.9)*1.4),C='#040505',R='#3c4866';
+    px(sx,sy-36,2,36,C);px(sx-13,sy-33,28,2,C);px(sx-11+s2,sy-34,24,4,C);
+    for(const [ox,len] of [[-12,3],[-10,5],[-8,2],[11,2],[13,5],[15,3]])px(sx+ox+s2,sy-31,1,len+(Math.sin(t*2+ox)>.6?1:0),C);px(sx-15+s2,sy-33,2,1,C);px(sx+16+s2,sy-33,2,1,C);
+    px(sx-4+s2,sy-33,10,12,C);for(let k=0;k<5;k++)px(sx-4+k*2+s2,sy-21,1,2+(k%2)*2,C);
+    disc(sx+1+s2,sy-39,4,C);px(sx-6+s2,sy-43,15,2,C);px(sx-2+s2,sy-48,7,5,C);
+    px(sx+4+s2,sy-48,1,5,R);px(sx+8+s2,sy-43,1,1,R);px(sx+5+s2,sy-41,1,4,R);px(sx+6+s2,sy-34,7,1,R);px(sx+5+s2,sy-30,1,9,R);px(sx+1,sy-21,1,21,'#1a2030');
+    blink-=1/30;if(blink<-6)blink=.9;if(blink>0){px(sx-1+s2,sy-40,1,1,'#ff3a24');px(sx+3+s2,sy-40,1,1,'#ff3a24');}}
+  requestAnimationFrame(frame);};
+HAScene(document.getElementById('loadCv'),{host:document.getElementById('loadScr'),pct:()=>{const b=document.getElementById('loadBar');return b?parseFloat(b.style.width)||0:0;},alive:()=>!!document.getElementById('loadScr')});
+(function(){
+  // lines from the valley under the title, while it loads
+  const tips=['Grandpa called three days ago and told you not to come.','Water your crops every day. The rain only comes when it wants to.','Your lantern runs on oil. Never let it run dry after dark.','The scarecrow was not always on the post.','Everyone in Marrow Hollow is very friendly. Everyone.','Six of Grandpa’s pages are hidden in the valley.','At night, it only moves when you are not looking.','Sleep in your own bed. The night is long.'];
+  let ti=0;const tipEl=document.getElementById('loadTip');setInterval(()=>{if(!tipEl||!document.getElementById('loadScr'))return;ti=(ti+1)%tips.length;tipEl.classList.remove('in');void tipEl.offsetWidth;tipEl.textContent=tips[ti];tipEl.classList.add('in');},3400);})();
+</script>

@@ -1227,3 +1227,30 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   or the first rows of a texture all take the same (dark) choice and band.
 - Cracks are grooves: draw them in the joint/shadow colour with a 1 px lit lip; a crack lighter than its surface reads as
   chalk or a letter.
+
+## Full-screen scenes (loading and title screens, Nov 12)
+- Size the canvas to the screen (a whole-number scale, so every pixel stays square) and lay the scene out on it; never
+  object-fit:cover a fixed 320x180, which crops the phone to a strip of sky. On a tall screen anchor the land to the bottom
+  and let the extra height be sky for the title and text.
+- The land must fill the frame: horizon near the middle, a near foreground (a fence, a path, big plants) and the progress
+  bar made part of the scene (lanterns standing on the fence rail), never a strip of black silhouettes over flat black.
+- A crop field is rows, not wallpaper: each receding row one continuous dark mass whose top edge is built from 3-4 plant
+  kinds at jittered spacing and height, lit only where the edge faces the light, darker toward its foot so the row in front
+  stands off it. One sprite stamped along a row reads as knitted fabric, zigzags or ferns.
+- Furrows converge on a point (the cabin, the vanishing point) with the light on each ridge; parallel bands that widen
+  downward read as terraces or a staircase. Thin converging lines step into moire near the vanishing point: drop every other
+  line there and draw the ridges 2 px wide.
+- Put the best drawing in the nearest objects: filled ribbon leaves with a lit edge and dark underside, branched drooping
+  tassels, a fat husked ear with silk. A near plant drawn as 1 px outlines reads as a dead tree, a rake or a power pole.
+- Pixel-art fog is long low banks with flat, stepped edges; radial-gradient airbrush fog reads as a blur, and fog drawn over a
+  black silhouette makes a box: draw it behind the figures.
+- Text over a pixel scene sits on the scene's grid: the pixel font's pixel (0.1 em) = 2 scene pixels for the title (font-size
+  20*K) and 1/2 scene pixel for the lines under it, or the page looks assembled from parts.
+- Smoke: soft round puffs that swell and fade; fireflies: a 1 px warm core with a plus of glow (a square halo reads as a dead
+  pixel); lantern light: stepped amber discs lighter than the ground (a dark disc reads as a plate).
+- A menu over pixel art is judged as part of the art: square pixel frames (2 px lit top, dark bottom), a little grain on dark
+  wood, no rounded pills or smooth borders. Size a button stack from its longest label (inline-flex column, nowrap) so no
+  label wraps on a wide screen; one button twice as tall as its neighbours reads as broken.
+- Keep the story objects (cabin, scarecrow) clear of the menu on every screen shape; on a phone lower the horizon rather than
+  let the buttons sit across it. Never show debug text or repeated control lists in the small print.
+- Nine identical props in a row on a still screen read as a stamp: give them 2-3 variants (carved faces).
