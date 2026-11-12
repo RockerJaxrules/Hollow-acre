@@ -37,3 +37,14 @@ LS_SIDE.push(
 if(typeof bizOpen==='function'){const _b=bizOpen;bizOpen=function(){const r=_b.apply(this,arguments);try{guideS().invest=1;guideUnpin('invest');}catch(e){}return r;};}
 if(typeof empOpen==='function'){const _e=empOpen;empOpen=function(){const r=_e.apply(this,arguments);try{guideS().hands=1;guideUnpin('hands');}catch(e){}return r;};}
 setInterval(()=>{try{if(S.mode==='play'&&inv('bouquet')>0&&!guideS().bouquet){guideS().bouquet=1;guideUnpin('bouquet');}}catch(e){}},1000);
+// ---- leaving the world: back to the title screen from the menu (it saves first; on a friend's farm your things go home with you;
+// a host's friends are sent home). Tap once to ask, again to go.
+{const bb=$('bagClose');if(bb){const L=document.createElement('button');L.className='close';L.id='bagLeave';L.textContent='Leave world';L.style.marginRight='auto';
+  let armed=0;const reset=()=>{armed=0;L.textContent='Leave world';L.classList.remove('hot');};
+  L.addEventListener('click',()=>{if(!armed){armed=1;L.textContent='Leave? Tap again';L.classList.add('hot');setTimeout(reset,3500);return;}
+    reset();const role=typeof HOST!=='undefined'?HOST.role:null;
+    try{if(S.mode==='play'||S.paused)saveGame(true);}catch(e){}
+    if(role==='guest'){hostLeave();return;}   // (saves your own things into your own save, then back to the title)
+    if(role==='host'){try{hostLeave(true);}catch(e){}}
+    S.mode='trans';try{fade(1);}catch(e){}setTimeout(()=>location.reload(),450);});
+  bb.parentNode.insertBefore(L,bb.parentNode.firstChild);}}
