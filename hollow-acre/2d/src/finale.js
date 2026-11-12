@@ -16,10 +16,10 @@ const STINGS={
   const d=document.createElement('div');d.id='credits2';d.innerHTML='<div class="roll"></div><div class="sting"></div><div class="skip">tap to skip</div>';document.body.appendChild(d);}
 function rollCredits(k,done){const el=$('credits2'),roll=el.querySelector('.roll'),st=el.querySelector('.sting');let fin=false,raf=0;
   const folk=npcs.filter(n=>PEOPLE[n.def.id]).map(n=>`<p>${n.def.name} <small>· ${n.def.role||''}</small></p>`).join('');
-  roll.innerHTML=`<h2>Hollow Acre</h2><p><small>a valley that keeps what it is given</small></p><h3>The people of Marrow Hollow, the orchard, the mill, and Wickham Crossing</h3>${folk}
+  roll.innerHTML=`<h2>Hollow Acre</h2><p><small>a valley that keeps what it is given</small></p><h3>Made by</h3><p>Jaxon Charlton</p><p><small>everything: the story, the valley and its people, the art, the sound and the game</small></p><h3>The people of Marrow Hollow, the orchard, the mill, and Wickham Crossing</h3>${folk}
     <h3>The Tithes</h3><p>one for every autumn, back to the first</p><p><small>a hundred and fifty-three names, and room for one more</small></p>
     <h3>E. Marsh</h3><p>who called, and told you not to come</p><h3>And</h3><p>${NAME()||'you'}</p><p><small>who came anyway</small></p>
-    <h3>Pixel art</h3><p><small>Every pixel drawn for this game</small></p><h3>Thank you for staying</h3><p><small>You can stop now. You can always stop now.</small></p>`;
+    <h3>Everything</h3><p>Jaxon Charlton</p><h3>Thank you for staying</h3><p><small>You can stop now. You can always stop now.</small></p>`;
   el.style.display='block';roll.style.transform='translateY(0)';st.style.opacity=0;st.innerHTML='';SFX.bell&&SFX.bell();
   const H0=roll.scrollHeight+innerHeight;let y=0,last=performance.now();
   const step=now=>{const dt=Math.min(.05,(now-last)/1000);last=now;y+=dt*42;roll.style.transform=`translateY(${-y}px)`;if(y>H0){sting();return;}raf=requestAnimationFrame(step);};raf=requestAnimationFrame(step);

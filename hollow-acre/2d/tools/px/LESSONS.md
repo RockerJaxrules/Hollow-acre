@@ -1317,3 +1317,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A player's tag on a map must never sit on top of a printed place name: hide the place label under it, or move the tag.
 - A flag in the world needs the prop rules too: an outline, a shadow at the foot, a stake about two-thirds the farmer's height, and the mark's sign on the cloth. A plain coloured rectangle reads as a golf flag.
 - [owner] Anything strung over a walkway must hang above the farmer's head (64 px): the first festival string had posts the farmer's height, and the owner sent a photo of him walking through the lanterns. Check a prop's height against the farmer before it ships.
+
+## Cards that ask the player to wait (#264, #270, Nov 12)
+- A waiting card never sits on the player or on the thing they are waiting at: dock it under the objective bar, at the bar's width, two rows at most.
+- When two screens describe the same thing (where your friend is), use the very same words and numbers on both ("57 m east" / "57 m west"), never "close by" on one and metres on the other.
+- While the player is asked to wait somewhere, the objective bar must say so ("Waiting for Jo at the car. Stay close."), not keep sending them to chores.
+- Say the count ("1 of 2") and what happens next ("you'll drive out together"): a wait with no end in sight reads as broken.
+- A checkbox is the whole row, not the 20 px box: 44 px tall strip, hover and press steps like the wood buttons, a bigger box on phones. Native browser checkboxes don't match the pixel panels; draw the box (lit top edge, dark bottom edge, chunky pixel tick).

@@ -52,3 +52,5 @@ orders. Latest round first.
 | Farm book (Nov 12) | 6 -> 6 (map added, labels fixed) | yes | toward 7: the farm map's names never overlap a neighbour |
 | Map marks (Nov 12) | UI 5.5 -> 6, flag 5 -> 6 | yes | toward 7: the page never taller than its frame on any screen |
 | Festival lantern string (Nov 12) | 6, preferred over the old | yes | toward 7: shuffled lanterns on their own cords, one gone dark |
+| Everyone-here card (Nov 12) | 5.5 -> 6.5 | yes | toward 7: never covers what everyone is meeting at, on any screen |
+| Stay-logged-in checkbox (Nov 12) | 6.5 | yes | toward 7: the panel fully opaque at rest (title text showed through mid-fade) |

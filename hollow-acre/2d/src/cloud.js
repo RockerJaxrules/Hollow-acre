@@ -71,6 +71,13 @@ const cloudK=()=>{const p=acctMe();return p&&p.cloud&&p.cloud.d?p.cloud:null;};
 function cloudSoon(){const K=cloudK();if(!K||!navigator.onLine)return;clearTimeout(CLOUD.t);CLOUD.t=setTimeout(async()=>{if(CLOUD.busy)return cloudSoon();CLOUD.busy=true;
     try{const n=await cloudUpload(K);if(n>0){CLOUD.last=Date.now();const p=acctMe();p.cloud.synced=Date.now();acctStore();}}catch(e){console.warn('cloud',e);}finally{CLOUD.busy=false;}},CLOUD.last&&Date.now()-CLOUD.last<60000?60000:4000);}
 {const _sg=saveGame;saveGame=function(){const r=_sg.apply(this,arguments);try{cloudSoon();}catch(e){}return r;};}
+// (#270) "stay logged in": a login that wasn't kept ends when the browser is closed (a reload keeps it); one that is kept asks the
+// browser not to clear the game's storage to make room
+const cloudSess=id=>{try{return sessionStorage.getItem('hollowCloudSess:'+id)==='1';}catch(e){return false;}};
+function cloudStay(p,stay){if(!p||!p.cloud)return;if(stay){delete p.cloud.temp;try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist().catch(()=>{});}catch(e){}}
+  else{p.cloud.temp=1;try{sessionStorage.setItem('hollowCloudSess:'+p.id,'1');}catch(e){}}acctStore();}
+{let ch=false;for(const p of ACCT.list)if(p.cloud&&p.cloud.temp&&!cloudSess(p.id)){delete p.cloud;delete p.uid;ch=true;}if(ch)acctStore();
+  else if(cloudK())try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist().catch(()=>{});}catch(e){}}
 // account ids on shared farms
 {const p=acctMe();if(p&&p.cloud&&p.cloud.pub)p.uid=p.cloud.pub.slice(0,20);}
 // ---- the account screen
@@ -78,8 +85,10 @@ function cloudShow(view){const box=$('acctPanel').querySelector('.box');$('acctP
   const msg=t=>{const m=box.querySelector('.msg');if(m)m.innerHTML=t;};const eye=id=>`<button type="button" class="eye" data-eye="${id}" aria-label="Show password">Show</button>`;
   if(K&&view!=='create'&&view!=='login'){box.innerHTML=`<h3>Your account</h3><p>Logged in as <b>${acctEsc(K.user)}</b>. Your farm is saved to your account a few seconds after it saves here, and you can open it on any device by logging in with the same username and password.</p>
       <p style="opacity:.75;font-size:13px">${K.synced?'Last saved to your account: '+new Date(K.synced).toLocaleString():'Not saved to your account yet.'}</p>
+      <label class="stay"><input type="checkbox" id="clStay" ${K.temp?'':'checked'}><span>Stay logged in on this device<small>${K.temp?'Off: you’ll be logged out when you close the browser.':'On: you stay logged in until you log out.'}</small></span></label>
       <div class="acts"><button data-a="now">Save to my account now</button><button data-a="out" class="warn">Log out on this device</button><button data-a="back">Back</button></div><div class="msg"></div>`;
     box.querySelector('[data-a=back]').onclick=()=>acctShow('list');
+    $('clStay').onchange=e=>{cloudStay(acctMe(),e.target.checked);cloudShow();};
     box.querySelector('[data-a=now]').onclick=async()=>{msg('Saving…');try{const n=await cloudUpload(K);if(n){K.synced=Date.now();acctStore();msg(`Saved to your account (${n} relays have it).`);}else msg('Couldn’t reach the account servers. Check your connection and try again.');}catch(e){msg('That didn’t work: '+acctEsc(e.message));}};
     box.querySelector('[data-a=out]').onclick=()=>{const p=acctMe();delete p.cloud;delete p.uid;acctStore();msg('Logged out on this device. Your farm is still on this device, and in your account.');setTimeout(()=>acctShow('list'),1200);};return;}
   const create=view==='create';
@@ -87,12 +96,13 @@ function cloudShow(view){const box=$('acctPanel').querySelector('.box');$('acctP
     Username<input id="clUser" maxlength="24" autocomplete="username" autocapitalize="off" spellcheck="false">
     Password<div class="pw"><input id="clPass" type="password" maxlength="64" autocomplete="${create?'new-password':'current-password'}">${eye('clPass')}</div>
     ${create?`Confirm password<div class="pw"><input id="clPass2" type="password" maxlength="64" autocomplete="new-password">${eye('clPass2')}</div>`:''}
+    <label class="stay"><input type="checkbox" id="clStay" checked><span>Stay logged in on this device<small>Untick on a shared or borrowed device: you’ll be logged out when the browser closes.</small></span></label>
     <div class="acts"><button data-a="go">${create?'Create account':'Log in'}</button><button data-a="swap">${create?'I already have one: log in':'New here? Create an account'}</button><button data-a="back">Back</button></div><div class="msg"></div>
     <p style="font-size:12px;opacity:.6;margin-top:8px">Nobody can reset a forgotten password, not even us: your farm is locked with it. Write it down somewhere safe.</p>`;
   box.querySelectorAll('input').forEach(i=>i.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')box.querySelector('[data-a=go]').click();}));
   box.querySelectorAll('[data-eye]').forEach(b=>b.onclick=()=>{const i=$(b.dataset.eye);const show=i.type==='password';i.type=show?'text':'password';b.textContent=show?'Hide':'Show';b.setAttribute('aria-label',show?'Hide password':'Show password');});
   box.querySelector('[data-a=back]').onclick=()=>acctShow('list');box.querySelector('[data-a=swap]').onclick=()=>cloudShow(create?'login':'create');
-  box.querySelector('[data-a=go]').onclick=async()=>{const u=$('clUser').value.trim(),p=$('clPass').value;
+  box.querySelector('[data-a=go]').onclick=async()=>{const u=$('clUser').value.trim(),p=$('clPass').value,stay=$('clStay').checked;
     if(!/^[A-Za-z0-9_.\- ]{3,24}$/.test(u)){msg('A username needs 3 to 24 letters, numbers, spaces, dots, dashes or underscores.');return;}
     if(p.length<6){msg('A password needs at least 6 characters.');return;}
     if(create&&p!==$('clPass2').value){msg('The two passwords don’t match.');return;}
@@ -100,20 +110,28 @@ function cloudShow(view){const box=$('acctPanel').querySelector('.box');$('acctP
     box.querySelectorAll('button').forEach(b=>b.disabled=true);msg(create?'Making your account…':'Looking for your farm…');
     try{const K2=await cloudKeys(u,p);const found=await cloudFetch(K2);
       if(create){if(found){msg('There’s already a farm under that username and password. Log in instead.');return;}
-        const me=acctMe();me.cloud=Object.assign(K2,{since:Date.now()});me.uid=K2.pub.slice(0,20);acctStore();const n=await cloudUpload(K2);
+        const me=acctMe();me.cloud=Object.assign(K2,{since:Date.now()});me.uid=K2.pub.slice(0,20);cloudStay(me,stay);const n=await cloudUpload(K2);
         if(!n){msg('Your account is made, but the account servers couldn’t be reached to save to it. It will save the next time you’re online.');return;}
         me.cloud.synced=Date.now();acctStore();msg(`Account made. This farm is saved to it. Log in as <b>${acctEsc(u)}</b> on any device to open it.`);setTimeout(()=>cloudShow(),1800);return;}
       if(!found){msg('No farm under that username and password. Check them (they’re case-sensitive for the password), or create an account.');return;}
       if(found.partial){msg('Your account was found but part of the farm hasn’t reached the servers yet. Try again in a minute.');return;}
       // open it in a profile of its own on this device
       const D=found.data;let p2=ACCT.list.find(q=>q.cloud&&q.cloud.pub===K2.pub);if(!p2){p2={id:'c'+Date.now().toString(36),name:u.slice(0,16),created:Date.now()};ACCT.list.push(p2);}
-      p2.cloud=Object.assign(K2,{since:Date.now(),synced:Date.now()});p2.uid=K2.pub.slice(0,20);const k=acctKeys(p2.id);
+      p2.cloud=Object.assign(K2,{since:Date.now(),synced:Date.now()});p2.uid=K2.pub.slice(0,20);cloudStay(p2,stay);const k=acctKeys(p2.id);
       for(const [f,key] of [['save',k.save],['morning',k.morning],['look',k.look]]){if(D[f])localStorage.setItem(key,D[f]);}
       acctStore();msg('Found it. Opening your farm…');setTimeout(()=>acctSwitch(p2.id),900);}
     catch(e){msg('That didn’t work: '+acctEsc(e.message||String(e)));}
     finally{box.querySelectorAll('button').forEach(b=>b.disabled=false);}};
   $('clUser').focus();}
-{const st=document.createElement('style');st.textContent=`#acctPanel .pw{display:flex;gap:6px;align-items:center}#acctPanel .pw input{flex:1}#acctPanel .pw .eye{white-space:nowrap;min-width:58px}#acctBar .acl{color:#9fc07a}`;document.head.appendChild(st);}
+{const st=document.createElement('style');st.textContent=`#acctPanel .pw{display:flex;gap:6px;align-items:center}#acctPanel .pw input{flex:1}#acctPanel .pw .eye{white-space:nowrap;min-width:58px}#acctBar .acl{color:#9fc07a}
+#acctPanel .stay{display:flex;align-items:center;gap:10px;margin:10px 0 6px;padding:8px 10px;min-height:44px;box-sizing:border-box;font-size:14px;cursor:pointer;text-align:left;background:rgba(233,223,198,.05);box-shadow:inset 0 0 0 1px rgba(184,82,28,.45)}
+#acctPanel .stay:hover{background:rgba(232,146,63,.12)}#acctPanel .stay:active{background:rgba(232,146,63,.2);box-shadow:inset 0 0 0 1px #b8521c,inset 0 2px 0 rgba(0,0,0,.35)}
+@media (max-width:600px){#acctPanel .stay input{width:28px!important;height:28px!important;min-width:28px!important}#acctPanel .stay input:checked::after{left:4px!important;top:4px!important;width:20px!important;height:20px!important;background-size:20px 20px!important}}
+#acctPanel .stay input{-webkit-appearance:none;appearance:none;position:relative;width:22px;height:22px;min-width:22px;margin:1px 0 0;padding:0;flex:none;border:0;border-radius:0;cursor:pointer;background:#1a0e06;box-shadow:inset 0 0 0 2px #b8521c,2px 2px 0 rgba(0,0,0,.45)}
+#acctPanel .stay input:checked{background:#e8923f;box-shadow:inset 0 0 0 2px #7a3410,inset 2px 2px 0 2px #ffc070,2px 2px 0 rgba(0,0,0,.45)}
+#acctPanel .stay input:checked::after{content:'';position:absolute;left:3px;top:3px;width:16px;height:16px;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges' fill='%232a1a0e'><rect x='6' y='1' width='1' height='1'/><rect x='5' y='2' width='1' height='1'/><rect x='6' y='2' width='1' height='1'/><rect x='0' y='3' width='1' height='1'/><rect x='4' y='3' width='1' height='1'/><rect x='5' y='3' width='1' height='1'/><rect x='0' y='4' width='1' height='1'/><rect x='1' y='4' width='1' height='1'/><rect x='3' y='4' width='1' height='1'/><rect x='4' y='4' width='1' height='1'/><rect x='1' y='5' width='1' height='1'/><rect x='2' y='5' width='1' height='1'/><rect x='3' y='5' width='1' height='1'/><rect x='2' y='6' width='1' height='1'/></svg>") no-repeat;background-size:16px 16px}
+#acctPanel .stay input:focus-visible{outline:2px solid #ffd27a;outline-offset:2px}
+#acctPanel .stay small{display:block;font-size:13px;color:#d8c8a8;opacity:.9;margin-top:2px;line-height:1.3}`;document.head.appendChild(st);}
 // the bar on the title screen gets an Account button, and the profiles list says who's logged in
 {const bar=$('acctBar');if(bar){const b=document.createElement('button');b.id='acctCloud';const K=cloudK();b.textContent=K?'Account ✓':'Log in';b.title=K?'Logged in as '+K.user:'Log in or create an account';
     b.addEventListener('click',()=>cloudShow(K?undefined:'login'));bar.appendChild(b);}}
