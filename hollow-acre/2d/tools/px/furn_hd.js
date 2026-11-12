@@ -102,8 +102,8 @@ if(K==='desk'){const R=RAMP.walnut,base=H-3;
     for(let j=0;j<5;j++){const w=j<1||j>3?1:2;for(let i=-w;i<=w;i++)P(A,x+i,y-1+j,NIGHT?RAMP.lit[i===0?5:4]:RAMP.glass[i<0?5:3],NIGHT?255:170);}hl(A,x-1,y-2,3,RAMP.brass[4]);
     if(NIGHT)for(let i=-6;i<=6;i++)for(let j=-3;j<=3;j++){if(i*i/36+j*j/9>1)continue;P(B,x+i,y+8+j,RAMP.lit[4],60);}};
   if(V==='S'){const x0=3,w=W-6,top=base-30;
-    box3(x0,top-14,w,0,6,R,{faceDir:'x',facePw:6,faceK:3});hl(A,x0,top-14,w,R[5]);                                               // the low gallery at the back
-    for(const [cx,pw] of [[x0+7,6],[x0+15,4],[x0+21,7]]){rect(A,cx,top-13,pw,4,R[1]);hl(A,cx,top-13,pw,R[0]);}P(A,x0+17,top-11,RAMP.cream[4]);P(A,x0+16,top-11,RAMP.cream[3]);   // pigeonholes of different widths, a rolled letter in one                        // its pigeonholes
+    box3(x0,top-14,w,0,6,R,{facePw:3,faceK:3});hl(A,x0,top-14,w,R[5]);                                               // the low gallery at the back
+    for(let i=0;i<3;i++){const cx=x0+8+i*7;rect(A,cx,top-13,5,4,R[1]);hl(A,cx,top-13,5,R[0]);}                        // its pigeonholes
     box3(x0-1,top-8,w+2,16,4,R,{topPw:3});                                                                            // the writing top (three-quarters of its depth, as in every view) and its edge
     // the drawer pedestal on the right, the knee hole, the left leg
     box3(x0+w-20,top+12,20,0,base-top-13,R,{facePw:7});
@@ -156,10 +156,10 @@ function candle(x,top){rect(A,x-1,top+1,4,2,RAMP.brass[3]);hl(A,x-1,top+1,4,RAMP
 // =================================================================================== the dining table
 if(K==='table'){const R=RAMP.oak,base=H-3;
   const things=(x0,top,w,d)=>{const cx=(x0+w/2|0);
-    {const px=x0+11,py=top+d-6;for(let y=-3;y<=3;y++)for(let x=-6;x<=6;x++){const e=x*x/36+y*y/9;if(e>1)continue;P(A,px+x,py+y,RAMP.ivory[e>.55?(x+y<0?5:4):(e>.25?3:4)]);}contact(px-5,py+4,11,.75);}bowl(x0+w-14,top+d-8);   // one plate with its well, big enough to read                                                                          // a plate near you, a bowl further back (not a mirrored pair)
+    dish(x0+10,top+d-4);bowl(x0+w-14,top+d-8);                                                                          // a plate near you, a bowl further back (not a mirrored pair)
     candle(cx-1,top+7);
     for(let i=0;i<9;i++){const y=top+3+((i===0||i===8)?1:0);P(A,x0+w-21+i+6,y-1,RAMP.pine[i<3?5:4]);P(A,x0+w-21+i+6,y,RAMP.pine[2]);}contact(x0+w-15,top+4,9);   // a loaf
-    /* (judge fam5: "pale specks; the red smear reads as blood") */};
+    for(const [ax,ay] of [[x0+6,top+4],[x0+9,top+3],[x0+8,top+5]]){P(A,ax,ay,RAMP.red[5]);P(A,ax+1,ay,RAMP.red[3]);P(A,ax,ay+1,RAMP.red[3]);P(A,ax+1,ay+1,RAMP.red[1]);}};   // three apples
   if(V==='S'||V==='N'){const x0=2,w=W-4,d=19,top=base-31;   // the top at three-quarters of its real depth, as in every view
     for(const lx of [x0+5,x0+w-8])leg(lx,top+4,base-top-4,RAMP.oak.map((c,i)=>RAMP.oak[Math.max(0,i-1)]),false);
     box3(x0,top,w,d,4,R,{topPw:5});for(let y=top+1;y<top+d-1;y++)for(let x=x0+1;x<x0+w-1;x++){const c=G(A,x,y);if(c)P(A,x,y,shade(c,1.12));}
@@ -357,12 +357,12 @@ if(K==='lamp'){const R=RAMP.walnut,base=H-3,cx=W>>1,Bz=RAMP.brass;
   if(NIGHT){warm(cx,ty-2,10,.5);}else warm(cx,ty-1,7,.2);
   cast(cx-8,cx+8,base);}
 // =================================================================================== storage crates
-if(K==='crates'){const R=RAMP.pine.map((c,i)=>RAMP.pine[Math.max(0,i-1)]),base=H-3;   /* (judge fam5: "darken the pale crate one step") */
+if(K==='crates'){const R=RAMP.pine,base=H-3;
   // (judge fam1: "the dark front slot with red inside reads as a radio grille; actually stack the crates, the top one open, heaped with 3x3 apples")
   const apples=(x,top,w,d)=>{   /* (judge fam3: "the heap is a dark red lump") separate 3x3 apples a pixel apart, each lit top-left with a stalk, the back rows higher */
     const HI=[0xcf,0x86,0x66],rows=[[top-4,7,0],[top-2,4,2],[top,3,0],[top+2,4,2]];let n=0;
     for(const [ry,ii,off] of rows){for(let ax=x+ii+off;ax<=x+w-ii-3;ax+=4){n++;const C=hsh(n,9,SEED)>.8?RAMP.ochre:RAMP.red;
-      for(const [dx,dy] of [[-1,0],[3,0],[0,3],[1,3],[2,3]])if(!G(A,ax+dx,ry+dy)||ry+dy<top+d-1)P(A,ax+dx,ry+dy,RAMP.red[1]);
+      for(const [dx,dy] of [[-1,0],[3,0],[0,3],[1,3],[2,3]])if(!G(A,ax+dx,ry+dy)||ry+dy<top+d-1)P(A,ax+dx,ry+dy,RAMP.walnut[0]);
       P(A,ax,ry,C===RAMP.red?HI:C[5]);P(A,ax+1,ry,C[5]);P(A,ax+2,ry,C[3]);P(A,ax,ry+1,C[5]);P(A,ax+1,ry+1,C[4]);P(A,ax+2,ry+1,C[2]);P(A,ax,ry+2,C[3]);P(A,ax+1,ry+2,C[2]);P(A,ax+2,ry+2,C[1]);
       P(A,ax+1,ry-1,RAMP.walnut[2]);if(hsh(n,5,SEED)>.75)P(A,ax+2,ry-1,RAMP.green[4]);}}};
   const crate=(x,by,w,d,h,open)=>{const top=by-h-d;
