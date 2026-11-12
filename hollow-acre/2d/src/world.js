@@ -174,7 +174,7 @@ function buildWorld(){
   hedgeLine(-12.6,-17,-11);hedgeLine(-12.6,-1,4);
   put('signpost',-13.4,-10.1,.2,{label:'HOLLOW ACRE'});put('mailbox',-13.6,-1.9,.15);
   // the field, fenced with a gate at the top; scarecrow inside, pumpkins at the corners
-  fenceLine(-6,-1,-1,-1);fenceLine(1,-1,6,-1);fenceLine(-6,-1,-6,9);fenceLine(6,-1,6,9);fenceLine(-6,9,-1.4,9);fenceLine(.4,9,6,9);
+  // (#248, owner: the thin post fence round the field is gone; the field is open ground now, ready to grow)
   reserve(-7,-2,7,10);
   put('pumpkin',-5.3,-.3,.25);put('pumpkin_b',5.3,-.4,.25);put('pumpkin',-5.3,8.3,.25);put('pumpkin',5.3,8.2,.25);
   // windpump on its own patch west of the field, a water trough at its foot
