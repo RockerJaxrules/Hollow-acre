@@ -220,22 +220,22 @@ if(K==='keg'){const R=RAMP.oak,base=H-3,I=RAMP.ironW;
 if(K==='cradle'){const R=RAMP.oak,base=H-3,DOX=hexR(['#24141a','#3a1f25','#522c31','#683b3d','#7c4d4b','#8e605a']);   /* (judge fam1: "salmon bedding reads as candy; the hood a grid that reads as a cage") */
   const rocker=(x0,x1,y)=>{const Q=RAMP.pine;for(let x=x0-3;x<=x1+3;x++){const u=(x-(x0+x1)/2)/((x1-x0)/2),yy=Math.round(y-u*u*3-(Math.abs(u)>.95?(Math.abs(u)-.95)*14:0));P(A,x,yy,Q[5]);P(A,x,yy+1,Q[4]);P(A,x,yy+2,Q[2]);}};
   if(V==='S'||V==='N'){const x0=4,w=W-8,top=base-17,hoodL=V==='S';rocker(x0-2,x0+w+1,base-2);
-    box3(x0,top,w,5,10,R,{});rect(A,x0+2,top+6,w-4,8,R[1]);
-    {let x=x0+3,i=0;while(x<x0+w-4){vl(A,x,top+6,8,R[4]);vl(A,x+1,top+6,8,R[3]);P(A,x,top+6,R[5]);x+=[4,5,4,4,5][i++%5];}}           // turned spindles, soft contrast, uneven gaps
-    // the hood: a quarter-dome over the head end. The near shell is wood with ribs along its curve; above it the far shell's lip, and between them the plum-dark inside
-    {const L=14,Hh=11,hx=hoodL?x0:x0+w-1,dir=hoodL?1:-1,yt=x=>top-Math.round(Hh*Math.sqrt(Math.max(0,1-(x/L)*(x/L))));
-      for(let x=0;x<L;x++){const X=hx+dir*x,y0=yt(x);
-        for(let y=y0;y<=top;y++){const dd=(y-y0)/Math.max(1,top-y0+1),lx=x/L;let k=y<=y0+1?5:(dd+lx*.6<.45?4:dd+lx*.6<.95?3:2);if(x===0)k=Math.max(k,4);P(A,X,y,R[k]);}}   // one shell, lit toward the upper left, two rib lines
-      for(let y=yt(0);y<=top;y++)P(A,hx,y,R[y<yt(0)+2?5:4]);
-      for(let y=yt(0)+2;y<top-1;y++){let e=0;while(e<L-1&&yt(e+1)<=y)e++;if(e<4)continue;P(A,hx+dir*e,y,R[4]);P(A,hx+dir*(e-1),y,RAMP.plum[2]);P(A,hx+dir*(e-2),y,RAMP.plum[1]);if(e>7)P(A,hx+dir*(e-3),y,RAMP.plum[2]);}}   /* (judge fam2: "the fanned hood slats read as a piano lid") one closed shell; the inside shows only as a plum crescent under the open edge */
-    // the blanket: a mound over the baby's shape with a sheet turned down at the head, hanging over the near rail in soft folds
-    const hb=hoodL?x0+10:x0+2,he=hoodL?x0+w-2:x0+w-10;
-    for(let x=x0+2;x<x0+w-2;x++){const u=(x-(x0+w/2))/(w/2),m=Math.round(2.2*Math.max(0,1-u*u*1.6));
-      for(let y=top-m;y<top+2;y++){const k=y===top-m?5:4;P(A,x,y,DOX[k]);}
-      P(A,x,top+2,DOX[5]);P(A,x,top+3,DOX[4]);                                                                                 /* (judge fam3: "a scalloped blanket over a cream band reads as cake icing") the blanket rolls over the near rail */
-      const fold=((x-x0)%7===3)?1:(((x-x0)%7===4)?-1:0);for(let y=top+4;y<top+9;y++)P(A,x,y,DOX[y===top+8?1:Math.max(1,Math.min(5,3+fold-(y>top+6?1:0)))]);}   // hanging straight down the near side in soft folds, a dark hem
-    {const sx=hoodL?x0+9:x0+w-13;for(let x=sx;x<sx+4;x++)for(let y=top-2;y<top+4;y++)if(G(A,x,y))P(A,x,y,RAMP.cream[x===sx?3:2]);}   // the sheet turned down at the head, under the pillow
-    {const px=hoodL?x0+5:x0+w-9;hl(A,px,top-1,5,RAMP.ivory[5]);hl(A,px,top,5,RAMP.ivory[3]);}
+    /* (judges Nov 12: "reads as a sleigh or slipper; the hood is a thin arc; dull the pink") a deep basket: the bedding sits INSIDE it,
+       a far rail behind, a lit near rail in front so only the pillow and a fold show above it, spindles over the dark inside below,
+       a broad hood with a thick lit rim */
+    const DQ=hexR(['#2a1c1c','#3e2a28','#543a36','#6a4b45','#7e5d55','#8f6e64']);
+    for(let x=x0+1;x<x0+w-1;x++){P(A,x,top-4,R[4]);P(A,x,top-3,R[3]);P(A,x,top-2,R[1]);}vl(A,x0+1,top-4,3,R[5]);   // the far rail, behind the bedding
+    for(let x=x0+2;x<x0+w-2;x++){const u=(x-(x0+w/2))/(w/2),m=Math.round(1.6*Math.max(0,1-u*u*1.4));for(let y=top-1-m;y<top+3;y++){const k=y===top-1-m?5:(y<top+1?4:3);P(A,x,y,DQ[k]);}}   // the quilt's mound inside the basket
+    {const px=hoodL?x0+13:x0+w-20;for(let y=top-2;y<top+2;y++)for(let x=px;x<px+7;x++){const ex=Math.min(x-px,px+6-x);if(ex<1&&(y===top-2||y===top+1))continue;P(A,x,y,RAMP.ivory[y===top-2?5:(y<top+1?4:3)]);}   // the pillow
+      const fx=hoodL?px+7:px-3;   // (the pillow just out of the hood's mouth, the turned-down sheet beside it)
+     for(let y=top-1;y<top+3;y++)for(let x=fx;x<fx+3;x++)P(A,x,y,RAMP.cream[y===top-1?4:3]);}       // the sheet turned down beside it
+    for(let x=x0;x<x0+w;x++){P(A,x,top+3,R[5]);P(A,x,top+4,R[4]);P(A,x,top+5,R[2]);}                                         // the near rail, lit, in front of the bedding
+    rect(A,x0+1,top+6,w-2,7,R[0]);{let x=x0+3,i=0;while(x<x0+w-4){vl(A,x,top+6,7,R[4]);vl(A,x+1,top+6,7,R[2]);x+=[4,5,4,4,5][i++%5];}}   // spindles over the dark inside
+    for(let x=x0;x<x0+w;x++){P(A,x,top+13,R[4]);P(A,x,top+14,R[1]);}vl(A,x0,top+3,12,R[5]);vl(A,x0+w-1,top+3,12,R[1]);        // the bottom rail, the corner posts
+    {const L=16,Hh=10,hx=hoodL?x0:x0+w-1,dir=hoodL?1:-1,yb=top+3,yt=x=>yb-Math.round(Hh*Math.sqrt(Math.max(0,1-(x/L)*(x/L))));   // the hood: a broad quarter-dome, one shell, a thick lit rim, the plum inside under its open edge
+      for(let x=0;x<L;x++){const X=hx+dir*x,y0=yt(x);for(let y=y0;y<yb;y++){const dd=(y-y0)/Math.max(1,yb-y0),lx=x/L;let k=y<=y0+1?5:(dd+lx*.5<.5?4:dd+lx*.5<1?3:2);P(A,X,y,R[k]);}}
+      for(let y=yt(0)+2;y<yb-1;y++){let e=0;while(e<L-1&&yt(e+1)<=y)e++;if(e<5)continue;P(A,hx+dir*e,y,R[5]);P(A,hx+dir*(e-1),y,RAMP.plum[2]);P(A,hx+dir*(e-2),y,RAMP.plum[1]);P(A,hx+dir*(e-3),y,RAMP.plum[1]);}
+      for(let y=yt(0);y<yb;y++)P(A,hx,y,R[y<yt(0)+2?5:4]);}
     under(x0,x0+w,top+15,base);cast(x0,x0+w,base);}
   // end-on, a rocker is just its end: a short lit nub under each corner post, the curl of its tip showing
   const feet=(x0,w)=>{const Q=RAMP.pine;for(const fx of [x0,x0+w-4]){rect(A,fx,base-3,4,3,Q[3]);hl(A,fx,base-3,4,Q[5]);vl(A,fx+3,base-3,3,Q[1]);P(A,fx+(fx===x0?0:3),base-4,Q[4]);}
