@@ -1341,3 +1341,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A dance is two people facing each other with their hands on each other and joined, moving together; two walking sprites side by side reads as nothing, and pressed together reads as a hug. Leave a half-step between them.
 - Small held props (a frame, a towel) must be big enough to see at 1x; something "dropped on the counter" goes on the counter TOP.
 - Test scripts must name their output files by scene, never by run order (a partial rerun silently overwrote one scene with another).
+
+## Showing what the story describes (#268, Nov 12)
+- **[owner]** "Zoom in on the corpse showing it instead of telling you what you see ... unless it's an actual plaque or text." The close-up shows the thing; one line underneath keeps only what a picture can't say.
+- Don't blow a small world sprite up 6-8x for a close-up: it goes chunky and flat. Draw close-ups at the viewer's own scale (one art pixel = one zoom pixel), like the gravestones.
+- Every caption fact needs its detail in the picture (the name on the plate, the tag, the year on the jar, the blood); otherwise the caption is still doing the telling.
+- No two close-ups may share a picture: each sight gets its own drawing.
+- A body is shoulders, sleeves, hands, two legs and boots; blocks of colour in a row read as a flag and a towel. A coffin reads by its six-sided outline, not a rectangle with a plaque.
+- Ground every object with an attached shadow under its foot; a shadow bar below a gap reads as floating.

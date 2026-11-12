@@ -87,8 +87,8 @@ const HM_CAM=o=>({x:o.ox+14,z:o.oz+4.5});
 function hsMaePhoto(done){const o=hmStore(),ox=o.ox,oz=o.oz;MAEV.on=false;let fr=0,look=0;const img=hmPhoto();
   stage({room:'store',hour:Math.min(Math.max(S.hour,9.5),16.5),player:{x:ox+14,z:oz+5.7,dir:'N'},cast:{mae:{x:ox+14,z:o.cz,dir:'S'}},cam:HM_CAM(o),lead:700,
     light(L){glowAt(sx(ox+9),sz(oz+2.4)-40,110,[255,186,110],.28);},
-    props:[{x:ox+14.7,z:o.counter-.02,draw(X,Y){if(fr===0||fr===3)hmFrameFlat(X,Y-13);}},
-      {get x(){const n=npcById('mae');return n?n.x:0;},get z(){const n=npcById('mae');return n?n.z+.02:0;},draw(X,Y){if(fr===1||fr===2)hmFrameUp(X+(fr===2?0:3),Y-20,fr===2);}},
+    props:[{x:ox+14.7,z:o.counter-.02,draw(X,Y){if(fr===0||fr===3){ctx2.save();ctx2.translate(X,Y-28);ctx2.scale(1.6,1.6);hmFrameFlat(0,0);ctx2.restore();}}},
+      {get x(){const n=npcById('mae');return n?n.x:0;},get z(){const n=npcById('mae');return n?n.z+.02:0;},draw(X,Y){if(fr===1||fr===2){ctx2.save();ctx2.translate(X+(fr===2?0:4),Y-14);ctx2.scale(1.6,1.6);hmFrameUp(0,0,fr===2);ctx2.restore();}}},
       {x:0,z:9e5,draw(){hmShowCard(img,look);}}],
     beats:[
       {hold:.9,face:{mae:'S',you:'N'},act(){stgTitle('Caitlyn — The photo behind the counter');}},

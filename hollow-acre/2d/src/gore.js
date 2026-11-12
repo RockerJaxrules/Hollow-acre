@@ -79,7 +79,7 @@ function goreKillAdd(x,z,kind,night){const g=goreS();const k={id:'k'+S.day+'_'+(
 setTimeout(()=>{try{for(const k of goreS().kills)goreKillShow(k);}catch(e){}},0);
 // walking up on one; and the flies
 {const _u=update;update=function(dt){_u(dt);if(S.mode!=='play'||S.paused||S.room)return;const g=goreS();
-  for(const k of g.kills){if(g.seen[k.id])continue;if(Math.hypot(P.x-k.x,P.z-k.z)<2.6){g.seen[k.id]=1;mindHit&&mindHit(2);toast(KILLS[k.kind].look,4.6,true);if(!g.seen['kind_'+k.kind]){g.seen['kind_'+k.kind]=1;addLore(KILLS[k.kind].look);}}}
+  for(const k of g.kills){if(g.seen[k.id])continue;if(Math.hypot(P.x-k.x,P.z-k.z)<2.6){g.seen[k.id]=1;mindHit&&mindHit(2);if(!(typeof goreSight==='function'&&goreSight(k))&&!g.seen['sight_'+k.kind])toast(KILLS[k.kind].look,4.6,true);if(!g.seen['kind_'+k.kind]){g.seen['kind_'+k.kind]=1;addLore(KILLS[k.kind].look);}}}
   // it hunts at night: anything it gets near stops
   if(isNight()&&H.vis&&H.state!=='gone'){GORE.huntT-=dt;if(GORE.huntT<=0){GORE.huntT=14+Math.random()*12;const a=typeof WILD!=='undefined'&&WILD.find(w=>(w.kind==='rabbit'||w.kind==='deer')&&w.st!=='gone'&&Math.hypot(w.x-H.x,w.z-H.z)<8);
     if(a){a.st='gone';const k=goreKillAdd(a.x,a.z,a.kind==='deer'?'deer':'rabbit',true);goreDecal(a.x,a.z,.2,6);const d=Math.hypot(a.x-P.x,a.z-P.z);
