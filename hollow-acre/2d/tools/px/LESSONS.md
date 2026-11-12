@@ -1460,3 +1460,4 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Small ovals: draw 1 px rings by signed distance (the ellipse function over its gradient), not by testing ellipses one pixel apart. Those break into dots where the curve is steep. (wall mirror, Nov 12)
 - A ring frame lit evenly all round reads as a target or an egg. Step the light: brightest on the upper-left arc, dull on the lower right. (judge, wall mirror)
 - A highlight on glass is short and straight (45 degrees). A long kinked stroke reads as a crack, which is a different story beat in a horror game. (judge, wall mirror)
+- Two people dancing in a scene: don't circle them all the way round. Halfway round one stands in front of the other, and facing worked out from movement turns them back to back. Keep them on one line facing each other, rock the pair a few degrees, and set both facings every frame. (owner asked again: "did you fix the dancing", Nov 12)
