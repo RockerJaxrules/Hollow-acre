@@ -169,19 +169,18 @@ function hmArms(ax,ay,bx,by,skinA,skinB){const o='#120c08';const line=(x0,y0,x1,
   const hx=(ax+bx)/2,hy=Math.min(ay,by)-30;line(ax+dir*2,ay-25,hx,hy,skinA);line(bx-dir*2,by-25,hx,hy,skinB);ctx2.fillStyle=o;ctx2.fillRect(hx-2,hy-2,5,5);ctx2.fillStyle=skinA;ctx2.fillRect(hx-1,hy-1,3,3);}   // the other two hands, joined and held out
 function hsMaeAfter(done){const o=hmStore(),ox=o.ox,oz=o.oz;MAEV.on=false;let radio=1,dance=0,ang=Math.PI,spd=0,tuneT=0,hopT=0,stomp=0;const C={x:ox+13.4,z:oz+6.2};
   const skin=()=>{const L=(S&&S.look)||{};return /^#[0-9a-f]{6}$/i.test(L.skin||'')?L.skin:'#e8b48c';};
-  stage({show:true,room:'store',hour:21.6,player:{x:C.x-.6,z:C.z,dir:'E'},cast:{mae:{x:ox+14,z:o.cz,dir:'S'}},cam:{x:C.x+.3,z:C.z-.6},lead:700,
+  stage({show:true,room:'store',hour:21.6,act0:0,player:{x:C.x-.6,z:C.z,dir:'E'},cast:{mae:{x:ox+14,z:o.cz,dir:'S'}},cam:{x:C.x+.3,z:C.z-.6},lead:700,
     light(L){glowAt(sx(ox+13.2),sz(o.counter)-26,80,[255,190,110],radio?.5:.12);glowAt(sx(C.x),sz(C.z)-20,130,[255,200,140],.2);},
     props:[{x:ox+13.2,z:o.counter-.02,draw(X,Y,t){hmRadio(X,Y-12,radio,t);}},
       {x:ox+13.2,z:9e5-1,draw(X,Y,t){if(radio)hmNotes(sx(ox+13.2)+2,sz(o.counter)-24,t);}},
-      {x:ox+15.2,z:o.counter-.02,draw(X,Y){hmClosed(X,Y-12);}},
       {x:ox+17.2,z:oz+1.9,draw(X,Y){hmRack(X,Y);}},
-      {get x(){return C.x;},get z(){const m=npcById('mae');return Math.max(P.z,m?m.z:P.z)+.05;},draw(){if(!dance&&spd<.2)return;const m=npcById('mae');if(!m)return;hmArms(sx(P.x),sz(P.z)-Math.round(HM.hop),sx(m.x),sz(m.z),skin(),'#ecc4a4');}},
+      // (#305) no drawn arms: the two of them close together, facing, swaying in time
       {get x(){return P.x;},get z(){return P.z+.04;},draw(X,Y){if(stomp>0){ctx2.fillStyle='#f0e4c8';for(let k=0;k<5;k++){const a=k/5*6.283;ctx2.fillRect(Math.round(X+Math.cos(a)*(4+(1-stomp)*6)),Math.round(Y-1+Math.sin(a)*2),2,1);}}}}],
     tick(dt,st){if(radio){tuneT-=dt;if(tuneT<=0){tuneT=.5;hmTune(st);}}
       if(hopT>0){hopT-=dt;HM.hop=Math.max(0,Math.sin((1-hopT/.45)*Math.PI)*5);}else HM.hop=0;if(stomp>0)stomp-=dt*2.5;
       spd+=((dance?.55:0)-spd)*Math.min(1,dt*2);if(spd<.02&&!dance)return;ang+=dt*spd;const m=npcById('mae');if(!m)return;
-      const r=.36,sw=Math.sin(st.t*1.9)*.1;const ax=C.x+Math.cos(ang)*r+sw,az=C.z+Math.sin(ang)*r*.4,bx=C.x-Math.cos(ang)*r+sw,bz=C.z-Math.sin(ang)*r*.4;
-      P.x=ax;P.z=az;m.x=bx;m.z=bz;st.pin.mae={x:bx,z:bz};P.dir=bx>ax?'E':'W';m.dir=bx>ax?'W':'E';const moving=Math.abs(Math.cos(st.t*1.9))>.35;P.clip=moving?'walk':'idle';m.clip=P.clip;P.spd=moving?.4:0;},
+      const r=.36,sw=Math.sin(st.t*1.9)*.08;const ax=C.x+Math.cos(ang)*r+sw,az=C.z+Math.sin(ang)*r*.4,bx=C.x-Math.cos(ang)*r+sw,bz=C.z-Math.sin(ang)*r*.4;
+      P.x=ax;P.z=az;m.x=bx;m.z=bz;st.pin.mae={x:bx,z:bz};P.dir=bx>ax?'E':'W';m.dir=bx>ax?'W':'E';const moving=Math.abs(Math.cos(st.t*1.9))>.6;P.clip=moving?'walk':'idle';m.clip=P.clip;P.spd=moving?.25:0;},
     beats:[
       {hold:.9,face:{mae:'S'},act(){stgTitle('Caitlyn — After hours');}},
       {hold:0,go:{mae:[[ox+15.6,o.cz+.1],[ox+15.6,oz+5.4],[C.x+.5,C.z]]},face:{mae:'W',you:'E'},wait:'arrive'},

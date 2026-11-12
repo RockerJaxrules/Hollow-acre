@@ -1427,3 +1427,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - "Being built" needs a whole scaffold: poles, braces, walkways at the eaves, ladders, a rope and bucket. One ladder reads as nothing.
 - Check every furniture sprite's look before using it by name: in_bench is a workbench, and in_banker's ledger stand reads as a gravestone.
 - A map prop needs a title band of its own, washed fills (field tones), the road as a dark double line, water in clear blue, and a compass star, all inside the paper.
+
+## People and things that must read at 1x (owner batch, Nov 12)
+- The owner said: "The open sign and window have to already exist, don't just spawn a window in the middle of a room." Understood: a scene uses the room's own windows and furniture. Nothing appears for the scene and disappears after it. If the camera can't see the real window, move the camera to it.
+- The owner said the dance's drawn arms looked "cursed". Understood: don't draw limbs as lines between sprites. Pose the bodies (close, facing, swaying), and leave a gap between faces.
+- Workers must show their job at game scale: a thick pale water arc and a wet patch, clods flung clear, seed falling, a crop held up over a basket. Small effects vanish at 1x.
+- Several figures doing the same thing must not move on the same beat: give each its own phase. Keep a tile between figures, the player included, and never stack two in one column.
+- Two props of the same kind need different silhouettes (keg and chalkboard against jars and a crate). A recolour reads as a copy.
+- A label needs room for its letters: four letters of 3x5 text need 15 px plus padding.

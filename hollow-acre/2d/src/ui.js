@@ -32,9 +32,9 @@
   // a little falling leaf drifting across the title screen
   const ts=$('title');if(ts){const h=document.createElement('div');h.id='pcHint';h.className='small';h.textContent='On a computer: WASD to walk, Shift to run · left-click uses your tool · right-click or X to talk, open, harvest · 1-9 / wheel picks a tool · E menu · M map · F fullscreen';ts.appendChild(h);}}
 // ---- desktop controls
-addEventListener('keydown',e=>{if(e.repeat)return;const k=e.code;
+addEventListener('keydown',e=>{if(e.repeat)return;const k=e.code;if(typeof typing==='function'&&typing(e)&&k!=='Escape')return;
   if(k==='Escape'){for(const id of ['bag','shop','note','talk']){const el=$(id);if(el&&!el.hidden){const c=el.querySelector('.close');if(c)c.click();else{el.hidden=true;S.paused=false;}e.preventDefault();return;}}const j=document.querySelector('.sheet:not([hidden]) .close');if(j)j.click();return;}
-  if(k==='KeyF'){if(typeof fsToggle==='function')fsToggle();return;}
+  if(k==='KeyF'){if(typeof fsToggle==='function'&&!(typeof fsOn==='function'&&fsOn()))fsToggle();return;}   // (#306) F only goes into full screen; Esc or the X leaves it
   if(S.mode!=='play')return;
   if(/^Digit[1-6]$/.test(k)){hotbarUse(['hoe','can','pick','axe','seed','food'][+k.slice(5)-1]);return;}
   if(k==='KeyB'&&!S.paused)openBag();else if(k==='KeyB'&&!$('bag').hidden)$('bagClose').click();

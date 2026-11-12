@@ -49,3 +49,12 @@ function hsBub(b,txt){const e=$('stgBub');if(!b||!txt){e.classList.remove('on');
 // Caitlyn's other scenes that still come from the old words (the bouquet), spoken the same way
 {const _g=stgGeneric;stgGeneric=function(id){HS_SHOWNEXT=id==='mae';try{return _g.apply(this,arguments);}finally{setTimeout(()=>{HS_SHOWNEXT=false;},0);}};}
 let HS_SHOWNEXT=false;{const _s=stage;stage=function(def){if(HS_SHOWNEXT&&def)def.show=true;return _s.apply(this,arguments);};}
+// (#300) the store's OPEN / CLOSED placard is part of the store, always there on the counter's end; Caitlyn turns it round at
+// closing time (and for a scene). The scenes use the store's own windows and sign instead of putting new ones up.
+const STORE_SIGN={closed:0};
+(function(){const css=document.createElement('style');css.textContent=`#stgBars.thin:before,#stgBars.thin:after{height:3vh!important}`;document.head.appendChild(css);})();
+{const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld.apply(this,arguments);try{if(S.room!=='store'||!ROOMS.store)return;const R=ROOMS.store,x=R.ox+14.9,z=R.oz+4.08;
+  const closed=STORE_SIGN.closed||S.hour<7||S.hour>=18;
+  D.push({z,mind:1,draw(){const X=Math.round(sx(x)),Y=Math.round(sz(z)),w=closed?27:19;ctx2.fillStyle='#120c08';ctx2.fillRect(X+4,Y-17,w,10);ctx2.fillRect(X+6,Y-8,2,3);ctx2.fillRect(X+w-1,Y-8,2,3);
+    ctx2.fillStyle=closed?'#7a2420':'#2d5a30';ctx2.fillRect(X+5,Y-16,w-2,8);ctx2.fillStyle=closed?'#9a3a30':'#3d7a40';ctx2.fillRect(X+5,Y-16,w-2,1);ctx2.fillStyle='rgba(0,0,0,.3)';ctx2.fillRect(X+5,Y-9,w-2,1);
+    if(typeof sgtT==='function'){const P=(a,b,ww,h,c)=>{ctx2.fillStyle=c;ctx2.fillRect(a,b,ww,h);};sgtT(P,closed?'CLOSED':'OPEN',X+6,Y-14,'#f0e4c8');}}});}catch(e){}};}

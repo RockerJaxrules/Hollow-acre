@@ -17,14 +17,14 @@ function guidePin(id,at,name,k){try{const M=mmMarks();let m=M.find(q=>q.gd===id)
 function guideUnpin(id){try{const M=mmMarks();const m=M.find(q=>q.gd===id);if(!m)return;if(S.markGo===m.id)S.markGo=null;S.marks=M.filter(q=>q!==m);}catch(e){}}
 const guideOwnsLand=()=>{try{return Object.keys(landOwnedSet()||{}).length>0;}catch(e){return false;}};
 const guideDating=()=>{try{return Object.keys(ROMANCE||{}).some(id=>romDating(id));}catch(e){return false;}};
-const guideBusy=()=>['land','invest','hands','bouquet'].some(id=>S.ls&&S.ls.side&&S.ls.side[id]&&S.ls.side[id].st==='on')||(typeof maeT!=='undefined'&&maeT>0);   // one at a time
+const guideBusy=()=>['land','invest','hands','bouquet','biz_shares','biz_grow','biz_own','biz_run','hands_box'].some(id=>S.ls&&S.ls.side&&S.ls.side[id]&&S.ls.side[id].st==='on')||(typeof maeT!=='undefined'&&maeT>0);   // one at a time
 const guideCrush=()=>{try{return Object.keys(ROMANCE||{}).some(id=>hearts(id)>=7);}catch(e){return false;}};
 LS_SIDE.push(
   {id:'land',title:'More land',when:()=>!guideBusy()&&S.day>=4&&(S.coins>=300||S.day>=7)&&!guideOwnsLand(),
    say:'Want a bigger field? Deeds are sold at the land office, inside the Town Hall in Marrow Hollow: Agnes Abernathy keeps the counter, nine till three. Every plot for sale has a FOR SALE sign on it. The bank counter next to it lends on land: a fifth down, a little each morning. I’ve put a pin on your map.',
    begin:b=>{guidePin('land',guideHall(),'Land office','star');},ok:()=>!!guideS().land,coins:20,done:'That’s the land office. Buy a plot whenever you’re ready, and it’s yours to clear and plant.'},
   {id:'invest',title:'Make money work',when:()=>!guideBusy()&&S.day>=8&&(S.coins>=500||S.day>=12),
-   say:'Money can make money here. In the land office there’s a ledger: buy a share of a town shop and it pays you every morning, or lease the empty storefront on the square, name it, hire people from town and keep it stocked. I pinned it.',
+   say:'Money can make money here. In the land office there’s a ledger: buy a share of a town shop and it pays you every day from what the town buys there, or open your own: a produce stand, a kitchen (a little restaurant) or a taproom, on the square. I pinned it. I’ll walk you through it.',
    begin:b=>{guidePin('invest',guideHall(),'The ledger (land office)','star');},ok:()=>!!guideS().invest,coins:20,done:'That’s the ledger. Shares on one page, your own shop on the other. Start small.'},
   {id:'hands',title:'Farmhands',when:()=>!guideBusy()&&(guideOwnsLand()||S.day>=10),
    say:'When there’s more field than you can work, hire hands. Open the farm book (in the land office, or on Grandpa’s desk at home): Dell waters, the Kettle twins pick, Old Merritt sows, Hannah clears and tills. They’re paid at dawn from the tin.',

@@ -248,40 +248,28 @@ function hsClosingTime(done){const R=ROOMS.store,ox=R.ox,oz=R.oz;MAEV.on=false;
   let sign=0,keys=0,fig=-1,figK=0;const CAM={x:ox+14,z:oz+4.5};
   stage({show:true,room:'store',hour:Math.min(Math.max(S.hour,11.5),13),player:{x:you0.x,z:you0.z,dir:'N'},cast:{mae:{x:ox+14,z:cz,dir:'S'}},cam:CAM,lead:700,
     light(L){glowAt(sx(ox+9),sz(oz+2.4)-40,120,[255,186,110],.30);if(fig>=0)glowAt(sx(ox+14),sz(oz+1.5)-24,66,[150,170,190],.2+.12*Math.sin(STG.t*3));},
-    props:[{x:ox+14,z:oz+1.5,draw(X,Y,t){   // a real wood-framed window set in the wall behind the counter; the Hollow rises in the pane, then is gone
-        const W=HSP.wood,WO=HSP.woodO,lit=fig>=0,RX=Math.round(X);
-        const wx=RX-20,wy=Math.round(Y)-48,ww=40,wh=44;
-        ctx2.fillStyle=WO;ctx2.fillRect(wx-2,wy-2,ww+4,wh+4);                                           // frame outline
-        ctx2.fillStyle=W[2];ctx2.fillRect(wx,wy,ww,wh);                                                 // wood frame
-        ctx2.fillStyle=W[3];ctx2.fillRect(wx,wy,ww,3);ctx2.fillStyle=W[1];ctx2.fillRect(wx,wy+wh-3,ww,3);ctx2.fillRect(wx+ww-3,wy,3,wh);   // lit top, shaded bottom+right
-        const px=wx+4,py=wy+4,pw=ww-8,ph=wh-9;
-        ctx2.fillStyle=WO;ctx2.fillRect(px-1,py-1,pw+2,ph+2);                                           // inner reveal
-        ctx2.fillStyle=lit?'#39465c':'#161d2b';ctx2.fillRect(px,py,pw,ph);                              // night sky
-        ctx2.fillStyle=lit?'#4b5a74':'#1c2636';ctx2.fillRect(px,py,pw,Math.round(ph*0.24));             // lighter top band
-        ctx2.fillStyle=lit?'#d7dde8':'#2a3344';ctx2.beginPath();ctx2.arc(px+7,py+7,3,0,6.283);ctx2.fill(); // a low moon
-        if(fig>=0){ctx2.save();ctx2.beginPath();ctx2.rect(px,py,pw,ph);ctx2.clip();drawSpr('hollow',X,py+ph+Math.round((1-fig)*16),'walk','S',0,{scale:.44,alpha:Math.min(1,.55+fig)});ctx2.restore();}  // the Hollow rising, clipped to the glass
-        ctx2.fillStyle=lit?'#0e1420':'#0b0f18';for(let i=0;i<pw;i+=4){const th=2+((i*7)%4);ctx2.fillRect(px+i,py+ph-th,4,th);}   // far treeline along the sill
-        ctx2.fillStyle=W[2];ctx2.fillRect(RX-1,py,2,ph);ctx2.fillRect(px,Math.round(wy+wh/2)-1,pw,2);   // cross mullions
-        ctx2.fillStyle=WO;ctx2.fillRect(RX+1,py,1,ph);ctx2.fillRect(px,Math.round(wy+wh/2)+1,pw,1);
-        ctx2.fillStyle=W[3];ctx2.fillRect(wx-3,wy+wh,ww+6,3);ctx2.fillStyle=WO;ctx2.fillRect(wx-3,wy+wh+3,ww+6,1);}},   // the sill
-      {x:ox+14.9,z:counter-.02,draw(X,Y,t){   // a little OPEN / CLOSED placard on the counter edge
-        ctx2.fillStyle='#120c08';ctx2.fillRect(X+6,Y-16,16,9);ctx2.fillStyle=sign?'#7a2420':'#2d5a30';ctx2.fillRect(X+7,Y-15,14,7);ctx2.fillStyle='#f0e4c8';ctx2.font='6px monospace';ctx2.textAlign='center';ctx2.fillText(sign?'CLOSED':'OPEN',X+14,Y-9);ctx2.textAlign='left';}},
+    props:[{x:ox+11.17,z:oz-.3,draw(X,Y,t){   // (#300) the store's own back window, the right-hand one: the Hollow rises behind its glass, clipped to the pane
+        if(fig<0)return;const RX=Math.round(sx(ox+11.17)),wy=Math.round(sz(oz))-90,wh=34;ctx2.save();ctx2.beginPath();ctx2.rect(RX-13,wy,26,wh);ctx2.clip();
+        const hy=wy+wh-Math.round(fig*24);ctx2.fillStyle='#08080c';ctx2.beginPath();ctx2.arc(RX,hy+5,6,0,6.283);ctx2.fill();ctx2.fillRect(RX-2,hy+10,4,4);   // a round head, a neck
+        ctx2.beginPath();ctx2.moveTo(RX-12,hy+22);ctx2.lineTo(RX-4,hy+13);ctx2.lineTo(RX+4,hy+13);ctx2.lineTo(RX+12,hy+22);ctx2.closePath();ctx2.fill();   // sloped shoulders
+        if(fig>.5){ctx2.fillStyle='#fffbe8';ctx2.fillRect(RX-4,hy+4,2,2);ctx2.fillRect(RX+2,hy+4,2,2);}ctx2.fillStyle='rgba(150,180,210,.16)';ctx2.fillRect(RX-13,wy,26,wh);ctx2.restore();
+        ctx2.fillStyle=`rgba(4,4,8,${.28*Math.min(1,fig*2)})`;ctx2.fillRect(0,0,VW,Math.max(0,wy-2));ctx2.fillRect(0,wy-2,RX-15,wh+40);ctx2.fillRect(RX+15,wy-2,VW,wh+40);}},   // the rest of the wall a step darker
       {get x(){return P.x;},get z(){return P.z+.01;},draw(X,Y){if(keys<=0)return;const yy=Y-26-Math.round(keys*4);ctx2.fillStyle='#caa24a';ctx2.fillRect(X-1,yy,2,5);ctx2.fillStyle='#e6c968';ctx2.fillRect(X-2,yy+4,5,3);ctx2.fillRect(X-3,yy+5,2,2);ctx2.fillRect(X+2,yy+5,2,2);}}],
     beats:[
 
       {hold:.9,face:{mae:'S',you:'N'},act(){stgTitle('Caitlyn — Closing time');}},
-      {hold:.7,act(){sign=1;SFX.thud&&SFX.thud(0,.25);},pose:{mae:'thrust'},emote:{mae:'…'}},
+      {hold:.7,act(){STORE_SIGN.closed=1;SFX.thud&&SFX.thud(0,.25);},pose:{mae:'thrust'},emote:{mae:'…'}},
       {hold:.4,pose:{mae:null}},
       {who:'mae',text:'Come round. Behind the counter.',expr:'scared'},
       {hold:.2,go:{you:[[ox+15.6,oz+5.4],[beside.x,beside.z]]},face:{you:'W',mae:'E'},wait:'arrive'},
       {hold:.8,act(){keys=1;SFX.coin&&SFX.coin();stgEmote('you','!',1.4);},pose:{mae:'thrust'}},
       {who:'mae',text:'Dad’s truck. In the shed, full of gas. The night of the drawing, take Tobias.',expr:'angry',pose:{mae:null}},
-      {hold:1.6,act(){sign=0;fig=.55;figK=0;SFX.breath&&SFX.breath();},face:{mae:'N',you:'N'},emote:{you:'!'}},
-      {hold:2.6,update(dt){fig=Math.min(1,fig+dt*.35);},act(){setTimeout(()=>{figK=1;SFX.stinger&&SFX.stinger();stgEmote('mae','!',1.6);cam.shake=Math.max(cam.shake||0,.25);},1100);},cam:{x:ox+14,z:oz+3.2}},
-      {hold:1.6,act(){fig=-1;figK=0;},face:{mae:'S'},cam:{x:ox+14,z:oz+4.5}},
+      {hold:1.2,act(){fig=0;figK=0;SFX.breath&&SFX.breath();$('stgBars').classList.add('thin');},face:{mae:'W',you:'N'},emote:{you:'!'},cam:{x:ox+11.4,z:oz+.9},camSpeed:2.4},
+      {hold:2.8,update(dt){fig=Math.min(1,fig+dt*.4);},act(){setTimeout(()=>{figK=1;SFX.stinger&&SFX.stinger();stgEmote('mae','!',1.6);cam.shake=Math.max(cam.shake||0,.25);},1300);}},
+      {hold:1.6,act(){fig=-1;figK=0;$('stgBars').classList.remove('thin');},face:{mae:'S'},cam:{x:ox+14,z:oz+4.5}},
       {who:'mae',text:'…The scarecrow. From your field. Two miles away.',expr:'wrong'},
       {who:'mae',text:'Go home before dark.',expr:'sad',linger:.6}],
-    done(){maeCome(6,true);done&&done();}});}
+    done(){STORE_SIGN.closed=0;$('stgBars').classList.remove('thin');maeCome(6,true);done&&done();}});}
 
 // ---------- 2. Agnes — "The music box, played": the box on the rail, a child at the well, pointing down ----------
 function hsMusicBoxScene(done){const wx=wellPos.x,wz=wellPos.z;   // staged at the REAL farm well (world.js wellPos) — the event uses the well that already stands here, it does not spawn one

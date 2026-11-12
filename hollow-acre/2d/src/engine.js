@@ -143,7 +143,8 @@ const cam={x:0,z:0,shake:0,px:0,pz:0};
 // all screen positions come from one integer-snapped camera, so ground and sprites never drift against each other
 const sx=x=>Math.round(x*PPM)-cam.px+(VW>>1), sz=z=>Math.round(z*PPM)-cam.pz+Math.round(VH*.56);
 // ---------- input
-const keys={};addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='Space'&&S.mode==='play')e.preventDefault();if(e.code==='KeyQ')onSeed();});addEventListener('keyup',e=>keys[e.code]=false);
+const typing=e=>{const t=e&&e.target;return !!(t&&(/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName||'')||t.isContentEditable));};   // (#307) keys typed into a box are the box's
+const keys={};addEventListener('keydown',e=>{if(typing(e))return;keys[e.code]=true;if(e.code==='Space'&&S.mode==='play')e.preventDefault();if(e.code==='KeyQ')onSeed();});addEventListener('keyup',e=>keys[e.code]=false);
 const joy={x:0,y:0,id:null,ox:0,oy:0};
 function setupTouch(){const J=$('joy'),K=$('knob');
   const down=e=>{if(typeof PLACE!=='undefined'&&PLACE.on)return;for(const t of e.changedTouches){if(joy.id!==null)continue;if(t.target.closest&&t.target.closest('button,.sheet,.screen'))continue;

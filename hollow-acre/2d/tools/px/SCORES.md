@@ -69,3 +69,7 @@ orders. Latest round first.
 | Danny's letter close-up (Nov 12) | 5.5 -> 6.5 | yes (the letter used to be read out in captions) | toward 7: one pixel of drift only; a pencil smudge or two |
 | Town hall land office and lobby (Nov 12) | 6 | yes (the land office used to be a counter outside the hall door) | toward 7: fill the bottom third of the room; the works board's cards in a less even grid |
 | Old Marrow chapel: building stage and rebuilt (Nov 12) | 5 -> 6 | yes (the burnt chapel stayed burnt for ever) | toward 7: new stones stepping down into the old courses everywhere, not only at the corners |
+| Shop stalls (annex + Wickham branches): store / tavern (Nov 12) | 6 / 5.5 -> 6.5 / 6.5 | yes (new) | toward 7: a stall per trade, not only store and tavern shapes |
+| Farm hands at work (Nov 12) | 5.5 -> 6 | yes (hands used to be invisible) | toward 7: a bent working pose per job |
+| Seed box (Nov 12) | 5 -> 6 | yes (new) | toward 7: lid at 30-45 degrees, rim line |
+| Closing time: the face in the store's own window; the dance without drawn arms (Nov 12) | 6 -> 6.5 / 6 | yes | toward 7: her head at his shoulder, a 2 px gap |
