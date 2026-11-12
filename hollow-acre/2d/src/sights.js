@@ -477,3 +477,105 @@ const SGT_KILL={rabbit:{sp:[['g_spatter',10,4],['g_rabbit',0,0]],fx:{flies:3},ca
   ribs:{sp:[['g_drag',-40,2],['g_ribs',0,0]],fx:{flies:2},cap:'Whatever did this carried the rest of it somewhere. The crows won’t go near the drag mark.'}};
 function goreSight(k){const d=SGT_KILL[k.kind];if(!d||S.mode!=='play'||S.paused||(typeof H!=='undefined'&&H.state==='chase'))return false;const g=goreS();if(g.seen['sight_'+k.kind])return false;
   const img=sgtSprites('kill_'+k.kind,d.sp);if(!img)return false;g.seen['sight_'+k.kind]=1;return sgtOpen({x:k.x,z:k.z},img,d.cap,d.fx);}
+// ---- #286: the three story finds that were still a card of words: Grandpa's calendar in the barn, the county line that brings you
+// back to your own gate, and Sheriff Dunn's list with its photographs. (The ledger, the register, the intake book and the Covenant
+// are things you read, so they still read.)
+const sgtMask=(caps)=>(x,y)=>caps.some(c=>sgtSeg(x,y,c[0],c[1],c[2],c[3])<c[4]);
+Object.assign(SGT_ART,{
+  // inside the barn door: a hundred and fifty calendars nailed one over another, the top one with your birthday ringed in old red;
+  // on the boards below, a chalk body your size filled with salt, a little smile drawn through it with a finger
+  barncal:()=>sgtC('a_barncal',152,104,(P)=>{
+    const BD=['#1a100a','#281a10','#352316','#40301c'];
+    for(let y=0;y<70;y++)for(let x=0;x<152;x++){const b=Math.floor(x/13),u=x%13,n=sgtH(x,y+b*7);P(x,y,1,1,u===0?BD[0]:u===12?BD[1]:n<3?BD[1]:n>93?BD[3]:(b%2?BD[2]:sgtShade(BD[2],1.06)));}
+    for(let i=0;i<152;i++){const y=Math.round(62-i*.34);P(i,y,1,5,'#2e2014');P(i,y,1,1,'#4a3422');P(i,y+5,1,1,'#120a06');}
+    for(const [nx,ny] of [[6,6],[19,6],[32,6],[110,6],[123,6],[136,6]])P(nx,ny,1,1,'#7a7a80');
+    const FL=['#1e140c','#2c1e12','#38281a','#463220'];
+    for(let y=70;y<104;y++)for(let x=0;x<152;x++){const r=Math.floor((y-70)/7),v=(y-70)%7,n=sgtH(x+r*11,y);P(x,y,1,1,v===0?FL[0]:v===1?FL[3]:n<3?FL[0]:(r%2?FL[1]:FL[2]));}
+    P(0,68,152,2,'#0e0804');P(0,70,152,1,'#2a1c10');
+    // the stack, edges showing under the top page: the further down, the older and browner
+    const cx=52,cy=5,cw=48,ch=50,AGE=['#d6caac','#c8b896','#b8a680','#a8946c','#98845c','#88744e','#786442','#6a5638','#5c4a30'];
+    // a shadow under the whole stack, then each older page's edge in turn: a band of paper going brown toward the bottom
+    P(cx-1,cy+ch+11,cw+3,2,'rgba(0,0,0,.45)');P(cx+cw+1,cy+3,2,ch+9,'rgba(0,0,0,.35)');
+    for(let k=9;k>=1;k--){const c=AGE[k-1],sp=Math.ceil(k/2),ox=[0,1,-1,1,0,-1,1,0,-1][k-1];P(cx-sp+ox,cy+k,cw+sp*2,ch,c);P(cx-sp+ox,cy+ch+k-1,cw+sp*2,1,sgtShade(c,.78));P(cx-sp+ox,cy+k,1,ch,sgtShade(c,.85));
+      if(k%3===0)P(cx+cw+sp+ox-6,cy+ch+k-2,6,2,sgtShade(c,1.14));if(k===5){P(cx-sp+ox,cy+ch+k-3,4,3,sgtShade(c,1.1));P(cx-sp+ox,cy+ch+k,4,1,'#140c06');}}
+    P(cx-6,cy+ch+10,cw+12,1,'#140c06');P(cx-6,cy+5,1,ch+5,'#140c06');P(cx+cw+5,cy+5,1,ch+5,'#140c06');
+    for(const nx of [cx-3,cx+cw+2])P(nx,cy+8,2,2,'#6a3a1c'),P(nx,cy+8,1,1,'#a86a3a');
+    P(cx-1,cy-1,cw+2,ch+2,'#140c06');P(cx,cy,cw,ch,'#e6dcc2');P(cx,cy,cw,1,'#f6eedc');
+    // the picture at the top of this year's page: a field, a red barn, the ridge
+    P(cx+3,cy+3,cw-6,16,'#9aa6ac');P(cx+3,cy+12,cw-6,7,'#6a7a44');for(let x=0;x<cw-6;x++){const h=Math.round(3+Math.sin(x*.21)*2);P(cx+3+x,cy+12-h,1,h,'#4e5e3a');}
+    P(cx+28,cy+11,9,6,'#8a2a20');P(cx+27,cy+10,11,1,'#5a1a14');P(cx+31,cy+14,3,3,'#3a1a10');P(cx+3,cy+18,cw-6,1,'#5a4a30');
+    sgtT(P,'OCTOBER',cx+10,cy+21,'#3a2a1a');
+    for(let r=0;r<5;r++)for(let c=0;c<7;c++){const X=cx+3+c*6,Y=cy+29+r*4;P(X,Y,6,4,'#d8ccb0');P(X+1,Y+1,4,2,'#e6dcc2');P(X+1,Y+1,1,1,'#7a6a52');}
+    // the ring, in something that was red once, and where it ran
+    {const X=cx+3+4*6+3,Y=cy+29+2*4+2;for(let a=0;a<6.283;a+=.08){P(X+Math.cos(a)*5,Y+Math.sin(a)*3.4,1,1,'#7a1a12');P(X+Math.cos(a)*5.6,Y+Math.sin(a)*3.9,1,1,'#5a1008');}P(X+3,Y+4,1,4,'#6a140c');P(X+3,Y+8,1,1,'#4a0c06');}
+    // the nail through all of them
+    P(cx+23,cy+1,3,3,'#2a2a2e');P(cx+23,cy+1,1,1,'#9a9aa2');
+    // the chalk body, filled with salt
+    const body=sgtMask([[47,86,47,86,5.6],[52,86,57,86,2.2],[58,85.5,82,86,6.4],[60,80,53,76,2.1],[53,76,46,78,1.9],[60,92,80,94,2.1],[82,83,111,81,2.8],[82,89,111,92,2.8],[111,81,114,78,2],[111,92,114,95,2]]);
+    for(let y=72;y<103;y++)for(let x=36;x<120;x++){if(!body(x,y))continue;const edge=!body(x-1,y)||!body(x+1,y)||!body(x,y-1)||!body(x,y+1);const n=sgtH(x,y);P(x,y,1,1,edge?'#f6f2ea':n<22?'#bab6ae':n<55?'#d6d2ca':'#e8e4dc');}
+    for(const [sx,sy] of [[44,79],[63,99],[90,96],[118,86],[71,77],[101,77],[40,93]])P(sx,sy,1,1,'#cfcbc3');
+    for(const [sx,sy] of [[45,87],[46,88],[47,88],[48,88],[49,87]])P(sx,sy,1,1,'#3a2a1a');
+    // the barn's own dark at the edges
+    for(let y=0;y<104;y++)for(let x=0;x<152;x++){const d=Math.min(x,151-x,y,103-y);if(d<6)P(x,y,1,1,`rgba(0,0,0,${(6-d)*.07})`);}}),
+  // the county line: LEAVING MARROW COUNTY, COME BACK SOON, two brown runs down the second board; and over the road, where the
+  // highway should go on, your own mailbox and the farm sign, and the gravel lane printed with boot prints going out and coming back
+  county:()=>sgtC('a_county',156,104,(P)=>{
+    for(let y=0;y<34;y++)for(let x=0;x<156;x++)P(x,y,1,1,y<10?'#6e747c':y<22?'#7c828a':'#8a9096');
+    const pine=(x,base,h,c)=>{for(let j=0;j<h;j++){const w=Math.round((j/h)*h*.32)+1;P(x-w,base-h+j,w*2+1,1,c);}};
+    for(let x=-4;x<160;x+=7)pine(x+(sgtH(x,1)%4),40,14+sgtH(x,3)%10,'#2a3830');for(let x=0;x<160;x+=9)pine(x+3,42,10+sgtH(x,5)%7,'#1e2a24');
+    for(let y=40;y<104;y++)for(let x=0;x<156;x++){const n=sgtH(x,y);P(x,y,1,1,n<8?'#3a4428':n>90?'#5a6436':'#4a5430');}
+    // Route 9, across
+    for(let y=50;y<62;y++)for(let x=0;x<156;x++){const n=sgtH(x,y);P(x,y,1,1,y===50||y===61?'#2e2e30':n<10?'#3a3a3e':'#46464a');}for(let x=4;x<156;x+=14)P(x,55,7,2,'#c8b860');
+    // the lane, gravel, coming toward you from the road
+    const lane=(x,y)=>{if(y<62)return false;const t=(y-62)/42;return x>98-t*22&&x<132+t*22;};
+    for(let y=62;y<104;y++)for(let x=0;x<156;x++){if(!lane(x,y))continue;const n=sgtH(x,y);P(x,y,1,1,n<14?'#7a7266':n<40?'#9a9284':n>92?'#b8b0a2':'#8a8476');}
+    // boot prints: the same boots, going out and coming back
+    const boot=(x,y,up)=>{const c='#4e483e',d='#3e382e';const toe=up?0:5;P(x,y+toe,4,4,c);P(x+1,y+toe-(up?1:-4),2,1,'#b8b0a2');P(x+1,y+toe+1,2,2,d);P(x,y+(up?5:0),4,2,c);P(x+1,y+(up?6:1),2,1,d);};
+    for(let i=0;i<4;i++){const y=64+i*10;boot(103+(i%2)*5+Math.round(i*-2),y,true);boot(122+(i%2)*5+Math.round(i*2.2),y+4,false);}
+    // the mailbox and the farm sign at the mouth of the lane
+    P(138,36,3,24,'#3a2a1a');P(138,36,1,24,'#4a3626');P(127,25,25,12,'#14100c');P(128,26,23,10,'#5a6470');P(128,26,23,1,'#8a949e');P(128,35,23,1,'#3a424c');P(152,22,2,8,'#a02a1a');P(150,22,3,2,'#a02a1a');sgtT(P,'MARSH',130,28,'#e8e0cc');
+    P(96,26,2,34,'#3a2a1a');P(122,26,2,34,'#3a2a1a');P(92,16,36,13,'#14100c');P(93,17,34,11,'#d8ccb0');P(93,17,34,1,'#f0e6d0');sgtT(P,'HOLLOW',98,18,'#3a2414');sgtT(P,'ACRE',102,23,'#3a2414');
+    // the county sign, close on the left
+    P(14,30,3,44,'#2e2014');P(56,30,3,44,'#2e2014');P(14,30,1,44,'#4a3422');P(56,30,1,44,'#4a3422');
+    const board=(y,h)=>{P(6,y-1,62,h+2,'#14100c');P(7,y,60,h,'#e4e0d6');P(7,y,60,1,'#ffffff');P(7,y+h-1,60,1,'#a8a49a');};
+    board(10,15);sgtT(P,'LEAVING',23,12,'#1e3a22');sgtT(P,'MARROW COUNTY',11,18,'#1e3a22');
+    board(27,9);sgtT(P,'COME BACK SOON',9,29,'#1e3a22');
+    for(const sx of [24,46]){for(let y=27;y<46;y++){const w=y<36?2:1;P(sx+(y>40?1:0),y,w,1,y<36?'#6a2a14':'#5a2410');}P(sx,46,1,2,'#4a1c0c');}
+    for(let y=0;y<104;y++)for(let x=0;x<156;x++){const d=Math.min(x,155-x,y,103-y);if(d<5)P(x,y,1,1,`rgba(0,0,0,${(5-d)*.06})`);}}),
+  // Dunn's front door: the list pinned with a kitchen knife, a hundred and fifty names and yours last; beside it a photograph for
+  // every year, a child with a candle on the church step, the eyes scratched out; the newest one is you, asleep, seen from the stove
+  dunnlist:()=>sgtC('a_dunnlist',152,104,(P)=>{
+    const DR=['#1a2420','#24302a','#2e3c34','#3a4a40'];
+    for(let y=0;y<104;y++)for(let x=0;x<152;x++){const n=sgtH(x,y);P(x,y,1,1,n<6?DR[1]:n>94?DR[3]:DR[2]);}
+    for(const [px,py,pw,ph] of [[6,4,62,96],[74,4,72,96]]){P(px,py,pw,1,DR[0]);P(px,py,1,ph,DR[0]);P(px,py+ph-1,pw,1,DR[3]);P(px+pw-1,py,1,ph,DR[3]);}
+    // the list
+    const lx=12,ly=10;P(lx-1,ly-1,52,82,'#140c06');P(lx,ly,50,80,'#e8e0cc');P(lx,ly,50,1,'#f8f2e2');P(lx,ly+79,50,1,'#b8ae98');
+    sgtT(P,'1871 MARSH',lx+4,ly+5,'#2a2018');
+    for(let r=0;r<12;r++){const y=ly+13+r*4,w=16+sgtH(r,7)%22;P(lx+4,y,10,1,'#8a8070');P(lx+16,y,w,1,'#6a6050');}
+    P(lx+4,ly+63,40,1,'#8a8070');sgtT(P,sgtName().slice(0,9),lx+4,ly+68,'#5a1410');P(lx+4,ly+74,4*Math.min(9,sgtName().length),1,'#5a1410');
+    // the kitchen knife through it
+    for(let t=0;t<10;t++){const x=lx+44+t,y=ly+3-Math.round(t*.5);P(x,y,1,3,t<2?'#6a7078':'#b0b6be');P(x,y,1,1,'#e8ecf2');}P(lx+43,ly+3,2,2,'#2a1c10');P(lx+40,ly+2,4,4,'rgba(0,0,0,.25)');   // the blade going in, the slit it cut
+    P(lx+54,ly-4,3,6,'#d0d4da');P(lx+54,ly-4,1,6,'#f0f2f6');   // the bolster
+    for(let t=0;t<15;t++){const x=lx+57+t,y=ly-5-Math.round(t*.5);P(x,y,1,5,t%5===0?'#1a0e08':'#3a2414');P(x,y,1,1,'#5a3820');P(x+1,y+5,1,1,'rgba(0,0,0,.35)');}P(lx+61,ly-6,1,1,'#e8c060');P(lx+67,ly-9,1,1,'#e8c060');
+    // the photographs, one a year
+    const SEP=[['#c8b48c','#a8946c','#8a7656','#e8dcbc'],['#b8a07a','#988060','#7a6448','#e4d6b4'],['#a88e68','#8a7254','#6a5640','#e0d0ac'],['#9a8060','#7a6448','#5a4834','#dccaa4'],['#8a7254','#6a5640','#4a3a2a','#d8c49c'],['#7a6448','#5a4834','#3a2e22','#d4be94'],['#6a5640','#4a3a2a','#2a2018','#d0b88c']];
+    const KIDS=[{h:0,hair:'#2a1a10',dress:'#2a2018',tall:0},{h:1,hair:'#c8a050',dress:'#4a3a2a',tall:2},{h:2,hair:'#3a2a1a',dress:'#e8e0cc',tall:-1},{h:0,hair:'#7a4a24',dress:'#3a2a3a',tall:1},{h:1,hair:'#1a1410',dress:'#5a4a34',tall:3},{h:2,hair:'#a87a40',dress:'#2a2420',tall:0},{h:0,hair:'#4a3020',dress:'#6a5a48',tall:-2}];
+    const YRS=['1951','1958','1964','1971','1979','1986','1994'];
+    const kid=(X,Y,W,H,i)=>{const T=SEP[i],k=KIDS[i];P(X,Y,W,H,T[1]);P(X+2,Y,W-4,H-6,T[2]);P(X+4,Y+1,W-8,H-7,sgtShade(T[2],.7));   // the church door behind
+      P(X,Y+H-6,W,3,T[0]);P(X,Y+H-3,W,3,T[1]);P(X,Y+H-6,W,1,sgtShade(T[0],1.1));const c=X+Math.floor(W/2)-3,top=Y+H-19-k.tall;const tone=v=>sgtShade(v,.6+i*.02);
+      P(c,top+6,7,13+k.tall-5,tone(k.dress));if(k.dress==='#e8e0cc')P(c,top+6,7,1,'#c8bca8');else P(c+2,top+6,3,2,'#e8e0cc');P(c+1,Y+H-5,2,2,'#2a2018');P(c+4,Y+H-5,2,2,'#2a2018');
+      P(c+1,top,5,6,'#c8a888');P(c+1,top-1,5,2,tone(k.hair));if(k.h===1)P(c,top,1,5,tone(k.hair)),P(c+6,top,1,5,tone(k.hair));if(k.h===2)P(c+1,top,2,2,tone(k.hair));
+      for(const [dx,dy] of [[0,1],[1,2],[2,3],[3,1],[4,2],[5,3],[6,2],[2,1],[5,1]])P(c+dx,top+dy,1,1,(dx+dy)%3?'#f4eedc':'#d8ccb4');   // the eyes gouged out with a pin, one stroke across
+      P(c+7,top+8,1,4,'#e8dcc0');P(c+7,top+7,1,1,'#ffd860');P(c+6,top+10,2,1,'#c8a888');};
+    const photo=(x,y,w,h,i)=>{P(x+1,y+1,w,h,'rgba(0,0,0,.45)');P(x,y,w,h,SEP[i][3]);kid(x+2,y+4,w-4,h-9,i);sgtT(P,YRS[i].slice(2),x+w-10,y+h-5,'#5a4a3a');P(x+Math.floor(w/2)-1,y+1,2,2,'#a8281c');P(x+Math.floor(w/2)-1,y+1,1,1,'#e86a5a');};
+    let i=0;for(let r=0;r<2;r++)for(let c=0;c<3;c++){photo(80+c*21+(i%2),7+r*29+(i%3===1?1:0),19,27,i);i++;}photo(80,66,19,27,6);
+    // the newest: colour, at night, you in your bed, the edge of the stove in the corner of the frame
+    {const x=102,y=60,w=42,h=36;P(x+2,y+2,w,h,'rgba(0,0,0,.5)');P(x,y,w,h,'#f4f0e6');const X=x+2,Y=y+2,W=w-4,H=h-7;P(X,Y,W,H,'#1a2030');
+      P(X+3,Y+14,W-6,12,'#3a3e52');P(X+3,Y+14,W-6,1,'#5a6078');P(X+4,Y+10,10,6,'#c8c4b8');const L=sgtLook();P(X+5,Y+9,8,5,L.hair);P(X+7,Y+12,4,3,'#c8a888');
+      P(X+12,Y+15,20,8,'#6a5a8a');P(X+12,Y+15,20,1,'#8a7aaa');P(X,Y+H-8,9,8,'#0c0c10');P(X+1,Y+H-6,6,2,'#c86a20');P(X+2,Y+H-5,3,1,'#ffb050');
+      P(x+Math.floor(w/2),y,2,2,'#a8281c');P(x+Math.floor(w/2),y,1,1,'#e86a5a');}
+    for(let y=0;y<104;y++)for(let x=0;x<152;x++){const d=Math.min(x,151-x,y,103-y);if(d<5)P(x,y,1,1,`rgba(0,0,0,${(5-d)*.06})`);}})});
+Object.assign(SGT_BEATS,{barn:{art:'barncal'},county:{art:'county'},list:{art:'dunnlist',fx:{}}});
+// the county line still sends you home once you've seen it
+{const _sp=sgPlay;sgPlay=function(b){if(!b||!b.home||S.saga.done[b.id]||!SGT_BEATS[b.id])return _sp.apply(this,arguments);
+  const r=_sp.apply(this,arguments);const after=RU.after;RU.after=()=>{if(after)after();if(typeof rgHome==='function')rgHome('The farm sign goes by. HOLLOW ACRE. You never turned round.');};return r;};}

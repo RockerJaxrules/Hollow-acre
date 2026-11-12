@@ -92,10 +92,12 @@ function mapLive(g,base){const s=MAPX.s,pad=MAPX.pad,X=x=>pad+(x-B.x0)*s,Y=z=>pa
   for(const t of tiles){if(t.gh)continue;if(!t.tilled&&!t.crop)continue;g.fillStyle=t.crop&&t.crop.watered?'#5a3a20':'#7a5230';g.fillRect(X(t.x-.5)+.5,Y(t.z-.5)+.5,s-1,s-1);
     if(t.crop){g.fillStyle=t.crop.stage>=3?'#e8a030':'#7ac04a';g.fillRect(X(t.x)-1,Y(t.z)-1,2,2);}}
   const ob=typeof objective==='function'?objective():null;const tg=ob&&ob[2];
-  if(tg&&isFinite(tg.x)&&isFinite(tg.z)&&tg.x<250){const x=X(tg.x),y=Y(tg.z);g.save();g.translate(x,y);g.fillStyle='#ffd040';g.strokeStyle='#5a2a08';g.lineWidth=2;g.beginPath();
+  if(tg&&isFinite(tg.x)&&isFinite(tg.z)&&tg.x<250){let x=X(tg.x),y=Y(tg.z);
+    // (#280) when you're standing on it, the star steps up out from under your arrow, on a little line to the spot
+    {let px=P.x,pz=P.z;const R=typeof roomOf==='function'&&roomOf();if(R&&R.out){px=R.out.x;pz=R.out.z;}if(Math.hypot(X(px)-x,Y(pz)-y)<16){g.strokeStyle='#5a2a08';g.lineWidth=2;g.beginPath();g.moveTo(x,y);g.lineTo(x+12,y-18);g.stroke();x+=12;y-=18;}}
+    g.save();g.translate(x,y);g.fillStyle='#ffd040';g.strokeStyle='#5a2a08';g.lineWidth=2;g.beginPath();
     for(let k=0;k<10;k++){const a=k*Math.PI/5-Math.PI/2,r=k%2?4:10;g.lineTo(Math.cos(a)*r,Math.sin(a)*r);}g.closePath();g.fill();g.stroke();g.restore();}
-  if(typeof others==='function')for(const p of others()){const q=p.presence;if(!q||q.r)continue;g.fillStyle='#4ab0e8';g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.arc(X(q.x),Y(q.z),5,0,Math.PI*2);g.fill();g.stroke();
-    g.font='bold 10px "Hollow Pixel",monospace';g.textAlign='center';g.lineWidth=3;g.strokeStyle='rgba(240,226,190,.9)';g.strokeText(clean(q.n),X(q.x),Y(q.z)-9);g.fillStyle='#123a5a';g.fillText(clean(q.n),X(q.x),Y(q.z)-9);}}
+}
 // ---- the screen
 {const c=document.createElement('style');c.textContent=`
 #mapWrap{position:relative;overflow:auto;max-height:min(64vh,620px);-webkit-overflow-scrolling:touch;background:#2a1a0c;box-shadow:inset 0 0 0 3px #5a3418;touch-action:pan-x pan-y}
@@ -104,11 +106,12 @@ function mapLive(g,base){const s=MAPX.s,pad=MAPX.pad,X=x=>pad+(x-B.x0)*s,Y=z=>pa
   text-shadow:0 0 2px rgba(240,226,190,.95),0 0 4px rgba(240,226,190,.9),1px 1px 0 rgba(240,226,190,.9)}
 #mapWrap .plq,#mapWrap .rgn{z-index:2}#mapWrap .pin{z-index:1;position:absolute;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#3a2210;box-shadow:0 0 0 1.5px #f0e2be;pointer-events:none}
 #mapWrap .plq{position:absolute;transform:translate(-50%,-50%);font:600 11px/1.1 Georgia,serif;color:#2a1608;background:rgba(236,220,178,.9);padding:2px 6px;border:1px solid #6a4422;box-shadow:1px 1px 0 rgba(0,0,0,.35);white-space:nowrap;pointer-events:none}
-#mapWrap .you{position:absolute;width:10px;height:10px;margin:-5px 0 0 -5px;pointer-events:none;z-index:4}#mapWrap .you .dir{position:absolute;left:50%;top:50%;width:0;height:0;transform-origin:0 0}#mapWrap .you .dir:after{content:'';position:absolute;left:7px;top:-4px;border-left:7px solid #e8402a;border-top:4px solid transparent;border-bottom:4px solid transparent;filter:drop-shadow(0 0 1px #fff)}
-#mapWrap .you:before{content:'';position:absolute;inset:0;border-radius:50%;background:#e8402a;box-shadow:0 0 0 2px #fff,0 0 0 4px rgba(0,0,0,.4)}
-#mapWrap .you:after{content:'';position:absolute;inset:-7px;border-radius:50%;border:2px solid rgba(232,64,42,.8);animation:mapRing 1.4s ease-out infinite}
-@keyframes mapRing{from{transform:scale(.4);opacity:1}to{transform:scale(1.4);opacity:0}}
-#mapWrap .you.ghost:before{background:#2a2a2a;box-shadow:0 0 0 2px #888}#mapWrap .you.ghost:after{border-color:rgba(40,40,40,.7)}
+#mapWrap .you{position:absolute;width:0;height:0;pointer-events:none;z-index:6}#mapWrap .you.me{z-index:7}
+#mapWrap .you svg{position:absolute;left:-14px;top:-14px;width:28px;height:28px;overflow:visible;filter:drop-shadow(0 2px 1px rgba(0,0,0,.85)) drop-shadow(0 0 2px rgba(0,0,0,.6))}
+#mapWrap .you.in svg{left:-8px;top:-8px;width:16px;height:16px}
+#mapWrap .you .pn{position:absolute;left:0;top:-30px;transform:translateX(-50%);font:700 10px/1 Georgia,serif;color:#103452;background:rgba(236,220,178,.92);padding:1px 4px;border:1px solid #3a6a90;white-space:nowrap}
+#mapWrap .you.ghost svg path{fill:#2a2a2a;stroke:#888}
+#mapLegend b.lgA{display:inline-block;width:0;height:0;margin:0 6px 0 2px;border-left:10px solid var(--c);border-top:5px solid transparent;border-bottom:5px solid transparent;vertical-align:-1px}
 #mapBar{display:flex;gap:6px;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:12px}#mapBar .z{display:flex;gap:4px}#mapBar button{min-width:34px}
 #mapLegend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:6px;font-size:11.5px;opacity:.85}#mapLegend i{display:inline-block;width:10px;height:10px;margin-right:4px;vertical-align:-1px;border:1px solid #1a0e06}`;document.head.appendChild(c);}
 function mapZoom(z){MAPX.zoom=clamp(z,1,4);renderMap(true);}
@@ -126,7 +129,7 @@ renderMap=function(keep){try{mapPlacesLive();}catch(e){}const B2=$('bagBody');$(
   if(!MAPX.cv){B2.innerHTML='<p class="jsub" style="padding:30px;text-align:center">Inking the map…</p>';$('bag').hidden=false;setTimeout(()=>{MAPX.cv=mapPaint();if(GM_TAB==='map'&&!$('bag').hidden)renderMap();},30);return;}
   const prev=$('mapWrap');const keepX=keep&&prev?(prev.scrollLeft+prev.clientWidth/2)/prev.scrollWidth:null,keepY=keep&&prev?(prev.scrollTop+prev.clientHeight/2)/prev.scrollHeight:null;
   B2.innerHTML=`<div id="mapBar"><span>Drag to look around.</span><span class="z"><button class="btn" id="mzOut">−</button><button class="btn" id="mzIn">+</button></span></div><div id="mapWrap"><div id="mapInner"><canvas id="mapCv"></canvas></div></div>
-    <div id="mapLegend"><span><i style="background:#e8402a;border-radius:50%"></i>You</span><span><i style="background:#ffd040"></i>Where you’re headed</span><span><i style="background:#4ab0e8;border-radius:50%"></i>Friends</span><span><i style="background:#e8d4a4"></i>Roads</span><span><i style="background:#2e4a28"></i>Deep woods</span></div>`;
+    <div id="mapLegend"><span><b class="lgA" style="--c:#ff2a3a"></b>You</span><span><i style="background:#ffd040"></i>Where you’re headed</span><span><b class="lgA" style="--c:#3a9ae0"></b>Friends</span><span><i style="background:#e8d4a4"></i>Roads</span><span><i style="background:#2e4a28"></i>Deep woods</span></div>`;
   const base=MAPX.cv,cv=$('mapCv');cv.width=base.width;cv.height=base.height;mapLive(cv.getContext('2d'),base);
   // the mine: a grey shoulder of rock with a dark timbered mouth, so it can be found on the map
   if(typeof MINE!=='undefined'&&MINE.z<-12){const g=cv.getContext('2d'),s=MAPX.s*2.2,X=MAPX.pad+(MINE.x-B.x0)*MAPX.s,Y=MAPX.pad+(MINE.z-B.z0)*MAPX.s;g.fillStyle='rgba(0,0,0,.35)';g.beginPath();g.ellipse(X,Y+s*.4,s*3.4,s*.7,0,0,6.29);g.fill();
@@ -137,10 +140,32 @@ renderMap=function(keep){try{mapPlacesLive();}catch(e){}const B2=$('bagBody');$(
   const pct=(x,z)=>[(MAPX.pad+(x-B.x0)*MAPX.s)/base.width*100,(MAPX.pad+(z-B.z0)*MAPX.s)/base.height*100];
   for(const [n,x,z] of MAP_PLACES){const nn=x=>x.toLowerCase().replace(/^the /,'');if(REGIONS.some(r=>nn(r[0])===nn(n)))continue;const [l,t]=pct(x,z);const dv=document.createElement('div');dv.className='plq';dv.dataset.ax=l;dv.dataset.ay=t;dv.dataset.pri=10;dv.textContent=n;inner.appendChild(dv);}
   for(const [n,x,z] of REGIONS){const [l,t]=pct(x,z);const dv=document.createElement('div');dv.className='rgn';dv.dataset.ax=l;dv.dataset.ay=t;dv.dataset.pri=5;dv.style.fontSize=Math.round(11+MAPX.zoom*2)+'px';dv.textContent=n;inner.appendChild(dv);}
-  let px=P.x,pz=P.z;const R=roomOf&&roomOf();if(R&&R.out){px=R.out.x;pz=R.out.z;}const [l,t]=pct(px,pz);const y=document.createElement('div');y.className='you';y.style.left=l+'%';y.style.top=t+'%';
-  // which way you're facing, so the exact spot reads at a glance
-  if(!R){const ang=Math.atan2(P.fz||0,P.fx||0)*180/Math.PI;const ar=document.createElement('i');ar.className='dir';ar.style.transform=`rotate(${ang}deg)`;y.appendChild(ar);}inner.appendChild(y);
+  MAPX.pct=pct;MAPX.inner=inner;mapMarks(true);const [l,t]=mapYouAt();
   // late in the story the map knows something you don't: a second mark, at the Marsh place
   if(typeof hl==='function'&&hl()>=3&&isNight()&&rand()<.5){const [l2,t2]=pct(-20,LANE_W-1);const g2=document.createElement('div');g2.className='you ghost';g2.style.left=l2+'%';g2.style.top=t2+'%';inner.appendChild(g2);setTimeout(()=>g2.remove(),2400);}
   $('mzIn').onclick=()=>mapZoom(MAPX.zoom*1.5);$('mzOut').onclick=()=>mapZoom(MAPX.zoom/1.5);
   $('bag').hidden=false;requestAnimationFrame(()=>{mapLayout(inner);const fx=keepX!=null?keepX:l/100,fy=keepY!=null?keepY:t/100;wrap.scrollLeft=fx*wrap.scrollWidth-wrap.clientWidth/2;wrap.scrollTop=fy*wrap.scrollHeight-wrap.clientHeight/2;});};
+// ---- #280: you and your friends are small arrows pointing the way you face, like a GPS, and they move while the map is open
+// (no more big dots with rings; a friend's arrow used to be painted into the picture once and only moved when the map reopened)
+const MAP_ARROW=c=>`<svg viewBox="-10 -10 20 20"><path d="M8.5 0 L-6.5 -6.5 L-3 0 L-6.5 6.5 Z" fill="${c}" stroke="#f6ecd2" stroke-width="2.6" stroke-linejoin="round" paint-order="stroke"/><path d="M8.5 0 L-6.5 -6.5 L-3 0 Z" fill="rgba(255,255,255,.28)"/></svg>`;
+const MAP_DOT=c=>`<svg viewBox="-6 -6 12 12"><circle r="3.8" fill="${c}" stroke="#f6ecd2" stroke-width="2"/></svg>`;
+const DIR_ANG={E:0,S:90,W:180,N:-90};
+function mapYouAt(){let px=P.x,pz=P.z;const R=typeof roomOf==='function'&&roomOf();if(R&&R.out){px=R.out.x;pz=R.out.z;}return MAPX.pct(px,pz);}
+function mapMark(id,cls,col,inside,ang,l,t,name){const inner=MAPX.inner;let el=inner.querySelector(`[data-mk="${id}"]`);
+  if(!el||el.dataset.in!==String(!!inside)){if(el)el.remove();el=document.createElement('div');el.className='you '+cls+(inside?' in':'');el.dataset.mk=id;el.dataset.in=String(!!inside);
+    el.innerHTML=(inside?MAP_DOT(col):MAP_ARROW(col))+(name?`<span class="pn"></span>`:'');inner.appendChild(el);}
+  el.style.left=l+'%';el.style.top=t+'%';const sv=el.querySelector('svg');if(sv&&!inside)sv.style.transform=`rotate(${ang}deg)`;
+  if(name){const pn=el.querySelector('.pn');if(pn.textContent!==name)pn.textContent=name;}return el;}
+const MAPK={};
+function mapMarks(fresh){const inner=MAPX.inner;if(!inner||!inner.isConnected||!MAPX.pct)return false;
+  {const R=typeof roomOf==='function'&&roomOf();const [l,t]=mapYouAt();mapMark('me','me','#ff2a3a',!!R,Math.atan2(P.fz||0,P.fx||0)*180/Math.PI,l,t,'');}
+  const seen=new Set();
+  if(typeof others==='function')for(const p of others()){const q=p.presence,id='p'+String(p.peer).replace(/[^a-z0-9_-]/gi,'');seen.add(id);
+    let x=q.x,z=q.z;if(q.r&&typeof ROOMS!=='undefined'&&ROOMS[q.r]&&ROOMS[q.r].out){x=ROOMS[q.r].out.x;z=ROOMS[q.r].out.z;}
+    // glide between updates rather than jump
+    const k=MAPK[id];if(k&&!fresh&&Math.hypot(k.x-x,k.z-z)<20){k.x+=(x-k.x)*.35;k.z+=(z-k.z)*.35;}else MAPK[id]={x,z};const m=MAPK[id];
+    const moving=Math.abs(q.vx||0)+Math.abs(q.vz||0)>.15;const ang=isFinite(q.fa)?q.fa:moving?Math.atan2(q.vz,q.vx)*180/Math.PI:(DIR_ANG[q.d]!=null?DIR_ANG[q.d]:90);
+    const [l,t]=MAPX.pct(m.x,m.z);mapMark(id,'peer','#3a9ae0',!!q.r,ang,l,t,clean(q.n||'Friend'));}
+  for(const el of [...inner.querySelectorAll('.you.peer')])if(!seen.has(el.dataset.mk)){el.remove();delete MAPK[el.dataset.mk];}
+  return true;}
+setInterval(()=>{try{if(typeof GM_TAB==='undefined'||GM_TAB!=='map'||$('bag').hidden)return;mapMarks(false);}catch(e){}},120);

@@ -59,9 +59,15 @@ function mg4Ambience(scene){const M=MAMB[scene]||MAMB.workshop;const bed=MS.loop
 #mg4 canvas{width:min(94vw,880px,calc((100vh - 170px)*16/9));aspect-ratio:16/9;image-rendering:pixelated;touch-action:none;cursor:pointer;background:#1a110a;box-shadow:0 0 0 2px #1a0e06,0 0 0 4px #4a2a10,0 0 0 6px #b8823c,0 0 0 8px #1a0e06}
 #mg4 .h{color:#fff4dc;text-shadow:1px 1px 0 #000;background:rgba(26,14,6,.6);padding:4px 12px;box-shadow:0 0 0 1px #4a2a10;font:13px 'Hollow Pixel',monospace;text-align:center;max-width:min(94vw,880px)}
 #mg4 .h b{color:#ffd27a}#mg4 .row{display:flex;gap:8px}`;document.head.appendChild(css);
-  const d=document.createElement('div');d.id='mg4';d.innerHTML='<div class="box"><div class="t" id="mg4T"></div><canvas id="mg4C" width="320" height="180"></canvas><div class="h" id="mg4H"></div><div class="row"><button class="close" id="mg4Skip">Skip</button></div></div>';document.body.appendChild(d);}
+  const d=document.createElement('div');d.id='mg4';d.innerHTML='<div class="box"><div class="t" id="mg4T"></div><canvas id="mg4C" width="640" height="360"></canvas><div class="h" id="mg4H"></div><div class="row"><button class="close" id="mg4Skip">Skip</button></div></div>';document.body.appendChild(d);}
 // ---------------------------------------------------------------- the kit: drawing, text, particles, judging
-function mg4Kit(g){const W=320,H=180;const K=caKit(g,W,H);K.g=g;K.W=W;K.H=H;K.parts=[];K.pops=[];K.shk=0;K.flash=0;K.combo=0;K.best=0;
+// (#284) the minigames draw at twice the size underneath, so a thing that moves steps by half an art pixel and glides instead of
+// jumping a whole pixel at a time; the art itself stays the same pixel size
+const MG4_S=2;
+// (#284) and they all run a little slower than they were made, so nobody needs instant reflexes: every window to hit is a quarter longer
+const MG4_PACE=()=>window.MG4_PACE!=null?window.MG4_PACE:.8;
+function mg4Kit(g){const W=320,H=180;const K=caKit(g,W,H);K.g=g;K.W=W;K.H=H;
+  {const r2=v=>Math.round(v*2)/2;K.px=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(r2(x),r2(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)));};K.pa=(x,y,w,h,c,a)=>{g.globalAlpha=a;K.px(x,y,w,h,c);g.globalAlpha=1;};}K.parts=[];K.pops=[];K.shk=0;K.flash=0;K.combo=0;K.best=0;
   K.fine=matchMedia('(pointer:fine)').matches;
   K.text=(t,x,y,c,sc,al)=>{if(typeof sc==='string'){al=sc;sc=1;}t=String(t).toUpperCase();sc=sc||1;const w=t.length*4*sc;let X=Math.round(al==='l'?x:al==='r'?x-w:x-w/2);
     for(const ch of t){const f=PXFONT[ch]||PXFONT[' '];for(let j=0;j<5;j++)for(let i=0;i<3;i++)if(f[j*3+i]==='1'){K.px(X+i*sc+sc,y+j*sc+sc,sc,sc,'#140a04');}X+=4*sc;}
@@ -138,7 +144,7 @@ function mg4Run(def,name,done,icon){if(MG4.closeCur)MG4.closeCur(true);const box
   const ku=e=>{if(HK[e.code]){held[HK[e.code]]=0;axes();return;}if(e.code==='Space'||e.code==='Enter'||e.code==='KeyC'){I.raw=false;lift();I.key=false;}};addEventListener('keydown',kd,true);addEventListener('keyup',ku,true);
   $('mg4Skip').onclick=()=>{while(run.scores.length<steps.length)run.scores.push(.5);finish();};
   const amb=mg4Ambience(def.scene);MG4.closeCur=close;begin();
-  const frame=now=>{if(ended)return;const dt=Math.min(.05,(now-last)/1000)*(window.CG2_SPEED||1);last=now;const t=now/1000;pt+=dt;
+  const frame=now=>{if(ended)return;const dt=Math.min(.05,(now-last)/1000)*(window.CG2_SPEED||1)*MG4_PACE();last=now;const t=now/1000;pt+=dt;
     window.CG2_NOW=result!==null?'reveal':phase==='play'?spd().k+':'+run.i:phase+':'+run.i;
     I.dx=I.x-(I.lx==null?I.x:I.lx);I.dy=I.y-(I.ly==null?I.y:I.ly);I.lx=I.x;I.ly=I.y;
     if(phase==='title'){if(pt>1.1)afterTitle();}
@@ -160,8 +166,8 @@ function mg4Run(def,name,done,icon){if(MG4.closeCur)MG4.closeCur(true);const box
     if(phase!=='demo'&&phase!=='play'&&cur&&cur.quiet)cur.quiet();
     I.pressed=false;I.released=false;I.side=0;I.fresh=false;if(I.upQ){I.upQ=false;if(I.down)I.released=true;I.down=false;}
     // ---- draw
-    g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';g.clearRect(0,0,W,H);
-    if(K.shk>0){K.shk-=dt;g.setTransform(1,0,0,1,Math.round((Math.random()-.5)*3),Math.round((Math.random()-.5)*3));}
+    g.setTransform(MG4_S,0,0,MG4_S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';g.clearRect(0,0,W,H);
+    if(K.shk>0){K.shk-=dt;g.setTransform(MG4_S,0,0,MG4_S,Math.round((Math.random()-.5)*3)*MG4_S,Math.round((Math.random()-.5)*3)*MG4_S);}
     if(reveal>0){reveal+=dt;MG4ART.scene(K,def.scene,t);MG4ART.light(K,def.scene,t);K.pa(0,0,W,H,'#000',.5);K.glow(160,84,90,'255,220,140',.35+Math.sin(t*4)*.05);
       def.reveal&&def.reveal(K,t);for(let i=0;i<12;i++){const a=t*1.4+i*.52,r2=56+Math.sin(t*3+i)*5;K.px(160+Math.cos(a)*r2,84+Math.sin(a)*r2*.55,2,2,'#fff4c0');}
       const q=result,stars=q>.9?3:q>.6?2:q>.3?1:0;for(let i=0;i<stars;i++)if(!run['st'+i]&&reveal-.3-i*.25>0){run['st'+i]=1;A.tone(880*[1,1.26,1.5][i],.25,'triangle',.07);A.tone(1760*[1,1.26,1.5][i],.15,'sine',.03,{delay:.03});K.emit(128+i*24+6,154,8,{c:['#fff4c0','#ffd27a'],v:50,g:80,life:.5});}K.pa(118,142,84,22,'#140c06',.75);for(let i=0;i<3;i++){const on=i<stars,pop=on?Math.min(1,Math.max(0,(reveal-.3-i*.25)*5)):1;if(on&&pop<=0)continue;cg3Star(K,128+i*24,148+(on?Math.round((1-pop)*-5):0),on);}}
@@ -170,7 +176,7 @@ function mg4Run(def,name,done,icon){if(MG4.closeCur)MG4.closeCur(true);const box
       const u=p.t/p.life,c=p.c[Math.min(p.c.length-1,Math.floor(u*p.c.length))];if(p.kind==='smoke'){const z=Math.max(1,p.sz*(.5+Math.sin(u*Math.PI)*.8)),X=Math.round(p.x),Y=Math.round(p.y),zr=Math.round(z);for(let dy=-zr;dy<=zr;dy++){const w=Math.round(Math.sqrt(Math.max(0,z*z-dy*dy)));if(w<1)continue;K.px(X-w,Y+dy,2*w,1,c);if(dy<0&&dy>-zr)K.px(X-w,Y+dy,Math.max(1,w-1),1,p.hi||c);}}else if(p.kind==='steam'){const z=Math.max(1,Math.round(p.sz)),X=Math.round(p.x),Y=Math.round(p.y);g.globalAlpha=.35*(1-u);g.fillStyle=c;g.beginPath();g.rect(X-z+1,Y-z,2*z-2,2*z);g.rect(X-z,Y-z+1,2*z,2*z-2);g.fill('nonzero');g.globalAlpha=1;}else{g.globalAlpha=u>.75?(1-u)*4:1;K.px(p.x,p.y,p.sz,p.sz,c);g.globalAlpha=1;}}
     for(let k=K.pops.length-1;k>=0;k--){const p=K.pops[k];p.t+=dt;if(p.t>1){K.pops.splice(k,1);continue;}const yy=Math.round(p.y-p.t*18-(p.big?Math.sin(Math.min(1,p.t*8)*Math.PI)*4:0));K.textO(p.txt,p.x,yy,p.t>.7&&Math.floor(p.t*20)%2?'#fff4d8':p.c,p.big?2:1);}
     if(K.flash>0){K.flash-=dt;K.pa(0,0,W,H,'#fff6d0',Math.max(0,K.flash)*.6);}
-    g.setTransform(1,0,0,1,0,0);
+    g.setTransform(MG4_S,0,0,MG4_S,0,0);
     if(reveal===0){
       if(phase==='title'){const u=Math.min(1,pt*5);K.pa(0,0,W,H,'#000',.35*u);K.plaque(spd().t||cur.title,'#ffd27a',Math.round(70-(1-u)*20),null,2);}
       if(phase==='demo'||(phase==='play'&&window.MG4_AUTO)){if(phase==='demo')K.plaque('Watch','#ffd27a',3,70);const hp=AP.hand||[150,150];K.hand(hp[0],hp[1],AP.press||AP.hold);}

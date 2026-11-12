@@ -704,6 +704,9 @@ const HS_SCENES={
   'moss|The wrong tracks':hsBackTracksScene,'orla|The husband tree':hsHusbandTree};
 {const _ps=playScene;playScene=function(id,title,html,done){
   const fn=HS_SCENES[id+'|'+title];
-  if(fn&&!STG&&S.mode==='play'&&!S.paused&&typeof stage==='function')return fn(done);
+  // (#288) a heart event always starts from talking, and the talk box pauses the game: that pause used to send every staged heart
+  // event back to the old box of words. Only a real interruption (a letter or note open, a minigame, a close-up) keeps it in words.
+  const busy=(typeof MG4!=='undefined'&&MG4.on)||(typeof RU!=='undefined'&&RU.on)||!(document.getElementById('note')||{hidden:true}).hidden;
+  if(fn&&!STG&&S.mode==='play'&&!busy&&typeof stage==='function'){S.paused=false;return fn(done);}
   return _ps(id,title,html,done);};}
 window.__hs=HS_SCENES;

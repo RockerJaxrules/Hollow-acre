@@ -475,20 +475,22 @@ S4.crKey=(sp,K)=>{const g=K.g,KX=238,KY=124,TX=132,TY=118,TR=26;
   const LO=.62,HI=.86;
   return {title:sp.t||'Turn it over',how:'Hold to turn the key and crank the engine. It coughs, coughs, then one cough kicks the needle into the green: let go right then and it catches. Crank too long and the battery fades.',hint:'Hold to crank. Let go when the needle kicks into the green.',st,
     update(dt,I){st.t+=dt;st.fv+=(-st.fob*30-st.fv*3)*dt;st.fob+=st.fv*dt;
-      if(st.end){st.end+=dt;st.rpm+=(.4-st.rpm)*Math.min(1,dt*3);if(st.end>1.2){st.done=true;st.score=[1,.8,.6,.45][Math.min(3,st.tries)];}return;}
+      if(st.end){st.end+=dt;st.rpm+=(.4-st.rpm)*Math.min(1,dt*3);if(st.end>1.2){st.done=true;st.score=[1,.85,.7,.55][Math.min(3,st.tries)];}return;}
       if(st.dead>0){st.dead-=dt;st.rpm*=.9;st.ang+=(0-st.ang)*Math.min(1,dt*10);return;}
       if(I.down){if(st.ang<.5)st.fv+=6;st.ang+=(.9-st.ang)*Math.min(1,dt*14);st.crank+=dt;st.batt=Math.max(.35,st.batt-dt*.06);st.fv+=Math.sin(st.t*40)*dt*30;
-        st.next-=dt;if(st.next<=0){st.cough++;const strong=st.cough>=st.strong&&Math.random()<.75;st.peak=strong?.78+Math.random()*.06:.28+Math.random()*.22;st.next=.55+Math.random()*.45;st.fv+=strong?14:7;K.shk=Math.max(K.shk,strong?.1:.05);A.tone(70,.12,'sawtooth',.05,{filter:['lowpass',500]});if(strong)A.tone(110,.18,'sawtooth',.05,{filter:['lowpass',700]});}
-        st.peak=Math.max(0,st.peak-dt*1.1);const base=.12*st.batt+Math.sin(st.t*38)*.02;st.rpm=Math.max(base,st.peak);if(Math.random()<dt*20)A.tone(60+st.batt*30,.05,'square',.02*st.batt,{filter:['lowpass',400]});}
+        st.next-=dt;if(st.next<=0){st.cough++;const strong=st.cough>=st.strong;st.peak=strong?.78+Math.random()*.04:.28+Math.random()*.22;st.next=strong?1.3:.55+Math.random()*.45;if(strong)st.hold=.85;st.fv+=strong?14:7;K.shk=Math.max(K.shk,strong?.1:.05);A.tone(70,.12,'sawtooth',.05,{filter:['lowpass',500]});if(strong)A.tone(110,.18,'sawtooth',.05,{filter:['lowpass',700]});}
+        // (#283) when it catches, the needle sits in the green for most of a second (it used to drop out again in a sixth of one)
+        if(st.hold>0){st.hold-=dt;st.peak=Math.max(st.peak,.74+Math.sin(st.t*14)*.03);}else st.peak=Math.max(0,st.peak-dt*1.1);const base=.12*st.batt+Math.sin(st.t*38)*.02;st.rpm=Math.max(base,st.peak);if(Math.random()<dt*20)A.tone(60+st.batt*30,.05,'square',.02*st.batt,{filter:['lowpass',400]});}
       else{st.ang+=(0-st.ang)*Math.min(1,dt*14);
         if(st.crank>.15){if(st.rpm>=LO&&st.rpm<=HI){st.end=.001;st.run=1;MS.good();A.tone(90,.6,'sawtooth',.05,{filter:['lowpass',600]});K.judge(st.tries===0?1:.75,TX,TY-46,true);}
-          else{st.tries++;st.dead=.8;st.cough=0;st.strong=2+Math.floor(Math.random()*2);A.tone(60,.3,'sawtooth',.04,{slide:30,filter:['lowpass',400]});K.judge(.2,TX,TY-46,true);}st.crank=0;}
+          else{st.tries++;st.dead=.8;st.cough=0;st.hold=0;st.strong=2+Math.floor(Math.random()*2);A.tone(60,.3,'sawtooth',.04,{slide:30,filter:['lowpass',400]});K.judge(.2,TX,TY-46,true);}st.crank=0;}
         st.rpm*=.9;}},
     draw(t){const shake=st.run?Math.sin(t*44)*.6:0;g.drawImage(dash,0,Math.round(shake));
       if(st.run){for(let i=0;i<4;i++){const a=(t*.8+i*.25)%1;K.pa(250+a*30,56-a*30,5,4,'#8a8a90',(1-a)*.35);}}
       // the tachometer set into the cowl: green where it catches; the needle kicks with each cough
       crDisc(K,TX,TY,TR+2,CA_P.iron,TR);K.ell(TX,TY,TR,TR,'#0c0c12');for(let i=0;i<=10;i++){const a=Math.PI*.8+i/10*Math.PI*1.4;K.px(TX+Math.cos(a)*(TR-4),TY+Math.sin(a)*(TR-4),i%5?1:2,i%5?1:2,'#d8d0c0');}
       for(let a=Math.PI*.8+LO*Math.PI*1.4;a<Math.PI*.8+HI*Math.PI*1.4;a+=.025)K.px(TX+Math.cos(a)*(TR-8)-1,TY+Math.sin(a)*(TR-8)-1,2,2,'#7cc04a');
+      if(st.hold>0&&!st.end&&!st.dead){const b=.6+Math.sin(t*16)*.4;for(let a=Math.PI*.8+LO*Math.PI*1.4;a<Math.PI*.8+HI*Math.PI*1.4;a+=.05)K.pa(TX+Math.cos(a)*(TR-8)-2,TY+Math.sin(a)*(TR-8)-2,4,4,'#b8f08a',.35*b);K.label('LET GO!',TX,TY+TR+6,'#b8f08a','c');}
       const na=Math.PI*.8+M4.cl(st.rpm,0,1)*Math.PI*1.4;K.line(TX,TY,TX+Math.cos(na)*(TR-5),TY+Math.sin(na)*(TR-5),'#ff6a3a',1);K.px(TX-2,TY-2,4,4,CA_P.iron[6]);K.text('RPM',TX,TY+10,'#a89878');
       // warning lamps beside it: lit while it cranks, the oil lamp out once it runs
       K.px(180,104,6,4,st.run?'#2a1a14':(st.ang>.3?'#e8542a':'#3a2020'));K.px(180,112,6,4,st.run?'#7cc04a':'#203020');

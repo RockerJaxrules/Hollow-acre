@@ -34,10 +34,10 @@ const MPV={px:null,pz:null,vx:0,vz:0,sig:'',seq:0,an:null};
 function coopSend(force){const r=CO.room;if(!r||S.mode==='title'||S.mode==='load')return;const now=performance.now();if(!force&&now-CO.last<100)return;
   const vx=+MPV.vx.toFixed(2),vz=+MPV.vz.toFixed(2),moving=Math.abs(vx)+Math.abs(vz)>.15;
   const rf=typeof rodFrame==='function'&&!P.anim?rodFrame():-1;
-  const st={v:2,n:NAME()||'Farmhand',x:+P.x.toFixed(2),z:+P.z.toFixed(2),vx:moving?vx:0,vz:moving?vz:0,d:P.dir,c:(typeof TR!=='undefined'&&TR.ride)?'tractor':P.anim?'work':(moving?'walk':'idle'),r:S.room||'',day:S.day,lk:lookMini(),rf,an:MPV.an};
+  const st={v:2,n:NAME()||'Farmhand',x:+P.x.toFixed(2),z:+P.z.toFixed(2),vx:moving?vx:0,vz:moving?vz:0,d:P.dir,c:(typeof TR!=='undefined'&&TR.ride)?'tractor':P.anim?'work':(moving?'walk':'idle'),r:S.room||'',day:S.day,lk:lookMini(),rf,an:MPV.an,fa:Math.round(Math.atan2(P.fz||0,P.fx||0)*180/Math.PI),pid:typeof myPid==='function'?myPid():''};
   if(CO.me&&CO.me.s)Object.assign(st,{s:CO.me.s,st:CO.me.st});if(CO.me&&CO.me.e)Object.assign(st,{e:CO.me.e,et:CO.me.et});
   // nothing new: only a heartbeat every two seconds
-  const sig=[st.x,st.z,st.vx,st.vz,st.d,st.c,st.r,st.rf,st.an&&st.an.s,st.s,st.e,st.day].join('|');if(!force&&sig===MPV.sig&&now-CO.last<2000)return;
+  const sig=[st.x,st.z,st.vx,st.vz,st.d,st.fa,st.c,st.r,st.rf,st.an&&st.an.s,st.s,st.e,st.day].join('|');if(!force&&sig===MPV.sig&&now-CO.last<2000)return;
   MPV.sig=sig;CO.last=now;r.presence(st).catch(()=>{});}
 // how fast you're really moving, measured frame to frame and smoothed, so friends can carry you forward between messages
 function mpTrack(dt){if(dt<=0)return;if(MPV.px==null||Math.hypot(P.x-MPV.px,P.z-MPV.pz)>3){MPV.px=P.x;MPV.pz=P.z;MPV.vx=MPV.vz=0;return;}
@@ -47,7 +47,13 @@ function mpTrack(dt){if(dt<=0)return;if(MPV.px==null||Math.hypot(P.x-MPV.px,P.z-
 function coopSay(txt){txt=String(txt||'').replace(/[\u0000-\u001f]/g,'').trim().slice(0,120);if(!txt)return;CO.me=Object.assign(CO.me||{},{s:txt,st:Date.now()});CO.chat.push({n:NAME()||'You',t:txt,me:1});coopSend(true);if(GM_TAB==='coop'&&!$('bag').hidden)renderCoop();}
 function coopEmote(e){CO.me=Object.assign(CO.me||{},{e,et:Date.now()});coopSend(true);}
 // what the room tells us about others: data, never instructions
-const others=()=>CO.peers.filter(p=>!p.isMe&&p.presence&&typeof p.presence.x==='number'&&isFinite(p.presence.x)&&isFinite(p.presence.z));
+// (#280) someone whose connection dropped can linger under their old connection after they come back under a new one: show each
+// player once (their newest connection), and forget a connection that has said nothing for 20 seconds (everyone sends at least
+// every two seconds, menus open or not)
+const others=()=>{const now=Date.now(),by=new Map();
+  for(const p of CO.peers){const q=p.presence;if(p.isMe||!q||typeof q.x!=='number'||!isFinite(q.x)||!isFinite(q.z))continue;if(p.updatedAt&&now-p.updatedAt>20000)continue;
+    const k=q.pid&&q.pid!=='anon'?'id:'+q.pid:'peer:'+p.peer;const o=by.get(k);if(!o||(p.updatedAt||0)>=(o.updatedAt||0))by.set(k,p);}
+  return [...by.values()];};
 let coopSeen={};
 // friends move smoothly: each one is drawn easing toward where they are heading (their last spot, carried forward by their speed
 // for a moment), so a late message never makes them jump or stutter
@@ -115,3 +121,5 @@ function renderCoop(){const B=$('bagBody');const os=others();
   $('coJoin').onclick=()=>{coopJoin($('coCode').value);setTimeout(renderCoop,600);};
   const cc=$('coChat');cc.scrollTop=cc.scrollHeight;}
 coopStart();
+// (#280) keep saying you're here while a menu or the map is open, so friends' maps don't lose you
+setInterval(()=>{try{if(S.paused&&S.mode!=='title'&&S.mode!=='load')coopSend(false);}catch(e){}},1000);

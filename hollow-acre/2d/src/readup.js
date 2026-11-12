@@ -147,7 +147,7 @@ function ruEnsure(){if(RU.box)return;const b=document.createElement('div');b.id=
   const css=document.createElement('style');css.textContent=`#ruBox{position:fixed;inset:0;z-index:75;background:#05050a;overflow:hidden;cursor:pointer;opacity:0;transition:opacity .25s steps(3)}
 #ruBox.on{opacity:1}#ruCv{position:absolute;left:0;top:0;image-rendering:pixelated;image-rendering:crisp-edges;transform:scale(.14);transition:transform .32s steps(6)}
 #ruBox.on #ruCv{transform:none}
-#ruCap{position:absolute;left:0;right:0;padding:0 18px;text-align:center;font:max(13px,calc(var(--ruK,3)*5px)) 'Hollow Pixel',monospace;color:#e8dcc0;text-shadow:2px 2px 0 #000,-1px -1px 0 #000;line-height:1.4;max-width:min(92vw,620px);margin:0 auto;opacity:0;transition:opacity .3s .3s}
+#ruCap{position:absolute;left:0;right:0;padding:0 18px;text-align:center;font:clamp(13px,calc(var(--ruK,3)*3.4px),34px) 'Hollow Pixel',monospace;color:#e8dcc0;text-shadow:2px 2px 0 #000,-1px -1px 0 #000;line-height:1.35;max-width:min(92vw,34em);box-sizing:border-box;margin:0 auto;opacity:0;transition:opacity .3s .3s}
 #ruBox.on #ruCap{opacity:1}
 #ruHint{position:absolute;left:0;right:0;bottom:max(10px,env(safe-area-inset-bottom,0px));text-align:center;font:12px 'Hollow Pixel',monospace;color:#9a8c70;text-shadow:1px 1px 0 #000;letter-spacing:.06em}`;document.head.appendChild(css);
   const close=e=>{if(!RU.on||performance.now()-RU.openAt<280)return;if(e&&e.type==='keydown'&&!/^(e|E|Escape|Enter| |x|X)$/.test(e.key))return;if(e){e.preventDefault();e.stopPropagation();}ruClose();};
@@ -181,7 +181,11 @@ function ruOpen(o,cap){if(RU.on||!o)return;ruEnsure();const spec=ruSpec(o,cap);i
     lg.globalCompositeOperation='destination-in';lg.drawImage(mk2,0,0);lg.globalCompositeOperation='source-atop';lg.fillStyle='rgba(255,168,80,.4)';lg.fillRect(0,0,W,H);
     og.globalCompositeOperation='lighter';og.drawImage(lc,0,0);og.globalCompositeOperation='source-over';}
   RU.objC=oc;RU.bg=g.getImageData(0,0,W,H);
-  RU.cap.textContent=spec.cap||'';RU.cap.style.top=Math.min(vh-70,(ext.bot+6)*K)+'px';RU.cap.hidden=!spec.cap;
+  RU.cap.textContent=spec.cap||'';RU.cap.hidden=!spec.cap;RU.cap.style.fontSize='';RU.cap.style.top=Math.min(vh-70,(ext.bot+6)*K)+'px';
+  // (#287) the whole caption on screen, whatever the monitor: below the picture if it fits, else lifted, else in smaller letters
+  if(spec.cap){const room=vh-Math.max(28,vh*.05);let fs=parseFloat(getComputedStyle(RU.cap).fontSize)||16;
+    for(let i=0;i<12;i++){const h=RU.cap.offsetHeight,top0=Math.min(vh-70,(ext.bot+6)*K);let top=top0;if(top+h>room)top=Math.max(8,room-h);RU.cap.style.top=top+'px';
+      if(top+h<=room&&top>=Math.min(top0,vh*.55))break;fs=Math.max(12,fs*.88);RU.cap.style.fontSize=fs+'px';if(fs<=12)break;}}
   RU.hint.textContent=matchMedia('(pointer:coarse)').matches?'Tap to step back':'Click or press E to step back';
   RU.box.hidden=false;RU.box.classList.remove('on');void RU.box.offsetWidth;RU.box.classList.add('on');RU.t=0;
   cancelAnimationFrame(RU.raf);let last=performance.now();const tick=now=>{if(!RU.on)return;RU.t+=(now-last)/1000;last=now;ruFrame();RU.raf=requestAnimationFrame(tick);};RU.raf=requestAnimationFrame(tick);ruFrame();}

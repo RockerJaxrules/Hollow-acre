@@ -350,5 +350,6 @@ function stgExile(id,html,done,chose){const n=npcById(id);if(!n){done&&done();re
   if(title==='Into the woods'&&!STG&&S.mode==='play'&&typeof dkCamp==='function')return stgExile(id,html,done,/^You say it\./.test(html));
   if(title==='The wedding'&&!STG&&S.mode==='play')return stgWedding(id,html,done);
   if(!STG&&S.mode==='scene'&&typeof ST_END!=='undefined'&&Object.values(ST_END).some(E=>E.t===title))return stgGeneric(id,title,html,done,{endMode:'scene'});   // the endings: staged where they happen, then the credits
-  if(!STG&&S.mode==='play'&&!S.paused&&!title.endsWith(' '))return stgGeneric(id,title,html,done);   // (a trailing space keeps the old card: used for A/B captures)
+  {const busy=(typeof MG4!=='undefined'&&MG4.on)||(typeof RU!=='undefined'&&RU.on)||!(document.getElementById('note')||{hidden:true}).hidden;   // (#288) the talk box's pause is no reason to fall back to words
+   if(!STG&&S.mode==='play'&&!busy&&!title.endsWith(' ')){S.paused=false;return stgGeneric(id,title,html,done);}}   // (a trailing space keeps the old card: used for A/B captures)
   return _ps(id,title,html,done);};}

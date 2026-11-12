@@ -1384,3 +1384,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 ## Saved state that depends on a layout (#278, Nov 12)
 - Anything saved by index (cleared stones per field square) must save the layout too: the field was re-scattered from the shared random stream every launch, so any update that added a random tree elsewhere moved every stone, and cleared squares grew back.
 - When fixing a glitch that already went into saves, load a real save from the broken build (`git show <commit>:hollow-acre/2d/index.html`) in the fixed build, single player and hosted, and count what came back.
+
+## Story finds and map markers (#280, #286, Nov 12)
+- A row of photographs, jars or dolls must all differ (face, height, hair, clothes, age of the paper): one drawing copied seven times reads as a stamp.
+- The scariest fact in the caption must be the clearest thing in the picture: scratched-out eyes need ragged pale strokes big enough to see at 1x.
+- A stack of pages reads as paper only when each page's lip shows on several sides, getting browner with age; a striped band under one page reads as a shelf.
+- Footprints say which way they go only with a separate heel and a lighter toe edge; paired dark dots read as pebbles.
+- A map marker in red on an autumn map disappears among red tree crowns: give it a cream outline, a dark shadow, a size above everything else, and keep it off the star.
+- Nothing drawn over the first line of a document: the knife pinning the list hid the year that starts it.
