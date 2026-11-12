@@ -20184,10 +20184,10 @@
 },
 "tractor_Eu": {
 "src": "spr/lpc/obj/tractor_Eu.png",
-"fw": 132,
-"fh": 108,
-"ax": 66.0,
-"ay": 104,
+"fw": 85,
+"fh": 73,
+"ax": 42.5,
+"ay": 68,
 "foot": [
 0,
 0,
@@ -20197,10 +20197,10 @@
 },
 "tractor_Eo": {
 "src": "spr/lpc/obj/tractor_Eo.png",
-"fw": 132,
-"fh": 108,
-"ax": 66.0,
-"ay": 104,
+"fw": 85,
+"fh": 73,
+"ax": 42.5,
+"ay": 68,
 "foot": [
 0,
 0,
@@ -20210,10 +20210,10 @@
 },
 "tractor_Su": {
 "src": "spr/lpc/obj/tractor_Su.png",
-"fw": 104,
-"fh": 108,
-"ax": 52.0,
-"ay": 104,
+"fw": 69,
+"fh": 71,
+"ax": 34.5,
+"ay": 68,
 "foot": [
 0,
 0,
@@ -20223,10 +20223,10 @@
 },
 "tractor_So": {
 "src": "spr/lpc/obj/tractor_So.png",
-"fw": 104,
-"fh": 108,
-"ax": 52.0,
-"ay": 104,
+"fw": 69,
+"fh": 71,
+"ax": 34.5,
+"ay": 68,
 "foot": [
 0,
 0,
@@ -20236,10 +20236,10 @@
 },
 "tractor_Nu": {
 "src": "spr/lpc/obj/tractor_Nu.png",
-"fw": 104,
-"fh": 108,
-"ax": 52.0,
-"ay": 104,
+"fw": 69,
+"fh": 71,
+"ax": 34.5,
+"ay": 68,
 "foot": [
 0,
 0,
@@ -20249,10 +20249,36 @@
 },
 "tractor_No": {
 "src": "spr/lpc/obj/tractor_No.png",
-"fw": 104,
-"fh": 108,
-"ax": 52.0,
-"ay": 104,
+"fw": 69,
+"fh": 71,
+"ax": 34.5,
+"ay": 68,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"tractor_harrow_E": {
+"src": "spr/lpc/obj/tractor_harrow_E.png",
+"fw": 27,
+"fh": 17,
+"ax": 13.5,
+"ay": 15,
+"foot": [
+0,
+0,
+0,
+0
+]
+},
+"tractor_harrow_N": {
+"src": "spr/lpc/obj/tractor_harrow_N.png",
+"fw": 47,
+"fh": 17,
+"ax": 23.5,
+"ay": 15,
 "foot": [
 0,
 0,

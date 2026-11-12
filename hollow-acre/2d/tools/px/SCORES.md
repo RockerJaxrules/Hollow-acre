@@ -48,3 +48,5 @@ orders. Latest round first.
 | House expansion rooms (Nov 12) | 5.5 -> 6 (big house 6, dining 6, upstairs 6, attic 6, cellar 6.5) | yes | toward 7: the attic's planks as boards not logs, a lower third with something in it in the dining room |
 | Business ledger (Nov 12) | 5 -> 6.5 | yes | toward 7: make the shop page something you see (shelf icons, coin icons, hire portraits) |
 | Business war ledger (Nov 12) | 5.5 -> 6 | yes | toward 7: faces on the workers you can poach, coin icons on prices |
+| Tractor (Nov 12) | 5.5 -> 6.5 | yes | toward 7: each implement says its job (harrow tines, a seed-drill hopper) |
+| Farm book (Nov 12) | 6 -> 6 (map added, labels fixed) | yes | toward 7: the farm map's names never overlap a neighbour |

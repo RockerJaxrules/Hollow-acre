@@ -19,14 +19,18 @@ RUST = (122, 70, 40, 255)
 SEAT = [(120, 96, 70, 255), (86, 66, 48, 255), (56, 42, 32, 255)]
 
 class C:
-    def __init__(s, w, h): s.im = Image.new('RGBA', (w, h), (0, 0, 0, 0)); s.p = s.im.load(); s.w, s.h = w, h
+    # k: draw in the full-size coordinates, land on a canvas k times the size (so every view can share one scale);
+    # the outline is drawn afterwards on the real pixels, so it stays one pixel wide
+    def __init__(s, w, h, k=1.0): s.k = k; s.w, s.h = int(round(w * k)) + 1, int(round(h * k)) + 1; s.im = Image.new('RGBA', (s.w, s.h), (0, 0, 0, 0)); s.p = s.im.load()
     def px(s, x, y, c):
-        x, y = int(round(x)), int(round(y))
+        x, y = int(round(x * s.k)), int(round(y * s.k))
         if 0 <= x < s.w and 0 <= y < s.h: s.p[x, y] = c
     def get(s, x, y): return s.p[x, y] if 0 <= x < s.w and 0 <= y < s.h else (0, 0, 0, 0)
     def rect(s, x0, y0, x1, y1, c):
-        for y in range(y0, y1 + 1):
-            for x in range(x0, x1 + 1): s.px(x, y, c)
+        k = s.k
+        for y in range(int(round(y0 * k)), int(round(y1 * k)) + 1):
+            for x in range(int(round(x0 * k)), int(round(x1 * k)) + 1):
+                if 0 <= x < s.w and 0 <= y < s.h: s.p[x, y] = c
     def outline(s, col=OL):
         src = s.im.copy(); sp = src.load(); add = []
         for y in range(s.h):
@@ -37,13 +41,14 @@ class C:
                     if 0 <= xx < s.w and 0 <= yy < s.h and sp[xx, yy][3] == 255 and sp[xx, yy] != col: add.append((x, y)); break
         for x, y in add: s.p[x, y] = col
 
-def wheel_side(c, cx, cy, r, rim_r, dark=False, lugs=14):
+def wheel_side(c, cx, cy, r, rim_r, dark=False, lugs=14, notch=0):
     """a wheel seen from the side: a lugged tyre, a dished rim, a hub; lit top-left"""
     for y in range(cy - r - 1, cy + r + 2):
         for x in range(cx - r - 1, cx + r + 2):
             d = math.hypot(x - cx, y - cy)
             if d > r + .3: continue
             a = math.atan2(y - cy, x - cx)
+            if notch and d > r - 1.1 and int((a + math.pi) / (2 * math.pi) * notch * 2) % 2 == 0: continue   # the lugs stand proud of the tyre's edge
             lit = -(math.cos(a) * .7 + math.sin(a) * .7)   # +1 toward the top-left
             if d > rim_r:
                 k = 1 if lit > .35 else 2 if lit > -.4 else 3
@@ -90,72 +95,66 @@ def body_rect(c, x0, y0, x1, y1, top_rows=2, light_left=True):
             elif x1 - x < 2: k = 3
             c.px(x, y, RED[k])
 
-# ---------------------------------------------------------------- side view (facing east)
+# ---------------------------------------------------------------- side view (facing east), at farm scale: the rear wheel's top
+# comes to the seated driver's shoulder (judge: the first one was twice the farmer's height)
 def side():
-    W, H, G = 132, 108, 104
+    W, H, G = 84, 72, 68
     under, over = C(W, H), C(W, H)
-    shadow(under, 70, G, 62, 4)
-    # the far wheels, peeking out behind and above (darker)
-    wheel_side(under, 40, G - 31, 29, 17, dark=True)
-    wheel_side(under, 109, G - 16, 15, 7, dark=True)
+    shadow(under, 42, G, 39, 3)
+    wheel_side(under, 27, G - 19, 18, 11, dark=True, lugs=10)
+    wheel_side(under, 68, G - 10, 9, 4, dark=True, lugs=8)
     # the frame and engine block under the hood
-    under.rect(58, 66, 116, 80, MET[3])
-    for x in range(60, 114, 9): under.rect(x, 69, x + 4, 76, MET[2])
-    under.rect(58, 66, 116, 67, MET[2])
-    # the front axle bracket
-    under.rect(100, 78, 112, 84, MET[2]); under.rect(102, 80, 110, 82, MET[1])
-    # the platform the driver's boots rest on
-    under.rect(46, 62, 64, 66, MET[2]); under.rect(46, 62, 64, 62, MET[1])
-    # the hood: a long rounded box, louvres down its side, the grille at the nose
-    body_rect(under, 56, 44, 120, 66)
-    for x in range(58, 121):   # a rounded top edge
-        under.px(x, 43, RED[1] if x < 110 else RED[2])
-    for x in range(118, 124):
-        for y in range(46, 66): under.px(x, y, RED[3] if x > 120 else RED[2])
-    for i, x in enumerate(range(78, 104, 6)):
-        under.rect(x, 50, x + 2, 60, RED[4]); under.rect(x, 50, x, 60, RED[3])
-    # the grille, at the front: bars
-    for y in range(47, 66):
-        under.px(124, y, MET[3] if y % 3 else MET[1]); under.px(125, y, MET[3])
-    # a dented rust patch, and the maker's badge long gone (a pale rectangle where it was)
-    under.rect(64, 56, 68, 58, RUST); under.px(65, 55, RUST); under.rect(108, 48, 113, 51, RED[1])
-    # the exhaust stack and the air-cleaner stack, standing up off the hood
-    under.rect(102, 16, 105, 43, MET[2]); under.rect(102, 16, 102, 43, MET[1]); under.rect(105, 16, 105, 43, MET[3])
-    under.rect(101, 14, 106, 16, MET[3]); under.px(103, 13, OL)
-    under.rect(88, 30, 91, 43, MET[1]); under.rect(87, 27, 92, 30, MET[2]); under.rect(87, 27, 92, 27, MET[0])
-    # the steering column and the wheel, seen nearly edge-on, tilted toward the seat
-    for i in range(10): under.px(66 - i * .55, 44 - i, MET[2])
-    for i in range(-7, 8): under.px(60 + i * .9, 33 + i * .35, MET[3] if i > 3 else MET[1])
-    # the seat: a pan on a spring post, and its tall back
-    under.rect(28, 40, 46, 44, SEAT[1]); under.rect(28, 40, 46, 40, SEAT[0]); under.rect(44, 41, 46, 44, SEAT[2])
-    under.rect(24, 24, 29, 42, SEAT[1]); under.rect(24, 24, 25, 42, SEAT[0]); under.rect(28, 24, 29, 42, SEAT[2])
-    under.rect(34, 44, 37, 48, MET[2])
-    # the drawbar and hitch at the back
-    under.rect(2, 82, 14, 85, MET[2]); under.rect(2, 82, 14, 82, MET[1]); under.rect(2, 80, 5, 87, MET[3])
+    under.rect(36, 40, 72, 49, MET[3]); under.rect(36, 40, 72, 40, MET[2])
+    for x in range(38, 70, 6): under.rect(x, 42, x + 2, 47, MET[2])
+    under.rect(62, 48, 70, 52, MET[2]); under.rect(64, 49, 68, 50, MET[1])
+    # the platform for the driver's boots
+    under.rect(28, 38, 40, 41, MET[2]); under.rect(28, 38, 40, 38, MET[1])
+    # the hood, louvres, the nose and grille
+    body_rect(under, 35, 27, 75, 40)
+    for x in range(36, 76): under.px(x, 26, RED[1] if x < 69 else RED[2])
+    for x in range(74, 78):
+        for y in range(28, 40): under.px(x, y, RED[3] if x > 76 else RED[2])
+    for x in range(48, 66, 4): under.rect(x, 31, x + 1, 37, RED[4]); under.rect(x, 31, x, 37, RED[3])
+    for y in range(28, 40): under.px(78, y, MET[3] if y % 3 else MET[1])
+    under.rect(40, 35, 42, 36, RUST); under.rect(67, 29, 70, 30, RED[1])
+    # the exhaust and air stacks
+    under.rect(64, 9, 66, 26, MET[2]); under.rect(64, 9, 64, 26, MET[1]); under.rect(63, 8, 67, 9, MET[3])
+    under.rect(55, 18, 57, 26, MET[1]); under.rect(54, 16, 58, 18, MET[2]); under.rect(54, 16, 58, 16, MET[0])
+    # the steering column and wheel, nearly edge-on
+    for i in range(6): under.px(41 - i * .5, 27 - i, MET[2])
+    for i in range(-4, 5): under.px(37 + i, 20 + i * .35, MET[3] if i > 2 else MET[1])
+    # the seat pan and its tall back
+    under.rect(17, 24, 29, 27, SEAT[1]); under.rect(17, 24, 29, 24, SEAT[0]); under.rect(28, 25, 29, 27, SEAT[2])
+    under.rect(14, 14, 17, 26, SEAT[1]); under.rect(14, 14, 14, 26, SEAT[0]); under.rect(17, 14, 17, 26, SEAT[2])
+    under.rect(22, 28, 24, 30, MET[2])
+    # the drawbar and hitch
+    under.rect(1, 50, 9, 52, MET[2]); under.rect(1, 50, 9, 50, MET[1]); under.rect(1, 49, 3, 54, MET[3])
     # the near front wheel
-    wheel_side(under, 106, G - 15, 15, 7)
-    # (over the driver's legs) the near rear wheel, and its fender: a curved red shell over the top half
-    wheel_side(over, 36, G - 31, 31, 18)
+    wheel_side(under, 65, G - 10, 10, 4, lugs=8, notch=9)
+    # (over the driver's legs) the near rear wheel, lugs proud of its edge, and the fender over it
+    wheel_side(over, 23, G - 20, 20, 12, lugs=11, notch=11)
     for a in range(180, 361):
         t = math.radians(a)
-        for rr in range(33, 38):
-            x = 36 + math.cos(t) * rr; y = (G - 31) + math.sin(t) * rr
-            if y > G - 31 - 2: continue
-            k = 0 if rr == 37 and a < 300 else 1 if a < 250 else 2 if a < 320 else 3
-            if rr == 33: k = 3
+        for rr in range(21, 25):
+            x = 23 + math.cos(t) * rr; y = (G - 20) + math.sin(t) * rr
+            if y > G - 20 - 1: continue
+            k = 0 if rr == 24 and a < 300 else 1 if a < 250 else 2 if a < 320 else 3
+            if rr == 21: k = 3
             over.px(x, y, RED[k])
     for c in (under, over): c.outline()
     return under.im, over.im
 
 # ---------------------------------------------------------------- front view (facing the camera)
+FB_K = .65   # the front and back views at the side view's scale (rear tyre 40 px tall in every view)
 def front():
     W, H, G = 104, 108, 104
-    under, over = C(W, H), C(W, H)
+    under, over = C(W, H, FB_K), C(W, H, FB_K)
     shadow(under, 52, G, 50, 4)
     # the big rear wheels either side (behind the driver), and their fenders
     for x0 in (4, 82):
         tyre_edge(under, x0, 42, 18, 62)
-        under.rect(x0 + 6, 70, x0 + 11, 76, RIM[2] if x0 < 50 else RIM[3])
+        hx = x0 + 15 if x0 < 50 else x0 + 1
+        under.rect(hx, 62, hx + 1, 84, RIM[2] if x0 < 50 else RIM[3]); under.px(hx, 62, RIM[1])
     for x0 in (2, 80):
         for x in range(x0, x0 + 22):
             for y in range(36, 44):
@@ -202,7 +201,7 @@ def front():
 # ---------------------------------------------------------------- back view (driving away)
 def back():
     W, H, G = 104, 108, 104
-    under, over = C(W, H), C(W, H)
+    under, over = C(W, H, FB_K), C(W, H, FB_K)
     shadow(under, 52, G, 50, 4)
     # (beyond the driver) the hood running away from you, the stacks, the far front wheels' tops, the steering wheel
     for y in range(22, 50):
@@ -239,9 +238,33 @@ def shadow(c, cx, cy, rx, ry):
         for x in range(int(cx - rx), int(cx + rx) + 1):
             if ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1: c.px(x, y, (16, 20, 12, 110))
 
+# ---------------------------------------------------------------- the disc harrow it drags (drawn only while you drive)
+def harrow_side():
+    c = C(26, 16)
+    c.rect(20, 7, 25, 8, MET[2]); c.rect(20, 7, 25, 7, MET[1])          # the hitch bar to the drawbar
+    c.rect(2, 4, 20, 6, MET[3]); c.rect(2, 4, 20, 4, MET[2])            # the frame
+    for cx in (5, 11, 17):
+        for y in range(6, 15):
+            for x in range(cx - 2, cx + 3):
+                if ((x - cx) / 2.4) ** 2 + ((y - 10.5) / 4.4) ** 2 <= 1: c.px(x, y, MET[1] if x < cx else MET[2] if x == cx else MET[3])
+        c.px(cx, 10, MET[0])
+    for x, y in ((3, 15), (9, 15), (15, 15), (20, 14)): c.px(x, y, (92, 66, 42, 255))   # soil kicked up
+    c.outline(); return c.im
+def harrow_back():
+    c = C(46, 16)
+    c.rect(21, 0, 24, 4, MET[2])                                         # the hitch arm from the tractor
+    c.rect(2, 4, 43, 6, MET[3]); c.rect(2, 4, 43, 4, MET[2])
+    for cx in range(5, 43, 6):
+        for y in range(7, 15):
+            for x in range(cx - 1, cx + 2):
+                if abs(x - cx) <= (1 if y in (7, 14) else 1.5): c.px(x, y, MET[1] if x <= cx else MET[3])
+    for x in range(3, 44, 5): c.px(x, 15, (92, 66, 42, 255))
+    c.outline(); return c.im
+
 def main():
     views = {'E': side(), 'S': front(), 'N': back()}
-    out = {}
+    out = {'tractor_harrow_E': harrow_side(), 'tractor_harrow_N': harrow_back()}
+    for k, im in out.items(): im.save(os.path.join(OUT, k + '.png'))
     for d, (u, o) in views.items():
         for lay, im in (('u', u), ('o', o)):
             k = f'tractor_{d}{lay}'; im.save(os.path.join(OUT, k + '.png')); out[k] = im
@@ -260,7 +283,7 @@ def main():
             meta_p = os.path.join(root, 'spr', 'lpc', 'objects.json'); meta = json.load(open(meta_p))
             for k, im in out.items():
                 im.save(os.path.join(root, 'spr', 'lpc', 'obj', k + '.png'))
-                meta[k] = dict(src=f'spr/lpc/obj/{k}.png', fw=im.width, fh=im.height, ax=im.width / 2, ay=104, foot=[0, 0, 0, 0])
+                meta[k] = dict(src=f'spr/lpc/obj/{k}.png', fw=im.width, fh=im.height, ax=im.width / 2, ay=68 if 'harrow' not in k else 15, foot=[0, 0, 0, 0])
             json.dump(meta, open(meta_p, 'w'), indent=0); print('installed into', root)
     print('ok', list(out))
 

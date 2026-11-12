@@ -1298,3 +1298,15 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - The same small slashed zero at a smaller size reads as 8 ("0 (8)"). Keep a number's size when it sits beside another number.
 - [war r2 6] A scoreboard row must read in words: rank, name, the unit after every number ("1st The Dunn Tap · 198 coins · 7 served · −50"). A bare "198 · 7 −50" has to be decoded. No change is grey, not green.
 - Never shorten a label by taking its first word ("An advert in the Courier" became "an"). Keep a short label for every long name.
+
+## Vehicles and things the player rides (#255 tractor, Nov 12)
+- [r1 5.5] Size a vehicle against the farmer before drawing a pixel: a rear wheel's top at the seated driver's shoulder (about 40 px for a 64 px farmer). The first tractor was drawn at 'looks good alone' size and came out twice his height.
+- Every view of one object must share one scale (the rear tyre's height in the side view equals its height from the front and from behind). Otherwise it grows when it turns.
+- To draw a smaller view without redrawing it, draw through a scaled canvas (coordinates times k) and run the outline pass on the real pixels afterwards: outlines stay one pixel wide.
+- Tractor tyres read as tractor tyres by the lugs on the silhouette. A smooth edge reads as a black disc.
+- A wheel seen edge-on shows its hub as a thin sliver on the inner side, never a face-on square ('a sticker').
+- A rider is three layers: the vehicle behind the driver, the driver (sitting clip), then whatever is nearer the eye (the near wheel and fender from the side, the hood and steering wheel from the front, the seat back from behind).
+- A management page for land should show the land: a small map (yours, owed, for sale) beats a list of parcel names.
+- [r2 6.5] Before taking a critique of a screenshot as fact, check what really stands there: the 'trailing toy horse' was a toy horse prop in the world, not the tractor.
+- Labels on a small map: every name on a paper tag in one dark ink, inside its shape when it fits and under it when it doesn't. Never light text that can spill onto a light ground.
+- A toast is the size of a phone screen's middle: one line, or it covers what the player just did.

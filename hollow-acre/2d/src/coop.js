@@ -34,7 +34,7 @@ const MPV={px:null,pz:null,vx:0,vz:0,sig:'',seq:0,an:null};
 function coopSend(force){const r=CO.room;if(!r||S.mode==='title'||S.mode==='load')return;const now=performance.now();if(!force&&now-CO.last<100)return;
   const vx=+MPV.vx.toFixed(2),vz=+MPV.vz.toFixed(2),moving=Math.abs(vx)+Math.abs(vz)>.15;
   const rf=typeof rodFrame==='function'&&!P.anim?rodFrame():-1;
-  const st={v:2,n:NAME()||'Farmhand',x:+P.x.toFixed(2),z:+P.z.toFixed(2),vx:moving?vx:0,vz:moving?vz:0,d:P.dir,c:P.anim?'work':(moving?'walk':'idle'),r:S.room||'',day:S.day,lk:lookMini(),rf,an:MPV.an};
+  const st={v:2,n:NAME()||'Farmhand',x:+P.x.toFixed(2),z:+P.z.toFixed(2),vx:moving?vx:0,vz:moving?vz:0,d:P.dir,c:(typeof TR!=='undefined'&&TR.ride)?'tractor':P.anim?'work':(moving?'walk':'idle'),r:S.room||'',day:S.day,lk:lookMini(),rf,an:MPV.an};
   if(CO.me&&CO.me.s)Object.assign(st,{s:CO.me.s,st:CO.me.st});if(CO.me&&CO.me.e)Object.assign(st,{e:CO.me.e,et:CO.me.et});
   // nothing new: only a heartbeat every two seconds
   const sig=[st.x,st.z,st.vx,st.vz,st.d,st.c,st.r,st.rf,st.an&&st.an.s,st.s,st.e,st.day].join('|');if(!force&&sig===MPV.sig&&now-CO.last<2000)return;
