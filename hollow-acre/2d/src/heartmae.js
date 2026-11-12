@@ -84,26 +84,33 @@ function hmTune(st){if(!A||!A.ok||!A.tone)return;st._tn=(st._tn||0);st._tc=(st._
 const hmStore=()=>{const R=ROOMS.store;return {ox:R.ox,oz:R.oz,cz:R.oz+2.66,counter:R.oz+4.1};};
 const HM_CAM=o=>({x:o.ox+14,z:o.oz+4.5});
 // ================================================================= 1. The photo behind the counter
-function hsMaePhoto(done){const o=hmStore(),ox=o.ox,oz=o.oz;MAEV.on=false;let fr=0,look=0;const img=hmPhoto();
-  stage({room:'store',hour:Math.min(Math.max(S.hour,9.5),16.5),player:{x:ox+14,z:oz+5.7,dir:'N'},cast:{mae:{x:ox+14,z:o.cz,dir:'S'}},cam:HM_CAM(o),lead:700,
+function hsMaePhoto(done){const o=hmStore(),ox=o.ox,oz=o.oz;MAEV.on=false;const R0=ROOMS.store,door={x:R0.ox+R0.door,z:R0.oz+R0.d};let tob=null;const tobOff=st=>{tob=npcById('tobias');if(tob){tob.vis=false;delete st.pin.tobias;}};let fr=0,look=0;const img=hmPhoto();
+  stage({show:true,room:'store',hour:Math.min(Math.max(S.hour,9.5),16.5),player:{x:ox+14,z:oz+5.7,dir:'N'},cast:{tobias:{x:ROOMS.store.ox+ROOMS.store.door,z:ROOMS.store.oz+ROOMS.store.d-.3,dir:'N'},mae:{x:ox+14,z:o.cz,dir:'S'}},cam:HM_CAM(o),lead:700,
     light(L){glowAt(sx(ox+9),sz(oz+2.4)-40,110,[255,186,110],.28);},
     props:[{x:ox+14.7,z:o.counter-.02,draw(X,Y){if(fr===0||fr===3){ctx2.save();ctx2.translate(X,Y-28);ctx2.scale(1.6,1.6);hmFrameFlat(0,0);ctx2.restore();}}},
       {get x(){const n=npcById('mae');return n?n.x:0;},get z(){const n=npcById('mae');return n?n.z+.02:0;},draw(X,Y){if(fr===1||fr===2){ctx2.save();ctx2.translate(X+(fr===2?0:4),Y-14);ctx2.scale(1.6,1.6);hmFrameUp(0,0,fr===2);ctx2.restore();}}},
       {x:0,z:9e5,draw(){hmShowCard(img,look);}}],
     beats:[
-      {hold:.9,face:{mae:'S',you:'N'},act(){stgTitle('Caitlyn — The photo behind the counter');}},
-      {hold:.9,act(){fr=1;SFX.page&&SFX.page();},emote:{mae:'…'}},
-      {hold:.7,act(){fr=2;SFX.page&&SFX.page();}},
-      {hold:1.4,update(dt){look=Math.min(1,look+dt*1.4);}},
+
+      {hold:.9,face:{mae:'S',you:'N'},act(st){tobOff(st);stgTitle('Caitlyn — The photo behind the counter');}},
+      {hold:.5,face:{mae:'N'}},
+      {hold:.9,act(){fr=1;SFX.page&&SFX.page();},pose:{mae:'spellcast'}},
+      {hold:.5,face:{mae:'S'},act(){fr=2;},pose:{mae:null}},
+      {hold:1.6,update(dt){look=Math.min(1,look+dt*1.4);}},
       {who:'mae',text:'That’s Danny. My big brother.',expr:'sad'},
-      {who:'mae',text:'I was a baby when he went, so I only know him from this, and from Mom.',expr:'sad'},
-      {hold:1.1,update(dt){look=Math.max(0,look-dt*1.6);},act(){setTimeout(()=>{fr=3;SFX.thud&&SFX.thud(0,.18);},700);}},
-      {who:'mae',text:'Don’t mention him to Tobias. He doesn’t know.',expr:'think'},
-      {who:'mae',text:'Mom never told him, and that’s a kindness I can still give.',expr:'sad',wait:.3}],
+      {hold:.9,update(dt){look=Math.max(0,look-dt*1.6);},emote:{mae:'💧'}},
+      {hold:.2,act(){if(tob)tob.vis=true;SFX.thud&&SFX.thud(0,.15);}},
+      {hold:0,go:{tobias:[[door.x,door.z-1.6],[ox+12.6,o.counter+.9]]},face:{tobias:'N'},wait:'arrive',act(){fr=3;SFX.thud&&SFX.thud(0,.22);},emote:{mae:'!'}},
+      {hold:.7,emote:{tobias:'?'}},
+      {who:'mae',text:'Homework. Now.',expr:'angry'},
+      {hold:0,go:{tobias:[[door.x,door.z-1.4],[door.x,door.z-.3]]},wait:'arrive',act(){}},
+      {hold:.5,act(st){tobOff(st);}},
+      {hold:.8,face:{mae:'S'},emote:{mae:'…'}},
+      {who:'mae',text:'He doesn’t know. Let’s keep it that way.',expr:'sad',linger:.6}],
     done(){maeCome(6,true);done&&done();}});}
 // ================================================================= 2. The lots
 function hsMaeLots(done){const o=hmStore(),ox=o.ox,oz=o.oz;MAEV.on=false;let fold=0,look=0,towel=1,open=0;const img=hmSlip();
-  stage({room:'store',hour:Math.min(Math.max(S.hour,10),17),player:{x:ox+14,z:oz+5.7,dir:'N'},cast:{mae:{x:ox+14,z:o.cz,dir:'S'}},cam:HM_CAM(o),lead:700,
+  stage({show:true,room:'store',hour:Math.min(Math.max(S.hour,10),17),player:{x:ox+14,z:oz+5.7,dir:'N'},cast:{mae:{x:ox+14,z:o.cz,dir:'S'}},cam:HM_CAM(o),lead:700,
     light(L){glowAt(sx(ox+9),sz(oz+2.4)-40,110,[255,186,110],.26);},
     props:[{get x(){const n=npcById('mae');return n?n.x:0;},get z(){const n=npcById('mae');return n?n.z+.02:0;},draw(X,Y,t){if(towel===1)hmTowel(X,Y-16,fold?(Math.sin(t*2.6)+1)/2:.5);}},
       {x:ox+14.3,z:o.counter-.02,draw(X,Y){if(towel===2){const y=Y-29;   // crumpled on the counter top beside her hands: one fold, its stripes, lit from the top left
@@ -112,35 +119,43 @@ function hsMaeLots(done){const o=hmStore(),ox=o.ox,oz=o.oz;MAEV.on=false;let fol
       {x:0,z:9e5,draw(){if(look<=0)return;hmShowCard(img,look);if(open<1){const sc=Math.max(2,Math.min(3,Math.floor(VH*.42/img.height))),w=img.width*sc,x=Math.round(VW/2-w/2),y=Math.round(VH*.08+(1-look)*8);
           ctx2.save();ctx2.globalAlpha=Math.min(1,look)*(1-open);ctx2.fillStyle='#d8ccb0';ctx2.fillRect(x+10*sc,y+12*sc,36*sc,16*sc);ctx2.fillStyle='#b0a488';ctx2.fillRect(x+27*sc,y+12*sc,1*sc,16*sc);ctx2.restore();}}}],
     beats:[
+
       {hold:.9,face:{mae:'S',you:'N'},act(){stgTitle('Caitlyn — The lots');fold=1;}},
-      {who:'mae',text:'Every September the whole town goes to the church after dark.',expr:'think'},
-      {who:'mae',text:'Hale reads the names and Dunn draws from the hat.',expr:'sad'},
+      {hold:1.4},
+      {who:'mae',text:'Every September, they draw a name.',expr:'think'},
+      {hold:.6,face:{mae:'N'},act(){fold=0;}},
+      {hold:.8,act(){A.tone&&A.tone(1400,.05,'square',.02);SFX.coin&&SFX.coin();},pose:{mae:'thrust'}},
+      {hold:.4,face:{mae:'S'},pose:{mae:null}},
       {hold:1.5,update(dt){look=Math.min(1,look+dt*1.3);}},
-      {hold:1.3,update(dt){open=Math.min(1,open+dt*1.1);},act(){SFX.page&&SFX.page();}},
-      {who:'mae',text:'Danny’s name came out in ’99. In Dunn’s handwriting.',expr:'sad'},
-      {hold:1.0,update(dt){look=Math.max(0,look-dt*1.4);},act(){fold=0;setTimeout(()=>{towel=2;SFX.thud&&SFX.thud(0,.12);},500);}},
-      {who:'mae',text:'Mom told me that once, and never again.',expr:'sad'},
-      {who:'mae',text:'I’ve never said it out loud before. I don’t know why I’m telling you.',expr:'sad',wait:.3}],
+      {hold:1.6,update(dt){open=Math.min(1,open+dt*1.1);},act(){SFX.page&&SFX.page();}},
+      {who:'mae',text:'Danny’s. In Dunn’s handwriting.',expr:'sad',linger:.4},
+      {hold:.8,update(dt){look=Math.max(0,look-dt*1.4);}},
+      {hold:.7,act(){towel=2;SFX.thud&&SFX.thud(0,.3);cam.shake=Math.max(cam.shake||0,.12);},pose:{mae:'slash'},emote:{mae:'!'}},
+      {hold:1.0,pose:{mae:null},face:{mae:'E'}},
+      {hold:.6,face:{mae:'S'}},
+      {who:'mae',text:'I’ve never said that out loud.',expr:'sad',linger:.6}],
     done(){maeCome(6,true);done&&done();}});}
 // ================================================================= 3. Walt's lantern
 function hsMaeLantern(done){const o=hmStore(),ox=o.ox,oz=o.oz;MAEV.on=false;let lan=0,lit=0,look=0;const img=hmEngrave();const you={x:ox+13.6,z:oz+5.7};
-  stage({room:'store',hour:Math.min(Math.max(S.hour,17.6),19.4),player:{x:you.x,z:you.z,dir:'N'},cast:{mae:{x:ox+14,z:o.cz,dir:'S'}},cam:HM_CAM(o),lead:700,
+  stage({show:true,room:'store',hour:Math.min(Math.max(S.hour,17.6),19.4),player:{x:you.x,z:you.z,dir:'N'},cast:{mae:{x:ox+14,z:o.cz,dir:'S'}},cam:HM_CAM(o),lead:700,
     light(L){glowAt(sx(ox+9),sz(oz+2.4)-40,100,[255,180,100],.24);if(lit){const X=sx(P.x)+7,Y=sz(P.z)-26;glowAt(X,Y,150+Math.sin(STG.t*9)*4,[255,210,130],.85);glowAt(X,sz(P.z)+2,110,[255,190,110],.5);const m=npcById('mae');if(m)glowAt(sx(m.x),sz(m.z)-24,60,[255,210,140],.35);}},
     props:[{get x(){const n=npcById('mae');return n?n.x:0;},get z(){const n=npcById('mae');return n?n.z+.02:0;},draw(X,Y,t){if(lan===1)hmLantern(X+4,Y-14,0,t);}},
       {get x(){return P.x;},get z(){return P.z+.02;},draw(X,Y,t){if(lan===2){ctx2.save();ctx2.translate(X+7,Y-12);ctx2.scale(1.5,1.5);hmLantern(0,0,lit,t);ctx2.restore();}}},
       {x:0,z:9e5,draw(){hmShowCard(img,look);}}],
     beats:[
+
       {hold:.8,face:{mae:'S',you:'N'},act(){stgTitle('Caitlyn — Walt’s lantern');}},
-      {hold:.7,act(){lan=1;SFX.thud&&SFX.thud(0,.2);},emote:{mae:'!'}},
-      {hold:0,go:{mae:[[ox+15.6,o.cz+.1],[ox+15.6,oz+5.2],[you.x+.75,you.z]]},face:{mae:'W',you:'E'},wait:'arrive'},
-      {hold:.8,act(){lan=2;SFX.thud&&SFX.thud(0,.3);stgEmote('you','!',1.2);}},
-      {hold:1.5,update(dt){look=Math.min(1,look+dt*1.3);}},
-      {who:'mae',text:'My dad’s. He carried it the night he went looking for Danny.',expr:'sad'},
-      {who:'mae',text:'I was eight months old.',expr:'sad'},
+      {hold:.5,face:{mae:'N'}},
+      {hold:.8,act(){lan=1;SFX.thud&&SFX.thud(0,.2);},pose:{mae:'spellcast'}},
+      {hold:0,go:{mae:[[ox+15.6,o.cz+.1],[ox+15.6,oz+5.2],[you.x+.75,you.z]]},face:{mae:'W',you:'E'},wait:'arrive',pose:{mae:null}},
+      {hold:.8,act(){lan=2;SFX.thud&&SFX.thud(0,.3);stgEmote('you','!',1.2);},pose:{mae:'thrust'}},
+      {hold:1.5,update(dt){look=Math.min(1,look+dt*1.3);},pose:{mae:null}},
+      {who:'mae',text:'Dad’s. He took it the night he went after Danny.',expr:'sad'},
       {hold:1.0,update(dt){look=Math.max(0,look-dt*1.6);},act(){setTimeout(()=>{lit=1;A.tone&&A.tone(180,.3,'sine',.04,{slide:260});},600);}},
-      {who:'mae',text:'It burns brighter than that tin thing of yours. Take it.',expr:'neutral'},
+      {hold:1.4,emote:{mae:'…'}},
       {hold:.9,face:{mae:'S'}},
-      {who:'mae',text:'If it comes to it, don’t let them choose Tobias.',expr:'scared',wait:.4}],
+      {hold:.7,face:{mae:'W'}},
+      {who:'mae',text:'If it comes to it, don’t let them choose Tobias.',expr:'scared',linger:.6}],
     done(){maeCome(6,true);done&&done();}});}
 // ================================================================= 4. After hours
 // the dance itself: the two of you face each other close, her hand on your shoulder, yours at her waist, the other two joined and held out;
@@ -154,7 +169,7 @@ function hmArms(ax,ay,bx,by,skinA,skinB){const o='#120c08';const line=(x0,y0,x1,
   const hx=(ax+bx)/2,hy=Math.min(ay,by)-30;line(ax+dir*2,ay-25,hx,hy,skinA);line(bx-dir*2,by-25,hx,hy,skinB);ctx2.fillStyle=o;ctx2.fillRect(hx-2,hy-2,5,5);ctx2.fillStyle=skinA;ctx2.fillRect(hx-1,hy-1,3,3);}   // the other two hands, joined and held out
 function hsMaeAfter(done){const o=hmStore(),ox=o.ox,oz=o.oz;MAEV.on=false;let radio=1,dance=0,ang=Math.PI,spd=0,tuneT=0,hopT=0,stomp=0;const C={x:ox+13.4,z:oz+6.2};
   const skin=()=>{const L=(S&&S.look)||{};return /^#[0-9a-f]{6}$/i.test(L.skin||'')?L.skin:'#e8b48c';};
-  stage({room:'store',hour:21.6,player:{x:C.x-.6,z:C.z,dir:'E'},cast:{mae:{x:ox+14,z:o.cz,dir:'S'}},cam:{x:C.x+.3,z:C.z-.6},lead:700,
+  stage({show:true,room:'store',hour:21.6,player:{x:C.x-.6,z:C.z,dir:'E'},cast:{mae:{x:ox+14,z:o.cz,dir:'S'}},cam:{x:C.x+.3,z:C.z-.6},lead:700,
     light(L){glowAt(sx(ox+13.2),sz(o.counter)-26,80,[255,190,110],radio?.5:.12);glowAt(sx(C.x),sz(C.z)-20,130,[255,200,140],.2);},
     props:[{x:ox+13.2,z:o.counter-.02,draw(X,Y,t){hmRadio(X,Y-12,radio,t);}},
       {x:ox+13.2,z:9e5-1,draw(X,Y,t){if(radio)hmNotes(sx(ox+13.2)+2,sz(o.counter)-24,t);}},
@@ -179,33 +194,36 @@ function hsMaeAfter(done){const o=hmStore(),ox=o.ox,oz=o.oz;MAEV.on=false;let ra
       {who:'mae',text:'Sorry.',expr:'neutral'},
       {hold:2.4},
       {hold:1.2,act(){dance=0;tuneT=99;}},
-      {text:'The song ends. The announcer, warm and very clear: “And that one goes out to the two of you, from everybody in the corn.”',act(){SFX.stinger&&setTimeout(()=>SFX.stinger(),400);}},
+      {who:'radio',at:{x:ox+13.2,z:o.counter,h:30},text:'…and that one goes out to the two of you, from everybody in the corn.',act(){SFX.stinger&&setTimeout(()=>SFX.stinger(),400);},linger:.6},
+      {hold:.8,emote:{mae:'!'}},
       {hold:.9,act(){radio=0;A.tone&&A.tone(900,.03,'square',.03);},face:{mae:'N'}},
       {hold:.6,face:{mae:'W',you:'E'}},
-      {who:'mae',text:'One more.',expr:'neutral'},
-      {who:'mae',text:'Without the radio.',expr:'neutral',act(){dance=1;}},
+      {who:'mae',text:'One more. Without the radio.',expr:'neutral',act(){dance=1;}},
       {hold:2.8,emote:{mae:'♥'}}],
     done(){HM.hop=0;maeCome(6,true);done&&done();}});}
 // ================================================================= 5. The porch light
 function hsMaePorch(done){const D=ROOMS.store.out,dx=D.x,dz=D.z;MAEV.on=false;let lamp=1,dark=0,sigh=0;
-  stage({room:null,hour:18.9,player:{x:dx-.45,z:dz-.1,dir:'S'},cast:{mae:{x:dx+.45,z:dz-.1,dir:'S'}},cam:{x:dx,z:dz+1.3},lead:700,
+  stage({show:true,room:null,hour:18.9,player:{x:dx-.45,z:dz-.1,dir:'S'},cast:{mae:{x:dx+.45,z:dz-.1,dir:'S'}},cam:{x:dx,z:dz+1.3},lead:700,
     light(L){if(lamp){glowAt(sx(dx+.62),sz(dz-1.15)-30,70,[255,214,140],.85);glowAt(sx(dx),sz(dz+.6)-6,120,[255,200,130],.45);}if(sigh>0){glowAt(sx(dx-7.5),sz(dz+6)-20,40,[240,220,200],sigh*.35);}},
     props:[{x:dx+.62,z:dz-1.15,draw(X,Y){hmPorchLamp(X,Y-28,lamp);hmSwitch(X-4,Y-14,lamp);}},
+      {x:dx-7.5,z:dz+6,draw(X,Y){if(sigh<=.05)return;const a=sigh*.55,x=Math.round(X),y=Math.round(Y);ctx2.fillStyle=`rgba(210,218,232,${a})`;   // a pale woman standing in the corn, there and gone
+        ctx2.fillRect(x-2,y-31,5,5);ctx2.fillRect(x-3,y-26,7,9);ctx2.fillRect(x-4,y-17,9,17);ctx2.fillStyle=`rgba(60,64,80,${a*.8})`;ctx2.fillRect(x-3,y-32,7,3);ctx2.fillRect(x-3,y-29,1,6);ctx2.fillRect(x+3,y-29,1,6);ctx2.fillStyle=`rgba(20,20,30,${a})`;ctx2.fillRect(x-1,y-29,1,1);ctx2.fillRect(x+1,y-29,1,1);}},
       {x:0,z:9e5,draw(){if(dark>0){ctx2.fillStyle=`rgba(4,6,14,${dark*.42})`;ctx2.fillRect(0,0,VW,VH);}}}],
     beats:[
+
       {hold:.8,act(){stgTitle('Caitlyn — The porch light');}},
       {hold:0,go:{mae:[[dx+.5,dz+.9]],you:[[dx-.5,dz+.9]]},face:{mae:'S',you:'S'},wait:'arrive'},
       {hold:.8,face:{mae:'N',you:'N'}},
-      {who:'mae',text:'That light’s burned every night for two years. Since Mom walked into the corn.',expr:'sad'},
-      {who:'mae',text:'She left it on for Danny. And for Dad. Then I left it on for her.',expr:'sad'},
+      {who:'mae',text:'Two years that light’s burned. Since Mom walked into the corn.',expr:'sad'},
       {hold:0,go:{mae:[[dx+.45,dz-.05]]},face:{mae:'N'},wait:'arrive'},
-      {who:'mae',text:'I don’t want to be waiting for somebody anymore. I want to be with somebody.',expr:'think'},
-      {hold:1.4,act(){lamp=0;A.tone&&A.tone(700,.03,'square',.04);},update(dt){dark=Math.min(1,dark+dt*1.4);}},
-      {hold:2.2,act(){A.hiss&&A.hiss(1.8,.05,'lowpass',500);},update(dt,st){sigh=Math.sin(Math.min(1,st.bt/2.2)*Math.PI);},cam:{x:dx-3,z:dz+3}},
+      {hold:.6,pose:{mae:'thrust'}},
+      {hold:1.4,act(){lamp=0;A.tone&&A.tone(700,.03,'square',.04);},update(dt){dark=Math.min(1,dark+dt*1.4);},pose:{mae:null}},
+      {hold:2.6,act(){A.hiss&&A.hiss(1.8,.05,'lowpass',500);},update(dt,st){sigh=Math.sin(Math.min(1,st.bt/2.6)*Math.PI);},cam:{x:dx-3,z:dz+3}},
+      {hold:.6,emote:{you:'!'}},
       {hold:0,go:{mae:[[dx-.05,dz+.95]]},face:{mae:'W',you:'E'},wait:'arrive',cam:{x:dx,z:dz+1.3}},
+      {who:'mae',text:'I’m done waiting for people.',expr:'think'},
       {hold:.5,emote:{mae:'♥'}},
-      {who:'mae',text:'Promise me one thing.',expr:'sad'},
-      {who:'mae',text:'Whatever happens at that door, you don’t leave without me.',expr:'sad',wait:.3}],
+      {who:'mae',text:'Promise you won’t leave without me.',expr:'sad',linger:.6}],
     done(){maeCome(6,true);done&&done();}});}
 // ---- they play instead of the captions
 Object.assign(HS_SCENES,{'mae|The photo behind the counter':hsMaePhoto,'mae|The lots':hsMaeLots,'mae|Walt’s lantern':hsMaeLantern,'mae|After hours':hsMaeAfter,'mae|The porch light':hsMaePorch});

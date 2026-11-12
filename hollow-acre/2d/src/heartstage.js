@@ -246,7 +246,7 @@ function hsAppleHeld(X,Y){ctx2.fillStyle='#4a0e10';ctx2.beginPath();ctx2.arc(X,Y
 function hsClosingTime(done){const R=ROOMS.store,ox=R.ox,oz=R.oz;MAEV.on=false;
   const cz=oz+2.66,counter=oz+4.1,you0={x:ox+14,z:oz+6.0},beside={x:ox+15.6,z:cz+.1};
   let sign=0,keys=0,fig=-1,figK=0;const CAM={x:ox+14,z:oz+4.5};
-  stage({room:'store',hour:Math.min(Math.max(S.hour,11.5),13),player:{x:you0.x,z:you0.z,dir:'N'},cast:{mae:{x:ox+14,z:cz,dir:'S'}},cam:CAM,lead:700,
+  stage({show:true,room:'store',hour:Math.min(Math.max(S.hour,11.5),13),player:{x:you0.x,z:you0.z,dir:'N'},cast:{mae:{x:ox+14,z:cz,dir:'S'}},cam:CAM,lead:700,
     light(L){glowAt(sx(ox+9),sz(oz+2.4)-40,120,[255,186,110],.30);if(fig>=0)glowAt(sx(ox+14),sz(oz+1.5)-24,66,[150,170,190],.2+.12*Math.sin(STG.t*3));},
     props:[{x:ox+14,z:oz+1.5,draw(X,Y,t){   // a real wood-framed window set in the wall behind the counter; the Hollow rises in the pane, then is gone
         const W=HSP.wood,WO=HSP.woodO,lit=fig>=0,RX=Math.round(X);
@@ -268,21 +268,19 @@ function hsClosingTime(done){const R=ROOMS.store,ox=R.ox,oz=R.oz;MAEV.on=false;
         ctx2.fillStyle='#120c08';ctx2.fillRect(X+6,Y-16,16,9);ctx2.fillStyle=sign?'#7a2420':'#2d5a30';ctx2.fillRect(X+7,Y-15,14,7);ctx2.fillStyle='#f0e4c8';ctx2.font='6px monospace';ctx2.textAlign='center';ctx2.fillText(sign?'CLOSED':'OPEN',X+14,Y-9);ctx2.textAlign='left';}},
       {get x(){return P.x;},get z(){return P.z+.01;},draw(X,Y){if(keys<=0)return;const yy=Y-26-Math.round(keys*4);ctx2.fillStyle='#caa24a';ctx2.fillRect(X-1,yy,2,5);ctx2.fillStyle='#e6c968';ctx2.fillRect(X-2,yy+4,5,3);ctx2.fillRect(X-3,yy+5,2,2);ctx2.fillRect(X+2,yy+5,2,2);}}],
     beats:[
+
       {hold:.9,face:{mae:'S',you:'N'},act(){stgTitle('Caitlyn — Closing time');}},
-      {who:'mae',text:'Lock that behind you, would you. The bolt sticks.',expr:'neutral',act(){sign=1;SFX.thud&&SFX.thud(0,.25);}},
-      {who:'mae',text:'Twenty years I’ve run this store. I have never once closed it at noon.',expr:'sad',wait:.3},
+      {hold:.7,act(){sign=1;SFX.thud&&SFX.thud(0,.25);},pose:{mae:'thrust'},emote:{mae:'…'}},
+      {hold:.4,pose:{mae:null}},
+      {who:'mae',text:'Come round. Behind the counter.',expr:'scared'},
       {hold:.2,go:{you:[[ox+15.6,oz+5.4],[beside.x,beside.z]]},face:{you:'W',mae:'E'},wait:'arrive'},
-      {who:'mae',text:'Come here. Behind the counter. Where he can’t see your hands.',expr:'scared'},
-      {who:'mae',text:'These were my dad’s. The truck’s still in the shed, under a tarp, full of gas.',act(){keys=1;SFX.coin&&SFX.coin();stgEmote('you','!',1.4);},expr:'think'},
-      {who:'mae',text:'Take Tobias. Not tonight — the night of the drawing, when they’re all in the church.',expr:'angry'},
-      {who:'mae',text:'Nobody counts the children that night. Nobody ever has.',expr:'sad',wait:.4},
-      {hold:1.6,act(){sign=0;fig=.55;figK=0;SFX.breath&&SFX.breath();},face:{mae:'N'},emote:{mae:'!'}},
-      {who:'you',text:'There’s a man at the back window. He’s been there the whole time.',expr:'scared'},
-      {hold:2.6,update(dt){fig=Math.min(1,fig+dt*.35);},act(){setTimeout(()=>{figK=1;SFX.stinger&&SFX.stinger();stgEmote('you','!',1.6);},1100);}},
-      {hold:1.8,act(){fig=-1;figK=0;},face:{mae:'S'}},
-      {who:'mae',text:'…It’s only the scarecrow. From your field.',expr:'wrong'},
-      {who:'mae',text:'Which is two miles away. Go home before dark. Please.',expr:'sad',wait:.3},
-    ],
+      {hold:.8,act(){keys=1;SFX.coin&&SFX.coin();stgEmote('you','!',1.4);},pose:{mae:'thrust'}},
+      {who:'mae',text:'Dad’s truck. In the shed, full of gas. The night of the drawing, take Tobias.',expr:'angry',pose:{mae:null}},
+      {hold:1.6,act(){sign=0;fig=.55;figK=0;SFX.breath&&SFX.breath();},face:{mae:'N',you:'N'},emote:{you:'!'}},
+      {hold:2.6,update(dt){fig=Math.min(1,fig+dt*.35);},act(){setTimeout(()=>{figK=1;SFX.stinger&&SFX.stinger();stgEmote('mae','!',1.6);cam.shake=Math.max(cam.shake||0,.25);},1100);},cam:{x:ox+14,z:oz+3.2}},
+      {hold:1.6,act(){fig=-1;figK=0;},face:{mae:'S'},cam:{x:ox+14,z:oz+4.5}},
+      {who:'mae',text:'…The scarecrow. From your field. Two miles away.',expr:'wrong'},
+      {who:'mae',text:'Go home before dark.',expr:'sad',linger:.6}],
     done(){maeCome(6,true);done&&done();}});}
 
 // ---------- 2. Agnes — "The music box, played": the box on the rail, a child at the well, pointing down ----------
@@ -439,24 +437,29 @@ function hsRoute(done){const rx=-70,z0=-5.4;   // staged out on open Route 9 wes
     done(){done&&done();}});}
 
 // ---------- 7. Caitlyn — "Danny's last letter": the store at dusk, the envelope, the boy who is still pushing ----------
-function hsDannyLetter(done){const R=ROOMS.store,ox=R.ox,oz=R.oz;MAEV.on=false;
+function hsDannyCard(){return hmCard('dannyletter',92,66,(P)=>{P(0,0,92,66,'#120c08');P(1,1,90,64,'#e8dcc0');P(1,1,90,2,'#f4ecd8');for(let y=12;y<62;y+=8)P(3,y,86,1,'#b8c8d8');P(10,3,1,61,'#d89090');
+  P(70,40,14,10,'#d8ccb0');P(1,62,90,3,'#c8bca0');   // a fold, a thumb-mark
+  const L=['TO WHOEVER','COMES AFTER ME','IT IS NOT A MAN','IT IS A DOOR','PUSH','TELL MOM I PUSHED'];L.forEach((t,i)=>sgtT(P,t,13+(i%2),5+i*8+(i===4?0:0),i===4?'#5a1e14':'#3a3a48'));
+  P(13,45,18,1,'#5a1e14');});}
+function hsDannyLetter(done){const R=ROOMS.store,ox=R.ox,oz=R.oz;MAEV.on=false;let card=0;const dImg=hsDannyCard();
   const cz=oz+2.66,you0={x:ox+14,z:oz+5.3};let env=0,read=0;const CAM={x:ox+14,z:oz+4.4};
-  stage({room:'store',hour:18.4,keepHour:true,player:{x:you0.x,z:you0.z,dir:'N'},cast:{mae:{x:ox+14,z:cz,dir:'S'}},cam:CAM,lead:750,
+  stage({show:true,room:'store',hour:18.4,keepHour:true,player:{x:you0.x,z:you0.z,dir:'N'},cast:{mae:{x:ox+14,z:cz,dir:'S'}},cam:CAM,lead:750,
     light(L){glowAt(sx(ox+9),sz(oz+2.4)-40,110,[255,180,104],.3);},
-    props:[{x:0,z:9e5,draw(){hsVignette(.3);}},
+    props:[{x:0,z:9e5,draw(){hsVignette(.3);}},{x:0,z:9e5+1,draw(){if(card>0&&typeof hmShowCard==='function')hmShowCard(dImg,card);}},
       {get x(){return P.x;},get z(){return P.z+.01;},draw(X,Y){if(read>0){ctx2.save();ctx2.globalAlpha=Math.min(1,read);hsLetter(X,Y-26,read);ctx2.restore();}   // the letter, held up in your hands
         else if(env>0){ctx2.save();ctx2.globalAlpha=Math.min(1,env);hsEnvelope(X,Y-24);ctx2.restore();}}}],
     beats:[
+
       {hold:.9,face:{mae:'S',you:'N'},act(){stgTitle('Caitlyn — Danny’s last letter');}},
-      {who:'mae',text:'He wrote this the night before he was taken. He was ten. He knew — children always know.',expr:'sad',act(){env=1;SFX.page&&SFX.page();}},
-      {who:'mae',text:'It’s addressed “To whoever comes after me.” That’s you. I think it was always going to be you.',expr:'sad'},
-      {hold:1.8,update(dt){read=Math.min(1,read+dt*.5);},act(){SFX.page&&SFX.page();}},
-      {who:'you',text:'“It is not a man. It is a door. Everyone it takes is still inside, holding it shut.”',expr:'scared'},
-      {who:'you',text:'“If enough of us push at once, it opens the other way. Tell Mom I pushed.”',expr:'sad',wait:.3},
-      {hold:1.0,update(dt){read=Math.max(0,read-dt*.8);},face:{mae:'S'}},
-      {who:'mae',text:'I don’t cry about it any more. I think he’s still in there. Twenty-five years, still pushing.',expr:'cry'},
-      {who:'mae',text:'Maybe that’s where Mom went. Not giving up. Going to help him push. …Would you? When it comes to it?',expr:'sad',wait:.4},
-    ],
+      {hold:.8,act(){env=1;SFX.page&&SFX.page();},pose:{mae:'thrust'}},
+      {who:'mae',text:'He wrote it the night before they took him. He was ten.',expr:'sad',pose:{mae:null}},
+      {hold:1.6,update(dt){read=Math.min(1,read+dt*.6);},act(){SFX.page&&SFX.page();}},
+      {hold:5.2,update(dt,st){card=Math.min(1,card+dt*1.2);}},
+      {hold:.9,update(dt){card=Math.max(0,card-dt*1.4);read=Math.max(0,read-dt*.8);}},
+      {hold:1.2,emote:{mae:'💧'},face:{mae:'S'}},
+      {hold:0,go:{mae:[[ox+15.6,cz+.1],[ox+15.6,oz+4.9],[you0.x+.7,you0.z]]},face:{mae:'W',you:'E'},wait:'arrive'},
+      {hold:.6,pose:{mae:'thrust'}},
+      {who:'mae',text:'If it comes to it… would you push?',expr:'sad',linger:.6,pose:{mae:null}}],
     done(){maeCome(7,true);done&&done();}});}
 
 // ---------- 8. Finn — "Skipping stones": the river, and a stone that skips back out of the fog ----------
