@@ -21,7 +21,7 @@ vendors.plans={name:'Farm Plans',sub:'Grandpa’s plans, pinned up in his carefu
 // seed button cycles every crop you have
 onSeed=function(){if(S.mode!=='play')return;const ks=Object.keys(SEEDS);let i=ks.indexOf(S.sel);for(let k=0;k<ks.length;k++){i=(i+1)%ks.length;if(S.seeds[ks[i]]>0)break;}S.sel=ks[i];
   if(S.seeds[S.sel]<=0)toast(`No ${SEEDS[S.sel].name.toLowerCase()} seeds. Caitlyn sells them.`,1.6);updateHud();};
-const _updHud=updateHud;updateHud=function(){_updHud();ui.seed.textContent=`${SEEDS[S.sel].name} ×${S.seeds[S.sel]}`;};
+const _updHud=updateHud;updateHud=function(){_updHud();setTxt(ui.seed,`${SEEDS[S.sel].name} ×${S.seeds[S.sel]}`);};
 // sharpened hoe: till the tiles either side too
 const _doTill=doTill;doTill=function(t){_doTill(t);const lv=toolLv('hoe');if(lv<2)return;const side=Math.abs(P.fx)>Math.abs(P.fz)?[0,1]:[1,0];
   const fw=side[0]?[0,Math.sign(P.fz)||1]:[Math.sign(P.fx)||1,0];   // copper: 3 in a row; steel: 5 in a row; Hollow-glass: 3 wide, 3 deep

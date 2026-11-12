@@ -68,8 +68,9 @@ function renderHotbar(){const hb=$('hotbar');if(!hb)return;syncSlots();const n=s
       b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();slotUse(i);});hb.appendChild(b);}}
   const want=null;
   [...hb.children].forEach((b,i)=>{const it=itemInfo(S.slots[i]);const im=b.querySelector('img');const ct=b.querySelector('b');
-    b.classList.toggle('empty',!it);b.classList.toggle('sel',i===S.slotSel);b.classList.toggle('on',!!it&&it.key===want);b.setAttribute('aria-label',it?it.name:'empty slot');
-    if(it){const src=iconOf(it.icon);if(im._src!==src){im.src=src;im._src=src;im.dataset.k=it.key;}ct.textContent=it.tool?(it.id==='can'?S.water:''):(it.qty>1?it.qty:'');}else{ct.textContent='';im.removeAttribute('src');im.dataset.k='';}});}
+    b.classList.toggle('empty',!it);b.classList.toggle('sel',i===S.slotSel);b.classList.toggle('on',!!it&&it.key===want);const al=it?it.name:'empty slot';if(b.getAttribute('aria-label')!==al)b.setAttribute('aria-label',al);
+    // (only touch what changed: rewriting every slot 7 times a second made the page lay itself out again each time)
+    if(it){const src=iconOf(it.icon);if(im._src!==src){im.src=src;im._src=src;im.dataset.k=it.key;}setTxt(ct,it.tool?(it.id==='can'?S.water:''):(it.qty>1?it.qty:''));}else{setTxt(ct,'');if(im.hasAttribute('src'))im.removeAttribute('src');im._src='';if(im.dataset.k)im.dataset.k='';}});}
 setInterval(()=>{if($('hotbar')&&$('hotbar').style.display!=='none')renderHotbar();},150);
 // ---- the menu itself: the old bag panel grows tabs
 let GM_TAB='items';

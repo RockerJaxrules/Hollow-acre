@@ -94,5 +94,5 @@ function renderCalendar(){const B=$('bagBody');const s=seasonNow(),dom=dayOfMont
   _ob.apply(this,arguments);const bag=$('bag');const tabs=bag.querySelector('.tabs');if(tabs&&!tabs.querySelector('[data-t="calendar"]')){const b=document.createElement('button');b.dataset.t='calendar';b.textContent='Calendar';
     const j=tabs.querySelector('[data-t="journal"]');j?tabs.insertBefore(b,j):tabs.appendChild(b);b.addEventListener('click',()=>openBag('calendar'));}};}
 // the calendar hanging in the cabin opens the same page
-{let done=false;const _u=update;update=function(dt){_u(dt);if(done)return;const o=OBJ.find(q=>q.spr==='in_calendar'&&q.room==='cabin'&&!q.hide);if(!o)return;done=true;
+{let done=false,cd=0;const _u=update;update=function(dt){_u(dt);if(done)return;if((cd-=dt)>0)return;cd=1;const o=OBJ.find(q=>q.spr==='in_calendar'&&q.room==='cabin'&&!q.hide);if(!o)return;done=true;
   interact.push({x:o.x,z:o.z+.9,r:1.1,on:()=>S.room==='cabin',label:()=>'Calendar',ok:()=>true,act(){openBag('calendar');}});};}

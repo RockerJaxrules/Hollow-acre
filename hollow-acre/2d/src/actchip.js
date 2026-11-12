@@ -16,7 +16,7 @@
   let cur='';
   // the same choice X makes (the nearest thing you're facing, people included); the tag only shows when that's one of the
   // story's own moments: the stones, a letter in the mailbox, the Tithe House door, the ledger, Grandpa's pages, the altars
-  const pick=()=>{let best=null,bd=1e9;for(const it of interact){if(it.npc!==undefined&&npcs[it.npc]){it.x=npcs[it.npc].x;it.z=npcs[it.npc].z;}
+  const pick=()=>{let best=null,bd=1e9;for(const it of icNear()){if(it.npc!==undefined&&npcs[it.npc]){it.x=npcs[it.npc].x;it.z=npcs[it.npc].z;}
       if(it.on&&!it.on())continue;if(!isFinite(it.x)||!isFinite(it.z))continue;const d=Math.hypot(P.x-it.x,P.z-it.z);if(d<it.r+.3){const dot=((it.x-P.x)*P.fx+(it.z-P.z)*P.fz)/(d||1);if(d>1&&dot<.3)continue;const sc=d*(1.6-dot);if(sc<bd){bd=sc;best=it;}}}return best;};
   const show=()=>{if(S.mode!=='play'||busy()||fishing()||(typeof PLACE!=='undefined'&&PLACE.on))return '';
     const it=pick();if(!it||!it.story||(typeof it.story==='function'&&!it.story()))return '';

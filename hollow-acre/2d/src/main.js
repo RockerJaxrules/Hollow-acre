@@ -115,7 +115,7 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
   mindGround();findsDraw(t);farmDraw();depthWater(t);mindReflection();
   // collect drawables
   const D=[];const pad=200;sunBegin();
-  for(const o of OBJ){if(o.hide)continue;const X=sx(o.x),Y=sz(o.z);if(X<-pad||X>VW+pad||Y<-60||Y>VH+pad+260)continue;
+  for(const o of objView(pad)){if(o.hide)continue;const X=sx(o.x),Y=sz(o.z);if(X<-pad||X>VW+pad||Y<-60||Y>VH+pad+260)continue;
     if(o.kind==='deco'){drawSpr('leaves_'+o.v,X,Y);continue;}if(o.kind==='flat'){drawSpr(o.spr,X,Y);continue;}castShadow(o,X,Y);D.push({z:o.z,o});}
   sunEnd();
   for(const tl of tiles)if(tl.crop){const c=tl.crop;D.push({z:tl.z+.2,crop:tl});}
@@ -210,7 +210,7 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
     for(const h of HOUSES){if(!h.lit)continue;const X=sx(h.x),Y=sz(h.z)-40;if(X<-200||X>VW+200||Y<-200||Y>VH+200)continue;glowAt(X,Y+20,120,[255,170,80],.45*L);
       const m=SPR[h.e.spr];const wy=Y-(m&&m.fh>200?40:24);for(const dx of [-(h.w/2-1.5),h.w/2-1.5])glowAt(X+dx*PPM,wy,34,[255,190,110],.85*L);}
     for(const lp of lamps){if(lp.dead&&Math.sin(t*9+lp.ph)>.2)continue;const X=sx(lp.x),Y=sz(lp.z)-66;if(X<-150||X>VW+150||Y<-150||Y>VH+150)continue;glowAt(X,Y+50,100,[255,180,90],.75*L*fl);glowAt(X,Y,16,[255,230,170],.9*L);}
-    for(const o of OBJ){if(!o.glow)continue;const X=sx(o.x),Y=sz(o.z)-8;if(X<-60||X>VW+60||Y<-60||Y>VH+60)continue;glowAt(X,Y,30,[255,140,40],.6*L*fl);}
+    for(const o of glowObjs()){if(!o.glow)continue;const X=sx(o.x),Y=sz(o.z)-8;if(X<-60||X>VW+60||Y<-60||Y>VH+60)continue;glowAt(X,Y,30,[255,140,40],.6*L*fl);}
     for(const a of altars)if(a.lit){glowAt(sx(a.x),sz(a.z)-36,120,[255,150,60],.8*fl);}
     for(const m of mushrooms)if(!m.taken)glowAt(sx(m.x),sz(m.z)-6,26,[90,255,200],.55*L);
     if(S.hour>=19.5&&!S.bound)glowAt(sx(crossPos.x+.6)+12,sz(crossPos.z+2.6)-22,46,[110,255,150],.7*L);
@@ -433,11 +433,11 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/
   partsUpdate(dt);
   render(dt,now);
   if(cine&&cine.draw)cine.draw();
-  if(S.mode==='play'){ctx=computeContext();ui.act.textContent=ctx.label||'—';ui.act.classList.toggle('off',!ctx.ok);ui.act.classList.toggle('hot',!!ctx.ok&&!!ctx.label);updateHud();
-    const ob=objective();ui.obj.innerHTML=`<b>${ob[0]}</b> ${ob[1]}`;const tg=ob[2];
+  if(S.mode==='play'){ctx=computeContext();setTxt(ui.act,ctx.label||'—');ui.act.classList.toggle('off',!ctx.ok);ui.act.classList.toggle('hot',!!ctx.ok&&!!ctx.label);updateHud();
+    const ob=objective();setHtml(ui.obj,`<b>${ob[0]}</b> ${ob[1]}`);const tg=ob[2];
     if(tg&&Math.hypot(tg.x-P.x,tg.z-P.z)>3){const X=sx(tg.x),Y=sz(tg.z);const ax=clamp(X,20,VW-20),ay=clamp(Y,60,VH-60);const off=X<0||X>VW||Y<0||Y>VH;
-      ui.arrow.style.display=off?'block':'none';if(off){const ang=Math.atan2(Y-VH/2,X-VW/2);ui.arrow.style.left=(ax*innerWidth/VW-15)+'px';ui.arrow.style.top=(ay*innerHeight/VH-15)+'px';ui.arrow.style.transform=`rotate(${ang+Math.PI/2}rad)`;}}
-    else ui.arrow.style.display='none';}
+      setSty(ui.arrow,'display',off?'block':'none');if(off){const ang=Math.atan2(Y-VH/2,X-VW/2);setSty(ui.arrow,'left',Math.round(ax*innerWidth/VW-15)+'px');setSty(ui.arrow,'top',Math.round(ay*innerHeight/VH-15)+'px');setSty(ui.arrow,'transform',`rotate(${(ang+Math.PI/2).toFixed(2)}rad)`);}}
+    else setSty(ui.arrow,'display','none');}
   if(toastT>0){toastT-=dt;if(toastT<=0)ui.toast.classList.remove('show');}
 }
 /* ================= boot ================= */

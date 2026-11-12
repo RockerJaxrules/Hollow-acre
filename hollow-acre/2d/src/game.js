@@ -54,7 +54,7 @@ function updateHud(){const s=[S.day,fmtTime(S.hour),S.coins,S.seeds.turnip,S.see
   if(s!==lastHud){lastHud=s;ui.day.textContent='Day '+S.day;ui.time.textContent=fmtTime(S.hour);ui.coins.textContent=S.coins;ui.turnip.textContent=S.seeds.turnip;ui.pumpkin.textContent=S.seeds.pumpkin;
     ui.water.textContent=S.water+'/'+S.waterMax;ui.basket.textContent=S.basket.length;ui.candles.textContent=S.candles;ui.oil.textContent=Math.ceil(S.fuel)+'%'+(S.flasks?' +'+S.flasks:'');
     ui.oilChip.classList.toggle('low',S.fuel<25);ui.pages.textContent=S.pages.length+'/6';ui.parts.textContent=(S.carFixed?'4':Math.max(partsIn(),partsOwned()))+'/4';ui.seed.textContent=SEEDS[S.sel].name;}
-  ui.bar.style.width=(clamp((S.hour-6)/20,0,1)*100)+'%';mindHud();}
+  setSty(ui.bar,'width',(clamp((S.hour-6)/20,0,1)*100).toFixed(1)+'%');mindHud();}
 function objective(){const L=lit(),np=S.pages.length;
   if(S.bound)return ['Free play','The field is quiet now. Grow whatever you like.',null];
   if(!S.foundCabin)return ['Stranded','Your car is wrecked. Walk east along Route 9 to Grandpa’s farm; the HOLLOW ACRE sign marks his lane.',doorPos];
@@ -153,7 +153,7 @@ const interact=[
 function targetTile(){for(const dd of[.8,.35,1.3]){const x=P.x+P.fx*dd,z=P.z+P.fz*dd+.1;const t=tileAt(Math.floor(x-FIELD.x0),Math.floor(z-FIELD.z0));if(t)return t;}return null;}
 let ctx={label:'',ok:false},hlTile=null;
 function computeContext(){let best=null,bd=1e9;
-  for(const it of interact){if(it.npc!==undefined){it.x=npcs[it.npc].x;it.z=npcs[it.npc].z;}if(it.mush){it.x=it.mush.x;it.z=it.mush.z;}if(it.cat){it.x=cat.x;it.z=cat.z;}
+  for(const it of icNear()){if(it.npc!==undefined){it.x=npcs[it.npc].x;it.z=npcs[it.npc].z;}if(it.mush){it.x=it.mush.x;it.z=it.mush.z;}if(it.cat){it.x=cat.x;it.z=cat.z;}
     if(it.on&&!it.on())continue;const d=Math.hypot(P.x-it.x,P.z-it.z);if(d<it.r+.3){const dot=((it.x-P.x)*P.fx+(it.z-P.z)*P.fz)/(d||1);if(d>1&&dot<.3)continue;const sc=d*(1.6-dot);if(sc<bd){bd=sc;best=it;}}}
   hlTile=null;if(best)return {label:best.label(),ok:best.ok(),act:best.act};
   const t=targetTile();if(!t)return {label:'',ok:false};hlTile=t;

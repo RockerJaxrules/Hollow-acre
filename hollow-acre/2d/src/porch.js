@@ -5,8 +5,10 @@
 const PORCH={zones:[],frame:-1};
 const STEP_W=[18,22,26,30,32],RAMP_W=[34,44,60];
 const nearestW=(L,w)=>L.reduce((a,b)=>Math.abs(b-w)<Math.abs(a-w)?b:a);
-function porchZones(){const f=typeof frameCount!=='undefined'?frameCount:Math.floor(performance.now()/16);if(PORCH.frame===f)return PORCH.zones;PORCH.frame=f;
-  const Z=[];for(const o of OBJ){if(o.kind!=='bld'||o.hide||o.room||o.x>=250||o.noSteps)continue;const m=SPR[o.spr];if(!m||!m.door_w)continue;
+function porchZones(){const f=FRAME_NO;if(PORCH.frame===f)return PORCH.zones;PORCH.frame=f;
+  // the buildings themselves, kept between frames (rebuilt when the world changes, and every couple of seconds)
+  if(!PORCH.blds||PORCH.n!==OBJ.length||PORCH.last!==OBJ[OBJ.length-1]||f-PORCH.bf>120||f<PORCH.bf){PORCH.bf=f;PORCH.n=OBJ.length;PORCH.last=OBJ[OBJ.length-1];PORCH.blds=OBJ.filter(o=>o.kind==='bld');}
+  const Z=[];for(const o of PORCH.blds){if(o.kind!=='bld'||o.hide||o.room||o.x>=250||o.noSteps)continue;const m=SPR[o.spr];if(!m||!m.door_w)continue;
     if(typeof onScreen==='function'&&!onScreen(o.x,o.z,140))continue;
     const ramp=m.steps==='ramp',w=ramp?nearestW(RAMP_W,m.door_w):nearestW(STEP_W,m.door_w);const spr=ramp?'ramp_'+w:'steps_'+(m.steps==='stone'?'stone':'wood')+'_'+w;
     if(!SPR[spr])continue;const dx=(m.door_dx||0)/PPM*(o.flip?-1:1);

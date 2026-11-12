@@ -204,7 +204,7 @@ function treeChop(){for(const o of OBJ){if(o.hide||(o.kind!=='tree'&&o.kind!=='p
     {if(!o.trunkW){const sk=makeStump(o.spr);o.trunkW=sk?Math.round((SPR[sk].foot[2]||.2)*PPM)-1:6;}const vert=Math.abs(P.z-o.z)>Math.abs(P.x-o.x)*1.1;if(vert){P.x=o.x+.04;P.z=P.z>o.z?o.z+.55:o.z-.62;}else{const side=P.x<o.x?-1:1,d=(15+o.trunkW)/PPM;P.x=o.x+side*d;P.z=o.z+.06;}}faceTo(o.x,o.z);
     startAnim('axe',.55,null,()=>{o.hits=(o.hits||0)+1;SFX.thud(0,.45);cam.shake=Math.max(cam.shake,.14);const cc=TREE_COL[o.spr]||['#1d4129','#356538'];
       // the trunk takes a bite on your side, the tree rocks away from you on its base, chips fly from the cut, a few leaves come down
-      o.notch=o.hits;o.notchSide=P.x<o.x?-1:1;if(!o.trunkW){const sk=makeStump(o.spr);o.trunkW=sk?Math.round((SPR[sk].foot[2]||.2)*PPM)-1:6;}o.rock={t:0,dir:P.x<o.x?1:-1};
+      o.notch=o.hits;o.notchSide=P.x<o.x?-1:1;if(!o.trunkW){const sk=makeStump(o.spr);o.trunkW=sk?Math.round((SPR[sk].foot[2]||.2)*PPM)-1:6;}o.rock={t:0,dir:P.x<o.x?1:-1};ROCKING.add(o);
       for(let i=0;i<9;i++)parts.push({x:o.x+o.notchSide*o.trunkW/PPM,z:o.z+.02,y:.38,vx:o.notchSide*(.8+Math.random()*1.6),vz:(Math.random()-.5)*.6,vy:1.2+Math.random()*1.4,t:0,life:.5+Math.random()*.3,col:i%3?'#d8b478':'#8a5c34',size:i%2?2:1});
       if(typeof LEAVES!=='undefined'&&typeof LEAF_COL!=='undefined'&&LEAF_COL[o.spr]){const C=LEAF_COL[o.spr];for(let i=0;i<3;i++)LEAVES.push({x:o.x+(Math.random()-.5)*2.2,z:o.z+(Math.random()-.3)*.6,h:60+Math.random()*30,t:0,ph:Math.random()*6,col:C,land:0});}
       if(o.hits<[5,3,2][Math.min(3,toolLv('axe'))-1])return;
@@ -217,7 +217,8 @@ function treeChop(){for(const o of OBJ){if(o.hide||(o.kind!=='tree'&&o.kind!=='p
         startAnim('axe',.55,null,()=>{st.hits=(st.hits||0)+1;SFX.thud(0,.4);burst(st.x,st.z,10,'#7d5636',1.4,.7,2);if(st.hits<(S.tools.axe>1?1:2))return;
           st.hide=true;st.goneDay=S.day;const k=circles.indexOf(st.col);if(k>=0)circles.splice(k,1);addInv('wood',3);toast('The stump comes out. +3 wood.',1.4);});}});});}});}}
 // trees shake when hit
-{const _u3=update;update=function(dt){_u3(dt);for(const o of OBJ)if(o.rock){const r=o.rock;r.t+=dt;o.tilt=r.dir*.06*Math.exp(-r.t*5)*Math.cos(r.t*26);if(r.t>1){o.rock=null;o.tilt=0;}}};}
+const ROCKING=new Set();   // trees still swaying from a chop (was a walk over every object, every frame)
+{const _u3=update;update=function(dt){_u3(dt);for(const o of ROCKING){if(!o.rock){ROCKING.delete(o);continue;}const r=o.rock;r.t+=dt;o.tilt=r.dir*.06*Math.exp(-r.t*5)*Math.cos(r.t*26);if(r.t>1){o.rock=null;o.tilt=0;ROCKING.delete(o);}}};}
 // ---- crafting from what you gather: wood, stone, fiber, ore
 const CRAFT=[['flask','Lamp oil flask',{coal:2,fiber:2},'Refills your lantern once when it runs dry.',()=>{S.flasks++;}],
   ['sprinkler','Brass sprinkler',{copper:3,iron:1,wood:2},'Waters a patch of field every morning (up to 4).',()=>{S.sprinklers=Math.min(4,(S.sprinklers||0)+1);},()=>(S.sprinklers||0)<4],
