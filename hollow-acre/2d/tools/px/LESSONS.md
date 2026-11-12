@@ -225,6 +225,8 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A view from a tower is foreshortened: squash the far half, hills at the top of the glass. A straight top-down plan reads as a map or a dartboard.
 - Age on paper: yellow it, fox it with a few spots, curl a corner; a stack of thin paper lips shows years at a glance.
 - Size carries status: the stand-in had to be a full head taller than the children's scarecrows to rule the ring.
+- Code trap: `'text'.strike` is truthy (String.prototype.strike is a built-in), so a `ln.strike` flag on a plain string struck through every chalk line and made MOLLY, ALICE and the sum unreadable. Test `typeof ln==='object'` first.
+- A slate, a carving, a label: dump the text pixels and look at them at 6x before judging; garbled text costs a whole round.
 
 ## Judging (Nov 9)
 - Blind judges vary by about a point between rounds and lean toward whichever image is in slot b: in tree round 4 the
