@@ -67,6 +67,25 @@ function castShadow(o,X,Y){if(sunShadow(o,X,Y)){if(o.kind==='tree'||o.kind==='pi
 function shadow(x,y,w){ctx2.fillStyle='rgba(10,14,8,.32)';ctx2.beginPath();ctx2.ellipse(x,y,w,w*.38,0,0,Math.PI*2);ctx2.fill();}
 let nightK=0,camT={x:0,z:0},titleT=0;
 let WSTREAM_DUMMY=null;
+// one tilled square, painted once and kept (see the soil in render)
+const SOIL_CACHE=new Map();
+function soilTile(i,j,up,dn,lf,rt,wet){const k=i+','+j+','+(up?1:0)+(dn?2:0)+(lf?4:0)+(rt?8:0)+(wet?'w':'');let c=SOIL_CACHE.get(k);if(c)return c;
+  if(SOIL_CACHE.size>4000)SOIL_CACHE.clear();
+  c=document.createElement('canvas');c.width=32;c.height=32;const g=c.getContext('2d');const im=g.createImageData(32,32),D=im.data;
+  const base=wet?[74,46,30]:[112,74,46],dark=wet?[52,32,20]:[84,54,32],light=wet?[96,64,42]:[140,98,62];
+  const put=(x,y,col,a)=>{const p=(y*32+x)*4;D[p]=Math.round(col[0]);D[p+1]=Math.round(col[1]);D[p+2]=Math.round(col[2]);D[p+3]=a==null?255:a;};
+  for(let y=0;y<32;y++)for(let x=0;x<32;x++){const wx=i*32+x,wy=j*32+y;const e=(hash(wx,wy*3)*3)|0;
+    if(!up&&y<e)continue;if(!dn&&y>31-e)continue;if(!lf&&x<e)continue;if(!rt&&x>31-e)continue;
+    let col=base;const n=hash(wx>>1,wy>>1);if(n>.82)col=light;else if(n<.18)col=dark;
+    const fy=(wy+((wx>>3)&1))%11;if(fy===0)col=dark;else if(fy===1)col=[col[0]*.92,col[1]*.92,col[2]*.92];else if(fy===2)col=light;
+    if(!up&&y<e+4)col=[col[0]*(.62+.09*(y-e)),col[1]*(.62+.09*(y-e)),col[2]*(.62+.09*(y-e))];
+    if(!lf&&x<e+2)col=[col[0]*.82,col[1]*.82,col[2]*.82];
+    if(!dn&&y>31-e-2)col=[Math.min(255,col[0]*1.12+8),Math.min(255,col[1]*1.1+6),Math.min(255,col[2]*1.08+4)];
+    put(x,y,col);}
+  g.putImageData(im,0,0);
+  for(let k2=0;k2<4;k2++){const h=hash(i*13+k2,j*7+k2*3);const cx=3+((h*97)%26|0),cy=4+((h*61)%23|0);g.fillStyle=`rgb(${light[0]},${light[1]},${light[2]})`;g.fillRect(cx,cy,2,1);g.fillStyle=`rgb(${dark[0]},${dark[1]},${dark[2]})`;g.fillRect(cx,cy+1,2,1);}
+  if(wet&&((i+j)&1)){g.fillStyle='rgba(180,200,220,.18)';g.fillRect(8,12,3,1);g.fillRect(20,22,2,1);}
+  SOIL_CACHE.set(k,c);return c;}
 function render(dt,now){const t=now/1000;FRAME_NO++;
   const amb=ambient(S.hour);nightK=clamp((S.hour-18.4)/1.8,0,1);if(S.hour<6.6)nightK=Math.max(nightK,clamp((6.6-S.hour)/1.6,0,1));if(S.room==='mine')nightK=1;nightAmt=nightK;
   // camera
@@ -92,23 +111,13 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
   // tilled soil (dual grid autotile) + wet darkening
   // tilled soil: dug into the ground, not sitting on it. A darker patch with ragged edges, the shade of the bank along its top inside edge,
   // a faint lighter crumb rim on the bottom edge, shallow furrows across it and loose clods. Watered soil is darker and a little glossy.
-  {const T=(i,j)=>{const t_=tileAt(i,j);return !!(t_&&t_.tilled);};
+  // (the soil used to be painted one pixel at a time, 1,024 fills per tilled square every frame: a tilled field took ~80 ms a frame
+  // on an ordinary laptop. Each square is now painted once into a small picture, keyed by its neighbours and whether it's wet,
+  // and reused; the result is pixel for pixel the same.)
+  {const T=(t,di,dj)=>{const t_=typeof tileNb==='function'?tileNb(t,di,dj):tileAt(t.i+di,t.j+dj);return !!(t_&&t_.tilled);};
    for(const tl of tiles){if(!tl.tilled)continue;const X=Math.round(sx(tl.x-.5)),Y=Math.round(sz(tl.z-.5));if(X<-40||X>VW+40||Y<-40||Y>VH+40)continue;
-     const wet=(tl.crop&&tl.crop.watered)||tl.wet;const up=T(tl.i,tl.j-1),dn=T(tl.i,tl.j+1),lf=T(tl.i-1,tl.j),rt=T(tl.i+1,tl.j);
-     const base=wet?[74,46,30]:[112,74,46],dark=wet?[52,32,20]:[84,54,32],light=wet?[96,64,42]:[140,98,62];
-     const rgb=c=>`rgb(${c[0]},${c[1]},${c[2]})`;
-     // ragged edge: each side eats 0-2 px in or out, decided per pixel so neighbouring tiles stay seamless
-     for(let y=0;y<32;y++)for(let x=0;x<32;x++){const wx=tl.i*32+x,wy=tl.j*32+y;const e=(hash(wx,wy*3)*3)|0;
-       if(!up&&y<e)continue;if(!dn&&y>31-e)continue;if(!lf&&x<e)continue;if(!rt&&x>31-e)continue;
-       let c=base;const n=hash(wx>>1,wy>>1);if(n>.82)c=light;else if(n<.18)c=dark;
-       const fy=(wy+((wx>>3)&1))%11;if(fy===0)c=dark;else if(fy===1)c=[c[0]*.92,c[1]*.92,c[2]*.92];else if(fy===2)c=light;
-       if(!up&&y<e+4)c=[c[0]*(.62+.09*(y-e)),c[1]*(.62+.09*(y-e)),c[2]*(.62+.09*(y-e))];   // the bank above shades the dug soil
-       if(!lf&&x<e+2)c=[c[0]*.82,c[1]*.82,c[2]*.82];
-       if(!dn&&y>31-e-2)c=[Math.min(255,c[0]*1.12+8),Math.min(255,c[1]*1.1+6),Math.min(255,c[2]*1.08+4)];  // the lip you dug up, catching light
-       ctx2.fillStyle=rgb(c);ctx2.fillRect(X+x,Y+y,1,1);}
-     // a few loose clods with a lit top and a dark underside
-     for(let k=0;k<4;k++){const h=hash(tl.i*13+k,tl.j*7+k*3);const cx=X+3+((h*97)%26|0),cy=Y+4+((h*61)%23|0);ctx2.fillStyle=rgb(light);ctx2.fillRect(cx,cy,2,1);ctx2.fillStyle=rgb(dark);ctx2.fillRect(cx,cy+1,2,1);}
-     if(wet&&((tl.i+tl.j)&1)){ctx2.fillStyle='rgba(180,200,220,.18)';ctx2.fillRect(X+8,Y+12,3,1);ctx2.fillRect(X+20,Y+22,2,1);}}}
+     const wet=!!((tl.crop&&tl.crop.watered)||tl.wet);const up=T(tl,0,-1),dn=T(tl,0,1),lf=T(tl,-1,0),rt=T(tl,1,0);
+     ctx2.drawImage(soilTile(tl.i,tl.j,up,dn,lf,rt,wet),X,Y);}}
   if(hlTile&&S.mode==='play'){{const X=Math.round(sx(hlTile.x-.5)),Y=Math.round(sz(hlTile.z-.5));ctx2.strokeStyle='rgba(0,0,0,.35)';ctx2.lineWidth=1;ctx2.strokeRect(X+1.5,Y+1.5,29,29);ctx2.strokeStyle=TAP.hlCol||'rgba(255,240,200,.75)';ctx2.strokeRect(X+.5,Y+.5,31,31);ctx2.fillStyle=TAP.hlCol||'rgba(255,240,200,.75)';for(const [a,b] of [[0,0],[28,0],[0,28],[28,28]]){ctx2.fillRect(X+a,Y+b,4,1);ctx2.fillRect(X+a+(a?3:0),Y+b,1,4);ctx2.fillRect(X+a,Y+b+(b?3:0),4,1);}}}
   // skid marks & blood at the crash site
   if(!S.introDrive&&onScreen(-56,-5,200)){ctx2.fillStyle='rgba(0,0,0,.3)';for(let k=0;k<2;k++){ctx2.save();ctx2.translate(sx(-58.6+k*.9),sz(-1.6+k*.25));ctx2.rotate(.42);ctx2.fillRect(-200,0,200,3);ctx2.restore();}}
