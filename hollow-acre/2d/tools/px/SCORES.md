@@ -59,3 +59,4 @@ orders. Latest round first.
 | Story sight close-ups x11 (Nov 12) | set 4.5 -> 6 | yes (replace the text cards) | toward 7: the small bundle with a body's outline; sleeves down the grave figure's sides |
 | Region story sights x5 (Nov 12) | set 5.5 -> 6 (corn 7, birches 6.5, lookout 6.5, drowned 6.5, fen 6) | yes (replace the text cards) | toward 7: the bog child clearly lying on its side; three-quarter backs on the drowned |
 | Chapter-two places x5 (Nov 12) | set 5.5 -> 6.5 (lake 7, wick 7, marsh 6.5, tithe 6, tree 6) | yes (replace the text pages) | toward 7: deeper lit lips on the carved letters; the shoes lower and wider |
+| The Count: 34 found things (Nov 12) | set 5 -> 6, all 34 at 6+ (square 7; wksquare, birches, motel, ridge, mine, quarry, county 6.5) | yes (replace the text pages) | toward 7: the hats (both bonnets, the falls cap) are the thinnest passes; lining without concentric rings |

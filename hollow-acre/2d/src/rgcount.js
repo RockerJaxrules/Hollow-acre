@@ -83,9 +83,11 @@ function rgcSpot(x,z){for(let r=0;r<7;r+=.5)for(let a=0;a<12;a++){const X=x+Math
   RGC_OBJ[c.id]=obj('rem_'+c.k,s.x,s.z,{kind:'prop',noCol:true,hide:!!S.count[c.id]});
   interact.push({x:s.x,z:s.z+.15,r:1,on:()=>!S.room&&!S.count[c.id],label:()=>'Look',ok:()=>true,act(){rgcFind(c);}});}};}
 function rgcFind(c){if(S.count[c.id])return;SFX.page&&SFX.page();
-  openNote(`<h3>${c.who}, ${c.yr}</h3><p class="jsub">${c.part}</p><p>${c.text}</p>`,'Say their name',()=>{S.count[c.id]=S.day;const o=RGC_OBJ[c.id];if(o)o.hide=true;
+  // the thing itself, up close (countsight.js); the page is the fallback
+  const fin=()=>{if(S.count[c.id])return;S.count[c.id]=S.day;const o=RGC_OBJ[c.id];if(o)o.hide=true;
     if(typeof M!=='undefined')M.v=Math.min(100,M.v+6);addLore(`${c.who}, ${c.yr}. ${c.part}.`);
-    const n=Object.keys(S.count).length;setTimeout(()=>toast(n>=RGC.length?`That’s all of them. ${RGC.length} names. Somebody has kept count.`:`You say it out loud: ${c.who}. (${n} of ${RGC.length} names)`,3.4),300);});}
+    const n=Object.keys(S.count).length;setTimeout(()=>toast(n>=RGC.length?`That’s all of them. ${RGC.length} names. Somebody has kept count.`:`You say it out loud: ${c.who}. (${n} of ${RGC.length} names)`,3.4),300);};
+  if(!(typeof rgcSight==='function'&&rgcSight(c,fin)))openNote(`<h3>${c.who}, ${c.yr}</h3><p class="jsub">${c.part}</p><p>${c.text}</p>`,'Say their name',fin);}
 {const _lg=loadGame;loadGame=function(){const r=_lg.apply(this,arguments);try{S.count=S.count||{};for(const c of RGC){const o=RGC_OBJ[c.id];if(o)o.hide=!!S.count[c.id];}}catch(e){}return r;};}
 // ---- the journal: the Count, at the top of the Places tab
 {const _ph=placesHtml;placesHtml=function(){const n=RGC.filter(c=>S.count[c.id]).length;

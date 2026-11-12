@@ -402,3 +402,4 @@ One row per critiqued attempt. The point is to see the number of attempts per ki
 | 2026-11-12 | the Count, round 2 | 2 | set 5.5, 26 pass (slates fixed: a code bug struck through every chalk line) | tops still triangles (party hats, carrots); bonnet ties read as legs; flat cap a loaf |
 | 2026-11-12 | the Count, round 3 | 3 | set 6, 31 pass (tops fixed with a shoulder curving to the point, spin dents; round glass marbles) | bonnet opening a porthole (lantern); chapel bonnet seen straight down = a plate; cap herringbone = fur |
 | 2026-11-12 | the Count, round 4 | 4 | set 6, 33 pass (lined bonnets, the chapel one on its side) | falls cap read as an animal's head in profile: turn its peak toward the viewer |
+| 2026-11-12 | the Count, round 5 | 5 | set 6, all 34 pass (falls 6 with the peak toward the viewer; corn 6) | done; the cap's button made brown so it and the water fleck can't read as two eyes |
