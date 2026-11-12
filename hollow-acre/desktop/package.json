@@ -26,6 +26,7 @@
     "productName": "Hollow Acre",
     "files": [
       "main.js",
+      "preload.js",
       "game/**/*"
     ],
     "directories": {

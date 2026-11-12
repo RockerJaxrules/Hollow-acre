@@ -70,8 +70,10 @@ body.maeTalking #hudC>#lesson{display:none!important}
 // ---- the old desktop zoom is replaced by one scale for everything
 uiScale=function(){for(const id of ['hud','objective','buttons','bars','hotbar','toast','placeBar','subs'])if($(id))$(id).style.zoom='';for(const el of document.querySelectorAll('.sheet'))el.style.zoom='';};
 function hudLayout(){const W=innerWidth,H=innerHeight,fine=matchMedia('(pointer:fine)').matches;const r=document.documentElement.style;
-  let u=1;if(fine)u=clamp(Math.min(W/1150,H/720),1,1.8);else if(Math.min(W,H)>=700)u=1.15;r.setProperty('--u',u.toFixed(3));
-  const su=fine?clamp(Math.min(W/1000,H/680),1,1.9):(Math.min(W,H)>=700?1.2:1);r.setProperty('--su',su.toFixed(3));const tu=fine?clamp(Math.min(W/760,H/620),1,2.1):(Math.min(W,H)>=700?1.25:1);r.setProperty('--tu',tu.toFixed(3));
+  // big monitors (1440p, 4K, ultrawide) scale all the way up now; Display > Interface size multiplies it (#273)
+  const k=typeof dispUi==='function'?dispUi():1;
+  let u=1;if(fine)u=clamp(Math.min(W/1150,H/720),1,4);else if(Math.min(W,H)>=700)u=1.15;u*=k;r.setProperty('--u',u.toFixed(3));
+  const su=(fine?clamp(Math.min(W/1000,H/680),1,4):(Math.min(W,H)>=700?1.2:1))*k;r.setProperty('--su',su.toFixed(3));const tu=(fine?clamp(Math.min(W/760,H/620),1,4.5):(Math.min(W,H)>=700?1.25:1))*k;r.setProperty('--tu',tu.toFixed(3));
   const port=H>W&&W<700;const short=H<480;const btn=short?54:port?60:66;r.setProperty('--btn',btn+'px');
   // how many hotbar slots fit, and how big
   const vw=W/u,gut=20;let avail=port?vw-gut:vw-gut-2*(btn+14);const n=clamp(Math.floor(avail/50),6,12);const slot=clamp(Math.floor(avail/n)-4,34,52);
