@@ -20,9 +20,9 @@
      exact look above the old edge, and only trees standing in the two new roads are taken down (hidden, never removed from the
      list, so saves line up). ================= */
 const L35={Z0:290,Z1:410,XW:-96,built:false,reg:{k:'low',name:'The Low Fields',x0:-310,x1:218,z0:290,z1:410},
-  pond:{x:70,z:380,rx:7,rz:4.3},pump:{x:64.4,z:376.2},junction:{x:20,z:302},mile:{k:'low',name:'The Low Fields',x:17.9,z:300.3},
+  pond:{x:70,z:380,rx:7,rz:4.3},pump:{x:63.6,z:375.6},junction:{x:20,z:302},mile:{k:'low',name:'The Low Fields',x:17.9,z:300.3},
   bridges:[],copses:[[-10,341,5],[-45,338,4],[128,343,4.5],[184,342,5],[2,389,4],[118,392,4.5]],
-  plough:{x:5.2,z:334.2},scars:[[-13,333.3,4.2,333.6],[-12.2,334.1,4.4,334.4],[-11,334.9,3.9,335.1]],fenceDown:{x:58.6,z:368.6}};
+  plough:{x:5.2,z:334.2},scars:[[-6.4,333.3,4.2,333.6],[-5.6,334.1,4.4,334.4],[-4.5,334.9,3.9,335.1]],fenceDown:{x:68.8,z:372.6}};
 // ---------------------------------------------------------------- the roads: gentle bends, flat over the bridges
 const l35StreamX=z=>RGP.dam.x+(fbm(z*.2,3)-.5)*3;      // the dam's spillway (regions.js inSpill), running on south
 {const S1=l35StreamX(302),S2=l35StreamX(354);
@@ -32,7 +32,9 @@ const l35StreamX=z=>RGP.dam.x+(fbm(z*.2,3)-.5)*3;      // the dam's spillway (re
     {w:2,p:[[-62,302.4],[-44,302.1],[-20,301.6],[0,301.7],[20,302],[40,302.4],[62,302.3],[90,302],[110,301.7],[127,302],[S1-3.6,302],[S1+3.6,302],[156,302.3],[170,302],[184,301.7],[196,301.9]]},   // Bottom Road
     {w:1.8,p:[[-62,353.5],[-36,354.2],[-8,354.5],[20,354],[44,353.5],[66,353.7],[90,354],[112,354.3],[S2-3.6,354],[S2+3.6,354],[158,353.6],[170,354],[186,354.4],[196,354.1]]},   // South Road
     {w:1.6,p:[[90,302],[90.7,318],[90.9,336],[90,354],[89.3,372],[89.6,386],[90.2,398]]},                                                  // the lanes
-    {w:1.6,p:[[170,302],[169.3,320],[169.6,338],[170,354]]}];
+    {w:1.6,p:[[170,302],[169.3,320],[169.6,338],[170,354]]},
+    {w:1.1,p:[[90.2,327.4],[84,327.1],[78,327.7],[73.4,327.3]]},                                                                           // a cart track to the patch
+    {w:1.1,p:[[19.7,378.6],[10,378.2],[0,378.9],[-12,378.4],[-27.2,378.6]]}];                                                                // and to the west strip
   // as straight pieces for everything that asks "is this on a road" (narrower than the dirt: the verges wander out from it)
   L35.roads=[];for(const L of L35.lines)for(let i=0;i<L.p.length-1;i++)L35.roads.push([L.p[i][0],L.p[i][1],L.p[i+1][0],L.p[i+1][1],L.w*.72,L.w]);
   L35.junctions=[[20,302],[20,354],[90,302],[90,354],[170,302],[170,354],[127,302]];}
@@ -57,8 +59,11 @@ const L35_PLOTS=[
 const l35Price=n=>Math.round((n*5.2+350)/50)*50;
 // the old plots: off the market (kept exactly as they are for anyone who already owns one)
 for(const P of LAND_PARCELS){P.retired=true;if(P.kk==null)P.kk=LAND_PARCELS.indexOf(P);}
-L35_PLOTS.forEach(([id,name,x0,z0,w,h,desc],i)=>{const P={id:'lf_'+id,name,x0,z0,w,h,price:l35Price(w*h),kk:20+i,low:true,bank:true,
-  sign:[x0+.3,z0-1.15],desc:`${desc} Out in the Low Fields, south down Mill Road past the Deep Corn.`};LAND_PARCELS.push(P);});
+// which side of a plot faces a road or track: the gate goes there, the fences run round the rest, the hedge grows at its back
+function l35Side(x0,z0,w,h){let best='N',bd=1e9;for(const [s,x,z] of [['N',x0+w/2,z0-2.2],['W',x0-2.2,z0+h/2],['E',x0+w+2.2,z0+h/2]]){let d=1e9;for(const q of L35.roads)d=Math.min(d,segDist(x,z,q[0],q[1],q[2],q[3]));if(d<bd-.01){bd=d;best=s;}}return best;}
+L35_PLOTS.forEach(([id,name,x0,z0,w,h,desc],i)=>{const side=l35Side(x0,z0,w,h);
+  const sign=side==='N'?[x0+.25,z0-1.35]:side==='W'?[x0-1.45,z0+.55]:[x0+w+1.45,z0+.55];
+  const P={id:'lf_'+id,name,x0,z0,w,h,price:l35Price(w*h),kk:20+i,low:true,bank:true,side,sign,desc:`${desc} Out in the Low Fields, south down Mill Road past the Deep Corn.`};LAND_PARCELS.push(P);});
 const l35Old=P=>P.retired&&!landOwns(P.id);
 const l35Hash=(s,n)=>{let h=2166136261^n;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return ((h>>>0)%10007)/10007;};
 // the land office: the old plots aren't sold any more; with the free code there's no need of the bank's money
@@ -100,7 +105,12 @@ function l35Map(ps){const X0=-66,X1=202,Z0=291,Z1=404,E=EMP();
   for(const pass of [0,1])for(const L of L35.lines){const pts=L.p.filter(q=>q[1]>=Z0-12).map(q=>`${q[0]},${Math.max(Z0,q[1])}`).join(' ');
     g+=`<polyline points="${pts}" fill="none" stroke="${pass?'#e8d8b0':'#6a4a2a'}" stroke-width="${pass?L.w*1.2:L.w*1.2+1}" stroke-linecap="round" stroke-linejoin="round"/>`;}
   let pts=[];for(let z=Z0;z<=Z1;z+=3)pts.push(`${l35StreamX(z).toFixed(1)},${z}`);g+=`<polyline points="${pts.join(' ')}" fill="none" stroke="#3a78a8" stroke-width="2.2"/>`;
-  g+=`<ellipse cx="${L35.pond.x}" cy="${L35.pond.z}" rx="${L35.pond.rx}" ry="${L35.pond.rz}" fill="#3a78a8"/>`;
+  // the plank bridges, the copses (a knot of crowns each) and every plot's hedgerow, as on the world map
+  for(const z of [302,354]){const cx=l35StreamX(z);g+=`<rect x="${(cx-2.3).toFixed(1)}" y="${z-1}" width="4.6" height="2" fill="#8a6038" stroke="#4a3018" stroke-width=".35"/>`;}
+  for(const c of L35.copses)for(let k=0;k<7;k++){const a=k*2.4+c[0]*.1,d=(k%3)*.32*c[2];const x=c[0]+Math.cos(a)*d,z=c[1]+Math.sin(a)*d*.7;g+=`<circle cx="${x.toFixed(1)}" cy="${z.toFixed(1)}" r="${(1.5+(k%2)*.6).toFixed(1)}" fill="${k%3===1?'#9a6a2a':'#5a6a32'}" stroke="#2e3a1a" stroke-width=".3"/>`;}
+  const hedge=(x1,z1,x2,z2)=>{const n=Math.max(2,Math.round(Math.hypot(x2-x1,z2-z1)/2.2));for(let k=0;k<=n;k++){const x=x1+(x2-x1)*k/n,z=z1+(z2-z1)*k/n;if(fbm(x*.16,z*.16)<.36)continue;g+=`<circle cx="${x.toFixed(1)}" cy="${z.toFixed(1)}" r="1.05" fill="#5a6a32"/>`;}};
+  for(const P of ps){if(P.side==='N')hedge(P.x0,P.z0+P.h+1.2,P.x0+P.w,P.z0+P.h+1.2);else if(P.side==='W')hedge(P.x0+P.w+1.25,P.z0,P.x0+P.w+1.25,P.z0+P.h);else hedge(P.x0-1.25,P.z0,P.x0-1.25,P.z0+P.h);}
+  {const Q=L35.pond,pp=[];for(let k=0;k<36;k++){const t=k/36*6.283,e=l35PondEdge(t);pp.push(`${(Q.x+Math.cos(t)*Q.rx*e).toFixed(1)},${(Q.z+Math.sin(t)*Q.rz*e).toFixed(1)}`);}g+=`<polygon points="${pp.join(' ')}" fill="#3a78a8"/>`;}
   const FS=3.3,CW=2.5;
   for(const P of ps){const mine=landOwns(P.id),owe=E.loans.some(L=>L.p===P.id);
     g+=`<a href="#emrow_${P.id}" data-emjump="${P.id}"><rect x="${P.x0}" y="${P.z0}" width="${P.w}" height="${P.h}" fill="${owe?'#d8a050':mine?'#5a8a3c':'url(#l35h)'}" stroke="${mine?'#2a4a1a':'#6a4a2a'}" stroke-width=".6"/></a>`;
@@ -116,7 +126,11 @@ function l35Map(ps){const X0=-66,X1=202,Z0=291,Z1=404,E=EMP();
 {const css=document.createElement('style');css.textContent=`#noteText .l35map{max-height:300px}#noteText .l35map .t2{font:3.3px 'Hollow Pixel',monospace;fill:#3a2414;text-anchor:middle;pointer-events:none}#noteText h4.l35h{margin-top:10px}
 #noteText .l35key{display:flex;flex-wrap:wrap;gap:4px 14px;margin:4px 0 2px;font-size:13px;color:#4a2e16}#noteText .l35k{display:inline-flex;align-items:center;gap:5px}`;document.head.appendChild(css);}
 // ---------------------------------------------------------------- the ground
-const l35InPond=(x,z)=>{const Q=L35.pond;const dx=(x-Q.x)/Q.rx,dz=(z-Q.z)/Q.rz;return dx*dx+dz*dz<1+(fbm(x*.5+9,z*.5)-.5)*.35;};
+// the pond: lobed and bitten, never an ellipse (f<0 is water)
+const l35PondF=(x,z)=>{const Q=L35.pond;const dx=(x-Q.x)/Q.rx,dz=(z-Q.z)/Q.rz;return dx*dx+dz*dz-(1+.2*Math.sin(Math.atan2(dz,dx)*3+1.3)+(fbm(x*.18+4,z*.18+2)-.5)*.5+(fbm(x*.5+9,z*.5)-.5)*.3);};
+const l35InPond=(x,z)=>l35PondF(x,z)<0;
+// how far out the shore lies along an angle (in pond radii): march out from the middle until the water stops
+const l35PondEdge=t=>{const Q=L35.pond;let d=.3;while(d<2&&l35InPond(Q.x+Math.cos(t)*Q.rx*d,Q.z+Math.sin(t)*Q.rz*d))d+=.03;return d;};
 const l35InPlot=(x,z,m)=>LAND_PARCELS.some(P=>P.low&&x>P.x0-m&&x<P.x0+P.w+m&&z>P.z0-m&&z<P.z0+P.h+m);
 const l35Low=z=>z>=L35.Z0;
 // where the north woods give way to the meadow: a ragged line with tongues of wood reaching out into the grass
@@ -140,10 +154,10 @@ RG_TINT.low=(r,g,b,l,h)=>[lerp(r,l*1.1,.42)*1.0+2,lerp(g,l*1.1,.42)*1.0,lerp(b,l
   for(const q of L35.roads){if(x<Math.min(q[0],q[2])-3||x>Math.max(q[0],q[2])+3||z<Math.min(q[1],q[3])-3||z>Math.max(q[1],q[3])+3)continue;if(segDist(x,z,q[0],q[1],q[2],q[3])<q[5]*.36+e)return true;}
   for(const j of L35.junctions)if(Math.abs(x-j[0])+Math.abs(z-j[1])<1.9+e*1.1)return true;}   // (only once the region is laid: the old valley's build must see the ground it always saw)
   if(!l35Low(z))return false;
-  const Q=L35.pond,d=Math.hypot((x-Q.x)/(Q.rx+1.3),(z-Q.z)/(Q.rz+1.3));if(d<1&&!l35InPond(x,z))return fbm(x*.9,z*.9)>.3;
+  const Q=L35.pond;if(Math.abs(x-Q.x)<Q.rx*1.5&&Math.abs(z-Q.z)<Q.rz*1.6){const f=l35PondF(x,z);if(f>=0&&f<.42+(fbm(x*.9,z*.9)-.5)*.5)return true;}
   return false;};}
 {const Dk=LAYERS.dark;LAYERS.dark=(x,z)=>{
-  if(!l35Low(z)){if(z>230&&L35.built&&l35OnRoad(x,z,.05+1.25*Math.max(0,fbm(x*.21+5,z*.21+2)-.3)+.5*Math.max(0,fbm(x*.9+1,z*.9+3)-.55)))return false;   // the new roads through the old woods: a verge that comes and goes
+  if(!l35Low(z)){if(z>230&&L35.built&&l35OnRoad(x,z,.02+.75*Math.max(0,fbm(x*.21+5,z*.21+2)-.46)+.35*Math.max(0,fbm(x*.9+1,z*.9+3)-.6)))return false;   // the new roads through the old woods: the woods floor up to the road, a scrap of grass verge here and there
     const k=REGS.indexOf(L35.reg),s=NEWB.z1;if(k>=0)REGS.splice(k,1);NEWB.z1=L35.Z0;try{return Dk(x,z);}finally{if(k>=0)REGS.splice(k,0,L35.reg);NEWB.z1=s;}}
   if(Math.max(NEWB.x0-x,x-NEWB.x1,z-NEWB.z1)>-1.5-2.5*fbm(x*.3+11,z*.3+7))return true;
   if(x<L35.XW+2)return true;
@@ -176,47 +190,52 @@ function l35Ground(g,x0,z0,N){const W=N*32;if(z0+N<=L35.Z0||x0+N<L35.XW||x0>NEWB
   const grass=new Uint8Array(n),L=new Float32Array(n);const hist=new Uint32Array(64);
   for(let i=0,o=0;i<n;i++,o+=4){const r=D[o],gg=D[o+1],b=D[o+2];L[i]=r*.3+gg*.59+b*.11;if(gg>=r+4&&gg>=b+26){grass[i]=1;hist[Math.min(63,L[i]>>2)]++;}}
   let mode=0;for(let k=1;k<64;k++)if(hist[k]>hist[mode])mode=k;if(!hist[mode])return;const base=mode*4+2;
-  // 2. the zone fields on a coarse grid (a quarter of a pace), read back smoothly
-  const G=N*4+1,Zd=new Float32Array(G*G),Zw=new Float32Array(G*G),Zp=new Float32Array(G*G),Zt=new Float32Array(G*G);
-  for(let j=0;j<G;j++)for(let i=0;i<G;i++){const z=l35Zone(x0+i/4,z0+j/4),k=j*G+i;Zd[k]=z[0];Zw[k]=z[1];Zp[k]=z[2];Zt[k]=z[3];}
+  // 2. the zone fields on a coarse grid (a quarter of a pace), read back smoothly; Zn is a finer wander for every border
+  const G=N*4+1,Zd=new Float32Array(G*G),Zw=new Float32Array(G*G),Zp=new Float32Array(G*G),Zt=new Float32Array(G*G),Zn=new Float32Array(G*G);
+  for(let j=0;j<G;j++)for(let i=0;i<G;i++){const wx=x0+i/4,wz=z0+j/4,z=l35Zone(wx,wz),k=j*G+i;Zd[k]=z[0];Zw[k]=z[1];Zp[k]=z[2];Zt[k]=z[3];Zn[k]=fbm(wx*.85+13,wz*.85+3);}
   const at=(A,px,py)=>{const fx=px/8,fy=py/8,i=Math.min(G-2,fx|0),j=Math.min(G-2,fy|0),u=fx-i,v=fy-j,k=j*G+i;return A[k]*(1-u)*(1-v)+A[k+1]*u*(1-v)+A[k+G]*(1-u)*v+A[k+G+1]*u*v;};
-  // 3. tufts: the bright clusters, kept or thinned by the density field; their shadows stay only under the tufts that stay
-  const core=new Uint8Array(n);for(let i=0;i<n;i++)if(grass[i]&&L[i]>=base+20)core[i]=1;
-  const comp=new Int32Array(n).fill(-1),keep=[];const stack=[];
+  // every border (zone to zone, patch, headland) wanders with Zn and breaks up in 3-pixel clumps, so none is a ruled line
+  const jitAt=(px,py,wx,wz)=>(at(Zn,px,py)-.5)*.16+(hash((wx*10.67)|0,(wz*10.67)|0)-.5)*.06;
   const plots=LAND_PARCELS.filter(P=>P.low&&P.x0<x0+N+1&&P.x0+P.w>x0-1&&P.z0<z0+N+1&&P.z0+P.h>z0-1);
   const plotAt=(wx,wz)=>{for(const P of plots)if(wx>=P.x0&&wx<P.x0+P.w&&wz>=P.z0&&wz<P.z0+P.h)return P;return null;};
-  for(let s=0;s<n;s++){if(!core[s]||comp[s]>=0)continue;const c=keep.length;let cx=0,cy=0,m=0;stack.push(s);comp[s]=c;
+  const edgeOf=(P,wx,wz)=>Math.min(wx-P.x0,P.x0+P.w-wx,wz-P.z0,P.z0+P.h-wz);
+  const onHead=(P,wx,wz,px,py,h3)=>edgeOf(P,wx,wz)+(at(Zn,px,py)-.5)*1.1+(h3-.5)*.3<.62;   // the trodden headland: a band that wanders
+  // 3. tufts: the bright clusters, thinned where the grass is thin and off the trodden headlands; shadows only under the kept ones
+  const core=new Uint8Array(n);for(let i=0;i<n;i++)if(grass[i]&&L[i]>=base+20)core[i]=1;
+  const comp=new Int32Array(n).fill(-1),keep=[];const stack=[];
+  for(let s0=0;s0<n;s0++){if(!core[s0]||comp[s0]>=0)continue;const c=keep.length;let cx=0,cy=0,m=0;stack.push(s0);comp[s0]=c;
     while(stack.length){const p=stack.pop(),px=p%W,py=(p/W)|0;cx+=px;cy+=py;m++;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const qx=px+dx,qy=py+dy;if(qx<0||qy<0||qx>=W||qy>=W)continue;const q=qy*W+qx;if(core[q]&&comp[q]<0){comp[q]=c;stack.push(q);}}}
-    cx/=m;cy/=m;const wx=x0+cx/32,wz=z0+cy/32,P=plotAt(wx,wz);let dens=at(Zt,cx,cy);
-    let pk=clamp(.15+(dens-.3)*1.7,0,1);if(P){const e=Math.min(wx-P.x0,P.x0+P.w-wx,wz-P.z0,P.z0+P.h-wz);pk=e<.9?0:pk*.6;}
+    cx/=m;cy/=m;const wx=x0+cx/32,wz=z0+cy/32,P=plotAt(wx,wz);const dens=at(Zt,cx,cy);
+    let pk=clamp(.15+(dens-.3)*1.7,0,1);if(P&&onHead(P,wx,wz,cx,cy,.5))pk*=.15;
     keep.push(m>=2&&hash((wx*7)|0,(wz*7)|0)<pk);}
   const shade=new Uint8Array(n);for(let i=0;i<n;i++){if(!core[i]||!keep[comp[i]])continue;const px=i%W,py=(i/W)|0;for(let dy=1;dy<=3;dy++)for(let dx=-1;dx<=1;dx++){const qx=px+dx,qy=py+dy;if(qx>=0&&qy<W&&qx<W)shade[qy*W+qx]=1;}}
   // 4. paint
   const TH=[.34,.63],mixc=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
+  const ZR=[L35_RAMP.olive,L35_RAMP.tawny,L35_RAMP.straw];
+  const rampAt=(px,py,wx,wz)=>{const j=jitAt(px,py,wx,wz),wt=at(Zw,px,py);if(wt+j*1.3>.5)return L35_RAMP.green;const d=at(Zd,px,py)+j;return ZR[d<TH[0]?0:d<TH[1]?1:2];};
   for(let py=0;py<W;py++){const wz=z0+(py+.5)/32;if(wz<L35.Z0)continue;const wl=clamp((wz-L35.Z0)/5,0,1);
     for(let px=0;px<W;px++){const i=py*W+px;if(!grass[i])continue;const wx=x0+(px+.5)/32;
-      const d=at(Zd,px,py),wt=at(Zw,px,py),pn=at(Zp,px,py);
-      // the zone: green near water, else olive / tawny / straw by dryness; a pixel's worth of mixed tone where two zones meet
-      let R,R2=null,t2=0;if(wt>.5){R=L35_RAMP.green;if(wt<.56){R2=L35_RAMP.olive;t2=.5;}}
-      else{const z=d<TH[0]?0:d<TH[1]?1:2;R=[L35_RAMP.olive,L35_RAMP.tawny,L35_RAMP.straw][z];const th=z===0?TH[0]:z===1?(d-TH[0]<TH[1]-d?TH[0]:TH[1]):TH[1];
-        if(Math.abs(d-th)<.018){R2=[L35_RAMP.olive,L35_RAMP.tawny,L35_RAMP.straw][d<th?Math.min(2,z+1):Math.max(0,z-1)];t2=.5;}}
-      const pick=k=>R2?mixc(R[k],R2[k],t2):R[k];
+      const R=rampAt(px,py,wx,wz),pick=k=>R[k],pn=at(Zp,px,py),h3=hash((wx*10.67)|0,(wz*10.67)|0);
       let c;const P=plotAt(wx,wz);
       if(core[i]&&keep[comp[i]])c=pick(L[i]>=base+44?'hi':'lt');
       else if(shade[i]&&L[i]<=base-6)c=pick('sh');
-      else{const low=pn>.64,edge=Math.abs(pn-.64)<.012;c=low?pick('dk'):pick('b');if(edge)c=mixc(pick('b'),pick('dk'),.5);}
-      if(P){const e=Math.min(wx-P.x0,P.x0+P.w-wx,wz-P.z0,P.z0+P.h-wz);
-        if(e<.85)c=mixc(c,L35_WORN,.34);                                                   // the headland, trodden round the edge
-        else{const v=(wz-P.z0+(fbm(wx*.4+P.x0,wz*.4)-.5)*.16)%1;if(v>.44&&v<.52)c=mixc(c,pick('dk'),.75);}}   // the old furrows
-      for(const s of L35.scars){const q=segDist(wx,wz,s[0],s[1],s[2],s[3]);if(q<.13){c=mixc(L35_WORN,[84,64,42],.45);break;}else if(q<.2){c=mixc(c,L35_WORN,.5);break;}}
+      else c=pn+jitAt(px,py,wx,wz)*.8>.64?pick('dk'):pick('b');
+      if(P){if(onHead(P,wx,wz,px,py,h3))c=mixc(c,L35_WORN,.3);                                   // the headland, trodden round the edge
+        else if(edgeOf(P,wx,wz)>1.1){                                                             // old furrows: low wavy ridges that come and go
+          const m=clamp((at(Zp,px,py)-.36)*3.2,0,1);if(m>0){const v=((wz-P.z0)+.22*Math.sin(wx*.45+P.x0)+(at(Zn,px,py)-.5)*.35)/1.3,f=v-Math.floor(v);
+            if(f<.09)c=mixc(c,pick('lt'),.26*m);else if(f>.44&&f<.6)c=mixc(c,pick('dk'),.4*m);}}}
+      // the plough's three scars: worn earth tapering out raggedly at both ends
+      for(const s2 of L35.scars){const dx=s2[2]-s2[0],dz=s2[3]-s2[1],L2=dx*dx+dz*dz;const t=clamp(((wx-s2[0])*dx+(wz-s2[1])*dz)/L2,0,1);
+        const tap=Math.min(1,t/.25,(1-t)/.1)*(.7+.6*hash((wx*6)|0,(wz*5)|0));const q=segDist(wx,wz,s2[0],s2[1],s2[2],s2[3]);
+        if(q<.13*tap){c=mixc(L35_WORN,[84,64,42],.45);break;}else if(q<.21*tap){c=mixc(c,L35_WORN,.5);break;}}
       const o=i*4;if(wl<1){D[o]=D[o]+(c[0]-D[o])*wl;D[o+1]=D[o+1]+(c[1]-D[o+1])*wl;D[o+2]=D[o+2]+(c[2]-D[o+2])*wl;}else{D[o]=c[0];D[o+1]=c[1];D[o+2]=c[2];}}}
   // 5. thick places get more tufts than the old ground ever had: a small three-tone clump on a jittered grid
   const ST=[[2,0,'hi'],[1,1,'hi'],[2,1,'lt'],[4,1,'hi'],[0,2,'lt'],[1,2,'lt'],[2,2,'lt'],[3,2,'hi'],[4,2,'lt'],[0,3,'lt'],[1,3,'lt'],[2,3,'lt'],[3,3,'lt'],[4,3,'lt'],[1,4,'sh'],[2,4,'sh'],[3,4,'sh'],[4,4,'sh']];
   const gx0=Math.floor((x0*32-8)/13),gx1=Math.floor((x0*32+W+8)/13),gy0=Math.floor((z0*32-8)/13),gy1=Math.floor((z0*32+W+8)/13);
   for(let gy=gy0;gy<=gy1;gy++)for(let gx=gx0;gx<=gx1;gx++){const ax=gx*13+Math.floor(hash(gx,gy*7+1)*9),ay=gy*13+Math.floor(hash(gx*3+5,gy)*9);const wx=ax/32,wz=ay/32;if(wz<L35.Z0+3)continue;
     const lx=ax-x0*32,ly=ay-z0*32;const cxp=clamp(lx,0,W-1),cyp=clamp(ly,0,W-1);const dens=at(Zt,cxp,cyp);if(dens<.55||hash(gx*11,gy*13)>(dens-.55)*2.6)continue;
-    if(plotAt(wx,wz)||LAYERS.dirt(wx,wz)||LAYERS.water(wx,wz)||LAYERS.dark(wx,wz))continue;
-    const d=at(Zd,cxp,cyp),wt=at(Zw,cxp,cyp);const R=wt>.5?L35_RAMP.green:[L35_RAMP.olive,L35_RAMP.tawny,L35_RAMP.straw][d<TH[0]?0:d<TH[1]?1:2];const fl=hash(gx,gy)<.5;
+    const P=plotAt(wx,wz);if(P&&onHead(P,wx,wz,cxp,cyp,.5))continue;if(LAYERS.dirt(wx,wz)||LAYERS.water(wx,wz)||LAYERS.dark(wx,wz))continue;
+    const R=rampAt(cxp,cyp,wx,wz);const fl=hash(gx,gy)<.5;
     for(const [sx,sy,k] of ST){const qx=lx+(fl?4-sx:sx),qy=ly+sy;if(qx<0||qy<0||qx>=W||qy>=W)continue;const q=qy*W+qx;if(!grass[q])continue;const o=q*4,c=R[k];D[o]=c[0];D[o+1]=c[1];D[o+2]=c[2];}}
   g.putImageData(id,0,0);}
 // the ground, and the water under the plank bridges taken out of the water mask (nothing is reflected through a deck)
@@ -262,7 +281,7 @@ function l35Free(x,z,r){const R=r+L35_RMAX,i0=Math.floor((x-R)/4),i1=Math.floor(
   for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const L=L35_TAKEN.get(l35Key2(i,j));if(!L)continue;for(const q of L)if(Math.hypot(q[0]-x,q[1]-z)<q[2]+r)return false;}return true;}
 function l35Take(x,z,r){const k=l35Key2(Math.floor(x/4),Math.floor(z/4));let L=L35_TAKEN.get(k);if(!L){L=[];L35_TAKEN.set(k,L);}L.push([x,z,r]);if(r>L35_RMAX)L35_RMAX=r;}
 function l35Open(x,z,r,m){return z>L35.Z0+1&&z<L35.Z1-1&&x>L35.XW+1&&x<NEWB.x1-1&&!LAYERS.water(x,z)&&!l35OnRoad(x,z,(m==null?.9:m))&&!l35InPlot(x,z,1.4)&&
-  Math.hypot((x-L35.pond.x)/(L35.pond.rx+2),(z-L35.pond.z)/(L35.pond.rz+2))>1&&Math.hypot(x-L35.pump.x,z-L35.pump.z)>3.2&&l35Free(x,z,r);}
+  l35PondF(x,z)>1.1&&Math.hypot(x-L35.pump.x,z-L35.pump.z)>3.2&&l35Free(x,z,r);}
 function l35Put(spr,x,z,o,r){const e=obj(spr,x,z,o);if(r)addCircle(x,z-.1,r);l35Take(x,z,Math.max(.4,r||.4));return e;}
 function l35Hide(o){o.hide=true;for(let j=circles.length-1;j>=0;j--)if(Math.hypot(circles[j].x-o.x,circles[j].z-(o.z-.1))<.7)circles.splice(j,1);}
 const L35_WOODS=[['willow',2],['maple_gold',1.5],['maple_orange',1.5],['oak_russet',2],['oak_green',1],['birch_gold',1],['deadtree',.5],['spruce_0',.8]];
@@ -286,14 +305,51 @@ function l35Reeds(v){return l35Spr('l35_reeds'+v,34,48,17,45,(P)=>{const r=l35Rn
     P(tx-1,ty,3,7,'#2a180c');P(tx,ty+1,1,5,'#7a4a26');P(tx-1+1,ty+1,1,1,'#a0683a');P(tx+1,ty+2,1,4,'#4a2a14');P(tx,ty-2,1,2,'#8a7a4a');}
   const m=5+((r()*4)|0);for(let i=0;i<m;i++)blade(9+r()*16,12+r()*14,(r()-.5)*16,r()<.35?dry:front,r()<.6);
   for(let x=10;x<25;x++)if(r()<.7)P(x,45+((r()*2)|0),1,1,'#1e2c18');},null);}
-// a sapling: a thin trunk and a small autumn crown, its own shape each time
+// a sapling: a leaning stick of a trunk that forks into three thin limbs, leaves in loose clumps along and at the end of each,
+// daylight between and through them, a few leaves already down. The limbs aren't outlined (an outline makes them clubs).
 function l35Sapling(v){const CR=[['#4a2e0e','#8a5a18','#c08a2c','#e8c060'],['#4a1e0c','#8a3a16','#c0662a','#e89a50'],['#20341a','#3a5626','#5a7634','#86a04a']][v%3];
-  return l35Spr('l35_sapling'+v,30,48,15,46,(P)=>{const r=l35Rng(5300+v*131);
-    for(let y=46;y>=22;y--){const x=15+Math.round((46-y)*.04*(v%2?1:-1));P(x,y,2,1,'#3a2a1c');P(x,y,1,1,'#5e4630');}
-    P(16,32,1,1,'#3a2a1c');P(17,31,1,1,'#3a2a1c');P(13,29,1,1,'#3a2a1c');P(12,28,1,1,'#3a2a1c');
-    const blobs=[[15,17,7],[10,22,5],[20,21,5],[15,11,5]].map(([x,y,rr])=>[x+(r()-.5)*3,y+(r()-.5)*2,rr+(r()-.5)*1.5]);
-    for(let y=2;y<34;y++)for(let x=1;x<29;x++){let inside=false,best=-9;for(const [bx,by,br] of blobs){const dx=x-bx,dy=y-by,d=Math.hypot(dx,dy*1.12);if(d<br){inside=true;best=Math.max(best,(-dx-dy*1.2)/br);}}
-      if(!inside)continue;const n=hash(x*7+v,y*5);P(x,y,1,1,best>.55?CR[3]:best>.05?(n<.12?CR[3]:CR[2]):best>-.6?(n<.1?CR[1]:CR[2]):CR[1]);}},{c:[30,20,10],skip:(x,y)=>y>33});}
+  const WD=40,wood=new Set();
+  return l35Spr('l35_sapling'+v,WD,52,20,50,(P)=>{const r=l35Rng(5300+v*131),side=v%2?1:-1,lean=side*(1+r()*2);
+    const pw=(x,y,c)=>{P(x,y,1,1,c);wood.add(y*WD+x);};
+    const limb=(x1,y1,x2,y2)=>{const n=Math.max(Math.abs(x2-x1),Math.abs(y2-y1));for(let k=0;k<=n;k++)pw(Math.round(x1+(x2-x1)*k/n),Math.round(y1+(y2-y1)*k/n),k<n*.5?'#3a2a1c':'#4e3a26');};
+    for(let y=50;y>=30;y--){const t=(50-y)/20,x=Math.round(20+lean*t);pw(x,y,'#3a2a1c');if(y>43){pw(x+1,y,'#5e4630');}}
+    const fx=Math.round(20+lean),fy=30;
+    const ends=[[fx-side*(7+r()*3),fy-11-r()*4],[fx+side*(6+r()*3),fy-15-r()*4],[fx+(r()-.5)*4,fy-20-r()*3]];
+    for(const [ex,ey] of ends)limb(fx,fy,Math.round(ex),Math.round(ey));
+    const blobs=[];for(const [ex,ey] of ends){for(let i=0;i<3;i++)blobs.push([ex+(r()-.5)*6,ey+(r()-.5)*4,1.6+r()*1.9]);
+      blobs.push([(ex+fx)/2+(r()-.5)*3,(ey+fy)/2+(r()-.5)*2,1.2+r()*1.3]);}
+    for(let y=1;y<40;y++)for(let x=1;x<WD-1;x++){let best=-9;for(const [bx,by,br] of blobs){const dx=x-bx,dy=y-by,d=Math.hypot(dx,dy*1.15);if(d<br)best=Math.max(best,(-dx-dy*1.2)/br);}
+      if(best<=-9)continue;if(hash(x*7+v*3,y*5+v)<.13)continue;const n=hash(x*7+v,y*5);P(x,y,1,1,best>.5?CR[3]:best>0?(n<.14?CR[3]:CR[2]):best>-.6?(n<.12?CR[1]:CR[2]):CR[1]);wood.delete(y*WD+x);}
+    for(let i=0;i<3;i++)P(10+((r()*20)|0),49+((r()*2)|0),1,1,CR[2]);},{c:[30,20,10],skip:(x,y)=>y>40||wood.has(y*WD+x)});}
+// a gatepost: thicker than the rail posts, its top cut at a slant
+function l35PostSpr(){return l35Spr('l35_post',10,32,5,30,(P)=>{const W=['#3e3428','#62584a','#867a62','#a89c80'];
+  P(3,4,4,27,W[1]);P(3,4,1,27,W[3]);P(6,4,1,27,W[0]);P(3,3,4,1,W[2]);P(3,2,2,1,W[2]);P(4,10,2,1,W[0]);P(4,19,2,1,W[0]);},{c:[26,20,14]});}
+// the gate of a road-side gateway, swung open into the field at an angle, so its bars show: hinged on the post at the top left
+function l35GateN(){return l35Spr('l35_gate_n',58,80,4,54,(P)=>{const W=['#3e3428','#62584a','#867a62','#a89c80'];
+  const hx=4,hy=30,tx=48,ty=74;
+  const line=(x1,y1,x2,y2,c,w)=>{const n=Math.max(Math.abs(x2-x1),Math.abs(y2-y1));for(let k=0;k<=n;k++)P(Math.round(x1+(x2-x1)*k/n),Math.round(y1+(y2-y1)*k/n),w||1,1,c);};
+  for(const h of [4,8,12,16,20]){line(hx,hy-h,tx,ty-h,W[1],2);line(hx,hy-h-1,tx,ty-h-1,W[3]);line(hx+1,hy-h+1,tx+1,ty-h+1,W[0]);}
+  line(hx+1,hy-4,tx-1,ty-20,W[2],2);                                                   // the brace
+  for(let y=ty-23;y<=ty;y++){P(tx-1,y,3,1,W[1]);P(tx-1,y,1,1,W[3]);P(tx+1,y,1,1,W[0]);}P(tx-3,ty-14,2,2,'#3a3a40');   // the far stile and its latch
+  for(let y=hy-23;y<=hy;y++){P(hx,y,2,1,W[1]);P(hx,y,1,1,W[3]);}},{c:[26,20,14]});}
+// the same gate swung open along a side fence (a side gateway), seen side-on
+function l35GateLeaf(){return l35Spr('l35_gateleaf',62,26,1,23,(P)=>{const W=['#3e3428','#62584a','#867a62','#a89c80'];
+  P(1,2,3,22,W[1]);P(1,2,1,22,W[3]);P(56,2,3,22,W[1]);P(56,2,1,22,W[3]);
+  for(const y of [5,9,13,17,21]){P(4,y,52,2,W[1]);P(4,y,52,1,W[2]);}
+  for(let k=0;k<50;k++){const x=5+k,y=Math.round(21-k*.32);P(x,y,2,2,W[1]);P(x,y,1,1,W[3]);}P(52,10,3,2,'#3a3a40');P(52,10,1,1,'#8a8a90');},{c:[26,20,14]});}
+// two crows on a rail, one hunched, one with its head down to look at you
+function l35Crows(){return l35Spr('l35_crows',34,36,17,34,(P)=>{const B=['#0e0c12','#1c1a24','#2e2c3a','#4a4a5e'];
+  const crow=(x,y,fl,down)=>{const s=fl?-1:1;for(let j=0;j<5;j++)for(let i=-4;i<=3;i++){if(Math.abs(i+.5)+Math.abs(j-2)*.8>4.6)continue;P(x+i*s,y+j,1,1,j<1?B[2]:B[1]);}
+    P(x-5*s,y+3,1,1,B[1]);P(x-6*s,y+4,2,1,B[0]);P(x-7*s,y+5,1,1,B[0]);                                         // tail
+    const hx=x+(down?4:3)*s,hy=y+(down?2:-2);P(hx,hy,3*s>0?3:1,3,B[1]);if(s<0)P(hx-2,hy,3,3,B[1]);P(hx+(s>0?1:-1),hy,1,1,B[3]);   // head, an eye that catches the light
+    P(hx+(s>0?3:-3),hy+1,2*s>0?2:1,1,'#5a5a64');if(s<0)P(hx-4,hy+1,2,1,'#5a5a64');                             // beak
+    P(x-1*s,y+5,1,2,B[0]);P(x+1*s,y+5,1,2,B[0]);P(x-2*s,y+2,3,1,B[3]);};
+  crow(9,8,false,false);crow(24,9,true,true);},{c:[8,6,10]});}
+// a wind-chime of bones hung from a gatepost: knuckle bones and a bird's skull on twine below a crossed stick
+function l35Chime(){return l35Spr('l35_chime',14,34,3,32,(P)=>{const T='#6a5a3a',Bn=['#a8a088','#d8d0b4','#f0ead4'];
+  P(1,3,11,1,'#4a3a24');P(2,2,1,3,'#4a3a24');
+  for(const [x,len,end] of [[3,9,'k'],[6,13,'s'],[9,8,'k'],[11,11,'k']]){for(let y=4;y<4+len;y++)P(x,y,1,1,T);
+    const y=4+len;if(end==='s'){P(x-1,y,3,3,Bn[1]);P(x-1,y,1,1,Bn[2]);P(x,y+1,1,1,'#3a3428');P(x,y+3,1,2,Bn[0]);}else{P(x,y,1,3,Bn[1]);P(x,y,1,1,Bn[2]);P(x-1,y+3,3,1,Bn[0]);}}},{c:[34,28,20]});}
 // the plough: a rusted walking plough left in its last furrow, the handles still up as if somebody had only just let go
 function l35Plough(){return l35Spr('l35_plough',56,36,30,31,(P,g)=>{
   const line=(x1,y1,x2,y2,c,w)=>{const n=Math.max(Math.abs(x2-x1),Math.abs(y2-y1));for(let k=0;k<=n;k++)P(x1+(x2-x1)*k/n,y1+(y2-y1)*k/n,w||1,w||1,c);};
@@ -331,18 +387,23 @@ function l35FenceDown(){return l35Spr('l35_fencedown',72,34,36,30,(P)=>{const W=
 // a hedgerow as one grows: runs of the same shrub with now and then another pushed in, clumps that touch and overlap, gaps
 // where it has died back, the odd field tree standing up out of it; never one bush at every step
 const L35_HEDGE=[['bush_gold',3],['sumac',2],['holly',1],['bush_red',1.5],['elder',1.5],['bush_green',1.2]];
-function l35Hedge(x0,x1,z,seed,skip){const k0=l35Hash(String(seed),11)*50;let dom=l35Pick(L35_HEDGE),run=0;
-  for(let x=x0;x<x1;){const gap=fbm(x*.16+k0,z*.05+3);if(gap<.36){x+=1.4+l35R()*1.6;continue;}   // a gap where it died back
-    if(skip&&skip(x)){x+=1;continue;}
+function l35Hedge(a0,a1,c,seed,skip,vert){const k0=l35Hash(String(seed),11)*50;let dom=l35Pick(L35_HEDGE),run=0;
+  const XY=(a,b)=>vert?[b,a]:[a,b];   // a runs along the hedge, b across it
+  for(let a=a0;a<a1;){const gap=fbm(a*.16+k0,c*.05+3);if(gap<.36){a+=1.4+l35R()*1.6;continue;}   // a gap where it died back
+    if(skip&&skip(a)){a+=1;continue;}
     if(run<=0){dom=l35R()<.62?dom:l35Pick(L35_HEDGE);run=2+((l35R()*4)|0);}run--;
     const tr=l35R()<.07,sp=tr?l35Pick([['oak_russet',2],['maple_gold',1],['maple_orange',1]]):(l35R()<.78?dom:l35Pick(L35_HEDGE));
-    const hz=z+(l35R()-.5)*.55+(fbm(x*.3,k0)-.5)*.4;
-    if(!l35OnRoad(x,hz,.6)&&!LAYERS.water(x,hz)&&l35Free(x,hz,tr?.6:.32))l35Put(sp,x+(l35R()-.5)*.25,hz,{kind:tr?'tree':'bush',flip:l35R()<.5},tr?.4:.3);
+    const [x,hz]=XY(a+(l35R()-.5)*.25,c+(l35R()-.5)*.55+(fbm(a*.3,k0)-.5)*.4);
+    if(!l35OnRoad(x,hz,.6)&&!LAYERS.water(x,hz)&&l35Free(x,hz,tr?.6:.32))l35Put(sp,x,hz,{kind:tr?'tree':'bush',flip:l35R()<.5},tr?.4:.3);
     // now and then a second one tucked in behind, so the line thickens
-    if(!tr&&l35R()<.3){const bx=x+(l35R()-.5)*.9,bz=hz-.45-l35R()*.2;if(!l35OnRoad(bx,bz,.6)&&!LAYERS.water(bx,bz)&&l35Free(bx,bz,.2))l35Put(l35R()<.7?dom:l35Pick(L35_HEDGE),bx,bz,{kind:'bush',flip:l35R()<.5},.25);}
-    x+=tr?2.6:.95+l35R()*1.15;}}
+    if(!tr&&l35R()<.3){const [bx,bz]=vert?[x+(l35R()-.5)*.6,hz+(l35R()-.5)*.9]:[x+(l35R()-.5)*.9,hz-.45-l35R()*.2];if(!l35OnRoad(bx,bz,.6)&&!LAYERS.water(bx,bz)&&l35Free(bx,bz,.2))l35Put(l35R()<.7?dom:l35Pick(L35_HEDGE),bx,bz,{kind:'bush',flip:l35R()<.5},.25);}
+    a+=tr?2.6:.95+l35R()*1.15;}}
+// a gatepost (and its collider)
+function l35Post(x,z){obj('l35_post',x,z+.02,{kind:'prop',noCol:true});addCircle(x,z,.16);l35Take(x,z,.3);}
+function l35ChimeAt(x,z){obj('l35_chime',x,z+.04,{kind:'prop',noCol:true});
+  interact.push({x,z:z+.4,r:1,on:()=>!S.room,label:()=>'Look',ok:()=>true,act(){toast('Bird bones and knuckle bones strung on twine from the gatepost. They knock together when the wind comes down off the dam. Somebody hung them to keep something out. Or in.',4.8);}});}
 function l35Build(){if(L35.built)return;L35.built=true;const t0=performance.now();if(!REGS.includes(L35.reg))REGS.push(L35.reg);RGK.low=L35.reg;
-  for(let v=0;v<3;v++){l35Reeds(v);l35Sapling(v);}l35Plough();l35Gate();l35FenceDown();
+  for(let v=0;v<3;v++){l35Reeds(v);l35Sapling(v);}l35Plough();l35Gate();l35FenceDown();l35PostSpr();l35GateN();l35GateLeaf();l35Crows();l35Chime();
   // 1. the edge of the world moves south; the fen's side stays shut
   for(let i=rects.length-1;i>=0;i--){const q=rects[i];if(Math.abs(q.z0-(L35.Z0+.5))<.01&&q.z1>L35.Z0+5&&q.x1-q.x0>300)rects.splice(i,1);}
   addRect(NEWB.x0-12,L35.Z0+.5,L35.XW,L35.Z0+14);                     // under the fen, as before
@@ -358,24 +419,45 @@ function l35Build(){if(L35.built)return;L35.built=true;const t0=performance.now(
   for(const z of [302,354]){const cx=l35StreamX(z);put('footbridge',cx,z,0,{kind:'flat'});put('footbridge_rail',cx,z+.5,0,{kind:'prop',noCol:true});
     for(const s of [-1,1])addSeg(cx-2.3,z+s*.95,cx+2.3,z+s*.95,.12);DOCKS.push({x:cx,z,x0:cx-2.3,x1:cx+2.3,z0:z-.9,z1:z+.9});L35.bridges.push([cx,z]);l35Take(cx,z,2.6);}
   // 4. the pond, the old windpump on its bank with its trough, two bales left from somebody's last haying, and his fence down
-  {const W=L35.pump;put('windpump',W.x,W.z,.45);obj('blades',W.x,W.z+.02,{kind:'anim',fps:6,yoff:135});put('barrel',W.x+1.15,W.z+.3,.3);l35Take(W.x,W.z,1.8);
-    put('hay',W.x-3.4,W.z-1.6,.7);put('hay',W.x-4.9,W.z-.7,.7);l35Take(W.x-4.2,W.z-1.1,1.6);
-    {const F=L35.fenceDown;put('l35_fencedown',F.x,F.z,0,{kind:'prop',noCol:true});l35Take(F.x,F.z,1.4);}
-    let n=0;for(let a=0;a<160&&n<30;a++){const t=l35R()*6.283,d=1.0+l35R()*.18;const x=L35.pond.x+Math.cos(t)*L35.pond.rx*d,z=L35.pond.z+Math.sin(t)*L35.pond.rz*d;if(l35InPond(x,z)||!l35Free(x,z,.3))continue;
+  {const W=L35.pump;put('windpump',W.x,W.z,.45);obj('blades',W.x,W.z+.02,{kind:'anim',fps:6,yoff:135});put('barrel',W.x-1.25,W.z+.35,.3);l35Take(W.x,W.z,1.8);
+    put('hay',W.x-3.6,W.z-1.9,.7);put('hay',W.x-5.1,W.z-1.0,.7);l35Take(W.x-4.4,W.z-1.4,1.6);
+    // his paddock fence above the pond, gone to pieces: a run still standing with crows on it, then a gap where one post
+    // still stands and the rails lie in the grass, then two posts on their own
+    {const F=L35.fenceDown,z=F.z;fenceLine(F.x+6.2,z,F.x+18,z,0,'fence');l35Take(F.x+12,z,.6);
+      l35Post(F.x+4.6,z);put('l35_fencedown',F.x,z+.15,0,{kind:'prop',noCol:true});l35Take(F.x,z,1.6);
+      l35Post(F.x-5.4,z+.05);l35Post(F.x-7.6,z-.08);
+      obj('l35_crows',F.x+11.3,z+.08,{kind:'prop',noCol:true});}
+    // on the shore, one small shoe, buckled, the leather gone hard
+    {const t=-1.05,e=l35PondEdge(t),x=L35.pond.x+Math.cos(t)*L35.pond.rx*(e+.1),z=L35.pond.z+Math.sin(t)*L35.pond.rz*(e+.1);put('rem_shoe',x,z,0,{kind:'prop',noCol:true});l35Take(x,z,.5);
+      interact.push({x,z:z+.3,r:1,on:()=>!S.room,label:()=>'Look',ok:()=>true,act(){toast('A child’s shoe, buckled, the leather gone hard as wood. It’s been left side by side with nothing, the way you’d leave a shoe to step into the water.',4.8);}});}
+    let n=0;for(let a=0;a<160&&n<30;a++){const t=l35R()*6.283,e=l35PondEdge(t),d=e+l35R()*.16;const x=L35.pond.x+Math.cos(t)*L35.pond.rx*d,z=L35.pond.z+Math.sin(t)*L35.pond.rz*d;if(l35InPond(x,z)||!l35Free(x,z,.3))continue;
       if(Math.hypot(x-W.x,z-W.z)<1.6)continue;obj('l35_reeds'+((l35R()*3)|0),x,z,{kind:'prop',noCol:true,flip:l35R()<.5});l35Take(x,z,.3);n++;}}
   // 5. reeds along the stream, both banks, in clumps with gaps between, clear of the bridges
   for(let z=L35.Z0+1;z<L35.Z1-2;z+=1.3){if(L35.bridges.some(b=>Math.abs(b[1]-z)<2.6))continue;if(fbm(z*.18,7)<.42)continue;const cx=l35StreamX(z);
     for(const s of [-1,1]){if(l35R()<.45)continue;const x=cx+s*(1.35+l35R()*.9);if(LAYERS.water(x,z)||!l35Free(x,z,.3))continue;obj('l35_reeds'+((l35R()*3)|0),x,z+(l35R()-.5)*.3,{kind:'prop',noCol:true,flip:l35R()<.5});l35Take(x,z,.3);}}
-  // 6. the fields: a rail fence along each plot's road side with a gateway by its FOR SALE sign and the gate swung back, a
-  //    hedgerow at its back; the hedgerow along South Road and the windbreak along the south edge as before
-  for(const P of LAND_PARCELS){if(!P.low)continue;const z=P.z0-.55,g0=P.x0+.6,g1=P.x0+3.4;
-    fenceLine(g1+2.06,z,P.x0+P.w,z,0,'fence');addSeg(g1+2.06,z+.05,P.x0+P.w,z+.05,.1);
-    obj('fence_v',g0,z+.12,{kind:'fence'});obj('fence_v',g1,z+.12,{kind:'fence'});addCircle(g0,z,.14);addCircle(g1,z,.14);
-    obj('l35_gate',g1,z+.12,{kind:'prop',noCol:true});addSeg(g1,z+.05,g1+2.06,z+.05,.1);l35Take(P.x0+P.w/2,z,.3);
-    l35Hedge(P.x0+.8,P.x0+P.w-.4,P.z0+P.h+1.05,P.id);}
+  // 6. the fields: every plot a closed yard. Its road side is fenced corner to corner with a gateway by its FOR SALE sign and
+  //    the gate swung open into the field; its two flanks and its back are fenced; a hedgerow has grown up along the back.
+  //    Two gateposts carry a wind-chime of bones.
+  const CHIME=new Set(['lf_hollow','lf_farcorner']);
+  for(const P of LAND_PARCELS){if(!P.low)continue;const m=.55,X0=P.x0-m,X1=P.x0+P.w+m,Z0=P.z0-m,Z1=P.z0+P.h+m,GW=2.3;
+    if(P.side==='N'){const g0=P.x0+.9,g1=g0+GW;
+      fenceLine(X0,Z0,g0,Z0,0,'fence');fenceLine(g1,Z0,X1,Z0,0,'fence');l35Post(g0,Z0);l35Post(g1,Z0);
+      obj('l35_gate_n',g1,Z0+.75,{kind:'prop',noCol:true});addSeg(g1,Z0,g1+1.45,Z0+1.45,.1);
+      fenceLine(X0,Z0,X0,Z1,0,'fence');fenceLine(X1,Z0,X1,Z1,0,'fence');fenceLine(X0,Z1,X1,Z1,0,'fence');
+      l35Hedge(P.x0-.2,P.x0+P.w+.2,Z1+.65,P.id);
+      if(CHIME.has(P.id))l35ChimeAt(g0+.16,Z0+.03);}
+    else{const W=P.side==='W',RX=W?X0:X1,BX=W?X1:X0,g0=P.z0+.9,g1=g0+GW;
+      fenceLine(RX,Z0,RX,g0,0,'fence');fenceLine(RX,g1,RX,Z1,0,'fence');l35Post(RX,g0);l35Post(RX,g1);
+      obj('l35_gateleaf',RX,g1+.02,{kind:'prop',noCol:true,flip:!W});addSeg(RX,g1,RX+(W?1.9:-1.9),g1,.1);
+      fenceLine(X0,Z0,X1,Z0,0,'fence');fenceLine(X0,Z1,X1,Z1,0,'fence');fenceLine(BX,Z0,BX,Z1,0,'fence');
+      l35Hedge(P.z0-.2,P.z0+P.h+.2,BX+(W?.7:-.7),P.id,null,true);
+      if(CHIME.has(P.id))l35ChimeAt(RX+.16,g0+.03);}
+    l35Take(P.x0+P.w/2,Z0,.3);}
   l35Hedge(-56,194,351.4,'southroad',x=>Math.abs(x-20)<3.6||Math.abs(x-90)<3||Math.abs(x-170)<3||Math.abs(x-l35StreamX(352))<3.4);
   for(let x=-54;x<196;x+=4.2){if(Math.abs(x-20)<4||Math.abs(x-90)<3.5||Math.abs(x-170)<3.5||Math.abs(x-l35StreamX(398))<3.5)continue;
     const z=397.5+(l35R()-.5)*1.4,xx=x+(l35R()-.5)*1.2;if(!l35Open(xx,z,1.1))continue;l35Put(l35Pick([['maple_gold',2],['oak_russet',2],['maple_orange',1.5],['oak_green',1]]),xx,z,{kind:'tree'},.4);}
+  // (the plough and its three scars are kept clear: nothing grows up through his last furrows)
+  l35Take(L35.plough.x,L35.plough.z,1.2);for(const q of L35.scars)for(let t=0;t<=1.001;t+=.1)l35Take(lerp(q[0],q[2],t),lerp(q[1],q[3],t),1.5);
   // 7. the copses: each a knot of trees with brush under them, not a lone tree on a dark patch
   for(const c of L35.copses){let n=0;for(let t=0;t<300&&n<9;t++){const a=l35R()*6.283,d=Math.sqrt(l35R())*.85;const x=c[0]+Math.cos(a)*c[2]*d,z=c[1]+Math.sin(a)*c[2]*.7*d;
       if(!LAYERS.dark(x,z)||l35InPlot(x,z,1.2)||l35OnRoad(x,z,.9)||!l35Free(x,z,1.15))continue;l35Put(l35Pick(L35_WOODS),x,z,{kind:'tree'},.4);n++;}
@@ -389,11 +471,11 @@ function l35Build(){if(L35.built)return;L35.built=true;const t0=performance.now(
   // 9. scrub stepping out of the woods into the grass: brush and saplings thinning away from the edge, old stumps from the
   //    clearance, tall grass in the lee
   {const edge=[];for(let x=-60;x<197;x+=1.25)edge.push([x,l35EdgeZ(x),0,1]);for(let z=L35.Z0+8;z<L35.Z1-4;z+=1.25){edge.push([l35WestX(z),z,1,0]);edge.push([l35EastX(z),z,-1,0]);}
-    for(const [ex,ez,dx,dz] of edge){const s=.6+Math.pow(l35R(),1.7)*6,x=ex+dx*s+(dz?(l35R()-.5)*.8:0),z=ez+dz*s+(dx?(l35R()-.5)*.8:0);if(l35R()>1.05-s*.14)continue;
+    for(const [ex,ez,dx,dz] of edge){const s=.9+Math.pow(l35R(),1.25)*9,x=ex+dx*s+(dz?(l35R()-.5)*1.2:0),z=ez+dz*s+(dx?(l35R()-.5)*1.2:0);if(l35R()>1.08-s*.085)continue;
       if(LAYERS.dark(x,z)||!l35Open(x,z,.5,.8))continue;const q=l35R();
-      if(q<.36)l35Put(l35Pick([['bush_gold',2],['elder',2],['sumac',1.5],['bush_green',1],['holly',.6],['bush_red',.8]]),x,z,{kind:'bush'},.3);
-      else if(q<.62)l35Put('l35_sapling'+((l35R()*3)|0),x,z,{kind:'prop',flip:l35R()<.5},.15);
-      else if(q<.76)l35Put(l35Pick([['stump_oak',2],['stump_maple',1.5],['stump',1]]),x,z,{kind:'prop'},.25);
+      if(q<.3)l35Put(l35Pick([['bush_gold',2],['elder',2],['sumac',1.5],['bush_green',1],['holly',.6],['bush_red',.8]]),x,z,{kind:'bush'},.3);
+      else if(q<.5)l35Put('l35_sapling'+((l35R()*3)|0),x,z,{kind:'prop',flip:l35R()<.5},.15);
+      else if(q<.74)l35Put(l35Pick([['stump_oak',2],['stump_maple',1.5],['stump',1]]),x,z,{kind:'prop'},.25);
       else for(let k=0;k<3;k++){const xx=x+(l35R()-.5)*1.6,zz=z+(l35R()-.5)*.8;if(!l35Open(xx,zz,.15,.5))continue;obj(l35R()<.6?'tgold':'tgrass',xx,zz,{kind:'anim',grass:1,fps:1.4,ph:hash(xx*9|0,zz*9|0)*2});l35Take(xx,zz,.15);}}}
   // 10. lone field trees, field stones and tall gold grass on the open ground (none of it on a plot)
   {let n=0;for(let t=0;t<2000&&n<22;t++){const x=lerp(-60,196,l35R()),z=lerp(296,404,l35R());if(LAYERS.dark(x,z)||!l35Open(x,z,3.4))continue;l35Put(l35Pick([['oak_russet',3],['maple_gold',2],['oak_green',1],['maple_red',1]]),x,z,{kind:'tree'},.4);l35Take(x,z,4);n++;}}
