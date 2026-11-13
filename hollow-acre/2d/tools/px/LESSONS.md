@@ -1214,6 +1214,45 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A list page that runs past its frame needs a cue that says so, gone once the last line is in view; tighten rows before adding scroll.
 - A button says exactly what it does with the number in it ("Load 5 barley", "Pour in 3 cans"), and a two-sided switch shows what each side makes.
 
+## New land and fields (t335, Nov 13)
+- A new region laid after the old ones must not join REGS (or any shared list the old build reads) until the old build is done: one extra region changed rgAtJ's answers inside rgTrees and would have moved trees across the whole valley. Check with an object-by-object dump (spr, x, z) of the old world before and after.
+- To keep the old ground identical above a new edge, run the old LAYERS/weights functions with the old bounds swapped back in (NEWB.z1) and the new region spliced out, then blend the new region in only below the line, over a ragged 8-pace band.
+- Roads cut through old woods also need the woods floor turned off along them (the edge-ring "dark" wins over roads in regions.js).
+- A teleported test player stands in water until it moves; put render cameras on dry ground or on the bridge deck.
+- Frame a judge shot on its subject, not on the player: set the camera (cine cam) on the subject and stand the player on dry ground nearby; give the first shot a warm-up so the camera has moved before the picture is taken.
+- A hedge drawn as one bush every N paces, species picked fresh each time, reads as alternating wallpaper: grow it in runs of one dominant shrub with the odd other one, clumps that overlap, a second row tucked behind now and then, gaps where noise says it died back, and the odd field tree.
+- A verge drawn at one fixed width beside a road through woods reads as a carpet runner: let the cleared strip come and go with noise along the road.
+- The world map draws roads as ruled straight segments; for land that should look farmed by hand, take those roads out of the base pass and redraw them through one shared smooth displacement field (the same at every point, so junctions still meet), and bend the field outlines with the same field.
+- The player's reflection is drawn by its own pass (mindReflection), not the water mask: a bridge deck must also switch it off while the player stands on the deck.
+- A gate seen edge-on from the 3/4 camera collapses into one plank: swing it open to about 45 degrees so each bar shows on its own.
+- 1 px limbs, twine or rails that get the sprite outline turn into black clubs or a dark grille: keep thin parts out of the outline (outline skip) and outline only the solid masses.
+- Every border on the ground (zone to zone, patch, headland, verge) needs its own wander and clumpy break-up; any border taken straight from a per-pace mask or a rectangle reads as a tile seam.
+- Thinning tufts over a whole rectangle (a plot) leaves a hard block in the grass; thin them only on a narrow wandering band.
+- Faint furrow lines at a fixed spacing read as scanlines: make them wavy, fading ridges (lit crest, shaded trough) that come and go with noise, or leave them out.
+- A lone prop that should be part of something (a fallen length of fence) needs the rest of the thing around it (posts, a gap, the fence running on) or it reads as debris.
+- New posts and gates beside an existing fence must use the fence's own colours; a grey post on a brown fence reads as a mistake.
+- Fence runs overhang their last pace: put the end post at the rails' real end, not at the nominal corner.
+- A field gate seen at 45 degrees reads as a ladder if its bars sit as close as rungs: four bars with grass between them, a brace laid across them at a different angle, the fence's own colours, and a contact shadow at the free foot.
+- Outline only the underside of a thin bar (skip the outline from its lit top row): you keep a dark line under each bar and the grass still shows between them.
+- Turned soil is not two dark lines: give a furrow an asymmetric profile across it (lit slice thrown up on one side, shaded open furrow on the other) and clods along it, or it reads as tyre tracks.
+- A broken length of fence must sit in a real fence that runs on and closes somewhere; a lone piece in open grass reads as debris.
+- Leaves drawn as round blobs at twig tips read as flower heads: string small leaf dabs in drooping, lopsided sprays along the outer half of each twig.
+- Anything hung over a walkway goes above the player's head (here: on an arm off a tall post).
+- If the ground of a fenced plot stops at the deed's edge half a pace inside the fence, that ruled edge shows as an inset rectangle: run the plot's ground out to the fence.
+- Zone borders broken up per pixel read as dither: break them in clumps of two sizes with brick-offset rows.
+- A world-map overlay must use the game's own palette; the base map's grass was a sunny lime that made the new land the brightest thing on it.
+- Put judge-shot players on open road, never on a fence line: a teleport skips collision and a player standing in a fence reads as a collision bug.
+- Saturated red or orange specks scattered over grass read as blood: autumn colour on the ground goes in a few gathered clumps (rust-brown, ochre, a dark root row), never an even scatter.
+- Noise taken from square cells shows as a mosaic of squares however small the cells: use smooth value noise (two sizes) for lobed, rounded borders.
+- A broken piece of something that stands nearby must use that thing's own widths, profile and colours; thinner and paler timber reads as kindling.
+- Spread fallen pieces over different depths and angles; equal-height ridges in a row read as a pattern (/\ /\), not as wreckage.
+- A black outline round small bright-yellow leaf dabs reads as lightning: use a soft dark-brown edge for gold foliage, and pick the random seed by eye.
+- When the same sprite stands side by side, it shows as a stamp: cap a species per group and flip at random.
+- Keep a clear radius round signs and markers before scattering scrub, or a sapling grows into the sign.
+- Hinge irons go only on the post the gate hangs from; the other post gets a latch keeper.
+- A prop that made a mark on the ground sits at the end of its mark, touching it.
+- Tapering to a smooth point looks drawn with a ruler: narrow toward the end, then stop at a width the noise picks and leave clods.
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline
