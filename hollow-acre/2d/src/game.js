@@ -73,6 +73,7 @@ function objective(){const L=lit(),np=S.pages.length;
   if(S.candles+L<3){if(isNight())return ['Candles',`Buy Ward Candles from the peddler at the crossroads. ${S.candles+L}/3`,crossPos];
     return ['Candles',`There is no road out. Buy 3 Ward Candles from the peddler at the crossroads (after 7:30 pm). ${S.candles+L}/3`+(np<6?` · Diary ${np}/6`:''),crossPos];}
   const next=altars.filter(a=>!a.lit).sort((a,b)=>Math.hypot(a.x-P.x,a.z-P.z)-Math.hypot(b.x-P.x,b.z-P.z))[0];
+  if(!next)return ['The rite','Three flames. Hold your ground.',null];   // (t337) all three lit, the binding still to come
   if(!isNight())return ['Wait','Wait for the bell, then light the three stones. '+L+'/3 lit',next];
   return ['The rite',`Light the ${next.name} stone. ${L}/3 lit. Keep your light on it.`,next];}
 /* ================= sheets ================= */
