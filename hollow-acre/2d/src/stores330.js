@@ -132,7 +132,8 @@ const ST30_WALL={stand:{s:{price:7.8,open:6.0,lamps:[9.0,10.3]},l:{price:12.0,op
 function st30Extras(type,type2,up,big){const f=[],Wl=ST30_WALL[type][big?'l':'s'];
   if(up.sign){f.push(WL('in_priceboard',Wl.price,-.45));if(Wl.art)f.push(WL('in_painting_a',Wl.art,-.45));}
   if(up.hours){f.push(WL('in_walllantern',Wl.lamps[0],-.3),WL('in_walllantern',Wl.lamps[1],-.3),WL('in_sign_open',Wl.open,-.75));const c=ST30_PLAN[type][big?'l':'s'].counter;f.push(FT('in_oillamp',c[0]+1.2,c[1]-.05,.2,.2));}
-  if(up.line&&type2){const at=big?{stand:[8.6,6.6],kitchen:[6.4,6.9],taproom:[10.4,7.6]}[type]:{stand:[6.2,5.6],kitchen:[5.4,5.2],taproom:[2.6,5.6]}[type];
+  // the second trade's display: kept off the line from the door to the counter, so nobody has to walk through it
+  if(up.line&&type2){const at=big?{stand:[11.6,6.8],kitchen:[11.4,2.9],taproom:[10.4,7.6]}[type]:{stand:[6.2,5.6],kitchen:[4.2,5.5],taproom:[1.6,5.0]}[type];
     if(type2==='stand')f.push(FT('in_produce',at[0],at[1],1.5,.5));
     if(type2==='kitchen')f.push(FT('in_kcounter',at[0],at[1],1.19,.55),FT('in_crocks',at[0]+1.6,at[1]-.05,.7,.3));
     if(type2==='taproom')f.push(FT('in_keg',at[0]-.6,at[1],.5,.3),FT('in_caskwine',at[0]+.5,at[1]+.1,.45,.3));}
@@ -226,6 +227,10 @@ if(typeof bgWorld==='function'){const _bg=bgWorld;bgWorld=function(){const r=_bg
   for(const o of BGW.objs.slice()){if(!(o.spr==='wk_stall'||String(o.spr||'').startsWith('bg_stall_')))continue;o.hide=true;const i=OBJ.indexOf(o);if(i>=0)OBJ.splice(i,1);BGW.objs.splice(BGW.objs.indexOf(o),1);
     for(const it of BGW.its.slice())if(Math.abs(it.x-o.x)<.05&&Math.abs(it.z-(o.z+.6))<.05){const j=interact.indexOf(it);if(j>=0)interact.splice(j,1);BGW.its.splice(BGW.its.indexOf(it),1);}}
   for(const o of BGW.objs.slice())if(o.spr==='signpost'&&/BRANCH/.test(o.label||'')){o.hide=true;const i=OBJ.indexOf(o);if(i>=0)OBJ.splice(i,1);BGW.objs.splice(BGW.objs.indexOf(o),1);}}catch(e){}return r;};}
+// in a versus world each player's signpost on the green gives way to their building on Market Row (its door, and the ledger or
+// the shelves at its counter, do what the signpost did)
+if(typeof bwSigns==='function'){const _bs=bwSigns;bwSigns=function(){const r=_bs.apply(this,arguments);try{
+  for(const o of BWS.objs){o.hide=true;const i=OBJ.indexOf(o);if(i>=0)OBJ.splice(i,1);}for(const it of BWS.its){const i=interact.indexOf(it);if(i>=0)interact.splice(i,1);}BWS.objs=[];BWS.its=[];}catch(e){}return r;};}
 if(typeof BG_GROW!=='undefined'){const g=BG_GROW.find(q=>q.k==='bigger');if(g){g.say='A second building on Market Row, east of the Lamplighter, under the shop’s own name: twice the floor.';g.name='Open a second shop on Market Row';}
   const b=BG_GROW.find(q=>q.k==='branch');if(b)b.say='Partners only: a second shop on Wickham’s high street, under the same name.';}
 // ---- the people inside, drawn where they work: the hands behind the counter and at the stove or the taps (a working
