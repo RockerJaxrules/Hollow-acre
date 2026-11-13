@@ -5,6 +5,8 @@
 (()=>{try{if(window.__pbSfx)return;window.__pbSfx=[];
   for(const k of Object.keys(SFX)){const f=SFX[k];if(typeof f!=='function')continue;SFX[k]=function(){try{window.__pbSfx.push(k);}catch(e){}return f.apply(this,arguments);};}
   for(const k of ['tone','hiss']){const f=A&&A[k];if(typeof f!=='function')continue;A[k]=function(){try{window.__pbSfx.push('~'+k);}catch(e){}return f.apply(this,arguments);};}}catch(e){}})();
+(()=>{try{if(window.__pbCv)return;window.__pbCv=new Set();const P2=CanvasRenderingContext2D.prototype;
+  for(const k of ['fillText','strokeText']){const f=P2[k];P2[k]=function(t){try{if(this.canvas&&this.canvas.width>40){const fam=String(this.font||'').replace(/^.*?\d+(?:\.\d+)?px\s*/,'').split(',')[0].replace(/["']/g,'').trim();if(fam)window.__pbCv.add(fam);}}catch(e){}return f.apply(this,arguments);};}}catch(e){}})();
 window.__pb=(()=>{
   const vis=el=>!!(el&&!el.hidden&&el.offsetParent!==null&&getComputedStyle(el).display!=='none'&&getComputedStyle(el).visibility!=='hidden');
   const q=s=>document.querySelector(s);
@@ -57,7 +59,7 @@ window.__pb=(()=>{
     try{R.objText=obj().t;}catch(e){}
     // the fonts the visible text is set in (a finished game uses one or two, everywhere)
     try{const fams=new Set();for(const el of document.querySelectorAll('#hud *,#objective,#toast,#noteText,#noteText *,#talk *,#shopRows *,button,.tip,#craft *,#title *,#end *,#ruCap')){if(!vis(el))continue;
-        if(![...el.childNodes].some(n=>n.nodeType===3&&n.textContent.trim()))continue;fams.add(getComputedStyle(el).fontFamily.split(',')[0].replace(/["']/g,'').trim());}R.fonts=[...fams].slice(0,8);}catch(e){}
+        if(![...el.childNodes].some(n=>n.nodeType===3&&n.textContent.trim()))continue;fams.add(getComputedStyle(el).fontFamily.split(',')[0].replace(/["']/g,'').trim());}R.fonts=[...fams].slice(0,8);try{R.canvasFonts=[...(window.__pbCv||[])].slice(0,8);window.__pbCv&&window.__pbCv.clear();}catch(e){}try{const txt=[...document.querySelectorAll('#hud,#objective,#toast,#note,#talk,#shop,#craft,#bag,.tip,#title,#mpScr,#creator')].filter(vis).map(e=>e.innerText).join(' ');const em=txt.match(/\p{Extended_Pictographic}/gu);R.fallbackGlyphs=em?[...new Set(em)].slice(0,8):[];}catch(e){}}catch(e){}
     // placeholder or debug text a player can see
     try{const txt=[...document.querySelectorAll('#hud,#objective,#toast,#note,#talk,#shop,#craft,.tip,#title,#end,#credits2,#ruBox,#bagBody')].filter(vis).map(e=>e.innerText).join(' \n ');
       const m=(txt.match(/\b(TODO|FIXME|lorem|ipsum|placeholder|debug|XXX)\b|\(bot\)|\[object [A-Za-z]+\]|\$\{/gi)||[]).concat(txt.match(/\b(undefined|NaN|null)\b/g)||[]);R.placeholder=m.length?[...new Set(m)].slice(0,6):[];}catch(e){}
