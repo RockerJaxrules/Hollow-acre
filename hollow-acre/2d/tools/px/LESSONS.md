@@ -1596,3 +1596,27 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Ribs fan out from the spine, each a little steeper than the one above: parallel arcs still read as a radiator. (judge r2, beef)
 - A bird hung by its feet: feet together at the hook, a 1 px gap below it, then a teardrop widest at the thighs and breast, the wings hanging close against the sides (one side darker), a small drooping head. Splayed wings and legs read as a star or a bat at 1x; a spindle pointed at both ends reads as a cocoon. (judge blk1-c1)
 - Turned views of a group of objects: move each piece where the turn puts it (right goes behind, left comes in front), keep every piece's light on its upper left, and keep one size; something tucked behind a round makes it look bigger, so leave a gap. (judge blk1)
+
+## Game UI polish pass (t337 whole-game review, Nov 13: 4 rounds, every screen 6-7.5)
+- Every panel, card and book is one family: the in-game wood frame, parchment only for books, one tab style, square corners; the judge reads three different frame ornaments as unfinished.
+- A tall panel hides the HUD; it never cuts the goal bar or the coin box in half.
+- Small HUD icons are drawn at an exact 2x of their grid; any other scale smears them (a basket at 1.4x read as a burger).
+- A tall list in a panel scrolls inside the panel; the header and the way out (Leave) never scroll away. Show "more below" with a stepped fade and a pixel arrow.
+- A canvas pixel font is only crisp at its own size: Hollow Pixel draws hard-edged at 10 px and 20 px; 9-12 px monospace maps to 10 px, 13-18 px to 20 px.
+- Don't remove an element's `title` to stop the native tooltip: other code may find the element by it (the HUD chips vanished).
+- A message already on screen when a panel opens goes back in line and replays after; feedback to a tap stays, low on the screen.
+- A greyed button says the first thing missing ("Needs Farming 2", "Needs 1 fiber"); never "Done" for "can't".
+- One tab style everywhere (the farm book's): dark #3a2210, active #a8502a, 1 px dark edge and a 2 px lit top.
+- A rule that hides old SVGs inside a class (".chip>svg") also hides new ones in other widgets with that class (the creator's turn buttons went blank). Scope it, or exclude your own classes.
+- Hold toasts for every panel you add or reskin: give it [data-modal] and let the hold check that, not a hand-kept list.
+- Empty hearts drawn dark on a dark panel vanish: outline them in the panel's light wood.
+- Repeated DOM inserts on a timer must remove the last insert first (the flask icon multiplied on every HUD update).
+- A cue that sits under a book's page sits on the wood frame, not the paper: colour it for the wood (light), not for the paper.
+- A greyed button that disappears hides the reason; keep it on screen, greyed, saying why ("Gift given today").
+- A small icon must read by shape first: an open basket is wider than tall and shows sky under its handle; a lidded shape reads as a box.
+- An extra offset on one row (a margin added to "fix" a coloured edge) breaks the icon column; check every row's icon x after a change.
+- A pixel icon is only crisp at a whole-number scale. Check the size it's actually drawn at (an id rule like "#hudC>#inv .chip svg{width:14px}" beat my class rule), and size the grid to it.
+- Fractional page offsets don't blur crisp SVG rects, but non-integer scales always do.
+- Quote marks from a <q> come from the element, not the text: style q::before and q::after.
+- A text check on an element you've decorated must skip your own decoration ("+1" inside the flask span made the older check remove the flask every tick).
+- A pixel font's glyphs are only clean at its native sizes; at other sizes thin glyphs (quotes) break into loose ticks.
