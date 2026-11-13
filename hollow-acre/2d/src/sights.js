@@ -427,7 +427,7 @@ Object.assign(SGT_ART,{
     P(nx+2,ny+2,66,66,'#00000066');P(nx,ny,66,66,'#2a2014');P(nx+1,ny+1,64,64,'#ece4d0');P(nx+1,ny+1,64,1,'#fffaf0');P(nx+32,ny-1,3,3,'#a82a20');
     const ink='#1e1a24';let y=ny+5;for(const ln of ['THE DRAWING','WILL BE HELD','AT MARROW','HOLLOW CHURCH','ATTENDANCE','IS KIND'])
       {const w=ln.length*4-1;sgtT(P,ln,nx+33-Math.floor(w/2),y,ink);y+=7;}
-    P(nx+8,y+1,48,1,'#8a8478');sgtT(P,'FALL 28',nx+19,y+4,ink);for(let a=0;a<6.283;a+=.08)P(Math.round(nx+32+Math.cos(a)*17),Math.round(y+6+Math.sin(a)*5),1,1,'#b82a20');}),
+    P(nx+8,y+1,48,1,'#8a8478');sgtT(P,(typeof st37DrawDate==='function'?st37DrawDate():'FALL 28'),nx+19,y+4,ink);for(let a=0;a<6.283;a+=.08)P(Math.round(nx+32+Math.cos(a)*17),Math.round(y+6+Math.sin(a)*5),1,1,'#b82a20');}),
 });
 const SGT_PLACE={
   marsh:{art:'p_marsh',cap:'It is your cabin. Not like it: yours, down to the porch board that sticks and the crack in the window shaped like a river. The note on the door is in Grandpa’s hand, addressed to you, dated thirty years ago.'},

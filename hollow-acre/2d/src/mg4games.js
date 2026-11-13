@@ -150,12 +150,12 @@ S4.saw=(sp,K)=>{const g=K.g,X0=44,X1=292,TOP=96,FR=106,BOT=114,CX=sp.cx||232,N=s
       if(!st.fall){const s=st.sp<0?0:Math.sin(Math.PI*Math.min(1,st.sp));const dTip=20+40*s;const ang=-.55+(st.bind>0?(Math.random()-.5)*.08:0);
         const cy=FR+d*8-1;g.save();g.beginPath();g.rect(0,0,320,FR);g.rect(kx-2,FR,4,d*8+1);g.clip();M4.rot(g,saw,kx,cy,ang,dTip,18);g.restore();
         const [hx,hy]=M4.tr(kx,cy,ang,88-dTip,11-18);m4sleeve(K,hx+4,hy+2,hx+40,hy-20);m4hand(K,hx,hy+1);}},
-    hud(t){if(st.fall)return;const cx=CX,cy=TOP-24;const left=st.n===0?((t*1.4)%1):M4.cl((st.next-st.t)/TEMPO,0,1);const r=5+left*18;
+    hud(t){if(st.fall)return;const cx=CX+st.drift*st.d,cy=TOP+5;const left=st.n===0?((t*1.4)%1):M4.cl((st.next-st.t)/TEMPO,0,1);const r=5+left*18;   // (t337) the beat ring sits on the cut, where the teeth bite
       K.g.strokeStyle='rgba(20,10,4,.8)';K.g.lineWidth=3;K.g.beginPath();K.g.arc(cx,cy,5,0,6.29);K.g.stroke();K.g.strokeStyle=left<.12?'#9be07a':'#fff4c0';K.g.lineWidth=1;K.g.beginPath();K.g.arc(cx,cy,5,0,6.29);K.g.stroke();
       K.g.strokeStyle=`rgba(255,210,122,${.35+.65*(1-left)})`;K.g.beginPath();K.g.arc(cx,cy,r,0,6.29);K.g.stroke();
       if(st.n===0)K.label('TAP',cx,cy-3,'#ffd27a');K.meter(st.d,M4.avg(st.q)||1);
       if(st.idle>2.2&&st.n>0&&Math.floor(t*3)%2)K.label('KEEP SAWING',160,24,'#ffd27a');},
-    auto(dt,AP){const a=m4ai(this,AP,dt);if(!st.fall&&((st.n===0&&st.t>.6)||(st.n>0&&st.t>=st.next-.012)))m4tap(a);AP.hand=[CX+6,TOP-30];AP.press=a.down;},
+    auto(dt,AP){const a=m4ai(this,AP,dt);if(!st.fall&&((st.n===0&&st.t>.6)||(st.n>0&&st.t>=st.next-.012)))m4tap(a);AP.hand=[CX+6,TOP+2];AP.press=a.down;},
     quiet(){},stop(){}};};
 // ---------------------------------------------------------------- PLANE: hold to push; keep the speed even and the shaving comes off in one long curl
 S4.plane=(sp,K)=>{const g=K.g,X0=34,X1=286,TOP=90,FR=102,LO=sp.lo||52,HI=sp.hi||94,VMAX=160,CELL=2,NC=(X1-X0)/CELL,P=sp.wood||CA_P.oak;

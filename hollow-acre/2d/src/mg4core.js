@@ -88,7 +88,7 @@ function mg4Kit(g){const W=320,H=180;const K=caKit(g,W,H);K.g=g;K.W=W;K.H=H;
     K.pops.push({txt:J[0]+(K.combo>=3&&s>=.6?' x'+K.combo:''),c:J[1],x:Math.max(30,Math.min(W-30,x)),y:Math.max(12,y),t:0,big:s>=.95});
     if(!quiet){if(s>=.95){MS.perfect();K.flash=.3;K.shk=.14;K.emit(x,y,10,{c:['#fff4c0','#ffd27a'],v:90,g:60,life:.6});}else if(s>=.6)MS.good();else if(s<.25)MS.miss();}};
   // the bar at the right edge shows the whole recipe: the steps done plus this step's share, with a tick between steps
-  K.meter=(p,acc,x,y,h)=>{const whole=x==null&&K.run&&K.run.n>1;x=x==null?W-10:x;y=y==null?16:y;h=h||120;p=Math.max(0,Math.min(1,p||0));if(whole)p=(K.run.i+p)/K.run.n;K.px(x-1,y-1,8,h+2,'#1a0e06');K.px(x,y,6,h,'#2a1608');if(whole)for(let k=1;k<K.run.n;k++)K.px(x-2,y+h-Math.round(h*k/K.run.n),10,1,'#6a4a20');
+  K.meter=(p,acc,x,y,h)=>{const whole=x==null&&K.run&&K.run.n>1;if(x==null&&y==null&&K.text)K.text('WORK',W-3,7,'#e8d8b8',1,'r');x=x==null?W-10:x;y=y==null?16:y;h=h||120;p=Math.max(0,Math.min(1,p||0));if(whole)p=(K.run.i+p)/K.run.n;K.px(x-1,y-1,8,h+2,'#1a0e06');K.px(x,y,6,h,'#2a1608');if(whole)for(let k=1;k<K.run.n;k++)K.px(x-2,y+h-Math.round(h*k/K.run.n),10,1,'#6a4a20');
     const ph=Math.round(p*h),q=acc==null?p:acc;const c=q<.4?'#d84a2a':q<.7?'#e8b030':'#7cc04a';K.px(x+1,y+h-ph,4,ph,c);if(ph)K.px(x+1,y+h-ph,4,1,'#fff4c0');
     if(q>=.7&&ph>2)K.px(x+1+((Math.floor(performance.now()/90))%4),y+h-ph+1,1,1,'#ffffff');};
   // a carved gauge like the fishing one: frame, a track, a zone, a needle
@@ -174,7 +174,7 @@ function mg4Run(def,name,done,icon){if(MG4.closeCur)MG4.closeCur(true);const box
     else{MG4ART.scene(K,spd().scene||def.scene,t);cur.draw(t,phase);MG4ART.light(K,spd().scene||def.scene,t);K.run={i:run.i,n:steps.length};cur.hud&&phase!=='title'&&cur.hud(t);}
     for(let k=K.parts.length-1;k>=0;k--){const p=K.parts[k];p.t+=dt;if(p.t>p.life){K.parts.splice(k,1);continue;}p.vx*=1-p.drag*dt;p.vy=p.vy*(1-p.drag*dt)+p.g*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
       const u=p.t/p.life,c=p.c[Math.min(p.c.length-1,Math.floor(u*p.c.length))];if(p.kind==='smoke'){const z=Math.max(1,p.sz*(.5+Math.sin(u*Math.PI)*.8)),X=Math.round(p.x),Y=Math.round(p.y),zr=Math.round(z);for(let dy=-zr;dy<=zr;dy++){const w=Math.round(Math.sqrt(Math.max(0,z*z-dy*dy)));if(w<1)continue;K.px(X-w,Y+dy,2*w,1,c);if(dy<0&&dy>-zr)K.px(X-w,Y+dy,Math.max(1,w-1),1,p.hi||c);}}else if(p.kind==='steam'){const z=Math.max(1,Math.round(p.sz)),X=Math.round(p.x),Y=Math.round(p.y);g.globalAlpha=.35*(1-u);g.fillStyle=c;g.beginPath();g.rect(X-z+1,Y-z,2*z-2,2*z);g.rect(X-z,Y-z+1,2*z,2*z-2);g.fill('nonzero');g.globalAlpha=1;}else{g.globalAlpha=u>.75?(1-u)*4:1;K.px(p.x,p.y,p.sz,p.sz,c);g.globalAlpha=1;}}
-    for(let k=K.pops.length-1;k>=0;k--){const p=K.pops[k];p.t+=dt;if(p.t>1){K.pops.splice(k,1);continue;}const yy=Math.round(p.y-p.t*18-(p.big?Math.sin(Math.min(1,p.t*8)*Math.PI)*4:0));K.textO(p.txt,p.x,yy,p.t>.7&&Math.floor(p.t*20)%2?'#fff4d8':p.c,p.big?2:1);}
+    for(let k=K.pops.length-1;k>=0;k--){const p=K.pops[k];p.t+=dt;if(p.t>1){K.pops.splice(k,1);continue;}const yy=Math.max(24,Math.round(p.y-24-p.t*18-(p.big?Math.sin(Math.min(1,p.t*8)*Math.PI)*4:0)));K.textO(p.txt,p.x,yy,p.t>.7&&Math.floor(p.t*20)%2?'#fff4d8':p.c,p.big?2:1);}
     if(K.flash>0){K.flash-=dt;K.pa(0,0,W,H,'#fff6d0',Math.max(0,K.flash)*.6);}
     g.setTransform(MG4_S,0,0,MG4_S,0,0);
     if(reveal===0){
@@ -182,9 +182,9 @@ function mg4Run(def,name,done,icon){if(MG4.closeCur)MG4.closeCur(true);const box
       if(phase==='demo'||(phase==='play'&&window.MG4_AUTO)){if(phase==='demo')K.plaque('Watch','#ffd27a',3,70);const hp=AP.hand||[150,150];K.hand(hp[0],hp[1],AP.press||AP.hold);}
       if(phase==='your'){K.pa(0,0,W,H,'#000',.45);K.plaque('Your turn','#9be07a',60,120,2);if(Math.floor(t*2.5)%2)K.text(K.fine?'Click or press Space to start':'Tap to start',160,98,'#f4ecd8');}
       if(phase==='ready'){const go=pt>.5;const sc=Math.min(1,(go?pt-.5:pt)*6);K.plaque(go?'Go!':'Ready',go?'#9be07a':'#ffd27a',Math.round(66-(1-sc)*12),go?80:96,2);}
-      if(banner&&(phase==='retry'||phase==='next'||phase==='done')){banner.t+=dt;if(banner.t<1.3)K.plaque(banner.txt,banner.c,Math.round(64-Math.max(0,1-banner.t*6)*16),null,2);}
-      const tl=MG4_TRIES-(run.tries[run.i]||0);for(let k=0;k<MG4_TRIES;k++){const x=8+k*9,y=H-12;K.px(x-1,y-1,8,9,'#1a0e06');K.px(x,y,6,7,k<tl?'#c84a3a':'#3a2010');if(k<tl)K.px(x,y,6,1,'#f08070');}
-      for(let k=0;k<steps.length;k++){const x=W-14-(steps.length-k)*11,y=H-12;const sc_=run.scores[k];const c=sc_!=null?(sc_>.65?'#7cc04a':sc_>.35?'#e8b030':'#d84a2a'):null;
+      if(banner&&(phase==='retry'||phase==='next'||phase==='done')){banner.t+=dt;if(banner.t<1.3)K.plaque(banner.txt,banner.c,Math.round(28-Math.max(0,1-banner.t*6)*10),null,2);}
+      const tl=MG4_TRIES-(run.tries[run.i]||0);K.text('TRIES',7,H-19,'#e8d8b8',1,'l');for(let k=0;k<MG4_TRIES;k++){const x=8+k*10,y=H-12,on=k<tl,c=on?'#c84a3a':'#3a2010',hi=on?'#f08070':'#4a2a14';K.px(x,y,2,1,'#1a0e06');K.px(x+4,y,2,1,'#1a0e06');K.px(x-1,y+1,8,3,'#1a0e06');K.px(x,y+4,6,1,'#1a0e06');K.px(x+1,y+5,4,1,'#1a0e06');K.px(x+2,y+6,2,1,'#1a0e06');K.px(x,y+1,2,1,c);K.px(x+4,y+1,2,1,c);K.px(x,y+2,6,2,c);K.px(x+1,y+4,4,1,c);K.px(x+2,y+5,2,1,c);K.px(x,y+1,1,1,hi);K.px(x+4,y+1,1,1,hi);}
+      if(steps.length>1)K.text('STEPS',W-15-steps.length*11,H-19,'#e8d8b8',1,'l');for(let k=0;k<steps.length;k++){const x=W-14-(steps.length-k)*11,y=H-12;const sc_=run.scores[k];const c=sc_!=null?(sc_>.65?'#7cc04a':sc_>.35?'#e8b030':'#d84a2a'):null;
         K.px(x-1,y-1,9,9,'#1a0e06');K.px(x,y,7,7,'#8e621c');K.px(x,y,7,1,'#e8c060');K.px(x,y,1,7,'#d4a03c');K.px(x+6,y,1,7,'#664412');K.px(x,y+6,7,1,'#664412');
         if(c){K.px(x+2,y+2,3,3,c);K.px(x+2,y+2,1,1,'#ffffff');}else if(k===run.i)K.px(x+2,y+2,3,3,(Math.floor(t*3)%2)?'#fff2c8':'#e8c060');else K.px(x+2,y+2,3,3,'#3a2608');}}
     requestAnimationFrame(frame);};requestAnimationFrame(frame);}

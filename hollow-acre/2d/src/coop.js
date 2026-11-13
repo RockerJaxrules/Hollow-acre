@@ -98,7 +98,7 @@ function drawPeer(x,z,look,dir,clip,t,label,bubble,alpha,rs,rf){dir=dir||'S';con
   ctx2.textAlign='left';}
 {const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld(D,t);const here=S.room||'';const now=Date.now();
   for(const p of others()){const q=p.presence;if((q.r||'')!==here)continue;const rs=PEER_RS[p.peer];const x=rs?rs.x:q.x,z=rs?rs.z:q.z;if(!onScreen(x,z,90))continue;
-    const bub=q.s&&now-(q.st||0)<6000?String(q.s).slice(0,120):(q.e&&now-(q.et||0)<2500?({wave:'👋',heart:'♥',scared:'!!',laugh:'ha ha'}[q.e]||''):'');
+    const bub=q.s&&now-(q.st||0)<6000?String(q.s).slice(0,120):(q.e&&now-(q.et||0)<2500?({wave:'*waves*',heart:'*smiles*',nod:'*nods*',scared:'*flinches*',laugh:'*laughs*'}[q.e]||''):'');
     D.push({z,mind:1,draw(){drawPeer(x,z,q.lk,q.d,q.c,t,clean(q.n),bub,null,rs,+q.rf);}});}
   if(CO.fake&&!S.room){const f=CO.fake;D.push({z:f.z,mind:1,draw(){drawPeer(f.x,f.z,f.look,dirOf(P.x-f.x,P.z-f.z),'idle',0,f.n,null,.9);}});}
   // your own words over your head
