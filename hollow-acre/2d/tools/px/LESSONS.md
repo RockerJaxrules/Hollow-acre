@@ -1184,6 +1184,36 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Partners pressed together read as a hug: leave a half-step between bodies.
 - Keep verdict text (PERFECT) and HUD meters clear of the people and the moving pieces; a lantern dropping beside a gauge reads as part of the HUD.
 
+## Farm machines (t334, Nov 13)
+- A lattice tower drawn with the outline pass goes heavy: every 1-2 px strut gets a dark line on each side. Draw thin steel on its own layer with its own dark edge and outline only the solid masses (wheel, tank, pump).
+- Spokes in a dark iron ramp disappear against a dark engine: give each spoke a lit step and a dark trailing edge, and leave the gaps open so what's behind shows through.
+- Anything that rises out of a sprite (exhaust, steam, chaff) needs headroom in the canvas, or it is clipped at the top edge and reads as a stray pixel.
+- Two plain metal cylinders read as bins or churns: a machine's trade comes from what it holds and what's round it (grain in the pan and spilt on the ground, the sack it's fed from, a painted cap).
+- A farm machine reads as working when several things move at different rates (flywheel, belt mark, puff on the firing frames, dust at the spout); one moving part reads as a loop.
+- A machine is judged by its silhouette against the farmer: a feeder taller than the farmer's knee reads as a silo; size it to what it is.
+- Teat cups read as a glove when bunched: four slim cups, each on its own tube, fanned 5 px apart and hung clear of anything else.
+- Never reuse one machine's parts for another (red box, spoked wheel, heaped hopper): each machine needs its own silhouette and material (the fanning mill is tall bare wood).
+- A wheel of identical blades shimmers instead of turning: mark one blade darker so the turn reads; a stopped windmill furls its wheel edge-on.
+- Two pulleys that almost touch read as gears: 10+ px apart with both runs of the belt and a mark travelling along it.
+- Two sacks in two colours read as the same item: give each its own closure (a rolled mouth vs sewn shut with corner ears).
+- A status page that says the same thing for every row ("In the yard.") tells the player nothing: show each machine's own state, with a red line where it will fail at dawn.
+- Buttons styled grey read as disabled: every live button in a ledger page uses the ledger's dark button style.
+- A machine reads as working at 1x only through bold 2-3 px shapes that change a lot from frame to frame (a 3x2 clump stepping 3 px, a 3x3 splice mark, a 4 px sway); 1 px specks and 1 px moves vanish.
+- A dark near-black upright with an arm (Γ) reads as a gallows, worst of all next to street lamps: dairy kit is light wood and galvanised steel, low.
+- Teat cups hang mouth-down: blunt straight cylinders with a dark liner ring at the bottom, the tube narrowing into the top. Tapered points read as icicles or knives.
+- A marker on a turning wheel must be pale, not dark: a dark blade disappears on the wheel's shaded side.
+- Never bake a long cast shadow into a world sprite when the game throws its own with the sun: keep only contact shadows under the feet, or the two point opposite ways.
+- A crank grip seen face-on reads as a clock hand: give it a lit end cap standing out toward the viewer and a shadow on the surface behind it in every frame.
+- Grain in a heap reads as dirt when it has dark single-pixel speckle: cluster the kernels (2x2 lit groups).
+- A spout with no cap or lit edge reads as a drinking straw.
+- A status line needs an icon every time and a separator between clauses; a mode toggle reads best as a two-sided switch with the current side lit, and a button should say what it does ("Pour in 3 cans").
+- A cluster of identical parts hanging straight reads as test tubes: splay them from a visible hub (the claw bowl), the outer ones angled out, each at its own height, and swing the tips a little out of step.
+- A tall machine needs a dark contact pad under each foot, or it floats; an in-world judge shot must show the base, not just the top.
+- A pure-white marker on a mid-grey wheel shouts: keep the marker pale but under about 85% so it reads without glowing.
+- A heap of grain drawn as a flat ellipse reads as a gold bar: build it column by column as a low ragged cone, darker at the base.
+- A list page that runs past its frame needs a cue that says so, gone once the last line is in view; tighten rows before adding scroll.
+- A button says exactly what it does with the number in it ("Load 5 barley", "Pour in 3 cans"), and a two-sided switch shows what each side makes.
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline

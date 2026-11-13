@@ -83,7 +83,7 @@ function mc34DrawWind(f,still){const {W,H,gy}=MC34_WIND,S_=MC34P.steel,TX=28;
       if(r>Ro-1.3)return nx+ny<-.3?S_[4]:nx+ny<.5?S_[3]:S_[2];
       if(r<Ri+1.2&&r>=Ri)return S_[2];
       if(r<Ri){return r<2?S_[0]:r<3.2?(nx+ny<0?S_[3]:S_[1]):S_[1];}
-      if(bi===0)return fr<.12?S_[2]:'#f4f2ea';   // the marker blade: pale, so the turn reads on the dark side too
+      if(bi===0)return fr<.12?S_[2]:'#d0cdc5';   // the marker blade: pale (about 85%, not white), so the turn reads on the dark side too
       const v=fr<.12?.15:fr<.5?.82:fr<.8?.6:.38;return mc34R(S_,v+tl);});}
   const pb=gy-16;K.px(TX-3,pb,7,14,S_[2]);K.px(TX-3,pb,2,14,S_[3]);K.px(TX+2,pb,2,14,S_[1]);K.px(TX-4,pb-2,9,2,S_[1]);K.px(TX-4,pb-2,9,1,S_[3]);
   K.px(TX-4,gy-2,9,2,S_[1]);
@@ -98,8 +98,10 @@ function mc34DrawWind(f,still){const {W,H,gy}=MC34_WIND,S_=MC34P.steel,TX=28;
     const rr=(f%4)+1;K.ell(TX+20,ty+1,rr+1,rr*.45,(x,y,nx,ny,d)=>d>.7?MC34P.water[4]:null);}
   const O=mc34Kit(W,H);O.put(L.c);O.put(K.c);
   // only contact shadows under the feet and the tank: the long shadow is thrown by the game itself, with the sun
-  O.g.save();O.g.globalCompositeOperation='destination-over';O.g.globalAlpha=.5;
-  for(const x of [12,46])O.ell(x,gy+1,4,1.4,()=>'#322125');O.ell(28,gy+1,4,1.2,()=>'#322125');O.ell(60,gy+2,14,3,()=>'#322125');O.g.restore();
+  // a dark contact pad under each of the four legs, the pump and the tank, so the tower stands on the ground
+  O.g.save();O.g.globalCompositeOperation='destination-over';O.g.globalAlpha=.85;
+  for(const [x,rx] of [[12,4.5],[46,4.5],[18,2.6],[40,2.6]])O.ell(x,gy+1.5,rx,1.6,()=>'#1c1216');O.ell(28,gy+1.5,4.5,1.5,()=>'#1c1216');O.ell(60,gy+2.5,14.5,2.6,()=>'#1c1216');
+  O.g.globalAlpha=.4;O.ell(60,gy+2,17,3.6,()=>'#1c1216');O.g.restore();
   return O.c;}
 
 // ---------------------------------------------------------------- THE FEED MILL (88 x 74; six frames: flywheel, belt, exhaust, meal)
@@ -138,7 +140,7 @@ function mc34DrawMill(f,still){const {W,H,gy}=MC34_MILL,G=MC34P.green,I=MC34P.ir
   // the belt: both runs between the pulleys, a pale splice mark travelling along each (over the top one way, back underneath)
   const T0=[39,gy-28.5],T1=[60,gy-34.5],B0=[39,gy-19.5],B1=[60,gy-21.5];
   K.line(T0[0],T0[1],T1[0],T1[1],Le[2]);K.line(T0[0],T0[1]+1,T1[0],T1[1]+1,Le[1]);K.line(B0[0],B0[1],B1[0],B1[1],Le[2]);K.line(B0[0],B0[1]+1,B1[0],B1[1]+1,Le[1]);
-  {const t=still?.3:((fr%6)+.5)/6;const mx=Math.round(T0[0]+(T1[0]-T0[0])*t),my=Math.round(T0[1]+(T1[1]-T0[1])*t);K.px(mx-1,my-1,3,3,'#3a2414');K.px(mx-1,my-1,3,2,'#e8d4a8');}   // one bold pale splice, 3.6 px a frame
+  {const t=still?.3:((fr%6)+.5)/6;const mx=Math.round(T0[0]+(T1[0]-T0[0])*t),my=Math.round(T0[1]+(T1[1]-T0[1])*t);K.px(mx,my-1,2,2,'#f0dfb4');}   // one 2x2 splice in the lightest tan, 3.6 px a frame
   if(!still){if(fr<4){const k=fr/4;mc34Puff(K,36+k*6,gy-55-fr*3.5,2.6+fr*1.3,.5-k*.25);}
     // meal dust: pale clumps falling from the spout into the sack, and a haze over its mouth
     for(let i=0;i<3;i++){const y=gy-16+((fr*3+i*4)%9);K.px(80+(i%2),y,2,2,MC34P.cloth[4]);}
@@ -161,10 +163,10 @@ function mc34DrawFeed(f,empty){const {W,H,gy}=MC34_FEED,S_=MC34P.steel,Gr=MC34P.
   const fx=24,py=gy-6;
   for(let x=fx-14;x<=fx+14;x++){const nx=(x+.5-fx)/14;if(Math.abs(nx)>1)continue;const yl=py+Math.sqrt(1-nx*nx)*4.2,nb=(x+.5-fx)/11,yb=Math.abs(nb)<1?py+3+Math.sqrt(1-nb*nb)*3.4:yl;
     for(let y=Math.round(yl);y<=Math.round(yb);y++)K.px(x,y,1,1,mc34R(S_,.62-nx*.4-(y-yl)*.06));}
-  K.ell(fx,py,14,4.2,(x,y,nx,ny,d)=>d>.84?(ny>0?(nx<.2?S_[4]:S_[3]):S_[2]):empty?(ny<0?S_[1]:S_[2]):(((x>>1)*3+(y>>1)*5)%7===0?Gr[4]:ny<-.2&&nx<.2?Gr[4]:ny>.45?Gr[2]:Gr[3]));
+  K.ell(fx,py,14,4.2,(x,y,nx,ny,d)=>d>.84?(ny>0?(nx<.2?S_[4]:S_[3]):S_[2]):empty?(ny<0?S_[1]:S_[2]):(mc34Hash(x>>1,(y+(x>>2))>>1)<.13?Gr[4]:mc34Hash(x>>1,y)<.08?Gr[2]:ny<-.2&&nx<.2?Gr[4]:ny>.45?Gr[2]:Gr[3]));
   // the hopper: a short galvanised drum standing in the pan, slots at its foot, a low domed lid with a knob
   mc34Cyl(K,fx,gy-18,gy-8,6.5,S_,true);K.px(fx-7,gy-8,14,1,S_[1]);
-  for(const x of [fx-5,fx-1,fx+3])K.px(x,gy-9,2,2,S_[0]);
+  for(const x of [fx-5,fx-1])K.px(x,gy-9,2,2,S_[0]);K.px(fx+3,gy-10,4,3,S_[0]);K.px(fx+3,gy-10,4,1,'#0e1014');   // the working slot, wide and dark
   K.ell(fx,gy-18,7.4,3.6,(x,y,nx,ny)=>ny>.15?null:nx+ny<-.4?S_[4]:nx<.3?S_[3]:S_[2]);K.px(fx-7,gy-18,15,1,S_[1]);
   K.px(fx-1,gy-23,3,2,S_[2]);K.px(fx-1,gy-23,1,1,S_[4]);
   // the water fount: a small domed jar upside down in its own little pan
@@ -177,6 +179,9 @@ function mc34DrawFeed(f,empty){const {W,H,gy}=MC34_FEED,S_=MC34P.steel,Gr=MC34P.
   if(!empty){const PATH=[[fx+5,gy-9],[fx+8,gy-8],[fx+11,gy-7],[fx+13,gy-6],[fx+15,gy-5],[fx+16,gy-2],[fx+16,gy+1],[fx+17,gy+2]];
     for(const [x,y] of [[fx+16,gy+2],[fx+18,gy+2],[fx+17,gy+1]]){K.px(x,y,2,1,Gr[3]);K.px(x,y+1,2,1,Gr[1]);}   // the little heap
     for(let j=0;j<2;j++){const [x,y]=PATH[(f+j*4)%8];K.px(x,y,3,2,Gr[4]);K.px(x,y+2,3,1,Gr[1]);K.px(x+2,y,1,2,Gr[2]);}
+    // two or three loose kernels always in the air: popping out of the slot and tumbling off the lip
+    const AIR=[[fx+6,gy-11],[fx+8,gy-12],[fx+10,gy-11],[fx+16,gy-4],[fx+17,gy-2],[fx+18,gy],[fx+7,gy-12],[fx+15,gy-3]];
+    for(let j=0;j<3;j++){const [x,y]=AIR[(f*2+j*3)%8];K.px(x,y,2,1,Gr[4]);K.px(x,y+1,1,1,Gr[2]);}
     K.px(wx-4+((f*3)%7),gy-3,2,1,Wa[4]);}
   K.shadow(29,gy+1,27,2.6);return K.c;}
 
@@ -216,13 +221,17 @@ function mc34DrawMilk(f,still){const {W,H,gy}=MC34_MILK,S_=MC34P.steel,Wd=MC34P.
   // the milk tube from the claw down to the lid first, so the cups hang in front of it
   for(let t=0;t<=1;t+=.03){K.px(Math.round(cx-3+(bx+6-cx+3)*t),Math.round(cy+2+(gy-21-cy-2)*t+Math.sin(t*Math.PI)*4),1,1,RB);}
   K.line(64,gy-27,cx,cy-3,S_[2]);K.px(63,gy-28,2,1,S_[4]);
-  K.ell(cx,cy,3.6,2.4,(x,y,nx,ny)=>ny<-.2?(nx<.3?S_[4]:S_[3]):S_[1]);K.px(cx-3,cy+2,7,1,S_[0]);
-  for(let i=0;i<4;i++){const ux=Math.round(cx-7.5+i*5),up=still?0:((i+fr)%2?-2:0),uy=cy+5+up;
-    K.line(Math.round(cx-1.5+i),cy+2,ux,uy-1,RB);
-    // a blunt cup hung mouth-down: the tube narrows into its top, a straight 3 px shell lit on the left, a dark liner ring at the mouth
-    K.px(ux,uy,1,1,S_[2]);
-    for(let j=1;j<9;j++){K.px(ux-1,uy+j,1,1,S_[4]);K.px(ux,uy+j,1,1,S_[3]);K.px(ux+1,uy+j,1,1,S_[1]);}
-    K.px(ux-1,uy+9,3,1,RB);K.px(ux,uy+9,1,1,'#4a3a32');}
+  // the claw: a little steel bowl on the hook, lit on its upper left, a dark rim underneath where the four short tubes leave it
+  K.ell(cx,cy,4.6,3.2,(x,y,nx,ny,d)=>d>.82?(ny<0?S_[3]:S_[0]):ny<-.25?(nx<.1?S_[4]:S_[3]):ny<.45?(nx<0?S_[3]:S_[2]):S_[1]);
+  K.px(cx-2,cy-2,2,1,'#eef0ee');K.px(cx-4,cy+2,9,1,S_[0]);K.px(cx-1,cy+3,3,1,S_[1]);
+  // four blunt cups splayed out of it: the outer two angled out, each at its own height, the tips swinging 2 px frame to frame
+  const CUPS=[[-4,-.34,2],[-1.5,-.1,0],[1.5,.12,1],[4,.36,3]],L=8;
+  for(let i=0;i<4;i++){const [ox,ang,dh]=CUPS[i],tip=still?0:(((i+fr)%2)?1:-1),tx=cx+ox+Math.sin(ang)*3,ty=cy+5+dh;
+    K.line(Math.round(cx+ox*.5),cy+3,Math.round(tx),ty-1,RB);   // its short milk tube from the claw
+    for(let j=0;j<L;j++){const xc=Math.round(tx+Math.sin(ang)*j+tip*(j/(L-1))),y=ty+j;
+      if(j===0){K.px(xc,y,1,1,S_[2]);continue;}   // the tube narrowing into the top of the shell
+      K.px(xc-1,y,1,1,S_[4]);K.px(xc,y,1,1,S_[3]);K.px(xc+1,y,1,1,S_[1]);}
+    const bx2=Math.round(tx+Math.sin(ang)*L+tip);K.px(bx2-1,ty+L,3,1,RB);K.px(bx2,ty+L,1,1,'#4a3a32');}   // the dark liner ring at the mouth
   // the vacuum hose from the tank to the pulsator
   for(let t=0;t<=1;t+=.04){K.px(30+(bx-2-30)*t,gy-29+Math.sin(t*Math.PI)*-5+t*3,1,1,Le[2]);}
   // the engine's flywheel turning, and a pale puff from the stack on the firing frame
@@ -250,7 +259,9 @@ function mc34DrawSeed(f,still,empty){const {W,H,gy}=MC34_SEED,Wd=MC34P.wood,I=MC
   // the screens' edges sticking out of the far end, stepped and lit along their tops; the seed spout below them
   for(let i=0;i<3;i++){const y=gy-31+i*4;K.px(42,y,7-i,1,Wd[4]);K.px(42,y+1,7-i,1,Wd[1]);K.px(48-i,y,1,2,Wd[2]);}
   K.poly([[36,gy-12],[44,gy-10],[44,gy-8],[36,gy-9]],(x,y)=>y<gy-10?P2[3]:P2[1]);
-  if(!empty)K.ell(47,gy-1,6,2.4,(x,y,nx,ny)=>ny<0&&nx<.3?Gr[4]:Gr[2]);
+  if(!empty){for(let x=40;x<=54;x++){const d=Math.abs(x-47)/7.2;if(d>=1)continue;const h=Math.round(5.2*Math.pow(1-d,1.15)+(mc34Hash(x,3)<.4?1:0)*(d<.8?1:0));
+      for(let j=0;j<=h;j++){const y=gy+1-j,top=j===h,lit=x<47;K.px(x,y,1,1,top?(lit?Gr[4]:Gr[3]):j<=1?Gr[1]:j<=2?Gr[2]:lit?Gr[3]:Gr[2]);}}
+    for(const [x,y] of [[39,gy+1],[55,gy],[42,gy+2],[52,gy+2]])K.px(x,y,1,1,Gr[2]);}   // a low ragged cone, darker at its base, a few strays
   // the fan drum, bulging out of the near side: a round wooden housing, boards curving round it, lit on its upper left
   const dx=16,dy=gy-22;K.ell(dx,dy,12,12,(x,y,nx,ny,d)=>{const lit=-(nx+ny)*.5;if(d>.9)return lit>0?P2[3]:P2[0];const ring=Math.abs(d-.62)<.05;return ring?P2[1]:mc34R(P2,.62+lit*.45-(d>.75?.1:0));});
   K.ell(dx,dy,2.4,2.4,(x,y,nx,ny)=>nx+ny<0?I[4]:I[2]);
@@ -261,7 +272,7 @@ function mc34DrawSeed(f,still,empty){const {W,H,gy}=MC34_SEED,Wd=MC34P.wood,I=MC
   K.g.save();K.g.globalAlpha=.55;K.px(hx+2,hy+2,3,4,'#1a120c');K.g.restore();
   K.px(hx-1,hy,4,5,'#2a1c12');K.px(hx,hy,2,4,Wd[3]);K.px(hx,hy,1,4,Wd[4]);K.px(hx+1,hy+3,1,1,Wd[1]);K.px(hx-1,hy-1,4,2,'#2a1c12');K.px(hx,hy-1,2,1,'#e8d0a0');
   // chaff out of the far end in small tufts (3 px each) drifting off right and up; seed trickling from the spout
-  if(!still&&!empty){for(let i=0;i<4;i++){const k=((fr*4+i*6)%24),x=Math.round(43+k),y=Math.round(gy-41-k*.45+(i%2)*2);K.px(x,y,2,2,'#c8b47a');K.px(x,y,2,1,'#ecdca8');K.px(x+2,y+1,1,1,'#b8a46a');}
+  if(!still&&!empty){for(let i=0;i<4;i++){const k=((fr*3+i*4)%13),row=i%3,x=Math.round(47-row+k*.9),y=Math.round(gy-31+row*4-k*.5);K.px(x,y,2,2,'#c8b47a');K.px(x,y,2,1,'#ecdca8');K.px(x+2,y+1,1,1,'#b8a46a');}   // chaff blown out between the screens' slats
     for(let i=0;i<2;i++){const y=gy-8+((fr*3+i*4)%7);K.px(44+i,y,1,2,Gr[4]);}}
   K.shadow(30,gy+1,26,3.2);return K.c;}
 
@@ -275,7 +286,9 @@ function mc34Icon(k){const K=mc34Kit(32,32),R=MC34P.red,S_=MC34P.steel,Bu=MC34P.
   else if(k==='grease'){K.ell(16,12,10,3.5,(x,y,nx)=>nx<.2?S_[4]:S_[3]);
     for(let x=6;x<=26;x++){const nx=(x-16)/10;for(let y=12;y<=24;y++)K.px(x,y,1,1,y<15?mc34R(S_,.85-nx*.4):y<21?mc34R(Br,.8-nx*.35):mc34R(S_,.7-nx*.4));}
     K.ell(16,24,10,3,(x,y,nx,ny)=>ny>0?mc34R(S_,.5-nx*.3):null);K.px(9,17,10,1,Br[1]);K.px(11,19,6,1,Br[1]);
-    K.ell(16,12,8,2.2,(x,y,nx)=>nx<0?'#4a3c2a':'#2e2418');K.px(11,11,4,1,'#6e5a3e');}
+    K.ell(16,12,8,2.2,(x,y,nx)=>nx<0?'#4a3c2a':'#2e2418');K.px(10,11,4,1,'#9a845c');K.px(11,12,2,1,'#6e5a3e');
+    K.ell(19,12.4,3,1.1,()=>'#18110a');K.px(17,13,4,1,'#7a6444');   // a scoop taken out of it, its far lip catching the light
+    K.px(8,14,1,8,'#e6eaee');K.px(9,15,1,4,'#d4d8dc');}   // a gloss streak down the tin
   else if(k==='feed'){K.poly([[7,10],[25,10],[27,28],[5,28]],(x,y)=>{const t=(x-5)/22;return t<.22?Bu[3]:t>.78?Bu[1]:Bu[2];});
     K.px(5,27,23,2,Bu[1]);K.px(6,8,21,4,Bu[4]);K.px(6,11,21,1,Bu[1]);
     K.ell(16,8,8,3,(x,y,nx,ny)=>ny<-.1&&nx<.3?Gr[4]:Gr[2]);K.ell(15,6,4,1.6,(x,y,nx)=>nx<0?Gr[4]:Gr[3]);
@@ -417,7 +430,9 @@ function mc34Dawn(e0,e1){if(typeof empHost==='function'&&!empHost())return;const
 // ---- each machine's own page, from the machine itself
 function mc34Open(k){const M=MC34_M[k],m=MC34()[k];if(!m)return;const B=(a,l,dis)=>`<button data-mc34="${a}" ${dis?'class="nope"':''}>${l}</button>`;
   const fuelRow=()=>bizRow(`<b><img class="mc34ic" src="${iconOf('mc_kero')}" alt="">Kerosene: ${m.fuel|0} of ${MC34_CAP.fuel} cans</b><small>A can a working day. You carry ${inv('mc_kero')} (Pruitt’s garage sells them).</small>`,'',B('fuel',(()=>{const n=Math.min(inv('mc_kero'),MC34_CAP.fuel-(m.fuel|0));return n>0?`Pour in ${n} can${n>1?'s':''}`:inv('mc_kero')?'Tank full':'No cans';})(),!inv('mc_kero')||(m.fuel|0)>=MC34_CAP.fuel));
-  const loadRows=(kinds)=>{let h='';for(const q of kinds){const n=basketCount(q);if(!n)continue;h+=bizRow(`<b>${SEEDS[q].name}</b><small>${n} in your basket</small>`,'',B('load:'+q,'Load them'));}return h||`<p class="bzs">Nothing in your basket it can take.</p>`;};
+  const loadRows=(kinds)=>{let h='';const cap=k==='mill'?MC34_CAP.mill:MC34_CAP.seed,have=Object.values(m.hop||{}).reduce((x,y)=>x+(y|0),0);
+    for(const q of kinds){const n=basketCount(q);if(!n)continue;const can=Math.min(n,cap-have);   // the button says what it loads
+      h+=bizRow(`<b>${SEEDS[q].name}</b><small>${n} in your basket</small>`,'',B('load:'+q,can>0?`Load ${can} ${SEEDS[q].name.toLowerCase()}`:'Hopper full',can<1));}return h||`<p class="bzs">Nothing in your basket it can take.</p>`;};
   const ic=q=>`<img class="mc34ic" src="${iconOf('mc_'+q)}" alt="">`,warn=(q,t)=>`<p class="mc34warn">${ic(q)}${t}</p>`;
   let h=`<div class="bzled"></div><h3>${M.name}</h3>`;
   if((k==='mill'||k==='milk')&&!(m.fuel>0))h+=warn('kero',k==='mill'?'No kerosene: it won’t grind at dawn.':'No kerosene: it won’t milk at dawn.');
@@ -428,7 +443,7 @@ function mc34Open(k){const M=MC34_M[k],m=MC34()[k];if(!m)return;const B=(a,l,dis
     h+=bizRow(`<b><img class="mc34ic" src="${iconOf('mc_grease')}" alt="">Axle grease</b><small>You carry ${inv('mc_grease')} tin${inv('mc_grease')===1?'':'s'} (Pruitt’s garage sells them).</small>`,'',B('grease','Grease it',!inv('mc_grease')));}
   else if(k==='mill'){const hop=m.hop||{},o=m.out||{};
     h+=`<p class="bzs">In the hopper: <b>${hop.barley|0} barley</b>, <b>${hop.corn|0} corn</b> (it holds ${MC34_CAP.mill}). It grinds up to twelve at dawn.</p>`;
-    h+=bizRow(`<b>Making</b><small>${m.mode==='flour'?'Three barley a sack of flour (corn waits).':'Two grain a sack of mash, barley first.'}</small>`,'',`<span class="mc34sw"><button data-mc34="${m.mode==='flour'?'mode':''}" class="${m.mode!=='flour'?'on':''}">Mash</button><button data-mc34="${m.mode==='flour'?'':'mode'}" class="${m.mode==='flour'?'on':''}">Flour</button></span>`);
+    h+=bizRow(`<b>Making</b><small>${m.mode==='flour'?'Three barley a sack of flour (corn waits).':'Two grain a sack of mash, barley first.'}</small>`,'',`<span class="mc34sw"><img class="mc34ic" src="${iconOf('mc_feed')}" alt=""><button data-mc34="${m.mode==='flour'?'mode':''}" class="${m.mode!=='flour'?'on':''}">Mash</button><button data-mc34="${m.mode==='flour'?'':'mode'}" class="${m.mode==='flour'?'on':''}">Flour</button><img class="mc34ic" src="${iconOf('mc_flour')}" alt=""></span>`);
     h+=fuelRow()+'<h4>Load the hopper</h4>'+loadRows(['barley','corn']);
     if(o.feed||o.flour)h+=bizRow(`<b>Ground and bagged</b><small>${[o.feed?`${o.feed} sack${o.feed>1?'s':''} of mash`:'',o.flour?`${o.flour} sack${o.flour>1?'s':''} of flour`:''].filter(Boolean).join(', ')}</small>`,'',B('take','Take the sacks'));}
   else if(k==='feed'){h+=`<p class="bzs">${S.coop?`${HENS.length} hen${HENS.length===1?'':'s'}: ${Math.ceil(Math.max(1,HENS.length)/4)} sack a morning.`:'There’s no coop yet: build one from the Farm Plans and it feeds the hens.'} In the hopper: <b>${m.sacks|0} sack${(m.sacks|0)===1?'':'s'}</b> of mash (it holds ${MC34_CAP.sacks}).</p>`;
@@ -474,26 +489,36 @@ function mc34State(k){const m=MC34()[k];if(!m||!m.own)return '';if(m.x==null)ret
   if(k==='feed')return mc34St('feed',`Mash ${m.sacks|0} of ${MC34_CAP.sacks}`,!(m.sacks>0))+(S.coop?'':mc34St('@egg','No coop yet',true));
   if(k==='milk')return mc34St('kero',`Kerosene ${m.fuel|0} of ${MC34_CAP.fuel}`,!(m.fuel>0))+mc34St('@milk',`${m.cool|0} bottles in the cooler`,false)+(S.cows?'':mc34St('@milk','No cows yet',true));
   return mc34St('@'+(Object.keys(m.hop||{}).find(q=>m.hop[q]>0)||'pumpkin'),`${hop} in the hopper`,false)+mc34St(m.box?'@hand_seedbox':'feed',m.box?'Seed to the hands’ box':'Seed to its tray',false);}
-function mc34Book(){const st=MC34();let h=`<p class="bzs">Machines from Pruitt’s garage and Bell’s, set down in the yard. Each one works at dawn while you sleep, so long as it has what it needs.</p>`;
+function mc34Book(){const st=MC34();let h=`<p class="bzs">Each one works at dawn while you sleep, if it has what it needs.</p>`;
   for(const k of MC34_ORDER){const M=MC34_M[k],m=st[k],p=mc34Price(k);
     const need=!m||!m.own?(k==='feed'&&!S.coop?' You’ll want the chicken coop first.':k==='milk'&&!S.cows?' You’ll want a cow first.':''):'';
     const btn=!m||!m.own?`<button data-mc34buy="${k}" ${S.coins<p?'class="nope"':''}>${p?'Buy · '+p:'Free'}</button>`:m.x==null?`<button data-mc34put="${k}">Set it down</button>`:`<button data-mc34put="${k}">Move it</button>`;
     h+=`<div class="mc34r"><img class="mc34th" src="${mc34Thumb(k)}" alt=""><div class="mc34t"><b>${M.name}</b><small>${MC34_BLURB[k]}${need}</small>${m&&m.own?`<div class="mc34sts">${mc34State(k)}</div>`:''}</div><div class="mc34b">${btn}</div></div>`;}
-  const L=st.last;if(L&&L.day===S.day&&L.did.length)h+=`<p class="bwlead">This morning: ${L.did.join('; ')}.</p>`;return h+'<div style="height:18px"></div>';}
+  const L=st.last;if(L&&L.day===S.day&&L.did.length)h+=`<p class="bwlead">This morning: ${L.did.join('; ')}.</p>`;return h+'<div style="height:6px"></div>';}
+// when the page runs past the bottom of the book (a short screen, a phone), a cue says there's more below and scrolls on a tap;
+// it goes as soon as the last line is in view
+const MC34MORE={cue:null,on:false};
+function mc34MoreCue(box){const sc=$('note');if(!sc)return;const cue=document.createElement('div');cue.className='mc34more';cue.innerHTML='<span>▾ more below</span>';box.appendChild(cue);MC34MORE.cue=cue;
+  cue.onclick=()=>{try{sc.scrollBy({top:sc.clientHeight*.75,behavior:'smooth'});}catch(e){sc.scrollTop+=sc.clientHeight*.75;}};
+  const upd=()=>{const c=MC34MORE.cue;if(!c||!c.isConnected)return;c.style.visibility=sc.scrollHeight-sc.clientHeight-sc.scrollTop>6?'visible':'hidden';};
+  if(!MC34MORE.on){MC34MORE.on=true;sc.addEventListener('scroll',upd,{passive:true});addEventListener('resize',upd);}setTimeout(upd,0);setTimeout(upd,250);}
 function mc34TabBtn(on){const N=$('noteText');const tabs=N&&N.querySelector('.bztabs');if(!tabs||tabs.querySelector('[data-mc34tab]'))return;const b=document.createElement('button');b.dataset.mc34tab='1';b.textContent='Machines';if(on)b.className='on';
   b.onclick=()=>setTimeout(()=>empOpen('machines'),0);tabs.appendChild(b);}
 {const _eo=empOpen;empOpen=function(tab){if(tab!=='machines'){const r=_eo.apply(this,arguments);try{mc34TabBtn(false);}catch(e){}return r;}
   _eo.call(this,'town');const N=$('noteText');if(!N)return;const tabs=N.querySelector('.bztabs');if(!tabs)return;while(tabs.nextSibling)tabs.nextSibling.remove();
   tabs.querySelectorAll('button').forEach(b=>b.classList.remove('on'));mc34TabBtn(true);const box=document.createElement('div');box.innerHTML=mc34Book();N.appendChild(box);
+  mc34MoreCue(box);
   box.querySelectorAll('[data-mc34buy]').forEach(b=>b.onclick=()=>{const k=b.dataset.mc34buy,p=mc34Price(k);if(MC34()[k]&&MC34()[k].own)return;
     if(S.coins<p){SFX.deny&&SFX.deny();toast(`That’s ${p} coins. You have ${S.coins}.`,2.2);return;}S.coins-=p;SFX.coin&&SFX.coin();updateHud&&updateHud();
     mc34Do('buy',{k});toast(`${MC34_M[k].name} comes out on the truck. Choose where it stands.`,2.6);setTimeout(()=>mc34Place(k),60);});
   box.querySelectorAll('[data-mc34put]').forEach(b=>b.onclick=()=>mc34Place(b.dataset.mc34put));};}
-{const css=document.createElement('style');css.textContent=`#noteText .mc34r{display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px dashed rgba(90,60,30,.35)}
-#noteText .mc34th{flex:0 0 76px;width:76px;height:auto;max-height:64px;object-fit:contain;object-position:center bottom;image-rendering:pixelated}
-#noteText .mc34t{flex:1 1 auto;min-width:0}#noteText .mc34t small{display:block;line-height:1.3}#noteText .mc34b{flex:0 0 auto}
+{const css=document.createElement('style');css.textContent=`#noteText .mc34r{display:flex;gap:10px;align-items:center;padding:4px 0;border-bottom:1px dashed rgba(90,60,30,.35)}
+#noteText .mc34more{position:sticky;bottom:0;height:30px;margin-top:-30px;display:flex;align-items:flex-end;justify-content:center;cursor:pointer;background:linear-gradient(rgba(232,214,168,0),rgba(232,214,168,.95) 55%)}
+#noteText .mc34more span{font-size:12px;color:#5a3a1e;padding:0 8px 3px;letter-spacing:.5px}
+#noteText .mc34th{flex:0 0 70px;width:70px;height:auto;max-height:54px;object-fit:contain;object-position:center bottom;image-rendering:pixelated}
+#noteText .mc34t{flex:1 1 auto;min-width:0}#noteText .mc34t small{display:block;line-height:1.22}#noteText .mc34b{flex:0 0 auto}
 #noteText .mc34sts{margin-top:3px}#noteText .mc34st+.mc34st::before{content:'·';margin:0 7px 0 -3px;color:#7a5a3a}#noteText .mc34st{display:inline-block;margin-right:10px;font-size:12px;white-space:nowrap}
 #noteText .mc34st img,#noteText .mc34ic{width:16px;height:16px;vertical-align:-3px;margin-right:4px;image-rendering:pixelated}
 #noteText .mc34st.warn,#noteText .mc34warn{color:#a8281c;font-weight:bold}#noteText .mc34warn{margin:4px 0 6px}
-#noteText .mc34sw{display:inline-flex}#noteText .mc34sw button{font:inherit;font-size:13px;padding:4px 10px;background:#c8b48c;color:#3a2210;border:0;cursor:pointer;box-shadow:inset 0 0 0 1px #120a04}#noteText .mc34sw button.on{background:#a8502a;color:#f4e6c8;cursor:default}
+#noteText .mc34sw{display:inline-flex;align-items:center}#noteText .mc34sw .mc34ic{width:22px;height:22px;margin:0 5px}#noteText .mc34sw button{font:inherit;font-size:13px;padding:4px 10px;background:#c8b48c;color:#3a2210;border:0;cursor:pointer;box-shadow:inset 0 0 0 1px #120a04}#noteText .mc34sw button.on{background:#a8502a;color:#f4e6c8;cursor:default}
 #noteText .mc34b button{font:inherit;font-size:13px;padding:4px 10px;background:#3a2210;color:#f4e6c8;border:0;cursor:pointer;box-shadow:inset 0 0 0 1px #120a04,inset 0 2px 0 #5a3a1e}`;document.head.appendChild(css);}
