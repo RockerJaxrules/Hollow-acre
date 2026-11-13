@@ -79,7 +79,7 @@ function mc34DrawWind(f,still){const {W,H,gy}=MC34_WIND,S_=MC34P.steel,TX=28;
     K.px(cx-1,cy-1,3,3,S_[0]);}
   else{const rot=f*(Math.PI*2/N)/2;
     K.ell(cx,cy,Ro,Ro,(x,y,nx,ny,d)=>{const r=d*Ro;let a=Math.atan2(ny,nx)+rot;a=((a%(Math.PI*2))+Math.PI*2)%(Math.PI*2);const bi=Math.floor(a/(Math.PI*2/N)),fr=(a/(Math.PI*2/N))%1;
-      const tl=-(nx*.7+ny*.7)*.18;
+      const tl=-(nx*.7+ny*.7)*.34;   // the whole wheel lit from the upper left
       if(r>Ro-1.3)return nx+ny<-.3?S_[4]:nx+ny<.5?S_[3]:S_[2];
       if(r<Ri+1.2&&r>=Ri)return S_[2];
       if(r<Ri){return r<2?S_[0]:r<3.2?(nx+ny<0?S_[3]:S_[1]):S_[1];}
@@ -119,6 +119,7 @@ function mc34DrawMill(f,still){const {W,H,gy}=MC34_MILL,G=MC34P.green,I=MC34P.ir
   K.px(4,gy-6,40,4,Wd[3]);K.px(4,gy-6,40,1,Wd[4]);K.px(4,gy-2,40,2,Wd[1]);K.px(4,gy-6,2,6,Wd[2]);K.px(42,gy-6,2,6,Wd[1]);
   for(const x of [54,74]){K.px(x,gy-14,3,14,Wd[2]);K.px(x,gy-14,1,14,Wd[3]);}K.px(52,gy-16,28,3,Wd[3]);K.px(52,gy-16,28,1,Wd[4]);K.line(56,gy-2,76,gy-12,Wd[1]);
   K.px(12,gy-18,30,12,G[2]);K.px(12,gy-18,30,2,G[3]);K.px(12,gy-8,30,2,G[1]);K.px(40,gy-18,2,12,G[1]);
+  K.px(16,gy-33,22,3,G[3]);K.px(16,gy-33,22,1,G[4]);K.px(37,gy-33,1,3,G[2]);   // the engine's lit top face
   K.px(16,gy-30,22,13,G[2]);K.px(16,gy-30,22,2,G[4]);K.px(16,gy-28,3,11,G[3]);K.px(35,gy-28,3,11,G[1]);
   for(let i=0;i<4;i++)K.px(20+i*4,gy-24,2,6,G[1]);
   K.px(17,gy-36,16,6,G[2]);K.px(17,gy-36,16,1,G[4]);K.px(18,gy-35,14,2,MC34P.water[1]);K.px(18,gy-35,6,1,MC34P.water[3]);
@@ -166,6 +167,7 @@ function mc34DrawFeed(f,empty){const {W,H,gy}=MC34_FEED,S_=MC34P.steel,Gr=MC34P.
   K.ell(fx,py,14,4.2,(x,y,nx,ny,d)=>d>.84?(ny>0?(nx<.2?S_[4]:S_[3]):S_[2]):empty?(ny<0?S_[1]:S_[2]):(mc34Hash(x>>1,(y+(x>>2))>>1)<.13?Gr[4]:mc34Hash(x>>1,y)<.08?Gr[2]:ny<-.2&&nx<.2?Gr[4]:ny>.45?Gr[2]:Gr[3]));
   // the hopper: a short galvanised drum standing in the pan, slots at its foot, a low domed lid with a knob
   mc34Cyl(K,fx,gy-18,gy-8,6.5,S_,true);K.px(fx-7,gy-8,14,1,S_[1]);
+  for(const hy of [gy-15,gy-11]){K.px(fx-6,hy,13,1,S_[1]);K.px(fx-6,hy-1,13,1,S_[4]);K.px(fx-6,hy-1,4,1,'#dfe3e6');}   // two rolled hoops: a drum, not a row of stripes
   for(const x of [fx-5,fx-1])K.px(x,gy-9,2,2,S_[0]);K.px(fx+3,gy-10,4,3,S_[0]);K.px(fx+3,gy-10,4,1,'#0e1014');   // the working slot, wide and dark
   K.ell(fx,gy-18,7.4,3.6,(x,y,nx,ny)=>ny>.15?null:nx+ny<-.4?S_[4]:nx<.3?S_[3]:S_[2]);K.px(fx-7,gy-18,15,1,S_[1]);
   K.px(fx-1,gy-23,3,2,S_[2]);K.px(fx-1,gy-23,1,1,S_[4]);
@@ -180,7 +182,7 @@ function mc34DrawFeed(f,empty){const {W,H,gy}=MC34_FEED,S_=MC34P.steel,Gr=MC34P.
     for(const [x,y] of [[fx+16,gy+2],[fx+18,gy+2],[fx+17,gy+1]]){K.px(x,y,2,1,Gr[3]);K.px(x,y+1,2,1,Gr[1]);}   // the little heap
     for(let j=0;j<2;j++){const [x,y]=PATH[(f+j*4)%8];K.px(x,y,3,2,Gr[4]);K.px(x,y+2,3,1,Gr[1]);K.px(x+2,y,1,2,Gr[2]);}
     // two or three loose kernels always in the air: popping out of the slot and tumbling off the lip
-    const AIR=[[fx+6,gy-11],[fx+8,gy-12],[fx+10,gy-11],[fx+16,gy-4],[fx+17,gy-2],[fx+18,gy],[fx+7,gy-12],[fx+15,gy-3]];
+    const AIR=[[fx+7,gy-10],[fx+9,gy-10],[fx+11,gy-9],[fx+13,gy-8],[fx+15,gy-6],[fx+16,gy-4],[fx+17,gy-2],[fx+18,gy]];   // out of the slot, over the lip, down
     for(let j=0;j<3;j++){const [x,y]=AIR[(f*2+j*3)%8];K.px(x,y,2,1,Gr[4]);K.px(x,y+1,1,1,Gr[2]);}
     K.px(wx-4+((f*3)%7),gy-3,2,1,Wa[4]);}
   K.shadow(29,gy+1,27,2.6);return K.c;}
@@ -224,14 +226,14 @@ function mc34DrawMilk(f,still){const {W,H,gy}=MC34_MILK,S_=MC34P.steel,Wd=MC34P.
   // the claw: a little steel bowl on the hook, lit on its upper left, a dark rim underneath where the four short tubes leave it
   K.ell(cx,cy,4.6,3.2,(x,y,nx,ny,d)=>d>.82?(ny<0?S_[3]:S_[0]):ny<-.25?(nx<.1?S_[4]:S_[3]):ny<.45?(nx<0?S_[3]:S_[2]):S_[1]);
   K.px(cx-2,cy-2,2,1,'#eef0ee');K.px(cx-4,cy+2,9,1,S_[0]);K.px(cx-1,cy+3,3,1,S_[1]);
-  // four blunt cups splayed out of it: the outer two angled out, each at its own height, the tips swinging 2 px frame to frame
-  const CUPS=[[-4,-.34,2],[-1.5,-.1,0],[1.5,.12,1],[4,.36,3]],L=8;
-  for(let i=0;i<4;i++){const [ox,ang,dh]=CUPS[i],tip=still?0:(((i+fr)%2)?1:-1),tx=cx+ox+Math.sin(ang)*3,ty=cy+5+dh;
-    K.line(Math.round(cx+ox*.5),cy+3,Math.round(tx),ty-1,RB);   // its short milk tube from the claw
-    for(let j=0;j<L;j++){const xc=Math.round(tx+Math.sin(ang)*j+tip*(j/(L-1))),y=ty+j;
-      if(j===0){K.px(xc,y,1,1,S_[2]);continue;}   // the tube narrowing into the top of the shell
-      K.px(xc-1,y,1,1,S_[4]);K.px(xc,y,1,1,S_[3]);K.px(xc+1,y,1,1,S_[1]);}
-    const bx2=Math.round(tx+Math.sin(ang)*L+tip);K.px(bx2-1,ty+L,3,1,RB);K.px(bx2,ty+L,1,1,'#4a3a32');}   // the dark liner ring at the mouth
+  // four short fat cups hanging nearly straight down on short hoses, each with its rubber rim at the mouth, each at its own
+  // height, the tips swinging a pixel out of step: well clear of the ground (they read as a tripod when long and splayed)
+  const CUPS=[[-6,0],[-2,2],[2,1],[6,3]];
+  for(let i=0;i<4;i++){const [ox,dh]=CUPS[i],tip=still?0:(((i+fr)%2)?1:-1),x0=Math.round(cx+ox)-1,ty=cy+6+dh;
+    for(let y=cy+3;y<ty;y++)K.px(Math.round(cx+ox*.55+(ox*.45)*((y-cy-3)/Math.max(1,ty-cy-3))),y,1,1,RB);   // its short hose
+    for(let j=0;j<6;j++){const x=x0+(j>3?tip:0);if(j===0){K.px(x+1,ty,2,1,S_[2]);continue;}   // the neck the hose goes into
+      K.px(x,ty+j,1,1,S_[4]);K.px(x+1,ty+j,1,1,S_[3]);K.px(x+2,ty+j,1,1,S_[2]);K.px(x+3,ty+j,1,1,S_[1]);}
+    const xm=x0+tip;K.px(xm-1,ty+6,6,1,RB);K.px(xm,ty+7,4,1,'#3a2c26');K.px(xm+1,ty+6,2,1,'#5a4a42');}   // the rubber rim at the mouth
   // the vacuum hose from the tank to the pulsator
   for(let t=0;t<=1;t+=.04){K.px(30+(bx-2-30)*t,gy-29+Math.sin(t*Math.PI)*-5+t*3,1,1,Le[2]);}
   // the engine's flywheel turning, and a pale puff from the stack on the firing frame
@@ -257,7 +259,7 @@ function mc34DrawSeed(f,still,empty){const {W,H,gy}=MC34_SEED,Wd=MC34P.wood,I=MC
   K.line(17,gy-47,39,gy-47,Wd[1]);
   if(!empty){for(const [x,y,r] of [[22,gy-51,2.4],[27,gy-52,3],[33,gy-51.5,2.6],[37,gy-51,2]])K.ell(x,y,r,r*.7,(xx,yy,nx,ny)=>nx+ny<-.3?Gr[4]:ny>.3?Gr[1]:Gr[3]);}
   // the screens' edges sticking out of the far end, stepped and lit along their tops; the seed spout below them
-  for(let i=0;i<3;i++){const y=gy-31+i*4;K.px(42,y,7-i,1,Wd[4]);K.px(42,y+1,7-i,1,Wd[1]);K.px(48-i,y,1,2,Wd[2]);}
+  for(let i=0;i<3;i++){const y=gy-31+i*4;K.px(42,y,7-i,1,P2[3]);K.px(42,y+1,7-i,1,P2[1]);K.px(48-i,y,1,2,P2[2]);}   // the slatted side a step darker than the front
   K.poly([[36,gy-12],[44,gy-10],[44,gy-8],[36,gy-9]],(x,y)=>y<gy-10?P2[3]:P2[1]);
   if(!empty){for(let x=40;x<=54;x++){const d=Math.abs(x-47)/7.2;if(d>=1)continue;const h=Math.round(5.2*Math.pow(1-d,1.15)+(mc34Hash(x,3)<.4?1:0)*(d<.8?1:0));
       for(let j=0;j<=h;j++){const y=gy+1-j,top=j===h,lit=x<47;K.px(x,y,1,1,top?(lit?Gr[4]:Gr[3]):j<=1?Gr[1]:j<=2?Gr[2]:lit?Gr[3]:Gr[2]);}}
@@ -286,8 +288,8 @@ function mc34Icon(k){const K=mc34Kit(32,32),R=MC34P.red,S_=MC34P.steel,Bu=MC34P.
   else if(k==='grease'){K.ell(16,12,10,3.5,(x,y,nx)=>nx<.2?S_[4]:S_[3]);
     for(let x=6;x<=26;x++){const nx=(x-16)/10;for(let y=12;y<=24;y++)K.px(x,y,1,1,y<15?mc34R(S_,.85-nx*.4):y<21?mc34R(Br,.8-nx*.35):mc34R(S_,.7-nx*.4));}
     K.ell(16,24,10,3,(x,y,nx,ny)=>ny>0?mc34R(S_,.5-nx*.3):null);K.px(9,17,10,1,Br[1]);K.px(11,19,6,1,Br[1]);
-    K.ell(16,12,8,2.2,(x,y,nx)=>nx<0?'#4a3c2a':'#2e2418');K.px(10,11,4,1,'#9a845c');K.px(11,12,2,1,'#6e5a3e');
-    K.ell(19,12.4,3,1.1,()=>'#18110a');K.px(17,13,4,1,'#7a6444');   // a scoop taken out of it, its far lip catching the light
+    K.ell(16,12,8,2.2,(x,y,nx)=>nx<-.2?'#e8b850':nx<.4?'#c8902c':'#9a6a1c');K.px(10,11,4,1,'#f8e098');K.px(11,12,2,1,'#f0cc70');   // amber grease, its gloss
+    K.ell(19,12.4,3,1.1,()=>'#6a4410');K.px(17,13,4,1,'#f0c868');   // a scoop taken out of it, its far lip catching the light
     K.px(8,14,1,8,'#e6eaee');K.px(9,15,1,4,'#d4d8dc');}   // a gloss streak down the tin
   else if(k==='feed'){K.poly([[7,10],[25,10],[27,28],[5,28]],(x,y)=>{const t=(x-5)/22;return t<.22?Bu[3]:t>.78?Bu[1]:Bu[2];});
     K.px(5,27,23,2,Bu[1]);K.px(6,8,21,4,Bu[4]);K.px(6,11,21,1,Bu[1]);
@@ -495,26 +497,35 @@ function mc34Book(){const st=MC34();let h=`<p class="bzs">Each one works at dawn
     const btn=!m||!m.own?`<button data-mc34buy="${k}" ${S.coins<p?'class="nope"':''}>${p?'Buy · '+p:'Free'}</button>`:m.x==null?`<button data-mc34put="${k}">Set it down</button>`:`<button data-mc34put="${k}">Move it</button>`;
     h+=`<div class="mc34r"><img class="mc34th" src="${mc34Thumb(k)}" alt=""><div class="mc34t"><b>${M.name}</b><small>${MC34_BLURB[k]}${need}</small>${m&&m.own?`<div class="mc34sts">${mc34State(k)}</div>`:''}</div><div class="mc34b">${btn}</div></div>`;}
   const L=st.last;if(L&&L.day===S.day&&L.did.length)h+=`<p class="bwlead">This morning: ${L.did.join('; ')}.</p>`;return h+'<div style="height:6px"></div>';}
-// when the page runs past the bottom of the book (a short screen, a phone), a cue says there's more below and scrolls on a tap;
-// it goes as soon as the last line is in view
-const MC34MORE={cue:null,on:false};
-function mc34MoreCue(box){const sc=$('note');if(!sc)return;const cue=document.createElement('div');cue.className='mc34more';cue.innerHTML='<span>▾ more below</span>';box.appendChild(cue);MC34MORE.cue=cue;
-  cue.onclick=()=>{try{sc.scrollBy({top:sc.clientHeight*.75,behavior:'smooth'});}catch(e){sc.scrollTop+=sc.clientHeight*.75;}};
-  const upd=()=>{const c=MC34MORE.cue;if(!c||!c.isConnected)return;c.style.visibility=sc.scrollHeight-sc.clientHeight-sc.scrollTop>6?'visible':'hidden';};
-  if(!MC34MORE.on){MC34MORE.on=true;sc.addEventListener('scroll',upd,{passive:true});addEventListener('resize',upd);}setTimeout(upd,0);setTimeout(upd,250);}
+// the list of machines scrolls inside the page, under the title and tabs, so the close bar below never moves or gets cut;
+// when the list runs past its room, a cue on its own strip under it says there's more (and scrolls on a tap), gone at the end
+const MC34MORE={box:null,cue:null,on:false};
+function mc34Fit(N,box){const sheet=$('note');if(!sheet)return;sheet.scrollTop=0;const acts=sheet.querySelector('.acts');
+  box.classList.add('mc34list');const cue=document.createElement('div');cue.className='mc34more';cue.innerHTML='<span>▾ more below</span>';N.appendChild(cue);
+  MC34MORE.box=box;MC34MORE.cue=cue;
+  const fit=()=>{const b=MC34MORE.box;if(!b||!b.isConnected)return;b.style.maxHeight='none';const smax=parseFloat(getComputedStyle(sheet).maxHeight)||innerHeight*.85;
+    const top=b.getBoundingClientRect().top-sheet.getBoundingClientRect().top,ps=getComputedStyle(sheet),np=getComputedStyle(N);
+    const room=smax-top-(acts?acts.offsetHeight:0)-(parseFloat(ps.paddingBottom)||0)-(parseFloat(np.paddingBottom)||0)-(parseFloat(np.borderBottomWidth)||0)-MC34MORE.cue.offsetHeight-14;
+    b.style.maxHeight=Math.max(140,Math.floor(room))+'px';upd();};
+  const upd=()=>{const b=MC34MORE.box,c=MC34MORE.cue;if(!b||!c||!c.isConnected)return;c.style.visibility=b.scrollHeight-b.clientHeight-b.scrollTop>4?'visible':'hidden';};
+  box.addEventListener('scroll',upd,{passive:true});
+  cue.onclick=()=>{try{box.scrollBy({top:box.clientHeight*.75,behavior:'smooth'});}catch(e){box.scrollTop+=box.clientHeight*.75;}};
+  if(!MC34MORE.on){MC34MORE.on=true;addEventListener('resize',()=>{try{MC34MORE.fitNow&&MC34MORE.fitNow();}catch(e){}});}MC34MORE.fitNow=fit;
+  fit();setTimeout(fit,0);setTimeout(fit,250);}
 function mc34TabBtn(on){const N=$('noteText');const tabs=N&&N.querySelector('.bztabs');if(!tabs||tabs.querySelector('[data-mc34tab]'))return;const b=document.createElement('button');b.dataset.mc34tab='1';b.textContent='Machines';if(on)b.className='on';
   b.onclick=()=>setTimeout(()=>empOpen('machines'),0);tabs.appendChild(b);}
 {const _eo=empOpen;empOpen=function(tab){if(tab!=='machines'){const r=_eo.apply(this,arguments);try{mc34TabBtn(false);}catch(e){}return r;}
   _eo.call(this,'town');const N=$('noteText');if(!N)return;const tabs=N.querySelector('.bztabs');if(!tabs)return;while(tabs.nextSibling)tabs.nextSibling.remove();
   tabs.querySelectorAll('button').forEach(b=>b.classList.remove('on'));mc34TabBtn(true);const box=document.createElement('div');box.innerHTML=mc34Book();N.appendChild(box);
-  mc34MoreCue(box);
+  mc34Fit(N,box);
   box.querySelectorAll('[data-mc34buy]').forEach(b=>b.onclick=()=>{const k=b.dataset.mc34buy,p=mc34Price(k);if(MC34()[k]&&MC34()[k].own)return;
     if(S.coins<p){SFX.deny&&SFX.deny();toast(`That’s ${p} coins. You have ${S.coins}.`,2.2);return;}S.coins-=p;SFX.coin&&SFX.coin();updateHud&&updateHud();
     mc34Do('buy',{k});toast(`${MC34_M[k].name} comes out on the truck. Choose where it stands.`,2.6);setTimeout(()=>mc34Place(k),60);});
   box.querySelectorAll('[data-mc34put]').forEach(b=>b.onclick=()=>mc34Place(b.dataset.mc34put));};}
 {const css=document.createElement('style');css.textContent=`#noteText .mc34r{display:flex;gap:10px;align-items:center;padding:4px 0;border-bottom:1px dashed rgba(90,60,30,.35)}
-#noteText .mc34more{position:sticky;bottom:0;height:30px;margin-top:-30px;display:flex;align-items:flex-end;justify-content:center;cursor:pointer;background:linear-gradient(rgba(232,214,168,0),rgba(232,214,168,.95) 55%)}
-#noteText .mc34more span{font-size:12px;color:#5a3a1e;padding:0 8px 3px;letter-spacing:.5px}
+#noteText .mc34list{overflow-y:auto;overscroll-behavior:contain;padding-right:4px}
+#noteText .mc34more{height:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-top:1px solid rgba(90,60,30,.35);margin-top:2px}
+#noteText .mc34more span{font-size:12px;color:#5a3a1e;letter-spacing:.5px}
 #noteText .mc34th{flex:0 0 70px;width:70px;height:auto;max-height:54px;object-fit:contain;object-position:center bottom;image-rendering:pixelated}
 #noteText .mc34t{flex:1 1 auto;min-width:0}#noteText .mc34t small{display:block;line-height:1.22}#noteText .mc34b{flex:0 0 auto}
 #noteText .mc34sts{margin-top:3px}#noteText .mc34st+.mc34st::before{content:'·';margin:0 7px 0 -3px;color:#7a5a3a}#noteText .mc34st{display:inline-block;margin-right:10px;font-size:12px;white-space:nowrap}

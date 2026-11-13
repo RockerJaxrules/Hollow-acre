@@ -88,4 +88,4 @@ orders. Latest round first.
 | Farm machines round 2 (t334, Nov 13) | r1: mill 6.5, windmill 6, icons 6, book 6, page 6, feeder 4.5, milker 4.5, cleaner 5; r2 to be judged | in mach334.js | |
 | Farm machines round 3 (t334, Nov 13) | r2: windmill 6.5, mill 6.5, cleaner 6, icons 6.5, book 6.5, page 6.5, feeder 5.5, milker 5.5; r3 to be judged | in mach334.js | |
 | Farm machines round 4 polish (t334, Nov 13) | r3: windmill 6.5, mill 6.5, feeder 6, milker 6, cleaner 6.5, icons 6.5, book 6.5, page 6.5 (all ship); r4 to be judged | in mach334.js | |
-| Farm machines: windmill, feed mill, hen feeder, milking machine, seed cleaner, icons, farm book pages (t334, Nov 13) | r1 3 of 8 below 6, r2 2 below, r3 all 6+, r4 all 6+ (6-6.5) | yes (mach334.js) | toward 7: 3-4 tone clusters per surface and one placed highlight; motion as bold keyed shapes |
+| Farm machines: windmill, feed mill, hen feeder, milking machine, seed cleaner, icons, farm book pages (t334, Nov 13) | r1 3 of 8 below 6, r2 2 below, r3 all 6+, r4 all 6+, r5 all 6.5 (book page 7) | yes (mach334.js) | toward 7: 3-4 tone clusters per surface and one placed highlight; motion as bold keyed shapes |
