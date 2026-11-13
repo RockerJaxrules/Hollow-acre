@@ -249,8 +249,8 @@ function l35Ground(g,x0,z0,N){const W=N*32;if(z0+N<=L35.Z0||x0+N<L35.XW||x0>NEWB
         const dEnd=Math.min(tr*Ln,(1-tr)*Ln),lb=l35Lob(wx*2.2+s2[1],wz*2.2+s2[0]);
         if(dEnd<0){   // past the tip: clods, 2-3 px, lit on top, in a loose scatter that thins out
           if(dEnd<-.6||Math.abs(sd)>.26)continue;const gx=Math.floor(wx*32),gy=Math.floor(wz*32),cy3=Math.floor(gy/3),cx3=Math.floor((gx+(cy3&1)*2)/3),ix=gx+(cy3&1)*2-cx3*3,iy=gy-cy3*3;
-          const h=hash(cx3*7+5,cy3*11+3),sz=h<.5?2:3;if(h>.22+dEnd*.3||ix>=sz||iy>=2)continue;c=iy===0?[160,128,88]:[72,52,34];break;}
-        const k=clamp(dEnd/.4,0,1),w=.34*(.12+.88*Math.sqrt(k))*(.82+.36*lb);const u=sd/w;if(u<-1||u>1)continue;
+          const h=hash(cx3*7+5,cy3*11+3),sz=h<.2?2:3;if(h>.46+dEnd*.6||ix>=sz||iy>=2)continue;c=iy===0?[170,138,96]:[64,46,30];break;}
+        const k=clamp(dEnd/.46,0,1),rag=k<1?.55+.9*l35Vn(wx*12+s2[0],wz*12):1,w=.34*(.06+.94*k*(2-k))*(.82+.36*lb)*Math.min(1.15,rag);const u=sd/w;if(u<-1||u>1)continue;   // (rag: the tip torn ragged)
         let col;
         if(u<-.78)col=mixc(c,[118,92,60],.6);                                        // the outer foot of the ridge, into the grass
         else if(u<-.38){const lump=l35Vn(wx*11+s2[1]*3,wz*11);col=lump>.5?(u<-.6?[164,132,90]:[138,106,70]):[112,86,56];}   // the crest, lit in lumps
@@ -308,8 +308,8 @@ function l35Verge(g,x0,z0,N){if(!L35.built||z0+N<=232||z0>=L35.Z0)return;
   return wm;};}
 // falling leaves down here: the red maple's leaves come down rust-brown (a red cross of a leaf on the grass or the pond reads
 // as blood), and a leaf that lands on water sinks instead of lying on it
-{const _lu=leavesUpdate;leavesUpdate=function(dt){const n0=LEAVES.length;_lu.apply(this,arguments);
-  for(let i=Math.min(n0,LEAVES.length);i<LEAVES.length;i++){const L=LEAVES[i];if(L.z>L35.Z0-4&&L.col&&/^#c8402a|^#c8642a/i.test(L.col[0]))L.col=['#a8682e','#6a3e1c'];}
+{const _lu=leavesUpdate;leavesUpdate=function(dt){_lu.apply(this,arguments);
+  for(const L of LEAVES){if(L.l35||!(L.z>L35.Z0-4))continue;L.l35=1;if(L.col&&/^#c8402a|^#c8642a/i.test(L.col[0]))L.col=['#a8682e','#6a3e1c'];}
   for(let i=LEAVES.length-1;i>=0;i--){const L=LEAVES[i];if(L.z>L35.Z0&&!(L.h>0)&&LAYERS.water(L.x,L.z+.05))LEAVES.splice(i,1);}};}
 // standing on a plank bridge, the deck is between you and the water: no reflection of you below it
 {const _mr=mindReflection;mindReflection=function(){if(P&&P.z>L35.Z0&&L35.bridges.some(b=>Math.abs(P.x-b[0])<2.6&&Math.abs(P.z-b[1])<1.3))return;return _mr.apply(this,arguments);};}
@@ -518,7 +518,6 @@ function l35FenceDown(){return l35Spr('l35_fencedown',150,52,75,46,(P)=>{
     for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const qx=x+.5-bx,qy=y+.5-by,al=qx*ux+qy*uy,ac=qx*(-uy)+qy*ux;if(al<0||al>L||Math.abs(ac)>3)continue;
       P(x,y,1,1,al>L-2.2?(al>L-1.1?PO[0]:PO[1]):ac<-1.8?PO[0]:ac<-.4?PO[1]:ac<.9?PO[2]:ac<2?PO[3]:PO[5]);}
     P(Math.round(bx-4),Math.round(by)+1,9,1,sh);};
-    P(Math.round(tx),Math.round(ty),6,1,PO[0]);P(bx-1,by+1,8,1,sh);};
   const flat=(x1,y1,x2,y2)=>{const n=Math.max(Math.abs(x2-x1),Math.abs(y2-y1));for(let k=0;k<=n;k++){const x=Math.round(x1+(x2-x1)*k/n),y=Math.round(y1+(y2-y1)*k/n);   // a post lying down
     P(x,y,1,1,PO[0]);P(x,y+1,1,1,PO[1]);P(x,y+2,1,1,PO[2]);P(x,y+3,1,1,PO[3]);P(x,y+4,1,1,PO[5]);P(x,y+5,1,1,sh);}P(Math.round(x2),Math.round(y2),1,5,PO[4]);};
   rail(70,39,118,42,true);                           // a rail lying behind, further back in the grass

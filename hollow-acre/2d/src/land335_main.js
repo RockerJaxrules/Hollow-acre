@@ -22,7 +22,7 @@
 const L35={Z0:290,Z1:410,XW:-96,built:false,reg:{k:'low',name:'The Low Fields',x0:-310,x1:218,z0:290,z1:410},
   pond:{x:70,z:380,rx:7,rz:4.3},pump:{x:63.6,z:375.6},junction:{x:20,z:302},mile:{k:'low',name:'The Low Fields',x:17.9,z:300.3},
   bridges:[],copses:[[-10,341,5],[-45,338,4],[128,343,4.5],[184,342,5],[2,389,4],[118,392,4.5]],
-  plough:{x:4.25,z:334.42},scars:[[-6.4,333.3,3.6,333.62],[-5.6,334.1,4.75,334.42],[-4.5,334.9,3.3,335.15]],fenceDown:{x:68.8,z:372.6}};
+  plough:{x:4.25,z:334.42},scars:[[-5.7,333.32,3.1,333.6],[-4.1,334.08,4.75,334.42],[-6.3,334.86,3.75,335.16]],fenceDown:{x:68.8,z:372.6}};
 // ---------------------------------------------------------------- the roads: gentle bends, flat over the bridges
 const l35StreamX=z=>RGP.dam.x+(fbm(z*.2,3)-.5)*3;      // the dam's spillway (regions.js inSpill), running on south
 {const S1=l35StreamX(302),S2=l35StreamX(354);
@@ -181,7 +181,7 @@ const L35_RAMP={
   green:{sh:[48,70,54],dk:[60,84,58],b:[72,98,58],lt:[94,122,66],hi:[128,150,82]}};
 const L35_WORN=[118,100,66];
 const l35Sm=t=>t*t*(3-2*t),l35Vn=(x,y)=>{const xi=Math.floor(x),yi=Math.floor(y),u=l35Sm(x-xi),v=l35Sm(y-yi),a=hash(xi,yi),b=hash(xi+1,yi),c=hash(xi,yi+1),d=hash(xi+1,yi+1);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;};
-const l35Lob=(wx,wz)=>l35Vn(wx*4.4+.31,wz*4.4+.73)*.6+l35Vn(wx*9.1+31.1,wz*9.1+7.3)*.4;
+const l35Lob=(wx,wz)=>l35Vn(wx*3.4+.31,wz*3.4+.73)*.65+l35Vn(wx*6.3+31.1,wz*6.3+7.3)*.35;
 function l35Zone(wx,wz){   // [dryness 0..1 (wetness already taken off), wetness, patch noise, tuft density]
   const sx=l35StreamX(wz),ws=clamp(1-Math.abs(wx-sx)/13,0,1),Q=L35.pond,wp=clamp(1-(Math.hypot((wx-Q.x)/Q.rx,(wz-Q.z)/Q.rz)-1)/1.9,0,1);const wet=Math.max(ws,wp);
   const d=clamp((fbm(wx*.028+11,wz*.028+5)-.36)/.32+(fbm(wx*.15+2,wz*.15+4)-.5)*.34,0,1);
@@ -219,30 +219,45 @@ function l35Ground(g,x0,z0,N){const W=N*32;if(z0+N<=L35.Z0||x0+N<L35.XW||x0>NEWB
   const TH=[.34,.63],mixc=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
   const ZR=[L35_RAMP.olive,L35_RAMP.tawny,L35_RAMP.straw];
   const rampAt=(px,py,wx,wz)=>{const j=jitAt(px,py,wx,wz),wt=at(Zw,px,py);if(wt+j*1.3>.5)return L35_RAMP.green;const d=at(Zd,px,py)+j;return ZR[d<TH[0]?0:d<TH[1]?1:2];};
+  // (every pixel's zone, dark patch and headland are decided first, then any pixel its neighbours outvote takes their side,
+  // so the lobes' edges are clean lines with no single-pixel fringe)
+  const RAMPS=[L35_RAMP.olive,L35_RAMP.tawny,L35_RAMP.straw,L35_RAMP.green],RI=new Uint8Array(n),DK=new Uint8Array(n),HD=new Uint8Array(n),PI=new Uint8Array(n);
+  for(let py=0;py<W;py++){const wz=z0+(py+.5)/32;for(let px=0;px<W;px++){const i=py*W+px;if(!grass[i])continue;const wx=x0+(px+.5)/32;
+    const j=jitAt(px,py,wx,wz),wt=at(Zw,px,py),d=at(Zd,px,py)+j;RI[i]=wt+j*1.3>.5?3:d<TH[0]?0:d<TH[1]?1:2;DK[i]=at(Zp,px,py)+j*.8>.64?1:0;
+    const P=plotAt(wx,wz);if(P){PI[i]=plots.indexOf(P)+1;HD[i]=onHead(P,wx,wz,px,py,l35Lob(wx+3.3,wz+5.1))?1:0;}}}
+  const tidy=A=>{const B=A.slice();for(let py=1;py<W-1;py++)for(let px=1;px<W-1;px++){const i=py*W+px;if(!grass[i])continue;const v=A[i];let same=0,nb=0;const cnt={};
+      for(const q of [i-1,i+1,i-W,i+W]){if(!grass[q])continue;nb++;if(A[q]===v)same++;cnt[A[q]]=(cnt[A[q]]||0)+1;}
+      if(nb>=2&&same<=1){let best=v,bc=0;for(const k in cnt)if(cnt[k]>bc){bc=cnt[k];best=+k;}B[i]=best;}}A.set(B);};
+  tidy(RI);tidy(RI);tidy(DK);tidy(DK);tidy(HD);
   for(let py=0;py<W;py++){const wz=z0+(py+.5)/32;if(wz<L35.Z0)continue;const wl=clamp((wz-L35.Z0)/5,0,1);
     for(let px=0;px<W;px++){const i=py*W+px;if(!grass[i])continue;const wx=x0+(px+.5)/32;
-      const R=rampAt(px,py,wx,wz),pick=k=>R[k],pn=at(Zp,px,py),h3=l35Lob(wx+3.3,wz+5.1);
-      let c;const P=plotAt(wx,wz);
+      const R=RAMPS[RI[i]],pick=k=>R[k];
+      let c;const P=PI[i]?plots[PI[i]-1]:null;
       if(core[i]&&keep[comp[i]])c=pick(L[i]>=base+44?'hi':'lt');
       else if(shade[i]&&L[i]<=base-6)c=pick('sh');
-      else c=pn+jitAt(px,py,wx,wz)*.8>.64?pick('dk'):pick('b');
-      if(P){if(onHead(P,wx,wz,px,py,h3))c=mixc(c,L35_WORN,.3);                                   // the headland, trodden round the edge
+      else c=DK[i]?pick('dk'):pick('b');
+      if(P){if(HD[i])c=mixc(c,L35_WORN,.3);                                   // the headland, trodden round the edge
         else{                                                                                      // old furrows: low wavy ridges that come and go,
           const fe=clamp((edgeOf(P,wx,wz)-.9+(at(Zn,px,py)-.5)*1.2)/1.8,0,1);                      // fading in from the headland, no ruled edge
           const m=clamp((at(Zp,px,py)-.36)*3.2,0,1)*fe;if(m>0){const v=((wz-P.z0)+.22*Math.sin(wx*.45+P.x0)+(at(Zn,px,py)-.5)*.35)/1.3,f=v-Math.floor(v);
             if(f<.09)c=mixc(c,pick('lt'),.26*m);else if(f>.44&&f<.6)c=mixc(c,pick('dk'),.4*m);}}}
-      // the plough's three furrows: the slice turned up on the north side and lit along its crest, the open furrow below it in
-      // shadow, clods lying along it, and both ends running out raggedly
-      for(const s2 of L35.scars){const dx=s2[2]-s2[0],dz=s2[3]-s2[1],L2=dx*dx+dz*dz,Ln=Math.sqrt(L2);if(segDist(wx,wz,s2[0],s2[1],s2[2],s2[3])>.5)continue;
-        const t=clamp(((wx-s2[0])*dx+(wz-s2[1])*dz)/L2,0,1),end=Math.min(t/.24,(1-t)/.12),lb=l35Lob(wx*1.3+s2[1],wz*1.3);
-        // near its ends the furrow stops being a furrow: it comes and goes in lumps, then only clods are left
-        const tap=end>=1?1:end>.25+lb*.5?end:0;   // it narrows toward its end, and stops at a width the noise picks: never a point
-        const gx=Math.floor(wx*32),gy=Math.floor(wz*32),cx3=Math.floor(gx/3),cy3=Math.floor(gy/3),ix=gx-cx3*3,iy=gy-cy3*3;
-        const sd=((wx-s2[0])*(-dz)+(wz-s2[1])*dx)/Ln;
-        if(tap===0){if(end>-.25&&Math.abs(sd)<.28&&hash(cx3+11,cy3*3+5)<.16&&!(ix===2&&iy===2)){c=iy===0?[156,124,86]:[70,50,32];break;}continue;}
-        const w=.3*(.3+.7*tap)*(.8+.4*lb)+(at(Zn,px,py)-.5)*.06;const u=sd/w;if(u<-1||u>1.15)continue;
-        let col=u<-.55?[150,118,80]:u<-.1?[118,90,58]:u<.45?[74,54,36]:u<.8?[98,74,48]:mixc(c,[60,46,30],.5);
-        if(u<.5&&hash(cx3+3,cy3*3+1)<.13&&!(ix===2&&iy===2))col=iy===0?[166,134,94]:ix===0?[112,86,56]:[56,40,26];   // a clod: lit on top
+      // the plough's three furrows: each a trench, dark on its south side, with the turned slice heaped up along its north side
+      // as a ridge whose lit crest is broken into lumps; each tapers over its last dozen pixels to an uneven tip, and past the
+      // tip lie a few clods, lit on top
+      for(const s2 of L35.scars){const dx=s2[2]-s2[0],dz=s2[3]-s2[1],L2=dx*dx+dz*dz,Ln=Math.sqrt(L2);if(segDist(wx,wz,s2[0],s2[1],s2[2],s2[3])>.7)continue;
+        const tr=((wx-s2[0])*dx+(wz-s2[1])*dz)/L2,t=clamp(tr,0,1),sd=((wx-s2[0])*(-dz)+(wz-s2[1])*dx)/Ln;
+        const dEnd=Math.min(tr*Ln,(1-tr)*Ln),lb=l35Lob(wx*2.2+s2[1],wz*2.2+s2[0]);
+        if(dEnd<0){   // past the tip: clods, 2-3 px, lit on top, in a loose scatter that thins out
+          if(dEnd<-.6||Math.abs(sd)>.26)continue;const gx=Math.floor(wx*32),gy=Math.floor(wz*32),cy3=Math.floor(gy/3),cx3=Math.floor((gx+(cy3&1)*2)/3),ix=gx+(cy3&1)*2-cx3*3,iy=gy-cy3*3;
+          const h=hash(cx3*7+5,cy3*11+3),sz=h<.2?2:3;if(h>.46+dEnd*.6||ix>=sz||iy>=2)continue;c=iy===0?[170,138,96]:[64,46,30];break;}
+        const k=clamp(dEnd/.46,0,1),rag=k<1?.55+.9*l35Vn(wx*12+s2[0],wz*12):1,w=.34*(.06+.94*k*(2-k))*(.82+.36*lb)*Math.min(1.15,rag);const u=sd/w;if(u<-1||u>1)continue;   // (rag: the tip torn ragged)
+        let col;
+        if(u<-.78)col=mixc(c,[118,92,60],.6);                                        // the outer foot of the ridge, into the grass
+        else if(u<-.38){const lump=l35Vn(wx*11+s2[1]*3,wz*11);col=lump>.5?(u<-.6?[164,132,90]:[138,106,70]):[112,86,56];}   // the crest, lit in lumps
+        else if(u<-.1)col=[96,72,46];                                                  // the ridge's south face, turning away from the light
+        else if(u<.55)col=u<.3?[50,36,24]:[60,44,30];                                  // the trench, in shadow on its south side
+        else if(u<.85)col=[82,62,40];                                                  // its south lip
+        else col=mixc(c,[64,48,32],.45);
         c=col;break;}
       const o=i*4;if(wl<1){D[o]=D[o]+(c[0]-D[o])*wl;D[o+1]=D[o+1]+(c[1]-D[o+1])*wl;D[o+2]=D[o+2]+(c[2]-D[o+2])*wl;}else{D[o]=c[0];D[o+1]=c[1];D[o+2]=c[2];}}}
   // 5. thick places get more tufts than the old ground ever had: a small three-tone clump on a jittered grid
@@ -251,15 +266,18 @@ function l35Ground(g,x0,z0,N){const W=N*32;if(z0+N<=L35.Z0||x0+N<L35.XW||x0>NEWB
   for(let gy=gy0;gy<=gy1;gy++)for(let gx=gx0;gx<=gx1;gx++){const ax=gx*13+Math.floor(hash(gx,gy*7+1)*9),ay=gy*13+Math.floor(hash(gx*3+5,gy)*9);const wx=ax/32,wz=ay/32;if(wz<L35.Z0+3)continue;
     const lx=ax-x0*32,ly=ay-z0*32;const cxp=clamp(lx,0,W-1),cyp=clamp(ly,0,W-1);const dens=at(Zt,cxp,cyp);if(dens<.55||hash(gx*11,gy*13)>(dens-.55)*2.6)continue;
     const P=plotAt(wx,wz);if(P&&onHead(P,wx,wz,cxp,cyp,.5))continue;if(LAYERS.dirt(wx,wz)||LAYERS.water(wx,wz)||LAYERS.dark(wx,wz))continue;
-    const R=rampAt(cxp,cyp,wx,wz);const fl=hash(gx,gy)<.5;
+    const R=grass[cyp*W+cxp]?RAMPS[RI[cyp*W+cxp]]:rampAt(cxp,cyp,wx,wz);const fl=hash(gx,gy)<.5;
     for(const [sx,sy,k] of ST){const qx=lx+(fl?4-sx:sx),qy=ly+sy;if(qx<0||qy<0||qx>=W||qy>=W)continue;const q=qy*W+qx;if(!grass[q])continue;const o=q*4,c=R[k];D[o]=c[0];D[o+1]=c[1];D[o+2]=c[2];}}
   // 6. a little autumn colour: in each plot three to six rosettes of dock gone rust-brown and ochre, gathered along its fences,
   //    each with a dark row at its root (never red: red on grass reads as blood)
-  const ROS=[['..2.3..','.23232.','2323232','.12221.','.44444.'],['.3..3.','232232','.2332.','122221','.4444.'],['..3.2..','.32323.','1232321','.44444.']];
-  const RC={1:[92,58,34],2:[128,84,46],3:[176,138,62],4:[46,32,20]},RC2={1:[100,74,34],2:[152,116,50],3:[190,156,80],4:[46,32,20]};
+  const ROS=[['....3...','....2...','.0.323.0','03232320','02323230','.022220.','..4444..'],['.0..0...','0320230.','03232320','.232323.','.022220.','..4444..'],['...3....','...2..0.','.0.32030','03232320','.232323.','.02220..','..4444..']];
+  const RC={0:[74,46,28],2:[134,82,42],3:[188,148,64],4:[42,28,18]},RC2={0:[80,54,26],2:[150,104,46],3:[200,164,84],4:[42,28,18]};
   for(const P of plots){const nR=3+((l35Hash(P.id,91)*4)|0),XX0=P.x0-YM,XX1=P.x0+P.w+YM,ZZ0=P.z0-YM,ZZ1=P.z0+P.h+YM;
-    for(let k=0;k<nR;k++){const h1=l35Hash(P.id,100+k*3),h2=l35Hash(P.id,101+k*3),h3=l35Hash(P.id,102+k*3),side=(h1*4)|0,ins=.35+h3*.45;
-      let wx,wz;if(side===0){wx=XX0+(XX1-XX0)*(.06+h2*.88);wz=ZZ0+ins+.2;}else if(side===1){wx=XX0+(XX1-XX0)*(.06+h2*.88);wz=ZZ1-ins;}else if(side===2){wx=XX0+ins;wz=ZZ0+(ZZ1-ZZ0)*(.1+h2*.8);}else{wx=XX1-ins;wz=ZZ0+(ZZ1-ZZ0)*(.1+h2*.8);}
+    for(let k=0;k<nR;k++){const h1=l35Hash(P.id,100+k*3),h2=l35Hash(P.id,101+k*3),h3=l35Hash(P.id,102+k*3),side=(h1*4)|0;
+      // hard against a fence: just inside the front fence, just above the back fence's rails (so they show over it), or tight
+      // beside a side fence
+      let wx,wz;if(side===0){wx=XX0+(XX1-XX0)*(.08+h2*.84);wz=ZZ0+.16+h3*.12;}else if(side===1){wx=XX0+(XX1-XX0)*(.08+h2*.84);wz=ZZ1-.95-h3*.1;}
+      else if(side===2){wx=XX0+.14+h3*.1;wz=ZZ0+(ZZ1-ZZ0)*(.12+h2*.76);}else{wx=XX1-.38-h3*.1;wz=ZZ0+(ZZ1-ZZ0)*(.12+h2*.76);}
       const pat=ROS[(h3*ROS.length*7|0)%ROS.length],pal=h2<.5?RC:RC2,fl=h1*10%1<.5,lx=Math.round(wx*32-x0*32),ly=Math.round(wz*32-z0*32);
       if(lx<-10||ly<-10||lx>W+10||ly>W+10)continue;
       for(let ry=0;ry<pat.length;ry++)for(let rx=0;rx<pat[ry].length;rx++){const ch=pat[ry][fl?pat[ry].length-1-rx:rx];if(ch==='.')continue;const qx=lx+rx,qy=ly+ry;if(qx<0||qy<0||qx>=W||qy>=W)continue;const q=qy*W+qx;if(!grass[q])continue;const o=q*4,c=pal[ch];D[o]=c[0];D[o+1]=c[1];D[o+2]=c[2];}}}
@@ -288,6 +306,11 @@ function l35Verge(g,x0,z0,N){if(!L35.built||z0+N<=232||z0>=L35.Z0)return;
 {const _gp=groundPixels;groundPixels=function(g,x0,z0,N){const wm=_gp.apply(this,arguments);try{l35Ground(g,x0,z0,N);}catch(e){console.warn('low fields ground',e);}try{l35Verge(g,x0,z0,N);}catch(e){console.warn('low fields verge',e);}
   try{if(wm&&wm.getContext&&z0+N>L35.Z0)for(const b of L35.bridges){const X=(b[0]-1.75-x0)*32,Y=(b[1]-.95-z0)*32;if(X>N*32||Y>N*32||X+112<0||Y+61<0)continue;wm.getContext('2d').clearRect(Math.floor(X),Math.floor(Y),112,61);}}catch(e){}
   return wm;};}
+// falling leaves down here: the red maple's leaves come down rust-brown (a red cross of a leaf on the grass or the pond reads
+// as blood), and a leaf that lands on water sinks instead of lying on it
+{const _lu=leavesUpdate;leavesUpdate=function(dt){_lu.apply(this,arguments);
+  for(const L of LEAVES){if(L.l35||!(L.z>L35.Z0-4))continue;L.l35=1;if(L.col&&/^#c8402a|^#c8642a/i.test(L.col[0]))L.col=['#a8682e','#6a3e1c'];}
+  for(let i=LEAVES.length-1;i>=0;i--){const L=LEAVES[i];if(L.z>L35.Z0&&!(L.h>0)&&LAYERS.water(L.x,L.z+.05))LEAVES.splice(i,1);}};}
 // standing on a plank bridge, the deck is between you and the water: no reflection of you below it
 {const _mr=mindReflection;mindReflection=function(){if(P&&P.z>L35.Z0&&L35.bridges.some(b=>Math.abs(P.x-b[0])<2.6&&Math.abs(P.z-b[1])<1.3))return;return _mr.apply(this,arguments);};}
 // ---------------------------------------------------------------- names, the map, the milestone
@@ -365,7 +388,7 @@ function l35Reeds(v){return l35Spr('l35_reeds'+v,34,48,17,45,(P)=>{const r=l35Rn
 let L35_SAP0=7;   // the yellow sapling's own dice (picked by eye from ten: hanging sprays, no zigzags)
 function l35Sapling(v){const CR=[['#4a2e0e','#8a5a18','#c08a2c','#e8c060'],['#4a1e0c','#8a3a16','#c0662a','#e89a50'],['#2a3a14','#56702a','#86a03a','#b8c060']][v%3];
   const WD=40,wood=new Set();
-  return l35Spr('l35_sapling'+v,WD,52,20,50,(P)=>{const r=l35Rng(5300+(v===0?L35_SAP0:v)*131),side=v%2?1:-1,lean=side*(1+r()*2);
+  return l35Spr('l35_sapling'+v,WD,52,20,50,(P,g)=>{const r=l35Rng(5300+(v===0?L35_SAP0:v)*131),side=v%2?1:-1,lean=side*(1+r()*2);
     const pw=(x,y,c)=>{P(x,y,1,1,c);wood.add(y*WD+x);};
     const limb=(x1,y1,x2,y2)=>{const n=Math.max(Math.abs(x2-x1),Math.abs(y2-y1));for(let k=0;k<=n;k++)pw(Math.round(x1+(x2-x1)*k/n),Math.round(y1+(y2-y1)*k/n),k<n*.5?'#3a2a1c':'#4e3a26');};
     for(let y=50;y>=30;y--){const t=(50-y)/20,x=Math.round(20+lean*t);pw(x,y,'#3a2a1c');if(y>43){pw(x+1,y,'#5e4630');}}
@@ -381,7 +404,9 @@ function l35Sapling(v){const CR=[['#4a2e0e','#8a5a18','#c08a2c','#e8c060'],['#4a
     for(const [x,y,q,t] of dabs){const sh=SH[(q*SH.length)|0],lit=(y<fy-14?1:0)+(q<.4?1:0);
       for(const [dx,dy] of sh){const X=Math.round(x+dx*(side<0?-1:1)),Y=Math.round(y+dy);if(X<1||X>=WD-1||Y<1)continue;
         P(X,Y,1,1,dy===0?(lit>1?CR[3]:CR[2]):(lit>0?CR[2]:CR[1]));wood.delete(Y*WD+X);}}
-    for(let i=0;i<4;i++)P(9+((r()*22)|0),48+((r()*3)|0),1,1,CR[2]);},{c:v===0?[64,42,16]:[30,20,10],skip:(x,y)=>y>40||wood.has(y*WD+x)});}
+    {const id=g.getImageData(0,0,WD,52),a=id.data,op=(x,y)=>x>=0&&y>=0&&x<WD&&y<52&&a[(y*WD+x)*4+3]>40&&!wood.has(y*WD+x);
+      for(let y=1;y<44;y++)for(let x=1;x<WD-1;x++){if(op(x,y))continue;let k=0;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]])if(op(x+dx,y+dy))k++;if(k>=3)P(x,y,1,1,CR[1]);}}
+    for(let i=0;i<2;i++){const x=10+((r()*20)|0);P(x,49,2,1,CR[1]);P(x,48,1,1,CR[2]);}},{c:v===0?[64,42,16]:[30,20,10],skip:(x,y)=>y>40||wood.has(y*WD+x)});}
 // a gatepost: thicker than the rail posts, its top cut at a slant
 const L35_WOOD=['#553126','#784d30','#a97845','#d3ac6b'];   // the fences' own browns, dark to light
 function l35PostSpr(){const body=(P,hinge)=>{const W=L35_WOOD;
@@ -395,8 +420,8 @@ function l35PostSpr(){const body=(P,hinge)=>{const W=L35_WOOD;
   l35Spr('l35_hingepost',14,38,7,35,P=>body(P,true),{c:[29,16,23],skip:(x,y)=>y>=35});
   return l35Spr('l35_post',14,38,7,35,P=>body(P,false),{c:[29,16,23],skip:(x,y)=>y>=35});}
 // the gate of a road-side gateway, swung open into the field at an angle, so its bars show: hinged on the post at the top left
-function l35GateN(){const top=new Set();return l35Spr('l35_gate_n',58,80,4,54,(P)=>{const W=L35_WOOD;
-  const hx=4,hy=30,tx=48,ty=74,H=23;
+function l35GateN(){const top=new Set();return l35Spr('l35_gate_n',58,58,4,42,(P)=>{const W=L35_WOOD;
+  const hx=4,hy=30,tx=48,ty=52,H=23;
   const ln=(x1,y1,x2,y2,c,mark)=>{const n=Math.max(Math.abs(x2-x1),Math.abs(y2-y1));for(let k=0;k<=n;k++){const x=Math.round(x1+(x2-x1)*k/n),y=Math.round(y1+(y2-y1)*k/n);P(x,y,1,1,c);if(mark)top.add(y*58+x);}};
   // where its free end stands on the grass, the gate's own contact shadow
   P(tx-6,ty+1,13,1,'rgba(16,12,8,.5)');P(tx-4,ty+2,9,1,'rgba(16,12,8,.35)');P(tx-5,ty,3,1,'rgba(16,12,8,.4)');
@@ -409,7 +434,7 @@ function l35GateN(){const top=new Set();return l35Spr('l35_gate_n',58,80,4,54,(P
   for(let y=ty-H;y<=ty;y++){P(tx-1,y,2,1,W[1]);P(tx-1,y,1,1,W[2]);}P(tx-1,ty-H,2,1,W[3]);
   P(tx-3,ty-13,2,2,'#2e2c32');P(tx-3,ty-13,1,1,'#7a7a84');                                          // the latch
   for(const [x,h] of [[tx-4,3],[tx+2,4],[tx-2,2]])for(let k=0;k<h;k++)P(x,ty-k,1,1,k<1?'#3a5028':'#6a7a3a');   // grass at its foot
-  },{c:[29,16,23],skip:(x,y)=>top.has(y*58+x)||y>74});}
+  },{c:[29,16,23],skip:(x,y)=>top.has(y*58+x)||y>52});}
 // the same gate swung open along a side fence (a side gateway), seen side-on
 function l35GateLeaf(){const top=new Set();return l35Spr('l35_gateleaf',62,28,1,23,(P)=>{const W=L35_WOOD;
   const ln=(x1,y1,x2,y2,c,mark)=>{const n=Math.max(Math.abs(x2-x1),Math.abs(y2-y1));for(let k=0;k<=n;k++){const x=Math.round(x1+(x2-x1)*k/n),y=Math.round(y1+(y2-y1)*k/n);P(x,y,1,1,c);if(mark)top.add(y*62+x);}};
@@ -488,14 +513,17 @@ function l35FenceDown(){return l35Spr('l35_fencedown',150,52,75,46,(P)=>{
   const R=['#d3af71','#a97a48','#784e32','#442825'],PO=['#d3af71','#a97a48','#9a6b3f','#784e32','#663f2d','#442825'],sh='rgba(16,12,8,.4)';
   const rail=(x1,y1,x2,y2,ground)=>{const n=Math.max(Math.abs(x2-x1),Math.abs(y2-y1));for(let k=0;k<=n;k++){const x=Math.round(x1+(x2-x1)*k/n),y=Math.round(y1+(y2-y1)*k/n);
     if(ground)P(x,y+4,1,1,sh);for(let j=0;j<4;j++)P(x,y+j,1,1,R[j]);}};
-  const post=(bx,by,tx,ty)=>{const n=Math.max(Math.abs(tx-bx),Math.abs(ty-by));for(let k=0;k<=n;k++){const x=Math.round(bx+(tx-bx)*k/n),y=Math.round(by+(ty-by)*k/n);for(let j=0;j<6;j++)P(x+j,y,1,1,PO[j]);}
-    P(Math.round(tx),Math.round(ty),6,1,PO[0]);P(bx-1,by+1,8,1,sh);};
+  const post=(bx,by,tx,ty)=>{const ax=tx-bx,ay=ty-by,L=Math.hypot(ax,ay),ux=ax/L,uy=ay/L;   // a post 6 px across its own axis
+    const x0=Math.floor(Math.min(bx,tx))-5,x1=Math.ceil(Math.max(bx,tx))+5,y0=Math.floor(Math.min(by,ty))-5,y1=Math.ceil(Math.max(by,ty))+5;
+    for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const qx=x+.5-bx,qy=y+.5-by,al=qx*ux+qy*uy,ac=qx*(-uy)+qy*ux;if(al<0||al>L||Math.abs(ac)>3)continue;
+      P(x,y,1,1,al>L-2.2?(al>L-1.1?PO[0]:PO[1]):ac<-1.8?PO[0]:ac<-.4?PO[1]:ac<.9?PO[2]:ac<2?PO[3]:PO[5]);}
+    P(Math.round(bx-4),Math.round(by)+1,9,1,sh);};
   const flat=(x1,y1,x2,y2)=>{const n=Math.max(Math.abs(x2-x1),Math.abs(y2-y1));for(let k=0;k<=n;k++){const x=Math.round(x1+(x2-x1)*k/n),y=Math.round(y1+(y2-y1)*k/n);   // a post lying down
     P(x,y,1,1,PO[0]);P(x,y+1,1,1,PO[1]);P(x,y+2,1,1,PO[2]);P(x,y+3,1,1,PO[3]);P(x,y+4,1,1,PO[5]);P(x,y+5,1,1,sh);}P(Math.round(x2),Math.round(y2),1,5,PO[4]);};
   rail(70,39,118,42,true);                           // a rail lying behind, further back in the grass
   post(56,46,76,25);                                 // a post leaning hard east over it
   rail(10,47,66,44,true);                            // the bottom rail, slid off and lying out in front
-  post(3,46,3,24);                                   // the west post, still standing
+  post(6,46,6,24);                                   // the west post, still standing
   rail(9,29,48,45,false);                            // its top rail, sagging from the post to the grass
   flat(92,48,122,41);                                // the next post, flat in the grass
   rail(112,45,131,47,true);                          // a snapped piece of rail
@@ -565,7 +593,7 @@ function l35Build(){if(L35.built)return;L35.built=true;const t0=performance.now(
     for(const [cx,cz] of [[X0,Z0],[X1,Z0],[X0,Z1],[X1,Z1]])addCircle(cx,cz,.18);
     if(P.side==='N'){const g0=P.x0+.9,g1=g0+GW;
       fenceLine(X0,Z0,g0,Z0,0,'fence');fenceLine(g1,Z0,X1-OV,Z0,0,'fence');if(CHIME.has(P.id))l35ChimeAt(g0+.22,Z0);else l35Post(g0+.22,Z0);l35Post(g1,Z0,true);   // (the rails of a run overhang its last pace: the post goes at their end)
-      obj('l35_gate_n',g1,Z0+.75,{kind:'prop',noCol:true});addSeg(g1,Z0,g1+1.45,Z0+1.45,.1);
+      obj('l35_gate_n',g1,Z0+.375,{kind:'prop',noCol:true});addSeg(g1,Z0,g1+1.38,Z0+.7,.1);
       fenceLine(X0,Z0,X0,Z1,0,'fence');fenceLine(X1,Z0,X1,Z1,0,'fence');fenceLine(X0,Z1,X1-OV,Z1,0,'fence');
       l35Hedge(P.x0-.2,P.x0+P.w+.2,Z1+.65,P.id);}
     else{const W=P.side==='W',RX=W?X0:X1,BX=W?X1:X0,g0=P.z0+.9,g1=g0+GW;
