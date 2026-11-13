@@ -42,8 +42,8 @@ const H33A=(()=>{
   const SKIN={fair:'#e8b48c',tan:'#c88a5e',ruddy:'#e0a07a',weathered:'#b67c58',olive:'#c4966a'};
   const LOOKS={
     dell:{name:'Dell Ames',skin:'weathered',hair:'#4a3a2a',hairStyle:'short',hat:'flatcap',hatC:'#8a9098',shirt:'#7698c0',rim:1,rolled:1,trousers:'#3e3a34',boots:'#3a2618',braces:'#7a5a34',stubble:1,w:15,job:'pour'},
-    kettle:{name:'Jem Kettle',skin:'fair',hair:'#b4501e',hairStyle:'mop',hat:'newsboy',hatC:'#7c7a70',shirt:'#d8ceb4',overalls:'#4a6a8a',trousers:'#4a6a8a',boots:'#4a2e1a',freckles:1,teen:1,w:14,job:'pick'},
-    kettle2:{name:'Josie Kettle',skin:'fair',hair:'#b4501e',hairStyle:'braids',shirt:'#a84a3a',pinafore:'#d8ccb0',trousers:'#5a4a3a',skirt:1,boots:'#4a2e1a',freckles:1,teen:1,w:14,job:'pick'},
+    kettle:{name:'Jem Kettle',bin:'basket',skin:'fair',hair:'#b4501e',hairStyle:'mop',hat:'newsboy',hatC:'#7c7a70',shirt:'#d8ceb4',overalls:'#4a6a8a',trousers:'#4a6a8a',boots:'#4a2e1a',freckles:1,teen:1,w:14,job:'pick'},
+    kettle2:{name:'Josie Kettle',skin:'fair',hair:'#b4501e',hairStyle:'braids',shirt:'#2e3a52',bin:'tub',pinafore:'#d8ccb0',trousers:'#5a4a3a',skirt:1,boots:'#4a2e1a',freckles:1,teen:1,w:14,job:'pick'},
     merritt:{name:'Old Merritt',skin:'ruddy',hair:'#d8d4cc',hairStyle:'thin',hat:'straw',hatC:'#d4b46a',shirt:'#8a7a5a',vest:'#5a4a36',trousers:'#5a5248',boots:'#3a2a1c',beard:'#e4e0d8',old:1,w:15,job:'sow'},
     hannah:{name:'Hannah Royce',skin:'tan',hair:'#2e2018',hairStyle:'tied',hat:'kerchief',hatC:'#b03a2e',shirt:'#e0d4b8',rolled:1,overalls:'#3e5a7a',trousers:'#3e5a7a',boots:'#33241a',w:17,job:'swing'},
     walt:{name:'Walt Royce',skin:'ruddy',hair:'#3a2a1e',hairStyle:'short',hat:'flatcap',hatC:'#6a5038',shirt:'#9a4434',rolled:1,trousers:'#4a4a52',boots:'#2e2016',braces:'#2a2a2e',stubble:1,mustache:'#3a2a1e',w:17,job:'swing'},
@@ -59,6 +59,7 @@ const H33A=(()=>{
     const hip=49+teen,shoulder=36+teen*3+bob+old,headBot=shoulder-1,headTop=headBot-15;
     const AD=L.teen?-1:-2;if(F.nearHand&&!F._ad){F.nearHand=[F.nearHand[0],F.nearHand[1]+AD];}if(F.farHand&&!F._ad){F.farHand=[F.farHand[0],F.farHand[1]+AD];}F._ad=1;
     const w=L.w,x0=Math.round(23.5-w/2);   // torso left in front view
+    if(F.under)F.under(C,{sh:shoulder,hip,x0,w});
     const legCol=(lift)=>tr;
     // ---- legs and boots
     function legFront(x,lift,dy){const top=hip,bot=57-lift;for(let y=top;y<bot;y++){C.r(x,y,4,1,tr[2]);C.p(x,y,tr[3]);C.p(x+3,y,tr[1]);}
@@ -117,6 +118,7 @@ const H33A=(()=>{
       side=torsoSide();
       F._sx=sx0;F._sy=sy0;}
     else torsoFront();
+    if(F.overTorso)F.overTorso(C,{sh,hip,lean,x0,w});
     // ---- head (front, back, side)
     const hb=headBot+(F.headDy||0)+(v==='E'?Math.round(lean*.9):0),ht=hb-14,hxo=v==='E'?Math.round(lean*1.4):0;
     const hx0=16+hxo,hw=16;
@@ -128,10 +130,10 @@ const H33A=(()=>{
       const ey=ht+8;if(F.blink){C.r(hx0+4,ey+1,2,1,'#3a2418');C.r(hx0+hw-5,ey+1,2,1,'#3a2418');}
       else{C.r(hx0+4,ey,2,2,'#2a1810');C.p(hx0+4,ey,'#f4ece0');C.r(hx0+hw-5,ey,2,2,'#2a1810');C.p(hx0+hw-5,ey,'#f4ece0');}
       C.p(hx0+7,ht+10,sk[1]);C.p(hx0+8,ht+10,sk[1]);   // the nose's shadow
-      C.r(hx0+6,ht+12,4,1,dk(sk[1],.85));   // mouth
+      if(!L.mustache)C.r(hx0+6,ht+12,4,1,dk(sk[1],.85));   // mouth (a moustache hides it)
       if(L.freckles){C.p(hx0+4,ht+10,dk(sk[2],.82));C.p(hx0+11,ht+10,dk(sk[2],.82));C.p(hx0+5,ht+11,dk(sk[2],.84));C.p(hx0+10,ht+11,dk(sk[2],.84));}
-      if(L.stubble){for(let x=hx0+4;x<hx0+hw-3;x++)if((x+ht)%2===0)C.p(x,ht+13,dk(sk[1],.85));C.r(hx0+5,ht+13,6,1,dk(sk[2],.8));}
-      if(L.mustache){const m=ramp(L.mustache);C.r(hx0+5,ht+11,6,1,m[2]);C.p(hx0+5,ht+12,m[1]);C.p(hx0+10,ht+12,m[1]);}
+      if(L.stubble){C.r(hx0+4,ht+13,hw-8,1,dk(sk[2],.88));C.p(hx0+3,ht+12,dk(sk[2],.9));C.p(hx0+hw-4,ht+12,dk(sk[2],.9));}
+      if(L.mustache){const m=ramp(L.mustache);C.r(hx0+5,ht+11,6,1,m[2]);C.r(hx0+6,ht+11,2,1,m[3]);C.p(hx0+5,ht+12,m[1]);C.p(hx0+10,ht+12,m[1]);}
       if(L.beard){const b=ramp(L.beard);for(let y=ht+10;y<=hb+3;y++){const r=y-ht-9;const ins=r<2?1:r<4?2:r<6?3:4;for(let x=hx0+ins;x<hx0+hw-ins;x++)C.p(x,y,(x-hx0)/hw<.3?b[3]:(x-hx0)/hw>.75?b[1]:b[2]);}
         C.r(hx0+6,ht+12,4,1,b[0]);}
       if(old){C.p(hx0+4,ht+6,dk(sk[2],.8));C.p(hx0+hw-4,ht+6,dk(sk[2],.8));}}
@@ -150,7 +152,9 @@ const H33A=(()=>{
     // ---- hair
     const hr=ramp(L.hair);const hs=L.hairStyle;
     function hairFront(){// a fringe and sides; the back view covers the whole head
-      if(v==='N'){headShape((x,y,fx,r)=>{if(hs==='thin'){if(r>12||(r>10&&(x%2)))return;const st=(x-hx0)%3;C.p(x,y,r<5?hr[0]:st===0?hr[1]:st===1?(fx<.4?hr[3]:hr[2]):hr[2]);return;}if(r<13||hs==='braids'||hs==='mop')C.p(x,y,fx<.25?hr[3]:fx>.75?hr[1]:hr[2]);});
+      if(v==='N'){headShape((x,y,fx,r)=>{if(hs==='short'){const hh=n=>{let q=Math.sin(n*91.7+57.3)*43758.5453;return q-Math.floor(q);};const len=11+Math.floor(hh(x*1.3)*3);if(r>len)return;
+          const base=fx<.22?3:fx>.78?1:2,t=hh(x*2.3+Math.floor((r+(x%2))/3)*.37);C.p(x,y,hr[t<.24?Math.max(0,base-1):t>.84?Math.min(3,base+1):base]);return;}
+        if(hs==='thin'){const hh=n=>{let q=Math.sin(n*127.1+311.7)*43758.5453;return q-Math.floor(q);};const len=9+Math.floor(hh(x)*4)+(hh(x+r*.01)>.85?1:0);if(r>len)return;const t=hh(x*3.7+Math.floor(r/3));C.p(x,y,r<4?hr[0]:t<.3?hr[1]:t<.72?hr[2]:(fx<.5?hr[3]:hr[2]));return;}if(r<13||hs==='braids'||hs==='mop')C.p(x,y,fx<.25?hr[3]:fx>.75?hr[1]:hr[2]);});
         if(hs==='braids'){for(const bx of [hx0+1,hx0+hw-3]){for(let y=hb-2;y<hb+9;y++)C.r(bx,y,2,1,((y>>1)%2)?hr[1]:hr[2]);C.r(bx,hb+9,2,1,'#c84a3a');}}
         if(hs==='bun'){C.r(hx0+4,ht-3,6,4,hr[2]);C.r(hx0+5,ht-4,4,1,hr[3]);C.p(hx0+8,ht-2,hr[1]);}
         if(hs==='tied'){C.r(hx0+5,hb-1,4,3,hr[1]);}
@@ -165,7 +169,8 @@ const H33A=(()=>{
         if(hs==='bun'){C.r(hx0+4,ht-3,6,3,hr[2]);C.r(hx0+5,ht-4,4,1,hr[3]);C.p(hx0+6,ht+1,hr[0]);C.p(hx0+7,ht+2,hr[1]);}
         return;}
       // side: hair over the top and the back of the head
-      headShape((x,y,fx,r)=>{const back=fx<.42,top=r<(hs==='thin'?1:3);if(top||(back&&r<(hs==='thin'?8:13)&&!(fx>.3&&r>5&&r<11&&(x>=hx0+6&&x<=hx0+7))))C.p(x,y,fx<.25?hr[1]:fx>.7?hr[3]:hr[2]);});
+      headShape((x,y,fx,r)=>{const back=fx<.42,top=r<(hs==='thin'?1:3);if(top||(back&&r<(hs==='thin'?8:hs==='short'?12+((x*7)%3===0?1:0):13)&&!(fx>.3&&r>5&&r<11&&(x>=hx0+6&&x<=hx0+7)))){
+        let k=fx<.25?1:fx>.7?3:2;if(hs==='short'){const q=Math.sin((x*2.3+Math.floor((r+(x%2))/3)*.37)*91.7+57.3)*43758.5453,t=q-Math.floor(q);if(t<.24)k=Math.max(0,k-1);else if(t>.84)k=Math.min(3,k+1);}C.p(x,y,hr[k]);}});
       if(hs==='braids'){for(let y=ht+9;y<hb+9;y++)C.r(hx0+3,y,2,1,((y>>1)%2)?hr[1]:hr[2]);C.r(hx0+3,hb+9,2,1,'#c84a3a');}
       if(hs==='bun'){C.r(hx0-2,ht+3,4,5,hr[2]);C.r(hx0-2,ht+3,4,1,hr[3]);}
       if(hs==='tied'){C.r(hx0-2,ht+8,3,3,hr[1]);}
@@ -223,13 +228,13 @@ const H33A=(()=>{
     pour:[{nearHand:[29,46],farHand:[27,45],can:0},{nearHand:[30,44],farHand:[28,43],can:1,flow:0},{nearHand:[31,43],farHand:[29,42],can:2,flow:1},
       {nearHand:[31,43],farHand:[29,42],can:2,flow:2,bob:0},{nearHand:[31,43],farHand:[29,42],can:2,flow:3},{nearHand:[30,44],farHand:[28,43],can:1,flow:0}],
     sow:[{lean:1,nearHand:[25,50],farHand:[21,48]},{lean:1,nearHand:[27,44],farHand:[21,48]},{lean:1,nearHand:[31,41],farHand:[21,48],seed:1},
-      {lean:2,nearHand:[33,44],farHand:[21,48],seed:2},{lean:1,nearHand:[29,48],farHand:[21,48],seed:3},{lean:1,nearHand:[26,50],farHand:[21,48],seed:4}],
+      {lean:2,nearHand:[33,44],farHand:[21,48],seed:2},{lean:1,nearHand:[29,48],farHand:[21,48],seed:3},{lean:1,nearHand:[26,50],farHand:[21,48],seed:5}],
     pick:[{lean:1,nearHand:[27,48],farHand:[25,47]},{lean:3,headDy:2,nearHand:[30,55],farHand:[28,55],kneeIn:1},{lean:3,headDy:3,nearHand:[30,56],farHand:[28,56],bob:1,kneeIn:1},
-      {lean:1,nearHand:[28,45],farHand:[26,45],hold:1},{lean:0,nearHand:[28,39],farHand:[26,39],hold:2},{lean:0,nearHand:[18,46],farHand:[17,45],hold:3}],
+      {lean:1,nearHand:[31,48],farHand:[29,48],hold:1},{lean:0,nearHand:[21,49],farHand:[22,50],hold:2},{lean:-1,nearHand:[13,49],farHand:[16,50],hold:3}],
     note:[{nearHand:[28,44],farHand:[27,45],board:1},{nearHand:[29,43],farHand:[27,45],board:1},{nearHand:[28,44],farHand:[27,45],board:1,blink:1},{nearHand:[34,38],farHand:[27,45],board:1,point:1}],
     pull:[]};
   // ---- what each of them carries, drawn into the cell: Dell's two cans, Merritt's seed pouch, Hannah's pick, Ruth's book
-  const GALV=['#383c44','#646a74','#98a0aa','#ccd4dc'];
+  const GALV=['#4a505a','#8a929c','#bcc4cc','#e8eef2'];
   function can(C,hx,hy,tilt,far,v){const g=far?GALV.map(c=>dk(c,.78)):GALV;const fl=v==='W'?-1:1;
     // the handle in the fist, the drum below it, the spout from the drum's foot out toward the rose; tipping lifts the back
     const bx=hx-2,by=hy+2;for(let j=0;j<5;j++)for(let i=0;i<6;i++){const yy=by+j-(tilt&&i<2?tilt-1:0);C.p(bx+i,yy,i===0?g[3]:i>=4?g[1]:j===0?g[3]:g[2]);}
@@ -237,23 +242,42 @@ const H33A=(()=>{
     const sp=[[0,0],[1,-1],[2,-2],[3,-3],[4,-4]],sd=[[0,0],[1,-1],[2,-1],[3,-1],[4,-1]],sq=[[0,0],[1,0],[2,1],[3,1],[4,2]];const path=tilt===0?sp:tilt===1?sd:sq;
     let ex=0,ey=0;for(const [dx,dy] of path){ex=bx+6+dx;ey=by+3+dy;C.p(ex,ey,g[1]);}
     C.r(ex,ey-1,2,3,g[0]);C.p(ex+1,ey-1,g[2]);return [ex+1,ey+1];}
-  function pick(C,hx,hy,ang,far,len){const H=far?['#7a5a34','#5a3e22']:['#c49a64','#8a6438'];const I=far?['#7a7e86','#3e4048']:['#b0b4bc','#5a5e66'];
+  function pick(C,hx,hy,ang,far,len){const H=far?['#7a5a34','#5a3e22']:['#c49a64','#8a6438'];const I=far?['#5a5e66','#26282e']:['#7e828c','#2e3038'];
     const L=len||12,ex=hx+Math.cos(ang)*L,ey=hy+Math.sin(ang)*L;C.limb(hx-Math.cos(ang)*2,hy-Math.sin(ang)*2,ex,ey,2,(t,k)=>H[k]);
     const px=-Math.sin(ang),py=Math.cos(ang);for(let k=-5;k<=5;k++){const cv=Math.abs(k)*Math.abs(k)*.06;C.p(ex+px*k-Math.cos(ang)*cv,ey+py*k-Math.sin(ang)*cv,Math.abs(k)>3?I[1]:I[0]);
       if(Math.abs(k)<3)C.p(ex+px*k+Math.cos(ang),ey+py*k+Math.sin(ang),I[1]);}
     return [Math.round(ex+px*5),Math.round(ey+py*5)];}
   // the water: a 2 px stream in two blues from the rose to the soil, a highlight running down it, a splash and a dark wet patch
   function water(C,sx0,sy0,flow,tilt){const G=59;const B=['#3a6aa8','#86c4ee','#eaf8ff'];
-    const wet=(n)=>{for(let i=-n;i<=n;i++)C.p(sx0+5+i,G+(Math.abs(i)===n?0:1),'#3a2a20',1);for(let i=-n+1;i<n;i++)C.p(sx0+5+i,G,'#4a3628',1);};
+    const wet=(n)=>{for(let i=-n;i<=n;i++)C.p(sx0+5+i,G+(Math.abs(i)===n?0:1),'#3a2a20',1);for(let i=-n+1;i<n;i++)C.p(sx0+5+i,G,'#4a3628',1);for(let i=-n+2;i<n-1;i++)C.p(sx0+5+i,G+2,'#2e2018',1);};
     if(tilt<2){for(let y=sy0+1;y<Math.min(G,sy0+4+flow);y++)C.p(sx0+1,y,B[1],1);C.p(sx0+1,sy0+6,B[0],1);wet(2);return;}
     const n=G-sy0;for(let i=0;i<n;i++){const u=i/n,x=Math.round(sx0+1+u*u*4),y=sy0+1+i;C.p(x,y,B[1],1);C.p(x+1,y,B[0],1);}
     const hl=(flow*3)%Math.max(1,n-2);const hu=hl/n;C.p(Math.round(sx0+1+hu*hu*4),sy0+1+hl,B[2],1);C.p(Math.round(sx0+1+hu*hu*4),sy0+2+hl,B[2],1);
-    const ix=sx0+5;wet(3);for(const [dx,dy] of [[-3,-2],[3,-2],[-2,-3-flow%2],[2,-3-(flow+1)%2]])C.p(ix+dx,G+dy,flow%2?B[2]:B[1],1);}
+    const ix=sx0+5;wet(4);for(const [dx,dy] of [[-3,-2],[3,-2],[-2,-3-flow%2],[2,-3-(flow+1)%2]])C.p(ix+dx,G+dy,flow%2?B[2]:B[1],1);}
   // seed from the pouch hand: 2x2 clusters thrown forward, falling, lying on the soil
-  function seeds(C,k){const P={1:[[33,40],[35,42]],2:[[37,46],[39,49],[35,50]],3:[[39,56],[41,57],[37,57]],4:[[38,58],[41,58],[36,58]]}[k]||[];
-    for(const [x,y] of P){C.p(x,y,'#f0e0a8',1);C.p(x+1,y,'#d8b868',1);C.p(x,y+1,'#c8a050',1);C.p(x+1,y+1,'#6a4a24',1);}}
-  function pouch(C,x,y){const B=['#3a2a18','#6a5434','#9a8458','#bca878'];C.r(x+1,y,4,1,B[1]);for(let j=1;j<6;j++)for(let i=0;i<6;i++){if(j===5&&(i===0||i===5))continue;C.p(x+i,y+j,i===0?B[3]:i>=4?B[1]:B[2]);}
+  function seeds(C,k){const P={1:[[33,38],[36,40]],2:[[36,44],[40,46],[34,48]],3:[[38,51],[42,53],[35,54]],4:[[36,55],[41,56],[33,54],[44,56]],5:[[35,57],[40,55],[32,56],[44,57],[38,58]]}[k]||[];
+    for(const [x,y] of P){C.p(x,y,'#f4e6b0',1);C.p(x+1,y,'#dcc070',1);C.p(x,y+1,'#c8a050',1);C.p(x+1,y+1,'#a88438',1);C.r(x,y+2,2,1,'#4a3018',1);}}
+  function pouch(C,x,y){const B=['#4a3418','#8a7048','#c8ac72','#e4d098'];C.r(x+1,y,4,1,B[1]);for(let j=1;j<6;j++)for(let i=0;i<6;i++){if(j===5&&(i===0||i===5))continue;C.p(x+i,y+j,i===0?B[3]:i>=4?B[1]:B[2]);}
     C.r(x+1,y+1,4,1,B[0]);C.p(x+2,y+3,'#d8c890');}
+  const CROPC={pumpkin:['#6a2606','#c0581a','#ec9444'],turnip:['#6a3a6a','#e4d8e4','#fbf6fb'],potato:['#5a4028','#9a7448','#c49a68'],carrot:['#8a3a10','#d8701e','#f0a050'],
+    cabbage:['#2e5a32','#5a9a5a','#8ac48a'],corn:['#8a6a10','#d8b030','#f4dc70'],barley:['#8a6a20','#c8a448','#ecd488'],hops:['#3a5a22','#7aa04a','#b0d07a'],grapes:['#3a1e4a','#6a3a8a','#9a6ab8']};
+  // one crop, 6x6 with its leaves: lit on the upper left, darker lower right; a turnip's purple shoulder, a carrot's taper
+  function crop(C,cx,cy,type){const c=CROPC[type]||CROPC.turnip;const R=type==='carrot'?[[2,0],[3,1],[3,2],[2,3],[2,4],[1,5]]:null;
+    if(R){for(const [hw,dy] of R)for(let i=-hw+1;i<hw;i++)C.p(cx+i,cy+dy,i<0?c[2]:i>0?c[0]:c[1]);}
+    else for(let j=-3;j<=2;j++)for(let i=-3;i<=2;i++){const d=Math.hypot(i+.5,j+.5);if(d>3.2)continue;C.p(cx+i,cy+j,d>2.4&&(i>=0||j>=0)?c[0]:i+j<-2?c[2]:c[1]);}
+    if(type==='turnip'){C.r(cx-2,cy-3,4,1,'#9a5a9a');C.r(cx-3,cy-2,2,1,'#b07ab0');}
+    for(const [dx,dy,g] of [[-1,-5,'#4a8a3a'],[0,-6,'#6aaa4a'],[1,-5,'#3a6a2a'],[0,-4,'#4a8a3a'],[-2,-6,'#5a9a3e'],[2,-6,'#5a9a3e']])C.p(cx+dx,cy+dy+(R?1:0),g);}
+  // the containers, behind the twin on the ground (cells face E, so behind is to the left)
+  function container(C,bin,type){const x0=3,top=48,bot=58;
+    // a heap of what's been picked, above the rim
+    for(const [cx,cy] of [[7,top-1],[12,top-2],[16,top-1]]){const c=CROPC[type]||CROPC.turnip;for(let j=-2;j<=1;j++)for(let i=-2;i<=1;i++){if(Math.hypot(i+.5,j+.5)>2.3)continue;C.p(cx+i,cy+j,i+j<-1?c[2]:i+j>0?c[0]:c[1]);}}
+    if(bin==='tub'){const S=['#2e1e10','#5a3e22','#86603a','#a87e50'];
+      for(let y=top;y<=bot;y++){const ins=y>bot-2?1:0;for(let x=x0+ins;x<x0+16-ins;x++)C.p(x,y,(x-x0)%4===0?S[1]:x<x0+4?S[3]:x>x0+12?S[1]:S[2]);}
+      for(let x=x0;x<x0+16;x++){C.p(x,top,S[3]);C.p(x,top+2,'#6a6e76');C.p(x,bot-2,'#5a5e66');}C.r(x0+1,top+2,3,1,'#9aa0a8');}
+    else{const W=['#2e1e10','#563a20','#7e5834','#a07848','#c49c64'];
+      for(let x=x0;x<x0+16;x++){C.p(x,top,W[4]);C.p(x,top+1,W[2]);}
+      for(let y=top+2;y<=bot;y++){const ins=y>bot-2?1:0,band=((y-top)>>1)%2,dk2=y>bot-2?1:0;for(let x=x0+ins;x<x0+16-ins;x++)C.p(x,y,W[((x+band*2)%4<2?3:2)-dk2]);}
+      for(let a=0;a<=Math.PI;a+=.2)C.p(Math.round(x0+7.5-Math.cos(a)*6),Math.round(top-Math.sin(a)*4),a<1.6?W[3]:W[1]);}}
   function book(C,x,y){C.r(x,y,6,8,'#7a5432');C.r(x+1,y+1,4,6,'#ece4d0');C.r(x+2,y,2,1,'#b0b4bc');for(let r=y+2;r<y+7;r+=2)C.r(x+1,r,3,1,'#9a9488');}
   // per look and frame: what goes behind the body, between body and near arm, and over everything
   function kit(L,F,mode,k){const v=F.v;const job=L.job;const tip={};
@@ -265,27 +289,36 @@ const H33A=(()=>{
       if(mode==='work')tip.seed=F.seed||0;}
     if(job==='swing'){if(mode==='work')F.extra=(C,o)=>{const h=F.nearHand;const hd=pick(C,h[0],h[1],F.ang,false,F.len);tip.head=hd;
         if(F.dust){for(const [dx,dy,c] of [[2,-2,'#7a5a3a'],[4,-4,'#5e4430'],[-1,-3,'#8a7a62'],[5,-1,'#6a4a2e']])C.r(hd[0]+dx,hd[1]+dy,2,2,c);}};
-      else if(v==='E')F.extra=(C,o)=>{const h=o.hands.find(q=>!q[2]);if(h)pick(C,h[0],h[1],.75,false);};
-      else if(v==='S')F.extra=(C,o)=>{const h=o.hands.find(q=>!q[2])||o.hands[1];if(h)pick(C,h[0],h[1],1.15,false);};
-      else F.behind2=1;}
+      // walking and standing, the pick is carried over the shoulder (it used to hang to the boots and drag): the near hand on
+      // the haft at the chest, the haft over the shoulder, the iron head behind the back; from behind, the head lies across the back
+      else if(v==='E'){F.nearHand=[28,44];F.overTorso=(C,o)=>{pick(C,28,42-(L.teen?-1:0),-2.73,false,17);};}
+      else if(v==='S'){const a=F.arms||[[0,0],[0,0]];F.arms=[a[0],[-3,-6]];F.under=(C,o)=>{pick(C,o.x0+o.w-3,o.sh+5,-1.25,false,15);};}
+      else{const a=F.arms||[[0,0],[0,0]];F.arms=[a[0],[-1,-9]];F.extra=(C,o)=>{pick(C,o.x0+o.w-1,o.sh+7,-1.2,false,16);};}}
+    // the twins pick into their own containers, standing behind them on the ground: Jem's wicker basket, Josie's oak tub; what
+    // they pull comes up out of the soil, to the chest, and over the container
+    if(job==='pick'&&mode==='work'&&v==='E'){const bin=L.bin||'basket',ct=F.crop||'turnip';
+      F.behind=(C,o)=>container(C,bin,ct);
+      // the crop comes up out of the soil, rises to the chest in front (clear of the face), is carried back across the chest,
+      // and on the last frame goes down onto the heap in the container behind
+      if(F.hold||F.kneeIn&&F.bob)F.extra=(C,o)=>{const h=o.hands.find(q=>!q[2]);if(!h)return;if(F.hold===3)crop(C,h[0],h[1]-2,ct);else crop(C,h[0]+1,h[1]-(F.hold?4:2),ct);};}
     if(job==='note'){if(v==='E'){F.farHand=[27,F.farHand&&mode==='work'?F.farHand[1]:45];F.mid=(C,o)=>book(C,25+Math.round(o.lean),o.sh+4);}
       else if(v==='S')F.mid=(C,o)=>book(C,o.x0+o.w-5,o.sh+5);}
     return tip;}
   // ---- the sheet
-  function sheet(L){const clips={walk:{N:[0,9],W:[1,9],S:[2,9],E:[3,9]},idle:{N:[4,4],W:[5,4],S:[6,4],E:[7,4]},work:{E:[8,6],W:[9,6]}};
+  function sheet(L,opt){opt=opt||{};const clips={walk:{N:[0,9],W:[1,9],S:[2,9],E:[3,9]},idle:{N:[4,4],W:[5,4],S:[6,4],E:[7,4]},work:{E:[8,6],W:[9,6]}};
     const c=document.createElement('canvas');c.width=W*9;c.height=H*10;const g=c.getContext('2d');const meta={work:[]};
     for(const [v,row,flip] of [['N',0],['E',1,1],['S',2],['E',3]])for(let k=0;k<9;k++){const F=walkF(v,k-1,{pull:L.job==='pull'});if(L.job==='pull'&&v==='E')F.nearHand=[16,48];kit(L,F,'walk',k);figure(L,F).to(g,k*W,row*H,flip);}
     for(const [v,row,flip] of [['N',4],['E',5,1],['S',6],['E',7]])for(let k=0;k<4;k++){const F=idleF(v,k);kit(L,F,'idle',k);figure(L,F).to(g,k*W,row*H,flip);}
     const wk=WORK[L.job]||[];for(let k=0;k<6;k++){const F0=wk.length?wk[k%wk.length]:null;
-      const F=F0?Object.assign({v:'E',legs:[[2,0],[-2,0]]},F0):idleF('E',k%4);const tip=kit(L,F,F0?'work':'idle',k);const C=figure(L,F);C.to(g,k*W,8*H);C.to(g,k*W,9*H,1);meta.work.push(Object.assign({},F0||{},{nearHand:F.nearHand,farHand:F.farHand},tip));}
+      const F=F0?Object.assign({v:'E',legs:[[2,0],[-2,0]],crop:opt.crop},F0):idleF('E',k%4);const tip=kit(L,F,F0?'work':'idle',k);const C=figure(L,F);C.to(g,k*W,8*H);C.to(g,k*W,9*H,1);meta.work.push(Object.assign({},F0||{},{nearHand:F.nearHand,farHand:F.farHand},tip));}
     return {canvas:c,clips,meta,fw:W,fh:H,ax:24,ay:60};}
   return {LOOKS,sheet,figure,walkF,idleF,WORK,ramp,dk,lt};})();
 
 
 // ---- the sheets, made once each when first needed
 const H33_ID={dell:['dell'],kettle:['kettle','kettle2'],merritt:['merritt'],hannah:['hannah'],ruth:['ruth'],cyrus:['cyrus']};
-function h33Key(look){const key='h33_'+look;if(SPR[key])return key;const L=H33A.LOOKS[look];if(!L)return null;
-  const s=H33A.sheet(L);IMG['mem:'+key]=s.canvas;SPR[key]={src:'mem:'+key,fw:s.fw,fh:s.fh,ax:s.ax,ay:s.ay,clips:s.clips};H33_META[look]=s.meta;return key;}
+function h33Key(look,crop){const key='h33_'+look+(crop?'_'+crop:'');if(SPR[key])return key;const L=H33A.LOOKS[look];if(!L)return null;
+  const s=H33A.sheet(L,{crop});IMG['mem:'+key]=s.canvas;SPR[key]={src:'mem:'+key,fw:s.fw,fh:s.fh,ax:s.ax,ay:s.ay,clips:s.clips};H33_META[look]=s.meta;return key;}
 const H33_META={};
 // ---- two more people from town: a foreman who lays the fields out and keeps the book, and a carter who takes the harvest to market
 EMP_HANDS.push({id:'ruth',name:'Ruth Calloway',job:'boss',n:0,wage:36,note:'kept the books for the Greyfield estate till it closed; lays out a field like a ledger'},
@@ -450,26 +483,28 @@ function h33Cart(X,Y,dir,full){const g=ctx2;const flip=dir==='W'?-1:1;
   g.fillStyle='#5a3e22';if(dir==='E'||dir==='W')g.fillRect(flip>0?bx+27:bx-9,by+3,10,2);}
 {const _ld=lifeDrawables;lifeDrawables=function(D,t){const E=EMP();const W=E.work;E.work=null;try{_ld.apply(this,arguments);}finally{E.work=W;}
   try{if(S.room)return;const Q=E.h33;if(!Q||!Q.routes||Q.day!==S.day)return;const now=performance.now()/1000;
-    const placed=[[P.x,P.z]];for(const {id,at} of h33Place(S.hour)){if(!onScreen(at.x,at.z,90))continue;
+    const placed=[[P.x,P.z]];for(let {id,at} of h33Place(S.hour)){if(!onScreen(at.x,at.z,90))continue;
+      if(!at.walk&&Math.hypot(at.x-P.x,at.z-P.z)<1.7){for(const d of [.25,.5,.8,1.2,1.8,2.5]){const a2=h33Where(id,S.hour-d);if(a2&&!a2.walk&&Math.hypot(a2.x-P.x,a2.z-P.z)>=1.7){at=a2;break;}}}
       const look=H33_LOOKOF[id]||id;const key=h33Key(look);if(!key)continue;const meta=H33_META[look]||{work:[]};
       const twin2=id==='kettle2';let dir=at.dir||(twin2?'W':'E');if(at.k==='note'&&!at.dir)dir=at.ph<.5?'E':'W';
       let clip='idle',fr=Math.floor(now*3+id.length)%4;
       if(at.walk){clip='walk';fr=1+Math.floor((now*(id==='merritt'?8:10))+id.length)%8;}
-      else if(['till','clear','pick','sow','water','note'].includes(at.k)){clip='work';if(dir!=='E'&&dir!=='W')dir=twin2?'W':'E';const cyc={note:2.2,pick:1.7,sow:1.3,till:1.1,clear:1.1,water:1.5}[at.k]||1.4;fr=Math.floor(now*6/cyc+id.length*.7)%6;
+      else if(['till','clear','pick','sow','water','note'].includes(at.k)){clip='work';if(dir!=='E'&&dir!=='W')dir=twin2?'W':'E';const cyc=({note:2.2,pick:1.7,sow:1.3,till:1.1,clear:1.1,water:1.5}[at.k]||1.4)*(id==='walt'?1.18:1);fr=Math.floor(now*6/cyc+id.length*.7+(id==='walt'?3:0))%6;
         if(at.k==='water')fr=[1,2,3,4,2,3,4,5][Math.floor(now*6+id.length)%8];}
       else if(at.k==='box'||at.k==='load'){clip='idle';dir='N';}
       const sgn=dir==='W'?-1:1;const back={till:.5,clear:.5,water:.62,sow:.42,pick:.2}[at.k]||0;
       let x=at.x-(clip==='work'?sgn*back:0),z=at.z+(clip==='work'?.12:.25);
       placed.push([x,z]);
       const F=clip==='work'?(meta.work[fr]||{}):{};
+      let dkey=key;if(at.k==='pick'&&clip==='work'){const tl=h33Tile(at.x,at.z);const type=(tl&&tl.crop&&tl.crop.type)||(tl&&tl.lastPick)||'turnip';dkey=h33Key(look,type)||key;}
+      // nobody works shoulder to shoulder with you: a hand steps a little aside to keep a square between you
+      {const dx=x-P.x,dz=z-P.z,d=Math.hypot(dx,dz);if(d<1.7){const ux=d>.05?dx/d:1,uz=d>.05?dz/d:0;x+=ux*(1.7-d);z+=uz*(1.7-d);}}
       D.push({z:z+.01,mind:1,draw(){const X=Math.round(sx(x)),Y=Math.round(sz(z));
         if(id==='cyrus'&&dir!=='N')h33Cart(X,Y,dir,at.full);
         if(typeof shadow==='function')shadow(X,Y,8);
-        if(at.k==='pick'&&typeof HB3!=='undefined'){const tl=h33Tile(at.x,at.z);const type=(tl&&tl.crop&&tl.crop.type)||(tl&&tl.lastPick)||'pumpkin';ctx2.drawImage(id==='kettle2'?h33Tub(type):HB3.basket(type),X-sgn*15-10,Y-15);}
-        drawSpr(key,X,Y,clip,dir,fr);
+        drawSpr(dkey,X,Y,clip,dir,fr);
         if(id==='cyrus'&&dir==='N')h33Cart(X,Y,dir,at.full);
         if(clip!=='work')return;const P2=(p)=>[X-24+(sgn<0?47-p[0]:p[0]),Y-60+p[1]];const tt=now;
-        if(at.k==='pick'&&F.hold&&F.hold<3&&typeof HB3!=='undefined'){const tl=h33Tile(at.x,at.z);const type=(tl&&tl.crop&&tl.crop.type)||(tl&&tl.lastPick)||'pumpkin';const [hx,hy]=P2(F.nearHand);ctx2.drawImage(HB3.crop(type),hx-5,hy-9);}
         if((at.k==='till'||at.k==='clear')&&(fr===3||fr===4)){const [hx,hy]=F.head?P2(F.head):[X+sgn*10,Y-2];const q=fr===3?.3:.75;
           for(const [cx,cy,c] of [[2,-3,'#5a3e26'],[6,-6,'#6a4a2e'],[9,-2,'#4a3220'],[4,-8,'#8a8478']]){ctx2.fillStyle='#24180e';ctx2.fillRect(hx+sgn*(cx+Math.round(q*4))-1,hy+cy-Math.round(q*5)-1,4,4);ctx2.fillStyle=c;ctx2.fillRect(hx+sgn*(cx+Math.round(q*4)),hy+cy-Math.round(q*5),2,2);}
           if(at.k==='clear'){ctx2.globalAlpha=.45*(1-q);ctx2.fillStyle='#b8a890';ctx2.beginPath();ctx2.arc(hx,hy,3+q*5,0,6.3);ctx2.fill();ctx2.globalAlpha=1;}}}});}

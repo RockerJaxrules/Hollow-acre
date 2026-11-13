@@ -164,6 +164,31 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   the drawn buildings win on. Organic, soft forms (trees, bushes, rocks) are where the 3D method clearly wins.
 
 ## People (48x64) [owner: "look very bad so far"]
+- A new cast drawn beside existing townsfolk must match their measured figure box first (bbox of a front frame: townsfolk 41 px tall, 24 wide; the player 45): a 37 px figure reads as a child next to them, whatever its detail.
+- Side-view legs drawn as shifted columns overlap into one block at a 3 px stride; draw each leg as a limb from a fixed hip point to the foot (4 px wide) and stride 4 px, the far leg one ramp step darker.
+- Give each person one silhouette mark that survives 1x: a flat cap with a brim, a wide straw brim, a bowler's dome, a red kerchief, braids past the shoulders, a bun. Colour alone (the old recoloured shirts) does not tell people apart.
+- Carried tools belong in the sheet when the hand point is known per frame (cans hang from the fist, the pick is drawn along an angle from the hand): they then move with every frame and never float.
+- Water, seed and chips that come off a tool belong in the sheet, drawn from that frame's tool tip to the ground row: drawn separately in the world they drift off the hand and read as a different motion.
+- A strike must reach its target: stand the worker half a square back from the square they work and give the tool enough reach (here 14 px of haft at 0.75 rad) so the head lands on the square's centre, not at the toes.
+- One hair colour in every view: a cap the colour of the hair reads as the hair from the front. Make the cap a different value and show tufts of the real hair under it.
+- Pale hair seen from behind needs strands (2-3 steps, a shadow row under a brim, a ragged lower edge) or it reads as a paper patch.
+- A dark-skinned or slate-dressed figure on dark grass needs a lit top rim (cap and shoulders) and a shirt a step lighter to pass a greyscale check.
+- People working the same field must keep a clear square between them: settle the schedule (the lower in the order waits) rather than nudging sprites off the squares they work; rows all worked the same way keep a follower well behind the leader.
+- A held tool shows in every direction, the back view included: decide where it rides from behind (an iron head across the back) before drawing the walk.
+- A long-handled tool on a walk is carried, never hung: over the shoulder (haft across the chest, head behind the back) or held across; a head hanging to the boots reads as dragging.
+- Picking reads at 1x only if the crop itself travels: a 6x6 crop with leaves, out of the soil, up to the chest, over the picker's own container drawn on the sheet.
+- Hair and top of the same value merge in greyscale even in different hues: part them by a value step (red hair over a dark navy blouse, not a brick one).
+- Stubble as a dotted row under a mouth reads as teeth; draw it as one soft shade along the jaw, and let a moustache hide the mouth line.
+- Strands of hair from behind need uneven lengths and tones, or evenly ruled verticals read as a grille.
+- People at work keep a clear square from the player as well as from each other: a hand steps aside while you stand in their way.
+- A thing carried up to the chest must stay below the chin line: at 1x a crop held at face height merges with the face into one blob. Lift it to the chest, carry it across the chest, then down into the container.
+- A tool on the shoulder seen from behind: the haft rises past the shoulder's outer edge and the head sits beside the head, never over the back where it merges with the hair or the shirt.
+- Dark short hair from behind needs strands: two or three tones in uneven vertical runs and a ragged nape, or one dark mass reads as a helmet.
+- Things that land must land unevenly: seed, chips and drops lying in an even row at one height read as an ellipsis.
+- A carried prop must differ in value from the clothes behind it (check in greyscale): mid-grey cans on a mid-blue shirt read as mittens; bright zinc holds.
+- A tool and its target need different values: a grey pick head on a grey stone hides the contact the strike is about.
+- Two people doing the same job should never move in step: offset their phase by half a cycle and give each a slightly different beat.
+- Keeping clear of the player: step a worker back along their own path (still on their ground), never push them radially off the field.
 
 - [chars v1] At the world's 30-degree camera the cap and hair cover the face; people use a near face-on camera (~12).
 - [chars v1-v4] A 3D head with painted eyes reads as a doll; the drawn chibi wins on crisp shapes: outlined hair

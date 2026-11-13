@@ -82,3 +82,6 @@ orders. Latest round first.
 | Tractor with seed drill and reaper at work (t325, Nov 12) | 6 -> 6.5 | yes | toward 7: seed slots on the drill |
 | Brewing benches, turned views (t325, Nov 12) | 6 | yes | toward 7: press frame shading, the still's neck |
 | Festival booths, prizes and fair games (t324, Nov 12) | r1 6/15 at 6, r2 11/15, r3 14/16, r4-r6 16/16 (toss 6, dance 6) | yes (festart2.py, fest324g.js) | toward 7: couples at more than one depth; pegs with real form and a worn board |
+| Farm hands' own character art (t332, Nov 12-13) | r1 6 (old 2), r2 6 (old 2), Walt 5 (r2); r3 to judge | not yet installed | r3: carry poses, the twins' lifted crop and containers, Josie's value, Merritt's seed and hair, Walt's back pick and mouth |
+| Farm hands' own character art (t332, Nov 12-13) | r1 6 (old 2), r2 6, r3 6.5 + Walt 6, r4 polish to confirm | yes once merged (hands333.js) | toward 7: two-dot faces, hands that grip, three-tone cloth, hair clumps with shine |
+| Farm hands' own character art and work animations (t332, Nov 13) | r1 6, r2 6, r3 6.5 (Walt 6), r4 7 (Walt 6.5) | yes (hands333.js; the old hands were recoloured player sheets, 2-2.5) | toward 7.5: stone vs pick-point value, crop heaps not egg-like, Walt's own swing phase |
