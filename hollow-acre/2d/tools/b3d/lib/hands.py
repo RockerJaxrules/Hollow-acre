@@ -31,23 +31,23 @@ def sstep(a, b, x):
 # ------------------------------------------------------------------ measurements (cm)
 # name: MCP joint centre (x, y, z), splay (deg, + toward thumb), segment lengths, width at base, width at tip
 FINGERS = {
-    'pinky':  dict(mcp=(-2.85, 7.85, 0.05), splay=-7.0, L=(3.35, 1.95, 1.75), wb=1.70, wt=1.26),
-    'ring':   dict(mcp=(-1.00, 8.65, 0.15), splay=-2.5, L=(4.25, 2.65, 2.00), wb=1.90, wt=1.42),
-    'middle': dict(mcp=(0.95, 9.00, 0.18), splay=0.5, L=(4.55, 2.80, 2.05), wb=2.05, wt=1.50),
-    'index':  dict(mcp=(2.95, 8.55, 0.12), splay=4.0, L=(4.10, 2.45, 1.95), wb=2.00, wt=1.45),
+    'pinky':  dict(mcp=(-2.95, 7.85, 0.05), splay=-2.5, L=(3.35, 1.95, 1.75), wb=1.90, wt=1.42),
+    'ring':   dict(mcp=(-1.02, 8.65, 0.15), splay=-1.0, L=(4.25, 2.65, 2.00), wb=2.08, wt=1.58),
+    'middle': dict(mcp=(0.98, 9.00, 0.18), splay=0.0, L=(4.55, 2.80, 2.05), wb=2.20, wt=1.66),
+    'index':  dict(mcp=(3.02, 8.55, 0.12), splay=1.5, L=(4.10, 2.45, 1.95), wb=2.15, wt=1.62),
 }
 ORDER = ['pinky', 'ring', 'middle', 'index']          # ulnar -> radial, matches palm columns 0..8
-THUMB = dict(cmc=(2.25, 1.55, -1.05), d1=(0.64, 0.70, -0.30), L=(4.6, 3.1, 2.6), w=(2.5, 2.15, 2.2, 1.85))
+THUMB = dict(cmc=(2.25, 1.55, -1.05), d1=(0.64, 0.70, -0.30), L=(4.6, 3.1, 2.55), w=(2.5, 2.35, 2.3, 2.1))
 THICK = 0.86                                          # finger thickness / width
 # palm stations: y, half width, centre x, dorsal z, palmar z, hollow, thenar, hypothenar
-PALM = [(0.0, 2.95, 0.00, 1.85, -1.95, 0.00, 0.00, 0.00),
+PALM = [(0.0, 2.72, 0.00, 1.72, -1.80, 0.00, 0.00, 0.00),
         (1.7, 3.35, 0.05, 1.52, -1.62, 0.05, 0.55, 0.35),
         (3.6, 3.80, 0.10, 1.32, -1.38, 0.22, 0.45, 0.30),
         (5.6, 4.05, 0.12, 1.24, -1.32, 0.20, 0.15, 0.15),
         (7.0, 4.15, 0.12, 1.22, -1.40, 0.06, 0.00, 0.05)]
 # forearm profile from the wrist toward the elbow: distance, half width, dorsal, palmar (cm)
-FORE = [(0.0, 2.95, 1.85, -1.95), (2.2, 3.02, 1.98, -2.00), (5.0, 3.22, 2.12, -2.10), (8.0, 3.45, 2.36, -2.32),
-        (11.0, 3.60, 2.55, -2.48), (14.0, 3.62, 2.58, -2.55)]
+FORE = [(0.0, 2.72, 1.72, -1.80), (2.2, 2.86, 1.86, -1.88), (5.0, 3.25, 2.05, -2.05), (8.0, 3.65, 2.35, -2.30),
+        (11.0, 3.88, 2.58, -2.50), (14.0, 3.95, 2.62, -2.56)]
 
 class Cage:
     def __init__(self): self.V = []; self.F = []; self.tag = []
@@ -118,14 +118,14 @@ def build_hand(dfc, thumb_dirs=None, thumb_z=None):
     C = Cage(); dfc = nrm(dfc)
     rings = [C.ring(palm_ring(st), 'palm') for st in PALM]
     # thumb port: palm ring indices 9 (radial side), 10 (P8), 11 (P7) between stations 1..3 stay open
-    port_faces = {(1, 9), (1, 10), (2, 9), (2, 10)}
+    port_faces = {(1, 8), (1, 9), (2, 8), (2, 9)}
     for k in range(len(rings) - 1):
         a, b = rings[k], rings[k + 1]
         for i in range(20):
             if (k, i) in port_faces: continue
             C.F.append([a[i], a[(i + 1) % 20], b[(i + 1) % 20], b[i]])
-    thumb_port = [rings[1][9], rings[2][9], rings[3][9], rings[3][10], rings[3][11], rings[2][11], rings[1][11], rings[1][10]]
-    unused = rings[2][10]
+    thumb_port = [rings[1][8], rings[2][8], rings[3][8], rings[3][9], rings[3][10], rings[2][10], rings[1][10], rings[1][9]]
+    unused = rings[2][9]
     # finger ports on the distal edge of the palm
     mc = {n: np.array(FINGERS[n]['mcp']) for n in ORDER}; wb = {n: FINGERS[n]['wb'] for n in ORDER}
     D, M, P = {}, {}, {}
@@ -168,10 +168,11 @@ def build_hand(dfc, thumb_dirs=None, thumb_z=None):
     tl = nrm(np.cross(d1, tz))
     prev = thumb_port; prev_c = np.mean([C.V[i] for i in thumb_port], 0)
     w = T['w']
-    stations = [(cmc + d1 * 2.2 + tz * .05, d1, 1.32, .86, 'tm'), (cmc + d1 * 3.85, d1, 1.12, .84, 'tm'), (mcp, nrm(d1 + d2), 1.15, .82, 'tmcp'),
-                (mcp + d2 * .35, d2, 1.06, .82, 'tp'), (mcp + d2 * 1.6, d2, 1.02, .82, 'tp'), (ip - d2 * .32, d2, 1.02, .82, 'tp'),
-                (ip, nrm(d2 + d3), 1.10, .80, 'tip_j'), (ip + d3 * .3, d3, 1.03, .80, 'td'), (ip + d3 * 1.35, d3, .98, .74, 'td'),
-                (tip - d3 * .5, d3, .90, .74, 'td'), (tip - d3 * .17, d3, .66, .62, 'td'), (tip - d3 * .03, d3, .3, .45, 'tend')]
+    pc = prev_c; dm = nrm(mcp - pc)                       # from the port (radial edge of the palm) to the thumb knuckle
+    stations = [(pc + (mcp - pc) * .38, dm, 1.72, .80, 'tm'), (pc + (mcp - pc) * .74, nrm(dm + d1), 1.42, .80, 'tm'),
+                (mcp, nrm(d1 + d2), 1.24, .76, 'tmcp'), (mcp + d2 * .4, d2, 1.18, .76, 'tp'), (mcp + d2 * 1.55, d2, 1.15, .76, 'tp'),
+                (ip - d2 * .3, d2, 1.14, .75, 'tp'), (ip, nrm(d2 + d3), 1.18, .74, 'tip_j'), (ip + d3 * .3, d3, 1.16, .74, 'td'),
+                (ip + d3 * 1.3, d3, 1.2, .72, 'td'), (tip - d3 * .5, d3, 1.08, .70, 'td'), (tip - d3 * .18, d3, .8, .6, 'td'), (tip - d3 * .03, d3, .36, .42, 'tend')]
     for c, dd, hw, th, tag in stations:
         zz = perp(tz, dd); ll = nrm(np.cross(dd, zz))
         r = C.ring(ring_follow([C.V[i] for i in prev], prev_c, c, dd, ll, zz, hw, hw * th), 'thumb:' + tag)
@@ -190,11 +191,13 @@ def build_hand(dfc, thumb_dirs=None, thumb_z=None):
         for col in range(9):
             u = col / 4 - 1; x = hw * u * .93; z = zd * (1 - .40 * u * u)
             if 1.2 < t < 3.5 and col <= 1: z += .32 * (1 - abs(u + .85) * 2)          # ulnar styloid
+            z += .26 * sstep(3.5, 9, t) * np.exp(-((u - .6) / .35) ** 2)                # the extensor/brachioradialis mass on the thumb side
             pts.append(c + fx * x + fz * z)
         side_r = c + fx * hw + fz * (zd + zp) * .22
         pal = []
         for col in range(8, -1, -1):
             u = col / 4 - 1; x = hw * u * .93; z = zp * (1 - .55 * u * u)                # flatter palm side
+            z -= .18 * sstep(4.5, 10, t) * np.exp(-((u + .35) / .45) ** 2)               # the flexor mass
             pal.append(c + fx * x + fz * z)
         side_u = c - fx * hw + fz * (zd + zp) * .22
         r = C.ring(pts + [side_r] + pal + [side_u], 'fore'); C.bridge(prev, r); prev = r; fore_c.append(c.copy())
@@ -218,7 +221,7 @@ def _poly_dist(P, pts):
         m = d < best; best[m] = d[m]; bt[m] = (acc + t[m] * L) / tot; acc += L
     return best, bt
 
-def detail(V, N, H, seed=3):
+def detail(V, N, H, seed=3, out=None):
     """Displacement along the normal (cm) for a dense (level 4) copy of the bind-pose hand.
     Knuckle wrinkles on the back of PIP/DIP/MCP, joint creases on the palm side, extensor tendons, veins."""
     rng = np.random.default_rng(seed); h = np.zeros(len(V))
@@ -254,22 +257,26 @@ def detail(V, N, H, seed=3):
         return np.linalg.norm(XY - (a + np.outer(t, d)), axis=1), t
     mcps = [np.array(H['fingers'][n]['joints'][0]) for n in ['pinky', 'ring', 'middle', 'index']]
     for i, m in enumerate(mcps):
-        h += .15 * np.exp(-(d2((m[0], m[1] - .15)) / .48) ** 2) * dors * (.8 if i == 0 else 1)          # knuckle head
-        if i: h -= .06 * np.exp(-(d2(((m[0] + mcps[i - 1][0]) / 2, (m[1] + mcps[i - 1][1]) / 2 - .5)) / .45) ** 2) * dors
-        dist, t = seg2((-.55 + i * .42, .6), (m[0], m[1] - .75))                                       # tendon
-        h += .1 * np.exp(-(dist / .13) ** 2) * sstep(0, .2, t) * sstep(1.0, .82, t) * dors * (.75 if i == 0 else 1)
-    h += .17 * np.exp(-(d2((-2.7, -1.25)) / .48) ** 2) * sstep(-.3, .4, N[:, 2] - N[:, 0] * .8)       # ulnar styloid
-    VEINS = [[(1.0, 6.6), (1.5, 4.6), (2.25, 2.7), (2.55, .8), (2.45, -1.6), (2.15, -4.2)],               # cephalic side
-             [(-.05, 7.0), (-.25, 5.3), (.35, 3.75), (1.45, 3.1)],
-             [(-1.9, 6.8), (-1.75, 5.0), (-1.2, 3.6), (-.25, 3.35), (.35, 3.75)],                        # dorsal arch
-             [(-1.75, 5.0), (-2.35, 3.0), (-2.6, 1.0), (-2.45, -1.6), (-2.05, -4.2)],                   # basilic side
-             [(1.95, 6.85), (1.75, 5.5), (1.5, 4.6)], [(.35, 3.75), (.55, 1.6), (.4, -.6)]]
+        h += .22 * np.exp(-(d2((m[0], m[1] - .2)) / .5) ** 2) * dors * (.8 if i == 0 else 1)            # knuckle head
+        if i: h -= .10 * np.exp(-(d2(((m[0] + mcps[i - 1][0]) / 2, (m[1] + mcps[i - 1][1]) / 2 - .45)) / .42) ** 2) * dors
+        dist, t = seg2((-.2 + i * .25, .5), (m[0], m[1] - .8))                                          # broad, low tendon
+        h += .06 * np.exp(-(dist / .2) ** 2) * sstep(0, .25, t) * sstep(1.0, .85, t) * dors * (.75 if i == 0 else 1)
+    h += .2 * np.exp(-(d2((-2.55, -1.15)) / .5) ** 2) * sstep(-.3, .4, N[:, 2] - N[:, 0] * .8)        # ulnar styloid
+    # the wrist crease: a soft groove across the palm side and a faint one across the back
+    h -= .05 * np.exp(-((V[:, 1] + .35) / .12) ** 2) * sstep(.1, .6, -N[:, 2]) + .025 * np.exp(-((V[:, 1] + .2) / .15) ** 2) * dors
+    # veins: three raised cords (radius ~1.7 mm, 1 mm high, soft 4 mm falloff) from the wrist up between the 2nd-3rd
+    # and 4th-5th metacarpals, joined by one loose arch about 2 cm behind the knuckles
+    VEINS = [[(.55, .1), (1.15, 3.0), (1.75, 5.4), (1.9, 6.15)], [(-1.25, -.1), (-1.7, 3.0), (-1.95, 5.4), (-1.75, 6.25)],
+             [(-1.75, 6.25), (-.65, 6.6), (.75, 6.5), (1.9, 6.15)], [(2.15, -2.0), (2.55, .6), (2.45, 2.6)]]
+    vmask = np.zeros(len(V))
     for k, pts in enumerate(VEINS):
-        best = np.full(len(V), 9.); bt = np.zeros(len(V))
+        best = np.full(len(V), 9.)
         for p0, p1 in zip(pts[:-1], pts[1:]):
-            dist, t = seg2(p0, p1); m = dist < best; best[m] = dist[m]; bt[m] = t[m]
-        wobble = 1 + .25 * np.sin(XY[:, 1] * 2.3 + k)
-        h += .034 * np.exp(-(best / (.15 * wobble)) ** 2) * sstep(.05, .5, N[:, 2])
+            dist, t = seg2(p0, p1); best = np.minimum(best, dist)
+        core = np.exp(-(best / .17) ** 2); soft = np.exp(-(best / .4) ** 2)
+        m = (.08 * core + .025 * soft) * sstep(.05, .5, N[:, 2]) * (.7 if k == 3 else 1)
+        h += m; vmask = np.maximum(vmask, core * sstep(.05, .5, N[:, 2]))
+    if out is not None: out['vein'] = vmask
     # keep the finger webs smooth (palm side and back): displacement folds into fins where the surface turns sharply
     for i in range(1, 4):
         a_, b_ = np.array(FINGERS[ORDER[i - 1]]['mcp']), np.array(FINGERS[ORDER[i]]['mcp'])
