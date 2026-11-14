@@ -91,10 +91,10 @@ function soilTile(i,j,up,dn,lf,rt,wet){const k=i+','+j+','+(up?1:0)+(dn?2:0)+(lf
 function render(dt,now){const t=now/1000;FRAME_NO++;
   const amb=ambient(S.hour);nightK=clamp((S.hour-18.4)/1.8,0,1);if(S.hour<6.6)nightK=Math.max(nightK,clamp((6.6-S.hour)/1.6,0,1));if(S.room==='mine')nightK=1;nightAmt=nightK;
   // camera
-  let fx=P.x,fz=P.z-.6;if(S.room){const R=ROOMS[S.room];const hw=VW/PPM/2,hh=VH/PPM/2;fx=R.w+.8<hw*2?R.ox+R.w/2:clamp(P.x,R.ox+hw-.4,R.ox+R.w-hw+.4);fz=R.d+3.5<hh*2?R.oz+R.d/2-.5:clamp(P.z-.6,R.oz-3+hh*1.12,R.oz+R.d+.6-hh*.88);
+  let fx=P.x,fz=P.z-.6;if(S.room){const R=ROOMS[S.room];const hw=VW/PPM/2,hh=VH/PPM/2;fx=R.w+.8<hw*2?R.ox+R.w/2:clamp(P.x,R.ox+hw-.4,R.ox+R.w-hw+.4);fz=(typeof w52RoomZ==='function')?w52RoomZ(R,hh):(R.d+3.5<hh*2?R.oz+R.d/2-.5:clamp(P.z-.6,R.oz-3+hh*1.12,R.oz+R.d+.6-hh*.88));
     // a room deeper than the screen opens on its back wall, then the view settles down onto you at the door
-    if(S.roomPan){const e=(performance.now()-S.roomPan.t0)/1000;if(e>2.4||R.d+3.5<hh*2)S.roomPan=null;else{const q=clamp((e-.7)/1.5,0,1);fz=lerp(R.oz-3+hh*1.12,fz,q*q*(3-2*q));}}}if(S.mode==='title'){fx=Math.sin(t*.05)*8;fz=-4+Math.cos(t*.04)*4;}
-  if(cine&&cine.cam){fx=cine.cam.x;fz=cine.cam.z;}
+    if(S.roomPan){const e=(performance.now()-S.roomPan.t0)/1000;if(e>2.4||R.d+3.5<hh*2)S.roomPan=null;else{const q=clamp((e-.7)/1.5,0,1);fz=lerp((typeof w52RoomTop==='function')?w52RoomTop(R,hh):R.oz-3+hh*1.12,fz,q*q*(3-2*q));}}}if(S.mode==='title'){fx=Math.sin(t*.05)*8;fz=-4+Math.cos(t*.04)*4;}
+  if(cine&&cine.cam){fx=cine.cam.x;fz=cine.cam.z;}else if(!S.room&&typeof w52Cam==='function'){const c=w52Cam(fx,fz);if(c){fx=c[0];fz=c[1];}}
   camT.x=lerp(camT.x,fx,1-Math.exp(-dt*9));camT.z=lerp(camT.z,fz,1-Math.exp(-dt*9));if(Math.abs(camT.x-fx)<.02)camT.x=fx;if(Math.abs(camT.z-fz)<.02)camT.z=fz;
   if(S.mode==='play'&&!(cine&&cine.cam)){camT.x=fx;camT.z=fz;}cam.x=camT.x;cam.z=camT.z;
   cam.px=Math.round(cam.x*PPM);cam.pz=Math.round(cam.z*PPM);
