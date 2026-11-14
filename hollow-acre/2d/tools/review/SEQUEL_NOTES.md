@@ -1,4 +1,4 @@
-# The new ending and game 2: the owner's direction (kept word for word)
+# The new ending and Part 2: the owner's direction (kept word for word)
 
 Saved so none of it is lost. This work comes after the current list (t346-t348 on the live list).
 
@@ -7,6 +7,16 @@ Saved so none of it is lost. This work comes after the current list (t346-t348 o
 > Oh and by the way this is for when we're done but the ending will than end and you will get a message or call your grandmother has gone missing in a mountain and you say goodbye to your spouse if you chose to have one in game and go looking for her your car is than seen driving up a mountain bad weather blizzard when screen fades to black it fades back and the game is now in first person realistic and this will go into the story of Are mountain alway dark there always cold leans more on survival hiding base protection stealth and a story focusing on you trying to uncover the secret of lost minors and your inherit your grandmothers mining company after she went missing you end up there when driving to check o the run into the creature which will be like a yeti rams you vehicle almost off the mountain
 
 > This will focus on mining and base upgrading and uncovering the mystery and surviving the climate of a cold always dark location but this time game first person and realistic still horror though and the creature will probably be a yeti or something but how the ending will happen as you will see the first person cutscene realistic driving up the mountain screen fades to black and it will say to be continued and before you do this you will probably have to look up some good tools for how to make Claude able to make really good looking realistic high detailed models textures and animations for the cutscene that ends this story and when we do the second game
+
+## The owner's correction: it is one game
+
+> Game 2 is a continuation you understand it links into the new endings it's not a new game it's a new part of this game same character
+
+So "game 2" is **Part 2 of Hollow Acre**, not a separate game:
+- It lives in the same game and the same save. The new ending leads straight into it.
+- **The same character:** your name, your look (seen in first person through the hands, sleeves, reflections and photos), your spouse if you married, and your choices all carry over.
+- The switch to first-person realistic happens inside the same game when the ending's drive fades in. The farm, Marrow Hollow and the people you know remain part of the same story.
+- Any "To be continued" is a chapter break into Part 2, not the end of the game.
 
 ## What that means
 
@@ -22,7 +32,7 @@ Saved so none of it is lost. This work comes after the current list (t346-t348 o
 
 Research the best tools for Claude to make really good-looking, realistic, high-detail 3D models, textures and animations. They are needed for this closing cutscene and for game 2.
 
-### Game 2 (t348)
+### Part 2 (t348): the same game, the same character
 
 - **Style:** first-person, realistic, still horror.
 - **Setting:** a mountain that is always dark and always cold.
