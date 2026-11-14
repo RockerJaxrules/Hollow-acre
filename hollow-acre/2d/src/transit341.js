@@ -222,6 +222,8 @@ function t41Rider(K,cx,bot,k,warm){const hc=warm?['#4a3020','#3a2418','#5a3a24',
   const lift=k%3;K.ell(cx,bot+1-lift*.5,3.4,3.2,(x,y)=>y<=bot?cc:null);K.ell(cx,bot-4.5-lift,1.6,1.7,()=>hc);}
 const T41BR=['#2e2d29','#45433d','#5e5b53','#77736a','#8f8b80','#a6a296'];
 // weather on a roof: a smooth field 0..1 with a few large soft patches (no speckle)
+// a few long rain streaks down a roof's length: each a 1 px line that wanders a little across, between two points along it
+function t41Streak(u,v,list){for(const [v0,u0,u1] of list){if(u<u0||u>u1)continue;if(Math.abs(v-(v0+1.1*Math.sin(u*.045+v0)))<.55)return true;}return false;}
 function t41Stain(u,v){return .5+.22*Math.sin(u*.071+v*.13)+.18*Math.sin(u*.033-v*.21+1.7)+.1*Math.sin(u*.19+v*.05+.4);}
 // ---------------------------------------------------------------- THE COUNTY BUS, built once
 // 6 m long (192 px), 2.5 m wide (80), 2.6 m to the crown (84). Bottle green below, a cream window band, a rounded roof, the
@@ -274,6 +276,7 @@ function t41BusFrontTex(lit){const G=T41P.green,C=T41P.cream,RF=T41P.roof,S=T41P
   t41Rider(K,60,33,0,false);
   K.box(0,40,80,1,G[0]);K.box(0,41,80,33,G[2]);K.box(0,41,80,1,G[3]);
   for(let x=28;x<=51;x++){const bar=(x-28)%3!==2;for(let y=45;y<=62;y++)K.px(x,y,1,1,bar?(y===45?S[4]:x<40?S[3]:S[2]):'#0e0e10');}K.box(27,44,26,1,S[4]);K.box(27,63,26,1,S[1]);
+  for(const cx of [10,70])K.ell(cx,48,3.6,3.6,(x,y,nx,ny,d)=>d>.74?(nx+ny<0?S[4]:S[1]):(lit?(nx+ny<-.2?'#fffbe8':LM[4]):(nx+ny<-.7?'#fffbe8':nx+ny>.4?'#b9b29a':'#e2dbc4')));
   K.box(0,71,80,4,G[0]);});}
 function t41BusRearTex(riders,lit){const G=T41P.green,C=T41P.cream,RF=T41P.roof,S=T41P.steel;return t41Tex(80,75,K=>{
   K.box(0,0,80,16,RF[2]);t41Wedges(K,RF);K.box(0,15,80,1,C[1]);K.box(0,16,80,25,C[3]);K.box(0,16,80,1,C[4]);
@@ -304,8 +307,9 @@ function t41BusPic(view,f,open,riders,lit){const {L,Wd,wr,wu}=T41B,G=T41P.green,
   const body=F=>{if(F.part==='cap1')return FT(F.s,F.t);if(F.part==='cap0')return RT(F.s,F.t);
     if(F.up&&F.h<68.5){const T=F.nl[1]>0?RS:LS;return T(F.s,F.t);}
     const BR=T41BR;if(F.h>83.5){if(F.u>12&&F.u<L-12&&(Math.floor(F.u)%48)===24)return BR[2];
-      if(Math.sin(F.u*1.9+Math.sin(F.v*.11)*3)>.985&&t41Stain(F.u,F.v)>.5)return BR[2];
-      const up=(view==='E'||view==='W')?Sc.cam.Z(F.u,F.v)<Sc.cam.d/2:Sc.cam.X(F.u,F.v)<Sc.cam.w/2;return up?BR[4]:BR[3];}
+      // (three planes across the crown, lit on the far side, and three long rain streaks a step darker)
+      const fr=(view==='E'||view==='W')?Sc.cam.Z(F.u,F.v)/Sc.cam.d:Sc.cam.X(F.u,F.v)/Sc.cam.w,pl=fr<.37?4:fr<.66?3:2;
+      return t41Streak(F.u,F.v,[[31,22,118],[47,64,178],[57,26,92]])?BR[pl-1]:BR[pl];}
     return t41Sh(BR,F.lit,2.2,4);};
   const ends=[[0,2,77],[2,4,80],[4,6,82],[6,8,83]];const roofId=++Sc.idc;
   const wedge=F=>{const [nX]=Sc.cam.N(F.nl[0],F.nl[1]);return nX<-.25?RF[4]:nX>.25?RF[1]:RF[3];};
@@ -344,7 +348,10 @@ function t41SmokeTex(){const I=T41I,S=T41P.steel,B=T41P.brass;return t41Tex(36,3
   K.ell(18,18,17.5,17.5,(x,y,nx,ny,d)=>d>.92?I[1]:(nx+ny<-.5?I[3]:nx+ny>.5?I[1]:I[2]));
   K.ell(18,20,12,12,(x,y,nx,ny,d)=>d>.88?(nx+ny<0?I[4]:I[0]):(nx+ny<-.6?I[4]:nx+ny>.5?I[1]:I[2]));
   for(let a=0;a<12;a++){const t=a/12*Math.PI*2;K.px(Math.round(18+Math.cos(t)*15.5),Math.round(18+Math.sin(t)*15.5),1,1,I[4]);}
-  K.box(11,19,15,2,S[3]);K.box(11,19,15,1,S[4]);K.box(17,14,3,12,S[2]);K.box(17,14,1,12,S[4]);K.box(17,19,3,3,S[4]);   // the dart handle, a plain cross
+  // the hinge strap across the door from its hinge on the left, and the dart: a round boss with a short handle and a point
+  K.box(6,13,13,2,I[0]);K.box(6,13,13,1,S[2]);K.box(5,12,2,4,S[3]);
+  K.box(16,18,4,4,S[2]);K.box(16,18,3,1,S[4]);K.box(16,18,1,3,S[4]);K.box(19,21,1,1,I[0]);
+  K.box(20,19,6,2,S[3]);K.box(20,19,6,1,S[4]);K.box(26,19,2,2,S[2]);K.px(28,19,1,2,I[1]);
   K.ell(18,6,4,3,(x,y,nx,ny)=>nx+ny<0?B[4]:B[2]);K.text('3',17,4,'#2a1a08');});}
 function t41LocoPic(view,f){const {L,Wd}=T41E,I=T41I,R=T41P.red,B=T41P.brass,G=T41P.green,S=T41P.steel,LM=T41P.lamp;const vc=Wd/2;
   const Sc=t41Scene(L,Wd,view,102,{padX:4,padTop:2,padBot:4});
@@ -433,7 +440,7 @@ function t41CoachPic(view,f,riders,dining,lit){const {L,Wd}=T41K,M=T41P.maroon,R
   for(const [a,b] of [[4,6],[158,160]])Sc.box(a,b,2,Wd-2,34,50,rail(Wd-4),{});
   for(const [a,b] of [[4,18],[146,160]])for(const v of [2,Wd-3])Sc.box(a,b,v,v+1,34,50,F=>{const s=F.s,t=F.t,w=14;const post=(a<10?(F.nl[1]>0?s<1.2:s>w-1.2):(F.nl[1]>0?s>w-1.2:s<1.2));if(t<1.6||post||Math.abs(t-8)<.7)return t<1?S[4]:t41Sh(S,F.lit,2.6,3);return null;});
   // the roof: curved, over the platforms too; the clerestory up the middle with vent windows in its sloped sides
-  Sc.ext('u',[[-1,77],[Wd+1,77],[Wd+1,79],[Wd-4,83],[Wd-12,86],[Wd-20,87],[20,87],[12,86],[4,83],[-1,79]],9,155,F=>F.part==='side'?((Math.floor(F.u)-9)%32===0&&F.h>80?T41BR[2]:(F.h>84&&Math.sin(F.u*1.7+Math.sin(F.v*.2)*2)>.985?T41BR[2]:t41Sh(T41BR,F.lit,1.9,5))):T41BR[1]);const croofId=Sc.id;
+  Sc.ext('u',[[-1,77],[Wd+1,77],[Wd+1,79],[Wd-4,83],[Wd-12,86],[Wd-20,87],[20,87],[12,86],[4,83],[-1,79]],9,155,F=>F.part==='side'?((Math.floor(F.u)-9)%32===0&&F.h>80?T41BR[2]:(F.h>84&&t41Streak(F.u,F.v,[[26,20,96],[38,70,150],[44,16,60]])?T41BR[Math.max(0,Math.round(1.9+5*(F.lit-.55))-1)]:t41Sh(T41BR,F.lit,1.9,5))):T41BR[1]);const croofId=Sc.id;
   const cleId=++Sc.idc;Sc.ext('u',[[20,86],[Wd-20,86],[Wd-20.5,92],[Wd-23,93.5],[23,93.5],[20.5,92]],28,136,F=>{if(F.part==='side'&&Math.abs(F.nl[1])>.6){const k=Math.floor(F.a)%12;if(k>=5&&k<7&&F.h>87.5&&F.h<91)return lit?T41P.lamp[2]:T41P.glass[2];}
     if(F.part==='side'&&Math.abs(F.nl[1])>.6){const [,nZ]=Sc.cam.N(F.nl[0],F.nl[1]);return nZ>.3?T41BR[2]:T41BR[3];}return F.part==='side'?t41Sh(T41BR,F.lit,2.4,5):T41BR[1];});
   if(dining){Sc.cyl(44,Wd-26,1.8,92,101,F=>F.part==='top'?'#060607':t41Sh(I,F.lit,2.6,4));Sc.dome(44,Wd-26,101.5,3.4,1.6,F=>t41Sh(I,F.lit,2.6,4));}
@@ -451,7 +458,7 @@ function t41BusLights(Sc,view){const {L,Wd}=T41B,P=Sc.P,out=[];
     const lv=view==='E'?Wd-3:3;const lp=P(L,lv,31);out.push({t:'lamp',x:lp[0],y:lp[1],r:5,c:[255,236,170]});fans();
     const tp=P(0,lv,34);out.push({t:'lamp',x:tp[0],y:tp[1],r:3,c:[255,70,50]});}
   else if(view==='S'){out.push({t:'win',r:t41RectP(Sc,P(L,Wd-6,66),P(L,6,51))});
-    for(const v of [3,Wd-3]){const q=P(L,v,31);out.push({t:'lamp',x:q[0],y:q[1],r:5,c:[255,236,170]});}fans();}
+    for(const v of [10,Wd-10]){const q=P(L,v,36);out.push({t:'lamp',x:q[0],y:q[1],r:5,c:[255,236,170]});}fans();}
   else{out.push({t:'win',r:t41RectP(Sc,P(0,14,65),P(0,62,53))});for(const v of [3,Wd-3]){const q=P(0,v,34);out.push({t:'lamp',x:q[0],y:q[1],r:3,c:[255,70,50]});}}
   return out;}
 function t41CoachLights(Sc,view,dining){const {L,Wd}=T41K,P=Sc.P,out=[];
@@ -495,16 +502,17 @@ function t41ShelterPic(view){const {L,Wd,v0,v1}=T41SH,Wo=T41P.wood,S=T41P.steel,
   // roof's shade, falls back darker than the lit end)
   const PK=T41P.plank,b0=v0+6,b1=side?v0+24:v0+50,du=side?7:4;
   // (it stands a hand clear of the back wall, so end-on its back is not lost against the corner post)
-  const ironE=F=>side&&F.part!=='side'?(F.h>18?T41I[5]:T41I[3]):t41Sh(T41I,F.lit,2.4,3);
+  // (end-on, the back standard is the seat's tan wood, so the bench end reads as wood, not a blade; the legs stay iron)
+  const ironE=F=>{if(side&&F.h>17.2)return F.part!=='side'?PK[3]:PK[2];return side&&F.part!=='side'?T41I[3]:t41Sh(T41I,F.lit,2.4,3);};
   for(const v of [b0,b1-2]){for(const u of [8,15])Sc.box(u+du,u+du+2,v,v+2,0,17,ironE);Sc.ext('v',side?[[6.6+du,17],[9.4+du,17],[5.4+du,34],[2.6+du,34]]:[[7+du,17],[9+du,17],[5+du,34],[3+du,34]],v,v+2,ironE);}
   // (end-on, the seat's end stands a little proud of the standard, pale against the shaded top behind it)
   const s0=side?b0-1.2:b0+.4,s1=side?b1+1.2:b1-.4;
   const nearEnd=F=>side&&(Math.abs(F.v-s0)<.05||Math.abs(F.v-s1)<.05);
   Sc.box(7+du,18+du,s0,s1,17,side?21:20,F=>{if(F.nl[2]>.9){if(side)return Math.floor(F.u-7-du)%4===3?PK[1]:PK[2];return t41Sh(PK,F.lit,3.7,2);}if(nearEnd(F))return F.h<17.9?PK[3]:PK[4];return F.part!=='side'?PK[4]:PK[2];});
-  for(const [h0,h1] of [[22,27],[29,34]])Sc.ext('v',[[du+8.2-(h0-17)*.235,h0],[du+9.8-(h0-17)*.235,h0],[du+9.8-(h1-17)*.235,h1],[du+8.2-(h1-17)*.235,h1]],side?b0+.3:s0,side?b1-.3:s1,F=>nearEnd(F)||F.part!=='side'?(side?Wo[4]:Wo[1]):(F.e===1?(side?Wo[1]:Wo[3]):(side?Wo[1]:Wo[1])));
+  for(const [h0,h1] of [[22,27],[29,34]])Sc.ext('v',[[du+8.2-(h0-17)*.235,h0],[du+9.8-(h0-17)*.235,h0],[du+9.8-(h1-17)*.235,h1],[du+8.2-(h1-17)*.235,h1]],side?b0+.3:s0,side?b1-.3:s1,F=>nearEnd(F)||F.part!=='side'?(side?Wo[4]:Wo[1]):(F.e===1?(side?Wo[2]:Wo[3]):(side?Wo[2]:Wo[1])));
   // the roof: a plank lean-to, low at the back, overhanging all round
-  // (side-on: fewer, broader corrugations, a lit crest and a dark groove to each; the near end a lit wooden fascia board)
-  Sc.ext('v',[[-4,58],[37,66],[37,69],[-4,61]],v0-3,v1+3,F=>{if(F.part==='side'&&F.nl[2]>.5){if(side){const a=Math.floor(F.a)%11;return a===0?RF[0]:a<=3?RF[3]:RF[2];}return (Math.floor(F.a)%6===0)?RF[1]:t41Sh(RF,F.lit,2.9,3);}
+  // (side-on: the same fine tin as the front, a one-pixel groove every four; the near end a lit wooden fascia board)
+  Sc.ext('v',[[-4,58],[37,66],[37,69],[-4,61]],v0-3,v1+3,F=>{if(F.part==='side'&&F.nl[2]>.5){if(side)return Math.floor(F.a)%4===0?RF[1]:t41Sh(RF,F.lit,2.9,3);return (Math.floor(F.a)%6===0)?RF[1]:t41Sh(RF,F.lit,2.9,3);}
     if(side)return F.t<1.2?Wo[4]:Wo[3];return F.t<1.2?'#a8a294':RF[3];});
   // the BUS disc on its post at the front corner, by the road
   const pv=T41SH.pv;Sc.cyl(44,pv,1.3,0,60,F=>F.part==='top'?S[4]:t41Sh(S,F.lit,2.4,4));const D=t41BusDisc();Sc.bill(D,44,pv,66,8,8,.5);
@@ -520,9 +528,12 @@ function t41BenchPic(view){const L=24,Wd=44,Wo=T41P.wood,Pk=T41P.plank,I=T41I;co
   for(const v of [3,Wd-5]){const o=v<Wd/2?-2:2;for(const u of [7,17.5])Sc.ext('u',[[v+o,0],[v+2+o,0],[v+2,13],[v,13]],u,u+2,iron);Sc.ext('v',[[5,13],[7,13],[3,32],[1,32]],v,v+2,iron);}
   Sc.box(8,19.5,1,Wd-1,13,16,F=>{if(F.nl[2]>.9){const k=Math.floor(F.u-8);return k===4||k===8?Pk[2]:t41Sh(Pk,F.lit,3.7,2);}return F.part==='side'&&F.up?Wo[3]:Wo[2];});
   for(const [h0,h1] of [[19.5,24],[28,32.5]])Sc.ext('v',[[lu(h0)-.1,h0],[lu(h0)+1.2,h0],[lu(h1)+1.2,h1],[lu(h1)-.1,h1]],1,Wd-1,F=>{if(F.part!=='side')return Wo[2];
-      if(F.e===1)return t41Sh(Pk,F.lit,3.3,3);if(F.e===3)return t41Sh(Wo,F.lit,2.6,3);return F.nl[2]>0?Pk[3]:Wo[1];});
-  // (the shadow on the ground under the seat, darkest under its front lip)
-  const c=Sc.done({crease:3,foot:[6,19.5,1,Wd-1]});return {c,ax:Sc.ax,ay:Sc.ay,S:Sc};}
+      if(F.e===1)return t41Sh(Pk,F.lit,1.3,3);if(F.e===3)return t41Sh(Wo,F.lit,1.6,3);return F.nl[2]>0?Pk[1]:Wo[1];});
+  // (the back two steps darker than the seat; a light shadow on the ground under the seat, fading out, so the ground shows
+  // between the legs)
+  const c=Sc.done({crease:3,shadow:false,after:K=>{const g=K.g;g.save();g.globalCompositeOperation='destination-over';
+    for(let u=7;u<19.5;u++){const a=.26*(1-(u-7)/14),A=Sc.P(u,1,0),B=Sc.P(u+1,Wd-1,0);g.fillStyle='rgba(14,10,8,'+a.toFixed(3)+')';
+      g.fillRect(Math.min(A[0],B[0]),Math.min(A[1],B[1]),Math.abs(B[0]-A[0]),Math.max(1,Math.abs(B[1]-A[1])));}g.restore();}});return {c,ax:Sc.ax,ay:Sc.ay,S:Sc};}
 // the town stop: a post with the BUS disc and the timetable in its frame, on the pavement, its shadow falling down and right
 function t41TownPostPic(){const L=12,Wd=22,Wd2=T41P.wood,C=T41P.cream,G=T41P.green;const Sc=t41Scene(L,Wd,'S',72,{padX:6,padTop:2,padBot:3});
   Sc.cyl(6,11,1.6,0,60,F=>F.part==='top'?G[4]:t41Sh(G,F.lit,2.6,4));Sc.bill(t41BusDisc(),6,11,64,8,8,.5);
@@ -534,6 +545,14 @@ function t41TownPostPic(){const L=12,Wd=22,Wd2=T41P.wood,C=T41P.cream,G=T41P.gre
 // the end of the line, built in timber: a stack of old sleepers, two posts and a beam across the rails at the front, a red lamp
 // on the beam. Model frame: u from the back of the stack (0) to the beam's face (21), v across the track (rails at 12 and 44).
 const T41BUF={L:42,Wd:56,face:21};
+// one pixel of track ballast, the same in the world and on a sprite: grey stone with a quiet middle, stones of two or three
+// pixels lit from the top-left with a shadow pixel at their lower right, the shoulder that faces the light lit and the other in
+// shade. wx, wz: the pixel on a fixed grid; t: 0 at the middle of the line, 1 at the edge of the bed; lit: this side faces the light
+function t41Ballast(wx,wz,t,lit){const H=(a,b)=>{const n=Math.sin(a*12.9898+b*78.233)*43758.5453;return n-Math.floor(n);};
+  const d=t>.88?(lit?14:-30):0,cx=Math.floor(wx/4),cz=Math.floor(wz/4);let c=[124,118,108];
+  if(H(cx,cz)<(t<.45?.16:.42)){const ox=Math.floor(H(cx+.37,cz)*2),oz=Math.floor(H(cx,cz+.61)*2),big=H(cz,cx+.5)>.5,lx=wx-cx*4-ox,lz=wz-cz*4-oz;
+    if(lx===0&&lz===0)c=[150,144,132];else if(lx===1&&lz===0)c=[134,128,118];else if(lx===0&&lz===1)c=big?[134,128,118]:[106,100,90];else if(lx===1&&lz===1)c=[100,94,84];}
+  return [c[0]+d,c[1]+d,c[2]+d];}
 function t41BufferPic(view){const {L,Wd}=T41BUF,Wo=T41P.wood,R=T41P.red,I=T41I,S=T41P.steel;const ew=view==='E'||view==='W';
   // (the track runs out from under the beam on the canvas: toward you from the front, away from you from the back, to the left
   // or right side-on; the canvas grows that way only, so the footprint and its anchor stay where they were)
@@ -542,10 +561,19 @@ function t41BufferPic(view){const {L,Wd}=T41BUF,Wo=T41P.wood,R=T41P.red,I=T41I,S
   // the stack of old sleepers behind (not from the front, where it would only frame the beam), the two posts outside the rails
   // (so the rails run on under the beam between them), the beam (a
   // lit top edge, a dark face), two round buffers set on that face, the lamp on a bracket at one end
-  if(view!=='S')for(let k=0;k<3;k++)Sc.box(1+k*.5,10-k*.5,2+k,Wd-2-k,k*4,k*4+4,tie);
+  // (the stack: old sleepers lying end-out toward the back, three layers of staggered lengths, tan end grain, a dark gap under
+  // and between them)
+  if(view!=='S'){Sc.box(8.8,10,5,Wd-5,0,11.6,()=>'#140e0a');
+    for(const [k,row] of [[0,[[4,1.4],[12.6,3],[21.2,.8],[29.8,2.4],[38.4,1.2],[47,2.8]]],[1,[[8.3,2.6],[16.9,1.2],[25.5,3.2],[34.1,1.8],[42.7,2.2]]],[2,[[12.6,2.2],[21.2,3.6],[29.8,1.4],[38.4,2.8]]]])
+      for(const [v,u0] of row){const vc=v+4,hc=k*4+.6+1.4;Sc.box(u0,9.6,v,v+8,k*4+.6,k*4+3.4,F=>{if(F.part==='cap0'){const r=Math.hypot((F.v-vc)/4,(F.h-hc)/1.4);return r>.82?'#6e5034':Math.abs(r-.5)<.12?'#8e6c48':'#b08a5e';}return tie(F);});}}
   for(const v of [4,Wd-9])Sc.box(11,16,v,v+5,0,21,F=>F.nl[2]>.9?Wo[3]:t41Sh(Wo,F.lit,2.2,3));
-  Sc.box(15,21,4,Wd-4,11,21,F=>{if(F.part==='cap1'){const t=Math.floor(F.t);return t===0?Wo[3]:'#2a1c12';}if(F.part==='cap0')return t41Sh(Wo,F.lit,2.2,3);return F.nl[2]>.9?Wo[4]:t41Sh(Wo,F.lit,2.2,3);});
-  for(const v of [12,44]){Sc.tube(21,22,v,17.5,1.5,F=>t41Sh(I,F.lit,2.4,3));Sc.tube(22,23.2,v,17.5,3.2,F=>{if(F.part==='cap1'){const d=Math.hypot(F.s-3.2,F.t-3.2);return d>2.3?(F.s+F.t<5?S[4]:S[3]):(d>1.4?I[2]:I[3]);}return t41Sh(S,F.lit,2.6,3);});}
+  Sc.box(15,21,4,Wd-4,11,21,F=>{if(F.part==='cap1'){const t=Math.floor(F.t);return t===0?Wo[3]:'#2a1c12';}if(F.part==='cap0')return t41Sh(Wo,F.lit,2.2,3);
+    if(ew&&(Math.abs(F.v-4)<.05||Math.abs(F.v-Wd+4)<.05)){const r=Math.hypot((F.u-18)/3,(F.h-16)/5);return r>.8?'#6e5034':Math.abs(r-.45)<.12?'#8e6c48':'#b08a5e';}
+    return F.nl[2]>.9?Wo[4]:t41Sh(Wo,F.lit,2.2,3);});
+  // (the buffers are short steel cylinders: a face shaded from lit top-left to dark lower-right, a dark rim; side-on they stand
+  // out from the beam on a longer stem so they show in profile)
+  const bs=ew?24:22,be=ew?25.6:23.2;
+  for(const v of [12,44]){Sc.tube(21,bs,v,17.5,1.5,F=>t41Sh(I,F.lit,2.4,3));Sc.tube(bs,be,v,17.5,3.2,F=>{if(F.part==='cap1'){const d=Math.hypot(F.s-3.2,F.t-3.2);if(d>2.55)return I[1];return F.s+F.t<5.2?S[3]:F.s+F.t>7.6?S[1]:S[2];}return t41Sh(S,F.lit,2.6,3);});}
   const lv=Wd-8;Sc.box(17,18.4,lv-.7,lv+.7,21,27,F=>t41Sh(I,F.lit,2.2,3));
   Sc.box(16,20,lv-2.6,lv+2.6,27,32,F=>{if(F.part!=='side'||F.up){if(F.t>1&&F.t<4.5&&(F.part!=='side'||F.nl[2]<.5))return '#e8402a';}return I[2];});
   // the track, drawn the way the world draws it (the same ballast, sleeper pitch, sleeper colours and two-pixel rails), behind the
@@ -558,14 +586,11 @@ function t41BufferPic(view){const {L,Wd}=T41BUF,Wo=T41P.wood,R=T41P.red,I=T41I,S
     const u1={S:L+24,N:L+32,W:L+12,E:L+12}[view]||L,u0=14;
     for(let u=u0;u<=u1;u++)for(let v=-5;v<=Wd+4;v++){const t=Math.abs(v-28)/32;if(t>1.02)continue;const end=u1-u;
       if(end<4&&Hh(u,v*3)<(4-end)*.24)continue;if(t>.97&&Hh(v,u)<.5)continue;
-      const [x,y]=Sc.P(u,v,0),sh=t>.9;let c=sh?[96,90,80]:[124,118,108];
-      const X=Math.round(x),Y=Math.round(y),f=Hh(X,Y);if(!sh&&f>.94)c=[142,136,124];else if(!sh&&f<.05)c=[104,98,88];else if(!sh&&Hh(X,Y-1)>.94)c=[108,102,92];set(x,y,c);}
+      const [x,y]=Sc.P(u,v,0),[xc,yc]=Sc.P(u,28,0);set(x,y,t41Ballast(Math.round(x),Math.round(y),t,(x-xc)+(y-yc)<0));}
     // the sleepers, one every 20 px (0.62 m) from the beam, 7 px wide and 54 long; side-on from the ends of the line,
     // end-on from its side
     for(let uc=26;uc+3.5<=u1-2;uc+=20){const A=Sc.P(uc-3.5,1,0),B=Sc.P(uc+3.5,55,0);const x0=Math.round(Math.min(A[0],B[0])),x1=Math.round(Math.max(A[0],B[0]))-1,y0=Math.round(Math.min(A[1],B[1])),y1=Math.round(Math.max(A[1],B[1]))-1;
-      for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){let c;
-        if(ew)c=y>=y1-1?[58,44,32]:[98,76,56];
-        else c=y===y1?[56,42,30]:y===y0||x===x0?[122,98,74]:x===x1?[78,60,44]:[96,74,54];set(x,y,c);}}
+      for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){if((y===y0||y===y1||x===x0||x===x1)&&Hh(x,y)<.4)continue;set(x,y,ew?[98,76,56]:[96,74,54]);}}
     // the rails: a bright head toward the light, the steel, a shadow on the stone beside it
     for(const v of [12,44]){for(let u=u0;u<=u1-3;u++){const [x,y]=Sc.P(u,v,0);
       if(ew){set(x,y-1,[222,226,232]);set(x,y,[112,116,124]);set(x,y+1,[30,24,20],.85);set(x,y+2,[30,24,20],.35);}
@@ -805,22 +830,18 @@ function t41PaintRail(c,cx,cz){const B=t41RailBuckets();const list=B.get(cx+','+
   const wet=e=>{try{return LAYERS.water(e.x,e.z)||LAYERS.water(e.x+.9,e.z)||LAYERS.water(e.x-.9,e.z);}catch(_){return false;}};
   for(const e of rails){if(!wet(e))continue;const nx=-e.dz,nz=e.dx;for(let t=-1.1;t<=1.1;t+=1/32){const [px,py]=P(e.x+nx*t,e.z+nz*t);const edge=Math.abs(t)>.95;
       set(px,py,edge?(t<0?[132,104,70]:[52,38,26]):(e.sl?[96,74,50]:[74,56,38]));}}
-  // 1. the ballast: a pale strip of grey stone, darker at its shoulders, single stones on the pixel grid (a lit stone with its
-  // shadow under it, a few dark ones; never blocks of tone)
+  // 1. the ballast (t41Ballast, shared with the buffer stop): grey stone with a quiet middle, stones of two or three pixels lit
+  // from the top-left, the shoulder toward the light lit and the other in shade
   for(const e of rails){if(paved(e)||wet(e))continue;const nx=-e.dz,nz=e.dx;for(let t=-1.02;t<=1.02;t+=1/32){const x=e.x+nx*t,z=e.z+nz*t;const [px,py]=P(x,z);
-      const sh=Math.abs(t)>.9,wx=px+cx*CH,wz=py+cz*CH,h=H(wx,wz);let col=sh?[96,90,80]:[124,118,108];if(!sh&&h>.94)col=[142,136,124];else if(!sh&&h<.05)col=[104,98,88];else if(!sh&&H(wx,wz-1)>.94)col=[108,102,92];set(px,py,col,sh?.8:.94);}}
-  // 2. the ties: dark weathered timber, one colour everywhere. On a north-south line they're seen side-on: lit along the edge
-  // toward the light, darkest on the edge facing you. On an east-west line they're seen end-on: just the dark end facing you.
+      set(px,py,t41Ballast(px+cx*CH,py+cz*CH,Math.abs(t),(nx+nz)*t<0),Math.abs(t)>.9?.85:.95);}}
+  // 2. the ties: dark weathered timber, one colour everywhere, bedded in the ballast up to their tops: no edge standing up out
+  // of it, and stones lapping over their edges here and there
   for(const e of rails){if(!e.sl||e.pl||paved(e)||wet(e))continue;const nx=-e.dz,nz=e.dx;const ew=Math.abs(e.dx)>Math.abs(e.dz);
     for(let t=-.85;t<=.85;t+=1/32)for(let w=-.11;w<=.11;w+=1/32){const [px,py]=P(e.x+nx*t+e.dx*w,e.z+nz*t+e.dz*w);
-      let col=ew?[98,76,56]:[96,74,54];
-      if(ew){if(nz*Math.sign(t)>.5&&Math.abs(t)>.8)col=[58,44,32];}
-      else{let ox=0,oz=0;if(Math.abs(w)>.07){ox=e.dx*Math.sign(w);oz=e.dz*Math.sign(w);}else if(Math.abs(t)>.8){ox=nx*Math.sign(t);oz=nz*Math.sign(t);}
-        if(ox||oz){if(oz>.5)col=[56,42,30];else if(-ox-oz>.5)col=[122,98,74];else col=[78,60,44];}}
-      if(Math.abs(t)<.3&&Math.abs(w)<.03&&H(Math.floor(e.x*2),3)>.5)col=[80,62,46];
-      set(px,py,col);}}
+      if((Math.abs(w)>.08||Math.abs(t)>.81)&&H(px+cx*CH,py+cz*CH)<.4)continue;
+      let col=ew?[98,76,56]:[96,74,54];if(Math.abs(t)<.3&&Math.abs(w)<.03&&H(Math.floor(e.x*2),3)>.5)col=[80,62,46];set(px,py,col);}}
   for(const e of list){if(!e.tim)continue;for(let x=e.x0;x<=e.x1;x+=1/32)for(let w=-.11;w<=.11;w+=1/32){const [px,py]=P(x,e.z+w);
-      let col=[96,74,54];if(w>.07)col=[56,42,30];else if(w<-.07)col=[122,98,74];if(x<e.x0+.04||x>e.x1-.04)col=[66,50,36];set(px,py,col);}}
+      if((Math.abs(w)>.08||x<e.x0+.04||x>e.x1-.04)&&H(px+cx*CH,py+cz*CH)<.4)continue;set(px,py,[96,74,54]);}}
   // 3. planks where a road crosses: boards laid along the rails, a flangeway beside each rail, seams between the boards
   for(const e of rails){if(!e.pl)continue;const nx=-e.dz,nz=e.dx;for(let t=-.9;t<=.9;t+=1/32){if(Math.abs(Math.abs(t)-.5)<.06)continue;const [px,py]=P(e.x+nx*t,e.z+nz*t);
       const k=Math.floor((t+.9)*32/6),seam=Math.round((t+.9)*32)%6===0;set(px,py,seam?[66,50,34]:k%2?[150,124,88]:[134,110,78]);}}
@@ -831,7 +852,8 @@ function t41PaintRail(c,cx,cz){const B=t41RailBuckets();const list=B.get(cx+','+
       else{set(px-1,py,pv?[150,154,160]:[222,226,232]);set(px,py,pv?[30,30,34]:[112,116,124]);if(!pv){set(px+1,py,[30,24,20],.85);set(px+2,py,[30,24,20],.35);}}}}
   // the switch blades: two tapered rails at the toe, closing on the stock rails
   for(const e of list){if(!e.frog)continue;for(const [bx,dir] of [[16.4,1],[17.4,-1]])for(let z=43.15;z<=44.7;z+=1/64){const k=(z-43.15)/1.55,x=bx+dir*(.03+k*k*.32)*(dir>0?1:.35);const [px,py]=P(x,z);set(px,py,[214,218,224]);set(px+1,py,[60,62,68],.7);}}
-  for(const e of list){if(!e.frog)continue;for(let z=-.55;z<=.45;z+=1/32){const hw=Math.max(0,(z+.55)/1*.16);for(let x=-hw;x<=hw;x+=1/32){const [px,py]=P(e.x+x,e.z+z);set(px,py,Math.abs(x)>hw-.04?[150,154,160]:[40,40,46]);}}}
+  // the frog: the two rails running together to its point, ballast between them
+  for(const e of list){if(!e.frog)continue;for(let z=-.55;z<=.45;z+=1/64){const hw=Math.max(0,(z+.55)*.16);for(const sg of [-1,1]){const [px,py]=P(e.x+sg*hw,e.z+z);set(px-1,py,[222,226,232]);set(px,py,[112,116,124]);}}}
   g.putImageData(id,0,0);}
 {const _ch=chunk;chunk=function(cx,cz){const k=cx+','+cz;const had=chunks.has(k);const c=_ch.apply(this,arguments);if(!had&&c&&S.emp&&S.emp.tr&&(S.emp.tr.valley||S.emp.tr.bus)){try{t41PaintRail(c,cx,cz);}catch(e){console.warn('t41 rail',e);}}return c;};}
 // ---- the vehicles on the road and the rails: where each one is this frame, and its cars

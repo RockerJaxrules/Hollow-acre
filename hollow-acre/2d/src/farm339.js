@@ -105,6 +105,10 @@ for(const s of (typeof FH_STEPS!=='undefined'?FH_STEPS:[]))if(s&&typeof s.text==
 // the stones picked off it heaped at a corner by the road, long grass where the plough no longer goes
 function f39LowCountry(){
   const dead=L35.lines.filter(L=>L.w===1.1);for(const L of dead)L35.lines.splice(L35.lines.indexOf(L),1);
+  {const spur=(q)=>Math.min(q[0],q[2])>86&&Math.max(q[0],q[2])<94&&Math.min(q[1],q[3])>=353.5;
+    for(const L of L35.lines)if(L.p.length&&Math.abs(L.p[0][0]-90)<3&&L.p[0][1]<310)L.p=L.p.filter(p=>p[1]<=354.5);
+    for(let i=L35.roads.length-1;i>=0;i--)if(spur(L35.roads[i]))L35.roads.splice(i,1);
+    if(L35.roadRefs)for(let i=L35.roadRefs.length-1;i>=0;i--){const r=L35.roadRefs[i];if(spur(r)){const k=ROADS.indexOf(r);if(k>=0)ROADS.splice(k,1);L35.roadRefs.splice(i,1);}}}
   for(let i=L35.roads.length-1;i>=0;i--)if(L35.roads[i][5]===1.1)L35.roads.splice(i,1);
   if(L35.roadRefs)for(let i=L35.roadRefs.length-1;i>=0;i--){const r=L35.roadRefs[i];if(Math.abs(r[4]-.792)<.01){const k=ROADS.indexOf(r);if(k>=0)ROADS.splice(k,1);L35.roadRefs.splice(i,1);}}
   const o0=F39.objs.length;let n=0;for(const P of f39Plots()){const o=F39.old[P.id];if(!o)continue;const X0=o.x0,Z0=o.z0,W=P.w,H=P.h,id=P.id;const h=k=>l35Hash(id,200+k);
@@ -202,8 +206,8 @@ function f39HeapSpr(seed,size){const key='f39heap_'+seed;if(SPR[key])return key;
   return l35Spr(key,W,H,cx,base,(P,g)=>{
     for(let x=0;x<W;x++){const e=((x+.5-cx-rx*.32)/(rx*.95+4))**2;if(e<1){const h=Math.round(ry*.5*Math.sqrt(1-e)+(1-e)*1.2)+1;g.fillStyle='rgba(10,16,8,.3)';g.fillRect(x,base-Math.round(h*.4)+1,1,Math.round(h*1.4));}}
     const im=g.getImageData(0,0,W,H),D=im.data;
-    const inMass=(x,y)=>{const dx=(x+.5-cx)/(rx*.86),dy=(y+.5-(base-ry*.95))/(ry*1.05);return dx*dx+dy*dy<1;};
-    for(let y=0;y<H;y++)for(let x=0;x<W;x++){const k=y*W+x,o=k*4;if(own[k]<0&&size!=='small'&&inMass(x,y)){const t=F39_STONE[0][3];D[o]=t[0]*.62;D[o+1]=t[1]*.62;D[o+2]=t[2]*.62;D[o+3]=255;continue;}   // (a gap in the heap is a dark crevice)
+    const inMass=(x,y)=>{const dx=(x+.5-cx)/(rx*.8),dy=(y+.5-(base-ry*1.05))/(ry*.95);return dx*dx+dy*dy<1;};
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){const k=y*W+x,o=k*4;if(own[k]<0&&size!=='small'&&inMass(x,y)){const t=F39_STONE[0],up=y<base-ry*1.2,c=(own[k+1]>=0||own[k-W]>=0)?t[3]:up?t[1]:t[2];D[o]=c[0];D[o+1]=c[1];D[o+2]=c[2];D[o+3]=255;continue;}   // (between the big stones the heap is rubble and small stones, lit on top, never grass)
       if(own[k]<0){
         // the outline round the heap, and the crack where a stone sits on the one below it
         let nb=-1;for(const q of [k-1,k+1,k-W,k+W])if(q>=0&&q<W*H&&own[q]>=0){nb=own[q];break;}if(nb<0)continue;const t=st[nb].t;D[o]=t[3][0]*.7;D[o+1]=t[3][1]*.7;D[o+2]=t[3][2]*.7;D[o+3]=255;continue;}
@@ -358,7 +362,8 @@ function f39Hedge0(x1,z1,x2,z2,seed){const vert=Math.abs(x2-x1)<Math.abs(z2-z1),
 // the post and board thrown long and low down-right, whatever the hour), never a bar floating under the board
 if(typeof sunShadow==='function'){const _s3=sunShadow;sunShadow=function(o,X,Y){if(o&&(o.landSign||o.landStake||o.f39sign)&&typeof DX!=='undefined'&&DX.sun&&!DX.sun.lamp){
     const s=DX.sun,a=s.sx,b=s.sy;s.sx=.62;s.sy=.36;let r;try{r=_s3.apply(this,arguments);}finally{s.sx=a;s.sy=b;}
-    try{const g=DX.sg;g.setTransform(1,0,0,1,0,0);g.fillStyle='#0a1206';g.beginPath();g.ellipse(Math.round(X)+2,Math.round(Y),o.landStake?3:5,o.landStake?1.2:1.8,0,0,Math.PI*2);g.fill();}catch(e){}return r;}
+    try{const g=DX.sg;g.setTransform(1,0,0,1,0,0);g.fillStyle='#0a1206';g.beginPath();g.ellipse(Math.round(X)+2,Math.round(Y),o.landStake?3:5,o.landStake?1.2:1.8,0,0,Math.PI*2);g.fill();
+      const hb=o.landStake?10:18;g.strokeStyle='#0a1206';g.lineWidth=o.landStake?2:3;g.lineCap='round';g.beginPath();g.moveTo(Math.round(X)+1,Math.round(Y));g.lineTo(Math.round(X)+1+.62*hb,Math.round(Y)+.36*hb);g.stroke();}catch(e){}return r;}
   return _s3.apply(this,arguments);};}
 // the hedge sprites draw their own shadow on the ground; the engine's per-sprite sun shadow would cut it into a dashed line
 if(typeof sunShadow==='function'){const _s2=sunShadow;sunShadow=function(o){if(o&&o.f39hg)return true;return _s2.apply(this,arguments);};}
@@ -384,7 +389,7 @@ function f39Build(){if(F39.built)return;F39.built=true;const t0=performance.now(
   // the tracks are dirt, the same as every road (and the farm road carries on west from where it stopped)
   F39.farmRoad=ROADS.find(q=>q[0]===20&&q[1]===46&&q[2]===-52&&q[3]===46)||null;
   F39.roadRefs=[];F39.trackRefs=[];for(const q of F39.tracks){const r=q.slice();ROADS.push(r);F39.roadRefs.push(r);F39.trackRefs.push(r);}
-  const L=F39.lane;for(const r of [[L.x,L.z0,L.x,L.z1,1.4],[L.px0,L.z1,L.px1,L.z1,1.2]]){ROADS.push(r);F39.roadRefs.push(r);}
+  const L=F39.lane;for(const r of [[L.x,L.z0-1,L.x,L.z1,1.4],[L.px0,L.z1,L.px1,L.z1,1.2]]){ROADS.push(r);F39.roadRefs.push(r);}
   // the short paths from the lane to each cabin's steps are worn only once someone lives there (see landSync below)
   // stepping stones from the lane to each cabin's steps (set out once someone lives there): a worn spur that short read as a stain
   F39.spurs=[];F39.stones=F39_CABINS.map((c,i)=>{const n=2,out=[];for(let k=0;k<n;k++){const z=c.z+.95+k*(L.z1-.75-c.z-.95)/Math.max(1,n-1),x=c.x+(l35Hash('ss'+i,k)-.5)*.3;
@@ -399,6 +404,8 @@ function f39Build(){if(F39.built)return;F39.built=true;const t0=performance.now(
   // gateway, its gate swung open into the lane
   try{const gz=-38.2,gx0=-91.35,gx1=-89.25;f39Hedge(-121.8,gz,gx0-.35,gz,'hb1');f39Hedge(gx1+.35,gz,-62.6,gz,'hb2');
     if(typeof l35Post==='function'&&SPR.l35_gate_n){l35Post(gx0,gz,true);l35Post(gx1,gz);const e=obj('l35_gate_n',gx0,gz+.375,{kind:'prop',noCol:true});F39.objs.push(e);F39.gate=[gx0,gx1,gz];}}catch(e){console.warn('north gate',e);}
+  // the west lane goes through a field gate too, where the causeway leaves the fields for the willows and the river
+  try{const gz=126.7,gx0=-154.35,gx1=-152.05;if(typeof l35Post==='function'&&SPR.l35_gate_n){l35Post(gx0,gz,true);l35Post(gx1,gz);F39.objs.push(obj('l35_gate_n',gx0,gz+.375,{kind:'prop',noCol:true}));}}catch(e){console.warn('west gate',e);}
   // the boards
   const sign=(x,z,label)=>{const o=obj('signpost',x,z,{kind:'prop',label,face:'P',noCol:true,f39sign:1});try{o.spr=signSprite(label,'plain');}catch(e){}addCircle(x,z,.18);F39.objs.push(o);return o;};
   sign(-43.6,-2.6,'WEST FIELDS');sign(-50.4,44.1,'WEST FIELDS');sign(-92.1,-8.6,'WEST FIELDS');
@@ -446,7 +453,7 @@ function f39Ground(g,x0,z0,N){if(!F39.built)return;const ps=f39Plots().filter(P=
     for(let py=0;py<W;py++){const wz=z0+(py+.5)/32;for(let px=0;px<W;px++){const wx=x0+(px+.5)/32;let best=null,bd=9;
       for(const q of trk){const dx=q[2]-q[0],dz=q[3]-q[1],L2=dx*dx+dz*dz||1,t=clamp(((wx-q[0])*dx+(wz-q[1])*dz)/L2,0,1),cx=q[0]+dx*t,cz=q[1]+dz*t,d=Math.hypot(wx-cx,wz-cz);if(d<bd){bd=d;best=[q,cx,cz,t*Math.sqrt(L2),dx/Math.sqrt(L2),dz/Math.sqrt(L2)];}}
       if(!best)continue;const q=best[0],hw=q[4]/2;if(bd>hw+1.7)continue;
-      const wan=Math.max(-.42,(fbm(best[3]*.22+q[0]*.1,q[1]*.1+3)-.5)*1.0+(fbm(best[3]*.7+q[0]*.05+7,q[1]*.07+5)-.5)*.85+(fbm(wx*1.1+5,wz*1.1)-.5)*.2);
+      const wan=Math.max(-.42,(fbm(best[3]*.22+q[0]*.1,q[1]*.1+3)-.5)*1.0+(fbm(best[3]*.7+q[0]*.05+7,q[1]*.07+5)-.5)*.85+(fbm(wx*1.1+5,wz*1.1)-.5)*.2)*(q[4]<1.5?.3:1);
       const sd=bd-(hw+wan),want=sd<0,o=(py*W+px)*4;const nx=bd>.01?(wx-best[1])/bd:0,nz=bd>.01?(wz-best[2])/bd:0,tx=best[4],tz=best[5];
       const near=sd>-1.1;
       if(want&&(near?(!isDirt(o)||sum(o)>dm*1.07||sum(o)<dm*.92):(isLip(o)||isGrass(o)||isLite(o)))){let got=-1;
@@ -464,7 +471,7 @@ function f39Ground(g,x0,z0,N){if(!F39.built)return;const ps=f39Plots().filter(P=
   // the headland and the field are painted in their own tones, keeping only the ground's fine texture (its blades) and dropping
   // its broad zones, which showed through as dark islands with square steps; each edge is one line that wanders in lobes of a
   // few paces: the headland's outer edge into the meadow, and its inner edge, where the field starts, drawn as a dark turf line
-  const pz=f39Plots().filter(P=>P.x0<x0+N+2.5&&P.x0+P.w>x0-2.5&&P.z0<z0+N+2.5&&P.z0+P.h>z0-2.5);
+  const pz=f39Plots().filter(P=>P.x0<x0+N+3&&P.x0+P.w>x0-3&&P.z0<z0+N+3&&P.z0+P.h>z0-3);
   if(pz.length){const n=W*W,Lu=new Float32Array(n),Bl=new Float32Array(n),T=new Float32Array(n),R2=4;
     for(let i=0;i<n;i++){const o=i*4;Lu[i]=D[o]*.3+D[o+1]*.59+D[o+2]*.11;}
     for(let y=0;y<W;y++){let acc=0;for(let x=-R2;x<=R2;x++)acc+=Lu[y*W+clamp(x,0,W-1)];for(let x=0;x<W;x++){T[y*W+x]=acc/(2*R2+1);acc+=Lu[y*W+Math.min(W-1,x+R2+1)]-Lu[y*W+Math.max(0,x-R2)];}}
@@ -472,13 +479,13 @@ function f39Ground(g,x0,z0,N){if(!F39.built)return;const ps=f39Plots().filter(P=
     const th=v=>Math.tanh(v);
     for(let py=0;py<W;py++){const wz=z0+(py+.5)/32;for(let px=0;px<W;px++){const wx=x0+(px+.5)/32,i=py*W+px,o=i*4;
       let P=null,e=-1e9;for(const q of pz){const ex=Math.min(wx-q.x0,q.x0+q.w-wx),ez=Math.min(wz-q.z0,q.z0+q.h-wz),ee=ex<0||ez<0?-Math.hypot(Math.min(0,ex),Math.min(0,ez)):Math.min(ex,ez);if(ee>e){e=ee;P=q;}}
-      if(!P||e<-1.3)continue;
+      if(!P||e<-2.7)continue;
       const r=D[o],gg=D[o+1],b=D[o+2];if(r>gg+6||b>gg+4||(Math.abs(r-gg)<10&&Math.abs(gg-b)<16&&gg>96))continue;   // the track, water, stones: left as they are
       {const rc=1.6,ex=Math.min(wx-P.x0,P.x0+P.w-wx),ez=Math.min(wz-P.z0,P.z0+P.h-wz);if(ex>0&&ez>0&&ex<rc&&ez<rc)e=rc-Math.hypot(rc-ex,rc-ez);}   // rounded corners
       const eo=clamp(-(.55+.38*th((fbm(wx*.15+P.z0+5,wz*.15+P.x0)-.5)*5))+(fbm(wx*.42+7,wz*.42+2)-.5)*1.3+(fbm(wx*1.6,wz*1.6+9)-.5)*.4,-1.25,-.08);
       // the meadow beside a track is its verge, trodden pale like the headlands either side of it (no dark tongue of hedge
       // strip reaching the road)
-      if(e<eo){let vd=9;for(const q of trk){const d=segDist(wx,wz,q[0],q[1],q[2],q[3])-q[4]/2;if(d<vd)vd=d;}if(vd>.85+.55*fbm(wx*.3+1,wz*.3+4))continue;}                                                                                // the meadow
+      if(e<eo){let vd=9;for(const q of trk){const d=segDist(wx,wz,q[0],q[1],q[2],q[3])-q[4]/2;if(d<vd)vd=d;}if(vd>(.85+.55*fbm(wx*.3+1,wz*.3+4))*clamp((e+2.6)/1.3,0,1))continue;}   /* (the verge thins out away from the fields; no edge where it stops) */                                                                                // the meadow
       const ei=clamp(1.0+.6*th((fbm(wx*.16+P.x0,wz*.16+P.z0)-.5)*5)+(fbm(wx*.42+3,wz*.42+1)-.5)*1.7+(fbm(wx*1.5+5,wz*1.5+2)-.5)*.5,.35,2.3),det=(Lu[i]-Bl[i])*.85;
       if(e<ei){const t=fbm(wx*.05+P.x0,wz*.05+9);const c=[126+t*12,120+t*10,74+t*6];                    // the headland: dry, pale, trodden
         D[o]=clamp(c[0]+det,0,255);D[o+1]=clamp(c[1]+det,0,255);D[o+2]=clamp(c[2]+det*.8,0,255);continue;}
@@ -499,7 +506,7 @@ function f39Ground(g,x0,z0,N){if(!F39.built)return;const ps=f39Plots().filter(P=
   // its edge wandering, a dark lip of turf along its top and left and a pale crumb along its bottom and right
   {const hn=F39.homesN||0;for(let i=0;i<hn;i++){let hp;try{hp=homePlot(i);}catch(e){break;}if(hp.x0>x0+N+1||hp.x0+hp.w<x0-1||hp.z0>z0+N+1||hp.z0+hp.h<z0-1)continue;
     for(let py=0;py<W;py++){const wz=z0+(py+.5)/32;if(wz<hp.z0-1.1||wz>hp.z0+hp.h+1.1)continue;for(let px=0;px<W;px++){const wx=x0+(px+.5)/32;if(wx<hp.x0-1.1||wx>hp.x0+hp.w+1.1)continue;
-      const ex1=wx-hp.x0,ex2=hp.x0+hp.w-wx,ez1=wz-hp.z0,ez2=hp.z0+hp.h-wz,e=Math.min(ex1,ex2,ez1,ez2),wob=(fbm(wx*.55+i*7,wz*.55)-.5)*2.6+(fbm(wx*1.9,wz*1.9+i)-.5)*.8+(fbm(wx*5,wz*5+i)-.5)*.25;if(e+wob<0)continue;
+      const ex1=wx-hp.x0,ex2=hp.x0+hp.w-wx,ez1=wz-hp.z0,ez2=hp.z0+hp.h-wz,e=Math.min(ex1,ex2,ez1,ez2),wob=(fbm(wx*.55+i*7,wz*.55)-.5)*1.7+(fbm(wx*1.9,wz*1.9+i)-.5)*.7+(fbm(wx*5,wz*5+i)-.5)*.25;if(e+wob<0)continue;
       const o=(py*W+px)*4,[v,hc]=f39Clod(Math.floor(wx*32),Math.floor(wz*32),5);let c=F39_DUG[v];const t=hc<.2?.92:hc>.84?1.06:1;c=[c[0]*t,c[1]*t,c[2]*t];
       if(e+wob<.07){const tl=Math.min(ex1,ez1)<Math.min(ex2,ez2);c=tl?[52,40,24]:[176,140,96];}
       D[o]=c[0];D[o+1]=c[1];D[o+2]=c[2];}}}}
@@ -533,8 +540,8 @@ function f39LowGround(g,x0,z0,N){if(typeof L35_RAMP==='undefined'||z0+N<290)retu
 // every lane joins another or ends at something: the track down from the steps forks behind the well; the left fork goes round
 // the well to the foot of the cabin's porch steps (with a spur to the well's front), the right one down past the noticeboard and
 // along to the barn's steps; the barn's doors have their own apron
-const F39_YARDLANES=[[6.8,-13.5,6.8,-12.7,1.4],[6.8,-12.7,5.2,-11.6,1.1],[5.2,-11.6,4.5,-9.4,1.1],[4.5,-9.4,1.2,-8.95,1.1],[1.2,-8.95,-1.2,-7.9,1.2],[-1.2,-7.9,-2.6,-7.3,1.2],
-  [2,-9,6,-9,1.2],[6.8,-12.7,9.2,-11.9,1.1],[9.2,-11.9,9.7,-8.6,1.1],[9.7,-8.6,14.4,-7.6,1.1],
+const F39_YARDLANES=[[6.8,-15.5,6.8,-12.1,1.3],[6.8,-12.1,5.2,-11.4,.95],[5.2,-11.4,4.5,-9.4,1.05],[4.5,-9.4,1.2,-8.95,1.1],[1.2,-8.95,-1.2,-7.9,1.2],[-1.2,-7.9,-2.6,-7.3,1.2],
+  [2,-9,6,-9,1.2],[6.8,-12.1,9.2,-11.7,.95],[9.2,-11.7,9.7,-8.6,1.05],[9.7,-8.6,14.4,-7.6,1.1],
   [14.4,-7.6,17.3,-7.6,1.1],[17.3,-7.6,18.8,-8.1,1.1],[16,-9.4,16,-7.2,2.2],[18.8,-8.1,18.8,-7.2,1.2]];
 const F39_YARDTRK=[[-6,-6,23,-6,3]].concat(F39_YARDLANES);
 {const Dt=LAYERS.dirt;LAYERS.dirt=(x,z)=>{if(x>-6&&x<21.5&&z>-13.5&&z<-7.4){for(const q of F39_YARDLANES)if(segDist(x,z,q[0],q[1],q[2],q[3])<q[4]/2)return true;return false;}return Dt(x,z);};}
@@ -586,7 +593,7 @@ function f39Migrate(d){const s=d&&d.S;if(!s||s.f339)return 0;let n=0;
 {const _sd=saveData;saveData=function(){const d=_sd.apply(this,arguments);try{if(d&&d.S)d.S.f339=1;}catch(e){}return d;};}
 S.f339=1;
 // ---------------------------------------------------------------- the farm book: one map of the whole farm
-function f39Map(){const X0=-160,X1=28,Z0=-44,Z1=130,E=EMP(),esc=s=>String(s).replace(/[<&>]/g,'');
+function f39Map(){const X0=-160,X1=40,Z0=-44,Z1=130,E=EMP(),esc=s=>String(s).replace(/[<&>]/g,'');
   let g=`<svg class="emmap f39map" viewBox="${X0} ${Z0} ${X1-X0} ${Z1-Z0}" preserveAspectRatio="xMidYMid meet"><defs><pattern id="f39h" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="3" fill="#d8c49a"/><rect width="1.1" height="3" fill="#a8885a"/></pattern></defs>`;
   g+=`<rect x="${X0}" y="${Z0}" width="${X1-X0}" height="${Z1-Z0}" fill="#b8a46e"/>`;
   // the woods round the fields, as knots of crowns
@@ -621,7 +628,7 @@ function f39Map(){const X0=-160,X1=28,Z0=-44,Z1=130,E=EMP(),esc=s=>String(s).rep
   // the Tithe House at the end of its lane, and the field gate where the lane between the north pieces goes into the wood
   g+=house(-26,86.6,7,4,'#5a4636');
   g+=`<polyline points="-121.8,-38.2 -91.7,-38.2" fill="none" stroke="#3e5a26" stroke-width="1.3" stroke-linecap="round"/><polyline points="-88.9,-38.2 -62.6,-38.2" fill="none" stroke="#3e5a26" stroke-width="1.3" stroke-linecap="round"/>`;
-  g+=F39_GATE(-90.3,-38.5,1.6);
+  g+=F39_GATE(-90.3,-38.5,1.6)+F39_GATE(-153.2,126.7,1.6);
   lab(-30,-8.6,'ROUTE 9');lab(22,30,'MILL RD','start');lab(1.5,-39,'HOMESTEAD LANE');lab(26,-12,'TOWN →','start');lab(-26,92.6,'TITHE HOUSE');lab(-24,44.4,'FARM ROAD');
   return g+'</svg>';}
 {const css=document.createElement('style');css.textContent=`#noteText .f39map{max-height:400px;display:block;margin:0 auto}#noteText .f39map .t2{font:3.3px 'Hollow Pixel',monospace;fill:#3a2414;text-anchor:middle;pointer-events:none}`;document.head.appendChild(css);}
@@ -653,16 +660,21 @@ const f39Bend=(x,z)=>{let d=1e9;for(const [jx,jz] of F39_JOIN)d=Math.min(d,Math.
   return [((fbm(x*.022+3,z*.022+1)-.5)*16+(fbm(x*.08+8,z*.08)-.5)*3)*f,((fbm(x*.022+11,z*.022+5)-.5)*16+(fbm(x*.08,z*.08+6)-.5)*3)*f];};   // (the bottomland's own bend)
 function f39MapPaint(c){const s=MAPX.s,pad=MAPX.pad,g=c.getContext('2d'),X=x=>pad+(x-B.x0)*s,Y=z=>pad+(z-B.z0)*s;g.save();
   const W=(x,z)=>{const b=f39Bend(x,z);return [X(x+b[0]),Y(z+b[1])];};
+  // (a field's own outline and rows also waver a pace or so by hand, on top of the bend they share with the tracks)
+  const WP=(x,z)=>{const b=f39Bend(x,z),f=clamp((Math.min(...F39_JOIN.map(([jx,jz])=>Math.hypot(x-jx,z-jz)))-1.5)/8,0,1);return [X(x+b[0]+(fbm(x*.16+2,z*.16+9)-.5)*3.2*f),Y(z+b[1]+(fbm(x*.16+7,z*.16+3)-.5)*3.2*f)];};
   const PLC=['#b49a56','#8c6e44','#a48c4e','#7c7a46','#9c7c48','#c0a464'];let pi=0;
   for(const P of f39Plots()){const col=PLC[(pi++)%PLC.length],across=l35Hash(P.id,1)>.5;
     g.beginPath();const pts=[];const sx2=Math.max(4,Math.round(P.w/3)),sz2=Math.max(3,Math.round(P.h/3));
     for(let i=0;i<=sx2;i++)pts.push([P.x0+P.w*i/sx2,P.z0]);for(let i=1;i<=sz2;i++)pts.push([P.x0+P.w,P.z0+P.h*i/sz2]);for(let i=sx2-1;i>=0;i--)pts.push([P.x0+P.w*i/sx2,P.z0+P.h]);for(let i=sz2-1;i>=1;i--)pts.push([P.x0,P.z0+P.h*i/sz2]);
-    pts.forEach(([x,z],i)=>{const [xx,yy]=W(x,z);i?g.lineTo(xx,yy):g.moveTo(xx,yy);});g.closePath();
+    pts.forEach(([x,z],i)=>{const [xx,yy]=WP(x,z);i?g.lineTo(xx,yy):g.moveTo(xx,yy);});g.closePath();
     g.globalAlpha=.62;g.fillStyle=col;g.fill();g.globalAlpha=1;
     g.save();g.clip();g.strokeStyle='rgba(70,52,28,.34)';g.lineWidth=1;
-    if(across)for(let x=P.x0+1.2;x<P.x0+P.w;x+=2.2){g.beginPath();for(let k=0;k<=5;k++){const [xx,yy]=W(x,P.z0+P.h*k/5);k?g.lineTo(xx,yy):g.moveTo(xx,yy);}g.stroke();}
-    else for(let z=P.z0+1.5;z<P.z0+P.h;z+=2.2){g.beginPath();for(let k=0;k<=6;k++){const [xx,yy]=W(P.x0+P.w*k/6,z);k?g.lineTo(xx,yy):g.moveTo(xx,yy);}g.stroke();}g.restore();
-    g.strokeStyle='rgba(60,40,20,.55)';g.lineWidth=1;g.beginPath();pts.forEach(([x,z],i)=>{const [xx,yy]=W(x,z);i?g.lineTo(xx,yy):g.moveTo(xx,yy);});g.closePath();g.stroke();}
+    if(across)for(let x=P.x0+1.2;x<P.x0+P.w;x+=2.2){g.beginPath();for(let k=0;k<=5;k++){const [xx,yy]=WP(x,P.z0+P.h*k/5);k?g.lineTo(xx,yy):g.moveTo(xx,yy);}g.stroke();}
+    else for(let z=P.z0+1.5;z<P.z0+P.h;z+=2.2){g.beginPath();for(let k=0;k<=6;k++){const [xx,yy]=WP(P.x0+P.w*k/6,z);k?g.lineTo(xx,yy):g.moveTo(xx,yy);}g.stroke();}g.restore();
+    g.strokeStyle='rgba(60,40,20,.55)';g.lineWidth=1;g.beginPath();pts.forEach(([x,z],i)=>{const [xx,yy]=WP(x,z);i?g.lineTo(xx,yy):g.moveTo(xx,yy);});g.closePath();g.stroke();}
+  // the hedge along the back of the two north pieces, and the field gate where their lane goes through it
+  {for(const [xa,xb] of [[-121.8,-91.7],[-88.9,-62.6]]){g.lineCap='round';for(const pass of [0,1]){g.beginPath();for(let x=xa;x<=xb+.01;x+=1.5){const [xx,yy]=W(x,-38.2);x===xa?g.moveTo(xx,yy):g.lineTo(xx,yy);}g.strokeStyle=pass?'#556a2c':'#2c3418';g.lineWidth=pass?s*.9:s*.9+2;g.stroke();}}
+    const [gx,gy]=W(-90.3,-38.4);g.fillStyle='#3a2414';g.fillRect(Math.round(gx)-4,Math.round(gy)-3,1,5);g.fillRect(Math.round(gx)+3,Math.round(gy)-3,1,5);g.fillStyle='#c8a060';g.fillRect(Math.round(gx)-3,Math.round(gy)-2,6,1);g.fillRect(Math.round(gx)-3,Math.round(gy),6,1);}
   // the tracks, in short steps that follow the bend; the same ink as every other road
   for(const pass of [0,1])for(const q of F39.tracks.concat(F39.farmRoad?[F39.farmRoad]:[])){g.lineCap='round';g.lineJoin='round';g.beginPath();const n=Math.max(1,Math.round(Math.hypot(q[2]-q[0],q[3]-q[1])/2));
     for(let k=0;k<=n;k++){const x=q[0]+(q[2]-q[0])*k/n,z=q[1]+(q[3]-q[1])*k/n,[xx,yy]=W(x,z);k?g.lineTo(xx,yy):g.moveTo(xx,yy);}
@@ -694,9 +706,10 @@ function f39LowMap(c,low,hedge,lines){const s=MAPX.s,pad=MAPX.pad,g=c.getContext
     // the run's own direction, and its bushes in order along it
     let mx=0,mz=0;for(const o of L){mx+=o.x;mz+=o.z;}mx/=L.length;mz/=L.length;let sxx=0,szz=0,sxz=0;for(const o of L){sxx+=(o.x-mx)**2;szz+=(o.z-mz)**2;sxz+=(o.x-mx)*(o.z-mz);}
     const an=.5*Math.atan2(2*sxz,sxx-szz),ux=Math.cos(an),uz=Math.sin(an);L.sort((a,b)=>((a.x-mx)*ux+(a.z-mz)*uz)-((b.x-mx)*ux+(b.z-mz)*uz));
-    for(const pass of [0,1,2]){g.lineCap='round';g.lineJoin='round';for(let i=1;i<L.length;i++){const a=L[i-1],b=L[i];if(Math.hypot(a.x-b.x,a.z-b.z)>2.6)continue;
-      const w=(.9+.9*fbm(a.x*.4,a.z*.4))*s;g.strokeStyle=pass===0?'#2c3418':pass===1?'#556a2c':'#7a8a3c';g.lineWidth=pass===0?w+2:pass===1?w:Math.max(1,w*.35);
-      g.beginPath();const ox=pass===2?-.6:0,[ax2,ay2]=BD(a.x,a.z),[bx2,by2]=BD(b.x,b.z),[mx2,my2]=BD((a.x+b.x)/2,(a.z+b.z)/2);g.moveTo(ax2+ox,ay2+ox);g.quadraticCurveTo(mx2+(fbm(a.x,b.z)-.5)*s*1.2+ox,my2+(fbm(b.x,a.z)-.5)*s*1.2+ox,bx2+ox,by2+ox);g.stroke();}}
+    {const C=[];for(let i=0;i<L.length;i++){const o=L[i];C.push([o.x,o.z,.5+.35*hash((o.x*13)|0,(o.z*11)|0)]);const n=L[i+1];if(n&&Math.hypot(o.x-n.x,o.z-n.z)<2.6&&Math.hypot(o.x-n.x,o.z-n.z)>1.1)C.push([(o.x+n.x)/2,(o.z+n.z)/2,.42+.3*hash((n.x*7)|0,(o.z*9)|0)]);}
+      const P2=C.map(([x,z,r])=>{const [px,py]=BD(x,z);return [px,py,Math.max(1.6,r*s)];}).sort((a,b)=>a[1]-b[1]);
+      for(const [px,py,r] of P2){g.fillStyle='#2c3418';g.beginPath();g.arc(px+.4,py+.5,r+1,0,6.29);g.fill();}
+      for(const [px,py,r] of P2){g.fillStyle='#4f622a';g.beginPath();g.arc(px,py,r,0,6.29);g.fill();g.fillStyle='#6f8238';g.beginPath();g.arc(px-r*.35,py-r*.35,Math.max(.8,r*.45),0,6.29);g.fill();}}
     for(const o of L)if(hash((o.x*7)|0,(o.z*7)|0)<.28){const [px,py]=BD(o.x,o.z);g.fillStyle=hash((o.x*3)|0,(o.z*5)|0)<.5?'#b4542a':'#c8a040';g.fillRect(Math.round(px),Math.round(py)-1,1,1);}}
   // the maze lane's end: a gate in the maze's hedge
   {const gx=X(7.6),gz=Y(197);g.fillStyle='#3a2414';g.fillRect(Math.round(gx)-3,Math.round(gz)-4,1,5);g.fillRect(Math.round(gx)+2,Math.round(gz)-4,1,5);g.fillRect(Math.round(gx)-3,Math.round(gz)-4,6,1);g.fillStyle='#c8a060';g.fillRect(Math.round(gx)-2,Math.round(gz)-3,4,1);}
@@ -846,7 +859,7 @@ const F39_STEPS={x:6.8,hw:1.0};
 function f39StepsSpr(){const W=96,H=88,top=4,foot=63,X0=16,X1=80;
   return l35Spr('f39_steps5',W,H,48,foot,(P)=>{
     const WD={nose:'#e6c282',tread:'#c79a5c',seam:'#a97845',back:'#9a6c3e',lip:'#1e120a',riser:'#5a3624',riserLt:'#74482c',endL:'#b08452',endR:'#6a4228'};
-    const ST={lit:'#8a7262',sh:'#3a2e28',ln:'#40332f'},GR={md:'#2f7f34',dk:'#1f5a2a'},ER={md:'#7a5a34',dk:'#5e4428',sh:'rgba(20,12,6,.45)'};
+    const ST={lit:'#8a7262',sh:'#3a2e28',ln:'#40332f'},GR={md:'#5a6a2c',dk:'#3a4420'},ER={md:'#7a5a34',dk:'#5e4428',sh:'rgba(20,12,6,.45)'};
     // the landing at the top, where the lane comes over the lip
     for(let x=X0;x<X1;x++){P(x,top-3,1,1,ER.dk);P(x,top-2,1,2,ER.md);}
     // the two cut ends of the ridge either side of the flight: the left one in shade, the right one in the light
@@ -906,7 +919,14 @@ function f39Decor(){if(F39.decor)return F39.decor;const o=F39.decor0,im=o&&IMG[o
   IMG['mem:f39decor']=c;return F39.decor={src:'mem:f39decor',fw:128,fh:16,ax:0,ay:0,foot:[0,0,0,0]};}
 {const _gp=groundPixels;groundPixels=function(g,x0,z0,N){if(!F39.decor0)F39.decor0=SPR.decor;
   const farm=F39.built&&((z0+N>-48&&z0<182&&x0+N>-165&&x0<32)||(typeof L35!=='undefined'&&z0+N>L35.Z0-8));let d=null;try{d=farm&&f39Decor();}catch(e){}
-  SPR.decor=d||F39.decor0;return _gp.apply(this,arguments);};}
+  SPR.decor=d||F39.decor0;
+  // the ridge's grass lip over the farm is olive like its meadow, not the lime that was the loudest green on screen
+  if(!F39.cliff0)F39.cliff0=SPR.cliff;let cl=null;try{cl=farm&&f39Cliff();}catch(e){}if(F39.cliff0)SPR.cliff=cl||F39.cliff0;
+  return _gp.apply(this,arguments);};}
+function f39Cliff(){if(F39.cliffO)return F39.cliffO;const o=F39.cliff0,im=o&&IMG[o.src];if(!im||(im.complete===false)||!(im.width||im.naturalWidth))return null;
+  const c=document.createElement('canvas');c.width=im.width||im.naturalWidth;c.height=im.height||im.naturalHeight;const g=c.getContext('2d');g.drawImage(im,0,0);
+  const id=g.getImageData(0,0,c.width,c.height),D=id.data;for(let i=0;i<D.length;i+=4){const r=D[i],gg=D[i+1],b=D[i+2];if(D[i+3]&&gg>r+18&&gg>b+10){const L=r*.3+gg*.59+b*.11;D[i]=L*.95+4;D[i+1]=L*1.02+6;D[i+2]=L*.56;}}
+  g.putImageData(id,0,0);IMG['mem:f39cliff']=c;return F39.cliffO=Object.assign({},o,{src:'mem:f39cliff'});}
 // the leaves: what blows past the camera over the farm, and what comes down off its maples, are the kit's drawn leaves (a stem,
 // one long axis, lit on one edge; tumbling through four turns in the air), never the little cross that read as a sparkle
 const F39_LC={'#c8642a':'rust','#d8a030':'ochre','#a83a1e':'brown','#e0b848':'ochre'};   /* (no red leaf over the farm: alone on the grass it reads as blood) */

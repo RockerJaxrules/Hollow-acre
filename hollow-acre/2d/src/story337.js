@@ -826,7 +826,7 @@ function st37Sedan(cfg){cfg=cfg||{};const C=ST37_CARPAL,W=156,H=80,D=28,BL=46,GY
   return cv;}
 const ST37_CARS={clean:{glass:'clear'},s0:{crumple:1,vnose:1,glass:'smash',bumper:0,flat:1,dents:1,mirror:0},s1:{crumple:1,glass:'smash',bumper:0,flat:1,dents:1,mirror:0},s2:{primer:1,ham:1,glass:'smash',bumper:0,flat:1,mirror:0},
   s4:{primer:1,ham:1,glass:'smash',bumper:0,steel:1,mirror:0},s5:{primer:1,ham:1,glass:'clear',bumper:0,steel:1,mirror:0},beaten:{primer:1,ham:1,glass:'clear',dull:1,steel:1,rust:1}};
-for(const k in ST37_CARS)st37Reg('st37_car_'+k,st37Sedan(ST37_CARS[k]),78,50);st37Reg('st37_car_s0f',IMG['c37:st37_car_s0'],78,60);   /* r4: the crash car sorted just in front of the oak it is wrapped round */
+for(const k in ST37_CARS)st37Reg('st37_car_'+k,st37Sedan(ST37_CARS[k]),78,50);st37Reg('st37_car_s0f',IMG['c37:st37_car_s0'],78,70);   /* r4: the crash car sorted just in front of the oak it is wrapped round */
 // the beaten car (parked, and on the drive out) is the same sedan now: clear glass, a primer front, a steel spare
 Object.assign(SPR.car_beaten||(SPR.car_beaten={}),{src:'c37:st37_car_beaten',fw:156,fh:80,ax:78,ay:50});delete SPR.car_beaten.clips;
 // the drive in: while the car runs straight down the lane it is this sedan; the skid's turning frames stay the rendered model of the same car
