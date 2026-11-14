@@ -159,6 +159,26 @@ Studied three driver's-eye photos of hands at 10 and 2 (openly licensed, scratch
   - Hands are the hero object: about 15k tris per arm with most of the relief in the mesh, full-strength normals, and
     texture islands bled outward so mips never mix.
 
+### Reading as a person from the game eye (t353 r5 -> r6)
+- **Measure the forearm angle and the cuff height on SCREEN.**
+  - Forearms that rise straight up read as pillars, with the hands perched on top.
+  - The left forearm should cross the screen at about 35-45 degrees, coming in low from outside; the right rises at
+    about 70-80 degrees.
+  - Every cuff comes down to the wrist bone, so less than 3 cm of bare forearm shows. If the sleeve starts higher, a
+    coat sleeve disappears off the frame entirely.
+- **The back of the hand faces the eye**, its normal within about 30-40 degrees of the eye ray.
+  - If it faces outward, the knuckle row reads edge-on and the thumbnail becomes the biggest lit thing.
+  - Require it in the placement search, along with the screen measures.
+- **In-game relief must never exceed Blender's.**
+  - Mesh relief plus a full-strength normal map plus specular reads as carved rope tendons and an old, wasted hand;
+    dark tones look like varnished wood.
+  - Keep the relief soft, the normals at about .65 and the specular capped. Tendons in a fist lie nearly flush.
+- **Two veins and an arch behind the knuckles frame a rectangle** that reads as a plate under the skin. Leave the arch
+  out.
+- **Raise nails clear of the decimated game skin.** If the skin pokes through, it draws a dark line across the nail.
+- **The post pass's colour fringe draws a 1-px orange outline** round the hands and rim. Keep the chromatic
+  aberration tiny.
+
 ### One arm for every character (owner: "multiple sleeve Colors and skin Colors ... you customized your pixel character")
 - **Every skin tone in the creator must read as skin.**
   - Derive the colours from the tone, never from fixed tints:
