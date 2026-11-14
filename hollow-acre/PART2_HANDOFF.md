@@ -27,7 +27,8 @@ collects every decision made so far, so the work restarts cleanly in Unreal with
     Part 2.
   - Part 1 also stays in the browser.
 - **Hardware:**
-  - Unreal runs on the owner's PC.
+  - Unreal runs on the owner's PC. Its GPU is an **NVIDIA RTX 3080**, so use Epic or High scalability with Lumen,
+    Virtual Shadow Maps and MetaHumans at cinematic LOD on PC.
   - iPhone builds need the owner's Mac with Xcode and an Apple developer account ($99/year).
   - Android builds from the PC.
   - The owner talks to Claude from their phone.
