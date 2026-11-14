@@ -48,7 +48,12 @@ def _bump(nt, bsdf, height_out, strength, distance=0.001):
     nt.links.new(height_out, b.inputs['Height']); nt.links.new(b.outputs['Normal'], bsdf.inputs['Normal'])
     return b
 
-def skin(obj, tone=(0.86, 0.66, 0.55), flush=(0.80, 0.42, 0.38), name='skin'):
+def skin(obj, tone=(0.86, 0.66, 0.55), flush=None, name='skin'):
+    """flush defaults to the tone itself hue-shifted (redder, a little darker); its strength drops on darker skin,
+    where a fixed pink reads as rust or bruising (LESSONS: skin blotch contrast scales with tone)."""
+    lum = 0.2126 * tone[0] + 0.7152 * tone[1] + 0.0722 * tone[2]
+    if flush is None: flush = (min(1, tone[0] * 1.02), tone[1] * 0.80, tone[2] * 0.76)
+    amt = 0.15 + 0.25 * min(1, lum / 0.65)
     m, nt, bsdf = _new(obj, name)
     bsdf.subsurface_method = 'RANDOM_WALK_SKIN'
     bsdf.inputs['Subsurface Weight'].default_value = 1.0
@@ -63,13 +68,13 @@ def skin(obj, tone=(0.86, 0.66, 0.55), flush=(0.80, 0.42, 0.38), name='skin'):
     mix, mA, mB, mR, mF = _mix(nt)
     mA.default_value = (*_lin(tone), 1); mB.default_value = (*_lin(flush), 1)
     ramp = nt.nodes.new('ShaderNodeMapRange'); ramp.inputs['From Min'].default_value = 0.42; ramp.inputs['From Max'].default_value = 0.75
-    ramp.inputs['To Max'].default_value = 0.35
+    ramp.inputs['To Max'].default_value = amt
     nt.links.new(blot.outputs['Factor'], ramp.inputs['Value']); nt.links.new(ramp.outputs['Result'], mF)
     ao = nt.nodes.new('ShaderNodeAmbientOcclusion'); ao.inputs['Distance'].default_value = 0.01
     mix2, m2A, m2B, m2R, m2F = _mix(nt)
     inv = nt.nodes.new('ShaderNodeMath'); inv.operation = 'SUBTRACT'; inv.inputs[0].default_value = 1.0
     nt.links.new(ao.outputs['AO'], inv.inputs[1])
-    sc = nt.nodes.new('ShaderNodeMath'); sc.operation = 'MULTIPLY'; sc.inputs[1].default_value = 0.6
+    sc = nt.nodes.new('ShaderNodeMath'); sc.operation = 'MULTIPLY'; sc.inputs[1].default_value = 0.4 + 0.4 * min(1, lum / 0.65)
     nt.links.new(inv.outputs['Value'], sc.inputs[0]); nt.links.new(sc.outputs['Value'], m2F)
     nt.links.new(mR, m2A); m2B.default_value = (*_lin(flush), 1)
     nt.links.new(m2R, bsdf.inputs['Base Color'])

@@ -20,6 +20,10 @@ One line each, concrete and checkable. **[repeated]** = broken again; move it to
   and `Subsurface Scale` (in metres).
 
 ## Realism (general)
+- Judge renders need the scene's real light. A night cab means dim, warm, local light, cast shadows, a dark window
+  with night blue, and darker hands. A studio-lit grey box reads as daytime and gets judged as fake.
+- Keep value separation between a dark object and its background. A black rim on a black dash disappears, and
+  whatever pokes past it, such as fingertips, looks detached.
 - Proportions fail before materials: write the real measurements in cm in the plan, then check the sizes printed
   on the check sheet.
 - Every edge gets a bevel or rounding, since real objects catch light on their edges.
@@ -29,12 +33,26 @@ One line each, concrete and checkable. **[repeated]** = broken again; move it to
 - Light must be physically plausible (AgX, real-ish strengths), with contact shadows where things touch.
 
 ## Skin
+- Skin blotch and flush contrast scales with tone. Hue-shift the tone itself (redder, slightly darker) rather than
+  mixing toward a fixed pink, and lower the amount on darker skin. On dark skin, a fixed flush reads as rust or
+  bruises.
 - Skin = random-walk-skin SSS: radius (1.0, 0.35, 0.2) so red scatters furthest, scale about 4 mm, roughness about
   0.45. Add a faint coat (0.06) for oil and pores as a fine bump (noise scale about 900 at 0.08). Tested: it reads as
   skin on a plain capsule.
 - Skin colour varies: redder at knuckles, creases and fingertips (the AO or flush mix in `mats.skin`).
 
 ## Hands and arms (anatomy to build to)
+- Never mirror the second hand. Pose it on its own: a different place on the rim, a different thumb, a different
+  curl and wrist angle. Identical mirrored hands read as fake at once (t353 r1, 4/10).
+- Thumbs must bend and flatten on contact. Give MCP and IP real flexion (about 15° and 30°) and sink the pad 2-3 mm
+  into what it holds. A straight, constant-width thumb reads as a peg.
+- Cuffs need a hem band (about 1.5 cm) and 3-5 bunched folds where the sleeve is pushed up. The opening should be
+  about 1.3x the forearm width and follow its oval, with creases at a bent elbow. A plain round tube reads as a clay
+  pipe.
+- Back-of-hand detail goes in geometry, not only in the normal map: knuckle heads, tendons fanning out to each
+  knuckle, the wrist bone on the pinky side, PIP wrinkles, and veins as a thin branching network (not broad smears).
+- Never use regular sine waves for skin texture. They show as diagonal streaks. Use noise, or nothing.
+- Keep small gaps between curled fingers where they cross a bar, or they merge into one lump.
 - Adult male hand: about 19 cm from the wrist crease to the middle fingertip. About 8.5-9 cm wide across the
   knuckles. Palm length is about the same as the middle finger length.
 - Finger segments, from the knuckle outward: about 1 : 0.6 : 0.45. Fingers taper. Each finger is about 1.8-2 cm wide

@@ -224,20 +224,20 @@ def detail(V, N, H, seed=3):
     rng = np.random.default_rng(seed); h = np.zeros(len(V))
     for n, f in H['fingers'].items():
         J = f['joints']; d, L, Z = f['d'], f['L'], f['Z']
-        for j, (amp, n_lines, sp, width) in ((1, (.026, 4, .16, .55)), (2, (.018, 3, .13, .42)), (0, (.02, 2, .26, .75))):
+        for j, (amp, n_lines, sp, width) in ((1, (.04, 4, .15, .55)), (2, (.026, 3, .12, .42)), (0, (.022, 2, .26, .75))):
             P = J[j] + (Z * .55 if j == 0 else 0)
             q = V - P; along = q @ d; lat = q @ L; up = q @ Z
             dors = sstep(.15, .6, N @ Z)
             bow = .32 * (lat / (f['r'][j] + 1e-6)) ** 2                       # wrinkles curve round the knuckle
             ph = (along + bow) / sp
-            env = np.exp(-((along + bow) / (sp * n_lines * .62)) ** 2) * np.exp(-(lat / (f['r'][j] * 1.05)) ** 4) * dors
+            env = np.exp(-((along + bow) / (sp * n_lines * .62)) ** 2) * np.exp(-(lat / (f['r'][j] * (.8 if j == 0 else .95))) ** 4) * dors
             line = -np.exp(-((ph - np.round(ph)) / .2) ** 2)
             h += amp * env * line * (1 + .25 * np.sin(lat * 7 + j))
             # palm-side crease: one or two deep lines across each joint
             if j:
                 pal = sstep(.2, .7, -(N @ Z)); off = .18 if j == 1 else .12
                 for o in ((-off / 2, off / 2) if j == 1 else (0,)):
-                    h -= .045 * pal * np.exp(-((along - o) / .045) ** 2) * np.exp(-(lat / (f['r'][j] * 1.1)) ** 4)
+                    h -= .02 * pal * np.exp(-((along - o) / .05) ** 2) * np.exp(-(lat / (f['r'][j] * .9)) ** 4)
     # thumb knuckles
     T = H['thumb']; J = T['joints']
     for j, amp in ((2, .022), (1, .016)):
@@ -245,29 +245,40 @@ def detail(V, N, H, seed=3):
         dors = sstep(.1, .6, N @ T['Z']); ph = along / .15
         env = np.exp(-(along / .38) ** 2) * np.exp(-(lat / 1.0) ** 4) * dors
         h += amp * env * -np.exp(-((ph - np.round(ph)) / .2) ** 2)
-    # extensor tendons fanning from the wrist to each knuckle (only on the back of the hand)
-    dors = sstep(.35, .8, N[:, 2])
-    for i, n in enumerate(['pinky', 'ring', 'middle', 'index']):
-        m = H['fingers'][n]['joints'][0]
-        a = np.array([-.35 + i * .45, 1.2, 1.6]); b = np.array([m[0], m[1] - .7, 1.2])
-        dist, t = _seg_dist(V, a, b)
-        h += .075 * np.exp(-(dist / .2) ** 2) * sstep(0, .25, t) * sstep(1.0, .8, t) * dors * (.8 if n == 'pinky' else 1)
-    # veins: two on the back of the hand, one up the forearm (wavy, soft)
-    veins = [np.array([[-1.8, -2.5, 2.1], [-1.4, 1.0, 1.6], [-.9, 3.6, 1.35], [-.15, 6.2, 1.25]]),
-             np.array([[1.4, -1.5, 2.0], [1.0, 1.8, 1.55], [.35, 4.2, 1.35], [-.05, 5.0, 1.3], [-1.6, 6.0, 1.2]]),
-             np.array([[2.4, -1.0, 1.4], [2.7, 2.0, .9], [2.9, 4.0, .6]])]
-    for vp in veins:
-        dist, t = _poly_dist(V, vp)
-        h += .055 * np.exp(-(dist / .17) ** 2) * sstep(0, .12, t) * sstep(1, .85, t) * sstep(.1, .5, N[:, 2] + .2)
-    # keep the finger webs smooth: displacement folds into fins where the surface turns sharply
+    # the back of the hand in geometry, measured on the dorsal plane (x, y): knuckle heads, valleys between them,
+    # extensor tendons fanning from the wrist, the ulnar styloid, and a thin branching vein network
+    dors = sstep(.25, .75, N[:, 2]); XY = V[:, :2]
+    def d2(p): return np.linalg.norm(XY - np.asarray(p), axis=1)
+    def seg2(a, b):
+        a, b = np.asarray(a, float), np.asarray(b, float); d = b - a; t = np.clip(((XY - a) @ d) / (d @ d), 0, 1)
+        return np.linalg.norm(XY - (a + np.outer(t, d)), axis=1), t
+    mcps = [np.array(H['fingers'][n]['joints'][0]) for n in ['pinky', 'ring', 'middle', 'index']]
+    for i, m in enumerate(mcps):
+        h += .15 * np.exp(-(d2((m[0], m[1] - .15)) / .48) ** 2) * dors * (.8 if i == 0 else 1)          # knuckle head
+        if i: h -= .06 * np.exp(-(d2(((m[0] + mcps[i - 1][0]) / 2, (m[1] + mcps[i - 1][1]) / 2 - .5)) / .45) ** 2) * dors
+        dist, t = seg2((-.55 + i * .42, .6), (m[0], m[1] - .75))                                       # tendon
+        h += .1 * np.exp(-(dist / .13) ** 2) * sstep(0, .2, t) * sstep(1.0, .82, t) * dors * (.75 if i == 0 else 1)
+    h += .17 * np.exp(-(d2((-2.7, -1.25)) / .48) ** 2) * sstep(-.3, .4, N[:, 2] - N[:, 0] * .8)       # ulnar styloid
+    VEINS = [[(1.0, 6.6), (1.5, 4.6), (2.25, 2.7), (2.55, .8), (2.45, -1.6), (2.15, -4.2)],               # cephalic side
+             [(-.05, 7.0), (-.25, 5.3), (.35, 3.75), (1.45, 3.1)],
+             [(-1.9, 6.8), (-1.75, 5.0), (-1.2, 3.6), (-.25, 3.35), (.35, 3.75)],                        # dorsal arch
+             [(-1.75, 5.0), (-2.35, 3.0), (-2.6, 1.0), (-2.45, -1.6), (-2.05, -4.2)],                   # basilic side
+             [(1.95, 6.85), (1.75, 5.5), (1.5, 4.6)], [(.35, 3.75), (.55, 1.6), (.4, -.6)]]
+    for k, pts in enumerate(VEINS):
+        best = np.full(len(V), 9.); bt = np.zeros(len(V))
+        for p0, p1 in zip(pts[:-1], pts[1:]):
+            dist, t = seg2(p0, p1); m = dist < best; best[m] = dist[m]; bt[m] = t[m]
+        wobble = 1 + .25 * np.sin(XY[:, 1] * 2.3 + k)
+        h += .034 * np.exp(-(best / (.15 * wobble)) ** 2) * sstep(.05, .5, N[:, 2])
+    # keep the finger webs smooth (palm side and back): displacement folds into fins where the surface turns sharply
     for i in range(1, 4):
         a_, b_ = np.array(FINGERS[ORDER[i - 1]]['mcp']), np.array(FINGERS[ORDER[i]]['mcp'])
-        web = np.array([(a_[0] + b_[0]) / 2, (a_[1] + b_[1]) / 2 + 1.15, -.12])
-        h *= 1 - .9 * np.exp(-(np.linalg.norm(V - web, axis=1) / 1.1) ** 2)
-    # fine skin texture: low-amplitude noise from a few random waves
-    for _ in range(6):
-        k = rng.normal(size=3); k = k / np.linalg.norm(k) * rng.uniform(4, 9)
-        h += .004 * np.sin(V @ k + rng.uniform(0, 6))
+        for web, rad in ((np.array([(a_[0] + b_[0]) / 2, (a_[1] + b_[1]) / 2 + 1.15, -.12]), 1.1), (np.array([(a_[0] + b_[0]) / 2, (a_[1] + b_[1]) / 2 + .9, .75]), .75)):
+            h *= 1 - .92 * np.exp(-(np.linalg.norm(V - web, axis=1) / rad) ** 2)
+    # nothing under the nails, so the plates sit clean
+    for n, f in H['fingers'].items():
+        J = f['joints']; nc = J[2] + (J[3] - J[2]) * .6 + f['Z'] * f['r'][2] * .8
+        h *= 1 - np.exp(-(np.linalg.norm(V - nc, axis=1) / .75) ** 4)
     return h
 
 # ------------------------------------------------------------------ weights: nearest bone with a smooth blend at each joint plane
@@ -304,27 +315,45 @@ def weights(V, bones, joints):
         W[m, b] = wb; W[m, other] += wo
     return W
 
+def smooth_weights(W, edges, mask, iters=6, keep=4):
+    """Average each masked vertex's weights with its neighbours' (edges: (E,2) vertex pairs), then keep the largest
+    `keep` influences. Used on the finger webs, where two fingers that flex by different amounts share skin and
+    a hard split between them tears into fins."""
+    W = W.copy(); a, b = edges[:, 0], edges[:, 1]
+    for _ in range(iters):
+        acc = np.zeros_like(W); cnt = np.zeros(len(W))
+        np.add.at(acc, a, W[b]); np.add.at(acc, b, W[a]); np.add.at(cnt, a, 1); np.add.at(cnt, b, 1)
+        avg = acc / np.maximum(cnt, 1)[:, None]
+        W[mask] = .5 * W[mask] + .5 * avg[mask]
+    order = np.argsort(-W, 1); drop = order[:, keep:]
+    np.put_along_axis(W, drop, 0, 1)
+    return W / np.maximum(W.sum(1, keepdims=True), 1e-9)
+
 # ------------------------------------------------------------------ sleeve: cloth tube, rolled cuff, pocket
-def sleeve(path_fn, length, radius_fn, fold_fn, up, n=12, ds_list=None, th=.0032, hem=.026, pocket=.075):
+def sleeve(path_fn, length, radius_fn, fold_fn, up, n=12, ds_list=None, th=.0032, hem=.015, pocket=.075):
     """Cage for a sleeve along path_fn(s) (metres, s=0 at the cuff edge). Returns V, F, s_of_vertex, ang_of_vertex, inside flag.
-    The cuff rolls over a lip into a pocket `pocket` deep, so the cloth shows thickness at the opening."""
+    radius_fn(s, a) gives the radius at angle a round the tube (so the cross-section can follow the forearm's oval);
+    up may be a vector or a function of s (the frame's angle-0 direction). The cuff rolls over a lip into a pocket
+    `pocket` deep, so the cloth shows its thickness at the opening, and the last `hem` metres is a doubled hem band."""
     C = Cage(); svals = ds_list
     def frame(s):
-        p = path_fn(s); d = nrm(path_fn(s + 1e-3) - path_fn(s - 1e-3)); x = perp(up, d); z = np.cross(d, x); return p, d, x, z
+        p = path_fn(s); d = nrm(path_fn(s + 1e-3) - path_fn(s - 1e-3)); u = up(s) if callable(up) else up
+        x = perp(u, d); z = np.cross(d, x); return p, d, x, z
     meta = []
     def make_ring(s, rad_off, inside, tag):
         p, d, x, z = frame(max(s, 0))
         pts = []
         for i in range(n):
-            a = 2 * np.pi * i / n; r = radius_fn(max(s, 0)) + fold_fn(max(s, 0), a) * (0 if inside else 1) + rad_off
+            a = 2 * np.pi * i / n; r = radius_fn(max(s, 0), a) + fold_fn(max(s, 0), a) * (0 if inside else 1) + rad_off
             pts.append(p + (np.cos(a) * x + np.sin(a) * z) * r + d * min(s, 0)); meta.append((s, a, inside))
         return C.ring(pts, tag)
     rings = []
-    # pocket floor -> inner wall -> lip -> outer wall -> shoulder
-    inner_s = [pocket, pocket * .62, pocket * .3, .012, 0.0]
+    inner_s = [pocket, pocket * .62, pocket * .3, .010, 0.0]
     for s in inner_s: rings.append(make_ring(s, -th - (.0012 if s < hem else 0), True, 'in'))
-    rings.append(make_ring(-.0028, -th * .45, False, 'lip'))
-    for s in svals: rings.append(make_ring(s, .0011 if s < hem else 0, False, 'out'))
+    rings.append(make_ring(-.0026, -th * .45, False, 'lip'))
+    for s in svals:
+        off = .0012 if s < hem - .002 else (.0003 if s < hem + .002 else 0)      # the hem band, with a step where it ends
+        rings.append(make_ring(s, off, False, 'out'))
     for a, b in zip(rings[:-1], rings[1:]): C.bridge(a, b)
     C.F.append(list(rings[0][::-1])); C.F.append(list(rings[-1]))
     V = np.array(C.V); M = np.array(meta)
