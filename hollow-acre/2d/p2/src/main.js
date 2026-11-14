@@ -374,7 +374,7 @@ const lamps = [-.6, .6].map(x => { const s = new SpotLight('#eef3ff', 230, 85, .
   const f = new PointLight('#8ea2c2', .55, 1.7, 2); f.position.set(-.36, 1.6, -.62); car.add(f);
   // the cold light of the snow through the windscreen catches the tops of your hands; the only warm light is the dials'
   const ws = new SpotLight('#a6b9dc', 1.0, 2.2, .9, .9, 2); ws.position.set(EYE.x, 1.45, -1.0); ws.target.position.set(EYE.x, .95, -.42); car.add(ws, ws.target);
-  const dl = new PointLight('#ffb27a', .07, .8, 2); dl.position.set(EYE.x, .9, -.66); car.add(dl); }
+  const dl = new PointLight('#ffb27a', .2, 1.0, 2); dl.position.set(EYE.x, .9, -.66); car.add(dl); }      // the gauges' warm glow on the undersides of the hands
 // faint beams in the falling snow: open cones drawn additively, fading with distance
 const beamMat = new ShaderMaterial({ transparent: true, depthWrite: false, blending: AdditiveBlending, side: DoubleSide,
   uniforms: { k: { value: .03 } },

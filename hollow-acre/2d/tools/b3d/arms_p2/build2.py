@@ -36,6 +36,10 @@ def materials(objs, skin_tone, shirt):
     mx2 = nt.nodes.new('ShaderNodeMix'); mx2.data_type = 'RGBA'; mx2.blend_type = 'MULTIPLY'; nt.links.new(mats.sock(mx.outputs, 'Result'), mats.sock(mx2.inputs, 'A'))
     mats.sock(mx2.inputs, 'B').default_value = (.86, .9, .93, 1); nt.links.new(sp.outputs['Green'], mats.sock(mx2.inputs, 'Factor', 'VALUE'))
     nt.links.new(mats.sock(mx2.outputs, 'Result'), bsdf.inputs['Base Color'])
+    # darker skin shows more sheen (roughness ~.4 on the back of the hand, a little less on the knuckles)
+    dark = max(0., min(1., (.45 - lum) / .3)); r0 = .56 - .14 * dark
+    rm = nt.nodes.new('ShaderNodeMapRange'); rm.inputs['To Min'].default_value = r0; rm.inputs['To Max'].default_value = r0 - .07 * dark
+    nt.links.new(sp.outputs['Red'], rm.inputs['Value']); nt.links.new(rm.outputs['Result'], bsdf.inputs['Roughness'])
     mats.pbr(n, (min(1, skin_tone[0] * 1.08 + .08), skin_tone[1] * .98 + .06, skin_tone[2] * .95 + .07), rough=.28, name='nail')
     mats.cloth(s, desat(shirt, .22), weave=.42)
     if r is not None: mats.pbr(r, (.86, .68, .32), rough=.22, metal=1.0, name='gold')
@@ -43,11 +47,11 @@ def flat(objs, cols):
     for o, c in zip(objs, cols):
         m = bpy.data.materials.new(o.name + 'f'); m.diffuse_color = (*c, 1); o.data.materials.clear(); o.data.materials.append(m)
 
-def split_hand_forearm(o):
+def split_hand_forearm(o, side='L'):
     """separate static copies named 'hand' and 'forearm' (cut at the wrist crease) so the sheet prints each size"""
     dg = bpy.context.evaluated_depsgraph_get(); me = bpy.data.meshes.new_from_object(o.evaluated_get(dg))
     V = np.zeros(len(me.vertices) * 3); me.vertices.foreach_get('co', V); V = V.reshape(-1, 3) @ S.BM
-    can = S.to_can(V); keep_hand = can[:, 1] > -.3
+    can = S.to_can(V, S.HMS[side]); keep_hand = can[:, 1] > -.3
     out = []
     for nm, mask in (('hand', keep_hand), ('forearm', ~keep_hand)):
         idx = np.where(mask)[0]; remap = -np.ones(len(V), int); remap[idx] = np.arange(len(idx))
@@ -56,11 +60,12 @@ def split_hand_forearm(o):
     return out
 
 if MODE in ('shape', 'look', 'rest', 'thumb'):
-    if MODE != 'rest': A.pose(arm, 'L')
+    SIDE = os.environ.get('SIDE', 'L')
+    if MODE != 'rest': A.pose(arm, SIDE)
     rim = A.rim_and_wheel()
     if MODE in ('look', 'thumb'): materials(parts, SKIN, SHIRT); mats.pbr(rim, (.05, .05, .055), rough=.5, bump=.2, bump_scale=200, name='leather')
     else: flat(parts + [rim], [(.86, .66, .55), (.95, .8, .75), (.9, .75, .3), (.6, .25, .2), (.08, .08, .09)])
-    hp, fp = split_hand_forearm(hand); hp.hide_render = fp.hide_render = True          # measured, not drawn (the cut would show)
+    hp, fp = split_hand_forearm(hand, os.environ.get('SIDE', 'L')); hp.hide_render = fp.hide_render = True          # measured, not drawn (the cut would show)
     if MODE == 'rest':                                   # lay the flat hand on the axes: x thumb, y fingers, z back of hand
         rim.hide_render = True
         for o in parts: o.hide_render = True
@@ -72,11 +77,12 @@ if MODE in ('shape', 'look', 'rest', 'thumb'):
         hp.hide_render = fp.hide_render = True
         views.sheet(OUT + '.png', objs=objs, mode='shape', res=360)
         sys.exit(0)
-    eye = Vector(S.B(S.EYE)); ctr = Vector(S.B((S.W * .4 + S.M_MID * .6)))
-    GY, GZ, GX = (Vector(S.B(v)) for v in (S.GY, S.GZ, S.GX))
-    TJ = [Vector(S.B(S.to_car(p))) for p in S.H['thumb']['joints']]; tc = (TJ[1] + TJ[2] + TJ[3]) / 3
+    HMs = S.HMS[SIDE]; Ws = HMs[:3, 3]; Ms = S.to_car(np.array(hands.FINGERS['middle']['mcp']), HMs)
+    eye = Vector(S.B(S.EYE)); ctr = Vector(S.B((Ws * .4 + Ms * .6)))
+    _o, _gx, _gy, _gz = S.rimf(S.rim_angle(Ms)); GY, GZ, GX = (Vector(S.B(v)) for v in (_gy, _gz, _gx))
+    TJ = [Vector(S.B(S.to_car(p, HMs))) for p in S.thumb_fk(S.THUMB_Q[SIDE])[0]]; tc = (TJ[1] + TJ[2] + TJ[3]) / 3
     if MODE == 'thumb':
-        views.sheet(OUT + '.png', objs=[hand, nails], mode='look', res=480, cams=[views.cam_at(eye, tc, 230, 'thumb check (driver eye)'), views.cam_at(tc + (Vector(S.B(S.GZ)) * .9 + Vector(S.B(S.GY)) * .4).normalized() * .22, tc, 85, 'thumb from above')], extra_views=False)
+        views.sheet(OUT + '.png', objs=[hand, nails], mode='look', res=480, cams=[views.cam_at(eye, tc, 230, 'thumb check (driver eye)'), views.cam_at(tc + (GZ * .9 + GY * .4).normalized() * .22, tc, 85, 'thumb from above')], extra_views=False)
         sys.exit(0)
     cams = [views.cam_at(eye, tc, 230, 'thumb check'), views.cam_at(eye, ctr, 110, 'game eye close-up'), views.cam_at(ctr + (GY * .7 + GZ * .5 - GX * .2).normalized() * .32, ctr, 70, 'outer'),
             views.cam_at(ctr + (-GZ * .8 + GY * .5).normalized() * .32, ctr, 70, 'far side')]
@@ -138,14 +144,17 @@ def light(nm, kind, loc, tgt, energy, size, col):
     if kind == 'AREA': ld.size = size
     else: ld.shadow_soft_size = size
     lo = A.link(bpy.data.objects.new(nm, ld)); lo.location = Vector(S.B(loc)); lo.rotation_euler = (Vector(S.B(tgt)) - lo.location).to_track_quat('-Z', 'Y').to_euler()
-light('windscreen', 'AREA', np.array([-.36, 1.42, -1.05]), np.array([-.36, .98, -.45]), 2.4, 1.6, (.62, .72, 1.0))
-light('gauges', 'AREA', np.array([-.36, .93, -.68]), np.array([-.36, 1.02, -.38]), .55, .22, (1.0, .55, .25))
+light('windscreen', 'AREA', np.array([-.36, 1.42, -1.05]), np.array([-.36, .98, -.45]), 2.4, 1.0, (.62, .72, 1.0))      # smaller: the rim throws a readable shadow across the fingers
+light('gauges', 'AREA', np.array([-.36, .93, -.68]), np.array([-.36, 1.02, -.38]), .95, .22, (1.0, .55, .25))         # warm glow on the lower edges of the hands
 light('sidefill', 'AREA', np.array([-.9, 1.35, -.1]), np.array([-.36, .95, -.45]), .35, 1.0, (.5, .58, .75))
 w = bpy.data.worlds.new('w'); sc.world = w; w.use_nodes = True; w.node_tree.nodes['Background'].inputs['Color'].default_value = (.002, .003, .006, 1)
 phone = os.environ.get('VIEW', 'desk') == 'phone'
 cd = bpy.data.cameras.new('game'); cd.sensor_fit = 'VERTICAL'; cd.angle_y = math.radians(84 if phone else 64); cd.clip_start = .01
 cam = A.link(bpy.data.objects.new('game', cd)); eye = Vector(S.B(S.EYE)); cam.location = eye
-pitch = .05 if phone else .07; tgt = S.EYE + np.array([0, -math.tan(pitch), -1]); cam.rotation_euler = (Vector(S.B(tgt)) - eye).to_track_quat('-Z', 'Y').to_euler()
+pitch = .05 if phone else .07; tgt = S.EYE + np.array([0, -math.tan(pitch), -1])
+if os.environ.get('AIM'):                      # same eye, zoomed: AIM = car-space point, FOV = vertical degrees
+    tgt = np.array([float(v) for v in os.environ['AIM'].split(',')]); cd.angle_y = math.radians(float(os.environ.get('FOV', '30')))
+cam.rotation_euler = (Vector(S.B(tgt)) - eye).to_track_quat('-Z', 'Y').to_euler()
 sc.camera = cam
 sc.render.engine = 'CYCLES'; sc.cycles.device = 'CPU'; sc.cycles.samples = int(os.environ.get('SAMPLES', '64')); sc.cycles.use_denoising = True
 sc.view_settings.view_transform = 'AgX'; sc.view_settings.exposure = float(os.environ.get('EXPO', '0'))

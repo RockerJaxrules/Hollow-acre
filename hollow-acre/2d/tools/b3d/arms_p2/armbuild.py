@@ -31,13 +31,15 @@ def set_data(ob, rgba):
     at = ob.data.color_attributes.new('data', 'FLOAT_COLOR', 'POINT'); at.data.foreach_set('color', np.asarray(rgba, np.float32).ravel())
     ob.data.color_attributes.active_color = at
 
-def hand_and_nails(lvl, detail, suffix=''):
+def hand_and_nails(lvl, detail, suffix='', relief=1.0):
+    # relief: how much of the skin detail goes into the geometry (the game mesh keeps a little and leaves the rest to the
+    # normal map; fine wrinkles in a decimated mesh become dents that read as dark spots on the knuckles)
     H = S.H
     cage = mesh_obj('cage' + suffix, H['V'], H['F'])
     hand = subdivided(cage, lvl, 'hand' + suffix); bpy.data.objects.remove(cage, do_unlink=True)
     V = verts(hand); N = vnormals(hand); hgt = np.zeros(len(V))
     if detail:
-        dout = {}; hgt = hands.detail(V, N, H, out=dout); V = V + N * hgt[:, None]; set_verts(hand, V)
+        dout = {}; hgt = hands.detail(V, N, H, out=dout); V = V + N * (hgt * relief)[:, None]; set_verts(hand, V)
     # flush: fingertips, knuckles, the skin round the nails, the heel of the hand; crease from the wrinkle valleys
     fl = np.zeros(len(V)); f = H['fingers']
     for n in hands.ORDER:
@@ -64,10 +66,11 @@ def hand_and_nails(lvl, detail, suffix=''):
             for i in range(nu):
                 u = i / (nu - 1) * 2 - 1; v = j / (nv - 1)
                 w = width / 2 * (0.86 + 0.14 * math.sqrt(max(0, 1 - (2 * v - 1) ** 2))) if v < .5 else width / 2 * (1 - .18 * (v - .5) ** 2 * 4)
-                p0 = J2 + d * (np.linalg.norm(J3 - J2) * .31 + v * length) + Lx * u * w * .98 + Zd * 3
+                p0 = J2 + d * (np.linalg.norm(J3 - J2) * .31 + v * length) + Lx * u * w * .98 + Zd * 1.5        # from just above the nail bed, so a neighbouring finger never catches the ray
                 hit = bvh.ray_cast(Vector(p0), Vector(-Zd))
                 lift = .058 + .035 * v - .03 * (abs(u) ** 3) + (max(0, v - .9) * .25)
-                NV.append(np.array(hit[0]) + np.array(hit[1]) * lift if hit[0] is not None else p0 - Zd * 3); NE.append(v)
+                if hit[0] is None: hit = bvh.find_nearest(Vector(p0 - Zd * 1.5))
+                NV.append(np.array(hit[0]) + np.array(hit[1]) * lift); NE.append(v)
         for j in range(nv - 1):
             for i in range(nu - 1):
                 a = base + j * nu + i; NF.append([a, a + 1, a + nu + 1, a + nu])
@@ -98,7 +101,7 @@ def ring(suffix=''):
     set_data(ob, np.tile([0, 0, 1, 1], (len(rv), 1))); return ob
 
 # ---------------------------------------------------------------- sleeve
-CUFF_S = .05; SE0 = S.L_FORE - CUFF_S
+CUFF_S = .02; SE0 = S.L_FORE - CUFF_S
 SLEN = SE0 + np.linalg.norm(S.SH - S.ELB)
 def path(s):
     fdir = S.dir_car(S.DFC); up = S.SH - S.ELB; Lu = np.linalg.norm(up); up = up / Lu
@@ -107,7 +110,7 @@ def path(s):
     t = (s - (SE0 - .03)) / .06; a = S.ELB - fdir * .03; b = S.ELB; c = S.ELB + up * .03
     return (1 - t) ** 2 * a + 2 * (1 - t) * t * b + t * t * c
 # sleeve cross-section follows the forearm's oval: (s, half width, half thickness); round and slim on the upper arm
-PROF = [(0., .0405, .029), (.05, .045, .034), (.12, .047, .038), (SE0, .046, .044), (SE0 + .08, .047, .046), (SLEN, .049, .048)]
+PROF = [(0., .047, .037), (.03, .048, .038), (.08, .048, .039), (.14, .048, .040), (SE0, .046, .044), (SE0 + .08, .047, .046), (SLEN, .049, .048)]
 def radius(s, a=0.0):
     xs = [p[0] for p in PROF]; rw = float(np.interp(s, xs, [p[1] for p in PROF])); rt = float(np.interp(s, xs, [p[2] for p in PROF]))
     return rw * rt / math.sqrt((rw * math.cos(a)) ** 2 + (rt * math.sin(a)) ** 2)      # a = 0 is the back of the forearm

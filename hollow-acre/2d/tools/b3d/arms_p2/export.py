@@ -13,7 +13,7 @@ def log(*a): print(f'[{time.time()-t0:5.0f}s]', *a, flush=True)
 
 A.reset(); sc = bpy.context.scene
 arm = A.armature()
-hand_L, nails_L = A.hand_and_nails(2, True, '_L')
+hand_L, nails_L = A.hand_and_nails(2, True, '_L', relief=float(os.environ.get('RELIEF', '.35')))
 dec = hand_L.modifiers.new('dec', 'DECIMATE'); dec.ratio = float(os.environ.get('DEC', '.235')); dec.use_collapse_triangulate = False
 dg = bpy.context.evaluated_depsgraph_get(); me = bpy.data.meshes.new_from_object(hand_L.evaluated_get(dg)); hand_L.modifiers.clear(); hand_L.data = me
 ring_L = A.ring('_L'); sleeve_L = A.sleeve(1, n=11, suffix='_L')
@@ -23,7 +23,7 @@ tri = lambda o: sum(len(p.vertices) - 2 for p in o.data.polygons)
 log('tris low', {o.name: tri(o) for o in lows}, 'total', sum(tri(o) for o in lows), 'high', sum(tri(o) for o in highs))
 
 # ---- UVs: hand + nails on top, sleeve below, the ring in a corner; second UV set = cylinder coords on the sleeve
-A.unwrap([hand_L, nails_L], (0, .30, 1, 1)); A.unwrap([sleeve_L], (0, 0, .955, .285))
+A.unwrap([hand_L, nails_L], (0, .30, 1, 1), .012); A.unwrap([sleeve_L], (0, 0, .955, .285), .012)      # r4: wide gutters so mipmaps never mix a nail island into a knuckle seam
 A.select_only([ring_L]); bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT')
 bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=.01); bpy.ops.object.mode_set(mode='OBJECT')
 uv = ring_L.data.uv_layers.active.data; a = np.zeros(len(uv) * 2); uv.foreach_get('uv', a); a = a.reshape(-1, 2)
@@ -87,7 +87,7 @@ def bake(kind, image, **kw):
 high_mats('normal'); bake('NORMAL', I_N, normal_space='TANGENT')
 high_mats('emit'); bake('EMIT', I_D)
 # AO with the hand closed round the rim; the low copies stay out of the way of the rays
-A.pose(arm, 'L', 1.0); rim = A.rim_and_wheel()
+A.pose(arm, 'L', 1.0); rim = A.rim_and_wheel(); rim.hide_render = True     # r4: self-occlusion only; the rim's own shadow and contact darkening are worked out live in the shader (the two hands hold it differently)
 for o in lows: o.visible_diffuse = False; o.visible_shadow = False; o.visible_glossy = False
 sc.cycles.samples = int(os.environ.get('AO_SAMPLES', '96')); sc.world = bpy.data.worlds.new('w')
 bake('AO', I_A)
@@ -101,6 +101,11 @@ covered = D_[..., 3] > .5
 nv = N_[..., :3] * 2 - 1; nz = nv[..., 2]
 bad = (nz < .55) & (N_[..., 3] > .5)                      # stray rays: tangent normals never tilt this far on this mesh
 k = np.clip((nz - .3) / .25, 0, 1)[..., None]; nv = nv * k + np.array([0, 0, 1.]) * (1 - k); nv /= np.linalg.norm(nv, axis=-1, keepdims=True)
+# r4: soften the bake (a 1 px blur inside the islands) so thin ridges never read as streaks on a phone
+from scipy.ndimage import gaussian_filter
+cov = (N_[..., 3] > .5).astype(np.float32); wsum = gaussian_filter(cov, float(os.environ.get('NBLUR', '1.0'))) + 1e-6
+nv = np.stack([gaussian_filter(nv[..., c] * cov, float(os.environ.get('NBLUR', '1.0'))) / wsum for c in range(3)], -1)
+nv[..., 2] = np.maximum(nv[..., 2], .2); nv /= np.linalg.norm(nv, axis=-1, keepdims=True)
 log('normal outliers fixed', int(bad.sum()))
 nrm8 = np.clip((nv * .5 + .5) * 255 + .5, 0, 255).astype(np.uint8); nrm8[~(N_[..., 3] > .5)] = (128, 128, 255)
 data8 = np.zeros((RES, RES, 4), np.uint8)
@@ -136,7 +141,8 @@ rig = dict(EYE=L(S.EYE), WC=L(S.WC), TILT=S.TILT, RR=S.RR, RT=S.RT, A_GRIP=S.A_G
            bones=[dict(name=b[0], head=L(b[1]), tail=L(b[2]), parent=S.PARENT[b[0]]) for b in S.BONES],
            fingers={n: dict(joints=[L(S.to_car(p)) for p in f[n]['joints']], axis=L(S.flex_axis(n))) for n in hands.ORDER},
            O=L(S.O), GX=L(S.GX),
-           hands={side: dict(phi=float(S.HAND[side]['phi']), roll=float(S.HAND[side]['roll']),
+           spreadAxis=L(S.SPREAD_AX),
+           hands={side: dict(hand=L(S.HD[side]), spread={n: S.SPREAD[side][n] for n in hands.ORDER},
                              grip={n: [float(x) for x in S.GRIP_SIDE[side][n]] for n in hands.ORDER},
                              thumb=[L(D) for D in S.THUMB_D[side]]) for side in ('L', 'R')},
            tris=tri(armob))

@@ -55,11 +55,24 @@ lines = [f'thumb ray {np.linalg.norm(mcp - cmc) + np.linalg.norm(ip - mcp) + np.
          f'thumb below the palm plane: MCP {-mcp[2]:.1f} cm, IP {-ip[2]:.1f} cm, tip {-tip[2]:.1f} cm (limit 2)',
          f'free thumb vs index finger: {ang_index:.0f} deg (want 30-45); thumb nail vs finger nails: {ang_nail:.0f} deg (want 60-90)',
          f'free thumb starts at the MCP, y {mcp[1]:.1f} cm; halfway wrist crease to index knuckle is y {(crease + knuckle) / 2:.1f} cm']
+# widths of the subdivided skin (cm): side to side across a section normal to the bone
+SV = np.array([v.co[:] for v in hand.data.vertices]) * 100
+def width(c, d, Lx, r=1.6):
+    q = SV - c; a = q @ d; rad = np.linalg.norm(q - np.outer(a, d), axis=1); m = (abs(a) < .12) & (rad < r)
+    if not m.any(): return 0, 0
+    Lx = perp(Lx, d); Zd = np.cross(d, Lx); return np.ptp(q[m] @ Lx), np.ptp(q[m] @ Zd)
+wd = []
+for n in hands.ORDER:
+    J = f[n]['joints']; d = f[n]['d']; w0 = width(J[0] + d * hands.FINGERS[n]['L'][0] * .55, d, f[n]['L'], 1.25); w1 = width(J[1] + d * .7, d, f[n]['L'], 1.2)
+    wd.append(f'{n} {w0[0]:.2f}x{w0[1]:.2f}>{w1[0]:.2f}')
+tp = width((mcp + ip) / 2, d2, np.cross(d2, perp(tz, d2))); td = width(ip + d3 * 1.2, d3, np.cross(d3, perp(tz, d3)))
+lines.append('finger base > middle width x thickness (cm): ' + ', '.join(wd))
+lines.append(f'thumb proximal {tp[0]:.2f} x {tp[1]:.2f} cm (want 2.2-2.4 wide); distal {td[0]:.2f} x {td[1]:.2f} cm')
 print('\n'.join(lines))
 for o in (hand, nails): o.location = (0, 0, 0)
 ctr = Vector((.01, .07, 0))
 cams = [views.cam_at(ctr + Vector((0, 0, .42)), ctr, 50, 'top-down (back of hand)'), views.cam_at(ctr + Vector((.40, -.06, .04)), ctr, 50, 'thumb side'),
-        views.cam_at(ctr + Vector((0, 0, -.42)), ctr, 50, 'palm')]
+        views.cam_at(ctr + Vector((0, 0, -.42)), ctr, 50, 'palm'), views.cam_at(ctr + Vector((.03, .03, 0)) + Vector((.22, -.05, -.3)), ctr + Vector((.03, .03, 0)), 50, 'thenar 3/4 (palm, thumb side)')]
 views.sheet(OUT, objs=[hand, nails], mode='shape', res=380, cams=cams)
 from PIL import Image, ImageDraw
 im = Image.open(OUT); W, Hh = im.size; out = Image.new('RGB', (W, Hh + 18 * len(lines) + 8), (20, 20, 22)); out.paste(im, (0, 0)); dr = ImageDraw.Draw(out)

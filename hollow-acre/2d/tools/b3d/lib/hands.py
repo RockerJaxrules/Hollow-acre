@@ -31,10 +31,10 @@ def sstep(a, b, x):
 # ------------------------------------------------------------------ measurements (cm)
 # name: MCP joint centre (x, y, z), splay (deg, + toward thumb), segment lengths, width at base, width at tip
 FINGERS = {
-    'pinky':  dict(mcp=(-2.95, 7.85, 0.05), splay=-2.5, L=(3.35, 1.95, 1.75), wb=1.90, wt=1.42),
-    'ring':   dict(mcp=(-1.02, 8.65, 0.15), splay=-1.0, L=(4.25, 2.65, 2.00), wb=2.08, wt=1.58),
-    'middle': dict(mcp=(0.98, 9.00, 0.18), splay=0.0, L=(4.55, 2.80, 2.05), wb=2.20, wt=1.66),
-    'index':  dict(mcp=(3.02, 8.55, 0.12), splay=1.5, L=(4.10, 2.45, 1.95), wb=2.15, wt=1.62),
+    'pinky':  dict(mcp=(-3.05, 7.85, 0.05), splay=-2.5, L=(3.20, 1.86, 1.70), wb=2.02, wt=1.56),
+    'ring':   dict(mcp=(-1.05, 8.65, 0.15), splay=-1.0, L=(4.05, 2.52, 1.95), wb=2.22, wt=1.72),
+    'middle': dict(mcp=(1.00, 9.00, 0.18), splay=0.0, L=(4.35, 2.66, 2.00), wb=2.34, wt=1.80),
+    'index':  dict(mcp=(3.10, 8.55, 0.12), splay=1.5, L=(3.92, 2.33, 1.90), wb=2.28, wt=1.76),
 }
 ORDER = ['pinky', 'ring', 'middle', 'index']          # ulnar -> radial, matches palm columns 0..8
 THUMB = dict(cmc=(2.35, 1.9, -0.5), abd=50.0, flex=4.0, pron=80.0, mcp_flex=10.0, ip_flex=12.0, L=(4.6, 2.8, 2.3))
@@ -50,13 +50,28 @@ def thumb_skeleton(T=THUMB):
     i = np.radians(T['ip_flex']); d3 = nrm(d2 * np.cos(i) - tz2 * np.sin(i))
     L = T['L']; mcp = cmc + d1 * L[0]; ip = mcp + d2 * L[1]; tip = ip + d3 * L[2]
     return cmc, mcp, ip, tip, (d1, d2, d3), tz
-THICK = 0.86                                          # finger thickness / width
+# thumb joint limits for posing from the rest skeleton (deg): CMC abduction (+ away from the index), flexion (+ in
+# front of the palm = palmar abduction), pronation; MCP and IP hinges (+ toward the pad). (t353 r4)
+THUMB_LIM = dict(abd=(-30, 22), flex=(-8, 38), pron=(-20, 25), mcp=(-10, 55), ip=(-15, 75))
+def thumb_pose(q, T=THUMB):
+    """Pose the rest thumb by q = (abd, flex, pron, mcp, ip) degrees, each within THUMB_LIM. Returns the joints
+    [cmc, mcp, ip, tip] (canonical cm) and the three bone deltas (4x4, canonical cm) for thumb1..3, so an IK can
+    minimise any cost over q with bounds and hand the deltas to a rig."""
+    cmc, mcp, ip, tip, (d1, d2, d3), tz = thumb_skeleton(T)
+    def Rp(P, R):
+        M = np.eye(4); M[:3, :3] = R; M[:3, 3] = P - R @ P; return M
+    abd, fl, pr, m, i = np.radians(q); Z = np.array([0, 0, 1.0]); kh = nrm(np.cross(tz, d1))
+    R1 = rot(Z, -abd) @ rot(nrm(np.cross(Z, d1)), fl) @ rot(d1, pr)
+    D1 = Rp(cmc, R1); D2 = D1 @ Rp(mcp, rot(kh, m)); D3 = D2 @ Rp(ip, rot(kh, i))
+    pts = [cmc] + [(D @ np.append(p, 1))[:3] for D, p in ((D1, mcp), (D2, ip), (D3, tip))]
+    return pts, (D1, D2, D3)
+THICK = 0.90                                          # finger thickness / width
 # palm stations: y, half width, centre x, dorsal z, palmar z, hollow, thenar, hypothenar
 PALM = [(0.0, 2.72, 0.00, 1.72, -1.80, 0.00, 0.00, 0.00),
-        (1.7, 3.35, 0.05, 1.52, -1.62, 0.05, 0.75, 0.35),
-        (3.6, 3.80, 0.10, 1.32, -1.38, 0.22, 0.75, 0.30),
-        (5.6, 4.05, 0.12, 1.24, -1.32, 0.20, 0.45, 0.15),
-        (7.0, 4.15, 0.12, 1.22, -1.40, 0.06, 0.00, 0.05)]
+        (1.7, 3.40, 0.05, 1.52, -1.62, 0.05, 1.20, 0.38),
+        (3.6, 3.88, 0.10, 1.32, -1.38, 0.26, 1.30, 0.32),
+        (5.6, 4.14, 0.12, 1.24, -1.32, 0.20, 0.80, 0.15),
+        (7.0, 4.24, 0.12, 1.22, -1.40, 0.06, 0.05, 0.05)]
 # forearm profile from the wrist toward the elbow: distance, half width, dorsal, palmar (cm)
 FORE = [(0.0, 2.72, 1.72, -1.80), (2.2, 2.86, 1.86, -1.88), (5.0, 3.25, 2.05, -2.05), (8.0, 3.65, 2.35, -2.30),
         (11.0, 3.88, 2.58, -2.50), (14.0, 3.95, 2.62, -2.56)]
@@ -103,7 +118,7 @@ def palm_ring(st, y_override=None):
         x = cx + hw * u * 0.93
         z_d = zd * (1 - 0.42 * u * u)
         z_p = zp * (1 - 0.45 * u * u) * (1 - hol * np.exp(-((u - 0.05) / 0.45) ** 2))
-        z_p -= the * np.exp(-((u - 0.72) / 0.30) ** 2) + hyp * np.exp(-((u + 0.75) / 0.30) ** 2)
+        z_p -= the * np.exp(-((u - 0.68) / 0.36) ** 2) + hyp * np.exp(-((u + 0.75) / 0.30) ** 2)
         pts_d.append((x, y, z_d)); pts_p.append((x, y, z_p))
     zm = (zd + zp) * 0.25
     side_r = (cx + hw, y, zm); side_u = (cx - hw, y, zm)
@@ -181,10 +196,11 @@ def build_hand(dfc, thumb_dirs=None, thumb_z=None):
     prev = thumb_port; prev_c = np.mean([C.V[i] for i in thumb_port], 0)
     pc = prev_c; dm = nrm(mcp - pc)                       # from the port (radial side of wrist and palm) to the thumb knuckle
     # thenar: a thick pad over the metacarpal from the wrist to the knuckle, then two broad phalanges and a broad tip
-    stations = [(pc + (mcp - pc) * .36, nrm(dm * .6 + d1 * .4), 1.9, .78, 'tm'), (pc + (mcp - pc) * .72, nrm(dm * .3 + d1 * .7), 1.5, .8, 'tm'),
-                (mcp, nrm(d1 + d2), 1.24, .78, 'tmcp'), (mcp + d2 * .4, d2, 1.18, .78, 'tp'), (mcp + d2 * 1.45, d2, 1.15, .78, 'tp'),
-                (ip - d2 * .3, d2, 1.14, .77, 'tp'), (ip, nrm(d2 + d3), 1.17, .76, 'tip_j'), (ip + d3 * .3, d3, 1.16, .76, 'td'),
-                (ip + d3 * 1.15, d3, 1.19, .74, 'td'), (tip - d3 * .45, d3, 1.07, .72, 'td'), (tip - d3 * .17, d3, .8, .62, 'td'), (tip - d3 * .03, d3, .36, .44, 'tend')]
+    # (r4: broader than a finger, a rounded thenar mound, a wide flat spatulate tip)
+    stations = [(pc + (mcp - pc) * .36, nrm(dm * .6 + d1 * .4), 2.1, .96, 'tm'), (pc + (mcp - pc) * .72, nrm(dm * .3 + d1 * .7), 1.78, .92, 'tm'),
+                (mcp, nrm(d1 + d2), 1.40, .80, 'tmcp'), (mcp + d2 * .4, d2, 1.34, .78, 'tp'), (mcp + d2 * 1.45, d2, 1.30, .77, 'tp'),
+                (ip - d2 * .3, d2, 1.29, .76, 'tp'), (ip, nrm(d2 + d3), 1.32, .74, 'tip_j'), (ip + d3 * .3, d3, 1.32, .72, 'td'),
+                (ip + d3 * 1.15, d3, 1.38, .66, 'td'), (tip - d3 * .45, d3, 1.27, .64, 'td'), (tip - d3 * .17, d3, .98, .56, 'td'), (tip - d3 * .03, d3, .46, .42, 'tend')]
     plong = nrm(C.V[thumb_port[2]] - C.V[thumb_port[0]])     # the port's long axis (along the hand's radial edge)
     for k, (c, dd, hw, th, tag) in enumerate(stations):
         zz = perp(tz, dd); ll = nrm(np.cross(dd, zz))
@@ -272,10 +288,10 @@ def detail(V, N, H, seed=3, out=None):
         return np.linalg.norm(XY - (a + np.outer(t, d)), axis=1), t
     mcps = [np.array(H['fingers'][n]['joints'][0]) for n in ['pinky', 'ring', 'middle', 'index']]
     for i, m in enumerate(mcps):
-        h += .22 * np.exp(-(d2((m[0], m[1] - .2)) / .5) ** 2) * dors * (.8 if i == 0 else 1)            # knuckle head
+        h += .26 * np.exp(-(d2((m[0], m[1] - .2)) / .52) ** 2) * dors * (.8 if i == 0 else 1)           # knuckle head (carries the form)
         if i: h -= .10 * np.exp(-(d2(((m[0] + mcps[i - 1][0]) / 2, (m[1] + mcps[i - 1][1]) / 2 - .45)) / .42) ** 2) * dors
-        dist, t = seg2((-.2 + i * .25, .5), (m[0], m[1] - .8))                                          # broad, low tendon
-        h += .06 * np.exp(-(dist / .2) ** 2) * sstep(0, .25, t) * sstep(1.0, .85, t) * dors * (.75 if i == 0 else 1)
+        dist, t = seg2((-.2 + i * .25, .5), (m[0], m[1] - .8))                                          # tendon: nearly flush (r4)
+        h += .022 * np.exp(-(dist / .28) ** 2) * sstep(0, .25, t) * sstep(1.0, .85, t) * dors * (.75 if i == 0 else 1)
     h += .2 * np.exp(-(d2((-2.55, -1.15)) / .5) ** 2) * sstep(-.3, .4, N[:, 2] - N[:, 0] * .8)        # ulnar styloid
     # the wrist crease: a soft groove across the palm side and a faint one across the back
     h -= .05 * np.exp(-((V[:, 1] + .35) / .12) ** 2) * sstep(.1, .6, -N[:, 2]) + .025 * np.exp(-((V[:, 1] + .2) / .15) ** 2) * dors
@@ -288,8 +304,8 @@ def detail(V, N, H, seed=3, out=None):
         best = np.full(len(V), 9.)
         for p0, p1 in zip(pts[:-1], pts[1:]):
             dist, t = seg2(p0, p1); best = np.minimum(best, dist)
-        core = np.exp(-(best / .17) ** 2); soft = np.exp(-(best / .4) ** 2)
-        m = (.08 * core + .025 * soft) * sstep(.05, .5, N[:, 2]) * (.7 if k == 3 else 1)
+        core = np.exp(-(best / .22) ** 2); soft = np.exp(-(best / .45) ** 2)          # r4: lower and rounder (thin ridges read as streaks)
+        m = (.045 * core + .02 * soft) * sstep(.05, .5, N[:, 2]) * (.7 if k == 3 else 1)
         h += m; vmask = np.maximum(vmask, core * sstep(.05, .5, N[:, 2]))
     if out is not None: out['vein'] = vmask
     # keep the finger webs smooth (palm side and back): displacement folds into fins where the surface turns sharply

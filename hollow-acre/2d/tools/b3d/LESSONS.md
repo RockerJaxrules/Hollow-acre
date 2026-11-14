@@ -111,6 +111,35 @@ and are never committed or shipped.
   other, and the two hands are at different clock positions.
 - **The sleeve is loose,** with a soft, wide cuff and folds, and covers part of the wrist.
 
+### Placing each hand on the wheel (t353 r4: photo-matched grips)
+- **Check the reach before choosing a pose.** In the p2 cab the rim is about 60 cm from the shoulder and the arm is
+  56 cm, so the forearm points almost straight forward.
+  - A hand whose back faces the driver would then need about 90 degrees of wrist extension, which no wrist has.
+  - Search the hand's orientation against the IK forearm, inside wrist limits (extension 30 or less, deviation 25 or
+    less). Keep the solution that turns the back of the hand most toward the eye.
+  - The relaxed left hand that came out of this: about twenty past nine, yawed 40 degrees toward twelve, fingers
+    drooped 30 degrees toward the dash.
+- **Keep the knuckle line within about 20 degrees of the rim** for a hook grip, so all four fingers wrap.
+  - At 45 degrees (a diagonal grip) the index finger lies along the rim and cannot close, while the pinky has to close
+    70 degrees to reach it. Two fingers do the gripping and the index points like a gun.
+- **Seat a hand by sliding it along its back-of-hand normal** until the palm and finger bases just touch the rim
+  (`scene.seat`). Never hand-tune the height.
+- **A finger lying along the rim cannot flex into it.** Lift it first (MCP hyperextension up to 25 degrees), then
+  close the next joints.
+- **Pose the thumb by IK, but bind it halfway between the working poses.**
+  - Moving a thumb 40-55 degrees from its bind folds the web between the thumb and the index into a hard crease.
+  - Bound halfway, each side moves it only about 20 degrees.
+  - Keep the anatomical rest thumb for the rest-pose check; the bind is only for skinning.
+- **Nails: cast the rays from just above the nail bed** (about 1.5 cm), not from 3 cm.
+  - A flexed bind thumb sits under the fingers. A ray from far away catches another finger's skin and leaves a nail
+    vertex there, which becomes a 4 cm spike when posed.
+- **When the two hands hold the rim differently, bake AO without the rim.**
+  - Do the rim's shadow and contact darkening live in the shader instead.
+  - The rim is a torus that looks the same however the wheel turns, so it is cheap to sphere-trace per light.
+- **Judge the thumb from the game eye, zoomed** (same position, narrow field of view).
+  - A thumb tucked under the rim at one o'clock shows in a close orbit view but is hidden in the game frame.
+  - The game frame is the one that counts.
+
 ### Gripping a steering wheel (driver guidance: NHTSA, driving schools)
 - The fingers wrap around the OUTSIDE of the rim. The thumbs rest ALONG the rim's driver-facing face, pointing up
   along the rim, on top of it, never hooked around the inside of the ring.
