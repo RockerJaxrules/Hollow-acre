@@ -41,9 +41,9 @@ THUMB = dict(cmc=(2.25, 1.55, -1.05), d1=(0.64, 0.70, -0.30), L=(4.6, 3.1, 2.55)
 THICK = 0.86                                          # finger thickness / width
 # palm stations: y, half width, centre x, dorsal z, palmar z, hollow, thenar, hypothenar
 PALM = [(0.0, 2.72, 0.00, 1.72, -1.80, 0.00, 0.00, 0.00),
-        (1.7, 3.35, 0.05, 1.52, -1.62, 0.05, 0.55, 0.35),
-        (3.6, 3.80, 0.10, 1.32, -1.38, 0.22, 0.45, 0.30),
-        (5.6, 4.05, 0.12, 1.24, -1.32, 0.20, 0.15, 0.15),
+        (1.7, 3.35, 0.05, 1.52, -1.62, 0.05, 0.75, 0.35),
+        (3.6, 3.80, 0.10, 1.32, -1.38, 0.22, 0.75, 0.30),
+        (5.6, 4.05, 0.12, 1.24, -1.32, 0.20, 0.45, 0.15),
         (7.0, 4.15, 0.12, 1.22, -1.40, 0.06, 0.00, 0.05)]
 # forearm profile from the wrist toward the elbow: distance, half width, dorsal, palmar (cm)
 FORE = [(0.0, 2.72, 1.72, -1.80), (2.2, 2.86, 1.86, -1.88), (5.0, 3.25, 2.05, -2.05), (8.0, 3.65, 2.35, -2.30),
@@ -118,14 +118,15 @@ def build_hand(dfc, thumb_dirs=None, thumb_z=None):
     C = Cage(); dfc = nrm(dfc)
     rings = [C.ring(palm_ring(st), 'palm') for st in PALM]
     # thumb port: palm ring indices 9 (radial side), 10 (P8), 11 (P7) between stations 1..3 stay open
-    port_faces = {(1, 8), (1, 9), (2, 8), (2, 9)}
+    port_faces = {(2, 10), (2, 11), (3, 10), (3, 11)}
     for k in range(len(rings) - 1):
         a, b = rings[k], rings[k + 1]
         for i in range(20):
             if (k, i) in port_faces: continue
             C.F.append([a[i], a[(i + 1) % 20], b[(i + 1) % 20], b[i]])
-    thumb_port = [rings[1][8], rings[2][8], rings[3][8], rings[3][9], rings[3][10], rings[2][10], rings[1][10], rings[1][9]]
-    unused = rings[2][9]
+    # the thumb leaves the palm on its thumb-side underside, low on the ball of the thumb, just behind the index knuckle
+    thumb_port = [rings[2][10], rings[3][10], rings[4][10], rings[4][11], rings[4][12], rings[3][12], rings[2][12], rings[2][11]]
+    unused = rings[3][11]
     # finger ports on the distal edge of the palm
     mc = {n: np.array(FINGERS[n]['mcp']) for n in ORDER}; wb = {n: FINGERS[n]['wb'] for n in ORDER}
     D, M, P = {}, {}, {}
@@ -169,13 +170,16 @@ def build_hand(dfc, thumb_dirs=None, thumb_z=None):
     prev = thumb_port; prev_c = np.mean([C.V[i] for i in thumb_port], 0)
     w = T['w']
     pc = prev_c; dm = nrm(mcp - pc)                       # from the port (radial edge of the palm) to the thumb knuckle
-    stations = [(pc + (mcp - pc) * .38, dm, 1.72, .80, 'tm'), (pc + (mcp - pc) * .74, nrm(dm + d1), 1.42, .80, 'tm'),
+    stations = [(pc + (mcp - pc) * .5, nrm(dm + d1 * .5), 1.5, .74, 'tm'),
                 (mcp, nrm(d1 + d2), 1.24, .76, 'tmcp'), (mcp + d2 * .4, d2, 1.18, .76, 'tp'), (mcp + d2 * 1.55, d2, 1.15, .76, 'tp'),
                 (ip - d2 * .3, d2, 1.14, .75, 'tp'), (ip, nrm(d2 + d3), 1.18, .74, 'tip_j'), (ip + d3 * .3, d3, 1.16, .74, 'td'),
                 (ip + d3 * 1.3, d3, 1.2, .72, 'td'), (tip - d3 * .5, d3, 1.08, .70, 'td'), (tip - d3 * .18, d3, .8, .6, 'td'), (tip - d3 * .03, d3, .36, .42, 'tend')]
-    for c, dd, hw, th, tag in stations:
+    plong = nrm(C.V[thumb_port[2]] - C.V[thumb_port[0]])     # the port's long axis (along the hand's radial edge)
+    for k, (c, dd, hw, th, tag) in enumerate(stations):
         zz = perp(tz, dd); ll = nrm(np.cross(dd, zz))
-        r = C.ring(ring_follow([C.V[i] for i in prev], prev_c, c, dd, ll, zz, hw, hw * th), 'thumb:' + tag)
+        if k < 2:                                            # the thenar keeps the port's long, flat shape so it flows out of the palm
+            w = (.7, .3)[k]; lp = perp(plong, dd); ll = nrm(lp * w + ll * (1 - w)); zz = nrm(np.cross(ll, dd)) * (1 if np.cross(ll, dd) @ zz > 0 else -1)
+        r = C.ring(ring_follow([C.V[i] for i in prev], prev_c, c, dd, ll, zz, hw, hw * th, sq=2.2), 'thumb:' + tag)
         C.bridge(prev, r); prev = r; prev_c = c
     C.cap8(prev)
     thumb = dict(joints=[cmc, mcp, ip, tip], d=[d1, d2, d3], Z=tz, r=[1.3, 1.1, 1.05, .9])
