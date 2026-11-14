@@ -42,6 +42,31 @@ One line each, concrete and checkable. **[repeated]** = broken again; move it to
 - Skin colour varies: redder at knuckles, creases and fingertips (the AO or flush mix in `mats.skin`).
 
 ## Hands and arms (anatomy to build to)
+### Build hands skeleton-first, and judge the REST pose before any grip (owner after r3: "Thumbs don't work like that find a way to do it right")
+- **[repeated] Root cause in r1-r3:** the thumb was attached to the UNDERSIDE of the palm. In the flat rest pose it
+  hung straight down like a hook. Every grip built on that base looked wrong however it was posed.
+  - The rest pose was never judged, only the grip.
+  - Always render and judge the flat rest pose first (`shape_rest`). Fix it there before posing anything.
+- **Skeleton first, skin second.**
+  - Place real bones (joint centres and axes) using the numbers below. Generate or fit the skin around them.
+  - Pose only by rotating real joints within their real limits (IK to contact points).
+  - Never shape a pose by moving cage vertices.
+- **Thumb ray:** about 93 mm in total (metacarpal plus two phalanges; X-ray study of 80 adults). The thumb metacarpal is the
+  shortest metacarpal, about 4.4-4.8 cm.
+- **The thumb's base joint (CMC) sits at the wrist** on the radial side (the trapezium), level with the bases of the
+  other metacarpals, NOT out in the palm.
+  - Its rest orientation relative to the 3rd metacarpal is about 48° flexion (toward the palm side), 38° abduction (away
+    from the index) and 80° pronation (rolled) (Cooney 1981).
+  - So in a relaxed hand the thumb sits slightly in FRONT of the palm plane, angled away from the index finger, and
+    turned on its side. Its pad faces the index side; its nail faces sideways and outward.
+- **Rest-pose checks** (all must pass on `shape_rest`, flat hand palm-down):
+  - The thumb lies roughly level with the palm, no more than about 2 cm below the palm plane. It never hangs down.
+  - The thumb axis is about 30-45° from the index finger.
+  - The thumb nail plane is about 60-90° from the finger nails.
+  - The web between thumb and index is a smooth curved fold.
+  - The thumb's free part begins about halfway between the wrist crease and the index knuckle, not at the knuckle.
+  - The thenar bulge runs from the wrist to the thumb's base.
+
 ### The thumb (owner: "The thumbs look very weird now you should probably research how humans hands work", t353 r2)
 - **The thumb is not a finger.**
   - It has only TWO visible segments: proximal and distal. Its third bone (the metacarpal) is inside the palm.
