@@ -88,10 +88,15 @@ def sheet(out, objs=None, mode='shape', res=360, cams=(), extra_views=True):
     for lt in lights: bpy.data.objects.remove(lt, do_unlink=True)
     from PIL import Image, ImageDraw
     cols = 3; rows = math.ceil(len(shots) / cols)
-    S = Image.new('RGB', (cols * res, rows * res + 24), (20, 20, 22)); dr = ImageDraw.Draw(S)
+    per = []
+    for o in objs[:8]:
+        a, b = _bounds([o]); d = b - a; per.append(f'{o.name}: {d.x:.3f} x {d.y:.3f} x {d.z:.3f}')
+    foot = 24 + 14 * len(per)
+    S = Image.new('RGB', (cols * res, rows * res + foot), (20, 20, 22)); dr = ImageDraw.Draw(S)
     for i, (lab, p) in enumerate(shots):
         im = Image.open(p).convert('RGB'); x, y = (i % cols) * res, (i // cols) * res
         S.paste(im, (x, y)); dr.rectangle([x, y, x + 8 * len(lab) + 8, y + 16], fill=(0, 0, 0)); dr.text((x + 4, y + 2), lab, fill=(255, 255, 255))
     dims = hi - lo
     dr.text((6, rows * res + 6), f'{mode}  size x{dims.x:.3f} y{dims.y:.3f} z{dims.z:.3f} m  ({len(objs)} objs)', fill=(230, 230, 230))
+    for i, t in enumerate(per): dr.text((6, rows * res + 22 + 14 * i), t + ' m', fill=(200, 200, 200))
     S.save(out); return out
