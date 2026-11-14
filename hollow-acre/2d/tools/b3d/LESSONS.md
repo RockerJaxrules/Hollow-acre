@@ -10,6 +10,22 @@ One line each, concrete and checkable. **[repeated]** = broken again; move it to
 - "Your going to have to do this for the whole part 2 so I suggest you find the proper tools to do it": Part 2 is
   realistic first-person. Build the tools once (this folder) and reuse them for everything.
 
+## The player's look carries over from Part 1 (owner: "Your going to have multiple sleeve Colors and skin Colors because this continues off a game where you customized your pixel character")
+- Everything first-person (hands, arms, sleeves, later boots and reflections) must work for every character-creator
+  option in g2d/custom.js, read from the save.
+- Skin: all 7 tones, #f6d8c0 to #5e3a26. Dark tones need a specular sheen. Flush contrast scales with tone.
+  Nails are a lighter version of the tone, never grey.
+- Shirt: 12 colours and 4 patterns (plain, plaid, stripes, dots), at a real fabric scale.
+- Sleeve construction follows the outfit:
+  - shirt, openshirt: woven, with a buttoned cuff.
+  - sweater, turtleneck, cardigan, hoodie: knit, with a ribbed cuff.
+  - jacket: a stiff hem.
+  - longcoat: thick wool.
+  - outfits with no sleeve to the wrist (tee, tank, vest, overalls, skirt, dress): a winter coat in the `extra` colour,
+    because it's a blizzard.
+- The ring shows only when married.
+- Every round's proof includes a 7-tone sheet and a sleeve-type sheet, not just one look.
+
 ## Blender 5.2 API traps (check with api.py)
 - Noise, Wave, Voronoi and similar texture outputs are named `Factor`, not `Fac`.
 - `ShaderNodeMix` has several sockets with the same name (`A`, `B`, `Result` as float, vector and colour).
