@@ -137,8 +137,16 @@ and are never committed or shipped.
   - A hand whose back faces the driver would then need about 90 degrees of wrist extension, which no wrist has.
   - Search the hand's orientation against the IK forearm, inside wrist limits (extension 30 or less, deviation 25 or
     less). Keep the solution that turns the back of the hand most toward the eye.
-  - The relaxed left hand that came out of this: about twenty past nine, yawed 40 degrees toward twelve, fingers
-    drooped 30 degrees toward the dash.
+  - For 10 and 2 in the p2 cab this gives, in rim terms: back of the hand 50-55 degrees from outward toward the
+    driver, the hand yawed 42-45 degrees toward twelve (the rim then runs diagonally from the heel to the index base),
+    rolled 10-15 degrees. That holds wrist extension under 30 and tilts the wrist toward the pinky.
+  - Each hand is placed by searching: a coarse grid over the place, filtered by the wrist limits, then the finger
+    cascade on the best 60, ranked by how many fingers wrap and how squarely the back of the hand faces the eye.
+- **The thumb at 10 and 2 is solved by IK to a target, not posed by hand.**
+  - The target sits on the rim's driver face, at the side of the index finger's middle segment, aimed along the rim
+    toward twelve.
+  - The cost adds three terms: the thumb's nail facing the eye; the IP joint kept near 10 degrees; and a ban on
+    hooking round the rim's far side.
 - **Keep the knuckle line within about 20 degrees of the rim** for a hook grip, so all four fingers wrap.
   - At 45 degrees (a diagonal grip) the index finger lies along the rim and cannot close, while the pinky has to close
     70 degrees to reach it. Two fingers do the gripping and the index points like a gun.
