@@ -16,9 +16,9 @@ void AEndingDirector::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (Truck)
+	if (Car)
 	{
-		TruckStart = Truck->GetActorTransform();
+		CarStart = Car->GetActorTransform();
 	}
 
 	// Screenshots for the work log skip the fade (-nofade) so the frame isn't black
@@ -44,16 +44,16 @@ void AEndingDirector::StartFade()
 void AEndingDirector::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	if (!Truck)
+	if (!Car)
 	{
 		return;
 	}
 	Time += DeltaSeconds;
 
 	const float Speed = SpeedKmh * 100000.f / 3600.f; // cm/s
-	FVector Loc = TruckStart.GetLocation() + TruckStart.GetRotation().GetForwardVector() * Speed * Time;
+	FVector Loc = CarStart.GetLocation() + CarStart.GetRotation().GetForwardVector() * Speed * Time;
 	// Low, uneven bumps and a slow roll, never mirrored or periodic-looking
 	Loc.Z += 0.8f * FMath::Sin(Time * 7.1f) + 0.5f * FMath::Sin(Time * 11.3f + 1.7f);
 	const FRotator Sway(SwayDeg * 0.4f * FMath::Sin(Time * 1.9f + 0.4f), 0.f, SwayDeg * FMath::Sin(Time * 1.3f));
-	Truck->SetActorLocationAndRotation(Loc, (TruckStart.GetRotation() * Sway.Quaternion()));
+	Car->SetActorLocationAndRotation(Loc, (CarStart.GetRotation() * Sway.Quaternion()));
 }

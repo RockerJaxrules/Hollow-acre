@@ -5,7 +5,7 @@
 ASnowfall::ASnowfall()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.TickGroup = TG_PostPhysics; // after the truck has moved this frame
+	PrimaryActorTick.TickGroup = TG_PostPhysics; // after the car has moved this frame
 
 	Mesh = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Flakes"));
 	RootComponent = Mesh;
@@ -59,7 +59,7 @@ void ASnowfall::Tick(float DeltaSeconds)
 		const float Ph = Time * D.Z + D.Y;
 		FVector P = Pos[i] + Base + FVector(FMath::Sin(Ph), FMath::Cos(Ph * 0.7f), 0.f) * D.X * DeltaSeconds;
 
-		// Wrap around the box that travels with the truck
+		// Wrap around the box that travels with the car
 		FVector L = P - C;
 		L.X = FMath::Wrap(L.X, -Extent.X, Extent.X);
 		L.Y = FMath::Wrap(L.Y, -Extent.Y, Extent.Y);

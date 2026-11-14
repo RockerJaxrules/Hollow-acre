@@ -1,5 +1,5 @@
 // Runs the realistic half of the ending drive. Part 1 (pixel) ends with the car driving up the mountain into the blizzard
-// and the screen fading to black; this scene opens on that black, fades in to the driver's seat with the truck already
+// and the screen fading to black; this scene opens on that black, fades in to the driver's seat with the car already
 // moving, and later fades out to "To be continued".
 
 #pragma once
@@ -16,9 +16,9 @@ class HOLLOWACRE_API AEndingDirector : public AActor
 public:
 	AEndingDirector();
 
-	/** The truck root: the cab, wheel, headlights and the driver's camera are attached to it. */
+	/** The car root: the body, wheel, headlights and the driver's camera are attached to it. */
 	UPROPERTY(EditAnywhere, Category = "Ending")
-	TObjectPtr<AActor> Truck;
+	TObjectPtr<AActor> Car;
 
 	/** Seconds of held black at the start (the cut from the pixel game). */
 	UPROPERTY(EditAnywhere, Category = "Ending")
@@ -28,11 +28,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ending")
 	float FadeIn = 3.5f;
 
-	/** Truck speed in km/h. */
+	/** Car speed in km/h. */
 	UPROPERTY(EditAnywhere, Category = "Ending")
 	float SpeedKmh = 35.f;
 
-	/** Gentle cab sway from the rough, snowy road (degrees). */
+	/** Gentle body sway from the rough, snowy road (degrees). */
 	UPROPERTY(EditAnywhere, Category = "Ending")
 	float SwayDeg = 0.6f;
 
@@ -43,7 +43,7 @@ protected:
 private:
 	void StartFade();
 
-	FTransform TruckStart;
+	FTransform CarStart;
 	float Time = 0.f;
 	FTimerHandle FadeTimer;
 };

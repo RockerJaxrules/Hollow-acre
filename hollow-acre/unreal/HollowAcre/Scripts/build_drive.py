@@ -4,6 +4,8 @@ Run inside the editor (headless is fine):
   UnrealEditor.exe HollowAcre.uproject -ExecutePythonScript="<path>/Scripts/build_drive.py" -unattended -nosplash -RenderOffscreen
 Re-running rebuilds the level and materials from scratch. Tunables are at the top.
 Everything here is our own blockout (engine basic shapes); MetaHuman arms and Megascans replace parts later.
+The car is the player's car from Part 1 (2d/tools/px/cars.py sedan, car_beaten.py): a red sedan with a primer-grey
+replacement hood and front fenders, rust, and a cracked windshield taped over.
 """
 import math
 import random
@@ -14,7 +16,7 @@ MATS = '/Game/HollowAcre/Materials/Blockout'
 BPS = '/Game/HollowAcre/Blueprints'
 
 # Tunables (centimetres, degrees, Unreal light units)
-EYE = unreal.Vector(0, 0, 175)          # driver's eye, cab sits on the road at the origin facing +X
+EYE = unreal.Vector(0, 0, 118)          # driver's eye in a sedan; the car sits on the road at the origin facing +X
 EXPOSURE_BIAS = 0.0                     # manual exposure, EV offset
 MOON_LUX = 0.4
 HEADLIGHT_CD = 6000
@@ -23,7 +25,7 @@ SEED = 7
 HEADLIGHT_FOG_GLOW = 0.8                # volumetric scattering of the headlight beams
 SNOW_FLAKES = 16000
 SNOW_SIZE_CM = (1.4, 3.2)
-SNOW_BOX_CM = (1500, 900, 500)   # half-size of the snow box around the truck
+SNOW_BOX_CM = (1500, 900, 500)   # half-size of the snow box around the car
 SNOW_AHEAD_CM = 1750                # box starts just past the windshield, never inside the cab
 
 ell = unreal.EditorLevelLibrary
@@ -79,7 +81,7 @@ def shape(kind, loc, scale, mat, rot=None, label=None, shadows=True):
     return a
 
 
-CAB = None  # while a list, every new shape belongs to the truck
+CAB = None  # while a list, every new shape belongs to the car
 
 
 def V(x, y, z):
@@ -109,8 +111,9 @@ def main():
     rock = make_mat('M_Rock', (0.10, 0.10, 0.11), 0.9)
     plastic = make_mat('M_DashPlastic', (0.025, 0.025, 0.027), 0.55)
     rubber = make_mat('M_WheelRubber', (0.02, 0.02, 0.02), 0.45)
-    paint = make_mat('M_TruckPaint', (0.03, 0.04, 0.06), 0.3, spec=0.6)
-    gauge = make_mat('M_GaugeGlow', (0.0, 0.0, 0.0), 0.4, emissive=(0.05, 0.12, 0.14))
+    paint = make_mat('M_CarPaintRed', (0.30, 0.035, 0.035), 0.35, spec=0.6)      # the Part 1 car's red
+    primer = make_mat('M_HoodPrimer', (0.24, 0.245, 0.235), 0.85, spec=0.3)    # replacement hood, grey primer
+    gauge = make_mat('M_GaugeGlow', (0.0, 0.0, 0.0), 0.4, emissive=(0.02, 0.05, 0.06))
 
     # Ground, road, banks
     shape('Plane', V(0, 0, 0), V(4000, 4000, 1), snow, label='Ground')
@@ -140,19 +143,22 @@ def main():
         shape('Cone', V(x, y, s * 50), V(s * 1.4, s * 1.2, s), rock, shadows=False)
         shape('Cone', V(x, y, s * 50 + s * 38), V(s * 0.6, s * 0.52, s * 0.42), snow, shadows=False)
 
-    # Truck cab (blockout): hood, dash, pillars, roof, door tops
+    # The car (blockout): primer hood and fenders, dash, raked windshield pillars, roof, door tops, red mirrors
     global CAB
     CAB = []
-    shape('Cube', V(250, 0, 96), V(2.2, 1.9, 0.12), paint, unreal.Rotator(-4, 0, 0), 'Hood')
-    shape('Cube', V(75, 0, 105), V(0.55, 1.75, 0.40), plastic, label='Dashboard')
-    shape('Cube', V(52, -28, 119), V(0.04, 0.32, 0.12), gauge, label='Gauges', shadows=False)
+    shape('Cube', V(160, 0, 84), V(1.7, 1.66, 0.08), primer, unreal.Rotator(-7, 0, 0), 'Hood (primer)')
     for side in (-1, 1):
-        shape('Cube', V(88, side * 86, 165), V(0.06, 0.08, 0.95), plastic, unreal.Rotator(-35, 0, 0), 'A pillar')
-        shape('Cube', V(0, side * 92, 120), V(1.6, 0.05, 0.25), plastic, label='Door top')
-    shape('Cube', V(20, 0, 208), V(1.3, 1.85, 0.06), plastic, label='Roof')
+        shape('Cube', V(160, side * 86, 80), V(1.7, 0.12, 0.1), primer, unreal.Rotator(-7, 0, 0), 'Front fender (primer)')
+        shape('Cube', V(62, side * 102, 96), V(0.06, 0.2, 0.13), paint, label='Mirror (red)')
+    shape('Cube', V(68, 0, 81), V(0.55, 1.6, 0.28), plastic, label='Dashboard')
+    shape('Cube', V(62, -2, 93), V(0.02, 0.22, 0.07), gauge, label='Gauges', shadows=False)
+    for side in (-1, 1):
+        shape('Cube', V(44, side * 74, 118), V(0.06, 0.08, 0.80), plastic, unreal.Rotator(56, 0, 0), 'A pillar')
+        shape('Cube', V(-10, side * 82, 92), V(1.4, 0.05, 0.2), plastic, label='Door top')
+    shape('Cube', V(-40, 0, 144), V(1.15, 1.5, 0.05), plastic, label='Roof')
 
     # Steering wheel: rim of 36 short cylinders in the tilted wheel plane, 3 spokes, hub and column
-    centre = EYE + V(46, -2, -34)
+    centre = EYE + V(44, -2, -30)
     tilt = math.radians(25)
     n = unreal.Vector(-math.cos(tilt), 0, math.sin(tilt))   # faces the driver
     u = unreal.Vector(0, 1, 0)
@@ -173,7 +179,7 @@ def main():
         d = u * math.cos(a) + v * math.sin(a)
         shape('Cube', centre + d * (R / 2) - n * 0.5, V(R / 100, 0.04, 0.015), plastic, unreal.MathLibrary.make_rot_from_xz(d, n))
     shape('Cylinder', centre + n * -14, V(0.07, 0.07, 0.28), plastic, unreal.MathLibrary.make_rot_from_z(n), 'Column')
-    truck_parts, CAB = CAB, None
+    car_parts, CAB = CAB, None
 
     # ---------- light and atmosphere ----------
     moon = actors.spawn_actor_from_class(unreal.DirectionalLight, V(0, 0, 1000), unreal.Rotator(0, -32, 150))
@@ -203,7 +209,7 @@ def main():
     fc.set_editor_property('volumetric_fog_distance', 9000.0)
 
     for side in (-1, 1):
-        hl = actors.spawn_actor_from_class(unreal.SpotLight, V(395, side * 70, 95), unreal.Rotator(-4, 0, side * -2))
+        hl = actors.spawn_actor_from_class(unreal.SpotLight, V(240, side * 66, 68), unreal.Rotator(-3, 0, side * -2))
         hl.set_actor_label('Headlight')
         c = hl.spot_light_component
         c.set_editor_property('intensity_units', unreal.LightUnits.CANDELAS)
@@ -213,17 +219,17 @@ def main():
         c.set_editor_property('inner_cone_angle', 10.0)
         c.set_editor_property('attenuation_radius', 6000.0)
         c.set_editor_property('volumetric_scattering_intensity', HEADLIGHT_FOG_GLOW)
-        truck_parts.append(hl)
+        car_parts.append(hl)
 
-    dash = actors.spawn_actor_from_class(unreal.PointLight, V(50, -28, 126))
+    dash = actors.spawn_actor_from_class(unreal.PointLight, V(58, -2, 95))
     dash.set_actor_label('Gauge glow')
     dc = dash.point_light_component
     dc.set_editor_property('intensity_units', unreal.LightUnits.CANDELAS)
-    dc.set_intensity(0.6)
+    dc.set_intensity(0.15)
     dc.set_light_color(unreal.LinearColor(0.45, 0.85, 1.0, 1))
     dc.set_editor_property('attenuation_radius', 90.0)
     dc.set_editor_property('volumetric_scattering_intensity', 0.0)
-    truck_parts.append(dash)
+    car_parts.append(dash)
 
     ppv = actors.spawn_actor_from_class(unreal.PostProcessVolume, V(0, 0, 0))
     ppv.set_actor_label('Night grade')
@@ -238,28 +244,28 @@ def main():
     ppv.set_editor_property('settings', s)
 
     # ---------- game camera, game mode, screenshot director ----------
-    cam = actors.spawn_actor_from_class(unreal.CameraActor, EYE, unreal.Rotator(0, -6, 0))
+    cam = actors.spawn_actor_from_class(unreal.CameraActor, EYE, unreal.Rotator(0, -5, 0))
     cam.set_actor_label('Driver eye')
     cam.camera_component.set_editor_property('field_of_view', 78.0)
     cam.camera_component.set_editor_property('constrain_aspect_ratio', False)
     cam.set_editor_property('auto_activate_for_player', unreal.AutoReceiveInput.PLAYER0)
     actors.spawn_actor_from_class(unreal.PlayerStart, EYE + V(-300, 0, 0))
-    truck_parts.append(cam)
+    car_parts.append(cam)
 
-    # One movable truck root that the ending director drives up the road
-    truck = actors.spawn_actor_from_class(unreal.Actor, V(0, 0, 0))
-    truck.set_actor_label('Truck')
-    root = unreal.SceneComponent(truck, 'TruckRoot')
-    truck.set_editor_property('root_component', root)
+    # One movable car root that the ending director drives up the road
+    car = actors.spawn_actor_from_class(unreal.Actor, V(0, 0, 0))
+    car.set_actor_label('Car')
+    root = unreal.SceneComponent(car, 'CarRoot')
+    car.set_editor_property('root_component', root)
     root.set_mobility(unreal.ComponentMobility.MOVABLE)
-    for p in truck_parts:
+    for p in car_parts:
         p.root_component.set_mobility(unreal.ComponentMobility.MOVABLE)
-        p.attach_to_actor(truck, '', unreal.AttachmentRule.KEEP_WORLD, unreal.AttachmentRule.KEEP_WORLD,
+        p.attach_to_actor(car, '', unreal.AttachmentRule.KEEP_WORLD, unreal.AttachmentRule.KEEP_WORLD,
                           unreal.AttachmentRule.KEEP_WORLD, False)
     flake = make_mat('M_Snowflake', (0.92, 0.94, 0.97), 1.0, emissive=(0.010, 0.012, 0.016))
     snow_actor = actors.spawn_actor_from_class(unreal.load_class(None, '/Script/HollowAcre.Snowfall'), V(0, 0, 0))
     snow_actor.set_actor_label('Snowfall')
-    snow_actor.set_editor_property('follow', truck)
+    snow_actor.set_editor_property('follow', car)
     snow_actor.set_editor_property('flakes', SNOW_FLAKES)
     snow_actor.set_editor_property('size', unreal.Vector2D(*SNOW_SIZE_CM))
     snow_actor.set_editor_property('extent', unreal.Vector(*SNOW_BOX_CM))
@@ -269,7 +275,7 @@ def main():
     ism.set_material(0, flake)
     director = actors.spawn_actor_from_class(unreal.load_class(None, '/Script/HollowAcre.EndingDirector'), V(0, 0, 0))
     director.set_actor_label('Ending director')
-    director.set_editor_property('truck', truck)
+    director.set_editor_property('car', car)
 
     gm_path = f'{BPS}/BP_EndingDriveGameMode'
     if not eal.does_asset_exist(gm_path):

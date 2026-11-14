@@ -1,4 +1,4 @@
-// Blizzard snowfall around a moving target (the truck): flakes live in a box that travels with the target and wrap
+// Blizzard snowfall around a moving target (the car): flakes live in a box that travels with the target and wrap
 // around its edges, so the snow never runs out however far you drive. Flakes are world-space, so driving through them
 // makes them stream at the windshield. PC first; phones get a lower flake count via scalability later.
 
@@ -18,7 +18,7 @@ class HOLLOWACRE_API ASnowfall : public AActor
 public:
 	ASnowfall();
 
-	/** The snow box follows this actor (the truck). */
+	/** The snow box follows this actor (the car). */
 	UPROPERTY(EditAnywhere, Category = "Snow")
 	TObjectPtr<AActor> Follow;
 

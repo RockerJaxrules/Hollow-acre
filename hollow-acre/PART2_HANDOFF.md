@@ -94,7 +94,9 @@ Full detail is in `2d/tools/b3d/LESSONS.md`, including the table of measurable 1
    mobile renderer set up for phones. Put it under version control. Unreal projects need Git LFS for binary assets;
    decide where it lives, the same repo or a new one.
 3. **First milestone, the ending drive:**
-   - a truck cab at night in a blizzard;
+   - the player's own **car** at night in a blizzard (not a truck): the Part 1 car, a red sedan with a primer-grey
+     replacement hood and front fenders, rust, and a cracked windshield taped over (`2d/tools/px/car_beaten.py`).
+     The scene opens on black and fades in, continuing the pixel ending's car driving up the mountain;
    - MetaHuman first-person arms posed to the 10-and-2 targets;
    - Megascans snow and rock;
    - volumetric fog and the falling snow.
