@@ -37,7 +37,19 @@ FINGERS = {
     'index':  dict(mcp=(3.02, 8.55, 0.12), splay=1.5, L=(4.10, 2.45, 1.95), wb=2.15, wt=1.62),
 }
 ORDER = ['pinky', 'ring', 'middle', 'index']          # ulnar -> radial, matches palm columns 0..8
-THUMB = dict(cmc=(2.25, 1.55, -1.05), d1=(0.64, 0.70, -0.30), L=(4.6, 3.1, 2.55), w=(2.5, 2.35, 2.3, 2.1))
+THUMB = dict(cmc=(2.35, 1.9, -0.5), abd=50.0, flex=4.0, pron=80.0, mcp_flex=10.0, ip_flex=12.0, L=(4.6, 2.8, 2.3))
+def thumb_skeleton(T=THUMB):
+    """Rest-pose thumb ray (canonical cm). The CMC sits at the wrist on the radial side, level with the other
+    metacarpal bases. The metacarpal is abducted from the 3rd metacarpal (+Y) toward the thumb side, flexed a little
+    toward the palm, and rolled (pronated) so the nail faces sideways and out. MCP and IP are hinges bending toward the
+    pad. Returns cmc, mcp, ip, tip, (d1, d2, d3), nail normal."""
+    a, f = np.radians(T['abd']), np.radians(T['flex'])
+    cmc = np.array(T['cmc'], float); d1 = nrm([np.sin(a) * np.cos(f), np.cos(a) * np.cos(f), -np.sin(f)])
+    tz = rot(d1, np.radians(T['pron'])) @ perp(np.array([0, 0, 1.0]), d1)        # nail: rolled from facing up to facing out
+    m = np.radians(T['mcp_flex']); d2 = nrm(d1 * np.cos(m) - tz * np.sin(m)); tz2 = perp(tz, d2)
+    i = np.radians(T['ip_flex']); d3 = nrm(d2 * np.cos(i) - tz2 * np.sin(i))
+    L = T['L']; mcp = cmc + d1 * L[0]; ip = mcp + d2 * L[1]; tip = ip + d3 * L[2]
+    return cmc, mcp, ip, tip, (d1, d2, d3), tz
 THICK = 0.86                                          # finger thickness / width
 # palm stations: y, half width, centre x, dorsal z, palmar z, hollow, thenar, hypothenar
 PALM = [(0.0, 2.72, 0.00, 1.72, -1.80, 0.00, 0.00, 0.00),
@@ -118,15 +130,15 @@ def build_hand(dfc, thumb_dirs=None, thumb_z=None):
     C = Cage(); dfc = nrm(dfc)
     rings = [C.ring(palm_ring(st), 'palm') for st in PALM]
     # thumb port: palm ring indices 9 (radial side), 10 (P8), 11 (P7) between stations 1..3 stay open
-    port_faces = {(2, 10), (2, 11), (3, 10), (3, 11)}
+    port_faces = {(0, 8), (0, 9), (1, 8), (1, 9)}
     for k in range(len(rings) - 1):
         a, b = rings[k], rings[k + 1]
         for i in range(20):
             if (k, i) in port_faces: continue
             C.F.append([a[i], a[(i + 1) % 20], b[(i + 1) % 20], b[i]])
-    # the thumb leaves the palm on its thumb-side underside, low on the ball of the thumb, just behind the index knuckle
-    thumb_port = [rings[2][10], rings[3][10], rings[4][10], rings[4][11], rings[4][12], rings[3][12], rings[2][12], rings[2][11]]
-    unused = rings[3][11]
+    # the thumb ray grows out of the radial side of the wrist and palm (back, side and palm edge), from the wrist up
+    thumb_port = [rings[0][8], rings[1][8], rings[2][8], rings[2][9], rings[2][10], rings[1][10], rings[0][10], rings[0][9]]
+    unused = rings[1][9]
     # finger ports on the distal edge of the palm
     mc = {n: np.array(FINGERS[n]['mcp']) for n in ORDER}; wb = {n: FINGERS[n]['wb'] for n in ORDER}
     D, M, P = {}, {}, {}
@@ -162,23 +174,22 @@ def build_hand(dfc, thumb_dirs=None, thumb_z=None):
         fingers[n] = dict(joints=[m, m + d * L1, m + d * (L1 + L2), m + d * (L1 + L2 + L3)], d=d, L=L, Z=Z,
                           r=[f['wb'] / 2, (f['wb'] * .73 + f['wt'] * .27) / 2, (f['wb'] * .3 + f['wt'] * .7) / 2, f['wt'] / 2], rings=jr)
     # thumb: a tube out of the thenar port
-    T = THUMB; cmc = np.array(T['cmc']); d1 = nrm(T['d1']); d2 = nrm(d1 + np.array([-.08, .22, .05])); d3 = nrm(d2 + np.array([-.05, .12, .06]))
-    if thumb_dirs is not None: d1, d2, d3 = [nrm(v) for v in thumb_dirs]
-    mcp = cmc + d1 * T['L'][0]; ip = mcp + d2 * T['L'][1]; tip = ip + d3 * T['L'][2]
-    tz = perp(np.array([.75, -.15, .65]) if thumb_z is None else np.asarray(thumb_z), d1)              # thumbnail side
-    tl = nrm(np.cross(d1, tz))
+    T = THUMB; cmc, mcp, ip, tip, (d1, d2, d3), tz = thumb_skeleton(T)
+    if thumb_dirs is not None:
+        d1, d2, d3 = [nrm(v) for v in thumb_dirs]; mcp = cmc + d1 * T['L'][0]; ip = mcp + d2 * T['L'][1]; tip = ip + d3 * T['L'][2]
+    if thumb_z is not None: tz = perp(np.asarray(thumb_z), d1)
     prev = thumb_port; prev_c = np.mean([C.V[i] for i in thumb_port], 0)
-    w = T['w']
-    pc = prev_c; dm = nrm(mcp - pc)                       # from the port (radial edge of the palm) to the thumb knuckle
-    stations = [(pc + (mcp - pc) * .5, nrm(dm + d1 * .5), 1.5, .74, 'tm'),
-                (mcp, nrm(d1 + d2), 1.24, .76, 'tmcp'), (mcp + d2 * .4, d2, 1.18, .76, 'tp'), (mcp + d2 * 1.55, d2, 1.15, .76, 'tp'),
-                (ip - d2 * .3, d2, 1.14, .75, 'tp'), (ip, nrm(d2 + d3), 1.18, .74, 'tip_j'), (ip + d3 * .3, d3, 1.16, .74, 'td'),
-                (ip + d3 * 1.3, d3, 1.2, .72, 'td'), (tip - d3 * .5, d3, 1.08, .70, 'td'), (tip - d3 * .18, d3, .8, .6, 'td'), (tip - d3 * .03, d3, .36, .42, 'tend')]
+    pc = prev_c; dm = nrm(mcp - pc)                       # from the port (radial side of wrist and palm) to the thumb knuckle
+    # thenar: a thick pad over the metacarpal from the wrist to the knuckle, then two broad phalanges and a broad tip
+    stations = [(pc + (mcp - pc) * .36, nrm(dm * .6 + d1 * .4), 1.9, .78, 'tm'), (pc + (mcp - pc) * .72, nrm(dm * .3 + d1 * .7), 1.5, .8, 'tm'),
+                (mcp, nrm(d1 + d2), 1.24, .78, 'tmcp'), (mcp + d2 * .4, d2, 1.18, .78, 'tp'), (mcp + d2 * 1.45, d2, 1.15, .78, 'tp'),
+                (ip - d2 * .3, d2, 1.14, .77, 'tp'), (ip, nrm(d2 + d3), 1.17, .76, 'tip_j'), (ip + d3 * .3, d3, 1.16, .76, 'td'),
+                (ip + d3 * 1.15, d3, 1.19, .74, 'td'), (tip - d3 * .45, d3, 1.07, .72, 'td'), (tip - d3 * .17, d3, .8, .62, 'td'), (tip - d3 * .03, d3, .36, .44, 'tend')]
     plong = nrm(C.V[thumb_port[2]] - C.V[thumb_port[0]])     # the port's long axis (along the hand's radial edge)
     for k, (c, dd, hw, th, tag) in enumerate(stations):
         zz = perp(tz, dd); ll = nrm(np.cross(dd, zz))
         if k < 2:                                            # the thenar keeps the port's long, flat shape so it flows out of the palm
-            w = (.7, .3)[k]; lp = perp(plong, dd); ll = nrm(lp * w + ll * (1 - w)); zz = nrm(np.cross(ll, dd)) * (1 if np.cross(ll, dd) @ zz > 0 else -1)
+            w = (.75, .35)[k]; lp = perp(plong, dd); ll = nrm(lp * w + ll * (1 - w)); zz = nrm(np.cross(ll, dd)) * (1 if np.cross(ll, dd) @ zz > 0 else -1)
         r = C.ring(ring_follow([C.V[i] for i in prev], prev_c, c, dd, ll, zz, hw, hw * th, sq=2.2), 'thumb:' + tag)
         C.bridge(prev, r); prev = r; prev_c = c
     C.cap8(prev)
