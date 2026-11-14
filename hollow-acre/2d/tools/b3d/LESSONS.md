@@ -42,6 +42,44 @@ One line each, concrete and checkable. **[repeated]** = broken again; move it to
 - Skin colour varies: redder at knuckles, creases and fingertips (the AO or flush mix in `mats.skin`).
 
 ## Hands and arms (anatomy to build to)
+### The thumb (owner: "The thumbs look very weird now you should probably research how humans hands work", t353 r2)
+- **The thumb is not a finger.**
+  - It has only TWO visible segments: proximal and distal. Its third bone (the metacarpal) is inside the palm.
+  - The visible thumb is shorter (about 6 cm free) and wider (about 2.2-2.5 cm) than the fingers.
+  - Its tip segment is broad, with a wider, shorter nail.
+  - A thumb built like the fingers (three equal segments, same width) reads as a sixth finger.
+- **The thumb is rotated about 90° from the fingers.** Its nail faces sideways, roughly at right angles to the finger
+  nails. If the thumb nail faces the same way as the finger nails, it is wrong.
+- **The thumb grows from low on the hand, near the wrist, out of a thick muscle pad** (the thenar eminence, the ball
+  of the thumb). It never sprouts from the side of the palm halfway up.
+  - Between the thumb and the index there is a skin web (the first web space), a smooth triangular fold seen from
+    the back.
+  - Without the pad and the web, the thumb looks stuck on.
+- **Joint ranges** (healthy adults, 100-person study):
+  - IP flexion about 80-90°.
+  - MCP flexion about 45-70°. It is a hinge only.
+  - The base joint (CMC, a saddle) does the swinging and rotating: abduction about 60°, plus opposition, which turns
+    the thumb to face the fingertips.
+  - Never bend MCP or IP sideways.
+- **When adducted** (resting alongside the hand), the thumb tip reaches about the middle of the index finger's
+  first segment.
+
+### Gripping a steering wheel (driver guidance: NHTSA, driving schools)
+- The fingers wrap around the OUTSIDE of the rim. The thumbs rest ALONG the rim's driver-facing face, pointing up
+  along the rim, on top of it, never hooked around the inside of the ring.
+  - The judge's r1 advice to hook the thumb over the inner edge was wrong. Thumbs hooked inside break in an airbag
+    deployment, and instructors teach against it.
+- Positions: 9-and-3 is the modern standard (10-and-2 is older). On long drives a relaxed driver may sit at 8-and-4.
+  The two hands are never mirror-identical.
+- From the driver's seat you see:
+  - the back of each hand, angled outward;
+  - the knuckle ridge;
+  - the thumb lying along the rim with its side or nail toward you;
+  - the fingertips mostly hidden behind the rim.
+- A cylindrical power grip touches the rim at 4-5 discrete spots: the fingertip pads and the base of the fingers.
+  Not one continuous smear.
+- The palm doesn't need to touch.
+- The thumb's pad presses on the rim, so it flattens slightly.
 - Never mirror the second hand. Pose it on its own: a different place on the rim, a different thumb, a different
   curl and wrist angle. Identical mirrored hands read as fake at once (t353 r1, 4/10).
 - Thumbs must bend and flatten on contact. Give MCP and IP real flexion (about 15° and 30°) and sink the pad 2-3 mm
