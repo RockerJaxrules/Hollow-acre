@@ -1,9 +1,11 @@
 // Hollow Acre, Part 2 test: the drive up the mountain in a blizzard, first person, at night.
 // Everything here is made in code: the mountain, the road, the pines, the cab, the hands and the snow.
+import { makeArms } from './arms.js';
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import {
   WebGLRenderer, Scene, PerspectiveCamera, Color, FogExp2, Object3D, Group, Mesh, InstancedMesh, Points,
   BufferGeometry, BufferAttribute, Float32BufferAttribute, PlaneGeometry, BoxGeometry, CylinderGeometry, ConeGeometry,
-  TorusGeometry, CapsuleGeometry, IcosahedronGeometry, SphereGeometry, ExtrudeGeometry, Shape, MeshStandardMaterial,
+  TorusGeometry, CapsuleGeometry, CircleGeometry, LatheGeometry, Vector2, IcosahedronGeometry, SphereGeometry, ExtrudeGeometry, Shape, MeshStandardMaterial,
   MeshBasicMaterial, ShaderMaterial, CanvasTexture, RepeatWrapping, SRGBColorSpace, HemisphereLight, SpotLight,
   PointLight, Vector3, Matrix4, Quaternion, Euler, CatmullRomCurve3, WebGLRenderTarget, HalfFloatType,
   UnsignedByteType, LinearFilter, AdditiveBlending, DoubleSide, OrthographicCamera, MathUtils, NoToneMapping,
@@ -118,26 +120,29 @@ const roadTex = canvasTex(128, 512, (g, w, h) => {
   }
   g.putImageData(id, 0, 0);
 });
-function sleeveTex(hex, pattern) {
-  return canvasTex(64, 64, (g, w, h) => {
-    const c = new Color(hex); g.fillStyle = '#' + c.getHexString(); g.fillRect(0, 0, w, h);
-    const dark = '#' + c.clone().multiplyScalar(.5).getHexString(), light = '#' + c.clone().lerp(new Color('#ffffff'), .3).getHexString();
-    if (pattern === 'plaid') { g.globalAlpha = .5; g.fillStyle = dark; for (let i = 0; i < 64; i += 16) { g.fillRect(i, 0, 6, 64); g.fillRect(0, i, 64, 6); } g.globalAlpha = .35; g.fillStyle = light; for (let i = 10; i < 64; i += 16) { g.fillRect(i, 0, 1, 64); g.fillRect(0, i, 64, 1); } }
-    else if (pattern === 'stripes') { g.fillStyle = dark; for (let i = 0; i < 64; i += 8) g.fillRect(0, i, 64, 3); }
-    else if (pattern === 'dots') { g.fillStyle = light; for (let y = 4; y < 64; y += 10) for (let x = (y / 10 & 1) * 5 + 3; x < 64; x += 10) { g.beginPath(); g.arc(x, y, 1.6, 0, 7); g.fill(); } }
-    g.globalAlpha = .14; for (let i = 0; i < 600; i++) { g.fillStyle = hash(i, 3) > .5 ? '#000' : '#fff'; g.fillRect(hash(i, 1) * 64, hash(i, 2) * 64, 1, 1); }   // weave
-    g.globalAlpha = .18; g.fillStyle = '#000'; for (let y = 0; y < 64; y += 2) g.fillRect(0, y, 64, 1);
-  });
-}
-const gaugeTex = canvasTex(256, 112, (g, w, h) => {
-  g.fillStyle = '#020304'; g.fillRect(0, 0, w, h);
-  for (const cx of [62, 194]) {
-    g.strokeStyle = 'rgba(255,170,90,.95)'; g.lineWidth = 2; g.beginPath(); g.arc(cx, 60, 46, Math.PI * .8, Math.PI * 2.2); g.stroke();
-    for (let i = 0; i <= 12; i++) { const a = Math.PI * .8 + i / 12 * Math.PI * 1.4, r0 = i % 2 ? 41 : 37; g.beginPath(); g.moveTo(cx + Math.cos(a) * r0, 60 + Math.sin(a) * r0); g.lineTo(cx + Math.cos(a) * 46, 60 + Math.sin(a) * 46); g.stroke(); }
+const dialTex = canvasTex(256, 256, (g, w, h) => {           // one round dial: amber ticks on black, a dim inner ring
+  const c = 128; g.fillStyle = '#030305'; g.fillRect(0, 0, w, h);
+  const rg = g.createRadialGradient(c, c, 20, c, c, 124); rg.addColorStop(0, 'rgba(40,24,12,.6)'); rg.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = rg; g.fillRect(0, 0, w, h);
+  g.strokeStyle = 'rgba(255,165,85,.95)'; g.lineCap = 'round';
+  for (let i = 0; i <= 40; i++) {
+    const a = Math.PI * .75 + i / 40 * Math.PI * 1.5, big = i % 5 === 0, r0 = big ? 88 : 98;
+    g.lineWidth = big ? 4 : 2; g.beginPath(); g.moveTo(c + Math.cos(a) * r0, c + Math.sin(a) * r0); g.lineTo(c + Math.cos(a) * 108, c + Math.sin(a) * 108); g.stroke();
   }
-  g.fillStyle = 'rgba(255,170,90,.5)'; g.fillRect(108, 70, 40, 12);          // odometer
-  g.fillStyle = 'rgba(255,60,40,.95)'; g.beginPath(); g.arc(128, 30, 5, 0, 7); g.fill();   // a warning lamp, lit
+  g.lineWidth = 2; g.strokeStyle = 'rgba(255,165,85,.35)'; g.beginPath(); g.arc(c, c, 70, Math.PI * .75, Math.PI * 2.25); g.stroke();
+  g.fillStyle = 'rgba(255,60,40,.9)'; g.beginPath(); g.arc(c, c + 52, 6, 0, 7); g.fill();          // a warning lamp, lit
 }, false);
+const leatherTex = canvasTex(512, 64, (g, w, h) => {           // rim leather: grain, and the stitched seam on the inside edge
+  const id = g.createImageData(w, h), d = id.data;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let v = 150 + (fbm(x * .35, y * .35, 3) - .5) * 70 + (hash(x, y) - .5) * 30;
+    const sy = Math.abs(y - h / 2);
+    if (sy < 2) v = 60;                                                        // the seam groove
+    else if (sy < 7 && (x % 16) < 9 && Math.abs((x % 16) - 4.5) * .9 > sy - 3.5) v = 205;   // cross stitches
+    const o = (y * w + x) * 4; d[o] = d[o + 1] = d[o + 2] = v; d[o + 3] = 255;
+  }
+  g.putImageData(id, 0, 0);
+}, true, false);
+leatherTex.repeat.set(30, 1);
 // the windscreen: clear where the wipers reach, a crust of snow and frost everywhere else
 const PIVOTS = [[-.62, .03], [.16, .03]], ARM = .66, GLASS_W = 1.62, GLASS_H = .82;
 const frostTex = canvasTex(512, 256, (g, w, h) => {
@@ -277,7 +282,6 @@ const EYE = new Vector3(-.36, 1.2, 0);
 const head = new Group(); head.position.copy(EYE); car.add(head); head.add(camera);
 const cab = new Group(); car.add(cab);
 const M_dash = new MeshStandardMaterial({ color: '#16171b', roughness: .75 }), M_trim = new MeshStandardMaterial({ color: '#0d0e11', roughness: .6 }),
-  M_skin = new MeshStandardMaterial({ color: LOOK.skin, roughness: .6 }), M_sleeve = new MeshStandardMaterial({ map: sleeveTex(LOOK.sleeve, LOOK.pattern), roughness: .92 }),
   M_paint = new MeshStandardMaterial({ color: '#4a1512', roughness: .35, metalness: .4 }), M_snow = new MeshStandardMaterial({ color: '#c9d1dc', roughness: 1 });
 const put = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0, parent = cab) => { const o = new Mesh(geo, mat); o.position.set(x, y, z); o.rotation.set(rx, ry, rz); parent.add(o); return o; };
 const V = (x, y, z) => new Vector3(x, y, z);
@@ -298,9 +302,19 @@ function strut(a, b, w, d, mat) {         // a box from point a to point b
   // the vents and the radio, faintly
   put(new BoxGeometry(.2, .05, .01), M_trim, .02, .86, -.53); put(new BoxGeometry(.16, .07, .01), new MeshStandardMaterial({ color: '#0a0b0d', emissive: '#1a0e06', roughness: .4 }), .02, .76, -.53);
 }
-// the gauges, glowing faintly, with two needles
-const gauge = put(new PlaneGeometry(.2, .087), new MeshBasicMaterial({ map: gaugeTex, color: '#e8d8c8' }), EYE.x, .925, -.7, -.18);
-const needles = [-.052, .052].map(x => { const g = new BoxGeometry(.0024, .03, .002); g.translate(0, .014, .0); const n = new Mesh(g, new MeshBasicMaterial({ color: '#ff7040' })); n.position.set(x, -.004, .004); gauge.add(n); return n; });
+// the gauges: two recessed dials with chrome bezels, glass and needles, glowing faintly under the hood
+const M_bezel = new MeshStandardMaterial({ color: '#77797e', metalness: .9, roughness: .3 }), M_well = new MeshStandardMaterial({ color: '#08080a', roughness: .8, side: DoubleSide });
+const M_glass = new MeshStandardMaterial({ color: '#0a0c10', transparent: true, opacity: .16, roughness: .04, depthWrite: false });
+const needles = [-.052, .052].map(x => {
+  const d = new Group(); d.position.set(EYE.x + x, .925, -.705); d.rotation.x = -.18; cab.add(d);
+  const face = new Mesh(new CircleGeometry(.038, 48), new MeshBasicMaterial({ map: dialTex, color: '#e8d8c8' })); face.position.z = -.007; d.add(face);
+  const well = new Mesh(new CylinderGeometry(.0385, .0385, .008, 48, 1, true), M_well); well.rotation.x = Math.PI / 2; well.position.z = -.003; d.add(well);
+  d.add(new Mesh(new TorusGeometry(.0405, .0035, 10, 48), M_bezel));
+  const gl = new Mesh(new CircleGeometry(.039, 48), M_glass); gl.position.z = .001; d.add(gl);
+  const ng = new BoxGeometry(.0022, .033, .0012); ng.translate(0, .013, 0); const n = new Mesh(ng, new MeshBasicMaterial({ color: '#ff7040' })); n.position.z = -.004; d.add(n);
+  const cap = new Mesh(new CylinderGeometry(.0045, .0045, .003, 16), M_trim); cap.rotation.x = Math.PI / 2; cap.position.z = -.003; d.add(cap);
+  return n;
+});
 // glass, pillars, roof, mirror, doors
 const GLASS_A = V(0, .97, -1.1), GLASS_B = V(0, 1.47, -.43);          // bottom and top of the windscreen
 const glassTilt = Math.atan2(GLASS_B.z - GLASS_A.z, GLASS_B.y - GLASS_A.y);
@@ -333,60 +347,33 @@ const wipers = PIVOTS.map(([px, py]) => {
   const blade = new Mesh(new BoxGeometry(ARM * .82, .022, .02), M_trim); blade.position.set(ARM * .55, .0, -.012); pivot.add(blade);
   return pivot;
 });
-// the wheel
+// the wheel: a stitched leather rim (the same 3.3 cm thick rim the hands were posed on), brushed spokes, a padded boss
 const wheelMount = new Group(); wheelMount.position.set(EYE.x, .9, -.47); wheelMount.rotation.x = -.42; cab.add(wheelMount);
 const wheel = new Group(); wheelMount.add(wheel);
-const RIM_R = .185, M_wheel = new MeshStandardMaterial({ color: '#16161a', roughness: .5 });
-wheel.add(new Mesh(new TorusGeometry(RIM_R, .016, 10, 48), M_wheel));
-for (const a of [0, Math.PI, -Math.PI / 2]) { const s = new Mesh(new BoxGeometry(RIM_R - .04, .028, .014), M_wheel); s.position.set(Math.cos(a) * (RIM_R / 2 + .02), Math.sin(a) * (RIM_R / 2 + .02), -.005); s.rotation.z = a; wheel.add(s); }
-{ const hub = new Mesh(new CylinderGeometry(.065, .07, .05, 20), M_wheel); hub.rotation.x = Math.PI / 2; hub.scale.set(1.15, 1, .85); wheel.add(hub); }
-{ const col = new Mesh(new CylinderGeometry(.035, .045, .3, 10), M_trim); col.position.set(0, 0, -.15); col.rotation.x = Math.PI / 2; wheelMount.add(col); }
-// your hands, gripping at ten and two; each hand is built in the rim's own frame
-const wrists = [];
-function hand(angle, side) {          // side -1: left hand, 1: right hand
-  const g = new Group(), t = V(-Math.sin(angle), Math.cos(angle), 0), u = V(Math.cos(angle), Math.sin(angle), 0), n = V(0, 0, 1);
-  g.quaternion.setFromRotationMatrix(new Matrix4().makeBasis(t, u, n)); g.position.copy(u).multiplyScalar(RIM_R); wheel.add(g);
-  // x runs along the rim, y outward, z toward you
-  const back = new Mesh(new SphereGeometry(1, 14, 10), M_skin); back.scale.set(.046, .018, .05); back.position.set(0, .009, .064); back.rotation.x = .27; g.add(back);
-  const order = side < 0 ? [0, 1, 2, 3] : [3, 2, 1, 0];      // index, middle, ring, little
-  const lens = [2.75, 2.85, 2.8, 2.5];
-  order.forEach((f, k) => {
-    const geo = new TorusGeometry(.027, k === 3 ? .009 : .0104, 6, 12, lens[k]); geo.rotateY(Math.PI / 2); geo.rotateX(2.3 - lens[k]);
-    const m = new Mesh(geo, M_skin); m.position.x = (f - 1.5) * .02; g.add(m);
-    if (k === 2 && side < 0 && LOOK.married) {
-      const ring = new Mesh(new TorusGeometry(.0108, .0026, 6, 18), new MeshStandardMaterial({ color: '#e0b850', metalness: 1, roughness: .2, emissive: '#2a1e08' }));
-      ring.position.set(m.position.x, .0234, .0135); ring.rotation.x = .52; g.add(ring);
-    }
-  });
-  const thumb = new Mesh(new CapsuleGeometry(.0115, .036, 4, 8), M_skin); thumb.position.set(side * .04, -.016, .035); thumb.rotation.set(.5, 0, side * -1.2); g.add(thumb);
-  const wrist = new Object3D(); wrist.position.set(0, -.006, .11); g.add(wrist); wrists.push(wrist);
+const RIM_R = .185, RIM_T = .0165;
+const M_leather = new MeshStandardMaterial({ color: '#2b2622', roughness: .6, bumpMap: leatherTex, bumpScale: 1.4 });
+const M_spoke = new MeshStandardMaterial({ color: '#45474d', metalness: .75, roughness: .36 }), M_boss = new MeshStandardMaterial({ color: '#151518', roughness: .55 });
+wheel.add(new Mesh(new TorusGeometry(RIM_R, RIM_T, 20, 128), M_leather));
+for (const a of [0, Math.PI, -Math.PI / 2]) {
+  const L = RIM_R - .062, s = new Mesh(new RoundedBoxGeometry(L, .03, .011, 2, .005), M_spoke);
+  s.position.set(Math.cos(a) * (L / 2 + .058), Math.sin(a) * (L / 2 + .058), -.008); s.rotation.z = a; wheel.add(s);
+  const w = new Mesh(new CylinderGeometry(.019, .019, .024, 16), M_leather); w.rotation.z = a + Math.PI / 2; w.position.set(Math.cos(a) * (RIM_R - .012), Math.sin(a) * (RIM_R - .012), -.004); w.scale.set(1, 1, .7); wheel.add(w);
 }
-hand(Math.PI * .83, -1); hand(Math.PI * .17, 1);
-// the arms: reach from the shoulders to the wrists, bending at the elbow, in your own sleeves
-const arms = [-1, 1].map(side => {
-  const fore = new Mesh(new CylinderGeometry(.036, .046, 1, 14, 1, true), M_sleeve), upper = new Mesh(new CylinderGeometry(.05, .055, 1, 12, 1, true), M_sleeve);
-  const cuff = new Mesh(new CylinderGeometry(.039, .039, .03, 14), M_sleeve), skin = new Mesh(new CylinderGeometry(.026, .03, 1, 10), M_skin), elbow = new Mesh(new SphereGeometry(.05, 10, 8), M_sleeve);
-  car.add(fore, upper, cuff, skin, elbow);
-  return { side, fore, upper, cuff, skin, elbow, shoulder: V(EYE.x + side * .2, .98, .12) };
-});
-const _w = new Vector3(), _e = new Vector3(), _d = new Vector3(), _p = new Vector3(), _c = new Vector3(), _k = new Vector3(), UP = V(0, 1, 0);
-function place(mesh, a, b, len) { _d.copy(b).sub(a); const L = _d.length(); mesh.position.copy(a).addScaledVector(_d, .5); mesh.quaternion.setFromUnitVectors(UP, _d.divideScalar(L)); mesh.scale.set(1, len ?? L, 1); }
-function poseArms() {
-  arms.forEach((A, i) => {
-    wrists[i].getWorldPosition(_w); car.worldToLocal(_w);
-    const S = A.shoulder, a = .29, b = .27; _d.copy(_w).sub(S); const d = Math.min(_d.length(), a + b - .002); _d.normalize();
-    const x = (a * a - b * b + d * d) / (2 * d), h = Math.sqrt(Math.max(0, a * a - x * x));
-    _p.set(A.side * .75, -1, .05); _p.addScaledVector(_d, -_p.dot(_d)).normalize();
-    _e.copy(S).addScaledVector(_d, x).addScaledVector(_p, h);
-    _c.copy(_e).sub(_w).normalize().multiplyScalar(.045).add(_w);             // where the cuff starts
-    place(A.skin, _w, _c); place(A.fore, _e, _c); _k.copy(_e).sub(_c).normalize().multiplyScalar(.03).add(_c); place(A.cuff, _c, _k, 1);
-    place(A.upper, S, _e); A.elbow.position.copy(_e);
-  });
+{
+  const prof = [[0, .028], [.035, .028], [.055, .023], [.066, .012], [.07, -.004], [.066, -.02], [.05, -.026], [0, -.026]].map(([r, y]) => new Vector2(r, y));
+  const boss = new Mesh(new LatheGeometry(prof, 40), M_boss); boss.rotation.x = Math.PI / 2; wheel.add(boss);
+  const ring = new Mesh(new TorusGeometry(.044, .0028, 8, 56), M_bezel); ring.position.z = .029; wheel.add(ring);
 }
+{ const col = new Mesh(new CylinderGeometry(.035, .045, .3, 16), M_trim); col.position.set(0, 0, -.15); col.rotation.x = Math.PI / 2; wheelMount.add(col);
+  const shroud = new Mesh(new CylinderGeometry(.055, .06, .12, 20), M_dash); shroud.position.set(0, 0, -.3); shroud.rotation.x = Math.PI / 2; wheelMount.add(shroud); }
+// your arms: modelled and rigged in Blender, posed here every frame (arms.js)
+const ARMS = makeArms({ parent: car, mirrorX: EYE.x, look: LOOK });
 // lights: two headlamps (set high so the road takes the light), the gauge glow, and the snow-light coming in through the glass
 const lamps = [-.6, .6].map(x => { const s = new SpotLight('#eef3ff', 230, 85, .72, .9, 2); s.position.set(x, 1.7, -2.4); s.target.position.set(x * .5, 0, -22); car.add(s, s.target); return s; });
 { const g = new PointLight('#ffa860', .15, .2, 2); g.position.set(EYE.x, .94, -.74); car.add(g);
-  const f = new PointLight('#8ea2c2', .55, 1.7, 2); f.position.set(-.36, 1.6, -.62); car.add(f); }
+  const f = new PointLight('#8ea2c2', .55, 1.7, 2); f.position.set(-.36, 1.6, -.62); car.add(f);
+  // a dim warm cab lamp behind your head, so the backs of your hands read even when the road ahead is dark
+  const lamp = new SpotLight('#ffc89a', .5, 1.8, .85, .9, 2); lamp.position.set(EYE.x + .18, 1.52, .22); lamp.target.position.set(EYE.x, .9, -.47); car.add(lamp, lamp.target); }
 // faint beams in the falling snow: open cones drawn additively, fading with distance
 const beamMat = new ShaderMaterial({ transparent: true, depthWrite: false, blending: AdditiveBlending, side: DoubleSide,
   uniforms: { k: { value: .03 } },
@@ -539,6 +526,12 @@ function roadAt(s) {
 }
 const turn = (s0, s1) => { const a = roadAt(s0), b = roadAt(s1); return Math.atan2(a.tx * b.tz - a.tz * b.tx, a.tx * b.tx + a.tz * b.tz); };
 const speedAt = s => 11.5 - 6.5 * Math.min(1, Math.abs(turn(s, s + 14)) / 1.2);
+// the wheel angle over the loop (so a frozen clock can replay the hands' holds), and a few hard bumps in the road
+const steerTab = (() => { const out = []; let d = START; for (let k = 0; k <= LOOP * 20; k++) { if (k % 2 === 0) out.push(MathUtils.clamp(turn(d + 2, d + 9) * 1.6, -.85, .85)); d += speedAt(d) / 20; } return out; })();
+const steerAt = t => { const x = Math.min(t * 10, steerTab.length - 1.001), i = Math.floor(x); return steerTab[i] + (steerTab[i + 1] - steerTab[i]) * (x - i) + (vnoise(t * 2, 3) - .5) * .05; };
+const BUMPS = [6.2, 12.9, 17.4, 29.1];
+const bumpAt = lt => BUMPS.reduce((a, b) => { const u = lt - b; return u < 0 || u > 1.2 ? a : a + Math.exp(-u * 5) * Math.sin(u * 26); }, 0);
+const squeezeAt = lt => BUMPS.reduce((a, b) => { const u = lt - b; return u < -.05 || u > 1.6 ? a : Math.max(a, u < .06 ? (u + .05) / .11 : Math.exp(-(u - .06) * 2.2)); }, 0);
 function frame(now) {
   requestAnimationFrame(frame);
   const raw = (now - last) / 1000, dt = Math.min(.05, raw); last = now;
@@ -548,7 +541,8 @@ function frame(now) {
   else { if (n !== loopN) { loopN = n; dist = START; heading = null; } dist += speedAt(dist) * dt; }
   const p = roadAt(dist), ahead = roadAt(dist + 7), lane = 1.55, nx = -p.tz, nz = p.tx;
   prevPos.copy(car.position);
-  car.position.set(p.x + nx * lane, p.y + .03 + Math.sin(T * 9.1) * .006 + (vnoise(T * 3.1, 1) - .5) * .022, p.z + nz * lane);
+  const bump = bumpAt(lt);
+  car.position.set(p.x + nx * lane, p.y + .03 + Math.sin(T * 9.1) * .006 + (vnoise(T * 3.1, 1) - .5) * .022 + bump * .028, p.z + nz * lane);
   carV.set(p.tx, 0, p.tz).multiplyScalar(speedAt(dist));
   const want = Math.atan2(-(ahead.x - p.x), -(ahead.z - p.z)); if (heading === null || FIXED_T !== null) heading = want;
   let dh = want - heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh)); heading += dh * Math.min(1, dt * 3.5);
@@ -556,10 +550,10 @@ function frame(now) {
   car.rotation.set(pitch, heading, bend * .03 + Math.sin(T * .9) * .004, 'YXZ');
   // the head: sways a little, looks where you drag it, drifts back to the road
   if (!look.drag) { look.held -= dt; if (look.held <= 0) { const k = Math.pow(.3, dt); look.yaw *= k; look.pitch *= k; } }
-  head.rotation.set((innerWidth < innerHeight ? -.05 : -.07) + look.pitch + (vnoise(T * .6, 4) - .5) * .02, look.yaw - bend * .12 + (vnoise(T * .5, 7) - .5) * .03, (vnoise(T * .7, 9) - .5) * .015 + bend * .02, 'YXZ');
+  head.rotation.set((innerWidth < innerHeight ? -.05 : -.07) + look.pitch + (vnoise(T * .6, 4) - .5) * .02 - bump * .025, look.yaw - bend * .12 + (vnoise(T * .5, 7) - .5) * .03, (vnoise(T * .7, 9) - .5) * .015 + bend * .02, 'YXZ');
   // the wheel turns with the bend, the wipers sweep, the needles shiver
   wheel.rotation.z = MathUtils.clamp(bendNear * 1.6, -.85, .85) + (vnoise(T * 2, 3) - .5) * .05;
-  car.updateMatrixWorld(true); poseArms();
+  ARMS.update({ T, lt, dt, theta: wheel.rotation.z, squeeze: squeezeAt(lt), lean: bend, bob: bump, steerAt, fixed: FIXED_T !== null });
   const wp = (T % 1.7) / 1.7, sweep = wp < .7 ? (1 - Math.cos(wp / .7 * Math.PI * 2)) / 2 : 0, wa = sweep * 1.9;
   wipers.forEach(w => w.rotation.z = wa);
   if (wp < .02 && T - lastWipe > 1) { lastWipe = T; wiperThunk && wiperThunk(); }
@@ -596,6 +590,6 @@ function frame(now) {
   }
 }
 applyTier(auto ? 'med' : Q.get('q'));
-if (Q.get('nocab')) { cab.visible = false; arms.forEach(a => [a.fore, a.upper, a.cuff, a.skin, a.elbow].forEach(m => m.visible = false)); }
-requestAnimationFrame(t => { document.getElementById('load')?.remove(); frame(t); });
-window.__p2 = { scene, camera, renderer, LOOK, tier: () => tier.name, roadLen: ROAD_LEN, car };
+if (Q.get('nocab')) { cab.visible = false; ARMS.ready.then(() => ARMS.arms.forEach(a => a.root.visible = false)); }
+ARMS.ready.catch(e => { const el = document.getElementById('err'); if (el) el.textContent = 'arms: ' + e.message; }).finally(() => requestAnimationFrame(t => { document.getElementById('load')?.remove(); frame(t); }));
+window.__p2 = { scene, camera, renderer, LOOK, tier: () => tier.name, roadLen: ROAD_LEN, car, ARMS, wheel, steerAt };
