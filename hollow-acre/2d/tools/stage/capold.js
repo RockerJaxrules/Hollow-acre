@@ -1,0 +1,13 @@
+const {chromium}=require('playwright');
+(async()=>{const b=await chromium.launch();const pg=await b.newPage({viewport:{width:1000,height:700}});await pg.route('**/version.json*',r=>r.abort());
+ await pg.goto('http://localhost:8766/test2d_k.html');await pg.waitForFunction(()=>!document.getElementById('loadScr'),null,{timeout:90000});
+ await pg.evaluate(()=>{document.getElementById('begin').click();document.getElementById('cGo').click();});await pg.waitForTimeout(300);await pg.evaluate(()=>__game.skip());await pg.waitForTimeout(1500);
+ const ev=c=>pg.evaluate(c=>__game.ev(c),c);const D=process.argv[2];
+ await ev("S.tut.off=true;S.hour=11;document.querySelectorAll('.toast,#toast').forEach(e=>e.style.visibility='hidden');P.x=doorPos.x;P.z=doorPos.z+1.2;");
+ await ev(`playScene('mae','Caitlyn drops by ','A young woman in a black tee and square glasses is leaning on your gate, holding up a phone that has no signal out here, as if she has been waiting a while.<br><br><q>Oh. Hi. You must be Elias’s grandkid. You have his walk. I’m Caitlyn. I run the store in town. Coyle’s.</q><br><br><q>I win.</q>',()=>{})`);
+ await pg.waitForTimeout(900);await pg.screenshot({path:D+'/old_gate_0.png'});await pg.keyboard.press('Space');await pg.waitForTimeout(700);await pg.screenshot({path:D+'/old_gate_1.png'});
+ await pg.keyboard.press('Space');await pg.waitForTimeout(300);await pg.keyboard.press('Space');await pg.waitForTimeout(800);
+ await ev("P.x=CHURCH_STEP.x;P.z=CHURCH_STEP.z;S.hour=18.2");await pg.waitForTimeout(800);
+ await ev(`playScene('hale','The drawing ','The whole valley is in the church. People you have never seen stand along the back wall, from Wickham, from the orchard, from places that aren’t on the map. Every pew is full except one space in the front row, exactly the width of you.<br><br>Hale holds up the hat. It is Grandpa’s straw hat with the faded red band. You left it in the ash. You are sure you left it in the ash.<br><br><q>Tomorrow night,</q> Hale says. <q>Down the Mill Road. You’ll know the house. You’ve always known the house.</q>',()=>{})`);
+ await pg.waitForTimeout(900);await pg.screenshot({path:D+'/old_draw_0.png'});await pg.keyboard.press('Space');await pg.waitForTimeout(700);await pg.screenshot({path:D+'/old_draw_1.png'});
+ await b.close();})();

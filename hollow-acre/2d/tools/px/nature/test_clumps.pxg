@@ -1,0 +1,21 @@
+name test_clumps
+pal o #2a1012
+pal 1 #4a1814
+pal 2 #74261a
+pal 3 #9e3a1c
+pal 4 #c45a22
+pal 5 #e2822e
+pal 6 #f4ac44
+pal 7 #fcd77e
+use leaves.pxg
+size 96 40
+stamp clumpA 2 2
+stamp clumpB 24 4
+stamp clumpC 42 4
+stamp clumpA 66 2 flip
+stamp clumpA 2 22 shade=-2
+stamp clumpB 24 24 shade=-1
+stamp clumpC 42 24 shade=1
+stamp tipA 70 26
+stamp tipB 78 26
+stamp tipC 86 26

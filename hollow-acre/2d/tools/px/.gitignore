@@ -1,0 +1,9 @@
+out/
+__pycache__/
+# regenerable intermediates of the blockout pipeline
+blockouts/town/
+blockouts/props3d/
+blockouts/chars/
+blockouts/icons/
+blockouts/drills/
+judge/

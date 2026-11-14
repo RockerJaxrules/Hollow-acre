@@ -1,0 +1,21 @@
+HOLLOW ACRE — CREDITS
+
+Everything by Jaxon Charlton: the story, the valley and its people, the art, the sound and the game.
+
+All the art in Hollow Acre is made for this game; no outside art packs or downloaded models are used.
+
+Characters (the player's parts, every townsperson, the Hollow): drawn by this game's own code (tools/px/chibi3.js,
+tools/hollow2.py). Portraits: drawn by this game's own code (tools/px/portraitHD2.py).
+
+Trees, pines, bushes, rocks, stumps, the crafting benches, the furnace and the mine lift: modelled as simple 3D
+scenes and rendered and hand-finished into pixels with this game's own tools (tools/px/blockout.py, finish.py,
+nature.py, blockprops.py). They replace the LPC-derived versions; no outside art is used for them.
+Ground textures: drawn for this game (tools/ase/terrain.lua).
+
+Car wreck and deer sprites: drawn for this game. Cat sprite: rendered in Blender for this game.
+Cars (the sedan, the wreck, the sheriff's cruiser): modelled and rendered with this game's own tools (tools/px/cars.py).
+Road texture: procedural, made in Blender for this game.
+
+Buildings, fences and props (houses, cabin, store, garage, church, fences, lamps, well, phone booth, notice board, gas pump, signpost, barrel, crate, hay, sacks, cart): drawn for this game in LibreSprite (https://github.com/LibreSprite/LibreSprite). Layered .ase sources are in tools/px.
+
+Multiplayer networking: Trystero by Dan Motzenbecker (MIT License), bundled in index.html. See vendor/TRYSTERO_LICENSE.txt.

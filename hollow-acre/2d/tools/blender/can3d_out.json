@@ -1,0 +1,168 @@
+{
+"can_e": {
+"art": [
+".....KK............",
+"...KKKKKK..........",
+"..KKlmllKK.........",
+"..KlmKKmmK.........",
+".KKlKKKKlKK......KK",
+"KKlmKKKKllKK....KKi",
+"KemmsssssllKK...KKi",
+"KKeessssssmlK..KKlh",
+".KeeelslllmmKKKKlKK",
+".KeeeellllmmKKelKK.",
+".KeeelllllmmKlmKK..",
+".KlllllllmmblmKK...",
+".KllllllmmmbKK.....",
+".KmlllmmmmbbK......",
+".KmmmmmmmbbbK......",
+".KKKmmmmbbKKK......",
+"..KKKKKKKKKK.......",
+"......KK..........."
+],
+"px": 6.1,
+"py": 2.1,
+"tip": [
+19.9,
+5.7
+]
+},
+"can_et": {
+"art": [
+".........KKKK....",
+"......KKKKKeKK...",
+".....KKKlllmmlK..",
+".....KllKKKKKlKK.",
+"....KKlmmKKKKlKK.",
+"....KeelssKKKlKK.",
+"...KeeelsssKKmK..",
+"..KeeeellssslmK..",
+".KKeeellllsslKK..",
+"KKllelllllmmmmK..",
+"KKlllllllmmmmKK..",
+".KKlllllmmmmKKKKK",
+"..KKllmmmmmbKKKKK",
+"...KKmmmmbblllllm",
+"....KKmmbbKKKKKKK",
+".....KKKbKKKKKKKK",
+"......KKK........"
+],
+"px": 12.9,
+"py": 2.5,
+"tip": [
+21.0,
+13.6
+]
+},
+"can_f": {
+"art": [
+"..........KKK....",
+".........KKlmK...",
+".........KlmmmK..",
+"........KKlKKmKK.",
+"........KlmKKlmK.",
+"......KKKlKKKKlKK",
+"..K..KKmlmssssmKK",
+".KKK.KellmssssmmK",
+"KiihKKeeelslllmmK",
+"KihhKKeeeellllmmK",
+"KKhglKeeelllllmmK",
+".KKKmmmllllllmmbK",
+"....KKmbllllmmmbK",
+".....KbbllmmmmbbK",
+".....KmbmmmmmbbbK",
+".....KKKmmmmbbKKK",
+"......KKKKKKKKKK.",
+"..........KK....."
+],
+"px": 11.7,
+"py": 1.9,
+"tip": [
+1.9,
+8.8
+]
+},
+"can_ft": {
+"art": [
+"........KK........",
+".......KKKKK......",
+"......KllmbKK.....",
+".....KKlbbbbmK....",
+".....KlmKllleK....",
+".....KlmKssslKK...",
+"....KKlmssssllK...",
+"...KKllmssssllKK..",
+"...KKemmssslllmKK.",
+"...KKelmsslllmmbK.",
+"....KeeeellllmmbKK",
+"....KKllllllmmbbKK",
+".K...KKllllmmmbbK.",
+"KKKKKKKmmmmmmbbKK.",
+"iihllmmmbmmbbbKK..",
+"ihhmKKKKKbbbbKK...",
+"KhKKKKKKKKKKKK....",
+"KKK.......K......."
+],
+"px": 7.5,
+"py": 3.0,
+"tip": [
+0.7,
+15.3
+]
+},
+"can_b": {
+"art": [
+"..K.......KK.....",
+".KKK.....KKKK....",
+"KiiKK...KKlllK...",
+"KihhK...KlmKeKK..",
+"KKheK..KKlKKKlK..",
+".KKeKKKKemKKKmKK.",
+"..KKeKKllmssKlmKK",
+"...KKKeesssssmlmK",
+"....KKeeelslllmmK",
+"....KKeeeellllmmK",
+".....KeeelllllmmK",
+".....KlllllllmmbK",
+".....KllllllmmmbK",
+".....KmlllmmmmbbK",
+".....KmmmmmmmbbbK",
+".....KKKmmmmbbKKK",
+"......KKKKKKKKKK.",
+"..........KK....."
+],
+"px": 11.7,
+"py": 2.3,
+"tip": [
+1.9,
+2.6
+]
+},
+"can_bt": {
+"art": [
+".......KKK........",
+"......KelKK.......",
+".....KllleKK......",
+".....KlmKleKK.....",
+".....KlmKKleKK....",
+".....KmmKKKlmKK...",
+".....KlKKKllllK...",
+"KK...KellellllKK..",
+"KKK.KKeeeellllmK..",
+"iihKKeeeeelllmmK..",
+"hhlKKleeellllmmKK.",
+"KKKlKlllllllmmmbK.",
+"KKKKKKlllllmmmmbKK",
+"....KKlllmmmmmKKK.",
+".....KKmmmmmKKKK..",
+"......KmmKKKK.....",
+".......KKKK......."
+],
+"px": 7.5,
+"py": 2.0,
+"tip": [
+0.7,
+9.6
+]
+}
+}

@@ -1,0 +1,10 @@
+const {chromium}=require('playwright');
+(async()=>{const b=await chromium.launch();const pg=await b.newPage({viewport:{width:960,height:600}});const errs=[];pg.on('pageerror',e=>errs.push('ERR '+e.message));await pg.route('**/fonts.googleapis.com/**',r=>r.abort());
+ await pg.goto('http://localhost:8766/test2d.html');await pg.waitForFunction(()=>!document.getElementById('loadScr'),null,{timeout:90000});await pg.evaluate(()=>localStorage.clear());
+ await pg.evaluate(()=>{document.getElementById('begin').click();document.getElementById('cGo').click();});await pg.waitForTimeout(300);await pg.evaluate(()=>__game.skip());await pg.waitForTimeout(800);
+ const ev=c=>pg.evaluate(c=>__game.ev(c),c);await ev("S.tut.off=true;S.foundCabin=true;S.readLetter=true;S.carFixed=true;S.hour=12;P.x=carPos.x+3;P.z=carPos.z+.5;$('hud').style.opacity=.2");await pg.waitForTimeout(900);
+ await pg.screenshot({path:'TC_fixed.png',clip:{x:280,y:120,width:400,height:320}});
+ await ev("S.hour=17.4;startCine('escape')");await pg.waitForTimeout(1600);console.log('hud hidden during drive',await ev("$('hud').hidden"));
+ await pg.click('#skip');await pg.waitForTimeout(1200);console.log('after skip',await ev("S.mode+' looped '+S.looped+' beaten at '+BEATEN.at+' hud '+!$('hud').hidden"));
+ await ev("P.x=farmSignPos.x+1;P.z=farmSignPos.z+2.6");await pg.waitForTimeout(800);await pg.screenshot({path:'TC_sign.png',clip:{x:280,y:120,width:400,height:320}});
+ console.log(errs.join('\n')||'no errors');await b.close();})();

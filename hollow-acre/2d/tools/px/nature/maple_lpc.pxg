@@ -1,0 +1,35 @@
+name maple_fall_o
+anchor 56 121
+pal 1 #4c1a30
+pal 2 #8c2c34
+pal 3 #c24c2c
+pal 4 #e7803a
+pal 5 #f6b45a
+pal o #8c2c34
+pal O #3e1528
+pal T #a07a5c
+pal U #74533e
+pal V #4e3530
+pal W #33232a
+pal s #32212599
+use maple_lpc_parts.pxg
+size 112 128
+mass s 22,118 40,113 70,112 96,116 100,121 84,126 52,127 28,124
+stamp leafL 24 116
+stamp leafR 88 119
+stamp leafL 70 122
+stamp leafR 34 124
+stamp leafL 96 114
+stamp trunkL 46 103
+# the crown's back mass (no hole shows), then bundles back to front
+mass 2 30,22 56,14 84,22 100,44 102,70 92,90 68,100 44,100 20,92 8,72 8,46 16,30
+stamp bunC 52 12 shade=-1
+stamp bunB 68 40 shade=-1
+stamp bunA 30 8
+stamp bunB 6 30
+stamp bunC 24 44
+stamp bunA 58 60 shade=-1
+stamp bunB 12 62 shade=-1
+stamp bunC 36 70 shade=-1
+# one outline round the whole crown and trunk (not round every bundle)
+outline O o s

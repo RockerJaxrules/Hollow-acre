@@ -1,0 +1,1 @@
+{"name": "juniper", "anchor": [69, 75], "leaf": "12345", "bark": "", "palette": {"1": "#141c2a", "2": "#1e3036", "3": "#2a4642", "4": "#3c5e4e", "5": "#567a5e", "6": "#74967a", "s": "#32212599", "x": "#28324a", "y": "#4a5a7a", "z": "#8a9ab8"}, "outline": ["#10161e", "#1c2a30"], "tuft_odds": 4, "min_cluster": 8, "hi": "6", "fruit": {"chars": "xyz", "n": 9, "size": 1, "gap": 5}}

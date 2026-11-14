@@ -1,0 +1,1687 @@
+# Lessons (read before drawing; add to after every critique)
+
+Each line is something an attempt taught. Newest and repeated mistakes go to the top of their section.
+
+## From the owner (strongest)
+- Owner (Nov 11): "Continue until everything is 6 or if you think that the ai is being too picky and it will never reach a 6". Understood: keep working down every family until each piece judges 6+; when a piece keeps scoring 5-5.5 across several rounds and judges contradict each other (e.g. rings on log ends wanted by one judge, rejected by the next), park it at its best installed version, log why, and move on.
+- [OWNER, Nov 11, verbatim] "I never said stop remember continue until and assume the answer is always continue until everything
+  is 6 unless you don't feel you can improve it to 6." Standing order: never stop to report or ask; keep working down the list
+  until every family is judged 6+, and only park a piece when it genuinely can't be brought to 6 (log why).
+- [OWNER, Nov 11, verbatim] "I meant the bucket hangin on the string is behind the well not the other bucket." I had moved the
+  separate bucket prop beside the well. Ask which object a complaint is about when two match, or fix both: here the well's own
+  pail sat with its base on the back rim, so the front wall cut it and it read as hanging behind the well. A thing hanging
+  in an opening is drawn over the opening (in front of the dark inside), never resting on the far rim.
+- Owner (Nov 10): "Swerve doesn't feel like it has weight to it the crash it feels light and floaty not like an actual car". Understood: eased (cosine) motion reads as floating. Weight is momentum and reaction: steering is yanked and the heading chases it on a stiff underdamped spring (overshoot, settle); the body drops and rocks on its springs at every yank and bump; the camera has mass (lags, overshoots, lurches); the car meets the obstacle at speed, the frame freezes longer, the camera is thrown forward with it, the wreck rebounds, hops and slams down, heavy parts (a hubcap, a bumper strip) fly, and time slows for a breath after.
+- Owner (Nov 10) on the intro: "Car crash should be a tree you hit also you don't need any dialog in the cutscene other than the grandfather's dialog". Understood: the crash must show the thing hit (a dead oak at the crushed nose, kept out of the declutter pass, shuddering on impact), and cutscenes carry only spoken lines from characters - no narration captions ("Something was lying in the road", "Rain on your face...").
+- Owner (Nov 10) on the intro: "it needs to feel more speedy like the car actually loses control and actual impact on crash also redesign the car and deer on road and stuff". Understood: speed is shown by what streams past (a camera that rides ahead, reflector posts flicking by, rain driven sideways), not by a number; losing control is a yaw that swings both ways and overshoots, with rubber left on the road and smoke; impact is a freeze-frame, a flash, a hard shake and debris of every material in the scene (glass, paint, dirt, leaves), then steam and a stuck horn.
+- Owner (Nov 10): "Do not change tool icons for the inventory because you just made the animation tool models match them". Understood: the tool and weapon icons (axe, hoe, pickaxe, watering can, fishing rod and all their upgrade grades; blade, club, machete, sickle) are LOCKED. Never redraw, recolour or swap them, in #198 or any later sweep; the in-hand models were matched to these exact icons.
+- Owner (Nov 10): "Add to end of list remake fishing game I don't like this minigame I want a different one ... stop working on it ... we're going to be remaking the fishing minigame later". Understood: the current fishing minigame (and the side-on pond draft, fish4.js, kept off the build behind FISH4) is rejected as a design. Don't polish it. It becomes #215 at the end of the list: a different fishing game.
+- Owner (Nov 10): "Put on the list at spot 200 and bump everything up one: make teaser trailer, I think we're ready". The trailer is #200 (the old #200-#213 are now #201-#214), done first.
+- Owner (Nov 10, teaser v1): "Trailer needs a lot of work character is just walking into stuff". Understood: holding a direction key and filming the result made the player walk into fences, stalls, trees and gravestones. Every trailer shot is now directed: the player walks the game's own navigation path (or a checked straight line) to a mark and does one readable thing (breaks a rock, tills, waters, fells a tree side-on, talks, joins the dance, turns round). The camera is placed or follows with lag, and every shot is checked frame by frame for walking into or behind things before the cut.
+- Owner (Nov 10, teaser v2 note): "It needs to look like someone is actually playing it for the short scenes not a bot repeatedly walking into a wall. For example the player wouldn't just be standing by the creature so it could attack." Understood: a trailer shot is a moment of play. The player arrives somewhere with intent, does the thing, and reacts to danger the way the game teaches (turn and face the Hollow with the lantern, keep moving at night). Never a frozen creature beside an idle player.
+- Owner (Nov 10): "benches kind of look weird and not like you would be able to sit on them". A seat must read as a seat at 1x: one bright seat plane (lighter than the back), a separate darker back with a gap under it, and a solid shadow under the seat lip that fades to the floor. Rows of evenly spaced slats or panels read as a crate, a fence or a sideboard.
+- Owner, Nov 10, on the 3D-rendered furniture, props and benches: "redo these all not in blender you lose detail when you do it and it looks bad". Understood: rendering small objects (furniture, props, stations) from 3D models smears the detail at game size. Draw them by hand in code, pixel by pixel, the way the buildings kit and the original furniture were made, and draw each turned view (side, back) by hand too, never render it. All 3D-rendered furniture was taken back out of the game (old art restored).
+
+- "your judge is being too kind on crops: that pumpkin does not look anywhere near good enough, most of them don't; compare
+  them to the outside assets and you will see how bad ours look" (Nov 10): a judge's 6 against our OWN old art is not the
+  bar. Calibrate against a professional reference (the outside-art set we replaced, used only to compare, never in the
+  game): it counts as an 8, anything that looks amateur next to it is 5 at most. Measured: our crops ran lum 8-133 (mean
+  75) where the reference runs 37-211 (mean 133), so "darker, moodier" had turned into mud. Crops keep a full value range;
+  the game's lighting supplies the mood.
+- "No I think it being 6 minimum is still important. I want it to be preferred and six" (Nov 10): nothing is installed
+  unless it scores 6+ AND is preferred over the old art. The old exception (when the old art breaks an owner rule, being
+  preferred was enough) is gone. If the old breaks a rule and the new is still under 6, keep working until it reaches 6.
+- "only use strict judge for crops, don't use it for anything else unless I say so" (Nov 10): the reference-calibrated
+  strict judge (outside-art set = 8, amateur next to it = 5 at most) is for CROPS ONLY. Every other family keeps the
+  normal blind judge: install at 6+ and preferred over the old art (no exceptions, owner Nov 10).
+- "our turnip one is better, that's the only one though" (Nov 10, on the strict-palette set vs the reference): the turnip
+  (spoon leaves with a pale midrib and crinkled edge, a domed purple shoulder, a curved purple cap with a taproot) is the
+  standard to keep; pumpkin and corn still fall short of the reference and need reworking.
+- "it needs to be almost on par with Stardew Valley when it comes to animations and textures and models": the QUALITY
+  bar is Stardew Valley's finish (clean clusters, 3-4 tones a material, deliberate highlights and inner lines, keyed
+  animation with bob, anticipation and follow-through). The LOOK stays this game's: darker, moodier, not candy.
+- "too gritty" / "over gritty": no speckle, no single-pixel noise as texture, no checkerboard dither. Wear is drawn as
+  shapes (a patch, a streak, a moss line), never as sprinkled pixels.
+- "too close to Stardew" / "make it darker, more detail, more like before": moodier values, more hand detail, not candy.
+- "all the young hot women are meant to have decent cleavage in their normal and chat sprites": Nell, June, Cora, Ida,
+  Tess, Iris, Della, Maud and Caitlyn (all adults) show a low neckline with clearly visible cleavage in BOTH their walking
+  sprites (front views) and their chat portraits. Nothing may cover it: necklaces sit at the base of the neck, collars,
+  scarves and cardigans stay open. Draw it well: soft rounded forms and a soft V of shadow, never a hard streak that reads
+  as a stain. Vera is 16 and stays modest; none for men, children or elders. Caitlyn's face stays exactly as it is.
+- "the old art was more detailed, more realistic... feels less gritty, less round, too fake": forms must read as round
+  volumes lit from one side, with detail placed on purpose.
+- "houses don't have the two-side roof anymore" / "more modern houses": hip and side-gable roofs, siding, dormers.
+- "I don't want you to use already available assets because someone else owns this": draw every pixel; study outside
+  art only by reading or measuring it.
+- "they both looked bad" (the maple in the game and my bundle maple): matching the old art is not the bar; beat it.
+- "make it look like hand-placed human-made art": the LPC sheet is the quality target; drawn, not generated.
+- "the angle feels a bit off" (maple from a 45-degree camera): 45 degrees looks down like a drone, the trunk shrinks and
+  the root flare shows as a disc. Use the 30-degree camera (blockout `elev` 30): trees stand up, the ground is
+  foreshortened, as in LPC and Stardew.
+- "this is better but trunk needs a bit more detail but this is very good" (maple v2): the 3D blockout + hand finish
+  is the approved method. A trunk needs bark grooves, a lit edge, a knot and roots, not one flat colour.
+- "you have to do this for everything now": every sprite goes through the blockout + hand finish.
+- "props are not good enough and the human sprites look very bad so far" / "do you need some practise for the props
+  and other stuff first": the 3D props and the 3D people did not beat the drawn ones. Nothing replaces existing art
+  until it clearly beats it side by side. Practise first (drills), show the owner, then replace.
+- "maybe a bit more improvement" (v4): leaf clumps through the crown (a second, finer lump octave), small sunlit
+  highlights, fallen leaves round the foot (it's autumn).
+
+## Small wooden markers: stakes, pegs, posts (Nov 12: survey stake 5.5 -> 6)
+- A round section with a domed top reads as turned (a bollard, a pawn, a candle): cut wood has flat faces. Two faces in 3/4 with a hard 1 px edge between, lit left and two steps darker right.
+- The sawn end is the palest thing on it: a flat cap 2 px tall, darker rim on the shadow side. A tip darker than the shaft kills the read.
+- Something driven into the ground has no flared foot: give it a collar of turned earth (two browns, a lit crumb top-left) and let a grass blade overlap it. One blade, not two symmetric ones (they read as little feet).
+- Draw the drop shadow after the outline (or it gets outlined into a grey block), as one flat ellipse joined to the foot, pushed down-right.
+- A cloth tail needs 5-6 px, rising, with a notched end to read as cloth in wind; a 3 px horizontal nub reads as a band.
+
+## Trees and foliage
+- [Nov 11, family 5 -> 6] A wood built from two pine sprites at one size, placed with a minimum spacing, reads as a plantation:
+  identical cones on a grid with their hems in rows. Give every common tree 3+ outlines (different silhouettes, not palette
+  swaps), pick the outline by a hash of the position AFTER the world is built (so the random layout isn't reshuffled), and
+  thin by a slow noise so trees stand in clumps with gaps.
+- Never run two installers that rewrite objects.json at the same time: parallel writes corrupted it. Render in parallel,
+  install one at a time.
+- A birch crown made of a few big spheres reads as a cotton bud, of many medium ones as broccoli; open drooping sprays of
+  small clusters hung off thin dark branches, with gaps showing the white trunk, read as birch. The trunk must stop inside
+  the crown with sprays in front of it, or it reads as a pole with leaves stuck on.
+
+- [maple 3D v3] Texture tufts placed on a fixed step ((x+3y) % 4) made diagonal hatching across the crown. Place leaf
+  shapes at hashed, uneven spacing with a no-touch radius.
+- [maple 3D v1-v2] Lone specks and 1-3 px rings ("eyes") come from small dips in the lumpy surface; melt every
+  cluster under 8 px into its surroundings before adding texture.
+- [maple 3D v5] A fine lump octave doubles the self-shadow: the whole lower crown went plum. Give leaves an ambient
+  floor (.14) and weaker self-shadow (.5) so only the bottom edge is deep.
+- [maple 3D v8] grid.py's outline reads colours, not letters: two letters with one colour confuse it (the crown's
+  lit areas got outlined). Every letter needs its own colour; fallen leaves get duller ones.
+- [pines] Wide, flat tiers (height half the radius) render as one smooth striped cone from a raised camera: the back
+  of each tier fills the silhouette. Tiers must be steep (height about 1.25 x radius), with drooping tip blobs round
+  each hem and a strong self-shadow (shade .85) so each skirt darkens the one below.
+- [rocks] A lumpy ellipsoid reads as an egg. Slice flat faces off it (a flat-ish top and 5 side planes): toon bands
+  then give each face one flat colour, chunky and LPC-like.
+- [apples] 2x2 fruit reads as berries at 1x; apples need 3x3 with a lit top-left and a stalk.
+- [tall trees] A cast-shadow light at 25 degrees throws a birch's crown shadow far from its trunk; keep the shadow
+  light steep (-.13, 1, -.12) so the shadow sits under the tree, a little down-right.
+- What worked (owner: "very good"): crown from 7 overlapping lumpy spheres, 30-degree camera, toon bands, leaf tips
+  and notches on the silhouette at uneven spacing, shadow cast down-right by a separate steeper shadow light.
+
+- [maple 4/10] A crown that is one smooth ellipse with bumps stuck on reads as a ball or a pumpkin, not a tree. Build
+  3-5 overlapping bundles, each lit top-left and dark bottom-right, with notched edges.
+- [maple 4/10] Never tile one texture stamp across the interior on a lattice: it shows up as horizontal bands and reads
+  as made by a program. Texture goes on the borders between light and shade, interior stays quiet.
+- [maple 4/10] One big highlight disc is wrong: use 8-10 small highlight patches (3-6 px) on the upper half.
+- [maple 4/10, 5/10] The trunk must reach down into its own shadow and up under the crown; a gap of even 1-2 px makes the
+  tree hover. Cast the shadow down-right, not centred.
+- [maple 4/10] For this game the palette must be darker and less saturated than a sunny farm: shades sink toward plum,
+  the highlight stays below about 85% value.
+- [maple 5/10] Identical bundles stacked in a lattice read as bread rolls / grapes. Vary bundle size and shape (2-3
+  hand-drawn variants), overlap them tightly, step the back ones darker.
+- [maple 5/10] Crown 114 px wide on a 9 px trunk reads as a lollipop: trunk about 1/5 of the crown's width, with flare.
+- [maple v6, 518 stray pixels] Many tiny clusters over the whole crown is noise. Bigger clusters, fewer of them.
+- What worked: bundles with a lit rim / body / shade, interlocking leaves across the light/shade border, the deepest
+  colour only along the bottom edge (critic: "clean clusters", "hue-shifted ramp suits the mood").
+- What worked: filled leaf clumps read as foliage; thin V-line tufts read as stripes.
+- What worked: a 2x2-cell draft makes the whole thing look upscaled (mixed pixel size); use the 2x2 leaf only as edge
+  texture.
+
+## Props (small objects, 20-40 px) [owner: "not good enough"]
+- Judge a raised prop (a tarp on a roof, a sign on a wall) in its in-game spot too: the judge read the tarp as a flat ground piece, and the in-game view showed it floating behind the house's ridge (anchor 162 px; the house needed 122). Each roof gets its own entry (tarp, tarp_barn) with its own anchor. (props family r1)
+- Saturated cobalt is the loudest colour in a muted family: weathered grey-blue (#454d59 range) for tarps. (props family r1)
+- To cut a hole in a sprite in the furniture kit, zero all four channels and add the hole to NOOL (the outline pass fills small holes). Zeroing only alpha left the colour behind and the export turned it purple. (props r6)
+- Clothesline: T-topped posts, a sagging line, pegs, each garment its own hue with broad folds lit on the left, and a faint shade on the grass below. Won in both slot orders. (props r5-r6)
+- A stack of identical tyres drawn crooked still reads as one ribbed drum. Stand one tyre on end against the stack: a ring with its hole is unmistakable. (props r5)
+- When my redraw keeps losing (firewood 3 rounds, bin 2), check the installed piece's score: if it now judges 6, keep it and move on. (props r5)
+- A lid wider than the body turns a can into a jug or bucket. The lid is at most 1 px wider than the body, domed and a step lighter. (props r5)
+- Never stamp the same grass tuft on every prop: it repeats across the family and shows green on dirt. Use one solid drop shadow instead (#322125 at 60%, an ellipse under the foot, pushed down and right). (props r3)
+- A frame or brace over boards is a step DARKER than the boards between it, not lighter, and a crate lid is a full step lighter than its front. (props r3)
+- A mine "way down" reads from a ragged dark shaft with the ladder's top poking out, not from a ladder lying flat. Give the lip broken stones, lit on the near edge, and no straight frame (a straight lip reads as a TV). (props r3)
+- Rust is brown-orange (#77461f range), never saturated red: red streaks on a drum read as blood. (props r3)
+- Lettering on a sign: abstract strokes, not real 3x5 letters. Random letters spell words by accident ("HECCO" read as HELLO). (props r3)
+- Firewood: logs off any grid in three sizes, dull tan ends lit top-left with one dark heart pixel off centre, some half-moon splits, and a dark interior behind them. Plain pale ends in a 3x3 grid read as bread rolls. (props r3)
+- Lumber: a straight left edge, boards of different lengths, tan sawn ends, and a dark gap with battens under each layer. Ends-toward-you blocks read as bricks, and a stepped stack reads as stairs. (props r3)
+
+- [props v1] 3D toon shading alone gives plastic toys at this size: the drawn props win on hand detail. Every prop
+  needs a material pass after the render: wood = dark board seams, grain streaks, nail heads; metal = a bright rim
+  line and rivets; stone = cracks and chips; cloth = folds and a tie.
+- [props v1] The drawn props have more contrast: near-black outline and inner lines, top face clearly lighter than the
+  front, the shadow side clearly darker. The 3D ones came out mid-grey and soft.
+- [props v1] Signs, labels and plaques (MARSH, PHONE, the memorial plate) are what make a prop belong to this town;
+  never lose them.
+- [props v1] Depth along z is foreshortened by half at 30 degrees but the game's ground is not: anything that has to
+  span tiles along z (vertical fences) must be modelled twice as long.
+
+- [drill 12 v1-v3] Props are drawn nearly face-on with a thin top: camera 18 degrees, not the world's 30, or the lid
+  takes over. Light them from the front-left (-.55, .85, .85) or the fronts go dark. Barrels are bellied (an
+  ellipsoid cut flat top and bottom), not cans. One streak in nine pixels is texture; one in three is noise.
+
+## Buildings [self-check, all 53 rendered: the drawn ones win, none installed]
+
+- [town v1] Roofs face the sky, so in the 3D render they catch the full light and go pale (slate turned powder blue,
+  plum turned pink). Roofs need their own darker ramp or a lower light share; the drawn roofs stay dark and mossy.
+- [town v1] The drawn buildings carry weathering as shapes (moss along eaves, stained stone, dark window glass); the
+  3D ones are clean and bright and lose the horror mood. Glass must stay dark in the day, curtains muted.
+- [town v1] A front gable on a cross-plan building (the town hall) hid the windows and the door behind a blank wall.
+- [town v1] Small hand details (the church clock and tower door, the stone courses, the garage's dark door) are what
+  the drawn buildings win on. Organic, soft forms (trees, bushes, rocks) are where the 3D method clearly wins.
+
+## People (48x64) [owner: "look very bad so far"]
+- A new cast drawn beside existing townsfolk must match their measured figure box first (bbox of a front frame: townsfolk 41 px tall, 24 wide; the player 45): a 37 px figure reads as a child next to them, whatever its detail.
+- Side-view legs drawn as shifted columns overlap into one block at a 3 px stride; draw each leg as a limb from a fixed hip point to the foot (4 px wide) and stride 4 px, the far leg one ramp step darker.
+- Give each person one silhouette mark that survives 1x: a flat cap with a brim, a wide straw brim, a bowler's dome, a red kerchief, braids past the shoulders, a bun. Colour alone (the old recoloured shirts) does not tell people apart.
+- Carried tools belong in the sheet when the hand point is known per frame (cans hang from the fist, the pick is drawn along an angle from the hand): they then move with every frame and never float.
+- Water, seed and chips that come off a tool belong in the sheet, drawn from that frame's tool tip to the ground row: drawn separately in the world they drift off the hand and read as a different motion.
+- A strike must reach its target: stand the worker half a square back from the square they work and give the tool enough reach (here 14 px of haft at 0.75 rad) so the head lands on the square's centre, not at the toes.
+- One hair colour in every view: a cap the colour of the hair reads as the hair from the front. Make the cap a different value and show tufts of the real hair under it.
+- Pale hair seen from behind needs strands (2-3 steps, a shadow row under a brim, a ragged lower edge) or it reads as a paper patch.
+- A dark-skinned or slate-dressed figure on dark grass needs a lit top rim (cap and shoulders) and a shirt a step lighter to pass a greyscale check.
+- People working the same field must keep a clear square between them: settle the schedule (the lower in the order waits) rather than nudging sprites off the squares they work; rows all worked the same way keep a follower well behind the leader.
+- A held tool shows in every direction, the back view included: decide where it rides from behind (an iron head across the back) before drawing the walk.
+- A long-handled tool on a walk is carried, never hung: over the shoulder (haft across the chest, head behind the back) or held across; a head hanging to the boots reads as dragging.
+- Picking reads at 1x only if the crop itself travels: a 6x6 crop with leaves, out of the soil, up to the chest, over the picker's own container drawn on the sheet.
+- Hair and top of the same value merge in greyscale even in different hues: part them by a value step (red hair over a dark navy blouse, not a brick one).
+- Stubble as a dotted row under a mouth reads as teeth; draw it as one soft shade along the jaw, and let a moustache hide the mouth line.
+- Strands of hair from behind need uneven lengths and tones, or evenly ruled verticals read as a grille.
+- People at work keep a clear square from the player as well as from each other: a hand steps aside while you stand in their way.
+- A thing carried up to the chest must stay below the chin line: at 1x a crop held at face height merges with the face into one blob. Lift it to the chest, carry it across the chest, then down into the container.
+- A tool on the shoulder seen from behind: the haft rises past the shoulder's outer edge and the head sits beside the head, never over the back where it merges with the hair or the shirt.
+- Dark short hair from behind needs strands: two or three tones in uneven vertical runs and a ragged nape, or one dark mass reads as a helmet.
+- Things that land must land unevenly: seed, chips and drops lying in an even row at one height read as an ellipsis.
+- A carried prop must differ in value from the clothes behind it (check in greyscale): mid-grey cans on a mid-blue shirt read as mittens; bright zinc holds.
+- A tool and its target need different values: a grey pick head on a grey stone hides the contact the strike is about.
+- Two people doing the same job should never move in step: offset their phase by half a cycle and give each a slightly different beat.
+- Keeping clear of the player: step a worker back along their own path (still on their ground), never push them radially off the field.
+
+- [chars v1] At the world's 30-degree camera the cap and hair cover the face; people use a near face-on camera (~12).
+- [chars v1-v4] A 3D head with painted eyes reads as a doll; the drawn chibi wins on crisp shapes: outlined hair
+  clumps with shine bands, clothing seams, belts and buttons, a defined jaw. Body proportions and the face must be
+  drilled on their own before any character is redone.
+
+- [walk r1 5/10 vs 4/10 at the Stardew bar] The walk lives in the arms: each hand swings against its leg, clear of the
+  hip (side: 5-6 px ahead and behind; front: the forward hand drops in front of the body and moves in, the back one
+  rises and tucks). A run is not a fast walk: lean held through every frame, the free foot tucked up behind on the
+  passing frames, bent arms pumping (fist at the chest, then driven back), a bigger stride and bob. [corrected Nov 10]
+  Hair, hats and hair accessories move WITH the head on the same frame (owner: a frame's lag read as "hair bobbing up
+  and down like it's not attached"; judged 8 vs 3 at 6x). An idle needs a visible breath and a blink.
+
+## Creatures in Blender (the Hollow, tools/blender/hollow3d.py) [blind judge rounds 1-14; installed at 6 vs 3]
+- Walk weight: the bob must dip on both contacts. A head pitch that swings once per cycle (lag(...) * 7) moved the head
+  as much as the bob and turned two dips into one; a nod of cos(4*pi*t) keeps both beats. The swinging hand should rise
+  (reads from the front, where the swing is only depth), and the hem should follow a frame late (hem_bob = lift_prev).
+- A 2 px cool lavender rim on light-facing edges is what holds a dark coat against night grass in greyscale.
+
+- [hollow r1] A smooth toon render beside a drawn sprite looks bright and plain: match the old sprite's palette values
+  first (sample them), then add mottle (noise into the toon factor) so cloth is never one flat colour.
+- [hollow r1] Carve for real: a solidified shell, boolean cuts, a candle sphere inside. The face then glows in every
+  view and the cut walls give a lit rim for free; floating face decals show as slivers from the side.
+- [hollow r1 6/10] The pumpkin skin must sit below the glow: push it to brown and plum (highlight under ~70%), or the
+  thing reads as a Halloween decoration and the carved light loses.
+- [hollow r1] A scream needs a tall dark maw (a dark plate behind the mouth hole), not the same grin with arms up.
+- [hollow r2] Side views: turn the head about 30 degrees to the viewer, or the face is a sliver on the pumpkin's edge.
+- [hollow r2-r3] A spider crawl: one hunched hump of coat, the head low in front, four thick limbs arching up BEHIND
+  the head (none crossing it), feet near the walk's ground line. Splay in x shows as height in side views
+  (9.6 px per tile of depth), so keep feet within ~.55 tile of the centre line or they drop out of the frame.
+- [hollow r3] 1-2 px buttons read as specks; tidy belts and buttons read as a robe. Tatter with shapes: torn hem strips
+  of uneven length, rags off the cuffs, dark claw slits. Sloping, narrow shoulders for a starved body.
+- [hollow r3] A cool rim on the lit (top-left) edge keeps a dark body visible against night grass.
+- [hollow r21] Every finger at least 4 px inside its cell: a reach that touched the edge lost 6 to 4 against the same
+  body kept inside the frame. Slide the figure back along its facing ('shift') rather than shortening the reach.
+- [hollow r22] Side-on, a far limb that copies the near one reads as one tube drawn twice: hold it back, raise it 10+ px
+  and shade it one step darker. Sleeves that ride up the reaching arm (taper to a knobbed elbow, flare to a torn cuff,
+  a bare bony forearm) read as limbs; constant-width sleeves read as pipes with stripes.
+- [hollow r22] A carved mouth must stay lit in side views: a dark maw seen edge-on reads as a rotten spot or a gag.
+- [hollow r22 5/10] A lunge that moves only the arms is a reach. Drive the hips forward over a bent front knee, trail
+  the back leg, and let the head arrive a beat late; tilting the torso about the hips alone swings the hem backward
+  and the body reads as leaning away. Bone forearms, not wood: brown sticks vanish into the grass at 1x.
+- [hollow r24-r25] Anticipation has to be big to read at 1x: a 4 px crouch scored a tie; leaning back over the rear
+  foot, 6 px lower, head pulled back and both claws cocked up behind the coat scored 6 vs 5. Slide the wind-up frame
+  forward so the cocked claws stay inside the cell.
+- [judging] A judge given only 1x and 2x sheets could not see 2-3 px mouth changes and called it a tie; send an
+  enlarged crop of the changed part beside the 1x sheet.
+
+## Story sights: pictures that carry a caption's facts (Nov 12: regions 5.5 -> 6, places 5.5 -> 6.5)
+- A sight is judged on one thing first: does the picture SHOW the caption's key fact. The drowned scored 5 because the people faced the viewer when the caption says they face away; nothing else mattered until that was fixed.
+- "Facing away" needs the back of the head to be ALL hair: a skin pixel on the side plus a highlight reads as a face.
+- A body folded at the knee is a "<": the thigh goes forward to the knee, the shin angles back down to the foot. Thigh and shin drawn parallel read as stacked logs.
+- Separate outlines for torso, thigh, shin, arm and head make limbs read; one merged mask reads as a sack, a bear or a log pile. Draw the head last so arms and rope don't hide it.
+- Speckle reads as fur on skin, as woodworm on a door, as grit on a step. Use smooth 3-tone ramps, and draw marks as clusters with a purpose (nail heads with rust streaks under them).
+- Text that should look carved: dark groove + a lit lower lip, per-letter jitter, on ragged fresh wood. Dark letters on a clean pale rectangle read as a paper notice.
+- Hair floating in water: one tapering mass drifting off the back of the head. Single stiff strands from the crown read as antlers, feather dusters or flames.
+- A shoe seen from behind is wider than it is tall: heel counter, a wide dark opening, the toe box short. Tall ovals read as candles, bottles or beetles.
+- "Reflects nothing": anything continuing below the waterline (pilings) reads as a reflection. Stop everything at the surface.
+- A view from a tower is foreshortened: squash the far half, hills at the top of the glass. A straight top-down plan reads as a map or a dartboard.
+- Age on paper: yellow it, fox it with a few spots, curl a corner; a stack of thin paper lips shows years at a glance.
+- Size carries status: the stand-in had to be a full head taller than the children's scarecrows to rule the ring.
+- Code trap: `'text'.strike` is truthy (String.prototype.strike is a built-in), so a `ln.strike` flag on a plain string struck through every chalk line and made MOLLY, ALICE and the sum unreadable. Test `typeof ln==='object'` first.
+- A slate, a carving, a label: dump the text pixels and look at them at 6x before judging; garbled text costs a whole round.
+- Small found objects (the Count, Nov 12: 5 -> 6): silhouette is everything at 30-40 px. A spinning top needs a rounded shoulder under the crown curving in to a short point (straight cones read as party hats, carrots, Christmas trees); the peg out of a lit crown ellipse and a spin dent or string loop finish it.
+- An opening drawn as a solid black oval in an even frame reads as a porthole or a lamp. Fill a hat's opening with its lining (pale cloth darkening toward the back) inside a soft edge.
+- Ties hanging below a hat read as legs. Make them flat 2-3 px ribbons that go somewhere (up to the knot it hangs from, or out flat to a bow).
+- Anything seen straight down into its hollow reads as a plate or a lid. Three-quarter view, showing the side wall.
+- A cap's peak seen side-on next to a round crown reads as a snout; any seam or button beside it becomes an eye. Point the peak at the viewer: a flat lighter half-moon along the near edge with its shadow line.
+- Fine texture (herringbone, tweed) at this size reads as fur. Two smooth tones and two or three short bands of pattern.
+- One sprite reused across several sights reads as a kit: vary the pose (standing, grazing, tipped over with a broken leg), not just the colour.
+
+## Judging (Nov 9)
+- Blind judges vary by about a point between rounds and lean toward whichever image is in slot b: in tree round 4 the
+  same pair scored new 6 / old 5 with new as b and old 6 / new 5 with old as b. For a close call, judge both orders
+  and treat a split as a tie. A real win holds in slot a too (the Hollow: 6 vs 3 with the new one in slot a).
+- Build a judge sheet by splicing the changed rows into the INSTALLED sheet, never from an old render folder: a folder
+  that still held a rejected scream and front lunge put them in front of the judge as if they were part of the change.
+- Label a lineup from the sheet's own row order (N, W, S, E per clip): a cell I called "idle" was the walk facing
+  away, and two judges reported the idle as "showing the back of the head".
+
+## Animals (Nov 9: cows 4 -> 6, installed; dead deer 2 -> 5)
+- A generic relight (height from the silhouette, one hue-shifted ramp per material) LOST to the hand-shaded originals on
+  all three small animals: it pulls species toward the same ramp (rabbits and ducks became one family of pale lumps)
+  and dims the key accent (the duck's bill). Small animals keep their own colour identity and one saturated key detail.
+- A sprite that rises inside its cell (a hop) must have headroom: the rabbit's ear tips were cropped on every mid-hop
+  frame, so each hop blinked into an owl/onion. Check the top rows of every frame of a sheet for content touching the edge.
+- Volume by surface normal, not by height bands: a barrel lit from the top-left with a cool lilac (white coat) or
+  plum-brown (tan coat) shade reads as a body; bands parallel to the belly read as a table or a loaf.
+- Legs read as legs when the far pair sits 4-5 px off the near pair and one step darker, the front leg has a knee
+  proud at the front and the hind leg a hock proud at the back. 2 px offsets merge into one post.
+- A limb routine that widens only along x draws a lying (horizontal) leg 1 px thick: draw thickness across the
+  limb's direction.
+- A dead animal reads by its head: a big ear is the strongest deer cue; laid flat it disappears. Legs stretched out
+  horizontally (hind back, fore forward) say "lying on its side"; legs pointing down say "standing".
+- A round wound reads as a target or an eye; a ragged tear along the flank reads as a wound.
+
+## Ground tiles (grass, 8 versions, stuck at 5)
+- **Distinct marks do not belong in a 192 px tile at all (tarmac Nov 11: 3 -> 6).** A patch, an oil stain, a crack or a
+  leaf drift baked into the tile marches across the screen every six tiles however it is drawn ("wallpaper with
+  stickers"). Keep the tile quiet (zones + an aggregate or lying-leaf layer with many small siblings) and put every
+  distinct mark down by WORLD position: flat decal objects along a street (`tar_decals.py`, newtown.js), or strewn
+  by hash per ground chunk over a layer (forest litter atlas, engine.js), with a slow noise gathering them into drifts.
+- Zones from a few summed sines with integer frequencies make a LATTICE of round discs (forest v8); wrapping value noise
+  (32/16/4 px octaves, half-step tones, thresholds ~.36/.62) gives irregular zones none of which marks the repeat.
+- A strewn atlas needs many cells per kind (forest v8 r1: 16 cells -> "one clump copy-pasted 10x a screen"); 29 cells
+  with 4 outlines per pile size held. Never mirror a lit sprite to get variety: the light flips to top-right.
+- Grade a drift by a density field: big piles at the core, smaller ones round them, loose single leaves at the rim, bare
+  soil beyond. Even same-size clumps read as stickers.
+- Keep pebbles out of a dirt tile (they were the only repeat marker left); strew 2-4 stone clusters of mixed sizes by world
+  position, gathered at lane edges so the middle reads trodden. A 3x1 stone reads as a dash, two of them as eyes.
+- Cobbles (Nov 11, 4 -> 6): one flat tone per stone, neighbours different, a 2 px joint under and right of each, a shaded
+  crescent bottom-right, the stone's own warm lit edge top-left. The SAME bright highlight on every stone reads as bubble
+  wrap: the brightest step on one stone in four. Pack four sizes (big setts first, small ones in the gaps), or it reads
+  as a net. Radial gradients per stone read as smears, and dark knots where cells crowd mark the repeat.
+- Strewn per chunk: visit the cells in a 2-cell margin round the chunk too, so a decal that straddles two chunks is
+  drawn whole in both (each canvas clips its own half) and no seam shows.
+- Round dark ovals on a road read as eyes, twin ones worst (tarmac judge): oil is a flat, ragged drip stretched along
+  the lane, one tone with a faint sheen rim, single, sizes varied.
+- Cracks need a lit lip a clear step above the surface (the near-surface lip was invisible), and should run mostly one
+  way with gentle turns: short wandering ones read as scribbles or birds.
+- Two stepped patches of the same outline on one screen read as a copy: vary the outlines (plain, L-step, long strip).
+- Forest floor (Nov 10, five drafts): a carpet of separate leaves is confetti at 1x whatever the tones (v3, dense or
+  sparse); raised litter "mats" with lit and shaded rims read as rugs or slabs (v2, v5b: boxy, "crates or dead birds");
+  an even jittered grid of objects reads as "wallpaper with stickers" (v1). What scored best: well-made parts (two-tone
+  pebbles lit top-left, filled tuft clumps, moss with a contact shadow) gathered into drifts of different sizes.
+- A quiet in-tone layer (lying leaf shapes 3-6 px, one step off the soil, placed by Poisson disc with a varying spacing)
+  makes bare ground read as a material without speckle; the same marks on an even spacing read as a lattice.
+- Moss and grass are the brightest, most saturated things on a forest floor: keep them two steps down and olive, or they
+  fight the trees.
+- A brown floor under dark green pines separates them by hue; a green floor under them loses the trees.
+- Drifts stretched sideways at similar heights line up into horizontal bands across the 2x2 repeat; drifts need different
+  shapes (round, diagonal) and heights, and none may be one of a kind (forest v7 lost to v6 on this).
+- Leaf colours go grey-olive under the game's forest light: the lit step of a leaf must be warmer and lighter than looks
+  right on the bare tile.
+- Water: anything floating (leaves) baked into the tile repeats as a stamp; float it as props by world position. Glints
+  read best gathered in a few wind lanes with varied length and lean, not one staircase repeated.
+- Tarmac: lone 1-2 px lighter chips on a spacing read as a dot lattice; wear is flat 3-8 px clusters in two close tones.
+- Anything that appears once per tile marks the repeat: a blob, a dry mound, the biggest clump, a leaf pair. Every
+  feature needs siblings of the same weight elsewhere in the tile, or must be too faint to find.
+- Tuft rims round a tone patch read as rings or shrubby pads; smooth flat patches read as stains or shadows of
+  nothing. Very faint zones from a wrapping low-frequency field were the least objectionable.
+- Thin V tufts spread evenly read as speckle at 1x; filled clump shapes (a dome of blades, spiky top, dark root row,
+  lit upper-left, short shadow) read as grass. Lone 2-4 px marks and leaves in a lawn read as specks or eyes.
+
+## Portraits: check before installing (Nov 9)
+- A dimple is 1-2 px in the skin's shadow tone. A line in the lip colour running up the cheek reads as a scar. (portraits r3)
+- Smug and think must not share a cue. Smug = one brow up, one corner up. Think = level, slightly knit brows, eyes up and aside, a small flat mouth pulled to one side. (portraits r3)
+- No blush on a grown man's shadowed cheek: on medium skin it reads as a bruise. (portraits r3)
+- Caitlyn's face stays exactly as installed. Any portrait install copies her row from the installed sheet (sheet4.py KEEP). (owner rule, re-applied Nov 11)
+- A curved cloth pattern (floor() of a warped coordinate) steps into diagonal hatch at 128 px and reads as rain. Keep checks and stripes straight. (portraits r2)
+- Two characters with the same hair style and colour read as one person whatever the face does. Change the hair or the beard first, then the face. (portraits r2)
+- An expression must move brow, lids and mouth together by 2-3 px each, or it disappears at 1x: smug = one brow up and one mouth corner up with a dimple, while that eye stays open; sad = inner brows up, outer eye corners down, both mouth corners down. (portraits r2)
+- Hollow or blank eyes need something that moves (a pinprick of light that follows the look), or every expression on that face reads the same. (portraits r2)
+- Before installing a re-rendered sheet, diff it cell by cell against the installed one and explain every changed
+  pixel. PIL's getbbox() on an RGBA difference looks only at alpha, so colour changes report as "same": use
+  getbbox(alpha_only=False) or numpy.
+- A "#" comment dropped into the middle of a formula silently cut off its tail (the eye's tilt and inner-corner terms),
+  which changed every face by 1-36 px. A new per-face parameter must reproduce the old pixels exactly at its default:
+  render the old settings with the new code and compare with the installed sheet before judging anything.
+- Per-character tweaks (hair length staggers, new styles) go behind their own setting, or they leak into everyone
+  who shares that style (June, Ruth and Ada changed when only Caitlyn's hair was meant to).
+- Teeth: one continuous row of upper teeth, clear of the corners. Two lone corner teeth read as fangs (judge 6 vs 5).
+- Cleavage, chat portraits: frame the young women 4 px higher so the neckline shows (cropped at the frame edge it fails the
+  owner's rule); shade each breast on its inner, lower curve with one highlight upper left, a short crease only under the
+  neckline. A full-length dark streak reads as a slit or stain. Narrow plunges make a wedge: cut them wide. Pendants at
+  the base of the neck (6 vs 4, then 6 vs 5).
+- Cleavage, walking sprites (48x64): no necklaces at all; at that scale a chain reads as a collar, a necktie or a
+  breastplate. The cleft in two soft steps, darkest only at its base; a hard 1 px darkest stripe reads as a tie or zip.
+  The top must sit two value steps from the skin (a tan apron on pale skin merged into one column). Arms folded across
+  the chest hide it; a stance that differs from the walk flickers (5 vs 4 twice).
+- A laugh has to open: a D-shaped mouth 7 px tall, a little wider than the smile, dark inside, top teeth, tongue at the
+  bottom (6 vs 5 in both sets). A 1.6 px taller opening was invisible to two judges.
+
+## Interiors (Nov 10: family 4 -> 5)
+- Light that is drawn OVER the scene (additive beams, floor ovals at the beam ends) reads as see-through stains; put the
+  sun on the FLOOR as a flat hard-edged patch with the window's glazing bars, drawn before the furniture so it covers it.
+- Remove speckle and the next flaw shows: a fixed row offset for plank ends (row*37 % 61) draws diagonal stripes across
+  a room; offsets must be random per row. Three far-apart plank tones read as patchwork; two close tones read as wood.
+- A contact shadow made by squashing the whole silhouette hangs below the foot as a step; centre it on the foot line so
+  most of it hides under the piece.
+- A home without the shop's daytime lighting needs a stronger sun patch, or the room has no visible light source.
+
+- [repeated, interiors r1] Light as a see-through oval over the floor reads as a stain (fire, candles, forge): draw it like
+  the window sun patches, additive and hard-edged in two stepped tones, shaped by the opening (a fan out of a hearth mouth,
+  2 tiles wide at most), on the floor layer before the furniture.
+- [interiors r1] A darker band down each side wall reads as dark stripes under whatever stands there (beds): keep only the
+  back wall's own shadow (10 px) and take the whole floor down one step instead.
+- [interiors r1] A contact shadow centred on the foot line hides under the sprite's last 3 px: drop it 2 px so 2-3 px show.
+- [interiors r1] Effects keyed to furniture must skip hidden pieces (o.hide): the cabin's upgrade furniture threw light and
+  shadow into the black void beside the room.
+- [interiors baseline] A room deeper than the screen shows only floor from the door: open on the back wall and pan down.
+  Judge rooms from a few steps in, where the walls are in view.
+
+- [process] An old/new pair must load the OLD sprites: the scratch build shares one sprite pack set, so a copy of the old
+  page still draws the new art. Export the last commit (git archive spr + index.html) and serve it from its own folder.
+- [interiors r3] A post-pass script that dresses a room shell (tools/shack.py adds the shack's holes, leak, damp and boarded
+  pane to room_cabin0) is lost when the shells are re-rendered: re-run every post-pass after interior.py, or the room loses
+  its story (the cabin lost 5 vs 5.5 to its own older self).
+- [interiors r3] Floor holes as flat pure-black dashes of one shape set in a line read as glitches: a broken board is a
+  missing stretch of ONE plank (on the plank lines), dark brown earth inside, the far board's cut face along the top, a joist
+  across a long gap, ragged ends with pale lit splinter tips, three different lengths, never in a line.
+- [interiors r3] One pattern repeated on a grid wall to wall (diamond parquet, checker) is the loudest thing in the room:
+  take its joint lines a step quieter and frame it with plain boards running along each wall, so it stops short of the
+  furniture that stands against the walls.
+- [interiors r3] A rug under a table shows only a thin arc and reads as something else (a rainbow): a rug goes where it is
+  seen, under a chair or in open floor, with the furniture standing on its edge, not covering it.
+- [interiors r3] Say who lives there with ONE object only they would own (a kneeler with an open Bible for the minister, a
+  child's drawings for the boy); crates in a bedroom read as storage dumped there. The room with the drawings scored 6.
+- [interiors r3] Two copies of the same bed sprite, mirrored either side of a shelf, read as a hotel and lose to two
+  different beds in an uneven layout.
+- [interiors r3 -> PASS 6 vs 4.5 and 6 vs 4] The teacher's house and the mother-and-son room won once the floor stopped
+  shouting and one object said who lives there. Next level (judge): Stardew dresses a room at three scales: big furniture,
+  then small things on every surface, then things hung on every wall, with pieces touching and overlapping. Big sprites
+  standing apart on bare floor under bare walls read as props placed, not a life lived.
+- [interiors r4] A reddish-orange glow under the brightest point in a horror game reads as a stain or blood: candle light
+  on the floor is a small pale-yellow patch, hard-edged, two stepped tones, never red.
+- [interiors r4] Fire drawn as three pale 2 px rectangles reads as heater bars even when called flames: a bed of uneven coals,
+  then tongues that swell from a 4-5 px base and taper to a leaning, curled tip, deep orange edge, yellow core, white root.
+- [interiors r4] Worn paint drawn as 4 px chips down a path reads as footprints or specks: wear goes along the boards as long
+  streaks (paint thinning first, a thin bare-wood scratch in the middle), lengths varied, ends only softly ragged.
+- [interiors r4] A floor patch (lino, carpet) laid over a floor that is already patterned reads as a pale glitch block:
+  only lay one over plain boards.
+- [process] A JS object literal with the same key twice keeps the LAST one: grep a table for the key before adding to it.
+- [interiors r5] A hatch in the floor drawn with a dark band along its lower edge reads as a raised crate: a floor piece has
+  no front face, only a 1 px gap all round, and no outline pass (NOOL.push(()=>true)); paint it like the floor around it.
+- [interiors r5] An unreadable small sprite in open floor (a sack with a white blob of letters) costs more than it adds:
+  every piece must read at a glance or go.
+- [process] kind 'deco' in a room's furniture list draws a LEAVES sprite, not the piece: things on beds and tables use the
+  ordinary furniture kind with no footprint (and a tall anchor, ay, to sit up on the surface).
+- [interiors r6] Painted to match the floor, a story piece (Ruth's hatch) vanished and read as "a grey slab": a piece that
+  matters needs a value step against the floor (bare warm oak on cold blue paint) AND no front face to stay flush.
+- [interiors r6] A lone group of pieces in a big room reads as left there; a long piece with the others at its ends reads as an
+  aisle (the store's goods table, barrel and sacks).
+- [interiors r7] Soft blobs on a floor read as stains and two-stroke crack marks read as birds: keep the middle of a floor quiet,
+  put the damp along the walls with a hard ragged edge, pebbles in groups of mixed sizes by the walls, cracks that branch.
+- [interiors r7] Copies on one screen (three identical ferns, twin sack pairs, twin hanging baskets, crate pairs in both
+  corners) read as copy-paste: every piece in view should be a different sprite.
+- [process] A helper that takes a fixed number of pieces (BEDS(a,b)) drops a third argument silently: append with concat.
+- [interiors r8] Wall dressing looks for 1.4 m of free wall; a narrow piece (an eye chart) in a gap under that never lands:
+  put the room's key wall piece in its furniture list by hand and check the shot.
+- [interiors r9 -> PASS] The store, the doctor's house and the greenhouse reached 6 once each had: one piece only its owner
+  would have (an aisle of goods, a cabinet with a red cross and an eye chart, tools by the glass), no copies on screen, a quiet
+  floor framed or toned down, and daylight that falls through the windows or glass.
+- [interiors r9] A piece placed by a random free-spot search can land on a flat rug (rugs are not obstacles): place story
+  pieces by hand.
+- [interiors r9] Props standing in one evenly spaced row along the back wall read as placed: split them between corners.
+- [interiors r9] Flat stones drawn with symmetric cut corners read as capsules: give each stone four sides that slope differently.
+- [interiors r10] In a dark room (the mine runs at full night) light painted on the floor sits under the darkness and never
+  shows: draw light pools into the light mask itself (hard-edged two-step wedges), with a dim lift over the room so the floor reads.
+- [interiors r10] A piece of a group (nightstand, chest) floating alone mid-room reads as dumped: it touches what it serves
+  (the bed head) or stands against a wall under something (the bookcase).
+- [interiors r12 -> PASS] Ruth's room: one piece to each part of the room (bed and nightstand, shelf and candelabra, rug in the
+  middle, vanity and hatch in the two lower corners), each touching a wall or what it serves, reached 6.
+- [interiors r12] Light fans that all stop on one straight line read as a ledge, and a fan with no lamp at its tip comes from
+  nowhere: hang the lamp where the fan starts, make the lamp the brightest pixels, give every fan its own length.
+- [process] Room screenshots must wait for the area-title banner to fade (4.5 s): it covered the wall and its lanterns.
+- [interiors r13] A track, path or pipe that ends against a solid wall reads as going nowhere: give it somewhere to go (a
+  timber-framed drift into the dark), which also gives the room its "deeper down" dread.
+- [process] Removing a line that ends with closing braces removes braces that close OUTER blocks too: count what the deleted
+  line closed and put those back (node --check catches it; never chain past a failed check).
+- [interiors r14] A light fan whose width is capped turns into a rectangle with a ruler-straight bottom and reads as a panel or
+  doormat: let it widen all the way to a ragged far edge, and light the wall round the lamp too so light runs lamp, wall, floor.
+- [interiors r15 -> PASS] The mine reached 6 after 15 rounds: name the subject at a glance (track, cart, drift, timber sets),
+  keep the middle quiet for play, put the detail at the walls, and let every light have a visible source.
+- [interiors b2] Five rooms on the same shell (same windows, same door, same mat) read as one house shown five times: vary
+  the shell per house (window count and place, wall, floor), not only the furniture.
+- [interiors b2] Generic workshop pieces (pegboard, cogs) never say a trade: each trade needs its own material in view
+  (cut stone and a sledge for the quarry, a treadle machine for the seamstress, primers and a hand-bell for the school).
+- [interiors b2] Small cream blocks on a shelf read as jars whatever they are meant to be: letters need the V of the flap.
+- [interiors b4] Two small marks over a dot read as a face: an envelope's flap is one unbroken line, no seal dot under it.
+- [interiors b5] Two light passes for one window (a baked shell patch and a live patch that leans and widens) read as two
+  diverging bands, an "A": one source of window light only, hard-edged, sheared one way.
+- [interiors b5] Evenly ruled lines on a block read as a grill or radiator: rough stone is a jagged top edge, chipped corners
+  and a few scars.
+- [interiors b6] A plain block of anything at game scale reads as an appliance (a box with a lighter top = a toaster); give
+  the material a shape only it has (a headstone's arch and cross says "stone being cut" at once).
+- [interiors r3] A tall piece standing in front of a window (a bookcase hiding a third of the glass) is a placement error;
+  check every tall piece against the window list before judging.
+- [interiors r3] Fading a too-loud quilt to grey made it read as stone: fade toward the room's own warm brown instead
+  (mix 45% toward the floor colour, 15% darker), and keep its pattern.
+- [interiors r3] One pupil desk on its own reads as a side table: a piece that says a job needs its group (two or three
+  desks in a row facing the board).
+- [interiors r2] A fire lights nothing until the source glows: flame tongues (deep orange edge, pale core) and a hot grill
+  must be the brightest pixels in the room before any floor light. Vertical bars read as a heater grate.
+
+- [interiors b9] The new version won all 8 homes of batch 3 (hale 6, quill 6 pass). What still holds a room at 5: big pieces
+  stand apart on bare floor and the lower half is empty; Stardew layers big pieces, small things on every surface and
+  something on every wall, with pieces touching. Fill the bottom third with one piece that says the trade.
+- [interiors b9] A fallen chair seen top-down reads as a bracket; a flaw must keep a shape the eye knows (sole and toe for
+  a boot) or go.
+- [interiors b10] BLOCKING across 10 public rooms: one kit reused (the same till counter in 6, the same braided rug in 6,
+  the same crate pair in 5, the cog shelf in 4, church and chapel one shell) kept every room under 6. Each trade gets its
+  own counter and its own pieces; no braided rug in a shop; no two rooms share a shell.
+- [interiors b10] Pew panels read as sideboard drawers: a seat shows a lit seat plane and a gap under the back.
+- [interiors b10] A forge or hearth must be the brightest thing in the room with an amber fan on the floor; a brick box with
+  a yellow smear is not a fire.
+- [interiors b10] A shop's counter needs its trade on top (lure cards and a scale, a vise, a ledger and bell).
+
+- [interiors b11] Shapes that failed to read at room scale: an open coffin box seen from above (a trough or a canoe), a lid on
+  trestles (a loaf), a quern (cushions), pelts on stretchers (cones, then arrows). What read at once: a stencilled word on a
+  bin (FLOUR), coffin lids standing up (the six-sided outline with an inset moulding), hides hanging head-up from a rack
+  with ears, leg flaps and a tail. Pick the view in which the object's outline is its signature.
+- [interiors b11] Two beds of the same frame in one room read as a hotel: the second bed is a different kind (an iron cot).
+- [interiors b11] A saturated painted floor (rust red, bright sage) becomes the loudest thing in the room; painted floors use
+  the slate or a dull ramp.
+
+- [interiors b12] A soft round dark blot on a floor reads as a shadow cast by nothing; a stain must be flat, ragged, along the
+  grain, with a dried edge, or not be there at all.
+- [interiors b12] A lit bevel line inside most flagstones reads as a crack on every stone: lit lips on a few stones only.
+- [interiors b12] One panel pattern repeated 16 times across a wall reads as copy-paste: most panels plain, a few with their
+  own long grain.
+- [interiors b10] The survey camera matters: the old shots were taken while the camera was still panning down from the back
+  wall, the new ones after it settled on the floor. Match the camera state before comparing (rs_b4.js sets the pan).
+
+- [interiors b13] A red-orange light fan on the floor reads as blood; firelight on a floor is amber with a pale inner step.
+- [interiors b13] Identical repeats at even spacing (six pews, red spines every 24 px) read as stamped shelving; vary the
+  count and the place of the small things on each copy, and use two or three kinds of the piece.
+- [interiors b13] A tiered stand of small red cups reads as a cake until the flames are the brightest pixels on it.
+- [interiors b14] Things that read at once in a shop: a word on the thing (COLD, MAPS, GAS OIL, FLOUR), a car side-on on a lift
+  with its hood up, bottles with long necks (short wide ones read as books).
+
+- [interiors b14] A sun patch that starts at the wall foot and runs 64 px down at a steep slant reads as a see-through beam;
+  a compact patch the window's own shape, a little way out from the wall, two flat tones that wash out the floor grain, the
+  glazing cross in the floor's colour, reads as light on the floor. It must land past the furniture standing at the wall.
+- [interiors b14] Position maths must end in whole pixels before G()/P(): a window at x 3.8 made every read miss and its
+  room had no daylight at all, silently.
+- [interiors b15] Judges keep naming the shared shell (same two windows, door, mat in every home): vary the window count and
+  width per house, not only the paper and floor.
+
+- [interiors b18] Pew backs: three raised panels read as drawers, vertical slats read as a fence; two long horizontal planks
+  with a book rack read as a pew.
+- [interiors b19] Wall dressing drawn by the shell is part of the kit: if every room gets the same picture and jar ledge,
+  judges count it as reuse. Pick wall things per room (clock, mirror, sampler, hooks, horseshoe, picture, ledge).
+- [interiors b19] Plaster drawn with per-pixel noise reads as banned speckle; broad smooth patches in two close tones and a
+  hairline crack or two read as an old wall.
+- [interiors b17] A tall piece set on another (tyres on a drum) reads as one totem; trade pieces stand side by side.
+
+- [interiors b24] A bed is the biggest piece in a bedroom: one frame repeated in every room is the first thing a judge counts
+  as kit. Keep three or four frames (patchwork, brass, four-poster, plain pine) and let each room pick.
+- [interiors b24] A cellar has no windows and no parlour things: no wall clock, no jar ledge, no picture; its light is a
+  lantern with a hard pool.
+
+- [interiors b29] A small light (candle, lantern, votive) needs its own hard-edged pool on the floor in two warm steps, big
+  enough to see (a 60 px oval at least); a faint additive wedge reads as a grey smudge, and a pale beige oval reads as a rug.
+  Amber (255,150,46 and 255,204,104), stronger in a dark cellar.
+- [interiors b29] A stained-glass patch cut into four tinted quarters with a pointed tip reads as a heraldic shield lying in
+  the aisle: scatter the colour as small diamonds and skew the patch so it reads as light thrown from the window.
+- [interiors b29] Round-topped wall recesses read as bread loaves twice running; catacomb shelves read at once as long square
+  slots with bones laid lengthwise and a skull at the mouth.
+- [interiors b29] A sprite named for one trade (the stonemason's banker) dropped into another room by name reads as nonsense:
+  check what a reused sprite actually shows before placing it.
+- [interiors b29] Judges count shared pieces across rooms (the writing desk in five rooms, the patchwork bed, the jar shelf,
+  the till counter): give each trade its own piece for the job (radio table, fire finder, motel counter, washstand).
+
+- [interiors b30] A flat additive pool, even amber, reads as a rug on a pale floor; an 'overlay' pool warms and brightens the
+  boards themselves (red up, blue down) so the grain shows through and it reads as light falling on them. Same for stove fans:
+  an additive pale cone read as a lampshade.
+- [interiors b30] Daylight shadows from "the back windows" in a room with no windows read as phantom beams: a windowless room
+  (cellar, crypt) casts no sun shadows, and its lanterns are always lit (the lit sprite, not the cold glass).
+- [interiors b30] An ivory cover on an iron bed reads as a bare hospital mattress; a dark wool quilt with the sheet turned
+  down over it reads as made up.
+- [interiors b30] A hanging apron (pale shape on a peg) reads as a figure; a sack with FLOUR stencilled on it reads at once.
+- [interiors b30] Numbers on archive boxes are read as room numbers and checked against the story (52-63 in a seven-room
+  motel); label boxes with scribble unless the number means something.
+
+- [interiors b31] Overlay light turns brown boards red ("a rust stain", "a blood smear"); additive yellow-amber (255,190,80 then
+  255,220,140, strong) lifts wood toward gold. Check a light colour on the actual floor before judging it.
+- [interiors b31] A lamp's pool drawn at the foot of a counter shows only as a crescent below its front: it reads as a smear.
+  No pool under a piece that hides most of it.
+- [interiors b31] The player's own lantern throws shadow wedges away from the player; in a windowless room they read as beams.
+- [interiors b31] A camera that follows the player never shows the far end of a wide shop: a piece placed there doesn't exist
+  for the judge. Check the screenshot before saying a fix is in.
+- [interiors b31] Generated dressing (a wall stub making an L-shaped nook) can appear when furniture moves out of its way:
+  re-check the whole room after moving a big piece.
+
+- [interiors b32] By day a candle's or lamp's floor pool reads as a tan rug however it is coloured: a small flame lights the
+  floor only at night, or in a room with no daylight (cellar, crypt). Daylight rooms take their light from the windows.
+- [interiors b32] A light fan's stippled far edge reads as a heap of straw; end it in solid rows of jagged width.
+- [interiors b32] Two equal ends on a sighting arm read as a cradle: give an instrument's parts different shapes (a tall wire
+  frame and a short peep plate), and make the thing it is about (the map) the palest, biggest shape.
+- [interiors b32] Long sun-shadow wedges from every piece read as stains in a small room that already has contact shadows:
+  keep day shadows short and soft there.
+
+- [interiors b33] A fire's light drawn row by row ends in a straight bottom edge and reads as a lampshade; build it column by
+  column so it widens from the mouth and every column stops at its own length.
+- [interiors b33] A wall lantern's light must start at the lantern: a glow on the wall round it, then a fan down from the
+  wall's foot. An oval on the floor below reads as a rug or a tabletop.
+- [interiors b33] A cot drawn head-up with straight side rails reads as a standing screen or locker; a camp cot reads lying
+  side-on, crossed legs showing, the sleeping bag at one end.
+- [interiors b33] A stained-glass patch misread three ways in three rounds (shield, paper, quilt, net): when a piece of light
+  keeps misreading, cut it.
+
+- [interiors b34] A stove's floor light by day read as a lampshade or bell in five rounds of five different shapes: like the
+  candles, a fire lights the floor only at night or underground. Stop redrawing a light that keeps misreading; take it away
+  where it would not show in life.
+- [interiors b34] The oval wall mirror from the generic wall kit read as a feather, a fish and a lozenge: in a judged room,
+  hang only things that belong to that room (noDress), never the generic kit.
+- [interiors b34] A tall red cylinder reads as a fire extinguisher; a gas can reads as a jerrycan (flat oblong, three handles,
+  a spout at the corner, the pressed X).
+
+- [interiors b35] A room passes when the subject reads at a glance from its own trade pieces (FIRE DANGER dial, fire finder,
+  peat rick and oilskins); the lower-left corner left bare is the next thing a judge names, so dress it with a trade piece
+  against the wall.
+- [interiors b35] Things in a row along one wall, touching nothing, read as staged; group a trade's pieces into one corner
+  where they touch (anvil on its stump, the quench bucket against it, a hammer lying on the face).
+
+- [interiors b36] A light cone drawn from the lamp down to the wall's foot (narrow at the lamp, wide at the floor) reads as a
+  heap of sand or a lampshade: light on the floor is widest at the wall and falls off outward, never a triangle.
+- [interiors b36] After six rounds of a floor pool under one lantern misreading six ways, the lantern glow on the wall alone
+  says "lit"; cut the floor pool (the rule from b33, followed late).
+- [interiors b36] Check every edit script's asserts before trusting the build: one failed match aborted a whole edit while
+  later steps in the same command ran against the old files and placed a sprite that did not exist yet.
+
+- [interiors b37] A plank wall over a plank floor of the same brown reads as one field and says shed, not cellar: a cellar wall
+  is rough fieldstone, cooler and a step lighter than the floor, with a dark line at its foot.
+- [interiors b37] A small anvil seen from the front reads as a grey lump on a crate: draw it big and side-on, horn out to one
+  side, the waist and feet showing, a hammer on the face.
+- [interiors b37] A daytime floor near-black from edge to edge reads as a void: keep the vignette but lift the floor a step.
+
+- [interiors b38] Fieldstone drawn in even courses reads as modern cinder block; rubble has no running course: pack stones of
+  three or four sizes on a grid so no seam runs the width, and let damp rise ragged from the foot.
+- [interiors b38] A pew seen from behind with the space under the seat left transparent reads as an open rail frame you can
+  see the floor through: close it with a lower back panel under a dark band at the seat lip.
+
+- [interiors b39] Even vertical bars in a frame read as a radiator or a birdcage; loose stock reads when it leans at an angle,
+  uneven in length and thickness, with a hooked end and rust at the tips.
+- [interiors b39] Edit scripts that cut a block "up to the next kind" fail on the last kind in the file: fall back to the end
+  marker, and check the script printed ok before rendering.
+
+- [interiors b40] A closed pew panel in the floor's own brown still reads as a gap you see the floor through: a seat must
+  differ from the floor in wood (pale pine on dark oak), with a dark plinth line and its own shadow where it meets the floor.
+- [interiors b40] A stump drawn with box3 reads as a crate; a log stump is round: bark down its sides, a sawn top with rings.
+
+- [interiors b41] Flags laid in running bond read as modern paving: pack stones of three or four sizes with no seam across
+  the room, in two close tones, and darken them with soot where the work happens (the fire, the anvil).
+- [interiors b41] A pew from behind reads as a seat when the pale seat plank shows above a darker back, with a dark band
+  under the seat lip; pews of one length in a row read as stamped.
+
+- [interiors b42] A high-backed pew seen from behind hides its own seat; after six rounds of "open frames", "crates",
+  "racks", a plain backless bench read at once: a pale seat plank (the lightest wood in the room), a dark band under its lip,
+  a closed apron to a dark plinth. When a piece's camera angle hides what makes it that piece, change the piece.
+
+## Steps (owner, Nov 10: "steps need to be fixed")
+- Steps read as steps by their silhouette: each lower step juts out a few pixels so the sides zig-zag, and each step's end
+  shows its own face. Even tread-and-riser bands boxed in by cheek walls or stringers read as a slatted crate or a grate.
+- Deep pale treads with the nosing brightest, short dark risers with a black line under each lip: the contrast between
+  tread and riser is what climbs. Keep a flight as wide as the gap it fills (the inn rail), or it reads as a box set in it.
+
+- [interiors b45] The chapel's window patch misread a fifth way (a feather): a lancet's light on a dark plank floor never reads
+  in this room in any shape or tint. Cut it for good; the whitewashed wall is its daylight.
+- [interiors b46] A plain closed altar rail read as a chest with a keyhole; anything lying on a bench top (a net, a hymnal) turns
+  the bench into a table. An altar reads when a pale linen cloth hangs over its top and down the front in one broad fold, with a
+  cross and two candles standing on it: the palest shape in the room at the head of the aisle.
+- [interiors b47] A daytime room with a dark, busy board floor (an end joint on nearly every plank, about RGB 67,44,30) and a
+  heavy screen vignette reads as dusk, and the furniture sinks into it. Lift the floor a value step, make the boards twice as
+  long with quieter joints, and keep the indoor day vignette light so the side walls stay above near-black.
+- [interiors b48] Backless benches read as coffee tables, a long low step in front of an altar as a second bench, a plain font
+  as a birdbath; brown furniture on a brown floor sank. What made a chapel read at a glance (6 vs 3.5 in BOTH slot orders, b49):
+  closed box pews seen from behind (rounded end boards standing above a lit cap rail, a solid back, a shelf of books varied per
+  pew) in two straight columns facing the altar, a red runner up the aisle, the altar standing ON a deep platform, a candle stand
+  each side (two different ones, not mirror twins), a lidded font with a cross, and a pale stone floor so the dark wood stands out.
+- [judging] When two rounds flip with the slot (new wins in b, loses in a), the rooms are tied: judge the next change in both
+  orders at once, and count it only when both prefer it.
+- [props sweep] Flat ground pieces (mud, tarps) must have NO outline and no lit ring parallel to their edge: an outline and
+  a pale terrace make them a raised pancake. Wet is darker than dry, never paler. Hedges are leaf clumps lit on the upper left
+  with a quiet middle, never single-pixel noise; pieces that tile need no outline across the joining edge.
+- [props sweep] Labels on a cabinet front read as drawer pulls: a produce stand needs open crates or shelves with the fruit
+  IN them and the price cards on stakes. A well must show its wall height and a deep hole, never a low flat ring.
+- [props sweep] A rework can score lower than the draft it fixes: keep every judged draft (the dead tree and the street lamp
+  went 6 -> 5 after "fixes"), and when a revision loses, go back to the version that won.
+- [props sweep] A jack-o'-lantern reads when the skin is dull brown-orange and the carved holes are the brightest thing. A
+  marble is a round 4 px ball with one glint (a plus-shaped 3 px "ball" reads as a gem sparkle). A child's toy needs the one
+  silhouette part that names it (a horse's long muzzle and two ears; a shoe's pale sole, laces and ankle opening).
+- [props sweep] **[repeated]** A comment written in the middle of a line swallows the code after it: the lumber's sawn ends and
+  a rail's post shadows vanished that way. Put a comment only at the very END of a line, and brace-check after every edit.
+- [props sweep] Anything hung must hang FROM something: a twine cord from a real branch, 3-8 px long. Small dark dolls read as
+  bats or seed pods. A pale doll with a round 5x4 head, two dark eyes, a 1 px neck, arms out, a dress and split legs reads at 1x.
+- [props sweep] Brick with only course lines and no head joints reads as stacked planks. Keep faint head joints (one tone down)
+  across the face, crisp ones only at the corners, one tone per brick, and sooty brown-red, never saturated orange.
+- [props sweep] Hoops evenly spaced edge to edge read as banding or a barcode. A silo wants a few bowed hoops at uneven spacing,
+  broad flat concrete bands, stave joints only near its edges, and orange-brown rust from the dome lip (crimson drips read as blood).
+- [props sweep] Corrugated tin: each seam a 2 px rib (a lit line and a dark line), sheets a tone apart, one lifted sheet breaking
+  the outline, a solid shadow under the eave, rust stains widening toward the eave. A honey door with a brass knob reads as candy.
+- [props sweep] Identical plants or turves in a grid read as a stamp or a barcode (carrot bed, peat stack): jitter spacing and
+  size, use 2-3 variants, leave gaps. A dock's evenly spaced side nubs read as clips; a darker near-end face with pilings shows height.
+- [props sweep] Lighting a slate roof plane by plane: the lit plane steps up in VALUE; the top slate tones are cool, so pushing
+  them reads as powder-blue ice. Stop a step short.
+- [props sweep] A hung doll reads at 1x only when it dangles in OPEN AIR below the branch (cord 5-9 px, nothing behind its body) and
+  its dress is a step DARKER than its pale head; pale dolls tight against pale bark read as buds or seed pods.
+- [props sweep] Tyre wear drawn as hashed cells reads as camouflage blocks; draw it as continuous wavy wheel tracks, one tone down.
+- [props sweep] Clumps laid over a fill with a gap-toothed top edge get outlined into battlements: wave the fill's top edge so
+  nothing is left for the outline to bite.
+- [props sweep] Dress values swing: too pale and the dolls are buds on the bark, too dark and they sink into the twigs. A hung
+  figure needs THREE separate values: pale head, MID dress, dark cord/branch.
+- [props sweep] A woodshed is open-fronted: a dark bay behind the stack makes it read; a closed wall makes it a cabin with a woodpile.
+- [props sweep] When a rework loses or ties, restore the code to the judged winner and check the render byte-for-byte (cmp) before
+  installing, so a later re-render cannot quietly swap in an unjudged version.
+- [process] **[repeated x3]** Edit scripts: a replacement that ends in a `//` comment must END ITS LINE. Check after each script
+  that the text right after every replaced span is a newline, or move the comment to the end of the line.
+- [props sweep] Big set pieces pass when drawn in the game's own 3/4 camera: show the deck top, the far rail, the round plan. A
+  face-on elevation of the same thing loses every time.
+- [props sweep] "Abandoned for years" needs the ground to take it back: flat tyres, tall mixed grass grown up over the sills and
+  wheels, a dead (not bright) headlight. A neat row of tufts along the sill says parked.
+- [props sweep] A basin, well or fountain must show WALL HEIGHT; a flat oval of water reads as a pond or birdbath. A tall dark
+  rectangle at the foot of a stack reads as a door (a tower or kiln): a fireplace is a low arch in a wider base.
+- [props sweep] Thin legs and posts drawn as stepped doubled strokes read as twisted cable: one clean tube on a fixed slope with a
+  continuous lit left edge.
+- [props sweep] A small crop or turf repeated on a grid reads as dots or bricks; FEWER, BIGGER units in uneven clumps read as the
+  thing (a dozen 7x5 beets beat forty 5x3 ones). Soot is staining that fans and fades in a darker version of the brick, never
+  one black stripe (a stripe reads as a crack or a tar run).
+
+## UI type (Nov 10: our own pixel font, 6 vs 5)
+- (t337 r5) On a narrow phone, wrap a tab row to a second line; never let the overflow drop tabs (the backpack lost Journal and Together).
+- (t337 r5) Check every button label in a shot for leaked values ("true", "undefined", "NaN"): a label built from a variable can show the variable.
+- (t337 r5) A system glyph the font can't draw falls back to a smooth font: list every character the UI uses and draw an icon for each one the font lacks.
+- (t337 r5) An icon inline with text keeps the text's pixel size; a 2x icon next to 1x text reads as pasted in.
+- (t337 r5) Repeated markers need an order of importance: empty hearts in a mid tone, earned hearts in gold; 31 identical hearts on a calendar read as wallpaper.
+- One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
+  to none and draw a real bold cut).
+- Pixel type must sit at whole-number multiples of its em grid, and should match the art's pixel size; text smaller than
+  the art's pixel reads as "upscaled" and dim small lines fail the greyscale check.
+- Curly quotes need clear 6 and 9 shapes at 3 px tall, or the opening quote reads as a closing one.
+
+## First-person hands in the minigames (Nov 10: long forearms lost 3 vs floating fists)
+- A forearm of constant width with a dark line every few rows reads as a ladder or a striped pipe; arms that cross the
+  scene hide the job (the fire, the cutting line) and become the loudest thing in the frame. Don't extend sleeves to the
+  frame edge by default.
+- If arms are drawn: foreshortened (about twice the fist's width where they leave the frame, tapering to the cuff),
+  shaded as one cylinder with two creases at most, in a muted wool clearly apart from the scene's reds, and routed so
+  they never cover the work.
+
+## Brewery stations and drink icons (Nov 12)
+- A liquid seen in an open vessel: a thin lip, a FLAT surface in two tones, one 3-4 px sheen line at the top left, foam only as a thin broken line hugging the back rim. A broad pale rim round a dark centre reads as a pie crust; specks on it read as stew or porridge.
+- What makes a pot a brewer's and not a cook's: a tap on the belly (4 px spout + key, not a 2 px blob), no handle lugs, hop cones on the tun. At 1x the tun and hops carry the trade.
+- A slatted basket of fruit: show the fruit as 2 px berries with a lit pixel heaped above the rim and bulging through the gaps; evenly alternating dark slat / colour stripe reads as a barcode.
+- Glass at icon size: mostly the dark behind it showing through, pale edges, one glint, and where there's spirit a full-width bright line with a step-paler fill below; an evenly pale body reads as milk, an even grey body as a tin can.
+- Two stations side by side must not share a kit: vary the firebox (stone vs brick) or the tub, or they read as one kit.
+- Icons in one family must separate by hue at 1x (amber, orange, yellow, cream, purple), not only by a label.
+
+- [butcher] A frame over a round with a rope hanging from it reads as a well (and the rope as a noose). A stump with a blade in it reads as a woodcutter's. The trade cue for a butcher is something hanging from a hook, a pale shape clear of everything with 3+ px of background round it; an overlap turns it into a bulge on whatever it touches.
+- A thing that is a round of wood shows bark and uneven fissures on its side; even vertical staves make it a barrel or a tub.
+- A cut of meat: an irregular kidney outline, a fat cap on one side, a darker cut face below for its thickness; a round with a dark dot reads as a ham slice with an eye. Bone is an off-white ring with pale marrow, never a dark dot.
+- A pattern must pass greyscale: patches one step off the base vanish (tan on tan); cream with dark-chocolate patches reads as a cowhide at once.
+- Steam is two soft puffs below full alpha (no outline); 1 px squiggles read as hairs.
+
+- [pantry icons] Food and goods read by silhouette first: a cheese is a flat wheel with a V notch and two pale cut faces; a cake slice turns its cut face (layers) to you; a crock has straight sides, a lip and a glaze line, or it is a garlic bulb; a bowl of shredded things is long curving 1 px shreds, not crosshatch (grain).
+- A tin or tray seen straight down reads as a picture frame or a TV: show it three-quarters, the front wall as a darker band and the food bulging above the rim, and show a cut as a pale standing face, never a dark void.
+- A coil of rope is ONE twisted ring with a dark hollow centre; stacked loops with an all-over twist texture merge into a hay bale or a mat, and a straight tail makes it a magnifying glass or a lasso.
+- A sack of something: a rolled-down mouth (a thick folded rim) and the contents heaped above it with a lumpy outline; a smooth trapezoid is a paper bag.
+
+## Crops (strict judge against the reference set, Nov 10: rounds 1-6, 0 -> 8 of 11 stages at 6)
+- [new crops, Nov 12] Draw new crops with the crops.py kit (spoon/oval leaflets, pleaf4 lobed leaves, ball(), contact(), outline(), begin/end for the dark overlap line), never with ad-hoc canvas code: the on-the-fly JS versions were blobs at half the size of the turnip.
+- A root or tuber showing above the soil is CUT at the soil line and left to the outline for its lip; drawing a soil band under it reads as a pot or a mat.
+- A carrot's shoulder is narrow (7-8 px), domed, the stems rising from its middle, tapering in to the cut; a round-bottomed orange shape on the soil reads as a tangerine.
+- Cabbage leaves: blunt ends (superellipse ^2.6, a gently waved rim), one body tone, ONLY a pale midrib; branch veins as bright as the rim read as fishbones, and polygon edges with a dark grid read as stone or turtle shell.
+- Stems of a grain: one base clump about 6 px wide fanning out, outer stems 25-30 degrees, no joint bands at matching heights; parallel stems 1-2 px apart become stripes once outlined (bamboo, asparagus).
+- Small hanging fruit (hop cones): round the position to whole pixels before drawing detail, or the marks miss the shape; a tapered point at the bottom and darker chevrons (each scale's lower edge a V) read as cones; a smooth pale oval reads as a pod or popcorn.
+- A trellis reads when the post is straight and planed (no knots), the crossbar's ends stick out clear of the leaves with a lit top face, and the leaves hang in uneven clumps; a solid leaf crown on a knobbly post reads as a little tree.
+- Hanging bunches must not touch: three separate bunches with gaps; touching ones fuse into one band (a bat shape).
+- The turnip is the standard: spoon leaves with a bright midrib, a plum shoulder, a round bulb with a taproot. Every crop
+  gets the same things: a full value range (lights near 210 lum), a soft contact shadow (not a soil dish), and a darker
+  separation line wherever one leaf overlaps another.
+- Pumpkin leaf, every way it failed: a polygon formula with lit/shade by (x+y) dithers ("formula"); a 3/4 leaf face-on
+  on a straight stalk reads as an umbrella; hand grids with scalloped bumps along the top and a dark rim along the
+  bottom read as lettuce in a planter; round-lobed leaves held up on 6-7 px stalks read as broccoli or little trees.
+  What is left to try: drawn by hand, three lobes with a notch between each, a pale vein to each lobe, low and
+  overlapping, stalks 2-3 px at most.
+- Leaves the same size and the same pale value, side by side, read as clover or cabbage heads in a row. Make the back
+  leaf about 1.5x bigger and a cooler step darker, vary the front leaves' size and tilt, and draw a dark line where they
+  overlap.
+- Fruit lighter than its own leaf, with evenly spaced pale rib arches, reads as a striped gourd or a garlic bulb. Use dark
+  grooves that bow with the form, keep the fruit a step below the leaf, and put one highlight at top-left.
+- A separate dead leaf that bends at a right angle and hangs straight reads as a tag or a peg. Dry the tip of a real leaf
+  instead.
+- In a darker back tone set, a leaf whose outline and body are only one step apart loses its lobes: keep the lit rim
+  and the vein bright even on back leaves, and cut notches 2-3 px deep (1 px notches vanish into a dome).
+- A fruit whose grooves and highlight sit one step off its body is a flat lump: grooves two steps darker, a 3x2
+  highlight, a dark edge along the bottom-right.
+- A dried leaf tip must not touch an ear (they merge into a club with a peg), and it turns in two steps (olive-straw,
+  then straw), not one hard step.
+- Lobes built from pointed wedges go jagged (a centre spike, 1-2 px teeth: nettle, thistle, holly). A pumpkin lobe is a
+  rounded shoulder ending in ONE 1 px point; notches only between lobes; drop edge pixels with fewer than two
+  neighbours; inside, one body tone and a pale vein, nothing else.
+- A leaf standing beside its fruit, brighter than it, reads as a sticker: tuck it behind the fruit's upper-left
+  (overlap 3-4 px, a dark line between), a step darker and cooler, and join them with a vine into the stem.
+- A dried leaf tip as pale as the husks reads as a third ear or a bone: dull tan, two steps under the husk's lightest,
+  never cream.
+- [round 10: all 11 at 6] What finally worked for the pumpkin leaf: smooth rounded lobes (ellipses) each ending in one
+  1 px point, wider than tall, one body tone, a lit rim up-left, a shade rim down-right, a pale vein per lobe (or one
+  midrib on a small leaf); back leaves a step darker and cooler; leaves overlapping with a dark line between.
+- A straight 1-2 px line on the soil reads as a dropped twig: a vine must start at the stem, curve, and end in a curl.
+- A young pumpkin in deep blue-green reads as a mossy stone among green leaves; warm it toward olive.
+- Ripe pumpkin: scalloped joins at the top and bottom made it octagonal. Dip only the middle joins, by one pixel, at the
+  top; keep the base closed; one highlight mass.
+- Corn: a stalk that is the brightest, longest shape reads as a bamboo pole (give it the leaves' shade tone and a 1 px
+  lit edge). Leaves mirrored in strict alternation read as a fern; vary length and height and show 2-3 px of stalk
+  between their bases.
+- Corn ears: an ear reads when its husk is straw, not leaf green (or it vanishes), and its kernels are lighter than the
+  leaves in grey. Lemon yellow is candy; old gold is right. Draw kernels as 2x2 clusters, not 1 px stripes (those read
+  as a cocoon).
+- A dead corn leaf drawn as a 1 px bent line reads as a stick. Make it a ribbon tapering 3 -> 1 px, with a straw top
+  face and one darker fold where it turns down.
+- Iterate on a 6x zoom of the stage beside the reference AND a field shot: the young pumpkin looked fine zoomed and like
+  a stone in the field.
+
+## Player actions (Nov 10)
+- [owner, Nov 10, verbatim] "make the 3d animation models that the tool use for the animations match there item icons compare
+  the similarity between them with a judge ... than do the 6 score system". Every tool now passes a SIMILARITY check against
+  its toolbar icon (as the toolbar draws it, with the grade's recolouring) before the 6-score. "Don't forget to make multiple
+  with different colors for different resources when you upgrade": each grade recolours icon and hand from one ramp.
+- A 3D blockout of a small held object (a 20 px can) read as a gourd: too few pixels for its shading. At that size a
+  hand-drawn sprite in the icon's colours wins; use 3D for orientation reference, not the final pixels.
+- [owner, Nov 10] The scarecrow is the Hollow by day: render both from one model so they cannot drift apart.
+- [motion judges r2, Nov 10] Judged in motion, everything that passed on still frames dropped to 5: the owner was right.
+  Read the motion picture before the frames. A swing seen edge-on (facing down or up) must stay edge-on through every frame.
+- The installed axe and pick swung out sideways to his left facing down/up and never touched the stump/rock (3 and 4 vs
+  the new straight-down swings at 6). Always capture a tool with its target in shot and the tool drawn alone (no-tool diff).
+- A planted foot must travel BACK relative to the body: the old run lifted the foot while it travelled back, so the planted
+  one slid forward (a moonwalk). Check the phase: lift only while the foot swings forward.
+- The passing foot must show: tucked straight behind the standing shin it hides, and the frame reads as standing (a skip).
+  Trail it 3 px behind the shin, lifted 4.
+- Never more than 1 px of rise or fall between neighbouring frames, walk or run; a run is low on the support frame and high
+  after push-off.
+- A breath moves the chest, shoulders, arms and head; the hips, legs and boots stay locked (the whole body dropping a pixel
+  reads as a nod). Use a WHAT MOVED map (pixels changed vs frame 1) to show a 1 px motion to a judge.
+- Arm swing and stride are separate numbers: widening the stride with the arms tied to it made a T-pose.
+- A carried item starts in the hand: compute its grip from the frame's own hand point, never a fixed offset from the body.
+- Seated facing us: a lap 2 px wider than the hips, two knees with a 1 px cleft, 2 px of shin, hands on the thighs.
+- A hurt fling needs one arm up and the other guarding the chin (hands 6+ px apart in height), or it reads as a shrug.
+- [run r3] A run is not a fast walk: give it an AIRBORNE frame (both feet up 2+ px after the push-off), a stride longer
+  than the walk's, a heel kick behind and the knee coming through. Draw each leg from a per-frame table (offset, lift),
+  not a sine: a sine gives walk legs. The push-off boot stands on its toe, never lies flat far behind (the 'weird legs').
+- [grab r2] An item carried in the hand needs a carry POSE (hands up on it), not just a grip point: hung from a hand at the
+  hip, a post reaches the ground and slides when moved.
+- [tools] Mark ground contact only on the ground row; a track tool that calls the lowest pixel 'contact' hides airborne frames.
+- Ground speed vs stride: at 3 tiles/s with 7 px legs a planted foot cannot hold; lengthen the stride (5 px) and speed the
+  cadence (P.t at speed/2.6 x 17 fps) to halve the skate rather than pretend it isn't there.
+- [OWNER, Nov 10, verbatim] "You obviously have not found a way to show them the animations because it's hitting the stone
+  with the pickaxe sideways on the front and back ones ... show it a gif of the animations or something." Still frames in
+  a row hid it: facing down/up the pick (and the axe) swung across the frontal plane, its head flat across, landing beside
+  the body, and the target was never in the shot. JUDGE ANIMATIONS WITH MOTION, ALWAYS:
+  1. capture with the real target on the square (a rock for the pick, a stump or tree for the axe, soil for the hoe);
+  2. capture every frame twice, with and without the tool (window.NO_TOOL_DRAW), and draw the tool's path: each frame's
+     tool in its own colour over the scene, numbered at its far end (motion.py) - the swing plane and the landing point
+     are then plain in one picture;
+  3. make a GIF at real speed and SEND IT TO THE OWNER, whose eye is the final verdict (tools/px/gifs/).
+- Facing down or up, an overhead swing is edge-on to the camera: the tool and its head lie along one vertical line, the
+  head's point leads, and it comes straight down onto what's in front (or beyond the head, facing up). A head drawn
+  across (left-right) is a sideways swing.
+- A swing must reach its target: the player walks in to striking distance first (as close as the target's collision
+  allows), and the facing-down strike frames are drawn longer so the point lands on the rock, not at the feet.
+- [OWNER, Nov 10, verbatim] on the run: "I miss the old one. The arm swing is good but the tilting and legs look weird."
+  The judge had scored the new run 6 vs 4: the owner's eye outranks the judge. Kept the old run's lean, bounce and legs
+  with the new arms, and sent the owner a side-by-side GIF to choose.
+- Capture animations with the game paused and the action's clock set to each frame. Real-time screenshots lag behind
+  the clip, and the later frames come out as idle.
+- Facing down, a tool wound up straight above the head reads as a peg; wind it over one shoulder at a slant. Struck
+  straight down in front, it reads as a stake; slant it.
+- Facing away, a swing drawn wholly behind the body vanishes. Let the tool's head show beside and above the head.
+- A held thing must show in every direction: the can held out to the side, seeds falling from the hand when
+  planting, the sprinkler carried from the hands to the square when setting it down.
+- A water stream is 2 px wide in two blues and ends in a splash. A 1 px dotted line reads as wire.
+- [walk r2-r3] Check the walk's numbers before its pixels: print each frame's legs and hands. Our side walk had each arm
+  swinging WITH its own leg (a pacing gait) and the lifted foot moving backwards (the stance motion); both looked
+  "almost right" at 4x for weeks. The swinging foot is the one travelling back to front.
+- [walk r3] The rise and fall moves at most 1 px between neighbouring frames (0,+1,0,-1 repeating over the 8 frames);
+  a 3 px step from the low frame to the passing frame reads as a hop.
+- [walk r3] Side arms swing about the body's middle, not about each shoulder, or one step swings 2 px less than the
+  other and the walk limps. Use a pendulum (the hand rises as it swings out) so the arm never stretches.
+- [walk r3] The passing foot must trail 3-4 px behind the planted shin and lift 3-4 px, or its boot merges into the
+  planted boot and reads as a kink in the shin.
+- [plant/grab r2-r5, corrected] The target square is a whole tile from the feet, beyond the hands' reach. Sliding the
+  whole sprite toward it read as teleporting (r4). What works: the kneel itself steps the near foot forward and leans
+  from the hips; small things (seeds) cover the rest of the distance in a visible arc (leave the hand on the 3rd frame,
+  land on the 5th, stay); a big thing set down by hand (the sprinkler) needs a REAL half step first (the player moves,
+  walking frames, the camera follows, nothing snaps back), so the hands are on it when it touches down.
+- [plant r5] Facing away, show what's in the hand beside the head at shoulder height, never on the crown (a pale
+  cluster on the hair reads as a bun). Landed seeds as 2x2 clusters with a dark lower edge, not single pixels.
+- Take the hand points from the sheet itself (the generator records them) so things sit in the hands.
+- [grab r6-r7] The judge sees 6 sampled frames, not the motion: a move that happens between two samples reads as a
+  jump however smooth it is in play. Any step must span at least two sampled frames, and a judged action should end
+  where the player stays (no step back that lands in the last sample).
+- [run r7] Side view: the FAR leg tucked up behind is hidden by the planted near leg unless it trails 4+ px; the run's
+  passing frame then reads as standing. Keep the arms bent on the passing frames too.
+- [run r8-r9] A run bounces the other way from a walk: low on the passing frame (support knee bent), high on the next
+  frame with both feet off the ground. Lean the head clearly ahead (the legs only take half of the generator's lean).
+- [grab r8] When an action needs the player closer than he stands, walk him there first with the normal walk (outside
+  the action) and keep the action itself still. Facing away, stand him a little to the side of the square so what he
+  sets down stays in view beside him.
+- [hurt r1-r2] A fright needs an impact frame (snap up, wide eyes, an O mouth, hands flung out, uneven so it isn't a
+  cheer), a cower and a recovery. Closed eyes in pain are a clenched > < with brows down to the nose and a grimace:
+  flat closed lids read as dozing, and with a smile or blush as giggling.
+- [sit r1] Seated is drawn, not shortened: in profile the thigh runs forward at seat height, then the knee and the shin
+  down to the boot (an L); facing us, a lap wider than the hips, two knees, the shins below; hands on the thigh/knees.
+- [judging] An old build (test2d_old.html) loads the CURRENT sprites from the same folders: after installing new sheets,
+  old-vs-new captures from it are both new. Compare sheets directly (old files from git or backup_v2) instead.
+- [code] Never end an inserted line with a // comment in these one-line-per-function files: twice it swallowed the
+  rest of the line (the legs, then a whole function). Use /* */ or put the comment on its own line, then syntax-check.
+
+## Buildings (Nov 10: kit v2, judged 6 vs the installed 4)
+- [r3] Moss goes where water sits: the lowest 6-8 px of a roof (the eaves) and the 2-3 courses above a wall's base, in
+  clumps. Spread over whole roof planes it reads as camouflage or mould (6 vs 5).
+- [r3, next] Metal roof seams run from the ridge DOWN to the eave (parallel to the gable edges), never parallel to the ridge.
+- [r4] A seam is a 2 px rib: the lit line and a dark line under it; a lone lit line reads as hatching. Tone by slope, not
+  by distance (a tone stepping with x made a hard vertical band). Rust is a 2 px streak down a seam toward the eave.
+- The installed buildings carried the banned grit: a 1 px light dot on every shingle (frosted roofs at 1x), checkerboard
+  eave and chimney shadows, and a stain layer smeared across trim and posts. Wear is drawn as shapes, never as a layer.
+- A cast shadow drawn in the outline colour merges with the outline above it and reads as a thicker line. Shadow a wall
+  with its own darkest steps (the brick or siding still shows through), 3 rows dark, then a step lighter, then one more.
+- Moss in round clumps along the lower courses and the shaded side, not streaks along every course.
+- [repeated, woodshed r1-r3] A log pile is NOT a grid of identical rounds: a '+' or a full ring on a 3-4 px face reads as
+  a button or a gear, and saturated orange ends read as candy. Draw dull tan ends (the brightest step only top-left), a
+  1 px bark rim, a single dark heart pixel off centre, three sizes, a third of them split wedges, a third darker, and a
+  short bark cylinder above the top logs so they show their length. Stack it against the wall, not beside the sprite.
+- [shack r1] Neglect reads from the OUTLINE first: a roof that is a perfect rectangle with level eaves reads as kept,
+  whatever is drawn on it. Sag one end 2-3 px (shift whole columns, eave shadow too), take shingles out of the ridge line
+  and lift one past it. A dark red hole reads as a wound: the loft is plum-brown with grey lit battens.
+- [shack r1] Peeling paint is a few big patches over 2-4 boards with staggered ends, flat silver-grey; many short runs
+  with dark lips at each end read as grit. Rain stains run down from the sills (one step darker, 1-2 px wide).
+- [Fenn r1] A log corner is two walls crossing: alternate courses, a round side-wall end standing 3-4 px proud then the
+  front log ending flush in a sawn face, so the column zigzags; identical nubs one per course read as a bead chain.
+- [shops] A trade reads from what stands at the door, not the sign: planks for the carpenter, an anvil and quench barrel
+  for the smith, a millstone for the miller. Props in front of a wall need their own dark outline or they sink into it.
+- [slate r5] Quiet middles work for slate too: one tone per course and no lit tips away from the edges; the full joints
+  and the odd lit tip stay at the eaves, hips and rakes. Next for walls: stone and brick gridded at one contrast edge to
+  edge read as grit; quiet the bay middles (bigger stones, joints one step off the face), keep joints crisp at corners.
+- [story check] Read the region's description before drawing its building: Old Marrow's chapel was an intact white
+  chapel with a roof where the story says "a roofless chapel" (burnt 1872). The sprite has to tell the place's story.
+- [ruin r1-r2] Roofless reads only when no roof shape survives: a front gable triangle with clean trimmed rakes reads as
+  roof planes even in grey stone. End the front wall in a broken stepped top, show the far wall's inner face in shade,
+  let it fall to sky in ragged blocks (a straight diagonal still reads as a rake), put lancet holes through it. Openings
+  of a roofless shell are lit inside, not black.
+- [Harlan r1] Boarded UP is the opening covered: boards wider than the frame, a tilted one, a split end, nails, a notice
+  on the door. Two boards on one window read as shelves; equal planks in the wall's own grey read as louvred shutters.
+- [Harlan r1] Rust on a derelict tin roof: whole sheets rusted brown (the lg ramp, like the barn) and runs that start at
+  the eave; orange 1-2 px stalks in a row read as candles, and more than two rusted sheets read as painted stripes.
+- [shack r1] Mending reads when the new wood is whole boards (full length, a step lighter and warmer, nail at each end)
+  and a whole block of new shingles with crisp edges; short stubs read as brackets or hinges.
+
+## Making minigames (Nov 10: yard 3 -> 6, barn 3 -> 6, installed)
+- A sunny candy palette (bright grass, white tiles, honey wood, blue sky) is the first thing that sinks a scene. Dusk light,
+  dulled colours, one visible light source (a lamp, a candle, a lit window) and a darker floor read as this game.
+- The verdict text (PERFECT x5) must have a full dark outline and must never blink to a dark colour. Dark brown text on
+  dark ground cannot be read. Keep verdicts off the tool and the line being worked: fix their spot away from the cursor.
+- Anything the player manages must read at half size. Vents need to be 8+ px glowing openings with smoke rising from
+  each; the flail must be the palest, most outlined object in the scene (pale ash wood, a lit top edge, a dark outline,
+  a leather thong).
+- Smoke is solid round puffs in 2-3 greys that swell and shrink (no see-through squares, which read as glass cubes or
+  bubbles), rising in a column from where it comes out.
+- A dome of turves laid in a regular grid reads as a brick igloo. Lay them by angle round the dome (foreshortened at the
+  edges), light the whole dome (lit top-left, dark bottom-right), and break up the grass lips.
+- Repeated props read as stamped copies: give logs, sheaves and bales two or three variants (length, grain, a knot, the
+  heart off centre, flipped).
+- Light from a window is a hard-edged patch on the floor with the bars in it, not a see-through beam.
+- A thing being carried must sit clear of the title plate and the HUD (the yard's log was hidden under WATCH).
+- A gauge belongs next to what it measures, with its good band in green.
+- Backgrounds go through a lone-pixel pass: any pixel whose four neighbours all match each other, but not it, takes their
+  colour.
+- Rough or worn surfaces (an unplaned board, a waxed cloth) are drawn as shapes: long torn-grain streaks, a few
+  splinters, a duller tone. Single dark and light pixels read as gravel or sandpaper.
+- The drop point must show before the tap: a clear shadow on the surface under the held thing (an egg over the pan).
+- A tool must visibly touch the work where the pointer is (the skimmer's bowl in the metal under the cursor).
+- Cloth: never a 1-2 px checker weave (it turns to dither) and no big soft blotches (they read as stains). Use a flat
+  body tone, a few tapered fold curves (a lit crest with its shadow under it), a frayed selvedge and pins.
+
+## Furniture and props in four turns (Nov 10: 3D blockouts, 69 pieces judged blind vs the installed art)
+- A stain is not an object: no outline, no lit ring, no sparkle marks. A flat ragged blot two steps darker than the boards, drawn along the grain, with a darker dried edge.
+- A shape centred on an oval reads as an eye (a plate with food in the middle): set the food off centre and draw the plate's well.
+- Anything sticking out equally at both ends reads as ears or wings (a saddle beam, a horn and a cantle the same height). Make the two ends different in size and shape.
+- A curled animal drawn as a tall dome reads as a hat: keep it a low oval wider than tall, the head a separate round with pointed ears, the tail along the front.
+- Marks repeated at the same x on every layer line up into a column (spacers read as drawer handles): stagger them.
+- Two equal spikes at the ends of a shape read as ears (a saddle became an owl). Make one end lower and rounder. A rack whose bars match its tools in tone and width reads as a cage or a chair.
+- Each crop on a stall needs its own hue and a full value range, or the heaps read as loaves or mud. Rods that cross and fork read as twigs: lean each at its own angle, never crossing, with the reel at the butt.
+- Gouged eyes (judge, three rounds): pale rims or pale lips round a dark eye read as spectacles. Draw a dark ragged hole, pale scratches running OUT of it and a dark run down the cheek; then it reads as scratched out.
+- One clean ramp per material: a cushion in three or four close reds reads as patchwork. One body tone, a lit top edge, a darker front roll.
+- Shop props (judge, Nov 10): a row of the same thing (chicks, fruit, hammers, reels) reads as a barcode: vary size, facing and height. Blue steel drifts into powder blue: keep iron dark. A trade object must survive at 1x: fruit 3x3 or bigger in mounds, tools 2-3x wider than a line, rods one clean tapering line each.
+- Seats (judge, Nov 10): the seat top is the lightest plane, the back two steps darker; leave a 2-3 px gap between back and seat so they are two things, not one slatted face. The seat seen from above is shallower than the back is tall.
+- Under a seat: a dark shadow right under the lip fading toward the floor; a flat grey slab under it closes it off and reads as the base of a chest. No bottom line across it.
+- A pew from behind: a solid panelled back with finial ends reads; a full shelf of upright coloured spines reads as a bookcase. Two or three books lying or leaning on a narrow ledge, no more.
+- Eleven identical boards in a row read as a fence or barcode: vary the widths, or use two or three long raised panels.
+- Wall decor (judge, Nov 10): glass stays dark but the frame needs a lit top-left bevel two steps above it, or both merge into one black slab at 1x. A horror beat (a figure in the mirror, gouged eyes) must be drawn hard enough to read at 1x: dark ragged holes, not pale lens shapes (they read as spectacles).
+- A poster is something pinned up: a tack or a tape strip and one curled corner; an empty lower third looks unfinished, and a round beige stain reads as a coin.
+- [repeated] Judges lean toward slot b: re-run every narrow b-slot win with the slots swapped before installing. The oil drum and the signpost won 6-5 from slot b and lost from slot a; so did the barrel, tyres, crate and chopping block (5 of 5 flipped). A 6-5 from slot a held every time (tool chest, bookcase, plant).
+- The trade object must be the biggest, highest-contrast shape, and it must read at 1x: the watering can, the plank and saw, the breastplate and helmet. Small grey tools on brown are invisible.
+- A pale plank reads as paper. Use warm tan pine with end grain.
+- A round red-and-pale ring reads as an archery target. A shield is wood with an iron boss and a dark rim.
+- A grindstone must be drawn as a wheel: a lit rim ring, an axle hub, a crank and a trough. A half-disc reads as a tombstone or a bell.
+- A light source has to glow: a lamp, candles and a jack-o'-lantern each need an amber flame with a pale core as the brightest pixels.
+- A barrel or drum top must be a step lighter than its sides, with the lid ellipse showing. A dark lid makes a blob.
+- Rows of identical stamps (tins, books, fish, firewood, sprouts) read as a barcode. Vary size, colour and spacing, and leave gaps.
+- Saturated colour reads as candy: honey wood, lemon brass, powder blue, salmon. Pull every hue a step toward this game's dull, weathered range.
+- 21 of 51 side and back views were blank slabs. Every end panel needs its own detail (a frame and stiles, handles, edges) plus a 2 px sliver of the working face.
+- Seen from the side, a tall back board reads as a chair back. Keep back boards to a short lip, and show the long top run.
+- Things stacked one above another in a side view read as a totem or snowman. Keep pieces on one ground line, overlapping front to back.
+- A wheel or a clothesline seen edge-on is a pole. Give it width (a tyre 5-6 px, a hub standing proud), or show the hung items as slivers.
+- Bed stains read as logos when drawn as solid shapes. A stain is an irregular blot one step darker. A blanket needs a turn-down fold and a drape over the sides.
+- Elevation 30 shows a lot of front and little top. Long flat things (beds, garden beds, rugs) need extra length in the model to keep their top area.
+- A horizontal ring needs axis 'y' (the renderer's default ring faces the viewer).
+- A redraw can lose to its own first round: crates (5 -> 3) and chess (3 -> 3, now a tablecloth) got worse. Keep the better round's model and change one thing at a time.
+- A light reads only if the flame is several pixels with a pale core; a 2 px glow inside glass is a blue bottle.
+- Seen from the front at elevation 30, a rocker's runners hide behind the legs. Push the runner tips well forward of the feet and make them lighter than the frame, or the chair reads as a dining chair.
+- Spines must sit two value steps above a dark case back, or the books go to mud.
+- The blockout renderer has no transparency: anything inside a glass shape is hidden. Make the glass itself the lit material (a glowing chimney) or put the flame outside it.
+- Faces turned straight at the camera (log ends, barrel heads) get little light at elevation 30: give cut-end materials extra ambient light or they go dark.
+- Long logs seen end-on show as bark strips; for a woodpile that reads as round ends, keep the logs short in depth.
+- Flat-topped pieces (tables, chess boards) read better from 45 degrees than 30: more of the top shows (furn3d ELEV per piece).
+- The 'iron' ramp reads powder blue next to warm wood: use cast iron (near-black blue-grey) for hoops and frames.
+- Rendered grain on dark wood reads as drips or hair: keep grain to mid-tone tops, with long, sparse streaks.
+- Folds drawn as thin lines read as tears; a fold must be a broad soft ridge (lit crest and shadow), or leave the cloth plain.
+- With the new piece always in slot a, close calls go to slot b: only a clear lead from slot a counts.
+- A turned piece keeps its footprint: a long table turned shows its full length running up the screen, not a shrunken square top (table end view 4/10 at 26x26).
+- A cradle's rockers curve along its length only; seen from an end they are two short feet. Its two ends differ: the hood end shows the hood's closed back, the foot end shows the open mouth.
+- In a turned view, things beside one end of the piece end up in front of it (the armour stand at the left end stands in front of the near end when turned), overlapping it.
+- A back view is a turn, not a copy: everything on the piece swaps sides (pots, tools, sack).
+- A back must keep the trade: plank ends and a saw handle over a carpentry bench's back board, planks on its shelf.
+- A hood with a near-black inside reads as a hole; use the darkest plum-brown step, and let the far lip show above the near shell.
+- Open space under a table fills with outline if legs, stretchers and far legs sit 1-3 px apart: draw only the near legs, and only a soft fading shadow under the apron.
+- [owner-level] One camera for every view: a horizontal top is drawn at about three-quarters of its real depth in the front, the back and both sides (METHOD.md: a cube's top is 32x24). Shallow fronts with long sides read as the camera jumping from level to overhead.
+- Things on one end of a piece stay on that end through every turn: a keg's tap end is far in one side view, near in the other and on the left from the back.
+- A mirror is only a correct turn for a piece that is the same at both ends: when the ends differ (a vise, a grindstone, a stand), draw the left side separately, with that end's things at the far end.
+- Turned sideways, a bench keeps its full length running up the screen (about the front's width) and its depth across (about the front's top depth plus a little); half-length tops read as cabinets.
+- From the front, a rocking chair's runners hide behind its legs: the old splayed feet hint at runners better than straight legs on a flat rail.
+- Outdoor props: never speckle for texture (burlap, bark, rust); use a flat base tone, two or three broad shapes (fold curves, bark grooves, rust streaks) and a lit edge.
+- Wood end grain is dull tan, brightest at the top-left, with one dark heart pixel off centre; dark rings read as doughnuts, cream caps as brackets.
+- A mailbox reads side-on (a long domed tube, its flag up) with its name board; end-on it reads as a mushroom.
+- A barrel reads best side-on (bellied staves, hoops, the tap on its end); end-on it reads as a clock, a beehive or an owl. Draw the side as the front.
+- A small chess board on a deep table top reads as an upright pane or an abacus: keep the old pedestal table until a flat board at half its width beats it.
+- Brass arcs and frames are the brightest, most saturated shape; keep them thin and dull so the object (the globe) stays the main shape.
+- Dark iron (candelabra arms) goes spidery on a dark floor: give its lit faces a cool blue-grey rim.
+- A barrel on its side needs its body showing behind the head (a band of staves above it with a hoop across), or the head reads as a flat clock or a hooded owl.
+
+- A raised deck needs a front face a step darker and cooler than its top (a rim board and a dark lattice skirt), or it reads as ground level however many steps lead down from it.
+- Deck and porch boards run along the wall in 5-px rows: a dark seam, a lit top edge, two close face tones, staggered butt joints with nail heads. One flat brown with a few dark lines reads as mud or a mat.
+- A door above a deck needs a stoop up to its sill in the deck's own wood; a pale stoop reads as paper.
+- Mirror-copied halves (two rail sections) get one break: a sprung baluster, a replaced post.
+
+- A net or any mesh must keep its holes open: the outline pass fills every hole next to a strand, so mask the mesh out of the outline (NOOL) or it reads as a tapestry or moss.
+- A hanging net reads from its drapes: 3-4 gathered folds, a lit crest and a dark trough each, the mesh tighter in the troughs, the hem scalloped with sinkers; corks bunched where it is gathered, not evenly spaced.
+- "Crooked" has to show in the outline: a lean of 3-4 px from a mended splice, an arm that droops. A straight grey post reads as a pipe.
+- A lit lantern lights its neighbours: a warm 1 px rim on the arm's underside, the brace and the post's lantern side, and a pale core in the flame.
+- A box seen from above needs its lid lighter than its front (the lit floor through a lid's mesh, the dark inside through the front); a crab clinging on top reads, a crab behind wire does not.
+- Rope coils: two or three thick turns shaded as tubes, the lay twisting across them, dark gaps; thin concentric rings read as a doughnut or a log slice.
+
+- Hung fish read as fish only with a fish's parts: a forked tail tied up, a dorsal fin, a gill arc, an eye, an open mouth. Identical evenly spaced shapes read as a barcode, bats or bottles.
+- A boat needs its sheer: the inside (boards, seats, an oar) seen from above and the near side's lapped planks below the lit gunwale. A symmetric pill reads as a blimp or a seed pod.
+- Patina is one body tone with a lit band and a few streaks running down from the shoulder, never scattered single dark pixels.
+
+- Tiled pieces are judged as runs: a fence tile that runs away from you must stop its rails under the post behind (drawn earlier, so the near tile would paint over it) and keep the outline off the join, or the run reads as beads or capsules.
+- Anything unique on a tile (a rot patch, a broken picket) repeats every tile: keep tile damage small and light, or it becomes a rhythm.
+- A jar of sweets is 2x2 balls in staggered rows, lit top-left; a checker fill reads as dither.
+- A drum or barrel lid is a step lighter than its sides with a lit rim; hoops are raised (a lit ridge over a dark underside) and bow down toward you in the middle.
+
+- A prop must stay apart from the ground in greyscale: fence rails at the grass value vanish; lighten them a full step above it.
+- Runs of rust are orange-brown and start at a seam; crimson runs read as blood, yellow-green as slime.
+- Steam is two or three soft puffs over the source, not thin hooked lines (they read as hairs).
+- A plate from above is about 1.6:1, its well an inner ellipse a step darker with a lit far lip; a long ellipse reads as a tray.
+- A small creature on a busy surface (a crab on a wire lid) needs its own dark outline and to break the object's silhouette.
+
+- A black animal needs a pale ground under it (a cushion) and its ears breaking the outline; a dark dome on a dark mat reads as a loaf or a hat.
+- A rim light that crosses onto the head reads as a collar: stop it at the neck.
+- Dried flowers are four to six separate stems of different lengths with small dull heads (straw, rust, faded mauve), a dark line where a head meets its stem; round pink balls read as fresh pom-poms or candy.
+
+- Two raised points on either end of a curved shape with a hanging panel between them read as horns over a face (a saddle side-on read as a bull's skull). Keep a saddle's ends low and round, and give it context (a blanket, a rope) before detail.
+
+- Stairs you climb are laid on the ground (a flat decal under whoever is on them), never sorted like a wall: sorted at their base they are drawn over the climber and you seem to walk through them. Their run up the screen must equal the wall's rise, and their sides need collision the whole length, past both ends (owner: "the stair for the chapel is useless... you just walk through it").
+- Every building whose door sits on a foundation needs door steps (steps, door_w, door_dx in its sprite data), the chapels too.
+
+- In a turned view, every loose thing keeps its own footprint: a stool beside the keyboard stands on the floor at its own depth (up the screen), not on the case's near floor line, or its legs grow three times too long.
+- The side of a shelf or cabinet reads as that object only if its open edge shows what is on the shelves, row by row, brighter than the end panel; a blank panel under a long lid reads as a post or clock case.
+
+- A tall narrow side view needs its lid a full step lighter than the end panel and the contents strip wider (5-6 px) and brighter than the panel, or it reads as a post or clock case; a candle flame must be 3-4 px with a pale core and the brightest thing on the piece.
+
+- Owner (Nov 12), verbatim: "If you think you can get them to six keep going if not put them in and continue". Understood: when a redraw is preferred over the installed art in every blind round but stalls at 5-5.5, and more fix rounds will not reach 6, install it (old kept as backup) and move on; do not leave the better art out of the game.
+
+## Small objects on a surface (chess, Nov 12)
+- Sprite stubble drawn as a checker of single pixels reads as a mesh mask or censor mosaic; one soft hair-and-skin shadow along the jaw reads as stubble (5-5.5 vs 3-3.5, both orders).
+- At walking-sprite scale a 1 px shading change on the chest is invisible to the judge (tie both orders): change shapes or values by a full step, not one pixel.
+
+- The cradle's tall hood is what names it: a low broad hood plus a row of high-contrast spindles turned it into a crate. Keep the naming silhouette when fixing everything else.
+
+- Pieces on a board: few and spread (one per square, none touching), each outlined dark, and the light squares a step below the white pieces; crowded pieces of the board's own value merge into one pale lump that hides the board.
+- A quilt drape only reads when the left drape is lit and the right one plum; equal dark strips down both sides read as part of the frame.
+
+## Furniture family pass (Nov 12)
+- A hue shift of the wood ramps (shadows 10-15 degrees toward plum, lights a little warmer) is invisible at game size on dark wood: "shading gets darker but never cooler" needs a real second hue in the shadow (a plum or blue-grey step on the shaded face), not a nudge of the ramp.
+- Grain on dark door panels: the same pair of streaks on every panel reads as claw marks or hair. Grain goes on one or two panels at most, never repeated in the same place.
+- Judges contradict each other on family-wide advice (a family judge called the deep pantry top a camera change and the rocker's honey wood candy; the A/B judge preferred both). Test family advice piece by piece in blind A/B before believing it.
+- Shelf contents: varying them by leaving dark empty cells makes a hutch look bare; vary shape and height inside a full row instead, and keep every item inside the frame.
+
+## Furniture family round 2 (Nov 11)
+- A wall mirror reads at 1x with a lit top-left frame bevel, a thin dull gilt slip and grey-green glass carrying one diagonal sheen; a plain blue pane reads as a window or cabinet door.
+- A bench back of planks with a see-through gap between them reads as a fence; three raised panels read as drawers; two long raised panels and a dark under-seat that fades to the floor read as a pew.
+- A lying barrel's staves run its length: bowed horizontal seams following the belly, hoops as 2 px vertical bands (lit ridge, dark underside). Vertical stave lines make it an upright cask squashed wide.
+- A hood drawn as stacked curved bands (far lip, dark inside, lit rim) reads as a fan, harp or piano lid: one closed shell, lit top-left, the inside only as a plum crescent under the open edge.
+- A rolling tool chest in oxblood needs the lid a full step lighter than the floor and each drawer a lit lip with a dark seam under it, or it sinks into a brown floor.
+- A leaning crate lid at 1x reads as a rolled mat or a ladder; leave it out.
+- [parked, three rounds] Fixing what each judge names moves a piece from 4.5 to 5.5 but not to 6: past 5.5 the gap is the whole surface - hue-shifted form across every front, wear drawn by hand in a few places, no part repeated at even spacing - and the one naming detail (apples, flame, hood, runner tips) drawn big and bright enough to carry at 1x. Start the next furniture redraw from those, not from a list of fixes.
+- Dimming a quilt makes any stain or speckled hem the loudest thing on it: drop the blotches when the patches go down a step.
+
+## Benches (Nov 10: round 1, 10 pieces both orders; the garage workbench 6 installed)
+- A long bench turned end-on (its length running up the screen) reads as a cabinet or glass door whenever its top has a frame or a different tone from the front's worktop: the turned top must be the same lit worktop green as the front, edge to edge, with the props spaced up it and overlapping. Parked after 2 more rounds at 4 (Nov 11). (bench views r1-r2)
+- [parked after 6 rounds, Nov 11] A cobbler's bench stuck at 5-5.5 as "a table with an icon on it": the trade needs its own silhouette (a low sloped bench seat with the last post rising from it), not a tabletop. Laces as a column of alternating 1 px checks read as a zip: draw crossed laces or eyelet pairs. Fill an empty half of a worktop with a different-hue piece (oxblood hide, a spool), and keep tool heads pale and lying flat so they read at 1x.
+- A cobbler's bench says its trade with one tan boot on an iron last on a real lit worktop (8-10 px deep, two steps lighter than the front); a full-height tool board makes it a hutch, a short rail of equal bars reads as a chair back. (benches r1-r4)
+- [round 2 overturned round 1] The trade object must be the highest-contrast shape on the bench: my sandstone grindstone sank into the brown wood and lost both ways to the old grey disc. Keep a grey wheel lighter than the wood; shade its edge-on view as a rim (lit left, dark right, proud hub, water in the trough), never with even ribs (a wrapped sack).
+- A pale saw reads at 1x; the same saw in dark steel goes to a grey smear (the old carpentry bench won both ways). Darkening the trade object to tame it loses the read.
+- Brown leather on brown wood disappears; a work piece needs a hue step from the bench (a dull oxblood hide on oak), not just a value step.
+- A turned piece is drawn at the front's full length running up the screen; my half-length farm bench side read as a cabinet in both orders, every round.
+- A mirror is never the left turn when the ends differ: the tools at one end go far in one side view and near in the other; a stand at the end goes in front of the near end in one view and centred beyond the far end (its lower half hidden) in the other.
+- Hilts hanging over a back board need a wide crossguard with turned-down ends, a 2 px dark grip and a round pommel; a 1 px grip with a lit tip reads as a candle.
+- Cream-topped blocks behind a board read as mugs of beer: lean long boards over the back instead, ends sawn tan.
+- A seat on a bench with a trade: one thing that says the trade (a boot on a last) beats both a cleared seat and a frame-like back rail.
+- A garage bench needs the mechanic's things (vise, battery, toolbox, oil can); a hand saw on it says carpenter. A worktop in bright honey wood is the loudest mass: keep it two steps duller.
+- A flat stone slab on a furnace reads as blank, and speckle on it as grit: a few big cap stones with joints, each lit on its left, and a lit front lip chipped in two places.
+- Smoke drawn as 1 px dots reads as hairs: two soft puffs (alpha under the outline threshold, so no outline), lit top-left, fading as they rise.
+- Soot and firelight are flat steps along the stone ramp (down a step for soot, a warm ramp for firelight), never a smooth blend: a blend reads as a blur.
+- Seen from the side, a furnace hides its fire: show it with a sliver of the lit arch at the front edge, warm stones beside it, and the glow spilling on the ground.
+- A turned bench top framed by darker edges and a shelf line reads as a glass door; pots stacked up a hutch board turned edge-on read as a totem. Make the top one lit plane (the lightest of the piece), the hutch a thin strip, and the pots in a row along the top on contact shadows.
+- From behind, pots on a 1 px rail balance in mid-air: give them a lit strip of shelf to stand on.
+- Rows of rivets down a breastplate read as coat buttons: a centre ridge (lit left, dark crease right), two or three hip lames, rivets only at the plate ends.
+- Salmon leather with pale flecks reads as raw meat: a duller brown hide in flat bands, one row of dark stitching.
+- A tall tool board makes a bench read as a desk or hutch: half its height, the saw in dark steel, the worktop the lightest surface.
+- Iron bench ends running the full height box the bench in: lean the back uprights back and curl their tops, roll the arm's front end down at seat height, splay the feet. Keep the back low over a 6-8 px seat.
+- Anything lying on a seat makes it a table: put the tin or brush on the floor; a darker back rail with a gap of shadow above the seat says "sit here".
+
+## Resources and items (#198, Nov 10)
+- [repeated r9] READ THE ITEM'S NAME AND DESCRIPTION IN THE GAME BEFORE DRAWING ITS ICON (grep its ITEMS entry, and its cooking or making game for its colours). r5: the 'flask' is the lamp-oil flask. r9: the soup is turnip soup with a golden broth; the mushroom is the glowcap and must glow.
+- [r14] A worm (or any thin thing) arching across the full width of a container reads as its handle: break it into short coils of
+  different lengths lying IN the container, let soil show between them, and hang just one over the lip with a blunt tip.
+- [r14] A pie reads as a cheese wheel or Pac-Man when its side is tall and its rim is flat: a short wall, a fluted rim that
+  scallops the outline, a darker baked ring inside the crust and one glaze glint; open custard (no lattice) for pumpkin.
+- [r15] A drop is a hand-sized chunk, never the node shrunk: the stone with a flat base read as a boulder on a plinth; four flat
+  faces (lit top, mid left, darker front, dark right), a hard lit ridge and a two-pixel crack read as a stone in the hand.
+- [r15] Ring or weave texture at the same contrast edge to edge reads as checker dither at 1x: keep crisp rings on the lit
+  shoulder and hem only, quieter in the shade. A belt cinching a shirt, with length below it, makes it worn armour, not a tee.
+- [r15] A label that shows what is inside (a worm printed on the bait tin) sells the container; look INTO an open tin (a
+  taller mouth) so dark contents show between the things lying in it.
+- [r15] Every winner at 6 still fills each material with one flat tone plus an even texture; 7-8 needs 3-4 deliberate tone
+  clusters per surface and one placed highlight.
+- [r16] Silver flecks scattered over ore read as speckled granite: the stand-in's dark chunk with rust bleeding from its
+  cracks already said iron. Before redrawing a stand-in, ask what it gets right and keep that.
+- [r16] A big saturated red shape in a bouquet reads as a poppy: a leaf needs its lobes, a midrib and a duller rust-crimson.
+  A goldenrod drawn as a 2 px line is a pencil or a wheat ear; draw a soft plume that fattens toward its tip.
+- [r17] Moving roots a pixel or two is invisible at 1x: judges call it a tie. Change the silhouette or the value pattern, or
+  do not send it.
+- [r17] A stump narrower under its top than at its foot reads as a tied sack; round dark dots on white read as a dalmatian or
+  dice: birch is straight-sided with short horizontal dashes. Two splinters of one height with a gap read as battlements.
+- [r20] The subject must be the brightest, crispest shape in its icon: a matte pearl smaller than its pale nacre reads as a
+  pebble; a symmetric oval shell with an off-centre bead reads as an eye. Give the jewel the hard glint and the darkest contact.
+- [r20] One clean slanted plane on a broken trunk reads as a sliced wedge or a shark fin: a break is 3-4 splinters of
+  different heights stepping along the slant, pale grey-tan inner wood, a dark heart crack between them.
+- A family of nodes made from one stamped dome with different flecks reads as one rock: give every material its own shape at 1x (coal as angular black lumps standing proud, copper as fat nuggets, iron as oxide and silver glints, gem as crystals breaking the outline, stone as a slab with moss and a crack), and give each node its own silhouette.
+- A node and its drop must match: the icon is the same material, a hand-sized chunk, not the boulder shrunk.
+- Rust drawn as maroon blocks reads as raw meat or blood: rust is ragged orange-brown oxide bleeding down from cracks, with an ochre step where it catches the light.
+- Coal as round balls reads as bombs; as two bricks with a full rim it reads as obsidian: three uneven matte lumps, a glint or two, no rim.
+- Four identical nuggets spaced evenly read as studs: vary their size and bite a corner off each.
+- A stump that is a straight cylinder with a flat top reads as a pot or a paper cup: cut it low, flare its foot, give it 3-4 short thick roots lit on top, and its own bark (pine plates, birch white with black marks, willow grey furrows); dead trees snap into splinters of different heights, not a neat lid.
+- Thin evenly spaced roots read as spider legs; ragged spurs read as noise: roots are short, thick at the trunk, tapering smoothly, lit on their upper side.
+- (r4) Two side roots and one centre-front root read as a molar tooth: make the roots unequal on purpose (one long to the front-left, a stub on the right).
+- (r4) Small pickups: a stick's cut end is pale tan with a bark ring; any orange-red tip reads as an ember or a lit match.
+- (r4) Weeds as thin separate sprigs dissolve into speckle at 1x; dense clumps lit as masses win. Dull the straw a step so it is not the most saturated thing on the ground.
+- (r4) Detail grouped by light (clumps, plates) beats even detail everywhere: chaga is 2-3 big crust plates and one broken face of rust-orange flesh, not twenty facets; the bark it grows on must stay darker than white or it steals the eye.
+- (r4) A metal bottle with a ball stopper and round shoulders reads as a decanter whatever its band: a hip flask needs a flat cap on a short neck and square shoulders.
+- (icons) Steam drawn as zigzag hairs reads as hair or stink lines: 2-3 soft puffs, lit on the top-left, see-through, with no outline.
+- (r5) Steam puffs pass at 6 but must be pale and see-through with no dark lower edge; opaque mid-grey stacks read as cauliflower.
+- (r5) A fix too small to see at 3x ties with the old one (twig tip, rock crack, straw dulled one step): change enough pixels to read at 1x, or leave it.
+- (r5) Dulling a cap or a coat toward the brown inventory colour makes it vanish; keep dark subjects a value step off the background and give them a lit rim.
+- (r5) Every red fruit needs its own hue and value (cranberry deep crimson, rosehip orange-red, apple dark glossy red); one coral for all reads as candy.
+- (r7) Repeated parts drawn as identical copies (hips, logs, planks) read as stamps: vary size, spacing and one tone per copy.
+- (r7) Warming a lantern's glass all over turns it into a candle at 1x; keep the glass cool and make only the flame core the brightest pixels.
+- (r7) Soup reads as porridge when the surface is one flat tone with flecks: a darker broth ring at the rim, a glint, 2-3 chunks.
+- (r8) In a horror game a likely misread wins: short upright pink shapes out of a tin read as fingers. Worms drape and coil over the rim, 2 px thick, with segment rings.
+- (r8) A coat reads as a coat from its length and its lapels: hem well below the cuffs, a lit lapel and collar, and a body a value step above the brown slot.
+- (r11) A thin pale spindle reads as a feather or a quill: a cob needs a fat body, a blunt end and husk leaves peeled down both sides.
+- (r12) Kernels sampled from a rotated grid land as scattered single pixels: lay them in screen space instead, 2x2 blocks on a staggered 3-px grid with 1-px seams, masked by the cob's shape.
+- (r11) Round beads in a row on a strip read as berries on a twig; pointed glowing drops read as flames. Resin is one asymmetric drop with a needle or bark fleck caught in it.
+
+## Festival booths and fair games (t324, Nov 12: round 1, 6 of 15 at 6)
+- A recoloured copy of another booth reads as a copy: every booth needs its own silhouette (a gabled board top, a tent, a low counter), not the same frame in new colours.
+- Things spaced evenly and pasted as copies (crows on a shelf, toys on a string, four identical tables) read as wallpaper or a fence: stagger heights, flip some, vary each copy.
+- A top-down view (a tub from above) must fill the stage with top-down ground: never set it on an eye-level horizon.
+- A minigame stage that is mostly empty wall fails: the targets must fill the rails at all times (5+ per rail), and every special target (the girl) must be in frame often.
+- The verdict pop-up (GOOD, PERFECT) must rise from above the target, never sit on it.
+- A glowing cut (a carved pumpkin's face) must be the brightest thing: take the skin two steps toward burnt orange.
+- A big round fruit needs ribs: 6-8 vertical ribs lit upper-left with plum grooves, not swirl bands (pillow shading).
+- Tiny 2-3 px fruit reads as berries: apples need 4x4 with a lit pixel and a stalk.
+- A rosette lit evenly all round reads as a target: lighter petals upper-left, darker lower-right.
+- A draped cloth is tapered folds at uneven spacing, never equal vertical blocks over a checker row; and white is too loud for the square: linen.
+- A recolour of the same table reads as a copy even in four colours: vary the outline (a cloth to the ground, a short one with legs showing) and the fold count.
+- Small round things on a board must keep 2+ px of board between them or they merge into one clump at 1x.
+- A dark hard-edged square at the point of play reads as a glitch: a shadow under the cursor must be the shape of the thing (an apple) with a ripple, never a box.
+- A cut-out figure needs its outline (a flared hem, arms, a bow in the hair), or a white column reads as a milk bottle.
+- A doll must carry the one naming detail of what it is (a scarecrow: crossbar arms, sack face, straw at neck and cuffs), not just clothes and a hat.
+- (r3-r7) A game's own path (a lantern string, an aim line) must never cross its subject: route it in front of or beside the people, or it reads as a skewer, a cord or a drawn arm.
+- Two people holding hands: never a 1 px line between them (it reads as a skewer between their mouths). Draw each near arm in their own sleeve, as thick as their hanging arm (3 px, outlined), bent at the elbow, meeting in clasped hands at chest height, with 2+ px between the faces.
+- A shadow joined at an object's side reads as a handle (a peg became a mug): start the shadow under the base and let it fall away clear of the side.
+- A small cap lit with a cross-shaped highlight reads as a wick: a plain lit oval with a darker lower-right rim.
+- A held thing must touch the hand: a ring floating beside the fist reads as a separate pickup.
+- Partners pressed together read as a hug: leave a half-step between bodies.
+- Keep verdict text (PERFECT) and HUD meters clear of the people and the moving pieces; a lantern dropping beside a gauge reads as part of the HUD.
+
+## Farm machines (t334, Nov 13)
+- A lattice tower drawn with the outline pass goes heavy: every 1-2 px strut gets a dark line on each side. Draw thin steel on its own layer with its own dark edge and outline only the solid masses (wheel, tank, pump).
+- Spokes in a dark iron ramp disappear against a dark engine: give each spoke a lit step and a dark trailing edge, and leave the gaps open so what's behind shows through.
+- Anything that rises out of a sprite (exhaust, steam, chaff) needs headroom in the canvas, or it is clipped at the top edge and reads as a stray pixel.
+- Two plain metal cylinders read as bins or churns: a machine's trade comes from what it holds and what's round it (grain in the pan and spilt on the ground, the sack it's fed from, a painted cap).
+- A farm machine reads as working when several things move at different rates (flywheel, belt mark, puff on the firing frames, dust at the spout); one moving part reads as a loop.
+- A machine is judged by its silhouette against the farmer: a feeder taller than the farmer's knee reads as a silo; size it to what it is.
+- Teat cups read as a glove when bunched: four slim cups, each on its own tube, fanned 5 px apart and hung clear of anything else.
+- Never reuse one machine's parts for another (red box, spoked wheel, heaped hopper): each machine needs its own silhouette and material (the fanning mill is tall bare wood).
+- A wheel of identical blades shimmers instead of turning: mark one blade darker so the turn reads; a stopped windmill furls its wheel edge-on.
+- Two pulleys that almost touch read as gears: 10+ px apart with both runs of the belt and a mark travelling along it.
+- Two sacks in two colours read as the same item: give each its own closure (a rolled mouth vs sewn shut with corner ears).
+- A status page that says the same thing for every row ("In the yard.") tells the player nothing: show each machine's own state, with a red line where it will fail at dawn.
+- Buttons styled grey read as disabled: every live button in a ledger page uses the ledger's dark button style.
+- A machine reads as working at 1x only through bold 2-3 px shapes that change a lot from frame to frame (a 3x2 clump stepping 3 px, a 3x3 splice mark, a 4 px sway); 1 px specks and 1 px moves vanish.
+- A dark near-black upright with an arm (Γ) reads as a gallows, worst of all next to street lamps: dairy kit is light wood and galvanised steel, low.
+- Teat cups hang mouth-down: blunt straight cylinders with a dark liner ring at the bottom, the tube narrowing into the top. Tapered points read as icicles or knives.
+- A marker on a turning wheel must be pale, not dark: a dark blade disappears on the wheel's shaded side.
+- Never bake a long cast shadow into a world sprite when the game throws its own with the sun: keep only contact shadows under the feet, or the two point opposite ways.
+- A crank grip seen face-on reads as a clock hand: give it a lit end cap standing out toward the viewer and a shadow on the surface behind it in every frame.
+- Grain in a heap reads as dirt when it has dark single-pixel speckle: cluster the kernels (2x2 lit groups).
+- A spout with no cap or lit edge reads as a drinking straw.
+- A status line needs an icon every time and a separator between clauses; a mode toggle reads best as a two-sided switch with the current side lit, and a button should say what it does ("Pour in 3 cans").
+- A cluster of identical parts hanging straight reads as test tubes: splay them from a visible hub (the claw bowl), the outer ones angled out, each at its own height, and swing the tips a little out of step.
+- A tall machine needs a dark contact pad under each foot, or it floats; an in-world judge shot must show the base, not just the top.
+- A pure-white marker on a mid-grey wheel shouts: keep the marker pale but under about 85% so it reads without glowing.
+- A heap of grain drawn as a flat ellipse reads as a gold bar: build it column by column as a low ragged cone, darker at the base.
+- A list page that runs past its frame needs a cue that says so, gone once the last line is in view; tighten rows before adding scroll.
+- A button says exactly what it does with the number in it ("Load 5 barley", "Pour in 3 cans"), and a two-sided switch shows what each side makes.
+
+## New land and fields (t335, Nov 13)
+- A new region laid after the old ones must not join REGS (or any shared list the old build reads) until the old build is done: one extra region changed rgAtJ's answers inside rgTrees and would have moved trees across the whole valley. Check with an object-by-object dump (spr, x, z) of the old world before and after.
+- To keep the old ground identical above a new edge, run the old LAYERS/weights functions with the old bounds swapped back in (NEWB.z1) and the new region spliced out, then blend the new region in only below the line, over a ragged 8-pace band.
+- Roads cut through old woods also need the woods floor turned off along them (the edge-ring "dark" wins over roads in regions.js).
+- A teleported test player stands in water until it moves; put render cameras on dry ground or on the bridge deck.
+- Frame a judge shot on its subject, not on the player: set the camera (cine cam) on the subject and stand the player on dry ground nearby; give the first shot a warm-up so the camera has moved before the picture is taken.
+- A hedge drawn as one bush every N paces, species picked fresh each time, reads as alternating wallpaper: grow it in runs of one dominant shrub with the odd other one, clumps that overlap, a second row tucked behind now and then, gaps where noise says it died back, and the odd field tree.
+- A verge drawn at one fixed width beside a road through woods reads as a carpet runner: let the cleared strip come and go with noise along the road.
+- The world map draws roads as ruled straight segments; for land that should look farmed by hand, take those roads out of the base pass and redraw them through one shared smooth displacement field (the same at every point, so junctions still meet), and bend the field outlines with the same field.
+- The player's reflection is drawn by its own pass (mindReflection), not the water mask: a bridge deck must also switch it off while the player stands on the deck.
+- A gate seen edge-on from the 3/4 camera collapses into one plank: swing it open to about 45 degrees so each bar shows on its own.
+- 1 px limbs, twine or rails that get the sprite outline turn into black clubs or a dark grille: keep thin parts out of the outline (outline skip) and outline only the solid masses.
+- Every border on the ground (zone to zone, patch, headland, verge) needs its own wander and clumpy break-up; any border taken straight from a per-pace mask or a rectangle reads as a tile seam.
+- Thinning tufts over a whole rectangle (a plot) leaves a hard block in the grass; thin them only on a narrow wandering band.
+- Faint furrow lines at a fixed spacing read as scanlines: make them wavy, fading ridges (lit crest, shaded trough) that come and go with noise, or leave them out.
+- A lone prop that should be part of something (a fallen length of fence) needs the rest of the thing around it (posts, a gap, the fence running on) or it reads as debris.
+- New posts and gates beside an existing fence must use the fence's own colours; a grey post on a brown fence reads as a mistake.
+- Fence runs overhang their last pace: put the end post at the rails' real end, not at the nominal corner.
+- A field gate seen at 45 degrees reads as a ladder if its bars sit as close as rungs: four bars with grass between them, a brace laid across them at a different angle, the fence's own colours, and a contact shadow at the free foot.
+- Outline only the underside of a thin bar (skip the outline from its lit top row): you keep a dark line under each bar and the grass still shows between them.
+- Turned soil is not two dark lines: give a furrow an asymmetric profile across it (lit slice thrown up on one side, shaded open furrow on the other) and clods along it, or it reads as tyre tracks.
+- A broken length of fence must sit in a real fence that runs on and closes somewhere; a lone piece in open grass reads as debris.
+- Leaves drawn as round blobs at twig tips read as flower heads: string small leaf dabs in drooping, lopsided sprays along the outer half of each twig.
+- Anything hung over a walkway goes above the player's head (here: on an arm off a tall post).
+- If the ground of a fenced plot stops at the deed's edge half a pace inside the fence, that ruled edge shows as an inset rectangle: run the plot's ground out to the fence.
+- Zone borders broken up per pixel read as dither: break them in clumps of two sizes with brick-offset rows.
+- A world-map overlay must use the game's own palette; the base map's grass was a sunny lime that made the new land the brightest thing on it.
+- Put judge-shot players on open road, never on a fence line: a teleport skips collision and a player standing in a fence reads as a collision bug.
+- Saturated red or orange specks scattered over grass read as blood: autumn colour on the ground goes in a few gathered clumps (rust-brown, ochre, a dark root row), never an even scatter.
+- Noise taken from square cells shows as a mosaic of squares however small the cells: use smooth value noise (two sizes) for lobed, rounded borders.
+- A broken piece of something that stands nearby must use that thing's own widths, profile and colours; thinner and paler timber reads as kindling.
+- Spread fallen pieces over different depths and angles; equal-height ridges in a row read as a pattern (/\ /\), not as wreckage.
+- A black outline round small bright-yellow leaf dabs reads as lightning: use a soft dark-brown edge for gold foliage, and pick the random seed by eye.
+- When the same sprite stands side by side, it shows as a stamp: cap a species per group and flip at random.
+- Keep a clear radius round signs and markers before scattering scrub, or a sapling grows into the sign.
+- Hinge irons go only on the post the gate hangs from; the other post gets a latch keeper.
+- A prop that made a mark on the ground sits at the end of its mark, touching it.
+- Tapering to a smooth point looks drawn with a ruler: narrow toward the end, then stop at a width the noise picks and leave clods.
+
+## Shops as buildings: stores, staff and hired hands (t330/t331, Nov 13-14: round 1 interiors 5-5.5, staff 4.5 -> round 8 every group 6+)
+- An upgrade must change the silhouette or the light, not only a detail: the awning, the extra width, the lit windows and the lantern read at 1x; a price board inside does not on its own.
+- Keep the line from the door to the counter clear of every display: a stand placed just inside the entrance reads as blocking the way in, and customers walk straight through it.
+- When a building replaces an older marker (a signpost, a market stall), remove the marker everywhere it is made (bizSign, bgWorld, bwSigns), or the old and new stand side by side.
+- A second building for a shop reads as the same business only in the shop's own materials, roof colour and name board.
+- (round 2) Rooms of different trades must not share their signature pieces: a judge reads the room by its biggest piece, so one produce rack in a kitchen and a taproom made every room read as the same shop.
+- (round 2) A borrowed room shell brings its own wall clutter (clocks, guns, pictures): paper it over before hanging the shop's things, or they overlap and read as careless.
+- (round 2) A worker reads as working only with a loop and an object: a gesture alone, at a post, reads as standing. Give each job something that changes where it works (an apple on the scale, a mug filling, steam, a plate going out, a crate carried and set down).
+- (round 2) Check what stands in front of a worker: a tall piece between the camera and the worker (a tap tower, a heat shelf) hides the face; move the worker beside it or lower it.
+- (round 2) Something carried at the hands in front of a front-facing figure covers the face; a tray rides on the shoulder, a crate at the waist.
+- (round 2) The before state of an upgrade has to look deliberately humble, not just plainer: a raw plank lettered by hand against a bracket-hung painted board with gilt and pictures.
+- (round 2) An upgrade that lights things must show by day too (a lit lantern, an OPEN sign and board), or the day render shows no change.
+- (round 2) A long render run must block the service worker (Playwright's request routing doesn't see its fetches) and keep the scarecrow away at night: either one reloads the page mid-run and the shots after it are the title screen.
+- (round 3) A judge who isn't told what a state means will read a correct piece as a bug: say in the brief what each upgrade is (a second line is a second trade the owner adds), label which variant each shot shows, and show every variant, not one.
+- (round 3) Recolouring a shell by luminance keeps its old pattern: a checker floor recoloured is still a checker. Repaint the pattern and take only the light from a blurred copy of the old floor.
+- (round 3) A worker seen from behind reads as standing, however the arm moves: turn them side on to the work (the stove, the scale, the taps, the end of the pass) so the arm and the thing it works on are both in view, and put the thing in the hand.
+- (round 3) Carry at the hands, not above them: a tray at head height floats over a hanging arm; held at the chest in both hands it reads as carried. Anything at face height covers the face; roll a cask, don't hold it up.
+- (round 3) Floor light drawn as flat tinted patches reads as stains by day; let lit lamps carry the change (hung lamps, wall lanterns) and leave the light itself to the night.
+- (round 3) A hanging lamp in 3/4 view needs only a short chain: a long one is a dotted line drawn through whatever stands behind it.
+- (round 3) Before a building takes a lot, watch the townsfolk walk past it at the busy hour: a lot beside a footpath puts people through its corner.
+- (round 3) A shop window with nothing in it reads as an empty black hole: put the trade's goods on a shelf and the sill.
+- (round 3) Several buildings from one kit share the kit's fixed details (a vent and hatch in the same place on every flat roof); give each its own roof things and front.
+- (round 4) Measure the figure before placing anything it holds: on a chibi 45 px figure the chin is 23 px up, so a hand-height guess from a taller figure puts an apple at the mouth and a tray over the face.
+- (round 4) An arm that works behind a counter is hidden by the counter drawn after it: draw the arm (and what it works) in a layer in front of the counter, a lit sleeve and a hand on the thing.
+- (round 4) Steam reads only when it is always there: two or three soft solid wisps rising in every frame, not a thin cycle that some frames miss.
+- (round 4) A pot on a stove reads as a pot only with a round body and a lit rim; a dark bar on the stove top reads as a slot.
+- (round 4) The engine's guessed window glow for a lit building sits at a fixed height; a building with an awning or a tall roof needs its glows at its own window centres, emitted by the building script.
+- (round 4) A side roof drawn as one plane reads as a plank slab: give it a ridge (a lit cap, a shaded back plane above it). A hip roof's hip line must meet the corner; draw the end planes as planes rather than an inner diagonal.
+- (round 4) Flags laid in rows make a joint that runs wall to wall and read as modern paving: grow each stone round a jittered, staggered seed.
+- (round 4) Townsfolk follow their own paths past a new building: watch them at the busy hour and give the building a margin they walk round (beside and behind), or they brush its corners in every shot.
+- (round 4) A render chain run in the background must be waited on by its own finish, not by a line an earlier run left in the log; and a sheet assembled while a render is still running can mix stale frames with new ones.
+- (round 4) Two rooms of a trade side by side (a versus world) need their own paper and boards, or they read as one room pasted twice.
+- (round 5) Check the sheets the judge receives, not the renders they are made from: a copied assembly script that keeps one old folder name ships last round's pictures under this round's name. Compare each sheet with the last round's and stop if any is byte-identical.
+- (round 5) A copy-and-rename by pattern only renames what the patterns match: list every path in the copy afterwards (grep the round number) before running it.
+- (round 5) On a chibi figure the stove top and the tap handles are at head height: a ladle or an arm up to them crosses the face. Bring the work down to the waist (a stockpot on a trivet) or step the worker back so the arm goes out, not up.
+- (round 5) Make every render prove its build: load the page with a timestamp in the URL, block service workers in the browser context, and print the build id the page reports.
+- (round 6) Measure an animation before relying on it: the thrust clip's hand never leaves the body's side in any frame, so a "reach" built on it shows only a turn.
+- (round 6) Draw an added arm as a sleeve, never a line: shoulder, elbow, hand, 3 px in the sleeve colour with a 1 px dark outline and a skin hand. Keep it short (the worker right up to the work).
+- (round 6) An added arm in front of a figure doubles the arm the sprite already has: draw the far arm and clip it to the space past the body, or draw only what rises over a counter.
+- (round 6) Put held things in the hand at the work's height: a pot's rim at the cook's waist, an apple over the bin's edge in a colour that stands off the bin's own.
+- (round 6) A short haircut from behind leaves a bare skin oval that reads as a blank face: check every hired hand from behind.
+- (round 6) Give each customer a fixed arrival spot and a fixed queue spot, one person each, off the door's column; random offsets still stack.
+- (round 6) A second room of a trade needs its own layout, not new colours: a different bar shape and place, different pieces, its own table mix.
+- (round 6) A local test server started in the background dies at the background time limit: start it with the longest limit and check it before each render.
+- (round 7) Make overlap impossible by design, then guard it at run time: lay queue spots, seats, stations and walking routes on lanes a figure's width (0.78 m) across or 1.3 m in depth apart, check every route against every spot by sampling, and only then let walkers wait or slide for what moves.
+- (round 7) A queue spot laid out by formula (along the counter) lands on stools, pickup spots and seats; give each room its own queue spots.
+- (round 7) A waiter served from a table's front passes the chairs at its ends; serve from an open end (one chair) or from behind on a clear lane.
+- (round 7) Never let a figure stand half-transparent: fade only while it passes through a doorway, and keep its standing spots out of the doorway.
+- (round 7) A camera that eases to its target can be caught on the way; for stills, set the camera on the target, then check the frame is on what it should show.
+- (round 7) A bar down a side wall draws after everything north of its foot: keep the stools and the barman clear of its strip in x, and draw the barman's arm and mug after the bar.
+- (round 7) A hanging lamp covers whoever stands in the strip behind it on screen (up to its cord's length north of where it hangs, a shade's width either side): keep waiters' posts and routes out of that strip (serve a lamp-lit table from its open side) and have walkers go round it.
+- (round 7) Waiting on a blocker only works if the blocker ever moves: a walker that yields must stop yielding after a second, a spot must be reachable at the spacing the plan used, and an exit must not cross between two people who stand still (route it to the nearest way out).
+- (round 7) Slide round a person on whichever side is clear (of people, lamp strips and walls) and nearer the goal; a fixed side traps walkers against the next person.
+- (round 8) Before framing a shot of a hand at work, find out who else walks that room (keepers who browse the shelves, regulars) and frame on the hand by position; a judge will score whoever is standing where the hand should be.
+- (round 8) A hand at work needs what she works with in the shot: her own stack or shelf, the thing carried, and the place it goes, with three or four distinct poses (lift, carry, raise, shelve; take, carry, set, tie).
+- (round 8) Never fade a person: cut them at the doorway's edge instead, and take stills when nobody is in the doorway.
+- (round 8) Put a hand's counter spot where the counter top in front of her is clear; a tall jar or a till machine in front of her chest reads as clutter.
+- (round 8 judge) Frame every shot on the building or person it is meant to show, then check the saved image: a versus shot that missed the building scored 2 for the camera, not the art.
+- (round 8 judge) Work loops read as busy only with four or more distinct poses; two or three repeat as a twitch at 1x.
+
+## Outlines, light, colour
+
+- Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline
+  round every internal bundle (it reads as cut-out pieces).
+- Light from the top, slightly left (LPC: keep it mostly centre).
+- Ramps: shades toward purple, lights toward yellow, no pure colours. About 6 colours per 32x32 area (measured on LPC).
+
+## Process
+- [repeated] Never end an inline code replacement with a // comment: everything after it on that line (closing braces) is commented out. Use /* */ or put the comment on its own line, and run node --check on furn_hd.js after every edit. **[repeated, Nov 12, the worst one]** A comment dropped mid-line in land.js commented out landClearArea's bounds check, so clearing the cabin lane hid every stone, weed and stick in Grandpa's field (and every OBJ tree and bush in the world) from the first frame; two more were found in the mine and the map. The build now runs tools/lintcomments.py and stops on any comment that swallows code.
+
+- When a narrow win is re-run with the slots swapped, it often flips (cellar hatch and red drum, Nov 10: new 6 vs 5 from slot a, old 6 vs 4 from slot b). Never install a narrow win without the swapped re-run.
+- Installing over an existing sprite must keep its anchor when the size is unchanged (floor and wall pieces are anchored their own way; the trapdoor moved 14 px when the installer reset it).
+- [Nov 10] An `if` dropped into the middle of an if/else-if chain adopts the chain's trailing else: the hurt's impact
+  frames fell back to the idle stance. Put per-case overrides AFTER the chain, and re-render every character a change can touch.
+
+- Silhouette first, then masses, then detail. Skipping straight to clusters produced polka-dot bubbles.
+- Placing clusters along mathematical lines (perimeters, boundaries) looks mechanical, like piped icing.
+
+- Tools in hand (judge, Nov 10): an axe head drawn round reads as a pan or spade; it needs the flare, a beard toward the hands and a poll behind the haft. A pick seen end-on must show the point leading, never a white ball. A pick's crescent is thick at the haft and tapers to 1 px points, not an even-width sickle.
+- Debris (judge, Nov 10): pale specks vanish into the dirt they fly over; the darker clods with an outline read better. Outline debris in its own darkest tone, never near-black.
+- Hurt on broad bodies (judge, Nov 10): if the guard fist doesn't reach the chin, a single raised arm reads as a wave or a hail. Check that the guard hand is actually drawn at the chin on every body width. Two near-identical frames waste an in-between, and the eyes must not pop open on the last frame (open them a frame earlier).
+- Hurt (judge r7, Nov 10): one hand raised beside the head reads as a hat-tip, a salute or a wave whatever the other hand does. A struck pose must read in its silhouette: the head and shoulders knocked back, the body twisted, the forearms up in front of the face.
+- Glow (judge, Nov 10): a dark-red ember reads as blood or rot. Kindling light must be amber/orange and brighter in value than the surface it sits in. The light shows through the holes, so the source (the candle) must kindle too, not only the walls.
+- Waking (judge, Nov 10): a slump by day has to be big enough to hide the face (head well forward and rolled) or it reads as standing. Spread the change across every frame, with no two frames alike.
+- Derelict buildings (judge, Nov 10): neglect is read from broken silhouettes and materials (missing or sprung boards, a lifted roof sheet past the outline, sagging, cracked glass), not from recolouring or sprinkled specks. Draw wear as shapes where water runs (eaves, seams), never as dots spread over a plane.
+- Upgrade tiers (judge, Nov 10): each tier must read as its material at 1x: copper a pink-gold highlight, steel blue-GREY (a saturated blue reads as enamel or ice), rust red-brown oxide (grey-brown reads as mud), a gem tier dark with a hard glint (a mid teal reads as verdigris and looks like a sidegrade). The top tier must look the most precious.
+- A water stream must visibly change every frame at 1x (move its highlight dashes 2 px a frame), and it ends in a splash with a darker wet patch on the soil.
+- Buildings (sweep, Nov 10): the roof is the biggest mass; texture it only where the eye reads the material (eaves, edges, hips, round dormers) and keep the middle of each plane quiet, lit as a volume. A flat roof seen from above shows its top. A pale frame round a roof reads as a box lid. Every eave, awning and porch roof casts a solid shadow (never a checkerboard). One-of-a-kind homes need their own massing, not a recoloured template.
+- Roof light (judge, Nov 10): a light falloff drawn as stepped diagonals reads as painted glare bars or glass shine. Light a roof by its planes: the left hip a step lighter than the front, the front mid with at most one block-shaped lighter step at the upper left, the right hip dark. Never let blue slate's lit step reach powder blue (it reads as ice).
+
+## Cutscenes (#210, Nov 10)
+- [c1] A cutscene SHOWS: if a caption describes a gate, a phone, an empty seat, a hat or a hand, that thing must be in the
+  frame doing it, and then the caption goes. Keep narration for the one line that cannot be acted (and the owner's intro
+  rule: no dialogue other than what people say).
+- [c1] A text box over a dimmed, empty world with the HUD still up scores 2: hide the HUD, put the people in the place.
+- [c1] Hold one framing; small eased moves only. Jumps of 40 px between beats read as a shaky camera.
+- [c1] Stardew-style events act with bubbles (!, ?, …, a tear, a countdown), turns, small walks and the right portrait face per line.
+- [c1] Background timers move townspeople home: pin the cast to their marks every frame while a scene plays.
+
+## Minigame vehicles / machines (code-drawn on the mg4 canvas)
+- A side-view car must read as hood -> cabin -> trunk in THREE zones: hood the front third (low), the greenhouse cabin in the MIDDLE (not perched at the rear), trunk the back third. A tiny cabin set at the back reads as a flatbed/pickup, not a sedan. [repeated risk]
+- Cut the fender arch INTO the body over each wheel (a dark ellipse clipped to the lower body); a flat sill with wheels stuck under it looks like a toy.
+- One greenhouse window split by a thin B-pillar reads as a car; two separate dark boxes read as two floating panels.
+- Shattered glass: an asymmetric spiderweb of fine cracks from ONE off-centre impact point, plus one short arc. Symmetric chevrons read as a gauge/dial, not damage.
+- Show the repair state by what is PRESENT vs ABSENT (crumpled vs straight nose, open vs closed hood, cracked vs clear glass, wheel vs blocks, dark vs lit headlight), so the same drawer shows every stage of mending from one set of booleans.
+
+## Heart events staged in-world (#216, Nov 11: heartstage.js on top of stage())
+- A heart scene lands when the thing it DESCRIBES actually happens in the world, in the place it's about: don't narrate "a child points at the well" over a portrait box — stand a child at a drawn well and raise its arm. The owner's note was "heart events need this physicality as well."
+- Build each on stage(): real room/spot, cast walked to marks, a camera framing, letterbox, and the text split into spoken (portrait + bubble) vs narrated — same as the staged cutscenes. Everything NOT hand-staged still plays through stgGeneric (actor walks to you).
+- **Full-screen washes go in a TOP-MOST PROP, never in light(L).** Rain, a storm colour wash, a vignette, a blackout — drawn in `light(L)` they get eaten by the lighting composite and don't show. Push them as a prop at z:9e5 (above the world, below the z:1e6 emotes) and draw in screen space (0,0,VW,VH), like stgExile's tree-line rect. Only glowAt-style LIGHTS belong in light(L).
+- **A night scene's lit windows must be drawn in light(L)** (they glow over the engine's night darkening); the dark building bodies stay as props. A lit window drawn as a plain prop at night comes out a dim brown smudge.
+- **A dark silhouette needs a lit backing to read.** The figure in a window: near-black figure on a moonlit-pale pane (#5c6672), not on a dark pane. Same for the Hollow in the store window — pale pane, black body + rotting-pumpkin head.
+- **Don't stage a synthetic set over a real cluttered area.** June's "street of lit windows" over the farmyard showed the produce stand and feed sacks. Stage it on open road (Route 9 west) with a near-black blackout prop (z behind the facades) swallowing the ground, then the facades + glowing windows on top.
+- Place an interior prop in a CLEAR framed spot, not on a wall already full of shelves — the store back-window moved from oz+0.1 (lost among shelves) to oz+1.5 (clean wall behind the counter).
+- Standing on real features reads best: Silas waist-deep in a grave pit drawn just in front of him (pit z = actor z + 0.12 so it occludes his legs); Otto's boat on the real pond; Agnes on her real porch; Cora's real blackboard furniture with the count chalked over it.
+- stage() hid #hud/#buttons/#obj but NOT #hotbar — a faint slot row sat at the bottom of every staged cutscene. Fixed once in stage.js (hide on start, restore on end); fixes the existing cutscenes too.
+
+### Blind-critic pass on the heart-event props (#216, Nov 11 — judged each ISOLATED on near-black; harsher than in-scene, but it exposes real craft flaws)
+- **Isolate-render the props to judge them.** ctx2 is a const (can't swap), so draw each prop onto the real #view canvas at identity transform, fill a dark box first, copy that box to a temp canvas, toDataURL — all in ONE synchronous eval before the render loop repaints (propiso.js). Then PIL-crop + 6x/1x for the critic. Scene screenshots are too cluttered to judge a 12px prop.
+- **An "open hole in the ground" must bring its own ground.** First grave try = a dark rectangle with a bright rim on all four sides + a clod lip of even vertical bars → the critic read a TV/crate on legs, 3/10. Fix (→ re-judge): drop the 4-sided frame; sink the dark pit into an APRON of turned earth (an irregular ellipse a shade lighter than the pit), heap the dug soil as a mound BEHIND on that apron with a cast shadow, light only the NEAR lip as a flat foreshortened band (never a vertical front face — that reads as a box front), and show a sliver of lit far-wall at the top interior. A hole reads from the lit ground around it, not from a frame.
+- **A footprint needs a lit raised-mud rim + a dark foot depression, not a flat oval.** Symmetric dark ovals read as pills/tombstones and vanish at 1x (3/10). Fix: a lit mud mound (top-left face lighter, bottom-right darker) with the pressed-in foot carved dark inside it (heel + arch + ball + 5 graduated toe pads), one cold wet sheen in the heel-dish, a dark contact pool bottom-right; vary size/brightness down the trail (nearest biggest+brightest). Open the value range — an in-scene prop must still hold value on near-black; the game's lighting is extra, not the only contrast.
+- **A figure in a window must have a shoulder/neck break or it's a keyhole.** The Hollow as head-on-trapezoid read as a keyhole (5/10). Fix: thin NECK + a wide SHOULDER line below the head, then a tapering robe with vertical fold shadows; the flat-black silhouette now names a cloaked figure. And push a carved-pumpkin head to a dark plum rind (#2e1810), highlight under ~70% — only the carved candle-light glows, or it reads as a Halloween decoration. Make the glow halo UNEVEN (offset up-left), not a concentric ring (reads as a porthole/banding).
+- **A blade is ONE metal.** A warm-orange core stripe down a steel blade read as two materials / a pencil / a match (5/10). Fix: the whole blade one cool steel ramp (grey-blue, purple-leaning shadow) with a single near-white sliver on the TOP-LEFT cutting edge only; put any forge-heat as an outer rim/tip glow via globalCompositeOperation 'lighter' + globalAlpha, so the steel stays steel and the heat glows around it. Give a handle a pommel cap + wrap seams + its own value, never a flat lump.
+- **A pale ghost-child's reaching arm must leave the shoulder OUTSIDE the dress.** An arm starting over the white dress drew a dark diagonal that read as a strap/slash/stick (4–5/10 twice). Fix: start the limb at the right-shoulder EDGE and bow it OUT past the dress's right edge so no dark line crosses the bright field; bend it (shoulder→elbow→hand) and end in a 4px hand; outline it with a soft dark colour (not pure black), only where it meets the dark background. Also: give the figure a drop shadow (never floats), a shaded right side (light top-left), and two faint hollow eye-smudges so the face reads as a face, not a blob.
+
+### Heart-event props: REUSE the game's existing object sprites (#216, Nov 11 — owner: "there are already existing stuff you can use for cutscenes... gravestone and furnace asset")
+- Do NOT hand-draw props for cutscenes when the game already has the asset. Hand-drawn code props look flat and less detailed next to the real sprites, and the blind critic scored them on their own terms, not against the game's art, so it passed things that didn't belong. The fix is to COMPOSE the real sprites.
+- The game draws every world object as a generated sprite via `drawSpr(name, X, Y, clip, dir, frame, opts)` — anchored at the sprite's foot at screen X,Y (the same coords the scene props already use), with opts {scale, alpha, flip}. Query `__game.ev("Object.keys(SPR).sort().join(',')")` at runtime for the full catalog (~700 names).
+- Heart-event mappings that worked: Silas's open grave → `g_grave` (a real open-grave-with-shovel), Agnes's well → `well`, Hob's table → `in_goodstable`, Dunn's stove → `in_stove`, Hale's bell+rope → `wk_bell`+`wk_rope`, Gideon's forge room already has `in_forgehearth`+`in_anvilbig` (just place the held blade = `icon32_blade`), Nell's chest → `in_hopechest`, Della's ledger → `t_books`, Orla's headstone → `grave_0` (matches the churchyard), Otto's boat → `wk_boat` (draw the NPC behind it, boat hull hides their legs = seated), the Hollow in the window / behind Ada → the real `hollow` creature sprite (scale+alpha), Cora's countdown → `in_blackboard`. Also available: grave_1/2/3, memorial, in_coffin, rg_oldwell, t_candle, t_plate, in_doll, in_cradle, the rem_* child keepsakes, jack/pumpkin.
+- Keep hand-drawn ONLY the genuinely bespoke bits with no asset: the ghost child at the well, the footprints, the held letter/apple/ribbon, state overlays (the plate's eaten cut, burn flares, the ledger's rust underline), the pale window pane behind the Hollow.
+- Judge the composed scene IN-SCENE against the Stardew bar (6 = holds up beside Stardew's own art), not the prop in isolation.
+
+## Putting a figure INSIDE a prop (boat, open grave, barrel) — the 3-layer method
+
+- **The bug that fooled the blind critic:** drawing the whole prop *over* the figure (figure first, boat second) does NOT put them in it — they sit BEHIND the prop, peeking over its far/back edge, with the hull interior empty. The blind pixel-critic cannot read depth and will pass this; the owner can see it instantly. Never trust the judge on in/behind placement — look at it yourself.
+- **The method:** three layers. (1) draw the prop, (2) draw the figure DOWN in the interior (over the seats/floor), (3) redraw just the prop's NEAR rim/wall over the figure's lap. Now the far rim is behind them and the near rim is in front — they read as sitting/standing INSIDE it.
+- **Measure the sprite, don't guess the Y offsets.** Dump the prop sprite's non-transparent rows (rgb per row) to find the interior band, the near-rim band and the hull bottom in sprite-space, then map through the draw anchor to screen Y. (wk_boat @ (X,Y+6): seats screen Y-22..Y-10, near gunwale Y-9..Y-2, hull bottom to Y+3. Figure foot ≈ Y+11, clip to the hull, redraw near gunwale from Y-9 down.)
+- **ctx2 is at identity during a scene prop draw** (drawSpr's flip math `translate(x*2,0)` proves it), so `ctx2.rect(...);ctx2.clip()` in screen coords works on drawSpr. Use it to clip the figure to the hull and to redraw only the near rim.
+- **For an engine NPC in the prop (e.g. Silas digging in the grave):** hide the floor-level NPC (`n.vis=false`) while they're in the hole and draw them yourself inside the prop with the same 3 layers + their bob; set `n.vis=true` again when they climb out so the normal walking NPC takes over.
+
+## Ghosts / faint figures in a scene (Agnes well, the child)
+- [repeated] A pale-grey/bone figure at small scale DISSOLVES into a warm grass/dirt background — reads as smoke, not a person. Use a COOL luminous palette (white-blue dress, desaturated skin) so it contrasts the warm scene.
+- Give a faint figure a tight cold back-glow (a small radial hugging the silhouette, ~0.4 alpha) — NOT a tall column; a tall gradient reads as a light-beam, not a girl.
+- A reveal driven by a ramped var (ca, pt, open) only reaches full value if the beat's hold runs in REAL TIME. A render harness that stgNext's rapidly skips the ramp and captures a half-faded figure. Step one beat at a time with ~1.5s holds.
+- Don't fight prop placement against existing world clutter: if an NPC + story prop land on a farmyard's woodpile/chopping-block, MOVE them to a clear patch (the open dirt path) rather than drawing over the clutter. The box's position was derived from the NPC's, so moving the NPC moved the box into clear space.
+- A small story prop in dark surroundings needs a lit top rim + a bright accent (brass comb) to read; dark-on-dark vanishes.
+
+## Night / dark exterior scenes (June "The route": watchers in lit windows)
+- A horror prop that is the whole point (a watcher in a lit window) must be BIG and BRIGHT enough to read the silhouette. Tiny dim windows at the top of frame = the scare is invisible. Enlarge the window, brighten the pane (4-step warm ramp, hottest at top), draw a clear dark head+shoulders back-to-glass silhouette.
+- Don't let a dark scene become a black void with figures stranded in a corner. Keep the key props CLOSE to the figures (small depth gap) so they compose together; add a dim but visible ground plane so the figures stand on something; give each figure a lantern glow so they read.
+- Blackout props should cover only the band they need to hide (the clutter behind the houses), not the whole screen — a full-screen blackout kills all context and grounding.
+- Start a walking pair NEAR the first key prop, not far off to one side, or the establishing shot is lopsided with a dead half.
+
+## Staging a cutscene prop among world objects (Orla's grave, Moss's tracks)
+- When a staged prop/figure lands in an area full of world objects (orchard trees, tall grass) they OCCLUDE each other and fuse into blobs. Don't fight the z-sort: collect the nearby world objects (OBJ, by kind tree/pine/bush/plant/grass within a radius) and set o.hide=true for the scene, then restore o.hide=false in done().
+- A cleared patch around a lone staged tree/grave actually reads BETTER ("the oldest tree, standing apart") and gives the figures a clean stage.
+- Always pair the hide with a restore in done(), or the world stays decluttered after the cutscene.
+- A ground-impression prop (footprints, stains) in a dark scene must have real contrast: a bold dark outline + a mid fill a clear step above the floor + a lit top-left rim. "Matte, barely above the floor" reads as nothing — the whole scare vanishes. Keep it grounded (not a glowing mound) but make the shape legible.
+
+## Animating a prop's state change so the scare READS (Hob "Who eats it")
+- If a "something moved it" cue only shifts a tiny sub-part (the candle FLAME shifted but the wax body stayed upright), the change is invisible and the scare dies. Tip the WHOLE object: shear the column so the top leans furthest and the base stays — a visible 30°+ lean reads as "someone just knocked it."
+- A vanish ("the food is gone") reads better as a state with a trace than a bare empty: leave a scraped smear / grease streaks so it says "licked clean," not just "nothing there."
+- In a deliberately dark scene, still give the ONE focal prop enough glow to read the state change; dim the rest, not the thing the whole beat hinges on.
+
+## Judging against the right "old" (Nov 11)
+- [repeated, costly] The baseline for a blind judge is the PNG that is INSTALLED in the game (take it from spr/ or git), never a
+  fresh render of a generator: the installed art may come from a later, uncommitted script. Check with an image diff before
+  judging. Dirt and stone were installed on a win against an old that never shipped, then reverted.
+- Ground must also pass an IN-GAME A/B before install: hot-swap the new PNG into the running engine (IMG[SPR['tex_k'].src] =
+  new image; delete TEXD[k]; chunks.clear()) and shoot the same framing before/after. An isolated tile can win on craft and
+  still be far too light or saturated next to the rest of the game's art.
+- A small-seed Lehmer LCG (seed*16807 mod 2^31-1) gives tiny values for its first ~dozen draws: warm it up or hash per cell,
+  or the first rows of a texture all take the same (dark) choice and band.
+- Cracks are grooves: draw them in the joint/shadow colour with a 1 px lit lip; a crack lighter than its surface reads as
+  chalk or a letter.
+
+## Full-screen scenes (loading and title screens, Nov 12)
+- Size the canvas to the screen (a whole-number scale, so every pixel stays square) and lay the scene out on it; never
+  object-fit:cover a fixed 320x180, which crops the phone to a strip of sky. On a tall screen anchor the land to the bottom
+  and let the extra height be sky for the title and text.
+- The land must fill the frame: horizon near the middle, a near foreground (a fence, a path, big plants) and the progress
+  bar made part of the scene (lanterns standing on the fence rail), never a strip of black silhouettes over flat black.
+- A crop field is rows, not wallpaper: each receding row one continuous dark mass whose top edge is built from 3-4 plant
+  kinds at jittered spacing and height, lit only where the edge faces the light, darker toward its foot so the row in front
+  stands off it. One sprite stamped along a row reads as knitted fabric, zigzags or ferns.
+- Furrows converge on a point (the cabin, the vanishing point) with the light on each ridge; parallel bands that widen
+  downward read as terraces or a staircase. Thin converging lines step into moire near the vanishing point: drop every other
+  line there and draw the ridges 2 px wide.
+- Put the best drawing in the nearest objects: filled ribbon leaves with a lit edge and dark underside, branched drooping
+  tassels, a fat husked ear with silk. A near plant drawn as 1 px outlines reads as a dead tree, a rake or a power pole.
+- Pixel-art fog is long low banks with flat, stepped edges; radial-gradient airbrush fog reads as a blur, and fog drawn over a
+  black silhouette makes a box: draw it behind the figures.
+- Text over a pixel scene sits on the scene's grid: the pixel font's pixel (0.1 em) = 2 scene pixels for the title (font-size
+  20*K) and 1/2 scene pixel for the lines under it, or the page looks assembled from parts.
+- Smoke: soft round puffs that swell and fade; fireflies: a 1 px warm core with a plus of glow (a square halo reads as a dead
+  pixel); lantern light: stepped amber discs lighter than the ground (a dark disc reads as a plate).
+- A menu over pixel art is judged as part of the art: square pixel frames (2 px lit top, dark bottom), a little grain on dark
+  wood, no rounded pills or smooth borders. Size a button stack from its longest label (inline-flex column, nowrap) so no
+  label wraps on a wide screen; one button twice as tall as its neighbours reads as broken.
+- Keep the story objects (cabin, scarecrow) clear of the menu on every screen shape; on a phone lower the horizon rather than
+  let the buttons sit across it. Never show debug text or repeated control lists in the small print.
+- Nine identical props in a row on a still screen read as a stamp: give them 2-3 variants (carved faces).
+
+## Close-ups of objects with writing on them (#258, Nov 12)
+- A snapshot of the game world used as a backdrop shows the object again and the player (a face peering round the post): re-render
+  one frame with the player and that object hidden, then blur it. Out of focus reads as depth; a sharp 4x zoom reads as glitches.
+- Never "wear" a 1 px letter by removing pixels: one missing pixel turns D into V and O into C. Wear the paint by tone (a darker
+  shade), keep every stroke; only a stone meant to be illegible may lose pixels.
+- Carved letters are dark grooves (the shadow colour) with at most a slightly lit lower-right inner wall or a 1 px lip below;
+  letters paler than the stone read as chalk or paint. Use the 2x font for the main name so a groove has room for two tones.
+- The game's pixel font leaves 2-3 blank columns after a narrow glyph (the 1): collapse blank runs of 2-4 columns inside a line or
+  "1965" reads "1 965".
+- Moss grows along the top edge and the foot as a ragged strip; scattered round blobs with a highlight read as toys or lizards.
+- Nails, rivets and screws never sit on the letters (they read as accents: HÄRTLEY).
+- Ground under a cut-out object varies by kind (grass, paving with 2-3 paver sizes and offset joints, gravel in small two-tone
+  clusters); one identical grass lens under everything reads as a stamp, and checker noise reads as static.
+
+## Rooms built from existing pieces (#252, Nov 12)
+- A bigger room is not more floor: give it zones (a corner facing the fire, a kitchen end, a walk between the doors with a
+  runner on it) or it reads as the old room stretched.
+- Never put two copies of the same piece side by side or twice in one house (twin tables, a second identical clock, paired
+  crates): stitch a longer piece from the art instead (continue each row of the planks from one clean column, then add joints
+  at uneven spacing; tiling a 4 px slice prints a stripe pattern).
+- Each room needs one thing only it has that's a bit wrong, and it must read at a glance in the picture (a chair pulled out at
+  a place laid in pale china), not only in its Look text.
+- An attic is the roof: dark sloped boards cutting the top corners of the back wall, the last rafter lit along each slope.
+
+## Game UI pages and the pixel font (#253 business ledger, Nov 12)
+- [r1 5] A bold cut made by thickening every stroke one pixel to the right fills every one-pixel counter: bold m prints as a solid block, M and W read as H. Check the bold cut with a specimen sheet ("Mrs. Bell", "Taproom", "WAGES") before any page leans on bold names; draw m, M, W, N and w by hand (2 px stems, open counters, M's diagonals meeting 2 px below the cap line).
+- In a ledger or shop page the words are the whole UI: a misprinted letter in a name costs more than any layout flaw.
+- A small sign font (3x5) has no room for "&". Draw a wider glyph (5x5: loop, bowl, tail kicking right) rather than dropping the character and leaving a gap.
+- Put the price on the button that spends it ("Open as a farm stand · 1500"). Cards that look like choices must not silently charge.
+- Two numbers with the same unit side by side ("4 a day, 24 a day") read as a typo. Label the second ("Serves 4 a day · wage 24").
+- Ruled paper lines must match the text's line pitch, or leave them out of pages with mixed row heights. The rule otherwise strikes through text.
+- A tall panel must not cover the HUD and cut its numbers. Hide the HUD while the panel is open and show what it held (coins) in the panel header.
+- A progress bar needs a stated full. If the cap is 49%, full is 49% and the label says "20 of 49%".
+- On phone, a three-column row (text | bar | button) squeezes names into wrapped one-word lines. Drop the middle column under the text.
+- [r2 6.5] Nails, rivets and knots on a board must sit clear of the lettering: next to a letter they read as accents (the same lesson as the crosses on headstones). When the letters cross a post, nail the board at its ends.
+- A 5x5 "&" built as two stacked loops reads as "8" at 1x. It needs the stroke crossing down to the right and an open bowl with a tail kicking up.
+- What lifts a UI page from 6 to 7 is showing things, not saying them: item icons with counts, the coin icon beside every price, faces beside names.
+- [war r1 5.5] A contest page needs a front line before anything else: who's ahead, by how much, the change since yesterday, and why ("Vance went cheap"). Identical status cards read as a spreadsheet.
+- A risky button must say what it does and what it costs if it goes wrong, on the page and not in a tooltip.
+- When the player loses money, say why on the same screen in red ("shelves empty: wages still paid"). A negative number with no reason reads as a bug.
+- The same small slashed zero at a smaller size reads as 8 ("0 (8)"). Keep a number's size when it sits beside another number.
+- [war r2 6] A scoreboard row must read in words: rank, name, the unit after every number ("1st The Dunn Tap · 198 coins · 7 served · −50"). A bare "198 · 7 −50" has to be decoded. No change is grey, not green.
+- Never shorten a label by taking its first word ("An advert in the Courier" became "an"). Keep a short label for every long name.
+
+## Vehicles and things the player rides (#255 tractor, Nov 12)
+- [r1 5.5] Size a vehicle against the farmer before drawing a pixel: a rear wheel's top at the seated driver's shoulder (about 40 px for a 64 px farmer). The first tractor was drawn at 'looks good alone' size and came out twice his height.
+- Every view of one object must share one scale (the rear tyre's height in the side view equals its height from the front and from behind). Otherwise it grows when it turns.
+- To draw a smaller view without redrawing it, draw through a scaled canvas (coordinates times k) and run the outline pass on the real pixels afterwards: outlines stay one pixel wide.
+- Tractor tyres read as tractor tyres by the lugs on the silhouette. A smooth edge reads as a black disc.
+- A wheel seen edge-on shows its hub as a thin sliver on the inner side, never a face-on square ('a sticker').
+- A rider is three layers: the vehicle behind the driver, the driver (sitting clip), then whatever is nearer the eye (the near wheel and fender from the side, the hood and steering wheel from the front, the seat back from behind).
+- A management page for land should show the land: a small map (yours, owed, for sale) beats a list of parcel names.
+- [r2 6.5] Before taking a critique of a screenshot as fact, check what really stands there: the 'trailing toy horse' was a toy horse prop in the world, not the tractor.
+- Labels on a small map: every name on a paper tag in one dark ink, inside its shape when it fits and under it when it doesn't. Never light text that can spill onto a light ground.
+- A toast is the size of a phone screen's middle: one line, or it covers what the player just did.
+
+## Things the player adds to a map (#260 marks, Nov 12)
+- [r1 5.5] Never reuse a colour the legend already means something by: a gold star mark read as 'where you're headed', a red heart as 'you', a blue pin as a friend. Pick colours the legend doesn't have (violet, rose, teal).
+- A card that appears after a tap must appear where the tap was looked at: float it over the map rather than below it, or PC players never see its Save button.
+- A player's tag on a map must never sit on top of a printed place name: hide the place label under it, or move the tag.
+- A flag in the world needs the prop rules too: an outline, a shadow at the foot, a stake about two-thirds the farmer's height, and the mark's sign on the cloth. A plain coloured rectangle reads as a golf flag.
+- [owner] Anything strung over a walkway must hang above the farmer's head (64 px): the first festival string had posts the farmer's height, and the owner sent a photo of him walking through the lanterns. Check a prop's height against the farmer before it ships.
+
+## Cards that ask the player to wait (#264, #270, Nov 12)
+- A waiting card never sits on the player or on the thing they are waiting at: dock it under the objective bar, at the bar's width, two rows at most.
+- When two screens describe the same thing (where your friend is), use the very same words and numbers on both ("57 m east" / "57 m west"), never "close by" on one and metres on the other.
+- While the player is asked to wait somewhere, the objective bar must say so ("Waiting for Jo at the car. Stay close."), not keep sending them to chores.
+- Say the count ("1 of 2") and what happens next ("you'll drive out together"): a wait with no end in sight reads as broken.
+- A checkbox is the whole row, not the 20 px box: 44 px tall strip, hover and press steps like the wood buttons, a bigger box on phones. Native browser checkboxes don't match the pixel panels; draw the box (lit top edge, dark bottom edge, chunky pixel tick).
+
+## Minigames that show the job (#266 car repair, Nov 12)
+- **[owner]** "Better car minigames that actually have you doing the stuff it says you're doing": one tap-the-marker bar dressed up for every step is not a game of that step. Each step gets its own close-up of the actual part and the actual motion (hammer the dent, loop the belt, carry the wheel onto the studs, pour to the mark, turn the key).
+- A green zone floating beside the object is the old bar in disguise: put the zone ON the object (a dial painted round the clamp screw, a torque arc round the nut, the green arc on the tachometer).
+- A scene has to say where you are: a tach in a void isn't "the driver's seat"; give it the windscreen, the dash, the wheel's rim, the column, and keep the key visible (the hand pinches it from the side).
+- Targets you line things up against must be big and readable at phone size: proud studs with a cast shadow, holes cut right through with a rim, so the alignment shows itself.
+- Rust is patches with a dark core and a lighter crust, never a speckle strip (a speckle row reads as garbled text).
+- Things you lower into something are drawn in the same view as what they go into (a battery seen from three-quarters needs a tray seen from three-quarters, with its floor showing).
+- Hardware laid side by side reads as a letter ("E", "3"): lay pieces apart, at different angles.
+
+## Heart events that show, not tell (#267, Nov 12)
+- **[owner]** "Caitlyn's heart events don't appear to be reworked, they are still text boxes, not actual cutscenes where it shows it": every heart event needs its own staging; the generic "walks up and talks" fallback reads as a text box.
+- When the text says someone looks at a thing (a photo, a slip, an engraving), bring the thing up close in a card; draw it big enough to read at phone size.
+- Lettering in close-ups: plain 2x pixel letters. Don't slant them for "handwriting" and don't fake wear by deleting strokes (the O read as a V).
+- A dance is two people facing each other with their hands on each other and joined, moving together; two walking sprites side by side reads as nothing, and pressed together reads as a hug. Leave a half-step between them.
+- Small held props (a frame, a towel) must be big enough to see at 1x; something "dropped on the counter" goes on the counter TOP.
+- Test scripts must name their output files by scene, never by run order (a partial rerun silently overwrote one scene with another).
+
+## Showing what the story describes (#268, Nov 12)
+- **[owner]** "Zoom in on the corpse showing it instead of telling you what you see ... unless it's an actual plaque or text." The close-up shows the thing; one line underneath keeps only what a picture can't say.
+- Don't blow a small world sprite up 6-8x for a close-up: it goes chunky and flat. Draw close-ups at the viewer's own scale (one art pixel = one zoom pixel), like the gravestones.
+- Every caption fact needs its detail in the picture (the name on the plate, the tag, the year on the jar, the blood); otherwise the caption is still doing the telling.
+- No two close-ups may share a picture: each sight gets its own drawing.
+- A body is shoulders, sleeves, hands, two legs and boots; blocks of colour in a row read as a flag and a towel. A coffin reads by its six-sided outline, not a rectangle with a plaque.
+- Ground every object with an attached shadow under its foot; a shadow bar below a gap reads as floating.
+
+## Minigames that have to work by hand (#279, Nov 12)
+- **[owner]** "Some of the car minigames like the dial one aren't working": a game the auto-player finishes is not a game a person can finish. Test every minigame by sending the auto-player's moves through real pointer and key events (`MG4_SHADOW`), and one with Playwright's own mouse, before calling it done.
+- A click can go down and up between two frames: latch it so the game sees one held frame and the release the next, or a hold game (the clamp dial, the fuel can, the key) never notices the click.
+- Never drop an early click silently: a "your turn" click that comes a moment too soon is queued, and a press made during the count-in counts as holding once play starts.
+- If a quick click does nothing in a hold game, say so on screen ("KEEP HOLDING"); nothing happening reads as broken.
+- Check which way a helper returns its values before destructuring: `m4near` gives [distance, position along], and `[s,d]=` swapped them, so the windscreen seal never counted for anyone.
+- A test harness that checks `offsetParent` to see if the loading screen is gone is wrong for fixed elements (always null): wait for the element to be removed and the title mode instead, or the test clicks before the world exists.
+
+## Saved state that depends on a layout (#278, Nov 12)
+- Anything saved by index (cleared stones per field square) must save the layout too: the field was re-scattered from the shared random stream every launch, so any update that added a random tree elsewhere moved every stone, and cleared squares grew back.
+- When fixing a glitch that already went into saves, load a real save from the broken build (`git show <commit>:hollow-acre/2d/index.html`) in the fixed build, single player and hosted, and count what came back.
+
+## Story finds and map markers (#280, #286, Nov 12)
+- A row of photographs, jars or dolls must all differ (face, height, hair, clothes, age of the paper): one drawing copied seven times reads as a stamp.
+- The scariest fact in the caption must be the clearest thing in the picture: scratched-out eyes need ragged pale strokes big enough to see at 1x.
+- A stack of pages reads as paper only when each page's lip shows on several sides, getting browner with age; a striped band under one page reads as a shelf.
+- Footprints say which way they go only with a separate heel and a lighter toe edge; paired dark dots read as pebbles.
+- A map marker in red on an autumn map disappears among red tree crowns: give it a cream outline, a dark shadow, a size above everything else, and keep it off the star.
+- Nothing drawn over the first line of a document: the knife pinning the list hid the year that starts it.
+
+## Growing a building from its own sprite (#291/#292, Nov 12)
+- To make a house bigger, insert whole bays cut from the house itself (roof from the flat ridge, wall from a plain stretch plus one window) at the window rhythm; it reads as the same house grown, not a new drawing.
+- Copy only plain wall into a new bay: a column taken from beside a corner brings its porch post and nail ticks along, and every join shows.
+- Added dormers go evenly between the existing ones; one dropped over the new bay reads as patched.
+- A cellar door must slope out from the wall onto the ground (narrow at the wall, wide at the ground, stone cheeks, a contact shadow); upright doors in the plinth read as a chest or a gate.
+- A tiny white square on a roof reads as a sticker: use the building's own vocabulary (another dormer) instead.
+- Recoloured copies of one house side by side need one detail each of their own (door colour at least), or they read as a kit.
+- Keep the door where it was when a building grows (grow away from it), so nothing tied to the door has to move.
+
+## Close-ups of story finds (owner's photo of the marble bag, Nov 12)
+- The owner sent a photo of the marble bag close-up with its caption running off the bottom of the screen. Understood: every close-up must fit the screen, and its picture must show what the caption says.
+- Never draw lines (folds, seams, grain) through lettering. Stop them 2+ px short of the text.
+- Initials that must read full screen need 7 px letters with 2 px stems. In the 3x5 font, M reads as H and P reads as F.
+- A marble is a round 8 px circle: dark lower-right, a swirl, one white glint top-left. A radius-3 pixel circle reads as a four-point star or a gem.
+- Things that spilled are scattered: different gaps, one rolled away, one half hidden. Never in a row.
+- Cloth tied at the neck: a flared, pleated ruffle above a cord wound twice, a knot and a hanging end. A flat block on top reads as a lid.
+- Say where the thing lies: if the caption says "under the bridge", show the beam overhead and its shadow.
+- A stitched line is dashes with gaps (2 on, 1 off). Even square dots read as rivets.
+
+## Showing a scene instead of reading it (owner: Caitlyn's heart events "read instead of show", Nov 12)
+- The owner said "you have them read instead of show". Understood: a caption box with a portrait, tapped through line after line, reads like a book even when there's art behind it. Act it out: walking, gestures, props handed over, people coming in. Keep 2-4 short lines, said in bubbles over the speaker's head.
+- Never write a line that describes what is on screen ("There's a man at the window"). Show it, or cut it.
+- A speech bubble is game UI. Give it a 3 px cut-corner frame, the pixel font with smoothing off, a staircase tail of 15 px or more aimed at the mouth, and a name tab in the speaker's colour. Slide the bubble to the speaker's side in a two-shot.
+- Balance the line breaks. Never leave one word alone on the last line.
+- A child's handwriting has one pixel of baseline drift, uneven gaps and a last line running downhill. Two pixels of jump reads as a ransom note.
+- Close-up cards in a scene sit below the letterbox bar.
+
+## Mending a building on screen (owner: "fix the burnt down church, open the school", Nov 12)
+- The owner said: "When I say improve the town I mean you fix it, clean it, fix the buildings, fix the burnt down church, open the school." Understood: an improvement has to change what you see in the world. Changed text doesn't count.
+- A mended building is the same building mended. Build it from the ruin's own sprite: keep the old walls, add new material where the damage was, and leave a visible line between new and old. A swapped-in different building reads as a replacement.
+- New stone is one step lighter and warmer than the old, never white. Shade it like everything else: lit on the left, dark under the eaves and beside towers.
+- "Being built" needs a whole scaffold: poles, braces, walkways at the eaves, ladders, a rope and bucket. One ladder reads as nothing.
+- Check every furniture sprite's look before using it by name: in_bench is a workbench, and in_banker's ledger stand reads as a gravestone.
+- A map prop needs a title band of its own, washed fills (field tones), the road as a dark double line, water in clear blue, and a compass star, all inside the paper.
+
+## People and things that must read at 1x (owner batch, Nov 12)
+- The owner said: "The open sign and window have to already exist, don't just spawn a window in the middle of a room." Understood: a scene uses the room's own windows and furniture. Nothing appears for the scene and disappears after it. If the camera can't see the real window, move the camera to it.
+- The owner said the dance's drawn arms looked "cursed". Understood: don't draw limbs as lines between sprites. Pose the bodies (close, facing, swaying), and leave a gap between faces.
+- Workers must show their job at game scale: a thick pale water arc and a wet patch, clods flung clear, seed falling, a crop held up over a basket. Small effects vanish at 1x.
+- Several figures doing the same thing must not move on the same beat: give each its own phase. Keep a tile between figures, the player included, and never stack two in one column.
+- Two props of the same kind need different silhouettes (keg and chalkboard against jars and a crate). A recolour reads as a copy.
+- A label needs room for its letters: four letters of 3x5 text need 15 px plus padding.
+- (UI) A new panel takes the HUD's frame exactly: tan 3 px outer border, dark inner line, warm lines only (no grey), the prompt in the HUD's accent orange.
+
+## A townsperson drawn from the owner's photos (Pip becomes Everett, Nov 12)
+- The owner said: "replace Pip with this person who is Everett" and sent photos. Understood: the photos are a reference for hair, glasses and clothes only. Draw every pixel ourselves, keep the id ('pip') so saves keep working, and never commit the photos.
+- Pick the outfit from the clearest full-body photo (green polo, grey shorts, purple socks, black sneakers) and the face details from the ones most like him (round glasses in most photos).
+- Tinted lenses on a 48x64 walker: mid smoky grey with a 1 px dark pupil and a 1 px glint. Near-black lenses that fill the eye read as bug eyes or goggles, and that reads creepy in this game. (judge r1)
+- Shorts need longer legs: on a kid's three-row leg the shorts, shins and socks merge into one band. Use the 'tall' build: three rows of shorts, two of skin, one of sock.
+- A polo collar on a walker needs a light V two shades above the shirt, plus a dark placket pixel under it. Otherwise the front reads as one flat green. (judge r1)
+- Portraits behind tinted lenses: lighten the tint (lens_k .36) so the eyes still change between expressions. Give a quiet face more range (expr_amp): a wider smile with the corners up, and a scared O mouth under raised brows. Otherwise happy and scared read as neutral at 1x. (judge r1)
+- Renaming a character means checking the story for their name's letters. The scratched P under the till became an E.
+- On a walker, the near arm swinging across the body in a side stride must be a sleeve-coloured shape with a darker outline. A skin-pink diagonal over the shirt reads as a stain. This applies to every walker. (judge r2, Everett)
+
+## Mirrors and things seen through glass (owner: "the mirror should be visual instead of text", Nov 12)
+- The owner said looking in the mirror should be visual, not text. Understood: open a close-up of the mirror itself and put the horror in the reflection. The player's own composed sprite, flipped, is the reflection.
+- An arched top over a flat bottom, in a thin frame flush with the wall, reads as a window or a doorway. A mirror reads as a mirror from an oval (or a bevelled rectangle), a thick moulded frame lit top-left, a wire to a nail, and a cast shadow on the wall. (judge r1, 4.5)
+- Old glass reads from silvering failure: dark foxing creeping in from the edges, a pale bevel just inside the frame, and the reflected room a step cooler and dimmer than the real wall.
+- "Nobody in the mirror" only lands if we can see someone is standing there: draw the player's shadow on the wall beside the frame.
+- A night state must be dark everywhere: a black window with a moon, the lantern as the only warm light, low on one side. Moonlight through the reflected window lights whatever must be seen, such as the bed.
+- A blink shows only against something that didn't blink. Leave one lid half down afterwards so the change stays visible.
+- Foxing on old glass goes in ragged patches at the rim and corners, never as single specks over the middle: specks on a face read as pox or flies. (judge r2, mirror)
+- Anything that must be seen in a dark scene (fingers on a blanket) is drawn after the darkness, as the brightest pixels in the frame. (judge r2, mirror)
+- A cast shadow, a figure's included, falls away from the room's light: down and to the right when the light is top-left. (judge r2, mirror)
+- Small ovals: draw 1 px rings by signed distance (the ellipse function over its gradient), not by testing ellipses one pixel apart. Those break into dots where the curve is steep. (wall mirror, Nov 12)
+- A ring frame lit evenly all round reads as a target or an egg. Step the light: brightest on the upper-left arc, dull on the lower right. (judge, wall mirror)
+- A highlight on glass is short and straight (45 degrees). A long kinked stroke reads as a crack, which is a different story beat in a horror game. (judge, wall mirror)
+- Two people dancing in a scene: don't circle them all the way round. Halfway round one stands in front of the other, and facing worked out from movement turns them back to back. Keep them on one line facing each other, rock the pair a few degrees, and set both facings every frame. (owner asked again: "did you fix the dancing", Nov 12)
+
+## Butchery minigame (t325, Nov 12: hen 6, beef 5.5 in round 1)
+- A whole bird reads from its parts' places, not from round blobs: the thighs bulge at the lower sides and the drumsticks lie along the body to knuckles that meet at the tail; the wings fold tight at the shoulders. Cones stuck out at the corners read as a crab or a robot.
+- Shade organic forms from a height field (each part a dome; the creases come free where domes meet), not part by part: shading each ellipse on its own gives rings and seams that read as a toy.
+- Raw is pale and cool (cream-pink, mauve shadows); golden-tan with warm shadows reads as already roasted.
+- A thing being taken apart must come apart: 1-2 px gaps are invisible; slide each freed piece 6-12 px and tilt it, and leave a mark where it was (a cut face, a red line on the board).
+- A side of beef reads by its silhouette first: long, tapering at both ends, hung from a narrow hock. A symmetric round-topped shape reads as a bell, a sack or a bottle, and a pill shape with two bone stubs at the bottom corners reads as a sofa on legs.
+- Ribs are arcs that slant down from the spine at uneven spacing; evenly spaced level bars across the whole width read as a radiator, a barcode or a ladder.
+- A fat seam drawn as a whole ring (or a smile-shaped arc in the middle of a muscle) reads as a drawn-on circle; suet is a cluster of lit lumps, not a pale star.
+- A weighing step needs a visible target on the dial (a red tick at the wanted weight) or it reads as a display, not a goal.
+- A table that is a pattern of staggered blocks seen straight on reads as a brick wall: a work surface needs long boards running across, a lit front lip and its thickness showing below.
+- A cut face is meat: a 2-3 px band of flesh along each cut edge, darkest at the edge, a pale cartilage pixel at a joint. A cut that shows the skin's own pale shading reads as folded paper or eggshell. (judge r2, hen)
+- A hanging side is narrow at the hook and widest low down at the ribs, then tapers to the neck; the widest point near the top makes a bell. A perfectly smooth teardrop reads as a punching bag: break it with a thigh bulge, a dent at the flank and the foreshank stub. (judge r2-r3, beef)
+- A small cluster of round pale lumps reads as popcorn or cauliflower; three parallel pale streaks near an edge can read as a letter. Leave a detail out if it can't be drawn big enough to read. (judge r2, beef)
+- Ribs fan out from the spine, each a little steeper than the one above: parallel arcs still read as a radiator. (judge r2, beef)
+- A bird hung by its feet: feet together at the hook, a 1 px gap below it, then a teardrop widest at the thighs and breast, the wings hanging close against the sides (one side darker), a small drooping head. Splayed wings and legs read as a star or a bat at 1x; a spindle pointed at both ends reads as a cocoon. (judge blk1-c1)
+- Turned views of a group of objects: move each piece where the turn puts it (right goes behind, left comes in front), keep every piece's light on its upper left, and keep one size; something tucked behind a round makes it look bigger, so leave a gap. (judge blk1)
+
+## Game UI polish pass (t337 whole-game review, Nov 13: 4 rounds, every screen 6-7.5)
+- Every panel, card and book is one family: the in-game wood frame, parchment only for books, one tab style, square corners; the judge reads three different frame ornaments as unfinished.
+- A tall panel hides the HUD; it never cuts the goal bar or the coin box in half.
+- Small HUD icons are drawn at an exact 2x of their grid; any other scale smears them (a basket at 1.4x read as a burger).
+- A tall list in a panel scrolls inside the panel; the header and the way out (Leave) never scroll away. Show "more below" with a stepped fade and a pixel arrow.
+- A canvas pixel font is only crisp at its own size: Hollow Pixel draws hard-edged at 10 px and 20 px; 9-12 px monospace maps to 10 px, 13-18 px to 20 px.
+- Don't remove an element's `title` to stop the native tooltip: other code may find the element by it (the HUD chips vanished).
+- A message already on screen when a panel opens goes back in line and replays after; feedback to a tap stays, low on the screen.
+- A greyed button says the first thing missing ("Needs Farming 2", "Needs 1 fiber"); never "Done" for "can't".
+- One tab style everywhere (the farm book's): dark #3a2210, active #a8502a, 1 px dark edge and a 2 px lit top.
+- A rule that hides old SVGs inside a class (".chip>svg") also hides new ones in other widgets with that class (the creator's turn buttons went blank). Scope it, or exclude your own classes.
+- Hold toasts for every panel you add or reskin: give it [data-modal] and let the hold check that, not a hand-kept list.
+- Empty hearts drawn dark on a dark panel vanish: outline them in the panel's light wood.
+- Repeated DOM inserts on a timer must remove the last insert first (the flask icon multiplied on every HUD update).
+- A cue that sits under a book's page sits on the wood frame, not the paper: colour it for the wood (light), not for the paper.
+- A greyed button that disappears hides the reason; keep it on screen, greyed, saying why ("Gift given today").
+- A small icon must read by shape first: an open basket is wider than tall and shows sky under its handle; a lidded shape reads as a box.
+- An extra offset on one row (a margin added to "fix" a coloured edge) breaks the icon column; check every row's icon x after a change.
+- A pixel icon is only crisp at a whole-number scale. Check the size it's actually drawn at (an id rule like "#hudC>#inv .chip svg{width:14px}" beat my class rule), and size the grid to it.
+- Fractional page offsets don't blur crisp SVG rects, but non-integer scales always do.
+- Quote marks from a <q> come from the element, not the text: style q::before and q::after.
+- A text check on an element you've decorated must skip your own decoration ("+1" inside the flask span made the older check remove the flask every tick).
+- A pixel font's glyphs are only clean at its native sizes; at other sizes thin glyphs (quotes) break into loose ticks.

@@ -1,0 +1,10 @@
+const {chromium,devices}=require('playwright');const fs=require('fs');
+(async()=>{const b=await chromium.launch();const pg=await b.newPage({...devices['iPhone 13']});const errs=[];pg.on('pageerror',e=>errs.push('ERR '+e.message));
+ await pg.route('**/fonts.googleapis.com/**',r=>r.abort());await pg.goto('http://localhost:8766/test2d.html');await pg.waitForFunction(()=>!document.getElementById('loadScr'),null,{timeout:90000});await pg.evaluate(()=>localStorage.clear());
+ await pg.evaluate(()=>{document.getElementById('begin').click();document.getElementById('cGo').click();});await pg.waitForTimeout(300);await pg.evaluate(()=>__game.skip());await pg.waitForTimeout(500);
+ const ev=c=>pg.evaluate(c=>__game.ev(c),c);await ev("S.tut.off=true;S.readLetter=true;S.foundCabin=true;S.hour=10;P.x=30;P.z=-6;tiles.slice(0,12).forEach(t=>t.tilled=true);tiles.slice(0,6).forEach(t=>t.crop={type:'turnip',stage:1,growth:1,watered:true,pop:0})");
+ console.log('paint ms',await ev("(()=>{const t=performance.now();MAPX.cv=mapPaint();return Math.round(performance.now()-t)+' size '+MAPX.cv.width+'x'+MAPX.cv.height;})()"));
+ const data=await ev("(()=>{const c=document.createElement('canvas');c.width=MAPX.cv.width;c.height=MAPX.cv.height;mapLive(c.getContext('2d'),MAPX.cv);return c.toDataURL('image/png');})()");fs.writeFileSync('MAPFULL.png',Buffer.from(data.split(',')[1],'base64'));
+ await ev("openBag('map')");await pg.waitForTimeout(800);await pg.screenshot({path:'MAP1.png'});
+ await pg.click('#mzIn');await pg.waitForTimeout(500);await pg.screenshot({path:'MAP2.png'});
+ console.log(errs.slice(0,4).join('\n'));await b.close();})();

@@ -1,0 +1,33 @@
+const {chromium,devices}=require('playwright');
+const mock=()=>{const id=Math.random().toString(36).slice(2,8);window.__netId=id;
+  window.HollowNet={selfId:id,joinRoom(cfg,name){const bc=new BroadcastChannel('net-'+cfg.appId+'-'+name);const acts={},join=[],leave=[];const known=new Set();
+    bc.onmessage=e=>{const m=e.data;if(m.from===id)return;if(m.t==='hello'||m.t==='ack'){if(!known.has(m.from)){known.add(m.from);join.forEach(f=>f(m.from));}if(m.t==='hello')bc.postMessage({t:'ack',from:id});}
+      else if(m.t==='bye'){if(known.delete(m.from))leave.forEach(f=>f(m.from));}else if(m.t==='d'&&(!m.to||m.to===id)){(acts[m.a]||[]).forEach(f=>f(m.d,m.from));}};
+    setTimeout(()=>bc.postMessage({t:'hello',from:id}),50);
+    const R={makeAction(a,cfg){if(cfg&&cfg.onMessage)(acts[a]=acts[a]||[]).push((d,from)=>cfg.onMessage(d,{peerId:from}));return {send:(d,o)=>{bc.postMessage({t:'d',a,d,to:(o&&o.target)||null,from:id});return Promise.resolve();}};},onPeerJoin:null,onPeerLeave:null,leave(){bc.postMessage({t:'bye',from:id});bc.close();return Promise.resolve();},getPeers(){return {};}};
+    join.push(p=>R.onPeerJoin&&R.onPeerJoin(p));leave.push(p=>R.onPeerLeave&&R.onPeerLeave(p));return R;}};};
+(async()=>{const b=await chromium.launch();const errs=[];
+ const mk=async(name)=>{const ctx=await b.newContext({...devices['iPhone 13']});await ctx.addInitScript(mock);const pg=await ctx.newPage();pg.on('pageerror',e=>errs.push(name+' ERR '+e.message));await pg.route('**/fonts.googleapis.com/**',r=>r.abort());
+   await pg.goto('http://localhost:8766/test2d.html');await pg.waitForFunction(()=>!document.getElementById('loadScr'),null,{timeout:90000});return pg;};
+ // BroadcastChannel only links pages in the same context, so put both in one context
+ const ctx=await b.newContext({...devices['iPhone 13']});await ctx.addInitScript(mock);
+ const open=async(name)=>{const pg=await ctx.newPage();pg.on('pageerror',e=>errs.push(name+' ERR '+e.message));await pg.route('**/fonts.googleapis.com/**',r=>r.abort());await pg.goto('http://localhost:8766/test2d.html');await pg.waitForFunction(()=>!document.getElementById('loadScr'),null,{timeout:90000});return pg;};
+ const ev=(pg,c)=>pg.evaluate(c=>__game.ev(c),c);
+ const A=await open('host');await A.evaluate(()=>localStorage.clear());
+ await A.evaluate(()=>{document.getElementById('begin').click();});await A.waitForTimeout(300);await A.fill('#cName','Sam');await A.click('#cGo');await A.waitForTimeout(300);await A.evaluate(()=>__game.skip());await A.waitForTimeout(300);
+ await ev(A,"S.tut.off=true;S.readLetter=true;S.foundCabin=true;S.hour=9;S.coins=100");await ev(A,"hostStart()");await A.waitForTimeout(800);const code=await ev(A,"HOST.code");console.log('host code',code,await ev(A,"HOST.role+' room '+CO.room.name"));
+ const B=await open('guest');await B.evaluate(()=>{document.getElementById('begin').click();});await B.waitForTimeout(300);await B.fill('#cName','Jo');await B.click('#cGo');await B.waitForTimeout(300);await B.evaluate(()=>__game.skip());await B.waitForTimeout(300);
+ await ev(B,"S.tut.off=true;addInv('wood',9)");await ev(B,`hostJoin('${code}')`);await B.waitForTimeout(2500);
+ console.log('B title join btn',await B.evaluate(()=>[...document.querySelectorAll('#title button')].map(b=>b.textContent).join(' | ')));
+ await B.evaluate(()=>[...document.querySelectorAll('#title button')].find(b=>/Join farm/.test(b.textContent)).click());await B.waitForTimeout(3500);
+ console.log('B joined',await ev(B,"HOST.role+' joined '+HOST.joined+' day '+S.day+' hour '+S.hour.toFixed(1)+' coins '+S.coins+' host '+HOST.hostName+' wood '+inv('wood')"));
+ await ev(A,"tiles[0].tilled=true;tiles[1].tilled=true");await A.waitForTimeout(900);console.log('B sees tilled',await ev(B,"tiles[0].tilled+' '+tiles[1].tilled"));
+ await ev(B,"tiles[1].crop={type:'turnip',stage:0,growth:0,watered:false,pop:0}");await B.waitForTimeout(900);console.log('A sees crop',await ev(A,"tiles[1].crop&&tiles[1].crop.type"));
+ await ev(B,"S.coins+=40");await B.waitForTimeout(900);console.log('coins A',await ev(A,"S.coins"),'B',await ev(B,"S.coins"));
+ await ev(B,"const o=OBJ.filter(o=>o.debris).find(o=>!o.hide);o.hide=true;window.__dx=o.x");await B.waitForTimeout(900);console.log('A debris cleared',await ev(A,"OBJ.filter(o=>o.debris).some(o=>o.hide)"));
+ await ev(B,"sleep()");await B.waitForTimeout(300);console.log('B sleep',await ev(B,"S.day+' '+ui.toast.textContent.slice(0,50)"));
+ await ev(A,"newDay()");await A.waitForTimeout(2500);console.log('after host sleeps: A day',await ev(A,"S.day"),'B day',await ev(B,"S.day+' wood '+inv('wood')+' tile1 '+(tiles[1].crop&&tiles[1].crop.type)"));
+ await ev(A,"openBag('coop')");await A.waitForTimeout(400);await A.bringToFront();await A.screenshot({path:'HOST1.png'});await ev(A,"$('bag').hidden=true;S.paused=false");
+ await ev(B,"openBag('coop')");await B.waitForTimeout(400);await B.bringToFront();await B.screenshot({path:'HOST2.png'});await ev(B,"$('bag').hidden=true;S.paused=false");
+ await ev(A,"P.x=2.5;P.z=-6");await B.waitForTimeout(800);await B.screenshot({path:'HOST3.png'});
+ console.log(errs.slice(0,6).join('\n'));await b.close();})();

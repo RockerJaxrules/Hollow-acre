@@ -1,0 +1,70 @@
+# Builds Hollow Acre as real apps on every change: Windows (installer + portable .exe), macOS (.dmg), Linux (AppImage + .deb)
+# Android (.apk) and the web version (upload to itch.io or any website). Download them from the run's "Artifacts" section.
+name: Hollow Acre apps
+on:
+  push:
+    paths: ['hollow-acre/**', '.github/workflows/hollow-acre-apps.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect the web build
+        run: mkdir -p web && cp -r hollow-acre/2d/index.html hollow-acre/2d/spr hollow-acre/2d/CREDITS.txt hollow-acre/2d/vendor hollow-acre/2d/manifest.webmanifest hollow-acre/2d/icon-192.png hollow-acre/2d/icon-512.png hollow-acre/2d/sw.js hollow-acre/2d/version.json web/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HollowAcre-web
+          path: web
+          if-no-files-found: error
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: windows-latest, name: windows, files: "hollow-acre/desktop/dist/*.exe"}
+          - {os: macos-latest, name: mac, files: "hollow-acre/desktop/dist/*.dmg"}
+          - {os: ubuntu-latest, name: linux, files: "hollow-acre/desktop/dist/*.AppImage\nhollow-acre/desktop/dist/*.deb"}
+    runs-on: ${{ matrix.os }}
+    defaults: {run: {working-directory: hollow-acre/desktop}}
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 20}
+      - run: npm install
+      - run: npm run dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HollowAcre-${{ matrix.name }}
+          path: ${{ matrix.files }}
+          if-no-files-found: error
+  android:
+    runs-on: ubuntu-latest
+    defaults: {run: {working-directory: hollow-acre/mobile}}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 20}
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: 17}
+      - run: npm install
+      - run: node copy-game.js
+      - run: npx cap add android
+      - run: npx cap sync android
+      - name: App icon
+        run: |
+          cp -r icons/mipmap-* android/app/src/main/res/
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
+      - run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+        working-directory: hollow-acre/mobile/android
+      - run: cp android/app/build/outputs/apk/debug/app-debug.apk HollowAcre-android.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HollowAcre-android
+          path: hollow-acre/mobile/HollowAcre-android.apk
+          if-no-files-found: error

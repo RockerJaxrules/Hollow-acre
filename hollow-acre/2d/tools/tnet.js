@@ -1,0 +1,25 @@
+const {chromium,devices}=require('playwright');
+const mock=()=>{const id=Math.random().toString(36).slice(2,8);window.__netId=id;
+  window.HollowNet={selfId:id,joinRoom(cfg,name){const bc=new BroadcastChannel('net-'+cfg.appId+'-'+name);const acts={},join=[],leave=[];const known=new Set();
+    bc.onmessage=e=>{const m=e.data;if(m.from===id)return;if(m.t==='hello'||m.t==='ack'){if(!known.has(m.from)){known.add(m.from);join.forEach(f=>f(m.from));}if(m.t==='hello')bc.postMessage({t:'ack',from:id});}
+      else if(m.t==='bye'){if(known.delete(m.from))leave.forEach(f=>f(m.from));}else if(m.t==='d'&&(!m.to||m.to===id)){(acts[m.a]||[]).forEach(f=>f(m.d,m.from));}};
+    setTimeout(()=>bc.postMessage({t:'hello',from:id}),50);window.__rooms=(window.__rooms||[]).concat(name);
+    const R={makeAction(a,cfg){if(cfg&&cfg.onMessage)(acts[a]=acts[a]||[]).push((d,from)=>cfg.onMessage(d,{peerId:from}));return {send:(d,o)=>{bc.postMessage({t:'d',a,d,to:(o&&o.target)||null,from:id});return Promise.resolve();}};},onPeerJoin:null,onPeerLeave:null,leave(){bc.postMessage({t:'bye',from:id});bc.close();return Promise.resolve();},getPeers(){return {};}};
+    join.push(p=>R.onPeerJoin&&R.onPeerJoin(p));leave.push(p=>R.onPeerLeave&&R.onPeerLeave(p));return R;}};};
+(async()=>{const b=await chromium.launch();const ctx=await b.newContext({...devices['iPhone 13']});await ctx.addInitScript(mock);const errs=[];
+ const open=async(name,look)=>{const pg=await ctx.newPage();pg.on('pageerror',e=>errs.push(name+' ERR '+e.message));await pg.route('**/fonts.googleapis.com/**',r=>r.abort());
+   await pg.goto('http://localhost:8766/test2d.html');await pg.waitForFunction(()=>!document.getElementById('loadScr'),null,{timeout:90000});
+   await pg.evaluate(()=>{document.getElementById('begin').click();});await pg.waitForTimeout(300);await pg.fill('#cName',name);await pg.click('#cGo');await pg.waitForTimeout(300);await pg.evaluate(()=>__game.skip());await pg.waitForTimeout(300);
+   await pg.evaluate(l=>__game.ev(`S.tut.off=true;S.readLetter=true;S.foundCabin=true;S.hour=10;Object.assign(S.look,${JSON.stringify(l)});applyLook();`),look);return pg;};
+ const A=await open('Sam',{style:'short'});const B=await open('Jo',{style:'long',hair:'#c83a2a',outfit:'dress'});
+ const ev=(pg,c)=>pg.evaluate(c=>__game.ev(c),c);
+ await ev(A,"P.x=0;P.z=-6");await ev(B,"P.x=2.5;P.z=-6");await A.waitForTimeout(2500);
+ console.log('A sees',await ev(A,"CO.mode+' '+CO.status+' '+others().map(p=>p.presence.n+'@'+p.presence.x).join(',')"));
+ console.log('B sees',await ev(B,"CO.mode+' '+others().map(p=>p.presence.n+'@'+p.presence.x).join(',')"));
+ await ev(B,"coopSay('hi Sam!')");await A.waitForTimeout(800);console.log('A chat',await ev(A,"CO.chat.map(c=>c.n+': '+c.t).join(' | ')"));
+ await ev(B,"P.x=4");await A.waitForTimeout(600);console.log('A sees Jo moved to',await ev(A,"others().map(p=>p.presence.x).join(',')"));
+ await A.bringToFront();await A.screenshot({path:'NET1.png'});
+ await ev(A,"coopJoin('ourfarm')");await ev(B,"coopJoin('ourfarm')");await A.waitForTimeout(1500);console.log('farm A',await ev(A,"CO.code+' '+others().map(p=>p.presence.n).join(',')"),'rooms',await A.evaluate(()=>window.__rooms.join(',')));
+ await ev(A,"coopJoin('')");await A.waitForTimeout(1500);console.log('A back in valley sees',await ev(A,"others().map(p=>p.presence.n).join(',')||'nobody'"),' B sees',await ev(B,"others().map(p=>p.presence.n).join(',')||'nobody'"));
+ await B.close();await A.waitForTimeout(800);
+ console.log(errs.slice(0,6).join('\n'));await b.close();})();
