@@ -1,0 +1,8 @@
+﻿# Unreal Part 2: generated folders
+hollow-acre/unreal/HollowAcre/Binaries/
+hollow-acre/unreal/HollowAcre/Intermediate/
+hollow-acre/unreal/HollowAcre/Saved/
+hollow-acre/unreal/HollowAcre/DerivedDataCache/
+hollow-acre/unreal/HollowAcre/.vs/
+hollow-acre/unreal/HollowAcre/*.sln
+hollow-acre/unreal/HollowAcre/*.slnx
