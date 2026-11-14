@@ -89,7 +89,27 @@ One line each, concrete and checkable. **[repeated]** = broken again; move it to
 - **When adducted** (resting alongside the hand), the thumb tip reaches about the middle of the index finger's
   first segment.
 
-### What real driver photos show (studied by measuring, never copied; owner asked for reference photos)
+### THE DRIVING POSE IS 10 AND 2 (owner: "None of these hands are good look up 10 and 2")
+Studied three driver's-eye photos of hands at 10 and 2 (openly licensed, scratchpad only, never committed or copied).
+- **Each hand is a relaxed fist closed around the rim.**
+  - The rim passes diagonally through the hand: in at the pinky side (low and outer), out between the thumb and
+    index (high and inner).
+  - One hand spans about 1/6 of the rim, about 9 cm.
+- **The driver sees the BACK of each hand:**
+  - the four knuckle bumps in a row, roughly parallel to the rim;
+  - the fingers' middle segments curling over and around the far (dash) side, with the fingertips hidden behind the rim.
+  - The fingers sit side by side; the index is a little apart and highest.
+- **The thumb lies ALONG the top and driver face of the rim, pointing up the rim toward 12 o'clock.**
+  - It is nearly straight (IP slightly bent), with its nail visible to the driver.
+  - Its tip ends near the side of the index finger's middle segment, so thumb and index make a closed loop around the rim.
+  - It is visible, but it is part of the fist, not a separate peg.
+- **Wrist and arm:**
+  - The wrist is slightly extended and tilted toward the pinky.
+  - The forearm comes up from below and outside.
+  - The sleeve ends at or above the wrist.
+- **The two hands differ:** a little different height, curl and wrist angle. Never mirror them.
+
+### Other casual grips (for other scenes, not the default driving pose)
 Studied openly licensed photos: three taken from the driver's seat and one from the dash. They stay in the scratchpad
 and are never committed or shipped.
 - **From the driver's eye, the BACK of the hand dominates:** the knuckle ridge as separate bumps, tendons, a few veins,
