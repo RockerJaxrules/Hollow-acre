@@ -551,7 +551,7 @@ function u37GlyphNode(n){if(n.nodeType!==3||!U37_GRE.test(n.nodeValue))return;co
   // an icon inline with text takes the text's pixel size (Hollow Pixel draws 1 px per pixel up to 16 px, 2 px from 17 px); buttons keep 2x
   const btn=!!e.closest('#invTrash,#btnBag,#btnDecor,.k,.ico,#mpScr button');const fs=parseFloat(getComputedStyle(e).fontSize)||13;
   const bag=document.getElementById('bag');const cal=!!e.closest('#bagBody')&&!!bag&&/^Calendar/.test(((bag.querySelector('h2')||{}).textContent||'').trim());
-  const cx={sc:btn||fs>=17||!!e.closest('.h')?2:1,social:!!e.closest('.h'),cal};
+  const talkH=!!e.closest('#talkRole .hearts');const cx={sc:btn||fs>=17||talkH||!!e.closest('.h')?2:1,social:talkH||!!e.closest('.h'),cal};
   const sp=document.createElement('span');sp.innerHTML=u37GlyphHTML(n.nodeValue,empty,cx);n.replaceWith(...sp.childNodes);}
 {const mo=new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')u37GlyphNode(m.target);else for(const a of m.addedNodes){if(a.nodeType===3)u37GlyphNode(a);else if(a.nodeType===1&&!a.classList.contains('u37g')){const w=document.createTreeWalker(a,NodeFilter.SHOW_TEXT);const l=[];let t;while((t=w.nextNode()))l.push(t);l.forEach(u37GlyphNode);}}}});
   mo.observe(document.body,{subtree:true,childList:true,characterData:true});
@@ -840,3 +840,52 @@ function u37FitMaps(){if(innerWidth>=600)return;for(const sv of document.querySe
     const W=Math.round((R-L)*10/med);sv.style.setProperty('width',W+'px','important');sv.style.setProperty('height',Math.round(W*(B-T)/(R-L))+'px','important');sv.style.setProperty('max-height','none','important');
     if(W>w.clientWidth+8&&!(w.nextElementSibling&&w.nextElementSibling.classList.contains('u37pan'))){const c=document.createElement('div');c.className='u37pan';c.textContent='\u2190 drag the map to see it all \u2192';w.after(c);}}}
 {const nt=document.getElementById('noteText');if(nt)new MutationObserver(u37FitMaps).observe(nt,{childList:true,subtree:true});setInterval(u37FitMaps,300);}
+
+// ================================================================ round 8 (judge r7): the last UI patch
+{const css=document.createElement('style');css.textContent=`
+#talkRole .hearts{display:block;margin:2px 0 4px;line-height:0}
+#noteText .u37mapbox{position:relative}
+#noteText .u37mapcue{position:absolute;top:2px;bottom:2px;width:20px;display:flex;align-items:center;justify-content:center;background:rgba(232,214,168,.88);pointer-events:none}
+#noteText .u37mapcue.r{right:2px;box-shadow:-2px 0 0 #8a6a40}#noteText .u37mapcue.l{left:2px;box-shadow:2px 0 0 #8a6a40}
+#noteText .u37mapcue[hidden]{display:none}#noteText .u37mapcue svg{width:8px;height:14px;fill:#5a3a1e}
+@media (max-width:600px),(pointer:coarse) and (orientation:portrait){
+  /* a book (journal, farm book, ledger, a letter) fills the phone like the backpack: the HUD steps out, no slivers either side */
+  body:has(#note:not([hidden])) :is(#hud,#objective,#lesson,#fsX){visibility:hidden!important}
+  /* no stepped fade at the foot of a page (it read as a rule through the last line); "more below" already says there is more */
+  #noteText,#noteText.more{-webkit-mask-image:none!important;mask-image:none!important}
+  /* the creator: its pinned foot reaches the bottom of the screen and pads itself past the home bar, so nothing scrolls under it,
+     and a row half under the foot fades out in steps instead of being sliced */
+  #creator{padding-bottom:0!important}
+  #creator .cbtns{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)!important}
+  #creator .cbtns::before{content:'';position:absolute;left:0;right:0;top:-12px;height:12px;pointer-events:none;
+    background:linear-gradient(rgba(44,26,14,0) 0 4px,rgba(44,26,14,.55) 4px 8px,rgba(44,26,14,.85) 8px 12px)}
+  /* the title logo steps aside while settings are open (the panel sliced "Acre") */
+  body.u37disp #title h1,body.u37disp #title .kicker{visibility:hidden}
+  /* thumb-sized: 46 px for every control measured at 39-43 */
+  #dispClose,#sndBtn:not(.inhud),#dispBtn:not(.inhud),#mpBtn,#begin{min-height:46px!important}
+  #fsBtn{min-width:46px!important;min-height:46px!important}
+  #fsX{width:46px!important;height:46px!important}
+  #mg4Skip{min-width:46px!important;min-height:46px!important;top:calc(max(env(safe-area-inset-top,0px),20px) + 6px)!important}
+  #invSort,#bagWard,#bagDye{min-height:46px!important}
+  #bagBody button:not(.mile):not(.sw):not(.it){min-height:46px!important}
+  #bagBody button.coE,#bagBody .u37zoom button,#bagBody button[data-z]{min-width:46px!important}
+  #cPanel button:not(.sw){min-height:46px!important}
+  #noteText button{min-height:46px!important}
+}`;document.head.appendChild(css);}
+// settings: the pinned foot covers the panel's bottom padding too, so nothing scrolls out under Done; a little wider than the rows
+setInterval(()=>{if(innerWidth>=600)return;const d=document.getElementById('dispPick');if(!d||getComputedStyle(d).display==='none')return;const w=d.querySelector('.u37dfoot');if(!w)return;
+  const pb=Math.round(parseFloat(getComputedStyle(d).paddingBottom)||0);if(w.dataset.pb===String(pb))return;w.dataset.pb=pb;
+  w.style.bottom=(-pb)+'px';w.style.paddingBottom=pb+'px';w.style.marginLeft='-4px';w.style.marginRight='-4px';w.style.paddingLeft='4px';w.style.paddingRight='4px';},300);
+// the backpack hint names the toolbar exactly: the first N slots, N from the toolbar itself
+setInterval(()=>{if(innerWidth>=600)return;const n=document.querySelectorAll('#hotbar .slot').length;if(!n)return;
+  for(const t of document.querySelectorAll('#bagBody *')){if(t.children.length===0&&/the light slots are your toolbar/.test(t.textContent))t.textContent=t.textContent.replace('the light slots are your toolbar',`the first ${n} slots are your toolbar`);}},300);
+// farm-book map on a phone: an arrow at each edge that has more map, over the edge so a label is never sliced there
+function u37MapCues(){for(const w of document.querySelectorAll('#noteText .u37mapwrap')){let box=w.parentElement;
+    if(!box.classList.contains('u37mapbox')){box=document.createElement('div');box.className='u37mapbox';w.before(box);box.appendChild(w);
+      const arrow=dir=>`<svg viewBox="0 0 4 7" aria-hidden="true">${dir>0?'<rect x="0" y="0" width="1" height="7"/><rect x="1" y="1" width="1" height="5"/><rect x="2" y="2" width="1" height="3"/><rect x="3" y="3" width="1" height="1"/>':'<rect x="3" y="0" width="1" height="7"/><rect x="2" y="1" width="1" height="5"/><rect x="1" y="2" width="1" height="3"/><rect x="0" y="3" width="1" height="1"/>'}</svg>`;
+      for(const [c,dir] of [['l',-1],['r',1]]){const e=document.createElement('div');e.className='u37mapcue '+c;e.innerHTML=arrow(dir);box.appendChild(e);}
+      w.addEventListener('scroll',()=>u37MapCueSet(box,w),{passive:true});}
+    u37MapCueSet(box,w);}}
+function u37MapCueSet(box,w){const max=w.scrollWidth-w.clientWidth;const l=box.querySelector('.u37mapcue.l'),r=box.querySelector('.u37mapcue.r');
+  const hl=!(w.scrollLeft>2),hr=!(w.scrollLeft<max-2);if(l&&l.hidden!==hl)l.hidden=hl;if(r&&r.hidden!==hr)r.hidden=hr;}
+{const nt=document.getElementById('noteText');if(nt)new MutationObserver(()=>{if(innerWidth<600)u37MapCues();}).observe(nt,{childList:true,subtree:true});setInterval(()=>{if(innerWidth<600)u37MapCues();},400);}

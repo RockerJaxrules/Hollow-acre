@@ -307,12 +307,12 @@ function t41BusPic(view,f,open,riders,lit){const {L,Wd,wr,wu}=T41B,G=T41P.green,
   // pixels), the front and back faces
   const body=F=>{if(F.part==='cap1')return FT(F.s,F.t);if(F.part==='cap0')return RT(F.s,F.t);
     if(F.up&&F.h<68.5){const T=F.nl[1]>0?RS:LS;return T(F.s,F.t);}
-    const BR=T41BR;const feet=[22,72,122].some(u=>F.u>=u&&F.u<u+2)&&(F.v<8||F.v>72);if(feet&&!F.up)return BR[2];if(F.h>83.5){
+    const BR=T41BR;const feet=[22,72,122].some(u=>F.u>=u&&F.u<u+2)&&(F.v<8||F.v>72);if(F.h>83.5){
       // (the crown one quiet tone, with three long rain streaks a step darker)
       return BR[3];}
     // (across the curve: the far shoulder lit, the crown mid, the near shoulder two steps darker, and a lit gutter rim at its foot;
     // grime runs down the shoulders from the rack's feet)
-    if(!F.up&&F.h>68){const [,nZ]=Sc.cam.N(F.nl[0],F.nl[1]);if(nZ>.25)return F.h<69.6?BR[4]:BR[1];if(nZ<-.25)return F.h<69.6?BR[3]:BR[4];}
+    if(!F.up&&F.h>68){const [,nZ]=Sc.cam.N(F.nl[0],F.nl[1]);if(nZ>.25)return F.h<69.6?BR[4]:(feet?BR[0]:BR[1]);if(nZ<-.25)return F.h<69.6?BR[3]:(feet?BR[3]:BR[4]);}
     return t41Sh(BR,F.lit,2.2,4);};
   const ends=[[0,2,77],[2,4,80],[4,6,82],[6,8,83]];const roofId=++Sc.idc;
   const wedge=F=>{const [nX]=Sc.cam.N(F.nl[0],F.nl[1]);return nX<-.25?RF[4]:nX>.25?RF[1]:RF[3];};
@@ -799,7 +799,9 @@ function t41Sync(force){const T=S.emp&&S.emp.tr;const stops=t41StopsBuilt(),stas
       else if(/QUILL ORCHARD/.test(o.label||'')&&!o.t41moved){const dz=2.7;for(const it of interact)if(it&&typeof it.x==='number'&&Math.hypot(it.x-o.x,it.z-o.z)<1.2){it.z+=dz;T41W.moved.push([it,dz]);}
         for(const q of circles)if(Math.hypot(q.x-o.x,q.z-(o.z-.1))<.6){q.z+=dz;T41W.moved.push([q,dz]);}o.z+=dz;o.t41moved=1;T41W.moved.push([o,dz]);}
       else T41W.near.push([o.kind,o.label||o.spr||'',+o.x.toFixed(1),+o.z.toFixed(1),+dmin.toFixed(2)]);}}
-  if(T&&T.valley)for(const [ex,ez,vw,ln] of T41_BUFFERS){if(ln&&!T.south)continue;const f=T41_FACE[vw],{L,Wd,face}=T41BUF;const at=[ex-f[0]*(face-L/2)/32,ez-f[1]*(face-L/2)/32];
+  // (the east-west line at Wickham ends at a painted stop timber laid on the ground, not a buffer stop: a buffer side-on reads
+  // as an upright post, so only the front and back views are used)
+  if(T&&T.valley)for(const [ex,ez,vw,ln] of T41_BUFFERS){if(ln&&!T.south)continue;if(vw==='W'||vw==='E')continue;const f=T41_FACE[vw],{L,Wd,face}=T41BUF;const at=[ex-f[0]*(face-L/2)/32,ez-f[1]*(face-L/2)/32];
     const cam=t41Cam(L,Wd,vw);t41Clear(at[0]-cam.w/64-.3,at[1]-cam.d/64-.3,at[0]+cam.w/64+.3,at[1]+cam.d/64+.3);const a=t41Loc(vw,L,Wd,at,0,4),b=t41Loc(vw,L,Wd,at,face,Wd-4);const q={x0:Math.min(a[0],b[0]),z0:Math.min(a[1],b[1]),x1:Math.max(a[0],b[0]),z1:Math.max(a[1],b[1])};
     add(t41SprPic('t41_buf_'+vw,()=>t41BufferPic(vw)),at[0],at[1]+cam.d/64,'prop',{t41sh:{fp:[q.x0,q.z0,q.x1,q.z1],h:22}});rects.push(q);T41W.rects.push(q);}
   if(T&&T.valley)for(const [x,z,ln] of T41_XBUCK){if(ln&&!T.south)continue;t41Clear(x-.6,z-.5,x+.6,z+.3);add(t41Spr('t41_xbuck2',()=>t41Crossbuck().c,30,96),x,z,'prop',{label:'RAILROAD CROSSING',t41sh:{sil:1}});const q={x,z:z-.05,r:.15};circles.push(q);T41W.circs.push(q);}
@@ -821,6 +823,7 @@ function t41RailBuckets(){if(T41RAIL.buckets)return T41RAIL.buckets;const T=S.em
   const N=CH/32,add=(k,e)=>{let b=B.get(k);if(!b)B.set(k,b=[]);b.push(e);};
   for(const pd of t41Pads())for(let cx=Math.floor(pd.x0/N);cx<=Math.floor(pd.x1/N);cx++)for(let cz=Math.floor(pd.z0/N);cz<=Math.floor(pd.z1/N);cz++)add(cx+','+cz,{pad:pd});
   if(!T.valley)return B;
+  for(const [ex,ez,vw] of T41_BUFFERS)if(vw==='W'||vw==='E'){const e={endstop:1,x:ex,z:ez,dir:vw==='W'?1:-1};for(const kk of new Set([[-1,-1],[-1,1],[1,-1],[1,1]].map(([ox,oz])=>Math.floor((ex+ox)/N)+','+Math.floor((ez+oz)/N))))add(kk,e);}
   const paths=[t41Poly(T41_TRACK.V,5)];if(T.south)paths.push(t41Poly(T41_TRACK.S,0));
   const cross=[];for(const q of ROADS){for(const P of paths){for(let i=0;i<P.length-1;i+=2){const a=P[i];const qx=q[2]-q[0],qz=q[3]-q[1],ql=Math.hypot(qx,qz)||1;const along=Math.abs(a.dx*qx+a.dz*qz)/ql;
         if(along>.3||Math.max(Math.abs(a.dx),Math.abs(a.dz))<.97||Math.hypot(a.x-T41_TRACK.V[1][0],a.z-T41_TRACK.V[1][1])<8.5)continue;const d=segDist(a.x,a.z,q[0],q[1],q[2],q[3]);if(d<q[4]/2+.2)cross.push([a.x,a.z]);}}}
@@ -871,6 +874,10 @@ function t41PaintRail(c,cx,cz){const B=t41RailBuckets();const list=B.get(cx+','+
     for(const side of [-.5,.5]){const [px,py]=P(e.x+nx*side,e.z+nz*side);
       if(horiz){set(px,py-1,pv?[150,154,160]:[222,226,232]);set(px,py,pv?[30,30,34]:[112,116,124]);if(!pv){set(px,py+1,[30,24,20],.85);set(px,py+2,[30,24,20],.35);}}
       else{set(px-1,py,pv?[150,154,160]:[222,226,232]);set(px,py,pv?[30,30,34]:[112,116,124]);if(!pv){set(px+1,py,[30,24,20],.85);set(px+2,py,[30,24,20],.35);}}}}
+  // the end of the line at Wickham: a stop timber across the rail ends, painted in red and cream stripes, flat on the ballast
+  for(const e of list){if(!e.endstop)continue;const xa=e.dir>0?e.x-.3:e.x,xb=e.dir>0?e.x:e.x+.3;
+    for(let x=xa;x<=xb;x+=1/32)for(let z=e.z-.9;z<=e.z+.9;z+=1/32){const [px,py]=P(x,z);const edge=x-xa<.04||xb-x<.04||z-e.z+.9<.04||e.z+.9-z<.04;
+      set(px,py,edge?[44,30,22]:(Math.floor((px+cx*CH+py+cz*CH)/5)%2?[156,40,30]:[214,204,176]));}}
   // the switch blades: two tapered rails at the toe, closing on the stock rails
   for(const e of list){if(!e.frog)continue;for(const [bx,dir] of [[16.4,1],[17.4,-1]])for(let z=43.15;z<=44.7;z+=1/64){const k=(z-43.15)/1.55,x=bx+dir*(.03+k*.32)*(dir>0?1:.35);const [px,py]=P(x,z);set(px,py,[214,218,224]);set(px+1,py,[60,62,68],.7);}}
   // the frog: a pale V nose where the two rails run together, the wing rails flaring 2 px past it, and a check rail on the

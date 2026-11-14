@@ -692,3 +692,226 @@ if(typeof interiorLight==='function'){const _il=interiorLight;interiorLight=func
   for(const x of RS.plan.wall.lamps)glowAt(sx(R.ox+x),sz(R.oz-.3)-14,80,[255,196,120],.7*L);for(const [x,z,st] of RS.plan.wall.pend||[])glowAt(sx(R.ox+x),sz(R.oz+z)-(st==='st30_pendant_hi'?60:40),90,[255,200,130],.75*L);const c=RS.plan.counter;glowAt(sx(R.ox+c[0]-1.25),sz(R.oz+c[1])-30,70,[255,200,130],.6*L);}catch(e){}};}
 // ---- the shop bell when you come in
 {const _er=enterRoom;enterRoom=function(k){const r=_er.apply(this,arguments);try{if(/^st30r_/.test(k)){setTimeout(()=>{try{A&&A.tone&&A.tone(1568,.3,'sine',.07,{verb:true});}catch(e){}},420);ST30.cust[k]=[];}}catch(e){}return r;};}
+
+/* ================= t350 (owner: "when they're moving stuff use their existing arms instead of spawning in ones, it doesn't
+   look as good"). No arm is drawn on top of a worker any more. Each one works with their own arm: the figure is drawn in a pose
+   the people sheets already have (pouring the can: the near arm out from the chest, rising to the shoulder; setting the can
+   down: a stoop to something low; the rod held out: the arm out at the waist; facing you, both hands down in front), and what
+   they hold sits in that hand. A load is carried on the bent near arm (side on) or between both hands (facing you or away),
+   the legs still walking: the body and arms come from the holding pose, the legs from the walk. ================= */
+const ST50={built:{},bob:{},px:{}};
+// the poses, and where the hand is in each of their frames (a 48x64 cell, feet on y 60)
+const ST50_POSE={
+  reach:{tool:'_can',clip:'thrust',f:[0,1,2,3],E:[[32,44],[33,41],[34,40],[36,41]],W:[[15,43],[14,41],[13,39],[11,40]]},
+  out:{tool:'_rod',clip:'thrust',f:[7,5,6],E:[[34,41],[37,44],[37,45]],W:[[10,41],[7,44],[7,45]]},
+  low:{tool:'_can',clip:'slash',f:[4,1,2,3],E:[[34,50],[35,54],[39,58],[40,59]],W:[[13,49],[12,53],[8,57],[7,58]]},
+  front:{tool:'_rod',clip:'thrust',f:[4,7,5,6],S:[[28,43],[29,47],[29,50],[29,51]]},
+  both:{tool:'_can',clip:'slash',f:[4,1],S:[[24,51],[24,54]]}};
+function st50Compose(L,ls){const M=lookMap(L),body=LAYER_IMG(ls[0]);const W=body.width,H=body.height;const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+  const tmp=document.createElement('canvas');tmp.width=W;tmp.height=H;const tg=tmp.getContext('2d',{willReadFrequently:true});
+  for(const n of ls){const im=LAYER_IMG(n);if(!im)continue;tg.clearRect(0,0,W,H);tg.drawImage(im,0,0);const d=tg.getImageData(0,0,W,H),a=d.data;
+    if(M.size)for(let i=0;i<a.length;i+=4){if(!a[i+3])continue;const to=M.get((a[i]<<16)|(a[i+1]<<8)|a[i+2]);if(to){a[i]=to[0];a[i+1]=to[1];a[i+2]=to[2];}}
+    tg.putImageData(d,0,0);g.drawImage(tmp,0,0);}
+  return c;}
+// a worker on a tool's body (its arms posed for the tool), without the tool
+function st50Sheet(id,tool){const key='st30p_'+id+tool;if(SPR[key])return key;const look=ST30_LOOKS[id],meta=SPR['farmer'+tool];
+  if(!look||!meta||typeof layersFor!=='function')return null;const L=Object.assign({},LOOK_DEF,look);
+  const ls=layersFor(L,tool).filter(n=>SPR[n]&&!n.startsWith('pl_toolf'));const need=ls.map(n=>SPR[n].src).filter(s=>!IMG[s]||!IMG[s].width);
+  if(need.length){if(!ST50.built[key]&&typeof loadImages==='function'){ST50.built[key]=1;loadImages(need).then(()=>{ST50.built[key]=0;});}return null;}
+  if(ST30.built===FRAME_NO)return null;ST30.built=FRAME_NO;   // one sheet a frame
+  IMG['mem:'+key]=st50Compose(L,ls);SPR[key]=Object.assign({},meta,{src:'mem:'+key});return key;}
+// carrying: the body and arms from the holding pose (side on: the can held at the chest; facing or away: both hands at the
+// sides of the load), the legs from the walk; the body rides the walk's bob
+const ST50_SPLIT=53;
+function st50Carry(id){const key='st30p_'+id+'_carry';if(SPR[key])return key;const b=st30Sheet(id),c=b&&st50Sheet(id,'_can');if(!b||!c)return null;
+  if(ST30.built===FRAME_NO)return null;ST30.built=FRAME_NO;
+  const B=IMG['mem:'+b],C=IMG['mem:'+c],mb=SPR[b],mc=SPR[c],W=48,H=64;const o=document.createElement('canvas');o.width=W*9;o.height=H*8;const g=o.getContext('2d');
+  const tc=document.createElement('canvas');tc.width=W;tc.height=H;const tg=tc.getContext('2d',{willReadFrequently:true});
+  const top=(im,x0,y0)=>{tg.clearRect(0,0,W,H);tg.drawImage(im,x0,y0,W,H,0,0,W,H);const a=tg.getImageData(0,0,W,H).data;for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(a[(y*W+x)*4+3])return y;return 0;};
+  const bobs={};
+  ['N','W','S','E'].forEach((d,di)=>{for(const [cn,row0,n] of [['walk',di,9],['idle',4+di,4]]){const [br,bn]=mb.clips[cn][d];
+      const side=d==='E'||d==='W',HI=side?C:B,hr=side?mc.clips.thrust[d][0]:mb.clips.idle[d][0],ht=top(HI,0,hr*H);const arr=bobs[cn+d]=[];
+      for(let f=0;f<n;f++){const xb=(f%bn)*W,yb=br*H,bob=top(B,xb,yb)-ht;arr.push(bob);const lo=ST50_SPLIT+Math.min(0,bob);
+        g.drawImage(B,xb,yb+lo,W,H-lo,f*W,row0*H+lo,W,H-lo);                 // the legs, walking
+        g.drawImage(HI,0,hr*H,W,ST50_SPLIT,f*W,row0*H+bob,W,ST50_SPLIT);}}});  // the body and arms, holding
+  IMG['mem:'+key]=o;SPR[key]=Object.assign({},mb,{src:'mem:'+key,clips:{walk:{N:[0,9],W:[1,9],S:[2,9],E:[3,9]},idle:{N:[4,4],W:[5,4],S:[6,4],E:[7,4]}}});ST50.bob[key]=bobs;return key;}
+// the hand pixels of a frame (skin, near a point), cached, to lay the hand back over what it holds
+function st50HandPx(key,clip,dir,f,cx,cy,skin){const id=key+'|'+clip+dir+f+'|'+cx+','+cy;if(ST50.px[id])return ST50.px[id];const m=SPR[key],im=m&&IMG[m.src];if(!im)return [];
+  const c=m.clips[clip][dir],x0=(f%c[1])*m.fw,y0=c[0]*m.fh;const t=document.createElement('canvas');t.width=7;t.height=7;const g=t.getContext('2d',{willReadFrequently:true});
+  g.drawImage(im,x0+cx-3,y0+cy-3,7,7,0,0,7,7);const a=g.getImageData(0,0,7,7).data;const sk=[1,3,5].map(i=>parseInt((skin||'#d49a70').slice(i,i+2),16));
+  const hsv=(r,gg,b)=>{const mx=Math.max(r,gg,b),mn=Math.min(r,gg,b),d=mx-mn;let h=0;if(d){if(mx===r)h=((gg-b)/d)%6;else if(mx===gg)h=(b-r)/d+2;else h=(r-gg)/d+4;h*=60;if(h<0)h+=360;}return [h,mx?d/mx:0,mx];};
+  const S=hsv(...sk);const out=[];
+  for(let y=0;y<7;y++)for(let x=0;x<7;x++){const i=(y*7+x)*4;if(!a[i+3])continue;const q=hsv(a[i],a[i+1],a[i+2]);
+    if(Math.abs(q[0]-S[0])<22&&q[1]>.12&&q[2]>S[2]*.42&&q[2]<=Math.min(255,S[2]*1.15)&&Math.abs(x-3)+Math.abs(y-3)<=3)out.push([x-3,y-3,`rgb(${a[i]},${a[i+1]},${a[i+2]})`]);}
+  return ST50.px[id]=out;}
+function st50Hand(key,clip,dir,f,X,Y,cx,cy,skin,clipR){const px=st50HandPx(key,clip,dir,f,cx,cy,skin);if(!px.length)return;const g=ctx2;const m=SPR[key];
+  const ox=Math.round(X-m.ax+cx),oy=Math.round(Y-m.ay+cy);const go=()=>{for(const [dx,dy,c] of px){g.fillStyle=c;g.fillRect(ox+dx,oy+dy,1,1);}};
+  if(clipR)st30Clip(clipR,go);else go();}
+// a pose's frame by how far the work has gone (k: 0 the hand at the body, 1 out at the work); the worker stands that much
+// nearer the work (up to 7 px) that the hand ends on it
+function st50Toward(name,dir,k,X,Y,tx,ty){const P=ST50_POSE[name],H=P&&P[dir];if(!H)return null;const i=Math.max(0,Math.min(H.length-1,Math.round(k*(H.length-1))));
+  const end=H[H.length-1];let dx=tx==null?0:Math.round(tx-(X-24+end[0]));dx=Math.max(-7,Math.min(7,dx));const h=H[i];
+  return {pose:{tool:P.tool,clip:P.clip,f:P.f[i],dx},hand:[X-24+h[0]+dx,Y-60+h[1]]};}
+// the frame of a pose whose hand is nearest a height, the worker nearer the work so the hand is on it
+function st50At(name,dir,X,Y,tx,ty){const P=ST50_POSE[name],H=P&&P[dir];if(!H)return null;let bi=0,bd=1e9;H.forEach((h,i)=>{const d=Math.abs(Y-60+h[1]-ty);if(d<bd){bd=d;bi=i;}});
+  const h=H[bi];let dx=Math.round(tx-(X-24+h[0]));dx=Math.max(-7,Math.min(7,dx));return {pose:{tool:P.tool,clip:P.clip,f:P.f[bi],dx},hand:[X-24+h[0]+dx,Y-60+h[1]]};}
+// where a worker's own arm is at each moment of their job (screen points); null: standing or walking as they are
+function st50Work(job,s,t,R,X,Y){if(s.clip!=='idle')return null;const p=s.props||{},u=s.u||0,d=s.dir,ease=v=>v<.5?2*v*v:1-2*(1-v)*(1-v);
+  if(job.r==='clerk'){const Xs=Math.round(sx(R.ox+job.scale[0])),Ys=Math.round(sz(R.oz+job.scale[1]))-46,Xb=Math.round(sx(R.ox+job.bag[0])),Yg=Math.round(sz(R.oz+job.bag[1]))-38;
+    if(p.reach==='scale')return st50Toward('reach',d,p.apple?ease(Math.min(1,u*1.4)):1,X,Y,Xs-2,Ys-3);
+    if(p.reach==='bag')return st50Toward('reach',d,ease(Math.min(1,u*1.6)),X,Y,Xb+3,Yg-6);return null;}
+  if(job.r==='bar'){const Xt=Math.round(sx(R.ox+job.tap[0])),Yb=Math.round(sz(R.oz+job.tap[1]));
+    if(p.pull)return st50Toward('reach',d,Math.min(1,u*3),X,Y,Xt,Yb-54);
+    if(p.lift)return st50Toward('reach',d,1,X,Y,Xt-5,Yb-47);
+    if(p.carrymug)return st50Toward('reach',d,.34,X,Y,null,null);return null;}
+  if(job.r==='barside'){const Xt=Math.round(sx(R.ox+job.tap[0])),Yt=Math.round(sz(R.oz+job.tap[1]))-27,Xm=Math.round(sx(R.ox+job.place[0]))-3;
+    const Ya=Math.round(sz(R.oz+job.at[1]))-27,Yp=Math.round(sz(R.oz+job.place[1]))-27;
+    if(p.pull)return st50Toward('reach',d,Math.min(1,u*3),X,Y,Xt,Yt-2);
+    if(p.lift)return st50Toward('reach',d,.67,X,Y,Xm+10,Ya-6);
+    if(p.place){const k=ease(Math.min(1,u*1.4));return st50Toward('out',d,k,X,Y,Xm+10,Yp);}return null;}
+  if(job.r==='plate'){const Xs=Math.round(sx(R.ox+job.slot[0])),Ys=Math.round(sz(R.oz+job.slot[1]))-22;
+    if(p.reach)return st50Toward('reach',d,ease(Math.min(1,u*1.5)),X,Y,Xs+5,Ys-2);return null;}
+  if(job.r==='tend'&&p.reach){const E=d==='E',k=ease(Math.min(1,(s.c||0)/1.0)),back=(s.c||0)>1.9?ease(Math.min(1,((s.c||0)-1.9)/.6)):0,kk=Math.max(0,k-back);
+    return st50Toward('out',d,kk,X,Y,X+(E?1:-1)*13,Y-19);}
+  if(job.r==='cook'&&p.stir){const a=t*4,i=Math.round((Math.sin(a)+1)*1);const P=ST50_POSE.reach,H=P[d]||P.W,h=H[i];return {pose:{tool:P.tool,clip:P.clip,f:P.f[i],dx:0},hand:[X-24+h[0],Y-60+h[1]]};}
+  return null;}
+// ---- drawing a person: in their job's pose, carrying in their own hands
+st30PersonDraw=function(key,x,z,clip,dir,f,o){const X0=sx(x),Y=sz(z);let X=X0;o=o||{};
+  if(o.posefn&&o.id){const r=o.posefn(Math.round(X0),Math.round(Y));if(r&&r.pose){const k2=st50Sheet(o.id,r.pose.tool);if(k2){key=k2;clip=r.pose.clip;f=r.pose.f;X=X0+r.pose.dx;}}}
+  shadow(X,Y,8);
+  const c=o.carry,kd=c?st30HoldKind(c):null,ck=c&&o.id?st50Carry(o.id):null;
+  if(c&&ck){const cc=clip==='walk'?'walk':'idle',bob=((ST50.bob[ck]||{})[cc+dir]||[])[f%(cc==='walk'?9:4)]||0,m=SPR[c],w=m?m.fw:12;
+    const lift={small:2,load:4,tray:1,cask:5}[kd]||3;
+    if(dir==='E'||dir==='W'){const E=dir==='E',sg=E?1:-1,hc=E?[32,44+bob]:[15,43+bob];const hx=Math.round(X-24+hc[0]),hy=Math.round(Y-60+hc[1]);
+      drawSpr(ck,X,Y,cc,dir,f);if(o.before)o.before(X,Y);
+      // in the hand of the bent arm: a mug or a plate in the fingers, a tray on the palm, a crate against the chest, a cask
+      // hugged at the hip
+      const at={small:[sg,2],tray:[sg*(Math.round(w/2)-6),1],load:[sg*(Math.round(w/2)-6),6],cask:[-sg*1,11]}[kd]||[sg,3];
+      drawSpr(c,hx+at[0],hy+at[1]);
+      st50Hand(ck,cc,dir,f,X,Y,hc[0],hc[1],o.skin);if(o.after)o.after(X,Y);return;}
+    const hy=Math.round(Y-60+50+bob);
+    if(dir==='N'){if(kd==='small'){drawSpr(c,Math.round(X),hy+lift);drawSpr(ck,X,Y,cc,dir,f);if(o.after)o.after(X,Y);return;}   // in front of her, out of sight
+      // going away: a load is carried at her side in her right hand, where it shows
+      drawSpr(ck,X,Y,cc,dir,f);if(o.before)o.before(X,Y);drawSpr(c,Math.round(X-24+31+Math.round(w/2)-4),hy+lift+1);st50Hand(ck,cc,dir,f,X,Y,31,50+bob,o.skin);if(o.after)o.after(X,Y);return;}
+    drawSpr(ck,X,Y,cc,dir,f);if(o.before)o.before(X,Y);drawSpr(c,Math.round(X),hy+lift);
+    for(const hx of [16,31])st50Hand(ck,cc,dir,f,X,Y,hx,50+bob,o.skin);   // her hands on its sides
+    if(o.after)o.after(X,Y);return;}
+  if(c){const y0=ST30_HOLD[kd],side=dir==='N'&&kd!=='small';const off=dir==='E'?[6,y0]:dir==='W'?[-6,y0]:side?[8,y0+2]:[0,dir==='N'?y0-2:y0];   // (the sheets not built yet)
+    if(dir==='N'&&!side)drawSpr(c,X+off[0],Y+off[1]);if(o.before)o.before(X,Y);drawSpr(key,X,Y,clip,dir,f);if(dir!=='N'||side)drawSpr(c,X+off[0],Y+off[1]);if(o.after)o.after(X,Y);return;}
+  if(o.before)o.before(X,Y);drawSpr(key,X,Y,clip,dir,f);if(o.after)o.after(X,Y);};
+// ---- the shop's own staff: each in their job's pose
+st30Staff=function(D,t,RS,R){const w=RS.w,plan=RS.plan;RS.pos=[];if(!w||!plan||!st30Open(w))return;
+  const dt=Math.min(.1,Math.max(0,t-(RS.tl||t)));RS.tl=t;RS.lag=RS.lag||[];RS.bt=RS.bt||[];RS.last=RS.last||[];
+  const others=(ST30.cust[S.room]||[]).map(c=>[c.x,c.z]);if(S.room===RS.key)others.push([P.x,P.z]);
+  (w.staff||[]).slice(0,plan.staff.length).forEach((id,i)=>{const job=plan.staff[i];let s=st30Job(job,t-(RS.lag[i]||0),R,i);if(!s)return;
+    if(s.clip==='walk'&&RS.last[i]&&(RS.bt[i]||0)<6&&others.some(o=>st30Hit([s.x,s.z],o,1.1))){RS.lag[i]=(RS.lag[i]||0)+dt;RS.bt[i]=(RS.bt[i]||0)+dt;s=Object.assign({},RS.last[i],{clip:'idle',f:Math.floor(t*4)%4});}
+    else{RS.bt[i]=0;RS.last[i]=s;}
+    RS.pos[i]=[s.x,s.z];const key=st30Sheet(id);if(!key)return;const look=ST30_LOOKS[id]||{};
+    st30Person(D,key,s.x,s.z,s.clip,s.dir,s.f,{carry:s.carry&&SPR[s.carry]?s.carry:null,skin:look.skin,id,posefn:(X,Y)=>st50Work(job,s,t,R,X,Y)});
+    const fz={barside:()=>R.oz+job.barz+.02,clerk:()=>R.oz+job.scale[1]+.02,bar:()=>R.oz+job.tap[1]+.02,plate:()=>R.oz+job.slot[1]+.02,cook:()=>R.oz+job.pot[1]+.04,tend:()=>R.oz+(job.binz||s.z)+.02}[job.r];
+    if(fz)D.push({z:fz(),mind:1,draw(){st30WorkFx(job,s,t,R,look,id);}});});};
+// ---- the work itself, in front of what it's done at; whatever is held sits in the worker's own hand
+st30WorkFx=function(job,s,t,R,look,id){const g=ctx2;const P=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h);};const p=s.props||{};
+  const X=Math.round(sx(s.x)),Y=Math.round(sz(s.z)),u=s.u||0,ease=v=>v<.5?2*v*v:1-2*(1-v)*(1-v);
+  const W5=st50Work(job,s,t,R,X,Y),H=W5&&W5.hand;
+  // lay the worker's own hand back over what it holds
+  const hand=r=>{if(!W5||!id)return;const k=st50Sheet(id,W5.pose.tool);if(!k)return;const X1=X+W5.pose.dx;st50Hand(k,W5.pose.clip,s.dir,W5.pose.f,X1,Y,H[0]-(X1-24),H[1]-(Y-60),look.skin,r);};
+  // the counter, the taps and the pass are drawn in front of the worker: their own arm, reaching over them, is laid again on top
+  // (the same pixels of the same frame, the part of it in front of the body)
+  const armOver=r=>{if(!W5||!id)return;const k=st50Sheet(id,W5.pose.tool);if(!k)return;const m=SPR[k],im=IMG[m.src];if(!im)return;const c=m.clips[W5.pose.clip][s.dir];if(!c)return;
+    const fx=(W5.pose.f%c[1])*m.fw,fy=c[0]*m.fh,R0=s.dir==='E'?[29,35,19,13]:s.dir==='W'?[0,35,19,13]:[16,44,16,10];
+    const go=()=>ctx2.drawImage(im,fx+R0[0],fy+R0[1],R0[2],R0[3],X+W5.pose.dx-m.ax+R0[0],Y-m.ay+R0[1],R0[2],R0[3]);if(r)st30Clip(r,go);else go();};
+  if(job.r==='clerk'||job.r==='bar'){const top=Math.round(sz(R.oz+(job.r==='bar'?job.tap[1]:job.scale[1])))-46;const above=[X-60,0,X+60,top];const clip=r=>st30Clip(above,r);
+    if(job.r==='clerk'){const Xs=Math.round(sx(R.ox+job.scale[0])),Ys=Math.round(sz(R.oz+job.scale[1]))-46,Xb=Math.round(sx(R.ox+job.bag[0])),Yg=Math.round(sz(R.oz+job.bag[1]))-38;
+      if(p.scale&&!p.apple){P(Xs-3,Ys-1,7,4,'#c83a2e');P(Xs-2,Ys-2,5,1,'#d84a3a');P(Xs-1,Ys-1,1,1,'#f08a70');P(Xs,Ys-3,1,1,'#4a2a14');}   // the apple on the pan
+      if(p.reach==='scale'&&H){if(p.apple)drawSpr('st30_h_apple',H[0]+1,H[1]+5);armOver();}   // in her hand, on its way to the pan
+      if(p.reach==='bag'&&H){const k=ease(Math.min(1,u*1.6));if(k>.95)drawSpr('st30_h_bag',Xb,Yg);else drawSpr('st30_h_bag',H[0]+(s.dir==='W'?-2:2),H[1]+8);armOver();}
+      else if(p.bag)drawSpr('st30_h_bag',Xb,Yg);}
+    else{const Xt=Math.round(sx(R.ox+job.tap[0])),Yb=Math.round(sz(R.oz+job.tap[1])),Xs=Math.round(sx(R.ox+job.set[0]));
+      if(p.pull){const fill=Math.min(1,u*1.15);st30Mug(Xt-3,Yb-41,fill);if(fill<1)P(Xt,Yb-47,2,6,'#e8a83e');armOver();}   // his hand on the handle
+      if(p.lift&&H){st30Mug(H[0]+1,H[1]+6,1);armOver();}
+      if(p.carrymug&&H){st30Mug(H[0]-(s.dir==='W'?9:0),H[1]+6,1);armOver();}   // the full mug held up in his hand
+      if(p.set)st30Mug(Xs-3,Yb-38,1);}
+    return;}
+  if(job.r==='barside'){const Xt=Math.round(sx(R.ox+job.tap[0])),Yt=Math.round(sz(R.oz+job.tap[1]))-27,Xm=Math.round(sx(R.ox+job.place[0]))-3;
+    const Ya=Math.round(sz(R.oz+job.at[1]))-27,Yp=Math.round(sz(R.oz+job.place[1]))-27;
+    if(!p.place)st30Mug(Xm,Yp+1,1);   // the last pint, waiting on the bar
+    if(p.pull){const fill=Math.min(1,u*1.15);st30Mug(Xm,Ya+1,fill);if(fill<1)P(Xm+3,Ya-14,2,6,'#e8a83e');armOver();}
+    if(p.lift&&H){st30Mug(H[0]-9,H[1]+6,1);armOver();}
+    if(p.place&&H){const k=ease(Math.min(1,u*1.4));st30Mug(H[0]-9,Math.min(Yp+1,H[1]+6),1);if(k<.9)armOver();}
+    return;}
+  if(job.r==='plate'){const Xs=Math.round(sx(R.ox+job.slot[0])),Ys=Math.round(sz(R.oz+job.slot[1]))-22;
+    if(p.reach&&H){drawSpr('st30_h_plate',H[0]-4,H[1]+4);armOver();}   // her own arm out over the pass, the plate on her hand
+    if(p.set)drawSpr('st30_h_plate',Xs,Ys);return;}
+  if(job.r==='tend'&&p.reach&&H){drawSpr('st30_h_apple_g',H[0]+(s.dir==='E'?2:-2),H[1]+4);armOver();return;}   // a green apple held out over the bin's edge
+  if(job.r==='cook'){const Xp=Math.round(sx(R.ox+job.pot[0])),Yr=Math.round(sz(R.oz+job.pot[1]))-13;
+    P(Xp-6,Yr,12,2,'#7a3e1e');P(Xp-4+Math.round(Math.sin(t*3)*2),Yr,3,1,'#b8642a');
+    if(p.stir&&H){const a=t*4,lx=Xp+2+Math.round(Math.cos(a)*2),ly=Yr+1,hx=H[0],hy=H[1]+1;   // the ladle from her own hand down into the stew
+      g.lineCap='butt';g.strokeStyle='#3a2210';g.lineWidth=2;g.beginPath();g.moveTo(lx,ly);g.lineTo(hx,hy);g.stroke();g.strokeStyle='#b8844a';g.lineWidth=1;g.beginPath();g.moveTo(lx-.5,ly-.5);g.lineTo(hx-.5,hy-.5);g.stroke();armOver();}
+    for(let k=0;k<3;k++){const v=(t*.4+k/3)%1;const bx=Xp-5+k*5,by=Yr-3-Math.round(v*14);const al=.9-.5*v;
+      for(let j=0;j<9;j++){const wx=bx+Math.round(Math.sin(t*1.5+k*2.1+j*.55)*1.6);const a=(al*(1-j/12)).toFixed(2);P(wx,by-j,2,1,`rgba(214,212,206,${a})`);if(j%3!==2)P(wx,by-j,1,1,`rgba(250,250,246,${a})`);}}}};
+// ---- the hired hands in the town shops: the serving hand takes a parcel off her shelf side on, carries it to the counter in
+// her hands, sets it down with both hands, ties it and pushes it across; the stocker stoops to her stack, carries a carton on
+// her arm to the shelf and slides it into a pigeonhole at her shoulder, standing side on to it
+st30TownHands=function(D,t){if(typeof bgG!=='function'||typeof SHOPS_BIG==='undefined')return;const h=st30Hour();if(h<8||h>=18)return;
+  for(const [k,room] of Object.entries(ST30_TOWNROOM)){if(S.room!==room)continue;const n=Math.min(2,(bgG(k)||{}).hands||0);const B=SHOPS_BIG[room],R=ROOMS[room];if(!n||!B||!R)continue;
+    const till=B.till,spots=Object.values(B.spots||{});const fr=Math.floor(t*4)%4,wf=Math.floor(t*10)%9,furn=B.furn||[];
+    const ctr=furn.find(f=>/^in_counter/.test(f[0])),ctrZ=ctr?ctr[2]:till[1]+.65,half=ctr&&SPR[ctr[0]]?SPR[ctr[0]].fw/64:1.4;
+    const clear=(x,z)=>spots.every(q=>!st30Hit([x,z],q))&&x>.6&&x<R.w-.6;
+    const HS=ST30.hands=ST30.hands||{lag:{},pos:{},room:null,cut:{}};HS.room=room;
+    const people=npcs.filter(m=>m.loc==='in'&&Math.abs(m.x-R.ox-R.w/2)<R.w/2+1&&Math.abs(m.z-R.oz-R.d/2)<R.d/2+1).map(m=>[m.x,m.z]).concat([[P.x,P.z]]);
+    const dt=Math.min(.1,Math.max(0,t-(HS.tl||t)));HS.tl=t;
+    const along=(legs,ph,id)=>{let [l,c,Dd]=st30Legs(legs,t+ph-(HS.lag[id]||0));
+      if(l[0]==='go'){const q=st30Walk(l[1],c,ST30_SPEED);if(people.some(o=>st30Hit([q[0],q[1]],o,1.05))&&HS.pos[id]){HS.lag[id]=(HS.lag[id]||0)+dt;[l,c,Dd]=st30Legs(legs,t+ph-HS.lag[id]);}}const u=l[0]==='go'?0:Math.min(1,c/Math.max(.01,Dd));
+      let r;if(l[0]==='go'){const [x,z,dir]=st30Walk(l[1],c,ST30_SPEED);r={x,z,clip:people.some(o=>st30Hit([x,z],o,1.05))?'idle':'walk',dir,f:wf,carry:l[2]||null,p:{},u};}
+      else r={x:l[2][0],z:l[2][1],clip:'idle',dir:l[3],f:fr,carry:l[4]&&l[4].carry||null,p:l[4]||{},u};HS.pos[id]=[r.x,r.z];return r;};
+    const keepOff=pts=>{const br=B.browse||[];for(let i=br.length-1;i>=0;i--)if(pts.some(q=>Math.abs(R.ox+br[i][0]-q[0])<1.4&&Math.abs(R.oz+br[i][1]-q[1])<1.4)){(HS.cut[room]=HS.cut[room]||[]).push(br[i]);br.splice(i,1);}};
+    // ---- the serving hand
+    {const L=ST30_LOOKS.h1||{},key=st30Sheet('h1'),sk=L.skin||'#d49a70';
+     const ok=x=>clear(x,till[1])&&(!ctr||(x<ctr[1]+half-.2&&x>ctr[1]-half+.2));const off=ctr&&ctr[0]==='in_counter'?1.3:1.05;let cx=till[0]+off;
+     if(!ok(cx)){cx=till[0]-off;}if(!ok(cx)){cx=till[0]+1.6;}
+     if(key&&clear(cx,till[1])){const backs=furn.filter(f=>f[2]<1.2&&SPR[f[0]]).map(f=>[f[1],SPR[f[0]].fw/64]);if(B.back!=null)backs.push([B.back,.55]);
+       let px=null;for(let d=0;d<=1.6&&px==null;d+=.05)for(const x of [cx-d,cx+d])if(px==null&&x>.6&&x<R.w-.6&&backs.every(([bx,hw])=>Math.abs(x-bx)>=hw+.45))px=x;
+       if(px==null)px=cx;const sd=px<cx?1:-1;   // she stands on the counter's side of the shelf
+       const P0=[R.ox+px,R.oz+.62],S0=[P0[0]+sd*.62,R.oz+.78],C0=[R.ox+cx,R.oz+till[1]+.05],cZ=R.oz+ctrZ,toShelf=sd>0?'W':'E';
+       D.push({z:P0[1],mind:1,draw(){drawSpr('st30_parcelshelf',Math.round(sx(P0[0])),Math.round(sz(P0[1])));}});
+       const s=along([['do',1.4,S0,toShelf,{reach:1}],['go',[S0,C0],'st30_h_parcel'],['do',1.2,C0,'S',{set:1}],['do',2.2,C0,'S',{tie:1}],['do',1.0,C0,'S',{push:1}],['go',[C0,S0]]],1.3,'h1');keepOff([S0,C0]);
+       const p=s.p,u=s.u;const tx=()=>Math.round(sx(P0[0]))+sd*2,ty=()=>Math.round(sz(P0[1]))-14;
+       // her own arm out to the shelf at her side, the parcel coming back in her hand
+       const reach=(X,Y)=>{if(p.reach){const k=Math.min(1,u*1.6),bk=u>.62?Math.min(1,(u-.62)/.38):0;return st50Toward('reach',toShelf,k*(1-bk),X,Y,tx(),ty());}
+         if(p.set||p.tie)return st50Toward('both','S',p.tie?(Math.floor(t*5)%2):0,X,Y,null,null);   // both hands down on the parcel
+         if(p.push)return st50Toward('front','S',.67+.33*Math.min(1,u*2),X,Y,null,null);return null;};   // one hand pushing it across
+       st30Person(D,key,s.x,s.z,s.clip,s.dir,s.f,{carry:s.carry,skin:sk,id:'h1',posefn:reach,after:p.reach?(X,Y)=>{const r=reach(Math.round(sx(s.x)),Math.round(sz(s.z)));if(r&&u>.45){drawSpr('st30_h_parcel',r.hand[0]+(toShelf==='W'?-3:3),r.hand[1]+6);
+           const k2=st50Sheet('h1',r.pose.tool);if(k2){const X1=Math.round(sx(s.x))+r.pose.dx,Y1=Math.round(sz(s.z));st50Hand(k2,r.pose.clip,toShelf,r.pose.f,X1,Y1,r.hand[0]-(X1-24),r.hand[1]-(Y1-60),sk);}}}:null});
+       if(p.set||p.tie||p.push)D.push({z:cZ+.02,mind:1,draw(){const X=Math.round(sx(s.x)),Y=Math.round(sz(s.z)),foot=Math.round(sz(cZ))-22;
+           let by=foot;if(p.set)by=Math.round(Y-8+(foot-(Y-8))*Math.min(1,u*1.4));if(p.push)by=foot+Math.round(u*4);
+           drawSpr('st30_h_parcel',X,by);
+           const pz=reach(X,Y);
+           const k2=pz&&st50Sheet('h1',pz.pose.tool);if(k2){const above=[X-40,0,X+40,foot+3];
+             if(p.push)st50Hand(k2,pz.pose.clip,'S',pz.pose.f,X,Y,pz.hand[0]-(X-24),pz.hand[1]-(Y-60),sk,above);
+             else for(const dx of [-3,3])st50Hand(k2,pz.pose.clip,'S',pz.pose.f,X,Y,24+dx,pz.hand[1]-(Y-60),sk,above);}   // her own hands on it
+           if(p.tie){const w=Math.floor(t*5)%3;ctx2.fillStyle='#efe6cc';ctx2.fillRect(X-2,by-10-w,2,1);ctx2.fillRect(X+1,by-10-(2-w),2,1);ctx2.fillRect(X,by-9,1,1);}}});   // the bow pulled tight
+}}
+    // ---- the stocker
+    const plan2=f=>{const side=f[1]<till[0]?1:-1,slot=ST30_SHELFSLOT[f[0]]||[-8,-10],SX=f[1]+slot[0]/32;
+      return {side,slot,SX,stk:[f[1]+side*2.1,f[2]+.95],A:[f[1]+side*1.38,f[2]+.98],Bp:[SX+side*.42,f[2]+.34],Bq:[SX+side*.52,f[2]+.85]};};
+    const shelves=furn.filter(f=>/^in_(shelf_|seedrack|snackrack|lures|rods|toolwall)/.test(f[0])&&f[2]<1.2).filter(f=>{const q=plan2(f);return [q.stk,q.A,q.Bq].every(([x,z])=>clear(x,z));}).sort((a,b)=>Math.abs(a[1]-till[0])-Math.abs(b[1]-till[0]));
+    const sh=shelves[0];
+    if(n>1&&sh){const L=ST30_LOOKS.h2||{},key=st30Sheet('h2'),sk=L.skin||'#f2cfb0';if(key){
+      const q2=plan2(sh),side=q2.side,SX=R.ox+q2.SX,SZ=R.oz+sh[2];
+      const stk=[R.ox+q2.stk[0],R.oz+q2.stk[1]],A=[R.ox+q2.A[0],R.oz+q2.A[1]],Bq=[R.ox+q2.Bq[0],R.oz+q2.Bq[1]],Bp=[R.ox+q2.Bp[0],R.oz+q2.Bp[1]],face=side>0?'E':'W',toSlot=side>0?'W':'E';keepOff([stk,A,Bq]);
+      const s=along([['do',1.4,A,face,{lift:1}],['go',[A,Bq,Bp],'st30_h_box2'],['do',1.6,Bp,toSlot,{shelve:1}],['go',[Bp,Bq,A]],['do',.7,A,face,{}]],3,'h2');
+      const p=s.p,u=s.u,lifted=p.lift?u>.5:!(s.clip==='idle'&&!p.shelve&&!p.lift),shelved=p.shelve?u>.62:(s.clip==='walk'&&!s.carry);
+      // the slot: level with her shoulder where she stands
+      const slotXY=()=>{const Xs=Math.round(sx(SX)),Yb=Math.round(sz(Bp[1]))-19;return [Xs,Yb];};
+      D.push({z:stk[1],mind:1,draw(){const X=Math.round(sx(stk[0])),Y=Math.round(sz(stk[1]));drawSpr('st30_boxbase',X,Y);if(!lifted)drawSpr('st30_h_box2',X-side*2,Y-12);}});
+      if(shelved)D.push({z:SZ+.01,mind:1,draw(){const [Xs,Ys]=slotXY();drawSpr('st30_h_box2',Xs,Ys+9);}});   // the carton in its pigeonhole, behind her
+      const pose=(X,Y)=>{if(p.lift){if(u<.5){const bx=Math.round(sx(stk[0]))-side*2,by=Math.round(sz(stk[1]))-17;return st50Toward('low',face,Math.min(1,u*2.2),X,Y,bx,by);}
+          return st50Toward('reach',face,0,X,Y,null,null);}
+        if(p.shelve){const [Xs,Ys]=slotXY();const k=Math.min(1,u*1.6),bk=u>.62?Math.min(1,(u-.62)/.38):0;return st50Toward('reach',toSlot,k*(1-bk),X,Y,Xs+(toSlot==='W'?5:-5),Ys);}
+        return null;};
+      st30Person(D,key,s.x,s.z,s.clip,s.dir,s.f,{carry:s.carry,skin:sk,id:'h2',posefn:pose,
+        after:(X,Y)=>{const r=pose(Math.round(sx(s.x)),Math.round(sz(s.z)));if(!r)return;const d=p.lift?face:toSlot;
+          const holding=(p.lift&&u>=.5)||(p.shelve&&u<=.62)||(p.lift&&u>=.42);if(!holding)return;
+          drawSpr('st30_h_box2',r.hand[0]+(d==='W'?-3:3),r.hand[1]+7);   // the carton on her own hand
+          const k2=st50Sheet('h2',r.pose.tool);if(k2){const X1=Math.round(sx(s.x))+r.pose.dx,Y1=Math.round(sz(s.z));st50Hand(k2,r.pose.clip,d,r.pose.f,X1,Y1,r.hand[0]-(X1-24),r.hand[1]-(Y1-60),sk);}}});}}}};
