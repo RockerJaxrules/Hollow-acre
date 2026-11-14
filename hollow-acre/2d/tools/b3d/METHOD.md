@@ -64,7 +64,15 @@ The method has five parts:
    - Add one-line, checkable lessons to `LESSONS.md`.
    - Save reusable code to `lib/`.
    - Put the sheet in `exemplars/` when approved.
-9. **Export for the game (three.js):**
+9. **Export for the game (three.js), with a PARITY CHECK every round:** the judge scored the hands 4/10 in Blender but
+   2/10 in the game ("mitten"), because detail was lost in the export.
+   - Render the same pose, camera and light in Blender and in the game page, side by side (`parity.png`).
+   - The game frame must come close before anything counts as done.
+   - Keep hero objects (hands, faces, the yeti) at a high enough triangle count to hold their shape.
+   - Fix normal-map artifacts properly (tangent space, mipmaps, bake cage), never by turning the strength down.
+   - Match the light rig and use AgX tone mapping in three.js.
+   - Approximate skin scattering in the shader (wrap lighting or a red-shifted terminator).
+   Then:
    - three.js can't run Blender node trees, so bake the procedural materials to textures (Cycles bake: base
      colour, roughness, normal).
    - Apply modifiers, keep the triangle budget, and export `.glb`.
