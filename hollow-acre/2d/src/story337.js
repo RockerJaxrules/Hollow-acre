@@ -269,7 +269,7 @@ function st37InstallTithe(){try{const base=SPR.h_tithe&&Object.assign({},SPR.h_t
       for(const q of old){q.hide=true;for(const it of interact)if(it&&Math.abs(it.x-q.x)<.3&&Math.abs(it.z-(q.z+.5))<.8&&/Read/.test(typeof it.label==='function'?it.label():it.label||'')){const _o=it.on;it.on=()=>false;}}
       for(const q of OBJ)if(q.kind==='flat'&&!q.hide&&q.x>TITHE.x-1&&q.x<TITHE.x+5.6&&q.z>TITHE.z-1.6&&q.z<TITHE.z+1)q.hide=true;   /* the row of stepping stones */
       for(let i=0;i<14;i++){const a=i/14*Math.PI*2+.2;const x=TITHE.x+Math.cos(a)*7.4,z=TITHE.z+.2+Math.sin(a)*5.6;if(Math.sin(a)>.9)continue;   /* the gap: the path in */
-        if(Math.abs(x-TITHE.x)<5.6&&z<TITHE.z-1.2&&z>TITHE.z-5)continue;obj('st37_stone'+(i%3),x,z,{kind:'prop',solid:1});addCircle(x,z,.35);}}}catch(e){}}
+        if(Math.abs(x-TITHE.x)<5.6&&z<TITHE.z-1.2&&z>TITHE.z-6.2)continue;obj('st37_stone'+(i%3),x,z,{kind:'prop',solid:1});addCircle(x,z,.35);}}}catch(e){}}
 setInterval(st37InstallTithe,1000);
 // the one cold light at night, by the Tithe House door
 {const _go=glowObjs;glowObjs=function(){const r=_go.apply(this,arguments);ST37.glowN=(ST37.glowN||0)+1;try{if(typeof nightK!=='undefined'&&nightK>.05&&!S.room){const X=sx(TITHE.x+.95),Y=sz(TITHE.z-1.5)-56;
@@ -499,8 +499,8 @@ setInterval(()=>{try{const t=typeof dkTaken==='function'&&dkTaken();const d=type
 // ---- found: she sags forward, you catch her, one line in her own voice; the organ is the caption strip's
 {const _ps=playScene;playScene=function(id,title,html,done){if(title==='Found'&&S.room==='undercroft'&&!STG){const n=npcById(id);if(n){
       const m=/I’m not letting go of you again\.[^<]*?(?=<\/q>)/.exec(html);const line=m?m[0].split('.').slice(0,2).join('.')+'.':'I’m not letting go of you again.';
-      const ax=n.x,az=n.z+1.3,ux=1,uz=0;   /* r4: lower in the room, so her words sit below the roots */
-      stage({room:'undercroft',show:true,player:{x:ax+ux*1.4,z:az+uz*1.4,dir:dirOf(-ux,-uz)},cast:{[id]:{x:ax,z:az,dir:dirOf(ux,uz)}},cam:(()=>{try{const R=ROOMS.undercroft;return {x:R.ox+R.w/2,z:R.oz+R.d/2+.4};}catch(e){return {x:ax+ux*.7,z:az+uz*.7};}})(),lead:600,   /* r4: the room centred in the frame */
+      const ax=n.x,az=n.z,ux=1,uz=0;
+      stage({room:'undercroft',show:true,player:{x:ax+ux*1.4,z:az+uz*1.4,dir:dirOf(-ux,-uz)},cast:{[id]:{x:ax,z:az,dir:dirOf(ux,uz)}},cam:{x:ax+ux*.7,z:az+uz*.7},lead:600,
         beats:[{hold:.7},{hold:.5,go:{[id]:[ax+ux*.55,az+uz*.55]},speed:{[id]:2.4},emote:{[id]:'…'}},
           {hold:1.4,go:{you:[ax+ux*.95,az+uz*.95]},speed:{you:2},emote:{you:'♥'},face:{you:dirOf(-ux,-uz)}},
           {who:id,text:line,expr:'cry'},{hold:1.2}],done});return;}}
@@ -588,8 +588,8 @@ function st37Slip(){return st37Cv(ST37W,ST37H,(P)=>{for(let y=0;y<ST37H;y++)for(
   {const DX=57,DY=20,DW=48;const board=(x0,y0,x1,y1,t,col,hi,lo)=>{const dx=x1-x0,dy=y1-y0,L2=dx*dx+dy*dy,len=Math.sqrt(L2);
       for(let y=Math.min(y0,y1)-t-2;y<=Math.max(y0,y1)+t+2;y++)for(let x=Math.min(x0,x1)-2;x<=Math.max(x0,x1)+2;x++){const u=((x-x0)*dx+(y-y0)*dy)/L2,v=((x-x0)*dy-(y-y0)*dx)/len;if(u<-.01||u>1.01||Math.abs(v)>t/2+1)continue;
         let c=Math.abs(v)>t/2||u<=0||u>=1?'#0e0b0c':v<-t/2+1.2?hi:v>t/2-1.2?lo:col;if(c===col&&t>4&&st37H(Math.round(u*len/7),Math.round(v))%6===0)c=lo;P(x,y,1,1,c);}};
-    const holes=(x0,y0,x1,y1)=>{for(let k=0;k<=8;k++){const x=Math.round(x0+(x1-x0)*k/8),y=Math.round(y0+(y1-y0)*k/8);if(st37H(x,y)%3===0)continue;P(x,y,2,2,'#000000');P(x,y+2,2,1,'#6a5038');}};
-    holes(DX+3,DY+11,DX+DW-4,DY+10);holes(DX+3,DY+27,DX+DW-4,DY+25);holes(DX+3,DY+44,DX+DW-4,DY+46);   /* where boards were, the holes right through */
+    const holes=(x0,y0,x1,y1)=>{for(let k=0;k<=11;k++){const x=Math.round(x0+(x1-x0)*k/11),y=Math.round(y0+(y1-y0)*k/11);if(st37H(x,y)%4===0)continue;const n=1+st37H(y,x)%3;for(let j=0;j<n;j++){const hx=x+j*2-(st37H(j,x)%2),hy=y+(st37H(x,j)%3)-1;P(hx,hy,j===0?2:1,j===0?2:1,'#000000');}if(st37H(x+1,y)%3===0)P(x,y,1,1,'#e8dcb8');}};   /* r5: holes right through, in clusters, light behind some */
+    holes(DX+3,DY+11,DX+DW-4,DY+10);holes(DX+3,DY+27,DX+DW-4,DY+25);holes(DX+3,DY+44,DX+DW-4,DY+46);holes(DX+3,DY+2,DX+DW-4,DY+1);holes(DX+3,DY+20,DX+DW-4,DY+20);holes(DX+3,DY+40,DX+DW-4,DY+39);   /* where boards were, the holes right through */
     const B=[[DX-3,DY+8,DX+DW+2,DY+3,6,'#6a6460','#8a847e','#4a4440'],[DX-3,DY+16,DX+DW+2,DY+16,6,'#c49a54','#e4c27e','#9a7438'],[DX-3,DY+32,DX+DW+2,DY+36,6,'#5e5650','#7e766e','#3e3834'],
       [DX+1,DY+23,DX+DW-2,DY+47,4,'#7a6a4e','#9a8a6a','#5a4a34'],[DX+DW-2,DY+23,DX+1,DY+47,4,'#8a7a5a','#a89a78','#5a4a34'],[DX-3,DY+52,DX+DW+2,DY+51,5,'#b48a4c','#d4b070','#8a6838']];
     for(const b of B)board(...b);
@@ -794,7 +794,7 @@ function st37Sedan(cfg){cfg=cfg||{};const C=ST37_CARPAL,W=156,H=80,D=28,BL=46,GY
     for(const x of [50,81,108])if(x<nose-2)line(x,BL+2,x,64,C.deep);   // door seams
     for(const x of [70,99]){P(x,50,5,1,C.chrL);P(x,51,5,1,C.chrD);}
     if(cfg.mirror!==0){P(107,41,5,4,C.side);P(107,41,5,1,C.topHi);P(107,44,5,1,C.deep);}
-    if(cfg.rust){   /* r4: rust in shapes, creeping up from the sill: a ragged top edge darker than its middle, bubbles of paint lifting just above it, a hole or two */
+    if(false&&cfg.rust){   /* r5: cut (the heaps read as flames); r4: rust in shapes, creeping up from the sill: a ragged top edge darker than its middle, bubbles of paint lifting just above it, a hole or two */
       for(const [x0,x1,hmax] of [[9,24,7],[52,61,4],[84,101,6]])for(let x=x0;x<=x1;x++){const t=(x-x0)/(x1-x0),h=Math.round(hmax*Math.sin(t*Math.PI)*.75+1+st37H(x,9)%3);const top=65-h;
         for(let y=top;y<=65;y++){const hh=st37H(x,y);P(x,y,1,1,y===top?'#4a2810':y===top+1&&hh%2?'#5a3418':hh%6===0?'#b0703a':hh%3===0?'#6a3c1c':'#8a5226');}
         if(st37H(x,4)%4===0)P(x,top-2,1,1,'#a06a3c');}
@@ -822,7 +822,7 @@ function st37Sedan(cfg){cfg=cfg||{};const C=ST37_CARPAL,W=156,H=80,D=28,BL=46,GY
   });
   if(cfg.flat){const g=cv.getContext('2d'),id=g.getImageData(0,0,W,H),out=g.createImageData(W,H);for(let x=0;x<W;x++){const s=x>60?Math.round((x-60)/(W-60)*3):0;for(let y=0;y<H;y++){const yy=y-s;if(yy<0)continue;const i=(y*W+x)*4,j=(yy*W+x)*4;for(let k=0;k<4;k++)out.data[i+k]=id.data[j+k];}}g.putImageData(out,0,0);}
   st37Outline(cv,ST37_CARPAL.out);
-  {const g=cv.getContext('2d');g.save();g.globalCompositeOperation='destination-over';g.fillStyle='rgba(12,8,14,.42)';g.fillRect(18,BL+2,W-18,GY-BL+1);g.fillStyle='rgba(12,8,14,.24)';g.fillRect(22,GY+1,W-22,4);g.restore();}
+  {const g=cv.getContext('2d'),sw=cfg.vnose?nose-36:W-18;g.save();g.globalCompositeOperation='destination-over';g.fillStyle='rgba(12,8,14,.42)';g.fillRect(18,BL+2,sw,GY-BL+1);g.fillStyle='rgba(12,8,14,.24)';g.fillRect(22,GY+1,sw-4,4);g.restore();}   /* r5: the folded front casts no box */
   return cv;}
 const ST37_CARS={clean:{glass:'clear'},s0:{crumple:1,vnose:1,glass:'smash',bumper:0,flat:1,dents:1,mirror:0},s1:{crumple:1,glass:'smash',bumper:0,flat:1,dents:1,mirror:0},s2:{primer:1,ham:1,glass:'smash',bumper:0,flat:1,mirror:0},
   s4:{primer:1,ham:1,glass:'smash',bumper:0,steel:1,mirror:0},s5:{primer:1,ham:1,glass:'clear',bumper:0,steel:1,mirror:0},beaten:{primer:1,ham:1,glass:'clear',dull:1,steel:1,rust:1}};
@@ -882,8 +882,8 @@ function st37Ribbon(X,Y,t){const r='#b81e1a',rh='#e85040',rd='#701010';ctx2.fill
       const d=dkHomeDoor('agnes');const o=d&&OBJ.filter(q=>q.kind==='bld'&&!q.hide&&Math.abs(q.x-d.x)<7&&Math.abs(q.z-d.z)<4).sort((a,b)=>Math.abs(a.x-d.x)-Math.abs(b.x-d.x))[0];const m=o&&SPR[o.spr];
       if(o&&m&&m.door_w){const w=Math.max(16,m.door_w-4),x=o.x+(m.door_dx||0)/PPM*(o.flip?-1:1);st37Reg('st37_ajar',st37DoorAjar(w),w/2,44+7);
         const door=obj('st37_ajar',x,o.z+.02,{kind:'prop',noCol:true});const lines=[];for(const q of st37Lines(html))lines.push(...st37Chunks(q));const n=npcById('agnes');
-        const ribbon={x,z:o.z+.14,draw(X,Y,t){const a=npcById('agnes');if(!a)return;const L=typeof porchLift==='function'?porchLift(a.x,a.z):0;st37Ribbon(Math.round(sx(a.x))+4,Math.round(sz(a.z))-23-L,t);}};
-        sub('');stage({player:{x,z:o.z+2.3,dir:'N'},cast:{agnes:{x,z:o.z+.62,dir:'S'}},cam:{x,z:o.z+.5},lead:300,show:true,props:[ribbon],   /* r4: she stands out on the step, in front of her door */
+        const ribbon={x,z:o.z+.14,draw(X,Y,t){const a=npcById('agnes');if(!a)return;const L=typeof porchLift==='function'?porchLift(a.x,a.z):0;st37Ribbon5(Math.round(sx(a.x))+5,Math.round(sz(a.z))-21-L,t);}};
+        sub('');stage({player:{x,z:o.z+1.8,dir:'N'},cast:{agnes:{x,z:o.z+.12,dir:'S'}},cam:{x,z:o.z+.2},lead:300,show:true,props:[ribbon],   /* r5: back to r2/r3's staging, the ribbon in front of her */
           beats:[{hold:.9},{hold:.2,act(){stgTitle('Agnes Abernathy — Ruth’s ribbon');}},...lines.map(t=>({who:'agnes',text:t})),{hold:.7,face:{agnes:'N'}}],
           done(){door.hide=true;const i=OBJ.indexOf(door);if(i>=0)OBJ.splice(i,1);done&&done();}});return;}}}catch(e){}return _ps.apply(this,arguments);};}
 // Nan: at the end of the ferry dock with her pole in the water and the far bank gone to fog; she says the price herself
@@ -1259,7 +1259,7 @@ const ST37_PHSIGN=[-62,-75],ST37_PHZ=-8.85;
       D.push({z:ST37_PHZ,mind:1,draw(){const X=Math.round(sx(x)),Y=Math.round(sz(ST37_PHZ));ctx2.fillStyle='rgba(10,8,14,.35)';ctx2.fillRect(X-14,Y-1,28,3);drawSpr('sign:HOLLOW ACRE',X,Y);}});}};
     c.light=function(L){_l.apply(this,arguments);try{const st=c.st37;if(!st||!st.loops)return;const X=sx(st.x),Y=sz(st.z)+Math.round(st.bob||0),hx=X-68,hy=Y-12;
       for(const x of ST37_PHSIGN){const d=st.x-x;if(d<2||d>13)continue;const sx2=sx(x),sy2=sz(ST37_PHZ)-20;const ang=Math.atan2(sy2-hy,sx2-hx);const k=Math.max(.45,L)*Math.min(1,(13-d)/3);
-        coneAt(hx,hy,ang,.16,Math.hypot(sx2-hx,sy2-hy)+26,[255,238,196],.6*k);glowAt(sx2,sy2,30,[255,240,210],.9*k);}}catch(e){}};}catch(e){}};}
+        coneAt(hx,hy-14,ang,.34,Math.hypot(sx2-hx,sy2-hy+14)+40,[255,238,196],.7*k);glowAt(sx2,sy2,34,[255,240,210],.95*k);}}catch(e){}};}catch(e){}};}
 // rain on a storm night: slanted streaks of different lengths, rings where it lands, and a wet shine in your lantern's pool
 {const _ms=mindScreen;mindScreen=function(t){try{if(S.storm&&isNight()&&!S.room&&(S.mode==='play'||S.mode==='cine')){
       ctx2.fillStyle='rgba(200,214,236,.55)';for(let i=0;i<46;i++){const ph=(t*2.2+hash(i,21))%1;if(ph>.45)continue;const X=Math.round(hash(i,22)*VW),Y=Math.round((hash(i,23)*VH+Math.floor(t*2.2+hash(i,21))*53)%VH);const r=1+Math.round(ph*8);
@@ -1275,21 +1275,15 @@ function st37Foot(left){return st37Cv(8,6,(P)=>{const o='#0e1014';P(4,1,4,4,o);P
 {const _t=toast;toast=function(m){try{if(typeof m==='string'&&/Wet footprints lead toward the corn/.test(m)&&typeof ruth!=='undefined'){for(const o of ST37_FP){const i=OBJ.indexOf(o);if(i>=0)OBJ.splice(i,1);}ST37_FP.length=0;
       const x0=ruth.x||P.x,z0=ruth.z||P.z;const corn=OBJ.filter(o=>/^corn_/.test(o.spr||'')&&!o.room).sort((a,b)=>Math.hypot(a.x-x0,a.z-z0)-Math.hypot(b.x-x0,b.z-z0))[0];
       const tx=corn?corn.x:FIELD.x0+FIELD.w/2,tz=corn?corn.z:FIELD.z0+FIELD.h/2;const d=Math.hypot(tx-x0,tz-z0)||1,ux=(tx-x0)/d,uz=(tz-z0)/d;const dir=Math.abs(ux)>Math.abs(uz)?(ux<0?'W':'E'):(uz>0?'S':'N');
-      const n=Math.min(40,Math.floor((d-.2)/.48));for(let i=0;i<n;i++){const side=i%2,s=side?.13:-.13;ST37_FP.push(obj('st37_fp'+dir+side,x0+ux*(i*.48+.3)-uz*s,z0+uz*(i*.48+.3)+ux*s,{kind:'flat',noCol:true}));}ST37.fpDay=S.day;const r=_t.apply(this,arguments);for(let i=OBJ.length-1;i>=0;i--)if(OBJ[i].spr==='st37_fp')OBJ.splice(i,1);return r;}}catch(e){}return _t.apply(this,arguments);};}
+      const n=Math.min(40,Math.floor((d-.2)/.48));for(let i=0;i<n;i++){const side=i%2,s=side?.19:-.19;ST37_FP.push(obj('st37_fp'+dir+side,x0+ux*(i*.48+.3)-uz*s,z0+uz*(i*.48+.3)+ux*s,{kind:'flat',noCol:true}));}ST37.fpDay=S.day;const r=_t.apply(this,arguments);for(let i=OBJ.length-1;i>=0;i--)if(OBJ[i].spr==='st37_fp')OBJ.splice(i,1);return r;}}catch(e){}return _t.apply(this,arguments);};}
 // Agnes's ribbon: three red bands across a pale hand, and a trailing end
 function st37RibbonR3(X,Y,t){const r='#c0201a',rh='#ee5a46',rd='#6a0e0c';   /* r4: set aside; r2's red coil (st37Ribbon above) is back */ctx2.fillStyle='#3a2420';ctx2.fillRect(X-1,Y-2,8,8);ctx2.fillStyle='#ecd6c4';ctx2.fillRect(X,Y-1,6,6);ctx2.fillStyle='#f8e8dc';ctx2.fillRect(X,Y-1,2,1);
   for(let i=0;i<3;i++){ctx2.fillStyle=rd;ctx2.fillRect(X-1,Y+i*2,8,1);ctx2.fillStyle=i===1?rh:r;ctx2.fillRect(X,Y+i*2,6,1);}
   for(let k=0;k<10;k++){const sw=Math.round(Math.sin(t*2.4+k*.6)*(k/4));ctx2.fillStyle=k%3===2?rh:r;ctx2.fillRect(X+5+sw,Y+5+k,2,1);ctx2.fillStyle=rd;ctx2.fillRect(X+7+sw,Y+5+k,1,1);}}
 // the Tithe House shoes, readable at 1x: a child's pale pair from behind, heels to you, toes to the door
 {const _h=st37House;st37House=function(state){const c=_h.apply(this,arguments);try{if(/open/.test(state))return c;const g=c.getContext('2d');const P=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h);};const DX=120,DW=28,GY=232;
-    /* r4: a child's dark leather shoes, wider than tall, heels out and toes turned in toward each other, a buckled strap, a contact shadow under each */
-    const shoe=(x,y,d)=>{const fx=k=>d>0?x+k:x+9-k;const rows=[[2,5],[1,7],[0,8],[0,9],[1,8]];
-      P(Math.min(fx(0),fx(11))-1,y+5,13,1,'rgba(10,8,10,.55)');P(Math.min(fx(1),fx(10)),y+6,11,1,'rgba(10,8,10,.3)');
-      rows.forEach(([a,b],yy)=>{for(let k=a-1;k<=b+1;k++)P(fx(k),y+yy-(k>=6?1:0),1,1,'#0e0a0a');});P(fx(0),y-1,fx(9)>fx(0)?9:1,1,'#0e0a0a');
-      rows.forEach(([a,b],yy)=>{for(let k=a;k<=b;k++){let c=yy===0?'#6a4630':yy===4?'#140c08':k<4?'#2e1c14':'#3a2418';if(yy===1&&k>=4)c='#5a3a28';P(fx(k),y+yy-(k>=6?1:0),1,1,c);}});
-      P(Math.min(fx(1),fx(3)),y+1,3,2,'#140a06');P(fx(5),y,1,4,'#2a1810');P(fx(5),y+1,1,1,'#f0d070');};   // the opening at the heel; the strap and its buckle
-    P(DX-1,GY-11,DW+2,1,'#1a1416');P(DX-1,GY-10,DW+2,8,'#86848c');P(DX-1,GY-10,DW+2,1,'#a8a6ae');for(let i=0;i<5;i++)P(DX+2+st37H(i,7)%(DW-4),GY-8+st37H(7,i)%5,1,1,'#76747c');   /* the step's top, clear in front of the door */
-    shoe(DX+3,GY-8,1);shoe(DX+DW-13,GY-8,-1);}catch(e){}return c;};}
+    const shoe=(x,y,inw)=>{P(x-1,y-1,9,7,'#0e0b0c');P(x,y,7,5,'#e4dccc');P(x,y+4,7,1,'#b8ac98');P(x+2,y,3,2,'#2a1e18');P(x+1,y+3,5,1,'#cfc4b0');P(x+(inw>0?6:-1),y-2,2,2,'#0e0b0c');P(x+(inw>0?6:-1),y-2,1,1,'#e4dccc');P(x,y+5,8,1,'rgba(10,8,10,.45)');};
+    shoe(DX+4,GY-9,1);shoe(DX+DW-11,GY-9,-1);}catch(e){}return c;};}   /* r5: back to r3's shoes (they read better on the step) */
 // embers in each Old Marrow hearth on the night the hearths glow
 st37Reg('st37_embers',st37Cv(12,6,(P)=>{P(0,2,12,4,'#2a0e06');for(const [x,y,c] of [[1,3,'#c83a10'],[3,2,'#ff9a30'],[4,3,'#ffd060'],[6,2,'#ff7a20'],[7,3,'#ffe090'],[9,3,'#e05a18'],[10,4,'#a82a0a'],[5,4,'#ff8a28'],[2,4,'#902a0a']])P(x,y,1,1,c);}),6,9);
 setInterval(()=>{try{const on=ST37.hearth===S.day&&isNight();ST37.emb=ST37.emb||[];if(on&&!ST37.emb.length)for(const o of OBJ)if(o.spr==='rg_chimney'&&!o.hide)ST37.emb.push(obj('st37_embers',o.x,o.z+.02,{kind:'prop',noCol:true}));
@@ -1326,7 +1320,9 @@ SGT_DRAW.quarry=st37Quarry4;st37Quarry=st37Quarry4;
 
 // the crypt: rows of small coffins that run on past both edges of the picture and back into the dark (a hundred and fifty, not thirty),
 // a third of them open with names scratched in the lids; the full-size one at the end in the same old wood, its plate filed blank, ELIAS under it
-function st37Crypt4(){return st37Cv(ST37W,ST37H,(P)=>{for(let y=0;y<ST37H;y++)for(let x=0;x<ST37W;x++)P(x,y,1,1,((x>>3)+(y>>3))%2?'#24222a':'#201e26');
+function st37Crypt4(){return st37Cv(ST37W,ST37H,(P)=>{for(let y=0;y<ST37H;y++){const row=Math.floor(y/9),off=(row*7)%13;for(let x=0;x<ST37W;x++){const col=Math.floor((x+off)/(13+row%3*3));const edge=y%9===0||((x+off)%(13+row%3*3))===0;   /* r5: stone flags, not a checker */
+    P(x,y,1,1,edge?'#141218':y%9===1?'#34323a':st37H(col,row)%3===0?'#2a2830':st37H(col,row)%3===1?'#26242c':'#2e2c34');}}
+  for(let x=0;x<ST37W;x++){const h=Math.round(5+Math.abs(Math.sin(x/ST37W*Math.PI*2))*4);for(let y=0;y<h;y++)P(x,y,1,1,y===h-1?'#3a3840':'#18161c');}   /* the vault's ribs along the top */
   const shape=(w,h)=>yy=>{const t=yy/h,s=w*.32;return t<.3?Math.round(s+(w/2-s)*(t/.3)):Math.round(w/2-(w/2-s*.75)*((t-.3)/.7));};
   const W=[['#6a4a30','#5a3e28','#46301e'],['#7a5a3a','#6a4c30','#523a24'],['#5a4434','#4a382a','#3a2c20'],['#6e5a42','#5e4a34','#4a3a28']];
   const dim=(col,k)=>col.map(h=>{const n=parseInt(h.slice(1),16);return '#'+[n>>16,(n>>8)&255,n&255].map(v=>Math.round(v*k).toString(16).padStart(2,'0')).join('');});
@@ -1343,7 +1339,7 @@ function st37Crypt4(){return st37Cv(ST37W,ST37H,(P)=>{for(let y=0;y<ST37H;y++)fo
   const bx=156,by=40;cof(bx,by,26,66,['#8a6440','#765434','#5c4026'],false,'');for(let yy=by+6;yy<by+62;yy+=9)P(bx-7,yy,14,1,'#6a4a2c');
   const pw=20;P(bx-Math.ceil(pw/2)-1,by+27,pw+2,10,'#0e0b0c');P(bx-Math.ceil(pw/2),by+28,pw,8,'#c8a048');P(bx-Math.ceil(pw/2),by+28,pw,1,'#f0d888');
   for(let y=0;y<7;y++)for(let x=0;x<pw;x++)if(st37H(x,y*3)%5<2)P(bx-Math.ceil(pw/2)+x,by+29+y,1,1,y%2?'#e8cc78':'#a88038');   // filed, the file marks across it
-  const t='ELIAS';const tx=bx-Math.ceil((t.length*4-1)/2);st37Txt(P,t,tx+1,by+42,'#2a1808');st37Txt(P,t,tx,by+41,'#f0dcb4');});}
+  st37ScratchName(P,bx-12,by+15,'#1e1006','#c8a070',.72);});}   /* r5: ELIAS scratched in, dark grooves with a lit lip */
 SGT_ART.crypt=st37Crypt4;st37Crypt=st37Crypt4;
 
 // the three who stand apart wear their names while you choose: a small tag over each head, its number and name as the prompt gives them
@@ -1378,7 +1374,7 @@ const ST37_HEARTHS=[[-3,-107],[12,-110],[6,-105]];
       obj('rg_chimney',x0,z0,{kind:'prop',solid:1});addCircle(x0,z0+.1,.55);}if(typeof CGRID!=='undefined')CGRID.dirty=true;}catch(e){}},700);}
 {const _ms=mindScreen;mindScreen=function(tt){const rr=_ms.apply(this,arguments);try{if(ST37.hearth!==S.day||S.room||typeof nightK==='undefined'||nightK<.05||S.mode==='title')return rr;
     const o=OBJ.find(q=>q.spr==='rg_chimney'&&!q.hide&&Math.abs(q.x+3)<.6&&Math.abs(q.z+107)<.6)||OBJ.find(q=>q.spr==='rg_chimney'&&!q.hide);if(!o)return rr;
-    (()=>{const t=performance.now()/1000,br=(Math.sin(t*1.6)+1)/2,X0=Math.round(sx(o.x)),Y0=Math.round(sz(o.z))-(SPR.rg_chimney?SPR.rg_chimney.ay:60)-2;
+    (()=>{const t=performance.now()/1000,br=(Math.sin(t*1.6)+1)/2,X0=Math.round(sx(o.x))+1,Y0=Math.round(sz(o.z))-(SPR.rg_chimney?SPR.rg_chimney.ay:60)+15;   /* r5: from the flue itself */
       for(let i=0;i<14;i++){const ph=(t*.4+i/14)%1,r=Math.round(2+ph*6*(0.6+br*.6));const x=Math.round(X0+ph*14+Math.sin(t*1.1+i*1.7)*2),y=Math.round(Y0-ph*48);const a=((.55+br*.25)*(1-ph)).toFixed(3);
         ctx2.fillStyle=`rgba(176,150,128,${a})`;ctx2.fillRect(x-r,y-r+1,r*2,r*2-2);ctx2.fillRect(x-r+1,y-r,r*2-2,r*2);ctx2.fillStyle=`rgba(220,186,150,${(a*.7).toFixed(3)})`;ctx2.fillRect(x-r+1,y-r+1,r,r-1);}
       for(let i=0;i<5;i++){const ph=(t*.7+i/5)%1;if(ph>.6)continue;ctx2.fillStyle=ph<.3?'#ffd060':'#ff7a20';ctx2.fillRect(Math.round(X0+Math.sin(i*2.3+t)*5),Math.round(Y0-ph*30),1,1);}})();}catch(e){}return rr;};}
@@ -1403,7 +1399,7 @@ function st37Orchard4(){return st37Cv(ST37W,ST37H,(P)=>{
   let n=0;for(let gy=8;gy<62;gy+=8)for(let gx=14;gx<164;gx+=9){const x=gx+(st37H(gx,gy)%5)-2+((gy>>3)%2)*4,y=gy+(st37H(gy,gx)%4)-1;if(!crown(x,y)||!crown(x+3,y+3)||!crown(x-3,y-3))continue;if(x>88&&x<114&&y>54)continue;
     const r=2+st37H(x,y)%2;const ang=(st37H(x,y+5)%8)/8*Math.PI*2;apple(x,y,r,REDS[st37H(x+1,y)%5],[ang,2+st37H(y,x)%2,.38+(st37H(x,3)%3)*.08]);n++;}
   // the lowest apple: big, on a long stalk from the branch, a child's bite out of its left side, and the tooth in the bite
-  for(let y=60;y<66;y++)P(104,y,1,1,'#3a2a14');P(105,61,3,2,'#4a6a28');
+  for(let i=0;i<8;i++){const x=98+i,y=55+Math.round(i*.5);P(x,y-1,1,3,'#140c08');P(x,y,1,1,'#6a4a30');}for(let y=59;y<67;y++){P(105,y,1,1,'#140c08');P(106,y,1,1,'#5a3e24');P(107,y,1,1,'#140c08');}P(101,57,4,2,'#4a6a28');P(101,57,3,1,'#6a8a38');   /* r5: a twig out of the crown and a stalk down to the apple */
   const ax=107,ay=77,ar=10;apple(ax,ay,ar,REDS[0],[Math.PI*1.0,3,.42]);
   // the milk tooth, set in the bite: a white crown with its lit edge, and two roots, the tips still red
   const tx=97,ty=74;P(tx-1,ty-1,7,7,'#2a1a14');P(tx,ty,5,5,'#fbf8f0');P(tx,ty,5,1,'#ffffff');P(tx,ty,1,5,'#ffffff');P(tx+4,ty+1,1,4,'#d8d0c0');P(tx+1,ty+4,4,1,'#e2dacb');P(tx+2,ty+2,1,1,'#e8e2d6');
@@ -1431,7 +1427,7 @@ function st37DawnBig(cv){const W=320,H=180;cv.width=W;cv.height=H;const g=cv.get
   P(122,78,30,24,'#2a2230');P(132,58,10,20,'#2a2230');P(135,48,4,10,'#2a2230');P(136,42,2,6,'#2a2230');P(136,40,2,2,'#4a4050');P(128,86,5,7,'#f0b060');P(129,87,3,1,'#fff0c0');P(144,86,4,6,'#3a2a34');
   // the field: furrows running in toward the cabin, their ridges catching the light
   ridge(112,3,'#4a3a2a',7,'#6a5236');const vx=68,vy=120;for(let y=116;y<H;y++)for(let x=0;x<W;x++){const ang=Math.atan2(y-vy,x-vx);const k=Math.floor((ang+Math.PI)/(Math.PI/40));
-    const c=k%2?(y<140?'#5e4830':'#6a5232'):(y<140?'#7a5e34':'#8a6a3a');P(x,y,1,1,(hs(x,y)%13===0&&k%2===0)?'#a08048':c);}
+    const c=k%2?(y<140?'#5e4830':'#6a5232'):(y<140?'#7a5e34':'#8a6a3a');const k2=Math.floor((Math.atan2(y-1-vy,x-vx)+Math.PI)/(Math.PI/40));P(x,y,1,1,(k%2===0&&k2%2===1)?(y<140?'#9a7a44':'#b08c4c'):c);}   /* r5: the light on each furrow's ridge, not speckle */
   // the cabin: logs, a shingled roof, the porch, one window lit, and the smoke in soft round puffs
   P(44,116,52,28,'#1c1418');for(let k=0;k<14;k++)P(40+k,116-k,60-k*2,1,k%3?'#2a1e1c':'#342422');for(let y=120;y<144;y+=4)P(44,y,52,1,'#140e10');
   P(58,124,7,7,'#f2c070');P(58,124,7,1,'#fff0c0');P(61,124,1,7,'#a8783a');P(58,127,7,1,'#a8783a');P(76,128,8,16,'#120c0e');P(40,142,60,3,'#2a1e1a');
@@ -1463,3 +1459,76 @@ const ST37_WIP=[];
     for(let i=mushrooms.length-1;i>=0;i--){const m=mushrooms[i];if(Math.abs(m.x+59)<14&&Math.abs(m.z-3)<9){m.taken=true;mushrooms.splice(i,1);}}
     for(const [spr,x,z] of [['st37_bumper',-58.0,3.15],['st37_toolbox',-63.3,2.9],['st37_wrench',-61.4,3.05],['st37_jack',-60.2,2.55]])ST37_WIP.push(obj(spr,x,z,{kind:'prop',noCol:true,hide:true}));}catch(e){}},700);}
 setInterval(()=>{try{const cs=S.carStage||0,on=!S.carFixed&&cs>=1&&cs<=4&&!(S.introDrive);for(const o of ST37_WIP)o.hide=!on;}catch(e){}},400);
+
+/* ======================================== r5 ======================================== */
+// Agnes's ribbon: wound three times round her raised fist, red over her knuckles, and the end hanging loose with a notch cut in it
+function st37Ribbon5(X,Y,t){const P=(x,y,w,h,c)=>{ctx2.fillStyle=c;ctx2.fillRect(X+x,Y+y,w,h);};
+  P(-1,-1,9,8,'#3a2420');P(0,0,7,6,'#e8c8a8');P(0,0,7,1,'#f4dcc0');P(1,5,6,1,'#c8a080');P(2,0,1,1,'#c8a080');P(4,0,1,1,'#c8a080');   // the fist, knuckles up
+  for(let k=0;k<4;k++){const y=1+k*1.4|0;P(-1,y,9,1,'#c0201a');P(0,y,7,1,k%2?'#d83028':'#c0201a');P(1,y,3,1,'#ee5a46');}   // four turns of red over it
+  const sw=Math.round(Math.sin(t*2)*1);for(let i=0;i<13;i++){const x=3+Math.round(Math.sin(i*.45)*1.5)+(i>8?sw:0),y=6+i;P(x-1,y,4,1,'#3a1010');P(x,y,2,1,i%3?'#c0201a':'#ee5a46');}   // the end, hanging, swinging a little
+  const ex=3+Math.round(Math.sin(12*.45)*1.5)+sw;P(ex-1,19,1,2,'#c0201a');P(ex+1,19,1,2,'#c0201a');P(ex,19,1,2,'#3a1010');}   // notched
+// the hat in the ash: a ragged bed of grey ash under it, the fire's charred stake stubs standing in it
+{const _d=drawSpr;drawSpr=function(name,x,y){try{if(name==='pumpkin'&&typeof ritual!=='undefined'&&ritual&&ritual.hat&&Math.abs(x-sx(ritual.hat.x))<.5&&Math.abs(y-sz(ritual.hat.z))<.5){const X=Math.round(x),Y=Math.round(y);
+      for(let yy=-8;yy<=8;yy++)for(let xx=-24;xx<=24;xx++){const e=(xx/24)**2+(yy/8)**2+(hash(X+xx,Y+yy)-.5)*.35;if(e>1)continue;const h=hash(xx*3,yy*5);ctx2.fillStyle=e>.8?'#4a4644':h<.3?'#8a8682':h<.6?'#6e6a66':'#5a5652';ctx2.fillRect(X+xx,Y+yy+2,1,1);}
+      for(const [sx0,sy0,h] of [[-18,-2,7],[15,0,6],[-7,5,4],[20,4,5],[-21,4,4]]){ctx2.fillStyle='#120c0a';ctx2.fillRect(X+sx0,Y+sy0-h+2,2,h);ctx2.fillStyle='#3a2a22';ctx2.fillRect(X+sx0,Y+sy0-h+2,1,h-1);ctx2.fillStyle=hash(sx0,Math.floor(performance.now()/300))<.5?'#ff8a30':'#c8461a';ctx2.fillRect(X+sx0,Y+sy0-h+2,1,1);}}}catch(e){}
+  return _d.apply(this,arguments);};}
+// Found: the undercroft's "It is asleep. For now." is narration; while she holds on to you it isn't said
+{const _do=depthOver;depthOver=function(t){if(typeof STG!=='undefined'&&STG&&S.room==='undercroft'){const ft=ctx2.fillText;ctx2.fillText=function(str){if(/asleep\. For now|IT IS WAKING/.test(String(str)))return;return ft.apply(this,arguments);};try{return _do.apply(this,arguments);}finally{ctx2.fillText=ft;}}return _do.apply(this,arguments);};}
+// the wet prints are a child's bare feet: the heel, the ball and five toes apart, a lit rim of mud round each, a cold wet glint
+function st37Foot5(){return st37Cv(15,9,(P)=>{const rim='#8a7456',o='#1a140e',m='#2c2218',d='#221a12',gl='#d8ecff';
+  const ball=(x,y)=>((x-5)/3.2)**2+((y-4.5)/3.4)**2<1,heel=(x,y)=>((x-11.5)/2.3)**2+((y-4.5)/2.4)**2<1,toe=[[1,2],[1,4],[1,6],[2,1],[2,7]];const inP=(x,y)=>ball(x,y)||heel(x,y)||toe.some(([a,b])=>a===x&&b===y);
+  for(let y=0;y<9;y++)for(let x=0;x<15;x++){if(inP(x,y)){P(x,y,1,1,(!inP(x-1,y)||!inP(x,y-1))?o:ball(x,y)?m:d);continue;}if(inP(x+1,y+1)||inP(x+1,y)||inP(x,y+1))P(x,y,1,1,rim);}   // the mud pushed up round it catches the light on its upper side
+  P(4,3,2,1,gl);P(5,4,1,1,'#7a8ea4');P(11,4,1,1,gl);});}
+(function(){const base=st37Foot5();for(const [k,dir] of [['W',0],['E',1],['S',2],['N',3]])for(const side of [0,1]){const c=document.createElement('canvas');const vert=dir>=2;c.width=vert?9:15;c.height=vert?15:9;const g=c.getContext('2d');
+  g.save();if(dir===1){g.translate(15,0);g.scale(-1,1);}else if(dir===2){g.translate(0,15);g.rotate(-Math.PI/2);}else if(dir===3){g.translate(9,0);g.rotate(Math.PI/2);}
+  if(side&&!vert){g.translate(0,9);g.scale(1,-1);}if(side&&vert){g.translate(9,0);g.scale(-1,1);}g.drawImage(base,0,0);g.restore();st37Reg('st37_fp'+k+side,c,c.width/2,c.height-1);}})();
+// the quarry as a hole in rough stone: the face broken into blocky facets with cracks, not banded; inside the hollow a shadow band under the top
+// and left lips, the right and bottom inner walls lit, the outer rim of the lower lip catching the light; scratches inside; three nails
+function st37Quarry5(){return st37Cv(ST37W,ST37H,(P)=>{
+  const seeds=[];for(let gy=-1;gy<=ST37H/10+1;gy++)for(let gx=-1;gx<=ST37W/13+1;gx++)seeds.push([gx*13+st37H(gx,gy)%10,gy*10+st37H(gy,gx+5)%8,st37H(gx+7,gy+3)%5]);
+  const near=(x,y)=>{let b=1e9,b2=1e9,bi=0;for(let i=0;i<seeds.length;i++){const [sx,sy]=seeds[i];const dd=(x-sx)**2*.7+(y-sy)**2;if(dd<b){b2=b;b=dd;bi=i;}else if(dd<b2)b2=dd;}return [bi,Math.sqrt(b2)-Math.sqrt(b)];};
+  const F=['#5a5660','#66626c','#706c76','#5e5a66','#7a7680'];const cell=[];for(let y=0;y<ST37H;y++){cell[y]=[];for(let x=0;x<ST37W;x++){const [i,gap]=near(x,y);cell[y][x]=i;let c=F[seeds[i][2]];if(gap<1.1)c='#2a2630';P(x,y,1,1,c);}}
+  for(let y=1;y<ST37H;y++)for(let x=1;x<ST37W;x++){if(cell[y][x]!==cell[y-1][x]&&cell[y-1][x]!==undefined&&near(x,y)[1]>=1.1)P(x,y,1,1,'#8e8a96');else if(cell[y][x]!==cell[y][x-1]&&near(x,y)[1]>=1.1&&st37H(x,y)%2)P(x,y,1,1,'#827e8a');}   // lit upper edge of each facet
+  for(const [x0,y0,l,dx] of [[18,8,26,1],[150,14,30,-1],[160,70,22,1],[24,72,24,-1]])for(let k=0;k<l;k++)P(x0+Math.round(Math.sin(k*.5)*1.5)+Math.round(k*.15*dx),y0+k,1,1,'#221e28');   // longer cracks
+  const cx=88;const fig=(x,y)=>{const head=((x-cx)/8)**2+((y-26)/9)**2<1;const neck=Math.abs(x-cx)<4&&y>=34&&y<38;const body=Math.abs(x-cx)<15-Math.max(0,(y-60)*.2)&&y>=37&&y<78;
+    const armL=Math.abs((x-(cx-26))-(y-44)*.55)<4.5&&y>14&&y<62;const armR=Math.abs((x-(cx+26))+(y-44)*.55)<4.5&&y>14&&y<62;const legL=x>cx-12&&x<cx-2&&y>=76&&y<106;const legR=x>cx+2&&x<cx+12&&y>=76&&y<106;
+    return head||neck||body||armL||armR||legL||legR;};
+  for(let y=0;y<ST37H;y++)for(let x=30;x<150;x++){if(!fig(x,y)){if(fig(x-1,y-1)&&(!fig(x,y-1)||!fig(x-1,y)))P(x,y,1,1,'#d4d0dc');else if(fig(x+1,y+1)&&(!fig(x+1,y)||!fig(x,y+1)))P(x,y,1,1,'#2a2630');continue;}   // the lower lip's outer rim lit; the cut edge above dark
+    let up=0;while(up<6&&fig(x,y-up-1))up++;let lf=0;while(lf<6&&fig(x-lf-1,y))lf++;let dn=0;while(dn<4&&fig(x,y+dn+1))dn++;let rt=0;while(rt<4&&fig(x+rt+1,y))rt++;
+    let col='#262430';if(((x*3+y*7)%19)===0)col='#2e2c36';
+    if(rt<=2&&rt<lf)col=rt===0?'#a8a4b2':rt===1?'#8a8696':'#6e6a7a';   // the right inner wall, lit
+    if(dn<=2&&dn<up)col=dn===0?'#b4b0be':dn===1?'#948f9e':'#76727e';   // the bottom inner wall, lit
+    if(up<=3&&up<=dn)col=up<=1?'#060508':'#0e0c12';   // the shadow under the top lip
+    if(lf<=3&&lf<=rt&&!(dn<=2&&dn<up))col=lf<=1?'#060508':'#100e14';   // and inside the left lip
+    P(x,y,1,1,col);}
+  const scr=(x0,y0,x1,y1,n,sd)=>{for(let f=0;f<n;f++){const o=f*2,l=1-.12*((st37H(f,sd)%4));const ex=x0+o+(x1-x0)*l,ey=y0+(y1-y0)*l;const N=Math.ceil(Math.abs(ey-y0));
+      for(let k=1;k<=N;k++){const qx=Math.round(x0+o+(ex-x0-o)*k/N+(st37H(k>>2,f+sd)%4===0?1:0)),qy=Math.round(y0+(ey-y0)*k/N);if(fig(qx,qy)&&fig(qx+1,qy)){P(qx,qy,1,1,'#a6a2b0');P(qx+1,qy,1,1,'#08060a');}}}};
+  scr(cx-10,44,cx-6,70,4,1);scr(cx+3,48,cx+6,74,3,2);scr(cx-4,20,cx-2,31,3,3);scr(cx-8,82,cx-7,102,2,4);
+  const nails=[[cx+33,26],[cx+37,21],[cx+41,16]];nails.forEach(([nx,ny])=>{st37Line(P,[[nx-8,ny+14],[nx,ny+2]],'#a6a2b0');st37Line(P,[[nx-7,ny+14],[nx+1,ny+2]],'#0a080c');});
+  for(const [nx,ny] of nails){P(nx-2,ny-1,5,4,'#2a0c10');P(nx-1,ny,3,2,'#e8a4a0');P(nx-1,ny,3,1,'#fbe4dc');P(nx+1,ny+1,1,1,'#b86c6c');}});}
+SGT_DRAW.quarry=st37Quarry5;st37Quarry=st37Quarry5;
+// the ring: four shapes of standing stone, not three of one; the straight seam in the clearing's ground hidden under grass
+function st37Stone5(k){const W=[20,24,18,28][k],H=[44,38,50,30][k];return st37Cv(W+4,H+4,(P,g)=>{const lean=[1,-1,0,0][k];
+  for(let y=0;y<H;y++){const t=y/H;let half;if(k===0)half=(W/2-1)*Math.min(1,.35+t*1.6);else if(k===1)half=(W/2-1)*(.62+.38*Math.sin(Math.min(1,t*1.4+.15)*Math.PI*.5));else if(k===2)half=(W/2-1)*(.5+.5*t)+(y<10?-(10-y)*.2:0);else half=(W/2-1)*(.85+.15*t);
+    half+=Math.sin(y*.7+k)*.6;const cx=W/2+2+lean*(1-t)*3;let x0=Math.round(cx-half),x1=Math.round(cx+half);if(k===3&&y<8){x1=Math.round(cx+half-(8-y)*1.4);}if(k===2&&y<6){x0=Math.round(cx-half+(6-y));}
+    for(let x=x0;x<=x1;x++){const u=(x-x0)/Math.max(1,x1-x0);let c=u<.3?'#8a8890':u<.7?'#6a6870':'#4c4a52';if(y<3||(k===3&&x>=x1-1&&y<9))c='#9a98a0';if(st37H(x,y>>1)<6&&u<.7)c='#7a7a6a';P(x,y+1,1,1,c);}}
+  for(let i=0;i<3;i++){const y=6+st37H(k,i)%Math.max(4,H-14);P(4+st37H(i,k)%4,y,2,3,'#7a8a5a');}P(W/2-3,H-1,W-2,2,'#3a383c');st37Outline(g.canvas);});}
+{const iv=setInterval(()=>{try{const ring=OBJ.filter(o=>/^st37_stone\d$/.test(o.spr||''));if(!ring.length)return;clearInterval(iv);
+    for(let k=0;k<4;k++)st37Reg('st37_stone'+k,st37Stone5(k),[12,14,11,16][k],[46,40,52,32][k]);ring.forEach((o,i)=>{o.spr='st37_stone'+(i%4);});
+    for(const [dx,dz] of [[-.5,-1.3],[.35,-.2],[-.2,.9],[.55,1.8],[-.45,2.7],[.15,3.6]]){obj('weeds_'+(Math.abs(Math.round(dz*3))%2),TITHE.x-6+dx,TITHE.z+dz,{kind:'prop',noCol:true});}}catch(e){}},700);}   /* scattered, not in a line */
+// the crash's skid marks: off the road and across the grass to the car's rear wheels, not over the tree
+{const _os=onScreen;onScreen=function(x,z,m){if(x===-56&&z===-5&&m===200)return false;return _os.apply(this,arguments);};}
+{const _mg=mindGround;mindGround=function(){try{if(!S.introDrive&&!S.carFixed&&!S.room&&onScreen(-63,0,260)){ctx2.fillStyle='rgba(0,0,0,.3)';
+      for(const [x0,z0,x1,z1] of [[-67.2,-2.0,-62.2,2.45],[-66.9,-2.35,-61.9,2.12]]){const n=60;for(let i=0;i<=n;i++){const u=i/n,cu=u*u*(3-2*u);const x=x0+(x1-x0)*u+Math.sin(u*Math.PI)*.6,z=z0+(z1-z0)*cu;ctx2.fillRect(Math.round(sx(x))-1,Math.round(sz(z))-1,3,2);}}}}catch(e){}return _mg.apply(this,arguments);};}
+// r5b: the child's print drawn by hand, toes up: a big toe and three small ones apart from the ball, the arch narrow, the heel apart;
+// the mud pushed up round it lit on its upper side, a cold glint of water in the ball and the heel
+{const M=['rr.r.r.','oo.o.o.','.......','.rrrr..','romm mr','rogmmo.','.ommmo.','..omo..','.......','.rrr...','rogmo..','.omo...','..o....'].map(r=>r.replace(' ','m'));
+  const base=st37Cv(7,13,(P)=>{const C={r:'#9a8462',o:'#14100c',m:'#2a2018',g:'#d8ecff'};M.forEach((row,y)=>{for(let x=0;x<7;x++){const ch=row[x];if(C[ch])P(x,y,1,1,C[ch]);}});});
+  for(const [k,rot] of [['N',0],['S',Math.PI],['W',-Math.PI/2],['E',Math.PI/2]])for(const side of [0,1]){const vert=k==='N'||k==='S';const c=document.createElement('canvas');c.width=vert?7:13;c.height=vert?13:7;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+    g.save();g.translate(c.width/2,c.height/2);g.rotate(rot);if(side)g.scale(-1,1);g.drawImage(base,-3.5,-6.5);g.restore();st37Reg('st37_fp'+k+side,c,c.width/2,c.height-1);}}
+// the Tithe clearing: where two chunks of ground meet at x = -32 the dirt's edge ran ruler-straight; break it into a ragged edge
+{const _mg=mindGround;mindGround=function(){const r=_mg.apply(this,arguments);try{if(S.room||!onScreen(-32,TITHE.z+1,120))return r;const X=Math.round(sx(-32)),y0=Math.max(0,Math.round(sz(TITHE.z-2.6))),y1=Math.min(VH-1,Math.round(sz(TITHE.z+5.2)));if(X<8||X>VW-8||y1<=y0)return r;
+    const h=y1-y0+1,src=ctx2.getImageData(X-8,y0,16,h),out=ctx2.createImageData(16,h),a=src.data,b=out.data;
+    for(let y=0;y<h;y++){const off=Math.round((hash(Math.floor((y0+y)/3),7)-.5)*7+(hash(Math.floor((y0+y)/9),3)-.5)*5);for(let x=0;x<16;x++){const sxp=x<8+off?Math.max(0,Math.min(7,x-4)):Math.min(15,Math.max(8,x+4));
+        const i=(y*16+x)*4,j=(y*16+sxp)*4;b[i]=a[j];b[i+1]=a[j+1];b[i+2]=a[j+2];b[i+3]=255;}}
+    ctx2.putImageData(out,X-8,y0);}catch(e){}return r;};}

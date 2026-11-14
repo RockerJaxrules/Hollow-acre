@@ -50,7 +50,16 @@ function u37NeedHTML(r){const parts=[];for(const [k,n] of Object.entries(r.need|
 // ---------------------------------------------------------------- 2 toasts: never on a panel's title; the long "you've started to notice" lines go to the journal
 // (polish337 holds a message while a panel is open; one already showing when a panel opens drops low, clear of its title)
 // a message already up when a panel opens goes back in line and plays again when the panel closes (feedback to a tap stays, low)
-setInterval(()=>{try{const t=ui.toast;if(!t.classList.contains('show')||t.classList.contains('pl37low')||!pl37Busy())return;const msg=t.textContent;if(toastT>.6&&!PL37.q.some(q=>q[0]===msg))PL37.q.unshift([msg,Math.max(1.6,toastT),t.classList.contains('red')]);t.classList.remove('show');toastT=0;}catch(e){}},150);
+// a toast a panel interrupts: one that showed under 0.6 s ago hadn't been read, so it goes back in line; one being read just fades
+// (it is never put back to replay later: an already-read toast coming back after a panel closed was the "old message" flicker)
+const u37TS={msg:'',t:0,was:false};
+function u37ToastAside(){const t=ui.toast;const msg=t.textContent;const now=performance.now();
+  const at=Math.max(msg===u37TS.msg?u37TS.t:now,(typeof PL37!=='undefined'&&PL37.seen&&PL37.seen[msg])||0);
+  if(msg&&now-at<600&&!PL37.q.some(q=>q[0]===msg))PL37.q.unshift([msg,Math.max(1.6,toastT||0),t.classList.contains('red')]);
+  t.classList.remove('show');toastT=0;}
+new MutationObserver(()=>{const t=ui.toast,on=t.classList.contains('show');if(on&&(!u37TS.was||t.textContent!==u37TS.msg)){u37TS.msg=t.textContent;u37TS.t=performance.now();}u37TS.was=on;})
+  .observe(ui.toast,{attributes:true,attributeFilter:['class'],childList:true,characterData:true,subtree:true});
+setInterval(()=>{try{const t=ui.toast;if(!t.classList.contains('show')||t.classList.contains('pl37low')||!pl37Busy())return;u37ToastAside();}catch(e){}},150);
 {const _t=toast;toast=function(msg,dur,red){const s=String(msg||'');let m;
   if((m=s.match(/^You’ve started to notice things about ([^.]+)\./)))return _t.call(this,`You’ve noticed something about ${m[1]}. It’s in your journal.`,2.6,red);
   if((m=s.match(/^Something about ([^ ]+) settles wrong in you\./)))return _t.call(this,`Something about ${m[1]} settles wrong. It’s in your journal.`,2.8,red);
@@ -267,7 +276,7 @@ function u37PlaceLow(){const t=ui.toast;if(!t.classList.contains('show')||!t.cla
   const r=m.getBoundingClientRect(),h=t.offsetHeight||40;t.style.removeProperty('top');t.style.removeProperty('bottom');
   if(innerHeight-r.bottom>h+16){t.style.setProperty('top',(r.bottom+8)+'px','important');t.style.setProperty('bottom','auto','important');}
   else if(r.top>h+16){t.style.setProperty('top',Math.max(8,r.top-h-8)+'px','important');t.style.setProperty('bottom','auto','important');}
-  else{const msg=t.textContent;if(!PL37.q.some(q=>q[0]===msg))PL37.q.unshift([msg,2.4,t.classList.contains('red')]);t.classList.remove('show');toastT=0;}}
+  else u37ToastAside();}
 setInterval(u37PlaceLow,120);
 // ---- 2/8 every book and panel keeps its way out on screen: the page scrolls, the buttons stay, with the "more below" cue
 {const css=document.createElement('style');css.textContent=`
@@ -584,7 +593,7 @@ setInterval(()=>{for(const id of ['bag','shop','note','craft']){const e=document
 // in line (never painted for a frame and then pulled)
 {let busyFix=false;new MutationObserver(()=>{if(busyFix)return;const t=ui.toast;if(!t.classList.contains('show'))return;busyFix=true;try{
     if(pl37Busy()){if(t.classList.contains('pl37low')&&performance.now()-PL37.lastIn<600)u37PlaceLow();
-      else{const msg=t.textContent;if(!PL37.q.some(q=>q[0]===msg))PL37.q.unshift([msg,Math.max(1.6,toastT||0),t.classList.contains('red')]);t.classList.remove('show');toastT=0;}}}
+      else u37ToastAside();}}
   catch(e){}finally{busyFix=false;}}).observe(ui.toast,{attributes:true,attributeFilter:['class'],childList:true,characterData:true,subtree:true});}
 
 // ================================================================ iPhone portrait: every panel fits, its way out is on screen, clear of the notch and
@@ -638,9 +647,7 @@ setInterval(()=>{for(const id of ['bag','shop','note','craft']){const e=document
 // the open tab slides into view
 
 // on a phone a message card waits while a panel fills the screen, then slides in when it shuts (it used to lie across the rows)
-{const _bn=banner;const q=[];const big=()=>innerWidth<600&&['bag','shop','note','craft','talk'].some(id=>pl37Vis(id));
-  banner=function(){if(big()){q.push([...arguments]);return;}return _bn.apply(this,arguments);};
-  setInterval(()=>{if(q.length&&!big())_bn.apply(null,q.shift());},400);}
+/* the phone message card's hold lives in round 7 (u37 banner hold) */
 {const css=document.createElement('style');css.textContent='@media (max-width:600px){#bag>.acts button{font-size:12px!important;padding:4px 6px!important;line-height:1.15!important}}';document.head.appendChild(css);}
 
 // ================================================================ round 6 (judge r5): phones, the choice dialog, the calendar's red pen, hearts
@@ -692,8 +699,6 @@ setInterval(()=>{for(const id of ['bag','shop','note','craft']){const e=document
   /* multiplayer sits in the middle of the screen */
   #mpScr{justify-content:center!important}
   /* the low-fields map: twice the size, slides sideways, labels you can read */
-  #noteText .u37mapwrap{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;max-width:100%}
-  #noteText svg[viewBox^="-66 "]{width:560px!important;max-width:none!important;height:auto!important}
 }`;document.head.appendChild(css);}
 // the choice dialog's way out always has words on it
 if(typeof dkChoose==='function'){const _dk=dkChoose;dkChoose=function(html,opts,cancel,onCancel){return _dk.call(this,html,opts,typeof cancel==='string'&&cancel?cancel:'Not now',onCancel);};}
@@ -716,20 +721,19 @@ setInterval(()=>{const p=document.querySelector('#shop:not([hidden]) .u37purse s
 setInterval(()=>{const bar=document.querySelector('#bagBody .invbar');if(!bar)return;for(const id of ['bagWard','bagDye']){const b=document.getElementById(id);if(b&&b.parentElement!==bar){const host=b.parentElement;bar.appendChild(b);if(host&&host!==bar&&!host.children.length&&!host.textContent.trim())host.remove();}}
   if(innerWidth<600)for(const t of document.querySelectorAll('#bagBody *')){if(t.children.length===0&&/the top row is your toolbar/.test(t.textContent))t.textContent=t.textContent.replace('the top row is your toolbar','the light slots are your toolbar');}},250);
 // the low-fields map slides sideways on a phone
-setInterval(()=>{const sv=document.querySelector('#noteText svg[viewBox^="-66 "]');if(!sv||sv.parentElement.classList.contains('u37mapwrap'))return;const w=document.createElement('div');w.className='u37mapwrap';sv.before(w);w.appendChild(sv);},300);
 // the leave-full-screen X sits below the HUD's coin box, and steps aside while a panel fills the phone
-setInterval(()=>{const x=document.getElementById('fsX');if(!x||x.style.display==='none')return;if(innerWidth>=600){x.style.removeProperty('top');x.style.removeProperty('visibility');return;}
+setInterval(()=>{const x=document.getElementById('fsX');if(!x||x.style.display==='none')return;if(innerWidth>=600){if(x.style.top)x.style.removeProperty('top');const v=typeof u37XHide==='function'&&u37XHide()?'hidden':'';if(x.style.visibility!==v)x.style.visibility=v;return;}
   const busy=['bag','shop','note','craft','talk','cheatBox'].some(id=>{const e=document.getElementById(id);return e&&(id==='cheatBox'?e.classList.contains('on'):pl37Vis(id));});
-  x.style.visibility=busy?'hidden':'';const hud=document.getElementById('hud');let top=null;
+  {const v=busy||(typeof u37XHide==='function'&&u37XHide())?'hidden':'';if(x.style.visibility!==v)x.style.visibility=v;}const hud=document.getElementById('hud');let top=null;
   if(hud&&getComputedStyle(hud).visibility!=='hidden'){let b=0;for(const e of hud.querySelectorAll('*')){const r=e.getBoundingClientRect();if(r.width>0&&r.right>innerWidth-60&&r.top<innerHeight/3)b=Math.max(b,r.bottom);}if(b)top=Math.round(b+6)+'px';}
-  if(top)x.style.setProperty('top',top,'important');else x.style.removeProperty('top');},400);
+  if(top){if(x.style.top!==top)x.style.setProperty('top',top,'important');}else if(x.style.top)x.style.removeProperty('top');},400);
 // settings worded for the device in your hand
 setInterval(()=>{const d=document.getElementById('dispPick');if(!d||d.offsetParent===null||!matchMedia('(pointer:coarse)').matches)return;
   for(const t of d.querySelectorAll('small,.dnote')){let v=t.textContent;const o=v;v=v.replace(/\(Windows\/Mac scaling (\d+)%\)/,(m,p)=>`(${Math.round(p/100)}× sharp screen)`).replace(/older computer/g,'older phone').replace(/scaled to fill the window/g,'scaled to fill the screen').replace(/^A browser can’t change your screen, so a/,'A');if(v!==o)t.textContent=v;}},400);
 // "more below" above a pinned way out (settings, the creator)
 function u37MoreCue(scroller,foot){if(!scroller||!foot)return;let c=foot.querySelector(':scope>.u37mcue');if(!c){c=document.createElement('div');c.className='u37mcue';c.innerHTML='<span>more below</span>'+U37_ARROW;foot.prepend(c);}
   c.classList.toggle('on',scroller.scrollHeight-scroller.scrollTop-scroller.clientHeight>12);}
-setInterval(()=>{const d=document.getElementById('dispPick');if(d&&getComputedStyle(d).display!=='none'&&innerWidth<600){const f=d.querySelector('#dispClose')||[...d.querySelectorAll('.btn')].pop();if(f&&f.parentElement){let w=f.parentElement.querySelector(':scope>.u37dfoot');
+setInterval(()=>{const d=document.getElementById('dispPick');if(d&&getComputedStyle(d).display!=='none'&&innerWidth<600){const f=d.querySelector('#dispClose')||[...d.querySelectorAll('.btn')].pop();if(f&&f.parentElement){let w=f.parentElement.classList.contains('u37dfoot')?f.parentElement:f.parentElement.querySelector(':scope>.u37dfoot');
       if(!w){w=document.createElement('div');w.className='u37dfoot';w.style.cssText='position:sticky;bottom:0;z-index:3;background:#2c1a0e;padding-top:4px';f.before(w);w.appendChild(f);}u37MoreCue(d,w);}}
   const cr=document.getElementById('creator');if(cr&&cr.offsetParent!==null&&innerWidth<600)u37MoreCue(cr,cr.querySelector('.cbtns'));},300);
 // festival results: a place with no medal still lines up with the medalled names
@@ -756,9 +760,6 @@ setInterval(()=>{const d=document.getElementById('dispPick');if(!d||getComputedS
   if(!(innerWidth<600||matchMedia('(pointer:coarse)').matches))return;
   for(const t of d.querySelectorAll('small,.dnote')){let v=t.textContent;const o=v;v=v.replace(/\(Windows\/Mac scaling (\d+)%\)/,(m,p)=>`(${Math.round(p/100)}× sharp screen)`).replace(/older computer/g,'older phone').replace(/scaled to fill the window/g,'scaled to fill the screen').replace(/^A browser can’t change your screen, so a/,'A');if(v!==o)t.textContent=v;}},300);
 // a message card already up when a panel fills the phone steps out and comes back when the panel shuts
-{let last=null;const _bn2=banner;banner=function(){last=[...arguments];return _bn2.apply(this,arguments);};
-  setInterval(()=>{if(innerWidth>=600)return;const mb=document.getElementById('mindBanner');if(!mb||!mb.classList.contains('on'))return;
-    if(['bag','shop','note','craft','talk'].some(id=>pl37Vis(id))){mb.classList.remove('on');if(last){const a=last;last=null;const wait=setInterval(()=>{if(!['bag','shop','note','craft','talk'].some(id=>pl37Vis(id))){clearInterval(wait);banner.apply(null,a);}},400);}}},150);}
 
 // ================================================================ round 7 (judge r6)
 // something on a phone that holds the screen: a panel, or the code box
@@ -778,30 +779,43 @@ function u37PhoneHeld(){return ['bag','shop','note','craft','talk'].some(id=>pl3
   /* the calendar: seven columns that fit, no sideways slide */
   #bagBody .u37calwrap{overflow:visible!important}
   #bagBody div[style*="repeat(7"]{min-width:0!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:2px!important}
-  #bagBody div[style*="repeat(7"]>div{min-width:0!important;padding:2px 1px!important;overflow-wrap:anywhere;word-break:break-word}
+  #bagBody div[style*="repeat(7"]>div{min-width:0!important;padding:2px 1px!important;overflow-wrap:break-word;word-break:normal;hyphens:manual;-webkit-hyphens:manual}
   #bagBody div[style*="repeat(7"]>div:not(.u37pen) *{font-size:10px!important;line-height:1.15!important}
   /* thumb-sized, with room to spare */
   #shop button,#craft button,#bag .acts button,#bag .tabs button,#note .acts button,#talk .acts button,#cheatBox button,#mg4Skip{min-height:48px!important}
   #sndBtn.inhud svg,#dispBtn.inhud svg{width:24px!important;height:24px!important}
-  #sndBtn.inhud,#dispBtn.inhud{min-width:44px!important;min-height:44px!important}
+  #sndBtn.inhud,#dispBtn.inhud{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;top:0!important;display:flex!important;align-items:center;justify-content:center;padding:0!important}
+  #sndBtn.inhud{right:2px!important}#dispBtn.inhud{right:48px!important}
   /* settings on the title: the footer line steps aside while the panel is open */
   body.u37disp #title .small{visibility:hidden}
 }`;document.head.appendChild(css);}
-// the code box holds message cards too (on a phone a card used to lie across it)
-setInterval(()=>{if(innerWidth>=600)return;const mb=document.getElementById('mindBanner');const cb=document.getElementById('cheatBox');if(mb&&mb.classList.contains('on')&&cb&&cb.classList.contains('on'))mb.classList.remove('on');},150);
-{const _bn=banner;banner=function(){if(innerWidth<600&&u37PhoneHeld()){const a=[...arguments];const w=setInterval(()=>{if(!u37PhoneHeld()){clearInterval(w);_bn.apply(null,a);}},400);return;}return _bn.apply(this,arguments);};}
+// u37 banner hold: on a phone a message card never lies across a panel or the code box. One that arrives while something is open waits;
+// one already showing steps out and comes back once when the screen is clear (only if it had time left), never in a loop
+{const _bn=banner;let pend=null,cur=null;const held=()=>innerWidth<600&&u37PhoneHeld();
+  banner=function(){const a=[...arguments];if(held()){pend={a,again:false};return;}cur={a,t:performance.now(),again:false};return _bn.apply(this,arguments);};
+  setInterval(()=>{const mb=document.getElementById('mindBanner');
+    if(held()){if(mb&&mb.classList.contains('on')){mb.classList.remove('on');if(cur&&!cur.again&&performance.now()-cur.t<3600)pend={a:cur.a,again:true};cur=null;}return;}
+    if(pend){const p=pend;pend=null;cur={a:p.a,t:performance.now(),again:p.again};_bn.apply(null,p.a);}},150);}
 // the leave-full-screen X: not on the title or in the creator (they have their own full-screen button), and on a phone not over a toast or message card
-setInterval(()=>{const x=document.getElementById('fsX');if(!x)return;const cr=document.getElementById('creator');
-  const title=(typeof S!=='undefined'&&S.mode==='title')||(cr&&getComputedStyle(cr).display!=='none');
-  const over=innerWidth<600&&((ui.toast&&ui.toast.classList.contains('show'))||(document.getElementById('mindBanner')||{classList:{contains:()=>false}}).classList.contains('on'));
-  if(title||over)x.style.setProperty('visibility','hidden','important');else if(x.style.getPropertyValue('visibility')==='hidden'&&!u37PhoneHeld())x.style.removeProperty('visibility');},150);
+function u37XHide(){const cr=document.getElementById('creator');if((typeof S!=='undefined'&&S.mode==='title')||(cr&&getComputedStyle(cr).display!=='none'))return true;
+  if(innerWidth>=600)return false;const t=ui.toast;if(t&&(t.classList.contains('show')||+getComputedStyle(t).opacity>.05))return true;
+  const mb=document.getElementById('mindBanner');return !!mb&&mb.classList.contains('on');}
+// the code box holds toasts like the other panels
+PL37.modal.push('cheatBox');
 // settings open on a phone: mark the page so the title's footer line steps aside
 setInterval(()=>{const d=document.getElementById('dispPick');document.body.classList.toggle('u37disp',!!d&&getComputedStyle(d).display!=='none');},300);
 // the journal tab opens the journal book, so the backpack never shows an empty page
 {const _ob=openBag;openBag=function(tab){if(tab==='journal'&&typeof openJournal==='function'){const b=document.getElementById('bag');if(b){b.hidden=true;}S.paused=false;return openJournal();}return _ob.apply(this,arguments);};}
 // calendar on a phone: a birthday is the cake and the name; the word "birthday" goes
 setInterval(()=>{if(innerWidth>=600)return;const b=document.getElementById('bagBody'),bag=document.getElementById('bag');if(!b||!bag||bag.hidden||!/^Calendar/.test(((bag.querySelector('h2')||{}).textContent||'').trim()))return;
-  const tw=document.createTreeWalker(b,NodeFilter.SHOW_TEXT);let t;const hit=[];while((t=tw.nextNode()))if(/\sbirthday\s*$/.test(t.nodeValue))hit.push(t);for(const n of hit)n.nodeValue=n.nodeValue.replace(/\sbirthday\s*$/,'');},300);
+  const tw=document.createTreeWalker(b,NodeFilter.SHOW_TEXT);let t;const hit=[];while((t=tw.nextNode()))if(t.parentElement&&t.parentElement.closest('div[style*="repeat(7"]'))hit.push(t);
+  for(const n of hit){let v=n.nodeValue.replace(/(\u2019s|'s)?\s+birthday\s*$/,'');
+    /* a long word breaks at a syllable join with a hyphen, never "Lanter-n": a soft hyphen between the two consonants nearest the middle */
+    v=v.replace(/[A-Za-z]{7,}/g,w=>{if(w.includes('\u00ad'))return w;const m=w.length/2;let best=-1;const dg=i=>/^(th|sh|ch|ck|ng|ph|gh|wh)$/i.test(w[i-1]+w[i]);
+      for(let i=2;i<w.length-2;i++){if(!/[aeiouy]/i.test(w[i-1])&&!/[aeiouy]/i.test(w[i])&&w[i-1]!==w[i].toLowerCase()&&!dg(i)&&(best<0||Math.abs(i-m)<=Math.abs(best-m)))best=i;}
+      if(best<0)for(let i=3;i<w.length-1;i++)if(dg(i-1)&&/[aeiouy]/i.test(w[i-3])){best=i;break;}
+      if(best<0)best=Math.ceil(m);return w.slice(0,best)+'\u00ad'+w.slice(best);});
+    if(v!==n.nodeValue)n.nodeValue=v;}},300);
 // a locked choice keeps its button: greyed, named, with the lock and the reason
 if(typeof dkChoose==='function'){const _dk2=dkChoose;dkChoose=function(html,opts,cancel,onCancel){const r=_dk2.apply(this,arguments);try{const n=document.getElementById('noteText');const locked=(opts||[]).filter(o=>o&&o.ok===false);
     const subs=[...n.querySelectorAll('.jsub')].filter(j=>/^\s*(🔒|$)/.test(j.textContent)||j.querySelector('.u37g'));
@@ -810,7 +824,19 @@ if(typeof dkChoose==='function'){const _dk2=dkChoose;dkChoose=function(html,opts
 // the bench on a phone: Make sits in a pinned foot with a "more below" cue above it
 setInterval(()=>{if(innerWidth>=600)return;const m=document.getElementById('crMake'),body=document.querySelector('#craft .cbody');if(!m||!body||!m.offsetParent)return;
   let f=m.parentElement;if(!f.classList.contains('u37cfoot')){f=document.createElement('div');f.className='u37cfoot';m.before(f);f.appendChild(m);}u37MoreCue(body,f);},250);
-// map labels at the text's size, whatever the map is scaled to (they were 3-4 px on a phone)
-setInterval(()=>{for(const sv of document.querySelectorAll('#noteText svg')){const ts=sv.querySelectorAll('text');if(ts.length<3)continue;const vb=sv.viewBox&&sv.viewBox.baseVal;if(!vb||!vb.width)continue;
-    const w=sv.getBoundingClientRect().width;if(!w)continue;const sc=w/vb.width;const key=sc.toFixed(3);if(sv.dataset.u37s===key)continue;sv.dataset.u37s=key;sv.style.overflow='visible';
-    for(const t of ts){if(!t.dataset.u37f)t.dataset.u37f=parseFloat(getComputedStyle(t).fontSize)||4;const want=Math.max(+t.dataset.u37f,10/sc);t.style.setProperty('font-size',want+'px','important');}}},400);
+// farm-book maps on a phone: drawn at the scale where their own labels are 10 px (they were 3-4 px), in a frame you drag sideways,
+// with the box widened so a label at the edge (MILL RD, TOWN) is never cut
+{const css=document.createElement('style');css.textContent=`@media (max-width:600px),(pointer:coarse) and (orientation:portrait){
+  #noteText .u37mapwrap{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;max-width:100%;box-shadow:inset 0 0 0 2px #8a6a40}
+  #noteText .u37mapwrap>svg{max-width:none!important;max-height:none!important;display:block}
+  #noteText .u37pan{text-align:center;font-size:10px;color:#7a5a30;margin:3px 0 6px;letter-spacing:.04em}}`;document.head.appendChild(css);}
+function u37FitMaps(){if(innerWidth>=600)return;for(const sv of document.querySelectorAll('#noteText svg')){if(sv.dataset.u37m)continue;const ts=[...sv.querySelectorAll('text')];if(ts.length<3)continue;
+    const vb=sv.viewBox&&sv.viewBox.baseVal;if(!vb||!vb.width||!sv.getBoundingClientRect().width)continue;sv.dataset.u37m='1';
+    let L=vb.x,R=vb.x+vb.width,T=vb.y,B=vb.y+vb.height;const x0=vb.x,x1=vb.x+vb.width,y0=vb.y,y1=vb.y+vb.height;for(const t of ts){try{const b=t.getBBox();if(b.x>x1||b.x+b.width<x0||b.y>y1||b.y+b.height<y0)continue;/* only a label the edge cuts */
+      L=Math.max(x0-16,Math.min(L,b.x-1));R=Math.min(x1+16,Math.max(R,b.x+b.width+1));T=Math.max(y0-8,Math.min(T,b.y-1));B=Math.min(y1+8,Math.max(B,b.y+b.height+1));}catch(e){}}
+    sv.setAttribute('viewBox',[L,T,R-L,B-T].map(v=>+v.toFixed(2)).join(' '));
+    const sz=ts.map(t=>parseFloat(getComputedStyle(t).fontSize)||3).sort((a,b)=>a-b);const med=sz[sz.length>>1];
+    let w=sv.parentElement.classList.contains('u37mapwrap')?sv.parentElement:null;if(!w){w=document.createElement('div');w.className='u37mapwrap';sv.before(w);w.appendChild(sv);}
+    const W=Math.round((R-L)*10/med);sv.style.setProperty('width',W+'px','important');sv.style.setProperty('height',Math.round(W*(B-T)/(R-L))+'px','important');sv.style.setProperty('max-height','none','important');
+    if(W>w.clientWidth+8&&!(w.nextElementSibling&&w.nextElementSibling.classList.contains('u37pan'))){const c=document.createElement('div');c.className='u37pan';c.textContent='\u2190 drag the map to see it all \u2192';w.after(c);}}}
+{const nt=document.getElementById('noteText');if(nt)new MutationObserver(u37FitMaps).observe(nt,{childList:true,subtree:true});setInterval(u37FitMaps,300);}

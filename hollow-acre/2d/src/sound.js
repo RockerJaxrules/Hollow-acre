@@ -46,5 +46,5 @@ function sndPick(){const p=$('sndPick');const m=sndMode();
   // in the HUD's corner panel during play, on the title screen at the top left, hidden while a menu or scene is up
   const sync=()=>{const onTitle=!$('title').hidden||($('creator')&&!$('creator').hidden);const stat=$('stat');
     if(onTitle){b.className='title';if(b.parentElement!==document.body)document.body.appendChild(b);b.style.display='flex';return;}
-    b.className='inhud';if(stat&&b.parentElement!==stat)stat.appendChild(b);b.style.display=(S.paused||S.mode!=='play')&&$('sndPick').style.display!=='block'?'none':'flex';};
+    if(b.className!=='inhud')b.className='inhud';if(stat&&b.parentElement!==stat)stat.appendChild(b);{const _d=(S.paused||S.mode!=='play')&&$('sndPick').style.display!=='block'?'none':'flex';if(b.style.display!==_d)b.style.display=_d;}};  /* (t349) write only on change */
   setInterval(sync,300);sync();}

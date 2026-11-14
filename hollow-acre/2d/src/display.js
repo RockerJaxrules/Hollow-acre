@@ -85,7 +85,7 @@ function dispPick(){const p=$('dispPick');const s=dispScreen(),d=window.devicePi
     if(onTitle){b.className='title';if(b.parentElement!==document.body)document.body.appendChild(b);b.style.display='flex';
       const sb=$('sndBtn'),tu=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--tu'))||1;
       const r=sb&&sb.style.display!=='none'?sb.getBoundingClientRect():null;b.style.left=r&&r.width>0?Math.round((r.right+8*tu)/tu)+'px':'12px';return;}   // (offsetParent is always null for a fixed button)
-    b.className='inhud';b.style.left='';if(stat&&b.parentElement!==stat)stat.appendChild(b);b.style.display=(S.paused||S.mode!=='play')&&$('dispPick').style.display!=='block'?'none':'flex';};
+    if(b.className!=='inhud')b.className='inhud';if(b.style.left)b.style.left='';if(stat&&b.parentElement!==stat)stat.appendChild(b);{const _d=(S.paused||S.mode!=='play')&&$('dispPick').style.display!=='block'?'none':'flex';if(b.style.display!==_d)b.style.display=_d;}};  /* (t349) write only on change */
   setInterval(sync,300);sync();}
 // apply what was chosen last time (full screen needs a click, so a browser asks again with the next one)
 setTimeout(()=>{dispApply();if(DESK&&DESK.setFullScreen&&DISP.mode==='full')DESK.setFullScreen(true);},50);

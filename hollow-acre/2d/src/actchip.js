@@ -22,7 +22,7 @@
     const it=pick();if(!it||!it.story||(typeof it.story==='function'&&!it.story()))return '';
     try{return String(typeof it.label==='function'?it.label():it.label||'');}catch(e){return '';}};
   setInterval(()=>{const L=show();if(L!==cur){cur=L;el.querySelector('.l').textContent=L;}
-    const fine=fineP();el.classList.toggle('tap',!fine);el.querySelector('.k').textContent=fine?'X':'✋';el.style.display=L?'flex':'none';},120);
+    const fine=fineP();if(el.classList.contains('tap')===fine)el.classList.toggle('tap',!fine);const _k=el.querySelector('.k');if(_k.dataset.v!==String(fine)){_k.dataset.v=String(fine);_k.textContent=fine?'X':'✋';}const _d=L?'flex':'none';if(el.style.display!==_d)el.style.display=_d;},120);  /* (t349) write only on change */
   const pos=()=>{if(cur){const r=view.getBoundingClientRect();const X=sx(P.x),Y=sz(P.z)-58;el.style.left=Math.round(r.left+X*r.width/VW)+'px';el.style.top=Math.round(r.top+Y*r.height/VH)+'px';}requestAnimationFrame(pos);};pos();}
 // the tag is gone for good: nothing pops up over your head when you can use something. X (or the Use button on a phone) still
 // works on whatever you're facing, and the goal bar and its arrow still point you to the story's moments.
