@@ -41,3 +41,14 @@ Research the best tools for Claude to make really good-looking, realistic, high-
   - You inherit your grandmother's mining company after she goes missing.
   - You uncover the secret of the lost miners.
   - Driving up to check on it, you run into the creature, a yeti-like thing, which rams your vehicle almost off the mountain.
+
+## Engine decision (owner): Part 2 moves to Unreal Engine
+- Part 2 (realistic first-person survival horror) is built in Unreal Engine 5, as a native app for PC, Mac, iPhone and
+  Android.
+- Part 1 is also included in that app (the web game runs inside it), and Part 1 always stays playable in the browser
+  as it is now. The save and character carry over from Part 1 into Part 2.
+- Unreal runs on the owner's own PC. This cloud session drives it through Remote Control (a folder on the PC served
+  by the Claude desktop app). iPhone builds need the owner's Mac with Xcode and an Apple developer account. Android
+  builds run on the PC with the Android SDK.
+- Blender stays the modelling tool (tools/b3d). Models export as FBX to Unreal.
+- The three.js Part 2 test page (2d/p2) is frozen as a prototype.
