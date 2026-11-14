@@ -40,6 +40,14 @@ def hand_and_nails(lvl, detail, suffix='', relief=1.0):
     V = verts(hand); N = vnormals(hand); hgt = np.zeros(len(V))
     if detail:
         dout = {}; hgt = hands.detail(V, N, H, out=dout); V = V + N * (hgt * relief)[:, None]; set_verts(hand, V)
+    # under the sleeve the forearm slims a little (never seen), so no sleeve type's cuff can be pierced by it
+    Fc = np.array(H['fore']); ys = V[:, 1]; k = sstep(-2.4, -4.0, ys) * .14
+    if k.max() > 0:
+        seg = Fc[1:] - Fc[:-1]; best = np.full(len(V), 1e9); proj = np.zeros_like(V)
+        for p0, dv in zip(Fc[:-1], seg):
+            t = np.clip(((V - p0) @ dv) / (dv @ dv), 0, 1); q = p0 + t[:, None] * dv; dd = np.linalg.norm(V - q, axis=1)
+            m = dd < best; best[m] = dd[m]; proj[m] = q[m]
+        V = proj + (V - proj) * (1 - k)[:, None]; set_verts(hand, V)
     # flush: fingertips, knuckles, the skin round the nails, the heel of the hand; crease from the wrinkle valleys
     fl = np.zeros(len(V)); f = H['fingers']
     for n in hands.ORDER:
@@ -134,8 +142,8 @@ _PS = np.linspace(-.004, SLEN, 900); _PP = np.array([path(max(s, 0)) + (nrm(path
 # (start of the sleeve above the wrist (m), cuff-end profile [(s, half width, half thickness)], fold strength, extra bulk)
 FOLD_K = 1.0
 SLEEVES = {'woven':  (.02, [(0., .036, .026), (.03, .038, .028), (.08, .042, .032), (.14, .045, .036)], 1.0, 0.),      # shirt: buttoned cuff band
-           'knit':   (.015, [(0., .030, .021), (.012, .031, .022), (.03, .039, .029), (.07, .044, .034), (.14, .046, .037)], .55, 0.),   # ribbed cuff gathered at the wrist
-           'hoodie': (.015, [(0., .033, .024), (.012, .034, .025), (.03, .044, .034), (.07, .049, .039), (.14, .051, .042)], .6, .004),
+           'knit':   (.015, [(0., .033, .024), (.012, .034, .025), (.03, .040, .030), (.07, .044, .034), (.14, .046, .037)], .55, 0.),   # ribbed cuff gathered at the wrist
+           'hoodie': (.015, [(0., .036, .027), (.012, .037, .028), (.03, .045, .035), (.07, .049, .039), (.14, .051, .042)], .6, .004),
            'jacket': (.02, [(0., .040, .031), (.04, .043, .034), (.1, .047, .038), (.15, .049, .040)], 1.25, .003),   # canvas, hemmed, stiffer folds
            'coat':   (.045, [(0., .046, .037), (.05, .049, .040), (.12, .052, .044), (.16, .054, .047)], .7, .008)}   # wool, wide, ends above the wrist bone
 def set_sleeve(kind):

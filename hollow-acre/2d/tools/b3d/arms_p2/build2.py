@@ -145,7 +145,7 @@ def light(nm, kind, loc, tgt, energy, size, col):
     else: ld.shadow_soft_size = size
     lo = A.link(bpy.data.objects.new(nm, ld)); lo.location = Vector(S.B(loc)); lo.rotation_euler = (Vector(S.B(tgt)) - lo.location).to_track_quat('-Z', 'Y').to_euler()
 light('windscreen', 'AREA', np.array([-.36, 1.42, -1.05]), np.array([-.36, .98, -.45]), 2.4, 1.0, (.62, .72, 1.0))      # smaller: the rim throws a readable shadow across the fingers
-light('gauges', 'AREA', np.array([-.36, .93, -.68]), np.array([-.36, 1.02, -.38]), .95, .22, (1.0, .55, .25))         # warm glow on the lower edges of the hands
+light('gauges', 'AREA', np.array([-.36, .9, -.66]), np.array([-.36, 1.0, -.4]), .6, .22, (1.0, .55, .25))         # warm glow on the lower edges of the hands
 light('sidefill', 'AREA', np.array([-.9, 1.35, -.1]), np.array([-.36, .95, -.45]), .35, 1.0, (.5, .58, .75))
 w = bpy.data.worlds.new('w'); sc.world = w; w.use_nodes = True; w.node_tree.nodes['Background'].inputs['Color'].default_value = (.002, .003, .006, 1)
 phone = os.environ.get('VIEW', 'desk') == 'phone'

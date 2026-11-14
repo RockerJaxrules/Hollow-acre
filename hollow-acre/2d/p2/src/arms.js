@@ -4,7 +4,7 @@
 //   fingers close until they meet it and the thumb lies along the rim toward 12 (solved in Blender), the arm reaches by
 //   two-bone IK from the shoulder, the forearm shares the hand's roll, and on hard turns each hand lets go and takes
 //   a new hold further round (never both at once).
-import { Group, Vector3, Vector2, Matrix4, Quaternion, Color, MeshStandardMaterial, TextureLoader, NoColorSpace, ShaderChunk, MathUtils, LinearFilter, LinearMipmapLinearFilter } from 'three';
+import { Group, Vector3, Vector2, Matrix4, Quaternion, Color, MeshStandardMaterial, MeshPhysicalMaterial, TextureLoader, NoColorSpace, ShaderChunk, MathUtils, LinearFilter, LinearMipmapLinearFilter } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as skClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import RIG from './arm_rig.json';
@@ -17,6 +17,7 @@ const WC = V3(RIG.WC), AXIS = V3(RIG.AXIS).normalize(), SH = V3(RIG.SH), ELB = V
 const ND = V3(RIG.ND), XH = V3(RIG.XH), L_UP = RIG.L_UP, L_FORE = RIG.L_FORE, O_RIM = V3(RIG.O), GX = V3(RIG.GX).normalize();
 const SIDES = ['L', 'R'];
 const SPREAD_AX = V3(RIG.spreadAxis).normalize();
+const POLES = { L: V3(RIG.hands.L.pole).normalize(), R: V3(RIG.hands.R.pole).normalize() };
 const HD = { L: new Matrix4().fromArray(RIG.hands.L.hand).transpose(), R: new Matrix4().fromArray(RIG.hands.R.hand).transpose() };
 const FINGERS = ['index', 'middle', 'ring', 'pinky'];
 
@@ -37,7 +38,7 @@ const LIGHTS = 'float armSkin = 0.0; float armCloth = 0.0; vec3 armWrap = vec3( 
   .replace('reflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );',
     'reflectedLight.directDiffuse += mix( irradiance, wrapI, armSkin ) * BRDF_Lambert( material.diffuseColor );\n' +
     // fake scatter: a warm red band where the light turns away (the terminator), as light leaks through skin
-    '\treflectedLight.directDiffuse += armSkin * rsh * vec3( .2, .045, .025 ) * ( smoothstep( -.3, .05, ndlA ) - smoothstep( .05, .45, ndlA ) ) * directLight.color * BRDF_Lambert( material.diffuseColor ) * 3.0;\n' +
+    '\treflectedLight.directDiffuse += armSkin * rsh * vec3( .16, .035, .02 ) * ( smoothstep( -.3, .05, ndlA ) - smoothstep( .05, .45, ndlA ) ) * directLight.color * BRDF_Lambert( material.diffuseColor ) * 1.4;\n' +
     '\treflectedLight.directSpecular += armCloth * armSheen * pow( 1.0 - saturate( dot( geometryNormal, geometryViewDir ) ), 3.0 ) * saturate( ndlA + 0.5 ) * directLight.color * rsh;');
 const FRAG_HEAD = `
 uniform sampler2D dataMap; uniform vec3 skinCol; uniform vec3 clothCol; uniform float pattern; uniform float squeeze; uniform float sleeveType;
@@ -62,7 +63,9 @@ vec3 clothPattern( vec2 c ) {
 }
 `;
 function armMaterial(maps, look, mirrored) {
-  const m = new MeshStandardMaterial({ normalMap: maps.n, normalScale: new Vector2(.45, mirrored ? -.45 : .45), roughness: .5, metalness: 0 });
+  // physical, with a soft sheen (the fine hairs and oil on skin catch grazing light), normals at full strength
+  const m = new MeshPhysicalMaterial({ normalMap: maps.n, normalScale: new Vector2(1, mirrored ? -1 : 1), roughness: .5, metalness: 0,
+    sheen: .35, sheenRoughness: .55, sheenColor: new Color(look.skin).multiplyScalar(.6), specularIntensity: .9 });
   const U = {
     dataMap: { value: maps.d }, skinCol: { value: new Color(look.skin) }, clothCol: { value: new Color(look.sleeve) },
     pattern: { value: PATTERN[look.pattern] ?? 0 }, sleeveType: { value: SLEEVE_TYPE[look.sleeveType] ?? 0 }, ringOn: { value: !mirrored && look.married ? 1 : 0 }, squeeze: { value: 0 },
@@ -122,7 +125,7 @@ function armMaterial(maps, look, mirrored) {
           }
           normal = normalize( normal - ( T * g.x + B * g.y ) * inv );
         }`)
-      .replace('#include <aomap_fragment>', '#include <aomap_fragment>\nfloat rimAO = mix( .5, 1.0, smoothstep( .0, .022, rimDist( geometryPosition ) ) );\nreflectedLight.indirectDiffuse *= armAO * rimAO; reflectedLight.indirectSpecular *= armAO * rimAO; reflectedLight.directDiffuse *= mix( 1.0, armAO, .35 );');
+      .replace('#include <aomap_fragment>', '#include <aomap_fragment>\nfloat rimAO = mix( .28, 1.0, smoothstep( .0, .028, rimDist( geometryPosition ) ) );\nreflectedLight.indirectDiffuse *= armAO * rimAO; reflectedLight.indirectSpecular *= armAO * rimAO; reflectedLight.directDiffuse *= mix( 1.0, armAO, .35 ) * mix( 1.0, rimAO, .6 );');
   };
   return m;
 }
@@ -208,7 +211,7 @@ export function makeArms({ parent, mirrorX, look, url = 'arm.glb' }) {
     D.hand.copy(Dh);
     // the arm reaches for the wrist
     Wp.copy(W).applyMatrix4(Dh); Sp.copy(SH).add(extra.shoulder);
-    ik(Sp, Wp, L_UP, L_FORE, POLE, Ep);
+    ik(Sp, Wp, L_UP, L_FORE, POLES[A.side], Ep);
     q1.setFromUnitVectors(d0.copy(ELB).sub(SH).normalize(), d1.copy(Ep).sub(Sp).normalize()); rigid(D.upper, q1, SH, Sp);
     q1.setFromUnitVectors(d0.copy(W).sub(ELB).normalize(), d1.copy(Wp).sub(Ep).normalize());
     xh.copy(XH).transformDirection(Dh); xf.copy(XH).applyQuaternion(q1);

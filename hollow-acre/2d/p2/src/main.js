@@ -374,11 +374,11 @@ for (const a of [0, Math.PI, -Math.PI / 2]) {
 const ARMS = makeArms({ parent: car, mirrorX: EYE.x, look: LOOK });
 // lights: two headlamps (set high so the road takes the light), the gauge glow, and the snow-light coming in through the glass
 const lamps = [-.6, .6].map(x => { const s = new SpotLight('#eef3ff', 230, 85, .72, .9, 2); s.position.set(x, 1.7, -2.4); s.target.position.set(x * .5, 0, -22); car.add(s, s.target); return s; });
-{ const g = new PointLight('#ffa860', .15, .2, 2); g.position.set(EYE.x, .94, -.74); car.add(g);
+{ const g = new PointLight('#ffa860', .05, .2, 2); g.position.set(EYE.x, .94, -.74); car.add(g);
   const f = new PointLight('#8ea2c2', .55, 1.7, 2); f.position.set(-.36, 1.6, -.62); car.add(f);
   // the cold light of the snow through the windscreen catches the tops of your hands; the only warm light is the dials'
   const ws = new SpotLight('#a6b9dc', 1.0, 2.2, .9, .9, 2); ws.position.set(EYE.x, 1.45, -1.0); ws.target.position.set(EYE.x, .95, -.42); car.add(ws, ws.target);
-  const dl = new PointLight('#ffb27a', .2, 1.0, 2); dl.position.set(EYE.x, .9, -.66); car.add(dl); }      // the gauges' warm glow on the undersides of the hands
+  const dl = new PointLight('#ffb27a', .09, .9, 2); dl.position.set(EYE.x, .88, -.66); car.add(dl); }      // the gauges' warm glow, from below
 // faint beams in the falling snow: open cones drawn additively, fading with distance
 const beamMat = new ShaderMaterial({ transparent: true, depthWrite: false, blending: AdditiveBlending, side: DoubleSide,
   uniforms: { k: { value: .03 } },
@@ -443,11 +443,16 @@ reflectPts.frustumCulled = false; scene.add(reflectPts);
 const post = new ShaderMaterial({ uniforms: { tex: { value: null }, t: { value: 0 }, res: { value: new Vector3() }, ca: { value: 1 }, grain: { value: .055 } },
   vertexShader: 'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
   fragmentShader: `uniform sampler2D tex;uniform float t;uniform vec3 res;uniform float ca;uniform float grain;varying vec2 vUv;
-    vec3 aces(vec3 x){return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),0.,1.);}
+    vec3 agxc(vec3 x){vec3 x2=x*x,x4=x2*x2;return 15.5*x4*x2-40.14*x4*x+31.96*x4-6.868*x2*x+.4298*x2+.1191*x-.00232;}
+    vec3 agx(vec3 c){                                                 // AgX, as Blender renders it (the hands are judged there)
+      c=mat3(.856627153315983,.137318972929847,.11189821299995,.0951212405381588,.761241990602591,.0767994186031903,.0482516061458583,.101439036467562,.811302368396859)*c;
+      c=clamp((log2(max(c,1e-10))+12.47393)/16.5,0.,1.);c=agxc(c);
+      c=mat3(1.1271005818144368,-.1413297634984383,-.14132976349843826,-.11060664309660323,1.157823702216272,-.11060664309660294,-.016493938717834573,-.016493938717834257,1.2519364065950405)*c;
+      return clamp(pow(max(c,0.),vec3(2.2)),0.,1.);}
     float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
     void main(){vec2 c=vUv-.5;float r=dot(c,c);vec2 o=c*r*.014*ca;
       vec3 col=ca>0.?vec3(texture2D(tex,vUv+o).r,texture2D(tex,vUv).g,texture2D(tex,vUv-o).b):texture2D(tex,vUv).rgb;
-      col=aces(col*1.5);col=pow(col,vec3(1./2.2));
+      col=agx(col*1.7);col=pow(col,vec3(1./2.2));
       col*=vec3(.92,.97,1.06);                                       // cold
       col*=1.-smoothstep(.1,.7,r)*.8;                                // vignette
       col+=(h(vUv*res.xy+fract(t*7.)*91.)-.5)*grain;                 // grain

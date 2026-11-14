@@ -13,8 +13,8 @@ def log(*a): print(f'[{time.time()-t0:5.0f}s]', *a, flush=True)
 
 A.reset(); sc = bpy.context.scene
 arm = A.armature()
-hand_L, nails_L = A.hand_and_nails(2, True, '_L', relief=float(os.environ.get('RELIEF', '.35')))
-dec = hand_L.modifiers.new('dec', 'DECIMATE'); dec.ratio = float(os.environ.get('DEC', '.235')); dec.use_collapse_triangulate = False
+hand_L, nails_L = A.hand_and_nails(2, True, '_L', relief=float(os.environ.get('RELIEF', '.75')))
+dec = hand_L.modifiers.new('dec', 'DECIMATE'); dec.ratio = float(os.environ.get('DEC', '.5')); dec.use_collapse_triangulate = False
 dg = bpy.context.evaluated_depsgraph_get(); me = bpy.data.meshes.new_from_object(hand_L.evaluated_get(dg)); hand_L.modifiers.clear(); hand_L.data = me
 ring_L = A.ring('_L'); sleeve_L = A.sleeve(1, n=11, suffix='_L')
 # the other sleeve types, same topology, kept as positions for morph targets
@@ -109,15 +109,21 @@ bad = (nz < .55) & (N_[..., 3] > .5)                      # stray rays: tangent 
 k = np.clip((nz - .3) / .25, 0, 1)[..., None]; nv = nv * k + np.array([0, 0, 1.]) * (1 - k); nv /= np.linalg.norm(nv, axis=-1, keepdims=True)
 # r4: soften the bake (a 1 px blur inside the islands) so thin ridges never read as streaks on a phone
 from scipy.ndimage import gaussian_filter
-cov = (N_[..., 3] > .5).astype(np.float32); wsum = gaussian_filter(cov, float(os.environ.get('NBLUR', '1.0'))) + 1e-6
-nv = np.stack([gaussian_filter(nv[..., c] * cov, float(os.environ.get('NBLUR', '1.0'))) / wsum for c in range(3)], -1)
+cov = (N_[..., 3] > .5).astype(np.float32); wsum = gaussian_filter(cov, float(os.environ.get('NBLUR', '.6'))) + 1e-6
+nv = np.stack([gaussian_filter(nv[..., c] * cov, float(os.environ.get('NBLUR', '.6'))) / wsum for c in range(3)], -1)
 nv[..., 2] = np.maximum(nv[..., 2], .2); nv /= np.linalg.norm(nv, axis=-1, keepdims=True)
 log('normal outliers fixed', int(bad.sum()))
-nrm8 = np.clip((nv * .5 + .5) * 255 + .5, 0, 255).astype(np.uint8); nrm8[~(N_[..., 3] > .5)] = (128, 128, 255)
+nrm8 = np.clip((nv * .5 + .5) * 255 + .5, 0, 255).astype(np.uint8)
 data8 = np.zeros((RES, RES, 4), np.uint8)
 data8[..., 0] = np.clip(AO_[..., 0] * 255 + .5, 0, 255); data8[..., 1] = np.clip(D_[..., 0] * 255 + .5, 0, 255)
 data8[..., 2] = np.clip(D_[..., 1] * 255 + .5, 0, 255); data8[..., 3] = np.clip(D_[..., 2] * 255 + .5, 0, 255)
 data8[~covered] = (255, 0, 0, 0)
+# r5: bleed every island outward (nearest covered texel), so mip levels and bilinear filtering never mix an island
+# with empty space or a neighbour (the 1-px line along the cuff, the knuckle seams)
+from scipy.ndimage import distance_transform_edt
+_, (iy, ix) = distance_transform_edt(~covered, return_indices=True)
+data8 = data8[iy, ix]; ncov = N_[..., 3] > .5; _, (jy, jx) = distance_transform_edt(~ncov, return_indices=True)
+nrm8 = nrm8[jy, jx]
 Image.fromarray(nrm8, 'RGB').save(f'{OUT}/arm_n.png'); Image.fromarray(data8, 'RGBA').save(f'{OUT}/arm_d.png')
 Image.fromarray(nrm8, 'RGB').save(f'{OUT}/arm_n.webp', lossless=True, quality=100, method=6)
 Image.fromarray(data8, 'RGBA').save(f'{OUT}/arm_d.webp', lossless=True, quality=100, method=6)
@@ -156,7 +162,7 @@ rig = dict(EYE=L(S.EYE), WC=L(S.WC), TILT=S.TILT, RR=S.RR, RT=S.RT, A_GRIP=S.A_G
            fingers={n: dict(joints=[L(S.to_car(p)) for p in f[n]['joints']], axis=L(S.flex_axis(n))) for n in hands.ORDER},
            O=L(S.O), GX=L(S.GX),
            spreadAxis=L(S.SPREAD_AX),
-           hands={side: dict(hand=L(S.HD[side]), spread={n: S.SPREAD[side][n] for n in hands.ORDER},
+           hands={side: dict(hand=L(S.HD[side]), pole=L(S.POLES[side]), spread={n: S.SPREAD[side][n] for n in hands.ORDER},
                              grip={n: [float(x) for x in S.GRIP_SIDE[side][n]] for n in hands.ORDER},
                              thumb=[L(D) for D in S.THUMB_D[side]]) for side in ('L', 'R')},
            tris=tri(armob))
