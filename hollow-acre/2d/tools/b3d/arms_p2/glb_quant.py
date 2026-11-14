@@ -8,7 +8,16 @@ bl = struct.unpack('<I', b[off:off + 4])[0]; BIN = b[off + 8: off + 8 + bl]
 CT = {5120: np.int8, 5121: np.uint8, 5122: np.int16, 5123: np.uint16, 5125: np.uint32, 5126: np.float32}
 NC = {'SCALAR': 1, 'VEC2': 2, 'VEC3': 3, 'VEC4': 4, 'MAT4': 16}
 def read(ai):
-    a = J['accessors'][ai]; bv = J['bufferViews'][a['bufferView']]; n = NC[a['type']]; dt = CT[a['componentType']]
+    a = J['accessors'][ai]; n = NC[a['type']]; dt = CT[a['componentType']]
+    if 'bufferView' not in a:                                # sparse-only accessor (Blender writes morph targets this way)
+        out_ = np.zeros((a['count'], n), dt); sp = a.get('sparse')
+        if sp:
+            ib = J['bufferViews'][sp['indices']['bufferView']]; vb = J['bufferViews'][sp['values']['bufferView']]
+            ii = np.frombuffer(BIN, CT[sp['indices']['componentType']], count=sp['count'], offset=ib.get('byteOffset', 0) + sp['indices'].get('byteOffset', 0))
+            vv = np.frombuffer(BIN, dt, count=sp['count'] * n, offset=vb.get('byteOffset', 0) + sp['values'].get('byteOffset', 0)).reshape(-1, n)
+            out_[ii] = vv
+        return out_
+    bv = J['bufferViews'][a['bufferView']]
     start = bv.get('byteOffset', 0) + a.get('byteOffset', 0); stride = bv.get('byteStride', 0)
     isz = np.dtype(dt).itemsize * n
     if stride and stride != isz:
@@ -51,6 +60,15 @@ for m in J['meshes']:
             elif k.startswith('COLOR'): continue
             else: new[k] = add(v, J['accessors'][ai]['componentType'], J['accessors'][ai]['type'], 34962)
         p['attributes'] = new
+        tg = []                                              # morph targets (sleeve types): sparse float deltas, only the moved vertices
+        for t in p.get('targets', []):
+            d = read(t['POSITION']).astype(np.float32); nz = np.where(np.abs(d).max(1) > 1e-7)[0]
+            iv = add(nz.astype(np.uint16 if len(d) < 65535 else np.uint32), 5123 if len(d) < 65535 else 5125, 'SCALAR')
+            vv = add(d[nz], 5126, 'VEC3'); accs.pop(); accs.pop()
+            acc = {'componentType': 5126, 'count': int(d.shape[0]), 'type': 'VEC3', 'min': [float(x) for x in d.min(0)], 'max': [float(x) for x in d.max(0)],
+                   'sparse': {'count': int(len(nz)), 'indices': {'bufferView': len(views) - 2, 'componentType': 5123 if len(d) < 65535 else 5125}, 'values': {'bufferView': len(views) - 1}}}
+            accs.append(acc); tg.append({'POSITION': len(accs) - 1})
+        if tg: p['targets'] = tg
         idx = read(p['indices']).ravel(); p['indices'] = add(idx.astype(np.uint16 if idx.max() < 65535 else np.uint32), 5123 if idx.max() < 65535 else 5125, 'SCALAR', 34963)
 for s in J.get('skins', []):
     s['inverseBindMatrices'] = add(read(s['inverseBindMatrices']).astype(np.float32), 5126, 'MAT4')

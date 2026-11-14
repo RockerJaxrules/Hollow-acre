@@ -1,7 +1,7 @@
 // Your arms on the wheel: one skinned arm modelled in Blender (tools/b3d/lib/hands.py), mirrored for the right.
 // Bind pose = the rest hand (straight fingers) at the left hand's place; every frame the bones are posed from code:
-//   each hand takes its own place on the rim (left: relaxed, draped toward the hub at about twenty past nine; right:
-//   hooked over the top at about ten past one), the fingers close until they meet it (angles solved in Blender), the arm reaches by
+//   each hand takes its own place on the rim at 10 and 2 (a relaxed fist, set a little differently on each side), the
+//   fingers close until they meet it and the thumb lies along the rim toward 12 (solved in Blender), the arm reaches by
 //   two-bone IK from the shoulder, the forearm shares the hand's roll, and on hard turns each hand lets go and takes
 //   a new hold further round (never both at once).
 import { Group, Vector3, Vector2, Matrix4, Quaternion, Color, MeshStandardMaterial, TextureLoader, NoColorSpace, ShaderChunk, MathUtils, LinearFilter, LinearMipmapLinearFilter } from 'three';
@@ -11,6 +11,8 @@ import RIG from './arm_rig.json';
 
 const V3 = a => new Vector3(a[0], a[1], a[2]);
 const PATTERN = { '': 0, plaid: 1, stripes: 2, dots: 3 };
+// sleeve construction by outfit: woven shirt cuff, knit rib cuff, thick knit (hoodie), canvas jacket, wool coat
+const SLEEVE_TYPE = { woven: 0, knit: 1, hoodie: 2, jacket: 3, coat: 4 };
 const WC = V3(RIG.WC), AXIS = V3(RIG.AXIS).normalize(), SH = V3(RIG.SH), ELB = V3(RIG.ELB), W = V3(RIG.W), POLE = V3(RIG.POLE).normalize();
 const ND = V3(RIG.ND), XH = V3(RIG.XH), L_UP = RIG.L_UP, L_FORE = RIG.L_FORE, O_RIM = V3(RIG.O), GX = V3(RIG.GX).normalize();
 const SIDES = ['L', 'R'];
@@ -38,7 +40,8 @@ const LIGHTS = 'float armSkin = 0.0; float armCloth = 0.0; vec3 armWrap = vec3( 
     '\treflectedLight.directDiffuse += armSkin * rsh * vec3( .2, .045, .025 ) * ( smoothstep( -.3, .05, ndlA ) - smoothstep( .05, .45, ndlA ) ) * directLight.color * BRDF_Lambert( material.diffuseColor ) * 3.0;\n' +
     '\treflectedLight.directSpecular += armCloth * armSheen * pow( 1.0 - saturate( dot( geometryNormal, geometryViewDir ) ), 3.0 ) * saturate( ndlA + 0.5 ) * directLight.color * rsh;');
 const FRAG_HEAD = `
-uniform sampler2D dataMap; uniform vec3 skinCol; uniform vec3 clothCol; uniform float pattern; uniform float squeeze;
+uniform sampler2D dataMap; uniform vec3 skinCol; uniform vec3 clothCol; uniform float pattern; uniform float squeeze; uniform float sleeveType;
+float armHash( vec2 p ) { return fract( sin( dot( p, vec2( 127.1, 311.7 ) ) ) * 43758.5453 ); }
 varying vec2 vArmUv; varying vec2 vCyl;
 float aaStep( float e, float x ) { float w = fwidth( x ) * .7 + 1e-4; return smoothstep( e - w, e + w, x ); }
 vec3 clothPattern( vec2 c ) {
@@ -62,7 +65,7 @@ function armMaterial(maps, look, mirrored) {
   const m = new MeshStandardMaterial({ normalMap: maps.n, normalScale: new Vector2(.45, mirrored ? -.45 : .45), roughness: .5, metalness: 0 });
   const U = {
     dataMap: { value: maps.d }, skinCol: { value: new Color(look.skin) }, clothCol: { value: new Color(look.sleeve) },
-    pattern: { value: PATTERN[look.pattern] ?? 0 }, ringOn: { value: !mirrored && look.married ? 1 : 0 }, squeeze: { value: 0 },
+    pattern: { value: PATTERN[look.pattern] ?? 0 }, sleeveType: { value: SLEEVE_TYPE[look.sleeveType] ?? 0 }, ringOn: { value: !mirrored && look.married ? 1 : 0 }, squeeze: { value: 0 },
     rimC: { value: new Vector3() }, rimA: { value: new Vector3(0, 0, 1) }, rimRT: { value: new Vector2(RIG.RR, RIG.RT) }
   };
   m.userData.U = U;
@@ -83,15 +86,25 @@ function armMaterial(maps, look, mirrored) {
         sk = mix( sk, sk * vec3( 1.07, .70, .66 ), armD.g * .6 * ( 1.0 - .55 * squeeze ) );          // flush: tips, knuckles, nail folds
         sk = mix( sk, sk * 1.12 + .015, armD.g * squeeze * .35 );                                    // knuckles pale when you grip hard
         sk *= ( 1.0 - armD.b * .2 ) * mix( vec3( 1.0 ), vec3( .9, .96, .98 ), armD.b );            // creases and veins: darker, a little cooler
-        vec3 nail = mix( skinCol * vec3( 1.12, 1.0, .95 ), vec3( .78, .46, .36 ), .5 );             // pink-beige over the nail bed
-        nail = mix( nail, vec3( .9, .84, .74 ), smoothstep( .55, .64, mId ) * .9 );                 // the lighter free edge
+        vec3 nail = mix( skinCol, skinCol * vec3( 1.0, .78, .74 ) + vec3( .2, .1, .09 ), .55 ) * 1.1;  // the tone itself, lighter and pinker
+        nail = mix( nail, mix( nail, vec3( .92, .87, .8 ), .55 ), smoothstep( .55, .64, mId ) );     // the lighter free edge
         vec3 cl = clothPattern( vCyl ); cl = mix( cl, vec3( dot( cl, vec3( .2126, .7152, .0722 ) ) ), .2 );
+        if ( sleeveType < .5 ) {                                  // shirt: a buttoned cuff band, its seam, a crisp fold line
+          cl *= mix( 1.0, .93, 1.0 - step( .036, vCyl.y ) ) * ( 1.0 - .3 * exp( - pow( ( vCyl.y - .036 ) / .0012, 2.0 ) ) );
+        } else if ( sleeveType < 2.5 ) {                          // knit: ribbed cuff gathered at the wrist, stockinette above
+          float cuff = 1.0 - smoothstep( sleeveType > 1.5 ? .05 : .045, ( sleeveType > 1.5 ? .05 : .045 ) + .003, vCyl.y );
+          cl *= mix( .97 + .03 * cos( 6.2832 * vCyl.y / .004 ) * cos( 6.2832 * vCyl.x / .0032 ), .88 + .1 * cos( 6.2832 * vCyl.x / .0045 ), cuff );
+        } else if ( sleeveType < 3.5 ) {                          // jacket: a turned hem with a double stitch
+          cl *= ( 1.0 - .28 * exp( - pow( ( vCyl.y - .009 ) / .0008, 2.0 ) ) - .28 * exp( - pow( ( vCyl.y - .017 ) / .0008, 2.0 ) ) ) * ( .96 + .04 * armHash( floor( vCyl * 900.0 ) ) );
+        } else {                                                  // wool coat: a soft, slightly mottled felt
+          cl *= .93 + .07 * armHash( floor( vCyl * 700.0 ) ) * ( .6 + .4 * armHash( floor( vCyl * 90.0 ) ) );
+        }
         vec3 alb = sk * skinM + nail * isNail + cl * isCloth + vec3( .95, .66, .28 ) * isRing;
         diffuseColor.rgb = alb;
         armSkin = min( 1.0, skinM + isNail * .6 ); armCloth = isCloth; armWrap = vec3( .55, .3, .2 ) * armSkin; armSheen = clothCol * .55 + .05;
         float armAO = mix( 1.0, armD.r, .9 );
         float skinLum = dot( skinCol, vec3( .2126, .7152, .0722 ) ), darkSkin = 1.0 - smoothstep( .06, .3, skinLum );`)
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = ( mix( .57, .42, darkSkin ) - armD.g * .06 * darkSkin ) * skinM + .32 * isNail + .92 * isCloth + .26 * isRing;   // darker skin shows more sheen, most on the knuckles')
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = ( mix( .57, .42, darkSkin ) - armD.g * .06 * darkSkin ) * skinM + .32 * isNail + ( sleeveType < .5 ? .86 : sleeveType < 2.5 ? .96 : sleeveType < 3.5 ? .8 : 1.0 ) * isCloth + .26 * isRing;   // darker skin shows more sheen, most on the knuckles')
       .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\nmetalnessFactor = isRing;')
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         if ( isCloth > .5 ) {                                   // woven cloth: a fine twill from the sleeve's own coordinates
@@ -99,9 +112,14 @@ function armMaterial(maps, look, mirrored) {
           vec3 p2 = cross( dp2, normal ), p1 = cross( normal, dp1 );
           vec3 T = p2 * du1.x + p1 * du2.x, B = p2 * du1.y + p1 * du2.y;
           float inv = inversesqrt( max( max( dot( T, T ), dot( B, B ) ), 1e-12 ) );
-          vec2 q = vCyl * 330.0; float fade = 1.0 - smoothstep( .25, .6, length( fwidth( q ) ) );
+          float sc = sleeveType < .5 ? 330.0 : sleeveType < 2.5 ? 260.0 : sleeveType < 3.5 ? 200.0 : 520.0;
+          float amp = sleeveType < .5 ? .0009 : sleeveType < 2.5 ? .0012 : sleeveType < 3.5 ? .0015 : .0005;
+          vec2 q = vCyl * sc; float fade = 1.0 - smoothstep( .25, .6, length( fwidth( q ) ) );
           float a = 6.2832 * ( q.x + q.y ), b = 6.2832 * ( q.x * 2.0 - q.y );
-          vec2 g = vec2( cos( a ) + .5 * cos( b ) * 2.0, cos( a ) - .5 * cos( b ) ) * 330.0 * .0009 * fade;
+          vec2 g = vec2( cos( a ) + .5 * cos( b ) * 2.0, cos( a ) - .5 * cos( b ) ) * sc * amp * fade;
+          if ( sleeveType > .5 && sleeveType < 2.5 && vCyl.y < ( sleeveType > 1.5 ? .05 : .045 ) ) {   // the rib: ridges along the arm
+            float ru = 6.2832 * vCyl.x / .0045; g = vec2( - sin( ru ) * 6.2832 / .0045 * .00035, 0.0 ) * ( 1.0 - smoothstep( .3, .7, fwidth( vCyl.x / .0045 ) ) );
+          }
           normal = normalize( normal - ( T * g.x + B * g.y ) * inv );
         }`)
       .replace('#include <aomap_fragment>', '#include <aomap_fragment>\nfloat rimAO = mix( .5, 1.0, smoothstep( .0, .022, rimDist( geometryPosition ) ) );\nreflectedLight.indirectDiffuse *= armAO * rimAO; reflectedLight.indirectSpecular *= armAO * rimAO; reflectedLight.directDiffuse *= mix( 1.0, armAO, .35 );');
@@ -161,6 +179,8 @@ export function makeArms({ parent, mirrorX, look, url = 'arm.glb' }) {
       const geo = mesh.geometry; if (geo.attributes.uv1 && !geo.attributes.cyl) { geo.setAttribute('cyl', geo.attributes.uv1); geo.deleteAttribute('uv1'); }
       mesh.material = armMaterial(maps, look, i === 1); mesh.frustumCulled = false;
       const U = mesh.material.userData.U;
+      const md = mesh.morphTargetDictionary;                     // the sleeve's shape for this outfit (morph targets from Blender)
+      if (md && mesh.morphTargetInfluences) for (const k in md) mesh.morphTargetInfluences[md[k]] = k === look.sleeveType ? 1 : 0;
       mesh.onBeforeRender = (r, s, cam) => {                     // the rim in view space (a torus: the same however the wheel turns)
         U.rimC.value.copy(WC).applyMatrix4(parent.matrixWorld).applyMatrix4(cam.matrixWorldInverse);
         U.rimA.value.copy(AXIS).transformDirection(parent.matrixWorld).transformDirection(cam.matrixWorldInverse);

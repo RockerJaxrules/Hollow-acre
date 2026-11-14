@@ -13,7 +13,7 @@ from scipy.optimize import minimize
 EYE = np.array([-.36, 1.2, 0.]); WC = np.array([-.36, .9, -.47]); TILT = -.42
 RR, RT = .185, .0165
 SH = np.array([EYE[0] - .2, 1.0, .085]); L_UP, L_FORE = .30, .262
-POLE = nrm([-.55, -1., .1])
+POLE = nrm([-1., -.55, .05])                                  # elbows low and out: the forearms come in from below and outside
 c, s = np.cos(TILT), np.sin(TILT)
 RX = np.array([[1, 0, 0], [0, c, -s], [0, s, c]])
 AXIS = RX @ np.array([0, 0, 1.])
@@ -77,10 +77,12 @@ def draped(a, yaw, pitch, roll, h, s_, t=0.):
     R = rot(xh, np.radians(pitch)); fh, nd = R @ fh, R @ nd
     R = rot(fh, np.radians(roll)); nd = R @ nd
     return place(a, nd, fh, h, s_, t)
-# Left: relaxed at about twenty to ten, palm and finger bases on the rim's outer/driver side, fingers draped toward
-# the hub. Right (mirrored here to the left half): hooked over the top at about twenty past one, wrist nearly straight.
-PL = dict(L=dict(kind='draped', a=.96 * np.pi, yaw=40, pitch=-30, roll=12, h=.0125, s=.01, t=0.),
-          R=dict(kind='hooked', a=.70 * np.pi, delta=55, beta=20, roll=0, h=.0128, s=.004, t=0.))
+# 10 and 2 (owner: "look up 10 and 2"): each hand a relaxed fist round the rim, the rim running diagonally through it
+# (in at the pinky side, out between thumb and index), the back of the hand to the driver, the wrist a little extended
+# and tilted toward the pinky. The right is worked out mirrored (2 o'clock -> 10 in left-hand space) and set a little
+# differently: lower on the rim, rolled further, a touch tighter.
+PL = dict(L=dict(kind='hooked', a=.85 * np.pi, delta=35, beta=45, roll=30, h=.0128, s=.016, t=0.),
+          R=dict(kind='hooked', a=.83 * np.pi, delta=35, beta=35, roll=20, h=.0128, s=.016, t=0.))
 import json as _json
 for _k in ('L', 'R'):
     if os.environ.get('PL_' + _k): PL[_k].update(_json.loads(os.environ['PL_' + _k]))
@@ -166,12 +168,12 @@ def finger_clear(n, th, from_seg, side, spread=0.0, press=.0012):
     return worst
 # per side: the most each joint may close (deg; joint limits, and for the draped hand the relaxed curve it settles
 # into), how far it eases off the contact, and a little spread. Not clenched; the left is the looser hand.
-FING = {'L': dict(cap={'pinky': (34, 48, 26), 'ring': (28, 42, 22), 'middle': (21, 35, 17), 'index': (13, 25, 11)},
-                  ease={'pinky': (0, 0, 0), 'ring': (0, 0, 0), 'middle': (0, 0, 0), 'index': (0, 0, 0)},
-                  spread={'pinky': -8., 'ring': -3.5, 'middle': 0., 'index': 5.}, press=.0006),
-        'R': dict(cap={'pinky': (72, 88, 70), 'ring': (66, 88, 66), 'middle': (62, 86, 64), 'index': (56, 84, 60)},
-                  ease={'pinky': (2, 3, 2), 'ring': (2, 3, 3), 'middle': (3, 4, 4), 'index': (5, 8, 10)},
-                  spread={'pinky': -3., 'ring': -1., 'middle': 0., 'index': 2.}, press=.0012)}
+FING = {'L': dict(cap={'pinky': (80, 90, 70), 'ring': (78, 90, 70), 'middle': (75, 90, 70), 'index': (70, 90, 70)},
+                  ease={'pinky': (3, 4, 3), 'ring': (3, 4, 4), 'middle': (3, 4, 4), 'index': (2, 5, 6)},
+                  spread={'pinky': -2.5, 'ring': -1., 'middle': 0., 'index': 3.}, press=.0012),
+        'R': dict(cap={'pinky': (80, 90, 70), 'ring': (78, 90, 70), 'middle': (75, 90, 70), 'index': (70, 90, 70)},
+                  ease={'pinky': (2, 3, 2), 'ring': (2, 3, 3), 'middle': (2, 3, 3), 'index': (1, 4, 5)},
+                  spread={'pinky': -2., 'ring': -1., 'middle': 0., 'index': 2.5}, press=.0012)}
 def solve_fingers(side):
     P = FING[side]; G = {}
     for n in hands.ORDER:
@@ -195,7 +197,7 @@ SPREAD = {k: {n: float(np.radians(FING[k]['spread'][n])) for n in hands.ORDER} f
 _T = H['thumb']; TJ = [np.array(p, float) for p in _T['joints']]; TD = [nrm(v) for v in _T['d']]; TZ = nrm(_T['Z'])
 _KH = nrm(np.cross(TZ, TD[0]))                                 # MCP/IP hinge: bends toward the pad
 _ZC = np.array([0, 0, 1.])
-LIM = dict(abd=(-30, 22), flex=(-8, 38), pron=(-20, 25), mcp=(-10, 55), ip=(-15, 75))
+LIM = dict(abd=(-30, 22), flex=(-8, 38), pron=(-20, 25), mcp=(-10, 55), ip=(-3, 75))
 QN = ('abd', 'flex', 'pron', 'mcp', 'ip')
 def thumb_fk(q):
     abd, fl, pr, m, i = np.radians(q)
@@ -215,8 +217,10 @@ def palm_inside(p):
     x, y, z = p
     return min(x + 4.2, 3.0 - x, y - 2.5, 9.5 - y, z + 1.4, 1.6 - z)        # the palm and finger bases (not the thenar)
 def thumb_cost(q, side, tgt, aim, w_aim):
-    pts, _ = thumb_fk(q); M = HMS[side]; c = 0.
-    if side == 'L':                                            # never hooked round the rim: it stays on the driver side
+    pts, Ds = thumb_fk(q); M = HMS[side]; c = 0.
+    nail = dir_car(Ds[2][:3, :3] @ TZ, M); c += 3.0 * (1 - nail @ nrm(EYE - to_car(pts[3], M)))      # its nail shows to the driver
+    c += .003 * (q[4] - 10) ** 2 + .004 * max(0., q[3] - 6) ** 2                                                             # nearly straight (IP only a little bent)
+    if True:                                                   # never hooked round the rim: it stays on the driver side
         for p, r in thumb_samples(pts):
             ql = wheel_local(to_car(p, M))[0]; rho = np.hypot(ql[0], ql[1])
             if abs(rho - RR) < RT + r * .01 + .004 and ql[2] < RT * .6: c += 2e4 * (RT * .6 - ql[2]) ** 2
@@ -240,17 +244,20 @@ def thumb_targets():
     # left: low, toward the spoke at nine, tucked behind (dash side of) the fingers, in front of the spoke
     M = HMS['L']; nd, xh = nrm(M[:3, 2]), nrm(M[:3, 0])
     pts, _ = finger_fk('index', GRIP_SIDE['L']['index'], SPREAD['L']['index']); pts = [(HD['L'] @ np.append(p, 1))[:3] for p in pts]
-    M = HMS['L']; nd, fh = nrm(M[:3, 2]), nrm(M[:3, 1])
-    pts, _ = finger_fk('index', GRIP_SIDE['L']['index'], SPREAD['L']['index']); pts = [(HD['L'] @ np.append(p, 1))[:3] for p in pts]
-    out['L'] = (pts[0] + nrm(pts[1] - pts[0]) * .012 - nd * .022, nrm(pts[2] - pts[0]))      # tucked behind the index's base
-    # right: wrapped under the rim on the driver side, opposite the fingers, out of sight
-    M = HMS['R']; tm = to_car(TJ[1], M); a = rim_angle(tm); o, gx, gy, gz = rimf(a)
-    ph = np.radians(185); out['R'] = (o + (np.cos(ph) * gy + np.sin(ph) * gz) * (RT + .0085), None)
+    # 10 and 2: the thumb lies along the top and driver face of the rim pointing up toward 12, its tip at the side of the
+    # index finger's middle segment, so thumb and index close the loop round the rim
+    for side in ('L', 'R'):
+        M = HMS[side]; xh = nrm(M[:3, 0])
+        pts, _ = finger_fk('index', GRIP_SIDE[side]['index'], SPREAD[side]['index']); pts = [(HD[side] @ np.append(p, 1))[:3] for p in pts]
+        # flat along the rim: the tip on the driver face, about 2 cm beyond the index knuckle toward 12, aimed along it
+        o, gx, gy, gz = rimf(rim_angle(pts[0]) - .02 / RR)
+        ph = np.radians(75 if side == 'L' else 88)
+        out[side] = (o + (np.cos(ph) * gy + np.sin(ph) * gz) * (RT + .0082), gx)
     return out
 TGT = thumb_targets()
 THUMB_Q = {}
 for _side in ('L', 'R'):
-    THUMB_Q[_side] = solve_thumb(_side, TGT[_side][0], TGT[_side][1], 1.0 if TGT[_side][1] is not None else 0.).x
+    THUMB_Q[_side] = solve_thumb(_side, TGT[_side][0], TGT[_side][1], 3.0 if TGT[_side][1] is not None else 0.).x
 # The bind thumb sits between the two working poses (skinning then only moves it half as far, and the web between
 # thumb and index never folds); each side's bone deltas take it from there. Canonical cm rigid -> car: D_car = HM D HM^-1
 THUMB_QB = (THUMB_Q['L'] + THUMB_Q['R']) / 2

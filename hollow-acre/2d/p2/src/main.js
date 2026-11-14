@@ -37,9 +37,13 @@ function readLook() {
   if (Q.has('pattern')) look.pattern = Q.get('pattern');
   if (Q.has('outfit')) look.outfit = Q.get('outfit');
   if (Q.has('married')) married = Q.get('married') === '1';
-  // short sleeves in a blizzard: whoever packed for the mountain put a coat on over them
-  const bare = ['tee', 'tank', 'vest', 'overalls', 'skirt', 'dress'].includes(look.outfit);
-  return { skin: look.skin, sleeve: bare ? '#3e4636' : look.shirt, pattern: bare ? '' : (look.pattern || ''), married };
+  if (Q.get('extra')) look.extra = '#' + Q.get('extra');
+  // the cuff follows the outfit from the character creator (custom.js); short sleeves in a blizzard: whoever packed
+  // for the mountain put a winter coat on over them, in the character's own jacket colour
+  const KIND = { shirt: 'woven', openshirt: 'woven', sweater: 'knit', turtleneck: 'knit', cardigan: 'knit', hoodie: 'hoodie', jacket: 'jacket', longcoat: 'coat' };
+  const bare = !KIND[look.outfit];
+  return { skin: look.skin, sleeve: bare ? (look.extra || '#3e4636') : look.shirt, pattern: bare ? '' : (look.pattern || ''),
+           sleeveType: bare ? 'coat' : KIND[look.outfit], married };
 }
 const LOOK = readLook();
 

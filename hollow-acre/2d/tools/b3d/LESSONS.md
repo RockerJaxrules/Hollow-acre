@@ -125,6 +125,38 @@ Studied three driver's-eye photos of hands at 10 and 2 (openly licensed, scratch
   - The sleeve ends at or above the wrist.
 - **The two hands differ:** a little different height, curl and wrist angle. Never mirror them.
 
+### 10 and 2 from the game eye (t353 r4, the coordinator's side-by-side with a real photo)
+- **Thumbs lie flat along the rim.** A thumb aimed at the index's middle segment stands up too steeply and reads short.
+  - Aim it along the rim: the target is about 2 cm beyond the index knuckle toward 12, on the driver face.
+  - Weight the aim term and penalise MCP flexion over about 6 degrees, so the thumb lies flat and long and nearly
+    tangent to the rim.
+- **The forearms come in from low and outside, not straight up.** With the default pole the elbow sits under the
+  wrist and the arms read as pillars.
+  - A pole of (-1, -.55, .05) puts the elbow low and out, so the forearm crosses the screen at about 45 degrees.
+  - Then re-search the hand's place for a flatter wrist (extension 25 or less) so the hand leans over the wheel.
+- **Push the hand further over the rim** (knuckles 1.6 cm past the contact) so the index's first segment curls over
+  the top.
+- **Make the cuff about 1.25 times the wrist,** with fold heights about half of a casual shirt's. Wider cuffs read as
+  puffy at game distance.
+
+### One arm for every character (owner: "multiple sleeve Colors and skin Colors ... you customized your pixel character")
+- **Every skin tone in the creator must read as skin.**
+  - Derive the colours from the tone, never from fixed tints:
+    - flush multiplies the tone itself;
+    - the nails are the tone made lighter and pinker, with a paler free edge;
+    - darker tones get lower roughness, most on the knuckles.
+- **The sleeve follows the outfit,** using one topology with morph targets per type:
+  - shirt: woven, with a buttoned cuff band;
+  - sweater, turtleneck and cardigan: knit, with a rib cuff gathered at the wrist;
+  - hoodie: thicker knit;
+  - jacket: canvas, with a turned hem and a double stitch;
+  - long coat: wide wool, ending above the wrist bone;
+  - bare-armed outfits get the winter coat in the character's `extra` colour.
+  - The shader adds each type's surface (twill, rib, stockinette, canvas, felt) and roughness.
+  - The morphs are sparse in the GLB, about 90 KB for four types.
+- **Proof every option on the game page itself** (tones.png, sleeves.png), not in Blender. The page is what the
+  player sees.
+
 ### Other casual grips (for other scenes, not the default driving pose)
 Studied openly licensed photos: three taken from the driver's seat and one from the dash. They stay in the scratchpad
 and are never committed or shipped.

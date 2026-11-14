@@ -110,14 +110,14 @@ def path(s):
     t = (s - (SE0 - .03)) / .06; a = S.ELB - fdir * .03; b = S.ELB; c = S.ELB + up * .03
     return (1 - t) ** 2 * a + 2 * (1 - t) * t * b + t * t * c
 # sleeve cross-section follows the forearm's oval: (s, half width, half thickness); round and slim on the upper arm
-PROF = [(0., .047, .037), (.03, .048, .038), (.08, .048, .039), (.14, .048, .040), (SE0, .046, .044), (SE0 + .08, .047, .046), (SLEN, .049, .048)]
+PROF = [(0., .036, .026), (.03, .038, .028), (.08, .042, .032), (.14, .045, .036), (SE0, .046, .044), (SE0 + .08, .047, .046), (SLEN, .049, .048)]   # r4: cuff ~1.25x the wrist
 def radius(s, a=0.0):
     xs = [p[0] for p in PROF]; rw = float(np.interp(s, xs, [p[1] for p in PROF])); rt = float(np.interp(s, xs, [p[2] for p in PROF]))
     return rw * rt / math.sqrt((rw * math.cos(a)) ** 2 + (rt * math.sin(a)) ** 2)      # a = 0 is the back of the forearm
 def folds(s, a):
     v = 0; SE = SE0
     # pushed-up cloth bunching just above the hem band: four soft rolls, uneven round the arm, a little diagonal
-    for k, (c0, amp) in enumerate([(.024, .0030), (.043, .0036), (.064, .0031), (.087, .0022)]):
+    for k, (c0, amp) in enumerate([(.024, .0017), (.043, .0021), (.064, .0018), (.087, .0013)]):      # tighter bunching
         v += amp * math.exp(-((s - c0 - .006 * math.sin(a * 1.0 + k * 2.1)) / .0085) ** 2) * (.55 + .45 * math.cos(a - .5 + k * 1.3))
     # the inside of the bent elbow: compression folds; a couple of stretch creases across the outside
     inner = math.exp(-((((a + math.pi) % (2 * math.pi)) - math.pi + math.pi) % (2 * math.pi) - math.pi) ** 2 / .7) if False else math.exp(-((abs(((a % (2 * math.pi)) - math.pi))) ** 2) / .7)
@@ -128,8 +128,23 @@ def folds(s, a):
         v -= .0014 * outer * math.exp(-((s - SE - c0) / .007) ** 2)
     # long drape along the forearm
     v += .0011 * math.cos(3 * a + s * 9) * min(1, max(0, (s - .1) / .04)) * min(1, max(0, (SE - s) / .05))
-    return v
+    return v * FOLD_K
 _PS = np.linspace(-.004, SLEN, 900); _PP = np.array([path(max(s, 0)) + (nrm(path(.002) - path(0)) * min(s, 0)) for s in _PS])
+# ---- sleeve types (one topology, so each is a morph target of the same mesh): the cuff construction follows the outfit.
+# (start of the sleeve above the wrist (m), cuff-end profile [(s, half width, half thickness)], fold strength, extra bulk)
+FOLD_K = 1.0
+SLEEVES = {'woven':  (.02, [(0., .036, .026), (.03, .038, .028), (.08, .042, .032), (.14, .045, .036)], 1.0, 0.),      # shirt: buttoned cuff band
+           'knit':   (.015, [(0., .030, .021), (.012, .031, .022), (.03, .039, .029), (.07, .044, .034), (.14, .046, .037)], .55, 0.),   # ribbed cuff gathered at the wrist
+           'hoodie': (.015, [(0., .033, .024), (.012, .034, .025), (.03, .044, .034), (.07, .049, .039), (.14, .051, .042)], .6, .004),
+           'jacket': (.02, [(0., .040, .031), (.04, .043, .034), (.1, .047, .038), (.15, .049, .040)], 1.25, .003),   # canvas, hemmed, stiffer folds
+           'coat':   (.045, [(0., .046, .037), (.05, .049, .040), (.12, .052, .044), (.16, .054, .047)], .7, .008)}   # wool, wide, ends above the wrist bone
+def set_sleeve(kind):
+    global CUFF_S, SE0, SLEN, PROF, FOLD_K, _PS, _PP
+    c, prof, k, bulk = SLEEVES[kind]
+    CUFF_S = c; SE0 = S.L_FORE - c; SLEN = SE0 + np.linalg.norm(S.SH - S.ELB); FOLD_K = k
+    PROF = list(prof) + [(SE0, .046 + bulk, .044 + bulk), (SE0 + .08, .047 + bulk, .046 + bulk), (SLEN, .049 + bulk, .048 + bulk)]
+    _PS = np.linspace(-.004, SLEN, 900); _PP = np.array([path(max(s, 0)) + (nrm(path(.002) - path(0)) * min(s, 0)) for s in _PS])
+set_sleeve('woven')
 def path_coords(Pc):
     """nearest arc length s and angle (0 = top of the arm) for car-space points"""
     from scipy.spatial import cKDTree
