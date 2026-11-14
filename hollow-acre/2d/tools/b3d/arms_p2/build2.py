@@ -15,7 +15,7 @@ def desat(c, k=.2): l = .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; return tuple
 A.reset(); sc = bpy.context.scene
 arm = A.armature()
 hand, nails = A.hand_and_nails(4 if HIGH else 2, HIGH)
-ring = A.ring(); sleeve = A.sleeve(3 if HIGH else 2, n=11, detail=HIGH)
+ring = A.ring(); sleeve = A.sleeve(3 if HIGH else 2, n=15, detail=HIGH)
 for o in (hand, sleeve): A.skin(o, arm)
 A.skin(nails, arm, 'nails'); A.skin(ring, arm, 'ring1')
 parts = [hand, nails, ring, sleeve]

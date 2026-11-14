@@ -13,17 +13,17 @@ def log(*a): print(f'[{time.time()-t0:5.0f}s]', *a, flush=True)
 
 A.reset(); sc = bpy.context.scene
 arm = A.armature()
-hand_L, nails_L = A.hand_and_nails(2, True, '_L', relief=float(os.environ.get('RELIEF', '.75')))
+hand_L, nails_L = A.hand_and_nails(2, True, '_L', relief=float(os.environ.get('RELIEF', '.45')))
 dec = hand_L.modifiers.new('dec', 'DECIMATE'); dec.ratio = float(os.environ.get('DEC', '.5')); dec.use_collapse_triangulate = False
 dg = bpy.context.evaluated_depsgraph_get(); me = bpy.data.meshes.new_from_object(hand_L.evaluated_get(dg)); hand_L.modifiers.clear(); hand_L.data = me
-ring_L = A.ring('_L'); sleeve_L = A.sleeve(1, n=11, suffix='_L')
+ring_L = A.ring('_L'); sleeve_L = A.sleeve(1, n=15, suffix='_L')
 # the other sleeve types, same topology, kept as positions for morph targets
 SLEEVE_BASE = A.verts(sleeve_L).copy(); SLEEVE_VAR = {}
 for kind in ('knit', 'hoodie', 'jacket', 'coat'):
-    A.set_sleeve(kind); o = A.sleeve(1, n=11, suffix='_' + kind); SLEEVE_VAR[kind] = A.verts(o).copy(); bpy.data.objects.remove(o, do_unlink=True)
+    A.set_sleeve(kind); o = A.sleeve(1, n=15, suffix='_' + kind); SLEEVE_VAR[kind] = A.verts(o).copy(); bpy.data.objects.remove(o, do_unlink=True)
     assert len(SLEEVE_VAR[kind]) == len(SLEEVE_BASE), kind
 A.set_sleeve('woven')
-hand_H, nails_H = A.hand_and_nails(4, True, '_H'); ring_H = A.ring('_H'); sleeve_H = A.sleeve(3, n=11, detail=True, suffix='_H')
+hand_H, nails_H = A.hand_and_nails(4, True, '_H'); ring_H = A.ring('_H'); sleeve_H = A.sleeve(3, n=15, detail=True, suffix='_H')
 lows = [hand_L, nails_L, sleeve_L, ring_L]; highs = [hand_H, nails_H, sleeve_H, ring_H]
 tri = lambda o: sum(len(p.vertices) - 2 for p in o.data.polygons)
 log('tris low', {o.name: tri(o) for o in lows}, 'total', sum(tri(o) for o in lows), 'high', sum(tri(o) for o in highs))

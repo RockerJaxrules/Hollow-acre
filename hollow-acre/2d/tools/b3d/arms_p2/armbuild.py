@@ -76,7 +76,7 @@ def hand_and_nails(lvl, detail, suffix='', relief=1.0):
                 w = width / 2 * (0.86 + 0.14 * math.sqrt(max(0, 1 - (2 * v - 1) ** 2))) if v < .5 else width / 2 * (1 - .18 * (v - .5) ** 2 * 4)
                 p0 = J2 + d * (np.linalg.norm(J3 - J2) * .31 + v * length) + Lx * u * w * .98 + Zd * 1.5        # from just above the nail bed, so a neighbouring finger never catches the ray
                 hit = bvh.ray_cast(Vector(p0), Vector(-Zd))
-                lift = .058 + .035 * v - .03 * (abs(u) ** 3) + (max(0, v - .9) * .25)
+                lift = .085 + .035 * v - .06 * (abs(u) ** 2.2) + (max(0, v - .9) * .25)       # r6: clear of the decimated skin (no band across the nail)              # r6: curved across
                 if hit[0] is None: hit = bvh.find_nearest(Vector(p0 - Zd * 1.5))
                 NV.append(np.array(hit[0]) + np.array(hit[1]) * lift); NE.append(v)
         for j in range(nv - 1):
@@ -84,12 +84,12 @@ def hand_and_nails(lvl, detail, suffix='', relief=1.0):
                 a = base + j * nu + i; NF.append([a, a + 1, a + nu + 1, a + nu])
     for n in hands.ORDER:
         J = f[n]['joints']; nail(J[2], J[3], f[n]['L'], f[n]['Z'], hands.FINGERS[n]['L'][2] * .6, hands.FINGERS[n]['wt'] * .84)
-    nail(T['joints'][2], T['joints'][3], nrm(np.cross(T['d'][2], T['Z'])), T['Z'], hands.THUMB['L'][2] * .5, 1.78)    # wide, short thumbnail
+    nail(T['joints'][2], T['joints'][3], nrm(np.cross(T['d'][2], T['Z'])), T['Z'], hands.THUMB['L'][2] * .44, 1.5)    # r6: smaller, more curved thumbnail
     nails = mesh_obj('nails' + suffix, np.array(NV), NF)
     sol = nails.modifiers.new('sol', 'SOLIDIFY'); sol.thickness = .07; sol.offset = -1; sol.use_even_offset = True
     dg = bpy.context.evaluated_depsgraph_get(); me = bpy.data.meshes.new_from_object(nails.evaluated_get(dg)); nails.modifiers.clear(); nails.data = me
     NVs = verts(nails); tips = np.array([f[n]['joints'][3] for n in hands.ORDER] + [T['joints'][3]])
-    edge = np.clip(1 - (np.min(np.linalg.norm(NVs[:, None] - tips[None], axis=2), 1) - .1) / .35, 0, 1)
+    edge = np.clip(1 - (np.min(np.linalg.norm(NVs[:, None] - tips[None], axis=2), 1) - .05) / .22, 0, 1)     # r6: free edge only at the tip
     set_data(nails, np.column_stack([np.zeros(len(NVs)), np.zeros(len(NVs)), .5 + .15 * edge, np.ones(len(NVs))]))
     for ob in (hand, nails): set_verts(ob, S.B(S.to_car(verts(ob))))
     return hand, nails
@@ -113,9 +113,9 @@ CUFF_S = .02; SE0 = S.L_FORE - CUFF_S
 SLEN = SE0 + np.linalg.norm(S.SH - S.ELB)
 def path(s):
     fdir = S.dir_car(S.DFC); up = S.SH - S.ELB; Lu = np.linalg.norm(up); up = up / Lu
-    if s < SE0 - .03: return S.fore_at(CUFF_S + s)
-    if s > SE0 + .03: return S.ELB + up * min(s - SE0, Lu)
-    t = (s - (SE0 - .03)) / .06; a = S.ELB - fdir * .03; b = S.ELB; c = S.ELB + up * .03
+    if s < SE0 - .07: return S.fore_at(CUFF_S + s)
+    if s > SE0 + .07: return S.ELB + up * min(s - SE0, Lu)
+    t = (s - (SE0 - .07)) / .14; a = S.ELB - fdir * .07; b = S.ELB; c = S.ELB + up * .07           # r6: a round elbow, no kink
     return (1 - t) ** 2 * a + 2 * (1 - t) * t * b + t * t * c
 # sleeve cross-section follows the forearm's oval: (s, half width, half thickness); round and slim on the upper arm
 PROF = [(0., .036, .026), (.03, .038, .028), (.08, .042, .032), (.14, .045, .036), (SE0, .046, .044), (SE0 + .08, .047, .046), (SLEN, .049, .048)]   # r4: cuff ~1.25x the wrist
@@ -125,7 +125,7 @@ def radius(s, a=0.0):
 def folds(s, a):
     v = 0; SE = SE0
     # pushed-up cloth bunching just above the hem band: four soft rolls, uneven round the arm, a little diagonal
-    for k, (c0, amp) in enumerate([(.024, .0017), (.043, .0021), (.064, .0018), (.087, .0013)]):      # tighter bunching
+    for k, (c0, amp) in enumerate([(.022, .0024), (.036, .003), (.052, .0028), (.07, .0022), (.09, .0015)]):      # r6: bunched just above the hem band
         v += amp * math.exp(-((s - c0 - .006 * math.sin(a * 1.0 + k * 2.1)) / .0085) ** 2) * (.55 + .45 * math.cos(a - .5 + k * 1.3))
     # the inside of the bent elbow: compression folds; a couple of stretch creases across the outside
     inner = math.exp(-((((a + math.pi) % (2 * math.pi)) - math.pi + math.pi) % (2 * math.pi) - math.pi) ** 2 / .7) if False else math.exp(-((abs(((a % (2 * math.pi)) - math.pi))) ** 2) / .7)
@@ -141,11 +141,11 @@ _PS = np.linspace(-.004, SLEN, 900); _PP = np.array([path(max(s, 0)) + (nrm(path
 # ---- sleeve types (one topology, so each is a morph target of the same mesh): the cuff construction follows the outfit.
 # (start of the sleeve above the wrist (m), cuff-end profile [(s, half width, half thickness)], fold strength, extra bulk)
 FOLD_K = 1.0
-SLEEVES = {'woven':  (.02, [(0., .036, .026), (.03, .038, .028), (.08, .042, .032), (.14, .045, .036)], 1.0, 0.),      # shirt: buttoned cuff band
-           'knit':   (.015, [(0., .033, .024), (.012, .034, .025), (.03, .040, .030), (.07, .044, .034), (.14, .046, .037)], .55, 0.),   # ribbed cuff gathered at the wrist
-           'hoodie': (.015, [(0., .036, .027), (.012, .037, .028), (.03, .045, .035), (.07, .049, .039), (.14, .051, .042)], .6, .004),
-           'jacket': (.02, [(0., .040, .031), (.04, .043, .034), (.1, .047, .038), (.15, .049, .040)], 1.25, .003),   # canvas, hemmed, stiffer folds
-           'coat':   (.045, [(0., .046, .037), (.05, .049, .040), (.12, .052, .044), (.16, .054, .047)], .7, .008)}   # wool, wide, ends above the wrist bone
+SLEEVES = {'woven':  (.004, [(0., .036, .026), (.03, .038, .028), (.08, .042, .032), (.14, .045, .036)], 1.0, 0.),      # shirt: buttoned cuff band
+           'knit':   (.0, [(0., .033, .024), (.012, .034, .025), (.03, .040, .030), (.07, .044, .034), (.14, .046, .037)], .55, 0.),   # ribbed cuff gathered at the wrist
+           'hoodie': (.0, [(0., .036, .027), (.012, .037, .028), (.03, .045, .035), (.07, .049, .039), (.14, .051, .042)], .6, .004),
+           'jacket': (.004, [(0., .040, .031), (.04, .043, .034), (.1, .047, .038), (.15, .049, .040)], 1.25, .003),   # canvas, hemmed, stiffer folds
+           'coat':   (.012, [(0., .046, .037), (.05, .049, .040), (.12, .052, .044), (.16, .054, .047)], .7, .008)}   # wool, wide, ends above the wrist bone
 def set_sleeve(kind):
     global CUFF_S, SE0, SLEN, PROF, FOLD_K, _PS, _PP
     c, prof, k, bulk = SLEEVES[kind]

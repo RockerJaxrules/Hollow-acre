@@ -86,8 +86,10 @@ def draped(a, yaw, pitch, roll, h, s_, t=0.):
 # differently: lower on the rim, rolled further, a touch tighter.
 # r5: placed by screen-space measures against the reference photo (knuckle row along the rim on screen, the wrist
 # straight on screen, the left forearm rising at a slant and the right nearly upright, the left hand a little lower)
-PL = dict(L=dict(kind='hooked', a=.90 * np.pi, delta=40, beta=45, roll=0, h=.0128, s=.022, t=0., pole=(-.3, -1, .15)),
-          R=dict(kind='hooked', a=.87 * np.pi, delta=50, beta=40, roll=-15, h=.0128, s=.022, t=0., pole=(.3, -1, .2)))
+# r6: backs of the hands turned to the eye; the left forearm slants in low from outside with the wrist bent toward the
+# pinky, the right rises nearly upright with a little extension; different roll, wrist and curl on each side
+PL = dict(L=dict(kind='hooked', a=.87 * np.pi, delta=60, beta=40, roll=0, h=.0128, s=.022, t=0., pole=(-.8, -.8, 0)),
+          R=dict(kind='hooked', a=.86 * np.pi, delta=80, beta=30, roll=-15, h=.0128, s=.022, t=0., pole=(.3, -1, .2)))
 import json as _json
 for _k in ('L', 'R'):
     if os.environ.get('PL_' + _k): PL[_k].update(_json.loads(os.environ['PL_' + _k]))
@@ -150,7 +152,7 @@ def joint_planes():
         J += [('hand', f'{n}1', jj[0] + d * .003, d, .0055), (f'{n}1', f'{n}2', jj[1], d, .0045), (f'{n}2', f'{n}3', jj[2], d, .0032)]
     tj = [to_car(p) for p in t['joints']]; td = [dir_car(v) for v in t['d']]
     J += [('hand', 'thumb1', tj[0] + td[0] * .012, td[0], .012), ('thumb1', 'thumb2', tj[1], nrm(td[0] + td[1]), .0045), ('thumb2', 'thumb3', tj[2], nrm(td[1] + td[2]), .0032)]
-    J += [('twist', 'hand', W - FH * .004, nrm(FH - dir_car(DFC)), .016), ('fore', 'twist', MIDF, -dir_car(DFC), .045), ('upper', 'fore', ELBOW, nrm(dir_car(DFC) * -1 + nrm(SH - ELBOW) * -1) * -1, .045)]
+    J += [('twist', 'hand', W - FH * .004, nrm(FH - dir_car(DFC)), .027), ('fore', 'twist', MIDF, -dir_car(DFC), .045), ('upper', 'fore', ELBOW, nrm(dir_car(DFC) * -1 + nrm(SH - ELBOW) * -1) * -1, .045)]   # r6: wider wrist blend
     return J
 
 # ------------------------------------------------------------------ fingers: each joint closes until the finger meets the rim
@@ -176,7 +178,7 @@ def finger_clear(n, th, from_seg, side, spread=0.0, press=.0012):
 # into), how far it eases off the contact, and a little spread. Not clenched; the left is the looser hand.
 FING = {'L': dict(cap={'pinky': (80, 90, 70), 'ring': (78, 90, 70), 'middle': (75, 90, 70), 'index': (70, 90, 70)},
                   ease={'pinky': (3, 4, 3), 'ring': (3, 4, 4), 'middle': (3, 4, 4), 'index': (2, 5, 6)},
-                  spread={'pinky': -2.5, 'ring': -1., 'middle': 0., 'index': 3.}, press=.0012),
+                  spread={'pinky': -3.5, 'ring': -1.5, 'middle': 0., 'index': 4.}, press=.0012, close_k=.93),
         'R': dict(cap={'pinky': (80, 90, 70), 'ring': (78, 90, 70), 'middle': (75, 90, 70), 'index': (70, 90, 70)},
                   ease={'pinky': (2, 3, 2), 'ring': (2, 3, 3), 'middle': (2, 3, 3), 'index': (1, 4, 5)},
                   spread={'pinky': -2., 'ring': -1., 'middle': 0., 'index': 2.5}, press=.0012)}
@@ -187,7 +189,7 @@ def solve_fingers(side):
     for n in hands.ORDER:
         sp = np.radians(P['spread'][n]); th = [0., 0., 0.]
         if P.get('coupled', True):
-            prof = np.radians(CLOSE[n])
+            prof = np.radians(CLOSE[n]) * P.get('close_k', 1.0)
             for t_ in np.arange(0, 1.0001, .01):
                 tt = list(prof * t_)
                 if finger_clear(n, tt, 0, side, sp, P['press']) < 0: break
@@ -245,7 +247,11 @@ def thumb_cost(q, side, tgt, aim, w_aim):
         for p, r in thumb_samples(pts):
             ql = wheel_local(to_car(p, M))[0]; rho = np.hypot(ql[0], ql[1])
             if abs(rho - RR) < RT + r * .01 + .004 and ql[2] < RT * .6: c += 2e4 * (RT * .6 - ql[2]) ** 2
-    tip_car = to_car(pts[3], M); c += (np.linalg.norm(tip_car - tgt) * 100) ** 2
+    tip_car = to_car(pts[3], M); c += .25 * (np.linalg.norm(tip_car - tgt) * 100) ** 2
+    for k in (2, 3):                                           # r6: the phalanges LIE on the rim (pad on the driver face), not float above it
+        for u in (.3, .7, 1.0):
+            p = to_car(pts[k - 1] + (pts[k] - pts[k - 1]) * u, M); g = (rim_dist(p)[0] - RT) * 100 - T_RAD[k - 1] * .85
+            if g > 0: c += 6 * g * g
     if aim is not None: c += w_aim * (1 - nrm(dir_car(pts[3] - pts[2], M)) @ aim) * 10
     for p, r in thumb_samples(pts):
         pc = to_car(p, M); cl = (rim_dist(pc)[0] - RT) * 100 - r + .12; cl = min(cl, hub_clear(pc, r * .01)[0] * 100)
@@ -279,7 +285,7 @@ def thumb_targets():
 TGT = thumb_targets()
 THUMB_Q = {}
 for _side in ('L', 'R'):
-    THUMB_Q[_side] = solve_thumb(_side, TGT[_side][0], TGT[_side][1], float(os.environ.get('TH_AIM', '6')) if TGT[_side][1] is not None else 0.).x
+    THUMB_Q[_side] = solve_thumb(_side, TGT[_side][0], TGT[_side][1], float(os.environ.get('TH_AIM', '25')) if TGT[_side][1] is not None else 0.).x
 # The bind thumb sits between the two working poses (skinning then only moves it half as far, and the web between
 # thumb and index never folds); each side's bone deltas take it from there. Canonical cm rigid -> car: D_car = HM D HM^-1
 THUMB_QB = (THUMB_Q['L'] + THUMB_Q['R']) / 2
