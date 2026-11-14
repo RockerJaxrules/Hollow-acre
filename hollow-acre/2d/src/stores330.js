@@ -824,8 +824,8 @@ st30WorkFx=function(job,s,t,R,look,id){const g=ctx2;const P=(x,y,w,h,c)=>{g.fill
   if(job.r==='clerk'||job.r==='bar'){const top=Math.round(sz(R.oz+(job.r==='bar'?job.tap[1]:job.scale[1])))-46;const above=[X-60,0,X+60,top];const clip=r=>st30Clip(above,r);
     if(job.r==='clerk'){const Xs=Math.round(sx(R.ox+job.scale[0])),Ys=Math.round(sz(R.oz+job.scale[1]))-46,Xb=Math.round(sx(R.ox+job.bag[0])),Yg=Math.round(sz(R.oz+job.bag[1]))-38;
       if(p.scale&&!p.apple){P(Xs-3,Ys-1,7,4,'#c83a2e');P(Xs-2,Ys-2,5,1,'#d84a3a');P(Xs-1,Ys-1,1,1,'#f08a70');P(Xs,Ys-3,1,1,'#4a2a14');}   // the apple on the pan
-      if(p.reach==='scale'&&H){if(p.apple)drawSpr('st30_h_apple',H[0]+1,H[1]+5);armOver();}   // in her hand, on its way to the pan
-      if(p.reach==='bag'&&H){const k=ease(Math.min(1,u*1.6));if(k>.95)drawSpr('st30_h_bag',Xb,Yg);else drawSpr('st30_h_bag',H[0]+(s.dir==='W'?-2:2),H[1]+8);armOver();}
+      if(p.reach==='scale'&&H){armOver();if(p.apple){drawSpr('st30_h_apple',H[0]+(s.dir==='W'?-2:2),H[1]+2);hand();}}   // in her hand, on its way to the pan
+      if(p.reach==='bag'&&H){const k=ease(Math.min(1,u*1.6));if(k>.95)drawSpr('st30_h_bag',Xb,Yg);else{armOver();drawSpr('st30_h_bag',H[0]+(s.dir==='W'?-2:2),H[1]+7);hand();}}
       else if(p.bag)drawSpr('st30_h_bag',Xb,Yg);}
     else{const Xt=Math.round(sx(R.ox+job.tap[0])),Yb=Math.round(sz(R.oz+job.tap[1])),Xs=Math.round(sx(R.ox+job.set[0]));
       if(p.pull){const fill=Math.min(1,u*1.15);st30Mug(Xt-3,Yb-41,fill);if(fill<1)P(Xt,Yb-47,2,6,'#e8a83e');armOver();}   // his hand on the handle
@@ -843,7 +843,7 @@ st30WorkFx=function(job,s,t,R,look,id){const g=ctx2;const P=(x,y,w,h,c)=>{g.fill
   if(job.r==='plate'){const Xs=Math.round(sx(R.ox+job.slot[0])),Ys=Math.round(sz(R.oz+job.slot[1]))-22;
     if(p.reach&&H){drawSpr('st30_h_plate',H[0]-4,H[1]+4);armOver();}   // her own arm out over the pass, the plate on her hand
     if(p.set)drawSpr('st30_h_plate',Xs,Ys);return;}
-  if(job.r==='tend'&&p.reach&&H){drawSpr('st30_h_apple_g',H[0]+(s.dir==='E'?2:-2),H[1]+4);armOver();return;}   // a green apple held out over the bin's edge
+  if(job.r==='tend'&&p.reach&&H){armOver();drawSpr('st30_h_apple_g',H[0]+(s.dir==='E'?2:-2),H[1]+3);hand();return;}   // a green apple held out over the bin's edge
   if(job.r==='cook'){const Xp=Math.round(sx(R.ox+job.pot[0])),Yr=Math.round(sz(R.oz+job.pot[1]))-13;
     P(Xp-6,Yr,12,2,'#7a3e1e');P(Xp-4+Math.round(Math.sin(t*3)*2),Yr,3,1,'#b8642a');
     if(p.stir&&H){const a=t*4,lx=Xp+2+Math.round(Math.cos(a)*2),ly=Yr+1,hx=H[0],hy=H[1]+1;   // the ladle from her own hand down into the stew
@@ -915,3 +915,141 @@ st30TownHands=function(D,t){if(typeof bgG!=='function'||typeof SHOPS_BIG==='unde
           const holding=(p.lift&&u>=.5)||(p.shelve&&u<=.62)||(p.lift&&u>=.42);if(!holding)return;
           drawSpr('st30_h_box2',r.hand[0]+(d==='W'?-3:3),r.hand[1]+7);   // the carton on her own hand
           const k2=st50Sheet('h2',r.pose.tool);if(k2){const X1=Math.round(sx(s.x))+r.pose.dx,Y1=Math.round(sz(s.z));st50Hand(k2,r.pose.clip,d,r.pose.f,X1,Y1,r.hand[0]-(X1-24),r.hand[1]-(Y1-60),sk);}}});}}}};
+
+/* ---- t350 round 2 (judge r1: "the reused poses can't reach: a reach reads as a stick from the chin, loads end up at arm's length,
+   the hands never close round anything"): two new poses are drawn into each worker's own sheet, from their own standing frame,
+   so the arms are part of the body: the hanging forearm and hand are taken out (the body behind them filled back in from the
+   pixels beside them), and a new forearm is drawn in the same sleeve or skin, lit from the upper left, with its own outline and
+   a closed hand. CARRY: side on, the near forearm forward at the belly, the hand closed on the load's side; facing you, both
+   hands closed on the sides of the load at the belly; going away, the forearms forward out of sight. REACH: side on, the
+   upper arm down to an elbow and the forearm up and out at the chest, below the chin, the hand closed round what it holds. */
+const ST60={};
+function st60P(d){const g=(x,y)=>{if(x<0||y<0||x>=48||y>=64)return null;const i=(y*48+x)*4;return d.data[i+3]?[d.data[i],d.data[i+1],d.data[i+2]]:null;};
+  const s=(x,y,c)=>{if(x<0||y<0||x>=48||y>=64)return;const i=(y*48+x)*4;if(!c){d.data[i+3]=0;return;}d.data[i]=c[0];d.data[i+1]=c[1];d.data[i+2]=c[2];d.data[i+3]=255;};return {g,s};}
+const st60L=c=>c[0]*.3+c[1]*.59+c[2]*.11;
+const st60M=(c,k)=>k>0?c.map(v=>Math.round(v+(255-v)*k)):c.map(v=>Math.max(0,Math.round(v*(1+k))));
+// the colours of a figure's own arm: the skin of the hand (dark, mid, light), the sleeve, and whether the forearm is bare
+function st60Cols(P,xs,ys,up){const hand=[];for(const y of ys)for(const x of xs){const c=P.g(x,y);if(c&&st60L(c)>45)hand.push(c);}hand.sort((a,b)=>st60L(a)-st60L(b));
+  const sk=hand.length>=3?[hand[0],hand[hand.length>>1],hand[hand.length-1]]:[[150,90,60],[200,140,100],[236,196,156]];
+  const near=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1])+Math.abs(a[2]-b[2])<90;
+  const u=up||sk[1];return {skin:sk,sleeve:[st60M(u,-.32),u,st60M(u,.22)],bare:near(u,sk[1])||near(u,sk[2])||near(u,sk[0])};}
+// a 3 px limb from a to b in a ramp [dark, base, light], lit from the upper left; marks what it covers
+function st60Limb(P,M,a,b,ramp){const dx=b[0]-a[0],dy=b[1]-a[1],n=Math.max(Math.abs(dx),Math.abs(dy),1),flat=Math.abs(dx)>=Math.abs(dy);
+  for(let i=0;i<=n;i++){const x=Math.round(a[0]+dx*i/n),y=Math.round(a[1]+dy*i/n);
+    if(flat){P.s(x,y-1,ramp[2]);P.s(x,y,ramp[1]);P.s(x,y+1,ramp[0]);M.add(x+','+(y-1));M.add(x+','+y);M.add(x+','+(y+1));}
+    else{P.s(x-1,y,ramp[2]);P.s(x,y,ramp[1]);P.s(x+1,y,ramp[0]);M.add((x-1)+','+y);M.add(x+','+y);M.add((x+1)+','+y);}}}
+// a closed hand: 3x3, the knuckles lit, the fingers curled under in shade
+function st60Fist(P,M,cx,cy,sk,dir){const L=dir==='W'?-1:1;const px=[[-1,-1,2],[0,-1,2],[1,-1,1],[-1,0,1],[0,0,2],[1,0,1],[-1,1,0],[0,1,1],[1,1,0]];
+  for(const [x,y,t] of px){const X=cx+x*L,Y=cy+y;P.s(X,Y,sk[t]);M.add(X+','+Y);}}
+function st60Outline(P,M,col){const add=[];for(const k of M){const [x,y]=k.split(',').map(Number);for(const [a,b] of [[1,0],[-1,0],[0,1],[0,-1]]){const q=(x+a)+','+(y+b);if(!M.has(q))add.push([x+a,y+b]);}}
+  for(const [x,y] of add)P.s(x,y,col);}
+// take out a side-on arm below row y0 (columns xs), filling the body back in from the column beside it (fx), or leaving it empty
+function st60Erase(P,xs,y0,y1,fx){for(let y=y0;y<=y1;y++){const f=P.g(fx,y),f2=P.g(fx-(xs[0]<fx?-1:1),y);for(const x of xs)P.s(x,y,f&&f2?f:null);}}
+// side on (E; W is drawn mirrored: x -> 46 - x)
+function st60Side(d,dir,mode,k){const P0=st60P(d),mx=dir==='W'?(x=>46-x):(x=>x);const P={g:(x,y)=>P0.g(mx(x),y),s:(x,y,c)=>P0.s(mx(x),y,c)};
+  const C=st60Cols(P,[23,24,25],[49,50,51,52],P.g(24,43));const fore=C.bare?C.skin:C.sleeve;const M=new Set();
+  if(mode==='carry'){st60Erase(P,[23,24,25],46,53,22);
+    st60Limb(P,M,[24,45],[29,46],fore);st60Fist(P,M,31,46,C.skin,'E');}
+  else{const hx=[30,33,36][k],hy=44;st60Erase(P,[23,24,25],41,53,22);   // the whole arm: down to an elbow, then up and out
+    st60Limb(P,M,[24,41],[26,46],C.sleeve);st60Limb(P,M,[26,46],[hx-2,hy],fore);st60Fist(P,M,hx,hy,C.skin,'E');}
+  st60Outline(P,M,st60M((C.bare?C.skin[0]:C.sleeve[0]),-.62));return d;}
+// facing you or away: both hands closed on the load's sides at the belly (S), or the forearms forward out of sight (N)
+function st60Front(d,dir){if(dir==='N')return st61Back(d);const P=st60P(d);const C=st60Cols(P,[15,16,17,30,31,32],[49,50,51,52],P.g(16,44));
+  for(let y=48;y<=54;y++)for(const x of [14,15,16,17,29,30,31,32,33])P.s(x,y,null);
+  const cuff=st60M(C.bare?C.skin[0]:C.sleeve[0],-.62);
+  if(dir==='N')return st61Back(d);   // the elbows out, the hands on the load's ends
+  const M=new Set();st60Fist(P,M,16,48,C.skin,'E');st60Fist(P,M,31,48,C.skin,'W');st60Outline(P,M,st60M(C.skin[0],-.6));return d;}
+function st60Sheet(id){const key='st30p_'+id+'_arms';if(SPR[key])return key;const b=st30Sheet(id);if(!b)return null;if(ST30.built===FRAME_NO)return null;ST30.built=FRAME_NO;
+  const B=IMG['mem:'+b],mb=SPR[b],W=48,H=64,SPLIT=53;const o=document.createElement('canvas');o.width=W*9;o.height=H*10;const og=o.getContext('2d');
+  const tc=document.createElement('canvas');tc.width=W;tc.height=H;const tg=tc.getContext('2d',{willReadFrequently:true});
+  const frame=(row,f)=>{tg.clearRect(0,0,W,H);tg.drawImage(B,f*W,row*H,W,H,0,0,W,H);return tg.getImageData(0,0,W,H);};
+  const top=d=>{for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(d.data[(y*W+x)*4+3])return y;return 0;};
+  const toC=d=>{const c=document.createElement('canvas');c.width=W;c.height=H;c.getContext('2d').putImageData(d,0,0);return c;};
+  const bobs={};
+  ['N','W','S','E'].forEach((d,di)=>{const st=frame(mb.clips.idle[d][0],0),ht=top(st);const up=toC(d==='E'||d==='W'?st60Side(st,d,'carry'):st60Front(st,d));
+    for(const [cn,row0,n] of [['walk',di,9],['idle',4+di,4]]){const [br,bn]=mb.clips[cn][d];const arr=bobs[cn+d]=[];
+      for(let f=0;f<n;f++){const bob=top(frame(br,f%bn))-ht;arr.push(bob);const lo=SPLIT+Math.min(0,bob);
+        og.drawImage(B,(f%bn)*W,br*H+lo,W,H-lo,f*W,row0*H+lo,W,H-lo);og.drawImage(up,0,0,W,SPLIT,f*W,row0*H+bob,W,SPLIT);}}});
+  ['E','W'].forEach((d,i)=>{for(let k=0;k<3;k++)og.drawImage(toC(st60Side(frame(mb.clips.idle[d][0],0),d,'reach',k)),k*W,(8+i)*H);});
+  IMG['mem:'+key]=o;SPR[key]=Object.assign({},mb,{src:'mem:'+key,clips:{walk:{N:[0,9],W:[1,9],S:[2,9],E:[3,9]},idle:{N:[4,4],W:[5,4],S:[6,4],E:[7,4]},reach:{E:[8,3],W:[9,3]}}});
+  ST60[key]={bobs};return key;}
+// the new reach in the pose table: hand closed at the chest, three lengths
+ST50_POSE.arm={tool:'_arms',clip:'reach',f:[0,1,2],E:[[30,44],[33,44],[36,44]],W:[[16,44],[13,44],[10,44]]};
+{const _s=st50Sheet;st50Sheet=function(id,tool){return tool==='_arms'?st60Sheet(id):_s(id,tool);};}
+// the loops that use it: the clerk at the scale and the bags, the bins, the stockpot, the plate over the pass
+{const _w=st50Work;st50Work=function(job,s,t,R,X,Y){if(s.clip!=='idle')return _w(job,s,t,R,X,Y);const p=s.props||{},u=s.u||0,d=s.dir,ease=v=>v<.5?2*v*v:1-2*(1-v)*(1-v);
+  if(job.r==='clerk'){const Xs=Math.round(sx(R.ox+job.scale[0])),Ys=Math.round(sz(R.oz+job.scale[1]))-46,Xb=Math.round(sx(R.ox+job.bag[0])),Yg=Math.round(sz(R.oz+job.bag[1]))-38;
+    if(p.reach==='scale')return st50Toward('arm',d,p.apple?ease(Math.min(1,u*1.4)):1,X,Y,Xs-2,null);
+    if(p.reach==='bag')return st50Toward('arm',d,ease(Math.min(1,u*1.6)),X,Y,Xb+3,null);return null;}
+  if(job.r==='tend'&&p.reach){const E=d==='E',k=ease(Math.min(1,(s.c||0)/1.0)),back=(s.c||0)>1.9?ease(Math.min(1,((s.c||0)-1.9)/.6)):0;return st50Toward('arm',d,Math.max(0,k-back),X,Y,X+(E?1:-1)*14,null);}
+  if(job.r==='plate'&&p.reach){const Xs=Math.round(sx(R.ox+job.slot[0]));return st50Toward('arm',d,ease(Math.min(1,u*1.5)),X,Y,Xs+5,null);}
+  return _w(job,s,t,R,X,Y);};}
+// the plater facing you between plates: the next plate held in both hands
+{const _j=st30Job;st30Job=function(job,t,R,i){const s=_j(job,t,R,i);if(s&&job.r==='plate'&&s.clip==='idle'&&s.dir==='S'&&s.props&&s.props.set)s.carry='st30_h_plate';return s;};}
+// ---- carrying in the new pose: side on, the load against the belly in the closed hand; facing you, both hands on its sides,
+// off the ground; going away, a load is out of sight in front (its ends at the sides), a small thing held at the side
+{const _pd=st30PersonDraw;st30PersonDraw=function(key,x,z,clip,dir,f,o){o=o||{};const c=o.carry;if(!c||!o.id||o.posefn&&o.posefn(Math.round(sx(x)),Math.round(sz(z))))return _pd(key,x,z,clip,dir,f,o);
+  const kd=st30HoldKind(c),m=SPR[c];const X=sx(x),Y=sz(z),w=m?m.fw:12,small=kd==='small'||/plate|mug|parcel|bag|apple/.test(c);
+  if(dir==='N'&&small)return _pd(key,x,z,clip,dir,f,Object.assign({},o,{carry:null,after:(X1,Y1)=>{drawSpr(c,Math.round(X1+9),Math.round(Y1-8));if(o.after)o.after(X1,Y1);}}));   // at her side, in the hand that hangs there
+  const ak=st60Sheet(o.id);if(!ak)return _pd(key,x,z,clip,dir,f,o);
+  const cc=clip==='walk'?'walk':'idle',bob=((ST60[ak].bobs||{})[cc+dir]||[])[f%(cc==='walk'?9:4)]||0;shadow(X,Y,8);
+  const lo=kd==='cask'?4:0,cs=kd==='cask'?(st61Rim(c)||c):c;
+  if(dir==='N'){const wk=st61Wide(c,21,11)||c,Yl=Math.round(Y-60+53+lo+bob);drawSpr(wk,Math.round(X),Yl);drawSpr(ak,X,Y,cc,dir,f);st61Ends(wk,X,Y,Yl,bob);if(o.after)o.after(X,Y);return;}
+  drawSpr(ak,X,Y,cc,dir,f);if(o.before)o.before(X,Y);
+  if(dir==='E'||dir==='W'){const E=dir==='E',hx=E?31:15,hy=46+bob;
+    if(small)drawSpr(c,Math.round(X-24+hx+(E?1:-1)),Math.round(Y-60+hy+3));
+    else drawSpr(kd==='cask'?(st61Rim(c,1)||c):c,Math.round(X-24+(E?27+w/2:20-w/2)),Math.round(Y-60+52+lo+bob));   // against the belly
+    st50Hand(ak,cc,dir,f,X,Y,hx,hy,o.skin);if(o.after)o.after(X,Y);return;}
+  drawSpr(cs,Math.round(X),Math.round(Y-60+(small?51:53)+lo+bob));   // facing you: between the hands, off the ground
+  for(const hx of [16,31])st50Hand(ak,cc,dir,f,X,Y,hx,48+bob,o.skin);if(o.after)o.after(X,Y);};}
+
+/* ---- t350 round 2 finish (judge r2: the cook's cream sleeve merges with her cream shirt; going away the crate and the cask are
+   lost behind the back; the cask rides up to the chin and runs into the stacked casks). */
+// going away with a load: the elbows bent out, the hands closed on the load's ends at the sides, the ends showing past the hips
+function st61Back(d){const P=st60P(d);const C=st60Cols(P,[15,16,17,30,31,32],[49,50,51,52],P.g(16,41));
+  const near=(a,b)=>a&&b&&Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1])+Math.abs(a[2]-b[2])<50,skin=c=>C.skin.some(k=>near(c,k));
+  const f0=P.g(16,47),fore=skin(f0)?C.skin:C.sleeve,out=P.g(14,44)||[20,12,10];
+  const gone=new Set(),cut=(x,y)=>{P.s(x,y,null);gone.add(x+','+y);};
+  for(let y=42;y<=52;y++){for(const x of [12,13,14,15,16,30,31,32,33,34,35])cut(x,y);}   // the hanging arms out
+  for(let y=46;y<=55;y++)for(const x of [13,14,15,16,17,29,30,31,32,33,34])if(skin(P.g(x,y)))cut(x,y);   // the hands
+  for(let y=53;y<=55;y++)for(const x of [13,14,15,16,17,30,31,32,33,34]){const c=P.g(x,y);if(c&&st60L(c)<40&&gone.has(x+','+(y-1)))cut(x,y);}
+  // the body's own edge where the arm was: outline the torso and the skirt
+  const edge=[];for(const k of gone){const [x,y]=k.split(',').map(Number);if(P.g(x,y))continue;for(const [a,b] of [[1,0],[-1,0],[0,-1],[0,1]]){const c=P.g(x+a,y+b);if(c&&!gone.has((x+a)+','+(y+b))&&st60L(c)>=40){edge.push([x,y]);break;}}}
+  for(const [x,y] of edge)P.s(x,y,out);
+  // the arms: the upper arm down and out to the elbow, the forearm back in to the hand on the load's end
+  const M=new Set();for(const s of [1,-1]){const m=x=>s>0?x:47-x;
+    const Q={s:(x,y,c)=>P.s(m(x),y,c)},MM={add:k=>{const [x,y]=k.split(',').map(Number);M.add(m(x)+','+y);}};
+    st60Limb(Q,MM,[15,40],[11,43],C.sleeve);st60Limb(Q,MM,[11,43],[13,45],fore);st60Fist(Q,MM,15,46,C.skin,'E');}
+  st60Outline(P,M,st60M(C.bare?C.skin[0]:C.sleeve[0],-.62));return d;}
+// a load seen from behind: widened (its hidden middle repeated) so its ends show past the hips
+function st61Wide(c,W,ax){const m=SPR[c],im=m&&IMG[m.src];if(!im)return null;const key=c+'_w'+W;if(SPR[key])return key;
+  const o=document.createElement('canvas');o.width=W;o.height=m.fh;const g=o.getContext('2d');g.imageSmoothingEnabled=false;const h=m.fw>>1;
+  g.drawImage(im,0,0,h,m.fh,0,0,h,m.fh);g.drawImage(im,m.fw-h,0,h,m.fh,W-h,0,h,m.fh);g.drawImage(im,h-1,0,1,m.fh,h,0,W-2*h,m.fh);
+  IMG['mem:'+key]=o;SPR[key]={src:'mem:'+key,fw:W,fh:m.fh,ax:ax==null?W>>1:ax,ay:m.ay,foot:[0,0,0,0]};return key;}
+// a 1 px dark rim round a carried thing, so it reads apart from the stack it came off
+// (sh: and its shadow thrown down and right, onto whatever is behind it)
+function st61Rim(c,sh){const m=SPR[c],im=m&&IMG[m.src];if(!im)return null;const key=c+(sh?'_rims':'_rim');if(SPR[key])return key;
+  const o=document.createElement('canvas');o.width=m.fw+(sh?4:2);o.height=m.fh+(sh?3:2);const g=o.getContext('2d');
+  const t=document.createElement('canvas');t.width=m.fw;t.height=m.fh;const tg=t.getContext('2d');tg.drawImage(im,0,0,m.fw,m.fh,0,0,m.fw,m.fh);tg.globalCompositeOperation='source-in';tg.fillStyle='#160c08';tg.fillRect(0,0,m.fw,m.fh);
+  if(sh){g.globalAlpha=.5;g.drawImage(t,3,2);g.drawImage(t,3,3);g.globalAlpha=1;}
+  for(const [a,b] of [[0,1],[2,1],[1,0],[1,2]])g.drawImage(t,a,b);g.drawImage(im,0,0,m.fw,m.fh,1,1,m.fw,m.fh);
+  IMG['mem:'+key]=o;SPR[key]={src:'mem:'+key,fw:o.width,fh:o.height,ax:m.ax+1,ay:m.ay+1,foot:[0,0,0,0]};return key;}
+// the cook's reach (round 1's pose): a 1 px darker edge under the sleeve where it lies over the shirt
+function st61Edge(id){const key='st30p_'+id+'_canE';if(SPR[key])return key;const b=st50Sheet(id,'_can');if(!b)return null;const mb=SPR[b],B=IMG[mb.src];if(!B)return null;
+  const base=st30Sheet(id),mi=base&&SPR[base],BI=mi&&IMG[mi.src];if(!BI)return null;
+  const o=document.createElement('canvas');o.width=B.width;o.height=B.height;const g=o.getContext('2d',{willReadFrequently:true});g.drawImage(B,0,0);
+  const t=document.createElement('canvas');t.width=48;t.height=64;const tg=t.getContext('2d',{willReadFrequently:true});
+  for(const d of ['E','W']){const th=mb.clips.thrust&&mb.clips.thrust[d],ir=mi.clips.idle&&mi.clips.idle[d];if(!th||!ir)continue;
+    tg.clearRect(0,0,48,64);tg.drawImage(BI,0,ir[0]*64,48,64,0,0,48,64);const I=tg.getImageData(0,0,48,64).data;
+    for(let f=0;f<th[1];f++){const im=g.getImageData(f*48,th[0]*64,48,64),A=im.data,q=(x,y)=>(y*48+x)*4;
+      const diff=(x,y)=>{const i=q(x,y);return A[i+3]&&(!I[i+3]||A[i]!==I[i]||A[i+1]!==I[i+1]||A[i+2]!==I[i+2]);};
+      const dk=[];for(let y=36;y<=46;y++)for(let x=1;x<47;x++){if(!diff(x,y)||!I[q(x,y)+3])continue;const j=q(x,y+1);
+        if(A[j+3]&&!diff(x,y+1)&&st60L([A[j],A[j+1],A[j+2]])>70)dk.push(j);}
+      for(const j of dk){const c=st60M([A[j],A[j+1],A[j+2]],-.42);A[j]=c[0];A[j+1]=c[1];A[j+2]=c[2];}
+      g.putImageData(im,f*48,th[0]*64);}}
+  IMG['mem:'+key]=o;SPR[key]=Object.assign({},mb,{src:'mem:'+key});return key;}
+{const _s=st50Sheet;st50Sheet=function(id,tool){return tool==='_canE'?st61Edge(id):_s(id,tool);};}
+{const _w=st50Work;st50Work=function(job,s,t,R,X,Y){const r=_w(job,s,t,R,X,Y);if(r&&r.pose&&job.r==='cook'&&r.pose.tool==='_can')r.pose=Object.assign({},r.pose,{tool:'_canE'});return r;};}
+// going away: the load behind the body, then its two ends over the hips' sides below the hands (cells x 13-16 and 30-33, 4 px past each hip)
+function st61Ends(c,X,Y,Yl,bob){const m=SPR[c],im=m&&IMG[m.src];if(!im)return;const x0=Math.round(X)-m.ax,y0=Math.round(Yl)-m.ay,r0=Math.max(0,Math.round(Y-60+49+bob)-y0);if(r0>=m.fh)return;
+  for(const [a,w] of [[13,4],[30,4]]){const lx=a-24+m.ax;ctx2.drawImage(im,lx,r0,w,m.fh-r0,x0+lx,y0+r0,w,m.fh-r0);}}

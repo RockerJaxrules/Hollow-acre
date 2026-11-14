@@ -658,8 +658,8 @@ setInterval(()=>{for(const id of ['bag','shop','note','craft']){const e=document
 #hudC>#objective,#objective{-webkit-line-clamp:3!important}
 /* the backpack's bar: bin, Sort, Wardrobe and Dye in one row, all 44 px */
 #bagBody .invbar{display:flex!important;align-items:center;gap:6px;flex-wrap:wrap}
-#bagBody .invbar #invTrash{width:44px!important;height:44px!important;display:flex;align-items:center;justify-content:center}
-#bagBody .invbar #invSort,#bagBody .invbar #bagWard,#bagBody .invbar #bagDye{min-height:44px!important;height:44px;padding:0 12px!important;margin:0!important}
+#bagBody .invbar #invTrash{width:48px!important;height:48px!important;display:flex;align-items:center;justify-content:center}
+#bagBody .invbar #invSort,#bagBody .invbar #bagWard,#bagBody .invbar #bagDye{min-height:48px!important;height:48px;padding:0 12px!important;margin:0!important}
 /* shops show your coins in the header */
 #shop>h2{display:flex!important;align-items:center;justify-content:space-between;gap:8px}
 #shop .u37purse{display:inline-flex;align-items:center;gap:5px;font-size:15px;color:#f0dcae;letter-spacing:0;white-space:nowrap;text-shadow:1px 1px 0 #120a04}
@@ -850,9 +850,10 @@ function u37FitMaps(){if(innerWidth>=600)return;for(const sv of document.querySe
 #noteText .u37mapcue[hidden]{display:none}#noteText .u37mapcue svg{width:8px;height:14px;fill:#5a3a1e}
 @media (max-width:600px),(pointer:coarse) and (orientation:portrait){
   /* a book (journal, farm book, ledger, a letter) fills the phone like the backpack: the HUD steps out, no slivers either side */
-  body:has(#note:not([hidden])) :is(#hud,#objective,#lesson,#fsX){visibility:hidden!important}
+  body:has(#note:not([hidden])) :is(#hud,#objective,#lesson,#fsX,#buttons,#btnUse,#btnBag,#btnDecor,#hotbar,#joy,#bars){visibility:hidden!important}
   /* no stepped fade at the foot of a page (it read as a rule through the last line); "more below" already says there is more */
   #noteText,#noteText.more{-webkit-mask-image:none!important;mask-image:none!important}
+  #u37moreN.on::before{display:none!important}
   /* the creator: its pinned foot reaches the bottom of the screen and pads itself past the home bar, so nothing scrolls under it,
      and a row half under the foot fades out in steps instead of being sliced */
   #creator{padding-bottom:0!important}
@@ -861,16 +862,20 @@ function u37FitMaps(){if(innerWidth>=600)return;for(const sv of document.querySe
     background:linear-gradient(rgba(44,26,14,0) 0 4px,rgba(44,26,14,.55) 4px 8px,rgba(44,26,14,.85) 8px 12px)}
   /* the title logo steps aside while settings are open (the panel sliced "Acre") */
   body.u37disp #title h1,body.u37disp #title .kicker{visibility:hidden}
-  /* thumb-sized: 46 px for every control measured at 39-43 */
-  #dispClose,#sndBtn:not(.inhud),#dispBtn:not(.inhud),#mpBtn,#begin{min-height:46px!important}
-  #fsBtn{min-width:46px!important;min-height:46px!important}
-  #fsX{width:46px!important;height:46px!important}
-  #mg4Skip{min-width:46px!important;min-height:46px!important;top:calc(max(env(safe-area-inset-top,0px),20px) + 6px)!important}
-  #invSort,#bagWard,#bagDye{min-height:46px!important}
-  #bagBody button:not(.mile):not(.sw):not(.it){min-height:46px!important}
-  #bagBody button.coE,#bagBody .u37zoom button,#bagBody button[data-z]{min-width:46px!important}
-  #cPanel button:not(.sw){min-height:46px!important}
-  #noteText button{min-height:46px!important}
+  /* thumb-sized: a button's outer 2 px ring is near-black and vanishes on the dark scene, so the frame you see is the box less 4 px:
+     every control measured at 39-43 gets a 48 px box (a 44 px drawn frame) */
+  #dispClose#dispClose,#sndBtn#sndBtn:not(.inhud),#dispBtn#dispBtn:not(.inhud),#mpBtn#mpBtn,#begin#begin,#cRand#cRand,#cGo#cGo{min-height:48px!important;height:auto!important;max-height:none!important}
+  #fsBtn#fsBtn,#fsX#fsX,#cL#cL,#cAnim#cAnim,#cR#cR{min-width:48px!important;min-height:48px!important;width:48px!important;height:48px!important;max-width:none!important;max-height:none!important}
+  #fsX{width:48px!important;height:48px!important}
+  #fsX:not([style*="top"]){top:calc(max(env(safe-area-inset-top,0px),20px) + 6px)!important}
+  #mg4Skip{min-width:48px!important;min-height:48px!important;top:calc(max(env(safe-area-inset-top,0px),20px) + 6px)!important}
+  #cTabs#cTabs button{min-height:48px!important;min-width:48px!important;height:auto!important;max-height:none!important}
+  #cPanel button.chip,#cPanel label.chip{min-height:48px!important;min-width:48px!important}
+  #bag .tabs button{min-width:48px!important}
+  #invSort#invSort,#bagWard#bagWard,#bagDye#bagDye{min-height:48px!important;height:auto!important;max-height:none!important}
+  #bagBody button:not(.mile):not(.sw):not(.it):not(.slot),#bagBody input{min-height:48px!important}
+  #mzOut,#mzIn,#coSend{min-width:48px!important}
+  #noteText button{min-height:48px!important}
 }`;document.head.appendChild(css);}
 // settings: the pinned foot covers the panel's bottom padding too, so nothing scrolls out under Done; a little wider than the rows
 setInterval(()=>{if(innerWidth>=600)return;const d=document.getElementById('dispPick');if(!d||getComputedStyle(d).display==='none')return;const w=d.querySelector('.u37dfoot');if(!w)return;
