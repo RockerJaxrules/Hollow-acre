@@ -139,6 +139,22 @@ Studied three driver's-eye photos of hands at 10 and 2 (openly licensed, scratch
 - **Make the cuff about 1.25 times the wrist,** with fold heights about half of a casual shirt's. Wider cuffs read as
   puffy at game distance.
 
+### The 10-and-2 pose as measurable targets (for posing any first-person arms, the MetaHuman ones included)
+Measure from the game eye (the in-car camera), on SCREEN unless noted. These targets come from the owner's 10-and-2
+photos and the blind judge's measurements over t353 rounds r4-r6.
+
+| What | Target | Blender r6 (scene.py report) |
+|---|---|---|
+| Clock position of each hand | 10 and 2, about 60 degrees from 12; the left a little lower | ~62 and ~58 |
+| Knuckle row vs the rim's projected tangent | within 15 degrees | 5-19 |
+| Back-of-hand normal vs the eye ray (3D) | within 30-40 degrees, so the four knuckle bumps read; never edge-on | ~45-50 |
+| Thumb (distal phalanx) vs the rim tangent | within 10-15 degrees; on the driver face; tip about 2 cm past the index knuckle toward 12; the pad touches the rim; the only digit on the driver side | 34-40 (missed: the CMC sits too far off the rim; fix first) |
+| Fingers | a closed fist; index MCP ~45, PIP ~65, DIP ~25; middle, ring and pinky ~55-60 / 75-80 / 30-35; tips hidden behind the rim; no straight finger | fist closed all-joints-together |
+| Forearm from horizontal | left 35-45 (in low from outside); right 70-80 | ~48 / ~79 |
+| Wrist | right nearly straight with slight extension; left bent ~25 toward the pinky; no break wider than ~10 on screen | left 53 in 3D, right 34 |
+| Cuff | at the wrist bone, less than 3 cm of bare forearm; cuff about 1.25x the wrist width; hem band and bunched folds | sleeve starts 0-1.2 cm above the wrist |
+| Two hands | different roll, wrist angle and curl; never mirrored | separate places, poles and closure |
+
 ### Grip details the judge checks (t353 r4 -> r5)
 - **The index curls like the other fingers** (MCP about 45, PIP about 65, DIP about 25), with its tip behind the rim.
   - A sequential cascade (MCP to contact, then PIP, then DIP) leaves a finger that lands along the rim straight. Two
