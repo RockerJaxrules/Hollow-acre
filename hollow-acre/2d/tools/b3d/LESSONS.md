@@ -89,6 +89,28 @@ One line each, concrete and checkable. **[repeated]** = broken again; move it to
 - **When adducted** (resting alongside the hand), the thumb tip reaches about the middle of the index finger's
   first segment.
 
+### What real driver photos show (studied by measuring, never copied; owner asked for reference photos)
+Studied openly licensed photos: three taken from the driver's seat and one from the dash. They stay in the scratchpad
+and are never committed or shipped.
+- **From the driver's eye, the BACK of the hand dominates:** the knuckle ridge as separate bumps, tendons, a few veins,
+  and wrinkled skin at the wrist.
+  - The THUMB IS MOSTLY HIDDEN. It tucks under or behind the rim on the driver side, or lies low near the spoke, and
+    shows only a short tip, if anything.
+  - A thumb that is the most visible part of the hand is wrong (r1-r3).
+- **Hand at the top of the wheel (about 1 o'clock):** the hand hooks OVER the rim.
+  - The back of the hand faces up and toward the driver, with the knuckles on top.
+  - The fingers curl over and down the far (dash) side, with the rim sitting in the middle segments of the fingers,
+    not the palm.
+  - The wrist is nearly straight, and the thumb wraps beneath the rim, out of sight.
+- **Relaxed hand at 9 o'clock** (a night drive):
+  - The palm and finger bases rest against the rim's outer and driver side.
+  - The fingers drape loosely over the rim toward the hub, slightly curved and slightly apart, with their backs to
+    the driver.
+  - The thumb sits low, pointing toward the spoke, mostly behind the other fingers.
+- **Relaxed drivers don't clench.** The fingers are gently curved and not identical; one hand is often looser than the
+  other, and the two hands are at different clock positions.
+- **The sleeve is loose,** with a soft, wide cuff and folds, and covers part of the wrist.
+
 ### Gripping a steering wheel (driver guidance: NHTSA, driving schools)
 - The fingers wrap around the OUTSIDE of the rim. The thumbs rest ALONG the rim's driver-facing face, pointing up
   along the rim, on top of it, never hooked around the inside of the ring.
