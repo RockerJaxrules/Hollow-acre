@@ -55,7 +55,7 @@ function t41Driver(K,cx,cy,r,f){const I=T41I,S=T41P.steel;
   K.ell(cx,cy,2.5,2.5,(x,y,nx,ny)=>nx+ny<0?S[4]:S[2]);}
 // a glass pane lit from the top-left: sky at the top, a diagonal glint, dark below; slantL/slantR lean one top corner back
 function t41Pane(K,a,b,t,bb,o){o=o||{};const GL=T41P.glass;for(let x=a;x<=b;x++){let tt=t;if(o.slantR&&x>b-o.slantR)tt+=Math.round((x-(b-o.slantR))*1.3);if(o.slantL&&x<a+o.slantL)tt+=Math.round((a+o.slantL-x)*1.3);
-    for(let y=tt;y<=bb;y++){let col=y<tt+3?GL[2]:GL[1];const d=(x-a)+(y-tt);if(d>=4&&d<=6)col=GL[3];else if(d===7)col=GL[2];if(o.warm)col=y<tt+2?'#c89a52':d>=4&&d<=6?'#e8c278':'#a8783a';K.px(x,y,1,1,col);}}
+    for(let y=tt;y<=bb;y++){let col=y<tt+3?GL[2]:GL[1];const d=(x-a)+(y-tt);if(d>=4&&d<=6)col=GL[3];else if(d===7)col=GL[2];if(o.warm){const core=x>a+1&&x<b-1&&y>tt+2&&y<bb-1;col=y<tt+2?'#b8863e':core?(d>=4&&d<=6?'#fff2c8':'#f2d48a'):(d>=4&&d<=6?'#f0cc80':'#d2a052');}K.px(x,y,1,1,col);}}
   if(o.who){const hx=Math.round((a+b)/2)+(o.who%2?-2:2),hc=['#3a2a20','#5a4430','#2a2218','#6a5a48'][o.who%4];K.ell(hx,bb-3,3,4,()=>hc);K.box(hx-4,bb-1,9,2,'#2a2a30');}
   if(o.sill)for(let x=a;x<=b;x++)K.px(x,bb+1,1,1,o.sill);}
 // ---------------------------------------------------------------- THE TOWN STOP AND THE SHARED PARTS
@@ -87,7 +87,7 @@ function t41Platform(lx,lz,edge){const Pk=T41P.plank,ppm=32,dw=Math.round(lx*ppm
       const bd=Math.floor(u/7),j=Math.floor((v+bd*23)/53);let col=u%7===0?Pk[1]:((bd*5+j*3)%4===1?'#9a7f5a':Pk[3]);
       if((v+bd*23)%53===0)col=Pk[1];
       // nail pairs over the joists, each board's a little off its neighbour's, a few missing
-      const jo=Math.round(v/26)*26+12,jit=((bd*7+Math.round(v/26)*3)%5)-2,nx=jo+jit;if(v===nx&&(u%7===2||u%7===5)&&((bd*11+Math.round(v/26))%7)!==0)col=Pk[1];
+      const sp=((v+bd*23)%53+53)%53,seg=Math.floor((v+bd*23)/53),hh=Math.sin(bd*12.9898+seg*78.233)*43758.5453,hf=hh-Math.floor(hh);if(hf>.45&&(sp===2||sp===51)&&(u%7===2||u%7===4))col=Pk[1];
       const w=edge==='e'?dw+1-x:edge==='w'?x-2:edge==='n'?y-top:face-1-y;if(w<5&&u%7!==0)col=w<1?Pk[2]:'#a89070';   // worn pale along the track edge
       if(x<4||y<top+2)col=w<5?'#b8a080':Pk[4];K.px(x,y,1,1,col);}
   for(let x=2;x<dw+2;x++)for(let y=face;y<face+9;y++)K.px(x,y,1,1,y===face?Pk[2]:y<face+3?Pk[1]:Pk[0]);
@@ -97,7 +97,7 @@ function t41NameBoard(name){const Wd=T41P.wood,C=T41P.cream;const K0=t41Kit(1,1)
   const W=Math.max(40,tw+18),H=52,gy=48;const K=t41Kit(W,H);
   for(const x of [6,W-9])K.box(x,14,3,gy-14,Wd[2]),K.px(x,14,1,gy-14,Wd[3]);
   K.box(2,5,W-4,14,Wd[1]);K.box(3,6,W-6,12,C[3]);K.box(3,6,W-6,1,C[4]);K.box(3,17,W-6,1,C[1]);K.text(name,Math.round(W/2-tw/2),9,'#2a1a10');
-  K.outline();K.shadow(W/2,gy,W/2-2,2);return {c:K.c,gy,ax:W/2};}
+  K.outline();{const g=K.g;g.save();g.globalCompositeOperation='destination-over';g.fillStyle='rgba(14,10,8,.42)';for(const x of [7,W-8]){g.beginPath();g.ellipse(x+4,gy-.5,5,1.8,0,0,7);g.fill();}g.restore();}return {c:K.c,gy,ax:W/2};}
 // the crossing sign, twice a man's height: a timber post, two plain boards crossed, lit along their top edges
 function t41Crossbuck(){const W=60,H=100,gy=96;const K=t41Kit(W,H);const Wd=T41P.wood;
   K.box(28,26,4,gy-26,Wd[2]);K.px(28,26,1,gy-26,Wd[3]);K.px(31,26,1,gy-26,Wd[1]);K.box(27,gy-4,6,4,Wd[1]);
@@ -143,7 +143,7 @@ const t41Sh=(ramp,lit,base,k)=>ramp[Math.max(0,Math.min(ramp.length-1,Math.round
 function t41Scene(L,Wd,view,Hmax,o){o=o||{};const cam=t41Cam(L,Wd,view);const px=o.padX==null?6:o.padX,pt=o.padTop==null?4:o.padTop,pb=o.padBot==null?6:o.padBot;
   const W=Math.ceil(cam.w+px*2),oy=Hmax+pt,H=Math.ceil(cam.d+oy+pb),ox=px;
   const col=new Uint8ClampedArray(W*H*4),dep=new Float32Array(W*H).fill(-1e9),pid=new Int16Array(W*H).fill(-1);
-  const S={L,Wd,view,cam,W,H,ox,oy,ax:Math.round(ox+cam.w/2),ay:Math.round(cam.d+oy),id:0,F:{}};
+  const S={L,Wd,view,cam,W,H,ox,oy,ax:Math.round(ox+cam.w/2),ay:Math.round(cam.d+oy),id:0,idc:0,F:{}};
   const put=(u,v,h,c,bias)=>{if(!c)return;const X=cam.X(u,v),Z=cam.Z(u,v);const sx=Math.floor(X+ox),sy=Math.floor(Z-h+oy);if(sx<0||sy<0||sx>=W||sy>=H)return;
     const i=sy*W+sx,d=Z+h+(bias||0);if(d<=dep[i])return;dep[i]=d;pid[i]=S.id;const rgb=t41rgb(c);col[i*4]=rgb[0];col[i*4+1]=rgb[1];col[i*4+2]=rgb[2];col[i*4+3]=255;};
   S.put=put;
@@ -155,20 +155,20 @@ function t41Scene(L,Wd,view,Hmax,o){o=o||{};const cam=t41Cam(L,Wd,view);const px
   // a cross-section P (pairs [c,h]) swept along an axis ('u': c is v; 'v': c is u) from a0 to a1.
   // mat(F) gives each sample's colour; F carries the face (side/cap0/cap1), the local normal, the light, the position and
   // s,t: for an upright face, s runs left to right as you'd see it standing outside it and t runs down from the top.
-  S.ext=(axis,P,a0,a1,mat,o2)=>{o2=o2||{};S.id++;const F=S.F;const ccw=area(P)>0;let cmin=1e9,cmax=-1e9,hmax=-1e9,hmin=1e9;for(const [c,h] of P){cmin=Math.min(cmin,c);cmax=Math.max(cmax,c);hmax=Math.max(hmax,h);hmin=Math.min(hmin,h);}
-    const LP=(a,c,h)=>axis==='u'?[a,c,h]:[c,a,h];const rc=o2.round;
+  S.ext=(axis,P,a0,a1,mat,o2)=>{o2=o2||{};S.id=o2.pid||++S.idc;const F=S.F;const ccw=area(P)>0;let cmin=1e9,cmax=-1e9,hmax=-1e9,hmin=1e9;for(const [c,h] of P){cmin=Math.min(cmin,c);cmax=Math.max(cmax,c);hmax=Math.max(hmax,h);hmin=Math.min(hmin,h);}
+    const LP=(a,c,h)=>axis==='u'?[a,c,h]:[c,a,h];const rc=o2.round;const tt=o2.ttop==null?hmax:o2.ttop;
     for(let e=0;e<P.length;e++){const [ca,ha]=P[e],[cb,hb]=P[(e+1)%P.length];const dc=cb-ca,dh=hb-ha,len=Math.hypot(dc,dh);if(len<1e-6)continue;
       let nc=ccw?dh/len:-dh/len,nh=ccw?-dc/len:dc/len;const n=Math.max(1,Math.ceil(len/.5));
       for(let i=0;i<n;i++){const q=(i+.5)/n,c=ca+dc*q,h=ha+dh*q;let mc=nc,mh=nh;if(rc){const rx=c-rc[0],ry=h-rc[1],rl=Math.hypot(rx,ry)||1;mc=rx/rl;mh=ry/rl;}
         const nl=axis==='u'?[0,mc,mh]:[mc,0,mh];const V=vis(nl[0],nl[1],nl[2]);if(!V.ok)continue;
         for(let a=a0+.25;a<a1;a+=.5){const [u,v,hh]=LP(a,c,h);F.part='side';F.e=e;F.nl=nl;F.lit=V.lit;F.u=u;F.v=v;F.h=hh;F.a=a-a0;F.c=c;F.q=q;
-          F.up=Math.abs(mh)<.25;const pos=axis==='u'?mc>0:mc<0;F.s=pos?a-a0:a1-a;F.t=hmax-h;put(u,v,hh,mat(F));}}}
+          F.up=Math.abs(mh)<.25;const pos=axis==='u'?mc>0:mc<0;F.s=o2.sL!=null?(pos?a:o2.sL-a):(pos?a-a0:a1-a);F.t=tt-h;put(u,v,hh,mat(F));}}}
     for(const [cap,a,sg] of [['cap0',a0,-1],['cap1',a1,1]]){const nl=axis==='u'?[sg,0,0]:[0,sg,0];const V=vis(nl[0],nl[1],nl[2]);if(!V.ok||o2.noCaps)continue;
       for(let c=cmin+.25;c<cmax;c+=.5)for(let h=hmin+.25;h<hmax;h+=.5){if(!inPoly(P,c,h))continue;const [u,v,hh]=LP(a-sg*.01,c,h);
-        F.part=cap;F.nl=nl;F.lit=V.lit;F.u=u;F.v=v;F.h=hh;F.c=c;F.up=true;F.s=(axis==='u')===(sg>0)?cmax-c:c-cmin;F.t=hmax-h;put(u,v,hh,mat(F));}}};
+        F.part=cap;F.nl=nl;F.lit=V.lit;F.u=u;F.v=v;F.h=hh;F.c=c;F.up=true;F.s=(axis==='u')===(sg>0)?cmax-c:c-cmin;F.t=tt-h;put(u,v,hh,mat(F));}}};
   S.box=(u0,u1,v0,v1,h0,h1,mat,o2)=>S.ext('u',[[v0,h0],[v1,h0],[v1,h1],[v0,h1]],u0,u1,mat,o2);
   // an upright shape: a plan P (pairs [u,v]) raised from h0 to h1; round:[uc,vc] makes it a smooth cylinder
-  S.vext=(P,h0,h1,mat,o2)=>{o2=o2||{};S.id++;const F=S.F;const ccw=area(P)>0;let umin=1e9,umax=-1e9,vmin=1e9,vmax=-1e9;for(const [u,v] of P){umin=Math.min(umin,u);umax=Math.max(umax,u);vmin=Math.min(vmin,v);vmax=Math.max(vmax,v);}
+  S.vext=(P,h0,h1,mat,o2)=>{o2=o2||{};S.id=o2.pid||++S.idc;const F=S.F;const ccw=area(P)>0;let umin=1e9,umax=-1e9,vmin=1e9,vmax=-1e9;for(const [u,v] of P){umin=Math.min(umin,u);umax=Math.max(umax,u);vmin=Math.min(vmin,v);vmax=Math.max(vmax,v);}
     const rc=o2.round;let per=0;
     for(let e=0;e<P.length;e++){const [ua,va]=P[e],[ub,vb]=P[(e+1)%P.length];const du=ub-ua,dv=vb-va,len=Math.hypot(du,dv);if(len<1e-6)continue;
       const nu=ccw?dv/len:-dv/len,nv=ccw?-du/len:du/len;const n=Math.max(1,Math.ceil(len/.4));
@@ -181,12 +181,12 @@ function t41Scene(L,Wd,view,Hmax,o){o=o||{};const cam=t41Cam(L,Wd,view);const px
   // a cylinder lying along u (a boiler): its round face at each end is cap0/cap1
   S.tube=(u0,u1,vc,hc,r,mat,o2)=>{const P=[];const n=Math.max(16,Math.round(r*4));for(let i=0;i<n;i++){const a=i/n*Math.PI*2;P.push([vc+Math.cos(a)*r,hc+Math.sin(a)*r]);}S.ext('u',P,u0,u1,mat,Object.assign({round:[vc,hc]},o2||{}));};
   // a dome: half an ellipsoid on its base
-  S.dome=(uc,vc,h0,r,rh,mat)=>{S.id++;const F=S.F;const dth=.45/Math.max(r,rh);
+  S.dome=(uc,vc,h0,r,rh,mat,pid)=>{S.id=pid||++S.idc;const F=S.F;const dth=.45/Math.max(r,rh);
     for(let th=dth/2;th<Math.PI/2;th+=dth){const cr=Math.cos(th)*r,dph=.45/Math.max(cr,.5);for(let ph=0;ph<Math.PI*2;ph+=dph){const cu=Math.cos(ph),sv=Math.sin(ph);
         let nu=Math.cos(th)*cu/r,nv=Math.cos(th)*sv/r,nh=Math.sin(th)/rh;const nl=Math.hypot(nu,nv,nh);nu/=nl;nv/=nl;nh/=nl;const V=vis(nu,nv,nh);if(!V.ok)continue;
         const u=uc+cr*cu,v=vc+cr*sv,h=h0+Math.sin(th)*rh;F.part='dome';F.nl=[nu,nv,nh];F.lit=V.lit;F.u=u;F.v=v;F.h=h;F.th=th;F.up=false;put(u,v,h,mat(F));}}};
   // a flat picture standing square to the camera (a wheel, a sign): its pixel (ax,ay) sits at the model point (u,v,h)
-  S.bill=(c,u,v,h,ax,ay,bias)=>{S.id++;const g=c.getContext('2d').getImageData(0,0,c.width,c.height).data;const X0=cam.X(u,v),Z0=cam.Z(u,v);
+  S.bill=(c,u,v,h,ax,ay,bias)=>{S.id=++S.idc;const g=c.getContext('2d').getImageData(0,0,c.width,c.height).data;const X0=cam.X(u,v),Z0=cam.Z(u,v);
     for(let j=0;j<c.height;j++)for(let i=0;i<c.width;i++){const k=(j*c.width+i)*4;if(g[k+3]<100)continue;const X=X0+(i-ax)+.5,Y=h+(ay-j)-.5;
       const sx=Math.floor(X+ox),sy=Math.floor(Z0-Y+oy);if(sx<0||sy<0||sx>=W||sy>=H)continue;const ii=sy*W+sx,d=Z0+Y+(bias||0);if(d<=dep[ii])continue;
       dep[ii]=d;pid[ii]=S.id;col[ii*4]=g[k];col[ii*4+1]=g[k+1];col[ii*4+2]=g[k+2];col[ii*4+3]=255;}};
@@ -196,6 +196,15 @@ function t41Scene(L,Wd,view,Hmax,o){o=o||{};const cam=t41Cam(L,Wd,view);const px
       for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=W||yy>=H)continue;const j=yy*W+xx;
         if(col[j*4+3]&&pid[j]!==pid[i]&&dep[j]>dep[i]+T){mark[i]=1;break;}}}
     for(let i=0;i<W*H;i++)if(mark[i]){col[i*4]=col[i*4]*.42+6|0;col[i*4+1]=col[i*4+1]*.42+5|0;col[i*4+2]=col[i*4+2]*.42+10|0;}
+    // cast shadows: whatever stands above a receiving surface (o3.cast: [{id, top, tol}]) throws its shape onto it, down and to
+    // the right of itself, away from the light
+    for(const R of (o3.cast||[])){const sh=new Uint8Array(W*H);
+      for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x;if(!col[i*4+3]||pid[i]===R.id)continue;const d=dep[i],q=y+.5-oy;const Y=(d-q)/2,Z=(d+q)/2,X=x+.5-ox;const dh=Y-R.top;
+        if(dh<.5||dh>(R.max||60))continue;const X2=X+.62*dh,Z2=Z+.42*dh;const sx=Math.floor(X2+ox),sy=Math.floor(Z2-R.top+oy);if(sx<0||sy<0||sx>=W||sy>=H)continue;
+        const j=sy*W+sx;if(pid[j]!==R.id)continue;const Yj=(dep[j]-(sy+.5-oy))/2;if(Math.abs(Yj-R.top)>(R.tol||1.5))continue;sh[j]=1;}
+      // fill the single-pixel holes the sampling leaves, then darken
+      for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){const i=y*W+x;if(sh[i]||pid[i]!==R.id)continue;if(sh[i-1]&&sh[i+1]||sh[i-W]&&sh[i+W])sh[i]=2;}
+      for(let i=0;i<W*H;i++)if(sh[i]){col[i*4]=col[i*4]*.7+2|0;col[i*4+1]=col[i*4+1]*.7+2|0;col[i*4+2]=col[i*4+2]*.72+8|0;}}
     const K=t41Kit(W,H);K.g.putImageData(new ImageData(col,W,H),0,0);if(o3.before)o3.before(K);K.outline();
     if(o3.shadow!==false){const g=K.g;g.save();g.globalCompositeOperation='destination-over';
       // the contact shadow on the ground under the body (o3.foot: the body's own footprint, not the platforms or the pilot)
@@ -208,14 +217,19 @@ function t41Scene(L,Wd,view,Hmax,o){o=o||{};const cam=t41Cam(L,Wd,view);const px
 function t41Can(W,H,draw){const K=t41Kit(W,H);draw(K);return K.c;}
 // a rider's head and shoulders in a pane (seen through glass, so dark against it)
 function t41Rider(K,cx,bot,k,warm){const hc=warm?['#4a3020','#3a2418','#5a3a24','#2a1a10'][k%4]:['#2a2018','#3a2c20','#1e1812','#46382a'][k%4];
-  K.ell(cx,bot-6,2.6,3.2,()=>hc);K.box(cx-4,bot-2,9,3,warm?'#3a2414':'#1a1a20');}
+  const cc=warm?['#5a3a22','#3e2a1c','#6a4428','#4a3020'][(k+1)%4]:['#1e1e26','#2a2420','#22222a','#2e2a24'][(k+1)%4];
+  // shoulders: a rounded slope out from the neck to the sill; a head on a short neck
+  const lift=k%3;K.ell(cx,bot+1-lift*.5,3.4,3.2,(x,y)=>y<=bot?cc:null);K.ell(cx,bot-4.5-lift,1.6,1.7,()=>hc);}
+const T41BR=['#2e2d29','#45433d','#5e5b53','#77736a','#8f8b80','#a6a296'];
+// weather on a roof: a smooth field 0..1 with a few large soft patches (no speckle)
+function t41Stain(u,v){return .5+.22*Math.sin(u*.071+v*.13)+.18*Math.sin(u*.033-v*.21+1.7)+.1*Math.sin(u*.19+v*.05+.4);}
 // ---------------------------------------------------------------- THE COUNTY BUS, built once
 // 6 m long (192 px), 2.5 m wide (80), 2.6 m to the crown (84). Bottle green below, a cream window band, a rounded roof, the
 // rack aft of the middle with a trunk at the back, a crate and a roped sack. Door on the kerb (right) side ahead of the front
 // wheel; the driver sits on the left. The rear wheels are under the 2nd and 3rd windows, the front ones under the 8th.
 const T41B={L:192,Wd:80,H:84,wr:15,wu:[40,156]};
-function t41BusPoly(){const P=[[0,10],[80,10]];for(let i=0;i<=6;i++){const a=i/6*Math.PI/2;P.push([64+16*Math.cos(a),68+16*Math.sin(a)]);}
-  for(let i=0;i<=6;i++){const a=Math.PI/2+i/6*Math.PI/2;P.push([16+16*Math.cos(a),68+16*Math.sin(a)]);}return P;}
+function t41BusPoly(crown){crown=crown||84;const c0=crown-16;const P=[[0,10],[80,10]];for(let i=0;i<=6;i++){const a=i/6*Math.PI/2;P.push([64+16*Math.cos(a),c0+16*Math.sin(a)]);}
+  for(let i=0;i<=6;i++){const a=Math.PI/2+i/6*Math.PI/2;P.push([16+16*Math.cos(a),c0+16*Math.sin(a)]);}return P;}
 // the long sides as you'd see them standing beside the bus: right (door) side has the front at its right end, left side at its left
 function t41BusSideTex(right,door,open,riders,lit,f){const {L,wr,wu}=T41B,G=T41P.green,C=T41P.cream,S=T41P.steel,H=75;const tt=h=>84-h;
   const fr=u=>right?u:L-u;   // where a point u along the bus lands on this side's picture
@@ -228,7 +242,8 @@ function t41BusSideTex(right,door,open,riders,lit,f){const {L,wr,wu}=T41B,G=T41P
     K.box(0,tt(24),L,1,G[1]);
     // windows: 16 wide with 4 px pillars; the left side opens with the driver's window, the right with the door
     const panes=[];if(right){for(let i=0;i<8;i++)panes.push(10+i*20);}else{for(let i=0;i<8;i++)panes.push(26+i*20);}
-    let k=0;for(const a of panes){const who=riders>0&&((k*7+riders*3)%8)<riders?k+1:0;t41Pane(K,a,a+15,tt(62),tt(45),{warm:!!lit});if(who)t41Rider(K,a+8+(k%2?-2:2),tt(45),k,!!lit);
+    let k=0;for(const a of panes){const who=riders>0&&((k*7+riders*3)%8)<riders?k+1:0;const dark=lit&&k===4;t41Pane(K,a,a+15,tt(62),tt(45),{warm:!!lit&&!dark});if(who)t41Rider(K,a+8+(k%2?-2:2),tt(45),k,!!lit&&!dark);
+      if(lit&&(k===1||k===6)){K.box(a,tt(62),16,6,'#a8814e');K.box(a,tt(62)+6,16,1,'#6e4e2c');K.box(a+7,tt(62)+7,2,1,'#6e4e2c');}
       K.box(a,tt(45)+1,16,1,C[1]);K.box(a-1,tt(62)-1,18,1,C[2]);k++;}
     if(!right){t41Pane(K,4,20,tt(62),tt(45),{slantL:5,warm:!!lit});t41Rider(K,13,tt(45),1,!!lit);K.box(4,tt(45)+1,17,1,C[1]);}
     if(right){const d0=172,d1=188;if(open){K.box(d0,tt(64),d1-d0,tt(12)-tt(64),'#120e0c');K.box(d0,tt(22),d1-d0,2,'#6c5a44');K.box(d0,tt(22)+2,d1-d0,1,'#2a2018');
@@ -241,44 +256,64 @@ function t41BusSideTex(right,door,open,riders,lit,f){const {L,wr,wu}=T41B,G=T41P
     for(const w of wu){const sc=fr(w),hc=wr;for(let y=0;y<H;y++)for(let x=Math.floor(sc-22);x<=sc+22;x++){const h=84-y-.5,d=Math.hypot(x+.5-sc,h-hc);if(h<10)continue;
         if(d<18){K.g.clearRect(x,y,1,1);}else if(d<20){K.px(x,y,1,1,x+.5<sc?G[4]:G[1]);}}}
     // mud: patches thrown up behind each wheel and along the skirt, two browns; a little rust under two window corners
-    // mud: whole patches thrown up behind each wheel and along the skirt, a lit top edge, a darker wet middle
-    const mud=(x,y,rx,ry)=>K.ell(x,y,rx,ry,(px,py,nx,ny,d)=>ny<-.55?'#7a6044':d<.55?'#3e2e1e':'#56422c');
-    for(const w of wu){const sc=fr(w),bk=right?-1:1;mud(sc+bk*25,tt(15),9,4.5);mud(sc+bk*35,tt(13),5,3);mud(sc-bk*23,tt(13),4,2.5);}
-    mud(fr(98),tt(12.5),15,3);
+    // mud: splashes thrown off the back of each tyre, heaviest low down, a few flecks higher up the arc; a crust along the skirt
+    const H2=(a,b)=>{const n=Math.sin(a*12.9898+b*78.233)*43758.5453;return n-Math.floor(n);};
+    const blot=(x,y,r,k)=>{for(let i=0;i<5;i++){const ox=(H2(k,i)-.5)*r*1.6,oy=(H2(k+7,i)-.5)*r*.9,rr=r*(.45+H2(k+3,i)*.5);
+        K.ell(x+ox,y+oy,rr,rr*.7,(px,py,nx,ny)=>ny<-.6&&nx<0?'#6e573c':'#4a3824');}};
+    for(const w of wu){const sc=fr(w),bk=right?-1:1;
+      blot(sc+bk*24,tt(13),4.5,w);blot(sc+bk*31,tt(12),3.2,w+1);blot(sc+bk*20,tt(19),2.2,w+2);blot(sc+bk*22,tt(25),1.4,w+3);blot(sc+bk*38,tt(12),2,w+4);}
+    for(let x=4;x<L-4;x+=7)if(H2(x,9)>.35)K.box(x,tt(11.5),3+Math.round(H2(x,4)*5),1,'#4a3824');
     for(const a of [panes[2],panes[5]]){K.box(a+15,tt(44),1,3,'#6a3a22');K.box(a+15,tt(41),1,2,'#8a5230');}});}
 // the front and the back, as you'd see them standing in front of or behind the bus (80 wide; t runs down from the crown)
-function t41BusFrontTex(lit){const G=T41P.green,C=T41P.cream,RF=T41P.roof,S=T41P.steel,B=T41P.brass,LM=T41P.lamp;return t41Tex(80,75,K=>{
-  K.box(0,0,80,15,RF[3]);K.box(0,14,80,1,C[1]);
-  K.box(22,4,36,9,'#0e0c0a');K.box(22,4,36,1,'#2a2622');const w=K.textW('COUNTY');K.text('COUNTY',40-Math.round(w/2),6,lit?LM[4]:LM[3]);
-  K.box(0,15,80,26,C[3]);K.box(0,15,80,1,C[4]);
-  t41Pane(K,6,37,17,33,{slantL:3,warm:false});t41Pane(K,42,73,17,33,{slantR:3,warm:false});K.box(38,16,4,18,C[2]);K.box(38,16,1,18,C[4]);
-  t41Rider(K,60,33,0,false);K.box(48,32,10,2,'#1a1a1e');                                       // the driver at his wheel
-  K.box(0,40,80,1,G[0]);K.box(0,41,80,26,G[2]);K.box(0,41,80,1,G[3]);
+function t41Wedges(K,RF){for(let t=0;t<15;t++){const a=Math.round(15-t*.7),b=Math.round(65+t*.7);K.box(0,t,a,1,RF[4]);K.box(b,t,80-b,1,RF[1]);}}
+function t41BusFrontTex(lit){const G=T41P.green,C=T41P.cream,RF=T41P.roof,S=T41P.steel,LM=T41P.lamp;return t41Tex(80,75,K=>{
+  K.box(0,0,80,16,RF[3]);t41Wedges(K,RF);K.box(0,15,80,1,C[1]);
+  K.box(22,7,36,8,'#0e0c0a');K.box(22,7,36,1,'#2a2622');const w=K.textW('COUNTY');K.text('COUNTY',40-Math.round(w/2),9,lit?LM[4]:LM[3]);
+  K.box(0,16,80,25,C[3]);K.box(0,16,80,1,C[4]);
+  t41Pane(K,6,37,18,33,{slantL:3,warm:false});t41Pane(K,42,73,18,33,{slantR:3,warm:false});K.box(38,17,4,17,C[2]);K.box(38,17,1,17,C[4]);
+  t41Rider(K,60,33,0,false);
+  K.box(0,40,80,1,G[0]);K.box(0,41,80,33,G[2]);K.box(0,41,80,1,G[3]);
   for(let x=28;x<=51;x++){const bar=(x-28)%3!==2;for(let y=45;y<=62;y++)K.px(x,y,1,1,bar?(y===45?S[4]:x<40?S[3]:S[2]):'#0e0e10');}K.box(27,44,26,1,S[4]);K.box(27,63,26,1,S[1]);
-  for(const cx of [12,68]){K.ell(cx,51,6,6,(x,y,nx,ny,d)=>d>.78?(nx+ny<-.3?B[4]:B[1]):(lit?(d<.5?LM[4]:LM[3]):(nx+ny<-.2?'#f2ecd8':nx+ny>.4?'#9a9480':'#cfc8b0')));}
-  K.box(0,66,80,5,S[3]);K.box(0,66,80,1,S[4]);K.box(0,70,80,1,S[1]);K.box(0,71,80,4,G[0]);});}
-function t41BusRearTex(riders,lit){const G=T41P.green,C=T41P.cream,RF=T41P.roof,S=T41P.steel,R=T41P.red;return t41Tex(80,75,K=>{
-  K.box(0,0,80,15,RF[2]);K.box(0,14,80,1,C[1]);K.box(0,15,80,26,C[3]);K.box(0,15,80,1,C[4]);
-  t41Pane(K,14,62,18,31,{warm:!!lit});if(riders){t41Rider(K,26,31,1,!!lit);t41Rider(K,47,31,2,!!lit);}K.box(14,32,49,1,C[1]);
-  K.box(0,40,80,1,G[0]);K.box(0,41,80,26,G[2]);K.box(0,41,80,1,G[3]);K.box(39,42,1,24,G[1]);
-  for(const x of [6,56]){K.box(x,47,7,6,R[lit?4:3]);K.box(x,47,7,1,R[4]);K.box(x,52,7,1,R[1]);}
+  K.box(0,71,80,4,G[0]);});}
+function t41BusRearTex(riders,lit){const G=T41P.green,C=T41P.cream,RF=T41P.roof,S=T41P.steel;return t41Tex(80,75,K=>{
+  K.box(0,0,80,16,RF[2]);t41Wedges(K,RF);K.box(0,15,80,1,C[1]);K.box(0,16,80,25,C[3]);K.box(0,16,80,1,C[4]);
+  t41Pane(K,14,62,19,31,{warm:!!lit});if(riders){t41Rider(K,26,31,1,!!lit);t41Rider(K,47,31,2,!!lit);}K.box(14,32,49,1,C[1]);
+  K.box(0,40,80,1,G[0]);K.box(0,41,80,33,G[2]);K.box(0,41,80,1,G[3]);K.box(39,42,1,24,G[1]);
   K.box(29,54,22,8,C[4]);K.box(29,54,22,1,'#fff6dc');K.box(29,61,22,1,C[1]);const w=K.textW('MC 9');K.text('MC 9',40-Math.round(w/2),56,'#2a2218');
-  for(let y=2;y<66;y++){K.px(68,y,1,1,S[3]);K.px(74,y,1,1,S[2]);}for(let y=4;y<66;y+=5)K.box(68,y,7,1,S[4]);
-  K.box(0,66,80,5,S[3]);K.box(0,66,80,1,S[4]);K.box(0,70,80,1,S[1]);K.box(0,71,80,4,G[0]);});}
+  for(let y=4;y<66;y++){K.px(66,y,1,1,S[3]);K.px(72,y,1,1,S[2]);}for(let y=6;y<66;y+=5)K.box(66,y,7,1,S[4]);
+  K.box(0,71,80,4,G[0]);});}
 // the bus in one of four views: E (heading east, door side to you), W, S (coming at you), N (going away)
-function t41BusPic(view,f,open,riders,lit){const {L,Wd,wr,wu}=T41B,G=T41P.green,C=T41P.cream,RF=T41P.roof,S=T41P.steel,I=T41I,Wo=T41P.wood,PL=T41P.plank;
-  const Sc=t41Scene(L,Wd,view,104,{padX:4,padTop:2,padBot:4});
+function t41BusPic(view,f,open,riders,lit){const {L,Wd,wr,wu}=T41B,G=T41P.green,C=T41P.cream,RF=T41P.roof,S=T41P.steel,I=T41I,Wo=T41P.wood,PL=T41P.plank,LM=T41P.lamp,B=T41P.brass,R=T41P.red;
+  const Sc=t41Scene(L,Wd,view,104,{padX:5,padTop:2,padBot:4});
   const RS=t41BusSideTex(true,true,open,riders,lit,f),LS=t41BusSideTex(false,false,false,riders,lit,f),FT=t41BusFrontTex(lit),RT=t41BusRearTex(riders,lit);
-  // underneath: the chassis and the dark of the wheel wells
+  // the chrome first (it wins where it meets the body): bumpers wrapping the corners, the headlamps on the front fenders,
+  // the tail lamps; then underneath, the chassis and the dark of the wheel wells
+  const steel=F=>F.part==='side'&&!F.up?S[4]:t41Sh(S,F.lit,2.6,4);
+  for(const [a,b] of [[0,3],[L-3,L]])Sc.box(a,b,-1,Wd+1,12,16,steel);for(const [a,b] of [[0,12],[L-12,L]])for(const [c,d] of [[-1,1],[Wd-1,Wd+1]])Sc.box(a,b,c,d,12,16,steel);
+  for(const vc of [3,Wd-3]){Sc.tube(L-9,L-1,vc,31,3.6,F=>F.part==='side'&&F.u>L-2.4?S[4]:t41Sh(S,F.lit,2.8,4));
+    Sc.tube(L-1,L,vc,31,3.6,F=>{if(F.part==='cap1'){const d=Math.hypot(F.s-3.6,F.t-3.6);if(d>1.9)return d>3?S[2]:S[4];return lit?'#fffbe8':(F.s+F.t<6.6?'#fbf6e6':'#c8c1aa');}return lit?LM[3]:S[4];});
+    Sc.box(0,3,vc-3,vc+3,31,37,F=>F.part==='cap0'?(lit?'#ff6a48':R[3]):t41Sh(R,F.lit,2.2,3));}
   Sc.box(6,186,6,74,3,10,F=>F.part==='side'&&F.up?I[1]:I[0]);
   for(const w of wu)Sc.box(w-19,w+19,8,72,9,34,()=>'#100c0a');
-  // the wheels, square to you on the near side (the far ones are hidden by the body)
+  // the wheels, square to you on the near side; turned, only the bottoms of the front (or back) tyres show under the bumper
   if(view==='E'||view==='W'){const vN=view==='E'?Wd-5:5;for(const w of wu){const c=t41Can(34,34,K=>t41Wheel(K,17,17,wr,f,7,4));Sc.bill(c,w,vN,wr,17,17);}}
-  // the body: green sides with the cream band, a rounded roof stepped down the roof ramp, the front and back faces
-  Sc.ext('u',t41BusPoly(),0,L,F=>{
-    if(F.part==='cap1')return FT(F.s,F.t);if(F.part==='cap0')return RT(F.s,F.t);
+  else{const TY=T41P.tyre;const tc=t41Can(10,12,K=>{K.box(1,0,8,12,TY[1]);for(let y=0;y<12;y+=2)K.box(3,y,4,1,TY[2]);K.box(2,0,1,12,'#55555e');K.box(7,0,2,12,TY[0]);K.box(2,11,6,1,TY[0]);});
+    for(const v of [12,Wd-12])Sc.bill(tc,view==='S'?L-2:2,v,0,5,11);}
+  // the body: green sides with the cream band, a roof rounded across and at both ends (the crown comes down over the last few
+  // pixels), the front and back faces
+  const body=F=>{if(F.part==='cap1')return FT(F.s,F.t);if(F.part==='cap0')return RT(F.s,F.t);
     if(F.up&&F.h<68.5){const T=F.nl[1]>0?RS:LS;return T(F.s,F.t);}
-    const r=t41Sh(RF,F.lit,2.6,4);if(F.h>83.5&&(Math.floor(F.u)%24)===0)return RF[1];return r;});
+    const BR=T41BR;if(F.h>83.5){if(F.u>12&&F.u<L-12&&(Math.floor(F.u)%48)===24)return BR[2];
+      if(Math.sin(F.u*1.9+Math.sin(F.v*.11)*3)>.985&&t41Stain(F.u,F.v)>.5)return BR[2];
+      const up=(view==='E'||view==='W')?Sc.cam.Z(F.u,F.v)<Sc.cam.d/2:Sc.cam.X(F.u,F.v)<Sc.cam.w/2;return up?BR[4]:BR[3];}
+    return t41Sh(BR,F.lit,2.2,4);};
+  const ends=[[0,2,77],[2,4,80],[4,6,82],[6,8,83]];const roofId=++Sc.idc;
+  const wedge=F=>{const [nX]=Sc.cam.N(F.nl[0],F.nl[1]);return nX<-.25?RF[4]:nX>.25?RF[1]:RF[3];};
+  const endV=view==='S'||view==='N';const bodyIn=F=>(F.part==='cap0'||F.part==='cap1')?(endV?wedge(F):t41Sh(RF,F.lit+.12,2.6,4)):(endV&&!F.up?wedge(F):body(F));
+  const bodyEnd=F=>(endV&&!F.up&&F.part==='side')?wedge(F):body(F);
+  if(endV)Sc.ext('u',t41BusPoly(84),0,L,body,{ttop:84,sL:L,pid:roofId});
+  else for(const [a,b2,cr] of ends){const m=a>0?bodyIn:bodyEnd;Sc.ext('u',t41BusPoly(cr),a,b2,m,{ttop:84,sL:L,pid:roofId});Sc.ext('u',t41BusPoly(cr),L-b2,L-a,m,{ttop:84,sL:L,pid:roofId});}
+  if(!endV)Sc.ext('u',t41BusPoly(84),8,L-8,body,{ttop:84,sL:L,noCaps:true,pid:roofId});
   // the rack, aft of the middle: two side rails on short posts, cross bars; a trunk at the back, a crate, a roped sack
   const rail=(m)=>F=>t41Sh(S,F.lit,m||2.4,3);
   for(const v of [8,70])Sc.box(22,124,v,v+2,88,90,rail());for(const u of [22,47,72,97,122])Sc.box(u,u+2,8,72,88,90,rail(2));
@@ -287,7 +322,7 @@ function t41BusPic(view,f,open,riders,lit){const {L,Wd,wr,wu}=T41B,G=T41P.green,
     if(F.part==='side'&&F.up&&F.t<1.2)return Wo[4];return t41Sh(Wo,F.lit,2.4,3);});
   Sc.box(94,110,46,62,89,99,F=>{const slat=F.part==='top'||!F.up?(Math.floor(F.u)%4===0):(Math.floor(F.t)%4===3);return slat?PL[1]:t41Sh(PL,F.lit,2.6,3);});
   Sc.dome(66,26,89,11,9,F=>{const rope=Math.abs(F.u-66)<.8||Math.abs(F.v-26)<.8;if(rope)return '#3a2a18';return t41Sh(['#4a3e2a','#6a5a3c','#8c7a52','#ab9868','#c8b688'],F.lit,2.2,4);});
-  const c=Sc.done({crease:4});return {c,ax:Sc.ax,ay:Sc.ay,S:Sc};}
+  const c=Sc.done({crease:4,cast:[{id:roofId,top:84,tol:1.6}]});return {c,ax:Sc.ax,ay:Sc.ay,S:Sc};}
 // ---------------------------------------------------------------- THE TANK ENGINE, built once
 // 4.44 m (142 px) long, 1.75 m (56) wide over the running boards, the rails 16 px each side of its middle. A 2-6-2 tank: a
 // pony truck under the smokebox, three coupled wheels, a trailing wheel under the cab. Iron boiler with two steel bands,
@@ -322,8 +357,8 @@ function t41LocoPic(view,f){const {L,Wd}=T41E,I=T41I,R=T41P.red,B=T41P.brass,G=T
   const beam=F=>{if(F.part==='cap0'||F.part==='cap1'){const s=F.s,t=F.t;for(const bx of [8,Wd-8])if(Math.hypot(s-bx,t-6)<3.2)return Math.hypot(s-bx+.8,t-6+.8)<1.5?S[4]:I[2];if(Math.abs(s-vc)<2&&t>7)return I[1];}
     if(!F.up)return t41Sh(I,F.lit,2.2,3);return t41Sh(R,F.lit,2.7,3);};
   Sc.box(2,8,0,Wd,22,34,beam);Sc.box(128,134,0,Wd,22,34,beam);
-  Sc.ext('v',[[128,22],[134,22],[141,3],[128,3]],12,Wd-12,F=>{const k=F.part==='side'?Math.floor(F.a):Math.floor(F.u);const m=F.part==='side'?Math.floor(F.q*20):Math.floor(F.h/3);
-    return (k%4===0||m%3===0)?t41Sh(R,F.lit,2.4,3):'#1c0806';});
+  Sc.ext('v',[[128,22],[134,22],[141,3],[128,3]],12,Wd-12,F=>{if(F.part==='side'){if(F.q<.12)return R[4];return Math.floor(F.a)%5>=3?null:t41Sh(R,F.lit,2.4,3);}
+    const c=(19*(F.u-128)+7*(F.h-3))/20.3;return Math.floor(c/2.2)%2===0?t41Sh(R,F.lit,2.4,3):'#2a0c08';});
   Sc.box(8,128,0,Wd,30,34,F=>F.part==='top'||!F.up?(F.lit>.6?I[3]:I[2]):(F.t<1?R[4]:F.t<2?R[3]:R[1]));
   Sc.box(104,126,1,Wd-1,22,30,F=>iron(F,2.2));                                                // the cylinders under the front
   // side tanks, green, a rivet line along the top, the number plate; a filler cap on each
@@ -340,8 +375,8 @@ function t41LocoPic(view,f){const {L,Wd}=T41E,I=T41I,R=T41P.red,B=T41P.brass,G=T
   // standing up off the boiler: the chimney with its flared lip, the dome, the safety valve, the headlamp
   Sc.cyl(122,vc,5,64,90,F=>F.part==='top'?(Math.hypot(F.u-122,F.v-vc)<3.4?'#060607':I[3]):iron(F,2.4));
   Sc.cyl(122,vc,6.8,88,93,F=>F.part==='top'?(Math.hypot(F.u-122,F.v-vc)<3.6?'#060607':I[4]):iron(F,3));
-  Sc.cyl(86,vc,7.5,63,68,F=>iron(F,2.4));Sc.dome(86,vc,68,7.5,8,F=>t41Sh(B,F.lit,2.4,4));
-  Sc.cyl(62,vc,4.5,63,67,F=>iron(F,2.4));Sc.dome(62,vc,67,4.5,5,F=>t41Sh(B,F.lit,2.4,4));
+  Sc.cyl(86,vc,9,62,66,F=>F.part==='top'?I[2]:t41Sh(I,F.lit,1.4,3));Sc.cyl(86,vc,7.6,66,68,F=>F.part==='top'?B[1]:t41Sh(B,F.lit,1.4,3));Sc.cyl(86,vc,6.4,68,77,F=>t41Sh(B,F.lit,2.2,4));Sc.dome(86,vc,77,6.4,2.4,F=>t41Sh(B,F.lit,2.8,4));
+  Sc.cyl(62,vc,6,62,66,F=>F.part==='top'?I[2]:t41Sh(I,F.lit,1.4,3));Sc.cyl(62,vc,4.6,66,67.5,F=>F.part==='top'?B[1]:t41Sh(B,F.lit,1.4,3));Sc.cyl(62,vc,3.8,67.5,74,F=>t41Sh(B,F.lit,2.2,4));Sc.dome(62,vc,74,3.8,1.6,F=>t41Sh(B,F.lit,2.8,4));
   Sc.box(125,132,vc-5,vc+5,66,75,F=>{if(F.part==='cap1'){const d=Math.hypot(F.s-5,F.t-4.5);if(d<3.3)return d<1.5?LM[4]:LM[3];}return iron(F,2.6);});
   // the cab: round windows in its front over the boiler, a door opening in each side, two square windows at the back
   Sc.box(12,46,0,Wd,34,92,F=>{
@@ -349,11 +384,13 @@ function t41LocoPic(view,f){const {L,Wd}=T41E,I=T41I,R=T41P.red,B=T41P.brass,G=T
     if(F.part==='cap0'){for(const x0 of [8,Wd-20])if(F.s>=x0&&F.s<x0+12&&F.t>=6&&F.t<18){const e=F.s<x0+1||F.t<7;return e?G[0]:((F.s-x0)+(F.t-6)>=5&&(F.s-x0)+(F.t-6)<=7?T41P.glass[3]:T41P.glass[1]);}return t41Sh(G,F.lit,2.6,4);}
     if(F.part==='side'&&F.up){const s=F.s;if(s>13&&s<27&&F.t>6&&F.t<36)return F.t<8||s<14.5?G[0]:(F.t>22?'#0e0c0a':(s-13)+(F.t-8)<6?T41P.glass[2]:'#120f0d');if(F.t<1)return G[4];}
     return t41Sh(G,F.lit,2.6,4);});
-  Sc.ext('u',[[-1,92],[Wd+1,92],[Wd+1,94],[Wd-6,97.5],[Wd-16,99.5],[vc,100],[16,99.5],[6,97.5],[-1,94]],10,48,F=>F.part==='side'?t41Sh(I,F.lit,2.8,5):I[2]);
+  Sc.ext('u',[[-1,92],[Wd+1,92],[Wd+1,94],[Wd-6,97.5],[Wd-16,99.5],[vc,100],[16,99.5],[6,97.5],[-1,94]],10,48,F=>F.part==='side'?t41Sh(I,F.lit,1.7,4):I[1]);
   // the bunker behind the cab, heaped with coal; a red tail lamp and a ladder on its back
   Sc.box(2,12,2,Wd-2,34,64,F=>{if(F.part==='cap0'){if(F.s>=10&&F.s<16&&F.t>=6&&F.t<12)return R[F.t<7?4:3];if(Math.abs(F.s-(Wd-8))<.7||Math.abs(F.s-(Wd-12))<.7)return S[3];if(F.s>Wd-12.5&&F.s<Wd-7.5&&Math.floor(F.t)%5===2)return S[4];}
     return t41Sh(G,F.lit,2.4,4);});
-  Sc.ext('v',[[2.5,63.5],[11.5,63.5],[11,65],[9,67],[6,67.5],[3.5,66]],5,Wd-5,F=>((Math.floor(F.a/2)*3+Math.floor(F.q*6))%5===0)?'#4a4a54':t41Sh(['#08080a','#121216','#1c1c22','#2a2a32','#3a3a44'],F.lit,2,4));
+  {const CO=['#060608','#0e0e12','#18181e','#26262e','#3a3a46','#56566a'];Sc.box(3,11,4,Wd-4,63,64.5,()=>CO[1]);
+    const lumps=[[5,8,3],[8.5,13,2.6],[5.5,19,3.2],[8,25,2.8],[5,31,3],[8.5,36,2.5],[5.5,42,3.1],[8,48,2.7],[6.8,16,2.2],[6.8,28,2.4],[6.8,40,2.3]];
+    const coalId=++Sc.idc;for(const [u,v,r] of lumps)if(v<Wd-3)Sc.dome(u,v,64,r,r*.8,F=>t41Sh(CO,F.lit,2.6,5),coalId);}
   const c=Sc.done({crease:4,inset:2,foot:[4,132,4,Wd-4]});return {c,ax:Sc.ax,ay:Sc.ay,S:Sc,stack:Sc.P(122,vc,93)};}
 // ---------------------------------------------------------------- THE COACHES, built once
 // 5.13 m (164 px) long over the end platforms, 2 m (64) wide. Maroon boarded sides, ten windows, a curved roof with a raised
@@ -361,14 +398,16 @@ function t41LocoPic(view,f){const {L,Wd}=T41E,I=T41I,R=T41P.red,B=T41P.brass,G=T
 // of two axles under each end. The dining car: warm curtained windows, a stove pipe, its own board.
 const T41K={L:164,Wd:64};
 function t41CoachWheels(view,f){const {L}=T41K,I=T41I,S=T41P.steel;const fx=u=>view==='E'?u:L-u;const GY=21;
-  return t41Can(L+4,GY+2,K=>{for(const tc of [36,128]){const a=fx(tc);K.box(a-18,GY-14,37,4,I[2]);K.box(a-18,GY-14,37,1,I[4]);K.box(a-18,GY-11,37,1,I[0]);
-      for(let i=0;i<5;i++)K.box(a-4,GY-17+i,9,1,i%2?I[1]:S[2]);for(const d of [-10,10])t41Wheel(K,a+d,GY-10,10,f,4,3);
-      for(const d of [-10,10]){K.box(a+d-2,GY-13,5,5,I[3]);K.box(a+d-2,GY-13,5,1,I[5]);}}});}
+  return t41Can(L+4,GY+2,K=>{for(const tc of [31,133]){const a=fx(tc);for(const d of [-10,10])t41Wheel(K,a+d,GY-10,10,f,4,3);
+      // the side frame: a top arch bar from box to box, a lower tie bar, the axle boxes square over each hub, the bolster spring
+      K.box(a-15,GY-17,31,3,I[2]);K.box(a-15,GY-17,31,1,I[4]);K.box(a-12,GY-8,25,2,I[1]);K.box(a-12,GY-8,25,1,I[3]);
+      for(const d of [-10,10]){K.box(a+d-3,GY-14,7,7,I[3]);K.box(a+d-3,GY-14,7,1,I[5]);K.box(a+d-3,GY-8,7,1,I[0]);K.box(a+d-1,GY-12,3,3,I[1]);}
+      K.box(a-4,GY-16,9,9,I[1]);for(let i=0;i<4;i++)K.box(a-3,GY-15+i*2,7,1,i%2?S[2]:S[3]);}});}
 function t41CoachSideTex(riders,dining,lit,right){const M=T41P.maroon,C=T41P.cream,W=128,H=48;return t41Tex(W,H,K=>{
   for(let y=0;y<H;y++)for(let x=0;x<W;x++)K.px(x,y,1,1,y<2?M[4]:(x%4===0?M[1]:M[2]));
   K.box(0,28,W,1,M[1]);K.box(0,29,W,1,M[3]);K.box(0,H-4,W,4,'#1a0c0a');K.box(0,H-4,W,1,M[3]);
-  const warm=dining||lit;for(let i=0;i<10;i++){const a=6+i*12;t41Pane(K,a,a+7,7,24,{warm});K.box(a-1,6,10,1,M[4]);K.box(a-1,25,10,1,M[1]);
-    if(dining)K.box(a,7,8,3,'#7a2a20');
+  const warm0=dining||lit;for(let i=0;i<10;i++){const a=6+i*12;const warm=warm0&&i!==(right?3:6);t41Pane(K,a,a+7,7,24,{warm});K.box(a-1,6,10,1,M[4]);K.box(a-1,25,10,1,M[1]);
+    if(warm&&(i===1||i===5||i===8)){K.box(a,7,8,6,dining?'#7a2a20':'#a8814e');K.box(a,13,8,1,'#5a3a24');}
     const who=riders>0&&((i*7+riders*5+(right?3:0))%10)<riders;if(who)t41Rider(K,a+4,24,i,warm);}
   const txt=dining?'DINING CAR':'MARROW VALLEY',tw=K.textW(txt),tx=Math.round(W/2-tw/2);K.box(tx-4,32,tw+8,9,'#3a2410');K.box(tx-4,32,tw+8,1,'#6a4a24');K.box(tx-4,40,tw+8,1,'#1a0e06');
   K.text(txt,tx,34,T41P.brass[4]);});}
@@ -382,7 +421,7 @@ function t41CoachPic(view,f,riders,dining,lit){const {L,Wd}=T41K,M=T41P.maroon,R
   if(view==='E'||view==='W'){const c=t41CoachWheels(view,f);Sc.bill(c,view==='E'?0:L,view==='E'?51:13,0,0,c.height-2);}
   else{const g=t41GearCan(Wd,9);Sc.bill(g.c,view==='S'?138:26,vc,0,g.ax,g.ay);}
   // the end platforms, their steps, the drawbars
-  for(const [a,b] of [[4,18],[146,160]]){Sc.box(a,b,2,Wd-2,30,34,F=>F.nl[2]>.9?(Math.floor(F.v)%4===0?Wo[1]:t41Sh(Wo,F.lit,2.6,3)):t41Sh(I,F.lit,2.2,3));
+  for(const [a,b] of [[4,18],[146,160]]){Sc.box(a,b,2,Wd-2,30,34,F=>F.nl[2]>.9?t41Sh(Wo,F.lit,3.2,2):t41Sh(I,F.lit,2.2,3));
     for(const v of [2,Wd-6])Sc.box(a+2,a+8,v,v+4,20,30,F=>F.part==='top'||!F.up?Wo[3]:(Math.floor(F.t)%5===0?Wo[3]:I[1]));}
   Sc.box(0,4,vc-4,vc+4,26,30,F=>iron0(F));Sc.box(160,164,vc-4,vc+4,26,30,F=>iron0(F));
   function iron0(F){return t41Sh(I,F.lit,2.4,3);}
@@ -394,22 +433,26 @@ function t41CoachPic(view,f,riders,dining,lit){const {L,Wd}=T41K,M=T41P.maroon,R
   for(const [a,b] of [[4,6],[158,160]])Sc.box(a,b,2,Wd-2,34,50,rail(Wd-4),{});
   for(const [a,b] of [[4,18],[146,160]])for(const v of [2,Wd-3])Sc.box(a,b,v,v+1,34,50,F=>{const s=F.s,t=F.t,w=14;const post=(a<10?(F.nl[1]>0?s<1.2:s>w-1.2):(F.nl[1]>0?s>w-1.2:s<1.2));if(t<1.6||post||Math.abs(t-8)<.7)return t<1?S[4]:t41Sh(S,F.lit,2.6,3);return null;});
   // the roof: curved, over the platforms too; the clerestory up the middle with vent windows in its sloped sides
-  Sc.ext('u',[[-1,77],[Wd+1,77],[Wd+1,79],[Wd-4,83],[Wd-12,86],[Wd-20,87],[20,87],[12,86],[4,83],[-1,79]],9,155,F=>F.part==='side'?((Math.floor(F.u)-9)%16===0&&F.h>78?RF[1]:t41Sh(RF,F.lit,2.2,5)):RF[1]);
-  Sc.ext('u',[[20,86],[Wd-20,86],[Wd-20.5,92],[Wd-23,93.5],[23,93.5],[20.5,92]],28,136,F=>{if(F.part==='side'&&Math.abs(F.nl[1])>.6){const k=Math.floor(F.a)%9;if(k>=3&&k<6)return (dining||lit)?T41P.lamp[2]:T41P.glass[2];}
-    return F.part==='side'?t41Sh(RF,F.lit,2.7,5):RF[1];});
-  if(dining){Sc.cyl(44,Wd-26,2.6,92,104,F=>F.part==='top'?'#060607':t41Sh(I,F.lit,2.4,4));Sc.cyl(44,Wd-26,4,103,106,F=>t41Sh(I,F.lit,2.8,4));}
-  const c=Sc.done({crease:4,inset:2,foot:[16,148,4,Wd-4]});return {c,ax:Sc.ax,ay:Sc.ay,S:Sc};}
+  Sc.ext('u',[[-1,77],[Wd+1,77],[Wd+1,79],[Wd-4,83],[Wd-12,86],[Wd-20,87],[20,87],[12,86],[4,83],[-1,79]],9,155,F=>F.part==='side'?((Math.floor(F.u)-9)%32===0&&F.h>80?T41BR[2]:(F.h>84&&Math.sin(F.u*1.7+Math.sin(F.v*.2)*2)>.985?T41BR[2]:t41Sh(T41BR,F.lit,1.9,5))):T41BR[1]);const croofId=Sc.id;
+  const cleId=++Sc.idc;Sc.ext('u',[[20,86],[Wd-20,86],[Wd-20.5,92],[Wd-23,93.5],[23,93.5],[20.5,92]],28,136,F=>{if(F.part==='side'&&Math.abs(F.nl[1])>.6){const k=Math.floor(F.a)%12;if(k>=5&&k<7&&F.h>87.5&&F.h<91)return lit?T41P.lamp[2]:T41P.glass[2];}
+    if(F.part==='side'&&Math.abs(F.nl[1])>.6){const [,nZ]=Sc.cam.N(F.nl[0],F.nl[1]);return nZ>.3?T41BR[2]:T41BR[3];}return F.part==='side'?t41Sh(T41BR,F.lit,2.4,5):T41BR[1];});
+  if(dining){Sc.cyl(44,Wd-26,1.8,92,101,F=>F.part==='top'?'#060607':t41Sh(I,F.lit,2.6,4));Sc.dome(44,Wd-26,101.5,3.4,1.6,F=>t41Sh(I,F.lit,2.6,4));}
+  const c=Sc.done({crease:4,inset:2,foot:[16,148,4,Wd-4],cast:[{id:croofId,top:86,tol:3.2}]});return {c,ax:Sc.ax,ay:Sc.ay,S:Sc};}
 // ---------------------------------------------------------------- where the lights are, for the night pass
 // Window rectangles, lamps and the pool a headlamp throws on the road, in sprite pixels, from the same model.
 function t41RectP(Sc,a,b){const x0=Math.min(a[0],b[0]),x1=Math.max(a[0],b[0]),y0=Math.min(a[1],b[1]),y1=Math.max(a[1],b[1]);return [Math.round(x0),Math.round(y0),Math.max(1,Math.round(x1-x0)),Math.max(1,Math.round(y1-y0))];}
+function t41Fan(Sc,lu,lv,lh,len,half,k){const P=Sc.P,out=[P(lu,lv,lh)];const n=11;for(let i=0;i<=n;i++){const a=-half+2*half*i/n;
+    const H=Math.sin(i*12.9898+k*78.233)*43758.5453,j=H-Math.floor(H);const d=len*(.66+.34*j)*(1-.12*Math.abs(a)/half);out.push(P(lu+d*Math.cos(a),lv+d*Math.sin(a),0));}
+  return out.map(q=>[Math.round(q[0]),Math.round(q[1])]);}
 function t41BusLights(Sc,view){const {L,Wd}=T41B,P=Sc.P,out=[];
+  const fans=()=>{for(const [v,len] of [[3,158],[Wd-3,124]]){out.push({t:'cone',k:0,pts:t41Fan(Sc,L,v,31,len,.32,v)},{t:'cone',k:1,pts:t41Fan(Sc,L,v,31,len*.62,.16,v+5)});}};
   if(view==='E'||view==='W'){const v=view==='E'?Wd:0;const panes=[];for(let i=0;i<8;i++)panes.push(view==='E'?10+i*20:L-(26+i*20)-16);
     for(const a of panes)out.push({t:'win',r:t41RectP(Sc,P(a,v,62),P(a+16,v,45))});
-    const lv=view==='E'?Wd-12:12;const lp=P(L,lv,33);out.push({t:'lamp',x:lp[0],y:lp[1],r:9,c:[255,224,150]});const pl=P(L+70,Wd/2,0);out.push({t:'pool',x:pl[0],y:pl[1],rx:58,ry:22});
-    const tp=P(0,lv,35);out.push({t:'lamp',x:tp[0],y:tp[1],r:4,c:[255,70,50]});}
-  else if(view==='S'){out.push({t:'win',r:t41RectP(Sc,P(L,Wd-6,69),P(L,6,51))});for(const s of [12,68]){const q=P(L,Wd-s,33);out.push({t:'lamp',x:q[0],y:q[1],r:9,c:[255,224,150]});}
-    const pl=P(L+56,Wd/2,0);out.push({t:'pool',x:pl[0],y:pl[1],rx:34,ry:40});}
-  else{out.push({t:'win',r:t41RectP(Sc,P(0,14,66),P(0,62,53))});for(const s of [9,59]){const q=P(0,s,35);out.push({t:'lamp',x:q[0],y:q[1],r:5,c:[255,70,50]});}}
+    const lv=view==='E'?Wd-3:3;const lp=P(L,lv,31);out.push({t:'lamp',x:lp[0],y:lp[1],r:5,c:[255,236,170]});fans();
+    const tp=P(0,lv,34);out.push({t:'lamp',x:tp[0],y:tp[1],r:3,c:[255,70,50]});}
+  else if(view==='S'){out.push({t:'win',r:t41RectP(Sc,P(L,Wd-6,66),P(L,6,51))});
+    for(const v of [3,Wd-3]){const q=P(L,v,31);out.push({t:'lamp',x:q[0],y:q[1],r:5,c:[255,236,170]});}fans();}
+  else{out.push({t:'win',r:t41RectP(Sc,P(0,14,65),P(0,62,53))});for(const v of [3,Wd-3]){const q=P(0,v,34);out.push({t:'lamp',x:q[0],y:q[1],r:3,c:[255,70,50]});}}
   return out;}
 function t41CoachLights(Sc,view,dining){const {L,Wd}=T41K,P=Sc.P,out=[];
   if(view==='E'||view==='W'){const v=view==='E'?Wd:0;for(let i=0;i<10;i++){const s=6+i*12;const a=view==='E'?18+s:146-s-8;out.push({t:'win',r:t41RectP(Sc,P(a,v,71),P(a+8,v,54))});}}
@@ -426,9 +469,9 @@ function t41LocoLights(Sc,view){const {L,Wd}=T41E,P=Sc.P,out=[];const vc=Wd/2;
 // hand short of the ground on four corner posts, a lean-to roof rising toward the road, a slatted bench inside (a pale seat
 // 4 px deep, its back board on the wall), a pinned timetable, MARROW CO. on the back; the BUS disc on its post at the front
 // corner by the road. Model frame: u from the back wall (0) to the road (48), v along the road (0..84).
-const T41SH={L:48,Wd:84,v0:4,v1:80};
+const T41SH={L:50,Wd:104,v0:4,v1:80,pv:97};
 function t41PlankTex(W,H,o){o=o||{};const Wo=T41P.wood;return t41Tex(W,H,K=>{for(let y=0;y<H;y++)for(let x=0;x<W;x++){const k=Math.floor(x/5),e=x%5;
-    let c=e===0?Wo[1]:(k%3===1?Wo[3]:Wo[2]);if(e===4&&y%9===((k*5)%9))c=Wo[1];K.px(x,y,1,1,c);}
+    let c=e===0?Wo[1]:(k%3===1?Wo[3]:Wo[2]);K.px(x,y,1,1,c);}
   if(o.board){const w=K.textW('MARROW CO.')+8,x0=Math.round(W/2-w/2);K.box(x0,8,w,9,T41P.cream[3]);K.box(x0,8,w,1,T41P.cream[4]);K.box(x0,16,w,1,T41P.cream[1]);K.text('MARROW CO.',x0+4,10,'#2c241a');}
   if(o.table){const x0=o.table;K.box(x0,8,12,15,'#d8ccb0');K.box(x0,8,12,1,'#f0e6cc');for(let y=11;y<21;y+=2)K.box(x0+2,y,8,1,'#6a5e4c');K.box(x0+5,8,2,1,'#8a2a20');}
   if(o.win){const [a,b,t0,t1]=o.win;K.g.clearRect(a,t0,b-a,t1-t0);K.box(a-1,t0-1,b-a+2,1,Wo[4]);K.box(a-1,t1,b-a+2,1,Wo[1]);}});}
@@ -436,30 +479,73 @@ function t41BusDisc(){const G=T41P.green,C=T41P.cream;return t41Can(17,17,K=>{K.
 function t41ShelterPic(view){const {L,Wd,v0,v1}=T41SH,Wo=T41P.wood,S=T41P.steel,G=T41P.green,RF=T41_SH;
   const Sc=t41Scene(L,Wd,view,78,{padX:3,padTop:2,padBot:3});const wood=(F,b)=>t41Sh(Wo,F.lit,b==null?2.6:b,3);
   // the plank floor, the four corner posts
-  Sc.box(2,32,v0+2,v1-2,0,2,F=>F.nl[2]>.9?(Math.floor(F.v)%5===0?T41P.plank[2]:t41Sh(T41P.plank,F.lit,3.2,2)):Wo[1]);
+
   for(const [a,b] of [[0,4],[26,30]])for(const [c,d] of [[v0,v0+4],[v1-4,v1]])Sc.box(a,b,c,d,0,64,F=>wood(F,2.2));
   // the walls: the back one (MARROW CO. outside, the timetable inside) and the two sides with a little window, all short of the ground
-  const BO=t41PlankTex(v1-v0,50,{board:1}),BI=t41PlankTex(v1-v0,50,{table:v1-v0-22}),SW=t41PlankTex(26,50,{});
-  Sc.box(0,3,v0,v1,10,60,F=>{if(F.part==='cap0')return BO(F.s,F.t);if(F.part==='cap1')return BI(F.s,F.t);return wood(F,3);});
+  const BO=t41PlankTex(v1-v0,40,{board:1}),BI=t41PlankTex(v1-v0,40,{table:v1-v0-22}),SW=t41PlankTex(26,50,{});
+  Sc.box(0,3,v0,v1,20,60,F=>{if(F.part==='cap0')return BO(F.s,F.t);if(F.part==='cap1')return BI(F.s,F.t);return wood(F,3);});
   // the side walls go up to the bench back and no higher: from the side you see in, the roof stands on the corner posts
   // open at the sides: a beam under the roof from the back wall to each front post, and an arm rail at the bench's height
-  for(const [c,d] of [[v0,v0+3],[v1-3,v1]]){Sc.box(0,27,c,d,55,59,F=>F.part==='side'&&F.up?(F.t<1?Wo[3]:Wo[2]):wood(F,2.4));Sc.box(3,27,c+.5,d-.5,30,32,F=>wood(F,2.8));}
+  for(const [c,d] of [[v0,v0+3],[v1-3,v1]])Sc.box(0,27,c,d,55,59,F=>F.part==='side'&&F.up?(F.t<1?Wo[3]:Wo[2]):wood(F,2.4));
   // the bench: legs, a pale seat four pixels deep, its back board on the wall
-  for(const v of [v0+10,v1-12])Sc.box(9,11,v,v+2,0,18,F=>wood(F,1.8));
-  Sc.box(8,12,v0+8,v1-8,18,20,F=>F.part==='top'||!F.up?t41Sh(T41P.plank,F.lit,3.6,2):Wo[2]);
-  Sc.box(3,5,v0+8,v1-8,25,32,F=>F.part==='side'&&!F.up?Wo[4]:wood(F,2.8));
+  // the bench: iron legs, a pale seat with its end lit, a back of two boards leaning back on iron standards; end-on it reads "h"
+  // (a bench for three, at the road end: from the side its near end stands flush with the iron standard, and its top, in the
+  // roof's shade, falls back darker than the lit end)
+  const PK=T41P.plank,b0=v0+6,b1=v0+50,side=view==='W'||view==='E',du=4;
+  // (it stands a hand clear of the back wall, so end-on its back is not lost against the corner post)
+  const ironE=F=>side&&F.part!=='side'?(F.h>18?T41I[5]:T41I[3]):t41Sh(T41I,F.lit,2.4,3);
+  for(const v of [b0,b1-2]){for(const u of [8,15])Sc.box(u+du,u+du+2,v,v+2,0,17,ironE);Sc.ext('v',side?[[6.6+du,17],[9.4+du,17],[5.4+du,34],[2.6+du,34]]:[[7+du,17],[9+du,17],[5+du,34],[3+du,34]],v,v+2,ironE);}
+  // (end-on, the seat's end stands a little proud of the standard, pale against the shaded top behind it)
+  const s0=side?b0-1.2:b0+.4,s1=side?b1+1.2:b1-.4;
+  const nearEnd=F=>side&&(Math.abs(F.v-s0)<.05||Math.abs(F.v-s1)<.05);
+  Sc.box(7+du,18+du,s0,s1,17,side?21:20,F=>{if(F.nl[2]>.9){if(side)return Math.floor(F.u-7-du)%4===3?PK[0]:PK[1];return t41Sh(PK,F.lit,3.7,2);}if(nearEnd(F))return F.h<17.9?PK[3]:PK[4];return F.part!=='side'?PK[4]:PK[2];});
+  for(const [h0,h1] of [[22,27],[29,34]])Sc.ext('v',[[du+8.2-(h0-17)*.235,h0],[du+9.8-(h0-17)*.235,h0],[du+9.8-(h1-17)*.235,h1],[du+8.2-(h1-17)*.235,h1]],side?b0+.3:s0,side?b1-.3:s1,F=>nearEnd(F)||F.part!=='side'?(side?Wo[4]:Wo[1]):(F.e===1?(side?Wo[0]:Wo[3]):(side?Wo[0]:Wo[1])));
   // the roof: a plank lean-to, low at the back, overhanging all round
-  Sc.ext('v',[[-4,58],[37,66],[37,69],[-4,61]],v0-3,v1+3,F=>{if(F.part==='side'&&F.nl[2]>.5)return (Math.floor(F.a)%6===0)?RF[0]:t41Sh(RF,F.lit,2.2,3);return F.t<1?RF[3]:RF[1];});
+  Sc.ext('v',[[-4,58],[37,66],[37,69],[-4,61]],v0-3,v1+3,F=>{if(F.part==='side'&&F.nl[2]>.5)return (Math.floor(F.a)%6===0)?RF[1]:t41Sh(RF,F.lit,2.9,3);return F.t<1.2?'#a8a294':RF[3];});
   // the BUS disc on its post at the front corner, by the road
-  Sc.cyl(42,v1-2,1.3,0,60,F=>F.part==='top'?S[4]:t41Sh(S,F.lit,2.4,4));const D=t41BusDisc();Sc.bill(D,42,v1-2,66,8,8,.5);
-  const c=Sc.done({crease:4,inset:3,shadow:false,before:K=>{}});return {c,ax:Sc.ax,ay:Sc.ay,S:Sc};}
-// a slatted bench for a platform, 1.4 m long, its front to u
-function t41BenchPic(view){const L=14,Wd=45,Wo=T41P.wood,I=T41I;const Sc=t41Scene(L,Wd,view,30,{padX:2,padTop:2,padBot:2});
-  for(const v of [3,Wd-5])for(const u of [2,9])Sc.box(u,u+2,v,v+2,0,14,F=>t41Sh(I,F.lit,2.4,3));
-  Sc.box(5,10,1,Wd-1,14,16,F=>F.part==='top'||!F.up?(Math.floor(F.u-5)%2===1&&F.nl[2]>.9?T41P.plank[2]:t41Sh(T41P.plank,F.lit,3.6,2)):Wo[2]);
-  for(const v of [3,Wd-5])Sc.box(2,4,v,v+2,14,26,F=>t41Sh(I,F.lit,2.4,3));
-  Sc.box(2,4,1,Wd-1,19,25,F=>F.part==='side'&&F.up&&Math.floor(F.t)===3?Wo[1]:t41Sh(Wo,F.lit,2.8,3));
+  const pv=T41SH.pv;Sc.cyl(44,pv,1.3,0,60,F=>F.part==='top'?S[4]:t41Sh(S,F.lit,2.4,4));const D=t41BusDisc();Sc.bill(D,44,pv,66,8,8,.5);
+  const c=Sc.done({crease:4,inset:3,shadow:false,after:K=>{const g=K.g;g.save();g.globalCompositeOperation='destination-over';g.fillStyle='rgba(14,10,8,.42)';const p=Sc.P(44,pv,0);g.beginPath();g.ellipse(p[0]+4,p[1]+1,5,1.8,0,0,7);g.fill();g.restore();}});return {c,ax:Sc.ax,ay:Sc.ay,S:Sc};}
+// a slatted bench for a platform, 1.4 m long, its front to u: three pale seat slats (a plane seen from above), a two-slat
+// backrest leaning back on iron standards, iron legs, and the dark of its shadow on the ground under the seat
+function t41BenchPic(view){const L=24,Wd=44,Wo=T41P.wood,Pk=T41P.plank,I=T41I;const Sc=t41Scene(L,Wd,view,36,{padX:3,padTop:2,padBot:3});
+  const iron=F=>t41Sh(I,F.lit,2.6,3);const lu=h=>7-(h-13)*4/19;
+  for(const v of [3,Wd-5]){for(const u of [6,18])Sc.box(u,u+2,v,v+2,0,13,iron);Sc.ext('v',[[5,13],[7,13],[3,32],[1,32]],v,v+2,iron);}
+  Sc.box(5,21,1,Wd-1,13,16,F=>{if(F.nl[2]>.9){const k=Math.floor(F.u-5);return k===5||k===10?Pk[2]:t41Sh(Pk,F.lit,3.7,2);}return F.part==='side'&&F.up?Wo[3]:Wo[2];});
+  for(const [h0,h1] of [[20,24.5],[28,32.5]])Sc.ext('v',[[lu(h0)-.1,h0],[lu(h0)+1.2,h0],[lu(h1)+1.2,h1],[lu(h1)-.1,h1]],1,Wd-1,F=>{if(F.part!=='side')return Wo[2];
+      if(F.e===1)return t41Sh(Pk,F.lit,3.3,3);if(F.e===3)return t41Sh(Wo,F.lit,2.6,3);return F.nl[2]>0?Pk[3]:Wo[1];});
   const c=Sc.done({crease:3,shadow:false});return {c,ax:Sc.ax,ay:Sc.ay,S:Sc};}
+// the town stop: a post with the BUS disc and the timetable in its frame, on the pavement, its shadow falling down and right
+function t41TownPostPic(){const L=12,Wd=22,Wd2=T41P.wood,C=T41P.cream,G=T41P.green;const Sc=t41Scene(L,Wd,'S',72,{padX:6,padTop:2,padBot:3});
+  Sc.cyl(6,11,1.6,0,60,F=>F.part==='top'?G[4]:t41Sh(G,F.lit,2.6,4));Sc.bill(t41BusDisc(),6,11,64,8,8,.5);
+  const TT=t41Tex(14,20,K=>{K.box(0,0,14,20,G[1]);K.box(1,1,12,18,C[4]);K.box(1,1,12,3,G[3]);for(let y=6;y<17;y+=3)K.box(3,y,8,1,'#7a6a54');});
+  Sc.box(7.6,9,4,18,30,50,F=>F.part==='cap1'?TT(F.s,F.t):t41Sh(G,F.lit,2.2,3));
+  const c=Sc.done({crease:3,shadow:false,after:K=>{const g=K.g;g.save();g.globalCompositeOperation='destination-over';g.fillStyle='rgba(14,10,8,.38)';
+    const p=Sc.P(6,11,0);g.beginPath();g.ellipse(p[0]+5,p[1]+1.5,7,2.2,0,0,7);g.fill();g.restore();}});
+  return {c,ax:Sc.ax,ay:Sc.ay,S:Sc};}
+// the end of the line, built in timber: a stack of old sleepers, two posts and a beam across the rails at the front, a red lamp
+// on the beam. Model frame: u from the back of the stack (0) to the beam's face (21), v across the track (rails at 12 and 44).
+const T41BUF={L:42,Wd:56,face:21};
+function t41BufferPic(view){const {L,Wd}=T41BUF,Wo=T41P.wood,R=T41P.red,I=T41I,S=T41P.steel;const Sc=t41Scene(L,Wd,view,32,{padX:3,padTop:2,padBot:3});
+  const TIE=['#2a2018','#3a2c20','#4e3c2c','#5e4a36','#6e5840'];const tie=F=>{if(F.part==='side'&&F.up&&Math.floor(F.t)%4===3)return '#1c140e';return t41Sh(TIE,F.lit,2.4,3);};
+  // the last of the track runs toward you: four sleepers, the two rails up to the beam
+  // (side-on the track is already on the ground under it; only the front and back views carry their own)
+  const ends=view==='S'||view==='N';
+  if(ends){for(const u of [21.5,30,38.5])Sc.box(u,u+2.6,5,Wd-5,0,1.3,F=>F.nl[2]>.9?(F.t<1?'#8a6c50':'#7a5e44'):'#3e3024');
+    for(const v of [12,44])Sc.box(9,42,v-.7,v+.7,1.3,2.9,F=>F.nl[2]>.9?'#e6eaee':'#5c6068');}
+  // the stack of old sleepers behind, the two posts, the beam (its face dark, its top lit), two round buffers, the lamp on a bracket
+  if(view!=='S')for(let k=0;k<3;k++)Sc.box(1+k*.5,10-k*.5,2+k,Wd-2-k,k*4,k*4+4,tie);
+  for(const v of [9,Wd-15])Sc.box(11,16,v,v+6,0,20,F=>F.nl[2]>.9?Wo[3]:t41Sh(Wo,F.lit,2.2,3));
+  Sc.box(15,21,4,Wd-4,12,20,F=>{if(F.part==='cap1'){const t=Math.floor(F.t);return t===0?Wo[3]:'#2a1c12';}return F.nl[2]>.9?Wo[4]:t41Sh(Wo,F.lit,2.2,3);});
+  for(const v of [12,44]){Sc.tube(21,23,v,15,1.8,F=>t41Sh(I,F.lit,2.4,3));Sc.tube(23,24.5,v,15,3.8,F=>{if(F.part==='cap1'){const d=Math.hypot(F.s-3.8,F.t-3.8);return d>2.9?(F.s+F.t<6?S[4]:S[3]):(d>1.8?I[2]:I[3]);}return t41Sh(S,F.lit,2.6,3);});}
+  const lv=Wd-8;Sc.box(17,18.4,lv-.7,lv+.7,20,27,F=>t41Sh(I,F.lit,2.2,3));
+  Sc.box(16,20,lv-2.6,lv+2.6,27,32,F=>{if(F.part!=='side'||F.up){if(F.t>1&&F.t<4.5&&(F.part!=='side'||F.nl[2]<.5))return '#e8402a';}return I[2];});
+  // the ballast bed the sleepers lie in: loose gravel behind the model, so it shows between the sleepers with no outline round it
+  const bed=K=>{if(!ends)return;const g=K.g,A=Sc.P(16,3,0),B=Sc.P(42,Wd-3,0);const x0=Math.round(Math.min(A[0],B[0])),x1=Math.round(Math.max(A[0],B[0])),y0=Math.round(Math.min(A[1],B[1])),y1=Math.round(Math.max(A[1],B[1]));
+    const G=['#3e372f','#4e463c','#5c5348','#6c6254','#857a68'];g.save();g.globalCompositeOperation='destination-over';
+    for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const h=Math.sin(x*12.9898+y*78.233)*43758.5453,f=h-Math.floor(h);
+      const edge=Math.min(x-x0,x1-x,y1-y);if(edge<2&&f<(edge<1?.6:.3))continue;
+      g.fillStyle=G[f<.12?0:f<.5?1:f<.84?2:f<.96?3:4];g.fillRect(x,y,1,1);}g.restore();};
+  const c=Sc.done({crease:3,foot:[0,21,2,Wd-2],after:bed});return {c,ax:Sc.ax,ay:Sc.ay,S:Sc};}
 // where a point of a model lands in the world, given the world point its footprint is centred on (metres)
 function t41Loc(view,L,Wd,at,u,v){const cam=t41Cam(L,Wd,view);return [at[0]+(cam.X(u,v)-cam.w/2)/32,at[1]+(cam.Z(u,v)-cam.d/2)/32];}
 // @@GAMEPLAY ---------------------------------------------------------------- (everything above draws; everything below plays)
@@ -483,8 +569,8 @@ const T41_STATIONS=[
 const T41_STA_BY={};for(const s of T41_STATIONS)T41_STA_BY[s.id]=s;
 // the track: laid along Mill Road and the Wickham road (the Valley line), on down Mill Road (the South line)
 const T41_TRACK={V:[[16.9,-.2],[16.9,48.2],[95.6,48.2]],S:[[16.9,42],[16.9,236],[17.4,252],[16.5,270],[16.9,290],[16.9,297]]};
-const T41_BUFFERS=[[16.9,-.75,0],[96.1,48.2,0],[16.9,297.5,1]];
-const T41_XBUCK=[[14.9,44.2,0],[14.9,138.6,1],[14.9,195.2,1]];
+const T41_BUFFERS=[[16.9,-.2,'S',0],[95.6,48.2,'W',0],[16.9,297,'N',1]];
+const T41_XBUCK=[[15.3,20.4,0],[15.3,89.4,1],[15.3,142.2,1],[15.3,198.5,1]];
 // prices, fares, running costs
 const T41_PRICE={bus:1800,stop:150,bus2:1500,valley:6000,south:3600,dining:900};
 const T41_FARE={bus:3,train:5,dining:2};
@@ -522,7 +608,8 @@ function t41Near(path,x,z){let best=0,bd=1e9;for(const p of path){const d=Math.h
 // ---- the bus route: the roads from stop to stop, in the order the stops lie along the valley
 const T41_ORDER=['r9w','farm','town','quarry','lake','wick','corn','low'];
 // where the bus draws up: on the road by the stop, a bus length along from the shelter so it stands beside it, not over it
-function t41Kerb(st){try{if(!RGN.built)rgnBuild();const p=rgnSnap(st.at[0],st.at[1]);if(!p)return st.at;if(st.view==='post'||!p.s)return [p.x,p.z];
+function t41Kerb(st){try{if(!RGN.built)rgnBuild();const p=rgnSnap(st.at[0],st.at[1]);if(!p)return st.at;if(!p.s)return [p.x,p.z];
+    if(st.view==='post'){let dx=p.s[2]-p.s[0],dz=p.s[3]-p.s[1];const l=Math.hypot(dx,dz)||1;dx/=l;dz/=l;if(dx<0||(Math.abs(dx)<.01&&dz<0)){dx=-dx;dz=-dz;}const q=rgnSnap(p.x-dx*2.6,p.z-dz*2.6);return q?[q.x,q.z]:[p.x,p.z];}
     let dx=p.s[2]-p.s[0],dz=p.s[3]-p.s[1];const l=Math.hypot(dx,dz)||1;dx/=l;dz/=l;if(dx<0||(Math.abs(dx)<.01&&dz<0)){dx=-dx;dz=-dz;}
     const q=rgnSnap(p.x+dx*4.2,p.z+dz*4.2);return q?[q.x,q.z]:[p.x,p.z];}catch(e){return st.at;}}
 const T41C={sig:'',bus:null,train:null};
@@ -579,7 +666,7 @@ const t41View=(dx,dz)=>Math.abs(dx)>=Math.abs(dz)*.9?(dx>=0?'E':'W'):(dz>0?'S':'
 // the vehicles' sprites: built from the one model per view, anchored on the ground at the middle of their near edge; the
 // night lights (windows, lamps, the pool a headlamp throws) ride along with each sprite
 function t41SprPic(key,make,lights){if(SPR[key])return key;const r=make();t41Spr(key,()=>r.c,r.ax,r.ay);const m=SPR[key];
-  m.lights=(lights?lights(r.S):[]).map(q=>q.t==='win'?{t:'win',r:[q.r[0]-r.ax,q.r[1]-r.ay,q.r[2],q.r[3]]}:Object.assign({},q,{x:q.x-r.ax,y:q.y-r.ay}));
+  m.lights=(lights?lights(r.S):[]).map(q=>q.t==='win'?{t:'win',r:[q.r[0]-r.ax,q.r[1]-r.ay,q.r[2],q.r[3]]}:q.t==='cone'?{t:'cone',k:q.k,pts:q.pts.map(p=>[p[0]-r.ax,p[1]-r.ay])}:Object.assign({},q,{x:q.x-r.ax,y:q.y-r.ay}));
   if(r.stack)m.stack=[Math.round(r.stack[0]-r.ax),Math.round(r.stack[1]-r.ay)];return key;}
 function t41BusKey(v,f,open,riders,lit){riders=Math.min(8,riders|0);lit=lit?1:0;open=open&&v==='E'?1:0;if(v==='S')riders=0;
   return t41SprPic(`t41b_${v}_${f}_${open}_${riders}_${lit}`,()=>t41BusPic(v,f,open,riders,lit),Sc=>t41BusLights(Sc,v));}
@@ -587,7 +674,7 @@ function t41LocoKey(v,f){return t41SprPic(`t41e_${v}_${f}`,()=>t41LocoPic(v,f),S
 function t41CoachKey(v,f,riders,dining,lit){riders=Math.min(10,riders|0);if(v==='S'||v==='N')riders=0;const dn=dining?1:0,lt=lit?1:0;
   return t41SprPic(`t41k_${v}_${f}_${riders}_${dn}_${lt}`,()=>t41CoachPic(v,f,riders,dining,lit),Sc=>t41CoachLights(Sc,v,dining));}
 const T41_FACE={S:[0,1],N:[0,-1],W:[-1,0],E:[1,0]};
-function t41StopKey(view){if(view==='post')return t41Spr('t41_stop_post',()=>t41StopPost(),20,T41_POST.gy);return t41SprPic('t41_shel_'+view,()=>t41ShelterPic(view));}
+function t41StopKey(view){if(view==='post')return t41SprPic('t41_tpost',()=>t41TownPostPic());return t41SprPic('t41_shel_'+view,()=>t41ShelterPic(view));}
 function t41BenchKey(view){return t41SprPic('t41_bench_'+view,()=>t41BenchPic(view));}
 // in front of the shelter's open side (where you stand to read it), and beside it (where the town waits, in sight)
 function t41StopFront(st){if(st.view==='post')return [st.at[0],st.at[1]+.55];const d=T41_FACE[st.view];return [st.at[0]+d[0]*1.1,st.at[1]+d[1]*1.1];}
@@ -611,17 +698,17 @@ function t41Sync(force){const T=S.emp&&S.emp.tr;const stops=t41StopsBuilt(),stas
   if(OBJ.length<1000)return;   // (the world isn't built yet)
   const add=(key,x,z,kind,extra)=>{try{const o=obj(key,x,z,Object.assign({kind,t41:1},extra||{}));T41W.objs.push(o);return o;}catch(e){return null;}};
   for(const st of stops){const [x,z]=st.at;
-    if(st.view==='post'){t41Clear(x-.5,z-.6,x+.6,z+.3);add(t41StopKey('post'),x,z,'prop',{label:'BUS STOP'});const q={x:x-.15,z:z-.1,r:.25};circles.push(q);T41W.circs.push(q);continue;}
+    if(st.view==='post'){t41Clear(x-.5,z-.6,x+.6,z+.3);add(t41StopKey('post'),x,z,'prop',{label:'BUS STOP',t41sh:{sil:1}});const q={x:x-.15,z:z-.1,r:.25};circles.push(q);T41W.circs.push(q);continue;}
     const {L,Wd}=T41SH,cam=t41Cam(L,Wd,st.view);const ex=cam.w/64,ez=cam.d/64;t41Clear(x-ex-.4,z-ez-.4,x+ex+.4,z+ez+.4);
-    add(t41StopKey(st.view),x,z+ez,'prop',{label:'BUS STOP'});
+    {const a=t41Loc(st.view,T41SH.L,T41SH.Wd,st.at,-4,1),b=t41Loc(st.view,T41SH.L,T41SH.Wd,st.at,37,83);add(t41StopKey(st.view),x,z+ez,'prop',{label:'BUS STOP',t41sh:{fp:[Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[0],b[0]),Math.max(a[1],b[1])],h:64}});}
     const q=t41ShelterRect(st);rects.push(q);T41W.rects.push(q);
     const pp=t41Loc(st.view,L,Wd,st.at,42,T41SH.v1-2);const c={x:pp[0],z:pp[1],r:.15};circles.push(c);T41W.circs.push(c);}
   for(const st of stas){const p=st.plat;t41Clear(p.x0-.6,p.z0-.8,p.x1+.6,p.z1+(p.vert?.6:1.6));
     const key=t41PlatKey(st);add(key,(p.x0+p.x1)/2,p.z1+.28,'flat',{});
     t41Clear(st.board[0]-1.4,st.board[1]-.8,st.board[0]+1.4,st.board[1]+.4);
-    const bk=t41Spr('t41_board_'+st.id,()=>t41NameBoard(st.name.toUpperCase()).c,c=>c.width/2,48);add(bk,st.board[0],st.board[1],'prop',{label:st.name.toUpperCase()});
+    const bk=t41Spr('t41_board_'+st.id,()=>t41NameBoard(st.name.toUpperCase()).c,c=>c.width/2,48);add(bk,st.board[0],st.board[1],'prop',{label:st.name.toUpperCase(),t41sh:{sil:1}});
     for(const dx of [-.7,.7]){const q={x:st.board[0]+dx*(SPR[bk].fw/64),z:st.board[1]-.05,r:.12};circles.push(q);T41W.circs.push(q);}
-    {const bv=st.plat.vert?(st.plat.edge==='e'?'E':'W'):(st.plat.edge==='n'?'N':'S');const bk=t41BenchKey(bv);add(bk,st.bench[0],st.bench[1],'prop',{});
+    {const bv=st.plat.vert?(st.plat.edge==='e'?'E':'W'):(st.plat.edge==='n'?'N':'S');const bk=t41BenchKey(bv);add(bk,st.bench[0],st.bench[1],'prop',{t41sh:{sil:1}});
       const q={x:st.bench[0],z:st.bench[1]-.15,r:.3};circles.push(q);T41W.circs.push(q);}}
   if(T&&T.valley){// nothing growing on the line: trees, bushes, grass and loose stones along the track bed are taken up (hidden,
     // never removed, so saves line up); anything else standing within reach of it is listed for the tests
@@ -641,8 +728,10 @@ function t41Sync(force){const T=S.emp&&S.emp.tr;const stops=t41StopsBuilt(),stas
       else if(/QUILL ORCHARD/.test(o.label||'')&&!o.t41moved){const dz=2.7;for(const it of interact)if(it&&typeof it.x==='number'&&Math.hypot(it.x-o.x,it.z-o.z)<1.2){it.z+=dz;T41W.moved.push([it,dz]);}
         for(const q of circles)if(Math.hypot(q.x-o.x,q.z-(o.z-.1))<.6){q.z+=dz;T41W.moved.push([q,dz]);}o.z+=dz;o.t41moved=1;T41W.moved.push([o,dz]);}
       else T41W.near.push([o.kind,o.label||o.spr||'',+o.x.toFixed(1),+o.z.toFixed(1),+dmin.toFixed(2)]);}}
-  if(T&&T.valley)for(const [x,z,ln] of T41_BUFFERS){if(ln&&!T.south)continue;t41Clear(x-1.2,z-.6,x+1.2,z+.4);add(t41Spr('t41_buffer',()=>t41Buffer().c,32,36),x,z,'prop',{});const q={x0:x-.9,z0:z-.35,x1:x+.9,z1:z-.05};rects.push(q);T41W.rects.push(q);}
-  if(T&&T.valley)for(const [x,z,ln] of T41_XBUCK){if(ln&&!T.south)continue;t41Clear(x-.6,z-.5,x+.6,z+.3);add(t41Spr('t41_xbuck2',()=>t41Crossbuck().c,30,96),x,z,'prop',{label:'RAILROAD CROSSING'});const q={x,z:z-.05,r:.15};circles.push(q);T41W.circs.push(q);}
+  if(T&&T.valley)for(const [ex,ez,vw,ln] of T41_BUFFERS){if(ln&&!T.south)continue;const f=T41_FACE[vw],{L,Wd,face}=T41BUF;const at=[ex-f[0]*(face-L/2)/32,ez-f[1]*(face-L/2)/32];
+    const cam=t41Cam(L,Wd,vw);t41Clear(at[0]-cam.w/64-.3,at[1]-cam.d/64-.3,at[0]+cam.w/64+.3,at[1]+cam.d/64+.3);const a=t41Loc(vw,L,Wd,at,0,4),b=t41Loc(vw,L,Wd,at,face,Wd-4);const q={x0:Math.min(a[0],b[0]),z0:Math.min(a[1],b[1]),x1:Math.max(a[0],b[0]),z1:Math.max(a[1],b[1])};
+    add(t41SprPic('t41_buf_'+vw,()=>t41BufferPic(vw)),at[0],at[1]+cam.d/64,'prop',{t41sh:{fp:[q.x0,q.z0,q.x1,q.z1],h:22}});rects.push(q);T41W.rects.push(q);}
+  if(T&&T.valley)for(const [x,z,ln] of T41_XBUCK){if(ln&&!T.south)continue;t41Clear(x-.6,z-.5,x+.6,z+.3);add(t41Spr('t41_xbuck2',()=>t41Crossbuck().c,30,96),x,z,'prop',{label:'RAILROAD CROSSING',t41sh:{sil:1}});const q={x,z:z-.05,r:.15};circles.push(q);T41W.circs.push(q);}
   if(typeof NAV!=='undefined')NAV.sig='';}
 {const _bw=buildWorld;buildWorld=function(){const r=_bw.apply(this,arguments);try{T41W.objs=[];T41W.rects=[];T41W.circs=[];T41W.hid=[];T41W.cut=[];T41W.rcut=[];T41W.moved=[];T41W.sig='';T41C.sig='';t41Build();t41Sync(true);}catch(e){console.warn('t41',e);}return r;};}
 {const _lg=loadGame;loadGame=function(){const r=_lg.apply(this,arguments);try{T41C.sig='';t41Build();t41Sync(true);}catch(e){}return r;};}
@@ -654,7 +743,7 @@ function t41Sync(force){const T=S.emp&&S.emp.tr;const stops=t41StopsBuilt(),stas
 const T41RAIL={buckets:null,sig:''};
 function t41RailDirty(){const T=S.emp&&S.emp.tr;const sig=JSON.stringify(T?[T.valley,T.south,Object.keys(T.stops||{}).sort()]:0);if(sig===T41RAIL.sig)return;T41RAIL.sig=sig;T41RAIL.buckets=null;
   try{chunks.clear();}catch(e){}}
-function t41Pads(){const out=[];for(const st of t41StopsBuilt()){if(st.view==='post')continue;let p=null;try{if(!RGN.built)rgnBuild();p=rgnSnap(st.at[0],st.at[1]);}catch(e){}if(!p)continue;
+function t41Pads(){const out=[];if(true)return out;for(const st of t41StopsBuilt()){if(st.view==='post')continue;let p=null;try{if(!RGN.built)rgnBuild();p=rgnSnap(st.at[0],st.at[1]);}catch(e){}if(!p)continue;
     const w=(p.s&&p.s[4])||2;const dx=st.at[0]-p.x,dz=st.at[1]-p.z,d=Math.hypot(dx,dz)||1;const ex=p.x+dx/d*w/2,ez=p.z+dz/d*w/2;const R=t41ShelterRect(st);const ns=Math.abs(dz)>Math.abs(dx);
     out.push(ns?{x0:R.x0-.3,x1:R.x1+2.3,z0:Math.min(ez,R.z0)-.3,z1:Math.max(ez,R.z1)+.3}:{x0:Math.min(ex,R.x0)-.3,x1:Math.max(ex,R.x1)+.3,z0:R.z0-.3,z1:R.z1+2.3});}return out;}
 function t41RailBuckets(){if(T41RAIL.buckets)return T41RAIL.buckets;const T=S.emp&&S.emp.tr;const B=new Map();T41RAIL.buckets=B;if(!T)return B;
@@ -665,8 +754,13 @@ function t41RailBuckets(){if(T41RAIL.buckets)return T41RAIL.buckets;const T=S.em
   const cross=[];for(const q of ROADS){for(const P of paths){for(let i=0;i<P.length-1;i+=2){const a=P[i];const qx=q[2]-q[0],qz=q[3]-q[1],ql=Math.hypot(qx,qz)||1;const along=Math.abs(a.dx*qx+a.dz*qz)/ql;
         if(along>.3||Math.max(Math.abs(a.dx),Math.abs(a.dz))<.97||Math.hypot(a.x-T41_TRACK.V[1][0],a.z-T41_TRACK.V[1][1])<8.5)continue;const d=segDist(a.x,a.z,q[0],q[1],q[2],q[3]);if(d<q[4]/2+.2)cross.push([a.x,a.z]);}}}
   const step=1/32;
+  // the turnout where the Valley line leaves Mill Road: long timbers under both tracks from the points to where they part, and
+  // the frog where the branch's outer rail crosses the main line's
+  for(let z=43.35;z<47.6;z+=.62){const dz=z-43.2,xc=21.9-Math.sqrt(Math.max(0,25-dz*dz));const e={tim:1,z,x0:16.9-.85,x1:xc+.85};
+    for(const kk of new Set([16.9-1,xc+1].map(x=>Math.floor(x/N)+','+Math.floor(z/N))))add(kk,e);}
+  {const e={frog:1,x:17.4,z:46.36};add(Math.floor(17.4/N)+','+Math.floor(46.36/N),e);}
   for(const P of paths){const L=P.len;for(let s=0;s<=L;s+=step){const p=t41At(P,s);const pl=cross.some(c=>Math.abs(c[0]-p.x)<.5&&Math.abs(c[1]-p.z)<.5);
-      const e={x:p.x,z:p.z,dx:p.dx,dz:p.dz,sl:(s%.55)<step,pl};
+      const tz=p.z>43.0&&p.z<47.7&&p.x>16.2&&p.x<21.5;const e={x:p.x,z:p.z,dx:p.dx,dz:p.dz,sl:(s%.62)<step&&!tz,pl};
       for(const kk of new Set([[0,0],[-1.2,-1.2],[1.2,1.2],[1.2,-1.2],[-1.2,1.2]].map(([ox,oz])=>Math.floor((p.x+ox)/N)+','+Math.floor((p.z+oz)/N))))add(kk,e);}}
   return B;}
 function t41PaintRail(c,cx,cz){const B=t41RailBuckets();const list=B.get(cx+','+cz);if(!list||!list.length)return;const N=CH/32,x0=cx*N,z0=cz*N;
@@ -677,8 +771,9 @@ function t41PaintRail(c,cx,cz){const B=t41RailBuckets();const list=B.get(cx+','+
   const H=(a,b)=>{const n=Math.sin(a*12.9898+b*78.233)*43758.5453;return n-Math.floor(n);};
   // 0. the trodden pads under the bus stops: packed dirt, a little paler at the middle, a soft edge
   for(const e of list){if(!e.pad)continue;const pd=e.pad;for(let z=Math.max(pd.z0,z0);z<Math.min(pd.z1,z0+N);z+=1/32)for(let x=Math.max(pd.x0,x0);x<Math.min(pd.x1,x0+N);x+=1/32){
-      const ex=Math.min(x-pd.x0,pd.x1-x),ez=Math.min(z-pd.z0,pd.z1-z),ed=Math.min(ex,ez);if(ed<0)continue;const a=clamp(ed/.35,0,1)*(.75+.25*(H(Math.floor(x*3),Math.floor(z*3))>.5?1:.85));
-      const [px,py]=P(x,z);set(px,py,[118,96,68],a*.85);}}
+      const cxp=(pd.x0+pd.x1)/2,czp=(pd.z0+pd.z1)/2,rx=(pd.x1-pd.x0)/2,rz=(pd.z1-pd.z0)/2;const ang=Math.atan2((z-czp)/rz,(x-cxp)/rx);
+      const r=Math.hypot((x-cxp)/rx,(z-czp)/rz),edge=.82+.1*Math.sin(ang*3+cxp)+.07*Math.sin(ang*7+czp)+.06*(H(Math.floor(x*3),Math.floor(z*3))-.5);if(r>edge)continue;
+      const [px,py]=P(x,z);const i=at(px,py);if(i<0||d[i+1]<d[i]+6)continue;set(px,py,H(Math.floor(x*6),Math.floor(z*6))>.8?[104,84,60]:[116,94,66],.92);}}
   const rails=list.filter(e=>!e.pad);if(!rails.length){g.putImageData(id,0,0);return;}
   const paved=e=>{const [px,py]=P(e.x,e.z);const i=at(px,py);if(i<0)return false;const r=d[i],gg=d[i+1],b=d[i+2];return Math.abs(r-gg)<14&&Math.abs(gg-b)<16&&r<120;};
   const wet=e=>{try{return LAYERS.water(e.x,e.z)||LAYERS.water(e.x+.9,e.z)||LAYERS.water(e.x-.9,e.z);}catch(_){return false;}};
@@ -686,14 +781,19 @@ function t41PaintRail(c,cx,cz){const B=t41RailBuckets();const list=B.get(cx+','+
       set(px,py,edge?(t<0?[132,104,70]:[52,38,26]):(e.sl?[96,74,50]:[74,56,38]));}}
   // 1. the ballast: a pale strip of grey stone, darker at its shoulders, stones clustered in twos and threes
   for(const e of rails){if(paved(e)||wet(e))continue;const nx=-e.dz,nz=e.dx;for(let t=-1.02;t<=1.02;t+=1/32){const x=e.x+nx*t,z=e.z+nz*t;const [px,py]=P(x,z);
-      const sh=Math.abs(t)>.9;const h=H(Math.floor(x*10),Math.floor(z*10));let col=sh?[104,96,82]:[150,142,126];if(!sh&&h>.84)col=[174,166,150];else if(!sh&&h<.12)col=[120,112,98];set(px,py,col,sh?.8:.94);}}
-  // 2. the ties: dark weathered timber, one colour everywhere, lit on the edge toward the light, darkest on the edge facing you
-  for(const e of rails){if(!e.sl||e.pl||paved(e)||wet(e))continue;const nx=-e.dz,nz=e.dx;
-    for(let t=-.85;t<=.85;t+=1/32)for(let w=-.12;w<=.12;w+=1/32){const [px,py]=P(e.x+nx*t+e.dx*w,e.z+nz*t+e.dz*w);
-      let ox=0,oz=0;if(Math.abs(w)>.08){ox=e.dx*Math.sign(w);oz=e.dz*Math.sign(w);}else if(Math.abs(t)>.8){ox=nx*Math.sign(t);oz=nz*Math.sign(t);}
-      let col=[80,64,50];if(ox||oz){if(oz>.5)col=[44,34,26];else if(-ox-oz>.5)col=[108,90,70];else col=[64,50,38];}
-      if(Math.abs(t)<.3&&Math.abs(w)<.03&&H(Math.floor(e.x*2),3)>.5)col=[62,48,36];
+      const sh=Math.abs(t)>.9;const h=H(Math.floor(x*6),Math.floor(z*6));let col=sh?[96,90,80]:[124,118,108];if(!sh&&h>.93)col=[140,134,122];else if(!sh&&h<.05)col=[106,100,90];set(px,py,col,sh?.8:.94);}}
+  // 2. the ties: dark weathered timber, one colour everywhere. On a north-south line they're seen side-on: lit along the edge
+  // toward the light, darkest on the edge facing you. On an east-west line they're seen end-on: just the dark end facing you.
+  for(const e of rails){if(!e.sl||e.pl||paved(e)||wet(e))continue;const nx=-e.dz,nz=e.dx;const ew=Math.abs(e.dx)>Math.abs(e.dz);
+    for(let t=-.85;t<=.85;t+=1/32)for(let w=-.11;w<=.11;w+=1/32){const [px,py]=P(e.x+nx*t+e.dx*w,e.z+nz*t+e.dz*w);
+      let col=ew?[98,76,56]:[96,74,54];
+      if(ew){if(nz*Math.sign(t)>.5&&Math.abs(t)>.8)col=[58,44,32];}
+      else{let ox=0,oz=0;if(Math.abs(w)>.07){ox=e.dx*Math.sign(w);oz=e.dz*Math.sign(w);}else if(Math.abs(t)>.8){ox=nx*Math.sign(t);oz=nz*Math.sign(t);}
+        if(ox||oz){if(oz>.5)col=[56,42,30];else if(-ox-oz>.5)col=[122,98,74];else col=[78,60,44];}}
+      if(Math.abs(t)<.3&&Math.abs(w)<.03&&H(Math.floor(e.x*2),3)>.5)col=[80,62,46];
       set(px,py,col);}}
+  for(const e of list){if(!e.tim)continue;for(let x=e.x0;x<=e.x1;x+=1/32)for(let w=-.11;w<=.11;w+=1/32){const [px,py]=P(x,e.z+w);
+      let col=[96,74,54];if(w>.07)col=[56,42,30];else if(w<-.07)col=[122,98,74];if(x<e.x0+.04||x>e.x1-.04)col=[66,50,36];set(px,py,col);}}
   // 3. planks where a road crosses: boards laid along the rails, a flangeway beside each rail, seams between the boards
   for(const e of rails){if(!e.pl)continue;const nx=-e.dz,nz=e.dx;for(let t=-.9;t<=.9;t+=1/32){if(Math.abs(Math.abs(t)-.5)<.06)continue;const [px,py]=P(e.x+nx*t,e.z+nz*t);
       const k=Math.floor((t+.9)*32/6),seam=Math.round((t+.9)*32)%6===0;set(px,py,seam?[66,50,34]:k%2?[150,124,88]:[134,110,78]);}}
@@ -702,6 +802,9 @@ function t41PaintRail(c,cx,cz){const B=t41RailBuckets();const list=B.get(cx+','+
     for(const side of [-.5,.5]){const [px,py]=P(e.x+nx*side,e.z+nz*side);
       if(horiz){set(px,py-1,pv?[150,154,160]:[222,226,232]);set(px,py,pv?[30,30,34]:[112,116,124]);if(!pv){set(px,py+1,[30,24,20],.85);set(px,py+2,[30,24,20],.35);}}
       else{set(px-1,py,pv?[150,154,160]:[222,226,232]);set(px,py,pv?[30,30,34]:[112,116,124]);if(!pv){set(px+1,py,[30,24,20],.85);set(px+2,py,[30,24,20],.35);}}}}
+  // the switch blades: two tapered rails at the toe, closing on the stock rails
+  for(const e of list){if(!e.frog)continue;for(const [bx,dir] of [[16.4,1],[17.4,-1]])for(let z=43.15;z<=44.7;z+=1/64){const k=(z-43.15)/1.55,x=bx+dir*(.03+k*k*.32)*(dir>0?1:.35);const [px,py]=P(x,z);set(px,py,[214,218,224]);set(px+1,py,[60,62,68],.7);}}
+  for(const e of list){if(!e.frog)continue;for(let z=-.55;z<=.45;z+=1/32){const hw=Math.max(0,(z+.55)/1*.16);for(let x=-hw;x<=hw;x+=1/32){const [px,py]=P(e.x+x,e.z+z);set(px,py,Math.abs(x)>hw-.04?[150,154,160]:[40,40,46]);}}}
   g.putImageData(id,0,0);}
 {const _ch=chunk;chunk=function(cx,cz){const k=cx+','+cz;const had=chunks.has(k);const c=_ch.apply(this,arguments);if(!had&&c&&S.emp&&S.emp.tr&&(S.emp.tr.valley||S.emp.tr.bus)){try{t41PaintRail(c,cx,cz);}catch(e){console.warn('t41 rail',e);}}return c;};}
 // ---- the vehicles on the road and the rails: where each one is this frame, and its cars
@@ -737,11 +840,29 @@ function t41Cars(){if(T41V.frame===FRAME_NO)return T41V.cars;T41V.frame=FRAME_NO
 // drawn among everything else, by depth; their shadows go in with the sun's
 {const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld.apply(this,arguments);try{for(const c of t41Cars()){if(!onScreen(c.x,c.z,320))continue;
     D.push({z:c.z,mind:1,draw(){drawSpr(c.key,sx(c.x),sz(c.z));if(c.steam)t41Steam(c,t);}});}}catch(e){console.warn('t41 draw',e);}};}
-{const _se=sunEnd;sunEnd=function(){try{if(DX.sun&&!DX.sun.lamp)for(const c of t41Cars()){if(!onScreen(c.x,c.z,320))continue;sunShadow({kind:'prop',spr:c.key},sx(c.x),sz(c.z));}}catch(e){}return _se.apply(this,arguments);};}
+// shadows: everything of the transit's throws its shadow down and to the right, away from the top-left light the art is lit
+// by, like the trees. A box (bus, engine, coach, shelter, buffer) throws the hull of its footprint and its roof moved along the
+// light; a thin thing (a bench, a sign, a post) throws its own outline, sheared the same way.
+const T41SHD={dx:.42,dy:.3};
+function t41Hull(P){P=P.slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);const lo=[],up=[];
+  for(const p of P){while(lo.length>=2&&cr(lo[lo.length-2],lo[lo.length-1],p)<=0)lo.pop();lo.push(p);}
+  for(let i=P.length-1;i>=0;i--){const p=P[i];while(up.length>=2&&cr(up[up.length-2],up[up.length-1],p)<=0)up.pop();up.push(p);}up.pop();lo.pop();return lo.concat(up);}
+function t41BoxShadow(g,x0,z0,x1,z1,H){const C=[[sx(x0),sz(z0)],[sx(x1),sz(z0)],[sx(x1),sz(z1)],[sx(x0),sz(z1)]];const hl=t41Hull(C.concat(C.map(p=>[p[0]+T41SHD.dx*H,p[1]+T41SHD.dy*H])));
+  g.beginPath();hl.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath();g.fill();}
+{const _ss=sunShadow;sunShadow=function(o,X,Y){if(o&&o.t41)return true;return _ss.apply(this,arguments);};}
+{const _se=sunEnd;sunEnd=function(){try{const s=DX.sun;if(s&&!s.lamp&&DX.sg){const g=DX.sg;g.setTransform(1,0,0,1,0,0);g.fillStyle='#0a1206';
+    for(const c of t41Cars()){if(!onScreen(c.x,c.z,320))continue;const side=c.v==='E'||c.v==='W';const hx=(side?c.len:c.wid)/2,hz=(side?c.wid:c.len)/2;
+      t41BoxShadow(g,c.x-hx,c.cz-hz,c.x+hx,c.cz+hz,c.what==='bus'?84:c.what==='loco'?96:90);}
+    for(const o of T41W.objs){const f=o.t41sh;if(!f||o.hide||!onScreen(o.x,o.z,220))continue;
+      if(f.fp)t41BoxShadow(g,f.fp[0],f.fp[1],f.fp[2],f.fp[3],f.h);
+      else{const m=SPR[o.spr],c=m&&dxSil(o.spr);if(!c)continue;g.setTransform(1,0,-T41SHD.dx,-T41SHD.dy,Math.round(sx(o.x)),Math.round(sz(o.z)));g.drawImage(c,-Math.round(m.ax),-Math.round(m.ay));g.setTransform(1,0,0,1,0,0);}}}
+  }catch(e){console.warn('t41 shadow',e);}return _se.apply(this,arguments);};}
 // the engine's breath: soft puffs out of the stack, drifting back over the train
 function t41Steam(c,t){const m=SPR[c.key];if(!m||!m.stack)return;const X=sx(c.x)+m.stack[0],Y=sz(c.z)+m.stack[1];const dir=c.v==='E'?-1:c.v==='W'?1:0;
-  for(let i=0;i<4;i++){const k=((t*1.6+i/4)%1);const px=X+dir*k*30+Math.sin(i*2.1+t)*3,py=Y-k*22-(c.v==='N'?k*8:0);const r=3+k*7;
-    ctx2.fillStyle=`rgba(${isNight()?'80,82,92':'214,212,206'},${(1-k)*.5})`;ctx2.beginPath();ctx2.arc(Math.round(px),Math.round(py),r,0,Math.PI*2);ctx2.fill();}}
+  // the engine's breath: puffs leave the chimney small and dense, swell and thin as they roll back over the train
+  const night=isNight();for(let i=0;i<7;i++){const k=((t*1.25+i/7)%1);const px=X+dir*k*54+Math.sin(i*2.1+t*1.3)*2.5,py=Y-3-k*20-(c.v==='N'?k*10:0)+(c.v==='S'?-k*6:0);const r=2.5+k*9;
+    const a=(1-k)*.78;ctx2.fillStyle=`rgba(${night?'92,94,104':'226,224,218'},${a})`;ctx2.beginPath();ctx2.arc(Math.round(px),Math.round(py),Math.round(r),0,Math.PI*2);ctx2.fill();
+    ctx2.fillStyle=`rgba(${night?'60,62,70':'176,172,166'},${a*.7})`;ctx2.beginPath();ctx2.arc(Math.round(px+r*.25),Math.round(py+r*.35),Math.round(r*.7),0,Math.PI*2);ctx2.fill();}}
 // ---- riding: you wait at the stop, it pulls in, you get on, the doors shut, it goes; later it pulls in where you're going
 const T41R={on:false};
 function t41TimeStr(h){h=((h%24)+24)%24;const hh=Math.floor(h),mm=Math.round((h-hh)*60)%60;const ap=hh>=12?'pm':'am';return `${((hh+11)%12)+1}:${String(mm).padStart(2,'0')} ${ap}`;}
@@ -824,7 +945,7 @@ const T41S={row:null};
 const T41ICON={};const t41Ico=k=>T41ICON[k]||(T41ICON[k]=k==='kero'?(typeof iconOf==='function'?iconOf('mc_kero'):''):t41Icon(k));
 function t41SlipRows(row){const L=[];if(row.bus)L.push(['bus',`The county bus · ${row.bus} rider${row.bus===1?'':'s'}`,'',row.fareB]);if(row.train)L.push(['train',`The Marrow Valley line · ${row.train} rider${row.train===1?'':'s'}`,'',row.fareT]);
   L.push(['kero','Upkeep: fuel, coal, wages','',-row.up]);return L;}
-const t41SlipRow=([ic,n,q,v],cls)=>`<div class="srow${cls||''}"><img src="${t41Ico(ic)}" alt=""><span class="sn">${n}</span><span class="sq">${q!==''?'×'+q:''}</span><span class="sv"${v<0?' style="color:#a8281c"':''}>${v>=0?'+':''}${v}</span></div>`;
+const t41SlipRow=([ic,n,q,v],cls)=>`<div class="srow${cls||''}"><img src="${t41Ico(ic)}" alt=""><span class="sn">${n}</span><span class="sq">${q!==''?'×'+q:''}</span><span class="sv" style="white-space:nowrap;display:inline-flex;align-items:baseline;justify-content:flex-end;gap:3px;${v<0?'color:#a8281c':''}">${v>=0?'+':''}${v}<small style="font-size:9px;opacity:.8">coins</small></span></div>`;
 function t41SlipAdd(s,row){const box=s.querySelector('.slip');if(!box||box.querySelector('.t41'))return;let h=`<div class="scat t41"><span>The county line</span><span>${row.net>=0?'+':''}${row.net}</span></div>`;
   for(const r of t41SlipRows(row))h+=t41SlipRow(r,' t41');
   if(row.named.length)h+=`<p class="t41seen">Seen riding: ${row.named.join(', ')}</p>`;box.insertAdjacentHTML('beforeend',h);}
@@ -873,28 +994,39 @@ function t41Map(w,h){// a small map of the county line: the roads in pale ink, t
   return c.toDataURL();}
 // the line diagram printed on the timetable: every stop a dot along its line (filled when it's built), where the bus and the
 // train are right now, and the stop you're standing at ringed
+// the line diagram: the bus line across the top, the railway's two lines under it, each station straight below the bus stop
+// of the same place (the Crossroads between Hollow Acre and Marrow Hollow, which it serves), so the two read together
 function t41Diagram(here){const T=TR41();t41Build();const fleet=t41Fleet();
-  const line=(cls,label,items,veh)=>{let h=`<div class="t41ln ${cls}"><div class="t41lab">${label}</div><div class="t41track"><div class="t41rule"></div>`;
-    items.forEach((it,i)=>{const x=items.length>1?i/(items.length-1)*100:50;h+=`<span class="t41st${it.on?' on':''}${it.here?' here':''}" style="left:${x}%">${it.here?'<em>you are here</em>':''}<i></i><b>${it.name}</b></span>`;});
+  const line=(cls,label,items,veh,r0,r1)=>{let h=`<div class="t41ln ${cls}"><div class="t41lab">${label}</div><div class="t41track"><div class="t41rule" style="left:${r0==null?0:r0}%;right:${100-(r1==null?100:r1)}%"></div>`;
+    items.forEach((it,i)=>{const x=it.x!=null?it.x:(items.length>1?i/(items.length-1)*100:50);h+=`<span class="t41st${it.on?' on':''}${it.here?' here':''}" style="left:${x}%">${it.here?'<em>you are here</em>':''}<i></i><b>${it.name}</b></span>`;});
     for(const v of veh)h+=`<img class="t41veh" src="${t41Ico(v.kind)}" style="left:${v.x}%" alt="${v.kind}">`;return h+'</div></div>';};
-  const ids=T41_ORDER;const busItems=ids.map(id=>({name:T41_STOP_BY[id].name,on:!!(T.bus&&T.stops[id]),here:here==='bus:'+id}));
+  const ids=T41_ORDER;const BX=id=>ids.indexOf(id)/(ids.length-1)*100;const busItems=ids.map(id=>({name:T41_STOP_BY[id].name,on:!!(T.bus&&T.stops[id]),here:here==='bus:'+id}));
   const busVeh=[];if(T41C.bus){const st=T41C.bus.route.stops;const pos=s=>{for(let i=0;i<st.length-1;i++)if(s<=st[i+1].s){const a=ids.indexOf(st[i].id),b=ids.indexOf(st[i+1].id),k=(s-st[i].s)/Math.max(1,st[i+1].s-st[i].s);return (a+(b-a)*k)/(ids.length-1)*100;}return 100;};
     for(const f of fleet)if(f.kind==='bus'&&!f.w.parked)busVeh.push({kind:'bus',x:pos(f.w.s)});}
   let h='<div class="t41dia">'+line('bus','MARROW CO. LINES · bus',busItems,busVeh);
-  const rail=[['wick','Wickham','V'],['xr','Crossroads','V'],['corn','Deep Corn','S'],['low','Low Fields','S']];
-  const rItems=rail.map(([id,nm,l])=>({name:nm,on:!!(T.valley&&(l==='V'||T.south)),here:here==='train:'+id}));
-  const rVeh=[];const tr=fleet.find(f=>f.kind==='train');if(tr&&!tr.w.parked){const W=tr.w;const onV=W.path&&T41C.rail&&W.path===T41C.rail.V;
-    // along the Valley line the train is between Wickham (0) and the Crossroads (1/3); on the South line between the Crossroads and the Low Fields (1/3..1)
-    const sx=T41_STA_BY.xr,len=W.path?W.path.len:1;const sXr=t41Near(W.path,sx.stop[0],sx.stop[1]).s;
-    if(onV){const sW=t41Near(W.path,T41_STA_BY.wick.stop[0],T41_STA_BY.wick.stop[1]).s;rVeh.push({kind:'train',x:clamp(1-(W.s-sXr)/Math.max(1,sW-sXr),0,1)*33.3});}
-    else{const sL=t41Near(W.path,T41_STA_BY.low.stop[0],T41_STA_BY.low.stop[1]).s;rVeh.push({kind:'train',x:33.3+clamp((W.s-sXr)/Math.max(1,sL-sXr),0,1)*66.7});}}
-  h+=line('rail','MARROW VALLEY LINE · rail',rItems,rVeh);return h+'</div>';}
+  const xX=(BX('farm')+BX('town'))/2,xW=BX('wick'),xC=BX('corn'),xL=BX('low');
+  const it=(id,nm,x,on)=>({name:nm,x,on,here:here==='train:'+id});
+  const vVeh=[],sVeh=[];const tr=fleet.find(f=>f.kind==='train');if(tr&&!tr.w.parked&&tr.w.path){const W=tr.w;const onV=T41C.rail&&W.path===T41C.rail.V;
+    const nr=st=>t41Near(W.path,st.stop[0],st.stop[1]).s;const sXr=nr(T41_STA_BY.xr);
+    if(onV){const sW=nr(T41_STA_BY.wick);vVeh.push({kind:'train',x:xX+clamp((W.s-sXr)/Math.max(1,sW-sXr),0,1)*(xW-xX)});}
+    else{const sC=nr(T41_STA_BY.corn),sL=nr(T41_STA_BY.low);const x=W.s<sC?xX+clamp((W.s-sXr)/Math.max(1,sC-sXr),0,1)*(xC-xX):xC+clamp((W.s-sC)/Math.max(1,sL-sC),0,1)*(xL-xC);sVeh.push({kind:'train',x});}}
+  h+=line('rail','MARROW VALLEY LINE · to Wickham',[it('xr','Crossroads',xX,!!T.valley),it('wick','Wickham',xW,!!T.valley)],vVeh,xX,xW);
+  h+=line('rail','SOUTH LINE · down Mill Road',[it('xr','Crossroads',xX,!!T.valley),it('corn','Deep Corn',xC,!!(T.valley&&T.south)),it('low','Low Fields',xL,!!(T.valley&&T.south))],sVeh,xX,xL);
+  return h+'</div>';}
 function t41Row(title,small,btn){return `<div class="mc34r"><div class="mc34t"><b>${title}</b><small>${small}</small></div><div class="mc34b">${btn}</div></div>`;}
+function t41NextBuy(T){const coin=p=>p?`· ${p}`:'· free';const btn=(op,lab,id)=>`<button data-t41="${op}"${id?` data-id="${id}"`:''} ${S.coins<t41Price(op)?'class="nope"':''}>${lab} ${coin(t41Price(op))}</button>`;
+  if(!T.bus)return t41Row('The county bus','Three old county buses and a stop at your gate. They run 6 am to 9 pm.',btn('bus','Buy'));
+  const st=T41_STOPS.find(s=>!T.stops[s.id]);if(st)return t41Row(st.name,`${st.note}. The next stop to put up.`,btn('stop','Put up a stop',st.id));
+  if(!T.bus2)return t41Row('Three more buses','Half the wait at every stop.',btn('bus2','Buy'));
+  if(!T.valley)return t41Row('The Valley line','Rail from the Crossroads to Wickham, an engine and a coach.',btn('valley','Lay it'));
+  if(!T.south)return t41Row('The South line','On down Mill Road to the Deep Corn and the Low Fields.',btn('south','Lay it'));
+  if(!T.dining)return t41Row('A dining car','A second coach with a stove and four tables.',btn('dining','Buy'));return '';}
 function t41Book(){const T=TR41(),run=t41CanRun();const coin=p=>p?`· ${p}`:'· free';
   if(!t41Open())return `<p class="bzs">The county won’t license a line to a farm that might not be here next week. Once the first chapter of this is behind you, the papers are yours to sign.</p>`;
   let h=t41Diagram('');
   const L=T.log[0];if(L)h+=`<p class="bwlead">Yesterday: ${L.bus?`${L.bus} on the bus`:''}${L.bus&&L.train?', ':''}${L.train?`${L.train} on the train`:''}. Fares ${L.fareB+L.fareT}, upkeep ${L.up}: <b style="color:${L.net>=0?'#3a5a2a':'#a8281c'}">${L.net>=0?'+':''}${L.net}</b>.${L.named.length?` Seen riding: ${L.named.join(', ')}.`:''}</p>`;
   else if(T.bus||T.valley)h+=`<p class="bwlead">The first takings come in tomorrow morning.</p>`;
+  if(run){const nx=t41NextBuy(T);if(nx)h+='<h4>Next for the line</h4>'+nx;}
   if(!run)h+=`<p class="bzs">${T.by}’s line. You can ride it; ${T.fare?`the fare is <b>${T.fare}</b>, paid to ${T.by}.`:'it’s free for now.'}</p>`;
   h+='<h4>The county bus</h4>';
   if(!T.bus)h+=t41Row('The county bus',`The county’s three old bottle-green buses, MARROW CO. LINES on their sides, laid up since the last driver went into the reservoir. Buy them and they call at the stops you put up, 6 am to 9 pm. Upkeep ${T41_UPKEEP.bus} a day; fares ${T41_FARE.bus} a rider. Comes with the stop at your gate.`,run?`<button data-t41="bus" ${S.coins<t41Price('bus')?'class="nope"':''}>Buy ${coin(t41Price('bus'))}</button>`:'');
@@ -925,15 +1057,15 @@ function t41TabBtn(on){const N=$('noteText');const tabs=N&&N.querySelector('.bzt
   box.querySelectorAll('[data-t41fare]').forEach(b=>b.onclick=()=>{t41Do('fare',{v:(TR41().fare|0)+(+b.dataset.t41fare)});re();});};}
 {const css=document.createElement('style');css.textContent=`#noteText .t41dia{margin:4px 0 8px;padding:6px 8px 4px;background:#efe4c6;box-shadow:inset 0 0 0 1px #8a6a42}
 #noteText .t41ln{margin:2px 0 6px}#noteText .t41lab{font-size:11px;letter-spacing:.06em;color:#5a3a1e;margin-bottom:2px}
-#noteText .t41track{position:relative;height:38px;margin:14px 22px 0}#noteText .t41rule{position:absolute;left:0;right:0;top:6px;height:3px;background:#b8a27a}
+#noteText .t41track{position:relative;height:32px;margin:23px 22px 0}#noteText .t41rule{position:absolute;left:0;right:0;top:6px;height:3px;background:#b8a27a}
 #noteText .bus .t41rule{background:repeating-linear-gradient(90deg,#3f6246 0 7px,transparent 7px 10px)}#noteText .rail .t41rule{background:#2a1a10;box-shadow:0 2px 0 -1px #2a1a10,0 -2px 0 -1px #2a1a10}
 #noteText .t41st{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;width:56px}
 #noteText .t41st i{display:block;width:9px;height:9px;border-radius:50%;background:#efe4c6;box-shadow:0 0 0 2px #6a5a40}#noteText .rail .t41st i{border-radius:1px}
 #noteText .t41st.on i{background:#3f6246;box-shadow:0 0 0 2px #1d2e24}#noteText .rail .t41st.on i{background:#2a1a10;box-shadow:0 0 0 2px #120a04}
 #noteText .t41st.here i{box-shadow:0 0 0 2px #1d2e24,0 0 0 5px #d8a038}#noteText .t41st b{font-size:10px;line-height:1.05;text-align:center;font-weight:normal;margin-top:3px;color:#3a2210}#noteText .t41st:not(.on) b{opacity:.55}
-#noteText .t41veh{position:absolute;top:-25px;z-index:1;transform:translateX(-50%);width:16px;height:16px;image-rendering:pixelated;filter:drop-shadow(0 1px 0 #2a1a10)}\n#noteText .t41st em{position:absolute;bottom:100%;margin-bottom:3px;font-style:normal;font-size:9px;letter-spacing:.04em;white-space:nowrap;color:#a0501c;text-transform:uppercase}\n#noteText .t41svc{font-size:12px;margin:2px 0 6px}#noteText .t41dest{display:grid;grid-template-columns:1fr 1fr;gap:5px 8px}\n#noteText .t41go{display:flex;justify-content:space-between;align-items:baseline;gap:6px;font:inherit;font-size:13px;padding:5px 8px;background:#3a2210;color:#f4e6c8;border:0;cursor:pointer;box-shadow:inset 0 0 0 1px #120a04,inset 0 2px 0 #5a3a1e;text-align:left}\n#noteText .t41go .t{font-size:11px;opacity:.8;white-space:nowrap}#noteText .t41go.slow{background:#5a4430}#noteText .t41go.off{opacity:.5;cursor:default}
+#noteText .t41veh{position:absolute;top:-24px;z-index:1;transform:translateX(-50%);width:16px;height:16px;image-rendering:pixelated;filter:drop-shadow(0 1px 0 #2a1a10)}\n#noteText .t41st em{position:absolute;bottom:100%;margin-bottom:3px;font-style:normal;font-size:9px;letter-spacing:.04em;white-space:nowrap;color:#a0501c;text-transform:uppercase}\n#noteText .t41svc{font-size:12px;margin:2px 0 6px}#noteText .t41dest{display:grid;grid-template-columns:1fr 1fr;gap:5px 8px}\n#noteText .t41go{display:flex;justify-content:space-between;align-items:baseline;gap:6px;font:inherit;font-size:13px;padding:5px 8px;background:#3a2210;color:#f4e6c8;border:0;cursor:pointer;box-shadow:inset 0 0 0 1px #120a04,inset 0 2px 0 #5a3a1e;text-align:left}\n#noteText .t41go .t{font-size:11px;opacity:.8;white-space:nowrap}#noteText .t41go.slow{background:#5a4430}#noteText .t41go.off{opacity:.5;cursor:default}
 #noteText .t41map{display:block;width:100%;max-height:220px;object-fit:contain;margin:4px 0;image-rendering:pixelated;box-shadow:inset 0 0 0 1px #6a4a2a}
-#saleSlip .t41seen{font-size:12px;opacity:.85;margin:4px 0 0 34px}#saleSlip .srow.t41{grid-template-columns:42px 1fr 46px 56px;min-height:40px;align-items:center}#saleSlip .srow.t41 img{width:36px;height:36px;image-rendering:pixelated}#noteText .t41msg{margin:6px 0 2px;padding:5px 8px;background:#efe3c4;border:1px solid #b89a68;border-radius:3px;font-size:12px;color:#3a2a18}#noteText .t41go{position:relative;flex-wrap:wrap}#noteText .t41go .t41slow{flex-basis:100%;text-align:right}#noteText .t41go .t41slow{display:block;margin-top:2px;font-size:10px;font-weight:bold;color:#f0d890;letter-spacing:.03em}#noteText .t41st.here{z-index:2}#noteText .t41st.here em{bottom:auto;top:100%;margin:2px 0 0;padding:0 3px;background:#d8a038;color:#2a1608;border-radius:2px;font-weight:bold}#saleSlip .srow.t41{opacity:1;animation:none}
+#saleSlip .t41seen{font-size:12px;opacity:.85;margin:4px 0 0 34px}#saleSlip .srow.t41 .sv{white-space:nowrap}#saleSlip .srow.t41{grid-template-columns:42px 1fr 20px 92px;min-height:40px;align-items:center}#saleSlip .srow.t41 img{width:36px;height:36px;image-rendering:pixelated}#noteText .t41msg{margin:6px 0 2px;padding:5px 8px;background:#efe3c4;border:1px solid #b89a68;border-radius:3px;font-size:12px;color:#3a2a18}#noteText .t41go{position:relative;flex-wrap:wrap}#noteText .t41go .t41slow{flex-basis:100%;text-align:right}#noteText .t41go .t41slow{display:block;margin-top:2px;font-size:10px;font-weight:bold;color:#f0d890;letter-spacing:.03em}#noteText .t41st.here{z-index:2}body.t41m #objective{visibility:hidden}body.t41m #noteText{-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 30px),rgba(0,0,0,.66) calc(100% - 30px),rgba(0,0,0,.66) calc(100% - 20px),rgba(0,0,0,.33) calc(100% - 20px),rgba(0,0,0,.33) calc(100% - 10px),transparent calc(100% - 10px));mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 30px),rgba(0,0,0,.66) calc(100% - 30px),rgba(0,0,0,.66) calc(100% - 20px),rgba(0,0,0,.33) calc(100% - 20px),rgba(0,0,0,.33) calc(100% - 10px),transparent calc(100% - 10px))}#noteText .t41st.here em{bottom:auto;top:100%;margin:2px 0 0;padding:0 3px;background:#d8a038;color:#2a1608;border-radius:2px;font-weight:bold}#saleSlip .srow.t41{opacity:1;animation:none}
 #noteText .t41log{display:flex;gap:14px;font-size:13px;padding:2px 0;border-bottom:1px dashed rgba(90,60,30,.3)}#noteText .t41log span:first-child{width:56px}#noteText .t41log span:nth-child(2){flex:1}`;document.head.appendChild(css);}
 // the Town Hall's land office keeps the county's transit papers too
 {const _r=vendors.land.rows;vendors.land.rows=()=>{const rows=_r();if(!t41Open())return rows;const T=S.emp&&S.emp.tr;
@@ -950,7 +1082,7 @@ function t41OpenStop(kind,id){if(T41R.on)return;const T=TR41();const here=kind==
       const walk=Math.hypot(there[0]-herePt[0],there[1]-herePt[1])*1.3/168;
       if(!tr){h+=`<button class="t41go off" disabled><span class="n">${d.name}</span><span class="t">no more today</span></button>`;continue;}
       const mins=Math.max(1,Math.round((tr.arr-S.hour)*60)),slow=(tr.arr-S.hour)>walk;
-      h+=`<button class="t41go${slow?' slow':''}" data-k="${d.id}"><span class="n">${d.name}</span><span class="t">${mins<60?mins+' min':(mins/60).toFixed(1)+' h'} · ${t41TimeStr(tr.arr)}</span>${slow?'<span class="t41slow">walk it, it’s quicker</span>':''}</button>`;}
+      h+=`<button class="t41go${slow?' slow':''}" data-k="${d.id}"><span class="n">${d.name}</span><span class="t">${mins<60?mins+' min':Math.floor(mins/60)+' h'+(mins%60?' '+(mins%60)+' min':'')} · ${t41TimeStr(tr.arr)}</span>${slow?'<span class="t41slow">walk it, it’s quicker</span>':''}</button>`;}
     h+='</div>';}
   openNote(h,'Not now',()=>{});t41Modal();
   document.querySelectorAll('#noteText .t41go[data-k]').forEach(b=>b.addEventListener('click',()=>{t41Ride(kind,id,b.dataset.k);},{once:true}));}
@@ -994,17 +1126,18 @@ if(typeof window!=='undefined')window.__t41={TR41,t41Build,t41Fleet,t41Trip,t41R
   for(const c of t41Cars()){if(!onScreen(c.x,c.z,320))continue;const X=Math.round(sx(c.x)),Y=Math.round(sz(c.z));const m=SPR[c.key];if(!m||!m.lights)continue;
     for(const q of m.lights){if(q.t==='win'){const [rx,ry,w,h]=q.r;if(!c.lit)continue;lctx.fillStyle=`rgba(255,196,120,${.7*L})`;lctx.fillRect(X+rx,Y+ry,w,h);glowAt(X+rx+w/2,Y+ry+h/2,w*.8+6,[255,180,100],.22*L);}
       else if(q.t==='lamp'){if(q.r){glowAt(X+q.x,Y+q.y,q.r*2.6,q.c,.95*L);glowAt(X+q.x,Y+q.y,q.r*.9,[255,250,230],.9*L);}}
+      else if(q.t==='cone'){lctx.fillStyle=q.k?`rgba(255,238,190,${.85*L})`:`rgba(255,214,150,${.42*L})`;lctx.beginPath();q.pts.forEach((p,i)=>i?lctx.lineTo(X+p[0],Y+p[1]):lctx.moveTo(X+p[0],Y+p[1]));lctx.closePath();lctx.fill();}
       else if(q.t==='pool'){const g=lctx.createRadialGradient(X+q.x,Y+q.y,2,X+q.x,Y+q.y,Math.max(q.rx,q.ry));g.addColorStop(0,`rgba(255,226,160,${.8*L})`);g.addColorStop(.5,`rgba(255,210,140,${.36*L})`);g.addColorStop(1,'rgba(255,200,120,0)');
         lctx.save();lctx.translate(X+q.x,Y+q.y);lctx.scale(q.rx/Math.max(q.rx,q.ry),q.ry/Math.max(q.rx,q.ry));lctx.translate(-(X+q.x),-(Y+q.y));lctx.fillStyle=g;lctx.beginPath();lctx.arc(X+q.x,Y+q.y,Math.max(q.rx,q.ry),0,Math.PI*2);lctx.fill();lctx.restore();}}}
   lctx.restore();}catch(e){try{lctx.restore();}catch(_){}}};}
 // ---- the Transit page and the stop page hold the town's messages while they're open (they wait, then play in order once
 // the page shuts), and clear one already showing when they open: nothing lands on the book's tabs or the stop's title.
 const T41UI={msg:'',q:[]};
-function t41Modal(){const n=$('note');if(!n)return;n.dataset.modal='t41';try{if(typeof PL37!=='undefined'&&!PL37.modal.includes('note'))PL37.modal.push('note');}catch(e){}
+function t41Modal(){const n=$('note');if(!n)return;n.dataset.modal='t41';document.body.classList.add('t41m');try{if(typeof PL37!=='undefined'&&!PL37.modal.includes('note'))PL37.modal.push('note');}catch(e){}
   try{ui.toast.classList.remove('show');toastT=0;}catch(e){}}
 function t41Held(){const n=$('note');return !!(n&&!n.hidden&&n.dataset.modal==='t41');}
 {const _t=toast;toast=function(msg,dur,red){if(t41Held()){if(!T41UI.q.some(q=>q[0]===msg))T41UI.q.push([msg,dur,red]);if(T41UI.q.length>5)T41UI.q.shift();return;}return _t.apply(this,arguments);};
-  setInterval(()=>{const n=$('note');if(n&&n.hidden&&n.dataset.modal==='t41')delete n.dataset.modal;if(!T41UI.q.length||t41Held())return;if(typeof toastT!=='undefined'&&toastT>.35)return;const q=T41UI.q.shift();_t(q[0],q[1],q[2]);},350);}
+  setInterval(()=>{const n=$('note');if(n&&n.hidden&&n.dataset.modal==='t41'){delete n.dataset.modal;document.body.classList.remove('t41m');}if(!T41UI.q.length||t41Held())return;if(typeof toastT!=='undefined'&&toastT>.35)return;const q=T41UI.q.shift();_t(q[0],q[1],q[2]);},350);}
 // ---- nobody stands inside a bus or a train: if one comes through where you are, you're put beside it
 {const _u=update;update=function(dt){_u(dt);if(S.mode!=='play'||S.room||T41R.on)return;try{for(const c of t41Cars()){const side=c.v==='E'||c.v==='W';const hx=(side?c.len:c.wid)/2,hz=(side?c.wid:c.len)/2;
       const dx=P.x-c.x,dz=P.z-c.cz;if(Math.abs(dx)>=hx+.2||Math.abs(dz)>=hz+.2)continue;const px=hx+.2-Math.abs(dx),pz=hz+.2-Math.abs(dz);

@@ -123,7 +123,9 @@ const ST37_CANDLE=()=>{try{const r=vendors.peddler.rows().find(q=>q.k==='candle'
 {const _o=objective;objective=function(){const r=_o.apply(this,arguments);try{if(r&&r[0]==='Candles'){const need=3-S.candles-lit();const pr=ST37_CANDLE();
     if(need>0){let add='';if(!S.c37hale)add+=' Pastor Hale may spare one if you ask him.';
       const short=need*pr-S.coins-(S.c37hale?0:pr);if(short>0)add+=` You need ${short} more coin${short===1?'':'s'}: ship crops in the bin (they sell overnight), or sell fish to Otto.`;
-      r[1]=String(r[1]).replace(/(\d\/3)/,m=>m+'.'+add);}}}catch(e){}return r;};}
+      const m=/(\d)\/3/.exec(String(r[1]));const have=m?m[1]:String(3-need);
+      const base=String(r[1]).replace(/\s*\d\/3\.?/,''),k=base.search(/ · |<span/),head=k<0?base:base.slice(0,k),tail=k<0?'':base.slice(k);
+      r[1]=`${have}/3 candles${short>0?' · '+short+' more coin'+(short===1?'':'s'):''}. `+head.trim()+add.replace(/ You need \d+ more coins?:/,' To raise it:')+tail;}}}catch(e){}return r;};}
 {const _t=talk;talk=function(n){try{let g=null;try{g=objective();}catch(e){}if(n&&n.def&&n.def.id==='hale'&&!S.c37hale&&g&&g[0]==='Candles'&&(3-S.candles-lit())>0){
       S.c37hale=1;S.candles=(S.candles||0)+1;
       playScene('hale','A candle',`<q>You’ve been to the county line, then. Everyone goes once.</q><br><br>He takes a black candle out of his coat, braided wax, and presses it into your hand.<br><br><q>Your grandfather left this with me. One. The other two you buy from the thing at the crossroads, like everyone does. It takes coin. Only coin.</q>`,()=>{toast('A Ward Candle. 1 of 3.',2.6);});return;}}catch(e){}
@@ -466,8 +468,8 @@ function st37TrimChoice(){try{const p=$('noteText').querySelector('p');if(p&&/ri
 // ---- the morning the woods take one: Hale and a dozen of them walk up to your door; three stand apart; you choose by pointing
 dkExileAsk=function(){const c=dkExileCands();if(!c.length)return;const d=doorPos;
   const others=ST37_FOLK().filter(id=>id!=='hale'&&!c.includes(id)&&id!==(typeof dkTaken==='function'?dkTaken():null)&&id!==(typeof sgPartner==='function'?sgPartner():null)).slice(0,9);
-  const cast={hale:{x:d.x-1.5,z:d.z+9,dir:'N'}};const go={hale:[d.x-1.5,d.z+2.9]};
-  others.forEach((id,i)=>{const row=i<5?0:1,k=row?i-5:i;const x=d.x-5.6+k*1.05+(row?.5:0),z=d.z+3.4+row*1.25+(k%2)*.2;cast[id]={x:x+(i%2?.4:-.4),z:z+7,dir:'N'};go[id]=[x,z];});
+  const cast={hale:{x:d.x+.3,z:d.z+9,dir:'N'}};const go={hale:[d.x+.3,d.z+2.6]};   /* r4: the crowd in front of the door again, Hale a clear step off the player's feet */
+  others.forEach((id,i)=>{const row=i<5?0:1,k=row?i-5:i;const x=d.x-2.5+k*1.2+(row?.6:0),z=d.z+3.8+row*1.3+(k%2)*.2;cast[id]={x:x+(i%2?.4:-.4),z:z+7,dir:'N'};go[id]=[x,z];});
   c.forEach((id,i)=>{const x=d.x+5.4+i*1.2,z=d.z+2.6+(i%2)*.5;cast[id]={x:x+1,z:z+7,dir:'N'};go[id]=[x,z];});
   let picked=null;const pickAt=(cx,cy)=>{const cv=$('c');if(!cv)return null;const R=cv.getBoundingClientRect(),k=R.width/VW;const X=(cx-R.left)/k,Y=(cy-R.top)/k;
     let best=null,bd=1e9;for(const id of c){const n=npcById(id);if(!n)continue;const nx=sx(n.x),ny=sz(n.z)-20;const dd=Math.hypot(X-nx,Y-ny);if(dd<26&&dd<bd){bd=dd;best=id;}}return best;};
@@ -478,8 +480,8 @@ dkExileAsk=function(){const c=dkExileCands();if(!c.length)return;const d=doorPos
     beats:[{go,face:Object.fromEntries([...Object.keys(go)].map(id=>[id,'N'])),wait:'arrive',hold:.4},
       {who:'hale',text:'Before a drawing, one of us walks into the woods. So the drawing is fair.',expr:'sad'},
       {who:'hale',text:'This year it’s yours to say who. The Tithe always chooses who chooses.',expr:'neutral',act(){for(const id of c)stgEmote(id,'?',2.4);}},
-      {text:`Point at the one who goes. (${c.map((id,i)=>`${i+1} ${npcById(id).def.name.split(' ')[0]}`).join(' · ')}.) Or say nothing.`,act(st){st._pick37=1;}}],
-    done(){$('stgTap').removeEventListener('pointerdown',onTap,true);removeEventListener('keydown',keys,true);dkExileFor(picked,true);}});};
+      {text:`Point at the one who goes. (${c.map((id,i)=>`${i+1} ${npcById(id).def.name.split(' ')[0]}`).join(' · ')}.) Or say nothing.`,act(st){st._pick37=1;ST37.tags=c.map((id,i)=>({id,t:(i+1)+' '+npcById(id).def.name.split(' ')[0].toUpperCase()}));}}],
+    done(){ST37.tags=null;$('stgTap').removeEventListener('pointerdown',onTap,true);removeEventListener('keydown',keys,true);dkExileFor(picked,true);}});};
 // ---- her door, when she's been taken: open in the world, her shoes by the mat, the marks going out across the grass
 function st37Doorway(w){return st37Cv(w,44,(P)=>{P(0,0,w,44,'#060405');P(1,1,w-2,43,'#020102');   // the doorway, black inside, the lamp burned down
   const lw=Math.round(w*.28);P(1,1,lw,43,'#3a2618');P(1,1,lw,1,'#5a3e26');for(let y=5;y<42;y+=7)P(2,y,lw-2,1,'#2a1a10');P(lw,1,2,43,'#d8aa66');P(lw+1,1,1,43,'#f4cc8c');P(3,21,2,2,'#c8a040');   // the door, swung in: its face in shadow, its edge catching the day
@@ -582,9 +584,19 @@ function st37Slip(){return st37Cv(ST37W,ST37H,(P)=>{for(let y=0;y<ST37H;y++)for(
   return c;};SGT_ART.well=st37Well;}
 // the Tithe House step, close: shoes twice the size with a strap and buckle, a sole, a shadow, toes turned in; nails of every size; holes right through
 {const _pt=SGT_ART.p_tithe;SGT_ART.p_tithe=()=>{const c=_pt();if(c._st37b)return c;c._st37b=1;const g=c.getContext('2d');const P=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w||1,h||1);};
-  for(let i=0;i<34;i++){const x=58+st37H(i,31)%44,y=22+st37H(31,i)%60;if((x-56)%8<2)continue;const big=st37H(i,4)%3===0;
-    if(st37H(i,5)%4===0){P(x,y,2,2,'#000000');P(x,y+2,2,1,'#6a5038');continue;}   // a hole right through
-    P(x-1,y-1,big?4:3,big?4:3,'#1a1414');P(x,y,big?2:1,big?2:1,big?'#8a8a92':'#6a6a72');P(x,y,1,1,big?'#d0d0d8':'#9a9aa2');for(let j=1;j<=1+st37H(x,y)%4;j++)P(x+(big?1:0),y+(big?2:1)+j,1,1,'#7a3a1a');}
+  /* r4: the boards nailed across it as on the house itself: a grey old one slanting at the top, a pale new one, the X, another grey, a pale one; the nails bunched along each board where it meets the frame and where the X crosses; old holes in rows where boards were before */
+  {const DX=57,DY=20,DW=48;const board=(x0,y0,x1,y1,t,col,hi,lo)=>{const dx=x1-x0,dy=y1-y0,L2=dx*dx+dy*dy,len=Math.sqrt(L2);
+      for(let y=Math.min(y0,y1)-t-2;y<=Math.max(y0,y1)+t+2;y++)for(let x=Math.min(x0,x1)-2;x<=Math.max(x0,x1)+2;x++){const u=((x-x0)*dx+(y-y0)*dy)/L2,v=((x-x0)*dy-(y-y0)*dx)/len;if(u<-.01||u>1.01||Math.abs(v)>t/2+1)continue;
+        let c=Math.abs(v)>t/2||u<=0||u>=1?'#0e0b0c':v<-t/2+1.2?hi:v>t/2-1.2?lo:col;if(c===col&&t>4&&st37H(Math.round(u*len/7),Math.round(v))%6===0)c=lo;P(x,y,1,1,c);}};
+    const holes=(x0,y0,x1,y1)=>{for(let k=0;k<=8;k++){const x=Math.round(x0+(x1-x0)*k/8),y=Math.round(y0+(y1-y0)*k/8);if(st37H(x,y)%3===0)continue;P(x,y,2,2,'#000000');P(x,y+2,2,1,'#6a5038');}};
+    holes(DX+3,DY+11,DX+DW-4,DY+10);holes(DX+3,DY+27,DX+DW-4,DY+25);holes(DX+3,DY+44,DX+DW-4,DY+46);   /* where boards were, the holes right through */
+    const B=[[DX-3,DY+8,DX+DW+2,DY+3,6,'#6a6460','#8a847e','#4a4440'],[DX-3,DY+16,DX+DW+2,DY+16,6,'#c49a54','#e4c27e','#9a7438'],[DX-3,DY+32,DX+DW+2,DY+36,6,'#5e5650','#7e766e','#3e3834'],
+      [DX+1,DY+23,DX+DW-2,DY+47,4,'#7a6a4e','#9a8a6a','#5a4a34'],[DX+DW-2,DY+23,DX+1,DY+47,4,'#8a7a5a','#a89a78','#5a4a34'],[DX-3,DY+52,DX+DW+2,DY+51,5,'#b48a4c','#d4b070','#8a6838']];
+    for(const b of B)board(...b);
+    const nail=(x,y)=>{P(x-1,y-1,3,3,'#1a1414');P(x,y,2,2,'#8a8a92');P(x,y,1,1,'#d0d0d8');P(x+1,y+2,1,1+st37H(x,y)%3,'#7a3a1a');};
+    for(const [x0,y0,x1,y1,t] of B){if(Math.abs(y1-y0)>12)continue;for(const [ex,ey] of [[x0+4,y0],[x1-5,y1]]){for(let k=0;k<3+st37H(ex,ey)%2;k++)nail(ex+(k%2)*3-1,ey-2+k*2-(k>1?1:0));}
+      const mx=(x0+x1)>>1,my=(y0+y1)>>1;nail(mx-2,my-1);nail(mx+1,my);}
+    for(const [x,y] of [[DX+DW/2-3,DY+34],[DX+DW/2+1,DY+36],[DX+DW/2-1,DY+33],[DX+4,DY+25],[DX+DW-6,DY+25],[DX+4,DY+45],[DX+DW-6,DY+45]])nail(x,y);}
   P(58,82,44,11,'#0e0c0c');P(59,83,42,9,'#7a7880');P(59,83,42,1,'#a8a6ae');P(59,91,42,1,'#4a4850');
   const shoe=(x,y,d)=>{const fx=k=>d>0?x+k:x+17-k;P(Math.min(fx(0),fx(17))-1,y-1,20,11,'#0e0b0c');
     for(let yy=0;yy<9;yy++)for(let xx=0;xx<18;xx++){const e=((xx-9)/9.2)**2+((yy-4.5)/4.8)**2;if(e>1)continue;let col=xx<5?'#4a2a1c':xx<12?'#6a3e26':'#8a5432';if(yy<2)col='#a06a44';if(yy>6)col='#2e1a10';if(yy===8)col='#e0d4bc';P(fx(xx),y+yy,1,1,col);}
@@ -745,7 +757,7 @@ function st37Deer(){return st37Cv(ST37W,ST37H,(P)=>{st37Dirt(P,ST37W,ST37H,11);f
 SGT_ART.deer37=st37Deer;
 // ======== the first ten minutes: one car. The sedan from the oak, drawn once in the game's 3/4 view (its near side, and its hood,
 // roof and trunk seen from above), for the drive in, the wreck on its wheels as the repairs go in, the beaten car and the drive out.
-const ST37_CARPAL={top:'#963e38',topHi:'#ac5446',side:'#7c2e2e',sideHi:'#8a3632',low:'#642228',dark:'#4a1a20',deep:'#301218',glass:'#1a2430',glass2:'#26364a',
+const ST37_CARPAL={top:'#963e38',topHi:'#c0604a',side:'#7c2e2e',sideHi:'#9a3e34',low:'#5a2434',dark:'#46182a',deep:'#2a1222',glass:'#1a2430',glass2:'#26364a',
   glint:'#5e7a8e',glint2:'#d2dce2',chr:'#9a9aa2',chrD:'#6c6c74',chrL:'#c8c8cc',tyre:'#1a1a1c',tyre2:'#2c2c32',out:'#0e080a',lamp:'#f4ecc8',tail:'#c8281e',
   primer:'#6e6a66',primerT:'#86827c',primerD:'#58544f',rust:'#7a4a24',rustD:'#5a3418'};
 function st37Sedan(cfg){cfg=cfg||{};const C=ST37_CARPAL,W=156,H=80,D=28,BL=46,GY=74,WY=63,WR=11,RX=36,FX=120,nose=cfg.crumple?134:146;
@@ -782,10 +794,14 @@ function st37Sedan(cfg){cfg=cfg||{};const C=ST37_CARPAL,W=156,H=80,D=28,BL=46,GY
     for(const x of [50,81,108])if(x<nose-2)line(x,BL+2,x,64,C.deep);   // door seams
     for(const x of [70,99]){P(x,50,5,1,C.chrL);P(x,51,5,1,C.chrD);}
     if(cfg.mirror!==0){P(107,41,5,4,C.side);P(107,41,5,1,C.topHi);P(107,44,5,1,C.deep);}
-    if(cfg.rust)for(const [rx0,rw] of [[54,14],[90,10],[14,8]])for(let x=rx0;x<rx0+rw;x++){const top=60-Math.round(2*Math.sin((x-rx0)/rw*Math.PI))-(st37H(x,1)%2);for(let y=top;y<66;y++)P(x,y,1,1,y===top?C.rustD:(st37H(x,y)%5===0?C.rustD:C.rust));}
+    if(cfg.rust){   /* r4: rust in shapes, creeping up from the sill: a ragged top edge darker than its middle, bubbles of paint lifting just above it, a hole or two */
+      for(const [x0,x1,hmax] of [[9,24,7],[52,61,4],[84,101,6]])for(let x=x0;x<=x1;x++){const t=(x-x0)/(x1-x0),h=Math.round(hmax*Math.sin(t*Math.PI)*.75+1+st37H(x,9)%3);const top=65-h;
+        for(let y=top;y<=65;y++){const hh=st37H(x,y);P(x,y,1,1,y===top?'#4a2810':y===top+1&&hh%2?'#5a3418':hh%6===0?'#b0703a':hh%3===0?'#6a3c1c':'#8a5226');}
+        if(st37H(x,4)%4===0)P(x,top-2,1,1,'#a06a3c');}
+      P(92,63,2,1,'#140a06');P(15,62,1,2,'#140a06');}
     if(cfg.dents)for(const [dx0,dy0,dw,dh] of [[86,BL+4,16,9],[60,BL+8,10,6]])for(let y=0;y<dh;y++)for(let x=0;x<dw;x++){const e=((x-dw/2+.5)/(dw/2))**2+((y-dh/2+.5)/(dh/2))**2;if(e>1)continue;P(dx0+x,dy0+y,1,1,e>.62?(x<dw/2?C.deep:C.sideHi):(x<dw/2?C.dark:C.low));}   // two dents, each its own shape
     if(cfg.ham)for(const [dx0,dy0,dw,dh] of [[118,BL+5,9,5],[128,BL-16,10,4]]){if(dx0+dw>nose-2)continue;for(let y=0;y<dh;y++)for(let x=0;x<dw;x++){const e=((x-dw/2+.5)/(dw/2))**2+((y-dh/2+.5)/(dh/2))**2;if(e>1)continue;P(dx0+x,dy0+y,1,1,e>.6?(x<dw/2?C.primerD:'#a8a29a'):(x<dw/2?'#5a5650':C.primer));}}   // two dents hammered most of the way out
-    if(cfg.vnose){const vx=nose-14;for(let y=BL-D;y<66;y++){const mid=(BL-D+66)/2,v=Math.round(14*(1-Math.abs(y-mid)/((66-BL+D)/2)));for(let x=vx+v;x<=nose+2;x++)g.clearRect(x,y,1,1);P(vx+v,y,2,1,y%3?C.deep:C.topHi);}
+    if(cfg.vnose){const vx=nose-14;for(let y=BL-D;y<66;y++){const mid=(BL-D+66)/2,v=Math.round(16*(1-Math.abs(y-mid)/((66-BL+D)/2)));for(let x=nose-v;x<=nose+2;x++)g.clearRect(x,y,1,1);P(nose-v-1,y,2,1,y%3?C.deep:C.topHi);if(y%4===0)P(nose-v-4,y,3,1,C.deep);}   /* r4: the front folded IN round the oak: a V notch, deepest at the middle, the trunk sits in it */
       for(let k=0;k<4;k++)line(nose-30+k*5,BL+2,nose-26+k*5,64,k%2?C.deep:C.sideHi);   // the fender buckled in folds
       line(112,BL-D+2,nose-16,BL-D/2|0,C.topHi);line(112,BL-D+3,nose-16,(BL-D/2|0)+1,C.deep);}
     if(cfg.crumple){for(let y=BL;y<64;y++){const z=(y>>1)%2;P(nose-1-z,y,2,1,z?C.deep:C.topHi);}
@@ -810,7 +826,7 @@ function st37Sedan(cfg){cfg=cfg||{};const C=ST37_CARPAL,W=156,H=80,D=28,BL=46,GY
   return cv;}
 const ST37_CARS={clean:{glass:'clear'},s0:{crumple:1,vnose:1,glass:'smash',bumper:0,flat:1,dents:1,mirror:0},s1:{crumple:1,glass:'smash',bumper:0,flat:1,dents:1,mirror:0},s2:{primer:1,ham:1,glass:'smash',bumper:0,flat:1,mirror:0},
   s4:{primer:1,ham:1,glass:'smash',bumper:0,steel:1,mirror:0},s5:{primer:1,ham:1,glass:'clear',bumper:0,steel:1,mirror:0},beaten:{primer:1,ham:1,glass:'clear',dull:1,steel:1,rust:1}};
-for(const k in ST37_CARS)st37Reg('st37_car_'+k,st37Sedan(ST37_CARS[k]),78,50);
+for(const k in ST37_CARS)st37Reg('st37_car_'+k,st37Sedan(ST37_CARS[k]),78,50);st37Reg('st37_car_s0f',IMG['c37:st37_car_s0'],78,60);   /* r4: the crash car sorted just in front of the oak it is wrapped round */
 // the beaten car (parked, and on the drive out) is the same sedan now: clear glass, a primer front, a steel spare
 Object.assign(SPR.car_beaten||(SPR.car_beaten={}),{src:'c37:st37_car_beaten',fw:156,fh:80,ax:78,ay:50});delete SPR.car_beaten.clips;
 // the drive in: while the car runs straight down the lane it is this sedan; the skid's turning frames stay the rendered model of the same car
@@ -850,7 +866,7 @@ escapeCine=function(){S.mode='cine';$('skip').hidden=false;$('buttons').hidden=t
       if(st.x<-76){st.loops++;st.x=farmSignPos.x+11;cine.cam.x=st.x-3;cine.cam.z=-8.7;fade(.85);setTimeout(()=>fade(0),320);SFX.whisper(0);}
       if(st.loops>=2&&st.x<farmSignPos.x+3&&!st.end){st.end=1;SFX.engine(false);fade(1);setTimeout(()=>{done();endCine();S.looped=true;S.mode='play';P.x=farmSignPos.x+1;P.z=farmSignPos.z+1.4;$('buttons').hidden=false;fade(0);
         toast('The engine dies in front of the farm sign. There is no road out of Marrow Hollow.',4,true);},1000);}}};
-  cine.finish=()=>{done();};};
+  cine.st37=st;cine.finish=()=>{done();};};
 // ======== the rest of the scenes
 // a line of speech cut into bubble-sized pieces at its sentences
 const st37Chunks=(s,max)=>{max=max||84;const out=[];let cur='';for(const sen of String(s).match(/[^.!?]+[.!?]+[’”]?\s*|[^.!?]+$/g)||[s]){const t=sen.trim();if(!t)continue;if(cur&&(cur+' '+t).length>max){out.push(cur);cur=t;}else cur=cur?cur+' '+t:t;}if(cur)out.push(cur);return out;};
@@ -867,7 +883,7 @@ function st37Ribbon(X,Y,t){const r='#b81e1a',rh='#e85040',rd='#701010';ctx2.fill
       if(o&&m&&m.door_w){const w=Math.max(16,m.door_w-4),x=o.x+(m.door_dx||0)/PPM*(o.flip?-1:1);st37Reg('st37_ajar',st37DoorAjar(w),w/2,44+7);
         const door=obj('st37_ajar',x,o.z+.02,{kind:'prop',noCol:true});const lines=[];for(const q of st37Lines(html))lines.push(...st37Chunks(q));const n=npcById('agnes');
         const ribbon={x,z:o.z+.14,draw(X,Y,t){const a=npcById('agnes');if(!a)return;const L=typeof porchLift==='function'?porchLift(a.x,a.z):0;st37Ribbon(Math.round(sx(a.x))+4,Math.round(sz(a.z))-23-L,t);}};
-        sub('');stage({player:{x,z:o.z+1.8,dir:'N'},cast:{agnes:{x,z:o.z+.12,dir:'S'}},cam:{x,z:o.z+.2},lead:300,show:true,props:[ribbon],
+        sub('');stage({player:{x,z:o.z+2.3,dir:'N'},cast:{agnes:{x,z:o.z+.62,dir:'S'}},cam:{x,z:o.z+.5},lead:300,show:true,props:[ribbon],   /* r4: she stands out on the step, in front of her door */
           beats:[{hold:.9},{hold:.2,act(){stgTitle('Agnes Abernathy — Ruth’s ribbon');}},...lines.map(t=>({who:'agnes',text:t})),{hold:.7,face:{agnes:'N'}}],
           done(){door.hide=true;const i=OBJ.indexOf(door);if(i>=0)OBJ.splice(i,1);done&&done();}});return;}}}catch(e){}return _ps.apply(this,arguments);};}
 // Nan: at the end of the ferry dock with her pole in the water and the far bank gone to fog; she says the price herself
@@ -996,12 +1012,12 @@ function st37Well3(){const hair=st37Ramp(S.look&&S.look.hair);return st37Cv(ST37
   const cx=88,ry=12,rx=46,ty=34;
   // the bail, iron, from the rope to the bucket's ears
   for(let a=0;a<=Math.PI;a+=.02){const x=Math.round(cx+Math.cos(a)*(rx+2)),y=Math.round(ty-2-Math.sin(a)*20);P(x,y,1,2,'#3a3a44');P(x,y,1,1,'#7a7a86');}
-  // the bucket: staves darkening into the curve, three iron hoops
-  for(let y=ty;y<104;y++){const k=(y-ty)/70,w=Math.round(rx-k*7);for(let x=-w;x<=w;x++){const u=(x+w)/(2*w),st=Math.floor((x+w)/7);let c=u<.12||u>.88?'#3a2414':u<.3?'#5a3a20':u<.7?'#7a5230':'#5e3e22';if((x+w)%7===0)c='#2a180c';if(st37H(st,y>>3)<10&&u>.3&&u<.7)c='#86603a';P(cx+x,y,1,1,c);}
+  // the bucket: staves gone grey with the wet, darkening into the curve, three iron hoops
+  for(let y=ty;y<104;y++){const k=(y-ty)/70,w=Math.round(rx-k*7);for(let x=-w;x<=w;x++){const u=(x+w)/(2*w),st=Math.floor((x+w)/7);let c=u<.12||u>.88?'#2c2a28':u<.3?'#46443e':u<.7?'#5e5a50':'#4a4740';if((x+w)%7===0)c='#1c1a18';if(st37H(st,y>>3)<10&&u>.3&&u<.7)c='#6a665a';P(cx+x,y,1,1,c);}
     P(cx-w-1,y,1,1,'#120a06');P(cx+w+1,y,1,1,'#120a06');}
   for(const hy of [ty+16,ty+40,ty+62]){const k=(hy-ty)/70,w=Math.round(rx-k*7);P(cx-w,hy,2*w+1,3,'#2c2c34');P(cx-w,hy,2*w+1,1,'#6a6a76');P(cx-w+4,hy+1,3,1,'#9a9aa6');}
   // the rim and, inside it, black water
-  st37Ell(P,cx,ty,rx+1,ry+1,'#120a06');st37Ell(P,cx,ty,rx,ry,'#8a6a42');st37Ell(P,cx,ty+1,rx-3,ry-2,'#4a3018');st37Ell(P,cx,ty+2,rx-5,ry-3,y=>y<-3?'#101418':'#080a0e');
+  st37Ell(P,cx,ty,rx+1,ry+1,'#120a06');st37Ell(P,cx,ty,rx,ry,'#7a766a');st37Ell(P,cx,ty+1,rx-3,ry-2,'#3a3832');st37Ell(P,cx,ty+2,rx-5,ry-3,y=>y<-3?'#101418':'#080a0e');
   for(let x=-30;x<30;x+=7)P(cx+x,ty+4,4,1,'#1e2a30');
   // the braid, coiled once round inside the rim on the water: three strands plaited (alternating chevrons), the colour of your hair
   const strand=(pts,w0,w1)=>{let tot=0;const seg=[];for(let i=1;i<pts.length;i++){const d=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);seg.push(d);tot+=d;}
@@ -1040,6 +1056,42 @@ function st37Slip3(){return st37Cv(ST37W,ST37H,(P)=>{for(let y=0;y<ST37H;y++)for
   for(let y=ST37H-12;y<ST37H;y++){P(36,y,78,1,y<ST37H-9?'#e8e4dc':'#c8c4bc');}P(36,ST37H-13,78,1,'#0a0706');for(let y=ST37H-8;y<ST37H;y++)P(38,y,74,1,'#141418');P(38,ST37H-8,74,1,'#2a2a32');   // the cuff and the sleeve
   });}
 st37Slip=st37Slip3;SGT_ART.slip37=st37Slip3;
+// the slip: ROBYN in Hale's upright capitals; Hale's hand holds it from below: his thumb pressed on the front with its nail and joint,
+// the fingers behind it (their tips show faintly through the thin paper), the index knuckle where it bends round the edge; a white cuff, a black sleeve
+function st37Slip4(){return st37Cv(ST37W,ST37H,(P)=>{for(let y=0;y<ST37H;y++)for(let x=0;x<ST37W;x++)P(x,y,1,1,(x>>3)%2?'#16110f':'#120e0c');
+  const sx0=24,sy0=14,sw=128,sh=60,pb=sy0+sh-1;P(sx0-1,sy0-1,sw+2,sh+2,'#0a0706');P(sx0,sy0,sw,sh,'#e8dcc0');P(sx0,sy0,sw,1,'#f6eedc');P(sx0,pb,sw,1,'#b8aa8a');
+  for(let x=sx0;x<sx0+sw;x++){if(st37H(x,3)%4===0)P(x,sy0,1,1,'#120e0c');if(st37H(x,5)%5===0)P(x,sy0+1,1,1,'#d0c2a2');}
+  P(sx0,sy0+29,sw,1,'#c8b898');P(sx0,sy0+30,sw,1,'#f2e8d0');P(sx0+sw/2|0,sy0,1,sh,'#d8caa8');
+  const nm=st37OldSpell(NAME()||'Robin').replace(/[^A-Z]/g,'').slice(0,8);const sc=nm.length>6?2:3;const tw=nm.length*4*sc-sc;const tx=sx0+Math.round((sw-tw)/2),ty=sy0+16;
+  st37Txt(P,nm,tx+1,ty+1,'#c8b898',sc);st37Txt(P,nm,tx,ty,'#2a1c24',sc);P(sx0+18,ty+sc*5+8,sw-36,1,'#b0a080');
+  const seg=(px,py,ax,ay,bx,by)=>{const dx=bx-ax,dy=by-ay;let t=((px-ax)*dx+(py-ay)*dy)/(dx*dx+dy*dy);t=Math.max(0,Math.min(1,t));return [Math.hypot(px-ax-t*dx,py-ay-t*dy),t];};
+  // the fingers behind the paper, shadowed through it
+  for(const [fx,fy] of [[52,66],[60,67],[67,69]])for(let y=fy;y<=pb;y++)for(let x=fx-3;x<=fx+3;x++){const r=((x-fx)/3.4)**2+((y-fy)/4)**2;if(y>fy+3||r<1)P(x,y,1,1,y<fy+2?'#ddd0b2':'#d6c8a8');}
+  const thumb=(x,y)=>seg(x+.5,y+.5,40,87,45,63)[0]<5;
+  const hand=(x,y)=>{if(y<=pb)return false;if(seg(x+.5,y+.5,43,81,66,72)[0]<4.6)return true;   // the index finger, bending round the edge
+    if(((x+.5-46)/13)**2+((y+.5-86)/10)**2<1)return true;if(y>=86&&y<100&&x>=37-(y-86)*.1&&x<=57-(y-86)*.2)return true;return false;};
+  const all=(x,y)=>thumb(x,y)||hand(x,y);
+  const O='#3a2016',S2='#6e4430',S1='#8e5c3e',M='#ac7450',L='#c68c62',H='#dcaa80';
+  for(let y=50;y<104;y++)for(let x=28;x<76;x++){const th=thumb(x,y),hd=hand(x,y);
+    if(!th&&!hd){if(y<=pb&&x>=sx0&&(thumb(x-1,y-1)||thumb(x-2,y-1)))P(x,y,1,1,'#c4b494');continue;}   // the thumb's shadow on the paper
+    const mine=th?thumb:all;let col=M;
+    if(!mine(x-1,y)||!mine(x+1,y)||!mine(x,y-1)||!mine(x,y+1))col=O;
+    else if(!mine(x-1,y-1)||!mine(x-2,y-1)||!mine(x-1,y-2))col=H;else if(!mine(x-2,y-2))col=L;
+    else if(!mine(x+1,y+1)||!mine(x+2,y+1))col=S1;else if(!mine(x+2,y+2))col=S1;
+    if(!th&&col!==O&&thumb(x-1,y-1))col=S2;   // where the thumb lies over the hand
+    if(!th&&col!==O&&thumb(x-1,y)&&thumb(x-1,y-1))col=S2;
+    P(x,y,1,1,col);}
+  // the thumbnail and the joint
+  const nail=(x,y)=>{const [d,t]=seg(x+.5,y+.5,40,87,45,63);return t>.78&&d<3&&thumb(x,y);};
+  for(let y=56;y<66;y++)for(let x=40;x<52;x++)if(nail(x,y)){P(x,y,1,1,'#e8c2aa');if(!nail(x-1,y-1))P(x,y,1,1,'#f6dccc');if(!nail(x+1,y+1))P(x,y,1,1,'#c89a84');}
+  P(41,71,6,1,'#8e5c3e');P(42,72,4,1,'#c68c62');   // the joint crease of the thumb
+  // the index knuckle, round where it bends behind the paper, and the creases of the hand
+  P(55,75,3,1,'#dcaa80');P(54,76,1,1,'#dcaa80');P(57,78,3,1,'#8e5c3e');P(58,77,2,1,'#8e5c3e');P(49,79,2,1,'#c68c62');P(50,80,1,2,'#8e5c3e');P(53,83,4,1,'#8e5c3e');P(44,92,6,1,'#8e5c3e');
+  // the cuff and the black sleeve
+  for(let y=97;y<104;y++)P(33,y,29,1,y===97?'#0a0706':y<99?'#f4f0e8':y<102?'#e2ded6':'#b8b4ac');P(33,97,1,7,'#0a0706');P(61,97,1,7,'#0a0706');P(47,99,2,2,'#9a968e');
+  for(let y=104;y<ST37H;y++){P(31,y,33,1,'#1a1a20');P(31,y,1,1,'#0a0706');P(63,y,1,1,'#0a0706');P(32,y,3,1,'#2c2c36');}P(31,104,33,1,'#0a0706');
+  });}
+st37Slip=st37Slip4;SGT_ART.slip37=st37Slip4;
 // the quarry: blocky strata, and a person-shaped recess cut into them: its upper-left inner walls in black shadow, its lower-right inner walls
 // catching the light, a dark back, a lit lip along the lower rim; long gouges on the back wall end in three fingernails
 function st37Quarry3(){return st37Cv(ST37W,ST37H,(P)=>{const G=['#5e5a64','#6a6670','#56525c','#726e78','#625e68'];let y=0,b=0;
@@ -1056,10 +1108,10 @@ function st37Quarry3(){return st37Cv(ST37W,ST37H,(P)=>{const G=['#5e5a64','#6a66
   ends.forEach(([ex,ey])=>{P(ex-1,ey-1,4,3,'#2a0e10');P(ex,ey-1,2,1,'#f0b0b0');P(ex-1,ey,1,1,'#e09898');P(ex+2,ey,1,1,'#e09898');P(ex,ey,2,1,'#c87878');});
   for(const [x0,y0,x1,y1] of [[cx-6,40,cx-14,62],[cx+4,42,cx+10,66],[cx-30,24,cx-24,40]])st37Groove(P,[[x0,y0],[x1,y1]],'#08060a','#6e6a76');
   });}
-st37Quarry=st37Quarry3;SGT_DRAW.quarry=st37Quarry3;
+/* r4: superseded by st37Quarry4 (r2's wavy strata) */
 // the orchard: the lowest apple, big, with a child's bite scalloped out of it and the milk tooth still in the bite
 {const _o=SGT_DRAW.orchard;const st37Orchard3=function(){const c=_o.apply(this,arguments);try{const g=c.getContext('2d');const P=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h);};
-    const ax=106,ay=78,r=10;g.clearRect(ax-12,ay-14,26,28);for(let y=ay-14;y<ay+14;y++)for(let x=ax-12;x<ax+14;x++)P(x,y,1,1,y<70?(((x>>4)+(y>>4))%2?'#1c1a22':'#1e1c24'):'#16141a');
+    const ax=106,ay=78,r=10;g.clearRect(ax-12,ay-20,26,34);for(let y=ay-20;y<ay+14;y++)for(let x=ax-12;x<ax+14;x++)P(x,y,1,1,y<70?(((x>>4)+(y>>4))%2?'#1c1a22':'#1e1c24'):'#16141a');
     for(let y=ay-24;y<ay-r;y++)P(ax+Math.round((y-ay+24)*.1),y,1,1,'#3a2a1a');P(ax+1,ay-r-2,4,2,'#4a6a28');   // the stalk from the twig, a leaf
     st37Ell(P,ax,ay,r+1,r+1,'#1a0806');st37Ell(P,ax,ay,r,r,y=>y<-5?'#c8302a':y<3?'#a8221e':'#7a1614');P(ax-6,ay-7,3,2,'#e86858');P(ax-7,ay-5,1,2,'#e86858');
     // the bite, scalloped (three tooth-marks deep), pale flesh browning at the edge
@@ -1068,9 +1120,9 @@ st37Quarry=st37Quarry3;SGT_DRAW.quarry=st37Quarry3;
     P(ax-9,ay-2,6,7,'#4a3a2a');P(ax-8,ay-2,4,5,'#f8f4ea');P(ax-8,ay-2,1,5,'#ffffff');P(ax-5,ay-1,1,4,'#c8c0ae');P(ax-8,ay+3,4,1,'#9a8a70');   // the milk tooth, set in the bite, its shadow under it
   }catch(e){}return c;};SGT_DRAW.orchard=st37Orchard3;}
 // the crypt: ELIAS scratched in as grooves in a child's uneven hand; the plate filed in one direction only
-{const _c=SGT_ART.crypt;SGT_ART.crypt=function(){const c=_c.apply(this,arguments);try{const g=c.getContext('2d');const P=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h);};const bx=158,by=40,pw=20;
+/* r4: the r3 crypt lid (ELIAS scratched) is set aside for r2's readable ELIAS: st37Crypt4 */{const _c=SGT_ART.crypt;const st37CryptR3=function(){const c=_c.apply(this,arguments);try{const g=c.getContext('2d');const P=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h);};const bx=158,by=40,pw=20;
     P(bx-Math.ceil(pw/2),by+28,pw,8,'#c8a048');P(bx-Math.ceil(pw/2),by+28,pw,1,'#f0d888');for(let y=0;y<7;y++)for(let x=0;x<pw;x++)if((x+y*2)%5===0)P(bx-Math.ceil(pw/2)+x,by+29+y,1,1,'#a07c30');else if((x+y*2)%5===1)P(bx-Math.ceil(pw/2)+x,by+29+y,1,1,'#e0c070');   // file strokes, all one way
-    for(let y=by+38;y<by+48;y++)for(let x=bx-12;x<bx+13;x++){const d=g.getImageData(x,y,1,1).data;if(d[0]>200&&d[1]>180)P(x,y,1,1,'#b8884a');else if(d[0]<90&&d[1]<60&&d[3]>0&&Math.abs(x-bx)<11)P(x,y,1,1,'#a87a40');}st37ScratchName(P,bx-9,by+14,'#3a2208','#f0dcb4',.62);}catch(e){}return c;};}
+    {const src=g.getImageData(bx-13,by+50,27,1).data;for(let y=by+37;y<by+49;y++)for(let i=0;i<27;i++){const a=src[i*4+3];if(!a)continue;g.fillStyle=`rgb(${src[i*4]},${src[i*4+1]},${src[i*4+2]})`;g.fillRect(bx-13+i,y,1,1);}}st37ScratchName(P,bx-9,by+14,'#3a2208','#f0dcb4',.62);}catch(e){}return c;};}
 // Ida's jars: this year's jar is glass: the wall through it, a lit rim, one diagonal highlight
 {const _j=SGT_ART.jars;SGT_ART.jars=function(){const c=_j.apply(this,arguments);try{const g=c.getContext('2d');const P=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h);};const x0=98,y0=56,w=26,h=34;
     for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){const wall=((x>>3)+(y>>3))%2?'#33241a':'#2e2016';P(x,y,1,1,wall);}
@@ -1129,10 +1181,15 @@ function st37Deer3(){return st37Cv(ST37W,ST37H,(P)=>{for(let y=0;y<ST37H;y++)for
     else if(k===3){P(x-1,y-1,11,5,o);P(x,y,9,3,'#a07040');P(x,y+2,9,1,'#e2d2b2');for(let i=1;i<9;i+=3)P(x+i,y,1,1,'#7a5230');}   // a strip of hide
     else if(k===4){P(x-1,y-1,8,8,o);P(x,y,6,6,'#8e2420');P(x,y,6,1,'#ecd8bc');P(x+2,y+2,2,2,'#f0e8d8');}   // a shoulder, the bone end
     else {st37Ell(P,x+3,y+3,4,3,o);st37Ell(P,x+3,y+3,3,2,'#5a1012');P(x+2,y+2,2,1,'#8a2a2a');}};   // something dark from inside
-  for(let h=0;h<12;h++){const a=h/12*Math.PI*2-Math.PI/2,x=Math.round(cx+Math.cos(a)*RX)-4,y=Math.round(cy+2+Math.sin(a)*RY)-2;if(y<3||y>ST37H-8||x<12||(x>124&&y<20))continue;piece([0,3,1,5,4,2,0,1,3,4,5,2][h],x,y);P(x,y+8,8,1,'#2a0806');}
-  // the hand of the clock: a peeled stick lying on the ground from the middle up to the rim, where the cabin door's edge is
-  for(let i=0;i<60;i++){const x=Math.round(cx+4+i*.62),y=Math.round(cy-8-i*.62);if(y<17)break;P(x,y+2,3,1,'#24160c');P(x,y,3,2,'#c8a878');P(x,y,3,1,'#e8d0a0');}
-  P(124,0,20,17,'#3a2a1c');P(124,0,20,1,'#6a5038');P(124,0,1,17,'#1a1008');P(143,0,1,17,'#1a1008');P(124,16,20,1,'#1a1008');P(139,8,2,2,'#b89040');   // the door's foot, at the rim
+  for(let h=0;h<12;h++){const a=h/12*Math.PI*2-Math.PI/2,x=Math.round(cx+Math.cos(a)*RX)-4,y=Math.round(cy+2+Math.sin(a)*RY)-2;if(y<3||y>ST37H-8||x<12)continue;piece([0,3,1,5,4,2,0,1,3,4,5,2][h],x,y);P(x,y+8,8,1,'#2a0806');}
+  // r4: the cabin's corner at the top right, past the ring: log wall, the plank door with its Z-brace, latch and stone step; the hand of the clock,
+  // a peeled stick lying from the middle of the deer out past the 1 o'clock piece to the foot of that door
+  for(let y=0;y<24;y++)for(let x=146;x<ST37W;x++){const r=y%5;P(x,y,1,1,r===4?'#1a1008':r===0?'#7a5636':'#5e4228');}for(let y=0;y<24;y+=5)P(146,y,1,4,'#2a1a0e');
+  P(153,0,19,21,'#0e0806');for(let y=0;y<20;y++)for(let x=155;x<170;x++){const k=(x-155)%5;P(x,y,1,1,k===4?'#3a2414':k===0?'#8a6440':'#6e4c2e');}
+  for(let k=0;k<15;k++){const x=155+k,y=Math.round(16-k*12/14);P(x,y,1,2,'#4a301a');P(x,y,1,1,'#9a7048');}P(155,3,15,2,'#4a301a');P(155,3,15,1,'#9a7048');P(155,16,15,2,'#4a301a');P(155,16,15,1,'#9a7048');   // the Z-brace
+  P(166,9,2,3,'#1a1008');P(166,10,2,1,'#c8a048');   // the latch
+  P(150,20,25,4,'#0e0b0c');P(151,20,23,3,'#8a8890');P(151,20,23,1,'#b0aeb6');   // the stone step
+  for(let i=0;i<70;i++){const x=Math.round(cx+4+i*.86),y=Math.round(cy-8-i*.44);if(x>152)break;P(x,y+2,3,1,'#24160c');P(x,y,3,2,'#c8a878');P(x,y,3,1,'#e8d0a0');}
   P(cx-5,cy-7,7,6,'#141010');P(cx-4,cy-6,5,4,'#7a7880');P(cx-4,cy-6,3,1,'#a8a6ae');});}
 
 st37Deer=st37Deer3;SGT_ART.deer37=st37Deer3;
@@ -1177,7 +1234,7 @@ function st37Step3(){return st37Cv(ST37W,ST37H,(P)=>{
     P(x+3,y+2,8,4,'#0a0606');P(x+4,y+2,6,1,'#1a1010');P(x+2,y+9,10,1,'#d8d0c0');P(x+5,y+6,4,1,'#b89060');P(x+6,y+1,2,1,'#c8a070');   // the opening, the sole edge, the heel tab
     const tx=inward>0?x+12:x-2;P(tx,y-3,4,4,'#1a0e0a');P(tx+1,y-2,2,2,'#6a3e24');};   // the toe, turned in, just showing past the heel
   shoe(dx+dw/2-17|0,dy+dh+2,1);shoe(dx+dw/2+3|0,dy+dh+2,-1);});}
-SGT_ART.p_tithe=st37Step3;
+/* r4: back to the r2 door close-up (with its boards), not st37Step3 */
 // r3: the one car everywhere: the crash itself is this sedan too, its nose folded round the oak; the drive in's crash frames draw it
 function st37CarSync(){try{if(typeof WRECK_RECT==='undefined'||!WRECK_RECT)return;const cs=S.carStage||0,fixed=!!S.carFixed;
     const driving=S.introDrive&&!(cine&&cine._st&&cine._st.crashed);
@@ -1185,17 +1242,24 @@ function st37CarSync(){try{if(typeof WRECK_RECT==='undefined'||!WRECK_RECT)retur
     for(const o of OBJ)if(o.kind==='wreck'&&String(o.spr||'').startsWith('car_wreck')&&!o.__h37){o.__h37=1;let h=o.hide;Object.defineProperty(o,'hide',{configurable:true,get(){return h||!!ST37_CAR.want;},set(v){h=v;}});}
     const at=want==='s0'?{x:-60.9,z:2.0}:{x:ST37_CAR.cx,z:ST37_CAR.cz};
     if(!ST37_CAR.o)ST37_CAR.o=obj('st37_car_s1',at.x,at.z,{kind:'prop',noCol:true,hide:true});
-    const o=ST37_CAR.o;o.hide=!want||(S.introDrive&&!!cine);if(want){o.spr='st37_car_'+want;o.x=at.x;o.z=at.z;}
+    const o=ST37_CAR.o;o.hide=!want||(S.introDrive&&!!cine);if(want){o.spr='st37_car_'+(want==='s0'?'s0f':want);o.x=at.x;o.z=want==='s0'?at.z+.32:at.z;}
     const R=WRECK_RECT;if(!ST37_CAR.orig)ST37_CAR.orig=[R.x0,R.z0,R.x1,R.z1];const tgt=want?[at.x-2.3,at.z-1.05,at.x+2.2,at.z+.6]:ST37_CAR.orig;
     if(R.x0!==tgt[0]||R.z0!==tgt[1]||R.x1!==tgt[2]||R.z1!==tgt[3]){[R.x0,R.z0,R.x1,R.z1]=tgt;CGRID.dirty=true;}
-    if(want&&cs<3&&(S.mode==='play'||S.introDrive)&&Math.abs(P.x-at.x)<16&&Math.abs(P.z-at.z)<12)for(let i=0;i<3;i++)parts.push({x:at.x+1.6+Math.random()*.4,z:at.z-.5,y:.9,vx:.12+Math.random()*.2,vz:-.1,vy:.55+Math.random()*.3,t:0,life:1.4,col:Math.random()<.5?'#d8d8dc':'#b8b8c0',size:3});
+    if(false)for(let i=0;i<3;i++)parts.push({x:at.x+1.6+Math.random()*.4,z:at.z-.5,y:.9,vx:.12+Math.random()*.2,vz:-.1,vy:.55+Math.random()*.3,t:0,life:1.4,col:Math.random()<.5?'#d8d8dc':'#b8b8c0',size:3});
   }catch(e){}}
 {const _d=drawSpr;drawSpr=function(name,x,y){if(name==='car_wreck'&&S.introDrive&&SPR.st37_car_s0)return _d.call(this,'st37_car_s0',x+3,y+6,null,null,0);return _d.apply(this,arguments);};}
 if(typeof CAR_SPOTS!=='undefined')CAR_SPOTS.crash.z=-1.4;   // the repaired car waits with all four wheels on the shoulder
 // the drive out: when the farm sign comes up, the headlights find it
-{const _ec=escapeCine;escapeCine=function(){_ec.apply(this,arguments);try{const c=cine,_l=c.light;let lastX=null;const _u=c.update;c.update=function(dt){const r=_u.apply(this,arguments);return r;};
-    c.light=function(L){_l.apply(this,arguments);try{const cam=c.cam;const carX=cam.x+3;const d=carX-farmSignPos.x;if(d>-1&&d<11){const X=sx(carX),Y=sz(-7.1),sx2=sx(farmSignPos.x),sy2=sz(farmSignPos.z)-22,hx=X-68,hy=Y-26;
-      const ang=Math.atan2(sy2-hy,sx2-hx);coneAt(hx,hy,ang,.2,Math.hypot(sx2-hx,sy2-hy)+30,[255,238,196],.75*Math.max(.4,L));glowAt(sx2,sy2,26,[255,240,210],.85*Math.max(.4,L));}}catch(e){}};}catch(e){}};}
+// r4: the loop made visible. Past the farm, the HOLLOW ACRE sign stands at the road's edge again, and again, each one caught in the headlights
+// as the car comes up on it (the beams turned onto the sign from the car's real headlights, never across the car)
+const ST37_PHSIGN=[-62,-75],ST37_PHZ=-8.85;
+{const _ec=escapeCine;escapeCine=function(){_ec.apply(this,arguments);try{if(typeof WILD!=='undefined')WILD.length=0;}catch(e){}   /* no grazing deer on the road out */
+  try{const c=cine,_l=c.light,_dr=c.drawables;
+    c.drawables=function(D){_dr.apply(this,arguments);const st=c.st37;if(!st||!st.loops)return;for(const x of ST37_PHSIGN){if(Math.abs(x-st.x)>16)continue;
+      D.push({z:ST37_PHZ,mind:1,draw(){const X=Math.round(sx(x)),Y=Math.round(sz(ST37_PHZ));ctx2.fillStyle='rgba(10,8,14,.35)';ctx2.fillRect(X-14,Y-1,28,3);drawSpr('sign:HOLLOW ACRE',X,Y);}});}};
+    c.light=function(L){_l.apply(this,arguments);try{const st=c.st37;if(!st||!st.loops)return;const X=sx(st.x),Y=sz(st.z)+Math.round(st.bob||0),hx=X-68,hy=Y-12;
+      for(const x of ST37_PHSIGN){const d=st.x-x;if(d<2||d>13)continue;const sx2=sx(x),sy2=sz(ST37_PHZ)-20;const ang=Math.atan2(sy2-hy,sx2-hx);const k=Math.max(.45,L)*Math.min(1,(13-d)/3);
+        coneAt(hx,hy,ang,.16,Math.hypot(sx2-hx,sy2-hy)+26,[255,238,196],.6*k);glowAt(sx2,sy2,30,[255,240,210],.9*k);}}catch(e){}};}catch(e){}};}
 // rain on a storm night: slanted streaks of different lengths, rings where it lands, and a wet shine in your lantern's pool
 {const _ms=mindScreen;mindScreen=function(t){try{if(S.storm&&isNight()&&!S.room&&(S.mode==='play'||S.mode==='cine')){
       ctx2.fillStyle='rgba(200,214,236,.55)';for(let i=0;i<46;i++){const ph=(t*2.2+hash(i,21))%1;if(ph>.45)continue;const X=Math.round(hash(i,22)*VW),Y=Math.round((hash(i,23)*VH+Math.floor(t*2.2+hash(i,21))*53)%VH);const r=1+Math.round(ph*8);
@@ -1203,7 +1267,7 @@ if(typeof CAR_SPOTS!=='undefined')CAR_SPOTS.crash.z=-1.4;   // the repaired car 
       if(typeof lanternOn==='function'&&lanternOn()&&typeof lanternPos==='function'){const lp=lanternPos();ctx2.fillStyle='rgba(255,226,170,.5)';for(let i=0;i<10;i++){const ph=(t*.8+hash(i,31))%1,X=Math.round(lp.gx+(hash(i,32)-.5)*70),Y=Math.round(lp.gy+(hash(i,33)-.5)*30);ctx2.fillRect(X,Y,3+Math.round(ph*4),1);}}
       ctx2.fillStyle='rgba(170,190,225,.4)';for(let i=0;i<120;i++){const len=6+Math.round(hash(i,41)*8),x=((hash(i,42)*VW*1.3+t*140)%(VW*1.3))-VW*.15,y=(hash(i,43)*VH+t*(620+hash(i,44)*200))%VH;for(let k=0;k<len;k++)ctx2.fillRect(Math.round(x-k*.55),Math.round(y+k),1,1);}}}catch(e){}return _ms.apply(this,arguments);};}
 // wet footprints: a child's bare feet, heel and toes, a lit rim and a wet shine, left and right, all the way to the corn
-function st37Foot(left){return st37Cv(8,6,(P)=>{const o='#14161c';P(4,1,4,4,o);P(5,2,2,2,'#2a3038');P(1,2,3,3,o);P(2,3,1,1,'#2a3038');for(const [x,y] of [[0,0],[0,5],[1,0],[1,5]])P(x,y,1,1,o);P(5,1,2,1,'#6a7a8a');P(1,2,1,1,'#6a7a8a');P(6,3,1,1,'#a8b8c8');
+function st37Foot(left){return st37Cv(8,6,(P)=>{const o='#0e1014';P(4,1,4,4,o);P(5,2,2,2,'#3a4250');P(1,2,3,3,o);P(2,3,1,1,'#3a4250');for(const [x,y] of [[0,0],[0,5],[1,0],[1,5]])P(x,y,1,1,o);P(4,1,3,1,'#9aaabb');P(1,2,1,1,'#9aaabb');P(6,3,1,1,'#d8e8f8');P(2,2,1,1,'#c8d8e8');
   if(left){const c=document.createElement('canvas');}});}
 (function(){for(const [k,dir] of [['W',0],['E',1],['S',2],['N',3]])for(const side of [0,1]){const base=st37Foot(side);const c=document.createElement('canvas');const vert=dir>=2;c.width=vert?6:8;c.height=vert?8:6;const g=c.getContext('2d');
   g.save();if(dir===1){g.translate(8,0);g.scale(-1,1);}else if(dir===2){g.translate(6,0);g.rotate(Math.PI/2);}else if(dir===3){g.translate(0,8);g.rotate(-Math.PI/2);}if(side&&!vert){g.translate(0,6);g.scale(1,-1);}if(side&&vert){g.translate(dir===2?8:0,0);}
@@ -1211,18 +1275,188 @@ function st37Foot(left){return st37Cv(8,6,(P)=>{const o='#14161c';P(4,1,4,4,o);P
 {const _t=toast;toast=function(m){try{if(typeof m==='string'&&/Wet footprints lead toward the corn/.test(m)&&typeof ruth!=='undefined'){for(const o of ST37_FP){const i=OBJ.indexOf(o);if(i>=0)OBJ.splice(i,1);}ST37_FP.length=0;
       const x0=ruth.x||P.x,z0=ruth.z||P.z;const corn=OBJ.filter(o=>/^corn_/.test(o.spr||'')&&!o.room).sort((a,b)=>Math.hypot(a.x-x0,a.z-z0)-Math.hypot(b.x-x0,b.z-z0))[0];
       const tx=corn?corn.x:FIELD.x0+FIELD.w/2,tz=corn?corn.z:FIELD.z0+FIELD.h/2;const d=Math.hypot(tx-x0,tz-z0)||1,ux=(tx-x0)/d,uz=(tz-z0)/d;const dir=Math.abs(ux)>Math.abs(uz)?(ux<0?'W':'E'):(uz>0?'S':'N');
-      const n=Math.min(40,Math.floor((d-.6)/.42));for(let i=0;i<n;i++){const side=i%2,s=side?.11:-.11;ST37_FP.push(obj('st37_fp'+dir+side,x0+ux*i*.42-uz*s,z0+uz*i*.42+ux*s,{kind:'flat',noCol:true}));}ST37.fpDay=S.day;const r=_t.apply(this,arguments);for(let i=OBJ.length-1;i>=0;i--)if(OBJ[i].spr==='st37_fp')OBJ.splice(i,1);return r;}}catch(e){}return _t.apply(this,arguments);};}
+      const n=Math.min(40,Math.floor((d-.2)/.48));for(let i=0;i<n;i++){const side=i%2,s=side?.13:-.13;ST37_FP.push(obj('st37_fp'+dir+side,x0+ux*(i*.48+.3)-uz*s,z0+uz*(i*.48+.3)+ux*s,{kind:'flat',noCol:true}));}ST37.fpDay=S.day;const r=_t.apply(this,arguments);for(let i=OBJ.length-1;i>=0;i--)if(OBJ[i].spr==='st37_fp')OBJ.splice(i,1);return r;}}catch(e){}return _t.apply(this,arguments);};}
 // Agnes's ribbon: three red bands across a pale hand, and a trailing end
-function st37Ribbon(X,Y,t){const r='#c0201a',rh='#ee5a46',rd='#6a0e0c';ctx2.fillStyle='#3a2420';ctx2.fillRect(X-1,Y-2,8,8);ctx2.fillStyle='#ecd6c4';ctx2.fillRect(X,Y-1,6,6);ctx2.fillStyle='#f8e8dc';ctx2.fillRect(X,Y-1,2,1);
+function st37RibbonR3(X,Y,t){const r='#c0201a',rh='#ee5a46',rd='#6a0e0c';   /* r4: set aside; r2's red coil (st37Ribbon above) is back */ctx2.fillStyle='#3a2420';ctx2.fillRect(X-1,Y-2,8,8);ctx2.fillStyle='#ecd6c4';ctx2.fillRect(X,Y-1,6,6);ctx2.fillStyle='#f8e8dc';ctx2.fillRect(X,Y-1,2,1);
   for(let i=0;i<3;i++){ctx2.fillStyle=rd;ctx2.fillRect(X-1,Y+i*2,8,1);ctx2.fillStyle=i===1?rh:r;ctx2.fillRect(X,Y+i*2,6,1);}
   for(let k=0;k<10;k++){const sw=Math.round(Math.sin(t*2.4+k*.6)*(k/4));ctx2.fillStyle=k%3===2?rh:r;ctx2.fillRect(X+5+sw,Y+5+k,2,1);ctx2.fillStyle=rd;ctx2.fillRect(X+7+sw,Y+5+k,1,1);}}
 // the Tithe House shoes, readable at 1x: a child's pale pair from behind, heels to you, toes to the door
 {const _h=st37House;st37House=function(state){const c=_h.apply(this,arguments);try{if(/open/.test(state))return c;const g=c.getContext('2d');const P=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h);};const DX=120,DW=28,GY=232;
-    const shoe=(x,y,inw)=>{P(x-1,y-1,9,7,'#0e0b0c');P(x,y,7,5,'#e4dccc');P(x,y+4,7,1,'#b8ac98');P(x+2,y,3,2,'#2a1e18');P(x+1,y+3,5,1,'#cfc4b0');P(x+(inw>0?6:-1),y-2,2,2,'#0e0b0c');P(x+(inw>0?6:-1),y-2,1,1,'#e4dccc');P(x,y+5,8,1,'rgba(10,8,10,.45)');};
-    shoe(DX+4,GY-9,1);shoe(DX+DW-11,GY-9,-1);}catch(e){}return c;};}
+    /* r4: a child's dark leather shoes, wider than tall, heels out and toes turned in toward each other, a buckled strap, a contact shadow under each */
+    const shoe=(x,y,d)=>{const fx=k=>d>0?x+k:x+9-k;const rows=[[2,5],[1,7],[0,8],[0,9],[1,8]];
+      P(Math.min(fx(0),fx(11))-1,y+5,13,1,'rgba(10,8,10,.55)');P(Math.min(fx(1),fx(10)),y+6,11,1,'rgba(10,8,10,.3)');
+      rows.forEach(([a,b],yy)=>{for(let k=a-1;k<=b+1;k++)P(fx(k),y+yy-(k>=6?1:0),1,1,'#0e0a0a');});P(fx(0),y-1,fx(9)>fx(0)?9:1,1,'#0e0a0a');
+      rows.forEach(([a,b],yy)=>{for(let k=a;k<=b;k++){let c=yy===0?'#6a4630':yy===4?'#140c08':k<4?'#2e1c14':'#3a2418';if(yy===1&&k>=4)c='#5a3a28';P(fx(k),y+yy-(k>=6?1:0),1,1,c);}});
+      P(Math.min(fx(1),fx(3)),y+1,3,2,'#140a06');P(fx(5),y,1,4,'#2a1810');P(fx(5),y+1,1,1,'#f0d070');};   // the opening at the heel; the strap and its buckle
+    P(DX-1,GY-11,DW+2,1,'#1a1416');P(DX-1,GY-10,DW+2,8,'#86848c');P(DX-1,GY-10,DW+2,1,'#a8a6ae');for(let i=0;i<5;i++)P(DX+2+st37H(i,7)%(DW-4),GY-8+st37H(7,i)%5,1,1,'#76747c');   /* the step's top, clear in front of the door */
+    shoe(DX+3,GY-8,1);shoe(DX+DW-13,GY-8,-1);}catch(e){}return c;};}
 // embers in each Old Marrow hearth on the night the hearths glow
 st37Reg('st37_embers',st37Cv(12,6,(P)=>{P(0,2,12,4,'#2a0e06');for(const [x,y,c] of [[1,3,'#c83a10'],[3,2,'#ff9a30'],[4,3,'#ffd060'],[6,2,'#ff7a20'],[7,3,'#ffe090'],[9,3,'#e05a18'],[10,4,'#a82a0a'],[5,4,'#ff8a28'],[2,4,'#902a0a']])P(x,y,1,1,c);}),6,9);
 setInterval(()=>{try{const on=ST37.hearth===S.day&&isNight();ST37.emb=ST37.emb||[];if(on&&!ST37.emb.length)for(const o of OBJ)if(o.spr==='rg_chimney'&&!o.hide)ST37.emb.push(obj('st37_embers',o.x,o.z+.02,{kind:'prop',noCol:true}));
   for(const e of ST37.emb)e.hide=!on;}catch(e){}},500);
 // the fake "tutorial" tips keep out of staged scenes
 {const _ht=htip;htip=function(){if(typeof STG!=='undefined'&&STG)return;return _ht.apply(this,arguments);};}
+
+/* ======================================== r4 ======================================== */
+// the quarry: r2's wavy strata, and the person-shaped recess cut into them: the upper-left inner walls in black shadow, the lower-right
+// inner walls lit, a 1 px lit lip on the rim's upper-left, the dark back wall scored with finger scratches, and three nails at the top of the right arm
+function st37Quarry4(){return st37Cv(ST37W,ST37H,(P)=>{
+  const S5=['#5e5a62','#6a666e','#76727a','#565260','#625e68'];const band=(x,y)=>{const yy=y+Math.round(Math.sin(x*.05)*2);return [Math.floor(yy/7),((yy%7)+7)%7];};
+  for(let y=0;y<ST37H;y++)for(let x=0;x<ST37W;x++){const [b,yy]=band(x,y);let c=S5[((b%5)+5)%5];if(yy===0)c='#3e3a44';else if(yy===1)c='#8a8690';if(x<14)c=yy===0?'#4a4650':'#8e8a94';if(x>ST37W-12)c=yy===0?'#2e2a34':'#4e4a54';P(x,y,1,1,c);}
+  const cx=88;const fig=(x,y)=>{const head=((x-cx)/8)**2+((y-26)/9)**2<1;const neck=Math.abs(x-cx)<4&&y>=34&&y<38;const body=Math.abs(x-cx)<15-Math.max(0,(y-60)*.2)&&y>=37&&y<78;
+    const armL=Math.abs((x-(cx-26))-(y-44)*.55)<4.5&&y>14&&y<62;const armR=Math.abs((x-(cx+26))+(y-44)*.55)<4.5&&y>14&&y<62;const legL=x>cx-12&&x<cx-2&&y>=76&&y<106;const legR=x>cx+2&&x<cx+12&&y>=76&&y<106;
+    return head||neck||body||armL||armR||legL||legR;};
+  for(let y=0;y<ST37H;y++)for(let x=30;x<150;x++){if(!fig(x,y)){if(fig(x+1,y+1)&&(!fig(x,y+1)||!fig(x+1,y)))P(x,y,1,1,'#c8c4d0');continue;}   // the lit lip along the rim's upper-left
+    let d=0;while(d<7&&fig(x-d-1,y-d-1))d++;let e=0;while(e<4&&fig(x+e+1,y+e+1))e++;
+    const [b,yy]=band(x,y);let col=yy===0?'#1e1c24':'#2a2830';   // the back wall, the strata running on faintly into it
+    if(d<=e||d<=1){if(d<=1)col='#060508';else if(d<=2)col='#0c0a10';else if(d<=4)col='#14121a';}   // the upper-left inner wall, in shadow
+    else if(e<=2){col=e===0?'#b8b4c0':e===1?'#9a96a4':'#7a7684';if(yy===0)col=e===0?'#8e8a98':'#6e6a78';}   // the lower-right inner wall, lit, the strata on it
+    else if(d<=4)col='#16141a';
+    P(x,y,1,1,col);}
+  // scratches on the back wall, inside the hollow: fingers dragged in fours, pale where they cut the stone
+  const scr=(x0,y0,x1,y1,n,sd)=>{for(let f=0;f<n;f++){const o=f*2,l=1-.12*((st37H(f,sd)%4));const ex=x0+o+(x1-x0)*l,ey=y0+(y1-y0)*l;let px=x0+o,py=y0;const N=Math.ceil(Math.abs(ey-y0));
+      for(let k=1;k<=N;k++){const qx=Math.round(x0+o+(ex-x0-o)*k/N+(st37H(k>>2,f+sd)%4===0?1:0)),qy=Math.round(y0+(ey-y0)*k/N);if(fig(qx,qy)&&fig(qx+1,qy)){P(qx,qy,1,1,'#a6a2b0');P(qx+1,qy,1,1,'#08060a');}}}};
+  scr(cx-10,44,cx-6,70,4,1);scr(cx+3,48,cx+6,74,3,2);scr(cx-4,20,cx-2,31,3,3);scr(cx-8,82,cx-7,102,2,4);
+  // up the right arm: three scratches ending in three nails broken off in the stone
+  const nails=[[cx+33,26],[cx+37,21],[cx+41,16]];
+  nails.forEach(([nx,ny],i)=>{st37Line(P,[[nx-8,ny+14],[nx,ny+2]],'#a6a2b0');st37Line(P,[[nx-7,ny+14],[nx+1,ny+2]],'#0a080c');});
+  for(const [nx,ny] of nails){P(nx-2,ny-1,5,4,'#2a0c10');P(nx-1,ny,3,2,'#e8a4a0');P(nx-1,ny,3,1,'#fbe4dc');P(nx+1,ny+1,1,1,'#b86c6c');}
+  });}
+SGT_DRAW.quarry=st37Quarry4;st37Quarry=st37Quarry4;
+
+// the crypt: rows of small coffins that run on past both edges of the picture and back into the dark (a hundred and fifty, not thirty),
+// a third of them open with names scratched in the lids; the full-size one at the end in the same old wood, its plate filed blank, ELIAS under it
+function st37Crypt4(){return st37Cv(ST37W,ST37H,(P)=>{for(let y=0;y<ST37H;y++)for(let x=0;x<ST37W;x++)P(x,y,1,1,((x>>3)+(y>>3))%2?'#24222a':'#201e26');
+  const shape=(w,h)=>yy=>{const t=yy/h,s=w*.32;return t<.3?Math.round(s+(w/2-s)*(t/.3)):Math.round(w/2-(w/2-s*.75)*((t-.3)/.7));};
+  const W=[['#6a4a30','#5a3e28','#46301e'],['#7a5a3a','#6a4c30','#523a24'],['#5a4434','#4a382a','#3a2c20'],['#6e5a42','#5e4a34','#4a3a28']];
+  const dim=(col,k)=>col.map(h=>{const n=parseInt(h.slice(1),16);return '#'+[n>>16,(n>>8)&255,n&255].map(v=>Math.round(v*k).toString(16).padStart(2,'0')).join('');});
+  const names=['ANNIE','TOMMY','RUTH','DANNY','MOLLY','ALICE','JO','SAM','NELL','BEN','IDA','KIT'];
+  const cof=(x,y,w,h,col,open,nm)=>{const sh=shape(w,h);for(let yy=0;yy<h;yy++){const hw=sh(yy);for(let xx=-hw;xx<=hw;xx++){let c=Math.abs(xx)===hw||yy===0||yy===h-1?'#0e0b0c':xx<-hw/3?col[0]:xx<hw/3?col[1]:col[2];
+      if(open&&Math.abs(xx)<hw-1&&yy>0&&yy<h-1)c=yy<3?'#1a1210':'#0a0808';P(x+xx,y+yy,1,1,c);}}
+    if(open&&nm){const lx=x+Math.ceil(w/2)+2,ly=y-3;for(let yy=0;yy<h;yy++){const hw=sh(yy);for(let xx=-hw;xx<=hw;xx++)P(lx+xx+Math.round(yy*.15),ly+yy,1,1,Math.abs(xx)===hw||yy===0||yy===h-1?'#0e0b0c':'#9a7a58');}
+      for(let i=0;i<nm.length&&i<4;i++){const f=(typeof PXFONT!=='undefined'&&PXFONT[nm[i]])||null;if(!f)continue;for(let j=0;j<5;j++)for(let k=0;k<3;k++)if(f[j*3+k]==='1')P(lx-1+k+Math.round((3+i*5)*.15),ly+3+i*5+j,1,1,'#3a2414');}}};
+  // five rows, the far ones smaller and darker, every row running off both sides (the near rows stop at the big coffin)
+  const rows=[[-6,6,13,10,.45],[8,7,15,12,.6],[26,8,18,13,.78],[48,9,20,15,.92],[72,10,22,16,1]];let n=0;
+  rows.forEach(([y0,w0,h0,sp,k],r)=>{for(let x=-10+(r%2)*(sp>>1);x<ST37W+12;x+=sp){if(y0+h0>34&&x>132)continue;const i=Math.round(x/sp);const w=w0+st37H(i,r)%3,h=h0+st37H(r,i)%4;const open=(i+r*2)%3===1&&k>.7;
+    cof(x,y0+st37H(i,r+7)%3,w,h,dim(W[((i+r)%4+4)%4],k),open,open?names[(n++)%names.length]:'');}});
+  // the full-size one: the same old wood as the rest, only longer
+  const bx=156,by=40;cof(bx,by,26,66,['#8a6440','#765434','#5c4026'],false,'');for(let yy=by+6;yy<by+62;yy+=9)P(bx-7,yy,14,1,'#6a4a2c');
+  const pw=20;P(bx-Math.ceil(pw/2)-1,by+27,pw+2,10,'#0e0b0c');P(bx-Math.ceil(pw/2),by+28,pw,8,'#c8a048');P(bx-Math.ceil(pw/2),by+28,pw,1,'#f0d888');
+  for(let y=0;y<7;y++)for(let x=0;x<pw;x++)if(st37H(x,y*3)%5<2)P(bx-Math.ceil(pw/2)+x,by+29+y,1,1,y%2?'#e8cc78':'#a88038');   // filed, the file marks across it
+  const t='ELIAS';const tx=bx-Math.ceil((t.length*4-1)/2);st37Txt(P,t,tx+1,by+42,'#2a1808');st37Txt(P,t,tx,by+41,'#f0dcb4');});}
+SGT_ART.crypt=st37Crypt4;st37Crypt=st37Crypt4;
+
+// the three who stand apart wear their names while you choose: a small tag over each head, its number and name as the prompt gives them
+const ST37_TAGC={};
+{const _ms=mindScreen;mindScreen=function(t){const r=_ms.apply(this,arguments);try{if(ST37.tags&&typeof STG!=='undefined'&&STG){for(const g of ST37.tags){const n=npcById(g.id);if(!n)continue;
+      let cv=ST37_TAGC[g.t];if(!cv){const w=g.t.length*4+7;cv=ST37_TAGC[g.t]=st37Cv(w,13,(P)=>{P(0,0,w,10,'#1a0e08');P(1,1,w-2,8,'#f0e2c0');P(1,8,w-2,1,'#c8b088');st37Txt(P,g.t,4,3,'#3a1a0a');P((w>>1)-2,10,5,1,'#1a0e08');P((w>>1)-1,11,3,1,'#1a0e08');P(w>>1,12,1,1,'#1a0e08');P((w>>1)-1,10,3,1,'#f0e2c0');P(w>>1,11,1,1,'#f0e2c0');});}
+      ctx2.drawImage(cv,Math.round(sx(n.x)-cv.width/2),Math.round(sz(n.z)-62));}}}catch(e){}return r;};}
+// r4: the hat in the ash is one hat everywhere: in the climax as at Chapter One's end, Grandpa's straw hat with its faded red band, in a grey
+// ash ring with live embers, and the warm light of those embers on it, the same light the Chapter One end shows
+{const _d=drawSpr;drawSpr=function(name,x,y){const r=_d.apply(this,arguments);try{if(name==='pumpkin'&&typeof ritual!=='undefined'&&ritual&&ritual.hat&&Math.abs(x-sx(ritual.hat.x))<.5&&Math.abs(y-sz(ritual.hat.z))<.5){
+      const X=Math.round(x),Y=Math.round(y),t=performance.now()/1000;for(let i=0;i<9;i++){const a=i*.7+.3,rx=15+(i%3)*2,ry=5+(i%2);const f=(Math.sin(t*3+i*1.7)+1)/2;
+        ctx2.fillStyle=f>.66?'#ffd060':f>.33?'#ff8a28':'#b8380e';ctx2.fillRect(Math.round(X+Math.cos(a)*rx),Math.round(Y+2+Math.sin(a)*ry),i%3?1:2,1);}}}catch(e){}return r;};}
+{const _go=glowObjs;glowObjs=function(){const r=_go.apply(this,arguments);try{if(typeof ritual!=='undefined'&&ritual&&ritual.hat&&!S.room&&!(cine&&cine._hat37)&&typeof nightK!=='undefined'&&nightK>.05){
+      const X=sx(ritual.hat.x),Y=sz(ritual.hat.z),f=.9+Math.sin(performance.now()/180)*.05;glowAt(X,Y-2,58,[255,176,96],.95*f);glowAt(X,Y-4,16,[255,220,160],.9*f);}}catch(e){}return r;};}
+
+// r4: the wet prints are a child's shoe prints, heel and toe: a broad sole pad and a small heel with the arch between, dark with wet,
+// a sheen along each pad where the light catches the water, left and right in turn, all the way into the corn
+function st37Foot4(){return st37Cv(12,7,(P)=>{const o='#0a0c10',m='#1c2430',d='#121820',sh='#7e94ac',hi='#dceaf8';
+  // the sole (toes to the left), 6 x 7, rounded; the heel, 4 x 5; the arch gap between
+  for(const [y,x0,x1] of [[0,1,4],[1,0,5],[2,0,5],[3,0,5],[4,0,5],[5,0,5],[6,1,4]])for(let x=x0;x<=x1;x++)P(x,y,1,1,(y===0||y===6||x===x0||x===x1)?o:m);
+  for(const [y,x0,x1] of [[1,8,10],[2,7,11],[3,7,11],[4,7,11],[5,8,10]])for(let x=x0;x<=x1;x++)P(x,y,1,1,(y===1||y===5||x===x0||x===x1)?o:d);
+  P(6,3,1,1,o);   // the arch, barely touching
+  P(1,2,3,1,sh);P(1,3,1,1,sh);P(2,2,1,1,hi);P(8,2,2,1,sh);P(8,2,1,1,hi);P(3,5,2,1,'#2a3440');});}
+(function(){const base=st37Foot4();for(const [k,dir] of [['W',0],['E',1],['S',2],['N',3]])for(const side of [0,1]){const c=document.createElement('canvas');const vert=dir>=2;c.width=vert?7:12;c.height=vert?12:7;const g=c.getContext('2d');
+  g.save();if(dir===1){g.translate(12,0);g.scale(-1,1);}else if(dir===2){g.translate(0,12);g.rotate(-Math.PI/2);}else if(dir===3){g.translate(7,0);g.rotate(Math.PI/2);}   /* S: toes down; N: toes up */
+  if(side&&!vert){g.translate(0,7);g.scale(1,-1);}g.drawImage(base,0,0);g.restore();st37Reg('st37_fp'+k+side,c,c.width/2,c.height-1);}})();
+// r4: Old Marrow's hearths: the burnt houses' chimneys stand close enough together to be seen at once, and on the hearth night one of them
+// breathes: ash and smoke puffing up from it, slow, in and out
+const ST37_HEARTHS=[[14,-112],[-7,-105],[15,-105.5]];
+{const iv=setInterval(()=>{try{if(!OBJ.some(o=>o.spr==='rg_chimney'&&Math.abs(o.x+2)<.6&&Math.abs(o.z+114)<.6))return;clearInterval(iv);
+    for(const [x0,z0] of ST37_HEARTHS){if(OBJ.some(o=>o.spr==='rg_chimney'&&Math.hypot(o.x-x0,o.z-z0)<3))continue;const q={x:x0,z:z0};collide(q,.6);if(Math.hypot(q.x-x0,q.z-z0)>.05)continue;
+      obj('rg_chimney',x0,z0,{kind:'prop',solid:1});addCircle(x0,z0+.1,.55);}if(typeof CGRID!=='undefined')CGRID.dirty=true;}catch(e){}},700);}
+{const _go=glowObjs;glowObjs=function(){const r=_go.apply(this,arguments);try{if(ST37.hearth===S.day&&typeof nightK!=='undefined'&&nightK>.05&&!S.room){const t=performance.now()/1000;
+      const o=OBJ.find(q=>q.spr==='rg_chimney'&&!q.hide&&Math.abs(q.x+7)<.6&&Math.abs(q.z+105)<.6)||OBJ.find(q=>q.spr==='rg_chimney'&&!q.hide);if(!o)return r;
+      const br=(Math.sin(t*2.2)+1)/2;if(Math.random()<.25+.5*br){const top=(SPR.rg_chimney?SPR.rg_chimney.ay:60)/PPM;parts.push({x:o.x+(Math.random()-.5)*.25,z:o.z,y:top,vx:(Math.random()-.5)*.25+.1,vz:0,vy:.5+Math.random()*.5,t:0,life:2.4,col:Math.random()<.4?'#d0c8c0':Math.random()<.5?'#a8a09a':'#ff8a30',size:Math.random()<.3?6:4});}}}catch(e){}return r;};}
+// r4: the orchard close-up: the one tree, its crown packed with apples, every one bitten (a child's bites, each its own size and side, two or
+// three tooth-marks deep, the flesh browning at the edge); the lowest apple hangs big on its stalk, and in its bite a milk tooth, white, roots and all
+function st37Orchard4(){return st37Cv(ST37W,ST37H,(P)=>{
+  for(let y=0;y<ST37H;y++)for(let x=0;x<ST37W;x++)P(x,y,1,1,y<96?(y<40?'#2a2436':y<70?'#322a3a':'#3a3038'):(st37H(x>>1,y)%5===0?'#3a4a22':'#2e3e1c'));   // dusk; the grass
+  // the trunk, gnarled, to the left of the middle, and one low branch reaching right
+  for(let y=58;y<ST37H;y++){const w=9+Math.round((y-58)*.12)+(st37H(1,y>>2)%2),x0=58-Math.round(Math.sin(y*.13)*2);for(let x=x0;x<x0+w;x++)P(x,y,1,1,x===x0?'#140c08':x<x0+3?'#5a3e28':x<x0+w-2?'#3e2a1a':'#24180e');P(x0+w,y,1,1,'#140c08');}
+  for(let i=0;i<46;i++){const x=64+i,y=Math.round(62+Math.sin(i*.12)*2-i*.08);P(x,y-1,1,4,'#140c08');P(x,y,1,2,'#4a3220');P(x,y,1,1,'#6a4a30');}
+  // the crown: a dense mass of leaves, lit from the upper left, the first yellow of autumn in it
+  const crown=(x,y)=>((x-86)/80)**2+((y-34)/32)**2+(st37H(x>>2,y>>2)%10)*.018<1&&y<66;
+  for(let y=0;y<70;y++)for(let x=0;x<ST37W;x++){if(!crown(x,y))continue;const h=st37H(x,y),hc=st37H(x>>1,y>>1);const lit=(x-86)/80+(y-34)/32<-.35;
+    P(x,y,1,1,hc%9===0?'#7a7a2a':lit?(h%3?'#5a6a2a':'#6e7a32'):(h%4===0?'#2a3818':h%3?'#3a4a22':'#46562a'));if(!crown(x,y+1))P(x,y+1,1,1,'#1a2410');}
+  // the apples, packed in, every one bitten
+  const apple=(cx,cy,r,col,bite)=>{st37Ell(P,cx,cy,r+1,r+1,'#2a0a08');st37Ell(P,cx,cy,r,r,yy=>yy<-r/3?col[2]:yy<r/3?col[0]:col[1]);P(cx-Math.ceil(r/2),cy-Math.ceil(r/2),Math.max(1,r>>1),1,'#f8a088');
+    if(bite){const [ang,marks,depth]=bite;const bx=cx+Math.cos(ang)*r,by=cy+Math.sin(ang)*r;for(let m=0;m<marks;m++){const off=(m-(marks-1)/2)*Math.max(1.6,r*.42),px=bx-Math.sin(ang)*off,py=by+Math.cos(ang)*off,rr=Math.max(1.2,r*depth);
+        for(let yy=-Math.ceil(rr)-1;yy<=Math.ceil(rr)+1;yy++)for(let xx=-Math.ceil(rr)-1;xx<=Math.ceil(rr)+1;xx++){const d=Math.hypot(xx,yy);const X=Math.round(px+xx),Y=Math.round(py+yy);if(Math.hypot(X-cx,Y-cy)>r+.3)continue;
+          if(d<rr-.6)P(X,Y,1,1,'#f0e2c4');else if(d<rr+.4)P(X,Y,1,1,'#b0884e');}}}
+    P(cx,cy-r-2,1,2,'#3a2a14');};
+  const REDS=[['#b8302a','#7a1814','#d8483a'],['#a8281e','#6a140e','#c84030'],['#c8402a','#8a2014','#e86040'],['#a89030','#6a5a18','#c8b048'],['#c8782a','#8a4a14','#e8983a']];
+  let n=0;for(let gy=8;gy<62;gy+=8)for(let gx=14;gx<164;gx+=9){const x=gx+(st37H(gx,gy)%5)-2+((gy>>3)%2)*4,y=gy+(st37H(gy,gx)%4)-1;if(!crown(x,y)||!crown(x+3,y+3)||!crown(x-3,y-3))continue;if(x>88&&x<114&&y>54)continue;
+    const r=2+st37H(x,y)%2;const ang=(st37H(x,y+5)%8)/8*Math.PI*2;apple(x,y,r,REDS[st37H(x+1,y)%5],[ang,2+st37H(y,x)%2,.38+(st37H(x,3)%3)*.08]);n++;}
+  // the lowest apple: big, on a long stalk from the branch, a child's bite out of its left side, and the tooth in the bite
+  for(let y=60;y<66;y++)P(104,y,1,1,'#3a2a14');P(105,61,3,2,'#4a6a28');
+  const ax=107,ay=77,ar=10;apple(ax,ay,ar,REDS[0],[Math.PI*1.0,3,.42]);
+  // the milk tooth, set in the bite: a white crown with its lit edge, and two roots, the tips still red
+  const tx=97,ty=74;P(tx-1,ty-1,7,7,'#2a1a14');P(tx,ty,5,5,'#fbf8f0');P(tx,ty,5,1,'#ffffff');P(tx,ty,1,5,'#ffffff');P(tx+4,ty+1,1,4,'#d8d0c0');P(tx+1,ty+4,4,1,'#e2dacb');P(tx+2,ty+2,1,1,'#e8e2d6');
+  for(const ry of [ty+1,ty+3]){P(tx-4,ry-1,4,3,'#2a1a14');P(tx-3,ry,3,1,'#ece2cc');P(tx-4,ry,1,1,'#b03028');}   /* the two roots, out of the bite, their tips still red */
+  P(tx+4,ty,1,1,'#2a1a14');P(tx+4,ty+4,1,1,'#2a1a14');P(tx+5,ty,1,1,'#f0e2c4');P(tx+5,ty+4,1,1,'#f0e2c4');P(tx+4,ty+2,1,1,'#b8ac98');P(tx,ty,1,1,'#2a1a14');P(tx,ty+4,1,1,'#2a1a14');   /* the crown rounded, a cusp in its biting edge */
+  });}
+SGT_DRAW.orchard=st37Orchard4;
+// r4: the credits' valley drawn at the game's own pixel scale (320 x 180, four screen pixels to one, as the world is), not the end card's
+// picture blown up: the same dawn, with room for its detail: banded sky dithered between bands, lit cloud edges, the sun's rim and its
+// glow on the ridge, two ridges and a pine line, the church with its lit window, the cabin with smoke, the furrows running in, the empty pole
+function st37DawnBig(cv){const W=320,H=180;cv.width=W;cv.height=H;const g=cv.getContext('2d');const P=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w||1,h||1);};const hs=st37H;
+  const sky=['#201a30','#2c2238','#3a2840','#4a2e44','#5a3444','#6e3a48','#84444a','#9a5250','#b0604e','#c47456','#d88a5a','#e49c64','#eaac6e','#f0bc7a'];const bh=7;
+  for(let y=0;y<96;y++){const i=Math.min(sky.length-1,Math.floor(y/bh)),f=(y%bh)/bh;for(let x=0;x<W;x++){const up=i+1<sky.length&&f>.6&&((x+y)%2===0)&&(f>.8||(x%4===0));P(x,y,1,1,up?sky[i+1]:sky[i]);}}
+  // clouds: long low streaks, lit along their lower edge by the sun below the ridge
+  for(const [cx,cy,w,col,lit] of [[60,20,70,'#4a3048','#7a4458'],[190,30,84,'#6e3c48','#a85a5a'],[120,46,56,'#9a5050','#d8805e'],[262,58,52,'#c27456','#f0a46a'],[30,64,40,'#b06650','#e0905e']]){
+    for(let k=0;k<w;k++){const t=k/w,h=Math.round(Math.sin(t*Math.PI)*(4+hs(k,cy)%2));P(Math.round(cx-w/2+k),cy-h,1,h+1,col);P(Math.round(cx-w/2+k),cy+1,1,1,lit);}}
+  // the sun's rim on the ridge, its glow spread along the skyline
+  for(let r=26;r>0;r-=2){const a=['#e8a464','#eeb070','#f2be7c','#f6cc8a'][Math.min(3,Math.floor((26-r)/6))];for(let x=-r;x<=r;x++){const h=Math.round(Math.sqrt(r*r-x*x)*.35);P(232+x,88-h,1,h,a);}}
+  st37Ell(P,232,88,14,13,'#fbd88a');st37Ell(P,232,88,12,11,'#fde6a4');st37Ell(P,229,85,6,5,'#fff4cc');
+  const ridge=(y0,amp,col,seed,top)=>{for(let x=0;x<W;x++){const h=Math.round(y0+Math.sin(x*.035+seed)*amp+Math.sin(x*.095+seed*2)*amp*.4);P(x,h,1,H-h,col);if(top)P(x,h,1,1,top);}};
+  ridge(88,6,'#5a3a48',1,'#7a4a52');ridge(100,5,'#3e2c3a',4,'#5a3a44');
+  // pines on the near ridge, two clumps
+  for(const [x,y,h] of [[16,100,18],[28,98,24],[40,102,16],[52,99,20],[262,98,22],[276,100,17],[288,96,26],[300,99,19],[312,101,15]]){for(let k=0;k<h;k++){const w=Math.max(1,Math.round((k/h)*7)+((k%4===3)?-1:0));P(x-w,y-h+k,w*2+1,1,'#22202c');}P(x,y,1,4,'#1a1820');}
+  // the church on the far ridge: nave, tower and spire, one window lit
+  P(122,78,30,24,'#2a2230');P(132,58,10,20,'#2a2230');P(135,48,4,10,'#2a2230');P(136,42,2,6,'#2a2230');P(136,40,2,2,'#4a4050');P(128,86,5,7,'#f0b060');P(129,87,3,1,'#fff0c0');P(144,86,4,6,'#3a2a34');
+  // the field: furrows running in toward the cabin, their ridges catching the light
+  ridge(112,3,'#4a3a2a',7,'#6a5236');const vx=68,vy=120;for(let y=116;y<H;y++)for(let x=0;x<W;x++){const ang=Math.atan2(y-vy,x-vx);const k=Math.floor((ang+Math.PI)/(Math.PI/40));
+    const c=k%2?(y<140?'#5e4830':'#6a5232'):(y<140?'#7a5e34':'#8a6a3a');P(x,y,1,1,(hs(x,y)%13===0&&k%2===0)?'#a08048':c);}
+  // the cabin: logs, a shingled roof, the porch, one window lit, and the smoke in soft round puffs
+  P(44,116,52,28,'#1c1418');for(let k=0;k<14;k++)P(40+k,116-k,60-k*2,1,k%3?'#2a1e1c':'#342422');for(let y=120;y<144;y+=4)P(44,y,52,1,'#140e10');
+  P(58,124,7,7,'#f2c070');P(58,124,7,1,'#fff0c0');P(61,124,1,7,'#a8783a');P(58,127,7,1,'#a8783a');P(76,128,8,16,'#120c0e');P(40,142,60,3,'#2a1e1a');
+  P(84,96,6,12,'#2a1e1c');for(const [px,py,r] of [[87,90,3],[90,82,4],[88,73,5],[93,63,6],[98,52,5],[104,43,4]]){st37Ell(P,px,py,r+1,r,'#8a7a84');st37Ell(P,px,py,r,r-1,'#a8969a');st37Ell(P,px-1,py-1,r-2>0?r-2:1,r-2>0?r-2:1,'#c4b2b2');}
+  // the scarecrow's pole, empty, a snapped rope from the crossbar and straw at its foot
+  P(192,114,2,30,'#1a1214');P(184,120,18,2,'#1a1214');P(190,114,6,2,'#1a1214');P(197,122,1,6,'#3a2a20');P(198,127,1,3,'#3a2a20');P(196,129,2,1,'#3a2a20');
+  for(const [x,y,c] of [[186,122,'#c8a048'],[185,123,'#a88030'],[188,123,'#d8b058'],[189,144,'#c8a048'],[193,144,'#a88030'],[195,143,'#c8a048'],[191,145,'#d8b058']])P(x,y,1,1,c);
+  // the road out, pale, toward the light
+  for(let y=144;y<H;y++){const x=Math.round(236+(y-144)*1.5);P(x,y,8+((y-144)>>1),1,'#a08a6a');P(x,y,1,1,'#7a6a52');}}
+setInterval(()=>{try{const c=$('st37cbg');if(!c||c._big)return;c._big=1;st37DawnBig(c);}catch(e){}},150);
+setInterval(()=>{try{const c=$('st37cbg');if(!c||!c._big)return;const k=Math.max(1,Math.ceil(Math.max(innerWidth/320,innerHeight/180)));c.style.width=(320*k)+'px';c.style.height=(180*k)+'px';}catch(e){}},200);
+
+// r4: the crash's steam: a plume off the folded hood, round puffs rising and leaning away from the oak, thinning as they go
+{const _md=mindDrawables;mindDrawables=function(D){_md.apply(this,arguments);try{const w=ST37_CAR&&ST37_CAR.want;if(!w||(S.carStage||0)>=3||S.room)return;const o=ST37_CAR.o;if(!o||o.hide)return;
+    D.push({z:o.z+.4,mind:1,draw(){const t=performance.now()/1000,X0=sx(o.x)+48,Y0=sz(o.z)-(w==='s0'?52:42);for(let i=0;i<12;i++){const ph=(t*.55+i/12)%1,r=Math.round(2+ph*7);const x=Math.round(X0+ph*26+Math.sin(t*1.3+i)*3),y=Math.round(Y0-ph*58);const a=(.5*(1-ph)).toFixed(3);
+      ctx2.fillStyle=`rgba(226,228,234,${a})`;ctx2.fillRect(x-r,y-r+1,r*2,r*2-2);ctx2.fillRect(x-r+1,y-r,r*2-2,r*2);ctx2.fillStyle=`rgba(250,250,252,${(a*.6).toFixed(3)})`;ctx2.fillRect(x-r+1,y-r+1,r,r-1);}}});}catch(e){}};}
+// r4: the repair in progress at the crash site: the torn-off bumper lying where it fell by the oak, an open toolbox, a wrench and a jack in
+// the grass; and no glowcaps sprouting in the middle of it all
+const ST37_WIP=[];
+{const o='#0e0a0a';
+  st37Reg('st37_bumper',st37Cv(34,10,(P)=>{P(1,8,32,2,'rgba(10,8,10,.35)');const pts=[[1,3],[12,4],[17,6],[22,4],[33,2]];for(let i=1;i<pts.length;i++){const [a,b]=pts[i-1],[c,d]=pts[i];for(let x=a;x<=c;x++){const y=Math.round(b+(d-b)*(x-a)/Math.max(1,c-a));P(x,y-1,1,5,o);P(x,y,1,1,'#e8e8ec');P(x,y+1,1,1,'#a8a8b0');P(x,y+2,1,1,'#6a6a74');}}
+    P(15,5,3,2,'#7c2e2e');P(16,5,1,1,'#a84438');P(28,2,3,1,'#7c2e2e');P(4,5,2,1,'#3a3a40');}),17,9);   // chrome, bent in the middle, a scrap of red paint still on it
+  st37Reg('st37_toolbox',st37Cv(18,14,(P)=>{P(1,12,17,2,'rgba(10,8,10,.4)');P(1,5,16,8,o);P(2,6,14,6,'#a82820');P(2,6,14,1,'#d04838');P(2,11,14,1,'#6a1410');P(8,8,3,1,'#c8c8cc');   // the box
+    P(2,0,14,6,o);P(3,1,12,4,'#8a2018');P(3,1,12,1,'#b83a2c');   // the lid, open, leaning back
+    P(4,4,1,3,'#9a9aa2');P(4,3,2,1,'#c8c8cc');P(11,3,1,4,'#9a9aa2');P(10,2,3,1,'#c8c8cc');P(7,4,2,2,'#e0a020');}),9,13);   // tool handles standing up in it
+  st37Reg('st37_wrench',st37Cv(14,6,(P)=>{P(1,5,12,1,'rgba(10,8,10,.35)');P(2,1,9,3,o);P(3,2,7,1,'#b8b8c0');P(10,0,3,5,o);P(11,1,2,1,'#c8c8cc');P(11,3,2,1,'#c8c8cc');P(1,1,2,3,o);P(1,2,1,1,'#9a9aa2');}),7,5);
+  st37Reg('st37_jack',st37Cv(16,10,(P)=>{P(1,9,14,1,'rgba(10,8,10,.4)');P(1,7,14,2,o);P(2,7,12,1,'#5a5a64');for(let k=0;k<5;k++){P(3+k,6-k,1,1,'#8a8a94');P(12-k,6-k,1,1,'#8a8a94');}P(6,1,4,2,o);P(7,1,2,1,'#a8a8b0');P(13,4,3,1,'#c8a048');}),8,9);}
+{const iv=setInterval(()=>{try{if(typeof mushrooms==='undefined'||!OBJ.some(o=>o.crashOak))return;clearInterval(iv);
+    for(let i=mushrooms.length-1;i>=0;i--){const m=mushrooms[i];if(Math.abs(m.x+59)<14&&Math.abs(m.z-3)<9){m.taken=true;mushrooms.splice(i,1);}}
+    for(const [spr,x,z] of [['st37_bumper',-58.0,3.15],['st37_toolbox',-63.3,2.9],['st37_wrench',-61.4,3.05],['st37_jack',-60.2,2.55]])ST37_WIP.push(obj(spr,x,z,{kind:'prop',noCol:true,hide:true}));}catch(e){}},700);}
+setInterval(()=>{try{const cs=S.carStage||0,on=!S.carFixed&&cs>=1&&cs<=4&&!(S.introDrive);for(const o of ST37_WIP)o.hide=!on;}catch(e){}},400);

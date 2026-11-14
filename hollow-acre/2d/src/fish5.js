@@ -28,8 +28,8 @@
     const cv=E.querySelector('.fg');if(cv)cv.style.setProperty('display','block','important'); // show the bar canvas (beat fish3's display:none!important)
     const pw=fish.castPow||0;fish.castPow=0;   // the further you cast, the better the odds of a treasure (pairs the throw skill with the reward)
     const tr=(f&&!(night&&f[2]>.6)&&rand()<clamp(.08+pw*.5,.08,.6))?{at:1+rand()*2,y:.2+rand()*.6,vy:0,prog:0,got:false,pop:0}:null;
-    Object.assign(MG,{on:true,f,hold:false,zone:.1,zv:0,fy:.3,fv:0,ft:.3,tt:0,prog:.34,
-      size:S.rod>=4?.40:S.rod>=3?.36:S.rod>=2?.31:.26,d:f?f[2]:.25,beh:f?f[3]:'smooth',
+    Object.assign(MG,{on:true,f,hold:false,zone:.1,zv:0,fy:.3,fv:0,ft:.3,tt:0,prog:.42,
+      size:S.rod>=4?.46:S.rod>=3?.42:S.rod>=2?.38:.34,   /* (owner: "too difficult") a wider bar at every rod */d:f?f[2]:.25,beh:f?f[3]:'smooth',
       last:performance.now(),scare:false,perfect:true,age:0,reelA:0,sp:f?FISH_SP[f[0]]:null,
       horror:night&&!!f&&f[2]>.6,lunge:0,tr,tn:0,snapT:0,snapped:false,landed:0,splash:[]});   // (landed must start at 0: left over from the last catch it ended every later fight at once with a free fish)
     if(cv){const k=Math.max(2,Math.min(4,Math.floor(innerHeight*.62/FG.H)));cv.width=FG.W;cv.height=FG.H;cv.style.width=FG.W*k+'px';cv.style.height=FG.H*k+'px';}
@@ -39,25 +39,25 @@
   function loop(now){if(!MG.on)return;const dt=Math.min(.05,(now-MG.last)/1000);MG.last=now;MG.age+=dt;const E=el();
     MG.zv+=(MG.hold?2.1:-1.9)*dt;MG.zv=clamp(MG.zv,-1.4,1.4);MG.zone+=MG.zv*dt;
     if(MG.zone<0){MG.zone=0;MG.zv=-MG.zv*.35;}if(MG.zone>1-MG.size){MG.zone=1-MG.size;MG.zv=0;}
-    const d=MG.d,panic=1+MG.prog*.9;                                        // TWIST: the nearer the surface, the harder it fights
+    const d=MG.d*.8,panic=1+MG.prog*.45;                                        // TWIST: the nearer the surface, the harder it fights
     MG.tt-=dt;
-    if(MG.tt<=0){MG.tt=((MG.beh==='dart'?.35:MG.beh==='mixed'?.5:.9)+rand()*(1.4-d))/panic;
+    if(MG.tt<=0){MG.tt=((MG.beh==='dart'?.5:MG.beh==='mixed'?.7:1.1)+rand()*(1.6-d))/panic;
       let t=rand();if(MG.beh==='sinker')t=t*t;if(MG.beh==='floater')t=1-t*t;
-      if(MG.beh==='dart'&&rand()<.5)t=MG.fy+(rand()<.5?-1:1)*(.25+d*.3);MG.ft=clamp(t,.02,.98);
+      if(MG.beh==='dart'&&rand()<.45)t=MG.fy+(rand()<.5?-1:1)*(.16+d*.22);MG.ft=clamp(t,.02,.98);
       if(isNight()&&!MG.scare&&rand()<.06&&MG.f&&MG.f[2]>.6){MG.scare=true;MG.ft=0;if(E.querySelector('.fhint'))E.querySelector('.fhint').textContent='It pulls back.';cam&&(cam.shake=.3);SFX.stinger&&SFX.stinger();}}
-    if(MG.prog>.82&&MG.lunge<=0){MG.lunge=.55;MG.ft=clamp(MG.fy+(rand()<.5?-1:1)*.5,.02,.98);SFX.till&&SFX.till();}  // the surface lunge
+    if(MG.prog>.82&&MG.lunge<=0){MG.lunge=.45;MG.ft=clamp(MG.fy+(rand()<.5?-1:1)*.3,.02,.98);SFX.till&&SFX.till();}  // the surface lunge
     if(MG.lunge>0)MG.lunge-=dt;
-    const spd=(MG.beh==='dart'?2.6:MG.beh==='mixed'?2.2:1.2)*(.5+d)*panic;
+    const spd=(MG.beh==='dart'?1.6:MG.beh==='mixed'?1.45:.95)*(.5+d)*panic;
     MG.fv+=((MG.ft-MG.fy)*spd*3-MG.fv*2.4)*dt;MG.fy=clamp(MG.fy+MG.fv*dt,0,1);
     const inside=MG.fy>=MG.zone&&MG.fy<=MG.zone+MG.size;
-    MG.prog+=(inside?.24:-.17*(1+d*.6))*dt;if(!inside&&MG.age>.6)MG.perfect=false;
+    MG.prog+=(inside?.29:-.11*(1+d*.4))*dt;if(!inside&&MG.age>.6)MG.perfect=false;
     if(MG.hold)MG.reelA+=dt*14;else if(inside)MG.reelA+=dt*5;
     // TREASURE: a chest you can also haul up — keep the bar over it (as well as the fish) to fill it before you land the catch
     const tr=MG.tr;if(tr&&!tr.got&&MG.age>tr.at){if(!tr.shown){tr.shown=1;const hh=E.querySelector('.fhint');if(hh)hh.textContent='Treasure! Cover it with the bar too — without losing the fish.';}
       tr.vy+=(rand()-.5)*dt*.8;tr.vy*=.98;tr.y=clamp(tr.y+tr.vy*dt,.05,.92);const tin=tr.y>=MG.zone&&tr.y<=MG.zone+MG.size;tr.prog=clamp(tr.prog+(tin?.5:-.3)*dt,0,1);if(tr.prog>=1){tr.got=true;tr.pop=1;SFX.coin&&SFX.coin();const hh=E.querySelector('.fhint');if(hh)hh.textContent='Got the treasure! Now land the fish.';}}
     if(tr&&tr.pop>0)tr.pop=Math.max(0,tr.pop-dt*1.5);
     // LINE TENSION: reeling (holding) strains the line, and it strains faster against a fighting fish or a lunge — ease off or it snaps
-    const strain=(MG.hold?(.40+(!inside?.30:0)+(MG.lunge>0?.45:0)):-.62)*(.72+d*.8);
+    const strain=(MG.hold?(.30+(!inside?.18:0)+(MG.lunge>0?.30:0)):-.80)*(.66+d*.6);
     MG.tn=clamp(MG.tn+strain*dt,0,1);if(MG.snapT>0)MG.snapT-=dt;
     if(MG.tn>.82&&MG.snapT<=0){MG.snapT=.6;cam&&(cam.shake=Math.max(cam.shake||0,.18));}
     if(MG.tn>=1){MG.snapped=true;endMG(false);return;}

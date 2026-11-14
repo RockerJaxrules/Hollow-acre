@@ -41,7 +41,7 @@ function stage(def){if(STG)return;
       drawables(D){const t=st.t;for(const p of def.props||[])D.push({z:p.z,mind:1,draw(){p.draw(sx(p.x),sz(p.z),t);}});
         for(const [id,e] of Object.entries(st.em)){const a=stgActor(id);if(!a||e.t<=0)continue;const X=sx(a.x),Y=sz(a.z)-46-Math.sin(Math.min(1,(1.2-e.t)*6)*Math.PI)*3;
           D.push({z:1e6,mind:1,draw(){ctx2.fillStyle='#120c08';ctx2.fillRect(X-6,Y-8,12,12);ctx2.fillStyle='#efe4cc';ctx2.fillRect(X-5,Y-7,10,10);ctx2.fillStyle=e.c||'#2a1a10';
-            ctx2.font='9px monospace';ctx2.textAlign='center';ctx2.fillText(e.k,X,Y+1);ctx2.fillStyle='#120c08';ctx2.fillRect(X-1,Y+4,2,2);}});}},
+            ctx2.font='9px monospace';ctx2.textAlign='center';if(e.k==='💧'){const x=Math.round(X),y=Math.round(Y)-6;ctx2.fillRect(x,y,1,2);ctx2.fillRect(x-1,y+2,3,1);ctx2.fillRect(x-2,y+3,5,3);ctx2.fillRect(x-1,y+6,3,1);ctx2.fillStyle='#a8d0f0';ctx2.fillRect(x-1,y+4,1,1);}else ctx2.fillText(e.k,X,Y+1);/* (t337) a drawn tear: the font has no water-drop glyph */ctx2.fillStyle='#120c08';ctx2.fillRect(X-1,Y+4,2,2);}});}},
       light(L){def.light&&def.light(L);},
       update(dt){stgUpdate(dt);}};
     S.mode='cine';fade(0);$('stgBars').classList.add('on');$('stgTap').classList.add('on');
