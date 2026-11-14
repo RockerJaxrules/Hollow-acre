@@ -44,6 +44,14 @@
 			"TargetAllowList": [
 				"Editor"
 			]
+		},
+		{
+			"Name": "MetaHumanCharacter",
+			"Enabled": true
+		},
+		{
+			"Name": "Fab",
+			"Enabled": true
 		}
 	]
 }

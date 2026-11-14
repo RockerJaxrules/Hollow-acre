@@ -1,5 +1,5 @@
 // Takes an in-game screenshot from the live game camera for the work log, then optionally quits.
-// Command line: -shot=<file.png> [-shotdelay=<seconds>] [-shotquit]
+// Command line: -shot=<file.png> [-shotdelay=<seconds>] [-shotquit] [-shotui (include the HUD, e.g. the end card)]
 // A relative file name lands in Saved/Shots/.
 
 #pragma once

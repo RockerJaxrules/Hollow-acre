@@ -36,7 +36,7 @@ void AShotDirector::BeginPlay()
 void AShotDirector::TakeShot()
 {
 	UE_LOG(LogTemp, Display, TEXT("ShotDirector: writing %s"), *ShotPath);
-	FScreenshotRequest::RequestScreenshot(ShotPath, /*bShowUI*/ false, /*bAddFilenameSuffix*/ false);
+	FScreenshotRequest::RequestScreenshot(ShotPath, /*bShowUI*/ FParse::Param(FCommandLine::Get(), TEXT("shotui")), /*bAddFilenameSuffix*/ false);
 	GetWorldTimerManager().SetTimer(Timer, this, &AShotDirector::Finish, 2.f, false);
 }
 

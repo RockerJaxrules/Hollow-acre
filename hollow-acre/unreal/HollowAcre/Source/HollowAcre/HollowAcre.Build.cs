@@ -21,7 +21,7 @@ public class HollowAcre : ModuleRules
 			"Slate"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] { });
+		PrivateDependencyModuleNames.AddRange(new string[] { "SlateCore" }); // end card text (EndingHUD)
 
 		PublicIncludePaths.AddRange(new string[] {
 			"HollowAcre",
