@@ -500,7 +500,7 @@ setInterval(()=>{try{const t=typeof dkTaken==='function'&&dkTaken();const d=type
 {const _ps=playScene;playScene=function(id,title,html,done){if(title==='Found'&&S.room==='undercroft'&&!STG){const n=npcById(id);if(n){
       const m=/I’m not letting go of you again\.[^<]*?(?=<\/q>)/.exec(html);const line=m?m[0].split('.').slice(0,2).join('.')+'.':'I’m not letting go of you again.';
       const ax=n.x,az=n.z,ux=1,uz=0;
-      stage({room:'undercroft',show:true,player:{x:ax+ux*1.4,z:az+uz*1.4,dir:dirOf(-ux,-uz)},cast:{[id]:{x:ax,z:az,dir:dirOf(ux,uz)}},cam:{x:ax+ux*.7,z:az+uz*.7},lead:600,
+      stage({room:'undercroft',show:true,player:{x:ax+ux*1.4,z:az+uz*1.4,dir:dirOf(-ux,-uz)},cast:{[id]:{x:ax,z:az,dir:dirOf(ux,uz)}},cam:(()=>{try{const R=ROOMS.undercroft;return {x:R.ox+R.w/2,z:R.oz+R.d/2+.4};}catch(e){return {x:ax+ux*.7,z:az+uz*.7};}})(),lead:600,   /* r4: the room centred in the frame */
         beats:[{hold:.7},{hold:.5,go:{[id]:[ax+ux*.55,az+uz*.55]},speed:{[id]:2.4},emote:{[id]:'…'}},
           {hold:1.4,go:{you:[ax+ux*.95,az+uz*.95]},speed:{you:2},emote:{you:'♥'},face:{you:dirOf(-ux,-uz)}},
           {who:id,text:line,expr:'cry'},{hold:1.2}],done});return;}}
@@ -1361,7 +1361,7 @@ const ST37_TAGC={};
 
 // r4: the wet prints are a child's shoe prints, heel and toe: a broad sole pad and a small heel with the arch between, dark with wet,
 // a sheen along each pad where the light catches the water, left and right in turn, all the way into the corn
-function st37Foot4(){return st37Cv(12,7,(P)=>{const o='#0a0c10',m='#1c2430',d='#121820',sh='#7e94ac',hi='#dceaf8';
+function st37Foot4(){return st37Cv(12,7,(P)=>{const o='#0a0c10',m='#1c2430',d='#121820',sh='#a4bcd4',hi='#ffffff';
   // the sole (toes to the left), 6 x 7, rounded; the heel, 4 x 5; the arch gap between
   for(const [y,x0,x1] of [[0,1,4],[1,0,5],[2,0,5],[3,0,5],[4,0,5],[5,0,5],[6,1,4]])for(let x=x0;x<=x1;x++)P(x,y,1,1,(y===0||y===6||x===x0||x===x1)?o:m);
   for(const [y,x0,x1] of [[1,8,10],[2,7,11],[3,7,11],[4,7,11],[5,8,10]])for(let x=x0;x<=x1;x++)P(x,y,1,1,(y===1||y===5||x===x0||x===x1)?o:d);
@@ -1372,13 +1372,16 @@ function st37Foot4(){return st37Cv(12,7,(P)=>{const o='#0a0c10',m='#1c2430',d='#
   if(side&&!vert){g.translate(0,7);g.scale(1,-1);}g.drawImage(base,0,0);g.restore();st37Reg('st37_fp'+k+side,c,c.width/2,c.height-1);}})();
 // r4: Old Marrow's hearths: the burnt houses' chimneys stand close enough together to be seen at once, and on the hearth night one of them
 // breathes: ash and smoke puffing up from it, slow, in and out
-const ST37_HEARTHS=[[14,-112],[-7,-105],[15,-105.5]];
+const ST37_HEARTHS=[[-3,-107],[12,-110],[6,-105]];
 {const iv=setInterval(()=>{try{if(!OBJ.some(o=>o.spr==='rg_chimney'&&Math.abs(o.x+2)<.6&&Math.abs(o.z+114)<.6))return;clearInterval(iv);
     for(const [x0,z0] of ST37_HEARTHS){if(OBJ.some(o=>o.spr==='rg_chimney'&&Math.hypot(o.x-x0,o.z-z0)<3))continue;const q={x:x0,z:z0};collide(q,.6);if(Math.hypot(q.x-x0,q.z-z0)>.05)continue;
       obj('rg_chimney',x0,z0,{kind:'prop',solid:1});addCircle(x0,z0+.1,.55);}if(typeof CGRID!=='undefined')CGRID.dirty=true;}catch(e){}},700);}
-{const _go=glowObjs;glowObjs=function(){const r=_go.apply(this,arguments);try{if(ST37.hearth===S.day&&typeof nightK!=='undefined'&&nightK>.05&&!S.room){const t=performance.now()/1000;
-      const o=OBJ.find(q=>q.spr==='rg_chimney'&&!q.hide&&Math.abs(q.x+7)<.6&&Math.abs(q.z+105)<.6)||OBJ.find(q=>q.spr==='rg_chimney'&&!q.hide);if(!o)return r;
-      const br=(Math.sin(t*2.2)+1)/2;if(Math.random()<.25+.5*br){const top=(SPR.rg_chimney?SPR.rg_chimney.ay:60)/PPM;parts.push({x:o.x+(Math.random()-.5)*.25,z:o.z,y:top,vx:(Math.random()-.5)*.25+.1,vz:0,vy:.5+Math.random()*.5,t:0,life:2.4,col:Math.random()<.4?'#d0c8c0':Math.random()<.5?'#a8a09a':'#ff8a30',size:Math.random()<.3?6:4});}}}catch(e){}return r;};}
+{const _md=mindDrawables;mindDrawables=function(D){_md.apply(this,arguments);try{if(ST37.hearth!==S.day||S.room||typeof nightK==='undefined'||nightK<.05)return;
+    const o=OBJ.find(q=>q.spr==='rg_chimney'&&!q.hide&&Math.abs(q.x+3)<.6&&Math.abs(q.z+107)<.6)||OBJ.find(q=>q.spr==='rg_chimney'&&!q.hide);if(!o)return;
+    D.push({z:o.z+.05,mind:1,draw(){const t=performance.now()/1000,br=(Math.sin(t*1.6)+1)/2,X0=Math.round(sx(o.x)),Y0=Math.round(sz(o.z))-(SPR.rg_chimney?SPR.rg_chimney.ay:60)-2;
+      for(let i=0;i<14;i++){const ph=(t*.4+i/14)%1,r=Math.round(2+ph*6*(0.6+br*.6));const x=Math.round(X0+ph*14+Math.sin(t*1.1+i*1.7)*2),y=Math.round(Y0-ph*48);const a=((.55+br*.25)*(1-ph)).toFixed(3);
+        ctx2.fillStyle=`rgba(150,140,136,${a})`;ctx2.fillRect(x-r,y-r+1,r*2,r*2-2);ctx2.fillRect(x-r+1,y-r,r*2-2,r*2);ctx2.fillStyle=`rgba(200,190,184,${(a*.7).toFixed(3)})`;ctx2.fillRect(x-r+1,y-r+1,r,r-1);}
+      for(let i=0;i<5;i++){const ph=(t*.7+i/5)%1;if(ph>.6)continue;ctx2.fillStyle=ph<.3?'#ffd060':'#ff7a20';ctx2.fillRect(Math.round(X0+Math.sin(i*2.3+t)*5),Math.round(Y0-ph*30),1,1);}}});}catch(e){}};}
 // r4: the orchard close-up: the one tree, its crown packed with apples, every one bitten (a child's bites, each its own size and side, two or
 // three tooth-marks deep, the flesh browning at the edge); the lowest apple hangs big on its stalk, and in its bite a milk tooth, white, roots and all
 function st37Orchard4(){return st37Cv(ST37W,ST37H,(P)=>{

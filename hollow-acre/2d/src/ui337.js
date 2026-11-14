@@ -707,7 +707,7 @@ function u37Ring(w,h){const out=[];const cx=(w-1)/2,cy=(h-1)/2,rx=w/2-.5,ry=h/2-
 function u37Pen(root){for(const d of root.querySelectorAll('div[style*="cursive"]')){if(d.classList.contains('u37pen'))continue;const n=d.textContent.trim();if(!/^\d+$/.test(n))continue;
     d.classList.add('u37pen');d.style.fontFamily='';d.style.transform='';d.style.boxShadow='';d.style.borderRadius='';d.style.fontSize='';
     if(n==='30')d.style.paddingTop='6px';if(n==='29')d.style.paddingLeft='7px';
-    if(n==='31'){d.insertAdjacentHTML('beforeend',u37Ring(18,13));const sv=d.lastElementChild;sv.style.left='-2px';sv.style.top='-2px';}}}
+    if(n==='31'){d.insertAdjacentHTML('beforeend',u37Ring(22,16));const sv=d.lastElementChild;sv.style.left='-6px';sv.style.top='-4px';}}}
 setInterval(()=>{const b=document.getElementById('bagBody');if(b&&b.offsetParent)u37Pen(b);},300);
 // shops: your coins in the header
 {const _rs=renderShop;renderShop=function(){_rs.apply(this,arguments);try{const h=document.querySelector('#shop>h2');if(!h)return;let p=h.querySelector('.u37purse');
@@ -736,3 +736,28 @@ setInterval(()=>{const d=document.getElementById('dispPick');if(d&&d.offsetParen
 // festival results: a place with no medal still lines up with the medalled names
 setInterval(()=>{const n=document.getElementById('noteText');if(!n||n.offsetParent===null||!n.querySelector('.u37g svg[viewBox="0 0 7 9"]'))return;
   for(const p of n.querySelectorAll('p')){const t=p.firstChild;if(t&&t.nodeType===3&&/^·\s/.test(t.nodeValue)){t.nodeValue=t.nodeValue.replace(/^·\s/,'');p.insertAdjacentHTML('afterbegin','<span class="u37g" aria-hidden="true" style="display:inline-block;width:7px;height:9px;margin:0 4px 0 1px"></span>');}}},300);
+
+// ---- round 6, second pass
+{const css=document.createElement('style');css.textContent=`
+@media (max-width:600px),(pointer:coarse) and (orientation:portrait){
+  /* the creator's Drive bar reaches down over the home-bar strip, so nothing shows beneath it */
+  #creator .cbtns{bottom:0!important;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)!important}
+  /* the calendar's seven days keep a readable width and slide sideways together */
+  #bagBody .u37calwrap{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+  #bagBody .u37calwrap>div[style*="repeat(7"]{min-width:392px;grid-template-columns:repeat(7,minmax(52px,1fr))!important}
+  /* the HUD's full-screen button is thumb-sized too */
+  #hud #fsBtn{min-width:44px!important;min-height:44px!important}#hud #fsBtn svg{width:20px!important;height:20px!important}
+}`;document.head.appendChild(css);}
+setInterval(()=>{if(innerWidth>=600)return;const b=document.getElementById('bagBody');if(!b||!b.offsetParent)return;const grids=[...b.querySelectorAll('div[style*="repeat(7"]')];if(!grids.length)return;
+  const p=grids[0].parentElement;if(p.classList.contains('u37calwrap')||!grids.every(g=>g.parentElement===p))return;const w=document.createElement('div');w.className='u37calwrap';grids[0].before(w);for(const g of grids)w.appendChild(g);},300);
+// the backpack's bar: Wardrobe and Dye sit right after Sort, before the coin line
+setInterval(()=>{const sort=document.getElementById('invSort');if(!sort)return;let at=sort;for(const id of ['bagWard','bagDye']){const b=document.getElementById(id);if(!b)continue;if(at.nextElementSibling!==b)at.after(b);at=b;}},250);
+// settings: the Codes row comes before Done, and the wording fits a phone
+setInterval(()=>{const d=document.getElementById('dispPick');if(!d||d.offsetParent===null)return;const foot=d.querySelector('.u37dfoot');const code=d.querySelector('.drow.u37code');
+  if(foot&&code&&(foot.compareDocumentPosition(code)&Node.DOCUMENT_POSITION_FOLLOWING)){const lab=code.previousElementSibling&&code.previousElementSibling.classList.contains('dsec')?code.previousElementSibling:null;if(lab)foot.before(lab);foot.before(code);}
+  if(!(innerWidth<600||matchMedia('(pointer:coarse)').matches))return;
+  for(const t of d.querySelectorAll('small,.dnote')){let v=t.textContent;const o=v;v=v.replace(/\(Windows\/Mac scaling (\d+)%\)/,(m,p)=>`(${Math.round(p/100)}× sharp screen)`).replace(/older computer/g,'older phone').replace(/scaled to fill the window/g,'scaled to fill the screen').replace(/^A browser can’t change your screen, so a/,'A');if(v!==o)t.textContent=v;}},300);
+// a message card already up when a panel fills the phone steps out and comes back when the panel shuts
+{let last=null;const _bn2=banner;banner=function(){last=[...arguments];return _bn2.apply(this,arguments);};
+  setInterval(()=>{if(innerWidth>=600)return;const mb=document.getElementById('mindBanner');if(!mb||!mb.classList.contains('on'))return;
+    if(['bag','shop','note','craft','talk'].some(id=>pl37Vis(id))){mb.classList.remove('on');if(last){const a=last;last=null;const wait=setInterval(()=>{if(!['bag','shop','note','craft','talk'].some(id=>pl37Vis(id))){clearInterval(wait);banner.apply(null,a);}},400);}}},150);}
