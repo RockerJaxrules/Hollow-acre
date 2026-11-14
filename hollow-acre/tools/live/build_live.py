@@ -1,14 +1,15 @@
 """Builds the shareable Hands Work Log page from the newest renders. Run, then publish site/index.html with its images."""
-import os, time, json, html, subprocess
+import os, time, json, html, subprocess, re
 from PIL import Image
 import sys, argparse
 ap = argparse.ArgumentParser(description='Build the live work log page (Hands Work Log artifact).')
-ap.add_argument('--renders', required=True, help='folder of render/screenshot images (scanned recursively, newest first)')
+ap.add_argument('--renders', default='', help='folder of render/screenshot images (scanned recursively, newest first)')
 ap.add_argument('--site', required=True, help='output folder: index.html + img/')
+ap.add_argument('--keep-from', default='', help='old published index.html: reuse its pictures (already on the page) when there are no new ones')
 ap.add_argument('--status', default='', help='text file with the one-paragraph status line')
 ap.add_argument('--repo', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'), help='git repo for the "latest saved steps" list')
 A = ap.parse_args()
-ROOT = os.path.abspath(A.renders); SITE = os.path.abspath(A.site); os.makedirs(os.path.join(SITE, 'img'), exist_ok=True)
+ROOT = os.path.abspath(A.renders) if A.renders else ''; SITE = os.path.abspath(A.site); os.makedirs(os.path.join(SITE, 'img'), exist_ok=True)
 N = 12
 NAMES = {'game_desk_mid': "Driver's seat", 'game_desk_dark': "Driver's seat, dark skin", 'game_desk_light': "Driver's seat, light skin",
          'game_phone_mid': 'Phone screen', 'thumb': 'Close-up', 'look': 'Material views', 'look_R': 'Material views, right hand',
@@ -25,7 +26,7 @@ def label(rel):
     if 'page' in parts[:-1] and not name.startswith('In-game'): name = 'In-game: ' + name
     return rnd, name
 fs = []
-for d, _, files in os.walk(ROOT):
+for d, _, files in (os.walk(ROOT) if ROOT else []):
     if 'old_pose' in d: continue
     for f in files:
         if f.lower().endswith(('.png', '.jpg')): p = os.path.join(d, f); fs.append((os.path.getmtime(p), p))
@@ -37,8 +38,7 @@ for i, (t, p) in enumerate(fs):
     rnd, name = label(os.path.relpath(p, ROOT)); items.append(dict(src=out, t=int(t), rnd=rnd, name=name, w=im.width, h=im.height))
 
 # Always show the newest in-game frames first, whatever else rendered later
-import re
-rounds = sorted([d for d in os.listdir(ROOT) if re.fullmatch(r'r\d+', d)], key=lambda d: int(d[1:]))
+rounds = sorted([d for d in (os.listdir(ROOT) if ROOT else []) if re.fullmatch(r'r\d+', d)], key=lambda d: int(d[1:]))
 game = []
 for rd in reversed(rounds):
     cand = [('page/game_desk_mid.png', "In the game: driver's seat"), ('page/game_desk_dark.png', 'In the game: darker skin, sweater'),
@@ -52,7 +52,11 @@ for rd in reversed(rounds):
         break
 log = subprocess.run(['git', '-C', A.repo, 'log', '-8', '--format=%ct|%s'], capture_output=True, text=True).stdout.splitlines()
 steps = [dict(t=int(l.split('|', 1)[0]), s=l.split('|', 1)[1].split('\n')[0]) for l in log if '|' in l]
-data = dict(built=int(time.time()), items=items, game=game, steps=steps, status=open(A.status).read().strip() if A.status and os.path.exists(A.status) else '')
-tpl = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'template.html')).read()
-open(os.path.join(SITE, 'index.html'), 'w').write(tpl.replace('/*DATA*/null', json.dumps(data)))
+if A.keep_from:
+    old = json.loads(re.search(r'const D=(\{.*?\});\s*\n', open(A.keep_from, encoding='utf-8').read(), re.S).group(1))
+    if not items: items = old.get('items', [])
+    if not game: game = old.get('game', [])
+data = dict(built=int(time.time()), items=items, game=game, steps=steps, status=open(A.status, encoding='utf-8').read().strip() if A.status and os.path.exists(A.status) else '')
+tpl = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'template.html'), encoding='utf-8').read()
+open(os.path.join(SITE, 'index.html'), 'w', encoding='utf-8').write(tpl.replace('/*DATA*/null', json.dumps(data)))
 print(len(items), 'images;', [x['name'] for x in items[:4]])
