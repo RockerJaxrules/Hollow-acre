@@ -86,11 +86,13 @@ def _chain_from(j1, phi_ip, sink_ip, phi_rng, bend3, sink_tip):
 # left: along the rim's inner/driver face toward twelve, IP joint bent ~30 deg, pad pressed 2.5 mm into the leather
 _j2, _j3 = _chain_from(_j1, _phi + np.radians(4), .0025, (np.degrees(_phi) - 10, np.degrees(_phi) + 60), 30, .0022)
 # right (posed on its own): hooked over the rim's inner edge, tip joint at 45 deg
-_j2h, _j3h = _chain_from(_j1, np.radians(168), .0016, (175, 260), 45, .0016)
+_j2h, _j3h = _chain_from(_j1, _phi - np.radians(8), .0022, (np.degrees(_phi) - 25, np.degrees(_phi) + 30), 18, .0024)
 def _away_at(p): o = rimf(A_GRIP - ((p - O) @ GX) / RR)[0]; return nrm(p - o)
 _away = nrm(perp(_away_at(_j2), nrm(_j3 - _j1)))
 THUMB_INFO = dict(mcp_bend=_ang(_d1, _j2 - _j1), ip_bend=_ang(_j2 - _j1, _j3 - _j2), hook_mcp=_ang(_d1, _j2h - _j1), hook_ip=_ang(_j2h - _j1, _j3h - _j2h))
-H = hands.build_hand(DFC, thumb_dirs=[dir_can(_d1), dir_can(_j2 - _j1), dir_can(_j3 - _j2)], thumb_z=dir_can(_away * .85 + ND * .15))
+_tax = nrm(_j3 - _j1); _out = perp(GY, _tax); _zt0 = perp(_away, _tax)
+_ztw = nrm(_zt0 * np.cos(np.radians(35)) + _out * np.sin(np.radians(35)))     # nail turned toward the outside of the rim
+H = hands.build_hand(DFC, thumb_dirs=[dir_can(_d1), dir_can(_j2 - _j1), dir_can(_j3 - _j2)], thumb_z=dir_can(_ztw))
 
 # ------------------------------------------------------------------ bones (car space)
 FORE_C = [to_car(p) for p in H['fore']]              # forearm centreline (car), t = 0, 2.2, 5, 8, 11, 14 cm
@@ -126,9 +128,9 @@ def joint_planes():
     return J
 
 # ------------------------------------------------------------------ the grip: each joint closes until the finger meets the rim (finger cascade)
-TILT_CONV = {'pinky': 6, 'ring': 3, 'middle': 1, 'index': -1}
+TILT_CONV = {'pinky': 3, 'ring': 1.5, 'middle': .5, 'index': 0}
 MAXDEG = {'pinky': (70, 84, 72), 'ring': (62, 84, 70), 'middle': (58, 82, 70), 'index': (50, 80, 64)}
-RELAX = {'pinky': (2, 3, 2), 'ring': (3, 4, 3), 'middle': (3, 5, 5), 'index': (4, 9, 15)}
+RELAX = {'pinky': (1, 2, 1), 'ring': (1.5, 2, 2), 'middle': (2, 3, 3), 'index': (3, 6, 12)}
 def flex_axis(n):
     f = H['fingers'][n]; t = np.radians(TILT_CONV[n]); return dir_car(-np.cos(t) * f['L'] - np.sin(t) * f['d'])
 def Rp(P, A, th):
@@ -145,7 +147,7 @@ def finger_clear(n, th, from_seg):
     for k in range(from_seg, 3):
         for u in np.linspace(0, 1, 9):
             p = pts[k] + (pts[k + 1] - pts[k]) * u; rad = (r[k] + (r[k + 1] - r[k]) * u) * .0092
-            worst = min(worst, rim_dist(p)[0] - RT - rad - .0004)
+            worst = min(worst, rim_dist(p)[0] - RT - rad + .0012)        # pads press 1.2 mm into the leather
     return worst
 def solve_grip():
     G = {}

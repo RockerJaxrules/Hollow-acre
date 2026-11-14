@@ -37,7 +37,7 @@ def hand_and_nails(lvl, detail, suffix=''):
     hand = subdivided(cage, lvl, 'hand' + suffix); bpy.data.objects.remove(cage, do_unlink=True)
     V = verts(hand); N = vnormals(hand); hgt = np.zeros(len(V))
     if detail:
-        hgt = hands.detail(V, N, H); V = V + N * hgt[:, None]; set_verts(hand, V)
+        dout = {}; hgt = hands.detail(V, N, H, out=dout); V = V + N * hgt[:, None]; set_verts(hand, V)
     # flush: fingertips, knuckles, the skin round the nails, the heel of the hand; crease from the wrinkle valleys
     fl = np.zeros(len(V)); f = H['fingers']
     for n in hands.ORDER:
@@ -53,6 +53,7 @@ def hand_and_nails(lvl, detail, suffix=''):
     fl = np.maximum(fl, np.clip(1 - np.linalg.norm(V - T['joints'][2], axis=1) / 1.0, 0, 1) * .4)
     fl = np.maximum(fl, sstep(.3, -.6, N[:, 2]) * .25)                       # palm side a touch pinker
     cr = np.clip((-hgt - .016) / .02, 0, 1)
+    if detail: cr = np.maximum(cr, dout['vein'] * .3)              # veins: a touch darker (the shader cools creases)
     set_data(hand, np.column_stack([fl, cr, np.zeros(len(V)), np.ones(len(V))]))
     # nails, ray cast onto this hand's own skin
     dg = bpy.context.evaluated_depsgraph_get(); bvh = BVHTree.FromObject(hand, dg)
@@ -72,7 +73,7 @@ def hand_and_nails(lvl, detail, suffix=''):
                 a = base + j * nu + i; NF.append([a, a + 1, a + nu + 1, a + nu])
     for n in hands.ORDER:
         J = f[n]['joints']; nail(J[2], J[3], f[n]['L'], f[n]['Z'], hands.FINGERS[n]['L'][2] * .6, hands.FINGERS[n]['wt'] * .84)
-    nail(T['joints'][2], T['joints'][3], nrm(np.cross(T['d'][2], T['Z'])), T['Z'], hands.THUMB['L'][2] * .52, 1.5)
+    nail(T['joints'][2], T['joints'][3], nrm(np.cross(T['d'][2], T['Z'])), T['Z'], hands.THUMB['L'][2] * .5, 1.78)    # wide, short thumbnail
     nails = mesh_obj('nails' + suffix, np.array(NV), NF)
     sol = nails.modifiers.new('sol', 'SOLIDIFY'); sol.thickness = .07; sol.offset = -1; sol.use_even_offset = True
     dg = bpy.context.evaluated_depsgraph_get(); me = bpy.data.meshes.new_from_object(nails.evaluated_get(dg)); nails.modifiers.clear(); nails.data = me
@@ -97,7 +98,7 @@ def ring(suffix=''):
     set_data(ob, np.tile([0, 0, 1, 1], (len(rv), 1))); return ob
 
 # ---------------------------------------------------------------- sleeve
-CUFF_S = .068; SE0 = S.L_FORE - CUFF_S
+CUFF_S = .05; SE0 = S.L_FORE - CUFF_S
 SLEN = SE0 + np.linalg.norm(S.SH - S.ELB)
 def path(s):
     fdir = S.dir_car(S.DFC); up = S.SH - S.ELB; Lu = np.linalg.norm(up); up = up / Lu
@@ -202,6 +203,7 @@ def rest(arm):
     bpy.context.view_layer.update()
 
 def rim_and_wheel():
+    """the rim (the tube the hands were solved on), three spokes, the boss and the column, as one object"""
     M, Nn = 96, 16; V, F = [], []
     for i in range(M):
         a = 2 * math.pi * i / M
@@ -209,7 +211,23 @@ def rim_and_wheel():
             b = 2 * math.pi * j / Nn; V.append(((S.RR + S.RT * math.cos(b)) * math.cos(a), (S.RR + S.RT * math.cos(b)) * math.sin(a), S.RT * math.sin(b)))
     for i in range(M):
         for j in range(Nn): F.append([i * Nn + j, ((i + 1) % M) * Nn + j, ((i + 1) % M) * Nn + (j + 1) % Nn, i * Nn + (j + 1) % Nn])
-    return mesh_obj('rim', S.B(np.array(V) @ S.RX.T + S.WC), F)
+    def box(c, ax, hx, hy, hz):                      # wheel-local box centred at c, long axis at angle ax
+        ca, sa = math.cos(ax), math.sin(ax); base = len(V)
+        for dx in (-hx, hx):
+            for dy in (-hy, hy):
+                for dz in (-hz, hz): V.append((c[0] + dx * ca - dy * sa, c[1] + dx * sa + dy * ca, c[2] + dz))
+        for f in ((0, 1, 3, 2), (4, 6, 7, 5), (0, 4, 5, 1), (2, 3, 7, 6), (0, 2, 6, 4), (1, 5, 7, 3)): F.append([base + k for k in f])
+    for ax in (0, math.pi, -math.pi / 2):
+        L = S.RR - .06; box(((L / 2 + .055) * math.cos(ax), (L / 2 + .055) * math.sin(ax), -.008), ax, L / 2, .014, .006)
+    def cyl(r, z0, z1, n=32):
+        base = len(V)
+        for z in (z0, z1):
+            for i in range(n): a = 2 * math.pi * i / n; V.append((r * math.cos(a), r * math.sin(a), z))
+        for i in range(n): F.append([base + i, base + (i + 1) % n, base + n + (i + 1) % n, base + n + i])
+        F.append([base + n + i for i in range(n)]); F.append([base + i for i in range(n)][::-1])
+    cyl(.064, -.03, .022); cyl(.04, -.33, -.03, 20)
+    ob = mesh_obj('rim', S.B(np.array(V) @ S.RX.T + S.WC), F)
+    return ob
 
 def select_only(objs, active=None):
     for o in bpy.context.scene.objects: o.select_set(False)

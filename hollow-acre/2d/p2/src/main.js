@@ -372,8 +372,9 @@ const ARMS = makeArms({ parent: car, mirrorX: EYE.x, look: LOOK });
 const lamps = [-.6, .6].map(x => { const s = new SpotLight('#eef3ff', 230, 85, .72, .9, 2); s.position.set(x, 1.7, -2.4); s.target.position.set(x * .5, 0, -22); car.add(s, s.target); return s; });
 { const g = new PointLight('#ffa860', .15, .2, 2); g.position.set(EYE.x, .94, -.74); car.add(g);
   const f = new PointLight('#8ea2c2', .55, 1.7, 2); f.position.set(-.36, 1.6, -.62); car.add(f);
-  // a dim warm cab lamp behind your head, so the backs of your hands read even when the road ahead is dark
-  const lamp = new SpotLight('#ffc89a', .5, 1.8, .85, .9, 2); lamp.position.set(EYE.x + .18, 1.52, .22); lamp.target.position.set(EYE.x, .9, -.47); car.add(lamp, lamp.target); }
+  // the cold light of the snow through the windscreen catches the tops of your hands; the only warm light is the dials'
+  const ws = new SpotLight('#a6b9dc', 1.0, 2.2, .9, .9, 2); ws.position.set(EYE.x, 1.45, -1.0); ws.target.position.set(EYE.x, .95, -.42); car.add(ws, ws.target);
+  const dl = new PointLight('#ffb27a', .07, .8, 2); dl.position.set(EYE.x, .9, -.66); car.add(dl); }
 // faint beams in the falling snow: open cones drawn additively, fading with distance
 const beamMat = new ShaderMaterial({ transparent: true, depthWrite: false, blending: AdditiveBlending, side: DoubleSide,
   uniforms: { k: { value: .03 } },

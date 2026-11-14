@@ -67,7 +67,7 @@ function armMaterial(maps, look, mirrored) {
         vec3 sk = skinCol;
         sk = mix( sk, sk * vec3( 1.07, .70, .66 ), armD.g * .6 * ( 1.0 - .55 * squeeze ) );          // flush: tips, knuckles, nail folds
         sk = mix( sk, sk * 1.12 + .015, armD.g * squeeze * .35 );                                    // knuckles pale when you grip hard
-        sk *= 1.0 - armD.b * .32;                                                                    // wrinkles and creases
+        sk *= ( 1.0 - armD.b * .2 ) * mix( vec3( 1.0 ), vec3( .9, .96, .98 ), armD.b );            // creases and veins: darker, a little cooler
         vec3 nail = mix( skinCol * 1.1, vec3( .82, .55, .5 ), .42 );
         nail = mix( nail, vec3( .82, .78, .72 ), smoothstep( .55, .64, mId ) * .85 );               // the free edge
         vec3 cl = clothPattern( vCyl ); cl = mix( cl, vec3( dot( cl, vec3( .2126, .7152, .0722 ) ) ), .2 );
@@ -75,7 +75,7 @@ function armMaterial(maps, look, mirrored) {
         diffuseColor.rgb = alb;
         armSkin = min( 1.0, skinM + isNail * .6 ); armCloth = isCloth; armWrap = vec3( .55, .3, .2 ) * armSkin; armSheen = clothCol * .55 + .05;
         float armAO = mix( 1.0, armD.r, .9 );`)
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = .47 * skinM + .3 * isNail + .9 * isCloth + .26 * isRing;')
+      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = .57 * skinM + .3 * isNail + .92 * isCloth + .26 * isRing;')
       .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\nmetalnessFactor = isRing;')
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         if ( isCloth > .5 ) {                                   // woven cloth: a fine twill from the sleeve's own coordinates

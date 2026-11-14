@@ -7,7 +7,7 @@ import bpy
 from mathutils import Matrix, Vector
 import armbuild as A, scene as S, hands, views, mats
 OUT = next(a for a in sys.argv[1:] if not a.startswith('--') and not a.endswith('.py'))
-MODE = next((a[2:] for a in sys.argv if a in ('--shape', '--look', '--game', '--rest')), 'shape'); HIGH = '--high' in sys.argv
+MODE = next((a[2:] for a in sys.argv if a in ('--shape', '--look', '--game', '--rest', '--thumb')), 'shape'); HIGH = '--high' in sys.argv
 hexc = lambda k, d: tuple(int(os.environ.get(k, d)[i:i + 2], 16) / 255 for i in (0, 2, 4))
 SKIN, SHIRT = hexc('SKIN', 'd49a70'), hexc('SHIRT', 'b8402c')
 def desat(c, k=.2): l = .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; return tuple(x * (1 - k) + l * k for x in c)
@@ -22,9 +22,22 @@ parts = [hand, nails, ring, sleeve]
 
 def materials(objs, skin_tone, shirt):
     h, n, r, s = objs
-    mats.skin(h, skin_tone)
+    m = mats.skin(h, skin_tone); nt = m.node_tree; bsdf = nt.nodes['Principled BSDF']
+    bsdf.inputs['Roughness'].default_value = .56; bsdf.inputs['Coat Weight'].default_value = .02      # less sheen
+    bsdf.inputs['Subsurface Scale'].default_value = .0028
+    # redder knuckles, fingertips and nail folds from the baked flush attribute; slightly cooler, darker creases and veins
+    src = bsdf.inputs['Base Color'].links[0].from_socket
+    at = nt.nodes.new('ShaderNodeAttribute'); at.attribute_name = 'data'; sp = nt.nodes.new('ShaderNodeSeparateColor'); nt.links.new(at.outputs['Color'], sp.inputs['Color'])
+    lum = .2126 * skin_tone[0] + .7152 * skin_tone[1] + .0722 * skin_tone[2]
+    mx = nt.nodes.new('ShaderNodeMix'); mx.data_type = 'RGBA'; nt.links.new(src, mats.sock(mx.inputs, 'A'))
+    mats.sock(mx.inputs, 'B').default_value = (*mats._lin((skin_tone[0] * 1.0, skin_tone[1] * .66, skin_tone[2] * .62)), 1)
+    fm = nt.nodes.new('ShaderNodeMath'); fm.operation = 'MULTIPLY'; fm.inputs[1].default_value = .35 + .3 * min(1, lum / .65)
+    nt.links.new(sp.outputs['Red'], fm.inputs[0]); nt.links.new(fm.outputs['Value'], mats.sock(mx.inputs, 'Factor', 'VALUE'))
+    mx2 = nt.nodes.new('ShaderNodeMix'); mx2.data_type = 'RGBA'; mx2.blend_type = 'MULTIPLY'; nt.links.new(mats.sock(mx.outputs, 'Result'), mats.sock(mx2.inputs, 'A'))
+    mats.sock(mx2.inputs, 'B').default_value = (.86, .9, .93, 1); nt.links.new(sp.outputs['Green'], mats.sock(mx2.inputs, 'Factor', 'VALUE'))
+    nt.links.new(mats.sock(mx2.outputs, 'Result'), bsdf.inputs['Base Color'])
     mats.pbr(n, (min(1, skin_tone[0] * 1.08 + .08), skin_tone[1] * .98 + .06, skin_tone[2] * .95 + .07), rough=.28, name='nail')
-    mats.cloth(s, desat(shirt, .22))
+    mats.cloth(s, desat(shirt, .22), weave=.42)
     if r is not None: mats.pbr(r, (.86, .68, .32), rough=.22, metal=1.0, name='gold')
 def flat(objs, cols):
     for o, c in zip(objs, cols):
@@ -42,10 +55,10 @@ def split_hand_forearm(o):
         ob = A.mesh_obj(nm + '_part', S.B(V[idx]), F); out.append(ob)
     return out
 
-if MODE in ('shape', 'look', 'rest'):
+if MODE in ('shape', 'look', 'rest', 'thumb'):
     if MODE != 'rest': A.pose(arm, 'L')
     rim = A.rim_and_wheel()
-    if MODE == 'look': materials(parts, SKIN, SHIRT); mats.pbr(rim, (.05, .05, .055), rough=.5, bump=.2, bump_scale=200, name='leather')
+    if MODE in ('look', 'thumb'): materials(parts, SKIN, SHIRT); mats.pbr(rim, (.05, .05, .055), rough=.5, bump=.2, bump_scale=200, name='leather')
     else: flat(parts + [rim], [(.86, .66, .55), (.95, .8, .75), (.9, .75, .3), (.6, .25, .2), (.08, .08, .09)])
     hp, fp = split_hand_forearm(hand); hp.hide_render = fp.hide_render = True          # measured, not drawn (the cut would show)
     if MODE == 'rest':                                   # lay the flat hand on the axes: x thumb, y fingers, z back of hand
@@ -61,7 +74,11 @@ if MODE in ('shape', 'look', 'rest'):
         sys.exit(0)
     eye = Vector(S.B(S.EYE)); ctr = Vector(S.B((S.W * .4 + S.M_MID * .6)))
     GY, GZ, GX = (Vector(S.B(v)) for v in (S.GY, S.GZ, S.GX))
-    cams = [views.cam_at(eye, ctr, 110, 'game eye close-up'), views.cam_at(ctr + (GY * .7 + GZ * .5 - GX * .2).normalized() * .32, ctr, 70, 'outer'),
+    TJ = [Vector(S.B(S.to_car(p))) for p in S.H['thumb']['joints']]; tc = (TJ[1] + TJ[2] + TJ[3]) / 3
+    if MODE == 'thumb':
+        views.sheet(OUT + '.png', objs=[hand, nails], mode='look', res=480, cams=[views.cam_at(eye, tc, 230, 'thumb check (driver eye)'), views.cam_at(tc + (Vector(S.B(S.GZ)) * .9 + Vector(S.B(S.GY)) * .4).normalized() * .22, tc, 85, 'thumb from above')], extra_views=False)
+        sys.exit(0)
+    cams = [views.cam_at(eye, tc, 230, 'thumb check'), views.cam_at(eye, ctr, 110, 'game eye close-up'), views.cam_at(ctr + (GY * .7 + GZ * .5 - GX * .2).normalized() * .32, ctr, 70, 'outer'),
             views.cam_at(ctr + (-GZ * .8 + GY * .5).normalized() * .32, ctr, 70, 'far side')]
     views.sheet(OUT + '.png', objs=[hand, hp, fp, nails, ring], mode='look' if MODE == 'look' else 'shape', res=360 if MODE != 'look' else 320, cams=cams if MODE != 'rest' else ())
     sys.exit(0)
@@ -86,13 +103,6 @@ for nm in ('hand', 'nails', 'sleeve'):
 
 # the wheel: leather rim with a sheen, three spokes, a boss; a gauge hood glowing amber behind it
 rim = A.rim_and_wheel(); mats.pbr(rim, (.085, .078, .072), rough=.38, bump=.25, bump_scale=260, name='leather')
-for a in (0, math.pi, -math.pi / 2):
-    bpy.ops.mesh.primitive_cube_add(size=1); sp = bpy.context.object
-    M = np.eye(4); R2 = np.array([[math.cos(a), -math.sin(a), 0], [math.sin(a), math.cos(a), 0], [0, 0, 1]])
-    M[:3, :3] = S.RX @ R2 @ np.diag([S.RR - .055, .026, .012]); M[:3, 3] = S.WC + S.RX @ (R2 @ np.array([(S.RR - .055) / 2 + .045, 0, -.008]))
-    sp.matrix_world = Matrix(S.B4(M).tolist()); mats.pbr(sp, (.06, .06, .065), rough=.35, metal=.6, name='spoke')
-bpy.ops.mesh.primitive_cylinder_add(radius=.062, depth=.045, vertices=40); hub = bpy.context.object
-M = np.eye(4); M[:3, :3] = S.RX; M[:3, 3] = S.WC - S.AXIS * .01; hub.matrix_world = Matrix(S.B4(M).tolist()); mats.pbr(hub, (.045, .045, .05), rough=.5, name='boss')
 bpy.ops.mesh.primitive_cube_add(size=1); dash = bpy.context.object; dash.scale = (1.8, .55, .4); dash.location = Vector(S.B(np.array([0, .7, -.88])))
 bev = dash.modifiers.new('bev', 'BEVEL'); bev.width = .03; bev.segments = 4
 mats.pbr(dash, (.2, .185, .17), rough=.5, bump=.35, bump_scale=90, name='dash')
@@ -128,10 +138,9 @@ def light(nm, kind, loc, tgt, energy, size, col):
     if kind == 'AREA': ld.size = size
     else: ld.shadow_soft_size = size
     lo = A.link(bpy.data.objects.new(nm, ld)); lo.location = Vector(S.B(loc)); lo.rotation_euler = (Vector(S.B(tgt)) - lo.location).to_track_quat('-Z', 'Y').to_euler()
-light('cablamp', 'SPOT', np.array([-.16, 1.52, .22]), np.array([-.36, .86, -.5]), 6.0, .03, (1.0, .78, .52)); bpy.data.lights['cablamp'].spot_size = math.radians(85); bpy.data.lights['cablamp'].spot_blend = .6
-light('gauges', 'AREA', np.array([-.36, .93, -.68]), np.array([-.36, 1.05, -.35]), .35, .2, (1.0, .55, .25))
-light('dashfill', 'AREA', np.array([-.2, 1.05, .35]), np.array([-.36, .75, -.6]), 3.6, .6, (1.0, .82, .62))
-light('snow', 'AREA', np.array([-.36, 1.45, -1.15]), np.array([-.36, .95, -.45]), 2.6, 1.3, (.62, .72, 1.0))
+light('windscreen', 'AREA', np.array([-.36, 1.42, -1.05]), np.array([-.36, .98, -.45]), 2.4, 1.6, (.62, .72, 1.0))
+light('gauges', 'AREA', np.array([-.36, .93, -.68]), np.array([-.36, 1.02, -.38]), .55, .22, (1.0, .55, .25))
+light('sidefill', 'AREA', np.array([-.9, 1.35, -.1]), np.array([-.36, .95, -.45]), .35, 1.0, (.5, .58, .75))
 w = bpy.data.worlds.new('w'); sc.world = w; w.use_nodes = True; w.node_tree.nodes['Background'].inputs['Color'].default_value = (.002, .003, .006, 1)
 phone = os.environ.get('VIEW', 'desk') == 'phone'
 cd = bpy.data.cameras.new('game'); cd.sensor_fit = 'VERTICAL'; cd.angle_y = math.radians(84 if phone else 64); cd.clip_start = .01
