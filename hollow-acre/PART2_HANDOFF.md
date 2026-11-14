@@ -1,6 +1,6 @@
 # Part 2 handoff: starting fresh in Unreal
 
-Read this first in any new session that works on Part 2 (the realistic first-person continuation of Hollow Acre). It
+Read this, and `OWNER_PREFERENCES.md` (the owner's standing rules and taste from the whole first conversation), first in any new session that works on Part 2 (the realistic first-person continuation of Hollow Acre). It
 collects every decision made so far, so the work restarts cleanly in Unreal without losing anything.
 
 ## 1. What exists today
