@@ -701,6 +701,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   one black stripe (a stripe reads as a crack or a tar run).
 
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
+- (t337 r5) On a narrow phone, wrap a tab row to a second line; never let the overflow drop tabs (the backpack lost Journal and Together).
+- (t337 r5) Check every button label in a shot for leaked values ("true", "undefined", "NaN"): a label built from a variable can show the variable.
+- (t337 r5) A system glyph the font can't draw falls back to a smooth font: list every character the UI uses and draw an icon for each one the font lacks.
+- (t337 r5) An icon inline with text keeps the text's pixel size; a 2x icon next to 1x text reads as pasted in.
+- (t337 r5) Repeated markers need an order of importance: empty hearts in a mid tone, earned hearts in gold; 31 identical hearts on a calendar read as wallpaper.
 - One pixel family for everything; a smooth serif or a browser-slanted italic in a pixel UI clashes (set font-synthesis
   to none and draw a real bold cut).
 - Pixel type must sit at whole-number multiples of its em grid, and should match the art's pixel size; text smaller than
@@ -1252,6 +1257,66 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Hinge irons go only on the post the gate hangs from; the other post gets a latch keeper.
 - A prop that made a mark on the ground sits at the end of its mark, touching it.
 - Tapering to a smooth point looks drawn with a ruler: narrow toward the end, then stop at a width the noise picks and leave clods.
+
+## Shops as buildings: stores, staff and hired hands (t330/t331, Nov 13-14: round 1 interiors 5-5.5, staff 4.5 -> round 8 every group 6+)
+- An upgrade must change the silhouette or the light, not only a detail: the awning, the extra width, the lit windows and the lantern read at 1x; a price board inside does not on its own.
+- Keep the line from the door to the counter clear of every display: a stand placed just inside the entrance reads as blocking the way in, and customers walk straight through it.
+- When a building replaces an older marker (a signpost, a market stall), remove the marker everywhere it is made (bizSign, bgWorld, bwSigns), or the old and new stand side by side.
+- A second building for a shop reads as the same business only in the shop's own materials, roof colour and name board.
+- (round 2) Rooms of different trades must not share their signature pieces: a judge reads the room by its biggest piece, so one produce rack in a kitchen and a taproom made every room read as the same shop.
+- (round 2) A borrowed room shell brings its own wall clutter (clocks, guns, pictures): paper it over before hanging the shop's things, or they overlap and read as careless.
+- (round 2) A worker reads as working only with a loop and an object: a gesture alone, at a post, reads as standing. Give each job something that changes where it works (an apple on the scale, a mug filling, steam, a plate going out, a crate carried and set down).
+- (round 2) Check what stands in front of a worker: a tall piece between the camera and the worker (a tap tower, a heat shelf) hides the face; move the worker beside it or lower it.
+- (round 2) Something carried at the hands in front of a front-facing figure covers the face; a tray rides on the shoulder, a crate at the waist.
+- (round 2) The before state of an upgrade has to look deliberately humble, not just plainer: a raw plank lettered by hand against a bracket-hung painted board with gilt and pictures.
+- (round 2) An upgrade that lights things must show by day too (a lit lantern, an OPEN sign and board), or the day render shows no change.
+- (round 2) A long render run must block the service worker (Playwright's request routing doesn't see its fetches) and keep the scarecrow away at night: either one reloads the page mid-run and the shots after it are the title screen.
+- (round 3) A judge who isn't told what a state means will read a correct piece as a bug: say in the brief what each upgrade is (a second line is a second trade the owner adds), label which variant each shot shows, and show every variant, not one.
+- (round 3) Recolouring a shell by luminance keeps its old pattern: a checker floor recoloured is still a checker. Repaint the pattern and take only the light from a blurred copy of the old floor.
+- (round 3) A worker seen from behind reads as standing, however the arm moves: turn them side on to the work (the stove, the scale, the taps, the end of the pass) so the arm and the thing it works on are both in view, and put the thing in the hand.
+- (round 3) Carry at the hands, not above them: a tray at head height floats over a hanging arm; held at the chest in both hands it reads as carried. Anything at face height covers the face; roll a cask, don't hold it up.
+- (round 3) Floor light drawn as flat tinted patches reads as stains by day; let lit lamps carry the change (hung lamps, wall lanterns) and leave the light itself to the night.
+- (round 3) A hanging lamp in 3/4 view needs only a short chain: a long one is a dotted line drawn through whatever stands behind it.
+- (round 3) Before a building takes a lot, watch the townsfolk walk past it at the busy hour: a lot beside a footpath puts people through its corner.
+- (round 3) A shop window with nothing in it reads as an empty black hole: put the trade's goods on a shelf and the sill.
+- (round 3) Several buildings from one kit share the kit's fixed details (a vent and hatch in the same place on every flat roof); give each its own roof things and front.
+- (round 4) Measure the figure before placing anything it holds: on a chibi 45 px figure the chin is 23 px up, so a hand-height guess from a taller figure puts an apple at the mouth and a tray over the face.
+- (round 4) An arm that works behind a counter is hidden by the counter drawn after it: draw the arm (and what it works) in a layer in front of the counter, a lit sleeve and a hand on the thing.
+- (round 4) Steam reads only when it is always there: two or three soft solid wisps rising in every frame, not a thin cycle that some frames miss.
+- (round 4) A pot on a stove reads as a pot only with a round body and a lit rim; a dark bar on the stove top reads as a slot.
+- (round 4) The engine's guessed window glow for a lit building sits at a fixed height; a building with an awning or a tall roof needs its glows at its own window centres, emitted by the building script.
+- (round 4) A side roof drawn as one plane reads as a plank slab: give it a ridge (a lit cap, a shaded back plane above it). A hip roof's hip line must meet the corner; draw the end planes as planes rather than an inner diagonal.
+- (round 4) Flags laid in rows make a joint that runs wall to wall and read as modern paving: grow each stone round a jittered, staggered seed.
+- (round 4) Townsfolk follow their own paths past a new building: watch them at the busy hour and give the building a margin they walk round (beside and behind), or they brush its corners in every shot.
+- (round 4) A render chain run in the background must be waited on by its own finish, not by a line an earlier run left in the log; and a sheet assembled while a render is still running can mix stale frames with new ones.
+- (round 4) Two rooms of a trade side by side (a versus world) need their own paper and boards, or they read as one room pasted twice.
+- (round 5) Check the sheets the judge receives, not the renders they are made from: a copied assembly script that keeps one old folder name ships last round's pictures under this round's name. Compare each sheet with the last round's and stop if any is byte-identical.
+- (round 5) A copy-and-rename by pattern only renames what the patterns match: list every path in the copy afterwards (grep the round number) before running it.
+- (round 5) On a chibi figure the stove top and the tap handles are at head height: a ladle or an arm up to them crosses the face. Bring the work down to the waist (a stockpot on a trivet) or step the worker back so the arm goes out, not up.
+- (round 5) Make every render prove its build: load the page with a timestamp in the URL, block service workers in the browser context, and print the build id the page reports.
+- (round 6) Measure an animation before relying on it: the thrust clip's hand never leaves the body's side in any frame, so a "reach" built on it shows only a turn.
+- (round 6) Draw an added arm as a sleeve, never a line: shoulder, elbow, hand, 3 px in the sleeve colour with a 1 px dark outline and a skin hand. Keep it short (the worker right up to the work).
+- (round 6) An added arm in front of a figure doubles the arm the sprite already has: draw the far arm and clip it to the space past the body, or draw only what rises over a counter.
+- (round 6) Put held things in the hand at the work's height: a pot's rim at the cook's waist, an apple over the bin's edge in a colour that stands off the bin's own.
+- (round 6) A short haircut from behind leaves a bare skin oval that reads as a blank face: check every hired hand from behind.
+- (round 6) Give each customer a fixed arrival spot and a fixed queue spot, one person each, off the door's column; random offsets still stack.
+- (round 6) A second room of a trade needs its own layout, not new colours: a different bar shape and place, different pieces, its own table mix.
+- (round 6) A local test server started in the background dies at the background time limit: start it with the longest limit and check it before each render.
+- (round 7) Make overlap impossible by design, then guard it at run time: lay queue spots, seats, stations and walking routes on lanes a figure's width (0.78 m) across or 1.3 m in depth apart, check every route against every spot by sampling, and only then let walkers wait or slide for what moves.
+- (round 7) A queue spot laid out by formula (along the counter) lands on stools, pickup spots and seats; give each room its own queue spots.
+- (round 7) A waiter served from a table's front passes the chairs at its ends; serve from an open end (one chair) or from behind on a clear lane.
+- (round 7) Never let a figure stand half-transparent: fade only while it passes through a doorway, and keep its standing spots out of the doorway.
+- (round 7) A camera that eases to its target can be caught on the way; for stills, set the camera on the target, then check the frame is on what it should show.
+- (round 7) A bar down a side wall draws after everything north of its foot: keep the stools and the barman clear of its strip in x, and draw the barman's arm and mug after the bar.
+- (round 7) A hanging lamp covers whoever stands in the strip behind it on screen (up to its cord's length north of where it hangs, a shade's width either side): keep waiters' posts and routes out of that strip (serve a lamp-lit table from its open side) and have walkers go round it.
+- (round 7) Waiting on a blocker only works if the blocker ever moves: a walker that yields must stop yielding after a second, a spot must be reachable at the spacing the plan used, and an exit must not cross between two people who stand still (route it to the nearest way out).
+- (round 7) Slide round a person on whichever side is clear (of people, lamp strips and walls) and nearer the goal; a fixed side traps walkers against the next person.
+- (round 8) Before framing a shot of a hand at work, find out who else walks that room (keepers who browse the shelves, regulars) and frame on the hand by position; a judge will score whoever is standing where the hand should be.
+- (round 8) A hand at work needs what she works with in the shot: her own stack or shelf, the thing carried, and the place it goes, with three or four distinct poses (lift, carry, raise, shelve; take, carry, set, tie).
+- (round 8) Never fade a person: cut them at the doorway's edge instead, and take stills when nobody is in the doorway.
+- (round 8) Put a hand's counter spot where the counter top in front of her is clear; a tall jar or a till machine in front of her chest reads as clutter.
+- (round 8 judge) Frame every shot on the building or person it is meant to show, then check the saved image: a versus shot that missed the building scored 2 for the camera, not the art.
+- (round 8 judge) Work loops read as busy only with four or more distinct poses; two or three repeat as a twitch at 1x.
 
 ## Outlines, light, colour
 
