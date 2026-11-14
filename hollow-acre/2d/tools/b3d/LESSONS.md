@@ -139,6 +139,26 @@ Studied three driver's-eye photos of hands at 10 and 2 (openly licensed, scratch
 - **Make the cuff about 1.25 times the wrist,** with fold heights about half of a casual shirt's. Wider cuffs read as
   puffy at game distance.
 
+### Grip details the judge checks (t353 r4 -> r5)
+- **The index curls like the other fingers** (MCP about 45, PIP about 65, DIP about 25), with its tip behind the rim.
+  - A sequential cascade (MCP to contact, then PIP, then DIP) leaves a finger that lands along the rim straight. Two
+    straight digits beside the thumb read as a "gun grip".
+  - Close a fist with all three joints together (about 1 : 1.4 : .5), then let the distal joints settle.
+- **The knuckle line runs along the rim and the wrist looks straight, measured on SCREEN from the game camera.**
+  - In 3D the hand can be yawed 40-45 degrees and still read as along the rim from the eye.
+  - Search the place with screen-space measures:
+    - the angle between the knuckle row and the rim's projected tangent;
+    - the wrist angle between the projected forearm and hand;
+    - the forearm's angle from horizontal;
+    - the hand's clock position.
+  - Give each side its own elbow pole: the left forearm slants in from outside, the right rises nearly upright.
+- **In-game parity, every round.** Render the same pose, camera and light in Blender and on the three.js page, side by
+  side (parity.png).
+  - The game version scored 2/10 ("mitten") while Blender scored 4/10. The page had lost the relief to decimation and
+    a weak normal map, and its seams and light were wrong.
+  - Hands are the hero object: about 15k tris per arm with most of the relief in the mesh, full-strength normals, and
+    texture islands bled outward so mips never mix.
+
 ### One arm for every character (owner: "multiple sleeve Colors and skin Colors ... you customized your pixel character")
 - **Every skin tone in the creator must read as skin.**
   - Derive the colours from the tone, never from fixed tints:
