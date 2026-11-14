@@ -16,6 +16,7 @@ MATS = '/Game/HollowAcre/Materials/Blockout'
 BPS = '/Game/HollowAcre/Blueprints'
 
 # Tunables (centimetres, degrees, Unreal light units)
+# Note: unreal.Rotator's positional order is (roll, pitch, yaw); always pass pitch=/yaw=/roll= by name.
 EYE = unreal.Vector(0, 0, 118)          # driver's eye in a sedan; the car sits on the road at the origin facing +X
 EXPOSURE_BIAS = 0.0                     # manual exposure, EV offset
 MOON_LUX = 0.4
@@ -23,6 +24,10 @@ HEADLIGHT_CD = 6000
 FOG_DENSITY = 0.035
 SEED = 7
 HEADLIGHT_FOG_GLOW = 0.8                # volumetric scattering of the headlight beams
+WINDSHIELD_TINT = 0.05                  # clear glass opacity
+WINDSHIELD_COVER = 0.93                 # how solid the tape and cracks are
+TAPE_BOUNCE = 0.05                      # snow/headlight bounce on the tape (translucency gets no Lumen GI)
+CRACK_GLINT = 0.06                      # light the broken glass catches
 SNOW_FLAKES = 16000
 SNOW_SIZE_CM = (1.4, 3.2)
 SNOW_BOX_CM = (1500, 900, 500)   # half-size of the snow box around the car
@@ -41,11 +46,13 @@ def log(msg):
 
 
 # ---------- materials ----------
-def make_mat(name, color, rough, metal=0.0, emissive=None, spec=0.5):
+def make_mat(name, color, rough, metal=0.0, emissive=None, spec=0.5, instanced=False):
     path = f'{MATS}/{name}'
     if eal.does_asset_exist(path):
         eal.delete_asset(path)
     m = tools.create_asset(name, MATS, unreal.Material, unreal.MaterialFactoryNew())
+    if instanced:  # without this flag the game silently swaps in the default material
+        m.set_editor_property('used_with_instanced_static_meshes', True)
     c = mel.create_material_expression(m, unreal.MaterialExpressionConstant3Vector, -400, 0)
     c.set_editor_property('constant', unreal.LinearColor(*color, 1))
     mel.connect_material_property(c, '', unreal.MaterialProperty.MP_BASE_COLOR)
@@ -63,12 +70,71 @@ def make_mat(name, color, rough, metal=0.0, emissive=None, spec=0.5):
     return m
 
 
+def import_tex(name):
+    """Import SourceArt/<name>.png (made by unreal/tools/make_windshield_tex.py) into /Game/HollowAcre/Textures."""
+    task = unreal.AssetImportTask()
+    task.set_editor_property('filename', unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir() + f'SourceArt/{name}.png'))
+    task.set_editor_property('destination_path', '/Game/HollowAcre/Textures')
+    task.set_editor_property('destination_name', name)
+    task.set_editor_property('replace_existing', True)
+    task.set_editor_property('automated', True)
+    task.set_editor_property('save', True)
+    tools.import_asset_tasks([task])
+    tex = unreal.load_asset(f'/Game/HollowAcre/Textures/{name}')
+    if not tex:
+        raise RuntimeError('texture import failed: ' + name)
+    return tex
+
+
+def scaled_add(m, src, out_name, mul, add, x, y):
+    """src.out_name * mul + add, as material expressions."""
+    e_mul = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, x, y)
+    e_mul.set_editor_property('const_b', mul)
+    mel.connect_material_expressions(src, out_name, e_mul, 'A')
+    e_add = mel.create_material_expression(m, unreal.MaterialExpressionAdd, x + 200, y)
+    e_add.set_editor_property('const_b', add)
+    mel.connect_material_expressions(e_mul, '', e_add, 'A')
+    return e_add
+
+
+def make_windshield_mat():
+    """Glass with the star crack and the strip of tape: translucent, two-sided, cracks catch a little light."""
+    tex, glint = import_tex('T_Windshield'), import_tex('T_WindshieldGlint')
+    name = 'M_Windshield'
+    if eal.does_asset_exist(f'{MATS}/{name}'):
+        eal.delete_asset(f'{MATS}/{name}')
+    m = tools.create_asset(name, MATS, unreal.Material, unreal.MaterialFactoryNew())
+    m.set_editor_property('blend_mode', unreal.BlendMode.BLEND_TRANSLUCENT)
+    m.set_editor_property('two_sided', True)
+    m.set_editor_property('translucency_lighting_mode', unreal.TranslucencyLightingMode.TLM_SURFACE)
+    ts = mel.create_material_expression(m, unreal.MaterialExpressionTextureSample, -900, 0)
+    ts.set_editor_property('texture', tex)
+    gs = mel.create_material_expression(m, unreal.MaterialExpressionTextureSample, -900, 400)
+    gs.set_editor_property('texture', glint)
+    mel.connect_material_property(ts, 'RGB', unreal.MaterialProperty.MP_BASE_COLOR)
+    mel.connect_material_property(scaled_add(m, ts, 'A', WINDSHIELD_COVER, WINDSHIELD_TINT, -600, 100), '', unreal.MaterialProperty.MP_OPACITY)
+    mel.connect_material_property(scaled_add(m, ts, 'A', 0.75, 0.04, -600, 200), '', unreal.MaterialProperty.MP_ROUGHNESS)
+    tape = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -600, 550)
+    mel.connect_material_expressions(ts, 'RGB', tape, 'A')
+    mel.connect_material_expressions(ts, 'A', tape, 'B')
+    bounce = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -400, 550)
+    bounce.set_editor_property('const_b', TAPE_BOUNCE)
+    mel.connect_material_expressions(tape, '', bounce, 'A')
+    glow = mel.create_material_expression(m, unreal.MaterialExpressionAdd, -200, 450)
+    mel.connect_material_expressions(scaled_add(m, gs, 'R', CRACK_GLINT, 0.0, -600, 400), '', glow, 'A')
+    mel.connect_material_expressions(bounce, '', glow, 'B')
+    mel.connect_material_property(glow, '', unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    mel.recompile_material(m)
+    eal.save_loaded_asset(m)
+    return m
+
+
 # ---------- shapes ----------
 MESH = {n: unreal.load_asset(f'/Engine/BasicShapes/{n}.{n}') for n in ('Cube', 'Cylinder', 'Cone', 'Plane', 'Sphere')}
 
 
 def shape(kind, loc, scale, mat, rot=None, label=None, shadows=True):
-    a = actors.spawn_actor_from_class(unreal.StaticMeshActor, loc, rot or unreal.Rotator(0, 0, 0))
+    a = actors.spawn_actor_from_class(unreal.StaticMeshActor, loc, rot or unreal.Rotator())
     comp = a.static_mesh_component
     comp.set_static_mesh(MESH[kind])
     comp.set_material(0, mat)
@@ -96,7 +162,8 @@ def main():
         if not levels.load_level(MAP):
             raise RuntimeError('could not load ' + MAP)
         for a in actors.get_all_level_actors():
-            if not isinstance(a, (unreal.WorldSettings, unreal.Brush)):
+            # keep only the world settings and the level's builder brush (volumes are brushes too, so check the type)
+            if not isinstance(a, unreal.WorldSettings) and type(a) is not unreal.Brush:
                 actors.destroy_actor(a)
     elif not levels.new_level(MAP):
         raise RuntimeError('could not create ' + MAP)
@@ -114,6 +181,7 @@ def main():
     paint = make_mat('M_CarPaintRed', (0.30, 0.035, 0.035), 0.35, spec=0.6)      # the Part 1 car's red
     primer = make_mat('M_HoodPrimer', (0.24, 0.245, 0.235), 0.85, spec=0.3)    # replacement hood, grey primer
     gauge = make_mat('M_GaugeGlow', (0.0, 0.0, 0.0), 0.4, emissive=(0.02, 0.05, 0.06))
+    windshield = make_windshield_mat()
 
     # Ground, road, banks
     shape('Plane', V(0, 0, 0), V(4000, 4000, 1), snow, label='Ground')
@@ -122,7 +190,7 @@ def main():
         for i in range(60):
             x = -2000 + i * 3000 + random.uniform(-300, 300)
             shape('Sphere', V(x, side * (520 + random.uniform(0, 120)), -60), V(random.uniform(30, 45), random.uniform(3, 5), random.uniform(1.6, 2.6)),
-                  snow, unreal.Rotator(0, 0, random.uniform(-6, 6)))
+                  snow, unreal.Rotator(yaw=random.uniform(-6, 6)))
 
     # Pine forest on both sides of the road
     for i in range(320):
@@ -146,19 +214,24 @@ def main():
     # The car (blockout): primer hood and fenders, dash, raked windshield pillars, roof, door tops, red mirrors
     global CAB
     CAB = []
-    shape('Cube', V(160, 0, 84), V(1.7, 1.66, 0.08), primer, unreal.Rotator(-7, 0, 0), 'Hood (primer)')
+    shape('Cube', V(160, 0, 84), V(1.7, 1.66, 0.08), primer, unreal.Rotator(pitch=-7), 'Hood (primer)')
     for side in (-1, 1):
-        shape('Cube', V(160, side * 86, 80), V(1.7, 0.12, 0.1), primer, unreal.Rotator(-7, 0, 0), 'Front fender (primer)')
+        shape('Cube', V(160, side * 86, 80), V(1.7, 0.12, 0.1), primer, unreal.Rotator(pitch=-7), 'Front fender (primer)')
         shape('Cube', V(62, side * 102, 96), V(0.06, 0.2, 0.13), paint, label='Mirror (red)')
-    shape('Cube', V(68, 0, 81), V(0.55, 1.6, 0.28), plastic, label='Dashboard')
-    shape('Cube', V(62, -2, 93), V(0.02, 0.22, 0.07), gauge, label='Gauges', shadows=False)
+    shape('Cube', V(78, 0, 81), V(0.55, 1.6, 0.28), plastic, label='Dashboard')
+    shape('Cube', V(50, -2, 88), V(0.01, 0.22, 0.08), gauge, label='Gauges', shadows=False)
     for side in (-1, 1):
-        shape('Cube', V(44, side * 74, 118), V(0.06, 0.08, 0.80), plastic, unreal.Rotator(56, 0, 0), 'A pillar')
+        shape('Cube', V(44, side * 74, 118), V(0.06, 0.08, 0.80), plastic, unreal.Rotator(pitch=56), 'A pillar')
         shape('Cube', V(-10, side * 82, 92), V(1.4, 0.05, 0.2), plastic, label='Door top')
     shape('Cube', V(-40, 0, 144), V(1.15, 1.5, 0.05), plastic, label='Roof')
+    # Windshield between the A pillars: 79 cm along the slope from the dash (x 77, z 96) up to the roof (x 11, z 140)
+    # the plane's own X runs across the car (texture width), its Y runs down the slope from roof to dash
+    ws_rot = unreal.MathLibrary.make_rot_from_xy(V(0, 1, 0), V(0.822, 0, -0.569))
+    shape('Plane', V(44, 0, 118), V(1.5, 0.79, 1), windshield, ws_rot, 'Windshield (cracked, taped)',
+          shadows=False)
 
     # Steering wheel: rim of 36 short cylinders in the tilted wheel plane, 3 spokes, hub and column
-    centre = EYE + V(44, -2, -30)
+    centre = EYE + V(40, -2, -30)
     tilt = math.radians(25)
     n = unreal.Vector(-math.cos(tilt), 0, math.sin(tilt))   # faces the driver
     u = unreal.Vector(0, 1, 0)
@@ -182,7 +255,7 @@ def main():
     car_parts, CAB = CAB, None
 
     # ---------- light and atmosphere ----------
-    moon = actors.spawn_actor_from_class(unreal.DirectionalLight, V(0, 0, 1000), unreal.Rotator(0, -32, 150))
+    moon = actors.spawn_actor_from_class(unreal.DirectionalLight, V(0, 0, 1000), unreal.Rotator(pitch=-32, yaw=150))
     moon.set_actor_label('Moon')
     mc = moon.light_component
     mc.set_intensity(MOON_LUX)
@@ -209,7 +282,7 @@ def main():
     fc.set_editor_property('volumetric_fog_distance', 9000.0)
 
     for side in (-1, 1):
-        hl = actors.spawn_actor_from_class(unreal.SpotLight, V(240, side * 66, 68), unreal.Rotator(-3, 0, side * -2))
+        hl = actors.spawn_actor_from_class(unreal.SpotLight, V(240, side * 66, 68), unreal.Rotator(pitch=-3, yaw=side * 2))
         hl.set_actor_label('Headlight')
         c = hl.spot_light_component
         c.set_editor_property('intensity_units', unreal.LightUnits.CANDELAS)
@@ -221,13 +294,13 @@ def main():
         c.set_editor_property('volumetric_scattering_intensity', HEADLIGHT_FOG_GLOW)
         car_parts.append(hl)
 
-    dash = actors.spawn_actor_from_class(unreal.PointLight, V(58, -2, 95))
+    dash = actors.spawn_actor_from_class(unreal.PointLight, V(45, -2, 90))
     dash.set_actor_label('Gauge glow')
     dc = dash.point_light_component
     dc.set_editor_property('intensity_units', unreal.LightUnits.CANDELAS)
     dc.set_intensity(0.15)
     dc.set_light_color(unreal.LinearColor(0.45, 0.85, 1.0, 1))
-    dc.set_editor_property('attenuation_radius', 90.0)
+    dc.set_editor_property('attenuation_radius', 40.0)
     dc.set_editor_property('volumetric_scattering_intensity', 0.0)
     car_parts.append(dash)
 
@@ -244,7 +317,7 @@ def main():
     ppv.set_editor_property('settings', s)
 
     # ---------- game camera, game mode, screenshot director ----------
-    cam = actors.spawn_actor_from_class(unreal.CameraActor, EYE, unreal.Rotator(0, -5, 0))
+    cam = actors.spawn_actor_from_class(unreal.CameraActor, EYE, unreal.Rotator(pitch=-5))
     cam.set_actor_label('Driver eye')
     cam.camera_component.set_editor_property('field_of_view', 78.0)
     cam.camera_component.set_editor_property('constrain_aspect_ratio', False)
@@ -262,7 +335,7 @@ def main():
         p.root_component.set_mobility(unreal.ComponentMobility.MOVABLE)
         p.attach_to_actor(car, '', unreal.AttachmentRule.KEEP_WORLD, unreal.AttachmentRule.KEEP_WORLD,
                           unreal.AttachmentRule.KEEP_WORLD, False)
-    flake = make_mat('M_Snowflake', (0.92, 0.94, 0.97), 1.0, emissive=(0.010, 0.012, 0.016))
+    flake = make_mat('M_Snowflake', (0.92, 0.94, 0.97), 1.0, emissive=(0.010, 0.012, 0.016), instanced=True)
     snow_actor = actors.spawn_actor_from_class(unreal.load_class(None, '/Script/HollowAcre.Snowfall'), V(0, 0, 0))
     snow_actor.set_actor_label('Snowfall')
     snow_actor.set_editor_property('follow', car)
