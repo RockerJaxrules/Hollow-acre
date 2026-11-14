@@ -52,3 +52,20 @@ Research the best tools for Claude to make really good-looking, realistic, high-
   builds run on the PC with the Android SDK.
 - Blender stays the modelling tool (tools/b3d). Models export as FBX to Unreal.
 - The three.js Part 2 test page (2d/p2) is frozen as a prototype.
+
+## Outside-art exception for Part 2 (owner approved)
+Owner: "Allow them if I can still make money off the game if I sell it and don't get in trouble for using them and they
+work good if not do it on your own".
+- Allowed in Part 2 (Unreal):
+  - Epic's **MetaHuman**: realistic people and hands. Under the Unreal Engine EULA from UE 5.6; commercial games
+    allowed.
+  - **Quixel Megascans**: about 23,000 scanned assets, free on Fab since November 2026 under the Fab Standard License;
+    commercial use in any engine; no credit required.
+- Conditions:
+  - Never resell or redistribute the raw assets on their own.
+  - Unreal's royalty is 5% of gross revenue above US$1M per product, waived for Epic Games Store sales.
+  - MetaHumans are synthetic, so no real person's likeness is used. Never scan a real person without their written
+    consent.
+  - Keep a list of every Epic asset used (`ASSETS_EPIC.md`).
+  - Re-read the current EULA and Fab licence text before release.
+- Everything else stays our own work, and Part 1 (the pixel game) keeps the strict no-outside-art rule.

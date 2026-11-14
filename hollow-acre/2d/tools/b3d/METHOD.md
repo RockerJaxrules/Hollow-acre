@@ -84,3 +84,5 @@ The method has five parts:
 - Cycles is CPU only: about 10 s for a 260 px sheet at 48 samples with denoising. Use higher samples only for finals.
 - No outside art: no downloaded models, scans, HDRIs or textures. Everything is made in code. For outdoor light use
   Blender's own sky texture (Nishita) or our own lights.
+- Exception for Part 2 in Unreal (owner approved, licences checked): Epic's MetaHuman and Quixel Megascans may be
+  used under the Unreal EULA and Fab Standard License. See review/SEQUEL_NOTES.md for the conditions.
