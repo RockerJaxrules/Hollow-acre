@@ -477,13 +477,15 @@ function t41PlankTex(W,H,o){o=o||{};const Wo=T41P.wood;return t41Tex(W,H,K=>{for
   if(o.win){const [a,b,t0,t1]=o.win;K.g.clearRect(a,t0,b-a,t1-t0);K.box(a-1,t0-1,b-a+2,1,Wo[4]);K.box(a-1,t1,b-a+2,1,Wo[1]);}});}
 function t41BusDisc(){const G=T41P.green,C=T41P.cream;return t41Can(17,17,K=>{K.ell(8.5,8.5,8,8,(x,y,nx,ny,d)=>d>.8?(nx+ny<-.3?C[4]:C[1]):(nx+ny<-.5?G[4]:G[3]));K.text('BUS',3,6,C[4]);});}
 function t41ShelterPic(view){const {L,Wd,v0,v1}=T41SH,Wo=T41P.wood,S=T41P.steel,G=T41P.green,RF=T41_SH;
-  const Sc=t41Scene(L,Wd,view,78,{padX:3,padTop:2,padBot:3});const wood=(F,b)=>t41Sh(Wo,F.lit,b==null?2.6:b,3);
+  const side=view==='W'||view==='E';const Sc=t41Scene(L,Wd,view,78,{padX:side?7:3,padTop:2,padBot:3});const wood=(F,b)=>t41Sh(Wo,F.lit,b==null?2.6:b,3);
   // the plank floor, the four corner posts
 
   for(const [a,b] of [[0,4],[26,30]])for(const [c,d] of [[v0,v0+4],[v1-4,v1]])Sc.box(a,b,c,d,0,64,F=>wood(F,2.2));
   // the walls: the back one (MARROW CO. outside, the timetable inside) and the two sides with a little window, all short of the ground
   const BO=t41PlankTex(v1-v0,40,{board:1}),BI=t41PlankTex(v1-v0,40,{table:v1-v0-22}),SW=t41PlankTex(26,50,{});
-  Sc.box(0,3,v0,v1,20,60,F=>{if(F.part==='cap0')return BO(F.s,F.t);if(F.part==='cap1')return BI(F.s,F.t);return wood(F,3);});
+  // (side-on the wall stands just inside the back posts, so its plank end shows beside the corner post: a lit edge, the grain)
+  const wa=side?4:0;Sc.box(wa,wa+3,v0,v1,20,60,F=>{if(F.part==='cap0')return BO(F.s,F.t);if(F.part==='cap1')return BI(F.s,F.t);
+    if(side&&(Math.abs(F.v-v0)<.05||Math.abs(F.v-v1)<.05))return F.u<wa+.9?Wo[4]:(Math.floor(F.h)%7===0?Wo[2]:Wo[3]);return wood(F,3);});
   // the side walls go up to the bench back and no higher: from the side you see in, the roof stands on the corner posts
   // open at the sides: a beam under the roof from the back wall to each front post, and an arm rail at the bench's height
   for(const [c,d] of [[v0,v0+3],[v1-3,v1]])Sc.box(0,27,c,d,55,59,F=>F.part==='side'&&F.up?(F.t<1?Wo[3]:Wo[2]):wood(F,2.4));
@@ -491,29 +493,36 @@ function t41ShelterPic(view){const {L,Wd,v0,v1}=T41SH,Wo=T41P.wood,S=T41P.steel,
   // the bench: iron legs, a pale seat with its end lit, a back of two boards leaning back on iron standards; end-on it reads "h"
   // (a bench for three, at the road end: from the side its near end stands flush with the iron standard, and its top, in the
   // roof's shade, falls back darker than the lit end)
-  const PK=T41P.plank,b0=v0+6,b1=v0+50,side=view==='W'||view==='E',du=4;
+  const PK=T41P.plank,b0=v0+6,b1=side?v0+24:v0+50,du=side?7:4;
   // (it stands a hand clear of the back wall, so end-on its back is not lost against the corner post)
   const ironE=F=>side&&F.part!=='side'?(F.h>18?T41I[5]:T41I[3]):t41Sh(T41I,F.lit,2.4,3);
   for(const v of [b0,b1-2]){for(const u of [8,15])Sc.box(u+du,u+du+2,v,v+2,0,17,ironE);Sc.ext('v',side?[[6.6+du,17],[9.4+du,17],[5.4+du,34],[2.6+du,34]]:[[7+du,17],[9+du,17],[5+du,34],[3+du,34]],v,v+2,ironE);}
   // (end-on, the seat's end stands a little proud of the standard, pale against the shaded top behind it)
   const s0=side?b0-1.2:b0+.4,s1=side?b1+1.2:b1-.4;
   const nearEnd=F=>side&&(Math.abs(F.v-s0)<.05||Math.abs(F.v-s1)<.05);
-  Sc.box(7+du,18+du,s0,s1,17,side?21:20,F=>{if(F.nl[2]>.9){if(side)return Math.floor(F.u-7-du)%4===3?PK[0]:PK[1];return t41Sh(PK,F.lit,3.7,2);}if(nearEnd(F))return F.h<17.9?PK[3]:PK[4];return F.part!=='side'?PK[4]:PK[2];});
-  for(const [h0,h1] of [[22,27],[29,34]])Sc.ext('v',[[du+8.2-(h0-17)*.235,h0],[du+9.8-(h0-17)*.235,h0],[du+9.8-(h1-17)*.235,h1],[du+8.2-(h1-17)*.235,h1]],side?b0+.3:s0,side?b1-.3:s1,F=>nearEnd(F)||F.part!=='side'?(side?Wo[4]:Wo[1]):(F.e===1?(side?Wo[0]:Wo[3]):(side?Wo[0]:Wo[1])));
+  Sc.box(7+du,18+du,s0,s1,17,side?21:20,F=>{if(F.nl[2]>.9){if(side)return Math.floor(F.u-7-du)%4===3?PK[1]:PK[2];return t41Sh(PK,F.lit,3.7,2);}if(nearEnd(F))return F.h<17.9?PK[3]:PK[4];return F.part!=='side'?PK[4]:PK[2];});
+  for(const [h0,h1] of [[22,27],[29,34]])Sc.ext('v',[[du+8.2-(h0-17)*.235,h0],[du+9.8-(h0-17)*.235,h0],[du+9.8-(h1-17)*.235,h1],[du+8.2-(h1-17)*.235,h1]],side?b0+.3:s0,side?b1-.3:s1,F=>nearEnd(F)||F.part!=='side'?(side?Wo[4]:Wo[1]):(F.e===1?(side?Wo[1]:Wo[3]):(side?Wo[1]:Wo[1])));
   // the roof: a plank lean-to, low at the back, overhanging all round
-  Sc.ext('v',[[-4,58],[37,66],[37,69],[-4,61]],v0-3,v1+3,F=>{if(F.part==='side'&&F.nl[2]>.5)return (Math.floor(F.a)%6===0)?RF[1]:t41Sh(RF,F.lit,2.9,3);return F.t<1.2?'#a8a294':RF[3];});
+  // (side-on: fewer, broader corrugations, a lit crest and a dark groove to each; the near end a lit wooden fascia board)
+  Sc.ext('v',[[-4,58],[37,66],[37,69],[-4,61]],v0-3,v1+3,F=>{if(F.part==='side'&&F.nl[2]>.5){if(side){const a=Math.floor(F.a)%11;return a===0?RF[0]:a<=3?RF[3]:RF[2];}return (Math.floor(F.a)%6===0)?RF[1]:t41Sh(RF,F.lit,2.9,3);}
+    if(side)return F.t<1.2?Wo[4]:Wo[3];return F.t<1.2?'#a8a294':RF[3];});
   // the BUS disc on its post at the front corner, by the road
   const pv=T41SH.pv;Sc.cyl(44,pv,1.3,0,60,F=>F.part==='top'?S[4]:t41Sh(S,F.lit,2.4,4));const D=t41BusDisc();Sc.bill(D,44,pv,66,8,8,.5);
-  const c=Sc.done({crease:4,inset:3,shadow:false,after:K=>{const g=K.g;g.save();g.globalCompositeOperation='destination-over';g.fillStyle='rgba(14,10,8,.42)';const p=Sc.P(44,pv,0);g.beginPath();g.ellipse(p[0]+4,p[1]+1,5,1.8,0,0,7);g.fill();g.restore();}});return {c,ax:Sc.ax,ay:Sc.ay,S:Sc};}
+  const c=Sc.done({crease:4,inset:3,shadow:false,after:K=>{const g=K.g;g.save();g.globalCompositeOperation='destination-over';g.fillStyle='rgba(14,10,8,.42)';const p=Sc.P(44,pv,0);g.beginPath();g.ellipse(p[0]+4,p[1]+1,5,1.8,0,0,7);g.fill();
+    if(side){g.fillStyle='rgba(18,13,9,.34)';g.beginPath();for(const [u,v] of [[0,v0],[30,v0],[30,v1],[0,v1]]){const q=Sc.P(u,v,0);g.lineTo(q[0],q[1]);}g.fill();}g.restore();
+    if(side){const vn=view==='W'?v0-3:v1+3,A=Sc.P(-4,vn,58),B=Sc.P(37,vn,66);const xa=Math.min(A[0],B[0]),xb=Math.max(A[0],B[0]);
+      for(let x=Math.ceil(xa);x<Math.floor(xb);x++){const k=(x-A[0])/(B[0]-A[0]),y=Math.round(A[1]+(B[1]-A[1])*k);g.fillStyle='rgba(14,10,8,.6)';g.fillRect(x,y,1,1);g.fillStyle='rgba(14,10,8,.28)';g.fillRect(x,y+1,1,1);}}}});return {c,ax:Sc.ax,ay:Sc.ay,S:Sc};}
 // a slatted bench for a platform, 1.4 m long, its front to u: three pale seat slats (a plane seen from above), a two-slat
 // backrest leaning back on iron standards, iron legs, and the dark of its shadow on the ground under the seat
 function t41BenchPic(view){const L=24,Wd=44,Wo=T41P.wood,Pk=T41P.plank,I=T41I;const Sc=t41Scene(L,Wd,view,36,{padX:3,padTop:2,padBot:3});
   const iron=F=>t41Sh(I,F.lit,2.6,3);const lu=h=>7-(h-13)*4/19;
-  for(const v of [3,Wd-5]){for(const u of [6,18])Sc.box(u,u+2,v,v+2,0,13,iron);Sc.ext('v',[[5,13],[7,13],[3,32],[1,32]],v,v+2,iron);}
-  Sc.box(5,21,1,Wd-1,13,16,F=>{if(F.nl[2]>.9){const k=Math.floor(F.u-5);return k===5||k===10?Pk[2]:t41Sh(Pk,F.lit,3.7,2);}return F.part==='side'&&F.up?Wo[3]:Wo[2];});
-  for(const [h0,h1] of [[20,24.5],[28,32.5]])Sc.ext('v',[[lu(h0)-.1,h0],[lu(h0)+1.2,h0],[lu(h1)+1.2,h1],[lu(h1)-.1,h1]],1,Wd-1,F=>{if(F.part!=='side')return Wo[2];
+  // (the iron ends splay outward to their feet; the seat is three slats, 11 px deep, with clear ground between it and the back)
+  for(const v of [3,Wd-5]){const o=v<Wd/2?-2:2;for(const u of [7,17.5])Sc.ext('u',[[v+o,0],[v+2+o,0],[v+2,13],[v,13]],u,u+2,iron);Sc.ext('v',[[5,13],[7,13],[3,32],[1,32]],v,v+2,iron);}
+  Sc.box(8,19.5,1,Wd-1,13,16,F=>{if(F.nl[2]>.9){const k=Math.floor(F.u-8);return k===4||k===8?Pk[2]:t41Sh(Pk,F.lit,3.7,2);}return F.part==='side'&&F.up?Wo[3]:Wo[2];});
+  for(const [h0,h1] of [[19.5,24],[28,32.5]])Sc.ext('v',[[lu(h0)-.1,h0],[lu(h0)+1.2,h0],[lu(h1)+1.2,h1],[lu(h1)-.1,h1]],1,Wd-1,F=>{if(F.part!=='side')return Wo[2];
       if(F.e===1)return t41Sh(Pk,F.lit,3.3,3);if(F.e===3)return t41Sh(Wo,F.lit,2.6,3);return F.nl[2]>0?Pk[3]:Wo[1];});
-  const c=Sc.done({crease:3,shadow:false});return {c,ax:Sc.ax,ay:Sc.ay,S:Sc};}
+  // (the shadow on the ground under the seat, darkest under its front lip)
+  const c=Sc.done({crease:3,foot:[6,19.5,1,Wd-1]});return {c,ax:Sc.ax,ay:Sc.ay,S:Sc};}
 // the town stop: a post with the BUS disc and the timetable in its frame, on the pavement, its shadow falling down and right
 function t41TownPostPic(){const L=12,Wd=22,Wd2=T41P.wood,C=T41P.cream,G=T41P.green;const Sc=t41Scene(L,Wd,'S',72,{padX:6,padTop:2,padBot:3});
   Sc.cyl(6,11,1.6,0,60,F=>F.part==='top'?G[4]:t41Sh(G,F.lit,2.6,4));Sc.bill(t41BusDisc(),6,11,64,8,8,.5);
@@ -525,27 +534,44 @@ function t41TownPostPic(){const L=12,Wd=22,Wd2=T41P.wood,C=T41P.cream,G=T41P.gre
 // the end of the line, built in timber: a stack of old sleepers, two posts and a beam across the rails at the front, a red lamp
 // on the beam. Model frame: u from the back of the stack (0) to the beam's face (21), v across the track (rails at 12 and 44).
 const T41BUF={L:42,Wd:56,face:21};
-function t41BufferPic(view){const {L,Wd}=T41BUF,Wo=T41P.wood,R=T41P.red,I=T41I,S=T41P.steel;const Sc=t41Scene(L,Wd,view,32,{padX:3,padTop:2,padBot:3});
+function t41BufferPic(view){const {L,Wd}=T41BUF,Wo=T41P.wood,R=T41P.red,I=T41I,S=T41P.steel;const ew=view==='E'||view==='W';
+  // (the track runs out from under the beam on the canvas: toward you from the front, away from you from the back, to the left
+  // or right side-on; the canvas grows that way only, so the footprint and its anchor stay where they were)
+  const Sc=t41Scene(L,Wd,view,32,{padX:ew?13:6,padTop:2,padBot:view==='S'?25:3});
   const TIE=['#2a2018','#3a2c20','#4e3c2c','#5e4a36','#6e5840'];const tie=F=>{if(F.part==='side'&&F.up&&Math.floor(F.t)%4===3)return '#1c140e';return t41Sh(TIE,F.lit,2.4,3);};
-  // the last of the track runs toward you: four sleepers, the two rails up to the beam
-  // (side-on the track is already on the ground under it; only the front and back views carry their own)
-  const ends=view==='S'||view==='N';
-  if(ends){for(const u of [21.5,30,38.5])Sc.box(u,u+2.6,5,Wd-5,0,1.3,F=>F.nl[2]>.9?(F.t<1?'#8a6c50':'#7a5e44'):'#3e3024');
-    for(const v of [12,44])Sc.box(9,42,v-.7,v+.7,1.3,2.9,F=>F.nl[2]>.9?'#e6eaee':'#5c6068');}
-  // the stack of old sleepers behind, the two posts, the beam (its face dark, its top lit), two round buffers, the lamp on a bracket
+  // the stack of old sleepers behind (not from the front, where it would only frame the beam), the two posts outside the rails
+  // (so the rails run on under the beam between them), the beam (a
+  // lit top edge, a dark face), two round buffers set on that face, the lamp on a bracket at one end
   if(view!=='S')for(let k=0;k<3;k++)Sc.box(1+k*.5,10-k*.5,2+k,Wd-2-k,k*4,k*4+4,tie);
-  for(const v of [9,Wd-15])Sc.box(11,16,v,v+6,0,20,F=>F.nl[2]>.9?Wo[3]:t41Sh(Wo,F.lit,2.2,3));
-  Sc.box(15,21,4,Wd-4,12,20,F=>{if(F.part==='cap1'){const t=Math.floor(F.t);return t===0?Wo[3]:'#2a1c12';}return F.nl[2]>.9?Wo[4]:t41Sh(Wo,F.lit,2.2,3);});
-  for(const v of [12,44]){Sc.tube(21,23,v,15,1.8,F=>t41Sh(I,F.lit,2.4,3));Sc.tube(23,24.5,v,15,3.8,F=>{if(F.part==='cap1'){const d=Math.hypot(F.s-3.8,F.t-3.8);return d>2.9?(F.s+F.t<6?S[4]:S[3]):(d>1.8?I[2]:I[3]);}return t41Sh(S,F.lit,2.6,3);});}
-  const lv=Wd-8;Sc.box(17,18.4,lv-.7,lv+.7,20,27,F=>t41Sh(I,F.lit,2.2,3));
+  for(const v of [4,Wd-9])Sc.box(11,16,v,v+5,0,21,F=>F.nl[2]>.9?Wo[3]:t41Sh(Wo,F.lit,2.2,3));
+  Sc.box(15,21,4,Wd-4,11,21,F=>{if(F.part==='cap1'){const t=Math.floor(F.t);return t===0?Wo[3]:'#2a1c12';}if(F.part==='cap0')return t41Sh(Wo,F.lit,2.2,3);return F.nl[2]>.9?Wo[4]:t41Sh(Wo,F.lit,2.2,3);});
+  for(const v of [12,44]){Sc.tube(21,22,v,17.5,1.5,F=>t41Sh(I,F.lit,2.4,3));Sc.tube(22,23.2,v,17.5,3.2,F=>{if(F.part==='cap1'){const d=Math.hypot(F.s-3.2,F.t-3.2);return d>2.3?(F.s+F.t<5?S[4]:S[3]):(d>1.4?I[2]:I[3]);}return t41Sh(S,F.lit,2.6,3);});}
+  const lv=Wd-8;Sc.box(17,18.4,lv-.7,lv+.7,21,27,F=>t41Sh(I,F.lit,2.2,3));
   Sc.box(16,20,lv-2.6,lv+2.6,27,32,F=>{if(F.part!=='side'||F.up){if(F.t>1&&F.t<4.5&&(F.part!=='side'||F.nl[2]<.5))return '#e8402a';}return I[2];});
-  // the ballast bed the sleepers lie in: loose gravel behind the model, so it shows between the sleepers with no outline round it
-  const bed=K=>{if(!ends)return;const g=K.g,A=Sc.P(16,3,0),B=Sc.P(42,Wd-3,0);const x0=Math.round(Math.min(A[0],B[0])),x1=Math.round(Math.max(A[0],B[0])),y0=Math.round(Math.min(A[1],B[1])),y1=Math.round(Math.max(A[1],B[1]));
-    const G=['#3e372f','#4e463c','#5c5348','#6c6254','#857a68'];g.save();g.globalCompositeOperation='destination-over';
-    for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const h=Math.sin(x*12.9898+y*78.233)*43758.5453,f=h-Math.floor(h);
-      const edge=Math.min(x-x0,x1-x,y1-y);if(edge<2&&f<(edge<1?.6:.3))continue;
-      g.fillStyle=G[f<.12?0:f<.5?1:f<.84?2:f<.96?3:4];g.fillRect(x,y,1,1);}g.restore();};
-  const c=Sc.done({crease:3,foot:[0,21,2,Wd-2],after:bed});return {c,ax:Sc.ax,ay:Sc.ay,S:Sc};}
+  // the track, drawn the way the world draws it (the same ballast, sleeper pitch, sleeper colours and two-pixel rails), behind the
+  // model and with no outline, so the line in the world runs on into it
+  const track=K=>{const T=t41Kit(Sc.W,Sc.H),id=T.g.createImageData(Sc.W,Sc.H),d=id.data,W=Sc.W,H=Sc.H;
+    const set=(x,y,c,a)=>{x=Math.round(x);y=Math.round(y);if(x<0||y<0||x>=W||y>=H)return;const i=(y*W+x)*4;if(a==null||!d[i+3]){d[i]=c[0];d[i+1]=c[1];d[i+2]=c[2];d[i+3]=255;return;}
+      d[i]=d[i]*(1-a)+c[0]*a|0;d[i+1]=d[i+1]*(1-a)+c[1]*a|0;d[i+2]=d[i+2]*(1-a)+c[2]*a|0;};
+    const Hh=(a,b)=>{const n=Math.sin(a*12.9898+b*78.233)*43758.5453;return n-Math.floor(n);};
+    // how far the track runs: to the canvas edge it runs toward
+    const u1={S:L+24,N:L+32,W:L+12,E:L+12}[view]||L,u0=14;
+    for(let u=u0;u<=u1;u++)for(let v=-5;v<=Wd+4;v++){const t=Math.abs(v-28)/32;if(t>1.02)continue;const end=u1-u;
+      if(end<4&&Hh(u,v*3)<(4-end)*.24)continue;if(t>.97&&Hh(v,u)<.5)continue;
+      const [x,y]=Sc.P(u,v,0),sh=t>.9;let c=sh?[96,90,80]:[124,118,108];
+      const X=Math.round(x),Y=Math.round(y),f=Hh(X,Y);if(!sh&&f>.94)c=[142,136,124];else if(!sh&&f<.05)c=[104,98,88];else if(!sh&&Hh(X,Y-1)>.94)c=[108,102,92];set(x,y,c);}
+    // the sleepers, one every 20 px (0.62 m) from the beam, 7 px wide and 54 long; side-on from the ends of the line,
+    // end-on from its side
+    for(let uc=26;uc+3.5<=u1-2;uc+=20){const A=Sc.P(uc-3.5,1,0),B=Sc.P(uc+3.5,55,0);const x0=Math.round(Math.min(A[0],B[0])),x1=Math.round(Math.max(A[0],B[0]))-1,y0=Math.round(Math.min(A[1],B[1])),y1=Math.round(Math.max(A[1],B[1]))-1;
+      for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){let c;
+        if(ew)c=y>=y1-1?[58,44,32]:[98,76,56];
+        else c=y===y1?[56,42,30]:y===y0||x===x0?[122,98,74]:x===x1?[78,60,44]:[96,74,54];set(x,y,c);}}
+    // the rails: a bright head toward the light, the steel, a shadow on the stone beside it
+    for(const v of [12,44]){for(let u=u0;u<=u1-3;u++){const [x,y]=Sc.P(u,v,0);
+      if(ew){set(x,y-1,[222,226,232]);set(x,y,[112,116,124]);set(x,y+1,[30,24,20],.85);set(x,y+2,[30,24,20],.35);}
+      else{set(x-1,y,[222,226,232]);set(x,y,[112,116,124]);set(x+1,y,[30,24,20],.85);set(x+2,y,[30,24,20],.35);}}}
+    T.g.putImageData(id,0,0);const g=K.g;g.save();g.globalCompositeOperation='destination-over';g.drawImage(T.c,0,0);g.restore();};
+  const c=Sc.done({crease:3,foot:[0,21,2,Wd-2],after:track});return {c,ax:Sc.ax,ay:Sc.ay,S:Sc};}
 // where a point of a model lands in the world, given the world point its footprint is centred on (metres)
 function t41Loc(view,L,Wd,at,u,v){const cam=t41Cam(L,Wd,view);return [at[0]+(cam.X(u,v)-cam.w/2)/32,at[1]+(cam.Z(u,v)-cam.d/2)/32];}
 // @@GAMEPLAY ---------------------------------------------------------------- (everything above draws; everything below plays)
@@ -779,9 +805,10 @@ function t41PaintRail(c,cx,cz){const B=t41RailBuckets();const list=B.get(cx+','+
   const wet=e=>{try{return LAYERS.water(e.x,e.z)||LAYERS.water(e.x+.9,e.z)||LAYERS.water(e.x-.9,e.z);}catch(_){return false;}};
   for(const e of rails){if(!wet(e))continue;const nx=-e.dz,nz=e.dx;for(let t=-1.1;t<=1.1;t+=1/32){const [px,py]=P(e.x+nx*t,e.z+nz*t);const edge=Math.abs(t)>.95;
       set(px,py,edge?(t<0?[132,104,70]:[52,38,26]):(e.sl?[96,74,50]:[74,56,38]));}}
-  // 1. the ballast: a pale strip of grey stone, darker at its shoulders, stones clustered in twos and threes
+  // 1. the ballast: a pale strip of grey stone, darker at its shoulders, single stones on the pixel grid (a lit stone with its
+  // shadow under it, a few dark ones; never blocks of tone)
   for(const e of rails){if(paved(e)||wet(e))continue;const nx=-e.dz,nz=e.dx;for(let t=-1.02;t<=1.02;t+=1/32){const x=e.x+nx*t,z=e.z+nz*t;const [px,py]=P(x,z);
-      const sh=Math.abs(t)>.9;const h=H(Math.floor(x*6),Math.floor(z*6));let col=sh?[96,90,80]:[124,118,108];if(!sh&&h>.93)col=[140,134,122];else if(!sh&&h<.05)col=[106,100,90];set(px,py,col,sh?.8:.94);}}
+      const sh=Math.abs(t)>.9,wx=px+cx*CH,wz=py+cz*CH,h=H(wx,wz);let col=sh?[96,90,80]:[124,118,108];if(!sh&&h>.94)col=[142,136,124];else if(!sh&&h<.05)col=[104,98,88];else if(!sh&&H(wx,wz-1)>.94)col=[108,102,92];set(px,py,col,sh?.8:.94);}}
   // 2. the ties: dark weathered timber, one colour everywhere. On a north-south line they're seen side-on: lit along the edge
   // toward the light, darkest on the edge facing you. On an east-west line they're seen end-on: just the dark end facing you.
   for(const e of rails){if(!e.sl||e.pl||paved(e)||wet(e))continue;const nx=-e.dz,nz=e.dx;const ew=Math.abs(e.dx)>Math.abs(e.dz);

@@ -499,7 +499,7 @@ setInterval(()=>{try{const t=typeof dkTaken==='function'&&dkTaken();const d=type
 // ---- found: she sags forward, you catch her, one line in her own voice; the organ is the caption strip's
 {const _ps=playScene;playScene=function(id,title,html,done){if(title==='Found'&&S.room==='undercroft'&&!STG){const n=npcById(id);if(n){
       const m=/I’m not letting go of you again\.[^<]*?(?=<\/q>)/.exec(html);const line=m?m[0].split('.').slice(0,2).join('.')+'.':'I’m not letting go of you again.';
-      const ax=n.x,az=n.z,ux=1,uz=0;
+      const ax=n.x,az=n.z+1.3,ux=1,uz=0;   /* r4: lower in the room, so her words sit below the roots */
       stage({room:'undercroft',show:true,player:{x:ax+ux*1.4,z:az+uz*1.4,dir:dirOf(-ux,-uz)},cast:{[id]:{x:ax,z:az,dir:dirOf(ux,uz)}},cam:(()=>{try{const R=ROOMS.undercroft;return {x:R.ox+R.w/2,z:R.oz+R.d/2+.4};}catch(e){return {x:ax+ux*.7,z:az+uz*.7};}})(),lead:600,   /* r4: the room centred in the frame */
         beats:[{hold:.7},{hold:.5,go:{[id]:[ax+ux*.55,az+uz*.55]},speed:{[id]:2.4},emote:{[id]:'…'}},
           {hold:1.4,go:{you:[ax+ux*.95,az+uz*.95]},speed:{you:2},emote:{you:'♥'},face:{you:dirOf(-ux,-uz)}},
@@ -1376,12 +1376,12 @@ const ST37_HEARTHS=[[-3,-107],[12,-110],[6,-105]];
 {const iv=setInterval(()=>{try{if(!OBJ.some(o=>o.spr==='rg_chimney'&&Math.abs(o.x+2)<.6&&Math.abs(o.z+114)<.6))return;clearInterval(iv);
     for(const [x0,z0] of ST37_HEARTHS){if(OBJ.some(o=>o.spr==='rg_chimney'&&Math.hypot(o.x-x0,o.z-z0)<3))continue;const q={x:x0,z:z0};collide(q,.6);if(Math.hypot(q.x-x0,q.z-z0)>.05)continue;
       obj('rg_chimney',x0,z0,{kind:'prop',solid:1});addCircle(x0,z0+.1,.55);}if(typeof CGRID!=='undefined')CGRID.dirty=true;}catch(e){}},700);}
-{const _md=mindDrawables;mindDrawables=function(D){_md.apply(this,arguments);try{if(ST37.hearth!==S.day||S.room||typeof nightK==='undefined'||nightK<.05)return;
-    const o=OBJ.find(q=>q.spr==='rg_chimney'&&!q.hide&&Math.abs(q.x+3)<.6&&Math.abs(q.z+107)<.6)||OBJ.find(q=>q.spr==='rg_chimney'&&!q.hide);if(!o)return;
-    D.push({z:o.z+.05,mind:1,draw(){const t=performance.now()/1000,br=(Math.sin(t*1.6)+1)/2,X0=Math.round(sx(o.x)),Y0=Math.round(sz(o.z))-(SPR.rg_chimney?SPR.rg_chimney.ay:60)-2;
+{const _ms=mindScreen;mindScreen=function(tt){const rr=_ms.apply(this,arguments);try{if(ST37.hearth!==S.day||S.room||typeof nightK==='undefined'||nightK<.05||S.mode==='title')return rr;
+    const o=OBJ.find(q=>q.spr==='rg_chimney'&&!q.hide&&Math.abs(q.x+3)<.6&&Math.abs(q.z+107)<.6)||OBJ.find(q=>q.spr==='rg_chimney'&&!q.hide);if(!o)return rr;
+    (()=>{const t=performance.now()/1000,br=(Math.sin(t*1.6)+1)/2,X0=Math.round(sx(o.x)),Y0=Math.round(sz(o.z))-(SPR.rg_chimney?SPR.rg_chimney.ay:60)-2;
       for(let i=0;i<14;i++){const ph=(t*.4+i/14)%1,r=Math.round(2+ph*6*(0.6+br*.6));const x=Math.round(X0+ph*14+Math.sin(t*1.1+i*1.7)*2),y=Math.round(Y0-ph*48);const a=((.55+br*.25)*(1-ph)).toFixed(3);
-        ctx2.fillStyle=`rgba(150,140,136,${a})`;ctx2.fillRect(x-r,y-r+1,r*2,r*2-2);ctx2.fillRect(x-r+1,y-r,r*2-2,r*2);ctx2.fillStyle=`rgba(200,190,184,${(a*.7).toFixed(3)})`;ctx2.fillRect(x-r+1,y-r+1,r,r-1);}
-      for(let i=0;i<5;i++){const ph=(t*.7+i/5)%1;if(ph>.6)continue;ctx2.fillStyle=ph<.3?'#ffd060':'#ff7a20';ctx2.fillRect(Math.round(X0+Math.sin(i*2.3+t)*5),Math.round(Y0-ph*30),1,1);}}});}catch(e){}};}
+        ctx2.fillStyle=`rgba(176,150,128,${a})`;ctx2.fillRect(x-r,y-r+1,r*2,r*2-2);ctx2.fillRect(x-r+1,y-r,r*2-2,r*2);ctx2.fillStyle=`rgba(220,186,150,${(a*.7).toFixed(3)})`;ctx2.fillRect(x-r+1,y-r+1,r,r-1);}
+      for(let i=0;i<5;i++){const ph=(t*.7+i/5)%1;if(ph>.6)continue;ctx2.fillStyle=ph<.3?'#ffd060':'#ff7a20';ctx2.fillRect(Math.round(X0+Math.sin(i*2.3+t)*5),Math.round(Y0-ph*30),1,1);}})();}catch(e){}return rr;};}
 // r4: the orchard close-up: the one tree, its crown packed with apples, every one bitten (a child's bites, each its own size and side, two or
 // three tooth-marks deep, the flesh browning at the edge); the lowest apple hangs big on its stalk, and in its bite a milk tooth, white, roots and all
 function st37Orchard4(){return st37Cv(ST37W,ST37H,(P)=>{

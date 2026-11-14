@@ -564,7 +564,7 @@ function u37CanDock(m){const r=m.getBoundingClientRect(),h=Math.max(ui.toast.off
 //     every press; shops and benches re-draw their rows). It starts at the top only when you open it fresh or change page/tab.
 const U37_SK={pos:{},mutAt:0,seen:new WeakSet()};
 function u37SkCtx(root){try{if(root.id==='bag')return 'bag|'+((root.querySelector('h2')||{}).textContent||'')+'|'+((root.querySelector('#bagBody .on[data-jt], #bagBody .jtabs .on')||{}).textContent||'');
-    if(root.id==='shop')return 'shop|'+(typeof shopV!=='undefined'?shopV:'')+'|'+((root.querySelector('h2')||{}).textContent||'');
+    if(root.id==='shop'){const h=root.querySelector('h2');const t=h?[...h.childNodes].filter(x=>x.nodeType===3).map(x=>x.nodeValue).join('').trim():'';return 'shop|'+(typeof shopV!=='undefined'?shopV:'')+'|'+t;}   /* the name only: the coin balance in the header changes on every purchase */
     if(root.id==='craft')return 'craft|'+((root.querySelector('h2,h3')||{}).textContent||'');
     if(root.id==='note'){const n=$('noteText'),h=n&&n.querySelector('h3,h2');const t=h?[...h.childNodes].filter(x=>x.nodeType===3).map(x=>x.nodeValue).join('').trim():'';
       return 'note|'+t+'|'+((n&&n.querySelector('.bztabs .on, [data-emtab].on')||{}).textContent||'');}}catch(e){}return root.id;}
