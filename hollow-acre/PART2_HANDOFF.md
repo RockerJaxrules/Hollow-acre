@@ -69,7 +69,10 @@ Full detail is in `2d/tools/b3d/LESSONS.md`, including the table of measurable 1
   reference photo.
 - **Show the in-game result, not just the offline render.** Before anything counts as done, compare the game frame
   side by side with the offline render ("parity").
-- **Keep the progress page updated:** https://claude.ai/artifact/Skbhh8Gwtk1xkZhWEthjbt
+- **Keep the live log updated (the owner asked for it):** https://claude.ai/artifact/Skbhh8Gwtk1xkZhWEthjbt
+  - Builder and steps: `hollow-acre/tools/live/README.md`.
+  - Republish to the SAME link whenever there are new Unreal screenshots or renders, at most every few minutes,
+    with the in-game view at the top.
 - **Git:**
   - Commit and push to `claude/3d-horror-stardew-game-3p7bhh`. No pull requests.
   - Commit messages never mention dates or durations, never name the AI model, and end with the session attribution
