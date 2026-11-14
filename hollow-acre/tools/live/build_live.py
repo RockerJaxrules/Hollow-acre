@@ -33,9 +33,10 @@ for d, _, files in (os.walk(ROOT) if ROOT else []):
 fs = sorted(fs, reverse=True)[:N]
 items = []
 for i, (t, p) in enumerate(fs):
-    im = Image.open(p).convert('RGB'); im.thumbnail((1000, 1000)); out = f'img/{i:02d}.jpg'
+    rel = os.path.relpath(p, ROOT).replace(os.sep, '/')
+    im = Image.open(p).convert('RGB'); im.thumbnail((1000, 1000)); out = 'img/' + re.sub(r'[^A-Za-z0-9]+', '_', os.path.splitext(rel)[0]) + f'_{int(t)}.jpg'
     im.save(os.path.join(SITE, out), 'JPEG', quality=82)
-    rnd, name = label(os.path.relpath(p, ROOT)); items.append(dict(src=out, t=int(t), rnd=rnd, name=name, w=im.width, h=im.height))
+    rnd, name = label(rel); items.append(dict(src=out, t=int(t), rnd=rnd, name=name, w=im.width, h=im.height))
 
 # Always show the newest in-game frames first, whatever else rendered later
 rounds = sorted([d for d in (os.listdir(ROOT) if ROOT else []) if re.fullmatch(r'r\d+', d)], key=lambda d: int(d[1:]))
@@ -46,7 +47,7 @@ for rd in reversed(rounds):
     have = [(os.path.join(ROOT, rd, f), n) for f, n in cand if os.path.exists(os.path.join(ROOT, rd, f))]
     if have:
         for i, (p, n) in enumerate(have):
-            im = Image.open(p).convert('RGB'); im.thumbnail((1400, 1400)); out = f'img/g{i}.jpg'
+            im = Image.open(p).convert('RGB'); im.thumbnail((1400, 1400)); out = f'img/g_{rd}_{i}_{int(os.path.getmtime(p))}.jpg'
             im.save(os.path.join(SITE, out), 'JPEG', quality=84)
             game.append(dict(src=out, t=int(os.path.getmtime(p)), rnd=rd.upper(), name=n, w=im.width, h=im.height))
         break
@@ -54,7 +55,7 @@ log = subprocess.run(['git', '-C', A.repo, 'log', '-8', '--format=%ct|%s'], capt
 steps = [dict(t=int(l.split('|', 1)[0]), s=l.split('|', 1)[1].split('\n')[0]) for l in log if '|' in l]
 if A.keep_from:
     old = json.loads(re.search(r'const D=(\{.*?\});\s*\n', open(A.keep_from, encoding='utf-8').read(), re.S).group(1))
-    if not items: items = old.get('items', [])
+    items = (items + [o for o in old.get('items', []) if o['src'] not in {x['src'] for x in items}])[:N]
     if not game: game = old.get('game', [])
 data = dict(built=int(time.time()), items=items, game=game, steps=steps, status=open(A.status, encoding='utf-8').read().strip() if A.status and os.path.exists(A.status) else '')
 tpl = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'template.html'), encoding='utf-8').read()

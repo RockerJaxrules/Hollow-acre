@@ -17,9 +17,14 @@ BPS = '/Game/HollowAcre/Blueprints'
 EYE = unreal.Vector(0, 0, 175)          # driver's eye, cab sits on the road at the origin facing +X
 EXPOSURE_BIAS = 0.0                     # manual exposure, EV offset
 MOON_LUX = 0.4
-HEADLIGHT_CD = 9000
-FOG_DENSITY = 0.06
+HEADLIGHT_CD = 6000
+FOG_DENSITY = 0.035
 SEED = 7
+HEADLIGHT_FOG_GLOW = 0.8                # volumetric scattering of the headlight beams
+SNOW_FLAKES = 16000
+SNOW_SIZE_CM = (1.4, 3.2)
+SNOW_BOX_CM = (1500, 900, 500)   # half-size of the snow box around the truck
+SNOW_AHEAD_CM = 1750                # box starts just past the windshield, never inside the cab
 
 ell = unreal.EditorLevelLibrary
 eal = unreal.EditorAssetLibrary
@@ -69,7 +74,12 @@ def shape(kind, loc, scale, mat, rot=None, label=None, shadows=True):
     a.set_actor_scale3d(scale)
     if label:
         a.set_actor_label(label)
+    if CAB is not None:
+        CAB.append(a)
     return a
+
+
+CAB = None  # while a list, every new shape belongs to the truck
 
 
 def V(x, y, z):
@@ -79,11 +89,18 @@ def V(x, y, z):
 def main():
     random.seed(SEED)
 
-    # Fresh level
+    # Fresh level: reuse the existing map and clear it (deleting then re-creating it fails in one session)
     if eal.does_asset_exist(MAP):
-        levels.load_level('/Engine/Maps/Entry')
-        eal.delete_asset(MAP)
-    levels.new_level(MAP)
+        if not levels.load_level(MAP):
+            raise RuntimeError('could not load ' + MAP)
+        for a in actors.get_all_level_actors():
+            if not isinstance(a, (unreal.WorldSettings, unreal.Brush)):
+                actors.destroy_actor(a)
+    elif not levels.new_level(MAP):
+        raise RuntimeError('could not create ' + MAP)
+    world = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()
+    if world.get_path_name().split('.')[0] != MAP:
+        raise RuntimeError('editing the wrong level: ' + world.get_path_name())
 
     snow = make_mat('M_Snow', (0.78, 0.82, 0.88), 0.75)
     road = make_mat('M_RoadSnow', (0.30, 0.31, 0.33), 0.85)
@@ -124,9 +141,11 @@ def main():
         shape('Cone', V(x, y, s * 50 + s * 38), V(s * 0.6, s * 0.52, s * 0.42), snow, shadows=False)
 
     # Truck cab (blockout): hood, dash, pillars, roof, door tops
-    shape('Cube', V(260, 0, 110), V(2.6, 1.9, 0.12), paint, unreal.Rotator(-3, 0, 0), 'Hood')
-    shape('Cube', V(75, 0, 118), V(0.55, 1.75, 0.42), plastic, label='Dashboard')
-    shape('Cube', V(52, -28, 133), V(0.04, 0.32, 0.12), gauge, label='Gauges', shadows=False)
+    global CAB
+    CAB = []
+    shape('Cube', V(250, 0, 96), V(2.2, 1.9, 0.12), paint, unreal.Rotator(-4, 0, 0), 'Hood')
+    shape('Cube', V(75, 0, 105), V(0.55, 1.75, 0.40), plastic, label='Dashboard')
+    shape('Cube', V(52, -28, 119), V(0.04, 0.32, 0.12), gauge, label='Gauges', shadows=False)
     for side in (-1, 1):
         shape('Cube', V(88, side * 86, 165), V(0.06, 0.08, 0.95), plastic, unreal.Rotator(-35, 0, 0), 'A pillar')
         shape('Cube', V(0, side * 92, 120), V(1.6, 0.05, 0.25), plastic, label='Door top')
@@ -154,6 +173,7 @@ def main():
         d = u * math.cos(a) + v * math.sin(a)
         shape('Cube', centre + d * (R / 2) - n * 0.5, V(R / 100, 0.04, 0.015), plastic, unreal.MathLibrary.make_rot_from_xz(d, n))
     shape('Cylinder', centre + n * -14, V(0.07, 0.07, 0.28), plastic, unreal.MathLibrary.make_rot_from_z(n), 'Column')
+    truck_parts, CAB = CAB, None
 
     # ---------- light and atmosphere ----------
     moon = actors.spawn_actor_from_class(unreal.DirectionalLight, V(0, 0, 1000), unreal.Rotator(0, -32, 150))
@@ -177,9 +197,9 @@ def main():
     fc.set_editor_property('fog_density', FOG_DENSITY)
     fc.set_editor_property('fog_height_falloff', 0.08)
     fc.set_editor_property('fog_inscattering_luminance', unreal.LinearColor(0.012, 0.016, 0.024, 1))
-    fc.set_editor_property('volumetric_fog', True)
+    fc.set_editor_property('enable_volumetric_fog', True)
     fc.set_editor_property('volumetric_fog_albedo', unreal.Color(235, 242, 255, 255))
-    fc.set_editor_property('volumetric_fog_extinction_scale', 2.5)
+    fc.set_editor_property('volumetric_fog_extinction_scale', 1.0)
     fc.set_editor_property('volumetric_fog_distance', 9000.0)
 
     for side in (-1, 1):
@@ -192,9 +212,10 @@ def main():
         c.set_editor_property('outer_cone_angle', 28.0)
         c.set_editor_property('inner_cone_angle', 10.0)
         c.set_editor_property('attenuation_radius', 6000.0)
-        c.set_editor_property('volumetric_scattering_intensity', 4.0)
+        c.set_editor_property('volumetric_scattering_intensity', HEADLIGHT_FOG_GLOW)
+        truck_parts.append(hl)
 
-    dash = actors.spawn_actor_from_class(unreal.PointLight, V(50, -28, 140))
+    dash = actors.spawn_actor_from_class(unreal.PointLight, V(50, -28, 126))
     dash.set_actor_label('Gauge glow')
     dc = dash.point_light_component
     dc.set_editor_property('intensity_units', unreal.LightUnits.CANDELAS)
@@ -202,6 +223,7 @@ def main():
     dc.set_light_color(unreal.LinearColor(0.45, 0.85, 1.0, 1))
     dc.set_editor_property('attenuation_radius', 90.0)
     dc.set_editor_property('volumetric_scattering_intensity', 0.0)
+    truck_parts.append(dash)
 
     ppv = actors.spawn_actor_from_class(unreal.PostProcessVolume, V(0, 0, 0))
     ppv.set_actor_label('Night grade')
@@ -216,12 +238,38 @@ def main():
     ppv.set_editor_property('settings', s)
 
     # ---------- game camera, game mode, screenshot director ----------
-    cam = actors.spawn_actor_from_class(unreal.CameraActor, EYE, unreal.Rotator(0, -9, 0))
+    cam = actors.spawn_actor_from_class(unreal.CameraActor, EYE, unreal.Rotator(0, -6, 0))
     cam.set_actor_label('Driver eye')
     cam.camera_component.set_editor_property('field_of_view', 78.0)
     cam.camera_component.set_editor_property('constrain_aspect_ratio', False)
     cam.set_editor_property('auto_activate_for_player', unreal.AutoReceiveInput.PLAYER0)
     actors.spawn_actor_from_class(unreal.PlayerStart, EYE + V(-300, 0, 0))
+    truck_parts.append(cam)
+
+    # One movable truck root that the ending director drives up the road
+    truck = actors.spawn_actor_from_class(unreal.Actor, V(0, 0, 0))
+    truck.set_actor_label('Truck')
+    root = unreal.SceneComponent(truck, 'TruckRoot')
+    truck.set_editor_property('root_component', root)
+    root.set_mobility(unreal.ComponentMobility.MOVABLE)
+    for p in truck_parts:
+        p.root_component.set_mobility(unreal.ComponentMobility.MOVABLE)
+        p.attach_to_actor(truck, '', unreal.AttachmentRule.KEEP_WORLD, unreal.AttachmentRule.KEEP_WORLD,
+                          unreal.AttachmentRule.KEEP_WORLD, False)
+    flake = make_mat('M_Snowflake', (0.92, 0.94, 0.97), 1.0, emissive=(0.010, 0.012, 0.016))
+    snow_actor = actors.spawn_actor_from_class(unreal.load_class(None, '/Script/HollowAcre.Snowfall'), V(0, 0, 0))
+    snow_actor.set_actor_label('Snowfall')
+    snow_actor.set_editor_property('follow', truck)
+    snow_actor.set_editor_property('flakes', SNOW_FLAKES)
+    snow_actor.set_editor_property('size', unreal.Vector2D(*SNOW_SIZE_CM))
+    snow_actor.set_editor_property('extent', unreal.Vector(*SNOW_BOX_CM))
+    snow_actor.set_editor_property('ahead', SNOW_AHEAD_CM)
+    ism = snow_actor.get_editor_property('mesh')
+    ism.set_static_mesh(MESH['Sphere'])
+    ism.set_material(0, flake)
+    director = actors.spawn_actor_from_class(unreal.load_class(None, '/Script/HollowAcre.EndingDirector'), V(0, 0, 0))
+    director.set_actor_label('Ending director')
+    director.set_editor_property('truck', truck)
 
     gm_path = f'{BPS}/BP_EndingDriveGameMode'
     if not eal.does_asset_exist(gm_path):
@@ -242,8 +290,9 @@ def main():
     shot_cls = unreal.load_class(None, '/Script/HollowAcre.ShotDirector')
     actors.spawn_actor_from_class(shot_cls, V(0, 0, 0)).set_actor_label('Shot director')
 
-    levels.save_current_level()
-    log('saved ' + MAP)
+    if not levels.save_current_level():
+        raise RuntimeError('saving the level failed')
+    log('saved %s with %d actors' % (MAP, len(actors.get_all_level_actors())))
 
 
 try:
