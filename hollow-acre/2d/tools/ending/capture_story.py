@@ -47,13 +47,16 @@ def main():
           S.readLetter=true;S.carFixed=true;S.looped=true;S.rom=S.rom||{};%s
           S.hour=17.4;S.storm=false;S.room=null;P.x=.2;P.z=-6;P.dir='S';
           try{document.getElementById('toast').style.display='none'}catch(e){}
-          if(typeof carShow==='function')carShow();return [BEATEN.o&&BEATEN.o.x,BEATEN.o&&BEATEN.o.z];})()''' % (
+          if(typeof carShow==='function')carShow();
+          ['hud','buttons','hotbar','topBar'].forEach(id=>{const e=document.getElementById(id);if(e)e.hidden=true;});try{ui.obj.hidden=true}catch(e){}
+          fade(1);return [BEATEN.o&&BEATEN.o.x,BEATEN.o&&BEATEN.o.z];})()''' % (
             ("S.rom.%s=Object.assign(S.rom.%s||{},{married:1});" % (spouse, spouse)) if spouse else '')
         print('setup', c.js("JSON.stringify(__game.ev(%s))" % json.dumps(setup)))
         time.sleep(1.0)
         src = open(os.path.join(ROOT, 'src', 'ending_story.js'), encoding='utf-8').read()
         c.js("__game.ev(%s)" % json.dumps('window.__ending=(function(){' + src + '\nreturn {endingStory};})();1'))
         print('vclock', c.js(cdp.VCLOCK_JS))
+        c.js("__step(900)")                      # start on black (the stage fades in from it)
         t0 = c.js("performance.now()")
         c.js("window.__evlog=[];window.__done=0;__ending.endingStory({spouse:%s,log:(k,d)=>__evlog.push([performance.now(),k,d||null]),done:()=>{window.__done=performance.now()}});1"
              % json.dumps(spouse))
