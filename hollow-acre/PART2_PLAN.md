@@ -28,6 +28,29 @@ the app starting Part 2 from that black, carrying the save (name, look, spouse) 
 4. **The loop:** mine, sell, buy car parts and better tools, fortify the base, fix the car, then drive up to the main
    area (your grandmother's mine). That ends the first stretch.
 
+## Multiplayer (owner: "Multiplayer needs to be a thing for part 2 as well")
+Part 2 is co-op, built the same way Part 1's is (`MULTIPLAYER.md`): one player hosts, friends join with a code, and
+there is no game server to rent.
+- **Engine:** Unreal's own networking. The host's game is the server (a "listen server"), everyone else joins it, and
+  the host's save holds the world.
+- **Connecting:** Epic Online Services (free). It gives a lobby with a join code, friend invites, a route between
+  different home networks and phone carriers, a relay when no direct route exists (as Part 1's TURN relay does), and
+  play across PC, Mac, iPhone and Android. Steam's networking can stand in on Steam. Optional voice chat, best as
+  proximity voice: you only hear friends near you.
+- **Players:** up to 4.
+- **Shared:** the mountain, the base and its defences, the car's repairs, what has been mined, the money, and the story
+  and its mystery (the host's grandmother; friends come along, the way farmhands join the host's farm in Part 1).
+- **Each player's own:** their character from their own Part 1 save (name, look), backpack, tools, health, warmth,
+  stamina, and flashlight battery.
+- **The creature** hunts everyone. Any player's noise and light draws it. A downed friend can be revived, which makes
+  splitting up a real risk.
+- **From Part 1 into Part 2:** a group that reaches the ending together goes through it together and wakes up in the
+  host's Part 2 world. Part 2 also has its own Host and Join screen.
+- **How it is built:** networked from the first playable piece (milestone 2), never bolted on later. Every system
+  (movement, the flashlight, cold, inventory, mining, the base, the creature) is written to run on the host and show
+  on every screen. It is tested with two game windows on the owner's PC, and online through Epic Online Services once
+  the owner has a free Epic Developer Portal account (a sign-in on the PC).
+
 ## Rules that carry over
 - References first for everything we model (photos and 3D models for study only, kept in `_references/`, never
   shipped). Humans are MetaHumans.
