@@ -20,6 +20,7 @@ collects every decision made so far, so the work restarts cleanly in Unreal with
     - You explore and mine to earn money and fix your car.
     - The fixed car takes you up to the main area, your grandmother's mine.
     - It is a long game, always about survival: running, sneaking, exploring, and upgrading your tools.
+    - The character will probably carry a flashlight.
 - **Prototype work, kept for reference only:**
   - the three.js Part 2 page (`2d/p2/`);
   - the Blender first-person arms (`2d/tools/b3d/`, export script `arms_p2/export_unreal.py`, which writes FBX with

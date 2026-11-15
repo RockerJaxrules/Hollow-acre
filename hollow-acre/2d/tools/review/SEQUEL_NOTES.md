@@ -47,7 +47,7 @@ Research the best tools for Claude to make really good-looking, realistic, high-
 
 > Are mountain alway dark there always cold leans more on survival hiding base protection stealth and a story focusing on you trying to uncover the secret of lost minors and your inherit your grandmothers mining company after she went missing you end up there when driving to check o the run into the creature which will be like a yeti rams you vehicle off the mountain
 > This will focus on mining and base upgrading and uncovering the mystery and surviving the climate of a cold always dark location so first you will be lower on the mountain and you will have to explore and mine to get money fix your car so you can drive up to the main area where your grandmothers
-> Mine will be but this will be a long game always focusing on survival lots of running sneaking around upgrading your tools exploring
+> Mine will be but this will be a long game always focusing on survival lots of running sneaking around upgrading your tools exploring we do this in part 2 and character will probably have a flashlight
 
 What that adds:
 - **The opening:** the drive from the ending goes on until the creature rams the car off the road, down the mountain.
@@ -55,6 +55,7 @@ What that adds:
   money, and with it you fix your car.
 - **The goal of that stretch:** the repaired car takes you up to the main area, where your grandmother's mine is.
 - **The whole game:** long, and always about survival: lots of running, sneaking, exploring, and upgrading your tools.
+- **All of this is Part 2.** The character will probably carry a flashlight.
 
 ## Engine decision (owner): Part 2 moves to Unreal Engine
 - Part 2 (realistic first-person survival horror) is built in Unreal Engine 5, as a native app for PC, Mac, iPhone and
