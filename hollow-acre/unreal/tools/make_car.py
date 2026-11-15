@@ -535,6 +535,33 @@ def hood_texture():
     normal_map(h, 4.0, 'T_HoodPaintN.png')
 
 
+def wood_and_clock_textures():
+    """The dash's wood strip (dark teak grain, tiles along its length) and the clock face (it's 11:47 at night)."""
+    W, H = 1024, 256
+    y = np.arange(H)[:, None] / H
+    x = np.arange(W)[None, :] / W
+    warp = tile_noise(W, 6, 50)[:H, :] * 0.08 + tile_noise(W, 24, 51)[:H, :] * 0.02
+    rings = 0.5 + 0.5 * np.sin((y * 14 + warp * 9 + np.sin(x * 2 * math.pi) * 0.15) * 2 * math.pi)
+    fine = tile_noise(W, 200, 52)[:H, :]
+    t = 0.55 + 0.25 * rings + 0.2 * fine
+    col = np.stack([0.26 * t + 0.05, 0.14 * t + 0.03, 0.07 * t + 0.015], -1)   # dark walnut, not orange
+    Image.fromarray(np.clip(col * 255, 0, 255).astype(np.uint8)).save(os.path.join(ART, 'T_Wood.png'))
+    N = 512
+    img = Image.new('RGBA', (N, N), (8, 9, 11, 255))
+    d = ImageDraw.Draw(img)
+    c, r = N / 2, N * 0.46
+    for k in range(60):
+        a = math.radians(90 - k * 6)
+        r1 = r * (0.80 if k % 5 == 0 else 0.88)
+        d.line([(c + math.cos(a) * r1, c - math.sin(a) * r1), (c + math.cos(a) * r * 0.95, c - math.sin(a) * r * 0.95)],
+               fill=(220, 228, 236, 255), width=8 if k % 5 == 0 else 3)
+    for frac, length, width in (((11 + 47 / 60) / 12, 0.5, 12), (47 / 60, 0.78, 8)):
+        a = math.radians(90 - frac * 360)
+        d.line([(c, c), (c + math.cos(a) * r * length, c - math.sin(a) * r * length)], fill=(225, 232, 240, 255), width=width)
+    d.ellipse([c - 12, c - 12, c + 12, c + 12], fill=(180, 40, 30, 255))
+    img.save(os.path.join(ART, 'T_Clock.png'))
+
+
 def detail_textures():
     N = 512
     # moulded plastic: fine even stipple
@@ -552,6 +579,164 @@ def detail_textures():
     normal_map(weave, 1.5, 'T_FabricN.png')
 
 
+# ---------------- the outside (matches the Part 1 pixel car, 2d/spr/lpc/obj/car_beaten.png) ----------------
+# A boxy 1980s three-box sedan, about 4.6 m long and 1.72 m wide: flat hood and trunk, upright glasshouse, chunky silver
+# bumpers, rectangular headlights with a grille between them, red taillights, a chrome strip along the sides, steel
+# wheels with silver hubcaps, rust along the sills and a grey primer patch low on the passenger front door.
+FRONT_X, REAR_X = 242.0, -205.0           # body faces (before SHIFT_X)
+HALF_W = 86.0                             # half the body width
+AXLES = (190.0, -92.0)                    # wheelbase 2.82 m
+TYRE_R, ARCH_R = 31.0, 36.0
+BELT_Z, ROOF_Z = 97.0, 146.0
+
+
+def hood_z(x):
+    f = (x - 96) / 140
+    return 94.2 - 9.5 * max(f, 0) ** 1.3
+
+
+def sill_z(x):
+    """Bottom edge of the side panels: 22 cm, rising round each wheel arch."""
+    z = 22.0
+    for ax in AXLES:
+        if abs(x - ax) < ARCH_R:
+            z = max(z, TYRE_R + math.sqrt(ARCH_R ** 2 - (x - ax) ** 2))
+    return z
+
+
+def side_uv(v):
+    """Body-side UVs in metres along the car and down from the beltline (the rust texture is keyed to height)."""
+    return np.stack([v[:, 0] / 100.0, (BELT_Z - v[:, 2]) / 100.0], -1)
+
+
+def exterior(body, glass):
+    xs = np.concatenate([np.linspace(REAR_X, -140, 12), np.linspace(-138, 94, 60), np.linspace(96, FRONT_X, 40)])
+    for side in (-1, 1):
+        rows = []
+        for x in xs:
+            zb = sill_z(x)
+            yo = YC + side * HALF_W
+            prof = [(yo - side * 2.5, zb), (yo - side * 0.4, zb + 4), (yo, zb + 10), (yo + side * 0.4, 55), (yo, 82),
+                    (yo - side * 1.5, BELT_Z - 1.5), (yo - side * 3.5, BELT_Z)]
+            rows.append([(x, y, z) for y, z in prof])
+        v, _, t = loft(rows)
+        body.add('bodypaint', v, side_uv(v), t, face=None, toward=np.array([0, YC + side * 900, 60.0]))
+    # trunk lid (flat, like the sprite) and the fender tops in front of the doors are covered by the hood mesh
+    rows = []
+    for x in np.linspace(REAR_X + 2, -138, 14):
+        rows.append([(x, YC + s * (HALF_W - 3.5), BELT_Z + 0.8 * (1 - s * s)) for s in np.linspace(-1, 1, 20)])
+    v, uv, t = loft(rows)
+    body.add('paint', v, uv, t, toward=np.array([0, YC, 900.0]))
+    # front and rear faces
+    for x, zt, sign in ((FRONT_X, None, 1), (REAR_X, BELT_Z, -1)):
+        rows = []
+        for z in np.linspace(26, (hood_z(FRONT_X) if zt is None else zt), 6):
+            rows.append([(x + sign * 1.5 * (1 - abs(s) ** 4), YC + s * (HALF_W - 1), z) for s in np.linspace(-1, 1, 20)])
+        v, _, t = loft(rows)
+        body.add('bodypaint', v, side_uv(v), t, toward=np.array([x + sign * 900, YC, 60.0]))
+    # bumpers: chunky silver bars with black rubber strips
+    for x, sign in ((FRONT_X + 6, 1), (REAR_X - 6, -1)):
+        bv, buv, bt = superellipsoid(np.array([x, YC, 36.0]), (np.array([1.0, 0, 0]), np.array([0, 1.0, 0]), np.array([0, 0, 1.0])),
+                                     7.0, HALF_W + 3, 8.0, e=0.25, nu=40, nv=10)
+        body.add('bumper', bv, buv, bt, face='out')
+        rv, ruv, rt = superellipsoid(np.array([x + sign * 6.6, YC, 37.0]), (np.array([1.0, 0, 0]), np.array([0, 1.0, 0]), np.array([0, 0, 1.0])),
+                                     0.8, HALF_W, 1.6, e=0.3, nu=32, nv=6)
+        body.add('rubber', rv, ruv, rt, face='out')
+    X = np.array([1.0, 0, 0]); Y = np.array([0, 1.0, 0]); Z = np.array([0, 0, 1.0])
+    # headlights (rectangular, with a grille between them) and taillights
+    for s in (-1, 1):
+        lv, luv, lt = superellipsoid(np.array([FRONT_X + 1.2, YC + s * 60, 66.0]), (X, Y, Z), 1.4, 14.0, 6.5, e=0.2, nu=24, nv=8)
+        body.add('headlamp', lv, luv, lt, face='out')
+        tv, tuv, tt = superellipsoid(np.array([REAR_X - 1.2, YC + s * 64, 78.0]), (X, Y, Z), 1.4, 17.0, 7.0, e=0.2, nu=24, nv=8)
+        body.add('taillamp', tv, tuv, tt, face='out')
+    gv, guv, gt = superellipsoid(np.array([FRONT_X + 0.8, YC, 66.0]), (X, Y, Z), 1.2, 40.0, 7.0, e=0.15, nu=28, nv=8)
+    body.add('grille', gv, guv, gt, face='out')
+    for k in range(4):
+        sv, suv, st = superellipsoid(np.array([FRONT_X + 2.0, YC, 61.0 + k * 3.4]), (X, Y, Z), 0.6, 39.0, 0.45, e=0.3, nu=20, nv=4)
+        body.add('chrome', sv, suv, st, face='out')
+    # the glasshouse: roof, pillars (outer skins) and glass
+    rows = []
+    for x in np.linspace(19, -114, 16):
+        rows.append([(x, YC + s * 64, ROOF_Z - 3.5 * abs(s) ** 6) for s in np.linspace(-1, 1, 22)])
+    v, uv, t = loft(rows)
+    body.add('paint', v, uv, t, toward=np.array([0, YC, 900.0]))
+    base, top = windshield_edges()
+    for i, s in ((0, -1), (-1, 1)):
+        b, tp = base[i] + np.array([0, s * 2.5, 0.5]), top[i] + np.array([0, s * 2.5, 2.0])
+        pv, puv, pt = tube([b + (tp - b) * q for q in np.linspace(0, 1, 8)], ellipse(3.6, 2.4, 12))
+        body.add('paint', pv, puv, pt)
+        for x0, x1, mat in ((-23, -29, 'blackplastic'), (-108, -140, 'paint')):       # B pillar (black), C pillar
+            rows = [[(x0, YC + s * (HALF_W - 4.5), BELT_Z), (x1 + (x0 - x1) * 0 , YC + s * (HALF_W - 4.5), BELT_Z)]]
+            q = [(x0, YC + s * (HALF_W - 4.5), BELT_Z), (x1, YC + s * (HALF_W - 4.5), BELT_Z),
+                 (x0 - 4 if mat == 'paint' else x1, YC + s * 63, ROOF_Z - 3), (x0 + 2 if mat == 'paint' else x0, YC + s * 63, ROOF_Z - 3)]
+            body.add(mat, np.array(q), np.array([(0, 0), (1, 0), (1, 1), (0, 1)]), [(0, 1, 2), (0, 2, 3)],
+                     toward=np.array([x0, YC + s * 900, 120.0]))
+        # side glass (both sides; the driver's door also has the inner pane from cabin())
+        rows = []
+        for z in np.linspace(BELT_Z + 1, ROOF_Z - 4, 4):
+            f = (z - BELT_Z) / (ROOF_Z - BELT_Z)
+            xa = base[i][0] - 2 + (top[i][0] + 2 - base[i][0]) * f
+            rows.append([(x, YC + s * (HALF_W - 4.0 - 18.0 * f), z) for x in np.linspace(xa, -120 + 10 * f, 10)])
+        v, uv, t = loft(rows, uv_scale='unit')
+        glass.add('sideglass', v, uv, t, toward=np.array([0, YC + s * 900, 120.0]))
+    # rear window
+    rows = [[(-114 + (-140 + 114) * f, YC + s * (60 - 4 * f), ROOF_Z - 2 - (ROOF_Z - BELT_Z - 3) * f) for s in np.linspace(-1, 1, 12)]
+            for f in np.linspace(0, 1, 5)]
+    v, uv, t = loft(rows, uv_scale='unit')
+    glass.add('sideglass', v, uv, t, toward=np.array([-900, YC, 300.0]))
+    # chrome side strip, door seams, door handles, and the grey primer patch on the passenger front door
+    for s in (-1, 1):
+        y = YC + s * (HALF_W + 0.6)
+        pv, puv, pt = tube([(x, y, 52.0) for x in np.linspace(REAR_X + 4, FRONT_X - 4, 30)], ellipse(0.45, 0.9, 8))
+        body.add('chrome', pv, puv, pt)
+        for x in (88.0, -24.0, -126.0):
+            sv, suv, st = superellipsoid(np.array([x, y - s * 0.3, 60.0]), (X, Y, Z), 0.25, 0.3, 36.0, e=0.3, nu=8, nv=4)
+            body.add('rubber', sv, suv, st, face='out')
+        for x in (12.0, -100.0):
+            hv, huv, ht = superellipsoid(np.array([x, y + s * 0.2, 80.0]), (X, Y, Z), 6.0, 0.8, 1.3, e=0.3, nu=16, nv=6)
+            body.add('chrome', hv, huv, ht, face='out')
+    y = YC + HALF_W + 0.35
+    q = [(84, y, 26), (24, y, 26), (24, y, 60), (84, y, 60)]
+    body.add('primer', np.array(q), np.array([(0, 0), (1, 0), (1, 1), (0, 1)]), [(0, 1, 2), (0, 2, 3)],
+             toward=np.array([50, YC + 900, 40.0]))
+    # wheels: tyre (a lathe of a rounded profile), black steel wheel, silver hubcap
+    for ax in AXLES:
+        for s in (-1, 1):
+            c = np.array([ax, YC + s * (HALF_W - 12), TYRE_R])
+            prof = [(19.5, -9.0), (24, -9.8), (29, -9.6), (31, -7.5), (31, 7.5), (29, 9.6), (24, 9.8), (19.5, 9.0)]
+            rows = []
+            for k in range(33):
+                a = 2 * math.pi * k / 32
+                rows.append([c + np.array([math.cos(a) * r, w, math.sin(a) * r]) for r, w in prof])
+            v, uv, t = loft(rows)
+            body.add('tyre', v, uv, t, face='out')
+            hv, huv, ht = superellipsoid(c + np.array([0, s * 8.0, 0]), (X, Y * s, Z), 18.0, 1.6, 18.0, e=0.9, nu=32, nv=8)
+            body.add('steelwheel', hv, huv, ht, face='out')
+            cv, cuv, ct = superellipsoid(c + np.array([0, s * 9.2, 0]), (X, Y * s, Z), 12.5, 1.2, 12.5, e=0.85, nu=32, nv=8)
+            body.add('chrome', cv, cuv, ct, face='out')
+
+
+def body_texture():
+    """Faded red body paint with rust creeping up from the sills (V is metres down from the beltline)."""
+    W, H = 1024, 1024
+    rng = np.random.default_rng(40)
+    base = np.array([122, 36, 40], np.float32) / 255
+    fade = tile_noise(W, 4, 41)
+    col = base[None, None, :] * (0.92 + 0.16 * fade[..., None])
+    depth = np.arange(H)[:, None] / H                       # 0 at the beltline, 1 at 1 m below it
+    edge = 0.66 + (tile_noise(W, 12, 42) - 0.5) * 0.12 + (tile_noise(W, 40, 43) - 0.5) * 0.05
+    rust = np.clip((depth - edge) * 25, 0, 1)
+    rustcol = np.stack([0.42 + 0.12 * tile_noise(W, 30, 44), 0.20 + 0.06 * tile_noise(W, 30, 45), 0.09 + 0.03 * fade], -1)
+    col = col * (1 - rust[..., None]) + rustcol * rust[..., None]
+    for _ in range(60):   # rust blisters just above the line
+        x, y = rng.uniform(0, W), rng.uniform(0.55, 0.7) * H
+        r = rng.uniform(2, 6)
+        yy, xx = np.ogrid[:H, :W]
+        m = ((xx - x) ** 2 + (yy - y) ** 2) < r * r
+        col[m] = col[m] * 0.5 + np.array([0.40, 0.19, 0.08]) * 0.5
+    Image.fromarray(np.clip(col * 255, 0, 255).astype(np.uint8)).save(os.path.join(ART, 'T_BodyPaint.png'))
+
+
 def main():
     os.makedirs(GEN, exist_ok=True)
     os.makedirs(ART, exist_ok=True)
@@ -563,10 +748,16 @@ def main():
     cabin(car, glass)
     outside_front(car)
     car.write(os.path.join(GEN, 'Car.obj'))
+    body = Mesh()
+    exterior(body, glass)
+    body.write(os.path.join(GEN, 'Car_Body.obj'))
     glass.write(os.path.join(GEN, 'Car_Glass.obj'))
     gauges_texture()
     detail_textures()
     hood_texture()
+    body_texture()
+    wood_and_clock_textures()
+    print('body: %d parts, %d tris' % (len(body.parts), sum(len(p[3]) for p in body.parts)))
     mats = sorted({p[0] for p in car.parts})
     print('car: %d parts, %d tris, materials %s; glass %d parts' % (len(car.parts), sum(len(p[3]) for p in car.parts), mats, len(glass.parts)))
 

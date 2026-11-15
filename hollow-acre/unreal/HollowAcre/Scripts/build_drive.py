@@ -376,10 +376,21 @@ def build_car(windshield):
         'paint': detail_mat('M_Car_PaintRed', (0.195, 0.017, 0.021), 0.42, None),   # the pixel car's #7a2428 red, a little faded
         'hoodpaint': detail_mat('M_Car_HoodPaint', (0, 0, 0), 0.45, import_normal('T_HoodPaintN'), base_tex=import_tex('T_HoodPaint')),
         'blackplastic': detail_mat('M_Car_BlackPlastic', (0.012, 0.012, 0.013), 0.55, grain, 2.0),
-        'primer': detail_mat('M_Car_HoodPrimer', (0.25, 0.255, 0.245), 0.88, grain, 0.5),
+        'primer': detail_mat('M_Car_DoorPrimer', (0.25, 0.255, 0.245), 0.88, grain, 0.5),   # the grey patch on the passenger door
         'primer2': detail_mat('M_Car_FenderPrimer', (0.21, 0.215, 0.205), 0.9, grain, 0.5),
         'cowl': detail_mat('M_Car_Cowl', (0.015, 0.015, 0.016), 0.6, grain, 1.0),
         'rubber': make_mat('M_Car_Rubber', (0.012, 0.012, 0.012), 0.75),
+        'bodypaint': detail_mat('M_Car_BodyPaint', (0, 0, 0), 0.5, None, base_tex=import_tex('T_BodyPaint')),
+        'bumper': make_mat('M_Car_Bumper', (0.42, 0.43, 0.45), 0.35, metal=0.7),
+        'headlamp': make_mat('M_Car_Headlamp', (0.8, 0.82, 0.85), 0.1, emissive=(2.5, 2.6, 2.8)),
+        'taillamp': make_mat('M_Car_Taillamp', (0.4, 0.02, 0.02), 0.2, emissive=(0.8, 0.02, 0.02)),
+        'grille': make_mat('M_Car_Grille', (0.05, 0.05, 0.055), 0.5, metal=0.3),
+        'tyre': make_mat('M_Car_Tyre', (0.018, 0.018, 0.018), 0.85),
+        'steelwheel': make_mat('M_Car_SteelWheel', (0.03, 0.03, 0.03), 0.5, metal=0.4),
+        'wood': detail_mat('M_Car_Wood', (0, 0, 0), 0.35, None, base_tex=import_tex('T_Wood')),
+        'clockface': detail_mat('M_Car_Clock', (0.01, 0.01, 0.01), 0.3, None, emissive_tex=import_tex('T_Clock'), emissive=GAUGE_GLOW * 0.6),
+        'display': make_mat('M_Car_RadioDisplay', (0.01, 0.02, 0.025), 0.2, emissive=(0.02, 0.09, 0.11)),
+        'switch': detail_mat('M_Car_Switch', (0.02, 0.02, 0.022), 0.4, grain, 3.0),
         'windshield': windshield,
         'sideglass': make_side_glass_mat(),
     }
@@ -530,7 +541,8 @@ def main():
     ppv.set_editor_property('settings', s)
 
     # ---------- game camera, game mode, screenshot director ----------
-    cam = actors.spawn_actor_from_class(unreal.CameraActor, EYE, unreal.Rotator(pitch=-8 + CAM_DEBUG_PITCH, yaw=CAM_DEBUG_YAW))
+    cam_at = V(*[float(c) for c in os.environ['HA_CAM_POS'].split(',')]) if os.environ.get('HA_CAM_POS') else EYE  # debug: outside views
+    cam = actors.spawn_actor_from_class(unreal.CameraActor, cam_at, unreal.Rotator(pitch=-8 + CAM_DEBUG_PITCH, yaw=CAM_DEBUG_YAW))
     cam.set_actor_label('Driver eye')
     cam.camera_component.set_editor_property('field_of_view', 78.0)
     cam.camera_component.set_editor_property('constrain_aspect_ratio', False)
