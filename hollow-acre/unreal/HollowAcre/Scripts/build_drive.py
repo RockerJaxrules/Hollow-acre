@@ -307,14 +307,17 @@ CAR = '/Game/HollowAcre/Car'
 
 
 def detail_mat(name, color, rough, normal_tex, tiling=1.0, metal=0.0, clearcoat=False, emissive_tex=None, emissive=0.0,
-               two_sided=False):
+               two_sided=False, base_tex=None):
     """A surface with a tiling detail normal map (grain, leather, fabric), optionally lit by a glow texture."""
     m = new_material(name, two_sided=two_sided)
     if clearcoat:
         m.set_editor_property('shading_model', unreal.MaterialShadingModel.MSM_CLEAR_COAT)
-    k = mel.create_material_expression(m, unreal.MaterialExpressionConstant3Vector, -500, -200)
-    k.set_editor_property('constant', unreal.LinearColor(*color, 1))
-    mel.connect_material_property(k, '', unreal.MaterialProperty.MP_BASE_COLOR)
+    if base_tex:
+        mel.connect_material_property(tex_sample(m, base_tex, 1.0, -500, -200), 'RGB', unreal.MaterialProperty.MP_BASE_COLOR)
+    else:
+        k = mel.create_material_expression(m, unreal.MaterialExpressionConstant3Vector, -500, -200)
+        k.set_editor_property('constant', unreal.LinearColor(*color, 1))
+        mel.connect_material_property(k, '', unreal.MaterialProperty.MP_BASE_COLOR)
     for val, prop, y in [(rough, unreal.MaterialProperty.MP_ROUGHNESS, 0), (metal, unreal.MaterialProperty.MP_METALLIC, 100)]:
         c = mel.create_material_expression(m, unreal.MaterialExpressionConstant, -500, y)
         c.set_editor_property('r', val)
@@ -370,7 +373,9 @@ def build_car(windshield):
         'door': detail_mat('M_Car_Door', (0.026, 0.025, 0.025), 0.7, grain, 3.0),
         'chrome': make_mat('M_Car_Chrome', (0.6, 0.6, 0.62), 0.18, metal=1.0),
         'mirror': make_mat('M_Car_Mirror', (0.9, 0.9, 0.9), 0.03, metal=1.0),
-        'paint': detail_mat('M_Car_PaintRed', (0.32, 0.03, 0.03), 0.3, None),
+        'paint': detail_mat('M_Car_PaintRed', (0.195, 0.017, 0.021), 0.42, None),   # the pixel car's #7a2428 red, a little faded
+        'hoodpaint': detail_mat('M_Car_HoodPaint', (0, 0, 0), 0.45, import_normal('T_HoodPaintN'), base_tex=import_tex('T_HoodPaint')),
+        'blackplastic': detail_mat('M_Car_BlackPlastic', (0.012, 0.012, 0.013), 0.55, grain, 2.0),
         'primer': detail_mat('M_Car_HoodPrimer', (0.25, 0.255, 0.245), 0.88, grain, 0.5),
         'primer2': detail_mat('M_Car_FenderPrimer', (0.21, 0.215, 0.205), 0.9, grain, 0.5),
         'cowl': detail_mat('M_Car_Cowl', (0.015, 0.015, 0.016), 0.6, grain, 1.0),

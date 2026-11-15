@@ -280,19 +280,19 @@ def steering_wheel(m):
     R = 18.5
     ring = [c + u * R * math.cos(2 * math.pi * i / 64) + v * R * math.sin(2 * math.pi * i / 64) for i in range(64)]
     # the rim is a little deeper (toward the driver) than it is wide, like a real grip
-    prof = [(1.35 * math.cos(a), 1.65 * math.sin(a)) for a in np.linspace(0, 2 * math.pi, 16, endpoint=False)]
+    prof = [(1.9 * math.cos(a), 2.2 * math.sin(a)) for a in np.linspace(0, 2 * math.pi, 18, endpoint=False)]
     tv, tuv, tt = tube(ring, prof, closed_path=True)
     m.add('leather', tv, tuv, tt)
     hub = c - n * 2.2
-    hv, huv, ht = superellipsoid(hub, (u, v, n), 7.2, 6.0, 2.6, e=0.3, nu=28, nv=10)
+    hv, huv, ht = superellipsoid(hub, (u, v, n), 10.5, 8.0, 3.2, e=0.35, nu=32, nv=12)
     m.add('hub', hv, huv, ht, face='out')
     # spokes at 3, 9 (a little below the middle) and 6 o'clock: flat, widening into the rim
     for ang in (-12.0, 192.0, 270.0):
         a = math.radians(ang)
         d = u * math.cos(a) + v * math.sin(a)
         rows = []
-        for t in np.linspace(5.5, R - 0.8, 7):
-            wdt = 2.2 + 1.6 * (t / R) ** 3
+        for t in np.linspace(7.0, R - 1.0, 7):
+            wdt = 3.8 + 1.4 * (t / R) ** 3
             side = np.cross(n, d)
             p = c + d * t - n * (1.3 - 0.6 * t / R)
             rows.append([p - side * wdt + n * 0.5, p - side * wdt - n * 0.7, p + side * wdt - n * 0.7, p + side * wdt + n * 0.5])
@@ -378,9 +378,18 @@ def cabin(m, glass):
         rows.append([(x, DY - 2 + lean, z) for x in np.linspace(base[0][0] - 2, -60, 10)])
     v, uv, t = loft(rows, uv_scale='unit')
     glass.add('sideglass', v, uv, t, toward=EYE)
-    # the outside mirror (red, the car's own paint), seen through the side glass
-    ov, ouv, ot = superellipsoid(np.array([70.0, DY - 26, 101.0]), (X, Y, Z), 5.0, 9.0, 6.0, e=0.4, nu=20, nv=10)
-    m.add('paint', ov, ouv, ot, face='out')
+    # the door mirror: a small black housing on a mount at the front of the door; the glass faces back toward the driver
+    gn = np.array([-1.0, 0.32, 0.0])
+    gn /= np.linalg.norm(gn)
+    gu = np.cross(Z, gn)
+    gu /= np.linalg.norm(gu)
+    mc = np.array([66.0, DY - 23, 103.0])
+    hv, huv, ht = superellipsoid(mc - gn * 2.6, (gn, gu, Z), 3.0, 8.0, 5.2, e=0.3, nu=24, nv=10)
+    m.add('blackplastic', hv, huv, ht, face='out')
+    gv, guv, gt = superellipsoid(mc + gn * 0.35, (gn, gu, Z), 0.12, 7.2, 4.4, e=0.2, nu=24, nv=6)
+    m.add('mirror', gv, guv, gt, toward=EYE)
+    pv, puv, pt = superellipsoid(np.array([70.0, DY - 9, 99.5]), (X, Y, Z), 5.5, 6.0, 2.2, e=0.35, nu=16, nv=8)
+    m.add('blackplastic', pv, puv, pt, face='out')
 
 
 def outside_front(m):
@@ -410,9 +419,9 @@ def outside_front(m):
         f = (x - 96) / 140
         half = 66 - 6 * f
         z0 = 94.2 - 9.5 * f ** 1.3
-        rows.append([(x, YC + half * s, z0 + 2.6 * (1 - s * s) - 0.9 * s ** 4) for s in np.linspace(-1, 1, 24)])
-    v, uv, t = loft(rows)
-    m.add('primer', v, uv, t, toward=np.array([0, 0, 600.0]))
+        rows.append([(x, YC + half * s, z0 + 1.1 * (1 - s * s) - 0.5 * s ** 6) for s in np.linspace(-1, 1, 24)])
+    v, uv, t = loft(rows, uv_scale='unit')
+    m.add('hoodpaint', v, uv, t, toward=np.array([0, 0, 600.0]))
     for side in (-1, 1):
         rows = []
         for x in np.linspace(96, 236, 16):
@@ -422,7 +431,7 @@ def outside_front(m):
             y_in = YC + side * (half + 0.9)
             rows.append([(x, y_in, z0 - 0.8), (x, y_in + side * 5, z0 - 0.4), (x, y_in + side * 9, z0 - 4.0), (x, y_in + side * 10, z0 - 12)])
         v, uv, t = loft(rows)
-        m.add('primer2', v, uv, t, toward=np.array([0, YC + side * 400, 600.0]))
+        m.add('paint', v, uv, t, toward=np.array([0, YC + side * 400, 600.0]))
     # dark gap strips under the hood edges (the panel gaps read as thin dark lines)
     for side in (-1, 1):
         rows = []
@@ -494,6 +503,38 @@ def normal_map(h, strength, name):
     Image.fromarray(((n * 0.5 + 0.5) * 255).astype(np.uint8)).save(os.path.join(ART, name))
 
 
+def hood_texture():
+    """The pixel car's hood: faded dark red paint, chalky where the sun got it, two long scratches and a few chips."""
+    N = 1024
+    rng = np.random.default_rng(12)
+    base = np.array([122, 36, 40], np.float32) / 255
+    fade = tile_noise(N, 3, 30) * 0.6 + tile_noise(N, 9, 31) * 0.4
+    col = base[None, None, :] * (0.9 + 0.2 * fade[..., None])
+    chalk = np.clip((fade - 0.62) * 3, 0, 1)[..., None] * np.array([0.10, 0.07, 0.07])
+    col = col + chalk
+    img = Image.fromarray(np.clip(col * 255, 0, 255).astype(np.uint8))
+    d = ImageDraw.Draw(img)
+    hmap = Image.new('L', (N, N), 128)
+    hd = ImageDraw.Draw(hmap)
+    # two scratches running front-to-back on the passenger half, like the sprite's dark marks
+    for x0 in (640, 720):
+        pts = []
+        for i in range(40):
+            t = i / 39
+            pts.append((x0 + t * 70 + rng.normal(0, 1.2), 300 + t * 330 + rng.normal(0, 1.0)))
+        d.line(pts, fill=(52, 18, 20), width=5)
+        d.line([(x + 2, y) for x, y in pts], fill=(150, 120, 110), width=1)   # bare metal glint along one edge
+        hd.line(pts, fill=40, width=6)
+    for _ in range(25):   # stone chips toward the front edge
+        x, y = rng.uniform(80, 940), rng.uniform(820, 1010)
+        r = rng.uniform(2, 5)
+        d.ellipse([x - r, y - r, x + r, y + r], fill=(95, 90, 88))
+        hd.ellipse([x - r, y - r, x + r, y + r], fill=70)
+    img.save(os.path.join(ART, 'T_HoodPaint.png'))
+    h = np.asarray(hmap, np.float32) / 255 + tile_noise(N, 64, 33) * 0.05
+    normal_map(h, 4.0, 'T_HoodPaintN.png')
+
+
 def detail_textures():
     N = 512
     # moulded plastic: fine even stipple
@@ -525,6 +566,7 @@ def main():
     glass.write(os.path.join(GEN, 'Car_Glass.obj'))
     gauges_texture()
     detail_textures()
+    hood_texture()
     mats = sorted({p[0] for p in car.parts})
     print('car: %d parts, %d tris, materials %s; glass %d parts' % (len(car.parts), sum(len(p[3]) for p in car.parts), mats, len(glass.parts)))
 
