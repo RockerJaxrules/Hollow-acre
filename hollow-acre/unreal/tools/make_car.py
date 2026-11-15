@@ -15,6 +15,7 @@ Run with Python 3 + numpy + Pillow:  python hollow-acre/unreal/tools/make_car.py
 """
 import math
 import os
+import sys
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -504,34 +505,44 @@ def normal_map(h, strength, name):
 
 
 def hood_texture():
-    """The pixel car's hood: faded dark red paint, chalky where the sun got it, two long scratches and a few chips."""
-    N = 1024
+    """The pixel car's hood: faded dark red paint, chalky where the sun got it, two long scratches and stone chips, a
+    film of grime toward the front. RGB colour, A roughness."""
+    N = 2048
     rng = np.random.default_rng(12)
     base = np.array([122, 36, 40], np.float32) / 255
     fade = tile_noise(N, 3, 30) * 0.6 + tile_noise(N, 9, 31) * 0.4
     col = base[None, None, :] * (0.9 + 0.2 * fade[..., None])
-    chalk = np.clip((fade - 0.68) * 3, 0, 1)[..., None] * np.array([0.04, 0.025, 0.025])   # faded, not orange
-    col = col + chalk
-    img = Image.fromarray(np.clip(col * 255, 0, 255).astype(np.uint8))
+    chalk_amt = np.clip((fade - 0.68) * 3, 0, 1)
+    col = col + chalk_amt[..., None] * np.array([0.04, 0.025, 0.025])   # faded, not orange
+    front = np.repeat((np.arange(N)[:, None] / N), N, 1)              # V: 0 at the windshield, 1 at the nose
+    grime = np.clip((front - 0.55) / 0.45, 0, 1) * (0.4 + 0.6 * tile_noise(N, 20, 34)) * 0.6
+    col = col * (1 - 0.5 * grime[..., None]) + np.array([0.19, 0.165, 0.14]) * 0.5 * grime[..., None]
+    img = Image.fromarray((np.clip(col, 0, 1) * 255).astype(np.uint8))
     d = ImageDraw.Draw(img)
+    rmap = Image.fromarray(((0.3 + 0.12 * fade + 0.2 * chalk_amt + 0.35 * grime) * 255).clip(0, 255).astype(np.uint8))
+    rd = ImageDraw.Draw(rmap)
     hmap = Image.new('L', (N, N), 128)
     hd = ImageDraw.Draw(hmap)
+    sc = N / 1024
     # two scratches running front-to-back on the passenger half, like the sprite's dark marks
     for x0 in (640, 720):
         pts = []
-        for i in range(40):
-            t = i / 39
-            pts.append((x0 + t * 70 + rng.normal(0, 1.2), 300 + t * 330 + rng.normal(0, 1.0)))
-        d.line(pts, fill=(52, 18, 20), width=5)
-        d.line([(x + 2, y) for x, y in pts], fill=(150, 120, 110), width=1)   # bare metal glint along one edge
-        hd.line(pts, fill=40, width=6)
-    for _ in range(25):   # stone chips toward the front edge
-        x, y = rng.uniform(80, 940), rng.uniform(820, 1010)
-        r = rng.uniform(2, 5)
+        for i in range(60):
+            t = i / 59
+            pts.append(((x0 + t * 70 + rng.normal(0, 1.0)) * sc, (300 + t * 330 + rng.normal(0, 0.8)) * sc))
+        d.line(pts, fill=(52, 18, 20), width=int(5 * sc))
+        d.line([(x + 2 * sc, y) for x, y in pts], fill=(150, 120, 110), width=max(1, int(sc)))   # bare metal glint
+        hd.line(pts, fill=40, width=int(6 * sc))
+        rd.line(pts, fill=190, width=int(6 * sc))
+    for _ in range(40):   # stone chips toward the front edge
+        x, y = rng.uniform(80, 940) * sc, rng.uniform(800, 1010) * sc
+        r = rng.uniform(1.5, 5) * sc
         d.ellipse([x - r, y - r, x + r, y + r], fill=(95, 90, 88))
         hd.ellipse([x - r, y - r, x + r, y + r], fill=70)
-    img.save(os.path.join(ART, 'T_HoodPaint.png'))
-    h = np.asarray(hmap, np.float32) / 255 + tile_noise(N, 64, 33) * 0.05
+        rd.ellipse([x - r, y - r, x + r, y + r], fill=205)
+    rgba = Image.merge('RGBA', (*img.split(), rmap))
+    rgba.save(os.path.join(ART, 'T_HoodPaint.png'))
+    h = np.asarray(hmap, np.float32) / 255 + tile_noise(N, 128, 33) * 0.04 + tile_noise(N, 400, 35) * 0.02
     normal_map(h, 4.0, 'T_HoodPaintN.png')
 
 
@@ -716,30 +727,73 @@ def exterior(body, glass):
             body.add('chrome', cv, cuv, ct, face='out')
 
 
+def streaks(w, h, cols, rows, seed):
+    """Tileable noise that changes fast across and slowly down: vertical streaks."""
+    g = np.random.default_rng(seed).random((rows, cols))
+    g = np.vstack([g, g[:1]])
+    g = np.hstack([g, g[:, :1]])
+    im = Image.fromarray((g * 255).astype(np.uint8)).resize((w + w // cols, h + h // rows), Image.BICUBIC)
+    return np.asarray(im, dtype=np.float32)[:h, :w] / 255.0
+
+
 def body_texture():
-    """Faded red body paint with rust creeping up from the sills (V is metres down from the beltline)."""
+    """The body paint as it is on an old car in winter: faded red, road grime building up toward the sills, dirty
+    streaks running down from the window seals, a dusting of road salt, rust at the sills. RGB colour, A roughness
+    (clean paint is glossy, grime and rust are dull). U is metres along the car, V metres down from the beltline."""
     W, H = 1024, 1024
     rng = np.random.default_rng(40)
     base = np.array([122, 36, 40], np.float32) / 255
     fade = tile_noise(W, 4, 41)
-    col = base[None, None, :] * (0.92 + 0.16 * fade[..., None])
-    depth = np.arange(H)[:, None] / H                       # 0 at the beltline, 1 at 1 m below it
+    fine = tile_noise(W, 96, 46)
+    col = base[None, None, :] * (0.88 + 0.16 * fade[..., None] + 0.05 * fine[..., None])
+    depth = np.repeat(np.arange(H)[:, None] / H, W, 1)       # 0 at the beltline, 1 at 1 m below it
+    # road grime: brownish grey, thickest low down, blotchy
+    blot = tile_noise(W, 14, 47) * 0.6 + tile_noise(W, 40, 49) * 0.4
+    grime = np.clip((depth - 0.28) / 0.42, 0, 1) ** 1.4 * (0.45 + 0.55 * blot)
+    grime_col = np.array([0.19, 0.165, 0.14])
+    col = col * (1 - 0.75 * grime[..., None]) + grime_col * 0.75 * grime[..., None]
+    # streaks down from the beltline
+    st = streaks(W, H, 220, 3, 55)
+    streak = np.clip((st - 0.58) * 4, 0, 1) * np.clip(1 - depth / 0.38, 0, 1) * (0.6 + 0.4 * tile_noise(W, 8, 56))
+    col = col * (1 - 0.35 * streak[..., None]) + grime_col * 0.35 * streak[..., None]
+    # road salt: pale speckle and haze low down
+    salt = (tile_noise(W, 256, 48) > 0.78).astype(np.float32) * np.clip((depth - 0.45) / 0.25, 0, 1)
+    haze = np.clip((depth - 0.5) / 0.2, 0, 1) * 0.18 * (0.5 + tile_noise(W, 20, 57))
+    col = col + (salt * 0.18 + haze)[..., None] * np.array([0.75, 0.75, 0.72])
+    # rust creeping up from the sills, with blisters just above the line
     edge = 0.66 + (tile_noise(W, 12, 42) - 0.5) * 0.12 + (tile_noise(W, 40, 43) - 0.5) * 0.05
     rust = np.clip((depth - edge) * 25, 0, 1)
-    rustcol = np.stack([0.42 + 0.12 * tile_noise(W, 30, 44), 0.20 + 0.06 * tile_noise(W, 30, 45), 0.09 + 0.03 * fade], -1)
+    rustcol = np.stack([0.40 + 0.12 * tile_noise(W, 30, 44), 0.19 + 0.06 * tile_noise(W, 30, 45), 0.08 + 0.03 * fade], -1)
     col = col * (1 - rust[..., None]) + rustcol * rust[..., None]
-    for _ in range(60):   # rust blisters just above the line
+    blister = np.zeros((H, W), np.float32)
+    yy, xx = np.ogrid[:H, :W]
+    for _ in range(70):
         x, y = rng.uniform(0, W), rng.uniform(0.55, 0.7) * H
         r = rng.uniform(2, 6)
-        yy, xx = np.ogrid[:H, :W]
         m = ((xx - x) ** 2 + (yy - y) ** 2) < r * r
         col[m] = col[m] * 0.5 + np.array([0.40, 0.19, 0.08]) * 0.5
-    Image.fromarray(np.clip(col * 255, 0, 255).astype(np.uint8)).save(os.path.join(ART, 'T_BodyPaint.png'))
+        blister[m] = 1.0
+    rough = 0.24 + 0.08 * fade + 0.04 * fine + 0.45 * grime + 0.25 * streak + 0.3 * salt + 0.55 * rust + 0.4 * blister
+    rgba = np.concatenate([np.clip(col, 0, 1), np.clip(rough, 0, 1)[..., None]], -1)
+    Image.fromarray((rgba * 255).astype(np.uint8), 'RGBA').save(os.path.join(ART, 'T_BodyPaint.png'))
+    # orange peel and the faint waviness of old panels, tiled 4x per metre on the body
+    N = 1024
+    peel = tile_noise(N, 220, 50) * 0.6 + tile_noise(N, 440, 51) * 0.4
+    wave = tile_noise(N, 3, 52)
+    normal_map(peel * 0.35 + wave * 6.0, 1.0, 'T_PaintN.png')
 
 
 def main():
     os.makedirs(GEN, exist_ok=True)
     os.makedirs(ART, exist_ok=True)
+    if '--textures-only' in sys.argv:   # the car's meshes come from tools/blender/car_interior.py now
+        gauges_texture()
+        detail_textures()
+        hood_texture()
+        body_texture()
+        wood_and_clock_textures()
+        print('textures written')
+        return
     car, glass = Mesh(), Mesh()
     dashboard(car)
     vents(car)

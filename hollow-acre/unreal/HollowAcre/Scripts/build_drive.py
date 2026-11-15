@@ -370,9 +370,69 @@ def make_outer_glass_mat():
     return finish(m)
 
 
+def car_paint_mat(name, color=None, base_tex=None, normal_tex=None, normal_tiling=1.0, rough=0.3, coat=0.8):
+    """Car paint: a base colour (with roughness in the texture's alpha: dull where it is dirty), a clear coat on top
+    (glossy, thinner where the paint is dirty), and a fine orange-peel normal. Falls back to plain paint if the
+    clear-coat setup isn't available."""
+    m = new_material(name)
+    try:
+        m.set_editor_property('shading_model', unreal.MaterialShadingModel.MSM_CLEAR_COAT)
+        m.set_editor_property('use_material_attributes', True)
+        mma = mel.create_material_expression(m, unreal.MaterialExpressionMakeMaterialAttributes, -150, 0)
+        ok = []
+        if base_tex:
+            ts = tex_sample(m, base_tex, 1.0, -900, -250)
+            ok.append(mel.connect_material_expressions(ts, 'RGB', mma, 'BaseColor'))
+            ok.append(mel.connect_material_expressions(ts, 'A', mma, 'Roughness'))
+            cc = scaled_add(m, ts, 'A', -1.3, 1.15, -650, 150)
+            sat = mel.create_material_expression(m, unreal.MaterialExpressionSaturate, -300, 150)
+            mel.connect_material_expressions(cc, '', sat, '')
+            ccm = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -250, 220)
+            ccm.set_editor_property('const_b', coat)
+            mel.connect_material_expressions(sat, '', ccm, 'A')
+            ok.append(mel.connect_material_expressions(ccm, '', mma, 'ClearCoat'))
+            ok.append(mel.connect_material_expressions(scaled_add(m, ts, 'A', 0.35, 0.04, -650, 320), '', mma, 'ClearCoatRoughness'))
+        else:
+            k = mel.create_material_expression(m, unreal.MaterialExpressionConstant3Vector, -500, -250)
+            k.set_editor_property('constant', unreal.LinearColor(*color, 1))
+            ok.append(mel.connect_material_expressions(k, '', mma, 'BaseColor'))
+            for val, pin, y in ((rough, 'Roughness', 0), (coat, 'ClearCoat', 150), (0.08, 'ClearCoatRoughness', 300)):
+                c = mel.create_material_expression(m, unreal.MaterialExpressionConstant, -500, y)
+                c.set_editor_property('r', val)
+                ok.append(mel.connect_material_expressions(c, '', mma, pin))
+        if normal_tex:
+            ok.append(mel.connect_material_expressions(tex_sample(m, normal_tex, normal_tiling, -900, 500, normal=True), 'RGB', mma, 'Normal'))
+        ok.append(mel.connect_material_property(mma, '', unreal.MaterialProperty.MP_MATERIAL_ATTRIBUTES))
+        if not all(ok):
+            raise RuntimeError('a clear-coat pin did not connect: %s' % ok)
+        log('%s: clear-coat car paint' % name)
+        return finish(m)
+    except Exception as e:   # plain paint as a fallback
+        log('%s: clear coat unavailable (%s); plain paint' % (name, e))
+        return detail_mat(name, color or (0, 0, 0), rough, normal_tex, normal_tiling, base_tex=base_tex)
+
+
+def make_lamp_lens_mat():
+    """Clear lamp glass over the reflector: mostly see-through, very glossy, catches the light on its flutes."""
+    m = new_material('M_Car_LampLens')
+    m.set_editor_property('blend_mode', unreal.BlendMode.BLEND_TRANSLUCENT)
+    m.set_editor_property('two_sided', False)
+    m.set_editor_property('translucency_lighting_mode', unreal.TranslucencyLightingMode.TLM_SURFACE)
+    for val, prop in ((0.2, unreal.MaterialProperty.MP_OPACITY), (0.03, unreal.MaterialProperty.MP_ROUGHNESS),
+                      (1.0, unreal.MaterialProperty.MP_SPECULAR)):
+        k = mel.create_material_expression(m, unreal.MaterialExpressionConstant, -300, 0)
+        k.set_editor_property('r', val)
+        mel.connect_material_property(k, '', prop)
+    c = mel.create_material_expression(m, unreal.MaterialExpressionConstant3Vector, -300, -150)
+    c.set_editor_property('constant', unreal.LinearColor(0.8, 0.82, 0.85, 1))
+    mel.connect_material_property(c, '', unreal.MaterialProperty.MP_BASE_COLOR)
+    return finish(m)
+
+
 def build_car(windshield):
     """Import the generated car and glass, give every surface its material; returns the actors to attach to the car."""
     grain, leather, fabric = import_normal('T_GrainN'), import_normal('T_LeatherN'), import_normal('T_FabricN')
+    paint_n = import_normal('T_PaintN')
     gauges_tex = import_tex('T_Gauges')
     mats = {
         'dash': detail_mat('M_Car_Dash', (0.022, 0.022, 0.024), 0.62, grain, 3.0),
@@ -388,28 +448,31 @@ def build_car(windshield):
         'trim': detail_mat('M_Car_PillarTrim', (0.045, 0.044, 0.042), 0.85, fabric, 1.5),
         'headliner': detail_mat('M_Car_Headliner', (0.09, 0.088, 0.083), 0.95, fabric, 1.5),
         'door': detail_mat('M_Car_Door', (0.026, 0.025, 0.025), 0.7, grain, 3.0),
-        'chrome': make_mat('M_Car_Chrome', (0.6, 0.6, 0.62), 0.18, metal=1.0),
+        'chrome': make_mat('M_Car_Chrome', (0.62, 0.62, 0.64), 0.12, metal=1.0),
         'mirror': make_mat('M_Car_Mirror', (0.9, 0.9, 0.9), 0.03, metal=1.0),
-        'paint': detail_mat('M_Car_PaintRed', (0.195, 0.017, 0.021), 0.42, None),   # the pixel car's #7a2428 red, a little faded
-        'hoodpaint': detail_mat('M_Car_HoodPaint', (0, 0, 0), 0.45, import_normal('T_HoodPaintN'), base_tex=import_tex('T_HoodPaint')),
+        'paint': car_paint_mat('M_Car_PaintRed', color=(0.17, 0.016, 0.019), normal_tex=paint_n, normal_tiling=0.8, rough=0.3),   # the pixel car's #7a2428 red, faded
+        'hoodpaint': car_paint_mat('M_Car_HoodPaint', base_tex=import_tex('T_HoodPaint'), normal_tex=import_normal('T_HoodPaintN'), coat=0.6),
         'blackplastic': detail_mat('M_Car_BlackPlastic', (0.012, 0.012, 0.013), 0.55, grain, 2.0),
         'primer': detail_mat('M_Car_DoorPrimer', (0.25, 0.255, 0.245), 0.88, grain, 0.5),   # the grey patch on the passenger door
         'primer2': detail_mat('M_Car_FenderPrimer', (0.21, 0.215, 0.205), 0.9, grain, 0.5),
         'cowl': detail_mat('M_Car_Cowl', (0.015, 0.015, 0.016), 0.6, grain, 1.0),
         'rubber': make_mat('M_Car_Rubber', (0.012, 0.012, 0.012), 0.75),
-        'bodypaint': detail_mat('M_Car_BodyPaint', (0, 0, 0), 0.5, None, base_tex=import_tex('T_BodyPaint')),
-        'bumper': make_mat('M_Car_Bumper', (0.42, 0.43, 0.45), 0.35, metal=0.7),
-        'headlamp': make_mat('M_Car_Headlamp', (0.8, 0.82, 0.85), 0.1, emissive=(2.5, 2.6, 2.8)),
+        'bodypaint': car_paint_mat('M_Car_BodyPaint', base_tex=import_tex('T_BodyPaint'), normal_tex=paint_n, normal_tiling=4.0),
+        'bumper': detail_mat('M_Car_Bumper', (0.22, 0.225, 0.235), 0.5, grain, 5.0, metal=0.4),   # silver-grey textured plastic
+        'headlamp': make_mat('M_Car_Headlamp', (0.85, 0.86, 0.88), 0.12, metal=1.0, emissive=(0.7, 0.72, 0.78)),   # lit reflector bowl
         'taillamp': make_mat('M_Car_Taillamp', (0.4, 0.02, 0.02), 0.2, emissive=(0.8, 0.02, 0.02)),
         'grille': make_mat('M_Car_Grille', (0.05, 0.05, 0.055), 0.5, metal=0.3),
-        'tyre': make_mat('M_Car_Tyre', (0.018, 0.018, 0.018), 0.85),
+        'tyre': detail_mat('M_Car_Tyre', (0.016, 0.016, 0.016), 0.9, grain, 6.0),
         'steelwheel': make_mat('M_Car_SteelWheel', (0.03, 0.03, 0.03), 0.5, metal=0.4),
         'wood': detail_mat('M_Car_Wood', (0, 0, 0), 0.35, None, base_tex=import_tex('T_Wood')),
         'clockface': detail_mat('M_Car_Clock', (0.01, 0.01, 0.01), 0.3, None, emissive_tex=import_tex('T_Clock'), emissive=GAUGE_GLOW * 0.6),
         'display': make_mat('M_Car_RadioDisplay', (0.01, 0.02, 0.025), 0.2, emissive=(0.02, 0.09, 0.11)),
         'switch': detail_mat('M_Car_Switch', (0.02, 0.02, 0.022), 0.4, grain, 3.0),
-        'amberlens': make_mat('M_Car_AmberLens', (0.45, 0.18, 0.02), 0.2),
+        'amberlens': make_mat('M_Car_AmberLens', (0.32, 0.1, 0.008), 0.22, spec=0.7),
         'gap': make_mat('M_Car_PanelGap', (0.004, 0.004, 0.004), 0.8),
+        'lamplens': make_lamp_lens_mat(),
+        'seat': detail_mat('M_Car_Seat', (0.034, 0.032, 0.03), 0.88, fabric, 2.0),
+        'carpet': detail_mat('M_Car_Carpet', (0.018, 0.017, 0.016), 0.95, fabric, 4.0),
         'windshield': windshield,
         'sideglass': make_side_glass_mat(),
         'extglass': make_outer_glass_mat(),
@@ -440,12 +503,24 @@ def build_car(windshield):
         if name == 'Car_Glass':
             comp.set_cast_shadow(False)
         out.append(a)
-    if WORK_LIGHT:   # debug only: light the cabin to judge the model
-        at = V(*[float(c) for c in os.environ['HA_CAM_POS'].split(',')]) + V(0, 0, 150) if os.environ.get('HA_CAM_POS') else V(-20, 20, 130)
-        wl = actors.spawn_actor_from_class(unreal.PointLight, at)
-        wl.point_light_component.set_intensity(WORK_LIGHT)
-        wl.point_light_component.set_editor_property('attenuation_radius', 3000.0 if os.environ.get('HA_CAM_POS') else 600.0)
-        out.append(wl)
+    if WORK_LIGHT:   # debug only: light the model to judge it
+        if os.environ.get('HA_CAM_POS'):
+            # outside views: a key light high and to one side (so curves and paint read), a soft fill from the camera
+            cam = V(*[float(c) for c in os.environ['HA_CAM_POS'].split(',')])
+            centre = V(30, YC_CAR, 70)
+            d = cam - centre
+            a = math.radians(55)
+            key_at = centre + V((d.x * math.cos(a) - d.y * math.sin(a)) * 0.9, (d.x * math.sin(a) + d.y * math.cos(a)) * 0.9, 260)
+            for at, k in ((key_at, 1.0), (cam + V(0, 0, 80), 0.22)):
+                wl = actors.spawn_actor_from_class(unreal.PointLight, at)
+                wl.point_light_component.set_intensity(WORK_LIGHT * k)
+                wl.point_light_component.set_editor_property('attenuation_radius', 3000.0)
+                out.append(wl)
+        else:
+            wl = actors.spawn_actor_from_class(unreal.PointLight, V(-20, 20, 130))
+            wl.point_light_component.set_intensity(WORK_LIGHT)
+            wl.point_light_component.set_editor_property('attenuation_radius', 600.0)
+            out.append(wl)
     return out
 
 
@@ -527,7 +602,7 @@ def main():
     fc.set_editor_property('volumetric_fog_distance', 12000.0)
 
     for side in (-1, 1):
-        hl = actors.spawn_actor_from_class(unreal.SpotLight, V(256, YC_CAR + side * 62, 68), unreal.Rotator(pitch=-3, yaw=side * 2))
+        hl = actors.spawn_actor_from_class(unreal.SpotLight, V(257, YC_CAR + side * 53, 66), unreal.Rotator(pitch=-3, yaw=side * 2))
         hl.set_actor_label('Headlight')
         c = hl.spot_light_component
         c.set_editor_property('intensity_units', unreal.LightUnits.CANDELAS)

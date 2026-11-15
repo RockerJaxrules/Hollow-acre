@@ -6,3 +6,7 @@ hollow-acre/unreal/HollowAcre/DerivedDataCache/
 hollow-acre/unreal/HollowAcre/.vs/
 hollow-acre/unreal/HollowAcre/*.sln
 hollow-acre/unreal/HollowAcre/*.slnx
+
+# Python bytecode
+__pycache__/
+*.pyc

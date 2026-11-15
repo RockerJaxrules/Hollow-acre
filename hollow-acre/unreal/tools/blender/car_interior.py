@@ -25,7 +25,7 @@ DOOR_Y, PASS_Y = -35.0, 109.0
 WHEEL_C = Vector((55.0, 0.0, 86.0))
 WHEEL_TILT = math.radians(25)
 
-GLASS = {'windshield', 'sideglass', 'extglass'}
+GLASS = {'windshield', 'sideglass', 'extglass', 'lamplens'}
 
 # ---------------- helpers ----------------
 def material(name):
@@ -314,7 +314,7 @@ def windshield_edges():
     for i in range(25):
         s = -1 + 2 * i / 24
         base.append(Vector((100 + 5 * (1 - s * s), YC + 66 * s, 96.8)))
-        top.append(Vector((56 + 2 * (1 - s * s), YC + 62 * s, 141.0)))
+        top.append(Vector((40 + 3 * (1 - s * s), YC + 58 * s, 134.5)))   # raked like the car (car_exterior WS_TOP_X/Z)
     return base, top
 
 
@@ -334,16 +334,16 @@ def cabin():
         mid = (b + t) / 2 + out * 1.5 + nrm * 1.2
         box('a_pillar', 'trim', (-(t - b).length / 2 - 2, -4.2, -2.2), ((t - b).length / 2 + 2, 4.2, 2.2), bevel=1.8, segs=4,
             matrix=frame(mid, d, out, nrm))
-    box('header', 'trim', (52, YC - 64, 139.2), (61, YC + 64, 143.2), bevel=1.5, segs=4)
-    box('headliner', 'headliner', (-100, DOOR_Y - 1, 142.6), (57, PASS_Y + 1, 145.5), bevel=1.5)
-    for y0, y1 in ((-31, 4), (70, 105)):
-        box('visor', 'headliner', (39, y0, 139.0), (52, y1, 141.6), bevel=1.0, segs=4)
+    box('header', 'trim', (36, YC - 60, 132.6), (45, YC + 60, 136.4), bevel=1.5, segs=4)
+    box('headliner', 'headliner', (-84, DOOR_Y + 6, 135.6), (41, PASS_Y - 6, 137.4), bevel=1.5)   # inside the roof
+    for y0, y1 in ((-28, 4), (70, 102)):
+        box('visor', 'headliner', (24, y0, 132.2), (37, y1, 134.6), bevel=1.0, segs=4)
     # rear-view mirror: wide rectangle on a stem from the header, angled toward the driver
-    m = frame(Vector((50.0, YC, 131.5)), Vector((math.cos(math.radians(-10)), math.sin(math.radians(-10)), 0)),
+    m = frame(Vector((34.0, YC, 126.0)), Vector((math.cos(math.radians(-10)), math.sin(math.radians(-10)), 0)),
               Vector((-math.sin(math.radians(-10)), math.cos(math.radians(-10)), 0)), Vector((0, 0, 1)))
     box('rearview', 'blackplastic', (-1.6, -13.5, -3.4), (1.6, 13.5, 3.4), bevel=1.0, segs=4, matrix=m)
     box('rearview_glass', 'mirror', (-1.75, -12.6, -2.6), (-1.6, 12.6, 2.6), bevel=0.0, matrix=m)
-    cylinder('rearview_stem', 'blackplastic', Vector((52.0, YC, 137.0)), Vector((0.15, 0, 1)), 0.9, 8.0, segs=16)
+    cylinder('rearview_stem', 'blackplastic', Vector((36.0, YC, 131.0)), Vector((0.15, 0, 1)), 0.9, 8.0, segs=16)
     # driver's door: panel, armrest, pull handle, window crank, window sill
     box('door_panel', 'door', (-70, DOOR_Y - 3.0, 46), (97, DOOR_Y - 0.8, 96.5), bevel=1.2)
     box('armrest', 'door', (-42, DOOR_Y - 1.0, 66), (22, DOOR_Y + 6.0, 72.5), bevel=1.6, segs=4)
@@ -351,25 +351,15 @@ def cabin():
     cylinder('crank_boss', 'chrome', Vector((30, DOOR_Y + 0.2, 80)), Vector((0, 1, 0)), 1.5, 1.4, segs=24, bevel=0.2)
     box('crank_arm', 'chrome', (29.2, DOOR_Y + 0.9, 74.5), (30.8, DOOR_Y + 1.8, 80.5), bevel=0.3)
     cylinder('crank_knob', 'blackplastic', Vector((30, DOOR_Y + 3.0, 75.2)), Vector((0, 1, 0)), 1.0, 3.0, segs=16, bevel=0.3)
-    box('door_sill', 'blackplastic', (-70, DOOR_Y - 14.0, 95.5), (97, DOOR_Y + 0.5, 99.0), bevel=1.2)
-    # the door mirror's sail: a triangular block filling the front corner of the window, through the door's thickness,
-    # with the mirror on a short arm outside it (it is attached, not floating)
-    prism('mirror_sail', 'blackplastic', [(84, 98.5), (98, 98.5), (98, 110.0)], DOOR_Y - 14.5, DOOR_Y - 0.2, bevel=0.5)
-    arm_a, arm_b = Vector((91.0, DOOR_Y - 14.0, 102.5)), Vector((88.5, DOOR_Y - 19.5, 104.0))
-    cylinder('mirror_arm', 'blackplastic', (arm_a + arm_b) / 2, arm_b - arm_a, 1.3, (arm_b - arm_a).length + 1.0, segs=16, bevel=0.3)
-    gn = Vector((-1.0, 0.25, 0.0)).normalized()                  # the glass faces back, a little toward the driver
-    gu = Vector((0, 0, 1)).cross(gn).normalized()
-    hc = Vector((88.0, DOOR_Y - 26.5, 104.5))
-    m = frame(hc, gn, gu, Vector((0, 0, 1)))
-    box('mirror_housing', 'blackplastic', (-1.0, -8.5, -5.6), (5.5, 8.5, 5.6), bevel=2.0, segs=4, matrix=m)
-    box('mirror_glass', 'mirror', (-1.25, -7.6, -4.7), (-1.0, 7.6, 4.7), bevel=0.0, matrix=m)
+    box('door_sill', 'blackplastic', (-70, DOOR_Y - 9.5, 95.5), (97, DOOR_Y + 0.5, 99.0), bevel=1.2)
+    # (the door mirrors are modelled as their own part in car_parts.py)
     # side glass in the driver's door, between the inner and outer skins
     rows = []
     for k in range(6):
-        z = 99.5 + (140.0 - 99.5) * k / 5
+        z = 99.5 + (133.5 - 99.5) * k / 5
         f = k / 5
         xa = base[0].x - 2 + (top[0].x + 2 - base[0].x) * f
-        rows.append([Vector((x, DOOR_Y - 7.5 + 4 * f, z)) for x in (xa + (-60 - xa) * j / 9 for j in range(10))])
+        rows.append([Vector((x, YC - (76.5 - 9.5 * (z - 99.0) / 35.0), z)) for x in (xa + (-21 - xa) * j / 9 for j in range(10))])   # leans in like the body
     grid('side_glass', 'sideglass', rows)
     grid('side_glass_outer', 'extglass', [[p + Vector((0, -0.6, 0)) for p in row] for row in rows], outward=True)
 
@@ -380,15 +370,7 @@ def outside_front():
     for k in range(16):
         y = YC - 60 + k * 8
         box('cowl_slot', 'rubber', (100, y, 96.9), (104.5, y + 5.5, 97.15), bevel=0.0)
-    # the hood: long and flat with a hint of crown, its front edge turned down; UVs 0-1 over the top for the scratches
-    hx0, hx1 = 106.5, 252.0
-    me_rows = []
-    for k in range(24):
-        x = hx0 + (hx1 - hx0) * k / 23
-        z0 = 95.0 - 6.5 * (k / 23) ** 1.2
-        me_rows.append([Vector((x, YC + s * 74.5, z0 + 1.0 * (1 - s * s) - 0.35 * s ** 6)) for s in (-1 + 2 * j / 23 for j in range(24))])
-    hood = grid('hood', 'hoodpaint', [list(reversed(r)) for r in me_rows])
-    lip = box('hood_lip', 'paint', (hx1 - 2.0, YC - 74.5, 84.0), (hx1 + 1.0, YC + 74.5, 88.6), bevel=0.8)
+    # (the hood itself is part of the body shell in car_exterior.py: crowned, with two creases)
     # wipers parked along the bottom of the glass, attached at their pivots in the cowl
     for piv_y, length in ((YC - 18, 52.0), (YC + 34, 50.0)):
         a = Vector((103.5, piv_y, 97.0))
@@ -420,7 +402,8 @@ def export(path, keep):
         mw = obj.matrix_world
         nm = mw.to_3x3().inverted().transposed()
         for tri in me.loop_triangles:
-            mat = obj.material_slots[tri.material_index].material.name if obj.material_slots else 'dash'
+            mats = me.materials   # the evaluated mesh: Boolean cuts add their own (gap) material
+            mat = mats[tri.material_index].name if tri.material_index < len(mats) and mats[tri.material_index] else 'dash'
             if (mat in GLASS) != keep:
                 continue
             g = groups.setdefault(mat, [])
