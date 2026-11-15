@@ -25,10 +25,7 @@ DOOR_Y, PASS_Y = -35.0, 109.0
 WHEEL_C = Vector((55.0, 0.0, 86.0))
 WHEEL_TILT = math.radians(25)
 
-GLASS = {'windshield', 'sideglass'}
-
-bpy.ops.wm.read_factory_settings(use_empty=True)
-
+GLASS = {'windshield', 'sideglass', 'extglass'}
 
 # ---------------- helpers ----------------
 def material(name):
@@ -189,7 +186,7 @@ def prism(name, mat, pts_xz, y0, y1, bevel=0.4):
     return finish(link(bpy.data.objects.new(name, me), mat), bevel=bevel, segs=2)
 
 
-def grid(name, mat, rows, flat=False):
+def grid(name, mat, rows, flat=False, outward=False):
     """A surface through rows of points (list of lists of Vectors); UV 0-1 across (columns) and down (rows)."""
     me = bpy.data.meshes.new(name)
     bm = bmesh.new()
@@ -204,7 +201,7 @@ def grid(name, mat, rows, flat=False):
     bm.normal_update()
     centre = sum((p for row in rows for p in row), Vector()) / (R * M)
     bm.faces.ensure_lookup_table()
-    if bm.faces[0].normal.dot(EYE - centre) < 0:
+    if (bm.faces[0].normal.dot(EYE - centre) < 0) != outward:   # face the driver, or away from the car (outer glass)
         bmesh.ops.reverse_faces(bm, faces=bm.faces)
     bm.to_mesh(me)
     bm.free()
@@ -317,7 +314,7 @@ def windshield_edges():
     for i in range(25):
         s = -1 + 2 * i / 24
         base.append(Vector((100 + 5 * (1 - s * s), YC + 66 * s, 96.8)))
-        top.append(Vector((30 + 3 * (1 - s * s), YC + 62 * s, 141.0)))
+        top.append(Vector((56 + 2 * (1 - s * s), YC + 62 * s, 141.0)))
     return base, top
 
 
@@ -325,6 +322,7 @@ def cabin():
     base, top = windshield_edges()
     rows = [[t + (b - t) * k / 11 for t, b in zip(top, base)] for k in range(12)]
     grid('windshield', 'windshield', rows)
+    grid('windshield_out', 'extglass', [[p + Vector((0.45, 0, 0.35)) for p in row] for row in rows], outward=True)
     # A pillars: thick padded trims along both edges of the glass, a header trim along the top
     for i, sgn in ((0, -1), (-1, 1)):
         b, t = base[i], top[i]
@@ -336,16 +334,16 @@ def cabin():
         mid = (b + t) / 2 + out * 1.5 + nrm * 1.2
         box('a_pillar', 'trim', (-(t - b).length / 2 - 2, -4.2, -2.2), ((t - b).length / 2 + 2, 4.2, 2.2), bevel=1.8, segs=4,
             matrix=frame(mid, d, out, nrm))
-    box('header', 'trim', (27, YC - 64, 139.2), (36, YC + 64, 143.2), bevel=1.5, segs=4)
-    box('headliner', 'headliner', (-100, DOOR_Y - 1, 142.6), (32, PASS_Y + 1, 145.5), bevel=1.5)
+    box('header', 'trim', (52, YC - 64, 139.2), (61, YC + 64, 143.2), bevel=1.5, segs=4)
+    box('headliner', 'headliner', (-100, DOOR_Y - 1, 142.6), (57, PASS_Y + 1, 145.5), bevel=1.5)
     for y0, y1 in ((-31, 4), (70, 105)):
-        box('visor', 'headliner', (18, y0, 139.0), (31, y1, 141.6), bevel=1.0, segs=4)
+        box('visor', 'headliner', (39, y0, 139.0), (52, y1, 141.6), bevel=1.0, segs=4)
     # rear-view mirror: wide rectangle on a stem from the header, angled toward the driver
-    m = frame(Vector((31.0, YC, 131.5)), Vector((math.cos(math.radians(-10)), math.sin(math.radians(-10)), 0)),
+    m = frame(Vector((50.0, YC, 131.5)), Vector((math.cos(math.radians(-10)), math.sin(math.radians(-10)), 0)),
               Vector((-math.sin(math.radians(-10)), math.cos(math.radians(-10)), 0)), Vector((0, 0, 1)))
     box('rearview', 'blackplastic', (-1.6, -13.5, -3.4), (1.6, 13.5, 3.4), bevel=1.0, segs=4, matrix=m)
     box('rearview_glass', 'mirror', (-1.75, -12.6, -2.6), (-1.6, 12.6, 2.6), bevel=0.0, matrix=m)
-    cylinder('rearview_stem', 'blackplastic', Vector((32.5, YC, 137.0)), Vector((0.15, 0, 1)), 0.9, 8.0, segs=16)
+    cylinder('rearview_stem', 'blackplastic', Vector((52.0, YC, 137.0)), Vector((0.15, 0, 1)), 0.9, 8.0, segs=16)
     # driver's door: panel, armrest, pull handle, window crank, window sill
     box('door_panel', 'door', (-70, DOOR_Y - 3.0, 46), (97, DOOR_Y - 0.8, 96.5), bevel=1.2)
     box('armrest', 'door', (-42, DOOR_Y - 1.0, 66), (22, DOOR_Y + 6.0, 72.5), bevel=1.6, segs=4)
@@ -373,6 +371,7 @@ def cabin():
         xa = base[0].x - 2 + (top[0].x + 2 - base[0].x) * f
         rows.append([Vector((x, DOOR_Y - 7.5 + 4 * f, z)) for x in (xa + (-60 - xa) * j / 9 for j in range(10))])
     grid('side_glass', 'sideglass', rows)
+    grid('side_glass_outer', 'extglass', [[p + Vector((0, -0.6, 0)) for p in row] for row in rows], outward=True)
 
 
 # ---------------- outside, seen through the windshield: the pixel car's red hood, cowl, wipers ----------------
@@ -390,10 +389,6 @@ def outside_front():
         me_rows.append([Vector((x, YC + s * 74.5, z0 + 1.0 * (1 - s * s) - 0.35 * s ** 6)) for s in (-1 + 2 * j / 23 for j in range(24))])
     hood = grid('hood', 'hoodpaint', [list(reversed(r)) for r in me_rows])
     lip = box('hood_lip', 'paint', (hx1 - 2.0, YC - 74.5, 84.0), (hx1 + 1.0, YC + 74.5, 88.6), bevel=0.8)
-    for sgn in (-1, 1):   # fender tops beside the hood, red, with a dark gap between
-        y0 = YC + sgn * 75.3
-        y1 = YC + sgn * 86.0
-        box('fender_top', 'paint', (hx0, min(y0, y1), 82.0), (hx1, max(y0, y1), 94.0), bevel=1.5, segs=4)
     # wipers parked along the bottom of the glass, attached at their pivots in the cowl
     for piv_y, length in ((YC - 18, 52.0), (YC + 34, 50.0)):
         a = Vector((103.5, piv_y, 97.0))
@@ -410,7 +405,7 @@ def export(path, keep):
     deps = bpy.context.evaluated_depsgraph_get()
     groups = {}
     for obj in bpy.context.scene.objects:
-        if obj.type != 'MESH':
+        if obj.type != 'MESH' or obj.get('cutter'):
             continue
         ev = obj.evaluated_get(deps)
         me = ev.to_mesh()
@@ -451,10 +446,15 @@ def export(path, keep):
     return {m: len(t) for m, t in groups.items()}
 
 
-dashboard()
-steering_wheel()
-cabin()
-outside_front()
-opaque = export(os.path.join(OUT, 'Car.obj'), keep=False)
-glass = export(os.path.join(OUT, 'Car_Glass.obj'), keep=True)
-print('car_interior: opaque %d tris in %d materials %s; glass %s' % (sum(opaque.values()), len(opaque), sorted(opaque), glass))
+if __name__ == '__main__':
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import car_exterior
+    dashboard()
+    steering_wheel()
+    cabin()
+    outside_front()
+    car_exterior.build()
+    opaque = export(os.path.join(OUT, 'Car.obj'), keep=False)
+    glass = export(os.path.join(OUT, 'Car_Glass.obj'), keep=True)
+    print('car_interior: opaque %d tris in %d materials %s; glass %s' % (sum(opaque.values()), len(opaque), sorted(opaque), glass))

@@ -510,7 +510,7 @@ def hood_texture():
     base = np.array([122, 36, 40], np.float32) / 255
     fade = tile_noise(N, 3, 30) * 0.6 + tile_noise(N, 9, 31) * 0.4
     col = base[None, None, :] * (0.9 + 0.2 * fade[..., None])
-    chalk = np.clip((fade - 0.62) * 3, 0, 1)[..., None] * np.array([0.10, 0.07, 0.07])
+    chalk = np.clip((fade - 0.68) * 3, 0, 1)[..., None] * np.array([0.04, 0.025, 0.025])   # faded, not orange
     col = col + chalk
     img = Image.fromarray(np.clip(col * 255, 0, 255).astype(np.uint8))
     d = ImageDraw.Draw(img)

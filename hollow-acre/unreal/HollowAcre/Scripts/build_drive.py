@@ -353,6 +353,23 @@ def make_side_glass_mat():
     return finish(m)
 
 
+def make_outer_glass_mat():
+    """Car glass seen from outside: dark, glossy, reflecting the lights; one-sided so it never dims the driver's view."""
+    m = new_material('M_Car_OuterGlass')
+    m.set_editor_property('blend_mode', unreal.BlendMode.BLEND_TRANSLUCENT)
+    m.set_editor_property('two_sided', False)
+    m.set_editor_property('translucency_lighting_mode', unreal.TranslucencyLightingMode.TLM_SURFACE)
+    for val, prop in ((0.62, unreal.MaterialProperty.MP_OPACITY), (0.04, unreal.MaterialProperty.MP_ROUGHNESS),
+                      (1.0, unreal.MaterialProperty.MP_SPECULAR)):
+        k = mel.create_material_expression(m, unreal.MaterialExpressionConstant, -300, 0)
+        k.set_editor_property('r', val)
+        mel.connect_material_property(k, '', prop)
+    c = mel.create_material_expression(m, unreal.MaterialExpressionConstant3Vector, -300, -150)
+    c.set_editor_property('constant', unreal.LinearColor(0.008, 0.010, 0.013, 1))
+    mel.connect_material_property(c, '', unreal.MaterialProperty.MP_BASE_COLOR)
+    return finish(m)
+
+
 def build_car(windshield):
     """Import the generated car and glass, give every surface its material; returns the actors to attach to the car."""
     grain, leather, fabric = import_normal('T_GrainN'), import_normal('T_LeatherN'), import_normal('T_FabricN')
@@ -391,8 +408,11 @@ def build_car(windshield):
         'clockface': detail_mat('M_Car_Clock', (0.01, 0.01, 0.01), 0.3, None, emissive_tex=import_tex('T_Clock'), emissive=GAUGE_GLOW * 0.6),
         'display': make_mat('M_Car_RadioDisplay', (0.01, 0.02, 0.025), 0.2, emissive=(0.02, 0.09, 0.11)),
         'switch': detail_mat('M_Car_Switch', (0.02, 0.02, 0.022), 0.4, grain, 3.0),
+        'amberlens': make_mat('M_Car_AmberLens', (0.45, 0.18, 0.02), 0.2),
+        'gap': make_mat('M_Car_PanelGap', (0.004, 0.004, 0.004), 0.8),
         'windshield': windshield,
         'sideglass': make_side_glass_mat(),
+        'extglass': make_outer_glass_mat(),
     }
     out = []
     if eal.does_directory_exist(CAR):   # clear earlier imports (an older run split the car into many meshes)
@@ -421,9 +441,10 @@ def build_car(windshield):
             comp.set_cast_shadow(False)
         out.append(a)
     if WORK_LIGHT:   # debug only: light the cabin to judge the model
-        wl = actors.spawn_actor_from_class(unreal.PointLight, V(-20, 20, 130))
+        at = V(*[float(c) for c in os.environ['HA_CAM_POS'].split(',')]) + V(0, 0, 150) if os.environ.get('HA_CAM_POS') else V(-20, 20, 130)
+        wl = actors.spawn_actor_from_class(unreal.PointLight, at)
         wl.point_light_component.set_intensity(WORK_LIGHT)
-        wl.point_light_component.set_editor_property('attenuation_radius', 600.0)
+        wl.point_light_component.set_editor_property('attenuation_radius', 3000.0 if os.environ.get('HA_CAM_POS') else 600.0)
         out.append(wl)
     return out
 
