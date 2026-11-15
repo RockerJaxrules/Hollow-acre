@@ -52,6 +52,13 @@ there is no game server to rent.
   the owner has a free Epic Developer Portal account (a sign-in on the PC).
 
 ## Rules that carry over
+- **Realism first** (owner: "Focus on making all animations high detailed realistic same with models and textures"):
+  - every animation, model and texture in Part 2 aims for high-detail realism;
+  - people and the player's body move with motion-captured animation (not hand-keyed walk cycles), blended by motion
+    matching;
+  - the creature is animated from real animal footage (gorilla, bear) with physics on top;
+  - models are built from references at real scale, with real-scale textures (Megascans, or our own baked from
+    detailed models).
 - References first for everything we model (photos and 3D models for study only, kept in `_references/`, never
   shipped). Humans are MetaHumans.
 - Our own work everywhere else, plus Epic's MetaHuman and Megascans (keep `unreal/ASSETS_EPIC.md`).
