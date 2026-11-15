@@ -34,6 +34,9 @@ WINDSHIELD_TINT = 0.05                  # clear glass opacity
 WINDSHIELD_COVER = 0.93                 # how solid the tape and cracks are
 TAPE_BOUNCE = 0.035                     # snow/headlight bounce on the tape (translucency gets no Lumen GI)
 CRACK_GLINT = 0.035                     # light the broken glass catches
+YC_CAR = 37.0                           # the car's centre line, right of the driver (left-hand drive)
+GAUGE_GLOW = 0.6                       # dial backlight strength (cool white, the cluster's only light)
+WORK_LIGHT = float(os.environ.get('HA_WORKLIGHT', '0'))  # debug: light the cabin to judge the model
 SNOW_FLAKES = 16000
 SNOW_SIZE_CM = (1.4, 3.2)
 SNOW_BOX_CM = (1500, 900, 500)   # half-size of the snow box around the car
@@ -138,11 +141,11 @@ def make_windshield_mat():
 MTN = '/Game/HollowAcre/Mountain'
 
 
-def import_obj(name):
+def import_obj(name, dest=None):
     """Import Saved/Generated/<name>.obj (from unreal/tools/make_mountain.py) as a static mesh."""
     task = unreal.AssetImportTask()
     task.set_editor_property('filename', unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_saved_dir() + f'Generated/{name}.obj'))
-    task.set_editor_property('destination_path', MTN)
+    task.set_editor_property('destination_path', dest or MTN)
     task.set_editor_property('destination_name', name)
     task.set_editor_property('replace_existing', True)
     task.set_editor_property('automated', True)
@@ -299,6 +302,116 @@ def build_mountain():
     return data
 
 
+# ---------- the car ----------
+CAR = '/Game/HollowAcre/Car'
+
+
+def detail_mat(name, color, rough, normal_tex, tiling=1.0, metal=0.0, clearcoat=False, emissive_tex=None, emissive=0.0,
+               two_sided=False):
+    """A surface with a tiling detail normal map (grain, leather, fabric), optionally lit by a glow texture."""
+    m = new_material(name, two_sided=two_sided)
+    if clearcoat:
+        m.set_editor_property('shading_model', unreal.MaterialShadingModel.MSM_CLEAR_COAT)
+    k = mel.create_material_expression(m, unreal.MaterialExpressionConstant3Vector, -500, -200)
+    k.set_editor_property('constant', unreal.LinearColor(*color, 1))
+    mel.connect_material_property(k, '', unreal.MaterialProperty.MP_BASE_COLOR)
+    for val, prop, y in [(rough, unreal.MaterialProperty.MP_ROUGHNESS, 0), (metal, unreal.MaterialProperty.MP_METALLIC, 100)]:
+        c = mel.create_material_expression(m, unreal.MaterialExpressionConstant, -500, y)
+        c.set_editor_property('r', val)
+        mel.connect_material_property(c, '', prop)
+    if normal_tex:
+        mel.connect_material_property(tex_sample(m, normal_tex, tiling, -500, 250, normal=True), 'RGB', unreal.MaterialProperty.MP_NORMAL)
+    if emissive_tex:
+        ts = tex_sample(m, emissive_tex, 1.0, -800, 450)
+        mel.connect_material_property(ts, 'RGB', unreal.MaterialProperty.MP_BASE_COLOR)
+        glow = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -500, 450)
+        mel.connect_material_expressions(ts, 'RGB', glow, 'A')
+        mel.connect_material_expressions(ts, 'A', glow, 'B')
+        g2 = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -300, 450)
+        g2.set_editor_property('const_b', emissive)
+        mel.connect_material_expressions(glow, '', g2, 'A')
+        mel.connect_material_property(g2, '', unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    if clearcoat:
+        for val, prop, y in [(1.0, unreal.MaterialProperty.MP_CUSTOM_DATA0, 600), (0.05, unreal.MaterialProperty.MP_CUSTOM_DATA1, 700)]:
+            c = mel.create_material_expression(m, unreal.MaterialExpressionConstant, -500, y)
+            c.set_editor_property('r', val)
+            mel.connect_material_property(c, '', prop)
+    return finish(m)
+
+
+def make_side_glass_mat():
+    m = new_material('M_Car_SideGlass')
+    m.set_editor_property('blend_mode', unreal.BlendMode.BLEND_TRANSLUCENT)
+    m.set_editor_property('two_sided', True)
+    m.set_editor_property('shading_model', unreal.MaterialShadingModel.MSM_UNLIT)
+    k = mel.create_material_expression(m, unreal.MaterialExpressionConstant, -300, 0)
+    k.set_editor_property('r', 0.06)
+    mel.connect_material_property(k, '', unreal.MaterialProperty.MP_OPACITY)
+    return finish(m)
+
+
+def build_car(windshield):
+    """Import the generated car and glass, give every surface its material; returns the actors to attach to the car."""
+    grain, leather, fabric = import_normal('T_GrainN'), import_normal('T_LeatherN'), import_normal('T_FabricN')
+    gauges_tex = import_tex('T_Gauges')
+    mats = {
+        'dash': detail_mat('M_Car_Dash', (0.022, 0.022, 0.024), 0.62, grain, 3.0),
+        'hub': detail_mat('M_Car_Hub', (0.016, 0.016, 0.017), 0.55, None),
+        'cluster': detail_mat('M_Car_ClusterFace', (0.01, 0.011, 0.013), 0.5, None),
+        'gauges': detail_mat('M_Car_Gauges', (0.01, 0.01, 0.01), 0.35, None, emissive_tex=gauges_tex, emissive=GAUGE_GLOW),
+        'needle': make_mat('M_Car_Needle', (0.5, 0.06, 0.05), 0.4, emissive=(0.35, 0.04, 0.03)),
+        'vent': detail_mat('M_Car_Vent', (0.008, 0.008, 0.009), 0.7, None),
+        'radio': detail_mat('M_Car_Radio', (0.012, 0.012, 0.014), 0.3, None),
+        'knob': detail_mat('M_Car_Knob', (0.03, 0.03, 0.032), 0.45, grain, 2.0),
+        'hazard': make_mat('M_Car_Hazard', (0.35, 0.03, 0.03), 0.4),
+        'leather': detail_mat('M_Car_Leather', (0.018, 0.016, 0.015), 0.5, leather, 2.0),
+        'trim': detail_mat('M_Car_PillarTrim', (0.045, 0.044, 0.042), 0.85, fabric, 1.5),
+        'headliner': detail_mat('M_Car_Headliner', (0.09, 0.088, 0.083), 0.95, fabric, 1.5),
+        'door': detail_mat('M_Car_Door', (0.026, 0.025, 0.025), 0.7, grain, 3.0),
+        'chrome': make_mat('M_Car_Chrome', (0.6, 0.6, 0.62), 0.18, metal=1.0),
+        'mirror': make_mat('M_Car_Mirror', (0.9, 0.9, 0.9), 0.03, metal=1.0),
+        'paint': detail_mat('M_Car_PaintRed', (0.32, 0.03, 0.03), 0.3, None),
+        'primer': detail_mat('M_Car_HoodPrimer', (0.25, 0.255, 0.245), 0.88, grain, 0.5),
+        'primer2': detail_mat('M_Car_FenderPrimer', (0.21, 0.215, 0.205), 0.9, grain, 0.5),
+        'cowl': detail_mat('M_Car_Cowl', (0.015, 0.015, 0.016), 0.6, grain, 1.0),
+        'rubber': make_mat('M_Car_Rubber', (0.012, 0.012, 0.012), 0.75),
+        'windshield': windshield,
+        'sideglass': make_side_glass_mat(),
+    }
+    out = []
+    if eal.does_directory_exist(CAR):   # clear earlier imports (an older run split the car into many meshes)
+        eal.delete_directory(CAR)
+    for name in ('Car', 'Car_Glass'):
+        mesh = import_obj(name, CAR)
+        if name == 'Car_Glass':  # translucent glass can't render through Nanite
+            ns = mesh.get_editor_property('nanite_settings')
+            ns.set_editor_property('enabled', False)
+            mesh.set_editor_property('nanite_settings', ns)
+            eal.save_loaded_asset(mesh)
+        a = actors.spawn_actor_from_class(unreal.StaticMeshActor, V(0, 0, 0))
+        a.set_actor_label(name.replace('_', ' '))
+        comp = a.static_mesh_component
+        comp.set_static_mesh(mesh)
+        missing = []
+        for i, sm in enumerate(mesh.static_materials):
+            slot = str(sm.get_editor_property('material_slot_name')).lower()
+            key = next((k for k in sorted(mats, key=len, reverse=True) if slot.startswith(k)), None)
+            if key:
+                comp.set_material(i, mats[key])
+            else:
+                missing.append(slot)
+        log('%s: %d slots%s' % (name, len(mesh.static_materials), ('; no material for %s' % missing) if missing else ''))
+        if name == 'Car_Glass':
+            comp.set_cast_shadow(False)
+        out.append(a)
+    if WORK_LIGHT:   # debug only: light the cabin to judge the model
+        wl = actors.spawn_actor_from_class(unreal.PointLight, V(-20, 20, 130))
+        wl.point_light_component.set_intensity(WORK_LIGHT)
+        wl.point_light_component.set_editor_property('attenuation_radius', 600.0)
+        out.append(wl)
+    return out
+
+
 # ---------- shapes ----------
 MESH = {n: unreal.load_asset(f'/Engine/BasicShapes/{n}.{n}') for n in ('Cube', 'Cylinder', 'Cone', 'Plane', 'Sphere')}
 
@@ -341,58 +454,13 @@ def main():
     if world.get_path_name().split('.')[0] != MAP:
         raise RuntimeError('editing the wrong level: ' + world.get_path_name())
 
-    plastic = make_mat('M_DashPlastic', (0.025, 0.025, 0.027), 0.55)
-    rubber = make_mat('M_WheelRubber', (0.02, 0.02, 0.02), 0.45)
-    paint = make_mat('M_CarPaintRed', (0.30, 0.035, 0.035), 0.35, spec=0.6)      # the Part 1 car's red
-    primer = make_mat('M_HoodPrimer', (0.24, 0.245, 0.235), 0.85, spec=0.3)    # replacement hood, grey primer
-    gauge = make_mat('M_GaugeGlow', (0.0, 0.0, 0.0), 0.4, emissive=(0.02, 0.05, 0.06))
     windshield = make_windshield_mat()
 
     # The mountain (unreal/tools/make_mountain.py): the climbing road, cliff, drop, peaks, pines, poles, guardrail
     mountain = build_mountain()
 
-    # The car (blockout): primer hood and fenders, dash, raked windshield pillars, roof, door tops, red mirrors
-    global CAB
-    CAB = []
-    shape('Cube', V(160, 0, 84), V(1.7, 1.66, 0.08), primer, unreal.Rotator(pitch=-7), 'Hood (primer)')
-    for side in (-1, 1):
-        shape('Cube', V(160, side * 86, 80), V(1.7, 0.12, 0.1), primer, unreal.Rotator(pitch=-7), 'Front fender (primer)')
-        shape('Cube', V(62, side * 102, 96), V(0.06, 0.2, 0.13), paint, label='Mirror (red)')
-    shape('Cube', V(78, 0, 81), V(0.55, 1.6, 0.28), plastic, label='Dashboard')
-    shape('Cube', V(50, -2, 88), V(0.01, 0.22, 0.08), gauge, label='Gauges', shadows=False)
-    for side in (-1, 1):
-        shape('Cube', V(44, side * 74, 118), V(0.06, 0.08, 0.80), plastic, unreal.Rotator(pitch=56), 'A pillar')
-        shape('Cube', V(-10, side * 82, 92), V(1.4, 0.05, 0.2), plastic, label='Door top')
-    shape('Cube', V(-40, 0, 144), V(1.15, 1.5, 0.05), plastic, label='Roof')
-    # Windshield between the A pillars: 79 cm along the slope from the dash (x 77, z 96) up to the roof (x 11, z 140)
-    # the plane's own X runs across the car (texture width), its Y runs down the slope from roof to dash
-    ws_rot = unreal.MathLibrary.make_rot_from_xy(V(0, 1, 0), V(0.822, 0, -0.569))
-    shape('Plane', V(44, 0, 118), V(1.5, 0.79, 1), windshield, ws_rot, 'Windshield (cracked, taped)',
-          shadows=False)
-
-    # Steering wheel: rim of 36 short cylinders in the tilted wheel plane, 3 spokes, hub and column
-    centre = EYE + V(40, -2, -30)
-    tilt = math.radians(25)
-    n = unreal.Vector(-math.cos(tilt), 0, math.sin(tilt))   # faces the driver
-    u = unreal.Vector(0, 1, 0)
-    v = unreal.Vector(math.sin(tilt), 0, math.cos(tilt))
-    R, tube, seg = 19.0, 1.7, 36
-    for k in range(seg):
-        a0 = 2 * math.pi * k / seg
-        a1 = a0 + 2 * math.pi / seg
-        am = (a0 + a1) / 2
-        p = centre + u * (R * math.cos(am)) + v * (R * math.sin(am))
-        tan = u * (-math.sin(am)) + v * math.cos(am)
-        rot = unreal.MathLibrary.make_rot_from_zx(tan, n)
-        length = 2 * R * math.sin(math.pi / seg) * 1.08
-        shape('Cylinder', p, V(tube * 2 / 100, tube * 2 / 100, length / 100), rubber, rot)
-    shape('Cylinder', centre - n * 1.5, V(0.11, 0.11, 0.05), rubber, unreal.MathLibrary.make_rot_from_z(n), 'Hub')
-    for ang in (0, 180, 270):
-        a = math.radians(ang)
-        d = u * math.cos(a) + v * math.sin(a)
-        shape('Cube', centre + d * (R / 2) - n * 0.5, V(R / 100, 0.04, 0.015), plastic, unreal.MathLibrary.make_rot_from_xz(d, n))
-    shape('Cylinder', centre + n * -14, V(0.07, 0.07, 0.28), plastic, unreal.MathLibrary.make_rot_from_z(n), 'Column')
-    car_parts, CAB = CAB, None
+    # The car (unreal/tools/make_car.py): interior, steering wheel, hood and glass, our own model
+    car_parts = build_car(windshield)
 
     # ---------- light and atmosphere ----------
     moon = actors.spawn_actor_from_class(unreal.DirectionalLight, V(0, 0, 1000), unreal.Rotator(pitch=-30, yaw=-40))  # from behind on the right: lights the cliff and the peaks ahead (a moon in front backlit everything)
@@ -422,7 +490,7 @@ def main():
     fc.set_editor_property('volumetric_fog_distance', 12000.0)
 
     for side in (-1, 1):
-        hl = actors.spawn_actor_from_class(unreal.SpotLight, V(240, side * 66, 68), unreal.Rotator(pitch=-3, yaw=side * 2))
+        hl = actors.spawn_actor_from_class(unreal.SpotLight, V(256, YC_CAR + side * 62, 68), unreal.Rotator(pitch=-3, yaw=side * 2))
         hl.set_actor_label('Headlight')
         c = hl.spot_light_component
         c.set_editor_property('intensity_units', unreal.LightUnits.CANDELAS)
@@ -434,7 +502,7 @@ def main():
         c.set_editor_property('volumetric_scattering_intensity', HEADLIGHT_FOG_GLOW)
         car_parts.append(hl)
 
-    dash = actors.spawn_actor_from_class(unreal.PointLight, V(45, -2, 90))
+    dash = actors.spawn_actor_from_class(unreal.PointLight, V(64, 0, 97))
     dash.set_actor_label('Gauge glow')
     dc = dash.point_light_component
     dc.set_editor_property('intensity_units', unreal.LightUnits.CANDELAS)
@@ -457,7 +525,7 @@ def main():
     ppv.set_editor_property('settings', s)
 
     # ---------- game camera, game mode, screenshot director ----------
-    cam = actors.spawn_actor_from_class(unreal.CameraActor, EYE, unreal.Rotator(pitch=-5 + CAM_DEBUG_PITCH, yaw=CAM_DEBUG_YAW))
+    cam = actors.spawn_actor_from_class(unreal.CameraActor, EYE, unreal.Rotator(pitch=-8 + CAM_DEBUG_PITCH, yaw=CAM_DEBUG_YAW))
     cam.set_actor_label('Driver eye')
     cam.camera_component.set_editor_property('field_of_view', 78.0)
     cam.camera_component.set_editor_property('constrain_aspect_ratio', False)
