@@ -10,3 +10,10 @@ hollow-acre/unreal/HollowAcre/*.slnx
 # Python bytecode
 __pycache__/
 *.pyc
+
+# MetaHuman pieces the game does not use (rebuilt by Scripts/build_driver_metahuman.py)
+hollow-acre/unreal/HollowAcre/Content/HollowAcre/Driver/MHC_*.uasset
+hollow-acre/unreal/HollowAcre/Content/HollowAcre/Driver/Built/Driver/Face/
+hollow-acre/unreal/HollowAcre/Content/HollowAcre/Driver/Built/Driver/Grooms/
+hollow-acre/unreal/HollowAcre/Content/HollowAcre/Driver/Built/Driver/Clothing/
+hollow-acre/unreal/HollowAcre/Content/HollowAcre/Driver/Built/Driver/BP_Driver.uasset

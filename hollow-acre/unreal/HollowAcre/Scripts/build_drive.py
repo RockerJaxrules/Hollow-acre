@@ -503,6 +503,16 @@ def build_car(windshield):
         if name == 'Car_Glass':
             comp.set_cast_shadow(False)
         out.append(a)
+    # the driver's arms: the player's MetaHuman body (built in Content/HollowAcre/Driver), posed at 10 and 2 in C++
+    body = unreal.load_asset('/Game/HollowAcre/Driver/Built/Driver/Body/SKM_MHC_Driver_BodyMesh')
+    if body:
+        arms = actors.spawn_actor_from_class(unreal.DriverArms, V(0, 0, 0))
+        arms.set_actor_label('Driver Arms')
+        arms.set_editor_property('body', body)
+        out.append(arms)
+        log('driver arms: MetaHuman body %s' % body.get_name())
+    else:
+        log('driver arms: no MetaHuman body built yet')
     if WORK_LIGHT:   # debug only: light the model to judge it
         if os.environ.get('HA_CAM_POS'):
             # outside views: a key light high and to one side (so curves and paint read), a soft fill from the camera
