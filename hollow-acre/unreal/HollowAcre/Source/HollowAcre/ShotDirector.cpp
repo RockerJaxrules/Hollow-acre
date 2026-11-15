@@ -84,7 +84,7 @@ void AShotDirector::PlaceCamera()
 		Lamp->SetRelativeLocation(FVector(-10.f, -25.f, 30.f));
 		Lamp->SetIntensityUnits(ELightUnits::Candelas);
 		Lamp->SetIntensity(Light);
-		Lamp->SetAttenuationRadius(400.f);
+		Lamp->SetAttenuationRadius(2500.f);
 		Lamp->SetSourceRadius(12.f);
 		Lamp->RegisterComponent();
 	}

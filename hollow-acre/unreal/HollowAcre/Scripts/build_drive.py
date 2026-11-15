@@ -35,6 +35,7 @@ WINDSHIELD_COVER = 0.93                 # how solid the tape and cracks are
 TAPE_BOUNCE = 0.035                     # snow/headlight bounce on the tape (translucency gets no Lumen GI)
 CRACK_GLINT = 0.035                     # light the broken glass catches
 YC_CAR = 37.0                           # the car's centre line, right of the driver (left-hand drive)
+SNOW_BOUNCE = 0.25                      # cd: headlight bounce off the snow, back into the cabin (hands just visible)
 GAUGE_GLOW = 0.6                       # dial backlight strength (cool white, the cluster's only light)
 WORK_LIGHT = float(os.environ.get('HA_WORKLIGHT', '0'))  # debug: light the cabin to judge the model
 SNOW_FLAKES = 16000
@@ -436,7 +437,7 @@ def build_car(windshield):
     gauges_tex = import_tex('T_Gauges')
     mats = {
         'dash': detail_mat('M_Car_Dash', (0.022, 0.022, 0.024), 0.62, grain, 3.0),
-        'hub': detail_mat('M_Car_Hub', (0.016, 0.016, 0.017), 0.55, None),
+        'hub': detail_mat('M_Car_Hub', (0.016, 0.016, 0.017), 0.8, leather, 1.5),   # matte padded vinyl
         'cluster': detail_mat('M_Car_ClusterFace', (0.01, 0.011, 0.013), 0.5, None),
         'gauges': detail_mat('M_Car_Gauges', (0.01, 0.01, 0.01), 0.35, None, emissive_tex=gauges_tex, emissive=GAUGE_GLOW),
         'needle': make_mat('M_Car_Needle', (0.5, 0.06, 0.05), 0.4, emissive=(0.35, 0.04, 0.03)),
@@ -444,7 +445,7 @@ def build_car(windshield):
         'radio': detail_mat('M_Car_Radio', (0.012, 0.012, 0.014), 0.3, None),
         'knob': detail_mat('M_Car_Knob', (0.03, 0.03, 0.032), 0.45, grain, 2.0),
         'hazard': make_mat('M_Car_Hazard', (0.35, 0.03, 0.03), 0.4),
-        'leather': detail_mat('M_Car_Leather', (0.018, 0.016, 0.015), 0.5, leather, 2.0),
+        'leather': detail_mat('M_Car_Leather', (0.018, 0.016, 0.015), 0.72, leather, 2.0),   # worn wheel leather: a faint sheen, no mirror
         'trim': detail_mat('M_Car_PillarTrim', (0.045, 0.044, 0.042), 0.85, fabric, 1.5),
         'headliner': detail_mat('M_Car_Headliner', (0.09, 0.088, 0.083), 0.95, fabric, 1.5),
         'door': detail_mat('M_Car_Door', (0.026, 0.025, 0.025), 0.7, grain, 3.0),
@@ -488,6 +489,16 @@ def build_car(windshield):
         eal.delete_directory(CAR)
     for name in ('Car', 'Car_Glass'):
         mesh = import_obj(name, CAR)
+        # keep Blender's smooth (weighted) normals: Unreal's default recomputes them from the unwelded triangles,
+        # which flat-shades every curve (rim, pad, panels) into visible facets
+        sme = unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem)
+        bs = sme.get_lod_build_settings(mesh, 0)
+        bs.set_editor_property('recompute_normals', False)
+        bs.set_editor_property('recompute_tangents', True)
+        bs.set_editor_property('use_high_precision_tangent_basis', True)   # smoother reflections on paint and glass
+        bs.set_editor_property('use_full_precision_u_vs', True)            # crisp dial and switch graphics
+        sme.set_lod_build_settings(mesh, 0, bs)
+        eal.save_loaded_asset(mesh)
         if name == 'Car_Glass':  # translucent glass can't render through Nanite
             ns = mesh.get_editor_property('nanite_settings')
             ns.set_editor_property('enabled', False)
@@ -630,15 +641,32 @@ def main():
         c.set_editor_property('volumetric_scattering_intensity', HEADLIGHT_FOG_GLOW)
         car_parts.append(hl)
 
-    dash = actors.spawn_actor_from_class(unreal.PointLight, V(64, 0, 97))
+    # the dials' spill: just in front of the dial faces, under the cluster hood (it used to sit by the wheel and
+    # floodlit the rim and the hub); faint enough that only the thumbs and the rim's front catch it
+    dash = actors.spawn_actor_from_class(unreal.PointLight, V(77, 0, 96))
     dash.set_actor_label('Gauge glow')
     dc = dash.point_light_component
     dc.set_editor_property('intensity_units', unreal.LightUnits.CANDELAS)
-    dc.set_intensity(0.15)
+    dc.set_intensity(0.03)
     dc.set_light_color(unreal.LinearColor(0.45, 0.85, 1.0, 1))
-    dc.set_editor_property('attenuation_radius', 40.0)
+    dc.set_editor_property('attenuation_radius', 45.0)
+    dc.set_editor_property('source_radius', 10.0)
     dc.set_editor_property('volumetric_scattering_intensity', 0.0)
     car_parts.append(dash)
+    # the headlit snow ahead throws a faint cool light back through the windshield: enough to make out the hands on
+    # the wheel and the top of the dash, never enough to read the cabin
+    bounce = actors.spawn_actor_from_class(unreal.RectLight, V(48, 12, 113), unreal.Rotator(pitch=-18, yaw=180))
+    bounce.set_actor_label('Snow bounce')
+    bc = bounce.rect_light_component
+    bc.set_editor_property('intensity_units', unreal.LightUnits.CANDELAS)
+    bc.set_intensity(SNOW_BOUNCE)
+    bc.set_light_color(unreal.LinearColor(0.72, 0.8, 1.0, 1))
+    bc.set_editor_property('source_width', 90.0)
+    bc.set_editor_property('source_height', 25.0)
+    bc.set_editor_property('barn_door_angle', 60.0)
+    bc.set_editor_property('attenuation_radius', 160.0)
+    bc.set_editor_property('volumetric_scattering_intensity', 0.0)
+    car_parts.append(bounce)
 
     ppv = actors.spawn_actor_from_class(unreal.PostProcessVolume, V(0, 0, 0))
     ppv.set_actor_label('Night grade')
