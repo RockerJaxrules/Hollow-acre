@@ -9,9 +9,11 @@
 // Everything is solved in the car's frame (this actor sits at the car's origin, attached to it), so the pose holds as
 // the car drives. Only the arms are seen: the legs and neck are hidden.
 //
-// Collision: the hands collide with the wheel. The solver skins the MetaHuman's own hand vertices (the real skin, not
-// the bone lines) and tests them against the modelled wheel (the rim's oval tube, the spokes): the palm rests on the
-// rim, and each finger joint curls until that finger's skin meets the rim, never through it.
+// Collision: the hands and arms collide with the car. The solver skins the MetaHuman's own vertices (the real skin, not
+// the bone lines) and tests them against the modelled wheel (the rim's oval tube, the spokes, exactly) and against
+// everything else in the cabin (a signed distance field baked from the car's parts by tools/blender/cabin_sdf.py: the
+// dash, column, door card, seat, glass): the palm rests on the rim, each finger joint curls until that finger's skin
+// meets the rim, and the elbow swings clear of the door or anything else the arm would pass through.
 
 #pragma once
 
@@ -115,8 +117,17 @@ private:
 	/** Smallest distance from a part of the hand's skin to the wheel (negative: inside). Parts: 0 palm, 1-4 index to
 	 *  pinky, 5 thumb. FromSeg skips the finger segments nearer the palm. */
 	float SkinMinDist(int32 Side, int32 Part, int32 FromSeg = 0, int32 ToSeg = 2) const;
-	int32 SkinInside(int32 Side, float Below) const;
-	TArray<FHandSkinPoint> Skin[2][6];
+	int32 SkinInside(int32 Side, float Below, int32 FromPart = 0, int32 ToPart = 5) const;
+	TArray<FHandSkinPoint> Skin[2][7];      // per side: palm, index..pinky, thumb, the arm (upper arm and forearm)
+
+	// the cabin's signed distance field (cm, car frame; negative inside a part)
+	bool LoadCabin();
+	float CabinDist(const FVector& CarPos) const;
+	TArray<int8> Cabin;
+	FIntVector CabinDim = FIntVector::ZeroValue;
+	FVector CabinLo = FVector::ZeroVector;
+	float CabinCell = 1.f;
+	float CabinUnit = 0.05f;
 	/** Which way each thumb's pad faces, in the thumb_03 bone's frame (measured from the skin: the end bone sits on
 	 *  the nail side, so the flesh lies toward the pad). */
 	FVector ThumbPadLocal[2] = { FVector::ZeroVector, FVector::ZeroVector };

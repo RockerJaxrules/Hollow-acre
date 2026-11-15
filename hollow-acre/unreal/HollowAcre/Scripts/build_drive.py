@@ -27,6 +27,7 @@ SNOW_SLOPE_SHARPNESS = 6.0              # terrain: snow where the surface faces 
 SNOW_SLOPE_BIAS = -3.9                  # snow settles on ledges down to about 50 degrees
 SEED = 7
 import os
+import shutil
 CAM_DEBUG_YAW = float(os.environ.get('HA_CAM_YAW', '0'))      # debug views only; 0 in the game
 CAM_DEBUG_PITCH = float(os.environ.get('HA_CAM_PITCH', '0'))
 HEADLIGHT_FOG_GLOW = 0.8                # volumetric scattering of the headlight beams
@@ -487,6 +488,13 @@ def build_car(windshield):
     out = []
     if eal.does_directory_exist(CAR):   # clear earlier imports (an older run split the car into many meshes)
         eal.delete_directory(CAR)
+    # the cabin's collision field for the driver's arms (baked by tools/blender/cabin_sdf.py with the car), kept with the
+    # project so a fresh checkout has it: DriverArms loads Data/CabinSDF.bin
+    sdf = unreal.Paths.project_saved_dir() + 'Generated/CabinSDF.bin'
+    if os.path.exists(sdf):
+        os.makedirs(unreal.Paths.project_dir() + 'Data', exist_ok=True)
+        shutil.copyfile(sdf, unreal.Paths.project_dir() + 'Data/CabinSDF.bin')
+        log('cabin collision field copied')
     for name in ('Car', 'Car_Glass'):
         mesh = import_obj(name, CAR)
         # keep Blender's smooth (weighted) normals: Unreal's default recomputes them from the unwelded triangles,

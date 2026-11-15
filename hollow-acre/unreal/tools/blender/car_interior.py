@@ -436,3 +436,6 @@ if __name__ == '__main__':
     opaque = export(os.path.join(OUT, 'Car.obj'), keep=False)
     glass = export(os.path.join(OUT, 'Car_Glass.obj'), keep=True)
     print('car_interior: opaque %d tris in %d materials %s; glass %s' % (sum(opaque.values()), len(opaque), sorted(opaque), glass))
+    import cabin_sdf
+    # collision for the driver's arms and hands (see DriverArms); the driver's door is solid from its trim panel outward
+    cabin_sdf.build(os.path.join(OUT, 'CabinSDF.bin'), solids=[((-70.0, -80.0, 30.0), (97.0, DOOR_Y - 0.8, 96.5))])

@@ -2,6 +2,9 @@
 
 #include "Components/PoseableMeshComponent.h"
 #include "Engine/SkeletalMesh.h"
+#include "Misc/Compression.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 #if WITH_EDITORONLY_DATA
 #include "Rendering/SkeletalMeshLODModel.h"
 #include "Rendering/SkeletalMeshModel.h"
@@ -134,7 +137,7 @@ void ADriverArms::GatherSkin()
 	for (int32 Side = 0; Side < 2; ++Side)
 	{
 		ArmBones[Side].Reset();
-		for (int32 P = 0; P < 6; ++P)
+		for (int32 P = 0; P < 7; ++P)
 		{
 			Skin[Side][P].Reset();
 		}
@@ -177,6 +180,19 @@ void ADriverArms::GatherSkin()
 	for (int32 B = 0; B < NB; ++B)
 	{
 		PartOf[B] = HandPart(Ref.GetBoneName(B).ToString().ToLower(), SideOf[B], SegOf[B]);
+	}
+	// the rest of each arm (upper arm, forearm and their twist bones) collides too
+	for (int32 Side = 0; Side < 2; ++Side)
+	{
+		for (int32 B : ArmBones[Side])
+		{
+			if (PartOf[B] < 0)
+			{
+				PartOf[B] = 6;
+				SideOf[B] = Side;
+				SegOf[B] = 0;
+			}
+		}
 	}
 	int32 Total = 0;
 #if WITH_EDITORONLY_DATA
@@ -259,12 +275,66 @@ void ADriverArms::GatherSkin()
 			ThumbPadLocal[Side] = RefCS[B3].InverseTransformVectorNoScale(Off.GetSafeNormal());
 		}
 	}
-	UE_LOG(LogTemp, Display, TEXT("DriverArms: hand skin for collision: %d vertices (left palm %d, right palm %d)"), Total,
-		Skin[0][0].Num(), Skin[1][0].Num());
+	UE_LOG(LogTemp, Display, TEXT("DriverArms: skin for collision: %d vertices (left palm %d, left arm %d, right palm %d, right arm %d)"),
+		Total, Skin[0][0].Num(), Skin[0][6].Num(), Skin[1][0].Num(), Skin[1][6].Num());
 	if (Total == 0)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("DriverArms: no CPU skin data; falling back to bone-line contact"));
 	}
+}
+
+bool ADriverArms::LoadCabin()
+{
+	Cabin.Reset();
+	const FString Path = FPaths::Combine(FPaths::ProjectDir(), TEXT("Data/CabinSDF.bin"));
+	TArray<uint8> File;
+	if (!FFileHelper::LoadFileToArray(File, *Path) || File.Num() < 44 || FMemory::Memcmp(File.GetData(), "HSDF", 4) != 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DriverArms: no cabin collision field at %s (only the wheel collides)"), *Path);
+		return false;
+	}
+	auto U32 = [&](int32 At) { uint32 V; FMemory::Memcpy(&V, File.GetData() + At, 4); return V; };
+	auto F32 = [&](int32 At) { float V; FMemory::Memcpy(&V, File.GetData() + At, 4); return V; };
+	CabinDim = FIntVector((int32)U32(8), (int32)U32(12), (int32)U32(16));
+	CabinLo = FVector(F32(20), F32(24), F32(28));
+	CabinCell = F32(32);
+	CabinUnit = F32(36);
+	const int32 Raw = (int32)U32(40), Packed = (int32)U32(44);
+	if (Raw != CabinDim.X * CabinDim.Y * CabinDim.Z || 48 + Packed > File.Num())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DriverArms: cabin collision field is damaged"));
+		return false;
+	}
+	Cabin.SetNumUninitialized(Raw);
+	if (!FCompression::UncompressMemory(NAME_Zlib, Cabin.GetData(), Raw, File.GetData() + 48, Packed))
+	{
+		Cabin.Reset();
+		UE_LOG(LogTemp, Warning, TEXT("DriverArms: could not unpack the cabin collision field"));
+		return false;
+	}
+	UE_LOG(LogTemp, Display, TEXT("DriverArms: cabin collision field %dx%dx%d, %.1f cm cells"), CabinDim.X, CabinDim.Y, CabinDim.Z, CabinCell);
+	return true;
+}
+
+float ADriverArms::CabinDist(const FVector& P) const
+{
+	if (Cabin.Num() == 0)
+	{
+		return 1e3f;
+	}
+	const FVector G = (P - CabinLo) / CabinCell;
+	const int32 X0 = FMath::FloorToInt(G.X), Y0 = FMath::FloorToInt(G.Y), Z0 = FMath::FloorToInt(G.Z);
+	if (X0 < 0 || Y0 < 0 || Z0 < 0 || X0 + 1 >= CabinDim.X || Y0 + 1 >= CabinDim.Y || Z0 + 1 >= CabinDim.Z)
+	{
+		return 1e3f;                                                   // outside the baked box: nothing to hit
+	}
+	const float Fx = G.X - X0, Fy = G.Y - Y0, Fz = G.Z - Z0;
+	auto At = [&](int32 X, int32 Y, int32 Z) { return (float)Cabin[(Z * CabinDim.Y + Y) * CabinDim.X + X]; };
+	const float C00 = FMath::Lerp(At(X0, Y0, Z0), At(X0 + 1, Y0, Z0), Fx);
+	const float C10 = FMath::Lerp(At(X0, Y0 + 1, Z0), At(X0 + 1, Y0 + 1, Z0), Fx);
+	const float C01 = FMath::Lerp(At(X0, Y0, Z0 + 1), At(X0 + 1, Y0, Z0 + 1), Fx);
+	const float C11 = FMath::Lerp(At(X0, Y0 + 1, Z0 + 1), At(X0 + 1, Y0 + 1, Z0 + 1), Fx);
+	return FMath::Lerp(FMath::Lerp(C00, C10, Fy), FMath::Lerp(C01, C11, Fy), Fz) * CabinUnit;
 }
 
 void ADriverArms::ResetArm(int32 Side)
@@ -319,7 +389,7 @@ float ADriverArms::CollideDist(const FVector& P) const
 		const FVector P1 = WheelCentre + Dd * (RimRadius - 0.6f) - Nw * 1.2f;
 		Best = FMath::Min(Best, (float)FMath::PointDistToSegment(P, P0, P1) - 1.5f);
 	}
-	return Best;
+	return FMath::Min(Best, CabinDist(P));                             // and everything else in the cabin
 }
 
 float ADriverArms::SkinMinDist(int32 Side, int32 Part, int32 FromSeg, int32 ToSeg) const
@@ -343,12 +413,12 @@ float ADriverArms::SkinMinDist(int32 Side, int32 Part, int32 FromSeg, int32 ToSe
 	return M;
 }
 
-int32 ADriverArms::SkinInside(int32 Side, float Below) const
+int32 ADriverArms::SkinInside(int32 Side, float Below, int32 FromPart, int32 ToPart) const
 {
 	TMap<int32, FTransform> Cache;
 	const FTransform& Rel = Mesh->GetRelativeTransform();
 	int32 N = 0;
-	for (int32 Part = 0; Part < 6; ++Part)
+	for (int32 Part = FromPart; Part <= ToPart; ++Part)
 	{
 		for (const FHandSkinPoint& Pt : Skin[Side][Part])
 		{
@@ -539,7 +609,7 @@ void ADriverArms::PoseArm(bool bLeft, const FHandGrip& G)
 	// ---- place the arm so the knuckle row is at a point: two-bone IK (shoulder, elbow, wrist; car frame), then the
 	// hand's reference frame turned onto the grip frame. Starts from the reference pose each time.
 	const int32 Side = bLeft ? 0 : 1;
-	float Dist = 0.f, Reach = 0.f;
+	float Dist = 0.f, Reach = 0.f, Swivel = 0.f;
 	FVector Elbow, WristReached;
 	auto PoseHand = [&](const FVector& Knuckles)
 	{
@@ -562,6 +632,7 @@ void ADriverArms::PoseArm(bool bLeft, const FHandGrip& G)
 		const float Hh = FMath::Sqrt(FMath::Max(0.f, L1 * L1 - A * A));
 		FVector Pole(0.f, (bLeft ? -1.f : 1.f) * G.ElbowPole.X, G.ElbowPole.Y);
 		Pole = (Pole - Dir * FVector::DotProduct(Pole, Dir)).GetSafeNormal();
+		Pole = FQuat(Dir, Swivel).RotateVector(Pole);                 // swung clear of the cabin if needed
 		Elbow = Sh + Dir * A + Pole * Hh;
 		WristReached = Sh + Dir * Dist;
 		auto Aim = [&](FName Bone, FName Child, const FVector& TargetCar)
@@ -597,6 +668,32 @@ void ADriverArms::PoseArm(bool bLeft, const FHandGrip& G)
 			}
 			Lift += PalmGap - Rest;
 			PoseHand(Grip - F * Ahead + Back * Lift);
+		}
+		// the arm: if any of its skin is inside a part of the car (the door card, the column...), swing the elbow
+		// about the shoulder-wrist line, the smallest swing that clears it (the hand stays where it is)
+		float ArmGap = SkinMinDist(Side, 6);
+		if (ArmGap < 0.f)
+		{
+			float BestSwivel = 0.f, BestGap = ArmGap;
+			for (const float Deg : { 6.f, -6.f, 12.f, -12.f, 18.f, -18.f, 24.f, -24.f, 32.f, -32.f, 40.f, -40.f, 50.f, -50.f, 60.f, -60.f })
+			{
+				Swivel = FMath::DegreesToRadians(Deg);
+				PoseHand(Grip - F * Ahead + Back * Lift);
+				const float Gp = SkinMinDist(Side, 6);
+				if (Gp > BestGap)
+				{
+					BestGap = Gp;
+					BestSwivel = Swivel;
+				}
+				if (Gp >= 0.2f)
+				{
+					break;
+				}
+			}
+			Swivel = BestSwivel;
+			PoseHand(Grip - F * Ahead + Back * Lift);
+			UE_LOG(LogTemp, Display, TEXT("DriverArms: %s arm was %.1f cm inside the cabin; elbow swung %.0f degrees, now %.2f cm clear"),
+				*Sx, -ArmGap, FMath::RadiansToDegrees(Swivel), BestGap);
 		}
 	}
 
@@ -686,6 +783,8 @@ void ADriverArms::PoseArm(bool bLeft, const FHandGrip& G)
 		UE_LOG(LogTemp, Display, TEXT("DriverArms: %s skin to wheel: palm %.2f index %.2f middle %.2f ring %.2f pinky %.2f thumb %.2f cm; vertices inside >1 mm: %d, >3 mm: %d"),
 			*Sx, SkinMinDist(Side, 0), SkinMinDist(Side, 1), SkinMinDist(Side, 2), SkinMinDist(Side, 3), SkinMinDist(Side, 4),
 			SkinMinDist(Side, 5), SkinInside(Side, -0.1f), SkinInside(Side, -0.3f));
+		UE_LOG(LogTemp, Display, TEXT("DriverArms: %s arm to cabin: %.2f cm; vertices inside >1 mm: %d, >3 mm: %d"), *Sx,
+			SkinMinDist(Side, 6), SkinInside(Side, -0.1f, 6, 6), SkinInside(Side, -0.3f, 6, 6));
 	}
 }
 
@@ -696,6 +795,7 @@ void ADriverArms::BeginPlay()
 	{
 		Mesh->SetSkinnedAssetAndUpdate(Body);
 	}
+	LoadCabin();
 	GatherSkin();
 	Place();
 	// remember each hand's reference rotation (component space) before anything moves
