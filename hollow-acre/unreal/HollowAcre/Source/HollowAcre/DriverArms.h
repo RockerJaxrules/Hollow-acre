@@ -8,6 +8,10 @@
 //
 // Everything is solved in the car's frame (this actor sits at the car's origin, attached to it), so the pose holds as
 // the car drives. Only the arms are seen: the legs and neck are hidden.
+//
+// Collision: the hands collide with the wheel. The solver skins the MetaHuman's own hand vertices (the real skin, not
+// the bone lines) and tests them against the modelled wheel (the rim's oval tube, the spokes): the palm rests on the
+// rim, and each finger joint curls until that finger's skin meets the rim, never through it.
 
 #pragma once
 
@@ -17,6 +21,16 @@
 
 class UPoseableMeshComponent;
 class USkeletalMesh;
+
+/** One hand vertex for the collision test: its position in up to four bones' reference frames, with weights. */
+struct FHandSkinPoint
+{
+	FVector3f Local[4];
+	int32 Bone[4];
+	float Weight[4];
+	int32 Num = 0;
+	uint8 Seg = 0;        // finger segment (0 proximal .. 2 distal) of the dominant bone
+};
 
 USTRUCT()
 struct FHandGrip
@@ -65,6 +79,10 @@ public:
 	float RimRadius = 19.f;
 	UPROPERTY(EditAnywhere, Category = "Driver")
 	float RimTube = 1.9f;
+	/** The rim's tube as modelled (an oval): half-thickness across the rim (outer edge, inner edge with its finger
+	 *  ridges) and half-depth front to back. */
+	UPROPERTY(EditAnywhere, Category = "Driver")
+	FVector RimTubeOval = FVector(1.75f, 1.97f, 2.05f);
 
 	UPROPERTY(EditAnywhere, Category = "Driver")
 	FHandGrip Left;
@@ -86,8 +104,23 @@ private:
 	void Place();
 	void PoseArm(bool bLeft, const FHandGrip& G);
 	void CurlFinger(const FString& Finger, const FString& Sx, const FVector& Deg, const FVector& AxisCS, const FVector& PalmCS);
-	void BendToRim(FName Bone, FName Child, float MaxDeg);
+	void BendToRim(int32 Side, FName Bone, FName TipFrom, FName TipTo, float MaxDeg);
 	float RimDistCS(const FVector& PCS) const;
+
+	// collision between the hand's skin and the wheel
+	void GatherSkin();
+	void ResetArm(int32 Side);
+	FTransform CurCS(int32 Bone, TMap<int32, FTransform>& Cache) const;
+	float CollideDist(const FVector& CarPos) const;
+	/** Smallest distance from a part of the hand's skin to the wheel (negative: inside). Parts: 0 palm, 1-4 index to
+	 *  pinky, 5 thumb. FromSeg skips the finger segments nearer the palm. */
+	float SkinMinDist(int32 Side, int32 Part, int32 FromSeg = 0, int32 ToSeg = 2) const;
+	int32 SkinInside(int32 Side, float Below) const;
+	TArray<FHandSkinPoint> Skin[2][6];
+	/** Which way each thumb's pad faces, in the thumb_03 bone's frame (measured from the skin: the end bone sits on
+	 *  the nail side, so the flesh lies toward the pad). */
+	FVector ThumbPadLocal[2] = { FVector::ZeroVector, FVector::ZeroVector };
+	TArray<int32> ArmBones[2];
 
 	FTransform BoneCS(FName Bone) const;
 	void SetBoneCS(FName Bone, const FQuat& Rot);

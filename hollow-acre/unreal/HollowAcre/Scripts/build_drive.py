@@ -437,7 +437,7 @@ def build_car(windshield):
     gauges_tex = import_tex('T_Gauges')
     mats = {
         'dash': detail_mat('M_Car_Dash', (0.022, 0.022, 0.024), 0.62, grain, 3.0),
-        'hub': detail_mat('M_Car_Hub', (0.016, 0.016, 0.017), 0.8, leather, 1.5),   # matte padded vinyl
+        'hub': detail_mat('M_Car_Hub', (0.016, 0.016, 0.017), 0.8, None),   # matte padded vinyl (no grain: the pad's projection stretched it)
         'cluster': detail_mat('M_Car_ClusterFace', (0.01, 0.011, 0.013), 0.5, None),
         'gauges': detail_mat('M_Car_Gauges', (0.01, 0.01, 0.01), 0.35, None, emissive_tex=gauges_tex, emissive=GAUGE_GLOW),
         'needle': make_mat('M_Car_Needle', (0.5, 0.06, 0.05), 0.4, emissive=(0.35, 0.04, 0.03)),
