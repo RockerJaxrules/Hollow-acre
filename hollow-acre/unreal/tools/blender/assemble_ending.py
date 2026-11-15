@@ -1,9 +1,11 @@
-"""Cut the ending cutscene together for viewing: the pixel drive (2d/tools/ending/render_pixel.py frames), the
-realistic drive captured from Unreal (ShotDirector -capture), and the sound (tools/make_ending_audio.py), into one
-H.264 MP4 with AAC sound, using Blender's video sequencer (Blender ships FFmpeg).
+"""Cut the ending cutscene together for viewing, using Blender's video sequencer (Blender ships FFmpeg): the story
+half captured from the game (2d/tools/ending/capture_story.py), the pixel drive up the mountain
+(2d/tools/ending/render_pixel.py), the realistic drive captured from Unreal (ShotDirector -capture), and the sound
+(tools/make_ending_audio.py), into one H.264 MP4 with AAC sound.
 
-Run: blender -b --factory-startup --python assemble_ending.py -- <pixel frames> <unreal frames> <wav> <out.mp4> [height: 1080 or 720]
-The realistic capture's first HOLD seconds are replaced by black: the game holds black there before the fade in.
+Run: blender -b --factory-startup --python assemble_ending.py -- <out.mp4> <wav> <height 1080|720> <segment> ...
+A segment is a folder of frame_00000.png/.jpg frames (all of them), 'folder#N' (skip its first N frames), or 'black:N'
+(N black frames). The realistic capture starts with the game's held black, so it is given as black:45 then folder#45.
 """
 import os
 import sys
@@ -11,10 +13,9 @@ import sys
 import bpy
 
 args = sys.argv[sys.argv.index('--') + 1:]
-PIX_DIR, REAL_DIR, WAV, OUT = args[:4]
-HEIGHT = int(args[4]) if len(args) > 4 else 1080
+OUT, WAV, HEIGHT = args[0], args[1], int(args[2])
+SEGS = args[3:]
 FPS = 30
-HOLD = 1.5
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 sc = bpy.context.scene
@@ -26,26 +27,27 @@ sc.render.resolution_percentage = 100
 se = sc.sequence_editor_create()
 strips = se.strips if hasattr(se, 'strips') else se.sequences
 
-
-def image_strip(name, folder, first, count, channel, start):
-    files = ['frame_%05d.png' % i for i in range(first, first + count)]
-    s = strips.new_image(name=name, filepath=os.path.join(folder, files[0]), channel=channel, frame_start=start, fit_method='FIT')
+at = 1
+for k, seg in enumerate(SEGS):
+    if seg.startswith('black:'):
+        n = int(seg[6:])
+        try:
+            b = strips.new_effect(name='black%d' % k, type='COLOR', channel=1, frame_start=at, length=n)
+        except TypeError:
+            b = strips.new_effect(name='black%d' % k, type='COLOR', channel=1, frame_start=at, frame_end=at + n)
+        b.color = (0, 0, 0)
+        at += n
+        continue
+    folder, skip = (seg.split('#') + ['0'])[:2]
+    files = sorted(f for f in os.listdir(folder) if f.startswith('frame_') and f.endswith(('.png', '.jpg')))[int(skip):]
+    s = strips.new_image(name='seg%d' % k, filepath=os.path.join(folder, files[0]), channel=1, frame_start=at, fit_method='FIT')
     for f in files[1:]:
         s.elements.append(f)
-    return s
-
-
-n_pix = len([f for f in os.listdir(PIX_DIR) if f.startswith('frame_')])
-n_real = len([f for f in os.listdir(REAL_DIR) if f.startswith('frame_')])
-hold = int(HOLD * FPS)
-image_strip('pixel', PIX_DIR, 0, n_pix, 1, 1)
-black = strips.new_effect(name='hold black', type='COLOR', channel=1, frame_start=1 + n_pix, length=hold) \
-    if 'length' in strips.new_effect.__doc__ else strips.new_effect(name='hold black', type='COLOR', channel=1, frame_start=1 + n_pix, frame_end=1 + n_pix + hold)
-black.color = (0, 0, 0)
-image_strip('real', REAL_DIR, hold, n_real - hold, 1, 1 + n_pix + hold)
+    at += len(files)
+    print('segment %d: %s, %d frames' % (k, os.path.basename(folder.rstrip('/\\')), len(files)))
 strips.new_sound(name='sound', filepath=WAV, channel=2, frame_start=1)
 sc.frame_start = 1
-sc.frame_end = n_pix + n_real
+sc.frame_end = at - 1
 
 r = sc.render
 if hasattr(r.image_settings, 'media_type'):
@@ -53,7 +55,7 @@ if hasattr(r.image_settings, 'media_type'):
 r.image_settings.file_format = 'FFMPEG'
 r.ffmpeg.format = 'MPEG4'
 r.ffmpeg.codec = 'H264'
-r.ffmpeg.constant_rate_factor = 'HIGH' if HEIGHT >= 1080 else 'MEDIUM'
+r.ffmpeg.constant_rate_factor = 'HIGH' if HEIGHT >= 1080 else 'MEDIUM' if HEIGHT >= 720 else 'LOW'   # small copies for the web page
 r.ffmpeg.ffmpeg_preset = 'GOOD'
 r.ffmpeg.gopsize = FPS
 r.ffmpeg.audio_codec = 'AAC'

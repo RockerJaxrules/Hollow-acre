@@ -14,10 +14,17 @@ realistic first-person drive, and the end card.
                      something howls.
   card   (54-60.5)   Part 1's drone and one of its notes under "To be continued": still the same game.
 
+  story  (before)    with the story half's events (2d/tools/ending/capture_story.py events.json): the farm at dusk in
+                     Part 1's sounds: its wind, crickets, the page-and-chime as each line opens, the letter's paper,
+                     footsteps on the dirt, a slow melody in its "note" under the goodbye, the car door, the engine
+                     catching and its hum as the car pulls away; it runs straight into the mountain drive.
+
 Writes HollowAcre/SourceArt/Audio/Ending_Drive.wav (from the realistic scene's first frame; Unreal plays it) and
 HollowAcre/Saved/Generated/Ending_Full.wav (the whole cutscene, for the preview video). 48 kHz, 16-bit stereo.
-Run: python hollow-acre/unreal/tools/make_ending_audio.py
+Run: python hollow-acre/unreal/tools/make_ending_audio.py [story events.json]
 """
+import json
+import sys
 import os
 import wave
 
@@ -320,6 +327,106 @@ def card():
     return st(drone) + st(note) + reverb(drone * 0.5 + note, 3.0, 9) * 0.45
 
 
+def with_timeline(total, fn):
+    """Run fn with the module's timeline (N, T, TOTAL) set to another length, then put it back."""
+    global N, T, TOTAL
+    keep = (N, T, TOTAL)
+    TOTAL = total
+    N = int(total * SR)
+    T = np.arange(N) / SR
+    try:
+        return fn()
+    finally:
+        N, T, TOTAL = keep
+
+
+def story(ev):
+    """The farm at dusk, Part 1's sounds, in time with the captured scene."""
+    E = ev['events']
+    when = lambda k: [t for t, kk, d in E if kk == k]
+    lines = [(t, d) for t, kk, d in E if kk == 'line']
+    t_letter, t_close = when('letter')[0], when('letterClose')[0]
+    t_walk, t_engine = when('walk')[0], when('engine')[0]
+    t_fade = when('fadeOut')[0]
+    # its wind (a little stronger as night comes), and crickets now and then
+    def wind_gain(tc, f):
+        return bp(420 + 220 * np.sin(2 * np.pi * 0.06 * tc), 0.7)(f)
+    wind = np.stack([norm(stft_filter(noise(301 + ch), wind_gain), 0.05) for ch in range(2)])
+    wind *= env([(0, 0), (1.0, 0.8), (TOTAL - 4, 1.0), (TOTAL, 1.15)])
+    r = np.random.default_rng(311)
+    ct = np.cumsum(r.uniform(1.4, 4.0, 80))
+    ct = ct[ct < t_fade]
+
+    def cricket():
+        n = int(0.2 * SR)
+        y = np.zeros(n)
+        f = r.uniform(4200, 4400)
+        for i in range(3):
+            s0 = int(i * 0.07 * SR)
+            tt = np.arange(int(0.04 * SR)) / SR
+            y[s0:s0 + len(tt)] += np.sin(2 * np.pi * f * tt) * np.exp(-tt / 0.012)
+        return y
+    crick = norm(events(ct, cricket), 1.0) * 0.006
+    # each line opens with the page sound (a high hiss and a soft chime in the reverb); the letter rustles
+    def page():
+        n = int(1.7 * SR)
+        tt = np.arange(n) / SR
+        hiss = fft_filter(np.random.default_rng().standard_normal(n), hp(3000)) * np.exp(-tt / 0.08) * 0.5
+        chime = np.sin(2 * np.pi * 660 * tt) * np.exp(np.interp(tt, [0, 0.01, 1.6], [np.log(1e-4), 0, np.log(1e-4)])) * 0.5
+        return hiss + chime
+    pages = norm(events([t for t, d in lines], page), 1.0) * 0.014
+
+    def paper():
+        n = int(0.32 * SR)
+        y = np.random.default_rng().standard_normal(n) * np.hanning(n)
+        return fft_filter(y, hp(3000))
+    papers = norm(events([t_letter, t_close], paper), 1.0) * 0.01
+    # footsteps on the dirt: June up the lane (the first line to her first), you down to the car
+    def step():
+        n = int(0.09 * SR)
+        y = np.random.default_rng().standard_normal(n) * np.exp(-np.arange(n) / (0.02 * SR))
+        return fft_filter(y, lp(700 + 300 * np.random.default_rng().random()))
+    walks = [(lines[0][0] + 0.8, lines[1][0] - 0.2, 0.42), (t_walk, t_engine - 1.3, 0.36)]
+    steps = []
+    for a, b, gap in walks:
+        steps += list(np.arange(a, max(a, b), gap))
+    stepping = norm(events(steps, step), 1.0) * 0.008
+    # a slow melody in its "note" (a triangle and its octave, long in the reverb) from the letter to the car
+    notes = np.zeros(N)
+    seq = [(220.0, 1.0), (261.6, 0.9), (329.6, 0.95), (293.7, 0.85), (261.6, 0.9), (246.9, 0.85), (220.0, 1.0), (196.0, 0.8),
+           (220.0, 0.9), (261.6, 0.85), (246.9, 0.8), (164.8, 0.95)]
+    t = t_close + 0.8
+    k = 0
+    while t < t_engine + 2.0 and k < 40:
+        fq, v = seq[k % len(seq)]
+        dur = 2.8
+        n = int((dur + 0.1) * SR)
+        tt = np.arange(n) / SR
+        g = np.exp(np.interp(tt, [0, 0.01, dur], [np.log(1e-4), 0, np.log(1e-4)]))
+        y = tri(2 * np.pi * fq * 2 ** (r.uniform(-15, 15) / 1200) * tt) * g + 0.3 * np.sin(2 * np.pi * 2 * fq * tt) * np.exp(np.interp(tt, [0, 0.01, 1.0, dur], [np.log(1e-4), 0, np.log(1e-4), np.log(1e-4)]))
+        s0 = int(t * SR)
+        e0 = min(N, s0 + n)
+        notes[s0:e0] += v * y[:e0 - s0]
+        t += 2.1 if k % 4 != 3 else 3.2
+        k += 1
+    notes = norm(notes, 0.03) * env([(0, 1), (t_engine + 3, 1), (t_fade + 1.0, 0.4), (TOTAL, 0.3)])
+    # the car: its door, the engine catching, its hum as it pulls away and goes
+    def thud():
+        n = int(0.25 * SR)
+        tt = np.arange(n) / SR
+        return np.sin(2 * np.pi * (70 - 30 * tt) * tt) * np.exp(-tt / 0.06) + 0.5 * fft_filter(np.random.default_rng().standard_normal(n), lp(400)) * np.exp(-tt / 0.03)
+    door = norm(events([t_engine - 0.9], thud), 1.0) * 0.012
+    tt = np.clip(T - t_engine, 0, None)
+    start = saw(phase_of(np.where(T >= t_engine, 60 * (90 / 60) ** np.clip(tt / 1.2, 0, 1), 60.0)), 12)
+    start = fft_filter(start, lp(300)) * np.interp(T, [t_engine, t_engine + 0.05, t_engine + 1.2], [0, 1, 0])
+    start = norm(start, 1.0) * 0.014 + norm(fft_filter(noise(331), lp(400)), 1.0) * 0.009 * np.interp(T, [t_engine, t_engine + 0.05, t_engine + 0.8], [0, 1, 0])
+    hum = saw(phase_of(np.full(N, 46.0)), 20) + 0.3 * square(phase_of(np.full(N, 92.6)), 9)
+    hum = norm(fft_filter(hum, lp(240)), 1.0) * 0.032 * env([(0, 0), (t_engine + 0.3, 0), (t_engine + 0.9, 1.0), (t_fade, 1.0), (t_fade + 1.2, 0.6), (TOTAL, 0.6)])
+    dry = wind + st(crick, 0.4) + st(pages) + st(papers) + st(stepping, -0.1) + st(notes, -0.05) + st(door + start + hum, -0.15)
+    wet = reverb(notes + pages * 0.5, 3.0, 17) * 0.45
+    return dry + wet
+
+
 def write(path, x):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     data = (np.clip(x, -1, 1).T * 32767).astype('<i2')
@@ -333,10 +440,23 @@ def write(path, x):
 def main():
     mix = pixel() + real() + card()
     peak = np.max(np.abs(mix))
-    mix = np.tanh(mix / peak * 1.15) / np.tanh(1.15) * 0.89          # -1 dBFS, a gentle soft limit
-    write(os.path.join(PROJ, 'Saved', 'Generated', 'Ending_Full.wav'), mix)
-    write(os.path.join(PROJ, 'SourceArt', 'Audio', 'Ending_Drive.wav'), mix[:, int(PIX * SR):])
-    print('ending audio: %.1f s (pixel %.1f + real %.1f), peak before limit %.2f' % (TOTAL, PIX, REAL, peak))
+    lim = lambda x: np.tanh(x / peak * 1.15) / np.tanh(1.15) * 0.89    # -1 dBFS, a gentle soft limit
+    write(os.path.join(PROJ, 'SourceArt', 'Audio', 'Ending_Drive.wav'), lim(mix)[:, int(PIX * SR):])
+    full = mix
+    if len(sys.argv) > 1:
+        ev = json.load(open(sys.argv[1]))
+        story_len = ev['frames'] / ev['fps']
+        # the story's sound runs a second past its last frame, fading under the mountain drive's first (no gap, and the
+        # pictures stay in time: the mountain drive starts exactly on the story's last frame)
+        st_mix = with_timeline(story_len + 1.0, lambda: story(ev))
+        ns = int(story_len * SR)
+        st_mix[:, ns:] *= np.linspace(1, 0, st_mix.shape[1] - ns)
+        full = np.zeros((2, ns + mix.shape[1]))
+        full[:, :st_mix.shape[1]] += st_mix
+        full[:, ns:] += mix
+        print('story sound: %.1f s, %d events' % (story_len, len(ev['events'])))
+    write(os.path.join(PROJ, 'Saved', 'Generated', 'Ending_Full.wav'), lim(full))
+    print('ending audio: %.1f s (pixel %.1f + real %.1f), peak before limit %.2f' % (full.shape[1] / SR, PIX, REAL, peak))
 
 
 if __name__ == '__main__':
