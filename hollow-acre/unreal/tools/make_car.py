@@ -447,45 +447,181 @@ def outside_front(m):
 
 # ---------------- textures (our own) ----------------
 def gauges_texture():
-    W, H = 1024, 512
-    img = Image.new('RGBA', (W, H), (9, 11, 14, 0))
+    """Three round dials side by side (RGB face, A glow mask): fuel and coolant on the left, the speedometer with its
+    odometer in the middle, the tachometer on the right. White markings and dim backlight on black, like the car's."""
+    W, H = 1536, 512
+    img = Image.new('RGBA', (W, H), (8, 9, 11, 255))
     d = ImageDraw.Draw(img)
-    big = ImageFont.truetype(FONT, 30)
-    small = ImageFont.truetype(FONT, 18)
-    lab = ImageFont.truetype(FONT, 16)
+    f_big = ImageFont.truetype(FONT, 34)
+    f_mid = ImageFont.truetype(FONT, 26)
+    f_small = ImageFont.truetype(FONT, 18)
+    ink = (232, 236, 238, 255)
+    dim = (150, 158, 164, 255)
 
-    def dial(cx, maxv, step, minor, label, unit):
-        r = 236
-        d.ellipse([cx - r, 256 - r, cx + r, 256 + r], fill=(10, 12, 15, 0), outline=(70, 80, 90, 255), width=3)
-        a0, a1 = 225.0, -45.0
-        n = int(maxv / minor)
+    def ticks(cx, cy, r, a0, a1, vmax, major, minor, labels=True, font=None, rlab=78, lab_fmt=str):
+        n = int(round(vmax / minor))
         for i in range(n + 1):
             val = i * minor
-            a = math.radians(a0 + (a1 - a0) * val / maxv)
-            major = abs(val / step - round(val / step)) < 1e-6
-            r1, r2 = (r - 12, r - 44) if major else (r - 12, r - 28)
-            d.line([(cx + math.cos(a) * r1, 256 - math.sin(a) * r1), (cx + math.cos(a) * r2, 256 - math.sin(a) * r2)],
-                   fill=(225, 235, 245, 255), width=5 if major else 3)
-            if major:
-                txt = str(int(val if unit == 'mph' else val))
-                tx, ty = cx + math.cos(a) * (r - 78), 256 - math.sin(a) * (r - 78)
-                bb = d.textbbox((0, 0), txt, font=big)
-                d.text((tx - (bb[2] - bb[0]) / 2, ty - (bb[3] - bb[1]) / 2 - 6), txt, font=big, fill=(225, 235, 245, 255))
-        bb = d.textbbox((0, 0), label, font=lab)
-        d.text((cx - (bb[2] - bb[0]) / 2, 256 + 70), label, font=lab, fill=(150, 170, 185, 255))
-        if unit == 'rpm':  # red zone painted on the dial (dim, not a light)
-            for val in np.arange(6.5, 8.01, 0.05):
-                a = math.radians(a0 + (a1 - a0) * val / maxv)
-                d.line([(cx + math.cos(a) * (r - 12), 256 - math.sin(a) * (r - 12)), (cx + math.cos(a) * (r - 22), 256 - math.sin(a) * (r - 22))],
-                       fill=(150, 30, 28, 200), width=4)
-    dial(256, 140, 20, 10, 'MPH', 'mph')
-    dial(768, 8, 1, 0.5, 'RPM x1000', 'rpm')
-    # small fuel and temperature arcs inside the dials' lower parts
-    for cx, l0, l1 in ((256, 'E', 'F'), (768, 'C', 'H')):
-        d.arc([cx - 70, 340, cx + 70, 480], 200, 340, fill=(180, 195, 205, 255), width=3)
-        d.text((cx - 78, 440), l0, font=small, fill=(180, 195, 205, 255))
-        d.text((cx + 64, 440), l1, font=small, fill=(180, 195, 205, 255))
-    img.save(os.path.join(ART, 'T_Gauges.png'))
+            a = math.radians(a0 + (a1 - a0) * val / vmax)
+            is_major = abs(val / major - round(val / major)) < 1e-6
+            r1, r2 = (r - 10, r - 42) if is_major else (r - 10, r - 26)
+            d.line([(cx + math.cos(a) * r1, cy - math.sin(a) * r1), (cx + math.cos(a) * r2, cy - math.sin(a) * r2)],
+                   fill=ink, width=6 if is_major else 3)
+            if labels and is_major:
+                txt = lab_fmt(val)
+                tx, ty = cx + math.cos(a) * (r - rlab), cy - math.sin(a) * (r - rlab)
+                bb = d.textbbox((0, 0), txt, font=font or f_big)
+                d.text((tx - (bb[2] - bb[0]) / 2, ty - (bb[3] - bb[1]) / 2 - 6), txt, font=font or f_big, fill=ink)
+
+    def centred(txt, cx, y, font, fill):
+        bb = d.textbbox((0, 0), txt, font=font)
+        d.text((cx - (bb[2] - bb[0]) / 2, y), txt, font=font, fill=fill)
+
+    # left: coolant temperature (top arc) and fuel (bottom arc)
+    cx, cy, r = 256, 256, 236
+    ticks(cx, cy, r, 150, 30, 80, 40, 10, labels=False)
+    for val, txt in ((0, '40'), (40, '80'), (80, '120')):
+        a = math.radians(150 - 120 * val / 80)
+        centred(txt, cx + math.cos(a) * (r - 78), cy - math.sin(a) * (r - 78) - 18, f_mid, ink)
+    centred('\u00b0C', cx, cy - 120, f_small, dim)
+    for i in range(9):
+        a = math.radians(210 + 120 * i / 8)
+        r1, r2 = (r - 10, r - 40) if i % 4 == 0 else (r - 10, r - 24)
+        d.line([(cx + math.cos(a) * r1, cy - math.sin(a) * r1), (cx + math.cos(a) * r2, cy - math.sin(a) * r2)], fill=ink, width=5)
+    a = math.radians(210)
+    d.text((cx + math.cos(a) * (r - 70) - 8, cy - math.sin(a) * (r - 70) - 12), 'E', font=f_mid, fill=ink)
+    a = math.radians(330)
+    d.text((cx + math.cos(a) * (r - 70) - 8, cy - math.sin(a) * (r - 70) - 12), 'F', font=f_mid, fill=ink)
+    d.rectangle([cx - 18, cy + 120, cx + 18, cy + 150], outline=dim, width=3)        # pump symbol, simplified
+    # middle: speedometer 0-220 km/h with odometer and trip windows
+    cx = 768
+    ticks(cx, cy, r, 225, -45, 220, 20, 10, font=f_mid, rlab=74)
+    centred('km/h', cx, cy + 40, f_mid, dim)
+    for y0, digits in ((cy + 82, '127408'), (cy - 92, '1657')):
+        w = 28 * len(digits)
+        d.rectangle([cx - w / 2 - 6, y0 - 4, cx + w / 2 + 6, y0 + 34], fill=(2, 2, 3, 255), outline=(60, 64, 68, 255), width=2)
+        for i, ch in enumerate(digits):
+            d.text((cx - w / 2 + i * 28 + 4, y0), ch, font=f_mid, fill=ink)
+    # right: tachometer 0-7 (x1000 rpm), red from 6
+    cx = 1280
+    ticks(cx, cy, r, 225, -45, 7, 1, 0.5, font=f_big, lab_fmt=lambda v: str(int(v)))
+    for k in range(40):
+        val = 6.0 + 1.0 * k / 39
+        a = math.radians(225 - 270 * val / 7)
+        d.line([(cx + math.cos(a) * (r - 10), cy - math.sin(a) * (r - 10)), (cx + math.cos(a) * (r - 30), cy - math.sin(a) * (r - 30))],
+               fill=(190, 30, 26, 255), width=5)
+    centred('x1000/min', cx, cy + 40, f_small, dim)
+    # dim backlight mask: markings glow, faces stay dark
+    px = np.asarray(img).astype(np.float32)
+    lum = px[..., :3].mean(-1)
+    alpha = np.clip((lum - 40) / 180, 0, 1) * 255
+    px[..., 3] = alpha
+    Image.fromarray(px.astype(np.uint8), 'RGBA').save(os.path.join(ART, 'T_Gauges.png'))
+
+
+def climate_textures():
+    """The climate strip (fan scale, max, defrost and recirculation symbols) and the three knob scales: temperature
+    left and right (blue to red), air distribution in the middle."""
+    W, H = 1024, 160
+    img = Image.new('RGBA', (W, H), (14, 15, 17, 255))
+    d = ImageDraw.Draw(img)
+    f = ImageFont.truetype(FONT, 30)
+    ink = (210, 214, 216, 255)
+    # fan symbol: four blades
+    cx, cy = 90, 80
+    for k in range(4):
+        a = math.radians(45 + 90 * k)
+        d.ellipse([cx + math.cos(a) * 22 - 14, cy - math.sin(a) * 22 - 14, cx + math.cos(a) * 22 + 14, cy - math.sin(a) * 22 + 14], fill=ink)
+    d.ellipse([cx - 7, cy - 7, cx + 7, cy + 7], fill=(14, 15, 17, 255))
+    # fan speed slots I II III
+    for k in range(3):
+        x0 = 200 + k * 120
+        for j in range(k + 1):
+            d.rectangle([x0 + j * 14, 66, x0 + j * 14 + 6, 96], fill=ink)
+    d.text((570, 60), 'max', font=f, fill=ink)
+    d.rectangle([180, 108, 640, 114], fill=(40, 42, 46, 255))                # the slider's slot
+    # defrost (a curved screen with wavy arrows) and recirculation (a looping arrow)
+    d.arc([700, 50, 790, 120], 200, 340, fill=ink, width=5)
+    for k in range(3):
+        x = 722 + k * 22
+        d.line([(x, 104), (x + 6, 92), (x, 80), (x + 6, 68)], fill=ink, width=4)
+    d.arc([850, 52, 930, 112], 30, 330, fill=ink, width=5)
+    d.polygon([(925, 66), (944, 72), (928, 86)], fill=ink)
+    px = np.asarray(img).astype(np.float32)
+    px[..., 3] = np.clip((px[..., :3].mean(-1) - 40) / 150, 0, 1) * 255
+    Image.fromarray(px.astype(np.uint8), 'RGBA').save(os.path.join(ART, 'T_ClimateStrip.png'))
+
+    W, H = 1536, 512
+    img = Image.new('RGBA', (W, H), (14, 15, 17, 255))
+    d = ImageDraw.Draw(img)
+    for k, cx in enumerate((256, 768, 1280)):
+        cy, r = 256, 230
+        if k in (0, 2):
+            for i in range(41):                                 # blue to red arc
+                t = i / 40
+                a = math.radians(230 - 280 * t)
+                col = (int(60 + 180 * t), int(90 - 60 * t), int(220 - 190 * t), 255)
+                d.line([(cx + math.cos(a) * (r - 6), cy - math.sin(a) * (r - 6)), (cx + math.cos(a) * (r - (40 if i % 10 == 0 else 24)),
+                         cy - math.sin(a) * (r - (40 if i % 10 == 0 else 24)))], fill=col, width=7)
+        else:
+            for a_deg, ln in ((90, 1), (0, 1), (180, 1), (270, 1)):  # air distribution arrows
+                a = math.radians(a_deg)
+                p1 = (cx + math.cos(a) * (r - 20), cy - math.sin(a) * (r - 20))
+                p2 = (cx + math.cos(a) * (r - 80), cy - math.sin(a) * (r - 80))
+                d.line([p1, p2], fill=(210, 214, 216, 255), width=8)
+                d.polygon([p1, (p1[0] + math.cos(a + 2.6) * 30, p1[1] - math.sin(a + 2.6) * 30),
+                           (p1[0] + math.cos(a - 2.6) * 30, p1[1] - math.sin(a - 2.6) * 30)], fill=(210, 214, 216, 255))
+    px = np.asarray(img).astype(np.float32)
+    px[..., 3] = np.clip((px[..., :3].max(-1) - 40) / 150, 0, 1) * 255
+    Image.fromarray(px.astype(np.uint8), 'RGBA').save(os.path.join(ART, 'T_Climate.png'))
+
+
+def radio_texture():
+    """A period cassette radio's face: the tape door, preset buttons printed above them, the dial window."""
+    W, H = 1024, 384
+    img = Image.new('RGBA', (W, H), (16, 16, 18, 255))
+    d = ImageDraw.Draw(img)
+    f = ImageFont.truetype(FONT, 34)
+    fs = ImageFont.truetype(FONT, 24)
+    d.rectangle([70, 70, 600, 200], fill=(6, 6, 7, 255), outline=(70, 72, 76, 255), width=4)     # cassette door
+    d.rectangle([110, 110, 560, 160], fill=(24, 22, 20, 255))
+    d.rectangle([650, 70, 960, 200], fill=(10, 12, 10, 255), outline=(70, 72, 76, 255), width=4)  # dial window
+    for k in range(9):
+        x = 680 + k * 32
+        d.line([(x, 120), (x, 150)], fill=(200, 150, 60, 255), width=3)
+    d.text((690, 82), 'FM  88  92  96  100  104  108', font=fs, fill=(200, 150, 60, 255))
+    d.line([(812, 96), (812, 186)], fill=(230, 60, 40, 255), width=4)
+    for k, t in enumerate(('1', '2', '3', '4', '5')):
+        x = 100 + k * 110
+        d.text((x + 30, 250), t, font=f, fill=(190, 194, 198, 255))
+    d.text((700, 250), 'AM   FM   TAPE', font=fs, fill=(190, 194, 198, 255))
+    px = np.asarray(img).astype(np.float32)
+    lum = px[..., :3].mean(-1)
+    glow = ((px[..., 0] > 150) & (px[..., 1] > 100)) | (px[..., 0] > 200)
+    px[..., 3] = np.where(glow, 255, np.clip((lum - 60) / 200, 0, 0.4) * 255)
+    Image.fromarray(px.astype(np.uint8), 'RGBA').save(os.path.join(ART, 'T_Radio.png'))
+
+
+def warning_strip_texture():
+    """The row of warning lights under the dials (all off but faintly coloured)."""
+    W, H = 1024, 64
+    img = Image.new('RGBA', (W, H), (4, 4, 5, 255))
+    d = ImageDraw.Draw(img)
+    cols = [(120, 30, 26), (130, 100, 20), (30, 100, 40), (120, 30, 26), (30, 60, 130), (130, 100, 20), (120, 30, 26)]
+    for k, c in enumerate(cols):
+        cx = 70 + k * 145
+        if k % 3 == 0:
+            d.ellipse([cx - 18, 14, cx + 18, 50], outline=c + (255,), width=4)
+            d.text((cx - 4, 18), '!', fill=c + (255,))
+        elif k % 3 == 1:
+            d.rectangle([cx - 22, 20, cx + 22, 46], outline=c + (255,), width=4)
+            d.line([(cx - 10, 20), (cx - 10, 14)], fill=c + (255,), width=4)
+            d.line([(cx + 10, 20), (cx + 10, 14)], fill=c + (255,), width=4)
+        else:
+            d.polygon([(cx - 22, 46), (cx, 14), (cx + 22, 46)], outline=c + (255,))
+    px = np.asarray(img).astype(np.float32)
+    px[..., 3] = np.clip((px[..., :3].max(-1) - 10) / 80, 0, 1) * 80
+    Image.fromarray(px.astype(np.uint8), 'RGBA').save(os.path.join(ART, 'T_WarnStrip.png'))
 
 
 def tile_noise(size, cells, seed):
@@ -788,6 +924,9 @@ def main():
     os.makedirs(ART, exist_ok=True)
     if '--textures-only' in sys.argv:   # the car's meshes come from tools/blender/car_interior.py now
         gauges_texture()
+        climate_textures()
+        radio_texture()
+        warning_strip_texture()
         detail_textures()
         hood_texture()
         body_texture()

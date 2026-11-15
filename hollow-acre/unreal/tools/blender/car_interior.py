@@ -345,12 +345,7 @@ def cabin():
     box('rearview_glass', 'mirror', (-1.75, -12.6, -2.6), (-1.6, 12.6, 2.6), bevel=0.0, matrix=m)
     cylinder('rearview_stem', 'blackplastic', Vector((36.0, YC, 131.0)), Vector((0.15, 0, 1)), 0.9, 8.0, segs=16)
     # driver's door: panel, armrest, pull handle, window crank, window sill
-    box('door_panel', 'door', (-70, DOOR_Y - 3.0, 46), (97, DOOR_Y - 0.8, 96.5), bevel=1.2)
-    box('armrest', 'door', (-42, DOOR_Y - 1.0, 66), (22, DOOR_Y + 6.0, 72.5), bevel=1.6, segs=4)
-    box('pull_handle', 'blackplastic', (-12, DOOR_Y - 1.0, 74), (12, DOOR_Y + 3.2, 77), bevel=1.0, segs=3)
-    cylinder('crank_boss', 'chrome', Vector((30, DOOR_Y + 0.2, 80)), Vector((0, 1, 0)), 1.5, 1.4, segs=24, bevel=0.2)
-    box('crank_arm', 'chrome', (29.2, DOOR_Y + 0.9, 74.5), (30.8, DOOR_Y + 1.8, 80.5), bevel=0.3)
-    cylinder('crank_knob', 'blackplastic', Vector((30, DOOR_Y + 3.0, 75.2)), Vector((0, 1, 0)), 1.0, 3.0, segs=16, bevel=0.3)
+    # (the door card itself is in car_cockpit.py)
     box('door_sill', 'blackplastic', (-70, DOOR_Y - 9.5, 95.5), (97, DOOR_Y + 0.5, 99.0), bevel=1.2)
     # (the door mirrors are modelled as their own part in car_parts.py)
     # side glass in the driver's door, between the inner and outer skins
@@ -433,8 +428,8 @@ if __name__ == '__main__':
     bpy.ops.wm.read_factory_settings(use_empty=True)
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import car_exterior
-    dashboard()
-    steering_wheel()
+    import car_cockpit
+    car_cockpit.build(DOOR_Y)     # the 190E-type dash, cluster, centre stack, console, wheel and door card
     cabin()
     outside_front()
     car_exterior.build()

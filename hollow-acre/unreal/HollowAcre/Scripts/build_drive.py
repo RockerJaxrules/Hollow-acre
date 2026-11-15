@@ -471,6 +471,12 @@ def build_car(windshield):
         'amberlens': make_mat('M_Car_AmberLens', (0.32, 0.1, 0.008), 0.22, spec=0.7),
         'gap': make_mat('M_Car_PanelGap', (0.004, 0.004, 0.004), 0.8),
         'lamplens': make_lamp_lens_mat(),
+        'dashtop': detail_mat('M_Car_DashTop', (0.022, 0.022, 0.024), 0.78, leather, 3.0),   # padded vinyl, pebble grain
+        'climatestrip': detail_mat('M_Car_ClimateStrip', (0, 0, 0), 0.45, None, emissive_tex=import_tex('T_ClimateStrip'), emissive=GAUGE_GLOW * 0.5),
+        'climate_mark': make_mat('M_Car_ClimateMark', (0.6, 0.25, 0.05), 0.4, emissive=(0.25, 0.08, 0.015)),
+        'climate': detail_mat('M_Car_Climate', (0, 0, 0), 0.45, None, emissive_tex=import_tex('T_Climate'), emissive=GAUGE_GLOW * 0.4),
+        'radiofront': detail_mat('M_Car_RadioFront', (0, 0, 0), 0.35, None, emissive_tex=import_tex('T_Radio'), emissive=GAUGE_GLOW * 0.6),
+        'warnstrip': detail_mat('M_Car_WarnStrip', (0, 0, 0), 0.35, None, emissive_tex=import_tex('T_WarnStrip'), emissive=GAUGE_GLOW * 0.5),
         'seat': detail_mat('M_Car_Seat', (0.034, 0.032, 0.03), 0.88, fabric, 2.0),
         'carpet': detail_mat('M_Car_Carpet', (0.018, 0.017, 0.016), 0.95, fabric, 4.0),
         'windshield': windshield,

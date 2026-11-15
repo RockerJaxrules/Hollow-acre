@@ -21,10 +21,10 @@ ADriverArms::ADriverArms()
 	Right.Yaw = 45.f;
 	Right.Roll = 10.f;
 	Right.ElbowPole = FVector2D(0.8f, -1.f);   // the right forearm rises more steeply (70-80 degrees)
-	Right.Index = FVector(48.f, 62.f, 22.f);   // never mirror copies
-	Right.Middle = FVector(57.f, 72.f, 28.f);
-	Right.Ring = FVector(60.f, 80.f, 34.f);
-	Right.Pinky = FVector(64.f, 82.f, 36.f);
+	Right.Index = FVector(84.f, 98.f, 66.f);   // limits; never mirror copies
+	Right.Middle = FVector(90.f, 102.f, 70.f);
+	Right.Ring = FVector(92.f, 104.f, 72.f);
+	Right.Pinky = FVector(95.f, 106.f, 75.f);
 }
 
 FTransform ADriverArms::BoneCS(FName Bone) const
@@ -84,28 +84,104 @@ void ADriverArms::Place()
 	UE_LOG(LogTemp, Display, TEXT("DriverArms: body faces %s, shoulders at %s"), *Fwd.ToString(), *ShoulderMid.ToString());
 }
 
+float ADriverArms::RimDistCS(const FVector& PCS) const
+{
+	// distance from a point (component space) to the rim's surface (car frame torus)
+	const FVector P = Mesh->GetRelativeTransform().TransformPosition(PCS);
+	const float Tilt = FMath::DegreesToRadians(WheelTilt);
+	const FVector Nw(-FMath::Cos(Tilt), 0.f, FMath::Sin(Tilt));
+	const FVector D = P - WheelCentre;
+	const float Hn = FVector::DotProduct(D, Nw);
+	const float Rad = (D - Nw * Hn).Size();
+	return FMath::Sqrt(FMath::Square(Rad - RimRadius) + Hn * Hn) - RimTube;
+}
+
 void ADriverArms::CurlFinger(const FString& Finger, const FString& Sx, const FVector& Deg, const FVector& AxisCS, const FVector& PalmCS)
 {
+	// Close the finger round the rim: each joint bends toward the palm a few degrees at a time until the finger
+	// touches the rim's surface (or reaches its limit), then the next joint takes over. The finger wraps the rim.
 	const FName J[3] = { *FString::Printf(TEXT("%s_01_%s"), *Finger, *Sx), *FString::Printf(TEXT("%s_02_%s"), *Finger, *Sx),
 		*FString::Printf(TEXT("%s_03_%s"), *Finger, *Sx) };
-	const float A[3] = { (float)Deg.X, (float)Deg.Y, (float)Deg.Z };
-	for (int k = 0; k < 3; ++k)
+	for (const FName& B : J)
 	{
-		if (Mesh->GetBoneIndex(J[k]) == INDEX_NONE)
+		if (Mesh->GetBoneIndex(B) == INDEX_NONE)
 		{
 			return;
 		}
-		const FTransform T = BoneCS(J[k]);
-		const FVector Child = (k < 2) ? BoneCS(J[k + 1]).GetLocation()
-			: T.GetLocation() + (T.GetLocation() - BoneCS(J[k - 1]).GetLocation()) * 0.8f;
-		const FVector V = Child - T.GetLocation();
-		float Ang = FMath::DegreesToRadians(A[k]);
-		const FVector Vp = FQuat(AxisCS, Ang).RotateVector(V);
-		if (FVector::DotProduct(Vp - V, PalmCS) < 0.f)
+	}
+	auto Tip = [&]() { const FVector A = BoneCS(J[1]).GetLocation(), Bp = BoneCS(J[2]).GetLocation(); return Bp + (Bp - A) * 0.85f; };
+	auto Clearance = [&](int From)
+	{
+		float M = 1e9f;
+		for (int m = From; m < 3; ++m)
 		{
-			Ang = -Ang;     // curl toward the palm
+			const FVector A = BoneCS(J[m]).GetLocation();
+			const FVector Bp = (m < 2) ? BoneCS(J[m + 1]).GetLocation() : Tip();
+			for (float t : { 0.35f, 0.7f, 1.0f })
+			{
+				M = FMath::Min(M, RimDistCS(FMath::Lerp(A, Bp, t)));
+			}
 		}
-		SetBoneCS(J[k], FQuat(AxisCS, Ang) * T.GetRotation());
+		return M;
+	};
+	const float Skin = 0.8f;                          // bone line to the finger's skin
+	const float Step = FMath::DegreesToRadians(2.5f);
+	const float Max[3] = { (float)Deg.X, (float)Deg.Y, (float)Deg.Z };
+	for (int k = 0; k < 3; ++k)
+	{
+		// which way bends toward the palm
+		const FTransform T0 = BoneCS(J[k]);
+		const FVector Child = (k < 2) ? BoneCS(J[k + 1]).GetLocation() : Tip();
+		const FVector V = Child - T0.GetLocation();
+		const float Sign = FVector::DotProduct(FQuat(AxisCS, 0.2f).RotateVector(V) - V, PalmCS) >= 0.f ? 1.f : -1.f;
+		float Done = 0.f;
+		while (Done < FMath::DegreesToRadians(Max[k]))
+		{
+			if (Clearance(k) < Skin)
+			{
+				if (Done > 0.f)
+				{
+					SetBoneCS(J[k], FQuat(AxisCS, -Sign * Step * 0.5f) * BoneCS(J[k]).GetRotation());   // back off half a step
+				}
+				break;
+			}
+			SetBoneCS(J[k], FQuat(AxisCS, Sign * Step) * BoneCS(J[k]).GetRotation());
+			Done += Step;
+		}
+	}
+}
+
+void ADriverArms::BendToRim(FName Bone, FName Child, float MaxDeg)
+{
+	// bend a thumb joint toward the rim until its pad touches (axis: across the thumb, toward the nearest rim surface)
+	if (Mesh->GetBoneIndex(Bone) == INDEX_NONE || Mesh->GetBoneIndex(Child) == INDEX_NONE)
+	{
+		return;
+	}
+	const float Step = FMath::DegreesToRadians(2.5f);
+	float Done = 0.f;
+	while (Done < FMath::DegreesToRadians(MaxDeg))
+	{
+		const FTransform T = BoneCS(Bone);
+		const FVector C = BoneCS(Child).GetLocation();
+		const FVector TipP = C + (C - T.GetLocation()) * 0.9f;
+		if (FMath::Min(RimDistCS(TipP), RimDistCS(C)) < 0.8f)
+		{
+			break;
+		}
+		// toward the rim: numeric gradient of the rim distance at the tip
+		const float e = 0.3f;
+		const FVector G(RimDistCS(TipP + FVector(e, 0, 0)) - RimDistCS(TipP - FVector(e, 0, 0)),
+			RimDistCS(TipP + FVector(0, e, 0)) - RimDistCS(TipP - FVector(0, e, 0)),
+			RimDistCS(TipP + FVector(0, 0, e)) - RimDistCS(TipP - FVector(0, 0, e)));
+		const FVector Dir = (TipP - T.GetLocation()).GetSafeNormal();
+		const FVector Axis = FVector::CrossProduct(Dir, -G.GetSafeNormal()).GetSafeNormal();
+		if (Axis.IsNearlyZero())
+		{
+			break;
+		}
+		SetBoneCS(Bone, FQuat(Axis, Step) * T.GetRotation());
+		Done += Step;
 	}
 }
 
@@ -182,7 +258,10 @@ void ADriverArms::PoseArm(bool bLeft, const FHandGrip& G)
 		P = -Back;
 	}
 	// the wrist sits behind the knuckles, the knuckle row just outside the rim
-	const FVector Wrist = Grip + Back * (RimTube + 0.9f) - F * LMeta;
+	// the rim lies across the palm: about 2.4 cm past the knuckles along the fingers and 2.6 cm to the palm side of
+	// the knuckle line, so the curled fingers close round it
+	const FVector Knuckles = Grip - F * 2.4f + Back * 2.6f;
+	const FVector Wrist = Knuckles - F * LMeta;
 
 	// ---- two-bone IK: shoulder, elbow, wrist (car frame)
 	const FVector Sh = MeshRel.TransformPosition(BoneCS(N(TEXT("upperarm"))).GetLocation());
@@ -224,12 +303,12 @@ void ADriverArms::PoseArm(bool bLeft, const FHandGrip& G)
 	SetBoneCS(N(TEXT("hand")), Rot * RefHandRot[bLeft ? 0 : 1]);
 
 	// fingers close round the rim; the thumb lies along the driver face toward twelve
-	const FVector Knuckles = DirToCS(S);
+	const FVector KnuckleAxis = DirToCS(S);
 	const FVector Palm = DirToCS(P);
-	CurlFinger(TEXT("index"), Sx, G.Index, Knuckles, Palm);
-	CurlFinger(TEXT("middle"), Sx, G.Middle, Knuckles, Palm);
-	CurlFinger(TEXT("ring"), Sx, G.Ring, Knuckles, Palm);
-	CurlFinger(TEXT("pinky"), Sx, G.Pinky, Knuckles, Palm);
+	CurlFinger(TEXT("index"), Sx, G.Index, KnuckleAxis, Palm);
+	CurlFinger(TEXT("middle"), Sx, G.Middle, KnuckleAxis, Palm);
+	CurlFinger(TEXT("ring"), Sx, G.Ring, KnuckleAxis, Palm);
+	CurlFinger(TEXT("pinky"), Sx, G.Pinky, KnuckleAxis, Palm);
 	if (Mesh->GetBoneIndex(N(TEXT("thumb_01"))) != INDEX_NONE)
 	{
 		const FVector Th1 = BoneCS(N(TEXT("thumb_01"))).GetLocation();
@@ -237,6 +316,8 @@ void ADriverArms::PoseArm(bool bLeft, const FHandGrip& G)
 		const FVector Want = DirToCS((T12 + Nw * 0.3f - P * 0.15f).GetSafeNormal());
 		const FTransform T1 = BoneCS(N(TEXT("thumb_01")));
 		SetBoneCS(N(TEXT("thumb_01")), FQuat::FindBetweenNormals((Th3 - Th1).GetSafeNormal(), Want) * T1.GetRotation());
+		BendToRim(N(TEXT("thumb_02")), N(TEXT("thumb_03")), 35.f);
+		BendToRim(N(TEXT("thumb_03")), N(TEXT("thumb_03")), 0.f);
 	}
 	UE_LOG(LogTemp, Display, TEXT("DriverArms: %s grip %s wrist %s elbow %s (reach %.1f of %.1f)"), *Sx, *Grip.ToString(),
 		*WristReached.ToString(), *Elbow.ToString(), Dist, L1 + L2);

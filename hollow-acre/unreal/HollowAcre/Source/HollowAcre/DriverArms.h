@@ -31,11 +31,11 @@ struct FHandGrip
 	UPROPERTY(EditAnywhere) float Yaw = 43.f;
 	/** Roll about the finger direction (degrees). */
 	UPROPERTY(EditAnywhere) float Roll = 12.f;
-	/** Finger curl, degrees per joint (MCP, PIP, DIP) for index, middle, ring, pinky. */
-	UPROPERTY(EditAnywhere) FVector Index = FVector(45.f, 65.f, 25.f);
-	UPROPERTY(EditAnywhere) FVector Middle = FVector(55.f, 75.f, 30.f);
-	UPROPERTY(EditAnywhere) FVector Ring = FVector(58.f, 78.f, 32.f);
-	UPROPERTY(EditAnywhere) FVector Pinky = FVector(60.f, 80.f, 35.f);
+	/** Most each finger joint may bend (MCP, PIP, DIP), degrees; the fingers stop where they touch the rim. */
+	UPROPERTY(EditAnywhere) FVector Index = FVector(82.f, 96.f, 64.f);
+	UPROPERTY(EditAnywhere) FVector Middle = FVector(88.f, 100.f, 68.f);
+	UPROPERTY(EditAnywhere) FVector Ring = FVector(90.f, 102.f, 70.f);
+	UPROPERTY(EditAnywhere) FVector Pinky = FVector(93.f, 104.f, 73.f);
 	/** Elbow direction: outward, down (car frame weights). */
 	UPROPERTY(EditAnywhere) FVector2D ElbowPole = FVector2D(0.7f, -1.f);
 };
@@ -86,6 +86,8 @@ private:
 	void Place();
 	void PoseArm(bool bLeft, const FHandGrip& G);
 	void CurlFinger(const FString& Finger, const FString& Sx, const FVector& Deg, const FVector& AxisCS, const FVector& PalmCS);
+	void BendToRim(FName Bone, FName Child, float MaxDeg);
+	float RimDistCS(const FVector& PCS) const;
 
 	FTransform BoneCS(FName Bone) const;
 	void SetBoneCS(FName Bone, const FQuat& Rot);

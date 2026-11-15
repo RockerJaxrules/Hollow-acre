@@ -641,13 +641,18 @@ def a_pillar(sgn):
         ring = []
         for i in range(9):                               # outer face, bulging out
             s = i / 8
-            ring.append((pw + chord * s + n * (1.7 * math.sin(math.pi * s) + 0.3), 'outer'))
+            ring.append((pw + chord * s + n * (1.7 * math.sin(math.pi * s) + 0.3), ('outer', s)))
         for i in range(7, 0, -1):                        # inner face
             s = i / 8
-            ring.append((pw + chord * s - n * (0.9 * math.sin(math.pi * s)), 'inner'))
+            ring.append((pw + chord * s - n * (0.9 * math.sin(math.pi * s)), ('inner', s)))
         rings.append(ring)
-    face_mat = lambda infos, c: 1 if sum(i == 'inner' for i in infos) >= 3 else 0
-    obj = loft('a_pillar_out', rings, ['paint', 'trim'], face_mat)
+    def face_mat(infos, c):
+        if sum(i[0] == 'inner' for i in infos) >= 3:
+            return 1                                     # trim, seen from inside
+        if max(i[1] for i in infos) <= 0.26:
+            return 2                                     # the black seal along the windshield's edge
+        return 0
+    obj = loft('a_pillar_out', rings, ['paint', 'trim', 'blackplastic'], face_mat)
     return _ext().finish(obj)
 
 
