@@ -5,9 +5,11 @@ snow-laden pines, and big peaks in the distance. Scripts/build_drive.py imports 
 Writes (Unreal frame: X forward at the start, Y right, Z up; meshes in centimetres):
   HollowAcre/Saved/Generated/Terrain_Road.obj   the road corridor: road bed, snow banks, cliff, drop (UV in 4 m units)
   HollowAcre/Saved/Generated/Road.obj           the road surface ribbon (U across, V along every 7 m)
+  HollowAcre/Saved/Generated/Guardrail.obj, GuardPost.obj   the W-beam guardrail and its post (make_roadside.py)
   HollowAcre/Saved/Generated/Terrain_Far.obj    the valley floor and the peaks around it
-  HollowAcre/Saved/Generated/Pine.obj           one snow-laden pine, 10 m tall (slots: bark, needles, snow)
   HollowAcre/Saved/Generated/mountain.json      the car's path, and transforms for trees, poles, guardrail posts and rails
+                                                (trees: x, y, z, yaw, scale, spruce variant; the spruces themselves are
+                                                made by tools/blender/spruce.py)
   HollowAcre/SourceArt/T_Snow*.png, T_Rock*.png, T_RoadSnow.png   tiling textures (colour + normal maps)
 
 Run with Python 3 + numpy + Pillow:  python hollow-acre/unreal/tools/make_mountain.py
@@ -100,6 +102,16 @@ def corridor_height(s, d):
     cliff = np.where(up < 2.5, 0.0, np.where(up < 45, 1.55 * (up - 2.5), 1.55 * 42.5 + 0.55 * (up - 45)))
     h = h + 0.9 * smoothstep(0, 2.0, up) * (d > 0) + cliff
     h = h + (fbm(s / 28, d / 28, 5) * 7.0 + fbm(s / 7, d / 7, 3) * 1.4) * smoothstep(2.5, 12, up)
+    # the rock face: ledges where the strata outcrop (the snow settles on them), every 2-4.5 m of height, and broken
+    # rock between them
+    face = smoothstep(3.0, 7.0, up) * (1 - smoothstep(42, 60, up))
+    step = 3.4 + 2.0 * fbm(s / 30 + 7, d / 25 + 3.0, 2)
+    hh = h / step
+    fl = np.floor(hh)
+    # how strongly the strata show changes along the road and up the face (some stretches are just broken rock)
+    strength = np.clip(0.35 + 0.9 * (fbm(s / 22 + 11, d / 18, 3) + 0.15), 0.0, 1.0)
+    h = h + ((fl + smoothstep(0.35, 1.0, hh - fl)) * step - h) * strength * face
+    h = h + fbm(s / 2.5 + 3, d / 2.5, 3) * 0.45 * face
     # downhill: a small berm by the guardrail, then the drop into the valley
     drop = -0.55 * np.maximum(dn - 2.5, 0.0) ** 1.2
     h = h + np.where(d < 0, 0.45 * smoothstep(0, 1.0, dn) - 0.45 * smoothstep(1.6, 3.2, dn) + drop, 0.0)
@@ -108,14 +120,21 @@ def corridor_height(s, d):
 
 
 def across():
-    """Corridor columns: fine across the road, growing outward to REACH."""
+    """Corridor columns: fine across the road, growing outward to REACH on the valley side; every 0.6 m up the rock
+    face (so its ledges show), then growing."""
     d, out, step = HALF + 1.0, [], 0.5
     inner = list(np.arange(-(HALF + 1.0), HALF + 1.0 + 1e-6, 0.75))
     while d < REACH:
         step = min(step * 1.17, 9.0)
         d += step
         out.append(min(d, REACH))
-    return sorted(set([-x for x in out] + inner + out))
+    up, d, step = [], HALF + 1.0, 0.6
+    while d < REACH:
+        if d - (HALF + 1.0) > 52:
+            step = min(step * 1.2, 9.0)
+        d += step
+        up.append(min(d, REACH))
+    return sorted(set([-x for x in out] + inner + up))
 
 
 def frame_at(xs, ys, th, zr, s_arr, s, d):
@@ -169,11 +188,24 @@ def build_corridor(xs, ys, th, zr, s_arr):
     return v, uv, tris
 
 
+TRACKS = (LANE - 0.74, LANE + 0.74, -LANE - 0.74, -LANE + 0.74)   # wheel paths (m across the road), each lane's pair
+
+
+def ruts(S, D):
+    """How far the packed snow is pressed down (m): 2-4 cm in the wheel paths, wandering a little along the road."""
+    r = np.zeros_like(D)
+    for i, c in enumerate(TRACKS):
+        wob = 0.06 * np.sin(S / 17.0 + i * 1.7) + 0.04 * np.sin(S / 6.3 + i)
+        depth = 0.03 + 0.01 * np.sin(S / 11.0 + i * 2.1)
+        r += depth * np.exp(-((D - c - wob) / 0.17) ** 2)
+    return r
+
+
 def build_road(xs, ys, th, zr, s_arr):
-    cols = np.linspace(-HALF, HALF, 9)
+    cols = np.linspace(-HALF, HALF, 29)
     S, D = np.meshgrid(s_arr, cols, indexing='ij')
     X, Y, Z, _ = frame_at(xs, ys, th, zr, s_arr, S, D)
-    H = corridor_height(S, D) + 0.03
+    H = corridor_height(S, D) + 0.05 - ruts(S, D)   # deepest ruts stay above the terrain under the road
     v = np.stack([X, Y, Z + H], -1).reshape(-1, 3)
     uv = np.stack([(D + HALF) / (2 * HALF), S / 7.0], -1).reshape(-1, 2)
     tris = grid_tris(len(s_arr), len(cols))
@@ -203,48 +235,6 @@ def build_far(xs, ys, zr):
     if np.cross(b - a, c - a)[2] < 0:
         tris = tris[:, ::-1]
     return v, uv, tris
-
-
-def build_pine():
-    """A 10 m snow-laden spruce: trunk, eight drooping jagged tiers of needles, snow caps on the upper side of each tier."""
-    r = random.Random(5)
-    groups = []
-    # trunk
-    seg, v, uv, t = 8, [], [], []
-    for k, (z, rad) in enumerate(((0.0, 0.2), (9.8, 0.04))):
-        for i in range(seg + 1):
-            a = 2 * math.pi * i / seg
-            v.append((math.cos(a) * rad, math.sin(a) * rad, z))
-            uv.append((i / seg, k))
-    for i in range(seg):
-        a, b, c, d = i, i + 1, seg + 1 + i, seg + 2 + i
-        t += [(a, b, c), (b, d, c)]
-    groups.append(('bark', np.array(v), np.array(uv), np.array(t)))
-    for mat, lift, shrink in (('needles', 0.0, 1.0), ('snow', 0.07, 0.86)):
-        v, uv, t = [], [], []
-        tiers = 8
-        for k in range(tiers):
-            top = 9.9 - k * 1.08
-            height = 1.5 + k * 0.08
-            rad = (0.55 + 2.75 * (k + 1) / tiers) * shrink
-            spokes = 16
-            base = len(v)
-            v.append((0.0, 0.0, top + lift))
-            uv.append((0.5, 0.5))
-            rr = random.Random(100 + k)  # the same jagged outline for needles and their snow
-            for i in range(spokes):
-                a = 2 * math.pi * (i + 0.5 * (k % 2)) / spokes
-                j = 0.78 + 0.4 * rr.random()
-                droop = 0.35 * rr.random()
-                rad_i = rad * j
-                z = top - height - droop + (lift if mat == 'snow' else 0.0) + (height * 0.38 if mat == 'snow' else 0.0)
-                rad_i = rad_i * (0.72 if mat == 'snow' else 1.0)
-                v.append((math.cos(a) * rad_i, math.sin(a) * rad_i, z))
-                uv.append((0.5 + 0.5 * math.cos(a), 0.5 + 0.5 * math.sin(a)))
-            for i in range(spokes):
-                t.append((base, base + 1 + (i + 1) % spokes, base + 1 + i))
-        groups.append((mat, np.array(v), np.array(uv), np.array(t)))
-    return groups
 
 
 # ---------------- textures (tiling, our own) ----------------
@@ -295,18 +285,22 @@ def make_textures():
     g = 0.36 + h * 0.18 + strata * 0.05 - cracks * 0.14   # sRGB: about 15-20 % reflectance once linear, like granite
     save_rgb(np.stack([g * 0.98, g, g * 1.04], -1), 'T_Rock.png')
     normal_map(h + strata * 0.15 - cracks * 0.4, 14.0).save(os.path.join(ART, 'T_RockN.png'))
-    # the road: packed snow, two darker compacted tyre tracks per lane, a little grit (U across the road, V along)
+    # the road: packed snow, two darker compacted tyre tracks per lane (where the ruts are), a little grit; U across
+    # the road, V along. Alpha holds the roughness: glossy, icy ruts and dull loose snow between them
     W, H = 512, 1024
     u = (np.arange(W)[None, :] + 0.5) / W
     base = 0.62 + (tile_fbm(H, 60, base=8)[:, :W] - 0.5) * 0.1
     tracks = np.zeros((H, W), np.float32)
-    for c in (0.18, 0.36, 0.64, 0.82):           # wheel paths, each lane's pair
-        tracks += np.exp(-((u - c) / 0.035) ** 2)
+    for c in TRACKS:
+        tracks += np.exp(-((u - (c + HALF) / (2 * HALF)) / 0.03) ** 2)
+    tracks = np.clip(tracks, 0, 1)
     wobble = tile_fbm(H, 70, base=4)[:, :W]
-    road = base - np.clip(tracks, 0, 1) * (0.22 + wobble * 0.08)
+    road = base - tracks * (0.22 + wobble * 0.08)
     grit = (np.random.default_rng(8).random((H, W)) > 0.996) * -0.25
     road = np.clip(road + grit, 0, 1)
-    save_rgb(np.stack([road * 0.95, road * 0.97, road * 1.02], -1), 'T_RoadSnow.png')
+    rough = np.clip(0.72 - tracks * (0.42 + (wobble - 0.5) * 0.3), 0.12, 0.85)
+    Image.fromarray(np.clip(np.stack([road * 0.95, road * 0.97, road * 1.02, rough], -1) * 255, 0, 255).astype(np.uint8),
+                    'RGBA').save(os.path.join(ART, 'T_RoadSnow.png'))
 
 
 def main():
@@ -316,10 +310,9 @@ def main():
     write_obj(os.path.join(GEN, 'Terrain_Road.obj'), [('terrain',) + build_corridor(xs, ys, th, zr, s_arr)])
     write_obj(os.path.join(GEN, 'Road.obj'), [('road',) + build_road(xs, ys, th, zr, s_arr)])
     write_obj(os.path.join(GEN, 'Terrain_Far.obj'), [('far',) + build_far(xs, ys, zr)])
-    write_obj(os.path.join(GEN, 'Pine.obj'), build_pine())
 
     r = random.Random(SEED)
-    out = {'path': [], 'trees': [], 'poles': [], 'posts': [], 'rails': []}
+    out = {'path': [], 'trees': [], 'poles': [], 'posts': []}
     # the car's path: the right lane, every 2 m from the start of the scene
     for s in s_arr[s_arr >= CAR_START - 1e-6]:
         x, y, z, t = frame_at(xs, ys, th, zr, s_arr, s, LANE)
@@ -337,25 +330,20 @@ def main():
         if abs(hs - h0) / 1.5 > 1.25 and r.random() > 0.15:  # too steep to hold a tree
             continue
         x, y, z, t = frame_at(xs, ys, th, zr, s_arr, s, d)
-        out['trees'].append([float(x) * 100, float(y) * 100, float(z + h0 - 0.3) * 100, r.uniform(0, 360), r.uniform(0.65, 1.45)])
-    # snow poles on both edges every 30 m; guardrail posts every 4 m on the valley side, with a broken gap
+        # a spruce variant (4.5 to 25 m tall, tools/blender/spruce.py), mostly mid-sized, a few saplings and giants
+        v = r.choices(range(7), weights=(1.0, 2.0, 3.0, 3.0, 3.0, 2.0, 1.5))[0]
+        out['trees'].append([float(x) * 100, float(y) * 100, float(z + h0 - 0.3) * 100, r.uniform(0, 360), r.uniform(0.85, 1.15), v])
+    # snow poles on both edges every 30 m
     for s in np.arange(10, LENGTH - 10, 30.0):
         for d in (HALF + 0.8, -(HALF + 1.6)):
             x, y, z, t = frame_at(xs, ys, th, zr, s_arr, s, d)
             out['poles'].append([float(x) * 100, float(y) * 100, float(z + corridor_height(s, d)) * 100, math.degrees(t), 1.0])
-    for s in np.arange(4, LENGTH - 4, 4.0):
-        if 520 < s < 548:   # a smashed-through gap
-            continue
-        x, y, z, t = frame_at(xs, ys, th, zr, s_arr, s, -(HALF + 1.1))
-        zz = float(z + corridor_height(s, -(HALF + 1.1)))
-        out['posts'].append([float(x) * 100, float(y) * 100, zz * 100, math.degrees(t), 1.0])
-        if not (516 < s < 552):
-            x2, y2, z2, t2 = frame_at(xs, ys, th, zr, s_arr, s + 2.0, -(HALF + 1.1))
-            out['rails'].append([float(x2) * 100, float(y2) * 100, float(z2 + corridor_height(s + 2, -(HALF + 1.1))) * 100 + 62,
-                                 math.degrees(t2), 4.05])
+    # the guardrail (rail, snow on it, posts every 1.905 m) and its smashed-through gap
+    import make_roadside
+    make_roadside.build(xs, ys, th, zr, s_arr, out)
     json.dump(out, open(os.path.join(GEN, 'mountain.json'), 'w'))
     make_textures()
-    print('mountain: path %d, trees %d, poles %d, posts %d, rails %d' % tuple(len(out[k]) for k in ('path', 'trees', 'poles', 'posts', 'rails')))
+    print('mountain: path %d, trees %d, poles %d, posts %d' % tuple(len(out[k]) for k in ('path', 'trees', 'poles', 'posts')))
 
 
 if __name__ == '__main__':

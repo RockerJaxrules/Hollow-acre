@@ -378,11 +378,34 @@ def outside_front():
 
 
 # ---------------- export (same OBJ convention as make_car.py) ----------------
-def export(path, keep):
+WHEEL_PARTS = ('rim', 'wheel_pad', 'spoke')   # the steering wheel's parts: exported on their own so it can turn
+WIPER_PARTS = ('wiper_arm', 'wiper_blade')     # each wiper's arm and blade: exported on their own so they can sweep
+WIPER_PIVOTS = (Vector((103.5, YC - 18, 97.0)), Vector((103.5, YC + 34, 97.0)))   # (as outside_front places them)
+
+
+def moving_part(obj):
+    """Which moving part an object belongs to: 'wheel', 'wiper0', 'wiper1', or None for the fixed car."""
+    base = obj.name.split('.')[0]
+    if base in WHEEL_PARTS:
+        return 'wheel'
+    if base in WIPER_PARTS:
+        c = obj.matrix_world @ (sum((v.co for v in obj.data.vertices), Vector()) / max(1, len(obj.data.vertices)))
+        return 'wiper0' if abs(c.y - WIPER_PIVOTS[0].y) < abs(c.y - WIPER_PIVOTS[1].y) else 'wiper1'
+    return None
+
+
+def export(path, keep, wheel=False, part=None):
+    """Write the car's fixed parts (glass or opaque) as OBJ; part='wheel' / 'wiper0' / 'wiper1' writes only that moving
+    part, about its own pivot (the wheel's centre, the wiper's spindle)."""
+    if wheel:
+        part = 'wheel'
+    origin = {'wheel': WHEEL_C, 'wiper0': WIPER_PIVOTS[0], 'wiper1': WIPER_PIVOTS[1]}.get(part)
     deps = bpy.context.evaluated_depsgraph_get()
     groups = {}
     for obj in bpy.context.scene.objects:
         if obj.type != 'MESH' or obj.get('cutter'):
+            continue
+        if moving_part(obj) != part:
             continue
         ev = obj.evaluated_get(deps)
         me = ev.to_mesh()
@@ -405,6 +428,8 @@ def export(path, keep):
             corners = []
             for li in tri.loops:
                 p = mw @ me.vertices[me.loops[li].vertex_index].co
+                if origin is not None:
+                    p = p - origin
                 nrm = (nm @ normals[li]).normalized()
                 uv = uvl[li] if uvl else (0.0, 0.0)
                 corners.append((p, nrm, uv))
@@ -435,6 +460,11 @@ if __name__ == '__main__':
     car_exterior.build()
     opaque = export(os.path.join(OUT, 'Car.obj'), keep=False)
     glass = export(os.path.join(OUT, 'Car_Glass.obj'), keep=True)
+    wheel = export(os.path.join(OUT, 'Car_Wheel.obj'), keep=False, wheel=True)
+    print('car_interior: steering wheel %d tris' % sum(wheel.values()))
+    for i in range(2):
+        w = export(os.path.join(OUT, 'Car_Wiper%d.obj' % i), keep=False, part='wiper%d' % i)
+        print('car_interior: wiper %d: %d tris' % (i, sum(w.values())))
     print('car_interior: opaque %d tris in %d materials %s; glass %s' % (sum(opaque.values()), len(opaque), sorted(opaque), glass))
     import cabin_sdf
     # collision for the driver's arms and hands (see DriverArms); the driver's door is solid from its trim panel outward

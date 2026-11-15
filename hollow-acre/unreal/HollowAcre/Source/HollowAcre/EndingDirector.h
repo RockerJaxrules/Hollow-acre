@@ -58,6 +58,30 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ending")
 	TArray<FVector> Path;
 
+	/** The driver's arms: the director steers (their Steer turns the wheel and the hands). Found in the level if unset. */
+	UPROPERTY(EditAnywhere, Category = "Ending")
+	TObjectPtr<class ADriverArms> Arms;
+
+	/** Steering: wheel turns per road-wheel turn, the car's wheelbase (cm), how far ahead (s) the driver steers. */
+	UPROPERTY(EditAnywhere, Category = "Ending")
+	float SteerRatio = 16.f;
+	UPROPERTY(EditAnywhere, Category = "Ending")
+	float Wheelbase = 266.5f;
+	UPROPERTY(EditAnywhere, Category = "Ending")
+	float SteerLead = 0.4f;
+
+	/** The windshield wipers (each pivoting on its spindle, parked along the bottom of the glass). */
+	UPROPERTY(EditAnywhere, Category = "Ending")
+	TArray<TObjectPtr<AActor>> Wipers;
+
+	/** Wiper sweep: seconds per out-and-back, how far they sweep (degrees), how long they rest parked between sweeps. */
+	UPROPERTY(EditAnywhere, Category = "Ending")
+	float WiperPeriod = 1.35f;
+	UPROPERTY(EditAnywhere, Category = "Ending")
+	float WiperSweep = 92.f;
+	UPROPERTY(EditAnywhere, Category = "Ending")
+	float WiperRest = 0.25f;
+
 	/** Gentle body sway from the rough, snowy road (degrees). */
 	UPROPERTY(EditAnywhere, Category = "Ending")
 	float SwayDeg = 0.6f;
@@ -77,6 +101,12 @@ private:
 
 	/** Position along Path at a distance (cm) from its start. */
 	FVector PathAt(float Dist) const;
+	/** The road's heading (radians, Unreal yaw: positive turns right) at a distance along it. */
+	float HeadingAt(float Dist) const;
+	float SteerNow = 0.f;
+	TArray<FQuat> WiperBase;
+	FVector WiperAxis = FVector::UpVector;
+	float WiperSign = 1.f;
 
 	FTransform CarStart;
 	TArray<float> PathDist;

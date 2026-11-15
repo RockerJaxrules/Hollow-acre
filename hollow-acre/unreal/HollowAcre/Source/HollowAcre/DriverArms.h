@@ -91,9 +91,14 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Driver")
 	FHandGrip Right;
 
-	/** Steering: the wheel turns this many degrees (the hands follow along the rim); set by the drive. */
+	/** Steering: the wheel turns this many degrees, clockwise as the driver sees it (the hands follow along the rim);
+	 *  set by the drive. */
 	UPROPERTY(EditAnywhere, Category = "Driver")
 	float Steer = 0.f;
+
+	/** The steering wheel's own actor (rim, spokes, pad), its origin on the wheel's centre; turned by Steer. */
+	UPROPERTY(EditAnywhere, Category = "Driver")
+	TObjectPtr<AActor> WheelActor;
 
 protected:
 	virtual void BeginPlay() override;
@@ -141,4 +146,15 @@ private:
 	FQuat RefHandRot[2] = { FQuat::Identity, FQuat::Identity };
 	float LastSteer = 1e9f;
 	bool bPlaced = false;
+
+	// steering: the grip as solved with the wheel straight, then followed rigidly round the wheel's axis
+	void SnapshotGrip();
+	void FollowWheel();
+	bool bGripReady = false;
+	TArray<FTransform> GripPose;
+	FVector GripWrist[2] = { FVector::ZeroVector, FVector::ZeroVector };
+	FVector GripElbow[2] = { FVector::ZeroVector, FVector::ZeroVector };
+	FQuat GripHandRot[2] = { FQuat::Identity, FQuat::Identity };
+	FQuat WheelBaseRot = FQuat::Identity;
+	float SteerSign = 1.f;
 };

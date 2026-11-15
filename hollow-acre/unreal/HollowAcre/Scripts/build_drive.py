@@ -143,10 +143,24 @@ def make_windshield_mat():
 MTN = '/Game/HollowAcre/Mountain'
 
 
+IMPORT_KEPT = set()
+
+
 def import_obj(name, dest=None):
-    """Import Saved/Generated/<name>.obj (from unreal/tools/make_mountain.py) as a static mesh."""
+    """Import Saved/Generated/<name>.obj (from unreal/tools/make_mountain.py) as a static mesh. A mesh imported after
+    its OBJ was last written is kept as it is (HA_REIMPORT=1 imports everything again)."""
+    src = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_saved_dir() + f'Generated/{name}.obj')
+    asset = f'{dest or MTN}/{name}'
+    upk = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_content_dir() + asset[len('/Game/'):] + '.uasset')
+    if (os.environ.get('HA_REIMPORT') != '1' and eal.does_asset_exist(asset) and os.path.exists(upk)
+            and os.path.getmtime(upk) > os.path.getmtime(src)):
+        mesh = unreal.load_asset(asset)
+        if isinstance(mesh, unreal.StaticMesh):
+            IMPORT_KEPT.add(name)
+            log('%s: unchanged since its import, kept' % name)
+            return mesh
     task = unreal.AssetImportTask()
-    task.set_editor_property('filename', unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_saved_dir() + f'Generated/{name}.obj'))
+    task.set_editor_property('filename', src)
     task.set_editor_property('destination_path', dest or MTN)
     task.set_editor_property('destination_name', name)
     task.set_editor_property('replace_existing', True)
@@ -206,35 +220,91 @@ def finish(m):
     return m
 
 
-def make_terrain_mat(name, tiling):
+def world_aligned(m, tex, size_cm, normal, x, y):
+    """Engine's WorldAlignedTexture / WorldAlignedNormal: the texture projected along X, Y and Z and blended by the
+    surface's facing. Output 'XYZ Texture'."""
+    to = mel.create_material_expression(m, unreal.MaterialExpressionTextureObject, x - 500, y)
+    to.set_editor_property('texture', tex)
+    if normal:
+        to.set_editor_property('sampler_type', unreal.MaterialSamplerType.SAMPLERTYPE_NORMAL)
+    fn = 'WorldAlignedNormal' if normal else 'WorldAlignedTexture'
+    fc = mel.create_material_expression(m, unreal.MaterialExpressionMaterialFunctionCall, x - 200, y)
+    fc.set_editor_property('material_function', unreal.load_asset(f'/Engine/Functions/Engine_MaterialFunctions01/Texturing/{fn}'))
+    sz = mel.create_material_expression(m, unreal.MaterialExpressionConstant3Vector, x - 500, y + 120)
+    sz.set_editor_property('constant', unreal.LinearColor(size_cm, size_cm, size_cm, 1))
+    mel.connect_material_expressions(to, '', fc, 'TextureObject')
+    mel.connect_material_expressions(sz, '', fc, 'TextureSize')
+    return fc
+
+
+def make_terrain_mat(name, tiling, bias=SNOW_SLOPE_BIAS):
     """Snow on the flats, rock where it is too steep for snow to hold (by the surface's slope)."""
     snow_c, snow_n = import_tex('T_Snow'), import_normal('T_SnowN')
     rock_c, rock_n = import_tex('T_Rock'), import_normal('T_RockN')
     m = new_material(name)
     sc = tex_sample(m, snow_c, tiling, -1200, -200)
     sn = tex_sample(m, snow_n, tiling, -1200, 0, normal=True)
-    rc = tex_sample(m, rock_c, tiling * 0.5, -1200, 200)
-    rn = tex_sample(m, rock_n, tiling * 0.5, -1200, 400, normal=True)
+    # rock: projected from world space along all three axes (the cliff's UVs run across the road, so a UV-mapped
+    # texture stretches up the face); 3.5 m per tile
+    rc = world_aligned(m, rock_c, 350.0, False, -1200, 200)
+    rn = world_aligned(m, rock_n, 350.0, True, -1200, 400)
     up = mel.create_material_expression(m, unreal.MaterialExpressionVertexNormalWS, -1300, 600)
     z = mel.create_material_expression(m, unreal.MaterialExpressionComponentMask, -1100, 600)
     for ch, on in (('r', False), ('g', False), ('b', True), ('a', False)):
         z.set_editor_property(ch, on)
     mel.connect_material_expressions(up, '', z, '')
     sat = mel.create_material_expression(m, unreal.MaterialExpressionSaturate, -700, 600)
-    mel.connect_material_expressions(scaled_add(m, z, '', SNOW_SLOPE_SHARPNESS, SNOW_SLOPE_BIAS, -950, 600), '', sat, '')
-    mel.connect_material_property(lerp(m, rc, 'RGB', sc, 'RGB', sat, -400, -100), '', unreal.MaterialProperty.MP_BASE_COLOR)
-    mel.connect_material_property(lerp(m, rn, 'RGB', sn, 'RGB', sat, -400, 200), '', unreal.MaterialProperty.MP_NORMAL)
+    mel.connect_material_expressions(scaled_add(m, z, '', SNOW_SLOPE_SHARPNESS, bias, -950, 600), '', sat, '')
+    mel.connect_material_property(lerp(m, rc, 'XYZ Texture', sc, 'RGB', sat, -400, -100), '', unreal.MaterialProperty.MP_BASE_COLOR)
+    mel.connect_material_property(lerp(m, rn, 'XYZ Texture', sn, 'RGB', sat, -400, 200), '', unreal.MaterialProperty.MP_NORMAL)
     mel.connect_material_property(scaled_add(m, sat, '', -0.25, 0.85, -400, 400), '', unreal.MaterialProperty.MP_ROUGHNESS)
     return finish(m)
 
 
 def make_road_mat():
     m = new_material('M_RoadSnow')
-    mel.connect_material_property(tex_sample(m, import_tex('T_RoadSnow'), 1.0, -400, 0), 'RGB', unreal.MaterialProperty.MP_BASE_COLOR)
+    road = tex_sample(m, import_tex('T_RoadSnow'), 1.0, -400, 0)
+    mel.connect_material_property(road, 'RGB', unreal.MaterialProperty.MP_BASE_COLOR)
+    mel.connect_material_property(road, 'A', unreal.MaterialProperty.MP_ROUGHNESS)   # icy ruts gloss, loose snow dull
     mel.connect_material_property(tex_sample(m, unreal.load_asset('/Game/HollowAcre/Textures/T_SnowN'), 1.5, -400, 250, normal=True), 'RGB',
                                   unreal.MaterialProperty.MP_NORMAL)
+    return finish(m)
+
+
+def make_spray_mat(name, col, nrm_name):
+    """Spruce spray cards: the needle texture rendered from the modelled spray, cut out by its alpha."""
+    tex = import_tex(col)
+    try:   # keep the needles from thinning out in the distance as the mipmaps average the alpha away
+        tex.set_editor_property('do_scale_mips_for_alpha_coverage', True)
+        tex.set_editor_property('alpha_coverage_thresholds', unreal.Vector4(0, 0, 0, 0.4))
+        eal.save_loaded_asset(tex)
+    except Exception as e:
+        log('alpha coverage not set on %s: %s' % (col, e))
+    m = new_material(name, instanced=True)
+    m.set_editor_property('blend_mode', unreal.BlendMode.BLEND_MASKED)
+    m.set_editor_property('opacity_mask_clip_value', 0.4)
+    ts = tex_sample(m, tex, 1.0, -500, 0)
+    mel.connect_material_property(ts, 'RGB', unreal.MaterialProperty.MP_BASE_COLOR)
+    mel.connect_material_property(ts, 'A', unreal.MaterialProperty.MP_OPACITY_MASK)
+    mel.connect_material_property(tex_sample(m, import_normal(nrm_name), 1.0, -500, 300, normal=True), 'RGB',
+                                  unreal.MaterialProperty.MP_NORMAL)
+    for val, prop, y in ((0.8, unreal.MaterialProperty.MP_ROUGHNESS, 550), (0.35, unreal.MaterialProperty.MP_SPECULAR, 650)):
+        k = mel.create_material_expression(m, unreal.MaterialExpressionConstant, -300, y)
+        k.set_editor_property('r', val)
+        mel.connect_material_property(k, '', prop)
+    return finish(m)
+
+
+def make_branch_snow_mat():
+    """Snow lying on the branches: white, a little blue, the snow normal map for its grain."""
+    m = new_material('M_SpruceSnow', instanced=True)
+    c = mel.create_material_expression(m, unreal.MaterialExpressionConstant3Vector, -400, 0)
+    c.set_editor_property('constant', unreal.LinearColor(0.78, 0.8, 0.85, 1))
+    mel.connect_material_property(c, '', unreal.MaterialProperty.MP_BASE_COLOR)
+    mel.connect_material_property(tex_sample(m, unreal.load_asset('/Game/HollowAcre/Textures/T_SnowN'), 2.0, -500, 250, normal=True), 'RGB',
+                                  unreal.MaterialProperty.MP_NORMAL)
     k = mel.create_material_expression(m, unreal.MaterialExpressionConstant, -300, 450)
-    k.set_editor_property('r', 0.55)
+    k.set_editor_property('r', 0.7)
     mel.connect_material_property(k, '', unreal.MaterialProperty.MP_ROUGHNESS)
     return finish(m)
 
@@ -259,7 +329,7 @@ def T(x, y, z, yaw, sx, sy=None, sz=None):
 def build_mountain():
     import json
     data = json.load(open(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_saved_dir() + 'Generated/mountain.json')))
-    terrain_mat = make_terrain_mat('M_MountainTerrain', 1.0)
+    terrain_mat = make_terrain_mat('M_MountainTerrain', 1.0, bias=-3.3)   # wet blizzard snow sticks to the cliff's ledges
     far_mat = make_terrain_mat('M_MountainFar', 1.0)
     road_mat = make_road_mat()
     for name, mat in (('Terrain_Road', terrain_mat), ('Terrain_Far', far_mat), ('Road', road_mat)):
@@ -272,35 +342,50 @@ def build_mountain():
         if name == 'Terrain_Far':
             a.static_mesh_component.set_cast_shadow(False)
 
-    pine = import_obj('Pine')
-    bark = make_mat('M_PineBark', (0.035, 0.027, 0.02), 0.9, instanced=True)
-    needles = new_material('M_PineNeedles', two_sided=True, instanced=True)
-    k = mel.create_material_expression(needles, unreal.MaterialExpressionConstant3Vector, -300, 0)
-    k.set_editor_property('constant', unreal.LinearColor(0.016, 0.03, 0.024, 1))
-    mel.connect_material_property(k, '', unreal.MaterialProperty.MP_BASE_COLOR)
-    finish(needles)
-    pine_snow = new_material('M_PineSnow', two_sided=True, instanced=True)
-    k = mel.create_material_expression(pine_snow, unreal.MaterialExpressionConstant3Vector, -300, 0)
-    k.set_editor_property('constant', unreal.LinearColor(0.74, 0.77, 0.83, 1))
-    mel.connect_material_property(k, '', unreal.MaterialProperty.MP_BASE_COLOR)
-    finish(pine_snow)
-    slots = {s.get_editor_property('material_slot_name'): i for i, s in enumerate(pine.static_materials)}
-    log('pine slots: %s' % slots)
-    order = [None] * len(pine.static_materials)
-    for name, mat in (('bark', bark), ('needles', needles), ('snow', pine_snow)):
-        for slot, i in slots.items():
-            if str(slot).lower().startswith(name):
-                order[i] = mat
-    order = [o or needles for o in order]
-    scatter('Pines', pine, order, data['trees'], lambda r: T(r[0], r[1], r[2], r[3], r[4]))
+    # The forest: snow-laden spruces (unreal/tools/blender/spruce.py), one instanced actor per variant
+    sp_meta = json.load(open(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_saved_dir() + 'Generated/spruce.json')))
+    sp_mats = {'bark': make_mat('M_SpruceBark', (0.075, 0.07, 0.066), 0.9, instanced=True),
+               'needles_top': make_spray_mat('M_SpruceSprayTop', 'T_SpraySnowC', 'T_SpraySnowN'),
+               'needles_under': make_spray_mat('M_SpruceSprayUnder', 'T_SprayC', 'T_SprayN'),
+               'snow': make_branch_snow_mat()}
+    for i, meta in enumerate(sp_meta):
+        mesh = import_obj(meta['name'])
+        if meta['name'] not in IMPORT_KEPT:
+            sme = unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem)
+            bs = sme.get_lod_build_settings(mesh, 0)
+            bs.set_editor_property('recompute_normals', False)   # the cards' normals are bent out of the crown on purpose
+            bs.set_editor_property('recompute_tangents', True)
+            sme.set_lod_build_settings(mesh, 0, bs)
+            eal.save_loaded_asset(mesh)
+        order = []
+        for sm in mesh.static_materials:
+            slot = str(sm.get_editor_property('material_slot_name')).lower()
+            order.append(next((m for k, m in sp_mats.items() if slot.startswith(k)), sp_mats['bark']))
+        rows = [t for t in data['trees'] if int(t[5]) == i]
+        log('%s: %.1f m, %d triangles, %d trees' % (meta['name'], meta['height_cm'] / 100.0, meta['tris'], len(rows)))
+        if rows:
+            scatter('Spruces %.0f m' % (meta['height_cm'] / 100.0), mesh, order, rows, lambda r: T(r[0], r[1], r[2], r[3], r[4]))
 
-    metal = make_mat('M_Guardrail', (0.16, 0.165, 0.17), 0.6, metal=0.6, instanced=True)
-    pole = make_mat('M_SnowPole', (0.02, 0.02, 0.02), 0.6, instanced=True)
-    tip = make_mat('M_SnowPoleReflector', (0.55, 0.04, 0.035), 0.25, instanced=True)
-    scatter('Snow poles', MESH['Cylinder'], [pole], data['poles'], lambda r: T(r[0], r[1], r[2] + 100, r[3], 0.04, 0.04, 2.0))
-    scatter('Snow pole reflectors', MESH['Cube'], [tip], data['poles'], lambda r: T(r[0], r[1], r[2] + 185, r[3], 0.05, 0.05, 0.22))
-    scatter('Guardrail posts', MESH['Cube'], [metal], data['posts'], lambda r: T(r[0], r[1], r[2] + 40, r[3], 0.1, 0.1, 0.8))
-    scatter('Guardrail rails', MESH['Cube'], [metal], data['rails'], lambda r: T(r[0], r[1], r[2], r[3], r[4], 0.03, 0.3))
+    # The guardrail (unreal/tools/make_roadside.py): galvanised W-beam on I-beam posts with wooden blockouts, snow on
+    # its top; smashed through in one place
+    steel = make_mat('M_GuardrailSteel', (0.42, 0.43, 0.44), 0.42, metal=1.0, instanced=True)
+    wood = make_mat('M_GuardrailBlock', (0.06, 0.045, 0.033), 0.85, instanced=True)
+    rail_mats = {'steel': steel, 'wood': wood, 'snow': sp_mats['snow']}
+    rail = import_obj('Guardrail')
+    a = actors.spawn_actor_from_class(unreal.StaticMeshActor, V(0, 0, 0))
+    a.set_actor_label('Guardrail')
+    a.static_mesh_component.set_static_mesh(rail)
+    for i, sm in enumerate(rail.static_materials):
+        a.static_mesh_component.set_material(i, rail_mats.get(str(sm.get_editor_property('material_slot_name')).lower().split('_')[0], steel))
+    post = import_obj('GuardPost')
+    post_order = [rail_mats.get(str(sm.get_editor_property('material_slot_name')).lower().split('_')[0], steel) for sm in post.static_materials]
+    scatter('Guardrail posts', post, post_order, data['posts'], lambda r: T(r[0], r[1], r[2], r[3], 1.0))
+
+    # snow poles: orange fibreglass stakes, 2 m, a reflective band near the top that catches the headlights
+    pole = make_mat('M_SnowPole', (0.55, 0.13, 0.012), 0.45, instanced=True)
+    tip = make_mat('M_SnowPoleReflector', (0.8, 0.8, 0.78), 0.2, emissive=(0.05, 0.05, 0.048), instanced=True)
+    scatter('Snow poles', MESH['Cylinder'], [pole], data['poles'], lambda r: T(r[0], r[1], r[2] + 100, r[3], 0.032, 0.032, 2.0))
+    scatter('Snow pole reflectors', MESH['Cylinder'], [tip], data['poles'], lambda r: T(r[0], r[1], r[2] + 178, r[3], 0.036, 0.036, 0.16))
     return data
 
 
@@ -495,7 +580,9 @@ def build_car(windshield):
         os.makedirs(unreal.Paths.project_dir() + 'Data', exist_ok=True)
         shutil.copyfile(sdf, unreal.Paths.project_dir() + 'Data/CabinSDF.bin')
         log('cabin collision field copied')
-    for name in ('Car', 'Car_Glass'):
+    wheel_actor = None
+    MOVING['wipers'] = []
+    for name in ('Car', 'Car_Glass', 'Car_Wheel', 'Car_Wiper0', 'Car_Wiper1'):
         mesh = import_obj(name, CAR)
         # keep Blender's smooth (weighted) normals: Unreal's default recomputes them from the unwelded triangles,
         # which flat-shades every curve (rim, pad, panels) into visible facets
@@ -512,8 +599,15 @@ def build_car(windshield):
             ns.set_editor_property('enabled', False)
             mesh.set_editor_property('nanite_settings', ns)
             eal.save_loaded_asset(mesh)
-        a = actors.spawn_actor_from_class(unreal.StaticMeshActor, V(0, 0, 0))
+        # the steering wheel is modelled about its own centre (car_interior.py), so it turns about it
+        # moving parts are modelled about their own pivots (car_interior.py WHEEL_C, WIPER_PIVOTS)
+        pivot = {'Car_Wheel': V(55, 0, 86), 'Car_Wiper0': V(103.5, YC_CAR - 18, 97.0), 'Car_Wiper1': V(103.5, YC_CAR + 34, 97.0)}
+        a = actors.spawn_actor_from_class(unreal.StaticMeshActor, pivot.get(name, V(0, 0, 0)))
         a.set_actor_label(name.replace('_', ' '))
+        if name == 'Car_Wheel':
+            wheel_actor = a
+        if name.startswith('Car_Wiper'):
+            MOVING['wipers'].append(a)
         comp = a.static_mesh_component
         comp.set_static_mesh(mesh)
         missing = []
@@ -534,6 +628,8 @@ def build_car(windshield):
         arms = actors.spawn_actor_from_class(unreal.DriverArms, V(0, 0, 0))
         arms.set_actor_label('Driver Arms')
         arms.set_editor_property('body', body)
+        if wheel_actor:
+            arms.set_editor_property('wheel_actor', wheel_actor)   # the drive steers: the wheel and the hands turn
         out.append(arms)
         log('driver arms: MetaHuman body %s' % body.get_name())
     else:
@@ -578,6 +674,7 @@ def shape(kind, loc, scale, mat, rot=None, label=None, shadows=True):
 
 
 CAB = None  # while a list, every new shape belongs to the car
+MOVING = {}  # the car's moving parts, for the director (wipers)
 
 
 def V(x, y, z):
@@ -722,6 +819,7 @@ def main():
     director = actors.spawn_actor_from_class(unreal.load_class(None, '/Script/HollowAcre.EndingDirector'), V(0, 0, 0))
     director.set_actor_label('Ending director')
     director.set_editor_property('car', car)
+    director.set_editor_property('wipers', MOVING.get('wipers', []))   # they sweep through the drive
     path = [V(*p) for p in mountain['path']]
     director.set_editor_property('path', path)
     # put the car on the road at the start of the scene, facing along it (the director takes over in play)

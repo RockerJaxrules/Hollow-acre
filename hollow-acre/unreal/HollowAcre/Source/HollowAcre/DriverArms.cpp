@@ -994,13 +994,122 @@ void ADriverArms::BeginPlay()
 void ADriverArms::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	if (!bPlaced || FMath::IsNearlyEqual(Steer, LastSteer, 0.05f))
+	if (!bPlaced)
+	{
+		return;
+	}
+	if (!bGripReady)
+	{
+		// the full grip solve (photo targets, skin collision), once, with the wheel straight
+		const float Want = Steer;
+		Steer = 0.f;
+		Place();
+		PoseArm(true, Left);
+		PoseArm(false, Right);
+		Steer = Want;
+		SnapshotGrip();
+		bGripReady = true;
+		LastSteer = 1e9f;
+	}
+	if (FMath::IsNearlyEqual(Steer, LastSteer, 0.01f))
 	{
 		return;
 	}
 	LastSteer = Steer;
-	Place();
-	PoseArm(true, Left);
-	PoseArm(false, Right);
+	FollowWheel();
 	Mesh->MarkRefreshTransformDirty();
+}
+
+void ADriverArms::SnapshotGrip()
+{
+	GripPose = Mesh->BoneSpaceTransforms;
+	const FTransform& MeshRel = Mesh->GetRelativeTransform();
+	for (int32 Side = 0; Side < 2; ++Side)
+	{
+		const TCHAR* Sx = Side == 0 ? TEXT("l") : TEXT("r");
+		const FName Hand(*FString::Printf(TEXT("hand_%s"), Sx)), Lower(*FString::Printf(TEXT("lowerarm_%s"), Sx));
+		if (Mesh->GetBoneIndex(Hand) == INDEX_NONE)
+		{
+			continue;
+		}
+		GripWrist[Side] = MeshRel.TransformPosition(BoneCS(Hand).GetLocation());
+		GripElbow[Side] = MeshRel.TransformPosition(BoneCS(Lower).GetLocation());
+		GripHandRot[Side] = MeshRel.GetRotation() * BoneCS(Hand).GetRotation();
+	}
+	// which way a positive angle turns: twelve o'clock toward the driver's right, clockwise as the driver sees it
+	const float Tilt = FMath::DegreesToRadians(WheelTilt);
+	const FVector Nw(-FMath::Cos(Tilt), 0.f, FMath::Sin(Tilt));
+	const FVector U(0.f, 1.f, 0.f);
+	FVector Vw = FVector::CrossProduct(Nw, U);
+	if (Vw.Z < 0.f)
+	{
+		Vw = -Vw;
+	}
+	SteerSign = FVector::DotProduct(FQuat(Nw, 0.1f).RotateVector(Vw), U) > 0.f ? 1.f : -1.f;
+	if (WheelActor && WheelActor->GetRootComponent())
+	{
+		WheelBaseRot = WheelActor->GetRootComponent()->GetRelativeRotation().Quaternion();
+	}
+	UE_LOG(LogTemp, Display, TEXT("DriverArms: grip kept for steering (wheel %s)"), WheelActor ? *WheelActor->GetActorLabel() : TEXT("not set"));
+}
+
+void ADriverArms::FollowWheel()
+{
+	// The hands hold the rim, so they turn with it: each hand (and its curled fingers, which ride on it) is carried
+	// round the wheel's axis, the arm reaches it by two-bone IK with the elbow kept on the side it was on.
+	const float Tilt = FMath::DegreesToRadians(WheelTilt);
+	const FVector Nw(-FMath::Cos(Tilt), 0.f, FMath::Sin(Tilt));
+	const FQuat Q(Nw, SteerSign * FMath::DegreesToRadians(Steer));
+	if (GripPose.Num() == Mesh->BoneSpaceTransforms.Num())
+	{
+		Mesh->BoneSpaceTransforms = GripPose;
+	}
+	const FTransform& MeshRel = Mesh->GetRelativeTransform();
+	for (int32 Side = 0; Side < 2; ++Side)
+	{
+		const TCHAR* Sx = Side == 0 ? TEXT("l") : TEXT("r");
+		const FName Upper(*FString::Printf(TEXT("upperarm_%s"), Sx)), Lower(*FString::Printf(TEXT("lowerarm_%s"), Sx)),
+			Hand(*FString::Printf(TEXT("hand_%s"), Sx));
+		if (Mesh->GetBoneIndex(Hand) == INDEX_NONE)
+		{
+			continue;
+		}
+		const FVector Wrist = WheelCentre + Q.RotateVector(GripWrist[Side] - WheelCentre);
+		const FVector Sh = MeshRel.TransformPosition(BoneCS(Upper).GetLocation());
+		const float L1 = FVector::Dist(Sh, GripElbow[Side]);
+		const float L2 = FVector::Dist(GripElbow[Side], GripWrist[Side]);
+		const FVector D = Wrist - Sh;
+		const float Dist = FMath::Min((float)D.Size(), (L1 + L2) * 0.999f);
+		const FVector Dir = D.GetSafeNormal();
+		FVector Pole = GripElbow[Side] - Sh;
+		Pole = (Pole - Dir * FVector::DotProduct(Pole, Dir)).GetSafeNormal();
+		const float A = (L1 * L1 - L2 * L2 + Dist * Dist) / (2.f * Dist);
+		const FVector Elbow = Sh + Dir * A + Pole * FMath::Sqrt(FMath::Max(0.f, L1 * L1 - A * A));
+		auto Aim = [&](FName Bone, FName Child, const FVector& TargetCar)
+		{
+			const FTransform Tb = BoneCS(Bone);
+			const FVector Cur = (BoneCS(Child).GetLocation() - Tb.GetLocation()).GetSafeNormal();
+			const FVector Want = (ToCS(TargetCar) - Tb.GetLocation()).GetSafeNormal();
+			SetBoneCS(Bone, FQuat::FindBetweenNormals(Cur, Want) * Tb.GetRotation());
+		};
+		Aim(Upper, Lower, Elbow);
+		Aim(Lower, Hand, Sh + Dir * Dist);
+		SetBoneCS(Hand, MeshRel.GetRotation().Inverse() * (Q * GripHandRot[Side]));
+		static int32 Logged = 0;
+		if (Logged < 12 && (Logged < 4 || FMath::Abs(Steer) > 3.f))
+		{
+			++Logged;
+			const FVector WristNow = MeshRel.TransformPosition(BoneCS(Hand).GetLocation());
+			const FVector ElbowNow = MeshRel.TransformPosition(BoneCS(Lower).GetLocation());
+			const FQuat RotNow = MeshRel.GetRotation() * BoneCS(Hand).GetRotation();
+			UE_LOG(LogTemp, Display, TEXT("DriverArms: follow %s steer %.2f: wrist off %.2f cm (moved %.2f), elbow off %.2f (moved %.2f), hand turned %.1f deg off target, %.1f from the grip"),
+				Sx, Steer, FVector::Dist(WristNow, Wrist), FVector::Dist(Wrist, GripWrist[Side]), FVector::Dist(ElbowNow, Elbow),
+				FVector::Dist(Elbow, GripElbow[Side]), FMath::RadiansToDegrees(RotNow.AngularDistance(Q * GripHandRot[Side])),
+				FMath::RadiansToDegrees(RotNow.AngularDistance(GripHandRot[Side])));
+		}
+	}
+	if (WheelActor)
+	{
+		WheelActor->SetActorRelativeRotation(Q * WheelBaseRot);
+	}
 }

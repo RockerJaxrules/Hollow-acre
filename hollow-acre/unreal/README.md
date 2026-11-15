@@ -35,3 +35,21 @@ That session will:
 - Screenshots for the live log come from the game camera, rendered off-screen (`-RenderOffscreen`).
 - Packaging: `RunUAT.bat BuildCookRun -project=... -platform=Win64 -clientconfig=Shipping -cook -build -stage
   -pak -archive`.
+
+## The ending drive: how it is generated
+All our own geometry, rebuilt from scripts (outputs go to `HollowAcre/Saved/Generated` and `HollowAcre/SourceArt`):
+1. `tools/make_mountain.py` (Python 3 + numpy + Pillow): the climbing road with tyre ruts, the ledged rock cliff, the
+   drop, the far peaks, and tree, snow-pole and post positions. It calls `tools/make_roadside.py`, which builds the
+   W-beam guardrail and its post.
+2. `tools/blender/spruce.py` (Blender, background): the needle spray modelled and rendered into card textures, then
+   seven snow-laden spruce variants (4.5 to 25 m) built from those cards.
+3. `tools/blender/car_interior.py` (Blender): the car, plus its moving parts exported about their own pivots (the
+   steering wheel, both wipers) and the cabin collision field for the arms.
+4. `HollowAcre/Scripts/build_drive.py` (editor, headless): imports everything and builds `L_EndingDrive`. A mesh whose
+   OBJ hasn't changed since its last import is kept, because the spruces take minutes to import; `HA_REIMPORT=1`
+   forces a full re-import.
+
+In play, `EndingDirector` drives the car up the road, steers from the road's curvature (the wheel turns and the hands
+turn with it, `DriverArms`) and runs the wipers. Test switches: `-nofade`, `-drivesecs=`, `-nosteer`, and
+`ShotDirector`'s `-shot=`, `-shotdelay=`, `-shotcam=`, `-shotfov=`, `-shotlight=`. From Git Bash, set
+`MSYS_NO_PATHCONV=1` so the `/Game/...` map path isn't rewritten.
