@@ -820,6 +820,21 @@ def main():
     director.set_actor_label('Ending director')
     director.set_editor_property('car', car)
     director.set_editor_property('wipers', MOVING.get('wipers', []))   # they sweep through the drive
+    # the drive's sound (unreal/tools/make_ending_audio.py), timed to this scene from its first frame
+    snd_src = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir() + 'SourceArt/Audio/Ending_Drive.wav')
+    if os.path.exists(snd_src):
+        task = unreal.AssetImportTask()
+        task.set_editor_property('filename', snd_src)
+        task.set_editor_property('destination_path', '/Game/HollowAcre/Audio')
+        task.set_editor_property('destination_name', 'Ending_Drive')
+        task.set_editor_property('replace_existing', True)
+        task.set_editor_property('automated', True)
+        task.set_editor_property('save', True)
+        tools.import_asset_tasks([task])
+        snd = unreal.load_asset('/Game/HollowAcre/Audio/Ending_Drive')
+        if snd:
+            director.set_editor_property('drive_sound', snd)
+            log('drive sound: %.1f s' % snd.get_editor_property('duration'))
     path = [V(*p) for p in mountain['path']]
     director.set_editor_property('path', path)
     # put the car on the road at the start of the scene, facing along it (the director takes over in play)

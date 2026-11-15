@@ -1,6 +1,7 @@
 #include "EndingDirector.h"
 
 #include "DriverArms.h"
+#include "Sound/SoundBase.h"
 #include "EngineUtils.h"
 
 #include "Camera/PlayerCameraManager.h"
@@ -32,6 +33,10 @@ void AEndingDirector::BeginPlay()
 		PathDist.Add(Acc);
 	}
 	FParse::Value(FCommandLine::Get(), TEXT("-drivesecs="), DriveSeconds);
+	if (DriveSound)
+	{
+		UGameplayStatics::PlaySound2D(this, DriveSound);
+	}
 	// the wipers turn about the windshield's normal at their spindles (the glass rakes back about 33 degrees from
 	// horizontal-forward: up the glass is (-0.84, 0, 0.54)); a positive sweep carries the parked arm (along -Y, the
 	// driver's left) up the glass
@@ -58,15 +63,15 @@ void AEndingDirector::BeginPlay()
 		GetWorldTimerManager().SetTimer(Timer, this, &AEndingDirector::StartFadeOut, FMath::Max(DriveSeconds, 0.01f), false);
 		return;
 	}
-	if (APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(this, 0))
-	{
-		Cam->StartCameraFade(1.f, 1.f, 0.f, FLinearColor::Black, false, true);
-	}
+	// the opening black is held every frame until the fade in (the camera manager may not exist yet at BeginPlay, and
+	// a fade started then never showed: the first moments of the drive were visible before the black)
+	bHoldBlack = true;
 	GetWorldTimerManager().SetTimer(Timer, this, &AEndingDirector::StartFadeIn, FMath::Max(HoldBlack, 0.01f), false);
 }
 
 void AEndingDirector::StartFadeIn()
 {
+	bHoldBlack = false;
 	if (APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(this, 0))
 	{
 		Cam->StartCameraFade(1.f, 0.f, FadeIn, FLinearColor::Black, false, false);
@@ -102,6 +107,13 @@ void AEndingDirector::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	Time += DeltaSeconds;
+	if (bHoldBlack)
+	{
+		if (APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(this, 0))
+		{
+			Cam->SetManualCameraFade(1.f, FLinearColor::Black, false);
+		}
+	}
 	if (!Car)
 	{
 		return;

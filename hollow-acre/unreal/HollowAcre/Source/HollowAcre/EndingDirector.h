@@ -58,6 +58,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ending")
 	TArray<FVector> Path;
 
+	/** The drive's sound, from the first frame (tools/make_ending_audio.py: the black, the cabin opening up as the
+	 *  picture fades in, engine, road, blizzard, wipers in time with these wipers, the end card). */
+	UPROPERTY(EditAnywhere, Category = "Ending")
+	TObjectPtr<class USoundBase> DriveSound;
+
 	/** The driver's arms: the director steers (their Steer turns the wheel and the hands). Found in the level if unset. */
 	UPROPERTY(EditAnywhere, Category = "Ending")
 	TObjectPtr<class ADriverArms> Arms;
@@ -104,6 +109,7 @@ private:
 	/** The road's heading (radians, Unreal yaw: positive turns right) at a distance along it. */
 	float HeadingAt(float Dist) const;
 	float SteerNow = 0.f;
+	bool bHoldBlack = false;
 	TArray<FQuat> WiperBase;
 	FVector WiperAxis = FVector::UpVector;
 	float WiperSign = 1.f;

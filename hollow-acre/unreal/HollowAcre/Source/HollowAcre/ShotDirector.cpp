@@ -8,19 +8,40 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
+#include "Misc/App.h"
 #include "Misc/Paths.h"
 #include "TimerManager.h"
 #include "UnrealClient.h"
 
 AShotDirector::AShotDirector()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
+	PrimaryActorTick.TickGroup = TG_PostUpdateWork;
 }
 
 void AShotDirector::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (FParse::Value(FCommandLine::Get(), TEXT("-capture="), CaptureDir) && !CaptureDir.IsEmpty())
+	{
+		if (FPaths::IsRelative(CaptureDir))
+		{
+			CaptureDir = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("Capture"), CaptureDir);
+		}
+		CaptureDir = FPaths::ConvertRelativePathToFull(CaptureDir);
+		float Fps = 30.f, Secs = 45.f;
+		FParse::Value(FCommandLine::Get(), TEXT("-capfps="), Fps);
+		FParse::Value(FCommandLine::Get(), TEXT("-capsecs="), Secs);
+		FApp::SetUseFixedTimeStep(true);
+		FApp::SetFixedDeltaTime(1.0 / FMath::Max(Fps, 1.f));
+		CaptureFrames = FMath::CeilToInt(Fps * Secs);
+		SetActorTickEnabled(true);
+		UE_LOG(LogTemp, Display, TEXT("ShotDirector: capturing %d frames at %.0f fps into %s"), CaptureFrames, Fps, *CaptureDir);
+		PlaceCamera();
+		return;
+	}
 	if (!FParse::Value(FCommandLine::Get(), TEXT("-shot="), ShotPath) || ShotPath.IsEmpty())
 	{
 		return;
@@ -90,6 +111,25 @@ void AShotDirector::PlaceCamera()
 	}
 }
 
+void AShotDirector::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	if (CaptureDir.IsEmpty())
+	{
+		return;
+	}
+	if (CaptureFrame >= CaptureFrames)
+	{
+		UE_LOG(LogTemp, Display, TEXT("ShotDirector: captured %d frames"), CaptureFrame);
+		SetActorTickEnabled(false);
+		GetWorldTimerManager().SetTimer(Timer, this, &AShotDirector::Finish, 1.f, false);
+		return;
+	}
+	FScreenshotRequest::RequestScreenshot(FPaths::Combine(CaptureDir, FString::Printf(TEXT("frame_%05d.png"), CaptureFrame)),
+		/*bShowUI*/ true, /*bAddFilenameSuffix*/ false);
+	++CaptureFrame;
+}
+
 void AShotDirector::TakeShot()
 {
 	UE_LOG(LogTemp, Display, TEXT("ShotDirector: writing %s"), *ShotPath);
@@ -99,7 +139,7 @@ void AShotDirector::TakeShot()
 
 void AShotDirector::Finish()
 {
-	if (FParse::Param(FCommandLine::Get(), TEXT("shotquit")))
+	if (FParse::Param(FCommandLine::Get(), TEXT("shotquit")) || !CaptureDir.IsEmpty())
 	{
 		UKismetSystemLibrary::QuitGame(this, nullptr, EQuitPreference::Quit, false);
 	}

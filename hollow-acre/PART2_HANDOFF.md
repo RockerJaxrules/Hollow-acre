@@ -14,7 +14,12 @@ collects every decision made so far, so the work restarts cleanly in Unreal with
   - The new ending: your grandmother goes missing on a mountain. You say goodbye to your spouse if you married. You
     drive up into a blizzard, and the view fades into first-person realism.
   - Part 2 is the SAME game and the SAME character: mining, base upgrades, cold and dark, stealth, the lost miners,
-    and a yeti-like creature that rams your vehicle.
+    and a yeti-like creature that rams your vehicle off the mountain.
+  - How it plays (the owner's later message, kept word for word in SEQUEL_NOTES.md):
+    - You start lower on the mountain after the crash.
+    - You explore and mine to earn money and fix your car.
+    - The fixed car takes you up to the main area, your grandmother's mine.
+    - It is a long game, always about survival: running, sneaking, exploring, and upgrading your tools.
 - **Prototype work, kept for reference only:**
   - the three.js Part 2 page (`2d/p2/`);
   - the Blender first-person arms (`2d/tools/b3d/`, export script `arms_p2/export_unreal.py`, which writes FBX with

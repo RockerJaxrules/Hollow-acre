@@ -40,7 +40,21 @@ Research the best tools for Claude to make really good-looking, realistic, high-
 - **Story:**
   - You inherit your grandmother's mining company after she goes missing.
   - You uncover the secret of the lost miners.
-  - Driving up to check on it, you run into the creature, a yeti-like thing, which rams your vehicle almost off the mountain.
+  - Driving up to check on it, you run into the creature, a yeti-like thing, which rams your vehicle off the mountain
+    (the owner's later message: off it, not almost off it).
+
+### The owner's words on how Part 2 plays (kept word for word)
+
+> Are mountain alway dark there always cold leans more on survival hiding base protection stealth and a story focusing on you trying to uncover the secret of lost minors and your inherit your grandmothers mining company after she went missing you end up there when driving to check o the run into the creature which will be like a yeti rams you vehicle off the mountain
+> This will focus on mining and base upgrading and uncovering the mystery and surviving the climate of a cold always dark location so first you will be lower on the mountain and you will have to explore and mine to get money fix your car so you can drive up to the main area where your grandmothers
+> Mine will be but this will be a long game always focusing on survival lots of running sneaking around upgrading your tools exploring
+
+What that adds:
+- **The opening:** the drive from the ending goes on until the creature rams the car off the road, down the mountain.
+- **The first stretch:** you start lower on the mountain, cut off from where you were going. You explore and mine to earn
+  money, and with it you fix your car.
+- **The goal of that stretch:** the repaired car takes you up to the main area, where your grandmother's mine is.
+- **The whole game:** long, and always about survival: lots of running, sneaking, exploring, and upgrading your tools.
 
 ## Engine decision (owner): Part 2 moves to Unreal Engine
 - Part 2 (realistic first-person survival horror) is built in Unreal Engine 5, as a native app for PC, Mac, iPhone and
