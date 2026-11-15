@@ -468,31 +468,72 @@ void ADriverArms::CurlFinger(const FString& Finger, const FString& Sx, const FVe
 		}
 		return M;
 	};
-	const float Step = FMath::DegreesToRadians(1.5f);
-	const float Max[3] = { (float)Deg.X, (float)Deg.Y, (float)Deg.Z };
+	const float Step = FMath::DegreesToRadians(1.f);
+	const float Max[3] = { FMath::DegreesToRadians((float)Deg.X), FMath::DegreesToRadians((float)Deg.Y), FMath::DegreesToRadians((float)Deg.Z) };
+	// which way each joint bends toward the palm
+	float Sign[3];
 	for (int k = 0; k < 3; ++k)
 	{
-		// which way bends toward the palm
-		const FTransform T0 = BoneCS(J[k]);
 		const FVector Child = (k < 2) ? BoneCS(J[k + 1]).GetLocation() : Tip();
-		const FVector V = Child - T0.GetLocation();
-		const float Sign = FVector::DotProduct(FQuat(AxisCS, 0.2f).RotateVector(V) - V, PalmCS) >= 0.f ? 1.f : -1.f;
-		auto Turn = [&](float A) { SetBoneCS(J[k], FQuat(AxisCS, A) * BoneCS(J[k]).GetRotation()); };
-		// already pressing in (from the joints before): open this joint until the skin clears
-		for (int Open = 0; Open < 40 && Gap(k) < SkinAllow; ++Open)
+		const FVector V = Child - BoneCS(J[k]).GetLocation();
+		Sign[k] = FVector::DotProduct(FQuat(AxisCS, 0.2f).RotateVector(V) - V, PalmCS) >= 0.f ? 1.f : -1.f;
+	}
+	float Done[3] = { 0.f, 0.f, 0.f };
+	auto Turn = [&](int k, float A)
+	{
+		A = FMath::Clamp(A, -Done[k], Max[k] - Done[k]);
+		if (A != 0.f)
 		{
-			Turn(-Sign * Step);
+			SetBoneCS(J[k], FQuat(AxisCS, Sign[k] * A) * BoneCS(J[k]).GetRotation());
+			Done[k] += A;
 		}
-		float Done = 0.f;
-		while (Done < FMath::DegreesToRadians(Max[k]))
+	};
+	// A real fist closes all three joints together (about 1 : 1.4 : 0.5, from photos of hands at 10 and 2); a
+	// joint-by-joint cascade leaves fingers lying straight along the rim. Close together until the finger's skin
+	// meets the rim, then let the middle and end joints settle round it.
+	const float Ratio[3] = { 1.f, 1.4f, 0.5f };
+	for (int Open = 0; Open < 30 && Gap(0) < SkinAllow; ++Open)
+	{
+		SetBoneCS(J[0], FQuat(AxisCS, -Sign[0] * Step) * BoneCS(J[0]).GetRotation());
+	}
+	if (Gap(0) >= SkinAllow)
+	{
+		for (int It = 0; It < 120; ++It)
 		{
-			Turn(Sign * Step);
-			if (Gap(k) < SkinAllow)
+			const float Before[3] = { Done[0], Done[1], Done[2] };
+			for (int k = 0; k < 3; ++k)
 			{
-				Turn(-Sign * Step);                       // that step went in: take it back, the finger rests here
+				Turn(k, Step * Ratio[k]);
+			}
+			if (Done[0] == Before[0] && Done[1] == Before[1] && Done[2] == Before[2])
+			{
+				break;                                         // every joint at its limit
+			}
+			if (Gap(0) < SkinAllow)
+			{
+				for (int k = 2; k >= 0; --k)
+				{
+					Turn(k, Before[k] - Done[k]);              // that step went in: take it back
+				}
 				break;
 			}
-			Done += Step;
+		}
+	}
+	for (int k = 1; k < 3; ++k)
+	{
+		for (int It = 0; It < 90; ++It)
+		{
+			const float Before = Done[k];
+			Turn(k, Step);
+			if (Done[k] == Before)
+			{
+				break;
+			}
+			if (Gap(0) < SkinAllow)
+			{
+				Turn(k, Before - Done[k]);
+				break;
+			}
 		}
 	}
 }
@@ -575,37 +616,64 @@ void ADriverArms::PoseArm(bool bLeft, const FHandGrip& G)
 	const FVector Grip = WheelCentre + Rad * RimRadius;
 	const FVector T12 = bLeft ? (-Vw * FMath::Sin(Al) + U * FMath::Cos(Al)) : (Vw * FMath::Sin(Al) - U * FMath::Cos(Al));
 	const float Ba = FMath::DegreesToRadians(G.BackAngle);
-	FVector Back = (Rad * FMath::Cos(Ba) + Nw * FMath::Sin(Ba)).GetSafeNormal();
-	FVector S = -T12;
-	S = (S - Back * FVector::DotProduct(S, Back)).GetSafeNormal();
-	FVector P = -Back;
-	FVector F = (FVector::CrossProduct(S, P) * H).GetSafeNormal();
-	// (with the index toward twelve and the back of the hand toward the driver, the fingers point up and out of the
-	// wheel before the turn toward twelve: the hand comes from below and the rim runs diagonally across the palm)
-	// turn the hand toward twelve about the back-of-hand axis, then roll it so the back shows more to the eye
+	// ---- the game eye's screen (the driver's camera: at the eye, looking ahead and 8 degrees down)
+	const FVector Eye(0.f, 0.f, 118.f);
+	const float Pitch = FMath::DegreesToRadians(8.f);
+	const FVector CamF(FMath::Cos(Pitch), 0.f, -FMath::Sin(Pitch)), CamR(0.f, 1.f, 0.f), CamU(FMath::Sin(Pitch), 0.f, FMath::Cos(Pitch));
+	auto Screen = [&](const FVector& P) { const FVector D = P - Eye; const float Z = FMath::Max(1.f, (float)FVector::DotProduct(D, CamF));
+		return FVector2D(FVector::DotProduct(D, CamR) / Z, FVector::DotProduct(D, CamU) / Z); };
+	auto ScreenAngle = [&](const FVector& A, const FVector& B) { const FVector2D D = Screen(B) - Screen(A);
+		return FMath::RadiansToDegrees(FMath::Atan2(D.Y, D.X)); };
+	// The hand's frame for a turn on the rim (about the back-of-hand axis, toward twelve), then rolled so the back of
+	// the hand shows more to the eye. The turn is chosen so the knuckle row lies along the rim AS THE DRIVER SEES IT
+	// (photos of 10 and 2: within 15 degrees), staying near the authored turn.
+	FVector Back, S, P, F;
+	auto Frame = [&](float YawDeg)
 	{
-		float Y = FMath::DegreesToRadians(G.Yaw);
-		if (FVector::DotProduct(FQuat(Back, Y).RotateVector(F), T12) < FVector::DotProduct(F, T12))
-		{
-			Y = -Y;
-		}
-		const FQuat Q(Back, Y);
-		F = Q.RotateVector(F);
-		S = Q.RotateVector(S);
-	}
-	{
-		const FVector Eye(0.f, 0.f, 118.f);
+		Back = (Rad * FMath::Cos(Ba) + Nw * FMath::Sin(Ba)).GetSafeNormal();
+		S = -T12;
+		S = (S - Back * FVector::DotProduct(S, Back)).GetSafeNormal();
+		P = -Back;
+		F = (FVector::CrossProduct(S, P) * H).GetSafeNormal();
+		const float Toward12 = FVector::DotProduct(FQuat(Back, 0.17f).RotateVector(F), T12) >= FVector::DotProduct(F, T12) ? 1.f : -1.f;
+		const FQuat Qy(Back, Toward12 * FMath::DegreesToRadians(YawDeg));
+		F = Qy.RotateVector(F);
+		S = Qy.RotateVector(S);
 		const FVector E = (Eye - Grip).GetSafeNormal();
 		float Rr = FMath::DegreesToRadians(G.Roll);
 		if (FVector::DotProduct(FQuat(F, Rr).RotateVector(Back), E) < FVector::DotProduct(Back, E))
 		{
 			Rr = -Rr;
 		}
-		const FQuat Q(F, Rr);
-		S = Q.RotateVector(S);
-		Back = Q.RotateVector(Back);
+		const FQuat Qr(F, Rr);
+		S = Qr.RotateVector(S);
+		Back = Qr.RotateVector(Back);
 		P = -Back;
+	};
+	auto RowErr = [&]()
+	{
+		float R = FMath::Fmod(FMath::Abs(ScreenAngle(Grip, Grip + S) - ScreenAngle(Grip - T12, Grip + T12)), 180.f);
+		return FMath::Min(R, 180.f - R);
+	};
+	float Yaw = G.Yaw, BestRow = 1e9f;
+	for (int32 Yd = -20; Yd <= 90; Yd += 2)
+	{
+		Frame((float)Yd);
+		const float E = RowErr() + 0.15f * FMath::Abs((float)Yd - G.Yaw);
+		if (E < BestRow)
+		{
+			BestRow = E;
+			Yaw = (float)Yd;
+		}
 	}
+	Frame(Yaw);
+	UE_LOG(LogTemp, Display, TEXT("DriverArms: %s hand turned %.0f degrees on the rim (knuckle row %.0f degrees off the rim on screen)"),
+		bLeft ? TEXT("l") : TEXT("r"), Yaw, RowErr());
+	// photos of 10 and 2: the left forearm slants in low from outside (about 40 degrees from horizontal on screen),
+	// the right rises steeply (about 75)
+	// (the owner's winter-driver photo: the left forearm about 60 degrees; the right about 70, from the other side)
+	const float ForearmTarget = bLeft ? 58.f : 180.f - 70.f;
+
 	// ---- place the arm so the knuckle row is at a point: two-bone IK (shoulder, elbow, wrist; car frame), then the
 	// hand's reference frame turned onto the grip frame. Starts from the reference pose each time.
 	const int32 Side = bLeft ? 0 : 1;
@@ -654,48 +722,153 @@ void ADriverArms::PoseArm(bool bLeft, const FHandGrip& G)
 	// rim (along the back of the hand) until the palm and the finger bases rest on it, touching but not inside.
 	// Without skin data: the measured offsets.
 	const bool bSkin = Skin[Side][0].Num() > 0;
-	const float Ahead = bSkin ? 1.4f : 2.4f;
+	const float Ahead = bSkin ? -1.6f : 2.4f;      // knuckles 1.6 cm past the rim (photos: the hand sits over the rim)
 	float Lift = 2.6f;
-	PoseHand(Grip - F * Ahead + Back * Lift);
-	if (bSkin)
+
+	// ---- The grip, searched against the 10-and-2 photo targets (2d/tools/b3d/LESSONS.md, measured from photos of
+	// hands on a wheel, seen from the driver's eye):
+	//   the knuckle row lies along the rim ON SCREEN (within ~15 degrees; in 3D the hand may be turned well off it);
+	//   the back of the hand faces the eye (within ~35-40 degrees);
+	//   the wrist bends only a little (the hand carries on from the forearm; ~25 at most);
+	//   the left forearm slants in low from outside (~40 degrees on screen), the right rises steeply (~75);
+	//   the rim crosses the fingers (it runs diagonally through the hand, never along the fingers);
+	//   the elbow stays below the shoulder.
+	// The hand's orientation (tilt of the back toward the driver, turn on the rim, roll) and the elbow's swing are
+	// searched together with plain geometry, then the best candidates are checked with the skin: the arm must clear
+	// the cabin.
+	ResetArm(Side);
+	const FVector ShoulderCar = MeshRel.TransformPosition(BoneCS(N(TEXT("upperarm"))).GetLocation());
+	const float L1 = FVector::Dist(ShoulderCar, MeshRel.TransformPosition(BoneCS(N(TEXT("lowerarm"))).GetLocation()));
+	const float L2 = FVector::Dist(MeshRel.TransformPosition(BoneCS(N(TEXT("lowerarm"))).GetLocation()), MeshRel.TransformPosition(HandRef));
+	const float LiftGuess = 4.2f;
+	auto Orient = [&](float BaDeg, float YawDeg, float RollDeg, FVector& oF, FVector& oS, FVector& oP, FVector& oBack)
 	{
-		for (int32 It = 0; It < 12; ++It)
+		const float BaR = FMath::DegreesToRadians(BaDeg);
+		oBack = (Rad * FMath::Cos(BaR) + Nw * FMath::Sin(BaR)).GetSafeNormal();
+		oS = -T12;
+		oS = (oS - oBack * FVector::DotProduct(oS, oBack)).GetSafeNormal();
+		oP = -oBack;
+		oF = (FVector::CrossProduct(oS, oP) * H).GetSafeNormal();
+		const float Toward12 = FVector::DotProduct(FQuat(oBack, 0.17f).RotateVector(oF), T12) >= FVector::DotProduct(oF, T12) ? 1.f : -1.f;
+		const FQuat Qy(oBack, Toward12 * FMath::DegreesToRadians(YawDeg));
+		oF = Qy.RotateVector(oF);
+		oS = Qy.RotateVector(oS);
+		const FVector Ev = (Eye - Grip).GetSafeNormal();
+		const float Toward = FVector::DotProduct(FQuat(oF, 0.17f).RotateVector(oBack), Ev) >= FVector::DotProduct(oBack, Ev) ? 1.f : -1.f;
+		const FQuat Qr(oF, Toward * FMath::DegreesToRadians(RollDeg));
+		oS = Qr.RotateVector(oS);
+		oBack = Qr.RotateVector(oBack);
+		oP = -oBack;
+	};
+	auto ElbowFor = [&](const FVector& Wrist, float SwivelR)
+	{
+		const FVector D = Wrist - ShoulderCar;
+		float Dd = FMath::Min((float)D.Size(), (L1 + L2) * 0.995f);
+		const FVector Dir = D.GetSafeNormal();
+		const float A = (L1 * L1 - L2 * L2 + Dd * Dd) / (2.f * Dd);
+		const float Hh = FMath::Sqrt(FMath::Max(0.f, L1 * L1 - A * A));
+		FVector Pole(0.f, (bLeft ? -1.f : 1.f) * G.ElbowPole.X, G.ElbowPole.Y);
+		Pole = (Pole - Dir * FVector::DotProduct(Pole, Dir)).GetSafeNormal();
+		Pole = FQuat(Dir, SwivelR).RotateVector(Pole);
+		return ShoulderCar + Dir * A + Pole * Hh;
+	};
+	struct FGripTry { float Ba, Yw, Rl, Sw, Cost; float Row, BackEye, Bend, Fore; };
+	auto Judge = [&](float Ba_, float Yw_, float Rl_, float Sw_)
+	{
+		FGripTry T{ Ba_, Yw_, Rl_, Sw_, 0.f, 0.f, 0.f, 0.f, 0.f };
+		FVector Fh, Sh_, Ph, Bk;
+		Orient(Ba_, Yw_, Rl_, Fh, Sh_, Ph, Bk);
+		const FVector Kn = Grip - Fh * Ahead + Bk * LiftGuess;
+		const FVector Wr = Kn - Fh * LMeta;
+		if (FVector::Dist(Wr, ShoulderCar) > (L1 + L2) * 0.995f)
 		{
-			const float Rest = SkinMinDist(Side, 0);      // the palm decides; the fingers open and close round the rim after
-			if (FMath::Abs(Rest - PalmGap) < 0.03f)
-			{
-				break;
-			}
-			Lift += PalmGap - Rest;
-			PoseHand(Grip - F * Ahead + Back * Lift);
+			T.Cost = 1e9f;
+			return T;
 		}
-		// the arm: if any of its skin is inside a part of the car (the door card, the column...), swing the elbow
-		// about the shoulder-wrist line, the smallest swing that clears it (the hand stays where it is)
-		float ArmGap = SkinMinDist(Side, 6);
-		if (ArmGap < 0.f)
+		const FVector El = ElbowFor(Wr, FMath::DegreesToRadians(Sw_));
+		float Row = FMath::Fmod(FMath::Abs(ScreenAngle(Kn + Sh_ * 4.f, Kn - Sh_ * 4.f) - ScreenAngle(Grip - T12, Grip + T12)), 180.f);
+		T.Row = FMath::Min(Row, 180.f - Row);
+		T.BackEye = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(Bk, (Eye - Kn).GetSafeNormal()), -1.f, 1.f)));
+		T.Bend = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct((Wr - El).GetSafeNormal(), Fh), -1.f, 1.f)));
+		T.Fore = ScreenAngle(El, Wr);
+		const float Cross = FMath::RadiansToDegrees(FMath::Acos(FMath::Abs(FVector::DotProduct(T12, Fh))));   // rim vs fingers, 90 = across
+		float C = 2.f * FMath::Max(0.f, T.Row - 10.f);
+		C += 1.5f * FMath::Max(0.f, T.BackEye - 35.f);
+		C += 1.f * FMath::Max(0.f, T.Bend - 15.f) + 10.f * FMath::Max(0.f, T.Bend - 32.f);
+		C += 1.f * FMath::Abs(T.Fore - ForearmTarget);
+		C += 0.6f * FMath::Abs(Cross - 58.f);                           // the rim runs diagonally through the hand
+		// the elbow and forearm keep clear of the door and the rest of the cabin (an arm is ~5 cm thick)
+		C += 20.f * FMath::Max(0.f, 5.f - CabinDist(El)) + 20.f * FMath::Max(0.f, 4.f - CabinDist((El + Wr) * 0.5f));
+		C += 5.f * FMath::Max(0.f, (float)(El.Z - (ShoulderCar.Z - 8.f)));
+		C += 0.02f * FMath::Abs(Sw_);
+		T.Cost = C;
+		return T;
+	};
+	TArray<FGripTry> Tries;
+	for (float Ba_ = 10.f; Ba_ <= 85.f; Ba_ += 7.5f)
+	{
+		for (float Yw_ = -40.f; Yw_ <= 90.f; Yw_ += 10.f)
 		{
-			float BestSwivel = 0.f, BestGap = ArmGap;
-			for (const float Deg : { 6.f, -6.f, 12.f, -12.f, 18.f, -18.f, 24.f, -24.f, 32.f, -32.f, 40.f, -40.f, 50.f, -50.f, 60.f, -60.f })
+			for (float Rl_ = -40.f; Rl_ <= 40.f; Rl_ += 10.f)
 			{
-				Swivel = FMath::DegreesToRadians(Deg);
-				PoseHand(Grip - F * Ahead + Back * Lift);
-				const float Gp = SkinMinDist(Side, 6);
-				if (Gp > BestGap)
+				for (float Sw_ = -90.f; Sw_ <= 90.f; Sw_ += 10.f)
 				{
-					BestGap = Gp;
-					BestSwivel = Swivel;
+					Tries.Add(Judge(Ba_, Yw_, Rl_, Sw_));
 				}
-				if (Gp >= 0.2f)
+			}
+		}
+	}
+	Tries.Sort([](const FGripTry& A, const FGripTry& B) { return A.Cost < B.Cost; });
+	// refine the best few on a finer grid
+	TArray<FGripTry> Fine;
+	for (int32 K = 0; K < FMath::Min(6, Tries.Num()); ++K)
+	{
+		const FGripTry& T0 = Tries[K];
+		for (float dB = -5.f; dB <= 5.f; dB += 2.5f)
+			for (float dY = -6.f; dY <= 6.f; dY += 3.f)
+				for (float dR = -6.f; dR <= 6.f; dR += 3.f)
+					for (float dS = -6.f; dS <= 6.f; dS += 3.f)
+					{
+						Fine.Add(Judge(T0.Ba + dB, T0.Yw + dY, T0.Rl + dR, T0.Sw + dS));
+					}
+	}
+	Fine.Sort([](const FGripTry& A, const FGripTry& B) { return A.Cost < B.Cost; });
+	// the skin decides among the best: the first whose arm clears the cabin
+	float ArmGapNow = 1.f;
+	FGripTry Chosen = Fine.Num() ? Fine[0] : FGripTry{ G.BackAngle, G.Yaw, G.Roll, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
+	for (int32 K = 0; K < FMath::Min(25, Fine.Num()); ++K)
+	{
+		const FGripTry& T = Fine[K];
+		Orient(T.Ba, T.Yw, T.Rl, F, S, P, Back);
+		Swivel = FMath::DegreesToRadians(T.Sw);
+		Lift = LiftGuess;
+		PoseHand(Grip - F * Ahead + Back * Lift);
+		if (bSkin)
+		{
+			for (int32 It = 0; It < 12; ++It)
+			{
+				float Rest = SkinMinDist(Side, 0);
+				for (int32 Fg = 1; Fg <= 4; ++Fg)
+				{
+					Rest = FMath::Min(Rest, SkinMinDist(Side, Fg, 0, 0));
+				}
+				if (FMath::Abs(Rest - PalmGap) < 0.03f)
 				{
 					break;
 				}
+				Lift += PalmGap - Rest;
+				PoseHand(Grip - F * Ahead + Back * Lift);
 			}
-			Swivel = BestSwivel;
-			PoseHand(Grip - F * Ahead + Back * Lift);
-			UE_LOG(LogTemp, Display, TEXT("DriverArms: %s arm was %.1f cm inside the cabin; elbow swung %.0f degrees, now %.2f cm clear"),
-				*Sx, -ArmGap, FMath::RadiansToDegrees(Swivel), BestGap);
+			ArmGapNow = SkinMinDist(Side, 6);
+		}
+		Chosen = T;
+		if (ArmGapNow >= 0.f)
+		{
+			break;
 		}
 	}
+	UE_LOG(LogTemp, Display, TEXT("DriverArms: %s grip searched: back tilted %.0f, turned %.0f, rolled %.0f, elbow swung %.0f -> knuckle row %.0f off the rim on screen, back %.0f from the eye, wrist bent %.0f, forearm %.0f on screen (photos %.0f); arm %.2f cm clear of the cabin"),
+		*Sx, Chosen.Ba, Chosen.Yw, Chosen.Rl, Chosen.Sw, Chosen.Row, Chosen.BackEye, Chosen.Bend, Chosen.Fore, ForearmTarget, ArmGapNow);
 
 	// fingers close round the rim; the thumb lies along the driver face toward twelve
 	const FVector KnuckleAxis = DirToCS(S);
@@ -713,7 +886,10 @@ void ADriverArms::PoseArm(bool bLeft, const FHandGrip& G)
 		auto TipOf = [&]() { const FVector A2 = BoneCS(T2).GetLocation(), A3 = BoneCS(T3).GetLocation(); return A3 + (A3 - A2) * 0.9f; };
 		auto Rotate = [&](FName Bone, const FVector& Axis, float Rad) { SetBoneCS(Bone, FQuat(Axis, Rad) * BoneCS(Bone).GetRotation()); };
 		const float Up = bLeft ? 1.f : -1.f;                                // toward twelve along the rim
-		const float AlT = Al + Up * FMath::DegreesToRadians(17.f);
+		// where the thumb's base sits on the rim (angle round the wheel), then a thumb's length (about 6 cm) up the rim
+		const FVector Tb = MeshRel.TransformPosition(BoneCS(T1).GetLocation()) - WheelCentre;
+		const float AlB = FMath::Atan2((float)FVector::DotProduct(Tb, U), (float)FVector::DotProduct(Tb, Vw));
+		const float AlT = AlB + Up * (6.f / RimRadius);
 		const FVector Target = WheelCentre + (Vw * FMath::Cos(AlT) + U * FMath::Sin(AlT)) * RimRadius + Nw * (RimTubeOval.Z + 0.9f);
 		{
 			const FTransform Tt = BoneCS(T1);
@@ -777,6 +953,17 @@ void ADriverArms::PoseArm(bool bLeft, const FHandGrip& G)
 	}
 	UE_LOG(LogTemp, Display, TEXT("DriverArms: %s grip %s wrist %s elbow %s (reach %.1f of %.1f), hand lifted %.2f cm"), *Sx,
 		*Grip.ToString(), *WristReached.ToString(), *Elbow.ToString(), Dist, Reach, Lift);
+	{
+		// the 10-and-2 photo targets, measured on screen from the game eye
+		const FVector Idx = MeshRel.TransformPosition(BoneCS(N(TEXT("index_01"))).GetLocation());
+		const FVector Pnk = MeshRel.TransformPosition(BoneCS(N(TEXT("pinky_01"))).GetLocation());
+		float Row = FMath::Abs(ScreenAngle(Pnk, Idx) - ScreenAngle(Grip - T12, Grip + T12));
+		Row = FMath::Min(Row, FMath::Abs(360.f - Row));
+		Row = FMath::Min(Row, FMath::Abs(180.f - Row));
+		const float BackEye = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(Back, (Eye - Grip).GetSafeNormal()), -1.f, 1.f)));
+		UE_LOG(LogTemp, Display, TEXT("DriverArms: %s photo targets: knuckle row %.0f degrees off the rim (<15), back of hand %.0f degrees from the eye (<40), forearm %.0f on screen (%.0f)"),
+			*Sx, Row, BackEye, ScreenAngle(Elbow, WristReached), ForearmTarget);
+	}
 	if (bSkin)
 	{
 		// the collision check: how close each part of the hand's skin is to the wheel (negative: inside)

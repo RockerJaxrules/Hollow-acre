@@ -446,7 +446,7 @@ def build_car(windshield):
         'radio': detail_mat('M_Car_Radio', (0.012, 0.012, 0.014), 0.3, None),
         'knob': detail_mat('M_Car_Knob', (0.03, 0.03, 0.032), 0.45, grain, 2.0),
         'hazard': make_mat('M_Car_Hazard', (0.35, 0.03, 0.03), 0.4),
-        'leather': detail_mat('M_Car_Leather', (0.018, 0.016, 0.015), 0.72, leather, 2.0),   # worn wheel leather: a faint sheen, no mirror
+        'leather': detail_mat('M_Car_Leather', (0.036, 0.033, 0.031), 0.55, leather, 2.0),   # worn black wheel leather: real black leather still shows a sheen
         'trim': detail_mat('M_Car_PillarTrim', (0.045, 0.044, 0.042), 0.85, fabric, 1.5),
         'headliner': detail_mat('M_Car_Headliner', (0.09, 0.088, 0.083), 0.95, fabric, 1.5),
         'door': detail_mat('M_Car_Door', (0.026, 0.025, 0.025), 0.7, grain, 3.0),
