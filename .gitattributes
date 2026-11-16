@@ -6,3 +6,4 @@ hollow-acre/unreal/**/*.exr filter=lfs diff=lfs merge=lfs -text
 hollow-acre/unreal/**/*.wav filter=lfs diff=lfs merge=lfs -text
 hollow-acre/unreal/**/*.png filter=lfs diff=lfs merge=lfs -text
 hollow-acre/unreal/**/*.bin filter=lfs diff=lfs merge=lfs -text
+hollow-acre/unreal/**/*.mp3 filter=lfs diff=lfs merge=lfs -text

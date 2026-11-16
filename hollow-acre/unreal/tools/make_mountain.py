@@ -34,7 +34,13 @@ DS = 2.0             # m between road samples
 HALF = 3.5           # road half-width (m), one lane each way
 LANE = -1.75         # the car drives in the right lane (negative d = right of the centre line)
 CAR_START = 60.0     # m along the road where the scene opens
-REACH = 120.0        # m of corridor terrain each side of the road
+CRASH_S = 590.0      # Part 2's opening: where the creature rams the car off the road (m along it)
+CRASH_CLEAR = (562.0, 652.0, -230.0)  # the avalanche chute below it, bare of trees (s from, s to, d down to)
+FALL_S = (566.0, 646.0)               # where the chute's shape is full strength (it blends out over 40 m either side)
+REACH = 120.0        # m of corridor terrain on the uphill side
+REACH_DOWN = 230.0   # m on the downhill side: all the way down to the valley floor (the corridor is what collides)
+FLOOR_DROP = 175.0   # the valley floor lies this far below the road's mean height (build_far)
+FLOOR_BASE = 0.0     # set in main()
 
 
 def curvature(s):    # 1/m, positive turns right
@@ -92,6 +98,40 @@ def smoothstep(a, b, x):
     return t * t * (3 - 2 * t)
 
 
+def _chute_table():
+    knots = [(0.0, 0.0), (2.5, 0.0), (7.0, 0.95), (36.0, 0.95), (37.5, 4.5), (43.0, 4.5), (45.0, 0.5), (55.0, 0.85),
+             (120.0, 0.7), (175.0, 0.3), (215.0, 0.0), (REACH_DOWN + 10, 0.0)]
+    x = np.arange(0.0, REACH_DOWN + 10.0, 0.25)
+    slope = np.interp(x, [k[0] for k in knots], [k[1] for k in knots])
+    return x, -np.concatenate([[0.0], np.cumsum((slope[1:] + slope[:-1]) / 2 * 0.25)])
+
+
+CHUTE_X, CHUTE_H = _chute_table()
+
+
+def chute(s, dn):
+    """The avalanche chute below the crash (m relative to the road, negative): steep snow, a rock cliff band of about
+    25 m whose foot wanders along the slope, a long steep slope, a runout; scaled to reach the valley floor."""
+    off = fbm(s / 45.0 + 21, 3.0, 2) * 6.0
+    h = np.interp(dn - off * smoothstep(5, 30, dn), CHUTE_X, CHUTE_H)
+    total = np.asarray([elevation(float(q)) for q in np.ravel(s)]).reshape(np.shape(s)) - FLOOR_BASE
+    return h * total / -CHUTE_H[-1]
+
+
+def chute_weight(s):
+    return smoothstep(FALL_S[0] - 40, FALL_S[0], s) * (1 - smoothstep(FALL_S[1], FALL_S[1] + 40, s))
+
+
+def smax(a, b, k):
+    """A smooth maximum (the ground eases onto the valley floor rather than creasing into it)."""
+    return 0.5 * (a + b + np.sqrt((a - b) ** 2 + k * k))
+
+
+def valley_floor(X, Y):
+    """The valley floor's height (m) at world X, Y (m): the same as build_far's."""
+    return FLOOR_BASE + fbm(X / 500, Y / 500, 3) * 25
+
+
 def corridor_height(s, d):
     """Height (m) relative to the road at distance s along it and d across (d > 0 uphill/left, d < 0 downhill/right)."""
     s, d = np.asarray(s, float), np.asarray(d, float)
@@ -112,11 +152,26 @@ def corridor_height(s, d):
     strength = np.clip(0.35 + 0.9 * (fbm(s / 22 + 11, d / 18, 3) + 0.15), 0.0, 1.0)
     h = h + ((fl + smoothstep(0.35, 1.0, hh - fl)) * step - h) * strength * face
     h = h + fbm(s / 2.5 + 3, d / 2.5, 3) * 0.45 * face
-    # downhill: a small berm by the guardrail, then the drop into the valley
+    # downhill: a small berm by the guardrail, then the drop into the valley; below the crash, the chute
     drop = -0.55 * np.maximum(dn - 2.5, 0.0) ** 1.2
+    w = chute_weight(s) * (d < 0)
+    if np.any(w > 0):
+        drop = drop * (1 - w) + chute(s, dn) * w
+        # the road's crown curve keeps falling away far out from the road; in the chute only the road keeps it
+        h = h + w * 0.04 * ((d / HALF) ** 2 - np.clip(d / HALF, -1.0, 1.0) ** 2)
     h = h + np.where(d < 0, 0.45 * smoothstep(0, 1.0, dn) - 0.45 * smoothstep(1.6, 3.2, dn) + drop, 0.0)
-    h = h + fbm(s / 30 + 40, d / 30, 5) * 5.0 * smoothstep(3, 30, dn)
+    h = h + fbm(s / 30 + 40, d / 30, 5) * (5.0 - 2.5 * w) * smoothstep(3, 30, dn)   # the chute's snow lies smoother
+    # bumps and rolls in the chute's snow (the car bounces on them)
+    h = h + fbm(s / 6 + 9, d / 6, 3) * 0.9 * w * smoothstep(3, 10, dn)
     return h
+
+
+def ground(xs, ys, th, zr, s_arr, s, d):
+    """World position (m) of the ground at road coordinate (s, d): the corridor, eased onto the valley floor."""
+    X, Y, Z, t = frame_at(xs, ys, th, zr, s_arr, s, d)
+    G = Z + corridor_height(s, d)
+    G = np.where(np.asarray(d) < 0, smax(G, valley_floor(X, Y), 8.0), G)
+    return X, Y, G, t
 
 
 def across():
@@ -124,10 +179,10 @@ def across():
     face (so its ledges show), then growing."""
     d, out, step = HALF + 1.0, [], 0.5
     inner = list(np.arange(-(HALF + 1.0), HALF + 1.0 + 1e-6, 0.75))
-    while d < REACH:
-        step = min(step * 1.17, 9.0)
+    while d < REACH_DOWN:
+        step = min(step * 1.17, 1.2 if d < 62 else 4.0)       # fine enough for the chute's cliff band
         d += step
-        out.append(min(d, REACH))
+        out.append(min(d, REACH_DOWN))
     up, d, step = [], HALF + 1.0, 0.6
     while d < REACH:
         if d - (HALF + 1.0) > 52:
@@ -176,9 +231,8 @@ def grid_tris(rows, cols):
 def build_corridor(xs, ys, th, zr, s_arr):
     cols = np.array(across())
     S, D = np.meshgrid(s_arr, cols, indexing='ij')
-    H = corridor_height(S, D)
-    X, Y, Z, _ = frame_at(xs, ys, th, zr, s_arr, S, D)
-    v = np.stack([X, Y, Z + H], -1).reshape(-1, 3)
+    X, Y, G, _ = ground(xs, ys, th, zr, s_arr, S, D)
+    v = np.stack([X, Y, G], -1).reshape(-1, 3)
     uv = np.stack([S / 4.0, D / 4.0], -1).reshape(-1, 2)
     tris = grid_tris(len(s_arr), len(cols))
     # winding check: the first triangle must face up
@@ -226,7 +280,7 @@ def build_far(xs, ys, zr):
     dist = np.min(np.hypot(X[..., None] - px, Y[..., None] - py), axis=-1)
     w = smoothstep(260, 1800, dist)
     peaks = fbm(X / 2600, Y / 2600, 6, ridged=True) * 1900 + fbm(X / 700, Y / 700, 4) * 160
-    floor = zr.mean() - 175 + fbm(X / 500, Y / 500, 3) * 25
+    floor = valley_floor(X, Y)
     Z = floor + w * peaks
     v = np.stack([X, Y, Z], -1).reshape(-1, 3)
     uv = np.stack([X / 40.0, Y / 40.0], -1).reshape(-1, 2)
@@ -304,9 +358,11 @@ def make_textures():
 
 
 def main():
+    global FLOOR_BASE
     os.makedirs(GEN, exist_ok=True)
     xs, ys, th, s_arr = road_samples()
     zr = np.array([elevation(s) for s in s_arr])
+    FLOOR_BASE = float(zr.mean() - FLOOR_DROP)
     write_obj(os.path.join(GEN, 'Terrain_Road.obj'), [('terrain',) + build_corridor(xs, ys, th, zr, s_arr)])
     write_obj(os.path.join(GEN, 'Road.obj'), [('road',) + build_road(xs, ys, th, zr, s_arr)])
     write_obj(os.path.join(GEN, 'Terrain_Far.obj'), [('far',) + build_far(xs, ys, zr)])
@@ -319,20 +375,27 @@ def main():
         out['path'].append([float(x) * 100, float(y) * 100, float(z + corridor_height(s, LANE)) * 100])
     # pines: below the road on the valley side and above the cliff, not on the cliff face or the road
     tries = 0
-    while len(out['trees']) < 2600 and tries < 40000:
+    while len(out['trees']) < 3400 and tries < 60000:
         tries += 1
         s = r.uniform(0, LENGTH)
-        d = r.choice((-1, 1)) * r.uniform(9, REACH - 4)
+        d = r.uniform(9, REACH - 4) if r.random() < 0.42 else -r.uniform(9, REACH_DOWN - 4)
         if 0 < d < 52 and r.random() > 0.08:  # the cliff face stays mostly bare
             continue
-        h0 = float(corridor_height(s, d))
-        hs = float(corridor_height(s, d + (1.5 if d > 0 else -1.5)))
-        if abs(hs - h0) / 1.5 > 1.25 and r.random() > 0.15:  # too steep to hold a tree
+        if CRASH_CLEAR[0] < s < CRASH_CLEAR[1] and CRASH_CLEAR[2] < d < 0:   # the car's fall line in Part 2's opening
             continue
-        x, y, z, t = frame_at(xs, ys, th, zr, s_arr, s, d)
+        x, y, z, t = ground(xs, ys, th, zr, s_arr, s, d)
+        _, _, zs, _ = ground(xs, ys, th, zr, s_arr, s, d + (1.5 if d > 0 else -1.5))
+        if abs(float(zs) - float(z)) / 1.5 > 1.25 and r.random() > 0.15:  # too steep to hold a tree
+            continue
         # a spruce variant (4.5 to 25 m tall, tools/blender/spruce.py), mostly mid-sized, a few saplings and giants
         v = r.choices(range(7), weights=(1.0, 2.0, 3.0, 3.0, 3.0, 2.0, 1.5))[0]
-        out['trees'].append([float(x) * 100, float(y) * 100, float(z + h0 - 0.3) * 100, r.uniform(0, 360), r.uniform(0.85, 1.15), v])
+        out['trees'].append([float(x) * 100, float(y) * 100, float(z - 0.3) * 100, r.uniform(0, 360), r.uniform(0.85, 1.15), v])
+    # Part 2's opening: the crash point, and how far the car falls (to the valley floor below the chute)
+    xi, yi, zi, ti = frame_at(xs, ys, th, zr, s_arr, CRASH_S, LANE)
+    _, _, zf, _ = ground(xs, ys, th, zr, s_arr, CRASH_S + 12, -(REACH_DOWN - 10))
+    out['crash'] = {'s': CRASH_S, 'start_cm': (CRASH_S - CAR_START) * 100, 'impact': [float(xi) * 100, float(yi) * 100, float(zi + corridor_height(CRASH_S, LANE)) * 100],
+                    'fall_m': float(zi - zf)}
+    print('crash: the road at %.1f m, the chute runs out at %.1f m: a %.0f m fall' % (zi, zf, zi - zf))
     # snow poles on both edges every 30 m
     for s in np.arange(10, LENGTH - 10, 30.0):
         for d in (HALF + 0.8, -(HALF + 1.6)):

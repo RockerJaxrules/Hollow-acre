@@ -110,29 +110,49 @@ def scaled_add(m, src, out_name, mul, add, x, y):
 
 
 def make_windshield_mat():
-    """Glass with the star crack and the strip of tape: translucent, two-sided, cracks catch a little light."""
+    """The windshield: new glass (the car is fixed by the ending) with the blizzard on it: snow crusted where the wipers
+    don't reach, a faint haze; the crash cracks it ('Crash', 0-1: laminated glass, a spider web that stays in the
+    frame). Unlit translucent (lit glass glowed in direct moonlight); the snow and the cracks catch a little light."""
     tex, glint = import_tex('T_Windshield'), import_tex('T_WindshieldGlint')
+    ctex, cglint = import_tex('T_WindshieldCrash'), import_tex('T_WindshieldCrashGlint')
     name = 'M_Windshield'
     if eal.does_asset_exist(f'{MATS}/{name}'):
         eal.delete_asset(f'{MATS}/{name}')
     m = tools.create_asset(name, MATS, unreal.Material, unreal.MaterialFactoryNew())
     m.set_editor_property('blend_mode', unreal.BlendMode.BLEND_TRANSLUCENT)
     m.set_editor_property('two_sided', True)
-    m.set_editor_property('shading_model', unreal.MaterialShadingModel.MSM_UNLIT)  # lit glass glowed in direct moonlight
-    ts = mel.create_material_expression(m, unreal.MaterialExpressionTextureSample, -900, 0)
-    ts.set_editor_property('texture', tex)
-    gs = mel.create_material_expression(m, unreal.MaterialExpressionTextureSample, -900, 400)
-    gs.set_editor_property('texture', glint)
-    mel.connect_material_property(scaled_add(m, ts, 'A', WINDSHIELD_COVER, WINDSHIELD_TINT, -600, 100), '', unreal.MaterialProperty.MP_OPACITY)
-    tape = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -600, 550)
-    mel.connect_material_expressions(ts, 'RGB', tape, 'A')
-    mel.connect_material_expressions(ts, 'A', tape, 'B')
-    bounce = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -400, 550)
-    bounce.set_editor_property('const_b', TAPE_BOUNCE)
-    mel.connect_material_expressions(tape, '', bounce, 'A')
-    glow = mel.create_material_expression(m, unreal.MaterialExpressionAdd, -200, 450)
-    mel.connect_material_expressions(scaled_add(m, gs, 'R', CRACK_GLINT, 0.0, -600, 400), '', glow, 'A')
-    mel.connect_material_expressions(bounce, '', glow, 'B')
+    m.set_editor_property('shading_model', unreal.MaterialShadingModel.MSM_UNLIT)
+    def sample(t, x, y):
+        e = mel.create_material_expression(m, unreal.MaterialExpressionTextureSample, x, y)
+        e.set_editor_property('texture', t)
+        return e
+    ts, gs, cs, cg = sample(tex, -1200, 0), sample(glint, -1200, 300), sample(ctex, -1200, 600), sample(cglint, -1200, 900)
+    crash = mel.create_material_expression(m, unreal.MaterialExpressionScalarParameter, -1200, 1150)
+    crash.set_editor_property('parameter_name', 'Crash')
+    crash.set_editor_property('default_value', 0.0)
+    ca = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -900, 650)     # the cracks, as far as cracked
+    mel.connect_material_expressions(cs, 'A', ca, 'A')
+    mel.connect_material_expressions(crash, '', ca, 'B')
+    cover = mel.create_material_expression(m, unreal.MaterialExpressionMax, -700, 100)
+    mel.connect_material_expressions(ts, 'A', cover, 'A')
+    mel.connect_material_expressions(ca, '', cover, 'B')
+    mel.connect_material_property(scaled_add(m, cover, '', WINDSHIELD_COVER, WINDSHIELD_TINT, -500, 100), '', unreal.MaterialProperty.MP_OPACITY)
+    # light: the snow crust and the cracks catch the headlights' bounce, their edges a glint
+    snow = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -900, 350)
+    mel.connect_material_expressions(ts, 'RGB', snow, 'A')
+    mel.connect_material_expressions(ts, 'A', snow, 'B')
+    snow_l = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -700, 350)
+    snow_l.set_editor_property('const_b', TAPE_BOUNCE)
+    mel.connect_material_expressions(snow, '', snow_l, 'A')
+    cgl = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -900, 950)
+    mel.connect_material_expressions(cg, 'R', cgl, 'A')
+    mel.connect_material_expressions(crash, '', cgl, 'B')
+    glints = mel.create_material_expression(m, unreal.MaterialExpressionAdd, -700, 700)
+    mel.connect_material_expressions(gs, 'R', glints, 'A')
+    mel.connect_material_expressions(scaled_add(m, cgl, '', 1.6, 0.0, -900, 1050), '', glints, 'B')
+    glow = mel.create_material_expression(m, unreal.MaterialExpressionAdd, -300, 450)
+    mel.connect_material_expressions(scaled_add(m, glints, '', CRACK_GLINT, 0.0, -500, 700), '', glow, 'A')
+    mel.connect_material_expressions(snow_l, '', glow, 'B')
     mel.connect_material_property(glow, '', unreal.MaterialProperty.MP_EMISSIVE_COLOR)
     mel.recompile_material(m)
     eal.save_loaded_asset(m)
@@ -334,6 +354,16 @@ def build_mountain():
     road_mat = make_road_mat()
     for name, mat in (('Terrain_Road', terrain_mat), ('Terrain_Far', far_mat), ('Road', road_mat)):
         mesh = import_obj(name)
+        if name != 'Terrain_Far' and name not in IMPORT_KEPT:
+            # the ground the car lands on in Part 2's opening: collide with the real triangles (Nanite off, so the
+            # collision and the picture are the same surface)
+            ns = mesh.get_editor_property('nanite_settings')
+            ns.set_editor_property('enabled', False)
+            mesh.set_editor_property('nanite_settings', ns)
+            bs_ = mesh.get_editor_property('body_setup')
+            if bs_:
+                bs_.set_editor_property('collision_trace_flag', unreal.CollisionTraceFlag.CTF_USE_COMPLEX_AS_SIMPLE)
+            eal.save_loaded_asset(mesh)
         a = actors.spawn_actor_from_class(unreal.StaticMeshActor, V(0, 0, 0))
         a.set_actor_label(name.replace('_', ' '))
         a.static_mesh_component.set_static_mesh(mesh)
@@ -341,6 +371,9 @@ def build_mountain():
             a.static_mesh_component.set_material(i, mat)
         if name == 'Terrain_Far':
             a.static_mesh_component.set_cast_shadow(False)
+            # far scenery never collides: without its own collision Unreal wraps the whole range in one hull, and the
+            # road sits inside it (the crash's car body was trapped there)
+            a.static_mesh_component.set_collision_profile_name('NoCollision')
 
     # The forest: snow-laden spruces (unreal/tools/blender/spruce.py), one instanced actor per variant
     sp_meta = json.load(open(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_saved_dir() + 'Generated/spruce.json')))
@@ -361,6 +394,9 @@ def build_mountain():
         for sm in mesh.static_materials:
             slot = str(sm.get_editor_property('material_slot_name')).lower()
             order.append(next((m for k, m in sp_mats.items() if slot.startswith(k)), sp_mats['bark']))
+        for k, mat in enumerate(order):
+            mesh.set_material(k, mat)      # for a spruce placed on its own (the one that stops the crashing car)
+        eal.save_loaded_asset(mesh)
         rows = [t for t in data['trees'] if int(t[5]) == i]
         log('%s: %.1f m, %d triangles, %d trees' % (meta['name'], meta['height_cm'] / 100.0, meta['tris'], len(rows)))
         if rows:
@@ -374,6 +410,7 @@ def build_mountain():
     rail = import_obj('Guardrail')
     a = actors.spawn_actor_from_class(unreal.StaticMeshActor, V(0, 0, 0))
     a.set_actor_label('Guardrail')
+    a.tags = [unreal.Name('Guardrail')]   # Part 2's opening: it gives way when the car is shoved through it
     a.static_mesh_component.set_static_mesh(rail)
     for i, sm in enumerate(rail.static_materials):
         a.static_mesh_component.set_material(i, rail_mats.get(str(sm.get_editor_property('material_slot_name')).lower().split('_')[0], steel))
@@ -430,13 +467,15 @@ def detail_mat(name, color, rough, normal_tex, tiling=1.0, metal=0.0, clearcoat=
 
 
 def make_side_glass_mat():
+    """The side windows: faint clear glass; 'Gone' (0-1) breaks them out (tempered glass bursts into pebbles at once)."""
     m = new_material('M_Car_SideGlass')
     m.set_editor_property('blend_mode', unreal.BlendMode.BLEND_TRANSLUCENT)
     m.set_editor_property('two_sided', True)
     m.set_editor_property('shading_model', unreal.MaterialShadingModel.MSM_UNLIT)
-    k = mel.create_material_expression(m, unreal.MaterialExpressionConstant, -300, 0)
-    k.set_editor_property('r', 0.06)
-    mel.connect_material_property(k, '', unreal.MaterialProperty.MP_OPACITY)
+    gone = mel.create_material_expression(m, unreal.MaterialExpressionScalarParameter, -500, 0)
+    gone.set_editor_property('parameter_name', 'Gone')
+    gone.set_editor_property('default_value', 0.0)
+    mel.connect_material_property(scaled_add(m, gone, '', -0.06, 0.06, -300, 0), '', unreal.MaterialProperty.MP_OPACITY)
     return finish(m)
 
 
@@ -837,6 +876,17 @@ def main():
             log('drive sound: %.1f s' % snd.get_editor_property('duration'))
     path = [V(*p) for p in mountain['path']]
     director.set_editor_property('path', path)
+    # Part 2's opening (-crash): the drive picks up about 135 m before the crash point (at 35 km/h for 11.35 s, braking
+    # at 4 m/s2 to 9 km/h, creeping 5.35 s), so the car passes the old gap in the rail and is hit at the crash point;
+    # the big spruce below stops it (the director stands it on the ground there, with a trunk the car's body hits)
+    crash = mountain.get('crash')
+    director.set_editor_property('granule_material', make_mat('M_GlassGranule', (0.1, 0.125, 0.118), 0.03, spec=1.0, instanced=True))
+    if crash:
+        director.set_editor_property('start_distance', crash['start_cm'] - 13470.0)
+        if crash.get('stop_tree'):     # (the car used to be stopped by a spruce near the road; it now falls to the valley)
+            st = crash['stop_tree']
+            director.set_editor_property('stop_tree_at', V(st[0], st[1], st[2]))
+            director.set_editor_property('stop_tree_mesh', unreal.load_asset(MTN + '/Spruce_Stop'))
     # put the car on the road at the start of the scene, facing along it (the director takes over in play)
     car.set_actor_location_and_rotation(path[0], unreal.MathLibrary.make_rot_from_x(path[3] - path[0]), False, True)
 

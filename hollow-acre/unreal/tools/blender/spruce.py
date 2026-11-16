@@ -580,10 +580,12 @@ def branch(acc, r, origin, az, L, u, trunk_r, axis_xy):
              r.uniform(0.74, 0.95), r.uniform(0.7, 0.95))
 
 
-def spruce(H, seed):
+def spruce(H, seed, clear=0.0):
+    """clear: an old forest spruce whose lower branches have died in the shade: no live branches below this height (cm),
+    only dead stubs on the bare trunk."""
     r = random.Random(seed)
     acc = Acc()
-    zc = H * r.uniform(0.02, 0.08)
+    zc = max(H * r.uniform(0.02, 0.08), clear)
     # crown radius at the base: young trees broad (about half as wide as tall), old ones narrow spires
     R = H * lerp(0.2, 0.13, min(1.0, (H - 450) / 2050.0)) * r.uniform(0.92, 1.1)
     r0 = max(4.0, H / 70.0)
@@ -598,6 +600,25 @@ def spruce(H, seed):
 
     zs = np.linspace(-60, H, 26)
     acc.add('bark', *tube(np.array([axis(z) for z in zs]), np.array([trunk_r(max(z, 0)) for z in zs]), 10))
+    if clear > 0:
+        rs = random.Random(seed * 7 + 1)
+        zz = clear - rs.uniform(15, 35)
+        while zz > 45:
+            for j in range(rs.choice((2, 3, 3, 4))):
+                az = rs.uniform(0, 2 * math.pi)
+                L = rs.uniform(10, 50) * (0.45 + 0.55 * zz / clear)       # shorter, more broken nearer the ground
+                e = math.radians(rs.uniform(-28, 4))
+                d = np.array([math.cos(e) * math.cos(az), math.cos(e) * math.sin(az), math.sin(e)])
+                p0 = axis(zz) + np.array([math.cos(az), math.sin(az), 0.0]) * trunk_r(zz) * 0.9
+                bend = np.array([rs.uniform(-1, 1), rs.uniform(-1, 1), rs.uniform(-1.5, 0.3)]) * L * 0.08
+                pts = np.array([p0, p0 + d * L * 0.5 + bend, p0 + d * L + bend * 1.6])
+                acc.add('bark', *tube(pts, np.array([1.0, 0.65, 0.3]) * (0.7 + L / 45.0), 4))
+                if L > 30 and rs.random() < 0.6:     # a dead twig off it
+                    q0 = pts[1]
+                    a2 = az + rs.choice((-1, 1)) * rs.uniform(0.6, 1.1)
+                    q1 = q0 + np.array([math.cos(a2), math.sin(a2), -0.25]) * L * rs.uniform(0.25, 0.45)
+                    acc.add('bark', *tube(np.array([q0, (q0 + q1) / 2, q1]), np.array([0.5, 0.35, 0.15]), 3))
+            zz -= rs.uniform(22, 42)
 
     z, k = H - r.uniform(18, 28), 0
     top_whorl = z
@@ -739,13 +760,22 @@ if __name__ == '__main__':
         render_spray()
     built = []
     meta = []
-    for i, (H, seed) in enumerate(VARIANTS):
+    stop_only = '--stop-only' in sys.argv
+    for i, (H, seed) in enumerate([] if stop_only else VARIANTS):
         acc = spruce(H, seed)
         acc.write(os.path.join(GEN, 'Spruce_%d.obj' % i))
         meta.append({'name': 'Spruce_%d' % i, 'height_cm': H, 'tris': acc.tris()})
         print('Spruce_%d: %.1f m, %d triangles' % (i, H / 100, acc.tris()))
         built.append((H, acc))
+    if stop_only:
+        meta = [m for m in json.load(open(os.path.join(GEN, 'spruce.json'))) if m['name'] != 'Spruce_Stop']
+    # the one that stops the crashing car (Part 2's opening): an old 23 m spruce, bare to 4.2 m (placed on its own by
+    # the director, after the forest's variants so no forest tree uses it)
+    acc = spruce(2300, 53, clear=420)
+    acc.write(os.path.join(GEN, 'Spruce_Stop.obj'))
+    meta.append({'name': 'Spruce_Stop', 'height_cm': 2300, 'tris': acc.tris()})
+    print('Spruce_Stop: 23 m, bare to 4.2 m, %d triangles' % acc.tris())
     json.dump(meta, open(os.path.join(GEN, 'spruce.json'), 'w'), indent=1)
-    if PREVIEW:
+    if PREVIEW and not stop_only:
         os.makedirs(PREVIEW, exist_ok=True)
         preview([built[0], built[2], built[4], built[6]], os.path.join(PREVIEW, 'spruce_preview.png'))

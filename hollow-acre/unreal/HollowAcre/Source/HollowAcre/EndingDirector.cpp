@@ -4,12 +4,26 @@
 #include "Sound/SoundBase.h"
 #include "EngineUtils.h"
 
+#include "Camera/CameraActor.h"
 #include "Camera/PlayerCameraManager.h"
+#include "Components/BoxComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "GlassBurst.h"
+#include "Components/CapsuleComponent.h"
+#include "Components/InstancedStaticMeshComponent.h"
+#include "Engine/StaticMeshActor.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Algo/BinarySearch.h"
+#include "Animation/AnimSequence.h"
+#include "Animation/SkeletalMeshActor.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/SkeletalMesh.h"
+#include "Husk.h"
 #include "TimerManager.h"
 
 AEndingDirector::AEndingDirector()
@@ -33,7 +47,134 @@ void AEndingDirector::BeginPlay()
 		PathDist.Add(Acc);
 	}
 	FParse::Value(FCommandLine::Get(), TEXT("-drivesecs="), DriveSeconds);
-	if (DriveSound)
+	if (FParse::Param(FCommandLine::Get(), TEXT("crash")))
+	{
+		bCrash = true;
+	}
+	auto ParseVec = [](const TCHAR* Key, FVector& Out)
+	{
+		FString S;
+		if (FParse::Value(FCommandLine::Get(), Key, S, false))
+		{
+			TArray<FString> P;
+			S.ParseIntoArray(P, TEXT(","));
+			if (P.Num() == 3)
+			{
+				Out = FVector(FCString::Atof(*P[0]), FCString::Atof(*P[1]), FCString::Atof(*P[2]));
+			}
+		}
+	};
+	ParseVec(TEXT("-crashvel="), ImpactVelocity);
+	ParseVec(TEXT("-crashspin="), ImpactSpin);
+	ParseVec(TEXT("-crashtree="), StopTreeAt);
+	FParse::Value(FCommandLine::Get(), TEXT("-crashgrip="), GroundGrip);
+	FParse::Value(FCommandLine::Get(), TEXT("-snowdrag="), SnowDrag);
+	FParse::Value(FCommandLine::Get(), TEXT("-triptime="), TripTime);
+	FParse::Value(FCommandLine::Get(), TEXT("-tripacross="), TripAcross);
+	FParse::Value(FCommandLine::Get(), TEXT("-triproll="), TripRoll);
+	if (Car)
+	{
+		TArray<AActor*> On;
+		Car->GetAttachedActors(On, true, true);
+		for (AActor* A : On)
+		{
+			if (A && A->IsA(ACameraActor::StaticClass()))
+			{
+				Camera = A;
+				CamRest = A->GetRootComponent()->GetRelativeLocation();
+				CamRestRot = A->GetRootComponent()->GetRelativeRotation();
+				break;
+			}
+		}
+	}
+	if (bCrash && Car)
+	{
+		// the glass the crash breaks: the windshield (cracks, stays) and the side windows (gone)
+		TArray<AActor*> On;
+		Car->GetAttachedActors(On, true, true);
+		for (AActor* A : On)
+		{
+			TArray<UStaticMeshComponent*> Comps;
+			A->GetComponents(Comps);
+			for (UStaticMeshComponent* C : Comps)
+			{
+				const TArray<FName> Slots = C->GetMaterialSlotNames();
+				for (int32 i = 0; i < Slots.Num(); ++i)
+				{
+					const FString S = Slots[i].ToString().ToLower();
+					if (S.StartsWith(TEXT("windshield")) && !S.Contains(TEXT("out")) && !WindshieldMID)
+					{
+						WindshieldMID = C->CreateDynamicMaterialInstance(i);
+					}
+					else if (S.StartsWith(TEXT("sideglass")) && !SideGlassMID)
+					{
+						SideGlassMID = C->CreateDynamicMaterialInstance(i);
+					}
+				}
+			}
+		}
+		UE_LOG(LogTemp, Display, TEXT("EndingDirector: crash glass: windshield %s, side windows %s"), WindshieldMID ? TEXT("found") : TEXT("missing"),
+			SideGlassMID ? TEXT("found") : TEXT("missing"));
+		// the spruce that stops the car: the forest's own tree (its materials from the forest), with a trunk that blocks
+		if (!StopTreeMesh)
+		{
+			StopTreeMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Mountain/Spruce_5.Spruce_5"));
+		}
+		if (!StopTreeAt.IsNearlyZero() && StopTreeMesh)
+		{
+			// stood on the ground where it is (the slope's own height there)
+			FHitResult H;
+			if (GetWorld()->LineTraceSingleByChannel(H, FVector(StopTreeAt.X, StopTreeAt.Y, 300000.f), FVector(StopTreeAt.X, StopTreeAt.Y, -300000.f), ECC_WorldStatic))
+			{
+				StopTreeAt.Z = H.ImpactPoint.Z - 30.f;
+			}
+			UE_LOG(LogTemp, Display, TEXT("EndingDirector: the stopping spruce at %s"), *StopTreeAt.ToString());
+			AStaticMeshActor* Tree = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), FTransform(FRotator(0.f, 40.f, 0.f), StopTreeAt));
+			Tree->SetMobility(EComponentMobility::Movable);
+			Tree->GetStaticMeshComponent()->SetStaticMesh(StopTreeMesh);
+			Tree->GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+			{
+				TArray<UInstancedStaticMeshComponent*> Ism;
+				It->GetComponents(Ism);
+				for (UInstancedStaticMeshComponent* I : Ism)
+				{
+					if (I->GetStaticMesh() == StopTreeMesh)
+					{
+						for (int32 m = 0; m < I->GetNumMaterials(); ++m)
+						{
+							Tree->GetStaticMeshComponent()->SetMaterial(m, I->GetMaterial(m));
+						}
+					}
+				}
+			}
+			UCapsuleComponent* Trunk = NewObject<UCapsuleComponent>(Tree, TEXT("Trunk"));
+			Trunk->SetupAttachment(Tree->GetRootComponent());
+			Trunk->SetCapsuleSize(38.f, 650.f);
+			Trunk->SetRelativeLocation(FVector(0.f, 0.f, 600.f));
+			Trunk->SetCollisionProfileName(TEXT("BlockAll"));
+			Trunk->RegisterComponent();
+		}
+	}
+	if (bCrash)
+	{
+		// Part 2 opens on black and fades into the drive already under way; no end card (the crash ends in black)
+		bHoldBlack = !FParse::Param(FCommandLine::Get(), TEXT("nofade"));
+		if (bHoldBlack)
+		{
+			FTimerHandle T;
+			GetWorldTimerManager().SetTimer(T, [this]()
+			{
+				bHoldBlack = false;
+				if (APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(this, 0))
+				{
+					Cam->StartCameraFade(1.f, 0.f, 2.5f, FLinearColor::Black, false, false);
+				}
+			}, 0.6f, false);
+		}
+		UE_LOG(LogTemp, Display, TEXT("EndingDirector: crash mode from %.0f m along the road, impact at %.1f s"), StartDistance / 100.f, ImpactTime);
+	}
+	if (DriveSound && !bCrash)
 	{
 		UGameplayStatics::PlaySound2D(this, DriveSound);
 	}
@@ -57,6 +198,10 @@ void AEndingDirector::BeginPlay()
 		}
 	}
 
+	if (bCrash)
+	{
+		return;
+	}
 	// Screenshots for the work log skip the opening fade (-nofade) so the frame isn't black
 	if (FParse::Param(FCommandLine::Get(), TEXT("nofade")))
 	{
@@ -119,8 +264,183 @@ void AEndingDirector::Tick(float DeltaSeconds)
 		return;
 	}
 
-	const float Speed = SpeedKmh * 100000.f / 3600.f; // cm/s
-	const float Dist = Speed * Time;
+	float Speed = SpeedKmh * 100000.f / 3600.f; // cm/s
+	float Dist = Speed * Time;
+	if (bCrash)
+	{
+		// it comes out ahead: the driver comes off the gas and brakes hard (about 0.4 g on packed snow) to a stop,
+		// watches it, waits, then creeps on at walking pace
+		if (Time >= SightTime + 0.35f)
+		{
+			const float Vb = FMath::Max(0.f, Speed - 400.f * (Time - SightTime - 0.35f));
+			const float Vc = Time > CreepTime ? FMath::Min(250.f, 100.f * (Time - CreepTime)) : 0.f;
+			Speed = FMath::Max(Vb, Vc);
+			if (!bStopped && Speed <= 0.f)
+			{
+				bStopped = true;
+				Event(TEXT("stopped"));
+			}
+			if (!bCreeping && Time > CreepTime)
+			{
+				bCreeping = true;
+				Event(TEXT("creep"));
+			}
+		}
+		if (!bImpacted)
+		{
+			SpeedNow = Speed;
+			DistNow += Speed * DeltaSeconds;
+		}
+		Dist = StartDistance + DistNow;
+		if (!bSighted && Time >= SightTime)
+		{
+			bSighted = true;
+			Event(TEXT("sight"));
+		}
+		if (!bBraked && Time >= SightTime + 0.35f)
+		{
+			bBraked = true;
+			Event(TEXT("brake"));
+		}
+		const float Stride = 28.f / 60.f;
+		CreSwitchAt = SightTime + SwitchLead;
+		if (!bCrossed && Time >= CreSwitchAt - 2.f * Stride)
+		{
+			// the sighting: two strides up from below the road on the right and over the rail, then the take from
+			// where it stops in the road, HaltSide left of the middle, CrossAhead on from where the car is at SightTime
+			bCrossed = true;
+			const float D = Dist + Speed * FMath::Max(0.f, SightTime - Time) + CrossAhead;
+			const FVector T = (PathAt(D + 300.f) - PathAt(D - 300.f)).GetSafeNormal2D();
+			CreRight = FVector::CrossProduct(FVector::UpVector, T);
+			CreCentre = PathAt(D) - CreRight * 175.f;           // the car's path runs 1.75 m right of the middle
+			const FVector Halt = CreCentre - CreRight * HaltSide;
+			CreDir = -CreRight;
+			const FVector Left = FVector::CrossProduct(CreDir, FVector::UpVector);
+			// the take's path carries it 5.31 m on and 0.47 m to its left before it stops (at its model's size)
+			CreSwitch = Halt - CreDir * 530.8f * HuskScale - Left * 47.3f * HuskScale;
+			CreFrom = CreSwitch - CreDir * (CreatureSpeed * HuskScale * 2.f * Stride);
+			CreHop0 = 380.f;                  // the bound over the guardrail (4.6 m right of the middle)
+			CreHop1 = 720.f;
+			CreT0 = Time;
+			CreS = 0.f;
+			CreStage = 1;
+			Creature = SpawnHusk(TEXT("GallopLookL"));
+			Event(TEXT("creature"));
+		}
+		if (!bCharged && Time >= ImpactTime - ChargeLead && Car)
+		{
+			// the charge: out of the dark on the driver's side, straight at the door, to arrive with the blow
+			bCharged = true;
+			bCharging = true;
+			CreStage = 4;
+			if (Creature)
+			{
+				Creature->Destroy();
+			}
+			const FTransform C = Car->GetActorTransform();
+			const FVector F = C.GetUnitAxis(EAxis::X).GetSafeNormal2D();
+			CreRight = FVector::CrossProduct(FVector::UpVector, F);
+			const FVector Contact = C.GetLocation() + F * (SpeedNow * ChargeLead - 30.f) - CreRight * 225.f;
+			CreDir = CreRight;
+			CreLen = CreatureSpeed * HuskScale * 0.85f * ChargeLead;
+			CreFrom = Contact - CreDir * CreLen;
+			CreHop0 = CreHop1 = -1.f;
+			CreT0 = Time;
+			CreS = 0.f;
+			Creature = SpawnHusk(TEXT("Gallop"));
+			Event(TEXT("charge"));
+		}
+		if (Creature)
+		{
+			MoveCreature(DeltaSeconds);
+		}
+		LookWant(DeltaSeconds);
+		if (!bImpacted)
+		{
+			PlaceCamera();
+		}
+		if (!bImpacted && Time >= ImpactTime)
+		{
+			Impact();
+		}
+		if (bImpacted)
+		{
+			if (!bPhysics && Body)
+			{
+				const float t = Time - ImpactTime;
+				if (t < TripTime)
+				{
+					Body->SetActorTransform(TripPose(t));
+				}
+				else
+				{
+					HandToPhysics();
+				}
+			}
+			CrashCamera(DeltaSeconds);
+			// the startle blink: shut 40-100 ms after the blow, held, open again by a third of a second
+			const float tb = Time - ImpactTime;
+			if (!bBlack && tb >= 0.04f && tb < 0.34f)
+			{
+				const float Shut = tb < 0.1f ? FMath::SmoothStep(0.04f, 0.1f, tb) : 1.f - FMath::SmoothStep(0.16f, 0.34f, tb);
+				if (APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(this, 0))
+				{
+					Cam->SetManualCameraFade(Shut, FLinearColor::Black, false);
+				}
+				bBlinking = true;
+			}
+			else if (bBlinking)
+			{
+				bBlinking = false;
+				if (APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(this, 0))
+				{
+					Cam->StopCameraFade();
+				}
+			}
+			if (Arms)
+			{
+				const float k = FMath::Exp(-(Time - ImpactTime) * 1.4f);
+				Arms->Steer = SteerNow + 70.f * k * FMath::Sin((Time - ImpactTime) * 13.f);   // the wheel is torn round
+			}
+			if (bPhysics && !bDeep && BodyBox && Body && ImpactPose.GetLocation().Z - Body->GetActorLocation().Z > 9000.f)
+			{
+				// where the chute eases off, the avalanche snow lies deep: the car ploughs in
+				FHitResult H;
+				FCollisionQueryParams Q(TEXT("DeepSnow"), true, Body);
+				Q.AddIgnoredActor(Car);
+				const FVector At = Body->GetActorLocation();
+				if (GetWorld()->LineTraceSingleByChannel(H, At, At - FVector(0.f, 0.f, 1500.f), ECC_WorldStatic, Q) && H.ImpactNormal.Z > 0.8f)
+				{
+					bDeep = true;
+					BodyBox->SetLinearDamping(1.4f);
+					BodyBox->SetAngularDamping(2.2f);
+					Event(TEXT("deep"), ImpactPose.GetLocation().Z - At.Z);
+				}
+			}
+			if (bPhysics && !bRested && BodyBox && Time > ImpactTime + 1.5f)
+			{
+				// at rest: barely moving or turning for half a second (not just the top of a bounce)
+				const bool bStill = BodyBox->GetPhysicsLinearVelocity().Size() < 30.f && BodyBox->GetPhysicsAngularVelocityInDegrees().Size() < 15.f;
+				StillFor = bStill ? StillFor + DeltaSeconds : 0.f;
+				if (StillFor > 0.5f)
+				{
+					bRested = true;
+					RestTime = Time;
+					Event(TEXT("rest"), ImpactPose.GetLocation().Z - Body->GetActorLocation().Z);
+				}
+			}
+			if (!bBlack && ((bRested && Time >= RestTime + BlackAfterRest) || Time >= ImpactTime + MaxFall))
+			{
+				bBlack = true;
+				if (APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(this, 0))
+				{
+					Cam->StartCameraFade(0.f, 1.f, 0.12f, FLinearColor::Black, false, true);
+				}
+				Event(TEXT("black"));
+			}
+			return;
+		}
+	}
 	FVector Loc;
 	FQuat Rot;
 	if (Path.Num() >= 2)
@@ -170,6 +490,448 @@ void AEndingDirector::Tick(float DeltaSeconds)
 		Want += 1.4f * FMath::Sin(Time * 0.63f + 0.5f) + 0.7f * FMath::Sin(Time * 1.71f + 2.1f) + 0.3f * FMath::Sin(Time * 3.9f);
 		SteerNow = FMath::FInterpTo(SteerNow, FMath::Clamp(Want, -120.f, 120.f), DeltaSeconds, 3.f);
 		Arms->Steer = SteerNow;
+	}
+}
+
+void AEndingDirector::Impact()
+{
+	bImpacted = true;
+	const FTransform CarT = Car->GetActorTransform();
+	const FQuat R = CarT.GetRotation();
+	// the car's body for the physics: a 4.5 x 1.7 x 1.2 m box round the shell (car frame: the driver's eye is at x 0,
+	// the car's centre line 37 cm to the right of it), 1250 kg, its weight carried low; packed snow is slippery
+	const FVector Centre = CarT.TransformPosition(FVector(-25.f, 37.f, 74.f));
+	AActor* B = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FTransform(R, Centre));
+	UBoxComponent* Box = NewObject<UBoxComponent>(B, TEXT("CarBody"));
+	B->SetRootComponent(Box);
+	Box->SetBoxExtent(FVector(225.f, 86.f, 60.f));
+	Box->SetWorldTransform(FTransform(R, Centre));
+	Box->RegisterComponent();
+	UPhysicalMaterial* Snow = NewObject<UPhysicalMaterial>(this);
+	Snow->Friction = GroundGrip;
+	Snow->Restitution = 0.15f;
+	Box->SetPhysMaterialOverride(Snow);
+	Box->SetCollisionProfileName(TEXT("PhysicsActor"));
+	Box->SetNotifyRigidBodyCollision(true);
+	Box->OnComponentHit.AddDynamic(this, &AEndingDirector::OnBodyHit);
+	Box->SetMassOverrideInKg(NAME_None, 1250.f, true);
+	Box->SetCenterOfMass(FVector(0.f, 0.f, -18.f));
+	Box->SetLinearDamping(SnowDrag);
+	Box->SetAngularDamping(SnowDrag + 0.05f);   // enough to keep it rolling over and over, not sliding on its side
+	// everything on the car rides along without colliding with its own body; the guardrail gives way (it is torn)
+	TArray<AActor*> On;
+	Car->GetAttachedActors(On, true, true);
+	for (AActor* A : On)
+	{
+		A->SetActorEnableCollision(false);
+	}
+	Car->SetActorEnableCollision(false);
+	for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+	{
+		if (It->ActorHasTag(TEXT("Guardrail")))
+		{
+			It->SetActorEnableCollision(false);
+		}
+		// far scenery never collides (without collision of its own Unreal would wrap the range in one hull round the road)
+		TArray<UStaticMeshComponent*> Comps;
+		It->GetComponents(Comps);
+		for (UStaticMeshComponent* C : Comps)
+		{
+			if (C->GetStaticMesh() && C->GetStaticMesh()->GetName().StartsWith(TEXT("Terrain_Far")))
+			{
+				C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			}
+		}
+	}
+	Car->AttachToActor(B, FAttachmentTransformRules::KeepWorldTransform);
+	Body = B;
+	BodyBox = Box;
+	// the blow: the trip is authored from here (TripPose), physics takes over at the edge
+	ImpactPose = B->GetActorTransform();
+	PrevPos = ImpactPose.GetLocation();
+	PrevVel = R.GetForwardVector() * SpeedNow;
+	Jolt = 1.f;
+	BurstWindow(true);
+	UE_LOG(LogTemp, Display, TEXT("EndingDirector: impact at %.1f s, %.0f m along the road, %.1f km/h"), Time, (StartDistance + DistNow) / 100.f, SpeedNow * 0.036f);
+	Event(TEXT("impact"));
+}
+
+void AEndingDirector::Event(const TCHAR* Kind, float Value)
+{
+	UE_LOG(LogTemp, Display, TEXT("CrashEvent %.3f %s %.0f"), Time, Kind, Value);
+}
+
+FTransform AEndingDirector::TripPose(float t) const
+{
+	// shoved across: fast at first (the blow), slowing; rolling faster and faster as the wheels catch and it trips;
+	// a little yaw as the back swings; the crawl forward carries on
+	const float T = FMath::Max(TripTime, 0.1f);
+	const float v0 = 2.f * TripAcross / T * 0.62f, a = 2.f * (v0 * T - TripAcross) / (T * T);   // across(T) = TripAcross
+	const float Across = v0 * t - 0.5f * a * t * t;
+	const float Roll = TripRoll * (t / T) * (t / T);
+	const FVector Off(SpeedNow * t, Across, 18.f * FMath::Sin(PI * FMath::Min(1.f, t / T)));
+	const FQuat Q = ImpactPose.GetRotation() * FRotator(0.f, 9.f * (t / T), Roll).Quaternion();
+	FTransform P(Q, ImpactPose.TransformPosition(Off));
+	// ride the ground: the lowest of the box's corners stays just above the surface
+	if (BodyBox)
+	{
+		const FVector E = BodyBox->GetUnscaledBoxExtent();
+		float Lift = 0.f;
+		for (int32 c = 0; c < 8; ++c)
+		{
+			const FVector Corner = P.TransformPosition(FVector(c & 1 ? E.X : -E.X, c & 2 ? E.Y : -E.Y, c & 4 ? E.Z : -E.Z));
+			FHitResult H;
+			FCollisionQueryParams Qp(TEXT("TripGround"), true, Body);
+			Qp.AddIgnoredActor(Car);
+			if (GetWorld()->LineTraceSingleByChannel(H, Corner + FVector(0.f, 0.f, 300.f), Corner - FVector(0.f, 0.f, 300.f), ECC_WorldStatic, Qp))
+			{
+				Lift = FMath::Max(Lift, H.ImpactPoint.Z + 3.f - Corner.Z);
+			}
+		}
+		P.AddToTranslation(FVector(0.f, 0.f, Lift));
+	}
+	return P;
+}
+
+void AEndingDirector::HandToPhysics()
+{
+	bPhysics = true;
+	const float T = TripTime, dt = 1.f / 60.f;
+	const FTransform A = TripPose(T - dt), Bp = TripPose(T);
+	const FVector V = (Bp.GetLocation() - A.GetLocation()) / dt + FVector(0.f, 0.f, -150.f);   // over the edge, starting to drop
+	const FQuat dQ = Bp.GetRotation() * A.GetRotation().Inverse();
+	FVector Axis;
+	float Angle;
+	dQ.ToAxisAndAngle(Axis, Angle);
+	BodyBox->SetSimulatePhysics(true);
+	BodyBox->SetPhysicsLinearVelocity(V);
+	BodyBox->SetPhysicsAngularVelocityInRadians(Axis * Angle / dt);
+	UE_LOG(LogTemp, Display, TEXT("EndingDirector: over the edge at %.2f s: %.0f cm/s, rolling %.0f deg/s"), Time - ImpactTime, V.Size(), FMath::RadiansToDegrees(Angle / dt));
+	Event(TEXT("edge"), V.Size());
+}
+
+void AEndingDirector::BurstWindow(bool bDriver)
+{
+	// tempered side glass: gone at once, pebbles flying in (car frame: the driver's door glass is at y -35, the
+	// passenger's at y 109; the windows run from the A pillar back to the B pillar, sill to roof)
+	if (SideGlassMID)
+	{
+		SideGlassMID->SetScalarParameterValue(TEXT("Gone"), 1.f);
+	}
+	AGlassBurst* G = GetWorld()->SpawnActor<AGlassBurst>(AGlassBurst::StaticClass(), Car->GetActorTransform());
+	if (!G)
+	{
+		return;
+	}
+	G->AttachToActor(Car, FAttachmentTransformRules::KeepWorldTransform);
+	if (APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(this, 0))
+	{
+		// the head: a sphere a little behind the eyes, its front at the brow and the bridge of the nose
+		G->Head = Car->GetActorTransform().InverseTransformPosition(Cam->GetCameraLocation()) + FVector(-7.f, 0.f, -2.f);
+		G->HeadRadius = 13.f;
+	}
+	const FBox Win = bDriver ? FBox(FVector(-45.f, -36.f, 99.f), FVector(48.f, -33.f, 128.f)) : FBox(FVector(-45.f, 106.f, 99.f), FVector(48.f, 109.f, 128.f));
+	G->Burst(Win, FVector(0.f, bDriver ? 1.f : -1.f, 0.f), bDriver ? 420.f : 200.f, bDriver ? 520 : 380, GranuleMaterial, bDriver ? 11 : 23);
+	UE_LOG(LogTemp, Display, TEXT("EndingDirector: glass burst: actor scale %s, car scale %s, head at %s"), *G->GetActorScale3D().ToString(),
+		*Car->GetActorScale3D().ToString(), *G->Head.ToString());
+}
+
+void AEndingDirector::OnBodyHit(UPrimitiveComponent* HitComp, AActor* Other, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	// the first time the car comes down on its side or roof, the windshield cracks and the other window goes
+	if (!bCracked && Body && bPhysics && Body->GetActorUpVector().Z < 0.35f)
+	{
+		bCracked = true;
+		if (WindshieldMID)
+		{
+			WindshieldMID->SetScalarParameterValue(TEXT("Crash"), 1.f);
+		}
+		BurstWindow(false);
+		Jolt = FMath::Max(Jolt, 0.8f);
+		UE_LOG(LogTemp, Display, TEXT("EndingDirector: the car comes down on its side at %.2f s: the windshield cracks"), Time - ImpactTime);
+		Event(TEXT("crack"));
+	}
+	// each hard landing as it rolls (one per contact, not one per physics step)
+	if (bPhysics && NormalImpulse.Size() > 120000.f && Time - LastHitEvent > 0.12f)
+	{
+		LastHitEvent = Time;
+		const bool bTree = OtherComp && OtherComp->GetName() == TEXT("Trunk");
+		Event(bTree ? TEXT("tree") : TEXT("hit"), NormalImpulse.Size());
+	}
+	if (HitsLogged++ < 12)
+	{
+		const UStaticMeshComponent* SMC = Cast<UStaticMeshComponent>(OtherComp);
+		UE_LOG(LogTemp, Display, TEXT("EndingDirector: body hit %s, mesh %s, collision %d, at %s, impulse %.0f"), Other ? *Other->GetActorNameOrLabel() : TEXT("?"),
+			SMC && SMC->GetStaticMesh() ? *SMC->GetStaticMesh()->GetName() : TEXT("?"), OtherComp ? (int32)OtherComp->GetCollisionEnabled() : -1,
+			*Hit.ImpactPoint.ToString(), NormalImpulse.Size());
+	}
+}
+
+void AEndingDirector::CrashCamera(float DeltaSeconds)
+{
+	// The driver's head lags behind the car's accelerations (thrown against the belt and the door), plus the jolt of
+	// the blow; eased back by the neck
+	if (!BodyBox || !Camera || DeltaSeconds <= 0.f)
+	{
+		return;
+	}
+	const FVector Pos = Body->GetActorLocation();
+	const FVector Vel = (Pos - PrevPos) / DeltaSeconds;     // from positions: the trip is authored, the tumble simulated
+	PrevPos = Pos;
+	static float NextLog = 0.f;
+	if (Time >= NextLog)
+	{
+		NextLog = Time + 0.5f;
+		UE_LOG(LogTemp, Display, TEXT("EndingDirector: crash t+%.1f body %s rot %s vel %.0f cm/s spin %s sim %d | car %s"), Time - ImpactTime,
+			*Body->GetActorLocation().ToString(), *Body->GetActorRotation().ToString(), Vel.Size(), *BodyBox->GetPhysicsAngularVelocityInDegrees().ToString(),
+			BodyBox->IsSimulatingPhysics() ? 1 : 0, *Car->GetActorLocation().ToString());
+	}
+	const FVector Acc = (Vel - PrevVel) / DeltaSeconds - FVector(0.f, 0.f, -980.f);   // what the body feels (gravity felt as up)
+	PrevVel = Vel;
+	const FVector Local = Body->GetActorTransform().InverseTransformVectorNoScale(Acc - FVector(0.f, 0.f, 980.f));
+	FVector Want = -Local * 0.0045f;
+	Want = Want.GetClampedToMaxSize(22.f);
+	HeadOff += (Want - HeadOff) * (1.f - FMath::Exp(-DeltaSeconds * 12.f));
+	HeadRot.Roll = FMath::FInterpTo(HeadRot.Roll, FMath::Clamp(Local.Y * 0.004f, -14.f, 14.f), DeltaSeconds, 9.f);
+	HeadRot.Pitch = FMath::FInterpTo(HeadRot.Pitch, FMath::Clamp(-Local.X * 0.003f, -10.f, 10.f), DeltaSeconds, 9.f);
+	Jolt = FMath::Max(0.f, Jolt - DeltaSeconds * 2.2f);
+	const float J = Jolt * Jolt;
+	const FVector Shake(FMath::Sin(Time * 61.f) * 3.f * J, FMath::Sin(Time * 47.f + 1.f) * 5.f * J, FMath::Sin(Time * 53.f + 2.f) * 3.f * J);
+	const FRotator ShakeR(FMath::Sin(Time * 43.f) * 3.f * J, FMath::Sin(Time * 37.f + 1.f) * 4.f * J, FMath::Sin(Time * 59.f) * 5.f * J);
+	const FRotator Look(0.f, LookYaw, 0.f);
+	Camera->GetRootComponent()->SetRelativeLocationAndRotation(CamRest + HeadOff + Shake + Look.RotateVector(FVector(9.f, 0.f, 0.f)) - FVector(9.f, 0.f, 0.f),
+		CamRestRot + HeadRot + ShakeR + Look);
+}
+
+void AEndingDirector::PlaceCamera()
+{
+	// the head turns about the neck, a little behind the eyes
+	if (Camera)
+	{
+		const FRotator Look(0.f, LookYaw, 0.f);
+		Camera->GetRootComponent()->SetRelativeLocationAndRotation(CamRest + Look.RotateVector(FVector(9.f, 0.f, 0.f)) - FVector(9.f, 0.f, 0.f), CamRestRot + Look);
+	}
+}
+
+float AEndingDirector::LookWant(float DeltaSeconds)
+{
+	// where the driver looks: ahead; following the shape across (eyes do part of it, the head the rest); back to the
+	// road; a look left, up toward where it went; the road again; then the growl on the left and the head snaps round
+	float Want = 0.f, Rate = 5.f;
+	const float t = Time;
+	if (bImpacted)
+	{
+		Want = 0.f;               // thrown about from here: the neck brings it back as it can
+		Rate = 1.5f;
+	}
+	else if (t >= ImpactTime - 0.75f)
+	{
+		Want = -72.f;
+		Rate = 11.f;
+	}
+	else if (Creature && CreStage >= 1 && CreStage <= 3 && t >= SightTime - 0.2f && t < CreepTime + 0.8f && Camera)
+	{
+		const FVector To = Creature->GetActorLocation() - Camera->GetActorLocation();
+		const FVector Fw = Car->GetActorForwardVector();
+		const float Ang = FMath::RadiansToDegrees(FMath::Atan2(FVector::DotProduct(To, Car->GetActorRightVector()), FVector::DotProduct(To, Fw)));
+		Want = FMath::Clamp(Ang * 0.6f, -40.f, 40.f);
+		Rate = 7.f;
+	}
+	else if (t >= CreepTime + 0.8f && t < ImpactTime - 1.6f)
+	{
+		Want = -28.f;             // creeping on, watching the bank on the left
+		Rate = 1.6f;
+	}
+	else if (t >= ImpactTime - 1.6f)
+	{
+		Want = -6.f;
+		Rate = 2.5f;
+	}
+	LookYaw += (Want - LookYaw) * (1.f - FMath::Exp(-DeltaSeconds * Rate));
+	return Want;
+}
+
+AHusk* AEndingDirector::SpawnHusk(const TCHAR* Take)
+{
+	FActorSpawnParameters P;
+	P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	AHusk* H = GetWorld()->SpawnActor<AHusk>(AHusk::StaticClass(), FTransform(CreFrom), P);
+	if (!H || !H->Setup())
+	{
+		if (H)
+		{
+			H->Destroy();
+		}
+		return nullptr;
+	}
+	H->SetActorScale3D(FVector(HuskScale));
+	CreatureYawFix = -H->MeshForwardYaw();
+	H->Play(Take, true);
+	CrePos = CreFrom;
+	CreDir0 = CreDir;
+	CreTakeYaw = 0.f;
+	Creature = H;
+	MoveCreature(0.f);
+	return H;
+}
+
+float AEndingDirector::CreatureGround(const FVector& At) const
+{
+	// the snow it runs on: the terrain itself (not the rail, the posts or the car)
+	TArray<FHitResult> Hits;
+	FCollisionQueryParams Q(TEXT("CreatureGround"), true);
+	GetWorld()->LineTraceMultiByChannel(Hits, At + FVector(0.f, 0.f, 6000.f), At - FVector(0.f, 0.f, 6000.f), ECC_WorldStatic, Q);
+	for (const FHitResult& H : Hits)
+	{
+		const UStaticMeshComponent* S = Cast<UStaticMeshComponent>(H.GetComponent());
+		const FString N = S && S->GetStaticMesh() ? S->GetStaticMesh()->GetName() : FString();
+		if (N.StartsWith(TEXT("Terrain")) || N == TEXT("Road"))
+		{
+			return H.ImpactPoint.Z;
+		}
+	}
+	return At.Z;
+}
+
+namespace
+{
+	float Smooth01(float x)
+	{
+		x = FMath::Clamp(x, 0.f, 1.f);
+		return x * x * (3.f - 2.f * x);
+	}
+
+	// the sighting take's path (as tools/blender/husk_body.py made it): speed (m/s at the model's size) and how far
+	// it has turned to its left (degrees), t seconds into the take
+	const float TA = 28.f / 60.f, TB = TA + 0.63f, TC = TB + 0.75f, TD = TC + 1.8f, TE = TD + 0.6f, TF = TE + 2.f * 28.f / 60.f;
+	void SightingPath(float t, float& V, float& Turn)
+	{
+		if (t < TA) { V = 8.f; Turn = 0.f; }
+		else if (t < TB) { const float u = (t - TA) / (TB - TA); V = 8.f * (1.f - u) * (1.f - u); Turn = 90.f * Smooth01(u); }
+		else if (t < TC) { V = 0.f; Turn = 90.f; }
+		else if (t < TD) { const float r = t - TC; V = (r > 0.4f && r < 0.7f) ? 0.42f : 0.f; Turn = 90.f; }
+		else if (t < TE) { V = 0.f; Turn = 90.f; }
+		else { const float tt = t - TE; V = 8.f * Smooth01(tt / 0.6f); Turn = 90.f - 160.f * Smooth01(tt / 0.45f); }
+	}
+
+	// its jaw through the rear-up (degrees): a breath in, the scream (shaking), then shut
+	float ScreamJaw(float t)
+	{
+		if (t < TC || t > TD)
+		{
+			return 0.f;
+		}
+		const float r = t - TC;
+		const float Roaring = Smooth01((r - 0.45f) / 0.1f) * (1.f - Smooth01((r - 1.4f) / 0.1f));
+		return 10.f * Smooth01(r / 0.3f) + 30.f * Smooth01((r - 0.35f) / 0.15f) - 34.f * Smooth01((r - 1.45f) / 0.3f)
+			+ 2.5f * FMath::Sin(r * 41.f) * Roaring;
+	}
+}
+
+void AEndingDirector::MoveCreature(float DeltaSeconds)
+{
+	AHusk* H = Creature;
+	if (!H)
+	{
+		return;
+	}
+	const float K = HuskScale;
+	float V = CreatureSpeed * K;
+	float Jaw = 7.f + 3.f * FMath::Sin(Time * 13.f);          // breathing hard through its teeth as it runs
+	if (CreStage == 1 && Time >= CreSwitchAt)
+	{
+		// into the take where it is (it has run exactly two strides, so the gallop meets the take's first frame)
+		CreStage = 2;
+		CreTakeT0 = Time;
+		CrePos = FVector(CreSwitch.X, CreSwitch.Y, CrePos.Z);
+		H->Play(TEXT("Sighting"), false);
+		Event(TEXT("halt"));
+	}
+	if (CreStage == 2)
+	{
+		const float t = Time - CreTakeT0;
+		if (t >= TF)
+		{
+			// away: turned 70 degrees to its right of the way it came, at a gallop
+			CreStage = 3;
+			CreDir = FRotator(0.f, 70.f, 0.f).RotateVector(CreDir0).GetSafeNormal2D();
+			CreTakeYaw = 0.f;
+			CreHop0 = CreHop1 = -1.f;
+			CreS = 0.f;
+			H->Play(TEXT("Gallop"), true);
+			Event(TEXT("bolt"));
+		}
+		else
+		{
+			float Vm, Turn;
+			SightingPath(t, Vm, Turn);
+			V = Vm * 100.f * K;
+			CreTakeYaw = Turn;
+			CreDir = FRotator(0.f, -Turn, 0.f).RotateVector(CreDir0).GetSafeNormal2D();
+			if (t > TC - 0.05f && t < TD + 0.05f && !bScreamed)
+			{
+				bScreamed = true;
+				Event(TEXT("roar"));
+			}
+			Jaw = FMath::Max(5.f, ScreamJaw(t));
+		}
+	}
+	if (CreStage == 3 && CreS > 2600.f * K)
+	{
+		H->Destroy();             // gone into the dark up the road
+		Creature = nullptr;
+		return;
+	}
+	if (CreStage == 4)
+	{
+		Jaw = 24.f + 3.f * FMath::Sin(Time * 17.f);              // the snarl as it comes at the door
+		USkeletalMeshComponent* M = H->GetBody();
+		if (bImpacted)
+		{
+			// shoving the car over: it drives on behind it, slowing, and stops at the edge of the road
+			const float k = FMath::Clamp((Time - ImpactTime) / FMath::Max(TripTime * 1.2f, 0.1f), 0.f, 1.f);
+			V = CreatureSpeed * K * 0.55f * (1.f - k);
+			M->SetPlayRate(FMath::Max(0.f, 0.7f * (1.f - k)));
+		}
+		else
+		{
+			V = CreatureSpeed * K * 0.85f;
+			M->SetPlayRate(0.85f);
+		}
+	}
+	H->JawOpen = Jaw;
+	CreS += V * DeltaSeconds;
+	CrePos += CreDir * V * DeltaSeconds;
+	FVector P = CrePos;
+	const float G = CreatureGround(P);
+	const float Ga = CreatureGround(P + CreDir * 150.f), Gb = CreatureGround(P - CreDir * 150.f);
+	P.Z = G;
+	if (CreHop0 >= 0.f)
+	{
+		// the bound over the guardrail (measured from the road's middle, on the right)
+		const float Off = FVector::DotProduct(P - CreCentre, CreRight);
+		if (Off < CreHop1 && Off > CreHop0)
+		{
+			const float u = (CreHop1 - Off) / (CreHop1 - CreHop0);
+			P.Z += 120.f * FMath::Sin(PI * u);
+		}
+	}
+	CrePos.Z = P.Z;
+	const float WantPitch = FMath::RadiansToDegrees(FMath::Atan2(Ga - Gb, 300.f)) * 0.6f;
+	CrePitch = DeltaSeconds > 0.f ? FMath::FInterpTo(CrePitch, WantPitch, DeltaSeconds, 6.f) : WantPitch;
+	const float Yaw = FMath::RadiansToDegrees(FMath::Atan2(CreDir.Y, CreDir.X));
+	// turned to face its way first (the mesh's own forward), then yawed and pitched with the slope
+	H->SetActorLocationAndRotation(P, FRotator(CrePitch, Yaw, 0.f).Quaternion() * FRotator(0.f, CreatureYawFix, 0.f).Quaternion());
+	// none of it sunk into the snow where the ground is not as flat as the snow its takes were made on: lifted at once,
+	// let down gently
+	const float Lift = H->GroundLift([this](const FVector& At) { return CreatureGround(At); });
+	CreLift = Lift > CreLift || DeltaSeconds <= 0.f ? Lift : FMath::FInterpTo(CreLift, Lift, DeltaSeconds, 5.f);
+	H->AddActorWorldOffset(FVector(0.f, 0.f, CreLift));
+	CreLiftMax = FMath::Max(CreLiftMax, Lift);
+	if (Time >= CreLiftLogAt)
+	{
+		CreLiftLogAt = Time + 0.5f;
+		UE_LOG(LogTemp, Display, TEXT("CreatureLift %.3f %.1f (most so far %.1f cm)"), Time, Lift, CreLiftMax);
 	}
 }
 

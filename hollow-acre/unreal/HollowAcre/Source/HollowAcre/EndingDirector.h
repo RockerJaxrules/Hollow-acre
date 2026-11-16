@@ -5,6 +5,8 @@
 // Command line (testing and work-log screenshots):
 //   -nofade           skip the opening fade (the frame is never black)
 //   -drivesecs=<s>    override how long the drive lasts before the fade out
+//   -crash            Part 2's opening instead: the drive picks up further on and the creature rams the car off the
+//                     mountain (-crashvel=x,y,z cm/s and -crashspin=x,y,z deg/s, car frame, tune the blow)
 
 #pragma once
 
@@ -87,6 +89,76 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ending")
 	float WiperRest = 0.25f;
 
+	/** Part 2's opening: the same drive picks up further up the road, and the creature rams the car off it. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	bool bCrash = false;
+	/** How far along Path the drive picks up (cm). */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float StartDistance = 0.f;
+	/** When something crosses the road ahead (the driver brakes), when it hits, when the view goes black (s). */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float SightTime = 11.f;
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float ImpactTime = 21.f;
+	/** After it has gone, the driver waits, then creeps on at walking pace from this time. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float CreepTime = 17.2f;
+	/** The black comes this long after the car has finally come to rest at the bottom (or at ImpactTime + MaxFall). */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float BlackAfterRest = 0.9f;
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float MaxFall = 26.f;
+	/** Deep snow's drag on the tumbling car (linear damping; the angular damping a little more). */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float SnowDrag = 0.15f;
+	/** The blow, in the car's frame: the shove (cm/s; +Y is right, toward the drop) and the roll it starts (deg/s). */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	FVector ImpactVelocity = FVector(100.f, 750.f, 160.f);
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	FVector ImpactSpin = FVector(170.f, 0.f, -20.f);
+	/** The trip: how long the authored shove lasts (s), how far it carries the car across (cm) and how far it rolls
+	 *  it (degrees) before physics takes over at the edge. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float TripTime = 0.8f;
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float TripAcross = 560.f;
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float TripRoll = 80.f;
+	/** How the ground grips the car as it goes (snow over frozen soil: the wheels and the roof dig in, so it trips
+	 *  and rolls rather than sledging). */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float GroundGrip = 0.6f;
+	/** The big spruce on the slope that stops the car (world cm, the trunk's foot; zero: none), and its mesh. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	FVector StopTreeAt = FVector::ZeroVector;
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	TObjectPtr<class UStaticMesh> StopTreeMesh;
+	// the creature itself is AHusk (Husk.h): its meshes and takes are its own
+	/** Where in the road it stops (cm left of the road's middle), and when (after SightTime) it starts the take. */
+	UPROPERTY(EditAnywhere, Category = "Creature")
+	float HaltSide = 150.f;
+	UPROPERTY(EditAnywhere, Category = "Creature")
+	float SwitchLead = 0.1f;
+	/** The sighting: how far ahead of the car (cm, along the road, from where the car is at SightTime) it crosses, and
+	 *  how long before SightTime it sets off from below the road. */
+	UPROPERTY(EditAnywhere, Category = "Creature")
+	float CrossAhead = 2800.f;
+	UPROPERTY(EditAnywhere, Category = "Creature")
+	float CrossLead = 0.75f;
+	/** How much bigger than its model the husk is in the game (about 2.9 m standing). */
+	UPROPERTY(EditAnywhere, Category = "Creature")
+	float HuskScale = 1.3f;
+	/** Its gallop (cm/s, at its model's size): the takes are keyed for 800 with no sliding. */
+	UPROPERTY(EditAnywhere, Category = "Creature")
+	float CreatureSpeed = 800.f;
+	/** The charge: how long before the blow it comes out of the dark at the driver's side. */
+	UPROPERTY(EditAnywhere, Category = "Creature")
+	float ChargeLead = 0.6f;
+
+	/** The pebbles of broken side glass. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	TObjectPtr<UMaterialInterface> GranuleMaterial;
+
 	/** Gentle body sway from the rough, snowy road (degrees). */
 	UPROPERTY(EditAnywhere, Category = "Ending")
 	float SwayDeg = 0.6f;
@@ -109,6 +181,69 @@ private:
 	/** The road's heading (radians, Unreal yaw: positive turns right) at a distance along it. */
 	float HeadingAt(float Dist) const;
 	float SteerNow = 0.f;
+	// crash mode
+	void Impact();
+	UFUNCTION()
+	void OnBodyHit(UPrimitiveComponent* HitComp, AActor* Other, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	int32 HitsLogged = 0;
+	void BurstWindow(bool bDriver);
+	UPROPERTY()
+	TObjectPtr<class UMaterialInstanceDynamic> WindshieldMID;
+	UPROPERTY()
+	TObjectPtr<class UMaterialInstanceDynamic> SideGlassMID;
+	bool bCracked = false;
+	void CrashCamera(float DeltaSeconds);
+	float DistNow = 0.f;
+	float SpeedNow = 0.f;
+	bool bImpacted = false;
+	bool bBlack = false;
+	bool bBlinking = false;
+	// the creature
+	UPROPERTY()
+	TObjectPtr<class AHusk> Creature;
+	class AHusk* SpawnHusk(const TCHAR* Take);
+	FVector CrePos = FVector::ZeroVector, CreDir0 = FVector::ForwardVector;
+	float CreTakeYaw = 0.f;
+	bool bScreamed = false;
+	float CreLift = 0.f, CreLiftMax = 0.f, CreLiftLogAt = 0.f;   // lifting it clear of the real snow (AHusk::GroundLift)
+	void MoveCreature(float DeltaSeconds);
+	float CreatureGround(const FVector& At) const;
+	float CreatureYawFix = 0.f;
+	FVector CreFrom = FVector::ZeroVector, CreDir = FVector::ForwardVector, CreRight = FVector::RightVector;
+	float CreT0 = 0.f, CreLen = 0.f, CreHop0 = -1.f, CreHop1 = -1.f, CrePitch = 0.f, CreS = 0.f;
+	bool bCrossed = false, bCharged = false, bCharging = false;
+	int32 CreStage = 0;       // 1 running in, 2 the sighting take, 3 bolting, 4 the charge
+	float CreTakeT0 = 0.f, CreSwitchAt = 0.f, CreBolt = 0.f;
+	FVector CreSwitch = FVector::ZeroVector, CreCentre = FVector::ZeroVector;
+	bool bStopped = false, bCreeping = false, bDeep = false;
+	// the driver's head turning (degrees, + to the right)
+	float LookYaw = 0.f;
+	float LookWant(float DeltaSeconds);
+	void PlaceCamera();
+	UPROPERTY()
+	TObjectPtr<AActor> Body;
+	UPROPERTY()
+	TObjectPtr<class UBoxComponent> BodyBox;
+	UPROPERTY()
+	TObjectPtr<AActor> Camera;
+	FVector CamRest = FVector::ZeroVector;
+	FRotator CamRestRot = FRotator::ZeroRotator;
+	FVector PrevVel = FVector::ZeroVector;
+	FVector HeadOff = FVector::ZeroVector;
+	FRotator HeadRot = FRotator::ZeroRotator;
+	float Jolt = 0.f;
+	FTransform ImpactPose;
+	FVector PrevPos = FVector::ZeroVector;
+	bool bPhysics = false;
+	void Event(const TCHAR* Kind, float Value = 0.f);
+	float LastHitEvent = -1.f;
+	bool bRested = false;
+	float RestTime = 0.f;
+	float StillFor = 0.f;
+	bool bSighted = false;
+	bool bBraked = false;
+	FTransform TripPose(float t) const;
+	void HandToPhysics();
 	bool bHoldBlack = false;
 	TArray<FQuat> WiperBase;
 	FVector WiperAxis = FVector::UpVector;

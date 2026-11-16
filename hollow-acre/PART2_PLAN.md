@@ -15,11 +15,17 @@ the app starting Part 2 from that black, carrying the save (name, look, spouse) 
 ## Milestones
 1. **The crash** (the opening of Part 2, picking up the drive):
    - the drive resumes on the switchbacks; the smashed gap in the guardrail goes by (someone went over before you);
-   - something huge crosses the road far ahead in the headlights and is gone into the snow; you brake;
-   - it hits the car from the uphill side, shoves it through the guardrail, and the car goes over and rolls down the
-     slope; glass, noise, black;
-   - the creature is only glimpsed (fur, size, a shape in the light). Horror shows little, and its full model can come
-     later.
+   - it comes up over the rail ahead and stops in the road in the headlights; you brake to a stop about 12 m short of
+     it. It rears up onto its hind legs (about 3 m), roars at you with its arms up, drops, wheels round and is gone
+     up the road into the dark (owner: "we need to see the creature"; first person only, never leaving the driver's
+     eyes);
+   - you wait, creep on, watching the bank; a growl on the left, your head snaps round and it is already at the
+     window: it hits the car from the uphill side and shoves it through the guardrail;
+   - the long fall (owner: "mountains aren't small"): the car tumbles down an avalanche chute below the road (steep
+     snow, a cliff band, a long slope), about 160 m down to the valley floor, and ploughs into the deep snow where the
+     chute runs out; glass, noise, black;
+   - the creature: a yeti built on a gorilla (owner: "a gorilla is a good start"). The sound is made from real
+     recordings (CC0 libraries, owner approved), every source logged.
 2. **Waking at the bottom** (the first playable moments): first person on foot (the MetaHuman body), the car on its
    roof in the snow, the flashlight (battery, the beam in the falling snow), cold (body heat falls outside, recovers by
    fire and shelter), stamina (running), crouching (quieter), your breath in the air.
