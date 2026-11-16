@@ -32,6 +32,7 @@ CAM_DEBUG_YAW = float(os.environ.get('HA_CAM_YAW', '0'))      # debug views only
 CAM_DEBUG_PITCH = float(os.environ.get('HA_CAM_PITCH', '0'))
 HEADLIGHT_FOG_GLOW = 0.8                # volumetric scattering of the headlight beams
 WINDSHIELD_TINT = 0.05                  # clear glass opacity
+HIT_CM = 90.0                           # T_WindshieldHit covers this much glass (tools/make_windshield_tex.py)
 WINDSHIELD_COVER = 0.93                 # how solid the tape and cracks are
 TAPE_BOUNCE = 0.035                     # snow/headlight bounce on the tape (translucency gets no Lumen GI)
 CRACK_GLINT = 0.035                     # light the broken glass catches
@@ -112,13 +113,24 @@ def scaled_add(m, src, out_name, mul, add, x, y):
 def make_windshield_mat():
     """The windshield: new glass (the car is fixed by the ending) with the blizzard on it: snow crusted where the wipers
     don't reach, a faint haze; the crash cracks it ('Crash', 0-1: laminated glass, a spider web that stays in the
-    frame). Unlit translucent (lit glass glowed in direct moonlight); the snow and the cracks catch a little light."""
+    frame). Unlit translucent (lit glass glowed in direct moonlight); the snow and the cracks catch a little light.
+    And the creature's blows on it (the roof reveal): 'HitA' and 'HitB' (where each struck, in the world), 'HitAR' and
+    'HitBR' (how far, cm, each one's spider web has spread out from it), 'GlassU' and 'GlassV' (the glass's own
+    across and down-the-slope directions in the world): the director keeps them up to date as the car moves. Each blow
+    is T_WindshieldHit placed there, shown as far as it has spread; laminated glass, so it stays."""
     tex, glint = import_tex('T_Windshield'), import_tex('T_WindshieldGlint')
     ctex, cglint = import_tex('T_WindshieldCrash'), import_tex('T_WindshieldCrashGlint')
+    htex = import_tex('T_WindshieldHit')
+    htex.set_editor_property('srgb', False)
+    htex.set_editor_property('address_x', unreal.TextureAddress.TA_CLAMP)
+    htex.set_editor_property('address_y', unreal.TextureAddress.TA_CLAMP)
+    eal.save_loaded_asset(htex)
     name = 'M_Windshield'
     if eal.does_asset_exist(f'{MATS}/{name}'):
-        eal.delete_asset(f'{MATS}/{name}')
-    m = tools.create_asset(name, MATS, unreal.Material, unreal.MaterialFactoryNew())
+        m = unreal.load_asset(f'{MATS}/{name}')         # (rebuilt in place: the car's windshield keeps using it)
+        mel.delete_all_material_expressions(m)
+    else:
+        m = tools.create_asset(name, MATS, unreal.Material, unreal.MaterialFactoryNew())
     m.set_editor_property('blend_mode', unreal.BlendMode.BLEND_TRANSLUCENT)
     m.set_editor_property('two_sided', True)
     m.set_editor_property('shading_model', unreal.MaterialShadingModel.MSM_UNLIT)
@@ -133,9 +145,72 @@ def make_windshield_mat():
     ca = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -900, 650)     # the cracks, as far as cracked
     mel.connect_material_expressions(cs, 'A', ca, 'A')
     mel.connect_material_expressions(crash, '', ca, 'B')
-    cover = mel.create_material_expression(m, unreal.MaterialExpressionMax, -700, 100)
-    mel.connect_material_expressions(ts, 'A', cover, 'A')
-    mel.connect_material_expressions(ca, '', cover, 'B')
+    cover0 = mel.create_material_expression(m, unreal.MaterialExpressionMax, -700, 100)
+    mel.connect_material_expressions(ts, 'A', cover0, 'A')
+    mel.connect_material_expressions(ca, '', cover0, 'B')
+    # the creature's blows: each its spider web round where it struck, as far as it has spread
+    wp = mel.create_material_expression(m, unreal.MaterialExpressionWorldPosition, -2600, 1500)
+    axes = []
+    for k, (pname, dflt) in enumerate((('GlassU', unreal.LinearColor(0, 1, 0, 0)), ('GlassV', unreal.LinearColor(1, 0, 0, 0)))):
+        e = mel.create_material_expression(m, unreal.MaterialExpressionVectorParameter, -2600, 1650 + 150 * k)
+        e.set_editor_property('parameter_name', pname)
+        e.set_editor_property('default_value', dflt)
+        mk = mel.create_material_expression(m, unreal.MaterialExpressionComponentMask, -2400, 1650 + 150 * k)
+        for c in 'rgb':
+            mk.set_editor_property(c, True)
+        mel.connect_material_expressions(e, '', mk, '')
+        axes.append(mk)
+    hits = []
+    for k, (pname, flip) in enumerate((('HitA', False), ('HitB', True))):
+        y0 = 2000 + 600 * k
+        hp = mel.create_material_expression(m, unreal.MaterialExpressionVectorParameter, -2600, y0)
+        hp.set_editor_property('parameter_name', pname)
+        hp.set_editor_property('default_value', unreal.LinearColor(0, 0, -1e7, 0))
+        hpm = mel.create_material_expression(m, unreal.MaterialExpressionComponentMask, -2400, y0)
+        for c in 'rgb':
+            hpm.set_editor_property(c, True)
+        mel.connect_material_expressions(hp, '', hpm, '')
+        hr = mel.create_material_expression(m, unreal.MaterialExpressionScalarParameter, -2600, y0 + 150)
+        hr.set_editor_property('parameter_name', pname + 'R')
+        hr.set_editor_property('default_value', 0.0)
+        d = mel.create_material_expression(m, unreal.MaterialExpressionSubtract, -2200, y0)
+        mel.connect_material_expressions(wp, '', d, 'A')
+        mel.connect_material_expressions(hpm, '', d, 'B')
+        du = mel.create_material_expression(m, unreal.MaterialExpressionDotProduct, -2000, y0)
+        mel.connect_material_expressions(d, '', du, 'A')
+        mel.connect_material_expressions(axes[1 if flip else 0], '', du, 'B')
+        dv = mel.create_material_expression(m, unreal.MaterialExpressionDotProduct, -2000, y0 + 100)
+        mel.connect_material_expressions(d, '', dv, 'A')
+        mel.connect_material_expressions(axes[0 if flip else 1], '', dv, 'B')
+        uv = mel.create_material_expression(m, unreal.MaterialExpressionAppendVector, -1800, y0)
+        mel.connect_material_expressions(du, '', uv, 'A')
+        mel.connect_material_expressions(dv, '', uv, 'B')
+        uvs = scaled_add(m, uv, '', 1.0 / HIT_CM, 0.5, -1650, y0)
+        smp = mel.create_material_expression(m, unreal.MaterialExpressionTextureSample, -1300, y0)
+        smp.set_editor_property('texture', htex)
+        smp.set_editor_property('sampler_type', unreal.MaterialSamplerType.SAMPLERTYPE_LINEAR_COLOR)
+        mel.connect_material_expressions(uvs, '', smp, 'UVs')
+        dist = mel.create_material_expression(m, unreal.MaterialExpressionDistance, -2000, y0 + 250)
+        mel.connect_material_expressions(wp, '', dist, 'A')
+        mel.connect_material_expressions(hpm, '', dist, 'B')
+        left = mel.create_material_expression(m, unreal.MaterialExpressionSubtract, -1800, y0 + 250)
+        mel.connect_material_expressions(hr, '', left, 'A')
+        mel.connect_material_expressions(dist, '', left, 'B')
+        reach = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -1650, y0 + 250)
+        reach.set_editor_property('const_b', 0.4)               # (a soft front, 2.5 cm, as it runs out)
+        mel.connect_material_expressions(left, '', reach, 'A')
+        sat = mel.create_material_expression(m, unreal.MaterialExpressionSaturate, -1500, y0 + 250)
+        mel.connect_material_expressions(reach, '', sat, '')
+        shown = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -1100, y0)
+        mel.connect_material_expressions(smp, 'R', shown, 'A')
+        mel.connect_material_expressions(sat, '', shown, 'B')
+        hits.append(shown)
+    both = mel.create_material_expression(m, unreal.MaterialExpressionMax, -900, 2300)
+    mel.connect_material_expressions(hits[0], '', both, 'A')
+    mel.connect_material_expressions(hits[1], '', both, 'B')
+    cover = mel.create_material_expression(m, unreal.MaterialExpressionMax, -650, 200)
+    mel.connect_material_expressions(cover0, '', cover, 'A')
+    mel.connect_material_expressions(scaled_add(m, both, '', 0.85, 0.0, -850, 2450), '', cover, 'B')
     mel.connect_material_property(scaled_add(m, cover, '', WINDSHIELD_COVER, WINDSHIELD_TINT, -500, 100), '', unreal.MaterialProperty.MP_OPACITY)
     # light: the snow crust and the cracks catch the headlights' bounce, their edges a glint
     snow = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -900, 350)
@@ -147,9 +222,12 @@ def make_windshield_mat():
     cgl = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -900, 950)
     mel.connect_material_expressions(cg, 'R', cgl, 'A')
     mel.connect_material_expressions(crash, '', cgl, 'B')
-    glints = mel.create_material_expression(m, unreal.MaterialExpressionAdd, -700, 700)
-    mel.connect_material_expressions(gs, 'R', glints, 'A')
-    mel.connect_material_expressions(scaled_add(m, cgl, '', 1.6, 0.0, -900, 1050), '', glints, 'B')
+    glints0 = mel.create_material_expression(m, unreal.MaterialExpressionAdd, -750, 700)
+    mel.connect_material_expressions(gs, 'R', glints0, 'A')
+    mel.connect_material_expressions(scaled_add(m, cgl, '', 1.6, 0.0, -900, 1050), '', glints0, 'B')
+    glints = mel.create_material_expression(m, unreal.MaterialExpressionAdd, -600, 750)
+    mel.connect_material_expressions(glints0, '', glints, 'A')
+    mel.connect_material_expressions(scaled_add(m, both, '', 1.6, 0.0, -850, 2600), '', glints, 'B')
     glow = mel.create_material_expression(m, unreal.MaterialExpressionAdd, -300, 450)
     mel.connect_material_expressions(scaled_add(m, glints, '', CRACK_GLINT, 0.0, -500, 700), '', glow, 'A')
     mel.connect_material_expressions(snow_l, '', glow, 'B')

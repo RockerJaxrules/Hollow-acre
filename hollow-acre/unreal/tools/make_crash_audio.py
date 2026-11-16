@@ -226,11 +226,15 @@ def crash(ev, total):
     t_hand, t_hand2, t_rise, t_leap = first('hand'), first('hand2'), first('rise'), first('leap')
     t_land, t_jaw, t_overtake = first('land'), first('jaw'), first('overtake')
     perched = t_land is not None
+    t_hang, t_slam, t_claw = first('hang'), first('slam'), first('claw')
+    roof = t_hang is not None                             # on the roof: its face drops in and it attacks the windshield
     dropped = first('drop') is not None                   # it drops onto the bonnet with no warning (nothing ran across)
     if perched:
         t_hand = t_land                                   # (its claws, from when it lands)
         t_hand2 = t_land + 0.6
         t_roar, t_scream = t_jaw - 0.3, t_jaw              # the draw-away before its jaw opens (no scream)
+        if roof:
+            t_roar, t_scream = t_hang - 0.35, t_hang       # (the draw-away before its face drops in)
         t_stop = first('stopped', t_land + 2.0)
     roofs = [t for t, k, v in ev if k == 'roof']
     t_gone, t_halt, t_face = first('gone'), first('halt2'), first('face')
@@ -342,7 +346,7 @@ def crash(ev, total):
 
     # ---- the scream: a human performance and animals, pitched and layered past naming, on a brass hit and a boom ---------
     # (on the bonnet it does not roar: its jaw opens wide in silence, a wet hiss at the glass, a bowed-metal whine)
-    if perched:
+    if perched and not roof:
         hiss = filt(pitch(seg(CR_BREATH, 12.0, 2.4), 0.5), A.bp(1400, 0.6))
         M.at(t_jaw + 0.15, pan(fade(peak(hiss, 0.2), 0.3, 0.8), 0.0))
         M.at(t_jaw, pan(fade(level(seg(EXT_RAIL, 14.0, 2.5), 0.012), 0.6, 1.0), 0.1))
@@ -362,6 +366,33 @@ def crash(ev, total):
         M.at(t_scream - 0.08, pan(peak(load(HIT_BRAAM), 0.55), 0.0))
         M.at(t_scream - 0.08, pan(peak(seg(HIT_BOOM, 0.0, 5.0), 0.6), 0.0))
         M.at(t_scream - 0.1, pan(peak(fade(seg(ST_CLUSTER, 4.6, 3.0), 0.01, 1.5), 0.45), 0.0))
+
+    # ---- the roof: its face drops into the windshield (a sting out of the silence); its head slams the glass (it cracks:
+    # laminated glass, it holds); it shrieks at the driver through it (the owner asked for a shriek, not a roar); its claw
+    # strikes the glass and drags down it
+    if roof:
+        M.at(t_hang - 0.02, pan(peak(fade(seg(ST_CLUSTER, 4.6, 2.5), 0.005, 1.2), 0.5), 0.0))
+        M.at(t_hang - 0.02, pan(peak(filt(seg(HIT_BOOM, 0.0, 3.0), A.lp(250)), 0.45), 0.0))
+        if t_slam:
+            M.at(t_slam - 0.01, pan(peak(filt(fade(loudest('glass/glass_hard_glass_impact_crack_418194', 1.0, pre=0.01), 0.002, 0.5), A.lp(9000)), 0.62), 0.0))
+            M.at(t_slam, pan(peak(fade(loudest('glass/glass_windshield_crack_mirror_806423', 1.4, pre=0.01), 0.002, 0.8), 0.42), 0.05))
+            M.at(t_slam - 0.01, pan(peak(filt(fade(loudest('metal_impact/metal_impact_car_hood_slam_big_329516', 0.8, pre=0.02), 0.003, 0.4), A.lp(900)), 0.4), 0.0))
+            M.at(t_slam - 0.01, pan(peak(filt(seg(HIT_BOOM, 0.0, 3.0), A.lp(200)), 0.4), 0.0))
+        # the shriek: a human monster scream, a fox, a pig, a chimp, high and layered, at the glass and through it
+        n = int(1.25 * SR)
+        sh = np.zeros((2, n))
+        for name, f, g, pre in ((CR_SCREAMS, 0.95, 1.0, 0.08), ('creature_extra/creature_extra_fox_screaming_night_832436', 0.9, 0.7, 0.05),
+                                (CR_PIG, 0.8, 0.35, 0.05), (CR_CHIMP, 0.92, 0.3, 0.05)):
+            c = pitch(loudest(name, 1.3, pre=pre), f)[:, :n]
+            sh[:, :c.shape[1]] += level(fade(c, 0.02, 0.35), 0.1) * g
+        sh = verb(sh, 1.8, 0.25)
+        sh = filt(sh, A.lp(7000)) + filt(sh, A.lp(250)) * 0.5          # through the glass: duller on top, the car booming with it
+        M.at(t_jaw - 0.03, pan(peak(fade(sh, 0.02, 0.4), 0.9), 0.0))
+        M.at(t_jaw + 1.15, pan(peak(filt(loudest('creature_extra/creature_extra_tiger_hiss_growl_437978', 1.0, pre=0.05), A.lp(5000)), 0.3), 0.0))
+        if t_claw:
+            M.at(t_claw - 0.01, pan(peak(filt(pitch(fade(loudest('glass/glass_hard_glass_impact_crack_418194', 0.8, pre=0.01), 0.002, 0.4), 1.12), A.lp(9000)), 0.45), 0.2))
+            scr = filt(pitch(loudest('metal_scrape/metal_scrape_rusted_car_dashboard_scrape_674024', 0.5, pre=0.02), 1.35), A.hp(1500))
+            M.at(t_claw + 0.04, pan(peak(fade(scr, 0.01, 0.12), 0.32), 0.2))
 
     # ---- gone: silence but the wind and the idle; far down the valley, something answers -----------------------------
     if hood:

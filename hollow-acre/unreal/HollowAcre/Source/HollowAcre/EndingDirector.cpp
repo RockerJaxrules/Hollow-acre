@@ -916,17 +916,29 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 	}
 	else if (bHoodReveal && RiseT0 >= 0.f && LeapT0 < 0.f && Creature && Creature->GetBody())
 	{
-		// it has hit the bonnet (no warning: the eyes were on the road): they go to it, and stay on its face
-		const FVector At = Creature->FaceAt();
-		float Unused = 0.f;
-		LookAt(At, 0.75f, Want, Unused);
-		LookAt(At, 0.9f, Unused, WantPitch);
-		WantPitch = FMath::Clamp(WantPitch, -15.f, 16.f);           // (above that the visors and the roof hide it)
-		Rate = RiseT0 < 0.f || t < RiseT0 + 0.5f ? 6.f : 4.f;       // a startled turn, not a snap
-		Focus = DistTo(At);
-		if (RiseT0 >= 0.f && t > RiseT0 + 2.4f && !bShook)
+		const float r = t - RiseT0;
+		if (HangInT < 0.f)
 		{
-			WantPush = -3.f;      // back into the seat from it
+			// the thud overhead (no warning: the eyes were on the road): a flinch up at the roof, then back down to the road
+			// and held there, frozen. The eyes don't know where it will come from (the owner: never looking ahead to
+			// where it will appear), so nothing gives it away
+			const bool bFlinch = r < 0.8f;
+			Want = bFlinch ? 3.f : -2.f + 3.f * FMath::Sin(r * 1.3f);
+			WantPitch = bFlinch ? 11.f : -3.f;
+			Rate = bFlinch ? 7.f : 1.6f;
+			Focus = bFlinch ? 60.f : 1500.f;
+		}
+		else
+		{
+			// it is there, all at once: the eyes snap to its face and stay on it; back into the seat from it
+			const FVector At = Creature->FaceAt();
+			float Unused = 0.f;
+			LookAt(At, 0.75f, Want, Unused);
+			LookAt(At, 0.9f, Unused, WantPitch);
+			WantPitch = FMath::Clamp(WantPitch, -15.f, 16.f);           // (above that the visors and the roof hide it)
+			Rate = t < HangInT + 0.35f ? 12.f : 5.f;
+			Focus = DistTo(At);
+			WantPush = -3.f;
 		}
 	}
 	else if (bHoodReveal && DartT0 >= 0.f && JumpT0 < 0.f && t < DartT0 + 1.6f)

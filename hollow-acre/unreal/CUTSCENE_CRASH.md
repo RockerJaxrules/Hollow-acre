@@ -26,18 +26,21 @@ first frame.
 5. **Eyes in the trees.** At the edge of the beams on the left, two pale points low in the tree line catch the light,
    then blink out. The head turns to them. Nothing.
 6. **On the roof.** No warning: the eyes are on the road when it drops onto the roof from above with a bang that
-   jolts the car (it is never seen getting on, and never runs past first). The driver brakes hard. The eyes go up to the
-   roof and hold on the top of the windshield: claws scraping over the metal, the roof creaking under its weight. (The
-   owner chose the roof: at 2.9 m tall, crouched on the bonnet its head stays above the windshield and its face can't be
-   seen; on the roof its face can hang down into it.)
-7. **The face.** Near silence: the idle, the wipers, a breath, a heartbeat. Its eyes slide down into the top of the
-   glass, upside down, and stop; then its whole face comes down, upside down, to just above the driver's eye line,
-   looking in, lit from below by the dials; the wiper sweeps past in front of it. A human face, starved, eyes milky.
+   jolts the car (it is never seen getting on, and never runs past first). The driver brakes hard. The eyes flinch up at
+   the roof, then go back to the road and stay there, frozen: claws scraping over the metal, the roof creaking, a
+   breath, a heartbeat. Nothing gives away where it will come from (the owner: never look ahead to where it will be).
+   (The owner chose the roof: at 2.9 m tall, crouched on the bonnet its head stays above the windshield.)
+7. **The face.** Everything drains to near silence; then all at once its face swings down into the windshield, upside
+   down, to just above the driver's eye line (a string cluster, a low boom); the eyes snap to it; back into the seat.
    (Unseen above: it lies flat on the roof, legs stretched back, hands on the front edge, its upper body and neck
    curled over the edge; Unreal solves the pose each frame so its head is exactly where it should be.)
-8. **The jaw.** It opens its jaw wide, in silence (no roar): a wet hiss, a faint bowed-metal whine. Its head snaps over.
-9. **Gone.** Its face snaps up out of sight; it springs off the back of the roof and lands on the road behind.
-   Silence. A ragged breath.
+8. **The attack.** It draws its head back and slams it into the glass: the windshield cracks, a spider web bursting out
+   from the blow (laminated glass: it holds, and stays cracked for the rest of the scene), flakes falling inside, the
+   view jolting. It shrieks at the driver through the cracks, jaw wide, head shaking (the owner: it should be trying to
+   get at you, not just there to scare you). Its bloody claw comes down and strikes the glass beside its face (a
+   second crack) and drags down it.
+9. **Gone.** It pulls its face off the glass and is gone up over the edge; it springs off the back of the roof and
+   lands on the road behind. Silence. A ragged breath. The cracked glass.
 10. **The creep.** The car rolls on slowly. The head checks the right, the rear-view mirror, the road ahead. Its steps
     run up the left side, unseen.
 11. **The blow.** The head turns: its face is at the driver's window. The brake, hard. Slow motion: the window bursts

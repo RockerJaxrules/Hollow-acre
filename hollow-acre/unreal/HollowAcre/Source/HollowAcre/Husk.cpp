@@ -1074,6 +1074,27 @@ FVector AHusk::FaceAt() const
 	return n > 0 ? Sum / n : HeadAt();
 }
 
+FVector AHusk::FaceNearest(const FVector& At, const FVector& Normal) const
+{
+	if (FaceSurf.Num() == 0 || !Face || !Face->GetSkinnedAsset())
+	{
+		return HeadAt();
+	}
+	FVector Best = HeadAt();
+	float Least = 1e9f;
+	for (int32 i = 0; i < FaceSurf.Num(); i += 3)
+	{
+		const FVector P = Face->GetBoneTransform(FaceSurf[i].Bone).TransformPosition(FaceSurf[i].Local);
+		const float d = FVector::DotProduct(P - At, Normal);
+		if (d < Least)
+		{
+			Least = d;
+			Best = P;
+		}
+	}
+	return Best;
+}
+
 void AHusk::Hang(const FVector& Facing, const FVector& Side)
 {
 	// its spine, from the hips up: the lower part bends its chest down over the edge (Spine), the rest curls its neck
@@ -1231,12 +1252,14 @@ void AHusk::Hang(const FVector& Facing, const FVector& Side)
 			}
 			FTransform A = Shown->GetBoneTransform(Chain[L][0]), B = Shown->GetBoneTransform(Chain[L][1]), C = Shown->GetBoneTransform(Chain[L][2]);
 			const float Out = FVector::DotProduct(A.GetLocation() - Chest, SideW) >= 0.f ? 1.f : -1.f;
-			const FVector JointTarget = B.GetLocation() + (SideW * Out * 0.75f + FVector::UpVector * 0.65f) * 60.f;
 			const float g = FMath::Clamp(HangGripW, 0.f, 1.f);
 			// (as high again as gravity will bring it all down after, like its head)
 			const FVector Target = FMath::Lerp(C.GetLocation(), HangGrip[L] - FVector(0.f, 0.f, HangAfter), g);
+			// (its elbow up, and a little out to the side, from the line shoulder to hand: steady, never flipping down into
+			// what it holds)
+			const FVector JointTarget = 0.5f * (A.GetLocation() + Target) + (SideW * Out * 0.45f + FVector::UpVector * 0.9f) * 80.f;
 			AnimationCore::SolveTwoBoneIK(A, B, C, JointTarget, Target, false, 1.f, 1.f);
-			C.SetRotation(FQuat::Slerp(C.GetRotation(), C2.GetRotation() * HandRot[L], g));
+			C.SetRotation(FQuat::Slerp(C.GetRotation(), HangGripTurn[L] * C2.GetRotation() * HandRot[L], g));
 			SetCS(Chain[L][0], A);
 			SetCS(Chain[L][1], B);
 			SetCS(Chain[L][2], C);

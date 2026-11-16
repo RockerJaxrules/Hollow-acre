@@ -30,6 +30,7 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
+#include "GlassBurst.h"
 #include "Husk.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -272,9 +273,62 @@ void AEndingDirector::SetFocus(float Cm)
 	}
 }
 
+void AEndingDirector::UpdateWindshieldHits()
+{
+	// the creature's blows on the windshield: each a spider web spreading out from where it struck (laminated glass: it
+	// cracks and holds, and stays cracked); kept where they are on the glass as the car moves (the material places them
+	// in the world)
+	if (!WindshieldMID || !Car || BlowT[0] < 0.f)
+	{
+		return;
+	}
+	const FTransform C = Car->GetActorTransform();
+	WindshieldMID->SetVectorParameterValue(TEXT("GlassU"), FLinearColor(FVector3f(C.TransformVectorNoScale(FVector(0.f, 1.f, 0.f)))));
+	WindshieldMID->SetVectorParameterValue(TEXT("GlassV"), FLinearColor(FVector3f(C.TransformVectorNoScale(FVector(0.838f, 0.f, -0.545f)))));
+	static const TCHAR* Pos[2] = {TEXT("HitA"), TEXT("HitB")};
+	static const TCHAR* Rad[2] = {TEXT("HitAR"), TEXT("HitBR")};
+	for (int32 k = 0; k < 2; ++k)
+	{
+		if (BlowT[k] < 0.f)
+		{
+			continue;
+		}
+		// nearly all of it at once (a crack runs through glass faster than a frame), then a little more creeping out
+		const float d = FMath::Max(0.f, Time - BlowT[k]);
+		const float R = (k == 0 ? 40.f : 26.f) * (1.f - FMath::Exp(-d / 0.035f)) + (k == 0 ? 7.f : 5.f) * (1.f - FMath::Exp(-d / 1.2f));
+		WindshieldMID->SetVectorParameterValue(Pos[k], FLinearColor(FVector3f(C.TransformPosition(BlowAt[k]))));
+		WindshieldMID->SetScalarParameterValue(Rad[k], R);
+	}
+}
+
+void AEndingDirector::ChipWindshield(const FVector& AtCar, int32 Seed)
+{
+	// laminated glass struck hard: it holds, but flakes come off its inner face and fall onto the dash
+	AGlassBurst* G = Car ? GetWorld()->SpawnActor<AGlassBurst>(AGlassBurst::StaticClass(), Car->GetActorTransform()) : nullptr;
+	if (!G)
+	{
+		return;
+	}
+	G->AttachToActor(Car, FAttachmentTransformRules::KeepWorldTransform);
+	for (UPrimitiveComponent* P : CarParts)
+	{
+		G->Solids.Add(P);
+	}
+	if (APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(this, 0))
+	{
+		G->Head = Car->GetActorTransform().InverseTransformPosition(Cam->GetCameraLocation()) + FVector(-7.f, 0.f, -2.f);
+		G->HeadRadius = 13.f;
+	}
+	const FVector In(-0.545f, 0.f, -0.838f);           // into the car, through the glass
+	// (from just inside its inner face, never outside it: a thin patch along the glass)
+	const FVector At = AtCar + In * 6.f;
+	G->Burst(FBox(At - FVector(1.f, 4.f, 1.f), At + FVector(1.f, 4.f, 1.f)), In, 120.f, Seed == 1 ? 26 : 14, GranuleMaterial, 40 + Seed);
+}
+
 void AEndingDirector::CrashBeats(float DeltaSeconds)
 {
 	RoarShake = FMath::Max(0.f, RoarShake - DeltaSeconds * 0.9f);
+	UpdateWindshieldHits();
 	if (!bLetterLooked && Time >= LetterTime)
 	{
 		bLetterLooked = true;
@@ -966,6 +1020,12 @@ void AEndingDirector::KeepOut(AHusk* H, const FVector& CarDir, const TCHAR* Who)
 			UE_LOG(LogTemp, Display, TEXT("HeadProbe   eye at car (%.0f, %.0f, %.0f) looking %.0f deg up; its head joint %.0f deg up from the eye; car scale %s"), Cm.X, Cm.Y, Cm.Z,
 				FMath::RadiansToDegrees(FMath::Asin(FMath::Clamp(Cf.Z, -1.f, 1.f))), FMath::RadiansToDegrees(FMath::Atan2(Hj.Z - Cm.Z, FMath::Max(1.f, Hj.X - Cm.X))), *C.GetScale3D().ToString());
 		}
+		{
+			auto Cf = [&C, H](const TCHAR* B) { return C.InverseTransformPosition(H->DrawnAt(B)); };
+			const FVector Shl = Cf(TEXT("upperarm_l")), El = Cf(TEXT("lowerarm_l")), Hl = Cf(TEXT("hand_l")), Sr = Cf(TEXT("upperarm_r")), Er = Cf(TEXT("lowerarm_r")), Hr = Cf(TEXT("hand_r"));
+			UE_LOG(LogTemp, Display, TEXT("HeadProbe   arms (car): left shoulder (%.0f %.0f %.0f) elbow (%.0f %.0f %.0f) hand (%.0f %.0f %.0f); right shoulder (%.0f %.0f %.0f) elbow (%.0f %.0f %.0f) hand (%.0f %.0f %.0f)"),
+				Shl.X, Shl.Y, Shl.Z, El.X, El.Y, El.Z, Hl.X, Hl.Y, Hl.Z, Sr.X, Sr.Y, Sr.Z, Er.X, Er.Y, Er.Z, Hr.X, Hr.Y, Hr.Z);
+		}
 		UE_LOG(LogTemp, Display, TEXT("HeadProbe   solve aimed its head at car (%.0f, %.0f, %.0f), got (%.0f, %.0f, %.0f) right after; settle %.1f (this frame %.1f), contact IK %.1f (%s), out of the car %.1f (%s), out of the ground %.1f"), Aim.X, Aim.Y, Aim.Z, Got.X, Got.Y, Got.Z, H->SettleDrop, Settled, IKMove, *IKWhat, CarIn, *CarWhat, GroundIn);
 		UE_LOG(LogTemp, Display, TEXT("HeadProbe %.2f: hang %.2f curl %.2f (spine %.0f deg, curl %.0f deg, slide %.0f %.0f), head at car (%.0f, %.0f, %.0f) want (%.0f, %.0f, %.0f), face (%.0f, %.0f, %.0f) [%.0f deg up from the eye], pelvis (%.0f, %.0f, %.0f)"), r, H->HangW, H->HangCurl,
 			H->HangSpineDeg, H->HangCurlDeg, Sl.X, Sl.Y, Hd.X, Hd.Y, Hd.Z, Want.X, Want.Y, Want.Z, Fc.X, Fc.Y, Fc.Z,
@@ -1511,11 +1571,43 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 	}
 	else if (CreStage == 6)
 	{
-		// on the roof as the car brakes: lies flat, hangs its face down over the front edge, upside down, to the glass at
-		// the driver's eye line, jaw wide (silent), snaps back up, springs off the back
+		// on the roof as the car brakes: lies flat, out of sight; then its face swings down into the windshield, upside
+		// down, all at once; it slams its head into the glass, shrieks at the driver through the cracks, strikes the glass
+		// with its claw; pulls up and springs off the back
 		Face(H, C.TransformPosition(RoofPerch), F);      // on the roof, facing the way the car goes
 		const float r = Time - RiseT0;
-		static const struct { float At; const TCHAR* Kind; } Beats[] = {{2.4f, TEXT("rise")}, {5.95f, TEXT("jaw")}, {7.6f, TEXT("leap")}};
+		static const struct { float At; const TCHAR* Kind; } Beats[] = {{2.4f, TEXT("rise")}, {4.75f, TEXT("jaw")}, {7.6f, TEXT("leap")}};
+		// (the attack: its face drops in; its head hits the glass; its claw hits the glass)
+		static const float HangAt = 3.6f, SlamAt = 4.68f, ClawAt = 6.14f;
+		const FVector N(0.545f, 0.f, 0.838f);         // the windshield's outward normal (car frame: up and forward)
+		auto OnGlass = [&N](const FVector& P)          // the point of the glass nearest P (car frame)
+		{
+			return P - N * (FVector::DotProduct(P - FVector(100.f, 0.f, 100.f), N));
+		};
+		if (AttackBeat == 0 && r >= HangAt)
+		{
+			AttackBeat = 1;
+			HangInT = Time;
+			Event(TEXT("hang"));
+		}
+		if (AttackBeat == 1 && r >= SlamAt)
+		{
+			AttackBeat = 2;
+			BlowT[0] = Time;
+			BlowAt[0] = OnGlass(C.InverseTransformPosition(H->FaceNearest(C.TransformPosition(FVector(100.f, 0.f, 100.f)), C.TransformVectorNoScale(N))));
+			ChipWindshield(BlowAt[0], 1);
+			RoarShake = 1.f;
+			Event(TEXT("slam"));
+		}
+		if (AttackBeat == 2 && r >= ClawAt)
+		{
+			AttackBeat = 3;
+			BlowT[1] = Time;
+			BlowAt[1] = OnGlass(RoofClawAt);
+			ChipWindshield(BlowAt[1], 2);
+			RoarShake = FMath::Max(RoarShake, 0.65f);
+			Event(TEXT("claw"));
+		}
 		while (RiseBeat < (int32)UE_ARRAY_COUNT(Beats) && r >= Beats[RiseBeat].At)
 		{
 			Event(Beats[RiseBeat].Kind);
@@ -1530,29 +1622,83 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 			}
 			++RiseBeat;
 		}
-		// on the roof, out of sight: it creeps to the front edge, its hands on the edge, its head curling down and round while
-		// still above the windshield; then slowly its face comes down into the top of the glass, upside down (stopping as its
-		// eyes come in), on down to the eye line, looking in; held, its head snapping over; drawn back up as it coils to spring
+		// on the roof, out of sight: it lies down at the front edge, its hands on the edge, its head curling down and round
+		// above the windshield. Then all at once its face swings down into the glass, upside down, to the driver's eye line
+		// (falling, overshooting a little and settling); it stares a moment; draws its head back and slams it into the
+		// glass (it cracks); shrieks at the driver through the cracks, its head shaking; its claw comes down and strikes the
+		// glass, dragging; it pulls its face off the glass, snarling, and is gone up over the edge as it coils to spring
 		// (not once it has sprung: the beat above has just let go of all of it)
 		if (CreStage == 6)
 		{
 			auto Snap = [](float x) { return FMath::SmoothStep(0.f, 0.08f, x); };
-			const FVector Hidden(RoofHangHead.X + 4.f, CamRest.Y, 205.f), Eyes(RoofHangHead.X, CamRest.Y, 160.f), Low(RoofHangHead.X, CamRest.Y, RoofHangHead.Z);
-			const float d1 = FMath::SmoothStep(2.8f, 4.2f, r), d2 = FMath::SmoothStep(4.6f, 5.8f, r), Back = FMath::SmoothStep(7.15f, 7.45f, r);
-			const FVector Hd = FMath::Lerp(FMath::Lerp(FMath::Lerp(Hidden, Eyes, d1), Low, d2), Hidden, Back);
+			auto Ease = [](float a, float b, float x) { return FMath::SmoothStep(a, b, x); };
+			const FVector Hidden(RoofHangHead.X + 4.f, CamRest.Y, 205.f), Low(RoofHangHead.X, CamRest.Y, RoofHangHead.Z);
+			FVector Hd = Hidden;
+			if (r >= HangAt)
+			{
+				const float x = r - HangAt;
+				const float k = x < 0.26f ? FMath::Square(x / 0.26f)
+					: 1.f + 0.08f * FMath::Sin(2.f * PI * (x - 0.26f) / 0.32f) * FMath::Exp(-(x - 0.26f) / 0.14f);
+				Hd = FMath::Lerp(Hidden, Low, k);
+			}
+			// along the glass's normal: drawn back, driven in (quickening) to the glass, a small rebound, pressed there
+			// shrieking, then pulled off it
+			float In = 0.f;
+			if (r >= 4.40f && r < 4.58f)
+			{
+				In = -10.f * Ease(4.40f, 4.58f, r);
+			}
+			else if (r >= 4.58f && r < SlamAt)
+			{
+				In = FMath::Lerp(-10.f, RoofSlamIn, FMath::Square((r - 4.58f) / (SlamAt - 4.58f)));
+			}
+			else if (r >= SlamAt)
+			{
+				In = RoofSlamIn - 2.5f * FMath::Sin(PI * FMath::Clamp((r - SlamAt) / 0.12f, 0.f, 1.f)) - 1.5f * Ease(SlamAt, SlamAt + 0.1f, r)
+					- (RoofSlamIn + 2.f) * Ease(6.75f, 7.0f, r);
+			}
+			const float Shriek = Ease(4.75f, 4.85f, r) * (1.f - Ease(5.7f, 5.95f, r));
+			Hd += -N * In + FVector(0.f, 2.f * FMath::Sin(2.f * PI * 5.5f * r) * Shriek, 0.f);
+			Hd = FMath::Lerp(Hd, Hidden, Ease(7.0f, 7.3f, r));      // gone, up over the edge
 			H->HangW = FMath::SmoothStep(0.5f, 1.6f, r);
 			H->HangCurl = FMath::SmoothStep(0.7f, 2.6f, r);
 			H->HangGripW = FMath::SmoothStep(0.9f, 2.4f, r);
 			H->HangLie = FMath::SmoothStep(0.6f, 1.9f, r);
 			H->HangHead = C.TransformPosition(Hd);
 			H->HangLook = C.TransformPosition(CamRest);
-			H->HangGrip[0] = C.TransformPosition(FVector(34.f, CamRest.Y - 46.f, 152.f));     // (its left hand: the car's left)
-			H->HangGrip[1] = C.TransformPosition(FVector(34.f, CamRest.Y + 46.f, 152.f));
+			// its hands: out of sight on the roof's front edge (its claws are long: the hands ride high over it). Its right
+			// one comes up off the edge and over, strikes down onto the glass claws first, drags down it, is lifted off
+			// and goes back over the edge (the roof runs from y -35, the driver's side, to 109)
+			const FVector Down(0.838f, 0.f, -0.545f);      // down the glass's slope
+			const FVector RoofL(42.f, CamRest.Y - 34.f, 172.f), RoofR(42.f, CamRest.Y + 40.f, 172.f);
+			const FVector ClawG = OnGlass(RoofClawAt) + N * 14.f;
+			const FVector ClawP = ClawG + Down * 7.f * Ease(ClawAt, 6.5f, r);
+			FVector HandR = RoofR;
+			if (r >= 5.92f && r < 7.25f)
+			{
+				const FVector Over = ClawG + N * 30.f;      // (above where it will strike)
+				HandR = r < 6.04f ? FMath::Lerp(RoofR, Over, Ease(5.92f, 6.04f, r))
+					: r < ClawAt ? FMath::Lerp(Over, ClawG, FMath::Square((r - 6.04f) / (ClawAt - 6.04f)))
+					: r < 6.9f ? ClawP
+					: r < 7.05f ? FMath::Lerp(ClawP, ClawP + N * 30.f, Ease(6.9f, 7.05f, r))
+					: FMath::Lerp(ClawP + N * 30.f, RoofR, Ease(7.05f, 7.25f, r));
+			}
+			const float OnG = r < 5.98f || r >= 7.15f ? 0.f : r < 6.04f ? Ease(5.98f, 6.04f, r) : r < 7.05f ? 1.f : 1.f - Ease(7.05f, 7.15f, r);
+			H->HangGrip[0] = C.TransformPosition(RoofL);      // (its left hand: the car's left)
+			H->HangGrip[1] = C.TransformPosition(HandR);
+			// (its claw flat to the glass: palm to it, fingers up it; from the clip's hand, flat on the ground, fingers ahead)
+			const FQuat Src = FRotationMatrix::MakeFromXZ(C.TransformVectorNoScale(FVector::ForwardVector), FVector::UpVector).ToQuat();
+			const FQuat Dst = FRotationMatrix::MakeFromXZ(C.TransformVectorNoScale(-Down), C.TransformVectorNoScale(N)).ToQuat();
+			H->HangGripTurn[0] = FQuat::Identity;
+			H->HangGripTurn[1] = FQuat::Slerp(FQuat::Identity, Dst * Src.Inverse(), OnG);
 			H->PeerDown = 0.f;
-			H->PeerTilt = 14.f * Snap(r - 5.0f) - 36.f * Snap(r - 6.4f) + 14.f * Snap(r - 6.95f);
+			H->PeerTilt = 16.f * Snap(r - 4.05f) - 16.f * Snap(r - 4.42f) + 9.f * FMath::Sin(2.f * PI * 6.f * r) * Shriek
+				- 22.f * Snap(r - 6.2f) + 22.f * Snap(r - 6.95f);
 		}
-		H->JawOpen = r < 6.f ? 6.f + 3.f * FMath::Sin(r * 2.7f)
-			: 6.f + 34.f * Smooth((r - 6.f) / 0.6f) * (1.f - Smooth((r - 7.15f) / 0.2f)) + 1.5f * FMath::Sin(r * 23.f) * Smooth((r - 6.3f) / 0.2f);
+		// its jaw: shut but working; wide in the shriek; a snarl after; shut as it goes
+		H->JawOpen = r < 4.70f ? 6.f + 3.f * FMath::Sin(r * 2.7f)
+			: FMath::Lerp(FMath::Lerp(FMath::Lerp(6.f, 42.f, Smooth((r - 4.70f) / 0.12f)), 16.f, Smooth((r - 5.8f) / 0.25f)), 8.f, Smooth((r - 6.9f) / 0.3f))
+				+ 1.5f * FMath::Sin(r * 23.f) * Smooth((r - 4.8f) / 0.2f) * (1.f - Smooth((r - 5.8f) / 0.2f));
 	}
 	if (CreStage == 60)
 	{

@@ -57,6 +57,9 @@ public:
 	FVector HeadAt() const { return Pose()->GetSocketLocation(TEXT("head")); }
 	/** Where the middle of its face is as it is drawn (its eyes, nose, mouth: the face's own points, a few of them). */
 	FVector FaceAt() const;
+	/** The point of its face nearest a plane (through At, Normal pointing away from the face): where its face touches
+	 *  glass it is pressed to. */
+	FVector FaceNearest(const FVector& At, const FVector& Normal) const;
 	/** Where one of its bones is as it is drawn. */
 	FVector DrawnAt(FName Bone) const { return Pose()->GetSocketLocation(Bone); }
 
@@ -132,6 +135,8 @@ public:
 	float HangLie = 0.f;
 	FVector HangHead = FVector::ZeroVector, HangLook = FVector::ZeroVector;
 	FVector HangGrip[2] = {FVector::ZeroVector, FVector::ZeroVector};
+	/** An extra turn (world) for each hand on its hold: a claw struck onto sloping glass rather than the flat roof. */
+	FQuat HangGripTurn[2] = {FQuat::Identity, FQuat::Identity};
 	/** What the solve came to this frame (for the checks): degrees in the lower spine, degrees curled above, the slide (world). */
 	float HangSpineDeg = 0.f, HangCurlDeg = 0.f;
 	/** How far (cm, up) it was moved after the hang was solved last frame (gravity, pushes out): the next is aimed against it. */

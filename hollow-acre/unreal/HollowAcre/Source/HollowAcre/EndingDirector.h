@@ -248,6 +248,12 @@ public:
 	 *  eye's): out past the glass, a little above the eye line. */
 	UPROPERTY(EditAnywhere, Category = "Crash")
 	FVector RoofHangHead = FVector(116.f, 0.f, 138.f);
+	/** How far (cm) its head is driven in toward the glass when it slams it (from hanging there), along the glass's normal. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float RoofSlamIn = 18.f;
+	/** Where its claw strikes the windshield (cm, car frame: a point on the glass). */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	FVector RoofClawAt = FVector(80.f, 26.f, 113.f);
 	/** The real-motion clip on the roof (CMU 111_03, crawling): from where (s) and how fast. */
 	UPROPERTY(EditAnywhere, Category = "Ending|Crash")
 	float PerchClipAt = 7.f;
@@ -365,6 +371,14 @@ private:
 	float CarDip() const;
 	float StopT = -1.f, RiseT0 = -1.f, LeapT0 = -1.f, GoneT = -1.f, PeerT0 = -1.f, HaltT = -1.f, DartT0 = -1.f;
 	float DropT = -1.f, JumpT0 = -1.f, PeerV = 0.f;
+	// the roof reveal's attack (EndingCrashBeats.cpp): when its face dropped in; its two blows on the windshield (its
+	// head, then its claw: when, and where on the glass, car frame); the cracks spread from each (UpdateWindshieldHits)
+	float HangInT = -1.f;
+	float BlowT[2] = {-1.f, -1.f};
+	FVector BlowAt[2] = {FVector::ZeroVector, FVector::ZeroVector};
+	int32 AttackBeat = 0;
+	void UpdateWindshieldHits();
+	void ChipWindshield(const FVector& AtCar, int32 Seed);
 	FVector HuntC = FVector::ZeroVector, ArcFrom = FVector::ZeroVector, DartTo = FVector::ZeroVector;
 	int32 Waypoint = 0;
 	UPROPERTY()

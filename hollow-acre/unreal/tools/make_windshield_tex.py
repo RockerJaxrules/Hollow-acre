@@ -8,6 +8,8 @@ Writes into unreal/HollowAcre/SourceArt/ (imported by Scripts/build_drive.py):
   T_WindshieldGlint.png     grayscale: where light catches (the snow's edge)
   T_WindshieldCrash.png     the cracked glass (RGB + alpha), drawn over the clean one when the car rolls
   T_WindshieldCrashGlint.png  the cracks catching light
+  T_WindshieldHit.png       one spider-web crack round a blow, centred, 90 x 90 cm (grayscale: the crack lines);
+                            placed on the glass wherever the creature strikes it, and spread out from there
 The image maps to the whole windshield, 150 cm wide (x) by 79 cm along the slope (y, top of the image = roof edge).
 
 Run with any Python 3 that has Pillow:
@@ -121,7 +123,59 @@ def main():
 
     img.save(os.path.join(OUT, 'T_WindshieldCrash.png'))
     glint.save(os.path.join(OUT, 'T_WindshieldCrashGlint.png'))
+    hit()
     print('wrote', OUT)
+
+
+HIT_CM = 90.0                # T_WindshieldHit.png covers 90 x 90 cm of glass, the blow in the middle
+HIT_PX = 1024
+
+
+def hit():
+    """A blow on laminated glass (the creature's head, its claw): a crushed white star where it struck, radial cracks
+    running out from it (a few long, most short), broken rings round it; the glass holds. Grayscale crack lines, the
+    blow at the centre; the material spreads it out from there (as far as its radius has grown) and places it."""
+    rnd = random.Random(57)
+    px = HIT_PX / HIT_CM
+    c = HIT_PX / 2.0
+    lines = []
+
+    def path(x, y, ang, length, depth):
+        pts = [(x, y)]
+        step = 1.0 * px
+        for _ in range(int(length / step)):
+            ang += rnd.gauss(0, 0.14)
+            x += math.cos(ang) * step
+            y += math.sin(ang) * step
+            pts.append((x, y))
+            if depth < 3 and rnd.random() < 0.04:
+                path(x, y, ang + rnd.choice((-1, 1)) * rnd.uniform(0.5, 1.0), length * rnd.uniform(0.2, 0.45) * (1 - len(pts) * step / max(length, 1)), depth + 1)
+        lines.append((pts, depth))
+    n = 15
+    for k in range(n):
+        long_ = rnd.random() < 0.35
+        path(c, c, 6.283 * k / n + rnd.gauss(0, 0.15), (rnd.uniform(26, 42) if long_ else rnd.uniform(9, 22)) * px, 0)
+    for _ in range(46):
+        path(c, c, rnd.uniform(0, 6.283), rnd.uniform(1.5, 8) * px, 2)
+    img = Image.new('L', (HIT_PX, HIT_PX), 0)
+    g = ImageDraw.Draw(img)
+    for pts, depth in lines:
+        g.line(pts, fill=int(235 - depth * 45), width=max(1, int(3 - depth)), joint='curve')
+    for r, a in ((0.9, 255), (1.7, 240), (2.6, 220), (3.7, 200), (5.0, 175), (6.6, 150), (8.6, 125), (11.5, 100), (15.0, 80)):
+        segs = 14
+        for k in range(segs):
+            if rnd.random() < 0.35:
+                continue
+            a0 = 360 * k / segs + rnd.uniform(-8, 8)
+            R = r * px
+            g.arc([c - R, c - R * 0.92, c + R, c + R * 0.92], a0, a0 + 360 / segs * rnd.uniform(0.55, 1.0), fill=a, width=2)
+    g.ellipse([c - 0.7 * px, c - 0.6 * px, c + 0.7 * px, c + 0.6 * px], fill=255)      # the crushed spot
+    img = img.filter(ImageFilter.GaussianBlur(0.6))
+    # nothing at the edge (the material clamps the texture: past it, no cracks)
+    border = Image.new('L', (HIT_PX, HIT_PX), 0)
+    ImageDraw.Draw(border).rectangle([4, 4, HIT_PX - 5, HIT_PX - 5], fill=255)
+    img = Image.composite(img, Image.new('L', (HIT_PX, HIT_PX), 0), border)
+    img.save(os.path.join(OUT, 'T_WindshieldHit.png'))
 
 
 if __name__ == '__main__':
