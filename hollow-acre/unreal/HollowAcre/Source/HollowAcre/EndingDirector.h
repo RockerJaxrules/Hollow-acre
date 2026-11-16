@@ -97,7 +97,7 @@ public:
 	float StartDistance = 0.f;
 	/** When something crosses the road ahead (the driver brakes), when it hits, when the view goes black (s). */
 	UPROPERTY(EditAnywhere, Category = "Crash")
-	float SightTime = 11.f;
+	float SightTime = 31.f;
 	UPROPERTY(EditAnywhere, Category = "Crash")
 	float ImpactTime = 21.f;
 	/** After it has gone, the driver waits, then creeps on at walking pace from this time. */
@@ -136,13 +136,13 @@ public:
 	// the creature itself is AHusk (Husk.h): its meshes and takes are its own
 	/** Where in the road it stops (cm left of the road's middle), and when (after SightTime) it starts the take. */
 	UPROPERTY(EditAnywhere, Category = "Creature")
-	float HaltSide = 150.f;
+	float HaltSide = -110.f;            // in the car's lane, straight ahead in the headlights
 	UPROPERTY(EditAnywhere, Category = "Creature")
 	float SwitchLead = 0.1f;
 	/** The sighting: how far ahead of the car (cm, along the road, from where the car is at SightTime) it crosses, and
 	 *  how long before SightTime it sets off from below the road. */
 	UPROPERTY(EditAnywhere, Category = "Creature")
-	float CrossAhead = 2800.f;
+	float CrossAhead = 2330.f;          // it stops in the road about 8 m short of the car
 	UPROPERTY(EditAnywhere, Category = "Creature")
 	float CrossLead = 0.75f;
 	/** How much bigger than its model the husk is in the game (about 2.9 m standing). */
@@ -158,6 +158,60 @@ public:
 	/** The pebbles of broken side glass. */
 	UPROPERTY(EditAnywhere, Category = "Crash")
 	TObjectPtr<UMaterialInterface> GranuleMaterial;
+
+	// ---- the rebuilt crash cut (unreal/CUTSCENE_CRASH.md): Supermassive's horror language through the driver's eyes
+	/** The driver's arms dressed for winter: leather gloves, the farmer's flannel sleeves (Scripts/build_drive.py). */
+	UPROPERTY(EditAnywhere, Category = "Ending")
+	TObjectPtr<UMaterialInterface> GloveMaterial;
+	/** Eyes in the dark catching the headlights, and Kessler's letter on the passenger seat. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	TObjectPtr<UMaterialInterface> EyeShineMaterial;
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	TObjectPtr<UMaterialInterface> LetterMaterial;
+	/** The beats before the creature (s): the glance down at the letter, the smashed gap going by on the right (the
+	 *  head follows its tyre tracks, the decal at the gap), the eyes in the trees. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float LetterTime = 8.5f;
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float GapTime = 17.f;
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float EyesTime = 24.f;
+	/** The stare: its sighting take slowed to this rate while it turns to face the car and stands looking at it. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float StareRate = 0.12f;
+	/** ...and the turn to face the car before it, a little slowed. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float StareTurnRate = 0.6f;
+	/** After it has gone: the creep starts this long after, and the blow comes this long into the creep. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float CreepAfterBolt = 1.6f;
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float ImpactAfterCreep = 9.2f;
+	/** The blow in slow motion: the time dilation, and how long it holds (real seconds). */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float SlowMo = 0.22f;
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float SlowMoSeconds = 1.2f;
+	/** After the fall (real seconds): the black before waking; from waking, the silhouette and the eyes closing. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float WakeAfterRest = 3.f;
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float SilhouetteAfterWake = 3.4f;
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float CloseAfterWake = 10.5f;
+	/** The words over the black: where and when at the start, the title at the end. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	FText PlaceText = NSLOCTEXT("HollowAcre", "CrashPlace", "The Hollow Mountains");
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	FText WhenText = NSLOCTEXT("HollowAcre", "CrashWhen", "November");
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	FText TitleText = NSLOCTEXT("HollowAcre", "CrashTitle", "HOLLOW ACRE");
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	FText SubtitleText = NSLOCTEXT("HollowAcre", "CrashSubtitle", "PART TWO");
+
+	/** For the HUD: the words on screen now (a line and a smaller line), their alpha, the first line's size as a
+	 *  fraction of the screen's height. False when there are none. */
+	bool GetCaption(FString& Line1, FString& Line2, float& Alpha, float& Size) const;
 
 	/** Gentle body sway from the rough, snowy road (degrees). */
 	UPROPERTY(EditAnywhere, Category = "Ending")
@@ -217,8 +271,37 @@ private:
 	float CreTakeT0 = 0.f, CreSwitchAt = 0.f, CreBolt = 0.f;
 	FVector CreSwitch = FVector::ZeroVector, CreCentre = FVector::ZeroVector;
 	bool bStopped = false, bCreeping = false, bDeep = false;
-	// the driver's head turning (degrees, + to the right)
+	// the driver's head turning (degrees, + to the right), tipping (+ up), leaning in (cm), and the shake of the scream
 	float LookYaw = 0.f;
+	float LookPitch = 0.f, HeadPush = 0.f, RoarShake = 0.f;
+	// the rebuilt cut (EndingCrashBeats.cpp)
+	void BeginCrashScene();
+	void CrashBeats(float DeltaSeconds);
+	void AfterTheFall(float RealDt);
+	void SetFocus(float Cm);
+	void LookAt(const FVector& World, float Share, float& Yaw, float& Pitch) const;
+	float RealTime = 0.f;          // undilated (the capture's frame clock): the events are logged on it
+	float FocusCm = 1500.f;
+	UPROPERTY()
+	TObjectPtr<class UCameraComponent> CamComp;
+	FVector GapAt = FVector::ZeroVector, EyesAt = FVector::ZeroVector, MirrorAt = FVector::ZeroVector;
+	UPROPERTY()
+	TArray<TObjectPtr<AActor>> EyeActors;
+	bool bLetterLooked = false, bGapPassed = false, bEyesShown = false, bEyesGone = false, bGrowled = false;
+	float CreTakeClock = 0.f, BoltTime = -1.f, SlowMoT0 = -1.f, EdgeReal = -1.f, RestReal = -1.f, WakeReal = -1.f;
+	bool bUpsideDown = false, bWoke = false, bSilhouette = false, bClosed = false, bTitled = false;
+	float CloseReal = -1.f;
+	UPROPERTY()
+	TArray<TObjectPtr<class USpotLightComponent>> Headlights;
+	TArray<float> HeadlightBase;
+	UPROPERTY()
+	TObjectPtr<class AHusk> Walker;
+	FVector WalkFrom = FVector::ZeroVector, WalkDir = FVector::ForwardVector;
+	float WalkReal = 0.f;
+	FVector LetterAt = FVector::ZeroVector;
+	UPROPERTY()
+	TObjectPtr<AActor> Letter;
+	bool bShook = false;
 	float LookWant(float DeltaSeconds);
 	void PlaceCamera();
 	UPROPERTY()

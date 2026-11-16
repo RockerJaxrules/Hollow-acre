@@ -2,13 +2,15 @@
 
   - A steel W-beam guardrail on the valley side. The rail follows the AASHTO M-180 profile: 312 mm deep, 83 mm
     corrugation, two crests toward the road, top edge at 787 mm. It is blocked out from steel I-beam posts every 1.905 m.
-    Snow lies along its top and caps the posts. It is smashed through in one place, with the torn ends bent out over
-    the drop.
+    Snow lies along its top and caps the posts. It is smashed through in one place (GAP: someone went over before
+    you), with the torn ends bent out over the drop. Where the creature shoves the car through it (BREAK), that stretch
+    of rail and its posts are their own meshes, so the game can tear them away.
   - The posts are a separate mesh: an I-beam with a wooden blockout, bolt heads and a snow cap.
 References (study only): FHWA standard drawings for W-beam guardrail on steel posts.
 
 Called by make_mountain.py. Writes into HollowAcre/Saved/Generated:
   Guardrail.obj   the rail and the snow on it (material slots steel, snow)
+  GuardrailBreak.obj  the stretch of it the car is shoved through (the same slots); its posts: out['break_posts']
   GuardPost.obj   one post: local X along the road, -Y toward the road, Z up, ground at 0 (slots steel, wood, snow)
 """
 import math
@@ -25,7 +27,8 @@ CORR = 0.083
 THICK = 0.003
 POST_D = -(mm.HALF + 1.1)                       # the posts' line (d across the road; negative = the valley side)
 RAIL_D = POST_D + 0.075 + 0.2 + CORR / 2        # the rail's centre plane: post flange + 200 mm blockout toward the road
-GAP = (516.0, 552.0)                            # where something went through: no rail, no posts
+GAP = (420.0, 432.0)                            # where something went through: no rail, no posts
+BREAK = (580.0, 604.0)                          # where the car is shoved through (its own meshes, torn away in the game)
 SPACING = 1.905
 Z = np.array([0.0, 0.0, 1.0])
 
@@ -210,18 +213,24 @@ def build(xs, ys, th, zr, s_arr, out):
         return float(x), float(y), float(z), float(t)
 
     steel, snow = [], []
-    runs = [np.arange(3.0, GAP[0] + 1e-6, 0.5), np.arange(GAP[1], mm.LENGTH - 3.0, 0.5)]
+    runs = [np.arange(3.0, GAP[0] + 1e-6, 0.5), np.arange(GAP[1], BREAK[0] + 1e-6, 0.5), np.arange(BREAK[1], mm.LENGTH - 3.0, 0.5)]
     for run in runs:
         st, sn = rail_run(frame, list(run), GAP, r)
         steel += st
         snow += sn
     mm.write_obj(os.path.join(mm.GEN, 'Guardrail.obj'), [('steel',) + merge(steel), ('snow',) + merge(snow)])
+    st, sn = rail_run(frame, list(np.arange(BREAK[0], BREAK[1] + 1e-6, 0.5)), GAP, r)
+    mm.write_obj(os.path.join(mm.GEN, 'GuardrailBreak.obj'), [('steel',) + merge(st), ('snow',) + merge(sn)])
     mm.write_obj(os.path.join(mm.GEN, 'GuardPost.obj'), post_mesh(r))
-    out['posts'] = []
+    out['posts'], out['break_posts'] = [], []
     for s in np.arange(3.0, mm.LENGTH - 3.0, SPACING):
         if GAP[0] + 1.0 < s < GAP[1] - 1.0:
             continue
         x, y, z, t = frame(s, POST_D)
         g = float(mm.corridor_height(s, POST_D))
-        out['posts'].append([x * 100, y * 100, (z + g) * 100, math.degrees(t), 1.0])
+        (out['break_posts'] if BREAK[0] < s < BREAK[1] else out['posts']).append([x * 100, y * 100, (z + g) * 100, math.degrees(t), 1.0])
+    # the tracks of whatever went through the gap: from the road's edge out over the drop (x, y, z cm; yaw deg)
+    sg = 0.5 * (GAP[0] + GAP[1])
+    x, y, z, t = frame(sg, POST_D)
+    out['gap'] = {'s': sg, 'at': [x * 100, y * 100, (z + float(mm.corridor_height(sg, POST_D))) * 100], 'yaw': math.degrees(t)}
     return out

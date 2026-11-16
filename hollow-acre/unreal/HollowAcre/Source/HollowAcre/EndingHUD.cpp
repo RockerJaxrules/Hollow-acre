@@ -22,6 +22,29 @@ void AEndingHUD::DrawHUD()
 			break;
 		}
 	}
+	// Part 2's words over its black: where and when at the start, the title at the end (a line, and a smaller one)
+	FString L1, L2;
+	float CapAlpha = 0.f, CapSize = 0.f;
+	if (Director.IsValid() && Director->GetCaption(L1, L2, CapAlpha, CapSize))
+	{
+		UFont* Font = GEngine->GetLargeFont();
+		FFontRenderInfo Info;
+		Info.bClipText = false;
+		Info.bEnableShadow = false;
+		FLinearColor Col = TextColor;
+		Col.A = CapAlpha;
+		Canvas->SetDrawColor(Col.ToFColor(true));
+		float W = 0.f, H = 0.f;
+		Canvas->TextSize(Font, L1, W, H);
+		const float S1 = H > 0.f ? Canvas->ClipY * CapSize / H : 1.f;
+		Canvas->DrawText(Font, L1, (Canvas->ClipX - W * S1) * 0.5f, Canvas->ClipY * 0.47f - H * S1 * 0.5f, S1, S1, Info);
+		if (!L2.IsEmpty())
+		{
+			Canvas->TextSize(Font, L2, W, H);
+			const float S2 = H > 0.f ? Canvas->ClipY * CapSize * 0.5f / H : 1.f;
+			Canvas->DrawText(Font, L2, (Canvas->ClipX - W * S2) * 0.5f, Canvas->ClipY * (0.47f + CapSize * 0.75f), S2, S2, Info);
+		}
+	}
 	const float Alpha = Director.IsValid() ? Director->GetEndCardAlpha() : 0.f;
 	if (Alpha <= 0.f)
 	{

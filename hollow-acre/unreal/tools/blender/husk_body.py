@@ -768,6 +768,43 @@ def sighting(t):
     return blend(stand4(-0.05), gallop(phase), smooth01(tt / 0.35))
 
 
+# the stalk: upright and hunched, walking slowly, the long arms hanging and swinging a little, the head forward and
+# low, the feet rolling heel to toe. In place: the game moves it at STALK_SPEED (m/s at the model's size).
+STALK_T = 1.5                    # s a stride (left and right)
+STALK_L = 0.62                   # m: how far a planted foot travels under it
+STALK_DUTY = 0.62                # of the stride each foot is planted
+STALK_SPEED = STALK_L / (STALK_DUTY * STALK_T)
+
+
+def stalk(phase):
+    tau = 2 * math.pi
+    dz = -0.03 + 0.018 * math.cos(2 * tau * phase)            # highest as it passes over each planted foot
+    roll = math.radians(2.5) * math.sin(tau * phase)
+    turn = math.radians(4) * math.sin(tau * phase)
+    P = body_pose(pelvis_m(BIPED['dz'] + dz, 0, BIPED['down'] + math.radians(6), roll, turn),
+                  BIPED['spine'] + math.radians(14), BIPED['neck'] - math.radians(4), -turn * 0.6)
+    for sd, sg in SIDES:
+        s_ = (phase + (0.0 if sd == '_l' else 0.5)) % 1.0
+        if s_ < STALK_DUTY:
+            u = s_ / STALK_DUTY
+            f, z = STALK_L / 2 - STALK_L * u, 0.0
+            ang = math.radians(25) * max(0.0, (u - 0.6) / 0.4) ** 1.5          # rolling up onto the toes
+            planted = True
+        else:
+            u = (s_ - STALK_DUTY) / (1 - STALK_DUTY)
+            f, z = -STALK_L / 2 + STALK_L * smooth01(u), 0.09 * math.sin(math.pi * u)
+            ang = math.radians(25 - 35 * smooth01(u))                           # toes down off the snow, heel first in
+            planted = False
+        P[ctrl_name('foot', sd)] = foot_m(sd, NEUTRAL['biped_foot' + sd] + FWD * f + Vector((0, 0, z)), ang)
+        P['toeflex' + sd] = Quaternion((1.0, 0.0, 0.0), -ang if planted else 0.0)
+        # the arm swings against the leg on its side
+        sh = NEUTRAL['biped_shoulder' + sd]
+        swing = -0.12 * math.cos(tau * s_)
+        wrist = sh + Vector((0.14 * sg, -0.12, -0.98)) + FWD * swing
+        P[ctrl_name('hand', sd)] = hand_m(sd, wrist, Vector((0.05 * sg, -0.15 + swing * 0.4, -1.0)), Vector((-sg, 0.0, 0.0)))
+    return fingers(P, curl=0.4, spread=0.1, thumb=0.25)
+
+
 def apply_pose(arm, P):
     apply_trunk(arm, P)
     pb = arm.pose.bones
@@ -869,6 +906,9 @@ def bake_takes(arm, names, body=None):
         if name == 'Sighting':
             n = int(round(TF * FPS))
             poses = [sighting(f / FPS) for f in range(n + 1)]
+        elif name == 'Stalk':
+            n = int(round(STALK_T * FPS))
+            poses = [stalk(f / n) for f in range(n + 1)]
         else:
             look = 50.0 if name == 'GallopLookL' else 0.0
             poses = [gallop((f % CYCLE) / CYCLE, look) for f in range(CYCLE + 1)]
@@ -940,7 +980,8 @@ def main():
     log('mesh: %d triangles, slots %s, colours %s' % (sum(len(p.vertices) - 2 for p in body.data.polygons), [m.name for m in body.data.materials], [c.name for c in ca]))
     rig_controls(arm, body)
     settle_stances(arm)
-    acts = bake_takes(arm, ['Gallop', 'GallopLookL', 'Sighting'], body)
+    acts = bake_takes(arm, ['Gallop', 'GallopLookL', 'Sighting', 'Stalk'], body)
+    log('stalk: %.2f m/s at the model\'s size' % STALK_SPEED)
     ground_check(arm, body, acts)
     for b in arm.data.bones:                 # every MetaHuman bone goes out (the face copies the head and neck by name)
         b.use_deform = not b.name.startswith(('ctrl_', 'pole_'))

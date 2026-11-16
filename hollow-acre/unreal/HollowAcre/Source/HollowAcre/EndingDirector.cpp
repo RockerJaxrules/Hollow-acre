@@ -168,9 +168,9 @@ void AEndingDirector::BeginPlay()
 				bHoldBlack = false;
 				if (APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(this, 0))
 				{
-					Cam->StartCameraFade(1.f, 0.f, 2.5f, FLinearColor::Black, false, false);
+					Cam->StartCameraFade(1.f, 0.f, 3.f, FLinearColor::Black, false, false);
 				}
-			}, 0.6f, false);
+			}, 4.8f, false);
 		}
 		UE_LOG(LogTemp, Display, TEXT("EndingDirector: crash mode from %.0f m along the road, impact at %.1f s"), StartDistance / 100.f, ImpactTime);
 	}
@@ -196,6 +196,23 @@ void AEndingDirector::BeginPlay()
 			Arms = *It;
 			break;
 		}
+	}
+	// the driver (the farmer from Part 1) in winter: gloves, and the sleeves of their flannel shirt
+	if (Arms && GloveMaterial)
+	{
+		TArray<USkinnedMeshComponent*> Skins;
+		Arms->GetComponents(Skins);
+		for (USkinnedMeshComponent* C : Skins)
+		{
+			for (int32 i = 0; i < C->GetNumMaterials(); ++i)
+			{
+				C->SetMaterial(i, GloveMaterial);
+			}
+		}
+	}
+	if (bCrash)
+	{
+		BeginCrashScene();
 	}
 
 	if (bCrash)
@@ -252,6 +269,9 @@ void AEndingDirector::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	Time += DeltaSeconds;
+	const float Dilation = GetWorldSettings() ? GetWorldSettings()->GetEffectiveTimeDilation() : 1.f;
+	const float RealDt = DeltaSeconds / FMath::Max(Dilation, 0.01f);
+	RealTime += RealDt;
 	if (bHoldBlack)
 	{
 		if (APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(this, 0))
@@ -273,7 +293,7 @@ void AEndingDirector::Tick(float DeltaSeconds)
 		if (Time >= SightTime + 0.35f)
 		{
 			const float Vb = FMath::Max(0.f, Speed - 400.f * (Time - SightTime - 0.35f));
-			const float Vc = Time > CreepTime ? FMath::Min(250.f, 100.f * (Time - CreepTime)) : 0.f;
+			const float Vc = Time > CreepTime ? FMath::Min(150.f, 60.f * (Time - CreepTime)) : 0.f;    // creeping, at walking pace
 			Speed = FMath::Max(Vb, Vc);
 			if (!bStopped && Speed <= 0.f)
 			{
@@ -355,6 +375,7 @@ void AEndingDirector::Tick(float DeltaSeconds)
 		{
 			MoveCreature(DeltaSeconds);
 		}
+		CrashBeats(DeltaSeconds);
 		LookWant(DeltaSeconds);
 		if (!bImpacted)
 		{
@@ -379,25 +400,6 @@ void AEndingDirector::Tick(float DeltaSeconds)
 				}
 			}
 			CrashCamera(DeltaSeconds);
-			// the startle blink: shut 40-100 ms after the blow, held, open again by a third of a second
-			const float tb = Time - ImpactTime;
-			if (!bBlack && tb >= 0.04f && tb < 0.34f)
-			{
-				const float Shut = tb < 0.1f ? FMath::SmoothStep(0.04f, 0.1f, tb) : 1.f - FMath::SmoothStep(0.16f, 0.34f, tb);
-				if (APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(this, 0))
-				{
-					Cam->SetManualCameraFade(Shut, FLinearColor::Black, false);
-				}
-				bBlinking = true;
-			}
-			else if (bBlinking)
-			{
-				bBlinking = false;
-				if (APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(this, 0))
-				{
-					Cam->StopCameraFade();
-				}
-			}
 			if (Arms)
 			{
 				const float k = FMath::Exp(-(Time - ImpactTime) * 1.4f);
@@ -430,15 +432,7 @@ void AEndingDirector::Tick(float DeltaSeconds)
 					Event(TEXT("rest"), ImpactPose.GetLocation().Z - Body->GetActorLocation().Z);
 				}
 			}
-			if (!bBlack && ((bRested && Time >= RestTime + BlackAfterRest) || Time >= ImpactTime + MaxFall))
-			{
-				bBlack = true;
-				if (APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(this, 0))
-				{
-					Cam->StartCameraFade(0.f, 1.f, 0.12f, FLinearColor::Black, false, true);
-				}
-				Event(TEXT("black"));
-			}
+			AfterTheFall(RealDt);
 			return;
 		}
 	}
@@ -553,13 +547,23 @@ void AEndingDirector::Impact()
 	PrevVel = R.GetForwardVector() * SpeedNow;
 	Jolt = 1.f;
 	BurstWindow(true);
+	SlowMoT0 = RealTime;
+	UGameplayStatics::SetGlobalTimeDilation(this, SlowMo);
+	for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+	{
+		if (It->ActorHasTag(TEXT("GuardrailBreak")))
+		{
+			It->SetActorHiddenInGame(true);
+			It->SetActorEnableCollision(false);
+		}
+	}
 	UE_LOG(LogTemp, Display, TEXT("EndingDirector: impact at %.1f s, %.0f m along the road, %.1f km/h"), Time, (StartDistance + DistNow) / 100.f, SpeedNow * 0.036f);
 	Event(TEXT("impact"));
 }
 
 void AEndingDirector::Event(const TCHAR* Kind, float Value)
 {
-	UE_LOG(LogTemp, Display, TEXT("CrashEvent %.3f %s %.0f"), Time, Kind, Value);
+	UE_LOG(LogTemp, Display, TEXT("CrashEvent %.3f %s %.0f"), bCrash ? RealTime : Time, Kind, Value);
 }
 
 FTransform AEndingDirector::TripPose(float t) const
@@ -608,6 +612,7 @@ void AEndingDirector::HandToPhysics()
 	BodyBox->SetPhysicsLinearVelocity(V);
 	BodyBox->SetPhysicsAngularVelocityInRadians(Axis * Angle / dt);
 	UE_LOG(LogTemp, Display, TEXT("EndingDirector: over the edge at %.2f s: %.0f cm/s, rolling %.0f deg/s"), Time - ImpactTime, V.Size(), FMath::RadiansToDegrees(Angle / dt));
+	EdgeReal = RealTime;
 	Event(TEXT("edge"), V.Size());
 }
 
@@ -676,6 +681,14 @@ void AEndingDirector::CrashCamera(float DeltaSeconds)
 	{
 		return;
 	}
+	if (bUpsideDown)
+	{
+		// hanging in the belt, upside down: the head hangs toward the roof, swaying a little with the breath
+		HeadOff += (FVector(0.f, 0.f, 7.f) - HeadOff) * (1.f - FMath::Exp(-DeltaSeconds * 3.f));
+		const FRotator Hang(-7.f + 1.2f * FMath::Sin(RealTime * 0.8f), 0.f, 2.f * FMath::Sin(RealTime * 0.55f));
+		Camera->GetRootComponent()->SetRelativeLocationAndRotation(CamRest + HeadOff, CamRestRot + Hang);
+		return;
+	}
 	const FVector Pos = Body->GetActorLocation();
 	const FVector Vel = (Pos - PrevPos) / DeltaSeconds;     // from positions: the trip is authored, the tumble simulated
 	PrevPos = Pos;
@@ -699,56 +712,121 @@ void AEndingDirector::CrashCamera(float DeltaSeconds)
 	const float J = Jolt * Jolt;
 	const FVector Shake(FMath::Sin(Time * 61.f) * 3.f * J, FMath::Sin(Time * 47.f + 1.f) * 5.f * J, FMath::Sin(Time * 53.f + 2.f) * 3.f * J);
 	const FRotator ShakeR(FMath::Sin(Time * 43.f) * 3.f * J, FMath::Sin(Time * 37.f + 1.f) * 4.f * J, FMath::Sin(Time * 59.f) * 5.f * J);
-	const FRotator Look(0.f, LookYaw, 0.f);
-	Camera->GetRootComponent()->SetRelativeLocationAndRotation(CamRest + HeadOff + Shake + Look.RotateVector(FVector(9.f, 0.f, 0.f)) - FVector(9.f, 0.f, 0.f),
+	const FRotator Look(LookPitch, LookYaw, 0.f);
+	Camera->GetRootComponent()->SetRelativeLocationAndRotation(CamRest + HeadOff + Shake + Look.RotateVector(FVector(9.f, 0.f, 8.f)) - FVector(9.f, 0.f, 8.f),
 		CamRestRot + HeadRot + ShakeR + Look);
 }
 
 void AEndingDirector::PlaceCamera()
 {
-	// the head turns about the neck, a little behind the eyes
+	// the head turns and nods about the neck (a little behind and below the eyes), leans in, and shakes at the scream
 	if (Camera)
 	{
-		const FRotator Look(0.f, LookYaw, 0.f);
-		Camera->GetRootComponent()->SetRelativeLocationAndRotation(CamRest + Look.RotateVector(FVector(9.f, 0.f, 0.f)) - FVector(9.f, 0.f, 0.f), CamRestRot + Look);
+		const FRotator Look(LookPitch, LookYaw, 0.f);
+		const FVector Neck(9.f, 0.f, 8.f);
+		const float S = RoarShake * RoarShake;
+		const FVector Shake(FMath::Sin(Time * 53.f) * 1.2f * S, FMath::Sin(Time * 41.f + 1.f) * 1.6f * S, FMath::Sin(Time * 47.f + 2.f) * 1.2f * S);
+		const FRotator ShakeR(FMath::Sin(Time * 39.f) * 1.5f * S, FMath::Sin(Time * 45.f + 1.f) * 2.f * S, FMath::Sin(Time * 51.f) * 1.5f * S);
+		Camera->GetRootComponent()->SetRelativeLocationAndRotation(CamRest + Look.RotateVector(Neck) - Neck + FVector(HeadPush, 0.f, 0.f) + Shake,
+			CamRestRot + Look + ShakeR);
 	}
 }
 
 float AEndingDirector::LookWant(float DeltaSeconds)
 {
-	// where the driver looks: ahead; following the shape across (eyes do part of it, the head the rest); back to the
-	// road; a look left, up toward where it went; the road again; then the growl on the left and the head snaps round
-	float Want = 0.f, Rate = 5.f;
+	// where the driver looks (the head takes part of each look, the eyes the rest), and what the eyes focus on: the
+	// road; down at the letter; the smashed gap going by on the right; the eyes in the trees; the shape in the road,
+	// leaning in to it as it stares; creeping on, the dark window on the left, the drop on the right, the mirror, the
+	// road; then the growl on the left and the head snaps round
+	float Want = 0.f, WantPitch = -2.f, WantPush = 0.f, Rate = 5.f, Focus = 1500.f;
 	const float t = Time;
+	auto DistTo = [this](const FVector& W) { return Camera ? FVector::Dist(Camera->GetActorLocation(), W) : 1500.f; };
 	if (bImpacted)
 	{
 		Want = 0.f;               // thrown about from here: the neck brings it back as it can
+		WantPitch = 0.f;
 		Rate = 1.5f;
 	}
 	else if (t >= ImpactTime - 0.75f)
 	{
 		Want = -72.f;
 		Rate = 11.f;
+		Focus = 250.f;
+	}
+	else if (bCrash && Letter && t >= LetterTime && t < LetterTime + 3.2f)
+	{
+		LookAt(LetterAt, 0.75f, Want, WantPitch);
+		Rate = 3.2f;
+		Focus = DistTo(LetterAt);
+	}
+	else if (bCrash && !GapAt.IsZero() && t >= GapTime - 3.5f && t < GapTime + 1.3f)
+	{
+		LookAt(GapAt, 0.8f, Want, WantPitch);
+		Want = FMath::Clamp(Want, -10.f, 60.f);
+		WantPitch = FMath::Clamp(WantPitch, -14.f, 4.f);
+		Rate = 3.5f;
+		Focus = DistTo(GapAt);
+	}
+	else if (bCrash && bEyesShown && t < EyesTime + 2.3f)
+	{
+		LookAt(EyesAt, 0.65f, Want, WantPitch);
+		Rate = 4.f;
+		Focus = DistTo(EyesAt);
 	}
 	else if (Creature && CreStage >= 1 && CreStage <= 3 && t >= SightTime - 0.2f && t < CreepTime + 0.8f && Camera)
 	{
-		const FVector To = Creature->GetActorLocation() - Camera->GetActorLocation();
-		const FVector Fw = Car->GetActorForwardVector();
-		const float Ang = FMath::RadiansToDegrees(FMath::Atan2(FVector::DotProduct(To, Car->GetActorRightVector()), FVector::DotProduct(To, Fw)));
-		Want = FMath::Clamp(Ang * 0.6f, -40.f, 40.f);
+		const FVector Head = Creature->GetActorLocation() + FVector(0.f, 0.f, 210.f);
+		LookAt(Head, 0.6f, Want, WantPitch);
+		Want = FMath::Clamp(Want, -40.f, 40.f);
 		Rate = 7.f;
+		Focus = DistTo(Head);
+		if (CreStage == 2 && !bShook)
+		{
+			WantPush = 5.5f;      // leaning in, without meaning to
+		}
 	}
-	else if (t >= CreepTime + 0.8f && t < ImpactTime - 1.6f)
+	else if (t >= CreepTime + 0.6f && t < ImpactTime - 1.6f)
 	{
-		Want = -28.f;             // creeping on, watching the bank on the left
-		Rate = 1.6f;
+		const float c = t - CreepTime - 0.6f;
+		if (c < 2.2f)
+		{
+			Want = -60.f;         // the dark window on the left
+			WantPitch = -3.f;
+			Rate = 2.2f;
+			Focus = 400.f;
+		}
+		else if (c < 3.9f)
+		{
+			Want = 46.f;          // the drop on the right
+			WantPitch = -6.f;
+			Rate = 2.6f;
+			Focus = 1200.f;
+		}
+		else if (c < 6.f && Car)
+		{
+			LookAt(Car->GetActorTransform().TransformPosition(MirrorAt), 0.92f, Want, WantPitch);   // the mirror: the empty road behind
+			Rate = 3.f;
+			Focus = 1200.f;
+		}
+		else
+		{
+			Want = -4.f;
+			Rate = 2.f;
+		}
 	}
 	else if (t >= ImpactTime - 1.6f)
 	{
 		Want = -6.f;
 		Rate = 2.5f;
 	}
-	LookYaw += (Want - LookYaw) * (1.f - FMath::Exp(-DeltaSeconds * Rate));
+	const float k = 1.f - FMath::Exp(-DeltaSeconds * Rate);
+	LookYaw += (Want - LookYaw) * k;
+	LookPitch += (WantPitch - LookPitch) * k;
+	HeadPush += (WantPush - HeadPush) * (1.f - FMath::Exp(-DeltaSeconds * (WantPush > HeadPush ? 0.6f : 2.f)));
+	if (bCrash && !bImpacted)
+	{
+		SetFocus(FocusCm + (Focus - FocusCm) * (1.f - FMath::Exp(-DeltaSeconds * 3.5f)));
+	}
 	return Want;
 }
 
@@ -844,13 +922,19 @@ void AEndingDirector::MoveCreature(float DeltaSeconds)
 		// into the take where it is (it has run exactly two strides, so the gallop meets the take's first frame)
 		CreStage = 2;
 		CreTakeT0 = Time;
+		CreTakeClock = 0.f;
 		CrePos = FVector(CreSwitch.X, CreSwitch.Y, CrePos.Z);
 		H->Play(TEXT("Sighting"), false);
+		H->GetBody()->SetPlayRate(0.f);          // posed from its own clock (slowed for the stare)
 		Event(TEXT("halt"));
 	}
 	if (CreStage == 2)
 	{
-		const float t = Time - CreTakeT0;
+		// the stare: from as it skids round to face the car until it rears up, the take slowed
+		const float Slow = (CreTakeClock > TB && CreTakeClock < TC) ? StareRate : (CreTakeClock > TA + 0.25f && CreTakeClock <= TB) ? StareTurnRate : 1.f;
+		CreTakeClock += DeltaSeconds * Slow;
+		const float t = CreTakeClock;
+		H->GetBody()->SetPosition(FMath::Min(t, TF), false);
 		if (t >= TF)
 		{
 			// away up the road, at a gallop (its heading from here on follows the road: below)
@@ -860,19 +944,30 @@ void AEndingDirector::MoveCreature(float DeltaSeconds)
 			CreHop0 = CreHop1 = -1.f;
 			CreS = 0.f;
 			H->Play(TEXT("Gallop"), true);
+			H->GetBody()->SetPlayRate(1.f);
 			Event(TEXT("bolt"));
+			BoltTime = Time;
+			CreepTime = Time + CreepAfterBolt;
+			ImpactTime = CreepTime + ImpactAfterCreep;
 		}
 		else
 		{
 			float Vm, Turn;
 			SightingPath(t, Vm, Turn);
-			V = Vm * 100.f * K;
+			V = Vm * 100.f * K * Slow;
 			CreTakeYaw = Turn;
 			CreDir = FRotator(0.f, -Turn, 0.f).RotateVector(CreDir0).GetSafeNormal2D();
 			if (t > TC - 0.05f && t < TD + 0.05f && !bScreamed)
 			{
 				bScreamed = true;
 				Event(TEXT("roar"));
+			}
+			if (!bShook && t > TC + 0.42f)
+			{
+				bShook = true;           // the scream hits: the view shakes, the driver recoils
+				RoarShake = 1.f;
+				HeadPush = -9.f;
+				Event(TEXT("scream"));
 			}
 			Jaw = FMath::Max(5.f, ScreamJaw(t));
 		}

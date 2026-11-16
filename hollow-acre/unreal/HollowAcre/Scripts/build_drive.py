@@ -417,6 +417,35 @@ def build_mountain():
     post = import_obj('GuardPost')
     post_order = [rail_mats.get(str(sm.get_editor_property('material_slot_name')).lower().split('_')[0], steel) for sm in post.static_materials]
     scatter('Guardrail posts', post, post_order, data['posts'], lambda r: T(r[0], r[1], r[2], r[3], 1.0))
+    # the stretch the car is shoved through, and its posts: their own actors, torn away by the director at the blow
+    brk = import_obj('GuardrailBreak')
+    b = actors.spawn_actor_from_class(unreal.StaticMeshActor, V(0, 0, 0))
+    b.set_actor_label('Guardrail (breaks)')
+    b.tags = [unreal.Name('Guardrail'), unreal.Name('GuardrailBreak')]
+    b.static_mesh_component.set_static_mesh(brk)
+    for i, sm in enumerate(brk.static_materials):
+        b.static_mesh_component.set_material(i, rail_mats.get(str(sm.get_editor_property('material_slot_name')).lower().split('_')[0], steel))
+    if data.get('break_posts'):
+        bp = scatter('Guardrail posts (break)', post, post_order, data['break_posts'], lambda r: T(r[0], r[1], r[2], r[3], 1.0))
+        bp.tags = [unreal.Name('GuardrailBreak')]
+    # the tracks of whatever went over at the smashed gap: two ruts from the road's edge out over the drop, angled
+    # down the slope (a decal, so they lie on the snow wherever it falls away)
+    gap = data.get('gap')
+    if gap:
+        tracks_mat = make_tracks_mat()
+        import math
+        t = math.radians(gap['yaw'])
+        road = (math.cos(t), math.sin(t))
+        valley = (-math.sin(t), math.cos(t))
+        a35 = math.radians(35)
+        dx, dy = math.cos(a35) * road[0] + math.sin(a35) * valley[0], math.cos(a35) * road[1] + math.sin(a35) * valley[1]
+        at = gap['at']
+        d = actors.spawn_actor_from_class(unreal.DecalActor, V(at[0] + dx * 100, at[1] + dy * 100, at[2] + 50),
+                                          unreal.Rotator(pitch=-90.0, yaw=math.degrees(math.atan2(dy, dx)), roll=0.0))
+        d.set_actor_label('Tyre tracks over the edge')
+        d.decal.set_decal_material(tracks_mat)
+        d.decal.set_editor_property('decal_size', V(300, 110, 380))
+        log('tyre tracks at the gap: %.0f m along the road' % gap['s'])
 
     # snow poles: orange fibreglass stakes, 2 m, a reflective band near the top that catches the headlights
     pole = make_mat('M_SnowPole', (0.55, 0.13, 0.012), 0.45, instanced=True)
@@ -463,6 +492,89 @@ def detail_mat(name, color, rough, normal_tex, tiling=1.0, metal=0.0, clearcoat=
             c = mel.create_material_expression(m, unreal.MaterialExpressionConstant, -500, y)
             c.set_editor_property('r', val)
             mel.connect_material_property(c, '', prop)
+    return finish(m)
+
+
+def make_tracks_mat():
+    """M_TyreTracks: a decal of packed snow in two tread ruts (SourceArt/T_TyreTracks.png, its alpha the ruts)."""
+    tex = import_tex('T_TyreTracks')
+    path = f'{MATS}/M_TyreTracks'
+    if eal.does_asset_exist(path):
+        eal.delete_asset(path)
+    m = tools.create_asset('M_TyreTracks', MATS, unreal.Material, unreal.MaterialFactoryNew())
+    m.set_editor_property('material_domain', unreal.MaterialDomain.MD_DEFERRED_DECAL)
+    m.set_editor_property('blend_mode', unreal.BlendMode.BLEND_TRANSLUCENT)
+    ts = tex_sample(m, tex, 1.0, -400, 0)
+    mel.connect_material_property(ts, 'RGB', unreal.MaterialProperty.MP_BASE_COLOR)
+    mel.connect_material_property(ts, 'A', unreal.MaterialProperty.MP_OPACITY)
+    k = mel.create_material_expression(m, unreal.MaterialExpressionConstant, -400, 250)
+    k.set_editor_property('r', 0.7)
+    mel.connect_material_property(k, '', unreal.MaterialProperty.MP_ROUGHNESS)
+    return finish(m)
+
+
+def make_glove_mat():
+    """M_DriverGloves: the driver's arms (the player, the farmer from Part 1) dressed for the mountain in winter: black
+    leather driving gloves over the hands and up the wrist (SourceArt/T_HandMask.png, made by tools/blender/hand_mask.py),
+    and above them the sleeves of the farmer's flannel shirt: T_Plaid (tools/make_plaid_tex.py) tinted ShirtColor, Part 1's
+    default red (#b8402c) until the game passes the save's own."""
+    mask = import_tex('T_HandMask')
+    mask.set_editor_property('srgb', False)
+    eal.save_loaded_asset(mask)
+    path = f'{MATS}/M_DriverGloves'
+    if eal.does_asset_exist(path):
+        eal.delete_asset(path)
+    m = tools.create_asset('M_DriverGloves', MATS, unreal.Material, unreal.MaterialFactoryNew())
+    m.set_editor_property('used_with_skeletal_mesh', True)
+    k = tex_sample(m, mask, 1.0, -900, 0)
+    k.set_editor_property('sampler_type', unreal.MaterialSamplerType.SAMPLERTYPE_LINEAR_COLOR)
+    glove = mel.create_material_expression(m, unreal.MaterialExpressionConstant3Vector, -700, 150)
+    glove.set_editor_property('constant', unreal.LinearColor(0.028, 0.022, 0.018, 1))
+    plaid = tex_sample(m, import_tex('T_Plaid'), 6.0, -1100, 250)
+    shirt = mel.create_material_expression(m, unreal.MaterialExpressionVectorParameter, -1100, 450)
+    shirt.set_editor_property('parameter_name', 'ShirtColor')
+    shirt.set_editor_property('default_value', unreal.LinearColor(0.479, 0.051, 0.025, 1))    # #b8402c, linear
+    sleeve = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -800, 250)
+    mel.connect_material_expressions(plaid, 'R', sleeve, 'A')
+    mel.connect_material_expressions(shirt, '', sleeve, 'B')
+    mel.connect_material_property(lerp(m, sleeve, '', glove, '', k, -400, 150), '', unreal.MaterialProperty.MP_BASE_COLOR)
+    r_g = mel.create_material_expression(m, unreal.MaterialExpressionConstant, -700, 400)
+    r_g.set_editor_property('r', 0.42)
+    r_s = mel.create_material_expression(m, unreal.MaterialExpressionConstant, -700, 470)
+    r_s.set_editor_property('r', 0.9)
+    mel.connect_material_property(lerp(m, r_s, '', r_g, '', k, -400, 400), '', unreal.MaterialProperty.MP_ROUGHNESS)
+    leather = tex_sample(m, unreal.load_asset('/Game/HollowAcre/Textures/T_LeatherN'), 10.0, -700, 600, normal=True)
+    fabric = tex_sample(m, unreal.load_asset('/Game/HollowAcre/Textures/T_FabricN'), 14.0, -700, 800, normal=True)
+    mel.connect_material_property(lerp(m, fabric, 'RGB', leather, 'RGB', k, -400, 650), '', unreal.MaterialProperty.MP_NORMAL)
+    return finish(m)
+
+
+def make_letter_mat():
+    """M_Letter: Kessler's letter on the passenger seat (SourceArt/T_Letter.png, tools/make_letter_tex.py)."""
+    tex = import_tex('T_Letter')
+    path = f'{MATS}/M_Letter'
+    if eal.does_asset_exist(path):
+        eal.delete_asset(path)
+    m = tools.create_asset('M_Letter', MATS, unreal.Material, unreal.MaterialFactoryNew())
+    m.set_editor_property('two_sided', True)
+    ts = tex_sample(m, tex, 1.0, -400, 0)
+    mel.connect_material_property(ts, 'RGB', unreal.MaterialProperty.MP_BASE_COLOR)
+    k = mel.create_material_expression(m, unreal.MaterialExpressionConstant, -400, 250)
+    k.set_editor_property('r', 0.85)
+    mel.connect_material_property(k, '', unreal.MaterialProperty.MP_ROUGHNESS)
+    return finish(m)
+
+
+def make_eyeshine_mat():
+    """M_EyeShine: eyes in the dark catching the headlights (unlit, pale)."""
+    path = f'{MATS}/M_EyeShine'
+    if eal.does_asset_exist(path):
+        eal.delete_asset(path)
+    m = tools.create_asset('M_EyeShine', MATS, unreal.Material, unreal.MaterialFactoryNew())
+    m.set_editor_property('shading_model', unreal.MaterialShadingModel.MSM_UNLIT)
+    e = mel.create_material_expression(m, unreal.MaterialExpressionConstant3Vector, -400, 0)
+    e.set_editor_property('constant', unreal.LinearColor(2.2, 2.6, 2.4, 1))
+    mel.connect_material_property(e, '', unreal.MaterialProperty.MP_EMISSIVE_COLOR)
     return finish(m)
 
 
@@ -876,13 +988,17 @@ def main():
             log('drive sound: %.1f s' % snd.get_editor_property('duration'))
     path = [V(*p) for p in mountain['path']]
     director.set_editor_property('path', path)
-    # Part 2's opening (-crash): the drive picks up about 135 m before the crash point (at 35 km/h for 11.35 s, braking
-    # at 4 m/s2 to 9 km/h, creeping 5.35 s), so the car passes the old gap in the rail and is hit at the crash point;
+    # Part 2's opening (-crash): the drive picks up about 330 m before the crash point (at 35 km/h for 31.35 s, braking
+    # at 4 m/s2, creeping), so the car passes the old gap in the rail and is hit at the crash point;
     # the big spruce below stops it (the director stands it on the ground there, with a trunk the car's body hits)
     crash = mountain.get('crash')
     director.set_editor_property('granule_material', make_mat('M_GlassGranule', (0.1, 0.125, 0.118), 0.03, spec=1.0, instanced=True))
+    director.set_editor_property('glove_material', make_glove_mat())
+    director.set_editor_property('eye_shine_material', make_eyeshine_mat())
+    director.set_editor_property('letter_material', make_letter_mat())
     if crash:
-        director.set_editor_property('start_distance', crash['start_cm'] - 13470.0)
+        # 31.35 s of the drive before the brakes (the letter, the gap, the eyes in the trees), then as before
+        director.set_editor_property('start_distance', crash['start_cm'] - 13470.0 - 19444.0)
         if crash.get('stop_tree'):     # (the car used to be stopped by a spruce near the road; it now falls to the valley)
             st = crash['stop_tree']
             director.set_editor_property('stop_tree_at', V(st[0], st[1], st[2]))
