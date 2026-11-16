@@ -481,7 +481,37 @@ void AEndingDirector::AfterTheFall(float RealDt)
 		}
 		// on its roof, its nose propped up on a drift (so, hanging in the belt, the driver sees the snow above and the night
 		// below through the glass, and anything standing out there whole, upside down)
-		Body->SetActorLocationAndRotation(At + FVector(0.f, 0.f, 63.f), FRotator(8.f, Yaw, 178.f));
+		float FaceYaw = Yaw, Rise = -1e9f;
+		if (!FMath::IsNaN(GroundAt(At)))
+		{
+			const float g0 = GroundAt(At);
+			for (int32 k = 0; k < 16; ++k)
+			{
+				const float a = Yaw + 22.5f * k;
+				const FVector D = FRotator(0.f, a, 0.f).Vector();
+				float r = 0.f;
+				int32 n = 0;
+				for (const float d : {900.f, 1400.f, 2000.f})
+				{
+					const float g = GroundAt(At + D * d);
+					if (!FMath::IsNaN(g))
+					{
+						r += FMath::Clamp((g - g0) / d, -0.3f, 0.3f);
+						++n;
+					}
+				}
+				r = n ? r / n : -1.f;
+				// (open snow ahead, rising only a little: the beam reaches out across it, and whatever crosses it is seen)
+				r = -FMath::Abs(r - 0.03f) - 0.02f * FMath::Abs(FMath::FindDeltaAngleDegrees(a, Yaw)) / 180.f;
+				if (r > Rise)
+				{
+					Rise = r;
+					FaceYaw = a;
+				}
+			}
+		}
+		Body->SetActorLocationAndRotation(At + FVector(0.f, 0.f, 63.f), FRotator(-5.f, FaceYaw, 178.f));
+		UE_LOG(LogTemp, Display, TEXT("EndingDirector: on its roof facing %.0f deg (the snow ahead off level by %.0f%%), nose a little down"), FaceYaw, -Rise * 100.f);
 		if (ShellPts.Num() > 0 && Car)
 		{
 			// rested on the snow: raised or lowered so that its lowest point (of its real shell) just touches it
@@ -590,7 +620,10 @@ void AEndingDirector::AfterTheFall(float RealDt)
 		P.Z = CreatureGround(P);
 		const float Yaw = FMath::RadiansToDegrees(FMath::Atan2(WalkDir.Y, WalkDir.X));
 		Walker->SetActorLocationAndRotation(P, FRotator(0.f, Yaw, 0.f).Quaternion() * FRotator(0.f, -Walker->MeshForwardYaw(), 0.f).Quaternion());
-		Walker->AddActorWorldOffset(FVector(0.f, 0.f, Walker->GroundLift([this](const FVector& At) { return CreatureGround(At); })));
+		if (!Walker->HasSurface())
+		{
+			Walker->AddActorWorldOffset(FVector(0.f, 0.f, Walker->GroundLift([this](const FVector& At) { return CreatureGround(At); })));
+		}
 		if (w > 14.f)
 		{
 			Walker->Destroy();
@@ -803,6 +836,60 @@ void AEndingDirector::KeepOut(AHusk* H, const FVector& CarDir, const TCHAR* Who)
 		return N.StartsWith(TEXT("Terrain")) || N == TEXT("Road") || (P->GetOwner() && P->GetOwner()->ActorHasTag(TEXT("Guardrail")));
 	};
 	const FString W(Who);
+	// gravity (the owner: it floated, "add physics"): unless it is in the air (dropping onto the bonnet, leaping off it),
+	// it falls, at g, until its lowest points rest on what is under them (the bonnet, the roof, the snow)
+	float Settled = 0.f;
+	{
+		const bool bAir = H == Creature && (CreStage == 51 || CreStage == 60);
+		if (bAir)
+		{
+			H->SettleDrop = H->SettleSpeed = 0.f;
+		}
+		else
+		{
+			TArray<UPrimitiveComponent*> Under;
+			const FBox Around = H->GetComponentsBoundingBox(true).ExpandBy(80.f);
+			for (UPrimitiveComponent* P : CarParts)
+			{
+				if (P && P->Bounds.GetBox().Intersect(Around))
+				{
+					Under.Add(P);
+				}
+			}
+			auto SurfaceAt = [this, &Under](const FVector& At)
+			{
+				float Z = GroundBelow(At, 60.f);
+				FCollisionQueryParams Q(TEXT("RestsOn"), true);
+				for (UPrimitiveComponent* P : Under)
+				{
+					FHitResult Hh;
+					if (P->LineTraceComponent(Hh, At + FVector(0.f, 0.f, 60.f), At - FVector(0.f, 0.f, 400.f), Q))
+					{
+						Z = FMath::Max(Z, Hh.ImpactPoint.Z);
+					}
+				}
+				return Z;
+			};
+			const float Dt = FMath::Max(GetWorld()->GetDeltaSeconds(), 1e-3f);
+			const float Want = FMath::Clamp(H->SupportGap(SurfaceAt), 0.f, 300.f);     // down to resting on it, never into it
+			if (Want > H->SettleDrop + 0.1f)
+			{
+				H->SettleSpeed += 980.f * Dt;
+				H->SettleDrop = FMath::Min(Want, H->SettleDrop + H->SettleSpeed * Dt);
+				if (H->SettleDrop >= Want)
+				{
+					H->SettleSpeed = 0.f;         // landed
+				}
+			}
+			else
+			{
+				H->SettleDrop = Want;
+				H->SettleSpeed = 0.f;
+			}
+			H->AddActorWorldOffset(FVector(0.f, 0.f, -H->SettleDrop));
+			Settled = H->SettleDrop;
+		}
+	}
 	// first its hands, feet and face are put on what they touch (contact IK, on the body that is drawn); only what is
 	// left over moves it as a whole
 	FString IKWhat;
@@ -826,7 +913,7 @@ void AEndingDirector::KeepOut(AHusk* H, const FVector& CarDir, const TCHAR* Who)
 	FString What;
 	const float WorldIn = H->PushOutOfWorld(Ignore, IsGround, true, &What);
 	// the ground under its collision bodies and under its lowest visible points (claws, toes)
-	const float GroundIn = FMath::Max(H->GroundIn(Ground), H->GroundInSurface(Ground));
+	const float GroundIn = H->HasSurface() ? H->GroundInSurface(Ground) : H->GroundIn(Ground);   // (its real surface: its collision shapes are fatter than its legs)
 	if (GroundIn > 0.f)
 	{
 		H->AddActorWorldOffset(FVector(0.f, 0.f, GroundIn + 0.3f));
@@ -865,13 +952,42 @@ void AEndingDirector::KeepOut(AHusk* H, const FVector& CarDir, const TCHAR* Who)
 		return;
 	}
 	NoteClip(W + TEXT(" placed on what it touches by contact IK"), IKMove, FString::Printf(TEXT("its %s, stage %d"), *IKWhat, CreStage));
+	NoteClip(W + TEXT(" dropped onto what it rests on (gravity)"), Settled, FString::Printf(TEXT("stage %d"), CreStage));
+	if (!(H == Creature && (CreStage == 51 || CreStage == 60)))
+	{
+		// what is left: hovering over what it should rest on (after everything that moved it this frame)
+		TArray<UPrimitiveComponent*> Under;
+		const FBox Around = H->GetComponentsBoundingBox(true).ExpandBy(80.f);
+		for (UPrimitiveComponent* P : CarParts)
+		{
+			if (P && P->Bounds.GetBox().Intersect(Around))
+			{
+				Under.Add(P);
+			}
+		}
+		const float Hover = H->SupportGap([this, &Under](const FVector& At)
+		{
+			float Z = GroundBelow(At, 60.f);
+			FCollisionQueryParams Q(TEXT("RestsOn"), true);
+			for (UPrimitiveComponent* P : Under)
+			{
+				FHitResult Hh;
+				if (P->LineTraceComponent(Hh, At + FVector(0.f, 0.f, 60.f), At - FVector(0.f, 0.f, 400.f), Q))
+				{
+					Z = FMath::Max(Z, Hh.ImpactPoint.Z);
+				}
+			}
+			return Z;
+		});
+		NoteClip(W + TEXT(" FLOATING over what it rests on"), FMath::Min(Hover, 300.f), FString::Printf(TEXT("stage %d"), CreStage));
+	}
 	NoteClip(W + TEXT(" pushed out of solid things"), WorldIn, What);
 	NoteClip(W + TEXT(" lifted out of the ground"), GroundIn, TEXT("terrain"));
 	NoteClip(W + TEXT(" pushed out of the car"), CarIn, FString::Printf(TEXT("%s, stage %d"), *CarWhat, CreStage));
 	// what is left after the pushes: the clipping that would show
 	FString Left;
 	NoteClip(W + TEXT(" STILL in solid things"), H->PushOutOfWorld(Ignore, IsGround, false, &Left), Left);
-	NoteClip(W + TEXT(" STILL in the ground"), FMath::Max(H->GroundIn(Ground), H->GroundInSurface(Ground)), TEXT("terrain"));
+	NoteClip(W + TEXT(" STILL in the ground"), H->HasSurface() ? H->GroundInSurface(Ground) : H->GroundIn(Ground), TEXT("terrain"));
 	if (Car && CarParts.Num() > 0)
 	{
 		TArray<UPrimitiveComponent*> Parts;
@@ -1281,7 +1397,10 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 	{
 		P.Z = CreatureGround(P);
 		Face(H, P, Dir);
-		H->AddActorWorldOffset(FVector(0.f, 0.f, H->GroundLift(Ground)));
+		if (!H->HasSurface())
+		{
+			H->AddActorWorldOffset(FVector(0.f, 0.f, H->GroundLift(Ground)));    // (with its surface known, KeepOut keeps it on the snow)
+		}
 	};
 	auto Take = [](AHusk* H, const TCHAR* Name, bool bLoop, float Rate, float At = 0.f)
 	{

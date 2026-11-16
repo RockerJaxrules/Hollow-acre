@@ -996,7 +996,7 @@ def main():
     # at 4 m/s2, creeping), so the car passes the old gap in the rail and is hit at the crash point;
     # the big spruce below stops it (the director stands it on the ground there, with a trunk the car's body hits)
     crash = mountain.get('crash')
-    director.set_editor_property('granule_material', make_mat('M_GlassGranule', (0.1, 0.125, 0.118), 0.03, spec=1.0, instanced=True))
+    director.set_editor_property('granule_material', make_mat('M_GlassGranule', (0.52, 0.6, 0.58), 0.06, emissive=(0.02, 0.026, 0.025), spec=1.0, instanced=True))
     director.set_editor_property('glove_material', make_glove_mat())
     director.set_editor_property('eye_shine_material', make_eyeshine_mat())
     director.set_editor_property('letter_material', make_letter_mat())

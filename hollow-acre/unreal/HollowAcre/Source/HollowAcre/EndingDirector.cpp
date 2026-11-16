@@ -830,7 +830,7 @@ void AEndingDirector::CrashCamera(float DeltaSeconds)
 	{
 		// hanging in the belt, upside down: the head hangs toward the roof, swaying a little with the breath
 		HeadOff += (FVector(0.f, 0.f, 7.f) - HeadOff) * (1.f - FMath::Exp(-DeltaSeconds * 3.f));
-		const FRotator Hang(-7.f + 1.2f * FMath::Sin(RealTime * 0.8f), 0.f, 2.f * FMath::Sin(RealTime * 0.55f));
+		const FRotator Hang(5.f + 1.2f * FMath::Sin(RealTime * 0.8f), 0.f, 2.f * FMath::Sin(RealTime * 0.55f));   // (the car's up is the world's down: eyes toward the snow ahead)
 		Camera->GetRootComponent()->SetRelativeLocationAndRotation(ClearEye(CamRest + HeadOff), CamRestRot + Hang);
 		return;
 	}
@@ -922,7 +922,7 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 		LookAt(At, 0.75f, Want, Unused);
 		LookAt(At, 0.9f, Unused, WantPitch);
 		WantPitch = FMath::Clamp(WantPitch, -15.f, 16.f);           // (above that the visors and the roof hide it)
-		Rate = RiseT0 < 0.f || t < RiseT0 + 0.5f ? 10.f : 5.f;
+		Rate = RiseT0 < 0.f || t < RiseT0 + 0.5f ? 6.f : 4.f;       // a startled turn, not a snap
 		Focus = DistTo(At);
 		if (RiseT0 >= 0.f && t > RiseT0 + 2.4f && !bShook)
 		{

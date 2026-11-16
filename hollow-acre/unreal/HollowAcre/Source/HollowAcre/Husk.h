@@ -102,6 +102,13 @@ public:
 	/** Whether its visible surface is known (the editor build reads it from the meshes). */
 	bool HasSurface() const { return BodySurf.Num() > 0; }
 
+	/** How far (cm) its lowest visible points (whatever it stands or crouches on: feet, hands, knees) are above what is
+	 *  under each (SurfaceAt(point) high): 0 touching, < 0 in it, large when nothing of it rests on anything. */
+	float SupportGap(TFunctionRef<float(const FVector&)> SurfaceAt) const;
+
+	/** Gravity (the owner: it floated): how far it has dropped onto what it rests on (cm) and how fast it is falling. */
+	float SettleDrop = 0.f, SettleSpeed = 0.f;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
@@ -131,6 +138,7 @@ private:
 		int32 Bone;
 		FVector Local;
 		int32 Limb = -1;           // 0..3: its left hand, right hand, left foot, right foot (with their claws and toes); 4: its head
+		bool bFur = false;         // a lock of its fur (bends against what it touches: it never holds it up)
 	};
 	TArray<FSurf> BodySurf, FaceSurf;
 	void BuildSurface();

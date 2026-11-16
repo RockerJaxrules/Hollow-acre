@@ -700,7 +700,8 @@ void AHusk::BuildSurface()
 					continue;
 				}
 				Seen.Add(K);
-				Out.Add({Bone, Ref[Bone].InverseTransformPosition(P), LimbOf(Bone)});
+				const bool bFur = M->GetMaterials().IsValidIndex(S.MaterialIndex) && M->GetMaterials()[S.MaterialIndex].MaterialSlotName.ToString().StartsWith(TEXT("Hair"));
+				Out.Add({Bone, Ref[Bone].InverseTransformPosition(P), LimbOf(Bone), bFur});
 			}
 		}
 		Out.Sort([](const FSurf& A, const FSurf& B) { return A.Bone < B.Bone; });
@@ -741,6 +742,10 @@ float AHusk::GroundInSurface(TFunctionRef<float(const FVector&)> GroundAt) const
 	FTransform BT;
 	for (const FSurf& S : BodySurf)
 	{
+		if (S.bFur)
+		{
+			continue;
+		}
 		if (S.Bone != Last)
 		{
 			Last = S.Bone;
@@ -853,6 +858,40 @@ float AHusk::SurfaceIn(const TArray<UPrimitiveComponent*>& Parts, const FVector&
 		}
 	}
 	return Push;
+}
+
+float AHusk::SupportGap(TFunctionRef<float(const FVector&)> SurfaceAt) const
+{
+	// its lowest points (within 15 cm of the very lowest, a few of them): how far above what is under them
+	TArray<FVector> Pts;
+	Pts.Reserve(BodySurf.Num());
+	float MinZ = 1e9f;
+	int32 Last = INDEX_NONE;
+	FTransform BT;
+	for (const FSurf& S : BodySurf)
+	{
+		if (S.bFur)
+		{
+			continue;
+		}
+		if (S.Bone != Last)
+		{
+			Last = S.Bone;
+			BT = Pose()->GetBoneTransform(S.Bone);
+		}
+		Pts.Add(BT.TransformPosition(S.Local));
+		MinZ = FMath::Min(MinZ, Pts.Last().Z);
+	}
+	float Gap = 1e9f;
+	int32 n = 0;
+	for (const FVector& P : Pts)
+	{
+		if (P.Z < MinZ + 15.f && (++n % 3) == 0)
+		{
+			Gap = FMath::Min(Gap, P.Z - SurfaceAt(P));
+		}
+	}
+	return Gap;
 }
 
 float AHusk::LimbUnder(TFunctionRef<float(const FVector&)> GroundAt, int32 Limb) const
