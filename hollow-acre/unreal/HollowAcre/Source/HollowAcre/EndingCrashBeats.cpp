@@ -650,16 +650,16 @@ void AEndingDirector::AfterTheFall(float RealDt)
 
 float AEndingDirector::CarDip() const
 {
-	// the car's nose (degrees, + up): slammed down as it lands on the bonnet and held down by its weight; kicked up as it
-	// springs off; the roof takes it as it goes over
+	// the car's nose (degrees, + up): jolted as it lands on the roof (its weight a little forward of the middle, more so as
+	// it creeps to the front edge) and held down a little; kicked up as it springs off the back; its feet on the roof as it goes
 	float p = 0.f;
 	if (RiseT0 >= 0.f)
 	{
 		const float g = Time - RiseT0;
 		if (g > 0.f)
 		{
-			p += -2.4f * FMath::Exp(-4.f * g) * FMath::Sin(10.f * g + 0.4f);
-			p += -0.9f * Smooth(g / 0.4f) * (LeapT0 < 0.f ? 1.f : FMath::Exp(-6.f * FMath::Max(0.f, Time - LeapT0)));
+			p += -1.5f * FMath::Exp(-4.f * g) * FMath::Sin(10.f * g + 0.4f);
+			p += -0.5f * Smooth(g / 0.4f) * (LeapT0 < 0.f ? 1.f : FMath::Exp(-6.f * FMath::Max(0.f, Time - LeapT0)));
 		}
 	}
 	if (LeapT0 >= 0.f)
@@ -920,6 +920,8 @@ void AEndingDirector::KeepOut(AHusk* H, const FVector& CarDir, const TCHAR* Who)
 	}
 	FString CarWhat;
 	const float CarIn = CarDir.IsNearlyZero() ? 0.f : CarClear(H, CarDir, &CarWhat);
+	// (hanging its head: how far all that moved it after the hang was solved, for the next frame's aim)
+	H->HangAfter = H->HangW > 0.f ? H->GetActorLocation().Z - H->HangActorZ : 0.f;
 	static float NextProbe = 0.f;
 	if (bClipCheck && Car && H == Creature && CreStage == 6 && RealTime >= NextProbe)
 	{
@@ -946,6 +948,28 @@ void AEndingDirector::KeepOut(AHusk* H, const FVector& CarDir, const TCHAR* Who)
 		{
 			UE_LOG(LogTemp, Display, TEXT("Probe   shape 0 %s (%s) r %.0f"), *Sh[0].Bone.ToString(), *CT.InverseTransformPosition(Sh[0].A).ToString(), Sh[0].R);
 		}
+	}
+	// (where its head is, as it will be drawn this frame)
+	static float NextHeadLog = 0.f;
+	if (bClipCheck && Car && H == Creature && CreStage == 6 && RealTime >= NextHeadLog)
+	{
+		NextHeadLog = RealTime + 0.5f;
+		const FTransform C = Car->GetActorTransform();
+		const float r = Time - RiseT0;
+		const FVector Hd = C.InverseTransformPosition(H->HeadAt()), Fc = C.InverseTransformPosition(H->FaceAt()), Pl = C.InverseTransformPosition(H->GetBody()->GetSocketLocation(TEXT("pelvis")));
+		const FVector Want = C.InverseTransformPosition(H->HangHead), Sl = C.Rotator().UnrotateVector(H->HangSlide);
+		const FVector Aim = C.InverseTransformPosition(H->HangAimed), Got = C.InverseTransformPosition(H->HangGot);
+		if (Camera)
+		{
+			const FVector Cm = C.InverseTransformPosition(Camera->GetActorLocation()), Cf = C.InverseTransformVectorNoScale(Camera->GetActorForwardVector());
+			const FVector Hj = C.InverseTransformPosition(H->HeadAt());
+			UE_LOG(LogTemp, Display, TEXT("HeadProbe   eye at car (%.0f, %.0f, %.0f) looking %.0f deg up; its head joint %.0f deg up from the eye; car scale %s"), Cm.X, Cm.Y, Cm.Z,
+				FMath::RadiansToDegrees(FMath::Asin(FMath::Clamp(Cf.Z, -1.f, 1.f))), FMath::RadiansToDegrees(FMath::Atan2(Hj.Z - Cm.Z, FMath::Max(1.f, Hj.X - Cm.X))), *C.GetScale3D().ToString());
+		}
+		UE_LOG(LogTemp, Display, TEXT("HeadProbe   solve aimed its head at car (%.0f, %.0f, %.0f), got (%.0f, %.0f, %.0f) right after; settle %.1f (this frame %.1f), contact IK %.1f (%s), out of the car %.1f (%s), out of the ground %.1f"), Aim.X, Aim.Y, Aim.Z, Got.X, Got.Y, Got.Z, H->SettleDrop, Settled, IKMove, *IKWhat, CarIn, *CarWhat, GroundIn);
+		UE_LOG(LogTemp, Display, TEXT("HeadProbe %.2f: hang %.2f curl %.2f (spine %.0f deg, curl %.0f deg, slide %.0f %.0f), head at car (%.0f, %.0f, %.0f) want (%.0f, %.0f, %.0f), face (%.0f, %.0f, %.0f) [%.0f deg up from the eye], pelvis (%.0f, %.0f, %.0f)"), r, H->HangW, H->HangCurl,
+			H->HangSpineDeg, H->HangCurlDeg, Sl.X, Sl.Y, Hd.X, Hd.Y, Hd.Z, Want.X, Want.Y, Want.Z, Fc.X, Fc.Y, Fc.Z,
+			FMath::RadiansToDegrees(FMath::Atan2(Fc.Z - CamRest.Z, FMath::Max(1.f, Fc.X - CamRest.X))), Pl.X, Pl.Y, Pl.Z);
 	}
 	if (!bClipCheck)
 	{
@@ -1411,24 +1435,26 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 	};
 	AHusk* H = Creature;
 
-	// suddenly: it drops onto the bonnet from above (out of sight until it hits)
+	// suddenly: it drops onto the roof from above (out of sight: only heard, and felt)
 	if (!bDarted && Time >= SightTime)
 	{
 		bDarted = true;
-		const FVector From = C.TransformPosition(PerchAt + FVector(60.f, -40.f, 420.f));
+		// (onto the roof, the owner's choice: at its size its face can't be seen through the windshield from the bonnet)
+		const FVector From = C.TransformPosition(RoofPerch + FVector(0.f, 0.f, 420.f));
 		FActorSpawnParameters P;
 		P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		H = GetWorld()->SpawnActor<AHusk>(AHusk::StaticClass(), FTransform(From), P);
 		if (H && H->Setup())
 		{
 			H->SetActorScale3D(FVector(HuskScale));
-			Take(H, TEXT("Perch"), false, 0.f, 7.45f);
+			// (real motion: a person crawling, from where they are down on all fours and nearly still, held as it falls)
+			H->PlayClip(TEXT("CMU:111_03"), PerchClipAt, 0.f, false);
 			H->JawOpen = 14.f;
 			Creature = H;
 			CreStage = 51;
 			JumpT0 = Time;
-			ArcFrom = PerchAt + FVector(60.f, -40.f, 420.f);
-			Face(H, From, -F);
+			ArcFrom = RoofPerch + FVector(0.f, 0.f, 420.f);
+			Face(H, From, F);
 			// kept out of the car (the way that suits what it is doing), the solid things and the ground, each frame
 			// once its body is animated
 			H->KeepOutLate = [this](AHusk* Me)
@@ -1461,31 +1487,33 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 	}
 	else if (CreStage == 51)
 	{
-		// falling onto the bonnet (in the car's own frame: it is moving), quickening as it falls
+		// falling onto the roof (in the car's own frame: it is moving), quickening as it falls, out of sight above
 		const float u = FMath::Clamp((Time - JumpT0) / 0.22f, 0.f, 1.f);
-		const FVector Pc = FMath::Lerp(ArcFrom, PerchAt, u * u);
-		Face(H, C.TransformPosition(Pc), -F);
+		const FVector Pc = FMath::Lerp(ArcFrom, RoofPerch, u * u);
+		Face(H, C.TransformPosition(Pc), F);
 		if (u >= 1.f)
 		{
 			CreStage = 6;
 			RiseT0 = DropT = Time;
-			Take(H, TEXT("Perch"), false, 1.f, 0.f);
+			// on all fours on the roof, nearly still: the crawl, slowed right down (then it lies down: the hang below)
+			H->PlayClip(TEXT("CMU:111_03"), PerchClipAt, 0.3f, false);    // (slowed right down: just its breathing, its weight shifting)
 			Event(TEXT("land"));
 			FaceLight = NewObject<UPointLightComponent>(Car, TEXT("FaceGlow"));
 			FaceLight->SetupAttachment(Car->GetRootComponent());
 			FaceLight->RegisterComponent();
 			FaceLight->SetIntensityUnits(ELightUnits::Candelas);
-			FaceLight->SetIntensity(5.f);
+			FaceLight->SetIntensity(3.5f);
 			FaceLight->SetLightColor(FLinearColor(0.55f, 0.85f, 1.f));   // the dials' glow, up through the glass onto its face
 			FaceLight->SetAttenuationRadius(200.f);
 			FaceLight->SetCastShadows(false);
-			FaceLight->SetRelativeLocation(FVector(38.f, 10.f, 98.f));
+			FaceLight->SetRelativeLocation(FVector(50.f, 0.f, 102.f));
 		}
 	}
 	else if (CreStage == 6)
 	{
-		// on the bonnet, held there as the car brakes: rises, lowers its face to the glass, jaw wide (silent), springs off
-		Face(H, C.TransformPosition(PerchAt), -F);
+		// on the roof as the car brakes: lies flat, hangs its face down over the front edge, upside down, to the glass at
+		// the driver's eye line, jaw wide (silent), snaps back up, springs off the back
+		Face(H, C.TransformPosition(RoofPerch), F);      // on the roof, facing the way the car goes
 		const float r = Time - RiseT0;
 		static const struct { float At; const TCHAR* Kind; } Beats[] = {{2.4f, TEXT("rise")}, {5.95f, TEXT("jaw")}, {7.6f, TEXT("leap")}};
 		while (RiseBeat < (int32)UE_ARRAY_COUNT(Beats) && r >= Beats[RiseBeat].At)
@@ -1494,10 +1522,34 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 			if (RiseBeat == 2)
 			{
 				LeapT0 = Time;
+				Take(H, TEXT("Gallop"), true, 1.2f);       // (stretched out through the air over the roof)
 				CreStage = 60;
-				ArcFrom = PerchAt;
+				ArcFrom = C.InverseTransformPosition(H->GetActorLocation());     // (from where it is: crept to the edge)
+				H->PeerDown = H->PeerTilt = 0.f;
+				H->HangW = H->HangCurl = H->HangGripW = H->HangLie = 0.f;
 			}
 			++RiseBeat;
+		}
+		// on the roof, out of sight: it creeps to the front edge, its hands on the edge, its head curling down and round while
+		// still above the windshield; then slowly its face comes down into the top of the glass, upside down (stopping as its
+		// eyes come in), on down to the eye line, looking in; held, its head snapping over; drawn back up as it coils to spring
+		// (not once it has sprung: the beat above has just let go of all of it)
+		if (CreStage == 6)
+		{
+			auto Snap = [](float x) { return FMath::SmoothStep(0.f, 0.08f, x); };
+			const FVector Hidden(RoofHangHead.X + 4.f, CamRest.Y, 205.f), Eyes(RoofHangHead.X, CamRest.Y, 160.f), Low(RoofHangHead.X, CamRest.Y, RoofHangHead.Z);
+			const float d1 = FMath::SmoothStep(2.8f, 4.2f, r), d2 = FMath::SmoothStep(4.6f, 5.8f, r), Back = FMath::SmoothStep(7.15f, 7.45f, r);
+			const FVector Hd = FMath::Lerp(FMath::Lerp(FMath::Lerp(Hidden, Eyes, d1), Low, d2), Hidden, Back);
+			H->HangW = FMath::SmoothStep(0.5f, 1.6f, r);
+			H->HangCurl = FMath::SmoothStep(0.7f, 2.6f, r);
+			H->HangGripW = FMath::SmoothStep(0.9f, 2.4f, r);
+			H->HangLie = FMath::SmoothStep(0.6f, 1.9f, r);
+			H->HangHead = C.TransformPosition(Hd);
+			H->HangLook = C.TransformPosition(CamRest);
+			H->HangGrip[0] = C.TransformPosition(FVector(34.f, CamRest.Y - 46.f, 152.f));     // (its left hand: the car's left)
+			H->HangGrip[1] = C.TransformPosition(FVector(34.f, CamRest.Y + 46.f, 152.f));
+			H->PeerDown = 0.f;
+			H->PeerTilt = 14.f * Snap(r - 5.0f) - 36.f * Snap(r - 6.4f) + 14.f * Snap(r - 6.95f);
 		}
 		H->JawOpen = r < 6.f ? 6.f + 3.f * FMath::Sin(r * 2.7f)
 			: 6.f + 34.f * Smooth((r - 6.f) / 0.6f) * (1.f - Smooth((r - 7.15f) / 0.2f)) + 1.5f * FMath::Sin(r * 23.f) * Smooth((r - 6.3f) / 0.2f);

@@ -240,7 +240,19 @@ public:
 	FVector2D PeerStand = FVector2D(15.f, -186.f);
 	/** Where its feet land on the bonnet (cm, car frame; tools/blender/husk_body.py: Perch). */
 	UPROPERTY(EditAnywhere, Category = "Crash")
-	FVector PerchAt = FVector(150.f, 20.f, 95.f);
+	FVector PerchAt = FVector(205.f, 20.f, 95.f);
+	/** Where its hips are on the roof (cm, car frame): it crouches there facing forward, its head near the roof's front edge. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	FVector RoofPerch = FVector(-40.f, -5.f, 141.f);
+	/** Where its head comes down to, hanging upside down over the roof's front edge (cm, car frame; its y is the driver's
+	 *  eye's): out past the glass, a little above the eye line. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	FVector RoofHangHead = FVector(116.f, 0.f, 138.f);
+	/** The real-motion clip on the roof (CMU 111_03, crawling): from where (s) and how fast. */
+	UPROPERTY(EditAnywhere, Category = "Ending|Crash")
+	float PerchClipAt = 7.f;
+	UPROPERTY(EditAnywhere, Category = "Ending|Crash")
+	float PerchClipRate = 0.65f;
 	UPROPERTY(EditAnywhere, Category = "Crash")
 	float CreepAfterGone = 1.8f;
 	/** cm along the road: the creep stops here, by the stretch of rail the car is shoved through. */

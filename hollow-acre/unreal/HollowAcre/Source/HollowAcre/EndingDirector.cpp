@@ -917,7 +917,7 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 	else if (bHoodReveal && RiseT0 >= 0.f && LeapT0 < 0.f && Creature && Creature->GetBody())
 	{
 		// it has hit the bonnet (no warning: the eyes were on the road): they go to it, and stay on its face
-		const FVector At = Creature->GetBody()->GetSocketLocation(TEXT("head"));
+		const FVector At = Creature->FaceAt();
 		float Unused = 0.f;
 		LookAt(At, 0.75f, Want, Unused);
 		LookAt(At, 0.9f, Unused, WantPitch);

@@ -57,8 +57,11 @@ AHusk::AHusk()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.TickGroup = TG_PostUpdateWork;     // after the body's animation: the face copies the result
+	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+	RootComponent = Root;
+	Root->SetMobility(EComponentMobility::Movable);
 	Body = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Body"));
-	RootComponent = Body;
+	Body->SetupAttachment(Root);
 	Face = CreateDefaultSubobject<UPoseableMeshComponent>(TEXT("Face"));
 	Face->SetupAttachment(Body);
 	Shown = CreateDefaultSubobject<UPoseableMeshComponent>(TEXT("Shown"));
@@ -225,9 +228,18 @@ void AHusk::BeginPlay()
 	const bool bPlay = FParse::Param(FCommandLine::Get(), TEXT("huskplay"));
 	if (!PreviewTake.IsNone() && Setup())
 	{
-		Play(*PreviewTake.ToString(), bPlay);
-		Body->SetPosition(bPlay ? 0.f : PreviewTime, false);
-		Body->SetPlayRate(bPlay ? 1.f : 0.f);
+		float Start = 0.f;
+		FParse::Value(FCommandLine::Get(), TEXT("-huskstart="), Start);
+		if (bPlay)
+		{
+			PlayClip(*PreviewTake.ToString(), Start, 1.f, true);
+		}
+		else
+		{
+			Play(*PreviewTake.ToString(), false);
+			Body->SetPosition(PreviewTime, false);
+			Body->SetPlayRate(0.f);
+		}
 		if (PreviewJaw >= 0.f)
 		{
 			JawOpen = PreviewJaw;
@@ -559,6 +571,8 @@ float AHusk::GroundIn(TFunctionRef<float(const FVector&)> GroundAt) const
 
 void AHusk::Play(const TCHAR* Take, bool bLoop)
 {
+	Body->SetRelativeTransform(FTransform::Identity);     // (an anchored clip shifts it again: PlayClip)
+	ClipFacing = FVector::ZeroVector;
 	const FString T(Take);
 	if (T.StartsWith(TEXT("CMU:")) && !Takes.Contains(FName(Take)))
 	{
@@ -578,6 +592,39 @@ void AHusk::Play(const TCHAR* Take, bool bLoop)
 	{
 		Body->PlayAnimation(*A, bLoop);
 	}
+}
+
+void AHusk::PlayClip(const TCHAR* Take, float At, float Rate, bool bLoop)
+{
+	Play(Take, bLoop);
+	Body->SetPlayRate(Rate);
+	Body->SetPosition(At, false);
+	PoseNow();
+	const int32 Pel = Body->GetBoneIndex(TEXT("pelvis"));
+	if (Pel == INDEX_NONE || !Body->GetSkinnedAsset())
+	{
+		return;
+	}
+	// where its pelvis is and which way it faces in the clip at At (from how far its pelvis has turned from rest)
+	const FTransform P = Body->GetBoneTransform(Pel, FTransform::Identity);
+	const FTransform Ref = RefCS(Body->GetSkinnedAsset()->GetRefSkeleton(), Pel);
+	const FVector Fwd = FRotator(0.f, MeshForwardYaw(), 0.f).Vector();
+	FVector Facing = (P.GetRotation() * Ref.GetRotation().Inverse()).RotateVector(Fwd).GetSafeNormal2D();
+	const int32 HeadIdx = Body->GetBoneIndex(TEXT("head"));
+	if (HeadIdx != INDEX_NONE)
+	{
+		// down on all fours (its head well ahead of its hips), it faces the way its head is from its hips
+		const FVector Ahead = Body->GetBoneTransform(HeadIdx, FTransform::Identity).GetLocation() - P.GetLocation();
+		if (Ahead.Size2D() > 0.45f * Ahead.Size())
+		{
+			Facing = Ahead.GetSafeNormal2D();
+		}
+	}
+	const float Turn = Facing.IsNearlyZero() ? 0.f : FMath::FindDeltaAngleDegrees(Facing.Rotation().Yaw, MeshForwardYaw());
+	ClipFacing = Facing;
+	const FVector Off(P.GetLocation().X, P.GetLocation().Y, 0.f);
+	Body->SetRelativeTransform(FTransform(-Off) * FTransform(FRotator(0.f, Turn, 0.f)));
+	UE_LOG(LogTemp, Display, TEXT("Husk: %s from %.1f s anchored: its pelvis %.0f cm off, turned %.0f deg"), Take, At, Off.Size(), Turn);
 }
 
 void AHusk::PoseNow()
@@ -727,6 +774,24 @@ void AHusk::BuildSurface()
 		}
 	}
 	Gather(BM, BodySurf, [&LimbOfBone](int32 Bone) { return LimbOfBone.IsValidIndex(Bone) ? LimbOfBone[Bone] : -1; });
+	// (and which arm each bone is part of: an arm holding on is held there by its hands, not something it lies on)
+	ArmOfBone.Reset();
+	if (BM)
+	{
+		const FReferenceSkeleton& RS = BM->GetRefSkeleton();
+		ArmOfBone.Init(0, RS.GetNum());
+		for (int32 i = 0; i < RS.GetNum(); ++i)
+		{
+			for (int32 b = i; b != INDEX_NONE; b = RS.GetParentIndex(b))
+			{
+				if (b == Chain[0][0] || b == Chain[1][0])
+				{
+					ArmOfBone[i] = b == Chain[0][0] ? 1 : 2;
+					break;
+				}
+			}
+		}
+	}
 	Gather(Cast<USkeletalMesh>(Face->GetSkinnedAsset()), FaceSurf, [](int32) { return 4; });
 #endif
 	UE_LOG(LogTemp, Display, TEXT("Husk: its visible surface: %d points on the body, %d on the face"), BodySurf.Num(), FaceSurf.Num());
@@ -870,7 +935,8 @@ float AHusk::SupportGap(TFunctionRef<float(const FVector&)> SurfaceAt) const
 	FTransform BT;
 	for (const FSurf& S : BodySurf)
 	{
-		if (S.bFur)
+		// (it never rests on its head: hung over an edge, its head is not what holds it; nor on hands gripping holds)
+		if (S.bFur || S.Limb == 4 || (HangW > 0.5f && HangGripW > 0.5f && ArmOfBone.IsValidIndex(S.Bone) && ArmOfBone[S.Bone] != 0))
 		{
 			continue;
 		}
@@ -886,7 +952,8 @@ float AHusk::SupportGap(TFunctionRef<float(const FVector&)> SurfaceAt) const
 	int32 n = 0;
 	for (const FVector& P : Pts)
 	{
-		if (P.Z < MinZ + 15.f && (++n % 3) == 0)
+		// (draped over an edge, lying along it, what it rests on may be well above its lowest point: a deeper band then)
+		if (P.Z < MinZ + (HangW > 0.5f ? 80.f : 15.f) && (++n % 3) == 0)
 		{
 			Gap = FMath::Min(Gap, P.Z - SurfaceAt(P));
 		}
@@ -946,6 +1013,235 @@ void AHusk::CopyPose()
 		Shown->BoneSpaceTransforms[i] = P == INDEX_NONE ? CS[i] : CS[i].GetRelativeTransform(CS[P]);
 	}
 	Shown->RefreshBoneTransforms();
+	BendToPeer();
+}
+
+void AHusk::BendToPeer()
+{
+	// its spine, neck and head bent down about its own side-to-side axis (the bones above follow), its head tilted over
+	if ((PeerDown <= 0.f && FMath::IsNearlyZero(PeerTilt) && HangW <= 0.f) || !Shown->GetSkinnedAsset())
+	{
+		return;
+	}
+	const FVector Facing = ClipFacing.IsNearlyZero() ? FRotator(0.f, MeshForwardYaw(), 0.f).Vector() : ClipFacing;
+	const FVector Side = FVector::CrossProduct(FVector::UpVector, Facing).GetSafeNormal();
+	if (HangW > 0.f)
+	{
+		Hang(Facing, Side);
+		return;
+	}
+	struct FBend
+	{
+		const TCHAR* Bone;
+		float Share;
+	};
+	static const FBend Bends[] = {{TEXT("spine_03"), 0.1f}, {TEXT("spine_04"), 0.15f}, {TEXT("spine_05"), 0.2f}, {TEXT("neck_01"), 0.2f}, {TEXT("neck_02"), 0.15f}, {TEXT("head"), 0.2f}};
+	const float Total = FMath::DegreesToRadians(PeerMaxDeg) * PeerDown;
+	for (const FBend& B : Bends)
+	{
+		const int32 i = Shown->GetBoneIndex(B.Bone);
+		if (i == INDEX_NONE)
+		{
+			continue;
+		}
+		const FTransform T = Shown->GetBoneTransform(i, FTransform::Identity);
+		FTransform T2 = T;
+		// (about +Side the face goes down: its front turns toward the floor)
+		T2.SetRotation(FQuat(Side, Total * B.Share) * T.GetRotation());
+		if (FCString::Strcmp(B.Bone, TEXT("head")) == 0 && !FMath::IsNearlyZero(PeerTilt))
+		{
+			T2.SetRotation(FQuat(Facing, FMath::DegreesToRadians(PeerTilt)) * T2.GetRotation());
+		}
+		Shown->SetBoneTransformByName(B.Bone, T2, EBoneSpaces::ComponentSpace);
+		Shown->RefreshBoneTransforms();
+	}
+}
+
+FVector AHusk::FaceAt() const
+{
+	// the middle of its face: every so often one of the face's own points, as the face is drawn now
+	if (FaceSurf.Num() == 0 || !Face || !Face->GetSkinnedAsset())
+	{
+		return HeadAt();
+	}
+	FVector Sum = FVector::ZeroVector;
+	int32 n = 0;
+	for (int32 i = 0; i < FaceSurf.Num(); i += 7)
+	{
+		Sum += Face->GetBoneTransform(FaceSurf[i].Bone).TransformPosition(FaceSurf[i].Local);
+		++n;
+	}
+	return n > 0 ? Sum / n : HeadAt();
+}
+
+void AHusk::Hang(const FVector& Facing, const FVector& Side)
+{
+	// its spine, from the hips up: the lower part bends its chest down over the edge (Spine), the rest curls its neck
+	// and head on round (Curl) until its face, upside down, looks back in; both about its own side-to-side axis
+	static const FName Bones[] = {TEXT("spine_01"), TEXT("spine_02"), TEXT("spine_03"), TEXT("spine_04"), TEXT("spine_05"), TEXT("neck_01"), TEXT("neck_02"), TEXT("head")};
+	static const float SpineShare[] = {0.3f, 0.35f, 0.35f, 0.f, 0.f, 0.f, 0.f, 0.f};
+	static const float CurlShare[] = {0.f, 0.f, 0.f, 0.12f, 0.18f, 0.25f, 0.22f, 0.23f};
+	constexpr int32 N = UE_ARRAY_COUNT(Bones);
+	int32 Index[N];
+	FVector P[N];
+	for (int32 k = 0; k < N; ++k)
+	{
+		Index[k] = Shown->GetBoneIndex(Bones[k]);
+		if (Index[k] == INDEX_NONE)
+		{
+			return;
+		}
+		P[k] = Shown->GetBoneTransform(Index[k], FTransform::Identity).GetLocation();     // (component space)
+	}
+	const FTransform CT = Shown->GetComponentTransform();
+	// lying down: its legs stretched out behind it along what it lies on (thighs a little down to the knees, shins flat)
+	if (HangLie > 0.f)
+	{
+		const float Lie = FMath::Clamp(HangLie, 0.f, 1.f);
+		const FVector Back = -Facing.GetSafeNormal2D();
+		const FVector ThighTo = (Back * FMath::Cos(0.17f) - FVector::UpVector * FMath::Sin(0.17f)).GetSafeNormal(), ShinTo = (Back * FMath::Cos(0.05f) - FVector::UpVector * FMath::Sin(0.05f)).GetSafeNormal();
+		for (int32 L = 2; L < 4; ++L)
+		{
+			if (Chain[L][0] == INDEX_NONE || Chain[L][1] == INDEX_NONE || Chain[L][2] == INDEX_NONE)
+			{
+				continue;
+			}
+			for (int32 j = 0; j < 2; ++j)
+			{
+				const FTransform T = Shown->GetBoneTransform(Chain[L][j], FTransform::Identity);
+				const FVector Dir = (Shown->GetBoneTransform(Chain[L][j + 1], FTransform::Identity).GetLocation() - T.GetLocation()).GetSafeNormal();
+				const FQuat R = FQuat::Slerp(FQuat::Identity, FQuat::FindBetweenNormals(Dir, j == 0 ? ThighTo : ShinTo), Lie);
+				FTransform T2 = T;
+				T2.SetRotation(R * T.GetRotation());
+				Shown->SetBoneTransformByName(Shown->GetBoneName(Chain[L][j]), T2, EBoneSpaces::ComponentSpace);
+				Shown->RefreshBoneTransforms();
+			}
+		}
+	}
+	// (its head aimed against what moves it after: gravity, pushes out of things: about as much each frame)
+	const FVector HeadT = CT.InverseTransformPosition(HangHead - FVector(0.f, 0.f, HangAfter)), LookT = CT.InverseTransformPosition(HangLook);
+	auto Flat = [&Side](FVector V) { V -= Side * FVector::DotProduct(V, Side); return V.GetSafeNormal(); };
+	// how far round its head must turn: its head's up (along its upper neck) from where the clip has it to where it is
+	// when its face looks at HangLook (its face is its up turned a quarter forward-down)
+	const FVector U0 = Flat(P[7] - P[6]);
+	const FVector FaceTo = Flat(LookT - HeadT);
+	const FVector UTo = FQuat(Side, -HALF_PI).RotateVector(FaceTo);
+	float Theta = FMath::Atan2(FVector::DotProduct(FVector::CrossProduct(U0, UTo), Side), FVector::DotProduct(U0, UTo));
+	if (Theta < -0.5f)
+	{
+		Theta += 2.f * PI;           // (always forward and down, round over the top of its head, never back)
+	}
+	Theta *= FMath::Clamp(HangCurl, 0.f, 1.f);
+	// where its head is (component space) with Spine in the lower spine and the rest of Theta curled above
+	auto HeadWith = [&](float Spine)
+	{
+		FVector Q[N];
+		for (int32 k = 0; k < N; ++k)
+		{
+			Q[k] = P[k];
+		}
+		for (int32 k = 0; k < N - 1; ++k)
+		{
+			const float a = Spine * SpineShare[k] + (Theta - Spine) * CurlShare[k];
+			if (FMath::IsNearlyZero(a))
+			{
+				continue;
+			}
+			const FQuat R(Side, a);
+			for (int32 m = k + 1; m < N; ++m)
+			{
+				Q[m] = Q[k] + R.RotateVector(Q[m] - Q[k]);
+			}
+		}
+		return Q[N - 1];
+	};
+	// the lower spine's bend that puts its head at the height wanted: a scan, then a closer one round the best
+	// (its neck may take some of it back the other way: arched back, up to 40 degrees, its face still turned as far)
+	const float Lo = -0.6f, Hi = FMath::Min(Theta + 0.7f, 1.9f);
+	float Best = 0.f, BestErr = 1e9f;
+	for (float a = Lo; a <= Hi; a += 0.05f)
+	{
+		const float e = FMath::Abs(HeadWith(a).Z - HeadT.Z);
+		if (e < BestErr)
+		{
+			BestErr = e;
+			Best = a;
+		}
+	}
+	for (float a = Best - 0.05f; a <= Best + 0.05f; a += 0.005f)
+	{
+		const float e = FMath::Abs(HeadWith(a).Z - HeadT.Z);
+		if (e < BestErr)
+		{
+			BestErr = e;
+			Best = a;
+		}
+	}
+	// and the rest by sliding its whole body along (level): its head over the place wanted
+	FVector Slide = HeadT - HeadWith(Best);
+	Slide.Z = 0.f;
+	Slide = Slide.GetClampedToMaxSize(150.f / FMath::Max(0.1f, CT.GetScale3D().X));
+	const float W = FMath::Clamp(HangW, 0.f, 1.f);
+	const float Spine = W * Best, Curl = W * (Theta - Best);
+	HangSpineDeg = FMath::RadiansToDegrees(Spine);
+	HangCurlDeg = FMath::RadiansToDegrees(Curl);
+	// its hands as the clip has them turned (flat on what it crawls on), before the bend turns them
+	FQuat HandRot[2];
+	for (int32 L = 0; L < 2; ++L)
+	{
+		HandRot[L] = Chain[L][2] != INDEX_NONE ? Shown->GetBoneTransform(Chain[L][2], FTransform::Identity).GetRotation() : FQuat::Identity;
+	}
+	// the bend, bone by bone from the hips up (each bone's children follow it), its head tilted over about where it looks
+	const FVector FaceDir = FQuat(Side, HALF_PI).RotateVector(FQuat(Side, Spine + Curl).RotateVector(U0));
+	for (int32 k = 0; k < N; ++k)
+	{
+		const float a = Spine * SpineShare[k] + Curl * CurlShare[k];
+		const bool bTilt = k == N - 1 && !FMath::IsNearlyZero(PeerTilt);
+		if (FMath::IsNearlyZero(a) && !bTilt)
+		{
+			continue;
+		}
+		const FTransform T = Shown->GetBoneTransform(Index[k], FTransform::Identity);
+		FTransform T2 = T;
+		FQuat R(Side, a);
+		if (bTilt)
+		{
+			R = FQuat(FaceDir, FMath::DegreesToRadians(PeerTilt)) * R;
+		}
+		T2.SetRotation(R * T.GetRotation());
+		Shown->SetBoneTransformByName(Bones[k], T2, EBoneSpaces::ComponentSpace);
+		Shown->RefreshBoneTransforms();
+	}
+	HangSlide = CT.TransformVector(Slide * W);
+	HangAimed = CT.TransformPosition(HeadWith(Best)) + HangSlide;
+	AddActorWorldOffset(HangSlide);
+	HangActorZ = GetActorLocation().Z;
+	HangGot = HeadAt();
+	// its hands onto their holds (two-bone IK, its elbows out to the side and up, like a spider's), flat as they were
+	if (HangGripW > 0.f)
+	{
+		const FTransform C2 = Shown->GetComponentTransform();
+		const FVector SideW = C2.TransformVectorNoScale(Side);
+		const FVector Chest = Shown->GetBoneTransform(Index[4]).GetLocation();
+		for (int32 L = 0; L < 2; ++L)
+		{
+			if (Chain[L][0] == INDEX_NONE || Chain[L][1] == INDEX_NONE || Chain[L][2] == INDEX_NONE || HangGrip[L].IsZero())
+			{
+				continue;
+			}
+			FTransform A = Shown->GetBoneTransform(Chain[L][0]), B = Shown->GetBoneTransform(Chain[L][1]), C = Shown->GetBoneTransform(Chain[L][2]);
+			const float Out = FVector::DotProduct(A.GetLocation() - Chest, SideW) >= 0.f ? 1.f : -1.f;
+			const FVector JointTarget = B.GetLocation() + (SideW * Out * 0.75f + FVector::UpVector * 0.65f) * 60.f;
+			const float g = FMath::Clamp(HangGripW, 0.f, 1.f);
+			// (as high again as gravity will bring it all down after, like its head)
+			const FVector Target = FMath::Lerp(C.GetLocation(), HangGrip[L] - FVector(0.f, 0.f, HangAfter), g);
+			AnimationCore::SolveTwoBoneIK(A, B, C, JointTarget, Target, false, 1.f, 1.f);
+			C.SetRotation(FQuat::Slerp(C.GetRotation(), C2.GetRotation() * HandRot[L], g));
+			SetCS(Chain[L][0], A);
+			SetCS(Chain[L][1], B);
+			SetCS(Chain[L][2], C);
+		}
+	}
 }
 
 void AHusk::SetCS(int32 Bone, const FTransform& World)

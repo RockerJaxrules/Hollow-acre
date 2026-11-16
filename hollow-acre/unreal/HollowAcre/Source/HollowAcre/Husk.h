@@ -29,6 +29,11 @@ public:
 	/** Play one of its takes: "Gallop", "GallopLookL" or "Sighting". */
 	void Play(const TCHAR* Take, bool bLoop);
 
+	/** Play a take (a real-motion clip, "CMU:<clip>") from At (s) at Rate, anchored: its pelvis put over this actor's
+	 *  place and turned to face this actor's way as it is at At (the clip's own place and heading in the capture room
+	 *  taken out); its moves from there are its own. */
+	void PlayClip(const TCHAR* Take, float At, float Rate, bool bLoop);
+
 	/** Its pose from the take where it is now, at once (after a new take or a jump in it). */
 	void PoseNow();
 
@@ -47,6 +52,13 @@ public:
 	float JawOpen = 6.f;
 
 	USkeletalMeshComponent* GetBody() const { return Body; }
+
+	/** Where its head is as it is drawn (its clip, and any bend on top of it). */
+	FVector HeadAt() const { return Pose()->GetSocketLocation(TEXT("head")); }
+	/** Where the middle of its face is as it is drawn (its eyes, nose, mouth: the face's own points, a few of them). */
+	FVector FaceAt() const;
+	/** Where one of its bones is as it is drawn. */
+	FVector DrawnAt(FName Bone) const { return Pose()->GetSocketLocation(Bone); }
 
 	/** Contact IK (the owner: nothing through the car, nothing floating): on the body that is drawn, its hands and feet
 	 *  are put on what they touch, by two-bone IK (their claws and toes out of Parts along Dir, and out of the snow,
@@ -106,6 +118,26 @@ public:
 	 *  under each (SurfaceAt(point) high): 0 touching, < 0 in it, large when nothing of it rests on anything. */
 	float SupportGap(TFunctionRef<float(const FVector&)> SurfaceAt) const;
 
+	/** A layer on top of its clip: its spine, neck and head bent down toward what is in front of it (0 none, 1 about 85
+	 *  degrees through them all), and its head tilted over (degrees): to bring its face down to a windshield, peering. */
+	float PeerDown = 0.f, PeerTilt = 0.f, PeerMaxDeg = 85.f;
+
+	/** Hanging its head down over an edge (the roof's front, the owner's reveal), on top of its clip: its lower spine bent
+	 *  down and its upper spine, neck and head curled about its own side-to-side axis, solved each frame so that its head
+	 *  is at HangHead (world) with its face turned (upside down) toward HangLook; its body slid along what it is on as
+	 *  much as that takes; its hands put on HangGrip (world: left, right). HangW: how much of all of it (0: its clip as it
+	 *  is); HangCurl: how far round its face has turned (0..1); HangGripW: how far its hands are on their holds. */
+	float HangW = 0.f, HangCurl = 0.f, HangGripW = 0.f;
+	/** How far it has lain down flat on what it is on (0..1): its legs stretched out behind it; gravity brings it down. */
+	float HangLie = 0.f;
+	FVector HangHead = FVector::ZeroVector, HangLook = FVector::ZeroVector;
+	FVector HangGrip[2] = {FVector::ZeroVector, FVector::ZeroVector};
+	/** What the solve came to this frame (for the checks): degrees in the lower spine, degrees curled above, the slide (world). */
+	float HangSpineDeg = 0.f, HangCurlDeg = 0.f;
+	/** How far (cm, up) it was moved after the hang was solved last frame (gravity, pushes out): the next is aimed against it. */
+	float HangActorZ = 0.f, HangAfter = 0.f;
+	FVector HangSlide = FVector::ZeroVector, HangAimed = FVector::ZeroVector, HangGot = FVector::ZeroVector;
+
 	/** Gravity (the owner: it floated): how far it has dropped onto what it rests on (cm) and how fast it is falling. */
 	float SettleDrop = 0.f, SettleSpeed = 0.f;
 
@@ -116,6 +148,8 @@ protected:
 private:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USkeletalMeshComponent> Body;
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<USceneComponent> Root;          // its place; Body under it, shifted and turned for an anchored clip
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UPoseableMeshComponent> Face;
 	UPROPERTY(VisibleAnywhere)
@@ -141,6 +175,7 @@ private:
 		bool bFur = false;         // a lock of its fur (bends against what it touches: it never holds it up)
 	};
 	TArray<FSurf> BodySurf, FaceSurf;
+	TArray<uint8> ArmOfBone;    // per bone: 1 its left arm, 2 its right (upper arm and all below it), 0 neither
 	void BuildSurface();
 
 	// the body that is drawn: the take's pose each frame (from Body, which animates unseen), then its contacts (ContactIK)
@@ -151,6 +186,9 @@ private:
 	void UpdateFace();
 	int32 Chain[4][3];            // upper arm, forearm, hand; thigh, calf, foot (bone indices)
 	int32 NeckBone = INDEX_NONE, HeadBone = INDEX_NONE;
+	FVector ClipFacing = FVector::ZeroVector;      // which way it faces in its clip (component space; 0: its mesh's own way)
+	void BendToPeer();
+	void Hang(const FVector& Facing, const FVector& Side);
 	float SurfaceIn(const TArray<class UPrimitiveComponent*>& Parts, const FVector& Dir, const class UMaterialInterface* Skip, int32 Limb,
 		float Skin, FString* Worst) const;
 	float LimbUnder(TFunctionRef<float(const FVector&)> GroundAt, int32 Limb) const;
