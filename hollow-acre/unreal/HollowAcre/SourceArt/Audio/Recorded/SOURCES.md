@@ -4,7 +4,7 @@ Real recorded sound effects for the blizzard mountain-road / creature / car-cras
 
 - Source: [Freesound](https://freesound.org). Every file below was checked on its own Freesound page and is licensed **Creative Commons 0** (public domain dedication, <http://creativecommons.org/publicdomain/zero/1.0/>). No attribution is legally required; authors are listed for courtesy and traceability.
 - Files are Freesound's **high-quality MP3 previews** (`-hq.mp3`, the original uploads need a Freesound login). If a sound becomes a final asset, consider fetching the original WAV/FLAC from the page URL for best quality.
-- 107 files, 131.4 MB total. Duration is the length of the original recording as listed on Freesound.
+- 164 files, 187.4 MB total. Duration is the length of the original recording as listed on Freesound.
 - Notes describe what the recording is (from its title, description and tags) and what it is intended for in the scene. They have not been audition-checked; listen before use.
 - Local filename pattern: `<category>_<short-description>_<freesound-id>.mp3`, inside the folder of the same category.
 
@@ -24,6 +24,15 @@ Real recorded sound effects for the blizzard mountain-road / creature / car-cras
 - [aftermath](#aftermath) (8 files): Steam hiss, hot engine ticking while cooling, quiet car-interior room tone.
 - [human](#human) (8 files): Wordless panicked / scared breathing and sharp gasps (male and female).
 - [cabin](#cabin) (7 files): Windshield wiper motor and blades, heater / blower fan.
+- [score_strings](#score_strings) (6 files): Score layer, real recorded strings: low cello / viola drones, sul-ponticello scrapes, bowed double-bass harmonics, aleatoric extended-technique cello, eerie stacked-violin harmonics and glissandi.
+- [score_extended](#score_extended) (6 files): Score layer, extended techniques and unusual sources: bowed cymbal, bowed waterphone, bowed musical saw, bowed metal railing, scraped / struck inside-piano strings, bowed wine glass.
+- [cine_hits](#cine_hits) (6 files): Cine layer: trailer booms, big impacts, a braam, an impact downer and a sub drop. These are designed sound effects (synths, samples and processing), not field recordings.
+- [cine_risers](#cine_risers) (6 files): Cine layer: Shepard-tone riser, dark / horror tension risers, reverse crash cymbal, reversed piano-string riser, slow low whoosh. Mostly designed sounds; the Shepard tone is generated sine waves.
+- [stingers](#stingers) (6 files): Short horror scare stingers: recorded cello sting, cluster hits, violin / cymbal jump scare, string tremolo crescendo, plucked-string stinger.
+- [night_ambience](#night_ambience) (6 files): Winter forest at night and blizzard beds, trees creaking in wind (spot details), and distant wild wolf howl / elk cry to process into faint creature calls.
+- [creature_extra](#creature_extra) (8 files): More creature vocal layers: human monster screams and growls (no words), fox screams, howler monkeys, chimpanzee screams, pig squeals, tiger hiss / growl, close dog breaths and snarls.
+- [foley_car](#foley_car) (7 files): Car-interior and wreck foley: seatbelt handling, leather creak, seatbelt warning chime, radio static between stations, glass shards settling, slow metal stress creaks, dripping onto metal.
+- [body](#body) (6 files): Heartbeats (steady, deep, racing) and tinnitus / ear ringing, plus a recorded tuning fork as a near-sine ringing tone.
 
 ## engine
 
@@ -230,6 +239,126 @@ Windshield wiper motor and blades, heater / blower fan.
 | `cabin/cabin_heater_vent_adjust_629318.mp3` | [629318](https://freesound.org/people/greatsoundstube/sounds/629318/) | adjust fan vent.wav | greatsoundstube | Creative Commons 0 | 0:08.4 | Adjusting the heater fan vent inside a car (clicks plus airflow). |
 | `cabin/cabin_izh412_blower_switch_879618.mp3` | [879618](https://freesound.org/people/Mihacappy/sounds/879618/) | 412_swb.wav | Mihacappy | Creative Commons 0 | 0:02.2 | IZH-412 (old Soviet sedan) blower motor switch turned off and on. |
 
+## score_strings
+
+Score layer, real recorded strings: low cello / viola drones, sul-ponticello scrapes, bowed double-bass harmonics, aleatoric extended-technique cello, eerie stacked-violin harmonics and glissandi.
+
+| Local file | Freesound ID | Title | Author | License | Duration | Note |
+|---|---|---|---|---|---|---|
+| `score_strings/score_strings_concrete_cello_low_scrapes_571173.mp3` | [571173](https://freesound.org/people/PLukx/sounds/571173/) | Concrete Cello_18_Scrapes_low_level.wav | PLukx | Creative Commons 0 | 1:26.5 | Close-miked raw studio cello (U87) improvising low, scratchy sul-ponticello scrapes and drones; low string drone / tonally ambiguous bed under the drive. |
+| `score_strings/score_strings_viola_c_drone_long_191344.mp3` | [191344](https://freesound.org/people/malupeeters/sounds/191344/) | Viola C drone long .aif | malupeeters | Creative Commons 0 | 1:11.2 | Dry, close-miked viola bowing the low C string with occasional overtones; long sustained low string drone for the score. |
+| `score_strings/score_strings_cellos_droning_509535.mp3` | [509535](https://freesound.org/people/MindlessTrails/sounds/509535/) | Drones.wav | MindlessTrails | Creative Commons 0 | 1:21.2 | Cellos droning (tagged dread); long sustained low cello drone layer for tension under the eyes-in-the-trees beat. |
+| `score_strings/score_strings_double_bass_bowed_harmonics_47429.mp3` | [47429](https://freesound.org/people/stomachache/sounds/47429/) | stringharmonics.wav | stomachache | Creative Commons 0 | 0:28.0 | Double bass bowed harmonics, noisy squeals and scrapes played as "noisy strangeness" (Shure KSM44); eerie high string texture with a low body. |
+| `score_strings/score_strings_aleatoric_cello_extended_loop_469998.mp3` | [469998](https://freesound.org/people/josiahsprankle/sounds/469998/) | aleatoric cello loop.wav | josiahsprankle | Creative Commons 0 | 1:22.3 | Improvised loop of cello extended techniques in the spirit of Crumb's Black Angels (tagged horror, score); aleatoric / percussive horror strings. |
+| `score_strings/score_strings_violins_harmonics_glissandi_378457.mp3` | [378457](https://freesound.org/people/Cunningar0807/sounds/378457/) | Violins Suspense 3.wav | Cunningar0807 | Creative Commons 0 | 0:14.8 | Four stacked violin parts playing harmonics with up-and-down glissandi plus reverb; eerie violin harmonics/glissandi for the creature stare. |
+
+## score_extended
+
+Score layer, extended techniques and unusual sources: bowed cymbal, bowed waterphone, bowed musical saw, bowed metal railing, scraped / struck inside-piano strings, bowed wine glass.
+
+| Local file | Freesound ID | Title | Author | License | Duration | Note |
+|---|---|---|---|---|---|---|
+| `score_extended/score_extended_bowed_suspended_cymbal_532741.mp3` | [532741](https://freesound.org/people/benjohansen/sounds/532741/) | Cymbal (bowed) | benjohansen | Creative Commons 0 | 0:27.9 | Suspended cymbal bowed with a rosined double-bass bow, ribbon mic; screeching metallic bowed-cymbal swell for tension and the creature reveal. |
+| `score_extended/score_extended_bowed_waterphone_drone_322975.mp3` | [322975](https://freesound.org/people/be-steele/sounds/322975/) | Bowed Aquaphone | be-steele | Creative Commons 0 | 1:49.7 | Slowly evolving background drone built from a bowed waterphone (aquaphone), recorded live and edited; classic horror waterphone texture. |
+| `score_extended/score_extended_bowed_musical_saw_706310.mp3` | [706310](https://freesound.org/people/vandrandelovet/sounds/706310/) | Saw played with bow | vandrandelovet | Creative Commons 0 | 0:46.1 | Long second-hand saw played with a bow, with vibrato (tagged eerie/spooky); singing-saw wail for the score, loopable slices. |
+| `score_extended/score_extended_bowed_stairwell_railing_197302.mp3` | [197302](https://freesound.org/people/dpren/sounds/197302/) | Bowed Stairwell.WAV | dpren | Creative Commons 0 | 0:41.4 | Bow rubbed on a metal stairwell railing: dissonant resonant metal drone and screech; bowed-metal layer. |
+| `score_extended/score_extended_inside_piano_scraped_strings_322978.mp3` | [322978](https://freesound.org/people/be-steele/sounds/322978/) | Piano Morte 2 | be-steele | Creative Commons 0 | 7:16.9 | 7-minute take inside a large piano with detuned strings scraped, rubbed and struck, ominous resonance; scraped-piano-string textures to cut up. |
+| `score_extended/score_extended_bowed_wine_glass_662231.mp3` | [662231](https://freesound.org/people/giddster/sounds/662231/) | Cello bow + wine glass | giddster | Creative Commons 0 | 0:49.1 | Wine glass bowed with a cello bow (Zoom H1), pure ringing harmonics/overtones; glassy sine-like tone, can also double as ear-ringing. |
+
+## cine_hits
+
+Cine layer: trailer booms, big impacts, a braam, an impact downer and a sub drop. These are designed sound effects (synths, samples and processing), not field recordings.
+
+| Local file | Freesound ID | Title | Author | License | Duration | Note |
+|---|---|---|---|---|---|---|
+| `cine_hits/cine_hits_cinematic_boom_255111.mp3` | [255111](https://freesound.org/people/rhapsodize/sounds/255111/) | Cinematic_Boom_Rhapsodize.wav | rhapsodize | Creative Commons 0 | 0:07.7 | Low, gut-wrenching trailer boom with mid-range resonance (designed in Thor + reverb); main cine boom on cuts and the rear-up. |
+| `cine_hits/cine_hits_cinematic_impact_177242.mp3` | [177242](https://freesound.org/people/deleted_user_3277771/sounds/177242/) | Cinematic Impact | deleted_user_3277771 | Creative Commons 0 | 0:07.9 | Cinematic impact built from layered recorded sounds, tension tail; big hit for the charge / car going over. |
+| `cine_hits/cine_hits_trailer_super_hits_382689.mp3` | [382689](https://freesound.org/people/gerainsan/sounds/382689/) | Trailer Super Hits.wav | gerainsan | Creative Commons 0 | 0:39.5 | Set of huge trailer hits with long tails; pick-and-choose impacts and thuds for the tumble. |
+| `cine_hits/cine_hits_braam_low_brass_647712.mp3` | [647712](https://freesound.org/people/unfa/sounds/647712/) | Braam | unfa | Creative Commons 0 | 0:10.0 | "Braam" low brass trailer hit made from CC0 sampled instruments (Ardour + Sfizz); creature scream / reveal accent. |
+| `cine_hits/cine_hits_impact_downer_535554.mp3` | [535554](https://freesound.org/people/XHALE303/sounds/535554/) | IMPACT DOWNER | XHALE303 | Creative Commons 0 | 0:07.4 | Impact followed by a pitch-falling sweep (downer); end of the slow-motion charge or the fall over the edge. |
+| `cine_hits/cine_hits_sub_drop_674303.mp3` | [674303](https://freesound.org/people/TheEndOfACycle/sounds/674303/) | Drop That Sub SFX | TheEndOfACycle | Creative Commons 0 | 0:05.4 | Clean dropping sub-bass (sub drop); downer layer under impacts and blackout cuts. |
+
+## cine_risers
+
+Cine layer: Shepard-tone riser, dark / horror tension risers, reverse crash cymbal, reversed piano-string riser, slow low whoosh. Mostly designed sounds; the Shepard tone is generated sine waves.
+
+| Local file | Freesound ID | Title | Author | License | Duration | Note |
+|---|---|---|---|---|---|---|
+| `cine_risers/cine_risers_shepard_tone_rising_60s_130502.mp3` | [130502](https://freesound.org/people/EnjoyPA/sounds/130502/) | Rising Shepard tone 60sec (take 2).wav | EnjoyPA | Creative Commons 0 | 1:00.0 | Smoothly rising Shepard tone, sine waves in 7 octaves, 10 s period, 60 s; endless riser layer under the stare and the charge. |
+| `cine_risers/cine_risers_long_dark_tension_riser_789101.mp3` | [789101](https://freesound.org/people/xkeril/sounds/789101/) | Long tension riser | xkeril | Creative Commons 0 | 0:15.0 | Dark, saturated, musical long riser made for a film; tension build into the creature stopping in the road. |
+| `cine_risers/cine_risers_uneasy_horror_riser_751209.mp3` | [751209](https://freesound.org/people/kanaizo/sounds/751209/) | Uneasy Riser 1 | kanaizo | Creative Commons 0 | 0:18.5 | Suspenseful horror riser built from synths and a sampled scream; anxiety build before the scream/charge. |
+| `cine_risers/cine_risers_reverse_crash_cymbal_383903.mp3` | [383903](https://freesound.org/people/deleted_user_7146007/sounds/383903/) | Reverse Crash Cymbal Projection | deleted_user_7146007 | Creative Commons 0 | 0:08.9 | Reversed crash cymbal swell (very widely used); classic reverse-cymbal suck-in before hits. |
+| `cine_risers/cine_risers_reversed_piano_strings_riser_832474.mp3` | [832474](https://freesound.org/people/Guy_Personface/sounds/832474/) | Dramatic Piano Riser | Guy_Personface | Creative Commons 0 | 0:07.1 | Reversed recording of struck piano strings, made for a horror film; organic reverse swell into stingers. |
+| `cine_risers/cine_risers_slow_low_whoosh_325256.mp3` | [325256](https://freesound.org/people/deleted_user_2104797/sounds/325256/) | Whoosh slow low.wav | deleted_user_2104797 | Creative Commons 0 | 0:10.3 | Super-low slowed-down whoosh with sub content; slow-motion pass-by for the charge. |
+
+## stingers
+
+Short horror scare stingers: recorded cello sting, cluster hits, violin / cymbal jump scare, string tremolo crescendo, plucked-string stinger.
+
+| Local file | Freesound ID | Title | Author | License | Duration | Note |
+|---|---|---|---|---|---|---|
+| `stingers/stingers_cello_sting_405612.mp3` | [405612](https://freesound.org/people/DeVern/sounds/405612/) | Celliliililililili.wav | DeVern | Creative Commons 0 | 0:08.6 | Short recorded cello sting made for a horror short film (tagged scare/sting); real-string scare accent. |
+| `stingers/stingers_scary_cluster_hit_396161.mp3` | [396161](https://freesound.org/people/Xinematix/sounds/396161/) | Scary Hits & Risers 001 | Xinematix | Creative Commons 0 | 0:09.6 | Scary cluster hit with riser (Hollywood-style freaky hit); jump-scare hit when the eyes appear or the creature screams. |
+| `stingers/stingers_hard_stab_twist_840810.mp3` | [840810](https://freesound.org/people/OverlookHotelRecords/sounds/840810/) | Stingers and Stabs 004 | OverlookHotelRecords | Creative Commons 0 | 0:07.7 | Hard horror stab that twists, fades, ramps up to a crescendo and hard-cuts; violent stinger before a cut to black. |
+| `stingers/stingers_violin_cymbal_jump_scare_436883.mp3` | [436883](https://freesound.org/people/icyjim/sounds/436883/) | Cringe Scare | icyjim | Creative Commons 0 | 0:11.0 | Jump-scare stinger made with cymbal hits and violins; screeching string jolt. |
+| `stingers/stingers_string_crescendo_fast_684802.mp3` | [684802](https://freesound.org/people/MathewHenry/sounds/684802/) | Scary Strings Crescendo Fast 2 | MathewHenry | Creative Commons 0 | 0:05.6 | String ensemble tremolo crescendo rising low to high (with reverb), the classic horror swell; short violent build into a hit. |
+| `stingers/stingers_plucked_string_horror_725225.mp3` | [725225](https://freesound.org/people/zombieallen/sounds/725225/) | Plucked Horror Stinger | zombieallen | Creative Commons 0 | 0:07.4 | Dark, dissonant plucked-string stinger; quieter scare accent (e.g. creature walking past the headlight). |
+
+## night_ambience
+
+Winter forest at night and blizzard beds, trees creaking in wind (spot details), and distant wild wolf howl / elk cry to process into faint creature calls.
+
+| Local file | Freesound ID | Title | Author | License | Duration | Note |
+|---|---|---|---|---|---|---|
+| `night_ambience/night_ambience_winter_forest_night_378048.mp3` | [378048](https://freesound.org/people/bajko/sounds/378048/) | sfx_amb_forest_winter_night.wav | bajko | Creative Commons 0 | 0:50.6 | Calm winter forest at night (Olympus LS-11); quiet base bed for after the crash and between gusts. |
+| `night_ambience/night_ambience_blizzard_forest_720876.mp3` | [720876](https://freesound.org/people/River_flowers/sounds/720876/) | Blizzard Sounds in New York State | River_flowers | Creative Commons 0 | 0:39.1 | Snowstorm approaching through a forest in New York State; blizzard/forest bed under the drive. |
+| `night_ambience/night_ambience_bare_trees_creak_winter_wind_620759.mp3` | [620759](https://freesound.org/people/Oleh.Ibrahimov/sounds/620759/) | creak of bold trees.wav | Oleh.Ibrahimov | Creative Commons 0 | 0:45.5 | Bare trees creaking and rubbing against each other in winter wind; spot detail for the trees by the road. |
+| `night_ambience/night_ambience_two_trees_creaking_storm_415317.mp3` | [415317](https://freesound.org/people/ebanse/sounds/415317/) | grince21.wav | ebanse | Creative Commons 0 | 0:47.7 | Two trees creaking in a forest on a stormy day (France); deep tree-creak spot detail. |
+| `night_ambience/night_ambience_distant_solitary_wolf_howl_500646.mp3` | [500646](https://freesound.org/people/betchkal/sounds/500646/) | Cooper Creek 20160313_014852 solitary wolf howl very clear.wav | betchkal | Creative Commons 0 | 0:55.4 | Solitary wild wolf howling in a reverberant, aufeis-filled creek, Wrangell-St. Elias NP, Alaska; distant call to process into a faint creature call. |
+| `night_ambience/night_ambience_elk_mating_cry_banff_263489.mp3` | [263489](https://freesound.org/people/lwdickens/sounds/263489/) | elk.1.wav | lwdickens | Creative Commons 0 | 0:14.0 | Elk mating-season cry in Banff, "distinctive and somewhat frightening"; pitch/process into a distant creature call in the ambience. |
+
+## creature_extra
+
+More creature vocal layers: human monster screams and growls (no words), fox screams, howler monkeys, chimpanzee screams, pig squeals, tiger hiss / growl, close dog breaths and snarls.
+
+| Local file | Freesound ID | Title | Author | License | Duration | Note |
+|---|---|---|---|---|---|---|
+| `creature_extra/creature_extra_human_monster_screams_391552.mp3` | [391552](https://freesound.org/people/gpag1/sounds/391552/) | Monster screams.wav | gpag1 | Creative Commons 0 | 1:15.0 | Several monster screams performed by voice (Neumann TLM 102), heavily processed, slight space; human performance layer for the creature scream. |
+| `creature_extra/creature_extra_human_aggressive_growls_257358.mp3` | [257358](https://freesound.org/people/Kodack/sounds/257358/) | Male Aggressive Growls | Kodack | Creative Commons 0 | 0:44.2 | Male aggressive growls, grunts and roars performed by a person, no words; human growl layer for the creature. |
+| `creature_extra/creature_extra_fox_screaming_night_832436.mp3` | [832436](https://freesound.org/people/felix.blume/sounds/832436/) | Fox screaming during the night | felix.blume | Creative Commons 0 | 1:11.4 | Fox screaming (and barking) at night, South of France, ORTF Schoeps; shrill scream layer for the creature. |
+| `creature_extra/creature_extra_howler_monkeys_intense_414248.mp3` | [414248](https://freesound.org/people/FlyingMarmot/sounds/414248/) | Howler Monkeys | FlyingMarmot | Creative Commons 0 | 1:22.9 | Howler monkey troop at Lamanai, Belize, starting slow and becoming very intense; roaring primate layer (pitch down). |
+| `creature_extra/creature_extra_chimpanzee_loud_screams_675430.mp3` | [675430](https://freesound.org/people/craigsmith/sounds/675430/) | S27-30 Chimpanzee Loud screams.wav | craigsmith | Creative Commons 0 | 0:03.8 | Chimpanzee loud screams (vintage library); primate shriek layer for the rear-up scream. |
+| `creature_extra/creature_extra_pig_squealing_260640.mp3` | [260640](https://freesound.org/people/TheAcidRomance/sounds/260640/) | Pig Squealing.mp3 | TheAcidRomance | Creative Commons 0 | 0:26.3 | Clean pig squealing and grunting at a county fair; squeal layer for creature shrieks. |
+| `creature_extra/creature_extra_tiger_hiss_growl_437978.mp3` | [437978](https://freesound.org/people/craigsmith/sounds/437978/) | G12-45-Tiger Hiss and Growl.wav | craigsmith | Creative Commons 0 | 1:00.0 | Big cat hiss and growl, tiger (vintage library); snarl/hiss layer for the stare. |
+| `creature_extra/creature_extra_pug_close_breaths_snarls_377001.mp3` | [377001](https://freesound.org/people/EpicWizard/sounds/377001/) | Pug Dog Grunts, Breaths, Snarls | EpicWizard | Creative Commons 0 | 0:55.1 | Up-close pug grunts, snores, breaths and snarls (Sony M10), "great for mangling into monster sounds"; close wet breathing/snarl layer (pitch down). |
+
+## foley_car
+
+Car-interior and wreck foley: seatbelt handling, leather creak, seatbelt warning chime, radio static between stations, glass shards settling, slow metal stress creaks, dripping onto metal.
+
+| Local file | Freesound ID | Title | Author | License | Duration | Note |
+|---|---|---|---|---|---|---|
+| `foley_car/foley_car_seatbelt_buckle_body_movement_848306.mp3` | [848306](https://freesound.org/people/tickle_feet_frida/sounds/848306/) | Seatbelt Buckle Body Movement Car Interior Night — 2015 Mazda CX-5 T8 | tickle_feet_frida | Creative Commons 0 | 0:07.9 | Seatbelt handling inside a car at night: body movement, clothing rustle, belt buckling (Zoom H6 M/S); driver belt/webbing foley. |
+| `foley_car/foley_car_leather_stress_creak_559079.mp3` | [559079](https://freesound.org/people/Nox_Sound/sounds/559079/) | Foley_Leather_Stress_Mono.wav | Nox_Sound | Creative Commons 0 | 0:19.5 | Leather stress creaks x6 (Rode NTG4+); steering-wheel / seat leather creak, also hanging-upside-down belt strain. |
+| `foley_car/foley_car_seatbelt_warning_chime_218315.mp3` | [218315](https://freesound.org/people/SpliceSound/sounds/218315/) | Car Seatbelt Alarm.wav | SpliceSound | Creative Commons 0 | 0:07.6 | Car seatbelt warning chime (bell-like "ding"); door-ajar / key-in chime after the crash. |
+| `foley_car/foley_car_radio_static_no_station_625095.mp3` | [625095](https://freesound.org/people/wwstudioswastaken/sounds/625095/) | radio_static_01.flac | wwstudioswastaken | Creative Commons 0 | 1:24.7 | Radio tuned to no station, pure static and interference; car radio hiss in the wreck. |
+| `foley_car/foley_car_glass_pieces_shards_181998.mp3` | [181998](https://freesound.org/people/ohrpilot/sounds/181998/) | pieces of glass | ohrpilot | Creative Commons 0 | 0:52.4 | Pieces of glass shards moving and tinkling (Zoom H4N); glass settling in the upside-down car. |
+| `foley_car/foley_car_creaking_metal_slow_stress_172411.mp3` | [172411](https://freesound.org/people/EagleStealthTeam/sounds/172411/) | Creaking Metal - Slow | EagleStealthTeam | Creative Commons 0 | 0:36.4 | Slowed metal squeal/creak, like a giant metal structure under stress; wreck settling groans. |
+| `foley_car/foley_car_water_dripping_on_metal_166324.mp3` | [166324](https://freesound.org/people/deleted_user_2104797/sounds/166324/) | Water dripping on metal.wav | deleted_user_2104797 | Creative Commons 0 | 0:51.5 | Studio recording of water dripping onto metal with a short natural ring; fluids dripping in the wreck. |
+
+## body
+
+Heartbeats (steady, deep, racing) and tinnitus / ear ringing, plus a recorded tuning fork as a near-sine ringing tone.
+
+| Local file | Freesound ID | Title | Author | License | Duration | Note |
+|---|---|---|---|---|---|---|
+| `body/body_heartbeat_real_stethoscope_798674.mp3` | [798674](https://freesound.org/people/RICHERlandTV/sounds/798674/) | Human Heartbeat | RICHERlandTV | Creative Commons 0 | 1:19.6 | Real human heartbeat recorded with a stethoscope and USB mic (needs some cleanup); steady/slow heartbeat for waking up. |
+| `body/body_heartbeat_deep_subtle_492334.mp3` | [492334](https://freesound.org/people/190099/sounds/492334/) | Heartbeat.wav | 190099 | Creative Commons 0 | 0:37.8 | Vague, subtle, deep heartbeat recording; low heartbeat layer under the stare. |
+| `body/body_heartbeat_racing_after_exercise_455440.mp3` | [455440](https://freesound.org/people/under_the_hood/sounds/455440/) | Real heartbeat sound fastest | under_the_hood | Creative Commons 0 | 2:56.9 | Real racing heart of a 31-year-old after exercise, about 150 bpm slowing to 130 bpm, breath audible; fast panic heartbeat. |
+| `body/body_tinnitus_inside_body_450620.mp3` | [450620](https://freesound.org/people/Breviceps/sounds/450620/) | Tinnitus sound | Breviceps | Creative Commons 0 | 0:08.6 | Tinnitus tone heard "from inside the body" with slight breathing, blood circulation and heartbeat; ear ringing on waking. |
+| `body/body_ear_ringing_after_explosion_365956.mp3` | [365956](https://freesound.org/people/dbdarby/sounds/365956/) | Ear Ringing (After explosion) | dbdarby | Creative Commons 0 | 0:08.9 | Designed ear-ringing (Logic Pro) like after an explosion; post-impact tinnitus layer. |
+| `body/body_tuning_fork_440hz_long_decay_220747.mp3` | [220747](https://freesound.org/people/jmuehlhans/sounds/220747/) | Tuning Fork 440 Hz, Resonance Box | jmuehlhans | Creative Commons 0 | 1:20.4 | Real 440 Hz tuning fork with resonance box, anechoic, decay over 1 minute; recorded near-sine ringing usable as tinnitus. |
+
 ## Page URLs (plain list)
 
 - `engine/engine_interior_steady_drive_383476.mp3`: https://freesound.org/people/Daphne_in_Wonderland/sounds/383476/
@@ -339,4 +468,61 @@ Windshield wiper motor and blades, heater / blower fan.
 - `cabin/cabin_car_air_vent_on_50901.mp3`: https://freesound.org/people/RutgerMuller/sounds/50901/
 - `cabin/cabin_heater_vent_adjust_629318.mp3`: https://freesound.org/people/greatsoundstube/sounds/629318/
 - `cabin/cabin_izh412_blower_switch_879618.mp3`: https://freesound.org/people/Mihacappy/sounds/879618/
+- `score_strings/score_strings_concrete_cello_low_scrapes_571173.mp3`: https://freesound.org/people/PLukx/sounds/571173/
+- `score_strings/score_strings_viola_c_drone_long_191344.mp3`: https://freesound.org/people/malupeeters/sounds/191344/
+- `score_strings/score_strings_cellos_droning_509535.mp3`: https://freesound.org/people/MindlessTrails/sounds/509535/
+- `score_strings/score_strings_double_bass_bowed_harmonics_47429.mp3`: https://freesound.org/people/stomachache/sounds/47429/
+- `score_strings/score_strings_aleatoric_cello_extended_loop_469998.mp3`: https://freesound.org/people/josiahsprankle/sounds/469998/
+- `score_strings/score_strings_violins_harmonics_glissandi_378457.mp3`: https://freesound.org/people/Cunningar0807/sounds/378457/
+- `score_extended/score_extended_bowed_suspended_cymbal_532741.mp3`: https://freesound.org/people/benjohansen/sounds/532741/
+- `score_extended/score_extended_bowed_waterphone_drone_322975.mp3`: https://freesound.org/people/be-steele/sounds/322975/
+- `score_extended/score_extended_bowed_musical_saw_706310.mp3`: https://freesound.org/people/vandrandelovet/sounds/706310/
+- `score_extended/score_extended_bowed_stairwell_railing_197302.mp3`: https://freesound.org/people/dpren/sounds/197302/
+- `score_extended/score_extended_inside_piano_scraped_strings_322978.mp3`: https://freesound.org/people/be-steele/sounds/322978/
+- `score_extended/score_extended_bowed_wine_glass_662231.mp3`: https://freesound.org/people/giddster/sounds/662231/
+- `cine_hits/cine_hits_cinematic_boom_255111.mp3`: https://freesound.org/people/rhapsodize/sounds/255111/
+- `cine_hits/cine_hits_cinematic_impact_177242.mp3`: https://freesound.org/people/deleted_user_3277771/sounds/177242/
+- `cine_hits/cine_hits_trailer_super_hits_382689.mp3`: https://freesound.org/people/gerainsan/sounds/382689/
+- `cine_hits/cine_hits_braam_low_brass_647712.mp3`: https://freesound.org/people/unfa/sounds/647712/
+- `cine_hits/cine_hits_impact_downer_535554.mp3`: https://freesound.org/people/XHALE303/sounds/535554/
+- `cine_hits/cine_hits_sub_drop_674303.mp3`: https://freesound.org/people/TheEndOfACycle/sounds/674303/
+- `cine_risers/cine_risers_shepard_tone_rising_60s_130502.mp3`: https://freesound.org/people/EnjoyPA/sounds/130502/
+- `cine_risers/cine_risers_long_dark_tension_riser_789101.mp3`: https://freesound.org/people/xkeril/sounds/789101/
+- `cine_risers/cine_risers_uneasy_horror_riser_751209.mp3`: https://freesound.org/people/kanaizo/sounds/751209/
+- `cine_risers/cine_risers_reverse_crash_cymbal_383903.mp3`: https://freesound.org/people/deleted_user_7146007/sounds/383903/
+- `cine_risers/cine_risers_reversed_piano_strings_riser_832474.mp3`: https://freesound.org/people/Guy_Personface/sounds/832474/
+- `cine_risers/cine_risers_slow_low_whoosh_325256.mp3`: https://freesound.org/people/deleted_user_2104797/sounds/325256/
+- `stingers/stingers_cello_sting_405612.mp3`: https://freesound.org/people/DeVern/sounds/405612/
+- `stingers/stingers_scary_cluster_hit_396161.mp3`: https://freesound.org/people/Xinematix/sounds/396161/
+- `stingers/stingers_hard_stab_twist_840810.mp3`: https://freesound.org/people/OverlookHotelRecords/sounds/840810/
+- `stingers/stingers_violin_cymbal_jump_scare_436883.mp3`: https://freesound.org/people/icyjim/sounds/436883/
+- `stingers/stingers_string_crescendo_fast_684802.mp3`: https://freesound.org/people/MathewHenry/sounds/684802/
+- `stingers/stingers_plucked_string_horror_725225.mp3`: https://freesound.org/people/zombieallen/sounds/725225/
+- `night_ambience/night_ambience_winter_forest_night_378048.mp3`: https://freesound.org/people/bajko/sounds/378048/
+- `night_ambience/night_ambience_blizzard_forest_720876.mp3`: https://freesound.org/people/River_flowers/sounds/720876/
+- `night_ambience/night_ambience_bare_trees_creak_winter_wind_620759.mp3`: https://freesound.org/people/Oleh.Ibrahimov/sounds/620759/
+- `night_ambience/night_ambience_two_trees_creaking_storm_415317.mp3`: https://freesound.org/people/ebanse/sounds/415317/
+- `night_ambience/night_ambience_distant_solitary_wolf_howl_500646.mp3`: https://freesound.org/people/betchkal/sounds/500646/
+- `night_ambience/night_ambience_elk_mating_cry_banff_263489.mp3`: https://freesound.org/people/lwdickens/sounds/263489/
+- `creature_extra/creature_extra_human_monster_screams_391552.mp3`: https://freesound.org/people/gpag1/sounds/391552/
+- `creature_extra/creature_extra_human_aggressive_growls_257358.mp3`: https://freesound.org/people/Kodack/sounds/257358/
+- `creature_extra/creature_extra_fox_screaming_night_832436.mp3`: https://freesound.org/people/felix.blume/sounds/832436/
+- `creature_extra/creature_extra_howler_monkeys_intense_414248.mp3`: https://freesound.org/people/FlyingMarmot/sounds/414248/
+- `creature_extra/creature_extra_chimpanzee_loud_screams_675430.mp3`: https://freesound.org/people/craigsmith/sounds/675430/
+- `creature_extra/creature_extra_pig_squealing_260640.mp3`: https://freesound.org/people/TheAcidRomance/sounds/260640/
+- `creature_extra/creature_extra_tiger_hiss_growl_437978.mp3`: https://freesound.org/people/craigsmith/sounds/437978/
+- `creature_extra/creature_extra_pug_close_breaths_snarls_377001.mp3`: https://freesound.org/people/EpicWizard/sounds/377001/
+- `foley_car/foley_car_seatbelt_buckle_body_movement_848306.mp3`: https://freesound.org/people/tickle_feet_frida/sounds/848306/
+- `foley_car/foley_car_leather_stress_creak_559079.mp3`: https://freesound.org/people/Nox_Sound/sounds/559079/
+- `foley_car/foley_car_seatbelt_warning_chime_218315.mp3`: https://freesound.org/people/SpliceSound/sounds/218315/
+- `foley_car/foley_car_radio_static_no_station_625095.mp3`: https://freesound.org/people/wwstudioswastaken/sounds/625095/
+- `foley_car/foley_car_glass_pieces_shards_181998.mp3`: https://freesound.org/people/ohrpilot/sounds/181998/
+- `foley_car/foley_car_creaking_metal_slow_stress_172411.mp3`: https://freesound.org/people/EagleStealthTeam/sounds/172411/
+- `foley_car/foley_car_water_dripping_on_metal_166324.mp3`: https://freesound.org/people/deleted_user_2104797/sounds/166324/
+- `body/body_heartbeat_real_stethoscope_798674.mp3`: https://freesound.org/people/RICHERlandTV/sounds/798674/
+- `body/body_heartbeat_deep_subtle_492334.mp3`: https://freesound.org/people/190099/sounds/492334/
+- `body/body_heartbeat_racing_after_exercise_455440.mp3`: https://freesound.org/people/under_the_hood/sounds/455440/
+- `body/body_tinnitus_inside_body_450620.mp3`: https://freesound.org/people/Breviceps/sounds/450620/
+- `body/body_ear_ringing_after_explosion_365956.mp3`: https://freesound.org/people/dbdarby/sounds/365956/
+- `body/body_tuning_fork_440hz_long_decay_220747.mp3`: https://freesound.org/people/jmuehlhans/sounds/220747/
 

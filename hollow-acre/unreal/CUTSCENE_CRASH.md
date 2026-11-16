@@ -21,6 +21,7 @@ first frame.
    to it, then back to the road). Gloved hands on the wheel (winter driving gloves).
 3. **The gap.** The beams sweep over a smashed gap in the guardrail, tyre tracks going over the edge into the dark.
    The car slows; the head turns to follow it past. A low drone rises. (Someone went over here before you.)
+   In the headlights: a dark blood trail in the snow running to the edge, a torn glove caught on the twisted rail.
 4. **False calm.** Back to the road. The snow thickens. Breathing.
 5. **Eyes in the trees.** At the edge of the beams on the left, two pale points low in the tree line catch the light,
    then blink out. The head turns to them. Nothing.
@@ -28,7 +29,8 @@ first frame.
    it. Hard on the brakes: the view pitches, the hands brace, the tyres crunch. The car stops about six metres
    short.
 7. **The face.** Near silence: the idle, the wipers, a heartbeat. It turns its head toward the car, slowly. The beams
-   find its face: a human face, starved, eyes milky. The driver leans in without meaning to (a slow push in).
+   find its face: a human face, starved, eyes milky. Old frozen blood from its kills on its claws, round its mouth and down its
+   chest. The driver leans in without meaning to (a slow push in).
 8. **The scream.** It rears up to its full height and screams into the headlights, the jaw wide, the canines. The
    view shakes; the driver recoils.
 9. **Gone.** It drops onto all fours and is gone up the road into the dark. Silence. A ragged breath.
@@ -44,6 +46,9 @@ first frame.
     snow sifting in through the broken window, the radio hissing. In the headlight, outside, a tall silhouette walks
     slowly past and is gone.
 15. **Eyes close.** Black. The title.
+
+Gore (the owner: realistic gore throughout the game): in this cut, the gap's blood trail and glove, and the frozen
+blood on the creature.
 
 ## Sound
 Recorded sounds as now (all CC0, logged), placed and mixed to the shots, plus our own low drones and stings for the

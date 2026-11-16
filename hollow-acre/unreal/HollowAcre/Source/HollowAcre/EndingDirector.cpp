@@ -568,6 +568,10 @@ void AEndingDirector::Impact()
 void AEndingDirector::Event(const TCHAR* Kind, float Value)
 {
 	UE_LOG(LogTemp, Display, TEXT("CrashEvent %.3f %s %.0f"), bCrash ? RealTime : Time, Kind, Value);
+	if (!EventReal.Contains(FName(Kind)))
+	{
+		EventReal.Add(FName(Kind), RealTime);
+	}
 }
 
 FTransform AEndingDirector::TripPose(float t) const
@@ -908,18 +912,18 @@ namespace
 
 	// the sighting take's path (as tools/blender/husk_body.py made it): speed (m/s at the model's size) and how far
 	// it has turned to its left (degrees), t seconds into the take
-	const float TA = 28.f / 60.f, TB = TA + 0.63f, TC = TB + 0.75f, TD = TC + 1.8f, TE = TD + 0.6f, TF = TE + 2.f * 28.f / 60.f;
+	const float TA = 28.f / 60.f, TB = TA + 0.63f, TC = TB + 4.6f, TD = TC + 1.8f, TE = TD + 0.6f, TF = TE + 2.f * 28.f / 60.f;
 	void SightingPath(float t, float& V, float& Turn)
 	{
 		if (t < TA) { V = 8.f; Turn = 0.f; }
 		else if (t < TB) { const float u = (t - TA) / (TB - TA); V = 8.f * (1.f - u) * (1.f - u); Turn = 90.f * Smooth01(u); }
 		else if (t < TC) { V = 0.f; Turn = 90.f; }
-		else if (t < TD) { const float r = t - TC; V = (r > 0.4f && r < 0.7f) ? 0.42f : 0.f; Turn = 90.f; }
+		else if (t < TD) { const float r = t - TC; V = (r > 0.1f && r < 0.4f) ? 0.5f : 0.f; Turn = 90.f; }      // the stride of the thrust
 		else if (t < TE) { V = 0.f; Turn = 90.f; }
 		else { const float tt = t - TE; V = 8.f * Smooth01(tt / 0.6f); Turn = 90.f - 160.f * Smooth01(tt / 0.45f); }
 	}
 
-	// its jaw through the rear-up (degrees): a breath in, the scream (shaking), then shut
+	// its jaw through the scream (degrees): flung open with the thrust, shaking, then shut
 	float ScreamJaw(float t)
 	{
 		if (t < TC || t > TD)
@@ -927,8 +931,8 @@ namespace
 			return 0.f;
 		}
 		const float r = t - TC;
-		const float Roaring = Smooth01((r - 0.45f) / 0.1f) * (1.f - Smooth01((r - 1.4f) / 0.1f));
-		return 10.f * Smooth01(r / 0.3f) + 30.f * Smooth01((r - 0.35f) / 0.15f) - 34.f * Smooth01((r - 1.45f) / 0.3f)
+		const float Roaring = Smooth01((r - 0.22f) / 0.08f) * (1.f - Smooth01((r - 1.4f) / 0.1f));
+		return 12.f * Smooth01(r / 0.1f) + 30.f * Smooth01((r - 0.06f) / 0.16f) - 38.f * Smooth01((r - 1.45f) / 0.3f)
 			+ 2.5f * FMath::Sin(r * 41.f) * Roaring;
 	}
 }
@@ -988,7 +992,7 @@ void AEndingDirector::MoveCreature(float DeltaSeconds)
 				bScreamed = true;
 				Event(TEXT("roar"));
 			}
-			if (!bShook && t > TC + 0.42f)
+			if (!bShook && t > TC + 0.2f)
 			{
 				bShook = true;           // the scream hits: the view shakes, the driver recoils
 				RoarShake = 1.f;

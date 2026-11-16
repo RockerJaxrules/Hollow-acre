@@ -178,10 +178,10 @@ public:
 	float EyesTime = 24.f;
 	/** The stare: its sighting take slowed to this rate while it turns to face the car and stands looking at it. */
 	UPROPERTY(EditAnywhere, Category = "Crash")
-	float StareRate = 0.12f;
+	float StareRate = 1.f;               // the take's stare is its own length now: real speed
 	/** ...and the turn to face the car before it, a little slowed. */
 	UPROPERTY(EditAnywhere, Category = "Crash")
-	float StareTurnRate = 0.6f;
+	float StareTurnRate = 1.f;
 	/** After it has gone: the creep starts this long after, and the blow comes this long into the creep. */
 	UPROPERTY(EditAnywhere, Category = "Crash")
 	float CreepAfterBolt = 1.6f;
@@ -224,6 +224,8 @@ public:
 	/** For the HUD: the words on screen now (a line and a smaller line), their alpha, the first line's size as a
 	 *  fraction of the screen's height. False when there are none. */
 	bool GetCaption(FString& Line1, FString& Line2, float& Alpha, float& Size) const;
+	/** For the HUD: the driver's line now (a caption: the driver is not voiced), and its alpha. False when silent. */
+	bool GetLine(FString& Line, float& Alpha) const;
 
 	/** Gentle body sway from the rough, snowy road (degrees). */
 	UPROPERTY(EditAnywhere, Category = "Ending")
@@ -334,6 +336,7 @@ private:
 	FVector PrevPos = FVector::ZeroVector;
 	bool bPhysics = false;
 	void Event(const TCHAR* Kind, float Value = 0.f);
+	TMap<FName, float> EventReal;          // when each beat happened (real seconds), for the captions
 	float LastHitEvent = -1.f;
 	bool bRested = false;
 	float RestTime = 0.f;

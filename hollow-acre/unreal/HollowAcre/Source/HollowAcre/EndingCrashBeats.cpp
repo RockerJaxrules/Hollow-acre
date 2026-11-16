@@ -481,6 +481,47 @@ void AEndingDirector::AfterTheFall(float RealDt)
 	}
 }
 
+bool AEndingDirector::GetLine(FString& Line, float& Alpha) const
+{
+	if (!bCrash)
+	{
+		return false;
+	}
+	// what the driver says, under their breath: after which beat, how long after (s), for how long
+	struct FLine
+	{
+		const TCHAR* After;
+		float Delay, Hold;
+		const TCHAR* Text;
+	};
+	static const FLine Lines[] = {
+		{TEXT("letter"), 1.3f, 2.6f, TEXT("Hang on, Grandma. I'm coming.")},
+		{TEXT("gap"), 0.2f, 2.4f, TEXT("Someone went over...")},
+		{TEXT("eyes"), 1.8f, 1.8f, TEXT("What was that?")},
+		{TEXT("stopped"), 0.9f, 2.2f, TEXT("What the hell is that...")},
+		{TEXT("stopped"), 3.6f, 1.8f, TEXT("Don't move. Don't move.")},
+		{TEXT("bolt"), 1.5f, 2.3f, TEXT("Okay. Okay. Just drive.")},
+		{TEXT("creep"), 4.7f, 1.9f, TEXT("Where did it go?")},
+		{TEXT("wake"), 2.3f, 1.8f, TEXT("Help... somebody...")},
+	};
+	for (const FLine& L : Lines)
+	{
+		const float* At = EventReal.Find(FName(L.After));
+		if (!At)
+		{
+			continue;
+		}
+		const float t = RealTime - (*At + L.Delay);
+		if (t >= 0.f && t < L.Hold)
+		{
+			Line = L.Text;
+			Alpha = Smooth(t / 0.2f) * (1.f - Smooth((t - L.Hold + 0.25f) / 0.25f));
+			return Alpha > 0.f;
+		}
+	}
+	return false;
+}
+
 bool AEndingDirector::GetCaption(FString& Line1, FString& Line2, float& Alpha, float& Size) const
 {
 	if (!bCrash)

@@ -1,12 +1,12 @@
 """Sound for Part 2's opening, the crash (unreal/CUTSCENE_CRASH.md), laid on the moments the game logs as it runs
 (EndingDirector -crash prints "CrashEvent <time> <kind> <force>", on the capture's clock).
 
-Horror, not noise: a low drone of our own that builds; stings at the scares; a heartbeat through the stare and the
-creep; real silence before the face turns, after it leaves, and in the mirror before the blow. Real recordings
-(SourceArt/Audio/Recorded, all Creative Commons 0 from Freesound, each one's source in its SOURCES.md; decoded to WAV by
-tools/blender/decode_audio.py) for everything physical: the cabin, the brakes, the blow, the glass, the fall, the
-aftermath, footsteps in snow, breath. The creature's voice is recordings changed past recognising (pitched far down,
-layered, reverberant, with a screech of our own through it), never a zoo animal you can name. No words.
+Built the way Supermassive's Until Dawn and The Quarry are (their audio teams' accounts: a score of real strings and
+unusual sources, often unrecognisable; a "cine layer" of booms, impacts, risers, downers and stingers; ambience pushed
+louder than a film's; silence made by cutting what was there; creature voices of animals and human performances
+layered and pitched past naming; the mix big and immediate). Every sound is a real recording (SourceArt/Audio/Recorded,
+all Creative Commons 0 from Freesound, each one's source in its SOURCES.md; decoded to WAV by
+tools/blender/decode_audio.py). The driver makes no sound: their lines are captions.
 
 Run: python hollow-acre/unreal/tools/make_crash_audio.py <unreal log with the CrashEvent lines> <length s> <out.wav>
      [<decoded recordings: HollowAcre/Saved/AudioCache>]
@@ -126,70 +126,6 @@ def verb(x, secs=2.5, wet=0.35, seed=5):
     return x * (1 - wet) + r[:, :x.shape[1]] * wet * 1.6
 
 
-# ---- our own sounds ------------------------------------------------------------------------------------------------
-def tone(dur, freqs, amps=None, seed=1, vib=0.0):
-    """Sustained sine partials (slightly unsteady), mono."""
-    t = np.arange(int(dur * SR)) / SR
-    r = np.random.default_rng(seed)
-    out = np.zeros_like(t)
-    for i, f in enumerate(freqs):
-        a = amps[i] if amps else 1.0 / (i + 1)
-        drift = 1 + 0.002 * np.sin(2 * np.pi * r.uniform(0.05, 0.2) * t + r.uniform(0, 6)) + vib * np.sin(2 * np.pi * 5.5 * t)
-        out += a * np.sin(2 * np.pi * f * np.cumsum(drift) / SR + r.uniform(0, 6))
-    return out
-
-
-def drone(dur, base=41.2, seed=3):
-    """The low dread under the scene: a detuned cluster on a low E with a breathing filtered-noise layer."""
-    x = tone(dur, [base, base * 1.007, base * 1.498, base * 2.01, base * 2.83], [1, 0.8, 0.45, 0.25, 0.12], seed)
-    n = A.fft_filter(np.random.default_rng(seed).standard_normal(len(x)), A.bp(180, 0.8))
-    t = np.arange(len(x)) / SR
-    x = x + 0.35 * n / (np.std(n) + 1e-9) * (0.6 + 0.4 * np.sin(2 * np.pi * 0.11 * t))
-    return x / (np.max(np.abs(x)) + 1e-9)
-
-
-def screech(dur, seed=7):
-    """A thin, dissonant, rising screech (a bowed-metal string), for the stare and through the scream."""
-    t = np.arange(int(dur * SR)) / SR
-    f = 880 * (1 + 0.35 * np.clip(t / dur, 0, 1))
-    x = sum(np.sin(2 * np.pi * np.cumsum(f * k * (1 + 0.004 * np.sin(2 * np.pi * 7.3 * t))) / SR + k) / k for k in (1, 1.06, 2.01, 3.03))
-    x *= 0.6 + 0.4 * np.random.default_rng(seed).random(len(t)) ** 4
-    return A.fft_filter(x, A.hp(500)) / 3
-
-
-def boom(dur=3.0, f0=48.0):
-    """A sub hit: a low thump falling in pitch with a long dark tail."""
-    t = np.arange(int(dur * SR)) / SR
-    f = f0 * (1 + 1.5 * np.exp(-t * 18))
-    x = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 2.2)
-    n = A.fft_filter(np.random.default_rng(2).standard_normal(len(t)), A.lp(400)) * np.exp(-t * 9)
-    return x + 0.4 * n / (np.std(n) + 1e-9) * 0.2
-
-
-def heartbeat(times, gain=1.0):
-    """Lub-dub thumps at the given times (mono, for the Mix)."""
-    out = []
-    for t0 in times:
-        for dt, a in ((0.0, 1.0), (0.18, 0.6)):
-            out.append((t0 + dt, a * gain))
-    return out
-
-
-def thump(a):
-    t = np.arange(int(0.25 * SR)) / SR
-    return a * np.sin(2 * np.pi * 52 * t * (1 + 0.6 * np.exp(-t * 30))) * np.exp(-t * 22)
-
-
-def hiss(dur, seed=4):
-    """A car radio between stations: hiss and crackle, in and out."""
-    r = np.random.default_rng(seed)
-    t = np.arange(int(dur * SR)) / SR
-    n = A.fft_filter(r.standard_normal(len(t)), A.bp(2500, 0.6))
-    crack = (r.random(len(t)) > 0.9995) * r.standard_normal(len(t)) * 6
-    wob = 0.5 + 0.5 * np.sin(2 * np.pi * 0.3 * t + 1) * np.sin(2 * np.pi * 0.07 * t)
-    return (n / (np.std(n) + 1e-9) * (0.4 + 0.6 * wob) + crack) * 0.2
-
-
 class Mix:
     def __init__(self, total):
         self.n = int(total * SR)
@@ -225,12 +161,67 @@ def parse(log):
     return ev
 
 
+# ---- the recordings the cut is scored and designed with (SourceArt/Audio/Recorded/<category>, all CC0) ----------------
+STR_CELLOS = 'score_strings/score_strings_cellos_droning_509535'
+STR_BASS = 'score_strings/score_strings_double_bass_bowed_harmonics_47429'
+STR_SCRAPE = 'score_strings/score_strings_concrete_cello_low_scrapes_571173'
+STR_ALEA = 'score_strings/score_strings_aleatoric_cello_extended_loop_469998'
+STR_VLN = 'score_strings/score_strings_violins_harmonics_glissandi_378457'
+EXT_CYMBAL = 'score_extended/score_extended_bowed_suspended_cymbal_532741'
+EXT_WATER = 'score_extended/score_extended_bowed_waterphone_drone_322975'
+EXT_RAIL = 'score_extended/score_extended_bowed_stairwell_railing_197302'
+EXT_GLASS = 'score_extended/score_extended_bowed_wine_glass_662231'
+HIT_BRAAM = 'cine_hits/cine_hits_braam_low_brass_647712'
+HIT_BOOM = 'cine_hits/cine_hits_cinematic_boom_255111'
+HIT_DOWNER = 'cine_hits/cine_hits_impact_downer_535554'
+HIT_TRAILER = 'cine_hits/cine_hits_trailer_super_hits_382689'
+RIS_SHEPARD = 'cine_risers/cine_risers_shepard_tone_rising_60s_130502'
+RIS_REVCYM = 'cine_risers/cine_risers_reverse_crash_cymbal_383903'
+RIS_REVPIANO = 'cine_risers/cine_risers_reversed_piano_strings_riser_832474'
+ST_CLUSTER = 'stingers/stingers_scary_cluster_hit_396161'
+ST_JUMP = 'stingers/stingers_violin_cymbal_jump_scare_436883'
+ST_PLUCK = 'stingers/stingers_plucked_string_horror_725225'
+AMB_BLIZ = 'night_ambience/night_ambience_blizzard_forest_720876'
+AMB_TREES = 'night_ambience/night_ambience_two_trees_creaking_storm_415317'
+AMB_WOLF = 'night_ambience/night_ambience_distant_solitary_wolf_howl_500646'
+AMB_ELK = 'night_ambience/night_ambience_elk_mating_cry_banff_263489'
+CR_SCREAMS = 'creature_extra/creature_extra_human_monster_screams_391552'
+CR_GROWLS = 'creature_extra/creature_extra_human_aggressive_growls_257358'
+CR_CHIMP = 'creature_extra/creature_extra_chimpanzee_loud_screams_675430'
+CR_PIG = 'creature_extra/creature_extra_pig_squealing_260640'
+CR_BREATH = 'creature_extra/creature_extra_pug_close_breaths_snarls_377001'
+F_CREAK = 'foley_car/foley_car_creaking_metal_slow_stress_172411'
+F_LEATHER = 'foley_car/foley_car_leather_stress_creak_559079'
+F_STATIC = 'foley_car/foley_car_radio_static_no_station_625095'
+F_CHIME = 'foley_car/foley_car_seatbelt_warning_chime_218315'
+F_DRIP = 'foley_car/foley_car_water_dripping_on_metal_166324'
+B_HEART = 'body/body_heartbeat_deep_subtle_492334'
+B_TINNITUS = 'body/body_tinnitus_inside_body_450620'
+
+
+def seg(name, t0, dur):
+    """A stretch of a recording from t0 (s) for dur (s)."""
+    x = load(name)
+    return x[:, int(t0 * SR):int((t0 + dur) * SR)]
+
+
+def one_beat():
+    """One lub-dub out of the real heartbeat recording (its strongest), low-passed to the chest."""
+    x = filt(load(B_HEART), A.lp(160))
+    e = np.abs(x.mean(0))
+    k = int(0.02 * SR)
+    e = np.convolve(e, np.ones(k) / k, 'same')
+    i = int(np.argmax(e[int(1 * SR):-int(1 * SR)])) + int(1 * SR)
+    return fade(x[:, max(0, i - int(0.12 * SR)):i + int(0.55 * SR)], 0.01, 0.15)
+
+
 def crash(ev, total):
     first = lambda k, d=None: next((t for t, kk, v in ev if kk == k), d)
-    t_gap, t_eyes, t_cre = first('gap', 17.0), first('eyes', 24.0), first('creature', 30.2)
+    t_letter, t_gap, t_eyes, t_cre = first('letter', 8.5), first('gap', 17.0), first('eyes', 24.0), first('creature', 30.2)
     t_sight, t_brake, t_stop = first('sight', 31.0), first('brake', 31.4), first('stopped', 34.0)
     t_roar, t_scream, t_bolt = first('roar', 36.0), first('scream', 36.5), first('bolt', 39.0)
     t_creep, t_growl, t_imp = first('creep', 40.6), first('growl', 48.8), first('impact', 49.8)
+    t_charge = first('charge', t_growl + 0.4)
     t_speed, t_edge, t_crack = first('speed', t_imp + 1.6), first('edge', t_imp + 1.2), first('crack', t_imp + 2.0)
     t_lunge = first('lunge', t_imp)
     t_black, t_upside, t_wake = first('black', t_imp + 16), first('upside'), first('wake', (first('black', t_imp + 16) or 0) + 3)
@@ -239,7 +230,7 @@ def crash(ev, total):
     M = Mix(total)
     tt = np.arange(M.n) / SR
 
-    # ---- the opening black and the drive: the cabin, quiet; wind outside; the drone creeping in -------------------
+    # ---- the cabin and the night outside, louder than a film would (it is how alone you are) -------------------------
     eng = steady('engine/engine_volvo240_interior_journey_130135', t_brake + 1.0, skip=60)
     M.bed(level(fade(eng, 2.0, 1.0), 0.045), 0.0, t_brake + 1.0, [(0, 0), (4.8, 0.5), (7.8, 1.0), (t_brake, 1.0), (t_brake + 1.0, 0.0)])
     idle = steady('engine/engine_idle_interior_loop_522223', total, skip=0.5)
@@ -248,86 +239,119 @@ def crash(ev, total):
     tyres = steady('snow_tyres/snow_tyres_car_motion_on_snow_468178', t_imp + 1.0, skip=5)
     M.bed(level(filt(tyres, A.lp(2200)), 0.022), 0.0, t_imp, [(0, 0), (6, 1), (t_brake, 1), (t_stop, 0), (t_creep, 0), (t_creep + 1, 0.5), (t_imp, 0.5)])
     wind_in = steady('wind/wind_heavy_wind_inside_car_82267', total, skip=10)
-    M.bed(level(wind_in, 0.03), 0.0, t_imp + 0.5, [(0, 0.6), (5, 1.0), (t_stop, 1.0), (t_stop + 1, 0.55), (t_imp, 0.55), (t_imp + 0.5, 0)])
+    M.bed(level(wind_in, 0.042), 0.0, t_imp + 0.5, [(0, 0.6), (5, 1.0), (t_stop, 1.0), (t_stop + 1, 0.6), (t_imp, 0.6), (t_imp + 0.5, 0)])
+    outside = steady(AMB_BLIZ, total, skip=1)
+    M.bed(level(filt(outside, A.lp(1300)), 0.02), 0.0, t_imp + 0.5, [(0, 0.5), (5, 1.0), (t_stop, 1.0), (t_scream - 0.6, 1.0),
+                                                                     (t_scream + 1.0, 1.0), (t_imp, 1.0), (t_imp + 0.5, 0)])
     wipers = steady('cabin/cabin_wipers_snow_ice_jeep_869005', total, skip=1)
     M.bed(level(wipers, 0.012), 4.8, t_imp, [(4.8, 0), (7, 1), (t_stop, 1), (t_stop + 1, 0.45), (t_imp, 0.45)])
-    # the drone: under everything from the opening black, swelling at the gap, the eyes, the stare
-    dr = drone(total)
-    M.bed(pan(dr, 0.0) * 0.06, 0.0, total, [(0, 0), (2.5, 0.35), (t_gap - 2, 0.35), (t_gap + 1, 0.8), (t_eyes, 0.8), (t_eyes + 1, 1.1),
-                                           (t_sight, 1.1), (t_stop + 0.5, 1.4), (t_scream, 1.8), (t_scream + 0.2, 0.0), (t_bolt + 1.5, 0.0),
-                                           (t_creep + 1, 0.7), (t_growl - 0.4, 1.0), (t_growl - 0.05, 0.0), (t_black, 0.0), (t_wake + 2, 0.5),
-                                           (total, 0.3)])
-    # the eyes: a soft high shimmer
-    M.at(t_eyes, pan(fade(screech(2.2) * 0.25, 0.4, 1.4), 0.4))
 
-    # ---- the sighting: a sharp breath, the brakes, the skid on the snow ---------------------------------------------
-    M.at(t_sight + 0.05, pan(peak(load('human/human_male_gasp_344416'), 0.3), 0.0))
+    # ---- the score: real low strings under the drive, swelling with the threat; cut dead before each scare --------------
+    cellos = steady(STR_CELLOS, total, skip=2)
+    M.bed(level(filt(cellos, A.lp(2600)), 0.03), 0.0, total, [
+        (0, 0), (2.5, 0.0), (6.0, 0.35), (t_gap - 2, 0.4), (t_gap + 1, 0.8), (t_eyes, 0.8), (t_eyes + 1.5, 1.1), (t_sight, 1.1),
+        (t_stop + 0.5, 1.4), (t_roar - 0.6, 1.8), (t_roar - 0.45, 0.0), (t_bolt + 2.5, 0.0), (t_creep + 2, 0.55),
+        (t_growl - 3.4, 0.7), (t_growl - 3.0, 0.0), (t_wake + 1.0, 0.0), (t_wake + 4.0, 0.35), (total, 0.3)])
+    # the grandmother's note: a bowed glass and harmonics, faint, as the eyes go to the letter
+    M.at(t_letter + 0.3, pan(fade(level(seg(EXT_GLASS, 10.0, 5.0), 0.012), 1.2, 2.5), 0.15))
+    M.at(t_letter + 0.9, pan(fade(level(filt(seg(STR_VLN, 1.0, 5.0), A.lp(5000)), 0.008), 1.0, 2.5), -0.15))
+    # the gap: a low downer as it goes by, the bass's harmonics creeping in
+    M.at(t_gap - 0.4, pan(peak(filt(load(HIT_DOWNER), A.lp(900)), 0.22), 0.3))
+    M.at(t_gap - 0.5, pan(fade(level(seg(STR_BASS, 2.0, 7.0), 0.012), 1.5, 3.0), 0.2))
+    # the eyes: a bowed cymbal shimmer, a plucked sting, and far off, after they are gone, a call across the valley
+    M.at(t_eyes - 0.3, pan(fade(peak(filt(seg(EXT_CYMBAL, 6.0, 4.0), A.hp(500)), 0.16), 0.6, 1.8), -0.4))
+    M.at(t_eyes + 0.05, pan(peak(load(ST_PLUCK), 0.32), -0.3))
+    call = verb(filt(pitch(seg(AMB_ELK, 5.6, 3.5), 0.72), A.lp(1400)), 3.0, 0.6)
+    M.at(t_eyes + 2.2, pan(fade(peak(call, 0.09), 0.3, 1.5), -0.6))
+
+    # ---- it crosses into the road: a stinger, the brakes, heavy steps --------------------------------------------------
+    M.at(t_sight - 0.03, pan(peak(load(ST_JUMP), 0.78), 0.0))
+    M.at(t_sight - 0.03, pan(peak(seg(HIT_BOOM, 0.0, 4.0), 0.55), 0.0))
     M.at(t_brake, pan(peak(filt(fade(load('snow_tyres/snow_tyres_brake_skid_gravel_short_637161'), 0.01, 0.3), A.lp(2800)), 0.2), 0.0))
     crunch = steady('snow_tyres/snow_tyres_tires_snow_ice_slow_71099', max(0.5, t_stop - t_brake), skip=0.5)
     M.at(t_brake + 0.2, peak(filt(fade(crunch, 0.1, 0.6), A.lp(2400)), 0.14))
-    # heavy steps outside as it comes into the road, through the glass
     steps = loudest('footsteps/footsteps_heavy_steps_snow_543385', 2.0, pre=0.2)
     M.at(t_cre + 0.6, pan(peak(filt(pitch(steps, 0.8), A.lp(1200)), 0.08), -0.1))
 
-    # ---- the stare: silence but the idle, the wipers, the heartbeat and its breath; a screech rising to the scream -
+    # ---- the stare: the strings and a Shepard tone rising under its breathing and the heart -----------------------------
+    stare = max(1.0, t_roar - 0.45 - t_stop)
+    shep = steady(RIS_SHEPARD, stare + 0.5, skip=1)
+    M.bed(level(filt(shep, A.lp(2500)), 0.012), t_stop, t_roar - 0.45, [(t_stop, 0), (t_stop + stare * 0.5, 0.5), (t_roar - 0.6, 1.0), (t_roar - 0.45, 0)])
+    M.bed(level(filt(steady(STR_SCRAPE, stare + 0.5, skip=5), A.lp(4000)), 0.01), t_stop, t_roar - 0.45,
+          [(t_stop, 0), (t_stop + 1.5, 1.0), (t_roar - 0.45, 1.0)])
+    breath = filt(pitch(seg(CR_BREATH, 2.0, stare * 0.55 + 1.0), 0.55), A.lp(1800))[:, :int((stare - 0.4) * SR)]
+    M.at(t_stop + 0.4, pan(fade(level(breath, 0.045), 0.8, 0.4), -0.05))
+    beat = peak(one_beat(), 0.4)
     beats = []
-    t_hb = t_stop - 0.5
-    while t_hb < t_scream:
-        beats.append(t_hb)
-        t_hb += 0.62 - 0.12 * np.clip((t_hb - t_stop) / max(t_scream - t_stop, 1), 0, 1)
-    breath = loudest('creature/creature_grizzly_growl_eating_519599', 4.0, pre=1.0)
-    huff = verb(filt(pitch(breath, 0.55), A.lp(900)), 1.6, 0.4)
-    M.at(t_stop + 0.6, pan(peak(fade(huff, 0.5, 1.0), 0.07), -0.1))
-    M.at(t_stop + 0.8, pan(fade(screech(max(1.0, t_scream - t_stop - 0.8)) * 0.18, 1.0, 0.05), 0.0))
-    # the scream: gorilla, bear and elephant, pitched far down and layered, reverberant, a screech through it; a hit
-    layers = [('creature/creature_gorilla_alpha_roar_zoo_397054', 0.62, 1.0), ('creature/creature_bear_roaring_479825', 0.58, 0.8),
-              ('creature/creature_elephant_trumpet_growl_527845', 0.74, 0.55), ('creature/creature_sea_lion_growl_849186', 0.6, 0.5)]
+    tb = t_stop - 0.3
+    while tb < t_roar - 0.5:
+        beats.append(tb)
+        tb += 0.78 - 0.3 * np.clip((tb - t_stop) / stare, 0, 1)
+    # the suck-out: everything drawn away into a reversed cymbal, then the scream hits
+    M.x *= np.interp(tt, [0, t_roar - 0.5, t_roar - 0.3, t_scream - 0.12, t_scream - 0.05, total], [1, 1, 0.08, 0.08, 1, 1])
+    rc = seg(RIS_REVCYM, 6.9, 1.5)
+    M.at(t_scream - 0.1 - rc.shape[1] / SR, pan(peak(filt(rc, A.hp(300)), 0.35), 0.0))
+
+    # ---- the scream: a human performance and animals, pitched and layered past naming, on a brass hit and a boom ---------
     n = int(2.6 * SR)
     sc = np.zeros((2, n))
-    for name, f, g in layers:
-        c = pitch(loudest(name, 2.0, pre=0.1), f)[:, :n]
-        sc[:, :c.shape[1]] += level(fade(c, 0.04, 0.5), 0.1) * g
-    sc += pan(screech(2.6) * 0.06, 0.0)
-    sc = verb(sc, 3.0, 0.35)
-    M.at(t_scream - 0.08, pan(peak(fade(sc, 0.05, 0.8), 0.9), -0.05))
-    M.at(t_scream - 0.08, pan(peak(boom(3.5, 44), 0.6), 0.0))
-    # then near silence: wind, the idle, the driver's breath shaking
-    drv = steady('human/human_scared_male_heavy_breathing_554307', total, skip=1)
-    M.bed(level(drv, 0.03), t_scream + 1.2, t_imp, [(t_scream + 1.2, 0), (t_bolt + 0.5, 1.0), (t_creep + 3, 0.8), (t_growl - 1.5, 0.15), (t_imp, 0.0)])
+    for name, f, g, pre in ((CR_SCREAMS, 0.82, 1.0, 0.1), (CR_PIG, 0.7, 0.55, 0.05), (CR_CHIMP, 0.62, 0.35, 0.05),
+                            ('creature/creature_gorilla_alpha_roar_zoo_397054', 0.62, 0.75, 0.1),
+                            ('creature/creature_bear_roaring_479825', 0.58, 0.6, 0.1)):
+        c = pitch(loudest(name, 2.4, pre=pre), f)[:, :n]
+        sc[:, :c.shape[1]] += level(fade(c, 0.03, 0.5), 0.1) * g
+    sc = verb(sc, 2.6, 0.32)
+    M.at(t_scream - 0.08, pan(peak(fade(sc, 0.03, 0.8), 0.92), -0.05))
+    M.at(t_scream - 0.08, pan(peak(load(HIT_BRAAM), 0.7), 0.0))
+    M.at(t_scream - 0.08, pan(peak(seg(HIT_BOOM, 0.0, 5.0), 0.75), 0.0))
+    M.at(t_scream - 0.1, pan(peak(fade(seg(ST_CLUSTER, 4.6, 3.0), 0.01, 1.5), 0.45), 0.0))
 
-    # ---- it goes; the creep; the mirror; the growl ------------------------------------------------------------------
+    # ---- gone: silence but the wind and the idle; far down the valley, something answers -----------------------------
     away = loudest('footsteps/footsteps_horse_gallop_close_479799', 2.5, pre=0.3)
     M.at(t_bolt, pan(level(filt(pitch(fade(away, 0.05, 1.5), 0.8), A.lp(1000)), 0.02), 0.2))
-    t_hb = t_creep + 0.5
-    while t_hb < t_lunge - 0.1:
-        beats.append(t_hb)
-        t_hb += 0.55 - 0.2 * np.clip((t_hb - t_creep) / max(t_imp - t_creep, 1), 0, 1)
-    for t0, a in heartbeat(beats, 1.0):
-        M.at(t0, thump(a) * 0.32)
-    # the mirror: everything but the heart drops away (a duck over the last seconds before the growl)
-    duck = np.interp(tt, [0, t_growl - 3.4, t_growl - 2.6, t_growl - 0.05, t_growl, total], [1, 1, 0.25, 0.25, 1, 1])
-    M.x *= duck
-    growl = loudest('creature/creature_black_bear_angry_growl_763026', 1.4, pre=0.15)
-    M.at(t_growl, pan(peak(verb(pitch(growl, 0.62), 1.2, 0.25), 0.7), -0.9))
+    howl = verb(filt(pitch(loudest(AMB_WOLF, 6.0, pre=1.0), 0.62), A.lp(1100)), 3.5, 0.65)
+    M.at(t_bolt + 3.2, pan(fade(peak(howl, 0.07), 0.5, 2.5), 0.5))
 
-    # ---- the blow, slowed: a huge low hit; the crash and the glass pitched down and muffled; back to speed --------
+    # ---- the creep: scratching strings, a tree groaning on the right, the wheel creaking in the hands; the heart ---------
+    M.bed(level(filt(steady(STR_ALEA, max(1.0, t_growl - t_creep), skip=3), A.lp(5000)), 0.016), t_creep, t_growl - 3.4,
+          [(t_creep, 0), (t_creep + 2.0, 1.0), (t_growl - 3.6, 1.0), (t_growl - 3.4, 0)])
+    M.at(t_creep + 2.6, pan(fade(peak(seg(AMB_TREES, 25.0, 4.0), 0.12), 0.3, 1.0), 0.7))
+    M.at(t_creep + 0.8, pan(peak(seg(F_LEATHER, 0.8, 1.2), 0.05), -0.2))
+    tb = t_creep + 0.5
+    while tb < t_lunge - 0.1:
+        beats.append(tb)
+        tb += 0.62 - 0.24 * np.clip((tb - t_creep) / max(t_imp - t_creep, 1), 0, 1)
+    # the mirror: everything but the heart drops away
+    duck = np.interp(tt, [0, t_growl - 3.4, t_growl - 2.6, t_growl - 0.05, t_growl, total], [1, 1, 0.2, 0.2, 1, 1])
+    M.x *= duck
+    for t0 in beats:
+        M.at(t0, beat, 0.75)
+    # the growl, right outside the driver's window
+    g1 = pitch(loudest(CR_GROWLS, 1.3, pre=0.15), 0.72)
+    g2 = pitch(loudest('creature/creature_black_bear_angry_growl_763026', 1.4, pre=0.15), 0.62)
+    M.at(t_growl, pan(peak(verb(sumc(level(g1, 0.1), level(g2, 0.08)), 1.0, 0.2), 0.72), -0.9))
+    steps_in = loudest('footsteps/footsteps_horse_gallop_close_479799', 1.0, pre=0.2)
+    M.at(t_charge, pan(peak(filt(pitch(steps_in, 0.75), A.lp(1400)), 0.25), -0.8))
+
+    # ---- the lunge, slowed: the heart stops, everything drawn in, a reversed piano into the blow ----------------------
     slow_dur = max(0.3, t_speed - t_imp)
     blow = loudest('metal_impact/metal_impact_real_crash_interior_346300', 2.5, pre=0.05)
     glass = loudest('glass/glass_broken_car_window_587928', 1.2, pre=0.02)
     snarl = loudest('creature/creature_tiger_cage_growl_snarl_439280', 1.4, pre=0.3)
+    if t_imp - t_lunge > 0.2:
+        M.x *= np.interp(tt, [0, t_lunge, t_lunge + 0.15, t_imp - 0.03, t_imp, total], [1, 1, 0.25, 0.25, 1, 1])
+        rp = load(RIS_REVPIANO)
+        e = min(rp.shape[1], int(6.95 * SR))
+        rp = rp[:, max(0, e - int((t_imp - t_lunge) * SR)):e]
+        M.at(t_imp - rp.shape[1] / SR, pan(peak(rp, 0.3), 0.0))
+        M.at(t_lunge, pan(peak(filt(pitch(fade(snarl, 0.05, 0.3), 0.5), A.lp(900)), 0.45), -0.6))
+        M.at(t_lunge + 0.1, pan(peak(filt(pitch(loudest(CR_SCREAMS, 1.0, pre=0.05), 0.5), A.lp(1200)), 0.3), -0.5))
+    # the blow: a trailer hit and a boom under the crash and the glass, pitched down and muffled; back to speed
     slowed = sumc(level(filt(pitch(blow, 0.4), A.lp(900)), 0.1), level(filt(pitch(glass, 0.45), A.lp(1600)), 0.056),
                   level(filt(pitch(snarl, 0.45), A.lp(800)), 0.08))
     M.at(t_imp - 0.02, pan(peak(fade(slowed[:, :int((slow_dur + 0.6) * SR)], 0.005, 0.5), 0.75), -0.4))
-    M.at(t_imp - 0.02, pan(peak(boom(4.0, 38), 0.95), 0.0))
-    if t_imp - t_lunge > 0.2:
-        lull = np.interp(tt, [0, t_lunge, t_lunge + 0.15, t_imp - 0.03, t_imp, total], [1, 1, 0.3, 0.3, 1, 1])
-        M.x *= lull
-        n = int((t_imp - t_lunge) * SR)
-        sw = A.fft_filter(np.random.default_rng(9).standard_normal(n), A.lp(700))
-        sw = sw / (np.std(sw) + 1e-9) * np.linspace(0, 1, n) ** 2.2
-        M.at(t_lunge, pan(peak(sw, 0.3), 0.0))
-        M.at(t_lunge, pan(peak(filt(pitch(fade(snarl, 0.05, 0.3), 0.5), A.lp(900)), 0.45), -0.6))
-    # back to speed: the rest of the crash, real time
+    M.at(t_imp - 0.02, pan(peak(seg(HIT_TRAILER, 0.0, 3.0), 0.8), 0.0))
+    M.at(t_imp - 0.02, pan(peak(pitch(seg(HIT_BOOM, 0.0, 5.0), 0.85), 0.9), 0.0))
     M.at(t_speed - 0.05, pan(peak(fade(blow[:, int(0.3 * SR):], 0.05, 0.6), 0.6), -0.2))
     M.at(t_speed, pan(peak(load('glass/glass_glass_shatter_shards_444134'), 0.35), -0.4))
 
@@ -353,42 +377,51 @@ def crash(ev, total):
     seen = np.where(tt < t_edge, 1.0, seen)
     muffled = filt(R.x, A.lp(350)) * 0.55
     M.x += R.x * seen + muffled * (1 - seen)
-    # ringing ears from the blow, through the blackouts, dying away after the black
-    t_ring = np.arange(int((total - t_imp) * SR)) / SR
-    ring = np.sin(2 * np.pi * 4100 * t_ring) * np.clip(t_ring / 0.4, 0, 1) * np.exp(-np.maximum(0, t_ring - (t_black - t_imp)) / 4.0)
-    M.at(t_imp + 0.2, ring * 0.012)
-
-    # ---- after: the black, then waking upside down -------------------------------------------------------------------
-    # everything stops at the black but the ringing and a slow heart
+    # ---- the black, then waking upside down ---------------------------------------------------------------------------
     after = np.interp(tt, [0, t_black - 0.05, t_black + 0.05, total], [1, 1, 0, 0])
     M.x *= after
-    for t0, a in heartbeat(list(np.arange(t_black + 0.4, t_wake + 1.0, 0.95)), 0.8):
-        M.at(t0, thump(a) * 0.3)
+    # the ears ringing from the blow, on through the blackouts, dying away after waking
+    tin = steady(B_TINNITUS, total - t_imp, skip=0.5)
+    M.bed(level(filt(tin, A.hp(1500)), 0.008), t_imp + 0.2, total, [(t_imp + 0.2, 0), (t_imp + 0.8, 1.0), (t_black, 1.2),
+                                                                     (t_wake + 1.0, 1.0), (t_wake + 6.0, 0.0), (total, 0.0)])
+
+    for t0 in np.arange(t_black + 0.4, t_wake + 1.5, 1.0):
+        M.at(t0, beat, 0.55)
     storm = steady('wind/wind_snowstorm_wind_mountain_473815', total, skip=10)
-    M.bed(level(storm, 0.028), t_black, total, [(t_black, 0), (t_wake - 0.5, 0.25), (t_wake + 1.5, 1.0), (total, 1.0)])
-    M.bed(pan(hiss(total), 0.35) * 0.2, t_wake, total, [(t_wake, 0), (t_wake + 1.0, 1.0), (total, 0.8)])
+    M.bed(level(storm, 0.03), t_black, total, [(t_black, 0), (t_wake - 0.5, 0.25), (t_wake + 1.5, 1.0), (total, 1.0)])
+    trees = steady(AMB_BLIZ, total, skip=12)
+    M.bed(level(filt(trees, A.lp(4500)), 0.022), t_wake, total, [(t_wake, 0), (t_wake + 2.0, 1.0), (total, 1.0)])
+    static = steady(F_STATIC, total, skip=2)
+    M.bed(pan(level(filt(static, A.bp(1800, 0.7)), 0.014), 0.35), t_wake, total, [(t_wake, 0), (t_wake + 1.0, 1.0), (total, 0.8)])
+    chime = steady(F_CHIME, total, skip=0.2)
+    M.bed(pan(level(chime, 0.008), 0.2), t_wake + 1.6, total, [(t_wake + 1.6, 0), (t_wake + 2.0, 1.0), (total, 1.0)])
+    drip = steady(F_DRIP, total, skip=0.0)
+    M.bed(pan(level(drip, 0.012), -0.3), t_wake, total, [(t_wake, 0), (t_wake + 1.5, 1.0), (total, 1.0)])
+    M.at(t_wake + 2.4, pan(peak(seg(F_CREAK, 1.0, 4.0), 0.08), 0.1))
     tick = steady('aftermath/aftermath_engine_cooldown_clicking_539514', total, skip=5)
     M.bed(level(tick, 0.016), t_wake, total, [(t_wake, 0), (t_wake + 1.5, 1.0), (total, 1.0)])
     hissing = steady('aftermath/aftermath_steam_radiator_hiss_265013', total, skip=2)
     M.bed(level(hissing, 0.012), t_wake, total, [(t_wake, 0), (t_wake + 2, 1.0), (total, 0.7)])
-    M.bed(level(drv, 0.03), t_wake, total, [(t_wake, 0), (t_wake + 0.8, 1.2), ((t_sil or t_wake + 3.4) + 0.5, 1.0),
-                                             ((t_sil or t_wake + 3.4) + 1.5, 0.15), (total, 0.15)])   # holding their breath as it passes
     if t_sil:
-        # slow heavy steps in the snow, one every 0.56 s, and its breath, low and close outside
+        # its slow steps in the snow (a stride each 0.75 s; it stops in the light a moment, listening), its breath, the
+        # waterphone and the bowed metal under it
         snow_steps = load('footsteps/footsteps_deep_snow_heavy_slow_480621')
         step_len = int(0.45 * SR)
         for i in range(16):
+            w = 0.3 + i * 0.75
+            w = w if w < 3.6 else w + 2.4
             s0 = int((3 + i * 3.7) * SR) % max(1, snow_steps.shape[1] - step_len)
             st = fade(snow_steps[:, s0:s0 + step_len], 0.005, 0.2)
-            M.at(t_sil + 0.3 + i * 0.556, pan(peak(filt(pitch(st, 0.8), A.lp(1400)), 0.09), -0.3 + 0.04 * i))
-        M.at(t_sil + 1.0, pan(peak(fade(huff, 0.5, 1.5), 0.06), 0.0))
-        M.at(t_sil, pan(fade(drone(6.0, 32.7) * 0.12, 1.5, 2.0), 0.0))
+            M.at(t_sil + w, pan(peak(filt(pitch(st, 0.8), A.lp(1400)), 0.09), -0.3 + 0.04 * i))
+        M.at(t_sil + 3.8, pan(fade(level(filt(pitch(seg(CR_BREATH, 20.0, 3.0), 0.5), A.lp(1500)), 0.04), 0.4, 0.8), 0.0))
+        M.at(t_sil, pan(fade(level(steady(EXT_WATER, 9.0, skip=5), 0.016), 2.0, 2.5), 0.0))
+        M.at(t_sil + 3.4, pan(fade(level(seg(EXT_RAIL, 8.0, 4.0), 0.01), 0.6, 1.5), 0.2))
     if t_close:
         out = np.interp(tt, [0, t_close, t_close + 2.0, total], [1, 1, 0.12, 0.12])
         M.x *= out
     if t_title:
-        M.at(t_title - 0.1, pan(peak(boom(5.0, 36), 0.5), 0.0))
-        M.at(t_title - 0.1, pan(fade(tone(5.0, [55, 82.5, 110.6], [1, 0.5, 0.3], 9) * 0.05, 0.05, 3.5), 0.0))
+        M.at(t_title - 0.1, pan(peak(load(HIT_BRAAM), 0.55), 0.0))
+        M.at(t_title - 0.1, pan(peak(seg(HIT_BOOM, 0.0, 6.0), 0.5), 0.0))
     return M.x
 
 

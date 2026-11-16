@@ -575,17 +575,21 @@ def fingers(P, curl=0.35, spread=0.0, thumb=0.2):
     return P
 
 
-def body_pose(pelvis, spine_down, neck_up, look=0.0, clav_up=0.0):
+def body_pose(pelvis, spine_down, neck_up, look=0.0, clav_up=0.0, tilt=0.0, jut=0.0, breath=0.0):
     """The trunk: the pelvis, the spine bent nose-down (radians over its five bones), the neck and head lifted
-    (radians) to look ahead, turned (radians) to look aside."""
+    (radians) to look ahead, turned (radians) to look aside; the head tilted over (radians, a roll), the neck reaching
+    forward with the face kept on its target (jut, radians), the chest lifted by a breath (radians)."""
     P = {'pelvis': pelvis}
     w = (0.1, 0.15, 0.25, 0.25, 0.25)
-    for n, k in zip(SPINE, w):
-        P[n] = nose_down(n, spine_down * k)
-    for n, k in zip(NECK, (0.35, 0.3, 0.35)):
-        P[n] = nose_down(n, -neck_up * k) @ yaw(n, look * k)
+    for i, (n, k) in enumerate(zip(SPINE, w)):
+        P[n] = nose_down(n, spine_down * k - (breath / 3.0 if i >= 2 else 0.0))
+    for n, k, j in zip(NECK, (0.35, 0.3, 0.35), (0.6, 0.4, -1.0)):
+        P[n] = nose_down(n, -neck_up * k + jut * j) @ yaw(n, look * k)
+    if tilt:
+        P['neck_02'] = P['neck_02'] @ lq('neck_02', FWD, tilt * 0.3)
+        P['head'] = P['head'] @ lq('head', FWD, tilt * 0.7)
     for sd, sg in SIDES:
-        P['clavicle' + sd] = lq('clavicle' + sd, FWD, clav_up * sg)
+        P['clavicle' + sd] = lq('clavicle' + sd, FWD, (clav_up + breath * 0.5) * sg)
     return P
 
 
@@ -609,10 +613,24 @@ def apply_trunk(arm, P):
 # ---- the stances ------------------------------------------------------------------------------------------------
 QUAD = dict(dz=-0.47, down=math.radians(68), spine=math.radians(34), neck=math.radians(78))     # head low, hips high
 BIPED = dict(dz=-0.05, down=math.radians(9), spine=math.radians(24), neck=math.radians(22))     # upright, hunched
+CROUCH = dict(dz=-0.34, down=math.radians(34), spine=math.radians(40), neck=math.radians(52))   # coiled: knees deep, hunched, face up at it
+THREAT = dict(dz=-0.26, down=math.radians(44), spine=math.radians(18), neck=math.radians(42))   # the torso thrust forward, chest open
 
 
-def quad_trunk(dz=0.0, down=0.0, spine=0.0, neck=0.0, roll=0.0, turn=0.0, look=0.0):
-    return body_pose(pelvis_m(QUAD['dz'] + dz, 0, QUAD['down'] + down, roll, turn), QUAD['spine'] + spine, QUAD['neck'] + neck, look)
+def quad_trunk(dz=0.0, down=0.0, spine=0.0, neck=0.0, roll=0.0, turn=0.0, look=0.0, clav=0.12, tilt=0.0, breath=0.0):
+    """On all fours, the shoulder blades bunched up into a hump (clav)."""
+    return body_pose(pelvis_m(QUAD['dz'] + dz, 0, QUAD['down'] + down, roll, turn), QUAD['spine'] + spine, QUAD['neck'] + neck, look,
+                     clav, tilt, 0.0, breath)
+
+
+def crouch_trunk(dz=0.0, down=0.0, spine=0.0, neck=0.0, look=0.0, tilt=0.0, jut=math.radians(16), breath=0.0, clav=0.0):
+    return body_pose(pelvis_m(CROUCH['dz'] + dz, 0, CROUCH['down'] + down), CROUCH['spine'] + spine, CROUCH['neck'] + neck, look,
+                     math.radians(8) + clav, tilt, jut, breath)
+
+
+def threat_trunk(dz=0.0, down=0.0, spine=0.0, neck=0.0, look=0.0, tilt=0.0, jut=math.radians(28), breath=0.0):
+    return body_pose(pelvis_m(THREAT['dz'] + dz, 0, THREAT['down'] + down), THREAT['spine'] + spine, THREAT['neck'] + neck, look,
+                     math.radians(10), tilt, jut, breath)
 
 
 def biped_trunk(dz=0.0, down=0.0, spine=0.0, neck=0.0, look=0.0, clav_up=0.0):
@@ -623,14 +641,18 @@ def settle_stances(arm):
     """Work out once where the shoulders and hips are in each stance, and the hand and foot spots from them."""
     q = fk_points(arm, quad_trunk())
     b = fk_points(arm, biped_trunk())
+    cr = fk_points(arm, crouch_trunk())
+    th = fk_points(arm, threat_trunk())
     for sd, sg in SIDES:
         sh, hp = q[sd]
         ankle0 = REST[ctrl_name('foot', sd)].translation
-        NEUTRAL['quad_hand' + sd] = Vector((sh.x * 1.25, sh.y - 0.3, 0.045))
+        NEUTRAL['quad_hand' + sd] = Vector((sh.x * 1.0, sh.y - 0.36, 0.045))     # under the shoulders (wide is a crab)
         NEUTRAL['quad_foot' + sd] = Vector((ankle0.x * 1.1, hp.y + 0.12, ankle0.z))
         shb, hpb = b[sd]
         NEUTRAL['biped_shoulder' + sd] = shb
         NEUTRAL['biped_foot' + sd] = Vector((ankle0.x * 1.15, ankle0.y, ankle0.z))
+        NEUTRAL['crouch_shoulder' + sd] = cr[sd][0]
+        NEUTRAL['threat_shoulder' + sd] = th[sd][0]
         log('stance', sd, 'quad shoulder', tuple(round(c, 2) for c in sh), 'hip', tuple(round(c, 2) for c in hp),
             '| biped shoulder', tuple(round(c, 2) for c in shb))
 
@@ -689,6 +711,29 @@ def biped_limbs(P, raise_arms=0.0, step=0.0, shake=0.0, t=0.0):
     return P
 
 
+def crouch_limbs(P):
+    """Coiled: the feet wide and staggered, the long arms hanging in front of the knees, elbows soft."""
+    for sd, sg in SIDES:
+        f0 = NEUTRAL['biped_foot' + sd]
+        P[ctrl_name('foot', sd)] = foot_m(sd, Vector((f0.x * 1.3, f0.y, f0.z)) + FWD * (0.12 if sd == '_l' else -0.08))
+        sh = NEUTRAL['crouch_shoulder' + sd]
+        P[ctrl_name('hand', sd)] = hand_m(sd, sh + Vector((0.10 * sg, -0.30, -0.64)), Vector((0.05 * sg, -0.4, -1.0)), Vector((-sg, 0.2, 0.0)))
+    return P
+
+
+def threat_limbs(P, shake=0.0, t=0.0):
+    """The threat: mid-stride, weight forward; the arms flung out wide to the sides at about shoulder height, elbows a
+    little bent, palms and claws at what it threatens; trembling."""
+    for sd, sg in SIDES:
+        f0 = NEUTRAL['biped_foot' + sd]
+        P[ctrl_name('foot', sd)] = foot_m(sd, Vector((f0.x * 1.3, f0.y, f0.z)) + FWD * (0.34 if sd == '_l' else -0.14))
+        sh = NEUTRAL['threat_shoulder' + sd]
+        trem = Vector((0.0, 0.0, 0.018 * math.sin(t * 53 + sg) * shake))
+        wrist = sh + Vector((0.50 * sg, -0.40, 0.03)) + trem          # wide and reaching at it, elbows bent, claws up a little
+        P[ctrl_name('hand', sd)] = hand_m(sd, wrist, Vector((0.5 * sg, -0.7, 0.3)), Vector((0.0, -1.0, 0.15)))
+    return P
+
+
 def blend(a, b, w):
     w = max(0.0, min(1.0, w))
     out = {}
@@ -721,6 +766,24 @@ def stand4(dz=0.0):
     return fingers(quad_limbs(quad_trunk(dz)), curl=0.3)
 
 
+def low4(tilt=0.0, breath=0.0):
+    """Low on all fours, hunched, the head down between the shoulders and the eyes up on it."""
+    return fingers(quad_limbs(quad_trunk(-0.06, math.radians(-6), math.radians(10), math.radians(-14), clav=0.22, tilt=tilt, breath=breath)), curl=0.42)
+
+
+def crouch(tilt=0.0, breath=0.0, coil=0.0, t=0.0):
+    """Coiled on its feet; coil (0..1) winds it down and back, breathing in, before it screams."""
+    P = crouch_trunk(-0.06 * coil, 0.0, math.radians(8) * coil, math.radians(-10) * coil, 0.0, tilt,
+                     math.radians(16) - math.radians(12) * coil, breath, 0.08 * coil)
+    return fingers(crouch_limbs(P), curl=0.45 + 0.12 * math.sin(t * 6.3), spread=0.15, thumb=0.3)
+
+
+def threat(shake=0.0, t=0.0):
+    trem = math.radians(1.2) * math.sin(t * 47) * shake
+    P = threat_trunk(0.0, 0.0, 0.0, trem, math.radians(3) * math.sin(t * 23) * shake)
+    return fingers(threat_limbs(P, shake, t), curl=0.5, spread=0.55, thumb=0.45)
+
+
 def brace4():
     return fingers(quad_limbs(quad_trunk(-0.08, math.radians(-12), math.radians(-6), math.radians(10)), brace=1.0), curl=0.45)
 
@@ -731,14 +794,21 @@ def biped(raise_arms=0.0, chest=0.0, head_up=0.0, step=0.0, shake=0.0, t=0.0, lo
     return fingers(P, curl=0.35 - 0.2 * raise_arms, spread=0.25 * raise_arms, thumb=0.3)
 
 
-# the sighting (as in EndingDirector, which moves and turns it): in, halt turning to face the car, rise, scream, drop,
-# wheel round, away
+# the sighting (as in EndingDirector, which moves and turns it): in, a skid round to face the car into a low crouch
+# on all fours; the stare at real speed (breathing, a head jerk, a slow rise into a coiled crouch on its feet, a wind-
+# up); the scream thrust at the car, arms flung wide; a pounce down onto its hands; wheel round, away
 TA = T_STRIDE
 TB = TA + 0.63
-TC = TB + 0.75
+STARE = 4.6
+TC = TB + STARE
 TD = TC + 1.8
 TE = TD + 0.6
 TF = TE + 2 * T_STRIDE
+
+
+def snap(x, d=0.07):
+    """A twitch: done in a few frames."""
+    return smooth01(x / d)
 
 
 def sighting(t):
@@ -747,22 +817,24 @@ def sighting(t):
     if t < TB:
         u = (t - TA) / (TB - TA)
         P = blend(gallop((t / T_STRIDE) % 1.0, 50.0 * (1 - smooth01(u))), brace4(), smooth01(u / 0.4))
-        return blend(P, stand4(), smooth01((u - 0.55) / 0.45))
+        return blend(P, low4(), smooth01((u - 0.55) / 0.45))
     if t < TC:
-        u = (t - TB) / (TC - TB)
-        return blend(stand4(), biped(), smooth01(u))
+        s_ = t - TB
+        br = math.radians(2.2) * math.sin(2 * math.pi * s_ / 1.15)
+        held = snap(s_ - 0.9) * (1 - snap(s_ - 1.75))
+        tilt = math.radians(26) * held + math.radians(1.5) * math.sin(s_ * 31) * held
+        tilt += math.radians(-14) * smooth01((s_ - 3.2) / 0.5) * (1 - snap(s_ - 4.15, 0.1))
+        P = blend(low4(tilt, br), crouch(tilt, br * 1.4, 0.0, s_), smooth01((s_ - 1.9) / 1.4))
+        return blend(P, crouch(0.0, math.radians(4), 1.0, s_), smooth01((s_ - 4.0) / 0.45))
     if t < TD:
         r = t - TC
-        raise_arms = smooth01(r / 0.4) * (1 - 0.4 * smooth01((r - 1.45) / 0.35))
-        head_up = 18 * smooth01(r / 0.35) - 30 * smooth01((r - 0.35) / 0.15) + 12 * smooth01((r - 1.45) / 0.35)
-        chest = math.radians(10) * smooth01((r - 0.3) / 0.2) * (1 - smooth01((r - 1.45) / 0.35))
-        roaring = smooth01((r - 0.45) / 0.1) * (1 - smooth01((r - 1.4) / 0.1))
-        look = 4 * math.sin(r * 44) * roaring
-        return biped(raise_arms, chest, head_up, 0.25 * smooth01((r - 0.4) / 0.3), roaring, r, look)
+        hit = 1 - (1 - smooth01(r / 0.22)) ** 2
+        shake = smooth01((r - 0.2) / 0.08) * (1 - smooth01((r - 1.4) / 0.12))
+        P = blend(crouch(0.0, math.radians(4), 1.0, STARE), threat(shake, r), hit)
+        return blend(P, crouch(), 0.35 * smooth01((r - 1.45) / 0.35))
     if t < TE:
         u = (t - TD) / (TE - TD)
-        P = blend(biped(0.6, 0.0, 12), stand4(), smooth01(u) ** 1.3)
-        return P
+        return blend(blend(threat(), crouch(), 0.35), stand4(), 1 - (1 - smooth01(u / 0.6)) ** 2)
     tt = t - TE
     phase = ((t - TF) / T_STRIDE) % 1.0
     return blend(stand4(-0.05), gallop(phase), smooth01(tt / 0.35))
@@ -781,8 +853,9 @@ def stalk(phase):
     dz = -0.03 + 0.018 * math.cos(2 * tau * phase)            # highest as it passes over each planted foot
     roll = math.radians(2.5) * math.sin(tau * phase)
     turn = math.radians(4) * math.sin(tau * phase)
-    P = body_pose(pelvis_m(BIPED['dz'] + dz, 0, BIPED['down'] + math.radians(6), roll, turn),
-                  BIPED['spine'] + math.radians(14), BIPED['neck'] - math.radians(4), -turn * 0.6)
+    P = body_pose(pelvis_m(BIPED['dz'] + dz - 0.12, 0, BIPED['down'] + math.radians(18), roll, turn),
+                  BIPED['spine'] + math.radians(22), BIPED['neck'] + math.radians(10), -turn * 0.6, math.radians(6),
+                  math.radians(7) * math.sin(tau * phase + 0.7), math.radians(18))
     for sd, sg in SIDES:
         s_ = (phase + (0.0 if sd == '_l' else 0.5)) % 1.0
         if s_ < STALK_DUTY:
@@ -800,7 +873,7 @@ def stalk(phase):
         # the arm swings against the leg on its side
         sh = NEUTRAL['biped_shoulder' + sd]
         swing = -0.12 * math.cos(tau * s_)
-        wrist = sh + Vector((0.14 * sg, -0.12, -0.98)) + FWD * swing
+        wrist = sh + Vector((0.12 * sg, -0.26, -0.84)) + FWD * swing
         P[ctrl_name('hand', sd)] = hand_m(sd, wrist, Vector((0.05 * sg, -0.15 + swing * 0.4, -1.0)), Vector((-sg, 0.0, 0.0)))
     return fingers(P, curl=0.4, spread=0.1, thumb=0.25)
 
@@ -981,6 +1054,8 @@ def main():
     rig_controls(arm, body)
     settle_stances(arm)
     acts = bake_takes(arm, ['Gallop', 'GallopLookL', 'Sighting', 'Stalk'], body)
+    if os.environ.get('HUSK_STRIP'):
+        motion_strip(arm, body, acts, os.environ['HUSK_STRIP'])
     log('stalk: %.2f m/s at the model\'s size' % STALK_SPEED)
     ground_check(arm, body, acts)
     for b in arm.data.bones:                 # every MetaHuman bone goes out (the face copies the head and neck by name)
@@ -1091,6 +1166,39 @@ def to_centimetres(arm, body):
                 n += 1
     bpy.context.scene.unit_settings.scale_length = 0.01
     log('in centimetres: %d location curves scaled' % n)
+
+
+def motion_strip(arm, body, acts, out):
+    """For checking the movement: the Sighting take every few frames from where the driver sees it (in front, a little
+    above), and from the side, flat-shaded (Workbench), numbered by the take's time."""
+    sc = bpy.context.scene
+    cam = bpy.data.objects.new('strip_cam', bpy.data.cameras.new('strip_cam'))
+    sc.collection.objects.link(cam)
+    sc.camera = cam
+    gm = bpy.data.meshes.new('strip_ground')
+    gm.from_pydata([(-20, -20, 0), (20, -20, 0), (20, 20, 0), (-20, 20, 0)], [], [(0, 1, 2, 3)])
+    ground = bpy.data.objects.new('strip_ground', gm)
+    sc.collection.objects.link(ground)
+    sc.render.engine = 'BLENDER_WORKBENCH'
+    sc.display.shading.light = 'STUDIO'
+    sc.display.shading.color_type = 'SINGLE'
+    sc.render.resolution_x, sc.render.resolution_y = 400, 340
+    os.makedirs(out, exist_ok=True)
+    by = {a.name: a for a in acts}
+    arm.animation_data.action = by['Sighting']
+    views = {'front': ((0.0, -4.2, 1.2), (0, -0.2, 0.95)), 'side': ((4.2, -0.4, 1.05), (0, -0.4, 0.9))}
+    for f in range(0, int(round(TF * FPS)) + 1, 6):
+        sc.frame_set(f)
+        for v, (loc, tgt) in views.items():
+            cam.location = loc
+            cam.rotation_euler = (Vector(tgt) - Vector(loc)).to_track_quat('-Z', 'Y').to_euler()
+            cam.data.lens = 28
+            sc.render.filepath = os.path.join(out, '%s_%04d.png' % (v, f))
+            bpy.ops.render.render(write_still=True)
+    arm.animation_data.action = acts[0]
+    bpy.data.objects.remove(ground)
+    bpy.data.objects.remove(cam)
+    log('motion strip: %s' % out)
 
 
 def preview(arm, body, acts):

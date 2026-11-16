@@ -45,6 +45,22 @@ void AEndingHUD::DrawHUD()
 			Canvas->DrawText(Font, L2, (Canvas->ClipX - W * S2) * 0.5f, Canvas->ClipY * (0.47f + CapSize * 0.75f), S2, S2, Info);
 		}
 	}
+	// the driver's lines: captions centred in the lower letterbox bar
+	FString Said;
+	float SaidAlpha = 0.f;
+	if (Director.IsValid() && Director->GetLine(Said, SaidAlpha))
+	{
+		UFont* Font = GEngine->GetLargeFont();
+		FFontRenderInfo Info;
+		Info.bClipText = false;
+		Info.bEnableShadow = true;
+		Canvas->SetDrawColor(FLinearColor(0.92f, 0.92f, 0.9f, SaidAlpha * 0.95f).ToFColor(true));
+		float W = 0.f, H = 0.f;
+		Canvas->TextSize(Font, Said, W, H);
+		const float S = H > 0.f ? Canvas->ClipY * 0.03f / H : 1.f;
+		const float Bar = FMath::Max(0.f, (Canvas->ClipY - Canvas->ClipX / 2.39f) * 0.5f);   // the letterbox bar's height
+		Canvas->DrawText(Font, Said, (Canvas->ClipX - W * S) * 0.5f, Canvas->ClipY - Bar * 0.5f - H * S * 0.5f, S, S, Info);
+	}
 	const float Alpha = Director.IsValid() ? Director->GetEndCardAlpha() : 0.f;
 	if (Alpha <= 0.f)
 	{
