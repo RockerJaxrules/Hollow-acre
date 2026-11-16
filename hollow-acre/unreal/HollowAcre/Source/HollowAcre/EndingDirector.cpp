@@ -312,6 +312,7 @@ void AEndingDirector::Tick(float DeltaSeconds)
 			const float D = Dist + Speed * FMath::Max(0.f, SightTime - Time) + CrossAhead;
 			const FVector T = (PathAt(D + 300.f) - PathAt(D - 300.f)).GetSafeNormal2D();
 			CreRight = FVector::CrossProduct(FVector::UpVector, T);
+			CreRoadD = D;
 			CreCentre = PathAt(D) - CreRight * 175.f;           // the car's path runs 1.75 m right of the middle
 			const FVector Halt = CreCentre - CreRight * HaltSide;
 			CreDir = -CreRight;
@@ -852,7 +853,7 @@ void AEndingDirector::MoveCreature(float DeltaSeconds)
 		const float t = Time - CreTakeT0;
 		if (t >= TF)
 		{
-			// away: turned 70 degrees to its right of the way it came, at a gallop
+			// away up the road, at a gallop (its heading from here on follows the road: below)
 			CreStage = 3;
 			CreDir = FRotator(0.f, 70.f, 0.f).RotateVector(CreDir0).GetSafeNormal2D();
 			CreTakeYaw = 0.f;
@@ -876,7 +877,16 @@ void AEndingDirector::MoveCreature(float DeltaSeconds)
 			Jaw = FMath::Max(5.f, ScreamJaw(t));
 		}
 	}
-	if (CreStage == 3 && CreS > 2600.f * K)
+	if (CreStage == 3)
+	{
+		// up the road through the headlights, keeping HaltSide left of the middle, the way the road bends
+		const float Ahead = CreRoadD + CreS + 700.f;
+		const FVector RoadT = (PathAt(Ahead + 300.f) - PathAt(Ahead - 300.f)).GetSafeNormal2D();
+		const FVector RoadR = FVector::CrossProduct(FVector::UpVector, RoadT);
+		const FVector Want = ((PathAt(Ahead) - RoadR * (175.f + HaltSide)) - CrePos).GetSafeNormal2D();
+		CreDir = DeltaSeconds > 0.f ? FMath::VInterpNormalRotationTo(CreDir, Want, DeltaSeconds, 160.f).GetSafeNormal2D() : Want;
+	}
+	if (CreStage == 3 && CreS > 3100.f * K)
 	{
 		H->Destroy();             // gone into the dark up the road
 		Creature = nullptr;

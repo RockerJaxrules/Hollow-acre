@@ -205,7 +205,8 @@ private:
 	FVector CrePos = FVector::ZeroVector, CreDir0 = FVector::ForwardVector;
 	float CreTakeYaw = 0.f;
 	bool bScreamed = false;
-	float CreLift = 0.f, CreLiftMax = 0.f, CreLiftLogAt = 0.f;   // lifting it clear of the real snow (AHusk::GroundLift)
+	float CreLift = 0.f, CreLiftMax = 0.f, CreLiftLogAt = 0.f;
+	float CreRoadD = 0.f;          // how far along the road it crossed (to bolt away up the road from)   // lifting it clear of the real snow (AHusk::GroundLift)
 	void MoveCreature(float DeltaSeconds);
 	float CreatureGround(const FVector& At) const;
 	float CreatureYawFix = 0.f;
