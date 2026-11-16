@@ -287,6 +287,8 @@ void AEndingDirector::UpdateWindshieldHits()
 	WindshieldMID->SetVectorParameterValue(TEXT("GlassV"), FLinearColor(FVector3f(C.TransformVectorNoScale(FVector(0.838f, 0.f, -0.545f)))));
 	static const TCHAR* Pos[2] = {TEXT("HitA"), TEXT("HitB")};
 	static const TCHAR* Rad[2] = {TEXT("HitAR"), TEXT("HitBR")};
+	static const TCHAR* Dent[2] = {TEXT("HitAD"), TEXT("HitBD")};
+	WindshieldMID->SetVectorParameterValue(TEXT("GlassN"), FLinearColor(FVector3f(C.TransformVectorNoScale(FVector(0.545f, 0.f, 0.838f)))));
 	for (int32 k = 0; k < 2; ++k)
 	{
 		if (BlowT[k] < 0.f)
@@ -295,9 +297,13 @@ void AEndingDirector::UpdateWindshieldHits()
 		}
 		// nearly all of it at once (a crack runs through glass faster than a frame), then a little more creeping out
 		const float d = FMath::Max(0.f, Time - BlowT[k]);
-		const float R = (k == 0 ? 40.f : 26.f) * (1.f - FMath::Exp(-d / 0.035f)) + (k == 0 ? 7.f : 5.f) * (1.f - FMath::Exp(-d / 1.2f));
+		const float Hard = FMath::Clamp(BlowS[k] / 500.f, 0.5f, 1.4f);
+		const float R = Hard * ((k == 0 ? 34.f : 22.f) * (1.f - FMath::Exp(-d / 0.035f)) + (k == 0 ? 7.f : 5.f) * (1.f - FMath::Exp(-d / 1.2f)));
 		WindshieldMID->SetVectorParameterValue(Pos[k], FLinearColor(FVector3f(C.TransformPosition(BlowAt[k]))));
 		WindshieldMID->SetScalarParameterValue(Rad[k], R);
+		// and pushed in round it (a shallow cone: it stays so), ringing for a moment
+		const float D = Hard * (k == 0 ? 2.4f : 1.1f);
+		WindshieldMID->SetScalarParameterValue(Dent[k], D * (1.f - FMath::Exp(-d / 0.02f)) * (1.f + 0.35f * FMath::Exp(-d / 0.09f) * FMath::Sin(d * 60.f)));
 	}
 }
 
@@ -714,6 +720,16 @@ float AEndingDirector::CarDip() const
 		{
 			p += -1.5f * FMath::Exp(-4.f * g) * FMath::Sin(10.f * g + 0.4f);
 			p += -0.5f * Smooth(g / 0.4f) * (LeapT0 < 0.f ? 1.f : FMath::Exp(-6.f * FMath::Max(0.f, Time - LeapT0)));
+		}
+	}
+	// each blow on the windshield: the nose shoved down on its springs and rocking back (as hard as it struck)
+	for (int32 k = 0; k < 2; ++k)
+	{
+		if (BlowT[k] >= 0.f && Time > BlowT[k])
+		{
+			const float g = Time - BlowT[k];
+			const float A = FMath::Clamp(BlowS[k] / 500.f, 0.4f, 1.4f) * (k == 0 ? 1.8f : 0.8f);
+			p += -A * FMath::Exp(-5.f * g) * FMath::Sin(13.f * g);
 		}
 	}
 	if (LeapT0 >= 0.f)
@@ -1578,7 +1594,7 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 		const float r = Time - RiseT0;
 		static const struct { float At; const TCHAR* Kind; } Beats[] = {{2.4f, TEXT("rise")}, {4.75f, TEXT("jaw")}, {7.6f, TEXT("leap")}};
 		// (the attack: its face drops in; its head hits the glass; its claw hits the glass)
-		static const float HangAt = 3.6f, SlamAt = 4.68f, ClawAt = 6.14f;
+		static const float HangAt = 3.6f, SlamAt = 4.58f, ClawAt = 6.04f;     // (when it drops in; when it lunges; when it strikes)
 		const FVector N(0.545f, 0.f, 0.838f);         // the windshield's outward normal (car frame: up and forward)
 		auto OnGlass = [&N](const FVector& P)          // the point of the glass nearest P (car frame)
 		{
@@ -1589,24 +1605,6 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 			AttackBeat = 1;
 			HangInT = Time;
 			Event(TEXT("hang"));
-		}
-		if (AttackBeat == 1 && r >= SlamAt)
-		{
-			AttackBeat = 2;
-			BlowT[0] = Time;
-			BlowAt[0] = OnGlass(C.InverseTransformPosition(H->FaceNearest(C.TransformPosition(FVector(100.f, 0.f, 100.f)), C.TransformVectorNoScale(N))));
-			ChipWindshield(BlowAt[0], 1);
-			RoarShake = 1.f;
-			Event(TEXT("slam"));
-		}
-		if (AttackBeat == 2 && r >= ClawAt)
-		{
-			AttackBeat = 3;
-			BlowT[1] = Time;
-			BlowAt[1] = OnGlass(RoofClawAt);
-			ChipWindshield(BlowAt[1], 2);
-			RoarShake = FMath::Max(RoarShake, 0.65f);
-			Event(TEXT("claw"));
 		}
 		while (RiseBeat < (int32)UE_ARRAY_COUNT(Beats) && r >= Beats[RiseBeat].At)
 		{
@@ -1633,33 +1631,87 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 			auto Snap = [](float x) { return FMath::SmoothStep(0.f, 0.08f, x); };
 			auto Ease = [](float a, float b, float x) { return FMath::SmoothStep(a, b, x); };
 			const FVector Hidden(RoofHangHead.X + 4.f, CamRest.Y, 205.f), Low(RoofHangHead.X, CamRest.Y, RoofHangHead.Z);
-			FVector Hd = Hidden;
+			// where its head is driven (car frame), and how hard: it drops in (a heavy swing, overshooting a little); draws
+			// back; lunges at the driver, through where the glass is (the glass stops it); presses against it shrieking,
+			// head shaking; pulls off it; is gone up over the edge
+			const FVector Lunge = FVector(-0.92f, 0.f, -0.38f).GetSafeNormal();     // at the driver, a little down
+			const float Shriek = Ease(4.75f, 4.85f, r) * (1.f - Ease(5.7f, 5.95f, r));
+			FVector Tgt = Hidden;
+			float W = 12.f, Z = 0.7f;
 			if (r >= HangAt)
 			{
-				const float x = r - HangAt;
-				const float k = x < 0.26f ? FMath::Square(x / 0.26f)
-					: 1.f + 0.08f * FMath::Sin(2.f * PI * (x - 0.26f) / 0.32f) * FMath::Exp(-(x - 0.26f) / 0.14f);
-				Hd = FMath::Lerp(Hidden, Low, k);
+				Tgt = Low;
+				W = 13.f;
+				Z = 0.55f;
 			}
-			// along the glass's normal: drawn back, driven in (quickening) to the glass, a small rebound, pressed there
-			// shrieking, then pulled off it
-			float In = 0.f;
-			if (r >= 4.40f && r < 4.58f)
+			if (r >= 4.35f && r < SlamAt)
 			{
-				In = -10.f * Ease(4.40f, 4.58f, r);
+				Tgt = Low - Lunge * 12.f;          // drawn back
+				W = 11.f;
+				Z = 0.8f;
 			}
-			else if (r >= 4.58f && r < SlamAt)
+			if (r >= SlamAt && r < 6.75f)
 			{
-				In = FMath::Lerp(-10.f, RoofSlamIn, FMath::Square((r - 4.58f) / (SlamAt - 4.58f)));
+				Tgt = Low + Lunge * (r < 4.8f ? 45.f : 30.f) + FVector(0.f, 3.f * FMath::Sin(2.f * PI * 5.5f * r) * Shriek, 0.f);
+				W = r < 4.8f ? 24.f : 14.f;
+				Z = r < 4.8f ? 0.3f : 0.6f;
 			}
-			else if (r >= SlamAt)
+			if (r >= 6.75f)
 			{
-				In = RoofSlamIn - 2.5f * FMath::Sin(PI * FMath::Clamp((r - SlamAt) / 0.12f, 0.f, 1.f)) - 1.5f * Ease(SlamAt, SlamAt + 0.1f, r)
-					- (RoofSlamIn + 2.f) * Ease(6.75f, 7.0f, r);
+				Tgt = r < 7.0f ? Low - Lunge * 6.f : Hidden;
+				W = r < 7.0f ? 12.f : 16.f;
+				Z = 0.8f;
 			}
-			const float Shriek = Ease(4.75f, 4.85f, r) * (1.f - Ease(5.7f, 5.95f, r));
-			Hd += -N * In + FVector(0.f, 2.f * FMath::Sin(2.f * PI * 5.5f * r) * Shriek, 0.f);
-			Hd = FMath::Lerp(Hd, Hidden, Ease(7.0f, 7.3f, r));      // gone, up over the edge
+			// the glass, as its face meets it: how far its face reaches out from its head toward the glass (as it is drawn)
+			const FVector Nw = C.TransformVectorNoScale(N), G0 = C.TransformPosition(FVector(100.f, 0.f, 100.f));
+			auto Plane = [&N](const FVector& P) { return FVector::DotProduct(P - FVector(100.f, 0.f, 100.f), N); };
+			const float Reach = FVector::DotProduct(H->HeadAt() - H->FaceNearest(G0, Nw), Nw);
+			if (!bAtkInit)
+			{
+				bAtkInit = true;
+				AtkHeadP = Hidden;
+				AtkHeadV = FVector::ZeroVector;
+				AtkClawP = FVector(42.f, CamRest.Y + 40.f, 172.f);
+				AtkClawV = FVector::ZeroVector;
+			}
+			const int32 Sub = 4;
+			for (int32 i = 0; i < Sub; ++i)
+			{
+				const float h = Dt / Sub;
+				AtkHeadV += (W * W * (Tgt - AtkHeadP) - 2.f * Z * W * AtkHeadV) * h;
+				AtkHeadP += AtkHeadV * h;
+				const float Gap = Plane(AtkHeadP) - Reach;          // its face's distance from the glass
+				if (r >= HangAt && Gap < 0.3f)
+				{
+					AtkHeadP += N * (0.3f - Gap);
+					const float Vn = FVector::DotProduct(AtkHeadV, N);
+					if (Vn < 0.f)
+					{
+						// it hits the glass: it stops there, a little rebound, its sliding checked
+						if (AttackBeat == 1 && r >= SlamAt && -Vn > 80.f)
+						{
+							AttackBeat = 2;
+							BlowT[0] = Time;
+							BlowS[0] = -Vn;
+							// (where its brow meets the glass: straight in front of its head, a little down the slope, the skull
+							// hanging below its neck)
+							BlowAt[0] = OnGlass(AtkHeadP) + FVector(0.838f, 0.f, -0.545f) * 6.f;
+							{
+								const FVector Cm = Camera ? C.InverseTransformPosition(Camera->GetActorLocation()) : CamRest;
+								UE_LOG(LogTemp, Display, TEXT("Blow 0 at car (%.0f, %.0f, %.0f): %.0f deg up and %.0f across from the eye; its head at (%.0f, %.0f, %.0f), %.0f cm/s"),
+									BlowAt[0].X, BlowAt[0].Y, BlowAt[0].Z, FMath::RadiansToDegrees(FMath::Atan2(BlowAt[0].Z - Cm.Z, BlowAt[0].X - Cm.X)),
+									FMath::RadiansToDegrees(FMath::Atan2(BlowAt[0].Y - Cm.Y, BlowAt[0].X - Cm.X)), AtkHeadP.X, AtkHeadP.Y, AtkHeadP.Z, -Vn);
+							}
+							ChipWindshield(BlowAt[0], 1);
+							RoarShake = FMath::Clamp(-Vn / 400.f, 0.6f, 1.25f);
+							Event(TEXT("slam"), -Vn);
+						}
+						const FVector Vt = AtkHeadV - N * Vn;
+						AtkHeadV = Vt * 0.55f - N * Vn * 0.15f;
+					}
+				}
+			}
+			const FVector Hd = AtkHeadP;
 			H->HangW = FMath::SmoothStep(0.5f, 1.6f, r);
 			H->HangCurl = FMath::SmoothStep(0.7f, 2.6f, r);
 			H->HangGripW = FMath::SmoothStep(0.9f, 2.4f, r);
@@ -1672,18 +1724,55 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 			const FVector Down(0.838f, 0.f, -0.545f);      // down the glass's slope
 			const FVector RoofL(42.f, CamRest.Y - 34.f, 172.f), RoofR(42.f, CamRest.Y + 40.f, 172.f);
 			const FVector ClawG = OnGlass(RoofClawAt) + N * 14.f;
-			const FVector ClawP = ClawG + Down * 7.f * Ease(ClawAt, 6.5f, r);
-			FVector HandR = RoofR;
-			if (r >= 5.92f && r < 7.25f)
+			// its claw, the same way: up off the edge and over; struck down through where the glass is (the glass stops it:
+			// its claws on it); pressed and dragged down it; lifted off; back over the edge
+			FVector CTgt = RoofR;
+			float CW = 12.f, CZ = 0.8f;
+			if (r >= ClawAt - 0.12f && r < ClawAt)
 			{
-				const FVector Over = ClawG + N * 30.f;      // (above where it will strike)
-				HandR = r < 6.04f ? FMath::Lerp(RoofR, Over, Ease(5.92f, 6.04f, r))
-					: r < ClawAt ? FMath::Lerp(Over, ClawG, FMath::Square((r - 6.04f) / (ClawAt - 6.04f)))
-					: r < 6.9f ? ClawP
-					: r < 7.05f ? FMath::Lerp(ClawP, ClawP + N * 30.f, Ease(6.9f, 7.05f, r))
-					: FMath::Lerp(ClawP + N * 30.f, RoofR, Ease(7.05f, 7.25f, r));
+				CTgt = ClawG + N * 30.f;           // above where it will strike
+				CW = 18.f;
 			}
-			const float OnG = r < 5.98f || r >= 7.15f ? 0.f : r < 6.04f ? Ease(5.98f, 6.04f, r) : r < 7.05f ? 1.f : 1.f - Ease(7.05f, 7.15f, r);
+			else if (r >= ClawAt && r < 6.9f)
+			{
+				CTgt = r < ClawAt + 0.12f ? ClawG - N * 30.f : ClawG - N * 6.f + Down * 7.f * Ease(ClawAt + 0.12f, 6.5f, r);
+				CW = r < ClawAt + 0.12f ? 26.f : 14.f;
+				CZ = r < ClawAt + 0.12f ? 0.3f : 0.7f;
+			}
+			else if (r >= 6.9f && r < 7.25f)
+			{
+				CTgt = r < 7.05f ? ClawG + N * 30.f : RoofR;
+				CW = 16.f;
+			}
+			for (int32 i = 0; i < Sub; ++i)
+			{
+				const float h = Dt / Sub;
+				AtkClawV += (CW * CW * (CTgt - AtkClawP) - 2.f * CZ * CW * AtkClawV) * h;
+				AtkClawP += AtkClawV * h;
+				const float Gap = FVector::DotProduct(AtkClawP - ClawG, N);     // (its claws at the glass when its hand is at ClawG)
+				if (r >= ClawAt - 0.12f && r < 6.9f && Gap < 0.f)
+				{
+					AtkClawP -= N * Gap;
+					const float Vn = FVector::DotProduct(AtkClawV, N);
+					if (Vn < 0.f)
+					{
+						if (AttackBeat == 2 && -Vn > 80.f)
+						{
+							AttackBeat = 3;
+							BlowT[1] = Time;
+							BlowS[1] = -Vn;
+							BlowAt[1] = OnGlass(AtkClawP);
+							ChipWindshield(BlowAt[1], 2);
+							RoarShake = FMath::Max(RoarShake, FMath::Clamp(-Vn / 500.f, 0.4f, 0.9f));
+							Event(TEXT("claw"), -Vn);
+						}
+						const FVector Vt = AtkClawV - N * Vn;
+						AtkClawV = Vt * 0.5f - N * Vn * 0.1f;
+					}
+				}
+			}
+			FVector HandR = AtkClawP;
+			const float OnG = FMath::Clamp(1.f - FVector::DotProduct(AtkClawP - ClawG, N) / 25.f, 0.f, 1.f) * (r >= ClawAt - 0.12f && r < 7.2f ? 1.f : 0.f);
 			H->HangGrip[0] = C.TransformPosition(RoofL);      // (its left hand: the car's left)
 			H->HangGrip[1] = C.TransformPosition(HandR);
 			// (its claw flat to the glass: palm to it, fingers up it; from the clip's hand, flat on the ground, fingers ahead)

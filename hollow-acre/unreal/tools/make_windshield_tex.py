@@ -159,8 +159,9 @@ def hit():
         path(c, c, rnd.uniform(0, 6.283), rnd.uniform(1.5, 8) * px, 2)
     img = Image.new('L', (HIT_PX, HIT_PX), 0)
     g = ImageDraw.Draw(img)
+    # (bold enough to read from the driver's seat: the cracks catch the light as white lines a few millimetres wide)
     for pts, depth in lines:
-        g.line(pts, fill=int(235 - depth * 45), width=max(1, int(3 - depth)), joint='curve')
+        g.line(pts, fill=int(250 - depth * 30), width=max(2, int(6 - depth * 1.3)), joint='curve')
     for r, a in ((0.9, 255), (1.7, 240), (2.6, 220), (3.7, 200), (5.0, 175), (6.6, 150), (8.6, 125), (11.5, 100), (15.0, 80)):
         segs = 14
         for k in range(segs):
@@ -168,8 +169,24 @@ def hit():
                 continue
             a0 = 360 * k / segs + rnd.uniform(-8, 8)
             R = r * px
-            g.arc([c - R, c - R * 0.92, c + R, c + R * 0.92], a0, a0 + 360 / segs * rnd.uniform(0.55, 1.0), fill=a, width=2)
-    g.ellipse([c - 0.7 * px, c - 0.6 * px, c + 0.7 * px, c + 0.6 * px], fill=255)      # the crushed spot
+            g.arc([c - R, c - R * 0.92, c + R, c + R * 0.92], a0, a0 + 360 / segs * rnd.uniform(0.55, 1.0), fill=min(255, a + 40), width=3)
+    # the crushed zone round the blow: the glass powdered white between a mesh of tiny cracks (laminated glass holds it)
+    for _ in range(140):
+        r0, a0 = abs(rnd.gauss(0, 2.2)) * px, rnd.uniform(0, 6.283)
+        path(c + math.cos(a0) * r0, c + math.sin(a0) * r0, rnd.uniform(0, 6.283), rnd.uniform(0.6, 2.4) * px, 3)
+    for pts, depth in lines[-140:]:
+        g.line(pts, fill=230, width=2, joint='curve')
+    haze = Image.new('L', (HIT_PX, HIT_PX), 0)
+    hd = ImageDraw.Draw(haze)
+    for _ in range(900):
+        r0, a0 = abs(rnd.gauss(0, 3.0)) * px, rnd.uniform(0, 6.283)
+        x0, y0 = c + math.cos(a0) * r0, c + math.sin(a0) * r0
+        e = rnd.uniform(0.2, 0.8) * px
+        hd.ellipse([x0 - e, y0 - e, x0 + e, y0 + e], fill=int(rnd.uniform(110, 210)))
+    haze = haze.filter(ImageFilter.GaussianBlur(2.5))
+    img = Image.fromarray(__import__('numpy').maximum(__import__('numpy').asarray(img), __import__('numpy').asarray(haze)))
+    g = ImageDraw.Draw(img)
+    g.ellipse([c - 0.9 * px, c - 0.8 * px, c + 0.9 * px, c + 0.8 * px], fill=255)      # the crushed spot
     img = img.filter(ImageFilter.GaussianBlur(0.6))
     # nothing at the edge (the material clamps the texture: past it, no cracks)
     border = Image.new('L', (HIT_PX, HIT_PX), 0)

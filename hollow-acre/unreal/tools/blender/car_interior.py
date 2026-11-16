@@ -309,10 +309,10 @@ def steering_wheel():
 
 
 # ---------------- the cabin: pillars, headliner, visors, mirror, door, the door mirror ----------------
-def windshield_edges():
+def windshield_edges(n=25):
     base, top = [], []
-    for i in range(25):
-        s = -1 + 2 * i / 24
+    for i in range(n):
+        s = -1 + 2 * i / (n - 1)
         base.append(Vector((100 + 5 * (1 - s * s), YC + 66 * s, 96.8)))
         top.append(Vector((40 + 3 * (1 - s * s), YC + 58 * s, 134.5)))   # raked like the car (car_exterior WS_TOP_X/Z)
     return base, top
@@ -320,7 +320,9 @@ def windshield_edges():
 
 def cabin():
     base, top = windshield_edges()
-    rows = [[t + (b - t) * k / 11 for t, b in zip(top, base)] for k in range(12)]
+    # the glass itself fine (about 2 cm) so it can bulge in where it is struck (the creature's blows: the material dents it)
+    fb, ft = windshield_edges(73)
+    rows = [[t + (b - t) * k / 36 for t, b in zip(ft, fb)] for k in range(37)]
     grid('windshield', 'windshield', rows)
     grid('windshield_out', 'extglass', [[p + Vector((0.45, 0, 0.35)) for p in row] for row in rows], outward=True)
     # A pillars: thick padded trims along both edges of the glass, a header trim along the top

@@ -248,9 +248,6 @@ public:
 	 *  eye's): out past the glass, a little above the eye line. */
 	UPROPERTY(EditAnywhere, Category = "Crash")
 	FVector RoofHangHead = FVector(116.f, 0.f, 138.f);
-	/** How far (cm) its head is driven in toward the glass when it slams it (from hanging there), along the glass's normal. */
-	UPROPERTY(EditAnywhere, Category = "Crash")
-	float RoofSlamIn = 18.f;
 	/** Where its claw strikes the windshield (cm, car frame: a point on the glass). */
 	UPROPERTY(EditAnywhere, Category = "Crash")
 	FVector RoofClawAt = FVector(80.f, 26.f, 113.f);
@@ -377,6 +374,11 @@ private:
 	float BlowT[2] = {-1.f, -1.f};
 	FVector BlowAt[2] = {FVector::ZeroVector, FVector::ZeroVector};
 	int32 AttackBeat = 0;
+	// (its head and its claw, car frame: each on a spring after where it is driven, stopped by the glass when it hits
+	// it; how hard each blow struck, cm/s)
+	FVector AtkHeadP = FVector::ZeroVector, AtkHeadV = FVector::ZeroVector, AtkClawP = FVector::ZeroVector, AtkClawV = FVector::ZeroVector;
+	bool bAtkInit = false;
+	float BlowS[2] = {0.f, 0.f};
 	void UpdateWindshieldHits();
 	void ChipWindshield(const FVector& AtCar, int32 Seed);
 	FVector HuntC = FVector::ZeroVector, ArcFrom = FVector::ZeroVector, DartTo = FVector::ZeroVector;
