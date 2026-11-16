@@ -25,7 +25,7 @@ first frame.
 5. **Eyes in the trees.** At the edge of the beams on the left, two pale points low in the tree line catch the light,
    then blink out. The head turns to them. Nothing.
 6. **In the road.** Ahead, something tall crosses into the beams and stops in the road, half-turned, steam coming off
-   it. Hard on the brakes: the view pitches, the hands brace, the tyres crunch. The car stops about eight metres
+   it. Hard on the brakes: the view pitches, the hands brace, the tyres crunch. The car stops about six metres
    short.
 7. **The face.** Near silence: the idle, the wipers, a heartbeat. It turns its head toward the car, slowly. The beams
    find its face: a human face, starved, eyes milky. The driver leans in without meaning to (a slow push in).
@@ -39,7 +39,8 @@ first frame.
 12. **Over.** Back to full speed: the rail splits, the headlights tip down the chute. The fall is shown in a few clear
     glimpses with blackouts between them (the driver blacking out): the slope rushing up, a tree, the sky upside down.
 13. **Black.** Ringing ears, a heartbeat.
-14. **Waking.** Eyes open, blurred, blinking: hanging upside down in the belt, one headlight flickering into the snow,
+14. **Waking.** Eyes open, blurred, blinking: hanging upside down in the belt (the car on its roof, its nose propped on a
+    drift, the snow above and the night below through the glass), one headlight flickering into the snow,
     snow sifting in through the broken window, the radio hissing. In the headlight, outside, a tall silhouette walks
     slowly past and is gone.
 15. **Eyes close.** Black. The title.

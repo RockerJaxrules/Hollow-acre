@@ -573,7 +573,7 @@ def make_eyeshine_mat():
     m = tools.create_asset('M_EyeShine', MATS, unreal.Material, unreal.MaterialFactoryNew())
     m.set_editor_property('shading_model', unreal.MaterialShadingModel.MSM_UNLIT)
     e = mel.create_material_expression(m, unreal.MaterialExpressionConstant3Vector, -400, 0)
-    e.set_editor_property('constant', unreal.LinearColor(2.2, 2.6, 2.4, 1))
+    e.set_editor_property('constant', unreal.LinearColor(11.0, 13.0, 12.0, 1))   # bright enough to glint and bloom
     mel.connect_material_property(e, '', unreal.MaterialProperty.MP_EMISSIVE_COLOR)
     return finish(m)
 

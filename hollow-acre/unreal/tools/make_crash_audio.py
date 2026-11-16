@@ -232,6 +232,7 @@ def crash(ev, total):
     t_roar, t_scream, t_bolt = first('roar', 36.0), first('scream', 36.5), first('bolt', 39.0)
     t_creep, t_growl, t_imp = first('creep', 40.6), first('growl', 48.8), first('impact', 49.8)
     t_speed, t_edge, t_crack = first('speed', t_imp + 1.6), first('edge', t_imp + 1.2), first('crack', t_imp + 2.0)
+    t_lunge = first('lunge', t_imp)
     t_black, t_upside, t_wake = first('black', t_imp + 16), first('upside'), first('wake', (first('black', t_imp + 16) or 0) + 3)
     t_sil, t_close, t_title = first('silhouette'), first('close'), first('title')
     hits = [(t, v) for t, k, v in ev if k == 'hit']
@@ -298,7 +299,7 @@ def crash(ev, total):
     away = loudest('footsteps/footsteps_horse_gallop_close_479799', 2.5, pre=0.3)
     M.at(t_bolt, pan(level(filt(pitch(fade(away, 0.05, 1.5), 0.8), A.lp(1000)), 0.02), 0.2))
     t_hb = t_creep + 0.5
-    while t_hb < t_imp:
+    while t_hb < t_lunge - 0.1:
         beats.append(t_hb)
         t_hb += 0.55 - 0.2 * np.clip((t_hb - t_creep) / max(t_imp - t_creep, 1), 0, 1)
     for t0, a in heartbeat(beats, 1.0):
@@ -318,6 +319,14 @@ def crash(ev, total):
                   level(filt(pitch(snarl, 0.45), A.lp(800)), 0.08))
     M.at(t_imp - 0.02, pan(peak(fade(slowed[:, :int((slow_dur + 0.6) * SR)], 0.005, 0.5), 0.75), -0.4))
     M.at(t_imp - 0.02, pan(peak(boom(4.0, 38), 0.95), 0.0))
+    if t_imp - t_lunge > 0.2:
+        lull = np.interp(tt, [0, t_lunge, t_lunge + 0.15, t_imp - 0.03, t_imp, total], [1, 1, 0.3, 0.3, 1, 1])
+        M.x *= lull
+        n = int((t_imp - t_lunge) * SR)
+        sw = A.fft_filter(np.random.default_rng(9).standard_normal(n), A.lp(700))
+        sw = sw / (np.std(sw) + 1e-9) * np.linspace(0, 1, n) ** 2.2
+        M.at(t_lunge, pan(peak(sw, 0.3), 0.0))
+        M.at(t_lunge, pan(peak(filt(pitch(fade(snarl, 0.05, 0.3), 0.5), A.lp(900)), 0.45), -0.6))
     # back to speed: the rest of the crash, real time
     M.at(t_speed - 0.05, pan(peak(fade(blow[:, int(0.3 * SR):], 0.05, 0.6), 0.6), -0.2))
     M.at(t_speed, pan(peak(load('glass/glass_glass_shatter_shards_444134'), 0.35), -0.4))

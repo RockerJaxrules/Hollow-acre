@@ -68,6 +68,7 @@ void AEndingDirector::BeginCrashScene()
 	if (ACameraActor* CA = Cast<ACameraActor>(Camera))
 	{
 		CamComp = CA->GetCameraComponent();
+		BaseFov = CamComp->FieldOfView;
 		CamComp->SetConstraintAspectRatio(true);
 		CamComp->SetAspectRatio(2.39f);
 		FPostProcessSettings& PP = CamComp->PostProcessSettings;
@@ -103,6 +104,7 @@ void AEndingDirector::BeginCrashScene()
 			A->GetComponents(Spots);
 			for (USpotLightComponent* S : Spots)
 			{
+				S->SetIntensity(S->Intensity * HeadlightShare);
 				Headlights.Add(S);
 				HeadlightBase.Add(S->Intensity);
 			}
@@ -121,11 +123,23 @@ void AEndingDirector::BeginCrashScene()
 		Glow->SetupAttachment(Car->GetRootComponent());
 		Glow->RegisterComponent();
 		Glow->SetIntensityUnits(ELightUnits::Candelas);
-		Glow->SetIntensity(0.35f);
+		Glow->SetIntensity(0.6f);
 		Glow->SetLightColor(FLinearColor(0.45f, 0.85f, 1.f));
 		Glow->SetAttenuationRadius(110.f);
 		Glow->SetCastShadows(false);
 		Glow->SetRelativeLocation(CamRest + FVector(45.f, 38.f, -40.f));
+		const FVector From = CamRest + FVector(-10.f, 150.f, 75.f), To = CamRest + FVector(12.f, 70.f, -58.f);
+		USpotLightComponent* Moon = NewObject<USpotLightComponent>(Car, TEXT("SeatMoon"));
+		Moon->SetupAttachment(Car->GetRootComponent());
+		Moon->RegisterComponent();
+		Moon->SetIntensityUnits(ELightUnits::Candelas);
+		Moon->SetIntensity(3.f);
+		Moon->SetLightColor(FLinearColor(0.62f, 0.74f, 1.f));
+		Moon->SetInnerConeAngle(9.f);
+		Moon->SetOuterConeAngle(19.f);
+		Moon->SetAttenuationRadius(260.f);
+		Moon->SetCastShadows(true);
+		Moon->SetRelativeLocationAndRotation(From, (To - From).Rotation());
 	}
 	// the rear-view mirror (car frame: on its stem under the header, on the car's centre line)
 	MirrorAt = FVector(36.f, 37.f, 125.f);
@@ -187,26 +201,64 @@ void AEndingDirector::CrashBeats(float DeltaSeconds)
 		bGapPassed = true;
 		Event(TEXT("gap"));
 	}
-	// eyes in the trees below the road on the right, catching the headlights a moment, then gone
+	// eyes low in the tree line at the edge of the beams on the left, catching the light a moment, then gone
 	if (!bEyesShown && Time >= EyesTime && EyeShineMaterial)
 	{
 		bEyesShown = true;
-		const float D = StartDistance + DistNow + 2800.f;
-		const FVector T = (PathAt(D + 300.f) - PathAt(D - 300.f)).GetSafeNormal2D();
-		const FVector R = FVector::CrossProduct(FVector::UpVector, T);
-		EyesAt = PathAt(D) + R * 560.f;
-		EyesAt.Z = CreatureGround(EyesAt) + 105.f;
+		const FTransform C = Car->GetActorTransform();
+		const FVector Eye = C.TransformPosition(CamRest);
+		const FVector Fwd = C.GetUnitAxis(EAxis::X).GetSafeNormal2D();
+		FCollisionQueryParams Q(TEXT("EyesSight"), true, Car);
+		if (Body)
+		{
+			Q.AddIgnoredActor(Body);
+		}
+		EyesAt = FVector::ZeroVector;
+		float Ang = 0.f, Far = 0.f;
+		for (float Dist : {1600.f, 1900.f, 1350.f})
+		{
+			for (float A : {-21.f, -27.f, -16.f, -33.f})
+			{
+				FVector P = Eye + FRotator(0.f, A, 0.f).RotateVector(Fwd) * Dist;
+				P.Z = FMath::Max(CreatureGround(P) + 110.f, Eye.Z - 80.f);     // standing in the trees, or peering over the edge
+				// from just beyond the bonnet (the glass, the arms and the car's other parts are not in the way)
+				FHitResult H;
+				const FVector From = Eye + (P - Eye).GetSafeNormal() * 350.f;
+				if (GetWorld()->LineTraceSingleByChannel(H, From, P, ECC_Visibility, Q))
+				{
+					UE_LOG(LogTemp, Display, TEXT("EndingDirector: eyes %.0f m, %.0f deg: blocked by %s at %.0f m"), Dist / 100.f, A,
+						H.GetActor() ? *H.GetActor()->GetName() : TEXT("?"), FVector::Dist(Eye, H.ImpactPoint) / 100.f);
+				}
+				else
+				{
+					EyesAt = P;
+					Ang = A;
+					Far = Dist;
+					break;
+				}
+			}
+			if (!EyesAt.IsZero())
+			{
+				break;
+			}
+		}
+		if (EyesAt.IsZero())
+		{
+			EyesAt = Eye + FRotator(0.f, -21.f, 0.f).RotateVector(Fwd) * 1600.f;
+		}
+		UE_LOG(LogTemp, Display, TEXT("EndingDirector: eyes at %s (%.0f m, %.0f deg (- is left)%s)"), *EyesAt.ToString(), Far / 100.f, Ang,
+			Far > 0.f ? TEXT("") : TEXT(", no clear sight line found"));
 		const FVector Across = FVector::CrossProduct(FVector::UpVector, (EyesAt - Car->GetActorLocation()).GetSafeNormal2D());
 		UStaticMesh* Ball = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere.Sphere"));
 		for (float s : {-1.f, 1.f})
 		{
-			AStaticMeshActor* E = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), FTransform(EyesAt + Across * 5.f * s));
+			AStaticMeshActor* E = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), FTransform(EyesAt + Across * 6.f * s));
 			E->SetMobility(EComponentMobility::Movable);
 			E->GetStaticMeshComponent()->SetStaticMesh(Ball);
 			E->GetStaticMeshComponent()->SetMaterial(0, EyeShineMaterial);
 			E->GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			E->GetStaticMeshComponent()->SetCastShadow(false);
-			E->SetActorScale3D(FVector(0.09f));
+			E->SetActorScale3D(FVector(0.06f));
 			EyeActors.Add(E);
 		}
 		Event(TEXT("eyes"));
@@ -219,7 +271,7 @@ void AEndingDirector::CrashBeats(float DeltaSeconds)
 		{
 			if (E)
 			{
-				E->SetActorScale3D(FVector(0.09f, 0.09f, 0.09f * FMath::Max(Lid, 0.02f)));
+				E->SetActorScale3D(FVector(0.06f, 0.06f, 0.06f * FMath::Max(Lid, 0.02f)));
 			}
 		}
 		if (e > 1.62f)
@@ -234,6 +286,13 @@ void AEndingDirector::CrashBeats(float DeltaSeconds)
 			}
 			EyeActors.Reset();
 		}
+	}
+	if (!bLunged && LungeLead > 0.f && Time >= ImpactTime - LungeLead && SlowMoT0 < 0.f)
+	{
+		bLunged = true;
+		SlowMoT0 = RealTime;
+		UGameplayStatics::SetGlobalTimeDilation(this, SlowMo);
+		Event(TEXT("lunge"));
 	}
 	if (!bGrowled && Time >= ImpactTime - 1.f)
 	{
@@ -320,7 +379,9 @@ void AEndingDirector::AfterTheFall(float RealDt)
 				}
 			}
 		}
-		Body->SetActorLocationAndRotation(At + FVector(0.f, 0.f, 48.f), FRotator(2.f, Yaw, 178.f));
+		// on its roof, its nose propped up on a drift (so, hanging in the belt, the driver sees the snow above and the night
+		// below through the glass, and anything standing out there whole, upside down)
+		Body->SetActorLocationAndRotation(At + FVector(0.f, 0.f, 63.f), FRotator(8.f, Yaw, 178.f));
 		if (Arms)
 		{
 			Arms->SetActorHiddenInGame(true);          // the hands fall away from the wheel, out of sight
@@ -359,7 +420,7 @@ void AEndingDirector::AfterTheFall(float RealDt)
 		if (Headlights[i])
 		{
 			const float Dip = FMath::Sin(RealTime * 5.3f) > -0.82f ? 1.f : 0.08f;
-			Headlights[i]->SetIntensity(HeadlightBase[i] * Dip * (0.62f + 0.38f * (0.5f + 0.5f * FMath::Sin(RealTime * 37.f))));
+			Headlights[i]->SetIntensity(HeadlightBase[i] * 0.35f * Dip * (0.62f + 0.38f * (0.5f + 0.5f * FMath::Sin(RealTime * 37.f))));
 		}
 	}
 	// a tall shape walking slowly across the beam, out in the snow
@@ -369,7 +430,8 @@ void AEndingDirector::AfterTheFall(float RealDt)
 		const FVector F = Body->GetActorForwardVector().GetSafeNormal2D();
 		const FVector R = FVector::CrossProduct(FVector::UpVector, F);
 		WalkDir = R;
-		WalkFrom = Body->GetActorLocation() + F * 950.f - R * 520.f;
+		WalkFrom = Body->GetActorLocation() + F * 1500.f - R * 450.f;
+		WalkS = 0.f;
 		FActorSpawnParameters P;
 		P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		Walker = GetWorld()->SpawnActor<AHusk>(AHusk::StaticClass(), FTransform(WalkFrom), P);
@@ -377,7 +439,7 @@ void AEndingDirector::AfterTheFall(float RealDt)
 		{
 			Walker->SetActorScale3D(FVector(HuskScale));
 			Walker->Play(TEXT("Stalk"), true);
-			Walker->GetBody()->SetPlayRate(1.35f);
+			Walker->GetBody()->SetPlayRate(1.f);
 			Walker->JawOpen = 5.f;
 			WalkReal = RealTime;
 			Event(TEXT("silhouette"));
@@ -385,13 +447,17 @@ void AEndingDirector::AfterTheFall(float RealDt)
 	}
 	if (Walker)
 	{
-		const float Speed = 67.f * HuskScale * 1.35f;                 // its stalk (0.67 m/s at its model's size), a little quicker
-		FVector P = WalkFrom + WalkDir * Speed * (RealTime - WalkReal);
+		// its stalk (0.67 m/s at its model's size); it stops a moment in the light, as if listening, then goes on
+		const float w = RealTime - WalkReal;
+		const float Rate = FMath::Lerp(1.f, 0.08f, Smooth((w - 3.6f) / 0.6f) * (1.f - Smooth((w - 6.f) / 0.7f)));
+		Walker->GetBody()->SetPlayRate(Rate);
+		WalkS += 67.f * HuskScale * Rate * RealDt;
+		FVector P = WalkFrom + WalkDir * WalkS;
 		P.Z = CreatureGround(P);
 		const float Yaw = FMath::RadiansToDegrees(FMath::Atan2(WalkDir.Y, WalkDir.X));
 		Walker->SetActorLocationAndRotation(P, FRotator(0.f, Yaw, 0.f).Quaternion() * FRotator(0.f, -Walker->MeshForwardYaw(), 0.f).Quaternion());
 		Walker->AddActorWorldOffset(FVector(0.f, 0.f, Walker->GroundLift([this](const FVector& At) { return CreatureGround(At); })));
-		if (RealTime - WalkReal > 11.f)
+		if (w > 14.f)
 		{
 			Walker->Destroy();
 			Walker = nullptr;

@@ -142,7 +142,7 @@ public:
 	/** The sighting: how far ahead of the car (cm, along the road, from where the car is at SightTime) it crosses, and
 	 *  how long before SightTime it sets off from below the road. */
 	UPROPERTY(EditAnywhere, Category = "Creature")
-	float CrossAhead = 2330.f;          // it stops in the road about 8 m short of the car
+	float CrossAhead = 2330.f;          // it stops in the road about 8 m short of the car (its head under the roof's edge as it rears up)
 	UPROPERTY(EditAnywhere, Category = "Creature")
 	float CrossLead = 0.75f;
 	/** How much bigger than its model the husk is in the game (about 2.9 m standing). */
@@ -191,7 +191,19 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Crash")
 	float SlowMo = 0.22f;
 	UPROPERTY(EditAnywhere, Category = "Crash")
-	float SlowMoSeconds = 1.2f;
+	float SlowMoSeconds = 2.3f;          // from the lunge: about a second before the blow, 1.3 s after it
+	/** The lunge: the slow motion starts this long (game seconds) before the blow, as it leaps at the door. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float LungeLead = 0.22f;
+	/** The headlights through the cut, as a share of the level's (the snow and the creature keep their detail). */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float HeadlightShare = 0.4f;
+	/** The stare: the view narrows to this field of view as the eyes fix on it, widening again at the scream. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float StareFov = 56.f;
+	/** The eyes adjusting to it in the headlights (EV): everything round it goes dark while it is near in the road. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float GlareEv = -3.6f;               // at 5.5 m from the headlights; less the further it is (the light falls off with distance squared)
 	/** After the fall (real seconds): the black before waking; from waking, the silhouette and the eyes closing. */
 	UPROPERTY(EditAnywhere, Category = "Crash")
 	float WakeAfterRest = 3.f;
@@ -297,11 +309,13 @@ private:
 	UPROPERTY()
 	TObjectPtr<class AHusk> Walker;
 	FVector WalkFrom = FVector::ZeroVector, WalkDir = FVector::ForwardVector;
-	float WalkReal = 0.f;
+	float WalkReal = 0.f, WalkS = 0.f;
 	FVector LetterAt = FVector::ZeroVector;
 	UPROPERTY()
 	TObjectPtr<AActor> Letter;
 	bool bShook = false;
+	float BaseFov = 78.f;
+	bool bLunged = false;
 	float LookWant(float DeltaSeconds);
 	void PlaceCamera();
 	UPROPERTY()

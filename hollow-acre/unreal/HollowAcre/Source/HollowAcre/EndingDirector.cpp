@@ -5,6 +5,7 @@
 #include "EngineUtils.h"
 
 #include "Camera/CameraActor.h"
+#include "Camera/CameraComponent.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -361,7 +362,7 @@ void AEndingDirector::Tick(float DeltaSeconds)
 			const FTransform C = Car->GetActorTransform();
 			const FVector F = C.GetUnitAxis(EAxis::X).GetSafeNormal2D();
 			CreRight = FVector::CrossProduct(FVector::UpVector, F);
-			const FVector Contact = C.GetLocation() + F * (SpeedNow * ChargeLead - 30.f) - CreRight * 225.f;
+			const FVector Contact = C.GetLocation() + F * (SpeedNow * ChargeLead + 20.f) - CreRight * 225.f;
 			CreDir = CreRight;
 			CreLen = CreatureSpeed * HuskScale * 0.85f * ChargeLead;
 			CreFrom = Contact - CreDir * CreLen;
@@ -547,8 +548,11 @@ void AEndingDirector::Impact()
 	PrevVel = R.GetForwardVector() * SpeedNow;
 	Jolt = 1.f;
 	BurstWindow(true);
-	SlowMoT0 = RealTime;
-	UGameplayStatics::SetGlobalTimeDilation(this, SlowMo);
+	if (SlowMoT0 < 0.f)
+	{
+		SlowMoT0 = RealTime;
+		UGameplayStatics::SetGlobalTimeDilation(this, SlowMo);
+	}
 	for (TActorIterator<AActor> It(GetWorld()); It; ++It)
 	{
 		if (It->ActorHasTag(TEXT("GuardrailBreak")))
@@ -749,20 +753,21 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 	}
 	else if (t >= ImpactTime - 0.75f)
 	{
-		Want = -72.f;
+		Want = -80.f;
+		WantPitch = 7.f;
 		Rate = 11.f;
 		Focus = 250.f;
 	}
 	else if (bCrash && Letter && t >= LetterTime && t < LetterTime + 3.2f)
 	{
-		LookAt(LetterAt, 0.75f, Want, WantPitch);
+		LookAt(Letter->GetActorLocation(), 0.75f, Want, WantPitch);
 		Rate = 3.2f;
-		Focus = DistTo(LetterAt);
+		Focus = DistTo(Letter->GetActorLocation());
 	}
-	else if (bCrash && !GapAt.IsZero() && t >= GapTime - 3.5f && t < GapTime + 1.3f)
+	else if (bCrash && !GapAt.IsZero() && t >= GapTime - 3.5f && t < GapTime + 0.5f)
 	{
 		LookAt(GapAt, 0.8f, Want, WantPitch);
-		Want = FMath::Clamp(Want, -10.f, 60.f);
+		Want = FMath::Clamp(Want, -10.f, 42.f);
 		WantPitch = FMath::Clamp(WantPitch, -14.f, 4.f);
 		Rate = 3.5f;
 		Focus = DistTo(GapAt);
@@ -775,8 +780,11 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 	}
 	else if (Creature && CreStage >= 1 && CreStage <= 3 && t >= SightTime - 0.2f && t < CreepTime + 0.8f && Camera)
 	{
-		const FVector Head = Creature->GetActorLocation() + FVector(0.f, 0.f, 210.f);
-		LookAt(Head, 0.6f, Want, WantPitch);
+		const FVector Head = Creature->GetBody() ? Creature->GetBody()->GetSocketLocation(TEXT("head")) : Creature->GetActorLocation() + FVector(0.f, 0.f, 210.f);
+		float Unused = 0.f;
+		LookAt(Head, 0.6f, Want, Unused);
+		LookAt(Head, 0.9f, Unused, WantPitch);
+		WantPitch = FMath::Clamp(WantPitch - 2.f, -15.f, 22.f);
 		Want = FMath::Clamp(Want, -40.f, 40.f);
 		Rate = 7.f;
 		Focus = DistTo(Head);
@@ -818,6 +826,24 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 	{
 		Want = -6.f;
 		Rate = 2.5f;
+	}
+	if (CamComp && bCrash && Camera)
+	{
+		float WantEv = 0.f;
+		if (Creature && CreStage >= 1 && CreStage <= 3 && !bImpacted)
+		{
+			const float D = FVector::Dist(Creature->GetActorLocation(), Camera->GetActorLocation());
+			WantEv = FMath::Clamp(GlareEv + 2.f * FMath::Log2(FMath::Max(D, 1.f) / 550.f), GlareEv, 0.f);
+		}
+		FPostProcessSettings& PP = CamComp->PostProcessSettings;
+		PP.bOverride_AutoExposureBias = true;
+		PP.AutoExposureBias += (WantEv - PP.AutoExposureBias) * (1.f - FMath::Exp(-DeltaSeconds * (WantEv < PP.AutoExposureBias ? 1.6f : 0.6f)));
+	}
+	if (CamComp && bCrash)
+	{
+		const bool bFix = Creature && CreStage == 2 && bStopped && !bShook && !bImpacted;
+		const float FovRate = bFix ? 0.38f : 5.f;
+		CamComp->SetFieldOfView(CamComp->FieldOfView + ((bFix ? StareFov : BaseFov) - CamComp->FieldOfView) * (1.f - FMath::Exp(-DeltaSeconds * FovRate)));
 	}
 	const float k = 1.f - FMath::Exp(-DeltaSeconds * Rate);
 	LookYaw += (Want - LookYaw) * k;
