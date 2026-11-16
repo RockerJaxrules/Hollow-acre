@@ -84,3 +84,18 @@ work good if not do it on your own".
   - Keep a list of every Epic asset used (`ASSETS_EPIC.md`).
   - Re-read the current EULA and Fab licence text before release.
 - Everything else stays our own work, and Part 1 (the pixel game) keeps the strict no-outside-art rule.
+
+## Part 2's world, story and people (owner)
+- **The map:** "It's going to be a big map giant map so there will be parts you explore completely abandoned and than
+  some are small mining towns your probably going to start off in a abandoned area you have to explore maybe not
+  abandoned maybe a few people but giant map and you end up needing to get back to the top where you were heading ad
+  that is there grandmas place is this should be a big long game with a big long map and a big great story with lots
+  of cutscenes and horror".
+- **The people:** "There friendly most of them not the most gentle people but kind and not many of them and you mah be
+  running away from one before realizing there here to help you".
+- **Caitie-Lynn** (Caitlyn's sister, a gag character in Part 2, looking like a real person from the owner's photos):
+  the owner confirms they have that person's written consent. The photos are used for reference only and are never
+  committed; Caitlyn's own face in Part 1 (`mae`) stays as it is.
+- **Animation:** the owner has no motion-capture equipment and asked that everything be animated by us ("You animate
+  it all"), rather than using Epic's Game Animation Sample (a free library of pre-recorded mocap that needs no
+  equipment; offered, not taken for now).
