@@ -364,6 +364,10 @@ def build_mountain():
             if bs_:
                 bs_.set_editor_property('collision_trace_flag', unreal.CollisionTraceFlag.CTF_USE_COMPLEX_AS_SIMPLE)
             eal.save_loaded_asset(mesh)
+        if name == 'Terrain_Far' and name not in IMPORT_KEPT:
+            # the valley the crashing car falls into: collision on its own triangles too (Scripts/far_terrain_collision.py;
+            # the crash turns it on, so the car lands on the snow and rests on it instead of falling through)
+            exec(open(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir() + 'Scripts/far_terrain_collision.py')).read(), {})
         a = actors.spawn_actor_from_class(unreal.StaticMeshActor, V(0, 0, 0))
         a.set_actor_label(name.replace('_', ' '))
         a.static_mesh_component.set_static_mesh(mesh)

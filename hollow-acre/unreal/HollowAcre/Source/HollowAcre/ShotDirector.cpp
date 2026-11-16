@@ -9,6 +9,8 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Misc/App.h"
+#include "GameFramework/PlayerController.h"
+#include "TimerManager.h"
 #include "Misc/Paths.h"
 #include "TimerManager.h"
 #include "UnrealClient.h"
@@ -40,6 +42,22 @@ void AShotDirector::BeginPlay()
 		SetActorTickEnabled(true);
 		UE_LOG(LogTemp, Display, TEXT("ShotDirector: capturing %d frames at %.0f fps into %s"), CaptureFrames, Fps, *CaptureDir);
 		PlaceCamera();
+		if (FParse::Param(FCommandLine::Get(), TEXT("capview")))
+		{
+			// (on a stage: record through its camera, not the player's own pawn)
+			GetWorldTimerManager().SetTimerForNextTick([this]()
+			{
+				for (TActorIterator<ACameraActor> It(GetWorld()); It; ++It)
+				{
+					if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+					{
+						PC->SetViewTarget(*It);
+						UE_LOG(LogTemp, Display, TEXT("ShotDirector: recording through %s"), *It->GetName());
+					}
+					break;
+				}
+			});
+		}
 		return;
 	}
 	if (!FParse::Value(FCommandLine::Get(), TEXT("-shot="), ShotPath) || ShotPath.IsEmpty())

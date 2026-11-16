@@ -77,6 +77,21 @@ def lerp(m, a, ao, b, bo, alpha, alo, x, y):
     return l
 
 
+BLOOD_THIN = (0.05, 0.011, 0.009)          # thin, dried brown-red smears (linear)
+BLOOD_THICK = (0.02, 0.005, 0.004)         # thick, frozen near-black maroon
+
+
+def blood_over(m, base, bo, amount, ao, x, y):
+    """Lerp base toward old frozen blood by amount (thin where low, thick where high)."""
+    col = lerp(m, const(m, BLOOD_THIN, x - 200, y + 120), '', const(m, BLOOD_THICK, x - 200, y + 200), '', amount, ao, x - 100, y + 120)
+    k = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, x - 100, y + 260)
+    link(amount, ao, k, 'A')
+    link(const(m, 1.6, x - 250, y + 300), '', k, 'B')
+    sat = mel.create_material_expression(m, unreal.MaterialExpressionSaturate, x - 20, y + 260)
+    link(k, '', sat, '')
+    return lerp(m, base, bo, col, '', sat, '', x, y), sat
+
+
 def skin_material(name, bc, nrm, frost=True, gain=1.0, bite_mask=None):
     """MetaHuman skin detail drained to the husk's grey-blue, frostbite black and rime white by vertex colour
     (gain evens out the face's skin, a little lighter than the body's). bite_mask (a texture in the mesh's UVs, red):
@@ -97,8 +112,10 @@ def skin_material(name, bc, nrm, frost=True, gain=1.0, bite_mask=None):
         vc = mel.create_material_expression(m, unreal.MaterialExpressionVertexColor, -950, 300)
         bite = lerp(m, last, lo, const(m, (0.018, 0.012, 0.018), -950, 220), '', vc, 'R', -750, 0)
         rime = lerp(m, bite, '', const(m, (0.72, 0.77, 0.83), -750, 220), '', vc, 'G', -550, 0)
-        last, lo = rime, ''
+        bl, bk = blood_over(m, rime, '', vc, 'B', -400, 0)
+        last, lo = bl, ''
         rough = lerp(m, const(m, 0.48, -750, 450), '', const(m, 0.8, -750, 520), '', vc, 'G', -550, 450)
+        rough = lerp(m, rough, '', const(m, 0.3, -450, 560), '', bk, '', -300, 450)
     if bite_mask:
         k = tex(m, bite_mask, -1400, 300, 'linear')
         two = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -1150, 300)
@@ -113,8 +130,10 @@ def skin_material(name, bc, nrm, frost=True, gain=1.0, bite_mask=None):
         link(sub, '', full, '')
         bruise = lerp(m, last, lo, const(m, (0.035, 0.026, 0.034), -850, 220), '', half, '', -700, 0)
         dead = lerp(m, bruise, '', const(m, (0.012, 0.008, 0.01), -700, 220), '', full, '', -550, 0)
-        last, lo = dead, ''
+        bl, bk = blood_over(m, dead, '', k, 'G', -400, 0)
+        last, lo = bl, ''
         rough = lerp(m, rough, '', const(m, 0.75, -750, 520), '', k, 'R', -550, 450)
+        rough = lerp(m, rough, '', const(m, 0.3, -450, 560), '', bk, '', -300, 450)
     mel.connect_material_property(last, lo, MP.MP_BASE_COLOR)
     n = tex(m, nrm, -800, 650, 'normal')
     mel.connect_material_property(n, 'RGB', MP.MP_NORMAL)
@@ -249,15 +268,27 @@ def run():
     import_tex('T_HuskFaceFrost', linear=True)   # where the face is frostbitten (tools/blender/husk_face_frost.py)
     mats = {
         'mi_body': skin_material('M_HuskSkin', DEST + '/T_HuskBodyC', DEST + '/T_HuskBodyN'),
-        'hair': None, 'claw': flat_material('M_HuskClaw', (0.012, 0.011, 0.012), 0.28, 0.6),
+        'hair': None, 'claw': None,
     }
+    # the claws: black horn, crusted with old blood where it ran down them
+    cm = new_mat('M_HuskClaw')
+    cvc = mel.create_material_expression(cm, unreal.MaterialExpressionVertexColor, -800, 200)
+    cb, ck = blood_over(cm, const(cm, (0.012, 0.011, 0.012), -800, 0), '', cvc, 'B', -400, 0)
+    mel.connect_material_property(cb, '', MP.MP_BASE_COLOR)
+    mel.connect_material_property(lerp(cm, const(cm, 0.28, -500, 400), '', const(cm, 0.34, -500, 470), '', ck, '', -300, 400), '', MP.MP_ROUGHNESS)
+    mel.connect_material_property(const(cm, 0.6, -300, 550), '', MP.MP_SPECULAR)
+    mel.recompile_material(cm)
+    eal.save_loaded_asset(cm)
+    mats['claw'] = cm
     hm = new_mat('M_HuskHair', two_sided=True, blend=unreal.BlendMode.BLEND_MASKED)
     hm.set_editor_property('opacity_mask_clip_value', 0.33)
-    t = mel.create_material_expression(hm, unreal.MaterialExpressionTextureSample, -500, 0)
+    t = mel.create_material_expression(hm, unreal.MaterialExpressionTextureSample, -700, 0)
     t.set_editor_property('texture', hair)
-    mel.connect_material_property(t, 'RGB', MP.MP_BASE_COLOR)
+    hvc = mel.create_material_expression(hm, unreal.MaterialExpressionVertexColor, -700, 300)
+    hb, hk = blood_over(hm, t, 'RGB', hvc, 'B', -300, 0)          # the fur matted with it
+    mel.connect_material_property(hb, '', MP.MP_BASE_COLOR)
     mel.connect_material_property(t, 'A', MP.MP_OPACITY_MASK)
-    mel.connect_material_property(const(hm, 0.42, -300, 300), '', MP.MP_ROUGHNESS)
+    mel.connect_material_property(lerp(hm, const(hm, 0.42, -400, 420), '', const(hm, 0.33, -400, 490), '', hk, '', -200, 420), '', MP.MP_ROUGHNESS)
     mel.connect_material_property(const(hm, 0.55, -300, 400), '', MP.MP_SPECULAR)
     mel.recompile_material(hm)
     eal.save_loaded_asset(hm)

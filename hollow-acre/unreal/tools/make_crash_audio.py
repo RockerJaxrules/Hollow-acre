@@ -181,6 +181,7 @@ RIS_REVPIANO = 'cine_risers/cine_risers_reversed_piano_strings_riser_832474'
 ST_CLUSTER = 'stingers/stingers_scary_cluster_hit_396161'
 ST_JUMP = 'stingers/stingers_violin_cymbal_jump_scare_436883'
 ST_PLUCK = 'stingers/stingers_plucked_string_horror_725225'
+ST_CRESC_NAME = 'stingers/stingers_string_crescendo_fast_684802'
 AMB_BLIZ = 'night_ambience/night_ambience_blizzard_forest_720876'
 AMB_TREES = 'night_ambience/night_ambience_two_trees_creaking_storm_415317'
 AMB_WOLF = 'night_ambience/night_ambience_distant_solitary_wolf_howl_500646'
@@ -222,6 +223,20 @@ def crash(ev, total):
     t_roar, t_scream, t_bolt = first('roar', 36.0), first('scream', 36.5), first('bolt', 39.0)
     t_creep, t_growl, t_imp = first('creep', 40.6), first('growl', 48.8), first('impact', 49.8)
     t_charge = first('charge', t_growl + 0.4)
+    t_hand, t_hand2, t_rise, t_leap = first('hand'), first('hand2'), first('rise'), first('leap')
+    t_land, t_jaw, t_overtake = first('land'), first('jaw'), first('overtake')
+    perched = t_land is not None
+    dropped = first('drop') is not None                   # it drops onto the bonnet with no warning (nothing ran across)
+    if perched:
+        t_hand = t_land                                   # (its claws, from when it lands)
+        t_hand2 = t_land + 0.6
+        t_roar, t_scream = t_jaw - 0.3, t_jaw              # the draw-away before its jaw opens (no scream)
+        t_stop = first('stopped', t_land + 2.0)
+    roofs = [t for t, k, v in ev if k == 'roof']
+    t_gone, t_halt, t_face = first('gone'), first('halt2'), first('face')
+    hood = t_hand is not None
+    if hood:
+        t_bolt = t_gone                                   # (the old beats keyed on its going)
     t_speed, t_edge, t_crack = first('speed', t_imp + 1.6), first('edge', t_imp + 1.2), first('crack', t_imp + 2.0)
     t_lunge = first('lunge', t_imp)
     t_black, t_upside, t_wake = first('black', t_imp + 16), first('upside'), first('wake', (first('black', t_imp + 16) or 0) + 3)
@@ -250,7 +265,7 @@ def crash(ev, total):
     cellos = steady(STR_CELLOS, total, skip=2)
     M.bed(level(filt(cellos, A.lp(2600)), 0.03), 0.0, total, [
         (0, 0), (2.5, 0.0), (6.0, 0.35), (t_gap - 2, 0.4), (t_gap + 1, 0.8), (t_eyes, 0.8), (t_eyes + 1.5, 1.1), (t_sight, 1.1),
-        (t_stop + 0.5, 1.4), (t_roar - 0.6, 1.8), (t_roar - 0.45, 0.0), (t_bolt + 2.5, 0.0), (t_creep + 2, 0.55),
+        (t_stop + 0.5, 1.0), (t_stop + 3.0, 0.6), (t_roar - 0.6, 1.8), (t_roar - 0.45, 0.0), (t_bolt + 2.5, 0.0), (t_creep + 2, 0.55),
         (t_growl - 3.4, 0.7), (t_growl - 3.0, 0.0), (t_wake + 1.0, 0.0), (t_wake + 4.0, 0.35), (total, 0.3)])
     # the grandmother's note: a bowed glass and harmonics, faint, as the eyes go to the letter
     M.at(t_letter + 0.3, pan(fade(level(seg(EXT_GLASS, 10.0, 5.0), 0.012), 1.2, 2.5), 0.15))
@@ -264,51 +279,102 @@ def crash(ev, total):
     call = verb(filt(pitch(seg(AMB_ELK, 5.6, 3.5), 0.72), A.lp(1400)), 3.0, 0.6)
     M.at(t_eyes + 2.2, pan(fade(peak(call, 0.09), 0.3, 1.5), -0.6))
 
-    # ---- it crosses into the road: a stinger, the brakes, heavy steps --------------------------------------------------
-    M.at(t_sight - 0.03, pan(peak(load(ST_JUMP), 0.78), 0.0))
-    M.at(t_sight - 0.03, pan(peak(seg(HIT_BOOM, 0.0, 4.0), 0.55), 0.0))
-    M.at(t_brake, pan(peak(filt(fade(load('snow_tyres/snow_tyres_brake_skid_gravel_short_637161'), 0.01, 0.3), A.lp(2800)), 0.2), 0.0))
-    crunch = steady('snow_tyres/snow_tyres_tires_snow_ice_slow_71099', max(0.5, t_stop - t_brake), skip=0.5)
-    M.at(t_brake + 0.2, peak(filt(fade(crunch, 0.1, 0.6), A.lp(2400)), 0.14))
-    steps = loudest('footsteps/footsteps_heavy_steps_snow_543385', 2.0, pre=0.2)
-    M.at(t_cre + 0.6, pan(peak(filt(pitch(steps, 0.8), A.lp(1200)), 0.08), -0.1))
+    # ---- something darts across the edge of the headlights: a quick string swell, its feet on the snow; the brakes ------
+    # (when it drops onto the bonnet out of nowhere there is no warning at all: no swell, no steps, no flinch)
+    if not dropped:
+        M.at(t_sight - 0.55, pan(fade(peak(seg(ST_CRESC_NAME, 2.6, 0.85), 0.42), 0.02, 0.15), 0.3))
+        M.at(t_sight - 0.03, pan(peak(filt(seg(HIT_BOOM, 0.0, 3.0), A.lp(300)), 0.35), 0.0))
+        dart = loudest('footsteps/footsteps_horse_gallop_close_479799', 1.4, pre=0.2)
+        M.at(t_cre + 0.2, pan(peak(filt(pitch(dart, 0.85), A.lp(1600)), 0.12), 0.5))
+    skid = filt(fade(load('snow_tyres/snow_tyres_brake_skid_gravel_short_637161'), 0.01, 0.3), A.lp(2800))
+    t_skid = t_land + 0.25 if perched else t_brake
+    if perched and not dropped:
+        M.at(t_brake, pan(peak(skid[:, :int(0.5 * SR)], 0.09), 0.0))       # the flinch
+    M.at(t_skid, pan(peak(skid, 0.2), 0.0))
+    crunch = steady('snow_tyres/snow_tyres_tires_snow_ice_slow_71099', max(0.5, t_stop - t_skid), skip=0.5)
+    M.at(t_skid + 0.2, peak(filt(fade(crunch, 0.1, 0.6), A.lp(2400)), 0.14))
 
-    # ---- the stare: the strings and a Shepard tone rising under its breathing and the heart -----------------------------
-    stare = max(1.0, t_roar - 0.45 - t_stop)
-    shep = steady(RIS_SHEPARD, stare + 0.5, skip=1)
-    M.bed(level(filt(shep, A.lp(2500)), 0.012), t_stop, t_roar - 0.45, [(t_stop, 0), (t_stop + stare * 0.5, 0.5), (t_roar - 0.6, 1.0), (t_roar - 0.45, 0)])
-    M.bed(level(filt(steady(STR_SCRAPE, stare + 0.5, skip=5), A.lp(4000)), 0.01), t_stop, t_roar - 0.45,
-          [(t_stop, 0), (t_stop + 1.5, 1.0), (t_roar - 0.45, 1.0)])
-    breath = filt(pitch(seg(CR_BREATH, 2.0, stare * 0.55 + 1.0), 0.55), A.lp(1800))[:, :int((stare - 0.4) * SR)]
-    M.at(t_stop + 0.4, pan(fade(level(breath, 0.045), 0.8, 0.4), -0.05))
     beat = peak(one_beat(), 0.4)
     beats = []
-    tb = t_stop - 0.3
-    while tb < t_roar - 0.5:
-        beats.append(tb)
-        tb += 0.78 - 0.3 * np.clip((tb - t_stop) / stare, 0, 1)
+    if hood:
+        # ---- the bonnet: claws on the metal, the car creaking down under it, a low pluck; then its face rising -----------
+        claws = loudest('metal_scrape/metal_scrape_rusted_car_dashboard_scrape_674024', 0.9, pre=0.05)
+        if perched:
+            hit = loudest('metal_impact/metal_impact_car_hood_slam_big_329516', 1.2, pre=0.02)
+            M.at(t_land - 0.03, pan(peak(filt(fade(hit, 0.003, 0.5), A.lp(3500)), 0.6), 0.0))
+            M.at(t_land - 0.03, pan(peak(load(ST_JUMP), 0.55), 0.0))
+            M.at(t_land - 0.03, pan(peak(filt(seg(HIT_BOOM, 0.0, 3.0), A.lp(220)), 0.45), 0.0))
+            M.at(t_land + 0.4, pan(peak(filt(claws, A.hp(400)), 0.3), -0.15))
+            M.at(t_land + 1.1, pan(peak(filt(pitch(claws, 1.1), A.hp(400)), 0.22), 0.2))
+            M.at(t_land + 0.1, pan(peak(seg(F_CREAK, 1.0, 2.5), 0.18), 0.0))
+        else:
+            M.at(t_hand - 0.05, pan(peak(filt(claws, A.hp(400)), 0.3), -0.15))
+            M.at(t_hand2 - 0.05, pan(peak(filt(pitch(claws, 1.1), A.hp(400)), 0.22), 0.2))
+            M.at(t_hand, pan(peak(seg(F_CREAK, 1.0, 2.5), 0.16), 0.0))
+            M.at(t_hand - 0.02, pan(peak(load(ST_PLUCK), 0.42), -0.1))
+            M.at(t_hand - 0.02, pan(peak(filt(seg(HIT_BOOM, 0.0, 3.0), A.lp(200)), 0.3), 0.0))
+        stare = max(1.0, t_roar - 0.45 - t_hand)
+        M.bed(level(filt(steady(STR_BASS, stare + 0.5, skip=1), A.lp(5000)), 0.012), t_hand, t_roar - 0.45,
+              [(t_hand, 0), (t_rise, 0.6), (t_roar - 0.6, 1.3), (t_roar - 0.45, 0)])
+        M.bed(level(filt(steady(STR_SCRAPE, stare + 0.5, skip=5), A.lp(4000)), 0.011), t_rise, t_roar - 0.45,
+              [(t_rise, 0), (t_rise + 1.5, 1.0), (t_roar - 0.45, 1.0)])
+        breath = filt(pitch(seg(CR_BREATH, 2.0, stare * 0.55 + 1.0), 0.55), A.lp(1600))[:, :int((t_roar - 0.5 - t_rise) * SR)]
+        M.at(t_rise, pan(fade(level(breath, 0.05), 0.6, 0.3), 0.0))
+        tb = t_rise + 0.2
+        while tb < t_roar - 0.5:
+            beats.append(tb)
+            tb += 0.7 - 0.25 * np.clip((tb - t_rise) / stare, 0, 1)
+    else:
+        steps = loudest('footsteps/footsteps_heavy_steps_snow_543385', 2.0, pre=0.2)
+        M.at(t_cre + 0.6, pan(peak(filt(pitch(steps, 0.8), A.lp(1200)), 0.08), -0.1))
+        stare = max(1.0, t_roar - 0.45 - t_stop)
+        M.bed(level(filt(steady(STR_SCRAPE, stare + 0.5, skip=5), A.lp(4000)), 0.01), t_stop, t_roar - 0.45,
+              [(t_stop, 0), (t_stop + 1.5, 1.0), (t_roar - 0.45, 1.0)])
+        tb = t_stop - 0.3
+        while tb < t_roar - 0.5:
+            beats.append(tb)
+            tb += 0.78 - 0.3 * np.clip((tb - t_stop) / stare, 0, 1)
     # the suck-out: everything drawn away into a reversed cymbal, then the scream hits
     M.x *= np.interp(tt, [0, t_roar - 0.5, t_roar - 0.3, t_scream - 0.12, t_scream - 0.05, total], [1, 1, 0.08, 0.08, 1, 1])
-    rc = seg(RIS_REVCYM, 6.9, 1.5)
-    M.at(t_scream - 0.1 - rc.shape[1] / SR, pan(peak(filt(rc, A.hp(300)), 0.35), 0.0))
+    if not perched:
+        rc = seg(RIS_REVCYM, 6.9, 1.5)
+        M.at(t_scream - 0.1 - rc.shape[1] / SR, pan(peak(filt(rc, A.hp(300)), 0.35), 0.0))
 
     # ---- the scream: a human performance and animals, pitched and layered past naming, on a brass hit and a boom ---------
-    n = int(2.6 * SR)
+    # (on the bonnet it does not roar: its jaw opens wide in silence, a wet hiss at the glass, a bowed-metal whine)
+    if perched:
+        hiss = filt(pitch(seg(CR_BREATH, 12.0, 2.4), 0.5), A.bp(1400, 0.6))
+        M.at(t_jaw + 0.15, pan(fade(peak(hiss, 0.2), 0.3, 0.8), 0.0))
+        M.at(t_jaw, pan(fade(level(seg(EXT_RAIL, 14.0, 2.5), 0.012), 0.6, 1.0), 0.1))
+    n = int(2.6 * SR) if not perched else int(0.1 * SR)
     sc = np.zeros((2, n))
-    for name, f, g, pre in ((CR_SCREAMS, 0.82, 1.0, 0.1), (CR_PIG, 0.7, 0.55, 0.05), (CR_CHIMP, 0.62, 0.35, 0.05),
-                            ('creature/creature_gorilla_alpha_roar_zoo_397054', 0.62, 0.75, 0.1),
-                            ('creature/creature_bear_roaring_479825', 0.58, 0.6, 0.1)):
+    for name, f, g, pre in () if perched else ((CR_SCREAMS, 0.74, 1.0, 0.1), (CR_PIG, 0.62, 0.45, 0.05), (CR_CHIMP, 0.55, 0.25, 0.05),
+                            ('creature/creature_gorilla_alpha_roar_zoo_397054', 0.55, 0.9, 0.1),
+                            ('creature/creature_bear_roaring_479825', 0.52, 0.75, 0.1)):
         c = pitch(loudest(name, 2.4, pre=pre), f)[:, :n]
         sc[:, :c.shape[1]] += level(fade(c, 0.03, 0.5), 0.1) * g
     sc = verb(sc, 2.6, 0.32)
-    M.at(t_scream - 0.08, pan(peak(fade(sc, 0.03, 0.8), 0.92), -0.05))
-    M.at(t_scream - 0.08, pan(peak(load(HIT_BRAAM), 0.7), 0.0))
-    M.at(t_scream - 0.08, pan(peak(seg(HIT_BOOM, 0.0, 5.0), 0.75), 0.0))
-    M.at(t_scream - 0.1, pan(peak(fade(seg(ST_CLUSTER, 4.6, 3.0), 0.01, 1.5), 0.45), 0.0))
+    if hood:
+        sc = filt(sc, A.lp(6500)) * 1.0 + filt(sc, A.lp(220)) * 0.6          # through the glass: duller on top, the glass
+                                                                                # and the car's shell booming with it
+    if not perched:
+        M.at(t_scream - 0.08, pan(peak(fade(sc, 0.03, 0.8), 0.92), -0.05))
+        M.at(t_scream - 0.08, pan(peak(load(HIT_BRAAM), 0.55), 0.0))
+        M.at(t_scream - 0.08, pan(peak(seg(HIT_BOOM, 0.0, 5.0), 0.6), 0.0))
+        M.at(t_scream - 0.1, pan(peak(fade(seg(ST_CLUSTER, 4.6, 3.0), 0.01, 1.5), 0.45), 0.0))
 
     # ---- gone: silence but the wind and the idle; far down the valley, something answers -----------------------------
-    away = loudest('footsteps/footsteps_horse_gallop_close_479799', 2.5, pre=0.3)
-    M.at(t_bolt, pan(level(filt(pitch(fade(away, 0.05, 1.5), 0.8), A.lp(1000)), 0.02), 0.2))
+    if hood:
+        M.at(t_leap, pan(peak(filt(pitch(claws, 0.8), A.hp(300)), 0.3), 0.0))
+        if perched and t_gone:
+            M.at(t_gone - 0.02, pan(peak(filt(loudest('snow_impact/snow_impact_hard_impact_snow_683789', 0.7, pre=0.03), A.lp(1500)), 0.25), 0.0))
+        for i, t0 in enumerate(roofs):
+            thud = loudest(['metal_impact/metal_impact_car_hood_slam_big_329516', 'metal_impact/metal_impact_sheet_metal_drop_587442'][i % 2], 0.9, pre=0.02)
+            M.at(t0 - 0.02, pan(peak(filt(fade(thud, 0.003, 0.4), A.lp(1800)), 0.55 - 0.1 * i), 0.0))
+            M.at(t0, pan(peak(seg(F_CREAK, 3.0 + i, 1.5), 0.12), 0.0))
+    else:
+        away = loudest('footsteps/footsteps_horse_gallop_close_479799', 2.5, pre=0.3)
+        M.at(t_bolt, pan(level(filt(pitch(fade(away, 0.05, 1.5), 0.8), A.lp(1000)), 0.02), 0.2))
     howl = verb(filt(pitch(loudest(AMB_WOLF, 6.0, pre=1.0), 0.62), A.lp(1100)), 3.5, 0.65)
     M.at(t_bolt + 3.2, pan(fade(peak(howl, 0.07), 0.5, 2.5), 0.5))
 
@@ -326,10 +392,19 @@ def crash(ev, total):
     M.x *= duck
     for t0 in beats:
         M.at(t0, beat, 0.75)
+    if t_face:
+        M.at(t_face - 0.02, pan(peak(load(ST_JUMP), 0.6), -0.6))
+        M.at(t_face - 0.02, pan(peak(seg(HIT_BOOM, 0.0, 4.0), 0.5), -0.3))
+        M.at(t_face + 0.05, pan(peak(filt(pitch(seg(CR_BREATH, 30.0, 1.4), 0.6), A.lp(2500)), 0.22), -0.85))
     # the growl, right outside the driver's window
+    if t_overtake:
+        run = loudest('footsteps/footsteps_horse_gallop_close_479799', 1.5, pre=0.1)
+        M.at(t_overtake + 0.2, pan(peak(filt(pitch(run, 0.8), A.lp(1300)), 0.2), -0.8))
     g1 = pitch(loudest(CR_GROWLS, 1.3, pre=0.15), 0.72)
+    if perched:
+        g1 = pitch(seg(CR_BREATH, 30.0, 1.3), 0.55)
     g2 = pitch(loudest('creature/creature_black_bear_angry_growl_763026', 1.4, pre=0.15), 0.62)
-    M.at(t_growl, pan(peak(verb(sumc(level(g1, 0.1), level(g2, 0.08)), 1.0, 0.2), 0.72), -0.9))
+    M.at(t_growl, pan(peak(verb(level(g1, 0.1) if perched else sumc(level(g1, 0.1), level(g2, 0.08)), 1.0, 0.2), 0.3 if perched else 0.42 if hood else 0.72), -0.9))
     steps_in = loudest('footsteps/footsteps_horse_gallop_close_479799', 1.0, pre=0.2)
     M.at(t_charge, pan(peak(filt(pitch(steps_in, 0.75), A.lp(1400)), 0.25), -0.8))
 
@@ -345,7 +420,6 @@ def crash(ev, total):
         rp = rp[:, max(0, e - int((t_imp - t_lunge) * SR)):e]
         M.at(t_imp - rp.shape[1] / SR, pan(peak(rp, 0.3), 0.0))
         M.at(t_lunge, pan(peak(filt(pitch(fade(snarl, 0.05, 0.3), 0.5), A.lp(900)), 0.45), -0.6))
-        M.at(t_lunge + 0.1, pan(peak(filt(pitch(loudest(CR_SCREAMS, 1.0, pre=0.05), 0.5), A.lp(1200)), 0.3), -0.5))
     # the blow: a trailer hit and a boom under the crash and the glass, pitched down and muffled; back to speed
     slowed = sumc(level(filt(pitch(blow, 0.4), A.lp(900)), 0.1), level(filt(pitch(glass, 0.45), A.lp(1600)), 0.056),
                   level(filt(pitch(snarl, 0.45), A.lp(800)), 0.08))

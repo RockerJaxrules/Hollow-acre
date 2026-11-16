@@ -224,6 +224,32 @@ public:
 	/** For the HUD: the words on screen now (a line and a smaller line), their alpha, the first line's size as a
 	 *  fraction of the screen's height. False when there are none. */
 	bool GetCaption(FString& Line1, FString& Line2, float& Alpha, float& Size) const;
+	/** The reveal over the bonnet and the face at the driver's window (CUTSCENE_CRASH.md): a shape darts across the
+	 *  headlights; the car stops; the empty road; the car dips as it takes hold of the bonnet and rises into the
+	 *  windshield, stares, screams, springs away over the roof. The creep stops by the break in the rail, and it is at
+	 *  the window. Off: the old crossing in the road and the charge out of the dark. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	bool bHoodReveal = true;
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float DipAfterStop = 3.6f;
+	/** Where it stands against the car (cm, car frame: x ahead of the driver's eye, y to the right), as its takes are
+	 *  made (tools/blender/husk_body.py: HOOD_*, PEER_*). */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	FVector2D HoodStand = FVector2D(292.f, 20.f);
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	FVector2D PeerStand = FVector2D(15.f, -186.f);
+	/** Where its feet land on the bonnet (cm, car frame; tools/blender/husk_body.py: Perch). */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	FVector PerchAt = FVector(150.f, 20.f, 95.f);
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float CreepAfterGone = 1.8f;
+	/** cm along the road: the creep stops here, by the stretch of rail the car is shoved through. */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float PeerStopAt = 52900.f;
+	/** The exposure while it is at the bonnet (its face lit by the snow's bounce, out of the beams). */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float HoodEv = -0.4f;
+
 	/** For the HUD: the driver's line now (a caption: the driver is not voiced), and its alpha. False when silent. */
 	bool GetLine(FString& Line, float& Alpha) const;
 
@@ -238,6 +264,10 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
+
+	/** How far (cm) the driver's eye is kept off the car's surfaces (the camera's near plane is 5). */
+	UPROPERTY(EditAnywhere, Category = "Ending|Crash")
+	float EyeRoom = 8.f;
 
 private:
 	void StartFadeIn();
@@ -318,6 +348,63 @@ private:
 	bool bShook = false;
 	float BaseFov = 78.f;
 	bool bLunged = false;
+	// the reveal over the bonnet and the window (EndingCrashBeats.cpp)
+	void RevealBeats(float DeltaSeconds);
+	float CarDip() const;
+	float StopT = -1.f, RiseT0 = -1.f, LeapT0 = -1.f, GoneT = -1.f, PeerT0 = -1.f, HaltT = -1.f, DartT0 = -1.f;
+	float DropT = -1.f, JumpT0 = -1.f, PeerV = 0.f;
+	FVector HuntC = FVector::ZeroVector, ArcFrom = FVector::ZeroVector, DartTo = FVector::ZeroVector;
+	int32 Waypoint = 0;
+	UPROPERTY()
+	TArray<TObjectPtr<class UPrimitiveComponent>> CarParts;     // the car's own surfaces, for the creature to collide with
+	float CarClear(class AHusk* H, const FVector& Dir, FString* What = nullptr);
+	TArray<FVector> WheelPts;               // the tyres' lowest points (car frame): kept on the snow, not in it
+	// everything collides (the owner: "make everything have collision so clipping never happens"): the forest's trunks
+	// and the roadside's posts and poles, made solid near whatever moves; the creature kept out of the car, them and the
+	// ground; the car's shell measured against the ground and them; the eye kept off the car's surfaces
+	struct FSolid
+	{
+		FTransform T;
+		FVector Ext = FVector::ZeroVector;
+		float R = 0.f, H = 0.f;
+		bool bTrunk = false, bMade = false;
+	};
+	TArray<FSolid> Solids;
+	UPROPERTY()
+	TObjectPtr<AActor> SolidHolder;
+	void GatherSolids();
+	void SolidNear(const FVector& At, float Radius);
+	void KeepOut(class AHusk* H, const FVector& CarDir, const TCHAR* Who);
+	TArray<FVector> ShellPts;               // the car's outer shell, sampled (car frame)
+	void SampleShell();
+	void ShellCheck();
+	/** The snow right under At: the first ground (terrain or road) from Above over it down (not a cliff top far above). */
+	float GroundBelow(const FVector& At, float Above = 250.f) const;
+	FTransform PrevShellT;
+	bool bPrevShell = false;
+	int32 ShellTick = 0;
+	UPROPERTY()
+	TArray<TObjectPtr<class UPrimitiveComponent>> RailParts;
+	FVector ClearEye(const FVector& Want);
+	bool bSideGlassGone = false, bDriverBurst = false;
+	// measuring (-clipcheck): the worst each thing went into another
+	struct FClip
+	{
+		float Worst = 0.f, At = 0.f, NextLog = 0.f;
+		FString What;
+	};
+	TMap<FString, FClip> Clips;
+	bool bClipCheck = false, bClipSummed = false;
+	void NoteClip(const FString& Pair, float Depth, const FString& What);
+	void ClipSummary();
+	virtual void EndPlay(const EEndPlayReason::Type Reason) override;
+	bool bDarted = false;
+	int32 RiseBeat = 0, PeerBeat = 0;
+	FVector DartFrom = FVector::ZeroVector, DartDir = FVector::ForwardVector, LeapFrom = FVector::ZeroVector;
+	UPROPERTY()
+	TObjectPtr<class AHusk> Darter;
+	UPROPERTY()
+	TObjectPtr<class UPointLightComponent> FaceLight;
 	float LookWant(float DeltaSeconds);
 	void PlaceCamera();
 	UPROPERTY()

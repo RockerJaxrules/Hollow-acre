@@ -9,6 +9,8 @@
 #include "GlassBurst.generated.h"
 
 class UInstancedStaticMeshComponent;
+class UPrimitiveComponent;
+class UMaterialInterface;
 
 UCLASS()
 class HOLLOWACRE_API AGlassBurst : public AActor
@@ -24,6 +26,11 @@ public:
 
 	/** The cabin the pebbles are kept inside (car frame, cm). */
 	FBox Cabin = FBox(FVector(-150.f, -35.f, 28.f), FVector(110.f, 110.f, 132.f));
+
+	/** The car's own surfaces (its body, seats, dash, glass): the pebbles bounce off them, not through them. */
+	TArray<TWeakObjectPtr<UPrimitiveComponent>> Solids;
+	/** Glass that is gone (its faces are no longer there to bounce off). */
+	TWeakObjectPtr<UMaterialInterface> Skip;
 
 	/** The driver's head (car frame, cm): the glass bounces off it rather than flying through the eyes. */
 	FVector Head = FVector::ZeroVector;

@@ -1,6 +1,7 @@
 #include "EndingDirector.h"
 
 #include "DriverArms.h"
+#include "PhysicsEngine/BodySetup.h"
 #include "Sound/SoundBase.h"
 #include "EngineUtils.h"
 
@@ -291,10 +292,53 @@ void AEndingDirector::Tick(float DeltaSeconds)
 	{
 		// it comes out ahead: the driver comes off the gas and brakes hard (about 0.4 g on packed snow) to a stop,
 		// watches it, waits, then creeps on at walking pace
-		if (Time >= SightTime + 0.35f)
+		if (bHoodReveal && Time >= SightTime)
+		{
+			const float Cruise = Speed;
+			float V = DropT >= 0.f ? FMath::Max(0.f, Speed - 480.f * (Time - DropT - 0.25f)) : Cruise;   // ~0.5 g, it on the bonnet
+			if (DropT >= 0.f && Time < DropT + 0.25f)
+			{
+				V = Cruise;
+			}
+			if (Time > CreepTime)
+			{
+				V = FMath::Min(150.f, 60.f * (Time - CreepTime));                          // creeping on, at walking pace
+				V = FMath::Min(V, FMath::Max(0.f, (PeerStopAt - StartDistance - DistNow) * 1.1f));
+				if (PeerT0 >= 0.f && Time > PeerT0 + 0.3f)
+				{
+					V = FMath::Min(V, FMath::Max(0.f, PeerV - 700.f * (Time - PeerT0 - 0.3f)));   // its face: the brake, hard
+				}
+				if (HaltT < 0.f && Time > CreepTime + 2.f && V < 2.f)
+				{
+					HaltT = Time;
+					Event(TEXT("halt2"));
+				}
+			}
+			Speed = V;
+			if (!bStopped && DropT >= 0.f && Speed <= 0.f)
+			{
+				bStopped = true;
+				Event(TEXT("stopped"));
+			}
+			if (!bCreeping && Time > CreepTime)
+			{
+				bCreeping = true;
+				Event(TEXT("creep"));
+			}
+		}
+		else if (Time >= SightTime + 0.35f)
 		{
 			const float Vb = FMath::Max(0.f, Speed - 400.f * (Time - SightTime - 0.35f));
-			const float Vc = Time > CreepTime ? FMath::Min(150.f, 60.f * (Time - CreepTime)) : 0.f;    // creeping, at walking pace
+			float Vc = Time > CreepTime ? FMath::Min(150.f, 60.f * (Time - CreepTime)) : 0.f;    // creeping, at walking pace
+			if (bHoodReveal && Time > CreepTime)
+			{
+				Vc = FMath::Min(Vc, FMath::Max(0.f, (PeerStopAt - StartDistance - DistNow) * 1.1f));   // ...stopping by the break in the rail
+				if (HaltT < 0.f && Time > CreepTime + 2.f && Vc < 2.f)
+				{
+					HaltT = Time;
+					Event(TEXT("halt2"));
+				}
+			}
 			Speed = FMath::Max(Vb, Vc);
 			if (!bStopped && Speed <= 0.f)
 			{
@@ -318,14 +362,14 @@ void AEndingDirector::Tick(float DeltaSeconds)
 			bSighted = true;
 			Event(TEXT("sight"));
 		}
-		if (!bBraked && Time >= SightTime + 0.35f)
+		if (!bBraked && Time >= SightTime + (bHoodReveal ? 0.2f : 0.35f))
 		{
 			bBraked = true;
 			Event(TEXT("brake"));
 		}
 		const float Stride = 28.f / 60.f;
 		CreSwitchAt = SightTime + SwitchLead;
-		if (!bCrossed && Time >= CreSwitchAt - 2.f * Stride)
+		if (!bHoodReveal && !bCrossed && Time >= CreSwitchAt - 2.f * Stride)
 		{
 			// the sighting: two strides up from below the road on the right and over the rail, then the take from
 			// where it stops in the road, HaltSide left of the middle, CrossAhead on from where the car is at SightTime
@@ -349,7 +393,7 @@ void AEndingDirector::Tick(float DeltaSeconds)
 			Creature = SpawnHusk(TEXT("GallopLookL"));
 			Event(TEXT("creature"));
 		}
-		if (!bCharged && Time >= ImpactTime - ChargeLead && Car)
+		if (!bHoodReveal && !bCharged && Time >= ImpactTime - ChargeLead && Car)
 		{
 			// the charge: out of the dark on the driver's side, straight at the door, to arrive with the blow
 			bCharged = true;
@@ -375,6 +419,10 @@ void AEndingDirector::Tick(float DeltaSeconds)
 		if (Creature)
 		{
 			MoveCreature(DeltaSeconds);
+		}
+		if (bHoodReveal)
+		{
+			RevealBeats(DeltaSeconds);
 		}
 		CrashBeats(DeltaSeconds);
 		LookWant(DeltaSeconds);
@@ -412,6 +460,10 @@ void AEndingDirector::Tick(float DeltaSeconds)
 				FHitResult H;
 				FCollisionQueryParams Q(TEXT("DeepSnow"), true, Body);
 				Q.AddIgnoredActor(Car);
+				if (SolidHolder)
+				{
+					Q.AddIgnoredActor(SolidHolder);
+				}
 				const FVector At = Body->GetActorLocation();
 				if (GetWorld()->LineTraceSingleByChannel(H, At, At - FVector(0.f, 0.f, 1500.f), ECC_WorldStatic, Q) && H.ImpactNormal.Z > 0.8f)
 				{
@@ -433,6 +485,14 @@ void AEndingDirector::Tick(float DeltaSeconds)
 					Event(TEXT("rest"), ImpactPose.GetLocation().Z - Body->GetActorLocation().Z);
 				}
 			}
+			if (Body)
+			{
+				SolidNear(Body->GetActorLocation(), 1200.f);
+			}
+			if (bClipCheck)
+			{
+				ShellCheck();
+			}
 			AfterTheFall(RealDt);
 			return;
 		}
@@ -453,8 +513,20 @@ void AEndingDirector::Tick(float DeltaSeconds)
 	}
 	// Low, uneven bumps and a slow roll, never mirrored or periodic-looking
 	Loc.Z += 0.8f * FMath::Sin(Time * 7.1f) + 0.5f * FMath::Sin(Time * 11.3f + 1.7f);
-	const FRotator Sway(SwayDeg * 0.4f * FMath::Sin(Time * 1.9f + 0.4f), 0.f, SwayDeg * FMath::Sin(Time * 1.3f));
+	const FRotator Sway(SwayDeg * 0.4f * FMath::Sin(Time * 1.9f + 0.4f) + (bCrash ? CarDip() : 0.f), 0.f, SwayDeg * FMath::Sin(Time * 1.3f));
 	Car->SetActorLocationAndRotation(Loc, Rot * Sway.Quaternion());
+	if (bCrash && WheelPts.Num() > 0)
+	{
+		// its tyres on the snow, not in it: lifted by however far the deepest of them would sink
+		const FTransform CT = Car->GetActorTransform();
+		float Sink = 0.f;
+		for (const FVector& W : WheelPts)
+		{
+			const FVector P = CT.TransformPosition(W);
+			Sink = FMath::Max(Sink, GroundBelow(P, 80.f) - P.Z);
+		}
+		Car->AddActorWorldOffset(FVector(0.f, 0.f, Sink));
+	}
 
 	// Wipers: out and back, easing at each end like the real linkage, resting parked a moment between sweeps
 	{
@@ -494,13 +566,23 @@ void AEndingDirector::Impact()
 	bImpacted = true;
 	const FTransform CarT = Car->GetActorTransform();
 	const FQuat R = CarT.GetRotation();
-	// the car's body for the physics: a 4.5 x 1.7 x 1.2 m box round the shell (car frame: the driver's eye is at x 0,
-	// the car's centre line 37 cm to the right of it), 1250 kg, its weight carried low; packed snow is slippery
-	const FVector Centre = CarT.TransformPosition(FVector(-25.f, 37.f, 74.f));
+	// the car's body for the physics: its real shell (sampled: ShellPts) in slabs, the body below the windows and the
+	// cabin in three layers up to the roof, so nothing of it sinks into the snow as it rolls (else a 4.5 x 1.7 x 1.2 m box
+	// round it); car frame: the driver's eye is at x 0, the car's centre line 37 cm to the right of it; 1250 kg, its
+	// weight carried low (where it was with the one box: 56 cm up on the centre line); packed snow is slippery
+	FBox Slab[4] = {FBox(ForceInit), FBox(ForceInit), FBox(ForceInit), FBox(ForceInit)};
+	const float Cut[3] = {97.f, 112.f, 127.f};
+	for (const FVector& L : ShellPts)
+	{
+		Slab[L.Z < Cut[0] ? 0 : L.Z < Cut[1] ? 1 : L.Z < Cut[2] ? 2 : 3] += L;
+	}
+	const bool bShellBody = Slab[0].IsValid && Slab[3].IsValid;
+	const FVector Low = bShellBody ? Slab[0].GetCenter() : FVector(-25.f, 37.f, 74.f);
+	const FVector Centre = CarT.TransformPosition(Low);
 	AActor* B = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FTransform(R, Centre));
 	UBoxComponent* Box = NewObject<UBoxComponent>(B, TEXT("CarBody"));
 	B->SetRootComponent(Box);
-	Box->SetBoxExtent(FVector(225.f, 86.f, 60.f));
+	Box->SetBoxExtent(bShellBody ? Slab[0].GetExtent() : FVector(225.f, 86.f, 60.f));
 	Box->SetWorldTransform(FTransform(R, Centre));
 	Box->RegisterComponent();
 	UPhysicalMaterial* Snow = NewObject<UPhysicalMaterial>(this);
@@ -511,29 +593,69 @@ void AEndingDirector::Impact()
 	Box->SetNotifyRigidBodyCollision(true);
 	Box->OnComponentHit.AddDynamic(this, &AEndingDirector::OnBodyHit);
 	Box->SetMassOverrideInKg(NAME_None, 1250.f, true);
-	Box->SetCenterOfMass(FVector(0.f, 0.f, -18.f));
+	Box->SetCenterOfMass(FVector(-25.f, 37.f, 56.f) - Low);
 	Box->SetLinearDamping(SnowDrag);
 	Box->SetAngularDamping(SnowDrag + 0.05f);   // enough to keep it rolling over and over, not sliding on its side
+	for (int32 k = 1; bShellBody && k < 4; ++k)
+	{
+		if (!Slab[k].IsValid)
+		{
+			continue;
+		}
+		// the cabin's layers, welded to the body: one rigid body
+		UBoxComponent* Cab = NewObject<UBoxComponent>(B);
+		Cab->SetupAttachment(Box);
+		Cab->SetBoxExtent(Slab[k].GetExtent());
+		Cab->SetCollisionProfileName(TEXT("PhysicsActor"));
+		Cab->SetPhysMaterialOverride(Snow);
+		Cab->SetMassOverrideInKg(NAME_None, 1.f, true);
+		Cab->RegisterComponent();
+		Cab->SetWorldTransform(FTransform(R, CarT.TransformPosition(Slab[k].GetCenter())));
+		Cab->WeldTo(Box);
+	}
+	UE_LOG(LogTemp, Display, TEXT("EndingDirector: the car's physics body: %s (body %s, cabin %s / %s / %s)"), bShellBody ? TEXT("its shell") : TEXT("one box"),
+		*Slab[0].ToString(), *Slab[1].ToString(), *Slab[2].ToString(), *Slab[3].ToString());
 	// everything on the car rides along without colliding with its own body; the guardrail gives way (it is torn)
 	TArray<AActor*> On;
 	Car->GetAttachedActors(On, true, true);
+	On.Add(Car);
 	for (AActor* A : On)
 	{
-		A->SetActorEnableCollision(false);
+		TArray<UPrimitiveComponent*> Prims;
+		A->GetComponents(Prims);
+		for (UPrimitiveComponent* P : Prims)
+		{
+			if (P && !CarParts.Contains(P))
+			{
+				P->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			}
+		}
 	}
-	Car->SetActorEnableCollision(false);
 	for (TActorIterator<AActor> It(GetWorld()); It; ++It)
 	{
 		if (It->ActorHasTag(TEXT("Guardrail")))
 		{
-			It->SetActorEnableCollision(false);
+			// it gives way to the car's body (it is torn), but stays measurable
+			TArray<UStaticMeshComponent*> Rails;
+			It->GetComponents(Rails);
+			for (UStaticMeshComponent* Rc : Rails)
+			{
+				Rc->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+				Rc->SetCollisionResponseToAllChannels(ECR_Ignore);
+				if (!It->ActorHasTag(TEXT("GuardrailBreak")))
+				{
+					RailParts.Add(Rc);
+				}
+			}
 		}
-		// far scenery never collides (without collision of its own Unreal would wrap the range in one hull round the road)
+		// far scenery collides only on its own surface (without that Unreal would wrap the range in one hull round the
+		// road: Scripts/far_terrain_collision.py gives it its triangles)
 		TArray<UStaticMeshComponent*> Comps;
 		It->GetComponents(Comps);
 		for (UStaticMeshComponent* C : Comps)
 		{
-			if (C->GetStaticMesh() && C->GetStaticMesh()->GetName().StartsWith(TEXT("Terrain_Far")))
+			UStaticMesh* SM = C->GetStaticMesh();
+			if (SM && SM->GetName().StartsWith(TEXT("Terrain_Far")) && !(SM->GetBodySetup() && SM->GetBodySetup()->CollisionTraceFlag == CTF_UseComplexAsSimple))
 			{
 				C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			}
@@ -568,6 +690,10 @@ void AEndingDirector::Impact()
 void AEndingDirector::Event(const TCHAR* Kind, float Value)
 {
 	UE_LOG(LogTemp, Display, TEXT("CrashEvent %.3f %s %.0f"), bCrash ? RealTime : Time, Kind, Value);
+	if (FCString::Strcmp(Kind, TEXT("title")) == 0)
+	{
+		ClipSummary();
+	}
 	if (!EventReal.Contains(FName(Kind)))
 	{
 		EventReal.Add(FName(Kind), RealTime);
@@ -628,9 +754,15 @@ void AEndingDirector::BurstWindow(bool bDriver)
 {
 	// tempered side glass: gone at once, pebbles flying in (car frame: the driver's door glass is at y -35, the
 	// passenger's at y 109; the windows run from the A pillar back to the B pillar, sill to roof)
+	if (bDriver && bDriverBurst)
+	{
+		return;                             // (already broken: by its hand)
+	}
+	bDriverBurst = bDriverBurst || bDriver;
 	if (SideGlassMID)
 	{
 		SideGlassMID->SetScalarParameterValue(TEXT("Gone"), 1.f);
+		bSideGlassGone = true;
 	}
 	AGlassBurst* G = GetWorld()->SpawnActor<AGlassBurst>(AGlassBurst::StaticClass(), Car->GetActorTransform());
 	if (!G)
@@ -638,6 +770,11 @@ void AEndingDirector::BurstWindow(bool bDriver)
 		return;
 	}
 	G->AttachToActor(Car, FAttachmentTransformRules::KeepWorldTransform);
+	for (UPrimitiveComponent* P : CarParts)
+	{
+		G->Solids.Add(P);
+	}
+	G->Skip = SideGlassMID.Get();
 	if (APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(this, 0))
 	{
 		// the head: a sphere a little behind the eyes, its front at the brow and the bridge of the nose
@@ -694,7 +831,7 @@ void AEndingDirector::CrashCamera(float DeltaSeconds)
 		// hanging in the belt, upside down: the head hangs toward the roof, swaying a little with the breath
 		HeadOff += (FVector(0.f, 0.f, 7.f) - HeadOff) * (1.f - FMath::Exp(-DeltaSeconds * 3.f));
 		const FRotator Hang(-7.f + 1.2f * FMath::Sin(RealTime * 0.8f), 0.f, 2.f * FMath::Sin(RealTime * 0.55f));
-		Camera->GetRootComponent()->SetRelativeLocationAndRotation(CamRest + HeadOff, CamRestRot + Hang);
+		Camera->GetRootComponent()->SetRelativeLocationAndRotation(ClearEye(CamRest + HeadOff), CamRestRot + Hang);
 		return;
 	}
 	const FVector Pos = Body->GetActorLocation();
@@ -721,7 +858,7 @@ void AEndingDirector::CrashCamera(float DeltaSeconds)
 	const FVector Shake(FMath::Sin(Time * 61.f) * 3.f * J, FMath::Sin(Time * 47.f + 1.f) * 5.f * J, FMath::Sin(Time * 53.f + 2.f) * 3.f * J);
 	const FRotator ShakeR(FMath::Sin(Time * 43.f) * 3.f * J, FMath::Sin(Time * 37.f + 1.f) * 4.f * J, FMath::Sin(Time * 59.f) * 5.f * J);
 	const FRotator Look(LookPitch, LookYaw, 0.f);
-	Camera->GetRootComponent()->SetRelativeLocationAndRotation(CamRest + HeadOff + Shake + Look.RotateVector(FVector(9.f, 0.f, 8.f)) - FVector(9.f, 0.f, 8.f),
+	Camera->GetRootComponent()->SetRelativeLocationAndRotation(ClearEye(CamRest + HeadOff + Shake + Look.RotateVector(FVector(9.f, 0.f, 8.f)) - FVector(9.f, 0.f, 8.f)),
 		CamRestRot + HeadRot + ShakeR + Look);
 }
 
@@ -735,8 +872,16 @@ void AEndingDirector::PlaceCamera()
 		const float S = RoarShake * RoarShake;
 		const FVector Shake(FMath::Sin(Time * 53.f) * 1.2f * S, FMath::Sin(Time * 41.f + 1.f) * 1.6f * S, FMath::Sin(Time * 47.f + 2.f) * 1.2f * S);
 		const FRotator ShakeR(FMath::Sin(Time * 39.f) * 1.5f * S, FMath::Sin(Time * 45.f + 1.f) * 2.f * S, FMath::Sin(Time * 51.f) * 1.5f * S);
-		Camera->GetRootComponent()->SetRelativeLocationAndRotation(CamRest + Look.RotateVector(Neck) - Neck + FVector(HeadPush, 0.f, 0.f) + Shake,
+		Camera->GetRootComponent()->SetRelativeLocationAndRotation(ClearEye(CamRest + Look.RotateVector(Neck) - Neck + FVector(HeadPush, 0.f, 0.f) + Shake),
 			CamRestRot + Look + ShakeR);
+		static const bool bSideCam = FParse::Param(FCommandLine::Get(), TEXT("sidecam"));
+		if (bSideCam && Car)
+		{
+			// checking: the view from outside, beside the car, at the bonnet and the windshield (what touches what)
+			const FTransform CT = Car->GetActorTransform();
+			const FVector From = CT.TransformPosition(FVector(110.f, -430.f, 135.f)), To = CT.TransformPosition(FVector(105.f, 20.f, 105.f));
+			Camera->SetActorLocationAndRotation(From, (To - From).Rotation());
+		}
 	}
 }
 
@@ -755,10 +900,76 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 		WantPitch = 0.f;
 		Rate = 1.5f;
 	}
+	else if (bHoodReveal && PeerT0 >= 0.f && t >= PeerT0 + 0.3f)
+	{
+		Want = -78.f;             // the dark window on the left: its face is there
+		WantPitch = -2.f;
+		Rate = 10.f;
+		Focus = 80.f;
+	}
+	else if (bHoodReveal && LeapT0 >= 0.f && t < LeapT0 + 2.2f)
+	{
+		Want = 4.f;               // up after it as it springs off over the car; up at the roof as it goes over it
+		WantPitch = t < LeapT0 + 0.4f ? 16.f : 12.f;
+		Rate = t < LeapT0 + 0.4f ? 8.f : 3.f;
+		Focus = 120.f;
+	}
+	else if (bHoodReveal && RiseT0 >= 0.f && LeapT0 < 0.f && Creature && Creature->GetBody())
+	{
+		// it has hit the bonnet (no warning: the eyes were on the road): they go to it, and stay on its face
+		const FVector At = Creature->GetBody()->GetSocketLocation(TEXT("head"));
+		float Unused = 0.f;
+		LookAt(At, 0.75f, Want, Unused);
+		LookAt(At, 0.9f, Unused, WantPitch);
+		WantPitch = FMath::Clamp(WantPitch, -15.f, 16.f);           // (above that the visors and the roof hide it)
+		Rate = RiseT0 < 0.f || t < RiseT0 + 0.5f ? 10.f : 5.f;
+		Focus = DistTo(At);
+		if (RiseT0 >= 0.f && t > RiseT0 + 2.4f && !bShook)
+		{
+			WantPush = -3.f;      // back into the seat from it
+		}
+	}
+	else if (bHoodReveal && DartT0 >= 0.f && JumpT0 < 0.f && t < DartT0 + 1.6f)
+	{
+		Want = -14.f;             // the flinch: the eyes after the shape gone into the dark on the left
+		WantPitch = -3.f;
+		Rate = 6.f;
+		Focus = 1500.f;
+	}
+	else if (bHoodReveal && StopT >= 0.f && RiseT0 < 0.f)
+	{
+		const float s = t - StopT;  // the empty road: left, right, ahead
+		Want = s < 0.8f ? 0.f : s < 2.0f ? -34.f : s < 3.1f ? 28.f : 0.f;
+		WantPitch = -3.f;
+		Rate = 3.f;
+		Focus = 1500.f;
+	}
+	else if (bHoodReveal && GoneT >= 0.f && PeerT0 < 0.f && t >= CreepTime + 0.6f)
+	{
+		const float c = t - CreepTime - 0.6f;   // the creep: the drop on the right, the mirror, the road
+		if (c < 1.6f)
+		{
+			Want = 46.f;
+			WantPitch = -6.f;
+			Rate = 2.6f;
+			Focus = 1200.f;
+		}
+		else if (c < 3.4f && Car)
+		{
+			LookAt(Car->GetActorTransform().TransformPosition(MirrorAt), 0.92f, Want, WantPitch);
+			Rate = 3.f;
+			Focus = 1200.f;
+		}
+		else
+		{
+			Want = -3.f;
+			Rate = 2.f;
+		}
+	}
 	else if (t >= ImpactTime - 0.75f)
 	{
 		Want = -80.f;
-		WantPitch = 7.f;
+		WantPitch = bHoodReveal ? -2.f : 7.f;
 		Rate = 11.f;
 		Focus = 250.f;
 	}
@@ -834,7 +1045,11 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 	if (CamComp && bCrash && Camera)
 	{
 		float WantEv = 0.f;
-		if (Creature && CreStage >= 1 && CreStage <= 3 && !bImpacted)
+		if (Creature && CreStage == 6)
+		{
+			WantEv = HoodEv;
+		}
+		else if (Creature && CreStage >= 1 && CreStage <= 3 && !bImpacted)
 		{
 			const float D = FVector::Dist(Creature->GetActorLocation(), Camera->GetActorLocation());
 			WantEv = FMath::Clamp(GlareEv + 2.f * FMath::Log2(FMath::Max(D, 1.f) / 550.f), GlareEv, 0.f);
@@ -845,7 +1060,8 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 	}
 	if (CamComp && bCrash)
 	{
-		const bool bFix = Creature && CreStage == 2 && bStopped && !bShook && !bImpacted;
+		const bool bFix = (Creature && CreStage == 2 && bStopped && !bShook && !bImpacted) ||
+			false;
 		const float FovRate = bFix ? 0.38f : 5.f;
 		CamComp->SetFieldOfView(CamComp->FieldOfView + ((bFix ? StareFov : BaseFov) - CamComp->FieldOfView) * (1.f - FMath::Exp(-DeltaSeconds * FovRate)));
 	}
@@ -889,6 +1105,14 @@ float AEndingDirector::CreatureGround(const FVector& At) const
 	// the snow it runs on: the terrain itself (not the rail, the posts or the car)
 	TArray<FHitResult> Hits;
 	FCollisionQueryParams Q(TEXT("CreatureGround"), true);
+	if (Body)
+	{
+		Q.AddIgnoredActor(Body);
+	}
+	if (SolidHolder)
+	{
+		Q.AddIgnoredActor(SolidHolder);
+	}
 	GetWorld()->LineTraceMultiByChannel(Hits, At + FVector(0.f, 0.f, 6000.f), At - FVector(0.f, 0.f, 6000.f), ECC_WorldStatic, Q);
 	for (const FHitResult& H : Hits)
 	{
@@ -940,9 +1164,9 @@ namespace
 void AEndingDirector::MoveCreature(float DeltaSeconds)
 {
 	AHusk* H = Creature;
-	if (!H)
+	if (!H || CreStage >= 5)
 	{
-		return;
+		return;                   // (at the bonnet and the window it is placed by RevealBeats)
 	}
 	const float K = HuskScale;
 	float V = CreatureSpeed * K;

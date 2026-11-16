@@ -10,6 +10,14 @@
 #include "Camera/CameraComponent.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Components/BoxComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Components/InstancedStaticMeshComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "PhysicsEngine/BodySetup.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
+#include "Scatter.h"
+#include "Components/DecalComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Components/SpotLightComponent.h"
@@ -111,10 +119,86 @@ void AEndingDirector::BeginCrashScene()
 		}
 	}
 	// the smashed gap: its tyre tracks (the decal the level build laid over the edge)
+	ADecalActor* Tracks = nullptr;
 	for (TActorIterator<ADecalActor> It(GetWorld()); It; ++It)
 	{
 		GapAt = It->GetActorLocation();
+		Tracks = *It;
 		break;
+	}
+	// beside the tracks, a blood trail dragged to the edge (whoever went over did not go quietly): the same projection,
+	// 1.7 m to one side (Scripts/make_gore.py, tools/make_blood_trail_tex.py)
+	if (Tracks)
+	{
+		if (UMaterialInterface* Blood = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Materials/Blockout/M_BloodTrail.M_BloodTrail")))
+		{
+			FActorSpawnParameters P;
+			P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			ADecalActor* B = GetWorld()->SpawnActor<ADecalActor>(Tracks->GetActorLocation() + Tracks->GetActorRightVector() * 170.f,
+				Tracks->GetActorRotation(), P);
+			if (B)
+			{
+				B->SetDecalMaterial(Blood);
+				B->GetDecal()->DecalSize = FVector(300.f, 62.f, 250.f);
+				B->GetDecal()->SortOrder = 1;
+				UE_LOG(LogTemp, Display, TEXT("EndingDirector: blood trail at the gap, %s"), *B->GetActorLocation().ToString());
+			}
+		}
+	}
+	// the car's own surfaces (its body, glass, bonnet, roof: every mesh on it), queryable, so the creature collides with
+	// them (AHusk::PushClear) instead of passing through
+	if (Car)
+	{
+		TArray<AActor*> On;
+		Car->GetAttachedActors(On, true, true);
+		On.Add(Car);
+		for (AActor* A : On)
+		{
+			if (!A || A == Arms || A == Camera)
+			{
+				continue;
+			}
+			TArray<UStaticMeshComponent*> Meshes;
+			A->GetComponents(Meshes);
+			for (UStaticMeshComponent* M : Meshes)
+			{
+				if (M && M->GetStaticMesh())
+				{
+					M->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+					M->SetCollisionResponseToAllChannels(ECR_Ignore);
+					CarParts.Add(M);
+				}
+			}
+		}
+		UE_LOG(LogTemp, Display, TEXT("EndingDirector: the creature collides with %d of the car's parts"), CarParts.Num());
+		SampleShell();
+		if (Camera && Camera->GetRootComponent()->GetAttachParent())
+		{
+			// is the eye clear of the car where it rests?
+			const FVector Eye = Camera->GetRootComponent()->GetAttachParent()->GetComponentTransform().TransformPosition(CamRest);
+			for (UPrimitiveComponent* P : CarParts)
+			{
+				FHitResult H;
+				if (P && P->SweepComponent(H, Eye, Eye + FVector(0.f, 0.f, 0.1f), FQuat::Identity, FCollisionShape::MakeSphere(EyeRoom), true) && H.bStartPenetrating)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("EndingDirector: the eye at rest is within %.0f cm of %s"), EyeRoom, *P->GetName());
+				}
+			}
+		}
+	}
+	bClipCheck = FParse::Param(FCommandLine::Get(), TEXT("clipcheck"));
+	GatherSolids();
+	// the far terrain (the valley the car falls into) collides on its own surface, when it has that collision
+	// (Scripts/far_terrain_collision.py): the car lands on its snow instead of falling through it
+	for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
+	{
+		UStaticMeshComponent* M = It->GetStaticMeshComponent();
+		UStaticMesh* SM = M ? M->GetStaticMesh() : nullptr;
+		if (SM && SM->GetName().StartsWith(TEXT("Terrain_Far")) && SM->GetBodySetup() && SM->GetBodySetup()->CollisionTraceFlag == CTF_UseComplexAsSimple)
+		{
+			M->SetCollisionProfileName(TEXT("BlockAll"));
+			UE_LOG(LogTemp, Display, TEXT("EndingDirector: the far terrain collides (on its own surface)"));
+		}
 	}
 	// the radio's faint glow across the passenger seat (the only light in the cabin but the dials)
 	if (Car)
@@ -355,21 +439,37 @@ void AEndingDirector::AfterTheFall(float RealDt)
 			FHitResult H;
 			FCollisionQueryParams Q(TEXT("Upside"), true, Body);
 			Q.AddIgnoredActor(Car);
-			return GetWorld()->LineTraceSingleByChannel(H, P + FVector(0.f, 0.f, 3000.f), P - FVector(0.f, 0.f, 6000.f), ECC_WorldStatic, Q) ? H.ImpactPoint.Z : P.Z;
+			if (SolidHolder)
+			{
+				Q.AddIgnoredActor(SolidHolder);
+			}
+			// (NaN where there is no ground under it at all: never a place to leave it)
+			return GetWorld()->LineTraceSingleByChannel(H, P + FVector(0.f, 0.f, 20000.f), P - FVector(0.f, 0.f, 20000.f), ECC_WorldStatic, Q) ? H.ImpactPoint.Z : NAN;
 		};
 		FVector At = Rest;
 		float Best = 1e9f;
-		for (float dx = -4000.f; dx <= 4000.f; dx += 500.f)
+		const float Here = GroundAt(Rest);
+		if (!FMath::IsNaN(Here))
 		{
-			for (float dy = -4000.f; dy <= 4000.f; dy += 500.f)
+			At.Z = Here;
+		}
+		// (within 120 m: where it comes to rest may be on the valley's steep side; it is left on the level snow below)
+		for (float dx = -12000.f; dx <= 12000.f; dx += 750.f)
+		{
+			for (float dy = -12000.f; dy <= 12000.f; dy += 750.f)
 			{
 				const FVector P = Rest + FVector(dx, dy, 0.f);
 				// how much the ground falls away over 10 m ahead in the car's direction and either side
 				const float g = GroundAt(P);
+				if (FMath::IsNaN(g))
+				{
+					continue;
+				}
 				float Slope = 0.f;
 				for (const FVector& o : {F * 1000.f, -F * 1000.f, FVector(-F.Y, F.X, 0.f) * 600.f, FVector(F.Y, -F.X, 0.f) * 600.f})
 				{
-					Slope = FMath::Max(Slope, FMath::Abs(GroundAt(P + o) - g) / o.Size());
+					const float go = GroundAt(P + o);
+					Slope = FMath::Max(Slope, FMath::IsNaN(go) ? 1e6f : FMath::Abs(go - g) / o.Size());
 				}
 				const float Score = Slope + FVector::Dist2D(P, Rest) * 0.000004f;
 				if (Score < Best)
@@ -382,6 +482,38 @@ void AEndingDirector::AfterTheFall(float RealDt)
 		// on its roof, its nose propped up on a drift (so, hanging in the belt, the driver sees the snow above and the night
 		// below through the glass, and anything standing out there whole, upside down)
 		Body->SetActorLocationAndRotation(At + FVector(0.f, 0.f, 63.f), FRotator(8.f, Yaw, 178.f));
+		if (ShellPts.Num() > 0 && Car)
+		{
+			// rested on the snow: raised or lowered so that its lowest point (of its real shell) just touches it
+			const FTransform CT = Car->GetActorTransform();
+			float Lift = -1e9f;
+			for (const FVector& L : ShellPts)
+			{
+				const FVector P = CT.TransformPosition(L);
+				Lift = FMath::Max(Lift, GroundBelow(P, 400.f) - P.Z);
+			}
+			Body->AddActorWorldOffset(FVector(0.f, 0.f, Lift));
+			// what is above and below where it was left (anything at all, whatever its collision)
+			TArray<FHitResult> Hs;
+			FCollisionQueryParams Qg(TEXT("RestOn"), true, Body);
+			Qg.AddIgnoredActor(Car);
+			FCollisionObjectQueryParams Og(FCollisionObjectQueryParams::AllObjects);
+			FHitResult Hd, Hu;
+			if (GetWorld()->LineTraceSingleByObjectType(Hd, Rest, Rest - FVector(0.f, 0.f, 100000.f), Og, Qg))
+			{
+				Hs.Add(Hd);
+			}
+			if (GetWorld()->LineTraceSingleByObjectType(Hu, Rest, Rest + FVector(0.f, 0.f, 100000.f), Og, Qg))
+			{
+				Hs.Add(Hu);
+			}
+			for (const FHitResult& Hg : Hs)
+			{
+				UE_LOG(LogTemp, Display, TEXT("EndingDirector:   over/under where it stopped: %s of %s at z %.0f"), *GetNameSafe(Hg.GetComponent()), *GetNameSafe(Hg.GetActor()), Hg.ImpactPoint.Z);
+			}
+			UE_LOG(LogTemp, Display, TEXT("EndingDirector:   it stopped at %s"), *Rest.ToString());
+			UE_LOG(LogTemp, Display, TEXT("EndingDirector: on its roof, moved %.1f cm up to rest on the snow"), Lift);
+		}
 		if (Arms)
 		{
 			Arms->SetActorHiddenInGame(true);          // the hands fall away from the wheel, out of sight
@@ -389,6 +521,7 @@ void AEndingDirector::AfterTheFall(float RealDt)
 		UE_LOG(LogTemp, Display, TEXT("EndingDirector: left on its roof at %s (%.0f m from where it stopped, the ground falling %.0f%%)"),
 			*At.ToString(), FVector::Dist2D(At, Rest) / 100.f, Best * 100.f);
 		PrevPos = Body->GetActorLocation();
+		bPrevShell = false;                        // (moved there in the black: not a path it travelled)
 		PrevVel = FVector::ZeroVector;
 		HeadOff = FVector::ZeroVector;
 		LookYaw = LookPitch = HeadPush = 0.f;
@@ -430,7 +563,7 @@ void AEndingDirector::AfterTheFall(float RealDt)
 		const FVector F = Body->GetActorForwardVector().GetSafeNormal2D();
 		const FVector R = FVector::CrossProduct(FVector::UpVector, F);
 		WalkDir = R;
-		WalkFrom = Body->GetActorLocation() + F * 1500.f - R * 450.f;
+		WalkFrom = Body->GetActorLocation() + F * 1200.f - R * 1150.f;   // out of sight to begin with: it walks into the beam
 		WalkS = 0.f;
 		FActorSpawnParameters P;
 		P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -442,6 +575,7 @@ void AEndingDirector::AfterTheFall(float RealDt)
 			Walker->GetBody()->SetPlayRate(1.f);
 			Walker->JawOpen = 5.f;
 			WalkReal = RealTime;
+			Walker->KeepOutLate = [this](AHusk* Me) { KeepOut(Me, FVector::ZeroVector, TEXT("the walker")); };
 			Event(TEXT("silhouette"));
 		}
 	}
@@ -450,8 +584,8 @@ void AEndingDirector::AfterTheFall(float RealDt)
 		// its stalk (0.67 m/s at its model's size); it stops a moment in the light, as if listening, then goes on
 		const float w = RealTime - WalkReal;
 		const float Rate = FMath::Lerp(1.f, 0.08f, Smooth((w - 3.6f) / 0.6f) * (1.f - Smooth((w - 6.f) / 0.7f)));
-		Walker->GetBody()->SetPlayRate(Rate);
-		WalkS += 67.f * HuskScale * Rate * RealDt;
+		Walker->GetBody()->SetPlayRate(Rate * 1.2f);
+		WalkS += 67.f * HuskScale * Rate * 1.2f * RealDt;
 		FVector P = WalkFrom + WalkDir * WalkS;
 		P.Z = CreatureGround(P);
 		const float Yaw = FMath::RadiansToDegrees(FMath::Atan2(WalkDir.Y, WalkDir.X));
@@ -481,6 +615,924 @@ void AEndingDirector::AfterTheFall(float RealDt)
 	}
 }
 
+float AEndingDirector::CarDip() const
+{
+	// the car's nose (degrees, + up): slammed down as it lands on the bonnet and held down by its weight; kicked up as it
+	// springs off; the roof takes it as it goes over
+	float p = 0.f;
+	if (RiseT0 >= 0.f)
+	{
+		const float g = Time - RiseT0;
+		if (g > 0.f)
+		{
+			p += -2.4f * FMath::Exp(-4.f * g) * FMath::Sin(10.f * g + 0.4f);
+			p += -0.9f * Smooth(g / 0.4f) * (LeapT0 < 0.f ? 1.f : FMath::Exp(-6.f * FMath::Max(0.f, Time - LeapT0)));
+		}
+	}
+	if (LeapT0 >= 0.f)
+	{
+		const float l = Time - LeapT0;
+		p += 1.6f * FMath::Exp(-4.f * l) * FMath::Sin(10.f * l);
+		for (const float k : {0.35f, 0.5f})
+		{
+			const float q = l - k;
+			if (q > 0.f)
+			{
+				p += -0.7f * FMath::Exp(-6.f * q) * FMath::Sin(14.f * q);
+			}
+		}
+	}
+	return p;
+}
+
+float AEndingDirector::CarClear(AHusk* H, const FVector& Dir, FString* What)
+{
+	TArray<UPrimitiveComponent*> Parts;
+	const FBox Near = H->GetComponentsBoundingBox(true).ExpandBy(60.f);
+	for (UPrimitiveComponent* P : CarParts)
+	{
+		if (P && P->Bounds.GetBox().Intersect(Near))
+		{
+			Parts.Add(P);
+		}
+	}
+	const UMaterialInterface* Skip = bSideGlassGone ? SideGlassMID.Get() : nullptr;
+	// its visible surface (skin, claws, fur, face), and its collision bodies for anything the surface points miss
+	FString Ws;
+	FName Wb;
+	// (its simplified collision bodies are fatter than its limbs: they only stand in when its surface is not known)
+	const bool bSurface = H->HasSurface();
+	const float Surf = bSurface ? H->PushClearSurface(Parts, Dir, 300.f, Skip, &Ws) : 0.f;
+	const float Bodies = bSurface ? 0.f : H->PushClear(Parts, Dir, 300.f, Skip, &Wb);
+	if (What)
+	{
+		*What = bSurface ? Ws : FString::Printf(TEXT("its %s (collision body)"), *Wb.ToString());
+	}
+	const float Push = FMath::Min(FMath::Max(Surf, Bodies), 80.f);
+	if (Push > 0.f)
+	{
+		H->AddActorWorldOffset(Dir.GetSafeNormal() * (Push + 0.3f));
+	}
+	return Push;
+}
+
+void AEndingDirector::GatherSolids()
+{
+	// the forest's trunks (the spruces' own, tapering from about a 70th of the tree's height across at the foot) and the
+	// roadside's posts and poles (their meshes' boxes); not the posts of the stretch of rail that gives way
+	Solids.Reset();
+	int32 Trunks = 0, Props = 0;
+	for (TActorIterator<AScatter> It(GetWorld()); It; ++It)
+	{
+		if (It->ActorHasTag(TEXT("GuardrailBreak")) || It->GetActorNameOrLabel().Contains(TEXT("reflector")))
+		{
+			continue;
+		}
+		TArray<UInstancedStaticMeshComponent*> Ism;
+		It->GetComponents(Ism);
+		for (UInstancedStaticMeshComponent* I : Ism)
+		{
+			UStaticMesh* M = I ? I->GetStaticMesh() : nullptr;
+			if (!M)
+			{
+				continue;
+			}
+			const FBox LB = M->GetBoundingBox();
+			const bool bTree = M->GetName().StartsWith(TEXT("Spruce"));
+			for (int32 i = 0; i < I->GetInstanceCount(); ++i)
+			{
+				FTransform T;
+				if (!I->GetInstanceTransform(i, T, true))
+				{
+					continue;
+				}
+				const FVector Sc = T.GetScale3D().GetAbs();
+				FSolid S;
+				if (bTree)
+				{
+					const float Hm = LB.Max.Z - LB.Min.Z;
+					S.bTrunk = true;
+					S.R = FMath::Max(4.f, Hm / 70.f) * Sc.X;
+					S.H = FMath::Min(Hm * Sc.Z, 600.f);
+					S.T = FTransform(T.GetLocation() + FVector(0.f, 0.f, LB.Min.Z * Sc.Z));
+					++Trunks;
+				}
+				else
+				{
+					S.Ext = LB.GetExtent() * Sc;
+					if (S.Ext.GetMax() < 8.f)
+					{
+						continue;
+					}
+					S.T = FTransform(T.GetRotation(), T.TransformPosition(LB.GetCenter()));
+					++Props;
+				}
+				Solids.Add(S);
+			}
+		}
+	}
+	UE_LOG(LogTemp, Display, TEXT("EndingDirector: solid things: %d trunks, %d posts and poles"), Trunks, Props);
+}
+
+void AEndingDirector::SolidNear(const FVector& At, float Radius)
+{
+	for (FSolid& S : Solids)
+	{
+		if (S.bMade || FVector::DistSquared2D(S.T.GetLocation(), At) > FMath::Square(Radius + S.R + S.Ext.Size()))
+		{
+			continue;
+		}
+		if (!SolidHolder)
+		{
+			FActorSpawnParameters P;
+			P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			SolidHolder = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity, P);
+			USceneComponent* Root = NewObject<USceneComponent>(SolidHolder, TEXT("Root"));
+			SolidHolder->SetRootComponent(Root);
+			Root->RegisterComponent();
+		}
+		S.bMade = true;
+		UShapeComponent* C = nullptr;
+		if (S.bTrunk)
+		{
+			UCapsuleComponent* Cap = NewObject<UCapsuleComponent>(SolidHolder);
+			Cap->SetCapsuleSize(S.R, 0.5f * S.H);
+			C = Cap;
+		}
+		else
+		{
+			UBoxComponent* Box = NewObject<UBoxComponent>(SolidHolder);
+			Box->SetBoxExtent(S.Ext);
+			C = Box;
+		}
+		C->SetupAttachment(SolidHolder->GetRootComponent());
+		C->SetCollisionProfileName(TEXT("BlockAll"));
+		C->RegisterComponent();
+		C->SetWorldTransform(S.bTrunk ? FTransform(S.T.GetLocation() + FVector(0.f, 0.f, 0.5f * S.H)) : S.T);
+	}
+}
+
+void AEndingDirector::KeepOut(AHusk* H, const FVector& CarDir, const TCHAR* Who)
+{
+	if (!H || !H->GetBody())
+	{
+		return;
+	}
+	SolidNear(H->GetActorLocation(), 800.f);
+	TArray<const AActor*> Ignore = {Car.Get(), Body.Get(), Camera.Get(), Letter.Get(), Creature.Get(), Walker.Get()};
+	if (Arms)
+	{
+		Ignore.Add(Arms.Get());
+	}
+	if (Car)
+	{
+		TArray<AActor*> On;
+		Car->GetAttachedActors(On, true, true);
+		for (AActor* A : On)
+		{
+			Ignore.Add(A);
+		}
+	}
+	auto Ground = [this](const FVector& At) { return GroundBelow(At); };
+	auto IsGround = [](const UPrimitiveComponent* P)
+	{
+		// (the ground is kept under it by GroundIn, not pushed out of sideways; the rail's own simple collision is one
+		// hull round its whole run, so it is left out)
+		const UStaticMeshComponent* S = Cast<UStaticMeshComponent>(P);
+		const FString N = S && S->GetStaticMesh() ? S->GetStaticMesh()->GetName() : FString();
+		return N.StartsWith(TEXT("Terrain")) || N == TEXT("Road") || (P->GetOwner() && P->GetOwner()->ActorHasTag(TEXT("Guardrail")));
+	};
+	const FString W(Who);
+	// first its hands, feet and face are put on what they touch (contact IK, on the body that is drawn); only what is
+	// left over moves it as a whole
+	FString IKWhat;
+	float IKMove = 0.f;
+	{
+		TArray<UPrimitiveComponent*> Near;
+		if (!CarDir.IsNearlyZero())
+		{
+			const FBox Around = H->GetComponentsBoundingBox(true).ExpandBy(60.f);
+			for (UPrimitiveComponent* P : CarParts)
+			{
+				if (P && P->Bounds.GetBox().Intersect(Around))
+				{
+					Near.Add(P);
+				}
+			}
+		}
+		const UMaterialInterface* Skip = bSideGlassGone ? SideGlassMID.Get() : nullptr;
+		IKMove = H->ContactIK(Near, CarDir, Skip, Ground, &IKWhat);
+	}
+	FString What;
+	const float WorldIn = H->PushOutOfWorld(Ignore, IsGround, true, &What);
+	// the ground under its collision bodies and under its lowest visible points (claws, toes)
+	const float GroundIn = FMath::Max(H->GroundIn(Ground), H->GroundInSurface(Ground));
+	if (GroundIn > 0.f)
+	{
+		H->AddActorWorldOffset(FVector(0.f, 0.f, GroundIn + 0.3f));
+	}
+	FString CarWhat;
+	const float CarIn = CarDir.IsNearlyZero() ? 0.f : CarClear(H, CarDir, &CarWhat);
+	static float NextProbe = 0.f;
+	if (bClipCheck && Car && H == Creature && CreStage == 6 && RealTime >= NextProbe)
+	{
+		// (checking the check: where its head is, in the car's frame, and what a ray down onto it meets)
+		NextProbe = RealTime + 1.f;
+		const FTransform CT = Car->GetActorTransform();
+		const FVector Head = H->GetBody()->GetBoneTransform(H->GetBody()->GetBoneIndex(TEXT("head"))).GetLocation();
+		TArray<AHusk::FShape> Sh;
+		H->Shapes(Sh);
+		UE_LOG(LogTemp, Display, TEXT("Probe %.2f: it at %s, head at %s (car frame); %d shapes, %d car parts"), RealTime,
+			*CT.InverseTransformPosition(H->GetActorLocation()).ToString(), *CT.InverseTransformPosition(Head).ToString(), Sh.Num(), CarParts.Num());
+		for (UPrimitiveComponent* P : CarParts)
+		{
+			FHitResult Hd, Hf;
+			FCollisionQueryParams Qp(TEXT("Probe"), true);
+			const bool bD = P && P->LineTraceComponent(Hd, Head + FVector(0.f, 0.f, 300.f), Head, Qp);
+			const bool bF = P && P->LineTraceComponent(Hf, Head + CT.GetUnitAxis(EAxis::X) * 300.f, Head, Qp);
+			UE_LOG(LogTemp, Display, TEXT("Probe   %s: down onto the head %s (z %.0f), from ahead %s (x %.0f); collision %d, bounds %s"), *GetNameSafe(P ? P->GetOwner() : nullptr),
+				bD ? TEXT("HIT") : TEXT("nothing"), bD ? CT.InverseTransformPosition(Hd.ImpactPoint).Z : 0.f, bF ? TEXT("HIT") : TEXT("nothing"),
+				bF ? CT.InverseTransformPosition(Hf.ImpactPoint).X : 0.f, P ? (int32)P->GetCollisionEnabled() : -1,
+				P ? *P->Bounds.GetBox().ToString() : TEXT(""));
+		}
+		if (Sh.Num() > 0)
+		{
+			UE_LOG(LogTemp, Display, TEXT("Probe   shape 0 %s (%s) r %.0f"), *Sh[0].Bone.ToString(), *CT.InverseTransformPosition(Sh[0].A).ToString(), Sh[0].R);
+		}
+	}
+	if (!bClipCheck)
+	{
+		return;
+	}
+	NoteClip(W + TEXT(" placed on what it touches by contact IK"), IKMove, FString::Printf(TEXT("its %s, stage %d"), *IKWhat, CreStage));
+	NoteClip(W + TEXT(" pushed out of solid things"), WorldIn, What);
+	NoteClip(W + TEXT(" lifted out of the ground"), GroundIn, TEXT("terrain"));
+	NoteClip(W + TEXT(" pushed out of the car"), CarIn, FString::Printf(TEXT("%s, stage %d"), *CarWhat, CreStage));
+	// what is left after the pushes: the clipping that would show
+	FString Left;
+	NoteClip(W + TEXT(" STILL in solid things"), H->PushOutOfWorld(Ignore, IsGround, false, &Left), Left);
+	NoteClip(W + TEXT(" STILL in the ground"), FMath::Max(H->GroundIn(Ground), H->GroundInSurface(Ground)), TEXT("terrain"));
+	if (Car && CarParts.Num() > 0)
+	{
+		TArray<UPrimitiveComponent*> Parts;
+		const FBox Near = H->GetComponentsBoundingBox(true).ExpandBy(60.f);
+		for (UPrimitiveComponent* P : CarParts)
+		{
+			if (P && P->Bounds.GetBox().Intersect(Near))
+			{
+				Parts.Add(P);
+			}
+		}
+		if (Parts.Num() > 0)
+		{
+			const UMaterialInterface* Skip = bSideGlassGone ? SideGlassMID.Get() : nullptr;
+			const FTransform CT = Car->GetActorTransform();
+			// its collision bodies, and its visible surface (with no margin: any point of it inside the car at all)
+			float In = 1e9f, Seen = 1e9f;
+			FString SeenWhat;
+			for (const EAxis::Type Ax : {EAxis::X, EAxis::Y, EAxis::Z})
+			{
+				for (const float Sg : {1.f, -1.f})
+				{
+					if (Ax == EAxis::Z && Sg < 0.f)
+					{
+						continue;
+					}
+					const FVector D = CT.GetUnitAxis(Ax) * Sg;
+					In = FMath::Min(In, H->PushClear(Parts, D, 300.f, Skip));
+					FString Wd;
+					const float Sd = H->PushClearSurface(Parts, D, 300.f, Skip, &Wd, 0.f);
+					if (Sd < Seen)
+					{
+						Seen = Sd;
+						SeenWhat = Wd;
+					}
+				}
+			}
+			NoteClip(W + TEXT(" STILL in the car (collision bodies)"), In, TEXT("car"));
+			NoteClip(W + TEXT(" STILL in the car (what is seen: skin, claws, fur, face)"), Seen, SeenWhat);
+		}
+	}
+}
+
+void AEndingDirector::SampleShell()
+{
+	// the car's outer surface: rays from outside along its three axes, 12 cm apart, the first surface each meets
+	ShellPts.Reset();
+	if (!Car || CarParts.Num() == 0)
+	{
+		return;
+	}
+	const FTransform CT = Car->GetActorTransform();
+	FBox LB(ForceInit);
+	for (UPrimitiveComponent* P : CarParts)
+	{
+		if (!P)
+		{
+			continue;
+		}
+		const FBox WB = P->Bounds.GetBox();
+		for (int32 c = 0; c < 8; ++c)
+		{
+			LB += CT.InverseTransformPosition(FVector(c & 1 ? WB.Max.X : WB.Min.X, c & 2 ? WB.Max.Y : WB.Min.Y, c & 4 ? WB.Max.Z : WB.Min.Z));
+		}
+	}
+	LB = LB.ExpandBy(10.f);
+	FCollisionQueryParams Q(TEXT("Shell"), true);
+	TSet<FIntVector> Seen;
+	const float Step = 12.f;
+	for (int32 a = 0; a < 3; ++a)
+	{
+		const int32 b = (a + 1) % 3, c = (a + 2) % 3;
+		for (float u = LB.Min[b]; u <= LB.Max[b]; u += Step)
+		{
+			for (float v = LB.Min[c]; v <= LB.Max[c]; v += Step)
+			{
+				for (int32 sd = 0; sd < 2; ++sd)
+				{
+					FVector A0(0.f), A1(0.f);
+					A0[b] = A1[b] = u;
+					A0[c] = A1[c] = v;
+					A0[a] = sd ? LB.Max[a] : LB.Min[a];
+					A1[a] = sd ? LB.Min[a] : LB.Max[a];
+					const FVector W0 = CT.TransformPosition(A0), W1 = CT.TransformPosition(A1);
+					float BestD = 1e18f;
+					FVector BestP = FVector::ZeroVector;
+					for (UPrimitiveComponent* P : CarParts)
+					{
+						FHitResult H;
+						if (P && P->LineTraceComponent(H, W0, W1, Q))
+						{
+							const float Dd = FVector::DistSquared(W0, H.ImpactPoint);
+							if (Dd < BestD)
+							{
+								BestD = Dd;
+								BestP = H.ImpactPoint;
+							}
+						}
+					}
+					if (BestD < 1e17f)
+					{
+						const FVector L = CT.InverseTransformPosition(BestP);
+						const FIntVector K(FMath::FloorToInt(L.X / 8.f), FMath::FloorToInt(L.Y / 8.f), FMath::FloorToInt(L.Z / 8.f));
+						if (!Seen.Contains(K))
+						{
+							Seen.Add(K);
+							ShellPts.Add(L);
+						}
+					}
+				}
+			}
+		}
+	}
+	UE_LOG(LogTemp, Display, TEXT("EndingDirector: the car's shell: %d points within %s (car frame)"), ShellPts.Num(), *LB.ToString());
+	if (FParse::Param(FCommandLine::Get(), TEXT("carprofile")))
+	{
+		// the car's real surfaces where the creature touches them (car frame, cm), for its poses (tools/blender/husk_body.py):
+		// the bonnet and windshield seen from above along lines down its length; the door and window seen from the left
+		FCollisionQueryParams Qp(TEXT("Profile"), true);
+		auto First = [&](const FVector& A, const FVector& B, FString& Part)
+		{
+			float Best = 1e18f;
+			FVector At(NAN);
+			for (UPrimitiveComponent* P : CarParts)
+			{
+				FHitResult H;
+				if (P && P->LineTraceComponent(H, CT.TransformPosition(A), CT.TransformPosition(B), Qp) && FVector::DistSquared(CT.TransformPosition(A), H.ImpactPoint) < Best)
+				{
+					Best = FVector::DistSquared(CT.TransformPosition(A), H.ImpactPoint);
+					At = CT.InverseTransformPosition(H.ImpactPoint);
+					Part = GetNameSafe(Cast<UStaticMeshComponent>(P) ? Cast<UStaticMeshComponent>(P)->GetStaticMesh() : nullptr);
+				}
+			}
+			return At;
+		};
+		for (const float Y : {-20.f, 0.f, 20.f, 40.f, 60.f})
+		{
+			FString Row;
+			for (float X = 260.f; X >= -60.f; X -= 10.f)
+			{
+				FString Part;
+				const FVector At = First(FVector(X, Y, 300.f), FVector(X, Y, 0.f), Part);
+				Row += FString::Printf(TEXT(" %.0f:%.0f%s"), X, At.Z, Part.Contains(TEXT("Glass")) ? TEXT("g") : TEXT(""));
+			}
+			UE_LOG(LogTemp, Display, TEXT("CarProfile top y %.0f:%s"), Y, *Row);
+		}
+		for (const float X : {60.f, 30.f, 15.f, 0.f, -30.f})
+		{
+			FString Row;
+			for (float Z = 160.f; Z >= 40.f; Z -= 8.f)
+			{
+				FString Part;
+				const FVector At = First(FVector(X, -300.f, Z), FVector(X, 100.f, Z), Part);
+				Row += FString::Printf(TEXT(" %.0f:%.0f%s"), Z, At.Y, Part.Contains(TEXT("Glass")) ? TEXT("g") : TEXT(""));
+			}
+			UE_LOG(LogTemp, Display, TEXT("CarProfile left x %.0f:%s"), X, *Row);
+		}
+	}
+	WheelPts.Reset();
+	if (ShellPts.Num() > 0)
+	{
+		float MinZ = 1e9f;
+		FVector Mid = FVector::ZeroVector;
+		for (const FVector& L : ShellPts)
+		{
+			MinZ = FMath::Min(MinZ, L.Z);
+			Mid += L;
+		}
+		Mid /= ShellPts.Num();
+		FVector Low[4];
+		bool bHas[4] = {false, false, false, false};
+		for (const FVector& L : ShellPts)
+		{
+			if (L.Z > MinZ + 15.f)
+			{
+				continue;
+			}
+			const int32 q = (L.X > Mid.X ? 1 : 0) + (L.Y > Mid.Y ? 2 : 0);
+			if (!bHas[q] || L.Z < Low[q].Z)
+			{
+				Low[q] = L;
+				bHas[q] = true;
+			}
+		}
+		for (int32 q = 0; q < 4; ++q)
+		{
+			if (bHas[q])
+			{
+				WheelPts.Add(Low[q]);
+				UE_LOG(LogTemp, Display, TEXT("EndingDirector:   tyre contact %s"), *Low[q].ToString());
+			}
+		}
+	}
+	for (UPrimitiveComponent* P : CarParts)
+	{
+		if (P)
+		{
+			FBox B(ForceInit);
+			const FBox WB = P->Bounds.GetBox();
+			for (int32 c = 0; c < 8; ++c)
+			{
+				B += CT.InverseTransformPosition(FVector(c & 1 ? WB.Max.X : WB.Min.X, c & 2 ? WB.Max.Y : WB.Min.Y, c & 4 ? WB.Max.Z : WB.Min.Z));
+			}
+			UE_LOG(LogTemp, Display, TEXT("EndingDirector:   car part %s of %s (%s): %s"), *P->GetName(), *GetNameSafe(P->GetOwner()),
+				*GetNameSafe(Cast<UStaticMeshComponent>(P) ? Cast<UStaticMeshComponent>(P)->GetStaticMesh() : nullptr), *B.ToString());
+		}
+	}
+}
+
+float AEndingDirector::GroundBelow(const FVector& At, float Above) const
+{
+	TArray<FHitResult> Hits;
+	FCollisionQueryParams Q(TEXT("GroundBelow"), true);
+	if (Body)
+	{
+		Q.AddIgnoredActor(Body);
+	}
+	if (SolidHolder)
+	{
+		Q.AddIgnoredActor(SolidHolder);
+	}
+	GetWorld()->LineTraceMultiByChannel(Hits, At + FVector(0.f, 0.f, Above), At - FVector(0.f, 0.f, 6000.f), ECC_WorldStatic, Q);
+	for (const FHitResult& H : Hits)
+	{
+		const UStaticMeshComponent* S = Cast<UStaticMeshComponent>(H.GetComponent());
+		const FString N = S && S->GetStaticMesh() ? S->GetStaticMesh()->GetName() : FString();
+		if (N.StartsWith(TEXT("Terrain")) || N == TEXT("Road") ||
+			(S && S->Bounds.SphereRadius > 5000.f && !(S->GetOwner() && S->GetOwner()->ActorHasTag(TEXT("Guardrail")))))
+		{
+			return H.ImpactPoint.Z;
+		}
+	}
+	return At.Z - 6000.f;
+}
+
+void AEndingDirector::ShellCheck()
+{
+	// the car's shell against the ground, the trunks, posts and poles, and the rail (crossing it since the last look)
+	if (!Car || ShellPts.Num() == 0)
+	{
+		return;
+	}
+	const FTransform CT = Car->GetActorTransform();
+	TArray<const FSolid*, TInlineAllocator<64>> Near;
+	for (const FSolid& S : Solids)
+	{
+		if (FVector::DistSquared2D(S.T.GetLocation(), CT.GetLocation()) < FMath::Square(800.f))
+		{
+			Near.Add(&S);
+		}
+	}
+	float G = 0.f, So = 0.f, Rl = 0.f;
+	FString What;
+	FVector Deep = FVector::ZeroVector;
+	FCollisionQueryParams Q(TEXT("ShellRail"), true);
+	for (const FVector& L : ShellPts)
+	{
+		const FVector P = CT.TransformPosition(L);
+		const float Gi = GroundBelow(P) - P.Z;
+		if (Gi > G)
+		{
+			G = Gi;
+			Deep = L;
+		}
+		for (const FSolid* S : Near)
+		{
+			float In = 0.f;
+			if (S->bTrunk)
+			{
+				const FVector B = S->T.GetLocation();
+				if (P.Z > B.Z - 20.f && P.Z < B.Z + S->H)
+				{
+					In = S->R - FVector::Dist2D(P, B);
+				}
+			}
+			else
+			{
+				const FVector Lc = S->T.InverseTransformPosition(P);
+				const FVector Qd = S->Ext - Lc.GetAbs();
+				In = Qd.X > 0.f && Qd.Y > 0.f && Qd.Z > 0.f ? Qd.GetMin() : 0.f;
+			}
+			if (In > So)
+			{
+				So = In;
+				What = S->bTrunk ? TEXT("a spruce's trunk") : TEXT("a post or pole");
+			}
+		}
+		if (bPrevShell)
+		{
+			const FVector P0 = PrevShellT.TransformPosition(L);
+			for (UPrimitiveComponent* Rc : RailParts)
+			{
+				FHitResult H;
+				if (Rc && Rc->Bounds.GetBox().ExpandBy(50.f).IsInside(P) && Rc->LineTraceComponent(H, P0, P, Q))
+				{
+					Rl = FMath::Max(Rl, FVector::Dist(H.ImpactPoint, P));
+				}
+			}
+		}
+	}
+	PrevShellT = CT;
+	bPrevShell = true;
+	NoteClip(TEXT("the car's shell in the ground"), G, FString::Printf(TEXT("its point at %.0f %.0f %.0f, car frame"), Deep.X, Deep.Y, Deep.Z));
+	NoteClip(TEXT("the car's shell in trees, posts or poles"), So, What);
+	NoteClip(TEXT("the car's shell through the guardrail"), Rl, TEXT("rail"));
+}
+
+FVector AEndingDirector::ClearEye(const FVector& Want)
+{
+	// the eye (a ball EyeRoom round) moved from where it rests toward where the head wants it, stopping at the car's
+	// surfaces (its pillars, roof, door, glass)
+	USceneComponent* Parent = Camera ? Camera->GetRootComponent()->GetAttachParent() : nullptr;
+	if (!Parent || CarParts.Num() == 0)
+	{
+		return Want;
+	}
+	const FTransform PT = Parent->GetComponentTransform();
+	const FVector From = PT.TransformPosition(CamRest), To = PT.TransformPosition(Want);
+	if (FVector::DistSquared(From, To) < 0.01f)
+	{
+		return Want;
+	}
+	const FCollisionShape Ball = FCollisionShape::MakeSphere(EyeRoom);
+	float Best = 1.f;
+	FString What;
+	for (UPrimitiveComponent* P : CarParts)
+	{
+		FHitResult H;
+		if (P && P->SweepComponent(H, From, To, FQuat::Identity, Ball, true) && !H.bStartPenetrating && H.Time < Best)
+		{
+			Best = H.Time;
+			What = P->GetName();
+		}
+	}
+	if (Best >= 1.f)
+	{
+		return Want;
+	}
+	const FVector Got = FMath::Lerp(CamRest, Want, FMath::Max(0.f, Best - 0.02f));
+	if (bClipCheck)
+	{
+		NoteClip(TEXT("the eye held off the car"), FVector::Dist(Got, Want), What);
+	}
+	return Got;
+}
+
+void AEndingDirector::NoteClip(const FString& Pair, float Depth, const FString& What)
+{
+	FClip& C = Clips.FindOrAdd(Pair);
+	if (Depth <= 0.05f)
+	{
+		return;
+	}
+	if (Depth > C.Worst)
+	{
+		C.Worst = Depth;
+		C.At = RealTime;
+		C.What = What;
+	}
+	if (Depth > 0.5f && RealTime >= C.NextLog)
+	{
+		C.NextLog = RealTime + 0.25f;
+		UE_LOG(LogTemp, Display, TEXT("Clip %.2f %s: %.1f cm (%s)"), RealTime, *Pair, Depth, *What);
+	}
+}
+
+void AEndingDirector::ClipSummary()
+{
+	if (!bClipCheck || bClipSummed)
+	{
+		return;
+	}
+	bClipSummed = true;
+	Clips.KeySort([](const FString& A, const FString& B) { return A < B; });
+	for (const TPair<FString, FClip>& KV : Clips)
+	{
+		UE_LOG(LogTemp, Display, TEXT("ClipSummary %s: worst %.1f cm at %.2f s (%s)"), *KV.Key, KV.Value.Worst, KV.Value.At, *KV.Value.What);
+	}
+}
+
+void AEndingDirector::EndPlay(const EEndPlayReason::Type Reason)
+{
+	ClipSummary();
+	Super::EndPlay(Reason);
+}
+
+void AEndingDirector::RevealBeats(float DeltaSeconds)
+{
+	if (!Car)
+	{
+		return;
+	}
+	if (bClipCheck && ++ShellTick % 5 == 0)
+	{
+		ShellCheck();
+	}
+	const FTransform C = Car->GetActorTransform();
+	const FVector F = C.GetUnitAxis(EAxis::X).GetSafeNormal2D();
+	const FVector R = FVector::CrossProduct(FVector::UpVector, F);
+	auto Ground = [this](const FVector& At) { return CreatureGround(At); };
+	auto Face = [](AHusk* H, const FVector& P, const FVector& Dir)
+	{
+		const float Yaw = FMath::RadiansToDegrees(FMath::Atan2(Dir.Y, Dir.X));
+		H->SetActorLocationAndRotation(P, FRotator(0.f, Yaw, 0.f).Quaternion() * FRotator(0.f, -H->MeshForwardYaw(), 0.f).Quaternion());
+	};
+	auto OnSnow = [&](AHusk* H, FVector P, const FVector& Dir)
+	{
+		P.Z = CreatureGround(P);
+		Face(H, P, Dir);
+		H->AddActorWorldOffset(FVector(0.f, 0.f, H->GroundLift(Ground)));
+	};
+	auto Take = [](AHusk* H, const TCHAR* Name, bool bLoop, float Rate, float At = 0.f)
+	{
+		H->Play(Name, bLoop);
+		H->GetBody()->SetPlayRate(Rate);
+		H->GetBody()->SetPosition(At, false);
+		H->PoseNow();
+	};
+	AHusk* H = Creature;
+
+	// suddenly: it drops onto the bonnet from above (out of sight until it hits)
+	if (!bDarted && Time >= SightTime)
+	{
+		bDarted = true;
+		const FVector From = C.TransformPosition(PerchAt + FVector(60.f, -40.f, 420.f));
+		FActorSpawnParameters P;
+		P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		H = GetWorld()->SpawnActor<AHusk>(AHusk::StaticClass(), FTransform(From), P);
+		if (H && H->Setup())
+		{
+			H->SetActorScale3D(FVector(HuskScale));
+			Take(H, TEXT("Perch"), false, 0.f, 7.45f);
+			H->JawOpen = 14.f;
+			Creature = H;
+			CreStage = 51;
+			JumpT0 = Time;
+			ArcFrom = PerchAt + FVector(60.f, -40.f, 420.f);
+			Face(H, From, -F);
+			// kept out of the car (the way that suits what it is doing), the solid things and the ground, each frame
+			// once its body is animated
+			H->KeepOutLate = [this](AHusk* Me)
+			{
+				if (Me != Creature || CreStage == 0 || !Car)
+				{
+					return;
+				}
+				const FTransform Ct = Car->GetActorTransform();
+				const FVector Fw = Ct.GetUnitAxis(EAxis::X).GetSafeNormal2D();
+				const FVector Rt = FVector::CrossProduct(FVector::UpVector, Fw);
+				const FVector Dir = CreStage == 51 || CreStage == 6 || CreStage == 60 ? FVector::UpVector : CreStage == 61 ? -Fw : -Rt;
+				KeepOut(Me, Dir, TEXT("the creature"));
+			};
+			Event(TEXT("drop"));
+		}
+		else if (H)
+		{
+			H->Destroy();
+			H = nullptr;
+		}
+	}
+	if (!H)
+	{
+		return;
+	}
+	const float Dt = DeltaSeconds;
+	if (false)
+	{
+	}
+	else if (CreStage == 51)
+	{
+		// falling onto the bonnet (in the car's own frame: it is moving), quickening as it falls
+		const float u = FMath::Clamp((Time - JumpT0) / 0.22f, 0.f, 1.f);
+		const FVector Pc = FMath::Lerp(ArcFrom, PerchAt, u * u);
+		Face(H, C.TransformPosition(Pc), -F);
+		if (u >= 1.f)
+		{
+			CreStage = 6;
+			RiseT0 = DropT = Time;
+			Take(H, TEXT("Perch"), false, 1.f, 0.f);
+			Event(TEXT("land"));
+			FaceLight = NewObject<UPointLightComponent>(Car, TEXT("FaceGlow"));
+			FaceLight->SetupAttachment(Car->GetRootComponent());
+			FaceLight->RegisterComponent();
+			FaceLight->SetIntensityUnits(ELightUnits::Candelas);
+			FaceLight->SetIntensity(5.f);
+			FaceLight->SetLightColor(FLinearColor(0.55f, 0.85f, 1.f));   // the dials' glow, up through the glass onto its face
+			FaceLight->SetAttenuationRadius(200.f);
+			FaceLight->SetCastShadows(false);
+			FaceLight->SetRelativeLocation(FVector(38.f, 10.f, 98.f));
+		}
+	}
+	else if (CreStage == 6)
+	{
+		// on the bonnet, held there as the car brakes: rises, lowers its face to the glass, jaw wide (silent), springs off
+		Face(H, C.TransformPosition(PerchAt), -F);
+		const float r = Time - RiseT0;
+		static const struct { float At; const TCHAR* Kind; } Beats[] = {{2.4f, TEXT("rise")}, {5.95f, TEXT("jaw")}, {7.6f, TEXT("leap")}};
+		while (RiseBeat < (int32)UE_ARRAY_COUNT(Beats) && r >= Beats[RiseBeat].At)
+		{
+			Event(Beats[RiseBeat].Kind);
+			if (RiseBeat == 2)
+			{
+				LeapT0 = Time;
+				CreStage = 60;
+				ArcFrom = PerchAt;
+			}
+			++RiseBeat;
+		}
+		H->JawOpen = r < 6.f ? 6.f + 3.f * FMath::Sin(r * 2.7f)
+			: 6.f + 34.f * Smooth((r - 6.f) / 0.6f) * (1.f - Smooth((r - 7.15f) / 0.2f)) + 1.5f * FMath::Sin(r * 23.f) * Smooth((r - 6.3f) / 0.2f);
+	}
+	if (CreStage == 60)
+	{
+		// up onto the roof, then off the back of it onto the road behind
+		const float l = Time - LeapT0;
+		const FVector Roof(-60.f, -10.f, 140.f), Behind(-650.f, -40.f, 0.f);
+		FVector Pc;
+		if (l < 0.35f)
+		{
+			const float u = l / 0.35f;
+			Pc = FMath::Lerp(ArcFrom, Roof, u) + FVector(0.f, 0.f, 90.f * FMath::Sin(PI * u));
+		}
+		else
+		{
+			const float u = FMath::Clamp((l - 0.35f) / 0.6f, 0.f, 1.f);
+			Pc = FMath::Lerp(Roof, Behind, u) + FVector(0.f, 0.f, 160.f * FMath::Sin(PI * u));
+		}
+		FVector W = C.TransformPosition(Pc);
+		if (l >= 0.95f)
+		{
+			W.Z = CreatureGround(W);
+		}
+		Face(H, W, -F);
+		if (l >= 0.35f && RiseBeat == 3)
+		{
+			Event(TEXT("roof"));
+			RoarShake = FMath::Max(RoarShake, 0.6f);
+			++RiseBeat;
+		}
+		if (l >= 0.5f && RiseBeat == 4)
+		{
+			Event(TEXT("roof"));
+			RoarShake = FMath::Max(RoarShake, 0.4f);
+			++RiseBeat;
+		}
+		if (l >= 0.95f)
+		{
+			CreStage = 61;
+			GoneT = Time;
+			CreepTime = Time + CreepAfterGone;
+			HuntC = Behind;
+			Take(H, TEXT("Stalk"), true, 0.f);
+			if (FaceLight)
+			{
+				FaceLight->SetIntensity(0.f);
+			}
+			Event(TEXT("gone"));
+		}
+	}
+	else if (CreStage == 61)
+	{
+		// behind the car, following it, hunched (seen in the mirror)
+		const float c = Time - CreepTime - 0.6f;
+		H->GetBody()->SetPlayRate(FMath::Clamp(SpeedNow / (67.f * HuskScale), 0.f, 2.f));
+		OnSnow(H, C.TransformPosition(FVector(HuntC.X, HuntC.Y, 0.f)), F);
+		// near the break in the rail (and after the mirror's look back), it runs up the left side: heard, then there
+		if (c >= 3.4f && PeerStopAt - StartDistance - DistNow < 230.f)
+		{
+			CreStage = 62;
+			Waypoint = 0;
+			Take(H, TEXT("Gallop"), true, 1.2f);
+			Event(TEXT("overtake"));
+		}
+	}
+	else if (CreStage == 62)
+	{
+		// up the left side in the dark while the driver looks ahead, to the window
+		// (its last stretch runs alongside the car, not in at it: its reaching hands clear the front wing and the mirror)
+		const FVector Way[] = {FVector(-300.f, -260.f, 0.f), FVector(-130.f, -194.f, 0.f), FVector(PeerStand.X, PeerStand.Y, 0.f)};
+		FVector To = Way[Waypoint] - HuntC;
+		To.Z = 0.f;
+		const float Step = 900.f * Dt;
+		FVector Dir = To.GetSafeNormal();
+		if (To.Size() <= Step)
+		{
+			HuntC = Way[Waypoint];
+			if (++Waypoint >= (int32)UE_ARRAY_COUNT(Way))
+			{
+				CreStage = 63;
+				Take(H, TEXT("Peer"), false, 0.f, 0.f);
+				Dir = FVector(0.f, 1.f, 0.f);
+			}
+		}
+		else
+		{
+			HuntC += Dir * Step;
+		}
+		OnSnow(H, C.TransformPosition(FVector(HuntC.X, HuntC.Y, 0.f)), C.TransformVectorNoScale(Dir));
+	}
+	else if (CreStage == 63)
+	{
+		// it has just reached the window, running: the driver, turned by its steps, sees it
+		OnSnow(H, C.TransformPosition(FVector(PeerStand.X, PeerStand.Y, 0.f)), R);
+		if (PeerT0 < 0.f)
+		{
+			PeerT0 = Time;
+			PeerV = SpeedNow;
+			ImpactTime = PeerT0 + 1.75f;
+			CreStage = 7;
+			Take(H, TEXT("Peer"), false, 1.f, 0.f);
+			if (FaceLight)
+			{
+				FaceLight->SetRelativeLocation(FVector(45.f, -150.f, 175.f));   // a little cold moonlight on its face
+				FaceLight->SetIntensity(1.2f);
+				FaceLight->SetAttenuationRadius(200.f);
+			}
+		}
+	}
+	else if (CreStage == 7)
+	{
+		const float r = Time - PeerT0;
+		if (!bImpacted)
+		{
+			OnSnow(H, C.TransformPosition(FVector(PeerStand.X, PeerStand.Y, 0.f)), R);
+			if (!bDriverBurst && r > 1.3f)
+			{
+				// its hand reaches the glass: the window breaks then (and its arm comes in through the hole)
+				TArray<UPrimitiveComponent*> Parts;
+				for (UPrimitiveComponent* P : CarParts)
+				{
+					Parts.Add(P);
+				}
+				if (H->PushClear(Parts, -R) > 1.f || r >= 1.5f)
+				{
+					BurstWindow(true);
+					Event(TEXT("smash"));
+					PeerBeat = FMath::Max(PeerBeat, 2);
+				}
+			}
+		}
+		if (PeerBeat == 0 && r >= 0.45f)
+		{
+			Event(TEXT("face"));
+			++PeerBeat;
+		}
+
+		H->JawOpen = r < 1.35f ? 7.f + 3.f * FMath::Sin(r * 6.f) : 8.f + 26.f * Smooth((r - 1.35f) / 0.2f);
+		if (bImpacted && Time > ImpactTime + 1.6f)
+		{
+			H->Destroy();                // (the car is tumbling down the mountain: it is long out of sight)
+			Creature = nullptr;
+			CreStage = 0;
+			if (FaceLight)
+			{
+				FaceLight->SetIntensity(0.f);
+			}
+		}
+	}
+	// (kept out of everything in its own tick, once its body is animated: KeepOutLate)
+}
+
 bool AEndingDirector::GetLine(FString& Line, float& Alpha) const
 {
 	if (!bCrash)
@@ -498,10 +1550,11 @@ bool AEndingDirector::GetLine(FString& Line, float& Alpha) const
 		{TEXT("letter"), 1.3f, 2.6f, TEXT("Hang on, Grandma. I'm coming.")},
 		{TEXT("gap"), 0.2f, 2.4f, TEXT("Someone went over...")},
 		{TEXT("eyes"), 1.8f, 1.8f, TEXT("What was that?")},
-		{TEXT("stopped"), 0.9f, 2.2f, TEXT("What the hell is that...")},
-		{TEXT("stopped"), 3.6f, 1.8f, TEXT("Don't move. Don't move.")},
+		{TEXT("sight"), 0.6f, 1.6f, TEXT("Jesus-")},
+		{TEXT("rise"), 0.8f, 1.8f, TEXT("Don't move. Don't move.")},
 		{TEXT("bolt"), 1.5f, 2.3f, TEXT("Okay. Okay. Just drive.")},
-		{TEXT("creep"), 4.7f, 1.9f, TEXT("Where did it go?")},
+		{TEXT("gone"), 1.0f, 2.3f, TEXT("Okay. Okay. Just drive.")},
+		{TEXT("creep"), 2.6f, 1.9f, TEXT("Where did it go?")},
 		{TEXT("wake"), 2.3f, 1.8f, TEXT("Help... somebody...")},
 	};
 	for (const FLine& L : Lines)

@@ -391,6 +391,64 @@ def hair_clumps(arm, body, count=6000, seed=5):
 LIMB_ENDS = ('hand', 'index', 'middle', 'ring', 'pinky', 'thumb', 'foot', 'ball') + TOES
 
 
+BREF = {}                        # rest positions of the bones the blood is placed from (main fills it)
+
+
+def vnoise(p, f, seed=0):
+    """Smooth 3D value noise in 0..1 (for blotchy, uneven blood)."""
+    q = (p.x * f + seed * 17.1, p.y * f + seed * 3.7, p.z * f + seed * 9.3)
+    i = [math.floor(c) for c in q]
+    fr = [c - math.floor(c) for c in q]
+    w = [c * c * (3 - 2 * c) for c in fr]
+
+    def h(a, b, c):
+        n = (a * 73856093) ^ (b * 19349663) ^ (c * 83492791) ^ (seed * 2654435761)
+        n = (n ^ (n >> 13)) * 1274126177
+        return ((n ^ (n >> 16)) & 0xffff) / 65535.0
+    v = 0.0
+    for dx in (0, 1):
+        for dy in (0, 1):
+            for dz in (0, 1):
+                v += h(i[0] + dx, i[1] + dy, i[2] + dz) * (w[0] if dx else 1 - w[0]) * (w[1] if dy else 1 - w[1]) * (w[2] if dz else 1 - w[2])
+    return v
+
+
+STREAKS = []                     # (x, width, length, strength, phase) of the runs down the chest from the chin
+
+
+def blood_at(p, n, dom, front_by_normal=True):
+    """How much old frozen blood is on the skin (or fur) at p (0..1). It faces -Y, its left is +X, metres."""
+    if not BREF:
+        return 0.0
+    b = 0.0
+    blot = vnoise(p, 22.0, 1) * 0.6 + vnoise(p, 70.0, 2) * 0.4
+    # the hands and claws soaked, up the forearm in blotches thinning out
+    for sd in ('_l', '_r'):
+        if not dom.endswith(sd):
+            continue
+        if dom.startswith(('hand', 'index', 'middle', 'ring', 'pinky', 'thumb')):
+            b = max(b, 0.7 + 0.3 * blot)
+        elif dom.startswith('lowerarm'):
+            d = (p - BREF['hand' + sd]).length
+            reach = 0.18 + 0.16 * vnoise(p, 9.0, 3)
+            b = max(b, smooth01((reach - d) / 0.08) * (0.45 + 0.55 * blot))
+    # the neck and chest, from the mouth down
+    top = BREF['head'].z - 0.015
+    front = (n.y < -0.2) if front_by_normal else (p.y < BREF['spine_05'].y - 0.03)
+    if front and p.z < top + 0.02:
+        dz = top - p.z
+        x = p.x
+        bib = smooth01((0.15 - dz) / 0.07) * smooth01((0.085 - abs(x)) / 0.04) * (0.55 + 0.45 * blot)
+        b = max(b, bib)
+        for xs, ws, ln, st, ph in STREAKS:
+            wig = 0.006 * math.sin(dz * 38.0 + ph) + 0.004 * math.sin(dz * 91.0 + ph * 2.0)
+            across = math.exp(-((x - xs - wig) / ws) ** 2)
+            along = smooth01((ln - dz) / 0.04) * (0.55 + 0.45 * (1.0 - min(1.0, dz / ln)))
+            bulb = math.exp(-(((x - xs - wig) ** 2) + (dz - ln) ** 2) / (ws * 1.7) ** 2)
+            b = max(b, st * max(across * along, bulb * 0.9))
+    return min(1.0, b)
+
+
 def frost_colours(o, tips):
     me = o.data
     names = {g.index: g.name for g in o.vertex_groups}
@@ -406,7 +464,8 @@ def frost_colours(o, tips):
         dom = names.get(max(gs, key=lambda g: g.weight).group, '') if gs else ''
         bite = smooth01((0.17 - dist) / 0.14) if dom.startswith(LIMB_ENDS) else 0.0
         rime = smooth01((v.normal.z - 0.55) / 0.35) * 0.45 * smooth01((1.86 - v.co.z) / 0.12) + 0.05 * rr.random()
-        attr.data[v.index].color = (bite, min(1.0, rime), 0.0, 1.0)
+        blood = blood_at(v.co, v.normal, dom, front_by_normal=not o.name.startswith('Hair'))
+        attr.data[v.index].color = (bite, min(1.0, rime) * (1.0 - blood), blood, 1.0)
 
 
 # =====================================================================================================================
@@ -498,6 +557,9 @@ def rig_controls(arm, body):
     log('controls: palm (left) points', tuple(round(c, 2) for c in HANDFRAME['_l'][2]))
 
 
+POLE_FLIP = {}
+
+
 def calibrate_pole(arm, c, joint):
     """Pick the pole angle that leaves the limb exactly as it rests when its control is at rest (the formula can be a
     quarter or half turn off, depending on how the bones are rolled)."""
@@ -512,6 +574,9 @@ def calibrate_pole(arm, c, joint):
     c.pole_angle = best[1]
     bpy.context.view_layer.update()
     log('pole', joint, round(math.degrees(best[1])), 'deg, off by', round(best[0] * 1000, 1), 'mm')
+    # (the arms rest nearly straight, so either way round fits: one elbow then bends away from its pole; a pose that
+    # aims an elbow (P['elbow_l'/'_r']) puts its pole on the side that bends it that way)
+    POLE_FLIP[joint] = 1.0 if math.cos(best[1]) >= 0.0 else -1.0
 
 
 def lq(bone, axis, angle):
@@ -840,6 +905,345 @@ def sighting(t):
     return blend(stand4(-0.05), gallop(phase), smooth01(tt / 0.35))
 
 
+# ---- the reveal over the bonnet, and the face at the window (EndingDirector places them against the car) -------------
+GS = 1.3                         # its scale in the game: the car's measurements divided by it give its own
+RISE_T = 8.3
+HOOD_Z = 0.935 / GS              # the bonnet's top where its hands go
+# it stands 2.92 m ahead of the driver's eye (EndingDirector: HoodStandX), 20 cm right of it; the holds 20 cm back from
+# the bonnet's front edge
+HOOD_R = Vector((-0.22, -0.90, HOOD_Z))     # its right hand's hold (toward the driver's side)
+HOOD_L = Vector((0.24, -0.88, HOOD_Z))
+LEAN = dict(dz=-0.30, down=math.radians(72), spine=math.radians(20), neck=math.radians(84))   # leaning out over the bonnet (head 1.65-1.8 m from the eye)
+
+
+def hand_on(P, sd, at, w=1.0, lift=0.0):
+    """The hand flat on a surface (the bonnet, the car's side), claws forward, blended in by w from where it is."""
+    tgt = hand_m(sd, at + Vector((0.0, 0.0, 0.055 + lift)), Vector((0.0, -1.0, -0.35)), Vector((0.0, 0.0, -1.0)))
+    key = ctrl_name('hand', sd)
+    P[key] = tgt if key not in P or w >= 1.0 else blend({key: P[key]}, {key: tgt}, w)[key]
+    return P
+
+
+HIDE = dict(dz=-0.72, fwd=-0.22, down=math.radians(52), spine=math.radians(62), neck=math.radians(-5))   # head ~0.45 m up, in front of the bumper
+
+
+def hide4():
+    """Squatting right down in front of the bumper, below the bonnet's line from the driver's eye: knees up, hunched
+    over them, its knuckles on the snow between its feet."""
+    P = body_pose(pelvis_m(HIDE['dz'], HIDE['fwd'], HIDE['down']), HIDE['spine'], HIDE['neck'], 0.0, math.radians(14))
+    for sd, sg in SIDES:
+        f0 = NEUTRAL['biped_foot' + sd]
+        P[ctrl_name('foot', sd)] = foot_m(sd, Vector((f0.x * 1.45, f0.y + 0.05, f0.z)))
+        P[ctrl_name('hand', sd)] = hand_m(sd, Vector((0.17 * sg, -0.40, 0.10)), Vector((0.1 * sg, -0.6, -0.8)), Vector((-sg * 0.3, 0.0, -1.0)))
+    return fingers(P, curl=0.55)
+
+
+def lean(tilt=0.0, breath=0.0, push=0.0, thrust=0.0, t=0.0, shake=0.0):
+    """Out over the bonnet, both hands on it, the face in the windshield; push brings the face closer, thrust is the
+    scream (the chest and head driven at the glass, the shoulders up)."""
+    trem = math.radians(1.2) * math.sin(t * 47) * shake
+    P = body_pose(pelvis_m(LEAN['dz'] - 0.04 * push, 0.06 * push, LEAN['down'] + math.radians(6) * push - math.radians(8) * thrust),
+                  LEAN['spine'] - math.radians(14) * thrust, LEAN['neck'] + math.radians(6) * thrust + trem, 0.0,
+                  math.radians(6) + math.radians(14) * thrust, tilt, math.radians(14) + math.radians(18) * thrust, breath)
+    for sd, sg in SIDES:
+        f0 = NEUTRAL['biped_foot' + sd]
+        P[ctrl_name('foot', sd)] = foot_m(sd, Vector((f0.x * 1.35, f0.y, f0.z)) + FWD * (0.05 if sd == '_l' else -0.1))
+    hand_on(P, '_r', HOOD_R)
+    hand_on(P, '_l', HOOD_L)
+    return fingers(P, curl=0.55 + 0.12 * math.sin(t * 5.1) + 0.2 * thrust, spread=0.2 + 0.3 * thrust, thumb=0.35)
+
+
+def rise(t):
+    if t < 1.45:
+        P = hide4()
+        # a hand comes up out of the dark onto the bonnet, then the other
+        for sd, at, t0 in (('_r', HOOD_R, 0.35), ('_l', HOOD_L, 0.95)):
+            u = smooth01((t - t0) / 0.5)
+            if u > 0:
+                hand_on(P, sd, at, u, lift=0.18 * math.sin(math.pi * u))
+        return P
+    hold = hide4()
+    hand_on(hold, '_r', HOOD_R)
+    hand_on(hold, '_l', HOOD_L)
+    if t < 3.5:
+        u = smooth01((t - 1.45) / 2.05)
+        return blend(hold, lean(math.radians(22) * u, 0.0, 0.0, 0.0, t), u)
+    if t < 6.0:
+        s_ = t - 3.5
+        br = math.radians(2.4) * math.sin(2 * math.pi * s_ / 1.1)
+        tilt = math.radians(22) - math.radians(34) * snap(s_ - 1.1) + math.radians(10) * smooth01((s_ - 1.6) / 0.8)
+        return lean(tilt, br, smooth01((s_ - 1.3) / 1.2), 0.0, t)
+    if t < 7.55:
+        r = t - 6.0
+        hit = 1 - (1 - smooth01(r / 0.25)) ** 2
+        shake = smooth01((r - 0.22) / 0.08) * (1 - smooth01((r - 1.4) / 0.12))
+        return lean(math.radians(-2) * (1 - hit), 0.0, 1.0, hit, t, shake)
+    if t < 7.95:
+        u = smooth01((t - 7.55) / 0.4)
+        P = lean(0.0, 0.0, 1.0, 0.3, t)
+        P['pelvis'] = Matrix.Translation((0.0, 0.0, -0.14 * u)) @ P['pelvis']
+        return P
+    u = smooth01((t - 7.95) / 0.3)
+    P = lean(0.0, 0.0, 1.0, 0.0, t)
+    P['pelvis'] = Matrix.Translation((0.0, 0.0, -0.14 + 0.42 * u)) @ P['pelvis']       # the legs drive it up
+    for sd, at in (('_r', HOOD_R), ('_l', HOOD_L)):
+        hand_on(P, sd, at, 1.0, lift=0.25 * u)
+    return P
+
+
+# ---- on the bonnet ------------------------------------------------------------------------------------------------
+PERCH_T = 8.0
+# Re-staged (the owner: it didn't look placed right, it felt glitchy): low on the bonnet, its face level with the
+# driver's, all of its head and shoulders in sight through the windshield (never up behind the roof); its hands gripping
+# the bonnet under its chin, its arms in; still, with sudden small twitches of its head. Its head is put on these points
+# (the car's own frame, cm: the driver's eye is at about (0, -5, 117)), its trunk solved to reach them (fit_trunk) with
+# its feet planted.
+ARM_REF = []
+FIT = {}
+
+
+def car2m(x, y, z):
+    """A point in the car's frame (cm) in the model's frame (m, its own size), perched at PERCH_AT."""
+    return Vector(((y - PERCH_AT[1]) / 130.0, (x - PERCH_AT[0]) / 130.0, (z - PERCH_AT[2]) / 130.0))
+
+
+def perch_marks():
+    return {
+        'cling': car2m(116, 16, 116),        # low behind the glass, staring in at the driver's eye height
+        'creep': car2m(102, 13, 114),        # its face crept in closer
+        'press': car2m(93, 10, 113),         # its face at the glass
+        # its hands hooked over the bonnet's edges out to either side of its head, by the windshield's pillars (folded in
+        # under its chest its long arms put their elbows down through the bonnet)
+        'grip_l': car2m(112, 116, 92),
+        'grip_r': car2m(112, -42, 92),
+    }
+
+
+def perch_feet():
+    # (it is too tall to squat low: it lies along the bonnet instead, chest down, its legs splayed out behind it toward the
+    # car's nose, frog-like, knees out)
+    return {sd: Vector((NEUTRAL['biped_foot' + sd].x * 2.1, NEUTRAL['biped_foot' + sd].y + 0.62, NEUTRAL['biped_foot' + sd].z)) for sd, _ in SIDES}
+
+
+def head_face(pb):
+    """Which way its face looks (its head bone carries the MetaHuman face: as it rests the face looks -Y)."""
+    rest = ARM_REF[0].data.bones['head'].matrix_local.to_3x3()
+    return (pb['head'].matrix.to_3x3() @ (rest.inverted() @ Vector((0.0, -1.0, 0.0)))).normalized()
+
+
+def fit_trunk(name, target):
+    """The trunk (pelvis drop, shift and pitch, the spine's bend, the neck's lift) that puts its head on target, its skull
+    near upright (its face to the driver), its legs able to reach its feet, its body above the bonnet."""
+    if name in FIT:
+        return FIT[name]
+    arm = ARM_REF[0]
+    B = arm.data.bones
+    leg = (B['thigh_l'].head_local - B['foot_l'].head_local).length
+    feet = perch_feet()
+    up = Vector((0.0, -0.35, 0.94)).normalized()
+    eye = car2m(0, -5, 117)                              # the driver's eye: its face turned to it
+    lo = [-1.1, -0.7, math.radians(10), 0.0, math.radians(-10)]
+    hi = [0.1, 0.5, math.radians(130), math.radians(95), math.radians(170)]
+
+    def cost(v):
+        P = body_pose(pelvis_m(v[0], v[1], v[2]), v[3], v[4], 0.0, math.radians(14))
+        apply_trunk(arm, P)
+        pb = arm.pose.bones
+        h = pb['head'].head
+        along = (pb['head'].tail - pb['head'].head).normalized()
+        face = head_face(pb)
+        c = (h - target).length ** 2 + 0.01 * (1.0 - along.dot(up)) + 0.04 * (1.0 - face.dot((eye - h).normalized()))
+        for sd, _ in SIDES:
+            d = (pb['thigh' + sd].head - feet[sd]).length
+            if d > leg * 0.9:
+                c += (d - leg * 0.9) ** 2 * 20.0
+        low = pb['pelvis'].head.z
+        if low < 0.06:
+            c += (0.06 - low) ** 2 * 20.0
+        return c
+
+    x = [-0.85, 0.3, math.radians(95), math.radians(20), math.radians(110)]
+    step = [0.15, 0.15, math.radians(15), math.radians(15), math.radians(20)]
+    best = cost(x)
+    for _ in range(200):
+        moved = False
+        for i in range(5):
+            for sg in (1.0, -1.0):
+                v = list(x)
+                v[i] = min(hi[i], max(lo[i], v[i] + sg * step[i]))
+                c = cost(v)
+                if c < best:
+                    best, x, moved = c, v, True
+        if not moved:
+            step = [s * 0.5 for s in step]
+            if max(step) < 2e-4:
+                break
+    cost(x)
+    h = arm.pose.bones['head'].head
+    log('perch: %s: head %.1f cm off its mark; drop %.2f shift %.2f pitch %.0f spine %.0f neck %.0f deg' % (
+        name, (h - target).length * 100, x[0], x[1], math.degrees(x[2]), math.degrees(x[3]), math.degrees(x[4])))
+    FIT[name] = x
+    return x
+
+
+def perch_pose(name, tilt=0.0, breath=0.0, lurch=0.0, t=0.0, look=0.0, curl=0.0):
+    M = perch_marks()
+    v = fit_trunk(name, M[name])
+    P = body_pose(pelvis_m(v[0], v[1] + 0.06 * lurch, v[2] + math.radians(6) * lurch), v[3], v[4], look, math.radians(14), tilt, 0.0, breath)
+    feet = perch_feet()
+    for sd, sg in SIDES:
+        P[ctrl_name('foot', sd)] = foot_m(sd, feet[sd])
+        hand_on(P, sd, M['grip' + sd])
+        P['elbow' + sd] = Vector((0.55 * sg, 0.25, 0.8))         # its elbows bent up and out a little
+    return fingers(P, curl=0.95 + curl, spread=0.15, thumb=0.5)   # claws hooked in
+
+
+def twitch(t, at):
+    """Its head snapping over (radians of tilt) at the given times, holding each."""
+    a = 0.0
+    for t0, ang in at:
+        a += ang * snap(t - t0)
+    return a
+
+
+PERCH_TWITCH = ((2.95, math.radians(11)), (3.9, math.radians(-17)), (4.75, math.radians(13)), (5.5, math.radians(-9)),
+                (6.55, math.radians(16)), (7.15, math.radians(-14)))
+
+
+def perch(t):
+    br = math.radians(1.2) * math.sin(2 * math.pi * t / 1.7)    # shallow, slow (it barely breathes)
+    tilt = twitch(t, PERCH_TWITCH)
+    flick = 0.25 * snap(t - 4.2, 0.05) * (1.0 - snap(t - 4.32, 0.05)) + 0.25 * snap(t - 6.1, 0.05) * (1.0 - snap(t - 6.22, 0.05))
+    if t < 2.4:
+        # landed: the drop taken in its legs, then held there as the car brakes (thrown toward the glass, settling)
+        land = 1.0 - smooth01(t / 0.4)
+        lurch = smooth01((t - 0.45) / 0.35) * (1.0 - smooth01((t - 1.3) / 0.7))
+        P = perch_pose('cling', tilt, br, lurch, t)
+        P['pelvis'] = Matrix.Translation((0.0, 0.0, -0.06 * math.sin(math.pi * min(1.0, t / 0.4)) + 0.08 * land)) @ P['pelvis']
+        return P
+    if t < 6.0:
+        u = smooth01((t - 2.4) / 3.2)                  # creeping its face in, slowly
+        return blend(perch_pose('cling', tilt, br, 0.0, t, 0.0, -flick), perch_pose('creep', tilt, br, 0.0, t, 0.0, -flick), u)
+    if t < 7.2:
+        u = smooth01((t - 6.0) / 0.45)                 # its face at the glass, the jaw wide (the game opens it)
+        return blend(perch_pose('creep', tilt, 0.0, 0.0, t, 0.0, -flick), perch_pose('press', tilt, 0.0, 0.0, t, 0.0, -flick), u)
+    if t < 7.6:
+        u = smooth01((t - 7.2) / 0.4)                  # drawing back, coiling
+        P = blend(perch_pose('press', tilt), perch_pose('cling', tilt), u)
+        P['pelvis'] = Matrix.Translation((0.0, 0.0, -0.08 * u)) @ P['pelvis']
+        return P
+    u = smooth01((t - 7.6) / 0.4)                      # springing up off the bonnet
+    P = perch_pose('cling', tilt)
+    P['pelvis'] = Matrix.Translation((0.0, 0.0, -0.08 + 0.45 * u)) @ P['pelvis']
+    M = perch_marks()
+    for sd, _ in SIDES:
+        hand_on(P, sd, M['grip' + sd], 1.0, lift=0.3 * u)
+    return P
+
+
+def perch_preview(arm, body, out, times):
+    """The bonnet take as the driver sees it (their eye, the car's bonnet, windshield frame, dash and roof modelled from
+    CAR_TOP), each pose kept out of the car (CarSolver): quick looks while staging, nothing exported."""
+    import bmesh
+    os.makedirs(out, exist_ok=True)
+    sc = bpy.context.scene
+    me = bpy.data.meshes.new('CarProxy')
+    bm = bmesh.new()
+
+    def quad(a, b, c, d):
+        bm.faces.new([bm.verts.new(car2m(*p)) for p in (a, b, c, d)])
+
+    xs = [p[0] for p in CAR_TOP]
+    for (x0, z0), (x1, z1) in zip(CAR_TOP[:-1], CAR_TOP[1:]):
+        if 40.0 < x1 < 100.0 or 40.0 < x0 < 100.0:
+            continue                                   # (the windshield: see through it)
+        w0 = (-46.0, 122.0) if z0 < 98 else (-34.0, 108.0)
+        quad((x0, w0[0], z0), (x0, w0[1], z0), (x1, w0[1], z1), (x1, w0[0], z1))
+    for y in (-34.0, 104.0):                           # the windshield's pillars
+        quad((100, y, 100), (100, y + 6, 100), (40, y + 6, 139), (40, y, 139))
+    quad((98, -34, 101), (98, 108, 101), (25, 108, 103), (25, -34, 103))   # the dash
+    bm.to_mesh(me)
+    bm.free()
+    proxy = bpy.data.objects.new('CarProxy', me)
+    sc.collection.objects.link(proxy)
+    cam_d = bpy.data.cameras.new('Eye')
+    cam_d.lens_unit = 'FOV'
+    cam_d.sensor_fit = 'HORIZONTAL'
+    cam_d.angle = math.radians(80)
+    cam = bpy.data.objects.new('Eye', cam_d)
+    sc.collection.objects.link(cam)
+    cam.location = car2m(0, -5, 117)
+    cam.rotation_euler = (math.radians(90 + 6), 0.0, 0.0)      # (looking a little up at it)
+    sc.camera = cam
+    sc.render.engine = 'BLENDER_WORKBENCH'
+    sc.display.shading.light = 'STUDIO'
+    sc.display.shading.color_type = 'OBJECT'
+    proxy.color = (0.25, 0.27, 0.3, 1.0)
+    body.color = (0.85, 0.82, 0.78, 1.0)
+    sc.render.resolution_x, sc.render.resolution_y = 640, 360
+    # its head (the MetaHuman face is not on the body here): a skull and a nose where the face points
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.085, segments=16, ring_count=8)
+    skull = bpy.context.active_object
+    skull.scale = (0.85, 0.95, 1.1)
+    bpy.ops.mesh.primitive_cone_add(radius1=0.03, radius2=0.0, depth=0.08, vertices=8)
+    nose = bpy.context.active_object
+    skull.color = nose.color = (0.95, 0.55, 0.45, 1.0)
+    solver = CarSolver(arm, body)
+    for t in times:
+        apply_pose(arm, solver.solve(perch(t)))
+        pb = arm.pose.bones
+        along = (pb['head'].tail - pb['head'].head).normalized()
+        face = head_face(pb)
+        c = pb['head'].head + along * 0.09
+        skull.matrix_world = Matrix.Translation(c) @ pb['head'].matrix.to_3x3().to_4x4() @ ARM_REF[0].data.bones['head'].matrix_local.to_3x3().inverted().to_4x4()
+        skull.scale = (0.85, 0.95, 1.1)
+        nose.location = c + face * 0.1
+        nose.rotation_euler = face.to_track_quat('Z', 'Y').to_euler()
+        sc.render.filepath = os.path.join(out, 'perch_%04d.png' % int(round(t * 100)))
+        bpy.ops.render.render(write_still=True)
+        log('perch preview %.1fs: head at car (%.0f, %.0f, %.0f), face to (%.2f, %.2f, %.2f)' % (
+            t, PERCH_AT[0] + 130 * c.y, PERCH_AT[1] + 130 * c.x, PERCH_AT[2] + 130 * c.z, face.x, face.y, face.z))
+    log('perch preview: %d looks in %s; the pelvis lifted at most %.1f cm by the car' % (len(times), out, max(solver.lifts or [0]) * 100))
+    for key, deep in sorted(solver.culprits.items(), key=lambda kv: -kv[1])[:8]:
+        log('perch preview:   in the car before the solve: %s, %.1f cm: %s' % (key, deep * 100, solver.where.get(key, '')))
+
+
+# the window: the face 25 cm off the driver's glass at the driver's eye height, it standing out from the car
+PEER_T = 3.2
+# it stands 1.86 m out from the driver (EndingDirector: PeerStandY), 15 cm ahead; its face lands ~25 cm off the glass
+PEER_ROOF = Vector((-0.42, -1.09, 1.03))        # its right hand: the roof's edge
+PEER_DOOR = Vector((0.36, -1.03, 0.70))         # its left hand: on the door below the glass
+PEER_IN = Vector((-0.04, -1.35, 0.86))          # where the left hand drives to: inside, at the driver
+BENT = dict(dz=-0.75, down=math.radians(50), spine=math.radians(34), neck=math.radians(80))   # its eyes ~1.15 m up, level with the driver's
+
+
+def peer_pose(tilt=0.0, breath=0.0, back=0.0, lunge=0.0, shove=0.0, t=0.0):
+    P = body_pose(pelvis_m(BENT['dz'] + 0.04 * shove, 0.1 * shove - 0.06 * back + 0.08 * lunge, BENT['down'] - math.radians(10) * back + math.radians(6) * lunge),
+                  BENT['spine'], BENT['neck'] + math.radians(8) * back, 0.0, math.radians(8), tilt,
+                  math.radians(20) - math.radians(16) * back + math.radians(14) * lunge, breath)
+    for sd, sg in SIDES:
+        f0 = NEUTRAL['biped_foot' + sd]
+        P[ctrl_name('foot', sd)] = foot_m(sd, Vector((f0.x * 1.4, f0.y, f0.z)) + FWD * (0.12 if sd == '_l' else -0.12))
+    P[ctrl_name('hand', '_r')] = hand_m('_r', PEER_ROOF + Vector((0, 0, 0.05)), Vector((0.1, -1.0, -0.6)), Vector((0.0, 0.0, -1.0)))
+    door = PEER_DOOR.lerp(PEER_IN, lunge) + Vector((0.0, 0.05 * back, 0.08 * back))
+    d = Vector((0.0, -1.0, -0.2)).lerp(Vector((-0.3, -1.0, 0.1)), lunge)
+    P[ctrl_name('hand', '_l')] = hand_m('_l', door, d, Vector((0.6, 0.0, -0.8)).lerp(Vector((0.0, -1.0, 0.0)), lunge))
+    return fingers(P, curl=0.5 + 0.1 * math.sin(t * 4.3) - 0.2 * lunge, spread=0.2 + 0.4 * lunge, thumb=0.35)
+
+
+def peer(t):
+    br = math.radians(2.6) * math.sin(2 * math.pi * t / 1.0)
+    tilt = math.radians(14) * smooth01(t / 1.2)
+    if t < 1.35:
+        return peer_pose(tilt, br, 0.0, 0.0, 0.0, t)
+    if t < 1.5:
+        return peer_pose(tilt, 0.0, smooth01((t - 1.35) / 0.15), 0.0, 0.0, t)
+    if t < 1.75:
+        u = 1 - (1 - smooth01((t - 1.5) / 0.25)) ** 2
+        return peer_pose(tilt * (1 - u), 0.0, 1.0 - u, u, 0.0, t)
+    return peer_pose(0.0, 0.0, 0.0, 1.0, smooth01((t - 1.75) / 0.5), t)
+
+
 # the stalk: upright and hunched, walking slowly, the long arms hanging and swinging a little, the head forward and
 # low, the feet rolling heel to toe. In place: the game moves it at STALK_SPEED (m/s at the model's size).
 STALK_T = 1.5                    # s a stride (left and right)
@@ -886,7 +1290,19 @@ def apply_pose(arm, P):
             c = ctrl_name(limb, sd)
             if c in P:
                 pb[c].matrix = P[c]
+        pb['pole_arm' + sd].matrix_basis = Matrix.Identity(4)     # (behind the elbows as they rest, unless aimed below)
     bpy.context.view_layer.update()
+    aimed = False
+    for sd, _ in SIDES:
+        # where an elbow points, if the pose says (on the bonnet: up and out to the sides): its pole put that way from the
+        # shoulder (or the other way, for the arm whose IK bends away from its pole)
+        ed = P.get('elbow' + sd)
+        if ed is not None:
+            sh = pb['upperarm' + sd].head
+            pb['pole_arm' + sd].matrix = Matrix.Translation(sh + ed.normalized() * 0.8)
+            aimed = True
+    if aimed:
+        bpy.context.view_layer.update()
     # a planted foot rolling up onto its toes: the toes turned back at the ball by as much, so they stay on the snow
     for sd, _ in SIDES:
         q = P.get('toeflex' + sd)
@@ -919,6 +1335,7 @@ class GroundSolver:
         for v in me.vertices:
             gs = [g for g in v.groups if g.weight > 0.0]
             dom.append(names[max(gs, key=lambda g: g.weight).group] if gs else '')
+        self.dom, self.hair_v = dom, hair_v
         self.masks = {}
         for sd, _ in SIDES:
             foot = np.array([d.endswith(sd) and d.startswith(('foot', 'ball') + TOES) for d in dom])
@@ -964,6 +1381,109 @@ class GroundSolver:
         return P
 
 
+# the car's outer surface along the creature's line on the bonnet (cm, the car's own frame, measured in the game with
+# -carprofile): from the front bumper over the bonnet, up the windshield (from x 100) to the roof (from x 40). It perches
+# at PERCH_AT (EndingDirector: PerchAt), facing the driver, at 1.3x: a model point (x, y, z) m is at car
+# (150 + 130 y, 20 + 130 x, 95 + 130 z) cm
+CAR_TOP = [(250, 52), (240, 79), (230, 82), (220, 83), (210, 85), (200, 87), (190, 88), (180, 90), (170, 91), (160, 92),
+           (150, 93), (140, 94), (130, 95), (120, 96), (110, 96), (100, 100), (90, 106), (80, 112), (70, 119), (60, 125),
+           (50, 131), (40, 139), (30, 140), (20, 141), (-200, 141)]
+PERCH_AT = (150.0, 20.0, 95.0)
+CAR_SIDES = (-46.0, 122.0)            # the car's width there (cm, its frame)
+
+
+def car_depth(co):
+    """For model points (n x 3, m): how deep each is inside the car, under its outer surface (m at the model's scale;
+    negative outside it)."""
+    cx = PERCH_AT[0] + 130.0 * co[:, 1]
+    cy = PERCH_AT[1] + 130.0 * co[:, 0]
+    cz = PERCH_AT[2] + 130.0 * co[:, 2]
+    xs = np.array([p[0] for p in CAR_TOP][::-1], float)
+    zs = np.array([p[1] for p in CAR_TOP][::-1], float)
+    s = np.interp(cx, xs, zs)
+    # (above the beltline the cabin is narrower than the body: the side glass leans in to the roof; the car is symmetric
+    # about y 37)
+    gz = np.array([97.0, 104.0, 112.0, 120.0, 128.0, 136.0, 141.0])
+    gy = np.array([-44.0, -39.0, -37.0, -34.0, -32.0, -34.0, -34.0])
+    left = np.where(cz > 97.0, np.interp(cz, gz, gy), CAR_SIDES[0])
+    right = 74.0 - left
+    on = (cx >= xs[0]) & (cx <= xs[-1]) & (cy >= left) & (cy <= right)
+    return np.where(on, (s - cz) / 130.0, -1.0)
+
+
+class CarSolver(GroundSolver):
+    """On the bonnet (the owner: it phased through the front of the car): the same as the ground, against the car's own
+    outer surface (the bonnet, the windshield, the roof): a hand or foot with any point inside (its claws, its fingers,
+    the fur on its forearm) is lifted by its control until that point is on the surface (its claws on the glass, never
+    through it); anything else inside (its head at the glass, an arm, a knee, the fur on its back) lifts the pelvis.
+    Measured on the deformed mesh, every point of it, a few passes a frame."""
+
+    def __init__(self, arm, body, tol=0.002):
+        super().__init__(arm, body, tol)
+        self.car_masks = {}
+        for sd, _ in SIDES:
+            hand = np.array([d.endswith(sd) and d.startswith(('hand', 'index', 'middle', 'ring', 'pinky', 'thumb', 'lowerarm')) for d in self.dom])
+            foot = np.array([d.endswith(sd) and d.startswith(('foot', 'ball') + TOES) for d in self.dom])
+            self.car_masks[ctrl_name('hand', sd)] = hand
+            self.car_masks[ctrl_name('foot', sd)] = foot
+        limbs = np.zeros(len(self.dom), bool)
+        for m in self.car_masks.values():
+            limbs |= m
+        self.car_rest = ~limbs
+        self.worst = []
+        self.culprits = {}
+        self.where = {}
+
+    def points(self):
+        dg = bpy.context.evaluated_depsgraph_get()
+        ev = self.body.evaluated_get(dg)
+        m = ev.to_mesh()
+        co = np.empty(len(m.vertices) * 3, dtype=np.float32)
+        m.vertices.foreach_get('co', co)
+        ev.to_mesh_clear()
+        co = co.reshape(-1, 3)
+        return (np.c_[co, np.ones(len(co))] @ np.array(ev.matrix_world).T)[:, :3]
+
+    def solve(self, P, passes=8):
+        lift_total = 0.0
+        for k in range(passes):
+            apply_pose(self.arm, P)
+            d = car_depth(self.points())
+            if k == 0:
+                # (what of it is in the car before anything is moved: for tuning the poses themselves)
+                r = np.where(self.car_rest, d, -1.0)
+                i = int(r.argmax())
+                if r[i] > self.tol:
+                    key = ('fur on ' if self.hair_v[i] else '') + self.dom[i]
+                    if float(r[i]) > self.culprits.get(key, 0.0):
+                        co = self.points()[i]
+                        pb = self.arm.pose.bones
+                        sd = '_r' if self.dom[i].endswith('_r') else '_l'
+                        car = lambda v: (PERCH_AT[0] + 130 * v[1], PERCH_AT[1] + 130 * v[0], PERCH_AT[2] + 130 * v[2])
+                        self.where[key] = 'the point at car (%.0f, %.0f, %.0f); shoulder %s elbow %s hand %s' % (
+                            *car(co), '(%.0f, %.0f, %.0f)' % car(pb['upperarm' + sd].head), '(%.0f, %.0f, %.0f)' % car(pb['lowerarm' + sd].head),
+                            '(%.0f, %.0f, %.0f)' % car(pb['hand' + sd].head))
+                    self.culprits[key] = max(self.culprits.get(key, 0.0), float(r[i]))
+            moved = False
+            for key, mask in self.car_masks.items():
+                if key in P and mask.any():
+                    deep = float(d[mask].max())
+                    if deep > self.tol:
+                        P[key] = Matrix.Translation((0.0, 0.0, deep + 0.002)) @ P[key]
+                        moved = True
+            deep = float(d[self.car_rest].max())
+            if deep > self.tol:
+                P['pelvis'] = Matrix.Translation((0.0, 0.0, deep + 0.002)) @ P['pelvis']
+                lift_total += deep
+                moved = True
+            if not moved:
+                break
+        apply_pose(self.arm, P)
+        self.worst.append(max(0.0, float(car_depth(self.points()).max())))
+        self.lifts.append(lift_total)
+        return P
+
+
 def bake_takes(arm, names, body=None):
     """Pose each take on the controls (kept out of the ground: GroundSolver), read the solved bones back every frame,
     then key those alone."""
@@ -979,6 +1499,10 @@ def bake_takes(arm, names, body=None):
         if name == 'Sighting':
             n = int(round(TF * FPS))
             poses = [sighting(f / FPS) for f in range(n + 1)]
+        elif name in ('Rise', 'Peer', 'Perch'):
+            fn, T = {'Rise': (rise, RISE_T), 'Peer': (peer, PEER_T), 'Perch': (perch, PERCH_T)}[name]
+            n = int(round(T * FPS))
+            poses = [fn(f / FPS) for f in range(n + 1)]
         elif name == 'Stalk':
             n = int(round(STALK_T * FPS))
             poses = [stalk(f / n) for f in range(n + 1)]
@@ -986,7 +1510,8 @@ def bake_takes(arm, names, body=None):
             look = 50.0 if name == 'GallopLookL' else 0.0
             poses = [gallop((f % CYCLE) / CYCLE, look) for f in range(CYCLE + 1)]
         frames = []
-        solver = GroundSolver(arm, body) if body is not None else None
+        # (on the bonnet its ground is the car: the bonnet, the windshield, the roof)
+        solver = (CarSolver(arm, body) if name == 'Perch' else GroundSolver(arm, body)) if body is not None else None
         for P in poses:
             if solver:
                 P = solver.solve(P)
@@ -995,8 +1520,13 @@ def bake_takes(arm, names, body=None):
                                                 from_space='POSE', to_space='LOCAL').copy() for b in ANIMATED})
         takes[name] = frames
         if solver:
-            log('take %s: kept out of the ground; the pelvis lifted on %d of %d frames (at most %.1f cm)'
-                % (name, sum(1 for v in solver.lifts if v > 0), len(solver.lifts), max(solver.lifts or [0]) * 100))
+            log('take %s: kept out of the %s; the pelvis lifted on %d of %d frames (at most %.1f cm)'
+                % (name, 'car' if name == 'Perch' else 'ground', sum(1 for v in solver.lifts if v > 0), len(solver.lifts), max(solver.lifts or [0]) * 100))
+            if name == 'Perch':
+                w = solver.worst
+                log('take Perch: left inside the car at most %.2f cm (model scale; x1.3 in the game), frame %d' % (max(w) * 100, w.index(max(w))))
+                for key, deep in sorted(solver.culprits.items(), key=lambda kv: -kv[1])[:12]:
+                    log('take Perch:   in the car before the solve: %s, %.1f cm: %s' % (key, deep * 100, solver.where.get(key, '')))
     for pb in arm.pose.bones:
         for c in list(pb.constraints):
             pb.constraints.remove(c)
@@ -1025,10 +1555,28 @@ def bake_takes(arm, names, body=None):
 def main():
     arm, body = load_body()
     stretch(arm, body)
+    if os.environ.get('HUSK_POSE_ONLY'):
+        # for tuning: where the head and hands land in the bonnet and window takes, nothing built or written
+        rig_controls(arm, body)
+        settle_stances(arm)
+        for take, fn, times in (('Perch', perch, (0.2, 0.9, 2.3, 4.3, 5.9, 6.6, 7.4, 7.9)), ('Peer', peer, (0.5, 1.2, 1.45, 1.8, 2.6))):
+            for t in times:
+                apply_pose(arm, fn(t))
+                pb = arm.pose.bones
+                h, l, r = pb['head'].head, pb['hand_l'].head, pb['hand_r'].head
+                # where the face looks: from the head bone toward the midpoint of the eyes (FACIAL bones are not on the body; use the head's tail)
+                fwd = (pb['head'].tail - pb['head'].head).normalized()
+                log('%s %.1fs: head (%.2f, %.2f, %.2f) along (%.2f, %.2f, %.2f) hands L (%.2f, %.2f, %.2f) R (%.2f, %.2f, %.2f)' % (take, t, h.x, h.y, h.z, fwd.x, fwd.y, fwd.z, l.x, l.y, l.z, r.x, r.y, r.z))
+        return
     claw_objs = claws(arm, body)
     hair_tex = hair_texture(os.path.join(ART, 'T_HuskHair.png'))
     hair = hair_clumps(arm, body)
     tips = [c[0] for c in CLAWS]
+    # where the old blood goes: from the bones' rest places; the runs down the chest from the chin
+    BREF.update({b.name: b.head_local.copy() for b in arm.data.bones})
+    rb = random.Random(23)
+    for _ in range(12):
+        STREAKS.append((rb.uniform(-0.1, 0.1), rb.uniform(0.006, 0.02), rb.uniform(0.16, 0.55), rb.uniform(0.6, 1.0), rb.uniform(0, 6.3)))
     # materials: the skin keeps its own slot; the hair cards and the claws get theirs
     m_hair = bpy.data.materials.new('Hair')
     m_claw = bpy.data.materials.new('Claw')
@@ -1053,7 +1601,17 @@ def main():
     log('mesh: %d triangles, slots %s, colours %s' % (sum(len(p.vertices) - 2 for p in body.data.polygons), [m.name for m in body.data.materials], [c.name for c in ca]))
     rig_controls(arm, body)
     settle_stances(arm)
-    acts = bake_takes(arm, ['Gallop', 'GallopLookL', 'Sighting', 'Stalk'], body)
+    if os.environ.get('HUSK_PERCH_ONLY'):
+        # for staging the bonnet take: quick looks from the driver's seat (HUSK_PERCH_PREVIEW=<dir>), or the take solved
+        # against the car with what of it was in the car; nothing exported
+        ARM_REF[:] = [arm]
+        if os.environ.get('HUSK_PERCH_PREVIEW'):
+            perch_preview(arm, body, os.environ['HUSK_PERCH_PREVIEW'], (0.3, 1.0, 2.4, 3.5, 4.5, 5.5, 6.3, 6.9, 7.4, 7.8))
+        else:
+            bake_takes(arm, ['Perch'], body)
+        return
+    ARM_REF[:] = [arm]
+    acts = bake_takes(arm, ['Gallop', 'GallopLookL', 'Sighting', 'Stalk', 'Rise', 'Peer', 'Perch'], body)
     if os.environ.get('HUSK_STRIP'):
         motion_strip(arm, body, acts, os.environ['HUSK_STRIP'])
     log('stalk: %.2f m/s at the model\'s size' % STALK_SPEED)
@@ -1185,16 +1743,26 @@ def motion_strip(arm, body, acts, out):
     sc.render.resolution_x, sc.render.resolution_y = 400, 340
     os.makedirs(out, exist_ok=True)
     by = {a.name: a for a in acts}
-    arm.animation_data.action = by['Sighting']
-    views = {'front': ((0.0, -4.2, 1.2), (0, -0.2, 0.95)), 'side': ((4.2, -0.4, 1.05), (0, -0.4, 0.9))}
-    for f in range(0, int(round(TF * FPS)) + 1, 6):
-        sc.frame_set(f)
-        for v, (loc, tgt) in views.items():
-            cam.location = loc
-            cam.rotation_euler = (Vector(tgt) - Vector(loc)).to_track_quat('-Z', 'Y').to_euler()
-            cam.data.lens = 28
-            sc.render.filepath = os.path.join(out, '%s_%04d.png' % (v, f))
-            bpy.ops.render.render(write_still=True)
+    eye_rise = Vector((-0.2 / GS, -2.92 / GS, 1.18 / GS))     # the driver's eye, seen from the husk at the bonnet
+    eye_peer = Vector((-0.15 / GS, -1.86 / GS, 1.18 / GS))     # ...and from it at the window
+    shots = [('Sighting', TF, {'front': ((0.0, -4.2, 1.2), (0, -0.2, 0.95)), 'side': ((4.2, -0.4, 1.05), (0, -0.4, 0.9))}),
+             ('Perch', PERCH_T, {'driver': ((-0.15, -1.154, 0.177), (0.0, -0.4, 0.5)), 'side': ((3.4, -0.5, 0.6), (0, -0.5, 0.5))}),
+             ('Peer', PEER_T, {'driver': (tuple(eye_peer), (0.0, 0.0, 0.8)), 'side': ((-3.4, -0.6, 0.9), (0, -0.6, 0.8))})]
+    for take, T, views in shots:
+        arm.animation_data.action = by[take]
+        for tt_ in (0.2, 1.2, 2.4, 4.3, 5.9, 6.6, 7.9) if take == 'Perch' else (0.5, 1.2, 1.45, 1.8, 2.6) if take == 'Peer' else ():
+            sc.frame_set(int(round(tt_ * FPS)))
+            hb = arm.pose.bones['head']
+            hw, hl, hr = arm.pose.bones['hand_l'].head, arm.pose.bones['hand_r'].head, hb.head
+            log('%s %.1fs: head (%.2f, %.2f, %.2f) hands L (%.2f, %.2f, %.2f) R (%.2f, %.2f, %.2f)' % (take, tt_, hr.x, hr.y, hr.z, hw.x, hw.y, hw.z, hl.x, hl.y, hl.z))
+        for f in range(0, int(round(T * FPS)) + 1, 6):
+            sc.frame_set(f)
+            for v, (loc, tgt) in views.items():
+                cam.location = loc
+                cam.rotation_euler = (Vector(tgt) - Vector(loc)).to_track_quat('-Z', 'Y').to_euler()
+                cam.data.lens = 28 if v != 'driver' else 18
+                sc.render.filepath = os.path.join(out, '%s_%s_%04d.png' % (take, v, f))
+                bpy.ops.render.render(write_still=True)
     arm.animation_data.action = acts[0]
     bpy.data.objects.remove(ground)
     bpy.data.objects.remove(cam)

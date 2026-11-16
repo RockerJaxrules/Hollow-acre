@@ -25,19 +25,20 @@ first frame.
 4. **False calm.** Back to the road. The snow thickens. Breathing.
 5. **Eyes in the trees.** At the edge of the beams on the left, two pale points low in the tree line catch the light,
    then blink out. The head turns to them. Nothing.
-6. **In the road.** Ahead, something tall crosses into the beams and stops in the road, half-turned, steam coming off
-   it. Hard on the brakes: the view pitches, the hands brace, the tyres crunch. The car stops about six metres
-   short.
-7. **The face.** Near silence: the idle, the wipers, a heartbeat. It turns its head toward the car, slowly. The beams
-   find its face: a human face, starved, eyes milky. Old frozen blood from its kills on its claws, round its mouth and down its
-   chest. The driver leans in without meaning to (a slow push in).
-8. **The scream.** It rears up to its full height and screams into the headlights, the jaw wide, the canines. The
-   view shakes; the driver recoils.
-9. **Gone.** It drops onto all fours and is gone up the road into the dark. Silence. A ragged breath.
-10. **The creep.** The car rolls on slowly. The head checks the dark window on the left, the drop on the right, the
-    rear-view mirror (the empty road in the red of the tail lights). A beat too long.
-11. **The blow.** A growl on the left; the head snaps round: it is already at the window, mid-leap. Slow motion: the
-    window bursts inward, glass pebbles drifting past the eyes, its face and claws filling the window.
+6. **On the bonnet.** No warning: the eyes are on the road when it drops onto the bonnet from above with a bang that
+   pitches the car (it is never seen getting on, and never runs past first). It comes at speed; the driver brakes hard
+   because it fills the windshield. It clings on as the car slows, its claws in the wiper well. (The owner: it should be
+   sudden; the car only stops because something is on it.)
+7. **The face.** Near silence: the idle, the wipers, a heartbeat. It rises over the driver, slowly, then lowers its
+   face to the glass, a hand flat on it: a human face, starved, eyes milky, lit from below by the dials. Old frozen
+   blood from its kills on its claws, round its mouth and down its chest.
+8. **The jaw.** It opens its jaw wide against the glass, in silence (no roar): a wet hiss, a faint bowed-metal whine.
+9. **Gone.** It springs off over the roof (its weight on the roof above the driver's head) and lands on the road
+   behind. Silence. A ragged breath.
+10. **The creep.** The car rolls on slowly. The head checks the right, the rear-view mirror, the road ahead. Its steps
+    run up the left side, unseen.
+11. **The blow.** The head turns: its face is at the driver's window. The brake, hard. Slow motion: the window bursts
+    inward, glass pebbles drifting past the eyes, its face and claws filling the window.
 12. **Over.** Back to full speed: the rail splits, the headlights tip down the chute. The fall is shown in a few clear
     glimpses with blackouts between them (the driver blacking out): the slope rushing up, a tree, the sky upside down.
 13. **Black.** Ringing ears, a heartbeat.
@@ -46,6 +47,10 @@ first frame.
     snow sifting in through the broken window, the radio hissing. In the headlight, outside, a tall silhouette walks
     slowly past and is gone.
 15. **Eyes close.** Black. The title.
+
+It is one continuous creature, never created or removed where it can be seen, and it moves fast but never jumps
+from place to place (the owner: no teleporting). It collides with the car: its body is traced against the car's real
+surfaces every frame and pushed clear, so no part of it passes into the bonnet, the glass, the roof or the door.
 
 Gore (the owner: realistic gore throughout the game): in this cut, the gap's blood trail and glove, and the frozen
 blood on the creature.

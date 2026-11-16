@@ -2,6 +2,8 @@
 
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Components/PrimitiveComponent.h"
+#include "Materials/MaterialInterface.h"
 #include "UObject/ConstructorHelpers.h"
 
 AGlassBurst::AGlassBurst()
@@ -57,7 +59,64 @@ void AGlassBurst::Tick(float DeltaSeconds)
 	{
 		FPebble& Pb = Pebbles[i];
 		Pb.V += G * DeltaSeconds;
+		const FVector P0 = Pb.P;
 		Pb.P += Pb.V * DeltaSeconds;
+		if (Solids.Num() > 0 && FVector::DistSquared(P0, Pb.P) > 0.0025f)
+		{
+			// off the car's real surfaces: the first one met on the way, bounced off it
+			const FTransform& T = GetActorTransform();
+			const FVector W0 = T.TransformPosition(P0), W1 = T.TransformPosition(Pb.P);
+			const FVector Dir = (W1 - W0).GetSafeNormal();
+			FCollisionQueryParams Q(TEXT("Pebble"), true);
+			Q.bReturnFaceIndex = Skip.IsValid();
+			bool bHit = false;
+			float BestD = 0.f;
+			FVector HitP = FVector::ZeroVector, HitN = FVector::UpVector;
+			for (const TWeakObjectPtr<UPrimitiveComponent>& S : Solids)
+			{
+				UPrimitiveComponent* C = S.Get();
+				if (!C)
+				{
+					continue;
+				}
+				FVector From = W0;
+				for (int32 Try = 0; Try < 3; ++Try)
+				{
+					FHitResult H;
+					if (!C->LineTraceComponent(H, From, W1, Q))
+					{
+						break;
+					}
+					int32 Sec = 0;
+					if (Skip.IsValid() && H.FaceIndex != INDEX_NONE && C->GetMaterialFromCollisionFaceIndex(H.FaceIndex, Sec) == Skip.Get())
+					{
+						From = H.ImpactPoint + Dir * 0.05f;
+						continue;
+					}
+					const float Dd = FVector::DistSquared(W0, H.ImpactPoint);
+					if (!bHit || Dd < BestD)
+					{
+						bHit = true;
+						BestD = Dd;
+						HitP = H.ImpactPoint;
+						HitN = H.ImpactNormal;
+					}
+					break;
+				}
+			}
+			if (bHit)
+			{
+				const FVector N = T.InverseTransformVectorNoScale(HitN);
+				Pb.P = T.InverseTransformPosition(HitP) + N * 0.25f;
+				const float vn = FVector::DotProduct(Pb.V, N);
+				if (vn < 0.f)
+				{
+					Pb.V -= 1.25f * vn * N;
+				}
+				Pb.V *= 0.55f;
+				Pb.Spin *= 0.4f;
+			}
+		}
 		for (int32 a = 0; a < 3; ++a)
 		{
 			// the cabin's walls, floor and roof: bounce a little, lose most of the speed, stop spinning

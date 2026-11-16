@@ -11,7 +11,7 @@ public class HollowAcre : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[] {
 			"Core",
 			"CoreUObject",
-			"Engine", "PhysicsCore",
+			"Engine", "PhysicsCore", "AnimationCore",
 			"InputCore",
 			"EnhancedInput",
 			"AIModule",
