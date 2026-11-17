@@ -1,7 +1,10 @@
 #include "DriverArms.h"
 
 #include "Components/PoseableMeshComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "Engine/SkeletalMesh.h"
+#include "Engine/StaticMesh.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "Misc/Compression.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -1011,13 +1014,70 @@ void ADriverArms::Tick(float DeltaSeconds)
 		bGripReady = true;
 		LastSteer = 1e9f;
 	}
-	if (FMath::IsNearlyEqual(Steer, LastSteer, 0.01f))
+	MakeKey();
+	if (KeyPivot)
+	{
+		// the key turned in its lock
+		KeyPivot->SetRelativeRotation(FQuat(KeyAxis.GetSafeNormal(), -FMath::DegreesToRadians(KeyTurn)) * KeyBase);
+	}
+	if (FMath::IsNearlyEqual(Steer, LastSteer, 0.01f) && FMath::IsNearlyEqual(KeyReach, LastKeyReach, 0.0005f) && FMath::IsNearlyEqual(KeyTurn, LastKeyTurn, 0.01f))
 	{
 		return;
 	}
 	LastSteer = Steer;
+	LastKeyReach = KeyReach;
+	LastKeyTurn = KeyTurn;
 	FollowWheel();
 	Mesh->MarkRefreshTransformDirty();
+}
+
+void ADriverArms::MakeKey()
+{
+	if (KeyPivot)
+	{
+		return;
+	}
+	UStaticMesh* Cube = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"));
+	UStaticMesh* Cyl = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
+	UMaterialInterface* Base = LoadObject<UMaterialInterface>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
+	if (!Cube || !Cyl)
+	{
+		return;
+	}
+	// in its lock in the lower dash, right of the column: a chrome bezel, the key's shank and its black head standing up,
+	// its ring and a worn fob hanging under it. Built along the key's own axis (local X: out of the lock toward the driver)
+	const FVector Ax = KeyAxis.GetSafeNormal();
+	KeyBase = FQuat::FindBetweenNormals(FVector::ForwardVector, Ax);
+	KeyPivot = NewObject<USceneComponent>(this, TEXT("KeyPivot"));
+	KeyPivot->SetupAttachment(RootComponent);
+	KeyPivot->SetRelativeLocationAndRotation(KeyAt - Ax * 3.f, KeyBase);
+	KeyPivot->RegisterComponent();
+	auto Part = [&](USceneComponent* Parent, UStaticMesh* M, const FVector& At, const FQuat& Rot, const FVector& SizeCm, const FLinearColor& Col, const TCHAR* Name)
+	{
+		UStaticMeshComponent* C = NewObject<UStaticMeshComponent>(this, Name);
+		C->SetStaticMesh(M);
+		C->SetupAttachment(Parent);
+		C->SetRelativeLocationAndRotation(At, Rot);
+		C->SetRelativeScale3D(SizeCm / 100.f);
+		C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		C->SetCastShadow(true);
+		if (Base)
+		{
+			UMaterialInstanceDynamic* Mi = UMaterialInstanceDynamic::Create(Base, C);
+			Mi->SetVectorParameterValue(TEXT("Color"), Col);
+			C->SetMaterial(0, Mi);
+		}
+		C->RegisterComponent();
+		return C;
+	};
+	const FQuat AlongAx = FQuat::FindBetweenNormals(FVector::UpVector, Ax);     // (a cylinder's length along the key's axis)
+	Part(RootComponent, Cyl, KeyAt - Ax * 3.4f, AlongAx, FVector(2.9f, 2.9f, 0.8f), FLinearColor(0.55f, 0.56f, 0.58f), TEXT("KeyBezel"));
+	// (in the key's frame: X along it, out of the lock; Y across its flat; Z up its head)
+	Part(KeyPivot, Cube, FVector(1.0f, 0.f, 0.f), FQuat::Identity, FVector(2.0f, 0.35f, 0.9f), FLinearColor(0.6f, 0.6f, 0.62f), TEXT("KeyShank"));
+	Part(KeyPivot, Cube, FVector(3.4f, 0.f, 0.f), FQuat::Identity, FVector(2.6f, 0.45f, 2.5f), FLinearColor(0.02f, 0.02f, 0.022f), TEXT("KeyHead"));
+	Part(KeyPivot, Cyl, FVector(4.2f, 0.f, -1.9f), FQuat(FVector::RightVector, HALF_PI), FVector(1.6f, 1.6f, 0.25f), FLinearColor(0.5f, 0.5f, 0.52f), TEXT("KeyRing"));
+	Part(KeyPivot, Cube, FVector(4.4f, 0.f, -4.6f), FQuat::Identity, FVector(2.6f, 1.1f, 3.6f), FLinearColor(0.09f, 0.07f, 0.06f), TEXT("KeyFob"));
+	UE_LOG(LogTemp, Display, TEXT("DriverArms: the ignition key at %s"), *KeyAt.ToString());
 }
 
 void ADriverArms::SnapshotGrip()
@@ -1035,6 +1095,11 @@ void ADriverArms::SnapshotGrip()
 		GripWrist[Side] = MeshRel.TransformPosition(BoneCS(Hand).GetLocation());
 		GripElbow[Side] = MeshRel.TransformPosition(BoneCS(Lower).GetLocation());
 		GripHandRot[Side] = MeshRel.GetRotation() * BoneCS(Hand).GetRotation();
+		const FName Mid1(*FString::Printf(TEXT("middle_01_%s"), Sx));
+		if (Mesh->GetBoneIndex(Mid1) != INDEX_NONE)
+		{
+			GripFinger[Side] = (MeshRel.TransformPosition(BoneCS(Mid1).GetLocation()) - GripWrist[Side]).GetSafeNormal();
+		}
 	}
 	// which way a positive angle turns: twelve o'clock toward the driver's right, clockwise as the driver sees it
 	const float Tilt = FMath::DegreesToRadians(WheelTilt);
@@ -1074,7 +1139,22 @@ void ADriverArms::FollowWheel()
 		{
 			continue;
 		}
-		const FVector Wrist = WheelCentre + Q.RotateVector(GripWrist[Side] - WheelCentre);
+		FVector Wrist = WheelCentre + Q.RotateVector(GripWrist[Side] - WheelCentre);
+		FQuat HandRot = Q * GripHandRot[Side];
+		if (Side == 1 && KeyReach > 0.f && !GripFinger[1].IsNearlyZero())
+		{
+			// the right hand off the rim, down past the outside of it to the key in the lower dash: its fingers pointing in
+			// at the key's head (toward the dash, a little down), the head pinched between thumb and fingers; turning it is
+			// the forearm twisting about the key's axis. On its way there it swings out and back, clear of the rim.
+			const FVector Ax = KeyAxis.GetSafeNormal();
+			const FVector Fk = (-Ax + FVector(0.1f, -0.15f, -0.3f)).GetSafeNormal();
+			const FQuat Turn(Ax, -FMath::DegreesToRadians(KeyTurn));
+			const FVector KeyWrist = KeyAt + Turn.RotateVector(Ax * 3.f - Fk * 9.f + FVector(0.f, 0.f, 1.2f));
+			const FQuat KeyRot = Turn * FQuat::FindBetweenNormals(GripFinger[1], Fk) * GripHandRot[1];
+			const float s = FMath::Clamp(KeyReach, 0.f, 1.f), e = s * s * (3.f - 2.f * s);
+			Wrist = FMath::Lerp(Wrist, KeyWrist, e) + FVector(-6.f, 9.f, 2.f) * FMath::Sin(PI * e);
+			HandRot = FQuat::Slerp(HandRot, KeyRot, e);
+		}
 		const FVector Sh = MeshRel.TransformPosition(BoneCS(Upper).GetLocation());
 		const float L1 = FVector::Dist(Sh, GripElbow[Side]);
 		const float L2 = FVector::Dist(GripElbow[Side], GripWrist[Side]);
@@ -1094,7 +1174,7 @@ void ADriverArms::FollowWheel()
 		};
 		Aim(Upper, Lower, Elbow);
 		Aim(Lower, Hand, Sh + Dir * Dist);
-		SetBoneCS(Hand, MeshRel.GetRotation().Inverse() * (Q * GripHandRot[Side]));
+		SetBoneCS(Hand, MeshRel.GetRotation().Inverse() * HandRot);
 		static int32 Logged = 0;
 		if (Logged < 12 && (Logged < 4 || FMath::Abs(Steer) > 3.f))
 		{

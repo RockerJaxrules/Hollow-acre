@@ -100,6 +100,19 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Driver")
 	TObjectPtr<AActor> WheelActor;
 
+	/** The ignition: the right hand off the wheel to the key (0 on the rim .. 1 holding the key) and the key turned (degrees,
+	 *  toward the start position); set by the director. The key sits in the lock on the right of the steering column. */
+	UPROPERTY(EditAnywhere, Category = "Driver")
+	float KeyReach = 0.f;
+	UPROPERTY(EditAnywhere, Category = "Driver")
+	float KeyTurn = 0.f;
+	/** The key's bow (car frame, cm) and the axis it turns about (out of the lock toward the driver): in the console's face just
+	 *  right of the wheel, clear of the rim as the driver's eye sees it. */
+	UPROPERTY(EditAnywhere, Category = "Driver")
+	FVector KeyAt = FVector(63.5f, 27.f, 75.f);
+	UPROPERTY(EditAnywhere, Category = "Driver")
+	FVector KeyAxis = FVector(-1.f, 0.f, 0.f);
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
@@ -157,4 +170,11 @@ private:
 	FQuat GripHandRot[2] = { FQuat::Identity, FQuat::Identity };
 	FQuat WheelBaseRot = FQuat::Identity;
 	float SteerSign = 1.f;
+	// the ignition key (its lock and bow, built from simple shapes on the car) and the right hand's way to it
+	void MakeKey();
+	UPROPERTY()
+	TObjectPtr<USceneComponent> KeyPivot;
+	FQuat KeyBase = FQuat::Identity;
+	float LastKeyReach = -1.f, LastKeyTurn = -1e9f;
+	FVector GripFinger[2] = { FVector::ZeroVector, FVector::ZeroVector };
 };

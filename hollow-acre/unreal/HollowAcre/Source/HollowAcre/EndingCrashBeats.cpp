@@ -66,6 +66,20 @@ void AEndingDirector::BeginCrashScene()
 	{
 		GEngine->bEnableOnScreenDebugMessages = false;
 	}
+	// (-roofattack: the attack from the roof, its face hanging into the windshield, instead of the one on the bonnet)
+	if (FParse::Param(FCommandLine::Get(), TEXT("roofattack")))
+	{
+		bHoodAttack = false;
+		bStall = false;
+	}
+	if (FParse::Param(FCommandLine::Get(), TEXT("hoodattack")))
+	{
+		bStall = false;
+	}
+	if (bStall)
+	{
+		bHoodReveal = false;               // (nothing of it seen before the blow)
+	}
 	// (-notown: the abandoned town left out, while it is being built: its buildings hidden, the car left as before)
 	if (FParse::Param(FCommandLine::Get(), TEXT("notown")))
 	{
@@ -349,6 +363,24 @@ void AEndingDirector::CrashBeats(float DeltaSeconds)
 {
 	RoarShake = FMath::Max(0.f, RoarShake - DeltaSeconds * 0.9f);
 	UpdateWindshieldHits();
+	if (bStall && StallT >= 0.f && !bImpacted)
+	{
+		// the lights on the battery alone: a stutter as the engine dies, a little dimmer after; sagging hard each time the
+		// starter turns (it draws the battery down), brightening again when the key is let go
+		const float s = Time - StallT;
+		float K = s < 0.7f ? (FMath::Sin(s * 61.f) > -0.2f ? 0.9f : 0.45f) : 0.86f;
+		if (Arms && Arms->KeyTurn > 8.f)
+		{
+			K *= 0.5f + 0.06f * FMath::Sin(RealTime * 47.f);
+		}
+		for (int32 i = 0; i < Headlights.Num() && i < HeadlightBase.Num(); ++i)
+		{
+			if (Headlights[i])
+			{
+				Headlights[i]->SetIntensity(HeadlightBase[i] * K);
+			}
+		}
+	}
 	if (!bLetterLooked && Time >= LetterTime)
 	{
 		bLetterLooked = true;
@@ -821,6 +853,27 @@ void AEndingDirector::AfterTheFall(float RealDt)
 	}
 }
 
+float AEndingDirector::SwerveOff(float t) const
+{
+	// the driver wrenching the wheel to throw it off: hard left, hard right, a smaller one back, straightened; each turn
+	// eased in and out (the car's side-shift, cm, + right of its path), 0 before and after
+	static const FVector2D K[] = {FVector2D(0.f, 0.f), FVector2D(0.7f, 0.f), FVector2D(1.35f, -48.f), FVector2D(2.15f, 52.f),
+		FVector2D(2.9f, -18.f), FVector2D(3.55f, 0.f)};
+	if (t <= K[0].X || t >= K[UE_ARRAY_COUNT(K) - 1].X)
+	{
+		return 0.f;
+	}
+	for (int32 i = 1; i < (int32)UE_ARRAY_COUNT(K); ++i)
+	{
+		if (t <= K[i].X)
+		{
+			const float u = (t - K[i - 1].X) / (K[i].X - K[i - 1].X);
+			return FMath::Lerp(K[i - 1].Y, K[i].Y, u * u * (3.f - 2.f * u));
+		}
+	}
+	return 0.f;
+}
+
 float AEndingDirector::CarDip() const
 {
 	// the car's nose (degrees, + up): jolted as it lands on the roof (its weight a little forward of the middle, more so as
@@ -1139,7 +1192,7 @@ void AEndingDirector::KeepOut(AHusk* H, const FVector& CarDir, const TCHAR* Who)
 		}
 	}
 	// (where its head is, as it will be drawn this frame)
-	if (bClipCheck && Car && H == Creature && CreStage == 6 && Time - RiseT0 > 3.3f && Time - RiseT0 < 5.2f)
+	if (bClipCheck && Car && H == Creature && ((CreStage == 6 && Time - RiseT0 > 3.3f && Time - RiseT0 < 5.2f) || CreStage == 73))
 	{
 		const FTransform C = Car->GetActorTransform();
 		const FVector Hd = C.InverseTransformPosition(H->HeadAt()), Sh = C.InverseTransformPosition(H->DrawnAt(TEXT("spine_05")));
@@ -1637,8 +1690,42 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 	};
 	AHusk* H = Creature;
 
+	// suddenly: it drops onto the bonnet from the rock above as the car drives on (no warning: it is there)
+	if (bHoodAttack && !bDarted && Time >= SightTime)
+	{
+		bDarted = true;
+		ArcFrom = PerchAt + FVector(60.f, -40.f, 420.f);
+		const FVector From = C.TransformPosition(ArcFrom);
+		FActorSpawnParameters P;
+		P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		H = GetWorld()->SpawnActor<AHusk>(AHusk::StaticClass(), FTransform(From), P);
+		if (H && H->Setup())
+		{
+			H->SetActorScale3D(FVector(HuskScale));
+			Take(H, TEXT("Perch"), false, 0.f, 7.45f);      // (springing: stretched out as it comes down)
+			H->JawOpen = 14.f;
+			Creature = H;
+			CreStage = 71;
+			JumpT0 = Time;
+			Face(H, From, -F);
+			H->KeepOutLate = [this](AHusk* Me)
+			{
+				if (Me != Creature || CreStage == 0 || !Car)
+				{
+					return;
+				}
+				KeepOut(Me, FVector::UpVector, TEXT("the creature"));
+			};
+			Event(TEXT("drop"));
+		}
+		else if (H)
+		{
+			H->Destroy();
+			H = nullptr;
+		}
+	}
 	// suddenly: it drops onto the roof from above (out of sight: only heard, and felt)
-	if (!bDarted && Time >= SightTime)
+	if (!bHoodAttack && !bDarted && Time >= SightTime)
 	{
 		bDarted = true;
 		// (onto the roof, the owner's choice: at its size its face can't be seen through the windshield from the bonnet)
@@ -1686,6 +1773,154 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 	const float Dt = DeltaSeconds;
 	if (false)
 	{
+	}
+	else if (CreStage == 71)
+	{
+		// falling onto the bonnet (in the car's own frame: it is moving), quickening as it falls
+		const float u = FMath::Clamp((Time - JumpT0) / 0.22f, 0.f, 1.f);
+		Face(H, C.TransformPosition(FMath::Lerp(ArcFrom, HoodLie, u * u)), -F);
+		if (u >= 1.f)
+		{
+			CreStage = 73;
+			RiseT0 = DropT = HangInT = Time;               // (the eyes on its face at once: it is right in front of them)
+			HoodBeat = 0;
+			HoodSlideY = HoodSlideV = HoodLungeX = HoodLungeV = 0.f;
+			// (generated motion, NVIDIA Kimodo: flat on its belly, clinging with its hands spread wide; its head and chest up,
+			// screaming; its head slammed down at 2.8-3.0 s)
+			H->PlayClip(TEXT("KIM:KimodoKimodo_kimodo_hood_cling_Husk"), 0.f, 1.f, false);
+			RoarShake = FMath::Max(RoarShake, 0.9f);
+			Event(TEXT("land"));
+			FaceLight = NewObject<UPointLightComponent>(Car, TEXT("FaceGlow"));
+			FaceLight->SetupAttachment(Car->GetRootComponent());
+			FaceLight->RegisterComponent();
+			FaceLight->SetIntensityUnits(ELightUnits::Candelas);
+			FaceLight->SetIntensity(3.f);
+			FaceLight->SetLightColor(FLinearColor(0.55f, 0.85f, 1.f));   // the dials' glow, up through the glass onto its face
+			FaceLight->SetAttenuationRadius(200.f);
+			FaceLight->SetCastShadows(false);
+			FaceLight->SetRelativeLocation(FVector(38.f, 10.f, 98.f));
+		}
+	}
+	else if (CreStage == 73)
+	{
+		// on the bonnet as the car drives on: clinging; thrown across it as the driver swerves (gripping back, on a spring);
+		// its face brought down to the glass, it draws back and slams its head into it; flung off the front by the brakes
+		const float r = Time - RiseT0;
+		if (HoodBeat == 0 && r >= 1.3f)
+		{
+			HoodBeat = 1;                                  // (its head coming up off the bonnet)
+			Event(TEXT("rise"));
+		}
+		if (HoodBeat == 1 && r >= 1.95f && RiseBeat == 0)
+		{
+			RiseBeat = 1;                                  // (reset for the throw below)
+			Event(TEXT("jaw"));                            // the shriek, at the glass
+		}
+		// the car's sideways acceleration (cm/s^2, + right) from the swerves: it is thrown the other way
+		const float hh = 0.03f;
+		const float aL = (SwerveOff(r + hh) - 2.f * SwerveOff(r) + SwerveOff(r - hh)) / (hh * hh);
+		{
+			const float Om = 6.5f, Ze = 0.45f;
+			for (int32 i = 0; i < 3; ++i)
+			{
+				const float h = Dt / 3.f;
+				HoodSlideV += (-aL * 0.85f - Om * Om * HoodSlideY - 2.f * Ze * Om * HoodSlideV) * h;
+				HoodSlideY = FMath::Clamp(HoodSlideY + HoodSlideV * h, -55.f, 55.f);
+			}
+		}
+		// the blow: drawn back, then its head thrown into the glass (a stiff spring, overshooting into it, stopped by it)
+		float Tgt = 0.f, Om = 9.f, Ze = 0.7f;
+		if (r >= HoodStrikeAt - 0.3f && r < HoodStrikeAt)
+		{
+			Tgt = 10.f;
+		}
+		else if (r >= HoodStrikeAt && r < HoodStrikeAt + 0.25f)
+		{
+			Tgt = -14.f;
+			Om = 16.f;
+			Ze = 0.35f;
+		}
+		for (int32 i = 0; i < 3; ++i)
+		{
+			const float h = Dt / 3.f;
+			HoodLungeV += (Om * Om * (Tgt - HoodLungeX) - 2.f * Ze * Om * HoodLungeV) * h;
+			HoodLungeX += HoodLungeV * h;
+		}
+		if (HoodBeat == 1 && r >= HoodStrikeAt + 0.06f)
+		{
+			HoodBeat = 2;
+			const FVector Hd = C.InverseTransformPosition(H->HeadAt());
+			const FVector N(0.545f, 0.f, 0.838f);
+			BlowT[0] = Time;
+			BlowS[0] = FMath::Max(300.f, -HoodLungeV);
+			BlowAt[0] = Hd - N * FVector::DotProduct(Hd - FVector(100.f, 0.f, 100.f), N);   // (the glass in front of its face)
+			ChipWindshield(BlowAt[0], 1);
+			RoarShake = FMath::Max(RoarShake, 1.1f);
+			Event(TEXT("slam"), BlowS[0]);
+		}
+		H->JawOpen = r < 1.0f ? 14.f * (1.f - Smooth(r / 0.5f)) + 6.f
+			: 6.f + 38.f * Smooth((r - 1.9f) / 0.3f) * (1.f - 0.6f * Smooth((r - 2.85f) / 0.1f)) * (1.f - Smooth((r - HoodBrakeAt) / 0.3f))
+			+ 2.f * FMath::Sin(r * 23.f) * Smooth((r - 2.0f) / 0.2f);
+		const FVector Pc = HoodLie + FVector(-HoodLungeX, HoodSlideY, 0.f);
+		const FVector Dir = (-F).RotateAngleAxis(FMath::Clamp(HoodSlideY * 0.35f, -18.f, 18.f), FVector::UpVector);
+		Face(H, C.TransformPosition(Pc), Dir);
+		// the brakes: it goes on as the car stops, flung forward off the bonnet
+		if (r >= HoodBrakeAt + 0.18f)
+		{
+			CreStage = 72;
+			ThrowT = LeapT0 = Time;
+			ThrowP = H->GetActorLocation();
+			ThrowV = F * FMath::Max(SpeedNow + 830.f * 0.18f, 600.f) + R * HoodSlideY * 3.f + FVector(0.f, 0.f, 260.f);
+			ThrowSpin = 0.f;
+			ThrowSpinV = -420.f;                           // (tumbling head over heels, forward)
+			RiseBeat = 0;
+			Take(H, TEXT("Gallop"), true, 1.4f);
+			if (FaceLight)
+			{
+				FaceLight->SetIntensity(0.f);
+			}
+			Event(TEXT("leap"));
+		}
+	}
+	else if (CreStage == 72)
+	{
+		// flung off: through the air ahead of the car, tumbling; down on the snow, rolling, skidding; then up and off the
+		// road into the dark, out of the headlights
+		const float l = Time - ThrowT;
+		ThrowV.Z -= 980.f * Dt;
+		ThrowP += ThrowV * Dt;
+		ThrowSpin += ThrowSpinV * Dt;
+		const float G = CreatureGround(ThrowP);
+		if (ThrowP.Z < G)
+		{
+			ThrowP.Z = G;
+			if (ThrowV.Z < -150.f)
+			{
+				Event(TEXT("roof"));                          // (a thud on the snow)
+			}
+			ThrowV.Z = FMath::Max(0.f, -ThrowV.Z * 0.25f);
+			ThrowV.X *= FMath::Pow(0.25f, Dt);
+			ThrowV.Y *= FMath::Pow(0.25f, Dt);
+			ThrowSpinV *= FMath::Pow(0.08f, Dt);
+		}
+		const FRotator Spin(FMath::Fmod(ThrowSpin, 360.f) * Smooth(1.f - (l - 1.1f) / 0.4f), 0.f, 0.f);
+		const float Yaw = FMath::RadiansToDegrees(FMath::Atan2(F.Y, F.X));
+		H->SetActorLocationAndRotation(ThrowP, FRotator(0.f, Yaw, 0.f).Quaternion() * Spin.Quaternion() * FRotator(0.f, -H->MeshForwardYaw(), 0.f).Quaternion());
+		if (l >= 1.5f && RiseBeat == 0)
+		{
+			// up, and off the road to the right, into the dark
+			RiseBeat = 1;
+			ThrowV = R * 900.f * HuskScale + F * 200.f;
+		}
+		if (l >= 2.4f)
+		{
+			CreStage = 61;
+			GoneT = Time;
+			CreepTime = Time + CreepAfterGone;
+			HuntC = FVector(-650.f, -40.f, 0.f);
+			Take(H, TEXT("Stalk"), true, 0.f);
+			Event(TEXT("gone"));
+		}
 	}
 	else if (CreStage == 51)
 	{

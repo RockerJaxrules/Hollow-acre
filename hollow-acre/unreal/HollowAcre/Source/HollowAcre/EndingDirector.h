@@ -241,6 +241,30 @@ public:
 	/** Where its feet land on the bonnet (cm, car frame; tools/blender/husk_body.py: Perch). */
 	UPROPERTY(EditAnywhere, Category = "Crash")
 	FVector PerchAt = FVector(205.f, 20.f, 95.f);
+	/** The attack on the bonnet (the owner's choice, after Dying Light: The Beast's infected on the hood): it lands on the
+	 *  bonnet while the car drives on, clings, is thrown about as the driver swerves, slams its head into the glass, and is
+	 *  flung off the front when the driver brakes hard. -roofattack: the version on the roof instead. */
+	bool bHoodAttack = true;
+	/** The stall (the owner's choice, in place of the attacks on the bonnet and the roof): the engine dies out of nowhere,
+	 *  the car rolls to a stop beside the break in the rail, the key won't start it, and it hits the driver's door out of
+	 *  the dark (nothing of it seen before). -roofattack / -hoodattack: those attacks instead. */
+	bool bStall = true;
+	float StallT = -1.f, StallV = 0.f, StallCoast = 2600.f;
+	int32 KeyBeat = 0;
+	/** When it hits (s after the car has stopped): during the third, frantic turn of the key. */
+	float StallHitAfter = 5.6f;
+	/** The bonnet attack's timing (s after it lands): the swerves, the blow on the glass, the brakes. */
+	float HoodStrikeAt = 2.9f, HoodBrakeAt = 3.9f;
+	/** Where its hips are as it lies on the bonnet (cm, car frame): its head out over the scuttle at the foot of the glass, its
+	 *  legs off the front. */
+	FVector HoodLie = FVector(175.f, 10.f, 96.f);
+	/** Its slide across the bonnet (cm, + right) and its lunge at the glass (cm, + forward), each on a spring; flung off. */
+	float HoodSlideY = 0.f, HoodSlideV = 0.f, HoodLungeX = 0.f, HoodLungeV = 0.f;
+	FVector ThrowP = FVector::ZeroVector, ThrowV = FVector::ZeroVector;
+	float ThrowT = -1.f, ThrowSpin = 0.f, ThrowSpinV = 0.f;
+	int32 HoodBeat = 0;
+	/** The driver's swerves (cm, + right of the car's path) t seconds after it lands on the bonnet. */
+	float SwerveOff(float t) const;
 	/** Where its hips are on the roof (cm, car frame): it crouches there facing forward, its head near the roof's front edge. */
 	UPROPERTY(EditAnywhere, Category = "Crash")
 	FVector RoofPerch = FVector(-40.f, -5.f, 141.f);

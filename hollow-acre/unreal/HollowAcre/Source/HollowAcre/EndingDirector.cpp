@@ -292,13 +292,46 @@ void AEndingDirector::Tick(float DeltaSeconds)
 	{
 		// it comes out ahead: the driver comes off the gas and brakes hard (about 0.4 g on packed snow) to a stop,
 		// watches it, waits, then creeps on at walking pace
-		if (bHoodReveal && Time >= SightTime)
+		if (bStall)
+		{
+			// the engine dies out of nowhere a few car lengths short of the break in the rail: coasting (in gear, on
+			// packed snow, about 0.19 g) to a stop beside it; then still, the key turned and turned
+			const float Left = PeerStopAt - StartDistance - DistNow;
+			if (StallT < 0.f && Left <= StallCoast)
+			{
+				StallT = Time;
+				StallV = FMath::Max(Speed, 1.f);
+				Event(TEXT("stall"));
+			}
+			if (StallT >= 0.f)
+			{
+				const float A = StallV * StallV / (2.f * StallCoast);
+				Speed = FMath::Min(StallV, FMath::Sqrt(2.f * A * FMath::Max(0.f, Left)));
+				if (Speed < 4.f)
+				{
+					Speed = 0.f;
+				}
+			}
+			if (!bStopped && StallT >= 0.f && Speed <= 0.f)
+			{
+				bStopped = true;
+				StopT = Time;
+				ImpactTime = StopT + StallHitAfter;
+				Event(TEXT("stopped"));
+			}
+		}
+		else if (bHoodReveal && Time >= SightTime)
 		{
 			const float Cruise = Speed;
 			float V = DropT >= 0.f ? FMath::Max(0.f, Speed - 480.f * (Time - DropT - 0.25f)) : Cruise;   // ~0.5 g, it on the bonnet
 			if (DropT >= 0.f && Time < DropT + 0.25f)
 			{
 				V = Cruise;
+			}
+			if (bHoodAttack && DropT >= 0.f)
+			{
+				// it on the bonnet: driven on, swerving to throw it off; then the brakes, hard (about 0.85 g on packed snow)
+				V = FMath::Max(0.f, Cruise - 830.f * FMath::Max(0.f, Time - DropT - HoodBrakeAt));
 			}
 			if (Time > CreepTime)
 			{
@@ -357,19 +390,19 @@ void AEndingDirector::Tick(float DeltaSeconds)
 			DistNow += Speed * DeltaSeconds;
 		}
 		Dist = StartDistance + DistNow;
-		if (!bSighted && Time >= SightTime)
+		if (!bStall && !bSighted && Time >= SightTime)
 		{
 			bSighted = true;
 			Event(TEXT("sight"));
 		}
-		if (!bBraked && Time >= SightTime + (bHoodReveal ? 0.2f : 0.35f))
+		if (!bStall && !bBraked && (bHoodAttack && bHoodReveal ? DropT >= 0.f && Time >= DropT + HoodBrakeAt : Time >= SightTime + (bHoodReveal ? 0.2f : 0.35f)))
 		{
 			bBraked = true;
 			Event(TEXT("brake"));
 		}
 		const float Stride = 28.f / 60.f;
 		CreSwitchAt = SightTime + SwitchLead;
-		if (!bHoodReveal && !bCrossed && Time >= CreSwitchAt - 2.f * Stride)
+		if (!bStall && !bHoodReveal && !bCrossed && Time >= CreSwitchAt - 2.f * Stride)
 		{
 			// the sighting: two strides up from below the road on the right and over the rail, then the take from
 			// where it stops in the road, HaltSide left of the middle, CrossAhead on from where the car is at SightTime
@@ -453,6 +486,8 @@ void AEndingDirector::Tick(float DeltaSeconds)
 			{
 				const float k = FMath::Exp(-(Time - ImpactTime) * 1.4f);
 				Arms->Steer = SteerNow + 70.f * k * FMath::Sin((Time - ImpactTime) * 13.f);   // the wheel is torn round
+				Arms->KeyReach = FMath::Max(0.f, Arms->KeyReach - DeltaSeconds * 4.f);      // (the hand back to the wheel, grabbing)
+				Arms->KeyTurn = 0.f;
 			}
 			if (bPhysics && !bDeep && BodyBox && Body && ImpactPose.GetLocation().Z - Body->GetActorLocation().Z > 9000.f)
 			{
@@ -511,6 +546,18 @@ void AEndingDirector::Tick(float DeltaSeconds)
 		Loc = CarStart.GetLocation() + CarStart.GetRotation().GetForwardVector() * Dist;
 		Rot = CarStart.GetRotation();
 	}
+	if (bCrash && bHoodAttack && DropT >= 0.f)
+	{
+		// the swerves (it on the bonnet): shifted across the road, turned the way it is going, leaning out of each turn
+		const float s = Time - DropT, h = 0.03f;
+		const float O = SwerveOff(s), dO = (SwerveOff(s + h) - SwerveOff(s - h)) / (2.f * h);
+		const float aO = (SwerveOff(s + h) - 2.f * O + SwerveOff(s - h)) / (h * h);
+		const FVector Fh = Rot.GetForwardVector().GetSafeNormal2D();
+		Loc += FVector::CrossProduct(FVector::UpVector, Fh) * O;
+		const float Yaw = FMath::RadiansToDegrees(FMath::Atan2(dO, FMath::Max(Speed, 150.f)));
+		const float Roll = FMath::Clamp(-aO * 0.0035f, -3.5f, 3.5f);
+		Rot = FQuat(FVector::UpVector, FMath::DegreesToRadians(Yaw)) * Rot * FRotator(0.f, 0.f, Roll).Quaternion();
+	}
 	// Low, uneven bumps and a slow roll, never mirrored or periodic-looking
 	Loc.Z += 0.8f * FMath::Sin(Time * 7.1f) + 0.5f * FMath::Sin(Time * 11.3f + 1.7f);
 	const FRotator Sway(SwayDeg * 0.4f * FMath::Sin(Time * 1.9f + 0.4f) + (bCrash ? CarDip() : 0.f), 0.f, SwayDeg * FMath::Sin(Time * 1.3f));
@@ -543,6 +590,24 @@ void AEndingDirector::Tick(float DeltaSeconds)
 		}
 	}
 
+	// The key (stalled, stopped by the break in the rail): the right hand off the wheel to it; three tries, turned against
+	// its spring and held as the starter grinds, let go; the last frantic, short, again and again (when it hits)
+	if (bCrash && bStall && Arms && StopT >= 0.f)
+	{
+		const float k = Time - StopT;
+		auto Sm = [](float x) { x = FMath::Clamp(x, 0.f, 1.f); return x * x * (3.f - 2.f * x); };
+		auto Crank = [k, Sm](float a, float b) { return Sm((k - a) / 0.1f) * (1.f - Sm((k - b) / 0.12f)); };
+		const float Turn = 38.f * (Crank(1.5f, 2.6f) + Crank(3.2f, 4.5f) + Crank(4.9f, 5.2f) + Crank(5.35f, 5.7f) + Crank(5.85f, 6.3f));
+		const float Reach = Sm((k - 0.7f) / 0.55f);
+		Arms->KeyReach = Reach;
+		Arms->KeyTurn = Turn * Reach;
+		static const float CrankAt[] = {1.5f, 3.2f, 4.9f, 5.35f, 5.85f};
+		while (KeyBeat < (int32)UE_ARRAY_COUNT(CrankAt) && k >= CrankAt[KeyBeat])
+		{
+			Event(TEXT("crank"), (float)KeyBeat);
+			++KeyBeat;
+		}
+	}
 	// Steering: the road's curvature a moment ahead (the driver turns into a bend before reaching it), as the front
 	// wheels' angle for this wheelbase, times the steering ratio; plus the small, constant corrections of holding a
 	// lane on a snowy road. Eased, never snapped.
@@ -556,7 +621,16 @@ void AEndingDirector::Tick(float DeltaSeconds)
 		const float Wheels = FMath::Atan(Wheelbase * Kappa);
 		float Want = SteerRatio * FMath::RadiansToDegrees(Wheels);
 		Want += 1.4f * FMath::Sin(Time * 0.63f + 0.5f) + 0.7f * FMath::Sin(Time * 1.71f + 2.1f) + 0.3f * FMath::Sin(Time * 3.9f);
-		SteerNow = FMath::FInterpTo(SteerNow, FMath::Clamp(Want, -120.f, 120.f), DeltaSeconds, 3.f);
+		float SteerRate = 3.f;
+		if (bCrash && bHoodAttack && DropT >= 0.f)
+		{
+			// (the swerves: the wheel wrenched round a moment ahead of the car's turning, fast)
+			const float s = Time - DropT + 0.12f, h = 0.03f;
+			const float aO = (SwerveOff(s + h) - 2.f * SwerveOff(s) + SwerveOff(s - h)) / (h * h);
+			Want += SteerRatio * FMath::RadiansToDegrees(FMath::Atan(Wheelbase * aO / FMath::Max(Speed * Speed, 150.f * 150.f)));
+			SteerRate = 14.f;
+		}
+		SteerNow = FMath::FInterpTo(SteerNow, FMath::Clamp(Want, -150.f, 150.f), DeltaSeconds, SteerRate);
 		Arms->Steer = SteerNow;
 	}
 }
@@ -894,11 +968,55 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 	float Want = 0.f, WantPitch = -2.f, WantPush = 0.f, Rate = 5.f, Focus = 1500.f;
 	const float t = Time;
 	auto DistTo = [this](const FVector& W) { return Camera ? FVector::Dist(Camera->GetActorLocation(), W) : 1500.f; };
-	if (bImpacted)
+	if (bImpacted && bStall && t < ImpactTime + 0.8f)
+	{
+		// the blow at the door: the head whipped round to it, on reflex (slowed): it is there, in the burst window, driving
+		// the car over
+		Want = -72.f;
+		WantPitch = -4.f;
+		Rate = 16.f;
+		Focus = 90.f;
+	}
+	else if (bImpacted)
 	{
 		Want = 0.f;               // thrown about from here: the neck brings it back as it can
 		WantPitch = 0.f;
 		Rate = 1.5f;
+	}
+	else if (bStall && StallT >= 0.f)
+	{
+		// the engine gone: a glance down at the dials as it dies, back up at the road as it rolls to a stop; then down at
+		// the key, the hand on it, turning it; up at the road ahead between the second try and the last (never toward the
+		// side it comes from: nothing gives it away), back down for the last, frantic one
+		const float s = t - StallT;
+		const float k = StopT >= 0.f ? t - StopT : -1.f;
+		const bool bDials = s > 0.25f && s < 1.3f;
+		const bool bKey = k >= 0.55f && !(k > 4.55f && k < 4.95f);
+		if (bKey && Car)
+		{
+			const FVector KeyW = Car->GetActorTransform().TransformPosition(Arms ? Arms->KeyAt : FVector(72.5f, 8.7f, 74.f));
+			float Unused = 0.f;
+			LookAt(KeyW, 0.85f, Want, Unused);
+			LookAt(KeyW, 0.9f, Unused, WantPitch);
+			WantPitch = FMath::Clamp(WantPitch, -40.f, 0.f);
+			Rate = 4.f;
+			Focus = DistTo(KeyW);
+			WantPush = 3.f;
+		}
+		else if (bDials)
+		{
+			Want = 2.f;
+			WantPitch = -16.f;
+			Rate = 5.f;
+			Focus = 70.f;
+		}
+		else
+		{
+			Want = -1.f + 2.f * FMath::Sin(t * 0.9f);
+			WantPitch = -2.f;
+			Rate = 3.f;
+			Focus = 1500.f;
+		}
 	}
 	else if (bHoodReveal && PeerT0 >= 0.f && t >= PeerT0 + 0.3f)
 	{
@@ -906,6 +1024,18 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 		WantPitch = -2.f;
 		Rate = 10.f;
 		Focus = 80.f;
+	}
+	else if (bHoodReveal && bHoodAttack && LeapT0 >= 0.f && t < LeapT0 + 2.4f && Creature)
+	{
+		// after it as it is flung off down the road, tumbling, and as it goes off into the dark
+		const FVector At = Creature->GetActorLocation() + FVector(0.f, 0.f, 60.f);
+		float Unused = 0.f;
+		LookAt(At, 0.8f, Want, Unused);
+		LookAt(At, 0.9f, Unused, WantPitch);
+		WantPitch = FMath::Clamp(WantPitch, -15.f, 10.f);
+		Rate = 6.f;
+		Focus = DistTo(At);
+		WantPush = -3.f;
 	}
 	else if (bHoodReveal && LeapT0 >= 0.f && t < LeapT0 + 2.2f)
 	{
@@ -918,7 +1048,7 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 	{
 		const float r = t - RiseT0;
 		// (the eyes are on the road until its face has swung into sight, and a beat after: a startle, not a search)
-		if (HangInT < 0.f || t < HangInT + 0.32f)
+		if (!bHoodAttack && (HangInT < 0.f || t < HangInT + 0.32f))
 		{
 			// the thud overhead (no warning: the eyes were on the road): a flinch up at the roof, then back down to the road
 			// and held there, frozen. The eyes don't know where it will come from (the owner: never looking ahead to

@@ -228,6 +228,12 @@ def crash(ev, total):
     perched = t_land is not None
     t_hang, t_slam, t_claw = first('hang'), first('slam'), first('claw')
     roof = t_hang is not None                             # on the roof: its face drops in and it attacks the windshield
+    # on the bonnet as the car drives on (the owner's choice, after Dying Light: The Beast): it lands, clings through the
+    # swerves, shrieks at the glass, slams its head into it, and is flung off by the brakes; scored as the roof attack is,
+    # its landing for the moment its face appears
+    hoodatk = t_hang is None and t_slam is not None
+    if hoodatk:
+        t_hang, roof = t_land, True
     dropped = first('drop') is not None                   # it drops onto the bonnet with no warning (nothing ran across)
     if perched:
         t_hand = t_land                                   # (its claws, from when it lands)
@@ -243,6 +249,15 @@ def crash(ev, total):
         t_bolt = t_gone                                   # (the old beats keyed on its going)
     t_speed, t_edge, t_crack = first('speed', t_imp + 1.6), first('edge', t_imp + 1.2), first('crack', t_imp + 2.0)
     t_lunge = first('lunge', t_imp)
+    # the stall (the owner's choice): the engine dies out of nowhere, the car rolls to a stop, the key won't start it, and
+    # it hits the driver's door out of the dark; nothing of it seen or heard before (no steps, no bolt, no growl, no creep)
+    t_stall = first('stall')
+    stall = t_stall is not None
+    cranks = [t for t, k, v in ev if k == 'crank']
+    if stall:
+        t_sight = t_brake = t_stall
+        t_roar, t_scream, t_bolt = t_imp, t_imp + 0.1, t_imp
+        t_creep, t_growl = t_imp + 1.0, t_imp + 7.0
     t_black, t_upside, t_wake = first('black', t_imp + 16), first('upside'), first('wake', (first('black', t_imp + 16) or 0) + 3)
     t_sil, t_close, t_title = first('silhouette'), first('close'), first('title')
     hits = [(t, v) for t, k, v in ev if k == 'hit']
@@ -253,15 +268,15 @@ def crash(ev, total):
     eng = steady('engine/engine_volvo240_interior_journey_130135', t_brake + 1.0, skip=60)
     M.bed(level(fade(eng, 2.0, 1.0), 0.045), 0.0, t_brake + 1.0, [(0, 0), (4.8, 0.5), (7.8, 1.0), (t_brake, 1.0), (t_brake + 1.0, 0.0)])
     idle = steady('engine/engine_idle_interior_loop_522223', total, skip=0.5)
-    M.bed(level(idle, 0.035), t_brake, t_black, [(t_brake, 0), (t_brake + 1.0, 1.0), (t_stop + 1.0, 0.7), (t_creep, 0.7),
+    M.bed(level(idle, 0.0 if stall else 0.035), t_brake, t_black, [(t_brake, 0), (t_brake + 1.0, 1.0), (t_stop + 1.0, 0.7), (t_creep, 0.7),
                                                  (t_creep + 1.0, 0.9), (t_imp, 0.9), (t_imp + 0.3, 1.3), (t_black - 0.2, 1.0), (t_black, 0)])
     tyres = steady('snow_tyres/snow_tyres_car_motion_on_snow_468178', t_imp + 1.0, skip=5)
     M.bed(level(filt(tyres, A.lp(2200)), 0.022), 0.0, t_imp, [(0, 0), (6, 1), (t_brake, 1), (t_stop, 0), (t_creep, 0), (t_creep + 1, 0.5), (t_imp, 0.5)])
     wind_in = steady('wind/wind_heavy_wind_inside_car_82267', total, skip=10)
     M.bed(level(wind_in, 0.042), 0.0, t_imp + 0.5, [(0, 0.6), (5, 1.0), (t_stop, 1.0), (t_stop + 1, 0.6), (t_imp, 0.6), (t_imp + 0.5, 0)])
     outside = steady(AMB_BLIZ, total, skip=1)
-    M.bed(level(filt(outside, A.lp(1300)), 0.02), 0.0, t_imp + 0.5, [(0, 0.5), (5, 1.0), (t_stop, 1.0), (t_scream - 0.6, 1.0),
-                                                                     (t_scream + 1.0, 1.0), (t_imp, 1.0), (t_imp + 0.5, 0)])
+    M.bed(level(filt(outside, A.lp(1300)), 0.02), 0.0, t_imp + 0.5, [(0, 0.5), (5, 1.0), (t_stop, 1.0), (t_imp, 1.0), (t_imp + 0.5, 0)]
+          if stall else [(0, 0.5), (5, 1.0), (t_stop, 1.0), (t_scream - 0.6, 1.0), (t_scream + 1.0, 1.0), (t_imp, 1.0), (t_imp + 0.5, 0)])
     wipers = steady('cabin/cabin_wipers_snow_ice_jeep_869005', total, skip=1)
     M.bed(level(wipers, 0.012), 4.8, t_imp, [(4.8, 0), (7, 1), (t_stop, 1), (t_stop + 1, 0.45), (t_imp, 0.45)])
 
@@ -285,16 +300,36 @@ def crash(ev, total):
 
     # ---- something darts across the edge of the headlights: a quick string swell, its feet on the snow; the brakes ------
     # (when it drops onto the bonnet out of nowhere there is no warning at all: no swell, no steps, no flinch)
-    if not dropped:
+    if not dropped and not stall:
         M.at(t_sight - 0.55, pan(fade(peak(seg(ST_CRESC_NAME, 2.6, 0.85), 0.42), 0.02, 0.15), 0.3))
         M.at(t_sight - 0.03, pan(peak(filt(seg(HIT_BOOM, 0.0, 3.0), A.lp(300)), 0.35), 0.0))
         dart = loudest('footsteps/footsteps_horse_gallop_close_479799', 1.4, pre=0.2)
         M.at(t_cre + 0.2, pan(peak(filt(pitch(dart, 0.85), A.lp(1600)), 0.12), 0.5))
     skid = filt(fade(load('snow_tyres/snow_tyres_brake_skid_gravel_short_637161'), 0.01, 0.3), A.lp(2800))
     t_skid = t_land + 0.25 if perched else t_brake
+    if hoodatk:
+        t_skid = t_brake                                  # (it drives on with it on the bonnet: the skid is the brakes)
+        # the swerves: the tyres breaking loose on the snow, one way then the other
+        for dt, pn, g in ((1.05, -0.35, 0.16), (1.85, 0.35, 0.2), (2.6, -0.2, 0.12)):
+            M.at(t_land + dt, pan(peak(fade(skid[:, :int(0.75 * SR)], 0.04, 0.3), g), pn))
     if perched and not dropped:
         M.at(t_brake, pan(peak(skid[:, :int(0.5 * SR)], 0.09), 0.0))       # the flinch
-    M.at(t_skid, pan(peak(skid, 0.2), 0.0))
+    if not stall:
+        M.at(t_skid, pan(peak(skid, 0.2), 0.0))
+    else:
+        # the engine dies: a cough, a sputter, gone (an old engine running down); the car rolls on in the quiet
+        die = seg('engine_die/engine_die_old_truck_sputter_to_stop_438085', 41.4, 3.2)
+        M.at(t_stall - 0.08, pan(peak(filt(fade(die, 0.03, 0.9), A.lp(3500)), 0.32), 0.0))
+        M.at(t_stall + 0.1, pan(peak(seg(F_CREAK, 1.0, 1.5), 0.06), 0.0))
+        # the keys on their ring knocking as the hand gets there; each turn the starter grinding (a 1983 Volvo 245's
+        # own failing starter), weaker each time, the last ones short and frantic
+        t_reach = t_stop + 0.7
+        M.at(t_reach + 0.4, pan(peak(filt(seg(F_LEATHER, 0.8, 0.6), A.hp(1500)), 0.05), 0.2))
+        grind = [(41.30, 1.15), (43.45, 1.35), (45.30, 0.35), (45.70, 0.40), (46.20, 0.50)]
+        for i, t0 in enumerate(cranks):
+            a, d = grind[min(i, len(grind) - 1)]
+            g = seg('engine_die/engine_die_volvo245_1983_starter_failure_322974', a, d)
+            M.at(t0 - 0.02, pan(peak(filt(fade(g, 0.01, 0.08), A.lp(5000)), 0.36 - 0.03 * i), 0.12))
     crunch = steady('snow_tyres/snow_tyres_tires_snow_ice_slow_71099', max(0.5, t_stop - t_skid), skip=0.5)
     M.at(t_skid + 0.2, peak(filt(fade(crunch, 0.1, 0.6), A.lp(2400)), 0.14))
 
@@ -329,8 +364,9 @@ def crash(ev, total):
             beats.append(tb)
             tb += 0.7 - 0.25 * np.clip((tb - t_rise) / stare, 0, 1)
     else:
-        steps = loudest('footsteps/footsteps_heavy_steps_snow_543385', 2.0, pre=0.2)
-        M.at(t_cre + 0.6, pan(peak(filt(pitch(steps, 0.8), A.lp(1200)), 0.08), -0.1))
+        if not stall:
+            steps = loudest('footsteps/footsteps_heavy_steps_snow_543385', 2.0, pre=0.2)
+            M.at(t_cre + 0.6, pan(peak(filt(pitch(steps, 0.8), A.lp(1200)), 0.08), -0.1))
         stare = max(1.0, t_roar - 0.45 - t_stop)
         M.bed(level(filt(steady(STR_SCRAPE, stare + 0.5, skip=5), A.lp(4000)), 0.01), t_stop, t_roar - 0.45,
               [(t_stop, 0), (t_stop + 1.5, 1.0), (t_roar - 0.45, 1.0)])
@@ -361,7 +397,17 @@ def crash(ev, total):
     if hood:
         sc = filt(sc, A.lp(6500)) * 1.0 + filt(sc, A.lp(220)) * 0.6          # through the glass: duller on top, the glass
                                                                                 # and the car's shell booming with it
-    if not perched:
+    if stall:
+        n = int(1.25 * SR)
+        sh = np.zeros((2, n))
+        for name, f, g, pre in ((CR_SCREAMS, 0.95, 1.0, 0.08), ('creature_extra/creature_extra_fox_screaming_night_832436', 0.9, 0.7, 0.05),
+                                (CR_PIG, 0.8, 0.35, 0.05), (CR_CHIMP, 0.92, 0.3, 0.05)):
+            c = pitch(loudest(name, 1.3, pre=pre), f)[:, :n]
+            sh[:, :c.shape[1]] += level(fade(c, 0.02, 0.35), 0.1) * g
+        sh = verb(sh, 1.6, 0.25)
+        M.at(t_imp - 0.04, pan(peak(fade(sh, 0.02, 0.4), 0.85), -0.7))     # (at the driver's door, the left)
+        M.at(t_imp - 0.06, pan(peak(load(HIT_BRAAM), 0.5), 0.0))
+    elif not perched:
         M.at(t_scream - 0.08, pan(peak(fade(sc, 0.03, 0.8), 0.92), -0.05))
         M.at(t_scream - 0.08, pan(peak(load(HIT_BRAAM), 0.55), 0.0))
         M.at(t_scream - 0.08, pan(peak(seg(HIT_BOOM, 0.0, 5.0), 0.6), 0.0))
@@ -400,27 +446,34 @@ def crash(ev, total):
         if perched and t_gone:
             M.at(t_gone - 0.02, pan(peak(filt(loudest('snow_impact/snow_impact_hard_impact_snow_683789', 0.7, pre=0.03), A.lp(1500)), 0.25), 0.0))
         for i, t0 in enumerate(roofs):
+            if hoodatk:
+                # (flung off: its body hitting the snow out ahead, tumbling)
+                thud = loudest('snow_impact/snow_impact_hard_impact_snow_683789', 0.7, pre=0.03)
+                M.at(t0 - 0.02, pan(peak(filt(fade(thud, 0.003, 0.4), A.lp(1400)), 0.3 - 0.08 * i), 0.0))
+                continue
             thud = loudest(['metal_impact/metal_impact_car_hood_slam_big_329516', 'metal_impact/metal_impact_sheet_metal_drop_587442'][i % 2], 0.9, pre=0.02)
             M.at(t0 - 0.02, pan(peak(filt(fade(thud, 0.003, 0.4), A.lp(1800)), 0.55 - 0.1 * i), 0.0))
             M.at(t0, pan(peak(seg(F_CREAK, 3.0 + i, 1.5), 0.12), 0.0))
-    else:
+    elif not stall:
         away = loudest('footsteps/footsteps_horse_gallop_close_479799', 2.5, pre=0.3)
         M.at(t_bolt, pan(level(filt(pitch(fade(away, 0.05, 1.5), 0.8), A.lp(1000)), 0.02), 0.2))
-    howl = verb(filt(pitch(loudest(AMB_WOLF, 6.0, pre=1.0), 0.62), A.lp(1100)), 3.5, 0.65)
-    M.at(t_bolt + 3.2, pan(fade(peak(howl, 0.07), 0.5, 2.5), 0.5))
+    if not stall:
+        howl = verb(filt(pitch(loudest(AMB_WOLF, 6.0, pre=1.0), 0.62), A.lp(1100)), 3.5, 0.65)
+        M.at(t_bolt + 3.2, pan(fade(peak(howl, 0.07), 0.5, 2.5), 0.5))
 
     # ---- the creep: scratching strings, a tree groaning on the right, the wheel creaking in the hands; the heart ---------
-    M.bed(level(filt(steady(STR_ALEA, max(1.0, t_growl - t_creep), skip=3), A.lp(5000)), 0.016), t_creep, t_growl - 3.4,
+    if not stall:
+      M.bed(level(filt(steady(STR_ALEA, max(1.0, t_growl - t_creep), skip=3), A.lp(5000)), 0.016), t_creep, t_growl - 3.4,
           [(t_creep, 0), (t_creep + 2.0, 1.0), (t_growl - 3.6, 1.0), (t_growl - 3.4, 0)])
-    M.at(t_creep + 2.6, pan(fade(peak(seg(AMB_TREES, 25.0, 4.0), 0.12), 0.3, 1.0), 0.7))
-    M.at(t_creep + 0.8, pan(peak(seg(F_LEATHER, 0.8, 1.2), 0.05), -0.2))
-    tb = t_creep + 0.5
-    while tb < t_lunge - 0.1:
-        beats.append(tb)
-        tb += 0.62 - 0.24 * np.clip((tb - t_creep) / max(t_imp - t_creep, 1), 0, 1)
-    # the mirror: everything but the heart drops away
-    duck = np.interp(tt, [0, t_growl - 3.4, t_growl - 2.6, t_growl - 0.05, t_growl, total], [1, 1, 0.2, 0.2, 1, 1])
-    M.x *= duck
+      M.at(t_creep + 2.6, pan(fade(peak(seg(AMB_TREES, 25.0, 4.0), 0.12), 0.3, 1.0), 0.7))
+      M.at(t_creep + 0.8, pan(peak(seg(F_LEATHER, 0.8, 1.2), 0.05), -0.2))
+      tb = t_creep + 0.5
+      while tb < t_lunge - 0.1:
+          beats.append(tb)
+          tb += 0.62 - 0.24 * np.clip((tb - t_creep) / max(t_imp - t_creep, 1), 0, 1)
+      # the mirror: everything but the heart drops away
+      duck = np.interp(tt, [0, t_growl - 3.4, t_growl - 2.6, t_growl - 0.05, t_growl, total], [1, 1, 0.2, 0.2, 1, 1])
+      M.x *= duck
     for t0 in beats:
         M.at(t0, beat, 0.75)
     if t_face:
@@ -435,7 +488,8 @@ def crash(ev, total):
     if perched:
         g1 = pitch(seg(CR_BREATH, 30.0, 1.3), 0.55)
     g2 = pitch(loudest('creature/creature_black_bear_angry_growl_763026', 1.4, pre=0.15), 0.62)
-    M.at(t_growl, pan(peak(verb(level(g1, 0.1) if perched else sumc(level(g1, 0.1), level(g2, 0.08)), 1.0, 0.2), 0.3 if perched else 0.42 if hood else 0.72), -0.9))
+    if not stall:
+      M.at(t_growl, pan(peak(verb(level(g1, 0.1) if perched else sumc(level(g1, 0.1), level(g2, 0.08)), 1.0, 0.2), 0.3 if perched else 0.42 if hood else 0.72), -0.9))
     steps_in = loudest('footsteps/footsteps_horse_gallop_close_479799', 1.0, pre=0.2)
     M.at(t_charge, pan(peak(filt(pitch(steps_in, 0.75), A.lp(1400)), 0.25), -0.8))
 
