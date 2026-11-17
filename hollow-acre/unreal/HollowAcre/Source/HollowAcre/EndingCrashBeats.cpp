@@ -623,6 +623,13 @@ void AEndingDirector::AfterTheFall(float RealDt)
 				}
 			}
 		}
+		if (bWake)
+		{
+			// (the wake: where the crash leaves it, without the fall)
+			const float g = GroundAt(WakeRestAt);
+			At = FVector(WakeRestAt.X, WakeRestAt.Y, FMath::IsNaN(g) ? WakeRestAt.Z : g);
+			FaceYaw = WakeRestYaw;
+		}
 		if (!TownRestAt.IsNearlyZero())
 		{
 			// (the owner: it ends up at the edge of an abandoned town, not by another road: at the head of its street,
@@ -683,6 +690,18 @@ void AEndingDirector::AfterTheFall(float RealDt)
 		}
 		SetFocus(12.f);
 		Event(TEXT("upside"));
+		if (bWake)
+		{
+			WakeSetup();
+		}
+	}
+	if (bWake)
+	{
+		if (bUpsideDown)
+		{
+			WakeBeats(RealDt);
+		}
+		return;
 	}
 	// waking: the eyes open, close, open, the picture swimming into focus
 	if (!bWoke && RealTime >= RestReal + WakeAfterRest)
@@ -2644,6 +2663,7 @@ bool AEndingDirector::GetLine(FString& Line, float& Alpha) const
 		{TEXT("stall"), 0.7f, 2.2f, TEXT("No. No, no, no...")},
 		{TEXT("stopped"), 1.3f, 1.8f, TEXT("Come on...")},
 		{TEXT("frantic"), 0.05f, 0.9f, TEXT("Come on!")},
+		{TEXT("stuck"), 0.2f, 1.7f, TEXT("Come on...")},
 	};
 	for (const FLine& L : Lines)
 	{
@@ -2670,7 +2690,7 @@ bool AEndingDirector::GetCaption(FString& Line1, FString& Line2, float& Alpha, f
 		return false;
 	}
 	// where and when, over the opening black
-	if (RealTime < 5.f)
+	if (RealTime < 5.f && !bWake)
 	{
 		Alpha = Smooth((RealTime - 1.f) / 0.9f) * (1.f - Smooth((RealTime - 3.9f) / 0.8f));
 		Line1 = PlaceText.ToString();

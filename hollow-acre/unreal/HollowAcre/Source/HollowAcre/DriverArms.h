@@ -128,6 +128,36 @@ public:
 	FVector EyeShift = FVector::ZeroVector;
 	FQuat EyeTurn = FQuat::Identity;
 
+	// ---- Part 2's opening (the wake in the wreck): the body out of the seat (DriverArmsFree.cpp) -------------------
+	/** While set, the body goes where the director puts the chest and the arms reach where it says (not the wheel). */
+	bool bFree = false;
+	/** Where the upper chest is (the spine_05 bone's frame, car frame). */
+	FTransform FreeChest = FTransform::Identity;
+	struct FFreeHand
+	{
+		float W = 0.f;                            // 0 hanging free under gravity .. 1 at Hand
+		FTransform Hand = FTransform::Identity;  // the hand bone's frame (car frame)
+		uint8 Shape = 1;                          // 0 flat (pressed on something), 1 relaxed, 2 round a handle, 3 round a buckle
+		float Close = 1.f;                        // how far the fingers are into Shape (0 relaxed)
+		FVector Pole = FVector::ZeroVector;       // the elbow's way (car frame); zero: as at the wheel, turned with the chest
+	};
+	FFreeHand Free[2];
+	/** The hand bone's frame (car frame) that puts the middle of the palm's skin at PalmAt, the fingers along Finger and
+	 *  the palm facing Facing (toward what it presses on). */
+	FTransform HandAtPalm(int32 Side, const FVector& PalmAt, const FVector& Finger, const FVector& Facing) const;
+	/** The hand bone's frame (car frame) gripping a handle (the flashlight's own frame: X along it, the switch up) as it is. */
+	FTransform HandOnHandle(int32 Side, const FTransform& Handle) const;
+	/** The handle (the flashlight's own frame) in the hand as the hand is now (car frame). */
+	FTransform HandleInHand(int32 Side) const;
+	/** The hand bone's frame now (car frame). */
+	FTransform HandNow(int32 Side) const;
+	/** The chest (spine_05's frame, car frame) under an eye at Eye (looking along its X), as when sitting. */
+	FTransform ChestForEye(const FTransform& Eye) const { return ChestInEye * Eye; }
+	/** The grip and the hands' shapes are made (the first tick). */
+	bool IsReady() const { return bShapes; }
+	/** The palm's skin (its middle) now, and which way it faces (car frame): for checking a hand meets what it presses on. */
+	FVector PalmNow(int32 Side, FVector* Facing = nullptr) const;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
@@ -219,4 +249,22 @@ private:
 	bool bKeyPhi = false;
 	/** The palm's way out of the hand (the hand's own frame), as it pinches the key. */
 	FVector PinchPalm = FVector::ZeroVector;
+
+	// the body free (DriverArmsFree.cpp)
+	void FreeFollow();
+	void MakeShapes();
+	bool bShapes = false;
+	// per side: each arm bone's own way along it and the elbow's bend axis (in that bone's frame), how the hand sat on the
+	// forearm at the wheel, the forearm's twist bones (how far along it)
+	FVector AlongU[2], BendU[2], AlongF[2], BendF[2];
+	FQuat HandInFore[2];
+	TArray<TPair<int32, float>> Twist[2];
+	// the hand's own frame (hand bone): the palm's skin in its middle, which way the fingers point, the palm faces, across it
+	FVector PalmSkinL[2], FingerL[2], FaceL[2], AcrossL[2];
+	// each shape's finger and thumb rotations (bone index -> its own rotation)
+	TMap<int32, FQuat> ShapeLocal[2][4];
+	FTransform HoldInHand[2];                 // a gripped handle's frame (the flashlight's) in the hand bone's frame
+	FTransform ChestInEye = FTransform::Identity;
+	FTransform SitChestCS = FTransform::Identity, SitChestCar = FTransform::Identity;
+	TFunction<float(const FVector&)> GraspDist;   // while making a grip: a point's distance to the handle (car frame)
 };

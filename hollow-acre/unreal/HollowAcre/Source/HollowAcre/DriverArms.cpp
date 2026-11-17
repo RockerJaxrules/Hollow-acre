@@ -130,6 +130,10 @@ float ADriverArms::RimDistCS(const FVector& PCS) const
 {
 	// distance from a point (component space) to the rim's surface (car frame torus)
 	const FVector P = Mesh->GetRelativeTransform().TransformPosition(PCS);
+	if (GraspDist)
+	{
+		return GraspDist(P);                     // (making a grip: the handle instead)
+	}
 	const float Tilt = FMath::DegreesToRadians(WheelTilt);
 	const FVector Nw(-FMath::Cos(Tilt), 0.f, FMath::Sin(Tilt));
 	const FVector D = P - WheelCentre;
@@ -367,6 +371,10 @@ FTransform ADriverArms::CurCS(int32 Bone, TMap<int32, FTransform>& Cache) const
 float ADriverArms::CollideDist(const FVector& P) const
 {
 	// the wheel as modelled (car frame): the rim's oval tube, and the four spokes as rounded bars
+	if (GraspDist)
+	{
+		return GraspDist(P);                     // (making a grip: the handle instead)
+	}
 	const float Tilt = FMath::DegreesToRadians(WheelTilt);
 	const FVector Nw(-FMath::Cos(Tilt), 0.f, FMath::Sin(Tilt));
 	const FVector U(0.f, 1.f, 0.f);
@@ -1016,6 +1024,7 @@ void ADriverArms::Tick(float DeltaSeconds)
 		SnapshotGrip();
 		bGripReady = true;
 		LastSteer = 1e9f;
+		MakeShapes();
 	}
 	MakeKey();
 	if (KeyPivot)
@@ -1054,6 +1063,13 @@ void ADriverArms::Tick(float DeltaSeconds)
 		const FVector Down = Car.TransformVectorNoScale((DangleBob - P).GetSafeNormal());
 		const FVector KeyY = KeyPivot->GetComponentQuat().GetAxisY();
 		KeyDangle->SetWorldRotation(FRotationMatrix::MakeFromZY(-Down, KeyY).ToQuat());
+	}
+	if (bFree)
+	{
+		// the body out of the seat (the wake): wherever the director puts it, every frame
+		FreeFollow();
+		Mesh->MarkRefreshTransformDirty();
+		return;
 	}
 	if (FMath::IsNearlyEqual(Steer, LastSteer, 0.01f) && FMath::IsNearlyEqual(KeyReach, LastKeyReach, 0.0005f) && FMath::IsNearlyEqual(KeyTurn, LastKeyTurn, 0.01f))
 	{

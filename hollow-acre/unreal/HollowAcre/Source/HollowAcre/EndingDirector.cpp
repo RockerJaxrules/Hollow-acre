@@ -61,6 +61,12 @@ void AEndingDirector::BeginPlay()
 	{
 		bCrash = true;
 	}
+	if (FParse::Param(FCommandLine::Get(), TEXT("wake")))
+	{
+		// Part 2's opening: straight to the car on its roof at the bottom, waking in the belt (EndingWakeBeats.cpp)
+		bCrash = true;
+		bWake = true;
+	}
 	auto ParseVec = [](const TCHAR* Key, FVector& Out)
 	{
 		FString S;
@@ -169,7 +175,7 @@ void AEndingDirector::BeginPlay()
 	if (bCrash)
 	{
 		// Part 2 opens on black and fades into the drive already under way; no end card (the crash ends in black)
-		bHoldBlack = !FParse::Param(FCommandLine::Get(), TEXT("nofade"));
+		bHoldBlack = !bWake && !FParse::Param(FCommandLine::Get(), TEXT("nofade"));
 		if (bHoldBlack)
 		{
 			FTimerHandle T;
@@ -291,6 +297,17 @@ void AEndingDirector::Tick(float DeltaSeconds)
 	}
 	if (!Car)
 	{
+		return;
+	}
+	if (bWake)
+	{
+		// the wake: no drive, no attack, no fall; the car left on its roof, then the waking (EndingWakeBeats.cpp)
+		if (!bImpacted)
+		{
+			WakeJump();
+		}
+		CrashCamera(DeltaSeconds);
+		AfterTheFall(RealDt);
 		return;
 	}
 

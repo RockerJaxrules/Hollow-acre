@@ -404,6 +404,50 @@ private:
 	/** The eyes on the key (this frame), and how far the view closes in on it then (degrees of field of view). */
 	bool bOnKey = false;
 	float KeyFov = 58.f;
+	// ---- Part 2's opening, the wake in the wreck (EndingWakeBeats.cpp; -wake): straight to the car on its roof where the
+	// fall left it; the eyes open hanging in the belt; the buckle, the drop, the flashlight, the thump, out of the window
+	bool bWake = false;
+	float WakeT0 = -1.f;                     // (real time) the eyes begin to open
+	/** Where the car is left at the bottom (as the crash leaves it, -notown) and the way it faces (degrees). */
+	FVector WakeRestAt = FVector(9646.003f, 46709.351f, 0.f);
+	float WakeRestYaw = 351.f;
+	/** Up the chute it fell down: where the fall stopped (world), for the last look back up. */
+	FVector WakeChuteAt = FVector(18646.003f, 40709.351f, -6285.836f);
+	void WakeJump();
+	void WakeSetup();
+	void WakeBeats(float RealDt);
+	void WakeBreath(float w, float RealDt, const FTransform& Eye);
+	UPROPERTY()
+	TObjectPtr<class AStaticMeshActor> Flashlight;
+	UPROPERTY()
+	TObjectPtr<class USpotLightComponent> FlashBeam;
+	UPROPERTY()
+	TObjectPtr<class UPointLightComponent> FlashSpill;
+	UPROPERTY()
+	TArray<TObjectPtr<AActor>> WakeProps;
+	UPROPERTY()
+	TObjectPtr<class AStaticMeshActor> SnowSlab;
+	UPROPERTY()
+	TObjectPtr<class AStaticMeshActor> SnowLump;
+	UPROPERTY()
+	TArray<TObjectPtr<class UStaticMeshComponent>> BreathPool;
+	UPROPERTY()
+	TArray<TObjectPtr<class UMaterialInstanceDynamic>> BreathMID;
+	struct FPuff
+	{
+		FVector P, V;
+		float Age, Life, Size;
+	};
+	TArray<FPuff> Puffs;
+	float NextPuff = 0.f, WakeNextDrip = 0.f, FlashOn = 0.f;
+	FTransform FlashRest = FTransform::Identity;   // (car frame) where it lies in the spill
+	FTransform BodyEye = FTransform::Identity;      // (car frame) the eye's frame the chest hangs under (lags the head)
+	FTransform HoldAim = FTransform::Identity;       // (car frame) the flashlight's held frame, swaying behind the eyes
+	bool bFlashHeld = false, bBodyEye = false;
+	float WakeGroundZ = 141.f;                       // (car frame) the snow's height beside the car
+	TSet<FName> WakeFired;
+	bool WakeOnce(const TCHAR* Kind, float At, float w);
+
 	// the rebuilt cut (EndingCrashBeats.cpp)
 	void BeginCrashScene();
 	void CrashBeats(float DeltaSeconds);
