@@ -290,7 +290,7 @@ void AEndingDirector::WakeSetup()
 		WakeTint(Cs, 1, FLinearColor(0.62f, 0.58f, 0.48f), 0.f, 0.8f);
 		WakeTint(Cs, 2, FLinearColor(0.008f, 0.008f, 0.01f), 0.f, 0.12f);
 	}
-	for (const FVector& C : {FVector(38.f, 40.f, Zf), FVector(-4.f, 54.f, Zf), FVector(34.f, 62.f, Zf), FVector(2.f, 66.f, Zf)})
+	for (const FVector& C : {FVector(38.f, 40.f, Zf), FVector(-20.f, 46.f, Zf), FVector(34.f, 62.f, Zf), FVector(16.f, 74.f, Zf)})
 	{
 		if (AStaticMeshActor* Co = Prop(TEXT("Wake_Coin"), FTransform(FRotationMatrix::MakeFromX(WUp).ToQuat(), C)))
 		{
@@ -310,7 +310,7 @@ void AEndingDirector::WakeSetup()
 	}
 	// the flashlight on its side among them, its head toward the driver; the head (wider) on the lining, the barrel just off it
 	{
-		FVector X = FVector(-0.95f, -0.3f, 0.f);   // (across the view on a diagonal, its head on the thumb's side: "grab it, twist it down", the owner's recommended way)
+		FVector X = FVector(-0.42f, 0.91f, 0.f);   // (diagonal, its head away and to the left, as the owner's bottle first lay: "grab it, twist your wrist")
 		{
 			float Yaw = 0.f;                       // (checking: -wakeflashyaw=degrees turns how it lies; the grab adapts)
 			FParse::Value(FCommandLine::Get(), TEXT("-wakeflashyaw="), Yaw);
@@ -407,7 +407,7 @@ void AEndingDirector::WakeSetup()
 				return;
 			}
 			// (none where a hand or the flashlight will lie on the lining: they'd show through the skin)
-			for (const FVector2D& Clear : {FVector2D(16.f, 20.f), FVector2D(-6.f, 28.f), FVector2D(-12.f, 26.f), FVector2D(15.f, 52.f), FVector2D(2.f, 39.f), FVector2D(22.f, 62.f), FVector2D(-4.f, 38.f), FVector2D(-12.f, 35.f), FVector2D(26.f, -20.f)})
+			for (const FVector2D& Clear : {FVector2D(16.f, 20.f), FVector2D(-6.f, 28.f), FVector2D(-12.f, 26.f), FVector2D(15.f, 52.f), FVector2D(2.f, 39.f), FVector2D(22.f, 62.f), FVector2D(-4.f, 38.f), FVector2D(-12.f, 35.f), FVector2D(3.f, 52.f), FVector2D(-1.f, 61.f), FVector2D(26.f, -20.f)})
 			{
 				if (FVector2D::Distance(FVector2D(At.X, At.Y), Clear) < 9.f)
 				{
@@ -1140,7 +1140,13 @@ void AEndingDirector::WakeBeats(float RealDt)
 			}
 			const FVector Up0 = Eye.GetRotation().GetAxisZ();
 			const FVector ShowZ = FQuat(ShowDir, FMath::DegreesToRadians(ShowRoll)).RotateVector((Up0 - ShowDir * FVector::DotProduct(Up0, ShowDir)).GetSafeNormal());
-			const FTransform ShowT(FRotationMatrix::MakeFromXZ(ShowDir, ShowZ).ToQuat(), ShowAt);
+			FTransform ShowT(FRotationMatrix::MakeFromXZ(ShowDir, ShowZ).ToQuat(), ShowAt);
+			if (bFlashUpHigh)
+			{
+				// (up high: raised to the right of the eyes, the light forward and a little down onto the lining ahead)
+				const FVector HighDir = Eye.GetRotation().RotateVector(FVector(1.f, -0.12f, -0.3f)).GetSafeNormal();
+				ShowT = FTransform(FRotationMatrix::MakeFromXZ(HighDir, Up0).ToQuat(), Eye.TransformPosition(FVector(27.f, 11.f, 3.f)));
+			}
 			HoldWant.Blend(HoldWant, ShowT, Show);
 		}
 	}
@@ -1261,11 +1267,10 @@ void AEndingDirector::WakeBeats(float RealDt)
 			L.W = 1.f;
 			L.Hand = LProp;
 			L.Shape = 0;
-			// the right hand, as the owner showed it (a roll off the bath mat, talked through: "grab it, down, or grab it,
-			// overhand"): the hand always comes over the top and closes round its middle; then by where its head points:
-			// toward the thumb's side, the grip has the thumb toward the head and the wrist twists down into the ready hold;
-			// toward the little finger's side, it's brought straight up as it was taken, held overhand (the head past the
-			// little finger, as some people hold a flashlight)
+			// the right hand, as the owner showed it (a bottle off the carpet, its cap for the light, both ways for each lie,
+			// talked through): the hand always comes over the top and closes round its middle; then by where the head points:
+			// AWAY from the body, the wrist twists and it's held low and ready, the light forward; BACK TOWARD the body, it's
+			// brought straight up and held up high, the light forward ("this one's a bit easier")
 			{
 				const FVector Ax = FlashRest.GetRotation().GetAxisX();                         // (along it, tail to head)
 				const FVector Grip = FlashRest.GetLocation() + Ax * 12.5f;                     // (where the hand closes on it)
@@ -1275,14 +1280,15 @@ void AEndingDirector::WakeBeats(float RealDt)
 				const FVector ThumbSide = FVector::CrossProduct(Rd, WUp).GetSafeNormal();      // (a right hand palm down: its thumb's side)
 				FVector Ah = Ax - WUp * FVector::DotProduct(Ax, WUp);
 				Ah.Normalize();
-				const float HeadToThumb = FVector::DotProduct(Ah, ThumbSide);
+				const float HeadToThumb = FVector::DotProduct(Ah, ThumbSide), HeadAway = FVector::DotProduct(Ah, Rd);
 				const bool bOverTop = true;
-				const bool bFlip = HeadToThumb < 0.f;                                          // (the head past the little finger)
+				const bool bFlip = HeadToThumb < 0.f;                                          // (taken with the head past the little finger)
+				const bool bUpHigh = HeadAway < 0.f;                                           // (its head back toward the body)
 				if (WakeOnce(TEXT("grabplan"), 10.6f, w))
 				{
-					UE_LOG(LogTemp, Display, TEXT("WakeGrab the flashlight's head points %.0f%% to the thumb's side: over its top, then %s"),
-						HeadToThumb * 100.f, bFlip ? TEXT("brought straight up, held overhand (the head past the little finger)") :
-						TEXT("the wrist twisted down into the ready hold (the thumb toward the head)"));
+					UE_LOG(LogTemp, Display, TEXT("WakeGrab the flashlight's head points %.0f%% away along the arm, %.0f%% to the thumb's side: over its top, then %s"),
+						HeadAway * 100.f, HeadToThumb * 100.f, bUpHigh ? TEXT("brought straight up, held up high, the light forward") :
+						bFlip ? TEXT("turned in the hand as the wrist twists, held low and ready") : TEXT("the wrist twisted, held low and ready"));
 				}
 				// the grip frame the hand closes on: along it toward whichever end sits by the thumb, its top up
 				const FVector Xg = bFlip ? -Ax : Ax;
@@ -1330,8 +1336,11 @@ void AEndingDirector::WakeBeats(float RealDt)
 						// into the ready grip as the hand lifts; taken by its other end, that turn is the whole way round)
 						bFlashHeld = true;
 						FlashGrabW = w;
-						FlashTurnSecs = 0.35f;
-						bFlashReversed = bFlip;
+						// (up high: held as it was taken; low and ready: the thumb toward the head, turned in the hand if
+						// it was taken the other way)
+						bFlashUpHigh = bUpHigh;
+						bFlashReversed = bUpHigh && bFlip;
+						FlashTurnSecs = (!bUpHigh && bFlip) ? 0.6f : 0.35f;
 						FlashInHandAtGrab = FlashRest * Arms->HandNow(1).Inverse();
 						HoldAim = FlashRest;
 						Event(TEXT("grab"));

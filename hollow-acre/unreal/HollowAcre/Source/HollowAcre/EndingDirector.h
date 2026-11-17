@@ -449,6 +449,7 @@ private:
 	bool bFlashHeld = false, bBodyEye = false, bWakeHandedOver = false;
 	FTransform FlashInHandAtGrab = FTransform::Identity;   // the flashlight in the hand's frame as the fingers first closed on it
 	float FlashGrabW = 0.f;
+	bool bFlashUpHigh = false;                       // (held up high, the light forward: its head lay back toward the body)
 	bool bFlashReversed = false;                     // (held overhand: the head past the little finger)
 	float FlashTurnSecs = 0.35f;                     // (how long it takes to turn in the fingers into the ready grip)
 	float WakeGroundZ = 141.f;                       // (car frame) the snow's height beside the car
