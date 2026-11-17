@@ -1,11 +1,15 @@
 """M_DriverClothes: the driver's clothes, a layer over their own skin (DriverArms draws the body twice: the MetaHuman's skin,
-and this over it, following the same pose): the farmer from Part 1 dressed for the mountain in winter. The hands bare (the
-owner's choice: sleeves, bare hands, the same in every cutscene): where SourceArt/T_HandMask.png is white (the hands and
-wrists, tools/blender/hand_mask.py) this layer is cut away; it sits 3.5 mm out from the skin so the skin never shows
-through. The red plaid flannel shirt (T_Plaid tinted ShirtColor, Part 1's default #b8402c until the save passes its own) on the arms
-and chest, a dark leather belt at the waist, indigo jeans below it, dark leather boots below the ankles. Where the waist
-and the ankles are comes from the body's own bones (WaistZ, AnkleZ: heights in the mesh's reference pose, set by the game),
-read against each point's reference-pose height (PreSkinnedPosition), so the clothes stay put as the body bends.
+and this over it, following the same pose). The top is whatever the player's Part 1 character wore (the owner: "the
+sleeves have to come in the different colours and patterns you could in the pixel version, and no sleeves depending on
+what your pixel character looked like"; test videos use a plain green hoodie): its colour (ShirtColor), pattern (Pattern: 0
+plain, 1 plaid from T_Plaid, 2 stripes, 3 dots), how far its sleeves reach (SleeveD: along the arm from the shoulder; huge
+for long sleeves) and its cuff (CuffKind: 0 a shirt's seam, 1-2 a knit rib, 3 a jacket's hem, 4 a coat), all set by
+DriverArms::ApplyOutfit. The hands always bare: where SourceArt/T_HandMask.png is white this layer is cut away. It sits
+ClothOut cm out from the skin (thicker for a hoodie or a coat) so the skin never shows through. Indigo jeans below the
+waist, a dark leather belt, dark boots below the ankles. Every zone is read from each point's reference-pose position
+(PreSkinnedPosition) against the body's own joints there (WaistZ, AnkleZ, the arm's shoulder ArmS and direction ArmDir,
+the wrist WristP), so the clothes stay put as the body bends. The zones are small HLSL (Custom nodes) rather than a web of
+nodes: one place to read them.
 
 Every link is checked (a wrong pin name links nothing, silently: the breath's fog once came out solid that way).
 Run (editor, headless): UnrealEditor-Cmd <uproject> -ExecutePythonScript=<this file>"""
@@ -77,7 +81,74 @@ def band(m, z, lo_param, sign, soft, x, y):
     return s
 
 
+# the shared zones, in the body's reference pose (cm): the arm measured along it from the shoulder (both sides alike)
+ZONES = """
+float3 Pm = float3(abs(P.x), P.y, P.z);
+float d = dot(Pm - ArmS, ArmDir);
+float3 onAxis = ArmS + ArmDir * clamp(d, 0.0, 70.0);
+float armR = length(Pm - onAxis);
+// (and the forearm on to the fingertips, from the elbow along ForeDir: the hand's part of the arm)
+float3 fa = Pm - ElbowP;
+float foreR = length(fa - ForeDir * clamp(dot(fa, ForeDir), 0.0, 48.0));
+float nearFore = step(foreR, 9.0) * step(-2.0, dot(fa, ForeDir));
+float arm = max(step(-3.0, d) * step(armR, 9.0) * step(ArmZ, P.z), nearFore);
+float legs = saturate((Waist - P.z) * 2.0) * (1.0 - arm);
+float belt = saturate(saturate((Waist + 4.0 - P.z) * 2.0) * (1.0 - arm) - legs);
+float boots = saturate((Ankle - P.z) * 1.5) * (1.0 - arm);
+float cuff = arm * step(length(Pm - WristP), 7.0);
+"""
+
+COLOR = ZONES + """
+float3 top = Top;
+if (Pattern > 0.5 && Pattern < 1.5) top *= Plaid;                                         // plaid
+else if (Pattern > 1.5 && Pattern < 2.5) top *= (frac(lerp(P.z, d, arm) / 3.2) < 0.5) ? 1.0 : 0.5;   // stripes round the body and the arm
+else if (Pattern > 2.5) { float2 g = frac(UV * 70.0) - 0.5; top = lerp(top, top * 1.7 + 0.06, step(length(g), 0.2)); }   // dots
+if (CuffKind > 0.5 && CuffKind < 2.5) top *= lerp(1.0, 0.8 + 0.12 * cos(UV.x * 1400.0), cuff);   // a knit rib cuff
+else if (CuffKind < 0.5) top *= lerp(1.0, 0.86, cuff * step(length(Pm - WristP), 1.6 + 5.4) * step(5.4, length(Pm - WristP)));   // a shirt cuff's seam
+else if (CuffKind > 2.5 && CuffKind < 3.5) top *= lerp(1.0, 0.85, cuff * step(5.8, length(Pm - WristP)));   // a jacket's turned hem
+float3 c = lerp(top, float3(0.022, 0.03, 0.058), legs);
+c = lerp(c, float3(0.03, 0.02, 0.014), belt);
+c = lerp(c, float3(0.03, 0.02, 0.014), boots);
+return c;
+"""
+
+KEEP = ZONES + """
+// the hands bare; the arm bare past the sleeve's end (none: from the shoulder; short: part way down the upper arm)
+float bare = arm * step(SleeveD, d);
+// the sleeve's end: a clean line across the arm just short of the wrist (the painted hand mask alone left ragged bits)
+float pastCuff = nearFore * step(-2.0, dot(Pm - WristP, ForeDir));
+return (1.0 - Hand) * (1.0 - bare) * (1.0 - pastCuff);
+"""
+
+ROUGH = ZONES + """
+float r = CuffKind < 0.5 ? 0.86 : CuffKind < 2.5 ? 0.95 : CuffKind < 3.5 ? 0.8 : 0.97;
+r = lerp(r, 0.78, legs);
+r = lerp(r, 0.45, belt);
+r = lerp(r, 0.5, boots);
+return r;
+"""
+
+
+def custom(m, name, code, out_type, x, y, ins):
+    """A Custom HLSL node: its inputs by name, each linked from (node, output); every link checked."""
+    c = node(m, unreal.MaterialExpressionCustom, x, y)
+    c.set_editor_property('code', code)
+    c.set_editor_property('output_type', out_type)
+    c.set_editor_property('description', name)
+    inputs = []
+    for nm, _src, _out in ins:
+        ci = unreal.CustomInput()
+        ci.set_editor_property('input_name', nm)
+        inputs.append(ci)
+    c.set_editor_property('inputs', inputs)
+    for nm, src, out in ins:
+        link(src, out, c, nm)
+    return c
+
+
 def run():
+    """The top the player's Part 1 character wore (colour, pattern, sleeves, cuff: set per character by DriverArms),
+    jeans below the waist, a belt, boots; the hands bare."""
     path = MATS + '/M_DriverClothes'
     if eal.does_asset_exist(path):
         eal.delete_asset(path)
@@ -85,55 +156,42 @@ def run():
     m.set_editor_property('used_with_skeletal_mesh', True)
     m.set_editor_property('blend_mode', unreal.BlendMode.BLEND_MASKED)
     m.set_editor_property('two_sided', True)
-    # the zones
     pre = node(m, unreal.MaterialExpressionPreSkinnedPosition, -2200, 600)
     # (the reference-pose position is known only per vertex: carried to the pixels through an interpolator)
     vi = node(m, unreal.MaterialExpressionVertexInterpolator, -2120, 600)
     link(pre, '', vi, 'VS')
-    z = node(m, unreal.MaterialExpressionComponentMask, -2050, 600, r=False, g=False, b=True, a=False)
-    link(vi, '', z, '')
-    waist = node(m, unreal.MaterialExpressionScalarParameter, -2200, 750, parameter_name='WaistZ', default_value=100.0)
-    ankle = node(m, unreal.MaterialExpressionScalarParameter, -2200, 850, parameter_name='AnkleZ', default_value=12.0)
-    belt_top = node(m, unreal.MaterialExpressionAdd, -2050, 800)
-    link(waist, '', belt_top, 'A')
-    link(const(m, 4.0, -2200, 950), '', belt_top, 'B')
-    legs = band(m, z, waist, 1.0, 2.0, -1800, 600)          # below the waist
-    below_belt_top = band(m, z, belt_top, 1.0, 2.0, -1800, 760)
-    belt = node(m, unreal.MaterialExpressionSubtract, -1400, 700)   # between the waist and the belt's top
-    link(below_belt_top, '', belt, 'A')
-    link(legs, '', belt, 'B')
-    boots = band(m, z, ankle, 1.0, 1.5, -1800, 920)
-    hand = tex(m, '/Game/HollowAcre/Textures/T_HandMask', 1.0, -1800, 1100)
+    uv = node(m, unreal.MaterialExpressionTextureCoordinate, -2200, 450)
+    sp = lambda nm, v, y: node(m, unreal.MaterialExpressionScalarParameter, -2200, y, parameter_name=nm, default_value=v)
+    vp = lambda nm, v, y: node(m, unreal.MaterialExpressionVectorParameter, -2200, y, parameter_name=nm,
+                               default_value=unreal.LinearColor(v[0], v[1], v[2], 1.0))
+    waist, ankle = sp('WaistZ', 106.9, 750), sp('AnkleZ', 13.3, 820)
+    pattern, cuffk, sleeve, armz = sp('Pattern', 0.0, 890), sp('CuffKind', 2.0, 960), sp('SleeveD', 9999.0, 1030), sp('ArmZ', 100.0, 1100)
+    arms_, armdir, wristp = vp('ArmS', (20.3, -2.0, 155.0), 1170), vp('ArmDir', (0.607, 0.026, -0.794), 1240), vp('WristP', (53.6, 17.0, 113.0), 1310)
+    top = vp('ShirtColor', (0.08, 0.2, 0.05), 1380)       # (the test outfit: Part 1's green, a plain hoodie)
+    hand = tex(m, '/Game/HollowAcre/Textures/T_HandMask', 1.0, -1800, 1500)
     hand.set_editor_property('sampler_type', unreal.MaterialSamplerType.SAMPLERTYPE_LINEAR_COLOR)
-    # the colours
-    plaid = tex(m, '/Game/HollowAcre/Textures/T_Plaid', 11.0, -1500, -300)     # (a flannel's checks, about 6 cm)
-    shirt_col = node(m, unreal.MaterialExpressionVectorParameter, -1500, -150, parameter_name='ShirtColor',
-                     default_value=unreal.LinearColor(0.479, 0.051, 0.025, 1))
-    shirt = node(m, unreal.MaterialExpressionMultiply, -1200, -250)
-    link(plaid, 'R', shirt, 'A')
-    link(shirt_col, '', shirt, 'B')
-    denim = const3(m, (0.022, 0.03, 0.058), -1200, -80)
-    leather = const3(m, (0.03, 0.02, 0.014), -1200, 0)
-    c1 = mix(m, shirt, '', denim, '', legs, -900, -200)
-    c2 = mix(m, c1, '', leather, '', belt, -700, -150)
-    c3 = mix(m, c2, '', leather, '', boots, -500, -100)
-    prop(c3, '', unreal.MaterialProperty.MP_BASE_COLOR)
-    keep = node(m, unreal.MaterialExpressionOneMinus, -300, 1100)
-    link(hand, 'R', keep, '')
+    plaid = tex(m, '/Game/HollowAcre/Textures/T_Plaid', 11.0, -1800, -300)     # (a flannel's checks, about 6 cm)
+    foredir = vp('ForeDir', (0.59, 0.72, -0.37), 1600)
+    elbowp = vp('ElbowP', (38.8, -1.2, 130.8), 1670)
+    zone_ins = [('P', vi, ''), ('Waist', waist, ''), ('Ankle', ankle, ''), ('ArmS', arms_, ''), ('ArmDir', armdir, ''),
+                ('ArmZ', armz, ''), ('WristP', wristp, ''), ('ForeDir', foredir, ''), ('ElbowP', elbowp, '')]
+    col = custom(m, 'clothes colour', COLOR, unreal.CustomMaterialOutputType.CMOT_FLOAT3, -900, 0,
+                 zone_ins + [('UV', uv, ''), ('Top', top, ''), ('Pattern', pattern, ''), ('CuffKind', cuffk, ''), ('Plaid', plaid, 'R')])
+    prop(col, '', unreal.MaterialProperty.MP_BASE_COLOR)
+    keep = custom(m, 'clothes cut', KEEP, unreal.CustomMaterialOutputType.CMOT_FLOAT1, -900, 900,
+                  zone_ins + [('Hand', hand, 'R'), ('SleeveD', sleeve, '')])
     prop(keep, '', unreal.MaterialProperty.MP_OPACITY_MASK)
-    # out from the skin along its normal (after skinning), so the cloth always covers it
+    rough = custom(m, 'clothes roughness', ROUGH, unreal.CustomMaterialOutputType.CMOT_FLOAT1, -900, 450,
+                   zone_ins + [('CuffKind', cuffk, '')])
+    prop(rough, '', unreal.MaterialProperty.MP_ROUGHNESS)
+    # out from the skin along its normal (after skinning), so the cloth always covers it: thicker for a hoodie or a coat
     nrm = node(m, unreal.MaterialExpressionVertexNormalWS, -600, 1300)
     out = node(m, unreal.MaterialExpressionMultiply, -400, 1300)
     link(nrm, '', out, 'A')
-    link(const(m, 0.35, -600, 1380), '', out, 'B')
+    link(sp('ClothOut', 0.65, 1450), '', out, 'B')
     prop(out, '', unreal.MaterialProperty.MP_WORLD_POSITION_OFFSET)
-    # rough cloth, the jeans a little less, leather smoother
-    r1 = mix(m, const(m, 0.9, -900, 250), '', const(m, 0.78, -900, 320), '', legs, -700, 280)
-    r2 = mix(m, r1, '', const(m, 0.45, -700, 380), '', belt, -500, 300)
-    r3 = mix(m, r2, '', const(m, 0.5, -500, 400), '', boots, -350, 320)
-    prop(r3, '', unreal.MaterialProperty.MP_ROUGHNESS)
     # the weave and the grain
-    fabric = tex(m, '/Game/HollowAcre/Textures/T_FabricN', 14.0, -900, 600, normal=True)
+    fabric = tex(m, '/Game/HollowAcre/Textures/T_FabricN', 14.0, -900, 600 + 900, normal=True)
     prop(fabric, 'RGB', unreal.MaterialProperty.MP_NORMAL)
     mel.recompile_material(m)
     eal.save_loaded_asset(m)

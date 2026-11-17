@@ -92,6 +92,78 @@ void ADriverArms::SetBoneCS(FName Bone, const FQuat& Rot)
 	Mesh->SetBoneTransformByName(Bone, T, EBoneSpaces::ComponentSpace);
 }
 
+void ADriverArms::ApplyOutfit()
+{
+	// Part 1's outfits (2d/src/custom.js) by their sleeves: long (each with its own cuff), short, or none (bare arms)
+	FString Outfit = TEXT("hoodie"), Shirt = TEXT("4f7a3e"), Pattern = TEXT("plain");
+	FParse::Value(FCommandLine::Get(), TEXT("-outfit="), Outfit);
+	FParse::Value(FCommandLine::Get(), TEXT("-shirt="), Shirt);
+	FParse::Value(FCommandLine::Get(), TEXT("-pattern="), Pattern);
+	struct FKind { const TCHAR* Name; int32 Sleeve; int32 Cuff; float Out; };   // sleeve: 0 none, 1 short, 2 long; cuff: 0 woven, 1 knit, 2 hoodie, 3 jacket, 4 coat
+	static const FKind Kinds[] = {{TEXT("shirt"), 2, 0, 0.35f}, {TEXT("openshirt"), 2, 0, 0.35f}, {TEXT("sweater"), 2, 1, 0.55f},
+		{TEXT("turtleneck"), 2, 1, 0.5f}, {TEXT("cardigan"), 2, 1, 0.55f}, {TEXT("hoodie"), 2, 2, 0.65f}, {TEXT("jacket"), 2, 3, 0.8f},
+		{TEXT("longcoat"), 2, 4, 0.9f}, {TEXT("tee"), 1, 0, 0.3f}, {TEXT("tank"), 0, 0, 0.3f}, {TEXT("vest"), 0, 0, 0.3f},
+		{TEXT("overalls"), 0, 0, 0.3f}, {TEXT("skirt"), 0, 0, 0.3f}, {TEXT("dress"), 0, 0, 0.3f}};
+	FKind K = Kinds[5];
+	for (const FKind& Ki : Kinds)
+	{
+		if (Outfit.Equals(Ki.Name, ESearchCase::IgnoreCase))
+		{
+			K = Ki;
+		}
+	}
+	const int32 Pat = Pattern.Equals(TEXT("plaid")) ? 1 : Pattern.Equals(TEXT("stripes")) ? 2 : Pattern.Equals(TEXT("dots")) ? 3 : 0;
+	const FLinearColor Col = FLinearColor::FromSRGBColor(FColor::FromHex(Shirt));
+	// where the arm's joints are across the body in its reference pose (the material cuts and cuffs by that distance)
+	USkeletalMesh* SM = Body;
+	FVector Sh(20.3f, -2.f, 155.f), El(38.8f, -1.2f, 130.8f), Wr(53.6f, 17.f, 113.f);
+	if (SM)
+	{
+		const FReferenceSkeleton& Rs = SM->GetRefSkeleton();
+		const TArray<FTransform>& RefPose = Rs.GetRefBonePose();
+		auto RefCS = [&](const TCHAR* Name)
+		{
+			int32 i = Rs.FindBoneIndex(FName(Name));
+			FTransform T = FTransform::Identity;
+			while (i != INDEX_NONE)
+			{
+				T = T * RefPose[i];
+				i = Rs.GetParentIndex(i);
+			}
+			return T.GetLocation();
+		};
+		if (Rs.FindBoneIndex(TEXT("hand_l")) != INDEX_NONE)
+		{
+			auto Abs = [](FVector V) { V.X = FMath::Abs(V.X); return V; };
+			Sh = Abs(RefCS(TEXT("upperarm_l")));
+			El = Abs(RefCS(TEXT("lowerarm_l")));
+			Wr = Abs(RefCS(TEXT("hand_l")));
+			UE_LOG(LogTemp, Display, TEXT("DriverArms: reference pose: shoulder %s, elbow %s, wrist %s"), *RefCS(TEXT("upperarm_l")).ToString(),
+				*RefCS(TEXT("lowerarm_l")).ToString(), *RefCS(TEXT("hand_l")).ToString());
+		}
+	}
+	// (along the arm from the shoulder: a T-shirt's sleeve ends ~45% down the upper arm; with none, bare from the armhole)
+	const FVector ArmDir = (El - Sh).GetSafeNormal();
+	const float UpperLen = (float)FVector::Dist(Sh, El);
+	const float Cut = K.Sleeve == 2 ? 9999.f : K.Sleeve == 1 ? 0.45f * UpperLen : -1.5f;
+	OutfitName = FString::Printf(TEXT("%s, %s, #%s; sleeves %s; jeans, boots; bare hands"), *Outfit, *Pattern, *Shirt,
+		K.Sleeve == 2 ? TEXT("long") : K.Sleeve == 1 ? TEXT("short") : TEXT("none"));
+	if (ClothesMID)
+	{
+		ClothesMID->SetVectorParameterValue(TEXT("ShirtColor"), Col);
+		ClothesMID->SetScalarParameterValue(TEXT("Pattern"), (float)Pat);
+		ClothesMID->SetScalarParameterValue(TEXT("CuffKind"), (float)K.Cuff);
+		ClothesMID->SetScalarParameterValue(TEXT("ClothOut"), K.Out);
+		ClothesMID->SetVectorParameterValue(TEXT("ArmS"), FLinearColor(Sh));
+		ClothesMID->SetVectorParameterValue(TEXT("ArmDir"), FLinearColor(ArmDir));
+		ClothesMID->SetVectorParameterValue(TEXT("WristP"), FLinearColor(Wr));
+		ClothesMID->SetVectorParameterValue(TEXT("ForeDir"), FLinearColor((Wr - El).GetSafeNormal()));
+		ClothesMID->SetVectorParameterValue(TEXT("ElbowP"), FLinearColor(El));
+		ClothesMID->SetScalarParameterValue(TEXT("ArmZ"), 100.f);     // (the arm lies above the hips in the reference pose)
+		ClothesMID->SetScalarParameterValue(TEXT("SleeveD"), Cut);
+	}
+}
+
 FVector ADriverArms::ToCS(const FVector& CarPos) const
 {
 	return Mesh->GetRelativeTransform().InverseTransformPosition(CarPos);
@@ -1017,7 +1089,8 @@ void ADriverArms::BeginPlay()
 				Clothes->SetMaterial(i, ClothesMID);
 			}
 		}
-		UE_LOG(LogTemp, Display, TEXT("DriverArms: dressed (%s)"), ClothesMID ? TEXT("flannel shirt, jeans, boots; bare hands") : TEXT("no clothes material"));
+		ApplyOutfit();
+		UE_LOG(LogTemp, Display, TEXT("DriverArms: dressed (%s)"), ClothesMID ? *OutfitName : TEXT("no clothes material"));
 		// (checking: -wakenoclothes / -wakenoskin draw only one of the two layers)
 		if (FParse::Param(FCommandLine::Get(), TEXT("wakenoclothes")))
 		{

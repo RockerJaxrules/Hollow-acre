@@ -2663,7 +2663,7 @@ bool AEndingDirector::GetLine(FString& Line, float& Alpha) const
 		{TEXT("stall"), 0.7f, 2.2f, TEXT("No. No, no, no...")},
 		{TEXT("stopped"), 1.3f, 1.8f, TEXT("Come on...")},
 		{TEXT("frantic"), 0.05f, 0.9f, TEXT("Come on!")},
-		{TEXT("stuck"), 0.2f, 1.7f, TEXT("Come on...")},
+		{TEXT("press1"), 0.25f, 1.1f, TEXT("Come on...")},   // (from the first press that fails to the second)
 	};
 	for (const FLine& L : Lines)
 	{

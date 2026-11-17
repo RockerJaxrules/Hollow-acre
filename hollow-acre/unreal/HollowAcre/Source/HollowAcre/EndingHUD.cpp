@@ -22,6 +22,36 @@ void AEndingHUD::DrawHUD()
 			break;
 		}
 	}
+	// the eyelids (the wake): heavy, closing from above and below with soft edges, under the words
+	const float Lids = Director.IsValid() ? Director->GetLids() : 0.f;
+	if (Lids > 0.005f)
+	{
+		const float Half = Canvas->ClipY * 0.5f;
+		const float Edge = Canvas->ClipY * 0.09f;                  // (the soft edge of each lid)
+		const float Reach = (Half + Edge) * FMath::Clamp(Lids, 0.f, 1.f);
+		for (int32 Top = 0; Top < 2; ++Top)
+		{
+			// the solid part, then the edge as stacked thin bands fading out
+			const float Solid = FMath::Max(0.f, Reach - Edge);
+			FCanvasTileItem T(FVector2D(0.f, Top ? 0.f : Canvas->ClipY - Solid), FVector2D(Canvas->ClipX, Solid), FLinearColor::Black);
+			T.BlendMode = SE_BLEND_Translucent;
+			Canvas->DrawItem(T);
+			const int32 Bands = 12;
+			for (int32 b = 0; b < Bands; ++b)
+			{
+				const float y0 = Solid + Edge * b / Bands;
+				if (y0 >= Reach)
+				{
+					break;
+				}
+				const float a = 1.f - (b + 0.5f) / Bands;
+				FCanvasTileItem B(FVector2D(0.f, Top ? y0 : Canvas->ClipY - y0 - Edge / Bands), FVector2D(Canvas->ClipX, Edge / Bands),
+					FLinearColor(0.f, 0.f, 0.f, a * a));
+				B.BlendMode = SE_BLEND_Translucent;
+				Canvas->DrawItem(B);
+			}
+		}
+	}
 	// Part 2's words over its black: where and when at the start, the title at the end (a line, and a smaller one)
 	FString L1, L2;
 	float CapAlpha = 0.f, CapSize = 0.f;

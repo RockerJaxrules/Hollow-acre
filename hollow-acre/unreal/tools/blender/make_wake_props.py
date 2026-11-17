@@ -18,6 +18,9 @@ Each part's own frame (cm):
   Wake_Latch       the belt's latch plate: the tongue into the buckle along +X, the cover behind it
   Wake_Strap       10 cm of the belt's webbing along X, 4.8 wide
   Wake_Pebble0..3  crumbs of the side windows' tempered glass, about 1 cm (scaled down to 6-9 mm as they lie)
+  Wake_Cassette    a compact cassette out of the tape deck, 10 x 6.3 x 1.2, label up (+Z); shell, label, window
+  Wake_Coin        a coin, 2.4 across, its axis along X; coin
+  Wake_Pen         a ballpoint, 14 long along X; barrel, metal
 
 Run: blender -b --factory-startup --python make_wake_props.py -- <out dir>"""
 import math
@@ -325,11 +328,41 @@ def pebble(name, seed):
     return ob
 
 
+def cassette():
+    """A compact cassette fallen out of the dash's tape deck: 10.0 x 6.3 x 1.2 cm, a smoky shell, a pale paper label on its
+    face (+Z) with the two reel windows through it, the tape across its open edge. X along its length."""
+    shell = rounded_box('Wake_Cassette', (10.0, 6.3, 1.2), 0.12, 'shell', segs=2)
+    label = rounded_box('cs_label', (8.4, 4.2, 0.04), 0.0, 'label', at=(0.0, 0.55, 0.62), segs=1)
+    win = rounded_box('cs_window', (4.6, 1.15, 0.05), 0.0, 'window', at=(0.0, 0.35, 0.66), segs=1)
+    tape = rounded_box('cs_tape', (6.2, 0.15, 0.62), 0.0, 'window', at=(0.0, -3.08, 0.0), segs=1)
+    ob = join('Wake_Cassette', [shell, label, win, tape])
+    box_uv(ob, 10.0)
+    return ob
+
+
+def coin():
+    """A coin from the ashtray: 2.4 cm across, 0.18 thick, its milled edge; X along its axis (lying, the axis is the up)."""
+    p = [(0.0, 0.0), (0.0, 1.12), (0.02, 1.2), (0.16, 1.2), (0.18, 1.12), (0.18, 0.0)]
+    ob = lathe('Wake_Coin', p, 'coin', segs=40)
+    box_uv(ob, 2.4)
+    return ob
+
+
+def pen():
+    """A ballpoint from the door pocket: 14 cm, 0.9 across, a black barrel, a metal tip and clip end. X along it."""
+    p = [(0.0, 0.0), (0.0, 0.32), (0.25, 0.42), (0.6, 0.45), (13.0, 0.45), (13.6, 0.3), (14.0, 0.06), (14.05, 0.0)]
+    body = lathe('Wake_Pen', p, 'barrel', segs=20)
+    clip = rounded_box('pn_clip', (4.2, 0.35, 0.12), 0.04, 'metal', at=(2.4, 0.0, 0.5), segs=1)
+    ob = join('Wake_Pen', [body, clip])
+    box_uv(ob, 4.0)
+    return ob
+
+
 def main():
     clear()
     os.makedirs(OUT, exist_ok=True)
     made = [flashlight(), manual(), papers(), snow('Wake_SnowSlab', (46.0, 30.0, 14.0), 7), snow('Wake_SnowLump', (16.0, 14.0, 11.0), 11, 0.4),
-            buckle(), latch(), strap()] + [pebble('Wake_Pebble%d' % i, 31 + i) for i in range(4)]
+            buckle(), latch(), strap(), cassette(), coin(), pen()] + [pebble('Wake_Pebble%d' % i, 31 + i) for i in range(4)]
     for ob in made:
         write_obj(ob, os.path.join(OUT, ob.name + '.obj'))
 

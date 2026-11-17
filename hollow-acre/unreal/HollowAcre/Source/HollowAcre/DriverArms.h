@@ -172,6 +172,11 @@ public:
 	float RefWaistZ = 100.f, RefAnkleZ = 12.f;
 	/** A bone's place now (car frame). */
 	FVector BoneCar(FName Bone) const;
+	/** The top the player's Part 1 character wore, on these arms in every cutscene (DriverArms.cpp ApplyOutfit). From the
+	 *  command line for now (-outfit=hoodie -shirt=4f7a3e -pattern=plain|plaid|stripes|dots), the plain green hoodie when
+	 *  none is given (the test outfit). Outfits as Part 1's creator names them (2d/src/custom.js). */
+	void ApplyOutfit();
+	FString OutfitName;
 	/** (checking) Logs every bone whose pose is broken: not finite, or scaled far from 1. */
 	void DumpBadBones(const TCHAR* Why) const;
 	/** Distance from a point (car frame) to the cabin's surfaces (seats, doors, dash; negative inside them). */

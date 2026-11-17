@@ -341,6 +341,9 @@ public:
 	/** 0 until the end card shows, then rises to 1 as the words fade in (read by the HUD). */
 	UFUNCTION(BlueprintPure, Category = "Ending")
 	float GetEndCardAlpha() const;
+	/** The wake's eyelids: 0 open .. 1 shut (the HUD draws them closing from above and below, soft-edged). */
+	float GetLids() const { return WakeLids; }
+	float WakeLids = 0.f;
 
 protected:
 	virtual void BeginPlay() override;
