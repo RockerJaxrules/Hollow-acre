@@ -1130,12 +1130,12 @@ void AEndingDirector::WakeBeats(float RealDt)
 		if (Show > 0.f)
 		{
 			const FVector ShowAt = Eye.TransformPosition(FVector(34.f, 5.f, -8.f));
-			const FVector ShowDir = Eye.GetRotation().RotateVector(FVector(0.35f, -0.9f, -0.25f)).GetSafeNormal();
-			// (rolled in the hand so the fingers round it face the eyes, the knuckles seen, as in the owner's footage)
+			const FVector ShowDir = Eye.GetRotation().RotateVector(FVector(0.7f, -0.62f, -0.3f)).GetSafeNormal();   // (forward and across: the lens and the beam seen)
+			// (the wrist turned down, as the owner holds one: palm down, knuckles up, the thumb on the switch on top)
 			static float ShowRoll = -1000.f;
 			if (ShowRoll < -999.f)
 			{
-				ShowRoll = 90.f;     // (chosen against the owner's footage: the fingers round it toward the eyes)
+				ShowRoll = 0.f;      // (the owner: hold it with the wrist turned down: palm down, knuckles up, thumb on the switch)
 				FParse::Value(FCommandLine::Get(), TEXT("-wakeshowroll="), ShowRoll);
 			}
 			const FVector Up0 = Eye.GetRotation().GetAxisZ();
