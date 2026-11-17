@@ -415,24 +415,34 @@ def crash(ev, total):
     if stall:
         n = int(1.25 * SR)
         sh = np.zeros((2, n))
-        for name, f, g, pre in ((CR_SCREAMS, 0.95, 1.0, 0.08), ('creature_extra/creature_extra_fox_screaming_night_832436', 0.9, 0.7, 0.05),
-                                (CR_PIG, 0.8, 0.35, 0.05), (CR_CHIMP, 0.92, 0.3, 0.05)):
+        # (measured against The Quarry's and Until Dawn's creatures: their energy sits low and in the throat, not up where a
+        # pig's or a chimp's squeal is; so a man's monster scream pitched down, with a man's growl, a gorilla's roar and a
+        # bear's growl under it for its body)
+        for name, f, g, pre in ((CR_SCREAMS, 0.84, 1.0, 0.08), (CR_GROWLS, 0.8, 0.75, 0.05),
+                                ('creature/creature_gorilla_alpha_roar_zoo_397054', 0.72, 0.7, 0.08),
+                                ('creature/creature_black_bear_angry_growl_763026', 0.75, 0.55, 0.08)):
             c = pitch(loudest(name, 1.3, pre=pre), f)[:, :n]
             sh[:, :c.shape[1]] += level(fade(c, 0.02, 0.35), 0.1) * g
-        sh = verb(sh, 1.6, 0.25)
+        sh = verb(sh, 1.4, 0.2)
         t_hit = t_smash or t_imp
         if t_smash:
             # the driver's window bursting in, its arm through it: the glass, the door's skin boomed, a sting
-            M.at(t_smash - 0.015, pan(peak(fade(loudest('glass/glass_broken_car_window_587928', 1.2, pre=0.02), 0.002, 0.6), 0.85), -0.75))
+            M.at(t_smash - 0.015, pan(peak(fade(loudest('glass/glass_broken_car_window_587928', 1.2, pre=0.02), 0.002, 0.6), 0.62), -0.75))
             M.at(t_smash - 0.01, pan(peak(filt(fade(loudest('glass/glass_hard_glass_impact_crack_418194', 0.8, pre=0.01), 0.002, 0.4), A.lp(9000)), 0.55), -0.6))
             M.at(t_smash - 0.02, pan(peak(filt(seg(HIT_BOOM, 0.0, 3.0), A.lp(220)), 0.5), -0.3))
-            M.at(t_smash - 0.02, pan(peak(load(ST_JUMP), 0.55), -0.4))
-            # its breath and snarl right at the driver's ear, while it claws in at them
-            M.at(t_smash + 0.85, pan(peak(filt(loudest('creature_extra/creature_extra_tiger_hiss_growl_437978', 1.0, pre=0.05), A.lp(6000)), 0.35), -0.8))
-            # the ram: a roar as it springs at the door (the blow's own crash follows at t_imp)
+            # (no violin sting: the low brass and the boom carry it)
+            # dropping back off the window: its breath, wet and close, a snarl through it
+            M.at(t_smash + 0.62, pan(peak(filt(pitch(loudest(CR_BREATH, 0.8, pre=0.05), 0.62), A.lp(3000)), 0.3), -0.75))
+            # the coil: a low rumble in its chest, held (as Until Dawn's do before they go)
+            rumble = filt(pitch(loudest('creature/creature_lion_growl_roar_breath_488348', 0.6, pre=0.05), 0.85), A.lp(900))
+            M.at(t_smash + 0.72, pan(peak(fade(rumble, 0.08, 0.15), 0.42), -0.7))
+            # the ram: a roar from the throat as it springs (the blow's own crash follows at t_imp)
             t_launch = first('launch')
             if t_launch:
-                M.at(t_launch - 0.04, pan(peak(filt(pitch(loudest(CR_GROWLS, 0.8, pre=0.05), 0.82), A.lp(5000)), 0.62), -0.7))
+                ro = sumc(level(pitch(loudest(CR_GROWLS, 0.6, pre=0.03), 0.78), 0.1),
+                          level(pitch(loudest('creature/creature_gorilla_alpha_roar_zoo_397054', 0.6, pre=0.05), 0.7), 0.08),
+                          level(pitch(loudest('creature/creature_tiger_roar_zoo_263115', 0.6, pre=0.05), 0.9), 0.07))
+                M.at(t_launch - 0.05, pan(peak(fade(filt(ro, A.lp(4500)), 0.01, 0.2), 0.7), -0.7))
         M.at(t_hit + 0.02, pan(peak(fade(sh, 0.02, 0.4), 0.85), -0.75))    # (at the driver's door, the left, in the cabin)
         M.at(t_hit - 0.03, pan(peak(load(HIT_BRAAM), 0.5), 0.0))
     elif not perched:
@@ -534,21 +544,36 @@ def crash(ev, total):
         rp = rp[:, max(0, e - int((t_imp - t_lunge) * SR)):e]
         M.at(t_imp - rp.shape[1] / SR, pan(peak(rp, 0.3), 0.0))
         M.at(t_lunge, pan(peak(filt(pitch(fade(snarl, 0.05, 0.3), 0.5), A.lp(900)), 0.45), -0.6))
+    if stall:
+        ext = loudest('metal_impact/metal_impact_real_crash_exterior_346299', 1.6, pre=0.03)
+        hit = sumc(level(blow, 0.1), level(filt(ext, A.lp(5000)), 0.07), level(filt(glass, A.hp(800)), 0.035))
+        M.at(t_imp - 0.02, pan(peak(fade(hit, 0.003, 0.8), 0.95), -0.4))
+        M.at(t_imp - 0.02, pan(peak(seg(HIT_BOOM, 0.0, 4.0), 0.75), -0.2))
+        M.at(t_imp - 0.01, pan(peak(filt(loudest('metal_impact/metal_impact_car_hood_slam_big_329516', 0.6, pre=0.02), A.lp(1500)), 0.6), -0.6))
+        # the tyres scrubbed sideways through the snow under the shove, all the way to the edge
+        scrub = steady('snow_tyres/snow_tyres_pulling_away_hard_snow_558847', max(0.6, t_edge - t_imp + 0.2), skip=0.5)
+        M.bed(level(filt(scrub, A.lp(3000)), 0.05), t_imp, t_edge + 0.1, [(t_imp, 0), (t_imp + 0.05, 1.0), (t_edge - 0.1, 1.0), (t_edge + 0.1, 0)])
     # the blow: a trailer hit and a boom under the crash and the glass, pitched down and muffled; back to speed
     slowed = sumc(level(filt(pitch(blow, 0.4), A.lp(900)), 0.1), level(filt(pitch(glass, 0.45), A.lp(1600)), 0.056),
                   level(filt(pitch(snarl, 0.45), A.lp(800)), 0.08))
-    M.at(t_imp - 0.02, pan(peak(fade(slowed[:, :int((slow_dur + 0.6) * SR)], 0.005, 0.5), 0.75), -0.4))
-    M.at(t_imp - 0.02, pan(peak(seg(HIT_TRAILER, 0.0, 3.0), 0.8), 0.0))
-    M.at(t_imp - 0.02, pan(peak(pitch(seg(HIT_BOOM, 0.0, 5.0), 0.85), 0.9), 0.0))
-    M.at(t_speed - 0.05, pan(peak(fade(blow[:, int(0.3 * SR):], 0.05, 0.6), 0.6), -0.2))
+    if not stall:
+        M.at(t_imp - 0.02, pan(peak(fade(slowed[:, :int((slow_dur + 0.6) * SR)], 0.005, 0.5), 0.75), -0.4))
+        M.at(t_imp - 0.02, pan(peak(seg(HIT_TRAILER, 0.0, 3.0), 0.8), 0.0))
+        M.at(t_imp - 0.02, pan(peak(pitch(seg(HIT_BOOM, 0.0, 5.0), 0.85), 0.9), 0.0))
+        M.at(t_speed - 0.05, pan(peak(fade(blow[:, int(0.3 * SR):], 0.05, 0.6), 0.6), -0.2))
     M.at(t_speed, pan(peak(load('glass/glass_glass_shatter_shards_444134'), 0.35), -0.4))
     # the shove, in heaves (the stall): the door's skin buckling under it and the car groaning, its strain at each
     for i, t0 in enumerate([t for t, k, v in ev if k == 'heave']):
         dent = loudest('metal_impact/metal_impact_car_hood_slam_big_329516', 0.7, pre=0.02)
         M.at(t0 - 0.03, pan(peak(filt(fade(pitch(dent, 0.7), 0.003, 0.4), A.lp(700)), 0.42 - 0.05 * i), -0.5))
-        M.at(t0 + 0.05, pan(peak(seg(F_CREAK, 2.0 + i, 0.9), 0.14), -0.3))
-        strain = loudest('creature/creature_black_bear_angry_growl_763026', 0.9, pre=0.1)
-        M.at(t0 - 0.12, pan(peak(filt(pitch(fade(strain, 0.04, 0.3), 0.62), A.lp(2600)), 0.34), -0.75))
+        # (the car's body bending under it: real crushed metal, not a creak, whose held tone read as a squeal)
+        bend = loudest('metal_impact/metal_impact_bus_destroy_crush_window_metal_451665', 0.7, pre=0.03)
+        M.at(t0 + 0.02, pan(peak(filt(fade(bend, 0.01, 0.3), A.lp(2200)), 0.28 - 0.04 * i), -0.4))
+        strain = sumc(level(pitch(loudest('creature/creature_black_bear_angry_growl_763026', 0.7, pre=0.1), 0.7), 0.1),
+                      level(pitch(loudest(CR_GROWLS, 0.7, pre=0.05), 0.75), 0.08))
+        M.at(t0 - 0.1, pan(peak(filt(fade(strain, 0.03, 0.25), A.lp(3000)), 0.4), -0.75))
+        crunch = loudest('metal_impact/metal_impact_sheet_metal_drop_587442', 0.5, pre=0.02)
+        M.at(t0 - 0.02, pan(peak(filt(fade(crunch, 0.003, 0.3), A.lp(2500)), 0.3), -0.55))
 
     # ---- the fall: clear when the eyes are open, muffled and far off in the blackouts --------------------------------
     R = Mix(total)
