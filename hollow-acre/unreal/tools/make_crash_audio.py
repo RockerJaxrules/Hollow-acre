@@ -151,6 +151,12 @@ def detone(x, lo=500.0, hi=3200.0, over=3.0, keep=1.4, n=2048, hop=512):
     return out / norm
 
 
+def dezing(x, lo=2500.0, hi=12000.0):
+    """detone in short slices (10 ms): a whistle gliding too fast for the long slices to hold (a glass's zing) still stands
+    out in each short one, and is pulled down there; the crash and the crumble around it are left as they were."""
+    return detone(x, lo=lo, hi=hi, over=2.0, keep=1.0, n=512, hop=128)
+
+
 def voice(name, dur, f, pre=0.05, at=None, many=False, **kw):
     """A stretch of one recording (its loudest, or from at s), pitched by f (as several throats if many), through the
     torn throat."""
@@ -504,10 +510,13 @@ def crash(ev, total):
         t_hit = t_smash or t_imp
         if t_smash:
             # the driver's window bursting in, its arm through it: the glass, the door's skin boomed, a sting
-            # (the glass de-whined across its ring: its shatter without the ping at ~4.8 kHz that read as a squeak)
-            gl = detone(loudest('glass/glass_broken_car_window_587928', 1.2, pre=0.02), lo=2000.0, hi=8000.0, over=2.5, keep=1.2)
+            # (the glass de-whined across its ring: its shatter without the ping at ~4.8 kHz that read as a squeak; and in short
+            # slices too, for the zing it opens with, a whistle sliding up from 4.3 to 7 kHz in a tenth of a second that the
+            # owner heard as a squeak as the glass went: too quick a glide for the long slices to catch)
+            gl = dezing(detone(loudest('glass/glass_broken_car_window_587928', 1.2, pre=0.02), lo=2000.0, hi=8000.0, over=2.5, keep=1.2))
             M.at(t_smash - 0.015, pan(peak(fade(gl, 0.002, 0.6), 0.62), -0.75))
-            M.at(t_smash - 0.01, pan(peak(filt(fade(loudest('glass/glass_hard_glass_impact_crack_418194', 0.8, pre=0.01), 0.002, 0.4), A.lp(9000)), 0.55), -0.6))
+            cr = dezing(detone(loudest('glass/glass_hard_glass_impact_crack_418194', 0.8, pre=0.01), lo=2000.0, hi=9000.0, over=2.5, keep=1.2))
+            M.at(t_smash - 0.01, pan(peak(filt(fade(cr, 0.002, 0.4), A.lp(9000)), 0.55), -0.6))
             M.at(t_smash - 0.02, pan(peak(filt(seg(HIT_BOOM, 0.0, 3.0), A.lp(220)), 0.5), -0.3))
             # (no violin sting: the low brass and the boom carry it)
             # dropping back off the window: its breath, wet and close, a snarl through it
@@ -614,7 +623,7 @@ def crash(ev, total):
     # ---- the lunge, slowed: the heart stops, everything drawn in, a reversed piano into the blow ----------------------
     slow_dur = max(0.3, t_speed - t_imp)
     blow = loudest('metal_impact/metal_impact_real_crash_interior_346300', 2.5, pre=0.05)
-    glass = loudest('glass/glass_broken_car_window_587928', 1.2, pre=0.02)
+    glass = dezing(loudest('glass/glass_broken_car_window_587928', 1.2, pre=0.02))   # (without its opening zing: see the smash)
     snarl = loudest('creature/creature_tiger_cage_growl_snarl_439280', 1.4, pre=0.3)
     if t_imp - t_lunge > 0.2:
         M.x *= np.interp(tt, [0, t_lunge, t_lunge + 0.15, t_imp - 0.03, t_imp, total], [1, 1, 0.25, 0.25, 1, 1])
@@ -641,7 +650,8 @@ def crash(ev, total):
         M.at(t_imp - 0.02, pan(peak(seg(HIT_TRAILER, 0.0, 3.0), 0.8), 0.0))
         M.at(t_imp - 0.02, pan(peak(pitch(seg(HIT_BOOM, 0.0, 5.0), 0.85), 0.9), 0.0))
         M.at(t_speed - 0.05, pan(peak(fade(blow[:, int(0.3 * SR):], 0.05, 0.6), 0.6), -0.2))
-    M.at(t_speed, pan(peak(load('glass/glass_glass_shatter_shards_444134'), 0.35), -0.4))
+    # (its shards' tinkle rang at ~9.7 kHz: rung down, the crumble kept)
+    M.at(t_speed, pan(peak(dezing(detone(load('glass/glass_glass_shatter_shards_444134'), lo=2000.0, hi=12000.0, over=2.5, keep=1.3)), 0.35), -0.4))
     t_letgo = first('letgo')
     if stall and t_letgo:
         after = sumc(level(voice(CV + 'demon_shriek_433735', 1.6, 0.88, at=6.5, drive=2.8, fry=56.0, grit=0.3, seed=11, many=True), 0.1),
