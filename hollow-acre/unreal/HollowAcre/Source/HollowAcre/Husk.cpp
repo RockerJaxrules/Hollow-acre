@@ -1033,6 +1033,7 @@ void AHusk::CopyPose()
 	}
 	Shown->RefreshBoneTransforms();
 	BendToPeer();
+	Glare();
 }
 
 void AHusk::BendToPeer()
@@ -1072,6 +1073,57 @@ void AHusk::BendToPeer()
 			T2.SetRotation(FQuat(Facing, FMath::DegreesToRadians(PeerTilt)) * T2.GetRotation());
 		}
 		Shown->SetBoneTransformByName(B.Bone, T2, EBoneSpaces::ComponentSpace);
+		Shown->RefreshBoneTransforms();
+	}
+}
+
+void AHusk::Glare()
+{
+	if ((GlareW <= 0.f && Twitch.IsNearlyZero()) || !Shown->GetSkinnedAsset())
+	{
+		return;
+	}
+	const int32 Hi = Shown->GetBoneIndex(TEXT("head"));
+	if (Hi == INDEX_NONE)
+	{
+		return;
+	}
+	if (HeadFwdLocal.IsNearlyZero())
+	{
+		// which way its face looks in the head bone's own frame (in the reference pose it faces the mesh's forward)
+		const FReferenceSkeleton& R = Shown->GetSkinnedAsset()->GetRefSkeleton();
+		FTransform T = FTransform::Identity;
+		for (int32 i = Hi; i != INDEX_NONE; i = R.GetParentIndex(i))
+		{
+			T = T * R.GetRefBonePose()[i];
+		}
+		HeadFwdLocal = T.GetRotation().Inverse().RotateVector(FRotator(0.f, MeshForwardYaw(), 0.f).Vector());
+	}
+	const FTransform H = Shown->GetBoneTransform(Hi, FTransform::Identity);
+	const FVector Fwd = H.GetRotation().RotateVector(HeadFwdLocal).GetSafeNormal();
+	const FVector Want = (Shown->GetComponentTransform().InverseTransformPosition(GlareAt) - H.GetLocation()).GetSafeNormal();
+	FQuat Q = FQuat::FindBetweenNormals(Fwd, Want);
+	FVector Axis;
+	float Ang;
+	Q.ToAxisAndAngle(Axis, Ang);
+	Q = FQuat(Axis, FMath::Min(Ang, FMath::DegreesToRadians(75.f)) * FMath::Clamp(GlareW, 0.f, 1.f));
+	const FVector Up = FVector::UpVector;
+	const FVector Across = FVector::CrossProduct(Want, Up).GetSafeNormal();
+	Q = FQuat(Want, FMath::DegreesToRadians(Twitch.Roll)) * FQuat(Across, FMath::DegreesToRadians(Twitch.Pitch)) *
+		FQuat(Up, FMath::DegreesToRadians(Twitch.Yaw)) * Q;
+	// shared down the neck: its base, its top, the head
+	static const TCHAR* NeckChain[] = {TEXT("neck_01"), TEXT("neck_02"), TEXT("head")};
+	static const float Share[] = {0.3f, 0.3f, 0.4f};
+	for (int32 c = 0; c < 3; ++c)
+	{
+		const int32 i = Shown->GetBoneIndex(NeckChain[c]);
+		if (i == INDEX_NONE)
+		{
+			continue;
+		}
+		FTransform T = Shown->GetBoneTransform(i, FTransform::Identity);
+		T.SetRotation(FQuat::Slerp(FQuat::Identity, Q, Share[c]) * T.GetRotation());
+		Shown->SetBoneTransformByName(NeckChain[c], T, EBoneSpaces::ComponentSpace);
 		Shown->RefreshBoneTransforms();
 	}
 }

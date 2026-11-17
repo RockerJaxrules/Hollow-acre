@@ -1,5 +1,6 @@
 #include "DriverArms.h"
 
+#include "Components/PointLightComponent.h"
 #include "Components/PoseableMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/SkeletalMesh.h"
@@ -1020,6 +1021,38 @@ void ADriverArms::Tick(float DeltaSeconds)
 		// the key turned in its lock
 		KeyPivot->SetRelativeRotation(FQuat(KeyAxis.GetSafeNormal(), -FMath::DegreesToRadians(KeyTurn)) * KeyBase);
 	}
+	if (KeyDangle)
+	{
+		// the bunch on its ring, hanging from the key's head: a pendulum in the car's frame (gravity, less the car's own
+		// jolts and braking), swinging as the key is turned; kept off the dash behind it
+		const float Dt = FMath::Clamp(DeltaSeconds, 1e-4f, 1.f / 30.f);
+		const FTransform Car = GetActorTransform();
+		const FVector CarVel = (Car.GetLocation() - CarPrevLoc) / Dt;
+		FVector CarAcc = bDangle ? (CarVel - CarPrevVel) / Dt : FVector::ZeroVector;
+		CarAcc = CarAcc.GetClampedToMaxSize(1500.f);
+		CarPrevLoc = Car.GetLocation();
+		CarPrevVel = CarVel;
+		const FVector P = Car.InverseTransformPosition(KeyDangle->GetComponentLocation());
+		const FVector G = Car.InverseTransformVectorNoScale(FVector(0.f, 0.f, -980.f) - CarAcc);
+		const float L = 3.2f;
+		if (!bDangle)
+		{
+			DangleBob = DanglePrev = P - FVector(0.f, 0.f, L);
+			bDangle = true;
+		}
+		const FVector Step = (DangleBob - DanglePrev) * FMath::Exp(-1.4f * Dt);
+		DanglePrev = DangleBob;
+		DangleBob = DangleBob + Step + G * Dt * Dt;
+		DangleBob = P + (DangleBob - P).GetSafeNormal() * L;
+		if (DangleBob.X > 74.3f)
+		{
+			DangleBob.X = 74.3f;                                   // (against the dash)
+			DangleBob = P + (DangleBob - P).GetSafeNormal() * L;
+		}
+		const FVector Down = Car.TransformVectorNoScale((DangleBob - P).GetSafeNormal());
+		const FVector KeyY = KeyPivot->GetComponentQuat().GetAxisY();
+		KeyDangle->SetWorldRotation(FRotationMatrix::MakeFromZY(-Down, KeyY).ToQuat());
+	}
 	if (FMath::IsNearlyEqual(Steer, LastSteer, 0.01f) && FMath::IsNearlyEqual(KeyReach, LastKeyReach, 0.0005f) && FMath::IsNearlyEqual(KeyTurn, LastKeyTurn, 0.01f))
 	{
 		return;
@@ -1036,6 +1069,82 @@ void ADriverArms::MakeKey()
 	if (KeyPivot)
 	{
 		return;
+	}
+	{
+		// the car's own keys (tools/blender/make_keys.py, Scripts/import_keys.py): the Volvo's key in its chrome lock collar
+		// in the lower dash right of the column, a split ring through its head, a brass house key and a worn leather tag on
+		// the ring, hanging and swinging (Tick)
+		const TCHAR* Dir = TEXT("/Game/HollowAcre/Car/Keys/");
+		auto Load = [Dir](const TCHAR* N) { return LoadObject<UStaticMesh>(nullptr, *FString::Printf(TEXT("%s%s.%s"), Dir, N, N)); };
+		UStaticMesh* MKey = Load(TEXT("Key_Ignition"));
+		UStaticMesh* MLock = Load(TEXT("Key_Lock"));
+		UStaticMesh* MRing = Load(TEXT("Key_Ring"));
+		UStaticMesh* MSpare = Load(TEXT("Key_Spare"));
+		UStaticMesh* MTag = Load(TEXT("Key_Tag"));
+		UMaterialInterface* KeyMat = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Car/Keys/M_KeyPart.M_KeyPart"));
+		if (MKey && MLock && MRing && MSpare && MTag && KeyMat)
+		{
+			const FVector Ax = KeyAxis.GetSafeNormal();
+			KeyBase = FRotationMatrix::MakeFromXZ(Ax, FVector::UpVector).ToQuat();       // (its head standing up)
+			KeyPivot = NewObject<USceneComponent>(this, TEXT("KeyPivot"));
+			KeyPivot->SetupAttachment(RootComponent);
+			KeyPivot->SetRelativeLocationAndRotation(KeyAt - Ax * 2.05f, KeyBase);   // (the lock's face: the head's middle at KeyAt)
+			KeyPivot->RegisterComponent();
+			auto Piece = [&](USceneComponent* Parent, UStaticMesh* M, const FVector& At, const FQuat& Rot, const TCHAR* Name)
+			{
+				UStaticMeshComponent* C = NewObject<UStaticMeshComponent>(this, Name);
+				C->SetStaticMesh(M);
+				C->SetupAttachment(Parent);
+				C->SetRelativeLocationAndRotation(At, Rot);
+				C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				C->SetCastShadow(true);
+				C->RegisterComponent();
+				return C;
+			};
+			auto Paint = [&](UStaticMeshComponent* C, const TCHAR* Slot, const FLinearColor& Col, float Metal, float Rough)
+			{
+				const int32 i = C->GetMaterialIndex(FName(Slot));
+				if (i != INDEX_NONE)
+				{
+					UMaterialInstanceDynamic* Mi = UMaterialInstanceDynamic::Create(KeyMat, C);
+					Mi->SetVectorParameterValue(TEXT("Color"), Col);
+					Mi->SetScalarParameterValue(TEXT("Metallic"), Metal);
+					Mi->SetScalarParameterValue(TEXT("Roughness"), Rough);
+					C->SetMaterial(i, Mi);
+				}
+			};
+			const FLinearColor Steel(0.56f, 0.56f, 0.58f), Chrome(0.72f, 0.72f, 0.74f);
+			UStaticMeshComponent* Lock = Piece(RootComponent, MLock, KeyAt - Ax * 2.05f, KeyBase, TEXT("KeyLock"));
+			Paint(Lock, TEXT("chrome"), Chrome, 1.f, 0.16f);
+			Paint(Lock, TEXT("dark"), FLinearColor(0.01f, 0.01f, 0.01f), 0.f, 0.6f);
+			UStaticMeshComponent* Key = Piece(KeyPivot, MKey, FVector::ZeroVector, FQuat::Identity, TEXT("KeyHead"));
+			Paint(Key, TEXT("plastic"), FLinearColor(0.016f, 0.016f, 0.018f), 0.f, 0.42f);
+			Paint(Key, TEXT("steel"), Steel, 1.f, 0.3f);
+			KeyDangle = NewObject<USceneComponent>(this, TEXT("KeyDangle"));
+			KeyDangle->SetupAttachment(KeyPivot);
+			KeyDangle->SetRelativeLocation(FVector(3.f, 0.f, 0.15f));                // (the ring's hole in the key's head)
+			KeyDangle->RegisterComponent();
+			Paint(Piece(KeyDangle, MRing, FVector::ZeroVector, FQuat::Identity, TEXT("KeyRing")), TEXT("steel"), Steel, 1.f, 0.28f);
+			const float R = 1.15f;
+			auto OnRing = [R](float Phi) { return FVector(0.f, R * FMath::Sin(Phi), -R - R * FMath::Cos(Phi)); };
+			Paint(Piece(KeyDangle, MSpare, OnRing(-0.45f), FQuat(FVector::ForwardVector, -0.2f), TEXT("KeySpare")), TEXT("brass"),
+				FLinearColor(0.7f, 0.5f, 0.23f), 1.f, 0.36f);
+			UStaticMeshComponent* Tag = Piece(KeyDangle, MTag, OnRing(0.5f), FQuat(FVector::ForwardVector, 0.22f), TEXT("KeyTag"));
+			Paint(Tag, TEXT("leather"), FLinearColor(0.1f, 0.06f, 0.035f), 0.f, 0.78f);
+			Paint(Tag, TEXT("steel"), Steel, 1.f, 0.3f);
+			UPointLightComponent* Glow = NewObject<UPointLightComponent>(this, TEXT("KeyGlow"));
+			Glow->SetupAttachment(RootComponent);
+			Glow->SetRelativeLocation(KeyAt + FVector(-4.f, -9.f, 12.f));       // (from the instruments, up and left of it)
+			Glow->SetIntensityUnits(ELightUnits::Candelas);
+			Glow->SetIntensity(KeyGlowCd);
+			Glow->SetLightColor(FLinearColor(0.6f, 0.78f, 1.f));
+			Glow->SetAttenuationRadius(40.f);
+			Glow->SetCastShadows(false);
+			Glow->RegisterComponent();
+			UE_LOG(LogTemp, Display, TEXT("DriverArms: the car's keys at %s (modelled)"), *KeyAt.ToString());
+			return;
+		}
+		UE_LOG(LogTemp, Warning, TEXT("DriverArms: the modelled keys are missing (Scripts/import_keys.py); simple shapes instead"));
 	}
 	UStaticMesh* Cube = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"));
 	UStaticMesh* Cyl = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
@@ -1094,6 +1203,7 @@ void ADriverArms::SnapshotGrip()
 		}
 		GripWrist[Side] = MeshRel.TransformPosition(BoneCS(Hand).GetLocation());
 		GripElbow[Side] = MeshRel.TransformPosition(BoneCS(Lower).GetLocation());
+		GripShoulder[Side] = MeshRel.TransformPosition(BoneCS(*FString::Printf(TEXT("upperarm_%s"), Sx)).GetLocation());
 		GripHandRot[Side] = MeshRel.GetRotation() * BoneCS(Hand).GetRotation();
 		const FName Mid1(*FString::Printf(TEXT("middle_01_%s"), Sx));
 		if (Mesh->GetBoneIndex(Mid1) != INDEX_NONE)
@@ -1123,6 +1233,94 @@ void ADriverArms::SnapshotGrip()
 		WheelBaseRot = WheelActor->GetRootComponent()->GetRelativeRotation().Quaternion();
 	}
 	UE_LOG(LogTemp, Display, TEXT("DriverArms: grip kept for steering (wheel %s)"), WheelActor ? *WheelActor->GetActorLabel() : TEXT("not set"));
+	MakePinch();
+}
+
+void ADriverArms::MakePinch()
+{
+	// The key grip (the right hand), as in close shots of a hand at an ignition: the key's head held between the pad of
+	// the thumb and the side of the curled index finger, the other fingers tucked loosely under it, more and more toward
+	// the little finger. From the hand as it holds the wheel: the fingers opened to the hand's reference pose, then
+	// curled about the knuckles' axis toward the palm; the thumb laid on the index's side, a key's thickness off it.
+	USkeletalMesh* SM = Cast<USkeletalMesh>(Mesh->GetSkinnedAsset());
+	if (!SM || Mesh->GetBoneIndex(TEXT("index_03_r")) == INDEX_NONE || Mesh->GetBoneIndex(TEXT("thumb_03_r")) == INDEX_NONE)
+	{
+		return;
+	}
+	const TArray<FTransform>& RefPose = SM->GetRefSkeleton().GetRefBonePose();
+	const TArray<FTransform> Saved = Mesh->BoneSpaceTransforms;
+	auto P = [&](const FString& B) { return BoneCS(FName(*B)).GetLocation(); };
+	const FVector Hd = P(TEXT("hand_r"));
+	const FVector Fd = (P(TEXT("middle_01_r")) - Hd).GetSafeNormal();
+	FVector Ac = P(TEXT("pinky_01_r")) - P(TEXT("index_01_r"));
+	Ac = (Ac - Fd * FVector::DotProduct(Ac, Fd)).GetSafeNormal();
+	FVector Palm = P(TEXT("middle_03_r")) - P(TEXT("middle_01_r"));         // (the curled fingers' tips: the palm's side)
+	Palm = (Palm - Fd * FVector::DotProduct(Palm, Fd) - Ac * FVector::DotProduct(Palm, Ac)).GetSafeNormal();
+	struct FCurl
+	{
+		const TCHAR* Name;
+		FVector Deg;
+	};
+	static const FCurl Curls[] = {{TEXT("index"), FVector(38.f, 78.f, 32.f)}, {TEXT("middle"), FVector(60.f, 92.f, 48.f)},
+		{TEXT("ring"), FVector(68.f, 94.f, 50.f)}, {TEXT("pinky"), FVector(76.f, 90.f, 46.f)}};
+	TArray<int32> Bones;
+	for (const FCurl& Cu : Curls)
+	{
+		FString J[3];
+		for (int32 k = 0; k < 3; ++k)
+		{
+			J[k] = FString::Printf(TEXT("%s_0%d_r"), Cu.Name, k + 1);
+			const int32 i = Mesh->GetBoneIndex(FName(*J[k]));
+			if (i == INDEX_NONE)
+			{
+				Mesh->BoneSpaceTransforms = Saved;
+				return;
+			}
+			Mesh->BoneSpaceTransforms[i].SetRotation(RefPose[i].GetRotation());
+			Bones.Add(i);
+		}
+		for (int32 k = 0; k < 3; ++k)
+		{
+			const FVector Jp = P(J[k]);
+			const FVector Cp = k < 2 ? P(J[k + 1]) : P(J[2]) + (P(J[2]) - P(J[1])) * 0.85f;
+			const FVector V = Cp - Jp;
+			const float S = FVector::DotProduct(FQuat(Ac, 0.2f).RotateVector(V) - V, Palm) >= 0.f ? 1.f : -1.f;
+			SetBoneCS(FName(*J[k]), FQuat(Ac, S * FMath::DegreesToRadians((float)Cu.Deg[k])) * BoneCS(FName(*J[k])).GetRotation());
+		}
+	}
+	// the thumb: from its reference pose, laid along the index's side (the radial side, away from the little finger),
+	// a key's thickness and the two fingers' flesh off its middle bone
+	const FString T1 = TEXT("thumb_01_r"), T2 = TEXT("thumb_02_r"), T3 = TEXT("thumb_03_r");
+	for (const FString& B : {T1, T2, T3})
+	{
+		const int32 i = Mesh->GetBoneIndex(FName(*B));
+		Mesh->BoneSpaceTransforms[i].SetRotation(RefPose[i].GetRotation());
+		Bones.Add(i);
+	}
+	auto TipOf = [&]() { const FVector A2 = P(T2), A3 = P(T3); return A3 + (A3 - A2) * 0.9f; };
+	const FVector IdxMid = FMath::Lerp(P(TEXT("index_02_r")), P(TEXT("index_03_r")), 0.3f);
+	const FVector Target = IdxMid - Ac * 2.3f;
+	for (int32 It = 0; It < 3; ++It)
+	{
+		const FTransform Tt = BoneCS(FName(*T1));
+		const FVector Cur = (FMath::Lerp(P(T2), TipOf(), 0.6f) - Tt.GetLocation()).GetSafeNormal();
+		const FVector Want = (Target - Tt.GetLocation()).GetSafeNormal();
+		SetBoneCS(FName(*T1), FQuat::FindBetweenNormals(Cur, Want) * Tt.GetRotation());
+	}
+	const FVector Pad = FMath::Lerp(P(T2), TipOf(), 0.6f);
+	const FVector IdxSide = IdxMid - Ac * 0.85f;
+	const FTransform HandCS = BoneCS(TEXT("hand_r"));
+	PinchAt = HandCS.InverseTransformPosition((Pad + IdxSide) * 0.5f);
+	PinchFace = HandCS.InverseTransformVectorNoScale((IdxSide - Pad).GetSafeNormal());
+	PinchFinger = HandCS.InverseTransformVectorNoScale(Fd);
+	PinchLocal.Reset();
+	for (int32 i : Bones)
+	{
+		PinchLocal.Add(i, Mesh->BoneSpaceTransforms[i].GetRotation());
+	}
+	UE_LOG(LogTemp, Display, TEXT("DriverArms: key grip: the thumb's pad %.2f cm from the index's side (the key's head 0.62 cm thick); pinch %.1f cm from the wrist"),
+		FVector::Dist(Pad, IdxSide), PinchAt.Size());
+	Mesh->BoneSpaceTransforms = Saved;
 }
 
 void ADriverArms::FollowWheel()
@@ -1137,6 +1335,33 @@ void ADriverArms::FollowWheel()
 		Mesh->BoneSpaceTransforms = GripPose;
 	}
 	const FTransform& MeshRel = Mesh->GetRelativeTransform();
+	if (KeyReach > 0.f && Mesh->GetBoneIndex(TEXT("spine_05")) != INDEX_NONE && Mesh->GetBoneIndex(TEXT("upperarm_r")) != INDEX_NONE)
+	{
+		// leaning in to reach the key (as anyone does for an ignition low in the dash, more so in a panic): the spine bent
+		// forward and turned a little toward it, so the right shoulder comes forward and down; the left hand stays on the
+		// rim (its arm is solved again below)
+		const float s = FMath::Clamp(KeyReach, 0.f, 1.f), e = s * s * (3.f - 2.f * s);
+		static const TCHAR* Spine[] = {TEXT("spine_03"), TEXT("spine_04"), TEXT("spine_05")};
+		auto ShoulderX = [&]() { return MeshRel.TransformPosition(BoneCS(TEXT("upperarm_r")).GetLocation()).X; };
+		auto Turn = [&](const FVector& AxisCar, float Deg)
+		{
+			// (which way about the axis brings the right shoulder forward: tried a little each way)
+			const FVector A = DirToCS(AxisCar);
+			const FName B(TEXT("spine_04"));
+			const FQuat Was = BoneCS(B).GetRotation();
+			const float X0 = ShoulderX();
+			SetBoneCS(B, FQuat(A, 0.05f) * Was);
+			const float Sign = ShoulderX() > X0 ? 1.f : -1.f;
+			SetBoneCS(B, Was);
+			for (const TCHAR* Sp : Spine)
+			{
+				const FName Bn(Sp);
+				SetBoneCS(Bn, FQuat(A, Sign * FMath::DegreesToRadians(Deg / 3.f) * e) * BoneCS(Bn).GetRotation());
+			}
+		};
+		Turn(FVector(0.f, 1.f, 0.f), KeyLean);
+		Turn(FVector(0.f, 0.f, 1.f), KeyTwist);
+	}
 	for (int32 Side = 0; Side < 2; ++Side)
 	{
 		const TCHAR* Sx = Side == 0 ? TEXT("l") : TEXT("r");
@@ -1148,7 +1373,30 @@ void ADriverArms::FollowWheel()
 		}
 		FVector Wrist = WheelCentre + Q.RotateVector(GripWrist[Side] - WheelCentre);
 		FQuat HandRot = Q * GripHandRot[Side];
-		if (Side == 1 && KeyReach > 0.f && !GripFinger[1].IsNearlyZero())
+		float KeyE = 0.f;
+		if (Side == 1 && KeyReach > 0.f && PinchLocal.Num() > 0 && KeyPivot)
+		{
+			// the right hand off the rim, down past the outside of it to the key: the key's head pinched between the thumb's
+			// pad and the curled index's side (the thumb on its right face), the fingers pointing in at the lock; turning
+			// it is the forearm twisting about the key's axis. On its way there it swings out and back, clear of the rim.
+			const FQuat KeyQ = KeyPivot->GetRelativeRotation().Quaternion();
+			const FVector Head = KeyPivot->GetRelativeLocation() + KeyQ.RotateVector(FVector(2.05f, 0.f, 0.15f));
+			const FQuat M1 = FRotationMatrix::MakeFromXY(PinchFace, -PinchFinger).ToQuat();
+			const FQuat M2 = FRotationMatrix::MakeFromXY(KeyQ.GetAxisY(), KeyQ.GetAxisX()).ToQuat();
+			const FQuat KeyRot = M2 * M1.Inverse();
+			const FVector KeyWrist = Head - KeyRot.RotateVector(PinchAt);
+			const float s = FMath::Clamp(KeyReach, 0.f, 1.f), e = s * s * (3.f - 2.f * s);
+			KeyE = e;
+			Wrist = FMath::Lerp(Wrist, KeyWrist, e) + FVector(-5.f, 7.f, -4.f) * FMath::Sin(PI * e);   // (down past the rim's outside)
+			HandRot = FQuat::Slerp(HandRot, KeyRot, e);
+			const float f = FMath::Clamp((s - 0.35f) / 0.65f, 0.f, 1.f);                         // (closing on it as it gets there)
+			for (const TPair<int32, FQuat>& Pl : PinchLocal)
+			{
+				FTransform& Tb = Mesh->BoneSpaceTransforms[Pl.Key];
+				Tb.SetRotation(FQuat::Slerp(Tb.GetRotation(), Pl.Value, f * f * (3.f - 2.f * f)));
+			}
+		}
+		else if (Side == 1 && KeyReach > 0.f && !GripFinger[1].IsNearlyZero())
 		{
 			// the right hand off the rim, down past the outside of it to the key in the lower dash: its fingers pointing in
 			// at the key's head (toward the dash, a little down), the head pinched between thumb and fingers; turning it is
@@ -1173,12 +1421,16 @@ void ADriverArms::FollowWheel()
 			HandRot = FQuat::Slerp(HandRot, KeyRot, e);
 		}
 		const FVector Sh = MeshRel.TransformPosition(BoneCS(Upper).GetLocation());
-		const float L1 = FVector::Dist(Sh, GripElbow[Side]);
+		const float L1 = FVector::Dist(GripShoulder[Side].IsNearlyZero() ? Sh : GripShoulder[Side], GripElbow[Side]);
 		const float L2 = FVector::Dist(GripElbow[Side], GripWrist[Side]);
 		const FVector D = Wrist - Sh;
 		const float Dist = FMath::Min((float)D.Size(), (L1 + L2) * 0.999f);
 		const FVector Dir = D.GetSafeNormal();
-		FVector Pole = GripElbow[Side] - Sh;
+		FVector Pole = (GripElbow[Side] - Sh).GetSafeNormal();
+		if (KeyE > 0.f)
+		{
+			Pole = FMath::Lerp(Pole, FVector(-0.1f, 1.f, -0.55f).GetSafeNormal(), KeyE);     // (the elbow out to the side and down)
+		}
 		Pole = (Pole - Dir * FVector::DotProduct(Pole, Dir)).GetSafeNormal();
 		const float A = (L1 * L1 - L2 * L2 + Dist * Dist) / (2.f * Dist);
 		const FVector Elbow = Sh + Dir * A + Pole * FMath::Sqrt(FMath::Max(0.f, L1 * L1 - A * A));
@@ -1192,6 +1444,25 @@ void ADriverArms::FollowWheel()
 		Aim(Upper, Lower, Elbow);
 		Aim(Lower, Hand, Sh + Dir * Dist);
 		SetBoneCS(Hand, MeshRel.GetRotation().Inverse() * HandRot);
+		static int32 KeyLogged = 0;
+		if (Side == 1 && KeyReach >= 0.999f && KeyLogged < 3)
+		{
+			// the key check: where the hand got to (the IK's reach), how the fingers are bent, where the pinch is vs the key
+			++KeyLogged;
+			auto Pc = [&](const TCHAR* B) { return MeshRel.TransformPosition(BoneCS(B).GetLocation()); };
+			auto Bend = [&](const TCHAR* A, const TCHAR* B, const TCHAR* C)
+			{
+				const FVector U = (Pc(B) - Pc(A)).GetSafeNormal(), V = (Pc(C) - Pc(B)).GetSafeNormal();
+				return FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(U, V), -1.f, 1.f)));
+			};
+			const FVector PinchNow = MeshRel.TransformPosition(BoneCS(Hand).TransformPosition(PinchAt));
+			const FVector HeadNow = KeyPivot ? KeyPivot->GetRelativeLocation() + KeyPivot->GetRelativeRotation().Quaternion().RotateVector(FVector(2.05f, 0.f, 0.15f)) : KeyAt;
+			UE_LOG(LogTemp, Display, TEXT("DriverArms: at the key: wrist %.2f cm off its target (shoulder %s, %.1f cm from it, arm %.1f); pinch %.2f cm from the key's head; index bent %.0f/%.0f, middle %.0f/%.0f, pinky %.0f/%.0f deg; %d pinch bones"),
+				FVector::Dist(Pc(TEXT("hand_r")), Wrist), *Sh.ToString(), FVector::Dist(Sh, Wrist), L1 + L2, FVector::Dist(PinchNow, HeadNow),
+				Bend(TEXT("index_01_r"), TEXT("index_02_r"), TEXT("index_03_r")), Bend(TEXT("hand_r"), TEXT("index_01_r"), TEXT("index_02_r")),
+				Bend(TEXT("middle_01_r"), TEXT("middle_02_r"), TEXT("middle_03_r")), Bend(TEXT("hand_r"), TEXT("middle_01_r"), TEXT("middle_02_r")),
+				Bend(TEXT("pinky_01_r"), TEXT("pinky_02_r"), TEXT("pinky_03_r")), Bend(TEXT("hand_r"), TEXT("pinky_01_r"), TEXT("pinky_02_r")), PinchLocal.Num());
+		}
 		static int32 Logged = 0;
 		if (Logged < 12 && (Logged < 4 || FMath::Abs(Steer) > 3.f))
 		{

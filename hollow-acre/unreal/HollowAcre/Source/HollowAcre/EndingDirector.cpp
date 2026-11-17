@@ -49,6 +49,13 @@ void AEndingDirector::BeginPlay()
 		PathDist.Add(Acc);
 	}
 	FParse::Value(FCommandLine::Get(), TEXT("-drivesecs="), DriveSeconds);
+	{
+		float StartM = -1.f;
+		if (FParse::Value(FCommandLine::Get(), TEXT("-startm="), StartM) && StartM >= 0.f)
+		{
+			StartDistance = StartM * 100.f;           // (testing: the drive starts this far along the road)
+		}
+	}
 	if (FParse::Param(FCommandLine::Get(), TEXT("crash")))
 	{
 		bCrash = true;
@@ -597,8 +604,26 @@ void AEndingDirector::Tick(float DeltaSeconds)
 	{
 		const float k = Time - StopT;
 		auto Sm = [](float x) { x = FMath::Clamp(x, 0.f, 1.f); return x * x * (3.f - 2.f * x); };
-		auto Crank = [k, Sm](float a, float b) { return Sm((k - a) / 0.1f) * (1.f - Sm((k - b) / 0.12f)); };
-		const float Turn = 38.f * (Crank(1.5f, 2.6f) + Crank(3.2f, 4.5f) + Crank(4.9f, 5.2f) + Crank(5.35f, 5.7f) + Crank(5.85f, 6.3f));
+		// each try: this car won't crank again from on (its lock wants it back at off first): back to off, round past on to
+		// start, held while the starter grinds (the wrist straining), let go (it springs back to on); the last ones fast
+		struct FTry
+		{
+			float At, Hold, Pace;
+		};
+		static const FTry Tries[] = {{1.7f, 1.1f, 1.f}, {3.35f, 1.25f, 1.f}, {4.95f, 0.25f, 0.6f}, {5.55f, 0.45f, 0.6f}};
+		float Turn = 0.f;
+		for (const FTry& Tr : Tries)
+		{
+			const float u = k - Tr.At;
+			if (u < -0.42f * Tr.Pace || u > Tr.Hold + 0.08f)
+			{
+				continue;
+			}
+			const float Back = -40.f * Sm((u + 0.42f * Tr.Pace) / (0.12f * Tr.Pace));
+			const float Round = 78.f * Sm((u + 0.16f * Tr.Pace) / (0.16f * Tr.Pace));
+			const float Let = 38.f * Sm((u - Tr.Hold) / 0.07f);
+			Turn = Back + Round - Let + (u > 0.f && u < Tr.Hold ? 1.3f * FMath::Sin(u * 57.f) : 0.f);
+		}
 		float Reach = Sm((k - 0.7f) / 0.55f);
 		if (SmashT >= 0.f)
 		{
@@ -606,7 +631,7 @@ void AEndingDirector::Tick(float DeltaSeconds)
 		}
 		Arms->KeyReach = Reach;
 		Arms->KeyTurn = Turn * Reach;
-		static const float CrankAt[] = {1.5f, 3.2f, 4.9f, 5.35f, 5.85f};
+		static const float CrankAt[] = {1.7f, 3.35f, 4.95f, 5.55f};
 		while (KeyBeat < (int32)UE_ARRAY_COUNT(CrankAt) && k >= CrankAt[KeyBeat] && SmashT < 0.f)
 		{
 			Event(TEXT("crank"), (float)KeyBeat);
@@ -990,7 +1015,7 @@ void AEndingDirector::PlaceCamera()
 		const float S = RoarShake * RoarShake;
 		const FVector Shake(FMath::Sin(Time * 53.f) * 1.2f * S, FMath::Sin(Time * 41.f + 1.f) * 1.6f * S, FMath::Sin(Time * 47.f + 2.f) * 1.2f * S);
 		const FRotator ShakeR(FMath::Sin(Time * 39.f) * 1.5f * S, FMath::Sin(Time * 45.f + 1.f) * 2.f * S, FMath::Sin(Time * 51.f) * 1.5f * S);
-		Camera->GetRootComponent()->SetRelativeLocationAndRotation(ClearEye(CamRest + Look.RotateVector(Neck) - Neck + FVector(HeadPush, -StallYank(), 0.f) + Shake),
+		Camera->GetRootComponent()->SetRelativeLocationAndRotation(ClearEye(CamRest + Look.RotateVector(Neck) - Neck + FVector(HeadPush, HeadSide - StallYank(), -HeadDrop) + Shake),
 			CamRestRot + Look + ShakeR);
 		static const bool bSideCam = FParse::Param(FCommandLine::Get(), TEXT("sidecam"));
 		if (bSideCam && Car)
@@ -999,6 +1024,25 @@ void AEndingDirector::PlaceCamera()
 			const FTransform CT = Car->GetActorTransform();
 			const FVector From = CT.TransformPosition(FVector(110.f, -430.f, 135.f)), To = CT.TransformPosition(FVector(105.f, 20.f, 105.f));
 			Camera->SetActorLocationAndRotation(From, (To - From).Rotation());
+		}
+		static const bool bKeyCam = FParse::Param(FCommandLine::Get(), TEXT("keycam"));
+		if (bKeyCam && Car && Arms)
+		{
+			// checking: close by the key, from the passenger's side and above (the hand on it, the pinch, the bunch)
+			const FTransform CT = Car->GetActorTransform();
+			const FVector To = CT.TransformPosition(Arms->KeyAt + FVector(0.f, 0.f, -1.5f));
+			static float KeyCamSide = 1.f;
+			FParse::Value(FCommandLine::Get(), TEXT("-keycamside="), KeyCamSide);
+			// (1: from behind, right and above; 2: from in the dash, looking back out at the hand's palm side)
+			const FVector From = CT.TransformPosition(Arms->KeyAt + (KeyCamSide > 1.5f ? FVector(10.f, 13.f, 5.f) : FVector(-26.f, 24.f, 16.f)));
+			Camera->SetActorLocationAndRotation(From, (To - From).Rotation());
+			if (UCameraComponent* Cc = Camera->FindComponentByClass<UCameraComponent>())
+			{
+				Cc->PostProcessSettings.bOverride_DepthOfFieldFocalDistance = true;
+				Cc->PostProcessSettings.DepthOfFieldFocalDistance = FVector::Dist(From, To);
+				Cc->PostProcessSettings.bOverride_DepthOfFieldFstop = true;
+				Cc->PostProcessSettings.DepthOfFieldFstop = 22.f;
+			}
 		}
 	}
 }
@@ -1009,7 +1053,8 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 	// road; down at the letter; the smashed gap going by on the right; the eyes in the trees; the shape in the road,
 	// leaning in to it as it stares; creeping on, the dark window on the left, the drop on the right, the mirror, the
 	// road; then the growl on the left and the head snaps round
-	float Want = 0.f, WantPitch = -2.f, WantPush = 0.f, Rate = 5.f, Focus = 1500.f;
+	float Want = 0.f, WantPitch = -2.f, WantPush = 0.f, Rate = 5.f, Focus = 1500.f, WantSide = 0.f, WantDrop = 0.f;
+	bOnKey = false;
 	const float t = Time;
 	auto DistTo = [this](const FVector& W) { return Camera ? FVector::Dist(Camera->GetActorLocation(), W) : 1500.f; };
 	if (bImpacted && bStall && t < ImpactTime + 0.8f)
@@ -1035,7 +1080,7 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 		const float s = t - StallT;
 		const float k = StopT >= 0.f ? t - StopT : -1.f;
 		const bool bDials = s > 0.25f && s < 1.3f;
-		const bool bKey = k >= 0.55f && (k < 2.0f || (k > 3.05f && k < 3.6f) || k > 4.95f);
+		const bool bKey = k >= 0.55f && (k < 2.15f || (k > 3.0f && k < 3.6f) || k > 4.6f);
 		if (SmashT >= 0.f)
 		{
 			// the glass bursts in at the left: the head whipped round to it, back from it; its face is right there
@@ -1049,12 +1094,18 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 		{
 			const FVector KeyW = Car->GetActorTransform().TransformPosition(Arms ? Arms->KeyAt : FVector(72.5f, 8.7f, 74.f));
 			float Unused = 0.f;
-			LookAt(KeyW, 0.85f, Want, Unused);
-			LookAt(KeyW, 0.9f, Unused, WantPitch);
-			WantPitch = FMath::Clamp(WantPitch, -40.f, 0.f);
+			// (leaning in over it, to the right and down, to see the key and the hand on it past the forearm; the eyes on
+			// the key's head and the bunch hanging under it)
+			const FVector KeySee = KeyW - Car->GetActorUpVector() * 1.5f;
+			LookAt(KeySee, 0.85f, Want, Unused);
+			LookAt(KeySee, 0.9f, Unused, WantPitch);
+			WantPitch = FMath::Clamp(WantPitch, -42.f, 0.f);
 			Rate = 4.f;
-			Focus = DistTo(KeyW);
-			WantPush = 3.f;
+			Focus = DistTo(KeySee);
+			WantPush = 11.f;
+			WantSide = 8.f;
+			WantDrop = 5.f;
+			bOnKey = true;
 		}
 		else if (bDials)
 		{
@@ -1258,13 +1309,17 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 	{
 		const bool bFix = (Creature && CreStage == 2 && bStopped && !bShook && !bImpacted) ||
 			false;
-		const float FovRate = bFix ? 0.38f : 5.f;
-		CamComp->SetFieldOfView(CamComp->FieldOfView + ((bFix ? StareFov : BaseFov) - CamComp->FieldOfView) * (1.f - FMath::Exp(-DeltaSeconds * FovRate)));
+		// (on the key: the view closes in a little on it, as the attention does)
+		const float FovRate = bFix ? 0.38f : bOnKey ? 1.8f : 5.f;
+		const float FovWant = bFix ? StareFov : bOnKey ? KeyFov : BaseFov;
+		CamComp->SetFieldOfView(CamComp->FieldOfView + (FovWant - CamComp->FieldOfView) * (1.f - FMath::Exp(-DeltaSeconds * FovRate)));
 	}
 	const float k = 1.f - FMath::Exp(-DeltaSeconds * Rate);
 	LookYaw += (Want - LookYaw) * k;
 	LookPitch += (WantPitch - LookPitch) * k;
 	HeadPush += (WantPush - HeadPush) * (1.f - FMath::Exp(-DeltaSeconds * (WantPush > HeadPush ? 0.6f : 2.f)));
+	HeadSide += (WantSide - HeadSide) * (1.f - FMath::Exp(-DeltaSeconds * 2.4f));
+	HeadDrop += (WantDrop - HeadDrop) * (1.f - FMath::Exp(-DeltaSeconds * 2.4f));
 	if (bCrash && !bImpacted)
 	{
 		SetFocus(FocusCm + (Focus - FocusCm) * (1.f - FMath::Exp(-DeltaSeconds * 3.5f)));

@@ -2387,7 +2387,7 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 				}
 				H->GetBody()->SetPlayRate(0.f);
 				H->GetBody()->SetPosition(At, false);
-				H->PeerTilt = g < StallFace ? 9.f * FMath::Sin(g * 23.f) * Smooth(g / 0.1f) * (1.f - Smooth((g - StallFace + 0.12f) / 0.12f)) : 0.f;
+				H->PeerTilt = 0.f;
 			}
 			else if (PeerBeat < 3)
 			{
@@ -2399,7 +2399,29 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 		H->JawOpen = r < 1.35f ? 7.f + 3.f * FMath::Sin(r * 6.f) : 8.f + 26.f * Smooth((r - 1.35f) / 0.2f);
 		if (bStall && SmashT >= 0.f)
 		{
-			H->JawOpen = (8.f + 26.f * Smooth((Time - SmashT) / 0.12f)) * (1.f + 0.06f * FMath::Sin((Time - SmashT) * 31.f));   // (the shriek at once)
+			// its eyes on the driver from the moment the glass goes and never off them (The Quarry's werewolves, Until
+			// Dawn's wendigos), through the reach and the shove; its head cocked over and jerking from angle to angle, held
+			// dead still between (never a smooth sway); each jerk with a snap of its jaw wider into the shriek
+			const float g = Time - SmashT;
+			if (APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(this, 0))
+			{
+				H->GlareAt = Cam->GetCameraLocation();
+			}
+			H->GlareW = bImpacted ? FMath::Max(0.f, 1.f - (Time - ImpactTime) / 0.5f) : 1.f;
+			if (g >= TwitchNext)
+			{
+				const bool bFace = g < StallFace;
+				TwitchFrom = TwitchNow;
+				TwitchTo = FRotator(TwitchRand.FRandRange(-7.f, 7.f), TwitchRand.FRandRange(-10.f, 10.f),
+					(bFace ? 17.f : 6.f) * (TwitchRand.FRand() < 0.8f ? 1.f : -0.6f) + TwitchRand.FRandRange(-9.f, 9.f));
+				TwitchT0 = g;
+				TwitchNext = g + TwitchRand.FRandRange(0.13f, 0.32f);
+			}
+			const float a = Smooth((g - TwitchT0) / 0.05f);
+			TwitchNow = FRotator(FMath::Lerp(TwitchFrom.Pitch, TwitchTo.Pitch, a), FMath::Lerp(TwitchFrom.Yaw, TwitchTo.Yaw, a),
+				FMath::Lerp(TwitchFrom.Roll, TwitchTo.Roll, a));
+			H->Twitch = TwitchNow * (bImpacted ? H->GlareW : 1.f);
+			H->JawOpen = (8.f + 26.f * Smooth(g / 0.12f)) * (1.f + 0.1f * (1.f - Smooth((g - TwitchT0) / 0.09f)) + 0.04f * FMath::Sin(g * 31.f));
 		}
 		if (bImpacted && Time > ImpactTime + 1.6f)
 		{

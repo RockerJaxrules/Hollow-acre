@@ -109,9 +109,17 @@ public:
 	/** The key's bow (car frame, cm) and the axis it turns about (out of the lock toward the driver, along the column): in the
 	 *  column lock just behind the rim's lower right, as on this car (seen through the wheel's lower right opening). */
 	UPROPERTY(EditAnywhere, Category = "Driver")
-	FVector KeyAt = FVector(72.2f, 14.f, 65.5f);
+	FVector KeyAt = FVector(70.2f, 14.f, 66.f);
 	UPROPERTY(EditAnywhere, Category = "Driver")
 	FVector KeyAxis = FVector(-0.94f, 0.15f, 0.3f);
+	/** The instruments' glow spilling onto the key (candelas). */
+	UPROPERTY(EditAnywhere, Category = "Driver")
+	float KeyGlowCd = 0.22f;
+	/** Leaning in to reach the key: the spine bent forward and turned toward it (degrees, at full reach). */
+	UPROPERTY(EditAnywhere, Category = "Driver")
+	float KeyLean = 24.f;
+	UPROPERTY(EditAnywhere, Category = "Driver")
+	float KeyTwist = 16.f;
 
 protected:
 	virtual void BeginPlay() override;
@@ -167,6 +175,7 @@ private:
 	TArray<FTransform> GripPose;
 	FVector GripWrist[2] = { FVector::ZeroVector, FVector::ZeroVector };
 	FVector GripElbow[2] = { FVector::ZeroVector, FVector::ZeroVector };
+	FVector GripShoulder[2] = { FVector::ZeroVector, FVector::ZeroVector };
 	FQuat GripHandRot[2] = { FQuat::Identity, FQuat::Identity };
 	FQuat WheelBaseRot = FQuat::Identity;
 	float SteerSign = 1.f;
@@ -178,4 +187,14 @@ private:
 	float LastKeyReach = -1.f, LastKeyTurn = -1e9f;
 	FVector GripFinger[2] = { FVector::ZeroVector, FVector::ZeroVector };
 	FVector GripAcross[2] = { FVector::ZeroVector, FVector::ZeroVector };
+	// the bunch on the key's ring (a pendulum from the key's head, in the car's frame)
+	UPROPERTY()
+	TObjectPtr<USceneComponent> KeyDangle;
+	FVector DangleBob = FVector::ZeroVector, DanglePrev = FVector::ZeroVector, CarPrevLoc = FVector::ZeroVector, CarPrevVel = FVector::ZeroVector;
+	bool bDangle = false;
+	// the key grip (the right hand): each finger and thumb bone's own rotation as it pinches the key's head, where the
+	// pinch is in the hand's frame, the way across it (thumb to index) and where the fingers point
+	void MakePinch();
+	TMap<int32, FQuat> PinchLocal;
+	FVector PinchAt = FVector::ZeroVector, PinchFace = FVector::ZeroVector, PinchFinger = FVector::ZeroVector;
 };

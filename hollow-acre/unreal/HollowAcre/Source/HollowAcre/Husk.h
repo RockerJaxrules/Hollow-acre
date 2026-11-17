@@ -125,6 +125,14 @@ public:
 	 *  degrees through them all), and its head tilted over (degrees): to bring its face down to a windshield, peering. */
 	float PeerDown = 0.f, PeerTilt = 0.f, PeerMaxDeg = 85.f;
 
+	/** Its eyes on its prey, on top of its clip (as The Quarry's werewolves and Until Dawn's wendigos never look away from
+	 *  who they are after): its neck and head turned so its face points at GlareAt (world), GlareW of the way (0 off), at
+	 *  most 75 degrees; then Twitch (degrees: yaw about up, pitch across, roll about the gaze) on top, for the sudden
+	 *  jerks of its head. */
+	FVector GlareAt = FVector::ZeroVector;
+	float GlareW = 0.f;
+	FRotator Twitch = FRotator::ZeroRotator;
+
 	/** Hanging its head down over an edge (the roof's front, the owner's reveal), on top of its clip: its lower spine bent
 	 *  down and its upper spine, neck and head curled about its own side-to-side axis, solved each frame so that its head
 	 *  is at HangHead (world) with its face turned (upside down) toward HangLook; its body slid along what it is on as
@@ -209,6 +217,8 @@ private:
 	int32 NeckBone = INDEX_NONE, HeadBone = INDEX_NONE;
 	FVector ClipFacing = FVector::ZeroVector;      // which way it faces in its clip (component space; 0: its mesh's own way)
 	void BendToPeer();
+	void Glare();
+	FVector HeadFwdLocal = FVector::ZeroVector;
 	void Hang(const FVector& Facing, const FVector& Side);
 	float SurfaceIn(const TArray<class UPrimitiveComponent*>& Parts, const FVector& Dir, const class UMaterialInterface* Skip, int32 Limb,
 		float Skin, FString* Worst) const;

@@ -337,6 +337,14 @@ def crash(ev, total):
                 d = min(d, t_smash - t0 + 0.03)
             g = seg('engine_die/engine_die_volvo245_1983_starter_failure_322974', a, d)
             M.at(t0 - 0.02, pan(peak(filt(fade(g, 0.01, 0.08), A.lp(5000)), 0.36 - 0.03 * i), 0.12))
+            # the key snapped back to off before each try (the lock's click and the bunch knocking: a real car's key, from
+            # the Geo Prizm interior recording)
+            pace = (1.0, 1.0, 0.6, 0.6, 0.6)[min(i, 4)]
+            clk = seg('engine/engine_geoprizm_interior_drive_193780', 2.42, 0.24)
+            M.at(t0 - 0.30 * pace, pan(peak(filt(fade(clk, 0.003, 0.1), A.hp(700)), 0.17), 0.15))
+        # the keys jingling as the hand takes them
+        jing = seg('engine/engine_geoprizm_interior_drive_193780', 1.22, 0.7)
+        M.at(t_reach + 0.45, pan(peak(filt(fade(jing, 0.01, 0.3), A.hp(1200)), 0.12), 0.15))
     crunch = steady('snow_tyres/snow_tyres_tires_snow_ice_slow_71099', max(0.5, t_stop - t_skid), skip=0.5)
     M.at(t_skid + 0.2, peak(filt(fade(crunch, 0.1, 0.6), A.lp(2400)), 0.14))
 

@@ -257,9 +257,14 @@ public:
 	 *  1.3-1.5 s later, the blow 1.75 s after it gets there. When the glass went (-1: not yet). */
 	float StallPeerAt = 4.3f, SmashT = -1.f;
 	/** (the stall) From the glass going to the blow (s): its face in the hole, its arm in at the driver. */
-	float StallHold = 1.5f;
+	float StallHold = 1.65f;
 	/** (the stall) How long its face is in the hole, shrieking, before it drives its arm in at the driver (s). */
-	float StallFace = 0.6f;
+	float StallFace = 0.75f;
+	/** (the stall) Its head's jerks at the window (Until Dawn's wendigos): from, to, now (degrees), when the last began and
+	 *  when the next comes (s after the glass went). */
+	FRotator TwitchFrom = FRotator::ZeroRotator, TwitchTo = FRotator::ZeroRotator, TwitchNow = FRotator::ZeroRotator;
+	float TwitchT0 = 0.f, TwitchNext = 0.f;
+	FRandomStream TwitchRand = FRandomStream(4127);
 	/** (the stall) The car rocked on its springs by it (degrees of roll, + away from it), and the driver's head yanked
 	 *  toward the window by its grip (cm, car frame -Y). */
 	float StallRock() const;
@@ -374,6 +379,11 @@ private:
 	// the driver's head turning (degrees, + to the right), tipping (+ up), leaning in (cm), and the shake of the scream
 	float LookYaw = 0.f;
 	float LookPitch = 0.f, HeadPush = 0.f, RoarShake = 0.f;
+	/** The head leaned over to the right and down (cm), to see the key past the arm turning it. */
+	float HeadSide = 0.f, HeadDrop = 0.f;
+	/** The eyes on the key (this frame), and how far the view closes in on it then (degrees of field of view). */
+	bool bOnKey = false;
+	float KeyFov = 58.f;
 	// the rebuilt cut (EndingCrashBeats.cpp)
 	void BeginCrashScene();
 	void CrashBeats(float DeltaSeconds);
