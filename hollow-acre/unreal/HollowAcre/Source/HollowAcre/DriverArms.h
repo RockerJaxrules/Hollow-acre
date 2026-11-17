@@ -114,7 +114,7 @@ public:
 	FVector KeyAxis = FVector(-0.94f, 0.15f, 0.3f);
 	/** The instruments' glow spilling onto the key (candelas). */
 	UPROPERTY(EditAnywhere, Category = "Driver")
-	float KeyGlowCd = 0.22f;
+	float KeyGlowCd = 0.12f;
 	/** Leaning in to reach the key: the spine bent forward and turned toward it (degrees, at full reach). */
 	UPROPERTY(EditAnywhere, Category = "Driver")
 	float KeyLean = 24.f;
@@ -197,4 +197,14 @@ private:
 	void MakePinch();
 	TMap<int32, FQuat> PinchLocal;
 	FVector PinchAt = FVector::ZeroVector, PinchFace = FVector::ZeroVector, PinchFinger = FVector::ZeroVector;
+	// the right arm as it holds the wheel, for solving it elsewhere: each bone's own way along it and the elbow's hinge
+	// axis (in that bone's frame), how the hand sat on the forearm, the forearm's twist bones (how far along it)
+	FVector UpperAlongL = FVector::ZeroVector, UpperBendL = FVector::ZeroVector, ForeAlongL = FVector::ZeroVector, ForeBendL = FVector::ZeroVector;
+	FQuat HandInFore0 = FQuat::Identity;
+	TArray<TPair<int32, float>> ForeTwist;
+	/** The hand's way round the key's head (degrees about the line from thumb to index): the least bent wrist. */
+	float KeyPhi = 0.f, KeySide = 1.f;
+	bool bKeyPhi = false;
+	/** The palm's way out of the hand (the hand's own frame), as it pinches the key. */
+	FVector PinchPalm = FVector::ZeroVector;
 };

@@ -604,8 +604,8 @@ void AEndingDirector::Tick(float DeltaSeconds)
 	{
 		const float k = Time - StopT;
 		auto Sm = [](float x) { x = FMath::Clamp(x, 0.f, 1.f); return x * x * (3.f - 2.f * x); };
-		// each try: this car won't crank again from on (its lock wants it back at off first): back to off, round past on to
-		// start, held while the starter grinds (the wrist straining), let go (it springs back to on); the last ones fast
+		// each try: the key snapped round from on to start (about 30 degrees, a flick of the wrist), held while the starter
+		// grinds (the wrist straining), let go (it springs back to on); the last ones quick and frantic
 		struct FTry
 		{
 			float At, Hold, Pace;
@@ -615,14 +615,13 @@ void AEndingDirector::Tick(float DeltaSeconds)
 		for (const FTry& Tr : Tries)
 		{
 			const float u = k - Tr.At;
-			if (u < -0.42f * Tr.Pace || u > Tr.Hold + 0.08f)
+			if (u < -0.12f * Tr.Pace || u > Tr.Hold + 0.08f)
 			{
 				continue;
 			}
-			const float Back = -40.f * Sm((u + 0.42f * Tr.Pace) / (0.12f * Tr.Pace));
-			const float Round = 78.f * Sm((u + 0.16f * Tr.Pace) / (0.16f * Tr.Pace));
-			const float Let = 38.f * Sm((u - Tr.Hold) / 0.07f);
-			Turn = Back + Round - Let + (u > 0.f && u < Tr.Hold ? 1.3f * FMath::Sin(u * 57.f) : 0.f);
+			const float Round = 32.f * Sm((u + 0.12f * Tr.Pace) / (0.12f * Tr.Pace));
+			const float Let = 32.f * Sm((u - Tr.Hold) / 0.06f);
+			Turn = Round - Let + (u > 0.f && u < Tr.Hold ? 0.9f * FMath::Sin(u * 57.f) : 0.f);
 		}
 		float Reach = Sm((k - 0.7f) / 0.55f);
 		if (SmashT >= 0.f)

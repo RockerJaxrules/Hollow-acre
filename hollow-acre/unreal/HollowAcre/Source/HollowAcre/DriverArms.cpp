@@ -1204,6 +1204,30 @@ void ADriverArms::SnapshotGrip()
 		GripWrist[Side] = MeshRel.TransformPosition(BoneCS(Hand).GetLocation());
 		GripElbow[Side] = MeshRel.TransformPosition(BoneCS(Lower).GetLocation());
 		GripShoulder[Side] = MeshRel.TransformPosition(BoneCS(*FString::Printf(TEXT("upperarm_%s"), Sx)).GetLocation());
+		if (Side == 1)
+		{
+			const FTransform Ut = BoneCS(TEXT("upperarm_r")), Lt = BoneCS(Lower), Ht = BoneCS(Hand);
+			const FVector UD = (Lt.GetLocation() - Ut.GetLocation()).GetSafeNormal(), FD = (Ht.GetLocation() - Lt.GetLocation()).GetSafeNormal();
+			const FVector Bd = FVector::CrossProduct(UD, FD).GetSafeNormal();
+			UpperAlongL = Ut.GetRotation().UnrotateVector(UD);
+			UpperBendL = Ut.GetRotation().UnrotateVector(Bd);
+			ForeAlongL = Lt.GetRotation().UnrotateVector(FD);
+			ForeBendL = Lt.GetRotation().UnrotateVector(Bd);
+			HandInFore0 = Lt.GetRotation().Inverse() * Ht.GetRotation();
+			const FReferenceSkeleton& Rf = Mesh->GetSkinnedAsset()->GetRefSkeleton();
+			const int32 Li = Rf.FindBoneIndex(Lower);
+			const float Lf = FMath::Max(1.f, (float)FVector::Dist(Lt.GetLocation(), Ht.GetLocation()));
+			ForeTwist.Reset();
+			for (int32 b = 0; b < Rf.GetNum(); ++b)
+			{
+				if (Rf.GetParentIndex(b) == Li && Rf.GetBoneName(b).ToString().Contains(TEXT("twist")))
+				{
+					const float Along = FVector::DotProduct(BoneCS(Rf.GetBoneName(b)).GetLocation() - Lt.GetLocation(), FD) / Lf;
+					ForeTwist.Add(TPair<int32, float>(b, FMath::Clamp(Along, 0.15f, 0.9f)));
+				}
+			}
+			UE_LOG(LogTemp, Display, TEXT("DriverArms: the right forearm's twist bones: %d"), ForeTwist.Num());
+		}
 		GripHandRot[Side] = MeshRel.GetRotation() * BoneCS(Hand).GetRotation();
 		const FName Mid1(*FString::Printf(TEXT("middle_01_%s"), Sx));
 		if (Mesh->GetBoneIndex(Mid1) != INDEX_NONE)
@@ -1313,6 +1337,7 @@ void ADriverArms::MakePinch()
 	PinchAt = HandCS.InverseTransformPosition((Pad + IdxSide) * 0.5f);
 	PinchFace = HandCS.InverseTransformVectorNoScale((IdxSide - Pad).GetSafeNormal());
 	PinchFinger = HandCS.InverseTransformVectorNoScale(Fd);
+	PinchPalm = HandCS.InverseTransformVectorNoScale(Palm);
 	PinchLocal.Reset();
 	for (int32 i : Bones)
 	{
@@ -1382,8 +1407,80 @@ void ADriverArms::FollowWheel()
 			const FQuat KeyQ = KeyPivot->GetRelativeRotation().Quaternion();
 			const FVector Head = KeyPivot->GetRelativeLocation() + KeyQ.RotateVector(FVector(2.05f, 0.f, 0.15f));
 			const FQuat M1 = FRotationMatrix::MakeFromXY(PinchFace, -PinchFinger).ToQuat();
-			const FQuat M2 = FRotationMatrix::MakeFromXY(KeyQ.GetAxisY(), KeyQ.GetAxisX()).ToQuat();
-			const FQuat KeyRot = M2 * M1.Inverse();
+			{
+				// which way round the key's head the hand takes it (about the line from thumb to index): searched, with the
+				// key unturned, for the wrist least bent and least twisted on the forearm for where the arm comes from (the
+				// elbow out to the side and down, on its hinge), clear of the cabin
+				const FVector KY = KeyBase.GetAxisY(), KX = KeyBase.GetAxisX();
+				const FVector Head0 = KeyPivot->GetRelativeLocation() + KeyBase.RotateVector(FVector(2.05f, 0.f, 0.15f));
+				const FVector ShNow = MeshRel.TransformPosition(BoneCS(TEXT("upperarm_r")).GetLocation());
+				const float L1k = FVector::Dist(GripShoulder[1], GripElbow[1]), L2k = FVector::Dist(GripElbow[1], GripWrist[1]);
+				const FQuat ToCSq = MeshRel.GetRotation().Inverse();
+				auto Frame = [](const FVector& A, const FVector& B) { return FRotationMatrix::MakeFromXY(A, B).ToQuat(); };
+				float BestPhi = 0.f, BestCost = 1e9f, BestSide = 1.f, BestBack = 0.f;
+				const FVector Eye(8.f, 6.f, 114.f);                                         // (leaning in)
+				for (float Side_ : {1.f, -1.f})
+				for (float Phi = -170.f; Phi <= 170.f; Phi += 2.f)
+				{
+					const FVector Fin = FQuat(KY, FMath::DegreesToRadians(Phi)).RotateVector(KX);
+					const FQuat R = Frame(KY * Side_, Fin) * M1.Inverse();
+					const FVector Wr = Head0 - R.RotateVector(PinchAt);
+					const FVector Dv = Wr - ShNow;
+					const float Dd = Dv.Size();
+					if (Dd > (L1k + L2k) * 0.995f || UpperAlongL.IsNearlyZero())
+					{
+						continue;
+					}
+					const FVector Dn = Dv / Dd;
+					FVector Pl = FVector(-0.1f, 1.f, -0.55f).GetSafeNormal();
+					Pl = (Pl - Dn * FVector::DotProduct(Pl, Dn)).GetSafeNormal();
+					const float Aa = (L1k * L1k - L2k * L2k + Dd * Dd) / (2.f * Dd);
+					const FVector El = ShNow + Dn * Aa + Pl * FMath::Sqrt(FMath::Max(0.f, L1k * L1k - Aa * Aa));
+					const FVector FD = ToCSq.RotateVector((Wr - El).GetSafeNormal()), UD = ToCSq.RotateVector((El - ShNow).GetSafeNormal());
+					const FVector Bd = FVector::CrossProduct(UD, FD).GetSafeNormal();
+					if (Bd.IsNearlyZero())
+					{
+						continue;
+					}
+					const FQuat Rf = Frame(FD, Bd) * Frame(ForeAlongL, ForeBendL).Inverse();
+					const FQuat Rel = (Rf.Inverse() * (ToCSq * R)) * HandInFore0.Inverse();
+					FQuat Sw, Tw;
+					Rel.ToSwingTwist(ForeAlongL, Sw, Tw);
+					const float SwingDeg = FMath::RadiansToDegrees(Sw.GetAngle());
+					const float TwistDeg = FMath::RadiansToDegrees(FMath::UnwindRadians(Tw.GetAngle()));
+					// (the back of the hand toward the eye, the fingers curled round the key away from it, as a hand at an
+					// ignition is seen from the seat)
+					const FVector Back = R.RotateVector(-PinchPalm).GetSafeNormal();
+					const float BackDeg = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(Back, (Eye - Head0).GetSafeNormal()), -1.f, 1.f)));
+					const float Cost = SwingDeg + 0.7f * FMath::Abs(TwistDeg) + 1.5f * FMath::Max(0.f, BackDeg - 40.f) +
+						30.f * FMath::Max(0.f, 4.f - CabinDist(El)) + 30.f * FMath::Max(0.f, 3.f - CabinDist((El + Wr) * 0.5f));
+					if (Cost < BestCost)
+					{
+						BestCost = Cost;
+						BestPhi = Phi;
+						BestSide = Side_;
+						BestBack = BackDeg;
+					}
+				}
+				if (!bKeyPhi || BestSide != KeySide)
+				{
+					KeyPhi = BestPhi;
+					KeySide = BestSide;
+				}
+				else
+				{
+					KeyPhi += FMath::UnwindDegrees(BestPhi - KeyPhi) * 0.25f;
+				}
+				bKeyPhi = true;
+				static int32 PhiLogged = 0;
+				if (KeyReach >= 0.999f && PhiLogged++ < 1)
+				{
+					UE_LOG(LogTemp, Display, TEXT("DriverArms: key hand: round %.0f deg, thumb on the %s face, back of the hand %.0f deg from the eye, cost %.1f"),
+						BestPhi, BestSide > 0.f ? TEXT("right") : TEXT("left"), BestBack, BestCost);
+				}
+			}
+			const FVector FinK = FQuat(KeyQ.GetAxisY(), FMath::DegreesToRadians(KeyPhi)).RotateVector(KeyQ.GetAxisX());
+			const FQuat KeyRot = FRotationMatrix::MakeFromXY(KeyQ.GetAxisY() * KeySide, FinK).ToQuat() * M1.Inverse();
 			const FVector KeyWrist = Head - KeyRot.RotateVector(PinchAt);
 			const float s = FMath::Clamp(KeyReach, 0.f, 1.f), e = s * s * (3.f - 2.f * s);
 			KeyE = e;
@@ -1443,7 +1540,38 @@ void ADriverArms::FollowWheel()
 		};
 		Aim(Upper, Lower, Elbow);
 		Aim(Lower, Hand, Sh + Dir * Dist);
+		if (Side == 1 && KeyE > 0.f && !UpperAlongL.IsNearlyZero())
+		{
+			// (off the wheel) the elbow bent about its own hinge, never sideways at it (that folds the skin into a fin)
+			const FVector UD = DirToCS(Elbow - Sh), FD = DirToCS(Sh + Dir * Dist - Elbow);
+			FVector Bd = FVector::CrossProduct(UD, FD);
+			Bd = Bd.SizeSquared() > 1e-4f ? Bd.GetSafeNormal() : BoneCS(Upper).GetRotation().RotateVector(UpperBendL);
+			auto Frame = [](const FVector& A, const FVector& B) { return FRotationMatrix::MakeFromXY(A, B).ToQuat(); };
+			const FQuat Ua = BoneCS(Upper).GetRotation(), La = BoneCS(Lower).GetRotation();
+			SetBoneCS(Upper, FQuat::Slerp(Ua, Frame(UD, Bd) * Frame(UpperAlongL, UpperBendL).Inverse(), KeyE));
+			SetBoneCS(Lower, FQuat::Slerp(La, Frame(FD, Bd) * Frame(ForeAlongL, ForeBendL).Inverse(), KeyE));
+		}
 		SetBoneCS(Hand, MeshRel.GetRotation().Inverse() * HandRot);
+		if (Side == 1 && KeyE > 0.f && ForeTwist.Num() > 0)
+		{
+			// the hand's turn on the forearm (from how it sat at the wheel) shared out down the forearm's twist bones, as the
+			// forearm's two bones roll over each other
+			const FQuat Rel = (BoneCS(Lower).GetRotation().Inverse() * BoneCS(Hand).GetRotation()) * HandInFore0.Inverse();
+			FQuat Sw, Tw;
+			Rel.ToSwingTwist(ForeAlongL, Sw, Tw);
+			float Ang = FMath::UnwindRadians(Tw.GetAngle());
+			if (FVector::DotProduct(Tw.GetRotationAxis(), ForeAlongL) < 0.f)
+			{
+				Ang = -Ang;
+			}
+			const FQuat HandWas = BoneCS(Hand).GetRotation();
+			for (const TPair<int32, float>& T : ForeTwist)
+			{
+				FTransform& Bt = Mesh->BoneSpaceTransforms[T.Key];
+				Bt.SetRotation(FQuat(ForeAlongL, Ang * T.Value * KeyE) * Bt.GetRotation());
+			}
+			SetBoneCS(Hand, HandWas);
+		}
 		static int32 KeyLogged = 0;
 		if (Side == 1 && KeyReach >= 0.999f && KeyLogged < 3)
 		{
@@ -1457,6 +1585,7 @@ void ADriverArms::FollowWheel()
 			};
 			const FVector PinchNow = MeshRel.TransformPosition(BoneCS(Hand).TransformPosition(PinchAt));
 			const FVector HeadNow = KeyPivot ? KeyPivot->GetRelativeLocation() + KeyPivot->GetRelativeRotation().Quaternion().RotateVector(FVector(2.05f, 0.f, 0.15f)) : KeyAt;
+			UE_LOG(LogTemp, Display, TEXT("DriverArms: the hand taken round the key's head %.0f deg"), KeyPhi);
 			UE_LOG(LogTemp, Display, TEXT("DriverArms: at the key: wrist %.2f cm off its target (shoulder %s, %.1f cm from it, arm %.1f); pinch %.2f cm from the key's head; index bent %.0f/%.0f, middle %.0f/%.0f, pinky %.0f/%.0f deg; %d pinch bones"),
 				FVector::Dist(Pc(TEXT("hand_r")), Wrist), *Sh.ToString(), FVector::Dist(Sh, Wrist), L1 + L2, FVector::Dist(PinchNow, HeadNow),
 				Bend(TEXT("index_01_r"), TEXT("index_02_r"), TEXT("index_03_r")), Bend(TEXT("hand_r"), TEXT("index_01_r"), TEXT("index_02_r")),

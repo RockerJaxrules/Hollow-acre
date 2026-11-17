@@ -2407,7 +2407,7 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 			{
 				H->GlareAt = Cam->GetCameraLocation();
 			}
-			H->GlareW = bImpacted ? FMath::Max(0.f, 1.f - (Time - ImpactTime) / 0.5f) : 1.f;
+			H->GlareW = bImpacted ? FMath::Max(0.f, 1.f - (Time - ImpactTime - StallPushFor) / 0.5f) : 1.f;
 			if (g >= TwitchNext)
 			{
 				const bool bFace = g < StallFace;
@@ -2422,6 +2422,32 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 				FMath::Lerp(TwitchFrom.Roll, TwitchTo.Roll, a));
 			H->Twitch = TwitchNow * (bImpacted ? H->GlareW : 1.f);
 			H->JawOpen = (8.f + 26.f * Smooth(g / 0.12f)) * (1.f + 0.1f * (1.f - Smooth((g - TwitchT0) / 0.09f)) + 0.04f * FMath::Sin(g * 31.f));
+		}
+		if (bStall && bImpacted && Time - ImpactTime < StallPushFor)
+		{
+			// the shove: it doesn't let go. It stays on the car as it goes (its arm in through the window, its other hand on
+			// the roof's edge), its body thrown in after it and driving it across the road in heaves, the car lurching with
+			// each, until the car tips toward the edge; then it lets go (and is left at the roadside)
+			const float p = Time - ImpactTime;
+			const float In = Smooth(p / 0.12f);
+			OnSnow(H, C.TransformPosition(FVector(PeerStand.X + 6.f * In, PeerStand.Y + 16.f * In, 0.f)), R);
+			const float Ph = p / StallPushFor * (float)StallHeaves;
+			const float Hv = 0.5f - 0.5f * FMath::Cos(Ph * 2.f * PI);
+			H->GetBody()->SetPlayRate(0.f);
+			H->GetBody()->SetPosition(FMath::Lerp(1.9f, 2.25f, Hv), false);
+			while (HeaveBeat < StallHeaves && Ph >= (float)HeaveBeat + 0.5f)
+			{
+				++HeaveBeat;
+				Jolt = FMath::Max(Jolt, 0.6f);
+				RoarShake = FMath::Max(RoarShake, 0.7f);
+				Event(TEXT("heave"), (float)HeaveBeat);
+			}
+		}
+		else if (bStall && bImpacted && PeerBeat < 4)
+		{
+			PeerBeat = 4;
+			Take(H, TEXT("Peer"), false, 1.f, 2.25f);                // (let go: left standing in the road, shrieking after it)
+			Event(TEXT("letgo"));
 		}
 		if (bImpacted && Time > ImpactTime + 1.6f)
 		{

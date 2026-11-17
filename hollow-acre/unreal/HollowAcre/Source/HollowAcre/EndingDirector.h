@@ -260,6 +260,10 @@ public:
 	float StallHold = 1.65f;
 	/** (the stall) How long its face is in the hole, shrieking, before it drives its arm in at the driver (s). */
 	float StallFace = 0.75f;
+	/** (the stall) How long it keeps shoving the car after the blow (game s; the car is carried across the road meanwhile),
+	 *  and how many heaves; which heave it is on. */
+	float StallPushFor = 0.42f;
+	int32 StallHeaves = 3, HeaveBeat = 0;
 	/** (the stall) Its head's jerks at the window (Until Dawn's wendigos): from, to, now (degrees), when the last began and
 	 *  when the next comes (s after the glass went). */
 	FRotator TwitchFrom = FRotator::ZeroRotator, TwitchTo = FRotator::ZeroRotator, TwitchNow = FRotator::ZeroRotator;
