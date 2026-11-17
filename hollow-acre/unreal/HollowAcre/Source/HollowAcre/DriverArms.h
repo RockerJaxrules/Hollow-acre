@@ -121,6 +121,13 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Driver")
 	float KeyTwist = 16.f;
 
+	/** The driver's eye as they sit (car frame, cm), and how far it has moved with the body (leaning in to the key): the
+	 *  camera follows it, so the eye stays in the head on the shoulders that carry the arms. */
+	UPROPERTY(EditAnywhere, Category = "Driver")
+	FVector EyeAt = FVector(0.f, 0.f, 118.f);
+	FVector EyeShift = FVector::ZeroVector;
+	FQuat EyeTurn = FQuat::Identity;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
@@ -204,6 +211,11 @@ private:
 	TArray<TPair<int32, float>> ForeTwist;
 	/** The hand's way round the key's head (degrees about the line from thumb to index): the least bent wrist. */
 	float KeyPhi = 0.f, KeySide = 1.f;
+	// the eye in the upper chest's frame (as it sits), for EyeShift
+	FVector EyeInChest = FVector::ZeroVector;
+	// where the right shoulder is once fully leaned in (for deciding the key grip once, before the reach)
+	FVector FullLeanShoulder = FVector::ZeroVector;
+	FQuat ChestGrip = FQuat::Identity;
 	bool bKeyPhi = false;
 	/** The palm's way out of the hand (the hand's own frame), as it pinches the key. */
 	FVector PinchPalm = FVector::ZeroVector;

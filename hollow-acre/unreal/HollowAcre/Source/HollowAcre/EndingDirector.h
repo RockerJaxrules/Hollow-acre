@@ -515,6 +515,7 @@ private:
 	bool bSighted = false;
 	bool bBraked = false;
 	FTransform TripPose(float t) const;
+	void StallTrip(float t, float& Y, float& Roll) const;
 	void HandToPhysics();
 	bool bHoldBlack = false;
 	TArray<FQuat> WiperBase;

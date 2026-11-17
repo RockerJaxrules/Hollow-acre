@@ -568,7 +568,8 @@ void AEndingDirector::Tick(float DeltaSeconds)
 	// Low, uneven bumps and a slow roll, never mirrored or periodic-looking
 	Loc.Z += 0.8f * FMath::Sin(Time * 7.1f) + 0.5f * FMath::Sin(Time * 11.3f + 1.7f);
 	const FRotator Sway(SwayDeg * 0.4f * FMath::Sin(Time * 1.9f + 0.4f) + (bCrash ? CarDip() : 0.f), 0.f,
-		SwayDeg * FMath::Sin(Time * 1.3f) + (bCrash ? StallRock() : 0.f));
+		SwayDeg * FMath::Sin(Time * 1.3f) + (bCrash ? StallRock() : 0.f) +
+		(bStall && Arms && !bImpacted && Arms->KeyTurn > 20.f ? 0.22f * FMath::Sin(Time * 37.f) + 0.12f * FMath::Sin(Time * 23.f + 0.7f) : 0.f));
 	Car->SetActorLocationAndRotation(Loc, Rot * Sway.Quaternion());
 	if (bCrash && WheelPts.Num() > 0)
 	{
@@ -621,7 +622,7 @@ void AEndingDirector::Tick(float DeltaSeconds)
 			}
 			const float Round = 32.f * Sm((u + 0.12f * Tr.Pace) / (0.12f * Tr.Pace));
 			const float Let = 32.f * Sm((u - Tr.Hold) / 0.06f);
-			Turn = Round - Let + (u > 0.f && u < Tr.Hold ? 0.9f * FMath::Sin(u * 57.f) : 0.f);
+			Turn = Round - Let + (u > 0.f && u < Tr.Hold ? 0.6f * FMath::Sin(u * 24.f) + 0.35f * FMath::Sin(u * 37.f + 1.f) : 0.f);
 		}
 		float Reach = Sm((k - 0.7f) / 0.55f);
 		if (SmashT >= 0.f)
@@ -808,14 +809,51 @@ void AEndingDirector::Event(const TCHAR* Kind, float Value)
 	}
 }
 
+void AEndingDirector::StallTrip(float t, float& Y, float& Roll) const
+{
+	// The stall's shove, as a car is shoved over on packed snow: the blow, then each of its heaves, throws it sideways
+	// (a jump in its speed across) and kicks it over on its springs; between them the tyres scrub it toward a stop and
+	// the springs rock it back; once its outer wheels are past the road's edge it tips on over, faster and faster (then
+	// the physics takes it). Integrated from the blow (a pure function of the time since it). cm, degrees, seconds.
+	TArray<float, TInlineAllocator<8>> Kick;
+	Kick.Add(0.f);
+	for (int32 k = 0; k < StallHeaves; ++k)
+	{
+		Kick.Add(((float)k + 0.5f) / (float)StallHeaves * StallPushFor);
+	}
+	const float Dt = 1.f / 240.f, Mu = 450.f, K = 77.f, C = 5.3f, Edge = 340.f, Tip = 1100.f;
+	float y = 0.f, v = 0.f, r = 0.f, w = 0.f;
+	int32 Next = 0;
+	for (float s = 0.f; s < t; s += Dt)
+	{
+		while (Next < Kick.Num() && s >= Kick[Next])
+		{
+			v += Next == 0 ? 380.f : 240.f;
+			w += Next == 0 ? 60.f : 45.f;
+			++Next;
+		}
+		v = FMath::Max(0.f, v - Mu * Dt);
+		const float Acc = y > Edge ? Tip * (1.f + FMath::Max(r, 0.f) / 40.f) : -K * r - C * w;
+		w += Acc * Dt;
+		r += w * Dt;
+		y += v * Dt;
+	}
+	Y = y;
+	Roll = r;
+}
+
 FTransform AEndingDirector::TripPose(float t) const
 {
 	// shoved across: fast at first (the blow), slowing; rolling faster and faster as the wheels catch and it trips;
 	// a little yaw as the back swings; the crawl forward carries on
 	const float T = FMath::Max(TripTime, 0.1f);
 	const float v0 = 2.f * TripAcross / T * 0.62f, a = 2.f * (v0 * T - TripAcross) / (T * T);   // across(T) = TripAcross
-	const float Across = v0 * t - 0.5f * a * t * t;
-	const float Roll = TripRoll * (t / T) * (t / T);
+	float Across = v0 * t - 0.5f * a * t * t;
+	float Roll = TripRoll * (t / T) * (t / T);
+	if (bStall)
+	{
+		StallTrip(t, Across, Roll);
+	}
 	const FVector Off(SpeedNow * t, Across, 18.f * FMath::Sin(PI * FMath::Min(1.f, t / T)));
 	const FQuat Q = ImpactPose.GetRotation() * FRotator(0.f, 9.f * (t / T), Roll).Quaternion();
 	FTransform P(Q, ImpactPose.TransformPosition(Off));
@@ -1014,7 +1052,7 @@ void AEndingDirector::PlaceCamera()
 		const float S = RoarShake * RoarShake;
 		const FVector Shake(FMath::Sin(Time * 53.f) * 1.2f * S, FMath::Sin(Time * 41.f + 1.f) * 1.6f * S, FMath::Sin(Time * 47.f + 2.f) * 1.2f * S);
 		const FRotator ShakeR(FMath::Sin(Time * 39.f) * 1.5f * S, FMath::Sin(Time * 45.f + 1.f) * 2.f * S, FMath::Sin(Time * 51.f) * 1.5f * S);
-		Camera->GetRootComponent()->SetRelativeLocationAndRotation(ClearEye(CamRest + Look.RotateVector(Neck) - Neck + FVector(HeadPush, HeadSide - StallYank(), -HeadDrop) + Shake),
+		Camera->GetRootComponent()->SetRelativeLocationAndRotation(ClearEye(CamRest + Look.RotateVector(Neck) - Neck + FVector(HeadPush, HeadSide - StallYank(), -HeadDrop) + (Arms ? Arms->EyeShift : FVector::ZeroVector) + Shake),
 			CamRestRot + Look + ShakeR);
 		static const bool bSideCam = FParse::Param(FCommandLine::Get(), TEXT("sidecam"));
 		if (bSideCam && Car)
@@ -1096,14 +1134,12 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 			// (leaning in over it, to the right and down, to see the key and the hand on it past the forearm; the eyes on
 			// the key's head and the bunch hanging under it)
 			const FVector KeySee = KeyW - Car->GetActorUpVector() * 1.5f;
-			LookAt(KeySee, 0.85f, Want, Unused);
-			LookAt(KeySee, 0.9f, Unused, WantPitch);
-			WantPitch = FMath::Clamp(WantPitch, -42.f, 0.f);
+			LookAt(KeySee, 0.97f, Want, Unused);
+			LookAt(KeySee, 0.97f, Unused, WantPitch);
+			WantPitch = FMath::Clamp(WantPitch, -58.f, 0.f);
 			Rate = 4.f;
 			Focus = DistTo(KeySee);
-			WantPush = 11.f;
-			WantSide = 8.f;
-			WantDrop = 5.f;
+			WantPush = 0.f;                // (the lean is the body's own: the eye rides the chest, below)
 			bOnKey = true;
 		}
 		else if (bDials)

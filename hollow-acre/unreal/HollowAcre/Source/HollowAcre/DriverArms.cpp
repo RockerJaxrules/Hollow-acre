@@ -1,6 +1,8 @@
 #include "DriverArms.h"
 
 #include "Components/PointLightComponent.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 #include "Components/PoseableMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/SkeletalMesh.h"
@@ -1258,6 +1260,12 @@ void ADriverArms::SnapshotGrip()
 	}
 	UE_LOG(LogTemp, Display, TEXT("DriverArms: grip kept for steering (wheel %s)"), WheelActor ? *WheelActor->GetActorLabel() : TEXT("not set"));
 	MakePinch();
+	if (Mesh->GetBoneIndex(TEXT("spine_05")) != INDEX_NONE)
+	{
+		const FTransform Ch = BoneCS(TEXT("spine_05"));
+		EyeInChest = Ch.InverseTransformPosition(ToCS(EyeAt));
+		ChestGrip = Mesh->GetRelativeTransform().GetRotation() * Ch.GetRotation();
+	}
 }
 
 void ADriverArms::MakePinch()
@@ -1368,7 +1376,7 @@ void ADriverArms::FollowWheel()
 		const float s = FMath::Clamp(KeyReach, 0.f, 1.f), e = s * s * (3.f - 2.f * s);
 		static const TCHAR* Spine[] = {TEXT("spine_03"), TEXT("spine_04"), TEXT("spine_05")};
 		auto ShoulderX = [&]() { return MeshRel.TransformPosition(BoneCS(TEXT("upperarm_r")).GetLocation()).X; };
-		auto Turn = [&](const FVector& AxisCar, float Deg)
+		auto Turn = [&](const FVector& AxisCar, float Deg, float By)
 		{
 			// (which way about the axis brings the right shoulder forward: tried a little each way)
 			const FVector A = DirToCS(AxisCar);
@@ -1381,11 +1389,27 @@ void ADriverArms::FollowWheel()
 			for (const TCHAR* Sp : Spine)
 			{
 				const FName Bn(Sp);
-				SetBoneCS(Bn, FQuat(A, Sign * FMath::DegreesToRadians(Deg / 3.f) * e) * BoneCS(Bn).GetRotation());
+				SetBoneCS(Bn, FQuat(A, Sign * FMath::DegreesToRadians(Deg / 3.f) * By) * BoneCS(Bn).GetRotation());
 			}
 		};
-		Turn(FVector(0.f, 1.f, 0.f), KeyLean);
-		Turn(FVector(0.f, 0.f, 1.f), KeyTwist);
+		if (FullLeanShoulder.IsNearlyZero())
+		{
+			// (where the shoulder will be, fully leaned in: the grip on the key is decided for that, once)
+			const TArray<FTransform> Was = Mesh->BoneSpaceTransforms;
+			Turn(FVector(0.f, 1.f, 0.f), KeyLean, 1.f);
+			Turn(FVector(0.f, 0.f, 1.f), KeyTwist, 1.f);
+			FullLeanShoulder = MeshRel.TransformPosition(BoneCS(TEXT("upperarm_r")).GetLocation());
+			Mesh->BoneSpaceTransforms = Was;
+		}
+		Turn(FVector(0.f, 1.f, 0.f), KeyLean, e);
+		Turn(FVector(0.f, 0.f, 1.f), KeyTwist, e);
+	}
+	if (!EyeInChest.IsNearlyZero())
+	{
+		// the eye carried by the chest (leaning in with it), for the camera
+		const FTransform Ch = BoneCS(TEXT("spine_05"));
+		EyeShift = MeshRel.TransformPosition(Ch.TransformPosition(EyeInChest)) - EyeAt;
+		EyeTurn = (MeshRel.GetRotation() * Ch.GetRotation()) * ChestGrip.Inverse();
 	}
 	for (int32 Side = 0; Side < 2; ++Side)
 	{
@@ -1407,13 +1431,14 @@ void ADriverArms::FollowWheel()
 			const FQuat KeyQ = KeyPivot->GetRelativeRotation().Quaternion();
 			const FVector Head = KeyPivot->GetRelativeLocation() + KeyQ.RotateVector(FVector(2.05f, 0.f, 0.15f));
 			const FQuat M1 = FRotationMatrix::MakeFromXY(PinchFace, -PinchFinger).ToQuat();
+			if (!bKeyPhi)
 			{
 				// which way round the key's head the hand takes it (about the line from thumb to index): searched, with the
 				// key unturned, for the wrist least bent and least twisted on the forearm for where the arm comes from (the
 				// elbow out to the side and down, on its hinge), clear of the cabin
 				const FVector KY = KeyBase.GetAxisY(), KX = KeyBase.GetAxisX();
 				const FVector Head0 = KeyPivot->GetRelativeLocation() + KeyBase.RotateVector(FVector(2.05f, 0.f, 0.15f));
-				const FVector ShNow = MeshRel.TransformPosition(BoneCS(TEXT("upperarm_r")).GetLocation());
+				const FVector ShNow = FullLeanShoulder.IsNearlyZero() ? MeshRel.TransformPosition(BoneCS(TEXT("upperarm_r")).GetLocation()) : FullLeanShoulder;
 				const float L1k = FVector::Dist(GripShoulder[1], GripElbow[1]), L2k = FVector::Dist(GripElbow[1], GripWrist[1]);
 				const FQuat ToCSq = MeshRel.GetRotation().Inverse();
 				auto Frame = [](const FVector& A, const FVector& B) { return FRotationMatrix::MakeFromXY(A, B).ToQuat(); };
@@ -1462,18 +1487,11 @@ void ADriverArms::FollowWheel()
 						BestBack = BackDeg;
 					}
 				}
-				if (!bKeyPhi || BestSide != KeySide)
-				{
-					KeyPhi = BestPhi;
-					KeySide = BestSide;
-				}
-				else
-				{
-					KeyPhi += FMath::UnwindDegrees(BestPhi - KeyPhi) * 0.25f;
-				}
+				KeyPhi = BestPhi;
+				KeySide = BestSide;
 				bKeyPhi = true;
 				static int32 PhiLogged = 0;
-				if (KeyReach >= 0.999f && PhiLogged++ < 1)
+				if (PhiLogged++ < 1)
 				{
 					UE_LOG(LogTemp, Display, TEXT("DriverArms: key hand: round %.0f deg, thumb on the %s face, back of the hand %.0f deg from the eye, cost %.1f"),
 						BestPhi, BestSide > 0.f ? TEXT("right") : TEXT("left"), BestBack, BestCost);
@@ -1552,6 +1570,15 @@ void ADriverArms::FollowWheel()
 			SetBoneCS(Lower, FQuat::Slerp(La, Frame(FD, Bd) * Frame(ForeAlongL, ForeBendL).Inverse(), KeyE));
 		}
 		SetBoneCS(Hand, MeshRel.GetRotation().Inverse() * HandRot);
+		static const bool bKeyLog = FParse::Param(FCommandLine::Get(), TEXT("keylog"));
+		if (bKeyLog && Side == 1 && KeyReach > 0.f)
+		{
+			const FVector W = MeshRel.TransformPosition(BoneCS(Hand).GetLocation()), E = MeshRel.TransformPosition(BoneCS(Lower).GetLocation());
+			const FRotator Hr = (MeshRel.GetRotation() * BoneCS(Hand).GetRotation()).Rotator();
+			UE_LOG(LogTemp, Display, TEXT("KeyLog %.4f reach %.3f turn %.2f phi %.1f side %.0f wrist %.2f %.2f %.2f elbow %.2f %.2f %.2f hand %.1f %.1f %.1f eye %.2f %.2f %.2f"),
+				GetWorld()->GetTimeSeconds(), KeyReach, KeyTurn, KeyPhi, KeySide, W.X, W.Y, W.Z, E.X, E.Y, E.Z, Hr.Pitch, Hr.Yaw, Hr.Roll,
+				EyeShift.X, EyeShift.Y, EyeShift.Z);
+		}
 		if (Side == 1 && KeyE > 0.f && ForeTwist.Num() > 0)
 		{
 			// the hand's turn on the forearm (from how it sat at the wheel) shared out down the forearm's twist bones, as the
