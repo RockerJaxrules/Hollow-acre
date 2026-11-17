@@ -917,7 +917,8 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 	else if (bHoodReveal && RiseT0 >= 0.f && LeapT0 < 0.f && Creature && Creature->GetBody())
 	{
 		const float r = t - RiseT0;
-		if (HangInT < 0.f)
+		// (the eyes are on the road until its face has swung into sight, and a beat after: a startle, not a search)
+		if (HangInT < 0.f || t < HangInT + 0.32f)
 		{
 			// the thud overhead (no warning: the eyes were on the road): a flinch up at the roof, then back down to the road
 			// and held there, frozen. The eyes don't know where it will come from (the owner: never looking ahead to
@@ -936,9 +937,9 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 			LookAt(At, 0.75f, Want, Unused);
 			LookAt(At, 0.9f, Unused, WantPitch);
 			WantPitch = FMath::Clamp(WantPitch, -15.f, 16.f);           // (above that the visors and the roof hide it)
-			Rate = t < HangInT + 0.35f ? 12.f : 5.f;
+			Rate = t < HangInT + 0.7f ? 7.f : 5.f;
 			Focus = DistTo(At);
-			WantPush = -3.f;
+			WantPush = t < HangInT + 0.8f ? -6.f : -3.f;    // (a jolt back into the seat, then held there)
 		}
 	}
 	else if (bHoodReveal && DartT0 >= 0.f && JumpT0 < 0.f && t < DartT0 + 1.6f)
@@ -1130,7 +1131,7 @@ float AEndingDirector::CreatureGround(const FVector& At) const
 	{
 		const UStaticMeshComponent* S = Cast<UStaticMeshComponent>(H.GetComponent());
 		const FString N = S && S->GetStaticMesh() ? S->GetStaticMesh()->GetName() : FString();
-		if (N.StartsWith(TEXT("Terrain")) || N == TEXT("Road"))
+		if (N.StartsWith(TEXT("Terrain")) || N == TEXT("Road") || N == TEXT("Town_Ground"))     // (the town's snow, at the foot of the fall)
 		{
 			return H.ImpactPoint.Z;
 		}

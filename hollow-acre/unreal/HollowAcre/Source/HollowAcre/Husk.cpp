@@ -911,6 +911,8 @@ float AHusk::SurfaceIn(const TArray<UPrimitiveComponent*>& Parts, const FVector&
 					if (In > Push)
 					{
 						Push = In;
+						LastWorstAt = P;
+						LastWorstHit = H.ImpactPoint;
 						if (Worst)
 						{
 							*Worst = FString::Printf(TEXT("%s's %s in %s"), c == 0 ? TEXT("body") : TEXT("face"), *C->GetBoneName(S.Bone).ToString(),
@@ -1153,8 +1155,8 @@ void AHusk::Hang(const FVector& Facing, const FVector& Side)
 		Theta += 2.f * PI;           // (always forward and down, round over the top of its head, never back)
 	}
 	Theta *= FMath::Clamp(HangCurl, 0.f, 1.f);
-	// where its head is (component space) with Spine in the lower spine and the rest of Theta curled above
-	auto HeadWith = [&](float Spine)
+	// where its head is (component space) with Spine in the lower spine and the rest of Th curled above
+	auto HeadWith2 = [&](float Spine, float Th)
 	{
 		FVector Q[N];
 		for (int32 k = 0; k < N; ++k)
@@ -1163,7 +1165,7 @@ void AHusk::Hang(const FVector& Facing, const FVector& Side)
 		}
 		for (int32 k = 0; k < N - 1; ++k)
 		{
-			const float a = Spine * SpineShare[k] + (Theta - Spine) * CurlShare[k];
+			const float a = Spine * SpineShare[k] + (Th - Spine) * CurlShare[k];
 			if (FMath::IsNearlyZero(a))
 			{
 				continue;
@@ -1176,6 +1178,7 @@ void AHusk::Hang(const FVector& Facing, const FVector& Side)
 		}
 		return Q[N - 1];
 	};
+	auto HeadWith = [&](float Spine) { return HeadWith2(Spine, Theta); };
 	// the lower spine's bend that puts its head at the height wanted: a scan, then a closer one round the best
 	// (its neck may take some of it back the other way: arched back, up to 40 degrees, its face still turned as far)
 	const float Lo = -0.6f, Hi = FMath::Min(Theta + 0.7f, 1.9f);
@@ -1202,8 +1205,107 @@ void AHusk::Hang(const FVector& Facing, const FVector& Side)
 	FVector Slide = HeadT - HeadWith(Best);
 	Slide.Z = 0.f;
 	Slide = Slide.GetClampedToMaxSize(150.f / FMath::Max(0.1f, CT.GetScale3D().X));
+	// lunging, striking: its body stays where it is on the roof and its spine and neck throw its head (nodding into the
+	// blow): the slide held, the bend and the nod solved together for where its head is wanted (a small nod preferred)
+	const float Hold = FMath::Clamp(HangHoldSlide, 0.f, 1.f);
+	if (Hold > 0.f)
+	{
+		if (!bHangSlideHeld)
+		{
+			bHangSlideHeld = true;
+			HangHeldSlide = HangSlideS / FMath::Max(0.01f, FMath::Clamp(HangW, 0.f, 1.f));
+			HangHeldSpine = HangSpineS / FMath::Max(0.01f, FMath::Clamp(HangW, 0.f, 1.f));
+		}
+		const FVector SlideUse = FMath::Lerp(Slide, HangHeldSlide, Hold);
+		float BA = Best, BN = 0.f, BE = 1e9f;
+		auto Err = [&](float A, float Nd)
+		{
+			FVector d = HeadWith2(A, Theta + Nd) + SlideUse - HeadT;
+			d -= Side * FVector::DotProduct(d, Side);
+			// (its neck does the work: its spine kept nearly as it was, so its chest stays up behind the roof's edge)
+			return d.Size() + 10.f * Nd * Nd + 400.f * FMath::Square(A - HangHeldSpine);
+		};
+		for (float A = Lo; A <= Hi; A += 0.05f)
+		{
+			for (float Nd = -0.75f; Nd <= 0.75f; Nd += 0.05f)
+			{
+				const float e = Err(A, Nd);
+				if (e < BE)
+				{
+					BE = e;
+					BA = A;
+					BN = Nd;
+				}
+			}
+		}
+		for (float A = BA - 0.05f; A <= BA + 0.05f; A += 0.01f)
+		{
+			for (float Nd = BN - 0.05f; Nd <= BN + 0.05f; Nd += 0.01f)
+			{
+				const float e = Err(A, Nd);
+				if (e < BE)
+				{
+					BE = e;
+					BA = A;
+					BN = Nd;
+				}
+			}
+		}
+		Best = BA;
+		Theta += BN;
+		Slide = SlideUse;
+	}
+	else
+	{
+		bHangSlideHeld = false;
+	}
 	const float W = FMath::Clamp(HangW, 0.f, 1.f);
-	const float Spine = W * Best, Curl = W * (Theta - Best);
+	// (the body never pops from one solve to the next: what the solve asks for is followed on stiff springs that keep up
+	// with a moving target (its speed fed through) and only smooth a sudden jump; and it breathes, never quite still)
+	const float Dt = FMath::Clamp(GetWorld() ? GetWorld()->GetDeltaSeconds() : 1.f / 30.f, 1e-4f, 0.1f);
+	const float Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
+	const float SpineWant = W * (Best + FMath::DegreesToRadians(1.4f * FMath::PerlinNoise1D(Now * 0.55f) + 0.8f * FMath::Sin(Now * 2.2f)));
+	const float CurlWant = W * ((Theta - Best) + FMath::DegreesToRadians(2.0f * FMath::PerlinNoise1D(Now * 0.8f + 13.f)));
+	const FVector SlideWant = Slide * W;
+	if (!bHangSprung)
+	{
+		bHangSprung = true;
+		HangSpineS = SpineWant;
+		HangCurlS = CurlWant;
+		HangSlideS = SlideWant;
+		HangSpineV = HangCurlV = 0.f;
+		HangSlideV = FVector::ZeroVector;
+		HangPrevSpine = SpineWant;
+		HangPrevCurl = CurlWant;
+		HangPrevSlide = SlideWant;
+	}
+	{
+		const float Om = 45.f;                       // (rad/s: a jump is taken up over about 3 frames)
+		const float MaxRate = FMath::DegreesToRadians(500.f);
+		auto Follow = [&](float& S, float& V, float Want, float& Prev)
+		{
+			const float Tv = FMath::Clamp((Want - Prev) / Dt, -MaxRate, MaxRate);
+			Prev = Want;
+			for (int32 i = 0; i < 3; ++i)
+			{
+				const float h = Dt / 3.f;
+				V += (Om * Om * (Want - S) + 2.f * Om * (Tv - V)) * h;
+				S += V * h;
+			}
+		};
+		Follow(HangSpineS, HangSpineV, SpineWant, HangPrevSpine);
+		Follow(HangCurlS, HangCurlV, CurlWant, HangPrevCurl);
+		const FVector Tv = (SlideWant - HangPrevSlide) / Dt;
+		HangPrevSlide = SlideWant;
+		for (int32 i = 0; i < 3; ++i)
+		{
+			const float h = Dt / 3.f;
+			HangSlideV += (Om * Om * (SlideWant - HangSlideS) + 2.f * Om * (Tv - HangSlideV)) * h;
+			HangSlideS += HangSlideV * h;
+		}
+	}
+	const float Spine = HangSpineS, Curl = HangCurlS;
+	Slide = HangSlideS;
 	HangSpineDeg = FMath::RadiansToDegrees(Spine);
 	HangCurlDeg = FMath::RadiansToDegrees(Curl);
 	// its hands as the clip has them turned (flat on what it crawls on), before the bend turns them
@@ -1233,7 +1335,7 @@ void AHusk::Hang(const FVector& Facing, const FVector& Side)
 		Shown->SetBoneTransformByName(Bones[k], T2, EBoneSpaces::ComponentSpace);
 		Shown->RefreshBoneTransforms();
 	}
-	HangSlide = CT.TransformVector(Slide * W);
+	HangSlide = CT.TransformVector(Slide);
 	HangAimed = CT.TransformPosition(HeadWith(Best)) + HangSlide;
 	AddActorWorldOffset(HangSlide);
 	HangActorZ = GetActorLocation().Z;
@@ -1257,7 +1359,9 @@ void AHusk::Hang(const FVector& Facing, const FVector& Side)
 			const FVector Target = FMath::Lerp(C.GetLocation(), HangGrip[L] - FVector(0.f, 0.f, HangAfter), g);
 			// (its elbow up, and a little out to the side, from the line shoulder to hand: steady, never flipping down into
 			// what it holds)
-			const FVector JointTarget = 0.5f * (A.GetLocation() + Target) + (SideW * Out * 0.45f + FVector::UpVector * 0.9f) * 80.f;
+			FVector Away = HangElbow[L].IsNearlyZero() ? FVector::UpVector * 0.9f : HangElbow[L].GetSafeNormal();
+			Away += SideW * Out * 0.45f;
+			const FVector JointTarget = 0.5f * (A.GetLocation() + Target) + Away * 80.f;
 			AnimationCore::SolveTwoBoneIK(A, B, C, JointTarget, Target, false, 1.f, 1.f);
 			C.SetRotation(FQuat::Slerp(C.GetRotation(), HangGripTurn[L] * C2.GetRotation() * HandRot[L], g));
 			SetCS(Chain[L][0], A);

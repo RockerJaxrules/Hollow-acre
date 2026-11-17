@@ -65,6 +65,19 @@ void AEndingDirector::BeginCrashScene()
 	{
 		GEngine->bEnableOnScreenDebugMessages = false;
 	}
+	// (-notown: the abandoned town left out, while it is being built: its buildings hidden, the car left as before)
+	if (FParse::Param(FCommandLine::Get(), TEXT("notown")))
+	{
+		for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+		{
+			if (It->ActorHasTag(TEXT("Town")))
+			{
+				It->SetActorHiddenInGame(true);
+				It->SetActorEnableCollision(false);
+			}
+		}
+		TownRestAt = FVector::ZeroVector;
+	}
 	if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
 	{
 		PC->ConsoleCommand(TEXT("DisableAllScreenMessages"));
@@ -570,6 +583,15 @@ void AEndingDirector::AfterTheFall(float RealDt)
 				}
 			}
 		}
+		if (!TownRestAt.IsNearlyZero())
+		{
+			// (the owner: it ends up at the edge of an abandoned town, not by another road: at the head of its street,
+			// looking down it, the beam across the buildings; moved there in the black, where the fall left it near)
+			const float g = GroundAt(TownRestAt);
+			At = FVector(TownRestAt.X, TownRestAt.Y, FMath::IsNaN(g) ? TownRestAt.Z : g);
+			FaceYaw = TownRestYaw;
+			UE_LOG(LogTemp, Display, TEXT("EndingDirector: left at the head of the town's street, %.0f m from where it stopped"), FVector::Dist2D(At, Rest) / 100.f);
+		}
 		Body->SetActorLocationAndRotation(At + FVector(0.f, 0.f, 63.f), FRotator(-5.f, FaceYaw, 178.f));
 		UE_LOG(LogTemp, Display, TEXT("EndingDirector: on its roof facing %.0f deg (the snow ahead off level by %.0f%%), nose a little down"), FaceYaw, -Rise * 100.f);
 		if (ShellPts.Num() > 0 && Car)
@@ -629,6 +651,48 @@ void AEndingDirector::AfterTheFall(float RealDt)
 		WakeReal = RealTime;
 		Event(TEXT("wake"));
 	}
+	// (checking: what the eyes see once they are open, across the picture: each thing, how far, its material)
+	static bool bViewProbed = false;
+	if (bClipCheck && bWoke && !bViewProbed && Cam && RealTime >= WakeReal + 1.5f)
+	{
+		bViewProbed = true;
+		const FVector E = Cam->GetCameraLocation();
+		const FRotator Rv = Cam->GetCameraRotation();
+		const float Hh = FMath::Tan(FMath::DegreesToRadians(Cam->GetFOVAngle() * 0.5f)), Vh = Hh * 9.f / 16.f;
+		const FVector F = Rv.Vector(), Rt = FRotationMatrix(Rv).GetScaledAxis(EAxis::Y), Up = FRotationMatrix(Rv).GetScaledAxis(EAxis::Z);
+		UE_LOG(LogTemp, Display, TEXT("ViewProbe eye %s looking %s (fov %.0f)"), *E.ToString(), *Rv.ToString(), Cam->GetFOVAngle());
+		FCollisionQueryParams Q(TEXT("ViewProbe"), true);
+		Q.bReturnFaceIndex = true;
+		Q.bReturnPhysicalMaterial = false;
+		for (int32 j = 0; j < 5; ++j)
+		{
+			for (int32 i = 0; i < 7; ++i)
+			{
+				// (picture x from its left, y from its top, -1..1)
+				const float px = -1.f + 2.f * i / 6.f, py = -1.f + 2.f * j / 4.f;
+				const FVector D = (F + Rt * px * Hh - Up * py * Vh).GetSafeNormal();
+				FHitResult Hp;
+				if (GetWorld()->LineTraceSingleByObjectType(Hp, E, E + D * 6000.f, FCollisionObjectQueryParams(FCollisionObjectQueryParams::AllObjects), Q))
+				{
+					FString Mat = TEXT("?");
+					if (UPrimitiveComponent* Pc = Hp.GetComponent())
+					{
+						int32 Sec = 0;
+						if (UMaterialInterface* Mi = Pc->GetMaterialFromCollisionFaceIndex(Hp.FaceIndex, Sec))
+						{
+							Mat = Mi->GetName();
+						}
+					}
+					UE_LOG(LogTemp, Display, TEXT("ViewProbe (%+.2f, %+.2f) %s %s at %.0f cm, material %s"), px, py, *GetNameSafe(Hp.GetActor()),
+						Hp.GetComponent() ? *Hp.GetComponent()->GetName() : TEXT(""), Hp.Distance, *Mat);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Display, TEXT("ViewProbe (%+.2f, %+.2f) nothing"), px, py);
+				}
+			}
+		}
+	}
 	if (bWoke && !bClosed && Cam)
 	{
 		const float w = RealTime - WakeReal;
@@ -654,6 +718,12 @@ void AEndingDirector::AfterTheFall(float RealDt)
 		const FVector R = FVector::CrossProduct(FVector::UpVector, F);
 		WalkDir = R;
 		WalkFrom = Body->GetActorLocation() + F * 1200.f - R * 1150.f;   // out of sight to begin with: it walks into the beam
+		if (!TownRestAt.IsNearlyZero())
+		{
+			// (in the town: out of the alley between the saloon and the store, across the street in the beam, into the gap
+			// between the shed and the cabin; tools/make_town.py's street, the car 3 m above its head)
+			WalkFrom = Body->GetActorLocation() + F * 1450.f - R * 1400.f;
+		}
 		WalkS = 0.f;
 		FActorSpawnParameters P;
 		P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -772,6 +842,12 @@ float AEndingDirector::CarClear(AHusk* H, const FVector& Dir, FString* What)
 		*What = bSurface ? Ws : FString::Printf(TEXT("its %s (collision body)"), *Wb.ToString());
 	}
 	const float Push = FMath::Min(FMath::Max(Surf, Bodies), 80.f);
+	if (bClipCheck && Push > 10.f && Car)
+	{
+		const FTransform C = Car->GetActorTransform();
+		const FVector Pp = C.InverseTransformPosition(H->LastWorstAt), Hh = C.InverseTransformPosition(H->LastWorstHit);
+		UE_LOG(LogTemp, Display, TEXT("CarClearWorst %.2f: %s at car (%.0f, %.0f, %.0f), under the car's surface at (%.0f, %.0f, %.0f): %.1f cm"), Time - RiseT0, What ? **What : TEXT(""), Pp.X, Pp.Y, Pp.Z, Hh.X, Hh.Y, Hh.Z, Push);
+	}
 	if (Push > 0.f)
 	{
 		H->AddActorWorldOffset(Dir.GetSafeNormal() * (Push + 0.3f));
@@ -903,7 +979,7 @@ void AEndingDirector::KeepOut(AHusk* H, const FVector& CarDir, const TCHAR* Who)
 		// hull round its whole run, so it is left out)
 		const UStaticMeshComponent* S = Cast<UStaticMeshComponent>(P);
 		const FString N = S && S->GetStaticMesh() ? S->GetStaticMesh()->GetName() : FString();
-		return N.StartsWith(TEXT("Terrain")) || N == TEXT("Road") || (P->GetOwner() && P->GetOwner()->ActorHasTag(TEXT("Guardrail")));
+		return N.StartsWith(TEXT("Terrain")) || N == TEXT("Road") || N == TEXT("Town_Ground") || (P->GetOwner() && P->GetOwner()->ActorHasTag(TEXT("Guardrail")));
 	};
 	const FString W(Who);
 	// gravity (the owner: it floated, "add physics"): unless it is in the air (dropping onto the bonnet, leaping off it),
@@ -1020,6 +1096,13 @@ void AEndingDirector::KeepOut(AHusk* H, const FVector& CarDir, const TCHAR* Who)
 		}
 	}
 	// (where its head is, as it will be drawn this frame)
+	if (bClipCheck && Car && H == Creature && CreStage == 6 && Time - RiseT0 > 3.3f && Time - RiseT0 < 5.2f)
+	{
+		const FTransform C = Car->GetActorTransform();
+		const FVector Hd = C.InverseTransformPosition(H->HeadAt()), Sh = C.InverseTransformPosition(H->DrawnAt(TEXT("spine_05")));
+		UE_LOG(LogTemp, Display, TEXT("PoseLog %.3f spine %.2f curl %.2f slide %.1f %.1f head %.1f %.1f %.1f chest %.1f %.1f %.1f"), Time - RiseT0,
+			H->HangSpineDeg, H->HangCurlDeg, H->HangSlide.X, H->HangSlide.Y, Hd.X, Hd.Y, Hd.Z, Sh.X, Sh.Y, Sh.Z);
+	}
 	static float NextHeadLog = 0.f;
 	if (bClipCheck && Car && H == Creature && CreStage == 6 && RealTime >= NextHeadLog)
 	{
@@ -1314,7 +1397,7 @@ float AEndingDirector::GroundBelow(const FVector& At, float Above) const
 	{
 		const UStaticMeshComponent* S = Cast<UStaticMeshComponent>(H.GetComponent());
 		const FString N = S && S->GetStaticMesh() ? S->GetStaticMesh()->GetName() : FString();
-		if (N.StartsWith(TEXT("Terrain")) || N == TEXT("Road") ||
+		if (N.StartsWith(TEXT("Terrain")) || N == TEXT("Road") || N == TEXT("Town_Ground") ||
 			(S && S->Bounds.SphereRadius > 5000.f && !(S->GetOwner() && S->GetOwner()->ActorHasTag(TEXT("Guardrail")))))
 		{
 			return H.ImpactPoint.Z;
@@ -1578,9 +1661,9 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 			FaceLight->SetupAttachment(Car->GetRootComponent());
 			FaceLight->RegisterComponent();
 			FaceLight->SetIntensityUnits(ELightUnits::Candelas);
-			FaceLight->SetIntensity(3.5f);
+			FaceLight->SetIntensity(2.6f);
 			FaceLight->SetLightColor(FLinearColor(0.55f, 0.85f, 1.f));   // the dials' glow, up through the glass onto its face
-			FaceLight->SetAttenuationRadius(200.f);
+			FaceLight->SetAttenuationRadius(140.f);     // (its face, not its shoulders up at the top of the glass)
 			FaceLight->SetCastShadows(false);
 			FaceLight->SetRelativeLocation(FVector(50.f, 0.f, 102.f));
 		}
@@ -1630,7 +1713,13 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 		{
 			auto Snap = [](float x) { return FMath::SmoothStep(0.f, 0.08f, x); };
 			auto Ease = [](float a, float b, float x) { return FMath::SmoothStep(a, b, x); };
-			const FVector Hidden(RoofHangHead.X + 4.f, CamRest.Y, 205.f), Low(RoofHangHead.X, CamRest.Y, RoofHangHead.Z);
+			const FVector Low(RoofHangHead.X, CamRest.Y, RoofHangHead.Z);
+			// (its head swings down over the edge like a weight on its neck: about where its neck leaves the roof, from up
+			// and behind, out over the bonnet and down, overshooting a little and settling)
+			const FVector Pivot(Low.X - 6.f, Low.Y, Low.Z + 48.f);
+			const float A0 = FMath::DegreesToRadians(105.f), A1 = FMath::DegreesToRadians(-82.f);
+			auto OnSwing = [&Pivot](float A) { return Pivot + FVector(FMath::Cos(A), 0.f, FMath::Sin(A)) * 48.f; };
+			const FVector Hidden = OnSwing(A0);
 			// where its head is driven (car frame), and how hard: it drops in (a heavy swing, overshooting a little); draws
 			// back; lunges at the driver, through where the glass is (the glass stops it); presses against it shrieking,
 			// head shaking; pulls off it; is gone up over the edge
@@ -1638,23 +1727,35 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 			const float Shriek = Ease(4.75f, 4.85f, r) * (1.f - Ease(5.7f, 5.95f, r));
 			FVector Tgt = Hidden;
 			float W = 12.f, Z = 0.7f;
-			if (r >= HangAt)
+			if (r < HangAt)
 			{
-				Tgt = Low;
-				W = 13.f;
-				Z = 0.55f;
+				SwingA = A0;
+				SwingV = 0.f;
 			}
-			if (r >= 4.35f && r < SlamAt)
+			else
 			{
-				Tgt = Low - Lunge * 12.f;          // drawn back
-				W = 11.f;
-				Z = 0.8f;
+				for (int32 i = 0; i < 4; ++i)
+				{
+					const float h = Dt / 4.f;
+					SwingV += (11.f * 11.f * (A1 - SwingA) - 2.f * 0.55f * 11.f * SwingV) * h;
+					SwingA += SwingV * h;
+				}
+				// (hanging there, never quite still: a slow tremor in its neck)
+				Tgt = OnSwing(SwingA) + FVector(0.7f * FMath::PerlinNoise1D(Time * 3.f), 1.0f * FMath::PerlinNoise1D(Time * 3.f + 7.f), 0.8f * FMath::PerlinNoise1D(Time * 2.5f + 13.f));
+				W = 26.f;
+				Z = 0.9f;
+			}
+			if (r >= 4.25f && r < SlamAt)
+			{
+				Tgt = Low - Lunge * 14.f + FVector(0.f, 0.f, 6.f);     // drawn back, gathering itself
+				W = 10.f;
+				Z = 0.85f;
 			}
 			if (r >= SlamAt && r < 6.75f)
 			{
-				Tgt = Low + Lunge * (r < 4.8f ? 45.f : 30.f) + FVector(0.f, 3.f * FMath::Sin(2.f * PI * 5.5f * r) * Shriek, 0.f);
-				W = r < 4.8f ? 24.f : 14.f;
-				Z = r < 4.8f ? 0.3f : 0.6f;
+				Tgt = Low + Lunge * (r < 4.8f ? 30.f : 24.f) + FVector(0.f, 3.f * FMath::Sin(2.f * PI * 5.5f * r) * Shriek, 0.f);
+				W = r < 4.8f ? 15.f : 12.f;
+				Z = r < 4.8f ? 0.45f : 0.6f;
 			}
 			if (r >= 6.75f)
 			{
@@ -1716,6 +1817,7 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 			H->HangCurl = FMath::SmoothStep(0.7f, 2.6f, r);
 			H->HangGripW = FMath::SmoothStep(0.9f, 2.4f, r);
 			H->HangLie = FMath::SmoothStep(0.6f, 1.9f, r);
+			H->HangHoldSlide = Ease(4.15f, 4.3f, r) * (1.f - Ease(6.75f, 7.0f, r));     // (its neck throws its head)
 			H->HangHead = C.TransformPosition(Hd);
 			H->HangLook = C.TransformPosition(CamRest);
 			// its hands: out of sight on the roof's front edge (its claws are long: the hands ride high over it). Its right
@@ -1723,7 +1825,7 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 			// and goes back over the edge (the roof runs from y -35, the driver's side, to 109)
 			const FVector Down(0.838f, 0.f, -0.545f);      // down the glass's slope
 			const FVector RoofL(42.f, CamRest.Y - 34.f, 172.f), RoofR(42.f, CamRest.Y + 40.f, 172.f);
-			const FVector ClawG = OnGlass(RoofClawAt) + N * 14.f;
+			const FVector ClawG = OnGlass(RoofClawAt) + N * 24.f;     // (its hand held off the glass: its long claws reach it; its forearm stays clear of it)
 			// its claw, the same way: up off the edge and over; struck down through where the glass is (the glass stops it:
 			// its claws on it); pressed and dragged down it; lifted off; back over the edge
 			FVector CTgt = RoofR;
@@ -1733,16 +1835,16 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 				CTgt = ClawG + N * 30.f;           // above where it will strike
 				CW = 18.f;
 			}
-			else if (r >= ClawAt && r < 6.9f)
+			else if (r >= ClawAt && r < 7.15f)
 			{
-				CTgt = r < ClawAt + 0.12f ? ClawG - N * 30.f : ClawG - N * 6.f + Down * 7.f * Ease(ClawAt + 0.12f, 6.5f, r);
-				CW = r < ClawAt + 0.12f ? 26.f : 14.f;
-				CZ = r < ClawAt + 0.12f ? 0.3f : 0.7f;
+				CTgt = r < ClawAt + 0.16f ? ClawG - N * 18.f : ClawG - N * 6.f + Down * 7.f * Ease(ClawAt + 0.16f, 6.5f, r);
+				CW = r < ClawAt + 0.16f ? 16.f : 14.f;
+				CZ = r < ClawAt + 0.16f ? 0.4f : 0.7f;
 			}
-			else if (r >= 6.9f && r < 7.25f)
+			else if (r >= 7.15f && r < 7.55f)
 			{
-				CTgt = r < 7.05f ? ClawG + N * 30.f : RoofR;
-				CW = 16.f;
+				CTgt = r < 7.32f ? ClawG + N * 45.f + FVector(0.f, 0.f, 20.f) : RoofR;
+				CW = 14.f;
 			}
 			for (int32 i = 0; i < Sub; ++i)
 			{
@@ -1750,7 +1852,7 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 				AtkClawV += (CW * CW * (CTgt - AtkClawP) - 2.f * CZ * CW * AtkClawV) * h;
 				AtkClawP += AtkClawV * h;
 				const float Gap = FVector::DotProduct(AtkClawP - ClawG, N);     // (its claws at the glass when its hand is at ClawG)
-				if (r >= ClawAt - 0.12f && r < 6.9f && Gap < 0.f)
+				if (r >= ClawAt - 0.12f && r < 7.15f && Gap < 0.f)
 				{
 					AtkClawP -= N * Gap;
 					const float Vn = FVector::DotProduct(AtkClawV, N);
@@ -1772,12 +1874,14 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 				}
 			}
 			FVector HandR = AtkClawP;
-			const float OnG = FMath::Clamp(1.f - FVector::DotProduct(AtkClawP - ClawG, N) / 25.f, 0.f, 1.f) * (r >= ClawAt - 0.12f && r < 7.2f ? 1.f : 0.f);
+			const float OnG = FMath::Clamp(1.f - FVector::DotProduct(AtkClawP - ClawG, N) / 25.f, 0.f, 1.f) * (r >= ClawAt - 0.12f && r < 7.45f ? 1.f : 0.f);
 			H->HangGrip[0] = C.TransformPosition(RoofL);      // (its left hand: the car's left)
 			H->HangGrip[1] = C.TransformPosition(HandR);
 			// (its claw flat to the glass: palm to it, fingers up it; from the clip's hand, flat on the ground, fingers ahead)
 			const FQuat Src = FRotationMatrix::MakeFromXZ(C.TransformVectorNoScale(FVector::ForwardVector), FVector::UpVector).ToQuat();
 			const FQuat Dst = FRotationMatrix::MakeFromXZ(C.TransformVectorNoScale(-Down), C.TransformVectorNoScale(N)).ToQuat();
+			// (its elbow out over the bonnet and up, away from the glass: never folding back through the windshield)
+			H->HangElbow[1] = C.TransformVectorNoScale((N * 0.5f + FVector(0.f, 0.f, 0.6f) + FVector(0.f, 0.7f, 0.f)).GetSafeNormal());
 			H->HangGripTurn[0] = FQuat::Identity;
 			H->HangGripTurn[1] = FQuat::Slerp(FQuat::Identity, Dst * Src.Inverse(), OnG);
 			H->PeerDown = 0.f;

@@ -131,12 +131,28 @@ public:
 	 *  much as that takes; its hands put on HangGrip (world: left, right). HangW: how much of all of it (0: its clip as it
 	 *  is); HangCurl: how far round its face has turned (0..1); HangGripW: how far its hands are on their holds. */
 	float HangW = 0.f, HangCurl = 0.f, HangGripW = 0.f;
+	/** The hang's bends and slide as they are drawn: following what the solve asks for on springs (never a pop), with
+	 *  its breathing in them. */
+	float HangSpineS = 0.f, HangSpineV = 0.f, HangCurlS = 0.f, HangCurlV = 0.f;
+	FVector HangSlideS = FVector::ZeroVector, HangSlideV = FVector::ZeroVector, HangPrevSlide = FVector::ZeroVector;
+	float HangPrevSpine = 0.f, HangPrevCurl = 0.f;
+	/** Lunging, striking (0..1): its body held where it is on what it lies on, its spine and neck throwing its head
+	 *  (nodding into the blow) rather than its whole body sliding with it. */
+	float HangHoldSlide = 0.f;
+	FVector HangHeldSlide = FVector::ZeroVector;
+	float HangHeldSpine = 0.f;
+	/** (checking: the surface point found deepest in what it was tested against, last time) */
+	mutable FVector LastWorstAt = FVector::ZeroVector, LastWorstHit = FVector::ZeroVector;
+	bool bHangSlideHeld = false;
+	bool bHangSprung = false;
 	/** How far it has lain down flat on what it is on (0..1): its legs stretched out behind it; gravity brings it down. */
 	float HangLie = 0.f;
 	FVector HangHead = FVector::ZeroVector, HangLook = FVector::ZeroVector;
 	FVector HangGrip[2] = {FVector::ZeroVector, FVector::ZeroVector};
 	/** An extra turn (world) for each hand on its hold: a claw struck onto sloping glass rather than the flat roof. */
 	FQuat HangGripTurn[2] = {FQuat::Identity, FQuat::Identity};
+	/** Which way (world) each elbow should point, away from what its hand is on (0: up and out to its side). */
+	FVector HangElbow[2] = {FVector::ZeroVector, FVector::ZeroVector};
 	/** What the solve came to this frame (for the checks): degrees in the lower spine, degrees curled above, the slide (world). */
 	float HangSpineDeg = 0.f, HangCurlDeg = 0.f;
 	/** How far (cm, up) it was moved after the hang was solved last frame (gravity, pushes out): the next is aimed against it. */

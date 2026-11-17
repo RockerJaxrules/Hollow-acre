@@ -248,9 +248,15 @@ public:
 	 *  eye's): out past the glass, a little above the eye line. */
 	UPROPERTY(EditAnywhere, Category = "Crash")
 	FVector RoofHangHead = FVector(116.f, 0.f, 138.f);
+	/** Where the car is left after the fall (cm, world): on its roof at the head of the abandoned town's street, facing
+	 *  down it (Scripts/build_town.py sets these; zero: the flattest snow near where it stopped). */
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	FVector TownRestAt = FVector::ZeroVector;
+	UPROPERTY(EditAnywhere, Category = "Crash")
+	float TownRestYaw = 0.f;
 	/** Where its claw strikes the windshield (cm, car frame: a point on the glass). */
 	UPROPERTY(EditAnywhere, Category = "Crash")
-	FVector RoofClawAt = FVector(80.f, 26.f, 113.f);
+	FVector RoofClawAt = FVector(82.f, 68.f, 111.7f);     // (out to its side: its arm reaching, not folded up under its shoulder)
 	/** The real-motion clip on the roof (CMU 111_03, crawling): from where (s) and how fast. */
 	UPROPERTY(EditAnywhere, Category = "Ending|Crash")
 	float PerchClipAt = 7.f;
@@ -378,6 +384,7 @@ private:
 	// it; how hard each blow struck, cm/s)
 	FVector AtkHeadP = FVector::ZeroVector, AtkHeadV = FVector::ZeroVector, AtkClawP = FVector::ZeroVector, AtkClawV = FVector::ZeroVector;
 	bool bAtkInit = false;
+	float SwingA = 0.f, SwingV = 0.f;      // (its head's swing down over the edge: the angle about its neck, on a spring)
 	float BlowS[2] = {0.f, 0.f};
 	void UpdateWindshieldHits();
 	void ChipWindshield(const FVector& AtCar, int32 Seed);
