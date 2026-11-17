@@ -92,6 +92,47 @@ def blood_over(m, base, bo, amount, ao, x, y):
     return lerp(m, base, bo, col, '', sat, '', x, y), sat
 
 
+FRESH = (0.15, 0.007, 0.005)               # fresh wet blood running over the old (linear)
+RUNS_HLSL = r"""
+// fresh blood running down over its old blood (the owner: blood is a liquid; on it, never static): the body is cut into
+// thin lanes running down it (in the world, so they run with gravity however it is turned); in some lanes a run crawls
+// down at its own pace, longer behind its tip; only where its blood is (M)
+float2 h = float2(dot(WP.xy, float2(0.71, 0.71)), dot(WP.xy, float2(-0.71, 0.71)));
+float c = h.x / 1.15;
+float cell = floor(c);
+float r = frac(sin(cell * 12.9898) * 43758.5453);
+float r2 = frac(sin(cell * 78.233 + 1.7) * 12345.678);
+float w = abs(frac(c) - 0.5) * 2.0;
+float lane = saturate(1.0 - w / (0.2 + 0.3 * r2));
+float z = WP.z * 0.045 + T * (0.1 + 0.2 * r) + r * 9.0;
+float head = frac(z);
+float run = smoothstep(0.0, 0.8, head) * (1.0 - smoothstep(0.93, 1.0, head));
+float on = step(0.18, r);
+return saturate(lane * run * on * M * 2.6);
+"""
+
+
+def fresh_runs(m, last, lo, rough, mask, x, y):
+    """Fresh, wet blood running down over the old where its blood is: returns the colour and roughness with it."""
+    wp = mel.create_material_expression(m, unreal.MaterialExpressionWorldPosition, x - 700, y + 750)
+    tm = mel.create_material_expression(m, unreal.MaterialExpressionTime, x - 700, y + 830)
+    cu = mel.create_material_expression(m, unreal.MaterialExpressionCustom, x - 450, y + 760)
+    cu.set_editor_property('code', RUNS_HLSL)
+    cu.set_editor_property('output_type', unreal.CustomMaterialOutputType.CMOT_FLOAT1)
+    ins = []
+    for n_ in ('WP', 'T', 'M'):
+        ci = unreal.CustomInput()
+        ci.set_editor_property('input_name', n_)
+        ins.append(ci)
+    cu.set_editor_property('inputs', ins)
+    link(wp, '', cu, 'WP')
+    link(tm, '', cu, 'T')
+    link(mask, '', cu, 'M')
+    col = lerp(m, last, lo, const(m, FRESH, x - 250, y + 680), '', cu, '', x - 100, y + 620)
+    r2 = lerp(m, rough, '', const(m, 0.05, x - 250, y + 900), '', cu, '', x - 100, y + 880)
+    return col, r2
+
+
 def skin_material(name, bc, nrm, frost=True, gain=1.0, bite_mask=None):
     """MetaHuman skin detail drained to the husk's grey-blue, frostbite black and rime white by vertex colour
     (gain evens out the face's skin, a little lighter than the body's). bite_mask (a texture in the mesh's UVs, red):
@@ -116,6 +157,8 @@ def skin_material(name, bc, nrm, frost=True, gain=1.0, bite_mask=None):
         last, lo = bl, ''
         rough = lerp(m, const(m, 0.48, -750, 450), '', const(m, 0.8, -750, 520), '', vc, 'G', -550, 450)
         rough = lerp(m, rough, '', const(m, 0.3, -450, 560), '', bk, '', -300, 450)
+        last, rough = fresh_runs(m, last, lo, rough, bk, -200, 0)
+        lo = ''
     if bite_mask:
         k = tex(m, bite_mask, -1400, 300, 'linear')
         two = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -1150, 300)
@@ -134,6 +177,8 @@ def skin_material(name, bc, nrm, frost=True, gain=1.0, bite_mask=None):
         last, lo = bl, ''
         rough = lerp(m, rough, '', const(m, 0.75, -750, 520), '', k, 'R', -550, 450)
         rough = lerp(m, rough, '', const(m, 0.3, -450, 560), '', bk, '', -300, 450)
+        last, rough = fresh_runs(m, last, lo, rough, bk, -200, 0)
+        lo = ''
     mel.connect_material_property(last, lo, MP.MP_BASE_COLOR)
     n = tex(m, nrm, -800, 650, 'normal')
     mel.connect_material_property(n, 'RGB', MP.MP_NORMAL)

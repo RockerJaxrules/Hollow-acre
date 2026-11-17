@@ -467,8 +467,9 @@ def crash(ev, total):
     # the suck-out: everything drawn away into a reversed cymbal, then the scream hits
     M.x *= np.interp(tt, [0, t_roar - 0.5, t_roar - 0.3, t_scream - 0.12, t_scream - 0.05, total], [1, 1, 0.08, 0.08, 1, 1])
     if not perched:
-        rc = seg(RIS_REVCYM, 6.9, 1.5)
-        M.at(t_scream - 0.1 - rc.shape[1] / SR, pan(peak(filt(rc, A.hp(300)), 0.35), 0.0))
+        if not stall:                 # (the stall: its ringing swell, ~3.2 kHz, read as a squeal rising into the burst)
+            rc = seg(RIS_REVCYM, 6.9, 1.5)
+            M.at(t_scream - 0.1 - rc.shape[1] / SR, pan(peak(filt(rc, A.hp(300)), 0.35), 0.0))
 
     # ---- the scream: a human performance and animals, pitched and layered past naming, on a brass hit and a boom ---------
     # (on the bonnet it does not roar: its jaw opens wide in silence, a wet hiss at the glass, a bowed-metal whine)
@@ -503,7 +504,9 @@ def crash(ev, total):
         t_hit = t_smash or t_imp
         if t_smash:
             # the driver's window bursting in, its arm through it: the glass, the door's skin boomed, a sting
-            M.at(t_smash - 0.015, pan(peak(fade(loudest('glass/glass_broken_car_window_587928', 1.2, pre=0.02), 0.002, 0.6), 0.62), -0.75))
+            # (the glass de-whined across its ring: its shatter without the ping at ~4.8 kHz that read as a squeak)
+            gl = detone(loudest('glass/glass_broken_car_window_587928', 1.2, pre=0.02), lo=2000.0, hi=8000.0, over=2.5, keep=1.2)
+            M.at(t_smash - 0.015, pan(peak(fade(gl, 0.002, 0.6), 0.62), -0.75))
             M.at(t_smash - 0.01, pan(peak(filt(fade(loudest('glass/glass_hard_glass_impact_crack_418194', 0.8, pre=0.01), 0.002, 0.4), A.lp(9000)), 0.55), -0.6))
             M.at(t_smash - 0.02, pan(peak(filt(seg(HIT_BOOM, 0.0, 3.0), A.lp(220)), 0.5), -0.3))
             # (no violin sting: the low brass and the boom carry it)

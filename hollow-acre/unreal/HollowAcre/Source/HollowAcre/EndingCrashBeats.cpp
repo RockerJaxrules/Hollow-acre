@@ -22,6 +22,7 @@
 #include "Components/PointLightComponent.h"
 #include "Components/SpotLightComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "BloodFX.h"
 #include "DriverArms.h"
 #include "Engine/DecalActor.h"
 #include "Engine/Engine.h"
@@ -165,7 +166,7 @@ void AEndingDirector::BeginCrashScene()
 	// 1.7 m to one side (Scripts/make_gore.py, tools/make_blood_trail_tex.py)
 	if (Tracks)
 	{
-		if (UMaterialInterface* Blood = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Materials/Blockout/M_BloodTrail.M_BloodTrail")))
+		if (UMaterialInterface* TrailMat = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Materials/Blockout/M_BloodTrail.M_BloodTrail")))
 		{
 			FActorSpawnParameters P;
 			P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -173,7 +174,7 @@ void AEndingDirector::BeginCrashScene()
 				Tracks->GetActorRotation(), P);
 			if (B)
 			{
-				B->SetDecalMaterial(Blood);
+				B->SetDecalMaterial(TrailMat);
 				B->GetDecal()->DecalSize = FVector(300.f, 62.f, 250.f);
 				B->GetDecal()->SortOrder = 1;
 				UE_LOG(LogTemp, Display, TEXT("EndingDirector: blood trail at the gap, %s"), *B->GetActorLocation().ToString());
@@ -1815,6 +1816,30 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 				Pc->SetLightingChannels(true, false, true);
 			}
 			FaceLight->SetCastShadows(false);
+			if (!Blood)
+			{
+				Blood = GetWorld()->SpawnActor<ABloodFX>(ABloodFX::StaticClass(), FTransform(At));
+				int32 Catch = 0;
+				for (UPrimitiveComponent* Part : CarParts)
+				{
+					bool bGlass = false;
+					for (int32 m = 0; Part && m < Part->GetNumMaterials(); ++m)
+					{
+						bGlass |= SideGlassMID && Part->GetMaterial(m) == SideGlassMID;
+					}
+					if (Part && !bGlass)
+					{
+						Part->SetCollisionResponseToChannel(ECC_Camera, ECR_Block);      // (only the blood traces this channel)
+						++Catch;
+					}
+				}
+				UE_LOG(LogTemp, Display, TEXT("EndingDirector: blood lands on %d of the car's parts"), Catch);
+			}
+			if (Blood)
+			{
+				Blood->Ignore = {H, Arms};
+				Blood->Pool(C.TransformPosition(FVector(PeerStand.X, PeerStand.Y + 70.f, 0.f)), 30.f, 3.0f, 0.6f);
+			}
 			Event(TEXT("peer"));
 		}
 		else if (H)
@@ -2353,6 +2378,14 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 				{
 					BurstWindow(true);
 					SmashT = Time;
+					if (bStall && Blood)
+					{
+						if (APlayerCameraManager* Cm = UGameplayStatics::GetPlayerCameraManager(this, 0))
+						{
+							Blood->Spray(H->FaceAt(), Cm->GetCameraLocation() - H->FaceAt() - FVector(0.f, 0.f, 25.f), 16, 560.f, 32.f, 0.65f);
+							SprayFrame(H, 40, 520.f);
+						}
+					}
 					if (bStall)
 					{
 						ImpactTime = Time + StallHold;    // (its face in the hole, its arm in at the driver: then the blow)
@@ -2396,6 +2429,11 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 					const float Back = Tau < 0.28f ? Smooth(Tau / 0.28f) : Tau < 0.46f ? 1.f :
 						1.f - FMath::Pow(FMath::Clamp((Tau - 0.46f) / (StallRamHit - 0.46f), 0.f, 1.f), 1.6f);
 					OnSnow(H, C.TransformPosition(FVector(PeerStand.X, PeerStand.Y - StallRamBack * HuskScale * Back, 0.f)), R);
+					if (!bCoilPool && Tau >= 0.28f && Blood)
+					{
+						bCoilPool = true;
+						Blood->Pool(H->FaceAt(), 18.f, 1.2f);
+					}
 					if (!bLaunched && Tau >= 0.46f)
 					{
 						bLaunched = true;
@@ -2431,6 +2469,20 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 					FRotator(TwitchRand.FRandRange(-2.f, 2.f), TwitchRand.FRandRange(-3.f, 3.f), TwitchRand.FRandRange(-4.f, 4.f));
 				TwitchT0 = g;
 				TwitchNext = g + TwitchRand.FRandRange(0.13f, 0.32f);
+				if (Blood && bFace)
+				{
+					SprayFrame(H, TwitchRand.RandRange(10, 16), 440.f);
+				}
+			}
+			// dripping all the while: from its chin, now and then from its claws
+			if (Blood && (!bImpacted || Time - ImpactTime < StallPushFor + 0.4f) && Time >= NextDrip)
+			{
+				NextDrip = Time + TwitchRand.FRandRange(0.035f, 0.09f);
+				Blood->Drip(H->FaceAt() - FVector(0.f, 0.f, 7.f), 1.0f);
+				if (TwitchRand.FRand() < 0.5f)
+				{
+					Blood->Drip(H->GetBody()->GetSocketLocation(TwitchRand.FRand() < 0.5f ? TEXT("hand_l") : TEXT("hand_r")), 0.4f);
+				}
 			}
 			const float a = Smooth((g - TwitchT0) / 0.05f);
 			TwitchNow = FRotator(FMath::Lerp(TwitchFrom.Pitch, TwitchTo.Pitch, a), FMath::Lerp(TwitchFrom.Yaw, TwitchTo.Yaw, a),
@@ -2450,6 +2502,17 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 			// each, until the car tips toward the edge; then it lets go (and is left at the roadside)
 			const float p = Time - ImpactTime;
 			const float Ph = p / StallPushFor * (float)StallHeaves;
+			if (!bSmeared && Blood)
+			{
+				bSmeared = true;
+				BleedHand(H, TEXT("hand_l"), R);
+				BleedHand(H, TEXT("hand_r"), R);
+				if (APlayerCameraManager* Cm = UGameplayStatics::GetPlayerCameraManager(this, 0))
+				{
+					Blood->Spray(H->FaceAt(), Cm->GetCameraLocation() - H->FaceAt() - FVector(0.f, 0.f, 20.f), 12, 520.f, 32.f, 0.65f);
+					SprayFrame(H, 30, 500.f);
+				}
+			}
 			while (HeaveBeat < StallHeaves && Ph >= (float)HeaveBeat + 0.5f)
 			{
 				++HeaveBeat;
@@ -2475,6 +2538,68 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 		}
 	}
 	// (kept out of everything in its own tick, once its body is animated: KeepOutLate)
+}
+
+void AEndingDirector::SprayFrame(AHusk* H, int32 Count, float Speed)
+{
+	// flung from its mouth through the hole at the driver: most of it lands on the window's frame and the door's top
+	// inside (what the driver is looking at as it shrieks), the rest past them into the car
+	if (!H || !Blood || !Car)
+	{
+		return;
+	}
+	const FTransform Ct = Car->GetActorTransform();
+	const FVector From = H->FaceAt();
+	for (int32 i = 0; i < Count; ++i)
+	{
+		const float Pick = FMath::FRand();
+		FVector T;
+		if (Pick < 0.62f)
+		{
+			T = FVector(FMath::FRandRange(-38.f, 44.f), FMath::FRandRange(-31.f, -22.f), FMath::FRandRange(92.f, 101.f));    // the sill, the door's top
+		}
+		else if (Pick < 0.8f)
+		{
+			T = FVector(FMath::FRandRange(40.f, 50.f), FMath::FRandRange(-30.f, -24.f), FMath::FRandRange(100.f, 126.f));    // the front pillar
+		}
+		else if (Pick < 0.92f)
+		{
+			T = FVector(FMath::FRandRange(-38.f, 44.f), FMath::FRandRange(-30.f, -22.f), FMath::FRandRange(124.f, 132.f));   // the roof's edge
+		}
+		else
+		{
+			T = FVector(FMath::FRandRange(0.f, 40.f), FMath::FRandRange(-10.f, 20.f), FMath::FRandRange(70.f, 110.f));       // on into the car
+		}
+		const FVector W = Ct.TransformPosition(T);
+		Blood->Spray(From, W - From, 1, Speed, 3.f, FMath::FRandRange(0.5f, 0.95f));
+	}
+}
+
+void AEndingDirector::BleedHand(AHusk* H, FName Bone, const FVector& Toward)
+{
+	// its bloody hand on the car where it struck: a smear dragged down and back as the car is shoved and tips away
+	if (!H || !Blood || !Car)
+	{
+		return;
+	}
+	const FVector Hand = H->GetBody()->GetSocketLocation(Bone);
+	FHitResult Hit;
+	FCollisionQueryParams Q(TEXT("BloodHand"), true, H);
+	if (Arms)
+	{
+		Q.AddIgnoredActor(Arms);
+	}
+	if (Body)
+	{
+		Q.AddIgnoredActor(Body);
+	}
+	if (GetWorld()->LineTraceSingleByChannel(Hit, Hand - Toward * 25.f, Hand + Toward * 70.f, ECC_Camera, Q))
+	{
+		const FTransform Ct = Car->GetActorTransform();
+		const FVector Along = (-Ct.GetUnitAxis(EAxis::Z) * 0.85f - Ct.GetUnitAxis(EAxis::X) * 0.45f).GetSafeNormal();
+		Blood->Smear(Hit.GetComponent(), Hit.ImpactPoint, Hit.ImpactNormal, Along, 55.f, 15.f, StallPushFor + 0.35f);
+		UE_LOG(LogTemp, Display, TEXT("EndingDirector: blood: %s smeared on %s"), *Bone.ToString(), *GetNameSafe(Hit.GetActor()));
+	}
 }
 
 float AEndingDirector::RamTakeAt(float G) const

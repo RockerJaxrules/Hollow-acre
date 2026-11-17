@@ -1,5 +1,6 @@
 #include "EndingDirector.h"
 
+#include "BloodFX.h"
 #include "DriverArms.h"
 #include "PhysicsEngine/BodySetup.h"
 #include "Sound/SoundBase.h"
@@ -771,6 +772,10 @@ void AEndingDirector::Impact()
 	}
 	Car->AttachToActor(B, FAttachmentTransformRules::KeepWorldTransform);
 	Body = B;
+	if (Blood)
+	{
+		Blood->Ignore.Add(B);           // (the physics box sits off the car's own surface)
+	}
 	BodyBox = Box;
 	// the blow: the trip is authored from here (TripPose), physics takes over at the edge
 	ImpactPose = B->GetActorTransform();

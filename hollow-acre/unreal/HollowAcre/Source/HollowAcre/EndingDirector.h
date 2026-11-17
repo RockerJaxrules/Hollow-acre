@@ -271,6 +271,14 @@ public:
 	FVector StallRamPace = FVector(0.16f, 0.12f, 0.11f);
 	float RamTakeAt(float GameT) const;
 	bool bLaunched = false;
+	/** Blood as a liquid (BloodFX): sprayed from its mouth as it shrieks, dripping from its chin and claws, pooling where
+	 *  it stands, smeared by its hands on the car. */
+	UPROPERTY()
+	TObjectPtr<class ABloodFX> Blood;
+	float NextDrip = 0.f;
+	bool bCoilPool = false, bSmeared = false;
+	void BleedHand(class AHusk* H, FName Bone, const FVector& Toward);
+	void SprayFrame(class AHusk* H, int32 Count, float Speed);
 	int32 StallHeaves = 3, HeaveBeat = 0;
 	/** (the stall) Its head's jerks at the window (Until Dawn's wendigos): from, to, now (degrees), when the last began and
 	 *  when the next comes (s after the glass went). */
