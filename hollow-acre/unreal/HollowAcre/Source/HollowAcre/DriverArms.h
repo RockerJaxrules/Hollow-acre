@@ -106,12 +106,12 @@ public:
 	float KeyReach = 0.f;
 	UPROPERTY(EditAnywhere, Category = "Driver")
 	float KeyTurn = 0.f;
-	/** The key's bow (car frame, cm) and the axis it turns about (out of the lock toward the driver): in the console's face just
-	 *  right of the wheel, clear of the rim as the driver's eye sees it. */
+	/** The key's bow (car frame, cm) and the axis it turns about (out of the lock toward the driver, along the column): in the
+	 *  column lock just behind the rim's lower right, as on this car (seen through the wheel's lower right opening). */
 	UPROPERTY(EditAnywhere, Category = "Driver")
-	FVector KeyAt = FVector(63.5f, 27.f, 75.f);
+	FVector KeyAt = FVector(72.2f, 14.f, 65.5f);
 	UPROPERTY(EditAnywhere, Category = "Driver")
-	FVector KeyAxis = FVector(-1.f, 0.f, 0.f);
+	FVector KeyAxis = FVector(-0.94f, 0.15f, 0.3f);
 
 protected:
 	virtual void BeginPlay() override;
@@ -177,4 +177,5 @@ private:
 	FQuat KeyBase = FQuat::Identity;
 	float LastKeyReach = -1.f, LastKeyTurn = -1e9f;
 	FVector GripFinger[2] = { FVector::ZeroVector, FVector::ZeroVector };
+	FVector GripAcross[2] = { FVector::ZeroVector, FVector::ZeroVector };
 };

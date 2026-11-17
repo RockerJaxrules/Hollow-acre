@@ -1100,6 +1100,13 @@ void ADriverArms::SnapshotGrip()
 		{
 			GripFinger[Side] = (MeshRel.TransformPosition(BoneCS(Mid1).GetLocation()) - GripWrist[Side]).GetSafeNormal();
 		}
+		const FName Idx1(*FString::Printf(TEXT("index_01_%s"), Sx)), Pnk1(*FString::Printf(TEXT("pinky_01_%s"), Sx));
+		if (Mesh->GetBoneIndex(Idx1) != INDEX_NONE && Mesh->GetBoneIndex(Pnk1) != INDEX_NONE)
+		{
+			// across the knuckles, index to little finger (with the fingers' way, it fixes how the hand is turned)
+			FVector A = MeshRel.TransformPosition(BoneCS(Pnk1).GetLocation()) - MeshRel.TransformPosition(BoneCS(Idx1).GetLocation());
+			GripAcross[Side] = (A - GripFinger[Side] * FVector::DotProduct(A, GripFinger[Side])).GetSafeNormal();
+		}
 	}
 	// which way a positive angle turns: twelve o'clock toward the driver's right, clockwise as the driver sees it
 	const float Tilt = FMath::DegreesToRadians(WheelTilt);
@@ -1147,12 +1154,22 @@ void ADriverArms::FollowWheel()
 			// at the key's head (toward the dash, a little down), the head pinched between thumb and fingers; turning it is
 			// the forearm twisting about the key's axis. On its way there it swings out and back, clear of the rim.
 			const FVector Ax = KeyAxis.GetSafeNormal();
-			const FVector Fk = (-Ax + FVector(0.1f, -0.15f, -0.3f)).GetSafeNormal();
+			// (as a hand takes a key in a column lock: up from below the rim on the right, its fingers in at the key's head,
+			// forward and to the left, the palm toward the key and the thumb on top; the knuckles' row running down)
+			const FVector Fk = FVector(0.55f, -0.62f, -0.2f).GetSafeNormal();
+			FVector Ak = FVector(0.f, 0.15f, -1.f);
+			Ak = (Ak - Fk * FVector::DotProduct(Ak, Fk)).GetSafeNormal();
 			const FQuat Turn(Ax, -FMath::DegreesToRadians(KeyTurn));
-			const FVector KeyWrist = KeyAt + Turn.RotateVector(Ax * 3.f - Fk * 9.f + FVector(0.f, 0.f, 1.2f));
-			const FQuat KeyRot = Turn * FQuat::FindBetweenNormals(GripFinger[1], Fk) * GripHandRot[1];
+			const FVector KeyWrist = KeyAt + Turn.RotateVector(-Fk * 8.f + Ak * 2.5f);
+			FQuat KeyRot = Turn * FQuat::FindBetweenNormals(GripFinger[1], Fk) * GripHandRot[1];
+			if (!GripAcross[1].IsNearlyZero())
+			{
+				const FQuat From = FRotationMatrix::MakeFromXY(GripFinger[1], GripAcross[1]).ToQuat();
+				const FQuat To = FRotationMatrix::MakeFromXY(Fk, Ak).ToQuat();
+				KeyRot = Turn * (To * From.Inverse()) * GripHandRot[1];
+			}
 			const float s = FMath::Clamp(KeyReach, 0.f, 1.f), e = s * s * (3.f - 2.f * s);
-			Wrist = FMath::Lerp(Wrist, KeyWrist, e) + FVector(-6.f, 9.f, 2.f) * FMath::Sin(PI * e);
+			Wrist = FMath::Lerp(Wrist, KeyWrist, e) + FVector(-5.f, 7.f, -2.f) * FMath::Sin(PI * e);   // (down past the rim's outside)
 			HandRot = FQuat::Slerp(HandRot, KeyRot, e);
 		}
 		const FVector Sh = MeshRel.TransformPosition(BoneCS(Upper).GetLocation());

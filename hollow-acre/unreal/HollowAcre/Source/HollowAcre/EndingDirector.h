@@ -252,7 +252,18 @@ public:
 	float StallT = -1.f, StallV = 0.f, StallCoast = 2600.f;
 	int32 KeyBeat = 0;
 	/** When it hits (s after the car has stopped): during the third, frantic turn of the key. */
-	float StallHitAfter = 5.6f;
+	float StallHitAfter = 7.0f;
+	/** When it is at the driver's door (s after the car has stopped; the eyes on the key): its hand bursts the window
+	 *  1.3-1.5 s later, the blow 1.75 s after it gets there. When the glass went (-1: not yet). */
+	float StallPeerAt = 4.3f, SmashT = -1.f;
+	/** (the stall) From the glass going to the blow (s): its face in the hole, its arm in at the driver. */
+	float StallHold = 1.5f;
+	/** (the stall) How long its face is in the hole, shrieking, before it drives its arm in at the driver (s). */
+	float StallFace = 0.6f;
+	/** (the stall) The car rocked on its springs by it (degrees of roll, + away from it), and the driver's head yanked
+	 *  toward the window by its grip (cm, car frame -Y). */
+	float StallRock() const;
+	float StallYank() const;
 	/** The bonnet attack's timing (s after it lands): the swerves, the blow on the glass, the brakes. */
 	float HoodStrikeAt = 2.9f, HoodBrakeAt = 3.9f;
 	/** Where its hips are as it lies on the bonnet (cm, car frame): its head out over the scuttle at the foot of the glass, its

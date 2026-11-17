@@ -254,9 +254,12 @@ def crash(ev, total):
     t_stall = first('stall')
     stall = t_stall is not None
     cranks = [t for t, k, v in ev if k == 'crank']
+    t_smash = first('smash')
     if stall:
         t_sight = t_brake = t_stall
         t_roar, t_scream, t_bolt = t_imp, t_imp + 0.1, t_imp
+        if t_smash:
+            t_roar, t_scream = t_smash + 0.2, t_smash + 0.1    # (the drop-out: 0.2 s before the glass goes)
         t_creep, t_growl = t_imp + 1.0, t_imp + 7.0
     t_black, t_upside, t_wake = first('black', t_imp + 16), first('upside'), first('wake', (first('black', t_imp + 16) or 0) + 3)
     t_sil, t_close, t_title = first('silhouette'), first('close'), first('title')
@@ -328,6 +331,10 @@ def crash(ev, total):
         grind = [(41.30, 1.15), (43.45, 1.35), (45.30, 0.35), (45.70, 0.40), (46.20, 0.50)]
         for i, t0 in enumerate(cranks):
             a, d = grind[min(i, len(grind) - 1)]
+            if t_smash:
+                if t0 >= t_smash - 0.05:
+                    continue                              # (the hand torn off the key by the burst glass)
+                d = min(d, t_smash - t0 + 0.03)
             g = seg('engine_die/engine_die_volvo245_1983_starter_failure_322974', a, d)
             M.at(t0 - 0.02, pan(peak(filt(fade(g, 0.01, 0.08), A.lp(5000)), 0.36 - 0.03 * i), 0.12))
     crunch = steady('snow_tyres/snow_tyres_tires_snow_ice_slow_71099', max(0.5, t_stop - t_skid), skip=0.5)
@@ -405,8 +412,17 @@ def crash(ev, total):
             c = pitch(loudest(name, 1.3, pre=pre), f)[:, :n]
             sh[:, :c.shape[1]] += level(fade(c, 0.02, 0.35), 0.1) * g
         sh = verb(sh, 1.6, 0.25)
-        M.at(t_imp - 0.04, pan(peak(fade(sh, 0.02, 0.4), 0.85), -0.7))     # (at the driver's door, the left)
-        M.at(t_imp - 0.06, pan(peak(load(HIT_BRAAM), 0.5), 0.0))
+        t_hit = t_smash or t_imp
+        if t_smash:
+            # the driver's window bursting in, its arm through it: the glass, the door's skin boomed, a sting
+            M.at(t_smash - 0.015, pan(peak(fade(loudest('glass/glass_broken_car_window_587928', 1.2, pre=0.02), 0.002, 0.6), 0.85), -0.75))
+            M.at(t_smash - 0.01, pan(peak(filt(fade(loudest('glass/glass_hard_glass_impact_crack_418194', 0.8, pre=0.01), 0.002, 0.4), A.lp(9000)), 0.55), -0.6))
+            M.at(t_smash - 0.02, pan(peak(filt(seg(HIT_BOOM, 0.0, 3.0), A.lp(220)), 0.5), -0.3))
+            M.at(t_smash - 0.02, pan(peak(load(ST_JUMP), 0.55), -0.4))
+            # its breath and snarl right at the driver's ear, while it claws in at them
+            M.at(t_smash + 0.85, pan(peak(filt(loudest('creature_extra/creature_extra_tiger_hiss_growl_437978', 1.0, pre=0.05), A.lp(6000)), 0.35), -0.8))
+        M.at(t_hit + 0.02, pan(peak(fade(sh, 0.02, 0.4), 0.85), -0.75))    # (at the driver's door, the left, in the cabin)
+        M.at(t_hit - 0.03, pan(peak(load(HIT_BRAAM), 0.5), 0.0))
     elif not perched:
         M.at(t_scream - 0.08, pan(peak(fade(sc, 0.03, 0.8), 0.92), -0.05))
         M.at(t_scream - 0.08, pan(peak(load(HIT_BRAAM), 0.55), 0.0))
@@ -476,7 +492,7 @@ def crash(ev, total):
       M.x *= duck
     for t0 in beats:
         M.at(t0, beat, 0.75)
-    if t_face:
+    if t_face and not stall:                              # (the stall: it is at the window unseen; nothing gives it away)
         M.at(t_face - 0.02, pan(peak(load(ST_JUMP), 0.6), -0.6))
         M.at(t_face - 0.02, pan(peak(seg(HIT_BOOM, 0.0, 4.0), 0.5), -0.3))
         M.at(t_face + 0.05, pan(peak(filt(pitch(seg(CR_BREATH, 30.0, 1.4), 0.6), A.lp(2500)), 0.22), -0.85))
@@ -491,7 +507,8 @@ def crash(ev, total):
     if not stall:
       M.at(t_growl, pan(peak(verb(level(g1, 0.1) if perched else sumc(level(g1, 0.1), level(g2, 0.08)), 1.0, 0.2), 0.3 if perched else 0.42 if hood else 0.72), -0.9))
     steps_in = loudest('footsteps/footsteps_horse_gallop_close_479799', 1.0, pre=0.2)
-    M.at(t_charge, pan(peak(filt(pitch(steps_in, 0.75), A.lp(1400)), 0.25), -0.8))
+    if not stall:
+        M.at(t_charge, pan(peak(filt(pitch(steps_in, 0.75), A.lp(1400)), 0.25), -0.8))
 
     # ---- the lunge, slowed: the heart stops, everything drawn in, a reversed piano into the blow ----------------------
     slow_dur = max(0.3, t_speed - t_imp)

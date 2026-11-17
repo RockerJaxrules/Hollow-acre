@@ -426,7 +426,7 @@ void AEndingDirector::Tick(float DeltaSeconds)
 			Creature = SpawnHusk(TEXT("GallopLookL"));
 			Event(TEXT("creature"));
 		}
-		if (!bHoodReveal && !bCharged && Time >= ImpactTime - ChargeLead && Car)
+		if (!bStall && !bHoodReveal && !bCharged && Time >= ImpactTime - ChargeLead && Car)
 		{
 			// the charge: out of the dark on the driver's side, straight at the door, to arrive with the blow
 			bCharged = true;
@@ -453,7 +453,7 @@ void AEndingDirector::Tick(float DeltaSeconds)
 		{
 			MoveCreature(DeltaSeconds);
 		}
-		if (bHoodReveal)
+		if (bHoodReveal || bStall)
 		{
 			RevealBeats(DeltaSeconds);
 		}
@@ -560,7 +560,8 @@ void AEndingDirector::Tick(float DeltaSeconds)
 	}
 	// Low, uneven bumps and a slow roll, never mirrored or periodic-looking
 	Loc.Z += 0.8f * FMath::Sin(Time * 7.1f) + 0.5f * FMath::Sin(Time * 11.3f + 1.7f);
-	const FRotator Sway(SwayDeg * 0.4f * FMath::Sin(Time * 1.9f + 0.4f) + (bCrash ? CarDip() : 0.f), 0.f, SwayDeg * FMath::Sin(Time * 1.3f));
+	const FRotator Sway(SwayDeg * 0.4f * FMath::Sin(Time * 1.9f + 0.4f) + (bCrash ? CarDip() : 0.f), 0.f,
+		SwayDeg * FMath::Sin(Time * 1.3f) + (bCrash ? StallRock() : 0.f));
 	Car->SetActorLocationAndRotation(Loc, Rot * Sway.Quaternion());
 	if (bCrash && WheelPts.Num() > 0)
 	{
@@ -598,13 +599,21 @@ void AEndingDirector::Tick(float DeltaSeconds)
 		auto Sm = [](float x) { x = FMath::Clamp(x, 0.f, 1.f); return x * x * (3.f - 2.f * x); };
 		auto Crank = [k, Sm](float a, float b) { return Sm((k - a) / 0.1f) * (1.f - Sm((k - b) / 0.12f)); };
 		const float Turn = 38.f * (Crank(1.5f, 2.6f) + Crank(3.2f, 4.5f) + Crank(4.9f, 5.2f) + Crank(5.35f, 5.7f) + Crank(5.85f, 6.3f));
-		const float Reach = Sm((k - 0.7f) / 0.55f);
+		float Reach = Sm((k - 0.7f) / 0.55f);
+		if (SmashT >= 0.f)
+		{
+			Reach *= 1.f - Sm((Time - SmashT) / 0.22f);   // (torn off the key by the burst glass: a flinch)
+		}
 		Arms->KeyReach = Reach;
 		Arms->KeyTurn = Turn * Reach;
 		static const float CrankAt[] = {1.5f, 3.2f, 4.9f, 5.35f, 5.85f};
-		while (KeyBeat < (int32)UE_ARRAY_COUNT(CrankAt) && k >= CrankAt[KeyBeat])
+		while (KeyBeat < (int32)UE_ARRAY_COUNT(CrankAt) && k >= CrankAt[KeyBeat] && SmashT < 0.f)
 		{
 			Event(TEXT("crank"), (float)KeyBeat);
+			if (KeyBeat == 2)
+			{
+				Event(TEXT("frantic"));
+			}
 			++KeyBeat;
 		}
 	}
@@ -743,6 +752,7 @@ void AEndingDirector::Impact()
 	PrevPos = ImpactPose.GetLocation();
 	PrevVel = R.GetForwardVector() * SpeedNow;
 	Jolt = 1.f;
+	HeadOff = FVector(0.f, -StallYank(), 0.f);    // (the stall: where its grip had the head; no jump between the cameras)
 	BurstWindow(true);
 	if (SlowMoT0 < 0.f)
 	{
@@ -822,6 +832,40 @@ void AEndingDirector::HandToPhysics()
 	UE_LOG(LogTemp, Display, TEXT("EndingDirector: over the edge at %.2f s: %.0f cm/s, rolling %.0f deg/s"), Time - ImpactTime, V.Size(), FMath::RadiansToDegrees(Angle / dt));
 	EdgeReal = RealTime;
 	Event(TEXT("edge"), V.Size());
+}
+
+float AEndingDirector::StallRock() const
+{
+	if (!bStall || SmashT < 0.f || Time < SmashT)
+	{
+		return 0.f;
+	}
+	// its hand through the glass: the body knocked away from it and back on its springs; then each time it hauls on the
+	// door (its other hand on the roof's edge), the car rolled toward it
+	const float g = Time - SmashT;
+	float Roll = 2.2f * FMath::Exp(-4.f * g) * FMath::Sin(11.f * g);
+	const float a = Time - SmashT - StallFace - 0.35f;
+	if (!bImpacted && a > 0.f)
+	{
+		Roll -= 0.35f * (1.f - FMath::Cos(a * 12.f)) * FMath::Min(1.f, a / 0.2f);
+	}
+	return Roll;
+}
+
+float AEndingDirector::StallYank() const
+{
+	if (!bStall || SmashT < 0.f)
+	{
+		return 0.f;
+	}
+	// its hand has the driver by the collar: the head jerked toward the hole, held, then let go as it shoves
+	const float g = Time - SmashT - StallFace - 0.25f;
+	if (g <= 0.f)
+	{
+		return 0.f;
+	}
+	const float In = FMath::Sin(FMath::Min(g / 0.1f, 1.f) * HALF_PI);
+	return 8.f * In * (0.75f + 0.25f * FMath::Exp(-6.f * g)) + 1.2f * FMath::Sin(g * 21.f) * In;
 }
 
 void AEndingDirector::BurstWindow(bool bDriver)
@@ -946,7 +990,7 @@ void AEndingDirector::PlaceCamera()
 		const float S = RoarShake * RoarShake;
 		const FVector Shake(FMath::Sin(Time * 53.f) * 1.2f * S, FMath::Sin(Time * 41.f + 1.f) * 1.6f * S, FMath::Sin(Time * 47.f + 2.f) * 1.2f * S);
 		const FRotator ShakeR(FMath::Sin(Time * 39.f) * 1.5f * S, FMath::Sin(Time * 45.f + 1.f) * 2.f * S, FMath::Sin(Time * 51.f) * 1.5f * S);
-		Camera->GetRootComponent()->SetRelativeLocationAndRotation(ClearEye(CamRest + Look.RotateVector(Neck) - Neck + FVector(HeadPush, 0.f, 0.f) + Shake),
+		Camera->GetRootComponent()->SetRelativeLocationAndRotation(ClearEye(CamRest + Look.RotateVector(Neck) - Neck + FVector(HeadPush, -StallYank(), 0.f) + Shake),
 			CamRestRot + Look + ShakeR);
 		static const bool bSideCam = FParse::Param(FCommandLine::Get(), TEXT("sidecam"));
 		if (bSideCam && Car)
@@ -991,8 +1035,17 @@ float AEndingDirector::LookWant(float DeltaSeconds)
 		const float s = t - StallT;
 		const float k = StopT >= 0.f ? t - StopT : -1.f;
 		const bool bDials = s > 0.25f && s < 1.3f;
-		const bool bKey = k >= 0.55f && !(k > 4.55f && k < 4.95f);
-		if (bKey && Car)
+		const bool bKey = k >= 0.55f && (k < 2.0f || (k > 3.05f && k < 3.6f) || k > 4.95f);
+		if (SmashT >= 0.f)
+		{
+			// the glass bursts in at the left: the head whipped round to it, back from it; its face is right there
+			Want = -78.f;
+			WantPitch = -2.f;
+			Rate = 14.f;
+			Focus = 80.f;
+			WantPush = -6.f;
+		}
+		else if (bKey && Car)
 		{
 			const FVector KeyW = Car->GetActorTransform().TransformPosition(Arms ? Arms->KeyAt : FVector(72.5f, 8.7f, 74.f));
 			float Unused = 0.f;

@@ -1691,7 +1691,7 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 	AHusk* H = Creature;
 
 	// suddenly: it drops onto the bonnet from the rock above as the car drives on (no warning: it is there)
-	if (bHoodAttack && !bDarted && Time >= SightTime)
+	if (!bStall && bHoodAttack && !bDarted && Time >= SightTime)
 	{
 		bDarted = true;
 		ArcFrom = PerchAt + FVector(60.f, -40.f, 420.f);
@@ -1725,7 +1725,7 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 		}
 	}
 	// suddenly: it drops onto the roof from above (out of sight: only heard, and felt)
-	if (!bHoodAttack && !bDarted && Time >= SightTime)
+	if (!bStall && !bHoodAttack && !bDarted && Time >= SightTime)
 	{
 		bDarted = true;
 		// (onto the roof, the owner's choice: at its size its face can't be seen through the windshield from the bonnet)
@@ -1759,6 +1759,57 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 				KeepOut(Me, Dir, TEXT("the creature"));
 			};
 			Event(TEXT("drop"));
+		}
+		else if (H)
+		{
+			H->Destroy();
+			H = nullptr;
+		}
+	}
+	// the stall: out of the dark at the driver's door while the eyes are on the key (not seen until its hand comes
+	// through the glass); reaching, then the blow
+	if (bStall && !bDarted && StopT >= 0.f && Time >= StopT + StallPeerAt)
+	{
+		bDarted = true;
+		const FVector At = C.TransformPosition(FVector(PeerStand.X, PeerStand.Y, 0.f));
+		FActorSpawnParameters P;
+		P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		H = GetWorld()->SpawnActor<AHusk>(AHusk::StaticClass(), FTransform(At), P);
+		if (H && H->Setup())
+		{
+			H->SetActorScale3D(FVector(HuskScale));
+			Creature = H;
+			CreStage = 7;
+			PeerT0 = Time;
+			PeerV = 0.f;
+			ImpactTime = PeerT0 + 1.75f;
+			Take(H, TEXT("Peer"), false, 1.f, 0.f);
+			OnSnow(H, At, R);
+			H->KeepOutLate = [this](AHusk* Me)
+			{
+				if (Me != Creature || CreStage == 0 || !Car)
+				{
+					return;
+				}
+				const FVector Fw = Car->GetActorTransform().GetUnitAxis(EAxis::X).GetSafeNormal2D();
+				KeepOut(Me, -FVector::CrossProduct(FVector::UpVector, Fw), TEXT("the creature"));
+			};
+			FaceLight = NewObject<UPointLightComponent>(Car, TEXT("FaceGlow"));
+			FaceLight->SetupAttachment(Car->GetRootComponent());
+			FaceLight->RegisterComponent();
+			FaceLight->SetIntensityUnits(ELightUnits::Candelas);
+			FaceLight->SetLightColor(FLinearColor(0.55f, 0.7f, 1.f));
+			FaceLight->SetRelativeLocation(FVector(48.f, -6.f, 104.f));     // the dials' cold glow, out at the window
+			FaceLight->SetIntensity(3.f);
+			FaceLight->SetAttenuationRadius(260.f);
+			FaceLight->SetLightingChannels(false, false, true);
+			TInlineComponentArray<UPrimitiveComponent*> Prims(H);
+			for (UPrimitiveComponent* Pc : Prims)
+			{
+				Pc->SetLightingChannels(true, false, true);
+			}
+			FaceLight->SetCastShadows(false);
+			Event(TEXT("peer"));
 		}
 		else if (H)
 		{
@@ -2295,6 +2346,12 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 				if (H->PushClear(Parts, -R) > 1.f || r >= 1.5f)
 				{
 					BurstWindow(true);
+					SmashT = Time;
+					if (bStall)
+					{
+						ImpactTime = Time + StallHold;    // (its face in the hole, its arm in at the driver: then the blow)
+						RoarShake = FMath::Max(RoarShake, 0.8f);
+					}
 					Event(TEXT("smash"));
 					PeerBeat = FMath::Max(PeerBeat, 2);
 				}
@@ -2306,7 +2363,44 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 			++PeerBeat;
 		}
 
+		if (bStall && SmashT >= 0.f)
+		{
+			// (the stall) its face in the hole the glass left, at the driver's eyes, shrieking, its head shaking; then it
+			// draws back a little and drives its arm in at them, clawing at them, hauling; then the blow (the take on
+			// from its shove)
+			const float g = Time - SmashT;
+			const float Claw = StallFace + 0.35f;
+			if (!bImpacted)
+			{
+				float At;
+				if (g < StallFace)
+				{
+					At = FMath::Min(SmashT - PeerT0, 1.33f) + 0.02f * FMath::Sin(g * 9.f);
+				}
+				else if (g < Claw)
+				{
+					At = 1.35f + (g - StallFace);
+				}
+				else
+				{
+					At = 1.7f - 0.05f * (1.f - FMath::Cos((g - Claw) * 12.f));
+				}
+				H->GetBody()->SetPlayRate(0.f);
+				H->GetBody()->SetPosition(At, false);
+				H->PeerTilt = g < StallFace ? 9.f * FMath::Sin(g * 23.f) * Smooth(g / 0.1f) * (1.f - Smooth((g - StallFace + 0.12f) / 0.12f)) : 0.f;
+			}
+			else if (PeerBeat < 3)
+			{
+				PeerBeat = 3;
+				H->PeerTilt = 0.f;
+				Take(H, TEXT("Peer"), false, 1.f, 1.75f);
+			}
+		}
 		H->JawOpen = r < 1.35f ? 7.f + 3.f * FMath::Sin(r * 6.f) : 8.f + 26.f * Smooth((r - 1.35f) / 0.2f);
+		if (bStall && SmashT >= 0.f)
+		{
+			H->JawOpen = (8.f + 26.f * Smooth((Time - SmashT) / 0.12f)) * (1.f + 0.06f * FMath::Sin((Time - SmashT) * 31.f));   // (the shriek at once)
+		}
 		if (bImpacted && Time > ImpactTime + 1.6f)
 		{
 			H->Destroy();                // (the car is tumbling down the mountain: it is long out of sight)
@@ -2344,6 +2438,9 @@ bool AEndingDirector::GetLine(FString& Line, float& Alpha) const
 		{TEXT("gone"), 1.0f, 2.3f, TEXT("Okay. Okay. Just drive.")},
 		{TEXT("creep"), 2.6f, 1.9f, TEXT("Where did it go?")},
 		{TEXT("wake"), 2.3f, 1.8f, TEXT("Help... somebody...")},
+		{TEXT("stall"), 0.7f, 2.2f, TEXT("No. No, no, no...")},
+		{TEXT("stopped"), 1.3f, 1.8f, TEXT("Come on...")},
+		{TEXT("frantic"), 0.05f, 0.9f, TEXT("Come on!")},
 	};
 	for (const FLine& L : Lines)
 	{
