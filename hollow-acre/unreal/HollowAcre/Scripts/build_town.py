@@ -22,6 +22,7 @@ TEX = '/Game/HollowAcre/Megascans'
 MATS = '/Game/HollowAcre/Town/Materials'
 MESH = '/Game/HollowAcre/Town'
 MS = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_saved_dir() + 'Megascans')
+TOWN_MOON_LUX = 1.2                     # (the drive's moon is 1.6)
 SURF = {  # material slot -> (Megascans folder, UV scale for a 2 m UV unit, tint, has metalness)
     'paintwood': ('flaky_painted_wooden_planks', 2.0, (1.0, 1.0, 1.0), False),     # (a 1 x 1 m scan)
     'barewood': ('weathered_wooden_planks', 1.0, (0.92, 0.9, 0.88), False),
@@ -93,9 +94,13 @@ def surface_mat(slot, folder, scale, tint, metal, snowy):
     if snowy:
         sb, sn = samp(texture('fresh_snow', 'BaseColor'), -1300, 900), samp(texture('fresh_snow', 'Normal'), -1300, 1200, normal=True)
         wn = mel.create_material_expression(m, unreal.MaterialExpressionVertexNormalWS, -1300, 1500)
-        mk = mel.create_material_expression(m, unreal.MaterialExpressionComponentMask, -1150, 1500)
-        mk.set_editor_property('b', True)
-        mel.connect_material_expressions(wn, '', mk, '')
+        # (how much it faces up, one number: a dot with straight up; a component mask set from here passed all three
+        # channels through, every wall coloured by the way it faced)
+        upv = mel.create_material_expression(m, unreal.MaterialExpressionConstant3Vector, -1300, 1650)
+        upv.set_editor_property('constant', unreal.LinearColor(0, 0, 1, 1))
+        mk = mel.create_material_expression(m, unreal.MaterialExpressionDotProduct, -1150, 1500)
+        if not (mel.connect_material_expressions(wn, '', mk, 'A') and mel.connect_material_expressions(upv, '', mk, 'B')):
+            raise RuntimeError('%s: could not link the up-facing mask' % name)
         # (snow lies where it faces up, broken up a little by the wood's own roughness)
         sub = mel.create_material_expression(m, unreal.MaterialExpressionSubtract, -1000, 1500)
         sub.set_editor_property('const_b', 0.55)
@@ -103,8 +108,14 @@ def surface_mat(slot, folder, scale, tint, metal, snowy):
         mul = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -850, 1500)
         mul.set_editor_property('const_b', 4.0)
         mel.connect_material_expressions(sub, '', mul, 'A')
-        sat = mel.create_material_expression(m, unreal.MaterialExpressionSaturate, -700, 1500)
-        mel.connect_material_expressions(mul, '', sat, '')
+        # (held to 0..1 by a Min and a Max: a Saturate node linked from here compiled as unlinked, the material failing
+        # and the default drawn in its place)
+        lo1 = mel.create_material_expression(m, unreal.MaterialExpressionMin, -760, 1500)
+        lo1.set_editor_property('const_b', 1.0)
+        sat = mel.create_material_expression(m, unreal.MaterialExpressionMax, -640, 1500)
+        sat.set_editor_property('const_b', 0.0)
+        if not (mel.connect_material_expressions(mul, '', lo1, 'A') and mel.connect_material_expressions(lo1, '', sat, 'A')):
+            raise RuntimeError('%s: could not link the snow mask' % name)
         out_col = mel.create_material_expression(m, unreal.MaterialExpressionLinearInterpolate, -500, -300)
         mel.connect_material_expressions(col, '', out_col, 'A')
         mel.connect_material_expressions(sb, 'RGB', out_col, 'B')
@@ -199,6 +210,26 @@ try:
     place('Ground', (0, 0, 0), 0.0)
     for b in data['buildings']:
         place(b['name'], b['at'], b['yaw'])
+    # the town's own moonlight: the valley floor lies in the mountains' shadow from the moon (everything past the one
+    # headlight black). A second, cold moon lights only what is on lighting channel 1 (the town, its ground, the
+    # walker), so the mountains can't shadow it; low, raking in from behind the car and to its right, the facades on
+    # the left of the street lit, long shadows across it, the right-hand side in shade
+    yaw_u = data['rest_yaw']
+    town_lc = unreal.LightingChannels(channel0=True, channel1=True, channel2=False)
+    for a in actors.get_all_level_actors():
+        if a.actor_has_tag('Town') and isinstance(a, unreal.StaticMeshActor):
+            a.static_mesh_component.set_editor_property('lighting_channels', town_lc)
+    tm = actors.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, 1000),
+                                       unreal.Rotator(roll=0, pitch=-24, yaw=yaw_u - 57))      # (the way it shines)
+    tm.set_actor_label('Town moon')
+    tm.tags = [unreal.Name('Town')]
+    lc = tm.light_component
+    lc.set_intensity(TOWN_MOON_LUX)
+    lc.set_light_color(unreal.LinearColor(0.62, 0.72, 1.0, 1))
+    lc.set_editor_property('atmosphere_sun_light', False)       # (not a second sun in the sky)
+    lc.set_editor_property('volumetric_scattering_intensity', 0.0)
+    lc.set_editor_property('lighting_channels', unreal.LightingChannels(channel0=False, channel1=True, channel2=False))
+    lc.set_editor_property('cast_shadows', True)
     # where the director leaves the car after the fall: on its roof at the head of the street, facing down it
     director = next((a for a in actors.get_all_level_actors() if a.get_class().get_name() == 'EndingDirector'), None)
     if director:

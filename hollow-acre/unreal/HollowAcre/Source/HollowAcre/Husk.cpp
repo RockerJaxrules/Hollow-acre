@@ -244,7 +244,9 @@ void AHusk::BeginPlay()
 		{
 			JawOpen = PreviewJaw;
 		}
-		SetActorRotation(FRotator(0.f, PreviewFaceYaw - MeshForwardYaw(), 0.f));
+		float FaceYaw = PreviewFaceYaw;
+		FParse::Value(FCommandLine::Get(), TEXT("-huskyaw="), FaceYaw);     // (seen from another side)
+		SetActorRotation(FRotator(0.f, FaceYaw - MeshForwardYaw(), 0.f));
 		static bool bBaked = false;
 		if (!bBaked && FParse::Param(FCommandLine::Get(), TEXT("huskfacebake")))
 		{
@@ -579,6 +581,21 @@ void AHusk::Play(const TCHAR* Take, bool bLoop)
 		// real motion (the CMU library, retargeted onto it in Unreal: Scripts/import_mocap.py)
 		const FString C = T.Mid(4);
 		const FString P = FString::Printf(TEXT("/Game/HollowAcre/Creature/Mocap/Husk/CMUCMU_%s_Husk.CMUCMU_%s_Husk"), *C, *C);
+		if (UAnimSequence* A = LoadObject<UAnimSequence>(nullptr, *P))
+		{
+			Takes.Add(FName(Take), A);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Husk: no clip %s"), *P);
+		}
+	}
+	if (T.StartsWith(TEXT("KIM:")) && !Takes.Contains(FName(Take)))
+	{
+		// generated motion (NVIDIA's Kimodo, from a text description: tools/blender/kimodo_to_fbx.py, retargeted onto it in
+		// Unreal by Scripts/import_mocap.py with HA_MOCAP_NAME=Kimodo); KIM:<asset name in Mocap/Kimodo_Husk>
+		const FString C = T.Mid(4);
+		const FString P = FString::Printf(TEXT("/Game/HollowAcre/Creature/Mocap/Kimodo_Husk/%s.%s"), *C, *C);
 		if (UAnimSequence* A = LoadObject<UAnimSequence>(nullptr, *P))
 		{
 			Takes.Add(FName(Take), A);

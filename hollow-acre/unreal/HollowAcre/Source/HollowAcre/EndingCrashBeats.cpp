@@ -33,6 +33,7 @@
 #include "GlassBurst.h"
 #include "Husk.h"
 #include "Kismet/GameplayStatics.h"
+#include "UnrealClient.h"
 
 namespace
 {
@@ -652,6 +653,15 @@ void AEndingDirector::AfterTheFall(float RealDt)
 		Event(TEXT("wake"));
 	}
 	// (checking: what the eyes see once they are open, across the picture: each thing, how far, its material)
+	// (checking, without a whole capture: a few stills of what the eyes see after they open, and the walker crossing)
+	static int32 StillsTaken = 0;
+	static const bool bStills = FParse::Param(FCommandLine::Get(), TEXT("viewstills"));
+	if (bStills && bWoke && StillsTaken < 7 && RealTime >= WakeReal + 1.5f + 2.f * StillsTaken)
+	{
+		FScreenshotRequest::RequestScreenshot(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("Capture"), TEXT("viewstills"),
+			FString::Printf(TEXT("still_%d.png"), StillsTaken)), false, false);
+		++StillsTaken;
+	}
 	static bool bViewProbed = false;
 	if (bClipCheck && bWoke && !bViewProbed && Cam && RealTime >= WakeReal + 1.5f)
 	{
@@ -661,9 +671,32 @@ void AEndingDirector::AfterTheFall(float RealDt)
 		const float Hh = FMath::Tan(FMath::DegreesToRadians(Cam->GetFOVAngle() * 0.5f)), Vh = Hh * 9.f / 16.f;
 		const FVector F = Rv.Vector(), Rt = FRotationMatrix(Rv).GetScaledAxis(EAxis::Y), Up = FRotationMatrix(Rv).GetScaledAxis(EAxis::Z);
 		UE_LOG(LogTemp, Display, TEXT("ViewProbe eye %s looking %s (fov %.0f)"), *E.ToString(), *Rv.ToString(), Cam->GetFOVAngle());
-		FCollisionQueryParams Q(TEXT("ViewProbe"), true);
+		FCollisionQueryParams Q(TEXT("ViewProbe"), true, Body);
 		Q.bReturnFaceIndex = true;
 		Q.bReturnPhysicalMaterial = false;
+		// (past the car itself and everything riding on it: what is out there)
+		if (Car)
+		{
+			Q.AddIgnoredActor(Car);
+			TArray<AActor*> On;
+			Car->GetAttachedActors(On, true, true);
+			Q.AddIgnoredActors(On);
+		}
+		if (SolidHolder)
+		{
+			Q.AddIgnoredActor(SolidHolder);
+		}
+		for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+		{
+			for (AActor* Up2 = It->GetAttachParentActor(); Up2; Up2 = Up2->GetAttachParentActor())
+			{
+				if (Up2 == Body || Up2 == Car)
+				{
+					Q.AddIgnoredActor(*It);
+					break;
+				}
+			}
+		}
 		for (int32 j = 0; j < 5; ++j)
 		{
 			for (int32 i = 0; i < 7; ++i)
@@ -736,6 +769,16 @@ void AEndingDirector::AfterTheFall(float RealDt)
 			Walker->JawOpen = 5.f;
 			WalkReal = RealTime;
 			Walker->KeepOutLate = [this](AHusk* Me) { KeepOut(Me, FVector::ZeroVector, TEXT("the walker")); };
+			if (!TownRestAt.IsNearlyZero())
+			{
+				// (in the town's own moonlight as well: build_town.py's 'Town moon' lights lighting channel 1)
+				TArray<UPrimitiveComponent*> Ps;
+				Walker->GetComponents<UPrimitiveComponent>(Ps);
+				for (UPrimitiveComponent* Pc : Ps)
+				{
+					Pc->SetLightingChannels(true, true, false);
+				}
+			}
 			Event(TEXT("silhouette"));
 		}
 	}

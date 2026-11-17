@@ -15,8 +15,10 @@ import os
 import unreal
 
 FBX = os.environ.get('HA_MOCAP_FBX', 'D:/HollowAcreTools/mocap/CMU_Clips.fbx')
-SRC_DIR = '/Game/HollowAcre/Creature/Mocap/CMU'
-OUT_DIR = '/Game/HollowAcre/Creature/Mocap/Husk'
+# (which source: CMU by default; HA_MOCAP_NAME=Kimodo for the motions from NVIDIA's Kimodo, tools/blender/kimodo_to_fbx.py)
+SRC_NAME = os.environ.get('HA_MOCAP_NAME', 'CMU')
+SRC_DIR = '/Game/HollowAcre/Creature/Mocap/' + SRC_NAME
+OUT_DIR = '/Game/HollowAcre/Creature/Mocap/Husk' if SRC_NAME == 'CMU' else '/Game/HollowAcre/Creature/Mocap/%s_Husk' % SRC_NAME
 HUSK = '/Game/HollowAcre/Creature/HuskGame/Husk'
 eal = unreal.EditorAssetLibrary
 tools = unreal.AssetToolsHelpers.get_asset_tools()
@@ -50,7 +52,7 @@ if os.environ.get('HA_MOCAP_REIMPORT') or not eal.does_directory_exist(SRC_DIR) 
     task = unreal.AssetImportTask()
     task.set_editor_property('filename', FBX)
     task.set_editor_property('destination_path', SRC_DIR)
-    task.set_editor_property('destination_name', 'CMU')
+    task.set_editor_property('destination_name', SRC_NAME)
     task.set_editor_property('automated', True)
     task.set_editor_property('save', True)
     task.set_editor_property('replace_existing', True)
@@ -60,7 +62,7 @@ if os.environ.get('HA_MOCAP_REIMPORT') or not eal.does_directory_exist(SRC_DIR) 
 assets = eal.list_assets(SRC_DIR, recursive=False)
 mesh_path = next((a for a in assets if unreal.EditorAssetLibrary.find_asset_data(a).asset_class_path.asset_name == 'SkeletalMesh'), None)
 anims = [a for a in assets if unreal.EditorAssetLibrary.find_asset_data(a).asset_class_path.asset_name == 'AnimSequence']
-log('CMU mesh %s, %d clips' % (mesh_path, len(anims)))
+log(SRC_NAME + ' mesh %s, %d clips' % (mesh_path, len(anims)))
 src_mesh = unreal.load_asset(mesh_path)
 dst_mesh = unreal.load_asset(HUSK)
 
@@ -94,12 +96,12 @@ def make_rig(name, mesh):
     return rig
 
 
-src_rig = make_rig('IKR_CMU', src_mesh)
+src_rig = make_rig('IKR_' + SRC_NAME, src_mesh)
 dst_rig = make_rig('IKR_Husk', dst_mesh)
 
 # 3. the retargeter
-rt_path = SRC_DIR + '/RTG_CMU_to_Husk'
-rtg = unreal.load_asset(rt_path) if eal.does_asset_exist(rt_path) else tools.create_asset('RTG_CMU_to_Husk', SRC_DIR, unreal.IKRetargeter, unreal.IKRetargetFactory())
+rt_path = SRC_DIR + '/RTG_%s_to_Husk' % SRC_NAME
+rtg = unreal.load_asset(rt_path) if eal.does_asset_exist(rt_path) else tools.create_asset('RTG_%s_to_Husk' % SRC_NAME, SRC_DIR, unreal.IKRetargeter, unreal.IKRetargetFactory())
 rc = unreal.IKRetargeterController.get_controller(rtg)
 log('IKRetargeterController has: %s' % methods(rc))
 rc.set_ik_rig(unreal.RetargetSourceOrTarget.SOURCE, src_rig)

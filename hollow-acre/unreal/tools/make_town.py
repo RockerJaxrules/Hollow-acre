@@ -106,11 +106,14 @@ class Mesh:
     def write(self, path):
         with open(path, 'w') as fo:
             fo.write('# Hollow Acre: %s (tools/make_town.py)\n' % os.path.basename(path))
+            # (one object, a material section per surface: an object per surface comes in as separate meshes named
+            # after the surfaces, each building's overwriting the last's)
+            fo.write('o %s\n' % os.path.splitext(os.path.basename(path))[0])
             vi = 1
             for mat, (v, t, f) in self.groups.items():
                 if not f:
                     continue
-                fo.write('o %s\nusemtl %s\n' % (mat, mat))
+                fo.write('usemtl %s\n' % mat)
                 for p in v:
                     fo.write('v %.3f %.3f %.3f\n' % (p[0], -p[1], p[2]))     # (as make_mountain.py: Unreal's import mirrors Y)
                 for uv in t:
