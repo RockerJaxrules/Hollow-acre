@@ -311,10 +311,18 @@ def crash(ev, total):
 
     # ---- the score: real low strings under the drive, swelling with the threat; cut dead before each scare --------------
     cellos = steady(STR_CELLOS, total, skip=2)
-    M.bed(level(filt(cellos, A.lp(2600)), 0.03), 0.0, total, [
+    cello_keys = [
         (0, 0), (2.5, 0.0), (6.0, 0.35), (t_gap - 2, 0.4), (t_gap + 1, 0.8), (t_eyes, 0.8), (t_eyes + 1.5, 1.1), (t_sight, 1.1),
         (t_stop + 0.5, 1.0), (t_stop + 3.0, 0.6), (t_roar - 0.6, 1.8), (t_roar - 0.45, 0.0), (t_bolt + 2.5, 0.0), (t_creep + 2, 0.55),
-        (t_growl - 3.4, 0.7), (t_growl - 3.0, 0.0), (t_wake + 1.0, 0.0), (t_wake + 4.0, 0.35), (total, 0.3)])
+        (t_growl - 3.4, 0.7), (t_growl - 3.0, 0.0), (t_wake + 1.0, 0.0), (t_wake + 4.0, 0.35), (total, 0.3)]
+    if stall:
+        # (the stall has no creep or growl: after the scare the strings stay silent until the waking; the old keys came out
+        # of order here and swelled the cellos back in during the fall)
+        cello_keys = [(0, 0), (2.5, 0.0), (6.0, 0.35), (t_gap - 2, 0.4), (t_gap + 1, 0.8), (t_eyes, 0.8), (t_eyes + 1.5, 1.1),
+                      (t_sight, 1.1), (t_stop + 0.5, 1.0), (t_stop + 3.0, 0.6), (t_roar - 0.6, 1.8), (t_roar - 0.45, 0.0),
+                      (t_wake + 1.0, 0.0), (t_wake + 4.0, 0.35), (total, 0.3)]
+    cello_keys = sorted(cello_keys)
+    M.bed(level(filt(cellos, A.lp(2600)), 0.03), 0.0, total, cello_keys)
     # the grandmother's note: a bowed glass and harmonics, faint, as the eyes go to the letter
     M.at(t_letter + 0.3, pan(fade(level(seg(EXT_GLASS, 10.0, 5.0), 0.012), 1.2, 2.5), 0.15))
     M.at(t_letter + 0.9, pan(fade(level(filt(seg(STR_VLN, 1.0, 5.0), A.lp(5000)), 0.008), 1.0, 2.5), -0.15))
@@ -446,7 +454,6 @@ def crash(ev, total):
         # man's scream (its body), all through the torn throat (rasp); a man's growl and a bear's under them for weight
         for c, g in ((voice(CV + 'demon_shriek_433735', 1.3, 0.92, drive=2.4, fry=58.0), 1.0),
                      (voice(CV + 'male_screams_556976', 1.3, 0.95, drive=3.0, fry=46.0, depth=0.42), 0.8),
-                     (voice(CV + 'woman_horror_shrieks_320740', 1.3, 0.84, drive=2.0, fry=62.0, grit=0.12), 0.32),
                      (pitch(loudest(CR_GROWLS, 1.3, pre=0.05), 0.8), 0.5),
                      (pitch(loudest('creature/creature_black_bear_angry_growl_763026', 1.3, pre=0.08), 0.75), 0.32)):
             c = c[:, :n]
@@ -573,13 +580,14 @@ def crash(ev, total):
         M.at(t_imp - rp.shape[1] / SR, pan(peak(rp, 0.3), 0.0))
         M.at(t_lunge, pan(peak(filt(pitch(fade(snarl, 0.05, 0.3), 0.5), A.lp(900)), 0.45), -0.6))
     if stall:
-        ext = loudest('metal_impact/metal_impact_real_crash_exterior_346299', 1.6, pre=0.03)
+        # (scanned for squeaks, 40 ms at a time: the outside crash recording rang at 575 Hz; the crushed bus doesn't)
+        ext = loudest('metal_impact/metal_impact_bus_destroy_crush_window_metal_451665', 1.6, pre=0.03)
         hit = sumc(level(blow, 0.1), level(filt(ext, A.lp(5000)), 0.07), level(filt(glass, A.hp(800)), 0.035))
         M.at(t_imp - 0.02, pan(peak(fade(hit, 0.003, 0.8), 0.95), -0.4))
         M.at(t_imp - 0.02, pan(peak(seg(HIT_BOOM, 0.0, 4.0), 0.75), -0.2))
         M.at(t_imp - 0.01, pan(peak(filt(loudest('metal_impact/metal_impact_car_hood_slam_big_329516', 0.6, pre=0.02), A.lp(1500)), 0.6), -0.6))
         # the tyres scrubbed sideways through the snow under the shove, all the way to the edge
-        scrub = steady('snow_tyres/snow_tyres_pulling_away_hard_snow_558847', max(0.6, t_edge - t_imp + 0.2), skip=0.5)
+        scrub = steady('snow_tyres/snow_tyres_car_motion_on_snow_468178', max(0.6, t_edge - t_imp + 0.2), skip=0.5)   # (no squeaking snow)
         M.bed(level(filt(scrub, A.lp(3000)), 0.05), t_imp, t_edge + 0.1, [(t_imp, 0), (t_imp + 0.05, 1.0), (t_edge - 0.1, 1.0), (t_edge + 0.1, 0)])
     # the blow: a trailer hit and a boom under the crash and the glass, pitched down and muffled; back to speed
     slowed = sumc(level(filt(pitch(blow, 0.4), A.lp(900)), 0.1), level(filt(pitch(glass, 0.45), A.lp(1600)), 0.056),
@@ -593,7 +601,6 @@ def crash(ev, total):
     t_letgo = first('letgo')
     if stall and t_letgo:
         after = sumc(level(voice(CV + 'demon_shriek_433735', 1.6, 0.88, at=4.15, drive=2.2, fry=56.0, seed=11), 0.1),
-                     level(voice(CV + 'woman_horror_shrieks_320740', 1.6, 0.8, at=2.65, drive=1.8, fry=60.0, grit=0.1, seed=12), 0.04),
                      level(voice(CV + 'male_screams_556976', 1.6, 0.9, at=7.95, drive=2.8, fry=48.0, seed=13), 0.07))
         M.at(t_letgo + 0.05, pan(peak(verb(fade(filt(after, A.lp(7000)), 0.03, 0.6), 2.4, 0.35), 0.7), -0.6))
     # the shove, in heaves (the stall): the door's skin buckling under it and the car groaning, its strain at each
@@ -606,19 +613,21 @@ def crash(ev, total):
         strain = sumc(level(voice(CV + 'mutant_scream_396797', 0.7, 0.8 + 0.05 * i, drive=3.2, fry=40.0, seed=7 + i), 0.09),
                       level(pitch(loudest('creature/creature_black_bear_angry_growl_763026', 0.7, pre=0.1), 0.7), 0.07))
         M.at(t0 - 0.1, pan(peak(filt(fade(strain, 0.03, 0.25), A.lp(3000)), 0.4), -0.75))
-        crunch = loudest('metal_impact/metal_impact_sheet_metal_drop_587442', 0.5, pre=0.02)
-        M.at(t0 - 0.02, pan(peak(filt(fade(crunch, 0.003, 0.3), A.lp(2500)), 0.3), -0.55))
+        thud = loudest('snow_impact/snow_impact_body_falls_hard_snow_675895', 0.5, pre=0.02)   # (its weight driven into the door)
+        M.at(t0 - 0.02, pan(peak(filt(fade(thud, 0.003, 0.3), A.lp(1800)), 0.34), -0.55))
 
     # ---- the fall: clear when the eyes are open, muffled and far off in the blackouts --------------------------------
     R = Mix(total)
     scrape = loudest('metal_scrape/metal_scrape_gate_bar_drag_scrape_450356', 1.4, pre=0.2)
-    R.at(t_edge - 0.15, pan(peak(fade(scrape, 0.02, 0.4), 0.45), 0.3))
+    R.at(t_edge - 0.15, pan(peak(filt(fade(scrape, 0.02, 0.4), A.lp(1100)), 0.45), 0.3))   # (below its 1.5 kHz ring)
     R.at(t_crack, pan(peak(load('glass/glass_windshield_crack_mirror_806423'), 0.5), 0.0))
     rush = steady('wind/wind_mountain_wind_alps_gusts_454092', total, skip=20)
     R.bed(level(rush, 0.06), t_edge, t_black, [(t_edge, 0.4), (t_edge + 1, 1.4), (t_black - 1, 1.2), (t_black, 0)])
-    bangs = ['metal_impact/metal_impact_car_hood_slam_big_329516', 'metal_impact/metal_impact_sheet_metal_drop_587442',
-             'metal_impact/metal_impact_real_crash_exterior_346299', 'metal_impact/metal_impact_rally_car_off_track_crash_209965']
-    thuds = ['snow_impact/snow_impact_hard_impact_snow_683789', 'snow_impact/snow_impact_body_falls_hard_snow_675895']
+    # (scanned for squeaks: the sheet metal rang at 1225 Hz, the outside crash at 575 Hz, the hard snow impact squeaked at
+    # 975 Hz; the ones here don't)
+    bangs = ['metal_impact/metal_impact_car_hood_slam_big_329516', 'metal_impact/metal_impact_bus_destroy_crush_window_metal_451665',
+             'metal_impact/metal_impact_real_crash_interior_346300', 'metal_impact/metal_impact_rally_car_off_track_crash_209965']
+    thuds = ['snow_impact/snow_impact_snow_block_crunch_450848', 'snow_impact/snow_impact_body_falls_hard_snow_675895']
     fmax = max([v for _, v in hits] or [1.0])
     rr = np.random.default_rng(11)
     for i, (t, v) in enumerate(hits):
