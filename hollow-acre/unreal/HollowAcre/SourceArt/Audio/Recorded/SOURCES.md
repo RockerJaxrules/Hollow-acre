@@ -4,7 +4,7 @@ Real recorded sound effects for the blizzard mountain-road / creature / car-cras
 
 - Source: [Freesound](https://freesound.org). Every file below was checked on its own Freesound page and is licensed **Creative Commons 0** (public domain dedication, <http://creativecommons.org/publicdomain/zero/1.0/>). No attribution is legally required; authors are listed for courtesy and traceability.
 - Files are Freesound's **high-quality MP3 previews** (`-hq.mp3`, the original uploads need a Freesound login). If a sound becomes a final asset, consider fetching the original WAV/FLAC from the page URL for best quality.
-- 164 files, 187.4 MB total. Duration is the length of the original recording as listed on Freesound.
+- 169 files, 188.4 MB total. Duration is the length of the original recording as listed on Freesound.
 - Notes describe what the recording is (from its title, description and tags) and what it is intended for in the scene. They have not been audition-checked; listen before use.
 - Local filename pattern: `<category>_<short-description>_<freesound-id>.mp3`, inside the folder of the same category.
 
@@ -31,6 +31,7 @@ Real recorded sound effects for the blizzard mountain-road / creature / car-cras
 - [stingers](#stingers) (6 files): Short horror scare stingers: recorded cello sting, cluster hits, violin / cymbal jump scare, string tremolo crescendo, plucked-string stinger.
 - [night_ambience](#night_ambience) (6 files): Winter forest at night and blizzard beds, trees creaking in wind (spot details), and distant wild wolf howl / elk cry to process into faint creature calls.
 - [creature_extra](#creature_extra) (8 files): More creature vocal layers: human monster screams and growls (no words), fox screams, howler monkeys, chimpanzee screams, pig squeals, tiger hiss / growl, close dog breaths and snarls.
+- [creature_voice](#creature_voice) (5 files): Raw human screams and shrieks (no words), torn up in the mix into the husks' wendigo-like voice (owner: "human… raspy, loud, a high scream").
 - [foley_car](#foley_car) (7 files): Car-interior and wreck foley: seatbelt handling, leather creak, seatbelt warning chime, radio static between stations, glass shards settling, slow metal stress creaks, dripping onto metal.
 - [body](#body) (6 files): Heartbeats (steady, deep, racing) and tinnitus / ear ringing, plus a recorded tuning fork as a near-sine ringing tone.
 
@@ -526,3 +527,19 @@ Heartbeats (steady, deep, racing) and tinnitus / ear ringing, plus a recorded tu
 - `body/body_ear_ringing_after_explosion_365956.mp3`: https://freesound.org/people/dbdarby/sounds/365956/
 - `body/body_tuning_fork_440hz_long_decay_220747.mp3`: https://freesound.org/people/jmuehlhans/sounds/220747/
 
+
+
+## creature_voice
+
+Raw human screams and shrieks performed by voice (no words). In the mix they are never used as they are: pitched, driven
+into saturation, rattled at a vocal-fry rate with breath noise (make_crash_audio.py `rasp`), and layered with growls, so
+the husks' voice is its own (the owner: like Until Dawn's wendigos and The Quarry's werewolves; human, a creature, raspy,
+loud, a high scream). All checked on their own Freesound pages as Creative Commons 0: free to use in a game that is sold.
+
+| File | Freesound | Title | Author | License | Duration | Notes |
+|---|---|---|---|---|---|---|
+| `creature_voice/creature_voice_demon_shriek_433735.mp3` | [433735](https://freesound.org/people/Voices_Of_Marz/sounds/433735/) | Shrieker_Screeching_Screaming_Nazgul_Demon_Voice_byTiffanyMarz.wav | Voices_Of_Marz | Creative Commons 0 | 0:16.1 | A raspy, breathy demon shriek performed by voice; the high top of the husks' shriek. |
+| `creature_voice/creature_voice_male_screams_556976.mp3` | [556976](https://freesound.org/people/marc3122/sounds/556976/) | Male Screams [1] | marc3122 | Creative Commons 0 | 0:13.7 | A man screaming, several takes; the human throat and body of the shriek and the roar. |
+| `creature_voice/creature_voice_woman_horror_shrieks_320740.mp3` | [320740](https://freesound.org/people/AderuMoro/sounds/320740/) | Horror shrieks woman | AderuMoro | Creative Commons 0 | 0:08.2 | A woman shrieking in horror; a quiet piercing layer, pitched down and roughened. |
+| `creature_voice/creature_voice_ghost_monster_scream_546507.mp3` | [546507](https://freesound.org/people/szegvari/sounds/546507/) | Ghost Creature Monster Scream SFX 201129_0079.wav | szegvari | Creative Commons 0 | 0:03.6 | A voice-actor monster scream; the shriek-roar as it springs. |
+| `creature_voice/creature_voice_mutant_scream_396797.mp3` | [396797](https://freesound.org/people/scorpion67890/sounds/396797/) | Mutant Scream | scorpion67890 | Creative Commons 0 | 0:01.5 | A short pained mutant scream; its strain at each heave of the shove. |

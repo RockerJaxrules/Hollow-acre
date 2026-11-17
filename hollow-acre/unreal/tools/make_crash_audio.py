@@ -91,6 +91,32 @@ def pitch(x, f):
     return np.stack([np.interp(t, np.arange(x.shape[1]), c) for c in x])
 
 
+CV = 'creature_voice/creature_voice_'
+
+
+def rasp(x, drive=2.6, fry=52.0, depth=0.38, grit=0.18, seed=3):
+    """A torn throat (the husks were men): the voice driven into saturation (its harmonics torn up), rattled at a
+    vocal-fry rate (wavering, as a wrecked voice creaks), with breath noise riding on its loudness."""
+    pk = max(1e-6, float(np.abs(x).max()))
+    y = np.tanh(x / pk * drive) / np.tanh(drive) * pk
+    n = x.shape[1]
+    t = np.arange(n) / SR
+    wob = np.sin(2 * np.pi * 6.3 * t) * 0.6 + np.sin(2 * np.pi * 2.1 * t + 1.0) * 0.4
+    am = 1.0 - depth + depth * (0.5 + 0.5 * np.sin(2 * np.pi * fry * t + 1.7 * wob)) ** 3 * 2.0
+    env = np.abs(x).mean(axis=0)
+    k = max(1, int(0.012 * SR))
+    env = np.convolve(env, np.ones(k) / k, mode='same')
+    nz = np.random.RandomState(seed).randn(2, n).astype(np.float32)
+    nz = filt(nz, A.hp(1800)) * env * grit / max(1e-6, float(env.max())) * pk * 3.0
+    return (y * am + nz).astype(np.float32)
+
+
+def voice(name, dur, f, pre=0.05, at=None, **kw):
+    """A stretch of one recording (its loudest, or from at s), pitched by f, through the torn throat."""
+    c = seg(name, at, dur) if at is not None else loudest(name, dur, pre=pre)
+    return rasp(pitch(c, f), **kw)
+
+
 def sumc(*clips):
     """Clips of different lengths, summed from their starts."""
     n = max(c.shape[-1] for c in clips)
@@ -415,15 +441,17 @@ def crash(ev, total):
     if stall:
         n = int(1.25 * SR)
         sh = np.zeros((2, n))
-        # (measured against The Quarry's and Until Dawn's creatures: their energy sits low and in the throat, not up where a
-        # pig's or a chimp's squeal is; so a man's monster scream pitched down, with a man's growl, a gorilla's roar and a
-        # bear's growl under it for its body)
-        for name, f, g, pre in ((CR_SCREAMS, 0.84, 1.0, 0.08), (CR_GROWLS, 0.8, 0.75, 0.05),
-                                ('creature/creature_gorilla_alpha_roar_zoo_397054', 0.72, 0.7, 0.08),
-                                ('creature/creature_black_bear_angry_growl_763026', 0.75, 0.55, 0.08)):
-            c = pitch(loudest(name, 1.3, pre=pre), f)[:, :n]
-            sh[:, :c.shape[1]] += level(fade(c, 0.02, 0.35), 0.1) * g
-        sh = verb(sh, 1.4, 0.2)
+        # the owner: like Until Dawn's wendigos and The Quarry's werewolves; human, a creature, raspy, loud, a high scream.
+        # A man's throat torn into a shriek: a demon shriek and a woman's horror shriek (high, pitched down a little) and a
+        # man's scream (its body), all through the torn throat (rasp); a man's growl and a bear's under them for weight
+        for c, g in ((voice(CV + 'demon_shriek_433735', 1.3, 0.92, drive=2.4, fry=58.0), 1.0),
+                     (voice(CV + 'male_screams_556976', 1.3, 0.95, drive=3.0, fry=46.0, depth=0.42), 0.8),
+                     (voice(CV + 'woman_horror_shrieks_320740', 1.3, 0.84, drive=2.0, fry=62.0, grit=0.12), 0.32),
+                     (pitch(loudest(CR_GROWLS, 1.3, pre=0.05), 0.8), 0.5),
+                     (pitch(loudest('creature/creature_black_bear_angry_growl_763026', 1.3, pre=0.08), 0.75), 0.32)):
+            c = c[:, :n]
+            sh[:, :c.shape[1]] += level(fade(c, 0.015, 0.35), 0.1) * g
+        sh = verb(sh, 1.2, 0.18)
         t_hit = t_smash or t_imp
         if t_smash:
             # the driver's window bursting in, its arm through it: the glass, the door's skin boomed, a sting
@@ -439,9 +467,9 @@ def crash(ev, total):
             # the ram: a roar from the throat as it springs (the blow's own crash follows at t_imp)
             t_launch = first('launch')
             if t_launch:
-                ro = sumc(level(pitch(loudest(CR_GROWLS, 0.6, pre=0.03), 0.78), 0.1),
-                          level(pitch(loudest('creature/creature_gorilla_alpha_roar_zoo_397054', 0.6, pre=0.05), 0.7), 0.08),
-                          level(pitch(loudest('creature/creature_tiger_roar_zoo_263115', 0.6, pre=0.05), 0.9), 0.07))
+                ro = sumc(level(voice(CV + 'ghost_monster_scream_546507', 0.6, 0.9, drive=3.0, fry=44.0), 0.1),
+                          level(voice(CV + 'male_screams_556976', 0.6, 0.86, at=4.1, drive=3.2, fry=40.0), 0.08),
+                          level(pitch(loudest(CR_GROWLS, 0.6, pre=0.03), 0.78), 0.07))
                 M.at(t_launch - 0.05, pan(peak(fade(filt(ro, A.lp(4500)), 0.01, 0.2), 0.7), -0.7))
         M.at(t_hit + 0.02, pan(peak(fade(sh, 0.02, 0.4), 0.85), -0.75))    # (at the driver's door, the left, in the cabin)
         M.at(t_hit - 0.03, pan(peak(load(HIT_BRAAM), 0.5), 0.0))
@@ -562,6 +590,12 @@ def crash(ev, total):
         M.at(t_imp - 0.02, pan(peak(pitch(seg(HIT_BOOM, 0.0, 5.0), 0.85), 0.9), 0.0))
         M.at(t_speed - 0.05, pan(peak(fade(blow[:, int(0.3 * SR):], 0.05, 0.6), 0.6), -0.2))
     M.at(t_speed, pan(peak(load('glass/glass_glass_shatter_shards_444134'), 0.35), -0.4))
+    t_letgo = first('letgo')
+    if stall and t_letgo:
+        after = sumc(level(voice(CV + 'demon_shriek_433735', 1.6, 0.88, at=4.15, drive=2.2, fry=56.0, seed=11), 0.1),
+                     level(voice(CV + 'woman_horror_shrieks_320740', 1.6, 0.8, at=2.65, drive=1.8, fry=60.0, grit=0.1, seed=12), 0.04),
+                     level(voice(CV + 'male_screams_556976', 1.6, 0.9, at=7.95, drive=2.8, fry=48.0, seed=13), 0.07))
+        M.at(t_letgo + 0.05, pan(peak(verb(fade(filt(after, A.lp(7000)), 0.03, 0.6), 2.4, 0.35), 0.7), -0.6))
     # the shove, in heaves (the stall): the door's skin buckling under it and the car groaning, its strain at each
     for i, t0 in enumerate([t for t, k, v in ev if k == 'heave']):
         dent = loudest('metal_impact/metal_impact_car_hood_slam_big_329516', 0.7, pre=0.02)
@@ -569,8 +603,8 @@ def crash(ev, total):
         # (the car's body bending under it: real crushed metal, not a creak, whose held tone read as a squeal)
         bend = loudest('metal_impact/metal_impact_bus_destroy_crush_window_metal_451665', 0.7, pre=0.03)
         M.at(t0 + 0.02, pan(peak(filt(fade(bend, 0.01, 0.3), A.lp(2200)), 0.28 - 0.04 * i), -0.4))
-        strain = sumc(level(pitch(loudest('creature/creature_black_bear_angry_growl_763026', 0.7, pre=0.1), 0.7), 0.1),
-                      level(pitch(loudest(CR_GROWLS, 0.7, pre=0.05), 0.75), 0.08))
+        strain = sumc(level(voice(CV + 'mutant_scream_396797', 0.7, 0.8 + 0.05 * i, drive=3.2, fry=40.0, seed=7 + i), 0.09),
+                      level(pitch(loudest('creature/creature_black_bear_angry_growl_763026', 0.7, pre=0.1), 0.7), 0.07))
         M.at(t0 - 0.1, pan(peak(filt(fade(strain, 0.03, 0.25), A.lp(3000)), 0.4), -0.75))
         crunch = loudest('metal_impact/metal_impact_sheet_metal_drop_587442', 0.5, pre=0.02)
         M.at(t0 - 0.02, pan(peak(filt(fade(crunch, 0.003, 0.3), A.lp(2500)), 0.3), -0.55))
