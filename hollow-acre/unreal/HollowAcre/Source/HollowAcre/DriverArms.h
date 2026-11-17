@@ -139,9 +139,18 @@ public:
 		FTransform Hand = FTransform::Identity;  // the hand bone's frame (car frame)
 		uint8 Shape = 1;                          // 0 flat (pressed on something), 1 relaxed, 2 round a handle, 3 round a buckle
 		float Close = 1.f;                        // how far the fingers are into Shape (0 relaxed)
-		FVector Pole = FVector::ZeroVector;       // the elbow's way (car frame); zero: as at the wheel, turned with the chest
+		float Open = 0.f;                         // reaching for something: the fingers opened out flat and spread (0..1), over Shape
+		FVector Pole = FVector::ZeroVector;       // the elbow's way (car frame); zero: as at the wheel, turned with the chest; shorter than 1: part way
 	};
 	FFreeHand Free[2];
+	/** A floor the hands may not go through (the roof lining, car frame): a point on it and its normal into the cabin.
+	 *  Only points inside FloorBox (car X/Y min..max) are held to it; outside (through a window) they are free. */
+	bool bFloorGuard = false;
+	FVector FloorAt = FVector::ZeroVector, FloorN = FVector(0.f, 0.f, -1.f);
+	FBox2D FloorBox = FBox2D(FVector2D(-1e6f, -1e6f), FVector2D(1e6f, 1e6f));
+	/** Each hand's deepest skin point below the floor this frame before the guard lifted it, and after (cm, 0 = clear). */
+	float FloorDepthIn[2] = {0.f, 0.f}, FloorDepthOut[2] = {0.f, 0.f};
+	FName FloorWorst[2];
 	/** The hand bone's frame (car frame) that puts the middle of the palm's skin at PalmAt, the fingers along Finger and
 	 *  the palm facing Facing (toward what it presses on). */
 	FTransform HandAtPalm(int32 Side, const FVector& PalmAt, const FVector& Finger, const FVector& Facing) const;
@@ -157,6 +166,19 @@ public:
 	bool IsReady() const { return bShapes; }
 	/** The palm's skin (its middle) now, and which way it faces (car frame): for checking a hand meets what it presses on. */
 	FVector PalmNow(int32 Side, FVector* Facing = nullptr) const;
+	/** Seated (the wake, hanging in the belt): the legs shown, bent as they sit (thighs forward, shins down to the pedals). */
+	bool bSeatedLegs = false;
+	/** Heights in the body's reference pose (cm): its waist and its ankles (for the clothes, M_DriverBody). */
+	float RefWaistZ = 100.f, RefAnkleZ = 12.f;
+	/** A bone's place now (car frame). */
+	FVector BoneCar(FName Bone) const;
+	/** (checking) Logs every bone whose pose is broken: not finite, or scaled far from 1. */
+	void DumpBadBones(const TCHAR* Why) const;
+	/** Distance from a point (car frame) to the cabin's surfaces (seats, doors, dash; negative inside them). */
+	float CabinDistCar(const FVector& P) const { return CabinDist(P); }
+	/** Leaving the car (the player takes the arms with them): the ignition key, its lock and the dash's glow stay in the car. */
+	void LeaveKeysOn(AActor* Car);
+	bool bKeysLeft = false;
 
 protected:
 	virtual void BeginPlay() override;
@@ -165,6 +187,12 @@ protected:
 private:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UPoseableMeshComponent> Mesh;
+	/** The clothes, over the skin (the owner: sleeves, bare hands, the same in every cutscene): the same body drawn again
+	 *  in M_DriverClothes, following Mesh's pose; cut away over the hands. */
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class USkeletalMeshComponent> Clothes;
+	UPROPERTY()
+	TObjectPtr<class UMaterialInstanceDynamic> ClothesMID;
 
 	void Place();
 	void PoseArm(bool bLeft, const FHandGrip& G);

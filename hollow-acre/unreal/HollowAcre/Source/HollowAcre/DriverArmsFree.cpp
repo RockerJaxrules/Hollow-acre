@@ -10,6 +10,7 @@
 #include "DriverArms.h"
 
 #include "Components/PoseableMeshComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "Engine/SkeletalMesh.h"
 
 namespace
@@ -38,6 +39,32 @@ void ADriverArms::MakeShapes()
 	const TArray<FTransform>& RefPose = SM->GetRefSkeleton().GetRefBonePose();
 	const TArray<FTransform> Saved = Mesh->BoneSpaceTransforms;          // (the grip at the wheel)
 	const FTransform MeshRel = Mesh->GetRelativeTransform();
+	{
+		// the waist and the ankles in the reference pose (component space), for the clothes
+		const FReferenceSkeleton& Rs = SM->GetRefSkeleton();
+		auto RefCS = [&](const TCHAR* Name)
+		{
+			int32 i = Rs.FindBoneIndex(FName(Name));
+			FTransform T = FTransform::Identity;
+			while (i != INDEX_NONE)
+			{
+				T = T * RefPose[i];
+				i = Rs.GetParentIndex(i);
+			}
+			return T.GetLocation();
+		};
+		if (Rs.FindBoneIndex(TEXT("pelvis")) != INDEX_NONE && Rs.FindBoneIndex(TEXT("foot_l")) != INDEX_NONE)
+		{
+			RefWaistZ = (float)RefCS(TEXT("pelvis")).Z + 7.f;
+			RefAnkleZ = (float)RefCS(TEXT("foot_l")).Z + 4.f;
+		}
+		UE_LOG(LogTemp, Display, TEXT("DriverArms: the body's waist at %.1f cm, its ankles at %.1f (reference pose)"), RefWaistZ, RefAnkleZ);
+		if (ClothesMID)
+		{
+			ClothesMID->SetScalarParameterValue(TEXT("WaistZ"), RefWaistZ);
+			ClothesMID->SetScalarParameterValue(TEXT("AnkleZ"), RefAnkleZ);
+		}
+	}
 	SitChestCS = BoneCS(TEXT("spine_05"));
 	SitChestCar = SitChestCS * MeshRel;
 	ChestInEye = SitChestCar * FTransform(EyeAt).Inverse();
@@ -169,11 +196,26 @@ void ADriverArms::MakeShapes()
 		};
 		// flat: nearly straight, the thumb a little out along the index's side
 		ToRef();
+		{
+			// spread: each finger's root turned about the palm's normal, away from the middle finger
+			const TCHAR* Fs[4] = {TEXT("index"), TEXT("middle"), TEXT("ring"), TEXT("pinky")};
+			const float Spread[4] = {-9.f, -1.f, 5.f, 11.f};          // (toward the little finger: +)
+			for (int32 f = 0; f < 4; ++f)
+			{
+				const FName J1(*FString::Printf(TEXT("%s_01_%s"), Fs[f], *Sx)), J2(*FString::Printf(TEXT("%s_02_%s"), Fs[f], *Sx));
+				const FVector Root = BoneCS(J1).GetLocation(), Tip0 = BoneCS(J2).GetLocation();
+				const FQuat Was = BoneCS(J1).GetRotation();
+				SetBoneCS(J1, FQuat(Palm, 0.1f) * Was);
+				const float Dir = FVector::DotProduct(BoneCS(J2).GetLocation() - Tip0, Ac) >= 0.f ? 1.f : -1.f;
+				SetBoneCS(J1, FQuat(Palm, Dir * FMath::DegreesToRadians(Spread[f])) * Was);
+				(void)Root;
+			}
+		}
 		for (const TCHAR* F : FreeFingerNames)
 		{
-			CurlFixed(F, FVector(5.f, 7.f, 4.f));
+			CurlFixed(F, FVector(4.f, 6.f, 3.f));
 		}
-		AimThumb(P(TEXT("index_01_") + Sx) + Fd * 1.5f - Ac * 3.2f + Palm * 0.8f, 0.5f);
+		AimThumb(P(TEXT("index_01_") + Sx) + Fd * 1.0f - Ac * 3.8f + Palm * 0.6f, 0.6f);
 		Keep(0);
 		// relaxed: curled a little, more toward the little finger; the thumb in front of the index
 		ToRef();
@@ -240,6 +282,33 @@ void ADriverArms::FreeFollow()
 	Mesh->BoneSpaceTransforms = GripPose;
 	Mesh->SetRelativeTransform(SitChestCS.Inverse() * FreeChest);
 	const FTransform& MeshRel = Mesh->GetRelativeTransform();
+	if (bSeatedLegs)
+	{
+		// seated: the thighs forward over the cushion (the knees a little higher than the hips), the shins down to the pedals;
+		// in the car's own frame as it sits (the chest held by the belt)
+		for (int32 Side = 0; Side < 2; ++Side)
+		{
+			const TCHAR* Sx = Side == 0 ? TEXT("l") : TEXT("r");
+			const FName Th(*FString::Printf(TEXT("thigh_%s"), Sx)), Ca(*FString::Printf(TEXT("calf_%s"), Sx)), Ft(*FString::Printf(TEXT("foot_%s"), Sx));
+			const int32 Ti = Mesh->GetBoneIndex(Th);
+			if (Ti == INDEX_NONE || Mesh->GetBoneIndex(Ca) == INDEX_NONE || Mesh->GetBoneIndex(Ft) == INDEX_NONE)
+			{
+				continue;
+			}
+			Mesh->BoneSpaceTransforms[Ti].SetScale3D(FVector::OneVector);
+			const float Sg = Side == 0 ? -1.f : 1.f;
+			auto AimBone = [&](FName Bone, FName Child, const FVector& WantCar)
+			{
+				const FTransform Tb = BoneCS(Bone);
+				const FVector Cur = (BoneCS(Child).GetLocation() - Tb.GetLocation()).GetSafeNormal();
+				SetBoneCS(Bone, FQuat::FindBetweenNormals(Cur, DirToCS(WantCar)) * Tb.GetRotation());
+			};
+			// (measured in the car: the hips at the back of the cushion, the knees under the dash's lower edge, the feet on the
+			// floor at the pedals)
+			AimBone(Th, Ca, FVector(0.9f, Sg * 0.1f, 0.42f));
+			AimBone(Ca, Ft, FVector(0.64f, Sg * 0.03f, -0.77f));
+		}
+	}
 	const FQuat ChestTurn = FreeChest.GetRotation() * SitChestCar.GetRotation().Inverse();
 	const FVector G = GetActorTransform().InverseTransformVectorNoScale(FVector(0.f, 0.f, -1.f)).GetSafeNormal();
 	const FVector ChestAt = FreeChest.GetLocation();
@@ -265,13 +334,52 @@ void ADriverArms::FreeFollow()
 		const FQuat HangRot = FreeFrameXY(G, In) * FreeFrameXY(FingerL[Side], FaceL[Side]).Inverse();
 		const FVector HangWrist = Sh + G * (L1 + L2) * 0.92f;
 		const float e = FreeEase(F.W);
-		const FVector Wrist = FMath::Lerp(HangWrist, F.Hand.GetLocation(), e);
+		// the hand's skin points held off the floor: each finger joint (and an estimate of each tip) with its skin radius
+		struct FSkinPt { FName Bone; FName Parent; float R; bool bTip; };
+		TArray<FSkinPt, TInlineAllocator<32>> SkinPts;
+		if (bFloorGuard)
+		{
+			const FString Suf = FString::Printf(TEXT("_%s"), Sx);
+			for (int32 b = 0; b < Mesh->GetNumBones(); ++b)
+			{
+				const FName Bn = Mesh->GetBoneName(b);
+				const FString S = Bn.ToString();
+				if (!S.EndsWith(Suf))
+				{
+					continue;
+				}
+				const bool bFinger = S.StartsWith(TEXT("thumb_")) || S.StartsWith(TEXT("index_")) || S.StartsWith(TEXT("middle_")) ||
+					S.StartsWith(TEXT("ring_")) || S.StartsWith(TEXT("pinky_"));
+				TArray<FString> Parts;
+				S.ParseIntoArray(Parts, TEXT("_"));
+				if (bFinger && Parts.Num() == 3)   // (the joints themselves, not the skeleton's helpers: _dip_, _pip_, _bulge_...)
+				{
+					const bool bMeta = S.Contains(TEXT("metacarpal"));
+					SkinPts.Add({Bn, Mesh->GetParentBone(Bn), bMeta ? 1.2f : 0.85f, S.Contains(TEXT("_03_"))});
+				}
+				else if (Bn == Hand)
+				{
+					SkinPts.Add({Bn, NAME_None, 2.2f, false});
+				}
+			}
+		}
+		FVector Lift = FVector::ZeroVector;
+		FloorDepthIn[Side] = FloorDepthOut[Side] = 0.f;
+		for (int32 Pass = 0; Pass < 3; ++Pass)
+		{
+		const FVector Wrist = FMath::Lerp(HangWrist, F.Hand.GetLocation(), e) + Lift;
+		for (const TPair<int32, float>& T : Twist[Side])
+		{
+			Mesh->BoneSpaceTransforms[T.Key] = GripPose[T.Key];   // (each pass twists from the start again)
+		}
 		const FQuat HandRot = FQuat::Slerp(HangRot, F.Hand.GetRotation(), e);
 		// two-bone: the elbow toward its pole
 		const FVector D = Wrist - Sh;
 		const float Dist = FMath::Max(1.f, FMath::Min((float)D.Size(), (L1 + L2) * 0.999f));
 		const FVector Dir = D.GetSafeNormal();
-		FVector Pole = F.Pole.IsNearlyZero() ? ChestTurn.RotateVector(GripElbow[Side] - GripShoulder[Side]) : F.Pole;
+		// (the elbow's way: as at the wheel, turned with the chest, blended toward Pole by Pole's length, 1 = all the way)
+		const FVector PoleWheel = ChestTurn.RotateVector(GripElbow[Side] - GripShoulder[Side]).GetSafeNormal();
+		FVector Pole = F.Pole.IsNearlyZero() ? PoleWheel : FMath::Lerp(PoleWheel, F.Pole.GetSafeNormal(), FMath::Min(1.f, (float)F.Pole.Size()));
 		Pole = (Pole - Dir * FVector::DotProduct(Pole, Dir)).GetSafeNormal();
 		if (Pole.IsNearlyZero())
 		{
@@ -321,6 +429,105 @@ void ADriverArms::FreeFollow()
 				T.SetRotation(FQuat::Slerp(T.GetRotation(), Kv.Value, c));
 			}
 		}
+		// (the hand opening wide on its way to something, wider than it, before it closes on it)
+		const float o = FreeEase(FMath::Clamp(F.Open, 0.f, 1.f));
+		if (o > 0.f)
+		{
+			for (const TPair<int32, FQuat>& Kv : ShapeLocal[Side][0])
+			{
+				FTransform& T = Mesh->BoneSpaceTransforms[Kv.Key];
+				T.SetRotation(FQuat::Slerp(T.GetRotation(), Kv.Value, o));
+			}
+		}
+		// a finger pressed on the floor straightens back onto it (a hand pushed flat), each finger turned up at its knuckle
+		// just enough that its joints and tip are clear; only what that can't clear lifts the hand
+		if (bFloorGuard && SkinPts.Num() > 0)
+		{
+			static const TCHAR* Fingers[] = {TEXT("index"), TEXT("middle"), TEXT("ring"), TEXT("pinky"), TEXT("thumb")};
+			const FVector NcS = DirToCS(FloorN);
+			const FVector AtCS = MeshRel.InverseTransformPosition(FloorAt);
+			for (const TCHAR* Fn : Fingers)
+			{
+				const FName B1(*FString::Printf(TEXT("%s_01_%s"), Fn, Sx)), B2(*FString::Printf(TEXT("%s_02_%s"), Fn, Sx)), B3(*FString::Printf(TEXT("%s_03_%s"), Fn, Sx));
+				if (Mesh->GetBoneIndex(B1) == INDEX_NONE || Mesh->GetBoneIndex(B3) == INDEX_NONE)
+				{
+					continue;
+				}
+				for (int32 It = 0; It < 3; ++It)
+				{
+					const FVector P1 = BoneCS(B1).GetLocation(), P2 = BoneCS(B2).GetLocation(), P3 = BoneCS(B3).GetLocation();
+					const FVector Tip = P3 + (P3 - P2) * 0.75f;
+					const FVector Car1 = MeshRel.TransformPosition(P1);
+					if (!FloorBox.IsInside(FVector2D(Car1.X, Car1.Y)))
+					{
+						break;
+					}
+					// the deepest of the finger's points below the floor (skin ~0.85 cm), and how far it is from the knuckle
+					float Deep = 0.f, Arm = 1.f;
+					for (const FVector& P : {P2, P3, Tip})
+					{
+						const float Dd = 0.85f - (float)FVector::DotProduct(P - AtCS, NcS);
+						if (Dd > Deep)
+						{
+							Deep = Dd;
+							Arm = FMath::Max(1.f, (float)FVector::Dist(P, P1));
+						}
+					}
+					if (Deep <= 0.05f)
+					{
+						break;
+					}
+					const FVector Along = (Tip - P1).GetSafeNormal();
+					FVector Axis = FVector::CrossProduct(Along, NcS);
+					if (Axis.SizeSquared() < 1e-4f)
+					{
+						break;
+					}
+					Axis.Normalize();
+					const float Ang = FMath::Min(FMath::Asin(FMath::Clamp((Deep + 0.1f) / Arm, 0.f, 1.f)), FMath::DegreesToRadians(35.f));
+					SetBoneCS(B1, FQuat(Axis, Ang) * BoneCS(B1).GetRotation());
+				}
+			}
+		}
+		// measured against the floor: the deepest skin point under it lifts the wrist by that much and the arm is solved again
+		if (SkinPts.Num() == 0)
+		{
+			break;
+		}
+		float Deep = 0.f;
+		for (const FSkinPt& Pt : SkinPts)
+		{
+			FVector P = MeshRel.TransformPosition(BoneCS(Pt.Bone).GetLocation());
+			if (Pt.bTip && Pt.Parent != NAME_None)
+			{
+				const FVector Pp = MeshRel.TransformPosition(BoneCS(Pt.Parent).GetLocation());
+				P += (P - Pp) * 0.75f;
+			}
+			if (!FloorBox.IsInside(FVector2D(P.X, P.Y)))
+			{
+				continue;
+			}
+			const float Dp = Pt.R - (float)FVector::DotProduct(P - FloorAt, FloorN);
+			if (Dp > Deep)
+			{
+				Deep = Dp;
+				if (Pass == 0)
+				{
+					FloorWorst[Side] = Pt.bTip ? FName(*(Pt.Bone.ToString() + TEXT("_tip"))) : Pt.Bone;
+				}
+			}
+		}
+		if (Pass == 0)
+		{
+			FloorDepthIn[Side] = Deep;
+		}
+		FloorDepthOut[Side] = Deep;
+		if (Deep <= 0.05f)
+		{
+			break;
+		}
+		Lift += FloorN * (Deep + 0.1f);
+		}
 	}
 }
 
@@ -353,4 +560,49 @@ FVector ADriverArms::PalmNow(int32 Side, FVector* Facing) const
 		*Facing = H.GetRotation().RotateVector(FaceL[Side]);
 	}
 	return H.TransformPosition(PalmSkinL[Side]);
+}
+
+void ADriverArms::LeaveKeysOn(AActor* Car)
+{
+	if (!Car || bKeysLeft)
+	{
+		return;
+	}
+	bKeysLeft = true;
+	TArray<USceneComponent*> On = RootComponent->GetAttachChildren();
+	int32 n = 0;
+	for (USceneComponent* C : On)
+	{
+		if (C && C != Mesh)
+		{
+			C->AttachToComponent(Car->GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+			++n;
+		}
+	}
+	UE_LOG(LogTemp, Display, TEXT("DriverArms: %d things left in the car (the key, its lock, the dash's glow)"), n);
+}
+
+FVector ADriverArms::BoneCar(FName Bone) const
+{
+	return Mesh->GetRelativeTransform().TransformPosition(BoneCS(Bone).GetLocation());
+}
+
+void ADriverArms::DumpBadBones(const TCHAR* Why) const
+{
+	int32 Bad = 0;
+	for (int32 b = 0; b < Mesh->BoneSpaceTransforms.Num(); ++b)
+	{
+		const FTransform& T = Mesh->BoneSpaceTransforms[b];
+		const FVector Sc = T.GetScale3D();
+		const bool bNan = T.ContainsNaN() || !T.GetRotation().IsNormalized();
+		if (bNan || Sc.GetMin() < 0.5f || Sc.GetMax() > 2.f)
+		{
+			if (++Bad <= 60)
+			{
+				UE_LOG(LogTemp, Display, TEXT("BadBone %s: %s %s rot %s loc %s scale %s"), Why, *Mesh->GetBoneName(b).ToString(), bNan ? TEXT("NOT FINITE") : TEXT(""),
+					*T.GetRotation().ToString(), *T.GetLocation().ToString(), *Sc.ToString());
+			}
+		}
+	}
+	UE_LOG(LogTemp, Display, TEXT("BadBone %s: %d of %d bones broken"), Why, Bad, Mesh->BoneSpaceTransforms.Num());
 }

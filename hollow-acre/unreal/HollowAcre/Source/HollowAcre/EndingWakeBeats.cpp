@@ -31,8 +31,10 @@
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "GameFramework/PlayerController.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
+#include "Part2Character.h"
 
 namespace
 {
@@ -216,7 +218,13 @@ void AEndingDirector::WakeSetup()
 	{
 		Arms->SetActorHiddenInGame(false);
 		Arms->bFree = true;
+		Arms->bSeatedLegs = true;
 		Arms->AddTickPrerequisiteActor(this);
+		// no finger or knuckle through the roof lining (inside the cabin; through the driver's window they're free)
+		Arms->bFloorGuard = true;
+		Arms->FloorAt = FVector(0.f, 0.f, 135.6f);
+		Arms->FloorN = FVector(0.f, 0.f, -1.f);
+		Arms->FloorBox = FBox2D(FVector2D(-110.f, -34.f), FVector2D(50.f, 108.f));
 	}
 	// the blood: from the cut in the hairline, dripping onto the roof lining (the car's parts catch it)
 	if (!Blood)
@@ -271,12 +279,18 @@ void AEndingDirector::WakeSetup()
 	WakeTint(Manual, 1, FLinearColor(0.6f, 0.58f, 0.52f), 0.f, 0.85f);
 	AStaticMeshActor* Papers = Prop(TEXT("Wake_Papers"), Flat(FVector(25.f, 76.f, Zf) + WUp * 0.04f, -38.f));
 	WakeTint(Papers, 0, FLinearColor(0.68f, 0.67f, 0.62f), 0.f, 0.8f);
+	// the letter that lay on the passenger seat has fallen with everything else onto the lining
+	if (Letter)
+	{
+		const FTransform Lf = Flat(FVector(12.f, 86.f, Zf) + WUp * 0.06f, 70.f);
+		Letter->SetActorRelativeTransform(FTransform(Lf.GetRotation(), Lf.GetLocation(), FVector(0.279f, 0.216f, 1.f)));
+	}
 	// the flashlight on its side among them, its head toward the driver; the head (wider) on the lining, the barrel just off it
 	{
 		FVector X = FVector(0.45f, -0.89f, 0.f);
 		X = (X - WUp * FVector::DotProduct(X, WUp)).GetSafeNormal();
 		X = (X + WUp * 0.039f).GetSafeNormal();
-		FlashRest = FTransform(FRotationMatrix::MakeFromXZ(X, WUp).ToQuat(), FVector(30.f, 36.f, Zf) + WUp * 1.985f);
+		FlashRest = FTransform(FRotationMatrix::MakeFromXZ(X, WUp).ToQuat(), FVector(16.f, 50.f, Zf) + WUp * 1.985f);   // (clear of the rear-view mirror, which hangs ~10 cm off the lining)
 		Flashlight = Prop(TEXT("Wake_Flashlight"), FlashRest);
 		WakeTint(Flashlight, 0, FLinearColor(0.012f, 0.012f, 0.014f), 1.f, 0.32f);
 		WakeTint(Flashlight, 1, FLinearColor(0.86f, 0.86f, 0.88f), 1.f, 0.06f);
@@ -311,58 +325,138 @@ void AEndingDirector::WakeSetup()
 			FlashSpill->RegisterComponent();
 		}
 	}
-	// the side windows' tempered glass, in pebbles all over the lining (more by the doors and under the windshield)
-	if (UStaticMesh* Cube = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube")))
+	// the side windows' tempered glass, as it lies in photos of wrecked interiors: thousands of crumbs, 5-9 mm, slightly
+	// irregular, glassy (dark, faintly green, glinting where light catches them), piled thick along the doors and under the
+	// windshield's top edge, thinly strewn between
 	{
+		UMaterialInterface* Part = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Car/Keys/M_KeyPart.M_KeyPart"));
 		FActorSpawnParameters P;
 		P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		AActor* G = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), CT, P);
-		UInstancedStaticMeshComponent* Ism = NewObject<UInstancedStaticMeshComponent>(G, TEXT("Pebbles"));
-		G->SetRootComponent(Ism);
-		Ism->SetStaticMesh(Cube);
-		Ism->SetMobility(EComponentMobility::Movable);
-		Ism->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		if (UMaterialInterface* Part = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Car/Keys/M_KeyPart.M_KeyPart")))
-		{
-			UMaterialInstanceDynamic* Gm = UMaterialInstanceDynamic::Create(Part, Ism);
-			Gm->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.035f, 0.05f, 0.045f));    // (tempered glass: dark, faintly green)
-			Gm->SetScalarParameterValue(TEXT("Metallic"), 0.f);
-			Gm->SetScalarParameterValue(TEXT("Roughness"), 0.04f);
-			Ism->SetMaterial(0, Gm);
-		}
-		Ism->RegisterComponent();
-		Ism->SetWorldTransform(CT);
+		USceneComponent* Root = NewObject<USceneComponent>(G, TEXT("Root"));
+		G->SetRootComponent(Root);
+		Root->RegisterComponent();
+		Root->SetWorldTransform(CT);
 		G->AttachToActor(Car, FAttachmentTransformRules::KeepWorldTransform);
+		UMaterialInstanceDynamic* Gm = Part ? UMaterialInstanceDynamic::Create(Part, G) : nullptr;
+		if (Gm)
+		{
+			Gm->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.05f, 0.068f, 0.062f));
+			Gm->SetScalarParameterValue(TEXT("Metallic"), 0.f);
+			Gm->SetScalarParameterValue(TEXT("Roughness"), 0.035f);
+		}
+		TArray<UInstancedStaticMeshComponent*> Isms;
+		for (int32 k = 0; k < 4; ++k)
+		{
+			UStaticMesh* SM = LoadObject<UStaticMesh>(nullptr, *FString::Printf(TEXT("/Game/HollowAcre/Wake/Wake_Pebble%d.Wake_Pebble%d"), k, k));
+			if (!SM)
+			{
+				continue;
+			}
+			UInstancedStaticMeshComponent* Ism = NewObject<UInstancedStaticMeshComponent>(G);
+			Ism->SetupAttachment(Root);
+			Ism->SetStaticMesh(SM);
+			Ism->SetMobility(EComponentMobility::Movable);
+			Ism->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			Ism->SetCastShadow(false);
+			if (GranuleMaterial)
+			{
+				Ism->SetMaterial(0, GranuleMaterial);      // (the same tempered glass as the crash's: pale green, glinting)
+			}
+			else if (Gm)
+			{
+				Ism->SetMaterial(0, Gm);
+			}
+			Ism->RegisterComponent();
+			Isms.Add(Ism);
+		}
 		FRandomStream R(9311);
 		int32 n = 0;
-		for (int32 i = 0; i < 1400; ++i)
+		auto Lay = [&](const FVector& At, float S)
 		{
-			FVector At;
-			const float u = R.FRand();
-			if (u < 0.38f)
+			if (Isms.Num() == 0)
 			{
-				At = FVector(R.FRandRange(-45.f, 45.f), -34.f + FMath::Abs(R.FRandRange(0.f, 1.f)) * R.FRandRange(0.f, 40.f), Zf);    // the driver's door
+				return;
 			}
-			else if (u < 0.62f)
+			// (none where a hand or the flashlight will lie on the lining: they'd show through the skin)
+			for (const FVector2D& Clear : {FVector2D(16.f, 20.f), FVector2D(-6.f, 28.f), FVector2D(-12.f, 26.f), FVector2D(16.f, 50.f), FVector2D(26.f, -20.f)})
 			{
-				At = FVector(R.FRandRange(-90.f, 45.f), 108.f - FMath::Abs(R.FRandRange(0.f, 1.f)) * R.FRandRange(0.f, 40.f), Zf);   // the passenger's
+				if (FVector2D::Distance(FVector2D(At.X, At.Y), Clear) < 9.f)
+				{
+					return;
+				}
 			}
-			else if (u < 0.78f)
-			{
-				At = FVector(R.FRandRange(-100.f, -50.f), R.FRandRange(-34.f, 108.f), Zf);                                         // the rear doors
-			}
-			else
-			{
-				At = FVector(R.FRandRange(-60.f, 40.f), R.FRandRange(-30.f, 100.f), Zf);                                           // strewn
-			}
-			const float S = R.FRandRange(0.35f, 0.8f);
-			const FVector Size(S, S * R.FRandRange(0.7f, 1.2f), S * R.FRandRange(0.35f, 0.6f));
-			const FQuat Q = FQuat(WUp, R.FRandRange(0.f, 2.f * PI)) * FRotationMatrix::MakeFromXZ(FVector(1.f, 0.f, 0.f) - WUp * WUp.X, WUp).ToQuat();
-			Ism->AddInstance(FTransform(Q, At + WUp * (Size.Z * 0.5f), Size / 100.f));
+			const FQuat Q = FQuat(WUp, R.FRandRange(0.f, 2.f * PI)) * FRotationMatrix::MakeFromXZ(FVector(1.f, 0.f, 0.f) - WUp * WUp.X, WUp).ToQuat() *
+				FQuat(FVector(1.f, 0.f, 0.f), R.FRandRange(-0.3f, 0.3f));
+			Isms[R.RandRange(0, Isms.Num() - 1)]->AddInstance(FTransform(Q, At + WUp * (S * 0.33f), FVector(S)));
 			++n;
+		};
+		for (int32 i = 0; i < 2600; ++i)
+		{
+			const float u = R.FRand();
+			const float S = FMath::Lerp(0.38f, 1.15f, FMath::Pow(R.FRand(), 1.6f));   // (mostly small, a few big)
+			const float Off = FMath::Pow(R.FRand(), 2.2f);            // (a pile thins out from the door)
+			if (u < 0.42f)
+			{
+				Lay(FVector(R.FRandRange(-48.f, 46.f), -34.f + Off * 34.f, 135.6f), S);                    // the driver's door
+			}
+			else if (u < 0.66f)
+			{
+				Lay(FVector(R.FRandRange(-100.f, 46.f), 108.f - Off * 34.f, 135.6f), S);                   // the passenger's
+			}
+			else if (u < 0.76f)
+			{
+				Lay(FVector(41.f - Off * 18.f, R.FRandRange(-30.f, 104.f), 135.6f), S);                   // under the windshield's head
+			}
+			else if (u < 0.86f)
+			{
+				Lay(FVector(R.FRandRange(-100.f, -50.f), R.FRandRange(-34.f, 108.f), 135.6f), S);         // the rear doors'
+			}
+			else if (u < 0.92f)
+			{
+				Lay(FVector(R.FRandRange(-60.f, 40.f), R.FRandRange(-30.f, 104.f), 135.6f), S);           // strewn
+			}
 		}
+		// the crumbs the fall kicks up (drawn while they fly)
+		CrumbIsm = NewObject<UInstancedStaticMeshComponent>(G);
+		CrumbIsm->SetupAttachment(Root);
+		CrumbIsm->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Wake_Pebble1.Wake_Pebble1")));
+		CrumbIsm->SetMobility(EComponentMobility::Movable);
+		CrumbIsm->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		CrumbIsm->SetCastShadow(false);
+		if (Gm)
+		{
+			CrumbIsm->SetMaterial(0, Gm);
+		}
+		CrumbIsm->RegisterComponent();
 		WakeProps.Add(G);
-		UE_LOG(LogTemp, Display, TEXT("EndingDirector: wake: %d pebbles of glass on the lining"), n);
+		UE_LOG(LogTemp, Display, TEXT("EndingDirector: wake: %d crumbs of glass on the lining"), n);
+	}
+	// the seatbelt: its webbing in lengths along the body
+	if (UStaticMesh* Strap = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Wake_Strap.Wake_Strap")))
+	{
+		UMaterialInterface* Part = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Car/Keys/M_KeyPart.M_KeyPart"));
+		UMaterialInstanceDynamic* Wm = Part ? UMaterialInstanceDynamic::Create(Part, this) : nullptr;
+		if (Wm)
+		{
+			Wm->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.03f, 0.031f, 0.034f));      // (grey-black nylon webbing)
+			Wm->SetScalarParameterValue(TEXT("Metallic"), 0.f);
+			Wm->SetScalarParameterValue(TEXT("Roughness"), 0.62f);
+		}
+		for (int32 i = 0; i < 44; ++i)
+		{
+			UStaticMeshComponent* C = NewObject<UStaticMeshComponent>(Car);
+			C->SetupAttachment(Car->GetRootComponent());
+			C->SetStaticMesh(Strap);
+			C->SetMobility(EComponentMobility::Movable);
+			C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			if (Wm)
+			{
+				C->SetMaterial(0, Wm);
+			}
+			C->RegisterComponent();
+			BeltStraps.Add(C);
+		}
 	}
 	// the snow that will slide off the car's underside (now its top) past the rear window on the passenger's side
 	SnowSlab = Prop(TEXT("Wake_SnowSlab"), FTransform(FVector(18.f, 126.f, 8.f)));
@@ -374,6 +468,13 @@ void AEndingDirector::WakeSetup()
 			S->SetActorHiddenInGame(true);
 		}
 	}
+	BuckleActor = Prop(TEXT("Wake_Buckle"), FTransform::Identity);
+	WakeTint(BuckleActor, 0, FLinearColor(0.02f, 0.02f, 0.022f), 0.f, 0.45f);
+	WakeTint(BuckleActor, 1, FLinearColor(0.005f, 0.005f, 0.005f), 0.f, 0.8f);
+	WakeTint(BuckleActor, 2, FLinearColor(0.42f, 0.02f, 0.015f), 0.f, 0.4f);      // (the red release button)
+	LatchActor = Prop(TEXT("Wake_Latch"), FTransform::Identity);
+	WakeTint(LatchActor, 0, FLinearColor(0.62f, 0.62f, 0.64f), 1.f, 0.25f);
+	WakeTint(LatchActor, 1, FLinearColor(0.02f, 0.02f, 0.022f), 0.f, 0.45f);
 	// the night's own light in through the gone windows and the cracked windshield: the snow outside lit by the moon, a
 	// faint cold glow across the lining (no shadows of its own; the spill by the windshield a little brighter)
 	for (const FVector4& L : {FVector4(-10.f, 40.f, 100.f, 0.22f), FVector4(46.f, 56.f, 118.f, 0.1f)})
@@ -388,7 +489,72 @@ void AEndingDirector::WakeSetup()
 		Moon->SetTemperature(8000.f);
 		Moon->SetCastShadows(false);
 		Moon->SetSourceRadius(40.f);
+		Moon->SetSpecularScale(0.f);           // (the rear-view mirror shone a flat white in their highlight)
 		Moon->RegisterComponent();
+	}
+	{
+		// (the snow outside bright under the moon: its light in through the windshield, soft, onto the driver's lap and chest)
+		UPointLightComponent* Bounce = NewObject<UPointLightComponent>(Car, TEXT("WakeSnowBounce"));
+		Bounce->SetupAttachment(Car->GetRootComponent());
+		Bounce->SetRelativeLocation(FVector(62.f, 8.f, 96.f));
+		Bounce->SetIntensityUnits(ELightUnits::Candelas);
+		Bounce->SetIntensity(0.35f);
+		Bounce->SetAttenuationRadius(160.f);
+		Bounce->SetUseTemperature(true);
+		Bounce->SetTemperature(7800.f);
+		Bounce->SetSourceRadius(25.f);
+		Bounce->SetSpecularScale(0.2f);
+		Bounce->SetCastShadows(false);
+		Bounce->RegisterComponent();
+		if (FParse::Param(FCommandLine::Get(), TEXT("wakework")))
+		{
+			// (checking only: a bright work light in the cabin to see the body and the belt)
+			UPointLightComponent* Work = NewObject<UPointLightComponent>(Car, TEXT("WakeWorkLight"));
+			Work->SetupAttachment(Car->GetRootComponent());
+			Work->SetRelativeLocation(FVector(40.f, 30.f, 70.f));
+			Work->SetIntensityUnits(ELightUnits::Candelas);
+			Work->SetIntensity(25.f);
+			Work->SetAttenuationRadius(400.f);
+			Work->SetCastShadows(false);
+			Work->RegisterComponent();
+		}
+	}
+	{
+		// (from outside and high on the driver's side, through the gone window, across the lining: the window frame's
+		// shadow on it, the crumbs glinting in it, the braced hand lit cold)
+		MoonShaft = NewObject<USpotLightComponent>(Car, TEXT("WakeMoonShaft"));
+		MoonShaft->SetupAttachment(Car->GetRootComponent());
+		const FVector From(-20.f, -170.f, 30.f), To(18.f, 10.f, 135.6f);
+		MoonShaft->SetRelativeLocationAndRotation(From, (To - From).Rotation());
+		MoonShaft->SetIntensityUnits(ELightUnits::Candelas);
+		MoonShaft->SetIntensity(2.2f);
+		MoonShaft->SetInnerConeAngle(14.f);
+		MoonShaft->SetOuterConeAngle(26.f);
+		MoonShaft->SetAttenuationRadius(700.f);
+		MoonShaft->SetUseTemperature(true);
+		MoonShaft->SetTemperature(7600.f);
+		MoonShaft->SetSourceRadius(1.f);
+		MoonShaft->SetCastShadows(true);
+		MoonShaft->SetVolumetricScatteringIntensity(1.5f);
+		MoonShaft->RegisterComponent();
+		// (and a softer slab through the passenger's front window onto the driver's lap: the buckle, the hand on it, the
+		// thighs, so the struggle with the belt is seen, cold, against the dark seats)
+		USpotLightComponent* LapMoon = NewObject<USpotLightComponent>(Car, TEXT("WakeLapMoon"));
+		LapMoon->SetupAttachment(Car->GetRootComponent());
+		const FVector LFrom(30.f, 150.f, 125.f), LTo(14.f, 22.f, 64.f);
+		LapMoon->SetRelativeLocationAndRotation(LFrom, (LTo - LFrom).Rotation());
+		LapMoon->SetIntensityUnits(ELightUnits::Candelas);
+		LapMoon->SetIntensity(1.6f);
+		LapMoon->SetInnerConeAngle(6.f);
+		LapMoon->SetOuterConeAngle(16.f);
+		LapMoon->SetAttenuationRadius(400.f);
+		LapMoon->SetUseTemperature(true);
+		LapMoon->SetTemperature(7600.f);
+		LapMoon->SetSourceRadius(2.f);
+		LapMoon->SetCastShadows(true);
+		LapMoon->SetSpecularScale(0.6f);
+		LapMoon->SetVolumetricScatteringIntensity(0.f);
+		LapMoon->RegisterComponent();
 	}
 	// the breath: soft puffs (Scripts/make_breath.py), lit only by what light there is; a pool of small spheres, each with
 	// its own fade
@@ -489,6 +655,41 @@ void AEndingDirector::WakeBeats(float RealDt)
 		Event(TEXT("wakeup"));
 	}
 	const float w = RealTime - WakeT0;
+	// the end of it: play, with no cut. The player's own body takes over where the eyes are, with the arms and the
+	// flashlight in hand (Part2Character); from then on only the breath is left to this
+	static const bool bNoPlay = FParse::Param(FCommandLine::Get(), TEXT("wakenoplay"));
+	if (!bWakeHandedOver && !bNoPlay && w >= 33.0f && CamComp)
+	{
+		bWakeHandedOver = true;
+		const FTransform EyeW = CamComp->GetComponentTransform();
+		APlayerController* PC = GetWorld()->GetFirstPlayerController();
+		FActorSpawnParameters P;
+		P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		APart2Character* Me = GetWorld()->SpawnActor<APart2Character>(APart2Character::StaticClass(), EyeW.GetLocation() - FVector(0.f, 0.f, 70.f),
+			FRotator(0.f, EyeW.Rotator().Yaw, 0.f), P);
+		if (Me && PC)
+		{
+			PC->Possess(Me);
+			if (Arms)
+			{
+				Arms->LeaveKeysOn(Car);
+			}
+			Me->TakeOverFrom(EyeW, Arms, Flashlight, FlashBeam, CamComp->PostProcessSettings);
+			Event(TEXT("play"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("EndingDirector: wake: could not hand over to play (%s, %s)"), Me ? TEXT("body") : TEXT("no body"), PC ? TEXT("player") : TEXT("no player"));
+		}
+	}
+	if (bWakeHandedOver)
+	{
+		if (APlayerCameraManager* Pcm = UGameplayStatics::GetPlayerCameraManager(this, 0))
+		{
+			WakeBreath(w, RealDt, FTransform(Pcm->GetCameraRotation(), Pcm->GetCameraLocation()));
+		}
+		return;
+	}
 	const FTransform CT = Car->GetActorTransform();
 	const FVector WUp = CT.InverseTransformVectorNoScale(FVector::UpVector).GetSafeNormal();
 	const FVector Down = -WUp;
@@ -502,25 +703,138 @@ void AEndingDirector::WakeBeats(float RealDt)
 	const FVector ChuteDir = CT.InverseTransformVectorNoScale((WakeChuteAt - CT.GetLocation()).GetSafeNormal());
 	const FVector ChuteLook = Stand + ChuteDir * 2500.f;
 
+	// the buckle (by the right hip, its stalk up out of the gap between the cushion and the tunnel, leaning in toward the lap;
+	// its red button toward the eyes)
+	FVector BucklePt(-8.f, 21.f, 57.f);
+	if (Arms && Arms->IsReady())
+	{
+		const FVector Pv = Arms->BoneCar(TEXT("pelvis"));
+		// (car_exterior.py's driver's seat: the inboard bolster runs to y 26, up to z 54.5; the console starts at x 18. Hanging,
+		// the body's weight pulls the lap belt tight toward the roof and drags the buckle on its stalk up against the side of
+		// the waist, above the bolster: where the eyes can see it past the belly)
+		BucklePt = FVector(Pv.X + 18.f, 24.f, Pv.Z + 10.f);
+	}
+	const FVector BuckleLook = BucklePt + FVector(4.f, -4.f, 6.f);
+	if (Arms && Arms->IsReady() && WakeOnce(TEXT("bodycheck"), 4.0f, w))
+	{
+		Arms->DumpBadBones(TEXT("at 4.0"));
+		for (const TCHAR* B : {TEXT("pelvis"), TEXT("spine_03"), TEXT("spine_05"), TEXT("clavicle_l"), TEXT("upperarm_l"), TEXT("thigh_l"), TEXT("calf_l"),
+			TEXT("foot_l"), TEXT("hand_r")})
+		{
+			UE_LOG(LogTemp, Display, TEXT("WakeBody %s at %s (car frame)"), B, *Arms->BoneCar(B).ToString());
+		}
+		UE_LOG(LogTemp, Display, TEXT("WakeBody the buckle at %s, the eye at %s"), *BucklePt.ToString(), *Hang.ToString());
+	}
+	if (Arms && Arms->IsReady() && WakeOnce(TEXT("cabincheck"), 6.0f, w))
+	{
+		// how far the buckle, the right hand and forearm are from the cabin's surfaces (negative: inside the seat)
+		for (const TCHAR* B : {TEXT("hand_r"), TEXT("lowerarm_r"), TEXT("middle_01_r"), TEXT("thumb_02_r"), TEXT("index_03_r")})
+		{
+			UE_LOG(LogTemp, Display, TEXT("WakeCabin %s %.1f cm"), B, Arms->CabinDistCar(Arms->BoneCar(B)));
+		}
+		const FVector Mid = (Arms->BoneCar(TEXT("hand_r")) + Arms->BoneCar(TEXT("lowerarm_r"))) * 0.5f;
+		UE_LOG(LogTemp, Display, TEXT("WakeCabin forearm middle %.1f cm, the buckle %.1f cm"), Arms->CabinDistCar(Mid), Arms->CabinDistCar(BucklePt));
+		{
+			// the gap between the seat and the console, traced: from the hip outward (+Y), at heights about the hip
+			const FVector Pv = Arms->BoneCar(TEXT("pelvis"));
+			// (against the car's own visible meshes, their triangles: its collision is one box round it all)
+			TArray<UStaticMeshComponent*> Parts;
+			Car->GetComponents<UStaticMeshComponent>(Parts);
+			auto CarTrace = [&Parts](const FVector& A, const FVector& B, FHitResult& Best) -> bool
+			{
+				bool bAny = false;
+				FCollisionQueryParams Cq(TEXT("WakeBuckleProbe"), true);
+				for (UStaticMeshComponent* Pc : Parts)
+				{
+					FHitResult Hp;
+					if (Pc && Pc->IsVisible() && Pc->LineTraceComponent(Hp, A, B, Cq) && (!bAny || Hp.Distance < Best.Distance))
+					{
+						Best = Hp;
+						bAny = true;
+					}
+				}
+				return bAny;
+			};
+			for (float Dz : {-16.f, -10.f, -4.f, 2.f, 8.f})
+			{
+				FString Row;
+				for (float Dx : {-6.f, 0.f, 6.f, 12.f, 18.f})
+				{
+					const FVector A = CT.TransformPosition(Pv + FVector(Dx, 0.f, Dz)), B = CT.TransformPosition(Pv + FVector(Dx, 50.f, Dz));
+					FHitResult Hh;
+					if (CarTrace(A, B, Hh))
+					{
+						Row += FString::Printf(TEXT(" [x%+.0f y%.1f %s]"), Dx, Hh.Distance, Hh.GetComponent() ? *Hh.GetComponent()->GetName() : TEXT("?"));
+					}
+					else
+					{
+						Row += FString::Printf(TEXT(" [x%+.0f none]"), Dx);
+					}
+				}
+				UE_LOG(LogTemp, Display, TEXT("WakeGap z%+.0f:%s"), Dz, *Row);
+			}
+			// and down from above the hip (toward the seat, the car's -Z) at a few lateral offsets: the cushion's surface
+			for (float Dy : {0.f, 10.f, 16.f, 20.f, 24.f, 28.f})
+			{
+				FString Row;
+				for (float Dx : {0.f, 8.f, 14.f})
+				{
+					const FVector A = CT.TransformPosition(Pv + FVector(Dx, Dy, 25.f)), B = CT.TransformPosition(Pv + FVector(Dx, Dy, -40.f));
+					FHitResult Hh;
+					if (CarTrace(A, B, Hh))
+					{
+						Row += FString::Printf(TEXT(" [x%+.0f z%.1f %s]"), Dx, 25.f - Hh.Distance, Hh.GetComponent() ? *Hh.GetComponent()->GetName() : TEXT("?"));
+					}
+					else
+					{
+						Row += FString::Printf(TEXT(" [x%+.0f none]"), Dx);
+					}
+				}
+				UE_LOG(LogTemp, Display, TEXT("WakeSeat y%+.0f:%s"), Dy, *Row);
+			}
+		}
+		for (float dz = -12.f; dz <= 24.f; dz += 3.f)
+		{
+			FString Row;
+			for (float dy = -6.f; dy <= 12.f; dy += 3.f)
+			{
+				Row += FString::Printf(TEXT(" %5.1f"), Arms->CabinDistCar(BucklePt + FVector(0.f, dy, dz)));
+			}
+			UE_LOG(LogTemp, Display, TEXT("WakeCabin buckle +z %.0f (y -6..12):%s"), dz, *Row);
+		}
+	}
 	// ---- the eyes ------------------------------------------------------------------------------------------------------
 	const TArray<FWakeEyeKey> K = {
-		// 1. hanging in the belt: out through the windshield at the snow, then down at the lining below the head
+		// 1. hanging in the belt. The eyes open on the snow through the cracked windshield; a groggy turn to the smashed
+		// window beside the head (its frame, the last shards, the moonlit slope outside hanging upside down); down to the lining
+		// under the head, the arms hanging limp onto it, blood dripping; the left hand braces flat on it
 		{0.0f, Hang, Hang + FVector(100.f, 0.f, 40.f), Ceil},
-		{1.8f, Hang + FVector(0.f, 0.f, 0.5f), Hang + FVector(100.f, -6.f, 50.f), Ceil},
-		{3.2f, Hang + FVector(0.f, -1.f, 1.f), FVector(32.f, -8.f, Zf), FVector(0.25f, 0.f, 1.f)},
-		{5.0f, Hang + FVector(0.f, 0.f, 0.5f), FVector(26.f, -4.f, Zf), FVector(0.2f, 0.1f, 1.f)},
-		{6.3f, Hang + FVector(0.f, 0.f, 0.5f), FVector(26.f, -2.f, Zf), FVector(0.2f, 0.1f, 1.f)},
-		// pushing up off the roof to take the weight off the buckle
-		{6.85f, Hang + FVector(0.f, 0.f, -4.f), FVector(26.f, -2.f, Zf), FVector(0.2f, 0.05f, 1.f)},
-		{7.1f, Hang + FVector(0.f, 0.f, -4.5f), FVector(26.f, -2.f, Zf), FVector(0.2f, 0.05f, 1.f)},
-		// 2. the drop: onto the head and shoulder, rolled onto the left side
-		{7.28f, Hang + FVector(1.f, 3.f, 3.5f), FVector(30.f, 20.f, Zf), FVector(0.f, -0.7f, 0.7f)},
-		{7.42f, FVector(-3.f, 6.f, Zf - 9.f), FVector(40.f, 62.f, Zf - 3.f), FVector(-1.f, 0.f, -0.25f)},
+		{1.0f, Hang + FVector(0.f, 0.f, 0.4f), Hang + FVector(100.f, -8.f, 44.f), Ceil},
+		{2.3f, Hang + FVector(0.f, -1.5f, 0.6f), FVector(14.f, -110.f, 120.f), FVector(0.1f, 0.f, 1.f)},
+		{2.95f, Hang + FVector(0.f, -1.6f, 0.7f), FVector(16.f, -112.f, 123.f), FVector(0.1f, 0.f, 1.f)},
+		{3.6f, Hang + FVector(0.f, -0.6f, 1.f), FVector(28.f, -12.f, Zf), FVector(0.25f, 0.f, 1.f)},
+		{4.35f, Hang + FVector(0.f, -0.4f, 1.f), FVector(27.f, -16.f, Zf), FVector(0.22f, 0.f, 1.f)},
+		// the chin tucked, the eyes down the body to the buckle by the right hip: the belt pulled tight across the chest and
+		// the lap by the body's weight, the gloved thumb on the red button: it won't let go (twice); the braced arm pushes the
+		// body up off the belt, and it does
+		// (the head forward and over toward the right, so the eyes look down past the side of the chest; the reaching arm's
+		// elbow is back out of the way)
+		// (a slow heavy turn, about a second: dazed)
+		{4.85f, Hang + FVector(1.2f, 3.5f, 0.f), (FVector(27.f, -16.f, Zf) + BuckleLook) * 0.5f, FVector(0.6f, 0.15f, 0.7f)},
+		{5.4f, Hang + FVector(2.5f, 7.f, -1.f), BuckleLook, FVector(1.f, 0.3f, 0.25f)},
+		{6.3f, Hang + FVector(2.8f, 7.5f, -1.5f), BuckleLook + FVector(0.f, 1.f, 1.f), FVector(1.f, 0.3f, 0.25f)},
+		{6.85f, Hang + FVector(2.8f, 7.5f, -9.f), BuckleLook + FVector(0.f, 1.f, 0.f), FVector(1.f, 0.3f, 0.25f)},
+		{7.05f, Hang + FVector(2.8f, 7.5f, -9.f), BuckleLook + FVector(0.f, 1.f, 0.f), FVector(1.f, 0.3f, 0.25f)},
+		// 2. the drop: the head and the left shoulder onto the roof, rolled onto the left side; lying there, the lining a few
+		// centimetres from the eye, the glass on it, the left hand in front of the face
+		{7.2f, Hang + FVector(2.f, 1.f, 3.f), FVector(22.f, 6.f, Zf), FVector(0.4f, -0.7f, 0.5f)},
+		{7.38f, FVector(-3.f, 6.f, Zf - 8.5f), FVector(40.f, 58.f, Zf - 2.5f), FVector(-1.f, 0.f, -0.25f)},
+		{8.3f, FVector(-3.f, 6.5f, Zf - 8.8f), FVector(42.f, 62.f, Zf - 3.f), FVector(-1.f, 0.08f, -0.2f)},
 		{9.0f, FVector(-3.f, 7.f, Zf - 9.5f), FVector(46.f, 70.f, Zf - 4.f), FVector(-1.f, 0.15f, -0.1f)},
 		// 3. pushed up on the left elbow, looking across the lining at the spill
-		{10.4f, FVector(-2.f, 10.f, Zf - 22.f), FVector(34.f, 46.f, Zf - 1.f), WUp},
-		{12.4f, FVector(0.f, 12.f, Zf - 23.f), FVector(32.f, 44.f, Zf - 2.f), WUp},
-		{13.4f, FVector(0.f, 11.f, Zf - 24.f), FVector(38.f, 38.f, Zf - 12.f), WUp},
+		{10.4f, FVector(-2.f, 10.f, Zf - 22.f), FVector(18.f, 50.f, Zf - 1.f), WUp},
+		{12.4f, FVector(0.f, 12.f, Zf - 23.f), FVector(17.f, 49.f, Zf - 2.f), WUp},
+		{13.4f, FVector(0.f, 11.f, Zf - 24.f), FVector(24.f, 44.f, Zf - 12.f), WUp},
 		// the beam: over the spill, the dash, the keys hanging in the lock
 		{14.4f, FVector(0.f, 11.f, Zf - 24.f), FVector(60.f, 70.f, Zf - 6.f), WUp},
 		{15.55f, FVector(0.f, 11.f, Zf - 24.f), FVector(64.f, 22.f, Zf - 50.f), WUp},
@@ -544,10 +858,65 @@ void AEndingDirector::WakeBeats(float RealDt)
 		{34.0f, Stand + FVector(-2.f, 1.f, 0.f), ChuteLook + WUp * 60.f, WUp},
 	};
 	FTransform Eye = WakeEvalEye(w, K);
+	if (w < 7.15f)
+	{
+		// held in the belt the body stays put and the head turns on the neck: a look down carries the eyes forward and down,
+		// out over the chest, with the eyes in their sockets taking up to ~35 degrees of it (the body's frame is the car's)
+		const FVector EyeOnNeck(9.f, 0.f, 13.f);
+		// (what the eyes are on stays on it as the head carries them: the point the gaze meets, re-aimed at after the move)
+		const FVector GazeAt = Eye.GetLocation() + Eye.GetRotation().GetAxisX() * FMath::Max(30.f, (float)FVector::Dist(Eye.GetLocation(), BucklePt) * (w > 4.6f ? 1.f : 0.f) + (w > 4.6f ? 0.f : 120.f));
+		const FVector GazeUp = Eye.GetRotation().GetAxisZ();
+		const float GazeOff = FMath::RadiansToDegrees(Eye.GetRotation().AngularDistance(FQuat::Identity));
+		// (the head itself bends at most ~25 degrees here: the belt holds the chest, the chin meets it)
+		const float HeadAng = FMath::Min(25.f, GazeOff - FMath::Min(35.f, GazeOff * 0.45f));
+		const float HeadPart = GazeOff > 1.f ? FMath::Clamp(HeadAng / GazeOff, 0.f, 1.f) : 1.f;
+		const FQuat HeadTurn = FQuat::Slerp(FQuat::Identity, Eye.GetRotation(), HeadPart);
+		Eye.AddToTranslation(HeadTurn.RotateVector(EyeOnNeck) - EyeOnNeck);
+		// and the eyes stay out over the chest, never in it: at least 17 cm ahead of the upper spine (the breastbone is
+		// ~12 cm ahead of it) whenever they're down at the chest's height
+		if (Arms && Arms->IsReady())
+		{
+			const FVector S5 = Arms->BoneCar(TEXT("spine_05"));
+			const float AtChest = FMath::Clamp((S5.Z + 30.f - Eye.GetLocation().Z) / 15.f, 0.f, 1.f);
+			const float Ahead = Eye.GetLocation().X - S5.X;
+			if (Ahead < 19.f)
+			{
+				Eye.AddToTranslation(FVector((19.f - Ahead) * AtChest, 0.f, 0.f));
+			}
+		}
+		Eye.SetRotation(FRotationMatrix::MakeFromXZ(GazeAt - Eye.GetLocation(), GazeUp).ToQuat());
+	}
+	for (const FVector2D& Kick : {FVector2D(5.62f, 0.7f), FVector2D(6.17f, 0.85f), FVector2D(6.45f, 0.35f), FVector2D(7.0f, 0.8f), FVector2D(7.38f, 2.6f)})
+	{
+		if (w >= Kick.X && w < Kick.X + RealDt * 1.5f)
+		{
+			WakeShake = FMath::Max(WakeShake, Kick.Y);
+		}
+	}
+	WakeShake *= FMath::Exp(-RealDt * 7.f);
+	if (w < 7.05f)
+	{
+		// (hanging: swinging a little in the belt, the head lolling, settling as the hand braces)
+		const float Swing = (1.f - 0.6f * WRamp(w, 3.8f, 4.6f));
+		Eye.AddToTranslation(FVector(0.f, 0.9f * Swing * FMath::Sin(2.f * PI * w / 2.7f), 0.f));
+		Eye.SetRotation(Eye.GetRotation() * FRotator(0.8f * Swing * FMath::Sin(2.f * PI * w / 3.4f + 1.f), 0.f, 1.4f * Swing * FMath::Sin(2.f * PI * w / 2.7f)).Quaternion());
+	}
+	if (w >= 9.3f && w < 15.6f)
+	{
+		// propped on the elbow, hurting: each breath lifts and lets down the head a little, a slow unsteady sway
+		const float Br = FMath::Sin(2.f * PI * w / 3.1f) * WRamp(w, 9.3f, 9.8f);
+		Eye.AddToTranslation(WUp * 0.7f * Br + FVector(0.f, 0.5f * FMath::PerlinNoise1D(w * 0.7f + 3.f), 0.f));
+		Eye.SetRotation(Eye.GetRotation() * FRotator(0.8f * Br, 0.6f * FMath::PerlinNoise1D(w * 0.6f), 0.5f * FMath::PerlinNoise1D(w * 0.5f + 5.f)).Quaternion());
+	}
+	if (WakeShake > 0.01f)
+	{
+		Eye.SetRotation(Eye.GetRotation() * FRotator(WakeShake * 1.6f * FMath::PerlinNoise1D(w * 17.f), WakeShake * 1.1f * FMath::PerlinNoise1D(w * 15.f + 4.f),
+			WakeShake * 2.f * FMath::PerlinNoise1D(w * 13.f + 9.f)).Quaternion());
+		Eye.AddToTranslation(Eye.GetRotation().GetAxisZ() * WakeShake * 0.5f * FMath::PerlinNoise1D(w * 16.f + 2.f));
+	}
 	// alive: breathing, a little unsteady; the drop's jolt; the thump's start
 	{
-		const float Shock = FMath::Exp(-FMath::Max(0.f, w - 7.42f) * 5.f) * (w >= 7.42f ? 1.f : 0.f) +
-			0.6f * FMath::Exp(-FMath::Max(0.f, w - 15.62f) * 6.f) * (w >= 15.62f ? 1.f : 0.f);
+		const float Shock = 0.6f * FMath::Exp(-FMath::Max(0.f, w - 15.62f) * 6.f) * (w >= 15.62f ? 1.f : 0.f);
 		const float Scared = WRamp(w, 15.6f, 15.9f) * (1.f - WRamp(w, 18.f, 20.f)) * 0.6f + 0.25f;
 		const FRotator Wob(FMath::PerlinNoise1D(w * 0.55f) * 0.6f * Scared * 2.f + Shock * 2.5f * FMath::Sin(w * 31.f),
 			FMath::PerlinNoise1D(w * 0.43f + 7.f) * 0.7f * Scared * 2.f + Shock * 1.5f * FMath::Sin(w * 23.f + 1.f),
@@ -579,9 +948,25 @@ void AEndingDirector::WakeBeats(float RealDt)
 				}
 			}
 		}
+		static FVector SideAt = FVector(0.f, 0.f, 0.f);
+		static bool bSideAt = false;
+		if (!bSideAt)
+		{
+			bSideAt = true;
+			FString V;
+			if (FParse::Value(FCommandLine::Get(), TEXT("-wakesideat="), V, false))
+			{
+				TArray<FString> P;
+				V.ParseIntoArray(P, TEXT(","));
+				if (P.Num() == 3)
+				{
+					SideAt = FVector(FCString::Atof(*P[0]), FCString::Atof(*P[1]), FCString::Atof(*P[2]));
+				}
+			}
+		}
 		if (!SideOff.IsNearlyZero())
 		{
-			const FVector To = Eye.GetLocation() - WUp * 25.f;
+			const FVector To = SideAt.IsNearlyZero() ? Eye.GetLocation() - WUp * 25.f : Eye.GetLocation() + SideAt;
 			const FVector From = Eye.GetLocation() + SideOff;
 			Camera->GetRootComponent()->SetRelativeLocationAndRotation(From, FRotationMatrix::MakeFromXZ((To - From).GetSafeNormal(), WUp).ToQuat());
 		}
@@ -592,7 +977,9 @@ void AEndingDirector::WakeBeats(float RealDt)
 	{
 		const float Shut = WKeys(w, {FVector2D(0.f, 1.f), FVector2D(0.5f, 0.55f), FVector2D(0.75f, 0.95f), FVector2D(1.4f, 0.35f),
 			FVector2D(1.7f, 0.8f), FVector2D(2.8f, 0.f)});
-		const float Blink = WKeys(w, {FVector2D(7.38f, 0.f), FVector2D(7.45f, 0.92f), FVector2D(7.7f, 0.92f), FVector2D(8.4f, 0.25f), FVector2D(9.2f, 0.f)});
+		const float Blink = WKeys(w, {FVector2D(7.36f, 0.f), FVector2D(7.40f, 1.f), FVector2D(7.66f, 1.f), FVector2D(8.0f, 0.15f), FVector2D(8.4f, 0.f),
+			FVector2D(8.75f, 0.7f), FVector2D(8.95f, 0.1f), FVector2D(9.2f, 0.f),
+			FVector2D(9.3f, 0.f)});
 		Cam->SetManualCameraFade(FMath::Max(Shut, Blink), FLinearColor::Black, false);
 	}
 
@@ -601,7 +988,9 @@ void AEndingDirector::WakeBeats(float RealDt)
 	{
 		if (w < 7.15f)
 		{
-			BodyEye = FTransform(FQuat::Identity, Hang + FVector(0.f, 0.f, FMath::Min(0.f, Eye.GetLocation().Z - Hang.Z) * 0.8f));
+			// (the hips just off the cushion, as far as the roof allows: a tall driver hanging in a compact car has the head
+			// almost on the roof, the chin tucked a little; car_exterior.py's seat: cushion top 50.5, the hip joint ~9 above it)
+			BodyEye = FTransform(FQuat::Identity, Hang + FVector(-9.f, 0.f, 6.f - 8.f * WRamp(w, 6.4f, 6.85f)));
 			bBodyEye = false;
 		}
 		else
@@ -631,9 +1020,37 @@ void AEndingDirector::WakeBeats(float RealDt)
 			const FQuat Want = FQuat::Slerp(FQuat::Slerp(Upright, Eye.GetRotation(), 0.15f), Eye.GetRotation(), Lying);
 			const float k = 1.f - FMath::Exp(-RealDt * (w < 7.5f ? 14.f : 3.5f));
 			BodyEye.SetRotation(FQuat::Slerp(BodyEye.GetRotation(), Want, k).GetNormalized());
-			BodyEye.SetLocation(Eye.GetLocation());
+			// the head turns on the neck, not about the eyes: the eyes sit ~9 cm ahead of the neck's base and ~13 cm above it,
+			// so a head tipped down to look at the lap carries them forward and down, out over the chest (not into the collar)
+			// (the eyes themselves turn in their sockets up to ~35 degrees: the head takes only part of a look down, so the
+			// head's frame is part way from the body's to the gaze's)
+			const FVector EyeOnNeck(9.f, 0.f, 13.f);
+			const float GazeOff = FMath::RadiansToDegrees(BodyEye.GetRotation().AngularDistance(Eye.GetRotation()));
+			const float HeadPart = GazeOff > 1.f ? FMath::Clamp((GazeOff - FMath::Min(35.f, GazeOff * 0.45f)) / GazeOff, 0.f, 1.f) : 1.f;
+			const FQuat HeadTurn = FQuat::Slerp(BodyEye.GetRotation(), Eye.GetRotation(), HeadPart);
+			BodyEye.SetLocation(Eye.GetLocation() - HeadTurn.RotateVector(EyeOnNeck) + BodyEye.GetRotation().RotateVector(EyeOnNeck));
 		}
 		Arms->FreeChest = Arms->ChestForEye(BodyEye);
+		if (WakeOnce(TEXT("lyingview"), 8.5f, w))
+		{
+			// (which parts of the arms are in front of the eyes while lying: their angle off the gaze and distance)
+			const FVector Ep = Eye.GetLocation(), Gz = Eye.GetRotation().GetAxisX();
+			for (const TCHAR* B : {TEXT("upperarm_l"), TEXT("lowerarm_l"), TEXT("hand_l"), TEXT("upperarm_r"), TEXT("lowerarm_r"), TEXT("hand_r")})
+			{
+				const FVector D = Arms->BoneCar(B) - Ep;
+				UE_LOG(LogTemp, Display, TEXT("WakeLyingView %s %.0f deg off the gaze, %.0f cm away"), B,
+					FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(D.GetSafeNormal(), Gz), -1.f, 1.f))), D.Size());
+			}
+		}
+		if (WakeOnce(TEXT("eyechest"), 6.0f, w) || WakeOnce(TEXT("eyechest2"), 5.3f, w))
+		{
+			// where the eye is from the chest: ahead of the breastbone (the chest's front is ~12 cm ahead of spine_05)
+			const FVector Ch = Arms->BoneCar(TEXT("spine_05")), Nk = Arms->BoneCar(TEXT("neck_01"));
+			const FVector Fw = BodyEye.GetRotation().GetAxisX(), Up = BodyEye.GetRotation().GetAxisZ();
+			UE_LOG(LogTemp, Display, TEXT("WakeEyeChest the eye %.1f cm ahead of spine_05, %.1f above it; %.1f ahead of the neck's base, %.1f above it"),
+				FVector::DotProduct(Eye.GetLocation() - Ch, Fw), FVector::DotProduct(Eye.GetLocation() - Ch, Up),
+				FVector::DotProduct(Eye.GetLocation() - Nk, Fw), FVector::DotProduct(Eye.GetLocation() - Nk, Up));
+		}
 	}
 
 	// ---- the flashlight: held in front of the chest, its beam along the eyes, swaying a little behind them -----------------
@@ -657,70 +1074,137 @@ void AEndingDirector::WakeBeats(float RealDt)
 	{
 		ADriverArms::FFreeHand& L = Arms->Free[0];
 		ADriverArms::FFreeHand& R = Arms->Free[1];
+		L.Pole = R.Pole = FVector::ZeroVector;    // (each beat sets its own elbow way, if it needs one)
 		const FVector Fwd(1.f, 0.f, 0.f);
 		// the left hand: braced flat on the lining ahead of the head (hanging); then, propped on the elbow, flat beside it
-		const FTransform LBrace = Arms->HandAtPalm(0, FVector(28.f, -18.f, Zf), FVector(1.f, 0.15f, 0.f), Ceil);
+		const FTransform LBrace = Arms->HandAtPalm(0, FVector(26.f, -20.f, Zf), FVector(1.f, 0.1f, 0.f), Ceil);
 		// (right way up in the upturned car its +Y is on the body's left: facing the spill (+X, +Y), the left is toward -X, +Y)
 		const FTransform LProp = Arms->HandAtPalm(0, FVector(-6.f, 28.f, Zf), FVector(0.6f, 0.8f, 0.f), Down);
-		// the right hand: down past the hip to the buckle (beside the right hip, on the tunnel's side of the seat)
-		const float Press = 1.4f * (WRamp(w, 5.0f, 5.06f) * (1.f - WRamp(w, 5.14f, 5.3f)) + WRamp(w, 5.85f, 5.91f) * (1.f - WRamp(w, 5.99f, 6.15f)) +
-			WRamp(w, 7.0f, 7.06f));
-		const FTransform RBuckle = Arms->HandAtPalm(1, FVector(-12.f, 21.f, 60.f) - Ceil * Press, FVector(0.f, 0.2f, -1.f), FVector(0.f, 1.f, 0.f));
 		// the flashlight as it lies, and the hand above it (open), then on it (closed)
 		const FTransform RGrab = Arms->HandOnHandle(1, FlashRest);
 		FTransform RAbove = RGrab;
-		RAbove.AddToTranslation(WUp * 7.f);
-		if (w < 7.15f)
+		RAbove.AddToTranslation(WUp * 5.f);
+		// hanging limp: both arms hang down onto the roof, the knuckles resting on it, swinging a little with the body
+		const float Sw = FMath::Sin(2.f * PI * w / 2.7f) * 1.5f;
+		const FTransform LHang = Arms->HandAtPalm(0, FVector(16.f, -25.f + Sw, Zf - 4.f), FVector(0.25f, -0.1f, 1.f), FVector(-0.9f, 0.3f, -0.3f));
+		const FTransform RHang = Arms->HandAtPalm(1, FVector(10.f, 25.f + Sw, Zf - 4.f), FVector(0.25f, 0.1f, 1.f), FVector(-0.9f, -0.3f, -0.3f));
+		// lying: the left hand on the lining in front of the face
+		const FTransform LLie = Arms->HandAtPalm(0, FVector(16.f, 20.f, Zf), FVector(0.85f, 0.5f, 0.f), Down);
+		// lying: the right hand fallen onto the lining in front of the chest, palm down, the fingers toward the spill
+		const FTransform RRest = Arms->HandAtPalm(1, FVector(-12.f, 26.f, Zf), FVector(0.55f, 0.83f, 0.f), Down);   // (below the eyes' line)
+		// (a reach's speed: slow away, fast in the middle, slowing onto the target: minimum jerk)
+		auto MinJerk = [](float t, float a, float b)
 		{
-			L.W = WRamp(w, 3.0f, 4.1f);
-			L.Hand = LBrace;
-			L.Shape = 0;
-			L.Close = WRamp(w, 3.6f, 4.1f);
-			// (pushing up off the roof: the arm straightening, the palm stays)
-			R.W = WRamp(w, 3.5f, 4.7f);
-			R.Hand = RBuckle;
-			R.Shape = 3;
-			R.Close = WRamp(w, 4.3f, 4.9f);
+			const float u = FMath::Clamp((t - a) / FMath::Max(b - a, 1e-4f), 0.f, 1.f);
+			return u * u * u * (10.f + u * (-15.f + 6.f * u));
+		};
+		const float Settle = 1.f - FMath::Exp(-RealDt * 9.f);
+		R.Open = 0.f;
+		if (w < 7.0f)
+		{
+			// the left hand: from hanging to braced flat on the lining (fingers spread, pressing), the arm straightening as it
+			// pushes the body up off the belt
+			const float b = WRamp(w, 3.55f, 4.3f);
+			L.W = 1.f;
+			L.Hand.SetLocation(FMath::Lerp(LHang.GetLocation(), LBrace.GetLocation(), b) + WUp * 5.f * FMath::Sin(PI * b));
+			L.Hand.SetRotation(FQuat::Slerp(LHang.GetRotation(), LBrace.GetRotation(), b));
+			L.Shape = b < 0.5f ? 1 : 0;
+			L.Close = b < 0.5f ? 1.f : WRamp(w, 3.9f, 4.3f);
+			// the right hand: up from hanging to the buckle by the hip; the thumb on the button, jabbing (twice, nothing), then
+			// pressing as the body comes off the belt: it lets go
+			const float r = WRamp(w, 4.5f, 5.35f);
+			const FVector BX = BuckleAt.GetRotation().GetAxisX(), BZ = BuckleAt.GetRotation().GetAxisZ();
+			// (two hard presses that fail, the hand straining on the second, then the press that holds as the body comes up)
+			const float Jab = 1.4f * (WRamp(w, 5.6f, 5.66f) * (1.f - WRamp(w, 5.74f, 5.9f)) + WRamp(w, 6.15f, 6.2f) * (1.f - WRamp(w, 6.3f, 6.45f)) +
+				WRamp(w, 6.95f, 7.0f)) + 0.25f * FMath::Sin(w * 47.f) * WRamp(w, 6.1f, 6.2f) * (1.f - WRamp(w, 6.4f, 6.5f));
+			const FTransform RB = Arms->HandAtPalm(1, BucklePt - BX * 3.f + BZ * 3.f - BZ * Jab, -BX, -BZ);
+			R.W = 1.f;
+			R.Hand.SetLocation(FMath::Lerp(RHang.GetLocation(), RB.GetLocation(), r) + FVector(0.f, 0.f, -6.f) * FMath::Sin(PI * r));
+			R.Hand.SetRotation(FQuat::Slerp(RHang.GetRotation(), RB.GetRotation(), r));
+			R.Shape = r < 0.6f ? 1 : 3;
+			R.Close = r < 0.6f ? 1.f : WRamp(w, 4.95f, 5.35f);
+			// (reaching down to the hip the elbow goes back and out, beside the body, not across the eyes' line to the buckle)
+			R.Pole = r > 0.05f ? FVector(-0.75f, 0.65f, 0.f) : FVector::ZeroVector;
 		}
 		else if (w < 9.6f)
 		{
-			// the drop: the hands thrown off, then the left hand finds the lining
-			L.W = 1.f - WRamp(w, 7.15f, 7.4f) + WRamp(w, 8.2f, 9.4f);
-			L.Hand = w < 8.f ? LBrace : LProp;
+			// the drop: the left arm gives under the body and the hand slaps down in front of the face; the right flung loose
+			L.W = 1.f;
+			const float d = WRamp(w, 7.05f, 7.4f);
+			L.Hand.SetLocation(FMath::Lerp(LBrace.GetLocation(), LLie.GetLocation(), d) + Down * -6.f * FMath::Sin(PI * d));
+			L.Hand.SetRotation(FQuat::Slerp(LBrace.GetRotation(), LLie.GetRotation(), d));
 			L.Shape = 0;
 			L.Close = 1.f;
-			R.W = 1.f - WRamp(w, 7.12f, 7.35f);
+			// the right hand flung off the buckle as the body drops, landing on the lining in front of the chest and lying there
+			R.W = 1.f;
+			R.Hand.SetLocation(FMath::Lerp(R.Hand.GetLocation(), RRest.GetLocation(), Settle));
+			R.Hand.SetRotation(FQuat::Slerp(R.Hand.GetRotation(), RRest.GetRotation(), Settle));
 			R.Shape = 1;
+			R.Close = 1.f;
+			R.Pole = WUp + FVector(-0.4f, 0.f, 0.f);      // (lying on the left side: the top arm's elbow up and back over the body)
+			if (w >= 9.2f)
+			{
+				// (on into pushing up onto the elbow)
+				const float e = WRamp(w, 9.2f, 9.6f);
+				L.Hand.SetLocation(FMath::Lerp(LLie.GetLocation(), LProp.GetLocation(), e));
+				L.Hand.SetRotation(FQuat::Slerp(LLie.GetRotation(), LProp.GetRotation(), e));
+			}
 		}
 		else if (w < 19.0f)
 		{
 			L.W = 1.f;
 			L.Hand = LProp;
 			L.Shape = 0;
-			// the right hand: out to the flashlight (open), down onto it (closing), up with it to hold it in front
-			if (w < 12.5f)
+			// the right hand, from footage of a hand picking a flashlight up off a table: it lifts off and travels in a low
+			// arc (slow away, fast, slowing in), the fingers opening out wider than the flashlight on the way; it comes down
+			// onto it from just above, the fingers close round its sides (the tips meeting the lining beside it), and as it
+			// lifts they close the rest of the way under it and it settles into the grip
+			if (w < 12.3f)
 			{
-				R.W = WRamp(w, 10.6f, 11.9f);
-				const float down = WRamp(w, 11.9f, 12.35f);
-				R.Hand.SetLocation(FMath::Lerp(RAbove.GetLocation(), RGrab.GetLocation(), down));
-				R.Hand.SetRotation(RGrab.GetRotation());
+				R.W = 1.f;
 				R.Shape = 2;
-				R.Close = 0.15f + 0.85f * WRamp(w, 12.1f, 12.5f);
+				R.Pole = (WUp + FVector(-0.4f, 0.f, 0.f)).GetSafeNormal() * (1.f - WRamp(w, 10.6f, 11.6f));   // (from up and back over the body, easing round to reaching)
+				if (w < 10.6f)
+				{
+					R.Hand.SetLocation(FMath::Lerp(R.Hand.GetLocation(), RRest.GetLocation(), Settle));
+					R.Hand.SetRotation(FQuat::Slerp(R.Hand.GetRotation(), RRest.GetRotation(), Settle));
+					R.Close = 0.f;
+				}
+				else if (w < 11.75f)
+				{
+					const float s = MinJerk(w, 10.6f, 11.75f);
+					const FVector P0 = RRest.GetLocation(), P2 = RAbove.GetLocation(), P1 = (P0 + P2) * 0.5f + WUp * 6.f;
+					R.Hand.SetLocation(FMath::Lerp(FMath::Lerp(P0, P1, s), FMath::Lerp(P1, P2, s), s));
+					R.Hand.SetRotation(FQuat::Slerp(RRest.GetRotation(), RGrab.GetRotation(), FMath::Min(1.f, s * 1.15f)));
+					R.Close = 0.f;
+				}
+				else
+				{
+					const float d = MinJerk(w, 11.75f, 12.15f);
+					R.Hand.SetLocation(FMath::Lerp(RAbove.GetLocation(), RGrab.GetLocation(), d));
+					R.Hand.SetRotation(RGrab.GetRotation());
+					R.Close = 0.55f * WRamp(w, 12.0f, 12.3f);
+				}
+				R.Open = WKeys(w, {FVector2D(10.7f, 0.f), FVector2D(11.3f, 1.f), FVector2D(11.95f, 1.f), FVector2D(12.25f, 0.f)});
 			}
 			else
 			{
 				if (!bFlashHeld)
 				{
+					// (the flashlight stays exactly where it lay as the fingers take it: held as it is in the hand, then
+					// settling into the full grip as they close)
 					bFlashHeld = true;
-					HoldAim = Arms->HandleInHand(1);
+					FlashGrabW = w;
+					FlashInHandAtGrab = FlashRest * Arms->HandNow(1).Inverse();
+					HoldAim = FlashRest;
 					Event(TEXT("grab"));
 				}
 				R.W = 1.f;
 				R.Shape = 2;
-				R.Close = 1.f;
+				R.Close = 0.55f + 0.45f * WRamp(w, 12.3f, 12.55f);
 				const FTransform Held = Arms->HandOnHandle(1, HoldAim);
-				const float up = WRamp(w, 12.5f, 13.3f);
-				R.Hand.SetLocation(FMath::Lerp(RGrab.GetLocation(), Held.GetLocation(), up));
+				const float up = MinJerk(w, 12.3f, 13.2f);
+				R.Hand.SetLocation(FMath::Lerp(RGrab.GetLocation(), Held.GetLocation(), up) + WUp * 4.f * FMath::Sin(PI * up));
 				R.Hand.SetRotation(FQuat::Slerp(RGrab.GetRotation(), Held.GetRotation(), up));
 			}
 		}
@@ -814,15 +1298,29 @@ void AEndingDirector::WakeBeats(float RealDt)
 			const FVector Lp = Arms->PalmNow(0, &Lf);
 			const FVector Hn = Arms->HandNow(1).GetLocation();
 			const float BeamOff = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(Arms->HandleInHand(1).GetRotation().GetAxisX(), Eye.GetRotation().GetAxisX()), -1.f, 1.f)));
-			UE_LOG(LogTemp, Display, TEXT("WakeLog %.1f eye %s | left palm %s (%.1f cm off the lining, facing %s) w %.2f | right hand %.1f cm off its target, w %.2f shape %d | the light %.0f deg off the eyes' line"),
-				w, *Eye.GetLocation().ToString(), *Lp.ToString(), Zf - Lp.Z, *Lf.ToString(), L.W, FVector::Dist(Hn, R.Hand.GetLocation()), R.W, (int32)R.Shape, BeamOff);
+			UE_LOG(LogTemp, Display, TEXT("WakeLog %.1f eye %s | left palm %s (%.1f cm off the lining, facing %s) w %.2f | right hand %.1f cm off its target, w %.2f shape %d | the light %.0f deg off the eyes' line | through the lining: left %.1f->%.1f (%s), right %.1f->%.1f (%s) cm | right hand at %s, forearm at %s"),
+				w, *Eye.GetLocation().ToString(), *Lp.ToString(), Zf - Lp.Z, *Lf.ToString(), L.W, FVector::Dist(Hn, R.Hand.GetLocation()), R.W, (int32)R.Shape, BeamOff,
+				Arms->FloorDepthIn[0], Arms->FloorDepthOut[0], *Arms->FloorWorst[0].ToString(), Arms->FloorDepthIn[1], Arms->FloorDepthOut[1], *Arms->FloorWorst[1].ToString(),
+				*Arms->BoneCar(TEXT("hand_r")).ToString(), *Arms->BoneCar(TEXT("lowerarm_r")).ToString());
+		}
+		if (Arms->FloorDepthOut[0] > 0.1f || Arms->FloorDepthOut[1] > 0.1f)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("WakeClip %.2f a hand still %.1f / %.1f cm through the lining after the guard"), w, Arms->FloorDepthOut[0], Arms->FloorDepthOut[1]);
 		}
 	}
 
 	// ---- the flashlight itself: lying, then in the hand; its switch, the flicker, the beam ------------------------------
 	if (Flashlight)
 	{
-		const FTransform Fl = bFlashHeld && Arms ? Arms->HandleInHand(1) : FlashRest;
+		FTransform Fl = FlashRest;
+		if (bFlashHeld && Arms)
+		{
+			const FTransform HandIs = Arms->HandNow(1);
+			const FTransform Gripped = Arms->HandleInHand(1) * HandIs.Inverse();
+			FTransform InHand;
+			InHand.Blend(FlashInHandAtGrab, Gripped, WRamp(w, FlashGrabW, FlashGrabW + 0.35f));
+			Fl = InHand * HandIs;
+		}
 		Flashlight->GetRootComponent()->SetRelativeTransform(Fl);
 		if (WakeOnce(TEXT("click"), 13.35f, w))
 		{
@@ -844,12 +1342,69 @@ void AEndingDirector::WakeBeats(float RealDt)
 		WakeOnce(TEXT("beam"), 13.98f, w);
 	}
 
-	// ---- the blood: dripping from the cut while hanging (falling past the eyes onto the lining) ---------------------------
-	if (Blood && w > 1.0f && w < 7.1f && w >= WakeNextDrip)
+	// ---- the belt and its buckle -------------------------------------------------------------------------------------------
 	{
-		WakeNextDrip = w + FMath::FRandRange(0.7f, 1.4f);
-		const FVector From = CT.TransformPosition(Eye.TransformPosition(FVector(4.f, 1.5f, 9.5f)));
-		Blood->Drip(From, 0.45f);
+		// (the buckle's own frame: X up its stalk to the slot, leaning toward the lap; Z, its button's face, toward the eyes)
+		const FVector BX = FVector(0.3f, -0.25f, 0.92f).GetSafeNormal();
+		FVector BZ = (Hang - BucklePt).GetSafeNormal();
+		BZ = (BZ - BX * FVector::DotProduct(BZ, BX)).GetSafeNormal();
+		if (w < 7.0f || BuckleAt.Equals(FTransform::Identity))
+		{
+			BuckleAt = FTransform(FRotationMatrix::MakeFromXZ(BX, BZ).ToQuat(), BucklePt);
+		}
+		WakeBelt(w, RealDt);
+	}
+
+	// ---- the blood: dripping from the cut in the hairline while hanging, falling past the eyes onto the lining; then from the
+	// temple, lying, beside the eye --------------------------------------------------------------------------------------------
+	if (Blood && ((w > 0.8f && w < 7.0f) || (w > 7.8f && w < 10.f)) && w >= WakeNextDrip)
+	{
+		const bool bLying = w > 7.8f;
+		WakeNextDrip = w + (bLying ? FMath::FRandRange(0.9f, 1.6f) : FMath::FRandRange(0.45f, 0.85f));
+		const FVector From = CT.TransformPosition(bLying ? Eye.GetLocation() + FVector(4.f, 2.f, 5.f) : Eye.TransformPosition(FVector(4.f, 1.5f, 9.5f)));
+		Blood->Drip(From, bLying ? 0.55f : FMath::FRandRange(0.6f, 0.8f));
+	}
+
+	// ---- the glass kicked up as the body lands -----------------------------------------------------------------------------
+	if (WakeOnce(TEXT("crumbs"), 7.38f, w))
+	{
+		FRandomStream Rc(77);
+		for (int32 i = 0; i < 28; ++i)
+		{
+			FCrumb C;
+			C.P = FVector(-2.f + Rc.FRandRange(-10.f, 10.f), 4.f + Rc.FRandRange(-10.f, 10.f), Zf - 0.5f);
+			const float A = Rc.FRandRange(0.f, 2.f * PI);
+			C.V = FVector(FMath::Cos(A), FMath::Sin(A), 0.f) * Rc.FRandRange(40.f, 140.f) + WUp * Rc.FRandRange(40.f, 110.f);
+			C.R = FQuat(FVector(Rc.FRand(), Rc.FRand(), Rc.FRand()).GetSafeNormal(), Rc.FRandRange(0.f, 6.f));
+			C.S = Rc.FRandRange(0.55f, 0.85f);
+			C.bRest = false;
+			Crumbs.Add(C);
+		}
+	}
+	if (CrumbIsm && Crumbs.Num() > 0)
+	{
+		CrumbIsm->ClearInstances();
+		for (FCrumb& C : Crumbs)
+		{
+			if (!C.bRest)
+			{
+				C.V += Down * 980.f * RealDt;
+				C.V *= FMath::Exp(-1.2f * RealDt);
+				C.P += C.V * RealDt;
+				C.R = FQuat(FVector(0.3f, 0.8f, 0.2f).GetSafeNormal(), 12.f * RealDt) * C.R;
+				const float Floor = Zf - C.S * 0.33f;
+				if (C.P.Z >= Floor)
+				{
+					C.P.Z = Floor;
+					if (C.V.Size() < 60.f)
+					{
+						C.bRest = true;
+					}
+					C.V = FVector(C.V.X * 0.35f, C.V.Y * 0.35f, -FMath::Abs(C.V.Z) * 0.25f);
+				}
+			}
+			CrumbIsm->AddInstance(FTransform(C.R, C.P, FVector(C.S)));
+		}
 	}
 
 	// ---- the scare: the thump, the snow sliding off past the rear window ---------------------------------------------------
@@ -886,8 +1441,8 @@ void AEndingDirector::WakeBeats(float RealDt)
 
 	// ---- the rest of what is heard (the sound is mixed from these) ----------------------------------------------------
 	WakeOnce(TEXT("brace"), 3.9f, w);
-	WakeOnce(TEXT("press1"), 5.0f, w);
-	WakeOnce(TEXT("stuck"), 5.85f, w);
+	WakeOnce(TEXT("press1"), 5.6f, w);
+	WakeOnce(TEXT("stuck"), 6.15f, w);
 	WakeOnce(TEXT("push"), 6.4f, w);
 	WakeOnce(TEXT("release"), 7.02f, w);
 	WakeOnce(TEXT("land"), 7.42f, w);
@@ -927,7 +1482,176 @@ void AEndingDirector::WakeBeats(float RealDt)
 		{
 			Want = FMath::Max(H.Distance, 8.f);
 		}
+		if (Arms && Arms->IsReady())
+		{
+			const FVector E = Eye.GetLocation();
+			if (w >= 2.0f && w < 3.2f)
+			{
+				Want = 900.f;                                                          // (out of the window: the slope, the trees)
+			}
+			else if (w >= 3.4f && w < 4.6f)
+			{
+				Want = FVector::Dist(E, Arms->PalmNow(0));                            // (the braced hand)
+			}
+			else if (w >= 4.6f && w < 7.1f)
+			{
+				Want = FVector::Dist(E, BucklePt);                                    // (the buckle)
+			}
+			else if (w >= 7.45f && w < 9.4f)
+			{
+				Want = 16.f;                                                           // (the glass by the eye)
+			}
+		}
 		SetFocus(FMath::Lerp(FocusCm, Want, 1.f - FMath::Exp(-RealDt * 6.f)));
+		// (the struggle with the buckle pressed in on: the view narrows on the hand, then lets go on the release)
+		if (CamComp)
+		{
+			const float Push = WRamp(w, 5.3f, 5.9f) * (1.f - WRamp(w, 7.0f, 7.2f));
+			CamComp->SetFieldOfView(BaseFov * (1.f - 0.28f * Push));
+		}
 		WakeBreath(w, RealDt, FTransform(CT.TransformRotation(Eye.GetRotation()), Ew));
 	}
+}
+
+void AEndingDirector::WakeBelt(float w, float RealDt)
+{
+	// The three-point belt as the body hangs in it: from the ring on the pillar behind the left shoulder, over the shoulder,
+	// diagonally across the chest to the latch in the buckle by the right hip; and back across the lap to its anchor by the
+	// left hip. Laid as lengths of webbing along a smooth path a little off the body's surface (car frame: seated, forward
+	// +X, right +Y, up +Z). When it lets go, the latch pops out of the buckle and the retractor reels it back up toward the
+	// pillar, the lap belt falling slack after it.
+	if (BeltStraps.Num() == 0 || !Arms || !Arms->IsReady() || !Car)
+	{
+		return;
+	}
+	const FVector BX = BuckleAt.GetRotation().GetAxisX();
+	const FVector Slot = BuckleAt.GetLocation();
+	const FVector LatchTop = Slot + BX * 4.5f;
+	static FVector BodyA = FVector::ZeroVector, BodyB = FVector::ZeroVector;
+	if (w < 7.0f || BeltShoulder.Num() == 0)
+	{
+		const FVector Fwd(1.f, 0.f, 0.f), Rt(0.f, 1.f, 0.f), Up(0.f, 0.f, 1.f);
+		const FVector Pel = Arms->BoneCar(TEXT("pelvis")), Sp3 = Arms->BoneCar(TEXT("spine_03")), Sp5 = Arms->BoneCar(TEXT("spine_05"));
+		const FVector ShL = (Arms->BoneCar(TEXT("clavicle_l")) + Arms->BoneCar(TEXT("upperarm_l"))) * 0.5f;
+		const FVector Ring(-44.f, -31.f, 108.f);
+		BeltShoulder = {Ring, ShL + Up * 7.f - Fwd * 4.f, ShL + Up * 3.f + Fwd * 8.f + Rt * 3.f, Sp5 + Fwd * 12.f + Rt * 2.f,
+			Sp3 + Fwd * 13.5f + Rt * 9.f, LatchTop};
+		BeltLap = {FVector(-16.f, -31.f, 42.f), Pel - Rt * 19.f + Fwd * 3.f - Up * 5.f, Pel - Rt * 8.f + Fwd * 12.f - Up * 2.f,
+			Pel + Rt * 6.f + Fwd * 12.f - Up * 2.f, LatchTop};
+		BodyA = Pel - Fwd * 2.f;
+		BodyB = Sp5 - Fwd * 2.f;
+	}
+	// the release: how far the latch has been reeled back along the shoulder belt
+	const float t = w - 7.0f;
+	const float Reel = t <= 0.f ? 0.f : 0.72f * WSmooth(t / 0.45f);
+	auto Along = [](const TArray<FVector>& Pts, float Frac)
+	{
+		float Total = 0.f;
+		for (int32 i = 1; i < Pts.Num(); ++i)
+		{
+			Total += FVector::Dist(Pts[i - 1], Pts[i]);
+		}
+		float Want = Total * FMath::Clamp(Frac, 0.f, 1.f), Acc = 0.f;
+		for (int32 i = 1; i < Pts.Num(); ++i)
+		{
+			const float L = FVector::Dist(Pts[i - 1], Pts[i]);
+			if (Acc + L >= Want)
+			{
+				return FMath::Lerp(Pts[i - 1], Pts[i], (Want - Acc) / FMath::Max(L, 1e-3f));
+			}
+			Acc += L;
+		}
+		return Pts.Last();
+	};
+	TArray<FVector> Sh = BeltShoulder, Lap = BeltLap;
+	FVector LatchAt = LatchTop;
+	if (Reel > 0.f)
+	{
+		LatchAt = Along(BeltShoulder, 1.f - Reel);
+		// (the shoulder belt: from the ring to where the latch now is)
+		TArray<FVector> S2;
+		float Acc = 0.f, Total = 0.f;
+		for (int32 i = 1; i < BeltShoulder.Num(); ++i)
+		{
+			Total += FVector::Dist(BeltShoulder[i - 1], BeltShoulder[i]);
+		}
+		S2.Add(BeltShoulder[0]);
+		for (int32 i = 1; i < BeltShoulder.Num(); ++i)
+		{
+			Acc += FVector::Dist(BeltShoulder[i - 1], BeltShoulder[i]);
+			if (Acc >= Total * (1.f - Reel))
+			{
+				break;
+			}
+			S2.Add(BeltShoulder[i]);
+		}
+		S2.Add(LatchAt);
+		Sh = S2;
+		// (the lap belt: from its anchor to the latch, falling slack toward the roof)
+		const FVector A = BeltLap[0];
+		const float k = WSmooth(t / 0.5f);
+		for (int32 i = 1; i + 1 < Lap.Num(); ++i)
+		{
+			const float u = (float)i / (float)(Lap.Num() - 1);
+			const FVector Slack = FMath::Lerp(A, LatchAt, u) + FVector(0.f, 0.f, 1.f) * 14.f * FMath::Sin(PI * u);
+			Lap[i] = FMath::Lerp(BeltLap[i], Slack, k);
+		}
+		Lap.Last() = LatchAt;
+	}
+	// lay the webbing along each path (a Catmull-Rom curve through it, in lengths of about 4 cm)
+	int32 Used = 0;
+	auto Lay = [&](const TArray<FVector>& Pts)
+	{
+		TArray<FVector> Dense;
+		for (int32 i = 0; i + 1 < Pts.Num(); ++i)
+		{
+			const FVector P0 = Pts[FMath::Max(i - 1, 0)], P1 = Pts[i], P2 = Pts[i + 1], P3 = Pts[FMath::Min(i + 2, Pts.Num() - 1)];
+			const int32 N = FMath::Max(1, FMath::CeilToInt(FVector::Dist(P1, P2) / 4.f));
+			for (int32 j = 0; j < N; ++j)
+			{
+				const float u = (float)j / N, u2 = u * u, u3 = u2 * u;
+				Dense.Add(0.5f * ((2.f * P1) + (-P0 + P2) * u + (2.f * P0 - 5.f * P1 + 4.f * P2 - P3) * u2 + (-P0 + 3.f * P1 - 3.f * P2 + P3) * u3));
+			}
+		}
+		Dense.Add(Pts.Last());
+		for (int32 i = 0; i + 1 < Dense.Num() && Used < BeltStraps.Num(); ++i)
+		{
+			const FVector D = Dense[i + 1] - Dense[i];
+			const float L = D.Size();
+			if (L < 0.2f)
+			{
+				continue;
+			}
+			const FVector Dir = D / L;
+			const FVector Mid = (Dense[i] + Dense[i + 1]) * 0.5f;
+			FVector N = Mid - FMath::ClosestPointOnSegment(Mid, BodyA, BodyB);
+			N = (N - Dir * FVector::DotProduct(N, Dir)).GetSafeNormal();
+			if (N.IsNearlyZero())
+			{
+				N = FVector(0.f, 0.f, 1.f);
+			}
+			UStaticMeshComponent* C = BeltStraps[Used++];
+			C->SetRelativeTransform(FTransform(FRotationMatrix::MakeFromXZ(Dir, N).ToQuat(), Dense[i], FVector(L / 10.f + 0.03f, 1.f, 1.f)));
+			C->SetVisibility(true);
+		}
+	};
+	Lay(Sh);
+	Lay(Lap);
+	for (int32 i = Used; i < BeltStraps.Num(); ++i)
+	{
+		BeltStraps[i]->SetVisibility(false);
+	}
+	if (BuckleActor)
+	{
+		BuckleActor->GetRootComponent()->SetRelativeTransform(FTransform(BuckleAt.GetRotation(), Slot - BX * 7.5f));
+	}
+	if (LatchActor)
+	{
+		// (in the slot, its tongue down into the buckle; then out, trailing the belt as it is reeled away)
+		const FVector Tail = Sh.Num() >= 2 ? (Sh.Last() - Sh[Sh.Num() - 2]).GetSafeNormal() : BX;
+		const FVector X = Reel > 0.f ? FMath::Lerp(-BX, Tail, WSmooth(t / 0.15f)).GetSafeNormal() : -BX;
+		const FVector At = Reel > 0.f ? LatchAt - X * 4.5f : Slot;
+		LatchActor->GetRootComponent()->SetRelativeTransform(FTransform(FRotationMatrix::MakeFromXZ(X, BuckleAt.GetRotation().GetAxisZ()).ToQuat(), At));
+	}
+	(void)RealDt;
 }

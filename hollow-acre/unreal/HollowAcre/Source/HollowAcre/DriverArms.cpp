@@ -4,6 +4,7 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Components/PoseableMeshComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine/StaticMesh.h"
@@ -52,6 +53,16 @@ ADriverArms::ADriverArms()
 	Mesh = CreateDefaultSubobject<UPoseableMeshComponent>(TEXT("Mesh"));
 	Mesh->SetupAttachment(RootComponent);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Clothes = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Clothes"));
+	Clothes->SetupAttachment(Mesh);
+	Clothes->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	// the bounds are the reference pose's: an arm reaching far from it (down to the buckle) left them, and the skin was
+	// culled while the clothes still drew (an empty sleeve); a bigger box keeps both drawn
+	Mesh->SetBoundsScale(4.f);
+	Clothes->SetBoundsScale(4.f);
+	// (the blood and dirt decals on the lining project through everything in their box: not onto the body lying on them)
+	Mesh->SetReceivesDecals(false);
+	Clothes->SetReceivesDecals(false);
 
 	Left.Clock = -63.f;              // 10 o'clock, the left a little lower
 	Left.BackAngle = 52.f;
@@ -995,6 +1006,27 @@ void ADriverArms::BeginPlay()
 	if (Body)
 	{
 		Mesh->SetSkinnedAssetAndUpdate(Body);
+		// the clothes over it, following its every bone
+		Clothes->SetSkeletalMeshAsset(Body);
+		Clothes->SetLeaderPoseComponent(Mesh);
+		if (UMaterialInterface* Cloth = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Materials/Blockout/M_DriverClothes.M_DriverClothes")))
+		{
+			ClothesMID = UMaterialInstanceDynamic::Create(Cloth, this);
+			for (int32 i = 0; i < Clothes->GetNumMaterials(); ++i)
+			{
+				Clothes->SetMaterial(i, ClothesMID);
+			}
+		}
+		UE_LOG(LogTemp, Display, TEXT("DriverArms: dressed (%s)"), ClothesMID ? TEXT("flannel shirt, jeans, boots; bare hands") : TEXT("no clothes material"));
+		// (checking: -wakenoclothes / -wakenoskin draw only one of the two layers)
+		if (FParse::Param(FCommandLine::Get(), TEXT("wakenoclothes")))
+		{
+			Clothes->SetVisibility(false);
+		}
+		if (FParse::Param(FCommandLine::Get(), TEXT("wakenoskin")))
+		{
+			Mesh->SetVisibility(false, false);
+		}
 	}
 	LoadCabin();
 	GatherSkin();
@@ -1026,13 +1058,16 @@ void ADriverArms::Tick(float DeltaSeconds)
 		LastSteer = 1e9f;
 		MakeShapes();
 	}
-	MakeKey();
-	if (KeyPivot)
+	if (!bKeysLeft)
+	{
+		MakeKey();
+	}
+	if (KeyPivot && !bKeysLeft)
 	{
 		// the key turned in its lock
 		KeyPivot->SetRelativeRotation(FQuat(KeyAxis.GetSafeNormal(), -FMath::DegreesToRadians(KeyTurn)) * KeyBase);
 	}
-	if (KeyDangle)
+	if (KeyDangle && !bKeysLeft)
 	{
 		// the bunch on its ring, hanging from the key's head: a pendulum in the car's frame (gravity, less the car's own
 		// jolts and braking), swinging as the key is turned; kept off the dash behind it

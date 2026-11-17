@@ -443,10 +443,37 @@ private:
 	FTransform FlashRest = FTransform::Identity;   // (car frame) where it lies in the spill
 	FTransform BodyEye = FTransform::Identity;      // (car frame) the eye's frame the chest hangs under (lags the head)
 	FTransform HoldAim = FTransform::Identity;       // (car frame) the flashlight's held frame, swaying behind the eyes
-	bool bFlashHeld = false, bBodyEye = false;
+	bool bFlashHeld = false, bBodyEye = false, bWakeHandedOver = false;
+	FTransform FlashInHandAtGrab = FTransform::Identity;   // the flashlight in the hand's frame as the fingers first closed on it
+	float FlashGrabW = 0.f;
 	float WakeGroundZ = 141.f;                       // (car frame) the snow's height beside the car
 	TSet<FName> WakeFired;
 	bool WakeOnce(const TCHAR* Kind, float At, float w);
+	// the seatbelt: the shoulder belt from the pillar's ring over the left shoulder and across the chest, the lap belt across
+	// the hips, both to the latch in the buckle at the right hip; webbing laid in short lengths along the body
+	void WakeBelt(float w, float RealDt);
+	UPROPERTY()
+	TArray<TObjectPtr<class UStaticMeshComponent>> BeltStraps;
+	UPROPERTY()
+	TObjectPtr<class AStaticMeshActor> BuckleActor;
+	UPROPERTY()
+	TObjectPtr<class AStaticMeshActor> LatchActor;
+	TArray<FVector> BeltShoulder, BeltLap;     // (car frame) as it was when it let go
+	FTransform BuckleAt = FTransform::Identity;
+	// glass kicked across the lining by the fall
+	struct FCrumb
+	{
+		FVector P, V;
+		FQuat R;
+		float S;
+		bool bRest;
+	};
+	TArray<FCrumb> Crumbs;
+	UPROPERTY()
+	TObjectPtr<class UInstancedStaticMeshComponent> CrumbIsm;
+	UPROPERTY()
+	TObjectPtr<class USpotLightComponent> MoonShaft;
+	float WakeShake = 0.f;
 
 	// the rebuilt cut (EndingCrashBeats.cpp)
 	void BeginCrashScene();

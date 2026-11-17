@@ -57,7 +57,7 @@ void AEndingHUD::DrawHUD()
 		Canvas->SetDrawColor(FLinearColor(0.92f, 0.92f, 0.9f, SaidAlpha * 0.95f).ToFColor(true));
 		float W = 0.f, H = 0.f;
 		Canvas->TextSize(Font, Said, W, H);
-		const float S = H > 0.f ? Canvas->ClipY * 0.03f / H : 1.f;
+		const float S = H > 0.f ? Canvas->ClipY * 0.045f / H : 1.f;   // (big enough to read at a glance)
 		const float Bar = FMath::Max(0.f, (Canvas->ClipY - Canvas->ClipX / 2.39f) * 0.5f);   // the letterbox bar's height
 		Canvas->DrawText(Font, Said, (Canvas->ClipX - W * S) * 0.5f, Canvas->ClipY - Bar * 0.5f - H * S * 0.5f, S, S, Info);
 	}

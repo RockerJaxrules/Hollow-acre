@@ -14,6 +14,10 @@ Each part's own frame (cm):
   Wake_Papers      a sheet folded in three (the registration), lying roughly flat, centred, about 10 x 21
   Wake_SnowSlab    a slab of packed snow that slides off the car's underside, about 46 x 30 x 14, centred
   Wake_SnowLump    a smaller lump that breaks off with it, about 16 across
+  Wake_Buckle      the seatbelt's buckle on its stalk, the red release button on +Z (X from the stalk to the slot)
+  Wake_Latch       the belt's latch plate: the tongue into the buckle along +X, the cover behind it
+  Wake_Strap       10 cm of the belt's webbing along X, 4.8 wide
+  Wake_Pebble0..3  crumbs of the side windows' tempered glass, about 1 cm (scaled down to 6-9 mm as they lie)
 
 Run: blender -b --factory-startup --python make_wake_props.py -- <out dir>"""
 import math
@@ -267,10 +271,65 @@ def snow(name, size, seed, rough=0.3):
     return ob
 
 
+def buckle():
+    """The seatbelt's buckle (a common car receiver, about 7.5 x 3.5 x 2.8 cm): a black plastic body on a short stiff
+    stalk from the seat's side, the tongue's slot at its top end, the red release button on its face by the slot.
+    X from the stalk (0) to the slot (7.5); the button on +Z."""
+    body = rounded_box('bk_body', (7.5, 3.5, 2.8), 0.45, 'plastic', at=(3.75, 0.0, 0.0), segs=3)
+    slot = rounded_box('bk_slot', (0.6, 2.4, 0.5), 0.1, 'dark', at=(7.32, 0.0, 0.0), segs=1)
+    btn = rounded_box('bk_button', (2.0, 2.3, 0.45), 0.18, 'button', at=(6.0, 0.0, 1.45), segs=2)
+    stalk = rounded_box('bk_stalk', (9.0, 2.6, 1.1), 0.35, 'plastic', at=(-4.3, 0.0, 0.0), segs=2)
+    ob = join('Wake_Buckle', [body, slot, btn, stalk])
+    smooth(ob, 40.0)
+    box_uv(ob, 6.0)
+    return ob
+
+
+def latch():
+    """The belt's latch plate: the steel tongue (X 0 to 3, into the buckle along +X) and its plastic cover with the slot the
+    webbing loops through (X -4.5 to 0)."""
+    tongue = rounded_box('lt_tongue', (3.0, 2.2, 0.25), 0.08, 'steel', at=(1.5, 0.0, 0.0), segs=2)
+    cover = rounded_box('lt_cover', (4.5, 5.0, 1.0), 0.35, 'plastic', at=(-2.25, 0.0, 0.0), segs=3)
+    ob = join('Wake_Latch', [tongue, cover])
+    smooth(ob, 40.0)
+    box_uv(ob, 5.0)
+    return ob
+
+
+def strap():
+    """One length of seatbelt webbing, 10 cm along X (from X 0), 4.8 cm wide, 1.6 mm thick, its edges rounded: laid end to
+    end along the belt's path."""
+    ob = rounded_box('Wake_Strap', (10.0, 4.8, 0.16), 0.06, 'webbing', at=(5.0, 0.0, 0.0), segs=1)
+    box_uv(ob, 4.8)
+    return ob
+
+
+def pebble(name, seed):
+    """A crumb of tempered side glass (it breaks into small rough cubes, about 6-9 mm, edges chipped): a cube, its corners
+    pushed about a little, every edge rounded."""
+    random.seed(seed)
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1.0)
+    for v in bm.verts:
+        v.co = Vector((v.co.x * random.uniform(0.75, 1.15), v.co.y * random.uniform(0.75, 1.15), v.co.z * random.uniform(0.5, 0.75)))
+        v.co += Vector((random.uniform(-0.08, 0.08), random.uniform(-0.08, 0.08), random.uniform(-0.05, 0.05)))
+    ob = obj_from_bm(name, bm)
+    m = ob.modifiers.new('bevel', 'BEVEL')
+    m.width = 0.09
+    m.segments = 2
+    m.limit_method = 'NONE'
+    bpy.context.view_layer.objects.active = ob
+    bpy.ops.object.modifier_apply(modifier=m.name)
+    set_mat(ob, 'glass')
+    box_uv(ob, 1.0)
+    return ob
+
+
 def main():
     clear()
     os.makedirs(OUT, exist_ok=True)
-    made = [flashlight(), manual(), papers(), snow('Wake_SnowSlab', (46.0, 30.0, 14.0), 7), snow('Wake_SnowLump', (16.0, 14.0, 11.0), 11, 0.4)]
+    made = [flashlight(), manual(), papers(), snow('Wake_SnowSlab', (46.0, 30.0, 14.0), 7), snow('Wake_SnowLump', (16.0, 14.0, 11.0), 11, 0.4),
+            buckle(), latch(), strap()] + [pebble('Wake_Pebble%d' % i, 31 + i) for i in range(4)]
     for ob in made:
         write_obj(ob, os.path.join(OUT, ob.name + '.obj'))
 

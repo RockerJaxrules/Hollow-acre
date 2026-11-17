@@ -1,0 +1,132 @@
+// The player in Part 2 (milestone 2, "waking at the bottom"): first person on foot in the snow. Written networked from
+// its first version (owner: "Multiplayer needs to be a thing for part 2 as well"): the movement is the engine's own
+// replicated character movement, the host decides stamina and warmth, every player sees each other's flashlight.
+//
+// In the snow: walking is slow and heavy (deep snow), running costs stamina and stops when it runs out until the breath
+// comes back, crouching is slower and quieter. The flashlight (an old two D-cell one) is toggled, its battery runs down.
+// The cold: outside, the body's warmth falls; shelter and fire (later) bring it back.
+//
+// What the player sees of themselves (for now, until the motion-captured body): the driver's arms (DriverArms, free of
+// the seat), the right hand holding the flashlight in front of the chest, its beam swaying a little behind the eyes; the
+// breath in the cold. The wake (EndingWakeBeats.cpp) hands over to this with no cut: TakeOverFrom puts the eyes where
+// the cutscene's are and takes the arms and the flashlight.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Character.h"
+#include "Part2Character.generated.h"
+
+class ADriverArms;
+class AStaticMeshActor;
+class UCameraComponent;
+class UInputAction;
+class UInputMappingContext;
+class USpotLightComponent;
+struct FInputActionValue;
+
+UCLASS()
+class HOLLOWACRE_API APart2Character : public ACharacter
+{
+	GENERATED_BODY()
+
+public:
+	APart2Character();
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void PawnClientRestart() override;
+
+	/** From the wake: the eyes where the cutscene's camera is (world), the arms and the flashlight (with its beam) taken over. */
+	void TakeOverFrom(const FTransform& EyeWorld, ADriverArms* InArms, AStaticMeshActor* InFlashlight, USpotLightComponent* InBeam,
+		const FPostProcessSettings& Grade);
+
+	/** Walking (deep snow), running, crouched (cm/s). */
+	UPROPERTY(EditAnywhere, Category = "Part 2")
+	float WalkSpeed = 150.f;
+	UPROPERTY(EditAnywhere, Category = "Part 2")
+	float RunSpeed = 360.f;
+	UPROPERTY(EditAnywhere, Category = "Part 2")
+	float CrouchSpeed = 85.f;
+	/** Seconds of running on full stamina; seconds to get it all back (standing, walking a little slower). */
+	UPROPERTY(EditAnywhere, Category = "Part 2")
+	float RunFor = 7.f;
+	UPROPERTY(EditAnywhere, Category = "Part 2")
+	float RecoverIn = 11.f;
+	/** The flashlight's beam (candelas) and how long its batteries last on (s). */
+	UPROPERTY(EditAnywhere, Category = "Part 2")
+	float BeamCd = 140.f;
+	UPROPERTY(EditAnywhere, Category = "Part 2")
+	float BatterySeconds = 1500.f;
+	/** Outside in the night: how fast the body's warmth falls (per s, of 100). */
+	UPROPERTY(EditAnywhere, Category = "Part 2")
+	float ColdRate = 0.18f;
+
+	/** 0..1 (owner sees it): stamina, the batteries, warmth. */
+	UPROPERTY(Replicated)
+	float Stamina = 1.f;
+	UPROPERTY(Replicated)
+	float Battery = 1.f;
+	UPROPERTY(Replicated)
+	float Warmth = 1.f;
+	/** The flashlight on (everyone sees it). */
+	UPROPERTY(ReplicatedUsing = OnRep_Flashlight)
+	bool bFlashlightOn = true;
+
+protected:
+	virtual void BeginPlay() override;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UCameraComponent> Camera;
+	/** The beam other players see (and this one's own, until it holds the wake's flashlight). */
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<USpotLightComponent> Beam;
+
+	UPROPERTY()
+	TObjectPtr<ADriverArms> Arms;
+	UPROPERTY()
+	TObjectPtr<AStaticMeshActor> HeldLight;
+	UPROPERTY()
+	TObjectPtr<USpotLightComponent> HeldBeam;
+
+	UPROPERTY()
+	TObjectPtr<UInputAction> MoveAction;
+	UPROPERTY()
+	TObjectPtr<UInputAction> LookAction;
+	UPROPERTY()
+	TObjectPtr<UInputAction> MouseLookAction;
+	UPROPERTY()
+	TObjectPtr<UInputAction> JumpAction;
+	UPROPERTY()
+	TObjectPtr<UInputAction> SprintAction;
+	UPROPERTY()
+	TObjectPtr<UInputAction> CrouchAction;
+	UPROPERTY()
+	TObjectPtr<UInputAction> FlashlightAction;
+	UPROPERTY()
+	TArray<TObjectPtr<UInputMappingContext>> Contexts;
+
+	void Move(const FInputActionValue& V);
+	void Look(const FInputActionValue& V);
+	void RunStart();
+	void RunStop();
+	void CrouchToggle();
+	void FlashlightToggle();
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetRunning(bool bOn);
+	UFUNCTION(Server, Reliable)
+	void ServerSetFlashlight(bool bOn);
+	UFUNCTION()
+	void OnRep_Flashlight();
+
+	bool bWantsRun = false;
+	bool bRunning = false;
+	bool bWinded = false;            // (ran out: no running until it comes back past a third)
+	FTransform HoldAim = FTransform::Identity;
+	bool bHold = false;
+	float Bob = 0.f;
+	float EyeHeight = 162.f;
+	void UpdateBody(float Dt);
+	void ApplyLight();
+};

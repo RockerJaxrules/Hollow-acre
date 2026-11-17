@@ -7,7 +7,8 @@ Run: UnrealEditor-Cmd <uproject> -ExecutePythonScript=<this> -unattended -nospla
 import unreal
 
 DEST = '/Game/HollowAcre/Wake'
-PARTS = ['Wake_Flashlight', 'Wake_Manual', 'Wake_Papers', 'Wake_SnowSlab', 'Wake_SnowLump']
+PARTS = ['Wake_Flashlight', 'Wake_Manual', 'Wake_Papers', 'Wake_SnowSlab', 'Wake_SnowLump', 'Wake_Buckle', 'Wake_Latch', 'Wake_Strap',
+         'Wake_Pebble0', 'Wake_Pebble1', 'Wake_Pebble2', 'Wake_Pebble3']
 
 eal = unreal.EditorAssetLibrary
 tools = unreal.AssetToolsHelpers.get_asset_tools()
