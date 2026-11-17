@@ -423,10 +423,19 @@ void ADriverArms::FreeFollow()
 		const float c = FreeEase(F.Close);
 		if (Shape != 1 && c > 0.f)
 		{
+			// (a hand closing on something closes in a wave: the index and thumb first, the little finger last)
+			const float St = FMath::Clamp(F.Stagger, 0.f, 0.6f);
 			for (const TPair<int32, FQuat>& Kv : ShapeLocal[Side][Shape])
 			{
+				float cb = c;
+				if (St > 0.f)
+				{
+					const FString Bn = Mesh->GetBoneName(Kv.Key).ToString();
+					const float Order = Bn.StartsWith(TEXT("middle")) ? 1.f : Bn.StartsWith(TEXT("ring")) ? 2.f : Bn.StartsWith(TEXT("pinky")) ? 3.f : 0.f;
+					cb = FMath::Clamp(c * (1.f + St) - St * Order / 3.f, 0.f, 1.f);
+				}
 				FTransform& T = Mesh->BoneSpaceTransforms[Kv.Key];
-				T.SetRotation(FQuat::Slerp(T.GetRotation(), Kv.Value, c));
+				T.SetRotation(FQuat::Slerp(T.GetRotation(), Kv.Value, cb));
 			}
 		}
 		// (the hand opening wide on its way to something, wider than it, before it closes on it)

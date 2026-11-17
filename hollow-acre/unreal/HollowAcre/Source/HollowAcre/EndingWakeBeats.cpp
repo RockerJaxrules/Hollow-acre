@@ -944,6 +944,16 @@ void AEndingDirector::WakeBeats(float RealDt)
 		}
 	}
 	WakeShake *= FMath::Exp(-RealDt * 7.f);
+	if (w > 10.4f && w < 12.6f)
+	{
+		// (the body goes with the reach: the head leans a little toward the flashlight, nods into the press, comes back up
+		// with the lift; small, as a first-person camera's must be)
+		const FVector ToFlash = (FlashRest.GetLocation() - Eye.GetLocation()).GetSafeNormal();
+		const float Lean = FMath::SmoothStep(10.55f, 11.3f, w) * (1.f - FMath::SmoothStep(11.5f, 12.4f, w));
+		Eye.AddToTranslation(ToFlash * 3.f * Lean);
+		const float Nod = FMath::Sin(PI * FMath::Clamp((w - 11.35f) / 0.25f, 0.f, 1.f));
+		Eye.SetRotation(Eye.GetRotation() * FRotator(-1.2f * Nod, 0.f, 0.f).Quaternion());
+	}
 	if (Flashlight && bFlashHeld && w < 14.2f)
 	{
 		// (the eyes stay on the flashlight as it comes up into view and clicks on: on its head, where the light will come from)
@@ -1126,7 +1136,7 @@ void AEndingDirector::WakeBeats(float RealDt)
 	{
 		// (just picked up: brought up in front of the eyes, side-on, its head to the left, so the thumb on the switch and the
 		// lens are seen and the beam visibly leaves it across the lining; then down to the chest and along the eyes)
-		const float Show = WRamp(w, 11.55f, 12.0f) * (1.f - WRamp(w, 13.9f, 14.6f));
+		const float Show = WRamp(w, 11.45f, 11.95f) * (1.f - WRamp(w, 13.9f, 14.6f));
 		if (Show > 0.f)
 		{
 			// (held as the owner holds the bottle: low in front and a little right, standing up in the hand, the light end up
@@ -1303,13 +1313,19 @@ void AEndingDirector::WakeBeats(float RealDt)
 				// in low from the right (the owner's arm along the floor), onto it from its right side, the fingers over its top
 				FTransform Before = Take;
 				Before.AddToTranslation(-ThumbSide * 7.f + WUp * 1.2f - Rd * 5.f);
-				const float TReach = bOverTop ? 11.2f : 11.3f;    // (out to it)
-				const float TTake = 11.55f;                       // (the fingers on it; then up)
+				// animated as an animator would (anticipation, arcs, the joints moving in order, the fingers trailing and closing
+				// in a wave, weight at contact and in the lift, follow-through and a settle) on the owner's movement: a small
+				// pull back; the reach in an arc, the forearm leading and the wrist turning late; the fingers opening widest two
+				// thirds of the way in, closing on contact; a press down; the lift slow to start, the twist trailing it,
+				// swinging a little past the hold and settling back
+				const float TPull = 10.45f, TReach = 10.62f, TTake = 11.35f, TPress = 11.45f, TLift = 12.2f;
+				R.Stagger = 0.35f;
+				const FVector Pull = RStart.GetLocation() - Rd * 2.5f + WUp * 1.f;
 				if (w < TTake)
 				{
 					R.W = 1.f;
 					R.Shape = 2;
-					if (w < 10.6f)
+					if (w < TPull)
 					{
 						const FTransform& Rt = w < 9.7f ? RRest : RStart;
 						R.Hand.SetLocation(FMath::Lerp(R.Hand.GetLocation(), Rt.GetLocation(), Settle));
@@ -1318,21 +1334,28 @@ void AEndingDirector::WakeBeats(float RealDt)
 					}
 					else if (w < TReach)
 					{
-						// out to it (slow away, fast, slowing in): low along the lining, or lifted over it
-						const float u = MinJerk(w, 10.6f, TReach);
-						R.Hand.SetLocation(FMath::Lerp(RStart.GetLocation(), Before.GetLocation(), u) + WUp * (bOverTop ? 1.5f : 1.2f) * FMath::Sin(PI * u)   /* (low along the lining, as the owner's arm slides in) */);
-						R.Hand.SetRotation(FQuat::Slerp(RStart.GetRotation(), Before.GetRotation(), u));
+						// (anticipation: drawn back a little, the fingers starting to spread)
+						const float k = MinJerk(w, TPull, TReach);
+						R.Hand.SetLocation(FMath::Lerp(RStart.GetLocation(), Pull, k));
+						R.Hand.SetRotation(RStart.GetRotation());
 						R.Close = 0.f;
-						R.Open = (bOverTop ? 0.45f : 0.6f) * WRamp(w, 10.65f, TReach - 0.3f);
+						R.Open = 0.25f * k;
 					}
 					else
 					{
-						// onto it: the scoop as the wrist rolls (along), or down over its top (across); the fingers closing
+						// the reach: an arc out and down onto its right side (a cubic curve), slowing into the contact
 						const float u = MinJerk(w, TReach, TTake);
-						R.Hand.SetLocation(FMath::Lerp(Before.GetLocation(), Take.GetLocation(), u));
-						R.Hand.SetRotation(FQuat::Slerp(Before.GetRotation(), Take.GetRotation(), u));
-						R.Close = 0.75f * u;
-						R.Open = (bOverTop ? 0.45f : 0.6f) * (1.f - u);
+						const FVector P0 = Pull, P3 = Take.GetLocation();
+						const FVector P1 = P0 + Rd * 9.f + WUp * 3.f, P2 = P3 - ThumbSide * 6.f + WUp * 3.5f - Rd * 2.f;
+						const float v = 1.f - u;
+						R.Hand.SetLocation(P0 * (v * v * v) + P1 * (3.f * v * v * u) + P2 * (3.f * v * u * u) + P3 * (u * u * u));
+						// (the wrist turns late: the forearm leads, the hand catches up into its grip at the end)
+						const float r = FMath::Clamp((u - 0.2f) / 0.8f, 0.f, 1.f);
+						R.Hand.SetRotation(FQuat::Slerp(RStart.GetRotation(), Take.GetRotation(), r * r * (3.f - 2.f * r)));
+						// (the fingers open widest about two thirds of the way, then close in on contact)
+						R.Open = 0.25f + 0.55f * FMath::SmoothStep(0.f, 0.6f, u) - 0.8f * FMath::SmoothStep(0.72f, 1.f, u);
+						R.Open = FMath::Max(0.f, R.Open);
+						R.Close = 0.7f * FMath::SmoothStep(0.82f, 1.f, u);
 					}
 				}
 				else
@@ -1340,11 +1363,9 @@ void AEndingDirector::WakeBeats(float RealDt)
 					if (!bFlashHeld)
 					{
 						// (it stays exactly where it lay as the fingers take it: held as it is, then turned in the fingers
-						// into the ready grip as the hand lifts; taken by its other end, that turn is the whole way round)
+						// into the ready grip as the hand lifts)
 						bFlashHeld = true;
 						FlashGrabW = w;
-						// (up high: held as it was taken; low and ready: the thumb toward the head, turned in the hand if
-						// it was taken the other way)
 						bFlashUpHigh = bUpHigh;
 						bFlashReversed = bUpHigh && bFlip;
 						FlashTurnSecs = (!bUpHigh && bFlip) ? 0.6f : 0.35f;
@@ -1354,11 +1375,24 @@ void AEndingDirector::WakeBeats(float RealDt)
 					}
 					R.W = 1.f;
 					R.Shape = 2;
-					R.Close = 0.75f + 0.25f * WRamp(w, TTake, TTake + 0.25f);
+					R.Open = 0.f;
+					// the press: the fingers finishing their wave, the hand pushing down a little into it
+					R.Close = 0.7f + 0.3f * WRamp(w, TTake, TPress + 0.05f);
+					const float Press = FMath::Sin(PI * FMath::Clamp((w - TTake) / (TPress - TTake + 0.06f), 0.f, 1.f));
 					const FTransform Held = HeldHand(HoldAim);
-					const float up = MinJerk(w, TTake, TTake + 0.6f);
-					R.Hand.SetLocation(FMath::Lerp(Take.GetLocation(), Held.GetLocation(), up) + WUp * 3.f * FMath::Sin(PI * up));
-					R.Hand.SetRotation(FQuat::Slerp(Take.GetRotation(), Held.GetRotation(), up));
+					// the lift: slow to start (its weight), the twist trailing the rise
+					const float up = MinJerk(w, TPress, TLift);
+					const float tw = MinJerk(w, TPress + 0.08f, TLift + 0.1f);
+					R.Hand.SetLocation(FMath::Lerp(Take.GetLocation(), Held.GetLocation(), up) + WUp * (3.f * FMath::Sin(PI * up) - 0.6f * Press));
+					FQuat Rot = FQuat::Slerp(Take.GetRotation(), Held.GetRotation(), tw);
+					// (follow-through: it swings a little past the hold and settles back)
+					const float After = w - (TLift + 0.1f);
+					if (After > 0.f)
+					{
+						const float Over = FMath::DegreesToRadians(9.f) * FMath::Sin(After * 2.f * PI / 0.55f) * FMath::Exp(-After * 5.5f);
+						Rot = FQuat(Eye.GetRotation().GetAxisY(), Over) * Rot;
+					}
+					R.Hand.SetRotation(Rot);
 				}
 			}
 		}

@@ -140,6 +140,7 @@ public:
 		uint8 Shape = 1;                          // 0 flat (pressed on something), 1 relaxed, 2 round a handle, 3 round a buckle
 		float Close = 1.f;                        // how far the fingers are into Shape (0 relaxed)
 		float Open = 0.f;                         // reaching for something: the fingers opened out flat and spread (0..1), over Shape
+		float Stagger = 0.f;                      // closing one after another (index first, little finger last): 0 together .. ~0.4
 		FVector Pole = FVector::ZeroVector;       // the elbow's way (car frame); zero: as at the wheel, turned with the chest; shorter than 1: part way
 	};
 	FFreeHand Free[2];
