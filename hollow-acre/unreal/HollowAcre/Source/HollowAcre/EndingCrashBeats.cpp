@@ -79,6 +79,12 @@ void AEndingDirector::BeginCrashScene()
 	if (bStall)
 	{
 		bHoodReveal = false;               // (nothing of it seen before the blow)
+		// strong and quick (The Quarry, Until Dawn): the ram at full speed, no slow motion before the blow; a brief
+		// hit-stop as it lands, then the shove at full speed; the car across to the edge in the shorter trip
+		LungeLead = 0.f;
+		SlowMo = 0.45f;
+		SlowMoSeconds = 0.18f;
+		TripTime = 0.7f;
 	}
 	// (-notown: the abandoned town left out, while it is being built: its buildings hidden, the car left as before)
 	if (FParse::Param(FCommandLine::Get(), TEXT("notown")))
@@ -2365,35 +2371,43 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 
 		if (bStall && SmashT >= 0.f)
 		{
-			// (the stall) its face in the hole the glass left, at the driver's eyes, shrieking, its head shaking; then it
-			// draws back a little and drives its arm in at them, clawing at them, hauling; then the blow (the take on
-			// from its shove)
+			// (the stall) its face in the hole the glass left, at the driver's eyes, shrieking, its head jerking; then the
+			// ram (the Ram take): it drops back off the window into a coil, still, springs, and slams into the door
+			// shoulder-first (the blow: the car thrown), drives it on with the car going under its hands, lets go
 			const float g = Time - SmashT;
-			const float Claw = StallFace + 0.35f;
-			if (!bImpacted)
+			if (!bImpacted && g < StallFace)
 			{
-				float At;
-				if (g < StallFace)
-				{
-					At = FMath::Min(SmashT - PeerT0, 1.33f) + 0.02f * FMath::Sin(g * 9.f);
-				}
-				else if (g < Claw)
-				{
-					At = 1.35f + (g - StallFace);
-				}
-				else
-				{
-					At = 1.7f - 0.05f * (1.f - FMath::Cos((g - Claw) * 12.f));
-				}
 				H->GetBody()->SetPlayRate(0.f);
-				H->GetBody()->SetPosition(At, false);
+				H->GetBody()->SetPosition(FMath::Min(SmashT - PeerT0, 1.33f) + 0.02f * FMath::Sin(g * 9.f), false);
 				H->PeerTilt = 0.f;
 			}
-			else if (PeerBeat < 3)
+			else
 			{
-				PeerBeat = 3;
-				H->PeerTilt = 0.f;
-				Take(H, TEXT("Peer"), false, 1.f, 1.75f);
+				if (PeerBeat < 3)
+				{
+					PeerBeat = 3;
+					H->PeerTilt = 0.f;
+					Take(H, TEXT("Ram"), false, 0.f, 0.f);
+				}
+				const float Tau = bImpacted ? StallRamHit + (Time - ImpactTime) : RamTakeAt(g - StallFace);
+				if (!bImpacted)
+				{
+					// back off the window into the coil, held, then in at the door, faster and faster, meeting it at the blow
+					const float Back = Tau < 0.28f ? Smooth(Tau / 0.28f) : Tau < 0.46f ? 1.f :
+						1.f - FMath::Pow(FMath::Clamp((Tau - 0.46f) / (StallRamHit - 0.46f), 0.f, 1.f), 1.6f);
+					OnSnow(H, C.TransformPosition(FVector(PeerStand.X, PeerStand.Y - StallRamBack * HuskScale * Back, 0.f)), R);
+					if (!bLaunched && Tau >= 0.46f)
+					{
+						bLaunched = true;
+						Event(TEXT("launch"));
+					}
+				}
+				else if (Time - ImpactTime < StallPushFor)
+				{
+					OnSnow(H, C.TransformPosition(FVector(PeerStand.X, PeerStand.Y, 0.f)), R);   // (on the car, going with it)
+				}
+				H->GetBody()->SetPlayRate(0.f);
+				H->GetBody()->SetPosition(FMath::Min(Tau, 1.99f), false);
 			}
 		}
 		H->JawOpen = r < 1.35f ? 7.f + 3.f * FMath::Sin(r * 6.f) : 8.f + 26.f * Smooth((r - 1.35f) / 0.2f);
@@ -2412,8 +2426,9 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 			{
 				const bool bFace = g < StallFace;
 				TwitchFrom = TwitchNow;
-				TwitchTo = FRotator(TwitchRand.FRandRange(-7.f, 7.f), TwitchRand.FRandRange(-10.f, 10.f),
-					(bFace ? 17.f : 6.f) * (TwitchRand.FRand() < 0.8f ? 1.f : -0.6f) + TwitchRand.FRandRange(-9.f, 9.f));
+				TwitchTo = bFace ? FRotator(TwitchRand.FRandRange(-7.f, 7.f), TwitchRand.FRandRange(-10.f, 10.f),
+					17.f * (TwitchRand.FRand() < 0.8f ? 1.f : -0.6f) + TwitchRand.FRandRange(-9.f, 9.f)) :
+					FRotator(TwitchRand.FRandRange(-2.f, 2.f), TwitchRand.FRandRange(-3.f, 3.f), TwitchRand.FRandRange(-4.f, 4.f));
 				TwitchT0 = g;
 				TwitchNext = g + TwitchRand.FRandRange(0.13f, 0.32f);
 			}
@@ -2422,6 +2437,11 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 				FMath::Lerp(TwitchFrom.Roll, TwitchTo.Roll, a));
 			H->Twitch = TwitchNow * (bImpacted ? H->GlareW : 1.f);
 			H->JawOpen = (8.f + 26.f * Smooth(g / 0.12f)) * (1.f + 0.1f * (1.f - Smooth((g - TwitchT0) / 0.09f)) + 0.04f * FMath::Sin(g * 31.f));
+			if (!bImpacted && g >= StallFace)
+			{
+				const float Tau = RamTakeAt(g - StallFace);
+				H->JawOpen = Tau < 0.28f ? FMath::Lerp(34.f, 11.f, Smooth(Tau / 0.28f)) : Tau < 0.46f ? 11.f : 11.f + 27.f * Smooth((Tau - 0.46f) / 0.1f);
+			}
 		}
 		if (bStall && bImpacted && Time - ImpactTime < StallPushFor)
 		{
@@ -2429,24 +2449,18 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 			// the roof's edge), its body thrown in after it and driving it across the road in heaves, the car lurching with
 			// each, until the car tips toward the edge; then it lets go (and is left at the roadside)
 			const float p = Time - ImpactTime;
-			const float In = Smooth(p / 0.12f);
-			OnSnow(H, C.TransformPosition(FVector(PeerStand.X + 6.f * In, PeerStand.Y + 16.f * In, 0.f)), R);
 			const float Ph = p / StallPushFor * (float)StallHeaves;
-			const float Hv = 0.5f - 0.5f * FMath::Cos(Ph * 2.f * PI);
-			H->GetBody()->SetPlayRate(0.f);
-			H->GetBody()->SetPosition(FMath::Lerp(1.9f, 2.25f, Hv), false);
 			while (HeaveBeat < StallHeaves && Ph >= (float)HeaveBeat + 0.5f)
 			{
 				++HeaveBeat;
-				Jolt = FMath::Max(Jolt, 0.6f);
-				RoarShake = FMath::Max(RoarShake, 0.7f);
+				Jolt = FMath::Max(Jolt, 0.85f);
+				RoarShake = FMath::Max(RoarShake, 0.9f);
 				Event(TEXT("heave"), (float)HeaveBeat);
 			}
 		}
 		else if (bStall && bImpacted && PeerBeat < 4)
 		{
-			PeerBeat = 4;
-			Take(H, TEXT("Peer"), false, 1.f, 2.25f);                // (let go: left standing in the road, shrieking after it)
+			PeerBeat = 4;                                              // (let go: left standing in the road, shrieking after it)
 			Event(TEXT("letgo"));
 		}
 		if (bImpacted && Time > ImpactTime + 1.6f)
@@ -2461,6 +2475,22 @@ void AEndingDirector::RevealBeats(float DeltaSeconds)
 		}
 	}
 	// (kept out of everything in its own tick, once its body is animated: KeepOutLate)
+}
+
+float AEndingDirector::RamTakeAt(float G) const
+{
+	// game seconds since it left the window -> the Ram take's own time (its back-off, coil and spring played at
+	// StallRamPace: quick bursts)
+	const float A = StallRamPace.X, B = StallRamPace.Y, Cc = StallRamPace.Z;
+	if (G < A)
+	{
+		return 0.28f * G / A;
+	}
+	if (G < A + B)
+	{
+		return 0.28f + 0.18f * (G - A) / B;
+	}
+	return 0.46f + (StallRamHit - 0.46f) * FMath::Min(1.f, (G - A - B) / Cc);
 }
 
 bool AEndingDirector::GetLine(FString& Line, float& Alpha) const

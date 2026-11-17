@@ -1244,6 +1244,70 @@ def peer(t):
     return peer_pose(0.0, 0.0, 0.0, 1.0, smooth01((t - 1.75) / 0.5), t)
 
 
+# the stall's ram (the owner: it has to really hit the car and shove it): from its face at the broken window it drops
+# back into a coil, still, then springs and slams into the door shoulder-first, both hands smashing onto the door and
+# the roof's edge; its body crushes into the car with the blow, then it drives it on, legs pumping, one arm forced in
+# through the window, heaving; as the car tips away it lets go and is left standing, arms flung out, shrieking after it.
+# In place: the game moves it back from the window and in at the door (RAM_BACK m), and with the car as it shoves; it
+# meets the door (its hands on PEER_DOOR and PEER_ROOF, as at the window) at RAM_HIT.
+RAM_T = 2.0
+RAM_BACK = 1.1
+RAM_HIT = 0.62            # s: the blow
+RAM_PUSH = 0.42           # s: shoving after it (the game's StallPushFor)
+
+
+def ram_drive(t, heave=0.0, reach=1.0):
+    """Against the car and driving it: the hands on the roof's edge and in through the window, the body thrown in;
+    the legs running (the car going away under its hands)."""
+    P = peer_pose(0.0, 0.0, 0.0, reach, 0.6 + 0.4 * heave, t)
+    P['pelvis'] = Matrix.Translation(FWD * (0.06 + 0.06 * heave) + Vector((0.0, 0.0, -0.05))) @ P['pelvis']
+    for sd, ph in (('_l', 0.0), ('_r', 0.5)):
+        f0 = NEUTRAL['biped_foot' + sd]
+        s = (t * 3.6 + ph) % 1.0
+        if s < 0.5:
+            off, lift = 0.38 - 0.76 * (s / 0.5), 0.0                       # planted: pushing back
+        else:
+            u = (s - 0.5) / 0.5
+            off, lift = -0.38 + 0.76 * smooth01(u), 0.12 * math.sin(math.pi * u)
+        P[ctrl_name('foot', sd)] = foot_m(sd, Vector((f0.x * 1.5, f0.y, f0.z + lift)) + FWD * off, math.radians(25) if s < 0.5 else 0.0)
+    return P
+
+
+def ram(t):
+    face = peer(1.33)
+    # the coil: down on all fours, low and hunched, the head down between the shoulders and the eyes up on the driver
+    # (a wendigo, a werewolf about to go), its face level with the window
+    coil = low4(math.radians(8), 0.0)
+    if t < 0.28:
+        # off the window and back, dropping onto all fours (breathing in)
+        return blend(face, coil, smooth01(t / 0.28))
+    if t < 0.46:
+        # dead still, wound down (the hips sinking, the shoulders bunching), about to go
+        P = low4(math.radians(8), math.radians(3) * smooth01((t - 0.28) / 0.18))
+        P['pelvis'] = Matrix.Translation((0.0, 0.0, -0.06 * smooth01((t - 0.28) / 0.12))) @ P['pelvis']
+        return P
+    if t < RAM_HIT:
+        # the spring: the legs drive it out and in, the trunk thrown forward, the arms swung at the door (accelerating)
+        u = ((t - 0.46) / (RAM_HIT - 0.46)) ** 1.6
+        hit = peer_pose(0.0, 0.0, 0.0, 0.0, 1.0, t)
+        hit['pelvis'] = Matrix.Translation(FWD * 0.12) @ hit['pelvis']
+        return blend(coil, hit, u)
+    if t < RAM_HIT + 0.12:
+        # the blow: its body crushed in against the door (the hands planted, the arms giving), the head snapped forward
+        c = math.sin(math.pi * (t - RAM_HIT) / 0.12)
+        P = peer_pose(0.0, 0.0, 0.0, 0.3 * smooth01((t - RAM_HIT) / 0.12), 1.0, t)
+        P['pelvis'] = Matrix.Translation(FWD * (0.12 + 0.1 * c) + Vector((0.0, 0.0, -0.04 * c))) @ P['pelvis']
+        return P
+    if t < RAM_HIT + RAM_PUSH:
+        # driving the car on in heaves (three, as the game's), one arm forced in through the window
+        p = t - RAM_HIT
+        hv = 0.5 - 0.5 * math.cos(p / RAM_PUSH * 3.0 * 2.0 * math.pi)
+        return ram_drive(t, hv, 0.3 + 0.7 * smooth01((p - 0.12) / 0.15))
+    # let go: left standing as the car tips away, arms flung out, shrieking after it
+    u = smooth01((t - RAM_HIT - RAM_PUSH) / 0.35)
+    return blend(ram_drive(RAM_HIT + RAM_PUSH, 0.0, 1.0), threat(0.6 * u, t), u)
+
+
 # the stalk: upright and hunched, walking slowly, the long arms hanging and swinging a little, the head forward and
 # low, the feet rolling heel to toe. In place: the game moves it at STALK_SPEED (m/s at the model's size).
 STALK_T = 1.5                    # s a stride (left and right)
@@ -1499,8 +1563,8 @@ def bake_takes(arm, names, body=None):
         if name == 'Sighting':
             n = int(round(TF * FPS))
             poses = [sighting(f / FPS) for f in range(n + 1)]
-        elif name in ('Rise', 'Peer', 'Perch'):
-            fn, T = {'Rise': (rise, RISE_T), 'Peer': (peer, PEER_T), 'Perch': (perch, PERCH_T)}[name]
+        elif name in ('Rise', 'Peer', 'Perch', 'Ram'):
+            fn, T = {'Rise': (rise, RISE_T), 'Peer': (peer, PEER_T), 'Perch': (perch, PERCH_T), 'Ram': (ram, RAM_T)}[name]
             n = int(round(T * FPS))
             poses = [fn(f / FPS) for f in range(n + 1)]
         elif name == 'Stalk':
@@ -1559,7 +1623,7 @@ def main():
         # for tuning: where the head and hands land in the bonnet and window takes, nothing built or written
         rig_controls(arm, body)
         settle_stances(arm)
-        for take, fn, times in (('Perch', perch, (0.2, 0.9, 2.3, 4.3, 5.9, 6.6, 7.4, 7.9)), ('Peer', peer, (0.5, 1.2, 1.45, 1.8, 2.6))):
+        for take, fn, times in (('Peer', peer, (0.5, 1.2, 1.45, 1.8, 2.6)), ('Ram', ram, (0.1, 0.35, 0.55, 0.62, 0.68, 0.85, 1.0, 1.4, 1.9))):
             for t in times:
                 apply_pose(arm, fn(t))
                 pb = arm.pose.bones
@@ -1611,7 +1675,7 @@ def main():
             bake_takes(arm, ['Perch'], body)
         return
     ARM_REF[:] = [arm]
-    acts = bake_takes(arm, ['Gallop', 'GallopLookL', 'Sighting', 'Stalk', 'Rise', 'Peer', 'Perch'], body)
+    acts = bake_takes(arm, ['Gallop', 'GallopLookL', 'Sighting', 'Stalk', 'Rise', 'Peer', 'Perch', 'Ram'], body)
     if os.environ.get('HUSK_STRIP'):
         motion_strip(arm, body, acts, os.environ['HUSK_STRIP'])
     log('stalk: %.2f m/s at the model\'s size' % STALK_SPEED)

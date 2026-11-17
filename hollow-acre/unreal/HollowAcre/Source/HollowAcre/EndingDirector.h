@@ -257,12 +257,20 @@ public:
 	 *  1.3-1.5 s later, the blow 1.75 s after it gets there. When the glass went (-1: not yet). */
 	float StallPeerAt = 4.3f, SmashT = -1.f;
 	/** (the stall) From the glass going to the blow (s): its face in the hole, its arm in at the driver. */
-	float StallHold = 1.65f;
+	float StallHold = 0.99f;
 	/** (the stall) How long its face is in the hole, shrieking, before it drives its arm in at the driver (s). */
-	float StallFace = 0.75f;
+	float StallFace = 0.6f;
 	/** (the stall) How long it keeps shoving the car after the blow (game s; the car is carried across the road meanwhile),
 	 *  and how many heaves; which heave it is on. */
 	float StallPushFor = 0.42f;
+	/** (the stall) The ram (husk_body.py's Ram take): how far it backs off the window into its coil (m at the model's
+	 *  size: x HuskScale), when in the take it meets the door (the blow). */
+	float StallRamBack = 110.f, StallRamHit = 0.62f;
+	/** (the stall) The ram played quick (The Quarry, Until Dawn: bursts, dead still between): game seconds for its take's
+	 *  back-off (0-0.28), its coil (0.28-0.46) and its spring (0.46-0.62). */
+	FVector StallRamPace = FVector(0.16f, 0.12f, 0.11f);
+	float RamTakeAt(float GameT) const;
+	bool bLaunched = false;
 	int32 StallHeaves = 3, HeaveBeat = 0;
 	/** (the stall) Its head's jerks at the window (Until Dawn's wendigos): from, to, now (degrees), when the last began and
 	 *  when the next comes (s after the glass went). */

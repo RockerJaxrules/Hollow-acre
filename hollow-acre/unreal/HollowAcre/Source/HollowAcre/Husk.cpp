@@ -89,7 +89,7 @@ bool AHusk::Setup()
 		UE_LOG(LogTemp, Warning, TEXT("Husk: meshes missing (body %d, face %d)"), BodyMesh != nullptr, FaceMesh != nullptr);
 		return false;
 	}
-	for (const TCHAR* T : {TEXT("Gallop"), TEXT("GallopLookL"), TEXT("Sighting"), TEXT("Stalk"), TEXT("Rise"), TEXT("Peer"), TEXT("Perch")})
+	for (const TCHAR* T : {TEXT("Gallop"), TEXT("GallopLookL"), TEXT("Sighting"), TEXT("Stalk"), TEXT("Rise"), TEXT("Peer"), TEXT("Perch"), TEXT("Ram")})
 	{
 		const FString P = FString::Printf(TEXT("%sHusk_Anim_root_%s.Husk_Anim_root_%s"), GameDir, T, T);
 		if (UAnimSequence* A = LoadObject<UAnimSequence>(nullptr, *P))

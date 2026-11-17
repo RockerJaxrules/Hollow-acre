@@ -429,6 +429,10 @@ def crash(ev, total):
             M.at(t_smash - 0.02, pan(peak(load(ST_JUMP), 0.55), -0.4))
             # its breath and snarl right at the driver's ear, while it claws in at them
             M.at(t_smash + 0.85, pan(peak(filt(loudest('creature_extra/creature_extra_tiger_hiss_growl_437978', 1.0, pre=0.05), A.lp(6000)), 0.35), -0.8))
+            # the ram: a roar as it springs at the door (the blow's own crash follows at t_imp)
+            t_launch = first('launch')
+            if t_launch:
+                M.at(t_launch - 0.04, pan(peak(filt(pitch(loudest(CR_GROWLS, 0.8, pre=0.05), 0.82), A.lp(5000)), 0.62), -0.7))
         M.at(t_hit + 0.02, pan(peak(fade(sh, 0.02, 0.4), 0.85), -0.75))    # (at the driver's door, the left, in the cabin)
         M.at(t_hit - 0.03, pan(peak(load(HIT_BRAAM), 0.5), 0.0))
     elif not perched:

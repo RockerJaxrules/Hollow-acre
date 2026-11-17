@@ -821,15 +821,15 @@ void AEndingDirector::StallTrip(float t, float& Y, float& Roll) const
 	{
 		Kick.Add(((float)k + 0.5f) / (float)StallHeaves * StallPushFor);
 	}
-	const float Dt = 1.f / 240.f, Mu = 450.f, K = 77.f, C = 5.3f, Edge = 340.f, Tip = 1100.f;
+	const float Dt = 1.f / 240.f, Mu = 950.f, K = 77.f, C = 5.3f, Edge = 340.f, Tip = 1300.f;
 	float y = 0.f, v = 0.f, r = 0.f, w = 0.f;
 	int32 Next = 0;
 	for (float s = 0.f; s < t; s += Dt)
 	{
 		while (Next < Kick.Num() && s >= Kick[Next])
 		{
-			v += Next == 0 ? 380.f : 240.f;
-			w += Next == 0 ? 60.f : 45.f;
+			v += Next == 0 ? 520.f : 300.f;
+			w += Next == 0 ? 85.f : 60.f;
 			++Next;
 		}
 		v = FMath::Max(0.f, v - Mu * Dt);
@@ -906,7 +906,7 @@ float AEndingDirector::StallRock() const
 	// door (its other hand on the roof's edge), the car rolled toward it
 	const float g = Time - SmashT;
 	float Roll = 2.2f * FMath::Exp(-4.f * g) * FMath::Sin(11.f * g);
-	const float a = Time - SmashT - StallFace - 0.35f;
+	const float a = -1.f;          // (the ram: no hauling on the door before the blow)
 	if (!bImpacted && a > 0.f)
 	{
 		Roll -= 0.35f * (1.f - FMath::Cos(a * 12.f)) * FMath::Min(1.f, a / 0.2f);
@@ -916,9 +916,9 @@ float AEndingDirector::StallRock() const
 
 float AEndingDirector::StallYank() const
 {
-	if (!bStall || SmashT < 0.f)
+	if (!bStall || SmashT < 0.f || StallRamHit > 0.f)
 	{
-		return 0.f;
+		return 0.f;               // (the ram: it never gets hold of the driver)
 	}
 	// its hand has the driver by the collar: the head jerked toward the hole, held, then let go as it shoves
 	const float g = Time - SmashT - StallFace - 0.25f;
