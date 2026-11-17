@@ -1257,50 +1257,67 @@ void AEndingDirector::WakeBeats(float RealDt)
 			L.W = 1.f;
 			L.Hand = LProp;
 			L.Shape = 0;
-			// the right hand, from the owner's own footage of picking a remote up off the carpet, two ways by how it lies:
-			// ALONG the reach (the first clip): it slides in low, palm down, the fingers along it, curls under it as the
-			// wrist rolls, and up; ACROSS the reach (the second clip): the arm out over it, the hand down over its top, the
-			// fingers wrapping its far side, up, and turned in the hand to stand ready. Either way the hand takes it by
-			// whichever end asks the least twist of the forearm, and turns it in the fingers to point it right
+			// the right hand, from the owner's own footage of picking a remote up off the carpet (two clips) and the motor
+			// research behind them (the end-state comfort effect: Rosenbaum's dowel, Comalli et al.'s hammer). A tool with a
+			// head is taken with the thumb toward its head (a radial grip), ready to aim and switch on, so the grasp follows
+			// where the head points: on the thumb's side, OVER ITS TOP (palm down, the fingers round its far side: the second
+			// clip); on the other side, or back at the body, UNDERHAND (in low, the palm turning up, the fingers scooping under
+			// it as the wrist rolls: the first clip); pointing away along the arm, FROM ITS SIDE (alongside, thumb on top)
 			{
 				const FVector Ax = FlashRest.GetRotation().GetAxisX();                         // (along it, tail to head)
 				const FVector Grip = FlashRest.GetLocation() + Ax * 12.5f;                     // (where the hand closes on it)
-				FVector Rd = Grip - RRest.GetLocation();
-				Rd = (Rd - WUp * FVector::DotProduct(Rd, WUp)).GetSafeNormal();               // (the reach, along the lining)
-				const bool bAcross = FMath::Abs(FVector::DotProduct(Ax, Rd)) < 0.6f;
-				const FQuat Natural = Arms->HandAtPalm(1, Grip, Rd, Down).GetRotation();     // (palm down, fingers out along the reach)
-				// a grip on it with its top (under the thumb) toward Z, taken by the end that turns the hand least
-				auto GripFrom = [&](const FVector& Z, bool& bFlipped)
+				// (the forearm reaches out from the shoulder, close to the eyes, so its way is the eyes' way to the flashlight)
+				FVector Rd = Grip - Eye.GetLocation();
+				Rd = (Rd - WUp * FVector::DotProduct(Rd, WUp)).GetSafeNormal();
+				const FVector ThumbSide = FVector::CrossProduct(Rd, WUp).GetSafeNormal();      // (a right hand palm down: its thumb's side)
+				FVector Ah = Ax - WUp * FVector::DotProduct(Ax, WUp);
+				Ah.Normalize();
+				const float HeadToThumb = FVector::DotProduct(Ah, ThumbSide), HeadAway = FVector::DotProduct(Ah, Rd);
+				enum class EGrasp : uint8 { OverTop, Underhand, FromSide };
+				const EGrasp Grasp = HeadToThumb > 0.45f ? EGrasp::OverTop : (HeadToThumb < -0.45f || HeadAway < 0.f) ? EGrasp::Underhand : EGrasp::FromSide;
+				const bool bOverTop = Grasp == EGrasp::OverTop;
+				if (WakeOnce(TEXT("thumbcheck"), 10.5f, w))
 				{
-					const FTransform A(FRotationMatrix::MakeFromXZ(Ax, Z).ToQuat(), FlashRest.GetLocation());
-					const FTransform B(FRotationMatrix::MakeFromXZ(-Ax, Z).ToQuat(), FlashRest.GetLocation() + Ax * 25.f);
-					const FTransform Ha = Arms->HandOnHandle(1, A), Hb = Arms->HandOnHandle(1, B);
-					bFlipped = Hb.GetRotation().AngularDistance(Natural) < Ha.GetRotation().AngularDistance(Natural);
-					return bFlipped ? Hb : Ha;
-				};
-				FVector Side = FVector::CrossProduct(WUp, Ax).GetSafeNormal();                 // (the hand's side of it)
-				if (FVector::DotProduct(Side, Eye.GetLocation() - Grip) > 0.f)
-				{
-					Side = -Side;                                                              // (the far side from the eyes: it stays in view)
+					// (checking the thumb's side on the real hand: the right hand lies palm down, its fingers out along RRest's)
+					const FVector Hn = Arms->BoneCar(TEXT("hand_r")), Th = Arms->BoneCar(TEXT("thumb_01_r")), Mid = Arms->BoneCar(TEXT("middle_01_r"));
+					FVector Fing = Mid - Hn, ToThumb = Th - Hn;
+					Fing = (Fing - WUp * FVector::DotProduct(Fing, WUp)).GetSafeNormal();
+					ToThumb = (ToThumb - Fing * FVector::DotProduct(ToThumb, Fing) - WUp * FVector::DotProduct(ToThumb, WUp)).GetSafeNormal();
+					UE_LOG(LogTemp, Display, TEXT("WakeThumb the resting right hand: its thumb lies %.2f along Cross(fingers, up) (+1: that is the thumb's side)"),
+						FVector::DotProduct(ToThumb, FVector::CrossProduct(Fing, WUp).GetSafeNormal()));
 				}
-				bool bFlip = false;
-				FTransform Take, Before;
-				if (!bAcross)
+				if (WakeOnce(TEXT("grabplan"), 10.6f, w))
 				{
-					// alongside: palm down beside it, the fingers along it the way the reach goes; then the scoop into a
-					// grip whose top is turned to the far side and up, so the fingers come under it from the near side
-					const FVector Fd = FVector::DotProduct(Ax, Rd) >= 0.f ? Ax : -Ax;
-					Before = Arms->HandAtPalm(1, Grip - Fd * 2.f + Side * 6.5f + WUp * 0.6f, Fd, Down);
-					Take = GripFrom((-Side * 0.9f + WUp * 0.45f).GetSafeNormal(), bFlip);
+					UE_LOG(LogTemp, Display, TEXT("WakeGrab the flashlight's head points %.0f%% to the thumb's side, %.0f%% away along the arm: %s"),
+						HeadToThumb * 100.f, HeadAway * 100.f, bOverTop ? TEXT("over its top, palm down, thumb toward the head") :
+						Grasp == EGrasp::Underhand ? TEXT("underhand: in low, the palm turning up, scooping under it") : TEXT("from its side, thumb on top"));
 				}
-				else
+				// the near side (toward the body), where the hand comes in for the scoop or the side grip
+				FVector Side = FVector::CrossProduct(WUp, Ax).GetSafeNormal();
+				if (FVector::DotProduct(Side, RRest.GetLocation() - Grip) < 0.f)
+				{
+					Side = -Side;
+				}
+				// the grip: always along it toward the head (the thumb toward the head); its top (the thumb's way round it) up
+				// for over the top, toward the far side for the side grip, under and toward the body for the scoop
+				const FVector TopWay = bOverTop ? (WUp + Rd * 0.25f).GetSafeNormal() : Grasp == EGrasp::FromSide ? (WUp * 0.6f - Side * 0.8f).GetSafeNormal() :
+					(-Side * 0.55f - WUp * 0.35f + Rd * 0.0f).GetSafeNormal();
+				const FTransform Take = Arms->HandOnHandle(1, FTransform(FRotationMatrix::MakeFromXZ(Ax, TopWay).ToQuat(), FlashRest.GetLocation()));
+				const bool bFlip = false;
+				FTransform Before;
+				if (bOverTop)
 				{
 					// over it: the hand above it, then down over its top, the fingers round its far side
-					Take = GripFrom((WUp + Rd * 0.25f).GetSafeNormal(), bFlip);
 					Before = Take;
 					Before.AddToTranslation(WUp * 6.f - Rd * 3.f);
 				}
-				const float TReach = bAcross ? 11.2f : 11.3f;     // (out to it)
+				else
+				{
+					// in low on the near side, the hand already turning toward the grip, then under or round it
+					Before = Take;
+					Before.AddToTranslation(Side * 6.f + WUp * 1.5f);
+				}
+				const float TReach = bOverTop ? 11.2f : 11.3f;    // (out to it)
 				const float TTake = 11.55f;                       // (the fingers on it; then up)
 				if (w < TTake)
 				{
@@ -1316,10 +1333,10 @@ void AEndingDirector::WakeBeats(float RealDt)
 					{
 						// out to it (slow away, fast, slowing in): low along the lining, or lifted over it
 						const float u = MinJerk(w, 10.6f, TReach);
-						R.Hand.SetLocation(FMath::Lerp(RRest.GetLocation(), Before.GetLocation(), u) + WUp * (bAcross ? 5.f : 1.2f) * FMath::Sin(PI * u));
+						R.Hand.SetLocation(FMath::Lerp(RRest.GetLocation(), Before.GetLocation(), u) + WUp * (bOverTop ? 5.f : 1.2f) * FMath::Sin(PI * u));
 						R.Hand.SetRotation(FQuat::Slerp(RRest.GetRotation(), Before.GetRotation(), u));
 						R.Close = 0.f;
-						R.Open = (bAcross ? 0.45f : 0.6f) * WRamp(w, 10.65f, TReach - 0.3f);
+						R.Open = (bOverTop ? 0.45f : 0.6f) * WRamp(w, 10.65f, TReach - 0.3f);
 					}
 					else
 					{
@@ -1328,7 +1345,7 @@ void AEndingDirector::WakeBeats(float RealDt)
 						R.Hand.SetLocation(FMath::Lerp(Before.GetLocation(), Take.GetLocation(), u));
 						R.Hand.SetRotation(FQuat::Slerp(Before.GetRotation(), Take.GetRotation(), u));
 						R.Close = 0.75f * u;
-						R.Open = (bAcross ? 0.45f : 0.6f) * (1.f - u);
+						R.Open = (bOverTop ? 0.45f : 0.6f) * (1.f - u);
 					}
 				}
 				else
