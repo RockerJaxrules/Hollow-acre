@@ -111,10 +111,51 @@ def rasp(x, drive=2.6, fry=52.0, depth=0.38, grit=0.18, seed=3):
     return (y * am + nz).astype(np.float32)
 
 
-def voice(name, dur, f, pre=0.05, at=None, **kw):
-    """A stretch of one recording (its loudest, or from at s), pitched by f, through the torn throat."""
+def crowd(c, f, spread=(0.955, 1.0, 1.05, 0.985), lag=(0.0, 0.013, 0.027, 0.041)):
+    """Several throats at once: copies pitched a few per cent apart and a few ms late, so no clean note is left (a clean
+    shriek's note is what reads as a squeal)."""
+    out = np.zeros_like(c)
+    for p_, l_ in zip(spread, lag):
+        k = pitch(c, f * p_)
+        d = int(l_ * SR)
+        k = k[:, :max(0, c.shape[1] - d)]
+        out[:, d:d + k.shape[1]] += k
+    return out / len(spread) ** 0.5
+
+
+def detone(x, lo=500.0, hi=3200.0, over=3.0, keep=1.4, n=2048, hop=512):
+    """Takes the squeal out of a shriek (a de-whine): in short slices, any narrow note standing well above the sound around
+    it (over x the local median, between lo and hi Hz) is pulled down to keep x that median; the rest (the rasp, the
+    breath, the body) is left as it was."""
+    if x.shape[1] < n:
+        return x
+    win = np.hanning(n).astype(np.float32)
+    f = np.fft.rfftfreq(n, 1.0 / SR)
+    band = (f >= lo) & (f <= hi)
+    out = np.zeros_like(x)
+    norm = np.zeros(x.shape[1], dtype=np.float32)
+    k = 13
+    for ch in range(x.shape[0]):
+        for i in range(0, x.shape[1] - n, hop):
+            Z = np.fft.rfft(x[ch, i:i + n] * win)
+            mag = np.abs(Z)
+            pad = np.pad(mag, k, mode='edge')
+            med = np.median(np.lib.stride_tricks.sliding_window_view(pad, 2 * k + 1), axis=1)[:mag.shape[0]]
+            g = np.ones_like(mag)
+            loud = band & (mag > over * med)
+            g[loud] = (keep * med[loud]) / np.maximum(mag[loud], 1e-9)
+            out[ch, i:i + n] += np.fft.irfft(Z * g, n).astype(np.float32) * win
+            if ch == 0:
+                norm[i:i + n] += win ** 2
+    norm[norm < 1e-3] = 1.0
+    return out / norm
+
+
+def voice(name, dur, f, pre=0.05, at=None, many=False, **kw):
+    """A stretch of one recording (its loudest, or from at s), pitched by f (as several throats if many), through the
+    torn throat."""
     c = seg(name, at, dur) if at is not None else loudest(name, dur, pre=pre)
-    return rasp(pitch(c, f), **kw)
+    return rasp(crowd(c, f) if many else pitch(c, f), **kw)
 
 
 def sumc(*clips):
@@ -452,13 +493,13 @@ def crash(ev, total):
         # the owner: like Until Dawn's wendigos and The Quarry's werewolves; human, a creature, raspy, loud, a high scream.
         # A man's throat torn into a shriek: a demon shriek and a woman's horror shriek (high, pitched down a little) and a
         # man's scream (its body), all through the torn throat (rasp); a man's growl and a bear's under them for weight
-        for c, g in ((voice(CV + 'demon_shriek_433735', 1.3, 0.92, drive=2.4, fry=58.0), 1.0),
+        for c, g in ((voice(CV + 'demon_shriek_433735', 1.3, 0.92, drive=3.0, fry=58.0, grit=0.3, many=True), 1.0),
                      (voice(CV + 'male_screams_556976', 1.3, 0.95, drive=3.0, fry=46.0, depth=0.42), 0.8),
                      (pitch(loudest(CR_GROWLS, 1.3, pre=0.05), 0.8), 0.5),
                      (pitch(loudest('creature/creature_black_bear_angry_growl_763026', 1.3, pre=0.08), 0.75), 0.32)):
             c = c[:, :n]
             sh[:, :c.shape[1]] += level(fade(c, 0.015, 0.35), 0.1) * g
-        sh = verb(sh, 1.2, 0.18)
+        sh = verb(detone(sh), 1.2, 0.18)        # (no squeal: the shriek's clean notes pulled down)
         t_hit = t_smash or t_imp
         if t_smash:
             # the driver's window bursting in, its arm through it: the glass, the door's skin boomed, a sting
@@ -600,9 +641,9 @@ def crash(ev, total):
     M.at(t_speed, pan(peak(load('glass/glass_glass_shatter_shards_444134'), 0.35), -0.4))
     t_letgo = first('letgo')
     if stall and t_letgo:
-        after = sumc(level(voice(CV + 'demon_shriek_433735', 1.6, 0.88, at=4.15, drive=2.2, fry=56.0, seed=11), 0.1),
+        after = sumc(level(voice(CV + 'demon_shriek_433735', 1.6, 0.88, at=6.5, drive=2.8, fry=56.0, grit=0.3, seed=11, many=True), 0.1),
                      level(voice(CV + 'male_screams_556976', 1.6, 0.9, at=7.95, drive=2.8, fry=48.0, seed=13), 0.07))
-        M.at(t_letgo + 0.05, pan(peak(verb(fade(filt(after, A.lp(7000)), 0.03, 0.6), 2.4, 0.35), 0.7), -0.6))
+        M.at(t_letgo + 0.05, pan(peak(verb(fade(filt(detone(after), A.lp(7000)), 0.03, 0.6), 2.4, 0.35), 0.7), -0.6))
     # the shove, in heaves (the stall): the door's skin buckling under it and the car groaning, its strain at each
     for i, t0 in enumerate([t for t, k, v in ev if k == 'heave']):
         dent = loudest('metal_impact/metal_impact_car_hood_slam_big_329516', 0.7, pre=0.02)
