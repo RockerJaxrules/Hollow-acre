@@ -18,8 +18,11 @@ FBX = os.environ.get('HA_MOCAP_FBX', 'D:/HollowAcreTools/mocap/CMU_Clips.fbx')
 # (which source: CMU by default; HA_MOCAP_NAME=Kimodo for the motions from NVIDIA's Kimodo, tools/blender/kimodo_to_fbx.py)
 SRC_NAME = os.environ.get('HA_MOCAP_NAME', 'CMU')
 SRC_DIR = '/Game/HollowAcre/Creature/Mocap/' + SRC_NAME
-OUT_DIR = '/Game/HollowAcre/Creature/Mocap/Husk' if SRC_NAME == 'CMU' else '/Game/HollowAcre/Creature/Mocap/%s_Husk' % SRC_NAME
-HUSK = '/Game/HollowAcre/Creature/HuskGame/Husk'
+# (onto whom: the creature by default; HA_MOCAP_TARGET=<skeletal mesh> HA_MOCAP_TARGET_NAME=<name> for another body, e.g.
+# Kessler's MetaHuman: /Game/HollowAcre/Kessler/Built/Kessler/Body/SKM_MHC_Kessler_BodyMesh, Kessler)
+TGT_NAME = os.environ.get('HA_MOCAP_TARGET_NAME', 'Husk')
+OUT_DIR = os.environ.get('HA_MOCAP_OUT') or ('/Game/HollowAcre/Creature/Mocap/Husk' if SRC_NAME == 'CMU' else '/Game/HollowAcre/Creature/Mocap/%s_Husk' % SRC_NAME)
+HUSK = os.environ.get('HA_MOCAP_TARGET', '/Game/HollowAcre/Creature/HuskGame/Husk')
 eal = unreal.EditorAssetLibrary
 tools = unreal.AssetToolsHelpers.get_asset_tools()
 
@@ -97,11 +100,11 @@ def make_rig(name, mesh):
 
 
 src_rig = make_rig('IKR_' + SRC_NAME, src_mesh)
-dst_rig = make_rig('IKR_Husk', dst_mesh)
+dst_rig = make_rig('IKR_' + TGT_NAME, dst_mesh)
 
 # 3. the retargeter
-rt_path = SRC_DIR + '/RTG_%s_to_Husk' % SRC_NAME
-rtg = unreal.load_asset(rt_path) if eal.does_asset_exist(rt_path) else tools.create_asset('RTG_%s_to_Husk' % SRC_NAME, SRC_DIR, unreal.IKRetargeter, unreal.IKRetargetFactory())
+rt_path = SRC_DIR + '/RTG_%s_to_%s' % (SRC_NAME, TGT_NAME)
+rtg = unreal.load_asset(rt_path) if eal.does_asset_exist(rt_path) else tools.create_asset('RTG_%s_to_%s' % (SRC_NAME, TGT_NAME), SRC_DIR, unreal.IKRetargeter, unreal.IKRetargetFactory())
 rc = unreal.IKRetargeterController.get_controller(rtg)
 log('IKRetargeterController has: %s' % methods(rc))
 rc.set_ik_rig(unreal.RetargetSourceOrTarget.SOURCE, src_rig)
@@ -137,13 +140,18 @@ eal.save_loaded_asset(rtg)
 # 4. every clip onto the creature
 if not eal.does_directory_exist(OUT_DIR):
     eal.make_directory(OUT_DIR)
+# (HA_MOCAP_CLIPS=17_03,133_01: only these clips)
+want = [c.strip() for c in os.environ.get('HA_MOCAP_CLIPS', '').split(',') if c.strip()]
+if want:
+    anims = [a for a in anims if any(a.split('/')[-1].split('.')[0].endswith(w) for w in want)]
+    log('only %s' % [a.split('/')[-1].split('.')[0] for a in anims])
 datas = [unreal.EditorAssetLibrary.find_asset_data(a) for a in anims]
 log('duplicate_and_retarget: %s' % (unreal.IKRetargetBatchOperation.duplicate_and_retarget.__doc__ or '').split('\n')[0])
 try:
-    out = unreal.IKRetargetBatchOperation.duplicate_and_retarget(datas, src_mesh, dst_mesh, rtg, '', '', '', '_Husk', OUT_DIR, False, False, True)
+    out = unreal.IKRetargetBatchOperation.duplicate_and_retarget(datas, src_mesh, dst_mesh, rtg, '', '', '', '_' + TGT_NAME, OUT_DIR, False, False, True)
 except TypeError:
     out = unreal.IKRetargetBatchOperation.duplicate_and_retarget(assets_to_retarget=datas, source_mesh=src_mesh, target_mesh=dst_mesh,
-                                                                 ik_retarget_asset=rtg, suffix='_Husk', target_path=OUT_DIR)
+                                                                 ik_retarget_asset=rtg, suffix='_' + TGT_NAME, target_path=OUT_DIR)
 moved = 0
 for d in out:
     p = str(d.package_name)
@@ -155,4 +163,4 @@ for d in out:
             moved += 1
 eal.save_directory(OUT_DIR)
 eal.save_directory(SRC_DIR)
-log('retargeted %d clips onto the creature (%d moved into %s)' % (len(out), moved, OUT_DIR))
+log('retargeted %d clips onto %s (%d moved into %s)' % (len(out), TGT_NAME, moved, OUT_DIR))
