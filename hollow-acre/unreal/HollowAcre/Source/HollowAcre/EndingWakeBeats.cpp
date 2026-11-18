@@ -1818,8 +1818,8 @@ void AEndingDirector::WakeBeats(float RealDt)
 					const FVector ElPred = Arms->ElbowFor(1, ShNow, WrNow, R.Pole);
 					if (Arms->ThumbToSwitch >= 0.f)
 					{
-						UE_LOG(LogTemp, Display, TEXT("WakeThumbSwitch %.2f the thumb's tip %.1f cm from the switch, %.1f cm deep in the barrel at most; the fingers' skin off the barrel: index %.1f, middle %.1f, ring %.1f, little %.1f cm"),
-							w, Arms->ThumbToSwitch, Arms->ThumbInBarrel, Arms->FingerGap[0], Arms->FingerGap[1], Arms->FingerGap[2], Arms->FingerGap[3]);
+						UE_LOG(LogTemp, Display, TEXT("WakeThumbSwitch %.2f the palm %.1f cm off the barrel; the thumb's tip %.1f cm from the switch, %.1f cm deep in the barrel at most; the fingers' skin off the barrel: index %.1f, middle %.1f, ring %.1f, little %.1f cm"),
+							w, Arms->PalmToBarrel, Arms->ThumbToSwitch, Arms->ThumbInBarrel, Arms->FingerGap[0], Arms->FingerGap[1], Arms->FingerGap[2], Arms->FingerGap[3]);
 					}
 					UE_LOG(LogTemp, Display, TEXT("WakeWrist %.2f the wrist %+.0f toward the palm, %+.0f toward the little finger; the elbow %.1f cm off the lining; the arm %.1f cm clear of the head; the rig's hand %.1f cm from its key (the elbow %.1f from its prediction)"),
 						w, Fx, Dv, FVector::DotProduct(ElNow - LiningAt, WUp), Arms->ArmHeadClear(ShNow, ElNow, WrNow), Arms->RigMiss[1], FVector::Dist(ElPred, ElNow));
@@ -1834,25 +1834,25 @@ void AEndingDirector::WakeBeats(float RealDt)
 					bFlashReversed = bUpHigh && bFlip;
 					FlashTurnSecs = 1e6f;   // (it never shifts in the fingers: it moves with the grip, as the owner's can did)
 					{
-						// (the barrel rolled about its own axis to how the grip was found, so its switch sits under the thumb: round,
-						// it looks the same, and the hand covers it as it closes)
-						const FVector AxX = FlashRest.GetRotation().GetAxisX();
-						FlashRest.SetRotation((FQuat(AxX, FMath::DegreesToRadians(WakeTakeRoll)) * FlashRest.GetRotation()).GetNormalized());
-						// (and on round to face the thumb: in the grip the fingers curl over the barrel's far side, and the switch
-						// belongs under the thumb, beside them; a barrel turned on its own axis sits in the fingers the same)
+						// (it goes into the fist as the hand closes: seated in the grip the fingers were shaped round, against the palm
+						// and inside the fingers, turned on its own axis so its switch faces the thumb (round, it sits the same); the
+						// hand covers it as it closes)
+						const FTransform HandAt = Arms->HandNow(1);
+						const FTransform Seated = Arms->GripDesigned(1) * HandAt;
+						const FVector AxX = Seated.GetRotation().GetAxisX();
 						const FVector Th = Arms->BoneCar(TEXT("thumb_02_r"));
-						const FVector Base = FlashRest.GetLocation() + AxX * FVector::DotProduct(Th - FlashRest.GetLocation(), AxX);
+						const FVector Base = Seated.GetLocation() + AxX * FVector::DotProduct(Th - Seated.GetLocation(), AxX);
 						FVector ToThumb = Th - Base;
 						ToThumb = (ToThumb - AxX * FVector::DotProduct(ToThumb, AxX)).GetSafeNormal();
-						const FVector Zs = FlashRest.GetRotation().GetAxisZ();
-						const float More = FMath::Atan2(FVector::DotProduct(FVector::CrossProduct(Zs, ToThumb), AxX), FVector::DotProduct(Zs, ToThumb));
-						FlashRest.SetRotation((FQuat(AxX, More) * FlashRest.GetRotation()).GetNormalized());
-						UE_LOG(LogTemp, Display, TEXT("WakeSwitch the flashlight rolled %.0f then %.0f degrees about its axis at the grab, its switch facing the thumb"), WakeTakeRoll, FMath::RadiansToDegrees(More));
+						const FVector Zs = Seated.GetRotation().GetAxisZ();
+						const float Turn = FMath::Atan2(FVector::DotProduct(FVector::CrossProduct(Zs, ToThumb), AxX), FVector::DotProduct(Zs, ToThumb));
+						FlashInHandAtGrab = FTransform(FQuat(FVector::XAxisVector, Turn)) * Arms->GripDesigned(1);
+						UE_LOG(LogTemp, Display, TEXT("WakeSwitch seated in the fist (%.1f cm from where it lay), turned %.0f degrees on its axis, its switch facing the thumb"),
+							FVector::Dist((FlashInHandAtGrab * HandAt).GetLocation(), FlashRest.GetLocation()), FMath::RadiansToDegrees(Turn));
+						HoldAim = FlashInHandAtGrab * HandAt;
 					}
-					FlashInHandAtGrab = FlashRest * Arms->HandNow(1).Inverse();
 					Arms->GripTaken[1] = FlashInHandAtGrab;
 					Arms->bGripTaken[1] = true;
-					HoldAim = FlashRest;
 					Event(TEXT("grab"));
 				}
 			}

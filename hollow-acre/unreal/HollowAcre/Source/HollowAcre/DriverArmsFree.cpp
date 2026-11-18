@@ -488,6 +488,10 @@ void ADriverArms::FreeFollow()
 			const FTransform FlCar = GripTaken[Side] * HandNow(Side);
 			const FVector A0 = FlCar.TransformPosition(FVector(1.5f, 0.f, 0.f)), A1 = FlCar.TransformPosition(FVector(19.5f, 0.f, 0.f));
 			GraspDist = [A0, A1](const FVector& Pcar) { return FMath::PointDistToSegment(Pcar, A0, A1) - 1.985f; };
+			if (Side == 1)
+			{
+				PalmToBarrel = (float)FMath::PointDistToSegment(PalmNow(Side), A0, A1) - 1.985f;
+			}
 			const FQuat HandRotCS = BoneCS(Side == 0 ? TEXT("hand_l") : TEXT("hand_r")).GetRotation();
 			const FVector AcCS = HandRotCS.RotateVector(AcrossL[Side]), PalmCS = HandRotCS.RotateVector(FaceL[Side]);
 			const float St = FMath::Clamp(F.Stagger, 0.f, 0.6f);
