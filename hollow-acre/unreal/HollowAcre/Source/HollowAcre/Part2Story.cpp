@@ -1137,11 +1137,13 @@ void AP2Story::TickFire(float Dt)
 	if (Flames && FlameMID)
 	{
 		Flames->SetVisibility(Catch > 0.02f);
-		FlameMID->SetScalarParameterValue(TEXT("Intensity"), 14.f * Catch * Lick * FMath::Square(Fu));
+		// (bright enough to read through the door, no brighter: at 14 its bloom spread an orange blur over the lower view
+		// whenever the stove sat at the edge of the frame)
+		FlameMID->SetScalarParameterValue(TEXT("Intensity"), 4.5f * Catch * Lick * FMath::Square(Fu));
 	}
 	if (FireCoal)
 	{
-		FireCoal->SetVectorParameterValue(TEXT("Glow"), FLinearColor(1.f, 0.3f, 0.05f) * (9.f * Catch * (0.85f + 0.15f * FMath::Sin(Clock * 1.7f))));
+		FireCoal->SetVectorParameterValue(TEXT("Glow"), FLinearColor(1.f, 0.3f, 0.05f) * (3.5f * Catch * (0.85f + 0.15f * FMath::Sin(Clock * 1.7f))));
 	}
 	if (FireBox)
 	{

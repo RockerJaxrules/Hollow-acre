@@ -46,7 +46,7 @@ try:
     bp = unreal.load_class(None, BP + '.BP_Kessler_C')
     if not bp:
         raise RuntimeError('no ' + BP)
-    for i, yaw in enumerate((180.0, 225.0)):
+    for i, yaw in enumerate((90.0, 135.0)):           # (a MetaHuman faces its +Y: yaw 90 turns it to the camera at -X)
         a = actors.spawn_actor_from_class(bp, V(0, (i - 0.5) * 140, 0), R(0, yaw, 0))
         a.set_actor_label('Kessler %d' % i)
         # his lantern's light: warm, low at his left side

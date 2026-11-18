@@ -58,16 +58,27 @@ try:
     got = {str(c.get_editor_property('name')): round(c.get_editor_property('target_measurement'), 1) for c in sub.get_body_constraints(ch, False)}
     log('body now', {k: got.get(k) for k in TARGETS})
     # his beard and hair, from the wardrobe
+    # (added to his palette and then selected in its slot: added alone, the preset's own stubble and swept-up hair were
+    # what got built)
     col = ch.get_editor_property('internal_collection')
+    inst = col.get_editor_property('default_instance')
+    log('slots', [str(n) for n in col.get_slot_names()])
     for slot, path in GROOMS.items():
         item = unreal.load_asset(path)
         if not item:
             log('no wardrobe item', path)
             continue
         try:
-            log('groom', slot, col.try_add_item_from_wardrobe_item(unreal.Name(slot), item))
+            key = col.try_add_item_from_wardrobe_item(unreal.Name(slot), item)
+            ok = inst.set_single_slot_selection(unreal.Name(slot), key)
+            log('groom', slot, path.split('/')[-1], 'selected' if ok else 'NOT SELECTED')
         except Exception as e:
             log('groom', slot, 'failed:', e)
+    for sel in inst.get_slot_selection_data() if hasattr(inst, 'get_slot_selection_data') else []:
+        try:
+            log('selection', sel.get_editor_property('selection'))
+        except Exception:
+            log('selection', sel)
     eal.save_loaded_asset(ch)
     rp = unreal.MetaHumanCharacterAutoRiggingRequestParams()
     for k, v in (('rig_type', unreal.MetaHumanRigType.JOINTS_AND_BLEND_SHAPES), ('report_progress', False), ('blocking', True)):

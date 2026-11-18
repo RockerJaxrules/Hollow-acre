@@ -848,7 +848,7 @@ void APart2Character::Tick(float DeltaSeconds)
 				Armful->SetupAttachment(Camera);
 				Armful->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 				Armful->SetCastShadow(false);
-				Armful->SetRelativeLocationAndRotation(FVector(44.f, 3.f, -18.f), FRotator(-18.f, 84.f, 4.f));   // (the lower edge of the view: the vertical half-angle is ~24 degrees)
+				Armful->SetRelativeLocationAndRotation(FVector(42.f, 6.f, -19.f), FRotator(-10.f, 32.f, 6.f));   // (the lower edge of the view: the vertical half-angle is ~24 degrees)
 				if (UMaterialInterface* Bw = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Town/Materials/M_Town_Drywood.M_Town_Drywood")))
 				{
 					for (int32 Slot = 0; Slot < Armful->GetNumMaterials(); ++Slot)
