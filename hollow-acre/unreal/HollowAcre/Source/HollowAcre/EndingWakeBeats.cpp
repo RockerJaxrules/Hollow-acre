@@ -38,6 +38,7 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Part2Character.h"
+#include "HuskHunter.h"
 
 namespace
 {
@@ -877,6 +878,16 @@ void AEndingDirector::WakeBeats(float RealDt)
 			}
 			Me->TakeOverFrom(EyeW, Arms, Flashlight, FlashBeam, CamComp->PostProcessSettings);
 			Event(TEXT("play"));
+			// (-p2hunt: the husk hunts from the start of play, for testing; in the story it begins with the first night)
+			if (FParse::Param(FCommandLine::Get(), TEXT("p2hunt")))
+			{
+				float Far = 4500.f;
+				FParse::Value(FCommandLine::Get(), TEXT("-p2huntfar="), Far);
+				if (AHuskHunter* Hh = GetWorld()->SpawnActor<AHuskHunter>(AHuskHunter::StaticClass(), FTransform::Identity, P))
+				{
+					Hh->Begin(this, HuskScale, Far);
+				}
+			}
 		}
 		else
 		{

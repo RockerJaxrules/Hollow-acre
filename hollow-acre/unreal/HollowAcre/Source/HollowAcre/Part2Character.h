@@ -69,6 +69,20 @@ public:
 	float Battery = 1.f;
 	UPROPERTY(Replicated)
 	float Warmth = 1.f;
+	/** What the husk reads off the player (HuskHunter): the eyes, where they look, the beam, running. */
+	FVector EyesAt() const;
+	FVector LookDir() const;
+	FVector BeamFrom() const;
+	FVector BeamDir() const;
+	bool IsLightOn() const { return bFlashlightOn && Battery > 0.f; }
+	bool IsRunningNow() const { return bRunning; }
+	bool IsDead() const { return bDead; }
+	/** Caught by the husk: the eyes go to it, black, and back at the last checkpoint. */
+	void Caught(AActor* By);
+	/** Where the player comes back after a death. */
+	FTransform Checkpoint = FTransform::Identity;
+	FRotator CheckpointLook = FRotator::ZeroRotator;
+
 	/** The flashlight on (everyone sees it). */
 	UPROPERTY(ReplicatedUsing = OnRep_Flashlight)
 	bool bFlashlightOn = true;
@@ -127,6 +141,14 @@ protected:
 	bool bHold = false;
 	float Bob = 0.f;
 	float AutoT = 0.f;                        // (the -p2walk test autopilot's clock)
+	bool bDead = false;
+	float ChaseSeenT = 0.f;                   // (the autopilot: how long it has watched the charge)
+	float DeadT = 0.f;
+	TWeakObjectPtr<AActor> CaughtBy;
+	float NoiseT = 0.f;
+	TWeakObjectPtr<class AEndingDirector> Director;
+	void ReportNoise(float Carries);
+	void TickDeath(float Dt);
 	float EyeHeight = 162.f;
 	void UpdateBody(float Dt);
 	void ApplyLight();

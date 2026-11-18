@@ -5,6 +5,10 @@
 #include "Components/PointLightComponent.h"
 #include "Components/SpotLightComponent.h"
 #include "DriverArms.h"
+#include "HuskHunter.h"
+#include "EndingDirector.h"
+#include "Husk.h"
+#include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
@@ -191,8 +195,90 @@ void APart2Character::CrouchToggle()
 	}
 }
 
+FVector APart2Character::EyesAt() const
+{
+	return Camera->GetComponentLocation();
+}
+
+FVector APart2Character::LookDir() const
+{
+	return Camera->GetForwardVector();
+}
+
+FVector APart2Character::BeamFrom() const
+{
+	return HeldBeam ? HeldBeam->GetComponentLocation() : Beam->GetComponentLocation();
+}
+
+FVector APart2Character::BeamDir() const
+{
+	return HeldBeam ? HeldBeam->GetForwardVector() : Beam->GetForwardVector();
+}
+
+void APart2Character::ReportNoise(float Carries)
+{
+	for (TActorIterator<AHuskHunter> It(GetWorld()); It; ++It)
+	{
+		It->HearNoise(GetActorLocation(), Carries);
+	}
+}
+
+void APart2Character::Caught(AActor* By)
+{
+	if (bDead)
+	{
+		return;
+	}
+	bDead = true;
+	DeadT = 0.f;
+	CaughtBy = By;
+	GetCharacterMovement()->DisableMovement();
+	UE_LOG(LogTemp, Display, TEXT("Part2Death caught at %s"), *GetActorLocation().ToCompactString());
+}
+
+void APart2Character::TickDeath(float Dt)
+{
+	DeadT += Dt;
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	// the eyes snap to its face (its head, a little above the eyes), then black
+	if (CaughtBy.IsValid() && DeadT < 0.7f && Controller)
+	{
+		FVector Head = CaughtBy->GetActorLocation() + FVector(0.f, 0.f, 150.f * CaughtBy->GetActorScale3D().Z);
+		if (const AHusk* Hk = Cast<AHusk>(CaughtBy.Get()))
+		{
+			if (Hk->GetBody() && Hk->GetBody()->GetBoneIndex(TEXT("head")) != INDEX_NONE)
+			{
+				Head = Hk->GetBody()->GetBoneLocation(TEXT("head"));
+			}
+		}
+		const FRotator Want = (Head - EyesAt()).Rotation();
+		Controller->SetControlRotation(FMath::RInterpTo(Controller->GetControlRotation(), Want, Dt, 18.f));
+	}
+	if (PC && PC->PlayerCameraManager && DeadT >= 0.6f && DeadT - Dt < 0.6f)
+	{
+		PC->PlayerCameraManager->StartCameraFade(0.f, 1.f, 0.12f, FLinearColor::Black, false, true);
+	}
+	if (DeadT >= 3.f)
+	{
+		// back at the last checkpoint, the night going on
+		bDead = false;
+		SetActorLocation(Checkpoint.GetLocation(), false, nullptr, ETeleportType::TeleportPhysics);
+		if (Controller)
+		{
+			Controller->SetControlRotation(CheckpointLook);
+		}
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+		if (PC && PC->PlayerCameraManager)
+		{
+			PC->PlayerCameraManager->StartCameraFade(1.f, 0.f, 1.6f, FLinearColor::Black, false, false);
+		}
+		UE_LOG(LogTemp, Display, TEXT("Part2Death back at the checkpoint %s"), *Checkpoint.GetLocation().ToCompactString());
+	}
+}
+
 void APart2Character::FlashlightToggle()
 {
+	ReportNoise(700.f);                      // (the switch's click carries in the cold)
 	bFlashlightOn = !bFlashlightOn;          // (shown at once here; the host makes it so for everyone)
 	ApplyLight();
 	ServerSetFlashlight(bFlashlightOn);
@@ -297,6 +383,8 @@ void APart2Character::TakeOverFrom(const FTransform& EyeWorld, ADriverArms* InAr
 		bHold = true;
 	}
 	ApplyLight();
+	Checkpoint = GetActorTransform();
+	CheckpointLook = FRotator(FMath::Clamp(R.Pitch, -10.f, 5.f), R.Yaw, 0.f);
 	UE_LOG(LogTemp, Display, TEXT("Part2Character: taken over from the wake at %s, eyes %s"), *At.ToString(), *R.ToString());
 	{
 		// (what is under the feet here: the first things a trace straight down meets, and the town ground's collision)
@@ -341,7 +429,23 @@ void APart2Character::UpdateBody(float Dt)
 	// the flashlight held at the chest, low and to the right, its beam on what the eyes look at, swaying behind them and
 	// with the steps
 	const float Speed = GetVelocity().Size2D();
+	const float BobWas = Bob;
 	Bob += Dt * (Speed / 70.f) * PI;
+	// (a footfall at each low of the bob: for the sound, how it was taken)
+	if (FMath::FloorToInt(Bob / PI) != FMath::FloorToInt(BobWas / PI) && Speed > 30.f)
+	{
+		if (!Director.IsValid())
+		{
+			for (TActorIterator<AEndingDirector> It(GetWorld()); It; ++It)
+			{
+				Director = *It;
+			}
+		}
+		if (Director.IsValid())
+		{
+			Director->LogEvent(bRunning ? TEXT("step_run") : bIsCrouched ? TEXT("step_crouch") : TEXT("step_walk"), Speed);
+		}
+	}
 	const FVector Sway(0.f, 1.2f * FMath::Sin(Bob * 0.5f), 0.9f * FMath::Abs(FMath::Sin(Bob * 0.5f))) ;
 	// (low and to the right, the hand and the flashlight's head in the corner of the view, as a held light is seen)
 	// (the view's lower edge is ~24 degrees below its middle at this field of view: the fist about 20 degrees down)
@@ -413,6 +517,23 @@ void APart2Character::Tick(float DeltaSeconds)
 	{
 		ApplyLight();
 	}
+	if (bDead)
+	{
+		TickDeath(DeltaSeconds);
+		UpdateBody(DeltaSeconds);
+		return;
+	}
+	// the noise the steps make in the snow: running heard far, walking near, crouched barely
+	NoiseT -= DeltaSeconds;
+	if (NoiseT <= 0.f && HasAuthority())
+	{
+		NoiseT = 0.3f;
+		const float V = GetVelocity().Size2D();
+		if (V > 40.f)
+		{
+			ReportNoise(bRunning ? 2600.f : bIsCrouched ? 280.f : 950.f);
+		}
+	}
 	if (IsLocallyControlled())
 	{
 		// (test autopilot for captures, -p2walk: a look round, then walking on with the head turning, a run in the middle)
@@ -421,24 +542,69 @@ void APart2Character::Tick(float DeltaSeconds)
 		{
 			AutoT += DeltaSeconds;
 			const float T = AutoT;
-			// (the eyes brought level from the wake's last look up the chute, a little down at the path)
+			// (with a husk hunting: it turns to the camp's street, walks in sweeping the light; when the husk shows it stops and
+			// holds the beam on it; when it charges, it turns and runs)
+			AHuskHunter* Hh = nullptr;
+			for (TActorIterator<AHuskHunter> It(GetWorld()); It; ++It)
 			{
-				const float Pitch = FRotator::NormalizeAxis(Controller->GetControlRotation().Pitch);
-				AddControllerPitchInput(FMath::Clamp((Pitch - -6.f) * 1.5f * DeltaSeconds, -60.f * DeltaSeconds, 60.f * DeltaSeconds));
+				Hh = *It;
 			}
+			const bool bHunt = Hh && Hh->Husk && !Hh->Husk->IsHidden();
+			const FVector HuskAt = bHunt ? Hh->Husk->GetActorLocation() + FVector(0.f, 0.f, 110.f * Hh->Husk->GetActorScale3D().Z) : FVector::ZeroVector;
+			bool bSeeHusk = false;
+			if (bHunt)
+			{
+				const FVector To = HuskAt - EyesAt();
+				FHitResult Hb;
+				FCollisionQueryParams Qb(TEXT("AutoSee"), true, this);
+				Qb.AddIgnoredActor(Hh->Husk);
+				bSeeHusk = To.Size() < 3000.f && FVector::DotProduct(To.GetSafeNormal(), LookDir()) > 0.5f && !GetWorld()->LineTraceSingleByChannel(Hb, EyesAt(), HuskAt, ECC_Visibility, Qb);
+			}
+			const FRotator Cr = Controller->GetControlRotation();
+			float WantYaw = Cr.Yaw, WantPitch = -6.f, TurnRate = 40.f;
+			bool bWalk = false, bRun = false;
 			if (T < 3.f)
 			{
-				AddControllerYawInput(DeltaSeconds * 40.f * FMath::Cos(T * PI / 1.5f));
+				WantYaw = -150.f;
+				TurnRate = 70.f;
+			}
+			else if (bHunt && Hh->State == AHuskHunter::EState::Chase && ChaseSeenT < 1.3f)
+			{
+				// (it charges: the eyes stay on it a moment, frozen)
+				ChaseSeenT += DeltaSeconds;
+				const FRotator At = (HuskAt - EyesAt()).Rotation();
+				WantYaw = At.Yaw;
+				WantPitch = FMath::Clamp(At.Pitch, -20.f, 10.f);
+				TurnRate = 160.f;
+			}
+			else if (bHunt && Hh->State == AHuskHunter::EState::Chase)
+			{
+				const FVector Away = (GetActorLocation() - HuskAt).GetSafeNormal2D();
+				WantYaw = Away.Rotation().Yaw;
+				TurnRate = 240.f;
+				bWalk = bRun = true;
+			}
+			else if (bSeeHusk)
+			{
+				const FRotator At = (HuskAt - EyesAt()).Rotation();
+				WantYaw = At.Yaw;
+				WantPitch = FMath::Clamp(At.Pitch, -20.f, 10.f);
+				TurnRate = 90.f;
 			}
 			else
 			{
+				WantYaw = Cr.Yaw + 14.f * FMath::Sin((T - 3.f) * 0.6f);
+				bWalk = true;
+			}
+			Controller->SetControlRotation(FRotator(FMath::FixedTurn(FRotator::NormalizeAxis(Cr.Pitch), WantPitch, 40.f * DeltaSeconds),
+				FMath::FixedTurn(Cr.Yaw, WantYaw, TurnRate * DeltaSeconds), 0.f));
+			if (bWalk)
+			{
 				AddMovementInput(FRotationMatrix(FRotator(0.f, Controller->GetControlRotation().Yaw, 0.f)).GetUnitAxis(EAxis::X), 1.f);
-				AddControllerYawInput(DeltaSeconds * 12.f * FMath::Sin((T - 3.f) * 0.7f));
-				const bool bRun = T > 8.f && T < 11.f;
-				if (bRun != bWantsRun)
-				{
-					bRun ? RunStart() : RunStop();
-				}
+			}
+			if (bRun != bWantsRun)
+			{
+				bRun ? RunStart() : RunStop();
 			}
 			if (FMath::FloorToInt(T) != FMath::FloorToInt(T - DeltaSeconds))
 			{
