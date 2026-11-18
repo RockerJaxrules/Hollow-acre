@@ -106,6 +106,8 @@ protected:
 	void SpawnCrosser();
 	/** Snow and dust sifting down from above (off the roof boards, jarred by a hit), Count flakes over Radius. */
 	void SiftSnow(const FVector& Above, float Radius, int32 Count);
+	/** Snow thrown up from the ground here (a body going down at speed), outward and along Dir. */
+	void SnowBurst(const FVector& At, const FVector& Dir, int32 Count);
 	void TickSift(float Dt);
 	struct FSift
 	{
@@ -113,6 +115,7 @@ protected:
 		FVector V;
 		float Delay;
 		float Born;
+		bool bThrown = false;
 	};
 	TArray<FSift> Sift;
 
@@ -208,6 +211,7 @@ protected:
 	float LStageAt = 0.f;
 	FTransform ShedT;
 	FVector KWay[3];
+	FVector ChargeSide = FVector::ZeroVector;
 	int32 KLeg = 0;
 	UPROPERTY()
 	TObjectPtr<AHusk> WindowHusk;

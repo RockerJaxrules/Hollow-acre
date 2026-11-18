@@ -182,8 +182,8 @@ void AKessler::BeginPlay()
 		LanternLight->SetIntensity(9.f);
 		LanternLight->SetAttenuationRadius(1500.f);
 		LanternLight->SetUseTemperature(true);
-		LanternLight->SetTemperature(1950.f);
-		LanternLight->SetSourceRadius(2.f);
+		LanternLight->SetTemperature(2250.f);
+		LanternLight->SetSourceRadius(4.f);
 		LanternLight->SetCastShadows(true);
 		LanternLight->SetVolumetricScatteringIntensity(0.4f);
 		LanternLight->SetLightingChannels(true, true, true);
@@ -226,6 +226,17 @@ void AKessler::BeginPlay()
 		}
 		MuzzleFlash->RegisterComponent();
 	}
+	Rim = NewObject<UPointLightComponent>(this, TEXT("Rim"));
+	Rim->SetupAttachment(GetRootComponent());
+	Rim->SetRelativeLocation(FVector(-120.f, 30.f, 240.f));
+	Rim->SetIntensityUnits(ELightUnits::Candelas);
+	Rim->SetIntensity(2.5f);
+	Rim->SetAttenuationRadius(320.f);
+	Rim->SetUseTemperature(true);
+	Rim->SetTemperature(9000.f);
+	Rim->SetCastShadows(false);
+	Rim->SetVolumetricScatteringIntensity(0.f);
+	Rim->RegisterComponent();
 	UE_LOG(LogTemp, Display, TEXT("Kessler: up (body %s, take %s, lantern %d, rifle %d)"), Body.IsValid() ? TEXT("found") : TEXT("MISSING"), *Clip,
 		(int32)(Lantern != nullptr), (int32)(Rifle != nullptr));
 }
@@ -280,6 +291,7 @@ void AKessler::Tick(float Dt)
 	{
 		CopyPose();
 		PoseUpper(Dt);
+		Breathe(Dt);
 	}
 	USkinnedMeshComponent* B = Shown ? static_cast<USkinnedMeshComponent*>(Shown) : static_cast<USkinnedMeshComponent*>(Body.Get());
 	const float Yaw = GetActorRotation().Yaw;
@@ -300,7 +312,7 @@ void AKessler::Tick(float Dt)
 		const float Fl = 0.86f + 0.07f * FMath::Sin(T * 7.3f) + 0.05f * FMath::Sin(T * 17.1f + 1.f) + 0.03f * FMath::Sin(T * 29.f);
 		if (LanternLight)
 		{
-			LanternLight->SetIntensity(5.5f * Fl);
+			LanternLight->SetIntensity(3.6f * Fl);
 		}
 		if (FlameMID)
 		{
@@ -328,14 +340,14 @@ void AKessler::Tick(float Dt)
 			R.AddToTranslation(-R.GetRotation().GetAxisX() * 3.f * K);
 		}
 		Rifle->SetWorldTransform(R);
-		const float Fk = FMath::Exp(-KickT / 0.022f);
+		const float Fk = FMath::Exp(-KickT / 0.045f);
 		if (MuzzleLight)
 		{
-			MuzzleLight->SetIntensity(KickT < 0.12f ? 2200.f * Fk : 0.f);
+			MuzzleLight->SetIntensity(KickT < 0.2f ? 7000.f * Fk : 0.f);
 		}
 		if (MuzzleFlash)
 		{
-			MuzzleFlash->SetVisibility(KickT < 0.06f);
+			MuzzleFlash->SetVisibility(KickT < 0.075f);
 			if (MuzzleMID)
 			{
 				MuzzleMID->SetScalarParameterValue(TEXT("Intensity"), 30.f * Fk);
@@ -544,7 +556,7 @@ void AKessler::Locomote(float Dt)
 		float Want = (FaceAt - Loc).GetSafeNormal2D().Rotation().Yaw;
 		if (AimWant > 0.5f)
 		{
-			Want = (AimPoint - Loc).GetSafeNormal2D().Rotation().Yaw + 32.f;
+			Want = (AimPoint - Loc).GetSafeNormal2D().Rotation().Yaw + 14.f;
 		}
 		Rot.Yaw = FMath::FixedTurn(Rot.Yaw, Want, 90.f * Dt);
 	}
@@ -697,7 +709,10 @@ void AKessler::PoseUpper(float Dt)
 		if (LanternW > 0.001f)
 		{
 			const FVector Dir = LanternToward.IsZero() ? Fwd : (LanternToward - ShL).GetSafeNormal2D();
-			const FVector UpHand = ShL + Dir * 44.f + Up * 12.f - Right * 4.f;      // (the fist at his head's height)
+			// (the fist at his head's height; held up to a face close by, higher, so the light is at their eyes)
+			const bool bClose = !LanternToward.IsZero() && FVector::Dist2D(LanternToward, ShL) < 320.f;
+			const float Lift = bClose ? FMath::Clamp(LanternToward.Z + 36.f - ShL.Z, -25.f, 32.f) : 12.f;
+			const FVector UpHand = ShL + Dir * (bClose ? 50.f : 44.f) + Up * Lift - Right * 4.f;
 			const float L = FMath::SmoothStep(0.f, 1.f, LanternW);
 			Hand = FMath::Lerp(Hand, UpHand, L);
 			Pole = FMath::Lerp(Pole, ShL - Right * 25.f - Up * 35.f + Dir * 5.f, L);
@@ -739,6 +754,9 @@ void AKessler::PoseUpper(float Dt)
 		}
 		ArmTo(false, Hand, Pole, W);
 	}
+	// (his fists: the lantern's bail in the left, the rifle's wrist in the right)
+	Grip(true, Lantern ? 1.f : 0.f);
+	Grip(false, Rifle ? 1.f : 0.f);
 }
 
 void AKessler::DressUp()
@@ -945,5 +963,142 @@ void AKessler::RunTest()
 	if (At(12.5f))
 	{
 		LowerRifle();
+	}
+}
+
+void AKessler::Grip(bool bLeft, float W)
+{
+	// each finger curled about the hand's own side-to-side axis (index to little finger), toward the palm (the side the
+	// thumb sits on), its three joints a little less than a fist's; the thumb's last two joints over them
+	const TCHAR* Sx = bLeft ? TEXT("_l") : TEXT("_r");
+	auto Idx = [&](const TCHAR* B) { return Shown->GetBoneIndex(FName(*FString::Printf(TEXT("%s%s"), B, Sx))); };
+	const int32 Hd = Idx(TEXT("hand")), I1 = Idx(TEXT("index_01")), P1 = Idx(TEXT("pinky_01")), M1 = Idx(TEXT("middle_01")), T2 = Idx(TEXT("thumb_02"));
+	if (W <= 0.001f || Hd == INDEX_NONE || I1 == INDEX_NONE || P1 == INDEX_NONE || M1 == INDEX_NONE || T2 == INDEX_NONE)
+	{
+		return;
+	}
+	const FVector H = Shown->GetBoneLocation(Shown->GetBoneName(Hd));
+	const FVector F = (Shown->GetBoneLocation(Shown->GetBoneName(M1)) - H).GetSafeNormal();
+	FVector Side = Shown->GetBoneLocation(Shown->GetBoneName(I1)) - Shown->GetBoneLocation(Shown->GetBoneName(P1));
+	Side = (Side - F * FVector::DotProduct(Side, F)).GetSafeNormal();
+	FVector Palm = Shown->GetBoneLocation(Shown->GetBoneName(T2)) - H;
+	Palm = (Palm - F * FVector::DotProduct(Palm, F) - Side * FVector::DotProduct(Palm, Side)).GetSafeNormal();
+	// (turning about Side by +a moves a fingertip along Side x F: the sign that sends it to the palm)
+	const float Sgn = FVector::DotProduct(FVector::CrossProduct(Side, F), Palm) >= 0.f ? 1.f : -1.f;
+	static const float Bend[3] = {62.f, 78.f, 52.f};
+	for (const TCHAR* Fn : {TEXT("index"), TEXT("middle"), TEXT("ring"), TEXT("pinky")})
+	{
+		for (int32 j = 0; j < 3; ++j)
+		{
+			const int32 B = Idx(*FString::Printf(TEXT("%s_0%d"), Fn, j + 1));
+			if (B == INDEX_NONE)
+			{
+				continue;
+			}
+			FTransform X = Shown->GetBoneTransform(B);
+			X.SetRotation((FQuat(Side, Sgn * FMath::DegreesToRadians(Bend[j]) * W) * X.GetRotation()).GetNormalized());
+			SetCS(B, X);
+		}
+	}
+	for (int32 j = 2; j <= 3; ++j)
+	{
+		const int32 B = Idx(*FString::Printf(TEXT("thumb_0%d"), j));
+		if (B != INDEX_NONE)
+		{
+			FTransform X = Shown->GetBoneTransform(B);
+			X.SetRotation((FQuat(Side, Sgn * FMath::DegreesToRadians(28.f) * W) * X.GetRotation()).GetNormalized());
+			SetCS(B, X);
+		}
+	}
+}
+
+void AKessler::Breathe(float Dt)
+{
+	// a breath out every few seconds (quicker after running), a short plume from his mouth, thin and lit only where his
+	// lantern catches it (M_Breath, as the player's own)
+	// (kept from the garbage collector: held only here)
+	static UStaticMesh* Ball = nullptr;
+	static UMaterialInterface* Vapour = nullptr;
+	if (!Ball)
+	{
+		Ball = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+		Vapour = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Materials/Play/M_Breath.M_Breath"));
+		if (Ball)
+		{
+			Ball->AddToRoot();
+		}
+		if (Vapour)
+		{
+			Vapour->AddToRoot();
+		}
+	}
+	const int32 Hi = Shown->GetBoneIndex(TEXT("head"));
+	if (!Ball || !Vapour || Hi == INDEX_NONE)
+	{
+		return;
+	}
+	const FTransform H = Shown->GetBoneTransform(Hi);
+	const FVector Fw = H.GetRotation().RotateVector(FaceFwdLocal).GetSafeNormal();
+	const FVector Mouth = EyesAt() - FVector(0.f, 0.f, 9.f) + Fw * 6.f;
+	BreathT -= Dt;
+	if (BreathT <= 0.f)
+	{
+		const bool bHard = Playing.Contains(TEXT("Run")) || XFadeT < 2.5f;
+		BreathT = (bHard ? 1.5f : 3.6f) * FMath::FRandRange(0.85f, 1.15f);
+		for (int32 i = 0; i < 4; ++i)
+		{
+			UStaticMeshComponent* C = NewObject<UStaticMeshComponent>(this);
+			C->SetStaticMesh(Ball);
+			UMaterialInstanceDynamic* M = UMaterialInstanceDynamic::Create(Vapour, C);
+			M->SetScalarParameterValue(TEXT("Opacity"), 0.f);
+			C->SetMaterial(0, M);
+			C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			C->SetCastShadow(false);
+			C->SetMobility(EComponentMobility::Movable);
+			C->SetWorldLocation(Mouth);
+			C->SetWorldScale3D(FVector(0.04f));
+			C->RegisterComponent();
+			FPuff P;
+			P.C = C;
+			P.M = M;
+			P.V = Fw * FMath::FRandRange(45.f, 65.f) - FVector(0.f, 0.f, FMath::FRandRange(3.f, 9.f));
+			P.Age = -0.14f * i;
+			P.Life = FMath::FRandRange(1.4f, 1.9f);
+			P.R0 = FMath::FRandRange(2.f, 3.f);
+			P.R1 = FMath::FRandRange(10.f, 15.f);
+			P.Peak = FMath::FRandRange(0.07f, 0.11f);
+			Puffs.Add(P);
+		}
+	}
+	for (int32 i = Puffs.Num() - 1; i >= 0; --i)
+	{
+		FPuff& P = Puffs[i];
+		UStaticMeshComponent* C = P.C.Get();
+		if (!C)
+		{
+			Puffs.RemoveAtSwap(i);
+			continue;
+		}
+		P.Age += Dt;
+		if (P.Age < 0.f)
+		{
+			C->SetWorldLocation(Mouth);
+			continue;
+		}
+		if (P.Age > P.Life)
+		{
+			C->DestroyComponent();
+			Puffs.RemoveAtSwap(i);
+			continue;
+		}
+		P.V *= FMath::Max(0.f, 1.f - 1.6f * Dt);
+		P.V.Z += 9.f * Dt;
+		C->SetWorldLocation(C->GetComponentLocation() + P.V * Dt);
+		const float R = FMath::Lerp(P.R0, P.R1, 1.f - FMath::Exp(-P.Age * 2.2f));
+		C->SetWorldScale3D(FVector(R / 50.f));
+		if (UMaterialInstanceDynamic* M = P.M.Get())
+		{
+			M->SetScalarParameterValue(TEXT("Opacity"), P.Peak * FMath::SmoothStep(0.f, 0.15f, P.Age) * FMath::Pow(1.f - P.Age / P.Life, 1.6f));
+		}
 	}
 }

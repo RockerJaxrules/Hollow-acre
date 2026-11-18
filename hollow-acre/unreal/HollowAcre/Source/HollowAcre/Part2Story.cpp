@@ -1132,6 +1132,12 @@ void AP2Story::TickSift(float Dt)
 		{
 			continue;
 		}
+		if (F.bThrown)
+		{
+			// (thrown snow: falls back, slowed by the air)
+			F.V += FVector(0.f, 0.f, -980.f) * Dt;
+			F.V *= FMath::Max(0.f, 1.f - 1.8f * Dt);
+		}
 		F.C->AddWorldOffset(F.V * Dt + FVector(FMath::Sin(Age * 3.f + i) * 6.f * Dt, 0.f, 0.f));
 		if (Age > F.Delay + 3.5f)
 		{
@@ -1553,14 +1559,19 @@ void AP2Story::TickLantern(float Dt)
 		}
 		if (St > 6.4f)
 		{
+			// (the side it will come from: away from the buildings)
+			const FVector Run = (PAt - KAt).GetSafeNormal2D();
+			const FVector Sd = FVector::CrossProduct(FVector::UpVector, Run);
+			const FVector Mid = ShedT.TransformPosition(FVector(-185.f, 0.f, 0.f));
+			ChargeSide = FVector::Dist2D(PAt + Sd * 900.f, Mid) > FVector::Dist2D(PAt - Sd * 900.f, Mid) ? Sd : -Sd;
 			Kessler->LanternUp = 0.f;
-			Kessler->AimAt(Eyes - FVector(0.f, 0.f, 30.f));
+			Kessler->AimAt(Eyes - FVector(0.f, 0.f, 20.f) + ChargeSide * 90.f);
 			LStageTo(3, TEXT("the rifle comes up at the player"));
 		}
 		break;
 	case 3:
-		// the rifle on them: run
-		Kessler->AimAt(Eyes - FVector(0.f, 0.f, 30.f));
+		// the rifle on them (on the dark just beside them: he has seen it there): run
+		Kessler->AimAt(Eyes - FVector(0.f, 0.f, 20.f) + ChargeSide * 90.f);
 		if (Once(TEXT("rifle_up")))
 		{
 			Say(TEXT("No... no, no, no-"), 0.7f, 2.2f);
@@ -1572,9 +1583,8 @@ void AP2Story::TickLantern(float Dt)
 			// from the buildings), into their light, straight at them; they are caught between it and the rifle)
 			const FVector Run = (PAt - KAt).GetSafeNormal2D();
 			const FVector Sd = FVector::CrossProduct(FVector::UpVector, Run);
-			const FVector A = PAt + Sd * 900.f + Run * 1600.f, B = PAt - Sd * 900.f + Run * 1600.f;
-			const FVector Mid = ShedT.TransformPosition(FVector(-185.f, 0.f, 0.f));
-			const FVector From = FVector::Dist2D(A, Mid) > FVector::Dist2D(B, Mid) ? A : B;
+			const FVector Side = FVector::DotProduct(Sd, ChargeSide) >= 0.f ? Sd : -Sd;
+			const FVector From = PAt + Side * 1350.f + Run * 900.f;
 			if (!Hunter)
 			{
 				FActorSpawnParameters Sp;
@@ -1601,7 +1611,7 @@ void AP2Story::TickLantern(float Dt)
 		const float Dh = FVector::Dist2D(Hb, PAt);
 		if (Once(TEXT("it_comes")))
 		{
-			Say(TEXT("...!"), 0.5f, 1.4f);
+			Say(TEXT("Oh God-"), 0.6f, 1.4f);
 		}
 		if ((Dh < 470.f && Kessler->IsAimed()) || St > 6.f)
 		{
@@ -1611,6 +1621,8 @@ void AP2Story::TickLantern(float Dt)
 			if (Hunter)
 			{
 				Hunter->Shot((Hb - M).GetSafeNormal());
+				SnowBurst(FVector(Hb.X, Hb.Y, GroundAt(Hb) + 10.f), (Hb - M).GetSafeNormal(), 90);
+				SnowBurst(Hb, (Hb - M).GetSafeNormal(), 40);           // (off its back where the round hit)
 			}
 			Player->Jolt(1.3f);
 			LStageTo(5, TEXT("the shot: it drops at their heels"));
@@ -1667,5 +1679,28 @@ void AP2Story::TickLantern(float Dt)
 	}
 	default:
 		break;
+	}
+}
+
+void AP2Story::SnowBurst(const FVector& At, const FVector& Dir, int32 Count)
+{
+	SiftSnow(At, 25.f, Count);
+	FRandomStream R(131 + Count);
+	const FVector D = Dir.GetSafeNormal2D();
+	for (int32 i = Sift.Num() - Count; i < Sift.Num(); ++i)
+	{
+		if (i < 0)
+		{
+			continue;
+		}
+		FSift& F = Sift[i];
+		const FVector Out = FVector(R.FRandRange(-1.f, 1.f), R.FRandRange(-1.f, 1.f), R.FRandRange(0.4f, 1.3f)).GetSafeNormal();
+		F.V = (Out + D * 0.7f) * R.FRandRange(140.f, 420.f);
+		F.Delay = R.FRandRange(0.f, 0.08f);
+		F.bThrown = true;
+		if (F.C)
+		{
+			F.C->SetWorldScale3D(FVector(R.FRandRange(0.008f, 0.03f)));
+		}
 	}
 }

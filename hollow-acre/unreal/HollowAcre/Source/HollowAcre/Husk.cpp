@@ -719,6 +719,15 @@ void AHusk::Ragdoll(const FVector& Velocity, const FVector& SpinDeg)
 	Body->SetAllBodiesSimulatePhysics(true);
 	Body->SetSimulatePhysics(true);
 	Body->WakeAllRigidBodies();
+	for (FBodyInstance* Bi : Body->Bodies)
+	{
+		if (Bi)
+		{
+			Bi->LinearDamping = 0.9f;
+			Bi->AngularDamping = 5.f;
+			Bi->UpdateDampingProperties();
+		}
+	}
 	Body->SetAllPhysicsLinearVelocity(Velocity);
 	if (!SpinDeg.IsZero())
 	{

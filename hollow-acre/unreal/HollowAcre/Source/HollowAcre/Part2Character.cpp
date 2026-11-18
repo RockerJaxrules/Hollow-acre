@@ -1473,10 +1473,10 @@ void APart2Character::StoryAutopilot(float Dt)
 					LookAt(Ls == 2 ? K->EyesAt() : K->LanternAt(), 70.f);
 				}
 			}
-			else if (Ls == 3 && Lt < 2.2f)
+			else if (Ls == 3 && Lt < 2.4f)
 			{
 				// (the rifle on them: held in the eyes, the muzzle and his face behind it)
-				LookAt(K->EyesAt() - FVector(0.f, 0.f, 12.f), 90.f);
+				LookAt(K->EyesAt() - FVector(0.f, 0.f, 16.f), 90.f);
 			}
 			else if (Ls == 4 && St->GetHunter())
 			{
@@ -1491,9 +1491,10 @@ void APart2Character::StoryAutopilot(float Dt)
 			}
 			else if (Ls == 3)
 			{
-				// (run: for the shed's front corner, then on out into the street)
-				const FVector G = FVector::Dist2D(CornerF, GetActorLocation()) > 150.f && LanternLeg < 10 ? CornerF : OutStreet;
-				if (FVector::Dist2D(CornerF, GetActorLocation()) <= 150.f)
+				// (run: out across the open ground toward the street, clear of the shed's wall)
+				const FVector RunA = T.TransformPosition(FVector(250.f, -820.f, 0.f));
+				const FVector G = FVector::Dist2D(RunA, GetActorLocation()) > 150.f && LanternLeg < 10 ? RunA : OutStreet;
+				if (FVector::Dist2D(RunA, GetActorLocation()) <= 150.f)
 				{
 					LanternLeg = 10;
 				}
@@ -1504,6 +1505,10 @@ void APart2Character::StoryAutopilot(float Dt)
 			}
 			else if (Ls == 5 && Lt < 3.f && St->GetHunter() && St->GetHunter()->Husk)
 			{
+				if (Lt > 0.4f && !bIsCrouched)
+				{
+					CrouchToggle();          // (their knees go)
+				}
 				// (down at their feet: its head, the light on it)
 				LookAt(St->GetHunter()->Husk->DrawnAt(TEXT("head")), 200.f);
 			}
@@ -1753,6 +1758,12 @@ void APart2Character::UpdateAttention(float Dt)
 		{
 			Fix = It->WindowPoint();
 		}
+		// (the lantern scene: the thing charging at them, and down at their feet)
+		const int32 Ls = It->LanternStage();
+		if ((Ls == 4 || (Ls == 5 && It->LanternStageT() < 3.f)) && It->GetHunter() && It->GetHunter()->Husk)
+		{
+			Fix = It->GetHunter()->Husk->DrawnAt(TEXT("head"));
+		}
 	}
 	bool bFixed = false;
 	if (!Fix.IsZero() && IsLightOn())
@@ -1762,7 +1773,7 @@ void APart2Character::UpdateAttention(float Dt)
 	}
 	// (the man with the lantern, stopped out there, the light held up, then the rifle: the eyes fix on him the same way,
 	// from further off (lit by his own lantern), narrowing further)
-	float Narrow = 0.6f;
+	float Narrow = 0.6f, PushRate = 0.7f;
 	for (TActorIterator<AP2Story> It(GetWorld()); It && !bFixed; ++It)
 	{
 		const int32 Ls = It->LanternStage();
@@ -1770,11 +1781,12 @@ void APart2Character::UpdateAttention(float Dt)
 		{
 			const FVector To = It->GetKessler()->EyesAt() - FVector(0.f, 0.f, 25.f) - EyesAt();
 			bFixed = To.Size() < 2600.f && FVector::DotProduct(To.GetSafeNormal(), LookDir()) > FMath::Cos(FMath::DegreesToRadians(9.f));
-			Narrow = 0.4f;
+			Narrow = Ls == 3 ? 0.27f : 0.4f;
+			PushRate = Ls == 3 ? 2.2f : 0.7f;
 		}
 	}
 	// (narrowing slowly to about two thirds (or half), opening again quicker)
 	const float Want = bFixed ? BaseFov * Narrow : BaseFov;
 	FixedK = FMath::FInterpTo(FixedK, bFixed ? 1.f : 0.f, Dt, 1.2f);
-	Camera->SetFieldOfView(FMath::FInterpTo(Camera->FieldOfView, Want, Dt, bFixed ? 0.7f : 2.5f));
+	Camera->SetFieldOfView(FMath::FInterpTo(Camera->FieldOfView, Want, Dt, bFixed ? PushRate : 2.5f));
 }

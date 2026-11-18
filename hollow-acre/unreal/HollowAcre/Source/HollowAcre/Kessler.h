@@ -115,6 +115,8 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class UPointLightComponent> MuzzleLight;
 	UPROPERTY()
+	TObjectPtr<class UPointLightComponent> Rim;
+	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> MuzzleFlash;
 	UPROPERTY()
 	TObjectPtr<class UMaterialInstanceDynamic> MuzzleMID;
@@ -122,6 +124,18 @@ protected:
 	void CopyPose();
 	void PoseUpper(float Dt);
 	void TurnHead(float W);
+	/** The fingers curled shut round what the hand holds (W 0..1). */
+	void Grip(bool bLeft, float W);
+	void Breathe(float Dt);
+	struct FPuff
+	{
+		TWeakObjectPtr<UStaticMeshComponent> C;
+		TWeakObjectPtr<class UMaterialInstanceDynamic> M;
+		FVector V;
+		float Age, Life, R0, R1, Peak;
+	};
+	TArray<FPuff> Puffs;
+	float BreathT = 1.f;
 	void ArmTo(bool bLeft, const FVector& HandAt, const FVector& Pole, float W);
 	void SetCS(int32 Bone, const FTransform& World);
 	FTransform AimRifle() const;
