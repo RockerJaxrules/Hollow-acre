@@ -448,6 +448,20 @@ void AEndingDirector::WakeSetup()
 		X = (X + WUp * 0.039f).GetSafeNormal();
 		FlashRest = FTransform(FRotationMatrix::MakeFromXZ(X, WUp).ToQuat(), FVector(22.f, 40.f, Zf) + WUp * 1.985f);   // (further out and centred, where the owner's bottle lay)   // (clear of the rear-view mirror, which hangs ~10 cm off the lining)
 		Flashlight = Prop(TEXT("Wake_Flashlight"), FlashRest);
+	}
+	if (RearMirror)
+	{
+		// the rear-view mirror broke off its mount in the roll: it lies on the lining glass down, behind the driver's side of
+		// the papers, out of the arms' way (it hung right where the arm lifts the flashlight)
+		const FVector N(FMath::Cos(FMath::DegreesToRadians(-10.f)), FMath::Sin(FMath::DegreesToRadians(-10.f)), 0.f);   // (its thin way, the glass's normal reversed)
+		const FVector H = FQuat(WUp, FMath::DegreesToRadians(20.f)).RotateVector(FVector(1.f, 0.f, 0.f) - WUp * WUp.X).GetSafeNormal();
+		const FQuat R = FRotationMatrix::MakeFromXZ(WUp, H).ToQuat() * FRotationMatrix::MakeFromXZ(N, FVector(0.f, 0.f, 1.f)).ToQuat().Inverse();
+		const FVector BoxL(34.f - 36.6f, 0.f, 126.f - 135.f);                     // (its housing's middle, from its pivot)
+		const FVector At = FVector(-8.f, 66.f, Zf) + WUp * 1.7f;
+		RearMirror->SetActorRelativeTransform(FTransform(R, At - R.RotateVector(BoxL)));
+		UE_LOG(LogTemp, Display, TEXT("WakeMirror broken off, lying on the lining at %s (car frame)"), *At.ToString());
+	}
+	{
 		WakeTint(Flashlight, 0, FLinearColor(0.012f, 0.012f, 0.014f), 1.f, 0.32f);
 		WakeTint(Flashlight, 1, FLinearColor(0.86f, 0.86f, 0.88f), 1.f, 0.06f);
 		WakeTint(Flashlight, 2, FLinearColor(0.92f, 0.88f, 0.75f), 0.f, 0.2f);
@@ -2001,6 +2015,39 @@ void AEndingDirector::WakeBeats(float RealDt)
 			Arms->ExtraLift[1] = Arms->FloorN * FMath::Min(Keep, 6.f);
 		}
 		Flashlight->GetRootComponent()->SetRelativeTransform(Fl);
+		if (RearMirror && Arms && Arms->IsReady())
+		{
+			// (how close the arms, the fingers and the flashlight come to the mirror where it lies: its housing a box)
+			const FTransform Mt = RearMirror->GetRootComponent()->GetRelativeTransform();
+			const FVector N(FMath::Cos(FMath::DegreesToRadians(-10.f)), FMath::Sin(FMath::DegreesToRadians(-10.f)), 0.f), Yl(-N.Y, N.X, 0.f), Zl(0.f, 0.f, 1.f);
+			const FVector BoxL(34.f - 36.6f, 0.f, 126.f - 135.f);
+			auto BoxDist = [&](const FVector& Pcar)
+			{
+				const FVector D = Mt.InverseTransformPosition(Pcar) - BoxL;
+				const FVector Out(FMath::Max(0.f, FMath::Abs((float)FVector::DotProduct(D, N)) - 1.6f), FMath::Max(0.f, FMath::Abs((float)FVector::DotProduct(D, Yl)) - 13.5f),
+					FMath::Max(0.f, FMath::Abs((float)FVector::DotProduct(D, Zl)) - 3.4f));
+				return (float)Out.Size();
+			};
+			float Near = 1e9f;
+			for (const TCHAR* B : {TEXT("hand_l"), TEXT("hand_r"), TEXT("lowerarm_l"), TEXT("lowerarm_r"), TEXT("index_03_l"), TEXT("index_03_r"), TEXT("middle_03_l"), TEXT("middle_03_r"),
+				TEXT("pinky_03_l"), TEXT("pinky_03_r"), TEXT("thumb_03_l"), TEXT("thumb_03_r")})
+			{
+				Near = FMath::Min(Near, BoxDist(Arms->BoneCar(B)) - 1.f);          // (less a finger's or wrist's thickness)
+			}
+			for (float t = 0.f; t <= 25.4f; t += 2.5f)
+			{
+				Near = FMath::Min(Near, BoxDist(Fl.TransformPosition(FVector(t, 0.f, 0.f))) - 2.85f);
+			}
+			if (Near < WakeMirrorMin)
+			{
+				WakeMirrorMin = Near;
+				WakeMirrorMinW = w;
+			}
+			if (WakeOnce(TEXT("mirrorclear"), 29.5f, w))
+			{
+				UE_LOG(LogTemp, Display, TEXT("WakeMirror the arms and the flashlight came no closer than %.1f cm to the mirror (at %.2f s)"), WakeMirrorMin, WakeMirrorMinW);
+			}
+		}
 		if (bFlashHeld && WakeOnce(TEXT("switchfacing"), 13.0f, w))
 		{
 			// (which way the switch faces from the eyes, for each turn of the barrel on its own axis from where it is)

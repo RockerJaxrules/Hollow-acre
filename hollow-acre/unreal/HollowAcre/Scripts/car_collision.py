@@ -7,7 +7,7 @@ Run: UnrealEditor-Cmd <uproject> -ExecutePythonScript=<this> -unattended -nospla
 import unreal
 
 MESHES = ['/Game/HollowAcre/Car/Car', '/Game/HollowAcre/Car/Car_Glass', '/Game/HollowAcre/Car/Car_Wheel',
-          '/Game/HollowAcre/Car/Car_Wiper0', '/Game/HollowAcre/Car/Car_Wiper1']
+          '/Game/HollowAcre/Car/Car_Wiper0', '/Game/HollowAcre/Car/Car_Wiper1', '/Game/HollowAcre/Car/Car_Mirror']
 eal = unreal.EditorAssetLibrary
 
 

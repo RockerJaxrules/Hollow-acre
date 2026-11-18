@@ -856,7 +856,7 @@ def build_car(windshield):
         log('cabin collision field copied')
     wheel_actor = None
     MOVING['wipers'] = []
-    for name in ('Car', 'Car_Glass', 'Car_Wheel', 'Car_Wiper0', 'Car_Wiper1'):
+    for name in ('Car', 'Car_Glass', 'Car_Wheel', 'Car_Wiper0', 'Car_Wiper1', 'Car_Mirror'):
         mesh = import_obj(name, CAR)
         # keep Blender's smooth (weighted) normals: Unreal's default recomputes them from the unwelded triangles,
         # which flat-shades every curve (rim, pad, panels) into visible facets
@@ -875,13 +875,16 @@ def build_car(windshield):
             eal.save_loaded_asset(mesh)
         # the steering wheel is modelled about its own centre (car_interior.py), so it turns about it
         # moving parts are modelled about their own pivots (car_interior.py WHEEL_C, WIPER_PIVOTS)
-        pivot = {'Car_Wheel': V(55, 0, 86), 'Car_Wiper0': V(103.5, YC_CAR - 18, 97.0), 'Car_Wiper1': V(103.5, YC_CAR + 34, 97.0)}
+        pivot = {'Car_Wheel': V(55, 0, 86), 'Car_Wiper0': V(103.5, YC_CAR - 18, 97.0), 'Car_Wiper1': V(103.5, YC_CAR + 34, 97.0),
+                 'Car_Mirror': V(36.6, YC_CAR, 135.0)}
         a = actors.spawn_actor_from_class(unreal.StaticMeshActor, pivot.get(name, V(0, 0, 0)))
         a.set_actor_label(name.replace('_', ' '))
         if name == 'Car_Wheel':
             wheel_actor = a
         if name.startswith('Car_Wiper'):
             MOVING['wipers'].append(a)
+        if name == 'Car_Mirror':
+            MOVING['mirror'] = a
         comp = a.static_mesh_component
         comp.set_static_mesh(mesh)
         missing = []
@@ -1094,6 +1097,8 @@ def main():
     director.set_actor_label('Ending director')
     director.set_editor_property('car', car)
     director.set_editor_property('wipers', MOVING.get('wipers', []))   # they sweep through the drive
+    if MOVING.get('mirror'):
+        director.set_editor_property('rear_mirror', MOVING['mirror'])   # broken off in the crash (the wake)
     # the drive's sound (unreal/tools/make_ending_audio.py), timed to this scene from its first frame
     snd_src = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir() + 'SourceArt/Audio/Ending_Drive.wav')
     if os.path.exists(snd_src):

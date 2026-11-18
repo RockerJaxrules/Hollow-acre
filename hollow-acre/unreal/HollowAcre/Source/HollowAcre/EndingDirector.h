@@ -81,6 +81,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ending")
 	TArray<TObjectPtr<AActor>> Wipers;
 
+	/** The rear-view mirror (its own part, pivoting at the top of its stem): in the wreck it lies broken off on the lining. */
+	UPROPERTY(EditAnywhere, Category = "Ending")
+	TObjectPtr<AActor> RearMirror;
+	float WakeMirrorMin = 1e9f;               // (the wake: the closest any part of the arms or the flashlight came to the mirror)
+	float WakeMirrorMinW = 0.f;
+
 	/** Wiper sweep: seconds per out-and-back, how far they sweep (degrees), how long they rest parked between sweeps. */
 	UPROPERTY(EditAnywhere, Category = "Ending")
 	float WiperPeriod = 1.35f;

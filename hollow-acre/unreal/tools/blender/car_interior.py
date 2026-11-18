@@ -383,6 +383,8 @@ def outside_front():
 WHEEL_PARTS = ('rim', 'wheel_pad', 'spoke')   # the steering wheel's parts: exported on their own so it can turn
 WIPER_PARTS = ('wiper_arm', 'wiper_blade')     # each wiper's arm and blade: exported on their own so they can sweep
 WIPER_PIVOTS = (Vector((103.5, YC - 18, 97.0)), Vector((103.5, YC + 34, 97.0)))   # (as outside_front places them)
+MIRROR_PARTS = ('rearview', 'rearview_glass', 'rearview_stem')   # the rear-view mirror: its own part, so a crash can break it off
+MIRROR_PIVOT = Vector((36.6, YC, 135.0))                        # (the top of its stem, where it meets the header)
 
 
 def moving_part(obj):
@@ -390,6 +392,8 @@ def moving_part(obj):
     base = obj.name.split('.')[0]
     if base in WHEEL_PARTS:
         return 'wheel'
+    if base in MIRROR_PARTS:
+        return 'mirror'
     if base in WIPER_PARTS:
         c = obj.matrix_world @ (sum((v.co for v in obj.data.vertices), Vector()) / max(1, len(obj.data.vertices)))
         return 'wiper0' if abs(c.y - WIPER_PIVOTS[0].y) < abs(c.y - WIPER_PIVOTS[1].y) else 'wiper1'
@@ -401,7 +405,7 @@ def export(path, keep, wheel=False, part=None):
     part, about its own pivot (the wheel's centre, the wiper's spindle)."""
     if wheel:
         part = 'wheel'
-    origin = {'wheel': WHEEL_C, 'wiper0': WIPER_PIVOTS[0], 'wiper1': WIPER_PIVOTS[1]}.get(part)
+    origin = {'wheel': WHEEL_C, 'wiper0': WIPER_PIVOTS[0], 'wiper1': WIPER_PIVOTS[1], 'mirror': MIRROR_PIVOT}.get(part)
     deps = bpy.context.evaluated_depsgraph_get()
     groups = {}
     for obj in bpy.context.scene.objects:
@@ -467,6 +471,8 @@ if __name__ == '__main__':
     for i in range(2):
         w = export(os.path.join(OUT, 'Car_Wiper%d.obj' % i), keep=False, part='wiper%d' % i)
         print('car_interior: wiper %d: %d tris' % (i, sum(w.values())))
+    mirror = export(os.path.join(OUT, 'Car_Mirror.obj'), keep=False, part='mirror')
+    print('car_interior: rear-view mirror: %d tris' % sum(mirror.values()))
     print('car_interior: opaque %d tris in %d materials %s; glass %s' % (sum(opaque.values()), len(opaque), sorted(opaque), glass))
     import cabin_sdf
     # collision for the driver's arms and hands (see DriverArms); the driver's door is solid from its trim panel outward
