@@ -41,6 +41,8 @@ GROWL = 'creature_extra/creature_extra_human_aggressive_growls_257358'
 CRACK = 'wood/wood_wood_crack5_183450'
 BOOM = 'cine_hits/cine_hits_cinematic_impact_177242'
 BODY_FALL = 'snow_impact/snow_impact_body_falls_hard_snow_675895'
+DOOR_SLAM = 'metal_impact/metal_impact_car_hood_slam_big_329516'
+METAL_CREAK = 'foley_car/foley_car_creaking_metal_slow_stress_172411'
 
 
 def onsets(name, n, dur=0.35, seed=1):
@@ -174,6 +176,13 @@ def play(ev, total):
             n_ = int(3.2 * SR)
             ring = np.sin(2 * np.pi * 3900 * np.arange(n_) / SR) * np.exp(-np.arange(n_) / (1.2 * SR))
             M.at(t + 0.1, C.level(np.stack([ring, ring]), 0.006), 1.0)
+        elif k == 'truck_door_bang':
+            # the truck's door slammed in by the gust behind the player, close: the steel door's boom against the cab,
+            # its latch rattle, the hinges groaning as it swings back off the frame, and the strings' stab with it
+            slam = C.level(C.pitch(C.loudest(DOOR_SLAM, 1.1, pre=0.01), 0.85), 0.32)
+            M.at(t + 0.2, C.verb(slam, 0.8, 0.18), 1.0)
+            M.at(t + 0.35, C.level(C.pitch(C.loudest(METAL_CREAK, 1.6, pre=0.05), 1.25), 0.04), 1.0)
+            M.at(t + 0.17, C.level(C.loudest(STING_SCARE, 1.5, pre=0.03), 0.06), 1.0)
         elif k == 'husk_down':
             # its body going down in the snow at a gallop: a heavy fall, the snow crushed under it
             M.at(t + 0.25, C.level(C.loudest(BODY_FALL, 1.4, pre=0.02), 0.16), 1.0)

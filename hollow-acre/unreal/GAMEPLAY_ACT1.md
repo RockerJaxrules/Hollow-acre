@@ -47,6 +47,24 @@ the dark, until the rifle goes off behind you and the husk that was on your heel
    his rifle an old lever-action. His lines as captions: "Get inside." Short, hard, kind. Then the first cutscene of
    Act I's end: by the stove, what comes out at night, the road shut until you can drive it.
 
+### Grandmother's truck and her journal, as built (the owner chose it: "At the truck, with the scare")
+After the car's headlight dies the player is in the dark with no objective; six seconds on, "There's something in the
+trees..." and the objective "Check the trees behind the camp". Within 24 m, with nothing between, the light shows it:
+"Is that... a truck?", "That's Grandma's truck." (objective "Check the truck"). It lies on its roof 37 m behind the
+shed; the walk to it is through the dark trees. Crouched at the open driver's door, the light in on the crushed
+headliner: her journal, fallen from the glovebox, two loose pages pale beside it ("Take her journal"). As it is taken
+the gust slams the door in behind the player (the door swings 64 degrees to 3 in a fifth of a second, bounces off the
+frame, settles half open; a steel boom, the hinges groaning, a string stab), "Ah-!", then "It's hers. Her journal."
+Objective: "Find shelter in the camp. Read her journal by a light". In the shed she is read on the table by the light:
+her Nov 8 entry and her note were written at the truck ("I'm leaving this where you'll find it"); the last page is
+what she pencilled on the boards above the table the night after (Nov 9). Reading it brings the hit on the wall, as
+before. Part2Story: SpawnTruck (the journal and pages), OnUse "journal_take", TickTruckDoor; the autopilot's steps 15-18.
+
+### The kill's blood (owner-approved)
+At the shot, the round's exit spray flies out over the snow behind it (BloodFX::Spray: 80 drops in two cones, splatting
+where they land); when it has come to rest, the exit wound on the side away from the stranger with a run down its ribs
+(a smear decal on the body), and a pool spreading out from under it over 11 s while he walks up (BloodFX::Pool).
+
 ### The lantern, as built (Part2Story::BeginLantern / TickLantern)
 After the fire is fed and has burned a while (11 s), the lantern shows among the spruces behind the camp (first seen
 through the gap in the shed's back boards, which face the trees): Kessler walks a way between the trunks (each at least
@@ -67,7 +85,7 @@ Kessler himself: his MetaHuman body drawn as a copy of its take's pose so his ar
 (AKessler): MetaHuman's own walk and standing idle (in-place loops; he moves by what keeps his planted foot still), the
 lantern raised by two-bone IK, the rifle sighted from his right eye with his cheek on the stock, his body bladed.
 
-## Act I's closing cutscene: "Kessler" (shot plan, waiting for the owner's OK)
+## Act I's closing cutscene: "Kessler" (shot plan: approved by the owner, "Yes, build it")
 First person, the player's own eyes, captions only (no voices), about 80 s, in the shed by the stove; Supermassive's
 ways (Until Dawn, The Quarry): faces lit from below by one warm source, long holds on a face, silence used as a beat,
 the dread left in the last frame rather than a jump.

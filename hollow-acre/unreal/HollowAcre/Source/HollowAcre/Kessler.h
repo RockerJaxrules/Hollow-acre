@@ -67,7 +67,32 @@ public:
 	/** Between his eyes (for the player's camera and for him to be looked at). */
 	FVector EyesAt() const;
 
+	// --- for Act I's closing cutscene (KesslerScene.cpp): what he does in the shed --------------------------------------
+	/** Down on his heels at the stove (0..1, eased in), and sat on the floor with his back to what is behind him (0..1). */
+	float CrouchWant = 0.f, SitWant = 0.f;
+	/** His right hand to this point (weight eased toward ReachRWant), the rifle out of it. */
+	FVector ReachR = FVector::ZeroVector;
+	float ReachRWant = 0.f;
+	/** Something carried in his right hand (kept at HeldROffset from the hand bone), and in his left. */
+	TWeakObjectPtr<USceneComponent> HeldR, HeldL;
+	FTransform HeldROffset = FTransform::Identity, HeldLOffset = FTransform::Identity;
+	/** His left hand to this point (weight eased toward ReachLWant), with whatever it holds. */
+	FVector ReachL = FVector::ZeroVector;
+	float ReachLWant = 0.f;
+	/** His lantern set down here, upright (zero: in his hand), and turned up (1) or down. */
+	FVector LanternSetAt = FVector::ZeroVector;
+	float LanternTrim = 1.f;
+	/** His rifle set here instead of carried (leaning on a wall, or across his knees); identity: carried. */
+	FTransform RifleSet = FTransform::Identity;
+	bool bRifleSet = false;
+	/** His breath shows as puffs (off by the fire indoors: lit by it beside the player's eyes they hung as orange blurs). */
+	bool bBreathShows = true;
+	/** Lit by every light (the shed's fire too, on its own channel), for the faces lit from below. */
+	void LitByAll();
+
 	USkeletalMeshComponent* GetBody() const { return Body.Get(); }
+	/** A bone where it is drawn this frame. */
+	FTransform BoneAt(const TCHAR* Bone) const;
 	AActor* GetMan() const { return Man; }
 	/** Where his lantern's flame is (for what it lights, and for the player's eyes to find in the trees). */
 	FVector LanternAt() const;
@@ -137,6 +162,10 @@ protected:
 	TArray<FPuff> Puffs;
 	float BreathT = 1.f;
 	void ArmTo(bool bLeft, const FVector& HandAt, const FVector& Pole, float W);
+	/** The pelvis down and the legs bent under it (crouched, or sat on the floor), the feet planted or out ahead. */
+	void PoseLower(float Dt);
+	void LegTo(bool bLeft, const FVector& FootAt, const FVector& Pole, const FQuat& FootRot);
+	float CrouchW = 0.f, SitW = 0.f, ReachRW = 0.f, ReachLW = 0.f;
 	void SetCS(int32 Bone, const FTransform& World);
 	FTransform AimRifle() const;
 	FTransform CarryRifle() const;

@@ -92,6 +92,13 @@ public:
 	bool GetReading(FString& Page, int32& Index, int32& Count) const;
 	bool IsReading() const { return Reading.IsValid(); }
 
+	/** In a cutscene (KesslerScene): no walking, no looking; the eyes turned to CutLook at CutLookRate (a rate for an
+	 *  ease), the view narrowed to CutFov if set. */
+	bool bCutscene = false;
+	FVector CutLook = FVector::ZeroVector;
+	float CutLookRate = 2.5f, CutFov = 0.f;
+	void FlashlightToggle();
+
 	/** Where the player comes back after a death. */
 	FTransform Checkpoint = FTransform::Identity;
 	FRotator CheckpointLook = FRotator::ZeroRotator;
@@ -140,7 +147,6 @@ protected:
 	void RunStart();
 	void RunStop();
 	void CrouchToggle();
-	void FlashlightToggle();
 	void Interact();
 	void UpdateFocus();
 	TWeakObjectPtr<class UP2UseComponent> Focus;

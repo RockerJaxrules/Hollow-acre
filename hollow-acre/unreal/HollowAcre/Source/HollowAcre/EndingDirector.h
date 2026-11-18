@@ -362,6 +362,12 @@ public:
 	float GetEndCardAlpha() const;
 	/** The wake's eyelids: 0 open .. 1 shut (the HUD draws them closing from above and below, soft-edged). */
 	float GetLids() const { return WakeLids; }
+	/** Words in the black (a cutscene's card): faded in as the end card is. */
+	void ShowCard(const FText& Text)
+	{
+		EndCardText = Text;
+		EndCardTime = Time;
+	}
 	float WakeLids = 0.f;
 
 protected:

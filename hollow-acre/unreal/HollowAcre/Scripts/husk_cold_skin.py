@@ -18,13 +18,16 @@ DEST = '/Game/HollowAcre/Creature/HuskGame'
 mel = unreal.MaterialEditingLibrary
 MP = unreal.MaterialProperty
 eal = unreal.EditorAssetLibrary
-COLD_A = unreal.LinearColor(0.46, 0.5, 0.64, 1.0)      # (pallor: the drained bake, cooled and dulled, blue enough that
+COLD_A = unreal.LinearColor(0.24, 0.31, 0.52, 1.0)      # (pallor: the drained bake, cooled and dulled, blue enough that
                                                         # the warm headlight and flashlight warm it only to grey; at
-                                                        # 0.86-1.0 it washed out white in the headlight, at 0.6 cream)
-COLD_B = unreal.LinearColor(0.25, 0.24, 0.35, 1.0)      # (the blotches: bruise-grey, a little violet)
-WET = 0.95                                              # (the wet film's roughness factor: at 0.72 its sheen mirrored the
+                                                        # 0.86-1.0 it washed out white in the headlight, at 0.6 cream;
+                                                        # at 0.46 still as bright as the snow: a pale statue (run 46);
+                                                        # the 2850 K flashlight turns any grey tan (x 1, 0.72, 0.45), so
+                                                        # the skin is as blue as that is warm: grey under it (run 47))
+COLD_B = unreal.LinearColor(0.13, 0.14, 0.29, 1.0)      # (the blotches: bruise-grey, a little violet)
+WET = 0.86                                              # (the wet film's roughness factor: at 0.72 its sheen mirrored the
                                                         # lit snow and the legs read glassy white)
-DRAIN = 0.72                                            # (how much of the bake's colour is drained away)
+DRAIN = 0.85                                            # (how much of the bake's colour is drained away)
 
 
 def inputs(m, e):

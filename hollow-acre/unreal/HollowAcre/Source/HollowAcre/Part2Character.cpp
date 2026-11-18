@@ -155,6 +155,10 @@ void APart2Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 void APart2Character::Move(const FInputActionValue& V)
 {
+	if (bCutscene)
+	{
+		return;
+	}
 	const FVector2D In = V.Get<FVector2D>();
 	if (Controller && !Reading.IsValid())
 	{
@@ -166,6 +170,10 @@ void APart2Character::Move(const FInputActionValue& V)
 
 void APart2Character::Look(const FInputActionValue& V)
 {
+	if (bCutscene)
+	{
+		return;
+	}
 	if (Reading.IsValid())
 	{
 		return;
@@ -894,7 +902,26 @@ void APart2Character::Tick(float DeltaSeconds)
 			Armful->SetVisibility(bCarryingWood);
 		}
 		static const bool bStoryAuto = FParse::Param(FCommandLine::Get(), TEXT("p2story"));
-		if (bStoryAuto && Controller)
+		if (Arms)
+		{
+			Arms->SetActorHiddenInGame(bCutscene);
+		}
+		if (HeldLight)
+		{
+			HeldLight->SetActorHiddenInGame(bCutscene);
+		}
+		if (bCutscene && Controller)
+		{
+			// (the cutscene has the eyes: eased round to what it looks at; the body still)
+			if (!CutLook.IsZero())
+			{
+				const FRotator To = (CutLook - EyesAt()).Rotation();
+				const FRotator Cur = Controller->GetControlRotation();
+				Controller->SetControlRotation(FMath::RInterpTo(Cur, FRotator(FMath::Clamp(FRotator::NormalizeAxis(To.Pitch), -70.f, 70.f), To.Yaw, 0.f), DeltaSeconds, CutLookRate));
+			}
+			GetCharacterMovement()->StopMovementImmediately();
+		}
+		else if (bStoryAuto && Controller)
 		{
 			StoryAutopilot(DeltaSeconds);
 		}
@@ -1112,18 +1139,153 @@ void APart2Character::StoryAutopilot(float Dt)
 			}
 			if (StepT > 14.f)
 			{
-				StoryStep = 2;
+				StoryStep = 15;
 				StepT = 0.f;
 			}
 			break;
 		}
-		case 2:      // to the shed's doorway
-			if (WalkTo(Door, 60.f))
+		case 15:     // the light round to the trees behind the camp: the truck on its roof
+		case 16:     // and to it, through the trees
+		case 17:     // crouched at its open door, the light in on the headliner; the journal
+		case 18:     // the door slams: startled round to it, then up
+		{
+			AP2Story* Sy = nullptr;
+			for (TActorIterator<AP2Story> It(GetWorld()); It; ++It)
 			{
-				StoryStep = 3;
+				Sy = *It;
+			}
+			AActor* Tk = Sy ? Sy->GetTruck() : nullptr;
+			if (!Tk)
+			{
+				StoryStep = 2;
 				StepT = 0.f;
+				break;
+			}
+			const FVector Stand = Sy->GetTruckStand();
+			if (StoryStep == 15)
+			{
+				const FRotator To = (Tk->GetActorLocation() + FVector(0.f, 0.f, 60.f) - EyesAt()).Rotation();
+				WantYaw = To.Yaw;
+				WantPitch = FMath::Clamp(To.Pitch, -12.f, 6.f);
+				TurnRate = 50.f;
+				if (StepT > 6.5f)
+				{
+					StoryStep = 16;
+					StepT = 0.f;
+				}
+			}
+			else if (StoryStep == 16)
+			{
+				// (round what stands in the way: caught for a moment, a step off to the side and on)
+				if (BackOffT > 0.f)
+				{
+					BackOffT -= Dt;
+					WalkTo(Stand, 45.f);
+					MoveYaw = WantYaw + 75.f;
+					bWalk = true;
+				}
+				else if (WalkTo(Stand, 45.f))
+				{
+					StoryStep = 17;
+					StepT = 0.f;
+				}
+				else
+				{
+					StuckT = GetVelocity().Size2D() < 25.f && StepT > 1.f ? StuckT + Dt : 0.f;
+					if (StuckT > 1.2f)
+					{
+						BackOffT = 1.1f;
+						StuckT = 0.f;
+					}
+				}
+				if (StepT > 45.f)
+				{
+					StoryStep = 17;           // (as near as it got)
+					StepT = 0.f;
+				}
+			}
+			else if (StoryStep == 17)
+			{
+				if (!bIsCrouched)
+				{
+					Crouch();
+				}
+				const FVector Jat = Sy->GetTruckJournal() ? Sy->GetTruckJournal()->GetActorLocation() : Tk->GetActorLocation();
+				const FRotator To = (Jat - EyesAt()).Rotation();
+				WantYaw = To.Yaw;
+				WantPitch = To.Pitch;
+				TurnRate = 60.f;
+				if (StepT > 2.6f && Focus.IsValid() && Focus->Id == TEXT("journal_take"))
+				{
+					Interact();
+					StoryStep = 18;
+					StepT = 0.f;
+				}
+				if (StepT > 9.f && !Sy->HasJournal())
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Part2Story auto: could not reach the journal in the truck (focus %s)"), Focus.IsValid() ? *Focus->Id.ToString() : TEXT("none"));
+					StoryStep = 18;
+					StepT = 0.f;
+				}
+			}
+			else
+			{
+				// (the slam: round to the door, the light on it; a breath; up, and away to the camp)
+				FVector TkDoor = Tk->GetActorTransform().TransformPosition(FVector(80.f, -110.f, 100.f));
+				const FRotator To = (TkDoor - EyesAt()).Rotation();
+				WantYaw = To.Yaw;
+				WantPitch = To.Pitch;
+				TurnRate = 160.f;
+				if (StepT > 2.2f && bIsCrouched)
+				{
+					UnCrouch();
+				}
+				if (StepT > 4.5f)
+				{
+					StoryStep = 2;
+					StepT = 0.f;
+				}
 			}
 			break;
+		}
+		case 2:      // to the shed's doorway (from behind it, from the truck: round its side first, by its corners)
+		{
+			const FVector L = T.InverseTransformPosition(GetActorLocation());
+			const float Sg = L.Y < 0.f ? -1.f : 1.f;
+			FVector Goal = Door;
+			if (L.X < -380.f && FMath::Abs(L.Y) < 300.f)
+			{
+				// (straight behind it: out to a back corner first; once beside it, on to the front corner)
+				Goal = T.TransformPosition(FVector(-470.f, Sg * 340.f, 0.f));
+			}
+			else if (L.X < 40.f && FMath::Abs(L.Y) > 200.f)
+			{
+				Goal = T.TransformPosition(FVector(95.f, Sg * 340.f, 0.f));
+			}
+			if (BackOffT > 0.f)
+			{
+				BackOffT -= Dt;
+				WalkTo(Goal, 10.f);
+				MoveYaw = WantYaw + 75.f;
+				bWalk = true;
+			}
+			else
+			{
+				const bool bThere = WalkTo(Goal, Goal.Equals(Door) ? 60.f : 70.f);
+				if (bThere && Goal.Equals(Door))
+				{
+					StoryStep = 3;
+					StepT = 0.f;
+				}
+				StuckT = GetVelocity().Size2D() < 25.f && StepT > 1.f ? StuckT + Dt : 0.f;
+				if (StuckT > 1.2f)
+				{
+					BackOffT = 1.1f;
+					StuckT = 0.f;
+				}
+			}
+			break;
+		}
 		case 3:      // in
 			if (FMath::FloorToInt(StepT) != FMath::FloorToInt(StepT - Dt))
 			{
@@ -1731,7 +1893,7 @@ void APart2Character::UpdateBreath(float Dt)
 	{
 		// (a breath at rest every 3.5-4 s; hard, every 1.4 s)
 		BreathT = (bHard ? 1.4f : 3.7f) * FMath::FRandRange(0.85f, 1.15f);
-		bool bWarmAir = bDead || !Ball || !Vapour;
+		bool bWarmAir = bDead || !Ball || !Vapour || bCutscene;
 		for (TActorIterator<AP2Story> It(GetWorld()); It && !bWarmAir; ++It)
 		{
 			bWarmAir = It->IsNearFire(GetActorLocation());

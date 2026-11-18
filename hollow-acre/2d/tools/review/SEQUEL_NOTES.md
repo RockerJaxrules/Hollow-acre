@@ -99,3 +99,12 @@ work good if not do it on your own".
 - **Animation:** the owner has no motion-capture equipment and asked that everything be animated by us ("You animate
   it all"), rather than using Epic's Game Animation Sample (a free library of pre-recorded mocap that needs no
   equipment; offered, not taken for now).
+
+### The look and the bar (owner, while gameplay was being built)
+- "Forest on mountains should be more denser" (done: 46,661 spruces, was 3,400; the mountainsides forested to a
+  treeline).
+- "When your done making the game let me know it needs to feel unique though good story I want a the quarry map or
+  until dawn beautiful that detailed that good looking" (kept word for word). Understood as: the map should reach the
+  beauty and density of detail of Supermassive's The Quarry and Until Dawn (hand-dressed places, cinematic moonlight,
+  fog and practical lights), while the game feels like its own (our story, our mountain, our creature, never a copy
+  of theirs); the owner is told when the game is done. The blind judges now score against that bar.

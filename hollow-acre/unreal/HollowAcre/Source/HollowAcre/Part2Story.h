@@ -52,6 +52,7 @@ UCLASS()
 class HOLLOWACRE_API AP2Story : public AActor
 {
 	GENERATED_BODY()
+	friend class AKesslerScene;
 
 public:
 	AP2Story();
@@ -101,7 +102,22 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<AHuskHunter> Hunter;
+	/** The kill's blood (owner-approved: the exit wound, the spray on the snow behind it, the pool spreading under it). */
+	UPROPERTY()
+	TObjectPtr<class ABloodFX> KillBlood;
+	FVector KillDir = FVector::ZeroVector;
 	float BangAt = -1.f, ShriekAt = -1.f, DarkAt = -1.f;
+	/** The truck (owner-approved): her journal fallen from the glovebox onto the crushed headliner; taken, the driver's
+	 *  door swings and bangs behind the player. */
+	UPROPERTY()
+	TObjectPtr<AActor> TruckJournal;
+	UPROPERTY()
+	TObjectPtr<AActor> ShedJournal;
+	UPROPERTY()
+	TArray<TObjectPtr<AActor>> TruckPages;
+	bool bHasJournal = false;
+	float DarkClock = -1.f, JournalTakenAt = -1.f, DoorBangT = -1.f;
+	void TickTruckDoor(float Dt);
 	bool bCrossInHeadlight = false;
 	void SpawnCrosser();
 	/** Snow and dust sifting down from above (off the roof boards, jarred by a hit), Count flakes over Radius. */
@@ -140,6 +156,10 @@ public:
 	bool WindowHandIn() const { return WindowHusk != nullptr && WindowReach > 0.3f; }
 	AActor* GetWoodPile() const { return WoodPile; }
 	AActor* GetTruck() const { return Truck; }
+	/** Her journal in the truck (taken: hidden), and where a player stands to reach in for it (outside the driver's door). */
+	AActor* GetTruckJournal() const { return TruckJournal; }
+	FVector GetTruckStand() const;
+	bool HasJournal() const { return bHasJournal; }
 	FVector GetShedAt() const { return ShedT.GetLocation(); }
 	/** The lantern scene: 0 not yet; 1 a light in the trees; 2 he has stopped and holds it up to them; 3 the rifle comes
 	 * up at them (run); 4 it breaks from the dark at their heels; 5 the shot, it drops; 6 he comes, the light to their
@@ -198,6 +218,15 @@ protected:
 	// armful of wood; back to feed the stove
 	void BeginWood();
 	float FireFuel = 1.f, FireDyingFrom = -1.f, FedAt = -1.f;
+	/** The shed's door leaf (Town_ShedDoor, hinged at its origin, hung open 75 degrees inward); SetShedDoor(1) open as
+	 *  it hangs .. 0 shut. */
+	UPROPERTY()
+	TObjectPtr<AActor> ShedDoor;
+	void SetShedDoor(float Open);
+	/** The fire as a cutscene sets it (flared, or its door shut on it); negative: as it burns. */
+	float FuelOverride = -1.f;
+	UPROPERTY()
+	TObjectPtr<class AKesslerScene> Scene;
 	UPROPERTY()
 	TObjectPtr<AActor> WoodPile;
 	bool bCrossDash = false;

@@ -12,6 +12,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Part2Character.h"
 #include "Snowfall.h"
+#include "BloodFX.h"
+#include "KesslerScene.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Components/DecalComponent.h"
 #include "Components/PointLightComponent.h"
@@ -255,6 +257,17 @@ void AP2Story::Begin(AEndingDirector* InDirector, float InHuskScale)
 		UMaterialInterface* Snow = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Town/Materials/M_Town_Snow.M_Town_Snow"));
 		for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
 		{
+			// (the road's corridor terrain too, where it runs down under the camp toward the chute: one snow, one moonlight
+			// with the camp's ground, so where the two meet no edge shows)
+			if (It->GetActorLabel() == TEXT("Terrain Road") && Snow)
+			{
+				UStaticMeshComponent* M = It->GetStaticMeshComponent();
+				for (int32 i = 0; i < M->GetNumMaterials(); ++i)
+				{
+					M->SetMaterial(i, Snow);
+				}
+				M->SetLightingChannels(true, true, false);
+			}
 			if (It->GetActorLabel() == TEXT("Town Ground") && Snow)
 			{
 				UStaticMeshComponent* M = It->GetStaticMeshComponent();
@@ -385,21 +398,26 @@ void AP2Story::FurnishShed()
 				{
 					UMaterialInstanceDynamic* D = UMaterialInstanceDynamic::Create(Part, M);
 					M->SetMaterial(Slot, D);
-					D->SetVectorParameterValue(TEXT("Color"), Slot == 0 ? FLinearColor(0.045f, 0.028f, 0.018f) : FLinearColor(0.62f, 0.58f, 0.48f));
+					D->SetVectorParameterValue(TEXT("Color"), Slot == 0 ? FLinearColor(0.12f, 0.075f, 0.045f) : FLinearColor(0.62f, 0.58f, 0.48f));
 					D->SetScalarParameterValue(TEXT("Metallic"), 0.f);
 					D->SetScalarParameterValue(TEXT("Roughness"), Slot == 0 ? 0.62f : 0.9f);
 				}
 				J->SetActorLabel(TEXT("Journal"));
 				UP2UseComponent* U = NewObject<UP2UseComponent>(J, TEXT("Use"));
 				U->Id = TEXT("journal");
-				U->Prompt = TEXT("Read the journal");
+				U->Prompt = TEXT("Read her journal");
+				// (her journal is found in her truck (the owner chose it): the player sets it down here, on the table by the
+				// light, and reads it; the last page is what she pencilled on the boards above the table the night after)
 				U->Pages = {
-					TEXT("Nov 8\n\nWent through the rail at the second switchback. The truck is done for. My knee is bad, but I walked down the chute to the old Camp Nine. Nobody has lived here since the mine shut the lower works.\n\nI'll sleep in the tool shed and go up in the morning."),
-					TEXT("Nov 9\n\nSomething walked around this shed all night. It never knocked. It stood at the window a long while. I kept the lamp lit and my eyes shut.\n\nIn the morning there were tracks. Bare feet. Human feet, but too long, and too far apart."),
-					TEXT("If you are reading this, you came looking for me, and I am so sorry.\n\nDon't stay down here after dark. Keep your light on. They don't like the light.\n\nUntil they do."),
+					TEXT("Nov 8\n\nWent through the rail at the second switchback. The truck is done for. My knee is bad, but nothing is broken.\n\nI can see the old Camp Nine below. Nobody has lived there since the mine shut the lower works. I'll walk down and sleep in the tool shed, and go up in the morning."),
+					TEXT("If you are reading this, you came looking for me, and I am so sorry.\n\nI'm leaving this where you'll find it. Don't stay down here after dark. Keep your light on. They don't like the light.\n\nUntil they do."),
+					TEXT("(Pencilled on the boards above the table, in her hand)\n\nNov 9. Something walked around this shed all night. It never knocked. It stood at the window a long while. I kept the lamp lit and my eyes shut.\n\nIn the morning there were tracks. Bare feet. Human feet, but too long, and too far apart."),
 				};
+				U->bEnabled = false;                  // (until it is brought here from the truck)
 				U->RegisterComponent();
 				J->AddInstanceComponent(U);
+				J->SetActorHiddenInGame(true);
+				ShedJournal = J;
 				// (beside it, a box of safety matches)
 				if (UStaticMesh* Mb = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Wake_Matchbox.Wake_Matchbox")))
 				{
@@ -556,6 +574,37 @@ void AP2Story::FurnishShed()
 			{
 				Shc->SetLightingChannels(true, true, true);
 			}
+			// (its door leaf: its own mesh hinged at the doorway's -Y jamb, hung open inward as the shed's leaf always hung
+			// (tools/make_town.py shed_door_leaf, shed_door.json: hinge (-2, -44, 0); open along (-0.966, 0.259), shut
+			// along +Y))
+			if (UStaticMesh* Lm = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Town/Town_ShedDoor.Town_ShedDoor")))
+			{
+				FActorSpawnParameters Dp;
+				Dp.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+				ShedDoor = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FTransform(Shed->GetActorQuat(), Shed->GetActorTransform().TransformPosition(FVector(-2.f, -44.f, 0.f))), Dp);
+				if (ShedDoor)
+				{
+					USceneComponent* Hr = NewObject<USceneComponent>(ShedDoor, TEXT("Hinge"));
+					ShedDoor->SetRootComponent(Hr);
+					Hr->SetMobility(EComponentMobility::Movable);
+					Hr->RegisterComponent();
+					Hr->SetWorldTransform(FTransform(Shed->GetActorQuat(), Shed->GetActorTransform().TransformPosition(FVector(-2.f, -44.f, 0.f))));
+					UStaticMeshComponent* Lc = NewObject<UStaticMeshComponent>(ShedDoor, TEXT("Leaf"));
+					Lc->SetStaticMesh(Lm);
+					Lc->SetupAttachment(Hr);
+					Lc->SetMobility(EComponentMobility::Movable);
+					Lc->RegisterComponent();
+					Lc->SetLightingChannels(true, true, true);
+					Lc->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+					if (UMaterialInterface* Pw = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Town/Materials/M_Town_Paintwood.M_Town_Paintwood")))
+					{
+						for (int32 i = 0; i < Lc->GetNumMaterials(); ++i)
+						{
+							Lc->SetMaterial(i, Pw);
+						}
+					}
+				}
+			}
 			for (AStaticMeshActor* Pc : Pieces)
 			{
 				if (Pc && Pc != St)
@@ -623,6 +672,44 @@ void AP2Story::OnUse(UP2UseComponent* Use)
 		return;
 	}
 	UE_LOG(LogTemp, Display, TEXT("P2Story %.2f used %s"), Clock, *Use->Id.ToString());
+	if (Use->Id == TEXT("journal_take"))
+	{
+		// her journal in hand; behind the player the truck's door slams in the gust (the owner-approved scare)
+		bHasJournal = true;
+		JournalTakenAt = Clock;
+		Use->GetOwner()->SetActorHiddenInGame(true);
+		Use->GetOwner()->SetActorEnableCollision(false);
+		for (AActor* Pa : TruckPages)
+		{
+			if (Pa)
+			{
+				Pa->SetActorHiddenInGame(true);
+			}
+		}
+		Event(TEXT("journal_take"));
+		DoorBangT = 0.f;
+		Event(TEXT("truck_door_bang"));
+		if (Player.IsValid())
+		{
+			Player->Jolt(1.2f);
+		}
+		if (TruckDoor)
+		{
+			SnowBurst(TruckDoor->GetComponentLocation() + FVector(0.f, 0.f, 60.f), FVector(0.f, 0.f, -1.f), 50);
+		}
+		Lines.Reset();
+		Say(TEXT("Ah-!"), 0.15f, 1.1f);
+		Say(TEXT("It's hers. Her journal."), 2.0f, 2.6f);
+		if (ShedJournal)
+		{
+			ShedJournal->SetActorHiddenInGame(false);
+			if (UP2UseComponent* Su = ShedJournal->FindComponentByClass<UP2UseComponent>())
+			{
+				Su->bEnabled = true;
+			}
+		}
+		return;
+	}
 	if (Use->Id == TEXT("matches"))
 	{
 		bHasMatches = true;
@@ -924,8 +1011,9 @@ void AP2Story::Beats(float Dt)
 	if (Director && Director->HeadlightDieAt < 0.f && Clock > 9.6f && Once(TEXT("dark")))
 	{
 		MoonDimFrom = Clock;
+		DarkClock = Clock;
 		Say(TEXT("No. No, no, no..."), 0.2f, 2.6f);
-		SetObjective(TEXT("Find shelter in the camp"));
+		SetObjective(TEXT(""));
 	}
 	// the first sighting: the first time, after the light dies, the player looks down the street into the camp
 	if (Clock > 12.f && !Done.Contains(TEXT("sighting")))
@@ -970,7 +1058,38 @@ void AP2Story::Beats(float Dt)
 			Player->Stutter(1.8f);
 		}
 		Say(TEXT("No. No, no, no..."), 0.4f, 2.6f);
-		SetObjective(TEXT("Find shelter in the camp"));
+		DarkClock = Clock;
+		SetObjective(TEXT(""));
+	}
+	// (in the dark, the light finds a shape in the trees behind the camp: on its roof, a truck; hers)
+	if (DarkClock > 0.f && !bHasJournal && Truck && Player.IsValid())
+	{
+		// (near enough for the light to show it for what it is, 24 m, and nothing between: a trunk in the way hides it)
+		const FVector Tc = Truck->GetActorLocation() + FVector(0.f, 0.f, 60.f);
+		const FVector Te = Tc - Player->EyesAt();
+		bool bSees = Te.Size() < 2400.f && FVector::DotProduct(Te.GetSafeNormal(), Player->LookDir()) > 0.9f;
+		if (bSees)
+		{
+			FHitResult Ht;
+			FCollisionQueryParams Qt(TEXT("TruckSeen"), true, Player.Get());
+			bSees = !GetWorld()->LineTraceSingleByChannel(Ht, Player->EyesAt(), Tc, ECC_Visibility, Qt) || Ht.GetActor() == Truck;
+		}
+		if (bSees && Clock - DarkClock > 2.5f && Once(TEXT("truck_seen")))
+		{
+			Event(TEXT("truck_seen"));
+			Say(TEXT("Is that... a truck?"), 0.4f, 2.4f);
+			Say(TEXT("That's Grandma's truck."), 3.2f, 2.8f);
+			SetObjective(TEXT("Check the truck"));
+		}
+		if (Clock - DarkClock > 6.f && !Done.Contains(FName(TEXT("truck_seen"))) && Once(TEXT("truck_hint")))
+		{
+			Say(TEXT("There's something in the trees..."), 0.f, 2.6f);
+			SetObjective(TEXT("Check the trees behind the camp"));
+		}
+	}
+	if (JournalTakenAt > 0.f && Clock - JournalTakenAt > 5.f && Once(TEXT("obj_shelter")))
+	{
+		SetObjective(TEXT("Find shelter in the camp. Read her journal by a light"));
 	}
 	if (bStoveLit && Clock - StoveLitAt > 3.5f && Once(TEXT("caught")))
 	{
@@ -1040,7 +1159,11 @@ void AP2Story::Beats(float Dt)
 		BeginLantern();
 	}
 	// (the fire burning down until it is fed; fed, it comes back up)
-	if (FireDyingFrom > 0.f)
+	if (FuelOverride >= 0.f)
+	{
+		FireFuel = FMath::FInterpTo(FireFuel, FuelOverride, Dt, FuelOverride > FireFuel ? 4.f : 2.f);
+	}
+	else if (FireDyingFrom > 0.f)
 	{
 		FireFuel = FedAt > 0.f ? FMath::Min(1.f, 0.25f + (Clock - FedAt) / 4.f) : FMath::Max(0.22f, 1.f - (Clock - FireDyingFrom) / 26.f);
 	}
@@ -1117,6 +1240,7 @@ void AP2Story::Tick(float DeltaSeconds)
 		}
 	}
 	TickFire(Dt);
+	TickTruckDoor(Dt);
 	TickCrosser(Dt);
 	TickSift(Dt);
 }
@@ -1688,6 +1812,22 @@ void AP2Story::TickLantern(float Dt)
 				Hunter->Shot((Hb - M).GetSafeNormal());
 				SnowBurst(FVector(Hb.X, Hb.Y, GroundAt(Hb) + 10.f), (Hb - M).GetSafeNormal(), 90);
 				SnowBurst(Hb, (Hb - M).GetSafeNormal(), 40);           // (off its back where the round hit)
+				// (the owner approved the kill's blood: the round comes out of its back and throws a spray of blood out
+				// over the snow behind it, the drops flying and splatting where they land (BloodFX))
+				FActorSpawnParameters Bp;
+				Bp.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+				KillBlood = GetWorld()->SpawnActor<ABloodFX>(ABloodFX::StaticClass(), FTransform(Hb), Bp);
+				KillDir = (Hb - M).GetSafeNormal();
+				if (KillBlood)
+				{
+					if (Hunter->Husk)
+					{
+						KillBlood->Ignore.Add(Hunter->Husk);
+					}
+					KillBlood->Ignore.Add(Player.Get());
+					KillBlood->Spray(Hb + KillDir * 18.f, (KillDir + FVector(0.f, 0.f, 0.22f)).GetSafeNormal(), 55, 620.f, 24.f, 2.4f);
+					KillBlood->Spray(Hb + KillDir * 18.f, (KillDir + FVector(0.f, 0.f, 0.05f)).GetSafeNormal(), 25, 380.f, 35.f, 1.5f);
+				}
 			}
 			Player->Jolt(1.3f);
 			LStageTo(5, TEXT("the shot: it drops at their heels"));
@@ -1700,6 +1840,21 @@ void AP2Story::TickLantern(float Dt)
 		{
 			Event(TEXT("husk_down"));
 			SetObjective(TEXT(""));
+		}
+		// (when it has come to rest: the exit wound on the side away from him, a run from it down over its ribs, and the
+		// pool spreading out from under it into the snow while he walks up)
+		if (St > 1.1f && KillBlood && Hunter && Hunter->Husk && Once(TEXT("kill_pool")))
+		{
+			USkeletalMeshComponent* Bd = Hunter->Husk->GetBody();
+			const FName Spine = Bd && Bd->GetBoneIndex(TEXT("spine_03")) != INDEX_NONE ? FName(TEXT("spine_03")) : FName(TEXT("pelvis"));
+			const FVector Chest = Bd ? Bd->GetBoneLocation(Spine) : Hunter->BodyAt();
+			if (Bd)
+			{
+				const FVector Out = FVector(KillDir.X, KillDir.Y, 0.25f).GetSafeNormal();
+				KillBlood->Smear(Bd, Chest + Out * 14.f, Out, FVector(0.f, 0.f, -1.f), 26.f, 13.f, 2.5f);
+			}
+			KillBlood->Pool(FVector(Chest.X, Chest.Y, GroundAt(Chest)), 95.f, 11.f);
+			UE_LOG(LogTemp, Display, TEXT("P2Story %.2f the kill's blood: the wound, %d drops landed, the pool spreading"), Clock, KillBlood->Landed);
 		}
 		Kessler->LookAtPoint = Eyes;
 		if (St > 0.7f)
@@ -1727,6 +1882,22 @@ void AP2Story::TickLantern(float Dt)
 		break;
 	case 6:
 	{
+		if (Scene)
+		{
+			break;                 // (the cutscene has him now)
+		}
+		// (a beat after "Get inside.": the cut to the shed (the owner-approved closing cutscene, KesslerScene))
+		if (St > 7.5f && Once(TEXT("kessler_scene")))
+		{
+			FActorSpawnParameters Sp;
+			Sp.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			Scene = GetWorld()->SpawnActor<AKesslerScene>(AKesslerScene::StaticClass(), FTransform::Identity, Sp);
+			if (Scene)
+			{
+				Scene->Start(this);
+			}
+			break;
+		}
 		// (the lantern held up between them, off to his left, so its light is on both their faces and his can be seen)
 		Kessler->FaceTo(PAt);
 		Kessler->LookAtPoint = Eyes;
@@ -1934,8 +2105,127 @@ void AP2Story::SpawnTruck()
 	{
 		Drift(Slab, FVector(-240.f + k * 90.f, R.FRandRange(-30.f, 30.f), 52.f), FVector(R.FRandRange(1.6f, 2.4f), R.FRandRange(1.4f, 2.f), 1.f), R.FRandRange(-20.f, 20.f));
 	}
+	// her journal: fallen from the open glovebox onto the crushed headliner, slid toward the driver's side, seen through
+	// the open driver's door (the truck is on its roof: its headliner is the floor now; the book lies open-side down)
+	if (UStaticMesh* Book = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Wake_Manual.Wake_Manual")))
+	{
+		FActorSpawnParameters Jp;
+		Jp.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		const FTransform Local(FRotator(0.f, 28.f, 180.f), FVector(62.f, -14.f, 166.f));
+		AStaticMeshActor* J = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), Local * Truck->GetActorTransform(), Jp);
+		if (J)
+		{
+			J->SetMobility(EComponentMobility::Movable);
+			J->GetStaticMeshComponent()->SetStaticMesh(Book);
+			J->GetStaticMeshComponent()->SetLightingChannels(true, true, false);
+			static UMaterialInterface* Kp = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Car/Keys/M_KeyPart.M_KeyPart"));
+			UStaticMeshComponent* M = J->GetStaticMeshComponent();
+			for (int32 Slot = 0; Slot < M->GetNumMaterials() && Kp; ++Slot)
+			{
+				UMaterialInstanceDynamic* Dm = UMaterialInstanceDynamic::Create(Kp, M);
+				M->SetMaterial(Slot, Dm);
+				Dm->SetVectorParameterValue(TEXT("Color"), Slot == 0 ? FLinearColor(0.12f, 0.075f, 0.045f) : FLinearColor(0.62f, 0.58f, 0.48f));
+				Dm->SetScalarParameterValue(TEXT("Metallic"), 0.f);
+				Dm->SetScalarParameterValue(TEXT("Roughness"), Slot == 0 ? 0.62f : 0.9f);
+			}
+			{
+				FHitResult Hh;
+				FCollisionQueryParams Qh(TEXT("JournalRest"), true, J);
+				const FVector Jp0 = J->GetActorLocation();
+				if (GetWorld()->LineTraceSingleByChannel(Hh, Jp0 + FVector(0.f, 0.f, 45.f), Jp0 - FVector(0.f, 0.f, 160.f), ECC_Visibility, Qh))
+				{
+					J->SetActorLocation(Hh.ImpactPoint + FVector(0.f, 0.f, 1.6f));
+				}
+				UE_LOG(LogTemp, Display, TEXT("P2Story: her journal in the truck at %s (%s)"), *J->GetActorLocation().ToCompactString(),
+					Hh.GetActor() ? *Hh.GetActor()->GetName() : TEXT("nothing under it"));
+			}
+			J->SetActorLabel(TEXT("TruckJournal"));
+			// (pages come loose from it, pale on the dark headliner: what the light catches first in the cab)
+			if (UStaticMesh* Pg = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Wake_Papers.Wake_Papers")))
+			{
+				for (int32 k = 0; k < 2; ++k)
+				{
+					const FVector Off = J->GetActorTransform().TransformVector(FVector(k == 0 ? 22.f : -6.f, k == 0 ? 9.f : -24.f, 0.f));
+					AStaticMeshActor* Pa = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(),
+						FTransform(FRotator(0.f, J->GetActorRotation().Yaw + (k == 0 ? 40.f : -25.f), 0.f), J->GetActorLocation() + FVector(Off.X, Off.Y, -1.f)), Jp);
+					if (Pa)
+					{
+						Pa->SetMobility(EComponentMobility::Movable);
+						Pa->GetStaticMeshComponent()->SetStaticMesh(Pg);
+						Pa->GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+						Pa->GetStaticMeshComponent()->SetLightingChannels(true, true, false);
+						for (int32 Slot = 0; Slot < Pa->GetStaticMeshComponent()->GetNumMaterials() && Kp; ++Slot)
+						{
+							UMaterialInstanceDynamic* Dp = UMaterialInstanceDynamic::Create(Kp, Pa->GetStaticMeshComponent());
+							Dp->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.6f, 0.56f, 0.46f));
+							Dp->SetScalarParameterValue(TEXT("Metallic"), 0.f);
+							Dp->SetScalarParameterValue(TEXT("Roughness"), 0.92f);
+							Pa->GetStaticMeshComponent()->SetMaterial(Slot, Dp);
+						}
+						TruckPages.Add(Pa);
+					}
+				}
+			}
+			UP2UseComponent* U = NewObject<UP2UseComponent>(J, TEXT("Use"));
+			U->Id = TEXT("journal_take");
+			U->Prompt = TEXT("Take her journal");
+			U->Reach = 280.f;
+			U->Near = 70.f;                      // (reached for in the dark cab: the gaze on the headliner near it counts)
+			U->bOnce = true;
+			U->RegisterComponent();
+			J->AddInstanceComponent(U);
+			TruckJournal = J;
+		}
+	}
 	UE_LOG(LogTemp, Display, TEXT("P2Story: grandmother's truck on its roof in the trees at %s (%.0f m from the shed)"), *Truck->GetActorLocation().ToCompactString(),
 		FVector::Dist2D(Truck->GetActorLocation(), ShedT.GetLocation()) / 100.f);
+}
+
+FVector AP2Story::GetTruckStand() const
+{
+	// (outside the driver's door, a step back from its sill, on the cab's side: crouched there the cab is in reach)
+	if (!Truck)
+	{
+		return FVector::ZeroVector;
+	}
+	FVector P = Truck->GetActorTransform().TransformPosition(FVector(58.f, -178.f, 0.f));
+	P.Z = GroundAt(P);
+	return P;
+}
+
+void AP2Story::TickTruckDoor(float Dt)
+{
+	// the driver's door, swung by the gust that comes down the slope as the journal is taken: slammed in against the cab
+	// (open 64 degrees to 3 in a fifth of a second, gathering speed), bounced back off the frame, settling half open
+	if (DoorBangT < 0.f || !TruckDoor)
+	{
+		return;
+	}
+	DoorBangT += Dt;
+	const float t = DoorBangT;
+	float Yaw;
+	if (t < 0.2f)
+	{
+		const float a = t / 0.2f;
+		Yaw = FMath::Lerp(64.f, 3.f, a * a);
+	}
+	else if (t < 0.45f)
+	{
+		Yaw = 3.f + 17.f * FMath::Sin((t - 0.2f) / 0.25f * PI * 0.5f);
+	}
+	else if (t < 0.85f)
+	{
+		Yaw = FMath::Lerp(20.f, 7.f, FMath::SmoothStep(0.f, 1.f, (t - 0.45f) / 0.4f));
+	}
+	else
+	{
+		Yaw = 7.f + 4.f * FMath::Exp(-(t - 0.85f) * 2.f) * FMath::Sin((t - 0.85f) * 9.f);
+	}
+	TruckDoor->SetRelativeRotation(FRotator(0.f, Yaw, 0.f));
+	if (t > 3.f)
+	{
+		DoorBangT = -1.f;
+	}
 }
 
 void AP2Story::DriftAgainstWalls()
@@ -2049,4 +2339,15 @@ void AP2Story::DriftAgainstWalls()
 		}
 	}
 	UE_LOG(LogTemp, Display, TEXT("P2Story: %d drifts banked against the camp's walls"), Count);
+}
+
+void AP2Story::SetShedDoor(float Open)
+{
+	// (from hung open (1) to shut (0): about its hinge, by the 75 degrees between the leaf's open and shut ways)
+	if (!ShedDoor || !ShedDoor->GetRootComponent())
+	{
+		return;
+	}
+	const FQuat Q = ShedT.GetRotation() * FRotator(0.f, -75.f * (1.f - FMath::Clamp(Open, 0.f, 1.f)), 0.f).Quaternion();
+	ShedDoor->GetRootComponent()->SetWorldRotation(Q);
 }

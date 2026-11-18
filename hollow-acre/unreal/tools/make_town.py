@@ -782,6 +782,27 @@ def inner_frame(m, walls, girts=(32.0, 112.0, 192.0)):
             m.board('drywood', wall.P(o[0] - 9, o[3] + 4.5, -4.0), wall.P(o[1] + 9, o[3] + 4.5, -4.0), 9.0, 4.0, wall.n, jitter=0.1)
 
 
+def shed_door_leaf(wall, a0, w, h, ang, seed, trimmat='paintwood'):
+    """The shed's door leaf on its own (door()'s leaf, the same boxes), its hinge at the mesh's origin, hung open by ang
+    degrees as door() hangs it; writes Town_ShedDoor.obj and shed_door.json (the hinge in the shed's frame, the leaf's
+    way along it shut and open) so the game can swing it shut about its hinge."""
+    import json
+    m = Mesh(seed)
+    hinge = wall.P(a0 + 1, 0, -2)
+    du = np.cos(math.radians(ang)) * wall.u - np.sin(math.radians(ang)) * wall.n
+    leaf_w = w - 2
+    c = du * leaf_w / 2 + wall.w * (h - 1) / 2
+    R = np.stack([du, wall.w, np.cross(du, wall.w)], 1)
+    m.box(trimmat, c, (leaf_w, h - 1, 4.0), R)
+    for i in range(2):
+        for j in range(2):
+            pc = du * (leaf_w * (0.27 + 0.46 * i)) + wall.w * (h * (0.27 + 0.5 * j)) + np.cross(du, wall.w) * 2.4
+            m.box(trimmat, pc, (leaf_w * 0.36, h * (0.36 if j else 0.4), 1.2), R)
+    m.write(os.path.join(GEN, 'Town_ShedDoor.obj'))
+    json.dump({'hinge': [float(v) for v in hinge], 'shut_u': [float(v) for v in wall.u], 'open_u': [float(v) for v in du],
+               'width': float(leaf_w), 'height': float(h - 1)}, open(os.path.join(GEN, 'shed_door.json'), 'w'), indent=1)
+
+
 def shed(name, seed, W=3.7, D=3.7, H=7.5):
     """A shed of boards under a rusted corrugated-iron shed roof, its door hanging."""
     m = Mesh(seed)
@@ -790,7 +811,10 @@ def shed(name, seed, W=3.7, D=3.7, H=7.5):
     walls['front'].cut_doors = True          # (it can be walked into: Part 2's first shelter)
     for w in walls.values():
         w.no_dark = True                         # (its inside is real: moonlight through the gaps in its boards)
-    door(m, walls['front'], W / 2 - 45, 90, 6.7 * FT, state='open')      # (tall enough to walk in standing on its floor)
+    # (tall enough to walk in standing on its floor). Its leaf is its own mesh, Town_ShedDoor, hinged so the game can
+    # swing it (Part 2's closing cutscene shuts and bars it); it hangs open as the leaf drawn here did (shed_door.json)
+    door(m, walls['front'], W / 2 - 45, 90, 6.7 * FT, state='gone')
+    shed_door_leaf(walls['front'], W / 2 - 45, 90, 6.7 * FT, 75.0, seed)
     # its one window, over the bench on the back wall, boarded with a gap (the journal's "It stood at the window")
     window(m, walls['back'], 108.0, 118.0, 76.0, 62.0, state='boarded_gap', trimmat='barewood')
     finish_walls(m, walls, 'bb', 'bb', 0.0)      # (whole: no boards gone; judge round 9: the gaps read as a slatted railing, not a shelter)
@@ -1043,8 +1067,16 @@ def town():
     dv = ex * np.sin(t0) - ey * np.cos(t0)
     inside = (dv < 0) & (dv > -mm.REACH_DOWN) & (sv > 0) & (sv < mm.LENGTH)
     if inside.any():
+        # (only where the corridor barely rises through the patch (under 1.5 m): where it stands well above it, the
+        # corridor is the surface seen and the patch stays under it; lifting there too stood a 10 m wall of snow up
+        # between neighbouring points (run 46))
         _, _, gc, _ = mm.ground(xs, ys, th, zr, s_arr, sv[inside], dv[inside])
-        vv[inside, 2] = np.maximum(vv[inside, 2], gc + 0.1)
+        zin = vv[inside, 2]
+        rise = gc + 0.1 - zin
+        # (a weight that fades as the rise grows, so the patch eases up over the corridor where it barely pokes through
+        # and slips gently under it where it stands high; a hard cut-off left 1.5 m steps, white smears in the light)
+        w = 1.0 - mm.smoothstep(0.4, 2.5, rise)
+        vv[inside, 2] = np.where(rise > 0.0, zin + w * rise, zin)
     print('town ground: %d of %d points lifted over the corridor' % (int((vv[:, 2] > np.array(verts)[:, 2] + 1e-6).sum()), len(vv)))
     verts = [tuple(v) for v in vv]
     nu, nv = len(us), len(vs)

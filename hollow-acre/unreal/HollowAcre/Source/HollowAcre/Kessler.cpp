@@ -291,8 +291,33 @@ void AKessler::Tick(float Dt)
 	if (Shown)
 	{
 		CopyPose();
+		PoseLower(Dt);
 		PoseUpper(Dt);
+		// (the scene's reaches: over whatever the upper body did, a hand to a point)
+		ReachRW = FMath::FInterpTo(ReachRW, ReachRWant, Dt, 2.4f);
+		ReachLW = FMath::FInterpTo(ReachLW, ReachLWant, Dt, 2.4f);
+		const FVector Up(0.f, 0.f, 1.f), Fw = GetActorForwardVector(), Rt = GetActorRightVector();
+		if (ReachRW > 0.001f && !ReachR.IsZero())
+		{
+			const FVector ShR = Shown->GetBoneLocation(TEXT("upperarm_r"));
+			ArmTo(false, ReachR, ShR + Rt * 30.f - Up * 35.f - Fw * 12.f, FMath::SmoothStep(0.f, 1.f, ReachRW));
+			Grip(false, 1.f);
+		}
+		if (ReachLW > 0.001f && !ReachL.IsZero())
+		{
+			const FVector ShL = Shown->GetBoneLocation(TEXT("upperarm_l"));
+			ArmTo(true, ReachL, ShL - Rt * 30.f - Up * 35.f - Fw * 12.f, FMath::SmoothStep(0.f, 1.f, ReachLW));
+			Grip(true, 1.f);
+		}
 		Breathe(Dt);
+	}
+	if (Shown && HeldR.IsValid() && Shown->GetBoneIndex(TEXT("hand_r")) != INDEX_NONE)
+	{
+		HeldR->SetWorldTransform(HeldROffset * Shown->GetBoneTransform(Shown->GetBoneIndex(TEXT("hand_r"))));
+	}
+	if (Shown && HeldL.IsValid() && Shown->GetBoneIndex(TEXT("hand_l")) != INDEX_NONE)
+	{
+		HeldL->SetWorldTransform(HeldLOffset * Shown->GetBoneTransform(Shown->GetBoneIndex(TEXT("hand_l"))));
 	}
 	USkinnedMeshComponent* B = Shown ? static_cast<USkinnedMeshComponent*>(Shown) : static_cast<USkinnedMeshComponent*>(Body.Get());
 	const float Yaw = GetActorRotation().Yaw;
@@ -316,7 +341,15 @@ void AKessler::Tick(float Dt)
 		Swing += SwingV * Dt * 60.f;
 		Swing = Swing.ClampAxes(-0.35f, 0.35f);
 		const FQuat Hang = FQuat(FVector(1.f, 0.f, 0.f), Swing.Y) * FQuat(FVector(0.f, 1.f, 0.f), -Swing.X) * FRotator(0.f, Yaw, 0.f).Quaternion();
-		Lantern->SetWorldLocationAndRotation(Hand - Hang.RotateVector(FVector(0.f, 0.f, 41.2f)), Hang);
+		if (!LanternSetAt.IsZero())
+		{
+			// (set down, standing on its base where he put it)
+			Lantern->SetWorldLocationAndRotation(LanternSetAt, FRotator(0.f, Yaw + 20.f, 0.f).Quaternion());
+		}
+		else
+		{
+			Lantern->SetWorldLocationAndRotation(Hand - Hang.RotateVector(FVector(0.f, 0.f, 41.2f)), Hang);
+		}
 		// (the flame's flicker: a kerosene flame is steadier than a fire, but it breathes and gutters in a draught)
 		const float Fl = 0.86f + 0.07f * FMath::Sin(T * 7.3f) + 0.05f * FMath::Sin(T * 17.1f + 1.f) + 0.03f * FMath::Sin(T * 29.f);
 		// (far off in the trees, a lantern is seen as its flame and the glow it makes in the falling snow round it, not
@@ -326,12 +359,13 @@ void AKessler::Tick(float Dt)
 		const float Far = Pl ? FMath::Clamp((FVector::Dist(Pl->GetActorLocation(), GetActorLocation()) - 1500.f) / 3000.f, 0.f, 1.f) : 0.f;
 		if (LanternLight)
 		{
-			LanternLight->SetIntensity(3.6f * Fl);
-			LanternLight->SetVolumetricScatteringIntensity(FMath::Lerp(0.4f, 5.f, Far));
+			LanternLight->SetIntensity(3.6f * Fl * LanternTrim);
+			// (set down indoors: no glow in the air; inside the shed it hung as an orange blur over the view)
+			LanternLight->SetVolumetricScatteringIntensity(LanternSetAt.IsZero() ? FMath::Lerp(0.4f, 5.f, Far) : 0.f);
 		}
 		if (FlameMID)
 		{
-			FlameMID->SetScalarParameterValue(TEXT("Intensity"), 1.2f * Fl * (1.f + 3.f * Far));
+			FlameMID->SetScalarParameterValue(TEXT("Intensity"), 1.2f * Fl * (1.f + 3.f * Far) * FMath::Lerp(0.35f, 1.f, LanternTrim));
 		}
 	}
 	if (Rifle && B->GetBoneIndex(TEXT("hand_r")) != INDEX_NONE)
@@ -354,7 +388,7 @@ void AKessler::Tick(float Dt)
 			R.SetRotation((Up * R.GetRotation()).GetNormalized());
 			R.AddToTranslation(-R.GetRotation().GetAxisX() * 3.f * K);
 		}
-		Rifle->SetWorldTransform(R);
+		Rifle->SetWorldTransform(bRifleSet ? RifleSet : R);
 		const float Fk = FMath::Exp(-KickT / 0.045f);
 		if (MuzzleLight)
 		{
@@ -771,8 +805,8 @@ void AKessler::PoseUpper(float Dt)
 		ArmTo(false, Hand, Pole, W);
 	}
 	// (his fists: the lantern's bail in the left, the rifle's wrist in the right)
-	Grip(true, Lantern ? 1.f : 0.f);
-	Grip(false, Rifle ? 1.f : 0.f);
+	Grip(true, Lantern && LanternSetAt.IsZero() ? 1.f : 0.25f);
+	Grip(false, Rifle && !bRifleSet ? 1.f : 0.25f);
 }
 
 void AKessler::DressUp()
@@ -1054,6 +1088,10 @@ void AKessler::Grip(bool bLeft, float W)
 
 void AKessler::Breathe(float Dt)
 {
+	if (!bBreathShows)
+	{
+		return;
+	}
 	// a breath out every few seconds (quicker after running), a short plume from his mouth, thin and lit only where his
 	// lantern catches it (M_Breath, as the player's own)
 	// (kept from the garbage collector: held only here)
@@ -1140,5 +1178,105 @@ void AKessler::Breathe(float Dt)
 		{
 			M->SetScalarParameterValue(TEXT("Opacity"), P.Peak * FMath::SmoothStep(0.f, 0.15f, P.Age) * FMath::Pow(1.f - P.Age / P.Life, 1.6f));
 		}
+	}
+}
+
+void AKessler::LitByAll()
+{
+	TArray<UPrimitiveComponent*> Ps;
+	if (Man)
+	{
+		Man->GetComponents<UPrimitiveComponent>(Ps);
+	}
+	TArray<UPrimitiveComponent*> Mine;
+	GetComponents<UPrimitiveComponent>(Mine);
+	Ps.Append(Mine);
+	for (UPrimitiveComponent* P : Ps)
+	{
+		P->SetLightingChannels(true, true, true);
+	}
+}
+
+FTransform AKessler::BoneAt(const TCHAR* Bone) const
+{
+	USkinnedMeshComponent* B = Shown ? static_cast<USkinnedMeshComponent*>(Shown) : static_cast<USkinnedMeshComponent*>(Body.Get());
+	const int32 I = B ? B->GetBoneIndex(Bone) : INDEX_NONE;
+	return I == INDEX_NONE ? GetActorTransform() : B->GetBoneTransform(I);
+}
+
+void AKessler::LegTo(bool bLeft, const FVector& FootAt, const FVector& Pole, const FQuat& FootRot)
+{
+	const int32 A = Shown->GetBoneIndex(bLeft ? TEXT("thigh_l") : TEXT("thigh_r"));
+	const int32 Bn = Shown->GetBoneIndex(bLeft ? TEXT("calf_l") : TEXT("calf_r"));
+	const int32 Cn = Shown->GetBoneIndex(bLeft ? TEXT("foot_l") : TEXT("foot_r"));
+	if (A == INDEX_NONE || Bn == INDEX_NONE || Cn == INDEX_NONE)
+	{
+		return;
+	}
+	FTransform Ta = Shown->GetBoneTransform(A), Tb = Shown->GetBoneTransform(Bn), Tc = Shown->GetBoneTransform(Cn);
+	AnimationCore::SolveTwoBoneIK(Ta, Tb, Tc, Pole, FootAt, false, 1.f, 1.f);
+	Tc.SetRotation(FootRot);
+	SetCS(A, Ta);
+	SetCS(Bn, Tb);
+	SetCS(Cn, Tc);
+}
+
+void AKessler::PoseLower(float Dt)
+{
+	// (down on his heels at a stove: the pelvis down about half a metre and back over the heels, the trunk forward over
+	// the knees, the feet planted where they stood; sat on the floor against the door: the pelvis down near the boards and
+	// back to the wall, the trunk leaned back on it, the knees up and the feet out ahead)
+	CrouchW = FMath::FInterpTo(CrouchW, CrouchWant, Dt, 1.5f);
+	SitW = FMath::FInterpTo(SitW, SitWant, Dt, 1.1f);
+	const float C = FMath::SmoothStep(0.f, 1.f, CrouchW), S = FMath::SmoothStep(0.f, 1.f, SitW);
+	if (C < 0.002f && S < 0.002f)
+	{
+		return;
+	}
+	const int32 Pi = Shown->GetBoneIndex(TEXT("pelvis"));
+	const int32 Fl = Shown->GetBoneIndex(TEXT("foot_l")), Fr = Shown->GetBoneIndex(TEXT("foot_r"));
+	if (Pi == INDEX_NONE || Fl == INDEX_NONE || Fr == INDEX_NONE)
+	{
+		return;
+	}
+	const FVector Up(0.f, 0.f, 1.f), Fwd = GetActorForwardVector(), Right = GetActorRightVector();
+	const FTransform FL0 = Shown->GetBoneTransform(Fl), FR0 = Shown->GetBoneTransform(Fr);
+	const float FloorZ = FMath::Min(FL0.GetLocation().Z, FR0.GetLocation().Z) - 8.f;
+	FTransform P = Shown->GetBoneTransform(Pi);
+	const float PelvisUp = P.GetLocation().Z - FloorZ;                  // (about 95 cm standing)
+	const float Drop = C * 52.f + S * FMath::Max(0.f, PelvisUp - 14.f);
+	const float Back = C * 14.f + S * 18.f;
+	P.AddToTranslation(-Up * Drop - Fwd * Back);
+	SetCS(Pi, P);
+	// (the trunk: forward over the knees crouched, back against the wall sat; shared down the spine)
+	const float Pitch = FMath::DegreesToRadians(30.f * C - 14.f * S);
+	FQuat Q(Right, Pitch);
+	if (FVector::DotProduct(Q.RotateVector(Up), Fwd) * Pitch < 0.f)
+	{
+		Q = FQuat(Right, -Pitch);
+	}
+	for (const TCHAR* Sp : {TEXT("spine_01"), TEXT("spine_02"), TEXT("spine_03")})
+	{
+		const int32 I = Shown->GetBoneIndex(Sp);
+		if (I == INDEX_NONE)
+		{
+			continue;
+		}
+		FTransform X = Shown->GetBoneTransform(I);
+		const FQuat Part = FQuat::Slerp(FQuat::Identity, Q, 1.f / 3.f);
+		X.SetRotation((Part * X.GetRotation()).GetNormalized());
+		SetCS(I, X);
+	}
+	// (the legs: the feet where they stood, or sat, out ahead of him flat on the boards, knees up)
+	const FVector Pn = Shown->GetBoneLocation(TEXT("pelvis"));
+	for (int32 k = 0; k < 2; ++k)
+	{
+		const bool bL = k == 0;
+		const FTransform F0 = bL ? FL0 : FR0;
+		const float Side = bL ? -1.f : 1.f;
+		const FVector Out = FVector(Pn.X, Pn.Y, FloorZ + 9.f) + Fwd * 58.f + Right * Side * 17.f;
+		const FVector Foot = FMath::Lerp(F0.GetLocation(), Out, S);
+		const FVector Pole = Pn + Fwd * 80.f + Up * (20.f + 40.f * S) + Right * Side * (18.f + 10.f * C);
+		LegTo(bL, Foot, Pole, F0.GetRotation());
 	}
 }
