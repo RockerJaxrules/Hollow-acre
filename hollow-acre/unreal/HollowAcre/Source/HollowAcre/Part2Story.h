@@ -129,9 +129,13 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class UPointLightComponent> FireLight;
 	UPROPERTY()
+	TObjectPtr<class USpotLightComponent> DoorSpill;
+	UPROPERTY()
 	TObjectPtr<class UMaterialInstanceDynamic> FireGlow;
 	UPROPERTY()
 	TObjectPtr<class UPointLightComponent> MatchLight;
+	UPROPERTY()
+	TObjectPtr<class UPointLightComponent> MatchHand;
 	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> MatchFlame;
 	float MatchAt = -1.f;

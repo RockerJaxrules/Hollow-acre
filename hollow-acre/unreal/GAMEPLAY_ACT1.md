@@ -28,6 +28,25 @@ behind you and the husk on your heels drops. It is Kessler, the foreman who wrot
    as captions; the player speaks in captions too, no voices).
 6. **Beauty pass**: snowfall, wind, the moon on the snow, frost, the camp's details; the big map beyond.
 
+## The rest of the first night (next, after the shed passes the judge)
+From the outline (PART2_STORY.md, Act I: "A lantern comes through the trees with a rifle, and you run from it, through
+the dark, until the rifle goes off behind you and the husk that was on your heels drops"), built as play, not a cutscene:
+1. **The window.** Later, by the fire (the stove lower, a caption "Later"): a scrape along the back wall, then its hand
+   through the gap in the boarded window over the bench (the journal's "It stood at the window a long while"), long
+   fingers feeling along the inside of the boards; the light on it, it pulls back. Telegraphed (the scrape), then sudden.
+2. **The wood.** The stove burns down; the cold comes back on screen. "The fire's dying. Find wood": the woodpile under
+   the bunkhouse's eave across the open ground. A carry mechanic (E on the pile: an armful, slower, no running, the
+   flashlight held low over it); back to the stove (E: fed, the fire up again). It stalks the player out there (the
+   hunt's stalk at the edge of the light, its breath heard).
+3. **The lantern.** Out at the woodpile: a lantern among the trees past the camp's edge, swinging as someone walks; a
+   tall figure with a rifle. The player can't tell who or what; it comes on. The husk breaks from the dark behind the
+   player and charges: run (the rifle raised toward the player, the player's caption "No, no, no"), the shot, the husk
+   on the player's heels drops in the snow. Silence; the lantern raised to the player's face.
+4. **Kessler.** A MetaHuman (an older foreman: weathered, a short grey beard, a wool cap, a canvas coat; from a preset
+   made his own), his lantern a real kerosene hurricane lantern (its light flickering from the flame, code-driven),
+   his rifle an old lever-action. His lines as captions: "Get inside." Short, hard, kind. Then the first cutscene of
+   Act I's end: by the stove, what comes out at night, the road shut until you can drive it.
+
 ## Judge
 Each step: a contact sheet and a video from the player's eyes; a blind judge (a subagent that sees only the pictures
 and the brief) scores it out of 10 against: scary, realistic, readable, beautiful, does it play. 7 to pass.
@@ -39,12 +58,28 @@ and the brief) scores it out of 10 against: scary, realistic, readable, beautifu
   the profile clipped to the cone); Volumetric Fog (Volumetric Scattering Intensity per light).
 - Snow trails: runtime virtual textures and render targets (Epic forums "How to realize interactive snow in UE5"; the
   RVT snow deformation write-up on Medium); decals first, deformation later.
+- Epic: Auto Exposure (Local Exposure: highlight and shadow contrast, the base/detail split); the Niagara quick start
+  (translucent materials for smoke and vapour).
+- Hiding: the Unreal forum threads on hiding in lockers and AI Perception (the creature that saw you go in checks it;
+  one that lost sight first searches the last place it saw you), for the shed and the camp's hiding places.
 - Scares: Supermassive on Until Dawn (dread more than jump scares; telegraph some scares, hide others so players don't
   learn the formula, PlayStation Blog "Until Dawn's 5-step formula"); build-up and release (Game Developer, "The
   Balancing Act of Tension in Horror Game Design").
 
 ## Log
-- Judge scores so far (blind, from contact sheets): 3, 3.5, 4, 4.5. Rounds posted in full on the live log.
+- Judge scores so far (blind, from contact sheets): 3, 3.5, 4, 4.5, 5. Rounds posted in full on the live log.
+- Round 5 to 6: the face in the beam (the beam eases off what is close in front of it, a husk in it counted though it has
+  no collision; exposure metered on the frame's bright end: Epic, "Auto Exposure", local exposure and the histogram's
+  low/high percent); the beam follows the eyes onto close things (the matches on the table); the body slips back out of
+  view when looking down. The wood: the plank scan's boards stand upright in its picture, so boards of it are turned in
+  their own plane (the grain along each board; across it they read as stacked square tiles), the whole camp. The shed
+  from inside: girts, corner posts, the door's frame and header, a floor of boards in an indoor wood with no snow (every
+  town material lays snow on what faces up). The breath: a puff of vapour from under the eyes each breath out (quicker
+  and heavier winded, none by a lit fire), M_Breath a translucent material lit per pixel, so it shows only where a light
+  catches it (Epic's Niagara quick start for the translucent set-up; the Unreal forum thread on exhaled breath).
+  The sleeves: folds in the cloth (rings bunched above the cuff, a fan of creases inside the elbow, long folds down the
+  upper arm) from a height in the reference pose turned to a normal by its screen derivatives (Mikkelsen's surface
+  gradient), the valleys darker; the hoodie looser on the arm.
 - Round 4 to 5: the snow no longer falls indoors (Snowfall's NoSnow boxes: the shed's inside); the stove beat (a big
   box of kitchen matches, the match's flame on the hand, the stove watched as it catches, then the flashlight off and
   the fire the only light); while waiting by the fire it passes outside the doorway and turns its head to the light;

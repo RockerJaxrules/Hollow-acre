@@ -113,8 +113,8 @@ void ADriverArms::ApplyOutfit()
 	FParse::Value(FCommandLine::Get(), TEXT("-pattern="), Pattern);
 	struct FKind { const TCHAR* Name; int32 Sleeve; int32 Cuff; float Out; };   // sleeve: 0 none, 1 short, 2 long; cuff: 0 woven, 1 knit, 2 hoodie, 3 jacket, 4 coat
 	static const FKind Kinds[] = {{TEXT("shirt"), 2, 0, 0.35f}, {TEXT("openshirt"), 2, 0, 0.35f}, {TEXT("sweater"), 2, 1, 0.55f},
-		{TEXT("turtleneck"), 2, 1, 0.5f}, {TEXT("cardigan"), 2, 1, 0.55f}, {TEXT("hoodie"), 2, 2, 0.65f}, {TEXT("jacket"), 2, 3, 0.8f},
-		{TEXT("longcoat"), 2, 4, 0.9f}, {TEXT("tee"), 1, 0, 0.3f}, {TEXT("tank"), 0, 0, 0.3f}, {TEXT("vest"), 0, 0, 0.3f},
+		{TEXT("turtleneck"), 2, 1, 0.5f}, {TEXT("cardigan"), 2, 1, 0.55f}, {TEXT("hoodie"), 2, 2, 1.0f}, {TEXT("jacket"), 2, 3, 1.0f},
+		{TEXT("longcoat"), 2, 4, 1.15f}, {TEXT("tee"), 1, 0, 0.3f}, {TEXT("tank"), 0, 0, 0.3f}, {TEXT("vest"), 0, 0, 0.3f},
 		{TEXT("overalls"), 0, 0, 0.3f}, {TEXT("skirt"), 0, 0, 0.3f}, {TEXT("dress"), 0, 0, 0.3f}};
 	FKind K = Kinds[5];
 	for (const FKind& Ki : Kinds)

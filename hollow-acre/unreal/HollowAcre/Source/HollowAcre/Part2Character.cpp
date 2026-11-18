@@ -517,7 +517,7 @@ void APart2Character::TakeOverFrom(const FTransform& EyeWorld, ADriverArms* InAr
 	Camera->PostProcessSettings.bOverride_AutoExposureHighPercent = true;
 	Camera->PostProcessSettings.AutoExposureHighPercent = 99.f;
 	Camera->PostProcessSettings.bOverride_AutoExposureSpeedDown = true;
-	Camera->PostProcessSettings.AutoExposureSpeedDown = 1.5f;
+	Camera->PostProcessSettings.AutoExposureSpeedDown = 0.35f;      // (the eyes slow to the dark: a light going out leaves it black)
 	Arms = InArms;
 	HeldLight = InFlashlight;
 	HeldBeam = InBeam;
@@ -692,6 +692,19 @@ void APart2Character::UpdateBody(float Dt)
 	if (HeldLight)
 	{
 		HeldLight->SetActorTransform(Arms->HandleInHand(1) * Arms->GetActorTransform());
+		// (measured, when asked: where the eyes look, where the light was wanted, where the hand put it)
+		static const bool bAimLog = FParse::Param(FCommandLine::Get(), TEXT("p2aimlog"));
+		static float AimLogT = 0.f;
+		AimLogT += Dt;
+		if (bAimLog && AimLogT > 0.5f)
+		{
+			AimLogT = 0.f;
+			const FVector Lw = HeldLight->GetActorForwardVector();
+			const FVector Hw = Me.TransformPosition(HoldAim.GetLocation()), Got = HeldLight->GetActorLocation();
+			UE_LOG(LogTemp, Display, TEXT("P2Aim eyes pitch %.0f; wanted %.0f (aim %.0f cm off along the gaze %.0f); light pitch %.0f yaw off %.0f; hand %.0f cm from the hold; step %d"),
+				Camera->GetComponentRotation().Pitch, Me.TransformVector(AimDir).Rotation().Pitch, FVector::Dist(Me.TransformPosition(AimAt), Camera->GetComponentLocation()), AimDist,
+				Lw.Rotation().Pitch, FRotator::NormalizeAxis(Lw.Rotation().Yaw - Camera->GetComponentRotation().Yaw), FVector::Dist(Hw, Got), StoryStep);
+		}
 	}
 	// a jolt (a hit on the wall beside them): a hard shake, settling in half a second
 	if (JoltT >= 0.f)
@@ -1162,7 +1175,10 @@ void APart2Character::StoryAutopilot(float Dt)
 		}
 	}
 	// the husk: in the beam, held; charging, watched a moment, then a run for it
-	if (Hh && Hh->Husk && !Hh->Husk->IsHidden() && StoryStep >= 6 && Hh->State != AHuskHunter::EState::Peer && Hh->State != AHuskHunter::EState::Investigate && Hh->State != AHuskHunter::EState::Retreat)
+	// (only while it is the thing to watch: once it has gone and the matches are the task, the eyes are on the task, not on
+	// where it roams behind the walls; a charge is always watched)
+	if (Hh && Hh->Husk && !Hh->Husk->IsHidden() && StoryStep >= 6 && (StoryStep < 8 || Hh->State == AHuskHunter::EState::Chase) &&
+		Hh->State != AHuskHunter::EState::Peer && Hh->State != AHuskHunter::EState::Investigate && Hh->State != AHuskHunter::EState::Retreat)
 	{
 		const FVector HuskAt = Hh->Husk->GetActorLocation() + FVector(0.f, 0.f, 110.f * Hh->Husk->GetActorScale3D().Z);
 		const FRotator At = (HuskAt - EyesAt()).Rotation();
@@ -1239,7 +1255,7 @@ void APart2Character::UpdateBreath(float Dt)
 	}
 	const FVector Fw = Camera->GetForwardVector(), Up = Camera->GetUpVector(), Rt = Camera->GetRightVector();
 	// (from the mouth: a hand under the eyes, a little in front of them)
-	const FVector Mouth = Camera->GetComponentLocation() + Fw * 12.f - Up * 11.f;
+	const FVector Mouth = Camera->GetComponentLocation() + Fw * 16.f - Up * 12.f;
 	const bool bHard = bWinded || Stamina < 0.5f || bRunning;
 	BreathT -= Dt;
 	if (BreathT <= 0.f)
@@ -1272,12 +1288,13 @@ void APart2Character::UpdateBreath(float Dt)
 				P.C = C;
 				P.M = M;
 				// (out and a little down at first, as breath leaves the mouth; spread a little)
-				P.V = (Fw * FMath::FRandRange(38.f, 55.f) - Up * FMath::FRandRange(2.f, 9.f) + Rt * FMath::FRandRange(-7.f, 7.f)) * Heavy;
+				P.V = (Fw * FMath::FRandRange(60.f, 80.f) - Up * FMath::FRandRange(2.f, 8.f) + Rt * FMath::FRandRange(-6.f, 6.f)) * Heavy;
 				P.Age = -0.13f * i;                          // (the breath out takes ~0.6 s: its puffs one after another)
-				P.Life = FMath::FRandRange(1.5f, 2.1f) * (bHard ? 0.85f : 1.f);
-				P.R0 = FMath::FRandRange(2.5f, 4.f);
-				P.R1 = FMath::FRandRange(17.f, 26.f) * Heavy;
-				P.Peak = FMath::FRandRange(0.16f, 0.24f) * (bHard ? 1.25f : 1.f);
+				P.Life = FMath::FRandRange(1.3f, 1.8f) * (bHard ? 0.85f : 1.f);
+				// (thin wisps, not a cloud: small, faint, gone within a stride; near the eyes they are mostly out of sight)
+				P.R0 = FMath::FRandRange(2.f, 3.f);
+				P.R1 = FMath::FRandRange(9.f, 14.f) * Heavy;
+				P.Peak = FMath::FRandRange(0.08f, 0.13f) * (bHard ? 1.25f : 1.f);
 				P.bOut = false;
 				Puffs.Add(P);
 			}
@@ -1318,7 +1335,8 @@ void APart2Character::UpdateBreath(float Dt)
 		const float K = P.Age / P.Life;
 		const float R = FMath::Lerp(P.R0, P.R1, 1.f - FMath::Exp(-P.Age * 2.2f));
 		C->SetWorldScale3D(FVector(R / 50.f));
-		const float In = FMath::SmoothStep(0.f, 0.12f, P.Age);
+		// (seen once it is out from the face, 25-40 cm ahead: closer it would fill the view as a blur)
+		const float In = FMath::SmoothStep(0.2f, 0.45f, P.Age);
 		if (UMaterialInstanceDynamic* M = P.M.Get())
 		{
 			M->SetScalarParameterValue(TEXT("Opacity"), P.Peak * In * FMath::Pow(1.f - K, 1.6f));

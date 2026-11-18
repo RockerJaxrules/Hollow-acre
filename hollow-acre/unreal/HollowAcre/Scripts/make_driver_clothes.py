@@ -103,6 +103,7 @@ float3 top = Top;
 if (Pattern > 0.5 && Pattern < 1.5) top *= Plaid;                                         // plaid
 else if (Pattern > 1.5 && Pattern < 2.5) top *= (frac(lerp(P.z, d, arm) / 3.2) < 0.5) ? 1.0 : 0.5;   // stripes round the body and the arm
 else if (Pattern > 2.5) { float2 g = frac(UV * 70.0) - 0.5; top = lerp(top, top * 1.7 + 0.06, step(length(g), 0.2)); }   // dots
+top *= lerp(0.74, 1.06, saturate(0.5 + 0.5 * Fold.w));                                    // the folds' valleys in shadow
 if (CuffKind > 0.5 && CuffKind < 2.5) top *= lerp(1.0, 0.8 + 0.12 * cos(UV.x * 1400.0), cuff);   // a knit rib cuff
 else if (CuffKind < 0.5) top *= lerp(1.0, 0.86, cuff * step(length(Pm - WristP), 1.6 + 5.4) * step(5.4, length(Pm - WristP)));   // a shirt cuff's seam
 else if (CuffKind > 2.5 && CuffKind < 3.5) top *= lerp(1.0, 0.85, cuff * step(5.8, length(Pm - WristP)));   // a jacket's turned hem
@@ -110,6 +111,42 @@ float3 c = lerp(top, float3(0.022, 0.03, 0.058), legs);
 c = lerp(c, float3(0.03, 0.02, 0.014), belt);
 c = lerp(c, float3(0.03, 0.02, 0.014), boots);
 return c;
+"""
+
+# the cloth's folds (photographs of hoodie and sweatshirt sleeves on a bent arm): a sleeve longer than the arm bunches
+# above its cuff in rings, wavy and spiralling, a few centimetres apart; the inside of the elbow creases in a fan where it
+# bends; the upper arm hangs in long soft folds. A height in the reference pose (so the folds stay in the cloth as the
+# arm moves), turned into a normal by its screen derivatives (Mikkelsen's surface-gradient bump, which needs no tangents),
+# on top of the weave's normal (N, in world space). xyz: the normal; w: the height (the valleys darkened in the colour).
+FOLDS = ZONES + """
+float t = dot(fa, ForeDir);
+float3 ax = ForeDir;
+float3 r0 = normalize(cross(ax, float3(0.0, 0.0, 1.0)));
+float3 r1 = cross(ax, r0);
+float3 rad = fa - ax * t;
+float th = atan2(dot(rad, r1), dot(rad, r0));
+float bunch = smoothstep(5.0, 20.0, t) * (1.0 - smoothstep(24.5, 26.5, t));
+float wav = t * 1.85 + 1.2 * sin(th * 2.0 + t * 0.33) + 0.7 * sin(th * 3.0 - t * 0.21);
+float ring = sin(wav);
+ring = sign(ring) * pow(abs(ring), 0.65);
+float h = nearFore * ring * (0.22 + 0.78 * bunch);
+float elbow = nearFore * (1.0 - smoothstep(0.0, 8.0, abs(t - 1.0)));
+h += elbow * 0.8 * sin(th * 5.0 + t * 0.9);
+float upper = step(-3.0, d) * step(armR, 9.0) * step(ArmZ, P.z) * (1.0 - nearFore);
+float3 ru = Pm - onAxis;
+float3 u0 = normalize(cross(ArmDir, float3(0.0, 1.0, 0.0)));
+float3 u1 = cross(ArmDir, u0);
+float thu = atan2(dot(ru, u1), dot(ru, u0));
+h += upper * 0.55 * sin(d * 0.42 + 1.8 * sin(thu * 2.0) + 0.8 * sin(thu * 3.0 + d * 0.1));
+h *= (1.0 - legs) * (1.0 - boots);
+float3 Nn = normalize(N);
+float3 dpdx = ddx(WP), dpdy = ddy(WP);
+float dhx = ddx(h) * 0.38, dhy = ddy(h) * 0.38;
+float3 R1 = cross(dpdy, Nn), R2 = cross(Nn, dpdx);
+float det = dot(dpdx, R1);
+float3 grad = sign(det) * (dhx * R1 + dhy * R2);
+float3 Nb = normalize(abs(det) * Nn - grad);
+return float4(Nb, h);
 """
 
 KEEP = ZONES + """
@@ -175,8 +212,22 @@ def run():
     elbowp = vp('ElbowP', (38.8, -1.2, 130.8), 1670)
     zone_ins = [('P', vi, ''), ('Waist', waist, ''), ('Ankle', ankle, ''), ('ArmS', arms_, ''), ('ArmDir', armdir, ''),
                 ('ArmZ', armz, ''), ('WristP', wristp, ''), ('ForeDir', foredir, ''), ('ElbowP', elbowp, '')]
+    # the weave (its normal in world space) and the folds over it
+    m.set_editor_property('tangent_space_normal', False)
+    fabric = tex(m, '/Game/HollowAcre/Textures/T_FabricN', 14.0, -1500, 2100, normal=True)
+    fab_ws = node(m, unreal.MaterialExpressionTransform, -1250, 2100,
+                  transform_source_type=unreal.MaterialVectorCoordTransformSource.TRANSFORMSOURCE_TANGENT,
+                  transform_type=unreal.MaterialVectorCoordTransform.TRANSFORM_WORLD)
+    link(fabric, 'RGB', fab_ws, '')
+    wpos = node(m, unreal.MaterialExpressionWorldPosition, -1250, 2250)
+    folds = custom(m, 'clothes folds', FOLDS, unreal.CustomMaterialOutputType.CMOT_FLOAT4, -900, 1900,
+                   zone_ins + [('WP', wpos, ''), ('N', fab_ws, '')])
+    fold_n = node(m, unreal.MaterialExpressionComponentMask, -650, 1900, r=True, g=True, b=True, a=False)
+    link(folds, '', fold_n, '')
+    prop(fold_n, '', unreal.MaterialProperty.MP_NORMAL)
     col = custom(m, 'clothes colour', COLOR, unreal.CustomMaterialOutputType.CMOT_FLOAT3, -900, 0,
-                 zone_ins + [('UV', uv, ''), ('Top', top, ''), ('Pattern', pattern, ''), ('CuffKind', cuffk, ''), ('Plaid', plaid, 'R')])
+                 zone_ins + [('UV', uv, ''), ('Top', top, ''), ('Pattern', pattern, ''), ('CuffKind', cuffk, ''), ('Plaid', plaid, 'R'),
+                             ('Fold', folds, '')])
     prop(col, '', unreal.MaterialProperty.MP_BASE_COLOR)
     keep = custom(m, 'clothes cut', KEEP, unreal.CustomMaterialOutputType.CMOT_FLOAT1, -900, 900,
                   zone_ins + [('Hand', hand, 'R'), ('SleeveD', sleeve, '')])
@@ -190,9 +241,6 @@ def run():
     link(nrm, '', out, 'A')
     link(sp('ClothOut', 0.65, 1450), '', out, 'B')
     prop(out, '', unreal.MaterialProperty.MP_WORLD_POSITION_OFFSET)
-    # the weave and the grain
-    fabric = tex(m, '/Game/HollowAcre/Textures/T_FabricN', 14.0, -900, 600 + 900, normal=True)
-    prop(fabric, 'RGB', unreal.MaterialProperty.MP_NORMAL)
     mel.recompile_material(m)
     eal.save_loaded_asset(m)
     log('made %s; failed links: %s' % (path, BAD or 'none'))

@@ -13,6 +13,7 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Components/DecalComponent.h"
 #include "Components/PointLightComponent.h"
+#include "Components/SpotLightComponent.h"
 #include "Components/PoseableMeshComponent.h"
 
 void P2Footprint(UWorld* World, const FVector& At, float Yaw, float Size, bool bBare)
@@ -490,6 +491,25 @@ void AP2Story::FurnishShed()
 				}
 			}
 			Stove = St;
+			// (the fire's light spilling out of the doorway: what of it reaches the snow out front, the door's shape lit
+			// on it and anything standing there lit warm from the front and throwing its shadow across it. A stove's
+			// light carries a few metres out a door: drawn as a spot from the back of the room through the doorway,
+			// flickering with the fire)
+			DoorSpill = NewObject<USpotLightComponent>(this, TEXT("DoorSpill"));
+			DoorSpill->SetIntensityUnits(ELightUnits::Candelas);
+			DoorSpill->SetIntensity(0.f);
+			DoorSpill->SetAttenuationRadius(1100.f);
+			DoorSpill->SetUseTemperature(true);
+			DoorSpill->SetTemperature(2100.f);
+			DoorSpill->SetSourceRadius(20.f);
+			DoorSpill->SetInnerConeAngle(18.f);
+			DoorSpill->SetOuterConeAngle(42.f);
+			DoorSpill->SetCastShadows(true);
+			DoorSpill->SetLightingChannels(false, false, true);
+			DoorSpill->RegisterComponent();
+			const FVector From = At(-250.f, 0.f, 0.f) + FVector(0.f, 0.f, G - T.GetLocation().Z + 75.f);
+			const FVector To = At(260.f, 0.f, 0.f) + FVector(0.f, 0.f, G - T.GetLocation().Z + 60.f);
+			DoorSpill->SetWorldLocationAndRotation(From, (To - From).Rotation());
 		}
 	}
 	UE_LOG(LogTemp, Display, TEXT("P2Story: the tool shed furnished (floor, table, her journal, matches, the stove); its ground %.0f cm from its origin"), Lift);
@@ -532,8 +552,22 @@ void AP2Story::OnUse(UP2UseComponent* Use)
 				MatchLight->SetUseTemperature(true);
 				MatchLight->SetTemperature(1900.f);
 				MatchLight->SetSourceRadius(1.f);
+				// (the match lights the room and the stove; the hand that holds it, inches from the flame, gets its own
+				// gentler light: at full strength the sleeve burned out to a yellow blob against the dark room)
+				MatchLight->SetLightingChannels(false, true, true);
 				MatchLight->RegisterComponent();
 				MatchLight->SetWorldLocation(Player->EyesAt() + Player->LookDir() * 45.f - FVector(0.f, 0.f, 25.f));
+				MatchHand = NewObject<UPointLightComponent>(this, TEXT("MatchHand"));
+				MatchHand->SetIntensityUnits(ELightUnits::Candelas);
+				MatchHand->SetIntensity(0.f);
+				MatchHand->SetAttenuationRadius(90.f);
+				MatchHand->SetUseTemperature(true);
+				MatchHand->SetTemperature(1900.f);
+				MatchHand->SetSourceRadius(1.f);
+				MatchHand->SetCastShadows(false);
+				MatchHand->SetLightingChannels(true, false, false);
+				MatchHand->RegisterComponent();
+				MatchHand->SetWorldLocation(MatchLight->GetComponentLocation());
 				MatchAt = Clock;
 				// (its flame: a small bright teardrop on the match's head)
 				MatchFlame = NewObject<UStaticMeshComponent>(this, TEXT("MatchFlame"));
@@ -575,7 +609,8 @@ void AP2Story::OnUse(UP2UseComponent* Use)
 
 void AP2Story::TickCrosser(float Dt)
 {
-	const float CrossSpeed = 175.f;           // (a quick stalk across, out of reach: seen, then gone)
+	// (in the street: a quick stalk across, out of reach, seen then gone; past the doorway: slow, and it stops)
+	const float CrossSpeed = bCrossInHeadlight ? 175.f : 105.f;
 	if (!Crosser || CrossT < 0.f)
 	{
 		return;
@@ -583,7 +618,7 @@ void AP2Story::TickCrosser(float Dt)
 	// it walks across the far end of the street; halfway, it stops, and its head turns to the player; then it goes on
 	CrossT += Dt;
 	const float Len = FVector::Dist2D(CrossFrom, CrossTo);
-	const float Stop0 = 0.42f * Len / CrossSpeed, Stop1 = Stop0 + 2.2f;
+	const float Stop0 = (bCrossInHeadlight ? 0.42f : 0.47f) * Len / CrossSpeed, Stop1 = Stop0 + (bCrossInHeadlight ? 2.2f : 3.4f);
 	float S = CrossT < Stop0 ? CrossT * CrossSpeed : CrossT < Stop1 ? Stop0 * CrossSpeed : (Stop0 + (CrossT - Stop1)) * CrossSpeed;
 	const bool bStopped = CrossT >= Stop0 && CrossT < Stop1;
 	FVector P = CrossFrom + (CrossTo - CrossFrom).GetSafeNormal2D() * S;
@@ -688,7 +723,7 @@ void AP2Story::Beats(float Dt)
 					const float Dp = FVector::Dist2D(Hp.ImpactPoint, Pp);
 					if (Dp > 600.f && Dp < 2500.f)
 					{
-						Mid = Pp + (Hp.ImpactPoint - Pp).GetSafeNormal2D() * FMath::Min(Dp, 850.f);
+						Mid = Pp + (Hp.ImpactPoint - Pp).GetSafeNormal2D() * FMath::Min(Dp, 650.f);
 						Mid.Z = GroundAt(Mid);
 					}
 				}
@@ -918,6 +953,10 @@ void AP2Story::TickFire(float Dt)
 		const float m = Clock - MatchAt;
 		const float I = m < 0.12f ? m / 0.12f * 6.f : m < 0.4f ? FMath::Lerp(6.f, 2.2f, (m - 0.12f) / 0.28f) : m < 1.8f ? 2.2f * (0.9f + 0.1f * FMath::Sin(Clock * 23.f)) : FMath::Max(0.f, 2.2f * (1.f - (m - 1.8f) / 0.3f));
 		MatchLight->SetIntensity(I);
+		if (MatchHand)
+		{
+			MatchHand->SetIntensity(I * 0.1f);
+		}
 		if (MatchFlame)
 		{
 			MatchFlame->SetWorldScale3D(FVector(0.007f, 0.007f, 0.016f) * FMath::Max(0.05f, I / 2.2f) * (0.9f + 0.1f * FMath::Sin(Clock * 31.f)));
@@ -926,6 +965,11 @@ void AP2Story::TickFire(float Dt)
 		{
 			MatchLight->DestroyComponent();
 			MatchLight = nullptr;
+			if (MatchHand)
+			{
+				MatchHand->DestroyComponent();
+				MatchHand = nullptr;
+			}
 			if (MatchFlame)
 			{
 				MatchFlame->DestroyComponent();
@@ -942,6 +986,10 @@ void AP2Story::TickFire(float Dt)
 	const float Catch = FMath::Clamp(s / 4.f, 0.f, 1.f);
 	const float Fl = 0.78f + 0.12f * FMath::Sin(Clock * 2.3f) + 0.07f * FMath::Sin(Clock * 7.9f + 1.f) + 0.05f * FMath::Sin(Clock * 17.3f + 2.f);
 	FireLight->SetIntensity(14.f * Catch * Catch * Fl);
+	if (DoorSpill)
+	{
+		DoorSpill->SetIntensity(55.f * Catch * Catch * Fl);
+	}
 	if (FireGlow)
 	{
 		FireGlow->SetVectorParameterValue(TEXT("Glow"), FLinearColor(1.f, 0.38f, 0.08f) * (6.f * Catch * Fl));

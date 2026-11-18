@@ -634,7 +634,7 @@ def inner_frame(m, walls, girts=(32.0, 112.0, 192.0)):
             # (the girt in runs: broken where a door or window is cut through the wall)
             runs, a = [], 4.0
             for o in sorted(wall.openings):
-                if o[2] - 2 < z < o[3] + 2:
+                if o[2] - 2 < z < o[3] + 14:             # (no girt across a doorway, nor just over its head)
                     if o[0] > a + 10:
                         runs.append((a, o[0] - 4))
                     a = max(a, o[1] + 4)
@@ -661,7 +661,7 @@ def shed(name, seed, W=3.7, D=3.7, H=7.5):
     walls['front'].cut_doors = True          # (it can be walked into: Part 2's first shelter)
     for w in walls.values():
         w.no_dark = True                         # (its inside is real: moonlight through the gaps in its boards)
-    door(m, walls['front'], W / 2 - 45, 90, 6.2 * FT, state='open')
+    door(m, walls['front'], W / 2 - 45, 90, 6.7 * FT, state='open')      # (tall enough to walk in standing on its floor)
     finish_walls(m, walls, 'bb', 'bb', 0.025)    # (a few boards gone: thin cracks of night, not missing walls)
     inner_frame(m, walls)
     # its floor: boards front to back on sleepers, a finger's gap between them, one split and one short by the door

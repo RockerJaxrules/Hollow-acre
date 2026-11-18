@@ -15,8 +15,7 @@ def breath():
     (the flashlight's beam, the fire, a little moon), as real breath does at night. Opacity is the game's (it fades)."""
     path = DEST + '/M_Breath'
     if eal.does_asset_exist(path):
-        unreal.log('[play mats] M_Breath already there')
-        return
+        eal.delete_asset(path)                  # (remade each run: it is still being tuned)
     m = tools.create_asset('M_Breath', DEST, unreal.Material, unreal.MaterialFactoryNew())
     m.set_editor_property('blend_mode', unreal.BlendMode.BLEND_TRANSLUCENT)
     m.set_editor_property('translucency_lighting_mode', unreal.TranslucencyLightingMode.TLM_SURFACE_PER_PIXEL_LIGHTING)
@@ -48,14 +47,18 @@ def breath():
     mel.connect_material_expressions(wp, '', pos, 'A')
     mel.connect_material_expressions(drift, '', pos, 'B')
     nz = mel.create_material_expression(m, unreal.MaterialExpressionNoise, -800, 450)
-    nz.set_editor_property('scale', 0.09)
-    nz.set_editor_property('levels', 3)
-    nz.set_editor_property('output_min', 0.15)
-    nz.set_editor_property('output_max', 1.0)
+    # (contrasty: holes and threads in it, wisps rather than a ball; held at 0 below)
+    nz.set_editor_property('scale', 0.14)
+    nz.set_editor_property('levels', 4)
+    nz.set_editor_property('output_min', -0.9)
+    nz.set_editor_property('output_max', 1.3)
     mel.connect_material_expressions(pos, '', nz, 'Position')
+    nzc = mel.create_material_expression(m, unreal.MaterialExpressionMax, -700, 450)
+    nzc.set_editor_property('const_b', 0.0)
+    mel.connect_material_expressions(nz, '', nzc, 'A')
     mix = mel.create_material_expression(m, unreal.MaterialExpressionMultiply, -600, 250)
     mel.connect_material_expressions(sq, '', mix, 'A')
-    mel.connect_material_expressions(nz, '', mix, 'B')
+    mel.connect_material_expressions(nzc, '', mix, 'B')
     op = mel.create_material_expression(m, unreal.MaterialExpressionScalarParameter, -600, 450)
     op.set_editor_property('parameter_name', 'Opacity')
     op.set_editor_property('default_value', 0.2)
