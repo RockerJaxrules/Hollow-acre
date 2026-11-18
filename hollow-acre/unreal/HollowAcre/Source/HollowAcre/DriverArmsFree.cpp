@@ -227,7 +227,150 @@ void ADriverArms::MakeShapes()
 		Keep(1);
 		// round a handle (2: the flashlight's barrel, 3: the buckle): each finger curls until its skin meets it, the thumb over
 		// the index and middle fingers
-		for (int32 Shape = 2; Shape <= 3; ++Shape)
+		{
+			// the flashlight's fist (a power grip, as a hand really holds a flashlight): the barrel laid across the palm on a
+			// slant under the fingers' roots (from the heel of the palm on the little finger's side to the index's root); each
+			// finger closed round it a joint at a time, every segment bent until it lies on the barrel, so the fingers wrap it;
+			// the thumb laid along the barrel toward the head, its pad on the switch. The flashlight is then placed where this
+			// fist holds it (its switch under the thumb's pad)
+			ToRef();
+			const float R = 1.985f;
+			static float FistTilt = -1000.f, FistBack = -1000.f;
+			if (FistTilt < -999.f)
+			{
+				FistTilt = 20.f;
+				FistBack = 1.8f;
+				FParse::Value(FCommandLine::Get(), TEXT("-wakefisttilt="), FistTilt);
+				FParse::Value(FCommandLine::Get(), TEXT("-wakefistback="), FistBack);
+			}
+			const float Tr = FMath::DegreesToRadians(FistTilt);
+			const FVector X = (-Ac * FMath::Cos(Tr) + Fd * FMath::Sin(Tr)).GetSafeNormal();        // (toward the head)
+			FVector Row(0.f);
+			for (const TCHAR* F : FreeFingerNames)
+			{
+				Row += P(FString::Printf(TEXT("%s_01_%s"), F, *Sx));
+			}
+			Row /= 4.f;
+			FVector C = PalmSkin + Fd * (FVector::DotProduct(Row - PalmSkin, Fd) - FistBack) + Palm * (R + 0.15f);
+			auto Perp = [&](const FVector& Q) { const FVector D = Q - C; return D - X * FVector::DotProduct(D, X); };
+			GraspDist = [MeshRel, &C, X, R](const FVector& Pcar)
+			{
+				const FVector D = MeshRel.InverseTransformPosition(Pcar) - C;
+				return (float)(D - X * FVector::DotProduct(D, X)).Size() - R;
+			};
+			// (the barrel kept out of the palm: lifted off it until no skin of the palm is in it)
+			for (int32 It = 0; It < 25 && SkinMinDist(Side, 0) < 0.f; ++It)
+			{
+				C += Palm * 0.1f;
+			}
+			const float Th[3] = {0.95f, 0.85f, 0.72f};              // (each segment's half thickness)
+			const float MaxB[3] = {95.f, 110.f, 85.f};
+			float SgOf[4][3] = {};
+			for (int32 Fi = 0; Fi < 4; ++Fi)
+			{
+				const TCHAR* F = FreeFingerNames[Fi];
+				const FName J[3] = {*FString::Printf(TEXT("%s_01_%s"), F, *Sx), *FString::Printf(TEXT("%s_02_%s"), F, *Sx), *FString::Printf(TEXT("%s_03_%s"), F, *Sx)};
+				for (int32 k = 0; k < 3; ++k)
+				{
+					auto Child = [&]()
+					{
+						if (k < 2)
+						{
+							return BoneCS(J[k + 1]).GetLocation();
+						}
+						const FVector A = BoneCS(J[1]).GetLocation(), B = BoneCS(J[2]).GetLocation();
+						return B + (B - A) * 0.85f;
+					};
+					auto SegGap = [&]()
+					{
+						const FVector A = BoneCS(J[k]).GetLocation(), B = Child();
+						float M = 1e9f;
+						for (float t = 0.15f; t <= 1.001f; t += 0.085f)
+						{
+							M = FMath::Min(M, (float)Perp(FMath::Lerp(A, B, t)).Size() - R - Th[k]);
+						}
+						return M;
+					};
+					// (which way it curls: found on the straight finger at its root, the same for all three joints)
+					if (k == 0)
+					{
+						const FVector V0 = Child() - BoneCS(J[0]).GetLocation();
+						const float S0 = FVector::DotProduct(FQuat(Ac, 0.2f).RotateVector(V0) - V0, Palm) >= 0.f ? 1.f : -1.f;
+						SgOf[Fi][0] = SgOf[Fi][1] = SgOf[Fi][2] = S0;
+					}
+					const float Sg = SgOf[Fi][k];
+					for (float Dn = 0.f; Dn < MaxB[k] && SegGap() > 0.f && SkinMinDist(Side, Fi + 1, k, k) > 0.05f; Dn += 0.5f)
+					{
+						SetBoneCS(J[k], FQuat(Ac, Sg * FMath::DegreesToRadians(0.5f)) * BoneCS(J[k]).GetRotation());
+					}
+				}
+			}
+			// (the skin checked too: any fingertip or middle segment still pressed into the barrel eased back out of it)
+			for (int32 Fi = 0; Fi < 4; ++Fi)
+			{
+				for (int32 k = 2; k >= 0; --k)
+				{
+					const FName Jk(*FString::Printf(TEXT("%s_0%d_%s"), FreeFingerNames[Fi], k + 1, *Sx));
+					for (int32 It = 0; It < 60 && SkinMinDist(Side, Fi + 1, k, 2) < -0.1f; ++It)
+					{
+						SetBoneCS(Jk, FQuat(Ac, -SgOf[Fi][k] * FMath::DegreesToRadians(0.5f)) * BoneCS(Jk).GetRotation());
+					}
+				}
+			}
+			// the thumb along the barrel toward the head, its pad on the barrel 2 cm past the index's root, on the side of the
+			// barrel toward the thumb's own root (as a thumb lies on a flashlight's switch)
+			const float Xi = FVector::DotProduct(P(TEXT("index_01_") + Sx) - C, X);
+			const FVector Dth = Perp(P(TEXT("thumb_02_") + Sx)).GetSafeNormal();
+			static float ThumbPad = -1000.f;
+			if (ThumbPad < -999.f)
+			{
+				ThumbPad = 0.6f;              // (the tip's bone line this far off the barrel: the pad's flesh pressing it)
+				FParse::Value(FCommandLine::Get(), TEXT("-wakethumbpad="), ThumbPad);
+			}
+			FVector Target = C + X * (Xi + 2.f) + Dth * (R + ThumbPad);
+			for (int32 It = 0; It < 6; ++It)
+			{
+				for (int32 A = 0; A < 3; ++A)
+				{
+					AimThumb(Target, 1.f);
+				}
+				const float In = SkinMinDist(Side, 5);
+				if (In >= 0.f)
+				{
+					break;
+				}
+				Target += Dth * (-In + 0.05f);
+			}
+			// (then aimed further in until its skin meets the barrel: the pad pressing the switch, not hovering over it)
+			for (int32 It = 0; It < 8; ++It)
+			{
+				const float Gap = SkinMinDist(Side, 5);
+				if (Gap < 0.08f)
+				{
+					break;
+				}
+				Target -= Dth * FMath::Min(Gap, 0.5f);
+				for (int32 A = 0; A < 3; ++A)
+				{
+					AimThumb(Target, 1.f);
+				}
+			}
+			const FVector Tip = TipOf();
+			const float Xt = FVector::DotProduct(Tip - C, X) - 0.4f;
+			const FVector Z = Perp(Tip).GetSafeNormal();
+			const FTransform HoldCS(FRotationMatrix::MakeFromXZ(X, Z).ToQuat(), C + X * (Xt - 16.6f));
+			HoldInHand[Side] = HoldCS * Ht.Inverse();
+			float Gs[4];
+			for (int32 Part = 1; Part <= 4; ++Part)
+			{
+				Gs[Part - 1] = SkinMinDist(Side, Part, 2, 2);
+			}
+			UE_LOG(LogTemp, Display, TEXT("DriverArms: %s fist round the flashlight: the fingertips' skin off the barrel index %.2f middle %.2f ring %.2f little %.2f cm; the palm %.2f; the thumb's skin %.2f, its tip %.2f cm off the barrel, %.1f from the index's root along it"),
+				*Sx, Gs[0], Gs[1], Gs[2], Gs[3], SkinMinDist(Side, 0), SkinMinDist(Side, 5), (float)Perp(Tip).Size() - R, Xt + 0.4f - Xi);
+			GraspDist = nullptr;
+			Keep(2);
+		}
+		for (int32 Shape = 3; Shape <= 3; ++Shape)
 		{
 			ToRef();
 			const float R = Shape == 2 ? 1.985f : 1.5f;
@@ -472,114 +615,27 @@ void ADriverArms::FreeFollow()
 				T.SetRotation(FQuat::Slerp(T.GetRotation(), Kv.Value, o));
 			}
 		}
-		if (bGripTaken[Side] && Shape == 2 && c > 0.05f)
+		if (bGripTaken[Side] && Shape == 2 && c > 0.05f && Side == 1)
 		{
-			// holding the flashlight as it really sits in the hand (taken as it lay; it never shifts in the fingers): each
-			// finger curls from relaxed until its skin meets the barrel (index first, the little finger last), so the fingers
-			// wrap it and never enter it; the thumb's pad comes onto the switch on top, pressing it
-			for (const TPair<int32, FQuat>& Kv : ShapeLocal[Side][1])
-			{
-				const FString Bn = Mesh->GetBoneName(Kv.Key).ToString();
-				if (!Bn.StartsWith(TEXT("thumb")))
-				{
-					Mesh->BoneSpaceTransforms[Kv.Key].SetRotation(Kv.Value);
-				}
-			}
+			// holding the flashlight: the fist it was shaped round (see the shapes), the flashlight where that fist holds it;
+			// measured here against the flashlight as it really is in the hand, for the log
 			const FTransform FlCar = GripTaken[Side] * HandNow(Side);
 			const FVector A0 = FlCar.TransformPosition(FVector(1.5f, 0.f, 0.f)), A1 = FlCar.TransformPosition(FVector(19.5f, 0.f, 0.f));
 			GraspDist = [A0, A1](const FVector& Pcar) { return FMath::PointDistToSegment(Pcar, A0, A1) - 1.985f; };
-			if (Side == 1)
-			{
-				PalmToBarrel = (float)FMath::PointDistToSegment(PalmNow(Side), A0, A1) - 1.985f;
-			}
-			const FQuat HandRotCS = BoneCS(Side == 0 ? TEXT("hand_l") : TEXT("hand_r")).GetRotation();
-			const FVector AcCS = HandRotCS.RotateVector(AcrossL[Side]), PalmCS = HandRotCS.RotateVector(FaceL[Side]);
-			const float St = FMath::Clamp(F.Stagger, 0.f, 0.6f);
+			PalmToBarrel = SkinMinDist(Side, 0);
 			for (int32 k = 0; k < 4; ++k)
 			{
-				const float ck = St > 0.f ? FMath::Clamp(c * (1.f + St) - St * k / 3.f, 0.f, 1.f) : c;
-				CurlFinger(FreeFingerNames[k], Sx, FVector(95.f, 110.f, 85.f) * ck, AcCS, PalmCS);
-				FingerGap[k] = SkinMinDist(Side, k + 1, 0);
+				FingerGap[k] = SkinMinDist(Side, k + 1, 2, 2);          // (the fingertip's segment: wrapped round it, or not)
+			}
+			ThumbInBarrel = -FMath::Min(0.f, SkinMinDist(Side, 5));
+			const FName T2(*FString::Printf(TEXT("thumb_02_%s"), Sx)), T3(*FString::Printf(TEXT("thumb_03_%s"), Sx));
+			if (Mesh->GetBoneIndex(T3) != INDEX_NONE && FMath::IsNearlyEqual(c, 1.f, 0.02f))
+			{
+				const FVector Q2 = BoneCS(T2).GetLocation(), Q3 = BoneCS(T3).GetLocation();
+				const FVector SwitchCS = MeshRel.InverseTransformPosition(FlCar.TransformPosition(FVector(16.6f, 0.f, 2.12f + 0.55f)));
+				ThumbToSwitch = (float)FVector::Dist(Q3 + (Q3 - Q2) * 0.9f, SwitchCS);
 			}
 			GraspDist = nullptr;
-			// the thumb: its tip brought onto the switch (16.6 cm up the barrel, on top) by turning its joints in turn
-			const FName T1(*FString::Printf(TEXT("thumb_01_%s"), Sx)), T2(*FString::Printf(TEXT("thumb_02_%s"), Sx)), T3(*FString::Printf(TEXT("thumb_03_%s"), Sx));
-			if (Mesh->GetBoneIndex(T1) != INDEX_NONE && Mesh->GetBoneIndex(T3) != INDEX_NONE)
-			{
-				const FVector SwitchCS = MeshRel.InverseTransformPosition(FlCar.TransformPosition(FVector(16.6f, 0.f, 2.12f + 0.55f)));
-				auto TipNow = [&]() { const FVector Q2 = BoneCS(T2).GetLocation(), Q3 = BoneCS(T3).GetLocation(); return Q3 + (Q3 - Q2) * 0.9f; };
-				const float Wt = FMath::Clamp(c, 0.f, 1.f);
-				// (collision with the barrel: no part of the thumb inside it; each joint turned just enough to bring its
-				// deepest point beyond it back out onto the surface, the thumb ~0.85 cm thick)
-				const FVector A0cs = MeshRel.InverseTransformPosition(A0), A1cs = MeshRel.InverseTransformPosition(A1);
-				auto PushOut = [&]()
-				{
-					const FName Js[3] = {T1, T2, T3};
-					for (int32 j = 0; j < 3; ++j)
-					{
-						const FVector Jp = BoneCS(Js[j]).GetLocation();
-						float Deep = 0.f;
-						FVector DeepP = Jp, Out = FVector::ZeroVector;
-						const FVector Pts[3] = {BoneCS(T2).GetLocation(), BoneCS(T3).GetLocation(), TipNow()};
-						for (int32 q = j; q < 3; ++q)
-						{
-							const FVector From = q == 0 ? BoneCS(T1).GetLocation() : Pts[q - 1];
-							for (float t : {0.5f, 1.f})
-							{
-								const FVector P = FMath::Lerp(From, Pts[q], t);
-								const FVector Cl = FMath::ClosestPointOnSegment(P, A0cs, A1cs);
-								const float D = 1.985f + 0.85f - (float)FVector::Dist(P, Cl);
-								if (D > Deep)
-								{
-									Deep = D;
-									DeepP = P;
-									Out = (P - Cl).GetSafeNormal();
-								}
-							}
-						}
-						if (Deep > 0.01f && !Out.IsNearlyZero())
-						{
-							const FVector V = DeepP - Jp;
-							const FVector K = FVector::CrossProduct(V, Out).GetSafeNormal();
-							if (!K.IsNearlyZero() && V.Size() > 0.5f)
-							{
-								SetBoneCS(Js[j], FQuat(K, FMath::Atan2(Deep, (float)V.Size())) * BoneCS(Js[j]).GetRotation());
-							}
-						}
-					}
-				};
-				for (int32 It = 0; It < 4; ++It)
-				{
-					for (const FName& J : {T2, T1})
-					{
-						const FTransform Jt = BoneCS(J);
-						const FVector Cur = (TipNow() - Jt.GetLocation()).GetSafeNormal(), Want = (SwitchCS - Jt.GetLocation()).GetSafeNormal();
-						SetBoneCS(J, FQuat::Slerp(FQuat::Identity, FQuat::FindBetweenNormals(Cur, Want), 0.6f * Wt) * Jt.GetRotation());
-					}
-					PushOut();
-				}
-				PushOut();
-				PushOut();
-				if (Side == 1)
-				{
-					// (how deep the thumb still is in the barrel, for the log)
-					float Worst = 0.f;
-					const FVector Pts[4] = {BoneCS(T1).GetLocation(), BoneCS(T2).GetLocation(), BoneCS(T3).GetLocation(), TipNow()};
-					for (int32 q = 1; q < 4; ++q)
-					{
-						for (float t : {0.25f, 0.5f, 0.75f, 1.f})
-						{
-							const FVector P = FMath::Lerp(Pts[q - 1], Pts[q], t);
-							Worst = FMath::Max(Worst, 1.985f + 0.85f - (float)FVector::Dist(P, FMath::ClosestPointOnSegment(P, A0cs, A1cs)));
-						}
-					}
-					ThumbInBarrel = Worst;
-				}
-				if (Side == 1 && FMath::IsNearlyEqual(c, 1.f, 0.02f))
-				{
-					ThumbToSwitch = (float)FVector::Dist(TipNow(), SwitchCS);
-				}
-			}
 		}
 		// a finger pressed on the floor straightens back onto it (a hand pushed flat), each finger turned up at its knuckle
 		// just enough that its joints and tip are clear; only what that can't clear lifts the hand

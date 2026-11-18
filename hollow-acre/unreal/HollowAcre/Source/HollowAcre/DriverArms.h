@@ -282,7 +282,7 @@ private:
 
 	void Place();
 	void PoseArm(bool bLeft, const FHandGrip& G);
-	void CurlFinger(const FString& Finger, const FString& Sx, const FVector& Deg, const FVector& AxisCS, const FVector& PalmCS);
+	void CurlFinger(const FString& Finger, const FString& Sx, const FVector& Deg, const FVector& AxisCS, const FVector& PalmCS, bool bWrap = false);
 	void BendToRim(int32 Side, FName Bone, FName TipFrom, FName TipTo, float MaxDeg);
 	float RimDistCS(const FVector& PCS) const;
 

@@ -1153,6 +1153,13 @@ void AEndingDirector::WakeBeats(float RealDt)
 				LookAt = Fl.TransformPosition(FVector(16.6f, 0.f, 2.f));
 				CamAt = Fl.TransformPosition(FVector(10.f, 0.f, 16.f));
 			}
+			if ((HandCam == 6 || HandCam == 7) && Flashlight)
+			{
+				// (6: the eyes' own view, moved in toward the switch; 7: the switch from in front of the lens and above it)
+				const FTransform Fl = Flashlight->GetRootComponent()->GetRelativeTransform();
+				LookAt = Fl.TransformPosition(FVector(14.f, 0.f, 1.f));
+				CamAt = HandCam == 6 ? LookAt + (Eye.GetLocation() - LookAt) * 0.4f : Fl.TransformPosition(FVector(42.f, 0.f, 24.f));
+			}
 			if (HandCam == 4 && Flashlight)
 			{
 				// (down the barrel from behind its tail: the fist's cross-section round it)
@@ -1362,7 +1369,7 @@ void AEndingDirector::WakeBeats(float RealDt)
 					static float GripTilt = -1000.f;
 					if (GripTilt < -999.f)
 					{
-						GripTilt = -40.f;
+						GripTilt = 0.f;           // (the slant is in the fist itself now: the barrel across the palm on a slant)
 						FParse::Value(FCommandLine::Get(), TEXT("-wakegriptilt="), GripTilt);
 					}
 					Arms->GripTilt[1] = GripTilt;
@@ -1451,10 +1458,10 @@ void AEndingDirector::WakeBeats(float RealDt)
 		L.Open = R.Open = 0.f;
 		// (the right arm through the pickup and the hold: solved by the MetaHuman body's own Control Rig)
 		R.bRig = w >= 9.6f && w < 19.f;
-		// (the pickup as keyed in Sequencer (LS_ArmLab, on the MetaHuman Control Rig) and baked to A_WakePickup: frame 0 is
-		// w 9.3; keyed from 10.3 to 14.8. -wakenoanim plays the solver instead)
-		static const bool bNoAnim = FParse::Param(FCommandLine::Get(), TEXT("wakenoanim"));
-		R.AnimTime = (!bNoAnim && w >= 10.3f && w < 14.8f) ? w - 9.3f : -1.f;
+		// (the pickup is animated in code: the anatomy solver poses the arm every frame (the owner preferred it). The Sequencer
+		// version (LS_ArmLab baked to A_WakePickup: frame 0 is w 9.3, keyed from 10.3 to 14.8) plays with -wakeseqanim)
+		static const bool bSeqAnim = FParse::Param(FCommandLine::Get(), TEXT("wakeseqanim")) && !FParse::Param(FCommandLine::Get(), TEXT("wakenoanim"));
+		R.AnimTime = (bSeqAnim && w >= 10.3f && w < 14.8f) ? w - 9.3f : -1.f;
 		if (w < 7.0f)
 		{
 			// (hanging limp: the fingers loose and half open, not fists)
@@ -1610,6 +1617,10 @@ void AEndingDirector::WakeBeats(float RealDt)
 							}
 						}
 					}
+					// (the flashlight lies turned on its own axis as the hand will take it: round, it lies the same; its switch
+					// is then already where the thumb comes down)
+					FlashRest = FTransform(FQuat(LieX, FMath::DegreesToRadians(BRoll)) * Lie.GetRotation(), Lie.GetLocation());
+					UE_LOG(LogTemp, Display, TEXT("WakeTakeAt %.2f"), w);
 					UE_LOG(LogTemp, Display, TEXT("WakeTake taken in the grip, the hand rolled %.0f degrees round the barrel: the wrist %.0f toward the palm, %.0f toward the little finger; the palm %.0f%% down; the elbow %.1f cm off the lining"),
 						BRoll, BFx, BDv, BPalm * 100.f, BElbow);
 					bWakeTakeSet = true;
@@ -1834,21 +1845,15 @@ void AEndingDirector::WakeBeats(float RealDt)
 					bFlashReversed = bUpHigh && bFlip;
 					FlashTurnSecs = 1e6f;   // (it never shifts in the fingers: it moves with the grip, as the owner's can did)
 					{
-						// (it goes into the fist as the hand closes: seated in the grip the fingers were shaped round, against the palm
-						// and inside the fingers, turned on its own axis so its switch faces the thumb (round, it sits the same); the
-						// hand covers it as it closes)
+						// (it is held exactly where the fist was shaped round it: the barrel across the palm inside the fingers, the
+						// switch under the thumb's pad. The hand reached it in that same grip, and it lay turned on its axis to match,
+						// so nothing jumps)
 						const FTransform HandAt = Arms->HandNow(1);
-						const FTransform Seated = Arms->GripDesigned(1) * HandAt;
-						const FVector AxX = Seated.GetRotation().GetAxisX();
-						const FVector Th = Arms->BoneCar(TEXT("thumb_02_r"));
-						const FVector Base = Seated.GetLocation() + AxX * FVector::DotProduct(Th - Seated.GetLocation(), AxX);
-						FVector ToThumb = Th - Base;
-						ToThumb = (ToThumb - AxX * FVector::DotProduct(ToThumb, AxX)).GetSafeNormal();
-						const FVector Zs = Seated.GetRotation().GetAxisZ();
-						const float Turn = FMath::Atan2(FVector::DotProduct(FVector::CrossProduct(Zs, ToThumb), AxX), FVector::DotProduct(Zs, ToThumb));
-						FlashInHandAtGrab = FTransform(FQuat(FVector::XAxisVector, Turn)) * Arms->GripDesigned(1);
-						UE_LOG(LogTemp, Display, TEXT("WakeSwitch seated in the fist (%.1f cm from where it lay), turned %.0f degrees on its axis, its switch facing the thumb"),
-							FVector::Dist((FlashInHandAtGrab * HandAt).GetLocation(), FlashRest.GetLocation()), FMath::RadiansToDegrees(Turn));
+						FlashInHandAtGrab = Arms->GripDesigned(1);
+						const FTransform SeatedW = FlashInHandAtGrab * HandAt;
+						UE_LOG(LogTemp, Display, TEXT("WakeSwitch seated in the fist (%.1f cm from where it lay, its axis %.0f degrees off), the switch under the thumb"),
+							FVector::Dist(SeatedW.GetLocation(), FlashRest.GetLocation()),
+							FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(SeatedW.GetRotation().GetAxisX(), FlashRest.GetRotation().GetAxisX()), -1.f, 1.f))));
 						HoldAim = FlashInHandAtGrab * HandAt;
 					}
 					Arms->GripTaken[1] = FlashInHandAtGrab;
@@ -1996,6 +2001,37 @@ void AEndingDirector::WakeBeats(float RealDt)
 			Arms->ExtraLift[1] = Arms->FloorN * FMath::Min(Keep, 6.f);
 		}
 		Flashlight->GetRootComponent()->SetRelativeTransform(Fl);
+		if (bFlashHeld && WakeOnce(TEXT("switchfacing"), 13.0f, w))
+		{
+			// (which way the switch faces from the eyes, for each turn of the barrel on its own axis from where it is)
+			const FVector Ax = Fl.GetRotation().GetAxisX(), Sw = Fl.TransformPosition(FVector(16.6f, 0.f, 0.f));
+			FVector ToEye = Eye.GetLocation() - Sw;
+			ToEye = (ToEye - Ax * FVector::DotProduct(ToEye, Ax)).GetSafeNormal();
+			FString Line;
+			for (int32 Dg = -180; Dg < 180; Dg += 45)
+			{
+				const FVector Z = FQuat(Ax, FMath::DegreesToRadians((float)Dg)).RotateVector(Fl.GetRotation().GetAxisZ());
+				Line += FString::Printf(TEXT(" %+d:%.2f"), Dg, FVector::DotProduct(Z, ToEye));
+			}
+			UE_LOG(LogTemp, Display, TEXT("WakeSwitchFacing the switch toward the eyes (1 facing, -1 away), by a further turn:%s"), *Line);
+			// (where the hand's parts are round the barrel: the angle from the side facing the eyes (0) and toward the hand's
+			// thumb side, the distance from the barrel's axis (its radius is 2), and how far up it (the switch at 16.6))
+			const FVector E1 = ToEye, E2 = FVector::CrossProduct(Ax, E1);
+			auto Where = [&](const FVector& P)
+			{
+				const FVector L = Fl.InverseTransformPosition(P), D = P - Fl.TransformPosition(FVector(L.X, 0.f, 0.f));
+				return FString::Printf(TEXT("%+4.0fdeg r%.1f x%.1f"), FMath::RadiansToDegrees(FMath::Atan2(FVector::DotProduct(D, E2), FVector::DotProduct(D, E1))), D.Size(), L.X);
+			};
+			FVector PalmF;
+			const FVector PalmP = Arms->PalmNow(1, &PalmF);
+			FString Parts = FString::Printf(TEXT("palm %s (facing the eyes %.2f, toward the barrel %.2f); switch %s"), *Where(PalmP), FVector::DotProduct(PalmF, (Eye.GetLocation() - PalmP).GetSafeNormal()),
+				FVector::DotProduct(PalmF, (Fl.TransformPosition(FVector(Fl.InverseTransformPosition(PalmP).X, 0.f, 0.f)) - PalmP).GetSafeNormal()), *Where(Fl.TransformPosition(FVector(16.6f, 0.f, 2.1f))));
+			for (const TCHAR* B : {TEXT("thumb_02_r"), TEXT("thumb_03_r"), TEXT("index_01_r"), TEXT("index_02_r"), TEXT("index_03_r"), TEXT("middle_03_r"), TEXT("ring_03_r"), TEXT("pinky_03_r")})
+			{
+				Parts += FString::Printf(TEXT("; %s %s"), B, *Where(Arms->BoneCar(B)));
+			}
+			UE_LOG(LogTemp, Display, TEXT("WakeRound %s"), *Parts);
+		}
 		if (WakeOnce(TEXT("click"), 13.35f, w))
 		{
 			FlashOn = 0.f;

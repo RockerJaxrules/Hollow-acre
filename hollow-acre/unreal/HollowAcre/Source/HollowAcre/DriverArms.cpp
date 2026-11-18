@@ -628,7 +628,7 @@ int32 ADriverArms::SkinInside(int32 Side, float Below, int32 FromPart, int32 ToP
 	return N;
 }
 
-void ADriverArms::CurlFinger(const FString& Finger, const FString& Sx, const FVector& Deg, const FVector& AxisCS, const FVector& PalmCS)
+void ADriverArms::CurlFinger(const FString& Finger, const FString& Sx, const FVector& Deg, const FVector& AxisCS, const FVector& PalmCS, bool bWrap)
 {
 	// Close the finger round the rim: each joint bends toward the palm a little at a time until that finger's skin
 	// (from this joint out) meets the rim, then the next joint takes over. The finger wraps the rim, never enters it.
@@ -714,6 +714,8 @@ void ADriverArms::CurlFinger(const FString& Finger, const FString& Sx, const FVe
 			}
 		}
 	}
+	// (bWrap: each of the middle and end joints keeps bending until its own part of the finger, from that joint out, meets
+	// the rim; a first segment already lying on the rim no longer stops the rest closing round it)
 	for (int k = 1; k < 3; ++k)
 	{
 		for (int It = 0; It < 90; ++It)
@@ -724,7 +726,7 @@ void ADriverArms::CurlFinger(const FString& Finger, const FString& Sx, const FVe
 			{
 				break;
 			}
-			if (Gap(0) < SkinAllow)
+			if (Gap(bWrap ? k : 0) < SkinAllow)
 			{
 				Turn(k, Before - Done[k]);
 				break;
