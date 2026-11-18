@@ -462,6 +462,10 @@ private:
 	FTransform WakeArmHold(FWakeHold& C, const FTransform& Eye, const FVector& WantWrist, const FVector& Lamp, FVector& PoleOut, const TCHAR* Name, float BackToEyes = 0.35f);
 	int32 WakeWristLogged = -1;
 	int32 WakeCamLogged = -1;
+	int32 WakeRollSeg = -1;
+	float WakeRollAng = 0.f;
+	float WakeLiftRoll = 0.f;
+	bool WakeLiftRollSet = false;
 	float WakeGroundZ = 141.f;                       // (car frame) the snow's height beside the car
 	TSet<FName> WakeFired;
 	bool WakeOnce(const TCHAR* Kind, float At, float w);

@@ -30,6 +30,18 @@ def slerp(q0, q1, t):
         th = math.acos(d); s0 = math.sin((1 - t) * th) / math.sin(th); s1 = math.sin(t * th) / math.sin(th)
         q = [a * s0 + b * s1 for a, b in zip(q0, q1)]
     n = math.sqrt(sum(x * x for x in q)); return [x / n for x in q]
+def robust(f):
+    # (a frame's value taken robustly from it and its neighbours: the location's median, the rotation that sits closest to
+    # the others; one-frame spikes in the solver don't become keys)
+    near = [byf[g] for g in range(f - 2, f + 3) if g in byf] or [min(rows, key=lambda x: abs(x['frame'] - f))]
+    import statistics
+    loc = [statistics.median(r['ctrl'][i] for r in near) for i in range(3)]
+    def ang(a, b):
+        d = abs(sum(x * y for x, y in zip(a, b))); return math.acos(min(1.0, d))
+    qs = [r['ctrl'][3:7] for r in near]
+    q = min(qs, key=lambda a: sum(ang(a, b) for b in qs))
+    pv = [statistics.median(r['pv'][i] for r in near) for i in range(3)]
+    return {'ctrl': loc + list(q), 'pv': pv}
 def bridged(f):
     # (inside a bridge: eased between the frames at its ends, in the rig control's own space)
     for a, b in bridges:
@@ -42,7 +54,7 @@ def bridged(f):
     return None
 keys = []
 for f in frames:
-    r = bridged(f) or byf.get(f) or min(rows, key=lambda x: abs(x['frame'] - f))
+    r = bridged(f) or robust(f)
     c = r['ctrl']
     p, y, ro = M.quat_to_rot(*c[3:7])
     keys.append({'f': f, 'c': [c[0], c[1], c[2], p, y, ro], 'pv': r['pv']})

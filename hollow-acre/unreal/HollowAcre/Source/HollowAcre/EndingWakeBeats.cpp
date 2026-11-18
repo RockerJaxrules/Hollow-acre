@@ -1696,6 +1696,46 @@ void AEndingDirector::WakeBeats(float RealDt)
 							(-K0.W + 3.f * K1.W - 3.f * K2.W + K3.W) * u3);
 						const float e = u * u * (3.f - 2.f * u);
 						Cur = Mix(K1, K2, e, w, P, FMath::Lerp(K1.Open, K2.Open, e), FMath::Lerp(K1.Close, K2.Close, e));
+						{
+							// (the palm turned about the forearm by angle, as a wrist rolls: a straight blend between two palm ways
+							// can pass along the forearm and flip the hand over in a frame)
+							const FVector Pc = Arms->PoleClearOfFloor(1, ShAt, Cur.W, Cur.Pole, 5.f);
+							const FVector A = (Cur.W - Arms->ElbowFor(1, ShAt, Cur.W, Pc)).GetSafeNormal();
+							auto Perp = [&](FVector V) { V -= A * FVector::DotProduct(V, A); return V.GetSafeNormal(); };
+							const FVector P1 = Perp(K1.Palm), P2 = Perp(K2.Palm);
+							if (!P1.IsNearlyZero() && !P2.IsNearlyZero())
+							{
+								float Ang = FMath::Atan2(FVector::DotProduct(FVector::CrossProduct(P1, P2), A), FVector::DotProduct(P1, P2));
+								// (near half a turn the shorter way can swap sides: keep turning the way it was going in this stretch)
+								if (WakeRollSeg == i)
+								{
+									while (Ang - WakeRollAng > PI) { Ang -= 2.f * PI; }
+									while (Ang - WakeRollAng < -PI) { Ang += 2.f * PI; }
+								}
+								WakeRollSeg = i;
+								WakeRollAng = Ang;
+								Cur.Palm = FQuat(A, Ang * e).RotateVector(P1);
+							}
+							if (w > KT.T && w < KH.T)
+							{
+								// (from the take to the hold the wrist turns up in one steady roll, as the owner's did lifting the can:
+								// spread over the lift, not bunched between two keys)
+								const FVector T1 = Perp(KT.Palm), T2 = Perp(KH.Palm);
+								if (!T1.IsNearlyZero() && !T2.IsNearlyZero())
+								{
+									float Tot = FMath::Atan2(FVector::DotProduct(FVector::CrossProduct(T1, T2), A), FVector::DotProduct(T1, T2));
+									if (WakeLiftRollSet)
+									{
+										while (Tot - WakeLiftRoll > PI) { Tot -= 2.f * PI; }
+										while (Tot - WakeLiftRoll < -PI) { Tot += 2.f * PI; }
+									}
+									WakeLiftRoll = Tot;
+									WakeLiftRollSet = true;
+									const float g = FMath::SmoothStep(KT.T + 0.08f, KH.T - 0.1f, w);
+									Cur.Palm = FQuat(A, Tot * g).RotateVector(T1);
+								}
+							}
+						}
 					}
 					Cur.Pole = Arms->PoleClearOfFloor(1, ShAt, Cur.W, Cur.Pole, 5.f);
 					R.Hand = Arms->HandFromForearm(1, Arms->ElbowFor(1, ShAt, Cur.W, Cur.Pole), Cur.W, Cur.Flex, Cur.Dev, Cur.Palm);
@@ -1856,15 +1896,16 @@ void AEndingDirector::WakeBeats(float RealDt)
 			// hand that holds it is lifted the same next frame)
 			const FVector Tail = Fl.GetLocation(), HeadP = Fl.TransformPosition(FVector(25.f, 0.f, 0.f));
 			const float Low = FMath::Min(FVector::DotProduct(Tail - Arms->FloorAt, Arms->FloorN), FVector::DotProduct(HeadP - Arms->FloorAt, Arms->FloorN)) - 2.1f;
-			if (Low < 0.f && Arms->FloorBox.IsInside(FVector2D(Tail.X, Tail.Y)))
+			// (the lift the hand takes eases off slowly once it is clear, so lifting and dropping don't chase each other
+			// frame to frame)
+			const float Need = (Low < 0.f && Arms->FloorBox.IsInside(FVector2D(Tail.X, Tail.Y))) ? -Low : 0.f;
+			const float Had = FVector::DotProduct(Arms->ExtraLift[1], Arms->FloorN);
+			const float Keep = FMath::Max(Need + Had, Had * FMath::Exp(-RealDt * 2.f));
+			if (Need > 0.f)
 			{
-				Fl.AddToTranslation(Arms->FloorN * -Low);
-				Arms->ExtraLift[1] = Arms->FloorN * -Low;
+				Fl.AddToTranslation(Arms->FloorN * Need);
 			}
-			else
-			{
-				Arms->ExtraLift[1] = FVector::ZeroVector;
-			}
+			Arms->ExtraLift[1] = Arms->FloorN * FMath::Min(Keep, 6.f);
 		}
 		Flashlight->GetRootComponent()->SetRelativeTransform(Fl);
 		if (WakeOnce(TEXT("click"), 13.35f, w))
