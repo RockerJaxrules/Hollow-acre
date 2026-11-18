@@ -6,6 +6,7 @@
 #include "Components/SpotLightComponent.h"
 #include "DriverArms.h"
 #include "HuskHunter.h"
+#include "Part2Story.h"
 #include "EndingDirector.h"
 #include "Husk.h"
 #include "Kismet/GameplayStatics.h"
@@ -14,6 +15,7 @@
 #include "Engine/LocalPlayer.h"
 #include "Engine/StaticMeshActor.h"
 #include "EngineUtils.h"
+#include "UObject/UObjectIterator.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "InputAction.h"
@@ -75,6 +77,7 @@ void APart2Character::BeginPlay()
 	SprintAction = IA(TEXT("/Game/Variant_Horror/Input/IA_Sprint.IA_Sprint"));
 	CrouchAction = IA(TEXT("/Game/HollowAcre/Input/IA_Crouch.IA_Crouch"));
 	FlashlightAction = IA(TEXT("/Game/HollowAcre/Input/IA_Flashlight.IA_Flashlight"));
+	InteractAction = IA(TEXT("/Game/HollowAcre/Input/IA_Interact.IA_Interact"));
 	for (const TCHAR* P : {TEXT("/Game/Input/IMC_Default.IMC_Default"), TEXT("/Game/Input/IMC_MouseLook.IMC_MouseLook"),
 		TEXT("/Game/Variant_Horror/Input/IMC_Horror.IMC_Horror"), TEXT("/Game/HollowAcre/Input/IMC_Part2.IMC_Part2")})
 	{
@@ -142,12 +145,16 @@ void APart2Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	{
 		E->BindAction(FlashlightAction, ETriggerEvent::Started, this, &APart2Character::FlashlightToggle);
 	}
+	if (InteractAction)
+	{
+		E->BindAction(InteractAction, ETriggerEvent::Started, this, &APart2Character::Interact);
+	}
 }
 
 void APart2Character::Move(const FInputActionValue& V)
 {
 	const FVector2D In = V.Get<FVector2D>();
-	if (Controller)
+	if (Controller && !Reading.IsValid())
 	{
 		const FRotator Yaw(0.f, Controller->GetControlRotation().Yaw, 0.f);
 		AddMovementInput(FRotationMatrix(Yaw).GetUnitAxis(EAxis::X), In.Y);
@@ -157,6 +164,10 @@ void APart2Character::Move(const FInputActionValue& V)
 
 void APart2Character::Look(const FInputActionValue& V)
 {
+	if (Reading.IsValid())
+	{
+		return;
+	}
 	const FVector2D In = V.Get<FVector2D>();
 	AddControllerYawInput(In.X);
 	AddControllerPitchInput(In.Y);
@@ -193,6 +204,113 @@ void APart2Character::CrouchToggle()
 	{
 		Crouch();
 	}
+}
+
+void APart2Character::UpdateFocus()
+{
+	// what the eyes rest on within reach, if it can be used
+	Focus = nullptr;
+	FHitResult Hit;
+	FCollisionQueryParams Q(TEXT("UseFocus"), true, this);
+	if (HeldLight)
+	{
+		Q.AddIgnoredActor(HeldLight);
+	}
+	if (Arms)
+	{
+		Q.AddIgnoredActor(Arms);
+	}
+	const FVector E = EyesAt();
+	if (GetWorld()->SweepSingleByChannel(Hit, E, E + LookDir() * 260.f, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeSphere(9.f), Q) && Hit.GetActor())
+	{
+		// (what the gaze lands on, or a usable thing within a hand's width of where it lands: a book on a table is used
+		// though the eyes rest on the table's edge)
+		float Best = 1e9f;
+		for (TObjectIterator<UP2UseComponent> It; It; ++It)
+		{
+			UP2UseComponent* U = *It;
+			if (!U || !U->GetOwner() || U->GetWorld() != GetWorld() || !U->bEnabled || (U->bOnce && U->bUsed))
+			{
+				continue;
+			}
+			const float D = U->GetOwner() == Hit.GetActor() ? 0.f : (float)FVector::Dist(U->GetOwner()->GetActorLocation(), Hit.ImpactPoint);
+			if (D < 28.f && D < Best && Hit.Distance <= U->Reach)
+			{
+				Best = D;
+				Focus = U;
+			}
+		}
+	}
+}
+
+void APart2Character::Interact()
+{
+	AP2Story* Story = nullptr;
+	for (TActorIterator<AP2Story> It(GetWorld()); It; ++It)
+	{
+		Story = *It;
+	}
+	if (Reading.IsValid())
+	{
+		// the next page; after the last, the book closed (and the story told)
+		if (++Page >= Reading->Pages.Num())
+		{
+			UP2UseComponent* U = Reading.Get();
+			Reading = nullptr;
+			U->bUsed = true;
+			if (Story)
+			{
+				Story->OnUse(U);
+			}
+		}
+		UE_LOG(LogTemp, Display, TEXT("Part2Use page %d"), Page);
+		return;
+	}
+	if (!Focus.IsValid())
+	{
+		return;
+	}
+	UP2UseComponent* U = Focus.Get();
+	UE_LOG(LogTemp, Display, TEXT("Part2Use %s (%s)"), *U->Id.ToString(), *U->Prompt);
+	if (U->Pages.Num() > 0)
+	{
+		Reading = U;
+		Page = 0;
+		return;
+	}
+	U->bUsed = true;
+	if (Story)
+	{
+		Story->OnUse(U);
+	}
+}
+
+bool APart2Character::GetPrompt(FString& Out) const
+{
+	if (!Focus.IsValid() || Reading.IsValid() || bDead)
+	{
+		return false;
+	}
+	Out = Focus->Prompt;
+	return true;
+}
+
+bool APart2Character::GetReading(FString& Out, int32& Index, int32& Count) const
+{
+	if (!Reading.IsValid() || !Reading->Pages.IsValidIndex(Page))
+	{
+		return false;
+	}
+	Out = Reading->Pages[Page];
+	Index = Page;
+	Count = Reading->Pages.Num();
+	return true;
+}
+
+void APart2Character::Stutter(float Secs)
+{
+	StutterUntil = GetWorld()->GetTimeSeconds() + Secs;
+	UE_LOG(LogTemp, Display, TEXT("Part2Character: the flashlight stutters"));
 }
 
 FVector APart2Character::EyesAt() const
@@ -241,7 +359,12 @@ void APart2Character::TickDeath(float Dt)
 	DeadT += Dt;
 	APlayerController* PC = Cast<APlayerController>(GetController());
 	// the eyes snap to its face (its head, a little above the eyes), then black
-	if (CaughtBy.IsValid() && DeadT < 0.7f && Controller)
+	if (DeadT <= Dt * 1.5f)
+	{
+		Camera->PostProcessSettings.bOverride_MotionBlurAmount = true;
+		Camera->PostProcessSettings.MotionBlurAmount = 0.f;
+	}
+	if (CaughtBy.IsValid() && DeadT < 1.0f && Controller)
 	{
 		FVector Head = CaughtBy->GetActorLocation() + FVector(0.f, 0.f, 150.f * CaughtBy->GetActorScale3D().Z);
 		if (const AHusk* Hk = Cast<AHusk>(CaughtBy.Get()))
@@ -252,9 +375,9 @@ void APart2Character::TickDeath(float Dt)
 			}
 		}
 		const FRotator Want = (Head - EyesAt()).Rotation();
-		Controller->SetControlRotation(FMath::RInterpTo(Controller->GetControlRotation(), Want, Dt, 18.f));
+		Controller->SetControlRotation(FMath::RInterpTo(Controller->GetControlRotation(), Want, Dt, 14.f));
 	}
-	if (PC && PC->PlayerCameraManager && DeadT >= 0.6f && DeadT - Dt < 0.6f)
+	if (PC && PC->PlayerCameraManager && DeadT >= 0.95f && DeadT - Dt < 0.95f)
 	{
 		PC->PlayerCameraManager->StartCameraFade(0.f, 1.f, 0.12f, FLinearColor::Black, false, true);
 	}
@@ -268,6 +391,7 @@ void APart2Character::TickDeath(float Dt)
 			Controller->SetControlRotation(CheckpointLook);
 		}
 		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+		Camera->PostProcessSettings.bOverride_MotionBlurAmount = false;
 		if (PC && PC->PlayerCameraManager)
 		{
 			PC->PlayerCameraManager->StartCameraFade(1.f, 0.f, 1.6f, FLinearColor::Black, false, false);
@@ -299,7 +423,12 @@ void APart2Character::ApplyLight()
 {
 	// the old bulb browning out as the batteries die
 	const float Dim = Battery > 0.12f ? 1.f : FMath::Max(0.f, Battery / 0.12f) * (0.75f + 0.25f * FMath::Sin(GetWorld() ? GetWorld()->GetTimeSeconds() * 9.f : 0.f));
-	const float Cd = bFlashlightOn ? BeamCd * Dim : 0.f;
+	float Cd = bFlashlightOn ? BeamCd * Dim : 0.f;
+	if (GetWorld() && GetWorld()->GetTimeSeconds() < StutterUntil)
+	{
+		const float Tt = GetWorld()->GetTimeSeconds();
+		Cd *= FMath::Sin(Tt * 41.f) + FMath::Sin(Tt * 17.f) > 0.4f ? 0.04f : 0.85f;
+	}
 	if (HeldBeam)
 	{
 		HeldBeam->SetIntensity(Cd);
@@ -313,7 +442,7 @@ void APart2Character::ApplyLight()
 			{
 				if (Spill && !Spill->IsA(USpotLightComponent::StaticClass()))
 				{
-					Spill->SetIntensity(bFlashlightOn ? 0.45f * Dim : 0.f);
+					Spill->SetIntensity(bFlashlightOn ? 0.1f * Dim : 0.f);
 					Spill->SetAttenuationRadius(45.f);
 				}
 			}
@@ -445,15 +574,62 @@ void APart2Character::UpdateBody(float Dt)
 		{
 			Director->LogEvent(bRunning ? TEXT("step_run") : bIsCrouched ? TEXT("step_crouch") : TEXT("step_walk"), Speed);
 		}
+		// (its print in the snow, left and right in turn)
+		const FVector V = GetVelocity().GetSafeNormal2D();
+		const FVector PrintSide = FVector::CrossProduct(FVector::UpVector, V) * ((FMath::FloorToInt(Bob / PI) & 1) ? 11.f : -11.f);
+		P2Footprint(GetWorld(), GetActorLocation() - FVector(0.f, 0.f, 80.f) + PrintSide, V.Rotation().Yaw, 31.f, false);
 	}
 	const FVector Sway(0.f, 1.2f * FMath::Sin(Bob * 0.5f), 0.9f * FMath::Abs(FMath::Sin(Bob * 0.5f))) ;
 	// (low and to the right, the hand and the flashlight's head in the corner of the view, as a held light is seen)
 	// (the view's lower edge is ~24 degrees below its middle at this field of view: the fist about 20 degrees down)
-	const FVector HoldAt = Eye.TransformPosition(FVector(40.f, 15.f, -15.f) + Sway * FMath::Min(Speed / WalkSpeed, 1.6f));
-	// (aimed where the eyes look, but down at the path a few metres ahead, as a walker holds a light; looking up or down
-	// the aim goes with the eyes)
-	const FVector AimAt = Eye.TransformPosition(FVector(600.f, 0.f, -110.f));
-	const FQuat Want = FRotationMatrix::MakeFromXZ((AimAt - HoldAt).GetSafeNormal(), Eye.GetRotation().GetAxisZ()).ToQuat();
+	// (held low right, turned so the barrel lies on a slant across the corner of the view with the fingers round it and
+	// the thumb on top lit by the bezel's spill: of four tried, the one that reads as a hand holding a flashlight)
+	static FVector HoldOff(34.f, 23.f, -18.f);
+	static float HoldRoll = -50.f;
+	static bool bHoldRead = false;
+	if (!bHoldRead)
+	{
+		bHoldRead = true;
+		FString V;
+		if (FParse::Value(FCommandLine::Get(), TEXT("-p2hold="), V, false))
+		{
+			TArray<FString> P;
+			V.ParseIntoArray(P, TEXT(","));
+			if (P.Num() == 3)
+			{
+				HoldOff = FVector(FCString::Atof(*P[0]), FCString::Atof(*P[1]), FCString::Atof(*P[2]));
+			}
+		}
+		FParse::Value(FCommandLine::Get(), TEXT("-p2holdroll="), HoldRoll);
+	}
+	const FVector HoldAt = Eye.TransformPosition(HoldOff + Sway * FMath::Min(Speed / WalkSpeed, 1.6f));
+	// (aimed at what the eyes look at: the first thing along the gaze within 30 m; looking out over open snow, the path
+	// a few metres ahead, as a walker holds a light)
+	FVector AimAt = Eye.TransformPosition(FVector(700.f, 0.f, -120.f));
+	{
+		const FVector E = Camera->GetComponentLocation(), L = Camera->GetForwardVector();
+		FHitResult Hit;
+		FCollisionQueryParams Q(TEXT("BeamAim"), true, this);
+		if (HeldLight)
+		{
+			Q.AddIgnoredActor(HeldLight);
+		}
+		if (Arms)
+		{
+			Q.AddIgnoredActor(Arms);
+		}
+		if (GetWorld()->LineTraceSingleByChannel(Hit, E, E + L * 3000.f, ECC_Visibility, Q) && Hit.Distance > 150.f)
+		{
+			AimAt = Me.InverseTransformPosition(Hit.ImpactPoint);
+		}
+		else if (L.Z > -0.12f)
+		{
+			// (nothing near along the gaze: the light where it looks, far, a little low)
+			AimAt = Me.InverseTransformPosition(E + L * 1500.f - FVector(0.f, 0.f, 120.f));
+		}
+	}
+	const FVector AimDir = (AimAt - HoldAt).GetSafeNormal();
+	const FQuat Want = FQuat(AimDir, FMath::DegreesToRadians(HoldRoll)) * FRotationMatrix::MakeFromXZ(AimDir, Eye.GetRotation().GetAxisZ()).ToQuat();
 	if (!bHold)
 	{
 		HoldAim = FTransform(Want, HoldAt);
@@ -513,7 +689,7 @@ void APart2Character::Tick(float DeltaSeconds)
 		bRunning = bWantsRun && !bWinded && !bIsCrouched && bMoving;
 	}
 	GetCharacterMovement()->MaxWalkSpeed = bRunning ? RunSpeed : WalkSpeed * (bWinded ? 0.8f : 1.f);
-	if (Battery < 0.12f)
+	if (Battery < 0.12f || (GetWorld()->GetTimeSeconds() < StutterUntil + 0.1f))
 	{
 		ApplyLight();
 	}
@@ -536,6 +712,12 @@ void APart2Character::Tick(float DeltaSeconds)
 	}
 	if (IsLocallyControlled())
 	{
+		UpdateFocus();
+		static const bool bStoryAuto = FParse::Param(FCommandLine::Get(), TEXT("p2story"));
+		if (bStoryAuto && Controller)
+		{
+			StoryAutopilot(DeltaSeconds);
+		}
 		// (test autopilot for captures, -p2walk: a look round, then walking on with the head turning, a run in the middle)
 		static const bool bAuto = FParse::Param(FCommandLine::Get(), TEXT("p2walk"));
 		if (bAuto && Controller)
@@ -577,8 +759,19 @@ void APart2Character::Tick(float DeltaSeconds)
 				WantPitch = FMath::Clamp(At.Pitch, -20.f, 10.f);
 				TurnRate = 160.f;
 			}
+			else if (bHunt && Hh->State == AHuskHunter::EState::Chase && ChaseSeenT >= 1.3f && FMath::Fmod(ChaseSeenT, 3.2f) > 2.2f)
+			{
+				// (running, a look back over the shoulder: it is gaining)
+				ChaseSeenT += DeltaSeconds;
+				const FRotator At = (HuskAt - EyesAt()).Rotation();
+				WantYaw = At.Yaw;
+				WantPitch = FMath::Clamp(At.Pitch, -15.f, 8.f);
+				TurnRate = 300.f;
+				bWalk = bRun = true;
+			}
 			else if (bHunt && Hh->State == AHuskHunter::EState::Chase)
 			{
+				ChaseSeenT += DeltaSeconds;
 				const FVector Away = (GetActorLocation() - HuskAt).GetSafeNormal2D();
 				WantYaw = Away.Rotation().Yaw;
 				TurnRate = 240.f;
@@ -616,5 +809,170 @@ void APart2Character::Tick(float DeltaSeconds)
 			}
 		}
 		UpdateBody(DeltaSeconds);
+	}
+}
+
+void APart2Character::StoryAutopilot(float Dt)
+{
+	// (test autopilot for captures, -p2story: plays Act I's first beats as a player would. Turns to the camp's street and
+	// looks down it (the first sighting), walks to the tool shed and in, reads her journal page by page, then turns to
+	// the doorway; when the husk comes it holds the beam on it, and runs when it charges)
+	StoryAutoT += Dt;
+	StepT += Dt;
+	AStaticMeshActor* Shed = nullptr;
+	for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
+	{
+		if (It->GetActorLabel() == TEXT("Town Shed"))
+		{
+			Shed = *It;
+		}
+	}
+	AHuskHunter* Hh = nullptr;
+	for (TActorIterator<AHuskHunter> It(GetWorld()); It; ++It)
+	{
+		Hh = *It;
+	}
+	const FRotator Cr = Controller->GetControlRotation();
+	float WantYaw = Cr.Yaw, WantPitch = -6.f, TurnRate = 60.f;
+	bool bWalk = false, bRun = false;
+	if (Shed)
+	{
+		const FTransform T = Shed->GetActorTransform();
+		const FVector Street = T.GetRotation().GetAxisY();
+		const FVector Door = T.TransformPosition(FVector(120.f, -10.f, 0.f));
+		const FVector Inside = T.TransformPosition(FVector(-235.f, 30.f, 0.f));
+		FVector Book = T.TransformPosition(FVector(-312.f, 30.f, 0.f)) + FVector(0.f, 0.f, 80.f);
+		for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
+		{
+			if (It->GetActorLabel() == TEXT("Journal"))
+			{
+				Book = It->GetActorLocation();
+			}
+		}
+		auto WalkTo = [&](const FVector& P, float Near) -> bool
+		{
+			const FVector To = (P - GetActorLocation()) * FVector(1.f, 1.f, 0.f);
+			WantYaw = To.Rotation().Yaw;
+			TurnRate = 120.f;
+			bWalk = To.Size() > Near;
+			return !bWalk;
+		};
+		switch (StoryStep)
+		{
+		case 0:      // look down the street into the camp, after the car's light has died
+			WantYaw = Street.Rotation().Yaw;
+			TurnRate = 45.f;
+			if (StoryAutoT > 13.f)
+			{
+				StoryStep = 1;
+				StepT = 0.f;
+			}
+			break;
+		case 1:      // watching what crosses down there
+			WantYaw = Street.Rotation().Yaw;
+			if (StepT > 13.f)
+			{
+				StoryStep = 2;
+				StepT = 0.f;
+			}
+			break;
+		case 2:      // to the shed's doorway
+			if (WalkTo(Door, 60.f))
+			{
+				StoryStep = 3;
+				StepT = 0.f;
+			}
+			break;
+		case 3:      // in
+			if (FMath::FloorToInt(StepT) != FMath::FloorToInt(StepT - Dt))
+			{
+				// (what is in the way, if anything)
+				FHitResult Hb;
+				FCollisionQueryParams Qb(TEXT("Blocked"), true, this);
+				const FVector From = GetActorLocation(), To = From + (Inside - From).GetSafeNormal2D() * 80.f;
+				if (GetWorld()->SweepSingleByChannel(Hb, From, To, FQuat::Identity, ECC_Pawn, GetCapsuleComponent()->GetCollisionShape(), Qb))
+				{
+					UE_LOG(LogTemp, Display, TEXT("Part2Blocked by %s (%s) at %s, normal %s, %.0f cm in"), Hb.GetActor() ? *Hb.GetActor()->GetActorLabel() : TEXT("?"),
+						Hb.GetComponent() ? *Hb.GetComponent()->GetName() : TEXT("?"), *Hb.ImpactPoint.ToCompactString(), *Hb.ImpactNormal.ToCompactString(), Hb.Distance);
+				}
+			}
+			if (WalkTo(Inside, 35.f) || StepT > 8.f)
+			{
+				StoryStep = 4;
+				StepT = 0.f;
+			}
+			break;
+		case 4:      // to the book on the table
+		{
+			const FRotator To = (Book - EyesAt()).Rotation();
+			WantYaw = To.Yaw;
+			WantPitch = To.Pitch;
+			TurnRate = 70.f;
+			if (StepT > 2.f && Focus.IsValid())
+			{
+				Interact();
+				StoryStep = 5;
+				StepT = 0.f;
+			}
+			break;
+		}
+		case 5:      // reading, a page every few seconds
+			if (StepT > 4.2f)
+			{
+				StepT = 0.f;
+				Interact();
+				if (!Reading.IsValid())
+				{
+					StoryStep = 6;
+				}
+			}
+			break;
+		case 6:      // the bang: turn to the doorway
+		{
+			const FRotator To = (Door - EyesAt()).Rotation();
+			WantYaw = To.Yaw;
+			WantPitch = FMath::Clamp(To.Pitch, -10.f, 5.f);
+			TurnRate = StepT > 1.6f ? 150.f : 0.f;
+			if (Hh && Hh->Husk && Hh->State == AHuskHunter::EState::Chase)
+			{
+				StoryStep = 7;
+				StepT = 0.f;
+			}
+			break;
+		}
+		default:
+			break;
+		}
+	}
+	// the husk: in the beam, held; charging, watched a moment, then a run for it
+	if (Hh && Hh->Husk && !Hh->Husk->IsHidden() && StoryStep >= 6)
+	{
+		const FVector HuskAt = Hh->Husk->GetActorLocation() + FVector(0.f, 0.f, 110.f * Hh->Husk->GetActorScale3D().Z);
+		const FRotator At = (HuskAt - EyesAt()).Rotation();
+		if (Hh->State == AHuskHunter::EState::Chase && StepT > 1.2f)
+		{
+			WantYaw = (GetActorLocation() - HuskAt).GetSafeNormal2D().Rotation().Yaw;
+			TurnRate = 240.f;
+			bWalk = bRun = true;
+		}
+		else if (FVector::Dist(HuskAt, EyesAt()) < 2500.f)
+		{
+			WantYaw = At.Yaw;
+			WantPitch = FMath::Clamp(At.Pitch, -20.f, 10.f);
+			TurnRate = 120.f;
+		}
+	}
+	Controller->SetControlRotation(FRotator(FMath::FixedTurn(FRotator::NormalizeAxis(Cr.Pitch), WantPitch, 45.f * Dt), FMath::FixedTurn(Cr.Yaw, WantYaw, TurnRate * Dt), 0.f));
+	if (bWalk && !Reading.IsValid())
+	{
+		AddMovementInput(FRotationMatrix(FRotator(0.f, Controller->GetControlRotation().Yaw, 0.f)).GetUnitAxis(EAxis::X), 1.f);
+	}
+	if (bRun != bWantsRun)
+	{
+		bRun ? RunStart() : RunStop();
+	}
+	if (FMath::FloorToInt(StoryAutoT) != FMath::FloorToInt(StoryAutoT - Dt))
+	{
+		UE_LOG(LogTemp, Display, TEXT("Part2Story auto %.0f step %d at %s%s"), StoryAutoT, StoryStep, *GetActorLocation().ToCompactString(), Focus.IsValid() ? TEXT(" (looking at something to use)") : TEXT(""));
 	}
 }

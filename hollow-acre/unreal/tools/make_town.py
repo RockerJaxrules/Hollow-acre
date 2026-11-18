@@ -222,10 +222,19 @@ def clad_lap(m, wall, mat, exposure=13.0, thick=1.8, missing=0.0, z0=0.0):
 
 
 def inner_dark(m, wall, inset=6.0):
-    """The dark inside behind a wall (seen through missing boards and broken panes)."""
+    """The dark inside behind a wall (seen through missing boards and broken panes). On a building that can be walked
+    into (cut_doors: the tool shed, Part 2's first shelter), its doorways are cut out of it, so the doorway is open."""
     L, H = wall.length, wall.top(wall.length / 2)
-    m.poly('dark', [wall.P(0, 0, -inset), wall.P(L, 0, -inset), wall.P(L, wall.top(L), -inset), wall.P(L / 2, H, -inset),
-                    wall.P(0, wall.top(0), -inset)][::1])
+    doors = [o for o in wall.openings if o[2] <= 1.0] if getattr(wall, 'cut_doors', False) else []
+    if not doors:
+        m.poly('dark', [wall.P(0, 0, -inset), wall.P(L, 0, -inset), wall.P(L, wall.top(L), -inset), wall.P(L / 2, H, -inset),
+                        wall.P(0, wall.top(0), -inset)][::1])
+        return
+    # (round the doorway: the wall's dark either side of it, and above it)
+    u0, u1, z0, z1 = doors[0]
+    m.poly('dark', [wall.P(0, 0, -inset), wall.P(u0, 0, -inset), wall.P(u0, wall.top(u0), -inset), wall.P(0, wall.top(0), -inset)])
+    m.poly('dark', [wall.P(u1, 0, -inset), wall.P(L, 0, -inset), wall.P(L, wall.top(L), -inset), wall.P(u1, wall.top(u1), -inset)])
+    m.poly('dark', [wall.P(u0, z1, -inset), wall.P(u1, z1, -inset), wall.P(u1, wall.top(u1), -inset), wall.P(u0, wall.top(u0), -inset)])
 
 
 def window(m, wall, a0, z0, w, h, state='broken', panes=(2, 2), trimmat='paintwood'):
@@ -292,7 +301,8 @@ def door(m, wall, a0, w, h, state='shut', trimmat='paintwood', transom=0.0):
     m.board(trimmat, wall.P(a0 - t / 2, 0, 2), wall.P(a0 - t / 2, h + transom + t, 2), t, 2.5, wall.n)
     m.board(trimmat, wall.P(a0 + w + t / 2, 0, 2), wall.P(a0 + w + t / 2, h + transom + t, 2), t, 2.5, wall.n)
     m.board(trimmat, wall.P(a0 - t, h + transom + t / 2, 2), wall.P(a0 + w + t, h + transom + t / 2, 2), t, 2.5, wall.n)
-    m.poly('dark', [wall.P(a0, 0, -60), wall.P(a0 + w, 0, -60), wall.P(a0 + w, h + transom, -60), wall.P(a0, h + transom, -60)])
+    if not getattr(wall, 'cut_doors', False):          # (a building that can be walked into keeps its doorway open)
+        m.poly('dark', [wall.P(a0, 0, -60), wall.P(a0 + w, 0, -60), wall.P(a0 + w, h + transom, -60), wall.P(a0, h + transom, -60)])
     for a in (a0, a0 + w):
         m.poly('barewood', [wall.P(a, 0, 2), wall.P(a, 0, -12), wall.P(a, h + transom, -12), wall.P(a, h + transom, 2)], two=True)
     if transom:
@@ -586,6 +596,7 @@ def shed(name, seed, W=3.7, D=3.7, H=7.5):
     m = Mesh(seed)
     W, D, H = W * 100, D * 100, H * FT
     walls = frame_building(m, W, D, H, 0.0, 'bb', 'bb')
+    walls['front'].cut_doors = True          # (it can be walked into: Part 2's first shelter)
     door(m, walls['front'], W / 2 - 45, 90, 6.2 * FT, state='open')
     finish_walls(m, walls, 'bb', 'bb', 0.08)
     pts = [np.array([25, -W / 2 - 15, H + 10]), np.array([25, W / 2 + 15, H + 10]), np.array([-D - 25, W / 2 + 15, H - 40]), np.array([-D - 25, -W / 2 - 15, H - 40])]

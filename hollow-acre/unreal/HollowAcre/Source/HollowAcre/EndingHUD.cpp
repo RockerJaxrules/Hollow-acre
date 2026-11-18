@@ -6,6 +6,9 @@
 #include "EngineUtils.h"
 #include "Engine/Engine.h"
 #include "Engine/Font.h"
+#include "Kismet/GameplayStatics.h"
+#include "Part2Character.h"
+#include "Part2Story.h"
 
 void AEndingHUD::DrawHUD()
 {
@@ -22,6 +25,7 @@ void AEndingHUD::DrawHUD()
 			break;
 		}
 	}
+	DrawPlay();
 	// the eyelids (the wake): heavy, closing from above and below with soft edges, under the words
 	const float Lids = Director.IsValid() ? Director->GetLids() : 0.f;
 	if (Lids > 0.005f)
@@ -115,4 +119,109 @@ void AEndingHUD::DrawHUD()
 	Info.bClipText = false;
 	Info.bEnableShadow = false;
 	Canvas->DrawText(Font, Str, (Canvas->ClipX - W * Scale) * 0.5f, (Canvas->ClipY - H * Scale) * 0.5f, Scale, Scale, Info);
+}
+
+void AEndingHUD::DrawPlay()
+{
+	// Part 2 in play: the objective (top left, faint, shown a while when it changes), the player's own lines (captions at
+	// the bottom: the game has no voices), what can be used where the eyes rest (a small prompt below the middle), and a
+	// page being read (held up in the light: paper filling the middle of the view, the night dimmed round it)
+	APart2Character* Me = Cast<APart2Character>(UGameplayStatics::GetPlayerPawn(this, 0));
+	if (!Me)
+	{
+		return;
+	}
+	AP2Story* Story = nullptr;
+	for (TActorIterator<AP2Story> It(GetWorld()); It; ++It)
+	{
+		Story = *It;
+	}
+	UFont* Font = GEngine->GetLargeFont();
+	FFontRenderInfo Info;
+	Info.bClipText = false;
+	Info.bEnableShadow = true;
+	const float Y = Canvas->ClipY;
+	auto Text = [&](const FString& S, float X, float Yp, float Height, const FLinearColor& C, bool bCentre)
+	{
+		float W = 0.f, H = 0.f;
+		Canvas->TextSize(Font, S, W, H);
+		const float Sc = H > 0.f ? Y * Height / H : 1.f;
+		Canvas->SetDrawColor(C.ToFColor(true));
+		Canvas->DrawText(Font, S, bCentre ? X - W * Sc * 0.5f : X, Yp - H * Sc * 0.5f, Sc, Sc, Info);
+		return W * Sc;
+	};
+	FString S;
+	float A = 0.f;
+	if (Story && Story->GetObjective(S, A))
+	{
+		Text(S, Canvas->ClipX * 0.045f, Y * 0.07f, 0.03f, FLinearColor(0.82f, 0.85f, 0.9f, A * 0.85f), false);
+	}
+	if (Story && Story->GetSaid(S, A) && !Me->IsReading())
+	{
+		Text(S, Canvas->ClipX * 0.5f, Y * 0.885f, 0.04f, FLinearColor(0.93f, 0.93f, 0.9f, A * 0.95f), true);
+	}
+	if (Me->GetPrompt(S))
+	{
+		Text(FString::Printf(TEXT("E    %s"), *S), Canvas->ClipX * 0.5f, Y * 0.62f, 0.027f, FLinearColor(0.9f, 0.9f, 0.86f, 0.85f), true);
+	}
+	int32 Index = 0, Count = 0;
+	if (Me->GetReading(S, Index, Count))
+	{
+		// the night dimmed; the page: old ruled paper, her pencil hand in dark ink, wrapped to the page
+		FCanvasTileItem Dim(FVector2D(0.f, 0.f), FVector2D(Canvas->ClipX, Y), FLinearColor(0.f, 0.f, 0.f, 0.62f));
+		Dim.BlendMode = SE_BLEND_Translucent;
+		Canvas->DrawItem(Dim);
+		const float Pw = Y * 0.78f, Ph = Y * 0.84f;
+		const float Px = (Canvas->ClipX - Pw) * 0.5f, Py = (Y - Ph) * 0.5f;
+		FCanvasTileItem Paper(FVector2D(Px, Py), FVector2D(Pw, Ph), FLinearColor(0.62f, 0.57f, 0.46f, 1.f));
+		Canvas->DrawItem(Paper);
+		for (int32 r = 1; r < 18; ++r)
+		{
+			FCanvasTileItem Rule(FVector2D(Px + Pw * 0.06f, Py + Ph * (0.08f + r * 0.05f)), FVector2D(Pw * 0.88f, FMath::Max(1.f, Y * 0.0012f)), FLinearColor(0.35f, 0.42f, 0.5f, 0.35f));
+			Rule.BlendMode = SE_BLEND_Translucent;
+			Canvas->DrawItem(Rule);
+		}
+		FFontRenderInfo Ink;
+		Ink.bClipText = false;
+		Ink.bEnableShadow = false;
+		// (wrapped by words to the page's width)
+		const float Lh = 0.031f;
+		float W = 0.f, H = 0.f;
+		Canvas->TextSize(Font, TEXT("M"), W, H);
+		const float Sc = H > 0.f ? Y * Lh / H : 1.f;
+		TArray<FString> Paras;
+		S.ParseIntoArray(Paras, TEXT("\n"), false);
+		float Yl = Py + Ph * 0.1f;
+		Canvas->SetDrawColor(FLinearColor(0.07f, 0.07f, 0.1f, 0.95f).ToFColor(true));
+		for (const FString& Para : Paras)
+		{
+			TArray<FString> Words;
+			Para.ParseIntoArray(Words, TEXT(" "), true);
+			FString Line;
+			for (int32 i = 0; i <= Words.Num(); ++i)
+			{
+				const FString Try = i < Words.Num() ? (Line.IsEmpty() ? Words[i] : Line + TEXT(" ") + Words[i]) : FString();
+				float Tw = 0.f, Th = 0.f;
+				if (i < Words.Num())
+				{
+					Canvas->TextSize(Font, Try, Tw, Th);
+				}
+				if (i == Words.Num() || Tw * Sc > Pw * 0.84f)
+				{
+					Canvas->DrawText(Font, Line, Px + Pw * 0.08f, Yl, Sc, Sc, Ink);
+					Yl += Ph * 0.05f;
+					Line = i < Words.Num() ? Words[i] : FString();
+				}
+				else
+				{
+					Line = Try;
+				}
+			}
+			if (Para.IsEmpty())
+			{
+				Yl += Ph * 0.025f;
+			}
+		}
+		Text(FString::Printf(TEXT("%d / %d        E"), Index + 1, Count), Canvas->ClipX * 0.5f, Py + Ph + Y * 0.035f, 0.024f, FLinearColor(0.8f, 0.8f, 0.78f, 0.8f), true);
+	}
 }

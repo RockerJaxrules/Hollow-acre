@@ -87,6 +87,7 @@ public:
 
 	/** Logged as a timed event for the sound mix (CrashEvent lines), for gameplay's own actors (the husk hunting). */
 	void LogEvent(const TCHAR* Kind, float Value = 0.f) { Event(Kind, Value); }
+	float WakeHandoverReal = -1.f;            // (when the wake handed over to play)
 	FTransform WakeEyeW;                      // (the wake: where its eyes were last put, world; the player's body takes over there)
 	bool bWakeEyeSet = false;
 	float WakeMirrorMin = 1e9f;               // (the wake: the closest any part of the arms or the flashlight came to the mirror)

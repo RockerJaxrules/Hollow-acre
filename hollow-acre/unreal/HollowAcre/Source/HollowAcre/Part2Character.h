@@ -79,6 +79,13 @@ public:
 	bool IsDead() const { return bDead; }
 	/** Caught by the husk: the eyes go to it, black, and back at the last checkpoint. */
 	void Caught(AActor* By);
+	/** The flashlight stutters (a bad contact jarred) for Secs. */
+	void Stutter(float Secs);
+	/** For the HUD: what can be used where the eyes look (its prompt); the page being read (and which of how many). */
+	bool GetPrompt(FString& Out) const;
+	bool GetReading(FString& Page, int32& Index, int32& Count) const;
+	bool IsReading() const { return Reading.IsValid(); }
+
 	/** Where the player comes back after a death. */
 	FTransform Checkpoint = FTransform::Identity;
 	FRotator CheckpointLook = FRotator::ZeroRotator;
@@ -118,6 +125,8 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UInputAction> FlashlightAction;
 	UPROPERTY()
+	TObjectPtr<UInputAction> InteractAction;
+	UPROPERTY()
 	TArray<TObjectPtr<UInputMappingContext>> Contexts;
 
 	void Move(const FInputActionValue& V);
@@ -126,6 +135,16 @@ protected:
 	void RunStop();
 	void CrouchToggle();
 	void FlashlightToggle();
+	void Interact();
+	void UpdateFocus();
+	TWeakObjectPtr<class UP2UseComponent> Focus;
+	TWeakObjectPtr<class UP2UseComponent> Reading;
+	int32 Page = 0;
+	float StutterUntil = -1.f;
+	float StoryAutoT = 0.f;
+	int32 StoryStep = 0;
+	float StepT = 0.f;
+	void StoryAutopilot(float Dt);
 
 	UFUNCTION(Server, Reliable)
 	void ServerSetRunning(bool bOn);

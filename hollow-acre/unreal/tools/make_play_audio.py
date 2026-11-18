@@ -26,6 +26,13 @@ STEPS_SLOW = 'footsteps/footsteps_deep_snow_heavy_slow_480621'
 HEART = 'body/body_heartbeat_racing_after_exercise_455440'
 BREATH = 'creature_extra/creature_extra_pug_close_breaths_snarls_377001'
 CV = 'creature_voice/creature_voice_'
+WOOD_HIT = 'wood/wood_tree_trunk_hit_branch_57927'
+WOOD_CRACK = 'wood/wood_cracking_wood2_501303'
+DOWNER = 'cine_hits/cine_hits_impact_downer_535554'
+STING_LOOK = 'stingers/stingers_plucked_string_horror_725225'
+STING_SCARE = 'stingers/stingers_violin_cymbal_jump_scare_436883'
+CLICKS = 'aftermath/aftermath_engine_cooling_metal_click_613135'
+DRONE = 'score_strings/score_strings_cellos_droning_509535'
 
 
 def onsets(name, n, dur=0.35, seed=1):
@@ -115,12 +122,26 @@ def play(ev, total):
             M.at(t, C.level(breath[:, :int(0.5 * SR)], 0.03), min(1.0, (500.0 / d) ** 1.3))
         elif k == 'husk_shriek':
             M.at(t, C.verb(sh, 1.4, 0.28), 1.0)
+            # (close, in the shed or on the player: the strings stab with it)
+            M.at(t - 0.05, C.level(C.loudest(STING_SCARE, 1.6, pre=0.03), 0.06), 1.0)
+        elif k == 'bang':
+            # something hits the shed's wall hard from outside: the boards boom and crack, the hit felt low
+            hit = C.sumc(C.level(C.loudest(WOOD_HIT, 0.9, pre=0.02), 0.16), C.level(C.loudest(WOOD_CRACK, 0.8, pre=0.02), 0.06),
+                         C.level(C.loudest(DOWNER, 1.8, pre=0.02), 0.07))
+            M.at(t, C.verb(hit, 0.9, 0.2), 1.0)
+        elif k == 'sighting_look':
+            M.at(t, C.level(C.loudest(STING_LOOK, 2.5, pre=0.03), 0.035), 1.0)
+        elif k == 'headlight_dies':
+            M.at(t - 2.8, C.level(C.loudest(CLICKS, 3.0, pre=0.1), 0.02), 1.0)
         elif k == 'husk_kill':
             M.at(t + 0.1, sc, 1.3)
     if menace:
         ts = [t for t, v in menace]
         gs = [0.05 + 0.95 * (v / 100.0) ** 1.5 for t, v in menace]
         M.bed(C.level(heart, 0.035), t_play, total, list(zip(ts, gs)))
+        # (a low cello drone under the hunt, swelling with the menace)
+        drone = C.steady(DRONE, total - ts[0] + 1.0, skip=2.0)
+        M.bed(C.level(drone, 0.03), ts[0], total, [(t, 0.15 + 0.85 * (v / 100.0)) for t, v in menace])
     # (after the catch: the black is silent but for the wind)
     for tk in t_kill:
         s, e = int((tk + 0.75) * SR), int((tk + 3.0) * SR)

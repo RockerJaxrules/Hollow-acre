@@ -66,6 +66,7 @@ protected:
 	FString Take;
 	float TwitchT = 0.f;
 	float StepT = 0.f;
+	int32 Footfalls = 0;
 	float BreathT = 0.f;
 	FRotator TwitchTo = FRotator::ZeroRotator;
 

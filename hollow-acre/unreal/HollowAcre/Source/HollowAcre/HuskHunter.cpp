@@ -7,6 +7,7 @@
 #include "Husk.h"
 #include "Kismet/GameplayStatics.h"
 #include "Part2Character.h"
+#include "Part2Story.h"
 
 namespace
 {
@@ -390,7 +391,7 @@ void AHuskHunter::Think(float Dt)
 			G.Z = GroundAt(G);
 			Goal = G;
 		}
-		if (bLit && LitFor > 1.1f && D < 1800.f)
+		if (bLit && LitFor > 2.2f && D < 1350.f)
 		{
 			Event(TEXT("husk_shriek"));
 			SetState(EState::Chase, TEXT("the beam held on it: it charges"));
@@ -503,7 +504,7 @@ void AHuskHunter::Move(float Dt)
 	case EState::Roam: Want = 115.f * Scale / 1.3f; break;
 	case EState::Investigate: Want = 150.f * Scale / 1.3f; break;
 	case EState::Search: Want = 105.f * Scale / 1.3f; break;
-	case EState::Stalk: Want = bLit ? 0.f : 95.f * Scale / 1.3f; break;
+	case EState::Stalk: Want = bLit ? (FVector::Dist2D(At, Prey.IsValid() ? Prey->GetActorLocation() : At) > 1250.f ? 55.f : 0.f) : 95.f * Scale / 1.3f; break;
 	case EState::Chase: Want = FMath::Min(1.f, StateT / 0.9f) * 640.f; bGallop = true; break;
 	case EState::Retreat: Want = 520.f; bGallop = true; break;
 	default: Want = 0.f; break;
@@ -519,7 +520,11 @@ void AHuskHunter::Move(float Dt)
 	}
 	// turning toward the way it goes (in the beam it turns its head to the light: faces the player)
 	FVector Dir = ToGoal.GetSafeNormal();
-	if ((State == EState::Stalk && bLit) || State == EState::Kill || (Speed < 20.f && Prey.IsValid() && bSeesPrey))
+	if (State == EState::Stalk && bLit && Prey.IsValid())
+	{
+		Dir = (Prey->GetActorLocation() - At).GetSafeNormal2D();      // (in the beam: it comes on straight at the light)
+	}
+	else if (State == EState::Kill || (Speed < 20.f && Prey.IsValid() && bSeesPrey))
 	{
 		Dir = (Prey->GetActorLocation() - At).GetSafeNormal2D();
 	}
@@ -568,7 +573,7 @@ void AHuskHunter::Move(float Dt)
 		PlayTake(TEXT("Rise"), 1.4f);
 		Husk->JawOpen = 34.f;
 		// (its face right at the eyes: the whole body shifted so its head is 75 cm in front of them, square to them)
-		if (Prey.IsValid() && Husk->GetBody() && Husk->GetBody()->GetBoneIndex(TEXT("head")) != INDEX_NONE)
+		if (Prey.IsValid() && Prey->IsDead() && Husk->GetBody() && Husk->GetBody()->GetBoneIndex(TEXT("head")) != INDEX_NONE)
 		{
 			const FVector Eye = Prey->EyesAt();
 			FVector Toward = (At - Prey->GetActorLocation()).GetSafeNormal2D();
@@ -615,8 +620,18 @@ void AHuskHunter::Tick(float DeltaSeconds)
 	SenseT -= Dt;
 	if (SenseT <= 0.f)
 	{
-		Sense(0.1f);
 		SenseT = 0.1f;
+		if (State == EState::Away || State == EState::Kill)
+		{
+			// (gone: it senses nothing, and the tension ebbs)
+			bSeesPrey = bLit = false;
+			LitFor = 0.f;
+			Menace = FMath::Max(0.f, Menace - 0.1f * 0.03f);
+		}
+		else
+		{
+			Sense(0.1f);
+		}
 	}
 	Think(Dt);
 	Move(Dt);
@@ -629,6 +644,10 @@ void AHuskHunter::Tick(float DeltaSeconds)
 		{
 			StepT = 1.f;
 			Director ? Director->LogEvent(Take == TEXT("Gallop") ? TEXT("husk_gallop") : TEXT("husk_step"), D) : void();
+			// (its long bare prints, left and right in turn, too far apart)
+			const FVector F = FRotator(0.f, Yaw, 0.f).Vector();
+			const FVector Side = FVector::CrossProduct(FVector::UpVector, F) * ((++Footfalls & 1) ? 16.f : -16.f) * Scale;
+			P2Footprint(GetWorld(), Husk->GetActorLocation() + Side + FVector(0.f, 0.f, 20.f), Yaw, 38.f * Scale / 1.3f, true);
 		}
 	}
 	BreathT -= Dt;

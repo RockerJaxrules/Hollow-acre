@@ -798,7 +798,19 @@ void AEndingDirector::AfterTheFall(float RealDt)
 		if (Headlights[i])
 		{
 			const float Dip = FMath::Sin(RealTime * 5.3f) > -0.82f ? 1.f : 0.08f;
-			Headlights[i]->SetIntensity(HeadlightBase[i] * 0.35f * Dip * (0.62f + 0.38f * (0.5f + 0.5f * FMath::Sin(RealTime * 37.f))));
+			// (in play the car's battery gives out: the light stutters, browns and dies a few seconds after the player
+			// takes over; the last light at the bottom goes out)
+			float Dies = 1.f;
+			if (bWakeHandedOver && WakeHandoverReal > 0.f)
+			{
+				const float s = RealTime - WakeHandoverReal;
+				Dies = s < 6.f ? 1.f : s < 9.f ? (FMath::Sin(s * 23.f) > 0.1f ? (9.f - s) / 3.f : 0.05f) : 0.f;
+				if (s >= 9.f && s - RealDt < 9.f)
+				{
+					Event(TEXT("headlight_dies"));
+				}
+			}
+			Headlights[i]->SetIntensity(HeadlightBase[i] * 0.35f * Dip * Dies * (0.62f + 0.38f * (0.5f + 0.5f * FMath::Sin(RealTime * 37.f))));
 		}
 	}
 	// a tall shape walking slowly across the beam, out in the snow

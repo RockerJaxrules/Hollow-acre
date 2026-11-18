@@ -32,7 +32,31 @@ behind you and the husk on your heels drops. It is Kessler, the foreman who wrot
 Each step: a contact sheet and a video from the player's eyes; a blind judge (a subagent that sees only the pictures
 and the brief) scores it out of 10 against: scary, realistic, readable, beautiful, does it play. 7 to pass.
 
+## Sources read
+- Alien: Isolation's AI: Tommy Thompson, "The Perfect Organism: The AI of Alien: Isolation" and "Revisiting the AI of Alien:
+  Isolation" (Game Developer); the two-tier director/creature design and the menace gauge.
+- Epic: AI Perception (sight, hearing, Report Noise Event); Spot Lights; Using IES Light Profiles (Use IES Intensity off,
+  the profile clipped to the cone); Volumetric Fog (Volumetric Scattering Intensity per light).
+- Snow trails: runtime virtual textures and render targets (Epic forums "How to realize interactive snow in UE5"; the
+  RVT snow deformation write-up on Medium); decals first, deformation later.
+- Scares: Supermassive on Until Dawn (dread more than jump scares; telegraph some scares, hide others so players don't
+  learn the formula, PlayStation Blog "Until Dawn's 5-step formula"); build-up and release (Game Developer, "The
+  Balancing Act of Tension in Horror Game Design").
+
 ## Log
+- The hunt (HuskHunter): the two-brain design above; stalk 9-15 m, the stare in the beam (it comes on slowly through the
+  light and stands at ~12 m, its head jerking, its eyes never off the player), the charge, the search, the retreat, the
+  catch (its face brought to the eyes, sharp, then black, the checkpoint). It walks on the camp's own snow (every
+  surface down a trace, the nearest its feet). Judge round 1: 3/10 (the stare too far and not in the beam, the catch a
+  blur, the chase all snow, the car's headlight streak, the hand a mitten, flat snow). Fixed since: the beam follows the
+  gaze (the flashlight is aimed at what the eyes look at), the slow approach in the light, the sharp catch, a look back
+  while running, the car's headlight dies 9 s into play (its battery: the last light at the bottom goes out), the hand
+  held so the barrel and fingers read.
+- The story's first beats (Part2Story): objectives, the player's captions, use (E) and reading; the first sighting down
+  the street (it stops and turns its head to the player); her journal in the tool shed (she survived the fall and walked
+  down: the journal moves from her truck's glovebox to the shed, where she sheltered); the bang and the hunt after it.
+- Footprints (tools/make_footprints.py, Scripts/import_prints.py): the player's boots and the husk's long bare feet
+  pressed into the snow as decals; the camp's ground in the real snow scan.
 - Handover from the wake fixed: the eyes now come from where the wake last put them (the director's seat pose had
   already moved the camera back into the car that frame), the body stands on the snow under them, and the view stays
   on the player (the cutscene camera auto-activated itself back). Test autopilot: `-p2walk`.

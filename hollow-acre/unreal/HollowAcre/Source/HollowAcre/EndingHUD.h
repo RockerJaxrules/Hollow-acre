@@ -24,6 +24,9 @@ public:
 
 	virtual void DrawHUD() override;
 
+	/** Part 2 in play: the objective, the player's lines, the use prompt, a page being read. */
+	void DrawPlay();
+
 private:
 	TWeakObjectPtr<AEndingDirector> Director;
 	bool bLoggedEndCard = false;

@@ -39,6 +39,7 @@
 #include "Misc/Parse.h"
 #include "Part2Character.h"
 #include "HuskHunter.h"
+#include "Part2Story.h"
 
 namespace
 {
@@ -483,10 +484,10 @@ void AEndingDirector::WakeSetup()
 			FlashBeam->SetOuterConeAngle(36.f);
 			FlashBeam->SetAttenuationRadius(4500.f);
 			FlashBeam->SetUseTemperature(true);
-			FlashBeam->SetTemperature(3150.f);   // (an incandescent bulb on fresh cells: warm white, not orange)
+			FlashBeam->SetTemperature(3500.f);   // (an incandescent bulb on fresh cells: warm white, not orange, under the cold grade)
 			FlashBeam->SetSourceRadius(1.2f);
 			FlashBeam->SetCastShadows(true);
-			FlashBeam->SetVolumetricScatteringIntensity(0.15f);   // (a haze in the falling snow, not a glow filling the view)
+			FlashBeam->SetVolumetricScatteringIntensity(0.45f);   // (the beam's cone seen in the falling snow, not a glow)   // (a haze in the falling snow, not a glow filling the view)
 			FlashBeam->RegisterComponent();
 			FlashSpill = NewObject<UPointLightComponent>(Flashlight, TEXT("Spill"));
 			FlashSpill->SetupAttachment(Flashlight->GetRootComponent());
@@ -855,6 +856,7 @@ void AEndingDirector::WakeBeats(float RealDt)
 	if (!bWakeHandedOver && !bNoPlay && w >= 33.0f && CamComp)
 	{
 		bWakeHandedOver = true;
+		WakeHandoverReal = RealTime;
 		// (the eyes where the wake last put them: by now this frame the director's seat pose has moved the camera back into
 		// the car, so it can't be read off the camera)
 		const FTransform EyeW = bWakeEyeSet ? WakeEyeW : CamComp->GetComponentTransform();
@@ -878,6 +880,14 @@ void AEndingDirector::WakeBeats(float RealDt)
 			}
 			Me->TakeOverFrom(EyeW, Arms, Flashlight, FlashBeam, CamComp->PostProcessSettings);
 			Event(TEXT("play"));
+			// Act I's story (GAMEPLAY_ACT1.md); -p2nostory leaves it out
+			if (!FParse::Param(FCommandLine::Get(), TEXT("p2nostory")))
+			{
+				if (AP2Story* St = GetWorld()->SpawnActor<AP2Story>(AP2Story::StaticClass(), FTransform::Identity, P))
+				{
+					St->Begin(this, HuskScale);
+				}
+			}
 			// (-p2hunt: the husk hunts from the start of play, for testing; in the story it begins with the first night)
 			if (FParse::Param(FCommandLine::Get(), TEXT("p2hunt")))
 			{
@@ -899,6 +909,24 @@ void AEndingDirector::WakeBeats(float RealDt)
 		if (APlayerCameraManager* Pcm = UGameplayStatics::GetPlayerCameraManager(this, 0))
 		{
 			WakeBreath(w, RealDt, FTransform(Pcm->GetCameraRotation(), Pcm->GetCameraLocation()));
+		}
+		// the car's battery gives out: its one headlight stutters, browns and dies a few seconds into play; the last light
+		// at the bottom goes out
+		{
+			const float s = RealTime - WakeHandoverReal;
+			const float Dies = s < 6.f ? 1.f : s < 9.f ? (FMath::Sin(s * 23.f) > 0.1f ? (9.f - s) / 3.f : 0.05f) : 0.f;
+			for (int32 i = 1; i < Headlights.Num() && i < HeadlightBase.Num(); ++i)
+			{
+				if (Headlights[i])
+				{
+					const float Dip = FMath::Sin(RealTime * 5.3f) > -0.82f ? 1.f : 0.08f;
+					Headlights[i]->SetIntensity(HeadlightBase[i] * 0.35f * Dip * Dies * (0.62f + 0.38f * (0.5f + 0.5f * FMath::Sin(RealTime * 37.f))));
+				}
+			}
+			if (s >= 9.f && s - RealDt < 9.f)
+			{
+				Event(TEXT("headlight_dies"));
+			}
 		}
 		return;
 	}
