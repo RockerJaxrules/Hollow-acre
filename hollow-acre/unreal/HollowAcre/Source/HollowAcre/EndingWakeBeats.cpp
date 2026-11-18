@@ -1753,7 +1753,7 @@ void AEndingDirector::WakeBeats(float RealDt)
 									WakeLiftRollSet = true;
 									// (no more than a half turn, as a forearm can: the owner's "a 180 to the right")
 									const float Turn = FMath::Clamp(Tot, -PI, PI);
-									const float g = FMath::SmoothStep(KT.T + 0.2f, KH.T - 0.1f, w);   // (once it's off the lining)
+									const float g = FMath::SmoothStep(11.45f, 12.75f, w);   // (once it's off the lining; slowly, the owner: "way too quick")
 									Cur.Palm = FQuat(A, Turn * g).RotateVector(T1);
 								}
 							}
@@ -1768,7 +1768,7 @@ void AEndingDirector::WakeBeats(float RealDt)
 						const FVector T1 = Perp(KT.Palm), Th = Perp(KH.Palm);
 						if (!T1.IsNearlyZero() && !Th.IsNearlyZero())
 						{
-							const FVector Turned = FQuat(A, FMath::Clamp(WakeLiftRoll, -PI, PI)).RotateVector(T1);
+							const FVector Turned = FQuat(A, FMath::Clamp(WakeLiftRoll, -PI, PI) * FMath::SmoothStep(11.45f, 12.75f, w)).RotateVector(T1);
 							const float u = WRamp(w, 13.9f, 14.8f);
 							Cur.Palm = (Turned * (1.f - u) + Th * u).GetSafeNormal();
 						}
@@ -1797,8 +1797,10 @@ void AEndingDirector::WakeBeats(float RealDt)
 					FlashGrabW = w + 0.12f;     // (it starts to move with the hand once the press has closed the fingers)
 					bFlashUpHigh = bUpHigh;
 					bFlashReversed = bUpHigh && bFlip;
-					FlashTurnSecs = 0.55f;
+					FlashTurnSecs = 1e6f;   // (it never shifts in the fingers: it moves with the grip, as the owner's can did)
 					FlashInHandAtGrab = FlashRest * Arms->HandNow(1).Inverse();
+					Arms->GripTaken[1] = FlashInHandAtGrab;
+					Arms->bGripTaken[1] = true;
 					HoldAim = FlashRest;
 					Event(TEXT("grab"));
 				}

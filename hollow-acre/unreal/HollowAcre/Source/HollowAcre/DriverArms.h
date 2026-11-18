@@ -211,6 +211,10 @@ public:
 	/** The grip tipped across the palm (degrees about the palm's facing, about the grip point): a handle held on a
 	 *  slant in the fist, as the owner held the can. 0 = straight across. */
 	float GripTilt[2] = {0.f, 0.f};
+	/** Held as it was taken (the owner: the flashlight moves with the grip, it doesn't shift in the fingers): when set,
+	 *  the handle sits in the hand exactly as GripTaken. */
+	bool bGripTaken[2] = {false, false};
+	FTransform GripTaken[2];
 	/** The handle in the hand bone's frame as gripped now (HoldInHand tipped by GripTilt). */
 	FTransform GripNow(int32 Side) const;
 	/** The hand's own axes for a hand bone rotation: along the fingers, the palm's facing, across (index to little finger). */

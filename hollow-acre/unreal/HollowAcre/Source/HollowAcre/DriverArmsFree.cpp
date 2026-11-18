@@ -577,6 +577,10 @@ FTransform ADriverArms::HandOnHandle(int32 Side, const FTransform& Handle) const
 
 FTransform ADriverArms::GripNow(int32 Side) const
 {
+	if (bGripTaken[Side])
+	{
+		return GripTaken[Side];
+	}
 	if (FMath::IsNearlyZero(GripTilt[Side]))
 	{
 		return HoldInHand[Side];
