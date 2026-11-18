@@ -472,6 +472,54 @@ void ADriverArms::FreeFollow()
 				T.SetRotation(FQuat::Slerp(T.GetRotation(), Kv.Value, o));
 			}
 		}
+		if (bGripTaken[Side] && Shape == 2 && c > 0.05f)
+		{
+			// holding the flashlight as it really sits in the hand (taken as it lay; it never shifts in the fingers): each
+			// finger curls from relaxed until its skin meets the barrel (index first, the little finger last), so the fingers
+			// wrap it and never enter it; the thumb's pad comes onto the switch on top, pressing it
+			for (const TPair<int32, FQuat>& Kv : ShapeLocal[Side][1])
+			{
+				const FString Bn = Mesh->GetBoneName(Kv.Key).ToString();
+				if (!Bn.StartsWith(TEXT("thumb")))
+				{
+					Mesh->BoneSpaceTransforms[Kv.Key].SetRotation(Kv.Value);
+				}
+			}
+			const FTransform FlCar = GripTaken[Side] * HandNow(Side);
+			const FVector A0 = FlCar.TransformPosition(FVector(1.5f, 0.f, 0.f)), A1 = FlCar.TransformPosition(FVector(19.5f, 0.f, 0.f));
+			GraspDist = [A0, A1](const FVector& Pcar) { return FMath::PointDistToSegment(Pcar, A0, A1) - 1.985f; };
+			const FQuat HandRotCS = BoneCS(Side == 0 ? TEXT("hand_l") : TEXT("hand_r")).GetRotation();
+			const FVector AcCS = HandRotCS.RotateVector(AcrossL[Side]), PalmCS = HandRotCS.RotateVector(FaceL[Side]);
+			const float St = FMath::Clamp(F.Stagger, 0.f, 0.6f);
+			for (int32 k = 0; k < 4; ++k)
+			{
+				const float ck = St > 0.f ? FMath::Clamp(c * (1.f + St) - St * k / 3.f, 0.f, 1.f) : c;
+				CurlFinger(FreeFingerNames[k], Sx, FVector(95.f, 110.f, 85.f) * ck, AcCS, PalmCS);
+				FingerGap[k] = SkinMinDist(Side, k + 1, 0);
+			}
+			GraspDist = nullptr;
+			// the thumb: its tip brought onto the switch (16.6 cm up the barrel, on top) by turning its joints in turn
+			const FName T1(*FString::Printf(TEXT("thumb_01_%s"), Sx)), T2(*FString::Printf(TEXT("thumb_02_%s"), Sx)), T3(*FString::Printf(TEXT("thumb_03_%s"), Sx));
+			if (Mesh->GetBoneIndex(T1) != INDEX_NONE && Mesh->GetBoneIndex(T3) != INDEX_NONE)
+			{
+				const FVector SwitchCS = MeshRel.InverseTransformPosition(FlCar.TransformPosition(FVector(16.6f, 0.f, 2.12f + 0.55f)));
+				auto TipNow = [&]() { const FVector Q2 = BoneCS(T2).GetLocation(), Q3 = BoneCS(T3).GetLocation(); return Q3 + (Q3 - Q2) * 0.9f; };
+				const float Wt = FMath::Clamp(c, 0.f, 1.f);
+				for (int32 It = 0; It < 4; ++It)
+				{
+					for (const FName& J : {T2, T1})
+					{
+						const FTransform Jt = BoneCS(J);
+						const FVector Cur = (TipNow() - Jt.GetLocation()).GetSafeNormal(), Want = (SwitchCS - Jt.GetLocation()).GetSafeNormal();
+						SetBoneCS(J, FQuat::Slerp(FQuat::Identity, FQuat::FindBetweenNormals(Cur, Want), 0.6f * Wt) * Jt.GetRotation());
+					}
+				}
+				if (Side == 1 && FMath::IsNearlyEqual(c, 1.f, 0.02f))
+				{
+					ThumbToSwitch = (float)FVector::Dist(TipNow(), SwitchCS);
+				}
+			}
+		}
 		// a finger pressed on the floor straightens back onto it (a hand pushed flat), each finger turned up at its knuckle
 		// just enough that its joints and tip are clear; only what that can't clear lifts the hand
 		if (bFloorGuard && SkinPts.Num() > 0)

@@ -215,6 +215,10 @@ public:
 	 *  the handle sits in the hand exactly as GripTaken. */
 	bool bGripTaken[2] = {false, false};
 	FTransform GripTaken[2];
+	/** How far the right thumb's tip is from the flashlight's switch while holding it (cm). */
+	float ThumbToSwitch = -1.f;
+	/** Each finger's skin gap to the held barrel after closing on it (cm; ~0 touching, below 0 inside). */
+	float FingerGap[4] = {0.f, 0.f, 0.f, 0.f};
 	/** The handle in the hand bone's frame as gripped now (HoldInHand tipped by GripTilt). */
 	FTransform GripNow(int32 Side) const;
 	/** The hand's own axes for a hand bone rotation: along the fingers, the palm's facing, across (index to little finger). */

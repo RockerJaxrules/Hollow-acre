@@ -440,7 +440,7 @@ void AEndingDirector::WakeSetup()
 	{
 		FVector X = FVector(-0.42f, 0.91f, 0.f);   // (diagonal, its head away and to the left, as the owner's bottle first lay: "grab it, twist your wrist")
 		{
-			float Yaw = 0.f;                       // (checking: -wakeflashyaw=degrees turns how it lies; the grab adapts)
+			float Yaw = 50.f;                      // (lying across the way the arm comes in, so the fingers wrap it; -wakeflashyaw= to check others)
 			FParse::Value(FCommandLine::Get(), TEXT("-wakeflashyaw="), Yaw);
 			X = FQuat(FVector(0.f, 0.f, 1.f), FMath::DegreesToRadians(Yaw)).RotateVector(X);
 		}
@@ -1333,7 +1333,7 @@ void AEndingDirector::WakeBeats(float RealDt)
 						FParse::Value(FCommandLine::Get(), TEXT("-wakegriptilt="), GripTilt);
 					}
 					Arms->GripTilt[1] = GripTilt;
-					ShowT = Arms->HandleFor(1, WakeArmHold(WakeShowHold, Eye, OverLining(64.f, 14.f, 18.f), Lamp, ShowPole, TEXT("held up to look"), -0.6f));
+					ShowT = Arms->HandleFor(1, WakeArmHold(WakeShowHold, Eye, OverLining(58.f, 9.f, 12.f), Lamp, ShowPole, TEXT("held up to look"), -0.6f));
 					if (Show < 1.f && WakeChestHold.bSet && WakeShowHold.bSet)
 					{
 						// (between the chest hold and this one, blended as the arm moves, not as the flashlight's frame does: the
@@ -1345,7 +1345,7 @@ void AEndingDirector::WakeBeats(float RealDt)
 						Mid.Psi = Ang(WakeChestHold.Psi, WakeShowHold.Psi, Show);
 						Mid.Flex = FMath::Lerp(WakeChestHold.Flex, WakeShowHold.Flex, Show);
 						Mid.Dev = FMath::Lerp(WakeChestHold.Dev, WakeShowHold.Dev, Show);
-						ShowT = Arms->HandleFor(1, WakeArmHold(Mid, Eye, FMath::Lerp(OverLining(30.f, 12.f, 10.f), OverLining(64.f, 14.f, 18.f), Show), Lamp, ShowPole, TEXT("between")));
+						ShowT = Arms->HandleFor(1, WakeArmHold(Mid, Eye, FMath::Lerp(OverLining(30.f, 12.f, 10.f), OverLining(58.f, 9.f, 12.f), Show), Lamp, ShowPole, TEXT("between")));
 						bShowBlendedByArm = true;
 					}
 				}
@@ -1565,7 +1565,7 @@ void AEndingDirector::WakeBeats(float RealDt)
 								const FVector Ff = (Fi - WUp * FVector::DotProduct(Fi, WUp)).GetSafeNormal();
 								const float Across = FMath::RadiansToDegrees(FMath::Acos(FMath::Min(1.f, FMath::Abs(FVector::DotProduct(Ff, Ah)))));
 								const float ElbowUp = FVector::DotProduct(E - LiningAt, WUp);
-								const float Cost = FMath::Square(Fx + 15.f) + 1.5f * FMath::Square(Dv - 5.f) + 3.f * FMath::Square(FMath::Max(0.f, 25.f - Across)) +
+								const float Cost = FMath::Square(Fx + 15.f) + 1.5f * FMath::Square(Dv - 5.f) + 3.f * FMath::Square(FMath::Max(0.f, 65.f - Across)) +
 									30.f * FMath::Square(FMath::Max(0.f, 5.f - ElbowUp)) + 0.02f * FMath::Square(Swing);
 								if (Cost < Best)
 								{
@@ -1786,6 +1786,11 @@ void AEndingDirector::WakeBeats(float RealDt)
 					Arms->WristNow(1, Fx, Dv);
 					const FVector ElNow = Arms->BoneCar(TEXT("lowerarm_r")), ShNow = Arms->BoneCar(TEXT("upperarm_r")), WrNow = Arms->BoneCar(TEXT("hand_r"));
 					const FVector ElPred = Arms->ElbowFor(1, ShNow, WrNow, R.Pole);
+					if (Arms->ThumbToSwitch >= 0.f)
+					{
+						UE_LOG(LogTemp, Display, TEXT("WakeThumbSwitch %.2f the thumb's tip %.1f cm from the switch; the fingers' skin off the barrel: index %.1f, middle %.1f, ring %.1f, little %.1f cm"),
+							w, Arms->ThumbToSwitch, Arms->FingerGap[0], Arms->FingerGap[1], Arms->FingerGap[2], Arms->FingerGap[3]);
+					}
 					UE_LOG(LogTemp, Display, TEXT("WakeWrist %.2f the wrist %+.0f toward the palm, %+.0f toward the little finger; the elbow %.1f cm off the lining; the arm %.1f cm clear of the head; the rig's hand %.1f cm from its key (the elbow %.1f from its prediction)"),
 						w, Fx, Dv, FVector::DotProduct(ElNow - LiningAt, WUp), Arms->ArmHeadClear(ShNow, ElNow, WrNow), Arms->RigMiss[1], FVector::Dist(ElPred, ElNow));
 				}
@@ -1798,6 +1803,19 @@ void AEndingDirector::WakeBeats(float RealDt)
 					bFlashUpHigh = bUpHigh;
 					bFlashReversed = bUpHigh && bFlip;
 					FlashTurnSecs = 1e6f;   // (it never shifts in the fingers: it moves with the grip, as the owner's can did)
+					{
+						// (the barrel rolled about its own axis so its switch faces the thumb: round, it looks the same; the hand
+						// covers the switch as it closes; so the thumb can come onto the switch)
+						const FVector AxX = FlashRest.GetRotation().GetAxisX();
+						const FVector Th = Arms->BoneCar(TEXT("thumb_02_r"));
+						const FVector Base = FlashRest.GetLocation() + AxX * FVector::DotProduct(Th - FlashRest.GetLocation(), AxX);
+						FVector Want = Th - Base;
+						Want = (Want - AxX * FVector::DotProduct(Want, AxX)).GetSafeNormal();
+						const FVector Zs = FlashRest.GetRotation().GetAxisZ();
+						const float RollTo = FMath::Atan2(FVector::DotProduct(FVector::CrossProduct(Zs, Want), AxX), FVector::DotProduct(Zs, Want));
+						FlashRest.SetRotation((FQuat(AxX, RollTo) * FlashRest.GetRotation()).GetNormalized());
+						UE_LOG(LogTemp, Display, TEXT("WakeSwitch the flashlight rolled %.0f degrees about its axis at the grab, its switch to the thumb"), FMath::RadiansToDegrees(RollTo));
+					}
 					FlashInHandAtGrab = FlashRest * Arms->HandNow(1).Inverse();
 					Arms->GripTaken[1] = FlashInHandAtGrab;
 					Arms->bGripTaken[1] = true;
