@@ -572,7 +572,22 @@ FTransform ADriverArms::HandAtPalm(int32 Side, const FVector& PalmAt, const FVec
 
 FTransform ADriverArms::HandOnHandle(int32 Side, const FTransform& Handle) const
 {
-	return HoldInHand[Side].Inverse() * Handle;
+	return GripNow(Side).Inverse() * Handle;
+}
+
+FTransform ADriverArms::GripNow(int32 Side) const
+{
+	if (FMath::IsNearlyZero(GripTilt[Side]))
+	{
+		return HoldInHand[Side];
+	}
+	// (turned about the palm's facing, through the point where the hand closes on it, 15.5 cm up from the tail)
+	const FVector G = HoldInHand[Side].TransformPosition(FVector(15.5f, 0.f, 0.f));
+	const FQuat Q(FaceL[Side].GetSafeNormal(), FMath::DegreesToRadians(GripTilt[Side]));
+	FTransform T = HoldInHand[Side];
+	T.SetRotation(Q * T.GetRotation());
+	T.SetLocation(G + Q.RotateVector(T.GetLocation() - G));
+	return T;
 }
 
 void ADriverArms::HandAxes(int32 Side, const FQuat& Rot, FVector& Finger, FVector& Palm, FVector& Across) const
@@ -742,7 +757,7 @@ void ADriverArms::ForearmParams(int32 Side, const FVector& Elbow, const FTransfo
 
 FTransform ADriverArms::HandleInHand(int32 Side) const
 {
-	return HoldInHand[Side] * HandNow(Side);
+	return GripNow(Side) * HandNow(Side);
 }
 
 FTransform ADriverArms::HandNow(int32 Side) const

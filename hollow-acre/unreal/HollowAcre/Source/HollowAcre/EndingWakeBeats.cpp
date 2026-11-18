@@ -207,9 +207,9 @@ FTransform AEndingDirector::WakeArmHold(FWakeHold& C, const FTransform& Eye, con
 		{
 			for (float Psi = 0.f; Psi < 359.f; Psi += 10.f)
 			{
-				for (float Flex : {-30.f, -15.f, 0.f})
+				for (float Flex : {-35.f, -20.f, -5.f, 10.f})
 				{
-					for (float Dev : {0.f, 8.f, 16.f})
+					for (float Dev : {-16.f, -8.f, 0.f, 8.f, 16.f})
 					{
 						const float Sc = Score(Swing, Psi, Flex, Dev, nullptr);
 						if (Sc > Best)
@@ -1287,7 +1287,7 @@ void AEndingDirector::WakeBeats(float RealDt)
 	if (Arms && Arms->IsReady() && w >= 9.6f)
 	{
 		// (held at the chest as a body holds it, low over the lining, the light along the eyes)
-		HoldWant = Arms->HandleFor(1, WakeArmHold(WakeChestHold, Eye, OverLining(28.f, 12.f, 10.f), (AimAt - HoldAt).GetSafeNormal(), ChestPole, TEXT("at the chest")));
+		HoldWant = Arms->HandleFor(1, WakeArmHold(WakeChestHold, Eye, OverLining(30.f, 12.f, 10.f), (AimAt - HoldAt).GetSafeNormal(), ChestPole, TEXT("at the chest"), -0.4f));
 	}
 	WakePoleHold = ChestPole;
 	{
@@ -1325,6 +1325,14 @@ void AEndingDirector::WakeBeats(float RealDt)
 					// palm faces the eyes, the light up, to the left and away)
 					const FVector Rt = (Eye.GetRotation().GetAxisY() - N * FVector::DotProduct(Eye.GetRotation().GetAxisY(), N)).GetSafeNormal();
 					const FVector Lamp = (F * 0.85f + N * 0.4f - Rt * 0.35f).GetSafeNormal();
+					// (the owner's can lay on a slant across the palm: the grip tipped so its head leans away and left)
+					static float GripTilt = -1000.f;
+					if (GripTilt < -999.f)
+					{
+						GripTilt = -30.f;
+						FParse::Value(FCommandLine::Get(), TEXT("-wakegriptilt="), GripTilt);
+					}
+					Arms->GripTilt[1] = GripTilt;
 					ShowT = Arms->HandleFor(1, WakeArmHold(WakeShowHold, Eye, OverLining(52.f, 12.f, 14.f), Lamp, ShowPole, TEXT("held up to look"), -0.6f));
 					if (Show < 1.f && WakeChestHold.bSet && WakeShowHold.bSet)
 					{
@@ -1337,7 +1345,7 @@ void AEndingDirector::WakeBeats(float RealDt)
 						Mid.Psi = Ang(WakeChestHold.Psi, WakeShowHold.Psi, Show);
 						Mid.Flex = FMath::Lerp(WakeChestHold.Flex, WakeShowHold.Flex, Show);
 						Mid.Dev = FMath::Lerp(WakeChestHold.Dev, WakeShowHold.Dev, Show);
-						ShowT = Arms->HandleFor(1, WakeArmHold(Mid, Eye, FMath::Lerp(OverLining(28.f, 12.f, 10.f), OverLining(52.f, 12.f, 14.f), Show), Lamp, ShowPole, TEXT("between")));
+						ShowT = Arms->HandleFor(1, WakeArmHold(Mid, Eye, FMath::Lerp(OverLining(30.f, 12.f, 10.f), OverLining(52.f, 12.f, 14.f), Show), Lamp, ShowPole, TEXT("between")));
 						bShowBlendedByArm = true;
 					}
 				}

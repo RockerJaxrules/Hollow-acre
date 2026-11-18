@@ -207,7 +207,12 @@ public:
 	FTransform RigLastCtrl[2];
 	FVector RigLastPv[2] = {FVector::ZeroVector, FVector::ZeroVector};
 	/** The handle (the flashlight's own frame) a hand at Hand grips (car frame). */
-	FTransform HandleFor(int32 Side, const FTransform& Hand) const { return HoldInHand[Side] * Hand; }
+	FTransform HandleFor(int32 Side, const FTransform& Hand) const { return GripNow(Side) * Hand; }
+	/** The grip tipped across the palm (degrees about the palm's facing, about the grip point): a handle held on a
+	 *  slant in the fist, as the owner held the can. 0 = straight across. */
+	float GripTilt[2] = {0.f, 0.f};
+	/** The handle in the hand bone's frame as gripped now (HoldInHand tipped by GripTilt). */
+	FTransform GripNow(int32 Side) const;
 	/** The hand's own axes for a hand bone rotation: along the fingers, the palm's facing, across (index to little finger). */
 	void HandAxes(int32 Side, const FQuat& Rot, FVector& Finger, FVector& Palm, FVector& Across) const;
 	/** The chest (spine_05's frame, car frame) under an eye at Eye (looking along its X), as when sitting. */
