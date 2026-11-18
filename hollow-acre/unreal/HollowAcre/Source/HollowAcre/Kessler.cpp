@@ -13,6 +13,7 @@
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "Camera/PlayerCameraManager.h"
+#include "Kismet/GameplayStatics.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
 namespace
@@ -299,7 +300,15 @@ void AKessler::Tick(float Dt)
 	{
 		// (hung by its bail from the fist: the bail's grip at the hand, the lantern plumb under it, swinging a little as a
 		// pendulum from the hand's own motion, damped)
-		const FVector Hand = B->GetBoneLocation(TEXT("hand_l")) + FVector(0.f, 0.f, -4.f);
+		FVector Hand = B->GetBoneLocation(TEXT("hand_l")) + FVector(0.f, 0.f, -4.f);
+		// (with the rifle up, its bail hooked on his belt at the left hip, out of the way of the forend (blind judge,
+		// round 12: hung from the forend hand it hung in front of his chest); slid there and back as the rifle comes up and
+		// goes down; it lights his legs and the snow at his feet from there)
+		if (AimW > 0.001f && B->GetBoneIndex(TEXT("pelvis")) != INDEX_NONE)
+		{
+			const FVector Belt = B->GetBoneLocation(TEXT("pelvis")) - GetActorRightVector() * 29.f + GetActorForwardVector() * 6.f + FVector(0.f, 0.f, 4.f);   // (clear of his coat: the lantern is 19 cm across)
+			Hand = FMath::Lerp(Hand, Belt, FMath::SmoothStep(0.f, 1.f, AimW));
+		}
 		const FVector HandV = Dt > 0.f && !HandWas.IsZero() ? (Hand - HandWas) / Dt : FVector::ZeroVector;
 		HandWas = Hand;
 		const FVector2D Push(-HandV.X, -HandV.Y);
@@ -310,13 +319,19 @@ void AKessler::Tick(float Dt)
 		Lantern->SetWorldLocationAndRotation(Hand - Hang.RotateVector(FVector(0.f, 0.f, 41.2f)), Hang);
 		// (the flame's flicker: a kerosene flame is steadier than a fire, but it breathes and gutters in a draught)
 		const float Fl = 0.86f + 0.07f * FMath::Sin(T * 7.3f) + 0.05f * FMath::Sin(T * 17.1f + 1.f) + 0.03f * FMath::Sin(T * 29.f);
+		// (far off in the trees, a lantern is seen as its flame and the glow it makes in the falling snow round it, not
+		// as the little lamp itself (blind judge, round 12: at 56 m it was "a speck of a few pixels"); close by, the glow
+		// in the air would hang over the view as a disc, so it fades in only past 15 m)
+		const APawn* Pl = UGameplayStatics::GetPlayerPawn(this, 0);
+		const float Far = Pl ? FMath::Clamp((FVector::Dist(Pl->GetActorLocation(), GetActorLocation()) - 1500.f) / 3000.f, 0.f, 1.f) : 0.f;
 		if (LanternLight)
 		{
 			LanternLight->SetIntensity(3.6f * Fl);
+			LanternLight->SetVolumetricScatteringIntensity(FMath::Lerp(0.4f, 5.f, Far));
 		}
 		if (FlameMID)
 		{
-			FlameMID->SetScalarParameterValue(TEXT("Intensity"), 1.2f * Fl);
+			FlameMID->SetScalarParameterValue(TEXT("Intensity"), 1.2f * Fl * (1.f + 3.f * Far));
 		}
 	}
 	if (Rifle && B->GetBoneIndex(TEXT("hand_r")) != INDEX_NONE)
@@ -720,13 +735,14 @@ void AKessler::PoseUpper(float Dt)
 		}
 		if (AimW > 0.001f)
 		{
-			// (the forend, as far out along it as his arm reaches, the lantern's bail hooked on the same hand under it)
+			// (the forend, as far out along it as his arm reaches, the lantern's bail hooked on the same hand under it: out
+			// under the barrel, plainly hanging from the rifle, not in front of his chest (blind judge, round 12))
 			const FTransform R = AimRifle();
-			FVector Grip = R.TransformPosition(FVector(30.f, 0.f, 2.f));
-			for (float X = 30.f; X > 6.f; X -= 3.f)
+			FVector Grip = R.TransformPosition(FVector(40.f, 0.f, 2.f));
+			for (float X = 40.f; X > 6.f; X -= 3.f)
 			{
 				Grip = R.TransformPosition(FVector(X, 0.f, 2.f));
-				if (FVector::Dist(Grip, ShL) < 50.f)
+				if (FVector::Dist(Grip, ShL) < 57.f)
 				{
 					break;
 				}
@@ -827,8 +843,9 @@ void AKessler::DressUp()
 	D->SetScalarParameterValue(TEXT("Hem"), Hem);                  // (a chore coat: to the upper thigh)
 	D->SetScalarParameterValue(TEXT("AnkleZ"), BootTop);           // (high work boots)
 	D->SetScalarParameterValue(TEXT("NeckZ"), CollarTop);          // (the collar turned up against the cold)
-	// (dark: a waxed duck coat gone brown-black with years of work; a tan one under his own lantern read as bare skin)
-	D->SetVectorParameterValue(TEXT("CoatColor"), FLinearColor(0.078f, 0.052f, 0.03f));
+	// (dark: a waxed canvas coat gone olive-black with years of work; any brown under his own 2250 K lantern read as bare
+	// skin (blind judges, rounds 11 and 12), so it is cooler than his skin and much darker)
+	D->SetVectorParameterValue(TEXT("CoatColor"), FLinearColor(0.03f, 0.033f, 0.025f));
 	D->SetVectorParameterValue(TEXT("CollarColor"), FLinearColor(0.03f, 0.02f, 0.013f));
 	D->SetVectorParameterValue(TEXT("TrousersColor"), FLinearColor(0.019f, 0.019f, 0.021f));
 	// (a MetaHuman's face mesh runs down his neck to his upper chest, under where the body mesh stops: dressed the same

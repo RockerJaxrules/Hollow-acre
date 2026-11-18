@@ -18,6 +18,7 @@ import json
 import math
 import os
 import random
+import sys
 
 import numpy as np
 from PIL import Image
@@ -357,15 +358,143 @@ def make_textures():
                     'RGBA').save(os.path.join(ART, 'T_RoadSnow.png'))
 
 
+def far_height(xs, ys):
+    """The far terrain's height function, exactly as build_far triangulates it: f(x, y) (m, arrays) -> z (m)."""
+    cx, cy = xs.mean(), ys.mean()
+    span, n = 14000.0, 140
+    gx = np.linspace(cx - span / 2, cx + span / 2, n)
+    gy = np.linspace(cy - span / 2, cy + span / 2, n)
+    X, Y = np.meshgrid(gx, gy, indexing='ij')
+    px, py = xs[::20], ys[::20]
+    dist = np.min(np.hypot(X[..., None] - px, Y[..., None] - py), axis=-1)
+    Z = valley_floor(X, Y) + smoothstep(260, 1800, dist) * (fbm(X / 2600, Y / 2600, 6, ridged=True) * 1900 + fbm(X / 700, Y / 700, 4) * 160)
+
+    def f(x, y):
+        x, y = np.asarray(x, float), np.asarray(y, float)
+        fr, fc = (x - gx[0]) / (gx[1] - gx[0]), (y - gy[0]) / (gy[1] - gy[0])
+        r, c = np.clip(fr.astype(int), 0, n - 2), np.clip(fc.astype(int), 0, n - 2)
+        fx, fy = fr - r, fc - c
+        a, b, cc, dd = Z[r, c], Z[r, c + 1], Z[r + 1, c], Z[r + 1, c + 1]
+        lo = a + fx * (cc - a) + fy * (b - a)
+        hi = dd + (1 - fx) * (b - dd) + (1 - fy) * (cc - dd)
+        return np.where(fx + fy <= 1, lo, hi)
+    return f, (gx[0], gx[-1], gy[0], gy[-1])
+
+
+def thicken(out, xs, ys, th, zr, s_arr):
+    """The forest thickened (the owner: "Forest on mountains should be more denser"): the corridor's spruces filled in to
+    a real subalpine stand (several hundred stems a hectare where it grows, the trees 3-4 m apart, in stands with glades
+    between them, a slow noise deciding which), and the mountainsides beyond the corridor forested too, up to a treeline
+    about 550 m above the valley floor, on slopes that can hold a tree, thinning with distance from the road. The first
+    3400 trees are kept exactly (the scenes were staged among them); the camp's ground (the town patch, where the night
+    is played) gets no new ones, nor do the road, the cliff face, the avalanche chute or the steep."""
+    r = random.Random(SEED + 101)
+    rng_ = np.random.default_rng(SEED + 102)
+    town = None
+    tj = os.path.join(GEN, 'town.json')
+    if os.path.exists(tj):
+        t_ = json.load(open(tj))
+        town = (np.array(t_['head']) / 100.0, np.array(t_['street_u']), np.array(t_['street_v']))
+
+    def in_town(x, y):
+        if town is None:
+            return np.zeros(np.shape(x), bool)
+        O, U, V = town
+        rx, ry = np.asarray(x) - O[0], np.asarray(y) - O[1]
+        u, v = rx * U[0] + ry * U[1], rx * V[0] + ry * V[1]
+        return (u > -48) & (u < 108) & (v > -82) & (v < 82)
+
+    def stands(x, y):
+        # (which ground grows trees: dense stands about a hundred metres across, glades and thinner ground between)
+        n = fbm(np.asarray(x) / 110.0 + 31.0, np.asarray(y) / 110.0 - 7.0, 3)
+        return 0.12 + 0.88 * smoothstep(-0.3, 0.25, n)
+
+    cell = 3.0
+    grid = {}
+
+    def free(x, y, gap):
+        i, j = int(x // cell), int(y // cell)
+        for di in (-2, -1, 0, 1, 2):
+            for dj in (-2, -1, 0, 1, 2):
+                for (qx, qy) in grid.get((i + di, j + dj), ()):
+                    if (qx - x) ** 2 + (qy - y) ** 2 < gap * gap:
+                        return False
+        return True
+
+    def keep(x, y):
+        grid.setdefault((int(x // cell), int(y // cell)), []).append((x, y))
+
+    for t in out['trees']:
+        keep(t[0] / 100.0, t[1] / 100.0)
+    n0 = len(out['trees'])
+    # the corridor: candidates drawn as the first trees were, then the stands decide
+    N = 90000
+    S = rng_.uniform(0, LENGTH, N)
+    up = rng_.random(N) < 0.42
+    D = np.where(up, rng_.uniform(9, REACH - 4, N), -rng_.uniform(9, REACH_DOWN - 4, N))
+    X, Y, Z, _ = ground(xs, ys, th, zr, s_arr, S, D)
+    _, _, Zs, _ = ground(xs, ys, th, zr, s_arr, S, D + np.where(D > 0, 1.5, -1.5))
+    steep = np.abs(Zs - Z) / 1.5
+    # (the rock face above the road (40-64 degrees) holds trees on its ledges and in its cracks, smaller ones, more
+    # thinly than the bench above it: seen from the road it read as a bare white slope)
+    cliff = (D > 0) & (D < 52)
+    ok = ~(cliff & (rng_.random(N) > 0.38))
+    ok &= ~((CRASH_CLEAR[0] < S) & (S < CRASH_CLEAR[1]) & (CRASH_CLEAR[2] < D) & (D < 0))
+    ok &= ~(~cliff & (steep > 1.25) & (rng_.random(N) > 0.15))
+    ok &= ~(cliff & (steep > 2.0) & (rng_.random(N) > 0.1))
+    ok &= ~in_town(X, Y)
+    ok &= rng_.random(N) < stands(X, Y)
+    added = 0
+    for k in np.nonzero(ok)[0]:
+        x, y = float(X[k]), float(Y[k])
+        if added >= 17000 or not free(x, y, 3.2):
+            continue
+        keep(x, y)
+        v = r.choices(range(7), weights=(1.0, 2.0, 3.0, 3.0, 3.0, 2.0, 1.5) if not cliff[k] else (3.0, 4.0, 3.0, 1.5, 0.5, 0.0, 0.0))[0]
+        out['trees'].append([x * 100, y * 100, float(Z[k] - 0.3) * 100, r.uniform(0, 360), r.uniform(0.85, 1.15), v])
+        added += 1
+    n1 = len(out['trees'])
+    # the mountainsides beyond the corridor (the far terrain): out to 2.2 km from the road, up to the treeline
+    fz, (x0, x1, y0, y1) = far_height(xs, ys)
+    px, py = xs[::5], ys[::5]
+    N = 700000
+    FX = rng_.uniform(max(x0, xs.min() - 2300), min(x1, xs.max() + 2300), N)
+    FY = rng_.uniform(max(y0, ys.min() - 2300), min(y1, ys.max() + 2300), N)
+    dist = np.empty(N)
+    for a in range(0, N, 40000):
+        dist[a:a + 40000] = np.min(np.hypot(FX[a:a + 40000, None] - px, FY[a:a + 40000, None] - py), axis=1)
+    FZ = fz(FX, FY)
+    zx = (fz(FX + 4.0, FY) - fz(FX - 4.0, FY)) / 8.0
+    zy = (fz(FX, FY + 4.0) - fz(FX, FY - 4.0)) / 8.0
+    slope = np.degrees(np.arctan(np.hypot(zx, zy)))
+    above = FZ - valley_floor(FX, FY)
+    p = stands(FX, FY)
+    p *= np.clip(1.0 - (dist - 240.0) / 2600.0, 0.2, 1.0)            # (thinner far out, where it is only a texture)
+    p *= 1.0 - smoothstep(380.0, 560.0, above)                     # (the treeline)
+    p *= 1.0 - smoothstep(30.0, 40.0, slope)                       # (no trees on the crags)
+    ok = (dist > 240.0) & (dist < 2200.0) & ~in_town(FX, FY) & (rng_.random(N) < p)
+    for k in np.nonzero(ok)[0]:
+        x, y = float(FX[k]), float(FY[k])
+        if len(out['trees']) - n1 >= 60000 or not free(x, y, 4.0):
+            continue
+        keep(x, y)
+        # (mostly grown trees out here: the saplings would never be seen)
+        v = r.choices(range(7), weights=(0.2, 1.0, 2.5, 3.0, 3.0, 2.5, 2.0))[0]
+        out['trees'].append([x * 100, y * 100, float(FZ[k] - 0.4) * 100, r.uniform(0, 360), r.uniform(0.85, 1.15), v])
+    print('forest: %d trees kept, %d added in the corridor, %d on the mountainsides' % (n0, n1 - n0, len(out['trees']) - n1))
+
+
 def main():
     global FLOOR_BASE
     os.makedirs(GEN, exist_ok=True)
     xs, ys, th, s_arr = road_samples()
     zr = np.array([elevation(s) for s in s_arr])
     FLOOR_BASE = float(zr.mean() - FLOOR_DROP)
-    write_obj(os.path.join(GEN, 'Terrain_Road.obj'), [('terrain',) + build_corridor(xs, ys, th, zr, s_arr)])
-    write_obj(os.path.join(GEN, 'Road.obj'), [('road',) + build_road(xs, ys, th, zr, s_arr)])
-    write_obj(os.path.join(GEN, 'Terrain_Far.obj'), [('far',) + build_far(xs, ys, zr)])
+    trees_only = 'trees' in sys.argv[1:]          # (mountain.json only: the meshes and textures left as they are)
+    if not trees_only:
+        write_obj(os.path.join(GEN, 'Terrain_Road.obj'), [('terrain',) + build_corridor(xs, ys, th, zr, s_arr)])
+        write_obj(os.path.join(GEN, 'Road.obj'), [('road',) + build_road(xs, ys, th, zr, s_arr)])
+        write_obj(os.path.join(GEN, 'Terrain_Far.obj'), [('far',) + build_far(xs, ys, zr)])
 
     r = random.Random(SEED)
     out = {'path': [], 'trees': [], 'poles': [], 'posts': []}
@@ -390,6 +519,7 @@ def main():
         # a spruce variant (4.5 to 25 m tall, tools/blender/spruce.py), mostly mid-sized, a few saplings and giants
         v = r.choices(range(7), weights=(1.0, 2.0, 3.0, 3.0, 3.0, 2.0, 1.5))[0]
         out['trees'].append([float(x) * 100, float(y) * 100, float(z - 0.3) * 100, r.uniform(0, 360), r.uniform(0.85, 1.15), v])
+    thicken(out, xs, ys, th, zr, s_arr)
     # Part 2's opening: the crash point, and how far the car falls (to the valley floor below the chute)
     xi, yi, zi, ti = frame_at(xs, ys, th, zr, s_arr, CRASH_S, LANE)
     _, _, zf, _ = ground(xs, ys, th, zr, s_arr, CRASH_S + 12, -(REACH_DOWN - 10))
@@ -405,7 +535,8 @@ def main():
     import make_roadside
     make_roadside.build(xs, ys, th, zr, s_arr, out)
     json.dump(out, open(os.path.join(GEN, 'mountain.json'), 'w'))
-    make_textures()
+    if not trees_only:
+        make_textures()
     print('mountain: path %d, trees %d, poles %d, posts %d' % tuple(len(out[k]) for k in ('path', 'trees', 'poles', 'posts')))
 
 

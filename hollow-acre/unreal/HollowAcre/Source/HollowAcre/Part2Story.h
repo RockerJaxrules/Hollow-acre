@@ -124,6 +124,8 @@ protected:
 	void FurnishShed();
 	/** Grandmother's truck (tools/blender/make_truck.py), on its roof in the trees behind the camp. */
 	void SpawnTruck();
+	/** Snow drifts banked against the camp's walls (tools/blender/make_drift.py). */
+	void DriftAgainstWalls();
 	UPROPERTY()
 	TObjectPtr<AActor> Truck;
 	UPROPERTY()

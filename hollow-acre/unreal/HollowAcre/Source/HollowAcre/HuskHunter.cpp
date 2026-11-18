@@ -817,8 +817,11 @@ void AHuskHunter::Shot(const FVector& Dir)
 	bDead = true;
 	// (moving as it was at the gallop, plus the round's push and a little lift as its legs go)
 	const FVector Fwd = FRotator(0.f, Yaw, 0.f).Vector();
+	// (pitched forward as its legs go, and rolled over about its own length as it lands, so it comes to rest on its
+	// side with its face to the one it was running at, eyes open in the snow (blind judge, round 12: face-down, its head
+	// was "a smooth bulb"))
 	Husk->Ragdoll(Fwd * Speed * 0.55f + Dir.GetSafeNormal2D() * 120.f - FVector(0.f, 0.f, 80.f),
-		FVector::CrossProduct(FVector::UpVector, Fwd).GetSafeNormal() * -160.f, Dir);
+		FVector::CrossProduct(FVector::UpVector, Fwd).GetSafeNormal() * -110.f + Fwd * 170.f, Dir);
 	SetState(EState::Away, TEXT("shot"));
 	Speed = 0.f;
 }

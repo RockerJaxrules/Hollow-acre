@@ -43,7 +43,7 @@ def main():
         mesh = meshes[0]
         slots = mesh.static_materials
         for s in slots:
-            s.material_interface = snow if name.startswith('Wake_Snow') else part
+            s.material_interface = snow if name.startswith(('Wake_Snow', 'Town_Drift')) else part
         mesh.set_editor_property('static_materials', slots)
         # (no Nanite on these small props: no gain at their size, and their materials (the flames' additive) can't be
         # drawn on it; see fix_material_usage.py)

@@ -679,18 +679,21 @@ void APart2Character::UpdateBody(float Dt)
 			// (nothing near along the gaze: the light where it looks, far, a little low)
 			AimAt = Me.InverseTransformPosition(E + L * 1500.f - FVector(0.f, 0.f, 120.f));
 		}
-		// (a husk standing in the beam counts too: it has no collision for the trace to meet)
+		// (a husk near the gaze counts too: it has no collision for the trace to meet; the hand swings the light onto it,
+		// its body's middle, as anyone would onto a thing coming at them (blind judge, round 12: the charge ran beside the
+		// beam, not in it))
 		for (TActorIterator<AHusk> It(GetWorld()); It; ++It)
 		{
 			if (It->IsHidden())
 			{
 				continue;
 			}
-			const FVector Hc = It->GetActorLocation() + FVector(0.f, 0.f, 120.f * It->GetActorScale3D().Z);
+			const FVector Hc = It->GetActorLocation() + FVector(0.f, 0.f, 80.f * It->GetActorScale3D().Z);
 			const FVector Th = Hc - E;
 			if (Th.Size() < AimDist && FVector::DotProduct(Th.GetSafeNormal(), L) > FMath::Cos(FMath::DegreesToRadians(18.f)))
 			{
 				AimDist = Th.Size();
+				AimAt = Me.InverseTransformPosition(Hc);
 			}
 		}
 	}
@@ -851,11 +854,20 @@ void APart2Character::Tick(float DeltaSeconds)
 				Armful->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 				Armful->SetCastShadow(false);
 				Armful->SetRelativeLocationAndRotation(FVector(40.f, 7.f, -22.f), FRotator(-10.f, 32.f, 6.f));   // (the lower edge of the view: the vertical half-angle is ~24 degrees)
-				if (UMaterialInterface* Bw = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Town/Materials/M_Town_Drywood.M_Town_Drywood")))
+				// (split stove wood: dark grey-brown bark, the split faces pale and dry, the sawn ends paler still; read
+				// from the asset (a fresh component may not have its slot names yet))
+				if (UMaterialInterface* Kp = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Car/Keys/M_KeyPart.M_KeyPart")))
 				{
-					for (int32 Slot = 0; Slot < Armful->GetNumMaterials(); ++Slot)
+					const TArray<FStaticMaterial>& Sm = Am->GetStaticMaterials();
+					for (int32 Slot = 0; Slot < Sm.Num(); ++Slot)
 					{
-						Armful->SetMaterial(Slot, Bw);
+						const FString N = Sm[Slot].MaterialSlotName.ToString();
+						const bool bBark = N.StartsWith(TEXT("bark")), bEnd = N.StartsWith(TEXT("endgrain"));
+						UMaterialInstanceDynamic* D = UMaterialInstanceDynamic::Create(Kp, Armful);
+						D->SetVectorParameterValue(TEXT("Color"), bBark ? FLinearColor(0.045f, 0.038f, 0.032f) : bEnd ? FLinearColor(0.36f, 0.27f, 0.17f) : FLinearColor(0.3f, 0.21f, 0.13f));
+						D->SetScalarParameterValue(TEXT("Metallic"), 0.f);
+						D->SetScalarParameterValue(TEXT("Roughness"), bBark ? 0.95f : 0.85f);
+						Armful->SetMaterial(Slot, D);
 					}
 				}
 				Armful->SetRelativeScale3D(FVector(0.62f));

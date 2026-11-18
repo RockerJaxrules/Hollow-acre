@@ -106,6 +106,10 @@ and the brief) scores it out of 10 against: scary, realistic, readable, beautifu
 - Scares: Supermassive on Until Dawn (dread more than jump scares; telegraph some scares, hide others so players don't
   learn the formula, PlayStation Blog "Until Dawn's 5-step formula"); build-up and release (Game Developer, "The
   Balancing Act of Tension in Horror Game Design").
+- Epic: Volumetric Fog again (temporal reprojection leaves trails from fast-moving lights like flashlights; the doc's
+  fix is no scattering on them, ours was reprojection off on a finer grid, since the beam in the haze is wanted; Cast
+  Volumetric Shadow triples a light's cost); Local Fog Volumes (sphere-shaped ground fog voxelized into volumetric fog
+  near the camera, lit by the moon and lanterns there; Start Distance at least 10 m; for low fog in the trees later).
 
 ## Log
 - Judge scores so far (blind, from contact sheets): 3, 3.5, 4, 4.5, 5. Rounds posted in full on the live log.
@@ -178,3 +182,26 @@ and the brief) scores it out of 10 against: scary, realistic, readable, beautifu
 - Handover from the wake fixed: the eyes now come from where the wake last put them (the director's seat pose had
   already moved the camera back into the car that frame), the body stands on the snow under them, and the view stays
   on the player (the cutscene camera auto-activated itself back). Test autopilot: `-p2walk`.
+- The lantern scene (judged on its own: 3, 4, 4, 4, 3; readable and plays-well reached 5): the rifle only read once the
+  view pushed in hard on him as it came up (square to the player, the barrel a hand's breadth off their face); the
+  husk only read once it came out of the dark between the cabins into the player's light; the kill once the flash threw
+  its shadow on the shed wall and it went down face-first, damped, its joints held to a body's limits. His skin-tight
+  clothes read as a body suit until his coat was a real skinned mesh (Scripts/build_kessler_coat.py). Dark see-through
+  boxes across the view were the volumetric fog's temporal reprojection smearing the moving flashlight's lit haze (off,
+  on a 4 px grid; Config/DefaultEngine.ini).
+- The whole first night with the lantern scene (run 43): judge round 11, 5/10 (scary 5, readable 5, plays 5). Fixed
+  after it: the husk's skin made cold and mottled (Scripts/husk_cold_skin.py), a faint snowlight through the shed's
+  doorway (black frames read as nothing), captions on a darker band, the stove's iron dark, drifts banked against the
+  camp's walls (tools/blender/make_drift.py).
+- Grandmother's truck (tools/blender/make_truck.py), on its roof in the trees 37 m behind the shed under the line down
+  from the guardrail gap; where her journal is found (the truck's glovebox, per the outline, or the shed, as now) is
+  with the owner.
+- Run 44 (the whole night with the truck): judge round 12, 5/10 (scary 5, realistic 4, readable 5, beautiful 6, plays 5).
+  Fixed after it: the husk's skin drained to a corpse's grey (darkening the bake had made it bronze under the warm beam);
+  the held light swings onto a husk in view (the charge ran beside the beam) and the stranger fires when it is about
+  3 m off, big and low in the light; the old flat-quad drifts in tools/make_town.py retired for the sculpted ones; the
+  town's ground patch widened to 140 x 150 m with soft banks round the pads and swells in the snow (its old edge, 14 m
+  behind the shed, was a long dark line); the falling snow on the town moon's lighting channel (on channel 0 alone the
+  flakes were black specks against the moonlit fog); the coat olive-black; the lantern hung out along the forend;
+  captions in and out in a tenth of a second; split firewood; the stove's panes deep orange and its belly black; the
+  spruces' snow pads re-sculpted as broken slabs.

@@ -49,12 +49,23 @@ One line each, concrete and checkable. **[repeated]** = broken again; move it to
 - Light must be physically plausible (AgX, real-ish strengths), with contact shadows where things touch.
 
 ## Props (mechanical, from the period)
+- An overturned vehicle rests on three points (its crushed roof and the hood's front edge, or the bed's tail): set on its roof alone it floats; tip it until a second edge is in the snow.
+- A car's front is mostly grille and lamps in bezels with painted panels between, framed in chrome; one chrome plate over the whole front reads as a blank cream box.
+- When a part looks wrong in the game, give each material slot a loud colour for one render (-p2truckdebug): it shows at once which part is which.
 - Worn things (caps, hats, glasses) go on a character from that character's own joints (the face's eye bones in its reference pose, carried into the head bone's frame), not from hand-placed offsets: one rule fits any head.
 - A watch cap seats with its cuff at the tops of the ears (about 3 cm above the eye line), its back lower than its brow (about 12 degrees); higher leaves a bald band at the temples once the hair is hidden under it.
 - Model a period object by the parts that identify its type, not its overall silhouette: a tubular lantern is its tubes goosenecked into the top, its three-tier top and its collared barrel globe (r1 had a lantern outline and read only as "a lantern", 5/10).
 - Every part joins something: a tube that stops in air beside a rim reads as a strap. Route connectors into the parts they feed (curves through bend() corners).
 - Thin parts read as toys when they are thick: bands, straps and levers are flat steel 0.2-0.6 cm thick; build them flat (a wire scaled across its section, a thin band) and only 2-3 mm proud of what they bind.
 - Flat rings (strip metal on edge) and wires are different parts: build bands as closed box-section lathes and wires as curves with a bevel; a wire for a ring reads wavy.
+- Split firewood is a wedge, not a stick: a sector of the round (a half, third or quarter) with bark on the arc, two pale split faces meeting at the pith, and paler sawn end grain; three material slots. Square or polygonal sticks with one dark material read as "a featureless black box" in the hand at night.
+
+## Snow
+- Snow on a branch is a slab, not a pillow: a broad, nearly flat top, square shoulders, steep ragged sides with the widest a little below the top (a lip with a hard shadow line under it), cut in underneath, its ends broken off short. Smooth round pads with tapered ends read as "cotton balls".
+- Break the surface with 3-D plane-wave noise at three scales (about 13 cm lumps, 5 cm chunks, 2 cm grain), scaled to the pad's size and stronger on the sides than the top; displace along the section's outward direction. Too much chunk noise (more than about 7% of the width) turns it into crumpled paper or styrofoam shards; keep the fine grain for the normal map.
+- Sample the pad every 3.5-4 cm along the branch with 16-18 points round it, or the noise facets.
+- Drifts against walls are sculpted meshes (highest at the wall, a soft crest, a long concave fall, wind ripples), never flat sloping quads: those read as "flat slabs with crisp straight edges".
+- The edge of a ground patch laid over coarser terrain shows as a long straight dark line: put the edge far beyond where anyone walks and blend it down over several metres.
 
 ## Skin
 - Skin blotch and flush contrast scales with tone. Hue-shift the tone itself (redder, slightly darker) rather than

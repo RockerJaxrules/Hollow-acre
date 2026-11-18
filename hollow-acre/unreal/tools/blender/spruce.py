@@ -439,27 +439,56 @@ def card(acc, base, f, Lc, wc, roll, sag, axis_xy):
     acc.add('needles_under', P, bot, UV, orient(P, T, -n))
 
 
+def waves(r, n, lam):
+    """A smooth 3-D noise of n plane waves (wavelengths lam, cm): returns f(P) -> values in about -1..1."""
+    W, Ph = [], []
+    for i in range(n):
+        d = nrm(np.array([r.gauss(0, 1), r.gauss(0, 1), r.gauss(0, 1)]))
+        W.append(d * 2 * np.pi / lam[i % len(lam)])
+        Ph.append(r.uniform(0, 2 * np.pi))
+    W, Ph = np.array(W), np.array(Ph)
+    norm = math.sqrt(n / 2.0)
+    return lambda P: np.sin(np.asarray(P) @ W.T + Ph).sum(-1) / norm
+
+
 def pad(acc, r, cen, hw, ht, along_cm0):
-    """A lumpy pad of snow along a centreline (m,3): half-width hw and height ht per sample, flat underneath, its ends
-    closing to points."""
+    """A pad of settled snow along a centreline (m,3): half-width hw and height ht per sample. Not a pillow (blind
+    judges: "the snow on the trees looks like cotton balls"): snow on a spruce lies as a slab on the spray, its top
+    broad and nearly flat, wind-rippled and lumpy where clumps fell onto it; its sides steep and ragged, broken off in
+    chunks, the widest a little below the top (a lip that throws a hard shadow line under it); cut back underneath,
+    where the needles' tips stick out of it."""
     tan, side, up = frames(cen)
-    m, k = len(cen), 10
+    m, k = len(cen), 18
     th = np.linspace(0, 2 * np.pi, k, endpoint=False)
 
     def smooth_noise(n, amp):
         v = np.array([r.uniform(-1, 1) for _ in range(n + 4)])
         return 1 + amp * np.convolve(v, [0.1, 0.25, 0.3, 0.25, 0.1], 'valid')
 
-    # ragged sides: each side's reach wanders along the branch on its own; the top rises and sinks in lumps
-    reach = np.where(np.cos(th)[None, :] >= 0, smooth_noise(m, 0.55)[:, None], smooth_noise(m, 0.55)[:, None])
-    top = smooth_noise(m, 0.6)[:, None]
-    jit = np.array([[r.uniform(0.9, 1.1) for _ in range(k)] for _ in range(m)])
-    c, sn = np.cos(th)[None, :], np.sin(th)[None, :]
-    cy = c * hw[:, None] * reach * jit
-    # flat-topped, with the sides draping down over the branch; flat underneath
-    cz = np.where(sn > 0, sn ** 0.7 * top, sn * 0.3)[None, :] * ht[:, None] * jit
-    cz = cz.reshape(m, k) - (c.reshape(1, k) ** 4) * ht[:, None] * 0.45
+    c, sn = np.cos(th), np.sin(th)
+    # the section: a flat top, square shoulders, steep sides, the widest at 0.35 of the height, cut in underneath
+    sy = np.sign(c) * np.abs(c) ** 0.55
+    sz = np.where(sn > 0, np.abs(sn) ** 0.45, -0.3 * np.abs(sn) ** 0.8)
+    wide = np.where(sn > 0, 1.0 - 0.13 * np.clip((sz - 0.35) / 0.65, 0, 1) ** 2, 1.0 - 0.32 * np.abs(sn))
+    # each side's reach wanders along the branch on its own (broken off in chunks); the top rises and sinks in lumps
+    rl, rr = smooth_noise(m, 0.45), smooth_noise(m, 0.45)
+    reach = np.where(c[None, :] >= 0, rl[:, None], rr[:, None])
+    top = smooth_noise(m, 0.35)[:, None]
+    cy = sy[None, :] * wide[None, :] * hw[:, None] * reach
+    cz = (sz[None, :] * np.where(sn[None, :] > 0, top, 1.0)) * ht[:, None]
     P = cen[:, None, :] + side[:, None, :] * cy[..., None] + up[:, None, :] * cz[..., None]
+    # broken, lumpy surface: displaced along the section's outward direction by a few cm of noise (clumps on the top,
+    # ragged chunks on the sides), scaled to the pad's size
+    o = side[:, None, :] * (sy * 1.0)[None, :, None] + up[:, None, :] * (sz * 1.6)[None, :, None]
+    o = nrm(o)
+    f_lump, f_chunk, f_grain = waves(r, 9, (13.0, 17.0, 11.0)), waves(r, 9, (5.0, 6.5, 4.2)), waves(r, 7, (2.2, 2.8))
+    size = np.minimum(hw, 2.2 * ht)[:, None]
+    sidew = np.clip(np.abs(c), 0, 1)[None, :] ** 0.7
+    amp_l = size * (0.09 + 0.05 * sidew)
+    amp_c = size * (0.02 + 0.05 * sidew)
+    amp_g = np.minimum(size * 0.01, 0.25)
+    d = amp_l * f_lump(P) + amp_c * f_chunk(P) + amp_g * f_grain(P)
+    P = P + o * d[..., None]
     # normals from the surface itself (finite differences round the ring and along it), pointing away from the centre
     dth = np.roll(P, -1, axis=1) - np.roll(P, 1, axis=1)
     dl = np.gradient(P, axis=0)
@@ -490,11 +519,13 @@ def snow_pad(acc, r, pts, L, hw_max, t0, t1, thick, inner_taper=0.25):
     for ta, tb in segs:
         if tb - ta < 0.08:
             continue
-        m = max(6, min(13, int(L * (tb - ta) / 9)))
+        m = max(7, min(34, int(L * (tb - ta) / 3.5)))
         tt = np.linspace(ta, tb, m)
         cen = interp(pts, tt) + Z * 1.2
         x = (tt - t0) / max(1e-3, t1 - t0)
-        prof = np.clip(np.sin(np.pi * (tt - ta) / (tb - ta)), 0, 1) ** 0.5
+        # (its ends broken off short, not rounded to a point: full width until close to the end, then a steep fall)
+        prof = np.clip(2.4 * np.sin(np.pi * (tt - ta) / (tb - ta)), 0, 1) ** 0.6
+        prof[0] = prof[-1] = 0.0
         prof *= np.clip(x / inner_taper, 0.35, 1.0) * (1 - 0.3 * x)
         hw = hw_max * prof
         pad(acc, r, cen, hw, hw * thick * 0.75, ta * L)
