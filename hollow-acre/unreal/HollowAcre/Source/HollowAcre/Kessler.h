@@ -155,4 +155,6 @@ protected:
 	TObjectPtr<USkeletalMeshComponent> Clothes;
 	UPROPERTY()
 	TObjectPtr<USkeletalMeshComponent> ClothesUpper;
+	UPROPERTY()
+	TObjectPtr<USkeletalMeshComponent> Coat;
 };

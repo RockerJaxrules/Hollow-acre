@@ -1515,10 +1515,14 @@ void APart2Character::StoryAutopilot(float Dt)
 			else
 			{
 				LookAt(K->EyesAt(), 90.f);
-				// (his lantern up between them: the flashlight lowered and off, his face in its light)
+				// (his lantern up between them: the flashlight lowered and off, his face in its light; up off their knees)
 				if (Ls == 6 && bFlashlightOn && Lt > 0.5f)
 				{
 					FlashlightToggle();
+				}
+				if (Ls == 6 && bIsCrouched && Lt > 0.2f)
+				{
+					CrouchToggle();
 				}
 			}
 			break;

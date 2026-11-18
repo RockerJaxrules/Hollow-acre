@@ -712,7 +712,7 @@ void AKessler::PoseUpper(float Dt)
 			// (the fist at his head's height; held up to a face close by, higher, so the light is at their eyes)
 			const bool bClose = !LanternToward.IsZero() && FVector::Dist2D(LanternToward, ShL) < 320.f;
 			const float Lift = bClose ? FMath::Clamp(LanternToward.Z + 36.f - ShL.Z, -25.f, 32.f) : 12.f;
-			const FVector UpHand = ShL + Dir * (bClose ? 50.f : 44.f) + Up * Lift - Right * 4.f;
+			const FVector UpHand = ShL + Dir * (bClose ? 58.f : 44.f) + Up * Lift - Right * 4.f;
 			const float L = FMath::SmoothStep(0.f, 1.f, LanternW);
 			Hand = FMath::Lerp(Hand, UpHand, L);
 			Pole = FMath::Lerp(Pole, ShL - Right * 25.f - Up * 35.f + Dir * 5.f, L);
@@ -828,9 +828,9 @@ void AKessler::DressUp()
 	D->SetScalarParameterValue(TEXT("AnkleZ"), BootTop);           // (high work boots)
 	D->SetScalarParameterValue(TEXT("NeckZ"), CollarTop);          // (the collar turned up against the cold)
 	// (dark: a waxed duck coat gone brown-black with years of work; a tan one under his own lantern read as bare skin)
-	D->SetVectorParameterValue(TEXT("CoatColor"), FLinearColor(0.046f, 0.04f, 0.031f));
+	D->SetVectorParameterValue(TEXT("CoatColor"), FLinearColor(0.078f, 0.052f, 0.03f));
 	D->SetVectorParameterValue(TEXT("CollarColor"), FLinearColor(0.03f, 0.02f, 0.013f));
-	D->SetVectorParameterValue(TEXT("TrousersColor"), FLinearColor(0.026f, 0.025f, 0.024f));
+	D->SetVectorParameterValue(TEXT("TrousersColor"), FLinearColor(0.019f, 0.019f, 0.021f));
 	// (a MetaHuman's face mesh runs down his neck to his upper chest, under where the body mesh stops: dressed the same
 	// way below the collar, so no bare chest shows in the coat's front; above the collar it is cut away)
 	for (USkeletalMeshComponent* C : Sk)
@@ -847,6 +847,29 @@ void AKessler::DressUp()
 				ClothesUpper->SetMaterial(i, D);
 			}
 		}
+	}
+	// his coat (Scripts/build_kessler_coat.py: a skinned mesh of its own from his body, with his reference pose: it stands
+	// off him, falls straight from the chest, a skirt to mid-thigh, the collar up), drawn in the same material's coat zone
+	if (USkeletalMesh* CoatMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/HollowAcre/Kessler/Coat/SKM_Kessler_Coat.SKM_Kessler_Coat")))
+	{
+		Coat = NewObject<USkeletalMeshComponent>(Man, TEXT("KesslerCoat"));
+		Coat->SetSkeletalMeshAsset(CoatMesh);
+		Coat->SetupAttachment(Body.Get());
+		Coat->RegisterComponent();
+		Coat->SetLeaderPoseComponent(Shown ? static_cast<USkinnedMeshComponent*>(Shown) : static_cast<USkinnedMeshComponent*>(Body.Get()));
+		Coat->SetForcedLOD(1);           // (only its first level is the coat: the copy's lower levels are still his body)
+		UMaterialInstanceDynamic* Cd = UMaterialInstanceDynamic::Create(Cloth, this);
+		Cd->CopyParameterOverrides(D);
+		Cd->SetScalarParameterValue(TEXT("ClothOut"), 0.f);               // (it stands off him already)
+		Cd->SetScalarParameterValue(TEXT("Hem"), 56.f);                   // (all coat, down to the skirt's edge; its low pockets on the skirt)
+		Cd->SetScalarParameterValue(TEXT("AnkleZ"), -1000.f);
+		Cd->SetScalarParameterValue(TEXT("NeckZ"), CollarTop + 4.f);      // (its stood collar coloured, nothing cut)
+		Cd->SetVectorParameterValue(TEXT("WristP"), FLinearColor(Wr + (Wr - El).GetSafeNormal() * 4.f));   // (no glove on its cuff)
+		for (int32 i = 0; i < Coat->GetNumMaterials(); ++i)
+		{
+			Coat->SetMaterial(i, Cd);
+		}
+		UE_LOG(LogTemp, Display, TEXT("Kessler: his coat on (%d LODs in its mesh)"), CoatMesh->GetLODNum());
 	}
 	UE_LOG(LogTemp, Display, TEXT("Kessler: dressed (shoulder %s, elbow %s, wrist %s, pelvis %.0f, hem %.0f, boots %.0f, neck %.0f, collar %.0f)"), *Sh.ToString(), *El.ToString(), *Wr.ToString(), PelvisZ, Hem, BootTop, NeckZ, CollarTop);
 }

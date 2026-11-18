@@ -818,7 +818,7 @@ void AHuskHunter::Shot(const FVector& Dir)
 	// (moving as it was at the gallop, plus the round's push and a little lift as its legs go)
 	const FVector Fwd = FRotator(0.f, Yaw, 0.f).Vector();
 	Husk->Ragdoll(Fwd * Speed * 0.55f + Dir.GetSafeNormal2D() * 120.f - FVector(0.f, 0.f, 80.f),
-		FVector::CrossProduct(FVector::UpVector, Fwd).GetSafeNormal() * -160.f);
+		FVector::CrossProduct(FVector::UpVector, Fwd).GetSafeNormal() * -160.f, Dir);
 	SetState(EState::Away, TEXT("shot"));
 	Speed = 0.f;
 }

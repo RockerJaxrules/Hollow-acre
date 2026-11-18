@@ -116,9 +116,9 @@ c *= lerp(1.0, 0.7, saturate(edge));
 c = lerp(c, CollarColor, collar * coat);
 float3 tr = Trousers * lerp(0.75, 1.05, saturate(0.5 + 0.5 * Fold.w));
 c = lerp(c, tr, trousers);
-float3 bt = float3(0.032, 0.021, 0.014) * lerp(1.0, 1.5, saturate((P.z - (Ankle - 4.0)) / 4.0));   // (a scuffed, paler top)
+float3 bt = float3(0.009, 0.007, 0.006) * lerp(1.0, 1.6, saturate((P.z - (Ankle - 4.0)) / 4.0));   // (near black; a scuffed, paler top)
 c = lerp(c, bt, boots);
-c = lerp(c, float3(0.11, 0.07, 0.04) * lerp(0.8, 1.1, saturate(0.5 + 0.5 * Fold.w)), glove);
+c = lerp(c, float3(0.045, 0.029, 0.016) * lerp(0.8, 1.1, saturate(0.5 + 0.5 * Fold.w)), glove);
 return c;
 """
 

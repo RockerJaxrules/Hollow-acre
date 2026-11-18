@@ -1554,7 +1554,7 @@ void AP2Story::TickLantern(float Dt)
 		if (Once(TEXT("hello")))
 		{
 			Say(TEXT("Hello?!"), 1.f, 2.f);
-			Say(TEXT("Please... I need help."), 3.3f, 2.8f);
+			Say(TEXT("Who's there?!"), 3.3f, 2.4f);
 			SetObjective(TEXT(""));
 		}
 		if (St > 6.4f)
@@ -1577,7 +1577,7 @@ void AP2Story::TickLantern(float Dt)
 			Say(TEXT("No... no, no, no-"), 0.7f, 2.2f);
 			SetObjective(TEXT("RUN"));
 		}
-		if (St > 3.3f)
+		if (St > 2.7f)
 		{
 			// (they have turned and run from him: it breaks from the dark ahead of them, off to one side (on the side away
 			// from the buildings), into their light, straight at them; they are caught between it and the rifle)

@@ -691,7 +691,7 @@ void AHusk::Tick(float DeltaSeconds)
 	}
 }
 
-void AHusk::Ragdoll(const FVector& Velocity, const FVector& SpinDeg)
+void AHusk::Ragdoll(const FVector& Velocity, const FVector& SpinDeg, const FVector& HitDir)
 {
 	if (bRagdoll || !Body || !Body->GetPhysicsAsset())
 	{
@@ -719,6 +719,16 @@ void AHusk::Ragdoll(const FVector& Velocity, const FVector& SpinDeg)
 	Body->SetAllBodiesSimulatePhysics(true);
 	Body->SetSimulatePhysics(true);
 	Body->WakeAllRigidBodies();
+	// (no joint bends past what a body's does: its long limbs looped like tubes on the generated asset's loose limits)
+	for (FConstraintInstance* Ci : Body->Constraints)
+	{
+		if (Ci)
+		{
+			Ci->SetAngularSwing1Limit(EAngularConstraintMotion::ACM_Limited, 35.f);
+			Ci->SetAngularSwing2Limit(EAngularConstraintMotion::ACM_Limited, 35.f);
+			Ci->SetAngularTwistLimit(EAngularConstraintMotion::ACM_Limited, 20.f);
+		}
+	}
 	for (FBodyInstance* Bi : Body->Bodies)
 	{
 		if (Bi)
@@ -729,6 +739,12 @@ void AHusk::Ragdoll(const FVector& Velocity, const FVector& SpinDeg)
 		}
 	}
 	Body->SetAllPhysicsLinearVelocity(Velocity);
+	if (!HitDir.IsZero() && Body->GetBoneIndex(TEXT("head")) != INDEX_NONE)
+	{
+		// (the round's hit: its head and shoulders snapped along it)
+		Body->AddImpulse(HitDir.GetSafeNormal() * 650.f, TEXT("head"), true);
+		Body->AddImpulse(HitDir.GetSafeNormal() * 300.f, TEXT("spine_04"), true);
+	}
 	if (!SpinDeg.IsZero())
 	{
 		// (pitched forward over its front as its legs go: down on its face)
