@@ -856,8 +856,24 @@ void APart2Character::Tick(float DeltaSeconds)
 						Armful->SetMaterial(Slot, Bw);
 					}
 				}
+				Armful->SetRelativeScale3D(FVector(0.78f));
 				Armful->RegisterComponent();
+				ArmfulFill = NewObject<UPointLightComponent>(this, TEXT("ArmfulFill"));
+				ArmfulFill->SetupAttachment(Camera);
+				ArmfulFill->SetIntensityUnits(ELightUnits::Candelas);
+				ArmfulFill->SetIntensity(0.f);
+				ArmfulFill->SetAttenuationRadius(70.f);
+				ArmfulFill->SetUseTemperature(true);
+				ArmfulFill->SetTemperature(3600.f);
+				ArmfulFill->SetCastShadows(false);
+				ArmfulFill->SetVolumetricScatteringIntensity(0.f);
+				ArmfulFill->SetRelativeLocation(FVector(70.f, 0.f, -40.f));
+				ArmfulFill->RegisterComponent();
 			}
+		}
+		if (ArmfulFill)
+		{
+			ArmfulFill->SetIntensity(bCarryingWood && IsLightOn() ? 0.35f : 0.f);
 		}
 		if (Armful)
 		{

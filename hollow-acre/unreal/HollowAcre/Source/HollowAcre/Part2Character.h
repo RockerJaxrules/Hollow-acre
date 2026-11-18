@@ -179,6 +179,8 @@ protected:
 	float NightBias = 0.f;
 	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> Armful;
+	UPROPERTY()
+	TObjectPtr<class UPointLightComponent> ArmfulFill;
 	float RoofCheckedAt = -1.f;
 	FRotator ShiverRot = FRotator::ZeroRotator, JoltRot = FRotator::ZeroRotator;
 	// the breath in the cold: each breath out a puff of vapour from under the eyes, drifting out and up and spreading

@@ -923,7 +923,7 @@ void AEndingDirector::WakeBeats(float RealDt)
 				{
 					const float Dip = FMath::Sin(RealTime * 5.3f) > -0.82f ? 1.f : 0.08f;
 					const bool bSurge = RealTime < HeadlightSurgeUntil;
-					Headlights[i]->SetIntensity(HeadlightBase[i] * (bSurge ? 0.62f : 0.35f * Dip * Dies) * (bSurge ? 1.f : (0.62f + 0.38f * (0.5f + 0.5f * FMath::Sin(RealTime * 37.f)))));
+					Headlights[i]->SetIntensity(HeadlightBase[i] * (bSurge ? 0.45f : 0.35f * Dip * Dies) * (bSurge ? 1.f : (0.62f + 0.38f * (0.5f + 0.5f * FMath::Sin(RealTime * 37.f)))));
 				}
 			}
 			if (s >= 9.f && s - RealDt < 9.f)

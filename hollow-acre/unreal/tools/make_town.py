@@ -794,7 +794,7 @@ def shed(name, seed, W=3.7, D=3.7, H=7.5):
     door(m, walls['front'], W / 2 - 45, 90, 6.7 * FT, state='open')      # (tall enough to walk in standing on its floor)
     # its one window, over the bench on the back wall, boarded with a gap (the journal's "It stood at the window")
     window(m, walls['back'], 108.0, 118.0, 76.0, 62.0, state='boarded_gap', trimmat='barewood')
-    finish_walls(m, walls, 'bb', 'bb', 0.025)    # (a few boards gone: thin cracks of night, not missing walls)
+    finish_walls(m, walls, 'bb', 'bb', 0.0)      # (whole: no boards gone; judge round 9: the gaps read as a slatted railing, not a shelter)
     inner_frame(m, walls)
     shed_clutter(m, W, D)
     # its floor: boards front to back on sleepers, a finger's gap between them, one split and one short by the door

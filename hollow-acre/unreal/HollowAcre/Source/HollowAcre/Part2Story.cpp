@@ -171,7 +171,7 @@ bool AP2Story::GetObjective(FString& Out, float& Alpha) const
 	}
 	// (shown a while when it changes, then faded down to a faint reminder)
 	const float s = Clock - ObjectiveAt;
-	Alpha = s < 0.6f ? s / 0.6f : s < 6.f ? 1.f : FMath::Max(0.6f, 1.f - (s - 6.f) / 1.5f);
+	Alpha = s < 0.6f ? s / 0.6f : s < 6.f ? 1.f : FMath::Max(0.85f, 1.f - (s - 6.f) / 1.5f);
 	Out = Objective;
 	return Alpha > 0.01f;
 }
@@ -461,8 +461,8 @@ void AP2Story::FurnishShed()
 				const bool bChar = N.StartsWith(TEXT("char"));
 				D->SetVectorParameterValue(TEXT("Color"), bNickel ? FLinearColor(0.075f, 0.07f, 0.065f) : bPipe ? FLinearColor(0.05f, 0.035f, 0.028f) :
 					bChar ? FLinearColor(0.012f, 0.01f, 0.009f) : FLinearColor(0.018f, 0.017f, 0.017f));
-				D->SetScalarParameterValue(TEXT("Metallic"), bNickel ? 0.9f : bChar ? 0.f : 0.55f);
-				D->SetScalarParameterValue(TEXT("Roughness"), bNickel ? 0.45f : bPipe ? 0.85f : bChar ? 0.95f : 0.68f);
+				D->SetScalarParameterValue(TEXT("Metallic"), bNickel ? 0.6f : bChar ? 0.f : 0.22f);
+				D->SetScalarParameterValue(TEXT("Roughness"), bNickel ? 0.6f : bPipe ? 0.88f : bChar ? 0.95f : 0.84f);
 			}
 			Sc->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 			Sc->SetCollisionResponseToAllChannels(ECR_Block);
@@ -881,6 +881,15 @@ void AP2Story::Beats(float Dt)
 				bCrossInHeadlight = false;
 				SpawnCrosser();
 				PassAt = Clock;
+				if (Crosser)
+				{
+					TArray<UPrimitiveComponent*> Pp;
+					Crosser->GetComponents<UPrimitiveComponent>(Pp);
+					for (UPrimitiveComponent* Pc : Pp)
+					{
+						Pc->SetLightingChannels(true, true, false);    // (pale under the moon, as at the doorway)
+					}
+				}
 			}
 		}
 	}
@@ -900,9 +909,14 @@ void AP2Story::Beats(float Dt)
 	// (the armful taken, turning to go: something tall goes fast between the cabins at the edge of the light, gone)
 	if (WoodTakenAt > 0.f && Clock - WoodTakenAt > 1.4f && Player.IsValid() && Once(TEXT("between_cabins")))
 	{
-		const FVector Lk = Player->LookDir().GetSafeNormal2D();
+		// (ahead, on the way back toward the shed, across the gap between the cabins, 17 m off)
+		FVector Lk = Player->LookDir().GetSafeNormal2D();
+		if (Stove)
+		{
+			Lk = (Stove->GetActorLocation() - Player->GetActorLocation()).GetSafeNormal2D();
+		}
 		const FVector Ac = FVector::CrossProduct(FVector::UpVector, Lk);
-		const FVector Mid = Player->GetActorLocation() - Lk * 1300.f;     // (behind: seen as the player turns back toward the shed)
+		const FVector Mid = Player->GetActorLocation() + Lk * 1700.f;
 		CrossFrom = Mid - Ac * 650.f;
 		CrossTo = Mid + Ac * 650.f;
 		CrossFrom.Z = GroundAt(CrossFrom);
@@ -911,7 +925,9 @@ void AP2Story::Beats(float Dt)
 		bCrossDash = true;
 		SpawnCrosser();
 		Event(TEXT("husk_gallop"));
-		UE_LOG(LogTemp, Display, TEXT("P2Story %.2f beat: between the cabins (it crosses behind, 13 m off)"), Clock);
+		Say(TEXT("...!"), 0.9f, 1.4f);
+		Say(TEXT("Keep moving. Don't run with it. Keep moving."), 2.8f, 3.f);
+		UE_LOG(LogTemp, Display, TEXT("P2Story %.2f beat: between the cabins (it crosses ahead, 17 m off)"), Clock);
 	}
 	// (the fire burning down until it is fed; fed, it comes back up)
 	if (FireDyingFrom > 0.f)
