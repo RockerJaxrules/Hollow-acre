@@ -156,7 +156,7 @@ FTransform AEndingDirector::WakeArmHold(FWakeHold& C, const FTransform& Eye, con
 	float Lu, Lf;
 	Arms->ArmLengths(1, Lu, Lf);
 	FVector W = WantWrist;
-	const float Reach = 0.9f * (Lu + Lf);
+	const float Reach = 0.96f * (Lu + Lf);   // (out near arm's length, the elbow nearly straight, as the owner held the can)
 	if (FVector::Dist(W, Sh) > Reach)
 	{
 		W = Sh + (W - Sh).GetSafeNormal() * Reach;
@@ -1086,9 +1086,9 @@ void AEndingDirector::WakeBeats(float RealDt)
 	{
 		// (the eyes stay on the flashlight as it comes up into view and clicks on: on its head, where the light will come from)
 		const FVector Head = Flashlight->GetRootComponent()->GetRelativeTransform().TransformPosition(FVector(21.f, 0.f, 0.f));
-		const float On = WRamp(w, 11.75f, 12.6f) * (1.f - WRamp(w, 13.8f, 14.6f));   // (the head follows the hand late and gently)
+		const float On = WRamp(w, 11.45f, 12.3f) * (1.f - WRamp(w, 13.8f, 14.6f));   // (the head follows the hand late and gently)
 		const FQuat Look = FRotationMatrix::MakeFromXZ(Head - Eye.GetLocation(), WUp).ToQuat();
-		Eye.SetRotation(FQuat::Slerp(Eye.GetRotation(), Look, On * 0.45f));
+		Eye.SetRotation(FQuat::Slerp(Eye.GetRotation(), Look, On * 0.55f));
 	}
 	if (w < 7.05f)
 	{
@@ -1329,11 +1329,11 @@ void AEndingDirector::WakeBeats(float RealDt)
 					static float GripTilt = -1000.f;
 					if (GripTilt < -999.f)
 					{
-						GripTilt = -30.f;
+						GripTilt = -40.f;
 						FParse::Value(FCommandLine::Get(), TEXT("-wakegriptilt="), GripTilt);
 					}
 					Arms->GripTilt[1] = GripTilt;
-					ShowT = Arms->HandleFor(1, WakeArmHold(WakeShowHold, Eye, OverLining(52.f, 12.f, 14.f), Lamp, ShowPole, TEXT("held up to look"), -0.6f));
+					ShowT = Arms->HandleFor(1, WakeArmHold(WakeShowHold, Eye, OverLining(64.f, 14.f, 18.f), Lamp, ShowPole, TEXT("held up to look"), -0.6f));
 					if (Show < 1.f && WakeChestHold.bSet && WakeShowHold.bSet)
 					{
 						// (between the chest hold and this one, blended as the arm moves, not as the flashlight's frame does: the
@@ -1345,7 +1345,7 @@ void AEndingDirector::WakeBeats(float RealDt)
 						Mid.Psi = Ang(WakeChestHold.Psi, WakeShowHold.Psi, Show);
 						Mid.Flex = FMath::Lerp(WakeChestHold.Flex, WakeShowHold.Flex, Show);
 						Mid.Dev = FMath::Lerp(WakeChestHold.Dev, WakeShowHold.Dev, Show);
-						ShowT = Arms->HandleFor(1, WakeArmHold(Mid, Eye, FMath::Lerp(OverLining(30.f, 12.f, 10.f), OverLining(52.f, 12.f, 14.f), Show), Lamp, ShowPole, TEXT("between")));
+						ShowT = Arms->HandleFor(1, WakeArmHold(Mid, Eye, FMath::Lerp(OverLining(30.f, 12.f, 10.f), OverLining(64.f, 14.f, 18.f), Show), Lamp, ShowPole, TEXT("between")));
 						bShowBlendedByArm = true;
 					}
 				}
@@ -1647,8 +1647,8 @@ void AEndingDirector::WakeBeats(float RealDt)
 				KPress.W = KT.W - WUp * 0.6f;
 				KPress.Open = 0.f;
 				KPress.Close = 0.9f;
-				FKey KL1 = Mix(KT, KH, 0.15f, 11.55f, KT.W + WUp * 2.f, 0.f, 1.f);
-				FKey KL2 = Mix(KT, KH, 0.55f, 11.85f, FMath::Lerp(KT.W, KH.W, 0.55f) + WUp * 3.f, 0.f, 1.f);
+				FKey KL1 = Mix(KT, KH, 0.15f, 11.55f, KT.W + WUp * 7.f, 0.f, 1.f);   // (straight up off the lining first)
+				FKey KL2 = Mix(KT, KH, 0.55f, 11.85f, FMath::Lerp(KT.W, KH.W, 0.5f) + WUp * 8.f, 0.f, 1.f);   // (then forward and up)
 				// (through the lift the elbow stays down on the lining, as the owner's did: the pole straight into the lining,
 				// the guard lifting it just clear)
 				KL1.Pole = KL2.Pole = -Arms->FloorN;
@@ -1724,20 +1724,55 @@ void AEndingDirector::WakeBeats(float RealDt)
 								if (!T1.IsNearlyZero() && !T2.IsNearlyZero())
 								{
 									float Tot = FMath::Atan2(FVector::DotProduct(FVector::CrossProduct(T1, T2), A), FVector::DotProduct(T1, T2));
-									if (WakeLiftRollSet)
+									if (!WakeLiftRollSet)
+									{
+										// (the owner: "a 180 to the right, not a full 360 to the left": the right hand turns palm-up the way a
+										// wrist does, the thumb rolling up and out, so halfway round the thumb points up. Of the two ways round,
+										// the one with the thumb up at its middle)
+										const FVector Ep = Arms->ElbowFor(1, ShAt, Cur.W, Arms->PoleClearOfFloor(1, ShAt, Cur.W, Cur.Pole, 5.f));
+										auto ThumbUpAt = [&](float Way)
+										{
+											const FTransform Hm = Arms->HandFromForearm(1, Ep, Cur.W, Cur.Flex, Cur.Dev, FQuat(A, Way * 0.5f).RotateVector(T1));
+											FVector Fi, Pa, Ac;
+											Arms->HandAxes(1, Hm.GetRotation(), Fi, Pa, Ac);
+											return FVector::DotProduct(-Ac, Arms->FloorN);
+										};
+										const float Other = Tot > 0.f ? Tot - 2.f * PI : Tot + 2.f * PI;
+										if (ThumbUpAt(Other) > ThumbUpAt(Tot))
+										{
+											Tot = Other;
+										}
+										UE_LOG(LogTemp, Display, TEXT("WakeLiftRoll the wrist turns %.0f degrees palm-up as it lifts (the thumb up halfway)"), FMath::RadiansToDegrees(Tot));
+									}
+									else
 									{
 										while (Tot - WakeLiftRoll > PI) { Tot -= 2.f * PI; }
 										while (Tot - WakeLiftRoll < -PI) { Tot += 2.f * PI; }
 									}
 									WakeLiftRoll = Tot;
 									WakeLiftRollSet = true;
-									const float g = FMath::SmoothStep(KT.T + 0.08f, KH.T - 0.1f, w);
-									Cur.Palm = FQuat(A, Tot * g).RotateVector(T1);
+									// (no more than a half turn, as a forearm can: the owner's "a 180 to the right")
+									const float Turn = FMath::Clamp(Tot, -PI, PI);
+									const float g = FMath::SmoothStep(KT.T + 0.2f, KH.T - 0.1f, w);   // (once it's off the lining)
+									Cur.Palm = FQuat(A, Turn * g).RotateVector(T1);
 								}
 							}
 						}
 					}
 					Cur.Pole = Arms->PoleClearOfFloor(1, ShAt, Cur.W, Cur.Pole, 5.f);
+					if (w >= KH.T && WakeLiftRollSet)
+					{
+						// (held as the wrist arrived, half turned palm-up; eased into the chest hold as it lowers)
+						const FVector A = (Cur.W - Arms->ElbowFor(1, ShAt, Cur.W, Cur.Pole)).GetSafeNormal();
+						auto Perp = [&](FVector V) { V -= A * FVector::DotProduct(V, A); return V.GetSafeNormal(); };
+						const FVector T1 = Perp(KT.Palm), Th = Perp(KH.Palm);
+						if (!T1.IsNearlyZero() && !Th.IsNearlyZero())
+						{
+							const FVector Turned = FQuat(A, FMath::Clamp(WakeLiftRoll, -PI, PI)).RotateVector(T1);
+							const float u = WRamp(w, 13.9f, 14.8f);
+							Cur.Palm = (Turned * (1.f - u) + Th * u).GetSafeNormal();
+						}
+					}
 					R.Hand = Arms->HandFromForearm(1, Arms->ElbowFor(1, ShAt, Cur.W, Cur.Pole), Cur.W, Cur.Flex, Cur.Dev, Cur.Palm);
 					R.Pole = Cur.Pole;
 					R.Open = Cur.Open;
