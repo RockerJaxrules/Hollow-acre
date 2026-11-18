@@ -45,6 +45,11 @@ def main():
         for s in slots:
             s.material_interface = snow if name.startswith('Wake_Snow') else part
         mesh.set_editor_property('static_materials', slots)
+        # (no Nanite on these small props: no gain at their size, and their materials (the flames' additive) can't be
+        # drawn on it; see fix_material_usage.py)
+        ns = mesh.get_editor_property('nanite_settings')
+        ns.set_editor_property('enabled', False)
+        mesh.set_editor_property('nanite_settings', ns)
         eal.save_loaded_asset(mesh)
         # (the imported materials the OBJ named are not used: removed)
         for p in task.get_editor_property('imported_object_paths'):

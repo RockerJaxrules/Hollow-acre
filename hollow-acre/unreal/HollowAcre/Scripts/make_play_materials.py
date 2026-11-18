@@ -154,6 +154,7 @@ def hot_iron():
     if eal.does_asset_exist(path):
         eal.delete_asset(path)
     m = tools.create_asset('M_HotIron', DEST, unreal.Material, unreal.MaterialFactoryNew())
+    m.set_editor_property('used_with_nanite', True)       # (else the game draws the default grey on a Nanite mesh)
     col = mel.create_material_expression(m, unreal.MaterialExpressionConstant3Vector, -500, -200)
     col.set_editor_property('constant', unreal.LinearColor(0.018, 0.017, 0.017, 1.0))
     mel.connect_material_property(col, '', unreal.MaterialProperty.MP_BASE_COLOR)
@@ -191,6 +192,7 @@ def run():
         unreal.log('[play mats] M_FireGlow already there')
         return
     m = tools.create_asset('M_FireGlow', DEST, unreal.Material, unreal.MaterialFactoryNew())
+    m.set_editor_property('used_with_nanite', True)
     base = mel.create_material_expression(m, unreal.MaterialExpressionConstant3Vector, -400, -100)
     base.set_editor_property('constant', unreal.LinearColor(0.05, 0.035, 0.02, 1.0))
     mel.connect_material_property(base, '', unreal.MaterialProperty.MP_BASE_COLOR)

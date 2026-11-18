@@ -72,6 +72,7 @@ def surface_mat(slot, folder, scale, tint, metal, snowy):
         mel.delete_all_material_expressions(m)
     else:
         m = tools.create_asset(name, MATS, unreal.Material, unreal.MaterialFactoryNew())
+    m.set_editor_property('used_with_nanite', True)        # (the game draws the default grey on a Nanite mesh without it)
     uv = mel.create_material_expression(m, unreal.MaterialExpressionTextureCoordinate, -1600, 0)
     uv.set_editor_property('u_tiling', scale)
     uv.set_editor_property('v_tiling', scale)
