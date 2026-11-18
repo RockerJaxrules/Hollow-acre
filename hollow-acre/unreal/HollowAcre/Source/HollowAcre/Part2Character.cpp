@@ -1420,7 +1420,7 @@ void APart2Character::StoryAutopilot(float Dt)
 			// (out round the door's leaf: it hangs open inward 75 degrees from its hinge on the doorway's -Y side, its free
 			// edge 87 cm in (make_town.py door(), state 'open'); a way from the stove behind it got caught between it and
 			// the wall. So: past its free edge on the +Y side, then straight out along the doorway's +Y half)
-			const FVector Inner = T.TransformPosition(FVector(-125.f, 15.f, 0.f));
+			const FVector Inner = T.TransformPosition(FVector(-150.f, 12.f, 0.f));
 			const FVector DoorOut = T.TransformPosition(FVector(170.f, 12.f, 0.f));
 			const FVector CornerF = T.TransformPosition(FVector(130.f, -340.f, 0.f));
 			const FVector CornerB = T.TransformPosition(FVector(-500.f, -340.f, 0.f));
@@ -1449,6 +1449,28 @@ void APart2Character::StoryAutopilot(float Dt)
 				else if (Ls == 1 && LanternLeg < (int32)UE_ARRAY_COUNT(Legs))
 				{
 					FVector G = Legs[LanternLeg];
+					// (caught on something on the way out (the door's leaf, the jamb): back into the middle of the shed a
+					// moment and take the doorway again from there)
+					if (LanternLeg <= 1 && GetVelocity().Size2D() < 15.f && StepT > 3.5f && BackOffT <= 0.f)
+					{
+						StuckT += Dt;
+						if (StuckT > 0.7f)
+						{
+							StuckT = 0.f;
+							BackOffT = 1.1f;
+							LanternLeg = 0;
+							UE_LOG(LogTemp, Display, TEXT("Part2Story auto 14: caught on the way out at shed %s: backing off"), *T.InverseTransformPosition(GetActorLocation()).ToCompactString());
+						}
+					}
+					else
+					{
+						StuckT = 0.f;
+					}
+					if (BackOffT > 0.f)
+					{
+						BackOffT -= Dt;
+						G = T.TransformPosition(FVector(-215.f, 0.f, 0.f));
+					}
 					if (LanternLeg == 1)
 					{
 						// (through the doorway: after a point 90 cm ahead on its middle line, so the body comes onto the
@@ -1462,9 +1484,11 @@ void APart2Character::StoryAutopilot(float Dt)
 					}
 					WantYaw = (G - GetActorLocation()).Rotation().Yaw;
 					WantPitch = -6.f;
-					TurnRate = 120.f;
-					bWalk = true;
-					if (FVector::Dist2D(G, GetActorLocation()) < 70.f)
+					TurnRate = 200.f;
+					// (turned to it first, then walked: walking through a wide turn it arced into the doorway's jamb, and
+					// the doorway leaves the body barely 11 cm either side)
+					bWalk = FMath::Abs(FMath::FindDeltaAngleDegrees(Cr.Yaw, WantYaw)) < 20.f;
+					if (BackOffT <= 0.f && FVector::Dist2D(G, GetActorLocation()) < (LanternLeg == 0 ? 30.f : 70.f))
 					{
 						++LanternLeg;
 					}

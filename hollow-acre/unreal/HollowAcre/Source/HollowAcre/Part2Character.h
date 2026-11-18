@@ -148,6 +148,7 @@ protected:
 	int32 Page = 0;
 	float StutterUntil = -1.f;
 	int32 LanternLeg = 0;
+	float StuckT = 0.f, BackOffT = 0.f;
 	float StoryAutoT = 0.f;
 	int32 StoryStep = 0;
 	float StepT = 0.f;

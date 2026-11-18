@@ -794,7 +794,19 @@ void AP2Story::Beats(float Dt)
 				if (It->GetActorLabel() == TEXT("Town Shed"))
 				{
 					const FTransform T = It->GetActorTransform();
-					Player->SetActorLocation(T.TransformPosition(FVector(-200.f, -40.f, 100.f)), false, nullptr, ETeleportType::TeleportPhysics);
+					// (-p2lanternat=X,Y: somewhere else in the shed, in its own frame)
+					FVector L(-200.f, -40.f, 100.f);
+					FString At;
+					if (FParse::Value(FCommandLine::Get(), TEXT("-p2lanternat="), At, false))
+					{
+						FString Xs, Ys;
+						if (At.Split(TEXT(","), &Xs, &Ys))
+						{
+							L.X = FCString::Atof(*Xs);
+							L.Y = FCString::Atof(*Ys);
+						}
+					}
+					Player->SetActorLocation(T.TransformPosition(L), false, nullptr, ETeleportType::TeleportPhysics);
 				}
 			}
 			bHasMatches = bStoveLit = true;
