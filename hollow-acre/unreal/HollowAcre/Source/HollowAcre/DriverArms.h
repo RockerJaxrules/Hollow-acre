@@ -201,6 +201,8 @@ public:
 	 *  hand, sampled at Time, onto the body (as RigSolveArm sets them from the live rig). */
 	UPROPERTY() TObjectPtr<class UAnimSequence> ArmAnim;
 	bool AnimArm(int32 Side, float Time);
+	/** A lift the hand must take (car frame), from what it holds hitting the floor (the director sets it each frame). */
+	FVector ExtraLift[2] = {FVector::ZeroVector, FVector::ZeroVector};
 	/** What RigSolveArm last gave the rig (its own space): the hand's IK control and the elbow's pole control. */
 	FTransform RigLastCtrl[2];
 	FVector RigLastPv[2] = {FVector::ZeroVector, FVector::ZeroVector};

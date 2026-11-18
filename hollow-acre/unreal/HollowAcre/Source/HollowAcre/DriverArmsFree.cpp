@@ -375,7 +375,25 @@ void ADriverArms::FreeFollow()
 		const FQuat HandRot = FQuat::Slerp(HangRot, F.Hand.GetRotation(), e);
 		const FVector PoleWay = F.Pole.IsNearlyZero() ? ChestTurn.RotateVector(GripElbow[Side] - GripShoulder[Side]).GetSafeNormal() : F.Pole.GetSafeNormal();
 		const FVector PoleClear = F.bRig ? PoleClearOfFloor(Side, BoneCar(Side == 0 ? TEXT("upperarm_l") : TEXT("upperarm_r")), Wrist, PoleWay, 5.f) : PoleWay;
-		const bool bRigged = F.bRig && (F.AnimTime >= 0.f && ArmAnim ? AnimArm(Side, F.AnimTime) : RigSolveArm(Side, FTransform(HandRot, Wrist), PoleClear));
+		bool bRigged = false;
+		if (F.bRig && F.AnimTime >= 0.f && ArmAnim)
+		{
+			// the arm as keyed in Sequencer; then collision: should the fingers press into the floor (Lift, from the passes
+			// before) or what the hand holds hit it (ExtraLift), the hand is lifted clear by the rig's IK, its elbow kept
+			// on the keyed side
+			bRigged = AnimArm(Side, F.AnimTime);
+			const FVector Up = Lift + ExtraLift[Side];
+			if (bRigged && !Up.IsNearlyZero(0.05f))
+			{
+				const FTransform H = HandNow(Side);
+				const FVector ShA = BoneCar(Side == 0 ? TEXT("upperarm_l") : TEXT("upperarm_r")), ElA = BoneCar(Side == 0 ? TEXT("lowerarm_l") : TEXT("lowerarm_r"));
+				RigSolveArm(Side, FTransform(H.GetRotation(), H.GetLocation() + Up), (ElA - (ShA + H.GetLocation()) * 0.5f).GetSafeNormal());
+			}
+		}
+		else
+		{
+			bRigged = F.bRig && RigSolveArm(Side, FTransform(HandRot, Wrist + ExtraLift[Side]), PoleClear);
+		}
 		if (!bRigged)
 		{
 		// two-bone: the elbow toward its pole

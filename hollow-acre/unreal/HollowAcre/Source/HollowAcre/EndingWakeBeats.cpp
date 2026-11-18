@@ -144,7 +144,7 @@ namespace
 	}
 }
 
-FTransform AEndingDirector::WakeArmHold(FWakeHold& C, const FTransform& Eye, const FVector& WantWrist, const FVector& Lamp, FVector& PoleOut, const TCHAR* Name)
+FTransform AEndingDirector::WakeArmHold(FWakeHold& C, const FTransform& Eye, const FVector& WantWrist, const FVector& Lamp, FVector& PoleOut, const TCHAR* Name, float BackToEyes)
 {
 	// the flashlight held as a body holds it: the wrist where wanted (within 90% of the arm's reach); the elbow swung about
 	// the shoulder-wrist line; the forearm turned and the wrist bent (kept comfortable) so the light points along Lamp and
@@ -197,7 +197,7 @@ FTransform AEndingDirector::WakeArmHold(FWakeHold& C, const FTransform& Eye, con
 			Parts[4] = HeadClear;
 		}
 		// (the owner's: the elbow down by the lining, the forearm in from below; the back of the hand to the eyes)
-		return 1.4f * Light + 0.35f * Back - 0.0015f * (FMath::Square(Flex + 15.f) + FMath::Square(Dev - 8.f)) - 0.05f * FMath::Square(FMath::Max(0.f, 5.f - ElbowUp)) -
+		return 1.4f * Light + BackToEyes * Back - 0.0015f * (FMath::Square(Flex + 15.f) + FMath::Square(Dev - 8.f)) - 0.05f * FMath::Square(FMath::Max(0.f, 5.f - ElbowUp)) -
 			0.02f * FMath::Square(FMath::Max(0.f, ElbowUp - 9.f)) - 0.6f * InView - 0.05f * FMath::Square(FMath::Max(0.f, -HeadClear));
 	};
 	if (!C.bSet)
@@ -1086,9 +1086,9 @@ void AEndingDirector::WakeBeats(float RealDt)
 	{
 		// (the eyes stay on the flashlight as it comes up into view and clicks on: on its head, where the light will come from)
 		const FVector Head = Flashlight->GetRootComponent()->GetRelativeTransform().TransformPosition(FVector(21.f, 0.f, 0.f));
-		const float On = WRamp(w, 11.55f, 12.3f) * (1.f - WRamp(w, 13.7f, 14.2f));
+		const float On = WRamp(w, 11.75f, 12.6f) * (1.f - WRamp(w, 13.8f, 14.6f));   // (the head follows the hand late and gently)
 		const FQuat Look = FRotationMatrix::MakeFromXZ(Head - Eye.GetLocation(), WUp).ToQuat();
-		Eye.SetRotation(FQuat::Slerp(Eye.GetRotation(), Look, On * 0.7f));
+		Eye.SetRotation(FQuat::Slerp(Eye.GetRotation(), Look, On * 0.45f));
 	}
 	if (w < 7.05f)
 	{
@@ -1293,7 +1293,7 @@ void AEndingDirector::WakeBeats(float RealDt)
 	{
 		// (just picked up: brought up in front of the eyes, side-on, its head to the left, so the thumb on the switch and the
 		// lens are seen and the beam visibly leaves it across the lining; then down to the chest and along the eyes)
-		const float Show = WRamp(w, 11.3f, 11.9f) * (1.f - WRamp(w, 13.9f, 14.6f));
+		const float Show = WRamp(w, 11.3f, 11.9f) * (1.f - WRamp(w, 13.9f, 14.8f));
 		if (Show > 0.f)
 		{
 			// (held as the owner holds the bottle: low in front and a little right, standing up in the hand, the light end up
@@ -1321,8 +1321,11 @@ void AEndingDirector::WakeBeats(float RealDt)
 					const FVector N = Arms->FloorN;
 					FVector F = Eye.GetRotation().GetAxisX();
 					F = (F - N * FVector::DotProduct(F, N)).GetSafeNormal();
-					const FVector Lamp = (F + N * 0.9f).GetSafeNormal();
-					ShowT = Arms->HandleFor(1, WakeArmHold(WakeShowHold, Eye, OverLining(36.f, 10.f, 12.f), Lamp, ShowPole, TEXT("held up to look")));
+					// (the owner's can, their latest take: the arm out in front nearly straight, turned palm up as it lifts so the
+					// palm faces the eyes, the light up, to the left and away)
+					const FVector Rt = (Eye.GetRotation().GetAxisY() - N * FVector::DotProduct(Eye.GetRotation().GetAxisY(), N)).GetSafeNormal();
+					const FVector Lamp = (F * 0.85f + N * 0.4f - Rt * 0.35f).GetSafeNormal();
+					ShowT = Arms->HandleFor(1, WakeArmHold(WakeShowHold, Eye, OverLining(52.f, 12.f, 14.f), Lamp, ShowPole, TEXT("held up to look"), -0.6f));
 					if (Show < 1.f && WakeChestHold.bSet && WakeShowHold.bSet)
 					{
 						// (between the chest hold and this one, blended as the arm moves, not as the flashlight's frame does: the
@@ -1334,7 +1337,7 @@ void AEndingDirector::WakeBeats(float RealDt)
 						Mid.Psi = Ang(WakeChestHold.Psi, WakeShowHold.Psi, Show);
 						Mid.Flex = FMath::Lerp(WakeChestHold.Flex, WakeShowHold.Flex, Show);
 						Mid.Dev = FMath::Lerp(WakeChestHold.Dev, WakeShowHold.Dev, Show);
-						ShowT = Arms->HandleFor(1, WakeArmHold(Mid, Eye, FMath::Lerp(OverLining(28.f, 12.f, 10.f), OverLining(36.f, 10.f, 12.f), Show), Lamp, ShowPole, TEXT("between")));
+						ShowT = Arms->HandleFor(1, WakeArmHold(Mid, Eye, FMath::Lerp(OverLining(28.f, 12.f, 10.f), OverLining(52.f, 12.f, 14.f), Show), Lamp, ShowPole, TEXT("between")));
 						bShowBlendedByArm = true;
 					}
 				}
@@ -1608,7 +1611,7 @@ void AEndingDirector::WakeBeats(float RealDt)
 				const FTransform RStartA = PalmAtArm(RStart.TransformPosition(Arms->PalmSkinLocal(1)), -8.f, 6.f, Down, PoleTake);
 				const FVector StartAt = RStartA.GetLocation();
 				const FVector PassAt = FMath::Lerp(StartAt - Rd * 2.5f + WUp * 1.f, LiningAt + RightSide * 9.f, 0.55f) + WUp * 4.f;
-				const FKey KT = KeyOf(WakeTakeHand, PoleTake, 11.22f, 0.2f, 0.35f);
+				const FKey KT = KeyOf(WakeTakeHand, PoleTake, 11.22f, 0.f, 0.5f);
 				const FKey KH = KeyOf(HeldHand(HoldAim), PoleHold, 12.40f, 0.f, 1.f);
 				auto Mix = [](const FKey& A, const FKey& B, float f, float T, const FVector& W, float Open, float Close)
 				{
@@ -1629,8 +1632,8 @@ void AEndingDirector::WakeBeats(float RealDt)
 				KPull.W = KStart.W - Rd * 2.5f + WUp * 1.f;
 				KPull.Open = 0.15f;
 				const FKey KPass = KeyOf(PalmAtArm(PassAt, -12.f, 4.f, Down, PoleTake), PoleTake, 10.85f, 0.3f, 0.f);
-				FKey KBeside = KeyOf(PalmAtArm(LiningAt + RightSide * 6.f + WUp * 4.f, -14.f, 6.f, Down, PoleTake), PoleTake, 11.05f, 0.8f, 0.f);
-				KBeside = Mix(KBeside, KT, 0.4f, 11.05f, KBeside.W, 0.8f, 0.f);
+				FKey KBeside = KeyOf(PalmAtArm(LiningAt + RightSide * 6.f + WUp * 4.f, -14.f, 6.f, Down, PoleTake), PoleTake, 11.05f, 0.35f, 0.3f);
+				KBeside = Mix(KBeside, KT, 0.4f, 11.05f, KBeside.W, 0.35f, 0.3f);
 				FKey KPress = KT;
 				KPress.T = 11.36f;
 				KPress.W = KT.W - WUp * 0.6f;
@@ -1838,6 +1841,22 @@ void AEndingDirector::WakeBeats(float RealDt)
 			FTransform InHand;
 			InHand.Blend(FlashInHandAtGrab, Gripped, WRamp(w, FlashGrabW, FlashGrabW + FlashTurnSecs));
 			Fl = InHand * HandIs;
+		}
+		if (bFlashHeld && Arms && Arms->bFloorGuard)
+		{
+			// (collision with the lining: the flashlight's body, ~2 cm round from its tail to its head, kept out of it; the
+			// hand that holds it is lifted the same next frame)
+			const FVector Tail = Fl.GetLocation(), HeadP = Fl.TransformPosition(FVector(25.f, 0.f, 0.f));
+			const float Low = FMath::Min(FVector::DotProduct(Tail - Arms->FloorAt, Arms->FloorN), FVector::DotProduct(HeadP - Arms->FloorAt, Arms->FloorN)) - 2.1f;
+			if (Low < 0.f && Arms->FloorBox.IsInside(FVector2D(Tail.X, Tail.Y)))
+			{
+				Fl.AddToTranslation(Arms->FloorN * -Low);
+				Arms->ExtraLift[1] = Arms->FloorN * -Low;
+			}
+			else
+			{
+				Arms->ExtraLift[1] = FVector::ZeroVector;
+			}
 		}
 		Flashlight->GetRootComponent()->SetRelativeTransform(Fl);
 		if (WakeOnce(TEXT("click"), 13.35f, w))
