@@ -99,6 +99,7 @@ protected:
 	float StandW = 1.f;          // (0: as the take walks .. 1: standing)
 	FVector PelvisRef = FVector::ZeroVector, PelvisWas = FVector::ZeroVector, StepWas = FVector::ZeroVector;
 	FVector FootWas[2] = {FVector::ZeroVector, FVector::ZeroVector};
+	int32 PlantWas = -1;
 	FString Playing;
 	/** A crossfade from the pose drawn when the take changed, over XFadeLen seconds. */
 	TArray<FTransform> XFadeFrom;

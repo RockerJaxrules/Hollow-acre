@@ -1015,6 +1015,7 @@ void APart2Character::StoryAutopilot(float Dt)
 	const FRotator Cr = Controller->GetControlRotation();
 	float WantYaw = Cr.Yaw, WantPitch = -6.f, TurnRate = 60.f;
 	bool bWalk = false, bRun = false;
+	float MoveYaw = 1e9f;          // (set: the legs go this way while the eyes look elsewhere)
 	if (Shed)
 	{
 		const FTransform T = Shed->GetActorTransform();
@@ -1472,11 +1473,23 @@ void APart2Character::StoryAutopilot(float Dt)
 					LookAt(Ls == 2 ? K->EyesAt() : K->LanternAt(), 70.f);
 				}
 			}
-			else if (Ls == 3 && Lt < 1.1f)
+			else if (Ls == 3 && Lt < 2.2f)
 			{
-				LookAt(K->EyesAt() - FVector(0.f, 0.f, 15.f), 90.f);
+				// (the rifle on them: held in the eyes, the muzzle and his face behind it)
+				LookAt(K->EyesAt() - FVector(0.f, 0.f, 12.f), 90.f);
 			}
-			else if (Ls == 3 || Ls == 4)
+			else if (Ls == 4 && St->GetHunter())
+			{
+				// (it, ahead, coming: the eyes and the light on it; the legs carry on a stride, then stop dead)
+				const FVector Hh2 = St->GetHunter()->BodyAt() + FVector(0.f, 0.f, 25.f);
+				LookAt(Hh2, 260.f);
+				if (Lt < 0.45f)
+				{
+					MoveYaw = (GetActorLocation() - K->GetActorLocation()).Rotation().Yaw;
+					bWalk = bRun = true;
+				}
+			}
+			else if (Ls == 3)
 			{
 				// (run: for the shed's front corner, then on out into the street)
 				const FVector G = FVector::Dist2D(CornerF, GetActorLocation()) > 150.f && LanternLeg < 10 ? CornerF : OutStreet;
@@ -1489,13 +1502,10 @@ void APart2Character::StoryAutopilot(float Dt)
 				TurnRate = 220.f;
 				bWalk = bRun = true;
 			}
-			else if (Ls == 5 && Lt < 0.35f)
+			else if (Ls == 5 && Lt < 3.f && St->GetHunter() && St->GetHunter()->Husk)
 			{
-				bWalk = bRun = true;      // (the momentum of the run, a stride or two)
-			}
-			else if (Ls == 5 && Lt < 2.8f && St->GetHunter())
-			{
-				LookAt(St->GetHunter()->BodyAt(), 200.f);
+				// (down at their feet: its head, the light on it)
+				LookAt(St->GetHunter()->Husk->DrawnAt(TEXT("head")), 200.f);
 			}
 			else
 			{
@@ -1563,7 +1573,7 @@ void APart2Character::StoryAutopilot(float Dt)
 	Controller->SetControlRotation(FRotator(FMath::FixedTurn(FRotator::NormalizeAxis(Cr.Pitch), WantPitch, 45.f * Dt), FMath::FixedTurn(Cr.Yaw, WantYaw, TurnRate * Dt), 0.f));
 	if (bWalk && !Reading.IsValid())
 	{
-		AddMovementInput(FRotationMatrix(FRotator(0.f, Controller->GetControlRotation().Yaw, 0.f)).GetUnitAxis(EAxis::X), 1.f);
+		AddMovementInput(FRotationMatrix(FRotator(0.f, MoveYaw < 1e8f ? MoveYaw : Controller->GetControlRotation().Yaw, 0.f)).GetUnitAxis(EAxis::X), 1.f);
 	}
 	if (bRun != bWantsRun)
 	{
@@ -1760,7 +1770,7 @@ void APart2Character::UpdateAttention(float Dt)
 		{
 			const FVector To = It->GetKessler()->EyesAt() - FVector(0.f, 0.f, 25.f) - EyesAt();
 			bFixed = To.Size() < 2600.f && FVector::DotProduct(To.GetSafeNormal(), LookDir()) > FMath::Cos(FMath::DegreesToRadians(9.f));
-			Narrow = 0.48f;
+			Narrow = 0.4f;
 		}
 	}
 	// (narrowing slowly to about two thirds (or half), opening again quicker)

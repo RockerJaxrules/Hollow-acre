@@ -1525,9 +1525,9 @@ void AP2Story::TickLantern(float Dt)
 			Kessler->LookAtPoint = Eyes;
 			Kessler->LanternUp = 0.3f;
 			Kessler->LanternToward = Eyes;
-			if (D > 1450.f)
+			if (D > 1080.f)
 			{
-				Kessler->WalkTo(PAt + (KAt - PAt).GetSafeNormal2D() * 1350.f);
+				Kessler->WalkTo(PAt + (KAt - PAt).GetSafeNormal2D() * 1000.f);
 			}
 			else
 			{
@@ -1566,13 +1566,13 @@ void AP2Story::TickLantern(float Dt)
 			Say(TEXT("No... no, no, no-"), 0.7f, 2.2f);
 			SetObjective(TEXT("RUN"));
 		}
-		if (St > 2.4f)
+		if (St > 3.3f)
 		{
-			// (it breaks from the dark beside them, out of their sight (behind their shoulder as they run), on the side
-			// away from the buildings; it closes on their heels)
+			// (they have turned and run from him: it breaks from the dark ahead of them, off to one side (on the side away
+			// from the buildings), into their light, straight at them; they are caught between it and the rifle)
 			const FVector Run = (PAt - KAt).GetSafeNormal2D();
 			const FVector Sd = FVector::CrossProduct(FVector::UpVector, Run);
-			const FVector A = PAt + Sd * 1300.f - Run * 250.f, B = PAt - Sd * 1300.f - Run * 250.f;
+			const FVector A = PAt + Sd * 900.f + Run * 1600.f, B = PAt - Sd * 900.f + Run * 1600.f;
 			const FVector Mid = ShedT.TransformPosition(FVector(-185.f, 0.f, 0.f));
 			const FVector From = FVector::Dist2D(A, Mid) > FVector::Dist2D(B, Mid) ? A : B;
 			if (!Hunter)
@@ -1599,7 +1599,11 @@ void AP2Story::TickLantern(float Dt)
 		const FVector Hb = Hunter ? Hunter->BodyAt() : PAt;
 		Kessler->AimAt(Hb);
 		const float Dh = FVector::Dist2D(Hb, PAt);
-		if ((Dh < 430.f && Kessler->IsAimed()) || St > 6.f)
+		if (Once(TEXT("it_comes")))
+		{
+			Say(TEXT("...!"), 0.5f, 1.4f);
+		}
+		if ((Dh < 470.f && Kessler->IsAimed()) || St > 6.f)
 		{
 			FVector M, Dir;
 			Kessler->Fire(M, Dir);

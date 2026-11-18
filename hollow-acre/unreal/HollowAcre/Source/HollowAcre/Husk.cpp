@@ -691,7 +691,7 @@ void AHusk::Tick(float DeltaSeconds)
 	}
 }
 
-void AHusk::Ragdoll(const FVector& Velocity)
+void AHusk::Ragdoll(const FVector& Velocity, const FVector& SpinDeg)
 {
 	if (bRagdoll || !Body || !Body->GetPhysicsAsset())
 	{
@@ -720,6 +720,11 @@ void AHusk::Ragdoll(const FVector& Velocity)
 	Body->SetSimulatePhysics(true);
 	Body->WakeAllRigidBodies();
 	Body->SetAllPhysicsLinearVelocity(Velocity);
+	if (!SpinDeg.IsZero())
+	{
+		// (pitched forward over its front as its legs go: down on its face)
+		Body->SetAllPhysicsAngularVelocityInDegrees(SpinDeg);
+	}
 	UE_LOG(LogTemp, Display, TEXT("Husk: shot down (a ragdoll at %s, moving %s)"), *Body->GetComponentLocation().ToCompactString(), *Velocity.ToCompactString());
 }
 

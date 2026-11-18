@@ -25,7 +25,7 @@ public:
 
 	/** Shot dead: its body handed to physics (a ragdoll on its own physics asset), moving as it was plus the shot's
 	 * push, so it goes down in the snow carried on by its own weight. */
-	void Ragdoll(const FVector& Velocity);
+	void Ragdoll(const FVector& Velocity, const FVector& SpinDeg = FVector::ZeroVector);
 	bool IsRagdoll() const { return bRagdoll; }
 
 	/** Load its meshes and materials (from /Game/HollowAcre/Creature/HuskGame and the MetaHuman build). */
