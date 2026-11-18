@@ -44,6 +44,20 @@ and the brief) scores it out of 10 against: scary, realistic, readable, beautifu
   Balancing Act of Tension in Horror Game Design").
 
 ## Log
+- Judge scores so far (blind, from contact sheets): 3, 3.5, 4, 4.5. Rounds posted in full on the live log.
+- Round 4 to 5: the snow no longer falls indoors (Snowfall's NoSnow boxes: the shed's inside); the stove beat (a big
+  box of kitchen matches, the match's flame on the hand, the stove watched as it catches, then the flashlight off and
+  the fire the only light); while waiting by the fire it passes outside the doorway and turns its head to the light;
+  at the doorway the stalk's stooped pose, breathing, the head searching; the headlight's last surge on it as it
+  stops; a softer beam centre; the journal written large; dust in front of the eyes at the hit; on foot the legs are
+  hidden (the seated knees showed when looking down).
+- Warmth (Part2Character): chilled out of the wreck, falling in the night (slower under a roof), back by a lit fire;
+  the cold at the edges of the view and a shiver. The shed's pot-belly stove (make_wake_props.py) and matches;
+  M_FireGlow for its window.
+- The doorway is a choice: the beam held on it, it lunges; the light off and still in the dark, it loses the player
+  and goes. Indoors in the dark the player can only be seen very near.
+- The camp: a timber mine headframe over the old shaft (make_town.py headframe()); icicles off every eave; the shed's
+  boards with real gaps (moonlight through them).
 - The hunt (HuskHunter): the two-brain design above; stalk 9-15 m, the stare in the beam (it comes on slowly through the
   light and stands at ~12 m, its head jerking, its eyes never off the player), the charge, the search, the retreat, the
   catch (its face brought to the eyes, sharp, then black, the checkpoint). It walks on the camp's own snow (every

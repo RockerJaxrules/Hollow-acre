@@ -1882,3 +1882,19 @@ void ADriverArms::FollowWheel()
 		WheelActor->SetActorRelativeRotation(Q * WheelBaseRot);
 	}
 }
+
+void ADriverArms::HideLegs()
+{
+	for (const TCHAR* B : {TEXT("thigh_l"), TEXT("thigh_r")})
+	{
+		if (Mesh && Mesh->GetBoneIndex(B) != INDEX_NONE)
+		{
+			Mesh->HideBoneByName(B, PBO_None);
+		}
+		if (Clothes && Clothes->GetBoneIndex(B) != INDEX_NONE)
+		{
+			Clothes->HideBoneByName(B, PBO_None);
+		}
+	}
+	UE_LOG(LogTemp, Display, TEXT("DriverArms: on foot, the legs hidden"));
+}

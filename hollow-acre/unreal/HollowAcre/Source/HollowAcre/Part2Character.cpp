@@ -516,6 +516,7 @@ void APart2Character::TakeOverFrom(const FTransform& EyeWorld, ADriverArms* InAr
 		Arms->SetActorRelativeTransform(FTransform::Identity);
 		Arms->AddTickPrerequisiteActor(this);
 		Arms->bFree = true;
+		Arms->HideLegs();
 	}
 	if (HeldLight)
 	{

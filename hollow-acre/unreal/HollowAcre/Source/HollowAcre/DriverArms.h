@@ -258,6 +258,8 @@ public:
 	/** Leaving the car (the player takes the arms with them): the ignition key, its lock and the dash's glow stay in the car. */
 	void LeaveKeysOn(AActor* Car);
 	bool bKeysLeft = false;
+	/** On foot (play): the legs hidden (the body's legs aren't walked; looking down, the seated knees showed). */
+	void HideLegs();
 
 protected:
 	virtual void BeginPlay() override;
