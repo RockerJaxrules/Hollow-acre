@@ -14,6 +14,7 @@
 #include "Components/DecalComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Components/SpotLightComponent.h"
+#include "Components/LightComponent.h"
 #include "Components/PoseableMeshComponent.h"
 
 void P2Footprint(UWorld* World, const FVector& At, float Yaw, float Size, bool bBare)
@@ -420,7 +421,7 @@ void AP2Story::FurnishShed()
 	if (UStaticMesh* Sm2 = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Wake_Stove.Wake_Stove")))
 	{
 		const FVector Ps = At(-290.f, -115.f, 0.f);
-		AStaticMeshActor* St = Piece(GetWorld(), Sm2, FTransform(FQuat(FVector::UpVector, FMath::DegreesToRadians(15.f)) * R, FVector(Ps.X, Ps.Y, G + 4.f)), nullptr);
+		AStaticMeshActor* St = Piece(GetWorld(), Sm2, FTransform(FQuat(FVector::UpVector, FMath::DegreesToRadians(48.f)) * R, FVector(Ps.X, Ps.Y, G + 4.f)), nullptr);
 		if (St)
 		{
 			static UMaterialInterface* Part2 = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Car/Keys/M_KeyPart.M_KeyPart"));
@@ -491,10 +492,10 @@ void AP2Story::FurnishShed()
 			FireLight->SetupAttachment(Sc);
 			// (out in the room before its door, low: the fire's light on the floor, the walls, the player; the dark iron
 			// itself barely caught by it, its window glowing)
-			FireLight->SetRelativeLocation(FVector(85.f, 0.f, 35.f));
+			FireLight->SetRelativeLocation(FVector(48.f, 0.f, 40.f));
 			FireLight->SetIntensityUnits(ELightUnits::Candelas);
 			FireLight->SetIntensity(0.f);
-			FireLight->SetAttenuationRadius(650.f);
+			FireLight->SetAttenuationRadius(400.f);         // (the room, with dark corners; not out through the door)
 			FireLight->SetUseTemperature(true);
 			FireLight->SetTemperature(2100.f);
 			FireLight->SetSourceRadius(8.f);
@@ -588,7 +589,10 @@ void AP2Story::OnUse(UP2UseComponent* Use)
 				// gentler light: at full strength the sleeve burned out to a yellow blob against the dark room)
 				MatchLight->SetLightingChannels(false, true, true);
 				MatchLight->RegisterComponent();
-				MatchLight->SetWorldLocation(Player->EyesAt() + Player->LookDir() * 45.f - FVector(0.f, 0.f, 25.f));
+				// (held up before the eyes, a little low and to the left of the middle of the view)
+				const FVector Lk = Player->LookDir();
+				const FVector Rt = FVector::CrossProduct(FVector::UpVector, Lk).GetSafeNormal();
+				MatchLight->SetWorldLocation(Player->EyesAt() + Lk * 34.f - FVector(0.f, 0.f, 11.f) - Rt * 6.f);
 				MatchHand = NewObject<UPointLightComponent>(this, TEXT("MatchHand"));
 				MatchHand->SetIntensityUnits(ELightUnits::Candelas);
 				MatchHand->SetIntensity(0.f);
@@ -602,19 +606,21 @@ void AP2Story::OnUse(UP2UseComponent* Use)
 				MatchHand->SetWorldLocation(MatchLight->GetComponentLocation());
 				MatchAt = Clock;
 				// (its flame: a small bright teardrop on the match's head)
+				// (the stove's flame cards at a match's size: 2 cm wide, 3 tall, licking)
 				MatchFlame = NewObject<UStaticMeshComponent>(this, TEXT("MatchFlame"));
-				MatchFlame->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere.Sphere")));
-				if (UMaterialInterface* Gm = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Materials/Play/M_FireGlow.M_FireGlow")))
+				MatchFlame->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Wake_StoveFlames.Wake_StoveFlames")));
+				if (UMaterialInterface* Gm = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Materials/Play/M_Flame.M_Flame")))
 				{
-					UMaterialInstanceDynamic* Fm = UMaterialInstanceDynamic::Create(Gm, MatchFlame);
-					Fm->SetVectorParameterValue(TEXT("Glow"), FLinearColor(1.f, 0.55f, 0.15f) * 40.f);
-					MatchFlame->SetMaterial(0, Fm);
+					MatchFlameMID = UMaterialInstanceDynamic::Create(Gm, MatchFlame);
+					MatchFlameMID->SetScalarParameterValue(TEXT("Intensity"), 0.f);
+					MatchFlameMID->SetScalarParameterValue(TEXT("Seed"), 3.7f);
+					MatchFlame->SetMaterial(0, MatchFlameMID);
 				}
 				MatchFlame->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 				MatchFlame->SetCastShadow(false);
-				MatchFlame->SetWorldScale3D(FVector(0.007f, 0.007f, 0.016f));
+				MatchFlame->SetWorldScale3D(FVector(0.13f));
 				MatchFlame->RegisterComponent();
-				MatchFlame->SetWorldLocation(MatchLight->GetComponentLocation());
+				MatchFlame->SetWorldLocation(MatchLight->GetComponentLocation() - FVector(0.26f, 0.f, 41.f * 0.13f));
 			}
 			bStoveLit = true;
 			StoveLitAt = Clock;
@@ -771,6 +777,7 @@ void AP2Story::Beats(float Dt)
 	// the car's last light dies (the director kills it 9 s into play, unless something is standing in it)
 	if (Director && Director->HeadlightDieAt < 0.f && Clock > 9.6f && Once(TEXT("dark")))
 	{
+		MoonDimFrom = Clock;
 		Say(TEXT("No. No, no, no..."), 0.2f, 2.6f);
 		SetObjective(TEXT("Find shelter in the camp"));
 	}
@@ -811,6 +818,7 @@ void AP2Story::Beats(float Dt)
 	}
 	if (DarkAt > 0.f && Clock >= DarkAt && Once(TEXT("dark")))
 	{
+		MoonDimFrom = Clock;
 		Say(TEXT("No. No, no, no..."), 0.4f, 2.6f);
 		SetObjective(TEXT("Find shelter in the camp"));
 	}
@@ -875,7 +883,7 @@ void AP2Story::Beats(float Dt)
 				if (It->GetActorLabel() == TEXT("Town Shed"))
 				{
 					const FTransform T = It->GetActorTransform();
-					Hunter->PeerInto(T.TransformPosition(FVector(95.f, 0.f, 0.f)), -T.GetRotation().GetAxisX());
+					Hunter->PeerInto(T.TransformPosition(FVector(70.f, 0.f, 0.f)), -T.GetRotation().GetAxisX());
 				}
 			}
 			Say(TEXT("(The light. It doesn't like the light...)"), 6.f, 3.f);
@@ -890,6 +898,28 @@ void AP2Story::Tick(float DeltaSeconds)
 	Clock += Dt;
 	Beats(Dt);
 	TickWindow(Dt);
+	if (MoonDimFrom > 0.f)
+	{
+		if (!Moon.IsValid())
+		{
+			for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+			{
+				if (It->GetActorLabel() == TEXT("Town moon"))
+				{
+					Moon = It->FindComponentByClass<ULightComponent>();
+				}
+			}
+			if (Moon.IsValid())
+			{
+				MoonBase = Moon->Intensity;
+			}
+		}
+		if (Moon.IsValid())
+		{
+			// (cloud over it in a few seconds as the snow thickens: about a third of its light left)
+			Moon->SetIntensity(MoonBase * FMath::Lerp(1.f, 0.32f, FMath::SmoothStep(0.f, 1.f, (Clock - MoonDimFrom) / 3.5f)));
+		}
+	}
 	TickFire(Dt);
 	TickCrosser(Dt);
 	TickSift(Dt);
@@ -996,7 +1026,10 @@ void AP2Story::TickFire(float Dt)
 		}
 		if (MatchFlame)
 		{
-			MatchFlame->SetWorldScale3D(FVector(0.007f, 0.007f, 0.016f) * FMath::Max(0.05f, I / 2.2f) * (0.9f + 0.1f * FMath::Sin(Clock * 31.f)));
+			if (MatchFlameMID)
+			{
+				MatchFlameMID->SetScalarParameterValue(TEXT("Intensity"), 30.f * FMath::Min(1.5f, I / 2.2f));
+			}
 		}
 		if (m > 2.2f)
 		{
@@ -1025,7 +1058,7 @@ void AP2Story::TickFire(float Dt)
 	FireLight->SetIntensity(14.f * Catch * Catch * Fl);
 	if (DoorSpill)
 	{
-		DoorSpill->SetIntensity(55.f * Catch * Catch * Fl);
+		DoorSpill->SetIntensity(5.f * Catch * Catch * Fl);
 	}
 	if (FireGlow)
 	{
@@ -1102,6 +1135,7 @@ void AP2Story::BeginWindow()
 	}
 	WindowAt = Clock;
 	WindowGoneAt = -1.f;
+	WindowLitAt = -1.f;
 	WindowReach = 0.f;
 	Event(TEXT("scrape"));
 	UE_LOG(LogTemp, Display, TEXT("P2Story %.2f beat: the window (it stands at the back wall; its hand through the gap at %s)"), Clock, *WindowGap.ToCompactString());
@@ -1127,10 +1161,14 @@ void AP2Story::TickWindow(float Dt)
 	}
 	// the light on its hand (the flashlight on and the beam on the window), or long enough: it pulls back and goes
 	const bool bLit = Player.IsValid() && Player->IsLightOn() && FVector::DotProduct(Player->LookDir(), (WindowGap - Player->EyesAt()).GetSafeNormal()) > FMath::Cos(FMath::DegreesToRadians(14.f));
-	if (WindowGoneAt < 0.f && W > 3.4f && (bLit || W > 10.f))
+	if (WindowLitAt < 0.f && W > 3.4f && bLit)
+	{
+		WindowLitAt = Clock;              // (caught in the light: it goes still a moment, then pulls back)
+	}
+	if (WindowGoneAt < 0.f && W > 3.4f && ((WindowLitAt > 0.f && Clock - WindowLitAt > 0.8f) || W > 11.f))
 	{
 		WindowGoneAt = Clock;
-		Event(bLit ? TEXT("husk_hiss") : TEXT("scrape"));
+		Event(WindowLitAt > 0.f ? TEXT("husk_hiss") : TEXT("scrape"));
 		Say(TEXT("It knows I'm in here."), 1.6f, 3.f);
 	}
 	// its reach: in through the gap after the second scrape, slow, then feeling along the boards; out fast when lit
@@ -1140,8 +1178,9 @@ void AP2Story::TickWindow(float Dt)
 		Want = 0.f;
 	}
 	WindowReach = FMath::FInterpTo(WindowReach, Want, Dt, WindowGoneAt > 0.f ? 14.f : 3.f);
-	const float Feel = FMath::Clamp(W - 3.7f, 0.f, 99.f);
-	const FVector Into = WindowGap + WindowIn * (22.f + 9.f * FMath::Sin(Feel * 0.9f)) + WindowSide * (13.f * FMath::Sin(Feel * 1.25f)) +
+	// (feeling along the boards; still while the light is on it)
+	const float Feel = WindowLitAt > 0.f ? FMath::Clamp(WindowLitAt - WindowAt - 3.7f, 0.f, 99.f) : FMath::Clamp(W - 3.7f, 0.f, 99.f);
+	const FVector Into = WindowGap + WindowIn * (32.f + 9.f * FMath::Sin(Feel * 0.9f)) + WindowSide * (13.f * FMath::Sin(Feel * 1.25f)) +
 		FVector(0.f, 0.f, 2.5f * FMath::Sin(Feel * 2.3f) - 4.f);
 	WindowHusk->ReachAt[1] = Into;
 	WindowHusk->ReachW[1] = FMath::SmoothStep(0.f, 1.f, WindowReach);

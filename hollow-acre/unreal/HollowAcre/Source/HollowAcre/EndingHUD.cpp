@@ -147,8 +147,14 @@ void AEndingHUD::DrawPlay()
 		float W = 0.f, H = 0.f;
 		Canvas->TextSize(Font, S, W, H);
 		const float Sc = H > 0.f ? Y * Height / H : 1.f;
+		// (on a soft dark band, so it reads on lit wood and on snow alike)
+		const float X0 = bCentre ? X - W * Sc * 0.5f : X;
+		FCanvasTileItem Band(FVector2D(X0 - H * Sc * 0.45f, Yp - H * Sc * 0.62f), FVector2D(W * Sc + H * Sc * 0.9f, H * Sc * 1.24f),
+			FLinearColor(0.f, 0.f, 0.f, 0.42f * C.A));
+		Band.BlendMode = SE_BLEND_Translucent;
+		Canvas->DrawItem(Band);
 		Canvas->SetDrawColor(C.ToFColor(true));
-		Canvas->DrawText(Font, S, bCentre ? X - W * Sc * 0.5f : X, Yp - H * Sc * 0.5f, Sc, Sc, Info);
+		Canvas->DrawText(Font, S, X0, Yp - H * Sc * 0.5f, Sc, Sc, Info);
 		return W * Sc;
 	};
 	FString S;

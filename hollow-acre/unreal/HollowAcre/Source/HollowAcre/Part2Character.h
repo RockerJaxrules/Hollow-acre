@@ -176,6 +176,10 @@ protected:
 	// the breath in the cold: each breath out a puff of vapour from under the eyes, drifting out and up and spreading
 	// thin, seen where a light catches it (the beam, the fire); quicker and heavier winded; none by a lit fire
 	void UpdateBreath(float Dt);
+	// the attention closing in: holding the beam on its face (at the doorway, its hand at the window) the view narrows
+	// slowly, as the eyes fix on it; it opens again when the eyes leave it
+	void UpdateAttention(float Dt);
+	float BaseFov = 78.f;
 	float BreathT = 1.5f;
 	struct FPuff
 	{

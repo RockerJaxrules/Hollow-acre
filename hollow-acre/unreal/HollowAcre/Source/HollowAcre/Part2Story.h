@@ -152,6 +152,11 @@ protected:
 	TObjectPtr<class UPointLightComponent> MatchHand;
 	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> MatchFlame;
+	UPROPERTY()
+	TObjectPtr<class UMaterialInstanceDynamic> MatchFlameMID;
+	// (the moon behind cloud once the headlight dies: the street near black beyond the flashlight)
+	float MoonBase = -1.f, MoonDimFrom = -1.f;
+	TWeakObjectPtr<class ULightComponent> Moon;
 	float MatchAt = -1.f;
 	float PassAt = -1.f;
 	void TickFire(float Dt);
@@ -167,6 +172,6 @@ protected:
 	void TickWindow(float Dt);
 	UPROPERTY()
 	TObjectPtr<AHusk> WindowHusk;
-	float WindowAt = -1.f, WindowGoneAt = -1.f, WindowReach = 0.f;
+	float WindowAt = -1.f, WindowGoneAt = -1.f, WindowReach = 0.f, WindowLitAt = -1.f;
 	FVector WindowGap = FVector::ZeroVector, WindowIn = FVector::ZeroVector, WindowSide = FVector::ZeroVector;
 };

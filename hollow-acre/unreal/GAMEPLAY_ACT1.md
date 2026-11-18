@@ -94,6 +94,20 @@ and the brief) scores it out of 10 against: scary, realistic, readable, beautifu
   a hand's gap. The window beat (Part2Story BeginWindow/TickWindow): later by the fire, a scrape along the back wall,
   another, its breath; its hand in through the gap (AHusk::Reach, a two-bone reach on its code-animated arm), feeling
   along the boards; the light on it and it pulls back with a growl ("It knows I'm in here.").
+- Round 7 (5/10, plays 6) to 8. Found by measuring (the aim log: the hand's place in the eyes' frame, the crouch, the
+  pitch): the cold's shiver and the hit's jolt were set as the camera component's rotation, which took the pitch out of
+  it between view updates, so once the player was cold the hand, the beam and the gaze were worked out for a level head
+  while the screen showed it looking down; now an additive offset on the view only. Then: the window's husk held outside
+  the wall's boards (its stalking lean put its head through them), deeper and frozen a moment in the light before it pulls
+  back; the attention closing in (the view narrows slowly to about two thirds while the beam is held on its face at the
+  doorway or its hand at the window, the crash cutscene's stare made play); the moon behind cloud as the headlight dies
+  (the street near black past the flashlight) and the surge capped; the match a real flame held up before the eyes; the
+  stove turned to face the room, its fire's light nearer its door (falloff, dark corners), the spill out of the doorway
+  a dim warm edge; the creature's skin a wet film (clear coat) over the drained skin; a dark band under the play text;
+  the breath off until it is real vapour (as spheres near the eyes it was a lit blurred disc).
+- Kessler started: his lantern and carbine modelled (blind shape critiques, r2 each), his MetaHuman build script
+  (Scripts/build_kessler_metahuman.py: Orlando's face, the oldest male skin, a short full beard, receding hair, a heavy
+  build, full face rig).
 - Round 4 to 5: the snow no longer falls indoors (Snowfall's NoSnow boxes: the shed's inside); the stove beat (a big
   box of kitchen matches, the match's flame on the hand, the stove watched as it catches, then the flashlight off and
   the fire the only light); while waiting by the fire it passes outside the doorway and turns its head to the light;

@@ -612,7 +612,7 @@ void AHuskHunter::Move(float Dt)
 			// (bent just as far as brings its face to the height of the eyes it is looking for)
 			const float HeadZ = Husk->GetBody()->GetBoneLocation(TEXT("head")).Z;
 			const float WantZ = Prey->EyesAt().Z + 6.f;
-			Husk->PeerDown = FMath::Clamp(Husk->PeerDown + (HeadZ - WantZ) * 0.0035f * Dt * 30.f, 0.f, 0.38f);
+			Husk->PeerDown = FMath::Clamp(Husk->PeerDown + (HeadZ - WantZ) * 0.0035f * Dt * 30.f, 0.f, 0.44f);
 		}
 		else
 		{
