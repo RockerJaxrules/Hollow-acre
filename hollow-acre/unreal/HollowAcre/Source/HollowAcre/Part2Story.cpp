@@ -513,7 +513,7 @@ void AP2Story::FurnishShed()
 			FireLight->SetRelativeLocation(FVector(48.f, 0.f, 40.f));
 			FireLight->SetIntensityUnits(ELightUnits::Candelas);
 			FireLight->SetIntensity(0.f);
-			FireLight->SetAttenuationRadius(400.f);         // (the room, with dark corners; not out through the door)
+			FireLight->SetAttenuationRadius(330.f);         // (near the stove, the corners dark; not out through the door)
 			FireLight->SetUseTemperature(true);
 			FireLight->SetTemperature(2100.f);
 			FireLight->SetSourceRadius(8.f);
@@ -877,6 +877,10 @@ void AP2Story::Beats(float Dt)
 	if (DarkAt > 0.f && Clock >= DarkAt && Once(TEXT("dark")))
 	{
 		MoonDimFrom = Clock;
+		if (Player.IsValid())
+		{
+			Player->Stutter(1.8f);
+		}
 		Say(TEXT("No. No, no, no..."), 0.4f, 2.6f);
 		SetObjective(TEXT("Find shelter in the camp"));
 	}
@@ -924,16 +928,12 @@ void AP2Story::Beats(float Dt)
 		BeginWood();
 	}
 	// (the armful taken, turning to go: something tall goes fast between the cabins at the edge of the light, gone)
-	if (WoodTakenAt > 0.f && Clock - WoodTakenAt > 1.4f && Player.IsValid() && Once(TEXT("between_cabins")))
+	if (WoodTakenAt > 0.f && Clock - WoodTakenAt > 3.2f && Player.IsValid() && Once(TEXT("between_cabins")))
 	{
 		// (ahead, on the way back toward the shed, across the gap between the cabins, 17 m off)
-		FVector Lk = Player->LookDir().GetSafeNormal2D();
-		if (Stove)
-		{
-			Lk = (Stove->GetActorLocation() - Player->GetActorLocation()).GetSafeNormal2D();
-		}
+		const FVector Lk = Player->LookDir().GetSafeNormal2D();
 		const FVector Ac = FVector::CrossProduct(FVector::UpVector, Lk);
-		const FVector Mid = Player->GetActorLocation() + Lk * 1700.f;
+		const FVector Mid = Player->GetActorLocation() + Lk * 1300.f;
 		CrossFrom = Mid - Ac * 650.f;
 		CrossTo = Mid + Ac * 650.f;
 		CrossFrom.Z = GroundAt(CrossFrom);
@@ -944,7 +944,7 @@ void AP2Story::Beats(float Dt)
 		Event(TEXT("husk_gallop"));
 		Say(TEXT("...!"), 0.9f, 1.4f);
 		Say(TEXT("Keep moving. Don't run with it. Keep moving."), 2.8f, 3.f);
-		UE_LOG(LogTemp, Display, TEXT("P2Story %.2f beat: between the cabins (it crosses ahead, 17 m off)"), Clock);
+		UE_LOG(LogTemp, Display, TEXT("P2Story %.2f beat: between the cabins (it crosses ahead, 13 m off)"), Clock);
 	}
 	// (the fire burning down until it is fed; fed, it comes back up)
 	if (FireDyingFrom > 0.f)
@@ -1155,7 +1155,7 @@ void AP2Story::TickFire(float Dt)
 	const float Catch = FMath::Clamp(s / 4.f, 0.f, 1.f);
 	const float Fl = 0.78f + 0.12f * FMath::Sin(Clock * 2.3f) + 0.07f * FMath::Sin(Clock * 7.9f + 1.f) + 0.05f * FMath::Sin(Clock * 17.3f + 2.f);
 	const float Fu = FireFuel;
-	FireLight->SetIntensity(14.f * Catch * Catch * Fl * Fu);
+	FireLight->SetIntensity(11.f * Catch * Catch * Fl * Fu);
 	if (DoorSpill)
 	{
 		DoorSpill->SetIntensity(5.f * Catch * Catch * Fl * Fu);

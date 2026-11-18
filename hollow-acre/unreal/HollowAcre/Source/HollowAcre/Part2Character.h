@@ -190,6 +190,7 @@ protected:
 	// slowly, as the eyes fix on it; it opens again when the eyes leave it
 	void UpdateAttention(float Dt);
 	float BaseFov = 78.f;
+	float FixedK = 0.f;
 	float BreathT = 1.5f;
 	struct FPuff
 	{

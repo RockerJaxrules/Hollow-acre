@@ -432,7 +432,7 @@ void APart2Character::ApplyLight()
 	const float Dim = Battery > 0.12f ? 1.f : FMath::Max(0.f, Battery / 0.12f) * (0.75f + 0.25f * FMath::Sin(GetWorld() ? GetWorld()->GetTimeSeconds() * 9.f : 0.f));
 	// (eased off on what is close in front of it: within ~3 m of the eyes, down to a third at arm's length)
 	const float Near = FMath::Clamp((NearSmoothed - 40.f) / 420.f, 0.14f, 1.f);
-	float Cd = bFlashlightOn ? BeamCd * Dim * Near : 0.f;
+	float Cd = bFlashlightOn ? BeamCd * Dim * Near * (1.f - 0.45f * FixedK) : 0.f;
 	if (GetWorld() && GetWorld()->GetTimeSeconds() < StutterUntil)
 	{
 		const float Tt = GetWorld()->GetTimeSeconds();
@@ -848,7 +848,7 @@ void APart2Character::Tick(float DeltaSeconds)
 				Armful->SetupAttachment(Camera);
 				Armful->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 				Armful->SetCastShadow(false);
-				Armful->SetRelativeLocationAndRotation(FVector(42.f, 6.f, -19.f), FRotator(-10.f, 32.f, 6.f));   // (the lower edge of the view: the vertical half-angle is ~24 degrees)
+				Armful->SetRelativeLocationAndRotation(FVector(40.f, 7.f, -22.f), FRotator(-10.f, 32.f, 6.f));   // (the lower edge of the view: the vertical half-angle is ~24 degrees)
 				if (UMaterialInterface* Bw = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Town/Materials/M_Town_Drywood.M_Town_Drywood")))
 				{
 					for (int32 Slot = 0; Slot < Armful->GetNumMaterials(); ++Slot)
@@ -856,7 +856,7 @@ void APart2Character::Tick(float DeltaSeconds)
 						Armful->SetMaterial(Slot, Bw);
 					}
 				}
-				Armful->SetRelativeScale3D(FVector(0.78f));
+				Armful->SetRelativeScale3D(FVector(0.62f));
 				Armful->RegisterComponent();
 				ArmfulFill = NewObject<UPointLightComponent>(this, TEXT("ArmfulFill"));
 				ArmfulFill->SetupAttachment(Camera);
@@ -867,13 +867,13 @@ void APart2Character::Tick(float DeltaSeconds)
 				ArmfulFill->SetTemperature(3600.f);
 				ArmfulFill->SetCastShadows(false);
 				ArmfulFill->SetVolumetricScatteringIntensity(0.f);
-				ArmfulFill->SetRelativeLocation(FVector(70.f, 0.f, -40.f));
+				ArmfulFill->SetRelativeLocation(FVector(62.f, 10.f, -48.f));
 				ArmfulFill->RegisterComponent();
 			}
 		}
 		if (ArmfulFill)
 		{
-			ArmfulFill->SetIntensity(bCarryingWood && IsLightOn() ? 0.35f : 0.f);
+			ArmfulFill->SetIntensity(bCarryingWood && IsLightOn() ? 2.2f : 0.f);
 		}
 		if (Armful)
 		{
@@ -1619,6 +1619,7 @@ void APart2Character::UpdateAttention(float Dt)
 		bFixed = To.Size() < 800.f && FVector::DotProduct(To.GetSafeNormal(), LookDir()) > FMath::Cos(FMath::DegreesToRadians(11.f));
 	}
 	// (narrowing slowly to about two thirds, opening again quicker)
-	const float Want = bFixed ? BaseFov * 0.64f : BaseFov;
+	const float Want = bFixed ? BaseFov * 0.6f : BaseFov;
+	FixedK = FMath::FInterpTo(FixedK, bFixed ? 1.f : 0.f, Dt, 1.2f);
 	Camera->SetFieldOfView(FMath::FInterpTo(Camera->FieldOfView, Want, Dt, bFixed ? 0.7f : 2.5f));
 }
