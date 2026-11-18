@@ -241,6 +241,7 @@ void AP2Story::Begin(AEndingDirector* InDirector, float InHuskScale)
 	FurnishShed();
 	SpawnTruck();
 	DriftAgainstWalls();
+	DressCamp();
 	// (the falling snow lit by the town's moon (channel 1) as well as the beam: on channel 0 alone the flakes in the air
 	// were unlit, black specks against the moonlit fog (blind judge, round 12))
 	for (TActorIterator<ASnowfall> It(GetWorld()); It; ++It)
@@ -2350,4 +2351,102 @@ void AP2Story::SetShedDoor(float Open)
 	}
 	const FQuat Q = ShedT.GetRotation() * FRotator(0.f, -75.f * (1.f - FMath::Clamp(Open, 0.f, 1.f)), 0.f).Quaternion();
 	ShedDoor->GetRootComponent()->SetWorldRotation(Q);
+}
+
+void AP2Story::DressCamp()
+{
+	struct FPut
+	{
+		const TCHAR* Building;    // (placed in its frame: its front at x 0 facing the street (+x), its back at -depth)
+		const TCHAR* Mesh;        // (/Game/HollowAcre/Megascans/Props/<Mesh>/SM_<Mesh>)
+		float X, Y, Yaw, Scale;
+		bool bSolid;
+	};
+	// (depths and widths: make_town.py FOOT, in cm. Saloon 910 x 610, Store 1520 x 910, CabinB 550 x 430, CabinA 610 x
+	// 490, Shed 370 x 370, Hotel 1520 x 910, Headframe 1200 x 400)
+	static const FPut Puts[] = {
+		// against the buildings: what a camp leaves lying when it is walked out of
+		{TEXT("Saloon"), TEXT("RustyMetalBarrel"), 45.f, 360.f, 20.f, 1.f, true},
+		{TEXT("Saloon"), TEXT("WoodenCrate"), -970.f, -260.f, 8.f, 1.1f, true},
+		{TEXT("Saloon"), TEXT("WoodenCrate"), -985.f, -200.f, -14.f, 1.f, true},
+		{TEXT("Saloon"), TEXT("DeadBranches"), -1000.f, 120.f, 60.f, 2.2f, false},
+		{TEXT("Store"), TEXT("WoodenBarrel"), 70.f, -520.f, 0.f, 1.f, true},
+		{TEXT("Store"), TEXT("WoodenBarrel"), 45.f, -600.f, 40.f, 0.95f, true},
+		{TEXT("Store"), TEXT("WoodenCrate"), -300.f, 520.f, 75.f, 1.1f, true},
+		{TEXT("Store"), TEXT("WoodDebrisPack"), -600.f, 540.f, 30.f, 4.f, false},
+		{TEXT("Store"), TEXT("RustyMetalBarrel"), -1570.f, -300.f, 0.f, 1.f, true},
+		{TEXT("CabinB"), TEXT("RustyMetalBarrel"), -610.f, 60.f, 0.f, 1.f, true},
+		{TEXT("CabinB"), TEXT("WoodDebrisPack"), -640.f, -120.f, 110.f, 4.f, false},
+		{TEXT("CabinB"), TEXT("DeadBranches"), -100.f, 290.f, 0.f, 2.f, false},
+		{TEXT("CabinA"), TEXT("WoodenCrate"), 45.f, 320.f, 15.f, 1.05f, true},
+		{TEXT("CabinA"), TEXT("FirewoodPack"), -690.f, 210.f, 80.f, 3.5f, false},
+		{TEXT("CabinA"), TEXT("FirewoodPack"), -700.f, 250.f, 10.f, 3.5f, false},
+		{TEXT("Shed"), TEXT("RustyMetalBarrel"), 55.f, 250.f, 30.f, 0.95f, true},
+		{TEXT("Shed"), TEXT("DeadBranches"), -420.f, 140.f, 20.f, 2.f, false},
+		{TEXT("Hotel"), TEXT("WoodenBarrel"), 80.f, 560.f, 10.f, 1.f, true},
+		{TEXT("Hotel"), TEXT("WoodenCrate"), 70.f, -560.f, -20.f, 1.1f, true},
+		{TEXT("Hotel"), TEXT("WoodenCrate"), 60.f, -615.f, 35.f, 1.f, true},
+		{TEXT("Hotel"), TEXT("WoodDebrisPack"), 140.f, -300.f, 0.f, 4.5f, false},
+		{TEXT("Headframe"), TEXT("RustyMetalBarrel"), 90.f, 300.f, 0.f, 1.f, true},
+		{TEXT("Headframe"), TEXT("RustyMetalBarrel"), 60.f, 360.f, 70.f, 1.f, true},
+		// a broken run of fence along the far side of the street, past the store
+		{TEXT("Store"), TEXT("ModularWoodenFence"), 260.f, -760.f, 90.f, 1.f, true},
+		{TEXT("Store"), TEXT("ModularWoodenFence"), 90.f, -760.f, 92.f, 1.f, true},
+		{TEXT("Store"), TEXT("ModularWoodenFence"), -260.f, -770.f, 95.f, 1.f, true},
+		// the timber the camp was built from: stumps behind it, a fallen pine, a log; snow piled where the street was cleared
+		{TEXT("Saloon"), TEXT("PineTreeStump"), -1400.f, 150.f, 0.f, 1.f, true},
+		{TEXT("Saloon"), TEXT("BrokenStump"), -1650.f, -350.f, 70.f, 1.f, true},
+		{TEXT("Store"), TEXT("PineTreeStump"), -1900.f, 200.f, 140.f, 1.f, true},
+		{TEXT("Store"), TEXT("BrokenStump"), -2100.f, -500.f, 200.f, 1.1f, true},
+		{TEXT("Store"), TEXT("FallenPineTree"), -2300.f, 0.f, 30.f, 1.6f, true},
+		{TEXT("Hotel"), TEXT("FallenLog"), -1900.f, 300.f, 80.f, 1.3f, true},
+		{TEXT("Hotel"), TEXT("PineTreeStump"), -1800.f, -500.f, 10.f, 1.f, true},
+		{TEXT("CabinB"), TEXT("BrokenStump"), -1200.f, 250.f, 300.f, 0.9f, true},
+		{TEXT("Hotel"), TEXT("RockySnowPile"), 450.f, 1100.f, 0.f, 0.9f, true},
+		{TEXT("Saloon"), TEXT("SnowEmbankment"), 300.f, -600.f, 90.f, 1.f, false},
+		{TEXT("Hotel"), TEXT("SnowPile"), 500.f, -1300.f, 20.f, 0.7f, false},
+	};
+	TMap<FString, FTransform> Frames;
+	for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
+	{
+		const FString L = It->GetActorLabel();
+		if (L.StartsWith(TEXT("Town ")))
+		{
+			Frames.FindOrAdd(L.RightChop(5)) = It->GetActorTransform();
+		}
+	}
+	int32 Placed = 0, Missing = 0;
+	FRandomStream Rr(911);
+	for (const FPut& Pt : Puts)
+	{
+		const FTransform* F = Frames.Find(Pt.Building);
+		const FString Path = FString::Printf(TEXT("/Game/HollowAcre/Megascans/Props/%s/SM_%s.SM_%s"), Pt.Mesh, Pt.Mesh, Pt.Mesh);
+		UStaticMesh* M = LoadObject<UStaticMesh>(nullptr, *Path);
+		if (!F || !M)
+		{
+			++Missing;
+			continue;
+		}
+		FVector At = F->TransformPosition(FVector(Pt.X, Pt.Y, 0.f));
+		At.Z = GroundAt(At) - 3.f;
+		FActorSpawnParameters Sp;
+		Sp.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		const FRotator Rot(0.f, F->Rotator().Yaw + Pt.Yaw + Rr.FRandRange(-6.f, 6.f), 0.f);
+		AStaticMeshActor* A = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), FTransform(Rot, At), Sp);
+		if (!A)
+		{
+			continue;
+		}
+		A->SetMobility(EComponentMobility::Movable);
+		UStaticMeshComponent* C = A->GetStaticMeshComponent();
+		C->SetStaticMesh(M);
+		A->SetActorScale3D(FVector(Pt.Scale));
+		C->SetCollisionEnabled(Pt.bSolid ? ECollisionEnabled::QueryAndPhysics : ECollisionEnabled::NoCollision);
+		C->SetLightingChannels(true, true, false);
+		// (seated: its lowest point a few cm into the snow, as the drifts and the truck are)
+		const FBox B = C->Bounds.GetBox();
+		A->AddActorWorldOffset(FVector(0.f, 0.f, At.Z - 4.f - B.Min.Z));
+		++Placed;
+	}
+	UE_LOG(LogTemp, Display, TEXT("P2Story: the camp dressed: %d Megascans props placed (%d missing)"), Placed, Missing);
 }

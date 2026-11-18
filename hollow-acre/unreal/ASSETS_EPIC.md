@@ -21,3 +21,25 @@ Downloaded 2026-11-16 from Fab (publisher Quixel Megascans, free, Fab Standard L
 | Rusty Metal Sheet | https://www.fab.com/listings/54c7decd-5aac-491c-ad3f-cdfde8d4b1c8 | `rusty_metal_sheet_tj4kedvcw_4k.zip` |
 | Fresh Snow | https://www.fab.com/listings/6b239c80-a0e3-48a4-a9bd-fdbb47ad539e | `fresh_snow_ugkieimdy_4k.zip` |
 | Broken Glass | https://www.fab.com/listings/ac5e32ad-bc0f-4069-8f2b-101eaf0add56 | `broken_glass_pfdwohs2_4k.zip` |
+
+## Quixel Megascans 3D assets (the camp's props; the mines later)
+
+Downloaded 2026-11-18 from Fab (publisher Quixel Megascans, free, Fab license; the owner approved the batch: "Yes, all at 4K"), FBX "high" zips at 4K. The raw zips stay outside git (`C:/HollowAcreTools/Megascans3D/zips`, unpacked under `x/`); imported by `HollowAcre/Scripts/import_megascans_props.py` into `Content/HollowAcre/Megascans/Props` (git-ignored like the surfaces, regenerable from the zips), placed by `Part2Story::DressCamp`.
+
+| Asset | Fab listing (uid) | File |
+|---|---|---|
+| Wooden Barrel | a9d0d237-ef5b-47f3-b153-f6b4ab9733f1 | `wooden_barrel_tmgpcg2fa_high.zip` (54 MB) |
+| Rusty Metal Barrel | 5f4c0800-6c8d-4945-8fdf-6855ab6a566d | `rusty_metal_barrel_ui1maewga_high.zip` (43 MB) |
+| Wooden Crate | c7461bce-dcd7-4b1c-8260-47cd45411236 | `wooden_crate_udribbjqx_high.zip` (50 MB) |
+| Firewood Pack | 2a525fc4-a78f-447e-9ff9-8fc2940098bb | `firewood_pack_vbwhfi1iw_high.zip` (43 MB) |
+| Pine Tree Stump | 51fa7260-70a8-4f2d-9968-2cfe274341fb | `pine_tree_stump_rltsn_high.zip` (74 MB) |
+| Broken Stump | 767f5e4d-21ca-4971-8554-aab5ebd532f1 | `broken_stump_rkswd_high.zip` (71 MB) |
+| Fallen Pine Tree | 39ae2493-34bc-4430-8b21-96ea79325a34 | `fallen_pine_tree_rfixh_high.zip` (77 MB) |
+| Fallen Log | 8c058dd2-d70a-4f3d-b797-bf4e80730ad5 | `fallen_log_rjjw2_high.zip` (67 MB) |
+| Rocky Snow Pile | f9c3914d-931f-4d44-beaa-a85e2ad7437f | `rocky_snow_pile_xfroec0qx_high.zip` (75 MB) |
+| Snow Embankment | 3d107ff1-74c8-47ae-82b5-c5e9e2146beb | `snow_embankment_uhqffeyfa_high.zip` (81 MB) |
+| Snow Pile | 8e55612b-1f02-4262-aad4-f1a00dfa7c62 | `snow_pile_xgxhcjxqx_high.zip` (61 MB) |
+| Wood Debris Pack | 132439cb-f493-43ca-bca9-d6f8c49c8259 | `wood_debris_pack_vdqidbfiw_high.zip` (48 MB) |
+| Dead Branches | 435c3ee4-35ad-4a83-b7a2-4113fe696bff | `dead_branches_qjuwd_high.zip` (46 MB) |
+| Modular Wooden Fence | 117eb23f-f678-4419-8752-7bc15ebe9620 | `modular_wooden_fence_xfrobaziy_high.zip` (55 MB) |
+| Old Mine (pack: 60 assets) | dc4dc139-f3a3-4375-875f-d1831506953e | `mine_high.zip` (896 MB), not yet imported |

@@ -142,6 +142,10 @@ protected:
 	void SpawnTruck();
 	/** Snow drifts banked against the camp's walls (tools/blender/make_drift.py). */
 	void DriftAgainstWalls();
+	/** The camp dressed with the Megascans props (the owner approved the downloads; Scripts/import_megascans_props.py):
+	 *  barrels, crates, firewood and debris against its buildings, stumps of the timber the camp was built from, fallen
+	 *  trees and snow piles round its edges; clear of the ways the night's scenes walk. */
+	void DressCamp();
 	UPROPERTY()
 	TObjectPtr<AActor> Truck;
 	UPROPERTY()
