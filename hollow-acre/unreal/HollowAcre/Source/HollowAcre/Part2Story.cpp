@@ -237,6 +237,7 @@ void AP2Story::Begin(AEndingDirector* InDirector, float InHuskScale)
 		}
 	}
 	FurnishShed();
+	SpawnTruck();
 	if (!FParse::Param(FCommandLine::Get(), TEXT("p2oldsnow")))
 	{
 		UMaterialInterface* Snow = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Town/Materials/M_Town_Snow.M_Town_Snow"));
@@ -569,6 +570,24 @@ void AP2Story::FurnishShed()
 			const FVector From = At(-70.f, 0.f, 0.f) + FVector(0.f, 0.f, G - T.GetLocation().Z + 190.f);
 			const FVector To = At(260.f, 0.f, 0.f) + FVector(0.f, 0.f, G - T.GetLocation().Z + 60.f);
 			DoorSpill->SetWorldLocationAndRotation(From, (To - From).Rotation());
+			// (the night outside coming in at the doorway: the moon on the snow out front, a faint cold light through the
+			// door, so the dark inside keeps its shapes (the walls, the door's frame, the stove) with the flashlight off;
+			// pure black frames read as nothing)
+			USpotLightComponent* Fill = NewObject<USpotLightComponent>(this, TEXT("MoonFill"));
+			Fill->SetIntensityUnits(ELightUnits::Candelas);
+			Fill->SetIntensity(1.6f);
+			Fill->SetAttenuationRadius(900.f);
+			Fill->SetUseTemperature(true);
+			Fill->SetTemperature(8500.f);
+			Fill->SetSourceRadius(60.f);
+			Fill->SetInnerConeAngle(30.f);
+			Fill->SetOuterConeAngle(70.f);
+			Fill->SetCastShadows(true);
+			Fill->SetVolumetricScatteringIntensity(0.f);
+			Fill->RegisterComponent();
+			const FVector F0 = At(260.f, 0.f, 0.f) + FVector(0.f, 0.f, G - T.GetLocation().Z + 40.f);
+			const FVector F1 = At(-300.f, 0.f, 0.f) + FVector(0.f, 0.f, G - T.GetLocation().Z + 80.f);
+			Fill->SetWorldLocationAndRotation(F0, (F1 - F0).Rotation());
 		}
 	}
 	UE_LOG(LogTemp, Display, TEXT("P2Story: the tool shed furnished (floor, table, her journal, matches, the stove); its ground %.0f cm from its origin"), Lift);
@@ -1240,8 +1259,8 @@ void AP2Story::TickFire(float Dt)
 	}
 	if (StoveHeat)
 	{
-		const float Hot = FMath::Clamp((s - 6.f) / 40.f, 0.f, 1.f);
-		StoveHeat->SetVectorParameterValue(TEXT("Heat"), FLinearColor(1.f, 0.12f, 0.02f) * (0.35f * Hot * Hot * Fl));
+		const float Hot = FMath::Clamp((s - 20.f) / 60.f, 0.f, 1.f);
+		StoveHeat->SetVectorParameterValue(TEXT("Heat"), FLinearColor(1.f, 0.12f, 0.02f) * (0.08f * Hot * Hot * Fl));    // (dark iron: it read as an orange pumpkin)
 	}
 }
 
@@ -1718,4 +1737,172 @@ void AP2Story::SnowBurst(const FVector& At, const FVector& Dir, int32 Count)
 			F.C->SetWorldScale3D(FVector(R.FRandRange(0.008f, 0.03f)));
 		}
 	}
+}
+
+void AP2Story::SpawnTruck()
+{
+	// grandmother's truck: on its roof in the trees behind the camp, where it came to rest after it went over at the
+	// guardrail gap (mountain.json's gap, 160 m up through these trees) and slid down the slope; its nose downhill along
+	// the fall line; the driver's door hanging open, the glovebox's door fallen open; snow drifted against it and lying on
+	// its upturned underside. (Kessler, searching, comes down past it with his lantern.)
+	for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
+	{
+		if (It->GetActorLabel() == TEXT("Town Shed"))
+		{
+			ShedT = It->GetActorTransform();
+		}
+	}
+	UStaticMesh* MBody = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Truck_Body.Truck_Body"));
+	UStaticMesh* MUnder = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Truck_Under.Truck_Under"));
+	UStaticMesh* MDoor = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Truck_Door.Truck_Door"));
+	UStaticMesh* MGlove = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Truck_Glovebox.Truck_Glovebox"));
+	UMaterialInterface* Part = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Car/Keys/M_KeyPart.M_KeyPart"));
+	UMaterialInterface* Glass = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Town/Materials/M_Town_Glass.M_Town_Glass"));
+	if (!MBody || !MUnder || !Part)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("P2Story: no truck meshes"));
+		return;
+	}
+	// (where the trees leave room for it: 3.5 m from every trunk, 8 m off Kessler's way down)
+	const FVector At = ShedAt(-16.f, 33.f);
+	const float Ground = GroundAt(At);           // (before the truck is there to be found by the trace)
+	const FVector Down = ShedT.TransformVectorNoScale(FVector(0.643f, 0.766f, 0.f)).GetSafeNormal2D();
+	const FRotator Rot(-14.f, Down.Rotation().Yaw, 171.f);            // (over on its roof and the hood.s front edge (3 points: it reads as resting),
+	                                                                  // its tail down in the snow too)
+	FActorSpawnParameters P;
+	P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	Truck = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FTransform(Rot, At), P);
+	if (!Truck)
+	{
+		return;
+	}
+	USceneComponent* Root = NewObject<USceneComponent>(Truck, TEXT("Root"));
+	Truck->SetRootComponent(Root);
+	Root->SetMobility(EComponentMobility::Movable);
+	Root->RegisterComponent();
+	Root->SetWorldTransform(FTransform(Rot, At));
+	struct FTint
+	{
+		const TCHAR* Slot;
+		FLinearColor C;
+		float Metal, Rough;
+	};
+	static const FTint Tints[] = {
+		{TEXT("paint"), FLinearColor(0.055f, 0.085f, 0.055f), 0.25f, 0.68f},     // (forest green, faded and chalky)
+		{TEXT("rust"), FLinearColor(0.085f, 0.04f, 0.022f), 0.15f, 0.92f},
+		{TEXT("chrome"), FLinearColor(0.22f, 0.22f, 0.23f), 1.f, 0.48f},       // (old chrome, pitted and dull)
+		{TEXT("rubber"), FLinearColor(0.016f, 0.016f, 0.017f), 0.f, 0.93f},
+		{TEXT("vinyl"), FLinearColor(0.03f, 0.024f, 0.019f), 0.f, 0.7f},
+		{TEXT("under"), FLinearColor(0.032f, 0.027f, 0.024f), 0.45f, 0.86f},
+		{TEXT("lamp"), FLinearColor(0.42f, 0.42f, 0.4f), 0.f, 0.2f},
+		{TEXT("redlamp"), FLinearColor(0.22f, 0.018f, 0.015f), 0.f, 0.25f},
+		{TEXT("gap"), FLinearColor(0.004f, 0.004f, 0.004f), 0.f, 1.f},
+	};
+	auto Dress = [&](UStaticMeshComponent* C)
+	{
+		// (the slots' names from the mesh asset itself: a freshly imported mesh still compiling has none on its component yet)
+		const TArray<FStaticMaterial>& Slots = C->GetStaticMesh()->GetStaticMaterials();
+		for (int32 i = 0; i < Slots.Num(); ++i)
+		{
+			const FString N = Slots[i].MaterialSlotName.ToString();
+			if (N.StartsWith(TEXT("glass")) && Glass)
+			{
+				C->SetMaterial(i, Glass);
+				continue;
+			}
+			for (const FTint& T : Tints)
+			{
+				if (N.StartsWith(T.Slot))
+				{
+					UMaterialInstanceDynamic* D = UMaterialInstanceDynamic::Create(Part, C);
+					static const bool bDebug = FParse::Param(FCommandLine::Get(), TEXT("p2truckdebug"));   // (each slot its own loud colour)
+					const FLinearColor Dc[] = {FLinearColor::Red, FLinearColor::Green, FLinearColor::Blue, FLinearColor::Yellow, FLinearColor(1, 0, 1),
+						FLinearColor(0, 1, 1), FLinearColor(1, 0.5f, 0), FLinearColor::White, FLinearColor(0.3f, 0.3f, 0.3f)};
+					D->SetVectorParameterValue(TEXT("Color"), bDebug ? Dc[&T - Tints] : T.C);
+					D->SetScalarParameterValue(TEXT("Metallic"), T.Metal);
+					D->SetScalarParameterValue(TEXT("Roughness"), T.Rough);
+					C->SetMaterial(i, D);
+					UE_LOG(LogTemp, Display, TEXT("P2Story truck: %s slot %d '%s' tinted"), *C->GetName(), i, *N);
+				}
+			}
+		}
+		UE_LOG(LogTemp, Display, TEXT("P2Story truck: %s has %d slots (%d on the component)"), *C->GetName(), Slots.Num(), C->GetNumMaterials());
+	};
+	auto Piece = [&](UStaticMesh* M, const TCHAR* Name, const FTransform& Rel, bool bSolid)
+	{
+		UStaticMeshComponent* C = NewObject<UStaticMeshComponent>(Truck, Name);
+		C->SetStaticMesh(M);
+		C->SetupAttachment(Root);
+		C->SetRelativeTransform(Rel);
+		C->SetCollisionEnabled(bSolid ? ECollisionEnabled::QueryAndPhysics : ECollisionEnabled::NoCollision);
+		C->SetMobility(EComponentMobility::Movable);
+		C->RegisterComponent();
+		Dress(C);
+		return C;
+	};
+	Piece(MBody, TEXT("TruckBody"), FTransform::Identity, true);
+	Piece(MUnder, TEXT("TruckUnder"), FTransform::Identity, true);
+	// (the door hangs open about its hinge at the cab's front corner; the glovebox's door fallen open in the dash)
+	if (MDoor)
+	{
+		TruckDoor = Piece(MDoor, TEXT("TruckDoor"), FTransform(FRotator(0.f, 64.f, 0.f), FVector(96.f, -101.f, 0.f)), true);
+	}
+	if (MGlove)
+	{
+		Piece(MGlove, TEXT("TruckGlovebox"), FTransform(FRotator(-95.f, 0.f, 0.f), FVector(69.f, 46.f, 107.f)), false);
+	}
+	// (settled into the snow: its lowest point 14 cm under the ground there)
+	FBox Bb(ForceInit);
+	TArray<UPrimitiveComponent*> Prims;
+	Truck->GetComponents<UPrimitiveComponent>(Prims);
+	for (UPrimitiveComponent* C : Prims)
+	{
+		Bb += C->Bounds.GetBox();
+	}
+	Truck->AddActorWorldOffset(FVector(0.f, 0.f, Ground - 14.f - Bb.Min.Z));
+	// snow drifted against its sides and lying on its upturned underside (the wake's own snow lumps)
+	UStaticMesh* Lump = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Wake_SnowLump.Wake_SnowLump"));
+	UStaticMesh* Slab = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Wake_SnowSlab.Wake_SnowSlab"));
+	UMaterialInterface* Snow = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Materials/Blockout/M_Snow.M_Snow"));
+	FRandomStream R(41);
+	const FTransform Tt = Truck->GetActorTransform();
+	auto Drift = [&](UStaticMesh* M, const FVector& LocalAt, const FVector& Scale, float Yaw)
+	{
+		if (!M)
+		{
+			return;
+		}
+		UStaticMeshComponent* C = NewObject<UStaticMeshComponent>(Truck);
+		C->SetStaticMesh(M);
+		C->SetupAttachment(Root);
+		C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		C->SetMobility(EComponentMobility::Movable);
+		C->RegisterComponent();
+		if (Snow)
+		{
+			for (int32 i = 0; i < C->GetNumMaterials(); ++i)
+			{
+				C->SetMaterial(i, Snow);
+			}
+		}
+		const FVector W = Tt.TransformPosition(LocalAt);
+		C->SetWorldLocationAndRotation(FVector(W.X, W.Y, LocalAt.Z < -500.f ? GroundAt(W) : W.Z), FRotator(0.f, Yaw, 0.f));
+		C->SetWorldScale3D(Scale);
+	};
+	// (drifts along both sides, banked against the body: set on the ground (LocalAt.Z below -500 means "on the ground"))
+	for (int32 k = 0; k < 7; ++k)
+	{
+		const float X = -260.f + k * 80.f + R.FRandRange(-15.f, 15.f);
+		for (float Side : {-1.f, 1.f})
+		{
+			Drift(Lump, FVector(X, Side * R.FRandRange(105.f, 125.f), -1000.f), FVector(R.FRandRange(3.5f, 5.5f), R.FRandRange(2.5f, 3.5f), R.FRandRange(1.6f, 2.6f)), R.FRandRange(0.f, 360.f));
+		}
+	}
+	// (snow lying on the upturned frame and bed floor: in the truck's frame its underside is low z, now uppermost)
+	for (int32 k = 0; k < 6; ++k)
+	{
+		Drift(Slab, FVector(-240.f + k * 90.f, R.FRandRange(-30.f, 30.f), 52.f), FVector(R.FRandRange(1.6f, 2.4f), R.FRandRange(1.4f, 2.f), 1.f), R.FRandRange(-20.f, 20.f));
+	}
+	UE_LOG(LogTemp, Display, TEXT("P2Story: grandmother's truck on its roof in the trees at %s (%.0f m from the shed)"), *Truck->GetActorLocation().ToCompactString(),
+		FVector::Dist2D(Truck->GetActorLocation(), ShedT.GetLocation()) / 100.f);
 }

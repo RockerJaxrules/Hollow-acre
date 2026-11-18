@@ -122,6 +122,12 @@ protected:
 	/** The tool shed (where she sheltered): its inside made real (plank floor, boards on the walls), a table, her journal,
 	 *  a box of matches, a pot-belly stove. */
 	void FurnishShed();
+	/** Grandmother's truck (tools/blender/make_truck.py), on its roof in the trees behind the camp. */
+	void SpawnTruck();
+	UPROPERTY()
+	TObjectPtr<AActor> Truck;
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> TruckDoor;
 
 public:
 	/** The stove lit, and this point near enough to it to be warmed. */
@@ -131,6 +137,8 @@ public:
 	FVector WindowPoint() const { return WindowGap; }
 	bool WindowHandIn() const { return WindowHusk != nullptr && WindowReach > 0.3f; }
 	AActor* GetWoodPile() const { return WoodPile; }
+	AActor* GetTruck() const { return Truck; }
+	FVector GetShedAt() const { return ShedT.GetLocation(); }
 	/** The lantern scene: 0 not yet; 1 a light in the trees; 2 he has stopped and holds it up to them; 3 the rifle comes
 	 * up at them (run); 4 it breaks from the dark at their heels; 5 the shot, it drops; 6 he comes, the light to their
 	 * face. And seconds in the stage. */

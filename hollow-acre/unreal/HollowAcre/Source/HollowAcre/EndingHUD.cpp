@@ -150,7 +150,7 @@ void AEndingHUD::DrawPlay()
 		// (on a soft dark band, so it reads on lit wood and on snow alike)
 		const float X0 = bCentre ? X - W * Sc * 0.5f : X;
 		FCanvasTileItem Band(FVector2D(X0 - H * Sc * 0.45f, Yp - H * Sc * 0.62f), FVector2D(W * Sc + H * Sc * 0.9f, H * Sc * 1.24f),
-			FLinearColor(0.f, 0.f, 0.f, 0.42f * C.A));
+			FLinearColor(0.f, 0.f, 0.f, 0.64f * C.A));        // (solid enough to read on lit snow)
 		Band.BlendMode = SE_BLEND_Translucent;
 		Canvas->DrawItem(Band);
 		Canvas->SetDrawColor(C.ToFColor(true));
@@ -161,11 +161,11 @@ void AEndingHUD::DrawPlay()
 	float A = 0.f;
 	if (Story && Story->GetObjective(S, A))
 	{
-		Text(S, Canvas->ClipX * 0.045f, Y * 0.075f, 0.042f, FLinearColor(0.95f, 0.96f, 1.f, A), false);
+		Text(S, Canvas->ClipX * 0.045f, Y * 0.075f, 0.046f, FLinearColor(0.95f, 0.96f, 1.f, A), false);
 	}
 	if (Story && Story->GetSaid(S, A) && !Me->IsReading())
 	{
-		Text(S, Canvas->ClipX * 0.5f, Y * 0.87f, 0.05f, FLinearColor(1.f, 1.f, 0.97f, A), true);
+		Text(S, Canvas->ClipX * 0.5f, Y * 0.87f, 0.056f, FLinearColor(1.f, 1.f, 0.97f, A), true);
 	}
 	if (Me->GetPrompt(S))
 	{

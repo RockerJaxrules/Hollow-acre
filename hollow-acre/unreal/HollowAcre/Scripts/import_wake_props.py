@@ -50,6 +50,11 @@ def main():
         ns = mesh.get_editor_property('nanite_settings')
         ns.set_editor_property('enabled', False)
         mesh.set_editor_property('nanite_settings', ns)
+        if name.startswith('Truck_'):
+            # (the truck is walked round and leant on: its own triangles are its collision)
+            bs = mesh.get_editor_property('body_setup')
+            if bs:
+                bs.set_editor_property('collision_trace_flag', unreal.CollisionTraceFlag.CTF_USE_COMPLEX_AS_SIMPLE)
         eal.save_loaded_asset(mesh)
         # (the imported materials the OBJ named are not used: removed)
         for p in task.get_editor_property('imported_object_paths'):

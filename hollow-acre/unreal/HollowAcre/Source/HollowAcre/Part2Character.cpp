@@ -987,6 +987,41 @@ void APart2Character::StoryAutopilot(float Dt)
 	// the doorway; when the husk comes it holds the beam on it, and runs when it charges)
 	StoryAutoT += Dt;
 	StepT += Dt;
+	// (-p2truckview: stood before grandmother's truck, the light on, the eyes panning slowly across it)
+	static const bool bTruckView = FParse::Param(FCommandLine::Get(), TEXT("p2truckview"));
+	if (bTruckView)
+	{
+		for (TActorIterator<AP2Story> It(GetWorld()); It; ++It)
+		{
+			if (AActor* Tk = It->GetTruck())
+			{
+				if (StoryStep != 99)
+				{
+					StoryStep = 99;
+					// (out on the camp's side of it, in the open, 9 m off; a soft light over it for judging the model)
+					FVector Off = (It->GetShedAt() - Tk->GetActorLocation()).GetSafeNormal2D() * 900.f;
+					Off = FRotator(0.f, 25.f, 0.f).RotateVector(Off);
+					SetActorLocation(Tk->GetActorLocation() + Off + FVector(0.f, 0.f, 160.f), false, nullptr, ETeleportType::TeleportPhysics);
+					UPointLightComponent* Look = NewObject<UPointLightComponent>(Tk, TEXT("JudgeLight"));
+					Look->SetupAttachment(Tk->GetRootComponent());
+					Look->RegisterComponent();
+					Look->SetWorldLocation(Tk->GetActorLocation() + Off * 0.45f + FVector(0.f, 0.f, 420.f));
+					Look->SetIntensityUnits(ELightUnits::Candelas);
+					Look->SetIntensity(60.f);
+					Look->SetAttenuationRadius(2500.f);
+					Look->SetSourceRadius(80.f);
+					if (!bFlashlightOn)
+					{
+						FlashlightToggle();
+					}
+				}
+				const FVector Aim = Tk->GetActorLocation() + Tk->GetActorForwardVector() * 200.f * FMath::Sin(StoryAutoT * 0.25f);
+				const FRotator To = (Aim - EyesAt()).Rotation();
+				Controller->SetControlRotation(FRotator(FMath::Clamp(To.Pitch, -25.f, 10.f), To.Yaw, 0.f));
+			}
+		}
+		return;
+	}
 	static const bool bLanternTest = FParse::Param(FCommandLine::Get(), TEXT("p2lantern"));
 	if (bLanternTest && StoryStep < 11)
 	{
