@@ -1091,9 +1091,18 @@ void APart2Character::StoryAutopilot(float Dt)
 				StepT = 0.f;
 			}
 			break;
-		case 11:     // by the fire, warming
-			WantPitch = -12.f;
+		case 11:     // by the fire, warming, watching the doorway
+		{
+			const FRotator Td = (T.TransformPosition(FVector(0.f, 0.f, 0.f)) + FVector(0.f, 0.f, 120.f) - EyesAt()).Rotation();
+			WantYaw = Td.Yaw;
+			WantPitch = FMath::Clamp(Td.Pitch, -12.f, 5.f);
+			TurnRate = 40.f;
+			if (StepT > 1.f && !bIsCrouched)
+			{
+				CrouchToggle();
+			}
 			break;
+		}
 		default:
 			break;
 		}

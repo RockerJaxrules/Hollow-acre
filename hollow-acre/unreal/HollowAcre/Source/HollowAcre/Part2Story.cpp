@@ -409,7 +409,7 @@ void AP2Story::FurnishShed()
 				UMaterialInstanceDynamic* D = UMaterialInstanceDynamic::Create(Part2, Sc);
 				Sc->SetMaterial(Slot, D);
 				const bool bNickel = N.StartsWith(TEXT("nickel")), bPipe = N.StartsWith(TEXT("pipe"));
-				D->SetVectorParameterValue(TEXT("Color"), bNickel ? FLinearColor(0.36f, 0.35f, 0.33f) : bPipe ? FLinearColor(0.07f, 0.05f, 0.04f) : FLinearColor(0.035f, 0.033f, 0.032f));
+				D->SetVectorParameterValue(TEXT("Color"), bNickel ? FLinearColor(0.28f, 0.27f, 0.25f) : bPipe ? FLinearColor(0.05f, 0.035f, 0.028f) : FLinearColor(0.018f, 0.017f, 0.017f));
 				D->SetScalarParameterValue(TEXT("Metallic"), bNickel ? 0.9f : 0.55f);
 				D->SetScalarParameterValue(TEXT("Roughness"), bNickel ? 0.45f : bPipe ? 0.85f : 0.68f);
 			}
@@ -423,7 +423,9 @@ void AP2Story::FurnishShed()
 			St->AddInstanceComponent(Us);
 			FireLight = NewObject<UPointLightComponent>(St, TEXT("Fire"));
 			FireLight->SetupAttachment(Sc);
-			FireLight->SetRelativeLocation(FVector(34.f, 0.f, 50.f));
+			// (out in the room before its door, low: the fire's light on the floor, the walls, the player; the dark iron
+			// itself barely caught by it, its window glowing)
+			FireLight->SetRelativeLocation(FVector(85.f, 0.f, 35.f));
 			FireLight->SetIntensityUnits(ELightUnits::Candelas);
 			FireLight->SetIntensity(0.f);
 			FireLight->SetAttenuationRadius(650.f);
@@ -657,7 +659,7 @@ void AP2Story::Beats(float Dt)
 		SetObjective(TEXT("Find shelter in the camp"));
 	}
 	// after it has gone from the doorway: the cold (the stove, if they haven't lit it)
-	if (Hunter && Done.Contains(TEXT("husk_shriek")) && Hunter->State == AHuskHunter::EState::Away && !bStoveLit && Once(TEXT("cold")))
+	if (Hunter && Done.Contains(TEXT("husk_shriek")) && (Hunter->State == AHuskHunter::EState::Away || Hunter->State == AHuskHunter::EState::Retreat) && !bStoveLit && Once(TEXT("cold")))
 	{
 		Say(TEXT("It's so cold..."), 1.5f, 2.6f);
 		SetObjective(TEXT("Light the stove"));
@@ -803,7 +805,7 @@ void AP2Story::TickFire(float Dt)
 	const float s = Clock - StoveLitAt;
 	const float Catch = FMath::Clamp(s / 4.f, 0.f, 1.f);
 	const float Fl = 0.78f + 0.12f * FMath::Sin(Clock * 2.3f) + 0.07f * FMath::Sin(Clock * 7.9f + 1.f) + 0.05f * FMath::Sin(Clock * 17.3f + 2.f);
-	FireLight->SetIntensity(55.f * Catch * Catch * Fl);
+	FireLight->SetIntensity(14.f * Catch * Catch * Fl);
 	if (FireGlow)
 	{
 		FireGlow->SetVectorParameterValue(TEXT("Glow"), FLinearColor(1.f, 0.38f, 0.08f) * (6.f * Catch * Fl));

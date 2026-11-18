@@ -33,6 +33,8 @@ STING_LOOK = 'stingers/stingers_plucked_string_horror_725225'
 STING_SCARE = 'stingers/stingers_violin_cymbal_jump_scare_436883'
 CLICKS = 'aftermath/aftermath_engine_cooling_metal_click_613135'
 DRONE = 'score_strings/score_strings_cellos_droning_509535'
+SNAPS = 'wood/wood_branches_snapping_369986'
+HISS = 'aftermath/aftermath_steam_hiss_bursts_438640'
 
 
 def onsets(name, n, dur=0.35, seed=1):
@@ -131,6 +133,19 @@ def play(ev, total):
             M.at(t, C.verb(hit, 0.9, 0.2), 1.0)
         elif k == 'sighting_look':
             M.at(t, C.level(C.loudest(STING_LOOK, 2.5, pre=0.03), 0.035), 1.0)
+        elif k == 'fire_lit':
+            # the match flaring, then the stove's fire catching: small snaps and crackles, closer together as it takes,
+            # and the draught's low roar in the pipe under them
+            M.at(t + 0.15, C.level(C.loudest(HISS, 0.45, pre=0.01), 0.02), 1.0)
+            snaps = onsets(SNAPS, 30, 0.12, 9)
+            tt_ = t + 0.8
+            while tt_ < total:
+                catch = min(1.0, (tt_ - t) / 4.0)
+                M.at(tt_, C.level(C.pitch(snaps[rng.integers(0, len(snaps))], rng.uniform(1.1, 1.6)), 0.012 + 0.012 * rng.random()), catch)
+                tt_ += rng.uniform(0.08, 0.5) / (0.4 + catch)
+            roar = C.steady(W.WIND_IN, total - t + 1.0, skip=3.0)
+            roar = C.filt(roar, A.lp(400))
+            M.bed(C.level(roar, 0.012), t, total, [(t, 0.0), (t + 4.0, 1.0), (total, 1.0)])
         elif k == 'headlight_dies':
             M.at(t - 2.8, C.level(C.loudest(CLICKS, 3.0, pre=0.1), 0.02), 1.0)
         elif k == 'husk_kill':
