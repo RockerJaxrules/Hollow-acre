@@ -375,7 +375,7 @@ void ADriverArms::FreeFollow()
 		const FQuat HandRot = FQuat::Slerp(HangRot, F.Hand.GetRotation(), e);
 		const FVector PoleWay = F.Pole.IsNearlyZero() ? ChestTurn.RotateVector(GripElbow[Side] - GripShoulder[Side]).GetSafeNormal() : F.Pole.GetSafeNormal();
 		const FVector PoleClear = F.bRig ? PoleClearOfFloor(Side, BoneCar(Side == 0 ? TEXT("upperarm_l") : TEXT("upperarm_r")), Wrist, PoleWay, 5.f) : PoleWay;
-		const bool bRigged = F.bRig && RigSolveArm(Side, FTransform(HandRot, Wrist), PoleClear);
+		const bool bRigged = F.bRig && (F.AnimTime >= 0.f && ArmAnim ? AnimArm(Side, F.AnimTime) : RigSolveArm(Side, FTransform(HandRot, Wrist), PoleClear));
 		if (!bRigged)
 		{
 		// two-bone: the elbow toward its pole

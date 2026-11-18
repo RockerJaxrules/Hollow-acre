@@ -1,4 +1,6 @@
 #include "DriverArms.h"
+#include "Animation/AnimSequence.h"
+#include "Animation/Skeleton.h"
 
 #include "Components/PointLightComponent.h"
 #include "Misc/CommandLine.h"
@@ -174,6 +176,49 @@ void ADriverArms::ApplyOutfit()
 	}
 }
 
+bool ADriverArms::AnimArm(int32 Side, float Time)
+{
+	if (!ArmAnim || !ArmAnim->GetSkeleton())
+	{
+		return false;
+	}
+	const TCHAR* Sx = Side == 0 ? TEXT("l") : TEXT("r");
+	const FReferenceSkeleton& Rs = ArmAnim->GetSkeleton()->GetReferenceSkeleton();
+	const FAnimExtractContext Ctx((double)FMath::Clamp(Time, 0.f, ArmAnim->GetPlayLength()));
+	for (int32 b = 0; b < Mesh->GetNumBones(); ++b)
+	{
+		const FName Bn = Mesh->GetBoneName(b);
+		const FString S = Bn.ToString();
+		if (!S.EndsWith(FString::Printf(TEXT("_%s"), Sx)))
+		{
+			continue;
+		}
+		if (S.StartsWith(TEXT("clavicle")) || S.StartsWith(TEXT("upperarm")) || S.StartsWith(TEXT("lowerarm")) || S.Equals(FString::Printf(TEXT("hand_%s"), Sx)))
+		{
+			const int32 Si = Rs.FindBoneIndex(Bn);
+			if (Si == INDEX_NONE)
+			{
+				continue;
+			}
+			FTransform L;
+			ArmAnim->GetBoneTransform(L, FSkeletonPoseBoneIndex(Si), Ctx, false);
+			L.SetScale3D(FVector::OneVector);
+			Mesh->BoneSpaceTransforms[b] = L;
+		}
+	}
+	return true;
+}
+
+FTransform ADriverArms::CarToRig() const
+{
+	if (!bRigReady || !ArmRig)
+	{
+		return FTransform::Identity;
+	}
+	const FTransform S5Rig = ArmRig->GetInitialBoneTransform(TEXT("spine_05"), EControlRigComponentSpace::RigSpace);
+	return Mesh->GetRelativeTransform().Inverse() * BoneCS(TEXT("spine_05")).Inverse() * S5Rig;
+}
+
 bool ADriverArms::RigSolveArm(int32 Side, const FTransform& HandCar, const FVector& PoleDirCar)
 {
 	if (!bRigReady || !ArmRig)
@@ -191,9 +236,11 @@ bool ADriverArms::RigSolveArm(int32 Side, const FTransform& HandCar, const FVect
 	const FVector PoleRig = (S5Rig.GetRotation() * S5Ours.GetRotation().Inverse() * MeshRel.GetRotation().Inverse()).RotateVector(PoleDirCar).GetSafeNormal();
 	const FVector ShRig = ArmRig->GetInitialBoneTransform(FName(*FString::Printf(TEXT("upperarm_%s"), Sx)), EControlRigComponentSpace::RigSpace).GetLocation();
 	ArmRig->SetControlBool(FName(*FString::Printf(TEXT("arm_%s_fk_ik_switch"), Sx)), true);
-	ArmRig->SetControlTransform(FName(*FString::Printf(TEXT("hand_%s_ik_ctrl"), Sx)), RigCtrlOffset[Side] * HandRig, EControlRigComponentSpace::RigSpace);
+	RigLastCtrl[Side] = RigCtrlOffset[Side] * HandRig;
+	ArmRig->SetControlTransform(FName(*FString::Printf(TEXT("hand_%s_ik_ctrl"), Sx)), RigLastCtrl[Side], EControlRigComponentSpace::RigSpace);
 	const FVector Mid = (ShRig + HandRig.GetLocation()) * 0.5f;
-	ArmRig->SetControlTransform(FName(*FString::Printf(TEXT("arm_%s_pv_ik_ctrl"), Sx)), FTransform(Mid + PoleRig * 40.f), EControlRigComponentSpace::RigSpace);
+	RigLastPv[Side] = Mid + PoleRig * 40.f;
+	ArmRig->SetControlTransform(FName(*FString::Printf(TEXT("arm_%s_pv_ik_ctrl"), Sx)), FTransform(RigLastPv[Side]), EControlRigComponentSpace::RigSpace);
 	ArmRig->Update(0.f);
 	// the arm's bones, local to their parents, onto the body (the clavicle down to the hand, the twist bones with them;
 	// the fingers are posed after, as before)
@@ -1142,6 +1189,7 @@ void ADriverArms::BeginPlay()
 		}
 		ApplyOutfit();
 		// the rig on the hidden body (its controls' rest offsets from their bones taken now)
+		ArmAnim = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/HollowAcre/Wake/Anim/A_WakePickup.A_WakePickup"));
 		if (UClass* RigClass = LoadClass<UControlRig>(nullptr, TEXT("/MetaHumanCharacter/Common/MetaHuman_ControlRig.MetaHuman_ControlRig_C")))
 		{
 			RigBody->SetSkeletalMeshAsset(Body);

@@ -143,6 +143,7 @@ public:
 		float Open = 0.f;                         // reaching for something: the fingers opened out flat and spread (0..1), over Shape
 		float Stagger = 0.f;                      // closing one after another (index first, little finger last): 0 together .. ~0.4
 		bool bRig = false;                        // the arm solved by Epic's MetaHuman Control Rig (its IK, clavicle, twist), not our two-bone
+		float AnimTime = -1.f;                    // 0 or more (with bRig): the arm played from ArmAnim at this time (s), keyed in Sequencer
 		FVector Pole = FVector::ZeroVector;       // the elbow's way (car frame); zero: as at the wheel, turned with the chest; shorter than 1: part way
 	};
 	FFreeHand Free[2];
@@ -193,6 +194,16 @@ public:
 	void ForearmParams(int32 Side, const FVector& Elbow, const FTransform& Hand, float& Flex, float& Dev, FVector& PalmWay) const;
 	/** Where the middle of the palm's skin sits in the hand bone's frame. */
 	FVector PalmSkinLocal(int32 Side) const { return PalmSkinL[Side]; }
+	/** Car frame to the Control Rig's own space (the body standing in its reference pose, as in Sequencer): a car-frame
+	 *  transform T goes to T * CarToRig() (matched at the chest, spine_05, as RigSolveArm carries the hand across). */
+	FTransform CarToRig() const;
+	/** The arm keyed in Sequencer on the MetaHuman Control Rig and baked (A_WakePickup): its bones from the clavicle to the
+	 *  hand, sampled at Time, onto the body (as RigSolveArm sets them from the live rig). */
+	UPROPERTY() TObjectPtr<class UAnimSequence> ArmAnim;
+	bool AnimArm(int32 Side, float Time);
+	/** What RigSolveArm last gave the rig (its own space): the hand's IK control and the elbow's pole control. */
+	FTransform RigLastCtrl[2];
+	FVector RigLastPv[2] = {FVector::ZeroVector, FVector::ZeroVector};
 	/** The handle (the flashlight's own frame) a hand at Hand grips (car frame). */
 	FTransform HandleFor(int32 Side, const FTransform& Hand) const { return HoldInHand[Side] * Hand; }
 	/** The hand's own axes for a hand bone rotation: along the fingers, the palm's facing, across (index to little finger). */

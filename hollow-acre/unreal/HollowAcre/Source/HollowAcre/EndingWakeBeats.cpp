@@ -19,6 +19,8 @@
 #include "BloodFX.h"
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
+#include "Misc/FileHelper.h"
+#include "HAL/FileManager.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Components/BoxComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
@@ -1363,6 +1365,10 @@ void AEndingDirector::WakeBeats(float RealDt)
 		L.Open = R.Open = 0.f;
 		// (the right arm through the pickup and the hold: solved by the MetaHuman body's own Control Rig)
 		R.bRig = w >= 9.6f && w < 19.f;
+		// (the pickup as keyed in Sequencer (LS_ArmLab, on the MetaHuman Control Rig) and baked to A_WakePickup: frame 0 is
+		// w 9.3; keyed from 10.3 to 14.8. -wakenoanim plays the solver instead)
+		static const bool bNoAnim = FParse::Param(FCommandLine::Get(), TEXT("wakenoanim"));
+		R.AnimTime = (!bNoAnim && w >= 10.3f && w < 14.8f) ? w - 9.3f : -1.f;
 		if (w < 7.0f)
 		{
 			// (hanging limp: the fingers loose and half open, not fists)
@@ -1942,6 +1948,29 @@ void AEndingDirector::WakeBeats(float RealDt)
 	WakeOnce(TEXT("chute"), 30.2f, w);
 	WakeOnce(TEXT("control"), 33.0f, w);
 
+	static const bool bWakeDump = FParse::Param(FCommandLine::Get(), TEXT("wakedump"));
+	if (bWakeDump && Arms && Arms->IsReady() && w >= 9.3f && w <= 15.f)
+	{
+		// (for authoring the pickup in Sequencer: the scene round the body, in the Control Rig's own space (the body
+		// standing in its reference pose), one line per frame)
+		const FTransform C2R = Arms->CarToRig();
+		auto Tr = [](const FTransform& T)
+		{
+			const FQuat Q = T.GetRotation();
+			return FString::Printf(TEXT("[%.3f,%.3f,%.3f,%.5f,%.5f,%.5f,%.5f]"), T.GetLocation().X, T.GetLocation().Y, T.GetLocation().Z, Q.X, Q.Y, Q.Z, Q.W);
+		};
+		auto Pt = [](const FVector& V) { return FString::Printf(TEXT("[%.3f,%.3f,%.3f]"), V.X, V.Y, V.Z); };
+		const ADriverArms::FFreeHand& Rh = Arms->Free[1];
+		const ADriverArms::FFreeHand& Lh = Arms->Free[0];
+		const FTransform Fl = Flashlight ? Flashlight->GetRootComponent()->GetRelativeTransform() : FlashRest;
+		FString Line = FString::Printf(TEXT("{\"w\":%.4f,\"eye\":%s,\"fov\":%.2f,\"flash\":%s,\"flashRest\":%s,\"liningAt\":%s,\"liningN\":%s,\"handKey\":%s,\"pole\":%s,\"hand\":%s,\"elbow\":%s,\"shoulder\":%s,\"lhand\":%s,\"lhandKey\":%s,\"close\":%.3f,\"open\":%.3f,\"shape\":%d,\"stagger\":%.2f,\"held\":%d,\"ctrl\":%s,\"pv\":%s}\n"),
+			w, *Tr(Eye * C2R), CamComp ? CamComp->FieldOfView : 90.f, *Tr(Fl * C2R), *Tr(FlashRest * C2R), *Pt(C2R.TransformPosition(Arms->FloorAt)),
+			*Pt(C2R.TransformVectorNoScale(Arms->FloorN)), *Tr(Rh.Hand * C2R), *Pt(C2R.TransformVectorNoScale(Rh.Pole)), *Tr(Arms->HandNow(1) * C2R),
+			*Pt(C2R.TransformPosition(Arms->BoneCar(TEXT("lowerarm_r")))), *Pt(C2R.TransformPosition(Arms->BoneCar(TEXT("upperarm_r")))), *Tr(Arms->HandNow(0) * C2R),
+			*Tr(Lh.Hand * C2R), Rh.Close, Rh.Open, Rh.Shape, Rh.Stagger, bFlashHeld ? 1 : 0, *Tr(Arms->RigLastCtrl[1]), *Pt(Arms->RigLastPv[1]));
+		FFileHelper::SaveStringToFile(Line, *FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("WakeDump.jsonl")), FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM,
+			&IFileManager::Get(), FILEWRITE_Append);
+	}
 	if (Arms && Arms->IsReady() && w >= 11.8f && w < 12.8f && FMath::FloorToInt(w * 5.f) > WakeCamLogged)
 	{
 		// (the camera as finally placed, against the arm's bones: nothing of the arm within ~10 cm of it)
