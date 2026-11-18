@@ -48,6 +48,11 @@ One line each, concrete and checkable. **[repeated]** = broken again; move it to
 - Avoid perfect symmetry and perfectly straight organic lines (vary by 2-5%).
 - Light must be physically plausible (AgX, real-ish strengths), with contact shadows where things touch.
 
+## Props (mechanical, from the period)
+- Model a period object by the parts that identify its type, not its overall silhouette: a tubular lantern is its tubes goosenecked into the top, its three-tier top and its collared barrel globe (r1 had a lantern outline and read only as "a lantern", 5/10).
+- Every part joins something: a tube that stops in air beside a rim reads as a strap. Route connectors into the parts they feed (curves through bend() corners).
+- Flat rings (strip metal on edge) and wires are different parts: build bands as closed box-section lathes and wires as curves with a bevel; a wire for a ring reads wavy.
+
 ## Skin
 - Skin blotch and flush contrast scales with tone. Hue-shift the tone itself (redder, slightly darker) rather than
   mixing toward a fixed pink, and lower the amount on darker skin. On dark skin, a fixed flush reads as rust or

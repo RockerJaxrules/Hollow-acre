@@ -1091,7 +1091,7 @@ void AP2Story::BeginWindow()
 	}
 	const float Yaw = WindowIn.Rotation().Yaw;
 	WindowHusk->SetActorLocationAndRotation(P, FRotator(0.f, Yaw, 0.f).Quaternion() * FRotator(0.f, -WindowHusk->MeshForwardYaw(), 0.f).Quaternion());
-	WindowHusk->PeerDown = 0.18f;
+	WindowHusk->PeerDown = 0.f;
 	WindowHusk->JawOpen = 4.f;
 	TArray<UPrimitiveComponent*> Ps;
 	WindowHusk->GetComponents<UPrimitiveComponent>(Ps);
@@ -1145,6 +1145,22 @@ void AP2Story::TickWindow(float Dt)
 		FVector(0.f, 0.f, 2.5f * FMath::Sin(Feel * 2.3f) - 4.f);
 	WindowHusk->ReachAt[1] = Into;
 	WindowHusk->ReachW[1] = FMath::SmoothStep(0.f, 1.f, WindowReach);
+	// (all of it but the arm it reaches in with kept outside the wall's boards: it stoops and leans as it stalks, and a
+	// head or a shoulder through the boards showed it inside the shed (run 24). Each frame it is eased back by however far
+	// its farthest part is past the boards' outer face, 7 cm out from the wall line, with a hand's clearance)
+	{
+		float Most = -1e9f;
+		for (const TCHAR* Bn : {TEXT("head"), TEXT("neck_01"), TEXT("spine_05"), TEXT("spine_03"), TEXT("pelvis"), TEXT("clavicle_l"), TEXT("upperarm_l"),
+			TEXT("lowerarm_l"), TEXT("hand_l"), TEXT("thigh_l"), TEXT("calf_l"), TEXT("foot_l"), TEXT("thigh_r"), TEXT("calf_r"), TEXT("foot_r")})
+		{
+			Most = FMath::Max(Most, FVector::DotProduct(WindowHusk->DrawnAt(FName(Bn)) - WindowGap, WindowIn));
+		}
+		const float Over = Most - (-7.f - 10.f);
+		if (Over > 0.f)
+		{
+			WindowHusk->AddActorWorldOffset(-WindowIn * Over * FMath::Min(1.f, Dt * 12.f));
+		}
+	}
 	if (Player.IsValid())
 	{
 		WindowHusk->GlareAt = Player->EyesAt();

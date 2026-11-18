@@ -701,9 +701,11 @@ void APart2Character::UpdateBody(float Dt)
 			AimLogT = 0.f;
 			const FVector Lw = HeldLight->GetActorForwardVector();
 			const FVector Hw = Me.TransformPosition(HoldAim.GetLocation()), Got = HeldLight->GetActorLocation();
-			UE_LOG(LogTemp, Display, TEXT("P2Aim eyes pitch %.0f; wanted %.0f (aim %.0f cm off along the gaze %.0f); light pitch %.0f yaw off %.0f; hand %.0f cm from the hold; step %d"),
+			const FVector GotEye = Camera->GetComponentTransform().InverseTransformPosition(Got);
+			UE_LOG(LogTemp, Display, TEXT("P2Aim eyes pitch %.0f; wanted %.0f (aim %.0f cm off along the gaze %.0f); light pitch %.0f yaw off %.0f; hand %.0f cm from the hold, at %s in the eyes' frame; crouched %d, eyes %.0f over the capsule; step %d"),
 				Camera->GetComponentRotation().Pitch, Me.TransformVector(AimDir).Rotation().Pitch, FVector::Dist(Me.TransformPosition(AimAt), Camera->GetComponentLocation()), AimDist,
-				Lw.Rotation().Pitch, FRotator::NormalizeAxis(Lw.Rotation().Yaw - Camera->GetComponentRotation().Yaw), FVector::Dist(Hw, Got), StoryStep);
+				Lw.Rotation().Pitch, FRotator::NormalizeAxis(Lw.Rotation().Yaw - Camera->GetComponentRotation().Yaw), FVector::Dist(Hw, Got), *GotEye.ToCompactString(),
+				(int32)bIsCrouched, Camera->GetComponentLocation().Z - GetActorLocation().Z, StoryStep);
 		}
 	}
 	// a jolt (a hit on the wall beside them): a hard shake, settling in half a second
