@@ -442,12 +442,17 @@ void AP2Story::FurnishShed()
 					continue;
 				}
 				// (its belly's iron, heating to a dull red as the fire burns high)
-				if (N.StartsWith(TEXT("heat")))
+				if (N.StartsWith(TEXT("heat")) || N.StartsWith(TEXT("castiron")))
 				{
 					if (UMaterialInterface* Hm = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Materials/Play/M_HotIron.M_HotIron")))
 					{
-						StoveHeat = UMaterialInstanceDynamic::Create(Hm, Sc);
-						Sc->SetMaterial(Slot, StoveHeat);
+						// (the belly and its door, lip and legs: one dull iron, the belly's slot heating)
+						UMaterialInstanceDynamic* Iron = UMaterialInstanceDynamic::Create(Hm, Sc);
+						Sc->SetMaterial(Slot, Iron);
+						if (N.StartsWith(TEXT("heat")))
+						{
+							StoveHeat = Iron;
+						}
 						continue;
 					}
 				}
@@ -466,6 +471,18 @@ void AP2Story::FurnishShed()
 			}
 			Sc->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 			Sc->SetCollisionResponseToAllChannels(ECR_Block);
+			// (measured: each slot's material and its colour, as the game has them)
+			for (int32 Slot = 0; Slot < Sc->GetNumMaterials(); ++Slot)
+			{
+				UMaterialInterface* Mi = Sc->GetMaterial(Slot);
+				FLinearColor C(-1.f, -1.f, -1.f);
+				if (Mi)
+				{
+					Mi->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("Color")), C);
+				}
+				UE_LOG(LogTemp, Display, TEXT("P2Stove slot %d %s: %s (parent %s), Color %s"), Slot, Sn.IsValidIndex(Slot) ? *Sn[Slot].ToString() : TEXT("?"),
+					Mi ? *Mi->GetName() : TEXT("none"), Mi && Mi->GetMaterial() ? *Mi->GetMaterial()->GetName() : TEXT("?"), *C.ToString());
+			}
 			// its flames: crossed cards over the logs, drawn by M_Flame; nothing until it is lit
 			if (UStaticMesh* Fm = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Wake_StoveFlames.Wake_StoveFlames")))
 			{
