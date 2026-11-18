@@ -644,6 +644,69 @@ def pole(name, seed, H=28.0):
     return m
 
 
+def headframe(name, seed, H=16.0):
+    """The mine's headframe over the old shaft, the camp's landmark against the sky: a timber two-post frame (as the
+    western hard-rock mines built them about 1880-1910: Comstock and Leadville photographs, HAER drawings of timber
+    headframes) of 12 x 12 in posts, the two front posts upright over the shaft and two backstays leaning back to take
+    the hoist rope's pull, girts and X-bracing between them, a sheave deck on top and the sheave wheel (spoked, about
+    3 m across) on it; the shaft's collar boards round its foot. Weathered, a few braces gone."""
+    m = Mesh(seed)
+    T = 30.0                                      # (12 in timbers)
+    H = H * 100.0
+    fx, wy = -150.0, 125.0                        # (the front posts: back from the front, half the spread)
+    bx = fx - H * 0.62                            # (where the backstays reach the ground)
+    def beam(a, b, size=T, mat='barewood', nrm=(0, 0, 1)):
+        a, b = np.array(a, float), np.array(b, float)
+        d = (b - a) / np.linalg.norm(b - a)
+        n = np.array(nrm, float)
+        if abs(np.dot(n, d)) > 0.9:
+            n = np.array([1.0, 0.0, 0.0])
+        m.board(mat, a, b, size, size, n, jitter=0.15)
+    for y in (-wy, wy):
+        beam((fx, y, 0), (fx, y, H + 40))
+        beam((bx, y * 1.15, 0), (fx - 20, y, H - 20))
+    # girts across the front posts, and across front to back, every 3.2 m; X-bracing on the front and sides
+    lv = np.arange(320.0, H, 320.0)
+    for z in lv:
+        beam((fx, -wy - 15, z), (fx, wy + 15, z), size=22)
+        k = (z / H)
+        xb = fx + (bx - fx) * (1 - k) - 10
+        for y in (-wy, wy):
+            beam((fx, y, z), (xb, y * (1.15 - 0.15 * k), z), size=22)
+    for z0, z1 in zip(np.concatenate([[0.0], lv[:-1]]), lv):
+        if m.r.random() < 0.85:
+            beam((fx, -wy, z0 + 15), (fx, wy, z1 - 15), size=16)
+        if m.r.random() < 0.85:
+            beam((fx, wy, z0 + 15), (fx, -wy, z1 - 15), size=16)
+    # the sheave deck: two heavy caps on the posts, planked over
+    for y in (-wy, wy):
+        beam((fx + 60, y, H), (fx - 160, y, H), size=34)
+    for i in range(9):
+        x = fx + 55 - i * 25
+        m.box('barewood', np.array([x, 0.0, H + 22]), (22.0, 2 * wy + 60, 5.0))
+    # the sheave wheel: a rim of segments, eight spokes, a hub, on the deck turning about the street's way (y)
+    R, cz, cx = 150.0, H + 24 + 150.0 + 10, fx - 40
+    segs = 24
+    for i in range(segs):
+        a0, a1 = 2 * math.pi * i / segs, 2 * math.pi * (i + 1) / segs
+        p0 = np.array([cx + R * math.cos(a0), 0.0, cz + R * math.sin(a0)])
+        p1 = np.array([cx + R * math.cos(a1), 0.0, cz + R * math.sin(a1)])
+        m.board('rustmetal', p0, p1, 12, 10, np.array([math.cos((a0 + a1) / 2), 0.0, math.sin((a0 + a1) / 2)]))
+    for i in range(8):
+        a = 2 * math.pi * i / 8
+        m.board('rustmetal', np.array([cx, 0.0, cz]), np.array([cx + (R - 6) * math.cos(a), 0.0, cz + (R - 6) * math.sin(a)]), 7, 5, np.array([0.0, 1.0, 0.0]))
+    m.box('rustmetal', np.array([cx, 0.0, cz]), (30.0, 36.0, 30.0))
+    for y in (-22.0, 22.0):                       # (its pillow blocks on the deck)
+        beam((cx, y, H + 28), (cx, y, cz - 10), size=20)
+    # the shaft's collar: heavy boards round the opening at its foot, the dark of the shaft between
+    for y in (-wy - 30, wy + 30):
+        beam((fx + 80, y, 8), (fx - 220, y, 8), size=30)
+    for x in (fx + 80, fx - 220):
+        beam((x, -wy - 30, 8), (x, wy + 30, 8), size=30)
+    m.poly('dark', [np.array([fx + 65, -wy - 15, 2.0]), np.array([fx + 65, wy + 15, 2.0]), np.array([fx - 205, wy + 15, 2.0]), np.array([fx - 205, -wy - 15, 2.0])], face=(0, 0, 1))
+    return m
+
+
 def walls_of(m):
     return m
 
@@ -657,6 +720,7 @@ BUILDINGS = {
     'Shed': lambda: shed('Shed', 17),
     'Privy': lambda: privy('Privy', 19),
     'Pole': lambda: pole('Pole', 23),
+    'Headframe': lambda: headframe('Headframe', 29),
 }
 
 
@@ -670,9 +734,10 @@ LAYOUT = [  # (building, u along the street from its head (m), v across it (m, +
     ('Shed', 5.5, 8.0, 'v-'), ('CabinA', 15.0, 8.0, 'v-'), ('Privy', 16.0, 19.0, 'v-'),
     ('Hotel', 47.0, 0.0, 'u-'),
     ('Pole', -1.0, 5.5, 'u+'), ('Pole', 23.0, 5.5, 'u+'), ('Pole', 45.0, 9.5, 'u+'),
+    ('Headframe', 60.0, 17.0, 'v-'),              # (the old shaft behind the hotel's right: the camp's landmark)
 ]
 FOOT = {'Saloon': (9.1, 6.1), 'Store': (15.2, 9.1), 'CabinB': (5.5, 4.3), 'CabinA': (6.1, 4.9), 'Privy': (1.9, 1.3),
-        'Shed': (3.7, 3.7), 'Hotel': (15.2, 9.1), 'Pole': (0.4, 0.4)}       # (depth back from its front, width) m
+        'Shed': (3.7, 3.7), 'Hotel': (15.2, 9.1), 'Pole': (0.4, 0.4), 'Headframe': (12.0, 4.0)}       # (depth back from its front, width) m
 
 
 def town():

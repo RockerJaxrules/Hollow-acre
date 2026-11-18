@@ -428,7 +428,7 @@ void AP2Story::TickCrosser(float Dt)
 		Crosser->Destroy();
 		Crosser = nullptr;
 		CrossT = -1.f;
-		Say(TEXT("What was that."), 0.6f, 2.8f);
+		Say(TEXT("What was that?"), bCrossInHeadlight ? 3.4f : 0.6f, 2.8f);
 	}
 }
 
