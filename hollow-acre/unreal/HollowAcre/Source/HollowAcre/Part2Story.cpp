@@ -501,6 +501,9 @@ void AP2Story::FurnishShed()
 			FireLight->SetTemperature(2100.f);
 			FireLight->SetSourceRadius(8.f);
 			FireLight->SetCastShadows(true);
+			// (no ball of glowing fog round it: a point light in the volumetric fog lit a bright blurred disc over the view
+			// whenever it sat just below the eyes; a stove's light barely shows in a room's air)
+			FireLight->SetVolumetricScatteringIntensity(0.08f);
 			// (the fire's light on its own channel: the room, the floor, the walls, its table take it; the stove's iron doesn't,
 			// so it stays dark with its window glowing)
 			FireLight->SetLightingChannels(false, false, true);
@@ -539,6 +542,7 @@ void AP2Story::FurnishShed()
 			DoorSpill->SetInnerConeAngle(18.f);
 			DoorSpill->SetOuterConeAngle(42.f);
 			DoorSpill->SetCastShadows(true);
+			DoorSpill->SetVolumetricScatteringIntensity(0.3f);
 			DoorSpill->SetLightingChannels(false, false, true);
 			DoorSpill->RegisterComponent();
 			const FVector From = At(-250.f, 0.f, 0.f) + FVector(0.f, 0.f, G - T.GetLocation().Z + 75.f);
@@ -618,6 +622,7 @@ void AP2Story::OnUse(UP2UseComponent* Use)
 				MatchLight->SetUseTemperature(true);
 				MatchLight->SetTemperature(1900.f);
 				MatchLight->SetSourceRadius(1.f);
+				MatchLight->SetVolumetricScatteringIntensity(0.05f);
 				// (the match lights the room and the stove; the hand that holds it, inches from the flame, gets its own
 				// gentler light: at full strength the sleeve burned out to a yellow blob against the dark room)
 				MatchLight->SetLightingChannels(false, true, true);

@@ -1286,19 +1286,23 @@ void APart2Character::StoryAutopilot(float Dt)
 			if (WoodLeg == 2 && !bCarryingWood)
 			{
 				// (at the pile: look at it, take an armful)
+				// (eyes on the pile; an armful as soon as it is in reach, from wherever the way came to it; nearer if not;
+				// a walk to a set spot before it stuck on the drift at its foot)
 				const FRotator Tp = (Pile->GetActorLocation() - EyesAt()).Rotation();
 				WantYaw = Tp.Yaw;
 				WantPitch = Tp.Pitch;
-				TurnRate = 70.f;
-				if (FVector::Dist2D(AtPile, GetActorLocation()) > 40.f)
+				TurnRate = 90.f;
+				if (Focus.IsValid() && Focus->Id == TEXT("wood"))
+				{
+					if (StepT > 1.0f)
+					{
+						Interact();
+						StepT = 0.f;
+					}
+				}
+				else
 				{
 					bWalk = true;
-					WantYaw = (AtPile - GetActorLocation()).Rotation().Yaw;
-				}
-				else if (StepT > 1.5f && Focus.IsValid())
-				{
-					Interact();
-					StepT = 0.f;
 				}
 				break;
 			}
