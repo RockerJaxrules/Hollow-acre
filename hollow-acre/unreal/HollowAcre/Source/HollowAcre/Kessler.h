@@ -39,6 +39,29 @@ public:
 	/** Play another take (looping or once). */
 	void PlayClip(const FString& Name, bool bLoop);
 
+	/** Walk to a point on the ground: his take's own steps carry him (no sliding), turning toward it as he goes; he
+	 * stops there, eased into standing. */
+	void WalkTo(const FVector& At);
+	/** Stop where he is, eased into standing (his take paused once he stands). */
+	void Halt();
+	bool IsWalking() const { return bWalking; }
+	/** Standing, turn (feet and all) to face this point. */
+	void FaceTo(const FVector& At) { FaceAt = At; }
+	/** Where his eyes go: his head turns to it (zero: ahead, as the take carries it). */
+	FVector LookAtPoint = FVector::ZeroVector;
+	/** His lantern raised (0 at his side .. 1 held up before him, toward LanternToward, or ahead if that is zero). */
+	float LanternUp = 0.f;
+	FVector LanternToward = FVector::ZeroVector;
+	/** The rifle brought up and shouldered, aimed at this point (his body bladed to it, his cheek on the stock). */
+	void AimAt(const FVector& At);
+	/** The rifle brought down, carried again. */
+	void LowerRifle();
+	bool IsAimed() const { return AimW > 0.95f; }
+	/** A shot: the flash at the muzzle, the kick. Out: where the muzzle was and where it pointed. */
+	void Fire(FVector& OutMuzzle, FVector& OutDir);
+	/** Between his eyes (for the player's camera and for him to be looked at). */
+	FVector EyesAt() const;
+
 	USkeletalMeshComponent* GetBody() const { return Body.Get(); }
 	/** Where his lantern's flame is (for what it lights, and for the player's eyes to find in the trees). */
 	FVector LanternAt() const;
@@ -59,6 +82,41 @@ protected:
 	TObjectPtr<UStaticMeshComponent> Rifle;
 
 	float T = 0.f;
+	/** The body drawn: a copy of the take's pose each frame (the take's own body ticks on hidden), so his arms and head
+	 * can be set over it. */
+	UPROPERTY()
+	TObjectPtr<class UPoseableMeshComponent> Shown;
+	TWeakObjectPtr<USkeletalMeshComponent> Face;
+	TArray<FTransform> RefLocal;
+	bool bWalking = false;
+	FVector Goal = FVector::ZeroVector, FaceAt = FVector::ZeroVector;
+	float StandW = 1.f;          // (0: as the take walks .. 1: standing)
+	FVector PelvisRef = FVector::ZeroVector, PelvisWas = FVector::ZeroVector, StepWas = FVector::ZeroVector;
+	bool bPelvisInit = false;
+	float Lat = 0.f;
+	float AimW = 0.f, AimWant = 0.f, LanternW = 0.f, HeadW = 0.f;
+	FVector AimPoint = FVector::ZeroVector;
+	FVector FaceFwdLocal = FVector(0.f, 1.f, 0.f);
+	/** His right eye in his head bone's frame (from his face's own joints): what he sights with. */
+	FVector EyeRLocal = FVector::ZeroVector;
+	float KickT = 10.f;
+	UPROPERTY()
+	TObjectPtr<class UPointLightComponent> MuzzleLight;
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> MuzzleFlash;
+	UPROPERTY()
+	TObjectPtr<class UMaterialInstanceDynamic> MuzzleMID;
+	void Locomote(float Dt);
+	void CopyPose();
+	void PoseUpper(float Dt);
+	void TurnHead(float W);
+	void ArmTo(bool bLeft, const FVector& HandAt, const FVector& Pole, float W);
+	void SetCS(int32 Bone, const FTransform& World);
+	FTransform AimRifle() const;
+	FTransform CarryRifle() const;
+	float GroundZ(const FVector& At) const;
+	bool bTest = false;
+	void RunTest();
 	FVector HandWas = FVector::ZeroVector;
 	FVector2D Swing = FVector2D::ZeroVector, SwingV = FVector2D::ZeroVector;
 	void Tint(UStaticMeshComponent* C, const TCHAR* Slot, const FLinearColor& Color, float Metal, float Rough);

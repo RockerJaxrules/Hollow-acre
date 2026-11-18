@@ -95,7 +95,11 @@ try:
     face = os.environ.get('KESSLER_CAM') == 'face'
     cam_loc, cam_rot, fov = (V(-120, -70, 172), R(-3, 0, 0), 30.0) if face else (V(-420, 0, 120), R(-3, 0, 0), 40.0)
     if os.environ.get('KESSLER_CAM') == 'walk':      # (a man's eye height, far enough back for a walk toward it)
-        cam_loc, cam_rot, fov = V(-1150, 0, 165), R(float(os.environ.get('KESSLER_PITCH', '-4')), 0, 0), float(os.environ.get('KESSLER_FOV', '30'))
+        cy = float(os.environ.get('KESSLER_CAMYAW', '0'))     # (round him: the camera swung about the stage's middle)
+        import math
+        d = float(os.environ.get('KESSLER_DIST', '1150'))
+        cam_loc = V(-d * math.cos(math.radians(cy)), -d * math.sin(math.radians(cy)), 165)
+        cam_rot, fov = R(float(os.environ.get('KESSLER_PITCH', '-4')), cy, 0), float(os.environ.get('KESSLER_FOV', '30'))
     if os.environ.get('KESSLER_FILL'):                 # (a plain white light from beside the camera: to judge the clothes)
         fill = actors.spawn_actor_from_class(unreal.PointLight, cam_loc + V(150, -150, 60))
         fill.light_component.set_editor_property('intensity_units', unreal.LightUnits.CANDELAS)
