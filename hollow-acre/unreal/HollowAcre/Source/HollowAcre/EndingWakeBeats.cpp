@@ -1131,6 +1131,32 @@ void AEndingDirector::WakeBeats(float RealDt)
 	}
 	Camera->GetRootComponent()->SetRelativeLocationAndRotation(Eye.GetLocation(), Eye.GetRotation());
 	{
+		// (checking the grip: -wakehandcam=1 looks at the right hand from the eyes' side, 2 and 3 from either side, close up)
+		static int32 HandCam = -1;
+		if (HandCam < 0)
+		{
+			HandCam = 0;
+			FParse::Value(FCommandLine::Get(), TEXT("-wakehandcam="), HandCam);
+		}
+		if (HandCam > 0 && Arms && Arms->IsReady() && w > 10.f)
+		{
+			const FVector H = Arms->PalmNow(1);
+			const FVector ToEye = (Eye.GetLocation() - H).GetSafeNormal();
+			const FVector Across = FVector::CrossProduct(ToEye, WUp).GetSafeNormal();
+			const FVector Dir = HandCam == 1 ? ToEye : HandCam == 2 ? Across : -Across;
+			FVector CamAt = H + Dir * 22.f + WUp * 5.f;
+			FVector LookAt = H;
+			if (HandCam == 4 && Flashlight)
+			{
+				// (down the barrel from behind its tail: the fist's cross-section round it)
+				const FTransform Fl = Flashlight->GetRootComponent()->GetRelativeTransform();
+				LookAt = Fl.TransformPosition(FVector(15.5f, 0.f, 0.f));
+				CamAt = Fl.TransformPosition(FVector(-16.f, 0.f, 0.f));
+			}
+			Camera->GetRootComponent()->SetRelativeLocationAndRotation(CamAt, FRotationMatrix::MakeFromXZ((LookAt - CamAt).GetSafeNormal(), WUp).ToQuat());
+		}
+	}
+	{
 		// (checking, -wakeside=X,Y,Z: the camera that far from the eye (car frame), looking at a point 25 cm below it)
 		static FVector SideOff = FVector::ZeroVector;
 		static bool bSideRead = false;
@@ -1538,51 +1564,48 @@ void AEndingDirector::WakeBeats(float RealDt)
 				const FVector PoleHold = WakePoleHold.IsNearlyZero() ? Eye.GetRotation().RotateVector(FVector(-0.1f, 0.6f, -0.8f)).GetSafeNormal() : WakePoleHold;
 				if (!bWakeTakeSet)
 				{
-					// contact, found once: the palm on its top at the grip, turned about the upright and its fingertips tipped
-					// down a little, the elbow swung about the shoulder-wrist line, until the wrist sits relaxed for the
-					// forearm the body gives it; the flashlight still across the palm (40 degrees or more off the fingers) and
-					// the elbow clear of the lining
-					const FVector PalmP = Take.TransformPosition(Arms->PalmSkinLocal(1));
-					float Best = 1e30f, BYaw = 0.f, BPitch = 0.f, BFx = 0.f, BDv = 0.f, BAcross = 0.f, BElbow = 0.f;
-					for (float Swing = -180.f; Swing < 179.f; Swing += 20.f)
+					// contact, found once: the hand takes the flashlight in its real grip (the barrel across the fingers, seated in
+					// their curl, its head out past the index and thumb, the switch under the thumb: the grip the hand's fingers were
+					// shaped round), so it wraps it. What's free is how the hand sits round the barrel: rolled about its axis (and
+					// the elbow swung) until the wrist is easy, the palm over the top (it's taken from above), the hand and elbow
+					// off the lining
+					const FTransform Lie = FlashRest;
+					const FVector LieX = Lie.GetRotation().GetAxisX();
+					float Best = 1e30f, BRoll = 0.f, BFx = 0.f, BDv = 0.f, BElbow = 0.f, BPalm = 0.f;
+					for (float Roll = 0.f; Roll < 359.f; Roll += 7.5f)
 					{
-						for (float Yaw = -90.f; Yaw <= 90.01f; Yaw += 5.f)
+						const FTransform Fr(FQuat(LieX, FMath::DegreesToRadians(Roll)) * Lie.GetRotation(), Lie.GetLocation());
+						const FTransform Hh = Arms->HandOnHandle(1, Fr);
+						const FVector W = Hh.GetLocation();
+						FVector Fi, Pa, Ac;
+						Arms->HandAxes(1, Hh.GetRotation(), Fi, Pa, Ac);
+						const float PalmDown = FVector::DotProduct(Pa, Down);
+						const float WristUp = FVector::DotProduct(W - LiningAt, WUp);
+						for (float Swing = -180.f; Swing < 179.f; Swing += 20.f)
 						{
-							for (float Pitch = -8.f; Pitch <= 46.01f; Pitch += 6.f)
+							const FVector SW = (W - ShAt).GetSafeNormal();
+							FVector Pd = Down - SW * FVector::DotProduct(Down, SW);
+							Pd = FQuat(SW, FMath::DegreesToRadians(Swing)).RotateVector(Pd.GetSafeNormal());
+							const FVector E = Arms->ElbowFor(1, ShAt, W, Arms->PoleClearOfFloor(1, ShAt, W, Pd, 5.f));
+							float Fx, Dv;
+							Arms->WristFor(1, E, Hh, Fx, Dv);
+							const float ElbowUp = FVector::DotProduct(E - LiningAt, WUp);
+							const float Cost = FMath::Square(Fx + 15.f) + 1.5f * FMath::Square(Dv - 5.f) + 4000.f * FMath::Square(FMath::Max(0.f, 0.35f - PalmDown)) +
+								30.f * FMath::Square(FMath::Max(0.f, 5.f - ElbowUp)) + 30.f * FMath::Square(FMath::Max(0.f, 4.f - WristUp)) + 0.02f * FMath::Square(Swing);
+							if (Cost < Best)
 							{
-								FQuat Rq = FQuat(WUp, FMath::DegreesToRadians(Yaw)) * Take.GetRotation();
-								FVector Fi, Pa, Ac;
-								Arms->HandAxes(1, Rq, Fi, Pa, Ac);
-								Rq = FQuat(FVector::CrossProduct(Fi, Down).GetSafeNormal(), FMath::DegreesToRadians(Pitch)) * Rq;
-								const FVector W = PalmP - Rq.RotateVector(Arms->PalmSkinLocal(1));
-								const FVector SW = (W - ShAt).GetSafeNormal();
-								FVector Pd = Down - SW * FVector::DotProduct(Down, SW);
-								Pd = FQuat(SW, FMath::DegreesToRadians(Swing)).RotateVector(Pd.GetSafeNormal());
-								const FVector E = Arms->ElbowFor(1, ShAt, W, Arms->PoleClearOfFloor(1, ShAt, W, Pd, 5.f));
-								float Fx, Dv;
-								Arms->WristFor(1, E, FTransform(Rq, W), Fx, Dv);
-								Arms->HandAxes(1, Rq, Fi, Pa, Ac);
-								const FVector Ff = (Fi - WUp * FVector::DotProduct(Fi, WUp)).GetSafeNormal();
-								const float Across = FMath::RadiansToDegrees(FMath::Acos(FMath::Min(1.f, FMath::Abs(FVector::DotProduct(Ff, Ah)))));
-								const float ElbowUp = FVector::DotProduct(E - LiningAt, WUp);
-								const float Cost = FMath::Square(Fx + 15.f) + 1.5f * FMath::Square(Dv - 5.f) + 3.f * FMath::Square(FMath::Max(0.f, 65.f - Across)) +
-									30.f * FMath::Square(FMath::Max(0.f, 5.f - ElbowUp)) + 0.02f * FMath::Square(Swing);
-								if (Cost < Best)
-								{
-									Best = Cost;
-									WakeTakeHand = FTransform(Rq, W);
-									WakePoleTake = Pd;
-									WakeTakeSwing = Swing;
-									BYaw = Yaw; BPitch = Pitch; BFx = Fx; BDv = Dv; BAcross = Across; BElbow = ElbowUp;
-								}
+								Best = Cost;
+								WakeTakeHand = Hh;
+								WakePoleTake = Pd;
+								WakeTakeSwing = Swing;
+								WakeTakeRoll = Roll;
+								BRoll = Roll; BFx = Fx; BDv = Dv; BElbow = ElbowUp; BPalm = PalmDown;
 							}
 						}
 					}
+					UE_LOG(LogTemp, Display, TEXT("WakeTake taken in the grip, the hand rolled %.0f degrees round the barrel: the wrist %.0f toward the palm, %.0f toward the little finger; the palm %.0f%% down; the elbow %.1f cm off the lining"),
+						BRoll, BFx, BDv, BPalm * 100.f, BElbow);
 					bWakeTakeSet = true;
-					float F0, D0;
-					Arms->WristFor(1, Arms->ElbowFor(1, ShAt, Take.GetLocation(), WakePoleTake), Take, F0, D0);
-					UE_LOG(LogTemp, Display, TEXT("WakeTake the hand turned %.1f degrees about the upright, tipped %.0f; the wrist %.0f toward the palm, %.0f toward the little finger (the grip frame alone gave %.0f, %.0f); the flashlight %.0f degrees off the fingers; the elbow %.1f cm off the lining"),
-						BYaw, BPitch, BFx, BDv, F0, D0, BAcross, BElbow);
 				}
 				FVector PoleTake;
 				{
@@ -1804,17 +1827,11 @@ void AEndingDirector::WakeBeats(float RealDt)
 					bFlashReversed = bUpHigh && bFlip;
 					FlashTurnSecs = 1e6f;   // (it never shifts in the fingers: it moves with the grip, as the owner's can did)
 					{
-						// (the barrel rolled about its own axis so its switch faces the thumb: round, it looks the same; the hand
-						// covers the switch as it closes; so the thumb can come onto the switch)
+						// (the barrel rolled about its own axis to how the grip was found, so its switch sits under the thumb: round,
+						// it looks the same, and the hand covers it as it closes)
 						const FVector AxX = FlashRest.GetRotation().GetAxisX();
-						const FVector Th = Arms->BoneCar(TEXT("thumb_02_r"));
-						const FVector Base = FlashRest.GetLocation() + AxX * FVector::DotProduct(Th - FlashRest.GetLocation(), AxX);
-						FVector Want = Th - Base;
-						Want = (Want - AxX * FVector::DotProduct(Want, AxX)).GetSafeNormal();
-						const FVector Zs = FlashRest.GetRotation().GetAxisZ();
-						const float RollTo = FMath::Atan2(FVector::DotProduct(FVector::CrossProduct(Zs, Want), AxX), FVector::DotProduct(Zs, Want));
-						FlashRest.SetRotation((FQuat(AxX, RollTo) * FlashRest.GetRotation()).GetNormalized());
-						UE_LOG(LogTemp, Display, TEXT("WakeSwitch the flashlight rolled %.0f degrees about its axis at the grab, its switch to the thumb"), FMath::RadiansToDegrees(RollTo));
+						FlashRest.SetRotation((FQuat(AxX, FMath::DegreesToRadians(WakeTakeRoll)) * FlashRest.GetRotation()).GetNormalized());
+						UE_LOG(LogTemp, Display, TEXT("WakeSwitch the flashlight rolled %.0f degrees about its axis at the grab, its switch under the thumb"), WakeTakeRoll);
 					}
 					FlashInHandAtGrab = FlashRest * Arms->HandNow(1).Inverse();
 					Arms->GripTaken[1] = FlashInHandAtGrab;

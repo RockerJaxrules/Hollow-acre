@@ -456,6 +456,7 @@ private:
 	FTransform WakeTakeHand;
 	FVector WakePoleTake = FVector::ZeroVector;
 	float WakeTakeSwing = 0.f;
+	float WakeTakeRoll = 0.f;
 	struct FWakeHold { bool bSet = false; float Swing = 0.f, Psi = 0.f, Flex = -15.f, Dev = 8.f; };
 	FWakeHold WakeShowHold, WakeChestHold;              // (the flashlight held as a body holds it: found once, then kept)
 	FVector WakePoleHold = FVector::ZeroVector;
