@@ -171,7 +171,7 @@ bool AP2Story::GetObjective(FString& Out, float& Alpha) const
 	}
 	// (shown a while when it changes, then faded down to a faint reminder)
 	const float s = Clock - ObjectiveAt;
-	Alpha = s < 0.6f ? s / 0.6f : s < 6.f ? 1.f : FMath::Max(0.f, 1.f - (s - 6.f) / 1.5f);
+	Alpha = s < 0.6f ? s / 0.6f : s < 6.f ? 1.f : FMath::Max(0.6f, 1.f - (s - 6.f) / 1.5f);
 	Out = Objective;
 	return Alpha > 0.01f;
 }
@@ -459,7 +459,7 @@ void AP2Story::FurnishShed()
 				Sc->SetMaterial(Slot, D);
 				const bool bNickel = N.StartsWith(TEXT("nickel")), bPipe = N.StartsWith(TEXT("pipe"));
 				const bool bChar = N.StartsWith(TEXT("char"));
-				D->SetVectorParameterValue(TEXT("Color"), bNickel ? FLinearColor(0.28f, 0.27f, 0.25f) : bPipe ? FLinearColor(0.05f, 0.035f, 0.028f) :
+				D->SetVectorParameterValue(TEXT("Color"), bNickel ? FLinearColor(0.075f, 0.07f, 0.065f) : bPipe ? FLinearColor(0.05f, 0.035f, 0.028f) :
 					bChar ? FLinearColor(0.012f, 0.01f, 0.009f) : FLinearColor(0.018f, 0.017f, 0.017f));
 				D->SetScalarParameterValue(TEXT("Metallic"), bNickel ? 0.9f : bChar ? 0.f : 0.55f);
 				D->SetScalarParameterValue(TEXT("Roughness"), bNickel ? 0.45f : bPipe ? 0.85f : bChar ? 0.95f : 0.68f);
@@ -542,10 +542,12 @@ void AP2Story::FurnishShed()
 			DoorSpill->SetInnerConeAngle(18.f);
 			DoorSpill->SetOuterConeAngle(42.f);
 			DoorSpill->SetCastShadows(true);
-			DoorSpill->SetVolumetricScatteringIntensity(0.3f);
+			DoorSpill->SetVolumetricScatteringIntensity(0.f);       // (its own glow in the fog, by the player's head, was the disc)
 			DoorSpill->SetLightingChannels(false, false, true);
 			DoorSpill->RegisterComponent();
-			const FVector From = At(-250.f, 0.f, 0.f) + FVector(0.f, 0.f, G - T.GetLocation().Z + 75.f);
+			// (from just inside the doorway, high, down and out through it: the doorway's shape on the snow; not from the
+			// back of the room, where its source sat by the player's head)
+			const FVector From = At(-70.f, 0.f, 0.f) + FVector(0.f, 0.f, G - T.GetLocation().Z + 190.f);
 			const FVector To = At(260.f, 0.f, 0.f) + FVector(0.f, 0.f, G - T.GetLocation().Z + 60.f);
 			DoorSpill->SetWorldLocationAndRotation(From, (To - From).Rotation());
 		}
@@ -572,6 +574,7 @@ void AP2Story::OnUse(UP2UseComponent* Use)
 	if (Use->Id == TEXT("wood") && Player.IsValid() && !Player->bCarryingWood)
 	{
 		Player->bCarryingWood = true;
+		WoodTakenAt = Clock;
 		Event(TEXT("wood_take"));
 		Say(TEXT("Enough for the night. Go."), 0.4f, 2.6f);
 		SetObjective(TEXT("Bring the wood back to the stove"));
@@ -686,7 +689,7 @@ void AP2Story::OnUse(UP2UseComponent* Use)
 void AP2Story::TickCrosser(float Dt)
 {
 	// (in the street: a quick stalk across, out of reach, seen then gone; past the doorway: slow, and it stops)
-	const float CrossSpeed = bCrossInHeadlight ? 175.f : 105.f;
+	const float CrossSpeed = bCrossDash ? 340.f : bCrossInHeadlight ? 175.f : 105.f;
 	if (!Crosser || CrossT < 0.f)
 	{
 		return;
@@ -694,7 +697,7 @@ void AP2Story::TickCrosser(float Dt)
 	// it walks across the far end of the street; halfway, it stops, and its head turns to the player; then it goes on
 	CrossT += Dt;
 	const float Len = FVector::Dist2D(CrossFrom, CrossTo);
-	const float Stop0 = (bCrossInHeadlight ? 0.42f : 0.47f) * Len / CrossSpeed, Stop1 = Stop0 + (bCrossInHeadlight ? 2.2f : 3.4f);
+	const float Stop0 = bCrossDash ? 1e6f : (bCrossInHeadlight ? 0.42f : 0.47f) * Len / CrossSpeed, Stop1 = Stop0 + (bCrossInHeadlight ? 2.2f : 3.4f);
 	float S = CrossT < Stop0 ? CrossT * CrossSpeed : CrossT < Stop1 ? Stop0 * CrossSpeed : (Stop0 + (CrossT - Stop1)) * CrossSpeed;
 	const bool bStopped = CrossT >= Stop0 && CrossT < Stop1;
 	FVector P = CrossFrom + (CrossTo - CrossFrom).GetSafeNormal2D() * S;
@@ -893,6 +896,22 @@ void AP2Story::Beats(float Dt)
 	if (WindowGoneAt > 0.f && Clock - WindowGoneAt > 9.f && Once(TEXT("fire_dying")))
 	{
 		BeginWood();
+	}
+	// (the armful taken, turning to go: something tall goes fast between the cabins at the edge of the light, gone)
+	if (WoodTakenAt > 0.f && Clock - WoodTakenAt > 1.4f && Player.IsValid() && Once(TEXT("between_cabins")))
+	{
+		const FVector Lk = Player->LookDir().GetSafeNormal2D();
+		const FVector Ac = FVector::CrossProduct(FVector::UpVector, Lk);
+		const FVector Mid = Player->GetActorLocation() - Lk * 1300.f;     // (behind: seen as the player turns back toward the shed)
+		CrossFrom = Mid - Ac * 650.f;
+		CrossTo = Mid + Ac * 650.f;
+		CrossFrom.Z = GroundAt(CrossFrom);
+		CrossTo.Z = GroundAt(CrossTo);
+		bCrossInHeadlight = false;
+		bCrossDash = true;
+		SpawnCrosser();
+		Event(TEXT("husk_gallop"));
+		UE_LOG(LogTemp, Display, TEXT("P2Story %.2f beat: between the cabins (it crosses behind, 13 m off)"), Clock);
 	}
 	// (the fire burning down until it is fed; fed, it comes back up)
 	if (FireDyingFrom > 0.f)
@@ -1213,7 +1232,7 @@ void AP2Story::TickWindow(float Dt)
 	{
 		WindowLitAt = Clock;              // (caught in the light: it goes still a moment, then pulls back)
 	}
-	if (WindowGoneAt < 0.f && W > 3.4f && ((WindowLitAt > 0.f && Clock - WindowLitAt > 0.8f) || W > 11.f))
+	if (WindowGoneAt < 0.f && W > 3.4f && ((WindowLitAt > 0.f && Clock - WindowLitAt > 1.6f) || W > 11.f))
 	{
 		WindowGoneAt = Clock;
 		Event(WindowLitAt > 0.f ? TEXT("husk_hiss") : TEXT("scrape"));
@@ -1225,7 +1244,7 @@ void AP2Story::TickWindow(float Dt)
 	{
 		Want = 0.f;
 	}
-	WindowReach = FMath::FInterpTo(WindowReach, Want, Dt, WindowGoneAt > 0.f ? 14.f : 3.f);
+	WindowReach = FMath::FInterpTo(WindowReach, Want, Dt, WindowGoneAt > 0.f ? 8.f : 3.f);
 	// (feeling along the boards; still while the light is on it)
 	const float Feel = WindowLitAt > 0.f ? FMath::Clamp(WindowLitAt - WindowAt - 3.7f, 0.f, 99.f) : FMath::Clamp(W - 3.7f, 0.f, 99.f);
 	const FVector Into = WindowGap + WindowIn * (32.f + 9.f * FMath::Sin(Feel * 0.9f)) + WindowSide * (13.f * FMath::Sin(Feel * 1.25f)) +

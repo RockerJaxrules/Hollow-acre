@@ -740,7 +740,7 @@ def shed_clutter(m, W, D):
     m.box('dryrust', (-70.0, -hw + 3.0, 150.0), (60.0, 0.4, 14.0), rot(0, 0, 6))
     m.box('drywood', (-36.0, -hw + 3.5, 152.0), (12.0, 2.4, 12.0))
     # the wood box by the stove: empty, a few chips and bark in it
-    bx, by = -150.0, -hw + 30.0                 # (clear of the stove's open door and of the way to it)
+    bx, by = -62.0, -hw + 30.0                  # (by the door on the stove's side: out of the way in from the door to the stove)
     for (cx, cy, sx, sy) in ((bx, by - 25, 60, 2.2), (bx, by + 25, 60, 2.2), (bx - 30, by, 2.2, 50), (bx + 30, by, 2.2, 50)):
         m.box('drywood', (cx, cy, 20.0), (sx, sy, 36.0))
     m.box('drywood', (bx, by, 3.5), (60.0, 52.0, 2.0))

@@ -463,6 +463,43 @@ def stove_flames():
     return ob
 
 
+def armful():
+    """An armful of split firewood as it is carried (Part 2: from the woodpile to the stove): five rounds 40-44 cm long,
+    split into halves and quarters 9-13 cm across, in two layers across the forearms; X along the logs, centred."""
+    import mathutils
+    rnd = random.Random(53)
+    parts = []
+    spots = [(-7.0, 0.0), (0.5, 0.0), (8.0, 0.0), (-3.5, 9.5), (4.5, 9.0)]
+    for k, (y, z) in enumerate(spots):
+        d = rnd.uniform(9.0, 13.0)
+        L = rnd.uniform(40.0, 44.0)
+        n = rnd.choice((5, 6, 7))
+        prof = []
+        for j in range(n):
+            a_ = 2 * math.pi * j / n + rnd.uniform(-0.15, 0.15)
+            rr = d / 2 * rnd.uniform(0.85, 1.05)
+            pz = math.sin(a_) * rr
+            if pz < -d * 0.15:
+                pz = -d * 0.15
+            prof.append((math.cos(a_) * rr, pz))
+        bm = bmesh.new()
+        ring0 = [bm.verts.new((-L / 2, y + py, z + pz)) for py, pz in prof]
+        ring1 = [bm.verts.new((L / 2, y + py + rnd.uniform(-0.6, 0.6), z + pz + rnd.uniform(-0.6, 0.6))) for py, pz in prof]
+        for j in range(n):
+            jj = (j + 1) % n
+            bm.faces.new((ring0[j], ring0[jj], ring1[jj], ring1[j]))
+        bm.faces.new(ring0[::-1])
+        bm.faces.new(ring1)
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+        ob = obj_from_bm('am_log%d' % k, bm)
+        set_mat(ob, 'bark')
+        ob.data.transform(mathutils.Matrix.Rotation(math.radians(rnd.uniform(-6, 6)), 4, 'Z'))
+        parts.append(ob)
+    ob = join('P2_Armful', parts)
+    box_uv(ob, 40.0)
+    return ob
+
+
 def matchbox():
     """A box of safety matches (5.3 x 3.6 x 1.6 cm), its striker strips on the sides; a slot for the label."""
     ob = rounded_box('Wake_Matchbox', (5.3, 3.6, 1.6), 0.08, 'label', segs=1)
@@ -477,7 +514,7 @@ def main():
     clear()
     os.makedirs(OUT, exist_ok=True)
     made = [flashlight(), manual(), papers(), snow('Wake_SnowSlab', (46.0, 30.0, 14.0), 7), snow('Wake_SnowLump', (16.0, 14.0, 11.0), 11, 0.4),
-            buckle(), latch(), strap(), cassette(), coin(), pen(), stove(), stove_flames(), matchbox()] + [pebble('Wake_Pebble%d' % i, 31 + i) for i in range(4)]
+            buckle(), latch(), strap(), cassette(), coin(), pen(), stove(), stove_flames(), matchbox(), armful()] + [pebble('Wake_Pebble%d' % i, 31 + i) for i in range(4)]
     for ob in made:
         write_obj(ob, os.path.join(OUT, ob.name + '.obj'))
 

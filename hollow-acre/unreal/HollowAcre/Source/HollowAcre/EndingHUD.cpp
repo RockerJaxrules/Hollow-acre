@@ -169,7 +169,7 @@ void AEndingHUD::DrawPlay()
 	}
 	if (Me->GetPrompt(S))
 	{
-		Text(FString::Printf(TEXT("E    %s"), *S), Canvas->ClipX * 0.5f, Y * 0.62f, 0.034f, FLinearColor(1.f, 1.f, 0.95f, 0.95f), true);
+		Text(FString::Printf(TEXT("E    %s"), *S), Canvas->ClipX * 0.5f, Y * 0.62f, 0.042f, FLinearColor(1.f, 1.f, 0.95f, 1.f), true);
 	}
 	int32 Index = 0, Count = 0;
 	if (Me->GetReading(S, Index, Count))

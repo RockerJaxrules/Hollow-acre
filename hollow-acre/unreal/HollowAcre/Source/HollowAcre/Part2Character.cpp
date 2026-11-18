@@ -830,6 +830,39 @@ void APart2Character::Tick(float DeltaSeconds)
 			UpdateBreath(DeltaSeconds);
 		}
 		UpdateAttention(DeltaSeconds);
+		// (out under the sky the eyes are kept to the night: a darker exposure outdoors, the flashlight the main light;
+		// indoors as it was. The judge's 'an even grey, like an overcast evening')
+		{
+			const float WantBias = bUnderRoof ? 0.f : -1.1f;
+			NightBias = FMath::FInterpTo(NightBias, WantBias, DeltaSeconds, 0.8f);
+			Camera->PostProcessSettings.bOverride_AutoExposureBias = true;
+			Camera->PostProcessSettings.AutoExposureBias = BaseGrade.AutoExposureBias + NightBias;
+		}
+		// (the armful of split wood carried low in front, under the light)
+		if (bCarryingWood && !Armful)
+		{
+			if (UStaticMesh* Am = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/P2_Armful.P2_Armful")))
+			{
+				Armful = NewObject<UStaticMeshComponent>(this, TEXT("Armful"));
+				Armful->SetStaticMesh(Am);
+				Armful->SetupAttachment(Camera);
+				Armful->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				Armful->SetCastShadow(false);
+				Armful->SetRelativeLocationAndRotation(FVector(36.f, -4.f, -34.f), FRotator(-14.f, 82.f, 4.f));
+				if (UMaterialInterface* Bw = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Town/Materials/M_Town_Drywood.M_Town_Drywood")))
+				{
+					for (int32 Slot = 0; Slot < Armful->GetNumMaterials(); ++Slot)
+					{
+						Armful->SetMaterial(Slot, Bw);
+					}
+				}
+				Armful->RegisterComponent();
+			}
+		}
+		if (Armful)
+		{
+			Armful->SetVisibility(bCarryingWood);
+		}
 		static const bool bStoryAuto = FParse::Param(FCommandLine::Get(), TEXT("p2story"));
 		if (bStoryAuto && Controller)
 		{
@@ -1180,7 +1213,9 @@ void APart2Character::StoryAutopilot(float Dt)
 			{
 				bWalk = true;
 			}
-			if (StepT > 2.5f && Focus.IsValid() && (Front.IsZero() || FVector::Dist2D(Front, GetActorLocation()) <= 35.f))
+			// (fetching wood: fed as soon as the stove is in reach and in the eyes)
+			if (StepT > (bCarryingWood ? 0.6f : 2.5f) && Focus.IsValid() && (!bCarryingWood || Focus->Id == TEXT("stove")) &&
+				(Front.IsZero() || FVector::Dist2D(Front, GetActorLocation()) <= 35.f))
 			{
 				Interact();
 				StoryStep += 1;

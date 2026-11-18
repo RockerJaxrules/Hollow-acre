@@ -9,7 +9,7 @@ import unreal
 DEST = '/Game/HollowAcre/Wake'
 PARTS = ['Wake_Flashlight', 'Wake_Manual', 'Wake_Papers', 'Wake_SnowSlab', 'Wake_SnowLump', 'Wake_Buckle', 'Wake_Latch', 'Wake_Strap',
          'Wake_Pebble0', 'Wake_Pebble1', 'Wake_Pebble2', 'Wake_Pebble3', 'Wake_Cassette', 'Wake_Coin', 'Wake_Pen', 'Wake_Stove',
-         'Wake_StoveFlames', 'Wake_Matchbox']
+         'Wake_StoveFlames', 'Wake_Matchbox', 'P2_Armful']
 import os as _os
 if _os.environ.get('HA_WAKE_PARTS'):       # (only these, e.g. HA_WAKE_PARTS=Wake_Stove,Wake_Matchbox)
     PARTS = _os.environ['HA_WAKE_PARTS'].split(',')

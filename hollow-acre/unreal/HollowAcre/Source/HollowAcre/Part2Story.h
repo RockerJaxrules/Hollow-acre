@@ -179,6 +179,8 @@ protected:
 	float FireFuel = 1.f, FireDyingFrom = -1.f, FedAt = -1.f;
 	UPROPERTY()
 	TObjectPtr<AActor> WoodPile;
+	bool bCrossDash = false;
+	float WoodTakenAt = -1.f;
 	void TickWindow(float Dt);
 	UPROPERTY()
 	TObjectPtr<AHusk> WindowHusk;

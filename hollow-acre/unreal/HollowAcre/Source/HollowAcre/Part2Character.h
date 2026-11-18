@@ -176,6 +176,9 @@ protected:
 	void ShowCold(float Dt);
 	float ShiverT = 0.f;
 	bool bUnderRoof = false;
+	float NightBias = 0.f;
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> Armful;
 	float RoofCheckedAt = -1.f;
 	FRotator ShiverRot = FRotator::ZeroRotator, JoltRot = FRotator::ZeroRotator;
 	// the breath in the cold: each breath out a puff of vapour from under the eyes, drifting out and up and spreading
