@@ -44,7 +44,34 @@ cutscenes and play. Sources at the bottom; what we do differently today is noted
 - **Proposed:** author the cutscene arm and hand work in Sequencer on MetaHuman_ControlRig, keyed by script (Python
   sets control keys; motion trails used to check arcs), with the procedural poses as the first pass baked to the rig.
   Gameplay pickups would use a small set of reach animations (Mixamo or keyed) with Full Body IK onto the item.
-  Not started: the owner decides.
+  The owner chose Sequencer; Python keying didn't evaluate the rig, but Epic's MCP toolset does (below).
+
+## What we do now: the wake's pickup keyed in Sequencer (through Unreal MCP)
+- **Unreal MCP** (Epic's, built into 5.8, experimental) runs inside the editor: plugins ModelContextProtocol,
+  ToolsetRegistry, EditorToolset, AnimationAssistantToolset, SequencerAnimMixerToolset, all Editor-only (Epic marks
+  it NoRedist; it must never ship). Usage analytics off (`ModelContextProtocol.EnableAnalytics=0`, DefaultEngine.ini).
+  - Start: `UnrealEditor.exe HollowAcre.uproject /Game/HollowAcre/Wake/Anim/L_ArmLab -ModelContextProtocolStartServer`
+    (localhost:8000). Client: `tools/mcp/mcp_call.py` (list / desc / call; images saved via MCP_IMG).
+  - Three meta-tools: list_toolsets, describe_toolset, call_tool. `ProgrammaticToolset.execute_tool_script` batches
+    hundreds of calls in one go.
+  - Gotchas: turn off `EditorPerformanceSettings.bThrottleCPUWhenNotForeground`, or the editor ticks at ~3 fps in
+    the background and captures go stale. After an editor restart, close and reopen the sequence before evaluating.
+    Sections made by add_section are 0..0 long (unbound them). Transform tracks on props wouldn't evaluate; the lab
+    places props with set_actor_transform per moment instead. CaptureViewport needs every argument given.
+- **The pipeline:**
+  1. `-wake -wakedump` (with `-wakenoanim`) writes Saved/WakeDump.jsonl: per frame (frame 0 = w 9.3), the eye,
+     lining, flashlight and the exact hand-IK and pole controls the game gives the rig, in the rig's own space (the
+     body standing in its reference pose, matched at spine_05).
+  2. L_ArmLab: the MetaHuman standing at the origin; `tools/mcp/lab_pose.py` places the lining and flashlight for a
+     frame and shoots it through the wake's eye and from the side.
+  3. `tools/mcp/lab_keys.py dump 30:100:3 100:165:6 --bridge=78:93` keys hand_r_ik_ctrl and arm_r_pv_ik_ctrl in
+     LS_ArmLab (a bridge eases over frames where the solver jumps).
+  4. SequencerImportExportTools.export_anim_sequence bakes the body binding to A_WakePickup.
+  5. The wake plays the right arm from A_WakePickup from 10.3 to 14.8 s (DriverArms::AnimArm, the clavicle down to
+     the hand); the fingers are still posed in code.
+- The poses keyed come from the code's anatomy solver: the wrist placed, the elbow where the rig's IK puts it, the
+  hand built from the forearm with the wrist's bend kept comfortable, the elbow kept off the lining and the arm kept
+  off the head and the eye. Edit keys in LS_ArmLab directly, or change the solver, re-dump and re-key.
 
 ## Sources
 - MetaHuman docs: [Animating MetaHumans with Control Rig](https://dev.epicgames.com/documentation/en-us/metahuman/animating-metahumans-with-control-rig-in-unreal-engine), [Animate using Sequencer](https://dev.epicgames.com/documentation/metahuman/animate-using-sequencer)

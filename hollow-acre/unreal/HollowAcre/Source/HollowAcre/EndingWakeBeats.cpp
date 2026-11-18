@@ -197,13 +197,13 @@ FTransform AEndingDirector::WakeArmHold(FWakeHold& C, const FTransform& Eye, con
 			Parts[4] = HeadClear;
 		}
 		// (the owner's: the elbow down by the lining, the forearm in from below; the back of the hand to the eyes)
-		return Light + 0.7f * Back - 0.0015f * (FMath::Square(Flex + 15.f) + FMath::Square(Dev - 8.f)) - 0.05f * FMath::Square(FMath::Max(0.f, 5.f - ElbowUp)) -
-			0.004f * FMath::Square(FMath::Max(0.f, ElbowUp - 10.f)) - 0.6f * InView - 0.05f * FMath::Square(FMath::Max(0.f, -HeadClear));
+		return 1.4f * Light + 0.35f * Back - 0.0015f * (FMath::Square(Flex + 15.f) + FMath::Square(Dev - 8.f)) - 0.05f * FMath::Square(FMath::Max(0.f, 5.f - ElbowUp)) -
+			0.02f * FMath::Square(FMath::Max(0.f, ElbowUp - 9.f)) - 0.6f * InView - 0.05f * FMath::Square(FMath::Max(0.f, -HeadClear));
 	};
 	if (!C.bSet)
 	{
 		float Best = -1e9f;
-		for (float Swing = -180.f; Swing < 179.f; Swing += 10.f)
+		for (float Swing = -75.f; Swing <= 75.01f; Swing += 5.f)   // (the elbow down toward the lining, not up by the face)
 		{
 			for (float Psi = 0.f; Psi < 359.f; Psi += 10.f)
 			{
@@ -235,6 +235,7 @@ FTransform AEndingDirector::WakeArmHold(FWakeHold& C, const FTransform& Eye, con
 					{
 						FWakeHold T = C;
 						(k == 0 ? T.Swing : k == 1 ? T.Psi : k == 2 ? T.Flex : T.Dev) += Sg * Step;
+						T.Swing = FMath::Clamp(T.Swing, -80.f, 80.f);
 						const float Sc = Score(T.Swing, T.Psi, T.Flex, T.Dev, nullptr);
 						if (Sc > Best)
 						{
@@ -1271,10 +1272,22 @@ void AEndingDirector::WakeBeats(float RealDt)
 	const FVector AimAt = Eye.TransformPosition(FVector(450.f, 0.f, 0.f));
 	FTransform HoldWant(FRotationMatrix::MakeFromXZ((AimAt - HoldAt).GetSafeNormal(), Eye.GetRotation().GetAxisZ()).ToQuat(), HoldAt);
 	FVector ChestPole = FVector::ZeroVector;
+	// (lying on the lining, a hand is held low over it, as the owner held the bottle: placed by the lining, forward of the
+	// eyes along it and a little to the right, so the elbow can rest low and the forearm comes in from the lower right)
+	auto OverLining = [&](float Fwd, float Right, float Height)
+	{
+		const FVector N = Arms ? Arms->FloorN : WUp;
+		const FVector L0 = Arms ? Arms->FloorAt : FVector::ZeroVector;
+		FVector F = Eye.GetRotation().GetAxisX(), Rt = Eye.GetRotation().GetAxisY();
+		F = (F - N * FVector::DotProduct(F, N)).GetSafeNormal();
+		Rt = (Rt - N * FVector::DotProduct(Rt, N)).GetSafeNormal();
+		FVector P = Eye.GetLocation() + F * Fwd + Rt * Right;
+		return P + N * (Height - FVector::DotProduct(P - L0, N));
+	};
 	if (Arms && Arms->IsReady() && w >= 9.6f)
 	{
-		// (held at the chest as a body holds it, the light along the eyes)
-		HoldWant = Arms->HandleFor(1, WakeArmHold(WakeChestHold, Eye, Eye.TransformPosition(FVector(30.f, 14.f, -16.f)), (AimAt - HoldAt).GetSafeNormal(), ChestPole, TEXT("at the chest")));
+		// (held at the chest as a body holds it, low over the lining, the light along the eyes)
+		HoldWant = Arms->HandleFor(1, WakeArmHold(WakeChestHold, Eye, OverLining(28.f, 12.f, 10.f), (AimAt - HoldAt).GetSafeNormal(), ChestPole, TEXT("at the chest")));
 	}
 	WakePoleHold = ChestPole;
 	{
@@ -1297,13 +1310,35 @@ void AEndingDirector::WakeBeats(float RealDt)
 			const FVector Up0 = Eye.GetRotation().GetAxisZ();
 			const FVector ShowZ = FQuat(ShowDir, FMath::DegreesToRadians(ShowRoll)).RotateVector((Up0 - ShowDir * FVector::DotProduct(Up0, ShowDir)).GetSafeNormal());
 			FTransform ShowT(FRotationMatrix::MakeFromXZ(ShowDir, ShowZ).ToQuat(), ShowAt);
+			bool bShowBlendedByArm = false;
 			if (Arms && Arms->IsReady())
 			{
 				// held as the owner holds the bottle: low in front and a little right, the light up and forward, the knuckles
 				// to the eyes (as a body holds it: see WakeArmHold)
 				FVector ShowPole;
-				ShowT = Arms->HandleFor(1, WakeArmHold(WakeShowHold, Eye, Eye.TransformPosition(FVector(40.f, 10.f, -13.f)), ShowDir, ShowPole, TEXT("held up to look")));
-				WakePoleHold = (FMath::Lerp(WakePoleHold.IsNearlyZero() ? ShowPole : WakePoleHold, ShowPole, Show)).GetSafeNormal();
+				{
+					// (the light forward along the lining and up, as the owner's cap pointed)
+					const FVector N = Arms->FloorN;
+					FVector F = Eye.GetRotation().GetAxisX();
+					F = (F - N * FVector::DotProduct(F, N)).GetSafeNormal();
+					const FVector Lamp = (F + N * 0.9f).GetSafeNormal();
+					ShowT = Arms->HandleFor(1, WakeArmHold(WakeShowHold, Eye, OverLining(36.f, 10.f, 12.f), Lamp, ShowPole, TEXT("held up to look")));
+					if (Show < 1.f && WakeChestHold.bSet && WakeShowHold.bSet)
+					{
+						// (between the chest hold and this one, blended as the arm moves, not as the flashlight's frame does: the
+						// elbow's swing, the forearm's turn and the wrist's bend in between, so the wrist stays easy all the way)
+						auto Ang = [](float A, float B, float t) { return A + FMath::FindDeltaAngleDegrees(A, B) * t; };
+						FWakeHold Mid;
+						Mid.bSet = true;
+						Mid.Swing = Ang(WakeChestHold.Swing, WakeShowHold.Swing, Show);
+						Mid.Psi = Ang(WakeChestHold.Psi, WakeShowHold.Psi, Show);
+						Mid.Flex = FMath::Lerp(WakeChestHold.Flex, WakeShowHold.Flex, Show);
+						Mid.Dev = FMath::Lerp(WakeChestHold.Dev, WakeShowHold.Dev, Show);
+						ShowT = Arms->HandleFor(1, WakeArmHold(Mid, Eye, FMath::Lerp(OverLining(28.f, 12.f, 10.f), OverLining(36.f, 10.f, 12.f), Show), Lamp, ShowPole, TEXT("between")));
+						bShowBlendedByArm = true;
+					}
+				}
+				WakePoleHold = ShowPole;
 			}
 			if (bFlashUpHigh)
 			{
@@ -1311,7 +1346,14 @@ void AEndingDirector::WakeBeats(float RealDt)
 				const FVector HighDir = Eye.GetRotation().RotateVector(FVector(1.f, -0.12f, -0.3f)).GetSafeNormal();
 				ShowT = FTransform(FRotationMatrix::MakeFromXZ(HighDir, Up0).ToQuat(), Eye.TransformPosition(FVector(27.f, 11.f, 3.f)));
 			}
-			HoldWant.Blend(HoldWant, ShowT, Show);
+			if (bShowBlendedByArm)
+			{
+				HoldWant = ShowT;
+			}
+			else
+			{
+				HoldWant.Blend(HoldWant, ShowT, Show);
+			}
 		}
 	}
 	if (!bFlashHeld)
@@ -1594,8 +1636,11 @@ void AEndingDirector::WakeBeats(float RealDt)
 				KPress.W = KT.W - WUp * 0.6f;
 				KPress.Open = 0.f;
 				KPress.Close = 0.9f;
-				const FKey KL1 = Mix(KT, KH, 0.15f, 11.55f, KT.W + WUp * 2.f, 0.f, 1.f);
-				const FKey KL2 = Mix(KT, KH, 0.55f, 11.85f, FMath::Lerp(KT.W, KH.W, 0.55f) + WUp * 3.f, 0.f, 1.f);
+				FKey KL1 = Mix(KT, KH, 0.15f, 11.55f, KT.W + WUp * 2.f, 0.f, 1.f);
+				FKey KL2 = Mix(KT, KH, 0.55f, 11.85f, FMath::Lerp(KT.W, KH.W, 0.55f) + WUp * 3.f, 0.f, 1.f);
+				// (through the lift the elbow stays down on the lining, as the owner's did: the pole straight into the lining,
+				// the guard lifting it just clear)
+				KL1.Pole = KL2.Pole = -Arms->FloorN;
 				FKey KO = KH;
 				KO.T = 12.15f;
 				KO.W = KH.W + WUp * 0.8f;
