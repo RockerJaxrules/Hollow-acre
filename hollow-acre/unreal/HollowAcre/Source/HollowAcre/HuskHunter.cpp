@@ -28,6 +28,7 @@ namespace
 		case AHuskHunter::EState::Search: return TEXT("search");
 		case AHuskHunter::EState::Retreat: return TEXT("retreat");
 		case AHuskHunter::EState::Kill: return TEXT("kill");
+		case AHuskHunter::EState::Peer: return TEXT("peer");
 		}
 		return TEXT("?");
 	}
@@ -93,6 +94,15 @@ void AHuskHunter::SetState(EState S, const TCHAR* Why)
 		D / 100.f, Menace, Aware);
 	State = S;
 	StateT = 0.f;
+}
+
+void AHuskHunter::PeerInto(const FVector& InDoorAt, const FVector& Into)
+{
+	DoorAt = InDoorAt;
+	DoorInto = Into.GetSafeNormal2D();
+	bToDoor = true;
+	Goal = DoorAt;
+	SetState(EState::Investigate, TEXT("to the doorway"));
 }
 
 void AHuskHunter::HearNoise(const FVector& At, float Carries)
@@ -289,6 +299,16 @@ void AHuskHunter::Sense(float Dt)
 	{
 		VisR *= Prey->IsLightOn() ? 0.8f : 0.45f;
 	}
+	{
+		// (under a roof with the light off: the dark inside a building; only very near, and less still crouched)
+		FHitResult Hr;
+		FCollisionQueryParams Qr(TEXT("Indoors"), true, Prey.Get());
+		bPreyIndoors = GetWorld()->LineTraceSingleByChannel(Hr, Eye, Eye + FVector(0.f, 0.f, 500.f), ECC_Visibility, Qr);
+		if (bPreyIndoors && !Prey->IsLightOn())
+		{
+			VisR = Prey->bIsCrouched ? 140.f : 260.f;
+		}
+	}
 	if (Prey->IsRunningNow())
 	{
 		VisR *= 1.3f;
@@ -370,7 +390,41 @@ void AHuskHunter::Think(float Dt)
 			SetState(EState::Stalk, TEXT("it has seen the player"));
 		}
 		break;
+	case EState::Peer:
+	{
+		// bent to the doorway, looking in. The beam held on it: it lunges ("they don't like the light, until they do"). The
+		// dark and stillness: it loses the player, waits, and goes
+		if (bLit && LitFor > 2.6f)
+		{
+			Event(TEXT("husk_shriek"));
+			bToDoor = false;
+			SetState(EState::Chase, TEXT("the light held on it in the doorway: it lunges"));
+		}
+		else if (bSeesPrey && Prey->IsRunningNow())
+		{
+			Event(TEXT("husk_shriek"));
+			bToDoor = false;
+			SetState(EState::Chase, TEXT("the player bolts"));
+		}
+		UnseenFor = bSeesPrey ? 0.f : UnseenFor + Dt;
+		if (UnseenFor > 8.f || StateT > 30.f)
+		{
+			bToDoor = false;
+			SetState(EState::Retreat, TEXT("nothing in the dark: it goes"));
+		}
+		break;
+	}
 	case EState::Investigate:
+		if (bToDoor)
+		{
+			if (FVector::Dist2D(At, DoorAt) < 70.f)
+			{
+				UnseenFor = 0.f;
+				Event(TEXT("husk_peer"));
+				SetState(EState::Peer, TEXT("at the doorway, looking in"));
+			}
+			break;
+		}
 		if (bSeesPrey && Aware > 0.35f)
 		{
 			SetState(EState::Stalk, TEXT("what it heard is the player"));
@@ -507,6 +561,7 @@ void AHuskHunter::Move(float Dt)
 	case EState::Stalk: Want = bLit ? (FVector::Dist2D(At, Prey.IsValid() ? Prey->GetActorLocation() : At) > 1250.f ? 55.f : 0.f) : 95.f * Scale / 1.3f; break;
 	case EState::Chase: Want = FMath::Min(1.f, StateT / 0.9f) * 640.f; bGallop = true; break;
 	case EState::Retreat: Want = 520.f; bGallop = true; break;
+	case EState::Peer: Want = 0.f; break;
 	default: Want = 0.f; break;
 	}
 	if (Dist < 60.f && State != EState::Chase)
@@ -520,7 +575,11 @@ void AHuskHunter::Move(float Dt)
 	}
 	// turning toward the way it goes (in the beam it turns its head to the light: faces the player)
 	FVector Dir = ToGoal.GetSafeNormal();
-	if (State == EState::Stalk && bLit && Prey.IsValid())
+	if (State == EState::Peer)
+	{
+		Dir = Prey.IsValid() && bSeesPrey ? (Prey->GetActorLocation() - At).GetSafeNormal2D() : DoorInto;
+	}
+	else if (State == EState::Stalk && bLit && Prey.IsValid())
 	{
 		Dir = (Prey->GetActorLocation() - At).GetSafeNormal2D();      // (in the beam: it comes on straight at the light)
 	}
@@ -545,6 +604,9 @@ void AHuskHunter::Move(float Dt)
 	{
 		Husk->AddActorWorldOffset(FVector(0.f, 0.f, Husk->GroundLift([this](const FVector& P) { return GroundAt(P); })));
 	}
+	// at a doorway it bends right down to look in, its face at the height of a man's
+	Husk->PeerDown = FMath::FInterpTo(Husk->PeerDown, State == EState::Peer ? 0.55f : 0.f, Dt, 2.5f);
+	P2EyeShine(Husk, bLit && (State == EState::Peer || State == EState::Stalk || State == EState::Chase));
 	// its eyes on the player whenever it has them (stalking it never looks away; in the beam its head jerks)
 	if (Prey.IsValid())
 	{
@@ -553,7 +615,7 @@ void AHuskHunter::Move(float Dt)
 		{
 			GW = 1.f;
 		}
-		else if (bSeesPrey && (State == EState::Stalk || State == EState::Chase || State == EState::Search))
+		else if (bSeesPrey && (State == EState::Stalk || State == EState::Chase || State == EState::Search || State == EState::Peer))
 		{
 			GW = State == EState::Chase ? 0.55f : 0.9f;
 		}
@@ -564,7 +626,7 @@ void AHuskHunter::Move(float Dt)
 		{
 			// (a sudden small jerk of the head now and then, more in the light)
 			TwitchT = Rng().FRandRange(bLit ? 0.5f : 1.5f, bLit ? 1.4f : 4.f);
-			TwitchTo = (State == EState::Stalk || State == EState::Kill) ? FRotator(Rng().FRandRange(-6.f, 6.f), Rng().FRandRange(-9.f, 9.f), Rng().FRandRange(-14.f, 14.f)) : FRotator::ZeroRotator;
+			TwitchTo = (State == EState::Stalk || State == EState::Kill || State == EState::Peer) ? FRotator(Rng().FRandRange(-6.f, 6.f), Rng().FRandRange(-9.f, 9.f), Rng().FRandRange(-14.f, 14.f)) : FRotator::ZeroRotator;
 		}
 		Husk->Twitch = FMath::RInterpTo(Husk->Twitch, TwitchTo, Dt, 22.f);
 	}

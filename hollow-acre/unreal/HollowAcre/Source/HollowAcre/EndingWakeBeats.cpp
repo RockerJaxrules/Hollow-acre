@@ -913,7 +913,9 @@ void AEndingDirector::WakeBeats(float RealDt)
 		// the car's battery gives out: its one headlight stutters, browns and dies a few seconds into play; the last light
 		// at the bottom goes out
 		{
-			const float s = RealTime - WakeHandoverReal;
+			// (it dies 9 s into play, or when the story says: something stood in its beam)
+			const float DieAt = HeadlightDieAt > 0.f ? HeadlightDieAt : WakeHandoverReal + 9.f;
+			const float s = RealTime - (DieAt - 9.f);
 			const float Dies = s < 6.f ? 1.f : s < 9.f ? (FMath::Sin(s * 23.f) > 0.1f ? (9.f - s) / 3.f : 0.05f) : 0.f;
 			for (int32 i = 1; i < Headlights.Num() && i < HeadlightBase.Num(); ++i)
 			{
@@ -2535,4 +2537,18 @@ void AEndingDirector::WakeBelt(float w, float RealDt)
 		LatchActor->GetRootComponent()->SetRelativeTransform(FTransform(FRotationMatrix::MakeFromXZ(X, BuckleAt.GetRotation().GetAxisZ()).ToQuat(), At));
 	}
 	(void)RealDt;
+}
+
+bool AEndingDirector::GetHeadlightRay(FVector& From, FVector& Dir) const
+{
+	for (int32 i = 1; i < Headlights.Num(); ++i)
+	{
+		if (Headlights[i])
+		{
+			From = Headlights[i]->GetComponentLocation();
+			Dir = Headlights[i]->GetForwardVector();
+			return true;
+		}
+	}
+	return false;
 }

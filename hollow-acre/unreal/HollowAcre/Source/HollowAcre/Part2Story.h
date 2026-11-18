@@ -41,6 +41,9 @@ public:
  *  last few hundred. */
 HOLLOWACRE_API void P2Footprint(UWorld* World, const FVector& At, float Yaw, float Size, bool bBare);
 
+/** Its eyes catching the light (a glint at each eye, as an animal's eyes shine back in a beam): shown while bOn. */
+HOLLOWACRE_API void P2EyeShine(AHusk* H, bool bOn);
+
 UCLASS()
 class HOLLOWACRE_API AP2Story : public AActor
 {
@@ -94,7 +97,9 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<AHuskHunter> Hunter;
-	float BangAt = -1.f, ShriekAt = -1.f;
+	float BangAt = -1.f, ShriekAt = -1.f, DarkAt = -1.f;
+	bool bCrossInHeadlight = false;
+	void SpawnCrosser();
 
 	/** The tool shed (where she sheltered): its inside made real (plank floor, boards on the walls), a table, her journal. */
 	void FurnishShed();

@@ -307,6 +307,12 @@ bool APart2Character::GetReading(FString& Out, int32& Index, int32& Count) const
 	return true;
 }
 
+void APart2Character::Jolt(float Strength)
+{
+	JoltT = 0.f;
+	JoltK = Strength;
+}
+
 void APart2Character::Stutter(float Secs)
 {
 	StutterUntil = GetWorld()->GetTimeSeconds() + Secs;
@@ -442,7 +448,7 @@ void APart2Character::ApplyLight()
 			{
 				if (Spill && !Spill->IsA(USpotLightComponent::StaticClass()))
 				{
-					Spill->SetIntensity(bFlashlightOn ? 0.1f * Dim : 0.f);
+					Spill->SetIntensity(0.f);       // (no glow on the fingers: the hand is lit by what the beam lights, bounced)
 					Spill->SetAttenuationRadius(45.f);
 				}
 			}
@@ -495,6 +501,11 @@ void APart2Character::TakeOverFrom(const FTransform& EyeWorld, ADriverArms* InAr
 	}
 	Camera->PostProcessSettings = Grade;
 	Camera->SetConstraintAspectRatio(false);
+	// (the eyes adapt fast to a bright thing close in the beam, so it reads instead of blowing out white)
+	Camera->PostProcessSettings.bOverride_AutoExposureSpeedUp = true;
+	Camera->PostProcessSettings.AutoExposureSpeedUp = 4.f;
+	Camera->PostProcessSettings.bOverride_AutoExposureSpeedDown = true;
+	Camera->PostProcessSettings.AutoExposureSpeedDown = 1.5f;
 	Arms = InArms;
 	HeldLight = InFlashlight;
 	HeldBeam = InBeam;
@@ -584,8 +595,8 @@ void APart2Character::UpdateBody(float Dt)
 	// (the view's lower edge is ~24 degrees below its middle at this field of view: the fist about 20 degrees down)
 	// (held low right, turned so the barrel lies on a slant across the corner of the view with the fingers round it and
 	// the thumb on top lit by the bezel's spill: of four tried, the one that reads as a hand holding a flashlight)
-	static FVector HoldOff(34.f, 23.f, -18.f);
-	static float HoldRoll = -50.f;
+	static FVector HoldOff(38.f, 19.f, -18.f);
+	static float HoldRoll = -90.f;
 	static bool bHoldRead = false;
 	if (!bHoldRead)
 	{
@@ -647,6 +658,18 @@ void APart2Character::UpdateBody(float Dt)
 	if (HeldLight)
 	{
 		HeldLight->SetActorTransform(Arms->HandleInHand(1) * Arms->GetActorTransform());
+	}
+	// a jolt (a hit on the wall beside them): a hard shake, settling in half a second
+	if (JoltT >= 0.f)
+	{
+		JoltT += Dt;
+		const float K = JoltK * FMath::Exp(-JoltT * 7.f);
+		Camera->SetRelativeRotation(FRotator(K * 2.2f * FMath::Sin(JoltT * 61.f), K * 1.6f * FMath::Sin(JoltT * 47.f + 1.f), K * 2.6f * FMath::Sin(JoltT * 53.f + 2.f)));
+		if (JoltT > 0.8f)
+		{
+			JoltT = -1.f;
+			Camera->SetRelativeRotation(FRotator::ZeroRotator);
+		}
 	}
 	// the head bobbing a little with the steps in the snow
 	const float B = FMath::Min(Speed / WalkSpeed, 2.f);
@@ -819,6 +842,13 @@ void APart2Character::StoryAutopilot(float Dt)
 	// the doorway; when the husk comes it holds the beam on it, and runs when it charges)
 	StoryAutoT += Dt;
 	StepT += Dt;
+	if (!Director.IsValid())
+	{
+		for (TActorIterator<AEndingDirector> It(GetWorld()); It; ++It)
+		{
+			Director = *It;
+		}
+	}
 	AStaticMeshActor* Shed = nullptr;
 	for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
 	{
@@ -859,23 +889,35 @@ void APart2Character::StoryAutopilot(float Dt)
 		};
 		switch (StoryStep)
 		{
-		case 0:      // look down the street into the camp, after the car's light has died
-			WantYaw = Street.Rotation().Yaw;
-			TurnRate = 45.f;
-			if (StoryAutoT > 13.f)
+		case 0:      // along the car's last light, out over the snow
+		{
+			FVector HFrom, HDir;
+			if (Director.IsValid() && Director->GetHeadlightRay(HFrom, HDir))
+			{
+				WantYaw = HDir.GetSafeNormal2D().Rotation().Yaw;
+			}
+			TurnRate = 40.f;
+			if (StoryAutoT > 4.f)
 			{
 				StoryStep = 1;
 				StepT = 0.f;
 			}
 			break;
-		case 1:      // watching what crosses down there
-			WantYaw = Street.Rotation().Yaw;
-			if (StepT > 13.f)
+		}
+		case 1:      // watching what crosses it, until the light is gone and a little after
+		{
+			FVector HFrom, HDir;
+			if (Director.IsValid() && Director->GetHeadlightRay(HFrom, HDir))
+			{
+				WantYaw = HDir.GetSafeNormal2D().Rotation().Yaw;
+			}
+			if (StepT > 14.f)
 			{
 				StoryStep = 2;
 				StepT = 0.f;
 			}
 			break;
+		}
 		case 2:      // to the shed's doorway
 			if (WalkTo(Door, 60.f))
 			{
@@ -927,16 +969,56 @@ void APart2Character::StoryAutopilot(float Dt)
 				}
 			}
 			break;
-		case 6:      // the bang: turn to the doorway
+		case 6:      // the bang: turn to the doorway (its middle, at a man's height) and hold the light on it
 		{
-			const FRotator To = (Door - EyesAt()).Rotation();
+			const FVector Mouth = T.TransformPosition(FVector(0.f, 0.f, 0.f)) + FVector(0.f, 0.f, 150.f);
+			const FRotator To = (Mouth - EyesAt()).Rotation();
 			WantYaw = To.Yaw;
-			WantPitch = FMath::Clamp(To.Pitch, -10.f, 5.f);
+			WantPitch = FMath::Clamp(To.Pitch, -10.f, 8.f);
 			TurnRate = StepT > 1.6f ? 150.f : 0.f;
-			if (Hh && Hh->Husk && Hh->State == AHuskHunter::EState::Chase)
+			if (Hh && Hh->Husk && Hh->State == AHuskHunter::EState::Peer)
 			{
-				StoryStep = 7;
-				StepT = 0.f;
+				PeerSeenT += Dt;
+				if (PeerSeenT > 1.9f)
+				{
+					// (it is looking in: the light off, down in the dark, still)
+					if (bFlashlightOn)
+					{
+						FlashlightToggle();
+					}
+					if (!bIsCrouched)
+					{
+						CrouchToggle();
+					}
+					StoryStep = 7;
+					StepT = 0.f;
+				}
+			}
+			break;
+		}
+		case 7:      // in the dark, still, until it has gone; then the light again
+		{
+			const FVector Mouth = T.TransformPosition(FVector(0.f, 0.f, 0.f)) + FVector(0.f, 0.f, 120.f);
+			const FRotator To = (Mouth - EyesAt()).Rotation();
+			WantYaw = To.Yaw;
+			WantPitch = FMath::Clamp(To.Pitch, -10.f, 8.f);
+			TurnRate = 40.f;
+			if (Hh && (Hh->State == AHuskHunter::EState::Retreat || Hh->State == AHuskHunter::EState::Away))
+			{
+				GoneT += Dt;
+				if (GoneT > 4.f)
+				{
+					if (!bFlashlightOn)
+					{
+						FlashlightToggle();
+					}
+					if (bIsCrouched)
+					{
+						CrouchToggle();
+					}
+					StoryStep = 8;
+					StepT = 0.f;
+				}
 			}
 			break;
 		}
@@ -945,7 +1027,7 @@ void APart2Character::StoryAutopilot(float Dt)
 		}
 	}
 	// the husk: in the beam, held; charging, watched a moment, then a run for it
-	if (Hh && Hh->Husk && !Hh->Husk->IsHidden() && StoryStep >= 6)
+	if (Hh && Hh->Husk && !Hh->Husk->IsHidden() && StoryStep >= 6 && Hh->State != AHuskHunter::EState::Peer && Hh->State != AHuskHunter::EState::Investigate && Hh->State != AHuskHunter::EState::Retreat)
 	{
 		const FVector HuskAt = Hh->Husk->GetActorLocation() + FVector(0.f, 0.f, 110.f * Hh->Husk->GetActorScale3D().Z);
 		const FRotator At = (HuskAt - EyesAt()).Rotation();

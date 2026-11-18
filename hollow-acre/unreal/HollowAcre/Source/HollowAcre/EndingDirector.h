@@ -87,6 +87,12 @@ public:
 
 	/** Logged as a timed event for the sound mix (CrashEvent lines), for gameplay's own actors (the husk hunting). */
 	void LogEvent(const TCHAR* Kind, float Value = 0.f) { Event(Kind, Value); }
+
+	/** The car's one headlight left (play): where it shines from and which way; the story keeps it alive a little longer
+	 *  (until a time on RealTime) when something stands in it. */
+	bool GetHeadlightRay(FVector& From, FVector& Dir) const;
+	float HeadlightDieAt = -1.f;
+	float GetRealTime() const { return RealTime; }
 	float WakeHandoverReal = -1.f;            // (when the wake handed over to play)
 	FTransform WakeEyeW;                      // (the wake: where its eyes were last put, world; the player's body takes over there)
 	bool bWakeEyeSet = false;

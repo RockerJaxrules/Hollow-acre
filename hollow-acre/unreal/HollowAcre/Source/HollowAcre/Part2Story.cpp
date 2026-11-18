@@ -11,6 +11,7 @@
 #include "Part2Character.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Components/DecalComponent.h"
+#include "Components/PoseableMeshComponent.h"
 
 void P2Footprint(UWorld* World, const FVector& At, float Yaw, float Size, bool bBare)
 {
@@ -58,6 +59,63 @@ void P2Footprint(UWorld* World, const FVector& At, float Yaw, float Size, bool b
 			Prints[0]->DestroyComponent();
 		}
 		Prints.RemoveAt(0);
+	}
+}
+
+void P2EyeShine(AHusk* H, bool bOn)
+{
+	if (!H || !H->GetFace())
+	{
+		return;
+	}
+	TArray<USceneComponent*> Kids;
+	H->GetFace()->GetChildrenComponents(false, Kids);
+	TArray<UStaticMeshComponent*> Glints;
+	for (USceneComponent* K : Kids)
+	{
+		if (K && K->GetName().StartsWith(TEXT("EyeGlint")))
+		{
+			Glints.Add(Cast<UStaticMeshComponent>(K));
+		}
+	}
+	if (Glints.Num() == 0 && bOn)
+	{
+		static UStaticMesh* Ball = nullptr;
+		static UMaterialInterface* Shine = nullptr;
+		if (!Ball)
+		{
+			Ball = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+			Shine = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Materials/Blockout/M_EyeShine.M_EyeShine"));
+			if (Ball)
+			{
+				Ball->AddToRoot();
+			}
+			if (Shine)
+			{
+				Shine->AddToRoot();
+			}
+		}
+		for (const TCHAR* Bone : {TEXT("FACIAL_L_Eye"), TEXT("FACIAL_R_Eye")})
+		{
+			UStaticMeshComponent* G = NewObject<UStaticMeshComponent>(H, *FString::Printf(TEXT("EyeGlint_%s"), Bone));
+			G->SetStaticMesh(Ball);
+			G->SetMaterial(0, Shine);
+			G->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			G->SetCastShadow(false);
+			const bool bBone = H->GetFace()->GetBoneIndex(Bone) != INDEX_NONE;
+			G->SetupAttachment(H->GetFace(), bBone ? FName(Bone) : NAME_None);
+			G->SetRelativeScale3D(FVector(0.012f));
+			G->SetRelativeLocation(bBone ? FVector(1.4f, 0.f, 0.f) : FVector(0.f, 0.f, 0.f));
+			G->RegisterComponent();
+			Glints.Add(G);
+		}
+	}
+	for (UStaticMeshComponent* G : Glints)
+	{
+		if (G)
+		{
+			G->SetVisibility(bOn);
+		}
 	}
 }
 
@@ -346,6 +404,14 @@ void AP2Story::TickCrosser(float Dt)
 	{
 		Event(TEXT("sighting_look"));
 	}
+	// (in the headlight: as it stands there looking, the light dies; the dark takes it)
+	if (bCrossInHeadlight && Director && CrossT >= Stop1 - 0.3f && Director->HeadlightDieAt < 0.f)
+	{
+		Director->HeadlightDieAt = Director->GetRealTime() - 6.f;      // (its last stutter now, out in 3 s)
+		Done.Add(TEXT("dark_due"));
+		DarkAt = Clock + 3.f;
+	}
+	P2EyeShine(Crosser, bStopped);
 	if (Player.IsValid() && FMath::FloorToInt(CrossT * 2.f) != FMath::FloorToInt((CrossT - Dt) * 2.f))
 	{
 		FHitResult Hb;
@@ -357,7 +423,7 @@ void AP2Story::TickCrosser(float Dt)
 			bBlocked ? *FString::Printf(TEXT("hidden by %s"), Hb.GetActor() ? *Hb.GetActor()->GetActorLabel() : TEXT("?")) : TEXT("in sight"),
 			FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct((Head - Player->EyesAt()).GetSafeNormal(), Player->LookDir()), -1.f, 1.f))), bStopped ? TEXT(", stopped, looking") : TEXT(""));
 	}
-	if (S >= Len)
+	if (S >= Len || (bCrossInHeadlight && DarkAt > 0.f && Clock > DarkAt + 0.4f))
 	{
 		Crosser->Destroy();
 		Crosser = nullptr;
@@ -386,8 +452,24 @@ void AP2Story::Beats(float Dt)
 		Say(TEXT("Hello?"), 0.f, 2.4f);
 		Say(TEXT("Is anyone out here?"), 3.0f, 2.8f);
 	}
-	// the car's last light dies (the director kills it 9 s into play)
-	if (Clock > 9.6f && Once(TEXT("dark")))
+	// the first sighting, in the car's last light: the player looks along the headlight's beam, and something crosses it,
+	// stops in it, and turns its head to them; and then the light dies
+	if (Clock > 3.5f && !Done.Contains(TEXT("sighting")) && Director && !Done.Contains(TEXT("dark")))
+	{
+		FVector HFrom, HDir;
+		if (Director->GetHeadlightRay(HFrom, HDir) && FVector::DotProduct(Player->LookDir().GetSafeNormal2D(), HDir.GetSafeNormal2D()) > 0.8f && Once(TEXT("sighting")))
+		{
+			const FVector D = HDir.GetSafeNormal2D();
+			const FVector V = FVector::CrossProduct(FVector::UpVector, D);
+			const FVector Mid = Player->GetActorLocation() + D * 1500.f;
+			CrossFrom = Mid + V * 650.f;
+			CrossTo = Mid - V * 650.f;
+			bCrossInHeadlight = true;
+			SpawnCrosser();
+		}
+	}
+	// the car's last light dies (the director kills it 9 s into play, unless something is standing in it)
+	if (Director && Director->HeadlightDieAt < 0.f && Clock > 9.6f && Once(TEXT("dark")))
 	{
 		Say(TEXT("No. No, no, no..."), 0.2f, 2.6f);
 		SetObjective(TEXT("Find shelter in the camp"));
@@ -402,6 +484,12 @@ void AP2Story::Beats(float Dt)
 			const FVector Mid = Player->GetActorLocation() + StreetU * 1800.f;
 			CrossFrom = Mid + V * 750.f;
 			CrossTo = Mid - V * 750.f;
+			SpawnCrosser();
+		}
+	}
+	if (false)
+	{
+		{
 			FActorSpawnParameters P;
 			P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 			Crosser = GetWorld()->SpawnActor<AHusk>(AHusk::StaticClass(), FTransform(CrossFrom), P);
@@ -421,10 +509,16 @@ void AP2Story::Beats(float Dt)
 			}
 		}
 	}
+	if (DarkAt > 0.f && Clock >= DarkAt && Once(TEXT("dark")))
+	{
+		Say(TEXT("No. No, no, no..."), 0.4f, 2.6f);
+		SetObjective(TEXT("Find shelter in the camp"));
+	}
 	// the bang after the journal: something hits the shed hard; the light stutters; the shriek; the hunt
 	if (BangAt > 0.f && Clock >= BangAt && Once(TEXT("bang")))
 	{
 		Player->Stutter(1.1f);
+		Player->Jolt(1.f);
 		Say(TEXT("Oh God."), 1.6f, 2.2f);
 		SetObjective(TEXT("Survive the night"));
 		ShriekAt = Clock + 1.3f;
@@ -438,8 +532,16 @@ void AP2Story::Beats(float Dt)
 		{
 			Hunter->Begin(Director, HuskScale, 1600.f);
 			Hunter->Menace = 0.45f;
-			// (it heard the bang: it comes to the shed first)
-			Hunter->HearNoise(Player->GetActorLocation(), 5000.f);
+			// (it heard the bang: it comes round to the shed's doorway and bends to look in)
+			for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
+			{
+				if (It->GetActorLabel() == TEXT("Town Shed"))
+				{
+					const FTransform T = It->GetActorTransform();
+					Hunter->PeerInto(T.TransformPosition(FVector(95.f, 0.f, 0.f)), -T.GetRotation().GetAxisX());
+				}
+			}
+			Say(TEXT("(The light. It doesn't like the light...)"), 6.f, 3.f);
 		}
 	}
 }
@@ -451,4 +553,25 @@ void AP2Story::Tick(float DeltaSeconds)
 	Clock += Dt;
 	Beats(Dt);
 	TickCrosser(Dt);
+}
+
+void AP2Story::SpawnCrosser()
+{
+	FActorSpawnParameters P;
+	P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	Crosser = GetWorld()->SpawnActor<AHusk>(AHusk::StaticClass(), FTransform(CrossFrom), P);
+	if (Crosser && Crosser->Setup())
+	{
+		Crosser->SetActorScale3D(FVector(HuskScale));
+		Crosser->Play(TEXT("Stalk"), true);
+		Crosser->JawOpen = 5.f;
+		TArray<UPrimitiveComponent*> Ps;
+		Crosser->GetComponents<UPrimitiveComponent>(Ps);
+		for (UPrimitiveComponent* Pc : Ps)
+		{
+			Pc->SetLightingChannels(true, true, false);
+			Pc->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
+		CrossT = 0.f;
+	}
 }

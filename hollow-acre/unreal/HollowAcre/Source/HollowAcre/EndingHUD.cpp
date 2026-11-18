@@ -6,6 +6,7 @@
 #include "EngineUtils.h"
 #include "Engine/Engine.h"
 #include "Engine/Font.h"
+#include "Engine/Texture2D.h"
 #include "Kismet/GameplayStatics.h"
 #include "Part2Character.h"
 #include "Part2Story.h"
@@ -171,28 +172,46 @@ void AEndingHUD::DrawPlay()
 		FCanvasTileItem Dim(FVector2D(0.f, 0.f), FVector2D(Canvas->ClipX, Y), FLinearColor(0.f, 0.f, 0.f, 0.62f));
 		Dim.BlendMode = SE_BLEND_Translucent;
 		Canvas->DrawItem(Dim);
-		const float Pw = Y * 0.78f, Ph = Y * 0.84f;
-		const float Px = (Canvas->ClipX - Pw) * 0.5f, Py = (Y - Ph) * 0.5f;
-		FCanvasTileItem Paper(FVector2D(Px, Py), FVector2D(Pw, Ph), FLinearColor(0.62f, 0.57f, 0.46f, 1.f));
-		Canvas->DrawItem(Paper);
-		for (int32 r = 1; r < 18; ++r)
+		// (her notebook page: aged ruled paper (tools/make_journal_paper.py), a little crooked in the hand; the words in dark
+		// pencil on its rules)
+		static UTexture2D* PaperTex = nullptr;
+		if (!PaperTex)
 		{
-			FCanvasTileItem Rule(FVector2D(Px + Pw * 0.06f, Py + Ph * (0.08f + r * 0.05f)), FVector2D(Pw * 0.88f, FMath::Max(1.f, Y * 0.0012f)), FLinearColor(0.35f, 0.42f, 0.5f, 0.35f));
-			Rule.BlendMode = SE_BLEND_Translucent;
-			Canvas->DrawItem(Rule);
+			PaperTex = LoadObject<UTexture2D>(nullptr, TEXT("/Game/HollowAcre/UI/T_JournalPaper.T_JournalPaper"));
+			if (PaperTex)
+			{
+				PaperTex->AddToRoot();
+			}
+		}
+		const float Ph = Y * 0.9f, Pw = Ph * 1024.f / 1280.f;
+		const float Px = (Canvas->ClipX - Pw) * 0.5f, Py = (Y - Ph) * 0.5f;
+		if (PaperTex)
+		{
+			FCanvasTileItem Paper(FVector2D(Px, Py), PaperTex->GetResource(), FVector2D(Pw, Ph), FLinearColor(0.95f, 0.93f, 0.9f, 1.f));
+			Paper.BlendMode = SE_BLEND_Translucent;
+			Paper.Rotation = FRotator(0.f, -1.2f, 0.f);
+			Paper.PivotPoint = FVector2D(0.5f, 0.5f);
+			Canvas->DrawItem(Paper);
+		}
+		else
+		{
+			FCanvasTileItem Paper(FVector2D(Px, Py), FVector2D(Pw, Ph), FLinearColor(0.62f, 0.57f, 0.46f, 1.f));
+			Canvas->DrawItem(Paper);
 		}
 		FFontRenderInfo Ink;
 		Ink.bClipText = false;
 		Ink.bEnableShadow = false;
-		// (wrapped by words to the page's width)
-		const float Lh = 0.031f;
+		// (wrapped by words between the margin and the right edge, one line of writing on each rule)
+		const float Rule = Ph * 46.f / 1280.f;
+		const float Lh = Rule / Y * 0.78f;
 		float W = 0.f, H = 0.f;
 		Canvas->TextSize(Font, TEXT("M"), W, H);
 		const float Sc = H > 0.f ? Y * Lh / H : 1.f;
 		TArray<FString> Paras;
 		S.ParseIntoArray(Paras, TEXT("\n"), false);
-		float Yl = Py + Ph * 0.1f;
-		Canvas->SetDrawColor(FLinearColor(0.07f, 0.07f, 0.1f, 0.95f).ToFColor(true));
+		const float X0 = Px + Pw * 140.f / 1024.f, X1 = Px + Pw * 0.92f;
+		float Yl = Py + Ph * (120.f + 2 * 46.f) / 1280.f - H * Sc * 0.95f;
+		Canvas->SetDrawColor(FLinearColor(0.1f, 0.09f, 0.11f, 0.9f).ToFColor(true));
 		for (const FString& Para : Paras)
 		{
 			TArray<FString> Words;
@@ -206,10 +225,13 @@ void AEndingHUD::DrawPlay()
 				{
 					Canvas->TextSize(Font, Try, Tw, Th);
 				}
-				if (i == Words.Num() || Tw * Sc > Pw * 0.84f)
+				if (i == Words.Num() || Tw * Sc > X1 - X0)
 				{
-					Canvas->DrawText(Font, Line, Px + Pw * 0.08f, Yl, Sc, Sc, Ink);
-					Yl += Ph * 0.05f;
+					if (!Line.IsEmpty())
+					{
+						Canvas->DrawText(Font, Line, X0, Yl, Sc, Sc, Ink);
+						Yl += Rule;
+					}
 					Line = i < Words.Num() ? Words[i] : FString();
 				}
 				else
@@ -219,9 +241,9 @@ void AEndingHUD::DrawPlay()
 			}
 			if (Para.IsEmpty())
 			{
-				Yl += Ph * 0.025f;
+				Yl += Rule * 0.0f;
 			}
 		}
-		Text(FString::Printf(TEXT("%d / %d        E"), Index + 1, Count), Canvas->ClipX * 0.5f, Py + Ph + Y * 0.035f, 0.024f, FLinearColor(0.8f, 0.8f, 0.78f, 0.8f), true);
+		Text(FString::Printf(TEXT("%d / %d        E"), Index + 1, Count), Canvas->ClipX * 0.5f, Py + Ph + Y * 0.025f, 0.022f, FLinearColor(0.8f, 0.8f, 0.78f, 0.8f), true);
 	}
 }

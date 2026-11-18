@@ -52,6 +52,7 @@ public:
 	float JawOpen = 6.f;
 
 	USkeletalMeshComponent* GetBody() const { return Body; }
+	UPoseableMeshComponent* GetFace() const { return Face; }
 
 	/** Where its head is as it is drawn (its clip, and any bend on top of it). */
 	FVector HeadAt() const { return Pose()->GetSocketLocation(TEXT("head")); }

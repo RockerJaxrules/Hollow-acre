@@ -81,6 +81,9 @@ public:
 	void Caught(AActor* By);
 	/** The flashlight stutters (a bad contact jarred) for Secs. */
 	void Stutter(float Secs);
+	/** A hit felt through the body: the eyes jolt and settle. */
+	void Jolt(float Strength);
+	float JoltT = -1.f, JoltK = 0.f;
 	/** For the HUD: what can be used where the eyes look (its prompt); the page being read (and which of how many). */
 	bool GetPrompt(FString& Out) const;
 	bool GetReading(FString& Page, int32& Index, int32& Count) const;
@@ -144,6 +147,7 @@ protected:
 	float StoryAutoT = 0.f;
 	int32 StoryStep = 0;
 	float StepT = 0.f;
+	float PeerSeenT = 0.f, GoneT = 0.f;
 	void StoryAutopilot(float Dt);
 
 	UFUNCTION(Server, Reliable)

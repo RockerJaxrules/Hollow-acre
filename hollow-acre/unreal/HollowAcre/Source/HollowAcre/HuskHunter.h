@@ -36,7 +36,10 @@ public:
 	/** The player made a noise here, this loud (how far it carries, cm). */
 	void HearNoise(const FVector& At, float Carries);
 
-	enum class EState : uint8 { Away, Roam, Investigate, Stalk, Chase, Search, Retreat, Kill };
+	enum class EState : uint8 { Away, Roam, Investigate, Stalk, Chase, Search, Retreat, Kill, Peer };
+
+	/** Scripted: it comes to a doorway (DoorAt, outside it) and bends to look in (along Into). */
+	void PeerInto(const FVector& DoorAt, const FVector& Into);
 	EState State = EState::Away;
 	float Menace = 0.f;
 
@@ -65,6 +68,10 @@ protected:
 	float AwayUntil = 0.f;
 	FString Take;
 	float TwitchT = 0.f;
+	bool bToDoor = false;
+	FVector DoorAt = FVector::ZeroVector, DoorInto = FVector::ForwardVector;
+	float UnseenFor = 0.f;
+	bool bPreyIndoors = false;
 	float StepT = 0.f;
 	int32 Footfalls = 0;
 	float BreathT = 0.f;
