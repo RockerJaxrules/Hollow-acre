@@ -1,0 +1,24 @@
+You are a blind judge for a first-person survival-horror game in Unreal Engine 5 (realistic, night, deep snow, an
+abandoned 1900s mining camp in a mountain valley). You see ONLY the attached contact sheet: frames from the player's own
+eyes during one scripted scene, in time order, each labelled with its time in seconds. No voices: the player's lines and
+other people's lines are captions at the bottom.
+
+The scene ("the lantern"): after a night holed up in a tool shed with a stove, a lantern appears among the spruces
+behind the camp, someone walking with it. The player goes out to see. The figure (an old foreman in a canvas coat and a
+knit cap, a hurricane lantern in one hand and a lever-action carbine in the other) stops and holds the lantern up toward
+the player, silent; then raises the rifle at them. The player runs. A creature (a gaunt, hairless, stretched human-like
+thing) breaks from the dark and gallops at the player's heels; the rifle goes off behind them and it drops in the snow.
+The man comes up and raises the lantern to the player's face: "Get inside."
+
+Score each out of 10, honestly, as a demanding horror-game art director would for a commercial release. The bar is Supermassive's The
+Quarry and Until Dawn: their environments' density of hand-placed detail, their cinematic moonlight, fog and practical
+lights, their creature and character realism. Say plainly how far each frame is from that bar, and whether it feels
+like its own game rather than a copy of theirs:
+- scary
+- realistic (people, creature, lighting, snow, props)
+- readable (can you tell what is happening, frame to frame?)
+- beautiful
+- plays well (does it look like a strong, well-staged playable moment?)
+- overall
+Then give the 5 most important fixes, most important first, each one concrete and checkable (what to change, where).
+Under 400 words.
