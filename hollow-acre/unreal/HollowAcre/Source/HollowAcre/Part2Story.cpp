@@ -261,6 +261,7 @@ namespace
 		if (A)
 		{
 			A->SetMobility(EComponentMobility::Movable);
+			A->Tags.Add(TEXT("ShedPiece"));
 			A->GetStaticMeshComponent()->SetStaticMesh(Mesh);
 			A->SetActorScale3D(T.GetScale3D());
 			if (Mat)
@@ -402,6 +403,14 @@ void AP2Story::FurnishShed()
 			}
 		}
 	}
+	TArray<AStaticMeshActor*> Pieces;
+	for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
+	{
+		if (It->ActorHasTag(TEXT("ShedPiece")))
+		{
+			Pieces.Add(*It);
+		}
+	}
 	// the pot-belly stove in the back corner, its door to the room, its pipe up through the roof
 	if (UStaticMesh* Sm2 = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Wake_Stove.Wake_Stove")))
 	{
@@ -453,7 +462,29 @@ void AP2Story::FurnishShed()
 			FireLight->SetTemperature(2100.f);
 			FireLight->SetSourceRadius(8.f);
 			FireLight->SetCastShadows(true);
+			// (the fire's light on its own channel: the room, the floor, the walls, its table take it; the stove's iron doesn't,
+			// so it stays dark with its window glowing)
+			FireLight->SetLightingChannels(false, false, true);
 			FireLight->RegisterComponent();
+			Sc->SetLightingChannels(true, true, false);
+			if (UStaticMeshComponent* Shc = Shed->GetStaticMeshComponent())
+			{
+				Shc->SetLightingChannels(true, true, true);
+			}
+			for (AStaticMeshActor* Pc : Pieces)
+			{
+				if (Pc && Pc != St)
+				{
+					Pc->GetStaticMeshComponent()->SetLightingChannels(true, true, true);
+				}
+			}
+			for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
+			{
+				if (It->GetActorLabel() == TEXT("Town Ground"))
+				{
+					It->GetStaticMeshComponent()->SetLightingChannels(true, true, true);
+				}
+			}
 			Stove = St;
 		}
 	}
@@ -500,13 +531,26 @@ void AP2Story::OnUse(UP2UseComponent* Use)
 				MatchLight->RegisterComponent();
 				MatchLight->SetWorldLocation(Player->EyesAt() + Player->LookDir() * 45.f - FVector(0.f, 0.f, 25.f));
 				MatchAt = Clock;
+				// (its flame: a small bright teardrop on the match's head)
+				MatchFlame = NewObject<UStaticMeshComponent>(this, TEXT("MatchFlame"));
+				MatchFlame->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere.Sphere")));
+				if (UMaterialInterface* Gm = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Materials/Play/M_FireGlow.M_FireGlow")))
+				{
+					UMaterialInstanceDynamic* Fm = UMaterialInstanceDynamic::Create(Gm, MatchFlame);
+					Fm->SetVectorParameterValue(TEXT("Glow"), FLinearColor(1.f, 0.55f, 0.15f) * 40.f);
+					MatchFlame->SetMaterial(0, Fm);
+				}
+				MatchFlame->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				MatchFlame->SetCastShadow(false);
+				MatchFlame->SetWorldScale3D(FVector(0.007f, 0.007f, 0.016f));
+				MatchFlame->RegisterComponent();
+				MatchFlame->SetWorldLocation(MatchLight->GetComponentLocation());
 			}
 			bStoveLit = true;
 			StoveLitAt = Clock;
 			Use->bEnabled = false;
 			Event(TEXT("fire_lit"));
 			Say(TEXT("Come on. Come on..."), 0.2f, 2.0f);
-			SetObjective(TEXT("Stay by the fire. Wait for morning"));
 			if (Player.IsValid())
 			{
 				Player->Checkpoint = Player->GetActorTransform();
@@ -640,7 +684,7 @@ void AP2Story::Beats(float Dt)
 					const float Dp = FVector::Dist2D(Hp.ImpactPoint, Pp);
 					if (Dp > 600.f && Dp < 2500.f)
 					{
-						Mid = Pp + (Hp.ImpactPoint - Pp).GetSafeNormal2D() * FMath::Min(Dp, 1100.f);
+						Mid = Pp + (Hp.ImpactPoint - Pp).GetSafeNormal2D() * FMath::Min(Dp, 850.f);
 						Mid.Z = GroundAt(Mid);
 					}
 				}
@@ -699,6 +743,10 @@ void AP2Story::Beats(float Dt)
 		Say(TEXT("No. No, no, no..."), 0.4f, 2.6f);
 		SetObjective(TEXT("Find shelter in the camp"));
 	}
+	if (bStoveLit && Clock - StoveLitAt > 3.5f && Once(TEXT("caught")))
+	{
+		SetObjective(TEXT("Stay by the fire. Wait for morning"));
+	}
 	if (bStoveLit && Clock - StoveLitAt > 9.f && Once(TEXT("pass")))
 	{
 		for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
@@ -706,8 +754,8 @@ void AP2Story::Beats(float Dt)
 			if (It->GetActorLabel() == TEXT("Town Shed"))
 			{
 				const FTransform Ts = It->GetActorTransform();
-				CrossFrom = Ts.TransformPosition(FVector(260.f, -650.f, 0.f));
-				CrossTo = Ts.TransformPosition(FVector(260.f, 650.f, 0.f));
+				CrossFrom = Ts.TransformPosition(FVector(190.f, -600.f, 0.f));
+				CrossTo = Ts.TransformPosition(FVector(190.f, 600.f, 0.f));
 				CrossFrom.Z = GroundAt(CrossFrom);
 				CrossTo.Z = GroundAt(CrossTo);
 				bCrossInHeadlight = false;
@@ -785,7 +833,7 @@ void AP2Story::SpawnCrosser()
 		Crosser->GetComponents<UPrimitiveComponent>(Ps);
 		for (UPrimitiveComponent* Pc : Ps)
 		{
-			Pc->SetLightingChannels(true, true, false);
+			Pc->SetLightingChannels(true, true, true);          // (the town's moon, the beam, and the shed's fire)
 			Pc->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		}
 		CrossT = 0.f;
@@ -866,10 +914,19 @@ void AP2Story::TickFire(float Dt)
 		const float m = Clock - MatchAt;
 		const float I = m < 0.12f ? m / 0.12f * 6.f : m < 0.4f ? FMath::Lerp(6.f, 2.2f, (m - 0.12f) / 0.28f) : m < 1.8f ? 2.2f * (0.9f + 0.1f * FMath::Sin(Clock * 23.f)) : FMath::Max(0.f, 2.2f * (1.f - (m - 1.8f) / 0.3f));
 		MatchLight->SetIntensity(I);
+		if (MatchFlame)
+		{
+			MatchFlame->SetWorldScale3D(FVector(0.007f, 0.007f, 0.016f) * FMath::Max(0.05f, I / 2.2f) * (0.9f + 0.1f * FMath::Sin(Clock * 31.f)));
+		}
 		if (m > 2.2f)
 		{
 			MatchLight->DestroyComponent();
 			MatchLight = nullptr;
+			if (MatchFlame)
+			{
+				MatchFlame->DestroyComponent();
+				MatchFlame = nullptr;
+			}
 		}
 	}
 	if (!bStoveLit || !FireLight)

@@ -64,7 +64,7 @@ void AHuskHunter::Begin(AEndingDirector* InDirector, float InScale, float StartF
 	Husk->GetComponents<UPrimitiveComponent>(Ps);
 	for (UPrimitiveComponent* Pc : Ps)
 	{
-		Pc->SetLightingChannels(true, true, false);      // (lit by the town's own moon too, as the camp is)
+		Pc->SetLightingChannels(true, true, true);       // (lit by the town's own moon too, and by the shed's fire)
 		Pc->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 	const FVector ToPrey = (Prey->GetActorLocation() - From).GetSafeNormal2D();
@@ -617,7 +617,7 @@ void AHuskHunter::Move(float Dt)
 		else
 		{
 			// (lost in the dark: it straightens to a tall stoop filling the doorway, listening, its head turning)
-			Husk->PeerDown = FMath::FInterpTo(Husk->PeerDown, 0.12f, Dt, 1.2f);
+			Husk->PeerDown = FMath::FInterpTo(Husk->PeerDown, 0.3f, Dt, 1.2f);
 			Husk->GlareAt = Husk->GetActorLocation() + DoorInto * 400.f + FVector(0.f, 0.f, 140.f) +
 				FVector::CrossProduct(FVector::UpVector, DoorInto) * 260.f * FMath::Sin(Clock * 1.1f) + FVector(0.f, 0.f, 60.f * FMath::Sin(Clock * 0.7f));
 			Husk->GlareW = FMath::FInterpTo(Husk->GlareW, 0.8f, Dt, 2.f);

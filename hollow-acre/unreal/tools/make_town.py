@@ -627,7 +627,7 @@ def shed(name, seed, W=3.7, D=3.7, H=7.5):
     for w in walls.values():
         w.no_dark = True                         # (its inside is real: moonlight through the gaps in its boards)
     door(m, walls['front'], W / 2 - 45, 90, 6.2 * FT, state='open')
-    finish_walls(m, walls, 'bb', 'bb', 0.08)
+    finish_walls(m, walls, 'bb', 'bb', 0.025)    # (a few boards gone: thin cracks of night, not missing walls)
     pts = [np.array([25, -W / 2 - 15, H + 10]), np.array([25, W / 2 + 15, H + 10]), np.array([-D - 25, W / 2 + 15, H - 40]), np.array([-D - 25, -W / 2 - 15, H - 40])]
     m.poly('tin', pts, face=(0, 0, 1))
     m.poly('barewood', [p - np.array([0, 0, 3]) for p in pts], face=(0, 0, -1))

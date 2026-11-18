@@ -397,7 +397,7 @@ void APart2Character::TickDeath(float Dt)
 			Controller->SetControlRotation(CheckpointLook);
 		}
 		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-		Camera->PostProcessSettings.bOverride_MotionBlurAmount = false;
+		Camera->PostProcessSettings.MotionBlurAmount = 0.f;
 		if (PC && PC->PlayerCameraManager)
 		{
 			PC->PlayerCameraManager->StartCameraFade(1.f, 0.f, 1.6f, FLinearColor::Black, false, false);
@@ -429,7 +429,9 @@ void APart2Character::ApplyLight()
 {
 	// the old bulb browning out as the batteries die
 	const float Dim = Battery > 0.12f ? 1.f : FMath::Max(0.f, Battery / 0.12f) * (0.75f + 0.25f * FMath::Sin(GetWorld() ? GetWorld()->GetTimeSeconds() * 9.f : 0.f));
-	float Cd = bFlashlightOn ? BeamCd * Dim : 0.f;
+	// (eased off on what is close in front of it: within ~3 m of the eyes, down to a third at arm's length)
+	const float Near = FMath::Clamp(NearSmoothed / 300.f, 0.32f, 1.f);
+	float Cd = bFlashlightOn ? BeamCd * Dim * Near : 0.f;
 	if (GetWorld() && GetWorld()->GetTimeSeconds() < StutterUntil)
 	{
 		const float Tt = GetWorld()->GetTimeSeconds();
@@ -505,6 +507,8 @@ void APart2Character::TakeOverFrom(const FTransform& EyeWorld, ADriverArms* InAr
 	// (the eyes adapt fast to a bright thing close in the beam, so it reads instead of blowing out white)
 	Camera->PostProcessSettings.bOverride_AutoExposureSpeedUp = true;
 	Camera->PostProcessSettings.AutoExposureSpeedUp = 4.f;
+	Camera->PostProcessSettings.bOverride_MotionBlurAmount = true;
+	Camera->PostProcessSettings.MotionBlurAmount = 0.f;
 	Camera->PostProcessSettings.bOverride_AutoExposureSpeedDown = true;
 	Camera->PostProcessSettings.AutoExposureSpeedDown = 1.5f;
 	Arms = InArms;
@@ -631,9 +635,14 @@ void APart2Character::UpdateBody(float Dt)
 		{
 			Q.AddIgnoredActor(Arms);
 		}
-		if (GetWorld()->LineTraceSingleByChannel(Hit, E, E + L * 3000.f, ECC_Visibility, Q) && Hit.Distance > 150.f)
+		AimDist = 3000.f;
+		if (GetWorld()->LineTraceSingleByChannel(Hit, E, E + L * 3000.f, ECC_Visibility, Q))
 		{
-			AimAt = Me.InverseTransformPosition(Hit.ImpactPoint);
+			AimDist = Hit.Distance;
+			if (Hit.Distance > 150.f)
+			{
+				AimAt = Me.InverseTransformPosition(Hit.ImpactPoint);
+			}
 		}
 		else if (L.Z > -0.12f)
 		{
@@ -729,10 +738,8 @@ void APart2Character::Tick(float DeltaSeconds)
 		bRunning = bWantsRun && !bWinded && !bIsCrouched && bMoving;
 	}
 	GetCharacterMovement()->MaxWalkSpeed = bRunning ? RunSpeed : WalkSpeed * (bWinded ? 0.8f : 1.f);
-	if (Battery < 0.12f || (GetWorld()->GetTimeSeconds() < StutterUntil + 0.1f))
-	{
-		ApplyLight();
-	}
+	NearSmoothed = FMath::FInterpTo(NearSmoothed, AimDist, DeltaSeconds, 4.f);
+	ApplyLight();
 	if (bDead)
 	{
 		TickDeath(DeltaSeconds);
@@ -1094,6 +1101,10 @@ void APart2Character::StoryAutopilot(float Dt)
 			break;
 		case 11:     // by the fire, warming: watching it catch, then the light off, watching the doorway
 		{
+			if (bFlashlightOn && StepT > 0.6f)
+			{
+				FlashlightToggle();
+			}
 			if (StepT < 4.5f)
 			{
 				for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)

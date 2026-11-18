@@ -155,15 +155,15 @@ void AEndingHUD::DrawPlay()
 	float A = 0.f;
 	if (Story && Story->GetObjective(S, A))
 	{
-		Text(S, Canvas->ClipX * 0.045f, Y * 0.07f, 0.03f, FLinearColor(0.82f, 0.85f, 0.9f, A * 0.85f), false);
+		Text(S, Canvas->ClipX * 0.045f, Y * 0.075f, 0.042f, FLinearColor(0.95f, 0.96f, 1.f, A), false);
 	}
 	if (Story && Story->GetSaid(S, A) && !Me->IsReading())
 	{
-		Text(S, Canvas->ClipX * 0.5f, Y * 0.885f, 0.04f, FLinearColor(0.93f, 0.93f, 0.9f, A * 0.95f), true);
+		Text(S, Canvas->ClipX * 0.5f, Y * 0.87f, 0.05f, FLinearColor(1.f, 1.f, 0.97f, A), true);
 	}
 	if (Me->GetPrompt(S))
 	{
-		Text(FString::Printf(TEXT("E    %s"), *S), Canvas->ClipX * 0.5f, Y * 0.62f, 0.027f, FLinearColor(0.9f, 0.9f, 0.86f, 0.85f), true);
+		Text(FString::Printf(TEXT("E    %s"), *S), Canvas->ClipX * 0.5f, Y * 0.62f, 0.034f, FLinearColor(1.f, 1.f, 0.95f, 0.95f), true);
 	}
 	int32 Index = 0, Count = 0;
 	if (Me->GetReading(S, Index, Count))

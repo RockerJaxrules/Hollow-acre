@@ -132,6 +132,8 @@ protected:
 	TObjectPtr<class UMaterialInstanceDynamic> FireGlow;
 	UPROPERTY()
 	TObjectPtr<class UPointLightComponent> MatchLight;
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> MatchFlame;
 	float MatchAt = -1.f;
 	float PassAt = -1.f;
 	void TickFire(float Dt);

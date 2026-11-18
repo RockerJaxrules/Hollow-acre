@@ -172,6 +172,7 @@ protected:
 	FPostProcessSettings BaseGrade;
 	void ShowCold(float Dt);
 	float ShiverT = 0.f;
+	float AimDist = 3000.f, NearSmoothed = 3000.f;
 	TWeakObjectPtr<class AEndingDirector> Director;
 	void ReportNoise(float Carries);
 	void TickDeath(float Dt);

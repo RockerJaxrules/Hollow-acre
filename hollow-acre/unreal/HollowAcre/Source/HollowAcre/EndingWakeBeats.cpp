@@ -481,7 +481,7 @@ void AEndingDirector::WakeSetup()
 			// edge, the bulb's spill fading out where the head cuts it off; tools/make_flashlight_ies.py)
 			FlashBeam->SetIESTexture(LoadObject<UTextureLightProfile>(nullptr, TEXT("/Game/HollowAcre/Wake/IES_Flashlight.IES_Flashlight")));
 			FlashBeam->SetInnerConeAngle(0.f);
-			FlashBeam->SetOuterConeAngle(36.f);
+			FlashBeam->SetOuterConeAngle(44.f);
 			FlashBeam->SetAttenuationRadius(4500.f);
 			FlashBeam->SetUseTemperature(true);
 			FlashBeam->SetTemperature(3500.f);   // (an incandescent bulb on fresh cells: warm white, not orange, under the cold grade)
