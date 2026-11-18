@@ -47,6 +47,47 @@ the dark, until the rifle goes off behind you and the husk that was on your heel
    his rifle an old lever-action. His lines as captions: "Get inside." Short, hard, kind. Then the first cutscene of
    Act I's end: by the stove, what comes out at night, the road shut until you can drive it.
 
+### The lantern, as built (Part2Story::BeginLantern / TickLantern)
+After the fire is fed and has burned a while (11 s), the lantern shows among the spruces behind the camp (first seen
+through the gap in the shed's back boards, which face the trees): Kessler walks a way between the trunks (each at least
+1.4 m off, from mountain.json's trees) from 58 m out toward the trees' edge 17 m behind the shed, slowly, the lantern
+swinging from his fist. Captions: "...A light?" / "Someone's out there."; objective "See who it is" (a hint after 15 s
+if it hasn't been seen). In stages:
+1. a light in the trees; he walks on until the player is out of the shed and sees him within 32 m (or he reaches the
+   trees' edge);
+2. he stops, turns to them and holds the lantern up toward their face, silent ("Hello?!" / "Please... I need help.");
+3. after 6.4 s the lantern comes down and the rifle comes up, aimed at them ("No... no, no, no-"; objective RUN);
+4. 2.4 s on, the husk breaks from the dark 13 m to the side of the way they run (out of their sight, on the side away
+   from the buildings) at a full gallop straight for them (a scripted charge: nothing calls it off, it can't catch
+   them); his rifle follows it;
+5. when it is within 4.3 m of them (or after 6 s) he fires: the flash, the crack and its echo off the valley, and it
+   goes down in the snow at their heels as a ragdoll carried on by its own gallop;
+6. he lowers the rifle, comes up to them and raises the lantern to their face: "Get inside."
+Kessler himself: his MetaHuman body drawn as a copy of its take's pose so his arms and head can be set over it
+(AKessler): MetaHuman's own walk and standing idle (in-place loops; he moves by what keeps his planted foot still), the
+lantern raised by two-bone IK, the rifle sighted from his right eye with his cheek on the stock, his body bladed.
+
+## Act I's closing cutscene: "Kessler" (shot plan, waiting for the owner's OK)
+First person, the player's own eyes, captions only (no voices), about 80 s, in the shed by the stove; Supermassive's
+ways (Until Dawn, The Quarry): faces lit from below by one warm source, long holds on a face, silence used as a beat,
+the dread left in the last frame rather than a jump.
+1. **Inside.** Cut on "Get inside.": he pushes in behind you, the lantern first, its light swinging over the walls, the
+   journal on the table, the gouges round the window's gap. He bars the door with a plank (one heavy knock), then the
+   wind is all there is.
+2. **The fire.** He crouches at the stove, opens its door and feeds it two splits from your armful; it flares on his
+   face from below. He doesn't look at you. KESSLER: "You'd be the one I wrote to."
+3. **The question.** YOU: "What was that?" He shuts the stove's door; his face drops back into the lantern's dimmer
+   light. A long hold. KESSLER: "Men. Once." Then: "They come down off the high ground when the snow shuts the road.
+   Don't be out after dark."
+4. **The road.** YOU: "My car..." KESSLER: "Road's shut till you've got something that'll climb it." (The game's long
+   aim: rebuild the car, drive up.)
+5. **The journal.** His eyes find her journal on the table. He picks it up, turns pages with a gloved thumb, stops at
+   one; the first time his face softens. KESSLER: "She came through here." He closes it and puts it in your hands.
+6. **The watch.** He sits against the barred door, the rifle across his knees, and turns the lantern down. KESSLER:
+   "Sleep. I'll watch." Your eyes go to the gap in the boards where the hand came through; the lantern's last glow on
+   them; a long slow blink (the eyelids, as at the crash) and black. Card: "Morning."
+   (Act II's first beat, then: in the morning the husk he shot is gone from the snow; a long drag mark into the trees.)
+
 ## Judge
 Each step: a contact sheet and a video from the player's eyes; a blind judge (a subagent that sees only the pictures
 and the brief) scores it out of 10 against: scary, realistic, readable, beautiful, does it play. 7 to pass.

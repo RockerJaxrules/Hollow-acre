@@ -40,7 +40,18 @@ public:
 
 	/** Scripted: it comes to a doorway (DoorAt, outside it) and bends to look in (along Into). */
 	void PeerInto(const FVector& DoorAt, const FVector& Into);
+	/** Scripted: it breaks from here at a full gallop straight for the player, and keeps on (nothing calls it off, and it
+	 * does not catch them: the story ends it). */
+	void ChargeFrom(const FVector& From);
+	/** Scripted: shot through at the gallop: down in the snow, dead. */
+	void Shot(const FVector& Dir);
+	bool IsDead() const { return bDead; }
+	/** Scripted: kept away (out of the scene) until a scripted charge. */
+	void HoldAway();
+	/** Where it is (its body's middle). */
+	FVector BodyAt() const;
 	EState State = EState::Away;
+	bool bScripted = false, bDead = false;
 	float Menace = 0.f;
 
 	UPROPERTY()

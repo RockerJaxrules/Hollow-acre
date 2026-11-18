@@ -38,6 +38,9 @@ SNAPS = 'wood/wood_branches_snapping_369986'
 HISS = 'aftermath/aftermath_steam_hiss_bursts_438640'
 CREAK = 'wood/wood_big_tree_fall_creak_494071'
 GROWL = 'creature_extra/creature_extra_human_aggressive_growls_257358'
+CRACK = 'wood/wood_wood_crack5_183450'
+BOOM = 'cine_hits/cine_hits_cinematic_impact_177242'
+BODY_FALL = 'snow_impact/snow_impact_body_falls_hard_snow_675895'
 
 
 def onsets(name, n, dur=0.35, seed=1):
@@ -158,6 +161,22 @@ def play(ev, total):
             # the light on its hand: a low torn growl through the boards as it pulls back, and the strings' stab
             M.at(t, C.verb(C.level(C.pitch(C.loudest(GROWL, 1.1, pre=0.03), 0.72), 0.09), 0.6, 0.2), 1.0)
             M.at(t - 0.04, C.level(C.loudest(STING_SCARE, 1.4, pre=0.03), 0.05), 1.0)
+        elif k == 'rifle_shot':
+            # a rifle fired out in the open behind: the crack, a boom under it, its echo off the valley's slopes rolling
+            # away, and a ringing in the ears after (a stand-in built from the library's own recordings until a real
+            # recorded rifle shot is in: queued for the owner's OK)
+            crack = C.level(C.pitch(C.loudest(CRACK, 0.3, pre=0.004), 0.6), 0.45)
+            boom = C.level(C.pitch(C.loudest(BOOM, 1.6, pre=0.01), 0.8), 0.2)
+            shot = C.sumc(crack, boom)
+            M.at(t, C.verb(shot, 2.2, 0.3), 1.0)
+            for dt_, g in ((0.55, 0.22), (1.3, 0.12), (2.2, 0.06)):
+                M.at(t + dt_, C.filt(C.verb(shot, 2.5, 0.6), A.lp(900)), g)
+            n_ = int(3.2 * SR)
+            ring = np.sin(2 * np.pi * 3900 * np.arange(n_) / SR) * np.exp(-np.arange(n_) / (1.2 * SR))
+            M.at(t + 0.1, C.level(np.stack([ring, ring]), 0.006), 1.0)
+        elif k == 'husk_down':
+            # its body going down in the snow at a gallop: a heavy fall, the snow crushed under it
+            M.at(t + 0.25, C.level(C.loudest(BODY_FALL, 1.4, pre=0.02), 0.16), 1.0)
         elif k == 'headlight_dies':
             M.at(t - 2.8, C.level(C.loudest(CLICKS, 3.0, pre=0.1), 0.02), 1.0)
         elif k == 'husk_kill':

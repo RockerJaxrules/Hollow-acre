@@ -1,4 +1,5 @@
 #include "Part2Character.h"
+#include "Kessler.h"
 
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -985,6 +986,12 @@ void APart2Character::StoryAutopilot(float Dt)
 	// the doorway; when the husk comes it holds the beam on it, and runs when it charges)
 	StoryAutoT += Dt;
 	StepT += Dt;
+	static const bool bLanternTest = FParse::Param(FCommandLine::Get(), TEXT("p2lantern"));
+	if (bLanternTest && StoryStep < 11)
+	{
+		StoryStep = 11;
+		StepT = 99.f;
+	}
 	if (!Director.IsValid())
 	{
 		for (TActorIterator<AEndingDirector> It(GetWorld()); It; ++It)
@@ -1286,8 +1293,24 @@ void APart2Character::StoryAutopilot(float Dt)
 					StoryStep = 12;
 					StepT = 0.f;
 				}
+				// (a light out in the trees: up, the light on, out to see)
+				if (It->LanternStage() >= 1)
+				{
+					if (bIsCrouched)
+					{
+						CrouchToggle();
+					}
+					if (!bFlashlightOn)
+					{
+						FlashlightToggle();
+					}
+					StoryStep = 14;
+					StepT = 0.f;
+					LanternLeg = 0;
+					break;
+				}
 				// (the fire going down, the wood asked for: up and out to the woodpile)
-				if (It->GetWoodPile() && !bCarryingWood && StepT > 5.f)
+				if (It->GetWoodPile() && !bCarryingWood && !It->IsFed() && StepT > 5.f)
 				{
 					if (bIsCrouched)
 					{
@@ -1376,6 +1399,115 @@ void APart2Character::StoryAutopilot(float Dt)
 			}
 			break;
 		}
+		case 14:     // the lantern: eyes on the light through the boards; out of the door and round the shed's corner on the
+		             // trees' side, toward it; still when he stops; the rifle up: run for the street; the shot: stop, turn,
+		             // the thing in the snow, then him
+		{
+			AP2Story* St = nullptr;
+			for (TActorIterator<AP2Story> It(GetWorld()); It; ++It)
+			{
+				St = *It;
+			}
+			AKessler* K = St ? St->GetKessler() : nullptr;
+			if (!St || !K)
+			{
+				break;
+			}
+			const int32 Ls = St->LanternStage();
+			const float Lt = St->LanternStageT();
+			// (out round the door's leaf: it hangs open inward 75 degrees from its hinge on the doorway's -Y side, its free
+			// edge 87 cm in (make_town.py door(), state 'open'); a way from the stove behind it got caught between it and
+			// the wall. So: past its free edge on the +Y side, then straight out along the doorway's +Y half)
+			const FVector Inner = T.TransformPosition(FVector(-125.f, 15.f, 0.f));
+			const FVector DoorOut = T.TransformPosition(FVector(170.f, 12.f, 0.f));
+			const FVector CornerF = T.TransformPosition(FVector(130.f, -340.f, 0.f));
+			const FVector CornerB = T.TransformPosition(FVector(-500.f, -340.f, 0.f));
+			const FVector Out = T.TransformPosition(FVector(-820.f, -620.f, 0.f));
+			const FVector OutStreet = T.TransformPosition(FVector(700.f, -420.f, 0.f));
+			if (FMath::FloorToInt(StepT) != FMath::FloorToInt(StepT - Dt))
+			{
+				const FVector L = T.InverseTransformPosition(GetActorLocation());
+				UE_LOG(LogTemp, Display, TEXT("Part2Story auto 14: stage %d (+%.1f s), leg %d, at shed (%.0f, %.0f), %.1f m from him, moving %.0f cm/s"),
+					Ls, Lt, LanternLeg, L.X, L.Y, FVector::Dist2D(GetActorLocation(), K->GetActorLocation()) / 100.f, GetVelocity().Size2D());
+			}
+			auto LookAt = [&](const FVector& P, float Rate)
+			{
+				const FRotator To = (P - EyesAt()).Rotation();
+				WantYaw = To.Yaw;
+				WantPitch = FMath::Clamp(To.Pitch, -25.f, 15.f);
+				TurnRate = Rate;
+			};
+			if (Ls <= 2)
+			{
+				const FVector Legs[] = {Inner, DoorOut, CornerF, CornerB, Out};
+				if (StepT < 2.6f)
+				{
+					LookAt(K->LanternAt(), 50.f);
+				}
+				else if (Ls == 1 && LanternLeg < (int32)UE_ARRAY_COUNT(Legs))
+				{
+					FVector G = Legs[LanternLeg];
+					if (LanternLeg == 1)
+					{
+						// (through the doorway: after a point 90 cm ahead on its middle line, so the body comes onto the
+						// line and stays on it; aimed at the far point it drifted off and caught the jamb)
+						const FVector L = T.InverseTransformPosition(GetActorLocation());
+						G = T.TransformPosition(FVector(FMath::Min(L.X + 90.f, 170.f), 12.f, 0.f));
+						if (L.X > 140.f)
+						{
+							G = DoorOut;
+						}
+					}
+					WantYaw = (G - GetActorLocation()).Rotation().Yaw;
+					WantPitch = -6.f;
+					TurnRate = 120.f;
+					bWalk = true;
+					if (FVector::Dist2D(G, GetActorLocation()) < 70.f)
+					{
+						++LanternLeg;
+					}
+				}
+				else
+				{
+					LookAt(Ls == 2 ? K->EyesAt() : K->LanternAt(), 70.f);
+				}
+			}
+			else if (Ls == 3 && Lt < 1.1f)
+			{
+				LookAt(K->EyesAt() - FVector(0.f, 0.f, 15.f), 90.f);
+			}
+			else if (Ls == 3 || Ls == 4)
+			{
+				// (run: for the shed's front corner, then on out into the street)
+				const FVector G = FVector::Dist2D(CornerF, GetActorLocation()) > 150.f && LanternLeg < 10 ? CornerF : OutStreet;
+				if (FVector::Dist2D(CornerF, GetActorLocation()) <= 150.f)
+				{
+					LanternLeg = 10;
+				}
+				WantYaw = (G - GetActorLocation()).Rotation().Yaw;
+				WantPitch = -4.f;
+				TurnRate = 220.f;
+				bWalk = bRun = true;
+			}
+			else if (Ls == 5 && Lt < 0.35f)
+			{
+				bWalk = bRun = true;      // (the momentum of the run, a stride or two)
+			}
+			else if (Ls == 5 && Lt < 2.8f && St->GetHunter())
+			{
+				LookAt(St->GetHunter()->BodyAt(), 200.f);
+			}
+			else
+			{
+				LookAt(K->EyesAt(), 90.f);
+				// (his lantern up between them: the flashlight lowered and off, his face in its light)
+				if (Ls == 6 && bFlashlightOn && Lt > 0.5f)
+				{
+					FlashlightToggle();
+				}
+			}
+			break;
+		}
 		case 12:     // the window: turned to the scraping, still; when its hand comes in, the light on it; then the doorway again
 		{
 			AP2Story* St = nullptr;
@@ -1410,7 +1542,7 @@ void APart2Character::StoryAutopilot(float Dt)
 	// the husk: in the beam, held; charging, watched a moment, then a run for it
 	// (only while it is the thing to watch: once it has gone and the matches are the task, the eyes are on the task, not on
 	// where it roams behind the walls; a charge is always watched)
-	if (Hh && Hh->Husk && !Hh->Husk->IsHidden() && StoryStep >= 6 && (StoryStep < 8 || Hh->State == AHuskHunter::EState::Chase) &&
+	if (Hh && Hh->Husk && !Hh->Husk->IsHidden() && StoryStep >= 6 && StoryStep != 14 && (StoryStep < 8 || Hh->State == AHuskHunter::EState::Chase) &&
 		Hh->State != AHuskHunter::EState::Peer && Hh->State != AHuskHunter::EState::Investigate && Hh->State != AHuskHunter::EState::Retreat)
 	{
 		const FVector HuskAt = Hh->Husk->GetActorLocation() + FVector(0.f, 0.f, 110.f * Hh->Husk->GetActorScale3D().Z);
@@ -1618,8 +1750,21 @@ void APart2Character::UpdateAttention(float Dt)
 		const FVector To = Fix - EyesAt();
 		bFixed = To.Size() < 800.f && FVector::DotProduct(To.GetSafeNormal(), LookDir()) > FMath::Cos(FMath::DegreesToRadians(11.f));
 	}
-	// (narrowing slowly to about two thirds, opening again quicker)
-	const float Want = bFixed ? BaseFov * 0.6f : BaseFov;
+	// (the man with the lantern, stopped out there, the light held up, then the rifle: the eyes fix on him the same way,
+	// from further off (lit by his own lantern), narrowing further)
+	float Narrow = 0.6f;
+	for (TActorIterator<AP2Story> It(GetWorld()); It && !bFixed; ++It)
+	{
+		const int32 Ls = It->LanternStage();
+		if ((Ls == 2 || Ls == 3) && It->GetKessler())
+		{
+			const FVector To = It->GetKessler()->EyesAt() - FVector(0.f, 0.f, 25.f) - EyesAt();
+			bFixed = To.Size() < 2600.f && FVector::DotProduct(To.GetSafeNormal(), LookDir()) > FMath::Cos(FMath::DegreesToRadians(9.f));
+			Narrow = 0.48f;
+		}
+	}
+	// (narrowing slowly to about two thirds (or half), opening again quicker)
+	const float Want = bFixed ? BaseFov * Narrow : BaseFov;
 	FixedK = FMath::FInterpTo(FixedK, bFixed ? 1.f : 0.f, Dt, 1.2f);
 	Camera->SetFieldOfView(FMath::FInterpTo(Camera->FieldOfView, Want, Dt, bFixed ? 0.7f : 2.5f));
 }

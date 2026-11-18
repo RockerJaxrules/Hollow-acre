@@ -24,9 +24,14 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
-	/** The take his body plays (a clip in /Game/HollowAcre/Kessler/Mocap), looping; empty: he stands. */
+	/** The take his body plays, looping: a clip in /Game/HollowAcre/Kessler/Mocap, or "MH:<name>" for MetaHuman's own
+	 * locomotion (AS_MH_Neutral_<name>: Stand_Idle_Loop, Walk_Loop_F, Run_Loop_F...). */
 	UPROPERTY(EditAnywhere, Category = "Kessler")
-	FString Clip = TEXT("CMUCMU_17_03_Kessler");
+	FString Clip = TEXT("MH:Stand_Idle_Loop");
+
+	/** How fast his walk plays (1: MetaHuman's brisk walk, about 1.7 m/s; his steps carry him at whatever it is). */
+	UPROPERTY(EditAnywhere, Category = "Kessler")
+	float WalkRate = 0.8f;
 
 	/** His lantern lit and carried in his left hand. */
 	UPROPERTY(EditAnywhere, Category = "Kessler")
@@ -41,7 +46,7 @@ public:
 
 	/** Walk to a point on the ground: his take's own steps carry him (no sliding), turning toward it as he goes; he
 	 * stops there, eased into standing. */
-	void WalkTo(const FVector& At);
+	void WalkTo(const FVector& At, bool bRun = false);
 	/** Stop where he is, eased into standing (his take paused once he stands). */
 	void Halt();
 	bool IsWalking() const { return bWalking; }
@@ -63,6 +68,7 @@ public:
 	FVector EyesAt() const;
 
 	USkeletalMeshComponent* GetBody() const { return Body.Get(); }
+	AActor* GetMan() const { return Man; }
 	/** Where his lantern's flame is (for what it lights, and for the player's eyes to find in the trees). */
 	FVector LanternAt() const;
 
@@ -92,6 +98,11 @@ protected:
 	FVector Goal = FVector::ZeroVector, FaceAt = FVector::ZeroVector;
 	float StandW = 1.f;          // (0: as the take walks .. 1: standing)
 	FVector PelvisRef = FVector::ZeroVector, PelvisWas = FVector::ZeroVector, StepWas = FVector::ZeroVector;
+	FVector FootWas[2] = {FVector::ZeroVector, FVector::ZeroVector};
+	FString Playing;
+	/** A crossfade from the pose drawn when the take changed, over XFadeLen seconds. */
+	TArray<FTransform> XFadeFrom;
+	float XFadeT = 10.f, XFadeLen = 0.35f;
 	bool bPelvisInit = false;
 	float Lat = 0.f;
 	float AimW = 0.f, AimWant = 0.f, LanternW = 0.f, HeadW = 0.f;
@@ -115,6 +126,7 @@ protected:
 	FTransform AimRifle() const;
 	FTransform CarryRifle() const;
 	float GroundZ(const FVector& At) const;
+	FVector Steer(const FVector& From, const FVector& Dir) const;
 	bool bTest = false;
 	void RunTest();
 	FVector HandWas = FVector::ZeroVector;

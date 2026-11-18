@@ -231,17 +231,29 @@ void AKessler::BeginPlay()
 
 void AKessler::PlayClip(const FString& Name, bool bLoop)
 {
-	if (!Body.IsValid())
+	if (!Body.IsValid() || Name == Playing)
 	{
 		return;
 	}
-	if (UAnimSequence* A = LoadObject<UAnimSequence>(nullptr, *FString::Printf(TEXT("/Game/HollowAcre/Kessler/Mocap/%s.%s"), *Name, *Name)))
+	const FString Path = Name.StartsWith(TEXT("MH:"))
+		? FString::Printf(TEXT("/MetaHumanCharacter/Optional/Animation/UEFNAnimPreset/Locomotion/AS_MH_Neutral_%s.AS_MH_Neutral_%s"), *Name.Mid(3), *Name.Mid(3))
+		: FString::Printf(TEXT("/Game/HollowAcre/Kessler/Mocap/%s.%s"), *Name, *Name);
+	if (UAnimSequence* A = LoadObject<UAnimSequence>(nullptr, *Path))
 	{
+		// (the drawn pose held and faded from, so the change of take doesn't jump)
+		if (Shown && Shown->BoneSpaceTransforms.Num() > 0 && !Playing.IsEmpty())
+		{
+			XFadeFrom = Shown->BoneSpaceTransforms;
+			XFadeT = 0.f;
+		}
 		Body->PlayAnimation(A, bLoop);
+		Body->SetPlayRate(Name.Contains(TEXT("Walk")) ? WalkRate : 1.f);
+		Playing = Name;
+		bPelvisInit = false;
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Kessler: no take %s"), *Name);
+		UE_LOG(LogTemp, Warning, TEXT("Kessler: no take %s"), *Path);
 	}
 }
 
@@ -291,7 +303,7 @@ void AKessler::Tick(float Dt)
 		}
 		if (FlameMID)
 		{
-			FlameMID->SetScalarParameterValue(TEXT("Intensity"), 2.2f * Fl);
+			FlameMID->SetScalarParameterValue(TEXT("Intensity"), 1.2f * Fl);
 		}
 	}
 	if (Rifle && B->GetBoneIndex(TEXT("hand_r")) != INDEX_NONE)
@@ -377,19 +389,24 @@ FVector AKessler::EyesAt() const
 	return H.GetLocation() + H.GetRotation().RotateVector(FaceFwdLocal) * 9.f + FVector(0.f, 0.f, 6.f);
 }
 
-void AKessler::WalkTo(const FVector& At)
+void AKessler::WalkTo(const FVector& At, bool bRun)
 {
 	Goal = At;
-	bWalking = true;
-	if (Body.IsValid())
+	const TCHAR* Want = bRun ? TEXT("MH:Run_Loop_F") : TEXT("MH:Walk_Loop_F");
+	if (!bWalking || Playing != Want)
 	{
-		Body->bPauseAnims = false;
+		bWalking = true;
+		PlayClip(Want, true);
 	}
 }
 
 void AKessler::Halt()
 {
-	bWalking = false;
+	if (bWalking)
+	{
+		bWalking = false;
+		PlayClip(TEXT("MH:Stand_Idle_Loop"), true);
+	}
 	FaceAt = GetActorLocation() + GetActorForwardVector() * 500.f;
 }
 
@@ -422,39 +439,70 @@ void AKessler::Fire(FVector& OutMuzzle, FVector& OutDir)
 
 float AKessler::GroundZ(const FVector& At) const
 {
+	// (the ground under his feet: what is static, at most a half-metre step up (he has no collision of his own: a trace
+	// from higher once found a shed's roof as he passed through it and he walked off into the air))
 	FHitResult Hit;
 	FCollisionQueryParams Q(TEXT("KesslerGround"), false, this);
 	if (Man)
 	{
 		Q.AddIgnoredActor(Man);
 	}
-	if (GetWorld()->LineTraceSingleByChannel(Hit, At + FVector(0.f, 0.f, 150.f), At - FVector(0.f, 0.f, 400.f), ECC_Visibility, Q))
+	FCollisionObjectQueryParams O(ECC_WorldStatic);
+	if (GetWorld()->LineTraceSingleByObjectType(Hit, At + FVector(0.f, 0.f, 50.f), At - FVector(0.f, 0.f, 400.f), O, Q) && !Hit.bStartPenetrating)
 	{
 		return Hit.ImpactPoint.Z;
 	}
 	return At.Z;
 }
 
+FVector AKessler::Steer(const FVector& From, const FVector& Dir) const
+{
+	// round the camp's buildings and the trees (as the hunting husk goes round them): the way ahead swept at the chest;
+	// if it is blocked, the nearest free way
+	FCollisionQueryParams Q(TEXT("KesslerSteer"), true, this);
+	if (Man)
+	{
+		Q.AddIgnoredActor(Man);
+	}
+	const FVector Chest = From + FVector(0.f, 0.f, 110.f);
+	for (float Off : {0.f, 20.f, -20.f, 40.f, -40.f, 65.f, -65.f, 90.f, -90.f, 120.f, -120.f})
+	{
+		const FVector D = FRotator(0.f, Off, 0.f).RotateVector(Dir);
+		FHitResult H;
+		if (!GetWorld()->SweepSingleByChannel(H, Chest, Chest + D * 260.f, FQuat::Identity, ECC_WorldStatic, FCollisionShape::MakeSphere(40.f), Q))
+		{
+			return D;
+		}
+	}
+	return Dir;
+}
+
 void AKessler::Locomote(float Dt)
 {
-	// his take walks forward in its own space; drawn where it is, he would walk off and snap back each loop. So: the
-	// drift of his pelvis ahead is taken out of where his body is drawn (and the slow part of its sway to the side), and
-	// he himself moves on by exactly what the take's steps moved this frame (his feet stay planted), toward his goal
+	// where he is drawn and how he moves, from his take: the drift of his pelvis ahead (a take that walks across the
+	// floor) is taken out of where his body is drawn, with the slow part of its sway to the side; he moves on by what
+	// keeps his planted foot still on the ground (the pelvis's step ahead, less the planted foot's slide back: an
+	// in-place loop slides the foot, a walk across the floor moves the pelvis), toward his goal
 	if (!Body.IsValid() || !Man)
 	{
 		return;
 	}
 	StandW = FMath::FInterpConstantTo(StandW, bWalking ? 0.f : 1.f, Dt, 2.2f);
-	Body->bPauseAnims = !bWalking && StandW >= 0.999f;
 	const FVector Pc = Body->GetBoneLocation(TEXT("pelvis"), EBoneSpaces::ComponentSpace);
+	const FVector Fc[2] = {Body->GetBoneLocation(TEXT("foot_l"), EBoneSpaces::ComponentSpace), Body->GetBoneLocation(TEXT("foot_r"), EBoneSpaces::ComponentSpace)};
 	if (!bPelvisInit)
 	{
 		PelvisWas = Pc;
+		FootWas[0] = Fc[0];
+		FootWas[1] = Fc[1];
 		bPelvisInit = true;
 	}
-	FVector Step = Pc - PelvisWas;
+	const int32 Plant = Fc[0].Z <= Fc[1].Z ? 0 : 1;
+	FVector Step = (Pc - PelvisWas) - (Fc[Plant] - FootWas[Plant]);
 	PelvisWas = Pc;
-	if (Step.Size2D() > 30.f)          // (the take looped: its pelvis jumped back to the start)
+	FootWas[0] = Fc[0];
+	FootWas[1] = Fc[1];
+	if (Step.Size2D() > 30.f)          // (the take looped: back to its start)
 	{
 		Step = StepWas;
 	}
@@ -462,19 +510,19 @@ void AKessler::Locomote(float Dt)
 	{
 		StepWas = Step;
 	}
-	const float Walk = 1.f - StandW;
 	Lat = FMath::Lerp(Lat, Pc.X - PelvisRef.X, 1.f - FMath::Exp(-Dt / 0.7f));
 	const FVector OffCS(-Lat, -(Pc.Y - PelvisRef.Y), 0.f);     // (a MetaHuman's own frame: +Y ahead)
-	const FVector OffW = Body->GetComponentQuat().RotateVector(OffCS) * Walk;
+	const FVector OffW = Body->GetComponentQuat().RotateVector(OffCS);
 	FVector Loc = GetActorLocation();
 	FRotator Rot = GetActorRotation();
 	if (bWalking)
 	{
-		Loc += GetActorForwardVector() * FMath::Max(0.f, Step.Y) * Walk;
-		const FVector To = (Goal - Loc).GetSafeNormal2D();
+		Loc += GetActorForwardVector() * FMath::Max(0.f, Step.Y);
+		FVector To = (Goal - Loc).GetSafeNormal2D();
 		if (!To.IsNearlyZero())
 		{
-			Rot.Yaw = FMath::FixedTurn(Rot.Yaw, To.Rotation().Yaw, 55.f * Dt);
+			To = Steer(Loc, To);
+			Rot.Yaw = FMath::FixedTurn(Rot.Yaw, To.Rotation().Yaw, 80.f * Dt);
 		}
 		if ((Goal - Loc).Size2D() < 35.f)
 		{
@@ -483,8 +531,8 @@ void AKessler::Locomote(float Dt)
 	}
 	else if (!(FaceAt - Loc).IsNearlyZero(1.f))
 	{
-		// (standing: he turns where he means to face, by small steps; aiming, his body bladed a third of a turn right,
-		// his left shoulder toward it, as a man shoulders a rifle)
+		// (standing: he turns where he means to face; aiming, his body bladed a third of a turn right, his left
+		// shoulder toward it, as a man shoulders a rifle)
 		float Want = (FaceAt - Loc).GetSafeNormal2D().Rotation().Yaw;
 		if (AimWant > 0.5f)
 		{
@@ -499,23 +547,25 @@ void AKessler::Locomote(float Dt)
 
 void AKessler::CopyPose()
 {
-	// the drawn body takes the take's pose (each bone relative to its parent), eased toward plain standing when he stops
+	// the drawn body takes the take's pose (each bone relative to its parent), faded in from the last take's when it
+	// changed
 	const TArray<FTransform>& CS = Body->GetComponentSpaceTransforms();
 	const FReferenceSkeleton& R = Body->GetSkinnedAsset()->GetRefSkeleton();
-	if (CS.Num() != R.GetNum() || Shown->BoneSpaceTransforms.Num() != R.GetNum() || RefLocal.Num() != R.GetNum())
+	if (CS.Num() != R.GetNum() || Shown->BoneSpaceTransforms.Num() != R.GetNum())
 	{
 		return;
 	}
+	XFadeT += GetWorld()->GetDeltaSeconds();
+	const float F = XFadeFrom.Num() == CS.Num() && XFadeT < XFadeLen ? FMath::SmoothStep(0.f, 1.f, XFadeT / XFadeLen) : 1.f;
 	for (int32 i = 0; i < CS.Num(); ++i)
 	{
 		const int32 P = R.GetParentIndex(i);
 		FTransform L = P == INDEX_NONE ? CS[i] : CS[i].GetRelativeTransform(CS[P]);
-		if (StandW > 0.001f)
+		if (F < 1.f)
 		{
-			// (standing: every bone eased to how his body was built; Locomote eases his walk drift out with it)
-			FTransform S = RefLocal[i];
-			L.SetRotation(FQuat::Slerp(L.GetRotation(), S.GetRotation(), StandW).GetNormalized());
-			L.SetTranslation(FMath::Lerp(L.GetTranslation(), S.GetTranslation(), StandW));
+			const FTransform& A = XFadeFrom[i];
+			L.SetRotation(FQuat::Slerp(A.GetRotation(), L.GetRotation(), F).GetNormalized());
+			L.SetTranslation(FMath::Lerp(A.GetTranslation(), L.GetTranslation(), F));
 		}
 		Shown->BoneSpaceTransforms[i] = L;
 	}
@@ -631,16 +681,15 @@ void AKessler::PoseUpper(float Dt)
 	const FVector Up(0.f, 0.f, 1.f);
 	const FVector Fwd = GetActorForwardVector(), Right = GetActorRightVector();
 	const FVector ShL = Shown->GetBoneLocation(TEXT("upperarm_l")), ShR = Shown->GetBoneLocation(TEXT("upperarm_r"));
-	const FVector Pel = Shown->GetBoneLocation(TEXT("pelvis"));
 	// left hand: hanging at his side (standing) / the lantern held up before him / on the rifle's forend
 	{
-		FVector Hand = Pel - Right * 26.f + Fwd * 4.f - Up * 6.f;
+		FVector Hand = Shown->GetBoneLocation(TEXT("hand_l"));
 		FVector Pole = ShL - Right * 14.f - Fwd * 20.f - Up * 30.f;
-		float W = StandW;
+		float W = 0.f;
 		if (LanternW > 0.001f)
 		{
 			const FVector Dir = LanternToward.IsZero() ? Fwd : (LanternToward - ShL).GetSafeNormal2D();
-			const FVector UpHand = ShL + Dir * 40.f + Up * 26.f - Right * 4.f;
+			const FVector UpHand = ShL + Dir * 44.f + Up * 12.f - Right * 4.f;      // (the fist at his head's height)
 			const float L = FMath::SmoothStep(0.f, 1.f, LanternW);
 			Hand = FMath::Lerp(Hand, UpHand, L);
 			Pole = FMath::Lerp(Pole, ShL - Right * 25.f - Up * 35.f + Dir * 5.f, L);
@@ -668,9 +717,9 @@ void AKessler::PoseUpper(float Dt)
 	}
 	// right hand: hanging with the rifle (standing) / at the stock's wrist, shouldered
 	{
-		FVector Hand = Pel + Right * 26.f + Fwd * 6.f - Up * 6.f;
+		FVector Hand = Shown->GetBoneLocation(TEXT("hand_r"));
 		FVector Pole = ShR + Right * 14.f - Fwd * 20.f - Up * 30.f;
-		float W = StandW;
+		float W = 0.f;
 		if (AimW > 0.001f)
 		{
 			const FTransform R = AimRifle();

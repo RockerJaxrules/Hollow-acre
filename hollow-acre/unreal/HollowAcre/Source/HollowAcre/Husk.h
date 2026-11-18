@@ -23,6 +23,11 @@ class HOLLOWACRE_API AHusk : public AActor
 public:
 	AHusk();
 
+	/** Shot dead: its body handed to physics (a ragdoll on its own physics asset), moving as it was plus the shot's
+	 * push, so it goes down in the snow carried on by its own weight. */
+	void Ragdoll(const FVector& Velocity);
+	bool IsRagdoll() const { return bRagdoll; }
+
 	/** Load its meshes and materials (from /Game/HollowAcre/Creature/HuskGame and the MetaHuman build). */
 	bool Setup();
 
@@ -241,6 +246,7 @@ private:
 	};
 	TArray<FPoseJoint> PoseJoints;
 	bool bReady = false;
+	bool bRagdoll = false;
 
 	// -huskfacebake: a second face, run by the MetaHuman face rig (RigLogic) off this body playing the FaceBake take;
 	// its joints at each held pose go to Saved/Generated/Husk/face_poses.json (tools/husk_face_poses.py)

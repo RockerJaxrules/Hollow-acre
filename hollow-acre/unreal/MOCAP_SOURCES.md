@@ -33,6 +33,20 @@ anything is downloaded, and every clip is logged here.
 | 17_03, 17_04 | 17 (walking styles) | walk stealthily |
 | 104_41, 104_43 | 104 | zombie walk |
 
+## MetaHuman's own locomotion (Kessler)
+
+Shipped with Unreal Engine's MetaHuman plugin (`/MetaHumanCharacter/Optional/Animation/UEFNAnimPreset/Locomotion`), on
+the MetaHuman skeleton itself (`metahuman_base_skel`), so Kessler plays them with no retargeting; covered by the engine's
+licence for use in Unreal projects. In-place loops: AKessler moves him by what keeps his planted foot still.
+
+| Clip | Used for |
+|---|---|
+| AS_MH_Neutral_Walk_Loop_F | Kessler walking (played at 0.62-0.8 speed: careful, then purposeful) |
+| AS_MH_Neutral_Stand_Idle_Loop | Kessler standing |
+
+The CMU walks retargeted onto him (17_03, 17_04, 133_01, 139_29) turned out to be stealthy walks that circle and
+double back, not straight walks; kept for later.
+
 ## Approved, not yet used
 
 - Mixamo: needs the owner's Adobe sign-in.

@@ -677,12 +677,50 @@ void AHusk::Tick(float DeltaSeconds)
 	}
 	// the body that is drawn takes the take's pose; its face follows it; then (KeepOutLate) its hands, feet and face are
 	// put on what they touch and it is kept out of everything, with the pose it has this frame
+	if (bRagdoll)
+	{
+		// (dead: its face follows the body physics moves)
+		UpdateFace();
+		return;
+	}
 	CopyPose();
 	UpdateFace();
 	if (KeepOutLate)
 	{
 		KeepOutLate(this);
 	}
+}
+
+void AHusk::Ragdoll(const FVector& Velocity)
+{
+	if (bRagdoll || !Body || !Body->GetPhysicsAsset())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Husk: no ragdoll (already %d, physics asset %d)"), bRagdoll, Body && Body->GetPhysicsAsset() ? 1 : 0);
+		return;
+	}
+	bRagdoll = true;
+	// (the drawn body is a copy that physics can't move: the real body takes its place, dressed as it was, in the pose
+	// its take had this frame)
+	if (Shown)
+	{
+		for (int32 i = 0; i < Shown->GetNumMaterials() && i < Body->GetNumMaterials(); ++i)
+		{
+			Body->SetMaterial(i, Shown->GetMaterial(i));
+		}
+		Shown->SetVisibility(false);
+	}
+	Body->SetVisibility(true);
+	Body->bPauseAnims = true;
+	Body->SetCollisionObjectType(ECC_PhysicsBody);
+	Body->SetCollisionResponseToAllChannels(ECR_Block);
+	Body->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	Body->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	Body->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	Body->SetAllBodiesSimulatePhysics(true);
+	Body->SetSimulatePhysics(true);
+	Body->WakeAllRigidBodies();
+	Body->SetAllPhysicsLinearVelocity(Velocity);
+	UE_LOG(LogTemp, Display, TEXT("Husk: shot down (a ragdoll at %s, moving %s)"), *Body->GetComponentLocation().ToCompactString(), *Velocity.ToCompactString());
 }
 
 void AHusk::UpdateFace()
@@ -1010,7 +1048,7 @@ float AHusk::LimbUnder(TFunctionRef<float(const FVector&)> GroundAt, int32 Limb)
 
 const USkinnedMeshComponent* AHusk::Pose() const
 {
-	return Shown && Shown->GetSkinnedAsset() ? static_cast<const USkinnedMeshComponent*>(Shown.Get()) : static_cast<const USkinnedMeshComponent*>(Body.Get());
+	return Shown && Shown->GetSkinnedAsset() && !bRagdoll ? static_cast<const USkinnedMeshComponent*>(Shown.Get()) : static_cast<const USkinnedMeshComponent*>(Body.Get());
 }
 
 void AHusk::CopyPose()

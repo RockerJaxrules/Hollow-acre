@@ -128,6 +128,14 @@ public:
 	FVector WindowPoint() const { return WindowGap; }
 	bool WindowHandIn() const { return WindowHusk != nullptr && WindowReach > 0.3f; }
 	AActor* GetWoodPile() const { return WoodPile; }
+	/** The lantern scene: 0 not yet; 1 a light in the trees; 2 he has stopped and holds it up to them; 3 the rifle comes
+	 * up at them (run); 4 it breaks from the dark at their heels; 5 the shot, it drops; 6 he comes, the light to their
+	 * face. And seconds in the stage. */
+	int32 LanternStage() const { return LStage; }
+	float LanternStageT() const { return Clock - LStageAt; }
+	class AKessler* GetKessler() const { return Kessler; }
+	AHuskHunter* GetHunter() const { return Hunter; }
+	bool IsFed() const { return FedAt > 0.f; }
 protected:
 	bool bHasMatches = false;
 	bool bStoveLit = false;
@@ -182,6 +190,25 @@ protected:
 	bool bCrossDash = false;
 	float WoodTakenAt = -1.f;
 	void TickWindow(float Dt);
+	// the lantern (after the fire is fed): a light among the spruces behind the camp, someone walking with it; it
+	// stops and is held up to the player; a rifle comes up at them; they run, it breaks from the dark at their heels,
+	// the rifle goes off behind them and it drops; the lantern comes up to their face: "Get inside."
+	void BeginLantern();
+	void TickLantern(float Dt);
+	void LStageTo(int32 S, const TCHAR* Why);
+	/** A point in the street's frame from the shed (m): u along the street (+ into the camp), v across (+ behind the
+	 * shed's row, toward the trees). */
+	FVector ShedAt(float U, float V) const;
+	bool InShed(const FVector& P) const;
+	/** The player can see this point (within MaxDist cm, inside a cone of this cosine about their look, nothing between). */
+	bool PlayerSees(const FVector& P, float MaxDist, float Cone) const;
+	UPROPERTY()
+	TObjectPtr<class AKessler> Kessler;
+	int32 LStage = 0;
+	float LStageAt = 0.f;
+	FTransform ShedT;
+	FVector KWay[3];
+	int32 KLeg = 0;
 	UPROPERTY()
 	TObjectPtr<AHusk> WindowHusk;
 	float WindowAt = -1.f, WindowGoneAt = -1.f, WindowReach = 0.f, WindowLitAt = -1.f;

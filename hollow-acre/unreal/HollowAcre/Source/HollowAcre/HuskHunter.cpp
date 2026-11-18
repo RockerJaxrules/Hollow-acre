@@ -364,6 +364,14 @@ void AHuskHunter::Think(float Dt)
 	{
 		SetState(EState::Retreat, TEXT("the player is down"));
 	}
+	if (bScripted && State == EState::Chase)
+	{
+		// (the scripted charge: straight at them; it neither loses them nor catches them)
+		Goal = PreyAt;
+		LastSeenT = Clock;
+		LastKnown = PreyAt;
+		return;
+	}
 	switch (State)
 	{
 	case EState::Away:
@@ -559,7 +567,7 @@ void AHuskHunter::Move(float Dt)
 	case EState::Investigate: Want = 150.f * Scale / 1.3f; break;
 	case EState::Search: Want = 105.f * Scale / 1.3f; break;
 	case EState::Stalk: Want = bLit ? (FVector::Dist2D(At, Prey.IsValid() ? Prey->GetActorLocation() : At) > 1250.f ? 55.f : 0.f) : 95.f * Scale / 1.3f; break;
-	case EState::Chase: Want = FMath::Min(1.f, StateT / 0.9f) * 640.f; bGallop = true; break;
+	case EState::Chase: Want = bScripted ? FMath::Min(1.f, 0.45f + StateT / 0.7f) * 820.f : FMath::Min(1.f, StateT / 0.9f) * 640.f; bGallop = true; break;
 	case EState::Retreat: Want = 520.f; bGallop = true; break;
 	case EState::Peer: Want = 0.f; break;
 	default: Want = 0.f; break;
@@ -706,6 +714,10 @@ void AHuskHunter::Tick(float DeltaSeconds)
 	const float Dt = FMath::Min(DeltaSeconds, 0.1f);
 	Clock += Dt;
 	StateT += Dt;
+	if (bDead)
+	{
+		return;
+	}
 	if (!Prey.IsValid())
 	{
 		Prey = Cast<APart2Character>(UGameplayStatics::GetPlayerPawn(this, 0));
@@ -766,5 +778,68 @@ void AHuskHunter::Tick(float DeltaSeconds)
 		UE_LOG(LogTemp, Display, TEXT("HuskHuntLog %.0f %s %.1f m off, speed %.0f, menace %.2f, aware %.2f%s%s"), Clock, StateName(State),
 			FVector::Dist2D(Prey->GetActorLocation(), Husk->GetActorLocation()) / 100.f, Speed, Menace, Aware, bSeesPrey ? TEXT(", sees the player") : TEXT(""),
 			bLit ? TEXT(", in the beam") : TEXT(""));
+	}
+}
+
+void AHuskHunter::ChargeFrom(const FVector& From)
+{
+	if (!Husk)
+	{
+		return;
+	}
+	if (!Prey.IsValid())
+	{
+		Prey = Cast<APart2Character>(UGameplayStatics::GetPlayerPawn(this, 0));
+	}
+	const FVector PreyAt = Prey.IsValid() ? Prey->GetActorLocation() : From;
+	Husk->SetActorLocation(FVector(From.X, From.Y, GroundAt(From)));
+	Husk->SetActorHiddenInGame(false);
+	Yaw = (PreyAt - From).GetSafeNormal2D().Rotation().Yaw;
+	bScripted = true;
+	Aware = 1.f;
+	bSeesPrey = true;
+	LastSeenT = Clock;
+	LastKnown = Goal = PreyAt;
+	Speed = 350.f;
+	SetState(EState::Chase, TEXT("scripted: it breaks from the dark at a gallop"));
+	if (Director && Prey.IsValid())
+	{
+		Director->LogEvent(TEXT("husk_shriek"), FVector::Dist(Prey->EyesAt(), From));
+	}
+}
+
+void AHuskHunter::Shot(const FVector& Dir)
+{
+	if (!Husk || bDead)
+	{
+		return;
+	}
+	bDead = true;
+	// (moving as it was at the gallop, plus the round's push and a little lift as its legs go)
+	const FVector Was = FRotator(0.f, Yaw, 0.f).Vector() * Speed;
+	Husk->Ragdoll(Was + Dir.GetSafeNormal2D() * 220.f + FVector(0.f, 0.f, 120.f));
+	SetState(EState::Away, TEXT("shot"));
+	Speed = 0.f;
+}
+
+FVector AHuskHunter::BodyAt() const
+{
+	if (!Husk)
+	{
+		return FVector::ZeroVector;
+	}
+	if (Husk->GetBody() && Husk->GetBody()->GetBoneIndex(TEXT("spine_03")) != INDEX_NONE)
+	{
+		return Husk->DrawnAt(TEXT("spine_03"));
+	}
+	return Husk->GetActorLocation() + FVector(0.f, 0.f, 100.f * Scale);
+}
+
+void AHuskHunter::HoldAway()
+{
+	AwayUntil = 1e9f;
+	if (State != EState::Away)
+	{
+		SetState(EState::Away, TEXT("scripted: held off for a scene"));
 	}
 }

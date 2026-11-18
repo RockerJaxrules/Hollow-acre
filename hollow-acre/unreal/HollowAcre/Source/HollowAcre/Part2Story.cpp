@@ -6,6 +6,8 @@
 #include "Engine/StaticMeshActor.h"
 #include "EngineUtils.h"
 #include "Husk.h"
+#include "Kessler.h"
+#include "Misc/CommandLine.h"
 #include "HuskHunter.h"
 #include "Kismet/GameplayStatics.h"
 #include "Part2Character.h"
@@ -780,6 +782,33 @@ void AP2Story::Beats(float Dt)
 			return;
 		}
 	}
+	// (-p2lantern, for checking the lantern scene without the whole night: the player by the lit stove, the fire fed,
+	// the moon behind cloud; on to the lantern)
+	static const bool bLanternTest = FParse::Param(FCommandLine::Get(), TEXT("p2lantern"));
+	if (bLanternTest)
+	{
+		if (Once(TEXT("lantern_test")))
+		{
+			for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
+			{
+				if (It->GetActorLabel() == TEXT("Town Shed"))
+				{
+					const FTransform T = It->GetActorTransform();
+					Player->SetActorLocation(T.TransformPosition(FVector(-200.f, -40.f, 100.f)), false, nullptr, ETeleportType::TeleportPhysics);
+				}
+			}
+			bHasMatches = bStoveLit = true;
+			StoveLitAt = Clock - 60.f;
+			FedAt = Clock - 9.f;
+			MoonDimFrom = Clock;
+			UE_LOG(LogTemp, Display, TEXT("P2Story %.2f lantern test: the player in the shed by the lit stove"), Clock);
+		}
+		if (Clock - FedAt > 11.f && Once(TEXT("lantern")))
+		{
+			BeginLantern();
+		}
+		return;
+	}
 	// the first moments: the cold, a call into the dark
 	if (Clock > 1.5f && Once(TEXT("obj_cold")))
 	{
@@ -946,6 +975,11 @@ void AP2Story::Beats(float Dt)
 		Say(TEXT("Keep moving. Don't run with it. Keep moving."), 2.8f, 3.f);
 		UE_LOG(LogTemp, Display, TEXT("P2Story %.2f beat: between the cabins (it crosses ahead, 13 m off)"), Clock);
 	}
+	// (fed, a while by the fire: then a light out in the trees)
+	if (FedAt > 0.f && Clock - FedAt > 11.f && Once(TEXT("lantern")))
+	{
+		BeginLantern();
+	}
 	// (the fire burning down until it is fed; fed, it comes back up)
 	if (FireDyingFrom > 0.f)
 	{
@@ -997,6 +1031,7 @@ void AP2Story::Tick(float DeltaSeconds)
 	Clock += Dt;
 	Beats(Dt);
 	TickWindow(Dt);
+	TickLantern(Dt);
 	if (MoonDimFrom > 0.f)
 	{
 		if (!Moon.IsValid())
@@ -1356,4 +1391,277 @@ void AP2Story::BeginWood()
 		WoodPile->AddInstanceComponent(U);
 	}
 	UE_LOG(LogTemp, Display, TEXT("P2Story %.2f beat: the fire dying (the woodpile at %s)"), Clock, WoodPile ? *WoodPile->GetActorLocation().ToCompactString() : TEXT("?"));
+}
+
+FVector AP2Story::ShedAt(float U, float V) const
+{
+	// (the shed faces across the street (its +X toward v-), its +Y down the street (u+); its origin the middle of its
+	// front at the ground)
+	const FVector P = ShedT.TransformPosition(FVector(-V * 100.f, U * 100.f, 0.f));
+	return FVector(P.X, P.Y, GroundAt(P));
+}
+
+bool AP2Story::InShed(const FVector& P) const
+{
+	const FVector L = ShedT.InverseTransformPosition(P);
+	return L.X > -380.f && L.X < 15.f && FMath::Abs(L.Y) < 195.f;
+}
+
+bool AP2Story::PlayerSees(const FVector& P, float MaxDist, float Cone) const
+{
+	if (!Player.IsValid())
+	{
+		return false;
+	}
+	const FVector E = Player->EyesAt();
+	const FVector D = P - E;
+	if (D.Size() > MaxDist || FVector::DotProduct(D.GetSafeNormal(), Player->LookDir()) < Cone)
+	{
+		return false;
+	}
+	FHitResult H;
+	FCollisionQueryParams Q(TEXT("P2Sees"), true, Player.Get());
+	if (Kessler)
+	{
+		Q.AddIgnoredActor(Kessler);
+		if (Kessler->GetMan())
+		{
+			Q.AddIgnoredActor(Kessler->GetMan());
+		}
+	}
+	return !GetWorld()->LineTraceSingleByChannel(H, E, P, ECC_Visibility, Q);
+}
+
+void AP2Story::LStageTo(int32 S, const TCHAR* Why)
+{
+	LStage = S;
+	LStageAt = Clock;
+	UE_LOG(LogTemp, Display, TEXT("P2Story %.2f lantern %d: %s (the player %s, %.1f m from him)"), Clock, S, Why,
+		Player.IsValid() ? *Player->GetActorLocation().ToCompactString() : TEXT("?"),
+		Player.IsValid() && Kessler ? FVector::Dist2D(Player->GetActorLocation(), Kessler->GetActorLocation()) / 100.f : -1.f);
+}
+
+void AP2Story::BeginLantern()
+{
+	// (GAMEPLAY_ACT1.md, the rest of the first night, 3: the lantern) Kessler, along the edge of the spruces behind the
+	// camp toward it, his lantern swinging; seen through the gap in the boards at the back of the shed
+	for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
+	{
+		if (It->GetActorLabel() == TEXT("Town Shed"))
+		{
+			ShedT = It->GetActorTransform();
+		}
+	}
+	// (a way between the trunks, at least 1.4 m from each (mountain.json's trees), from 58 m out to the trees' edge 17 m
+	// behind the shed)
+	const FVector From = ShedAt(-42.f, 40.f);
+	KWay[0] = ShedAt(-31.f, 30.f);
+	KWay[1] = ShedAt(-21.f, 22.f);
+	KWay[2] = ShedAt(-11.f, 13.f);
+	FActorSpawnParameters P;
+	P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	Kessler = GetWorld()->SpawnActor<AKessler>(AKessler::StaticClass(), FTransform((KWay[0] - From).GetSafeNormal2D().Rotation(), From), P);
+	if (Kessler)
+	{
+		Kessler->WalkRate = 0.62f;          // (slow, careful, looking)
+		Kessler->WalkTo(KWay[0]);
+		KLeg = 0;
+	}
+	if (Hunter)
+	{
+		Hunter->HoldAway();
+	}
+	LStageTo(1, TEXT("a light in the trees"));
+}
+
+void AP2Story::TickLantern(float Dt)
+{
+	if (LStage == 0 || !Kessler || !Player.IsValid())
+	{
+		return;
+	}
+	const float St = Clock - LStageAt;
+	const FVector Eyes = Player->EyesAt();
+	const FVector PAt = Player->GetActorLocation();
+	const FVector KAt = Kessler->GetActorLocation();
+	const float D = FVector::Dist2D(PAt, KAt);
+	switch (LStage)
+	{
+	case 1:
+		// along the trees' edge, the lantern swinging; seen first through the boards at the back
+		if (!Kessler->IsWalking() && KLeg < 2)
+		{
+			Kessler->WalkTo(KWay[++KLeg]);
+		}
+		if (PlayerSees(Kessler->LanternAt(), 6000.f, 0.8f) && Once(TEXT("lantern_seen")))
+		{
+			Say(TEXT("...A light?"), 0.3f, 2.4f);
+			Say(TEXT("Someone's out there."), 3.f, 2.8f);
+			SetObjective(TEXT("See who it is"));
+		}
+		if (St > 15.f && !Done.Contains(FName(TEXT("lantern_seen"))) && Once(TEXT("lantern_hint")))
+		{
+			Say(TEXT("(A light. Out back, through the boards.)"), 0.f, 3.2f);
+			SetObjective(TEXT("See who it is"));
+		}
+		// (at the trees' edge he waits, still, the light held up toward the camp, until they come out)
+		if (KLeg == 2 && !Kessler->IsWalking())
+		{
+			const FVector Toward = InShed(PAt) ? ShedT.TransformPosition(FVector(-185.f, 0.f, 150.f)) : Eyes;
+			Kessler->FaceTo(Toward);
+			Kessler->LookAtPoint = Toward;
+			Kessler->LanternToward = Toward;
+			Kessler->LanternUp = 1.f;
+		}
+		// (they are out and see him: he turns and comes on toward them, slow, until he is near enough to see their
+		// face, and stops)
+		if (KLeg < 3 && !InShed(PAt) && D < 4500.f && PlayerSees(Kessler->LanternAt(), 4500.f, 0.7f))
+		{
+			KLeg = 3;
+			UE_LOG(LogTemp, Display, TEXT("P2Story %.2f lantern: he has seen them; he comes on (%.1f m)"), Clock, D / 100.f);
+		}
+		if (KLeg == 3)
+		{
+			Kessler->LookAtPoint = Eyes;
+			Kessler->LanternUp = 0.3f;
+			Kessler->LanternToward = Eyes;
+			if (D > 1450.f)
+			{
+				Kessler->WalkTo(PAt + (KAt - PAt).GetSafeNormal2D() * 1350.f);
+			}
+			else
+			{
+				Kessler->Halt();
+				LStageTo(2, TEXT("he stops; the lantern comes up to the player"));
+			}
+		}
+		break;
+	case 2:
+		// silent, the light held up to them; no answer
+		Kessler->LookAtPoint = Eyes;
+		Kessler->FaceTo(PAt);
+		if (St > 0.8f)
+		{
+			Kessler->LanternToward = Eyes;
+			Kessler->LanternUp = 1.f;
+		}
+		if (Once(TEXT("hello")))
+		{
+			Say(TEXT("Hello?!"), 1.f, 2.f);
+			Say(TEXT("Please... I need help."), 3.3f, 2.8f);
+			SetObjective(TEXT(""));
+		}
+		if (St > 6.4f)
+		{
+			Kessler->LanternUp = 0.f;
+			Kessler->AimAt(Eyes - FVector(0.f, 0.f, 30.f));
+			LStageTo(3, TEXT("the rifle comes up at the player"));
+		}
+		break;
+	case 3:
+		// the rifle on them: run
+		Kessler->AimAt(Eyes - FVector(0.f, 0.f, 30.f));
+		if (Once(TEXT("rifle_up")))
+		{
+			Say(TEXT("No... no, no, no-"), 0.7f, 2.2f);
+			SetObjective(TEXT("RUN"));
+		}
+		if (St > 2.4f)
+		{
+			// (it breaks from the dark beside them, out of their sight (behind their shoulder as they run), on the side
+			// away from the buildings; it closes on their heels)
+			const FVector Run = (PAt - KAt).GetSafeNormal2D();
+			const FVector Sd = FVector::CrossProduct(FVector::UpVector, Run);
+			const FVector A = PAt + Sd * 1300.f - Run * 250.f, B = PAt - Sd * 1300.f - Run * 250.f;
+			const FVector Mid = ShedT.TransformPosition(FVector(-185.f, 0.f, 0.f));
+			const FVector From = FVector::Dist2D(A, Mid) > FVector::Dist2D(B, Mid) ? A : B;
+			if (!Hunter)
+			{
+				FActorSpawnParameters Sp;
+				Sp.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+				Hunter = GetWorld()->SpawnActor<AHuskHunter>(AHuskHunter::StaticClass(), FTransform::Identity, Sp);
+				if (Hunter)
+				{
+					Hunter->Begin(Director, HuskScale, 1600.f);
+					Hunter->HoldAway();
+				}
+			}
+			if (Hunter)
+			{
+				Hunter->ChargeFrom(From);
+			}
+			LStageTo(4, TEXT("it breaks from the dark at their heels"));
+		}
+		break;
+	case 4:
+	{
+		// the charge; his rifle on it; the shot when it is on their heels
+		const FVector Hb = Hunter ? Hunter->BodyAt() : PAt;
+		Kessler->AimAt(Hb);
+		const float Dh = FVector::Dist2D(Hb, PAt);
+		if ((Dh < 430.f && Kessler->IsAimed()) || St > 6.f)
+		{
+			FVector M, Dir;
+			Kessler->Fire(M, Dir);
+			Event(TEXT("rifle_shot"));
+			if (Hunter)
+			{
+				Hunter->Shot((Hb - M).GetSafeNormal());
+			}
+			Player->Jolt(1.3f);
+			LStageTo(5, TEXT("the shot: it drops at their heels"));
+		}
+		break;
+	}
+	case 5:
+		// silence; the thing in the snow; he lowers the rifle and comes
+		if (Once(TEXT("husk_down")))
+		{
+			Event(TEXT("husk_down"));
+			SetObjective(TEXT(""));
+		}
+		Kessler->LookAtPoint = Eyes;
+		if (St > 0.7f)
+		{
+			Kessler->LowerRifle();
+		}
+		if (St > 1.9f)
+		{
+			if (Once(TEXT("kessler_comes")))
+			{
+				Kessler->WalkRate = 0.8f;
+			}
+			if (D > 210.f)
+			{
+				// (at a run while far, the last steps walked)
+				Kessler->WalkTo(PAt + (KAt - PAt).GetSafeNormal2D() * 170.f, D > 650.f);
+				Kessler->LanternToward = Eyes;
+				Kessler->LanternUp = D > 650.f ? 0.f : 0.35f;
+			}
+			else if (!Kessler->IsWalking())
+			{
+				LStageTo(6, TEXT("he comes up to them, the lantern raised to their face"));
+			}
+		}
+		break;
+	case 6:
+	{
+		// (the lantern held up between them, off to his left, so its light is on both their faces and his can be seen)
+		Kessler->FaceTo(PAt);
+		Kessler->LookAtPoint = Eyes;
+		Kessler->LanternToward = Eyes - Kessler->GetActorRightVector() * 70.f;
+		Kessler->LanternUp = 1.f;
+		if (Once(TEXT("get_inside")))
+		{
+			Say(TEXT("Stranger: Get inside."), 1.2f, 3.4f);
+		}
+		if (St > 5.f && Once(TEXT("get_inside_obj")))
+		{
+			SetObjective(TEXT("Get inside"));
+		}
+		break;
+	}
+	default:
+		break;
+	}
 }

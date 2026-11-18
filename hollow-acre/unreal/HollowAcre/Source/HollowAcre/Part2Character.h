@@ -147,6 +147,7 @@ protected:
 	TWeakObjectPtr<class UP2UseComponent> Reading;
 	int32 Page = 0;
 	float StutterUntil = -1.f;
+	int32 LanternLeg = 0;
 	float StoryAutoT = 0.f;
 	int32 StoryStep = 0;
 	float StepT = 0.f;

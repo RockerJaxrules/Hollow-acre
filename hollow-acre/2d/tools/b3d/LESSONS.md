@@ -49,6 +49,8 @@ One line each, concrete and checkable. **[repeated]** = broken again; move it to
 - Light must be physically plausible (AgX, real-ish strengths), with contact shadows where things touch.
 
 ## Props (mechanical, from the period)
+- Worn things (caps, hats, glasses) go on a character from that character's own joints (the face's eye bones in its reference pose, carried into the head bone's frame), not from hand-placed offsets: one rule fits any head.
+- A watch cap seats with its cuff at the tops of the ears (about 3 cm above the eye line), its back lower than its brow (about 12 degrees); higher leaves a bald band at the temples once the hair is hidden under it.
 - Model a period object by the parts that identify its type, not its overall silhouette: a tubular lantern is its tubes goosenecked into the top, its three-tier top and its collared barrel globe (r1 had a lantern outline and read only as "a lantern", 5/10).
 - Every part joins something: a tube that stops in air beside a rim reads as a strap. Route connectors into the parts they feed (curves through bend() corners).
 - Thin parts read as toys when they are thick: bands, straps and levers are flat steel 0.2-0.6 cm thick; build them flat (a wire scaled across its section, a thin band) and only 2-3 mm proud of what they bind.
