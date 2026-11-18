@@ -505,6 +505,45 @@ void ADriverArms::FreeFollow()
 				const FVector SwitchCS = MeshRel.InverseTransformPosition(FlCar.TransformPosition(FVector(16.6f, 0.f, 2.12f + 0.55f)));
 				auto TipNow = [&]() { const FVector Q2 = BoneCS(T2).GetLocation(), Q3 = BoneCS(T3).GetLocation(); return Q3 + (Q3 - Q2) * 0.9f; };
 				const float Wt = FMath::Clamp(c, 0.f, 1.f);
+				// (collision with the barrel: no part of the thumb inside it; each joint turned just enough to bring its
+				// deepest point beyond it back out onto the surface, the thumb ~0.85 cm thick)
+				const FVector A0cs = MeshRel.InverseTransformPosition(A0), A1cs = MeshRel.InverseTransformPosition(A1);
+				auto PushOut = [&]()
+				{
+					const FName Js[3] = {T1, T2, T3};
+					for (int32 j = 0; j < 3; ++j)
+					{
+						const FVector Jp = BoneCS(Js[j]).GetLocation();
+						float Deep = 0.f;
+						FVector DeepP = Jp, Out = FVector::ZeroVector;
+						const FVector Pts[3] = {BoneCS(T2).GetLocation(), BoneCS(T3).GetLocation(), TipNow()};
+						for (int32 q = j; q < 3; ++q)
+						{
+							const FVector From = q == 0 ? BoneCS(T1).GetLocation() : Pts[q - 1];
+							for (float t : {0.5f, 1.f})
+							{
+								const FVector P = FMath::Lerp(From, Pts[q], t);
+								const FVector Cl = FMath::ClosestPointOnSegment(P, A0cs, A1cs);
+								const float D = 1.985f + 0.85f - (float)FVector::Dist(P, Cl);
+								if (D > Deep)
+								{
+									Deep = D;
+									DeepP = P;
+									Out = (P - Cl).GetSafeNormal();
+								}
+							}
+						}
+						if (Deep > 0.01f && !Out.IsNearlyZero())
+						{
+							const FVector V = DeepP - Jp;
+							const FVector K = FVector::CrossProduct(V, Out).GetSafeNormal();
+							if (!K.IsNearlyZero() && V.Size() > 0.5f)
+							{
+								SetBoneCS(Js[j], FQuat(K, FMath::Atan2(Deep, (float)V.Size())) * BoneCS(Js[j]).GetRotation());
+							}
+						}
+					}
+				};
 				for (int32 It = 0; It < 4; ++It)
 				{
 					for (const FName& J : {T2, T1})
@@ -513,6 +552,24 @@ void ADriverArms::FreeFollow()
 						const FVector Cur = (TipNow() - Jt.GetLocation()).GetSafeNormal(), Want = (SwitchCS - Jt.GetLocation()).GetSafeNormal();
 						SetBoneCS(J, FQuat::Slerp(FQuat::Identity, FQuat::FindBetweenNormals(Cur, Want), 0.6f * Wt) * Jt.GetRotation());
 					}
+					PushOut();
+				}
+				PushOut();
+				PushOut();
+				if (Side == 1)
+				{
+					// (how deep the thumb still is in the barrel, for the log)
+					float Worst = 0.f;
+					const FVector Pts[4] = {BoneCS(T1).GetLocation(), BoneCS(T2).GetLocation(), BoneCS(T3).GetLocation(), TipNow()};
+					for (int32 q = 1; q < 4; ++q)
+					{
+						for (float t : {0.25f, 0.5f, 0.75f, 1.f})
+						{
+							const FVector P = FMath::Lerp(Pts[q - 1], Pts[q], t);
+							Worst = FMath::Max(Worst, 1.985f + 0.85f - (float)FVector::Dist(P, FMath::ClosestPointOnSegment(P, A0cs, A1cs)));
+						}
+					}
+					ThumbInBarrel = Worst;
 				}
 				if (Side == 1 && FMath::IsNearlyEqual(c, 1.f, 0.02f))
 				{

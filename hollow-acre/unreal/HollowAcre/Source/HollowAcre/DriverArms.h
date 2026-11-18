@@ -217,6 +217,8 @@ public:
 	FTransform GripTaken[2];
 	/** How far the right thumb's tip is from the flashlight's switch while holding it (cm). */
 	float ThumbToSwitch = -1.f;
+	/** How deep any of the right thumb is inside the held barrel (cm, 0 = clear). */
+	float ThumbInBarrel = 0.f;
 	/** Each finger's skin gap to the held barrel after closing on it (cm; ~0 touching, below 0 inside). */
 	float FingerGap[4] = {0.f, 0.f, 0.f, 0.f};
 	/** The handle in the hand bone's frame as gripped now (HoldInHand tipped by GripTilt). */

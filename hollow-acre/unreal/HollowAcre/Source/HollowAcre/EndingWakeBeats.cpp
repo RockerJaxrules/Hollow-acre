@@ -1146,6 +1146,13 @@ void AEndingDirector::WakeBeats(float RealDt)
 			const FVector Dir = HandCam == 1 ? ToEye : HandCam == 2 ? Across : -Across;
 			FVector CamAt = H + Dir * 22.f + WUp * 5.f;
 			FVector LookAt = H;
+			if (HandCam == 5 && Flashlight)
+			{
+				// (onto the switch from above it: the thumb on the button)
+				const FTransform Fl = Flashlight->GetRootComponent()->GetRelativeTransform();
+				LookAt = Fl.TransformPosition(FVector(16.6f, 0.f, 2.f));
+				CamAt = Fl.TransformPosition(FVector(10.f, 0.f, 16.f));
+			}
 			if (HandCam == 4 && Flashlight)
 			{
 				// (down the barrel from behind its tail: the fist's cross-section round it)
@@ -1811,8 +1818,8 @@ void AEndingDirector::WakeBeats(float RealDt)
 					const FVector ElPred = Arms->ElbowFor(1, ShNow, WrNow, R.Pole);
 					if (Arms->ThumbToSwitch >= 0.f)
 					{
-						UE_LOG(LogTemp, Display, TEXT("WakeThumbSwitch %.2f the thumb's tip %.1f cm from the switch; the fingers' skin off the barrel: index %.1f, middle %.1f, ring %.1f, little %.1f cm"),
-							w, Arms->ThumbToSwitch, Arms->FingerGap[0], Arms->FingerGap[1], Arms->FingerGap[2], Arms->FingerGap[3]);
+						UE_LOG(LogTemp, Display, TEXT("WakeThumbSwitch %.2f the thumb's tip %.1f cm from the switch, %.1f cm deep in the barrel at most; the fingers' skin off the barrel: index %.1f, middle %.1f, ring %.1f, little %.1f cm"),
+							w, Arms->ThumbToSwitch, Arms->ThumbInBarrel, Arms->FingerGap[0], Arms->FingerGap[1], Arms->FingerGap[2], Arms->FingerGap[3]);
 					}
 					UE_LOG(LogTemp, Display, TEXT("WakeWrist %.2f the wrist %+.0f toward the palm, %+.0f toward the little finger; the elbow %.1f cm off the lining; the arm %.1f cm clear of the head; the rig's hand %.1f cm from its key (the elbow %.1f from its prediction)"),
 						w, Fx, Dv, FVector::DotProduct(ElNow - LiningAt, WUp), Arms->ArmHeadClear(ShNow, ElNow, WrNow), Arms->RigMiss[1], FVector::Dist(ElPred, ElNow));
@@ -1831,7 +1838,16 @@ void AEndingDirector::WakeBeats(float RealDt)
 						// it looks the same, and the hand covers it as it closes)
 						const FVector AxX = FlashRest.GetRotation().GetAxisX();
 						FlashRest.SetRotation((FQuat(AxX, FMath::DegreesToRadians(WakeTakeRoll)) * FlashRest.GetRotation()).GetNormalized());
-						UE_LOG(LogTemp, Display, TEXT("WakeSwitch the flashlight rolled %.0f degrees about its axis at the grab, its switch under the thumb"), WakeTakeRoll);
+						// (and on round to face the thumb: in the grip the fingers curl over the barrel's far side, and the switch
+						// belongs under the thumb, beside them; a barrel turned on its own axis sits in the fingers the same)
+						const FVector Th = Arms->BoneCar(TEXT("thumb_02_r"));
+						const FVector Base = FlashRest.GetLocation() + AxX * FVector::DotProduct(Th - FlashRest.GetLocation(), AxX);
+						FVector ToThumb = Th - Base;
+						ToThumb = (ToThumb - AxX * FVector::DotProduct(ToThumb, AxX)).GetSafeNormal();
+						const FVector Zs = FlashRest.GetRotation().GetAxisZ();
+						const float More = FMath::Atan2(FVector::DotProduct(FVector::CrossProduct(Zs, ToThumb), AxX), FVector::DotProduct(Zs, ToThumb));
+						FlashRest.SetRotation((FQuat(AxX, More) * FlashRest.GetRotation()).GetNormalized());
+						UE_LOG(LogTemp, Display, TEXT("WakeSwitch the flashlight rolled %.0f then %.0f degrees about its axis at the grab, its switch facing the thumb"), WakeTakeRoll, FMath::RadiansToDegrees(More));
 					}
 					FlashInHandAtGrab = FlashRest * Arms->HandNow(1).Inverse();
 					Arms->GripTaken[1] = FlashInHandAtGrab;
@@ -2225,6 +2241,10 @@ void AEndingDirector::WakeBeats(float RealDt)
 			CamComp->SetFieldOfView(BaseFov * (1.f - 0.42f * Push));
 		}
 		WakeBreath(w, RealDt, FTransform(CT.TransformRotation(Eye.GetRotation()), Ew));
+		if (CamComp && FParse::Param(FCommandLine::Get(), TEXT("wakehandcamsharp")))
+		{
+			CamComp->PostProcessSettings.DepthOfFieldFstop = 64.f;    // (the close-up checks in focus)
+		}
 	}
 }
 
