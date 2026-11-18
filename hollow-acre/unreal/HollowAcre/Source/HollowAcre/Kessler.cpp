@@ -711,7 +711,7 @@ void AKessler::PoseUpper(float Dt)
 			const FVector Dir = LanternToward.IsZero() ? Fwd : (LanternToward - ShL).GetSafeNormal2D();
 			// (the fist at his head's height; held up to a face close by, higher, so the light is at their eyes)
 			const bool bClose = !LanternToward.IsZero() && FVector::Dist2D(LanternToward, ShL) < 320.f;
-			const float Lift = bClose ? FMath::Clamp(LanternToward.Z + 36.f - ShL.Z, -25.f, 32.f) : 12.f;
+			const float Lift = bClose ? FMath::Clamp(LanternToward.Z + 22.f - ShL.Z, -25.f, 26.f) + 2.f * FMath::Sin(T * 1.3f) : 12.f;
 			const FVector UpHand = ShL + Dir * (bClose ? 58.f : 44.f) + Up * Lift - Right * 4.f;
 			const float L = FMath::SmoothStep(0.f, 1.f, LanternW);
 			Hand = FMath::Lerp(Hand, UpHand, L);

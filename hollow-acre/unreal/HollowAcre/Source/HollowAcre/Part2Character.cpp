@@ -454,7 +454,8 @@ void APart2Character::ApplyLight()
 				FHitResult Hr;
 				bUnderRoof = GetWorld()->LineTraceSingleByChannel(Hr, EyesAt(), EyesAt() + FVector(0.f, 0.f, 500.f), ECC_Visibility, FCollisionQueryParams(TEXT("Roof"), true, this));
 			}
-			HeldBeam->SetVolumetricScatteringIntensity(bUnderRoof ? 0.06f : 0.45f);
+			static const bool bNoBeamHaze = FParse::Param(FCommandLine::Get(), TEXT("p2nobeamhaze"));   // (checking: without its haze)
+			HeldBeam->SetVolumetricScatteringIntensity(bNoBeamHaze ? 0.f : bUnderRoof ? 0.06f : 0.45f);
 		}
 		// (the light off the snow and the bezel's glow on the hand that holds it)
 		if (HeldLight)

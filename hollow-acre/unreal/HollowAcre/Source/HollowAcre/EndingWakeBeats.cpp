@@ -474,7 +474,9 @@ void AEndingDirector::WakeSetup()
 			// its beam (an old incandescent bulb in a chrome reflector: a warm hot spot, a wide dim spill), off for now
 			FlashBeam = NewObject<USpotLightComponent>(Flashlight, TEXT("Beam"));
 			FlashBeam->SetupAttachment(Flashlight->GetRootComponent());
-			FlashBeam->SetRelativeLocation(FVector(24.8f, 0.f, 0.f));
+			// (just ahead of the lens: from inside it, the hand and the flashlight's own body shadowed the beam's haze,
+			// dark boxes in the falling snow)
+			FlashBeam->SetRelativeLocation(FVector(31.f, 0.f, 0.f));
 			FlashBeam->SetIntensityUnits(ELightUnits::Candelas);
 			FlashBeam->SetIntensity(0.f);
 			// (shaped by a light profile of a real reflector flashlight: the hot centre, a faint ring from the reflector's

@@ -1046,6 +1046,9 @@ void AP2Story::Tick(float DeltaSeconds)
 			if (Moon.IsValid())
 			{
 				MoonBase = Moon->Intensity;
+				// (moonlight through cloud makes no shafts in the haze: at full strength each building's moon shadow stood
+				// in the falling snow as a dark slab)
+				Moon->SetVolumetricScatteringIntensity(0.12f);
 			}
 		}
 		if (Moon.IsValid())
