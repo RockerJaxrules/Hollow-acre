@@ -92,6 +92,7 @@ public:
 	 *  (until a time on RealTime) when something stands in it. */
 	bool GetHeadlightRay(FVector& From, FVector& Dir) const;
 	float HeadlightDieAt = -1.f;
+	float HeadlightSurgeUntil = -1.f;          // (a last surge of the dying battery: the headlight bright on what stands in it)
 	float GetRealTime() const { return RealTime; }
 	float WakeHandoverReal = -1.f;            // (when the wake handed over to play)
 	FTransform WakeEyeW;                      // (the wake: where its eyes were last put, world; the player's body takes over there)

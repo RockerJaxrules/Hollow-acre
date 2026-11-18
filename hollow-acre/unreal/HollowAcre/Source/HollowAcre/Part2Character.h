@@ -55,7 +55,7 @@ public:
 	float RecoverIn = 11.f;
 	/** The flashlight's beam (candelas) and how long its batteries last on (s). */
 	UPROPERTY(EditAnywhere, Category = "Part 2")
-	float BeamCd = 420.f;
+	float BeamCd = 330.f;
 	UPROPERTY(EditAnywhere, Category = "Part 2")
 	float BatterySeconds = 1500.f;
 	/** Outside in the night: how fast the body's warmth falls (per s, of 100). */

@@ -1000,7 +1000,7 @@ void APart2Character::StoryAutopilot(float Dt)
 				const FRotator Tw = (Wall - EyesAt()).Rotation();
 				WantYaw = Tw.Yaw;
 				WantPitch = FMath::Clamp(Tw.Pitch, -10.f, 10.f);
-				TurnRate = StepT > 0.15f ? 260.f : 0.f;
+				TurnRate = StepT > 0.15f ? 150.f : 0.f;
 			}
 			if (Hh && Hh->Husk && Hh->State == AHuskHunter::EState::Peer && Hh->Husk->GetBody() && Hh->Husk->GetBody()->GetBoneIndex(TEXT("head")) != INDEX_NONE)
 			{
@@ -1091,8 +1091,26 @@ void APart2Character::StoryAutopilot(float Dt)
 				StepT = 0.f;
 			}
 			break;
-		case 11:     // by the fire, warming, watching the doorway
+		case 11:     // by the fire, warming: watching it catch, then the light off, watching the doorway
 		{
+			if (StepT < 4.5f)
+			{
+				for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
+				{
+					if (It->GetActorLabel() == TEXT("Stove"))
+					{
+						const FRotator Tsv = (It->GetActorLocation() + FVector(0.f, 0.f, 50.f) - EyesAt()).Rotation();
+						WantYaw = Tsv.Yaw;
+						WantPitch = Tsv.Pitch;
+						TurnRate = 60.f;
+					}
+				}
+				break;
+			}
+			if (bFlashlightOn)
+			{
+				FlashlightToggle();
+			}
 			const FRotator Td = (T.TransformPosition(FVector(0.f, 0.f, 0.f)) + FVector(0.f, 0.f, 120.f) - EyesAt()).Rotation();
 			WantYaw = Td.Yaw;
 			WantPitch = FMath::Clamp(Td.Pitch, -12.f, 5.f);

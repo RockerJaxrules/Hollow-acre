@@ -47,6 +47,9 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Snow")
 	TObjectPtr<UInstancedStaticMeshComponent> Mesh;
 
+	/** Places the snow doesn't fall in (under roofs: the shed's inside), world boxes; a flake in one is hidden. */
+	TArray<FBox> NoSnow;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;

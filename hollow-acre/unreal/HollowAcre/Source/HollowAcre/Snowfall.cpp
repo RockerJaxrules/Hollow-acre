@@ -66,6 +66,19 @@ void ASnowfall::Tick(float DeltaSeconds)
 		L.Z = FMath::Wrap(L.Z, -Extent.Z, Extent.Z);
 		Pos[i] = C + L;
 		Xf[i].SetLocation(Pos[i]);
+		if (NoSnow.Num() > 0)
+		{
+			bool bIn = false;
+			for (const FBox& B : NoSnow)
+			{
+				if (B.IsInside(Pos[i]))
+				{
+					bIn = true;
+					break;
+				}
+			}
+			Xf[i].SetScale3D(FVector(bIn ? 0.0001f : Scale[i]));
+		}
 	}
 	Mesh->BatchUpdateInstancesTransforms(0, Xf, /*bWorldSpace*/ true, /*bMarkRenderStateDirty*/ true, /*bTeleport*/ true);
 }

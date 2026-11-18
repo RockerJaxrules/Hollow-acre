@@ -9,6 +9,7 @@
 #include "HuskHunter.h"
 #include "Kismet/GameplayStatics.h"
 #include "Part2Character.h"
+#include "Snowfall.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Components/DecalComponent.h"
 #include "Components/PointLightComponent.h"
@@ -304,6 +305,24 @@ void AP2Story::FurnishShed()
 	}
 	const FTransform T = Shed->GetActorTransform();
 	auto At = [&](float X, float Y, float Z) { return T.TransformPosition(FVector(X, Y, Z)); };
+	// (no snow falling inside it)
+	{
+		FBox Inside(ForceInit);
+		for (float X : {-372.f, 2.f})
+		{
+			for (float Y : {-187.f, 187.f})
+			{
+				for (float Z : {-20.f, 300.f})
+				{
+					Inside += At(X, Y, Z);
+				}
+			}
+		}
+		for (TActorIterator<ASnowfall> It(GetWorld()); It; ++It)
+		{
+			It->NoSnow.Add(Inside);
+		}
+	}
 	const FQuat R = T.GetRotation();
 	const float G = GroundAt(At(-185.f, 0.f, 50.f));
 	const float Lift = G - T.GetLocation().Z;
@@ -352,7 +371,8 @@ void AP2Story::FurnishShed()
 				if (UStaticMesh* Mb = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Wake_Matchbox.Wake_Matchbox")))
 				{
 					const FVector Pm = At(-330.f, 70.f, 0.f);
-					AStaticMeshActor* Mx = Piece(GetWorld(), Mb, FTransform(FQuat(FVector::UpVector, FMath::DegreesToRadians(-25.f)) * R, FVector(Pm.X, Pm.Y, Tz + 3.1f)), nullptr);
+					// (a big box of kitchen matches: 11.5 x 6 x 2.4 cm, scaled from the safety-match box)
+					AStaticMeshActor* Mx = Piece(GetWorld(), Mb, FTransform(FQuat(FVector::UpVector, FMath::DegreesToRadians(-25.f)) * R, FVector(Pm.X, Pm.Y, Tz + 3.9f), FVector(2.17f, 1.67f, 1.5f)), nullptr);
 					if (Mx)
 					{
 						UStaticMeshComponent* Mc = Mx->GetStaticMeshComponent();
@@ -361,7 +381,7 @@ void AP2Story::FurnishShed()
 							UMaterialInstanceDynamic* D = UMaterialInstanceDynamic::Create(Part, Mc);
 							Mc->SetMaterial(Slot, D);
 							const FString Sn = Mc->GetMaterialSlotNames().IsValidIndex(Slot) ? Mc->GetMaterialSlotNames()[Slot].ToString() : FString();
-							D->SetVectorParameterValue(TEXT("Color"), Sn.StartsWith(TEXT("striker")) ? FLinearColor(0.08f, 0.04f, 0.03f) : FLinearColor(0.42f, 0.09f, 0.05f));
+							D->SetVectorParameterValue(TEXT("Color"), Sn.StartsWith(TEXT("striker")) ? FLinearColor(0.08f, 0.04f, 0.03f) : FLinearColor(0.62f, 0.14f, 0.05f));
 							D->SetScalarParameterValue(TEXT("Metallic"), 0.f);
 							D->SetScalarParameterValue(TEXT("Roughness"), 0.85f);
 						}
@@ -466,7 +486,21 @@ void AP2Story::OnUse(UP2UseComponent* Use)
 		}
 		if (!bStoveLit)
 		{
-			// the stove lit: the match, the kindling catching, the fire's light through its door's mica and the gaps
+			// the stove lit: the match struck (its little flame on the hand), the kindling catching, the fire's light
+			// through its door's mica and the gaps
+			if (Player.IsValid())
+			{
+				MatchLight = NewObject<UPointLightComponent>(this, TEXT("Match"));
+				MatchLight->SetIntensityUnits(ELightUnits::Candelas);
+				MatchLight->SetIntensity(0.f);
+				MatchLight->SetAttenuationRadius(260.f);
+				MatchLight->SetUseTemperature(true);
+				MatchLight->SetTemperature(1900.f);
+				MatchLight->SetSourceRadius(1.f);
+				MatchLight->RegisterComponent();
+				MatchLight->SetWorldLocation(Player->EyesAt() + Player->LookDir() * 45.f - FVector(0.f, 0.f, 25.f));
+				MatchAt = Clock;
+			}
 			bStoveLit = true;
 			StoveLitAt = Clock;
 			Use->bEnabled = false;
@@ -501,7 +535,7 @@ void AP2Story::TickCrosser(float Dt)
 	// it walks across the far end of the street; halfway, it stops, and its head turns to the player; then it goes on
 	CrossT += Dt;
 	const float Len = FVector::Dist2D(CrossFrom, CrossTo);
-	const float Stop0 = 0.42f * Len / CrossSpeed, Stop1 = Stop0 + 1.6f;
+	const float Stop0 = 0.42f * Len / CrossSpeed, Stop1 = Stop0 + 2.2f;
 	float S = CrossT < Stop0 ? CrossT * CrossSpeed : CrossT < Stop1 ? Stop0 * CrossSpeed : (Stop0 + (CrossT - Stop1)) * CrossSpeed;
 	const bool bStopped = CrossT >= Stop0 && CrossT < Stop1;
 	FVector P = CrossFrom + (CrossTo - CrossFrom).GetSafeNormal2D() * S;
@@ -521,6 +555,10 @@ void AP2Story::TickCrosser(float Dt)
 	if (bStopped && CrossT - Dt < Stop0)
 	{
 		Event(TEXT("sighting_look"));
+		if (bCrossInHeadlight && Director)
+		{
+			Director->HeadlightSurgeUntil = Director->GetRealTime() + (Stop1 - Stop0);
+		}
 	}
 	// (in the headlight: as it stands there looking, the light dies; the dark takes it)
 	if (bCrossInHeadlight && Director && CrossT >= Stop1 - 0.3f && Director->HeadlightDieAt < 0.f)
@@ -658,6 +696,28 @@ void AP2Story::Beats(float Dt)
 		Say(TEXT("No. No, no, no..."), 0.4f, 2.6f);
 		SetObjective(TEXT("Find shelter in the camp"));
 	}
+	if (bStoveLit && Clock - StoveLitAt > 9.f && Once(TEXT("pass")))
+	{
+		for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
+		{
+			if (It->GetActorLabel() == TEXT("Town Shed"))
+			{
+				const FTransform Ts = It->GetActorTransform();
+				CrossFrom = Ts.TransformPosition(FVector(260.f, -650.f, 0.f));
+				CrossTo = Ts.TransformPosition(FVector(260.f, 650.f, 0.f));
+				CrossFrom.Z = GroundAt(CrossFrom);
+				CrossTo.Z = GroundAt(CrossTo);
+				bCrossInHeadlight = false;
+				SpawnCrosser();
+				PassAt = Clock;
+			}
+		}
+	}
+	if (PassAt > 0.f && Clock - PassAt > 12.f && Once(TEXT("still_out_there")))
+	{
+		Say(TEXT("It's still out there."), 0.f, 3.f);
+		SetObjective(TEXT("Wait for morning"));
+	}
 	// after it has gone from the doorway: the cold (the stove, if they haven't lit it)
 	if (Hunter && Done.Contains(TEXT("husk_shriek")) && (Hunter->State == AHuskHunter::EState::Away || Hunter->State == AHuskHunter::EState::Retreat) && !bStoveLit && Once(TEXT("cold")))
 	{
@@ -669,7 +729,7 @@ void AP2Story::Beats(float Dt)
 	{
 		Player->Stutter(1.1f);
 		Player->Jolt(1.8f);
-		SiftSnow(Player->EyesAt() + FVector(0.f, 0.f, 90.f), 150.f, 70);
+		SiftSnow(Player->EyesAt() + Player->LookDir() * 90.f + FVector(0.f, 0.f, 75.f), 110.f, 140);
 		Say(TEXT("Oh God."), 1.6f, 2.2f);
 		SetObjective(TEXT("Survive the night"));
 		ShriekAt = Clock + 1.3f;
@@ -760,7 +820,7 @@ void AP2Story::SiftSnow(const FVector& Above, float Radius, int32 Count)
 		C->SetMobility(EComponentMobility::Movable);
 		const float A = R.FRandRange(0.f, 2.f * PI), Rr = Radius * FMath::Sqrt(R.FRand());
 		C->SetWorldLocation(Above + FVector(FMath::Cos(A) * Rr, FMath::Sin(A) * Rr, R.FRandRange(-10.f, 10.f)));
-		C->SetWorldScale3D(FVector(R.FRandRange(0.002f, 0.006f)));
+		C->SetWorldScale3D(FVector(R.FRandRange(0.004f, 0.01f)));
 		C->RegisterComponent();
 		Sift.Add({C, FVector(R.FRandRange(-12.f, 12.f), R.FRandRange(-12.f, 12.f), -R.FRandRange(40.f, 110.f)), (float)R.FRandRange(0.f, 0.5f), Clock});
 	}
@@ -797,6 +857,18 @@ bool AP2Story::IsNearFire(const FVector& P) const
 
 void AP2Story::TickFire(float Dt)
 {
+	if (MatchLight)
+	{
+		// (the match: a flare, a small steady flame a moment, out as it goes into the stove)
+		const float m = Clock - MatchAt;
+		const float I = m < 0.12f ? m / 0.12f * 6.f : m < 0.4f ? FMath::Lerp(6.f, 2.2f, (m - 0.12f) / 0.28f) : m < 1.8f ? 2.2f * (0.9f + 0.1f * FMath::Sin(Clock * 23.f)) : FMath::Max(0.f, 2.2f * (1.f - (m - 1.8f) / 0.3f));
+		MatchLight->SetIntensity(I);
+		if (m > 2.2f)
+		{
+			MatchLight->DestroyComponent();
+			MatchLight = nullptr;
+		}
+	}
 	if (!bStoveLit || !FireLight)
 	{
 		return;

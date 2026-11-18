@@ -619,7 +619,7 @@ void AHuskHunter::Move(float Dt)
 			// (lost in the dark: it straightens to a tall stoop filling the doorway, listening, its head turning)
 			Husk->PeerDown = FMath::FInterpTo(Husk->PeerDown, 0.12f, Dt, 1.2f);
 			Husk->GlareAt = Husk->GetActorLocation() + DoorInto * 400.f + FVector(0.f, 0.f, 140.f) +
-				FVector::CrossProduct(FVector::UpVector, DoorInto) * 220.f * FMath::Sin(Clock * 0.6f);
+				FVector::CrossProduct(FVector::UpVector, DoorInto) * 260.f * FMath::Sin(Clock * 1.1f) + FVector(0.f, 0.f, 60.f * FMath::Sin(Clock * 0.7f));
 			Husk->GlareW = FMath::FInterpTo(Husk->GlareW, 0.8f, Dt, 2.f);
 		}
 	}
@@ -681,6 +681,13 @@ void AHuskHunter::Move(float Dt)
 	{
 		PlayTake(TEXT("Stalk"), FMath::Clamp(Speed / (67.f * Scale), 0.3f, 2.2f));
 		Husk->JawOpen = 5.f;
+	}
+	else if (State == EState::Peer)
+	{
+		// (at the doorway: the stalk's stooped pose held, barely moving, its arms hanging; it breathes)
+		PlayTake(TEXT("Stalk"), 0.05f);
+		Husk->JawOpen = bLit ? 16.f : 7.f + 3.f * FMath::Sin(Clock * 2.1f);
+		Husk->AddActorWorldOffset(FVector(0.f, 0.f, 1.2f * FMath::Sin(Clock * 2.1f)));
 	}
 	else
 	{

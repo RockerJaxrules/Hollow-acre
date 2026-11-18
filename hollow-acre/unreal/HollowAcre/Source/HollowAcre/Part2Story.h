@@ -130,6 +130,10 @@ protected:
 	TObjectPtr<class UPointLightComponent> FireLight;
 	UPROPERTY()
 	TObjectPtr<class UMaterialInstanceDynamic> FireGlow;
+	UPROPERTY()
+	TObjectPtr<class UPointLightComponent> MatchLight;
+	float MatchAt = -1.f;
+	float PassAt = -1.f;
 	void TickFire(float Dt);
 
 	bool Once(const TCHAR* Beat);
