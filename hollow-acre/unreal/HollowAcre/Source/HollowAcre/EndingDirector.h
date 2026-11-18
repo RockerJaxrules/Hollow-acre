@@ -84,6 +84,8 @@ public:
 	/** The rear-view mirror (its own part, pivoting at the top of its stem): in the wreck it lies broken off on the lining. */
 	UPROPERTY(EditAnywhere, Category = "Ending")
 	TObjectPtr<AActor> RearMirror;
+	FTransform WakeEyeW;                      // (the wake: where its eyes were last put, world; the player's body takes over there)
+	bool bWakeEyeSet = false;
 	float WakeMirrorMin = 1e9f;               // (the wake: the closest any part of the arms or the flashlight came to the mirror)
 	float WakeMirrorMinW = 0.f;
 

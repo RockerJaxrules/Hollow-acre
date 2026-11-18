@@ -2,12 +2,14 @@
 
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/PointLightComponent.h"
 #include "Components/SpotLightComponent.h"
 #include "DriverArms.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/StaticMeshActor.h"
+#include "EngineUtils.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "InputAction.h"
@@ -216,6 +218,20 @@ void APart2Character::ApplyLight()
 	{
 		HeldBeam->SetIntensity(Cd);
 		Beam->SetIntensity(0.f);
+		// (the light off the snow and the bezel's glow on the hand that holds it)
+		if (HeldLight)
+		{
+			TArray<UPointLightComponent*> Ls;
+			HeldLight->GetComponents(Ls);
+			for (UPointLightComponent* Spill : Ls)
+			{
+				if (Spill && !Spill->IsA(USpotLightComponent::StaticClass()))
+				{
+					Spill->SetIntensity(bFlashlightOn ? 0.45f * Dim : 0.f);
+					Spill->SetAttenuationRadius(45.f);
+				}
+			}
+		}
 	}
 	else
 	{
@@ -228,7 +244,33 @@ void APart2Character::TakeOverFrom(const FTransform& EyeWorld, ADriverArms* InAr
 {
 	// the body under the eyes: the capsule's middle 70 cm below them (the wake stands the eyes 163 cm over the snow; a trace
 	// down from here can catch the car beside it)
-	const FVector At = EyeWorld.GetLocation() - FVector(0.f, 0.f, EyeHeight - 92.f) + FVector(0.f, 0.f, 1.f);
+	FVector At = EyeWorld.GetLocation() - FVector(0.f, 0.f, EyeHeight - 92.f) + FVector(0.f, 0.f, 1.f);
+	{
+		// (stood on the snow itself: the ground found straight down from the eyes, past the car and anything on it, so the
+		// body never starts sunk into it)
+		FCollisionQueryParams Q(TEXT("Part2Stand"), true, this);
+		if (InArms)
+		{
+			Q.AddIgnoredActor(InArms);
+		}
+		if (InFlashlight)
+		{
+			Q.AddIgnoredActor(InFlashlight);
+		}
+		TArray<FHitResult> Hits;
+		const FVector E = EyeWorld.GetLocation();
+		GetWorld()->LineTraceMultiByObjectType(Hits, E, E - FVector(0.f, 0.f, 600.f), FCollisionObjectQueryParams(ECC_WorldStatic), Q);
+		for (const FHitResult& H : Hits)
+		{
+			const FString L = H.GetActor() ? H.GetActor()->GetActorLabel() : FString();
+			if (L.StartsWith(TEXT("Terrain")) || L.StartsWith(TEXT("Town Ground")) || L == TEXT("Road"))
+			{
+				UE_LOG(LogTemp, Display, TEXT("Part2Character: the snow %.0f cm below the eyes (%s)"), E.Z - H.ImpactPoint.Z, *L);
+				At.Z = H.ImpactPoint.Z + 92.f + 2.f;
+				break;
+			}
+		}
+	}
 	SetActorLocation(At, false, nullptr, ETeleportType::TeleportPhysics);
 	const FRotator R = EyeWorld.Rotator();
 	SetActorRotation(FRotator(0.f, R.Yaw, 0.f));
@@ -256,6 +298,25 @@ void APart2Character::TakeOverFrom(const FTransform& EyeWorld, ADriverArms* InAr
 	}
 	ApplyLight();
 	UE_LOG(LogTemp, Display, TEXT("Part2Character: taken over from the wake at %s, eyes %s"), *At.ToString(), *R.ToString());
+	{
+		// (what is under the feet here: the first things a trace straight down meets, and the town ground's collision)
+		TArray<FHitResult> Hits;
+		GetWorld()->LineTraceMultiByObjectType(Hits, At + FVector(0.f, 0.f, 300.f), At - FVector(0.f, 0.f, 3000.f), FCollisionObjectQueryParams::AllObjects, FCollisionQueryParams(NAME_None, true, this));
+		for (const FHitResult& H : Hits)
+		{
+			UE_LOG(LogTemp, Display, TEXT("Part2Ground hit %s (%s) at z %.0f, %.0f cm below the feet, blocks pawns %d"), H.GetActor() ? *H.GetActor()->GetActorLabel() : TEXT("?"),
+				H.GetComponent() ? *H.GetComponent()->GetName() : TEXT("?"), H.ImpactPoint.Z, At.Z - 92.f - H.ImpactPoint.Z,
+				H.GetComponent() ? (int32)(H.GetComponent()->GetCollisionResponseToChannel(ECC_Pawn) == ECR_Block) : -1);
+		}
+		for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+		{
+			if (It->GetActorLabel() == TEXT("Town Ground"))
+			{
+				UE_LOG(LogTemp, Display, TEXT("Part2Ground the town ground: hidden %d, collision %d, at %s, bounds %s"), (int32)It->IsHidden(), (int32)It->GetActorEnableCollision(),
+					*It->GetActorLocation().ToString(), *It->GetComponentsBoundingBox().ToString());
+			}
+		}
+	}
 }
 
 void APart2Character::UpdateBody(float Dt)
@@ -282,8 +343,12 @@ void APart2Character::UpdateBody(float Dt)
 	const float Speed = GetVelocity().Size2D();
 	Bob += Dt * (Speed / 70.f) * PI;
 	const FVector Sway(0.f, 1.2f * FMath::Sin(Bob * 0.5f), 0.9f * FMath::Abs(FMath::Sin(Bob * 0.5f))) ;
-	const FVector HoldAt = Eye.TransformPosition(FVector(30.f, 13.f, -29.f) + Sway * FMath::Min(Speed / WalkSpeed, 1.6f));
-	const FVector AimAt = Eye.TransformPosition(FVector(450.f, 0.f, 0.f));
+	// (low and to the right, the hand and the flashlight's head in the corner of the view, as a held light is seen)
+	// (the view's lower edge is ~24 degrees below its middle at this field of view: the fist about 20 degrees down)
+	const FVector HoldAt = Eye.TransformPosition(FVector(40.f, 15.f, -15.f) + Sway * FMath::Min(Speed / WalkSpeed, 1.6f));
+	// (aimed where the eyes look, but down at the path a few metres ahead, as a walker holds a light; looking up or down
+	// the aim goes with the eyes)
+	const FVector AimAt = Eye.TransformPosition(FVector(600.f, 0.f, -110.f));
 	const FQuat Want = FRotationMatrix::MakeFromXZ((AimAt - HoldAt).GetSafeNormal(), Eye.GetRotation().GetAxisZ()).ToQuat();
 	if (!bHold)
 	{
@@ -350,6 +415,40 @@ void APart2Character::Tick(float DeltaSeconds)
 	}
 	if (IsLocallyControlled())
 	{
+		// (test autopilot for captures, -p2walk: a look round, then walking on with the head turning, a run in the middle)
+		static const bool bAuto = FParse::Param(FCommandLine::Get(), TEXT("p2walk"));
+		if (bAuto && Controller)
+		{
+			AutoT += DeltaSeconds;
+			const float T = AutoT;
+			// (the eyes brought level from the wake's last look up the chute, a little down at the path)
+			{
+				const float Pitch = FRotator::NormalizeAxis(Controller->GetControlRotation().Pitch);
+				AddControllerPitchInput(FMath::Clamp((Pitch - -6.f) * 1.5f * DeltaSeconds, -60.f * DeltaSeconds, 60.f * DeltaSeconds));
+			}
+			if (T < 3.f)
+			{
+				AddControllerYawInput(DeltaSeconds * 40.f * FMath::Cos(T * PI / 1.5f));
+			}
+			else
+			{
+				AddMovementInput(FRotationMatrix(FRotator(0.f, Controller->GetControlRotation().Yaw, 0.f)).GetUnitAxis(EAxis::X), 1.f);
+				AddControllerYawInput(DeltaSeconds * 12.f * FMath::Sin((T - 3.f) * 0.7f));
+				const bool bRun = T > 8.f && T < 11.f;
+				if (bRun != bWantsRun)
+				{
+					bRun ? RunStart() : RunStop();
+				}
+			}
+			if (FMath::FloorToInt(T) != FMath::FloorToInt(T - DeltaSeconds))
+			{
+				FHitResult Hit;
+				const FVector L = GetActorLocation();
+				const bool bGround = GetWorld()->LineTraceSingleByChannel(Hit, L, L - FVector(0.f, 0.f, 400.f), ECC_Visibility, FCollisionQueryParams(NAME_None, false, this));
+				UE_LOG(LogTemp, Display, TEXT("Part2Walk %.0f s pitch %.0f at %s, speed %.0f, the ground %.0f cm below the feet%s; stamina %.2f warmth %.2f battery %.3f"), T, FRotator::NormalizeAxis(Controller->GetControlRotation().Pitch), *L.ToCompactString(),
+					GetVelocity().Size2D(), bGround ? Hit.Distance - 92.f : -1.f, bGround && Hit.GetActor() ? *FString::Printf(TEXT(" (%s)"), *Hit.GetActor()->GetActorLabel()) : TEXT(""), Stamina, Warmth, Battery);
+			}
+		}
 		UpdateBody(DeltaSeconds);
 	}
 }

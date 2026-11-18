@@ -18,6 +18,7 @@
 
 #include "BloodFX.h"
 #include "Camera/CameraActor.h"
+#include "Engine/TextureLightProfile.h"
 #include "Camera/CameraComponent.h"
 #include "Misc/FileHelper.h"
 #include "HAL/FileManager.h"
@@ -337,8 +338,8 @@ void AEndingDirector::WakeSetup()
 		{
 			WakeGroundZ = CT.InverseTransformPosition(H.ImpactPoint).Z;
 		}
-		UE_LOG(LogTemp, Display, TEXT("EndingDirector: wake: the snow beside the driver's door at car z %.1f (the roof lining at 135.6); world up in the car's frame %s"),
-			WakeGroundZ, *WUp.ToString());
+		UE_LOG(LogTemp, Display, TEXT("EndingDirector: wake: the snow beside the driver's door at car z %.1f (the roof lining at 135.6); world up in the car's frame %s; hit %s; the car at %s"),
+			WakeGroundZ, *WUp.ToString(), H.GetActor() ? *H.GetActor()->GetActorLabel() : TEXT("nothing"), *CT.GetLocation().ToString());
 	}
 	// the camera as it was framed for the crash, at its own field of view
 	if (CamComp)
@@ -474,14 +475,17 @@ void AEndingDirector::WakeSetup()
 			FlashBeam->SetRelativeLocation(FVector(24.8f, 0.f, 0.f));
 			FlashBeam->SetIntensityUnits(ELightUnits::Candelas);
 			FlashBeam->SetIntensity(0.f);
-			FlashBeam->SetInnerConeAngle(11.f);
-			FlashBeam->SetOuterConeAngle(30.f);
+			// (shaped by a light profile of a real reflector flashlight: the hot centre, a faint ring from the reflector's
+			// edge, the bulb's spill fading out where the head cuts it off; tools/make_flashlight_ies.py)
+			FlashBeam->SetIESTexture(LoadObject<UTextureLightProfile>(nullptr, TEXT("/Game/HollowAcre/Wake/IES_Flashlight.IES_Flashlight")));
+			FlashBeam->SetInnerConeAngle(0.f);
+			FlashBeam->SetOuterConeAngle(36.f);
 			FlashBeam->SetAttenuationRadius(4500.f);
 			FlashBeam->SetUseTemperature(true);
-			FlashBeam->SetTemperature(2850.f);
+			FlashBeam->SetTemperature(3150.f);   // (an incandescent bulb on fresh cells: warm white, not orange)
 			FlashBeam->SetSourceRadius(1.2f);
 			FlashBeam->SetCastShadows(true);
-			FlashBeam->SetVolumetricScatteringIntensity(2.5f);
+			FlashBeam->SetVolumetricScatteringIntensity(0.15f);   // (a haze in the falling snow, not a glow filling the view)
 			FlashBeam->RegisterComponent();
 			FlashSpill = NewObject<UPointLightComponent>(Flashlight, TEXT("Spill"));
 			FlashSpill->SetupAttachment(Flashlight->GetRootComponent());
@@ -850,7 +854,11 @@ void AEndingDirector::WakeBeats(float RealDt)
 	if (!bWakeHandedOver && !bNoPlay && w >= 33.0f && CamComp)
 	{
 		bWakeHandedOver = true;
-		const FTransform EyeW = CamComp->GetComponentTransform();
+		// (the eyes where the wake last put them: by now this frame the director's seat pose has moved the camera back into
+		// the car, so it can't be read off the camera)
+		const FTransform EyeW = bWakeEyeSet ? WakeEyeW : CamComp->GetComponentTransform();
+		UE_LOG(LogTemp, Display, TEXT("WakeHandover eye %s (car frame %s), the car at %s"), *EyeW.GetLocation().ToString(),
+			*Car->GetActorTransform().InverseTransformPosition(EyeW.GetLocation()).ToString(), *Car->GetActorLocation().ToString());
 		APlayerController* PC = GetWorld()->GetFirstPlayerController();
 		FActorSpawnParameters P;
 		P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
@@ -858,7 +866,11 @@ void AEndingDirector::WakeBeats(float RealDt)
 			FRotator(0.f, EyeW.Rotator().Yaw, 0.f), P);
 		if (Me && PC)
 		{
+			// (the cutscene's camera activates itself for the player: left to manage the view, Possess would hand it straight
+			// back to that camera, still in the car)
+			PC->bAutoManageActiveCameraTarget = false;
 			PC->Possess(Me);
+			PC->SetViewTarget(Me);
 			if (Arms)
 			{
 				Arms->LeaveKeysOn(Car);
@@ -1144,6 +1156,11 @@ void AEndingDirector::WakeBeats(float RealDt)
 		Eye.SetLocation(ClearEye(Eye.GetLocation()));        // (inside; out through the window the frame is passed by the path)
 	}
 	Camera->GetRootComponent()->SetRelativeLocationAndRotation(Eye.GetLocation(), Eye.GetRotation());
+	if (CamComp)
+	{
+		WakeEyeW = CamComp->GetComponentTransform();
+		bWakeEyeSet = true;
+	}
 	{
 		// (checking the grip: -wakehandcam=1 looks at the right hand from the eyes' side, 2 and 3 from either side, close up)
 		static int32 HandCam = -1;
@@ -2089,7 +2106,7 @@ void AEndingDirector::WakeBeats(float RealDt)
 		FlashOn = On;
 		if (FlashBeam)
 		{
-			FlashBeam->SetIntensity(140.f * On);
+			FlashBeam->SetIntensity(220.f * On);
 		}
 		if (FlashSpill)
 		{

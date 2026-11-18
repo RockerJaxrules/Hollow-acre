@@ -55,7 +55,7 @@ public:
 	float RecoverIn = 11.f;
 	/** The flashlight's beam (candelas) and how long its batteries last on (s). */
 	UPROPERTY(EditAnywhere, Category = "Part 2")
-	float BeamCd = 140.f;
+	float BeamCd = 420.f;
 	UPROPERTY(EditAnywhere, Category = "Part 2")
 	float BatterySeconds = 1500.f;
 	/** Outside in the night: how fast the body's warmth falls (per s, of 100). */
@@ -126,6 +126,7 @@ protected:
 	FTransform HoldAim = FTransform::Identity;
 	bool bHold = false;
 	float Bob = 0.f;
+	float AutoT = 0.f;                        // (the -p2walk test autopilot's clock)
 	float EyeHeight = 162.f;
 	void UpdateBody(float Dt);
 	void ApplyLight();
