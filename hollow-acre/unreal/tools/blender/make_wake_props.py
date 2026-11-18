@@ -358,11 +358,63 @@ def pen():
     return ob
 
 
+def stove():
+    """A cast-iron pot-belly stove, as the 1890s camp stoves were made (the Chicago and Cannon patterns, from catalogue
+    plates and surviving stoves): a short ash-pit base on four curved legs, the swelling belly with nickel trim rings at
+    its waist and collar, a domed top with a cooking lid, a fuel door with a mica window on the belly's front, and the
+    stovepipe rising from the top. About 115 cm to the top of the collar; the belly 52 cm across. Turned about X, then
+    stood up (Z up); its front (the door) toward +X; its origin on the floor at its middle."""
+    import mathutils
+    belly = [(12.0, 0.0), (12.0, 22.0), (13.5, 23.5), (16.0, 24.0), (28.0, 24.0), (29.0, 25.0), (31.0, 25.0), (32.0, 23.0),
+             (36.0, 23.5), (45.0, 25.5), (55.0, 26.0), (65.0, 25.0), (74.0, 22.5), (80.0, 20.5), (82.0, 21.5), (84.0, 21.5),
+             (85.0, 20.0), (92.0, 19.0), (98.0, 16.0), (102.0, 12.0), (104.0, 9.5), (106.0, 9.0), (115.0, 8.6), (115.0, 0.0)]
+    body = lathe('st_body', belly, 'castiron', segs=40)
+    trim = lathe('st_trim', [(28.5, 25.4), (31.5, 25.4), (31.6, 0.0)], 'nickel', segs=40, cap0=False)
+    trim2 = lathe('st_trim2', [(81.5, 21.9), (84.5, 21.9), (84.6, 0.0)], 'nickel', segs=40, cap0=False)
+    pipe = lathe('st_pipe', [(115.0, 7.6), (260.0, 7.6), (260.0, 0.0)], 'pipe', segs=24, cap0=False)
+    parts = [body, trim, trim2, pipe]
+    # (the lathe turns about X: stand it up, X to Z)
+    rot = mathutils.Matrix.Rotation(math.radians(-90.0), 4, 'Y')
+    for ob in parts:
+        ob.data.transform(rot)
+    # four curved legs
+    for k in range(4):
+        a = math.radians(45.0 + 90.0 * k)
+        leg = rounded_box('st_leg%d' % k, (5.0, 4.0, 14.0), 1.2, 'castiron', at=(0.0, 0.0, 0.0))
+        # (splayed out from the base: tipped 14 degrees outward, turned to its corner, its foot on the floor)
+        leg.data.transform(mathutils.Matrix.Translation((math.cos(a) * 19.0, math.sin(a) * 19.0, 6.6)) @
+                           mathutils.Matrix.Rotation(a, 4, 'Z') @ mathutils.Matrix.Rotation(math.radians(14.0), 4, 'Y'))
+        parts.append(leg)
+    # the fuel door on the belly's front: a curved iron panel, its mica window (glowing when the fire is lit), hinge, latch
+    door = rounded_box('st_door', (2.2, 22.0, 20.0), 0.8, 'castiron', at=(25.6, 0.0, 52.0))
+    mica = rounded_box('st_mica', (0.6, 9.0, 7.0), 0.2, 'glow', at=(26.8, 0.0, 54.0))
+    hinge = rounded_box('st_hinge', (2.0, 2.0, 16.0), 0.5, 'nickel', at=(26.0, -11.5, 52.0))
+    latch = rounded_box('st_latch', (3.0, 5.0, 1.6), 0.5, 'nickel', at=(27.2, 9.0, 52.0))
+    ash = rounded_box('st_ashdoor', (1.6, 16.0, 7.0), 0.5, 'castiron', at=(24.4, 0.0, 19.0))
+    lid = lathe('st_lid', [(0.0, 0.0), (0.0, 9.5), (1.4, 9.5), (1.4, 0.0)], 'castiron', segs=28)
+    lid.data.transform(mathutils.Matrix.Translation((0.0, 0.0, 99.0)) @ mathutils.Matrix.Rotation(math.radians(-90.0), 4, 'Y'))
+    parts += [door, mica, hinge, latch, ash, lid]
+    ob = join('Wake_Stove', parts)
+    smooth(ob, 40.0)
+    box_uv(ob, 30.0)
+    return ob
+
+
+def matchbox():
+    """A box of safety matches (5.3 x 3.6 x 1.6 cm), its striker strips on the sides; a slot for the label."""
+    ob = rounded_box('Wake_Matchbox', (5.3, 3.6, 1.6), 0.08, 'label', segs=1)
+    s1 = rounded_box('mb_strike1', (5.0, 0.05, 1.3), 0.01, 'striker', at=(0.0, 1.81, 0.0), segs=1)
+    s2 = rounded_box('mb_strike2', (5.0, 0.05, 1.3), 0.01, 'striker', at=(0.0, -1.81, 0.0), segs=1)
+    ob = join('Wake_Matchbox', [ob, s1, s2])
+    box_uv(ob, 6.0)
+    return ob
+
+
 def main():
     clear()
     os.makedirs(OUT, exist_ok=True)
     made = [flashlight(), manual(), papers(), snow('Wake_SnowSlab', (46.0, 30.0, 14.0), 7), snow('Wake_SnowLump', (16.0, 14.0, 11.0), 11, 0.4),
-            buckle(), latch(), strap(), cassette(), coin(), pen()] + [pebble('Wake_Pebble%d' % i, 31 + i) for i in range(4)]
+            buckle(), latch(), strap(), cassette(), coin(), pen(), stove(), matchbox()] + [pebble('Wake_Pebble%d' % i, 31 + i) for i in range(4)]
     for ob in made:
         write_obj(ob, os.path.join(OUT, ob.name + '.obj'))
 

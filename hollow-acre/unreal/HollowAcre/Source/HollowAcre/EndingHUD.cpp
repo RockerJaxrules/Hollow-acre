@@ -203,7 +203,7 @@ void AEndingHUD::DrawPlay()
 		Ink.bEnableShadow = false;
 		// (wrapped by words between the margin and the right edge, one line of writing on each rule)
 		const float Rule = Ph * 46.f / 1280.f;
-		const float Lh = Rule / Y * 0.78f;
+		const float Lh = Rule / Y * 0.84f;
 		float W = 0.f, H = 0.f;
 		Canvas->TextSize(Font, TEXT("M"), W, H);
 		const float Sc = H > 0.f ? Y * Lh / H : 1.f;
@@ -211,7 +211,7 @@ void AEndingHUD::DrawPlay()
 		S.ParseIntoArray(Paras, TEXT("\n"), false);
 		const float X0 = Px + Pw * 140.f / 1024.f, X1 = Px + Pw * 0.92f;
 		float Yl = Py + Ph * (120.f + 2 * 46.f) / 1280.f - H * Sc * 0.95f;
-		Canvas->SetDrawColor(FLinearColor(0.1f, 0.09f, 0.11f, 0.9f).ToFColor(true));
+		Canvas->SetDrawColor(FLinearColor(0.02f, 0.02f, 0.035f, 1.f).ToFColor(true));
 		for (const FString& Para : Paras)
 		{
 			TArray<FString> Words;

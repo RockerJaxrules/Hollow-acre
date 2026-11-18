@@ -176,6 +176,7 @@ try:
     mats['glass'] = simple_mat('M_Town_Glass', (0.05, 0.06, 0.06), 0.12, opacity=0.5, spec=1.0)
     mats['shards'] = simple_mat('M_Town_Shards', (0.07, 0.08, 0.08), 0.08, opacity=0.6, spec=1.0)
     mats['dark'] = simple_mat('M_Town_Dark', (0.004, 0.004, 0.004), 1.0, spec=0.0)
+    mats['ice'] = simple_mat('M_Town_Ice', (0.62, 0.7, 0.78), 0.06, opacity=0.75, spec=1.0)     # (icicles: clear, glinting)
     mats['ground'] = unreal.load_asset(ns['MATS'] + '/M_MountainFar')
     # the old town, if any
     for a in actors.get_all_level_actors():

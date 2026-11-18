@@ -68,7 +68,7 @@ public:
 	UPROPERTY(Replicated)
 	float Battery = 1.f;
 	UPROPERTY(Replicated)
-	float Warmth = 1.f;
+	float Warmth = 0.6f;                       // (out of the wreck into the snow: already chilled)
 	/** What the husk reads off the player (HuskHunter): the eyes, where they look, the beam, running. */
 	FVector EyesAt() const;
 	FVector LookDir() const;
@@ -169,6 +169,9 @@ protected:
 	float DeadT = 0.f;
 	TWeakObjectPtr<AActor> CaughtBy;
 	float NoiseT = 0.f;
+	FPostProcessSettings BaseGrade;
+	void ShowCold(float Dt);
+	float ShiverT = 0.f;
 	TWeakObjectPtr<class AEndingDirector> Director;
 	void ReportNoise(float Carries);
 	void TickDeath(float Dt);

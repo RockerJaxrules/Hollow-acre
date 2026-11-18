@@ -605,7 +605,28 @@ void AHuskHunter::Move(float Dt)
 		Husk->AddActorWorldOffset(FVector(0.f, 0.f, Husk->GroundLift([this](const FVector& P) { return GroundAt(P); })));
 	}
 	// at a doorway it bends right down to look in, its face at the height of a man's
-	Husk->PeerDown = FMath::FInterpTo(Husk->PeerDown, State == EState::Peer ? 0.55f : 0.f, Dt, 2.5f);
+	if (State == EState::Peer && Prey.IsValid() && Husk->GetBody() && Husk->GetBody()->GetBoneIndex(TEXT("head")) != INDEX_NONE)
+	{
+		if (bSeesPrey || bLit)
+		{
+			// (bent just as far as brings its face to the height of the eyes it is looking for)
+			const float HeadZ = Husk->GetBody()->GetBoneLocation(TEXT("head")).Z;
+			const float WantZ = Prey->EyesAt().Z + 6.f;
+			Husk->PeerDown = FMath::Clamp(Husk->PeerDown + (HeadZ - WantZ) * 0.0035f * Dt * 30.f, 0.f, 0.95f);
+		}
+		else
+		{
+			// (lost in the dark: it straightens to a tall stoop filling the doorway, listening, its head turning)
+			Husk->PeerDown = FMath::FInterpTo(Husk->PeerDown, 0.12f, Dt, 1.2f);
+			Husk->GlareAt = Husk->GetActorLocation() + DoorInto * 400.f + FVector(0.f, 0.f, 140.f) +
+				FVector::CrossProduct(FVector::UpVector, DoorInto) * 220.f * FMath::Sin(Clock * 0.6f);
+			Husk->GlareW = FMath::FInterpTo(Husk->GlareW, 0.8f, Dt, 2.f);
+		}
+	}
+	else
+	{
+		Husk->PeerDown = FMath::FInterpTo(Husk->PeerDown, 0.f, Dt, 2.5f);
+	}
 	P2EyeShine(Husk, bLit && (State == EState::Peer || State == EState::Stalk || State == EState::Chase));
 	// its eyes on the player whenever it has them (stalking it never looks away; in the beam its head jerks)
 	if (Prey.IsValid())
@@ -619,8 +640,11 @@ void AHuskHunter::Move(float Dt)
 		{
 			GW = State == EState::Chase ? 0.55f : 0.9f;
 		}
-		Husk->GlareAt = Prey->EyesAt();
-		Husk->GlareW = FMath::FInterpTo(Husk->GlareW, GW, Dt, 5.f);
+		if (!(State == EState::Peer && !bSeesPrey && !bLit))
+		{
+			Husk->GlareAt = Prey->EyesAt();
+			Husk->GlareW = FMath::FInterpTo(Husk->GlareW, GW, Dt, 5.f);
+		}
 		TwitchT -= Dt;
 		if (TwitchT <= 0.f)
 		{

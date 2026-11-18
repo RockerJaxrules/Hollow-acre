@@ -143,8 +143,10 @@ void AShotDirector::Tick(float DeltaSeconds)
 		GetWorldTimerManager().SetTimer(Timer, this, &AShotDirector::Finish, 1.f, false);
 		return;
 	}
-	FScreenshotRequest::RequestScreenshot(FPaths::Combine(CaptureDir, FString::Printf(TEXT("frame_%05d.png"), CaptureFrame)),
-		/*bShowUI*/ true, /*bAddFilenameSuffix*/ false);
+	// (-capjpg: JPEG frames, about a tenth of the PNGs' size, for long play captures)
+	static const bool bJpg = FParse::Param(FCommandLine::Get(), TEXT("capjpg"));
+	const FString Name = bJpg ? FString::Printf(TEXT("frame_%05d.jpg"), CaptureFrame) : FString::Printf(TEXT("frame_%05d.png"), CaptureFrame);
+	FScreenshotRequest::RequestScreenshot(FPaths::Combine(CaptureDir, Name), /*bShowUI*/ true, /*bAddFilenameSuffix*/ false);
 	++CaptureFrame;
 }
 

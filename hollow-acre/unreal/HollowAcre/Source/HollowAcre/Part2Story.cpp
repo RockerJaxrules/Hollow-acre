@@ -11,6 +11,7 @@
 #include "Part2Character.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Components/DecalComponent.h"
+#include "Components/PointLightComponent.h"
 #include "Components/PoseableMeshComponent.h"
 
 void P2Footprint(UWorld* World, const FVector& At, float Yaw, float Size, bool bBare)
@@ -347,13 +348,94 @@ void AP2Story::FurnishShed()
 				};
 				U->RegisterComponent();
 				J->AddInstanceComponent(U);
+				// (beside it, a box of safety matches)
+				if (UStaticMesh* Mb = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Wake_Matchbox.Wake_Matchbox")))
+				{
+					const FVector Pm = At(-330.f, 70.f, 0.f);
+					AStaticMeshActor* Mx = Piece(GetWorld(), Mb, FTransform(FQuat(FVector::UpVector, FMath::DegreesToRadians(-25.f)) * R, FVector(Pm.X, Pm.Y, Tz + 3.1f)), nullptr);
+					if (Mx)
+					{
+						UStaticMeshComponent* Mc = Mx->GetStaticMeshComponent();
+						for (int32 Slot = 0; Slot < Mc->GetNumMaterials() && Part; ++Slot)
+						{
+							UMaterialInstanceDynamic* D = UMaterialInstanceDynamic::Create(Part, Mc);
+							Mc->SetMaterial(Slot, D);
+							const FString Sn = Mc->GetMaterialSlotNames().IsValidIndex(Slot) ? Mc->GetMaterialSlotNames()[Slot].ToString() : FString();
+							D->SetVectorParameterValue(TEXT("Color"), Sn.StartsWith(TEXT("striker")) ? FLinearColor(0.08f, 0.04f, 0.03f) : FLinearColor(0.42f, 0.09f, 0.05f));
+							D->SetScalarParameterValue(TEXT("Metallic"), 0.f);
+							D->SetScalarParameterValue(TEXT("Roughness"), 0.85f);
+						}
+						Mx->SetActorLabel(TEXT("Matches"));
+						UP2UseComponent* Um = NewObject<UP2UseComponent>(Mx, TEXT("Use"));
+						Um->Id = TEXT("matches");
+						Um->Prompt = TEXT("Take the matches");
+						Um->bOnce = true;
+						Um->RegisterComponent();
+						Mx->AddInstanceComponent(Um);
+						Mc->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+						Mc->SetCollisionResponseToAllChannels(ECR_Block);
+					}
+				}
 				// (the book takes the beam's use trace: its own collision on)
 				M->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 				M->SetCollisionResponseToAllChannels(ECR_Block);
 			}
 		}
 	}
-	UE_LOG(LogTemp, Display, TEXT("P2Story: the tool shed furnished (floor, table, her journal); its ground %.0f cm from its origin"), Lift);
+	// the pot-belly stove in the back corner, its door to the room, its pipe up through the roof
+	if (UStaticMesh* Sm2 = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Wake_Stove.Wake_Stove")))
+	{
+		const FVector Ps = At(-290.f, -115.f, 0.f);
+		AStaticMeshActor* St = Piece(GetWorld(), Sm2, FTransform(FQuat(FVector::UpVector, FMath::DegreesToRadians(15.f)) * R, FVector(Ps.X, Ps.Y, G + 4.f)), nullptr);
+		if (St)
+		{
+			static UMaterialInterface* Part2 = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Car/Keys/M_KeyPart.M_KeyPart"));
+			UMaterialInterface* GlowM = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Materials/Play/M_FireGlow.M_FireGlow"));
+			UStaticMeshComponent* Sc = St->GetStaticMeshComponent();
+			const TArray<FName> Sn = Sc->GetMaterialSlotNames();
+			for (int32 Slot = 0; Slot < Sc->GetNumMaterials(); ++Slot)
+			{
+				const FString N = Sn.IsValidIndex(Slot) ? Sn[Slot].ToString() : FString();
+				if (N.StartsWith(TEXT("glow")) && GlowM)
+				{
+					FireGlow = UMaterialInstanceDynamic::Create(GlowM, Sc);
+					Sc->SetMaterial(Slot, FireGlow);
+					continue;
+				}
+				if (!Part2)
+				{
+					continue;
+				}
+				UMaterialInstanceDynamic* D = UMaterialInstanceDynamic::Create(Part2, Sc);
+				Sc->SetMaterial(Slot, D);
+				const bool bNickel = N.StartsWith(TEXT("nickel")), bPipe = N.StartsWith(TEXT("pipe"));
+				D->SetVectorParameterValue(TEXT("Color"), bNickel ? FLinearColor(0.36f, 0.35f, 0.33f) : bPipe ? FLinearColor(0.07f, 0.05f, 0.04f) : FLinearColor(0.035f, 0.033f, 0.032f));
+				D->SetScalarParameterValue(TEXT("Metallic"), bNickel ? 0.9f : 0.55f);
+				D->SetScalarParameterValue(TEXT("Roughness"), bNickel ? 0.45f : bPipe ? 0.85f : 0.68f);
+			}
+			Sc->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			Sc->SetCollisionResponseToAllChannels(ECR_Block);
+			St->SetActorLabel(TEXT("Stove"));
+			UP2UseComponent* Us = NewObject<UP2UseComponent>(St, TEXT("Use"));
+			Us->Id = TEXT("stove");
+			Us->Prompt = TEXT("Light the stove");
+			Us->RegisterComponent();
+			St->AddInstanceComponent(Us);
+			FireLight = NewObject<UPointLightComponent>(St, TEXT("Fire"));
+			FireLight->SetupAttachment(Sc);
+			FireLight->SetRelativeLocation(FVector(34.f, 0.f, 50.f));
+			FireLight->SetIntensityUnits(ELightUnits::Candelas);
+			FireLight->SetIntensity(0.f);
+			FireLight->SetAttenuationRadius(650.f);
+			FireLight->SetUseTemperature(true);
+			FireLight->SetTemperature(2100.f);
+			FireLight->SetSourceRadius(8.f);
+			FireLight->SetCastShadows(true);
+			FireLight->RegisterComponent();
+			Stove = St;
+		}
+	}
+	UE_LOG(LogTemp, Display, TEXT("P2Story: the tool shed furnished (floor, table, her journal, matches, the stove); its ground %.0f cm from its origin"), Lift);
 }
 
 void AP2Story::OnUse(UP2UseComponent* Use)
@@ -363,6 +445,40 @@ void AP2Story::OnUse(UP2UseComponent* Use)
 		return;
 	}
 	UE_LOG(LogTemp, Display, TEXT("P2Story %.2f used %s"), Clock, *Use->Id.ToString());
+	if (Use->Id == TEXT("matches"))
+	{
+		bHasMatches = true;
+		Use->GetOwner()->SetActorHiddenInGame(true);
+		Use->GetOwner()->SetActorEnableCollision(false);
+		Event(TEXT("matches"));
+		Say(TEXT("Matches. Half a box."), 0.3f, 2.4f);
+		return;
+	}
+	if (Use->Id == TEXT("stove"))
+	{
+		if (!bHasMatches)
+		{
+			Use->bUsed = false;
+			Say(TEXT("Nothing to light it with."), 0.2f, 2.4f);
+			return;
+		}
+		if (!bStoveLit)
+		{
+			// the stove lit: the match, the kindling catching, the fire's light through its door's mica and the gaps
+			bStoveLit = true;
+			StoveLitAt = Clock;
+			Use->bEnabled = false;
+			Event(TEXT("fire_lit"));
+			Say(TEXT("Come on. Come on..."), 0.2f, 2.0f);
+			SetObjective(TEXT("Stay by the fire. Wait for morning"));
+			if (Player.IsValid())
+			{
+				Player->Checkpoint = Player->GetActorTransform();
+				Player->CheckpointLook = Player->GetControlRotation();
+			}
+		}
+		return;
+	}
 	if (Use->Id == TEXT("journal") && Once(TEXT("journal_read")))
 	{
 		// after the last page: the hit on the wall, the light stutters, the shriek outside; the night's hunt begins
@@ -461,9 +577,35 @@ void AP2Story::Beats(float Dt)
 		{
 			const FVector D = HDir.GetSafeNormal2D();
 			const FVector V = FVector::CrossProduct(FVector::UpVector, D);
-			const FVector Mid = Player->GetActorLocation() + D * 1500.f;
-			CrossFrom = Mid + V * 650.f;
-			CrossTo = Mid - V * 650.f;
+			FVector Mid = Player->GetActorLocation() + D * 1400.f;
+			{
+				// (where the beam's pool lies on the snow: its axis traced to the ground; crossed through its middle, if
+				// it lies 9-25 m off)
+				FHitResult Hp;
+				FCollisionQueryParams Qp(TEXT("Pool"), true, Player.Get());
+				TArray<AActor*> On;
+				if (Director->Car)
+				{
+					Qp.AddIgnoredActor(Director->Car);
+					Director->Car->GetAttachedActors(On, true, true);
+					Qp.AddIgnoredActors(On);
+				}
+				if (GetWorld()->LineTraceSingleByChannel(Hp, HFrom, HFrom + HDir * 4000.f, ECC_Visibility, Qp))
+				{
+					// (in the pool, but near enough to read: no further than 11 m along the way to it)
+					const FVector Pp = Player->GetActorLocation();
+					const float Dp = FVector::Dist2D(Hp.ImpactPoint, Pp);
+					if (Dp > 600.f && Dp < 2500.f)
+					{
+						Mid = Pp + (Hp.ImpactPoint - Pp).GetSafeNormal2D() * FMath::Min(Dp, 1100.f);
+						Mid.Z = GroundAt(Mid);
+					}
+				}
+			}
+			const FVector Across = FVector::CrossProduct(FVector::UpVector, (Mid - Player->GetActorLocation()).GetSafeNormal2D());
+			CrossFrom = Mid + Across * 520.f;
+			CrossTo = Mid - Across * 520.f;
+			(void)V;
 			bCrossInHeadlight = true;
 			SpawnCrosser();
 		}
@@ -514,11 +656,18 @@ void AP2Story::Beats(float Dt)
 		Say(TEXT("No. No, no, no..."), 0.4f, 2.6f);
 		SetObjective(TEXT("Find shelter in the camp"));
 	}
+	// after it has gone from the doorway: the cold (the stove, if they haven't lit it)
+	if (Hunter && Done.Contains(TEXT("husk_shriek")) && Hunter->State == AHuskHunter::EState::Away && !bStoveLit && Once(TEXT("cold")))
+	{
+		Say(TEXT("It's so cold..."), 1.5f, 2.6f);
+		SetObjective(TEXT("Light the stove"));
+	}
 	// the bang after the journal: something hits the shed hard; the light stutters; the shriek; the hunt
 	if (BangAt > 0.f && Clock >= BangAt && Once(TEXT("bang")))
 	{
 		Player->Stutter(1.1f);
-		Player->Jolt(1.f);
+		Player->Jolt(1.8f);
+		SiftSnow(Player->EyesAt() + FVector(0.f, 0.f, 90.f), 150.f, 70);
 		Say(TEXT("Oh God."), 1.6f, 2.2f);
 		SetObjective(TEXT("Survive the night"));
 		ShriekAt = Clock + 1.3f;
@@ -552,7 +701,9 @@ void AP2Story::Tick(float DeltaSeconds)
 	const float Dt = FMath::Min(DeltaSeconds, 0.1f);
 	Clock += Dt;
 	Beats(Dt);
+	TickFire(Dt);
 	TickCrosser(Dt);
+	TickSift(Dt);
 }
 
 void AP2Story::SpawnCrosser()
@@ -573,5 +724,88 @@ void AP2Story::SpawnCrosser()
 			Pc->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		}
 		CrossT = 0.f;
+	}
+}
+
+void AP2Story::SiftSnow(const FVector& Above, float Radius, int32 Count)
+{
+	static UStaticMesh* Ball = nullptr;
+	static UMaterialInterface* Flake = nullptr;
+	if (!Ball)
+	{
+		Ball = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+		Flake = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Materials/Blockout/M_Snowflake.M_Snowflake"));
+		if (Ball)
+		{
+			Ball->AddToRoot();
+		}
+		if (Flake)
+		{
+			Flake->AddToRoot();
+		}
+	}
+	FRandomStream R(77 + Count);
+	for (int32 i = 0; i < Count && Ball; ++i)
+	{
+		UStaticMeshComponent* C = NewObject<UStaticMeshComponent>(this);
+		C->SetStaticMesh(Ball);
+		if (Flake)
+		{
+			C->SetMaterial(0, Flake);
+		}
+		C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		C->SetCastShadow(false);
+		C->SetMobility(EComponentMobility::Movable);
+		const float A = R.FRandRange(0.f, 2.f * PI), Rr = Radius * FMath::Sqrt(R.FRand());
+		C->SetWorldLocation(Above + FVector(FMath::Cos(A) * Rr, FMath::Sin(A) * Rr, R.FRandRange(-10.f, 10.f)));
+		C->SetWorldScale3D(FVector(R.FRandRange(0.002f, 0.006f)));
+		C->RegisterComponent();
+		Sift.Add({C, FVector(R.FRandRange(-12.f, 12.f), R.FRandRange(-12.f, 12.f), -R.FRandRange(40.f, 110.f)), (float)R.FRandRange(0.f, 0.5f), Clock});
+	}
+}
+
+void AP2Story::TickSift(float Dt)
+{
+	for (int32 i = Sift.Num() - 1; i >= 0; --i)
+	{
+		FSift& F = Sift[i];
+		if (!F.C)
+		{
+			Sift.RemoveAt(i);
+			continue;
+		}
+		const float Age = Clock - F.Born;
+		if (Age < F.Delay)
+		{
+			continue;
+		}
+		F.C->AddWorldOffset(F.V * Dt + FVector(FMath::Sin(Age * 3.f + i) * 6.f * Dt, 0.f, 0.f));
+		if (Age > F.Delay + 3.5f)
+		{
+			F.C->DestroyComponent();
+			Sift.RemoveAt(i);
+		}
+	}
+}
+
+bool AP2Story::IsNearFire(const FVector& P) const
+{
+	return bStoveLit && Stove && FVector::Dist2D(P, Stove->GetActorLocation()) < 280.f && FMath::Abs(P.Z - Stove->GetActorLocation().Z) < 300.f;
+}
+
+void AP2Story::TickFire(float Dt)
+{
+	if (!bStoveLit || !FireLight)
+	{
+		return;
+	}
+	// (catching over a few seconds, then burning: a fire's flicker, slow swells and quick licks)
+	const float s = Clock - StoveLitAt;
+	const float Catch = FMath::Clamp(s / 4.f, 0.f, 1.f);
+	const float Fl = 0.78f + 0.12f * FMath::Sin(Clock * 2.3f) + 0.07f * FMath::Sin(Clock * 7.9f + 1.f) + 0.05f * FMath::Sin(Clock * 17.3f + 2.f);
+	FireLight->SetIntensity(55.f * Catch * Catch * Fl);
+	if (FireGlow)
+	{
+		FireGlow->SetVectorParameterValue(TEXT("Glow"), FLinearColor(1.f, 0.38f, 0.08f) * (6.f * Catch * Fl));
 	}
 }

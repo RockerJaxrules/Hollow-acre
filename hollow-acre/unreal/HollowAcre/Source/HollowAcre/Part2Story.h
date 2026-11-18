@@ -14,6 +14,7 @@ class AEndingDirector;
 class APart2Character;
 class AHusk;
 class AHuskHunter;
+class UStaticMeshComponent;
 
 /** A thing the player can use: looked at within reach, its prompt shows; E uses it (reads its pages, if any). */
 UCLASS(ClassGroup = (HollowAcre), meta = (BlueprintSpawnableComponent))
@@ -100,9 +101,36 @@ protected:
 	float BangAt = -1.f, ShriekAt = -1.f, DarkAt = -1.f;
 	bool bCrossInHeadlight = false;
 	void SpawnCrosser();
+	/** Snow and dust sifting down from above (off the roof boards, jarred by a hit), Count flakes over Radius. */
+	void SiftSnow(const FVector& Above, float Radius, int32 Count);
+	void TickSift(float Dt);
+	struct FSift
+	{
+		TObjectPtr<UStaticMeshComponent> C;
+		FVector V;
+		float Delay;
+		float Born;
+	};
+	TArray<FSift> Sift;
 
-	/** The tool shed (where she sheltered): its inside made real (plank floor, boards on the walls), a table, her journal. */
+	/** The tool shed (where she sheltered): its inside made real (plank floor, boards on the walls), a table, her journal,
+	 *  a box of matches, a pot-belly stove. */
 	void FurnishShed();
+
+public:
+	/** The stove lit, and this point near enough to it to be warmed. */
+	bool IsNearFire(const FVector& P) const;
+protected:
+	bool bHasMatches = false;
+	bool bStoveLit = false;
+	float StoveLitAt = -1.f;
+	UPROPERTY()
+	TObjectPtr<AActor> Stove;
+	UPROPERTY()
+	TObjectPtr<class UPointLightComponent> FireLight;
+	UPROPERTY()
+	TObjectPtr<class UMaterialInstanceDynamic> FireGlow;
+	void TickFire(float Dt);
 
 	bool Once(const TCHAR* Beat);
 	void Event(const TCHAR* Kind) const;

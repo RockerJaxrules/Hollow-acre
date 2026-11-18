@@ -500,6 +500,7 @@ void APart2Character::TakeOverFrom(const FTransform& EyeWorld, ADriverArms* InAr
 		Controller->SetControlRotation(FRotator(R.Pitch, R.Yaw, 0.f));
 	}
 	Camera->PostProcessSettings = Grade;
+	BaseGrade = Grade;
 	Camera->SetConstraintAspectRatio(false);
 	// (the eyes adapt fast to a bright thing close in the beam, so it reads instead of blowing out white)
 	Camera->PostProcessSettings.bOverride_AutoExposureSpeedUp = true;
@@ -595,7 +596,7 @@ void APart2Character::UpdateBody(float Dt)
 	// (the view's lower edge is ~24 degrees below its middle at this field of view: the fist about 20 degrees down)
 	// (held low right, turned so the barrel lies on a slant across the corner of the view with the fingers round it and
 	// the thumb on top lit by the bezel's spill: of four tried, the one that reads as a hand holding a flashlight)
-	static FVector HoldOff(38.f, 19.f, -18.f);
+	static FVector HoldOff(36.f, 20.f, -21.f);
 	static float HoldRoll = -90.f;
 	static bool bHoldRead = false;
 	if (!bHoldRead)
@@ -700,7 +701,22 @@ void APart2Character::Tick(float DeltaSeconds)
 		{
 			bWinded = false;
 		}
-		Warmth = FMath::Max(0.f, Warmth - ColdRate / 100.f * DeltaSeconds);
+		// (by a lit fire it comes back; under a roof it falls slower; out in the night at its rate)
+		AP2Story* St = nullptr;
+		for (TActorIterator<AP2Story> It(GetWorld()); It; ++It)
+		{
+			St = *It;
+		}
+		if (St && St->IsNearFire(GetActorLocation()))
+		{
+			Warmth = FMath::Min(1.f, Warmth + 0.035f * DeltaSeconds);
+		}
+		else
+		{
+			FHitResult Hr;
+			const bool bRoof = GetWorld()->LineTraceSingleByChannel(Hr, EyesAt(), EyesAt() + FVector(0.f, 0.f, 500.f), ECC_Visibility, FCollisionQueryParams(TEXT("Roof"), true, this));
+			Warmth = FMath::Max(0.f, Warmth - ColdRate / 100.f * (bRoof ? 0.4f : 1.f) * DeltaSeconds);
+		}
 		if (bFlashlightOn)
 		{
 			Battery = FMath::Max(0.f, Battery - DeltaSeconds / BatterySeconds);
@@ -736,6 +752,7 @@ void APart2Character::Tick(float DeltaSeconds)
 	if (IsLocallyControlled())
 	{
 		UpdateFocus();
+		ShowCold(DeltaSeconds);
 		static const bool bStoryAuto = FParse::Param(FCommandLine::Get(), TEXT("p2story"));
 		if (bStoryAuto && Controller)
 		{
@@ -976,6 +993,23 @@ void APart2Character::StoryAutopilot(float Dt)
 			WantYaw = To.Yaw;
 			WantPitch = FMath::Clamp(To.Pitch, -10.f, 8.f);
 			TurnRate = StepT > 1.6f ? 150.f : 0.f;
+			if (StepT < 1.5f)
+			{
+				// (the hit: the light swung to the wall it came through)
+				const FVector Wall = T.TransformPosition(FVector(-185.f, -185.f, 0.f)) + FVector(0.f, 0.f, 130.f);
+				const FRotator Tw = (Wall - EyesAt()).Rotation();
+				WantYaw = Tw.Yaw;
+				WantPitch = FMath::Clamp(Tw.Pitch, -10.f, 10.f);
+				TurnRate = StepT > 0.15f ? 260.f : 0.f;
+			}
+			if (Hh && Hh->Husk && Hh->State == AHuskHunter::EState::Peer && Hh->Husk->GetBody() && Hh->Husk->GetBody()->GetBoneIndex(TEXT("head")) != INDEX_NONE)
+			{
+				// (its face: the eyes and the light on it)
+				const FRotator Tf = (Hh->Husk->GetBody()->GetBoneLocation(TEXT("head")) - EyesAt()).Rotation();
+				WantYaw = Tf.Yaw;
+				WantPitch = FMath::Clamp(Tf.Pitch, -20.f, 15.f);
+				TurnRate = 90.f;
+			}
 			if (Hh && Hh->Husk && Hh->State == AHuskHunter::EState::Peer)
 			{
 				PeerSeenT += Dt;
@@ -1022,6 +1056,44 @@ void APart2Character::StoryAutopilot(float Dt)
 			}
 			break;
 		}
+		case 8:      // the matches beside her journal
+		case 10:     // the stove in the corner
+		{
+			const TCHAR* Want = StoryStep == 8 ? TEXT("Matches") : TEXT("Stove");
+			FVector Aim = EyesAt() + LookDir() * 100.f;
+			for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
+			{
+				if (It->GetActorLabel() == Want)
+				{
+					Aim = It->GetActorLocation() + FVector(0.f, 0.f, StoryStep == 8 ? 1.f : 55.f);
+				}
+			}
+			const FRotator Ta = (Aim - EyesAt()).Rotation();
+			WantYaw = Ta.Yaw;
+			WantPitch = Ta.Pitch;
+			TurnRate = 70.f;
+			if (StoryStep == 10 && FVector::Dist2D(Aim, GetActorLocation()) > 150.f)
+			{
+				bWalk = true;
+			}
+			if (StepT > 2.5f && Focus.IsValid())
+			{
+				Interact();
+				StoryStep += 1;
+				StepT = 0.f;
+			}
+			break;
+		}
+		case 9:
+			if (StepT > 1.5f)
+			{
+				StoryStep = 10;
+				StepT = 0.f;
+			}
+			break;
+		case 11:     // by the fire, warming
+			WantPitch = -12.f;
+			break;
 		default:
 			break;
 		}
@@ -1056,5 +1128,27 @@ void APart2Character::StoryAutopilot(float Dt)
 	if (FMath::FloorToInt(StoryAutoT) != FMath::FloorToInt(StoryAutoT - Dt))
 	{
 		UE_LOG(LogTemp, Display, TEXT("Part2Story auto %.0f step %d at %s%s"), StoryAutoT, StoryStep, *GetActorLocation().ToCompactString(), Focus.IsValid() ? TEXT(" (looking at something to use)") : TEXT(""));
+	}
+}
+
+void APart2Character::ShowCold(float Dt)
+{
+	// the cold creeping in: the edges of the view darkening and going blue-white, the colour draining, the eyes shivering;
+	// gone again by the fire
+	const float Cold = FMath::Clamp((0.55f - Warmth) / 0.55f, 0.f, 1.f);
+	FPostProcessSettings& P = Camera->PostProcessSettings;
+	P.bOverride_VignetteIntensity = true;
+	P.VignetteIntensity = (BaseGrade.bOverride_VignetteIntensity ? BaseGrade.VignetteIntensity : 0.4f) + 0.55f * Cold;
+	P.bOverride_ColorSaturation = true;
+	const FVector4 BaseSat = BaseGrade.bOverride_ColorSaturation ? BaseGrade.ColorSaturation : FVector4(1.f, 1.f, 1.f, 1.f);
+	P.ColorSaturation = FVector4(BaseSat.X, BaseSat.Y, BaseSat.Z, BaseSat.W * (1.f - 0.45f * Cold));
+	P.bOverride_ColorGainShadows = true;
+	const FVector4 BaseGain = BaseGrade.bOverride_ColorGainShadows ? BaseGrade.ColorGainShadows : FVector4(1.f, 1.f, 1.f, 1.f);
+	P.ColorGainShadows = FMath::Lerp(BaseGain, FVector4(0.8f, 0.92f, 1.2f, 1.f), Cold * 0.8f);
+	if (JoltT < 0.f && Cold > 0.05f)
+	{
+		ShiverT += Dt;
+		const float K = Cold * Cold;
+		Camera->SetRelativeRotation(FRotator(0.35f * K * FMath::Sin(ShiverT * 37.f), 0.25f * K * FMath::Sin(ShiverT * 29.f + 1.f), 0.3f * K * FMath::Sin(ShiverT * 41.f + 2.f)));
 	}
 }

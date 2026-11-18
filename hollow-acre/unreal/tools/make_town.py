@@ -10,7 +10,7 @@ Writes (Unreal frame: X forward, Y right, Z up; centimetres) HollowAcre/Saved/Ge
 building, each with its origin at the middle of its street front at ground level, facing +X (the street).
 Material groups: paintwood (flaky painted planks), barewood (weathered planks), cladding (lap siding), shingles,
 tin (rusty corrugated metal), rustmetal (rusty sheet), glass (old window glass), shards (broken glass), dark (the dark
-inside, seen through gaps), snow.
+inside, seen through gaps), snow, ice (icicles off the eaves).
 
 Also writes Town_Ground.obj (the ground it stands on) and town.json (where each building stands, where the car is
 left), laid out on make_mountain.py's valley floor at the foot of the crash chute.
@@ -224,6 +224,8 @@ def clad_lap(m, wall, mat, exposure=13.0, thick=1.8, missing=0.0, z0=0.0):
 def inner_dark(m, wall, inset=6.0):
     """The dark inside behind a wall (seen through missing boards and broken panes). On a building that can be walked
     into (cut_doors: the tool shed, Part 2's first shelter), its doorways are cut out of it, so the doorway is open."""
+    if getattr(wall, 'no_dark', False):
+        return                                   # (a real inside behind it: its gaps show the night outside)
     L, H = wall.length, wall.top(wall.length / 2)
     doors = [o for o in wall.openings if o[2] <= 1.0] if getattr(wall, 'cut_doors', False) else []
     if not doors:
@@ -328,6 +330,29 @@ def door(m, wall, a0, w, h, state='shut', trimmat='paintwood', transom=0.0):
             m.box(trimmat, pc, (leaf_w * 0.36, h * (0.36 if j else 0.4), 1.2), R)
 
 
+def icicles(m, a, b, per_m=2.2, longest=45.0):
+    """Icicles hanging from an eave from a to b (its underside): thin three-sided cones, most short, a few long, in
+    runs where the meltwater dripped (photographs of eaves in a hard winter)."""
+    a, b = np.asarray(a, float), np.asarray(b, float)
+    L = np.linalg.norm(b - a)
+    if L < 1:
+        return
+    u = (b - a) / L
+    n = int(L / 100.0 * per_m * m.r.uniform(0.4, 1.6))
+    for _ in range(n):
+        p = a + u * m.r.uniform(0, L)
+        ln = longest * (m.r.random() ** 2.2) + 5.0
+        r = 0.9 + ln * 0.05
+        ang0 = m.r.uniform(0, 2 * math.pi)
+        top = [p + np.array([r * math.cos(ang0 + k * 2 * math.pi / 3), r * math.sin(ang0 + k * 2 * math.pi / 3), 0.0]) for k in range(3)]
+        tip = p + np.array([m.r.uniform(-1.5, 1.5), m.r.uniform(-1.5, 1.5), -ln])
+        for k in range(3):
+            q0, q1 = top[k], top[(k + 1) % 3]
+            out = (q0 + q1) / 2 - p
+            out[2] = 0.0
+            m.poly('ice', [q0, q1, tip], face=out / (np.linalg.norm(out) + 1e-6))
+
+
 def gable_roof(m, x0, x1, y0, y1, z_eave, pitch, mat, ridge_along='x', overhang=35.0, sag=0.0, snow=40.0, holes=0, front_overhang=None):
     """A gable roof (sheathing slabs with their surface, fascia boards), sagging along the ridge, under heavy snow."""
     segs = 12
@@ -385,6 +410,8 @@ def gable_roof(m, x0, x1, y0, y1, z_eave, pitch, mat, ridge_along='x', overhang=
             m.poly(mat, pts, face=(0, 0, 1))
             # underside, and the sheathing's edge thickness at the eave
             m.poly('barewood', [p - np.array([0, 0, t]) for p in pts], face=(0, 0, -1))
+            # icicles off its eave
+            icicles(m, a - np.array([0, 0, t]), b - np.array([0, 0, t]))
             # the snow on it: thick, rounded off at the eave, thinner where it slides
             if snow:
                 s_pts = [p + np.array([0, 0, snow * (0.6 if i in (0, 1) else 1.0)]) for i, p in enumerate(pts)]
@@ -597,12 +624,15 @@ def shed(name, seed, W=3.7, D=3.7, H=7.5):
     W, D, H = W * 100, D * 100, H * FT
     walls = frame_building(m, W, D, H, 0.0, 'bb', 'bb')
     walls['front'].cut_doors = True          # (it can be walked into: Part 2's first shelter)
+    for w in walls.values():
+        w.no_dark = True                         # (its inside is real: moonlight through the gaps in its boards)
     door(m, walls['front'], W / 2 - 45, 90, 6.2 * FT, state='open')
     finish_walls(m, walls, 'bb', 'bb', 0.08)
     pts = [np.array([25, -W / 2 - 15, H + 10]), np.array([25, W / 2 + 15, H + 10]), np.array([-D - 25, W / 2 + 15, H - 40]), np.array([-D - 25, -W / 2 - 15, H - 40])]
     m.poly('tin', pts, face=(0, 0, 1))
     m.poly('barewood', [p - np.array([0, 0, 3]) for p in pts], face=(0, 0, -1))
     m.poly('snow', [p + np.array([0, 0, 30]) for p in pts], face=(0, 0, 1))
+    icicles(m, pts[3] - np.array([0, 0, 3]), pts[2] - np.array([0, 0, 3]), per_m=3.0, longest=55.0)
     return m
 
 
