@@ -74,6 +74,14 @@ try:
             log('groom', slot, path.split('/')[-1], 'selected' if ok else 'NOT SELECTED')
         except Exception as e:
             log('groom', slot, 'failed:', e)
+    # no MetaHuman garment: his clothes are drawn over his whole body by the game (AKessler::DressUp, M_KesslerClothes),
+    # and a garment's hidden-face map cuts his skin away under it (the default T-shirt left a hole through his torso)
+    for slot in ('Outfits', 'Top Garment', 'Bottom Garment'):
+        try:
+            inst.set_single_slot_selection(unreal.Name(slot), unreal.MetaHumanPaletteItemKey())
+            log('cleared', slot)
+        except Exception as e:
+            log('clear', slot, 'failed:', e)
     for sel in inst.get_slot_selection_data() if hasattr(inst, 'get_slot_selection_data') else []:
         try:
             log('selection', sel.get_editor_property('selection'))

@@ -62,4 +62,12 @@ protected:
 	FVector HandWas = FVector::ZeroVector;
 	FVector2D Swing = FVector2D::ZeroVector, SwingV = FVector2D::ZeroVector;
 	void Tint(UStaticMeshComponent* C, const TCHAR* Slot, const FLinearColor& Color, float Metal, float Rough);
+	void DressUp();
+	void CapOn();
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> Cap;
+	UPROPERTY()
+	TObjectPtr<USkeletalMeshComponent> Clothes;
+	UPROPERTY()
+	TObjectPtr<USkeletalMeshComponent> ClothesUpper;
 };

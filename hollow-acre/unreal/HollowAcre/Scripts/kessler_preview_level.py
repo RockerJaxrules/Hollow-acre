@@ -94,6 +94,13 @@ try:
     ppv.set_editor_property('settings', pps)
     face = os.environ.get('KESSLER_CAM') == 'face'
     cam_loc, cam_rot, fov = (V(-120, -70, 172), R(-3, 0, 0), 30.0) if face else (V(-420, 0, 120), R(-3, 0, 0), 40.0)
+    if os.environ.get('KESSLER_CAM') == 'walk':      # (a man's eye height, far enough back for a walk toward it)
+        cam_loc, cam_rot, fov = V(-1150, 0, 165), R(float(os.environ.get('KESSLER_PITCH', '-4')), 0, 0), float(os.environ.get('KESSLER_FOV', '30'))
+    if os.environ.get('KESSLER_FILL'):                 # (a plain white light from beside the camera: to judge the clothes)
+        fill = actors.spawn_actor_from_class(unreal.PointLight, cam_loc + V(150, -150, 60))
+        fill.light_component.set_editor_property('intensity_units', unreal.LightUnits.CANDELAS)
+        fill.light_component.set_intensity(float(os.environ['KESSLER_FILL']))
+        fill.light_component.set_editor_property('attenuation_radius', 4000.0)
     cam = actors.spawn_actor_from_class(unreal.CameraActor, cam_loc, cam_rot)
     cam.camera_component.set_editor_property('field_of_view', fov)
     cam.set_editor_property('auto_activate_for_player', unreal.AutoReceiveInput.PLAYER0)

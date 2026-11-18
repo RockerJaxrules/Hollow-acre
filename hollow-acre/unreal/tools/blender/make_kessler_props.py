@@ -295,9 +295,78 @@ def band_x(name, x, zc, length, r_in, r_out, mat):
     return ob
 
 
+def cap():
+    """Kessler_Cap: a knit wool watch cap, the loggers' and miners' cap of the time: pulled down over the skull, a 2x2
+    rib all over (about 64 ribs round), the cuff rolled up once (a double layer, thicker, its fold rounded), the crown
+    gathered where the ribs run out. Sized over a big man's head (about 61 cm round: half-axes 10.9 front to back, 9.0
+    side to side), 13 cm from the cuff's bottom to the crown. Its own frame: the centre of the cuff's bottom at the origin,
+    X to the front, Z up (AKessler sets it on his head, tilted so the back sits lower than the brow). Slot: wool."""
+    A, B, H, C = 10.9, 9.0, 13.0, 5.2
+    NS, RIBS = 256, 64
+    bm = bmesh.new()
+    uv = bm.loops.layers.uv.new()
+
+    def ell(ph):
+        return A * B / math.sqrt((B * math.cos(ph)) ** 2 + (A * math.sin(ph)) ** 2)
+
+    def lump(ph, z):              # (hand-knit and worn: not quite even)
+        return 1.0 + 0.012 * math.sin(3.0 * ph + 1.3) * math.sin(z * 0.4 + 0.5) + 0.008 * math.sin(5.0 * ph - 0.7)
+
+    def grid(rows, closed_top=False):
+        """rows: [(z, f(ph) -> (radius, z))]: a ring of NS verts per row, quads between."""
+        rings = []
+        for k, fn in enumerate(rows):
+            ring = []
+            for j in range(NS):
+                ph = 2.0 * math.pi * j / NS
+                r, z = fn(ph)
+                ring.append(bm.verts.new((r * math.cos(ph), r * math.sin(ph), z)))
+            rings.append(ring)
+        for k in range(len(rings) - 1):
+            for j in range(NS):
+                a, b = rings[k][j], rings[k][(j + 1) % NS]
+                c, d = rings[k + 1][(j + 1) % NS], rings[k + 1][j]
+                f = bm.faces.new((a, b, c, d))
+                for lp, (u, v) in zip(f.loops, ((j, k), (j + 1, k), (j + 1, k + 1), (j, k + 1))):
+                    lp[uv].uv = (u / NS * 8.0, v / len(rings) * 2.0)
+        return rings
+
+    # the body: from just inside the cuff up over the crown, its ribs fading out where they gather
+    zs = [0.2 + (H - 0.2) * (1.0 - math.cos(0.5 * math.pi * i / 40)) for i in range(41)]
+
+    def body(z):
+        t = min(z / H, 0.9999)
+        sc = (1.0 - t ** 2.3) ** (1.0 / 2.3)
+        fade = 1.0 - max(0.0, min(1.0, (t - 0.72) / 0.22))
+
+        def f(ph):
+            r = ell(ph) * sc * lump(ph, z) + 0.11 * fade * math.cos(RIBS * ph) * (0.3 + 0.7 * sc)
+            return max(r, 0.05), z
+        return f
+    rings = grid([body(z) for z in zs[:-1]])
+    top = bm.verts.new((0.0, 0.0, H))
+    for j in range(NS):
+        bm.faces.new((rings[-1][j], rings[-1][(j + 1) % NS], top))
+
+    # the cuff rolled up once: its fold at the bottom rounded, the outer layer ribbed, its top edge tucked to the body
+    prof = [(0.15, 0.35), (0.55, -0.12), (0.95, 0.2), (1.08, 0.75), (1.1, 2.2), (1.08, 3.8), (1.0, C - 0.55), (0.75, C - 0.05), (0.3, C + 0.1)]
+
+    def cuffrow(dr, z):
+        def f(ph):
+            rib = 0.14 * math.cos(RIBS * ph) if 0.6 <= dr else 0.05 * math.cos(RIBS * ph)
+            return ell(ph) * lump(ph, z) + dr + rib, z
+        return f
+    grid([cuffrow(dr, z) for dr, z in prof])
+    ob = obj_from_bm('Kessler_Cap', bm)
+    for pg in ob.data.polygons:
+        pg.use_smooth = True
+    set_mat(ob, 'wool')
+    return ob
+
+
 def build():
     clear()
-    return [lantern(), lantern_flame(), rifle()]
+    return [lantern(), lantern_flame(), rifle(), cap()]
 
 
 if __name__ == '__main__':
