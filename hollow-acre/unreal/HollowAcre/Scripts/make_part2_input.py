@@ -44,7 +44,7 @@ def run():
             if (a.get_name(), k) not in have:
                 imc.map_key(a, key(k))
     for a in (crouch, light, use, imc):
-        eal.save_loaded_asset(a)
+        eal.save_loaded_asset(a, only_if_is_dirty=False)     # (map_key doesn't mark the mapping set changed)
     log('made IA_Crouch, IA_Flashlight, IA_Interact, IMC_Part2 (%d mappings)' % len(imc.get_editor_property('default_key_mappings').get_editor_property('mappings')))
 
 
