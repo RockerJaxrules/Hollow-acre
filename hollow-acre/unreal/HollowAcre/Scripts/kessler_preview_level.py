@@ -46,9 +46,32 @@ try:
     bp = unreal.load_class(None, BP + '.BP_Kessler_C')
     if not bp:
         raise RuntimeError('no ' + BP)
+    # (KESSLER_ACTOR=1: the game's own Kessler actor (Source/HollowAcre/Kessler.cpp: his body playing a take, his lantern
+    # and carbine); else the bare MetaHuman blueprint)
+    kact = os.environ.get('KESSLER_ACTOR') and unreal.load_class(None, '/Script/HollowAcre.Kessler')
     for i, yaw in enumerate((90.0, 135.0)):           # (a MetaHuman faces its +Y: yaw 90 turns it to the camera at -X)
+        if kact:
+            a = actors.spawn_actor_from_class(kact, V(0, (i - 0.5) * 140, 0), R(0, yaw + 90.0, 0))
+            if os.environ.get('KESSLER_ANIM'):
+                a.set_editor_property('clip', os.environ['KESSLER_ANIM'])
+            a.set_actor_label('Kessler %d' % i)
+            continue
         a = actors.spawn_actor_from_class(bp, V(0, (i - 0.5) * 140, 0), R(0, yaw, 0))
         a.set_actor_label('Kessler %d' % i)
+        # (KESSLER_ANIM=<clip in /Game/HollowAcre/Kessler/Mocap>: his body plays it, looping; the face, grooms and
+        # clothes follow the body as the MetaHuman blueprint sets them)
+        clip = os.environ.get('KESSLER_ANIM')
+        if clip:
+            anim = unreal.load_asset('/Game/HollowAcre/Kessler/Mocap/' + clip)
+            for c in a.get_components_by_class(unreal.SkeletalMeshComponent):
+                if c.get_name() == 'Body' and anim:
+                    c.set_editor_property('animation_mode', unreal.AnimationMode.ANIMATION_SINGLE_NODE)
+                    data = c.get_editor_property('animation_data')
+                    data.set_editor_property('anim_to_play', anim)
+                    data.set_editor_property('saved_looping', True)
+                    data.set_editor_property('saved_playing', True)
+                    c.set_editor_property('animation_data', data)
+                    log('body plays', clip)
         # his lantern's light: warm, low at his left side
         side = actors.spawn_actor_from_class(unreal.PointLight, V(-10 + 30, (i - 0.5) * 140 - 35, 95))
         side.light_component.set_intensity(120.0)
