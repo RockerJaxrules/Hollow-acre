@@ -56,6 +56,8 @@ r.image_settings.file_format = 'FFMPEG'
 r.ffmpeg.format = 'MPEG4'
 r.ffmpeg.codec = 'H264'
 r.ffmpeg.constant_rate_factor = 'HIGH' if HEIGHT >= 1080 else 'MEDIUM' if HEIGHT >= 720 else 'LOW'   # small copies for the web page
+if os.environ.get('HA_CRF'):        # (e.g. VERYLOW: a long play run small enough for the web page's 20 MB)
+    r.ffmpeg.constant_rate_factor = os.environ['HA_CRF']
 r.ffmpeg.ffmpeg_preset = 'GOOD'
 r.ffmpeg.gopsize = FPS
 r.ffmpeg.audio_codec = 'AAC'

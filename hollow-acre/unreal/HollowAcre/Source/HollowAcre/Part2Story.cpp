@@ -503,7 +503,7 @@ void AP2Story::FurnishShed()
 			FireLight->SetCastShadows(true);
 			// (no ball of glowing fog round it: a point light in the volumetric fog lit a bright blurred disc over the view
 			// whenever it sat just below the eyes; a stove's light barely shows in a room's air)
-			FireLight->SetVolumetricScatteringIntensity(0.08f);
+			FireLight->SetVolumetricScatteringIntensity(0.f);
 			// (the fire's light on its own channel: the room, the floor, the walls, its table take it; the stove's iron doesn't,
 			// so it stays dark with its window glowing)
 			FireLight->SetLightingChannels(false, false, true);
