@@ -1127,7 +1127,7 @@ void AP2Story::TickFire(float Dt)
 		{
 			if (MatchFlameMID)
 			{
-				MatchFlameMID->SetScalarParameterValue(TEXT("Intensity"), 30.f * FMath::Min(1.5f, I / 2.2f));
+				MatchFlameMID->SetScalarParameterValue(TEXT("Intensity"), 9.f * FMath::Min(1.5f, I / 2.2f));
 			}
 		}
 		if (m > 2.2f)
@@ -1172,11 +1172,11 @@ void AP2Story::TickFire(float Dt)
 		Flames->SetVisibility(Catch > 0.02f);
 		// (bright enough to read through the door, no brighter: at 14 its bloom spread an orange blur over the lower view
 		// whenever the stove sat at the edge of the frame)
-		FlameMID->SetScalarParameterValue(TEXT("Intensity"), 4.5f * Catch * Lick * FMath::Square(Fu));
+		FlameMID->SetScalarParameterValue(TEXT("Intensity"), 1.4f * Catch * Lick * FMath::Square(Fu));   // (now drawn: non-Nanite)
 	}
 	if (FireCoal)
 	{
-		FireCoal->SetVectorParameterValue(TEXT("Glow"), FLinearColor(1.f, 0.3f, 0.05f) * (3.5f * Catch * (0.85f + 0.15f * FMath::Sin(Clock * 1.7f))));
+		FireCoal->SetVectorParameterValue(TEXT("Glow"), FLinearColor(1.f, 0.3f, 0.05f) * (1.6f * Catch * (0.85f + 0.15f * FMath::Sin(Clock * 1.7f))));
 	}
 	if (FireBox)
 	{
