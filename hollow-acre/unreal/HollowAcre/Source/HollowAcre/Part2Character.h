@@ -172,6 +172,19 @@ protected:
 	FPostProcessSettings BaseGrade;
 	void ShowCold(float Dt);
 	float ShiverT = 0.f;
+	// the breath in the cold: each breath out a puff of vapour from under the eyes, drifting out and up and spreading
+	// thin, seen where a light catches it (the beam, the fire); quicker and heavier winded; none by a lit fire
+	void UpdateBreath(float Dt);
+	float BreathT = 1.5f;
+	struct FPuff
+	{
+		TWeakObjectPtr<UStaticMeshComponent> C;
+		TWeakObjectPtr<class UMaterialInstanceDynamic> M;
+		FVector V;
+		float Age, Life, R0, R1, Peak;
+		bool bOut;
+	};
+	TArray<FPuff> Puffs;
 	float AimDist = 3000.f, NearSmoothed = 3000.f;
 	TWeakObjectPtr<class AEndingDirector> Director;
 	void ReportNoise(float Carries);

@@ -289,7 +289,12 @@ void AP2Story::FurnishShed()
 		UE_LOG(LogTemp, Warning, TEXT("P2Story: no tool shed in the camp"));
 		return;
 	}
-	UMaterialInterface* Wood = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Town/Materials/M_Town_Barewood.M_Town_Barewood"));
+	// (indoors: the same weathered boards with no snow settled on them)
+	UMaterialInterface* Wood = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Town/Materials/M_Town_Drywood.M_Town_Drywood"));
+	if (!Wood)
+	{
+		Wood = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Town/Materials/M_Town_Barewood.M_Town_Barewood"));
+	}
 	UStaticMesh* Cube = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"));
 	// (its inside: the dark behind its boards made boards too, seen from inside by the flashlight)
 	UStaticMeshComponent* Sm = Shed->GetStaticMeshComponent();
@@ -329,8 +334,7 @@ void AP2Story::FurnishShed()
 	const float Lift = G - T.GetLocation().Z;
 	if (Cube)
 	{
-		// a plank floor (cube: 1 m)
-		Piece(GetWorld(), Cube, FTransform(R, FVector(At(-185.f, 0.f, 0.f).X, At(-185.f, 0.f, 0.f).Y, G + 2.f), FVector(3.5f, 3.5f, 0.04f)), Wood);
+		// (its plank floor is the shed's own now: make_town.py lays it board by board)
 		// a work table against the back wall: a thick plank top on four legs
 		const float Tz = G + 76.f;
 		Piece(GetWorld(), Cube, FTransform(R, FVector(At(-318.f, 40.f, 0.f).X, At(-318.f, 40.f, 0.f).Y, Tz), FVector(0.62f, 1.3f, 0.045f)), Wood);

@@ -29,6 +29,7 @@ GEN = os.path.join(HERE, '..', 'HollowAcre', 'Saved', 'Generated')
 FT = 30.48          # cm in a foot
 IN = 2.54
 UV_CM = 200.0       # cm of surface per UV unit (the scans are 2 x 2 m)
+GRAIN_V = {'barewood', 'drywood'}   # (scans whose planks run up the picture (V); the painted planks and cladding run across it (U))
 
 
 def rot(yaw=0.0, pitch=0.0, roll=0.0):
@@ -101,6 +102,12 @@ class Mesh:
         if jitter:
             R = R @ rot(self.r.gauss(0, jitter), self.r.gauss(0, jitter * 0.3), self.r.gauss(0, jitter * 0.5))
         c = (a + b) / 2 + n * thick / 2 - n * droop
+        if mat in GRAIN_V:
+            # (a scan whose planks stand upright in the picture: the board turned in its own plane so the picture's
+            # grain runs down its length, not across it; across it every board read as a stack of square tiles)
+            R = np.stack([R[:, 1], -R[:, 0], R[:, 2]], 1)
+            self.box(mat, c, (width, L, thick), R)
+            return
         self.box(mat, c, (L, width, thick), R)
 
     def write(self, path):
@@ -618,6 +625,34 @@ def cabin(name, seed, W=4.9, D=6.1, H=7.0, pitch=40.0, collapsed=False):
     return m
 
 
+def inner_frame(m, walls, girts=(32.0, 112.0, 192.0)):
+    """What a board shed shows from inside (photographs of old board-and-batten sheds and barns from inside): the
+    backs of its boards nailed to horizontal girts, 2 x 4s flat across the wall every 80 cm or so, a post in each
+    corner and a header over the door; light in the cracks between the boards."""
+    for wall in walls.values():
+        for z in girts:
+            # (the girt in runs: broken where a door or window is cut through the wall)
+            runs, a = [], 4.0
+            for o in sorted(wall.openings):
+                if o[2] - 2 < z < o[3] + 2:
+                    if o[0] > a + 10:
+                        runs.append((a, o[0] - 4))
+                    a = max(a, o[1] + 4)
+            if wall.length - 4 > a + 10:
+                runs.append((a, wall.length - 4))
+            for a0, a1 in runs:
+                if z > min(wall.top(a0), wall.top(a1)) - 12:
+                    continue
+                m.board('drywood', wall.P(a0, z - 4.5, -4.0), wall.P(a1, z - 4.5, -4.0), 9.0, 4.0, wall.n, jitter=0.12)
+        for a in (5.0, wall.length - 5.0):
+            m.board('drywood', wall.P(a, 0, -9.0), wall.P(a, wall.top(a) - 3, -9.0), 9.0, 9.0, wall.n, jitter=0.05)
+        for o in wall.openings:
+            # (the door's frame: its two studs and the header across its top)
+            for a in (o[0] - 4.5, o[1] + 4.5):
+                m.board('drywood', wall.P(a, 0, -4.0), wall.P(a, wall.top(a) - 3, -4.0), 9.0, 4.0, wall.n, jitter=0.05)
+            m.board('drywood', wall.P(o[0] - 9, o[3] + 4.5, -4.0), wall.P(o[1] + 9, o[3] + 4.5, -4.0), 9.0, 4.0, wall.n, jitter=0.1)
+
+
 def shed(name, seed, W=3.7, D=3.7, H=7.5):
     """A shed of boards under a rusted corrugated-iron shed roof, its door hanging."""
     m = Mesh(seed)
@@ -628,6 +663,14 @@ def shed(name, seed, W=3.7, D=3.7, H=7.5):
         w.no_dark = True                         # (its inside is real: moonlight through the gaps in its boards)
     door(m, walls['front'], W / 2 - 45, 90, 6.2 * FT, state='open')
     finish_walls(m, walls, 'bb', 'bb', 0.025)    # (a few boards gone: thin cracks of night, not missing walls)
+    inner_frame(m, walls)
+    # its floor: boards front to back on sleepers, a finger's gap between them, one split and one short by the door
+    y = -W / 2 + 2
+    while y < W / 2 - 4:
+        bw = min(m.r.uniform(13.5, 17.0), W / 2 - 2 - y)
+        x0 = -2.0 - (m.r.uniform(15, 40) if m.r.random() < 0.08 else 0.0)
+        m.board('drywood', np.array([x0, y + bw / 2, 1.5]), np.array([-D + 2.0, y + bw / 2, 1.5]), bw - 0.7, 3.0, (0, 0, 1), jitter=0.05)
+        y += bw
     pts = [np.array([25, -W / 2 - 15, H + 10]), np.array([25, W / 2 + 15, H + 10]), np.array([-D - 25, W / 2 + 15, H - 40]), np.array([-D - 25, -W / 2 - 15, H - 40])]
     m.poly('tin', pts, face=(0, 0, 1))
     m.poly('barewood', [p - np.array([0, 0, 3]) for p in pts], face=(0, 0, -1))

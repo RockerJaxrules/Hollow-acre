@@ -10,6 +10,7 @@
 #include "EndingDirector.h"
 #include "Husk.h"
 #include "Kismet/GameplayStatics.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
@@ -430,7 +431,7 @@ void APart2Character::ApplyLight()
 	// the old bulb browning out as the batteries die
 	const float Dim = Battery > 0.12f ? 1.f : FMath::Max(0.f, Battery / 0.12f) * (0.75f + 0.25f * FMath::Sin(GetWorld() ? GetWorld()->GetTimeSeconds() * 9.f : 0.f));
 	// (eased off on what is close in front of it: within ~3 m of the eyes, down to a third at arm's length)
-	const float Near = FMath::Clamp(NearSmoothed / 300.f, 0.32f, 1.f);
+	const float Near = FMath::Clamp((NearSmoothed - 40.f) / 420.f, 0.14f, 1.f);
 	float Cd = bFlashlightOn ? BeamCd * Dim * Near : 0.f;
 	if (GetWorld() && GetWorld()->GetTimeSeconds() < StutterUntil)
 	{
@@ -509,6 +510,12 @@ void APart2Character::TakeOverFrom(const FTransform& EyeWorld, ADriverArms* InAr
 	Camera->PostProcessSettings.AutoExposureSpeedUp = 4.f;
 	Camera->PostProcessSettings.bOverride_MotionBlurAmount = true;
 	Camera->PostProcessSettings.MotionBlurAmount = 0.f;
+	// (exposed for the brightest fifth of the picture, as a torch-lit scene is: a face in the beam keeps its eyes and
+	// skin instead of blowing out against the dark around it)
+	Camera->PostProcessSettings.bOverride_AutoExposureLowPercent = true;
+	Camera->PostProcessSettings.AutoExposureLowPercent = 80.f;
+	Camera->PostProcessSettings.bOverride_AutoExposureHighPercent = true;
+	Camera->PostProcessSettings.AutoExposureHighPercent = 99.f;
 	Camera->PostProcessSettings.bOverride_AutoExposureSpeedDown = true;
 	Camera->PostProcessSettings.AutoExposureSpeedDown = 1.5f;
 	Arms = InArms;
@@ -571,7 +578,10 @@ void APart2Character::UpdateBody(float Dt)
 	}
 	const FVector Side = FVector::CrossProduct(FVector::UpVector, Hf).GetSafeNormal();
 	const FQuat Tip(Side, FMath::DegreesToRadians(4.f + (bIsCrouched ? 18.f : 0.f)));
-	Arms->FreeChest = Arms->ChestForEye(FTransform(FRotationMatrix::MakeFromXZ(Tip.RotateVector(Hf), Tip.RotateVector(FVector::UpVector)).ToQuat(), Eye.GetLocation()));
+	// (looking down, the body slips back under the eyes, so the chest and shoulders don't fill the bottom of the view)
+	const float Down = FMath::Clamp(-Eye.GetRotation().GetAxisX().Z / 0.8f, 0.f, 1.f);
+	const FVector EyeFor = Eye.GetLocation() - Hf * (28.f * Down) + FVector(0.f, 0.f, 6.f * Down);
+	Arms->FreeChest = Arms->ChestForEye(FTransform(FRotationMatrix::MakeFromXZ(Tip.RotateVector(Hf), Tip.RotateVector(FVector::UpVector)).ToQuat(), EyeFor));
 	// the flashlight held at the chest, low and to the right, its beam on what the eyes look at, swaying behind them and
 	// with the steps
 	const float Speed = GetVelocity().Size2D();
@@ -639,15 +649,28 @@ void APart2Character::UpdateBody(float Dt)
 		if (GetWorld()->LineTraceSingleByChannel(Hit, E, E + L * 3000.f, ECC_Visibility, Q))
 		{
 			AimDist = Hit.Distance;
-			if (Hit.Distance > 150.f)
-			{
-				AimAt = Me.InverseTransformPosition(Hit.ImpactPoint);
-			}
+			// (close things too: a table looked down at, the matches on it; the hand turns the light in to the point the
+			// eyes are on, not nearer than a short arm's reach along the gaze, where the wrist can still turn it)
+			AimAt = Me.InverseTransformPosition(Hit.Distance > 150.f ? Hit.ImpactPoint : E + L * FMath::Max(Hit.Distance, 85.f));
 		}
 		else if (L.Z > -0.12f)
 		{
 			// (nothing near along the gaze: the light where it looks, far, a little low)
 			AimAt = Me.InverseTransformPosition(E + L * 1500.f - FVector(0.f, 0.f, 120.f));
+		}
+		// (a husk standing in the beam counts too: it has no collision for the trace to meet)
+		for (TActorIterator<AHusk> It(GetWorld()); It; ++It)
+		{
+			if (It->IsHidden())
+			{
+				continue;
+			}
+			const FVector Hc = It->GetActorLocation() + FVector(0.f, 0.f, 120.f * It->GetActorScale3D().Z);
+			const FVector Th = Hc - E;
+			if (Th.Size() < AimDist && FVector::DotProduct(Th.GetSafeNormal(), L) > FMath::Cos(FMath::DegreesToRadians(18.f)))
+			{
+				AimDist = Th.Size();
+			}
 		}
 	}
 	const FVector AimDir = (AimAt - HoldAt).GetSafeNormal();
@@ -761,6 +784,7 @@ void APart2Character::Tick(float DeltaSeconds)
 	{
 		UpdateFocus();
 		ShowCold(DeltaSeconds);
+		UpdateBreath(DeltaSeconds);
 		static const bool bStoryAuto = FParse::Param(FCommandLine::Get(), TEXT("p2story"));
 		if (bStoryAuto && Controller)
 		{
@@ -1189,5 +1213,115 @@ void APart2Character::ShowCold(float Dt)
 		ShiverT += Dt;
 		const float K = Cold * Cold;
 		Camera->SetRelativeRotation(FRotator(0.35f * K * FMath::Sin(ShiverT * 37.f), 0.25f * K * FMath::Sin(ShiverT * 29.f + 1.f), 0.3f * K * FMath::Sin(ShiverT * 41.f + 2.f)));
+	}
+}
+
+void APart2Character::UpdateBreath(float Dt)
+{
+	static UStaticMesh* Ball = nullptr;
+	static UMaterialInterface* Vapour = nullptr;
+	if (!Ball)
+	{
+		Ball = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+		Vapour = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Materials/Play/M_Breath.M_Breath"));
+		if (Ball)
+		{
+			Ball->AddToRoot();
+		}
+		if (Vapour)
+		{
+			Vapour->AddToRoot();
+		}
+	}
+	if (!Camera)
+	{
+		return;
+	}
+	const FVector Fw = Camera->GetForwardVector(), Up = Camera->GetUpVector(), Rt = Camera->GetRightVector();
+	// (from the mouth: a hand under the eyes, a little in front of them)
+	const FVector Mouth = Camera->GetComponentLocation() + Fw * 12.f - Up * 11.f;
+	const bool bHard = bWinded || Stamina < 0.5f || bRunning;
+	BreathT -= Dt;
+	if (BreathT <= 0.f)
+	{
+		// (a breath at rest every 3.5-4 s; hard, every 1.4 s)
+		BreathT = (bHard ? 1.4f : 3.7f) * FMath::FRandRange(0.85f, 1.15f);
+		bool bWarmAir = bDead || !Ball || !Vapour;
+		for (TActorIterator<AP2Story> It(GetWorld()); It && !bWarmAir; ++It)
+		{
+			bWarmAir = It->IsNearFire(GetActorLocation());
+		}
+		if (!bWarmAir)
+		{
+			const float Heavy = bHard ? 1.45f : 1.f;
+			for (int32 i = 0; i < 5; ++i)
+			{
+				UStaticMeshComponent* C = NewObject<UStaticMeshComponent>(this);
+				C->SetStaticMesh(Ball);
+				UMaterialInstanceDynamic* M = UMaterialInstanceDynamic::Create(Vapour, C);
+				M->SetScalarParameterValue(TEXT("Opacity"), 0.f);
+				C->SetMaterial(0, M);
+				C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				C->SetCastShadow(false);
+				C->SetMobility(EComponentMobility::Movable);
+				C->SetLightingChannels(true, true, true);
+				C->SetVisibility(false);
+				C->SetWorldScale3D(FVector(0.04f));
+				C->RegisterComponent();
+				FPuff P;
+				P.C = C;
+				P.M = M;
+				// (out and a little down at first, as breath leaves the mouth; spread a little)
+				P.V = (Fw * FMath::FRandRange(38.f, 55.f) - Up * FMath::FRandRange(2.f, 9.f) + Rt * FMath::FRandRange(-7.f, 7.f)) * Heavy;
+				P.Age = -0.13f * i;                          // (the breath out takes ~0.6 s: its puffs one after another)
+				P.Life = FMath::FRandRange(1.5f, 2.1f) * (bHard ? 0.85f : 1.f);
+				P.R0 = FMath::FRandRange(2.5f, 4.f);
+				P.R1 = FMath::FRandRange(17.f, 26.f) * Heavy;
+				P.Peak = FMath::FRandRange(0.16f, 0.24f) * (bHard ? 1.25f : 1.f);
+				P.bOut = false;
+				Puffs.Add(P);
+			}
+		}
+	}
+	for (int32 i = Puffs.Num() - 1; i >= 0; --i)
+	{
+		FPuff& P = Puffs[i];
+		UStaticMeshComponent* C = P.C.Get();
+		if (!C)
+		{
+			Puffs.RemoveAtSwap(i);
+			continue;
+		}
+		P.Age += Dt;
+		if (P.Age < 0.f)
+		{
+			continue;
+		}
+		if (!P.bOut)
+		{
+			// (it leaves the mouth where the mouth is now: the head may have turned since the breath began)
+			P.bOut = true;
+			C->SetWorldLocation(Mouth);
+			C->SetVisibility(true);
+		}
+		if (P.Age > P.Life)
+		{
+			C->DestroyComponent();
+			Puffs.RemoveAtSwap(i);
+			continue;
+		}
+		// (slowed by the air, the warm vapour rising, a drift on the wind)
+		P.V *= FMath::Max(0.f, 1.f - 1.6f * Dt);
+		P.V.Z += 9.f * Dt;
+		P.V += FVector(2.5f, 1.5f, 0.f) * Dt;
+		C->SetWorldLocation(C->GetComponentLocation() + P.V * Dt);
+		const float K = P.Age / P.Life;
+		const float R = FMath::Lerp(P.R0, P.R1, 1.f - FMath::Exp(-P.Age * 2.2f));
+		C->SetWorldScale3D(FVector(R / 50.f));
+		const float In = FMath::SmoothStep(0.f, 0.12f, P.Age);
+		if (UMaterialInstanceDynamic* M = P.M.Get())
+		{
+			M->SetScalarParameterValue(TEXT("Opacity"), P.Peak * In * FMath::Pow(1.f - K, 1.6f));
+		}
 	}
 }
