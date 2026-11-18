@@ -120,6 +120,10 @@ protected:
 public:
 	/** The stove lit, and this point near enough to it to be warmed. */
 	bool IsNearFire(const FVector& P) const;
+	/** The window beat: seconds since it began (-1 before), and the point in the window's gap where its hand comes in. */
+	float WindowT() const { return WindowAt < 0.f ? -1.f : Clock - WindowAt; }
+	FVector WindowPoint() const { return WindowGap; }
+	bool WindowHandIn() const { return WindowHusk != nullptr && WindowReach > 0.3f; }
 protected:
 	bool bHasMatches = false;
 	bool bStoveLit = false;
@@ -132,6 +136,16 @@ protected:
 	TObjectPtr<class USpotLightComponent> DoorSpill;
 	UPROPERTY()
 	TObjectPtr<class UMaterialInstanceDynamic> FireGlow;
+	UPROPERTY()
+	TObjectPtr<class UMaterialInstanceDynamic> FireBox;
+	UPROPERTY()
+	TObjectPtr<class UMaterialInstanceDynamic> FireCoal;
+	UPROPERTY()
+	TObjectPtr<class UMaterialInstanceDynamic> StoveHeat;
+	UPROPERTY()
+	TObjectPtr<class UMaterialInstanceDynamic> FlameMID;
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> Flames;
 	UPROPERTY()
 	TObjectPtr<class UPointLightComponent> MatchLight;
 	UPROPERTY()
@@ -147,4 +161,12 @@ protected:
 	float GroundAt(const FVector& At) const;
 	void Beats(float Dt);
 	void TickCrosser(float Dt);
+	// the window (later, by the fire): a scrape along the back wall, another, then its hand through the gap in the
+	// boarded window over the bench, feeling along the inside of the boards; the light on it and it is gone
+	void BeginWindow();
+	void TickWindow(float Dt);
+	UPROPERTY()
+	TObjectPtr<AHusk> WindowHusk;
+	float WindowAt = -1.f, WindowGoneAt = -1.f, WindowReach = 0.f;
+	FVector WindowGap = FVector::ZeroVector, WindowIn = FVector::ZeroVector, WindowSide = FVector::ZeroVector;
 };

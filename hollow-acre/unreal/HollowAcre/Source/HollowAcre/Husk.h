@@ -125,6 +125,10 @@ public:
 	/** A layer on top of its clip: its spine, neck and head bent down toward what is in front of it (0 none, 1 about 85
 	 *  degrees through them all), and its head tilted over (degrees): to bring its face down to a windshield, peering. */
 	float PeerDown = 0.f, PeerTilt = 0.f, PeerMaxDeg = 85.f;
+	/** An arm reaching to a point (world): weight 0..1 per arm (0 its left, 1 its right), its elbow low and out, the hand
+	 *  turned with the forearm (through a gap in boards, along a sill, feeling). */
+	FVector ReachAt[2] = {FVector::ZeroVector, FVector::ZeroVector};
+	float ReachW[2] = {0.f, 0.f};
 
 	/** Its eyes on its prey, on top of its clip (as The Quarry's werewolves and Until Dawn's wendigos never look away from
 	 *  who they are after): its neck and head turned so its face points at GlareAt (world), GlareW of the way (0 off), at
@@ -219,6 +223,7 @@ private:
 	FVector ClipFacing = FVector::ZeroVector;      // which way it faces in its clip (component space; 0: its mesh's own way)
 	void BendToPeer();
 	void Glare();
+	void Reach();
 	FVector HeadFwdLocal = FVector::ZeroVector;
 	void Hang(const FVector& Facing, const FVector& Side);
 	float SurfaceIn(const TArray<class UPrimitiveComponent*>& Parts, const FVector& Dir, const class UMaterialInterface* Skip, int32 Limb,

@@ -27,6 +27,7 @@ SURF = {  # material slot -> (Megascans folder, UV scale for a 2 m UV unit, tint
     'paintwood': ('flaky_painted_wooden_planks', 2.0, (1.0, 1.0, 1.0), False),     # (a 1 x 1 m scan)
     'barewood': ('weathered_wooden_planks', 1.0, (0.92, 0.9, 0.88), False),
     'drywood': ('weathered_wooden_planks', 1.0, (0.8, 0.76, 0.72), False),            # (indoors: no snow on it)
+    'dryrust': ('rusty_metal_sheet', 1.0, (0.9, 0.9, 0.9), False),                     # (indoors: tools, cans)
     'cladding': ('wooden_cladding', 1.0, (0.9, 0.88, 0.85), False),
     'shingles': ('wooden_roof_shingles', 1.0, (0.85, 0.84, 0.83), False),
     'tin': ('rusty_corrugated_metal', 1.0, (1.0, 1.0, 1.0), True),
@@ -173,7 +174,7 @@ try:
     if not levels.load_level(MAP):
         raise RuntimeError('could not load ' + MAP)
     data = json.load(open(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_saved_dir() + 'Generated/town.json')))
-    mats = {slot: surface_mat(slot, f, sc, tn, mt, snowy=slot not in ('snow', 'drywood')) for slot, (f, sc, tn, mt) in SURF.items()}
+    mats = {slot: surface_mat(slot, f, sc, tn, mt, snowy=slot not in ('snow', 'drywood', 'dryrust')) for slot, (f, sc, tn, mt) in SURF.items()}
     mats['glass'] = simple_mat('M_Town_Glass', (0.05, 0.06, 0.06), 0.12, opacity=0.5, spec=1.0)
     mats['shards'] = simple_mat('M_Town_Shards', (0.07, 0.08, 0.08), 0.08, opacity=0.6, spec=1.0)
     mats['dark'] = simple_mat('M_Town_Dark', (0.004, 0.004, 0.004), 1.0, spec=0.0)

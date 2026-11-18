@@ -256,13 +256,20 @@ def window(m, wall, a0, z0, w, h, state='broken', panes=(2, 2), trimmat='paintwo
     m.board(trimmat, wall.P(a0 + w + t / 2, z0 - 4, 2), wall.P(a0 + w + t / 2, z0 + h + t, 2), t, 2.5, wall.n)
     m.board(trimmat, wall.P(a0 - t, z0 + h + t / 2, 2), wall.P(a0 + w + t, z0 + h + t / 2, 2), t, 2.5, wall.n)
     m.box(trimmat, wall.P(a0 + w / 2, z0 - 2, 4), (w + 2 * t + 6, 4.0, 4.0), np.stack([wall.u, wall.n, wall.w], 1))
-    # the dark room behind it
-    m.poly('dark', [wall.P(a0, z0, -30), wall.P(a0 + w, z0, -30), wall.P(a0 + w, z0 + h, -30), wall.P(a0, z0 + h, -30)])
+    # the dark room behind it (none where the room is real: the shed)
+    if not getattr(wall, 'no_dark', False):
+        m.poly('dark', [wall.P(a0, z0, -30), wall.P(a0 + w, z0, -30), wall.P(a0 + w, z0 + h, -30), wall.P(a0, z0 + h, -30)])
     for side in (wall.u, -wall.u):
         pass
     # the jambs (the wall's thickness inside the opening)
     for a in (a0, a0 + w):
         m.poly('barewood', [wall.P(a, z0, 2), wall.P(a, z0, -12), wall.P(a, z0 + h, -12), wall.P(a, z0 + h, 2)], two=True)
+    if state == 'boarded_gap':
+        # (boarded over, a hand's width left open between the boards across its middle: the night through it)
+        for zc, ang, bw in ((z0 + 11.0, -4.0, 22.0), (z0 + h - 12.0, 5.0, 21.0), (z0 + h * 0.5 - 15.0, -9.0, 9.0)):
+            dz = math.tan(math.radians(ang)) * (w + 20) / 2
+            m.board('barewood', wall.P(a0 - 10, zc - dz, 5), wall.P(a0 + w + 10, zc + dz, 5), bw, 2.2, wall.n, jitter=0.15)
+        return
     if state == 'boarded':
         n = m.r.randint(3, 4)
         for i in range(n):
@@ -625,6 +632,80 @@ def cabin(name, seed, W=4.9, D=6.1, H=7.0, pitch=40.0, collapsed=False):
     return m
 
 
+def cyl(m, mat, base, r, h, n=12, top=True):
+    """An upright cylinder (a can, a jar, a lantern's fount): its foot's centre at base, radius r, height h."""
+    b = np.asarray(base, float)
+    ring = [np.array([math.cos(2 * math.pi * k / n), math.sin(2 * math.pi * k / n), 0.0]) * r for k in range(n)]
+    for k in range(n):
+        p0, p1 = b + ring[k], b + ring[(k + 1) % n]
+        m.poly(mat, [p0, p1, p1 + np.array([0, 0, h]), p0 + np.array([0, 0, h])],
+               uvs=[(k / n * 2 * math.pi * r / UV_CM, 0), ((k + 1) / n * 2 * math.pi * r / UV_CM, 0),
+                    ((k + 1) / n * 2 * math.pi * r / UV_CM, h / UV_CM), (k / n * 2 * math.pi * r / UV_CM, h / UV_CM)])
+    if top:
+        m.poly(mat, [b + np.array([0, 0, h]) + q for q in ring], face=(0, 0, 1))
+
+
+def shed_clutter(m, W, D):
+    """What a mine camp's tool shed keeps (photographs of old miners' tool sheds and blacksmith shops): shelves on the
+    wall with cans and jars, a dead lantern; the long tools leaning in a corner, a pick, a shovel, an axe; a saw on a nail;
+    an empty wood box by the stove; a crate. In the shed's own frame (the front wall at x 0, the back at -D)."""
+    r = m.r
+    hw = W / 2
+    # two shelves along the right wall (y = +hw) on iron brackets, at 135 and 172 cm, from 1.2 m to 3.0 m back
+    for z in (135.0, 172.0):
+        m.board('drywood', np.array([-120.0, hw - 15.0, z]), np.array([-300.0, hw - 15.0, z]), 26.0, 2.5, (0, 0, 1), jitter=0.05)
+        for x in (-140.0, -210.0, -280.0):
+            m.box('dryrust', (x, hw - 6.0, z - 9.0), (2.0, 10.0, 16.0))
+    # on them: coffee and tobacco cans, jars, a lantern (its glass sooted), a box
+    spots = [(-132, 135, 'can'), (-146, 135, 'can'), (-163, 135, 'jar'), (-190, 135, 'box'), (-228, 135, 'can'), (-243, 135, 'jar'),
+             (-262, 135, 'can'), (-286, 135, 'can'), (-138, 172, 'lantern'), (-176, 172, 'jar'), (-196, 172, 'jar'), (-230, 172, 'box'),
+             (-268, 172, 'can')]
+    for x, z, kind in spots:
+        y = hw - 15.0 + r.uniform(-4, 4)
+        zb = z + 1.25
+        if kind == 'can':
+            cyl(m, 'dryrust', (x, y, zb), r.uniform(4.5, 6.5), r.uniform(11, 17))
+        elif kind == 'jar':
+            cyl(m, 'glass', (x, y, zb), r.uniform(4.0, 5.0), r.uniform(12, 16), n=10)
+            cyl(m, 'dryrust', (x, y, zb + 12.0), 4.2, 2.0, n=10)
+        elif kind == 'box':
+            m.box('drywood', (x, y, zb + 7.0), (r.uniform(16, 24), 18.0, 14.0), rot(r.uniform(-10, 10)))
+        else:
+            # a kerosene hurricane lantern: its fount, the globe, the frame's wires and top, its bail
+            cyl(m, 'dryrust', (x, y, zb), 7.5, 7.0)
+            cyl(m, 'glass', (x, y, zb + 7.0), 6.0, 14.0, n=12)
+            for k in range(4):
+                a_ = math.pi / 2 * k + 0.4
+                m.box('dryrust', (x + math.cos(a_) * 7.0, y + math.sin(a_) * 7.0, zb + 14.0), (0.8, 0.8, 16.0))
+            cyl(m, 'dryrust', (x, y, zb + 21.0), 5.0, 4.0)
+    # the long tools in the front right corner, leaning against the wall: a shovel, a pick, an axe
+    def lean(foot, head_at, mat, w, t):
+        m.board(mat, np.asarray(foot, float), np.asarray(head_at, float), w, t, (1, 0, 0), jitter=0.0)
+    lean((-18, hw - 22, 0), (-12, hw - 4, 138), 'drywood', 3.6, 3.6)               # the shovel's handle
+    m.box('dryrust', (-19, hw - 23, 16), (2.0, 22.0, 30.0), rot(0, 0, -7.5))          # its blade, foot down
+    lean((-38, hw - 26, 0), (-36, hw - 5, 92), 'drywood', 4.0, 3.2)                 # the pick's handle, head up
+    m.box('dryrust', (-36.5, hw - 6, 95), (52.0, 4.0, 4.0), rot(5, 0, 0))             # its head across
+    lean((-56, hw - 24, 0), (-52, hw - 5, 80), 'drywood', 3.4, 2.6)                 # the axe's handle
+    m.box('dryrust', (-52, hw - 7, 78), (3.0, 16.0, 11.0), rot(0, 0, -10))           # its head
+    # a hand saw on a nail on the left wall, near the door
+    m.box('dryrust', (-70.0, -hw + 3.0, 150.0), (60.0, 0.4, 14.0), rot(0, 0, 6))
+    m.box('drywood', (-36.0, -hw + 3.5, 152.0), (12.0, 2.4, 12.0))
+    # the wood box by the stove: empty, a few chips and bark in it
+    bx, by = -150.0, -hw + 30.0                 # (clear of the stove's open door and of the way to it)
+    for (cx, cy, sx, sy) in ((bx, by - 25, 60, 2.2), (bx, by + 25, 60, 2.2), (bx - 30, by, 2.2, 50), (bx + 30, by, 2.2, 50)):
+        m.box('drywood', (cx, cy, 20.0), (sx, sy, 36.0))
+    m.box('drywood', (bx, by, 3.5), (60.0, 52.0, 2.0))
+    for k in range(6):
+        m.box('drywood', (bx + r.uniform(-22, 22), by + r.uniform(-18, 18), 5.0), (r.uniform(3, 7), r.uniform(1, 3), 0.8), rot(r.uniform(0, 180)))
+    # a crate under the shelves
+    cx, cy = -170.0, hw - 30.0
+    for z0 in (2.0, 16.0, 30.0):
+        for s_ in (-1, 1):
+            m.board('drywood', np.array([cx - 28, cy + s_ * 22, z0]), np.array([cx + 28, cy + s_ * 22, z0]), 12.0, 1.8, (0, s_, 0), jitter=0.2)
+            m.board('drywood', np.array([cx + s_ * 28, cy - 22, z0]), np.array([cx + s_ * 28, cy + 22, z0]), 12.0, 1.8, (s_, 0, 0), jitter=0.2)
+    m.box('drywood', (cx, cy, 43.0), (58.0, 46.0, 2.0), rot(4))
+
+
 def inner_frame(m, walls, girts=(32.0, 112.0, 192.0)):
     """What a board shed shows from inside (photographs of old board-and-batten sheds and barns from inside): the
     backs of its boards nailed to horizontal girts, 2 x 4s flat across the wall every 80 cm or so, a post in each
@@ -662,8 +743,11 @@ def shed(name, seed, W=3.7, D=3.7, H=7.5):
     for w in walls.values():
         w.no_dark = True                         # (its inside is real: moonlight through the gaps in its boards)
     door(m, walls['front'], W / 2 - 45, 90, 6.7 * FT, state='open')      # (tall enough to walk in standing on its floor)
+    # its one window, over the bench on the back wall, boarded with a gap (the journal's "It stood at the window")
+    window(m, walls['back'], 108.0, 118.0, 76.0, 62.0, state='boarded_gap', trimmat='barewood')
     finish_walls(m, walls, 'bb', 'bb', 0.025)    # (a few boards gone: thin cracks of night, not missing walls)
     inner_frame(m, walls)
+    shed_clutter(m, W, D)
     # its floor: boards front to back on sleepers, a finger's gap between them, one split and one short by the door
     y = -W / 2 + 2
     while y < W / 2 - 4:

@@ -80,6 +80,20 @@ and the brief) scores it out of 10 against: scary, realistic, readable, beautifu
   The sleeves: folds in the cloth (rings bunched above the cuff, a fan of creases inside the elbow, long folds down the
   upper arm) from a height in the reference pose turned to a normal by its screen derivatives (Mikkelsen's surface
   gradient), the valleys darker; the hoodie looser on the arm.
+- Round 6 (5/10, scary 6) to 7: the match lights the room and the stove strongly and the hand holding it gently (two
+  lights on separate lighting channels; at full strength on the arm the sleeve burned out to a yellow blob); the fire's
+  light spills out of the doorway onto the snow (a spot from the back of the room through the door, flickering with
+  the fire), so the passing husk is lit warm from the front and throws its shadow, and it passes slower with a longer
+  stop; the eyes adapt slowly to the dark (Auto Exposure's speed down 1.5 to 0.35 stops a second). The stove made a
+  real stove: its fuel door open on its hinge, the mouth cut in the belly (faces taken out of the turned shell; a
+  boolean on the closed belly cut only a blind pocket), a sooted firebox inside, a grate, split logs on a bed of coals,
+  flames on crossed cards (M_Flame: a Custom node licks and tapers each flame from its UVs and the time), its iron
+  heating to a dull red over the first minute (M_HotIron, blotchy). The shed kept as a mine camp's tool shed is: shelves
+  of cans, jars and a dead hurricane lantern on brackets; a shovel, a pick and an axe leaning in the corner; a saw on a
+  nail; an empty wood box by the stove (the reason to go out for wood); a crate. Its window over the bench, boarded with
+  a hand's gap. The window beat (Part2Story BeginWindow/TickWindow): later by the fire, a scrape along the back wall,
+  another, its breath; its hand in through the gap (AHusk::Reach, a two-bone reach on its code-animated arm), feeling
+  along the boards; the light on it and it pulls back with a growl ("It knows I'm in here.").
 - Round 4 to 5: the snow no longer falls indoors (Snowfall's NoSnow boxes: the shed's inside); the stove beat (a big
   box of kitchen matches, the match's flame on the hand, the stove watched as it catches, then the flashlight off and
   the fire the only light); while waiting by the fire it passes outside the doorway and turns its head to the light;

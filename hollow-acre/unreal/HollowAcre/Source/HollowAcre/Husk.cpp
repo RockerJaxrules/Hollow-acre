@@ -1034,6 +1034,40 @@ void AHusk::CopyPose()
 	Shown->RefreshBoneTransforms();
 	BendToPeer();
 	Glare();
+	Reach();
+}
+
+void AHusk::Reach()
+{
+	if (!Shown || !Shown->GetSkinnedAsset())
+	{
+		return;
+	}
+	for (int32 L = 0; L < 2; ++L)
+	{
+		const float W = FMath::Clamp(ReachW[L], 0.f, 1.f);
+		if (W <= 0.001f || Chain[L][0] == INDEX_NONE || Chain[L][1] == INDEX_NONE || Chain[L][2] == INDEX_NONE)
+		{
+			continue;
+		}
+		FTransform A = Shown->GetBoneTransform(Chain[L][0]), B = Shown->GetBoneTransform(Chain[L][1]), C = Shown->GetBoneTransform(Chain[L][2]);
+		const FVector Target = FMath::Lerp(C.GetLocation(), ReachAt[L], W);
+		// (the elbow low and out to its side: an arm put through a gap at chest height from a stoop)
+		const FVector Side = (A.GetLocation() - Shown->GetComponentLocation()).GetSafeNormal2D();
+		const FVector JointTarget = 0.5f * (A.GetLocation() + Target) + Side * 45.f - FVector(0.f, 0.f, 40.f);
+		const FVector HandWas = C.GetLocation() - B.GetLocation();
+		AnimationCore::SolveTwoBoneIK(A, B, C, JointTarget, Target, false, 1.f, 1.f);
+		// (the hand turned with the forearm, its wrist bent as the take bent it, not left pointing where the take's arm was)
+		const FVector Fore = (C.GetLocation() - B.GetLocation()).GetSafeNormal();
+		if (!HandWas.IsNearlyZero() && !Fore.IsNearlyZero())
+		{
+			const FQuat Turn = FQuat::FindBetweenNormals(HandWas.GetSafeNormal(), Fore);
+			C.SetRotation(FQuat::Slerp(C.GetRotation(), Turn * C.GetRotation(), W).GetNormalized());
+		}
+		SetCS(Chain[L][0], A);
+		SetCS(Chain[L][1], B);
+		SetCS(Chain[L][2], C);
+	}
 }
 
 void AHusk::BendToPeer()

@@ -5,7 +5,8 @@ the bottom, laid on the moments the game logs ("CrashEvent <time> <kind> <value>
 - the husk hunting (HuskHunter.cpp): its heavy steps in the snow, quieter with distance (value: cm); its gallop when it
   charges; its breath when it stalks near; the shriek as it charges (the crash's torn human shriek: a demon shriek, a man's
   scream through a torn throat, growls under it, de-squealed); at the catch a scream at the ear, then nothing;
-- a heartbeat felt more than heard, rising with the director's menace gauge (value: 0-100).
+- a heartbeat felt more than heard, rising with the director's menace gauge (value: 0-100);
+- at the shed's window: the boards creaking and dragged under its hand (scrape), its growl as the light finds it (husk_hiss).
 No voices from the player (captions only). Every sound a real recording (SourceArt/Audio/Recorded, CC0, SOURCES.md).
 
 Run: python make_play_audio.py <unreal log> <length s> <out.wav> [<decoded recordings>]
@@ -35,6 +36,8 @@ CLICKS = 'aftermath/aftermath_engine_cooling_metal_click_613135'
 DRONE = 'score_strings/score_strings_cellos_droning_509535'
 SNAPS = 'wood/wood_branches_snapping_369986'
 HISS = 'aftermath/aftermath_steam_hiss_bursts_438640'
+CREAK = 'wood/wood_big_tree_fall_creak_494071'
+GROWL = 'creature_extra/creature_extra_human_aggressive_growls_257358'
 
 
 def onsets(name, n, dur=0.35, seed=1):
@@ -146,6 +149,15 @@ def play(ev, total):
             roar = C.steady(W.WIND_IN, total - t + 1.0, skip=3.0)
             roar = C.filt(roar, A.lp(400))
             M.bed(C.level(roar, 0.012), t, total, [(t, 0.0), (t + 4.0, 1.0), (total, 1.0)])
+        elif k == 'scrape':
+            # along the shed's back wall from outside: boards creaking under a weight leant on them, a dry drag of nails
+            # (claws) over the wood; close, through the boards
+            cr = C.pitch(C.loudest(CREAK, 1.3, pre=0.05), 1.35)
+            M.at(t, C.verb(C.sumc(C.level(cr, 0.05), C.level(C.pitch(C.loudest(WOOD_CRACK, 0.5, pre=0.01), 1.6), 0.015)), 0.5, 0.15), 1.0)
+        elif k == 'husk_hiss':
+            # the light on its hand: a low torn growl through the boards as it pulls back, and the strings' stab
+            M.at(t, C.verb(C.level(C.pitch(C.loudest(GROWL, 1.1, pre=0.03), 0.72), 0.09), 0.6, 0.2), 1.0)
+            M.at(t - 0.04, C.level(C.loudest(STING_SCARE, 1.4, pre=0.03), 0.05), 1.0)
         elif k == 'headlight_dies':
             M.at(t - 2.8, C.level(C.loudest(CLICKS, 3.0, pre=0.1), 0.02), 1.0)
         elif k == 'husk_kill':

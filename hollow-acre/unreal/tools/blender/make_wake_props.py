@@ -366,9 +366,9 @@ def stove():
     stood up (Z up); its front (the door) toward +X; its origin on the floor at its middle."""
     import mathutils
     belly = [(12.0, 0.0), (12.0, 22.0), (13.5, 23.5), (16.0, 24.0), (28.0, 24.0), (29.0, 25.0), (31.0, 25.0), (32.0, 23.0),
-             (36.0, 23.5), (45.0, 25.5), (55.0, 26.0), (65.0, 25.0), (74.0, 22.5), (80.0, 20.5), (82.0, 21.5), (84.0, 21.5),
+             (36.0, 23.5), (44.5, 25.4), (53.0, 25.9), (61.5, 25.4), (65.0, 25.0), (74.0, 22.5), (80.0, 20.5), (82.0, 21.5), (84.0, 21.5),
              (85.0, 20.0), (92.0, 19.0), (98.0, 16.0), (102.0, 12.0), (104.0, 9.5), (106.0, 9.0), (115.0, 8.6), (115.0, 0.0)]
-    body = lathe('st_body', belly, 'castiron', segs=40)
+    body = lathe('st_body', belly, 'heat', segs=40)          # (its belly's iron: dull red when the fire is high)
     trim = lathe('st_trim', [(28.5, 25.4), (31.5, 25.4), (31.6, 0.0)], 'nickel', segs=40, cap0=False)
     trim2 = lathe('st_trim2', [(81.5, 21.9), (84.5, 21.9), (84.6, 0.0)], 'nickel', segs=40, cap0=False)
     pipe = lathe('st_pipe', [(115.0, 7.6), (260.0, 7.6), (260.0, 0.0)], 'pipe', segs=24, cap0=False)
@@ -385,18 +385,81 @@ def stove():
         leg.data.transform(mathutils.Matrix.Translation((math.cos(a) * 19.0, math.sin(a) * 19.0, 6.6)) @
                            mathutils.Matrix.Rotation(a, 4, 'Z') @ mathutils.Matrix.Rotation(math.radians(14.0), 4, 'Y'))
         parts.append(leg)
-    # the fuel door on the belly's front: a curved iron panel, its mica window (glowing when the fire is lit), hinge, latch
+    # the fuel door's mouth cut in the belly's front (the fire seen through it: a stove is fed and drawn with its door open)
+    # (a hole in the belly's shell, its faces between the rings at 44.5 and 61.5 cm within 20 degrees of the front taken
+    # out; a boolean on the closed belly cut only a blind pocket with an iron back to it)
+    bm = bmesh.new()
+    bm.from_mesh(body.data)
+    gone = [f for f in bm.faces if 44.5 < f.calc_center_median().z < 61.5 and f.calc_center_median().x > 0 and
+            abs(math.degrees(math.atan2(f.calc_center_median().y, f.calc_center_median().x))) < 20.0]
+    bmesh.ops.delete(bm, geom=gone, context='FACES')
+    bm.to_mesh(body.data)
+    bm.free()
+    # its frame: a cast lip round the mouth
+    lip = [rounded_box('st_lip_t', (3.4, 21.0, 2.2), 0.6, 'castiron', at=(25.3, 0.0, 62.4)),
+           rounded_box('st_lip_b', (3.4, 21.0, 2.2), 0.6, 'castiron', at=(25.3, 0.0, 43.6)),
+           rounded_box('st_lip_l', (3.4, 2.2, 19.0), 0.6, 'castiron', at=(24.9, -9.0, 53.0)),
+           rounded_box('st_lip_r', (3.4, 2.2, 19.0), 0.6, 'castiron', at=(24.9, 9.0, 53.0))]
+    # the firebox inside: the belly's inside, sooted, seen through the mouth (a closed turned shell, its faces turned in)
+    box = lathe('st_firebox', [(23.0, 0.0), (23.0, 21.0), (36.0, 22.0), (45.0, 24.0), (55.0, 24.5), (65.0, 23.5), (74.0, 21.0),
+                               (80.0, 19.0), (80.0, 0.0)], 'glow_box', segs=32, cap0=False, cap1=False)
+    box.data.transform(rot)                     # (turned about X like the belly: stood up)
+    bm = bmesh.new()
+    bm.from_mesh(box.data)
+    bmesh.ops.reverse_faces(bm, faces=bm.faces[:])
+    bm.to_mesh(box.data)
+    bm.free()
+    # the fire on its grate (just under the mouth, so the coals show over its lip): two split logs burning across it, the
+    # bed of coals under them
+    rnd = random.Random(41)
+    logs = []
+    for k, (y0, ang) in enumerate(((-3.0, 18.0), (4.0, -14.0))):
+        lg = lathe('st_log%d' % k, [(-13.0, 0.0), (-13.0, 3.4), (13.0, 3.1), (13.0, 0.0)], 'char', segs=10)
+        lg.data.transform(mathutils.Matrix.Translation((2.0, y0, 43.0 + 3.0 * k)) @ mathutils.Matrix.Rotation(math.radians(90.0 + ang), 4, 'Z'))
+        logs.append(lg)
+    grate = [rounded_box('st_grate%d' % k, (36.0, 1.4, 1.4), 0.3, 'char', at=(0.0, -12.0 + 4.0 * k, 37.6), segs=1) for k in range(7)]
+    coals = []
+    for k in range(14):
+        a_ = rnd.uniform(0.0, 2.0 * math.pi)
+        r_ = rnd.uniform(0.0, 14.0)
+        sz = rnd.uniform(2.2, 4.2)
+        coals.append(rounded_box('st_coal%d' % k, (sz, sz * rnd.uniform(0.7, 1.1), sz * 0.6), sz * 0.25, 'glow_coal',
+                                 at=(math.cos(a_) * r_, math.sin(a_) * r_, 39.0 + rnd.uniform(0.0, 1.5)), segs=1))
+    # the fuel door, open on its hinge (swung out to the left, as it is left to draw the fire up): its mica window, latch
     door = rounded_box('st_door', (2.2, 22.0, 20.0), 0.8, 'castiron', at=(25.6, 0.0, 52.0))
     mica = rounded_box('st_mica', (0.6, 9.0, 7.0), 0.2, 'glow', at=(26.8, 0.0, 54.0))
-    hinge = rounded_box('st_hinge', (2.0, 2.0, 16.0), 0.5, 'nickel', at=(26.0, -11.5, 52.0))
     latch = rounded_box('st_latch', (3.0, 5.0, 1.6), 0.5, 'nickel', at=(27.2, 9.0, 52.0))
+    swing = (mathutils.Matrix.Translation((26.7, -11.5, 0.0)) @ mathutils.Matrix.Rotation(math.radians(-105.0), 4, 'Z') @
+             mathutils.Matrix.Translation((-26.7, 11.5, 0.0)))
+    for ob_ in (door, mica, latch):
+        ob_.data.transform(swing)
+    hinge = rounded_box('st_hinge', (2.0, 2.0, 16.0), 0.5, 'nickel', at=(26.0, -11.5, 52.0))
     ash = rounded_box('st_ashdoor', (1.6, 16.0, 7.0), 0.5, 'castiron', at=(24.4, 0.0, 19.0))
     lid = lathe('st_lid', [(0.0, 0.0), (0.0, 9.5), (1.4, 9.5), (1.4, 0.0)], 'castiron', segs=28)
     lid.data.transform(mathutils.Matrix.Translation((0.0, 0.0, 99.0)) @ mathutils.Matrix.Rotation(math.radians(-90.0), 4, 'Y'))
-    parts += [door, mica, hinge, latch, ash, lid]
+    parts += [door, mica, hinge, latch, ash, lid, box] + lip + logs + coals + grate
     ob = join('Wake_Stove', parts)
     smooth(ob, 40.0)
     box_uv(ob, 30.0)
+    return ob
+
+
+def stove_flames():
+    """The stove's flames: three crossed cards over its fire (the stove's own frame: its origin on the floor at its middle),
+    each 15 wide and 24 tall from the logs up, UVs u across and v up from the flames' foot, for M_Flame (its shape, its
+    licking, its brightness all drawn by the material)."""
+    bm = bmesh.new()
+    uv = bm.loops.layers.uv.new()
+    for k in range(3):
+        a = math.radians(60.0 * k + 10.0)
+        d = Vector((math.cos(a), math.sin(a), 0.0))
+        c = Vector((2.0, 0.0, 41.0))
+        vs = [bm.verts.new(c - d * 7.5), bm.verts.new(c + d * 7.5), bm.verts.new(c + d * 7.5 + Vector((0, 0, 24.0))), bm.verts.new(c - d * 7.5 + Vector((0, 0, 24.0)))]
+        f = bm.faces.new(vs)
+        for lp, (u, v) in zip(f.loops, ((0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0))):
+            lp[uv].uv = (u, v)
+    ob = obj_from_bm('Wake_StoveFlames', bm)
+    set_mat(ob, 'flame')
     return ob
 
 
@@ -414,7 +477,7 @@ def main():
     clear()
     os.makedirs(OUT, exist_ok=True)
     made = [flashlight(), manual(), papers(), snow('Wake_SnowSlab', (46.0, 30.0, 14.0), 7), snow('Wake_SnowLump', (16.0, 14.0, 11.0), 11, 0.4),
-            buckle(), latch(), strap(), cassette(), coin(), pen(), stove(), matchbox()] + [pebble('Wake_Pebble%d' % i, 31 + i) for i in range(4)]
+            buckle(), latch(), strap(), cassette(), coin(), pen(), stove(), stove_flames(), matchbox()] + [pebble('Wake_Pebble%d' % i, 31 + i) for i in range(4)]
     for ob in made:
         write_obj(ob, os.path.join(OUT, ob.name + '.obj'))
 

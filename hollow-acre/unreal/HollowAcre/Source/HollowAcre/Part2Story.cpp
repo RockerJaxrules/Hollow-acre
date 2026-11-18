@@ -430,11 +430,24 @@ void AP2Story::FurnishShed()
 			for (int32 Slot = 0; Slot < Sc->GetNumMaterials(); ++Slot)
 			{
 				const FString N = Sn.IsValidIndex(Slot) ? Sn[Slot].ToString() : FString();
+				// (its firebox's sooted inside, the coals on its grate, its mica window: each glowing with the fire, dark cold)
 				if (N.StartsWith(TEXT("glow")) && GlowM)
 				{
-					FireGlow = UMaterialInstanceDynamic::Create(GlowM, Sc);
-					Sc->SetMaterial(Slot, FireGlow);
+					UMaterialInstanceDynamic* Gl = UMaterialInstanceDynamic::Create(GlowM, Sc);
+					Gl->SetVectorParameterValue(TEXT("Glow"), FLinearColor::Black);
+					Sc->SetMaterial(Slot, Gl);
+					(N.StartsWith(TEXT("glow_box")) ? FireBox : N.StartsWith(TEXT("glow_coal")) ? FireCoal : FireGlow) = Gl;
 					continue;
+				}
+				// (its belly's iron, heating to a dull red as the fire burns high)
+				if (N.StartsWith(TEXT("heat")))
+				{
+					if (UMaterialInterface* Hm = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Materials/Play/M_HotIron.M_HotIron")))
+					{
+						StoveHeat = UMaterialInstanceDynamic::Create(Hm, Sc);
+						Sc->SetMaterial(Slot, StoveHeat);
+						continue;
+					}
 				}
 				if (!Part2)
 				{
@@ -443,12 +456,31 @@ void AP2Story::FurnishShed()
 				UMaterialInstanceDynamic* D = UMaterialInstanceDynamic::Create(Part2, Sc);
 				Sc->SetMaterial(Slot, D);
 				const bool bNickel = N.StartsWith(TEXT("nickel")), bPipe = N.StartsWith(TEXT("pipe"));
-				D->SetVectorParameterValue(TEXT("Color"), bNickel ? FLinearColor(0.28f, 0.27f, 0.25f) : bPipe ? FLinearColor(0.05f, 0.035f, 0.028f) : FLinearColor(0.018f, 0.017f, 0.017f));
-				D->SetScalarParameterValue(TEXT("Metallic"), bNickel ? 0.9f : 0.55f);
-				D->SetScalarParameterValue(TEXT("Roughness"), bNickel ? 0.45f : bPipe ? 0.85f : 0.68f);
+				const bool bChar = N.StartsWith(TEXT("char"));
+				D->SetVectorParameterValue(TEXT("Color"), bNickel ? FLinearColor(0.28f, 0.27f, 0.25f) : bPipe ? FLinearColor(0.05f, 0.035f, 0.028f) :
+					bChar ? FLinearColor(0.012f, 0.01f, 0.009f) : FLinearColor(0.018f, 0.017f, 0.017f));
+				D->SetScalarParameterValue(TEXT("Metallic"), bNickel ? 0.9f : bChar ? 0.f : 0.55f);
+				D->SetScalarParameterValue(TEXT("Roughness"), bNickel ? 0.45f : bPipe ? 0.85f : bChar ? 0.95f : 0.68f);
 			}
 			Sc->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 			Sc->SetCollisionResponseToAllChannels(ECR_Block);
+			// its flames: crossed cards over the logs, drawn by M_Flame; nothing until it is lit
+			if (UStaticMesh* Fm = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Wake_StoveFlames.Wake_StoveFlames")))
+			{
+				Flames = NewObject<UStaticMeshComponent>(St, TEXT("Flames"));
+				Flames->SetStaticMesh(Fm);
+				Flames->SetupAttachment(Sc);
+				Flames->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				Flames->SetCastShadow(false);
+				if (UMaterialInterface* Fl = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Materials/Play/M_Flame.M_Flame")))
+				{
+					FlameMID = UMaterialInstanceDynamic::Create(Fl, Flames);
+					FlameMID->SetScalarParameterValue(TEXT("Intensity"), 0.f);
+					Flames->SetMaterial(0, FlameMID);
+				}
+				Flames->SetVisibility(false);
+				Flames->RegisterComponent();
+			}
 			St->SetActorLabel(TEXT("Stove"));
 			UP2UseComponent* Us = NewObject<UP2UseComponent>(St, TEXT("Use"));
 			Us->Id = TEXT("stove");
@@ -808,6 +840,10 @@ void AP2Story::Beats(float Dt)
 		Say(TEXT("It's still out there."), 0.f, 3.f);
 		SetObjective(TEXT("Wait for morning"));
 	}
+	if (PassAt > 0.f && Clock - PassAt > 21.f && Once(TEXT("window")))
+	{
+		BeginWindow();
+	}
 	// after it has gone from the doorway: the cold (the stove, if they haven't lit it)
 	if (Hunter && Done.Contains(TEXT("husk_shriek")) && (Hunter->State == AHuskHunter::EState::Away || Hunter->State == AHuskHunter::EState::Retreat) && !bStoveLit && Once(TEXT("cold")))
 	{
@@ -853,6 +889,7 @@ void AP2Story::Tick(float DeltaSeconds)
 	const float Dt = FMath::Min(DeltaSeconds, 0.1f);
 	Clock += Dt;
 	Beats(Dt);
+	TickWindow(Dt);
 	TickFire(Dt);
 	TickCrosser(Dt);
 	TickSift(Dt);
@@ -993,5 +1030,130 @@ void AP2Story::TickFire(float Dt)
 	if (FireGlow)
 	{
 		FireGlow->SetVectorParameterValue(TEXT("Glow"), FLinearColor(1.f, 0.38f, 0.08f) * (6.f * Catch * Fl));
+	}
+	// (through its open door: the flames licking up over the logs, the coals glowing under them, the sooted inside lit
+	// orange by them; the belly's iron slowly coming to a dull red as it burns on)
+	const float Lick = 0.75f + 0.15f * FMath::Sin(Clock * 6.1f) + 0.1f * FMath::Sin(Clock * 13.7f + 0.5f);
+	if (Flames && FlameMID)
+	{
+		Flames->SetVisibility(Catch > 0.02f);
+		FlameMID->SetScalarParameterValue(TEXT("Intensity"), 14.f * Catch * Lick);
+	}
+	if (FireCoal)
+	{
+		FireCoal->SetVectorParameterValue(TEXT("Glow"), FLinearColor(1.f, 0.3f, 0.05f) * (9.f * Catch * (0.85f + 0.15f * FMath::Sin(Clock * 1.7f))));
+	}
+	if (FireBox)
+	{
+		FireBox->SetVectorParameterValue(TEXT("Glow"), FLinearColor(1.f, 0.36f, 0.08f) * (0.9f * Catch * Fl));
+	}
+	if (StoveHeat)
+	{
+		const float Hot = FMath::Clamp((s - 6.f) / 40.f, 0.f, 1.f);
+		StoveHeat->SetVectorParameterValue(TEXT("Heat"), FLinearColor(1.f, 0.12f, 0.02f) * (0.35f * Hot * Hot * Fl));
+	}
+}
+
+void AP2Story::BeginWindow()
+{
+	AActor* Shed = nullptr;
+	for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
+	{
+		if (It->GetActorLabel() == TEXT("Town Shed"))
+		{
+			Shed = *It;
+		}
+	}
+	if (!Shed)
+	{
+		return;
+	}
+	const FTransform T = Shed->GetActorTransform();
+	// (the window over the bench on the back wall (make_town.py shed(): 76 x 62 cm, its foot 118 cm up, boarded with a gap
+	// across its middle at about 149 cm); it stands outside, a stride back from the wall, facing in)
+	WindowGap = T.TransformPosition(FVector(-372.f, 39.f, 149.f));
+	WindowIn = T.TransformVector(FVector(1.f, 0.f, 0.f)).GetSafeNormal();
+	WindowSide = T.TransformVector(FVector(0.f, 1.f, 0.f)).GetSafeNormal();
+	FVector P = T.TransformPosition(FVector(-372.f - 62.f, 39.f, 0.f));
+	P.Z = GroundAt(P);
+	FActorSpawnParameters Sp;
+	Sp.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	WindowHusk = GetWorld()->SpawnActor<AHusk>(AHusk::StaticClass(), FTransform(P), Sp);
+	if (!WindowHusk || !WindowHusk->Setup())
+	{
+		return;
+	}
+	WindowHusk->SetActorScale3D(FVector(HuskScale));
+	WindowHusk->Play(TEXT("Stalk"), true);
+	if (WindowHusk->GetBody())
+	{
+		WindowHusk->GetBody()->SetPlayRate(0.05f);
+	}
+	const float Yaw = WindowIn.Rotation().Yaw;
+	WindowHusk->SetActorLocationAndRotation(P, FRotator(0.f, Yaw, 0.f).Quaternion() * FRotator(0.f, -WindowHusk->MeshForwardYaw(), 0.f).Quaternion());
+	WindowHusk->PeerDown = 0.18f;
+	WindowHusk->JawOpen = 4.f;
+	TArray<UPrimitiveComponent*> Ps;
+	WindowHusk->GetComponents<UPrimitiveComponent>(Ps);
+	for (UPrimitiveComponent* Pc : Ps)
+	{
+		Pc->SetLightingChannels(true, true, true);
+		Pc->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	WindowAt = Clock;
+	WindowGoneAt = -1.f;
+	WindowReach = 0.f;
+	Event(TEXT("scrape"));
+	UE_LOG(LogTemp, Display, TEXT("P2Story %.2f beat: the window (it stands at the back wall; its hand through the gap at %s)"), Clock, *WindowGap.ToCompactString());
+}
+
+void AP2Story::TickWindow(float Dt)
+{
+	if (WindowAt < 0.f || !WindowHusk)
+	{
+		return;
+	}
+	const float W = Clock - WindowAt;
+	if (W > 1.8f && W - Dt <= 1.8f)
+	{
+		Event(TEXT("scrape"));
+	}
+	if (W > 0.9f && W - Dt <= 0.9f)
+	{
+		if (Director)
+		{
+			Director->LogEvent(TEXT("husk_breath"), 140.f);
+		}
+	}
+	// the light on its hand (the flashlight on and the beam on the window), or long enough: it pulls back and goes
+	const bool bLit = Player.IsValid() && Player->IsLightOn() && FVector::DotProduct(Player->LookDir(), (WindowGap - Player->EyesAt()).GetSafeNormal()) > FMath::Cos(FMath::DegreesToRadians(14.f));
+	if (WindowGoneAt < 0.f && W > 3.4f && (bLit || W > 10.f))
+	{
+		WindowGoneAt = Clock;
+		Event(bLit ? TEXT("husk_hiss") : TEXT("scrape"));
+		Say(TEXT("It knows I'm in here."), 1.6f, 3.f);
+	}
+	// its reach: in through the gap after the second scrape, slow, then feeling along the boards; out fast when lit
+	float Want = W < 2.6f ? 0.f : FMath::Min(1.f, (W - 2.6f) / 1.1f);
+	if (WindowGoneAt > 0.f)
+	{
+		Want = 0.f;
+	}
+	WindowReach = FMath::FInterpTo(WindowReach, Want, Dt, WindowGoneAt > 0.f ? 14.f : 3.f);
+	const float Feel = FMath::Clamp(W - 3.7f, 0.f, 99.f);
+	const FVector Into = WindowGap + WindowIn * (22.f + 9.f * FMath::Sin(Feel * 0.9f)) + WindowSide * (13.f * FMath::Sin(Feel * 1.25f)) +
+		FVector(0.f, 0.f, 2.5f * FMath::Sin(Feel * 2.3f) - 4.f);
+	WindowHusk->ReachAt[1] = Into;
+	WindowHusk->ReachW[1] = FMath::SmoothStep(0.f, 1.f, WindowReach);
+	if (Player.IsValid())
+	{
+		WindowHusk->GlareAt = Player->EyesAt();
+		WindowHusk->GlareW = FMath::FInterpTo(WindowHusk->GlareW, WindowGoneAt > 0.f ? 0.f : 0.7f, Dt, 2.f);
+	}
+	if (WindowGoneAt > 0.f && Clock - WindowGoneAt > 1.4f)
+	{
+		WindowHusk->Destroy();
+		WindowHusk = nullptr;
+		UE_LOG(LogTemp, Display, TEXT("P2Story %.2f beat: the window, gone (%s)"), Clock, W > 10.f ? TEXT("in its own time") : TEXT("the light on it"));
 	}
 }

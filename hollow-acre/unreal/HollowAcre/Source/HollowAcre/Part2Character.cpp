@@ -1104,16 +1104,24 @@ void APart2Character::StoryAutopilot(float Dt)
 		case 8:      // the matches beside her journal
 		case 10:     // the stove in the corner
 		{
-			const TCHAR* Want = StoryStep == 8 ? TEXT("Matches") : TEXT("Stove");
+			// (found by what it is for, its use's id, not by an editor label)
+			const FString Want = StoryStep == 8 ? TEXT("matches") : TEXT("stove");
 			FVector Aim = EyesAt() + LookDir() * 100.f;
-			for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
+			bool bFound = false;
+			for (TObjectIterator<UP2UseComponent> It; It; ++It)
 			{
-				if (It->GetActorLabel() == Want)
+				if (It->GetWorld() == GetWorld() && It->Id == Want && It->GetOwner())
 				{
-					Aim = It->GetActorLocation() + FVector(0.f, 0.f, StoryStep == 8 ? 1.f : 55.f);
+					Aim = It->GetOwner()->GetComponentsBoundingBox().GetCenter() + FVector(0.f, 0.f, StoryStep == 8 ? 0.f : 30.f);
+					bFound = true;
 				}
 			}
 			const FRotator Ta = (Aim - EyesAt()).Rotation();
+			if (StepT <= Dt)
+			{
+				UE_LOG(LogTemp, Display, TEXT("Part2Story auto step %d: to the %s %s at %s, %.0f cm off, pitch %.0f"), StoryStep, *Want, bFound ? TEXT("found") : TEXT("NOT FOUND"),
+					*Aim.ToCompactString(), FVector::Dist(Aim, EyesAt()), Ta.Pitch);
+			}
 			WantYaw = Ta.Yaw;
 			WantPitch = Ta.Pitch;
 			TurnRate = 70.f;
@@ -1167,6 +1175,42 @@ void APart2Character::StoryAutopilot(float Dt)
 			if (StepT > 1.f && !bIsCrouched)
 			{
 				CrouchToggle();
+			}
+			// (a scrape along the back wall: the head round to it)
+			for (TActorIterator<AP2Story> It(GetWorld()); It; ++It)
+			{
+				if (It->WindowT() >= 0.f && It->WindowT() < 10.f)
+				{
+					StoryStep = 12;
+					StepT = 0.f;
+				}
+			}
+			break;
+		}
+		case 12:     // the window: turned to the scraping, still; when its hand comes in, the light on it; then the doorway again
+		{
+			AP2Story* St = nullptr;
+			for (TActorIterator<AP2Story> It(GetWorld()); It; ++It)
+			{
+				St = *It;
+			}
+			const float Wt = St ? St->WindowT() : -1.f;
+			const FRotator Tw = St ? (St->WindowPoint() - EyesAt()).Rotation() : Cr;
+			WantYaw = Tw.Yaw;
+			WantPitch = FMath::Clamp(Tw.Pitch, -20.f, 20.f);
+			TurnRate = Wt < 1.2f ? 30.f : 70.f;
+			if (St && St->WindowHandIn() && Wt > 4.4f && !bFlashlightOn)
+			{
+				FlashlightToggle();
+			}
+			if (Wt > 9.f && bFlashlightOn)
+			{
+				FlashlightToggle();
+			}
+			if (Wt > 10.5f)
+			{
+				StoryStep = 11;
+				StepT = 99.f;
 			}
 			break;
 		}
