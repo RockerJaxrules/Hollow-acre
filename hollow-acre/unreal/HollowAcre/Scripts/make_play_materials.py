@@ -48,7 +48,7 @@ def breath():
     mel.connect_material_expressions(drift, '', pos, 'B')
     nz = mel.create_material_expression(m, unreal.MaterialExpressionNoise, -800, 450)
     # (contrasty: holes and threads in it, wisps rather than a ball; held at 0 below)
-    nz.set_editor_property('scale', 0.14)
+    nz.set_editor_property('scale', 0.45)
     nz.set_editor_property('levels', 4)
     nz.set_editor_property('output_min', -0.9)
     nz.set_editor_property('output_max', 1.3)

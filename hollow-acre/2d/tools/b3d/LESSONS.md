@@ -51,6 +51,7 @@ One line each, concrete and checkable. **[repeated]** = broken again; move it to
 ## Props (mechanical, from the period)
 - Model a period object by the parts that identify its type, not its overall silhouette: a tubular lantern is its tubes goosenecked into the top, its three-tier top and its collared barrel globe (r1 had a lantern outline and read only as "a lantern", 5/10).
 - Every part joins something: a tube that stops in air beside a rim reads as a strap. Route connectors into the parts they feed (curves through bend() corners).
+- Thin parts read as toys when they are thick: bands, straps and levers are flat steel 0.2-0.6 cm thick; build them flat (a wire scaled across its section, a thin band) and only 2-3 mm proud of what they bind.
 - Flat rings (strip metal on edge) and wires are different parts: build bands as closed box-section lathes and wires as curves with a bevel; a wire for a ring reads wavy.
 
 ## Skin

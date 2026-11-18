@@ -713,11 +713,11 @@ void APart2Character::UpdateBody(float Dt)
 	{
 		JoltT += Dt;
 		const float K = JoltK * FMath::Exp(-JoltT * 7.f);
-		Camera->SetRelativeRotation(FRotator(K * 2.2f * FMath::Sin(JoltT * 61.f), K * 1.6f * FMath::Sin(JoltT * 47.f + 1.f), K * 2.6f * FMath::Sin(JoltT * 53.f + 2.f)));
+		JoltRot = FRotator(K * 2.2f * FMath::Sin(JoltT * 61.f), K * 1.6f * FMath::Sin(JoltT * 47.f + 1.f), K * 2.6f * FMath::Sin(JoltT * 53.f + 2.f));
 		if (JoltT > 0.8f)
 		{
 			JoltT = -1.f;
-			Camera->SetRelativeRotation(FRotator::ZeroRotator);
+			JoltRot = FRotator::ZeroRotator;
 		}
 	}
 	// the head bobbing a little with the steps in the snow
@@ -1201,7 +1201,7 @@ void APart2Character::StoryAutopilot(float Dt)
 			WantYaw = Tw.Yaw;
 			WantPitch = FMath::Clamp(Tw.Pitch, -20.f, 20.f);
 			TurnRate = Wt < 1.2f ? 30.f : 70.f;
-			if (St && St->WindowHandIn() && Wt > 4.4f && !bFlashlightOn)
+			if (St && St->WindowHandIn() && Wt > 5.9f && !bFlashlightOn)
 			{
 				FlashlightToggle();
 			}
@@ -1274,7 +1274,20 @@ void APart2Character::ShowCold(float Dt)
 	{
 		ShiverT += Dt;
 		const float K = Cold * Cold;
-		Camera->SetRelativeRotation(FRotator(0.35f * K * FMath::Sin(ShiverT * 37.f), 0.25f * K * FMath::Sin(ShiverT * 29.f + 1.f), 0.3f * K * FMath::Sin(ShiverT * 41.f + 2.f)));
+		ShiverRot = FRotator(0.35f * K * FMath::Sin(ShiverT * 37.f), 0.25f * K * FMath::Sin(ShiverT * 29.f + 1.f), 0.3f * K * FMath::Sin(ShiverT * 41.f + 2.f));
+	}
+	else
+	{
+		ShiverRot = FRotator::ZeroRotator;
+	}
+	// (the shiver and a jolt shake the view only, as an additive offset: set on the camera itself they took the pitch out of
+	// it between view updates, so the hand, the beam and the gaze were worked out for a level head while the screen showed
+	// it looking down; the flashlight rode high and lit the wall above the matches)
+	Camera->ClearAdditiveOffset();
+	const FRotator Shake = JoltRot + ShiverRot;
+	if (!Shake.IsNearlyZero(0.001f))
+	{
+		Camera->AddAdditiveOffset(FTransform(Shake.Quaternion()), 0.f);
 	}
 }
 
@@ -1340,7 +1353,7 @@ void APart2Character::UpdateBreath(float Dt)
 				// (thin wisps, not a cloud: small, faint, gone within a stride; near the eyes they are mostly out of sight)
 				P.R0 = FMath::FRandRange(2.f, 3.f);
 				P.R1 = FMath::FRandRange(9.f, 14.f) * Heavy;
-				P.Peak = FMath::FRandRange(0.08f, 0.13f) * (bHard ? 1.25f : 1.f);
+				P.Peak = FMath::FRandRange(0.06f, 0.1f) * (bHard ? 1.25f : 1.f);
 				P.bOut = false;
 				Puffs.Add(P);
 			}

@@ -172,6 +172,7 @@ protected:
 	FPostProcessSettings BaseGrade;
 	void ShowCold(float Dt);
 	float ShiverT = 0.f;
+	FRotator ShiverRot = FRotator::ZeroRotator, JoltRot = FRotator::ZeroRotator;
 	// the breath in the cold: each breath out a puff of vapour from under the eyes, drifting out and up and spreading
 	// thin, seen where a light catches it (the beam, the fire); quicker and heavier winded; none by a lit fire
 	void UpdateBreath(float Dt);
