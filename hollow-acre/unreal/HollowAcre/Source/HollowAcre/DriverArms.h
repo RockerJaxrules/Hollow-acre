@@ -23,6 +23,7 @@
 
 class UPoseableMeshComponent;
 class USkeletalMesh;
+class UControlRigComponent;
 
 /** One hand vertex for the collision test: its position in up to four bones' reference frames, with weights. */
 struct FHandSkinPoint
@@ -141,6 +142,7 @@ public:
 		float Close = 1.f;                        // how far the fingers are into Shape (0 relaxed)
 		float Open = 0.f;                         // reaching for something: the fingers opened out flat and spread (0..1), over Shape
 		float Stagger = 0.f;                      // closing one after another (index first, little finger last): 0 together .. ~0.4
+		bool bRig = false;                        // the arm solved by Epic's MetaHuman Control Rig (its IK, clavicle, twist), not our two-bone
 		FVector Pole = FVector::ZeroVector;       // the elbow's way (car frame); zero: as at the wheel, turned with the chest; shorter than 1: part way
 	};
 	FFreeHand Free[2];
@@ -161,6 +163,40 @@ public:
 	FTransform HandleInHand(int32 Side) const;
 	/** The hand bone's frame now (car frame). */
 	FTransform HandNow(int32 Side) const;
+	/** The arm as a body moves it (car frame): where the rig's IK puts the elbow for a wrist at Wrist, the pole steering it
+	 *  (as RigSolveArm sets the pole: from the shoulder-wrist midpoint, 40 cm along PoleDirCar). */
+	FVector ElbowFor(int32 Side, const FVector& Shoulder, const FVector& Wrist, const FVector& PoleDirCar) const;
+	/** The pole turned about the shoulder-wrist line, as little as it takes, so the elbow sits Clear cm or more off the
+	 *  floor (bFloorGuard's plane, inside FloorBox); unchanged when it already does. */
+	FVector PoleClearOfFloor(int32 Side, const FVector& Shoulder, const FVector& Wrist, const FVector& Pole, float Clear) const;
+	/** The head, for keeping the arms out of it (and the eyes out of the sleeve): a sphere the arm's bones keep HeadGuardR
+	 *  from (car frame; 0 = off). PoleClearOfFloor keeps the elbow's swing clear of it too. */
+	FVector HeadGuardAt = FVector::ZeroVector;
+	float HeadGuardR = 0.f;
+	/** The eye too (the camera): the arm's bones keep EyeGuardR from it, so no sleeve fills the view (0 = off). */
+	FVector EyeGuardAt = FVector::ZeroVector, EyeGuardFwd = FVector::ForwardVector;
+	float EyeGuardR = 0.f, EyeGuardRSide = 11.f;   // (in view / out of it: below the chin or behind, the arm may pass close)
+	/** How far the arm's bones (shoulder-elbow, elbow-wrist) pass from the head's guard (cm, past its radius; 1e3 = off). */
+	float ArmHeadClear(const FVector& Shoulder, const FVector& Elbow, const FVector& Wrist) const;
+	/** The upper arm's and forearm's lengths (cm). */
+	void ArmLengths(int32 Side, float& Upper, float& Fore) const;
+	/** The wrist's bend for a hand pose with its forearm ending at the wrist from Elbow (degrees): Flex toward the palm (+)
+	 *  or the back of the hand (-); Dev toward the little finger (+, ulnar) or the thumb (-, radial). 0, 0 = the hand in
+	 *  line with the forearm. A relaxed grip sits near Flex -15..-25, Dev +5..+15. */
+	void WristFor(int32 Side, const FVector& Elbow, const FTransform& Hand, float& Flex, float& Dev) const;
+	/** The same for the arm as posed now. */
+	void WristNow(int32 Side, float& Flex, float& Dev) const;
+	/** A hand at Wrist built from its forearm (from Elbow): the wrist bent by Flex and Dev (as WristFor reads them), the palm
+	 *  facing PalmWay as near as the forearm allows. */
+	FTransform HandFromForearm(int32 Side, const FVector& Elbow, const FVector& Wrist, float Flex, float Dev, const FVector& PalmWay) const;
+	/** The other way: a hand pose read as HandFromForearm's terms (Flex, Dev and the palm's way before the bend). */
+	void ForearmParams(int32 Side, const FVector& Elbow, const FTransform& Hand, float& Flex, float& Dev, FVector& PalmWay) const;
+	/** Where the middle of the palm's skin sits in the hand bone's frame. */
+	FVector PalmSkinLocal(int32 Side) const { return PalmSkinL[Side]; }
+	/** The handle (the flashlight's own frame) a hand at Hand grips (car frame). */
+	FTransform HandleFor(int32 Side, const FTransform& Hand) const { return HoldInHand[Side] * Hand; }
+	/** The hand's own axes for a hand bone rotation: along the fingers, the palm's facing, across (index to little finger). */
+	void HandAxes(int32 Side, const FQuat& Rot, FVector& Finger, FVector& Palm, FVector& Across) const;
 	/** The chest (spine_05's frame, car frame) under an eye at Eye (looking along its X), as when sitting. */
 	FTransform ChestForEye(const FTransform& Eye) const { return ChestInEye * Eye; }
 	/** The grip and the hands' shapes are made (the first tick). */
@@ -177,6 +213,11 @@ public:
 	 *  command line for now (-outfit=hoodie -shirt=4f7a3e -pattern=plain|plaid|stripes|dots), the plain green hoodie when
 	 *  none is given (the test outfit). Outfits as Part 1's creator names them (2d/src/custom.js). */
 	void ApplyOutfit();
+	/** The arm on Side solved by the MetaHuman body's own Control Rig (MetaHuman_ControlRig, run on a hidden copy of the
+	 *  body): the hand bone to HandCar, the elbow toward PoleDirCar (car frame); its arm bones copied onto the body,
+	 *  relative to the chest. False if the rig isn't there. Logs how far the solved hand lands from HandCar. */
+	bool RigSolveArm(int32 Side, const FTransform& HandCar, const FVector& PoleDirCar);
+	float RigMiss[2] = {0.f, 0.f};
 	FString OutfitName;
 	/** (checking) Logs every bone whose pose is broken: not finite, or scaled far from 1. */
 	void DumpBadBones(const TCHAR* Why) const;
@@ -197,6 +238,13 @@ private:
 	 *  in M_DriverClothes, following Mesh's pose; cut away over the hands. */
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class USkeletalMeshComponent> Clothes;
+	/** The hidden copy of the body Epic's MetaHuman Control Rig runs on, and the rig. */
+	UPROPERTY()
+	TObjectPtr<class USkeletalMeshComponent> RigBody;
+	UPROPERTY()
+	TObjectPtr<UControlRigComponent> ArmRig;
+	bool bRigReady = false;
+	FTransform RigCtrlOffset[2];
 	UPROPERTY()
 	TObjectPtr<class UMaterialInstanceDynamic> ClothesMID;
 

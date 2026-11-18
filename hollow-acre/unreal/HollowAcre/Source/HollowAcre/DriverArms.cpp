@@ -4,6 +4,8 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Components/PoseableMeshComponent.h"
+#include "ControlRigComponent.h"
+#include "ControlRig.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/SkeletalMesh.h"
@@ -63,6 +65,14 @@ ADriverArms::ADriverArms()
 	// (the blood and dirt decals on the lining project through everything in their box: not onto the body lying on them)
 	Mesh->SetReceivesDecals(false);
 	Clothes->SetReceivesDecals(false);
+	// Epic's MetaHuman body rig, run on a hidden copy of the body: it solves the arms for the keyed poses (RigSolveArm)
+	RigBody = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("RigBody"));
+	RigBody->SetupAttachment(RootComponent);
+	RigBody->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	RigBody->SetVisibility(false);
+	RigBody->SetHiddenInGame(true);
+	ArmRig = CreateDefaultSubobject<UControlRigComponent>(TEXT("ArmRig"));
+	ArmRig->bUpdateRigOnTick = false;
 
 	Left.Clock = -63.f;              // 10 o'clock, the left a little lower
 	Left.BackAngle = 52.f;
@@ -162,6 +172,47 @@ void ADriverArms::ApplyOutfit()
 		ClothesMID->SetScalarParameterValue(TEXT("ArmZ"), 100.f);     // (the arm lies above the hips in the reference pose)
 		ClothesMID->SetScalarParameterValue(TEXT("SleeveD"), Cut);
 	}
+}
+
+bool ADriverArms::RigSolveArm(int32 Side, const FTransform& HandCar, const FVector& PoleDirCar)
+{
+	if (!bRigReady || !ArmRig)
+	{
+		return false;
+	}
+	const TCHAR* Sx = Side == 0 ? TEXT("l") : TEXT("r");
+	// the rig's body stands in its reference pose; ours lies however the scene has it: the hand is carried across relative
+	// to the chest (spine_05), which both share
+	const FTransform MeshRel = Mesh->GetRelativeTransform();
+	const FTransform S5Ours = BoneCS(TEXT("spine_05"));
+	const FTransform S5Rig = ArmRig->GetInitialBoneTransform(TEXT("spine_05"), EControlRigComponentSpace::RigSpace);
+	auto ToRig = [&](const FTransform& Car) { return (Car * MeshRel.Inverse()) * S5Ours.Inverse() * S5Rig; };
+	const FTransform HandRig = ToRig(HandCar);
+	const FVector PoleRig = (S5Rig.GetRotation() * S5Ours.GetRotation().Inverse() * MeshRel.GetRotation().Inverse()).RotateVector(PoleDirCar).GetSafeNormal();
+	const FVector ShRig = ArmRig->GetInitialBoneTransform(FName(*FString::Printf(TEXT("upperarm_%s"), Sx)), EControlRigComponentSpace::RigSpace).GetLocation();
+	ArmRig->SetControlBool(FName(*FString::Printf(TEXT("arm_%s_fk_ik_switch"), Sx)), true);
+	ArmRig->SetControlTransform(FName(*FString::Printf(TEXT("hand_%s_ik_ctrl"), Sx)), RigCtrlOffset[Side] * HandRig, EControlRigComponentSpace::RigSpace);
+	const FVector Mid = (ShRig + HandRig.GetLocation()) * 0.5f;
+	ArmRig->SetControlTransform(FName(*FString::Printf(TEXT("arm_%s_pv_ik_ctrl"), Sx)), FTransform(Mid + PoleRig * 40.f), EControlRigComponentSpace::RigSpace);
+	ArmRig->Update(0.f);
+	// the arm's bones, local to their parents, onto the body (the clavicle down to the hand, the twist bones with them;
+	// the fingers are posed after, as before)
+	for (int32 b = 0; b < Mesh->GetNumBones(); ++b)
+	{
+		const FString Bn = Mesh->GetBoneName(b).ToString();
+		if (!Bn.EndsWith(FString::Printf(TEXT("_%s"), Sx)))
+		{
+			continue;
+		}
+		if (Bn.StartsWith(TEXT("clavicle")) || Bn.StartsWith(TEXT("upperarm")) || Bn.StartsWith(TEXT("lowerarm")) || Bn.Equals(FString::Printf(TEXT("hand_%s"), Sx)))
+		{
+			FTransform L = ArmRig->GetBoneTransform(Mesh->GetBoneName(b), EControlRigComponentSpace::LocalSpace);
+			L.SetScale3D(FVector::OneVector);
+			Mesh->BoneSpaceTransforms[b] = L;
+		}
+	}
+	RigMiss[Side] = (float)FVector::Dist(MeshRel.TransformPosition(BoneCS(FName(*FString::Printf(TEXT("hand_%s"), Sx))).GetLocation()), HandCar.GetLocation());
+	return true;
 }
 
 FVector ADriverArms::ToCS(const FVector& CarPos) const
@@ -1090,6 +1141,26 @@ void ADriverArms::BeginPlay()
 			}
 		}
 		ApplyOutfit();
+		// the rig on the hidden body (its controls' rest offsets from their bones taken now)
+		if (UClass* RigClass = LoadClass<UControlRig>(nullptr, TEXT("/MetaHumanCharacter/Common/MetaHuman_ControlRig.MetaHuman_ControlRig_C")))
+		{
+			RigBody->SetSkeletalMeshAsset(Body);
+			ArmRig->SetControlRigClass(RigClass);
+			ArmRig->AddMappedCompleteSkeletalMesh(RigBody, EControlRigComponentMapDirection::Output);
+			ArmRig->SetBoneInitialTransformsFromSkeletalMesh(Body);
+			ArmRig->Initialize();
+			ArmRig->Update(0.f);
+			for (int32 Side = 0; Side < 2; ++Side)
+			{
+				const TCHAR* Sx = Side == 0 ? TEXT("l") : TEXT("r");
+				const FTransform BoneRest = ArmRig->GetInitialBoneTransform(FName(*FString::Printf(TEXT("hand_%s"), Sx)), EControlRigComponentSpace::RigSpace);
+				const FTransform CtrlRest = ArmRig->GetControlTransform(FName(*FString::Printf(TEXT("hand_%s_ik_ctrl"), Sx)), EControlRigComponentSpace::RigSpace);
+				RigCtrlOffset[Side] = CtrlRest * BoneRest.Inverse();
+			}
+			bRigReady = ArmRig->GetControlRig() != nullptr;
+			UE_LOG(LogTemp, Display, TEXT("DriverArms: MetaHuman Control Rig %s (right hand control's offset from its bone: %s)"),
+				bRigReady ? TEXT("ready") : TEXT("FAILED"), *RigCtrlOffset[1].ToString());
+		}
 		UE_LOG(LogTemp, Display, TEXT("DriverArms: dressed (%s)"), ClothesMID ? *OutfitName : TEXT("no clothes material"));
 		// (checking: -wakenoclothes / -wakenoskin draw only one of the two layers)
 		if (FParse::Param(FCommandLine::Get(), TEXT("wakenoclothes")))

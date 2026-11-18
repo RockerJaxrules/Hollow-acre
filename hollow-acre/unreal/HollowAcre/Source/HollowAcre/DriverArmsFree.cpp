@@ -261,7 +261,7 @@ void ADriverArms::MakeShapes()
 				const FVector X = -Ac;
 				FVector Z = TipOf() - C;
 				Z = (Z - X * FVector::DotProduct(Z, X)).GetSafeNormal();
-				const FTransform HoldCS(FRotationMatrix::MakeFromXZ(X, Z).ToQuat(), C - X * 12.5f);
+				const FTransform HoldCS(FRotationMatrix::MakeFromXZ(X, Z).ToQuat(), C - X * 15.5f);   // (15.5 cm up from the tail: the tail shows below the little finger)
 				HoldInHand[Side] = HoldCS * Ht.Inverse();
 			}
 			UE_LOG(LogTemp, Display, TEXT("DriverArms: %s hand round a %.1f cm handle: closest finger skin %.2f cm from it, the thumb's tip %.2f cm"),
@@ -373,6 +373,11 @@ void ADriverArms::FreeFollow()
 			Mesh->BoneSpaceTransforms[T.Key] = GripPose[T.Key];   // (each pass twists from the start again)
 		}
 		const FQuat HandRot = FQuat::Slerp(HangRot, F.Hand.GetRotation(), e);
+		const FVector PoleWay = F.Pole.IsNearlyZero() ? ChestTurn.RotateVector(GripElbow[Side] - GripShoulder[Side]).GetSafeNormal() : F.Pole.GetSafeNormal();
+		const FVector PoleClear = F.bRig ? PoleClearOfFloor(Side, BoneCar(Side == 0 ? TEXT("upperarm_l") : TEXT("upperarm_r")), Wrist, PoleWay, 5.f) : PoleWay;
+		const bool bRigged = F.bRig && RigSolveArm(Side, FTransform(HandRot, Wrist), PoleClear);
+		if (!bRigged)
+		{
 		// two-bone: the elbow toward its pole
 		const FVector D = Wrist - Sh;
 		const float Dist = FMath::Max(1.f, FMath::Min((float)D.Size(), (L1 + L2) * 0.999f));
@@ -413,6 +418,7 @@ void ADriverArms::FreeFollow()
 				Bt.SetRotation(FQuat(AlongF[Side], Ang * T.Value) * Bt.GetRotation());
 			}
 			SetBoneCS(Hand, HandWas);
+		}
 		}
 		// the fingers: relaxed, closing into the hand's shape
 		for (const TPair<int32, FQuat>& Kv : ShapeLocal[Side][1])
@@ -549,6 +555,171 @@ FTransform ADriverArms::HandAtPalm(int32 Side, const FVector& PalmAt, const FVec
 FTransform ADriverArms::HandOnHandle(int32 Side, const FTransform& Handle) const
 {
 	return HoldInHand[Side].Inverse() * Handle;
+}
+
+void ADriverArms::HandAxes(int32 Side, const FQuat& Rot, FVector& Finger, FVector& Palm, FVector& Across) const
+{
+	Finger = Rot.RotateVector(FingerL[Side]);
+	Palm = Rot.RotateVector(FaceL[Side]);
+	Across = Rot.RotateVector(AcrossL[Side]);
+}
+
+void ADriverArms::ArmLengths(int32 Side, float& Upper, float& Fore) const
+{
+	const TCHAR* Sx = Side == 0 ? TEXT("l") : TEXT("r");
+	const FVector S = BoneCar(FName(*FString::Printf(TEXT("upperarm_%s"), Sx)));
+	const FVector E = BoneCar(FName(*FString::Printf(TEXT("lowerarm_%s"), Sx)));
+	const FVector W = BoneCar(FName(*FString::Printf(TEXT("hand_%s"), Sx)));
+	Upper = (float)FVector::Dist(S, E);
+	Fore = (float)FVector::Dist(E, W);
+}
+
+FVector ADriverArms::ElbowFor(int32 Side, const FVector& Shoulder, const FVector& Wrist, const FVector& PoleDirCar) const
+{
+	float Lu, Lf;
+	ArmLengths(Side, Lu, Lf);
+	const FVector SW = Wrist - Shoulder;
+	const float d = FMath::Max((float)SW.Size(), 1e-3f);
+	const FVector u = SW / d;
+	if (d >= Lu + Lf - 0.01f)
+	{
+		return Shoulder + u * Lu;
+	}
+	const FVector PoleAt = (Shoulder + Wrist) * 0.5f + PoleDirCar.GetSafeNormal() * 40.f;
+	FVector v = PoleAt - Shoulder;
+	v = (v - u * FVector::DotProduct(v, u)).GetSafeNormal();
+	const float a = (Lu * Lu - Lf * Lf + d * d) / (2.f * d);
+	const float hh = FMath::Sqrt(FMath::Max(0.f, Lu * Lu - a * a));
+	return Shoulder + u * a + v * hh;
+}
+
+FVector ADriverArms::PoleClearOfFloor(int32 Side, const FVector& Shoulder, const FVector& Wrist, const FVector& Pole, float Clear) const
+{
+	if ((!bFloorGuard && HeadGuardR <= 0.f && EyeGuardR <= 0.f) || Pole.IsNearlyZero())
+	{
+		return Pole;
+	}
+	// (the margin: the elbow's height over Clear, and the arm's distance from the head; the least of them)
+	auto Height = [&](const FVector& Pl)
+	{
+		const FVector E = ElbowFor(Side, Shoulder, Wrist, Pl);
+		float M = 1e3f;
+		if (bFloorGuard && FloorBox.IsInside(FVector2D(E.X, E.Y)))
+		{
+			M = (float)FVector::DotProduct(E - FloorAt, FloorN);
+		}
+		return FMath::Min(M, ArmHeadClear(Shoulder, E, Wrist) + Clear);
+	};
+	if (Height(Pole) >= Clear)
+	{
+		return Pole;
+	}
+	// (swung about the shoulder-wrist line, the least turn that clears it; between the steps, found by halving)
+	const FVector Ax = (Wrist - Shoulder).GetSafeNormal();
+	auto Turned = [&](float Deg) { return FQuat(Ax, FMath::DegreesToRadians(Deg)).RotateVector(Pole); };
+	FVector Best = Pole;
+	float BestH = Height(Pole);
+	for (float A = 4.f; A <= 180.f; A += 4.f)
+	{
+		const float Hp = Height(Turned(A)), Hm = Height(Turned(-A));
+		if (Hp >= Clear || Hm >= Clear)
+		{
+			const float Sg = Hp >= Hm ? 1.f : -1.f;
+			float Lo = A - 4.f, Hi = A;
+			for (int32 i = 0; i < 10; ++i)
+			{
+				const float Md = 0.5f * (Lo + Hi);
+				(Height(Turned(Md * Sg)) >= Clear ? Hi : Lo) = Md;
+			}
+			return Turned(Hi * Sg);
+		}
+		if (FMath::Max(Hp, Hm) > BestH)
+		{
+			BestH = FMath::Max(Hp, Hm);
+			Best = Hp >= Hm ? Turned(A) : Turned(-A);
+		}
+	}
+	return Best;
+}
+
+float ADriverArms::ArmHeadClear(const FVector& Shoulder, const FVector& Elbow, const FVector& Wrist) const
+{
+	float M = 1e3f;
+	if (HeadGuardR > 0.f)
+	{
+		M = FMath::Min(FMath::PointDistToSegment(HeadGuardAt, Shoulder, Elbow), FMath::PointDistToSegment(HeadGuardAt, Elbow, Wrist)) - HeadGuardR;
+	}
+	if (EyeGuardR > 0.f)
+	{
+		// (along each bone: in front of the eyes it keeps EyeGuardR off; out of view, below the chin or behind, EyeGuardRSide)
+		for (int32 Seg = 0; Seg < 2; ++Seg)
+		{
+			const FVector A = Seg == 0 ? Shoulder : Elbow, B = Seg == 0 ? Elbow : Wrist;
+			for (int32 i = 0; i <= 12; ++i)
+			{
+				const FVector P = FMath::Lerp(A, B, i / 12.f);
+				const FVector D = P - EyeGuardAt;
+				const float Dist = (float)D.Size();
+				const float Cos = Dist > 1e-3f ? (float)FVector::DotProduct(D / Dist, EyeGuardFwd) : 1.f;
+				const float InView = FMath::SmoothStep(0.5f, 0.82f, Cos);
+				M = FMath::Min(M, Dist - FMath::Lerp(EyeGuardRSide, EyeGuardR, InView));
+			}
+		}
+	}
+	return M;
+}
+
+void ADriverArms::WristFor(int32 Side, const FVector& Elbow, const FTransform& Hand, float& Flex, float& Dev) const
+{
+	FVector Fi, Pa, Ac;
+	HandAxes(Side, Hand.GetRotation(), Fi, Pa, Ac);
+	const FVector A = (Hand.GetLocation() - Elbow).GetSafeNormal();
+	const float Ah = FVector::DotProduct(A, Fi), Ap = FVector::DotProduct(A, Pa), Aa = FVector::DotProduct(A, Ac);
+	// (bent toward the palm by f then toward the little finger by d, the forearm reads cos f cos d along the fingers,
+	// -sin f along the palm's facing and -cos f sin d across: HandFromForearm's two turns, read back exactly)
+	Flex = FMath::RadiansToDegrees(FMath::Atan2(-Ap, FMath::Sqrt(Ah * Ah + Aa * Aa)));
+	Dev = FMath::RadiansToDegrees(FMath::Atan2(-Aa, Ah));
+}
+
+void ADriverArms::WristNow(int32 Side, float& Flex, float& Dev) const
+{
+	WristFor(Side, BoneCar(Side == 0 ? TEXT("lowerarm_l") : TEXT("lowerarm_r")), HandNow(Side), Flex, Dev);
+}
+
+FTransform ADriverArms::HandFromForearm(int32 Side, const FVector& Elbow, const FVector& Wrist, float Flex, float Dev, const FVector& PalmWay) const
+{
+	const FVector A = (Wrist - Elbow).GetSafeNormal();
+	FVector P = PalmWay - A * FVector::DotProduct(PalmWay, A);
+	if (P.SizeSquared() < 1e-6f)
+	{
+		P = FVector::CrossProduct(A, FVector::UpVector);
+	}
+	P.Normalize();
+	// in line with the forearm, the palm facing PalmWay
+	FQuat R = FreeFrameXY(A, P) * FreeFrameXY(FingerL[Side], FaceL[Side]).Inverse();
+	FVector Fi, Pa, Ac;
+	HandAxes(Side, R, Fi, Pa, Ac);
+	// bent toward the palm (or back), about the hand's across axis
+	const FVector Kf = FVector::CrossProduct(Fi, Pa).GetSafeNormal();
+	R = FQuat(Kf, FMath::DegreesToRadians(Flex)) * R;
+	HandAxes(Side, R, Fi, Pa, Ac);
+	// then toward the little finger (or the thumb), about the palm's facing
+	const FVector Kd = FVector::CrossProduct(Fi, Ac).GetSafeNormal();
+	R = FQuat(Kd, FMath::DegreesToRadians(Dev)) * R;
+	return FTransform(R.GetNormalized(), Wrist);
+}
+
+void ADriverArms::ForearmParams(int32 Side, const FVector& Elbow, const FTransform& Hand, float& Flex, float& Dev, FVector& PalmWay) const
+{
+	WristFor(Side, Elbow, Hand, Flex, Dev);
+	FQuat R = Hand.GetRotation();
+	FVector Fi, Pa, Ac;
+	HandAxes(Side, R, Fi, Pa, Ac);
+	R = FQuat(FVector::CrossProduct(Fi, Ac).GetSafeNormal(), FMath::DegreesToRadians(-Dev)) * R;
+	HandAxes(Side, R, Fi, Pa, Ac);
+	R = FQuat(FVector::CrossProduct(Fi, Pa).GetSafeNormal(), FMath::DegreesToRadians(-Flex)) * R;
+	HandAxes(Side, R, Fi, Pa, Ac);
+	PalmWay = Pa;
 }
 
 FTransform ADriverArms::HandleInHand(int32 Side) const

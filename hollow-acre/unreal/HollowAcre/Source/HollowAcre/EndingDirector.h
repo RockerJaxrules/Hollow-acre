@@ -452,6 +452,16 @@ private:
 	bool bFlashUpHigh = false;                       // (held up high, the light forward: its head lay back toward the body)
 	bool bFlashReversed = false;                     // (held overhand: the head past the little finger)
 	float FlashTurnSecs = 0.35f;                     // (how long it takes to turn in the fingers into the ready grip)
+	bool bWakeTakeSet = false;                       // (the hand's pose on the flashlight at contact, found once)
+	FTransform WakeTakeHand;
+	FVector WakePoleTake = FVector::ZeroVector;
+	float WakeTakeSwing = 0.f;
+	struct FWakeHold { bool bSet = false; float Swing = 0.f, Psi = 0.f, Flex = -15.f, Dev = 8.f; };
+	FWakeHold WakeShowHold, WakeChestHold;              // (the flashlight held as a body holds it: found once, then kept)
+	FVector WakePoleHold = FVector::ZeroVector;
+	FTransform WakeArmHold(FWakeHold& C, const FTransform& Eye, const FVector& WantWrist, const FVector& Lamp, FVector& PoleOut, const TCHAR* Name);
+	int32 WakeWristLogged = -1;
+	int32 WakeCamLogged = -1;
 	float WakeGroundZ = 141.f;                       // (car frame) the snow's height beside the car
 	TSet<FName> WakeFired;
 	bool WakeOnce(const TCHAR* Kind, float At, float w);

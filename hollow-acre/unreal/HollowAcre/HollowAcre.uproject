@@ -52,6 +52,10 @@
 		{
 			"Name": "Fab",
 			"Enabled": true
+		},
+		{
+			"Name": "ControlRig",
+			"Enabled": true
 		}
 	]
 }

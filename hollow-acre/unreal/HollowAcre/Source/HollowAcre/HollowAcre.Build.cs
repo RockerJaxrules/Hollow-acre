@@ -22,6 +22,7 @@ public class HollowAcre : ModuleRules
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "SlateCore" }); // end card text (EndingHUD)
+		PrivateDependencyModuleNames.AddRange(new string[] { "ControlRig", "RigVM" }); // the MetaHuman body rig solving the arms (DriverArms::RigSolveArm)
 
 		PublicIncludePaths.AddRange(new string[] {
 			"HollowAcre",
