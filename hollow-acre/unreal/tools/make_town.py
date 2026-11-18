@@ -614,7 +614,53 @@ def hotel(name, seed, W=9.1, D=15.2, floors=2, pitch=34.0):
     return m
 
 
-def cabin(name, seed, W=4.9, D=6.1, H=7.0, pitch=40.0, collapsed=False):
+def woodpile(m, x_wall, y0, y1, height=115.0, depth=44.0):
+    """A cord of split firewood stacked against a wall outside (photographs of mining-camp and homestead woodpiles under
+    snow): rounds 40-46 cm long lying end-out from the wall, split into halves and quarters, about 11-17 cm across, in
+    courses up to about 1.15 m, each course settling into the one below; snow on its top and a drift at its foot. In the
+    building's frame: the wall's outer face at x_wall, the pile out from it (toward -x), from y0 to y1."""
+    r = m.r
+    z = 2.0
+    course = 0
+    while z < height:
+        y = y0 + r.uniform(0, 6)
+        top = 0.0
+        while y < y1 - 8:
+            d = r.uniform(11.0, 17.0)
+            L = r.uniform(40.0, 46.0)
+            n = r.choice((5, 6, 7))
+            split = r.random() < 0.6
+            # (a split piece: part of a round, its flat face down or to the side; the rest round with bark)
+            pts2 = []
+            for k in range(n):
+                a = 2 * math.pi * k / n + r.uniform(-0.15, 0.15)
+                rr = d / 2 * r.uniform(0.86, 1.06)
+                py, pz = math.cos(a) * rr, math.sin(a) * rr
+                if split and pz < -d * 0.12:
+                    pz = -d * 0.12
+                pts2.append((py, pz))
+            x0 = x_wall - 3.0 - r.uniform(0, 3)
+            x1 = x0 - L
+            cy, cz = y + d / 2, z + d / 2 - (d * 0.12 if split else 0.0) + r.uniform(-1.0, 1.0)
+            ring0 = [np.array([x0, cy + py, cz + pz]) for py, pz in pts2]
+            ring1 = [np.array([x1, cy + py + r.uniform(-0.8, 0.8), cz + pz + r.uniform(-0.8, 0.8)]) for py, pz in pts2]
+            for k in range(n):
+                j = (k + 1) % n
+                m.poly('barewood', [ring0[k], ring0[j], ring1[j], ring1[k]],
+                       uvs=[(k / n * 0.3, 0.0), ((k + 1) / n * 0.3, 0.0), ((k + 1) / n * 0.3, L / UV_CM), (k / n * 0.3, L / UV_CM)])
+            m.poly('drywood', ring1[::-1], face=(-1, 0, 0))       # (the cut end toward the yard: pale end grain)
+            m.poly('drywood', ring0, face=(1, 0, 0))
+            top = max(top, cz + d / 2)
+            y += d * r.uniform(0.92, 1.02)
+        z = top - r.uniform(2.0, 4.0)
+        course += 1
+    # snow on its top and drifted against its foot
+    m.poly('snow', [np.array([x_wall - 2, y0 - 4, z + 6]), np.array([x_wall - depth - 6, y0 - 4, z + 3]),
+                    np.array([x_wall - depth - 6, y1 + 4, z + 4]), np.array([x_wall - 2, y1 + 4, z + 7])], face=(0, 0, 1))
+    snow_drift(m, (x_wall - depth - 4, y0, 0), (x_wall - depth - 4, y1, 0), (-1, 0, 0), height=35)
+
+
+def cabin(name, seed, W=4.9, D=6.1, H=7.0, pitch=40.0, collapsed=False, wood=False):
     """A one-room miner's cabin of boards: board-and-batten walls, a door in the gable end, one window, a stovepipe;
     if collapsed, its roof has broken through at the middle under the snow."""
     m = Mesh(seed)
@@ -629,6 +675,9 @@ def cabin(name, seed, W=4.9, D=6.1, H=7.0, pitch=40.0, collapsed=False):
     m.box('rustmetal', (-D * 0.7, W * 0.2, H + 120), (16, 16, 160))
     snow_drift(m, (0, -W / 2, 0), (-D, -W / 2, 0), (0, -1, 0), height=55)
     snow_drift(m, (-D, W / 2, 0), (0, W / 2, 0), (0, 1, 0), height=55)
+    if wood:
+        # (its woodpile against the back wall, away from the street, toward the trees: Part 2's firewood)
+        woodpile(m, -D - 4.0, -125.0, 125.0)
     return m
 
 
@@ -872,7 +921,7 @@ BUILDINGS = {
     'Store': lambda: false_front_store('Store', 3, W=9.1, D=15.2, porch_down=True),
     'Saloon': lambda: false_front_store('Saloon', 5, W=6.1, D=9.1, H=11.0, ff=4.0, sag=10.0),
     'Hotel': lambda: hotel('Hotel', 7),
-    'CabinA': lambda: cabin('CabinA', 11),
+    'CabinA': lambda: cabin('CabinA', 11, wood=True),
     'CabinB': lambda: cabin('CabinB', 13, W=4.3, D=5.5, collapsed=True),
     'Shed': lambda: shed('Shed', 17),
     'Privy': lambda: privy('Privy', 19),

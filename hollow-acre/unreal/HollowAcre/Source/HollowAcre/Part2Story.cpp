@@ -417,11 +417,12 @@ void AP2Story::FurnishShed()
 			Pieces.Add(*It);
 		}
 	}
-	// the pot-belly stove in the back corner, its door to the room, its pipe up through the roof
+	// the pot-belly stove in the back corner, its door open toward the bench (where one comes to it from), its pipe up
+	// through the roof
 	if (UStaticMesh* Sm2 = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/Wake_Stove.Wake_Stove")))
 	{
 		const FVector Ps = At(-290.f, -115.f, 0.f);
-		AStaticMeshActor* St = Piece(GetWorld(), Sm2, FTransform(FQuat(FVector::UpVector, FMath::DegreesToRadians(48.f)) * R, FVector(Ps.X, Ps.Y, G + 4.f)), nullptr);
+		AStaticMeshActor* St = Piece(GetWorld(), Sm2, FTransform(FQuat(FVector::UpVector, FMath::DegreesToRadians(90.f)) * R, FVector(Ps.X, Ps.Y, G + 4.f)), nullptr);
 		if (St)
 		{
 			static UMaterialInterface* Part2 = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/HollowAcre/Car/Keys/M_KeyPart.M_KeyPart"));
@@ -562,6 +563,38 @@ void AP2Story::OnUse(UP2UseComponent* Use)
 		Use->GetOwner()->SetActorEnableCollision(false);
 		Event(TEXT("matches"));
 		Say(TEXT("Matches. Half a box."), 0.3f, 2.4f);
+		return;
+	}
+	if (Use->Id == TEXT("wood") && Player.IsValid() && !Player->bCarryingWood)
+	{
+		Player->bCarryingWood = true;
+		Event(TEXT("wood_take"));
+		Say(TEXT("Enough for the night. Go."), 0.4f, 2.6f);
+		SetObjective(TEXT("Bring the wood back to the stove"));
+		if (Stove)
+		{
+			if (UP2UseComponent* Su = Stove->FindComponentByClass<UP2UseComponent>())
+			{
+				Su->bEnabled = true;
+				Su->Prompt = TEXT("Feed the stove");
+			}
+		}
+		UE_LOG(LogTemp, Display, TEXT("P2Story %.2f used wood (an armful)"), Clock);
+		return;
+	}
+	if (Use->Id == TEXT("stove") && bStoveLit)
+	{
+		// (fed: the wood on the coals, the fire back up)
+		if (Player.IsValid() && Player->bCarryingWood)
+		{
+			Player->bCarryingWood = false;
+			FedAt = Clock;
+			Use->bEnabled = false;
+			Event(TEXT("fire_fed"));
+			Say(TEXT("Good. That'll hold."), 1.2f, 2.6f);
+			SetObjective(TEXT("Wait for morning"));
+			UE_LOG(LogTemp, Display, TEXT("P2Story %.2f used stove (fed)"), Clock);
+		}
 		return;
 	}
 	if (Use->Id == TEXT("stove"))
@@ -852,6 +885,15 @@ void AP2Story::Beats(float Dt)
 	{
 		BeginWindow();
 	}
+	if (WindowGoneAt > 0.f && Clock - WindowGoneAt > 9.f && Once(TEXT("fire_dying")))
+	{
+		BeginWood();
+	}
+	// (the fire burning down until it is fed; fed, it comes back up)
+	if (FireDyingFrom > 0.f)
+	{
+		FireFuel = FedAt > 0.f ? FMath::Min(1.f, 0.25f + (Clock - FedAt) / 4.f) : FMath::Max(0.22f, 1.f - (Clock - FireDyingFrom) / 26.f);
+	}
 	// after it has gone from the doorway: the cold (the stove, if they haven't lit it)
 	if (Hunter && Done.Contains(TEXT("husk_shriek")) && (Hunter->State == AHuskHunter::EState::Away || Hunter->State == AHuskHunter::EState::Retreat) && !bStoveLit && Once(TEXT("cold")))
 	{
@@ -1009,7 +1051,7 @@ void AP2Story::TickSift(float Dt)
 
 bool AP2Story::IsNearFire(const FVector& P) const
 {
-	return bStoveLit && Stove && FVector::Dist2D(P, Stove->GetActorLocation()) < 280.f && FMath::Abs(P.Z - Stove->GetActorLocation().Z) < 300.f;
+	return bStoveLit && FireFuel > 0.4f && Stove && FVector::Dist2D(P, Stove->GetActorLocation()) < 280.f && FMath::Abs(P.Z - Stove->GetActorLocation().Z) < 300.f;
 }
 
 void AP2Story::TickFire(float Dt)
@@ -1055,10 +1097,11 @@ void AP2Story::TickFire(float Dt)
 	const float s = Clock - StoveLitAt;
 	const float Catch = FMath::Clamp(s / 4.f, 0.f, 1.f);
 	const float Fl = 0.78f + 0.12f * FMath::Sin(Clock * 2.3f) + 0.07f * FMath::Sin(Clock * 7.9f + 1.f) + 0.05f * FMath::Sin(Clock * 17.3f + 2.f);
-	FireLight->SetIntensity(14.f * Catch * Catch * Fl);
+	const float Fu = FireFuel;
+	FireLight->SetIntensity(14.f * Catch * Catch * Fl * Fu);
 	if (DoorSpill)
 	{
-		DoorSpill->SetIntensity(5.f * Catch * Catch * Fl);
+		DoorSpill->SetIntensity(5.f * Catch * Catch * Fl * Fu);
 	}
 	if (FireGlow)
 	{
@@ -1070,7 +1113,7 @@ void AP2Story::TickFire(float Dt)
 	if (Flames && FlameMID)
 	{
 		Flames->SetVisibility(Catch > 0.02f);
-		FlameMID->SetScalarParameterValue(TEXT("Intensity"), 14.f * Catch * Lick);
+		FlameMID->SetScalarParameterValue(TEXT("Intensity"), 14.f * Catch * Lick * FMath::Square(Fu));
 	}
 	if (FireCoal)
 	{
@@ -1211,4 +1254,47 @@ void AP2Story::TickWindow(float Dt)
 		WindowHusk = nullptr;
 		UE_LOG(LogTemp, Display, TEXT("P2Story %.2f beat: the window, gone (%s)"), Clock, W > 10.f ? TEXT("in its own time") : TEXT("the light on it"));
 	}
+}
+
+void AP2Story::BeginWood()
+{
+	// the woodpile against the back wall of the cabin next to the shed (make_town.py cabin(wood=True): from 125 cm either
+	// side of its middle, 45 cm out from the wall, 1.15 m high)
+	AActor* Cabin = nullptr;
+	for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
+	{
+		if (It->GetActorLabel() == TEXT("Town CabinA"))
+		{
+			Cabin = *It;
+		}
+	}
+	FireDyingFrom = Clock;
+	Say(TEXT("The fire's going down..."), 0.f, 2.6f);
+	Say(TEXT("There was wood stacked behind the next cabin."), 3.2f, 3.2f);
+	SetObjective(TEXT("Get wood from behind the next cabin"));
+	if (!Cabin)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("P2Story: no Town CabinA for the woodpile"));
+		return;
+	}
+	const FTransform T = Cabin->GetActorTransform();
+	FActorSpawnParameters Sp;
+	Sp.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	WoodPile = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FTransform(T.GetRotation(), T.TransformPosition(FVector(-610.f - 30.f, 0.f, 60.f))), Sp);
+	if (WoodPile)
+	{
+		USceneComponent* Root = NewObject<USceneComponent>(WoodPile, TEXT("Root"));
+		WoodPile->SetRootComponent(Root);
+		Root->RegisterComponent();
+		Root->SetWorldLocation(T.TransformPosition(FVector(-610.f - 30.f, 0.f, 60.f)));
+		UP2UseComponent* U = NewObject<UP2UseComponent>(WoodPile, TEXT("Use"));
+		U->Id = TEXT("wood");
+		U->Prompt = TEXT("Take an armful of wood");
+		U->Near = 140.f;
+		U->Reach = 200.f;
+		U->bOnce = true;
+		U->RegisterComponent();
+		WoodPile->AddInstanceComponent(U);
+	}
+	UE_LOG(LogTemp, Display, TEXT("P2Story %.2f beat: the fire dying (the woodpile at %s)"), Clock, WoodPile ? *WoodPile->GetActorLocation().ToCompactString() : TEXT("?"));
 }

@@ -46,6 +46,9 @@ public:
 	float WalkSpeed = 150.f;
 	UPROPERTY(EditAnywhere, Category = "Part 2")
 	float RunSpeed = 360.f;
+	/** An armful of split wood (from the woodpile, for the stove): slower, no running, the light held low over it. */
+	bool bCarryingWood = false;
+	int32 WoodLeg = 0;
 	UPROPERTY(EditAnywhere, Category = "Part 2")
 	float CrouchSpeed = 85.f;
 	/** Seconds of running on full stamina; seconds to get it all back (standing, walking a little slower). */
@@ -172,6 +175,8 @@ protected:
 	FPostProcessSettings BaseGrade;
 	void ShowCold(float Dt);
 	float ShiverT = 0.f;
+	bool bUnderRoof = false;
+	float RoofCheckedAt = -1.f;
 	FRotator ShiverRot = FRotator::ZeroRotator, JoltRot = FRotator::ZeroRotator;
 	// the breath in the cold: each breath out a puff of vapour from under the eyes, drifting out and up and spreading
 	// thin, seen where a light catches it (the beam, the fire); quicker and heavier winded; none by a lit fire

@@ -32,6 +32,9 @@ public:
 	TArray<FString> Pages;
 	UPROPERTY(EditAnywhere, Category = "Part 2")
 	float Reach = 230.f;
+	/** How near to it the gaze must land (cm): a small thing a hand's width, a woodpile anywhere on it. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Use")
+	float Near = 28.f;
 	UPROPERTY(EditAnywhere, Category = "Part 2")
 	bool bOnce = false;
 	bool bUsed = false;
@@ -124,6 +127,7 @@ public:
 	float WindowT() const { return WindowAt < 0.f ? -1.f : Clock - WindowAt; }
 	FVector WindowPoint() const { return WindowGap; }
 	bool WindowHandIn() const { return WindowHusk != nullptr && WindowReach > 0.3f; }
+	AActor* GetWoodPile() const { return WoodPile; }
 protected:
 	bool bHasMatches = false;
 	bool bStoveLit = false;
@@ -169,6 +173,12 @@ protected:
 	// the window (later, by the fire): a scrape along the back wall, another, then its hand through the gap in the
 	// boarded window over the bench, feeling along the inside of the boards; the light on it and it is gone
 	void BeginWindow();
+	// the wood (after the window): the stove burns down (its light, its warmth); the woodpile behind the next cabin, an
+	// armful of wood; back to feed the stove
+	void BeginWood();
+	float FireFuel = 1.f, FireDyingFrom = -1.f, FedAt = -1.f;
+	UPROPERTY()
+	TObjectPtr<AActor> WoodPile;
 	void TickWindow(float Dt);
 	UPROPERTY()
 	TObjectPtr<AHusk> WindowHusk;

@@ -235,7 +235,7 @@ void APart2Character::UpdateFocus()
 				continue;
 			}
 			const float D = U->GetOwner() == Hit.GetActor() ? 0.f : (float)FVector::Dist(U->GetOwner()->GetActorLocation(), Hit.ImpactPoint);
-			if (D < 28.f && D < Best && Hit.Distance <= U->Reach)
+			if (D < U->Near && D < Best && Hit.Distance <= U->Reach)
 			{
 				Best = D;
 				Focus = U;
@@ -442,6 +442,19 @@ void APart2Character::ApplyLight()
 	{
 		HeldBeam->SetIntensity(Cd);
 		Beam->SetIntensity(0.f);
+		// (its haze: the beam's cone seen in the falling snow outdoors; under a roof the air is clear, and the haze in
+		// front of the lens, lit as the light came on with the eyes used to the dark, was a blown-out cloud over the view)
+		if (GetWorld())
+		{
+			const float Now = GetWorld()->GetTimeSeconds();
+			if (Now - RoofCheckedAt > 0.4f)
+			{
+				RoofCheckedAt = Now;
+				FHitResult Hr;
+				bUnderRoof = GetWorld()->LineTraceSingleByChannel(Hr, EyesAt(), EyesAt() + FVector(0.f, 0.f, 500.f), ECC_Visibility, FCollisionQueryParams(TEXT("Roof"), true, this));
+			}
+			HeldBeam->SetVolumetricScatteringIntensity(bUnderRoof ? 0.06f : 0.45f);
+		}
 		// (the light off the snow and the bezel's glow on the hand that holds it)
 		if (HeldLight)
 		{
@@ -781,7 +794,11 @@ void APart2Character::Tick(float DeltaSeconds)
 		bWinded = Stamina <= 0.02f ? true : (Stamina > 0.33f ? false : bWinded);
 		bRunning = bWantsRun && !bWinded && !bIsCrouched && bMoving;
 	}
-	GetCharacterMovement()->MaxWalkSpeed = bRunning ? RunSpeed : WalkSpeed * (bWinded ? 0.8f : 1.f);
+	if (bCarryingWood)
+	{
+		bRunning = false;
+	}
+	GetCharacterMovement()->MaxWalkSpeed = bRunning ? RunSpeed : WalkSpeed * (bWinded ? 0.8f : 1.f) * (bCarryingWood ? 0.75f : 1.f);
 	NearSmoothed = FMath::FInterpTo(NearSmoothed, AimDist, DeltaSeconds, 4.f);
 	ApplyLight();
 	if (bDead)
@@ -1139,8 +1156,9 @@ void APart2Character::StoryAutopilot(float Dt)
 				{
 					if (It->GetWorld() == GetWorld() && It->Id == Want && It->GetOwner())
 					{
+						// (its mouth: the stove faces the way the player comes to it from the bench, so the plain walk to it
+						// ends before its open door; a walk round to its front got caught on the wood box)
 						const AActor* Sv = It->GetOwner();
-						Front = Sv->GetActorLocation() + Sv->GetActorForwardVector().GetSafeNormal2D() * 125.f;
 						Aim = Sv->GetActorLocation() + Sv->GetActorForwardVector() * 26.f + FVector(0.f, 0.f, 53.f);
 					}
 				}
@@ -1217,6 +1235,89 @@ void APart2Character::StoryAutopilot(float Dt)
 					StoryStep = 12;
 					StepT = 0.f;
 				}
+				// (the fire going down, the wood asked for: up and out to the woodpile)
+				if (It->GetWoodPile() && !bCarryingWood && StepT > 5.f)
+				{
+					if (bIsCrouched)
+					{
+						CrouchToggle();
+					}
+					if (!bFlashlightOn)
+					{
+						FlashlightToggle();
+					}
+					StoryStep = 13;
+					StepT = 0.f;
+					WoodLeg = 0;
+				}
+			}
+			break;
+		}
+		case 13:     // the wood: out of the shed's door, round the next cabin to its back, to the woodpile; an armful; back
+		{
+			AP2Story* St = nullptr;
+			for (TActorIterator<AP2Story> It(GetWorld()); It; ++It)
+			{
+				St = *It;
+			}
+			AActor* Pile = St ? St->GetWoodPile() : nullptr;
+			AActor* Cabin = nullptr;
+			for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
+			{
+				if (It->GetActorLabel() == TEXT("Town CabinA"))
+				{
+					Cabin = *It;
+				}
+			}
+			if (!Pile || !Cabin)
+			{
+				break;
+			}
+			// (the way: the shed's doorway, out a stride; the cabin's back corner on the shed's side; before the pile.
+			// And back the same way to the stove)
+			const FTransform Tc = Cabin->GetActorTransform();
+			const FVector DoorOut = T.TransformPosition(FVector(160.f, 0.f, 0.f));
+			const FVector CornerA = Tc.TransformPosition(FVector(-760.f, 375.f, 0.f)), CornerB = Tc.TransformPosition(FVector(-760.f, -375.f, 0.f));
+			const FVector Corner = FVector::Dist2D(CornerA, DoorOut) < FVector::Dist2D(CornerB, DoorOut) ? CornerA : CornerB;
+			const FVector AtPile = Tc.TransformPosition(FVector(-610.f - 150.f, 0.f, 0.f));
+			const FVector InShed = T.TransformPosition(FVector(-150.f, -40.f, 0.f));
+			const FVector Legs[] = {DoorOut, Corner, AtPile, Corner, DoorOut, InShed};
+			const int32 NLegs = UE_ARRAY_COUNT(Legs);
+			if (WoodLeg == 2 && !bCarryingWood)
+			{
+				// (at the pile: look at it, take an armful)
+				const FRotator Tp = (Pile->GetActorLocation() - EyesAt()).Rotation();
+				WantYaw = Tp.Yaw;
+				WantPitch = Tp.Pitch;
+				TurnRate = 70.f;
+				if (FVector::Dist2D(AtPile, GetActorLocation()) > 40.f)
+				{
+					bWalk = true;
+					WantYaw = (AtPile - GetActorLocation()).Rotation().Yaw;
+				}
+				else if (StepT > 1.5f && Focus.IsValid())
+				{
+					Interact();
+					StepT = 0.f;
+				}
+				break;
+			}
+			if (WoodLeg >= NLegs)
+			{
+				// (back in: feed the stove)
+				StoryStep = 10;
+				StepT = 0.f;
+				break;
+			}
+			const FVector Goal = Legs[WoodLeg];
+			const FRotator Tg = (Goal + FVector(0.f, 0.f, 150.f) - EyesAt()).Rotation();
+			WantYaw = Tg.Yaw;
+			WantPitch = -8.f;
+			TurnRate = 120.f;
+			bWalk = true;
+			if (FVector::Dist2D(Goal, GetActorLocation()) < 60.f || (WoodLeg == 2 && bCarryingWood))
+			{
+				++WoodLeg;
 			}
 			break;
 		}

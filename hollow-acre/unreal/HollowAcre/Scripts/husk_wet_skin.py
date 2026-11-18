@@ -27,7 +27,14 @@ for name in ('M_HuskSkin', 'M_HuskFaceSkin'):
     cc.set_editor_property('r', 0.65)
     ccr = mel.create_material_expression(m, unreal.MaterialExpressionConstant, -300, 1000)
     ccr.set_editor_property('r', 0.14)
-    ok = mel.connect_material_property(cc, '', MP.MP_CUSTOM_DATA0) and mel.connect_material_property(ccr, '', MP.MP_CUSTOM_DATA1)
+    # (the clear coat's two pins: their names differ between versions; found in the enum)
+    names = [n for n in dir(MP) if n.startswith('MP_')]
+    pin_cc = next((getattr(MP, n) for n in names if n in ('MP_CUSTOM_DATA0', 'MP_CUSTOMDATA0', 'MP_CLEAR_COAT')), None)
+    pin_ccr = next((getattr(MP, n) for n in names if n in ('MP_CUSTOM_DATA1', 'MP_CUSTOMDATA1', 'MP_CLEAR_COAT_ROUGHNESS')), None)
+    if pin_cc is None or pin_ccr is None:
+        log('no clear coat pins among', names)
+        continue
+    ok = mel.connect_material_property(cc, '', pin_cc) and mel.connect_material_property(ccr, '', pin_ccr)
     mel.recompile_material(m)
     eal.save_loaded_asset(m, only_if_is_dirty=False)
     log(name, 'clear coat', 'linked' if ok else 'LINK FAILED')
