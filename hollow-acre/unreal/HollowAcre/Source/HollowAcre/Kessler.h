@@ -85,6 +85,11 @@ public:
 	/** His rifle set here instead of carried (leaning on a wall, or across his knees); identity: carried. */
 	FTransform RifleSet = FTransform::Identity;
 	bool bRifleSet = false;
+	/** Her face (the MetaHuman face's expression morphs, set each frame): talking (the lips move), the brows drawn down,
+	 *  the eyes narrowed, the brows' inner ends raised (worry, grief), the cheeks raised (a hard, tired squint); eased
+	 *  toward. She blinks on her own. */
+	bool bTalking = false;
+	float ExprBrowDown = 0.f, ExprSquint = 0.f, ExprBrowRaiseIn = 0.f, ExprCheek = 0.f, ExprLidsDown = 0.f;
 	/** His breath shows as puffs (off by the fire indoors: lit by it beside the player's eyes they hung as orange blurs). */
 	bool bBreathShows = true;
 	/** Lit by every light (the shed's fire too, on its own channel), for the faces lit from below. */
@@ -118,6 +123,9 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class UPoseableMeshComponent> Shown;
 	TWeakObjectPtr<USkeletalMeshComponent> Face;
+	void FaceTick(float Dt);
+	float BlinkT = 2.f, BlinkAt = -1.f, TalkPh = 0.f;
+	float CurBrowDown = 0.f, CurSquint = 0.f, CurRaiseIn = 0.f, CurCheek = 0.f, CurLids = 0.f;
 	TArray<FTransform> RefLocal;
 	bool bWalking = false;
 	FVector Goal = FVector::ZeroVector, FaceAt = FVector::ZeroVector;

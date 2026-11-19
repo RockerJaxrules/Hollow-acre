@@ -68,6 +68,31 @@ void AKesslerScene::Line(const FString& Text, float Secs)
 	if (Text.StartsWith(TEXT("Kessler:")))
 	{
 		SpeakEnd = T + Secs * 0.85f;            // (his head moves with what he says)
+		// (her face for the line: wary and hard on the creature, tired on the road, softening on the journal and the watch)
+		if (AKessler* Ks = Story.IsValid() ? Story->GetKessler() : nullptr)
+		{
+			struct FMood { const TCHAR* Starts; float Down, Squint, RaiseIn, Cheek, Lids; };
+			static const FMood Moods[] = {
+				{TEXT("Kessler: You'd be"), 0.25f, 0.2f, 0.f, 0.f, 0.15f},
+				{TEXT("Kessler: Men. Once."), 0.55f, 0.6f, 0.f, 0.35f, 0.f},
+				{TEXT("Kessler: They come down"), 0.4f, 0.35f, 0.15f, 0.15f, 0.1f},
+				{TEXT("Kessler: Don't be out"), 0.75f, 0.45f, 0.f, 0.3f, 0.f},
+				{TEXT("Kessler: Road's shut"), 0.2f, 0.15f, 0.2f, 0.f, 0.35f},
+				{TEXT("Kessler: She came"), 0.f, 0.1f, 0.6f, 0.f, 0.3f},
+				{TEXT("Kessler: Sleep."), 0.1f, 0.f, 0.25f, 0.f, 0.45f},
+			};
+			for (const FMood& Md : Moods)
+			{
+				if (Text.StartsWith(Md.Starts))
+				{
+					Ks->ExprBrowDown = Md.Down;
+					Ks->ExprSquint = Md.Squint;
+					Ks->ExprBrowRaiseIn = Md.RaiseIn;
+					Ks->ExprCheek = Md.Cheek;
+					Ks->ExprLidsDown = Md.Lids;
+				}
+			}
+		}
 	}
 }
 
@@ -502,6 +527,7 @@ void AKesslerScene::Tick(float Dt)
 		Dir->ShowCard(NSLOCTEXT("HollowAcre", "Morning", "Morning."));
 	}
 	// (alive while he speaks: small nods and a turn of the head over the words, never still)
+	Km->bTalking = T < SpeakEnd;
 	if (T < SpeakEnd && !Km->LookAtPoint.IsZero())
 	{
 		Km->LookAtPoint += FVector(0.f, 0.f, 5.f * FMath::Sin(T * 6.3f) + 3.f * FMath::Sin(T * 2.1f)) + Km->GetActorRightVector() * 6.f * FMath::Sin(T * 1.7f);

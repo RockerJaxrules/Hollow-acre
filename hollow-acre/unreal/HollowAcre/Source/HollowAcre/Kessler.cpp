@@ -4,6 +4,7 @@
 #include "Animation/AnimSequence.h"
 #include "Components/PointLightComponent.h"
 #include "Components/PoseableMeshComponent.h"
+#include "AnimationRuntime.h"
 #include "Engine/SkeletalMesh.h"
 #include "Misc/CommandLine.h"
 #include "TwoBoneIK.h"
@@ -403,6 +404,7 @@ void AKessler::Tick(float Dt)
 			}
 		}
 	}
+	FaceTick(Dt);       // (last: after her pose is set this frame)
 }
 
 FTransform AKessler::CarryRifle() const
@@ -1287,5 +1289,82 @@ void AKessler::PoseLower(float Dt)
 		const FVector Foot = FMath::Lerp(F0.GetLocation(), Out, S);
 		const FVector Pole = Pn + Fwd * 80.f + Up * (20.f + 40.f * S) + Right * Side * (18.f + 10.f * C);
 		LegTo(bL, Foot, Pole, F0.GetRotation());
+	}
+}
+
+void AKessler::FaceTick(float Dt)
+{
+	// her face alive (blind judge, run 52: the same face, mouth shut, in all three close-ups): the MetaHuman face's own
+	// expression morphs, by name. (Found, run 54: they apply (forced to the face's finest LOD), but a MetaHuman's
+	// expressions are mostly its facial joints, the morphs only small correctives on them: alone they barely show. Real
+	// expressions need the face's own ABP_Face (RigLogic) evaluating, which it doesn't while it follows the body copy.) A blink every few seconds (quicker, closer together while she talks); the lips working
+	// while she speaks, never in step; the scene's mood for the line eased in over a third of a second.
+	USkeletalMeshComponent* F = Face.Get();
+	if (!F)
+	{
+		return;
+	}
+	// (her face follows the posed copy of her body (a poseable mesh), and the engine only passes morphs on to a follower
+	// whose leader is a skeletal mesh component: SetMorphTarget on it did nothing. So the weights are appended to its
+	// active morphs directly, after the copy's pose (and with it the face's) has been refreshed this frame)
+	// (its expressions exist only at the face's finest levels of detail; it followed the body copy's level (7, none))
+	if (!F->bIgnoreLeaderPoseComponentLOD)
+	{
+		F->bIgnoreLeaderPoseComponentLOD = true;
+		F->SetForcedLOD(1);
+	}
+	TMap<FName, float> Curves;
+	auto M = [&Curves](const TCHAR* Name, float W)
+	{
+		Curves.Add(FName(*FString::Printf(TEXT("head_lod0_mesh__%s"), Name)), FMath::Clamp(W, 0.f, 1.f));
+	};
+	const float k = FMath::Min(1.f, Dt * 3.f);
+	CurBrowDown += (ExprBrowDown - CurBrowDown) * k;
+	CurSquint += (ExprSquint - CurSquint) * k;
+	CurRaiseIn += (ExprBrowRaiseIn - CurRaiseIn) * k;
+	CurCheek += (ExprCheek - CurCheek) * k;
+	CurLids += (ExprLidsDown - CurLids) * k;
+	BlinkT -= Dt;
+	if (BlinkT <= 0.f)
+	{
+		BlinkAt = T;
+		BlinkT = bTalking ? FMath::FRandRange(1.6f, 3.2f) : FMath::FRandRange(2.8f, 5.5f);
+	}
+	const float b = BlinkAt >= 0.f ? T - BlinkAt : 1.f;
+	// (closing in 70 ms, shut 40 ms, opening over 150 ms)
+	const float Blink = b < 0.07f ? b / 0.07f : b < 0.11f ? 1.f : b < 0.26f ? 1.f - (b - 0.11f) / 0.15f : 0.f;
+	const float Lid = FMath::Max(Blink, CurLids * 0.35f);
+	M(TEXT("eye_blink_L"), Lid);
+	M(TEXT("eye_blink_R"), Lid);
+	M(TEXT("brow_down_L"), CurBrowDown);
+	M(TEXT("brow_down_R"), CurBrowDown * 0.92f);
+	M(TEXT("brow_lateral_L"), CurBrowDown * 0.6f);
+	M(TEXT("brow_lateral_R"), CurBrowDown * 0.55f);
+	M(TEXT("eye_squintInner_L"), CurSquint);
+	M(TEXT("eye_squintInner_R"), CurSquint * 0.9f);
+	M(TEXT("brow_raiseIn_L"), CurRaiseIn);
+	M(TEXT("brow_raiseIn_R"), CurRaiseIn);
+	M(TEXT("eye_cheekRaise_L"), CurCheek);
+	M(TEXT("eye_cheekRaise_R"), CurCheek * 0.85f);
+	// (the lips while she talks: two out-of-step waves, opening and pressing, so it never reads as a loop)
+	float Lo = 0.f, Up = 0.f;
+	if (bTalking)
+	{
+		TalkPh += Dt;
+		Lo = FMath::Max(0.f, 0.55f * FMath::Sin(TalkPh * 11.f) + 0.25f * FMath::Sin(TalkPh * 4.3f + 1.f) + 0.05f);
+		Up = FMath::Max(0.f, 0.3f * FMath::Sin(TalkPh * 8.7f + 2.f) + 0.12f * FMath::Sin(TalkPh * 3.1f));
+	}
+	M(TEXT("mouth_lowerLipDepress_left"), Lo);
+	M(TEXT("mouth_lowerLipDepress_right"), Lo);
+	M(TEXT("mouth_upperLipRaise_left"), Up);
+	M(TEXT("mouth_upperLipRaise_right"), Up);
+	if (Shown)
+	{
+		Shown->RefreshBoneTransforms();
+	}
+	if (F->GetSkeletalMeshAsset() && F->MorphTargetWeights.Num() == F->GetSkeletalMeshAsset()->GetMorphTargets().Num())
+	{
+		FAnimationRuntime::AppendActiveMorphTargets(F->GetSkeletalMeshAsset(), Curves, F->ActiveMorphTargets, F->MorphTargetWeights);
+		F->MarkRenderDynamicDataDirty();
 	}
 }
