@@ -676,6 +676,24 @@ void AP2Story::FurnishShed()
 			const FVector F0 = At(260.f, 0.f, 0.f) + FVector(0.f, 0.f, G - T.GetLocation().Z + 40.f);
 			const FVector F1 = At(-300.f, 0.f, 0.f) + FVector(0.f, 0.f, G - T.GetLocation().Z + 80.f);
 			Fill->SetWorldLocationAndRotation(F0, (F1 - F0).Rotation());
+			// (and the moon through the gap in the boarded back window: a thin cold shaft across the dark, cut into slits
+			// by the boards' shadows, the haze in the air showing it, falling on the bench and the floor. The inside read
+			// near black whenever the flashlight was off or pointed away (blind judge, run 52))
+			USpotLightComponent* Shaft = NewObject<USpotLightComponent>(this, TEXT("WindowShaft"));
+			Shaft->SetIntensityUnits(ELightUnits::Candelas);
+			Shaft->SetIntensity(150.f);
+			Shaft->SetAttenuationRadius(1200.f);
+			Shaft->SetUseTemperature(true);
+			Shaft->SetTemperature(8200.f);
+			Shaft->SetSourceRadius(8.f);
+			Shaft->SetInnerConeAngle(5.f);
+			Shaft->SetOuterConeAngle(11.f);
+			Shaft->SetCastShadows(true);
+			Shaft->SetVolumetricScatteringIntensity(1.2f);        // (at 4 the haze by the window was a white blob, not a shaft)
+			Shaft->RegisterComponent();
+			const FVector S0 = At(-680.f, 39.f, 0.f) + FVector(0.f, 0.f, G - T.GetLocation().Z + 330.f);
+			const FVector S1 = At(-150.f, 39.f, 0.f) + FVector(0.f, 0.f, G - T.GetLocation().Z + 40.f);
+			Shaft->SetWorldLocationAndRotation(S0, (S1 - S0).Rotation());
 		}
 	}
 	UE_LOG(LogTemp, Display, TEXT("P2Story: the tool shed furnished (floor, table, her journal, matches, the stove); its ground %.0f cm from its origin"), Lift);
