@@ -94,3 +94,11 @@ the game). FBX "high", textures downsized to 2K before import (they are seen at 
 | Animal Bones Set 01 | b79b7001-9637-4d4a-bd8b-0afc02449251 | `animal_bones_set_01_ylukddl_high.zip` (13 MB) |
 | Animal Bones Antlers Deer 01 | 6947b80e-7a63-499c-bc4f-04ed07e4a526 | `animal_bones_antlers_deer_01_viyicao_high.zip` (10 MB) |
 | Rope Coil | 8ec7aab4-8be8-442e-95ab-840a8fa32932 | `rope_coil_vcsoddfs_high.zip` (66 MB) |
+
+Creature skin detail (Fab, free Quixel surfaces; licences include "professional"). 2K texture sets, unpacked outside git
+under C:/HollowAcreTools/Megascans3D/skin/; layered onto the husk's skin by `HollowAcre/Scripts/husk_skin_detail.py`.
+
+| Surface | Fab listing (uid) | File | Used as |
+|---|---|---|---|
+| Animal Skin (rkqor3p0) | 44474c17-4157-42b2-9fda-2096b7851a6b | `animal_skin_rkqor3p0_2k.zip` (22 MB) | pores, follicle pits and fine wrinkles: detail normal, cavity, roughness |
+| Rotten Animal Skin (rlsvbmp0) | 7082ef89-7269-4e73-9224-5a6b69b3e296 | `rotten_animal_skin_rlsvbmp0_2k.zip` (23 MB) | its dark blotches as frostbite and bruising |
