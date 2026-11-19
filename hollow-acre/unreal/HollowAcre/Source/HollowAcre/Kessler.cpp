@@ -993,7 +993,9 @@ void AKessler::CapOn()
 	{
 		if (C->GetClass()->GetName() == TEXT("GroomComponent"))
 		{
-			const bool bHide = C->GetName() == TEXT("Hair");
+			// (her grey hair kept: it shows below the cap at the nape and over the ears; hidden, the back of her head
+			// read as bald grey plastic (blind judge, run 55))
+			const bool bHide = false;
 			UE_LOG(LogTemp, Display, TEXT("Kessler: groom %s%s"), *C->GetName(), bHide ? TEXT(": hidden (under the cap)") : TEXT(""));
 			if (bHide)
 			{
@@ -1457,8 +1459,11 @@ void AKessler::FaceRigSetup()
 	FacePose->SetForcedLOD(1);
 	FacePose->SetLightingChannels(F->LightingChannels.bChannel0, F->LightingChannels.bChannel1, F->LightingChannels.bChannel2);
 	FacePose->SetCastShadow(F->CastShadow);
-	// (the follower face hidden but still posed: its grooms (brows, beard) ride on it)
-	F->SetVisibility(false, false);
+	// (the follower face drawn in no pass but still 'visible', so its grooms (her brows, her hair) still render, riding
+	// on it: hidden outright, they went with it (run 55: the frosted brows gone, the back of the head bald grey))
+	F->SetRenderInMainPass(false);
+	F->SetRenderInDepthPass(false);
+	F->SetCastShadow(false);
 	F->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 	const FReferenceSkeleton& Fr = FacePose->GetSkinnedAsset()->GetRefSkeleton();
 	FaceFromShown.SetNumUninitialized(Fr.GetNum());
