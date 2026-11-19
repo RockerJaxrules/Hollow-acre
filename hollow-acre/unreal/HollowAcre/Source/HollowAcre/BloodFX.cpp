@@ -66,7 +66,9 @@ UDecalComponent* ABloodFX::Stain(UMaterialInterface* M, UPrimitiveComponent* On,
 	UDecalComponent* D = NewObject<UDecalComponent>(this);
 	D->RegisterComponent();
 	D->SetWorldLocationAndRotation(Centre, Q);
-	D->DecalSize = FVector(3.f, SizeCm.X * 0.5f, SizeCm.Y * 0.5f);
+	// (on a wall, a thin projection: a board is 2 cm, and a splat on the shed's outside came through on the inside, a red
+	// paint splat in the cutscene (blind judge, run 52). On the ground, deep enough for the snow's bumps)
+	D->DecalSize = FVector(FMath::Abs(N.Z) < 0.6f ? 0.7f : 3.f, SizeCm.X * 0.5f, SizeCm.Y * 0.5f);
 	D->SortOrder = ++Order;
 	D->SetFadeScreenSize(0.f);
 	UMaterialInstanceDynamic* Mi = UMaterialInstanceDynamic::Create(M, D);

@@ -854,7 +854,23 @@ void APart2Character::Tick(float DeltaSeconds)
 		// (the armful of split wood carried low in front, under the light)
 		if (bCarryingWood && !Armful)
 		{
-			if (UStaticMesh* Am = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/P2_Armful.P2_Armful")))
+			// (the scanned log pile (Megascans batch 3), split logs with bark and sawn ends, its own material: the
+			// hand-built armful read as an untextured black block filling the bottom of the view (blind judge, run 52))
+			if (UStaticMesh* LogsM = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Megascans/Props/HistoricMedievalFarmLogPileM/SM_HistoricMedievalFarmLogPileM.SM_HistoricMedievalFarmLogPileM")))
+			{
+				Armful = NewObject<UStaticMeshComponent>(this, TEXT("Armful"));
+				Armful->SetStaticMesh(LogsM);
+				Armful->SetupAttachment(Camera);
+				Armful->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				Armful->SetCastShadow(false);
+				// (67 x 29 x 47 cm, its foot at its pivot: at 0.6, about 40 cm across the arms and 28 high; its top just
+				// into the lower edge of the view)
+				Armful->SetRelativeLocationAndRotation(FVector(44.f, 6.f, -44.f), FRotator(-12.f, 78.f, 4.f));
+				Armful->SetRelativeScale3D(FVector(0.6f));
+				Armful->SetLightingChannels(true, true, false);
+				Armful->RegisterComponent();
+			}
+			else if (UStaticMesh* Am = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/HollowAcre/Wake/P2_Armful.P2_Armful")))
 			{
 				Armful = NewObject<UStaticMeshComponent>(this, TEXT("Armful"));
 				Armful->SetStaticMesh(Am);
@@ -880,6 +896,9 @@ void APart2Character::Tick(float DeltaSeconds)
 				}
 				Armful->SetRelativeScale3D(FVector(0.62f));
 				Armful->RegisterComponent();
+			}
+			if (Armful && !ArmfulFill)
+			{
 				ArmfulFill = NewObject<UPointLightComponent>(this, TEXT("ArmfulFill"));
 				ArmfulFill->SetupAttachment(Camera);
 				ArmfulFill->SetIntensityUnits(ELightUnits::Candelas);

@@ -1,14 +1,14 @@
 You are a blind judge for a first-person survival-horror game in Unreal Engine 5 (realistic, night, deep snow, an
 abandoned 1900s mining camp). You see ONLY the attached contact sheet: frames from one cutscene, seen through the
 player's own eyes, in time order, each labelled with its time in seconds. There are no voices: lines are captions at the
-bottom ("Kessler:" is the man; unlabelled lines are the player's).
+bottom ("Kessler:" is the woman, Ruth Kessler; unlabelled lines are the player's).
 
-The cutscene: the end of the first night. A hard, short-spoken old foreman (Kessler) has just saved the player from a
-creature with his rifle. In a tool shed he shuts and bars the door with a plank, crouches at the pot-belly stove and
-feeds it (the fire on his face), answers the player's "What was that?" with "Men. Once. They come down off the high
+The cutscene: the end of the first night. A hard, short-spoken woman in her sixties (Ruth Kessler) has just driven off a
+creature with her rifle. In a tool shed she shuts and bars the door with a plank, crouches at the pot-belly stove and
+feeds it (the fire on her face), answers the player's "What was that?" with "Men. Once. They come down off the high
 ground when the snow shuts the road. Don't be out after dark.", tells them the road is shut, picks up the player's
 grandmother's journal, looks through it ("She came through here.") and hands it to them, then sits against the barred
-door with his rifle across his knees, turns his lantern down: "Sleep. I'll watch." The player's eyes go to the boarded
+door with her rifle across her knees, turns her lantern down: "Sleep. I'll watch." The player's eyes go to the boarded
 window where something reached in earlier; a slow blink; black; "Morning."
 
 Score each out of 10, honestly, as a demanding cinematic director would for a commercial release. The bar is

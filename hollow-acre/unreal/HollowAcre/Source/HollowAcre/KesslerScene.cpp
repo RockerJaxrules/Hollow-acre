@@ -300,7 +300,9 @@ void AKesslerScene::Tick(float Dt)
 	if (T > 9.6f && T < 27.2f)
 	{
 		Km->FaceTo(StoveDoor);
-		Look(T < 12.8f ? StoveDoor + FVector(0.f, 0.f, 25.f) : KEyes - FVector(0.f, 0.f, 6.f), T < 12.8f ? 1.0f : 1.2f);
+		// (the eyes stay on the barred door a beat as she steps away from it: the plank in its brackets, seen (blind
+		// judge, run 52: her back hid it))
+		Look(T < 11.0f ? At(-9.f, -10.f, 100.f) : T < 12.8f ? StoveDoor + FVector(0.f, 0.f, 25.f) : KEyes - FVector(0.f, 0.f, 6.f), T < 11.0f ? 1.5f : T < 12.8f ? 1.0f : 1.2f);
 	}
 	if (T > 12.5f)
 	{
@@ -387,7 +389,8 @@ void AKesslerScene::Tick(float Dt)
 	const FVector Hearth = Stove + R.GetAxisY() * 92.f + R.GetAxisX() * 10.f;
 	if (T > 48.7f && T < 63.2f)
 	{
-		Look(T < 53.5f ? Table + FVector(0.f, 0.f, 30.f) : KEyes - FVector(0.f, 0.f, T < 56.f ? 15.f : 8.f), 1.2f);
+		// (and down to the open book in her hands while she reads it, so it reads as her journal (judge, run 52))
+		Look(T < 53.5f ? Table + FVector(0.f, 0.f, 30.f) : (T > 57.0f && T < 60.6f && J) ? J->GetActorLocation() : KEyes - FVector(0.f, 0.f, T < 56.f ? 15.f : 8.f), 1.2f);
 	}
 	if (T > 51.7f && Once(TEXT("journal_up")))
 	{
@@ -483,16 +486,18 @@ void AKesslerScene::Tick(float Dt)
 	}
 	// the player's eyes to the gap in the boards where the hand came through; the lantern's last glow on them; a long
 	// slow blink, and black
-	if (T > 77.7f)
+	// (turned in time to hold on it: at the old slow rate the eyes were still swinging round when the lids closed and the
+	// window never came into view (blind judge, run 52))
+	if (T > 77.4f)
 	{
-		Look(S->WindowGap.IsZero() ? At(-370.f, 60.f, 130.f) : S->WindowGap, 0.55f);
+		Look(S->WindowGap.IsZero() ? At(-370.f, 60.f, 130.f) : S->WindowGap, 1.3f);
 	}
-	if (Dir && T > 81.7f)
+	if (Dir && T > 83.2f)
 	{
-		const float b = T - 81.7f;
+		const float b = T - 83.2f;
 		Dir->WakeLids = b < 2.4f ? Ease(b / 2.4f) : b < 3.6f ? 1.f - 0.55f * Ease((b - 2.4f) / 1.0f) : FMath::Clamp(0.45f + (b - 3.6f) / 2.2f, 0.f, 1.f);
 	}
-	if (T > 88.7f && Dir && Once(TEXT("card_morning")))
+	if (T > 90.2f && Dir && Once(TEXT("card_morning")))
 	{
 		Dir->ShowCard(NSLOCTEXT("HollowAcre", "Morning", "Morning."));
 	}
@@ -501,7 +506,7 @@ void AKesslerScene::Tick(float Dt)
 	{
 		Km->LookAtPoint += FVector(0.f, 0.f, 5.f * FMath::Sin(T * 6.3f) + 3.f * FMath::Sin(T * 2.1f)) + Km->GetActorRightVector() * 6.f * FMath::Sin(T * 1.7f);
 	}
-	if (T > 95.2f && Once(TEXT("scene_over")))
+	if (T > 96.7f && Once(TEXT("scene_over")))
 	{
 		bOver = true;
 		UE_LOG(LogTemp, Display, TEXT("KesslerScene: over"));

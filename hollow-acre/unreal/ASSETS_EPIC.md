@@ -73,3 +73,24 @@ door and window carry opacity maps (their panes are open) and use the masked mas
 
 Downloaded and dropped (not in the game): Historic Western Town Kit Mixed Old 02 (bright blue and red paint, wrong
 for the camp) and Urban Modular Building Window Door Frame Wood Green Set (the same four pieces as above).
+
+Megascans 3D batch 3 (Fab, free Quixel listings; each listing's licences include "professional", so they're sellable in
+the game). FBX "high", textures downsized to 2K before import (they are seen at night by a flashlight; disk is short).
+
+| Asset | Fab listing (uid) | File |
+|---|---|---|
+| Historic Medieval Farm Wagon Wood 01 | 6996c700-9421-4f50-8855-d4ad11456415 | `historic_medieval_farm_wagon_wood_01_xjtudiabw_high.zip` (20 MB) |
+| Horse Hitching Post | a3b924cf-5f8b-4eb3-8e7b-b878eb92f1bf | `horse_hitching_post_udeuahzqx_high.zip` (50 MB) |
+| Wooden Wheelbarrow | 8f945fbe-00e4-4fc3-b363-81cdc4ad1653 | `wooden_wheelbarrow_tmruaaeda_high.zip` (51 MB) |
+| Historic Medieval Farm Sled Wood 01 | f823b453-9864-4bdc-a56a-63fc4fad93f6 | `historic_medieval_farm_sled_wood_01_xivjaeamw_high.zip` (22 MB) |
+| Wooden Ladder | 4156fdc9-4098-4d21-94ad-72ca08f0ca4b | `wooden_ladder_ukimedmaw_high.zip` (49 MB) |
+| Old Wooden Bucket | e533d240-129e-4fbf-9c64-68337093d714 | `old_wooden_bucket_ubupeirfa_high.zip` (46 MB) |
+| Blacksmith Anvil | 47e3c8f3-9cbe-4565-82e7-6527ba061be7 | `blacksmith_anvil_uchqbbsfa_high.zip` (45 MB) |
+| Old Wooden Bench | 738efe36-06ed-4301-ae41-758cf402e176 | `old_wooden_bench_uchpfjefa_high.zip` (49 MB) |
+| Historic Medieval Farm Log Pile M | f601c8e2-e592-4ce5-bb95-ff7310a4db1e | `historic_medieval_farm_log_pile_m_xg4objbs_high.zip` (19 MB) |
+| Wrinkled Tarp | b4cd9451-85e9-434e-ab18-8f5a7a3e1f5d | `wrinkled_tarp_vieldbo_high.zip` (58 MB) |
+| Wooden Grave Cross | 9a625dfe-43bf-4464-9703-f3ac6c9a2bb1 | `wooden_grave_cross_ugchbffga_high.zip` (53 MB) |
+| Old Gravestone | 87a59fed-e48b-471c-ba36-967205ab965b | `old_gravestone_wjuvde2qx_high.zip` (57 MB) |
+| Animal Bones Set 01 | b79b7001-9637-4d4a-bd8b-0afc02449251 | `animal_bones_set_01_ylukddl_high.zip` (13 MB) |
+| Animal Bones Antlers Deer 01 | 6947b80e-7a63-499c-bc4f-04ed07e4a526 | `animal_bones_antlers_deer_01_viyicao_high.zip` (10 MB) |
+| Rope Coil | 8ec7aab4-8be8-442e-95ab-840a8fa32932 | `rope_coil_vcsoddfs_high.zip` (66 MB) |

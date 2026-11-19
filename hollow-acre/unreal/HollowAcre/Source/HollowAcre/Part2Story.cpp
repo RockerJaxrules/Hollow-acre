@@ -2461,6 +2461,24 @@ void AP2Story::DressCamp()
 		{TEXT("Headframe"), TEXT("SnowyRocksPile"), -350.f, -700.f, 140.f, 0.8f, true},
 		{TEXT("Hotel"), TEXT("SnowHill"), 400.f, -2400.f, 15.f, 1.f, false},
 		{TEXT("Saloon"), TEXT("SnowHill"), -2600.f, -1700.f, 70.f, 0.8f, false},
+		// (batch 3: the street's leavings) a hitching rail before the saloon; a wagon left in the street; a bench by the
+		// cabin's door; a wheelbarrow, a sled, a tarp blown against the store's side; the shaft's anvil, bucket and rope;
+		// the camp's few graves out behind the hotel; bones and antlers in the snow at the treeline (the creature's)
+		{TEXT("Saloon"), TEXT("HorseHitchingPost"), 380.f, 0.f, 90.f, 1.f, true},
+		{TEXT("Store"), TEXT("HistoricMedievalFarmWagonWood01"), 560.f, 260.f, 68.f, 1.05f, true},
+		{TEXT("CabinA"), TEXT("OldWoodenBench"), 60.f, 140.f, 2.f, 1.f, true},
+		{TEXT("CabinB"), TEXT("WoodenWheelbarrow"), 90.f, -280.f, 35.f, 1.f, true},
+		{TEXT("Hotel"), TEXT("HistoricMedievalFarmSledWood01"), 120.f, -640.f, 8.f, 1.f, true},
+		{TEXT("Store"), TEXT("WrinkledTarp"), -480.f, 600.f, 20.f, 1.f, false},
+		{TEXT("Headframe"), TEXT("BlacksmithAnvil"), 220.f, -160.f, 25.f, 1.1f, true},
+		{TEXT("Headframe"), TEXT("OldWoodenBucket"), 270.f, -110.f, 0.f, 1.f, false},
+		{TEXT("Headframe"), TEXT("RopeCoil"), 190.f, -60.f, 0.f, 1.6f, false},
+		{TEXT("Hotel"), TEXT("WoodenGraveCross"), -2100.f, 200.f, 4.f, 1.f, true},
+		{TEXT("Hotel"), TEXT("WoodenGraveCross"), -2160.f, 460.f, -9.f, 0.92f, true},
+		{TEXT("Hotel"), TEXT("OldGravestone"), -2080.f, -60.f, 6.f, 1.f, true},
+		{TEXT("Hotel"), TEXT("WoodenGraveCross"), -2200.f, -300.f, 14.f, 0.85f, true},
+		{TEXT("Saloon"), TEXT("AnimalBonesSet01"), -1300.f, -200.f, 40.f, 3.f, false},
+		{TEXT("Saloon"), TEXT("AnimalBonesAntlersDeer01"), -1240.f, -140.f, 110.f, 4.f, false},
 	};
 	TMap<FString, FTransform> Frames;
 	for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)
