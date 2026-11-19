@@ -51,3 +51,25 @@ tub `ufmodhpfa` (110); an ore cart frame `vcyjedsfa`; a sack cart `ujzlbgzfa`; t
 `ujzhahdfa`; plank and beam pieces `udrffjjqx`, `uebpbd3fa`, `uebpbetfa`, `uebpbhcfa`; a sledgehammer `uc1mfe1fa`; a
 pick `uckmaibfa`; a shovel `uddjeelqx`; a hard hat `udklcbuiw`; a miner's lamp `vgyidfpaw`; rocks and ore `ul4lehiga`,
 `wd3efb0`; rock floor patches `vmhdagb`, `wjfidjgdb`.
+
+Megascans 3D batch 2 (Fab, free Quixel listings, Standard licence: sellable in the game; the owner's blanket Fab
+approval). FBX "high" at 4K, unpacked outside git, imported by `HollowAcre/Scripts/import_megascans_props.py`. The
+door and window carry opacity maps (their panes are open) and use the masked master `M_MegaPropMasked`.
+
+| Asset | Used as | File |
+|---|---|---|
+| Historic Western Town Door Mixed Old | the store's, saloon's and hotel's front doors (`make_town.py` HWT_DOOR, `fits.json`) | `historic_western_town_door_mixed_old_xjlrfceiy_high.zip` (88 MB) |
+| Historic Western Town Window Mixed Old | their windows (HWT_WINDOW; boarded ones get boards nailed over) | `historic_western_town_window_mixed_old_xjlrfcziy_high.zip` (90 MB) |
+| Historic Western Town Pillar Wood Old | porch posts, stretched to the porch height | `historic_western_town_pillar_wood_old_xjlrfegiy_high.zip` (101 MB) |
+| Historic Western Town Trim Wood Old | the fretwork brackets under the porch eaves | `historic_western_town_trim_wood_old_xjlrfeviy_high.zip` (86 MB) |
+| Historic Western Town Floor Wood Old | imported, not placed yet | `historic_western_town_floor_wood_old_xivnaam_high.zip` (85 MB) |
+| Old Stove | left in the snow by the store's side | `old_stove_ueppbilga_high.zip` (47 MB) |
+| Urban Shanty Town Shed Wood Weathered (a 1 m tool locker) | against cabin A | `urban_shanty_town_shed_wood_weathered_yihrffk_high.zip` (124 MB) |
+| Spruce Tree Stump (a 2.4 m broken trunk) | the treeline behind the camp | `spruce_tree_stump_tjuxbgfda_high.zip` (68 MB) |
+| Nordic Forest Cluster Rock Medium | boulders behind the camp (snow settles on them) | `nordic_forest_cluster_rock_medium_xf3odif_high.zip` (79 MB) |
+| Ice Cliff | a frozen rock face behind the store | `ice_cliff_uhprdg2fa_high.zip` (69 MB) |
+| Snowy Rocks Pile | heaps where the street was cleared | `snowy_rocks_pile_vcykbjsva_high.zip` (62 MB) |
+| Snow Hill | long drift mounds where the ground opens out | `snow_hill_vdbmabvva_high.zip` (55 MB) |
+
+Downloaded and dropped (not in the game): Historic Western Town Kit Mixed Old 02 (bright blue and red paint, wrong
+for the camp) and Urban Modular Building Window Door Frame Wood Green Set (the same four pieces as above).

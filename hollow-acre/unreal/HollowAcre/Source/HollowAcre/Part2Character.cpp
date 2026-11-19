@@ -925,6 +925,53 @@ void APart2Character::Tick(float DeltaSeconds)
 		{
 			StoryAutopilot(DeltaSeconds);
 		}
+		// (a still for checking the world, -p2cam=<building>,x,y,z,yaw,pitch: the eyes held at a point in that building's
+		// frame ("Town <building>"; its front faces +x), turned by yaw from its front, pitched)
+		{
+			static FString CamSpec;
+			static const bool bCam = FParse::Value(FCommandLine::Get(), TEXT("-p2cam="), CamSpec, false);
+			if (bCam && Controller)
+			{
+				// (several shots separated by '/', four seconds each (-p2camsecs=) from when the player has the controls)
+				static float CamT = 0.f;
+				CamT += DeltaSeconds;
+				TArray<FString> Shots, P;
+				CamSpec.ParseIntoArray(Shots, TEXT("/"));
+				static float CamSecs = 4.f;
+				static const bool bCamSecs = FParse::Value(FCommandLine::Get(), TEXT("-p2camsecs="), CamSecs);
+				(void)bCamSecs;
+				Shots[FMath::Min(int32(CamT / FMath::Max(CamSecs, 0.25f)), Shots.Num() - 1)].ParseIntoArray(P, TEXT(","));
+				for (TActorIterator<AStaticMeshActor> It(GetWorld()); It && P.Num() == 6; ++It)
+				{
+					if (It->GetActorLabel() == TEXT("Town ") + P[0])
+					{
+						const FTransform F = It->GetActorTransform();
+						const FVector At = F.TransformPosition(FVector(FCString::Atof(*P[1]), FCString::Atof(*P[2]), 0.f));
+						// (its height over the ground there, found by a trace down: the land rises behind the camp)
+						float Gz = F.GetLocation().Z;
+						// (the ground only, not roofs or the trees: the town's ground patch, the terrain, the road)
+						TArray<FHitResult> Gh;
+						FCollisionQueryParams Gq(TEXT("CamGround"), true, this);
+						GetWorld()->LineTraceMultiByObjectType(Gh, At + FVector(0.f, 0.f, 6000.f), At - FVector(0.f, 0.f, 6000.f), FCollisionObjectQueryParams(ECC_WorldStatic), Gq);
+						for (const FHitResult& H : Gh)
+						{
+							const UStaticMeshComponent* S = Cast<UStaticMeshComponent>(H.GetComponent());
+							const FString N = S && S->GetStaticMesh() ? S->GetStaticMesh()->GetName() : FString();
+							if (N == TEXT("Town_Ground") || N.StartsWith(TEXT("Terrain")) || N == TEXT("Road"))
+							{
+								Gz = H.ImpactPoint.Z;
+								break;
+							}
+						}
+						SetActorLocation(FVector(At.X, At.Y, Gz + FCString::Atof(*P[3]) - BaseEyeHeight), false, nullptr, ETeleportType::TeleportPhysics);
+						GetCharacterMovement()->StopMovementImmediately();
+						GetCharacterMovement()->GravityScale = 0.f;
+						Controller->SetControlRotation(FRotator(FCString::Atof(*P[5]), F.Rotator().Yaw + FCString::Atof(*P[4]), 0.f));
+						break;
+					}
+				}
+			}
+		}
 		// (test autopilot for captures, -p2walk: a look round, then walking on with the head turning, a run in the middle)
 		static const bool bAuto = FParse::Param(FCommandLine::Get(), TEXT("p2walk"));
 		if (bAuto && Controller)

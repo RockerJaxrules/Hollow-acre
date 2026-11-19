@@ -2445,6 +2445,22 @@ void AP2Story::DressCamp()
 		{TEXT("Headframe"), TEXT("Mine_ueihabqfa"), 260.f, -330.f, 70.f, 1.f, true},
 		{TEXT("Saloon"), TEXT("SnowEmbankment"), 300.f, -600.f, 90.f, 1.f, false},
 		{TEXT("Hotel"), TEXT("SnowPile"), 500.f, -1300.f, 20.f, 0.7f, false},
+		// (batch 2: the wild round the camp) a rusted stove carried out and left by the store's side; a tool locker against
+		// the cabin; the treeline's broken spruce trunks and boulders, a frozen rock face behind the store, snow drifted
+		// into long mounds where the ground opens out, a heap of snowy rocks where the street was cleared
+		{TEXT("Store"), TEXT("OldStove"), -220.f, 545.f, 35.f, 1.f, true},
+		{TEXT("CabinA"), TEXT("UrbanShantyTownShedWoodWeathered"), -170.f, -282.f, -90.f, 1.f, true},
+		{TEXT("Saloon"), TEXT("SpruceTreeStump"), -1500.f, 620.f, 40.f, 1.f, true},
+		{TEXT("Hotel"), TEXT("SpruceTreeStump"), -1650.f, 950.f, 200.f, 1.15f, true},
+		{TEXT("CabinB"), TEXT("SpruceTreeStump"), -1400.f, -300.f, 120.f, 0.9f, true},
+		{TEXT("Store"), TEXT("NordicForestClusterRockMedium"), -2000.f, 900.f, 30.f, 1.f, true},
+		{TEXT("CabinB"), TEXT("NordicForestClusterRockMedium"), -950.f, 420.f, 160.f, 0.8f, true},
+		{TEXT("Hotel"), TEXT("NordicForestClusterRockMedium"), -1300.f, -1200.f, 75.f, 1.2f, true},
+		{TEXT("Store"), TEXT("IceCliff"), -2700.f, -200.f, 90.f, 1.3f, true},
+		{TEXT("Hotel"), TEXT("SnowyRocksPile"), 700.f, 1600.f, 10.f, 1.f, true},
+		{TEXT("Headframe"), TEXT("SnowyRocksPile"), -350.f, -700.f, 140.f, 0.8f, true},
+		{TEXT("Hotel"), TEXT("SnowHill"), 400.f, -2400.f, 15.f, 1.f, false},
+		{TEXT("Saloon"), TEXT("SnowHill"), -2600.f, -1700.f, 70.f, 0.8f, false},
 	};
 	TMap<FString, FTransform> Frames;
 	for (TActorIterator<AStaticMeshActor> It(GetWorld()); It; ++It)

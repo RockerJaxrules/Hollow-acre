@@ -45,6 +45,15 @@ class Mesh:
     def __init__(self, seed):
         self.groups = {}
         self.r = random.Random(seed)
+        self.fits = []          # (scanned pieces set into it: the game places them, fits.json)
+
+    def fit(self, mesh, at, n, scale=(1.0, 1.0, 1.0)):
+        """A Megascans piece (/Game/HollowAcre/Megascans/Props/<mesh>) set into this building: its pivot at `at` (this
+        building's frame), its outer face (the scans' modular kits face local -Y) turned along n. Written in Unreal's
+        frame as the OBJ is (Y mirrored)."""
+        nx, ny = float(n[0]), -float(n[1])
+        self.fits.append({'mesh': mesh, 'at': [float(at[0]), -float(at[1]), float(at[2])],
+                          'yaw': math.degrees(math.atan2(nx, -ny)), 'scale': [float(v) for v in scale]})
 
     def _g(self, mat):
         return self.groups.setdefault(mat, ([], [], []))
@@ -129,6 +138,12 @@ class Mesh:
                     # (mirroring Y flips handedness: the winding is reversed to keep faces pointing out)
                     fo.write('f %d/%d %d/%d %d/%d\n' % (c + vi, c + vi, b + vi, b + vi, a + vi, a + vi))
                 vi += len(v)
+        # (its scanned pieces: fits.json, every building's list under its name; the game sets them in place)
+        import json
+        fp = os.path.join(os.path.dirname(path), 'fits.json')
+        allf = json.load(open(fp)) if os.path.exists(fp) else {}
+        allf[os.path.splitext(os.path.basename(path))[0].replace('Town_', '')] = self.fits
+        json.dump(allf, open(fp, 'w'), indent=1)
         tris = sum(len(f) for v, t, f in self.groups.values())
         print('%s: %d triangles, %s' % (os.path.basename(path), tris, ', '.join(sorted(self.groups))))
 
@@ -246,9 +261,29 @@ def inner_dark(m, wall, inset=6.0):
     m.poly('dark', [wall.P(u0, z1, -inset), wall.P(u1, z1, -inset), wall.P(u1, wall.top(u1), -inset), wall.P(u0, wall.top(u0), -inset)])
 
 
-def window(m, wall, a0, z0, w, h, state='broken', panes=(2, 2), trimmat='paintwood'):
+HWT_WINDOW = ('HistoricWesternTownWindowMixedOld', 100.0, 180.0)     # (the scan: a weathered sash window in its casing, panes out)
+HWT_DOOR = ('HistoricWesternTownDoorMixedOld', 200.0, 250.0)         # (the scan: a glazed double door in its frame)
+
+
+def window(m, wall, a0, z0, w, h, state='broken', panes=(2, 2), trimmat='paintwood', scan=None):
     """A double-hung window: casing, sill, two sashes with muntins; its glass whole, broken (jagged shards left in the
-    frames, a dark hole), gone, or boarded over."""
+    frames, a dark hole), gone, or boarded over. With scan (a scale), the opening is the scanned window's (its frame
+    and casing are the scan's, centred where this one was), boards nailed over it if boarded."""
+    if scan and state != 'gone':
+        name, sw, sh = HWT_WINDOW
+        a0, w, h = a0 + w / 2 - sw * scan / 2, sw * scan, sh * scan
+        wall.open(a0, a0 + w, z0, z0 + h)
+        m.fit(name, wall.P(a0 + w / 2, z0, 0.0), wall.n, (scan, scan, scan))
+        if not getattr(wall, 'no_dark', False):
+            m.poly('dark', [wall.P(a0, z0, -30), wall.P(a0 + w, z0, -30), wall.P(a0 + w, z0 + h, -30), wall.P(a0, z0 + h, -30)])
+        if state in ('boarded', 'boarded_gap'):
+            n = m.r.randint(3, 4)
+            for i in range(n):
+                zc = z0 + h * (i + 0.5) / n + m.r.uniform(-4, 4)
+                ang = m.r.uniform(-12, 12)
+                dz = math.tan(math.radians(ang)) * (w + 20) / 2
+                m.board('barewood', wall.P(a0 - 10, zc - dz, 14), wall.P(a0 + w + 10, zc + dz, 14), m.r.uniform(15, 22), 2.2, wall.n, jitter=0.4)
+        return
     wall.open(a0, a0 + w, z0, z0 + h)
     t = 9.0          # casing width
     # casing and sill
@@ -310,8 +345,16 @@ def window(m, wall, a0, z0, w, h, state='broken', panes=(2, 2), trimmat='paintwo
                 m.poly('glass', [wall.P(pa0, pz0, out - 3.5), wall.P(pa1, pz0, out - 3.5), wall.P(pa1, pz1, out - 3.5), wall.P(pa0, pz1, out - 3.5)])
 
 
-def door(m, wall, a0, w, h, state='shut', trimmat='paintwood', transom=0.0):
-    """A four-panel door in a cased opening (shut, ajar, or gone: the dark inside), with a transom light above."""
+def door(m, wall, a0, w, h, state='shut', trimmat='paintwood', transom=0.0, scan=False):
+    """A four-panel door in a cased opening (shut, ajar, or gone: the dark inside), with a transom light above. With
+    scan, the scanned glazed double door in its frame instead, centred where this one was."""
+    if scan:
+        name, sw, sh = HWT_DOOR
+        a0 = a0 + w / 2 - sw / 2
+        wall.open(a0, a0 + sw, 0, sh)
+        m.fit(name, wall.P(a0 + sw / 2, 0, 0.0), wall.n)
+        m.poly('dark', [wall.P(a0, 0, -60), wall.P(a0 + sw, 0, -60), wall.P(a0 + sw, sh, -60), wall.P(a0, sh, -60)])
+        return
     wall.open(a0, a0 + w, 0, h + transom)
     t = 10.0
     m.board(trimmat, wall.P(a0 - t / 2, 0, 2), wall.P(a0 - t / 2, h + transom + t, 2), t, 2.5, wall.n)
@@ -471,7 +514,7 @@ def finish_walls(m, walls, front_kind, side_kind, missing):
         if kind == 'lap':
             clad_lap(m, wall, 'cladding', missing=missing)
         elif kind == 'paintlap':
-            clad_lap(m, wall, 'paintwood', missing=missing)
+            clad_lap(m, wall, 'paintclad', missing=missing)       # (the cladding scan, faded paint: the flaky-plank scan's own seams read as brick on lap boards)
         else:
             clad_vertical(m, wall, 'barewood', missing=missing)
         if name != 'front' or not (wall.height > 0 and getattr(wall, 'false_front', False)):
@@ -503,14 +546,14 @@ def false_front_store(name, seed, W=9.1, D=15.2, H=12.5, ff=4.5, pitch=37.0, sag
     f = walls['front']
     # storefront: display windows either side of a double door with a transom
     dw = 5.5 * FT * 0.5
-    door(m, f, W / 2 - dw, 2 * dw, 7.5 * FT, state='ajar', transom=1.5 * FT)
+    door(m, f, W / 2 - dw, 2 * dw, 7.5 * FT, state='ajar', transom=1.5 * FT, scan=True)
     for side in (-1, 1):
         a0 = W / 2 + side * (W / 4 + dw / 2) - 1.9 * FT
-        window(m, f, a0, 2.0 * FT, 3.8 * FT, 6.0 * FT, state=m.r.choice(['broken', 'boarded']), panes=(2, 2))
+        window(m, f, a0, 2.0 * FT, 3.8 * FT, 6.0 * FT, state=m.r.choice(['broken', 'boarded']), panes=(2, 2), scan=1.0)
     # side windows
     for name_, wall in (('left', walls['left']), ('right', walls['right'])):
         for k in range(2):
-            window(m, wall, wall.length * (0.3 + 0.4 * k) - 50, 3.0 * FT, 100, 160, state=m.r.choice(['broken', 'boarded', 'gone']), panes=(2, 2))
+            window(m, wall, wall.length * (0.3 + 0.4 * k) - 50, 3.0 * FT, 100, 160, state=m.r.choice(['broken', 'boarded', 'gone']), panes=(2, 2), scan=0.92)
     finish_walls(m, walls, 'paintlap', 'bb', 0.06)
     sill(m, W, D)
     # the roof behind the false front, sagging, its ridge running back from the street, heavy with snow
@@ -551,7 +594,15 @@ def false_front_store(name, seed, W=9.1, D=15.2, H=12.5, ff=4.5, pitch=37.0, sag
             # this one gave way: lying in the snow
             m.board('barewood', np.array([walk_d - 15, y, 30]), np.array([walk_d + 200, y + 40, 18]), 14, 14, (0, 0, 1), jitter=2)
             continue
-        m.box('paintwood', (walk_d - 15, y, 22 + post_h / 2), (14, 14, post_h))
+        m.fit('HistoricWesternTownPillarWoodOld', (walk_d - 15, y, 22), (1, 0, 0), (1.0, 1.0, post_h / 330.0))
+    # (a fretwork bracket under the eave in each span between standing posts: the scanned trim, stretched to the span)
+    for i in range(len(posts) - 1):
+        if porch_down and i + 1 == 3:
+            continue
+        span = posts[i + 1] - posts[i] - 16
+        sx = span / 200.0
+        sz = min(1.0, sx) * 0.8
+        m.fit('HistoricWesternTownTrimWoodOld', (walk_d - 15 - 4, posts[i + 1] - 8, 22 + post_h - 4 - 80 * sz), (1, 0, 0), (sx, 1.0, sz))
     # the porch roof: a shed roof from the front wall to the posts (dropped at the end where the post went)
     zf, zp = H - 20, 22 + post_h
     for k in range(6):
@@ -575,17 +626,17 @@ def hotel(name, seed, W=9.1, D=15.2, floors=2, pitch=34.0):
     H = floors * 10.5 * FT
     walls = frame_building(m, W, D, H, pitch, 'lap', 'lap', ridge='y')
     f = walls['front']
-    door(m, f, W / 2 - 55, 110, 7 * FT, state='open', transom=1.2 * FT)
+    door(m, f, W / 2 - 55, 110, 7 * FT, state='open', transom=1.2 * FT, scan=True)
     for fl in range(floors):
         for k in range(4):
             a0 = W * (0.12 + 0.24 * k) - 45
             if fl == 0 and abs(a0 + 45 - W / 2) < 120:
                 continue
-            window(m, f, a0, fl * 10.5 * FT + 2.8 * FT, 90, 165, state=m.r.choice(['broken', 'broken', 'boarded', 'gone', 'whole']), panes=(2, 2))
+            window(m, f, a0, fl * 10.5 * FT + 2.8 * FT, 90, 165, state=m.r.choice(['broken', 'broken', 'boarded', 'gone', 'whole']), panes=(2, 2), scan=0.92)
     for wall in (walls['left'], walls['right']):
         for fl in range(floors):
             for k in range(3):
-                window(m, wall, wall.length * (0.18 + 0.3 * k), fl * 10.5 * FT + 2.8 * FT, 85, 160, state=m.r.choice(['broken', 'boarded', 'gone']), panes=(2, 2))
+                window(m, wall, wall.length * (0.18 + 0.3 * k), fl * 10.5 * FT + 2.8 * FT, 85, 160, state=m.r.choice(['broken', 'boarded', 'gone']), panes=(2, 2), scan=0.9)
     finish_walls(m, walls, 'lap', 'lap', 0.04)
     sill(m, W, D)
     rise = gable_roof(m, -D, 0, -W / 2, W / 2, H, pitch, 'shingles', ridge_along='y', overhang=35, sag=25, snow=50, holes=1)
@@ -602,8 +653,12 @@ def hotel(name, seed, W=9.1, D=15.2, floors=2, pitch=34.0):
             continue
         y = -W / 2 + 9 + k * 18
         m.board('barewood', np.array([walk_d, y, 40]), np.array([0, y, 40]), 16.5, 4.5, (0, 0, 1), jitter=0.4)
-    for y in (-W / 2 + 15, 0.0, W / 2 - 15):
-        m.box('paintwood', (walk_d - 15, y, 40 + 140), (14, 14, 280))
+    hposts = (-W / 2 + 15, 0.0, W / 2 - 15)
+    for y in hposts:
+        m.fit('HistoricWesternTownPillarWoodOld', (walk_d - 15, y, 40), (1, 0, 0), (1.0, 1.0, 280 / 330.0))
+    for i in range(len(hposts) - 1):
+        sx = (hposts[i + 1] - hposts[i] - 16) / 200.0
+        m.fit('HistoricWesternTownTrimWoodOld', (walk_d - 19, hposts[i + 1] - 8, 320 - 6 - 80 * 0.8), (1, 0, 0), (sx, 1.0, 0.8))
     pts = [np.array([walk_d + 20, -W / 2 - 10, 320]), np.array([walk_d + 20, W / 2 + 10, 320]), np.array([0, W / 2 + 10, 360]), np.array([0, -W / 2 - 10, 360])]
     m.poly('tin', pts, face=(0, 0, 1))
     m.poly('barewood', [p - np.array([0, 0, 4]) for p in pts], face=(0, 0, -1))

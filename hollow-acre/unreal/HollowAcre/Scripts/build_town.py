@@ -29,6 +29,7 @@ SURF = {  # material slot -> (Megascans folder, UV scale for a 2 m UV unit, tint
     'drywood': ('weathered_wooden_planks', 1.0, (0.8, 0.76, 0.72), False),            # (indoors: no snow on it)
     'dryrust': ('rusty_metal_sheet', 1.0, (0.9, 0.9, 0.9), False),                     # (indoors: tools, cans)
     'cladding': ('wooden_cladding', 1.0, (0.9, 0.88, 0.85), False),
+    'paintclad': ('wooden_cladding', 1.0, (0.78, 0.74, 0.66), False),             # (the stores' fronts: old paint gone chalky)
     'shingles': ('wooden_roof_shingles', 1.0, (0.85, 0.84, 0.83), False),
     'tin': ('rusty_corrugated_metal', 1.0, (1.0, 1.0, 1.0), True),
     'rustmetal': ('rusty_metal_sheet', 1.0, (1.0, 1.0, 1.0), False),
