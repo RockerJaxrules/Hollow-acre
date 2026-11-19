@@ -15,7 +15,7 @@ import bpy
 args = sys.argv[sys.argv.index('--') + 1:]
 OUT, WAV, HEIGHT = args[0], args[1], int(args[2])
 SEGS = args[3:]
-FPS = 30
+FPS = int(os.environ.get("HA_FPS", "30"))
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 sc = bpy.context.scene

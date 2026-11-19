@@ -1299,6 +1299,7 @@ void AKessler::FaceTick(float Dt)
 	// expressions are mostly its facial joints, the morphs only small correctives on them: alone they barely show. Real
 	// expressions need the face's own ABP_Face (RigLogic) evaluating, which it doesn't while it follows the body copy.) A blink every few seconds (quicker, closer together while she talks); the lips working
 	// while she speaks, never in step; the scene's mood for the line eased in over a third of a second.
+	FaceRigSetup();
 	USkeletalMeshComponent* F = Face.Get();
 	if (!F)
 	{
@@ -1362,9 +1363,119 @@ void AKessler::FaceTick(float Dt)
 	{
 		Shown->RefreshBoneTransforms();
 	}
-	if (F->GetSkeletalMeshAsset() && F->MorphTargetWeights.Num() == F->GetSkeletalMeshAsset()->GetMorphTargets().Num())
+	if (FacePose)
+	{
+		// (the posable face: every joint it shares with the body copy (root to head) as the copy has it; its facial
+		// joints from their reference, turned: the jaw open while she talks, the lids down for a blink)
+		const FReferenceSkeleton& Fr = FacePose->GetSkinnedAsset()->GetRefSkeleton();
+		const TArray<FTransform>& Ref = Fr.GetRefBonePose();
+		for (int32 i = 0; i < FaceFromShown.Num() && i < FacePose->BoneSpaceTransforms.Num(); ++i)
+		{
+			const int32 j = FaceFromShown[i];
+			FacePose->BoneSpaceTransforms[i] = (j != INDEX_NONE && Shown->BoneSpaceTransforms.IsValidIndex(j)) ? Shown->BoneSpaceTransforms[j] : Ref[i];
+		}
+		// (found by test, run 56: the jaw opens about its own -X; the upper lids close along their +Y (Z lifts them); the
+		// lip joints aren't the jaw's children, so the lower lip and chin are carried round its pivot with it)
+		const float JawDeg = bTalking ? FMath::Max(0.f, 2.f + 6.f * (FMath::Sin(TalkPh * 11.f) * 0.65f + FMath::Sin(TalkPh * 4.3f + 1.f) * 0.35f)) : 0.f;
+		if (FJaw != INDEX_NONE)
+		{
+			FTransform J = Ref[FJaw];
+			J.SetRotation(J.GetRotation() * FQuat(FVector(-1.f, 0.f, 0.f), FMath::DegreesToRadians(JawDeg)));
+			FacePose->BoneSpaceTransforms[FJaw] = J;
+		}
+		const float LidClose = FMath::Clamp(Blink + CurSquint * 0.3f + CurLids * 0.25f, 0.f, 1.f);
+		for (int32 i : FLidUpper)
+		{
+			FTransform L = Ref[i];
+			L.AddToTranslation(FVector(0.f, 0.9f * LidClose, 0.f));
+			FacePose->BoneSpaceTransforms[i] = L;
+		}
+		FacePose->RefreshBoneTransforms();
+		if (FJaw != INDEX_NONE && JawDeg > 0.05f && FLowerMouth.Num() > 0)
+		{
+			const FTransform Jw = FacePose->GetBoneTransform(FJaw);
+			const FVector Axis = Jw.TransformVectorNoScale(FVector(-1.f, 0.f, 0.f)).GetSafeNormal();
+			for (const TPair<int32, float>& Lm : FLowerMouth)
+			{
+				const FQuat Q(Axis, FMath::DegreesToRadians(JawDeg * Lm.Value));
+				FTransform W = FacePose->GetBoneTransform(Lm.Key);
+				W.SetLocation(Jw.GetLocation() + Q.RotateVector(W.GetLocation() - Jw.GetLocation()));
+				W.SetRotation(Q * W.GetRotation());
+				FacePose->SetBoneTransformByName(FacePose->GetBoneName(Lm.Key), W, EBoneSpaces::WorldSpace);
+			}
+			FacePose->RefreshBoneTransforms();
+		}
+		if (FacePose->GetSkinnedAsset() && FacePose->MorphTargetWeights.Num() == FacePose->GetSkinnedAsset()->GetMorphTargets().Num())
+		{
+			FacePose->ActiveMorphTargets.Empty();
+			FMemory::Memzero(FacePose->MorphTargetWeights.GetData(), FacePose->MorphTargetWeights.Num() * sizeof(float));
+			FAnimationRuntime::AppendActiveMorphTargets(Cast<USkeletalMesh>(FacePose->GetSkinnedAsset()), Curves, FacePose->ActiveMorphTargets, FacePose->MorphTargetWeights);
+			FacePose->MarkRenderDynamicDataDirty();
+		}
+	}
+	else if (F->GetSkeletalMeshAsset() && F->MorphTargetWeights.Num() == F->GetSkeletalMeshAsset()->GetMorphTargets().Num())
 	{
 		FAnimationRuntime::AppendActiveMorphTargets(F->GetSkeletalMeshAsset(), Curves, F->ActiveMorphTargets, F->MorphTargetWeights);
 		F->MarkRenderDynamicDataDirty();
 	}
+}
+
+void AKessler::FaceRigSetup()
+{
+	USkeletalMeshComponent* F = Face.Get();
+	if (FacePose || !F || !Shown || !F->GetSkinnedAsset())
+	{
+		return;
+	}
+	FacePose = NewObject<UPoseableMeshComponent>(Man, TEXT("KesslerFacePose"));
+	FacePose->SetSkinnedAssetAndUpdate(F->GetSkinnedAsset(), true);
+	FacePose->SetupAttachment(Shown);
+	FacePose->RegisterComponent();
+	FacePose->SetRelativeTransform(FTransform::Identity);
+	for (int32 i = 0; i < F->GetNumMaterials(); ++i)
+	{
+		FacePose->SetMaterial(i, F->GetMaterial(i));
+	}
+	FacePose->SetForcedLOD(1);
+	FacePose->SetLightingChannels(F->LightingChannels.bChannel0, F->LightingChannels.bChannel1, F->LightingChannels.bChannel2);
+	FacePose->SetCastShadow(F->CastShadow);
+	// (the follower face hidden but still posed: its grooms (brows, beard) ride on it)
+	F->SetVisibility(false, false);
+	F->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+	const FReferenceSkeleton& Fr = FacePose->GetSkinnedAsset()->GetRefSkeleton();
+	FaceFromShown.SetNumUninitialized(Fr.GetNum());
+	FString Facial;
+	for (int32 i = 0; i < Fr.GetNum(); ++i)
+	{
+		const FName N = Fr.GetBoneName(i);
+		FaceFromShown[i] = Shown->GetBoneIndex(N);
+		const FString S = N.ToString();
+		if (S == TEXT("FACIAL_C_Jaw"))
+		{
+			FJaw = i;
+		}
+		if (S.Contains(TEXT("Eyelid")) && (S.Contains(TEXT("Upper"))))
+		{
+			FLidUpper.Add(i);
+		}
+		if (S.Contains(TEXT("Eyelid")) && (S.Contains(TEXT("Lower"))))
+		{
+			FLidLower.Add(i);
+		}
+		// (what the jaw carries: the lower lip and chin wholly, the mouth's corners half)
+		if (S.StartsWith(TEXT("FACIAL_")) && i != FJaw && (S.Contains(TEXT("LipLower")) || S.Contains(TEXT("Chin")) || S.Contains(TEXT("LowerLip"))))
+		{
+			FLowerMouth.Add(i, 1.f);
+		}
+		else if (S.StartsWith(TEXT("FACIAL_")) && (S.Contains(TEXT("LipCorner")) || S.Contains(TEXT("MouthCorner"))))
+		{
+			FLowerMouth.Add(i, 0.5f);
+		}
+		if (S.Contains(TEXT("Jaw")) || S.Contains(TEXT("Eyelid")) || S.Contains(TEXT("Brow")) || S.Contains(TEXT("Forehead")))
+		{
+			const FTransform& R = Fr.GetRefBonePose()[i];
+			Facial += FString::Printf(TEXT(" %s(p%d %s)"), *S, Fr.GetParentIndex(i), *R.GetLocation().ToCompactString());
+		}
+	}
+	UE_LOG(LogTemp, Display, TEXT("KesslerFaceRig: %d joints; jaw %d; lids %d/%d; lower mouth %d"), Fr.GetNum(), FJaw, FLidUpper.Num(), FLidLower.Num(), FLowerMouth.Num());
 }

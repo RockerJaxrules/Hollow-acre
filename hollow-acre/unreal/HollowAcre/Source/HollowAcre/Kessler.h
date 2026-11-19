@@ -124,6 +124,15 @@ protected:
 	TObjectPtr<class UPoseableMeshComponent> Shown;
 	TWeakObjectPtr<USkeletalMeshComponent> Face;
 	void FaceTick(float Dt);
+	/** Her face drawn as a posable copy (the follower face can't take joint expressions): its neck and head copied from
+	 *  the body copy each frame, its facial joints turned for speech, blinks and moods. */
+	UPROPERTY()
+	TObjectPtr<class UPoseableMeshComponent> FacePose;
+	TArray<int32> FaceFromShown;
+	int32 FJaw = INDEX_NONE;
+	TArray<int32> FLidUpper, FLidLower, FBrowIn, FBrowOut;
+	TMap<int32, float> FLowerMouth;
+	void FaceRigSetup();
 	float BlinkT = 2.f, BlinkAt = -1.f, TalkPh = 0.f;
 	float CurBrowDown = 0.f, CurSquint = 0.f, CurRaiseIn = 0.f, CurCheek = 0.f, CurLids = 0.f;
 	TArray<FTransform> RefLocal;
