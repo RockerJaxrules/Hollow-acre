@@ -53,6 +53,7 @@ class HOLLOWACRE_API AP2Story : public AActor
 {
 	GENERATED_BODY()
 	friend class AKesslerScene;
+	friend class AKessler;
 	friend class AP2Audio;
 
 public:

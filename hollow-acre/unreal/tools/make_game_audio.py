@@ -113,6 +113,20 @@ def main():
     write('metal_creak', C.level(C.pitch(C.loudest(P.METAL_CREAK, 1.6, pre=0.05), 1.25), 0.05), mono=True)
     write('match_hiss', C.level(C.loudest(P.HISS, 0.45, pre=0.01), 0.04), mono=True)
     write('clicks', C.level(C.loudest(P.CLICKS, 3.0, pre=0.1), 0.03), mono=True)
+    # ---- the shed's foley (the owner: the cutscenes need "better sound effects"; recordings in Recorded/shed, CC0):
+    # her boots on the boards, a board's creak, the stove's iron door and wood going into it, the journal's pages, her
+    # coat, the lantern set down and its rattle as it's trimmed
+    SH = 'shed/'
+    for i, c in enumerate(P.onsets(SH + 'shed_boot_footsteps_wooden_surface_614291', 8, 0.4, 5)):
+        write('ruth_step_%02d' % i, C.level(c, 0.09), mono=True)
+    write('board_creak', C.level(C.loudest(SH + 'shed_creaking_floorboard_802582', 0.75, pre=0.02), 0.05), mono=True)
+    write('stove_door', C.level(C.loudest(SH + 'shed_stove_door_open_close_213345', 1.3, pre=0.05), 0.12), mono=True)
+    write('stove_wood_in', C.level(C.loudest(SH + 'shed_split_firewood_stacking_489885', 0.9, pre=0.03), 0.11), mono=True)
+    write('stove_iron', C.level(C.loudest(SH + 'shed_wood_stove_cast_iron_operating_792006', 1.6, pre=0.05), 0.1), mono=True)
+    write('pages', C.level(C.loudest(SH + 'shed_book_pages_turning_318615', 1.6, pre=0.05), 0.07), mono=True)
+    write('cloth', C.level(C.loudest(SH + 'shed_cloth_rustle_435294', 1.1, pre=0.05), 0.05), mono=True)
+    write('lantern_down', C.level(C.loudest(SH + 'shed_lantern_drop_on_wood_637099', 0.8, pre=0.01), 0.07), mono=True)
+    write('lantern_rattle', C.level(C.loudest(SH + 'shed_oil_lantern_rattle_516739', 1.0, pre=0.03), 0.05), mono=True)
     print('game audio: %d clips in %s' % (len(os.listdir(OUT)), OUT))
 
 

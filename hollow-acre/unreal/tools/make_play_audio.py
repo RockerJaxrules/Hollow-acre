@@ -110,6 +110,10 @@ def play(ev, total):
     breath = C.loudest(BREATH, 1.2, pre=0.05)
     breath = C.pitch(breath, 0.72)
     heart = C.steady(HEART, total - t_play + 1.0, skip=1.0)
+    SH = 'shed/'
+    rsteps = onsets(SH + 'shed_boot_footsteps_wooden_surface_614291', 16, 0.4, 5)
+    creak_b = C.loudest(SH + 'shed_creaking_floorboard_802582', 0.75, pre=0.02)
+    cloth = C.loudest(SH + 'shed_cloth_rustle_435294', 1.1, pre=0.05)
     menace = [(t, v) for t, k, v in ev if k == 'menace']
     t_kill = [t for t, k, v in ev if k == 'husk_kill']
     for t, k, v in ev:
@@ -190,6 +194,33 @@ def play(ev, total):
             M.at(t - 2.8, C.level(C.loudest(CLICKS, 3.0, pre=0.1), 0.02), 1.0)
         elif k == 'husk_kill':
             M.at(t + 0.1, sc, 1.3)
+        # ---- the shed's foley in the closing cutscene (Recorded/shed, CC0): the owner asked for better cutscene sound
+        elif k == 'ruth_step':
+            M.at(t, C.level(rsteps[rng.integers(0, len(rsteps))], 0.06), 1.0)
+            if rng.random() < 0.3:
+                M.at(t + 0.05, C.level(C.pitch(creak_b, rng.uniform(0.9, 1.1)), 0.03), 1.0)
+        elif k == 'door_shut':
+            M.at(t, C.verb(C.level(C.pitch(C.loudest(WOOD_HIT, 0.9, pre=0.02), 1.1), 0.15), 0.6, 0.15), 1.0)      # (a wooden door, not the truck's steel)
+        elif k == 'door_bar':
+            hit = C.level(C.pitch(C.loudest(WOOD_HIT, 0.9, pre=0.02), 0.8), 0.13)
+            M.at(t, C.verb(C.sumc(hit, C.level(C.pitch(C.loudest(METAL_CREAK, 1.0, pre=0.03), 1.6), 0.02)), 0.6, 0.15), 1.0)
+        elif k in ('stove_feed', 'stove_shut'):
+            M.at(t - 0.4, C.level(C.loudest(SH + 'shed_stove_door_open_close_213345', 1.3, pre=0.05), 0.07), 1.0)
+            if k == 'stove_feed':
+                M.at(t, C.level(C.loudest(SH + 'shed_split_firewood_stacking_489885', 0.9, pre=0.03), 0.07), 1.0)
+        elif k in ('journal_up', 'journal_to_fire'):
+            M.at(t, C.level(C.loudest(SH + 'shed_book_pages_turning_318615', 1.6, pre=0.05), 0.045), 1.0)
+            M.at(t, C.level(cloth, 0.025), 1.0)
+        elif k in ('journal_given', 'scene_to_door', 'scene_to_table'):
+            M.at(t, C.level(cloth, 0.03), 1.0)
+        elif k == 'scene_to_plank':
+            M.at(t + 0.6, C.level(C.loudest(SH + 'shed_lantern_drop_on_wood_637099', 0.8, pre=0.01), 0.045), 1.0)
+        elif k == 'sit_down':
+            M.at(t, C.level(C.pitch(C.loudest(BODY_FALL, 1.4, pre=0.02), 1.15), 0.05), 1.0)
+            M.at(t + 0.08, C.level(creak_b, 0.04), 1.0)
+            M.at(t, C.level(cloth, 0.035), 1.0)
+        elif k == 'lantern_trim':
+            M.at(t, C.level(C.loudest(SH + 'shed_oil_lantern_rattle_516739', 1.0, pre=0.03), 0.03), 1.0)
     if menace:
         ts = [t for t, v in menace]
         gs = [0.05 + 0.95 * (v / 100.0) ** 1.5 for t, v in menace]

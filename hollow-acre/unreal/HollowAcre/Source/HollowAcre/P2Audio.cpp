@@ -60,6 +60,16 @@ void AP2Audio::At(USoundBase* S, const FVector& Where, float Volume, float Pitch
 	}
 }
 
+void AP2Audio::PlayAt(const TCHAR* Name, const FVector& Where, float Volume, float Pitch)
+{
+	At(Clip(Name), Where, Volume, Pitch);
+}
+
+void AP2Audio::PlayOneOf(const TCHAR* Stem, int32 Count, const FVector& Where, float Volume)
+{
+	At(Pick(Stem, Count), Where, Volume, FMath::FRandRange(0.94f, 1.05f));
+}
+
 void AP2Audio::Flat(USoundBase* S, float Volume)
 {
 	if (S)
@@ -156,8 +166,62 @@ void AP2Audio::OnEvent(const TCHAR* Kind, float Value)
 	{
 		Flat(Clip(TEXT("match_hiss")), 0.8f);
 	}
+	// (the closing cutscene's foley, where it happens: the stove's iron door and the split going in, the door shut again;
+	// the journal's pages and her coat; the lantern set down; her settling to the floor against the door)
+	else if (K == TEXT("ruth_step"))
+	{
+		// (her boots on the shed's boards, now and then a board giving under her)
+		AKessler* Ks = Story.IsValid() ? Story->GetKessler() : nullptr;
+		const FVector W = Ks ? Ks->GetActorLocation() + FVector(0.f, 0.f, 5.f) : Me;
+		PlayOneOf(TEXT("ruth_step"), 8, W, 0.95f);
+		if (FMath::FRand() < 0.3f)
+		{
+			PlayAt(TEXT("board_creak"), W, 0.8f, FMath::FRandRange(0.9f, 1.1f));
+		}
+	}
+	else if (K == TEXT("stove_shut") && Story.IsValid())
+	{
+		At(Clip(TEXT("stove_door")), Story->ShedStove(), 1.f, 1.08f);
+		At(Clip(TEXT("stove_iron")), Story->ShedStove(), 0.6f);
+	}
+	else if (K == TEXT("journal_up") || K == TEXT("journal_to_fire"))
+	{
+		AKessler* Ks = Story.IsValid() ? Story->GetKessler() : nullptr;
+		const FVector W = Ks ? Ks->GetActorLocation() + FVector(0.f, 0.f, 110.f) : Me;
+		At(Clip(TEXT("pages")), W, 0.9f);
+		At(Clip(TEXT("cloth")), W, 0.6f);
+	}
+	else if (K == TEXT("journal_given") || K == TEXT("scene_to_door") || K == TEXT("scene_to_table"))
+	{
+		AKessler* Ks = Story.IsValid() ? Story->GetKessler() : nullptr;
+		At(Clip(TEXT("cloth")), Ks ? Ks->GetActorLocation() + FVector(0.f, 0.f, 100.f) : Me, 0.7f, FMath::FRandRange(0.95f, 1.05f));
+	}
+	else if (K == TEXT("scene_to_plank") || K == TEXT("sit_down") || K == TEXT("lantern_trim"))
+	{
+		AKessler* Ks = Story.IsValid() ? Story->GetKessler() : nullptr;
+		const FVector W = Ks ? Ks->GetActorLocation() : Me;
+		if (K == TEXT("scene_to_plank"))
+		{
+			At(Clip(TEXT("lantern_down")), W + FVector(0.f, 0.f, 10.f), 0.9f);
+		}
+		else if (K == TEXT("sit_down"))
+		{
+			At(Clip(TEXT("body_fall")), W + FVector(0.f, 0.f, 20.f), 0.35f, 1.15f);
+			At(Clip(TEXT("board_creak")), W, 0.9f);
+			At(Clip(TEXT("cloth")), W + FVector(0.f, 0.f, 60.f), 0.8f);
+		}
+		else
+		{
+			At(Clip(TEXT("lantern_rattle")), W + FVector(0.f, 0.f, 20.f), 0.8f);
+		}
+	}
 	else if (K == TEXT("fire_lit") || K == TEXT("stove_feed"))
 	{
+		if (K == TEXT("stove_feed") && Story.IsValid())
+		{
+			At(Clip(TEXT("stove_door")), Story->ShedStove(), 1.f);
+			At(Clip(TEXT("stove_wood_in")), Story->ShedStove(), 1.1f);
+		}
 		if (!Fire && Story.IsValid())
 		{
 			const FVector Stove = Story->GetShedAt();
@@ -184,7 +248,7 @@ void AP2Audio::OnEvent(const TCHAR* Kind, float Value)
 		const FVector D = Story.IsValid() && Story->ShedDoor ? Story->ShedDoor->GetActorLocation() + FVector(0.f, 0.f, 100.f) : Me;
 		if (K == TEXT("door_shut"))
 		{
-			At(Clip(TEXT("door_slam")), D, 1.1f, 1.15f);
+			At(Clip(TEXT("bang")), D, 1.0f, 1.12f);           // (a wooden door: the wood hit, not the truck's steel slam)
 		}
 		else
 		{

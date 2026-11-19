@@ -5,6 +5,7 @@
 #include "Components/PointLightComponent.h"
 #include "Components/PoseableMeshComponent.h"
 #include "AnimationRuntime.h"
+#include "EngineUtils.h"
 #include "Engine/SkeletalMesh.h"
 #include "Misc/CommandLine.h"
 #include "TwoBoneIK.h"
@@ -295,8 +296,9 @@ void AKessler::Tick(float Dt)
 		PoseLower(Dt);
 		PoseUpper(Dt);
 		// (the scene's reaches: over whatever the upper body did, a hand to a point)
-		ReachRW = FMath::FInterpTo(ReachRW, ReachRWant, Dt, 2.4f);
-		ReachLW = FMath::FInterpTo(ReachLW, ReachLWant, Dt, 2.4f);
+		// (a hand goes out with intent and arrives, a small overshoot and settle; it comes back down under its own weight)
+		SpringTo(ReachRW, ReachRV, ReachRWant, 8.5f, ReachRWant > ReachRW ? 0.72f : 0.9f, Dt);
+		SpringTo(ReachLW, ReachLV, ReachLWant, 8.5f, ReachLWant > ReachLW ? 0.72f : 0.9f, Dt);
 		const FVector Up(0.f, 0.f, 1.f), Fw = GetActorForwardVector(), Rt = GetActorRightVector();
 		if (ReachRW > 0.001f && !ReachR.IsZero())
 		{
@@ -529,11 +531,24 @@ FVector AKessler::Steer(const FVector& From, const FVector& Dir) const
 		Q.AddIgnoredActor(Man);
 	}
 	const FVector Chest = From + FVector(0.f, 0.f, 110.f);
+	// (and round the player: in the shed her way to the stove and the table ran through where they sit, and her body
+	// filled the view from inside (the owner: "body clips through stuff"))
+	const APawn* Pl = UGameplayStatics::GetPlayerPawn(this, 0);
+	auto NearPlayer = [&](const FVector& D)
+	{
+		if (!Pl)
+		{
+			return false;
+		}
+		const FVector P = Pl->GetActorLocation();
+		const FVector A(From.X, From.Y, 0.f), B = A + FVector(D.X, D.Y, 0.f) * 180.f, C(P.X, P.Y, 0.f);
+		return FMath::PointDistToSegment(C, A, B) < 75.f && FVector::Dist2D(From, P) > 40.f;
+	};
 	for (float Off : {0.f, 20.f, -20.f, 40.f, -40.f, 65.f, -65.f, 90.f, -90.f, 120.f, -120.f})
 	{
 		const FVector D = FRotator(0.f, Off, 0.f).RotateVector(Dir);
 		FHitResult H;
-		if (!GetWorld()->SweepSingleByChannel(H, Chest, Chest + D * 260.f, FQuat::Identity, ECC_WorldStatic, FCollisionShape::MakeSphere(40.f), Q))
+		if (!NearPlayer(D) && !GetWorld()->SweepSingleByChannel(H, Chest, Chest + D * 260.f, FQuat::Identity, ECC_WorldStatic, FCollisionShape::MakeSphere(40.f), Q))
 		{
 			return D;
 		}
@@ -567,6 +582,16 @@ void AKessler::Locomote(float Dt)
 		// (a boot's print where the foot comes down)
 		const FVector F = Shown->GetBoneLocation(Plant == 0 ? TEXT("foot_l") : TEXT("foot_r"));
 		P2Footprint(GetWorld(), FVector(F.X, F.Y, GetActorLocation().Z + 15.f), GetActorRotation().Yaw, 31.f, false);
+		// (and heard: her boots on the shed's boards (inside), now and then a board giving under her)
+		if (!bBreathShows)
+		{
+			// (through the story's event log, as every sound is: the game plays it (P2Audio) and the videos' mix finds it)
+			for (TActorIterator<AP2Story> It(GetWorld()); It; ++It)
+			{
+				It->Event(TEXT("ruth_step"));
+				break;
+			}
+		}
 	}
 	PlantWas = Plant;
 	FVector Step = (Pc - PelvisWas) - (Fc[Plant] - FootWas[Plant]);
@@ -1239,9 +1264,16 @@ void AKessler::PoseLower(float Dt)
 	// (down on his heels at a stove: the pelvis down about half a metre and back over the heels, the trunk forward over
 	// the knees, the feet planted where they stood; sat on the floor against the door: the pelvis down near the boards and
 	// back to the wall, the trunk leaned back on it, the knees up and the feet out ahead)
-	CrouchW = FMath::FInterpTo(CrouchW, CrouchWant, Dt, 1.5f);
-	SitW = FMath::FInterpTo(SitW, SitWant, Dt, 1.1f);
-	const float C = FMath::SmoothStep(0.f, 1.f, CrouchW), S = FMath::SmoothStep(0.f, 1.f, SitW);
+	// (with weight, not eased (the owner: "less floaty, have weight"): springs, not exponential easing. Going down, the
+	// body drops under its weight, overshoots a little as the knees take it and settles; getting up is effort, slower
+	// to start and with no bounce)
+	SpringTo(CrouchW, CrouchV, CrouchWant, CrouchWant > CrouchW ? 7.f : 4.5f, CrouchWant > CrouchW ? 0.62f : 1.f, Dt);
+	SpringTo(SitW, SitV, SitWant, SitWant > SitW ? 5.f : 3.8f, SitWant > SitW ? 0.6f : 1.f, Dt);
+	auto Shape = [](float X)
+	{
+		return FMath::SmoothStep(0.f, 1.f, FMath::Min(X, 1.f)) + FMath::Max(0.f, X - 1.f);     // (the overshoot passed through)
+	};
+	const float C = Shape(CrouchW), S = Shape(SitW);
 	if (C < 0.002f && S < 0.002f)
 	{
 		return;
@@ -1516,4 +1548,18 @@ void AKessler::FaceRigSetup()
 		}
 	}
 	UE_LOG(LogTemp, Display, TEXT("KesslerFaceRig: %d joints; jaw %d; lids %d/%d; lower mouth %d; eyes %d; brows %d/%d"), Fr.GetNum(), FJaw, FLidUpper.Num(), FLidLower.Num(), FLowerMouth.Num(), FEyes.Num(), FBrowIn.Num(), FBrowOut.Num());
+}
+
+void AKessler::SpringTo(float& X, float& V, float Target, float Omega, float Zeta, float Dt)
+{
+	// (a damped spring toward the target, in small steps for stability; held within a little of its range)
+	const int32 N = FMath::Max(1, FMath::CeilToInt(Dt / 0.008f));
+	const float H = Dt / N;
+	for (int32 i = 0; i < N; ++i)
+	{
+		const float A = Omega * Omega * (Target - X) - 2.f * Zeta * Omega * V;
+		V += A * H;
+		X += V * H;
+	}
+	X = FMath::Clamp(X, -0.02f, 1.08f);
 }

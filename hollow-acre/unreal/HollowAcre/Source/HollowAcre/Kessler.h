@@ -189,6 +189,8 @@ protected:
 	void PoseLower(float Dt);
 	void LegTo(bool bLeft, const FVector& FootAt, const FVector& Pole, const FQuat& FootRot);
 	float CrouchW = 0.f, SitW = 0.f, ReachRW = 0.f, ReachLW = 0.f;
+	float CrouchV = 0.f, SitV = 0.f, ReachRV = 0.f, ReachLV = 0.f;
+	static void SpringTo(float& X, float& V, float Target, float Omega, float Zeta, float Dt);
 	void SetCS(int32 Bone, const FTransform& World);
 	FTransform AimRifle() const;
 	FTransform CarryRifle() const;

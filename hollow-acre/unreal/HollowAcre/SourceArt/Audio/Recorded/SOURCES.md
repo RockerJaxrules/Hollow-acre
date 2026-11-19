@@ -33,6 +33,7 @@ Real recorded sound effects for the blizzard mountain-road / creature / car-cras
 - [creature_extra](#creature_extra) (8 files): More creature vocal layers: human monster screams and growls (no words), fox screams, howler monkeys, chimpanzee screams, pig squeals, tiger hiss / growl, close dog breaths and snarls.
 - [creature_voice](#creature_voice) (5 files): Raw human screams and shrieks (no words), torn up in the mix into the husks' wendigo-like voice (owner: "human… raspy, loud, a high scream").
 - [foley_car](#foley_car) (7 files): Car-interior and wreck foley: seatbelt handling, leather creak, seatbelt warning chime, radio static between stations, glass shards settling, slow metal stress creaks, dripping onto metal.
+- [shed](#shed) (10 files): Indoor foley for the shed cutscene: boots on wooden floors, a creaking floorboard, a cast-iron stove's door and operation, split firewood handled, book pages turning, cloth rustle, a lantern set down on wood and an oil lantern's rattle.
 - [body](#body) (6 files): Heartbeats (steady, deep, racing) and tinnitus / ear ringing, plus a recorded tuning fork as a near-sine ringing tone.
 
 ## engine
@@ -543,3 +544,21 @@ loud, a high scream). All checked on their own Freesound pages as Creative Commo
 | `creature_voice/creature_voice_woman_horror_shrieks_320740.mp3` | [320740](https://freesound.org/people/AderuMoro/sounds/320740/) | Horror shrieks woman | AderuMoro | Creative Commons 0 | 0:08.2 | A woman shrieking in horror; a quiet piercing layer, pitched down and roughened. |
 | `creature_voice/creature_voice_ghost_monster_scream_546507.mp3` | [546507](https://freesound.org/people/szegvari/sounds/546507/) | Ghost Creature Monster Scream SFX 201129_0079.wav | szegvari | Creative Commons 0 | 0:03.6 | A voice-actor monster scream; the shriek-roar as it springs. |
 | `creature_voice/creature_voice_mutant_scream_396797.mp3` | [396797](https://freesound.org/people/scorpion67890/sounds/396797/) | Mutant Scream | scorpion67890 | Creative Commons 0 | 0:01.5 | A short pained mutant scream; its strain at each heave of the shove. |
+
+
+## shed
+
+Indoor foley for the closing cutscene in the tool shed (the owner asked for better cutscene sound effects). Each checked on its Freesound page: Creative Commons 0.
+
+| File | Freesound | Author | What it's for |
+|---|---|---|---|
+| `shed_boot_footsteps_wooden_surface_614291.mp3` | https://freesound.org/people/jb_stems/sounds/614291/ | jb_stems | Ruth's boots on the shed's boards |
+| `shed_footsteps_wooden_floor_medium_565716.mp3` | https://freesound.org/people/ralph.whitehead/sounds/565716/ | ralph.whitehead | spare: steps on a wooden floor |
+| `shed_creaking_floorboard_802582.mp3` | https://freesound.org/people/qubodup/sounds/802582/ | qubodup | a board giving under her |
+| `shed_wood_stove_cast_iron_operating_792006.mp3` | https://freesound.org/people/tapikkaFin/sounds/792006/ | tapikkaFin | the stove's iron |
+| `shed_stove_door_open_close_213345.mp3` | https://freesound.org/people/peridactyloptrix/sounds/213345/ | peridactyloptrix | the stove's door opened and shut |
+| `shed_split_firewood_stacking_489885.mp3` | https://freesound.org/people/douglasbruce@look.ca/sounds/489885/ | douglasbruce@look.ca | the split going into the stove |
+| `shed_book_pages_turning_318615.mp3` | https://freesound.org/people/jephwallace/sounds/318615/ | jephwallace | the journal's pages |
+| `shed_cloth_rustle_435294.mp3` | https://freesound.org/people/zazz.sound.design/sounds/435294/ | zazz.sound.design | her coat as she moves |
+| `shed_lantern_drop_on_wood_637099.mp3` | https://freesound.org/people/jamesdrake89/sounds/637099/ | jamesdrake89 | the lantern set down on the boards |
+| `shed_oil_lantern_rattle_516739.mp3` | https://freesound.org/people/ImAFoley/sounds/516739/ | ImAFoley | the lantern's wick turned down |

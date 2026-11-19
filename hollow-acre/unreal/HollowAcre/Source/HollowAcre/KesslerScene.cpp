@@ -1,6 +1,7 @@
 #include "KesslerScene.h"
 
 #include "Components/PointLightComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Components/StaticMeshComponent.h"
 #include "EndingDirector.h"
 #include "Engine/StaticMesh.h"
@@ -353,7 +354,7 @@ void AKesslerScene::Tick(float Dt)
 	if (T > 9.6f && Once(TEXT("scene_to_stove")))
 	{
 		Km->ReachRWant = Km->ReachLWant = 0.f;
-		Km->WalkTo(Stove + R.GetAxisY() * 92.f + R.GetAxisX() * 10.f);
+		WalkVia(At(-170.f, 30.f), Stove + R.GetAxisY() * 92.f + R.GetAxisX() * 10.f);      // (round the far side of the player)
 		Km->LookAtPoint = StoveDoor;
 	}
 	if (T > 9.6f && T < 27.2f)
@@ -442,7 +443,7 @@ void AKesslerScene::Tick(float Dt)
 	const FVector Table = At(-318.f, 30.f, 79.f);
 	if (T > 48.7f && Once(TEXT("scene_to_table")))
 	{
-		Km->WalkTo(At(-262.f, 30.f));
+		WalkVia(At(-228.f, 18.f), At(-262.f, 30.f));
 		Km->LookAtPoint = Table;
 	}
 	const FVector Hearth = Stove + R.GetAxisY() * 92.f + R.GetAxisX() * 10.f;
@@ -519,7 +520,7 @@ void AKesslerScene::Tick(float Dt)
 	// 6. The watch: back to the door; down against it, the rifle across his knees, the lantern set by him and turned down
 	if (T > 64.2f && Once(TEXT("scene_to_door")))
 	{
-		Km->WalkTo(At(-34.f, -8.f));
+		WalkVia(At(-200.f, 12.f), At(-34.f, -8.f));
 		Km->LookAtPoint = Eyes;
 	}
 	if (T > 64.2f)
@@ -530,6 +531,14 @@ void AKesslerScene::Tick(float Dt)
 	{
 		Km->FaceTo(At(-260.f, -8.f));
 		Km->SitWant = 1.f;
+	}
+	if (T > 68.5f && Once(TEXT("sit_down")))
+	{
+		// (her weight onto the boards against the door: heard)
+	}
+	if (T > 77.6f && Once(TEXT("lantern_trim")))
+	{
+		// (the lantern's wick turned down: its rattle)
 	}
 	if (T > 69.7f)
 	{
@@ -562,6 +571,12 @@ void AKesslerScene::Tick(float Dt)
 	}
 	// (alive while he speaks: small nods and a turn of the head over the words, never still)
 	Km->bTalking = T < SpeakEnd;
+	// (the second leg of a walk, once the waypoint is reached)
+	if (!Via.IsZero() && FVector::Dist2D(Km->GetActorLocation(), Via) < 45.f)
+	{
+		Via = FVector::ZeroVector;
+		Km->WalkTo(ViaGoal);
+	}
 	if (T < SpeakEnd && !Km->LookAtPoint.IsZero())
 	{
 		Km->LookAtPoint += FVector(0.f, 0.f, 5.f * FMath::Sin(T * 6.3f) + 3.f * FMath::Sin(T * 2.1f)) + Km->GetActorRightVector() * 6.f * FMath::Sin(T * 1.7f);
@@ -570,5 +585,15 @@ void AKesslerScene::Tick(float Dt)
 	{
 		bOver = true;
 		UE_LOG(LogTemp, Display, TEXT("KesslerScene: over"));
+	}
+}
+
+void AKesslerScene::WalkVia(const FVector& ViaPoint, const FVector& Goal)
+{
+	Via = ViaPoint;
+	ViaGoal = Goal;
+	if (AKessler* Km = K.Get())
+	{
+		Km->WalkTo(ViaPoint);
 	}
 }

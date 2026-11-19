@@ -48,6 +48,10 @@ protected:
 	/** A point in the shed's own frame (front wall at x 0 facing +x, the back at -370, the sides at y +-185), on its floor
 	 * plus Z. */
 	FVector At(float X, float Y, float Z = 0.f) const;
+	/** A walk in two legs: to Via first, then on to the goal; the shed is small and the player sits by the stove, so her
+	 *  ways round the room go wide of them (the owner: the body clipped through things; she walked through the view). */
+	FVector Via = FVector::ZeroVector, ViaGoal = FVector::ZeroVector;
+	void WalkVia(const FVector& ViaPoint, const FVector& Goal);
 	/** The plank leant on the front wall by the door, and where its middle is. */
 	FQuat PlankLean() const;
 	FVector PlankRest() const;

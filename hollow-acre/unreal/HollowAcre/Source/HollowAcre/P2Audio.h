@@ -27,6 +27,10 @@ public:
 	void Start(AP2Story* InStory);
 	/** A story or hunt event (the director's event log): its sound, where it happens. */
 	void OnEvent(const TCHAR* Kind, float Value);
+	/** A clip played where something happens (Ruth's boots, a board's creak): Name is a clip in Audio/Play. */
+	void PlayAt(const TCHAR* Name, const FVector& Where, float Volume = 1.f, float Pitch = 1.f);
+	/** One of a numbered set (Stem_00..), picked at random, played there. */
+	void PlayOneOf(const TCHAR* Stem, int32 Count, const FVector& Where, float Volume = 1.f);
 
 protected:
 	TWeakObjectPtr<AP2Story> Story;
