@@ -21,6 +21,8 @@
 #include "Components/SpotLightComponent.h"
 #include "Components/LightComponent.h"
 #include "Components/DirectionalLightComponent.h"
+#include "Components/LocalFogVolumeComponent.h"
+#include "Engine/LocalFogVolume.h"
 #include "Components/PoseableMeshComponent.h"
 
 void P2Footprint(UWorld* World, const FVector& At, float Yaw, float Size, bool bBare)
@@ -2563,4 +2565,54 @@ void AP2Story::DressCamp()
 		++Placed;
 	}
 	UE_LOG(LogTemp, Display, TEXT("P2Story: the camp dressed: %d Megascans props placed (%d missing)"), Placed, Missing);
+	// mist lying low in the trees round the camp: banks of it at the forest's edges and deeper in, so the dark between
+	// the tree rows has layers (near trunks sharp, the next rows paler, the far ones gone) the way Supermassive's
+	// forests do (blind judge, run 55: "no fog layers between the trees"). Local fog volumes: they lie where they are
+	// put and leave the camp's street clear (the height fog's moon shafts stood the buildings' shadows up as slabs)
+	struct FMist
+	{
+		const TCHAR* Building;
+		float X, Y, RadiusM, Density;
+	};
+	static const FMist Mists[] = {
+		{TEXT("Saloon"), -3600.f, 300.f, 28.f, 0.05f},     // (behind the saloon, in the new stand)
+		{TEXT("Store"), -3800.f, -600.f, 32.f, 0.05f},     // (behind the store, past the ice cliff)
+		{TEXT("CabinB"), -3000.f, 0.f, 26.f, 0.045f},
+		{TEXT("Hotel"), -3200.f, 0.f, 30.f, 0.05f},        // (the graves at its near edge)
+		{TEXT("Shed"), -3600.f, -1200.f, 26.f, 0.04f},     // (the trees where the truck lies, thinner: it must read)
+		{TEXT("CabinA"), -3000.f, 0.f, 26.f, 0.045f},
+		{TEXT("Headframe"), -2600.f, 0.f, 30.f, 0.05f},
+		{TEXT("Saloon"), -900.f, -4200.f, 34.f, 0.035f},   // (down at the street's head, toward the chute)
+	};
+	int32 MistN = 0;
+	for (const FMist& Ms : Mists)
+	{
+		const FTransform* F = Frames.Find(Ms.Building);
+		if (!F)
+		{
+			continue;
+		}
+		FVector At = F->TransformPosition(FVector(Ms.X, Ms.Y, 0.f));
+		At.Z = GroundAt(At);
+		FActorSpawnParameters Sp;
+		Sp.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		ALocalFogVolume* V = GetWorld()->SpawnActor<ALocalFogVolume>(ALocalFogVolume::StaticClass(), FTransform(At), Sp);
+		if (!V)
+		{
+			continue;
+		}
+		const float S = Ms.RadiusM * 100.f / ULocalFogVolumeComponent::GetBaseVolumeSize();
+		V->SetActorScale3D(FVector(S, S, 900.f / ULocalFogVolumeComponent::GetBaseVolumeSize()));
+		if (ULocalFogVolumeComponent* C = V->FindComponentByClass<ULocalFogVolumeComponent>())
+		{
+			C->SetRadialFogExtinction(0.f);
+			C->SetHeightFogExtinction(Ms.Density);
+			C->SetHeightFogFalloff(450.f);
+			C->SetHeightFogOffset(-0.7f);                   // (thickest at the ground, thinning to nothing at head height and up)
+			C->SetFogAlbedo(FLinearColor(0.78f, 0.84f, 1.f));
+			C->SetFogEmissive(FLinearColor(0.0011f, 0.0014f, 0.0022f));    // (the moon's glow in it, faint)
+			++MistN;
+		}
+	}
+	UE_LOG(LogTemp, Display, TEXT("P2Story: %d mist banks laid in the trees"), MistN);
 }
