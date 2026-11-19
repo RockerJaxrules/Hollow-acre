@@ -292,19 +292,47 @@ void AKesslerScene::Tick(float Dt)
 				Km->ReachRWant = 1.f;
 			}
 		}
-		else if (T < 7.6f)
+		else if (T < 7.4f)
 		{
-			const float a = Ease((T - 6.2f) / 1.4f);
+			// (lifted off the wall with both hands: its foot first, then swung level as she turns to the door, a little
+			// high (a heavy plank is lifted with some overshoot, not glided))
+			const float a = Ease((T - 6.2f) / 1.2f);
 			Km->FaceTo(Bar);
 			Km->LookAtPoint = Bar;
-			Pl = FMath::Lerp(Rest, Carry, a);
-			Q = FQuat::Slerp(Lean, Across, a);
+			Pl = FMath::Lerp(Rest, Carry, a) + FVector(0.f, 0.f, 10.f * FMath::Sin(a * PI));
+			Q = FQuat::Slerp(Lean, Across, FMath::Clamp(a * 1.25f, 0.f, 1.f));
+		}
+		else if (T < 8.1f)
+		{
+			// (raised over the brackets, level, and brought in to the door)
+			const float a = Ease((T - 7.4f) / 0.7f);
+			Pl = FMath::Lerp(Carry, Bar + FVector(0.f, 0.f, 14.f), a);
+			Q = Across;
 		}
 		else
 		{
-			const float a = Ease((T - 7.6f) / 1.0f);
-			Pl = FMath::Lerp(Carry, Bar, a);
-			Q = Across;
+			// (let go into them: it drops the last 14 cm under its weight, lands with a knock, bounces a little and
+			// rocks to rest (the owner: it was set down near the door and then adjusted itself into place))
+			const float t = T - 8.1f;
+			const float Fall = 14.f - 0.5f * 980.f * t * t;
+			const float Land = FMath::Sqrt(2.f * 14.f / 980.f);              // (about 0.17 s)
+			float Z = 0.f, Rock = 0.f;
+			if (t < Land)
+			{
+				Z = Fall;
+			}
+			else
+			{
+				const float u = t - Land;
+				Z = 1.1f * FMath::Abs(FMath::Sin(u * 22.f)) * FMath::Exp(-u * 14.f);
+				Rock = 2.2f * FMath::Sin(u * 19.f) * FMath::Exp(-u * 9.f);
+				if (Once(TEXT("door_bar")))
+				{
+					// (the knock where it lands)
+				}
+			}
+			Pl = Bar + FVector(0.f, 0.f, Z);
+			Q = FQuat(R.GetAxisY(), FMath::DegreesToRadians(Rock)) * Across;
 		}
 		Plank->SetActorLocationAndRotation(Pl, Q);
 		if (T >= 6.2f)
@@ -315,9 +343,9 @@ void AKesslerScene::Tick(float Dt)
 			Km->ReachRWant = Km->ReachLWant = 1.f;
 		}
 		Look(T < 7.6f ? (Pl + KEyes) * 0.5f : Bar, 1.5f);
-		if (T > 8.5f && Once(TEXT("door_bar")))
+		if (T > 9.5f)
 		{
-			Plank->SetActorLocationAndRotation(Bar, Across);
+			Plank->SetActorLocationAndRotation(Bar, Across);         // (at rest)
 		}
 	}
 	// 2. The fire: to the stove, down on his heels before it, a split from her woodbox in through its door; it flares on
@@ -521,7 +549,7 @@ void AKesslerScene::Tick(float Dt)
 	// window never came into view (blind judge, run 52))
 	if (T > 77.4f)
 	{
-		Look(S->WindowGap.IsZero() ? At(-370.f, 60.f, 130.f) : S->WindowGap - FVector(0.f, 0.f, 55.f), 1.3f);     // (the boarded window's middle: at its top gap, from the floor by the stove, the view tipped up into the ceiling (judge, run 55))
+		Look(S->WindowGap.IsZero() ? At(-370.f, 60.f, 130.f) : S->WindowGap - FVector(0.f, 0.f, 18.f), 1.3f);     // (the boarded window's middle: at its top gap, from the floor by the stove, the view tipped up into the ceiling (judge, run 55))
 	}
 	if (Dir && T > 83.2f)
 	{

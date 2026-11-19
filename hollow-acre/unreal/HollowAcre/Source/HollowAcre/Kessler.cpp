@@ -1464,6 +1464,13 @@ void AKessler::FaceRigSetup()
 	F->SetRenderInMainPass(false);
 	F->SetRenderInDepthPass(false);
 	F->SetCastShadow(false);
+	// (her cap onto the face that's drawn: on the hidden one's head it floated round her drawn head (the owner))
+	if (Cap)
+	{
+		const FTransform Rel = Cap->GetRelativeTransform();
+		Cap->AttachToComponent(FacePose, FAttachmentTransformRules::KeepRelativeTransform, TEXT("head"));
+		Cap->SetRelativeTransform(Rel);
+	}
 	F->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 	const FReferenceSkeleton& Fr = FacePose->GetSkinnedAsset()->GetRefSkeleton();
 	FaceFromShown.SetNumUninitialized(Fr.GetNum());

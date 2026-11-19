@@ -179,7 +179,18 @@ void AP2Audio::OnEvent(const TCHAR* Kind, float Value)
 	}
 	else if (K == TEXT("door_shut") || K == TEXT("door_bar"))
 	{
-		Flat(Clip(TEXT("bang")), 0.5f);
+		// (at the door itself: the leaf banging home in its frame, then the bar dropping into its brackets, a heavy
+		// knock of wood on iron with the boards' ring)
+		const FVector D = Story.IsValid() && Story->ShedDoor ? Story->ShedDoor->GetActorLocation() + FVector(0.f, 0.f, 100.f) : Me;
+		if (K == TEXT("door_shut"))
+		{
+			At(Clip(TEXT("door_slam")), D, 1.1f, 1.15f);
+		}
+		else
+		{
+			At(Clip(TEXT("bang")), D, 1.3f, 0.8f);
+			At(Clip(TEXT("metal_creak")), D, 0.5f, 1.6f);
+		}
 	}
 }
 

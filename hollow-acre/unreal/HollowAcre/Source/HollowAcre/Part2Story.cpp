@@ -1433,7 +1433,7 @@ void AP2Story::TickFire(float Dt)
 	}
 	if (FireGlow)
 	{
-		FireGlow->SetVectorParameterValue(TEXT("Glow"), FLinearColor(1.f, 0.3f, 0.05f) * (1.4f * Catch * Fl));   // (its mica panes: deep orange, flickering; at 6 they burned out to two flat white rectangles)
+		FireGlow->SetVectorParameterValue(TEXT("Glow"), FLinearColor(1.f, 0.3f, 0.05f) * (0.5f * Catch * FMath::Min(Fl, 1.f)));   // (its mica panes: deep orange, flickering; at 6 they burned out to two flat white rectangles, and at 1.4 with the cutscene's fed fire still a white lightbox (judge, run 63))
 	}
 	// (through its open door: the flames licking up over the logs, the coals glowing under them, the sooted inside lit
 	// orange by them; the belly's iron slowly coming to a dull red as it burns on)
