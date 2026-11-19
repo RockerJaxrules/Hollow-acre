@@ -13,12 +13,14 @@
 #include "Part2Character.h"
 #include "Snowfall.h"
 #include "BloodFX.h"
+#include "P2Audio.h"
 #include "KesslerScene.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Components/DecalComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Components/SpotLightComponent.h"
 #include "Components/LightComponent.h"
+#include "Components/DirectionalLightComponent.h"
 #include "Components/PoseableMeshComponent.h"
 
 void P2Footprint(UWorld* World, const FVector& At, float Yaw, float Size, bool bBare)
@@ -242,6 +244,19 @@ void AP2Story::Begin(AEndingDirector* InDirector, float InHuskScale)
 	SpawnTruck();
 	DriftAgainstWalls();
 	DressCamp();
+	// (the night's sound, live: P2Audio, told every event the director logs)
+	{
+		FActorSpawnParameters Ap;
+		Ap.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		if (AP2Audio* Au = GetWorld()->SpawnActor<AP2Audio>(AP2Audio::StaticClass(), FTransform::Identity, Ap))
+		{
+			Au->Start(this);
+			if (Director)
+			{
+				Director->AudioSink = Au;
+			}
+		}
+	}
 	// (the falling snow lit by the town's moon (channel 1) as well as the beam: on channel 0 alone the flakes in the air
 	// were unlit, black specks against the moonlit fog (blind judge, round 12))
 	for (TActorIterator<ASnowfall> It(GetWorld()); It; ++It)
@@ -1237,7 +1252,14 @@ void AP2Story::Tick(float DeltaSeconds)
 		if (Moon.IsValid())
 		{
 			// (cloud over it in a few seconds as the snow thickens: about a third of its light left)
-			Moon->SetIntensity(MoonBase * FMath::Lerp(1.f, 0.32f, FMath::SmoothStep(0.f, 1.f, (Clock - MoonDimFrom) / 3.5f)));
+			// (thinner cloud than before: the night keeps a cold moon with hard shadows across the snow, the contrast that
+			// carries a Supermassive night (WORLD_RESEARCH.md), rather than a flat grey murk)
+			Moon->SetIntensity(MoonBase * FMath::Lerp(1.f, 0.72f, FMath::SmoothStep(0.f, 1.f, (Clock - MoonDimFrom) / 3.5f)));
+			if (UDirectionalLightComponent* Dl = Cast<UDirectionalLightComponent>(Moon.Get()))
+			{
+				Dl->LightSourceAngle = 0.15f;
+				Dl->MarkRenderStateDirty();
+			}
 		}
 	}
 	TickFire(Dt);

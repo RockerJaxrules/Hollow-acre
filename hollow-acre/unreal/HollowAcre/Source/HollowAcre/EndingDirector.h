@@ -87,6 +87,8 @@ public:
 
 	/** Logged as a timed event for the sound mix (CrashEvent lines), for gameplay's own actors (the husk hunting). */
 	void LogEvent(const TCHAR* Kind, float Value = 0.f) { Event(Kind, Value); }
+	/** Part 2's live sound: every logged event is also heard (P2Audio). */
+	TWeakObjectPtr<class AP2Audio> AudioSink;
 
 	/** The car's one headlight left (play): where it shines from and which way; the story keeps it alive a little longer
 	 *  (until a time on RealTime) when something stands in it. */

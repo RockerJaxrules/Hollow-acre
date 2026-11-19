@@ -44,7 +44,7 @@ APart2Character::APart2Character()
 	Beam->SetOuterConeAngle(30.f);
 	Beam->SetAttenuationRadius(4500.f);
 	Beam->SetUseTemperature(true);
-	Beam->SetTemperature(2850.f);
+	Beam->SetTemperature(5200.f);
 	Beam->SetVolumetricScatteringIntensity(2.5f);
 	UCharacterMovementComponent* M = GetCharacterMovement();
 	M->MaxWalkSpeed = WalkSpeed;

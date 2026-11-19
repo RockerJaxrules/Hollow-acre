@@ -53,6 +53,7 @@ class HOLLOWACRE_API AP2Story : public AActor
 {
 	GENERATED_BODY()
 	friend class AKesslerScene;
+	friend class AP2Audio;
 
 public:
 	AP2Story();
@@ -161,6 +162,8 @@ public:
 	bool WindowHandIn() const { return WindowHusk != nullptr && WindowReach > 0.3f; }
 	AActor* GetWoodPile() const { return WoodPile; }
 	AActor* GetTruck() const { return Truck; }
+	/** Where the shed's stove stands (for its fire's sound). */
+	FVector ShedStove() const { return ShedT.TransformPosition(FVector(-290.f, -115.f, 60.f)); }
 	/** Her journal in the truck (taken: hidden), and where a player stands to reach in for it (outside the driver's door). */
 	AActor* GetTruckJournal() const { return TruckJournal; }
 	FVector GetTruckStand() const;

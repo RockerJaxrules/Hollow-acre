@@ -486,7 +486,7 @@ void AEndingDirector::WakeSetup()
 			FlashBeam->SetOuterConeAngle(44.f);
 			FlashBeam->SetAttenuationRadius(4500.f);
 			FlashBeam->SetUseTemperature(true);
-			FlashBeam->SetTemperature(3500.f);   // (an incandescent bulb on fresh cells: warm white, not orange, under the cold grade)
+			FlashBeam->SetTemperature(5200.f);   // (cold white, as Supermassive light their beams (WORLD_RESEARCH.md): warm practicals, a cold moon, cold beams; at 3500 the creature read tan in it)
 			FlashBeam->SetSourceRadius(1.2f);
 			FlashBeam->SetCastShadows(true);
 			FlashBeam->SetVolumetricScatteringIntensity(0.45f);   // (the beam's cone seen in the falling snow, not a glow)   // (a haze in the falling snow, not a glow filling the view)
@@ -498,7 +498,7 @@ void AEndingDirector::WakeSetup()
 			FlashSpill->SetIntensity(0.f);
 			FlashSpill->SetAttenuationRadius(35.f);
 			FlashSpill->SetUseTemperature(true);
-			FlashSpill->SetTemperature(2850.f);
+			FlashSpill->SetTemperature(5200.f);
 			FlashSpill->SetCastShadows(false);
 			FlashSpill->RegisterComponent();
 		}

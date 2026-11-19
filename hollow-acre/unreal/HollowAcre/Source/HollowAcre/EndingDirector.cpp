@@ -1,4 +1,5 @@
 #include "EndingDirector.h"
+#include "P2Audio.h"
 
 #include "BloodFX.h"
 #include "DriverArms.h"
@@ -821,6 +822,10 @@ void AEndingDirector::Impact()
 void AEndingDirector::Event(const TCHAR* Kind, float Value)
 {
 	UE_LOG(LogTemp, Display, TEXT("CrashEvent %.3f %s %.0f"), bCrash ? RealTime : Time, Kind, Value);
+	if (AudioSink.IsValid())
+	{
+		AudioSink->OnEvent(Kind, Value);
+	}
 	if (FCString::Strcmp(Kind, TEXT("title")) == 0)
 	{
 		ClipSummary();
