@@ -724,9 +724,9 @@ void AHusk::Ragdoll(const FVector& Velocity, const FVector& SpinDeg, const FVect
 	{
 		if (Ci)
 		{
-			Ci->SetAngularSwing1Limit(EAngularConstraintMotion::ACM_Limited, 35.f);
-			Ci->SetAngularSwing2Limit(EAngularConstraintMotion::ACM_Limited, 35.f);
-			Ci->SetAngularTwistLimit(EAngularConstraintMotion::ACM_Limited, 20.f);
+			Ci->SetAngularSwing1Limit(EAngularConstraintMotion::ACM_Limited, 22.f);   // (35 let it knot into "a pretzel": round 13)
+			Ci->SetAngularSwing2Limit(EAngularConstraintMotion::ACM_Limited, 22.f);
+			Ci->SetAngularTwistLimit(EAngularConstraintMotion::ACM_Limited, 12.f);
 		}
 	}
 	for (FBodyInstance* Bi : Body->Bodies)

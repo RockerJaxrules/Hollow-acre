@@ -11,6 +11,9 @@
 #include "Materials/MaterialInterface.h"
 #include "Part2Character.h"
 #include "Part2Story.h"
+#include "Snowfall.h"
+#include "EngineUtils.h"
+#include "UObject/UObjectIterator.h"
 
 AKesslerScene::AKesslerScene()
 {
@@ -61,6 +64,10 @@ void AKesslerScene::Line(const FString& Text, float Secs)
 	if (Story.IsValid())
 	{
 		Story->Say(Text, 0.f, Secs);
+	}
+	if (Text.StartsWith(TEXT("Kessler:")))
+	{
+		SpeakEnd = T + Secs * 0.85f;            // (his head moves with what he says)
 	}
 }
 
@@ -151,6 +158,11 @@ void AKesslerScene::Start(AP2Story* InStory)
 	{
 		K->LitByAll();
 		K->bBreathShows = false;
+		// (indoors: no falling snow drawn; a flake drifting past the eyes, lit by the fire, hung as an orange blur)
+		for (TActorIterator<ASnowfall> It(GetWorld()); It; ++It)
+		{
+			It->SetActorHiddenInGame(true);
+		}
 		K->LowerRifle();
 		K->LanternUp = 0.f;
 		K->SetActorLocation(At(140.f, -12.f, 0.f), false, nullptr, ETeleportType::TeleportPhysics);
@@ -292,7 +304,7 @@ void AKesslerScene::Tick(float Dt)
 	}
 	if (T > 12.5f)
 	{
-		Km->CrouchWant = T < 45.7f ? 1.f : 0.f;
+		Km->CrouchWant = (T < 48.6f || (T > 56.2f && T < 64.2f)) ? 1.f : 0.f;
 	}
 	if (T > 13.8f && T < 16.2f && Split)
 	{
@@ -333,9 +345,13 @@ void AKesslerScene::Tick(float Dt)
 		Km->ReachRWant = 0.f;
 		S->FuelOverride = 0.55f;               // (the door shut on it: only its window glow and the lantern)
 	}
-	if (T > 27.2f && T < 45.7f)
+	if (T > 27.2f && T < 48.6f)
 	{
 		Km->LookAtPoint = T < 29.8f ? StoveDoor : Eyes;
+		if (T > 29.8f)
+		{
+			Km->FaceTo(FMath::Lerp(StoveDoor, Eyes, 0.6f));
+		}
 		Look(KEyes - FVector(0.f, 0.f, 4.f), 0.9f);
 	}
 	if (T > 30.2f && Once(TEXT("line_men")))
@@ -368,20 +384,25 @@ void AKesslerScene::Tick(float Dt)
 		Km->WalkTo(At(-262.f, 30.f));
 		Km->LookAtPoint = Table;
 	}
+	const FVector Hearth = Stove + R.GetAxisY() * 92.f + R.GetAxisX() * 10.f;
 	if (T > 48.7f && T < 63.2f)
 	{
-		Look(T < 52.2f ? KEyes - FVector(0.f, 0.f, 20.f) : (T < 58.7f ? KEyes - FVector(0.f, 0.f, 35.f) : KEyes - FVector(0.f, 0.f, 10.f)), 1.2f);
+		Look(T < 53.5f ? Table + FVector(0.f, 0.f, 30.f) : KEyes - FVector(0.f, 0.f, T < 56.f ? 15.f : 8.f), 1.2f);
 	}
 	if (T > 51.7f && Once(TEXT("journal_up")))
 	{
 		UE_LOG(LogTemp, Display, TEXT("KesslerScene: her journal %s at %s (hidden %d)"), J ? *J->GetName() : TEXT("MISSING"),
 			J ? *J->GetActorLocation().ToCompactString() : TEXT("-"), J ? (int32)J->IsHidden() : -1);
 	}
+	if (T > 53.f && Once(TEXT("journal_to_fire")))
+	{
+		Km->WalkTo(Hearth);
+	}
 	if (J && T > 51.7f && T < 63.7f)
 	{
 		J->SetActorHiddenInGame(false);
-		const FVector Chest = KEyes - FVector(0.f, 0.f, 38.f) + Km->GetActorForwardVector() * 32.f;
-		const FVector Give = Eyes + (KEyes - Eyes).GetSafeNormal2D() * 70.f - FVector(0.f, 0.f, 32.f);
+		const FVector Chest = KEyes - FVector(0.f, 0.f, 30.f) + Km->GetActorForwardVector() * 34.f;
+		const FVector Give = Eyes + (KEyes - Eyes).GetSafeNormal2D() * 72.f - FVector(0.f, 0.f, 34.f);
 		FVector Jp = Table;
 		FQuat Jq = J->GetActorQuat();
 		if (T < 53.0f)
@@ -390,15 +411,18 @@ void AKesslerScene::Tick(float Dt)
 			Km->ReachR = Table + FVector(0.f, 0.f, 6.f);
 			Km->ReachRWant = 1.f;
 		}
-		else if (T < 59.7f)
+		else if (T < 61.0f)
 		{
-			const float a = Ease((T - 53.0f) / 1.2f);
+			// (carried back to the fire against his chest; crouched there, opened to his eyes in its light, pages turned)
+			const float a = Ease((T - 53.0f) / 1.0f);
+			if (T > 56.2f)
+			{
+				Km->FaceTo(StoveDoor);
+			}
 			Jp = FMath::Lerp(Table, Chest, a);
-			// (opened toward him, pages turned: the book tipped up to his eyes, a little rock as each page goes)
-			const float Turn = FMath::Sin(FMath::Max(0.f, T - 54.2f) * 2.3f) * 6.f;
-			// (its face to his eyes as he reads: the player sees its back, the pages turned with a little rock)
+			const float Turn = FMath::Sin(FMath::Max(0.f, T - 57.f) * 2.3f) * 6.f;
 			Jq = FQuat(FVector::UpVector, FMath::DegreesToRadians(Turn)) * FRotationMatrix::MakeFromZ(KEyes - Jp).ToQuat();
-			Km->LookAtPoint = Jp;
+			Km->LookAtPoint = T > 56.2f ? Jp : Hearth + FVector(0.f, 0.f, 100.f);
 			Km->ReachR = Jp + Km->GetActorRightVector() * 9.f;
 			Km->ReachL = Jp - Km->GetActorRightVector() * 9.f;
 			Km->ReachRWant = 1.f;
@@ -406,7 +430,7 @@ void AKesslerScene::Tick(float Dt)
 		}
 		else
 		{
-			const float a = Ease((T - 59.7f) / 1.6f);
+			const float a = Ease((T - 61.0f) / 1.4f);
 			Km->FaceTo(Eyes);
 			Km->LookAtPoint = Eyes;
 			Jp = FMath::Lerp(Chest, Give, a);
@@ -414,11 +438,11 @@ void AKesslerScene::Tick(float Dt)
 			Km->ReachR = Jp;
 			Km->ReachRWant = 1.f;
 			Km->ReachLWant = 0.f;
-			Look(T < 61.7f ? Jp : KEyes, 1.6f);
+			Look(T < 62.6f ? Jp : KEyes, 1.6f);
 		}
 		J->SetActorLocationAndRotation(Jp, Jq);
 	}
-	if (T > 55.7f && Once(TEXT("line_came_through")))
+	if (T > 58.0f && Once(TEXT("line_came_through")))
 	{
 		Line(TEXT("Kessler: She came through here."), 3.8f);
 	}
@@ -438,7 +462,7 @@ void AKesslerScene::Tick(float Dt)
 	}
 	if (T > 64.2f)
 	{
-		Look(KEyes - FVector(0.f, 0.f, T < 75.2f ? 15.f : 30.f), 1.0f);
+		Look(KEyes - FVector(0.f, 0.f, T < 69.f ? 15.f : 32.f), 1.0f);
 	}
 	if (T > 68.0f)
 	{
@@ -448,10 +472,10 @@ void AKesslerScene::Tick(float Dt)
 	if (T > 69.7f)
 	{
 		// (across his knees: along his right-left, at his thighs, the muzzle to his left)
-		const FVector Knees = Km->BoneAt(TEXT("pelvis")).GetLocation() + Km->GetActorForwardVector() * 36.f + FVector(0.f, 0.f, 20.f);
+		const FVector Knees = Km->BoneAt(TEXT("pelvis")).GetLocation() + Km->GetActorForwardVector() * 40.f + FVector(0.f, 0.f, 32.f);
 		Km->RifleSet = FTransform(FRotator(0.f, (-Km->GetActorRightVector()).Rotation().Yaw, 0.f), Knees);
 		Km->bRifleSet = true;
-		Km->LanternTrim = FMath::Lerp(1.f, 0.28f, Ease((T - 71.2f) / 2.5f));
+		Km->LanternTrim = FMath::Lerp(1.f, 0.28f, Ease((T - 77.6f) / 2.5f));
 	}
 	if (T > 74.0f && Once(TEXT("line_sleep")))
 	{
@@ -471,6 +495,11 @@ void AKesslerScene::Tick(float Dt)
 	if (T > 88.7f && Dir && Once(TEXT("card_morning")))
 	{
 		Dir->ShowCard(NSLOCTEXT("HollowAcre", "Morning", "Morning."));
+	}
+	// (alive while he speaks: small nods and a turn of the head over the words, never still)
+	if (T < SpeakEnd && !Km->LookAtPoint.IsZero())
+	{
+		Km->LookAtPoint += FVector(0.f, 0.f, 5.f * FMath::Sin(T * 6.3f) + 3.f * FMath::Sin(T * 2.1f)) + Km->GetActorRightVector() * 6.f * FMath::Sin(T * 1.7f);
 	}
 	if (T > 95.2f && Once(TEXT("scene_over")))
 	{

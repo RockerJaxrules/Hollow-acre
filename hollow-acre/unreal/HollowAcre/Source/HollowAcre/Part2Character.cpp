@@ -297,7 +297,7 @@ void APart2Character::Interact()
 
 bool APart2Character::GetPrompt(FString& Out) const
 {
-	if (!Focus.IsValid() || Reading.IsValid() || bDead)
+	if (!Focus.IsValid() || Reading.IsValid() || bDead || bCutscene)
 	{
 		return false;
 	}

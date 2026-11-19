@@ -841,7 +841,7 @@ void AP2Story::TickCrosser(float Dt)
 	// (in the headlight: it never stops; it walks through the far edge of the pool, its head turning to the player as it
 	// passes, and the light stutters out while it is still in it: seen in part, then the dark has it (blind judge, round
 	// 12: stood fully lit in the open it spent the reveal; the doorway at the shed is where it stops and looks))
-	const float CrossSpeed = bCrossDash ? 340.f : bCrossInHeadlight ? 230.f : 105.f;
+	const float CrossSpeed = bCrossDash ? 340.f : bCrossInHeadlight ? 420.f : 105.f;   // (in the light: across and gone in about two and a half seconds (blind judge, round 13))
 	if (!Crosser || CrossT < 0.f)
 	{
 		return;
@@ -2378,10 +2378,10 @@ void AP2Story::DressCamp()
 		{TEXT("CabinB"), TEXT("RustyMetalBarrel"), -610.f, 60.f, 0.f, 1.f, true},
 		{TEXT("CabinB"), TEXT("WoodDebrisPack"), -640.f, -120.f, 110.f, 4.f, false},
 		{TEXT("CabinB"), TEXT("DeadBranches"), -100.f, 290.f, 0.f, 2.f, false},
-		{TEXT("CabinA"), TEXT("WoodenCrate"), 45.f, 320.f, 15.f, 1.05f, true},
+		{TEXT("CabinA"), TEXT("WoodenCrate"), 45.f, -330.f, 15.f, 1.05f, false},
 		{TEXT("CabinA"), TEXT("FirewoodPack"), -690.f, 210.f, 80.f, 3.5f, false},
 		{TEXT("CabinA"), TEXT("FirewoodPack"), -700.f, 250.f, 10.f, 3.5f, false},
-		{TEXT("Shed"), TEXT("RustyMetalBarrel"), 55.f, 250.f, 30.f, 0.95f, true},
+		{TEXT("Shed"), TEXT("RustyMetalBarrel"), -300.f, 260.f, 30.f, 0.95f, true},     // (behind, clear of the ways out of its door)
 		{TEXT("Shed"), TEXT("DeadBranches"), -420.f, 140.f, 20.f, 2.f, false},
 		{TEXT("Hotel"), TEXT("WoodenBarrel"), 80.f, 560.f, 10.f, 1.f, true},
 		{TEXT("Hotel"), TEXT("WoodenCrate"), 70.f, -560.f, -20.f, 1.1f, true},
@@ -2403,6 +2403,13 @@ void AP2Story::DressCamp()
 		{TEXT("Hotel"), TEXT("PineTreeStump"), -1800.f, -500.f, 10.f, 1.f, true},
 		{TEXT("CabinB"), TEXT("BrokenStump"), -1200.f, 250.f, 300.f, 0.9f, true},
 		{TEXT("Hotel"), TEXT("RockySnowPile"), 450.f, 1100.f, 0.f, 0.9f, true},
+		// the headframe's own leavings (the Old Mine pack): rails run out from the shaft, a mine tub left on them, a cart's
+		// frame and a spare wheel set in the snow
+		{TEXT("Headframe"), TEXT("Mine_ufekadxdw"), 420.f, 0.f, 90.f, 1.f, false},
+		{TEXT("Headframe"), TEXT("Mine_ufekadxdw"), 920.f, 0.f, 92.f, 1.f, false},
+		{TEXT("Headframe"), TEXT("Mine_ufmodhpfa"), 520.f, 0.f, 90.f, 1.f, true},
+		{TEXT("Headframe"), TEXT("Mine_vcyjedsfa"), 300.f, 340.f, 30.f, 1.f, true},
+		{TEXT("Headframe"), TEXT("Mine_ueihabqfa"), 260.f, -330.f, 70.f, 1.f, true},
 		{TEXT("Saloon"), TEXT("SnowEmbankment"), 300.f, -600.f, 90.f, 1.f, false},
 		{TEXT("Hotel"), TEXT("SnowPile"), 500.f, -1300.f, 20.f, 0.7f, false},
 	};

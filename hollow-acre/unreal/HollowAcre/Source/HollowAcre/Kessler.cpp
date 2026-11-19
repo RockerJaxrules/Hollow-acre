@@ -1090,6 +1090,15 @@ void AKessler::Breathe(float Dt)
 {
 	if (!bBreathShows)
 	{
+		// (and those already breathed gone: left, they hung frozen in the air where he came in)
+		for (FPuff& P : Puffs)
+		{
+			if (UStaticMeshComponent* C = P.C.Get())
+			{
+				C->DestroyComponent();
+			}
+		}
+		Puffs.Reset();
 		return;
 	}
 	// a breath out every few seconds (quicker after running), a short plume from his mouth, thin and lit only where his

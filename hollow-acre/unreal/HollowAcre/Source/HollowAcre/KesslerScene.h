@@ -35,6 +35,7 @@ protected:
 	TWeakObjectPtr<APart2Character> P;
 	FTransform ShedT;
 	float T = 0.f;
+	float SpeakEnd = -1.f;
 	bool bOver = false;
 	UPROPERTY()
 	TObjectPtr<AStaticMeshActor> Plank;

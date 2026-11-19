@@ -43,3 +43,11 @@ Downloaded 2026-11-18 from Fab (publisher Quixel Megascans, free, Fab license; t
 | Dead Branches | 435c3ee4-35ad-4a83-b7a2-4113fe696bff | `dead_branches_qjuwd_high.zip` (46 MB) |
 | Modular Wooden Fence | 117eb23f-f678-4419-8752-7bc15ebe9620 | `modular_wooden_fence_xfrobaziy_high.zip` (55 MB) |
 | Old Mine (pack: 60 assets) | dc4dc139-f3a3-4375-875f-d1831506953e | `mine_high.zip` (896 MB), not yet imported |
+
+Old Mine pack, what its code-named assets are (from a Blender sheet of them; sizes are their longest side): rail track
+sections `ufekadxdw` (500 cm), `ufekaeedw` / `ufekaevdw` (250), `ufekaffdw` (500); a wheel axle set `ueihabqfa`; a mine
+tub `ufmodhpfa` (110); an ore cart frame `vcyjedsfa`; a sack cart `ujzlbgzfa`; tunnel timber walls and lagging
+`wcbpdfsdw`, `wcbpdgcdw`, `wcckeezdw`, `wdpncgrdw`, `wdpnchedw`, `wdpnchtdw`, `wdpncihdw`; timber props `ufekab3dw`,
+`ujzhahdfa`; plank and beam pieces `udrffjjqx`, `uebpbd3fa`, `uebpbetfa`, `uebpbhcfa`; a sledgehammer `uc1mfe1fa`; a
+pick `uckmaibfa`; a shovel `uddjeelqx`; a hard hat `udklcbuiw`; a miner's lamp `vgyidfpaw`; rocks and ore `ul4lehiga`,
+`wd3efb0`; rock floor patches `vmhdagb`, `wjfidjgdb`.
