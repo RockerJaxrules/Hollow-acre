@@ -45,6 +45,11 @@ public:
 	void ChargeFrom(const FVector& From);
 	/** Scripted: shot through at the gallop: down in the snow, dead. */
 	void Shot(const FVector& Dir);
+	/** Hit by a rifle round and not killed (the owner: one shot must not kill it): it jerks, shrieks, and bolts away from
+	 *  the shooter at From into the dark, bleeding. */
+	void Wounded(const FVector& Dir, const FVector& From);
+	bool IsFleeing() const { return !FleeGoal.IsZero(); }
+	FVector FleeGoal = FVector::ZeroVector;
 	bool IsDead() const { return bDead; }
 	/** Scripted: kept away (out of the scene) until a scripted charge. */
 	void HoldAway();

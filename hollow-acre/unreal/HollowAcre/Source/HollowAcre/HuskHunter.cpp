@@ -519,7 +519,11 @@ void AHuskHunter::Think(float Dt)
 	case EState::Retreat:
 		if (StateT < Dt * 1.5f)
 		{
-			Goal = OutOfSightNear(PreyAt, 5500.f, 7000.f);
+			Goal = FleeGoal.IsZero() ? OutOfSightNear(PreyAt, 5500.f, 7000.f) : FleeGoal;
+		}
+		if (!FleeGoal.IsZero())
+		{
+			Goal = FleeGoal;
 		}
 		if ((FVector::Dist2D(At, PreyAt) > 4500.f && !PreyCanSee(HeadAt())) || StateT > 20.f)
 		{
@@ -568,7 +572,7 @@ void AHuskHunter::Move(float Dt)
 	case EState::Search: Want = 105.f * Scale / 1.3f; break;
 	case EState::Stalk: Want = bLit ? (FVector::Dist2D(At, Prey.IsValid() ? Prey->GetActorLocation() : At) > 1250.f ? 55.f : 0.f) : 95.f * Scale / 1.3f; break;
 	case EState::Chase: Want = bScripted ? FMath::Min(1.f, 0.45f + StateT / 0.7f) * 820.f : FMath::Min(1.f, StateT / 0.9f) * 640.f; bGallop = true; break;
-	case EState::Retreat: Want = 520.f; bGallop = true; break;
+	case EState::Retreat: Want = FleeGoal.IsZero() ? 520.f : (StateT < 0.45f ? 0.f : 760.f); bGallop = true; break;
 	case EState::Peer: Want = 0.f; break;
 	default: Want = 0.f; break;
 	}
@@ -845,5 +849,31 @@ void AHuskHunter::HoldAway()
 	if (State != EState::Away)
 	{
 		SetState(EState::Away, TEXT("scripted: held off for a scene"));
+	}
+}
+
+void AHuskHunter::Wounded(const FVector& Dir, const FVector& From)
+{
+	if (!Husk || bDead)
+	{
+		return;
+	}
+	// (the round's hit: its head snapped round, its jaw wide on a shriek; then it turns from the gun and bolts for the
+	// trees, as hard as it came)
+	const FVector At = Husk->GetActorLocation();
+	FVector Away = (At - From).GetSafeNormal2D();
+	if (Away.IsNearlyZero())
+	{
+		Away = Dir.GetSafeNormal2D();
+	}
+	Away = (Away + FVector::CrossProduct(FVector::UpVector, Away) * 0.45f).GetSafeNormal();
+	FleeGoal = At + Away * 5000.f;
+	Husk->Twitch = FRotator(-14.f, 26.f, -18.f);
+	Husk->JawOpen = 38.f;
+	Speed = 0.f;
+	SetState(EState::Retreat, TEXT("shot, not killed: it bolts into the dark"));
+	if (Director && Prey.IsValid())
+	{
+		Director->LogEvent(TEXT("husk_shriek"), FVector::Dist(Prey->EyesAt(), At));
 	}
 }

@@ -106,6 +106,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class ABloodFX> KillBlood;
 	FVector KillDir = FVector::ZeroVector;
+	float BleedT = 0.f;
 	float BangAt = -1.f, ShriekAt = -1.f, DarkAt = -1.f;
 	/** The truck (owner-approved): her journal fallen from the glovebox onto the crushed headliner; taken, the driver's
 	 *  door swings and bangs behind the player. */

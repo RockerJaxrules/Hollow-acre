@@ -1810,7 +1810,7 @@ void AP2Story::TickLantern(float Dt)
 			Event(TEXT("rifle_shot"));
 			if (Hunter)
 			{
-				Hunter->Shot((Hb - M).GetSafeNormal());
+				Hunter->Wounded((Hb - M).GetSafeNormal(), M);
 				SnowBurst(FVector(Hb.X, Hb.Y, GroundAt(Hb) + 10.f), (Hb - M).GetSafeNormal(), 90);
 				SnowBurst(Hb, (Hb - M).GetSafeNormal(), 40);           // (off its back where the round hit)
 				// (the owner approved the kill's blood: the round comes out of its back and throws a spray of blood out
@@ -1831,7 +1831,7 @@ void AP2Story::TickLantern(float Dt)
 				}
 			}
 			Player->Jolt(1.3f);
-			LStageTo(5, TEXT("the shot: it drops at their heels"));
+			LStageTo(5, TEXT("the shot: hit, it shrieks and bolts for the trees"));
 		}
 		break;
 	}
@@ -1839,30 +1839,40 @@ void AP2Story::TickLantern(float Dt)
 		// silence; the thing in the snow; he lowers the rifle and comes
 		if (Once(TEXT("husk_down")))
 		{
-			Event(TEXT("husk_down"));
+			Event(TEXT("husk_flees"));
 			SetObjective(TEXT(""));
 		}
-		// (when it has come to rest: the exit wound on the side away from him, a run from it down over its ribs, and the
-		// pool spreading out from under it into the snow while he walks up)
-		if (St > 1.1f && KillBlood && Hunter && Hunter->Husk && Once(TEXT("kill_pool")))
+		// (it runs bleeding: drops falling from it in a trail over the snow into the trees; he fires once more after it,
+		// and it is gone into the dark. The owner: one shot must not kill it)
+		if (KillBlood && Hunter && Hunter->Husk && !Hunter->Husk->IsHidden() && St < 6.f)
 		{
-			USkeletalMeshComponent* Bd = Hunter->Husk->GetBody();
-			const FName Spine = Bd && Bd->GetBoneIndex(TEXT("spine_03")) != INDEX_NONE ? FName(TEXT("spine_03")) : FName(TEXT("pelvis"));
-			const FVector Chest = Bd ? Bd->GetBoneLocation(Spine) : Hunter->BodyAt();
-			if (Bd)
+			BleedT -= Dt;
+			if (BleedT <= 0.f)
 			{
-				const FVector Out = FVector(KillDir.X, KillDir.Y, 0.25f).GetSafeNormal();
-				KillBlood->Smear(Bd, Chest + Out * 14.f, Out, FVector(0.f, 0.f, -1.f), 26.f, 13.f, 2.5f);
+				BleedT = 0.09f;
+				KillBlood->Drip(Hunter->BodyAt() + FVector(0.f, 0.f, 70.f), 2.2f, FVector(0.f, 0.f, -40.f));
 			}
-			KillBlood->Pool(FVector(Chest.X, Chest.Y, GroundAt(Chest)), 95.f, 11.f);
-			UE_LOG(LogTemp, Display, TEXT("P2Story %.2f the kill's blood: the wound, %d drops landed, the pool spreading"), Clock, KillBlood->Landed);
 		}
-		Kessler->LookAtPoint = Eyes;
-		if (St > 0.7f)
+		if (St > 1.3f && Once(TEXT("second_shot")))
 		{
+			Kessler->AimAt(Hunter ? Hunter->BodyAt() + FVector(0.f, 0.f, 60.f) : Eyes);
+		}
+		if (St > 1.9f && Kessler->IsAimed() && Once(TEXT("second_fire")))
+		{
+			FVector M2, D2;
+			Kessler->Fire(M2, D2);
+			Event(TEXT("rifle_shot"));
+		}
+		if (St > 6.5f && Hunter && Hunter->Husk && Once(TEXT("husk_gone")))
+		{
+			Hunter->Husk->SetActorHiddenInGame(true);
+		}
+		if (St > 2.8f)
+		{
+			Kessler->LookAtPoint = Eyes;
 			Kessler->LowerRifle();
 		}
-		if (St > 1.9f)
+		if (St > 3.4f)
 		{
 			if (Once(TEXT("kessler_comes")))
 			{
@@ -1906,7 +1916,8 @@ void AP2Story::TickLantern(float Dt)
 		Kessler->LanternUp = 1.f;
 		if (Once(TEXT("get_inside")))
 		{
-			Say(TEXT("Stranger: Get inside."), 1.2f, 3.4f);
+			Say(TEXT("Stranger: It'll be back."), 1.0f, 2.4f);
+			Say(TEXT("Stranger: Get inside."), 3.6f, 3.0f);
 		}
 		if (St > 5.f && Once(TEXT("get_inside_obj")))
 		{
