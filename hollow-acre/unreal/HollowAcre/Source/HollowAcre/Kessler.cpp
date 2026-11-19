@@ -1390,6 +1390,24 @@ void AKessler::FaceTick(float Dt)
 			L.AddToTranslation(FVector(0.f, 0.9f * LidClose, 0.f));
 			FacePose->BoneSpaceTransforms[i] = L;
 		}
+		// (her eyes: the line's glance (set by the scene: down and away, aside to the window, down to the book), and
+		// small flicks between, never fixed; found by test (run 60): the eye joints turn up on +X, sideways on Y)
+		SaccadeT -= Dt;
+		if (SaccadeT <= 0.f)
+		{
+			SaccadeT = FMath::FRandRange(0.5f, 1.6f);
+			Saccade = FVector2D(FMath::FRandRange(-2.5f, 2.5f), FMath::FRandRange(-1.5f, 1.5f));
+		}
+		const bool bGlance = T < GlanceUntil;
+		const float k2 = FMath::Min(1.f, Dt * 7.f);
+		GazeYaw += ((bGlance ? ExprGazeYaw : 0.f) + Saccade.X - GazeYaw) * k2;
+		GazePitch += ((bGlance ? ExprGazePitch : 0.f) + Saccade.Y - GazePitch) * k2;
+		for (int32 i2 : FEyes)
+		{
+			FTransform E = Ref[i2];
+			E.SetRotation(E.GetRotation() * FQuat(FVector::YAxisVector, FMath::DegreesToRadians(GazeYaw)) * FQuat(FVector::XAxisVector, FMath::DegreesToRadians(GazePitch)));
+			FacePose->BoneSpaceTransforms[i2] = E;
+		}
 		FacePose->RefreshBoneTransforms();
 		if (FJaw != INDEX_NONE && JawDeg > 0.05f && FLowerMouth.Num() > 0)
 		{
@@ -1462,6 +1480,14 @@ void AKessler::FaceRigSetup()
 		{
 			FLidLower.Add(i);
 		}
+		if (S == TEXT("FACIAL_L_Eye") || S == TEXT("FACIAL_R_Eye"))
+		{
+			FEyes.Add(i);
+		}
+		if (S.StartsWith(TEXT("FACIAL_L_Forehead")) || S.StartsWith(TEXT("FACIAL_R_Forehead")))
+		{
+			(S.Contains(TEXT("In")) ? FBrowIn : FBrowOut).Add(i);
+		}
 		// (what the jaw carries: the lower lip and chin wholly, the mouth's corners half)
 		if (S.StartsWith(TEXT("FACIAL_")) && i != FJaw && (S.Contains(TEXT("LipLower")) || S.Contains(TEXT("Chin")) || S.Contains(TEXT("LowerLip"))))
 		{
@@ -1477,5 +1503,5 @@ void AKessler::FaceRigSetup()
 			Facial += FString::Printf(TEXT(" %s(p%d %s)"), *S, Fr.GetParentIndex(i), *R.GetLocation().ToCompactString());
 		}
 	}
-	UE_LOG(LogTemp, Display, TEXT("KesslerFaceRig: %d joints; jaw %d; lids %d/%d; lower mouth %d"), Fr.GetNum(), FJaw, FLidUpper.Num(), FLidLower.Num(), FLowerMouth.Num());
+	UE_LOG(LogTemp, Display, TEXT("KesslerFaceRig: %d joints; jaw %d; lids %d/%d; lower mouth %d; eyes %d; brows %d/%d"), Fr.GetNum(), FJaw, FLidUpper.Num(), FLidLower.Num(), FLowerMouth.Num(), FEyes.Num(), FBrowIn.Num(), FBrowOut.Num());
 }

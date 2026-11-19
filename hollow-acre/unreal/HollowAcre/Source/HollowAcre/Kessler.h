@@ -90,6 +90,9 @@ public:
 	 *  toward. She blinks on her own. */
 	bool bTalking = false;
 	float ExprBrowDown = 0.f, ExprSquint = 0.f, ExprBrowRaiseIn = 0.f, ExprCheek = 0.f, ExprLidsDown = 0.f;
+	/** Her eyes' glance for the line (degrees: yaw to her left +, pitch up +), held until GlanceUntil (her own clock). */
+	float ExprGazeYaw = 0.f, ExprGazePitch = 0.f, GlanceUntil = -1.f;
+	float GetClock() const { return T; }
 	/** His breath shows as puffs (off by the fire indoors: lit by it beside the player's eyes they hung as orange blurs). */
 	bool bBreathShows = true;
 	/** Lit by every light (the shed's fire too, on its own channel), for the faces lit from below. */
@@ -132,6 +135,9 @@ protected:
 	int32 FJaw = INDEX_NONE;
 	TArray<int32> FLidUpper, FLidLower, FBrowIn, FBrowOut;
 	TMap<int32, float> FLowerMouth;
+	TArray<int32> FEyes;
+	float SaccadeT = 0.f, GazeYaw = 0.f, GazePitch = 0.f;
+	FVector2D Saccade = FVector2D::ZeroVector;
 	void FaceRigSetup();
 	float BlinkT = 2.f, BlinkAt = -1.f, TalkPh = 0.f;
 	float CurBrowDown = 0.f, CurSquint = 0.f, CurRaiseIn = 0.f, CurCheek = 0.f, CurLids = 0.f;

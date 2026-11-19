@@ -71,15 +71,18 @@ void AKesslerScene::Line(const FString& Text, float Secs)
 		// (her face for the line: wary and hard on the creature, tired on the road, softening on the journal and the watch)
 		if (AKessler* Ks = Story.IsValid() ? Story->GetKessler() : nullptr)
 		{
-			struct FMood { const TCHAR* Starts; float Down, Squint, RaiseIn, Cheek, Lids; };
+			// (and where her eyes go on it: down and away on "Men. Once." before they come back hard; aside toward the
+			// window on the high ground; straight at you on the warning; down, tired, on the road; down to the book; to
+			// the door on the watch)
+			struct FMood { const TCHAR* Starts; float Down, Squint, RaiseIn, Cheek, Lids, GYaw, GPitch, GSecs; };
 			static const FMood Moods[] = {
-				{TEXT("Kessler: You'd be"), 0.25f, 0.2f, 0.f, 0.f, 0.15f},
-				{TEXT("Kessler: Men. Once."), 0.55f, 0.6f, 0.f, 0.35f, 0.f},
-				{TEXT("Kessler: They come down"), 0.4f, 0.35f, 0.15f, 0.15f, 0.1f},
-				{TEXT("Kessler: Don't be out"), 0.75f, 0.45f, 0.f, 0.3f, 0.f},
-				{TEXT("Kessler: Road's shut"), 0.2f, 0.15f, 0.2f, 0.f, 0.35f},
-				{TEXT("Kessler: She came"), 0.f, 0.1f, 0.6f, 0.f, 0.3f},
-				{TEXT("Kessler: Sleep."), 0.1f, 0.f, 0.25f, 0.f, 0.45f},
+				{TEXT("Kessler: You'd be"), 0.25f, 0.2f, 0.f, 0.f, 0.15f, 0.f, -4.f, 1.0f},
+				{TEXT("Kessler: Men. Once."), 0.55f, 0.6f, 0.f, 0.35f, 0.f, 11.f, -9.f, 1.4f},
+				{TEXT("Kessler: They come down"), 0.4f, 0.35f, 0.15f, 0.15f, 0.1f, -14.f, 3.f, 2.2f},
+				{TEXT("Kessler: Don't be out"), 0.75f, 0.45f, 0.f, 0.3f, 0.f, 0.f, 0.f, 0.f},
+				{TEXT("Kessler: Road's shut"), 0.2f, 0.15f, 0.2f, 0.f, 0.35f, 6.f, -10.f, 2.0f},
+				{TEXT("Kessler: She came"), 0.f, 0.1f, 0.6f, 0.f, 0.3f, 0.f, -16.f, 3.0f},
+				{TEXT("Kessler: Sleep."), 0.1f, 0.f, 0.25f, 0.f, 0.45f, -12.f, -2.f, 1.6f},
 			};
 			for (const FMood& Md : Moods)
 			{
@@ -90,6 +93,9 @@ void AKesslerScene::Line(const FString& Text, float Secs)
 					Ks->ExprBrowRaiseIn = Md.RaiseIn;
 					Ks->ExprCheek = Md.Cheek;
 					Ks->ExprLidsDown = Md.Lids;
+					Ks->ExprGazeYaw = Md.GYaw;
+					Ks->ExprGazePitch = Md.GPitch;
+					Ks->GlanceUntil = Ks->GetClock() + Md.GSecs;
 				}
 			}
 		}
