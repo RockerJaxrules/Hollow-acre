@@ -2456,7 +2456,7 @@ void AP2Story::DressCamp()
 		{TEXT("Store"), TEXT("NordicForestClusterRockMedium"), -2000.f, 900.f, 30.f, 1.f, true},
 		{TEXT("CabinB"), TEXT("NordicForestClusterRockMedium"), -950.f, 420.f, 160.f, 0.8f, true},
 		{TEXT("Hotel"), TEXT("NordicForestClusterRockMedium"), -1300.f, -1200.f, 75.f, 1.2f, true},
-		{TEXT("Store"), TEXT("IceCliff"), -2700.f, -200.f, 90.f, 1.3f, true},
+		{TEXT("Store"), TEXT("IceCliff"), -2700.f, -200.f, 270.f, 1.3f, true},     // (its rock face toward the camp)
 		{TEXT("Hotel"), TEXT("SnowyRocksPile"), 700.f, 1600.f, 10.f, 1.f, true},
 		{TEXT("Headframe"), TEXT("SnowyRocksPile"), -350.f, -700.f, 140.f, 0.8f, true},
 		{TEXT("Hotel"), TEXT("SnowHill"), 400.f, -2400.f, 15.f, 1.f, false},

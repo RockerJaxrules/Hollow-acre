@@ -1,6 +1,8 @@
 #include "Snowfall.h"
 
 #include "Components/InstancedStaticMeshComponent.h"
+#include "Camera/PlayerCameraManager.h"
+#include "Kismet/GameplayStatics.h"
 
 ASnowfall::ASnowfall()
 {
@@ -52,6 +54,10 @@ void ASnowfall::Tick(float DeltaSeconds)
 	Time += DeltaSeconds;
 
 	const FVector C = Centre();
+	// (flakes passing right by the lens drew as big solid balls (the judge's "white spheres"): within a metre of the camera
+	// they shrink away, as a real lens would show them only as a faint blur)
+	const APlayerCameraManager* Cm = UGameplayStatics::GetPlayerCameraManager(this, 0);
+	const FVector Eye = Cm ? Cm->GetCameraLocation() : FVector(1e9f);
 	const FVector Base = (Wind + FVector(0.f, 0.f, -FallSpeed)) * DeltaSeconds;
 	for (int32 i = 0; i < Pos.Num(); ++i)
 	{
@@ -66,7 +72,13 @@ void ASnowfall::Tick(float DeltaSeconds)
 		L.Z = FMath::Wrap(L.Z, -Extent.Z, Extent.Z);
 		Pos[i] = C + L;
 		Xf[i].SetLocation(Pos[i]);
-		if (NoSnow.Num() > 0)
+		const float Dsq = FVector::DistSquared(Pos[i], Eye);
+		const float Near = Dsq < 120.f * 120.f ? FMath::SmoothStep(40.f, 120.f, FMath::Sqrt(Dsq)) : 1.f;
+		if (NoSnow.Num() == 0)
+		{
+			Xf[i].SetScale3D(FVector(FMath::Max(Scale[i] * Near, 0.0001f)));
+		}
+		else
 		{
 			bool bIn = false;
 			for (const FBox& B : NoSnow)
@@ -77,7 +89,7 @@ void ASnowfall::Tick(float DeltaSeconds)
 					break;
 				}
 			}
-			Xf[i].SetScale3D(FVector(bIn ? 0.0001f : Scale[i]));
+			Xf[i].SetScale3D(FVector(bIn ? 0.0001f : FMath::Max(Scale[i] * Near, 0.0001f)));
 		}
 	}
 	Mesh->BatchUpdateInstancesTransforms(0, Xf, /*bWorldSpace*/ true, /*bMarkRenderStateDirty*/ true, /*bTeleport*/ true);

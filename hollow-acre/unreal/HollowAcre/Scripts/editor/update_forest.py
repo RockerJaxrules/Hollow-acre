@@ -1,4 +1,5 @@
-"""The level's spruce scatters refilled from Saved/Generated/mountain.json (tools/make_mountain.py's thickened forest):
+"""The level's spruce scatters refilled from Saved/Generated/mountain.json (tools/make_mountain.py's thickened forest) and town.json
+(make_town.py's stand behind the camp):
 each variant's actor ('Spruces <h> m') gets its rows; nothing else in L_EndingDrive is touched."""
 import json
 import unreal
@@ -16,6 +17,10 @@ try:
     gen = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_saved_dir() + 'Generated/')
     data = json.load(open(gen + 'mountain.json'))
     meta = json.load(open(gen + 'spruce.json'))
+    # (and the stand close behind the camp, set on the town's own ground: tools/make_town.py, town.json)
+    town_trees = json.load(open(gen + 'town.json')).get('trees', [])
+    data['trees'] = data['trees'] + town_trees
+    log('%d trees behind the camp added' % len(town_trees))
     by_label = {a.get_actor_label(): a for a in actors.get_all_level_actors()}
     total = 0
     for i, m in enumerate(meta):

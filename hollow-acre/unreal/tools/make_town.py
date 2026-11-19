@@ -1146,9 +1146,28 @@ def town():
     if np.cross(p1 - p0, p2 - p0)[2] < 0:
         tt = tt[:, ::-1]
     mm.write_obj(os.path.join(GEN, 'Town_Ground.obj'), [('ground', vv, np.array(uvs), tt)])
+    # the timber close behind the camp (judged bare: a flat white plain out to a treeline 60 m off, the patch's edges
+    # showing). Real mining camps stand in a cut clearing with the uncut forest a few metres behind the back walls; so
+    # spruce on the far side of the street from the shed (behind the saloon, the store and the fallen-in cabin), from
+    # 32 m out (the props behind the store end at 36 m) thickening to a stand by 40 m, out to the patch's edge. The shed's
+    # side is left as it was: the truck lies in the trees there and Ruth comes down through them. Each tree on the
+    # patch's own ground (its 1 m grid), set 30 cm in; update_forest.py adds them to the level's spruce scatters.
+    trng = random.Random(4471)
+    ttrees, taken = [], []
+    for _ in range(6000):
+        u, v = trng.uniform(-36.0, 97.0), trng.uniform(-73.0, -32.0)
+        p = 0.12 if v > -40.0 else 0.85 * (0.55 + 0.45 * (0.5 + 0.5 * mm.fbm(u / 30.0 + 3.0, v / 30.0 - 9.0, 2)))
+        if trng.random() > p or any((u - a) ** 2 + (v - b) ** 2 < 3.6 ** 2 for a, b in taken):
+            continue
+        taken.append((u, v))
+        i, j = int(round(u - us[0])), int(round(v - vs[0]))
+        x, y, z = vv[i * nv + j]
+        h = trng.choices(range(7), weights=(0.3, 1.0, 2.0, 3.0, 3.0, 2.5, 2.0))[0]
+        ttrees.append([float(x) * 100, float(y) * 100, (float(z) - 0.3) * 100, trng.uniform(0, 360), trng.uniform(0.85, 1.15), h])
+    print('town: %d spruces behind the camp' % len(ttrees))
     out = {'buildings': places, 'rest': [rest[0] * 100, rest[1] * 100, zrest * 100],
            'rest_yaw': math.degrees(math.atan2(U[1], U[0])), 'street_u': [U[0], U[1]], 'street_v': [V[0], V[1]],
-           'head': [O[0] * 100, O[1] * 100]}
+           'head': [O[0] * 100, O[1] * 100], 'trees': ttrees}
     json.dump(out, open(os.path.join(GEN, 'town.json'), 'w'), indent=1)
     print('town: %d buildings; the car left at (%.0f, %.0f, %.0f) cm facing %.0f deg; ground %d triangles' % (
         len(places), out['rest'][0], out['rest'][1], out['rest'][2], out['rest_yaw'], len(tt)))
