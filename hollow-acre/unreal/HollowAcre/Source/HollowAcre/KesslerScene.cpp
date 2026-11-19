@@ -515,7 +515,7 @@ void AKesslerScene::Tick(float Dt)
 	// window never came into view (blind judge, run 52))
 	if (T > 77.4f)
 	{
-		Look(S->WindowGap.IsZero() ? At(-370.f, 60.f, 130.f) : S->WindowGap, 1.3f);
+		Look(S->WindowGap.IsZero() ? At(-370.f, 60.f, 130.f) : S->WindowGap - FVector(0.f, 0.f, 55.f), 1.3f);     // (the boarded window's middle: at its top gap, from the floor by the stove, the view tipped up into the ceiling (judge, run 55))
 	}
 	if (Dir && T > 83.2f)
 	{
