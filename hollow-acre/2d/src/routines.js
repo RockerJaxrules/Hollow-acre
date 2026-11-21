@@ -98,11 +98,7 @@ interact.push({x:0,z:0,r:1,on:()=>S.room==='home_hale',label:()=>'Stove',ok:()=>
 // ---- daytime rain: drops, a grey sky, the sound of it, and dimmer rooms
 {const _do=depthOver;depthOver=function(t){_do(t);if(!rainNow())return;const h=S.hour,k=Math.min(1,(h-9.5)/.4,(15.5-h)/.4);ctx2.save();ctx2.globalAlpha=k;
   ctx2.fillStyle='rgba(52,62,84,.22)';ctx2.fillRect(0,0,VW,VH);
-  // far drops: short and faint; near drops: long, bright, slanted by the wind
-  ctx2.strokeStyle='rgba(170,190,220,.32)';ctx2.lineWidth=1;ctx2.beginPath();
-  for(let i=0;i<150;i++){const x=(hash(i,1)*VW*1.2+t*30)%(VW*1.2)-VW*.1,y=(hash(i,2)*VH+t*420)%VH;ctx2.moveTo(Math.round(x),Math.round(y));ctx2.lineTo(Math.round(x-1),Math.round(y+5));}ctx2.stroke();
-  ctx2.strokeStyle='rgba(205,222,245,.55)';ctx2.beginPath();
-  for(let i=0;i<70;i++){const x=(hash(i,3)*VW*1.2+t*60)%(VW*1.2)-VW*.1,y=(hash(i,4)*VH+t*760)%VH;ctx2.moveTo(Math.round(x),Math.round(y));ctx2.lineTo(Math.round(x-3),Math.round(y+12));}ctx2.stroke();
+  // (t366: the drops are the storm's one rain now, falling in the world and blown by the wind: rain366.js, weather366.js)
   // (owner: "rain is making ripple effects on air") the splashes were rings at random places on the screen, so they showed on roofs
   // and in the sky; they are drawn on the ground now, where the drops land (fixes360.js), under everything that stands on it
   ctx2.restore();};}

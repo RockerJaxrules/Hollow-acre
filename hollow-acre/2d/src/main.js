@@ -215,7 +215,7 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
 
   // (t366: a storm night's rain is drawn by rain366.js, one rain whose drops land where they splash)
   const DK=nightDeep(dt);   // (t362) 0 by day and through dusk, 1 in full night outdoors and in the mine: see night362.js
-  if(nightK>0&&fogTex&&!S.room){ctx2.globalAlpha=nightK*.55*(1-.45*DK);const ox=Math.round((-(cam.px*.7)+t*6)%256),oy=Math.round((-(cam.pz*.7))%256);for(let y=oy-256;y<VH;y+=256)for(let x=ox-256;x<VW;x+=256)ctx2.drawImage(fogTex,Math.round(x),Math.round(y));ctx2.globalAlpha=1;}
+  if(nightK>0&&fogTex&&!S.room){ctx2.globalAlpha=nightK*.55*(1-.45*DK);const ox=Math.round(((-cam.px+(typeof windNow==='function'?windNow(performance.now()/1000).fog:t*6))%256+256)%256),oy=Math.round(((-cam.pz)%256+256)%256);/* (t366: the fog lies on the world and drifts with the wind) */for(let y=oy-256;y<VH;y+=256)for(let x=ox-256;x<VW;x+=256)ctx2.drawImage(fogTex,Math.round(x),Math.round(y));ctx2.globalAlpha=1;}
   // ---- light map (multiply)
   // (t362, owner: "I want the darkness to be basically you cant see in night what isn't being lit up by your flashlight", and "it has
   // to be realistic") in full night the ambient under the lights sinks to nothing; what no light reaches is the moonlit grade, made

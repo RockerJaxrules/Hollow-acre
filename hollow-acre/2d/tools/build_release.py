@@ -1,6 +1,6 @@
 import os
 LATE365 = ['art365.js', 'pad365.js', 'mg365.js', 'lights365.js']   # t365: the steps, the controllers, the re-staged minigames, the lights
-LATE366 = ['menu366.js', 'mapterr366.js', 'map366.js', 'rain366.js']   # t366: the menu per device, the map redrawn and cached
+LATE366 = ['menu366.js', 'mapterr366.js', 'map366.js', 'rain366.js', 'weather366.js']   # t366: the menu per device, the map redrawn and cached
 import subprocess as _sp, sys as _sys
 if _sp.call([_sys.executable,'lintcomments.py'])!=0: raise SystemExit('fix the swallowed code above first')
 import json, os, re
