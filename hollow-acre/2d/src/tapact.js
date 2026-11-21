@@ -169,7 +169,7 @@ function tapStand(t){const C=[[0,-.78],[0,.78],[-.78,0],[.78,0],[-.62,-.62],[.62
       else{const k=Math.min(1,d*1.6)*.82;return _mi(dx/d*k,dz/d*k);}}}return _mi(mx,mz);};}
 // a little ring where you clicked
 {const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld(D,t);const m=TAP.mark;if(!m)return;m.t+=1/60;if(m.t>.9&&!TAP.auto){TAP.mark=null;return;}
-  D.push({z:m.z-.5,mind:1,draw(){const X=sx(m.x),Y=sz(m.z)+2,k=(Math.sin(m.t*8)+1)/2;ctx2.strokeStyle=`rgba(255,230,140,${.5+k*.4})`;ctx2.lineWidth=2;ctx2.beginPath();ctx2.ellipse(X,Y,10+k*3,4+k,0,0,Math.PI*2);ctx2.stroke();}});};}
+  D.push({z:m.z-.5,mind:1,draw(){nightUI(()=>{const X=sx(m.x),Y=sz(m.z)+2,k=(Math.sin(m.t*8)+1)/2;ctx2.strokeStyle=`rgba(255,230,140,${.5+k*.4})`;ctx2.lineWidth=2;ctx2.beginPath();ctx2.ellipse(X,Y,10+k*3,4+k,0,0,Math.PI*2);ctx2.stroke();});}});};}   // (t362) the ring over the dark
 // ---- the square your tool will hit: under the mouse on a computer, in front of you on a phone. Bright when it's in reach.
 const TILE_TOOLS=new Set(['hoe','can','seed','fert','pick']);
 {const _cc=computeContext;computeContext=function(){const c=_cc.apply(this,arguments);let h=null,col=null;

@@ -129,7 +129,7 @@ function interiorLight(L){const R=roomOf();if(!R)return;const fl=.94+.06*Math.si
   if(S.room==='mine'){/* (r10, judge: "a soft round glow reads as a stain; the floor is a void") into the light itself: a dim lift over the
      whole room so the floor reads, a small flame glow at each lantern, and under each one a hard-edged wedge of light in two steps */
     const fx0=Math.round(sx(R.ox)),fx1=Math.round(sx(R.ox+R.w)),fy0=Math.round(sz(R.oz)),fy1=Math.round(sz(R.oz+R.d));
-    lctx.fillStyle=`rgba(255,214,170,${.16*L})`;lctx.fillRect(fx0,fy0-100,fx1-fx0,fy1-fy0+100);
+    lctx.fillStyle=`rgba(255,214,170,${.16*L*(1-.85*NIGHT.dk)})`;   /* (t362) in the deep dark only its lamps and your lantern light the mine */lctx.fillRect(fx0,fy0-100,fx1-fx0,fy1-fy0+100);
     for(const [lx,len] of [[6.4,52],[9.6,36]]){G(lx,-.95,12,[255,236,190],1);const cx=Math.round(sx(R.ox+lx)),ly=Math.round(sz(R.oz-.95));   /* (r14) lamp, wall, floor: */
       const hh=(a,b)=>{const v=Math.sin(a*12.9898+b*78.233)*43758.5453;return v-Math.floor(v);};
       /* a hard-edged two-tone pool on the stones and the post round the lamp */

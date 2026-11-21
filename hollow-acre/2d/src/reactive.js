@@ -154,7 +154,8 @@ function rxOverheard(dt){RX.bub=RX.bub.filter(b=>(b.t+=dt)<b.life);if(!outdoors(
   const line=pool[(Math.random()*pool.length)|0];if(!line)return;RX.bub.push({n,line,t:0,life:3.4+line.length*.03});
   if(other&&pool===RX_SAY.pair){n.dir=dirOf(other.x-n.x,other.z-n.z);other.dir=dirOf(n.x-other.x,n.z-other.z);}else n.dir=dirOf(P.x-n.x,P.z-n.z);
   if(A.ok)for(let i=0;i<3;i++)A.tone(220+Math.random()*120,.06,'triangle',.012,{delay:i*.09,filter:['lowpass',900]});}
-function rxBubDraw(){if(S.room)return;ctx2.font='10px monospace';ctx2.textAlign='center';
+function rxBubDraw(){if(S.room||!RX.bub.length)return;nightUI(rxBubDraw0);}   // (t362) the bubbles are drawn over the dark
+function rxBubDraw0(){ctx2.font='10px monospace';ctx2.textAlign='center';
   for(const b of RX.bub){const n=b.n;if(n.vis===false)continue;const a=clamp(Math.min(b.t/.2,(b.life-b.t)/.4),0,1);const X=Math.round(sx(n.x)),Y=Math.round(sz(n.z));if(X<-80||X>VW+80)continue;
     const lines=[];let cur='';for(const w of b.line.split(' ')){if((cur+' '+w).length>24){lines.push(cur);cur=w;}else cur=cur?cur+' '+w:w;}lines.push(cur);
     const h=lines.length*11+6,wd=Math.min(VW-8,Math.max(...lines.map(l=>ctx2.measureText(l).width))+10),bx=clamp(X-wd/2,4,VW-4-wd),by=Y-62-h;

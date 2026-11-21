@@ -384,10 +384,10 @@ function gpDraw(){const pad=GP.mode==='pad';const ring=$('gpRing');
 {const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld.apply(this,arguments);if(GP.mode!=='pad'||GP.ctx!=='play')return;
   const now=performance.now();if(now-GP.ft>100){GP.ft=now;try{const T=(typeof busy==='function'&&busy())?null:frontTarget();GP.front=T&&T.kind!=='tile'&&T.kind!=='water'?T:null;}catch(e){GP.front=null;}}
   const T=GP.front;if(!T||!isFinite(T.x)||!isFinite(T.z))return;
-  D.push({z:T.z+.01,mind:1,draw(){const X=Math.round(sx(T.x)),Y=Math.round(sz(T.z));const w=T.kind==='mob'?12:9,top=T.kind==='mob'?24:18;
+  D.push({z:T.z+.01,mind:1,draw(){nightUI(()=>{const X=Math.round(sx(T.x)),Y=Math.round(sz(T.z));const w=T.kind==='mob'?12:9,top=T.kind==='mob'?24:18;
     const x0=X-w,x1=X+w,y0=Y-top,y1=Y+3,g=ctx2;
     const corner=(x,y,a,b,c,t)=>{g.fillStyle=c;g.fillRect(a>0?x-t:x-4-t+1,y-t,5+t,1+2*t);g.fillRect(x-t,b>0?y-t:y-4-t+1,1+2*t,5+t);};
-    for(const [c,t] of [['#1a0e06',1],['#ffd27a',0]]){corner(x0,y0,1,1,c,t);corner(x1,y0,-1,1,c,t);corner(x0,y1,1,-1,c,t);corner(x1,y1,-1,-1,c,t);}}});};}
+    for(const [c,t] of [['#1a0e06',1],['#ffd27a',0]]){corner(x0,y0,1,1,c,t);corner(x1,y0,-1,1,c,t);corner(x0,y1,1,-1,c,t);corner(x1,y1,-1,-1,c,t);}});}});};}   // (t362) the frame is drawn over the dark
 
 // ---------------------------------------------------------------- the hints and tips say the pad's buttons while you're on it
 const GP_TUT={move:'Walk with {LS} or {DP}. Hold {B} to run, or press {LS} in to keep running.',

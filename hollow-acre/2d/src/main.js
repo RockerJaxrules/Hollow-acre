@@ -89,7 +89,7 @@ function soilTile(i,j,up,dn,lf,rt,wet){const k=i+','+j+','+(up?1:0)+(dn?2:0)+(lf
   if(wet&&((i+j)&1)){g.fillStyle='rgba(180,200,220,.18)';g.fillRect(8,12,3,1);g.fillRect(20,22,2,1);}
   SOIL_CACHE.set(k,c);return c;}
 function render(dt,now){const t=now/1000;FRAME_NO++;
-  const amb=ambient(S.hour);nightK=clamp((S.hour-18.4)/1.8,0,1);if(S.hour<6.6)nightK=Math.max(nightK,clamp((6.6-S.hour)/1.6,0,1));if(S.room==='mine')nightK=1;nightAmt=nightK;
+  const amb=ambient(S.hour);nightK=clamp((S.hour-18.4)/1.8,0,1);if(S.hour<6.6)nightK=Math.max(nightK,clamp((6.6-S.hour)/1.6,0,1));if(S.room==='mine')nightK=1;nightAmt=nightK;nightUIBegin();
   // camera
   let fx=P.x,fz=P.z-.6;if(S.room){const R=ROOMS[S.room];const hw=VW/PPM/2,hh=VH/PPM/2;fx=R.w+.8<hw*2?R.ox+R.w/2:clamp(P.x,R.ox+hw-.4,R.ox+R.w-hw+.4);fz=(typeof w52RoomZ==='function')?w52RoomZ(R,hh):(R.d+3.5<hh*2?R.oz+R.d/2-.5:clamp(P.z-.6,R.oz-3+hh*1.12,R.oz+R.d+.6-hh*.88));
     // a room deeper than the screen opens on its back wall, then the view settles down onto you at the door
@@ -120,7 +120,7 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
    for(const tl of tiles){if(!tl.tilled)continue;const X=Math.round(sx(tl.x-.5)),Y=Math.round(sz(tl.z-.5));if(X<-40||X>VW+40||Y<-40||Y>VH+40)continue;
      const wet=!!((tl.crop&&tl.crop.watered)||tl.wet);const up=T(tl,0,-1),dn=T(tl,0,1),lf=T(tl,-1,0),rt=T(tl,1,0);
      ctx2.drawImage(soilTile(tl.i,tl.j,up,dn,lf,rt,wet),X,Y);}}
-  if(hlTile&&S.mode==='play'){{const X=Math.round(sx(hlTile.x-.5)),Y=Math.round(sz(hlTile.z-.5));ctx2.strokeStyle='rgba(0,0,0,.35)';ctx2.lineWidth=1;ctx2.strokeRect(X+1.5,Y+1.5,29,29);ctx2.strokeStyle=TAP.hlCol||'rgba(255,240,200,.75)';ctx2.strokeRect(X+.5,Y+.5,31,31);ctx2.fillStyle=TAP.hlCol||'rgba(255,240,200,.75)';for(const [a,b] of [[0,0],[28,0],[0,28],[28,28]]){ctx2.fillRect(X+a,Y+b,4,1);ctx2.fillRect(X+a+(a?3:0),Y+b,1,4);ctx2.fillRect(X+a,Y+b+(b?3:0),4,1);}}}
+  if(hlTile&&S.mode==='play'){const hlT=hlTile;nightUI(()=>{const hlTile=hlT;const X=Math.round(sx(hlTile.x-.5)),Y=Math.round(sz(hlTile.z-.5));ctx2.strokeStyle='rgba(0,0,0,.35)';ctx2.lineWidth=1;ctx2.strokeRect(X+1.5,Y+1.5,29,29);ctx2.strokeStyle=TAP.hlCol||'rgba(255,240,200,.75)';ctx2.strokeRect(X+.5,Y+.5,31,31);ctx2.fillStyle=TAP.hlCol||'rgba(255,240,200,.75)';for(const [a,b] of [[0,0],[28,0],[0,28],[28,28]]){ctx2.fillRect(X+a,Y+b,4,1);ctx2.fillRect(X+a+(a?3:0),Y+b,1,4);ctx2.fillRect(X+a,Y+b+(b?3:0),4,1);}});}
   // skid marks & blood at the crash site
   if(!S.introDrive&&onScreen(-56,-5,200)){ctx2.fillStyle='rgba(0,0,0,.3)';for(let k=0;k<2;k++){ctx2.save();ctx2.translate(sx(-58.6+k*.9),sz(-1.6+k*.25));ctx2.rotate(.42);ctx2.fillRect(-200,0,200,3);ctx2.restore();}}
   mindGround();findsDraw(t);farmDraw();depthWater(t);mindReflection();
@@ -214,25 +214,33 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
   // weather: falling leaves (day), rain (storm), fog (night)
 
   if(S.storm&&isNight()&&!S.room){ctx2.strokeStyle='rgba(170,190,220,.35)';ctx2.beginPath();for(let i=0;i<90;i++){const x=(hash(i,1)*VW+t*40)%VW,y=(hash(i,2)*VH+t*620)%VH;ctx2.moveTo(Math.round(x),Math.round(y));ctx2.lineTo(Math.round(x-2),Math.round(y+7));}ctx2.stroke();}
-  if(nightK>0&&fogTex&&!S.room){ctx2.globalAlpha=nightK*.55;const ox=Math.round((-(cam.px*.7)+t*6)%256),oy=Math.round((-(cam.pz*.7))%256);for(let y=oy-256;y<VH;y+=256)for(let x=ox-256;x<VW;x+=256)ctx2.drawImage(fogTex,Math.round(x),Math.round(y));ctx2.globalAlpha=1;}
+  const DK=nightDeep(dt);   // (t362) 0 by day and through dusk, 1 in full night outdoors and in the mine: see night362.js
+  if(nightK>0&&fogTex&&!S.room){ctx2.globalAlpha=nightK*.55*(1-.45*DK);const ox=Math.round((-(cam.px*.7)+t*6)%256),oy=Math.round((-(cam.pz*.7))%256);for(let y=oy-256;y<VH;y+=256)for(let x=ox-256;x<VW;x+=256)ctx2.drawImage(fogTex,Math.round(x),Math.round(y));ctx2.globalAlpha=1;}
   // ---- light map (multiply)
-  lctx.globalCompositeOperation='source-over';lctx.fillStyle=`rgb(${amb[0]|0},${amb[1]|0},${amb[2]|0})`;lctx.fillRect(0,0,VW,VH);
+  // (t362, owner: "I want the darkness to be basically you cant see in night what isn't being lit up by your flashlight", and "it has
+  // to be realistic") in full night the ambient under the lights sinks to nothing; what no light reaches is the moonlit grade, made
+  // here from the unlit frame and added back after the lights (night362.js)
+  if(DK>0)nightMoonGrab(DK);
+  const AM=DK>0?nightAmb(amb,DK):amb;
+  lctx.globalCompositeOperation='source-over';lctx.fillStyle=`rgb(${AM[0]|0},${AM[1]|0},${AM[2]|0})`;lctx.fillRect(0,0,VW,VH);
   if(nightK>.02){lctx.globalCompositeOperation='lighter';const L=nightK;const fl=.95+.05*Math.sin(t*5.3);
-    for(const h of HOUSES){if(!h.lit)continue;const X=sx(h.x),Y=sz(h.z)-40;if(X<-200||X>VW+200||Y<-200||Y>VH+200)continue;glowAt(X,Y+20,120,[255,170,80],.45*L);
-      const m=SPR[h.e.spr];const wy=Y-(m&&m.fh>200?40:24);for(const dx of [-(h.w/2-1.5),h.w/2-1.5])glowAt(X+dx*PPM,wy,34,[255,190,110],.85*L);}
-    for(const lp of lamps){if(lp.dead&&Math.sin(t*9+lp.ph)>.2)continue;const X=sx(lp.x),Y=sz(lp.z)-66;if(X<-150||X>VW+150||Y<-150||Y>VH+150)continue;glowAt(X,Y+50,100,[255,180,90],.75*L*fl);glowAt(X,Y,16,[255,230,170],.9*L);}
+    for(const h of HOUSES){if(!h.lit)continue;const X=sx(h.x),Y=sz(h.z)-40;if(X<-200||X>VW+200||Y<-200||Y>VH+200)continue;glowAt(X,Y+20,120-48*DK,[255,170,80],(.45-.15*DK)*L);
+      const m=SPR[h.e.spr];const wy=Y-(m&&m.fh>200?40:24);for(const dx of [-(h.w/2-1.5),h.w/2-1.5]){glowAt(X+dx*PPM,wy,34,[255,190,110],.85*L);if(DK>0)nightWindow(X+dx*PPM,Y+40,L*DK);}}
+    for(const lp of lamps){if(lp.dead&&Math.sin(t*9+lp.ph)>.2)continue;const X=sx(lp.x),Y=sz(lp.z)-66;if(X<-150||X>VW+150||Y<-150||Y>VH+150)continue;if(DK<1){glowAt(X,Y+50,100,[255,180,90],.75*L*fl*(1-DK));glowAt(X,Y,16,[255,230,170],.9*L*(1-DK));}if(DK>0)nightLamp(X,Y+66,Y,L*fl*DK);}
     for(const o of glowObjs()){if(!o.glow)continue;const X=sx(o.x),Y=sz(o.z)-8;if(X<-60||X>VW+60||Y<-60||Y>VH+60)continue;glowAt(X,Y,30,[255,140,40],.6*L*fl);}
     for(const a of altars)if(a.lit){glowAt(sx(a.x),sz(a.z)-36,120,[255,150,60],.8*fl);}
     for(const m of mushrooms)if(!m.taken)glowAt(sx(m.x),sz(m.z)-6,26,[90,255,200],.55*L);
     if(S.hour>=19.5&&!S.bound)glowAt(sx(crossPos.x+.6)+12,sz(crossPos.z+2.6)-22,46,[110,255,150],.7*L);
     if(phone.ring&&Math.sin(t*20)>0)glowAt(sx(boothPos.x),sz(boothPos.z),60,[200,230,255],.7);
     // the player's lantern: a round, warm pool of light that flickers with the flame (no beam; it's a lantern, not a torch)
-    if(S.mode!=='title'){const on=lanternOn()?1:0;const sput=sputT>0?(Math.random()<.5?.15:.6):1;const fuel=S.fuel<15?(.6+.4*Math.random()):1;const k=L*sput*fuel*(on?1:.12);
+    if(S.mode!=='title'){const on=lanternOn()?1:0;const sput=sputT>0?(Math.random()<.5?.15:.6):1;const fuel=S.fuel<15?(.6+.4*Math.random()):1;const k=L*sput*fuel*(on?1:.12-.09*DK);
       const lp=lanternPos();const fk=lanternFlicker(t);const R=(S.flashlight?11:8.5)*PPM*(.97+.03*fk);
+      // (t362) in the dark: a flame's falloff, shadows thrown by houses, trees, the car and fences, the hood's long lobe (night362.js)
+      if(DK>0)nightLantern(lp,k*(.92+.08*fk),fk,DK);
       // the pool sits on the ground under the lantern, leaning a little the way you face
-      lanternPool(lp.gx+P.fx*.6*PPM,lp.gy+P.fz*.5*PPM,R,[255,186,104],.95*k*(.92+.08*fk));
+      if(DK<1)lanternPool(lp.gx+P.fx*.6*PPM,lp.gy+P.fz*.5*PPM,R,[255,186,104],.95*k*(.92+.08*fk)*(1-DK));
       // the hood throws a soft lobe forward, still round-edged
-      if(S.flashlight)lanternPool(lp.gx+P.fx*3*PPM,lp.gy+P.fz*2.4*PPM,4.2*PPM,[255,206,140],.42*k);
+      if(S.flashlight&&DK<1)lanternPool(lp.gx+P.fx*3*PPM,lp.gy+P.fz*2.4*PPM,4.2*PPM,[255,206,140],.42*k*(1-DK));
       // the flame and the glass
       glowAt(lp.x,lp.y,18+2*fk,[255,232,170],.95*k);glowAt(lp.x,lp.y,46,[255,170,80],.55*k*(.85+.15*fk));}
     lifeLight(t,L);if(cine&&cine.light)cine.light(L);interiorLight(L);
@@ -240,10 +248,12 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
     for(const g of ghosts)if(g.t>0)glowAt(sx(g.x),sz(g.z)-146,8,[255,90,20],g.t*2);}
   if(flashT>0){lctx.globalCompositeOperation='lighter';lctx.fillStyle=`rgba(210,220,255,${clamp(flashT,0,1)})`;lctx.fillRect(0,0,VW,VH);}
   ctx2.globalCompositeOperation='multiply';ctx2.drawImage(lightC,0,0);ctx2.globalCompositeOperation='source-over';
+  if(DK>0)nightMoonAdd(DK);   // (t362) the moonlit grade over what no light reaches
   // vignette + danger pulse + grain
   {const va=S.room&&!isNight()?.36:.55;if(!vig||vig.w!==VW||vig.h!==VH||vig.a!==va)makeVig(va);}ctx2.drawImage(vig.c,0,0);   /* (b47: indoors by day the side walls sank to near-black and a day room read as dusk) a lighter vignette inside by day */
   if(danger>.3&&!S.bound){ctx2.fillStyle=`rgba(120,0,0,${(danger-.3)*.25*(.6+.4*Math.sin(t*6))})`;ctx2.fillRect(0,0,VW,VH);}
   mindScreen(t);
+  nightUIFlush();
 }
 let vig=null;
 function makeVig(va){va=va||.55;const c=document.createElement('canvas');c.width=VW;c.height=VH;const g=c.getContext('2d');const gr=g.createRadialGradient(VW/2,VH*.5,Math.min(VW,VH)*.35,VW/2,VH*.5,Math.max(VW,VH)*.75);

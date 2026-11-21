@@ -101,18 +101,19 @@ function drawPeer(x,z,look,dir,clip,t,label,bubble,alpha,rs,rf){dir=dir||'S';con
   if(tm&&alpha==null){const tip=toolOverlay(ctx2,nm,dir,f|0,ox,oy,'back');if(tip&&pour)waterStream(ctx2,tip,wto,t);}
   drawSpr(nm,X,Y,cl,dir,f|0,op);
   if(tm&&alpha==null){const tip=toolOverlay(ctx2,nm,dir,f|0,ox,oy,'front');if(tip&&pour)waterStream(ctx2,tip,wto,t);fistOverlay(ctx2,nm,dir,f|0,ox,oy);}
+  nightUI(()=>{   // (t362) a friend's name and words are drawn over the dark, not in it
   if(label){ctx2.font='10px monospace';ctx2.textAlign='center';const w=ctx2.measureText(label).width+8;ctx2.fillStyle='rgba(20,12,6,.75)';ctx2.fillRect(Math.round(X-w/2),Math.round(Y-78),Math.round(w),13);ctx2.fillStyle='#f4e6c8';ctx2.fillText(label,Math.round(X),Math.round(Y-68));}
   if(bubble){ctx2.font='11px monospace';const lines=[];let cur='';for(const w of bubble.split(' ')){if((cur+' '+w).length>22){lines.push(cur);cur=w;}else cur=cur?cur+' '+w:w;}lines.push(cur);
     const h=lines.length*13+8,wd=Math.max(...lines.map(l=>ctx2.measureText(l).width))+12,by=Y-86-h;ctx2.fillStyle='#f4e6c8';ctx2.fillRect(Math.round(X-wd/2),Math.round(by),Math.round(wd),h);ctx2.fillStyle='#2a1a0e';
     lines.forEach((l,i)=>ctx2.fillText(l,Math.round(X),Math.round(by+15+i*13)));}
-  ctx2.textAlign='left';}
+  ctx2.textAlign='left';});}
 {const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld(D,t);const here=S.room||'';const now=Date.now();
   for(const p of others()){const q=p.presence;if((q.r||'')!==here)continue;const rs=PEER_RS[p.peer];const x=rs?rs.x:q.x,z=rs?rs.z:q.z;if(!onScreen(x,z,90))continue;
     const bub=q.s&&now-(q.st||0)<6000?String(q.s).slice(0,120):(q.e&&now-(q.et||0)<2500?({wave:'*waves*',heart:'*smiles*',nod:'*nods*',scared:'*flinches*',laugh:'*laughs*'}[q.e]||''):'');
     D.push({z,mind:1,draw(){drawPeer(x,z,q.lk,q.d,q.c,t,clean(q.n),bub,null,rs,+q.rf);}});}
   if(CO.fake&&!S.room){const f=CO.fake;D.push({z:f.z,mind:1,draw(){drawPeer(f.x,f.z,f.look,dirOf(P.x-f.x,P.z-f.z),'idle',0,f.n,null,.9);}});}
   // your own words over your head
-  if(CO.me&&CO.me.s&&now-CO.me.st<6000&&CO.room){const s=CO.me.s;D.push({z:P.z+.01,mind:1,draw(){const X=sx(P.x),Y=sz(P.z);ctx2.font='11px monospace';ctx2.textAlign='center';const w=Math.min(200,ctx2.measureText(s).width+12);ctx2.fillStyle='#f4e6c8';ctx2.fillRect(Math.round(X-w/2),Math.round(Y-100),Math.round(w),17);ctx2.fillStyle='#2a1a0e';ctx2.fillText(s.slice(0,30),Math.round(X),Math.round(Y-88));ctx2.textAlign='left';}});}};}
+  if(CO.me&&CO.me.s&&now-CO.me.st<6000&&CO.room){const s=CO.me.s;D.push({z:P.z+.01,mind:1,draw(){nightUI(()=>{const X=sx(P.x),Y=sz(P.z);ctx2.font='11px monospace';ctx2.textAlign='center';const w=Math.min(200,ctx2.measureText(s).width+12);ctx2.fillStyle='#f4e6c8';ctx2.fillRect(Math.round(X-w/2),Math.round(Y-100),Math.round(w),17);ctx2.fillStyle='#2a1a0e';ctx2.fillText(s.slice(0,30),Math.round(X),Math.round(Y-88));ctx2.textAlign='left';});}});}};}
 {const _mu=mindUpdate;mindUpdate=function(dt){_mu(dt);try{coopUpdate(dt);}catch(e){}};}
 // the Together tab
 function renderCoop(){const B=$('bagBody');const os=others();
