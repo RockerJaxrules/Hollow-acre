@@ -37,16 +37,22 @@ S4.bellows=(sp,K)=>{const g=K.g,LO=(sp.band||[.6,.82])[0],HI=(sp.band||[.6,.82])
       for(let i=0;i<26;i++){const cx=24+(i*37%64),cy=100+((i*13)%10),r=3+(i%3);const gl=Math.max(0,Math.min(1,H*1.2-((i*7)%5)*.08+Math.sin(t*3+i)*.08));K.ball(cx,cy,r,['#0a0806','#1a1614','#2a2420','#3a332c'],r-1);if(gl>.2){K.px(cx-1,cy,2,1,heatCol(gl*.9));K.px(cx,cy-1,1,1,heatCol(gl));}}
       K.px(20,80,72,30,'#1a0a04');MG4ART.fire(K,22,106,68,28,.3+H*.8,t,[20,80,72,30]);K.glow(56,96,60+H*50,'255,150,60',.2+H*.35);
       if(item==='pump'){const P_=st.H;const cx=150,cy=96;K.ball(cx,cy,14,CA_P.brass,8);K.px(cx-2,cy-24,4,12,CA_P.brass[4]);for(let a=0;a<6.28;a+=.5){const r=6+P_*40;for(let k=0;k<5;k++){const u=k/5;K.pa(cx+Math.cos(a+st.t*3)*r*u,cy-24-Math.sin(u*Math.PI)*P_*30+u*10,1,1,'#9cc4e0',.8*(1-u));}}
-        K.px(200,70,12,60,CA_P.iron[4]);K.px(200,70,12,1,CA_P.iron[6]);const pl=st.pump>0?Math.sin(Math.PI*Math.min(1,st.pump))*14:0;K.px(205,46+pl,2,26,CA_P.iron[6]);K.px(196,44+pl,20,4,CA_P.wood[4]);m4grip(K,206,45+pl,0,{side:1,arm:-1.45});K.line(200,124,cx+8,cy+6,'#3a3a3a',2);
-        K.ball(240,110,8,['#2a2a2a','#c8c0a8','#e8e0cc','#f8f4ec']);const na=-2.3+Math.min(1.1,P_)*2.8;K.line(240,110,240+Math.cos(na)*6,110+Math.sin(na)*6,'#a02a1a',1);return;}
+        // (t365) the barrel stands low at your right, its plunger's T at the bottom of the picture: your hand pumps near you
+        const PY=74;K.px(200,70+PY,12,60,CA_P.iron[4]);K.px(200,70+PY,12,1,CA_P.iron[6]);const pl=st.pump>0?Math.sin(Math.PI*Math.min(1,st.pump))*14:0;K.px(205,46+PY+pl,2,26,CA_P.iron[6]);K.px(196,44+PY+pl,20,4,CA_P.wood[4]);m4grip(K,206,45+PY+pl,0,{side:1,arm:-1.45});K.line(200,150,cx+8,cy+6,'#3a3a3a',2);
+        K.ball(250,150,8,['#2a2a2a','#c8c0a8','#e8e0cc','#f8f4ec']);const na=-2.3+Math.min(1.1,P_)*2.8;K.line(250,150,250+Math.cos(na)*6,150+Math.sin(na)*6,'#a02a1a',1);return;}
       if(item==='crucible'){const cx=58,cy=92;K.ball(cx,cy,13,['#3a2a20','#6a4a34','#8a6a4c','#a8886a'],11);K.ell(cx,cy-9,11,3,'#2a1a10');const m=Math.min(1,st.prog*1.4);if(m>0){K.ell(cx,cy-9,9*m+1,2,heatCol(.55+H*.4));K.px(cx-4,cy-10,4,1,'#fff4d0');}else for(let k=0;k<5;k++)K.px(cx-7+k*3,cy-11+(k%2),3,2,sp.ore||'#8a6a4a');K.glow(cx,cy-6,24,'255,180,80',.2+H*.3);}
       else{const c=heatCol(Math.min(1,H));for(let x=40;x<150;x++){const u=(x-40)/110,hh=Math.max(0,Math.min(1,H*(1.15-u*1.1)));K.px(x,96,1,4,u<.5?heatCol(hh):CA_P.iron[3]);K.px(x,96,1,1,u<.5?heatCol(Math.min(1,hh+.15)):CA_P.iron[5]);}K.glow(70,98,26,'255,170,80',.2+H*.3);M4.rot(g,M4F.tongs(),150,98,0,0,7);}
       // the bellows: the bottom board stays put, the top board hinges at the nozzle; the leather pleats open and close between them
-      const sq=st.pump>0?Math.sin(Math.PI*Math.min(1,st.pump)):0,open=Math.max(.15,(.35+.65*st.fill)-sq*.8),NX=104,NY=100,BL=62,ang=-.08-open*.32;const W=CA_P.wood,L=CA_P.leather;
+      // (t365) the bellows lie from the fire's mouth down toward you at an angle, drawn in their own picture and turned, so the
+      // handle you work is low and near you
+      const BC=M4.C.m65bel||(M4.C.m65bel=(()=>{const c=document.createElement('canvas');c.width=112;c.height=80;const gg=c.getContext('2d');gg.imageSmoothingEnabled=false;const kk=caKit(gg,112,80);kk.g=gg;return {c,gg,kk};})());
+      BC.gg.clearRect(0,0,112,80);const K0=K;{const K=BC.kk;
+      const sq=st.pump>0?Math.sin(Math.PI*Math.min(1,st.pump)):0,open=Math.max(.15,(.35+.65*st.fill)-sq*.8),NX=16,NY=46,BL=62,ang=-.08-open*.32;const W=CA_P.wood,L=CA_P.leather;
       K.px(NX-8,NY-2,12,4,CA_P.brass[3]);K.px(NX-8,NY-2,12,1,CA_P.brass[6]);K.px(NX-12,NY-1,5,2,CA_P.brass[2]);
       for(let i=0;i<=BL;i++){const x=NX+4+i;const yb=NY+2+i*.12,yt=NY-2+Math.tan(ang)*i;const fold=Math.floor((yb-yt)/5);for(let y=Math.ceil(yt)+2;y<yb-1;y++){const u=(y-yt)/(yb-yt);K.px(x,y,1,1,L[(Math.floor(u*fold*2))%2?2:4]);}
         K.px(x,yb,1,3,W[i%11===0?2:3]);K.px(x,yb,1,1,W[5]);K.px(x,yt-2,1,3,W[i%11===0?3:4]);K.px(x,yt-2,1,1,W[6]);}
-      const hx=NX+4+BL,hy=NY-2+Math.tan(ang)*BL;K.px(hx,hy-1,12,3,W[4]);K.px(hx+9,hy-6,3,8,W[3]);m4grip(K,hx+10.5,hy-3,-Math.PI/2+ang,{side:1,arm:-1.2});},
+      const hx=NX+4+BL,hy=NY-2+Math.tan(ang)*BL;K.px(hx,hy-1,12,3,W[4]);K.px(hx+9,hy-6,3,8,W[3]);
+      const TH=.58;M4.rot(g,BC.c,104,100,TH,NX,NY);const [gx,gy]=M4.tr(104,100,TH,hx+10.5-NX,hy-3-NY);m4grip(K0,gx,gy,-Math.PI/2+ang+TH,{side:1});}},
     hud(t){K.label(item==='pump'?'PRESSURE':'HEAT',286,21,'#f4ecd8');K.gauge(282,30,8,92,LO/1.15,HI/1.15,st.H/1.15,{zone:'#5a3a14'});K.meter(st.prog,st.runT?st.inT/st.runT:1);if(item==='pump')return;
       K.label('BELLOWS',150,52,st.fill<.95?'#e8b030':'#9be07a');K.px(132,60,36,3,'#1a0e06');K.px(133,61,34*st.fill,1,st.fill<.95?'#e8b030':'#9be07a');
       if(st.H>HI&&Math.floor(t*6)%2)K.label('TOO HOT: IT’LL BURN',160,24,'#e8542a');},
@@ -100,7 +106,7 @@ S4.quench=(sp,K)=>{const g=K.g,TX=200,TY=118,TW=96,L=56,TANG=10;const st={d:0,he
       const wl=TY+2;K.px(TX-TW/2,wl,TW,8,'#2a4a6a');for(let x=0;x<TW;x+=3)K.px(TX-TW/2+x,wl+Math.round(Math.sin(x*.4+t*6)*st.boil),2,1,'#4a7aa0');
       const by=wl-L+Math.round(st.d*L*.95)+Math.round(Math.sin(t*40)*st.boil*1.2);for(let i=0;i<L;i++){const y=by+i,w=i>L-10?Math.max(1,6-(i-L+10)*.6):6;if(y>=wl+1){K.pa(TX-3,y,w,1,heatCol(st.heat[i]),.55);continue;}K.px(TX-3,y,w,1,heatCol(st.heat[i]));K.px(TX-3,y,1,1,heatCol(Math.min(1,st.heat[i]+.15)));}
       for(let i=0;i<Math.round(st.boil*14);i++){const bx=TX-14+((i*29+Math.floor(t*20)*7)%28),ph=(t*3+i*.3)%1;K.px(bx,wl+2+ph*6,2,2,'#c8e0f0');}
-      K.px(TX-2,by-18,4,18,I[3]);{const ta=.18;M4.rot(g,M4F.tongs(),TX-1,by-16,ta,0,7);const [hx,hy]=M4.tr(TX-1,by-16,ta,55,0);m4grip(K,hx,hy,ta,{side:1});}
+      K.px(TX-2,by-18,4,18,I[3]);{const ta=.72;   /* (t365) the tongs angled down toward you */M4.rot(g,M4F.tongs(),TX-1,by-16,ta,0,7);const [hx,hy]=M4.tr(TX-1,by-16,ta,55,0);m4grip(K,hx,hy,ta,{side:1});}
       if(st.boil>.15)K.glow(TX,wl,40,'255,255,255',st.boil*.15);},
     hud(t){const hot=hotB();K.label('HISS',286,21,'#f4ecd8');K.gauge(282,30,8,80,0,.18,Math.min(1,st.boil),{zone:'#2c5a1c'});K.meter(1-hot,1-Math.min(1,st.warp*1.6));
       if(st.d>.05&&st.d<.85&&st.warp>.05&&Math.floor(t*5)%2)K.label('ALL THE WAY IN',160,24,'#e8b030');if(st.in&&st.boil<.05&&st.d>.9&&Math.floor(t*3)%2)K.label('QUIET: LIFT IT OUT',160,34,'#9be07a');},

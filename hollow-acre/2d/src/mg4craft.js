@@ -115,7 +115,7 @@ S4.braid=(sp,K)=>{const g=K.g,N=sp.n||12,TEMPO=sp.tempo||.7,COLS=sp.cols||['#b25
     auto(dt,AP){const a=m4ai(this,AP,dt);if(!st.end&&Math.abs(st.t-st.next)<.02){m4move(a,160+side()*60,110);m4tap(a);}AP.hand=[160+side()*56-3,109];AP.press=a.down;},
     quiet(){},stop(){}};};
 // ---------------------------------------------------------------- SCOOP: drag the spoon through the pumpkin and scrape out every seed and string
-S4.scoop=(sp,K)=>{const g=K.g,CX=160,CY=96,RX=74,RY=40,N=sp.n||34;const seeds=[];for(let i=0;i<N;i++){const a=Math.random()*6.28,r=.25+Math.random()*.7;seeds.push({x:CX+Math.cos(a)*RX*r,y:CY+Math.sin(a)*RY*r,on:1,a:Math.random()*6});}
+S4.scoop=(sp,K)=>{const g=K.g,CX=160,CY=96,RX=74,RY=26,N=sp.n||34;   /* (t365) RY 40 -> 26: the bowl foreshortened, the seeds in a band your hand reaches low */const seeds=[];for(let i=0;i<N;i++){const a=Math.random()*6.28,r=.25+Math.random()*.7;seeds.push({x:CX+Math.cos(a)*RX*r,y:CY+Math.sin(a)*RY*r,on:1,a:Math.random()*6});}
   const st={sx:CX+84,sy:CY-14,load:0,got:0,t:0,end:0,flick:0,path:0};let scr=null;
   return {title:sp.t||'Scoop out the seeds',how:K.fine?'Hold and drag the spoon through the pumpkin to scrape out the seeds and strings (or hold Space). When the spoon is full it flicks them out.':'Drag the spoon through the pumpkin to scrape out the seeds and strings. When it’s full it flicks them out.',hint:'Scrape every seed out.',st,
     update(dt,I){st.t+=dt;if(!scr)scr=MS.loop('bandpass',1400,1.4);if(st.end){st.end+=dt;scr.set(0);if(st.end>.6){st.done=true;st.score=M4.cl(st.got/N*1.05,0,1);}return;}
@@ -191,7 +191,7 @@ const m4basket=part=>M4.pre('basket3'+part,104,44,K=>{const W=['#24180a','#3a281
   else{for(let x=-48;x<=48;x++){const yb=Math.round(8*Math.sqrt(Math.max(0,1-(x/48)**2)));for(let k=-1;k<=1;k++)K.px(cx+x,cy+yb+k,1,1,W[((x+k*2)>>1)%2?4:2]);K.px(cx+x,cy+yb-2,1,1,(x/44)**2<=1?W[1]:W[3]);}}},part==='F'?false:true);
 // ---------------------------------------------------------------- FLAIL: the swingle whirls on its hinge at the staff's tip; tap and the whole flail comes down so the swingle lands flat across the sheaves
 S4.flail=(sp,K)=>{const g=K.g,N=sp.n||8;const st={a:Math.PI,blows:0,q:[],t:0,end:0,hit:0,grain:0,pq:0,s0:0,bump:0};
-  const HR=[228,76],HD=[222,100],A0=3.78,A1=2.73,SL=30,FL=50,W=['#2a1e12','#4a3a24','#6a5434','#8a7048','#a88c5c','#c4a874','#dcc290','#ecd8ac'];
+  const HR=[228,90],HD=[222,100],   /* (t365) raised less between blows, so your hands stay low */A0=3.78,A1=2.73,SL=30,FL=50,W=['#2a1e12','#4a3a24','#6a5434','#8a7048','#a88c5c','#c4a874','#dcc290','#ecd8ac'];
   const pose=()=>{const h=st.hit;if(!h)return {hx:HR[0],hy:HR[1],a:A0,s:st.a};const u=h<.4?h/.4:h<.55?1:1-(h-.55)/.45;const e=h<.4?u*u:u*u*(3-2*u);
     return {hx:HR[0]+(HD[0]-HR[0])*e,hy:HR[1]+(HD[1]-HR[1])*e,a:A0+(A1-A0)*e,s:h<.4?st.s0+(Math.PI-st.s0)*e:Math.PI};};
   return {title:sp.t||'Thresh it',how:'The flail’s loose arm whirls round on its hinge. Tap when it’s at the top of its swing (the bright arc): the flail comes down and lands it flat on the sheaves, knocking the grain out.',hint:'Tap when the arm is at the top, in the bright arc.',st,
@@ -205,8 +205,8 @@ S4.flail=(sp,K)=>{const g=K.g,N=sp.n||8;const st={a:Math.PI,blows:0,q:[],t:0,end
         st.s0=ph<Math.PI?ph+Math.PI*2:ph;MS.whoosh&&MS.whoosh();K.judge(q,170,50,true);if(q<.3)MS.miss();}},
     draw(t){// the sheaves laid across the floor, the grain heap growing in front
       const by=st.bump>0?-1:0;for(const [x,y,v,f] of [[96,114,0,0],[124,117,1,1],[152,113,1,0],[180,116,0,1]]){K.pa(x+2,y+14,44,2,'#000',.35);if(f){g.save();g.translate(x+48,y+by);g.scale(-1,1);g.drawImage(m4sheaf(v),0,0);g.restore();}else g.drawImage(m4sheaf(v),x,y+by);}
-      const gr=Math.min(1,st.grain/N);if(gr>0){const r=Math.round(8+gr*30),h=2+gr*6;K.pa(160-r,147,r*2,2,'#000',.4);for(let x=-r;x<=r;x++){const hh=Math.round(h*Math.sqrt(1-(x/r)**2));for(let y=0;y<=hh;y++)K.px(160+x,147-y,1,1,M4KE[y===hh?(x<0?5:4):x<-r*.3?3:x>r*.4?1:2]);}
-        for(let k=0;k<Math.round(gr*8);k++){const kx=Math.round((K.H32(k,3,7)-.5)*r*1.4);K.px(160+kx,147-Math.round(h*.4)-(k%2),2,1,M4KE[4]);}}
+      const gr=Math.min(1,st.grain/N);if(gr>0){const r=Math.round(8+gr*30),h=2+gr*6,HY=134;K.pa(160-r,HY,r*2,2,'#000',.4);for(let x=-r;x<=r;x++){const hh=Math.round(h*Math.sqrt(1-(x/r)**2));for(let y=0;y<=hh;y++)K.px(160+x,HY-y,1,1,M4KE[y===hh?(x<0?5:4):x<-r*.3?3:x>r*.4?1:2]);}
+        for(let k=0;k<Math.round(gr*8);k++){const kx=Math.round((K.H32(k,3,7)-.5)*r*1.4);K.px(160+kx,HY-Math.round(h*.4)-(k%2),2,1,M4KE[4]);}}
       const P=pose(),tx=P.hx+Math.cos(P.a)*FL,ty=P.hy+Math.sin(P.a)*FL;
       // the sweet spot: a bright arc over the hinge at the top of the swing (only while it whirls)
       if(!st.hit&&!st.end){const ph=((st.a%(Math.PI*2))+Math.PI*2)%(Math.PI*2),near=Math.abs(ph-Math.PI*1.5)<.25;for(let a=-.25;a<=.25;a+=.03){const r=SL+5;K.px(tx+Math.cos(Math.PI*1.5+a)*r-1,ty+Math.sin(Math.PI*1.5+a)*r-1,3,3,'#1a0c12');}for(let a=-.25;a<=.25;a+=.03){const r=SL+5;K.px(tx+Math.cos(Math.PI*1.5+a)*r,ty+Math.sin(Math.PI*1.5+a)*r,2,1,near?'#fff2b8':'#c89a48');}}
@@ -242,11 +242,12 @@ S4.dip=(sp,K)=>{const g=K.g,N=sp.n||6;const st={layers:0,wet:0,dip:0,q:[],t:0,en
         if(st.q.length>=N+st.thin&&st.layers>=N||st.q.length>=N+3){st.end=.001;MS.good();}}},
     draw(t){const cx=160;// (t364) the wick hangs from a short dowel in your hand, lowered with it into a vat on the floor (your arm from below)
       const d=st.dip>0?Math.sin(st.dip*Math.PI)*46:0;const w=2+st.layers*2,h=20+st.layers*8,top=58+d;
-      K.px(cx-14,top-13,44,3,CA_P.wood[3]);K.px(cx-14,top-13,44,1,CA_P.wood[5]);K.px(cx-14,top-11,44,1,CA_P.wood[1]);K.px(cx-1,top-10,2,10,'#3a2a20');
+      // (t365) the dowel held out from the side and down toward you: the wick hangs from its far end, your hand low on the near end
+      K.line(cx-6,top-12,cx+60,top+33,CA_P.wood[2],4);K.line(cx-6,top-13,cx+60,top+32,CA_P.wood[4],2);K.line(cx-6,top-14,cx+60,top+31,CA_P.wood[6],1);K.px(cx-1,top-10,2,10,'#3a2a20');
       for(let y=0;y<h;y++){const ww=w-(y<4?2-(y>>1):0);K.px(cx-ww/2,top+y,ww,1,y%8<1?'#e8dcb8':'#f4ecd0');}K.px(cx-w/2,top,1,h,'#ffffff');
       if(st.wet>0){K.pa(cx-w/2,top,w,h,'#ffffff',.2*st.wet);for(let k=0;k<3;k++)K.pa(cx-w/2+1,top+4+k*9,1,4,'#ffffff',.9*st.wet);if(st.wet>.6)K.px(cx-1,top+h,2,2+st.wet*2,'#f4ecd0');}
       g.drawImage(m4blk('dipvat',104,52,k=>{k.plank(2,0,100,52,CA_P.wood,4,true);k.metal(0,8,104,3,CA_P.iron);k.metal(0,40,104,3,CA_P.iron);}),cx-52,132);K.ell(cx,132,48,6,'#e8dcb0');K.ell(cx,132,44,4,'#f4ecd0');K.ell(cx-10,131,14,1,'#ffffff');
-      for(let i=0;i<4;i++){const ph=(t*.5+i*.25)%1;K.pa(cx-20+i*12+Math.sin(t+i)*3,126-ph*20,4,3,'#ffffff',.25*(1-ph));}m4grip(K,cx+27,top-12,0,{side:1});},
+      for(let i=0;i<4;i++){const ph=(t*.5+i*.25)%1;K.pa(cx-20+i*12+Math.sin(t+i)*3,126-ph*20,4,3,'#ffffff',.25*(1-ph));}m4grip(K,cx+52,top+27,.6,{side:1});},
     hud(t){K.label('LAYERS '+st.layers+'/'+N,30,14,'#f4ecd8','l');K.label(st.wet>.2?'SHINY: WAIT':st.wet>.05?'ALMOST':'DULL: DIP',230,40,st.wet>.2?'#e8b030':st.wet>.05?'#e8c060':'#9be07a');K.meter(st.layers/N,M4.avg(st.q)||1);},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(st.dip===0&&st.t>.6&&st.wet<.04)m4tap(a);AP.hand=[184,45];AP.press=a.down;},
     quiet(){},stop(){}};};
@@ -264,22 +265,25 @@ S4.cork=(sp,K)=>{const g=K.g,N=sp.n||1;const st={ang:0,in:0,push:0,q:[],t:0,end:
     auto(dt,AP){const a=m4ai(this,AP,dt);if(!st.push&&st.t>.6&&Math.abs(st.ang)<.025)m4tap(a);AP.hand=[176,40];AP.press=a.down;},
     quiet(){},stop(){}};};
 // ---------------------------------------------------------------- ROLL: roll the pastry out to the size of the tin, keeping it round: roll across, then up and down
-S4.roll=(sp,K)=>{const g=K.g,CX=160,CY=96,R=sp.r||46;const st={rx:22,ry:22,px:CX,py:CY,dir:0,stroke:0,t:0,end:0,strokes:0,lastS:0,sx:CX,sy:CY,pa:0};
+S4.roll=(sp,K)=>{const g=K.g,CX=160,CY=86,R=sp.r||46,FS=.45;   /* (t365) the board seen more from above-front: the pastry foreshortened (FS), the pin's strokes kept short */const st={rx:22,ry:22,px:CX,py:CY,dir:0,stroke:0,t:0,end:0,strokes:0,lastS:0,sx:CX,sy:CY,pa:0};
   return {title:sp.t||'Roll out the pastry',how:K.fine?'Drag the rolling pin across the dough: side to side widens it, up and down lengthens it (or use A/D and W/S). Keep it round and stop at the dotted circle.':'Drag the rolling pin across the dough: side to side widens it, up and down lengthens it. Keep it round and stop at the dotted circle.',hint:'Roll both ways; keep it round; stop at the circle.',st,
     update(dt,I){st.t+=dt;if(st.end){st.end+=dt;if(st.end>.6){const e=(Math.abs(st.rx-R)+Math.abs(st.ry-R))/2,ov=Math.max(0,st.rx-R)+Math.max(0,st.ry-R);st.done=true;st.score=M4.cl(1-e/16-ov*.02,0,1);}return;}
       let dx=0,dy=0;if(I.ax||I.ay){dx=(I.ax||0)*120*dt;dy=(I.ay||0)*120*dt;}else if(I.down){dx=I.x-st.px;dy=I.y-st.py;}const d=Math.hypot(dx,dy);
-      if(d>.2&&(I.down||I.ax||I.ay)){st.px=M4.cl(st.px+dx,CX-90,CX+90);st.py=M4.cl(st.py+dy,CY-60,CY+60);const horiz=Math.abs(dx)>Math.abs(dy);st.pa=horiz?Math.PI/2:0;
-        const over=Math.abs(st.px-CX)<st.rx+6&&Math.abs(st.py-CY)<st.ry+6;if(over){const k=.045*d;if(horiz)st.rx+=k;else st.ry+=k;st.rx=Math.min(R+16,st.rx);st.ry=Math.min(R+16,st.ry);if(Math.random()<.3)A.hiss(.06,.05,'lowpass',500);
+      if(d>.2&&(I.down||I.ax||I.ay)){st.px=M4.cl(st.px+dx,CX-90,CX+90);st.py=M4.cl(st.py+dy,CY-22,CY+22);const horiz=Math.abs(dx)>Math.abs(dy);st.pa=horiz?Math.PI/2:0;
+        const over=Math.abs(st.px-CX)<st.rx+6&&Math.abs(st.py-CY)<st.ry+6;if(over){const k=.045*d*(horiz?1:1/FS);   /* (a stroke toward or away from you is foreshortened on the screen: it rolls as far as a longer one across) */if(horiz)st.rx+=k;else st.ry+=k;st.rx=Math.min(R+16,st.rx);st.ry=Math.min(R+16,st.ry);if(Math.random()<.3)A.hiss(.06,.05,'lowpass',500);
           if(Math.random()<.2)K.emit(st.px,st.py,1,{c:['#f8f4ec'],v:20,spread:3,g:0,drag:4,life:.8});}}
       if(I.released&&!I.key)st.strokes++;if(st.rx>=R-1&&st.ry>=R-1||st.t>(sp.time||16)){st.end=.001;MS.good();}},
     draw(t){K.pa(0,0,320,180,'#140a04',.45);g.drawImage(m4blk('rollboard',260,110,k=>{k.plank(0,0,260,110,CA_P.oak,7);for(let j=0;j<40;j++)k.pa(10+((j*37)%240),8+((j*23)%96),2,1,'#ffffff',.5);}),30,40);
-      g.setLineDash([3,3]);g.strokeStyle='#9be07a';g.lineWidth=1;g.beginPath();g.ellipse(CX,CY,R,R*.62,0,0,6.29);g.stroke();g.setLineDash([]);
+      g.setLineDash([3,3]);g.strokeStyle='#9be07a';g.lineWidth=1;g.beginPath();g.ellipse(CX,CY,R,R*FS,0,0,6.29);g.stroke();g.setLineDash([]);
       // flat pastry, seen from above: a soft rim, flour on it, the marks of the pin
-      K.ell(CX,CY+1,st.rx+1,st.ry*.62+1,'#c89a60');K.ell(CX,CY,st.rx,st.ry*.62,'#ecd2a0');K.ell(CX,CY,st.rx-3,Math.max(1,st.ry*.62-2),'#f2dcae');
-      for(let k=0;k<26;k++){const a=k*2.39,r=Math.sqrt((k*.618)%1);K.px(CX+Math.cos(a)*st.rx*.85*r,CY+Math.sin(a)*st.ry*.55*r,1,1,'#fff8ec');}for(let k=-2;k<=2;k++)K.pa(CX-st.rx*.7,CY+k*st.ry*.2,st.rx*1.4,1,'#d8b880',.35);
-      M4.rot(g,M4C.pin(),st.px,st.py,st.pa,36,8);const [h1x,h1y]=M4.tr(st.px,st.py,st.pa,-30,0),[h2x,h2y]=M4.tr(st.px,st.py,st.pa,30,0);m4grip(K,h1x,h1y,st.pa+Math.PI,{side:-1,arm:st.pa?-1.95:2.0});m4grip(K,h2x,h2y,st.pa,{side:1,arm:st.pa?1.2:1.1});},
+      K.ell(CX,CY+1,st.rx+1,st.ry*FS+1,'#c89a60');K.ell(CX,CY,st.rx,st.ry*FS,'#ecd2a0');K.ell(CX,CY,st.rx-3,Math.max(1,st.ry*FS-2),'#f2dcae');
+      for(let k=0;k<26;k++){const a=k*2.39,r=Math.sqrt((k*.618)%1);K.px(CX+Math.cos(a)*st.rx*.85*r,CY+Math.sin(a)*st.ry*FS*.9*r,1,1,'#fff8ec');}for(let k=-2;k<=2;k++)K.pa(CX-st.rx*.7,CY+k*st.ry*FS*.32,st.rx*1.4,1,'#d8b880',.35);
+      // (t365) rolled toward and away from you the pin points along your view, so it's foreshortened: short, its near handle the bigger
+      if(st.pa){const x=Math.round(st.px),y=Math.round(st.py),W=CA_P.wood;for(let j=-12;j<=12;j++){const hw=5+Math.round((j+12)/8);for(let i=-hw;i<=hw;i++){const r=i/hw;K.px(x+i,y+j,1,1,W[r<-.5?6:r<0?5:r<.5?4:3]);}}
+        for(const [j0,j1,hw] of [[-17,-13,2],[13,19,3]])for(let j=j0;j<=j1;j++)for(let i=-hw;i<=hw;i++)K.px(x+i,y+j,1,1,W[i<0?6:i===0?4:3]);K.px(x-6,y-12,13,1,W[2]);}
+      else M4.rot(g,M4C.pin(),st.px,st.py,st.pa,36,8);const HL=st.pa?16:30;const [h1x,h1y]=M4.tr(st.px,st.py,st.pa,-HL,0),[h2x,h2y]=M4.tr(st.px,st.py,st.pa,HL,0);m4grip(K,h1x,h1y,st.pa+Math.PI,{side:-1,arm:st.pa?-1.95:2.0});m4grip(K,h2x,h2y,st.pa,{side:1,arm:st.pa?1.2:1.1});},
     hud(){K.label('WIDE '+Math.round(st.rx/R*100)+'%  LONG '+Math.round(st.ry/R*100)+'%',160,14,Math.abs(st.rx-st.ry)<6?'#9be07a':'#e8b030');K.meter(Math.min(st.rx,st.ry)/R,1-Math.min(1,Math.abs(st.rx-st.ry)/12));},
-    auto(dt,AP){const a=m4ai(this,AP,dt);if(st.t>.5){if(this._ph==null){this._ph=0;this._h=1;}this._ph+=dt*2.2;const horiz=st.rx<=st.ry;const s=Math.sin(this._ph);m4move(a,horiz?CX+s*st.rx:CX,horiz?CY:CY+s*st.ry*.8);m4hold(a,true);}AP.hand=[a.x+30,a.y-14];AP.press=a.down;},
+    auto(dt,AP){const a=m4ai(this,AP,dt);if(st.t>.5){if(this._ph==null){this._ph=0;this._h=1;}this._ph+=dt*2.2;const horiz=st.rx<=st.ry;const s=Math.sin(this._ph);m4move(a,horiz?CX+s*st.rx:CX,horiz?CY:CY+s*Math.min(22,st.ry*.5));m4hold(a,true);}AP.hand=[a.x+30,a.y-14];AP.press=a.down;},
     quiet(){},stop(){}};};
 // ---------------------------------------------------------------- CRIMP: the pie turns on the stand; pinch a flute each time a mark comes round to your fingers
 S4.crimp=(sp,K)=>{const g=K.g,CX=160,CY=100,RX=70,RY=26,N=sp.n||12,look=sp.look||'pie';const st={a:0,done_:[],q:[],t:0,end:0,pinch:0};const marks=[];for(let i=0;i<N;i++)marks.push(i/N*Math.PI*2);

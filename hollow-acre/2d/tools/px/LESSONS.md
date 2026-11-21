@@ -636,7 +636,45 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   a closed apron to a dark plinth. When a piece's camera angle hides what makes it that piece, change the piece.
 
 ## Steps (owner, Nov 10: "steps need to be fixed")
-- Steps read as steps by their silhouette: each lower step juts out a few pixels so the sides zig-zag, and each step's end
+- **[owner, t365, verbatim]** "the steps going up to houses kind of look like they are at a wrong angle so they don't exactly look like steps
+  the only steps looking good are the ones going up to the inn or lantern place in the main town" (the Lamplighter's porch steps).
+  THE STEP RULE, measured on those (inn_steps, 40x30) against the house flights:
+  1. Straight parallel sides. The camera is orthographic 3/4 with no yaw, so a flight climbing toward the door shows its sides
+     edge-on and its outline is a rectangle. Each lower step wider (a ziggurat), with BOTH end faces drawn, is a perspective view
+     from the front: that is "the wrong angle". The earlier lesson below (each lower step juts out) was wrong for this camera.
+  2. A stringer (wood, 2-3 px) or cheek wall (stone, 3-4 px, a lit cap row) down each side the whole height: the left one lit, the
+     right one in shade. They frame the flight; the treads never poke past them.
+  3. Treads seen from above: 5 px deep, pale, the front two rows (the nosing) the brightest; board or slab joints; a paler worn middle.
+  4. Risers: 2 px, dark, the top row near-black (the shadow under the lip). Tread:riser 5:2 on screen; a 7 px sill is 3 risers.
+  5. The top tread is the landing, flush with the sill or deck, as wide as the opening (the door and its frame, the gap in a rail).
+  6. The foot: the bottom riser stands on the ground; a contact shadow 2-3 rows that steps 1 px right per row (light top-left).
+  7. Width from the building: the landing may be wider than the door (3-4 px past the frame each side, a T); the steps stay
+     straight-sided and about the door's width. Count from the rise: 7 px = 3 rises; a terrace wall = 5-6.
+- **[t365 calibration, blind: Lamplighter 6.5, ours 4]** Steps need a visible level surface to arrive on and a frame; a flight that
+  runs straight into a door reads as a pallet. The liked steps have the deck as a landing, a dark panel under its edge showing the
+  climb, two posts framing the gap and a dark foot on pale ground. A house stoop: a landing at the sill wider than the door frame with
+  its own dark front face, the steps coming forward from it, newels (wood) or cheek walls (stone), and the foot on a trodden patch
+  where the grass is dark.
+- **[repeated, t365 r1 5.5 and r2 4.5]** Tread/riser VALUE contrast is what makes a flight climb; equal bands read as a crate or a pallet. Each tread one
+  flat value with only its front two rows (the nosing) brighter; each riser a band at least two ramp steps darker with a near-black top row.
+  A light-to-dark gradient down every tread is pillow shading and turns the flight into pinstripes in greyscale.
+- [t365 critic r1] A nail at both ends of every tread, a dark lid line across the top and stringers the treads' own tan read as a crate.
+  One nail here and there; the landing runs right up to the sill; the left stringer lit, the right a step darker.
+- [t365 r2 4.5] A rework scored lower than the draft it fixed: nail heads, knots and a split on every tread plus stringers in the treads'
+  own tan read as "a pallet leaned against the wall". Treads stay clean (one joint, a paler worn middle); the stringers are a separate,
+  darker board. When a liked piece exists in the game (the inn steps), copy its proportions exactly and lay its capture beside yours.
+- **[t365 calibration 2, measured]** Steps = a MID tread + a 1-row bright nosing + a dark riser (a near-black lip row, a dark face row);
+  a pale tread with a dark gap reads as slats. The Lamplighter column, per 7-row step: tread 4 rows grey 104, nosing 1 row grey 171,
+  riser 1 row grey 32 then 1 row grey 57. The brightness sits on the lip, not on the tread. Ours at grey 147 treads with two bright
+  rows read as crate slats four rounds running although the contrast was higher. Measure the column in the 1x game capture.
+- **[t365, five rounds]** The blind critic misread the riser thickness by eye in every round ("1 px seams" for 3-row risers; "no bright
+  nosing" for a matched one-row nosing), and the same rhythm scored 6 on the Lamplighter's raised deck and 4.5 on a house. For a
+  structural judgement like this, measure the 1x column and compare it row for row with a liked reference in the game; don't trust a
+  critic's band counts. The owner decides between matched versions.
+- [t365] A landing is a LEVEL floor: planks running across with a lit front rim. Vertical boards between the posts read as a fence front.
+- [t365] Check a flight IN THE GAME, not only on black: the day grade compresses values, so contrast that reads on the sheet goes flat
+  on the grass. Measure tread vs riser averages in the game capture (aim 60+ apart out of 255).
+- [superseded by the t365 rule above] Steps read as steps by their silhouette: each lower step juts out a few pixels so the sides zig-zag, and each step's end
   shows its own face. Even tread-and-riser bands boxed in by cheek walls or stringers read as a slatted crate or a grate.
 - Deep pale treads with the nosing brightest, short dark risers with a black line under each lip: the contrast between
   tread and riser is what climbs. Keep a flight as wide as the gap it fills (the inn rail), or it reads as a box set in it.
@@ -704,6 +742,59 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   thing (a dozen 7x5 beets beat forty 5x3 ones). Soot is staining that fans and fades in a darker version of the brick, never
   one black stripe (a stripe reads as a crack or a tar run).
 
+## Controllers drawn as the real pads (t365: Xbox 6.5, DualSense 6 in round 1)
+- Small buttons must read at 1x: View, Menu and Share as 3 px round buttons / a 3x2 pill, each with a lit top-left pixel, a value
+  clearly off the body; 1-2 px specks vanish.
+- A white home button is the brightest thing on a dark pad and pulls the eye before ABXY: a pale grey disc under ~85% value in a dark ring.
+- A dark plastic on the warm fall UI needs its ramp shifted: shadows a little violet, the lit side a touch warm; a cold neutral ramp reads off.
+- Stick caps are dished: a dark rim and a lit crescent inside; a flat lighter disc reads as a rounded square.
+- Bumper and trigger are two parts: the bumper a band on the shoulder, the trigger a separate shape above it, a dark gap between.
+- Face buttons are separate round buttons with a gap and a 1 px glint each; touching discs read as tiles.
+- A d-pad on a white shell: four arrow keys (3x4, pointing at an empty centre) a value step darker than the shell with a lit top row;
+  round grey dots read as a second set of face buttons.
+- [pads r2] Check every fix by eye at 1x and at the critic's zoom before sending: a fix drawn under another layer (pills under the
+  shoulder band, a black centre that the body's silhouette never reached) does not exist for the viewer.
+- [pads r3] A trigger seen from the front over its bumper is a low wedge whose outer corner peeks over the band; a tall round dome
+  reads as mouse ears. On a small picture, coloured face buttons are solid with a glint; a dark letter makes a speckled tile.
+- Never mirror a lit sprite: the right grip is a step darker than the left. A near-black outline vanishes on a dark panel; outline
+  in a darker version of the object's own colour, lighter at the top-left.
+
+## Lights a player carries (t365: tin 6-6.5 reference; rounds on Walt's, the hood and the flashlight)
+- **[round 3 critic, overrides the next rule]** Our camera looks down at the ground at about 60 degrees, so nothing is seen
+  truly end-on: a torch pointed at you shows a short foreshortened barrel running down out of the fist with the lens ellipse at
+  its LOWER end (the brightest pixels), the beam fanning down the screen from there; pointed away, the barrel runs up the screen
+  past the hip, angled out so its tip clears your head, and the beam's foot sits at the bezel tip. A beam whose source is
+  hidden behind the head or hair reads as starting at the shoulder with no source.
+- (superseded) A light seen end-on is mostly its housing: a flashlight toward you is a fist, a short barrel and a lens ellipse
+  half under the knuckles with only the lens glowing; a 9 px glowing disc reads as a will-o'-wisp. Away from you: the fist across
+  the barrel and a DARK tail cap, no bright pixels (a pale stub reads as a lens pointing back).
+- Knurling is 2-3 ring lines across the barrel; a one-pixel checker reads as dither. A round glow centred on the hand reads as a
+  snowball: light the lens as a point and the player by a faint spill round the body.
+- A beam starts at the lens in every facing. Facing away, your body stands between the torch and the ground: mask the body out of
+  the light map and turn the beam a touch toward the torch's side, or it reads as a headlamp or a spotlight on you.
+- Keep the player visible in his own light: a small spill back off the ground round the lens, never a pool centred under him.
+- Brass is brass only when the frame is MID brass and the glass a different material (amber or cool); one saturated gold for
+  both reads as a gold block. [round 3] Keep the frame, cap, wires and base at least two value steps under the globe, the bail
+  standing clear over a narrow chimney cap, or at 1x it shrinks to a squat amber bell. Glass hot orange all over reads as an
+  orange fruit: cool amber glass, only the flame's core hot. The white goes only in the flame's heart, low over the wick; a centred dot in a round globe is an eye.
+- An add-on (a hood) must change the silhouette: a shell standing 1-2 px proud of the lantern, its lip over the glass, its
+  inside warm, the cap and bail showing above. Drawn inside the lantern's own outline it disappears in silhouette. [round 3] But
+  the lantern inside keeps its own tall cylinder: a shell that tapers top and bottom turns the whole thing into an onion. From
+  behind: a closed shell with the bail and cap above it and a 1 px warm rim of leaking light; and it must shade something (the
+  ground behind you visibly darker).
+- An icon and its sprite are the same object in two sizes; a hurricane lantern in the pack and a caged box in hand read as two items.
+  [round 4] Match the shapes, not just the parts: the icon's round globe, flat cap and bail in hand too (frame tubes and a pointed
+  chimney read as a cage), with the glass the brightest part at 1x and a tall flame drop (a plus of flame pixels reads as an eye).
+- [round 4] The light map only multiplies what's under it, so a beam takes the ground's colour: mint green on grass, cream on dirt.
+  Give a white light its own pass over the lit frame (a 'color' blend keeps the ground's brightness and takes the beam's hue) and
+  a point of light at the lens; check it on grass, dirt and paving.
+- [round 4] Whatever light you add, the player must stay readable in his own light: measure his body's brightness in every facing
+  (a hood's shade behind you falls on your own body when you face the camera; give it back a faint spill on the body).
+- [round 4, plateau] Four rounds sat at brass 5-5.5, flashlight 4.5, hood 4-4.5 against the tin's 6-6.5, and the critics began to
+  contradict each other (one asked for the facing-away barrel angled out past the hip, the next called it a wand). At a plateau
+  fix only concrete, measurable faults (a wrong colour, a hidden source, a dark player) and stop the loop.
+- A red cross on a white band is first aid in this town (the doctor's mark): a battery wants its nub, a band and a dark plus.
+
 ## UI type (Nov 10: our own pixel font, 6 vs 5)
 - (t337 r5) On a narrow phone, wrap a tab row to a second line; never let the overflow drop tabs (the backpack lost Journal and Together).
 - (t337 r5) Check every button label in a shot for leaked values ("true", "undefined", "NaN"): a label built from a variable can show the variable.
@@ -740,6 +831,18 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - If arms are drawn: foreshortened (about twice the fist's width where they leave the frame, tapering to the cuff),
   shaded as one cylinder with two creases at most, in a muted wool clearly apart from the scene's reds, and routed so
   they never cover the work.
+
+- [t365] A forearm is short only when the HAND is low: with the arm running to the bottom edge, the hand must stay below about
+  y 118 of 180 for a sleeve of 70 or less. Lowering the whole work area is not enough when the hand travels high: compress the
+  travel (a foreshortened cloth or board, a squat pumpkin, dents in a band), hold the tool so the hand stays near you (handle toward
+  you, from below, turned on the work), or bring the camera close on the part being worked with its own surface under it.
+- [t365] When the work moves lower than the room's own furniture (the pan on the backdrop's stove), draw the close surface it sits on
+  (the stove top edge to edge) and drop the room's copy, or two stoves stack.
+- [t365] Measure every recipe variant, not just the first: the wax cake, the pump and the hen/beef traces each move differently.
+- [t365] Clamp a pointer-driven tool to the work's band where it would otherwise follow the pointer to the top of the picture.
+- [t365] When a restage shortens a stroke on the screen (the rolling pin's toward-and-away strokes foreshortened), scale the game's
+  response by the same amount, or the game gets harder and its own auto-player stops finishing it (the roll scored .39 until its
+  vertical strokes counted 1/0.45 as much). Run the full auto-player play-through after any restage, not only the arm measure.
 
 ## Brewery stations and drink icons (Nov 12)
 - A liquid seen in an open vessel: a thin lip, a FLAT surface in two tones, one 3-4 px sheen line at the top left, foam only as a thin broken line hugging the back rim. A broad pale rim round a dark centre reads as a pie crust; specks on it read as stew or porridge.

@@ -88,9 +88,13 @@ function nightOccluders(){const now=performance.now();const a=NIGHT.occAt;
 // one shadow quad: from the edge p..q away from the light at (lx,lz), len metres (in screen pixels on the light map)
 function nightQuad(g,lx,lz,ax,az,bx,bz,len){let ux=ax-lx,uz=az-lz,ul=Math.hypot(ux,uz)||1,vx=bx-lx,vz=bz-lz,vl=Math.hypot(vx,vz)||1;
   g.moveTo(sx(ax),sz(az));g.lineTo(sx(bx),sz(bz));g.lineTo(sx(bx+vx/vl*len),sz(bz+vz/vl*len));g.lineTo(sx(ax+ux/ul*len),sz(az+uz/ul*len));g.closePath();}
+// (t365) the hood's own shadow: the ground behind you (the side the tin is on) darker, cut from the lantern's light on its own layer
+function nightHoodShade(g,lp){const m=Math.hypot(P.fx,P.fz*.82)||1,bx=-P.fx/m,by=-P.fz*.82/m,x0=lp.gx-bx*4,y0=lp.gy-by*4,L=90;
+  const gr=g.createLinearGradient(x0,y0,x0+bx*L,y0+by*L);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(.35,'rgba(0,0,0,.3)');gr.addColorStop(.7,'rgba(0,0,0,.6)');gr.addColorStop(1,'rgba(0,0,0,.74)');
+  g.save();g.globalCompositeOperation='destination-out';g.fillStyle=gr;g.fillRect(0,0,g.canvas.width,g.canvas.height);g.restore();}
 function nightLantern(lp,a,fk,DK,o){if(!(a>0))return;const k=a*DK;o=o||{};const beam=!!o.beam,walt=!!o.walt;   /* (t364) which light: o.walt (Walt's lantern), o.beam (the flashlight) */
-  const hood=LI_ON?liHoodOn():!!S.flashlight,R=(hood?10.4:10)*(walt?1.16:1)*PPM*(.985+.015*fk),cx=lp.gx+P.fx*.4*PPM,cy=lp.gy+P.fz*.32*PPM;
-  const draw=beam?(gg)=>{liBeamDraw(gg,lp.x,lp.y,P.fx,P.fz,k);}:(gg)=>{nightPool(gg,cx,cy,R,(walt?1.24:1.15)*k,walt?LI_WCOL:NIGHT_LCOL);if(hood)nightLobe(gg,lp.gx,lp.gy,P.fx,P.fz,k);};
+  const hood=LI_ON?liHoodOn():!!S.flashlight,R=(hood?8:10)*(walt?1.16:1)*PPM*(.985+.015*fk),cx=lp.gx+P.fx*(hood?2.2:.4)*PPM,cy=lp.gy+P.fz*(hood?1.8:.32)*PPM;   /* (t365) with the hood the pool is pushed ahead of you: ahead brighter, behind darker */
+  const draw=beam?(gg)=>{liBeamDraw(gg,lp.x,lp.y,P.fx,P.fz,k);}:(gg)=>{nightPool(gg,cx,cy,R,(walt?1.24:1.15)*k,walt?LI_WCOL:NIGHT_LCOL);if(hood){nightLobe(gg,lp.gx,lp.gy,P.fx,P.fz,k);nightHoodShade(gg,lp);nightPool(gg,lp.gx,lp.gy-12,1.6*PPM,.5*k,NIGHT_LCOL,1.2);}};   /* (and a little light back off the ground ahead onto you, so the hood never hides you) */
   NIGHT.bloom=beam?null:{x:cx,y:cy,r:(walt?4.6:4.2)*PPM,k:Math.min(1,k)};
   // the shadows: the light is the lantern at your hip, a little off your feet. First what throws one, then (only if anything does)
   // the lantern is drawn on its own layer, within the box it lights, the shadows cut out of it, and added to the light map
@@ -107,7 +111,7 @@ function nightLantern(lp,a,fk,DK,o){if(!(a>0))return;const k=a*DK;o=o||{};const 
       // the edge facing away from the light is enough for something low
       if(Math.abs(lz-(q.z0+q.z1)/2)>Math.abs(lx-(q.x0+q.x1)/2)){const zz=lz>q.z1?q.z0:q.z1;ax=q.x0;az=zz;bx=q.x1;bz=zz;}else{const xx=lx>q.x1?q.x0:q.x1;ax=xx;az=q.z0;bx=xx;bz=q.z1;}}else continue;
     const mx=(ax+bx)/2,mz=(az+bz)/2,d=Math.hypot(mx-lx,mz-lz);if(d<.35||d>8)continue;low.push([q,ax,az,bx,bz,mx,mz,d]);}
-  if(!long.length&&!low.length){draw(lctx);return;}   // nothing near enough to throw a shadow: straight into the light map
+  if(!long.length&&!low.length&&!(hood&&!beam)){draw(lctx);return;}   // nothing near enough to throw a shadow: straight into the light map (the hood's shade is cut from its own layer)
   const RB=beam?12.6*PPM:hood?12*PPM:R;const x0=Math.max(0,Math.floor(cx-RB)),y0=Math.max(0,Math.floor(cy-RB*.8)),x1=Math.min(VW,Math.ceil(cx+RB)),y1=Math.min(VH,Math.ceil(cy+RB*.8));
   if(x1<=x0||y1<=y0)return;
   if(lanternC.width!==VW||lanternC.height!==VH){lanternC.width=VW;lanternC.height=VH;}
@@ -171,7 +175,7 @@ function nightUIFlush(){if(!NIGHT_UIQ.length)return;const q=NIGHT_UIQ.splice(0);
   if((out||mine)&&typeof others==='function'&&NIGHT.dk>0){const here=S.room||'';for(const p of others()){const q=p.presence;if(!q||(q.r||'')!==here||q.c==='tractor')continue;
     const rs=typeof PEER_RS!=='undefined'?PEER_RS[p.peer]:null,x=rs?rs.x:q.x,z=rs?rs.z:q.z;const X=sx(x),Y=sz(z);if(X<-320||X>VW+320||Y<-260||Y>VH+300)continue;
     const fk=lanternFlicker(t+p.peer.length);const h=LANTERN_HIP[q.d]||LANTERN_HIP.S;const li=String(q.li||'t');if(/0/.test(li))continue;
-    if(li[0]==='f'){const fa=(q.fa!=null&&isFinite(+q.fa)?+q.fa:90)*Math.PI/180,fx=Math.cos(fa),fz=Math.sin(fa),hh=LI_HAND[q.d]||LI_HAND.S;const ox=X+hh[0]+fx*7,oy=Y+hh[1]+fz*3;liBeamDraw(lctx,ox,oy,fx,fz,.85*L*NIGHT.dk);glowAt(ox,oy,7,[236,242,255],.9*L);continue;}
+    if(li[0]==='f'){const fa=(q.fa!=null&&isFinite(+q.fa)?+q.fa:90)*Math.PI/180,fx=Math.cos(fa),fz=Math.sin(fa),hh=LI_HAND[q.d]||LI_HAND.S;const fc=liFlashCanvas(q.d||'S',true),ox=X+hh[0]-fc.ax+fc.lx,oy=Y+hh[1]-fc.ay+fc.ly;liBeamDraw(lctx,ox,oy,fx,fz,.85*L*NIGHT.dk);glowAt(ox,oy,3.2,[236,242,255],.9*L);continue;}   /* (t365) from their torch's lens */
     const w=li[0]==='w';lanternPool(X,Y-2,8.6*(w?1.1:1)*PPM*(.97+.03*fk*(w?.45:1)),nightLanternCol(),.9*L*(.92+.08*fk)*(w?1.08:1),NIGHT.dk);if(/h/.test(li))nightLobe(lctx,X,Y-2,Math.cos((q.fa!=null&&isFinite(+q.fa)?+q.fa:90)*Math.PI/180),Math.sin((q.fa!=null&&isFinite(+q.fa)?+q.fa:90)*Math.PI/180),.8*L*NIGHT.dk);glowAt(X+h[0],Y+h[1]+5,18+2*fk,[255,232,170],.9*L);}}
   }catch(e){}return r;};}
 // the cast's power gauge and the bite's "!" are the game talking, not the world: drawn over the dark

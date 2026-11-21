@@ -187,7 +187,7 @@ function mg4Run(def,name,done,icon){if(MG4.closeCur)MG4.closeCur(true);const box
   // the frame and your forearms come up a short way from its bottom edge. The room behind stays put; the work, its particles and the
   // marks beside it move down by the step's own amount, and the pointer is read in the work's coordinates
   const m4dy=()=>reveal>0||!cur?0:(typeof M4DY!=='undefined'&&M4DY[(spd()||{}).k])||0;
-  const m4upd=(dt,q,t)=>{const dy=m4dy();if(!dy||!q)return cur.update(dt,q,t);const y=q.y;q.y=y-dy;try{return cur.update(dt,q,t);}finally{q.y=y;}};
+  const m4upd=(dt,q,t)=>{const dy=m4dy();if(!dy||!q||q===AP.I)return cur.update(dt,q,t);   /* (t365) the auto-player already thinks in the work's coordinates: only a real pointer is moved up */const y=q.y;q.y=y-dy;try{return cur.update(dt,q,t);}finally{q.y=y;}};
   const frame=now=>{if(ended)return;const dt=Math.min(.05,(now-last)/1000)*(window.CG2_SPEED||1)*MG4_PACE();last=now;const t=now/1000;pt+=dt;
     window.CG2_NOW=result!==null?'reveal':phase==='play'?spd().k+':'+run.i:phase+':'+run.i;
     I.dx=I.x-(I.lx==null?I.x:I.lx);I.dy=I.y-(I.ly==null?I.y:I.ly);I.lx=I.x;I.ly=I.y;

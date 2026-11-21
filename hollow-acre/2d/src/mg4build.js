@@ -35,7 +35,7 @@ S4.drop=(sp,K)=>{const g=K.g,item=sp.item||'brick',N=sp.n||5;
   else if(item==='tool'){for(let i=0;i<N;i++)add(100+i*40,94,30,40);}
   const st={i:0,x:120,t:0,end:0,fall:null,q:[],tries:0,spd:sp.speed||1.3};
   // (t364) held only a little over the highest place it goes, so your hands (and the arms up to them) stay low
-  const HOLD=M4.cl(Math.min(...SL.map(q=>q.y-q.h/2))-34,24,70);
+  const HOLD=Math.max(24,Math.min(...SL.map(q=>q.y-q.h/2))-18);   /* (t365) a short drop: the work is lowered by the piece (mg365), so your hands sit low whatever you lay */
   const slot=()=>SL[Math.min(SL.length-1,st.i)];
   const drawPiece=(x,y,w,h,ang,broken)=>{g.save();g.translate(Math.round(x),Math.round(y));if(ang)g.rotate(ang);
     if(item==='brick'){K.bricks(-w/2,-h/2,w,h,CA_P.brick,w,h);K.px(-w/2,-h/2,w,1,CA_P.brick[5]);}
@@ -44,7 +44,7 @@ S4.drop=(sp,K)=>{const g=K.g,item=sp.item||'brick',N=sp.n||5;
     else if(item==='pane'){if(broken){for(let k=0;k<6;k++)K.pa(-w/2+k*9,-h/2+((k*7)%h),8,6,'#c8e2f0',.6);}else{K.pa(-w/2,-h/2,w,h,'#c8e2f0',.55);K.px(-w/2+3,-h/2+2,12,1,'#ffffff');K.px(-w/2,-h/2,w,1,'#e8f4fa');}}
     else if(item==='tool'){const T=['saw','plane','square','mallet','chisel'][st.i%5];MG4ART.tool(K,-w/2+6,-h/2+6,T);}
     g.restore();};
-  return {title:sp.t||'Set it in place',how:'Your hands sway over the spot. Tap to set the piece down when it lines up with its place.',hint:'Tap when it lines up.',st,
+  return {hold:HOLD+(SL[0]?SL[0].h*.3:0),title:sp.t||'Set it in place',how:'Your hands sway over the spot. Tap to set the piece down when it lines up with its place.',hint:'Tap when it lines up.',st,
     update(dt,I){st.t+=dt;if(st.end){st.end+=dt;if(st.end>.7){st.done=true;st.score=M4.avg(st.q.concat(new Array(Math.max(0,N-st.q.length)).fill(.15)));}return;}
       const s=slot();if(!st.fall){st.x=s.x+Math.sin(st.t*st.spd*(1+st.i*.06))*46+Math.sin(st.t*st.spd*2.3)*8;if(I.pressed){st.fall={x:st.x,y:HOLD,vy:0,ang:0,va:0};MS.whoosh();}}
       else{const f=st.fall;f.vy+=520*dt;f.y+=f.vy*dt;f.ang+=f.va*dt;f.x+=(f.vx||0)*dt;if(!f.land&&f.y>=s.y){const off=Math.abs(f.x-s.x),w=s.w;const q=off>w*.45?.1:M4.q(off,w*.06,w*.15,w*.28);
@@ -100,15 +100,16 @@ S4.dig=(sp,K)=>{const g=K.g,N=sp.n||6;const st={d:0,hole:0,q:[],t:0,end:0,lift:0
       if(I.down){const res=1+Math.sin(st.t*9)*.5;st.d+=dt*.85*res;if(Math.random()<dt*10)A.hiss(.05,.08,'lowpass',400);if(st.d>=1.12){st.stuck=1;st.q.push(.15);K.judge(.15,160,60,true);MS.miss();A.tone(140,.25,'square',.05,{slide:90});}}
       else if(st.d>.05){const q=st.d>=.6&&st.d<=1?1:st.d>=.4?.6:.3;st.q.push(q);K.judge(q,160,60,true);st.hole+=st.d/N*1.1;st.pile+=st.d;st.lift=.001;MS.whoosh();A.hiss(.2,.15,'lowpass',700);K.emit(200,112,12,{c:['#5a4022','#7a5a32','#3a2a14'],v:90,ang:-Math.PI*.3,spread:.8,g:400,life:.8});st.d=0;
         if(st.q.length>=N||st.hole>=1){st.end=.001;MS.good();}}},
-    draw(t){K.ell(150,162,74,14,'#2a1e0e');K.ell(150,160,70,12,'#4a3418');for(let k=0;k<30;k++){const a=k*2.4,r=40+((k*13)%30);K.px(150+Math.cos(a)*r,160+Math.sin(a)*r*.17,2,1,k%2?'#6a4a24':'#3a2a14');}const h=Math.min(1,st.hole);K.ell(150,158,18+h*10,4+h*3,'#1a0e06');K.ell(236,160,10+st.pile*6,3+st.pile*2,'#5a4022');
+    draw(t){const GY=118;   // (t365) the hole close at your feet: the spade's blade in the ground ahead, its shaft coming up toward you to the D-grip
+      K.ell(150,GY+2,74,14,'#2a1e0e');K.ell(150,GY,70,12,'#4a3418');for(let k=0;k<30;k++){const a=k*2.4,r=40+((k*13)%30);K.px(150+Math.cos(a)*r,GY+Math.sin(a)*r*.17,2,1,k%2?'#6a4a24':'#3a2a14');}const h=Math.min(1,st.hole);K.ell(150,GY-2,18+h*10,4+h*3,'#1a0e06');K.ell(236,GY,10+st.pile*6,3+st.pile*2,'#5a4022');
       // (t364) the spade leans back toward you as you work it, so both hands (the D-grip, low on the shaft) sit low in the picture
-      const lift=st.lift>0?Math.sin(st.lift*Math.PI):0;const d=st.stuck?1.12:st.d;const sx=150,sy=134+d*18-lift*20;const LX=.69;
+      const lift=st.lift>0?Math.sin(st.lift*Math.PI):0;const d=st.stuck?1.12:st.d;const sx=150,sy=94+d*14-lift*16;const LX=.69;
       // a spade: a dished steel blade with a tread on top, an ash shaft, a D-grip
       for(let y=0;y<18;y++){const w=Math.round(9-Math.max(0,y-12)*.9),ox=Math.round(-y*LX*.5);K.px(sx+ox-w,sy+y,w*2,1,CA_P.iron[y<2?6:y>15?3:5]);K.px(sx+ox-w,sy+y,1,1,CA_P.iron[7]);K.px(sx+ox+w-1,sy+y,1,1,CA_P.iron[2]);}K.px(sx-9,sy-1,18,2,CA_P.iron[3]);K.px(sx-1,sy-4,4,6,CA_P.iron[4]);
       if(lift>.1){K.ell(sx-2,sy+4,9,4,'#5a4022');for(let k=0;k<5;k++)K.px(sx-8+k*3,sy+1-(k%2),2,2,'#3a2a14');}
-      const gx=sx+34,gy=sy-50;K.line(sx+1,sy-3,gx,gy,CA_P.wood[3],3);K.line(sx,sy-4,gx-1,gy-1,CA_P.wood[5],1);
-      {const ca=.61,c=Math.cos(ca),n=Math.sin(ca);K.line(gx-c*7,gy-n*7-3,gx+c*7,gy+n*7-3,CA_P.wood[3],3);K.line(gx-c*7,gy-n*7-3,gx-c*5,gy-n*5+2,CA_P.wood[3],2);K.line(gx+c*7,gy+n*7-3,gx+c*5,gy+n*5+2,CA_P.wood[3],2);}
-      K.px(sx+9,sy-6,14,5,'#3a2a1a');K.px(sx+9,sy-6,14,1,'#5a4030');m4grip(K,gx,gy-3,.61,{side:1});m4grip(K,sx+14,sy-23,2.18,{side:1,armSide:-1});if(st.stuck&&Math.floor(t*6)%2)K.label('STUCK: TAP TO WIGGLE',160,30,'#e8542a');},
+      const gx=sx+44,gy=sy+54;K.line(sx+3,sy-2,gx,gy,CA_P.wood[2],4);K.line(sx+2,sy-3,gx-1,gy-1,CA_P.wood[5],1);
+      {const ca=-.65,c=Math.cos(ca),n=Math.sin(ca);K.line(gx-c*7,gy-n*7+3,gx+c*7,gy+n*7+3,CA_P.wood[3],3);K.line(gx-c*7,gy-n*7+3,gx-c*5,gy-n*5-2,CA_P.wood[3],2);K.line(gx+c*7,gy+n*7+3,gx+c*5,gy+n*5-2,CA_P.wood[3],2);K.line(gx-c*7,gy-n*7+2,gx+c*7,gy+n*7+2,CA_P.wood[5],1);}
+      K.px(sx+9,sy-6,14,5,'#3a2a1a');K.px(sx+9,sy-6,14,1,'#5a4030');m4grip(K,gx,gy+3,.89,{side:1});m4grip(K,sx+3+(gx-sx-3)*.72,sy-2+(gy-sy+2)*.72,.89,{side:-1,armSide:-1});if(st.stuck&&Math.floor(t*6)%2)K.label('STUCK: TAP TO WIGGLE',160,30,'#e8542a');},
     hud(){K.label('DEPTH',286,14,'#f4ecd8');K.gauge(282,24,8,90,.6/1.15,1/1.15,Math.min(1.15,st.stuck?1.12:st.d)/1.15,{zone:'#5a4a1c'});K.meter(Math.min(1,st.hole),M4.avg(st.q)||1);},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(st.stuck)m4tap(a);else if(!st.lift&&st.t>.5)m4hold(a,st.d<.8);AP.hand=[184,84];AP.press=a.down;},
     quiet(){},stop(){}};};
@@ -133,7 +134,7 @@ S4.light=(sp,K)=>{const g=K.g,look=sp.look||'lantern';const st={m:3,lit:0,burn:0
           for(const xx of [9,22,35])k.line(xx,14,xx+(xx-22)*.25,44,I[3],1);k.px(8,44,28,3,B[3]);k.px(8,44,28,1,B[6]);k.px(10,47,24,12,B[4]);k.px(10,47,3,12,B[6]);k.px(31,47,3,12,B[2]);k.px(8,59,28,3,B[3]);k.ball(37,52,3,B,2);k.px(20,36,4,8,'#e8dcc0');},true),lx-22,ly-34);}
       else{K.ball(lx,ly+16,22,CA_P.brass,10);K.px(lx-10,ly-2,20,6,CA_P.brass[5]);K.px(lx-2,ly-6,4,5,'#e8dcc0');}
       if(st.lit){for(let k=0;k<3;k++)K.flame(lx-3,ly-2,.5,t+k);K.glow(lx,ly-4,60,'255,210,120',.45+Math.sin(t*9)*.05);}
-      if(st.burn>0||st.out>0){const lean=windy()?-6:Math.sin(t*3)*1;const mx=lx+8,my=ly-6;K.line(mx,my,mx+26,my-30,'#c8a060',1);K.px(mx-1,my-1,3,3,'#8a2a14');if(st.burn>0){K.flame(mx-3+lean*.5,my-2,.4,t);K.glow(mx,my-4,20,'255,190,90',.4);}else{for(let k=0;k<3;k++)K.pa(mx-2+k*2+lean,my-6-k*4,2,2,'#c8c0b8',.5);}m4grip(K,mx+24,my-28,-.86,{side:1,kind:'pinch',arm:-1.0});}
+      if(st.burn>0||st.out>0){const lean=windy()?-6:Math.sin(t*3)*1;const mx=lx+8,my=ly-6;K.line(mx,my,mx+22,my+26,'#c8a060',1);   /* (t365) held from below */K.px(mx-1,my-1,3,3,'#8a2a14');if(st.burn>0){K.flame(mx-3+lean*.5,my-2,.4,t);K.glow(mx,my-4,20,'255,190,90',.4);}else{for(let k=0;k<3;k++)K.pa(mx-2+k*2+lean,my-6-k*4,2,2,'#c8c0b8',.5);}m4grip(K,mx+21,my+25,.87,{side:1,kind:'pinch'});}
       if(st.catch>0&&!st.lit){K.px(lx-10,ly+30,20*st.catch,2,'#ffd27a');}},
     hud(t){K.label('MATCHES '+st.m,30,14,'#f4ecd8','l');K.label(windy()?'GUST!':'STILL',160,14,windy()?'#e8542a':'#9be07a');K.meter(st.lit?1:st.catch);},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(st.burn<=0&&st.out<=0&&st.m>0&&!st.end&&st.t>.5){if(!windy()&&st.next>1.3)m4tap(a);}else if(st.burn>0){m4hold(a,!windy()&&st.next>.15&&st.burn<5.8);}AP.hand=[196,40];AP.press=a.down;},

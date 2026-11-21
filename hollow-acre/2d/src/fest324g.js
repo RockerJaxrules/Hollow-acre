@@ -222,10 +222,10 @@ S4.f2bob=(sp,K)=>{const g=K.g,TIME=22,CX=160,CY=96,R=70;const st={t:0,end:0,mx:C
       AP.I={x:a.x,y:a.y,down:d,pressed:d&&!AP._d,released:!d&&AP._d,raw:d};AP._d=d;AP.hand=[a.x+8,a.y+8];AP.press=d;},
     quiet(){},stop(){}};};
 // ---------------------------------------------------------------- PUMPKIN CARVING
-S4.f2carve=(sp,K)=>{const g=K.g,TIME=28,CX=160,CY=94,RX=78,RY=60,CS=2,GW=Math.ceil(RX*2/CS),GH=Math.ceil(RY*2/CS);
+S4.f2carve=(sp,K)=>{const g=K.g,TIME=28,CX=160,CY=94,RX=66,RY=42,CS=2,   /* (t365) a squat pumpkin, its face low enough for your knife hand to stay low */GW=Math.ceil(RX*2/CS),GH=Math.ceil(RY*2/CS);
   const cut=new Uint8Array(GW*GH),inFace=(i,j)=>{const x=(i*CS+CS/2-RX)/RX,y=(j*CS+CS/2-RY)/RY;return x*x+y*y<.86;};
   const st={t:0,end:0,lx:null,ly:null,carved:0,chips:[]};
-  const shell=M4.pre('f2pump',RX*2+8,RY*2+20,k=>{const P=['#3a1020','#5a1e10','#7a2c0c','#9a3c12','#b44e1a','#c8622a','#d8783a'];const NR=7;
+  const shell=M4.pre('f2pump365',RX*2+8,RY*2+20,k=>{const P=['#3a1020','#5a1e10','#7a2c0c','#9a3c12','#b44e1a','#c8622a','#d8783a'];const NR=7;
     for(let y=-RY;y<=RY;y++)for(let x=-RX;x<=RX;x++){const d=(x*x)/(RX*RX)+(y*y)/(RY*RY);if(d>1)continue;
       const th=Math.asin(M4.cl(x/RX/Math.sqrt(Math.max(.05,1-(y*y)/(RY*RY))),-1,1)),ph=(th/Math.PI+.5)*NR,fr=ph-Math.floor(ph);   // where across its rib this pixel is
       const bulge=Math.sin(fr*Math.PI),groove=fr<.06||fr>.94,crest=fr>.28&&fr<.4&&y<RY*.5;const l=-x/RX*.62-y/RY*.5+(bulge-.6)*1.1-(d>.9?.5:0)+(crest?.5:0);
@@ -246,7 +246,7 @@ S4.f2carve=(sp,K)=>{const g=K.g,TIME=28,CX=160,CY=94,RX=78,RY=60,CS=2,GW=Math.ce
     const teethS=M4.cl(teeth/6,0,1);let a=0,b=0;for(let j=0;j<GH;j++)for(let i=0;i<GW/2;i++){const L=cut[j*GW+i],R2=cut[j*GW+GW-1-i];if(L||R2){a++;if(L&&R2)b++;}}const sym=a?b/a:0;
     const tot=st.carved/(GW*GH*.68);const cov=tot<.05?tot/.05:tot>.4?M4.cl(1-(tot-.4)*2.5,0,1):1;
     return {score:M4.cl(eyeS*.26+mouthS*.24+M4.cl(sym*1.4,0,1)*.22+teethS*.14+cov*.14,0,1),eyes:eyes.length,mouth:!!mouth,teeth,sym};};
-  const AUTO=[[[124,72],[136,60],[146,74],[124,72]],[[176,72],[186,60],[198,74],[176,72]],[[150,92],[160,82],[170,92]],[[118,108],[130,118],[140,110],[150,120],[160,110],[170,120],[180,110],[190,118],[202,108]],[[118,108],[160,132],[202,108]]];
+  const AUTO=[[[124,72],[136,60],[146,74],[124,72]],[[176,72],[186,60],[198,74],[176,72]],[[150,92],[160,82],[170,92]],[[118,108],[130,118],[140,110],[150,120],[160,110],[170,120],[180,110],[190,118],[202,108]],[[118,108],[160,132],[202,108]]].map(P=>P.map(([x,y])=>[Math.round(CX+(x-160)*RX/78),Math.round(CY+(y-94)*RY/60)]));
   return {title:'Carve the pumpkin',how:K.fine?'Hold the mouse button and draw to cut. Two eyes up top, a nose if you like, a wide mouth with teeth. The candle shows through. The town likes it even, and frightening.':'Drag your finger to cut. Two eyes up top, a wide mouth with teeth. The candle shows through. The town likes it even, and frightening.',hint:'Draw the face with the knife.',st,
     update(dt,I){st.t+=dt;if(st.end){st.end+=dt;if(st.end>1.6){if(!st.res)st.res=judge();st.done=true;st.score=st.res.score;if(!F2R.carve||!F2R.carve.res||st.res.score>=F2R.carve.res.score)F2R.carve={res:st.res,img:st.img};}return;}
       if(I.down){const x=I.x,y=I.y;if(st.lx!=null){const n=Math.ceil(Math.hypot(x-st.lx,y-st.ly)/1.2);for(let k=1;k<=n;k++)carveAt(st.lx+(x-st.lx)*k/n,st.ly+(y-st.ly)*k/n);}else carveAt(x,y);st.lx=x;st.ly=y;}else{st.lx=st.ly=null;}

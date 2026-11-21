@@ -400,7 +400,7 @@ S4.brush=(sp,K)=>{const g=K.g,BX=50,BY=64,BW=212,BH=44,CS=4,GW=BW/CS,GH=BH/CS,P=
   const top=WAX?m4weave('waxcanvas',BW,BH,['#5a4a30','#6e5c3c','#82704a','#968458','#a89668','#bcaa7c'],3):M4.pre('btop'+P[3]+(sp.seed||2),BW,BH,k=>k.planks(0,0,BW,BH,M4.sh(P,1),11,sp.seed||2));const front=WAX?M4.pre('waxfront',BW+2,10,k=>k.px(1,1,BW,8,'#7a6a4a'),true):m4board(BW,0,8,P,(sp.seed||2)+1);
   const stain=document.createElement('canvas');stain.width=BW;stain.height=BH;const sg=stain.getContext('2d');
   const cov=new Float32Array(GW*GH),cross=new Uint8Array(GW*GH),brush=M4S.brush(),tin=M4S.tin();const TX=284,TY=116;const BR=[.2,.9,.5,1,.3,.8,.6,.1,.95,.4,.7,.25,.85,.55,.15,.65];
-  const st={bx:200,by:40,lx:200,ly:40,load:1,still:0,pools:0,t:0,end:0,wet:[],dip:0,path:null,pi:0,ang:0,sc:stain,cov,seedK:0};
+  const st={bx:200,by:BY+20,lx:200,ly:BY+20,load:1,still:0,pools:0,t:0,end:0,wet:[],dip:0,path:null,pi:0,ang:0,sc:stain,cov,seedK:0};
   const covered=()=>{let n=0;for(let i=0;i<cov.length;i++)if(cov[i]>=.6)n++;return n/cov.length;};
   const stamp=(x,y,horiz)=>{const lx=x-BX,ly=y-BY;if(lx<-2||ly<-7||lx>BW+2||ly>BH+7)return;const L=st.load;if(L<=.02)return;
     const fw=4,fh=14;sg.fillStyle=COL;const y0=Math.round(ly-fh/2),x0=Math.round(lx-fw/2);

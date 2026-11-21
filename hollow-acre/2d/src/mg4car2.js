@@ -322,6 +322,12 @@ S4.crGlass=(sp,K)=>{const g=K.g;const W0=CR_WIN;
       AP.I=a;AP.hand=[a.x+6,a.y+6];AP.press=a.down;},
     stop(){}};};
 // ================================================================= THE GLASS, 2: run the seal round the edge, steady
+// (t365) a caulk gun seen from the side: a cream nozzle tapering to its tip (at 0,6), the red cartridge in an iron cradle, the
+// plunger rod out the back, the pistol grip and trigger hanging under it (your hand at 31,13)
+const crCaulk=()=>M4.pre('crcaulk365',44,28,k=>{const I=CA_P.iron;for(let x=0;x<10;x++){const h=1+Math.floor(x/3);for(let y=-h;y<=h;y++)k.px(x,6+y,1,1,y===-h?'#f4ecd8':y===h?'#a89a80':'#d8d0c0');}
+    for(let x=10;x<34;x++)for(let y=2;y<11;y++){const u=(y-2)/8;k.px(x,y,1,1,u<.15?'#e88060':u<.5?'#c84a2a':u<.8?'#a83a20':'#6a2414');}k.px(10,2,1,9,'#e88060');
+    for(let x=9;x<37;x++){k.px(x,11,1,1,I[5]);k.px(x,12,1,1,I[2]);}for(let y=1;y<12;y++){k.px(34,y,2,1,I[y<3?6:4]);}k.px(36,6,8,2,I[5]);k.px(36,6,8,1,I[7]);
+    for(let y=12;y<26;y++){k.px(29,y,1,1,I[6]);k.px(30,y,3,1,I[4]);k.px(33,y,1,1,I[2]);}k.px(29,25,5,2,I[3]);for(let y=12;y<20;y++)k.px(25+((y-12)>>2),y,2,1,I[y<14?6:4]);},'#1a0e06');
 S4.crSeal=(sp,K)=>{const g=K.g;const W0=CR_WIN,o=2;
   const PATH=[[W0.tl[0]-o,W0.tl[1]-o],[W0.tr[0]+o,W0.tr[1]-o],[W0.br[0]+o,W0.br[1]+o],[W0.bl[0]-o,W0.bl[1]+o],[W0.tl[0]-o,W0.tl[1]-o]];
   const L=m4len(PATH),N=90;const seg=Array(N).fill(0);const st={seg,t:0,s:0,x:PATH[0][0],y:PATH[0][1],res:[],smear:0,end:0,blobs:[],lx:null,ly:null};
@@ -342,7 +348,7 @@ S4.crSeal=(sp,K)=>{const g=K.g;const W0=CR_WIN,o=2;
       const [sx,sy]=PATH[0];K.pa(sx-3,sy-3,7,7,'#9be07a',.25+Math.sin(t*5)*.15);
       // the caulk gun: a tube, the nozzle at your point
       const x=st.x,y=st.y;// (t364) the gun held below the seam, its nozzle reaching up to it: your hand on the grip, under the tube
-      K.line(x,y,x+10,y+10,'#d8d0c0',2);K.px(x+9,y+9,24,12,CA_P.iron[4]);K.px(x+9,y+9,24,1,CA_P.iron[6]);K.px(x+12,y+11,18,8,'#c84a2a');K.px(x+12,y+11,18,1,'#e88060');K.px(x+29,y+20,3,12,CA_P.iron[3]);K.px(x+29,y+20,1,12,CA_P.iron[5]);m4grip(K,x+29,y+25,-.15,{side:1});},
+      {const th=M4.cl(.35+(122-y)/78*.75,.35,1.1);M4.rot(g,crCaulk(),x,y,th,0,6);const [hx,hy]=M4.tr(x,y,th,31,13);m4grip(K,hx,hy,th+1.25,{side:1});}},   /* (t365) the whole gun turned on the seam: steeper as it reaches up, your hand stays low */
     hud(t){const cov=seg.filter(v=>v>0).length/N;K.label('SEALED '+Math.round(cov*100)+'%',30,16,'#f4ecd8','l');if(st.smear)K.label('SMEARS '+st.smear,30,26,'#e8b030','l');K.meter(cov,seg.filter(v=>v>0).length?M4.avg(seg.filter(v=>v>0)):.7);},
     auto(dt,AP){const a=m4ai(this,AP,dt);this._s=(this._s||0)+dt*70;const [x,y]=m4at(PATH,Math.min(L,this._s));m4move(a,x,y);m4hold(a,this._s<L+4);AP.I=a;AP.hand=[a.x+28,a.y+24];AP.press=a.down;},
     stop(){}};};
@@ -361,8 +367,8 @@ const crBatt34=()=>M4.pre('crbatt34',64,62,k=>{const B=CRP.RUB;
     k.px(14,14,5,1,'#f4ecd8');k.px(16,12,1,5,'#f4ecd8');k.px(44,14,5,1,'#f4ecd8');
     // the carry strap, arched over the top
     for(let i=0;i<=28;i++){const u=i/28,x=6+u*50,y=8-Math.sin(u*Math.PI)*8;k.px(x,y,2,2,'#2a2014');k.px(x,y,2,1,'#5a4a30');}},true);
-S4.crBattery=(sp,K)=>{const g=K.g,TX=118,TY=112,img=crBatt34();
-  const bay=M4.pre('crbay3',320,180,k=>{crBay(k,320,180,41,{cover:[184,64,124,30],loom:[150,30,316,46],hose:[190,120,316,150],bolts:[[30,40],[30,150],[190,160]]});
+S4.crBattery=(sp,K)=>{const g=K.g,TX=118,TY=182,img=crBatt34();   /* (t365) the tray close at the foot of the picture: the battery is carried low, your hand on its strap stays low */
+  const bay=M4.pre('crbay365',320,180,k=>{crBay(k,320,180,41,{cover:[184,64,124,30],loom:[150,30,316,46],hose:[190,120,316,150],bolts:[[30,40],[30,150],[190,160]]});
       for(let y=24;y<62;y++)for(let x=8;x<170;x++)k.px(x,y,1,1,crT(CA_P.iron,3.6-(y-24)/24+(y===24?2:0)));
       // the open steel tray in three-quarter view: dark inside with ribs, a lit lip all round, the front wall facing you
       const L=TX-38,R=TX+38,Tt=TY-26,Bb=TY+8;for(let y=Tt;y<Bb;y++)for(let x=L;x<R;x++){let v=.6+(y-Tt)/40;if((x-L)%9===0)v+=.6;k.px(x,y,1,1,crT(CA_P.iron,v));}
@@ -372,8 +378,8 @@ S4.crBattery=(sp,K)=>{const g=K.g,TX=118,TY=112,img=crBatt34();
       for(let x=0;x<52;x++){k.px(TX+46+x,TY+12,1,3,crT(CA_P.iron,x<2?7:5-x/52));}k.px(TX+46,TY+15,52,1,'#08080a');
       for(const by of [TY+20,TY+27]){const bx=TX+48;for(let x=0;x<18;x++)k.px(bx+x,by,1,2,CA_P.iron[x<1?7:5]);k.px(bx+18,by-4,2,6,CA_P.iron[5]);k.px(bx+16,by-5,3,1,CA_P.iron[6]);crNutK(k,bx-2,by+1,2);k.px(bx,by+2,20,1,'#08080a');}
       for(let i=0;i<=20;i++){const u=i/20,x=8+u*(L-14),y=78+Math.sin(u*Math.PI)*6;k.px(x,y,3,3,'#a82c18');k.px(x,y,3,1,'#e05a3a');}k.px(L-14,78,9,6,'#a82c18');k.px(L-14,78,9,1,'#e05a3a');k.px(L-11,80,3,2,CA_P.iron[1]);},false);
-  const st={t:0,x:262,y:150,vx:0,vy:0,ang:0,held:0,res:[],knock:0,end:0,fall:0,lift:0};
-  const GROUND=170;
+  const st={t:0,x:262,y:184,vx:0,vy:0,ang:0,held:0,res:[],knock:0,end:0,fall:0,lift:0};
+  const GROUND=186;
   return {title:sp.t||'Drop the battery in',how:'Grab the battery by its strap and swing it over to the empty tray. It’s heavy: it lags and sways. Let go when it hangs square over the tray. Drop it on the engine and it clanks.',hint:'Heavy. Bring it over the tray, steady, then let go.',st,
     update(dt,I){st.t+=dt;if(st.end){st.end+=dt;st.y=Math.min(TY-4,st.y+dt*170);st.x+=(TX-st.x)*Math.min(1,dt*10);st.ang*=.8;if(st.end>.8){st.done=true;st.score=M4.cl(M4.avg(st.res)-st.knock*.2,.05,1);}return;}
       if(st.fall){st.vy+=dt*500;st.y+=st.vy*dt;if(st.y>=st.fall){st.y=st.fall;st.vy=0;st.fall=0;MS.knock();A.tone(160,.1,'square',.05,{filter:['lowpass',800]});}return;}
@@ -382,7 +388,7 @@ S4.crBattery=(sp,K)=>{const g=K.g,TX=118,TY=112,img=crBatt34();
       st.ang+=((-st.vx*.004)-st.ang)*Math.min(1,dt*2.5);
       if(st.held&&(I.released||!I.down)){st.held=0;const dx=Math.abs(st.x-TX);
         if(dx<9&&st.y<TY+2&&Math.abs(st.ang)<.12){const q=dx<3.5&&Math.abs(st.ang)<.05?1:.78;st.res.push(q);K.judge(q,TX-60,TY-50,true);MS.thunk();K.emit(TX,TY+4,10,{c:['#8a8070','#5a5248'],v:40,g:100,life:.6});st.end=.001;}
-        else if(st.x>176&&st.y<150){st.knock++;st.res.push(.15);K.judge(.1,st.x-50,st.y-60,true);A.tone(300,.2,'square',.05,{slide:200,filter:['lowpass',1400]});K.shk=.18;st.fall=GROUND;st.x=Math.max(st.x,200);}
+        else if(st.x>176&&st.y<TY-12){st.knock++;st.res.push(.15);K.judge(.1,st.x-50,st.y-60,true);A.tone(300,.2,'square',.05,{slide:200,filter:['lowpass',1400]});K.shk=.18;st.fall=GROUND;st.x=Math.max(st.x,200);}
         else st.fall=GROUND;}},
     draw(t){g.drawImage(bay,0,0);const ok=Math.abs(st.x-TX)<9&&Math.abs(st.ang)<.12&&st.y<TY+2;
       // its shadow: wide and faint when it's high, tight and dark as it comes down over the tray
@@ -391,12 +397,12 @@ S4.crBattery=(sp,K)=>{const g=K.g,TX=118,TY=112,img=crBatt34();
       M4.rot(g,img,st.x,st.y,st.ang,32,58);
       if(st.held||!st.end){const [hx,hy]=M4.tr(st.x,st.y,st.ang,0,-58);if(st.held){m4grip(K,hx,hy-2,st.ang,{side:1,arm:-1.25+st.ang});}}},
     hud(t){K.label('INTO THE TRAY',30,16,'#f4ecd8','l');K.meter(st.end?1:Math.max(0,1-Math.abs(st.x-TX)/150)*.8,M4.cl(1-st.knock*.3,0,1));},
-    auto(dt,AP){const a=m4ai(this,AP,dt);this._p=(this._p||0)+dt;if(this._p<.4)m4move(a,st.x,st.y-50);else{m4hold(a,true);const u=Math.min(1,(this._p-.4)/2.4),e=u*u*(3-2*u);m4move(a,262+(TX-262)*e,110+(TY-48-110)*e);if(u>=1&&Math.abs(st.ang)<.03&&Math.abs(st.x-TX)<2)m4hold(a,false);}
+    auto(dt,AP){const a=m4ai(this,AP,dt);this._p=(this._p||0)+dt;if(this._p<.4)m4move(a,st.x,st.y-50);else{m4hold(a,true);const u=Math.min(1,(this._p-.4)/2.4),e=u*u*(3-2*u);m4move(a,262+(TX-262)*e,140+(TY-48-140)*e);if(u>=1&&Math.abs(st.ang)<.03&&Math.abs(st.x-TX)<2)m4hold(a,false);}
       AP.I=a;AP.hand=[a.x+6,a.y+6];AP.press=a.down;},
     stop(){}};};
 // ================================================================= THE WIRING, 2: red first, then black, then the loom plug
-S4.crCables=(sp,K)=>{const g=K.g,BX=150,BY=104,img=crBatteryImg(2);
-  const T={red:{x:BX-34,y:BY-72},blk:{x:BX+34,y:BY-72},plug:{x:262,y:66}};
+S4.crCables=(sp,K)=>{const g=K.g,BX=150,BY=190,img=crBatteryImg(2);   /* (t365) close on the battery's top: its posts and the loom socket low in the picture */
+  const T={red:{x:BX-34,y:BY-72},blk:{x:BX+34,y:BY-72},plug:{x:262,y:120}};
   const HOME={red:[44,142],blk:[70,156],plug:[98,146]};
   const ENDS=[{k:'red',x:44,y:142,ax:-10,ay:110,c:['#5a1408','#a82c18','#e05a3a'],done:0},{k:'blk',x:70,y:156,ax:-10,ay:140,c:['#0a0a0c','#26262e','#6a6a78'],done:0},{k:'plug',x:98,y:146,ax:-10,ay:168,c:['#6a5a3a','#c8b48a','#efe2c0'],done:0}];
   const st={t:0,grab:-1,res:[],spark:0,sx:0,sy:0,end:0,bad:0};
@@ -411,8 +417,8 @@ S4.crCables=(sp,K)=>{const g=K.g,BX=150,BY=104,img=crBatteryImg(2);
             e.done=1;e.x=T[hit].x;e.y=T[hit].y;if(ENDS.every(q=>q.done))st.end=.001;}
           else if(hit){st.bad++;st.spark=.4;st.sx=T[hit].x;st.sy=T[hit].y;A.hiss(.15,.22,'highpass',2800);A.tone(2600,.05,'square',.05);K.flash=.18;K.shk=.15;K.judge(.1,e.x,e.y-16,true);[e.x,e.y]=HOME[e.k];}
           st.grab=-1;}}},
-    draw(t){g.drawImage(M4.pre('crbaybg3',320,180,k=>{crBay(k,320,180,51,{loom:[236,20,316,40],bolts:[[246,100],[300,100]]});
-          for(let y=36;y<96;y++)for(let x=238;x<306;x++)k.px(x,y,1,1,crT(CA_P.iron,3.4-(y-36)/40+(y===36?2:0)+(x===238?1.4:0)));
+    draw(t){g.drawImage(M4.pre('crbaybg365',320,180,k=>{crBay(k,320,180,51,{loom:[236,74,316,94],bolts:[[246,154],[300,154]]});
+          for(let y=90;y<150;y++)for(let x=238;x<306;x++)k.px(x,y,1,1,crT(CA_P.iron,3.4-(y-90)/40+(y===90?2:0)+(x===238?1.4:0)));
           for(let x=BX-64;x<BX+64;x++)for(let y=BY-12;y<BY+4;y++)k.px(x,y,1,1,y===BY-12?'#34343c':'#0c0c10');},false),0,0);
       g.drawImage(img,BX-60,BY-88);
       // the loom socket on the inner fender
