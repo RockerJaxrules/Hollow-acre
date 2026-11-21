@@ -1,0 +1,11 @@
+const {chromium}=require('playwright');const fs=require('fs');
+(async()=>{const b=await chromium.launch();const ctx=await b.newContext();const pg=await ctx.newPage();
+ await pg.route('**/fonts.googleapis.com/**',r=>r.abort());await pg.goto('http://localhost:8766/test2d.html');await pg.waitForFunction(()=>!document.getElementById('loadScr'),null,{timeout:90000});await pg.evaluate(()=>localStorage.clear());
+ await pg.evaluate(()=>{document.getElementById('begin').click();document.getElementById('cGo').click();});await pg.waitForTimeout(300);await pg.evaluate(()=>__game.skip());await pg.waitForTimeout(400);
+ const ev=c=>pg.evaluate(c=>__game.ev(c),c);await ev("S.tut.off=true;S.readLetter=true;S.foundCabin=true;S.hour=13;S.coins=432;P.x=25;P.z=-6");await pg.waitForTimeout(400);
+ console.log('sw',await pg.evaluate(()=>navigator.serviceWorker&&navigator.serviceWorker.getRegistration().then(r=>!!r)));
+ fs.writeFileSync('version.json',JSON.stringify({id:'88888'}));
+ await pg.evaluate(()=>{Object.defineProperty(document,'hidden',{value:false,configurable:true});document.dispatchEvent(new Event('visibilitychange'));});
+ await pg.waitForTimeout(2500);await pg.waitForFunction(()=>window.__game&&!document.getElementById('loadScr'),null,{timeout:90000});await pg.waitForTimeout(3500);
+ console.log('after update',pg.url(),await ev("S.mode+' day '+S.day+' '+fmtTime(S.hour)+' @'+P.x.toFixed(1)+' coins '+S.coins+' | '+ui.toast.textContent.slice(0,50)"));
+ await b.close();})();

@@ -1,0 +1,178 @@
+<title>Hollow Acre Work List</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: a field journal for the game - one narrow column of sections (now, next, shipped with pictures, the whole list), no cards except the shipped pictures */
+:root{
+  --bg:#eef0eb; --panel:#e2e6df; --ink:#1d211d; --muted:#5b6359; --line:#c9cfc5;
+  --accent:#8a2f2a; --done:#3f6b45; --doing:#9a6413; --todo:#5b6359; --shot:#222622;
+  --display:"Pixelify Sans",ui-monospace,monospace; --body:"Inter",system-ui,-apple-system,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141714; --panel:#1c201c; --ink:#e4e7e0; --muted:#97a093; --line:#2c322c;
+  --accent:#d0705e; --done:#7fb486; --doing:#e0a24a; --todo:#97a093; --shot:#0d0f0d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141714; --panel:#1c201c; --ink:#e4e7e0; --muted:#97a093; --line:#2c322c;
+  --accent:#d0705e; --done:#7fb486; --doing:#e0a24a; --todo:#97a093; --shot:#0d0f0d; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body)}
+.wrap{max-width:860px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:40px}
+h1,h2{font-family:var(--display);font-weight:700;text-wrap:balance;margin:0;letter-spacing:.01em}
+h1{font-size:clamp(28px,6vw,40px);line-height:1.05}
+h2{font-size:22px}
+.sub{color:var(--muted);margin:6px 0 0;max-width:62ch}
+header{display:grid;gap:14px}
+.counts{display:flex;flex-wrap:wrap;gap:8px 18px;font-variant-numeric:tabular-nums}
+.count b{font-family:var(--mono);font-size:18px;margin-right:6px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.d{background:var(--done)} .p{background:var(--doing)} .t{background:var(--todo)}
+section{display:grid;gap:14px}
+.eyebrow{font:500 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+ol.next{margin:0;padding:0;list-style:none;display:grid;gap:10px;counter-reset:n}
+ol.next li{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;counter-increment:n}
+ol.next li::before{content:counter(n);font:500 13px/22px var(--mono);color:var(--accent)}
+ol.next li p{margin:0;min-width:0}
+ol.next li small{display:block;color:var(--muted)}
+.tag{font:500 11px/1 var(--mono);padding:3px 6px;border-radius:3px;border:1px solid var(--line);color:var(--muted);margin-left:6px;white-space:nowrap}
+.now{border-left:3px solid var(--doing);padding:4px 0 4px 14px;display:grid;gap:6px}
+.now p{margin:0}
+.shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+figure{margin:0;display:grid;gap:8px;min-width:0}
+figure .pic{background:var(--shot);border-radius:6px;padding:10px;display:grid;place-items:center;overflow:hidden}
+figure img{image-rendering:pixelated;max-width:100%;height:auto}
+figure.wide{grid-column:1/-1}
+figcaption{font-size:13.5px;color:var(--muted)}
+figcaption b{color:var(--ink);font-weight:600}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{font:500 13px var(--body);padding:6px 11px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip:focus-visible,#q:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#q{flex:1 1 180px;min-width:0;font:14px var(--body);padding:7px 10px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+ul.all{margin:0;padding:0;list-style:none;display:grid;gap:2px}
+ul.all li{display:grid;grid-template-columns:52px 16px 1fr;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);align-items:baseline}
+ul.all li .n{font:500 12px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+ul.all li span:last-child{min-width:0}
+ul.all li.p span:last-child{font-weight:600}
+.empty{color:var(--muted);padding:8px 0}
+footer{color:var(--muted);font-size:13px}
+@media (prefers-reduced-motion:no-preference){.chip{transition:background .15s,color .15s}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Hollow Acre · build v291 · code obfuscated</div>
+    <h1>The work list</h1>
+    <p class="sub">Everything you've asked for, in your order. What's being worked on now, what comes next, pictures of what's finished, and the whole list underneath.</p>
+    <div class="counts" id="counts"></div>
+  </header>
+
+  <section>
+    <div class="eyebrow">Working on now</div>
+    <div class="now">
+      <p><b>#210 Cutscenes</b>: every story scene now plays in the world instead of as a text box. Five are staged by hand — Caitlyn at the farm gate, the drawing in the church, the Lantern Dance, the wedding, and the exile into the woods — and everything else (heart events, the ring, Ruth’s doll, the dark path, the six endings) plays where it happens, the speaker beside you, lines as captions with their portrait. The blind judges prefer all of them to the old boxes by a wide margin (the drawing reached 6). The game also now ships with its code obfuscated.</p><p><small>The plan for #210: every story scene except the intro crash is a text box with a small sprite crop. Each becomes a staged scene in the real place: people walk to their marks, the camera frames them, and the lines play as captions with the HD portraits. Each is judged against the old version.</small></p>
+      <p><small>Also done since your last look: the teaser trailer was reshot so it plays like a person at the controls, and the mine now lets you start from any floor you have reached.</small></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Up next</h2>
+    <ol class="next">
+            <li><p><b>#211 Creatures and story animations</b> not yet redone, judged<small>Not the Hollow or the scarecrow.</small></p></li>
+      <li><p><b>#214 The car totalled; a longer repair through minigames</b><small>After the texture and model redo. The wreck folded round the oak; repair in stages (winch it off the tree, the frame, the radiator, the wheel and axle, the glass, the wiring, starting it), each its own minigame, the car changing as it mends.</small></p></li>
+      <li><p><b>#203 New jump scares</b> to match the new Hollow</p></li>
+      <li><p><b>#159 Hidden habits and flaws</b> for every townsperson</p></li>
+      <li><p><b>#160 Phone check</b> of the new story screens and effects</p></li>
+      <li><p><b>#215 Remake the fishing minigame</b> as a different game<small>You don't like the current one. Added at the end of the list.</small></p></li>
+      <li><p><b>#216 Heart events</b>: give them the same in-world physicality as the cutscenes, and make them deeper, more emotional and more unique across the board<small>Added to the end of the list.</small></p></li>
+    </ol>
+    <p class="sub"><b>Backlog from earlier sweeps.</b> These are drafted but not yet at 6:
+      <ul style="margin:6px 0 0;padding-left:20px">
+        <li>props that are still short of the bar</li>
+        <li>items: the birch and dead-tree stumps, the reservoir pearl, one weed clump</li>
+        <li>the armour, boot and farm benches</li>
+        <li>the turned views of the weapon, armour and furniture benches</li>
+      </ul>
+    </p>
+  </section>
+
+  <section>
+    <h2>Done recently</h2>
+    <div class="shots">
+      <figure class="wide"><div class="pic"><img src="c210_r7.png" alt="Five staged story scenes: the farm gate, the drawing, the Lantern Dance, the wedding, the exile"></div>
+        <figcaption><b>Cutscenes (#210):</b> the farm gate, the drawing, the Lantern Dance at night, the wedding, and the walk into the woods — all staged in the world.</figcaption></figure>
+      <figure class="wide"><div class="pic"><img src="c210_r2.png" alt="Two staged story scenes: Caitlyn at the farm gate, and the drawing in the church"></div>
+        <figcaption><b>Cutscenes (#210):</b> Caitlyn at the farm and the drawing in the church, staged in the world with portrait captions.</figcaption></figure>
+      <figure><div class="pic"><img src="r19_passed.png" alt="Round 19: wildflower bouquet and snag stump, before and after"></div>
+        <figcaption><b>Items, round 19:</b> the wildflower bouquet (asters, a maple leaf, goldenrod, twine) and the burnt snag stump.</figcaption></figure>
+      <figure class="wide"><div class="pic"><img src="r1415_passed.png" alt="Rounds 14 and 15: pumpkin pie, bait tin, stone and iron mail shirt, before and after"></div>
+        <figcaption><b>Items, rounds 14 and 15:</b> pumpkin pie (open custard, fluted crust), the bait tin (worms lying in the soil, one over the side, a worm on the label), stone (a hand-sized chunk), the iron mail shirt (belted).</figcaption></figure>
+      <figure><div class="pic"><img src="r1113_passed.png" alt="Rounds 11 to 13: bone meal sack and ghost corn, old and new"></div>
+        <figcaption><b>Items, rounds 11 to 13:</b> bone meal in a burlap sack, the colourless ghost corn.</figcaption></figure>
+      <figure><div class="pic"><img src="r78_passed.png" alt="Rounds 7 and 8: chaga, rosehips, lumber, coat and corn, old and new"></div>
+        <figcaption><b>Items, rounds 7 and 8:</b> chaga, rosehips, lumber, the long coat, corn.</figcaption></figure>
+      <figure><div class="pic"><img src="mine.png" alt="The mine entrance asking which floor to start from, with every reached floor as a button"></div>
+        <figcaption><b>Mine checkpoints:</b> every floor you have reached can be picked at the entrance, and the lift cage hangs on every floor.</figcaption></figure>
+      <figure class="wide"><div class="pic"><img src="teaser.jpg" alt="The trailer's title card: HOLLOW ACRE over the rotting pumpkin face, with the line Attendance is kind."></div>
+        <figcaption><b>Teaser trailer (#200):</b> the crash on Route 9, the farm and the town by day, the Lantern Dance, Caitlyn, then the Tithe House, the Black Lake, the church at night, the Hollow in the corn and the face. 67 seconds, with an original score. <a href="https://claude.ai/artifact/HNUP7QCANgkK1iYVQQvPiA">Watch it</a>.</figcaption></figure>
+      <figure><div class="pic"><img src="r5_passed.png" alt="Round 5: willow stump, chowder, stew, hash, pie, milk, bread, fried egg, old and new"></div>
+        <figcaption><b>Items, round 5:</b> willow stump, the soups and the pie with soft steam, milk, bread, fried egg (old left, new right).</figcaption></figure>
+      <figure><div class="pic"><img src="r6_passed.png" alt="Round 6: lamp-oil flask, fried fish, cranberries, corn, old and new"></div>
+        <figcaption><b>Items, round 6:</b> the lamp-oil flask, fried fish, cranberries, corn.</figcaption></figure>
+      <figure class="wide"><div class="pic"><img src="crash.gif" alt="The intro crash: the car swerves, fishtails off the road and slams into a dead oak" width="480" height="300"></div>
+        <figcaption><b>Intro crash, redone.</b>
+          <ul style="margin:4px 0 0;padding-left:18px">
+            <li>The drive is faster.</li>
+            <li>The deer is thrown over the hood.</li>
+            <li>The steering is yanked and the car overshoots and rocks.</li>
+            <li>It slams into a dead oak: a freeze, the wreck rebounds and drops, debris flies.</li>
+            <li>Only the grandfather's voicemail is shown as text.</li>
+          </ul>
+        </figcaption></figure>
+      <figure class="wide"><div class="pic"><img src="car.png" alt="The new car at five angles, the crash wreck and the patched-up car"></div>
+        <figcaption><b>The car, drawn new:</b> 15 angles for the skid, the wreck at the oak (door open, windscreen starred, hood buckled), and the patched-up car with a primer door.</figcaption></figure>
+      <figure><div class="pic"><img src="benches.png" alt="Garage workbench, furnace from three sides, park bench"></div>
+        <figcaption><b>Benches passed:</b> the garage workbench, the furnace (front, side and back), the park bench.</figcaption></figure>
+      <figure><div class="pic"><img src="ores.png" alt="Stone, coal, copper, iron and gem ore nodes"></div>
+        <figcaption><b>Ore nodes:</b> each material its own shape now: moss and a crack, black coal lumps, copper nuggets, rust seams, crystals.</figcaption></figure>
+      <figure><div class="pic"><img src="stumps.png" alt="Pine, spruce, birch, dead tree and snag stumps"></div>
+        <figcaption><b>Stumps that match their tree:</b> pine, spruce, birch, the dead tree and the snag. Installed as better than the old pots and cups; still being lifted to 6.</figcaption></figure>
+      <figure><div class="pic"><img src="icons.png" alt="Coal, copper, iron, jacket, sprinkler, ghost corn, resin, mail, pie and bone meal icons"></div>
+        <figcaption><b>Inventory icons:</b> coal, copper and iron ore, the jacket, the sprinkler, ghost corn, resin, mail, pie and bone meal.</figcaption></figure>
+      <figure><div class="pic"><img src="deer.png" alt="The dead doe lying in the road"></div>
+        <figcaption><b>The deer in the road,</b> redrawn as a doe on her side in the lane.</figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>The whole list</h2>
+    <div class="tools">
+      <button class="chip" id="f-all" aria-pressed="true">All</button>
+      <button class="chip" id="f-p" aria-pressed="false">In progress</button>
+      <button class="chip" id="f-t" aria-pressed="false">To do</button>
+      <button class="chip" id="f-d" aria-pressed="false">Done</button>
+      <input id="q" type="search" placeholder="Search the list" aria-label="Search the list">
+    </div>
+    <ul class="all" id="all"></ul>
+  </section>
+
+  <footer>Statuses as of November 10, 2026. Tasks marked "in progress" are long-running families still being lifted to 6 one piece at a time.</footer>
+</div>
+
+<script>
+const T=[[1,"d","Build pixel sprite pipeline"],[2,"d","Produce all 2D art: characters, creature, animals, buildings, nature, props, crops, tiles, UI"],[3,"d","Write 2D engine; port story, quests, farming, creature, cutscene"],[4,"d","Test on phone viewport, publish, commit"],[5,"d","Redraw buildings"],[6,"d","Redraw fences, well and props"],[7,"d","Integrate, check layout connections, publish"],[8,"d","Draw 3/4-view terrain and landmark art"],[9,"d","Map: elevation, creek, landmarks, shadows, life"],[10,"d","Cutscene in the same 3/4 style"],[11,"d","Stardew-depth pass: zoom, volumetric trees and bushes, tall grass, sunken paths"],[12,"d","Map rebuild: hand-drawn terrain tileset, hand-placed layout"],[13,"d","Intro cutscene in the real world (drive east, crash at wreck)"],[14,"d","Covered bridge redraw with 3/4 depth"],[15,"d","Props with depth: wagon, crate, barrel, sacks, hay, board, firewood, fence"],[16,"d","Clipping audit and fixes"],[17,"d","Player customization"],[18,"d","Interiors"],[19,"d","Progression: small starter plot, overgrown field, greenhouse"],[20,"d","Interiors: player visible, indoor lighting and shadows"],[21,"d","Faceted rocks, layered weeds, bold outlines; door note; dead deer"],[22,"d","Tools: art, pick and axe animations, hotbar with pixel icons"],[23,"d","PC support, fall-themed pixel UI, desktop wrapper"],[24,"d","Interiors verified on phone and PC"],[25,"d","Placement mode for benches, furniture and buildings"],[26,"d","Art pass: tools, chop animations, stumps from trees, bench and furniture depth, shadows, leaves"],[27,"d","Character rework: layered chibi generator, new animations, customization"],[28,"d","Hair polish; walk and all animations from 4 angles"],[29,"d","Stardew-style inventory"],[30,"d","Fishing minigame"],[31,"d","Relationships with hearts and heart events"],[32,"d","Tutorial"],[33,"d","Map 4x bigger with new sections, houses, people and a world map"],[34,"d","Finish the story with psychological horror"],[35,"d","Save system so the full story is finishable"],[36,"d","Horror director: escalating scares across the story"],[37,"d","Finale chase, epilogue, credits, New Game+"],[38,"d","One big guided tutorial covering every system"],[39,"d","Grind-gated story progression"],[40,"d","Talking portraits with emotions for every character"],[41,"d","Tap/drag placement and tap-to-farm"],[42,"d","More tree and bush variety"],[43,"d","Wildlife"],[44,"d","Fix PC UI"],[45,"d","Fix screen staying black after dark"],[46,"d","Slow down the time cycle"],[47,"d","Stardew-style tool use: select tool, click spot"],[48,"d","Tool orientation and animations (hoe, axe, pick, watering, fishing)"],[49,"d","Tool upgrades change the tool's look"],[50,"d","Workbench textures, nicer bench UI, crafting and cooking minigames"],[51,"d","Fix pond bridge"],[52,"d","Tutorial instructions: say where things are, clearer steps"],[53,"d","Fix first escape-attempt cutscene"],[54,"d","Fixed car sprite after repair"],[55,"d","Lantern glow instead of a flashlight"],[56,"d","Rotate furniture"],[57,"d","Fix item icons"],[58,"d","Carpenter and house upgrades"],[59,"d","Shipping chest: items sold overnight, summary screen"],[60,"d","Skills system like Stardew"],[61,"d","Fishing: new animation and UI"],[62,"d","Higher-detail portraits"],[63,"d","New character model from your reference photos"],[64,"d","Indoor furniture depth"],[65,"d","Unique NPC interiors with doors and floors"],[66,"d","Account system"],[67,"d","World art fixes: fences, signs, lamp posts, cows, sacks, wheat, shadows, leaves"],[68,"d","Gas station and second town variety"],[69,"d","Better jump scares and creature animations"],[70,"d","Placement only while holding the item; move placed things"],[71,"d","Bug batch from playtest"],[72,"d","Bug batch 2 from playtest"],[73,"d","A unique making game for every recipe and build"],[74,"d","Tutorial for the making minigames"],[75,"d","More attractive adult female characters"],[76,"d","Replace Mae with Caitlyn: look, name, voice, story ties"],[77,"d","Make Caitlyn romanceable"],[78,"d","Portraits v3"],[79,"d","Caitlyn's tank top"],[80,"d","Iron ore minable with the starting pickaxe"],[81,"d","Making minigames: fishing-level textures, detail and polish"],[82,"d","Fishing redesigned as our own game"],[83,"d","June's walking sprite: hair over her cap"],[84,"d","Bubble says you can't mine iron: fixed"],[85,"d","Making games: full gameplay rework"],[86,"d","HD chat portraits for everyone else"],[87,"d","Build the same furniture piece more than once"],[88,"d","Map labels overlap; uneven clarity"],[89,"d","No watering bare dirt without a crop"],[90,"d","Stop phone taps from zooming the page"],[91,"d","Signs redrawn"],[92,"d","Sleep early with a can't-go-back warning"],[93,"d","People live in their shops; bigger shops with private areas"],[94,"d","Minigame sounds per action; fix the saw game"],[95,"d","House starts small and run-down, mends, then expands"],[96,"d","More furniture variety"],[97,"d","Guidance arrow for the tutorial and main missions"],[98,"d","Kids' chat portraits redesigned"],[99,"d","Rebuild every making minigame to fishing quality"],[100,"d","Resource textures fixed"],[101,"d","Mine checkpoints"],[102,"d","Making games: tree in the window, fire in the hearth, hands match the player"],[103,"d","Higher-quality made items are worth more"],[104,"d","Bug: couldn't order the cabin kitchen at Hartley Carpentry"],[105,"d","Journal tab for heart events"],[106,"t","Standing rule: every new makeable or buildable item gets its own minigame"],[107,"d","Option to turn the game's sound off"],[108,"d","Sprinklers don't work"],[109,"d","Multiplayer: see other players' things live; less lag"],[110,"d","Escape and an X button to leave full screen"],[111,"d","Open shirt outfit fixed"],[112,"d","Scarf hidden from behind"],[113,"d","Glitchy reflections"],[114,"d","Bone meal icon broken"],[115,"d","Code Jaxon5: unlimited gifts per day"],[116,"d","Wickham and gas-station props redrawn with depth"],[117,"d","Animals face the way they run"],[118,"d","Story 5x bigger, more horror, gore and darkness"],[119,"d","Wickham's glitchy strip of wood"],[120,"d","World 5x bigger, every area unique and important"],[121,"d","Story in 3 chapters"],[122,"d","Whoever you date cares most (true ending, letters)"],[123,"d","More lore"],[124,"d","Parties and festivals"],[125,"d","Every area feels alive and unique"],[126,"d","Heart events unique, each with its own lore"],[127,"d","Attractive adult women are single"],[128,"d","Big unique interiors with multiple rooms"],[129,"d","Engine keeps the 5x world fast"],[130,"d","New bounds, 8 regions with their own ground, flora, roads, water"],[131,"d","Landmarks and props for the 8 regions"],[132,"d","A story beat per region; lore, forage, fishing, fast travel"],[133,"d","Townsfolk visit the new regions"],[134,"d","Multiplayer: shared gathering spots"],[135,"d","A festival and heart events in the new regions"],[136,"d","Phone playtest of the new land"],[137,"d","Old saves load and play correctly"],[138,"d","Cheaper water reflections"],[139,"d","Interiors in the new regions"],[140,"d","Night horrors unique to each region"],[141,"d","Map milestones and travel from the map"],[142,"d","Journal: a Places tab"],[143,"d","Every part of the world important to the story"],[144,"d","Shadows and depth on everything"],[145,"d","Sprinklers don't work (again)"],[146,"d","Redesign the whole world from scratch"],[147,"d","Marrow Hollow: new streets, the green, gardens"],[148,"d","Wickham: new layout"],[149,"d","Farm yard and Route 9 west: new layout"],[150,"d","Test, save migration, publish"],[151,"d","Depth tips built into the new town"],[152,"d","Bigger, livelier store interiors"],[153,"d","Remake the map with the new design tips"],[154,"d","Interiors like Stardew, made horror"],[155,"d","Living routines that break"],[156,"d","An ambient world that reacts and changes"],[157,"d","Dark progression and saving your love"],[158,"d","Gore pass"],[159,"t","Hidden habits and flaws for every townsperson"],[160,"t","Phone check of the new story screens and effects"],[161,"d","Set up and verify the pixel-art pipeline"],[162,"d","Research on map, exterior and interior design"],[163,"d","The inspector: a bot that plays the game and lists fixes"],[164,"p","Remake the map from scratch using the research"],[165,"d","Redraw most buildings, objects, structures and textures"],[166,"d","Redraw gore and particles"],[167,"d","Better character sprites, chat portraits and animations"],[168,"d","Interior furniture and room shells redrawn"],[169,"p","Redo story cutscene animations and creatures where needed"],[170,"d","Scarecrow: better sprite and animations"],[171,"p","Upgrade every minigame's textures, models and animations"],[172,"d","Redraw every item icon"],[173,"d","Too gritty: bring back what the old art had"],[174,"d","Modern houses: hip and side-gable roofs, two storeys, dormers, garages"],[175,"p","Nature in autumn: grass, trees, bushes, leaf litter"],[176,"d","Grid workflow: hand-placed pixels, zoom, lint, blind critic"],[177,"d","Replace every outside-derived sprite with our own art"],[178,"p","Practice drills with blind critique"],[179,"p","Blockout and hand-finish method for everything"],[180,"d","Replace the outside car models with our own"],[181,"t","Everything through the blockout method: items, characters, portraits"],[182,"d","Stumps match the tree you chop down"],[183,"d","Car crash: the car floated upwards"],[184,"p","Plan the layouts before the buildings"],[185,"t","Judge the drawn versions, improve until 7+"],[186,"p","The Hollow: polish, judge against the old, show you"],[187,"t","Stardew-level finish across the game"],[188,"p","Judge sweep: baseline scores for every family"],[189,"t","Raise the lowest-scoring families to 6"],[190,"d","Every crop and crop stage judged to 6+"],[191,"d","Minigames: art, animations and gameplay judged to 6+"],[192,"p","Every animation for the player and all people; tools in hand; hair"],[193,"d","Buildings judged to 6+ and preferred"],[194,"d","Interiors judged to 6+ and preferred"],[195,"d","Furniture judged to 6+ and preferred"],[196,"p","Props judged to 6+ and preferred (backlog of stubborn pieces)"],[197,"p","Benches judged to 6+ and preferred (backlog: armour, boot, farm, turned views)"],[198,"p","Resources and items judged to 6+ and preferred (now)"],[199,"d","Fishing minigame needs improvement (replaced by #215: a different fishing game)"],
+[200,"d","Teaser trailer: 67 seconds of real game footage with an original score"],[201,"d","Own axe and pickaxe animations"],[202,"p","All tools facing the right way in every direction"],[203,"d","Scarecrow matches the Hollow"],[204,"t","New jump scares to match the new Hollow"],[205,"p","Furniture, props, benches and furnaces redrawn by hand, with side and back views"],[206,"d","Sitting benches you can sit on"],[207,"d","Inn porch and stairs: natural, with real collision"],[208,"d","Chapel stairs with real elevation"],[209,"d","Every flight of steps redrawn as real steps"],[210,"d","Remove the churchyard steps that climb nothing"],[211,"t","Cutscenes redone to the new standard, judged"],[212,"t","Creatures and story animations not yet redone (not the Hollow or the scarecrow)"],[213,"d","Intro crash: speed, loss of control, real impact; new car, deer and road; the oak; only the grandfather speaks; weight"],[214,"t","The car totalled; a longer repair through minigames (after the texture and model redo)"],
+[215,"t","Remake the fishing minigame as a different game (you don't like the current one)"],
+[216,"t","Heart events: the same in-world physicality as the cutscenes, and across the board more depth, emotion and uniqueness"]
+];
+const NAME={d:"Done",p:"In progress",t:"To do"};
+let mode="all";
+function counts(){const c={d:0,p:0,t:0};T.forEach(x=>c[x[1]]++);
+  document.getElementById("counts").innerHTML=["d","p","t"].map(k=>`<span class="count"><span class="dot ${k}"></span><b>${c[k]}</b>${NAME[k]}</span>`).join("");}
+function render(){const q=(document.getElementById("q").value||"").toLowerCase().trim();
+  const rows=T.filter(x=>(mode==="all"||x[1]===mode)&&(!q||x[2].toLowerCase().includes(q)||("#"+x[0]).includes(q)));
+  const ul=document.getElementById("all");
+  ul.innerHTML=rows.length?rows.map(x=>`<li class="${x[1]}"><span class="n">#${x[0]}</span><span class="dot ${x[1]}" title="${NAME[x[1]]}"></span><span>${x[2].replace(/&/g,"&amp;").replace(/</g,"&lt;")}</span></li>`).join(""):'<li class="empty">Nothing matches that search.</li>';}
+for(const [id,m] of [["f-all","all"],["f-p","p"],["f-t","t"],["f-d","d"]])document.getElementById(id).addEventListener("click",()=>{mode=m;for(const b of document.querySelectorAll(".chip"))b.setAttribute("aria-pressed",String(b.id===id));render();});
+document.getElementById("q").addEventListener("input",render);
+counts();render();
+</script>

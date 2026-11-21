@@ -1,0 +1,16 @@
+const {chromium,devices}=require('playwright');
+(async()=>{const b=await chromium.launch();const errs=[];
+ const run=async(dev,tag)=>{const pg=await b.newPage({...devices[dev]});pg.on('pageerror',e=>errs.push('ERR '+e.message));await pg.route('**/fonts.googleapis.com/**',r=>r.abort());
+  await pg.goto('http://localhost:8766/test2d.html');await pg.waitForFunction(()=>!document.getElementById('loadScr'),null,{timeout:90000});await pg.evaluate(()=>localStorage.clear());
+  await pg.evaluate(()=>{document.getElementById('begin').click();document.getElementById('cGo').click();});await pg.waitForTimeout(300);await pg.evaluate(()=>__game.skip());await pg.waitForTimeout(500);
+  const ev=c=>pg.evaluate(c=>__game.ev(c),c);await ev("S.tut.off=true;S.readLetter=true;S.foundCabin=true;S.hour=10;P.x=0;P.z=-6");
+  const shot=async(n)=>{await pg.waitForTimeout(350);await pg.screenshot({path:tag+n+'.png'});};
+  await ev("talk(npcById('mae'))");await pg.waitForTimeout(200);console.log(tag,'mae line:',await ev("$('talkLine').textContent.slice(0,60)+' -> '+emotionOf('mae',$('talkLine').textContent)"));await shot(1);
+  await ev("$('talkLine').innerHTML='<q>Oh, thank you! I love it, dear!</q>'");await shot(2);
+  await ev("$('talkLine').innerHTML='<q>Ruth would have liked you. She’s gone now. Twenty-five years gone.</q>'");await shot(3);
+  await ev("$('talk').hidden=true;S.paused=false;talkingTo=null;S.looped=true;S.bound=true;S.st.started=true;S.st.act=3");await ev("talk(npcById('hale'))");await ev("$('talkLine').innerHTML='<q>Happy birthday. Early, I know. We’re all early this week.</q>'");await shot(4);
+  await ev("$('talk').hidden=true;S.paused=false;talkingTo=null;playScene('tobias','A test','<q>You came back! Ha!</q><br><br><q>I’m sorry. I’m scared of the scarecrow.</q>',()=>{})");await shot(5);
+  await pg.click('#scene');await shot(6);await pg.click('#scene');
+  await ev("openBag('social')");await shot(7);await pg.close();};
+ await run('iPhone 13','PT');await run('iPhone 13 landscape','PL');
+ console.log(errs.slice(0,4).join('\n'));await b.close();})();

@@ -1,0 +1,11 @@
+{
+  "name": "hollow-acre-p2-test",
+  "private": true,
+  "scripts": {
+    "build": "esbuild main.js --bundle --minify --format=esm --target=es2020,safari15 --outfile=../test.js"
+  },
+  "dependencies": {
+    "esbuild": "0.24.0",
+    "three": "0.170.0"
+  }
+}

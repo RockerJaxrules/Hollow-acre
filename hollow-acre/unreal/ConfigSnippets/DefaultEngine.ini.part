@@ -1,0 +1,23 @@
+; Merge into Config/DefaultEngine.ini of the HollowAcre project (PC quality; phones use scalability and mobile settings)
+[/Script/Engine.RendererSettings]
+; Lumen global illumination and reflections
+r.DynamicGlobalIlluminationMethod=1
+r.ReflectionMethod=1
+r.GenerateMeshDistanceFields=True
+; Virtual shadow maps for sharp, stable shadows
+r.Shadow.Virtual.Enable=1
+; Temporal Super Resolution anti-aliasing
+r.AntiAliasingMethod=4
+; Horror lighting: we control exposure, no automatic eye adaptation
+r.DefaultFeature.AutoExposure=False
+; Skin needs subsurface scattering
+r.SSS.Quality=1
+; Volumetric fog for the blizzard
+r.VolumetricFog=1
+; MetaHumans need the GPU skin cache (morph targets, grooms)
+r.SkinCache.CompileShaders=True
+; Phones: mobile renderer (forward shading, HDR on, distance fields off; quality comes from device profiles)
+r.Mobile.ShadingPath=0
+r.Mobile.AntiAliasing=1
+r.MobileHDR=True
+r.Mobile.SupportGPUScene=True

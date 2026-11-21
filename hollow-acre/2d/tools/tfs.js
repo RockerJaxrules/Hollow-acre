@@ -1,0 +1,11 @@
+const {chromium,devices}=require('playwright');
+(async()=>{const b=await chromium.launch();const pg=await b.newPage({...devices['Pixel 7']});const errs=[];pg.on('pageerror',e=>errs.push('ERR '+e.message));
+ await pg.route('**/fonts.googleapis.com/**',r=>r.abort());await pg.goto('http://localhost:8766/test2d.html');await pg.waitForFunction(()=>!document.getElementById('loadScr'),null,{timeout:90000});await pg.evaluate(()=>localStorage.clear());
+ await pg.waitForTimeout(400);await pg.screenshot({path:'FS0.png'});
+ await pg.tap('#begin');await pg.waitForTimeout(500);await pg.tap('#cGo');await pg.waitForTimeout(600);
+ console.log('fullscreen after Drive',await pg.evaluate(()=>!!document.fullscreenElement),'label',await pg.evaluate(()=>document.querySelector('#fsBtn .lbl').textContent));
+ await pg.evaluate(()=>__game.skip());await pg.waitForTimeout(500);await pg.evaluate(()=>__game.ev("S.tut.off=true;S.readLetter=true;S.foundCabin=true;S.hour=9;P.x=0;P.z=-6"));await pg.waitForTimeout(600);await pg.screenshot({path:'FS1.png'});
+ await pg.tap('#fsBtn');await pg.waitForTimeout(500);console.log('after tap',await pg.evaluate(()=>!!document.fullscreenElement),'pref',await pg.evaluate(()=>localStorage.getItem('hollowFS')));
+ await pg.tap('#fsBtn');await pg.waitForTimeout(500);console.log('after 2nd tap',await pg.evaluate(()=>!!document.fullscreenElement));
+ await pg.setViewportSize({width:915,height:412});await pg.waitForTimeout(800);await pg.screenshot({path:'FS2.png'});
+ console.log(errs.slice(0,3).join('\n'));await b.close();})();

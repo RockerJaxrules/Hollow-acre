@@ -1,0 +1,12 @@
+const {chromium}=require('playwright');
+(async()=>{const b=await chromium.launch();const pg=await b.newPage({viewport:{width:1000,height:700}});await pg.route('**/version.json*',r=>r.abort());
+ await pg.goto('http://localhost:8766/test2d_k.html');await pg.waitForFunction(()=>!document.getElementById('loadScr'),null,{timeout:90000});
+ await pg.evaluate(()=>{document.getElementById('begin').click();document.getElementById('cGo').click();});await pg.waitForTimeout(300);await pg.evaluate(()=>__game.skip());await pg.waitForTimeout(1500);
+ const ev=c=>pg.evaluate(c=>__game.ev(c),c);const D=process.argv[2];
+ await ev("S.tut.off=true;document.querySelectorAll('.toast,#toast').forEach(e=>e.style.visibility='hidden');S.room=null;P.x=F_SQ.x;P.z=F_SQ.z+2;S.hour=18.8");await pg.waitForTimeout(900);
+ await ev(`playScene('mae','Lantern Dance ','You find the time halfway through, and after that it’s easy. The lanterns turn over your heads like slow moths.<br><br><q>Same time next month,</q> Caitlyn says into your shoulder. <q>And the one after that. All of them.</q>',()=>{})`);
+ await pg.waitForTimeout(900);await pg.screenshot({path:D+'/old_dance_0.png'});await pg.keyboard.press('Space');await pg.waitForTimeout(700);await pg.screenshot({path:D+'/old_dance_1.png'});await pg.keyboard.press('Space');await pg.waitForTimeout(600);
+ await ev("S.hour=10");await pg.waitForTimeout(800);
+ await ev(`playScene('mae','The wedding ','The whole town is in the square. Everyone. Even Dunn, at the back, hat in his hands.<br><br>Hale reads the words. For once he doesn’t read a name off a slip. He reads yours, and then Caitlyn’s, and nobody claps politely: they cheer.<br><br>Afterwards they dance on the square till the lanterns burn down, and for one whole afternoon the valley forgets to be afraid.',()=>{})`);
+ await pg.waitForTimeout(900);await pg.screenshot({path:D+'/old_wed_0.png'});await pg.keyboard.press('Space');await pg.waitForTimeout(700);await pg.screenshot({path:D+'/old_wed_1.png'});
+ await b.close();})();
