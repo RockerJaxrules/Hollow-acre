@@ -31,9 +31,13 @@ LI_FLASH.E.rows=['.....s...kkk','kkkkkkkkkcLk','kHHHHHcHkCWk','kbbbbbHbkcWk','kk
 // the beam: bright from the lens itself, so it has a source you can see; facing away it leaves the bezel at the torch's tip, and
 // isn't drawn over your head and back (never lighting your own back as a pale column). A little light comes back off the ground
 // at your feet, low and flat, so you can always see yourself; nothing round the hand
+// (t366) facing away, the beam leaves the torch turned this much toward its side (about two degrees); liAim() is the same aim,
+// for the cone that catches the Hollow, so the light you see is the light that catches it
+const LI_AWAY_TURN=.04;
+function liAim(){let fx=P.fx||0,fz=P.fz||0;let m=Math.hypot(fx,fz)||1;fx/=m;fz/=m;try{if(LI_ON&&liCur()==='flash'&&P.dir==='N'){fx+=LI_AWAY_TURN;m=Math.hypot(fx,fz);fx/=m;fz/=m;}}catch(e){}return [fx,fz];}
 LI_BR.splice(0,LI_BR.length,[0,.62],[.06,.72],[.22,.86],[.4,1],[.62,.86],[.8,.5],[.92,.18],[1,0]);for(const k of Object.keys(LI_BT))delete LI_BT[k];
 liBeamDraw=function(g,ox,oy,fx,fz,a){if(!(a>0))return;let me=false;try{const lp=liCur()==='flash'?lanternPos():null;me=!!lp&&Math.abs(lp.x-ox)<.6&&Math.abs(lp.y-oy)<.6;}catch(e){}   // (a friend's beam is drawn by the same call)
-  let m=Math.hypot(fx,fz)||1;fx/=m;fz/=m;const away=me&&P.dir==='N';if(away){fx+=.04;m=Math.hypot(fx,fz);fx/=m;fz/=m;}
+  let m=Math.hypot(fx,fz)||1;fx/=m;fz/=m;const away=me&&P.dir==='N';if(away){fx+=LI_AWAY_TURN;m=Math.hypot(fx,fz);fx/=m;fz/=m;}
   const ang=Math.atan2(fz*.82,fx),sl=Math.hypot(fx,fz*.82);const T=liBeamTex(11.8*PPM*(.82+.18*sl));
   g.save();if(away){const X=sx(P.x),Y=sz(P.z);g.beginPath();g.rect(0,0,g.canvas.width,g.canvas.height);g.ellipse(X,Y-24,10.5,15,0,0,Math.PI*2);g.clip('evenodd');}
   g.translate(ox,oy);g.rotate(ang);g.globalAlpha=Math.min(1,a);g.drawImage(T.c,0,-T.cy);g.restore();

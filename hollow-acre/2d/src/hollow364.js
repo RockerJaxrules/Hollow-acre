@@ -25,7 +25,7 @@ const hzSegCirc=(ax,az,bx,bz,cx,cz,r)=>{const dx=bx-ax,dz=bz-az,l2=dx*dx+dz*dz||
 function hzBlocked(x,z){if(!isNight()||S.room)return false;const L=hzLightAt();let occ=[];try{occ=nightOccluders();}catch(e){return false;}
   for(const q of occ){if(q.t==='r'&&q.long){if(hzSegRect(L.x,L.z,x,z,q))return true;}else if(q.t==='c'){if(hzSegCirc(L.x,L.z,x,z,q.x,q.z,q.r+.16))return true;}}return false;}
 // would your light reach it standing at (x,z)?
-function hzLitAt(x,z){if(!lanternOn())return false;const dx=x-P.x,dz=z-P.z,d=Math.hypot(dx,dz)||.01,dot=(dx*P.fx+dz*P.fz)/d;return liCatch(d,dot).lit&&!hzBlocked(x,z);}
+function hzLitAt(x,z){if(!lanternOn())return false;const AIM=typeof liAim==='function'?liAim():[P.fx,P.fz];const dx=x-P.x,dz=z-P.z,d=Math.hypot(dx,dz)||.01,dot=(dx*AIM[0]+dz*AIM[1])/d;return liCatch(d,dot).lit&&!hzBlocked(x,z);}
 // the eyes glow only when it's in your light, when it shows itself (the watch, the scream, the lunge), or for a moment at the edge
 function hzEyesOn(){if(!(isNight()&&H.sneak&&H.state==='stalk'))return true;return H.lit||HZ4.eyesT>0;}
 // the crickets stop when it's near

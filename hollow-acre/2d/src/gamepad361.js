@@ -112,7 +112,12 @@ function gpSetMode(m){if(GP.mode===m)return;const was=GP.mode;GP.mode=m;document
 // (a key some panel swallows on its way down is still seen coming up)
 for(const t of ['keydown','keyup'])addEventListener(t,e=>{if(e.isTrusted)gpSetMode('kb');},true);
 addEventListener('wheel',e=>{if(e.isTrusted)gpSetMode('kb');},{capture:true,passive:true});
-for(const t of ['pointerdown','pointerup'])addEventListener(t,e=>{if(!e.isTrusted)return;gpSetMode(e.pointerType==='mouse'?'kb':'touch');},true);
+// (a "mouse" on a device with no fine pointer at all is a finger the browser dressed up as one; a phone keeps its finger words)
+let gpTouchT=-1e9;
+for(const t of ['pointerdown','pointerup'])addEventListener(t,e=>{if(!e.isTrusted)return;if(e.pointerType==='mouse'&&!matchMedia('(any-pointer:fine)').matches)return;if(e.pointerType!=='mouse')gpTouchT=performance.now();gpSetMode(e.pointerType==='mouse'?'kb':'touch');},true);
+// a real mouse moved after the finger: back to the mouse's words (not the made-up mouse events that trail a tap, nor a pad's prompts)
+addEventListener('pointermove',e=>{if(!e.isTrusted||e.pointerType!=='mouse'||GP.mode!=='touch')return;if(performance.now()-gpTouchT<700)return;if(Math.abs(e.movementX||0)+Math.abs(e.movementY||0)<2)return;
+  if(!matchMedia('(any-pointer:fine)').matches)return;gpSetMode('kb');},{capture:true,passive:true});
 addEventListener('touchstart',e=>{if(e.isTrusted)gpSetMode('touch');},{capture:true,passive:true});
 addEventListener('mousemove',e=>{if(!e.isTrusted||GP.mode!=='pad')return;GP.moveD+=Math.abs(e.movementX||0)+Math.abs(e.movementY||0);if(GP.moveD>40){GP.moveD=0;gpSetMode('kb');}},{capture:true,passive:true});
 

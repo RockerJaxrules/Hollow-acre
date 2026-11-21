@@ -227,7 +227,7 @@ function hollowUpdate(dt){H.t+=dt;H.ft+=dt;if(H.grace>0)H.grace-=dt;
   if(H.state==='gone'){H.timer-=dt;if(H.timer<=0){spawnHollow(false,!S.first['watch'+S.day]);if(H.state==='watch')S.first['watch'+S.day]=1;}return 99;}
   if(H.state==='lunge'){H.lungeT-=dt;H.clip='scream';if(H.lungeT<=0){H.state='flee';H.fleeT=.9;H.grace=3;}return 2;}
   if(H.state==='flee'){H.fleeT-=dt;H.alpha=clamp(H.fleeT/.9,0,1);if(H.fleeT<=0){H.state='gone';H.timer=8+rand()*6;H.vis=false;}return 99;}
-  const dx=P.x-H.x,dz=P.z-H.z,d=Math.hypot(dx,dz)||.01;const dot=(-dx*P.fx-dz*P.fz)/d;
+  const dx=P.x-H.x,dz=P.z-H.z,d=Math.hypot(dx,dz)||.01;const AIM=typeof liAim==='function'?liAim():[P.fx,P.fz];const dot=(-dx*AIM[0]-dz*AIM[1])/d;
   const LC=LI_ON?liCatch(d,dot):null,range=LC?LC.range:(S.flashlight?11:8.5),cone=S.flashlight?.72:.6;   // (t364) the light you carry: a lantern's round pool, the flashlight's cone
   H.lit=LC?LC.lit&&!(typeof hzBlocked==='function'&&hzBlocked(H.x,H.z)):lanternOn()&&d<range&&dot>Math.cos(cone);   // (and not behind a house, a wall or a trunk: in the shadow it throws)H.rise=Math.min(1,H.rise+dt*1.2);H.dir=dirOf(dx,dz);
   if(H.state==='watch'){H.watchT-=dt;H.clip=H.lit?'frozen':'idle';

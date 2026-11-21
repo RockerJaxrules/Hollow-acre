@@ -14,7 +14,7 @@
       your own pins with a note, and the building you're in. Every place opens a small card.
    ================= */
 const M6={ver:0,base:null,sig:'',job:null,ready:false,v:{x:0,y:0,k:1},z:null,vel:[0,0],ptr:new Map(),drag:null,pinch:null,on:false,dirty:true,raf:0,last:0,
-  cw:0,ch:0,dpr:1,hover:null,card:null,lay:null,layK:-1,layN:-1,t:0,keys:new Set(),pinMode:false,draft:null,route:null,routeKey:'',kDef:1.4};
+  lays:new Map(),cw:0,ch:0,dpr:1,hover:null,card:null,lay:null,layK:-1,layN:-1,t:0,keys:new Set(),pinMode:false,draft:null,route:null,routeKey:'',kDef:1.4};
 const M6L_DEF={you:1,goal:1,shops:1,folk:1,transit:1,travel:1,found:1,pins:1};
 const M6L=Object.assign({},M6L_DEF);try{const s=JSON.parse(localStorage.getItem('hollowMapLayers')||'null');if(s&&typeof s==='object')for(const k in M6L_DEF)if(k in s)M6L[k]=s[k]?1:0;}catch(e){}
 function m6SaveL(){try{localStorage.setItem('hollowMapLayers',JSON.stringify(M6L));}catch(e){}}
@@ -36,12 +36,12 @@ function m6Db(){if(M6DB.p)return M6DB.p;M6DB.p=new Promise(res=>{try{if(!window.
   r.onsuccess=()=>res(r.result);r.onerror=()=>res(null);r.onblocked=()=>res(null);}catch(e){res(null);}});return M6DB.p;}
 function m6Get(k){return m6Db().then(db=>db?new Promise(res=>{try{const q=db.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null);}catch(e){res(null);}}):null).catch(()=>null);}
 function m6Put(k,v){return m6Db().then(db=>{if(!db)return;try{db.transaction('kv','readwrite').objectStore('kv').put(v,k);}catch(e){}}).catch(()=>{});}
-const M6Q={on:true};   /* the finished paper is cut to the map's own palette */
+const M6Q={on:true,trees:true};   /* the finished paper is cut to the map's own palette */
 // the steps that can't be cut into slices: they run only while you're on the title, in a scene or a menu (or with the map open)
 const M6BIG=new Set(['low','west','westLow','despeck']);
 // what the paper shows that can change in play: the buildings and walls, and the new fields
 function m6Sig(){let h=0;for(const o of OBJ){if(o.room||o.hide)continue;const k=o.kind;if(k!=='bld'&&k!=='wall')continue;const s=o.spr||'';h=(h*31+s.length*7+(s.charCodeAt(s.length-1)|0)+Math.round(o.x*4)*13+Math.round(o.z*4))|0;}
-  return [BUILD_ID,mapTerrDims().key,h,typeof F39!=='undefined'&&F39.built?1:0,typeof L35!=='undefined'&&L35.built?1:0,M6Q.on?1:0,'v17'].join('|');}
+  return [BUILD_ID,mapTerrDims().key,h,typeof F39!=='undefined'&&F39.built?1:0,typeof L35!=='undefined'&&L35.built?1:0,M6Q.on?1:0,M6Q.trees?1:0,'v22'].join('|');}
 // the ground's samples travel as a run-length list, each run a varint of (length*8 + kind)
 function m6RleDecode(b64,N){const bin=atob(b64),cls=new Uint8Array(N);let i=0,p=0;while(p<bin.length&&i<N){let v=0,mul=1,b;do{b=bin.charCodeAt(p++);v+=(b&127)*mul;mul*=128;}while(b&128);const k=v%8,L=Math.floor(v/8);cls.fill(k,i,Math.min(N,i+L));i+=L;}return i===N?cls:null;}
 function m6RleEncode(cls){const out=[];let i=0;const N=cls.length;while(i<N){const k=cls[i];let j=i;while(j<N&&cls[j]===k)j++;let v=(j-i)*8+k;do{let b=v%128;v=Math.floor(v/128);if(v)b|=128;out.push(String.fromCharCode(b));}while(v);i=j;}return btoa(out.join(''));}
@@ -69,12 +69,52 @@ const m6ObjKeep=(o,hedge)=>{if(o.room||o.hide||o.f39low)return false;if(o.kind==
     return o.x<250&&o.x>B.x0-2&&o.x<B.x1+2&&o.z>B.z0-2&&o.z<B.z1+2&&o.spr&&SPR[o.spr]&&o.kind!=='grass'&&o.kind!=='flat';};
 function m6ObjList(){const hedge=[];const list=OBJ.filter(o=>m6ObjKeep(o,hedge)).sort((a,b)=>a.z-b.z);return {list,hedge};}
 // one object in miniature from its own sprite, at a scale of f device pixels per paper pixel, its paper pixel (ox,oy) at the origin
-function m6DrawObj(g,o,f,ox,oy,plain){const m=SPR[o.spr],im=m&&IMG[m.src];if(!im||(im.complete===false)||!(im.naturalWidth||im.width))return false;const s=MAPX.s,k=o.kind||'';
+// the woods drawn the way a map-maker would: clumps with clearings between, thick at the heart and thinning to the edge, and
+// each clump turning one colour together; a lone tree, an orchard or a garden tree is always drawn
+const M6W={m:null,key:''};
+function m6Hash(a,b){let h=(Math.imul(a|0,374761393)+Math.imul(b|0,668265263))|0;h=Math.imul(h^(h>>>13),1274126177);return ((h^(h>>>16))>>>0)/4294967296;}
+function m6Noise(x,z,sc,seed){const X=x/sc,Z=z/sc,i=Math.floor(X),j=Math.floor(Z),fx=X-i,fz=Z-j,u=fx*fx*(3-2*fx),v=fz*fz*(3-2*fz);
+  const a=m6Hash(i+seed,j),b=m6Hash(i+1+seed,j),c=m6Hash(i+seed,j+1),d=m6Hash(i+1+seed,j+1);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;}
+function m6WoodsMap(){const L=(typeof OBJ!=='undefined'?OBJ:[]);const key=L.length+'|'+B.x0+'|'+B.z0;if(M6W.key===key&&M6W.m)return M6W.m;const m=new Map();
+  for(const o of L){const k=o.kind;if(k!=='tree'&&k!=='pine'&&k!=='bush')continue;const q=Math.floor(o.x/6)+','+Math.floor(o.z/6);m.set(q,(m.get(q)||0)+1);}M6W.m=m;M6W.key=key;return m;}
+function m6TreeKeep(o){const m=m6WoodsMap(),cx=Math.floor(o.x/6),cz=Math.floor(o.z/6);let n=0;for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)n+=m.get((cx+a)+','+(cz+b))||0;
+  const w=clamp((n-6)/8,0,1);if(w<=0)return {keep:true,w:0};
+  const c=m6Noise(o.x,o.z,40,11)*.72+m6Noise(o.x,o.z,14,57)*.28,core=clamp((n-9)/12,0,1);
+  const thr=.45+.12*(1-core),pc=clamp((c-thr+.035)/.07,0,1)*.97+.04;const keep=m6Hash(Math.round(o.x*7),Math.round(o.z*7))<1-w*(1-pc);return {keep,w};}
+const M6WR=['red','orange','gold','russet','orange','green','red','gold'];
+function m6DrawObj(g,o,f,ox,oy,plain){const k0=o.kind||'';
+  if(f===1&&M6Q.trees&&(k0==='tree'||k0==='pine'||k0==='bush')){let tk=m6TreeKind(o.spr);const W=m6TreeKeep(o);if(!W.keep)return true;
+    if(tk&&W.w>.5&&tk[0]==='broad'&&tk[1]!=='willow'&&m6Hash(Math.round(o.z*5),Math.round(o.x*5))<.8)tk=[tk[0],M6WR[Math.floor(m6Noise(o.x,o.z,26,101)*M6WR.length*.999)]];
+    if(tk){const gl=m6TreeGlyph(tk[0],tk[1],/birch/.test(o.spr));const gx=Math.round(m6BX(o.x)-ox-gl.width/2),gy=Math.round(m6BY(o.z)-oy-gl.height+1);
+      if(tk[0]!=='bush'&&tk[0]!=='dead'&&tk[0]!=='burnt'){g.fillStyle='rgba(20,14,8,.3)';g.fillRect(gx+2,gy+gl.height-1,gl.width-2,1);}g.drawImage(gl,gx,gy);return true;}}
+  const m=SPR[o.spr],im=m&&IMG[m.src];if(!im||(im.complete===false)||!(im.naturalWidth||im.width))return false;const s=MAPX.s,k=o.kind||'';
   const sc=s/PPM*(k==='bld'?1.28:k==='tree'?1.15:1.05)*(o.scale||1)*f;let sx=0,sy=0;if(m.clips){const c=Object.values(m.clips)[0];const r=Object.values(c)[0];sy=r[0]*m.fh;}
   const X=(m6BX(o.x)-ox)*f,Y=(m6BY(o.z)-oy)*f,dx=X-m.ax*sc,dy=Y-m.ay*sc,dw=m.fw*sc,dh=m.fh*sc;if(dw<1.5||dh<1.5)return true;
   if(k==='bld'||k==='tree'){g.fillStyle='rgba(20,14,8,.28)';g.beginPath();g.ellipse(X+dw*.06,Y,dw*.42,Math.max(1.5,dw*.13),0,0,Math.PI*2);g.fill();}
   if(k==='bld'&&!plain){const oc=mapSil(im,sx,sy,m.fw,m.fh),e=1.5*Math.max(1,f/2);for(const [a,b] of [[-e,0],[e,0],[0,-e],[0,e]])g.drawImage(oc,0,0,m.fw,m.fh,dx+a,dy+b,dw,dh);}
   g.drawImage(im,sx,sy,m.fw,m.fh,dx,dy,dw,dh);return true;}
+// ---- the trees on the paper are drawn by hand, a small crown per kind in its own colours (a shrunk sprite is a smudge at this
+// size); close up, the tiles draw them from their own sprites
+const M6TG={
+  broad:['...kkk...','.kkLLMkk.','kLLLLMMMk','kLLLMMMDk','kLMMMMDDk','kMMMMDDDk','.kDDDDDk.','..kkTkk..','....t....'],
+  broad2:['..kkkk..','.kLLMMk.','kLLLMMDk','kLMMMDDk','kMMMDDDk','.kkDDDk.','...Tt...','...t....'],
+  pine:['....k....','...kLk...','...kMk...','..kLMDk..','..kLMDk..','.kLMMMDk.','.kLMMDDk.','kLLMMMDDk','kkkkTkkkk','....t....'],
+  pine2:['...k...','..kLk..','..kMDk.','.kLMDk.','.kLMDDk','kLMMMDk','kkkTkkk','...t...'],
+  bush:['.kkkk.','kLLMMk','kLMMDk','.kkkk.'],
+  burnt:['.k..k..k.','..k.k.k..','.kkMkMkk.','kMDkDkDMk','.kDMDMDk.','..kkTkk..','....T....','....t....'],
+  dead:['k...k..k.','.k.k..k..','..kk.k...','...kk..k.','.k..k.k..','..k.kk...','....k....','....k....','....k....']};
+const M6TR={burnt:['#7a6e62','#4e4640','#2e2824','#141010'],red:['#ec7a4a','#c04428','#7a2a1e','#3a1410'],orange:['#f4a84a','#cc7428','#7e401c','#3a1c0c'],gold:['#f4d46a','#cca434','#806024','#3a2c10'],
+  russet:['#d0844a','#a05a2c','#5e341e','#2a160c'],green:['#9cbc58','#6a9a3e','#3e5e2c','#1c2c16'],pine:['#5e8a58','#3a6446','#22402e','#0e1e16'],
+  spruce:['#4e7a62','#2e5848','#1a3830','#0c1a16'],dead:['#8a8278','#6a645c','#4a4640','#2a2622'],willow:['#a4b45a','#76863e','#4a5630','#22281a']};
+function m6TreeKind(spr){const s=spr||'';if(/burnt/.test(s))return ['burnt','burnt'];if(/snag/.test(s))return ['dead','burnt'];if(/^pine_o/.test(s))return ['pine','orange'];if(/^pine/.test(s))return ['pine',s.endsWith('0')||s.endsWith('3')?'pine':'spruce'];if(/^spruce/.test(s))return ['pine','spruce'];
+  if(/dead/.test(s))return ['dead','dead'];if(/willow/.test(s))return ['broad','willow'];if(/red/.test(s))return ['broad','red'];if(/orange/.test(s))return ['broad','orange'];if(/gold/.test(s))return ['broad','gold'];
+  if(/russet/.test(s))return ['broad','russet'];if(/apple/.test(s))return ['broad2','green'];if(/bush_red/.test(s))return ['bush','red'];if(/bush_gold/.test(s))return ['bush','gold'];if(/bush/.test(s))return ['bush','green'];
+  if(/green|tree|oak|maple|birch|elm/.test(s))return ['broad','green'];return null;}
+const M6TG_C={};
+function m6TreeGlyph(shape,ramp,birch){const key=shape+ramp+(birch?1:0);if(M6TG_C[key])return M6TG_C[key];const G=M6TG[shape],R=M6TR[ramp];const c=document.createElement('canvas');c.width=G[0].length;c.height=G.length;const g=c.getContext('2d');
+  const col={L:R[0],M:R[1],D:R[2],k:R[3],T:birch?'#e8e0d0':'#5a3a22',t:birch?'#8a8478':'#3a2414'};
+  G.forEach((row,y)=>{for(let x=0;x<row.length;x++){const ch=row[x];if(ch==='.')continue;g.fillStyle=col[ch];g.fillRect(x,y,1,1);}});return M6TG_C[key]=c;}
+
 // ---- the steps: each runs a few milliseconds (b) and says whether it finished
 const M6STEPS=[
   // the ground: the samples (shipped with the game, kept from last time, or taken now) and their colours
@@ -108,10 +148,11 @@ const M6STEPS=[
     J.mc=J.mcg=null;return true;},
   // each region's own colour (the same blend as regions.js) over the ground, one row of blocks at a time; worked out once per colour
   function tint(J,b){if(typeof REGS==='undefined'||typeof RG_TINT==='undefined'||typeof rgWeights!=='function')return true;const s=MAPX.s,pad=MAPX.pad,W=J.W,H=J.H,g=J.g,t0=performance.now();
-    if(J.ty==null){J.ty=pad;J.fns=REGS.map(r=>RG_TINT[r.k]);J.tmp=new Array(REGS.length);J.tc=REGS.map(()=>({r:new Int16Array(32768),g:new Int16Array(32768),b:new Int16Array(32768),ok:new Uint8Array(32768)}));}const fns=J.fns,tmp=J.tmp,TC=J.tc;
+    if(J.ty==null){J.ash={k:REGS.findIndex(r=>r.k==='marrow'),BW:Math.ceil((W-2*pad)/3),w:new Float32Array(Math.ceil((W-2*pad)/3)*Math.ceil((H-2*pad)/3)),bb:[1e9,1e9,-1,-1]};J.ty=pad;J.fns=REGS.map(r=>RG_TINT[r.k]);J.tmp=new Array(REGS.length);J.tc=REGS.map(()=>({r:new Int16Array(32768),g:new Int16Array(32768),b:new Int16Array(32768),ok:new Uint8Array(32768)}));}const fns=J.fns,tmp=J.tmp,TC=J.tc;
     while(J.ty<H-pad){const y0=J.ty,y1=Math.min(y0+3,H-pad);const id=g.getImageData(0,y0,W,y1-y0),D=id.data;
       for(let bx=pad;bx<W-pad;bx+=3){const by=y0,wx=B.x0+(bx+1.5-pad)/s,wz=B.z0+(by+1.5-pad)/s;
         if(!inNewLand(wx,wz)&&Math.min(Math.abs(wx-OLDB.x0),Math.abs(wz-OLDB.z0),Math.abs(wz-OLDB.z1))>28)continue;if(J.rmask[(by+1)*W+bx+1])continue;rgWeights(wx,wz,tmp);
+        {const A=J.ash;if(A.k>=0&&tmp[A.k]>.05){A.w[((by-pad)/3|0)*A.BW+((bx-pad)/3|0)]=tmp[A.k];const q=A.bb;if(bx<q[0])q[0]=bx;if(by<q[1])q[1]=by;if(bx+3>q[2])q[2]=bx+3;if(by+3>q[3])q[3]=by+3;}}
         for(let y=by;y<y1;y++)for(let x=bx;x<Math.min(bx+3,W-pad);x++){const o=((y-y0)*W+x)*4;const r=D[o],gg=D[o+1],bb=D[o+2];let nr=0,ng=0,nb=0,wt=0;const key=(r>>3)<<10|(gg>>3)<<5|(bb>>3);
           for(let k=0;k<tmp.length;k++){const w=tmp[k];if(w<.002)continue;const T=TC[k];if(!T.ok[key]){const cr=(r>>3)*8+4,cg=(gg>>3)*8+4,cb=(bb>>3)*8+4;const t=fns[k](cr,cg,cb,cr*.3+cg*.59+cb*.11,.5);
               T.r[key]=Math.round(t[0]);T.g[key]=Math.round(t[1]);T.b[key]=Math.round(t[2]);T.ok[key]=1;}
@@ -121,6 +162,17 @@ const M6STEPS=[
     return J.ty>=H-pad;},
   // the ground's own colour at each sample (the regions' colour in it, no road yet), each sample evened out with its own kind round
   // it: the close-up tiles are painted from these, with sharp edges where one kind meets another and no speckle
+  function ash(J,b){const A=J.ash;if(!A||A.bb[2]<0)return true;const t0=performance.now(),pad=MAPX.pad,R=3;
+    if(!A.d){const x0=Math.max(0,A.bb[0]-R),y0=Math.max(0,A.bb[1]-R),x1=Math.min(J.W,A.bb[2]+R),y1=Math.min(J.H,A.bb[3]+R);A.r=[x0,y0,x1-x0,y1-y0];A.id=J.g.getImageData(x0,y0,x1-x0,y1-y0);A.d=A.id.data;A.src=new Uint8ClampedArray(A.d);A.h=new Float32Array((x1-x0)*(y1-y0)*3);A.ph=0;A.y=0;return false;}
+    const [x0,y0,w,h]=A.r,src=A.src,H3=A.h,d=A.d,n=R*2+1;const T0=MAPX.terr,TC=T0&&T0.cls?{cls:T0.cls,W:T0.D.W,H:T0.D.H}:null;
+    if(A.ph===0){while(A.y<h){const y=A.y;let sr=0,sg=0,sb=0;for(let x=-R;x<=R;x++){const o=(y*w+clamp(x,0,w-1))*4;sr+=src[o];sg+=src[o+1];sb+=src[o+2];}
+        for(let x=0;x<w;x++){const q=(y*w+x)*3;H3[q]=sr/n;H3[q+1]=sg/n;H3[q+2]=sb/n;const a=(y*w+clamp(x-R,0,w-1))*4,c=(y*w+clamp(x+R+1,0,w-1))*4;sr+=src[c]-src[a];sg+=src[c+1]-src[a+1];sb+=src[c+2]-src[a+2];}
+        A.y++;if((A.y&15)===0&&performance.now()-t0>b)return false;}A.ph=1;A.y=0;}
+    if(A.ph===1){while(A.y<h){const y=A.y,wy=y+y0-pad;for(let x=0;x<w;x++){const wx=x+x0-pad;if(wx<0||wy<0)continue;const bi=(wy/3|0)*A.BW+(wx/3|0);const f=(A.w[bi]||0)*.9;if(f<=0)continue;
+          if(TC){const si=wx>>1,sj=wy>>1;let wet=false;for(let a=-1;a<=1&&!wet;a++)for(let c=-1;c<=1;c++){const ii=sj+a,jj=si+c;if(ii>=0&&jj>=0&&ii<TC.H&&jj<TC.W&&TC.cls[ii*TC.W+jj]===1){wet=true;break;}}if(wet)continue;}
+          let r=0,g2=0,b2=0;for(let yy=-R;yy<=R;yy++){const q=(clamp(y+yy,0,h-1)*w+x)*3;r+=H3[q];g2+=H3[q+1];b2+=H3[q+2];}const o=(y*w+x)*4;d[o]=src[o]*(1-f)+r/n*f;d[o+1]=src[o+1]*(1-f)+g2/n*f;d[o+2]=src[o+2]*(1-f)+b2/n*f;}
+        A.y++;if((A.y&7)===0&&performance.now()-t0>b)return false;}A.ph=2;}
+    J.g.putImageData(A.id,x0,y0);J.ash=null;return true;},
   function smp(J,b){const T=MAPX.terr,SW=T.D.W,SH=T.D.H,pad=MAPX.pad,t0=performance.now();if(!J.sm){J.sm={W:SW,H:SH,cls:T.cls,raw:new Uint8ClampedArray(SW*SH*3),col:new Uint8ClampedArray(SW*SH*3)};J.sr=0;J.sa=0;}const M=J.sm;
     while(J.sr<SH){const y=J.sr,row=J.g.getImageData(pad,pad+y*2,SW*2,1).data;for(let x=0;x<SW;x++){const o=x*8,q=(y*SW+x)*3;M.raw[q]=row[o];M.raw[q+1]=row[o+1];M.raw[q+2]=row[o+2];}J.sr++;if(performance.now()-t0>b)return false;}
     while(J.sa<SH){const y=J.sa,cls=M.cls,raw=M.raw,col=M.col;for(let x=0;x<SW;x++){const i=y*SW+x,k=cls[i];let r=0,g=0,bb=0,n=0;
@@ -209,16 +261,16 @@ function m6Run(b,force){const J=M6.job;if(!J)return true;const t0=performance.no
   catch(e){console.warn('map paper',J.step,e);J.step=M6STEPS.length;}
   const dt=performance.now()-t0;J.cpu+=dt;J.slices++;if(dt>J.maxSlice)J.maxSlice=dt;if(!calm&&dt>J.playMax)J.playMax=dt;
   if(J.step>=M6STEPS.length&&J.c){m6Done(J);return true;}if(J.step>=M6STEPS.length){M6.job=null;return true;}return false;}
-function m6Publish(J){M6.base=J.c;M6.smp=J.sm||null;M6.olist=J.ol?J.ol.list:null;M6.roads=J.roads||null;M6.sig=J.sig;M6.ready=true;M6.quick=null;M6.from=J.from||'';M6.pubAt=Math.round(performance.now()-J.t0);
-  MAPX.cv=J.c;M6T.map.clear();M6T.q.length=0;M6.oidx=null;M6.dirty=true;M6.layN=-1;if(M6.on)m6Kick();else m6Warm();}
-function m6Done(J){M6.job=null;if(M6.base!==J.c)m6Publish(J);M6.done=true;
+function m6Publish(J){J.pub=true;M6.baseVer=(M6.baseVer||0)+1;M6.base=J.c;M6.smp=J.sm||null;M6.olist=J.ol?J.ol.list:null;M6.roads=J.roads||null;M6.sig=J.sig;M6.ready=true;M6.quick=null;M6.from=J.from||'';M6.pubAt=Math.round(performance.now()-J.t0);
+  MAPX.cv=J.c;M6T.map.clear();M6T.q.length=0;M6T.cur=null;m6FineReset();M6.oidx=null;M6.dirty=true;M6.layN=-1;if(M6.on)m6Kick();else m6Warm();}
+function m6Done(J){M6.job=null;if(M6.base!==J.c)m6Publish(J);else M6.baseVer=(M6.baseVer||0)+1;M6.done=true;
   M6.stat={cpu:Math.round(J.cpu),wall:Math.round(performance.now()-J.t0),shownAfter:M6.pubAt,slices:J.slices,maxSlice:Math.round(J.maxSlice),playMaxSlice:Math.round(J.playMax*10)/10,playStepMax:J.smax||{},steps:Object.fromEntries(Object.entries(J.steps).map(([k,v])=>[k,Math.round(v)]))};
   M6.dirty=true;if(M6.on)m6Kick();
   // kept for the next visit
   try{if(J.c.toBlob)J.c.toBlob(bl=>{if(bl)m6Put('base',{sig:J.sig,blob:bl,w:J.W,h:J.H});},'image/png');if(J.sm)m6Put('smp',{sig:J.sig,W:J.sm.W,H:J.sm.H,col:J.sm.col});}catch(e){}}
 // the first open shouldn't pay for anything that can be done before it: places, name tags, the road graph, your goal's way
 function m6Warm(){const go=()=>{try{const dp=Math.min(3,window.devicePixelRatio||1);const was=[M6.dpr,M6.cw];M6.dpr=dp;M6.places=m6Places();const sc=m6Scale();M6.ver++;const L=m6Items(sc);
-    for(const it of L)if(it.tag)void it.tag;if(typeof rgnBuild==='function'&&!RGN.built)rgnBuild();const g=m6Goal();if(g)m6Route(g);for(const k of ['shop','house','you','star','pin','door','head','bus','train','mile'])m6Ic(k,sc.ic);
+    for(const it of L)if(it.tag)void it.tag;try{m6LayFor(L,sc,m6Step(M6.kDef),true);}catch(e){}if(typeof rgnBuild==='function'&&!RGN.built)rgnBuild();m6RoadSum();const g=m6Goal();if(g)m6Route(g);for(const k of ['shop','house','you','star','pin','door','head','bus','train','mile'])m6Ic(k,sc.ic);
     if(!M6.on){M6.dpr=was[0];M6.cw=was[1];}}catch(e){}};if(window.requestIdleCallback)requestIdleCallback(go,{timeout:2000});else setTimeout(go,200);}
 // the slices: on the title, in a scene or a menu, steady 12 ms turns between frames; in play only in the browser's idle moments,
 // 4 ms asked for (3 when the browser has none to give; a piece of work may run a little over), never a step that can't be cut up
@@ -250,9 +302,33 @@ function m6Need(){if(M6.ready)return true;if(!M6.quick)M6.quick=m6Quick();if(!M6
 // ---- close up: once the paper is enlarged past about two and a half times, tiles of the bare ground with the roads and every
 // building and tree drawn sharp from their own sprites at that size; made lazily, a few each frame, kept (the last 60)
 const M6T={map:new Map(),q:[],T:256};
+// the finer paper: the paper enlarged pixel for pixel, with every building, fence and prop drawn again from its sprite at twice the
+// size (the trees keep their hand-drawn crowns); made a few rows and sprites at a time in the browser's idle moments, all of it,
+// before the zoom that needs it is allowed, so a close look never waits for anything
+const M6FN={map:new Map(),next:null,ok:false,i:0,n:0,cols:0,rows:0,ver:-1,base:null,gen:null,busy:false};
+// (a new set is made beside the one on show and takes its place when it's whole)
+function m6FineReset(){M6FN.next=null;M6FN.gen=null;}
+function* m6FineGen(tx,ty,B0,into){const ox=tx*128,oy=ty*128;const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+  g.drawImage(B0,ox,oy,128,128,0,0,256,256);yield;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
+  const idx=m6OIdx(),L=M6.olist,c0=Math.floor(ox/48)-2,c1=Math.floor((ox+128)/48)+2,r0=Math.floor(oy/48)-1,r1=Math.floor((oy+128)/48)+4,ids=[];
+  for(let cy=r0;cy<=r1;cy++)for(let cx=c0;cx<=c1;cx++){const a=idx.get(cx+','+cy);if(a)for(const i of a)ids.push(i);}ids.sort((a,b)=>a-b);
+  let n=0;for(const i of ids){const o=L[i],k=o.kind||'';if(k==='tree'||k==='pine'||k==='bush')continue;m6DrawObj(g,o,2,ox,oy);if((++n%6)===0)yield;}
+  into.set(tx+','+ty,c);}
+const m6FineNeed=()=>!!(M6.ready&&M6.base&&!(M6.job&&!M6.job.pub)&&(M6FN.next||M6FN.ver!==M6.baseVer||M6FN.base!==M6.base));
+function m6FineWork(b){if(!m6FineNeed())return true;const t0=performance.now();
+  if(!M6FN.next){if(M6FN.base&&(M6FN.base.width!==M6.base.width||M6FN.base.height!==M6.base.height)){M6FN.ok=false;M6FN.map.clear();}
+    M6FN.next=new Map();M6FN.i=0;M6FN.gen=null;M6FN.tver=M6.baseVer;M6FN.tbase=M6.base;M6FN.cols=Math.ceil(M6.base.width/128);M6FN.rows=Math.ceil(M6.base.height/128);M6FN.n=M6FN.cols*M6FN.rows;}
+  while(performance.now()-t0<b){if(!M6FN.gen){if(M6FN.i>=M6FN.n){M6FN.map=M6FN.next;M6FN.next=null;M6FN.ok=true;M6FN.ver=M6FN.tver;M6FN.base=M6FN.tbase;M6.dirty=true;return true;}
+      M6FN.gen=m6FineGen(M6FN.i%M6FN.cols,Math.floor(M6FN.i/M6FN.cols),M6FN.tbase,M6FN.next);M6FN.i++;}
+    if(M6FN.gen.next().done)M6FN.gen=null;}
+  return false;}
+// (in the idle moments, a few milliseconds at a time, whether the map is open or not)
+setInterval(()=>{try{if(M6FN.busy||!m6FineNeed())return;M6FN.busy=true;const go=dl=>{M6FN.busy=false;try{const b=dl&&dl.timeRemaining?Math.max(2,Math.min(6,dl.timeRemaining()-1)):4;
+      if(!m6FineWork(b)){M6FN.busy=true;if(window.requestIdleCallback)requestIdleCallback(go,{timeout:400});else setTimeout(go,30);}}catch(e){}};
+    if(window.requestIdleCallback)requestIdleCallback(go,{timeout:400});else setTimeout(go,30);}catch(e){}},300);
 function m6TileLevel(){const s=M6.v.k*M6.dpr;return !M6.smp?0:s>=5.5?8:s>=3?4:0;}
 function m6OIdx(){if(M6.oidx)return M6.oidx;const L=M6.olist||(M6.olist=m6ObjList().list);const idx=new Map();L.forEach((o,i)=>{const k=Math.floor(m6BX(o.x)/48)+','+Math.floor(m6BY(o.z)/48);let a=idx.get(k);if(!a)idx.set(k,a=[]);a.push(i);});return M6.oidx=idx;}
-function m6TileMake(t){const T=M6T.T,f=t.f,span=T/f,ox=t.tx*span,oy=t.ty*span;const c=document.createElement('canvas');c.width=T;c.height=T;const g=c.getContext('2d');
+function* m6TileGen(t){const T=M6T.T,f=t.f,span=T/f,ox=t.tx*span,oy=t.ty*span;const c=document.createElement('canvas');c.width=T;c.height=T;const g=c.getContext('2d');
   // the ground at this size: at each pixel, the kind the four samples round it lean to most, in that kind's own colour there
   {const Sm=M6.smp,SW=Sm.W,SH=Sm.H,cls=Sm.cls,col=Sm.col,pad=MAPX.pad,id=g.createImageData(T,T),d=id.data;const W4=[0,0,0,0],K4=[0,0,0,0],I4=[0,0,0,0];
     for(let py=0;py<T;py++){const v=(oy+(py+.5)/f-pad)/2-.5;let j0=Math.floor(v);const fy=v-j0;const ja=clamp(j0,0,SH-1),jb=clamp(j0+1,0,SH-1);
@@ -260,18 +336,22 @@ function m6TileMake(t){const T=M6T.T,f=t.f,span=T/f,ox=t.tx*span,oy=t.ty*span;co
         const i0=Math.floor(u),fx=u-i0,ia=clamp(i0,0,SW-1),ib=clamp(i0+1,0,SW-1);I4[0]=ja*SW+ia;I4[1]=ja*SW+ib;I4[2]=jb*SW+ia;I4[3]=jb*SW+ib;W4[0]=(1-fx)*(1-fy);W4[1]=fx*(1-fy);W4[2]=(1-fx)*fy;W4[3]=fx*fy;
         for(let n=0;n<4;n++)K4[n]=cls[I4[n]];let best=K4[0],bw=-1;for(let n=0;n<4;n++){let w=0;for(let m=0;m<4;m++)if(K4[m]===K4[n])w+=W4[m];if(w>bw){bw=w;best=K4[n];}}
         let r=0,gg=0,bb=0,ws=0;for(let n=0;n<4;n++){if(K4[n]!==best)continue;const q=I4[n]*3,w=W4[n]+1e-4;r+=col[q]*w;gg+=col[q+1]*w;bb+=col[q+2]*w;ws+=w;}
-        d[o]=r/ws;d[o+1]=gg/ws;d[o+2]=bb/ws;d[o+3]=255;}}
-    g.putImageData(id,0,0);}
+        d[o]=r/ws;d[o+1]=gg/ws;d[o+2]=bb/ws;d[o+3]=255;}
+      if((py&3)===3)yield;}
+    g.putImageData(id,0,0);yield;}
   // the roads, sharp at this size
   const s=MAPX.s;g.save();g.setTransform(f,0,0,f,-ox*f,-oy*f);g.lineCap='round';const RL=M6.roads||(M6.roads=m6RoadList().list);
   for(const pass of [0,1])for(const [x0,z0,x1,z1,w] of RL){const X0=m6BX(x0),Y0=m6BY(z0),X1=m6BX(x1),Y1=m6BY(z1);if(Math.max(X0,X1)<ox-20||Math.min(X0,X1)>ox+span+20||Math.max(Y0,Y1)<oy-20||Math.min(Y0,Y1)>oy+span+20)continue;
-    g.beginPath();g.moveTo(X0,Y0);g.lineTo(X1,Y1);g.strokeStyle=pass?'#e8d4a4':'#5a3a20';g.lineWidth=pass?w*s*.9:w*s*.9+3/f*2;g.stroke();}g.restore();
+    g.beginPath();g.moveTo(X0,Y0);g.lineTo(X1,Y1);g.strokeStyle=pass?'#e8d4a4':'#5a3a20';g.lineWidth=pass?w*s*.9:w*s*.9+3/f*2;g.stroke();}g.restore();yield;
   // what stands there (and what stands close enough to lean in), back to front
   const idx=m6OIdx(),L=M6.olist,c0=Math.floor(ox/48)-2,c1=Math.floor((ox+span)/48)+2,r0=Math.floor(oy/48)-1,r1=Math.floor((oy+span)/48)+4,ids=[];
   for(let cy=r0;cy<=r1;cy++)for(let cx=c0;cx<=c1;cx++){const a=idx.get(cx+','+cy);if(a)for(const i of a)ids.push(i);}ids.sort((a,b)=>a-b);
-  for(const i of ids)m6DrawObj(g,L[i],f,ox,oy);
+  let n=0;for(const i of ids){m6DrawObj(g,L[i],f,ox,oy);if((++n%4)===0)yield;}
   t.c=c;t.done=true;}
-function m6TilesWork(b){const t0=performance.now();let n=0;while(M6T.q.length&&performance.now()-t0<b){const t=M6T.q.shift();if(t.done||!M6.smp)continue;try{m6TileMake(t);}catch(e){t.done=true;}n++;}
+function m6TileMake(t){for(const _ of m6TileGen(t)){}}
+function m6TilesWork(b){const t0=performance.now();let n=0;
+  while(performance.now()-t0<b){let t=M6T.cur;if(!t||t.done||!t.vis){if(t&&!t.done)t.gen=null;t=null;while(M6T.q.length){const q=M6T.q.shift();if(!q.done&&M6.smp){t=q;break;}}if(!t){M6T.cur=null;break;}M6T.cur=t;}
+    try{if(!t.gen)t.gen=m6TileGen(t);const r=t.gen.next();if(r.done){t.gen=null;M6T.cur=null;n++;}}catch(e){t.done=true;t.gen=null;M6T.cur=null;}}
   if(M6T.map.size>60){const keys=[...M6T.map.keys()];for(const k of keys.slice(0,M6T.map.size-60)){const t=M6T.map.get(k);if(t&&!t.vis)M6T.map.delete(k);}}return n;}
 
 // ================================================================ 2. the pixel pictures: icons, arrows, the people's heads
@@ -331,6 +411,28 @@ const M6ARR_C={};
 function m6Arr(dir,n,col){const key=dir+n+col;if(M6ARR_C[key])return M6ARR_C[key];const G=m6ArrGrid(dir);const c=document.createElement('canvas');c.width=11*n;c.height=11*n;const g=c.getContext('2d');
   const C=col==='blue'?{R:'#3a8ad8',w:'#c8e4f8'}:col==='ghost'?{R:'#3a3a40',w:'#6a6a72'}:{R:'#d8382a',w:'#ffd0b8'};
   for(let y=0;y<11;y++)for(let x=0;x<11;x++){const ch=G[y][x];if(ch==='.')continue;g.fillStyle=ch==='k'?'#24140a':C[ch]||C.R;g.fillRect(x*n,y*n,n,n);}return M6ARR_C[key]=c;}
+// you, loud: your arrow (or the door you're behind) half as big again as any sign, a cream edge round it and a dark shadow under,
+// and a soft ring that swells from it every second and a half (in steps, like everything else on the paper)
+const M6YOU_C={};
+function m6YouMark(G,col,n){const key=G.join('')+n;if(M6YOU_C[key])return M6YOU_C[key];const N=G.length,P=2,D=N+P*2;const at=(x,y)=>{x-=P;y-=P;return x>=0&&y>=0&&x<N&&y<N&&G[y][x]!=='.'?G[y][x]:null;};
+  const c=document.createElement('canvas');c.width=c.height=D*n;const g=c.getContext('2d');
+  for(let y=0;y<D;y++)for(let x=0;x<D;x++){if(at(x,y))continue;let edge=false;for(let a=-1;a<=1&&!edge;a++)for(let b=-1;b<=1;b++)if(at(x+a,y+b)){edge=true;break;}
+    if(edge){g.fillStyle='#fbeed0';g.fillRect(x*n,y*n,n,n);}}
+  // the shadow, a step down and right of the cream, under it
+  const sh=document.createElement('canvas');sh.width=sh.height=D*n;const sg=sh.getContext('2d');sg.drawImage(c,0,0);for(let y=0;y<D;y++)for(let x=0;x<D;x++)if(at(x,y)){sg.fillStyle='#000';sg.fillRect(x*n,y*n,n,n);}
+  sg.globalCompositeOperation='source-in';sg.fillStyle='rgba(16,8,2,.55)';sg.fillRect(0,0,D*n,D*n);
+  const out=document.createElement('canvas');out.width=out.height=(D+1)*n;const o=out.getContext('2d');o.drawImage(sh,n,n);o.drawImage(c,0,0);
+  for(let y=0;y<D;y++)for(let x=0;x<D;x++){const ch=at(x,y);if(!ch)continue;o.fillStyle=col(ch);o.fillRect(x*n,y*n,n,n);}
+  return M6YOU_C[key]=out;}
+const M6RING_C={};
+function m6Ring(R,u,col){const key=R+'|'+u+'|'+col;if(M6RING_C[key])return M6RING_C[key];const D=R*2+5,c=document.createElement('canvas');c.width=c.height=D*u;const g=c.getContext('2d');
+  for(let y=0;y<D;y++)for(let x=0;x<D;x++){const d=Math.hypot(x+.5-D/2,y+.5-D/2);if(Math.abs(d-R)<.5){g.fillStyle=col;g.fillRect(x*u,y*u,u,u);}else if(Math.abs(d-R)<1.5){g.fillStyle='#2a1608';g.fillRect(x*u,y*u,u,u);}}
+  return M6RING_C[key]=c;}
+const m6YouN=sc=>Math.max(3,Math.round(sc.ic*1.5));
+const M6RSTEP=[1,1.12,1.24,1.36,1.48];
+function m6RingMax(sc){const n=m6YouN(sc),u=Math.max(1,n>>1);return (Math.round((7.5*n/u)*M6RSTEP[4])+2)*u*2;}
+function m6YouArrow(dir,n){return m6YouMark(m6ArrGrid(dir),ch=>ch==='k'?'#24140a':ch==='w'?'#ffe6cc':'#ee3a22',n);}
+function m6YouDoor(n){return m6YouMark(M6ICON.door,ch=>M6PAL[ch]||'#24140a',n);}
 const m6Dir8=(fx,fz)=>{const a=Math.atan2(fz,fx);const i=((Math.round(a/(Math.PI/4))%8)+8)%8;return ['E','SE','S','SW','W','NW','N','NE'][i];};
 // a person's head, cut from their own sprite (facing you), on a paper disc
 const M6HEAD_C={};
@@ -375,8 +477,17 @@ function m6Places(){const L=[];const seen=new Set();try{mapPlacesLive();}catch(e
   try{for(const [k,h] of Object.entries(HOMES)){if(!h.door||k==='farm')continue;const [x,z]=h.door;if(L.some(p=>p.t==='place'&&Math.hypot(p.x-x,p.z-z)<5))continue;
     add({id:'h:'+k,t:'home',name:h.name.replace(/^the /,'The '),x,z:z-1.4,icon:'house',sub:'A home',home:k,pri:300,minK:1.5});}}catch(e){}
   // regions: their names, and whether you've found them
-  for(const [n,x,z] of REGIONS){const rk=m6RegionKey(n);add({id:'r:'+n,t:'region',name:n,x,z,pri:250,minK:0,maxK:3.2,rk});}
+  // (a region named like a place stands in for it, as important as that place)
+  const pn=new Map(MAP_PLACES.map(q=>[String(q[0]).toLowerCase().replace(/^the /,''),q[0]]));
+  for(const [n,x,z] of REGIONS){const rk=m6RegionKey(n);const pl=pn.get(n.toLowerCase().replace(/^the /,''));const K=pl&&M6KIND[pl];add({id:'r:'+n,t:'region',name:n,x,z,pri:K?Math.max(250,(M6PRI[K[0]]||250)-10):250,minK:0,maxK:3.2,rk});}
+  m6RegAnchors().forEach(([n,x,z],i)=>add({id:'r:'+n+'#'+i,t:'region',name:n,x,z,pri:240,minK:.5,maxK:3.2,rk:m6RegionKey(n)}));
   return L;}
+function m6RegAnchors(){if(typeof REGS==='undefined'||typeof rgWeights!=='function')return [];const key=REGS.length+'|'+B.x0+'|'+B.z0;if(M6.rax&&M6.rax.key===key)return M6.rax.L;
+  const C=110,acc=new Map(),tmp=[];for(let z=B.z0;z<B.z1;z+=6)for(let x=B.x0;x<Math.min(B.x1,250);x+=6){try{rgWeights(x,z,tmp);}catch(e){continue;}for(let k=0;k<tmp.length;k++){if(!(tmp[k]>=.6))continue;
+      const q=k+'|'+Math.floor(x/C)+'|'+Math.floor(z/C);let a=acc.get(q);if(!a)acc.set(q,a={k,n:0,x:0,z:0});a.n++;a.x+=x;a.z+=z;}}
+  const L=[];for(const a of acc.values()){if(a.n<110)continue;const nm=REGS[a.k].name,R=REGIONS.find(r=>r[0].toLowerCase()===nm.toLowerCase());if(!R)continue;const x=a.x/a.n,z=a.z/a.n;
+    if(Math.hypot(x-R[1],z-R[2])<70||L.some(q=>q[0]===R[0]&&Math.hypot(q[1]-x,q[2]-z)<80))continue;L.push([R[0],x,z]);}
+  M6.rax={key,L};return L;}
 function m6RegionKey(n){try{if(typeof REGS==='undefined')return null;const nn=n.toLowerCase();const r=REGS.find(q=>q.name.toLowerCase()===nn||q.name.toLowerCase().replace(/^the /,'')===nn.replace(/^the /,''));return r?r.k:null;}catch(e){return null;}}
 const m6Found=k=>!!(k&&S.rg&&S.rg.seen&&S.rg.seen[k]);
 // the people who live at a home, and who work at a place
@@ -416,71 +527,123 @@ function m6Pins(){if(!M6L.pins)return [];try{return mmMarks().map(m=>({id:'k:'+m
 // ================================================================ 4. drawing it
 const M6F='"Hollow Pixel",ui-monospace,monospace';
 // sizes in device pixels: icons and type at whole-number scales of their own pixel grids
-function m6Scale(){const d=M6.dpr,far=M6.v.k<.5;return {ic:Math.max(2,Math.round(d*1.7)),tx:d<1.5?13:Math.round(d*1.4)*10,hd:Math.max(1,Math.round(d*1.1)),rg:far?(d<1.5?10:Math.round(d*1.2)*10):(d<1.5?20:Math.round(d*2)*10)};}
+function m6Scale(kk){const d=M6.dpr,far=(kk||M6.v.k)<.5;return {ic:Math.max(2,Math.round(d*1.7)),tx:d<1.5?13:Math.round(d*1.4)*10,hd:Math.max(1,Math.round(d*1.1)),rg:far?(d<1.5?10:Math.round(d*1.2)*10):(d<1.5?20:Math.round(d*2)*10)};}
 const M6TAG_C={};
 // a name on a paper tag in one dark ink; regions in spaced capitals with a paper halo; faded for a place not yet found
 function m6Tag(text,kind,fs,faint){const key=kind+'|'+fs+'|'+(faint?1:0)+'|'+text;if(M6TAG_C[key])return M6TAG_C[key];const c=document.createElement('canvas'),g=c.getContext('2d');
   const n=Math.max(1,Math.round(fs/10));g.font=`${fs}px ${M6F}`;const sp=kind==='region'?n:0;const tw=Math.ceil(g.measureText(text).width+sp*Math.max(0,text.length-1));
-  if(kind==='region'){const h=Math.round(fs*1.1)+2*n;c.width=tw+4*n;c.height=h;g.font=`${fs}px ${M6F}`;g.textBaseline='top';const ink=faint?'rgba(58,34,16,.55)':'#3a2210',halo=faint?'rgba(236,220,178,.55)':'#ecdcb2';
-    const draw=(dx,dy,col)=>{g.fillStyle=col;let x=2*n+dx;for(const ch of text){g.fillText(ch,x,n+dy);x+=g.measureText(ch).width+sp;}};
+  if(kind==='region'){const h=Math.round(fs*1.1)+4*n;c.width=tw+6*n;c.height=h;g.font=`${fs}px ${M6F}`;g.textBaseline='top';const ink=faint?'rgba(58,34,16,.55)':'#3a2210',halo=faint?'rgba(236,220,178,.55)':'#ecdcb2';
+    const draw=(dx,dy,col)=>{g.fillStyle=col;let x=3*n+dx;for(const ch of text){g.fillText(ch,x,2*n+dy);x+=g.measureText(ch).width+sp;}};
+    if(!faint){const hc=document.createElement('canvas');hc.width=c.width;hc.height=c.height;const hg=hc.getContext('2d');hg.font=g.font;hg.textBaseline='top';
+      for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){if(Math.abs(dx)+Math.abs(dy)>3)continue;hg.fillStyle='#ecdcb2';let x=3*n+dx*n;for(const ch of text){hg.fillText(ch,x,2*n+dy*n);x+=hg.measureText(ch).width+sp;}}
+      g.globalAlpha=.5;g.drawImage(hc,0,0);g.globalAlpha=1;}
     for(const [dx,dy] of [[-n,0],[n,0],[0,-n],[0,n]])draw(dx,dy,halo);draw(0,0,ink);}
   else{const bw=Math.max(1,Math.round(n/2)),h=fs+3*n;c.width=tw+4*n+bw*2;c.height=h+bw*2;g.fillStyle='#3a2210';g.fillRect(0,0,c.width,c.height);g.fillStyle=kind==='pin'?'#f0dcf0':kind==='me'?'#f8e0d0':'#ecdcb2';
     g.fillRect(bw,bw,c.width-bw*2,c.height-bw*2);g.fillStyle='rgba(255,250,235,.5)';g.fillRect(bw,bw,c.width-bw*2,Math.max(1,Math.round(n/2)));g.font=`${fs}px ${M6F}`;g.textBaseline='top';g.fillStyle='#2a1608';g.fillText(text,bw+2*n,bw+Math.round(n*1.5));}
   return M6TAG_C[key]=c;}
 // the view: base pixels at the middle of the window, and CSS pixels per base pixel
 function m6KMin(){const B0=M6.base||M6.quick;return B0?Math.min(M6.cw/B0.width,M6.ch/B0.height):.2;}
-const M6KMAX=4;
+// the closest zoom: the finer paper (made ahead, twice the detail) enlarged at most four times, pixel for pixel; until it's made,
+// the paper itself at most twice (so nothing ever sharpens in front of you)
+function m6KMax(){const dp=M6.dpr||1;return Math.max(m6KMin(),Math.min(4,(M6FN.ok?8:2)/dp));}
 function m6Clamp(){const B0=M6.base||M6.quick;if(!B0)return;const v=M6.v,hw=M6.cw/2/v.k,hh=M6.ch/2/v.k;
   if(B0.width<=hw*2){v.x=B0.width/2;M6.vel[0]=0;}else{const x=clamp(v.x,hw,B0.width-hw);if(x!==v.x)M6.vel[0]=0;v.x=x;}
   if(B0.height<=hh*2){v.y=B0.height/2;M6.vel[1]=0;}else{const y=clamp(v.y,hh,B0.height-hh);if(y!==v.y)M6.vel[1]=0;v.y=y;}}
 const m6SX=bx=>(bx-M6.v.x)*M6.v.k+M6.cw/2,m6SY=by=>(by-M6.v.y)*M6.v.k+M6.ch/2;
 // zoom round a point of the window (eased)
-function m6ZoomAt(ax,ay,f){const v=M6.v,k1=clamp((M6.z?M6.z.k1:v.k)*f,m6KMin(),M6KMAX);M6.z={k1,ax,ay,wx:v.x+(ax-M6.cw/2)/v.k,wy:v.y+(ay-M6.ch/2)/v.k};M6.vel=[0,0];MAPX.zoom=k1;m6Kick();}
-function m6CenterOn(x,z,k){const v=M6.v;if(k)v.k=clamp(k,m6KMin(),M6KMAX);v.x=m6BX(x);v.y=m6BY(z);M6.z=null;M6.vel=[0,0];m6Clamp();MAPX.zoom=v.k;M6.dirty=true;}
-// declutter: each thing in order of importance takes its spot if nothing is there; a name tries the four sides of its icon
-function m6Layout(items,S0){const k=M6.v.k,placed=[];const hit=r=>{for(const q of placed)if(r.x0<q.x1&&r.x1>q.x0&&r.y0<q.y1&&r.y1>q.y0)return true;return false;};
-  const res=new Map();const dp=M6.dpr;
-  for(const it of items){if(k<(it.minK||0)||(it.maxK&&k>it.maxK))continue;let X=m6BX(it.x)*k,Y=m6BY(it.z)*k;
-    const tag=it.tag;const tw=tag?tag.width/dp:0,th=tag?tag.height/dp:0;
-    if(it.t==='region'){const cands=[[0,0],[0,-th*.9],[0,th*.9],[tw*.2,0],[-tw*.2,0]];let ok=null;for(const [dx,dy] of cands){const r={x0:X+dx-tw/2,y0:Y+dy-th/2,x1:X+dx+tw/2,y1:Y+dy+th/2};if(!hit(r)){ok=r;break;}}
-      if(ok){placed.push(ok);res.set(it.id,{tx:ok.x0,ty:ok.y0});}continue;}
-    const is=(it.isz||S0)/dp;let ox=0,oy=0,ir={x0:X-is/2-1,y0:Y-is/2-1,x1:X+is/2+1,y1:Y+is/2+1};
+function m6ZoomAt(ax,ay,f){const v=M6.v,k1=clamp((M6.z?M6.z.k1:v.k)*f,m6KMin(),m6KMax());M6.z={k1,ax,ay,wx:v.x+(ax-M6.cw/2)/v.k,wy:v.y+(ay-M6.ch/2)/v.k};M6.vel=[0,0];MAPX.zoom=k1;m6Kick();}
+function m6CenterOn(x,z,k){const v=M6.v;if(k)v.k=clamp(k,m6KMin(),m6KMax());v.x=m6BX(x);v.y=m6BY(z);M6.z=null;M6.vel=[0,0];m6Clamp();MAPX.zoom=v.k;M6.dirty=true;}
+// where the roads are, on a grid of 4 paper pixels, summed so any box asks how much road it covers at once
+function m6RoadSum(){const W0=(M6.base||M6.quick||{}).width,H0=(M6.base||M6.quick||{}).height;if(!W0||typeof ROADS==='undefined')return null;const key=ROADS.length+'|'+W0+'|'+H0;if(M6.rs&&M6.rs.key===key)return M6.rs;
+  const C=4,W=Math.ceil(W0/C),H=Math.ceil(H0/C),a=new Uint8Array(W*H),s=MAPX.s;
+  for(const [x0,z0,x1,z1,w] of ROADS){const X0=m6BX(x0),Y0=m6BY(z0),X1=m6BX(x1),Y1=m6BY(z1),r=(w*s*.9)/2+1,L=Math.hypot(X1-X0,Y1-Y0),n=Math.max(1,Math.ceil(L/2));
+    for(let i=0;i<=n;i++){const x=X0+(X1-X0)*i/n,y=Y0+(Y1-Y0)*i/n;for(let cy=Math.floor((y-r)/C);cy<=Math.floor((y+r)/C);cy++)for(let cx=Math.floor((x-r)/C);cx<=Math.floor((x+r)/C);cx++){
+      if(cx<0||cy<0||cx>=W||cy>=H)continue;const dx=clamp(x,cx*C,cx*C+C)-x,dy=clamp(y,cy*C,cy*C+C)-y;if(dx*dx+dy*dy<=r*r)a[cy*W+cx]=1;}}}
+  const S2=new Int32Array((W+1)*(H+1));for(let y=0;y<H;y++){let row=0;for(let x=0;x<W;x++){row+=a[y*W+x];S2[(y+1)*(W+1)+x+1]=S2[y*(W+1)+x+1]+row;}}
+  return M6.rs={key,C,W,H,S:S2};}
+// how much of a box (in the layout's pixels at zoom k) lies on a road, 0 to 1
+function m6OnRoad(R,r,k){if(!R)return 0;const C=R.C*k,x0=clamp(Math.floor(r.x0/C),0,R.W),x1=clamp(Math.ceil(r.x1/C),0,R.W),y0=clamp(Math.floor(r.y0/C),0,R.H),y1=clamp(Math.ceil(r.y1/C),0,R.H);
+  const n=(x1-x0)*(y1-y0);if(n<=0)return 0;const W1=R.W+1,S2=R.S;return (S2[y1*W1+x1]-S2[y0*W1+x1]-S2[y1*W1+x0]+S2[y0*W1+x0])/n;}
+// declutter: each thing in order of importance takes its spot if nothing is there; a name tries the spots round its icon and
+// takes the one that covers the least road (a little further out, on a short line, if every near spot is on one); region
+// names keep a clear gap from everything else
+function m6Layout(items,S0,kk){const k=kk||M6.v.k,placed=[];const ov=(r,q,gp)=>r.x0-gp<q.x1&&r.x1+gp>q.x0&&r.y0-gp<q.y1&&r.y1+gp>q.y0;
+  const hit=r=>{for(const q of placed)if(!q.dead&&!q.ring&&ov(r,q,0))return true;return false;};
+  const res=new Map();const dp=M6.dpr;const RS=m6RoadSum();const lab=new Map(),leads=[];const nmz=it=>String(it.t==='mile'?it.m.name:it.name||'').toLowerCase().replace(/^the /,'').replace(/ milestone$/,'');const named=new Set(),namedL=new Set();
+  // the signs
+  for(const it of items){if(k<(it.minK||0)||(it.maxK&&k>it.maxK))continue;if(it.t==='region')continue;const X=m6BX(it.x)*k,Y=m6BY(it.z)*k;
+    const is=(it.isz||S0)/dp;let ox=0,oy=0,ir={x0:X-is/2-1,y0:Y-is/2-1,x1:X+is/2+1,y1:Y+is/2+1,it,pri:it.pri||0,must:!!it.must};
     // a person inside a shop stands beside its sign rather than vanish under it
     if(hit(ir)&&!it.must){if(it.t!=='folk')continue;let ok=false;for(const [dx,dy] of [[is+2,0],[-is-2,0],[0,is+2],[0,-is-2],[is+2,is+2],[-is-2,is+2],[is+2,-is-2],[-is-2,-is-2],[2*is+4,0],[-2*is-4,0]]){
-        const r={x0:ir.x0+dx,y0:ir.y0+dy,x1:ir.x1+dx,y1:ir.y1+dy};if(!hit(r)){ir=r;ox=dx;oy=dy;ok=true;break;}}if(!ok)continue;}
-    placed.push(ir);const out={ox,oy};X+=ox;Y+=oy;
-    if(tag&&!(it.t==='folk'&&k<2.2)&&!it.noLabel){const g=3;const cands=[[X+is/2+g,Y-th/2],[X-is/2-g-tw,Y-th/2],[X-tw/2,Y+is/2+g],[X-tw/2,Y-is/2-g-th]];
-      for(const [tx,ty] of cands){const r={x0:tx,y0:ty,x1:tx+tw,y1:ty+th};if(!hit(r)){placed.push(r);out.tx=tx-X;out.ty=ty-Y;break;}}}
-    res.set(it.id,out);}
+        const r={x0:ir.x0+dx,y0:ir.y0+dy,x1:ir.x1+dx,y1:ir.y1+dy,it,pri:it.pri||0};if(!hit(r)){ir=r;ox=dx;oy=dy;ok=true;break;}}if(!ok)continue;}
+    placed.push(ir);if(it.ring){const R=it.ring/dp/2;placed.push({x0:X-R,y0:Y-R,x1:X+R,y1:Y+R,ring:1,l:1,it});}const out={ox,oy};res.set(it.id,out);if(it.tag&&!(it.t==='folk'&&k<2.2)&&!it.noLabel)lab.set(it.id,[X+ox,Y+oy,is,out,ir]);}
+  // the names, by importance: the spot round its sign that covers the least road (further out on a short line if every near
+  // spot is on one); a name may push out a sign far less important than it rather than go missing
+  for(const it of items){if(it.t==='region'){if(k<(it.minK||0)||(it.maxK&&k>it.maxK))continue;if(namedL.has(nmz(it)))continue;
+      const X=m6BX(it.x)*k,Y=m6BY(it.z)*k,tw=it.tag.width/dp,th=it.tag.height/dp,G=8;
+      const cands=[[0,0,0],[0,-th,1],[0,th,1],[-tw*.25,0,1],[tw*.25,0,1],[0,-th*1.8,2],[0,th*1.8,2],[-tw*.3,-th,2],[tw*.3,-th,2],[-tw*.3,th,2],[tw*.3,th,2],[-tw*.5,0,2],[tw*.5,0,2],[0,-th*2.6,3],[0,th*2.6,3]];let ok=null,best=1e9;
+      for(const [dx,dy,d] of cands){const r={x0:X+dx-tw/2-G,y0:Y+dy-th/2-G,x1:X+dx+tw/2+G,y1:Y+dy+th/2+G,l:1};if(placed.some(q=>!q.dead&&ov(r,q,q.l?0:-G+3)))continue;
+        const sc=m6OnRoad(RS,{x0:r.x0+G+th*.25,y0:r.y0+G+th*.25,x1:r.x1-G-th*.25,y1:r.y1-G-th*.25},k)*100+d*7;if(sc<best){best=sc;ok=r;}}
+      if(ok){ok.reg=1;placed.push(ok);res.set(it.id,{tx:ok.x0+G-X,ty:ok.y0+G-Y});named.add(nmz(it));}continue;}
+    const L=lab.get(it.id);if(!L||L[4].dead)continue;if(it.t!=='you'&&named.has(nmz(it)))continue;const [X,Y,is,out]=L;const tw=it.tag.width/dp,th=it.tag.height/dp,g=3,h=is/2,D=h+th*1.1+8;
+    const cands=[[X+h+g,Y-th/2,0],[X-h-g-tw,Y-th/2,1],[X-tw/2,Y+h+g,2],[X-tw/2,Y-h-g-th,3],[X+h+g,Y-th-1,4],[X+h+g,Y+1,5],[X-h-g-tw,Y-th-1,6],[X-h-g-tw,Y+1,7],
+      [X-h,Y-h-g-th,8],[X+h-tw,Y-h-g-th,8],[X-h,Y+h+g,8],[X+h-tw,Y+h+g,8],
+      [X-tw/2,Y-D-th/2,9],[X-tw/2,Y+D-th/2,9],[X+D,Y-th/2,10],[X-D-tw,Y-th/2,10],[X+h+8,Y-D-th/2,11],[X+h+8,Y+D-th/2,11],[X-h-8-tw,Y-D-th/2,11],[X-h-8-tw,Y+D-th/2,11],
+      [X-tw/2,Y-D*1.7-th/2,12],[X-tw/2,Y+D*1.7-th/2,12],[X+h+14,Y-D*1.5-th/2,13],[X+h+14,Y+D*1.5-th/2,13],[X-h-14-tw,Y-D*1.5-th/2,13],[X-h-14-tw,Y+D*1.5-th/2,13]];
+    let ok=null,best=1e9;
+    for(const pushing of [false,true]){for(const [tx,ty,o] of cands){const r={x0:tx,y0:ty,x1:tx+tw,y1:ty+th,l:1};let push=null;
+        for(const q of placed){if(q.dead||!ov(r,q,q.reg?0:q.l?6:2))continue;if(!pushing||q.l||q.must||q.it===it||(q.pri||0)>(it.pri||0)-150){push=false;break;}(push||(push=[])).push(q);}
+        if(push===false||(push&&!pushing))continue;
+        // no name over a line already drawn to another name
+        if(leads.some(S2=>{const Ln=Math.hypot(S2[2]-S2[0],S2[3]-S2[1]);for(let d=0;d<=Ln;d+=3){const px=S2[0]+(S2[2]-S2[0])*d/Ln,py=S2[1]+(S2[3]-S2[1])*d/Ln;if(px>r.x0-2&&px<r.x1+2&&py>r.y0-2&&py<r.y1+2)return true;}return false;}))continue;
+        // a name on a line: the line mustn't cross another line, or run under another name
+        if(o>8){const ex=clamp(X,r.x0,r.x1),ey=clamp(Y,r.y0,r.y1),Ln=Math.hypot(ex-X,ey-Y);let bad=false;
+          for(let d=h+2;d<Ln&&!bad;d+=3){const px=X+(ex-X)*d/Ln,py=Y+(ey-Y)*d/Ln;for(const q of placed)if(!q.dead&&q.l&&px>q.x0&&px<q.x1&&py>q.y0&&py<q.y1){bad=true;break;}}
+          if(!bad)for(const S2 of leads){const d1=(S2[2]-S2[0])*(Y-S2[1])-(S2[3]-S2[1])*(X-S2[0]),d2=(S2[2]-S2[0])*(ey-S2[1])-(S2[3]-S2[1])*(ex-S2[0]),d3=(ex-X)*(S2[1]-Y)-(ey-Y)*(S2[0]-X),d4=(ex-X)*(S2[3]-Y)-(ey-Y)*(S2[2]-X);
+            if(d1*d2<0&&d3*d4<0){bad=true;break;}}
+          if(bad)continue;}const sc=m6OnRoad(RS,r,k)*160+(o>8?18+(o-9)*2.5:o*.7)+(push?push.length*20:0);if(sc<best){best=sc;ok=[r,o>8,push];}if(sc<1)break;}
+      if(ok)break;}
+    if(ok){const [r,lead,push]=ok;if(push)for(const q of push){q.dead=true;res.delete(q.it.id);}placed.push(r);out.tx=r.x0-X;out.ty=r.y0-Y;if(lead){out.lead=1;leads.push([X,Y,clamp(X,r.x0,r.x1),clamp(Y,r.y0,r.y1)]);}named.add(nmz(it));namedL.add(nmz(it));}}
   return res;}
 // everything that gets a spot this frame, in order of importance
-function m6Items(sc){const key=M6.ver+'|'+sc.ic+'|'+sc.tx+'|'+sc.rg+'|'+M6.dpr;if(M6.itemsKey===key&&M6.items)return M6.items;const L=[];const add=o=>L.push(o);const isz=11*sc.ic;
-  const y=m6You();if(M6L.you)add({id:'you',t:'you',x:y.x,z:y.z,pri:2000,must:1,isz,tag:y.inside?m6Tag('In: '+y.inside,'me',sc.tx):null});
-  const goal=m6Goal();if(goal)add({id:'goal',t:'goal',x:goal.x,z:goal.z,icon:'star',pri:1500,must:1,isz,tag:m6Tag(goal.title,'place',sc.tx),goal});
-  for(const p of m6Pins())add(Object.assign(p,{pri:1200,isz,tag:m6Tag(p.name,'pin',sc.tx)}));
+// the zoom's steps (each a quarter closer): the names are placed once per step, for the step's own zoom
+const M6ZS=Math.log(1.25),m6Step=k=>Math.round(Math.log(k)/M6ZS),m6StepK=s=>Math.exp(s*M6ZS);
+function m6LaySig(items,sc){return (items.ids||'')+'|'+sc.ic+'|'+sc.tx+'|'+sc.rg+'|'+M6.dpr+'|'+M6L.found;}
+function m6LayFor(items,sc,st,ahead){const sig=m6LaySig(items,sc);let e=M6.lays.get(st);if(e&&e.sig===sig)return e.lay;if(ahead===false)return null;
+  if(!ahead)M6.layMiss=(M6.layMiss||0)+1;const lay=m6Layout(items,11*sc.ic,m6StepK(st));M6.lays.set(st,{sig,lay});return lay;}
+// every other step, nearest first, worked out in still moments (one per call)
+function m6LayAhead(){if(!M6.lastItems)return false;const st=m6Step(M6.v.k),lo=m6Step(m6KMin()),hi=m6Step(m6KMax());
+  for(let d=1;d<=hi-lo+1;d++)for(const s2 of [st+d,st-d]){if(s2<lo||s2>hi)continue;const sc=m6Scale(m6StepK(s2)),items=m6Items(sc),sig=m6LaySig(items,sc),e=M6.lays.get(s2);if(e&&e.sig===sig)continue;m6LayFor(items,sc,s2,true);return true;}return false;}
+function m6Items(sc){const key=M6.ver+'|'+sc.ic+'|'+sc.tx+'|'+sc.rg+'|'+M6.dpr;const IC=M6.itemsC||(M6.itemsC=new Map());const hit=IC.get(key);if(hit)return hit;if(IC.size>3)IC.clear();const L=[];const add=o=>L.push(o);const isz=11*sc.ic;
+  const y=m6You();if(M6L.you)add({id:'you',t:'you',x:y.x,z:y.z,pri:2000,must:1,isz:13*m6YouN(sc),ring:m6RingMax(sc),tag:y.inside?m6Tag('In: '+y.inside,'me',sc.tx):null});
+  const goal=m6Goal();if(goal){let nm=goal.title,bd=9;for(const [n,x,z] of MAP_PLACES){const d=Math.hypot(x-goal.x,z-goal.z);if(d<bd){bd=d;nm=n;}}
+    add({id:'goal',t:'goal',name:nm,x:goal.x,z:goal.z,icon:'star',pri:1500,must:1,isz,tag:m6Tag(nm,'place',sc.tx),goal});}
+  for(const p of m6Pins())add(Object.assign(p,{pri:1200,must:1,isz,tag:m6Tag(p.name,'pin',sc.tx)}));   // (your own pins always show, where you put them)
   for(const m of m6Miles())add(Object.assign(m,{pri:m.here?1100:560,isz,tag:m6Tag(m.m.name,'place',sc.tx),minK:m.here?0:.6}));
   const T=m6Transit();for(const s of T.stops.concat(T.stations))add(Object.assign(s,{pri:540,isz,tag:m6Tag(s.name,'place',sc.tx),minK:.6}));
   if(M6.places)for(const p of M6.places){if(p.t==='place'){if(p.shop&&!M6L.shops)continue;add(Object.assign(p,{isz,tag:m6Tag(p.name,'place',sc.tx)}));}
     else if(p.t==='home'){if(!M6L.shops)continue;add(Object.assign(p,{isz,tag:m6Tag(p.name,'place',sc.tx)}));}
     else if(p.t==='region'){const f=p.rk?m6Found(p.rk):true;add(Object.assign(p,{tag:m6Tag(p.name,'region',sc.rg,M6L.found&&!f)}));}}
   for(const f of m6Folk()){const hd=m6Head(f.id,sc.hd)||m6Ic('head',sc.ic);add({id:'f:'+f.id,t:'folk',name:f.name,x:f.x,z:f.z,f,head:hd,isz:hd.width,pri:f.where==='here now'?380:330,minK:.9,tag:m6Tag(f.name.split(' ')[0],'place',sc.tx)});}
-  L.sort((a,b)=>b.pri-a.pri);M6.itemsKey=key;M6.items=L;return L;}
+  for(const it of L){const m=it.t==='place'&&/^(.+) Road$/.exec(it.name||'');if(!m)continue;const st=m[1].toLowerCase();it.stemOf=L.filter(o=>o!==it&&o.t!=='region'&&String(o.t==='mile'?o.m.name:o.name||'').toLowerCase().startsWith(st));if(!it.stemOf.length)it.stemOf=null;}
+  L.sort((a,b)=>b.pri-a.pri);L.ids=L.map(i=>i.id).join(',');IC.set(key,L);return L;}
 function m6Draw(){const cv=M6.cv;if(!cv||!cv.isConnected)return;const g=M6.g,dp=M6.dpr,W=cv.width,H=cv.height;const v=M6.v,k=v.k;M6.dirty=false;
   g.setTransform(1,0,0,1,0,0);g.fillStyle='#2a1a0c';g.fillRect(0,0,W,H);const PAPER=M6.base||M6.quick;if(!PAPER)return;
   // the paper, by transform (crisp when it's enlarged a little, smooth when reduced or enlarged a lot); snapped to whole device pixels
-  const sk=k*dp,tx=Math.round(dp*(M6.cw/2-v.x*k)),ty=Math.round(dp*(M6.ch/2-v.y*k));g.imageSmoothingEnabled=sk<1||sk>=3;g.imageSmoothingQuality='high';g.setTransform(sk,0,0,sk,tx,ty);g.drawImage(PAPER,0,0);
-  // close up: the sharp tiles over it, each as soon as it's made (the smooth paper shows until then)
-  const lv=M6.base?m6TileLevel():0;if(lv){const T=M6T.T,span=T/lv,x0=v.x-M6.cw/2/k,y0=v.y-M6.ch/2/k,x1=v.x+M6.cw/2/k,y1=v.y+M6.ch/2/k;
-    for(const t of M6T.map.values())t.vis=false;const want=[];
-    for(let ty2=Math.floor(y0/span);ty2<=Math.floor(y1/span);ty2++)for(let tx2=Math.floor(x0/span);tx2<=Math.floor(x1/span);tx2++){if(tx2<0||ty2<0||tx2*span>PAPER.width||ty2*span>PAPER.height)continue;
-      const key=lv+'|'+tx2+'|'+ty2;let t=M6T.map.get(key);if(!t){t={f:lv,tx:tx2,ty:ty2,done:false};M6T.map.set(key,t);}else{M6T.map.delete(key);M6T.map.set(key,t);}t.vis=true;
-      if(t.done){g.imageSmoothingEnabled=Math.abs(sk/lv-1)>.02;g.drawImage(t.c,tx2*span,ty2*span,span,span);}else want.push(t);}
-    const cx=v.x,cy=v.y;want.sort((a,b)=>Math.hypot((a.tx+.5)*span-cx,(a.ty+.5)*span-cy)-Math.hypot((b.tx+.5)*span-cx,(b.ty+.5)*span-cy));M6T.q=want;}else M6T.q.length=0;
+  // the paper in the window (pixel for pixel when enlarged, smoothed when reduced); past twice its size, the finer paper's tiles,
+  // all made before that zoom was allowed
+  const sk=k*dp,tx=Math.round(dp*(M6.cw/2-v.x*k)),ty=Math.round(dp*(M6.ch/2-v.y*k));const vx0=v.x-M6.cw/2/k,vy0=v.y-M6.ch/2/k,vx1=v.x+M6.cw/2/k,vy1=v.y+M6.ch/2/k;
+  g.setTransform(sk,0,0,sk,tx,ty);let fine=sk>2.001&&M6FN.ok&&PAPER===M6.base;
+  if(fine){const a0=Math.max(0,Math.floor(vx0/128)),a1=Math.min(M6FN.cols-1,Math.floor(vx1/128)),b0=Math.max(0,Math.floor(vy0/128)),b1=Math.min(M6FN.rows-1,Math.floor(vy1/128));
+    for(let b=b0;b<=b1&&fine;b++)for(let a=a0;a<=a1;a++)if(!M6FN.map.get(a+','+b)){fine=false;M6.miss=(M6.miss||0)+1;break;}
+    if(fine){g.imageSmoothingEnabled=false;for(let b=b0;b<=b1;b++)for(let a=a0;a<=a1;a++)g.drawImage(M6FN.map.get(a+','+b),a*128,b*128,128,128);}}
+  if(!fine){const sx0=Math.max(0,Math.floor(vx0)-1),sy0=Math.max(0,Math.floor(vy0)-1),sx1=Math.min(PAPER.width,Math.ceil(vx1)+1),sy1=Math.min(PAPER.height,Math.ceil(vy1)+1);
+    g.imageSmoothingEnabled=sk<1;g.imageSmoothingQuality='medium';if(sx1>sx0&&sy1>sy0)g.drawImage(PAPER,sx0,sy0,sx1-sx0,sy1-sy0,sx0,sy0,sx1-sx0,sy1-sy0);}
   // the farm as it is today: dug squares and crops
   try{const s=MAPX.s;for(const t of tiles){if(t.gh)continue;if(!t.tilled&&!t.crop)continue;const X=m6BX(t.x-.5),Y=m6BY(t.z-.5);g.fillStyle=t.crop&&t.crop.watered?'#4a2e18':'#7a5230';g.fillRect(X+.5,Y+.5,s-1,s-1);
     if(t.crop){g.fillStyle=t.crop.stage>=3?'#e8a030':'#7ac04a';g.fillRect(m6BX(t.x)-1,m6BY(t.z)-1,2,2);}}}catch(e){}
   g.setTransform(1,0,0,1,0,0);g.imageSmoothingEnabled=false;
-  const sc=m6Scale(),P2=(x,z)=>[Math.round(m6SX(m6BX(x))*dp),Math.round(m6SY(m6BY(z))*dp)];
+  const sc=m6Scale(m6StepK(m6Step(k))),P2=(x,z)=>[Math.round(m6SX(m6BX(x))*dp),Math.round(m6SY(m6BY(z))*dp)];
   // the bus and train lines
   const T=m6Transit();if(T.rails.length){for(const path of T.rails){g.fillStyle='#1a120c';let last=null;for(let i=0;i<path.length;i+=2){const [x,y]=P2(path[i].x,path[i].z);const w=Math.max(2,Math.round(dp*1.5));g.fillRect(x-w/2,y-w/2,w,w);
         if(i%16===0){const nx=-path[i].dz,nz=path[i].dx,L=Math.max(3,Math.round(3*dp*Math.min(2,k)));g.fillRect(Math.round(x-nx*L),Math.round(y-nz*L),w,w);g.fillRect(Math.round(x+nx*L),Math.round(y+nz*L),w,w);}last=[x,y];}}}
@@ -489,15 +652,18 @@ function m6Draw(){const cv=M6.cv;if(!cv||!cv.isConnected)return;const g=M6.g,dp=
       for(let i=0;i<pts.length-1;i++){const [ax,ay]=P2(pts[i][0],pts[i][1]),[bx,by]=P2(pts[i+1][0],pts[i+1][1]);const L=Math.hypot(bx-ax,by-ay);if(L<1)continue;
         for(let d=0;d<L;d+=step){const ph=Math.floor((d+acc)/(step*dash))%2;if(ph)continue;const x=Math.round(ax+(bx-ax)*d/L),y=Math.round(ay+(by-ay)*d/L);g.fillStyle='#3a2210';g.fillRect(x-w/2-1,y-w/2-1,w+2,w+2);g.fillStyle='#ffd040';g.fillRect(x-w/2,y-w/2,w,w);}}}}
   // places, regions, pins, milestones, stops: placed so nothing sits on anything else (worked out again only when the zoom changes)
-  const items=M6.lastItems=m6Items(sc);const sig=M6.ver+'|'+items.length+'|'+Math.round(Math.log(k)*120)+'|'+M6L.found+'|'+(k<2.2?0:1)+'|'+(M6.lay?0:1);
-  if(!M6.lay||M6.laySig!==sig){M6.lay=m6Layout(items,11*sc.ic);M6.laySig=sig;}
+  const items=M6.lastItems=m6Items(sc);if(!M6.lay)M6.lays.clear();const st=m6Step(k),L0=m6LayFor(items,sc,st);if(L0!==M6.lay){M6.lay=L0;}
   M6.drawn=[];const hov=M6.hover&&M6.hover.id;const uiB=(M6.uiBox||[]).map(r=>r.map(v=>v*dp)),edgeBox=uiB.slice();
-  for(let pass=0;pass<2;pass++)for(let i=items.length-1;i>=0;i--){const it=items[i];const pl=M6.lay.get(it.id);if(!pl)continue;let [x,y]=P2(it.x,it.z);if(pl.ox||pl.oy){x+=Math.round(pl.ox*dp);y+=Math.round(pl.oy*dp);}if(x<-200||y<-200||x>W+200||y>H+200)continue;
-    if(pass===0){const tw=it.tag?it.tag.width:0,th=it.tag?it.tag.height:0;
-      if(it.t==='region'){let lx=Math.round((pl.tx+M6.cw/2-v.x*k)*dp),ly=Math.round((pl.ty+M6.ch/2-v.y*k)*dp);if(x<0||y<0||x>W||y>H)continue;
-        const cx=clamp(lx,2,W-tw-2),cy=clamp(ly,2,H-th-2);if(cx!==lx||cy!==ly){const r=[cx,cy,cx+tw,cy+th];if(edgeBox.some(q=>r[0]<q[2]&&r[2]>q[0]&&r[1]<q[3]&&r[3]>q[1]))continue;lx=cx;ly=cy;}
+  for(let pass=0;pass<3;pass++)for(let i=items.length-1;i>=0;i--){const it=items[pass===1?items.length-1-i:i];const pl=M6.lay.get(it.id);if(!pl)continue;let [x,y]=P2(it.x,it.z);if(pl.ox||pl.oy){x+=Math.round(pl.ox*dp);y+=Math.round(pl.oy*dp);}if(x<-200||y<-200||x>W+200||y>H+200)continue;
+    if(pass<2){const tw=it.tag?it.tag.width:0,th=it.tag?it.tag.height:0;if((it.t==='region')!==(pass===1))continue;
+      if(it.t==='region'){let lx=x+Math.round(pl.tx*dp),ly=y+Math.round(pl.ty*dp);if(x<0||y<0||x>W||y>H)continue;
+        const cx=clamp(lx,2,W-tw-2),cy=clamp(ly,2,H-th-2);{const G=(cx!==lx||cy!==ly?8:5)*dp,r=[cx-G,cy-G,cx+tw+G,cy+th+G];if(Math.abs(cx-lx)>tw*.45||edgeBox.some(q=>r[0]<q[2]&&r[2]>q[0]&&r[1]<q[3]&&r[3]>q[1]))continue;lx=cx;ly=cy;}
         g.drawImage(it.tag,lx,ly);edgeBox.push([lx,ly,lx+tw,ly+th]);M6.drawn.push({it,box:[lx/dp,ly/dp,(lx+tw)/dp,(ly+th)/dp]});continue;}
-      if(pl.tx!=null&&it.tag&&it.t!=='you'){const lx=x+Math.round(pl.tx*dp),ly=y+Math.round(pl.ty*dp);if(lx<1||ly<1||lx+tw>W-1||ly+th>H-1)continue;if(uiB.some(q=>lx<q[2]&&lx+tw>q[0]&&ly<q[3]&&ly+th>q[1]))continue;g.drawImage(it.tag,lx,ly);edgeBox.push([lx,ly,lx+tw,ly+th]);M6.drawn.push({it,box:[lx/dp,ly/dp,(lx+tw)/dp,(ly+th)/dp]});}continue;}
+      if(pl.tx!=null&&it.tag&&it.t!=='you'){const lx=x+Math.round(pl.tx*dp),ly=y+Math.round(pl.ty*dp);if(lx<1||ly<1||lx+tw>W-1||ly+th>H-1)continue;if(uiB.some(q=>lx<q[2]&&lx+tw>q[0]&&ly<q[3]&&ly+th>q[1]))continue;
+        if(it.stemOf&&it.stemOf.some(o=>{const [ax,ay]=P2(o.x,o.z);return ax>0&&ay>0&&ax<W&&ay<H;}))continue;
+        if(pl.lead){const ex=clamp(x,lx,lx+tw),ey=clamp(y,ly,ly+th),L=Math.hypot(ex-x,ey-y),r0=(11*sc.ic)/2+2,u=Math.max(1,Math.round(dp));if(L>r0){for(let d=r0;d<L;d+=u){const px=Math.round(x+(ex-x)*d/L),py=Math.round(y+(ey-y)*d/L);g.fillStyle='#ecdcb2';g.fillRect(px-u,py-u,u*3,u*3);}
+          for(let d=r0;d<L;d+=u){const px=Math.round(x+(ex-x)*d/L),py=Math.round(y+(ey-y)*d/L);g.fillStyle='#3a2210';g.fillRect(px,py,u,u);}}}
+        g.drawImage(it.tag,lx,ly);edgeBox.push([lx,ly,lx+tw,ly+th]);M6.drawn.push({it,box:[lx/dp,ly/dp,(lx+tw)/dp,(ly+th)/dp]});}continue;}
     if(it.t==='region'||it.t==='you')continue;
     const icon=it.t==='goal'?'star':it.icon||'shop';const ic=it.head||m6Ic(icon,sc.ic,it.mk?[(MK_SIGNS[it.mk.k]||MK_SIGNS.star).c,'#3a2a4a']:null);const s=ic.width;
     if(it.t==='folk'&&it.f.where!=='here now')g.globalAlpha=.75;g.drawImage(ic,x-(s>>1),y-(s>>1));g.globalAlpha=1;
@@ -513,10 +679,9 @@ function m6Draw(){const cv=M6.cv;if(!cv||!cv.isConnected)return;const g=M6.g,dp=
   // late in the story the map knows something you don't: a second mark at the Marsh place, for a moment
   if(M6.ghost&&performance.now()<M6.ghost){const [x,y]=P2(-20,(typeof LANE_W!=='undefined'?LANE_W:40)-1);const a=m6Arr('S',sc.ic,'ghost');g.drawImage(a,x-(a.width>>1),y-(a.width>>1));}
   if(M6L.you){const y=m6You();const [x,yy]=P2(y.x,y.z);const pl=M6.lay.get('you');
-    if(y.inside){const d=m6Ic('door',sc.ic);g.drawImage(d,x-(d.width>>1),yy-(d.width>>1));if(pl&&pl.tx!=null){const t=m6Tag('In: '+y.inside,'me',sc.tx);g.drawImage(t,x+Math.round(pl.tx*dp),yy+Math.round(pl.ty*dp));}}
-    else{const a=m6Arr(m6Dir8(P.fx||0,P.fz||1),sc.ic,'red');const s=a.width;const on=Math.floor(M6.t*2)%2===0;
-      if(on){const q=sc.ic;g.fillStyle='rgba(255,210,122,.9)';g.fillRect(x-(s>>1)-q*2,yy-(s>>1)-q*2,q,q);g.fillRect(x+(s>>1)+q,yy-(s>>1)-q*2,q,q);g.fillRect(x-(s>>1)-q*2,yy+(s>>1)+q,q,q);g.fillRect(x+(s>>1)+q,yy+(s>>1)+q,q,q);}
-      g.drawImage(a,x-(s>>1),yy-(s>>1));}}
+    const n=m6YouN(sc),u=Math.max(1,n>>1),st=Math.floor(M6.t*4)%6;if(st<5){const R=Math.round((7.5*n/u)*M6RSTEP[st]),r=m6Ring(R,u,['#fff0c8','#f8e0a8','#ecc888','#d8ac6c','#c09058'][st]);g.drawImage(r,x-(r.width>>1),yy-(r.height>>1));}
+    const a=y.inside?m6YouDoor(n):m6YouArrow(m6Dir8(P.fx||0,P.fz||1),n);const s=a.width-n;g.drawImage(a,x-(s>>1),yy-(s>>1));
+    if(y.inside&&pl&&pl.tx!=null){const t=m6Tag('In: '+y.inside,'me',sc.tx);g.drawImage(t,x+Math.round(pl.tx*dp),yy+Math.round(pl.ty*dp));}}
   // the pad's cross in the middle, and the name of what's under it
   if(m6Pad()){const q=Math.max(2,Math.round(dp*1.5)),cx=Math.round(W/2),cy=Math.round(H/2),L=q*6;g.fillStyle='#1a0e06';g.fillRect(cx-L-1,cy-q,L*2+2,q*2+1);g.fillRect(cx-q,cy-L-1,q*2+1,L*2+2);g.fillStyle='#ffd27a';g.fillRect(cx-L,cy-(q>>1),L*2,q);g.fillRect(cx-(q>>1),cy-L,q,L*2);}
   if(M6.draft){const [x,y]=P2(M6.draft.x,M6.draft.z);const ic=m6Ic('pin',sc.ic,[(MK_SIGNS[M6.draft.k]||MK_SIGNS.star).c,'#3a2a4a']);g.globalAlpha=.85;g.drawImage(ic,x-(ic.width>>1),y-(ic.width>>1));g.globalAlpha=1;}
@@ -529,12 +694,14 @@ function m6Frame(now){M6.raf=0;if(!M6.on||!M6.cv||!M6.cv.isConnected){M6.on=fals
   // keys held: WASD or the arrows
   if(M6.keys.size){const sp=620/v.k;let dx=0,dy=0;for(const c of M6.keys){if(c==='KeyA'||c==='ArrowLeft')dx--;if(c==='KeyD'||c==='ArrowRight')dx++;if(c==='KeyW'||c==='ArrowUp')dy--;if(c==='KeyS'||c==='ArrowDown')dy++;}
     if(dx||dy){v.x+=dx*sp*dt;v.y+=dy*sp*dt;M6.z=null;m6Clamp();moving=true;}}
-  if(M6.padMove){const [px,py,zz]=M6.padMove;if(px||py){v.x+=px*700/v.k*dt;v.y+=py*700/v.k*dt;M6.z=null;m6Clamp();moving=true;}if(zz){const k1=clamp(v.k*Math.exp(zz*2.2*dt),m6KMin(),M6KMAX);M6.z={k1,ax:M6.cw/2,ay:M6.ch/2,wx:v.x,wy:v.y};MAPX.zoom=k1;moving=true;}}
-  const blink=Math.floor(M6.t*2)!==Math.floor((M6.t-dt)*2);const march=M6.hasGoal&&Math.floor(M6.t*8)!==Math.floor((M6.t-dt)*8);const live=M6.liveT=(M6.liveT||0)+dt;let liveTick=false;if(live>.5){M6.liveT=0;liveTick=m6HasLive();if(liveTick)M6.ver++;}
+  if(M6.padMove){const [px,py,zz]=M6.padMove;if(px||py){v.x+=px*700/v.k*dt;v.y+=py*700/v.k*dt;M6.z=null;m6Clamp();moving=true;}if(zz){const k1=clamp(v.k*Math.exp(zz*2.2*dt),m6KMin(),m6KMax());M6.z={k1,ax:M6.cw/2,ay:M6.ch/2,wx:v.x,wy:v.y};MAPX.zoom=k1;moving=true;}}
+  const blink=M6L.you&&Math.floor(M6.t*4)!==Math.floor((M6.t-dt)*4);const march=M6.hasGoal&&Math.floor(M6.t*8)!==Math.floor((M6.t-dt)*8);const live=M6.liveT=(M6.liveT||0)+dt;let liveTick=false;if(live>.5){M6.liveT=0;liveTick=m6HasLive();if(liveTick)M6.ver++;}
   // the paper still being made (the map was opened early): a little more of it each frame, and the sharp tiles, a few each frame
   const busy=moving||M6.drag||M6.pinch;M6.fr=(M6.fr||0)+1;M6.still=busy?0:(M6.still||0)+dt;
   if(M6.job&&!busy&&M6.fr>2){const was=M6.ready;if(m6Run(10,true)||M6.ready!==was)M6.dirty=true;}
-  if(M6T.q.length&&M6.fr>2&&m6TilesWork(busy?3:8))M6.dirty=true;
+  // (a slow phone makes them only while the map is still: one can cost more than a frame there, and the smooth paper shows meanwhile)
+  if(!busy&&M6.fr>2&&m6FineNeed())m6FineWork(4);
+  if(!busy&&M6.fr>2&&M6.still>.25)m6LayAhead();
   if(moving||M6.dirty||blink||march||liveTick){m6Draw();if(moving)m6HoverAtPad();}
   if(moving)m6CardFollow();
   M6.raf=requestAnimationFrame(m6Frame);}
@@ -548,24 +715,25 @@ const m6Pad=()=>typeof GP!=='undefined'&&GP.mode==='pad';
 #bag.m6on #bagBody{overflow:hidden!important;display:flex!important;flex-direction:column;padding-bottom:0}
 #bag.m6on>.sub{display:none!important}
 body.m66 #bag.m6on>.acts{display:none!important}
-#m6Root{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+#m6Root{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:5px}
+#m6Foot{flex:none;display:flex;align-items:center;gap:5px;flex-wrap:wrap;position:relative;z-index:4}
 #mapWrap{position:relative;flex:1 1 auto;min-height:140px;overflow:hidden;background:#2a1a0c;box-shadow:0 0 0 2px #1a0e06,inset 0 0 0 2px #8a5a2a;touch-action:none;-webkit-user-select:none;user-select:none;max-height:none!important}
 #mapView{position:absolute;left:0;top:0;width:100%;height:100%;display:block;image-rendering:pixelated;cursor:grab;outline:none}
-#mapView.drag{cursor:grabbing}#mapView.over{cursor:pointer}#mapView.pin{cursor:crosshair}
-#mapBar{position:absolute;right:6px;top:6px;z-index:4;display:flex;flex-direction:column;gap:4px;margin:0}
+#mapView.drag{cursor:grabbing}#mapView.over{cursor:pointer}#mapView.m6pin{cursor:crosshair}   /* (not 'pin': the old map's pin dots are a 6 px class of that name) */
+#mapBar{display:flex;flex-direction:row;gap:4px;margin:0 0 0 auto;flex:none}
 #mapBar .m6b,#m6Lg,#m6PinB{font:13px/1 'Hollow Pixel',ui-monospace,monospace;min-width:34px;min-height:34px;padding:0 10px;color:#f4e6c8;background:#5a3418;border:0;cursor:pointer;
   box-shadow:inset 0 0 0 2px #1a0e06,inset 0 3px 0 #8a5a30,inset 0 -3px 0 #3a200e,2px 2px 0 rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;gap:6px}
 #mapBar .m6b:hover,#m6Lg:hover,#m6PinB:hover{background:#7a4a22}#mapBar .m6b:active,#m6Lg:active,#m6PinB:active{transform:translateY(1px)}
 #m6PinB.on,#m6Lg.on{background:#a8502a;box-shadow:inset 0 0 0 2px #1a0e06,inset 0 3px 0 #d07040,2px 2px 0 rgba(0,0,0,.45)}
-#m6Lg{position:absolute;left:6px;top:6px;z-index:4}#m6PinB{position:absolute;right:6px;bottom:6px;z-index:4}
+#m6Lg,#m6PinB{position:static;flex:none}
 @media (pointer:coarse){#mapBar .m6b,#m6Lg,#m6PinB{min-width:calc(46px / var(--su,1))!important;min-height:calc(46px / var(--su,1))!important}#m6CardClose{width:calc(44px / var(--su,1))!important;height:calc(44px / var(--su,1))!important}}
 body.in-touch #mapBar .m6b,body.in-touch #m6Lg,body.in-touch #m6PinB{min-width:calc(46px / var(--su,1));min-height:calc(46px / var(--su,1));font-size:15px}   /* (the menu is drawn scaled on small phones: 46 px after the scale) */
 .m6k{display:inline-block;min-width:13px;padding:1px 3px;font-size:11px;line-height:12px;color:#2a1608;background:#ecdcb2;box-shadow:0 0 0 1px #1a0e06;text-align:center}
 body:not(.in-kb) .m6k{display:none}
-#m6Hint{position:absolute;left:6px;bottom:6px;z-index:3;max-width:calc(100% - 120px);font:13px/1.35 'Hollow Pixel',ui-monospace,monospace;color:#2a1608;background:rgba(236,220,178,.94);padding:4px 8px;box-shadow:0 0 0 2px #3a2210,2px 2px 0 rgba(0,0,0,.35);pointer-events:none}
+#m6Hint{position:static;flex:1 1 150px;min-width:0;font:13px/1.35 'Hollow Pixel',ui-monospace,monospace;color:#2a1608;background:rgba(236,220,178,.94);padding:4px 8px;box-shadow:0 0 0 2px #3a2210,2px 2px 0 rgba(0,0,0,.35);pointer-events:none}
 #m6Hint .gpg{height:18px;vertical-align:-5px}
-#mapLegend{position:absolute;left:6px;top:48px;z-index:6;width:min(270px,calc(100% - 12px));max-height:calc(100% - 56px);overflow:auto;background:#e8d6a8;color:#2a1608;padding:6px;box-shadow:0 0 0 2px #3a2210,inset 0 0 0 2px #f4e4c0,3px 3px 0 rgba(0,0,0,.4);margin:0;display:block;font-size:13px;opacity:1}
-body.in-touch #mapLegend{top:58px}
+#mapLegend{position:absolute;left:6px;bottom:6px;z-index:6;box-sizing:border-box;width:min(270px,calc(100% - 12px));max-height:calc(100% - 12px);overflow:auto;background:#e8d6a8;color:#2a1608;padding:6px;box-shadow:0 0 0 2px #3a2210,inset 0 0 0 2px #f4e4c0,3px 3px 0 rgba(0,0,0,.4);margin:0;display:block;font-size:13px;opacity:1}
+@media (orientation:portrait){#m6Hint{order:-1;flex-basis:100%}}
 #mapLegend[hidden]{display:none!important}
 #mapLegend .lgrow{display:flex;align-items:center;gap:8px;width:100%;min-height:34px;padding:2px 6px;background:none;border:0;color:inherit;font:13px 'Hollow Pixel',ui-monospace,monospace;cursor:pointer;text-align:left}
 body.in-touch #mapLegend .lgrow{min-height:calc(44px / var(--su,1));font-size:14px}
@@ -575,7 +743,7 @@ body.in-touch #mapLegend .lgrow{min-height:calc(44px / var(--su,1));font-size:14
 #mapLegend .lgrow.on .bx::after{content:'';display:block;width:4px;height:8px;margin:2px 0 0 5px;border:solid #fff4dc;border-width:0 3px 3px 0;transform:rotate(40deg)}
 #mapLegend canvas{width:22px;height:22px;image-rendering:pixelated;flex:none}#mapLegend .lgt{flex:1}#mapLegend small{display:block;opacity:.7;font-size:11px}
 #mapLegend .lghd{display:flex;justify-content:space-between;align-items:center;padding:2px 4px 4px;font-size:12px;opacity:.85}
-#mapCard{position:absolute;z-index:7;width:min(300px,calc(100% - 12px));background:#e8d6a8;color:#2a1608;padding:9px 10px 8px;font:13px/1.35 'Hollow Pixel',ui-monospace,monospace;
+#mapCard{position:absolute;z-index:7;box-sizing:border-box;width:min(300px,calc(100% - 12px));background:#e8d6a8;color:#2a1608;padding:9px 10px 8px;font:13px/1.35 'Hollow Pixel',ui-monospace,monospace;
   box-shadow:0 0 0 2px #3a2210,inset 0 0 0 2px #f4e4c0,3px 4px 0 rgba(0,0,0,.45);margin:0}
 #mapCard[hidden]{display:none!important}
 #mapCard .hd{display:flex;align-items:center;gap:8px;padding-right:34px}#mapCard .hd canvas{width:22px;height:22px;image-rendering:pixelated;flex:none}#mapCard .hd b{font-size:15px;color:#3a1a08}
@@ -586,6 +754,9 @@ body.in-touch #mapLegend .lgrow{min-height:calc(44px / var(--su,1));font-size:14
 body.in-touch #mapCard .acts2 button{min-height:calc(46px / var(--su,1));font-size:14px}
 #m6CardClose{position:absolute;right:5px;top:5px;width:30px;height:30px;padding:0;font:16px/1 'Hollow Pixel',monospace;color:#f4e6c8;background:#5a3418;border:0;cursor:pointer;box-shadow:inset 0 0 0 2px #1a0e06,inset 0 2px 0 #8a5a30}
 body.in-touch #m6CardClose{width:calc(44px / var(--su,1));height:calc(44px / var(--su,1));right:3px;top:3px}
+body.in-touch #mapCard .hd{min-height:calc(42px / var(--su,1));padding-right:calc(48px / var(--su,1))}   /* (the big X never sits on the name or the note) */
+#m6LgClose{color:#f4e6c8!important;background:#5a3418!important;border:0;cursor:pointer;font:15px/1 'Hollow Pixel',monospace;box-shadow:inset 0 0 0 2px #1a0e06,inset 0 2px 0 #8a5a30}
+body.in-touch #m6LgClose{min-width:calc(44px / var(--su,1))!important;min-height:calc(44px / var(--su,1))!important}
 #mapCard input{font:inherit;width:100%;box-sizing:border-box;padding:6px;background:#fbf3e0;color:#2a1608;border:0;box-shadow:inset 0 0 0 2px #6a4a2a;margin:4px 0}
 #mapCard .mmsigns{display:flex;gap:6px;margin:4px 0}#mapCard .mmsigns button{width:40px;padding:0;background:var(--c)}#mapCard .mmsigns button.on{box-shadow:inset 0 0 0 2px #fff,0 0 0 2px #3a2210}
 body.in-touch #mapCard .mmsigns button{width:calc(46px / var(--su,1));min-height:calc(46px / var(--su,1))}
@@ -596,7 +767,7 @@ body.in-touch #mapCard .mmsigns button{width:calc(46px / var(--su,1));min-height
 function m6HintHtml(){const m=typeof GP!=='undefined'?GP.mode:'kb';
   if(m==='pad')return gpFmt('{LS} {RS} move · {LT} {RT} zoom · {A} a place · {X} pin · {Y} you');
   if(m==='touch')return M6.pinMode?'Tap where the pin goes.':'Drag to look · pinch to zoom · tap a place · hold to pin';
-  return M6.pinMode?'Click where the pin goes. Esc to stop.':'Drag or WASD to look · wheel zooms · click a place · right-click to pin';}
+  return M6.pinMode?'Click where the pin goes. Esc to stop.':'Drag or WASD · wheel zooms · click a place · right-click pins';}
 function m6SetHint(){const h=$('m6Hint');if(!h)return;const s=m6HintHtml();if(h._s!==s){h._s=s;h.innerHTML=s;}}
 const M6LG=[['you','you','You and friends','your arrow points the way you face'],['goal','star','Your goal','and the way there'],['shops','shop','Shops and homes','open now: a green light'],
   ['folk','head','People you’ve met','where they are by day'],['transit','bus','Bus and train','stops and the next times'],['travel','mile','Milestones','travel from one to another'],
@@ -617,7 +788,7 @@ function m6People(it){const out={live:[],work:[]};try{
 function m6CardHtml(it){const y=m6You();const dist=Math.round(Math.hypot(it.x-y.x,it.z-y.z));const chip=typeof wayChip==='function'?wayChip({x:it.x,z:it.z}).replace(/<[^>]+>/g,'').trim():'';
   let h=`<button id="m6CardClose" aria-label="Close">✕</button><div class="hd"><canvas width="11" height="11" data-ic="${it.t==='goal'?'star':it.t==='folk'?'head':it.icon||'shop'}"></canvas><b>${m6Esc(it.t==='mile'?it.m.name:it.name)}</b></div>`;
   const acts=[];
-  if(it.t==='goal'){h+=`<div class="sub2">Where you’re headed</div><p>${m6Esc(it.goal.text)}</p>`;}
+  if(it.t==='goal'){h+=`<div class="sub2">Your goal: ${m6Esc(it.goal.title)}</div><p>${m6Esc(it.goal.text)}</p>`;}
   else if(it.t==='region'){const f=it.rk?m6Found(it.rk):true;const line=it.rk&&typeof RG_LINE!=='undefined'?RG_LINE[it.rk]:'';const hint=it.rk&&typeof RG_HINT!=='undefined'?RG_HINT[it.rk]:'';
     h+=`<div class="sub2">${f?(it.rk?`Found on day ${S.rg.seen[it.rk]}`:'Part of the valley'):'Not found yet'}</div>${f&&line?`<p>${m6Esc(line)}</p>`:''}${!f&&hint?`<p>${m6Esc(hint)}</p>`:''}`;}
   else if(it.t==='folk'){const f=it.f,n=f.n;const L=LIFE[f.id];h+=`<div class="sub2">${m6Esc(n.def.role||'')}</div><p>${f.where==='here now'?'Here now.':f.where==='inside'?'Inside here now.':f.where==='usually here now'?'Usually here at this hour.':'At home, most likely.'}</p>`;
@@ -685,13 +856,12 @@ function m6HoverAtPad(){if(!m6Pad())return;const it=m6HitAt(M6.cw/2,M6.ch/2);if(
 renderMap=function(keep){const B2=$('bagBody'),bag=$('bag');bag.classList.add('m6on');M6.on=true;M6.fr=0;M6.still=0;
   const sub=$('bagSub');if(sub)sub.textContent='';
   if(!$('m6Root')||!B2.contains($('m6Root'))){B2.innerHTML=`<div id="m6Root"><div id="mapWrap"><canvas id="mapView" tabindex="0" role="application" aria-label="Map of the valley"></canvas>
-      <button id="m6Lg" aria-label="What the map shows">Show</button>
-      <div id="mapBar"><button class="m6b" id="mzIn" aria-label="Zoom in" title="Zoom in (+)">+</button><button class="m6b" id="mzOut" aria-label="Zoom out" title="Zoom out (−)">−</button><button class="m6b" id="m6Me" aria-label="Find yourself" title="Find yourself (Space)">Me</button></div>
-      <button id="m6PinB" class="mmbtn" aria-label="Drop a pin" title="Drop a pin (right-click the map)">Pin</button>
-      <div id="m6Hint"></div><div id="mapLegend" hidden></div><div id="mapCard" hidden></div><div id="m6Tip" hidden></div></div></div>`;
+      <div id="mapLegend" hidden></div><div id="mapCard" hidden></div><div id="m6Tip" hidden></div></div>
+      <div id="m6Foot"><button id="m6Lg" aria-label="What the map shows" title="What the map shows">Show</button><button id="m6PinB" class="mmbtn" aria-label="Drop a pin" title="Drop a pin (right-click the map)">Pin</button><div id="m6Hint"></div>
+      <div id="mapBar"><button class="m6b" id="mzOut" aria-label="Zoom out" title="Zoom out (−)">−</button><button class="m6b" id="mzIn" aria-label="Zoom in" title="Zoom in (+)">+</button><button class="m6b" id="m6Me" aria-label="Find yourself" title="Find yourself (Space)">Me</button></div></div></div>`;
     m6Wire();}
   const cv=M6.cv=$('mapView');M6.g=cv.getContext('2d');m6Size();
-  M6.ver++;if(!keep||!M6.v.set){const y=m6You();m6Need();M6.places=m6Places();M6.lay=null;m6CenterOn(y.x,y.z,M6.v.set?M6.v.k:clamp(M6.kDef,m6KMin(),M6KMAX));M6.v.set=true;}
+  M6.ver++;if(!keep||!M6.v.set){const y=m6You();m6Need();M6.places=m6Places();M6.lay=null;m6CenterOn(y.x,y.z,M6.v.set?M6.v.k:clamp(M6.kDef,m6KMin(),m6KMax()));M6.v.set=true;}
   else{m6Need();}
   // late in the story the map knows something you don't
   try{if(!keep&&typeof hl==='function'&&hl()>=3&&isNight()&&rand()<.5)M6.ghost=performance.now()+2400;}catch(e){}
@@ -701,15 +871,19 @@ renderMap=function(keep){const B2=$('bagBody'),bag=$('bag');bag.classList.add('m
 function m6UiBoxes(){const w=$('mapWrap');if(!w)return;const R=w.getBoundingClientRect();const L=[];for(const id of ['m6Lg','mapBar','m6PinB','m6Hint']){const e=$(id);if(!e||e.hidden)continue;const r=e.getBoundingClientRect();if(r.width<2)continue;L.push([r.left-R.left-3,r.top-R.top-3,r.right-R.left+3,r.bottom-R.top+3]);}
   const sig=JSON.stringify(L.map(q=>q.map(Math.round)));if(sig!==M6.uiSig){M6.uiSig=sig;M6.uiBox=L;M6.dirty=true;}}
 function m6Size(){const w=$('mapWrap');if(!w||!M6.cv)return;const r=w.getBoundingClientRect();const cw=Math.max(40,Math.round(r.width)),ch=Math.max(40,Math.round(r.height));const dp=Math.min(3,window.devicePixelRatio||1);
-  if(cw!==M6.cw||ch!==M6.ch||dp!==M6.dpr||M6.cv.width!==Math.round(cw*dp)||M6.cv.height!==Math.round(ch*dp)){const oldK=M6.cw;M6.cw=cw;M6.ch=ch;M6.dpr=dp;M6.cv.width=Math.round(cw*dp);M6.cv.height=Math.round(ch*dp);M6.lay=null;if(M6.base||M6.quick){M6.v.k=clamp(M6.v.k,m6KMin(),M6KMAX);m6Clamp();}M6.dirty=true;}}
+  if(cw!==M6.cw||ch!==M6.ch||dp!==M6.dpr||M6.cv.width!==Math.round(cw*dp)||M6.cv.height!==Math.round(ch*dp)){const oldK=M6.cw;M6.cw=cw;M6.ch=ch;M6.dpr=dp;M6.cv.width=Math.round(cw*dp);M6.cv.height=Math.round(ch*dp);M6.lay=null;if(M6.base||M6.quick){M6.v.k=clamp(M6.v.k,m6KMin(),m6KMax());m6Clamp();}M6.dirty=true;}}
 addEventListener('resize',()=>{if(M6.on&&M6.cv&&M6.cv.isConnected){m6Size();m6CardPlace();m6Kick();}});
 // leaving the map tab
 {const _ob=openBag;openBag=function(tab){const r=_ob.apply(this,arguments);try{const bag=$('bag');if(GM_TAB!=='map'){bag.classList.remove('m6on');M6.on=false;}}catch(e){}return r;};}
 setInterval(()=>{try{if(M6.on&&(!M6.cv||!M6.cv.isConnected||$('bag').hidden||GM_TAB!=='map')){M6.on=false;$('bag').classList.remove('m6on');M6.keys.clear();M6.pinMode=false;M6.draft=null;M6.card=null;}
   if(M6.on){m6Size();m6SetHint();m6UiBoxes();}}catch(e){}},250);
+// while the map fills the menu the world behind it is still (the game is paused): it isn't drawn again each frame, so a slow
+// phone gives the map its whole frame; drawn once when the map opens or the window changes size
+{const _rd=render;render=function(){try{if(M6.on&&M6.cv&&M6.cv.isConnected&&!$('bag').hidden&&S.paused&&M6.rdK===innerWidth+'x'+innerHeight)return;}catch(e){}
+  const r=_rd.apply(this,arguments);try{M6.rdK=M6.on?innerWidth+'x'+innerHeight:'';}catch(e){}return r;};}
 // ---- the hands on it: mouse, touch, keys
 function m6Wire(){const cv=$('mapView'),wrap=$('mapWrap');const pt=e=>{const r=cv.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top];};
-  const tap=(sx,sy,e)=>{if(M6.pinMode){M6.pinMode=false;$('m6PinB').classList.remove('on');m6PinAt(sx,sy);m6SetHint();return;}
+  const tap=(sx,sy,e)=>{if(M6.pinMode){M6.pinMode=false;$('m6PinB').classList.remove('on');cv.classList.remove('m6pin');m6PinAt(sx,sy);m6SetHint();return;}
     const it=m6HitAt(sx,sy);if(it){m6Card(it,sx,sy);M6.hover=it;m6Tip(null);}else if(M6.card)m6Card(null);m6Kick();};
   cv.addEventListener('pointerdown',e=>{if(e.button&&e.button!==0)return;const [x,y]=pt(e);M6.ptr.set(e.pointerId,{x,y,x0:x,y0:y,t0:performance.now()});try{cv.setPointerCapture(e.pointerId);}catch(x){}
     M6.vel=[0,0];M6.z=null;
@@ -722,7 +896,7 @@ function m6Wire(){const cv=$('mapView'),wrap=$('mapWrap');const pt=e=>{const r=c
       if(e.pointerType==='mouse'){const it=m6HitAt(x,y);if((it&&it.id)!==(M6.hover&&M6.hover.id)){M6.hover=it;cv.classList.toggle('over',!!it);m6Kick();}m6Tip(it,x,y);}return;}
     const dx=x-p.x,dy=y-p.y;p.x=x;p.y=y;
     if(M6.pinch&&M6.ptr.size>=2){const [a,b]=[...M6.ptr.values()];const d=Math.hypot(a.x-b.x,a.y-b.y)||1,mx=(a.x+b.x)/2,my=(a.y+b.y)/2,v=M6.v,P0=M6.pinch;
-      v.k=clamp(P0.k0*d/P0.d0,m6KMin(),M6KMAX);v.x=P0.wx-(mx-M6.cw/2)/v.k;v.y=P0.wy-(my-M6.ch/2)/v.k;m6Clamp();MAPX.zoom=v.k;m6Kick();return;}
+      v.k=clamp(P0.k0*d/P0.d0,m6KMin(),m6KMax());v.x=P0.wx-(mx-M6.cw/2)/v.k;v.y=P0.wy-(my-M6.ch/2)/v.k;m6Clamp();MAPX.zoom=v.k;m6Kick();return;}
     const D=M6.drag;if(!D||D.id!==e.pointerId)return;if(!D.moved&&Math.hypot(x-p.x0,y-p.y0)>6){D.moved=true;clearTimeout(M6.lpT);cv.classList.add('drag');m6Tip(null);}
     if(D.moved){M6.v.x-=dx/M6.v.k;M6.v.y-=dy/M6.v.k;m6Clamp();D.hist.push([performance.now(),x,y]);if(D.hist.length>8)D.hist.shift();m6Kick();}});
   const up=e=>{const p=M6.ptr.get(e.pointerId);if(!p)return;M6.ptr.delete(e.pointerId);clearTimeout(M6.lpT);cv.classList.remove('drag');
@@ -738,17 +912,17 @@ function m6Wire(){const cv=$('mapView'),wrap=$('mapWrap');const pt=e=>{const r=c
   cv.addEventListener('dblclick',e=>{const [x,y]=pt(e);m6ZoomAt(x,y,2);});
   cv.addEventListener('contextmenu',e=>{e.preventDefault();e.stopPropagation();const [x,y]=pt(e);m6PinAt(x,y);});
   $('mzIn').addEventListener('click',e=>{e.stopPropagation();m6ZoomAt(M6.cw/2,M6.ch/2,1.6);});$('mzOut').addEventListener('click',e=>{e.stopPropagation();m6ZoomAt(M6.cw/2,M6.ch/2,1/1.6);});
-  $('m6Me').addEventListener('click',e=>{e.stopPropagation();const y=m6You();const v=M6.v;M6.z=null;const k1=Math.max(v.k,M6.kDef);M6.z={k1:clamp(k1,m6KMin(),M6KMAX),ax:M6.cw/2,ay:M6.ch/2,wx:m6BX(y.x),wy:m6BY(y.z)};m6Kick();});
+  $('m6Me').addEventListener('click',e=>{e.stopPropagation();const y=m6You();const v=M6.v;M6.z=null;const k1=Math.max(v.k,M6.kDef);M6.z={k1:clamp(k1,m6KMin(),m6KMax()),ax:M6.cw/2,ay:M6.ch/2,wx:m6BX(y.x),wy:m6BY(y.z)};m6Kick();});
   $('m6Lg').addEventListener('click',e=>{e.stopPropagation();m6Legend();});
-  $('m6PinB').addEventListener('click',e=>{e.stopPropagation();if(m6Pad()){m6PinAt(M6.cw/2,M6.ch/2);return;}M6.pinMode=!M6.pinMode;$('m6PinB').classList.toggle('on',M6.pinMode);cv.classList.toggle('pin',M6.pinMode);m6SetHint();});
-  wrap.addEventListener('click',e=>e.stopPropagation());}
+  $('m6PinB').addEventListener('click',e=>{e.stopPropagation();if(m6Pad()){m6PinAt(M6.cw/2,M6.ch/2);return;}M6.pinMode=!M6.pinMode;$('m6PinB').classList.toggle('on',M6.pinMode);cv.classList.toggle('m6pin',M6.pinMode);m6SetHint();});
+  wrap.addEventListener('click',e=>e.stopPropagation());$('m6Foot').addEventListener('click',e=>e.stopPropagation());}
 // keys while the map is open: WASD or the arrows move it, + and - zoom, Space finds you, Esc stops pinning or closes a card
 addEventListener('keydown',e=>{if(!M6.on||!M6.cv||!M6.cv.isConnected)return;const t=e.target;if(t&&/INPUT|TEXTAREA/.test(t.tagName||''))return;const c=e.code;
   if(/^(KeyW|KeyA|KeyS|KeyD|ArrowUp|ArrowDown|ArrowLeft|ArrowRight)$/.test(c)){if(typeof GP!=='undefined'&&GP.clicking)return;if(e.isTrusted===false&&typeof GP!=='undefined'&&GP.mode==='pad')return;M6.keys.add(c);M6.vel=[0,0];e.preventDefault();e.stopImmediatePropagation();m6Kick();return;}
   if(c==='Equal'||c==='NumpadAdd'){m6ZoomAt(M6.cw/2,M6.ch/2,1.6);e.preventDefault();e.stopImmediatePropagation();return;}
   if(c==='Minus'||c==='NumpadSubtract'){m6ZoomAt(M6.cw/2,M6.ch/2,1/1.6);e.preventDefault();e.stopImmediatePropagation();return;}
   if(c==='Space'&&e.isTrusted){$('m6Me').click();e.preventDefault();e.stopImmediatePropagation();return;}
-  if(c==='Escape'&&(M6.pinMode||M6.card||!$('mapLegend').hidden)){if(M6.pinMode){M6.pinMode=false;$('m6PinB').classList.remove('on');M6.cv.classList.remove('pin');m6SetHint();}else if(M6.card)m6Card(null);else m6Legend(false);e.preventDefault();e.stopImmediatePropagation();}},true);
+  if(c==='Escape'&&(M6.pinMode||M6.card||!$('mapLegend').hidden)){if(M6.pinMode){M6.pinMode=false;$('m6PinB').classList.remove('on');M6.cv.classList.remove('m6pin');m6SetHint();}else if(M6.card)m6Card(null);else m6Legend(false);e.preventDefault();e.stopImmediatePropagation();}},true);
 addEventListener('keyup',e=>{if(M6.keys.delete(e.code))m6Kick();},true);
 addEventListener('blur',()=>{M6.keys.clear();});
 

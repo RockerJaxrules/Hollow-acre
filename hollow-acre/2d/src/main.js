@@ -213,7 +213,7 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
   partsDraw();holdDraw();lifeOver(t);depthOver(t);leavesDraw();placeDraw();
   // weather: falling leaves (day), rain (storm), fog (night)
 
-  if(S.storm&&isNight()&&!S.room){ctx2.strokeStyle='rgba(170,190,220,.35)';ctx2.beginPath();for(let i=0;i<90;i++){const x=(hash(i,1)*VW+t*40)%VW,y=(hash(i,2)*VH+t*620)%VH;ctx2.moveTo(Math.round(x),Math.round(y));ctx2.lineTo(Math.round(x-2),Math.round(y+7));}ctx2.stroke();}
+  // (t366: a storm night's rain is drawn by rain366.js, one rain whose drops land where they splash)
   const DK=nightDeep(dt);   // (t362) 0 by day and through dusk, 1 in full night outdoors and in the mine: see night362.js
   if(nightK>0&&fogTex&&!S.room){ctx2.globalAlpha=nightK*.55*(1-.45*DK);const ox=Math.round((-(cam.px*.7)+t*6)%256),oy=Math.round((-(cam.pz*.7))%256);for(let y=oy-256;y<VH;y+=256)for(let x=ox-256;x<VW;x+=256)ctx2.drawImage(fogTex,Math.round(x),Math.round(y));ctx2.globalAlpha=1;}
   // ---- light map (multiply)
@@ -348,10 +348,7 @@ function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true
       coneAt(X+2*cs*PPM,Y+2*sn*PPM*.8+12,a,.12,9*PPM,[150,150,170],.18);   // the headlights' shine on the wet road ahead
       glowAt(X-2.2*cs*PPM,Y-2.2*sn*PPM,40,[255,26,16],st.mir>0||T_brake()?.95:.55);glowAt(X,Y,70,[120,110,100],.3);
       if(st.fig&&st.fig.a>.5){const fx=sx(st.fig.x),fy=sz(st.fig.z)-94;glowAt(fx-4,fy,5,[255,40,20],1);glowAt(fx+6,fy,5,[255,40,20],1);}},
-    draw(){if(st.crashed||st.t<3)return;   // the speed: rain driven sideways across the screen, faster than the car
-      const g=ctx2,T=st.t,v=st.car.v||V;g.save();g.strokeStyle='rgba(170,180,200,.22)';g.lineWidth=1;g.beginPath();
-      for(let i=0;i<46;i++){const x=((i*137.7-T*v*PPM*1.3)%(VW+80)+VW+80)%(VW+80)-40,y=((i*71.3+T*260)%(VH+40)+VH+40)%(VH+40)-20,l=8+v*.9;g.moveTo(x,y);g.lineTo(x+l,y-l*.18);}
-      g.stroke();g.restore();},
+    draw(){},   // (t366: the sideways speed rain is gone; the one rain (rain366.js) falls in the world, and the road rushes past under it)
     update(dt){if(st.stop>0){st.stop-=dt;return;}   // the hit-stop: one frozen moment at the impact
       if(st.slow>0){st.slow-=dt;dt*=.3;}   // a breath of slow motion as the deer goes over the hood
       st.t+=dt;const T=st.t;if(cine.phase2)return phase2(dt);
