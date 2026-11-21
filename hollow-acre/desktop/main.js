@@ -3,6 +3,8 @@
 // The Steamworks SDK (achievements, cloud saves, overlay, Steam networking) can be added later with steamworks.js.
 const {app,BrowserWindow,Menu,ipcMain,screen}=require('electron');const path=require('path');const fs=require('fs');
 app.setName('Hollow Acre');
+// sound starts without a click or a key first, so a game played only on a controller has its sound from the title screen
+app.commandLine.appendSwitch('autoplay-policy','no-user-gesture-required');
 // the window remembers its size, place and full screen between runs; the first run opens at most of your screen (not a fixed
 // 1280x800, which was small on a big monitor). The game's Display setting can resize it or go full screen (#273).
 const winFile=()=>path.join(app.getPath('userData'),'window.json');

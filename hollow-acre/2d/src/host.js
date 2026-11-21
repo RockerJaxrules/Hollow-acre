@@ -81,7 +81,7 @@ setTimeout(function mpContBtn(){const c=$('cont');if(!c||$('loadScr')){setTimeou
   const own=c.textContent;c.textContent=`Continue · ${lf.host?lf.host+'’s farm':'Farm '+lf.code}`;
   const ob=document.createElement('button');ob.className='begin second';ob.id='contOwn';ob.textContent=own.replace(/^Continue/,'Your own farm');ob.style.marginBottom='10px';c.after(ob);
   ob.addEventListener('click',()=>{mpLastFarm(null);c.textContent=own;c.click();});
-  c.addEventListener('click',e=>{if(!e.isTrusted||!mpLastFarm())return;
+  c.addEventListener('click',e=>{if(!(e.isTrusted||(typeof GP!=='undefined'&&GP.clicking))||!mpLastFarm())return;
     if(!canHost()){c.textContent=own;setTimeout(()=>toast(`No connection, so ${lf.host?lf.host+'’s':'that'} farm can’t be reached. You’re on your own farm, offline.`,4.4),1200);return;}   // offline: your own farm, and said so
     e.stopImmediatePropagation();e.preventDefault();A.init&&A.init();
     try{sessionStorage.setItem('hollowContJoin',lf.code);}catch(e){}hostJoin(lf.code);},true);},600);

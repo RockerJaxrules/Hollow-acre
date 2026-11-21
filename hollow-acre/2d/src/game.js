@@ -313,7 +313,7 @@ function update(dt){slamUpdate(dt);mindUpdate(dt);lifeUpdate(dt);
   let mx=joy.x,mz=joy.y;const kb=!!(keys.KeyW||keys.ArrowUp||keys.KeyS||keys.ArrowDown||keys.KeyA||keys.ArrowLeft||keys.KeyD||keys.ArrowRight);if(keys.KeyW||keys.ArrowUp)mz-=1;if(keys.KeyS||keys.ArrowDown)mz+=1;if(keys.KeyA||keys.ArrowLeft)mx-=1;if(keys.KeyD||keys.ArrowRight)mx+=1;
   [mx,mz]=mindInput(mx,mz);
   let mag=Math.hypot(mx,mz);if(mag>1){mx/=mag;mz/=mag;mag=1;}
-  const corn=inCorn(P.x,P.z);const shift=!!(keys.ShiftLeft||keys.ShiftRight);const moving=mag>.15&&!P.anim,run=kb?shift:(mag>.85||shift);const spd=moving?(run?5:3)*mag*(corn?.7:1)*(S.energy>0?1:.6):0;
+  const corn=inCorn(P.x,P.z);const shift=!!(keys.ShiftLeft||keys.ShiftRight);const moving=mag>.15&&!P.anim,run=(kb||(typeof GP!=='undefined'&&GP.stick))?shift:(mag>.85||shift);const spd=moving?(run?5:3)*mag*(corn?.7:1)*(S.energy>0?1:.6):0;
   lastDir=P.dir;
   // a short walk the game takes for you before an action that needs you closer (setting a sprinkler down); any input cancels it
   let auto=false;if(P.walkTo&&!P.anim){const w=P.walkTo;if(mag>.15)P.walkTo=null;else{const dx=w.x-P.x,dz=w.z-P.z,d=Math.hypot(dx,dz);w.t=(w.t||0)+dt;

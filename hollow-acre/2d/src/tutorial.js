@@ -37,7 +37,7 @@ let tutLast=0;
 setInterval(()=>{if(S.tut.off||S.mode!=='play'){if(TUT_CUR)tutShow(null);return;}const dt=.25;
   if(tutMove.x===null){tutMove.x=P.x;tutMove.z=P.z;}tutMove.d+=Math.hypot(P.x-tutMove.x,P.z-tutMove.z);tutMove.x=P.x;tutMove.z=P.z;
   if(TUT_CUR){const id=TUT_CUR.id;if(id==='bars')S.tut.barsT=(S.tut.barsT||0)+dt;if(id==='fish')S.tut.fishT=(S.tut.fishT||0)+dt;if(id==='dusk')S.tut.duskT=(S.tut.duskT||0)+dt;
-    if(TUT_CUR.done()){S.tut.done[id]=1;tutShow(null);SFX.coin&&SFX.coin();}else if(S.paused&&!$('bag').hidden&&id!=='drag'){$('tut').style.display='none';}else $('tut').style.display='block';return;}
+    if(TUT_CUR.done()){S.tut.done[id]=1;tutShow(null);SFX.coin&&SFX.coin();}else if((S.paused&&!$('bag').hidden&&id!=='drag')||(typeof gpModal==='function'&&$('bag').hidden&&gpModal())){$('tut').style.display='none';}else $('tut').style.display='block';return;}
   if(S.paused&&$('bag').hidden)return;
   const core=TUT.filter(s=>s.core&&!S.tut.done[s.id]);const nxt=core[0];
   if(nxt&&(!nxt.when||nxt.when())){if(nxt.done()){S.tut.done[nxt.id]=1;return;}tutShow(nxt);return;}
