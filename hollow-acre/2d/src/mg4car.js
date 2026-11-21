@@ -161,9 +161,9 @@ S4.car=(sp,K,run,def)=>{const g=K.g,W=320,H=180;
         if(I.key&&I.down)da=dt*6.0;
         else if(I.down){const a=Math.atan2(I.y-ccy,I.x-ccx);if(st.last!=null){let d=a-st.last;if(d>Math.PI)d-=6.283;if(d<-Math.PI)d+=6.283;da=Math.max(0,d);}st.last=a;}
         else st.last=null;
-        st.ang+=da;st.spd+=(da/Math.max(.001,dt)-st.spd)*Math.min(1,dt*5);
+        {const q0=Math.floor(st.ang/1.5708);st.ang+=da;if(Math.floor(st.ang/1.5708)!==q0)MS.ratchet();}st.spd+=(da/Math.max(.001,dt)-st.spd)*Math.min(1,dt*5);
         amb.set(da>0?Math.min(.09,st.spd*.011):0,480+st.spd*70,2);
-        while(st.ang>=6.283){st.ang-=6.283;const sdv=st.spd,good=sdv>3.0&&sdv<9.2;st.coils.push(good?1:0);if(good){st.ok++;A.tone(820,.04,'triangle',.05);}else{A.tone(560,.05,'sawtooth',.05);K.judge(.25,cx,by-54,true);}st.snap=.25;}
+        while(st.ang>=6.283){st.ang-=6.283;const sdv=st.spd,good=sdv>3.0&&sdv<9.2;st.coils.push(good?1:0);if(good){st.ok++;A.tone(820,.04,'triangle',.05);MS.cable();}else{A.tone(560,.05,'sawtooth',.05);K.judge(.25,cx,by-54,true);}st.snap=.25;}
         if(st.coils.length>=N&&!st.end){st.end=.001;MS.good();}
       } else {
         // a marker bounces 0..1 across the bar; strike it inside the green band
@@ -185,7 +185,7 @@ S4.car=(sp,K,run,def)=>{const g=K.g,W=320,H=180;
         g.strokeStyle='#5a5048';g.lineWidth=Math.max(1,1.2);g.beginPath();g.moveTo(ccx-6,ccy+2);g.lineTo(cx-40,by-10);g.stroke();
         K.px(ccx-10,ccy-10,20,20,'#20202a');K.px(ccx-10,ccy-10,20,2,'#30303c');
         g.fillStyle='#15151c';g.beginPath();g.arc(ccx,ccy,CR,0,6.29);g.fill();g.fillStyle='#3a3a44';g.beginPath();g.arc(ccx,ccy,CR-3,0,6.29);g.fill();
-        const hx=ccx+Math.cos(st.ang)*CR,hy=ccy+Math.sin(st.ang)*CR;K.line(ccx,ccy,hx,hy,'#8a8490',3);K.px(hx-3,hy-3,6,6,'#b85a2a');m4hand(K,hx,hy+1);
+        const hx=ccx+Math.cos(st.ang)*CR,hy=ccy+Math.sin(st.ang)*CR;K.line(ccx,ccy,hx,hy,'#8a8490',3);K.px(hx-3,hy-3,6,6,'#b85a2a');m4grip(K,hx,hy,-Math.PI/2,{side:1,arm:.95});
         g.strokeStyle='rgba(255,244,192,.25)';g.lineWidth=1;g.beginPath();g.arc(ccx,ccy,CR,0,6.29);g.stroke();
       } else {
         // the strike bar across the bottom

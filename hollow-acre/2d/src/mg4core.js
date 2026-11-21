@@ -37,6 +37,30 @@ const MS={
   tick(){A.tone(1900,.025,'square',.025);},
   fanfare(q){const n=q>.9?[523,659,784,1047]:q>.6?[523,659,784]:[523,587];n.forEach((f,i)=>A.tone(f,.28,'triangle',.08,{delay:i*.11}));if(q>.9)A.tone(1568,.5,'sine',.05,{delay:.5,verb:1});},
 };
+// ---------------------------------------------------------------- (t363) the sounds reworked: every action in layers (a transient, a body, a ring or a
+// tail), each repeat a little different in pitch and weight (A.tone and A.hiss take a per-sound wobble below), balanced so the
+// work sits over the room and the stings sit over the work
+const MSV=(f,a)=>f*(1+(Math.random()*2-1)*(a||.04));
+Object.assign(MS,{
+  // the hammer: what it lands on decides the sound. Wood: the nail head's short tink over a hollow board thunk; metal: a clang
+  // that rings on; leather: a dull slap with the rivet's tick. pw = how hard, q = how true the blow was
+  hammer(mat,pw,q){pw=Math.max(.15,Math.min(1,pw||.6));const v=.6+pw*.5;
+    if(mat==='metal'){const f=MSV(330,.05);[1,2.76,5.4,8.9].forEach((m,i)=>A.tone(f*m,(.7-.14*i)*(q<.3?.5:1),'sine',.1*v/(i+1),{verb:i===0}));A.hiss(.025,.34*v,'highpass',3800);A.tone(MSV(140),.09,'sine',.18*v,{slide:70});}
+    else if(mat==='leather'){A.hiss(.06,.26*v,'lowpass',MSV(520,.1));A.tone(MSV(110),.12,'sine',.24*v,{slide:60});A.tone(MSV(2300,.06),.05,'triangle',.05*v);}
+    else{const f=MSV(1500+pw*500,.05);A.tone(f,.09,'triangle',.07*v,{slide:f*.8});A.tone(f*2.7,.05,'sine',.03*v);A.hiss(.018,.3*v,'highpass',3200);
+      A.tone(MSV(165,.06),.16,'sine',.3*v,{slide:72});A.hiss(.07,.2*v,'lowpass',MSV(650,.1));A.hiss(.16,.05*v,'bandpass',MSV(340,.08),{q:4,delay:.01});}},
+  swish(p){p=p||.5;A.hiss(.1+.08*p,.07+.17*p,'bandpass',MSV(380),{slide:MSV(1500+p*900),q:.9,a:.03});},
+  creak(){A.tone(MSV(95,.08),.16,'sawtooth',.018,{slide:120,filter:['bandpass',700,5]});},
+  split(){for(let k=0;k<4;k++)A.hiss(.03+Math.random()*.03,.22-k*.03,'bandpass',MSV(900+k*500,.2),{q:3,delay:k*.035});A.tone(MSV(130),.2,'sine',.18,{slide:60,delay:.02});},
+  bend(){A.tone(MSV(420,.05),.28,'square',.04,{slide:170,filter:['lowpass',1400]});A.tone(MSV(1900),.12,'triangle',.03,{slide:1500});},
+  unbend(){A.tone(MSV(300,.05),.3,'sawtooth',.03,{slide:520,filter:['bandpass',900,4]});A.tone(MSV(1700),.06,'triangle',.03,{delay:.28});},
+  seat(){A.tone(MSV(120,.05),.22,'sine',.34,{slide:58});A.hiss(.1,.22,'lowpass',MSV(480,.1));A.hiss(.22,.05,'bandpass',MSV(300,.08),{q:5,delay:.02});A.tone(MSV(2100,.05),.04,'triangle',.03,{delay:.05});},
+  // a car's sheet metal: the face of the hammer ticks, the panel answers with a hollow bong; dead centre rings clearer; a ding (c<0) is a flat clank
+  panel(c){const f=MSV(c<0?180:210+c*60,.04);A.hiss(.02,.3,'highpass',MSV(3400));A.tone(f,c<0?.18:.32,'triangle',.16,{slide:f*.82,filter:['lowpass',c<0?900:1800]});A.tone(f*2.4,.2,'sine',.05*(c<0?.4:1),{slide:f*2.1});
+    if(c>=0)A.tone(MSV(1900+c*600),.06,'triangle',.05);else A.tone(MSV(380),.12,'square',.035,{slide:240,filter:['lowpass',1400]});},
+  // a light sparkle under a perfect verdict in the steps that make their own action sound
+  sparkle(){const f=MSV(1760,.03);A.tone(f,.16,'sine',.045,{verb:1});A.tone(f*1.5,.12,'sine',.03,{delay:.05});},
+});
 // ---------------------------------------------------------------- each room's own quiet sounds, under the work
 const MAMB={workshop:{bed:['bandpass',380,.6,.018],ev:[[3.5,()=>A.tone(2600+Math.random()*900,.07,'sine',.018,{slide:3400})],[6,()=>A.tone(180+Math.random()*60,.25,'sawtooth',.008,{filter:['lowpass',500]})]]},
   kitchen:{bed:['lowpass',300,.7,.015],ev:[[1,()=>A.tone(2100,.012,'square',.006)],[7,()=>A.tone(3000+Math.random()*600,.06,'sine',.012,{slide:3600})]]},
@@ -83,24 +107,39 @@ function mg4Kit(g){const W=320,H=180;const K=caKit(g,W,H);K.g=g;K.W=W;K.H=H;
       c:o.c||['#e8c890'],sz:o.sz||1,kind:o.kind||'dot',glow:o.glow,hi:o.hi,rot:Math.random()*6});}};
   K.burst=(x,y,n,c,sp)=>K.emit(x,y,n,{c:[c],v:sp||70});
   K.judge=(s,x,y,quiet)=>{const J=s>=.95?['PERFECT','#ffd27a']:s>=.6?['GOOD','#9be07a']:s>=.25?['OK','#e8c070']:['MISS','#e8542a'];
-    for(let k=K.pops.length-1;k>=0;k--){const p=K.pops[k];if(Math.abs(p.x-x)<40&&Math.abs(p.y-y)<24)K.pops.splice(k,1);}   // a new verdict replaces the one still rising there
+    {const nw=(J[0].length+4)*(s>=.95?8:4);for(let k=K.pops.length-1;k>=0;k--){const p=K.pops[k],pw=p.txt.length*(p.big?8:4);if(Math.abs(p.x-x)<(nw+pw)/2+4&&Math.abs(p.y-y)<26)K.pops.splice(k,1);}}   // a new verdict replaces the one still rising there
     if(s>=.6){K.combo++;K.best=Math.max(K.best,K.combo);}else K.combo=0;
-    K.pops.push({txt:J[0]+(K.combo>=3&&s>=.6?' x'+K.combo:''),c:J[1],x:Math.max(30,Math.min(W-30,x)),y:Math.max(12,y),t:0,big:s>=.95});
-    if(!quiet){if(s>=.95){MS.perfect();K.flash=.3;K.shk=.14;K.emit(x,y,10,{c:['#fff4c0','#ffd27a'],v:90,g:60,life:.6});}else if(s>=.6)MS.good();else if(s<.25)MS.miss();}};
+    {const txt=J[0]+(K.combo>=3&&s>=.6?' x'+K.combo:''),hw=txt.length*(s>=.95?4:2)+4;K.pops.push({txt,c:J[1],x:Math.max(hw,Math.min(W-hw,x)),y:Math.max(12,y),t:0,big:s>=.95});}
+    if(!quiet){if(s>=.95){MS.perfect();K.flash=.3;K.shk=.14;K.emit(x,y,10,{c:['#fff4c0','#ffd27a'],v:90,g:60,life:.6});}else if(s>=.6)MS.good();else if(s<.25)MS.miss();}else if(s>=.95)MS.sparkle();};
   // the bar at the right edge shows the whole recipe: the steps done plus this step's share, with a tick between steps
   K.meter=(p,acc,x,y,h)=>{const whole=x==null&&K.run&&K.run.n>1;if(x==null&&y==null&&K.text)K.text('WORK',W-3,7,'#e8d8b8',1,'r');x=x==null?W-10:x;y=y==null?16:y;h=h||120;p=Math.max(0,Math.min(1,p||0));if(whole)p=(K.run.i+p)/K.run.n;K.px(x-1,y-1,8,h+2,'#1a0e06');K.px(x,y,6,h,'#2a1608');if(whole)for(let k=1;k<K.run.n;k++)K.px(x-2,y+h-Math.round(h*k/K.run.n),10,1,'#6a4a20');
     const ph=Math.round(p*h),q=acc==null?p:acc;const c=q<.4?'#d84a2a':q<.7?'#e8b030':'#7cc04a';K.px(x+1,y+h-ph,4,ph,c);if(ph)K.px(x+1,y+h-ph,4,1,'#fff4c0');
     if(q>=.7&&ph>2)K.px(x+1+((Math.floor(performance.now()/90))%4),y+h-ph+1,1,1,'#ffffff');};
+  // (t363) the beat ring: a ring closes on the mark exactly on the beat; the mark is green for as long as a press still counts as
+  // perfect (before or after), amber while it's good, and once the window has passed the ring goes red and fades, so what you see is the real window
+  K.beat=(cx,cy,t,next,tempo,win,good)=>{const g=K.g,d=next-t,left=Math.max(0,Math.min(1,d/tempo)),late=-d;const inP=Math.abs(d)<=win,inG=Math.abs(d)<=good;
+    g.strokeStyle='rgba(20,10,4,.8)';g.lineWidth=3;g.beginPath();g.arc(cx,cy,5,0,6.29);g.stroke();g.lineWidth=1;g.strokeStyle=inP?'#9be07a':inG?'#e8c060':'#fff4c0';g.beginPath();g.arc(cx,cy,5,0,6.29);g.stroke();
+    if(inP){g.strokeStyle='rgba(155,224,122,.5)';g.beginPath();g.arc(cx,cy,6.5,0,6.29);g.stroke();}
+    if(late>good){const f=Math.max(0,1-(late-good)/.35);if(f>0){g.strokeStyle=`rgba(232,84,42,${.8*f})`;g.beginPath();g.arc(cx,cy,5+(1-f)*6,0,6.29);g.stroke();}}
+    else{g.strokeStyle=`rgba(255,210,122,${.35+.65*(1-left)})`;g.beginPath();g.arc(cx,cy,5+left*18,0,6.29);g.stroke();}};
   // a carved gauge like the fishing one: frame, a track, a zone, a needle
   K.gauge=(x,y,w,h,zoneLo,zoneHi,val,o)=>{o=o||{};const vert=h>w;K.px(x-2,y-2,w+4,h+4,'#1a0e06');K.px(x-1,y-1,w+2,h+2,'#7a4a20');K.px(x-1,y-1,w+2,1,'#b8823c');K.px(x,y,w,h,o.bg||'#20140a');
     if(vert){const z0=y+h*(1-zoneHi),z1=y+h*(1-zoneLo);K.px(x,z0,w,z1-z0,o.zone||'#2c5a1c');K.px(x,z0,w,1,'#9be07a');K.px(x,z1-1,w,1,'#1c3a12');const vy=y+h*(1-Math.max(0,Math.min(1,val)));K.px(x-1,vy-1,w+2,3,'#1a0e06');K.px(x,vy,w,1,o.needle||'#fff4c0');}
     else{const z0=x+w*zoneLo,z1=x+w*zoneHi;K.px(z0,y,z1-z0,h,o.zone||'#2c5a1c');K.px(z0,y,1,h,'#9be07a');const vx=x+w*Math.max(0,Math.min(1,val));K.px(vx-1,y-2,3,h+4,'#1a0e06');K.px(vx,y-1,1,h+2,o.needle||'#fff4c0');}
     for(const [cx,cy] of [[x-2,y-2],[x+w,y-2],[x-2,y+h],[x+w,y+h]]){K.px(cx,cy,2,2,'#e8c060');}};
-  K.plaque=(txt,col,y,w,sc)=>{sc=sc||1;w=w||Math.max(80,txt.length*4*sc+28);const bx=Math.round(160-w/2),bh=12+6*sc;K.pa(bx+2,y+3,w,bh,'#000',.35);K.px(bx-1,y-1,w+2,bh+2,'#1a0e06');K.px(bx,y,w,bh,'#7a4a20');
+  // (t363) a long title never runs off the stage: it wraps onto two lines at the space nearest its middle, and steps down a size if it must
+  K.plaque=(txt,col,y,w,sc)=>{sc=sc||1;txt=String(txt);let L=[txt];const fit=(ls,s)=>Math.max(...ls.map(l=>l.length))*4*s+28<=W-12;
+    if(!w&&!fit(L,sc)){let b=-1;for(let i=0;i<txt.length;i++)if(txt[i]===' '&&(b<0||Math.abs(i-txt.length/2)<Math.abs(b-txt.length/2)))b=i;if(b>0)L=[txt.slice(0,b),txt.slice(b+1)];while(sc>1&&!fit(L,sc))sc--;}
+    if(L.length>1){const lh=5*sc+4;w=Math.max(80,Math.max(...L.map(l=>l.length))*4*sc+28);const bx=Math.round(160-w/2),bh=12+6*sc+lh;K.pa(bx+2,y+3,w,bh,'#000',.35);K.px(bx-1,y-1,w+2,bh+2,'#1a0e06');K.px(bx,y,w,bh,'#7a4a20');
+      for(let x=2;x<w;x+=5)K.px(bx+x,y,1,bh,'#6a3e1a');K.px(bx,y,w,1,'#b8823c');K.px(bx,y+bh-1,w,1,'#4a2a10');for(const [cx,cy] of [[bx+2,y+2],[bx+w-4,y+2],[bx+2,y+bh-4],[bx+w-4,y+bh-4]]){K.px(cx,cy,2,2,'#e8c060');K.px(cx,cy,1,1,'#fff2c8');}
+      K.px(bx+6,y+4,w-12,bh-8,'#2a1608');L.forEach((l,i)=>K.text(l,160,y+Math.round((bh-5*sc*2-4)/2)+i*lh,col,sc));return;}
+    w=w||Math.max(80,txt.length*4*sc+28);const bx=Math.round(160-w/2),bh=12+6*sc;K.pa(bx+2,y+3,w,bh,'#000',.35);K.px(bx-1,y-1,w+2,bh+2,'#1a0e06');K.px(bx,y,w,bh,'#7a4a20');
     for(let x=2;x<w;x+=5)K.px(bx+x,y,1,bh,'#6a3e1a');K.px(bx,y,w,1,'#b8823c');K.px(bx,y+bh-1,w,1,'#4a2a10');for(const [cx,cy] of [[bx+2,y+2],[bx+w-4,y+2],[bx+2,y+bh-4],[bx+w-4,y+bh-4]]){K.px(cx,cy,2,2,'#e8c060');K.px(cx,cy,1,1,'#fff2c8');}
     K.px(bx+6,y+4,w-12,bh-8,'#2a1608');K.text(txt,160,y+Math.round((bh-5*sc)/2),col,sc);};
   // the hand of the demo
-  K.hand=(x,y,pressed)=>{const P=['..##....','.#..#...','.#..#...','.#..###.','##..#..#','#.#....#','#......#','.#.....#','..#...#.','...###..'];const dy=pressed?2:0;
+  K.hand=(x,y,pressed)=>{if(typeof m4grip==='function'){const tx=x+3,ty=y+1,A=.82,ca=Math.cos(A),sa=Math.sin(A),lx=-14,ly=3.1,d=pressed?2:0;
+      const cx=tx-(lx*ca-ly*sa)-ca*d,cy=ty-(lx*sa+ly*ca)-sa*d;m4grip(K,cx,cy,A,{side:-1,kind:'point',arm:A});
+      if(pressed){g.strokeStyle='rgba(255,244,192,.9)';g.lineWidth=1;g.beginPath();g.arc(tx,ty,6,0,Math.PI*2);g.stroke();}return;}const P=['..##....','.#..#...','.#..#...','.#..###.','##..#..#','#.#....#','#......#','.#.....#','..#...#.','...###..'];const dy=pressed?2:0;
     P.forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]==='#')K.px(x+i,y+j+dy,1,1,'#1a0e06');else if(j>0&&j<9&&i>0&&i<7&&r.slice(0,i).includes('#')&&r.slice(i).includes('#'))K.px(x+i,y+j+dy,1,1,'#f4e6c8');});
     if(pressed){g.strokeStyle='rgba(255,244,192,.85)';g.lineWidth=1;g.beginPath();g.arc(x+3,y+1,7,0,Math.PI*2);g.stroke();}};
   return K;}
@@ -150,7 +189,7 @@ function mg4Run(def,name,done,icon){if(MG4.closeCur)MG4.closeCur(true);const box
     if(phase==='title'){if(pt>1.1)afterTitle();}
     else if(phase==='demo'){I.demo=true;cur.auto(dt,AP,t);cur.update(dt,AP.I||I,t);if(cur.done||pt>8){phase='your';pt=0;$('mg4H').innerHTML=`<b>Your turn.</b> ${cur.how} ${K.fine?'Click or press Space':'Tap'} to start.`;}}
     else if(phase==='your'){if(I.goQ&&pt>=.3){I.goQ=false;press();}}
-    else if(phase==='ready'){if(pt>.9){phase='play';pt=0;I.pressed=I.released=false;I.fresh=I.upQ=false;I.down=!!I.raw;}}
+    else if(phase==='ready'){if(pt-dt<=0)MS.ready&&MS.ready();if(pt-dt<.5&&pt>=.5)MS.go&&MS.go();if(pt>.9){phase='play';pt=0;I.pressed=I.released=false;I.fresh=I.upQ=false;I.down=!!I.raw;}}
     else if(phase==='play'){I.demo=false;if(window.MG4_AUTO){cur.auto(dt,AP,t);cur.update(dt,AP.I||I,t);}
       else if(window.MG4_SHADOW){cur.auto(dt,AP,t);const q=AP.I||{};const r=cv.getBoundingClientRect(),ex=r.left+(q.x==null?I.x:q.x)/W*r.width,ey=r.top+(q.y==null?I.y:q.y)/H*r.height;   // (tests only: the auto-player's moves sent as real pointer events)
         const fire=ty=>cv.dispatchEvent(new PointerEvent(ty,{clientX:ex,clientY:ey,pointerId:7,bubbles:true}));fire('pointermove');if(q.down&&!I.down)fire('pointerdown');else if(!q.down&&I.down)fire('pointerup');
@@ -171,7 +210,7 @@ function mg4Run(def,name,done,icon){if(MG4.closeCur)MG4.closeCur(true);const box
     if(reveal>0){reveal+=dt;MG4ART.scene(K,def.scene,t);MG4ART.light(K,def.scene,t);K.pa(0,0,W,H,'#000',.5);K.glow(160,84,90,'255,220,140',.35+Math.sin(t*4)*.05);
       def.reveal&&def.reveal(K,t);for(let i=0;i<12;i++){const a=t*1.4+i*.52,r2=56+Math.sin(t*3+i)*5;K.px(160+Math.cos(a)*r2,84+Math.sin(a)*r2*.55,2,2,'#fff4c0');}
       const q=result,stars=q>.9?3:q>.6?2:q>.3?1:0;for(let i=0;i<stars;i++)if(!run['st'+i]&&reveal-.3-i*.25>0){run['st'+i]=1;A.tone(880*[1,1.26,1.5][i],.25,'triangle',.07);A.tone(1760*[1,1.26,1.5][i],.15,'sine',.03,{delay:.03});K.emit(128+i*24+6,154,8,{c:['#fff4c0','#ffd27a'],v:50,g:80,life:.5});}K.pa(118,142,84,22,'#140c06',.75);for(let i=0;i<3;i++){const on=i<stars,pop=on?Math.min(1,Math.max(0,(reveal-.3-i*.25)*5)):1;if(on&&pop<=0)continue;cg3Star(K,128+i*24,148+(on?Math.round((1-pop)*-5):0),on);}}
-    else{MG4ART.scene(K,spd().scene||def.scene,t);cur.draw(t,phase);MG4ART.light(K,spd().scene||def.scene,t);K.run={i:run.i,n:steps.length};cur.hud&&phase!=='title'&&cur.hud(t);}
+    else{MG4ART.scene(K,spd().scene||def.scene,t);K.benchY=null;if(typeof M4G!=='undefined')M4G.fr=[];cur.draw(t,phase);if(phase==='demo'||(phase==='play'&&window.MG4_AUTO)){const hp=AP.hand||[150,150],pr=AP.press||AP.hold,fr=(typeof M4G!=='undefined'&&M4G.fr)||[];if(fr.some(([x,y])=>Math.hypot(x-hp[0]-3,y-hp[1]-1)<22)){if(pr){g.strokeStyle='rgba(255,244,192,.9)';g.lineWidth=1;g.beginPath();g.arc(hp[0]+3,hp[1]+1,6,0,Math.PI*2);g.stroke();}}else K.hand(hp[0],hp[1],pr);}if(window.__mg4ptr&&phase==='play')try{window.__mg4ptr(K,I,t);}catch(e){}MG4ART.light(K,spd().scene||def.scene,t);K.run={i:run.i,n:steps.length};cur.hud&&phase!=='title'&&cur.hud(t);}
     for(let k=K.parts.length-1;k>=0;k--){const p=K.parts[k];p.t+=dt;if(p.t>p.life){K.parts.splice(k,1);continue;}p.vx*=1-p.drag*dt;p.vy=p.vy*(1-p.drag*dt)+p.g*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
       const u=p.t/p.life,c=p.c[Math.min(p.c.length-1,Math.floor(u*p.c.length))];if(p.kind==='smoke'){const z=Math.max(1,p.sz*(.5+Math.sin(u*Math.PI)*.8)),X=Math.round(p.x),Y=Math.round(p.y),zr=Math.round(z);for(let dy=-zr;dy<=zr;dy++){const w=Math.round(Math.sqrt(Math.max(0,z*z-dy*dy)));if(w<1)continue;K.px(X-w,Y+dy,2*w,1,c);if(dy<0&&dy>-zr)K.px(X-w,Y+dy,Math.max(1,w-1),1,p.hi||c);}}else if(p.kind==='steam'){const z=Math.max(1,Math.round(p.sz)),X=Math.round(p.x),Y=Math.round(p.y);g.globalAlpha=.35*(1-u);g.fillStyle=c;g.beginPath();g.rect(X-z+1,Y-z,2*z-2,2*z);g.rect(X-z,Y-z+1,2*z,2*z-2);g.fill('nonzero');g.globalAlpha=1;}else{g.globalAlpha=u>.75?(1-u)*4:1;K.px(p.x,p.y,p.sz,p.sz,c);g.globalAlpha=1;}}
     for(let k=K.pops.length-1;k>=0;k--){const p=K.pops[k];p.t+=dt;if(p.t>1){K.pops.splice(k,1);continue;}const yy=Math.max(24,Math.round(p.y-24-p.t*18-(p.big?Math.sin(Math.min(1,p.t*8)*Math.PI)*4:0)));K.textO(p.txt,p.x,yy,p.t>.7&&Math.floor(p.t*20)%2?'#fff4d8':p.c,p.big?2:1);}
@@ -179,7 +218,7 @@ function mg4Run(def,name,done,icon){if(MG4.closeCur)MG4.closeCur(true);const box
     g.setTransform(MG4_S,0,0,MG4_S,0,0);
     if(reveal===0){
       if(phase==='title'){const u=Math.min(1,pt*5);K.pa(0,0,W,H,'#000',.35*u);K.plaque(spd().t||cur.title,'#ffd27a',Math.round(70-(1-u)*20),null,2);}
-      if(phase==='demo'||(phase==='play'&&window.MG4_AUTO)){if(phase==='demo')K.plaque('Watch','#ffd27a',3,70);const hp=AP.hand||[150,150];K.hand(hp[0],hp[1],AP.press||AP.hold);}
+      if(phase==='demo')K.plaque('Watch','#ffd27a',3,70);
       if(phase==='your'){K.pa(0,0,W,H,'#000',.45);K.plaque('Your turn','#9be07a',60,120,2);if(Math.floor(t*2.5)%2)K.text(K.fine?'Click or press Space to start':'Tap to start',160,98,'#f4ecd8');}
       if(phase==='ready'){const go=pt>.5;const sc=Math.min(1,(go?pt-.5:pt)*6);K.plaque(go?'Go!':'Ready',go?'#9be07a':'#ffd27a',Math.round(66-(1-sc)*12),go?80:96,2);}
       if(banner&&(phase==='retry'||phase==='next'||phase==='done')){banner.t+=dt;if(banner.t<1.3)K.plaque(banner.txt,banner.c,Math.round(28-Math.max(0,1-banner.t*6)*10),null,2);}

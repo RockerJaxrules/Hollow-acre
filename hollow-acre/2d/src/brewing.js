@@ -68,13 +68,13 @@ vendors.b_still={name:'Copper still',sub:'The worm in the tub is older than the 
       for(let x=-34;x<=34;x+=6)for(let y=top+3;y<124;y+=5)K.px(cx+x+2,y,2,2,y%10<5?'#6a2e78':'#9a5ab0');
       K.px(cx-40,top-6,80,6,O[3]);K.px(cx-40,top-6,80,2,O[5]);                                               // the pressing board
       K.px(cx-3,30,6,top-36,I[3]);for(let y=32;y<top-6;y+=4)K.px(cx-3,y,6,1,I[5]);                            // the screw
-      const bx=Math.cos(st.ang)*44,by=Math.sin(st.ang)*6;K.line(cx-bx,40-by,cx+bx,40+by,I[4],4);m4hand(K,cx+bx,40+by);
+      const bx=Math.cos(st.ang)*44,by=Math.sin(st.ang)*6;K.line(cx-bx,40-by,cx+bx,40+by,I[4],4);m4grip(K,cx+bx*.92,40+by,Math.atan2(by,bx),{side:1,arm:-1.3});
       const flow=Math.min(1,st.spd/6)*(n<N?1:0);if(flow>.05){K.px(cx+72,128,4,2,'#5a1a50');for(let y=130;y<150;y+=2)K.px(cx+74,y,2,2,'#7a2a6a');}
       K.px(cx+66,146,18,18,CA_P.clay?CA_P.clay[3]:'#a85a32');K.px(cx+68,148+(1-f)*12,14,Math.max(1,f*12),'#4a1440');}
     else{const S=CA_P.stone;K.ell(cx,cy+22,56,14,'#2a2420');for(let y=0;y<14;y++)K.px(cx-52+y*.2,cy+8+y,104-y*.4,1,S[y<3?5:y<10?3:2]);   // the bottom stone
       K.ell(cx,cy+6,50,12,S[4]);K.ell(cx,cy+4,46,10,S[5]);K.ell(cx,cy+4,8,3,'#3a3028');                          // the turning top stone and its eye
       for(let i=0;i<Math.max(0,10-n);i++)K.px(cx-4+(i*7)%9,cy-2-(i%3)*3,2,2,'#e6c87a');                        // grain trickling into the eye
-      const hx=cx+Math.cos(st.ang)*38,hy=cy+4+Math.sin(st.ang)*9;K.px(hx-3,hy-22,6,22,CA_P.wood[4]);K.px(hx-3,hy-22,2,22,CA_P.wood[5]);m4hand(K,hx,hy-20);
+      const hx=cx+Math.cos(st.ang)*38,hy=cy+4+Math.sin(st.ang)*9;K.px(hx-3,hy-22,6,22,CA_P.wood[4]);K.px(hx-3,hy-22,2,22,CA_P.wood[5]);m4grip(K,hx,hy-16,-Math.PI/2,{side:1,arm:-1.3});
       const heap=Math.round(f*16);for(let i=0;i<heap;i++)K.px(cx+56+(i%6)*3-(i>>2),cy+30-(i>>1),4,3,i%3?'#d8b468':'#b08a40');}};
   return o;};}
 // the still: the simmer game (keep the heat in the band) with a copper head on the pot and the swan neck running to the jar

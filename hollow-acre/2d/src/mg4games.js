@@ -106,14 +106,111 @@ function m4hi(key,w,h,flip,fn){return M4.pre(key,w+2,h+2,(K,g)=>{const c=documen
     if(op>=7){const [r,gg,b]=best.split(',');K.px(1+(flip?w-1-x:x),1+y,1,1,`rgb(${r},${gg},${b})`);}}},'#3a1a0c');}
 // a board seen from the front and a little above: a lit top face, a darker front face
 function m4board(w,top,front,P,seed){return M4.pre('bd'+w+'_'+top+'_'+front+'_'+seed+P[3],w+2,top+front+2,K=>{K.plank(1,1,w,top,M4.sh(P,1),seed);K.plank(1,1+top,w,front,M4.sh(P,-1),seed+5);K.px(1,top+1,w,1,M4.sh(P,1)[6]);},true);}
-const m4hand=(K,x,y,flip)=>{const h=M4S.hand(flip?'l':'r');K.g.drawImage(h,Math.round(x-11),Math.round(y-9));};
-const m4palm=(K,x,y,flip)=>{const h=M4S.palm(flip?'l':'r');K.g.drawImage(h,Math.round(x-13),Math.round(y-8));};
+// ---------------------------------------------------------------- (t363) the hand closed round the tool, turning with it
+// The hand is built in its own frame (the handle along +x toward the arm, the thumb on the -y side), lit in screen space from
+// the top left so the light stays put while the hand turns, then laid down pixel by pixel at the art's own size: hue-shifted
+// ramps (shadows to plum, lights to warm cream), a dark crease where each finger meets the next, the thumb's shadow on the
+// fingers, the wrist and the cuff of your sleeve behind, one outline (softer on the lit side). Kept per 1/64 turn.
+const M4G={N:64,C:new Map(),arm:null,L:(()=>{const v=[-.42,-.74,.54],l=Math.hypot(...v);return v.map(x=>x/l);})()};
+const m4gRamp=c=>[m4mix(c,'#140712',.72),m4mix(c,'#2c0f26',.5),m4mix(c,'#4a1c34',.26),c,m4mix(c,'#ffd6a0',.2),m4mix(c,'#fff0d0',.4)];
+// cloth: muted, its shadows cool and grey (a warm plum shadow on a pale shirt read as a stain), its light a soft warm step
+const m4cRamp=c=>[m4mix(c,'#141420',.66),m4mix(c,'#22222e',.44),m4mix(c,'#34323e',.22),c,m4mix(c,'#fff0d8',.14),m4mix(c,'#fff0d8',.26)];
+const m4gWrap=a=>{a%=Math.PI*2;if(a>Math.PI)a-=Math.PI*2;if(a<-Math.PI)a+=Math.PI*2;return a;};
+function m4gPrims(bend,bare,kind){const P=[];const cap=(ax,ay,bx,by,r,m,o)=>P.push(Object.assign({t:0,ax,ay,bx,by,r,m,lift:0},o));const ell=(cx,cy,rx,ry,m,o)=>P.push(Object.assign({t:1,cx,cy,rx,ry,m,lift:0},o));
+  const dx=Math.cos(bend),dy=Math.sin(bend),wx=4.4,wy=.5;
+  // the forearm leaves the frame in its sleeve (or bare), its cuff turned back; then the wrist and the back of the hand
+  if(bare)cap(wx+dx*4,wy+dy*4,wx+dx*10.5,wy+dy*10.5,4.5,'f',{soft:1});
+  else{cap(wx+dx*8,wy+dy*8,wx+dx*10.5,wy+dy*10.5,5.3,'s',{soft:1});cap(wx+dx*6.6,wy+dy*6.6,wx+dx*8.4,wy+dy*8.4,5.3,'r',{lift:-.4});}
+  cap(wx,wy,wx+dx*7,wy+dy*7,3.7,'k',{lift:-1});
+  ell(2.7,-.3,5.6,5.8,'k',{lift:-.15});
+  if(kind==='point'){// a pointer: the index finger straight out ahead of the hand (along -x, the way the forearm runs), its tip a
+    // little bent, rising from the thumb's side of the knuckles; the other three curled under with their knuckle row showing; the
+    // thumb folded along the side under the index
+    P.length=0;cap(wx+dx*1.5,wy+dy*1.5,wx+dx*7,wy+dy*7,3.5,'k',{lift:-1});if(bare)cap(wx+dx*4,wy+dy*4,wx+dx*10.5,wy+dy*10.5,4.5,'f',{soft:1});
+    else{cap(wx+dx*8,wy+dy*8,wx+dx*10.5,wy+dy*10.5,5.3,'s',{soft:1});cap(wx+dx*6.6,wy+dy*6.6,wx+dx*8.4,wy+dy*8.4,5.3,'r',{lift:-.4});}
+    ell(1.6,.2,5.8,5.2,'k',{lift:-.15});
+    for(let i=2;i>=0;i--){const y=-.4+i*2.6;cap(-1.4,y,-4,y+.6,1.75,'k',{fing:1,lift:-.2*i});}
+    cap(-2.6,-3.2,-11.6,-3.7,1.6,'k',{fing:1,lift:.15});cap(-11.4,-3.7,-13.8,-2.8,1.45,'k',{fing:1,lift:.15});ell(-13,-4,.9,.65,'n');
+    cap(2.4,-4.8,-3.8,-5.8,1.75,'k',{lift:.05});ell(-4,-6.3,1,.7,'n');return P;}
+  if(kind==='palm'){// an open hand laid flat on the work: four fingers out along -x, the thumb spread
+    const L=[6.6,7.6,7.1,5.6];for(let i=3;i>=0;i--){const y=-3.4+i*2.3;cap(-1.5,y,-1.5-L[i],y+.25,1.4,'k',{fing:1});}
+    cap(2.2,-3.6,-2.6,-6.6,1.65,'k',{lift:.15});ell(-2.9,-6.9,.9,.75,'n');return P;}
+  if(kind==='pinch'){// thumb and two fingers pinching something thin at the -x end: the fingers curl under, the thumb meets them
+    for(let i=2;i>=0;i--){const x=-1.6+i*2.9;cap(x,-3.4+i*.5,x-1.2-i*.4,3.6-i*.6,1.6,'k',{fing:1});}
+    cap(3.2,-4.4,-4.4,-1.2,1.85,'k',{lift:.15});ell(-4.6,-1.6,1.1,.8,'n');return P;}
+  const top=[.45,0,.35,1.15],bot=[.25,0,.45,1.25];
+  for(let i=3;i>=0;i--){const x=-4.7+i*3.05;cap(x,-4.2+top[i],x+.55,4.4-bot[i],1.7,'k',{fing:1});}
+  cap(3.3,-5.0,-4.9,-5.5,1.95,'k',{lift:.1});ell(-5.0,-5.85,1.15,.85,'n');
+  return P;}
+function m4gripImg(ang,side,arm,Lk){const N=M4G.N,qa=((Math.round(ang/(Math.PI*2)*N)%N)+N)%N,a=qa*Math.PI*2/N;
+  const bend=Math.max(-1.75,Math.min(1.75,Math.round(m4gWrap((arm==null?a+.5:arm)-a)*side/.125)*.125));
+  const key=Lk.key+'|'+qa+'|'+side+'|'+bend+'|'+(M4G.kind||'');let c=M4G.C.get(key);if(c)return c;
+  if(M4G.C.size>700)M4G.C.clear();
+  const S=48,C=24,ca=Math.cos(a),sa=Math.sin(a),L=M4G.L;const sk=Lk.skin[3];
+  const R={k:m4gRamp(sk),n:m4gRamp(m4mix(sk,'#f6d6cc',.45)),f:m4gRamp(m4mix(sk,'#6a3a2a',.12)),s:Lk.bare?m4gRamp(sk):m4cRamp(Lk.sleeve),r:Lk.bare?m4gRamp(sk):m4cRamp(Lk.sleeve)};
+  const P=m4gPrims(bend,Lk.bare,M4G.kind);const id=new Int16Array(S*S).fill(-1),tone=new Int8Array(S*S);
+  for(let py=0;py<S;py++)for(let px=0;px<S;px++){const X=px+.5-C,Y=py+.5-C;const ux=X*ca+Y*sa,uy=(-X*sa+Y*ca)*side;
+    for(let k=P.length-1;k>=0;k--){const p=P[k];let nx,ny;
+      if(p.t===0){const vx=p.bx-p.ax,vy=p.by-p.ay,l2=vx*vx+vy*vy;let u=((ux-p.ax)*vx+(uy-p.ay)*vy)/l2;u=u<0?0:u>1?1:u;const ex=ux-(p.ax+vx*u),ey=uy-(p.ay+vy*u);if(ex*ex+ey*ey>p.r*p.r)continue;nx=ex/p.r;ny=ey/p.r;}
+      else{const ex=(ux-p.cx)/p.rx,ey=(uy-p.cy)/p.ry;if(ex*ex+ey*ey>1)continue;nx=ex;ny=ey;}
+      const nz=Math.sqrt(Math.max(0,1-nx*nx-ny*ny)),my=ny*side,sx=nx*ca-my*sa,sy=nx*sa+my*ca;const s=sx*L[0]+sy*L[1]+nz*L[2];
+      id[py*S+px]=k;tone[py*S+px]=Math.max(1,Math.min(5,(s>.86?5:s>.62?4:s>.2?3:s>-.22?2:1)+Math.round(p.lift)));break;}}
+  const at=(x,y)=>x<0||y<0||x>=S||y>=S?-1:id[y*S+x];
+  const T=tone.slice();for(let y=0;y<S;y++)for(let x=0;x<S;x++){const i=y*S+x,k=id[i];if(k<0)continue;const p=P[k];
+    // the crease where a finger meets the one in front of it, and the shade under anything lying over this part toward the light
+    for(const [ox,oy] of [[1,0],[-1,0],[0,1],[0,-1]]){const j=at(x+ox,y+oy);if(j>k&&P[j].m===p.m&&p.m!=='n'){T[i]=Math.min(T[i],p.fing&&P[j].fing?1:2);}}
+    const up=at(x-1,y-1);if(up>k&&!(p.fing&&P[up].fing))T[i]=Math.max(1,Math.min(T[i],tone[i]-1));}
+  const col=new Array(S*S).fill(null);for(let i=0;i<S*S;i++)if(id[i]>=0)col[i]=R[P[id[i]].m][T[i]];
+  // one lone-pixel pass, then the outline
+  for(let y=1;y<S-1;y++)for(let x=1;x<S-1;x++){const i=y*S+x;if(!col[i]||P[id[i]].m==='n')continue;const a1=col[i-1],a2=col[i+1],a3=col[i-S],a4=col[i+S];if(a1&&a1===a2&&a2===a3&&a3===a4&&a1!==col[i])col[i]=a1;}
+  c=document.createElement('canvas');c.width=S;c.height=S;const g=c.getContext('2d'),d=g.createImageData(S,S),D=d.data;const hx=h=>[1,3,5].map(o=>parseInt(h.slice(o,o+2),16));
+  const HC={},put=(i,h)=>{const [r,gg,b]=HC[h]||(HC[h]=hx(h));D[i*4]=r;D[i*4+1]=gg;D[i*4+2]=b;D[i*4+3]=255;};
+  for(let y=0;y<S;y++)for(let x=0;x<S;x++){const i=y*S+x;if(col[i]){put(i,col[i]);continue;}
+    let lit=null,dark=null;for(const [ox,oy,l] of [[1,0,1],[0,1,1],[-1,0,0],[0,-1,0]]){const j=at(x+ox,y+oy);if(j<0||P[j].soft)continue;const Rm=R[P[j].m];if(l)lit=lit||Rm;else dark=dark||Rm;}
+    if(dark)put(i,m4mix(dark[0],'#0c0408',.5));else if(lit)put(i,m4mix(dark?dark[0]:lit[0],lit[1],.35));}
+  g.putImageData(d,0,0);M4G.C.set(key,c);return c;}
+// draw a hand round a handle at (x,y): ang = the way the handle runs toward your arm, side = which side the thumb lies
+// (1: on the -y side of the handle), arm = the way your forearm leaves the hand (it follows behind, bending at the wrist)
+// your forearm in its sleeve (or bare), from the cuff out to the edge of the window (or len px, to go in behind something):
+// one cylinder in the sleeve's own ramp, lit from the top left, a little wider as it comes toward you, two soft creases
+const M4A={C:new Map()};
+const m4cuff=(x,y,ang,side,arm)=>{const ca=Math.cos(ang),sa=Math.sin(ang),ly=.5*(side||1);return [x+4.4*ca-ly*sa+Math.cos(arm)*9,y+4.4*sa+ly*ca+Math.sin(arm)*9];};
+function m4arm(K,X,Y,arm,len,clipY){const Lk=m4look();const AQ=Math.PI*2/160;arm=Math.round(arm/AQ)*AQ;const dx=Math.cos(arm),dy=Math.sin(arm);
+  const IX=Math.floor(X),IY=Math.floor(Y),x0=Math.round((X-IX)*2)/2,y0=Math.round((Y-IY)*2)/2;
+  // going down behind the bench or the counter: it ends just past the edge that hides it
+  if(clipY!=null&&dy>.15&&Y<clipY)len=(clipY+10-Y)/dy;
+  // out to the frame: its far end is off the picture anyway, so round its length up generously and the picture is reused as it moves
+  if(len==null){len=0;while(len<400){const x=X+dx*len,y=Y+dy*len;if(x<-14||x>334||y<-14||y>194)break;len+=4;}len=Math.ceil(len/24)*24;}else len=Math.ceil(len/2)*2;const key=Lk.key+'|'+x0+'|'+y0+'|'+Math.round(arm/AQ)+'|'+len;let e=M4A.C.get(key);
+  if(!e){if(M4A.C.size>160)M4A.C.clear();const r0=5.4,rk=.05,R=Lk.bare?m4gRamp(m4mix(Lk.skin[3],'#6a3a2a',.12)):m4cRamp(Lk.sleeve),L=M4G.L;
+    const rr=t=>Math.min(10.5,r0+t*rk),ex=x0+dx*len,ey=y0+dy*len,pad=14;const bx=Math.floor(Math.min(x0,ex)-pad),by=Math.floor(Math.min(y0,ey)-pad),bw=Math.ceil(Math.abs(ex-x0)+pad*2),bh=Math.ceil(Math.abs(ey-y0)+pad*2);
+    const c=document.createElement('canvas');c.width=bw;c.height=bh;const g=c.getContext('2d'),d=g.createImageData(bw,bh),D=d.data,hx=h=>[1,3,5].map(o=>parseInt(h.slice(o,o+2),16));
+    const HC={},put=(i,h)=>{const [r,gg,b]=HC[h]||(HC[h]=hx(h));D[i*4]=r;D[i*4+1]=gg;D[i*4+2]=b;D[i*4+3]=255;};const nx=-dy,ny=dx;
+    const T=new Int8Array(bw*bh).fill(-1);
+    for(let py=0;py<bh;py++)for(let px=0;px<bw;px++){const X=bx+px+.5-x0,Y=by+py+.5-y0,al=X*dx+Y*dy,ac=X*nx+Y*ny;if(al<-1||al>len)continue;const r=rr(Math.max(0,al));if(Math.abs(ac)>r)continue;
+      const u=ac/r,nz=Math.sqrt(Math.max(0,1-u*u)),s=(nx*u)*L[0]+(ny*u)*L[1]+nz*L[2];let t=s>.7?4:s>.25?3:s>-.2?2:1;
+      // two soft folds near the cuff, bowed toward you
+      for(const fc of [13,25])if(Math.abs(al-fc-u*u*3)<.7&&Math.abs(u)<.8)t=Math.max(1,t-1);
+      if(Lk.plaid&&((Math.round(al)%7===0)||(Math.round(ac+50)%7===0)))t=Math.max(1,t-1);
+      T[py*bw+px]=t;}
+    for(let i=0;i<bw*bh;i++)if(T[i]>=0)put(i,R[T[i]]);
+    for(let py=0;py<bh;py++)for(let px=0;px<bw;px++){const i=py*bw+px;if(T[i]>=0)continue;let lit=0,dk=0;
+      for(const [ox,oy,l] of [[1,0,1],[0,1,1],[-1,0,0],[0,-1,0]]){const qx=px+ox,qy=py+oy;if(qx<0||qy<0||qx>=bw||qy>=bh)continue;if(T[qy*bw+qx]>=0){if(l)lit=1;else dk=1;}}
+      // no outline across the cuff end (the hand covers it)
+      const X=bx+px+.5-x0,Y=by+py+.5-y0;if(X*dx+Y*dy<1)continue;
+      if(dk)put(i,m4mix(R[0],'#0c0408',.5));else if(lit)put(i,m4mix(R[0],R[1],.35));}
+    g.putImageData(d,0,0);e={c,bx,by};M4A.C.set(key,e);}
+  if(clipY!=null&&dy>.15){K.g.save();K.g.beginPath();K.g.rect(0,0,320,clipY);K.g.clip();K.g.drawImage(e.c,IX+e.bx,IY+e.by);K.g.restore();}else K.g.drawImage(e.c,IX+e.bx,IY+e.by);}
+const m4grip=(K,x,y,ang,o)=>{o=o||{};(M4G.fr||(M4G.fr=[])).push([x,y]);if(window.__handLog)(M4G.seen||(M4G.seen=[])).push([x,y,performance.now()]);const Lk=m4look();const side=o.side||1,arm=o.arm!=null?o.arm:M4G.arm!=null?M4G.arm:ang+.5;M4G.kind=o.kind||'';const c=m4gripImg(ang,side,arm,Lk);M4G.kind='';M4G.arm=null;
+  if(o.armLen!==0){const [cx,cy]=m4cuff(x,y,ang,side,arm);m4arm(K,cx,cy,arm,o.armLen,o.clipY!=null?o.clipY:K.benchY);}
+  K.g.drawImage(c,Math.round((x-24)*2)/2,Math.round((y-24)*2)/2);};
+// the old calls: a hand with no angle given closes round a level handle (the left one mirrored), its arm toward you
+const m4hand=(K,x,y,flip,ang,o)=>{o=o||{};if(ang==null){ang=flip?Math.PI:0;if(o.side==null)o.side=flip?-1:1;}
+  if(o.arm==null&&M4G.arm==null)o.arm=y>112?(flip?1.95:1.2):(flip?-1.95:-1.2);m4grip(K,x,y,ang,o);};
+// (t363) the open hand too: the same drawing as the gripping one, with its wrist, cuff and arm
+const m4palm=(K,x,y,flip,o)=>{o=Object.assign({kind:'palm'},o||{});if(o.side==null)o.side=flip?1:-1;if(o.arm==null)o.arm=y>112?(flip?1.95:1.2):(flip?-1.95:-1.2);m4grip(K,x+(flip?-2:2),y,flip?0:Math.PI,o);};
 // just a cuff behind the wrist, pointing back toward you: hands, not sticks
-const m4sleeve=(K,x0,y0,x1,y1)=>{const ux=(x1>=x0?1:-1)*.55,uy=.84;const Lk=m4look(),L=11;
-  // a bare forearm, or the sleeve of your top, its cuff turned back
-  const col=Lk.bare?Lk.skin[3]:Lk.sleeve,hi=Lk.bare?Lk.skin[4]:Lk.sleeveHi,dk=Lk.bare?Lk.skin[1]:Lk.sleeveDk;
-  for(let i=2;i<=L;i++){const x=x0+ux*i,y=y0+uy*i;K.px(x-4,y-4,8,8,'#2a1408');}for(let i=2;i<=L;i++){const x=x0+ux*i,y=y0+uy*i;K.px(x-3,y-3,6,6,col);K.px(x-3,y-3,6,1,hi);if(!Lk.bare&&i%4===0)K.px(x-3,y,6,1,dk);if(Lk.plaid&&i%3===0)K.px(x-1,y-3,1,6,dk);}
-  if(!Lk.bare){const cx=x0+ux*2,cy=y0+uy*2;K.px(cx-4,cy-4,8,8,dk);K.px(cx-3,cy-3,6,6,hi);}};
+// (t363) the forearm is drawn with the hand now (its cuff follows behind the wrist): the old sleeve call only says which way it goes
+const m4sleeve=(K,x0,y0,x1,y1)=>{M4G.arm=Math.atan2(y1-y0,x1-x0);};
 // ---------------------------------------------------------------- SAW: one smooth stroke per beat; rushing binds the blade
 S4.saw=(sp,K)=>{const g=K.g,X0=44,X1=292,TOP=96,FR=106,BOT=114,CX=sp.cx||232,N=sp.n||9,TEMPO=sp.tempo||.62,P=sp.wood||CA_P.wood;
   const board=m4board(X1-X0,10,8,P,sp.seed||5),saw=M4S.saw(),horse=M4S.sawhorse();
@@ -146,13 +243,13 @@ S4.saw=(sp,K)=>{const g=K.g,X0=44,X1=292,TOP=96,FR=106,BOT=114,CX=sp.cx||232,N=s
       else{const f=st.fall;g.save();g.translate(Math.round(f.x),Math.round(f.y+18));g.rotate(f.a);g.drawImage(off,0,-19);g.restore();}
       for(let y=TOP+1;y<BOT;y+=2)K.px(CX,y,1,1,'#2a2a34');
       if(st.n>0){K.px(kx-1,TOP,2,FR-TOP,'#1a0e06');for(let y=FR;y<FR+d*8;y++){const x=CX+st.drift*((y-FR)/8)*d;K.px(x-1,y,2,1,'#1a0e06');K.px(x+1,y,1,1,'#3a2410');}}
-      m4palm(K,X0+46,TOP+3,true);
-      if(!st.fall){const s=st.sp<0?0:Math.sin(Math.PI*Math.min(1,st.sp));const dTip=20+40*s;const ang=-.55+(st.bind>0?(Math.random()-.5)*.08:0);
+      m4palm(K,X0+46,TOP+3,false,{arm:2.15,clipY:TOP+10});
+      if(!st.fall){const s=st.sp<0?0:Math.sin(Math.PI*Math.min(1,st.sp));const dTip=20+40*s;const ang=-.55-.06*s+(st.sp>=0&&st.sp<.5?.025:0)+(st.bind>0?(Math.random()-.5)*.08:0);
         const cy=FR+d*8-1;g.save();g.beginPath();g.rect(0,0,320,FR);g.rect(kx-2,FR,4,d*8+1);g.clip();M4.rot(g,saw,kx,cy,ang,dTip,18);g.restore();
-        const [hx,hy]=M4.tr(kx,cy,ang,88-dTip,11-18);m4sleeve(K,hx+4,hy+2,hx+40,hy-20);m4hand(K,hx,hy+1);}},
+        const [hx,hy]=M4.tr(kx,cy,ang,94.5-dTip,11.5-18);m4grip(K,hx,hy,ang+1.35,{side:-1,arm:ang-.25});}},
     hud(t){if(st.fall)return;const cx=CX+st.drift*st.d,cy=TOP+5;const left=st.n===0?((t*1.4)%1):M4.cl((st.next-st.t)/TEMPO,0,1);const r=5+left*18;   // (t337) the beat ring sits on the cut, where the teeth bite
-      K.g.strokeStyle='rgba(20,10,4,.8)';K.g.lineWidth=3;K.g.beginPath();K.g.arc(cx,cy,5,0,6.29);K.g.stroke();K.g.strokeStyle=left<.12?'#9be07a':'#fff4c0';K.g.lineWidth=1;K.g.beginPath();K.g.arc(cx,cy,5,0,6.29);K.g.stroke();
-      K.g.strokeStyle=`rgba(255,210,122,${.35+.65*(1-left)})`;K.g.beginPath();K.g.arc(cx,cy,r,0,6.29);K.g.stroke();
+      if(st.n===0){K.g.strokeStyle='rgba(20,10,4,.8)';K.g.lineWidth=3;K.g.beginPath();K.g.arc(cx,cy,5,0,6.29);K.g.stroke();K.g.strokeStyle='#fff4c0';K.g.lineWidth=1;K.g.beginPath();K.g.arc(cx,cy,5,0,6.29);K.g.stroke();K.g.strokeStyle=`rgba(255,210,122,${.35+.65*(1-left)})`;K.g.beginPath();K.g.arc(cx,cy,r,0,6.29);K.g.stroke();}
+      else K.beat(cx,cy,st.t,st.next,TEMPO,.1,.2);
       if(st.n===0)K.label('TAP',cx,cy-3,'#ffd27a');K.meter(st.d,M4.avg(st.q)||1);
       if(st.idle>2.2&&st.n>0&&Math.floor(t*3)%2)K.label('KEEP SAWING',160,24,'#ffd27a');},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(!st.fall&&((st.n===0&&st.t>.6)||(st.n>0&&st.t>=st.next-.012)))m4tap(a);AP.hand=[CX+6,TOP+2];AP.press=a.down;},
@@ -193,40 +290,49 @@ S4.plane=(sp,K)=>{const g=K.g,X0=34,X1=286,TOP=90,FR=102,LO=sp.lo||52,HI=sp.hi||
       for(const cu of st.curls){for(let a=0;a<9;a+=.5){const r=cu.r*(1-a/12);K.px(cu.x+Math.cos(a+cu.a)*r,cu.y-cu.r+Math.sin(a+cu.a)*r*.8,2,1,a%1<.5?'#f6dcae':'#d8b07a');}}
       const lift=st.mode==='lift'?Math.sin(Math.PI*Math.min(1,st.lift))*14:0;const jit=st.v>HI?(Math.random()-.5)*2:0;const px_=Math.round(st.x),py=TOP+6-22-lift+jit;
       if(st.mode==='push'&&st.v>0)K.pa(px_+3,TOP+8,40,2,'#000',.18);
-      g.drawImage(plane,px_,py);
+      const tilt=st.mode==='lift'?-.1*Math.sin(Math.PI*Math.min(1,st.lift)):st.mode==='push'?.018*Math.min(1,st.v/HI)+(st.v>HI?(Math.random()-.5)*.03:0):0;M4.rot(g,plane,px_+23,py+23,tilt,23,23);
       if(st.rib>0){const R=Math.min(9,2+st.rib*.04),A=Math.min(12.5,st.rib*.06),mx=px_+15,my=py+5;for(let a=0;a<A;a+=.35){const r=R*(1-a/(A+3));K.px(mx+4+Math.cos(-a*1.1)*r,my-R+Math.sin(-a*1.1)*r,2,2,a%1.4<.7?'#f6dcae':'#e0bc86');}}
-      m4sleeve(K,px_+42,py+4,px_+70,py-24);m4hand(K,px_+38,py+5);m4sleeve(K,px_+5,py+4,px_-6,py-30,'#4a5a7a');m4hand(K,px_+8,py+6,true);},
+      {const [ax,ay]=M4.tr(px_+23,py+23,tilt,35-23,7-23);m4grip(K,ax,ay,tilt-1.1,{side:1,arm:-1.75+tilt});const [bx,by]=M4.tr(px_+23,py+23,tilt,8-23,9-23);m4grip(K,bx,by,Math.PI+.25+tilt,{side:-1,arm:-1.95});}},
     hud(t){const gx=110,gy=26;K.label('SPEED',gx-4,gy,'#f4ecd8',1,'r');K.gauge(gx,gy,100,6,LO/VMAX,HI/VMAX,st.v/VMAX);
       K.label('PASS '+Math.min((sp.passes||3),st.pass+1)+'/'+(sp.passes||3),250,gy,'#f4ecd8');K.meter(smooth(),M4.avg(st.inb)||1);
       if(st.mode==='wait'&&Math.floor(t*2.5)%2)K.label(st.pass?'HOLD FOR THE NEXT PASS':'HOLD TO PUSH',160,44,'#ffd27a');},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(st.mode==='wait')m4hold(a,st.t>.4);else if(st.mode==='push'){if(st.v<66)m4hold(a,true);else if(st.v>80)m4hold(a,false);}else m4hold(a,false);AP.hand=[st.x+36,TOP-24];AP.press=a.down;},
     quiet(){loop&&loop.set(0);},stop(){loop&&loop.stop();}};};
 // ---------------------------------------------------------------- HAMMER: hold to raise, let go to strike; the edge nails want a lighter blow
-S4.hammer=(sp,K)=>{const g=K.g,X0=sp.x0||58,X1=sp.x1||262,TOP=92,FR=104,N=sp.n||4,P=sp.wood||CA_P.oak,RIV=sp.look==='rivet',H0=RIV?7:13;
+S4.hammer=(sp,K,run,def)=>{const WS=(sp.scene||(def&&def.scene))==='workshop';const g=K.g,X0=sp.x0||58,X1=sp.x1||262,TOP=92,FR=104,N=sp.n||4,P=sp.wood||CA_P.oak,RIV=sp.look==='rivet',H0=RIV?7:13;
   const MP=sp.metal==='brass'?CA_P.brass:sp.metal==='iron'?CA_P.iron:null,RC=MP?(sp.metal==='brass'?CA_P.copper:CA_P.iron):CA_P.copper;
   const board=RIV?M4.pre('rivsheet'+(sp.metal||'leather'),X1-X0+2,22,k=>{if(MP){k.metal(1,1,X1-X0,12,MP);k.px(1,13,X1-X0,8,MP[2]);k.px(1,13,X1-X0,1,MP[4]);}else{k.leather(1,1,X1-X0,12,CA_P.leather);k.px(1,13,X1-X0,8,CA_P.leather[1]);for(let x=4;x<X1-X0;x+=5)k.px(1+x,3,3,1,CA_P.leather[5]);for(let x=4;x<X1-X0;x+=5)k.px(1+x,10,3,1,CA_P.leather[5]);}},true):m4board(X1-X0,12,8,P,sp.seed||9),
     under=RIV?M4.pre('rivunder'+(sp.metal||'leather'),X1-X0-22,18,k=>{if(MP){k.metal(1,1,X1-X0-24,6,MP);k.px(1,7,X1-X0-24,10,MP[1]);}else{k.leather(1,1,X1-X0-24,16,M4.sh(CA_P.leather,-1));}},true):m4board(X1-X0-24,6,10,M4.sh(P,-1),(sp.seed||9)+3),ham=M4S.hammer();
-  const nails=[];for(let i=0;i<N;i++){const x=Math.round(X0+18+(X1-X0-36)*(N>1?i/(N-1):.5));const edge=sp.edge&&(i===0||i===N-1);nails.push({x,h:H0,bent:0,sc:1,hits:0,split:0,edge,lo:edge?.34:.55,hi:edge?.58:.82});}
-  const st={i:0,p:0,ph:'ready',sw:0,from:0,hx:nails[0].x,t:0,end:0,ang:.25,move:0,straight:0};
-  const nailTop=n=>TOP+6-n.h;const HPX=47,HPY=12,HFACE=11;
+  const nails=[];for(let i=0;i<N;i++){const x=Math.round(X0+18+(X1-X0-36)*(N>1?i/(N-1):.5));const edge=sp.edge&&(i===0||i===N-1);nails.push({x,h:H0,vh:H0,bent:0,sc:1,hits:0,split:0,edge,lo:edge?.34:.55,hi:edge?.58:.82});}
+  const st={i:0,p:0,ph:'ready',sw:0,from:0,hx:nails[0].x,t:0,end:0,ang:.25,av:0,kick:0,rk:4,move:0,straight:0};
+  const nailTop=n=>TOP+6-n.vh;const HPX=47,HPY=12,HFACE=11;
   const strike=()=>{const n=nails[st.i],p=st.p,mid=(n.lo+n.hi)/2,half=(n.hi-n.lo)/2;let q,sink;n.hits++;
-    if(p<n.lo){sink=H0*(.1+.12*p/n.lo);q=p<n.lo-.2?.15:.45;MS.knock();MS.tink(.1);}
-    else if(p<=n.hi){const c=1-Math.abs(p-mid)/half;sink=H0*(.46+.16*c);q=c>.55?1:.75;MS.tink(p);MS.knock();K.emit(n.x,nailTop(n)-1,4,{c:['#fff4c0','#ffd27a'],v:60,g:150,life:.3});}
-    else if(n.edge){n.split=1;sink=H0*.6;q=.15;MS.crunch();A.hiss(.25,.2,'bandpass',900,{q:2});K.shk=.2;}
-    else{n.bent=1;sink=H0*.15;q=.15;A.tone(420,.28,'square',.05,{slide:170,filter:['lowpass',1400]});MS.tink(.9);st.straight=.6;}
-    n.h=Math.max(0,n.h-sink);n.sc=Math.max(0,n.sc-(q>=.95?0:q>=.6?.06:q>=.3?.16:.3));K.judge(q,n.x,nailTop(n)-22,true);if(q>=.95)K.flash=.12;if(q<.3)MS.miss();K.shk=Math.max(K.shk,.08);
-    K.emit(n.x,TOP+6,3,{c:['#c8a070','#8a6a48'],v:30,g:200,life:.4});
-    if(n.h<=.6){n.h=0;MS.thunk();K.emit(n.x,TOP+6,8,{c:['#d8b888','#a88858'],v:45,spread:3,g:220,life:.5});if(st.i<N-1){st.move=.001;}else st.ph='end';}};
+    if(p<n.lo){sink=H0*(.1+.12*p/n.lo);q=p<n.lo-.2?.15:.45;MS.hammer(RIV?(MP?'metal':'leather'):'wood',.25,q);st.rk=2.6;}
+    else if(p<=n.hi){const c=1-Math.abs(p-mid)/half;sink=H0*(.46+.16*c);q=c>.55?1:.75;MS.hammer(RIV?(MP?'metal':'leather'):'wood',.6+p*.4,q);st.rk=4.2;K.emit(n.x,nailTop(n)-1,4,{c:['#fff4c0','#ffd27a'],v:60,g:150,life:.3});}
+    else if(n.edge){n.split=1;sink=H0*.6;q=.15;MS.hammer('wood',1,.1);MS.split();K.shk=.2;st.rk=5.5;}
+    else{n.bent=1;sink=H0*.15;q=.15;MS.hammer(RIV?(MP?'metal':'leather'):'wood',1,.1);MS.bend();st.straight=.6;st.rk=6.5;}
+    st.showP=p;st.showT=.7;st.showQ=q;n.h=Math.max(0,n.h-sink);st.hold=.055;n.sc=Math.max(0,n.sc-(q>=.95?0:q>=.6?.06:q>=.3?.16:.3));K.judge(q,n.x-48,TOP-36,true);if(q>=.95)K.flash=.12;if(q<.3)MS.miss();K.shk=Math.max(K.shk,.1);
+    // chips that read as chips: little 2 px splinters kicked off to both sides, and a puff of dust
+    K.emit(n.x,TOP+5,RIV?3:5,{c:RIV&&MP?['#fff4c0','#ffd27a']:['#e8c890','#c8a070','#8a6a48'],v:55,ang:-Math.PI/2,spread:2.6,g:320,life:.45,sz:2});K.emit(n.x,TOP+6,3,{c:['#6a5a48','#4a3e32'],v:14,g:-20,life:.6,sz:3,kind:'smoke'});
+    if(n.h<=.6){n.h=0;MS.seat();K.emit(n.x,TOP+6,8,{c:['#d8b888','#a88858'],v:45,spread:3,g:220,life:.5});if(st.i<N-1){st.move=.001;}else st.ph='end';}};
   return {title:sp.t||(RIV?'Set the rivets':'Nail it together'),how:'Hold to raise the hammer, let go to strike. Stop in the green: too hard bends the nail, and near the edge it splits the wood.',hint:'Hold, then let go in the green. Edge nails want less.',st,
     update(dt,I){st.t+=dt;const n=nails[st.i];
-      if(st.move>0){st.move+=dt/.4;const nx=nails[Math.min(N-1,st.i+1)].x;st.hx+= (nx-st.hx)*Math.min(1,dt*10);if(st.move>=1){st.i++;st.move=0;st.hx=nails[st.i].x;st.ph='ready';}st.ang+=(.25-st.ang)*Math.min(1,dt*10);return;}
-      if(st.straight>0){st.straight-=dt;if(st.straight<=0){n.bent=0;A.tone(300,.3,'sawtooth',.03,{slide:520,filter:['bandpass',900,4]});}return;}
-      if(st.ph==='end'){st.end+=dt;st.ang+=(.25-st.ang)*Math.min(1,dt*8);if(st.end>.7){st.done=true;st.score=M4.avg(nails.map(n=>n.sc));}return;}
-      if(st.ph==='ready'){st.ang+=(.25-st.ang)*Math.min(1,dt*10);if(I.pressed||(I.down&&!st.wasDown)){st.ph='raise';st.p=0;}}
-      if(st.ph==='raise'){if(I.down){st.p=Math.min(1,st.p+dt/.85);st.ang=.25+st.p*1.25+(st.p>=1?Math.sin(st.t*40)*.03:0);}else{st.ph='swing';st.sw=0;st.from=st.ang;MS.whoosh();}}
-      if(st.ph==='swing'){st.sw+=dt/.07;st.ang=st.from*(1-Math.min(1,st.sw));if(st.sw>=1){st.ang=0;strike();if(st.ph==='swing')st.ph='ready';}}
+      // (t363) a damped spring: the hammer lags a touch behind your hold, overshoots a little and settles, never snaps
+      const spring=(tg,k,z)=>{const w=Math.sqrt(k),h=Math.min(dt,1/60),m=Math.max(1,Math.round(dt/h));for(let q=0;q<m;q++){st.av+=(k*(tg-st.ang)-2*z*w*st.av)*(dt/m);st.ang+=st.av*(dt/m);}};
+      if(st.kick>0)st.kick=Math.max(0,st.kick-dt*7);for(const q of nails)q.vh+=(q.h-q.vh)*Math.min(1,dt*28);
+      if(st.move>0){st.move+=dt/.4;const nx=nails[Math.min(N-1,st.i+1)].x;st.hx+=(nx-st.hx)*Math.min(1,dt*10);spring(.4,300,.75);if(st.move>=1){st.i++;st.move=0;st.hx=nails[st.i].x;st.ph='ready';}return;}
+      if(st.straight>0){st.straight-=dt;spring(.25,500,.5);if(st.straight<=0){n.bent=0;MS.unbend();}return;}
+      if(st.ph==='end'){st.end+=dt;spring(.25,500,.5);if(st.end>.7){st.done=true;st.score=M4.avg(nails.map(n=>n.sc));}return;}
+      if(st.ph==='ready'){if(st.hold>0){st.hold-=dt;st.ang=0;st.av=0;if(st.hold<=0)st.av=st.rk;}else spring(.25,500,.5);if(I.pressed||(I.down&&!st.wasDown)){st.ph='raise';st.p=0;if(st.hold>0){st.hold=0;st.av=st.rk*.5;}}}
+      if(st.ph==='raise'){if(I.down){st.p=Math.min(1,st.p+dt/.85);const e=1-(1-st.p)*(1-st.p);spring(.25+e*1.25+(st.p>=1?Math.sin(st.t*40)*.03:0),900,.85);if(st.p>=1&&!st.full){st.full=1;MS.creak();}}
+        else{st.ph='cock';st.ck=0;st.from=Math.max(st.ang,.32);st.full=0;}}
+      if(st.ph==='cock'){st.ck+=dt/.075;const u=Math.min(1,st.ck);st.ang=st.from+(.3+.3*st.p)*(1-(1-u)*(1-u));st.av=0;if(st.ck>=1){st.ph='swing';st.sw=0;st.from=st.ang;MS.swish(st.p);}}
+      if(st.ph==='swing'){st.sw+=dt/.085;const u=Math.min(1,st.sw);st.ang=st.from*(1-u*u);st.av=0;if(st.sw>=1){st.ang=0;strike();st.av=st.rk;st.kick=1;if(st.ph==='swing')st.ph='ready';}}
       st.wasDown=I.down;},
-    draw(t){g.drawImage(under,X0+11,TOP+12);g.drawImage(board,X0-1,TOP-1);
+    draw(t){if(WS&&MG4ART.cache&&MG4ART.cache.workshop)g.drawImage(MG4ART.cache.workshop,112,16,16,30,91,16,16,30);
+      // your forearm goes in behind the bench, so the board cuts it off
+      {const n=nails[st.i];const top=n.h>0?nailTop(n)-1:TOP+5;const [pvx,pvy,ex,ey]=this.grip(top);const [hx,hy]=M4.tr(pvx,pvy,st.ang,-5,-.5);const arm=Math.atan2(ey-pvy,ex-pvx);const [cx,cy]=m4cuff(hx,hy,st.ang,1,arm);m4arm(K,cx,cy,arm,Math.max(10,(TOP+13-cy)/Math.max(.25,Math.sin(arm))));}
+      g.drawImage(under,X0+11,TOP+12);g.drawImage(board,X0-1,TOP-1);
       for(const n of nails){const top=nailTop(n);
         if(n.split){let x=n.x,y=TOP+6;const dir=n.x<160?-1:1;K.px(x,y,1,1,'#1a0e06');while(Math.abs(x-n.x)<Math.abs((dir<0?X0:X1)-n.x)){x+=dir*2;y+=(Math.random()<.5?-1:1);y=M4.cl(y,TOP+2,FR+6);K.px(x,y,2,1,'#1a0e06');}}
         if(n.h>0){if(n.bent){K.px(n.x,top+n.h*.5,1,n.h*.5,CA_P.iron[5]);for(let k=0;k<n.h*.5;k++)K.px(n.x+k*.7,top+n.h*.5-k,1,1,CA_P.iron[6]);K.px(n.x+n.h*.35-1,top-1,3,1,CA_P.iron[7]);}
@@ -235,10 +341,16 @@ S4.hammer=(sp,K)=>{const g=K.g,X0=sp.x0||58,X1=sp.x1||262,TOP=92,FR=104,N=sp.n||
         else if(RIV){K.ell(n.x+.5,TOP+6,5,2,RC[3]);K.ell(n.x,TOP+5,4,1,RC[5]);K.px(n.x-1,TOP+5,2,1,RC[7]);}
         else{K.ell(n.x+.5,TOP+6,2,1,CA_P.iron[4]);K.px(n.x,TOP+5,1,1,CA_P.iron[7]);}
         if(n===nails[st.i]&&n.h>0)K.pa(n.x-3,TOP+5,8,3,'#ffd27a',.2+Math.sin(t*6)*.1);}
-      const n=nails[st.i];const top=n.h>0?nailTop(n)-1:TOP+5;const pvx=st.hx+39,pvy=top-HFACE;
-      M4.rot(g,ham,pvx,pvy,st.ang,HPX,HPY);const [hx,hy]=M4.tr(pvx,pvy,st.ang,-3,0);m4sleeve(K,hx+3,hy,hx+38,hy+30);m4hand(K,hx,hy);
-      m4palm(K,X0+4,TOP+5,true);},
-    hud(t){const n=nails[st.i];const gx=Math.min(300,st.hx+64),gy=30;K.gauge(gx,gy,6,58,n.lo,n.hi,st.ph==='raise'?st.p:st.ph==='swing'?st.p:0,{zone:n.edge?'#5a4a1c':'#2c5a1c'});
+      const n=nails[st.i];const top=n.h>0?nailTop(n)-1:TOP+5;const [pvx,pvy,ex,ey]=this.grip(top);
+      // (t363) a faint smear behind the head on the way down, the hammer, then the fist closed round the handle and turned with it
+      if(st.ph==='swing'&&st.sw>.2){const a1=Math.min(st.from,st.ang+.55);for(let a=st.ang+.06;a<a1;a+=.045){const u=(a-st.ang)/.55;for(const ly of [-8,-3,2,7]){const [sx,sy]=M4.tr(pvx,pvy,a,-40,ly+1);K.pa(sx,sy,2,2,ly<0?'#e8e4dc':'#b8b4b0',.42*(1-u));}}}
+      M4.rot(g,ham,pvx,pvy,st.ang,HPX,HPY);const [hx,hy]=M4.tr(pvx,pvy,st.ang,-5,-.5);m4grip(K,hx,hy,st.ang,{side:1,arm:Math.atan2(ey-pvy,ex-pvx),armLen:0});
+      m4palm(K,X0+8,TOP+5,false,{arm:2.15,clipY:TOP+12});},
+    // where the fist is: the swing turns at the wrist and the elbow (the elbow down and back, toward you, takes 2/5 of it),
+    // so the hand rises and comes back as the head goes up, and the head still meets the nail square when it lands
+    grip(top){const g0x=st.hx+39,g0y=top-HFACE,ex=g0x+24,ey=g0y+20,e=Math.max(-.12,st.ang*.42),ce=Math.cos(e),se=Math.sin(e),rx=g0x-ex,ry=g0y-ey;
+      const lift=st.move>0?Math.sin(Math.PI*Math.min(1,st.move))*5:0;return [ex+rx*ce-ry*se,ey+rx*se+ry*ce-lift+st.kick*1.2,ex,ey];},
+    hud(t){const n=nails[st.i];if(st.ph==='cock'){}const gx=st.hx+80>294?st.hx-34:st.hx+80,gy=30;if(st.showT>0)st.showT-=1/60;const sh=st.ph!=='raise'&&st.ph!=='swing'&&st.showT>0;K.gauge(gx,gy,6,58,n.lo,n.hi,st.ph==='raise'||st.ph==='swing'||st.ph==='cock'?st.p:sh?st.showP:0,{zone:n.edge?'#5a4a1c':'#2c5a1c',needle:sh?(st.showQ>=.6?'#9be07a':'#e8542a'):null});
       if(n.edge)K.label('EDGE',gx+3,gy-8,'#e8b030');K.label('NAIL '+(st.i+1)+'/'+N,30,20,'#f4ecd8','l');
       K.meter(nails.filter(x=>x.h===0).length/N,M4.avg(nails.map(x=>x.sc)));},
     auto(dt,AP){const a=m4ai(this,AP,dt);const n=nails[st.i];
@@ -290,7 +402,7 @@ S4.brush=(sp,K)=>{const g=K.g,BX=50,BY=64,BW=212,BH=44,CS=4,GW=BW/CS,GH=BH/CS,P=
       const b=st.dip>0?{x:TX,y:TY-12+Math.sin(st.dip*9)*3}:{x:st.bx,y:st.by};K.pa(b.x-6,b.y+2,12,3,'#000',.2);
       if(WAX){M4.rot(g,M4.pre('waxblock',22,14,k=>{k.px(1,1,20,12,'#d8b878');k.px(1,1,20,2,'#f8e8b8');k.px(1,11,20,2,'#a88848');},true),b.x,b.y,st.ang,11,12);}else
       M4.rot(g,brush,b.x,b.y,st.ang,10,40);const tipC=st.load>.5?COL:st.load>.15?'#9a6a3a':'#c8a878';const [tx_,ty_]=M4.tr(b.x,b.y,st.ang,0,-2);if(!WAX)K.px(tx_-5,ty_-3,11,3,tipC);
-      const [hx,hy]=M4.tr(b.x,b.y,st.ang,0,WAX?-14:-30);m4sleeve(K,hx+3,hy,hx+30,hy-30);m4hand(K,hx,hy);},
+      const [hx,hy]=M4.tr(b.x,b.y,st.ang,WAX?0:.5,WAX?-13:-30);if(WAX)m4grip(K,hx,hy,st.ang,{side:1,arm:-1.15+st.ang*.5});else m4grip(K,hx,hy,st.ang-Math.PI/2,{side:1,arm:-1.15+st.ang*.5});},
     hud(t){K.meter(covered());K.label(WAX?'WAX':'LOAD',TX,TY+8,'#f4ecd8');K.px(TX-16,TY+15,32,6,'#1a0e06');K.px(TX-15,TY+16,30*st.load,4,st.load<.15?'#d84a2a':st.load<.3?'#e8b030':'#7cc04a');K.px(TX-15,TY+16,30*st.load,1,'#ffffff40');
       if(st.load<.3&&st.dip<=0&&Math.floor(t*3)%2)K.label(st.load<.1?'DIP IT':'RUNNING DRY',TX-10,TY-34,'#ffd27a');},
     auto(dt,AP){this._auto=true;const a=m4ai(this,AP,dt);if(!this._p){this._p=plan();this._i=0;}
@@ -317,17 +429,17 @@ S4.chop=(sp,K)=>{const g=K.g,KX=152,CY=100,BX0=34,BX1=286,BTOP=96,FEEDX=8;const 
   const st={vi:0,fed:0,cut:3,slices:[],kph:-1,t:0,q:[],n:0,end:0,swap:0,ph:Math.random()*6,wait:0,pile:0};
   const V=()=>list[st.vi];const uk=()=>st.fed-FEEDX;
   const total=list.reduce((a,v)=>a+Math.max(1,Math.floor((v.L-3-v.w0*1.3)/v.w0)),0);
-  const chopNow=()=>{const v=V();if(!v||st.swap)return;const u=uk();if(u<=st.cut+.6){MS.knock();return;}const w=u-st.cut;const e=Math.abs(w-v.w0)/v.w0;const q=w<v.w0*.4?.15:M4.q(e,.16,.32,.55);
+  const chopNow=()=>{const v=V();if(!v||st.swap)return;const u=st.pu!=null?Math.min(uk(),st.pu):uk();st.pu=null;if(u<=st.cut+.6){MS.knock();return;}const w=u-st.cut;const e=Math.abs(w-v.w0)/v.w0;const q=w<v.w0*.4?.15:M4.q(e,.16,.32,.55);
     const r=v.R((st.cut+u)/2);st.slices.push({w,r,v,a:0,x:KX-w/2,y:CY,tx:BX0+22+(st.pile%10)*10.5+(Math.random()-.5)*2,ty:CY+3-Math.floor(st.pile/10)*3+(Math.random()-.5),t:0});st.pile++;
     st.cut=u;st.q.push(q);st.n++;MS.chop();if(v.crunch)MS.crunch();K.judge(q,KX-56,CY-34,true);if(q>=.95)K.emit(KX,CY-6,5,{c:['#fff4c0','#ffd27a'],v:40,g:40,life:.4});else if(q<.3)MS.miss();
     K.emit(KX,CY,5,{c:v.flesh,v:46,g:300,life:.5,spread:2.4});
     if(v.L-st.cut<v.w0*1.3){st.swap=.001;}};
   return {title:sp.t||'Chop it evenly',how:'The hand feeds the knife. Tap to chop each time the cut edge reaches the mark, for even slices.',hint:'Chop as the edge meets the mark.',st,
     update(dt,I){st.t+=dt;const v=V();
-      if(st.kph>=0){const p=st.kph;st.kph+=dt/.24;if(p<.24&&st.kph>=.24)chopNow();if(st.kph>=1)st.kph=-1;}
+      if(st.kph>=0){const p=st.kph;st.kph+=dt/.3;if(p<.14&&st.kph>=.14)chopNow();if(st.kph>=1)st.kph=-1;}
       if(st.swap){st.swap+=dt;if(st.swap>.45){st.swap=0;if(st.vi<list.length-1){st.vi++;st.fed=-46;st.cut=3;}else{st.gone=1;st.end=.001;}}}
-      else if(v&&!st.end){const base=v.w0/.6;const spd=base*(1+.38*Math.sin(st.t*1.6+st.ph)+.2*Math.sin(st.t*3.4+st.ph*2));if(uk()<st.cut-.5)st.fed+=Math.min(st.cut-uk()+.01,140*dt);else if(uk()-st.cut<v.w0*2.6)st.fed+=Math.max(2,spd)*dt;}
-      if(I.pressed&&st.kph<0&&!st.end)st.kph=0;
+      else if(v&&!st.end){const base=v.w0/.6;const spd=base*(1+.26*Math.sin(st.t*1.6+st.ph)+.1*Math.sin(st.t*3.4+st.ph*2));if(uk()<st.cut-.5)st.fed+=Math.min(st.cut-uk()+.01,140*dt);else if(uk()-st.cut<v.w0*2.6)st.fed+=Math.max(2,spd)*dt;}
+      if(I.pressed&&st.kph<0&&!st.end){st.kph=0;st.pu=uk();}
       for(const s of st.slices){s.t+=dt;s.a=Math.min(1,s.t/.22);if(s.t>.12){s.x+=(s.tx-s.x)*Math.min(1,dt*5);s.y+=(s.ty-s.y)*Math.min(1,dt*5);}}
       if(st.end){st.end+=dt;if(st.end>.7){st.done=true;st.score=M4.avg(st.q);}}},
     draw(t){g.drawImage(board,BX0-1,BTOP-1);const v=V();
@@ -339,12 +451,12 @@ S4.chop=(sp,K)=>{const g=K.g,KX=152,CY=100,BX0=34,BX1=286,BTOP=96,FEEDX=8;const 
         for(let u=Math.ceil(st.cut);u<=v.L;u++){const x=tip+u,r=v.R(u);if(x>330)break;K.px(x,CY-r,1,r*2,v.skin[2]);K.px(x,CY-r,1,Math.max(1,r*.55),v.skin[3]);K.px(x,CY-r,1,1,v.skin[4]);K.px(x,CY+r*.45,1,r*.55,v.skin[1]);K.px(x,CY+r-1,1,1,v.skin[0]);
           if(v.purple&&u>v.L*.45)K.px(x,CY-r,1,r*1.1,u>v.L*.65?v.skin[1]:v.skin[2]);if(v.deco)v.deco(K,x,u,CY,r);}
         const fx=tip+st.cut,fr=v.R(st.cut+.5);K.ell(fx,CY,1,fr,v.flesh[1]);K.px(fx,CY-fr*.4,1,fr*.8,v.flesh[2]);if(v.top)v.top(K,tip+v.L,CY,t);if(v.glow)K.glow(tip+v.L*.6,CY,26,'120,255,220',.25);
-        if(!st.swap){const hx=Math.max(KX+16,tip+st.cut+12),hr=v.R(M4.cl(hx-tip,0,v.L));m4sleeve(K,hx+4,CY-hr-6,hx+42,CY-hr-34);m4hand(K,hx,CY-hr-4);}}
+        if(!st.swap){const hx=Math.max(KX+16,tip+st.cut+12),hr=v.R(M4.cl(hx-tip,0,v.L));m4grip(K,hx+2,CY-hr-3,.12,{side:1,arm:.95,clipY:BTOP});}}
       if(v&&!st.swap&&!st.end){const mx=KX-v.w0;K.px(mx-2,BTOP+14,5,1,'#1a0e06');K.px(mx-1,BTOP+15,3,1,'#fff4c0');K.px(mx,BTOP+16,1,3,'#fff4c0');K.px(mx-1,BTOP+19,3,1,'#1a0e06');K.pa(mx,BTOP+1,1,13,'#fff4c0',.45);}
-      const kp=st.kph<0?0:st.kph<.24?st.kph/.24:st.kph<.4?1:1-(st.kph-.4)/.6;const r0=v&&!st.gone?v.R(M4.cl(Math.max(st.cut,uk()),0,v.L)):5;const yUp=CY-r0-52+Math.sin(st.t*3)*1,yDn=CY+r0-44;const ky=Math.round(yUp+(yDn-yUp)*kp);
-      g.drawImage(knife,KX-8,ky);m4sleeve(K,KX+3,ky+6,KX+34,ky-20);m4hand(K,KX,ky+6);},
+      const kp=st.kph<0?0:st.kph<.14?Math.pow(st.kph/.14,1.6):st.kph<.32?1:1-Math.pow((st.kph-.32)/.68,.8);const r0=v&&!st.gone?v.R(M4.cl(Math.max(st.cut,uk()),0,v.L)):5;const yUp=CY-r0-52+Math.sin(st.t*3)*1,yDn=CY+r0-44;const ky=Math.round(yUp+(yDn-yUp)*kp);
+      const ka=st.kph<0?0:-.07*Math.sin(Math.PI*Math.min(1,st.kph/.5));M4.rot(g,knife,KX-.5,ky+7,ka,7.5,7);m4grip(K,KX-.5+Math.sin(ka)*-1,ky+7,-Math.PI/2+ka,{side:1,arm:-1.2});},
     hud(){K.meter((st.n)/Math.max(1,total),M4.avg(st.q)||1);},
-    auto(dt,AP){const a=m4ai(this,AP,dt);const v=V();if(v&&!st.swap&&st.kph<0&&!st.end){if(this._j==null)this._j=(Math.random()-.5)*.5;const lead=v.w0/.6*.058;if(uk()-st.cut>=v.w0-lead+this._j&&uk()>st.cut){m4tap(a);this._j=null;}}AP.hand=[KX+14,CY-40];AP.press=a.down;},
+    auto(dt,AP){const a=m4ai(this,AP,dt);const v=V();if(v&&!st.swap&&st.kph<0&&!st.end){if(this._j==null)this._j=(Math.random()-.5)*.5;const lead=0;if(uk()-st.cut>=v.w0-lead+this._j&&uk()>st.cut){m4tap(a);this._j=null;}}AP.hand=[KX+14,CY-40];AP.press=a.down;},
     quiet(){},stop(){}};};
 // ---------------------------------------------------------------- SIMMER: hold to turn up the fire; the pot answers slowly; keep it in the band, and mind the cold things going in
 S4.simmer=(sp,K)=>{const g=K.g,CX=160,BOT=104,LO=sp.lo||.55,HI=sp.hi||.75,COL=sp.col||['#c8a040','#e8c868'],DUR=sp.dur||7,pot=M4S.pot('i');
@@ -393,7 +505,7 @@ S4.pour=(sp,K)=>{const g=K.g,ves=sp.vessel||'jug',img=ves==='ladle'?M4S.ladle():
       if(st.slide>0){st.slide+=dt/.7;if(st.slide>=1){st.slide=0;st.bi++;st.L=0;st.still=0;st.done2=0;}S().set(0);return;}
       if(st.dip>0){st.dip+=dt/.9;st.a=Math.max(0,st.a-dt*3);if(st.dip>=1){st.dip=0;st.V=1;st.still=0;MS.plop();}S().set(0);return;}
       st.a+=(I.down?1.15:-1.9)*dt;st.a=M4.cl(st.a,0,1.75);const Q=st.V>0?1.1*Math.pow(Math.max(0,st.a-a0()),1.4):0;st.q+=(Q-st.q)*Math.min(1,dt/.14);if(st.V<=0)st.q=Math.max(0,st.q-dt*3);
-      const fl=st.q*dt;if(fl>0){st.L+=fl;st.V=Math.max(0,st.V-fl/cap);if(Math.random()<st.q*1.2)st.splash.push({x:BX+(Math.random()-.5)*6,y:RIM+2+(1-Math.min(1,st.L))*12,t:0});}
+      const fl=st.q*dt;if(fl>0&&Math.random()<dt*st.q*9)MS.glug();if(fl>0){st.L+=fl;st.V=Math.max(0,st.V-fl/cap);if(Math.random()<st.q*1.2)st.splash.push({x:BX+(Math.random()-.5)*6,y:RIM+2+(1-Math.min(1,st.L))*12,t:0});}
       if(st.L>1.02&&!st.spill){st.spill=1;MS.sizzleHit&&A.hiss(.4,.12,'lowpass',800);}
       S().set(Math.min(.22,st.q*.35),350+Math.min(1.1,st.L)*1500,6);
       if(st.q>.01)st.still=0;else if(st.L>.2){st.still+=dt;}
@@ -428,7 +540,7 @@ S4.pour=(sp,K)=>{const g=K.g,ves=sp.vessel||'jug',img=ves==='ladle'?M4S.ladle():
       if(st.q>.004&&!st.dip){const [sx,sy]=M4.tr(ax,ay,-aa,PV.sx-PV.ox,PV.sy-PV.oy);const vx=-(8+st.q*16),sur=sp.bowl==='flask'?BY-72:sp.bowl==='font'?BY-46:sp.bowl==='tin'?BY-6:RIM+2.6*(1-Math.min(1,st.L))-1;let x=sx,y=sy,vy=10;const w=st.q>.5?3:st.q>.15?2:1;
         for(let k=0;k<60&&y<sur;k++){K.px(x,y,w,2,COL[0]);if(k%3===0)K.px(x,y,1,1,COL[1]);const dtt=.012;x+=vx*dtt;vy+=600*dtt;y+=vy*dtt;}
         K.ell(x,sur,3+w,1,COL[1]);}
-      const [hx,hy]=M4.tr(ax,ay,-aa,ves==='ladle'?55-PV.ox:31-PV.ox,ves==='ladle'?3-PV.oy:20-PV.oy);m4sleeve(K,hx+3,hy,hx+40,hy-24);m4hand(K,hx,hy);},
+      const [hx,hy]=M4.tr(ax,ay,-aa,ves==='ladle'?54-PV.ox:ves==='crucible'?4-PV.ox:32-PV.ox,ves==='ladle'?3.5-PV.oy:ves==='crucible'?3.5-PV.oy:20-PV.oy);m4grip(K,hx,hy,ves==='ladle'?-.34-aa:ves==='crucible'?Math.PI-aa:Math.PI/2-aa,{side:ves==='jug'?-1:ves==='crucible'?-1:1,arm:-1.0});},
     hud(t){const gx=290,gy=40;K.label('FILL',gx+4,gy-9,'#f4ecd8');K.gauge(gx,gy,8,70,(LT-.035)/1.1,(LT+.035)/1.1,Math.min(1.1,st.L)/1.1);K.meter(Math.min(1,st.L/LT));
       if(NB>1)K.label('BOWL '+(st.bi+1)+'/'+NB,30,20,'#f4ecd8','l');if(st.dip>0)K.label('MORE FROM THE POT',160,24,'#ffd27a');},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(st.slide||st.dip||st.end){m4hold(a,false);}else{const pred=st.L+st.q*(.16+Math.max(0,st.a-a0())/1.9*.6);m4hold(a,pred<LT-.012&&st.t>.4);}AP.hand=[PV.x+12,PV.y-30];AP.press=a.down;},
@@ -445,7 +557,7 @@ S4.crack=(sp,K)=>{const g=K.g,CX=150,N=sp.n||2,egg=['#8a8070','#c8bca8','#e8dcc4
   return {title:sp.t||'Crack them into the butter',how:'Your hand sways over the pan. Tap to crack the egg when it’s right over the butter, and keep clear of the egg already in.',hint:'Tap over the butter. Leave room for the next.',st,
     update(dt,I){st.t+=dt;const b=butter(st.t);if(siz)siz.set(.04+st.eggs.length*.02,3200);
       if(st.ph==='sway'){const nx=sway(st.t);st.vx=(nx-st.hx)/dt;st.hx=nx;if(I.pressed){st.ph='crack';st.crk=0;MS.crunch();A.tone(2400,.03,'square',.03);}}
-      else if(st.ph==='crack'){st.crk+=dt;if(st.crk>.1){st.ph='fall';st.fall={x:st.hx,y:st.hy+6,vx:(st.vx||0)*.25,vy:20};st.shells.push({x:st.hx-4,y:st.hy,vx:-30,vy:-60},{x:st.hx+4,y:st.hy,vx:40,vy:-70});}}
+      else if(st.ph==='crack'){st.crk+=dt;if(st.crk>.1){st.ph='fall';st.fall={x:st.hx,y:st.hy+6,vx:0,vy:20};st.shells.push({x:st.hx-4,y:st.hy,vx:-30,vy:-60},{x:st.hx+4,y:st.hy,vx:40,vy:-70});}}
       else if(st.ph==='fall'){const f=st.fall;f.vy+=700*dt;f.x+=f.vx*dt;f.y+=f.vy*dt;if(f.y>=96){const inPan=Math.abs(f.x-CX)<32;const d=Math.abs(f.x-b.x);let q=inPan?M4.q(d,3.5,7.5,12):.1;
           for(const e of st.eggs)if(Math.abs(e.x-f.x)<15)q=Math.max(.1,q-.35);st.eggs.push({x:f.x,y:96,t:0,on:inPan});st.q.push(q);K.judge(q,f.x,70);
           if(inPan){MS.sizzleHit();if(!siz)siz=MS.loop('highpass',3000,.7);}else{MS.thunk();MS.miss();}K.emit(f.x,95,8,{c:['#fffaf0','#f8f0e0'],v:40,g:200,life:.4});st.fall=null;st.ph='wait';st.back=0;}}
@@ -458,10 +570,10 @@ S4.crack=(sp,K)=>{const g=K.g,CX=150,N=sp.n||2,egg=['#8a8070','#c8bca8','#e8dcc4
       if(st.fall){const f=st.fall;K.ell(f.x,f.y-2,3,4,'#fffaf0');K.ball(f.x,f.y,3,['#c87010','#e89a20','#f8c840','#ffe080']);}
       for(const s of st.shells)if(s.y<200){K.ell(s.x,s.y,3,2,egg[3]);K.px(s.x-2,s.y,4,1,egg[1]);}
       if(st.ph==='sway'||st.ph==='crack'){const y=st.hy+(st.ph==='crack'?Math.sin(st.crk/.1*Math.PI)*6:0);K.ball(st.hx,y,7,egg,9);K.pa(st.hx-6,95,12,3,'#000',.42);K.pa(st.hx-4,94,8,1,'#000',.25);if(st.ph==='crack')for(let k=0;k<4;k++)K.px(st.hx-4+k*2,y+((k%2)?1:-1),2,1,'#8a8070');
-        m4sleeve(K,st.hx+10,y-6,st.hx+44,y-36);m4hand(K,st.hx+6,y-4);}
-      else if(st.ph==='wait'&&st.i<N-1){const u=Math.min(1,st.back/.8);const x=CX+70+u*(sway(st.t)-CX-70);K.ball(x,st.hy,7,egg,9);m4sleeve(K,x+10,st.hy-6,x+44,st.hy-36);m4hand(K,x+6,st.hy-4);}},
+        m4hand(K,st.hx+6,y-4,false,null,{arm:-1.35});}
+      else if(st.ph==='wait'&&st.i<N-1){const u=Math.min(1,st.back/.8);const x=CX+70+u*(sway(st.t)-CX-70);K.ball(x,st.hy,7,egg,9);m4hand(K,x+6,st.hy-4,false,null,{arm:-1.35});}},
     hud(){K.label('EGG '+Math.min(N,st.i+1)+'/'+N,30,20,'#f4ecd8','l');K.meter(st.q.length/N,M4.avg(st.q)||1);},
-    auto(dt,AP){const a=m4ai(this,AP,dt);if(st.ph==='sway'&&st.t>.8){const b=butter(st.t+.36);const land=st.hx+(st.vx||0)*.25*.26;if(Math.abs(land-b.x)<2.2)m4tap(a);}AP.hand=[st.hx+14,st.hy-24];AP.press=a.down;},
+    auto(dt,AP){const a=m4ai(this,AP,dt);if(st.ph==='sway'&&st.t>.8){const b=butter(st.t+.36);const land=st.hx;if(Math.abs(land-b.x)<2.2)m4tap(a);}AP.hand=[st.hx+14,st.hy-24];AP.press=a.down;},
     quiet(){siz&&siz.set(0);},stop(){siz&&siz.stop();siz=null;}};};
 // ---------------------------------------------------------------- FLIP: watch the underside turn golden, toss it, then slide the pan under it as it comes down
 S4.flip=(sp,K)=>{const g=K.g,item=sp.item||'egg',CK=sp.cook||5,TOSSES=sp.n||1,HOME=150;
@@ -524,7 +636,7 @@ S4.fillet=(sp,K)=>{const g=K.g,FX=92,FY=58,XS=FX+30,XE=FX+112,yl=x=>FY+25-Math.s
       if(st.end){const u=Math.min(1,st.lift),e=u<.5?2*u*u:1-2*(1-u)*(1-u);const fl=M4S.fillet();const cx=FX+70+e*64,cy=FY+18-Math.sin(u*Math.PI)*26+e*20,sy=Math.cos(e*Math.PI);
         K.pa(cx-36,FY+40,72,3,'#000',.18*e);g.save();g.translate(Math.round(cx),Math.round(cy));g.rotate(e*.12);g.scale(1,Math.abs(sy)<.08?.08:Math.abs(sy));g.drawImage(fl,sy>=0?0:90,0,90,18,-45,-9,90,18);g.restore();
         K.px(XS,yl(XS),XE-XS,1,'#8a2a20');}
-      if(!st.end){const kn=M4S.knife();M4.rot(g,kn,st.kx,st.ky,-1.15,8,44);const [hx,hy]=M4.tr(st.kx,st.ky,-1.15,0,-38);m4sleeve(K,hx+3,hy,hx+34,hy-20);m4hand(K,hx,hy);}},
+      if(!st.end){const kn=M4S.knife();M4.rot(g,kn,st.kx,st.ky,-1.15,8,44);const [hx,hy]=M4.tr(st.kx,st.ky,-1.15,-.5,-36.5);m4grip(K,hx,hy,-1.15-Math.PI/2,{side:-1,arm:-1.05});}},
     hud(){K.meter((st.cut-XS)/(XE-XS),M4.avg(st.q)||1);if(st.spd>150)K.label('TOO FAST',160,24,'#e8542a');},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(st.t<.5){m4move(a,st.kx,st.ky);m4hold(a,false);}else{const nx=Math.min(XE+2,a.x+62*dt);m4move(a,nx,yl(nx)+Math.sin(st.t*3)*.8);m4hold(a,true);}AP.hand=[a.x+8,a.y-46];AP.press=a.down;},
     quiet(){loop&&loop.set(0);},stop(){loop&&loop.stop();loop=null;}};};

@@ -40,7 +40,7 @@ vendors.b_butcher={name:'Butcher’s block',sub:'The block is older than Grandpa
     if(sp.surface==='hen')g.drawImage(hen,85,46);else g.drawImage(beef,50,46);
     paths.forEach((p,pi)=>{if(pi<st.pi)return;const L=m4len(p);for(let s=pi===st.pi?st.s:0;s<L;s+=4){const [x,y]=m4at(p,s);K.px(x,y,2,1,'#2a0e08');}});
     for(const [x,y,pi,f] of st.cut){K.px(x,y,2,1,'#3a0a08');K.px(x,y+1,2,1,f?'#7a2a20':'#5a1610');}
-    if(!st.end){M4.rot(g,M4S.knife(),st.tx,st.ty,-.5,8,44);const [hx,hy]=M4.tr(st.tx,st.ty,-.5,0,-38);m4sleeve(K,hx+3,hy,hx+30,hy+20);m4hand(K,hx,hy);}
+    if(!st.end){M4.rot(g,M4S.knife(),st.tx,st.ty,-.5,8,44);const [hx,hy]=M4.tr(st.tx,st.ty,-.5,-.5,-36.5);m4grip(K,hx,hy,-.5-Math.PI/2,{side:1,arm:-1.0});}
     if(st.jump>0){const [x,y]=P()[0];K.pa(x-3,y-3,6,6,'#ffd27a',.6+Math.sin(t*20)*.3);}};
   return o;};}
 Object.assign(MG4R,{

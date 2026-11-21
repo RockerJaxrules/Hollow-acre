@@ -36,6 +36,9 @@
     const h=E.querySelector('.fhint');if(h)h.textContent=fineP()?'Hold to raise the bar onto the fish — but ease off before the line (left) snaps':'Hold to raise the bar onto the fish — ease off before the line snaps';
     E.style.display='flex';S.paused=true;fish.state='reel';attach();MG.last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);};
 
+  // (t363) the reel's pawl clicks as it turns (quicker and brighter while you wind), and the line sings as it nears breaking
+  function fsReel(w){A.hiss(.01,w?.09:.05,'bandpass',w?3400:2600,{q:4});A.tone(w?2100:1700,.012,'square',w?.012:.007,{filter:['bandpass',2400,5]});}
+  let wh=null;function fsWhine(tn){if(tn<0){if(wh){wh.stop();wh=null;}return;}if(tn>.55&&!wh&&typeof MS!=='undefined')wh=MS.loop('bandpass',1400,9);if(wh)wh.set(tn>.55?(tn-.55)*.16:0,1300+tn*1600,9);}
   function loop(now){if(!MG.on)return;const dt=Math.min(.05,(now-MG.last)/1000);MG.last=now;MG.age+=dt;const E=el();
     MG.zv+=(MG.hold?2.1:-1.9)*dt;MG.zv=clamp(MG.zv,-1.4,1.4);MG.zone+=MG.zv*dt;
     if(MG.zone<0){MG.zone=0;MG.zv=-MG.zv*.35;}if(MG.zone>1-MG.size){MG.zone=1-MG.size;MG.zv=0;}
@@ -51,14 +54,16 @@
     MG.fv+=((MG.ft-MG.fy)*spd*3-MG.fv*2.4)*dt;MG.fy=clamp(MG.fy+MG.fv*dt,0,1);
     const inside=MG.fy>=MG.zone&&MG.fy<=MG.zone+MG.size;
     MG.prog+=(inside?.29:-.11*(1+d*.4))*dt;if(!inside&&MG.age>.6)MG.perfect=false;
-    if(MG.hold)MG.reelA+=dt*14;else if(inside)MG.reelA+=dt*5;
+    {const r0=Math.floor(MG.reelA/1.2);if(MG.hold)MG.reelA+=dt*14;else if(inside)MG.reelA+=dt*5;if(Math.floor(MG.reelA/1.2)!==r0)fsReel(MG.hold);}
+    // (t363) heard as well as seen: a soft tick as the fish comes onto the bar, a dull knock as it slips off
+    if(MG.age>.3&&inside!==MG.wasIn){if(inside)A.tone(1320+MG.prog*500,.05,'triangle',.035);else A.tone(260,.08,'triangle',.04,{slide:200});}MG.wasIn=inside;
     // TREASURE: a chest you can also haul up — keep the bar over it (as well as the fish) to fill it before you land the catch
     const tr=MG.tr;if(tr&&!tr.got&&MG.age>tr.at){if(!tr.shown){tr.shown=1;const hh=E.querySelector('.fhint');if(hh)hh.textContent='Treasure! Cover it with the bar too — without losing the fish.';}
       tr.vy+=(rand()-.5)*dt*.8;tr.vy*=.98;tr.y=clamp(tr.y+tr.vy*dt,.05,.92);const tin=tr.y>=MG.zone&&tr.y<=MG.zone+MG.size;tr.prog=clamp(tr.prog+(tin?.5:-.3)*dt,0,1);if(tr.prog>=1){tr.got=true;tr.pop=1;SFX.coin&&SFX.coin();const hh=E.querySelector('.fhint');if(hh)hh.textContent='Got the treasure! Now land the fish.';}}
     if(tr&&tr.pop>0)tr.pop=Math.max(0,tr.pop-dt*1.5);
     // LINE TENSION: reeling (holding) strains the line, and it strains faster against a fighting fish or a lunge — ease off or it snaps
     const strain=(MG.hold?(.30+(!inside?.18:0)+(MG.lunge>0?.30:0)):-.80)*(.66+d*.6);
-    MG.tn=clamp(MG.tn+strain*dt,0,1);if(MG.snapT>0)MG.snapT-=dt;
+    MG.tn=clamp(MG.tn+strain*dt,0,1);if(MG.snapT>0)MG.snapT-=dt;fsWhine(MG.tn);
     if(MG.tn>.82&&MG.snapT<=0){MG.snapT=.6;cam&&(cam.shake=Math.max(cam.shake||0,.18));}
     if(MG.tn>=1){MG.snapped=true;endMG(false);return;}
     if(MG.prog>=1&&!MG.landed){MG.landed=.001;MG.splash=[];for(let i=0;i<14;i++)MG.splash.push({x:(Math.random()-.5)*16,vy:-30-Math.random()*40,vx:(Math.random()-.5)*40,t:0});SFX.splash&&SFX.splash();cam&&(cam.shake=.45);const h=E.querySelector('.fhint');if(h)h.textContent='Landed!';}
@@ -102,7 +107,7 @@
     const a=MG.reelA;p(Math.round(rx+Math.cos(a)*5)-1,Math.round(ry+Math.sin(a)*5)-1,3,3,'#efe2b8');p(Math.round(rx+Math.cos(a)*5),Math.round(ry+Math.sin(a)*5),1,1,'#5a3a1a');p(rx,ry,1,1,'#fff2c8');
     const bend=MG.hold?3:1+Math.round(Math.abs(Math.sin(t*9)));for(let k=0;k<12;k++)p(W-9+Math.round(k*k*bend/90),ty+3+k*2,2,2,k<4?'#5a3a1a':'#8a5a2a');}
 
-  endMG=function(ok){if(!MG.on&&!ok&&raf===0){/*already closed*/}MG.on=false;MG.hold=false;MG.landed=0;detach();cancelAnimationFrame(raf);raf=0;
+  endMG=function(ok){fsWhine(-1);if(MG.snapped&&!ok)A.tone(900,.25,'sawtooth',.05,{slide:140,filter:['bandpass',1200,3]});if(!MG.on&&!ok&&raf===0){/*already closed*/}MG.on=false;MG.hold=false;MG.landed=0;detach();cancelAnimationFrame(raf);raf=0;
     el().style.display='none';S.paused=false;fish.state='off';if(typeof F2!=='undefined')F2.rip=[];
     if(!ok){const snap=MG.snapped;toast(snap?(MG.f?`The line snaps. The ${MG.f[0].toLowerCase()} takes it down with it.`:'The line snaps.'):(MG.f?`The ${MG.f[0].toLowerCase()} got away.`:'It got away.'),snap?2.2:1.6,snap);SFX.thud&&SFX.thud(0,.2);if(snap&&cam)cam.shake=.4;return;}
     if(!MG.f){SFX.splash&&SFX.splash();toast('You reel in a tangle of weed and nothing else.',2);return;}

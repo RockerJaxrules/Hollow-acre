@@ -81,7 +81,7 @@ S4.f2toss=(sp,K)=>{const g=K.g,N=5;const st={ring:0,phase:'aim',ax:160,aw:0,pw:0
       if(st.phase==='aim'||st.phase==='power'){const x=st.ax,ty=st.phase==='power'?112-st.pw*48:96;for(let k=0;k<1;k+=.06){const xx=160+(x-160)*k,yy=166+(ty-166)*k-Math.sin(k*Math.PI)*30;if(((k*16)|0)%2===0)K.px(xx,yy,2,2,'#ffd27a');}K.px(x-3,ty,7,1,'#ffd27a');K.px(x,ty-3,1,7,'#ffd27a');}
       if(st.fly){const f=st.fly,u=f.u,x=f.x0+(f.x1-f.x0)*u,y=f.y0+(f.y1-f.y0)*u-Math.sin(u*Math.PI)*(40+(112-f.y1)*.6),s=1.6-u*(1.6-(f.y1<80?.55:f.y1<95?.75:.95));ringAt(x,y,s,RC,.7+Math.sin(t*20)*.3);}
       else if(st.ring<N){ringAt(157,163,1.4,RC);}   // in the fist: the fingers close over its near rim
-      m4hand(K,150,158);if(st.msg)K.textO(st.msg.t,st.msg.x,Math.round(st.msg.y-st.msg.u*10),st.msg.c,2);},
+      m4grip(K,152,160,0,{side:1,arm:1.35});if(st.msg)K.textO(st.msg.t,st.msg.x,Math.round(st.msg.y-st.msg.u*10),st.msg.c,2);},
     hud(){K.label('POWER',296,14,'#f4ecd8');K.gauge(292,24,8,90,.66,1,st.phase==='power'?st.pw:0);K.label(`RINGS ${N-st.ring}`,40,150,'#f4ecd8','l');K.label(`PEGS ${st.pts}`,40,160,'#ffd27a','l');K.meter(st.ring/N,st.pts/Math.max(1,st.ring*2));},
     auto(dt,AP){const a=m4ai(this,AP,dt);const R=F2PEG[1],tx=R.xs[(st.ring+1)%5];
       if(st.phase==='aim'){a.down=Math.abs(st.ax-tx)<4;a.fresh=a.down;}else if(st.phase==='power'){a.down=!(st.pw>.48&&st.pw<.56&&st.pdir>0);}else a.down=false;
@@ -117,7 +117,7 @@ S4.f2bell=(sp,K)=>{const g=K.g,N=3;const st={sw:0,ph:0,swing:null,puck:null,best
       const u=st.swing?st.swing.u:0,a=-1.9+u*1.75;const hx=124,hy=128;g.save();g.translate(hx,hy);g.rotate(a);const W_=CA_P.wood;
       K.px(-2,-3,64,1,W_[3]);K.px(-2,-2,64,1,W_[6]);K.px(-2,-1,64,1,W_[5]);K.px(-2,0,64,1,W_[4]);K.px(-2,1,64,1,W_[2]);
       for(let y=-10;y<10;y++){const v=y/10;K.px(54,y,18,1,W_[v<-.6?6:v<-.1?5:v<.5?4:3]);}K.px(54,-10,18,1,W_[7]);K.px(54,9,18,1,W_[1]);K.px(57,-10,2,20,CA_P.iron[3]);K.px(67,-10,2,20,CA_P.iron[3]);K.px(57,-10,1,20,CA_P.iron[5]);g.restore();
-      m4hand(K,hx-6,hy-2,true);m4hand(K,hx+6,hy-4);
+      m4grip(K,hx-6,hy-2,Math.PI/2+.25,{side:-1,arm:1.95});m4grip(K,hx+6,hy-4,Math.PI/2-.25,{side:1,arm:1.2});
       for(const c of st.crows){const f=Math.sin(c.t*24)>0;K.px(c.x-3,c.y,7,2,'#1a1418');K.px(c.x-(f?5:3),c.y-(f?2:-1),3,2,'#1a1418');K.px(c.x+(f?3:1),c.y-(f?2:-1),3,2,'#1a1418');}
       // the record board
       K.px(26,30,70,40,'#2a2a2a');K.px(24,28,74,2,CA_P.wood[5]);K.px(24,70,74,2,CA_P.wood[3]);K.text('RECORDS',61,34,'#f4e6c8');K.text('GIDEON 96',61,46,'#d8d0c0');K.text('MAUD 88',61,55,'#d8d0c0');K.text(`YOU ${Math.round(st.best*100)}`,61,64,'#ffd27a');},
@@ -169,7 +169,7 @@ S4.f2crows=(sp,K)=>{const g=K.g,TIME=24;const st={t:0,end:0,cx:160,cy:90,shots:[
       if(st.look>0){K.pa(0,0,320,180,'#2a0008',Math.min(.35,st.look*.2));}
       K.plank(0,146,320,10,CA_P.wood,7);K.px(0,156,320,24,'#3a2414');
       // the slingshot and the stones in flight
-      K.px(156,156,3,20,CA_P.wood[4]);K.line(150,152,157,162,CA_P.wood[5],2);K.line(166,152,158,162,CA_P.wood[5],2);m4hand(K,150,166);
+      K.px(156,156,3,20,CA_P.wood[4]);K.line(150,152,157,162,CA_P.wood[5],2);K.line(166,152,158,162,CA_P.wood[5],2);m4grip(K,157,167,Math.PI/2,{side:1,arm:1.35});
       for(const s of st.shots){if(s.done)continue;const x=s.x0+(s.x1-s.x0)*s.u,y=s.y0+(s.y1-s.y0)*s.u-Math.sin(s.u*Math.PI)*6;K.px(x-1,y-1,3,3,'#8a8070');}
       const X=Math.round(st.cx),Y=Math.round(st.cy);K.px(X-7,Y,5,1,'#ffd27a');K.px(X+3,Y,5,1,'#ffd27a');K.px(X,Y-7,1,5,'#ffd27a');K.px(X,Y+3,1,5,'#ffd27a');K.px(X,Y,1,1,'#fff4c0');},
     hud(){K.label(`STONES ${st.shotsLeft}`,40,8,'#f4ecd8','l');K.label(`POINTS ${st.pts}`,130,8,'#ffd27a','l');K.label(`${Math.max(0,Math.ceil(TIME-st.t))}`,290,8,'#f4ecd8','r');K.meter(Math.min(1,st.t/TIME),st.hits/Math.max(1,16-st.shotsLeft));},
@@ -260,7 +260,7 @@ S4.f2carve=(sp,K)=>{const g=K.g,TIME=28,CX=160,CY=94,RX=78,RY=60,CS=2,GW=Math.ce
         K.px(x,y,CS,CS,edge?'#f8c878':fl>.85?'#ffe8a0':'#ffd27a');if(edge)K.px(x,y,CS,1,'#c86818');}
       if(st.carved>20)K.glow(CX,CY,RX,'255,200,100',Math.min(.3,st.carved/2000)*fl);
       for(const c of st.chips)K.px(c.x,c.y,2,2,'#f0a050');
-      if(!st.end){const x=st.lx!=null?st.lx:this._ix||160,y=st.ly!=null?st.ly:this._iy||90;K.px(x,y-14,2,14,'#c8ccd4');K.px(x,y-14,1,14,'#ffffff');K.px(x-1,y-24,4,10,CA_P.wood[4]);m4hand(K,x-4,y-26);}},
+      if(!st.end){const x=st.lx!=null?st.lx:this._ix||160,y=st.ly!=null?st.ly:this._iy||90;K.px(x,y-14,2,14,'#c8ccd4');K.px(x,y-14,1,14,'#ffffff');K.px(x-1,y-24,4,10,CA_P.wood[4]);m4grip(K,x+1,y-22,-Math.PI/2,{side:1,arm:-1.15});}},
     hud(){K.label('TIME',296,14,'#f4ecd8');K.gauge(292,24,8,90,0,1,Math.max(0,1-st.t/TIME),{zone:'#5a3a1a'});K.meter(Math.min(1,st.t/TIME));},
     auto(dt,AP){const a=m4ai(this,AP,dt);a.k=a.k||{p:0,s:0};const P=AUTO[a.k.p%AUTO.length],q=P[Math.min(P.length-1,Math.floor(a.k.s))],r=P[Math.min(P.length-1,Math.floor(a.k.s)+1)],f=a.k.s%1;
       const x=q[0]+(r[0]-q[0])*f,y=q[1]+(r[1]-q[1])*f;a.k.s+=dt*3;if(a.k.s>=P.length-1){a.k.p++;a.k.s=0;}AP.I={x,y,down:a.k.s>.05,raw:true};AP.hand=[x,y];AP.press=true;},
@@ -349,12 +349,12 @@ S4.f2dance=(sp,K)=>{const g=K.g,N=16,BEAT=.66,T0=1.6,RX=64,RY=150;
       if(I.pressed){let best=null,bd=.22;for(const n of notes){if(n.hit!==null)continue;const d=Math.abs(n.t-st.t);if(d<bd){bd=d;best=n;}}
         if(best){best.hit=true;st.score++;st.flash=.6;const q=bd<.07?1:bd<.14?.8:.62;K.judge(q,RX+34,RY-24);A.tone(440+st.score*28,.14,'triangle',.07);if(q>=1)st.hearts.push({x:RX+10,y:RY-10,t:0});}
         else{A.tone(150,.1,'square',.03);K.judge(.1,RX+34,RY-24,true);}}
-      for(const n of notes)if(n.hit===null&&st.t-n.t>.24){n.hit=false;K.combo=0;}
+      for(const n of notes)if(n.hit===null&&st.t-n.t>.24){n.hit=false;K.combo=0;A.tone(196,.1,'triangle',.035,{slide:150});}
       for(const h of st.hearts)h.t+=dt;st.hearts=st.hearts.filter(h=>h.t<1.4);if(st.flash>0)st.flash-=dt;
       if(st.t>notes[N-1].t+1)st.end=.001;},
     draw(t){// the string and the ring, the lanterns sliding down, hearts going up
       for(let u=0;u<=1;u+=.004){const [x,y]=path(u);K.px(x,y-6,1,1,'#2a1a10');}
-      K.px(RX-14,RY-14,28,28,'rgba(0,0,0,0)');for(let a=0;a<6.28;a+=.08){K.px(RX+Math.cos(a)*13,RY-6+Math.sin(a)*13,2,2,st.flash>0?'#ffe8a0':'#e8c070');}
+      K.px(RX-14,RY-14,28,28,'rgba(0,0,0,0)');{const on=notes.some(n=>n.hit===null&&Math.abs(n.t-st.t)<.07);for(let a=0;a<6.28;a+=.08){K.px(RX+Math.cos(a)*13,RY-6+Math.sin(a)*13,2,2,st.flash>0?'#ffe8a0':on?'#9be07a':'#e8c070');}}
       if(st.flash>0)K.glow(RX,RY-6,30,'255,220,120',st.flash*.6);
       for(const n of notes){if(n.hit===true)continue;const u=(n.t-st.t)/2.2;if(u<-.15||u>1.05)continue;const [x,y]=path(Math.max(0,u));const miss=n.hit===false;
         K.px(x-4,y-12,9,12,miss?'#4a2a1a':'#a8441a');K.px(x-3,y-11,7,10,miss?'#5a3a2a':'#f0a040');K.px(x-1,y-9,3,5,miss?'#6a4a32':'#ffe090');K.px(x,y-14,1,2,'#2a1a10');if(!miss)K.glow(x,y-6,14,'255,180,80',.25);}

@@ -63,22 +63,27 @@ S4.crDents=(sp,K)=>{const g=K.g,X0=16,X1=298,TOP=30,BOT=148,AX=X0+190,AY=BOT+18,
       for(let y=4;y<BOT-TOP-30;y++)k.px(34,y,1,1,CRP.RED[2]);},false);
   const tire=M4.pre('crtirearch',120,40,k=>{crRing(k,60,AR,AR-18,AR-2,CRP.RUB);},false);
   const DENTS=(sp.dents||[[70,52,15],[124,104,17],[160,54,13],[236,56,14],[96,128,11],[272,104,12]]).map(([x,y,r])=>({x,y,r,d:1,pop:0}));
-  const ham=crHammer();const st={t:0,x:160,y:90,sw:0,res:[],miss:0,end:0,ang:.9,hx:160,hy:90,bump:0};
+  const ham=crHammer();const st={t:0,x:160,y:90,sw:0,res:[],miss:0,end:0,ang:.9,av:0,hx:160,hy:90,bump:0,from:.9};
+  // (t363) the hammer has weight: it hovers on a spring, falls accelerating, bounces back off the panel and settles
+  const spring=(dt,tg)=>{const k=520,w=Math.sqrt(k),m=Math.max(1,Math.round(dt*60));for(let q=0;q<m;q++){st.av+=(k*(tg-st.ang)-2*.5*w*st.av)*(dt/m);st.ang+=st.av*(dt/m);}};
   const onPanel=(x,y)=>x>X0+2&&x<X1-2&&y>TOP+2&&y<BOT-2&&Math.hypot(x-AX,y-AY)>AR+3;
   const live=()=>DENTS.filter(d=>d.d>0);
   const strike=(x,y)=>{let best=null,bd=1e9;for(const d of DENTS){if(d.d<=0)continue;const dd=Math.hypot(x-d.x,y-d.y);if(dd<d.r+4&&dd<bd){bd=dd;best=d;}}
-    if(best){const c=1-bd/(best.r+4);best.d-=.34+.36*c;const q=c>.62?1:c>.32?.7:.45;st.res.push(q);K.pops.length=0;K.judge(q,M4.cl(best.x,130,270),22,true);MS.tink(.3+c*.5);MS.knock();
+    if(best){const c=1-bd/(best.r+4);best.d-=.34+.36*c;const q=c>.62?1:c>.32?.7:.45;st.res.push(q);st.rk=3+c*2;K.pops.length=0;K.judge(q,M4.cl(best.x,130,270),22,true);MS.panel(c);
       K.emit(x,y,4+Math.round(c*5),{c:['#fff4c0','#ffd27a','#e8a050'],v:70,g:160,life:.3});st.bump=.12;
       if(best.d<=0){best.d=0;best.pop=.35;MS.pop&&MS.pop();A.tone(1200,.08,'triangle',.05,{slide:1600});K.emit(best.x,best.y,8,{c:[CRP.RED[3],CRP.RED[1]],v:45,g:220,life:.5});}
       if(!live().length&&!st.end)st.end=.001;}
-    else if(onPanel(x,y)){st.miss++;st.res.push(.1);DENTS.push({x,y,r:6,d:.7,pop:0,ding:1});K.judge(.1,x,y-16,true);MS.miss();A.tone(380,.12,'square',.04,{slide:240,filter:['lowpass',1600]});K.shk=.12;}
+    else if(onPanel(x,y)){st.miss++;st.res.push(.1);st.rk=6;DENTS.push({x,y,r:6,d:.7,pop:0,ding:1});K.judge(.1,x,y-16,true);MS.miss();MS.panel(-1);K.shk=.12;}
     else{MS.whoosh&&MS.whoosh();}};
   return {title:sp.t||'Beat the dents out',how:(K.fine?'Click':'Tap')+' a dent to swing the hammer at it. Hit it dead centre; it takes two or three blows. Miss and you put a new ding in the panel.',hint:'Hit the dents dead centre. Don’t hit the flat metal.',st,
     update(dt,I){st.t+=dt;if(st.bump>0)st.bump-=dt;for(const d of DENTS)if(d.pop>0)d.pop-=dt;
-      if(st.end){st.end+=dt;st.ang+=(.9-st.ang)*Math.min(1,dt*8);if(st.end>.8){st.done=true;st.score=M4.cl(M4.avg(st.res)-st.miss*.03,.05,1);}return;}
+      if(st.end){st.end+=dt;spring(dt,.9);if(st.end>.8){st.done=true;st.score=M4.cl(M4.avg(st.res)-st.miss*.03,.05,1);}return;}
       st.x+=(I.x-st.x)*Math.min(1,dt*18);st.y+=(I.y-st.y)*Math.min(1,dt*18);
-      if(st.sw>0){st.sw+=dt/.09;st.ang=.9*(1-Math.min(1,st.sw));if(st.sw>=1){st.sw=0;st.ang=0;strike(st.hx,st.hy);}}
-      else{st.ang+=(.9-st.ang)*Math.min(1,dt*10);st.hx=st.x;st.hy=st.y;if(I.pressed){st.sw=.001;st.hx=I.x;st.hy=I.y;MS.whoosh&&MS.whoosh();}}},
+      // a tap: the hammer cocks back a touch, falls, sits on the panel a beat, then bounces off and settles
+      if(st.ck>0){st.ck+=dt/.05;const u=Math.min(1,st.ck);st.ang=st.from+.28*(1-(1-u)*(1-u));st.av=0;if(st.ck>=1){st.ck=0;st.sw=.001;st.from=st.ang;MS.swish(.7);}}
+      else if(st.sw>0){st.sw+=dt/.09;const u=Math.min(1,st.sw);st.ang=st.from*(1-u*u);st.av=0;if(st.sw>=1){st.sw=0;st.ang=0;strike(st.hx,st.hy);st.hold=.05;}}
+      else if(st.hold>0){st.hold-=dt;st.ang=0;st.av=0;if(st.hold<=0)st.av=st.rk||4.5;}
+      else{spring(dt,.9);st.hx=st.x;st.hy=st.y;if(I.pressed){st.ck=.001;st.from=Math.max(.35,st.ang);st.hx=I.x;st.hy=I.y;}}},
     draw(t){g.drawImage(sheet,X0,TOP);g.drawImage(tire,AX-60,BOT-22,120,40);
       K.pa(X0,BOT,X1-X0,3,'#000',.35);
       // the chrome trim, kinked wherever a dent still pushes on it: knock them out and it runs straight
@@ -91,9 +96,9 @@ S4.crDents=(sp,K)=>{const g=K.g,X0=16,X1=298,TOP=30,BOT=148,AX=X0+190,AY=BOT+18,
           if(!d.ding){for(let i=-2;i<=2;i++)K.px(d.x-Math.round(r*.6)+i,d.y-Math.round(ry*.6)-i*.3,1,1,CRP.RED[1]);}
           if(DENTS.indexOf(d)===DENTS.findIndex(q=>q.d>0))K.pa(d.x-1,d.y-1,3,3,'#ffd27a',.2+Math.sin(t*6)*.15);}
         if(d.pop>0){const u=1-d.pop/.35;for(let i=0;i<10;i++){const a=i/10*6.283;K.pa(d.x+Math.cos(a)*(4+u*d.r),d.y+Math.sin(a)*(3+u*d.r*.7),2,2,'#fff4c0',d.pop*2.4);}}}
-      const px=st.sw>0?st.hx:st.x,py=st.sw>0?st.hy:st.y;const PVX=px+44,PVY=py-1;M4.rot(g,ham,PVX,PVY,st.ang,44,8);
-      const [gx,gy]=M4.tr(PVX,PVY,st.ang,0,0);m4sleeve(K,gx+3,gy,gx+40,gy+34);m4hand(K,gx,gy);
-      if(st.sw===0&&!st.end){K.pa(st.x-1,st.y-5,2,3,'#fff4c0',.6);K.pa(st.x-5,st.y-1,3,2,'#fff4c0',.6);K.pa(st.x+3,st.y-1,3,2,'#fff4c0',.6);K.pa(st.x-1,st.y+3,2,3,'#fff4c0',.6);}},
+      const lock=st.sw>0||st.ck>0||st.hold>0,px=lock?st.hx:st.x,py=lock?st.hy:st.y;const PVX=px+44,PVY=py-1;M4.rot(g,ham,PVX,PVY,st.ang,44,8);
+      const [gx,gy]=M4.tr(PVX,PVY,st.ang,-1.5,-.5);m4grip(K,gx,gy,st.ang,{side:1,arm:.72+st.ang*.4});
+      if(st.sw===0&&!st.ck&&!st.hold&&!st.end){K.pa(st.x-1,st.y-5,2,3,'#fff4c0',.6);K.pa(st.x-5,st.y-1,3,2,'#fff4c0',.6);K.pa(st.x+3,st.y-1,3,2,'#fff4c0',.6);K.pa(st.x-1,st.y+3,2,3,'#fff4c0',.6);}},
     hud(t){const n=DENTS.filter(d=>!d.ding).length,left=live().length;K.label('DENTS LEFT '+left,30,16,'#f4ecd8','l');if(st.miss)K.label('NEW DINGS '+st.miss,30,26,'#e8b030','l');
       K.meter(1-left/Math.max(1,DENTS.length),st.res.length?M4.avg(st.res):.7);},
     auto(dt,AP){const a=m4ai(this,AP,dt);const d=live()[0];if(d){m4move(a,d.x+(Math.random()-.5)*2,d.y+(Math.random()-.5)*2);this._w=(this._w||0)-dt;if(this._w<=0&&st.sw===0&&Math.hypot(st.x-d.x,st.y-d.y)<3){m4tap(a);this._w=.45;}}
@@ -140,9 +145,9 @@ S4.crBelt=(sp,K)=>{const g=K.g;const A_={x:150,y:130,r:22},B_={x:150,y:62,r:16},
       else{const L={x:st.L.x,y:st.L.y+(st.flap>0?Math.sin(st.flap*40)*3:0),r:0};belt([B_,L,A_],RB);
         // where it goes: a faint ghost of the belt round the small pulley, and a grip mark on the slack
         if(!st.grab){g.globalAlpha=.25+Math.sin(t*5)*.1;crArc(K,c.x,c.y,c.r+2,-Math.PI/2,Math.PI/2,1,'#9be07a');g.globalAlpha=1;}
-        m4hand(K,st.L.x+4,st.L.y+6);}
+        m4grip(K,st.L.x+3,st.L.y+4,-Math.PI/2+.4,{side:1,kind:'pinch',arm:1.1});}
       if(st.ph==='ten'||st.ph==='done'){// the pry bar against the alternator
-        K.line(c.x+20,c.y+2,c.x+46,c.y+48,CA_P.iron[5],3);K.line(c.x+20,c.y+1,c.x+46,c.y+47,CA_P.iron[7],1);m4hand(K,c.x+44,c.y+44);
+        K.line(c.x+20,c.y+2,c.x+46,c.y+48,CA_P.iron[5],3);K.line(c.x+20,c.y+1,c.x+46,c.y+47,CA_P.iron[7],1);m4grip(K,c.x+42,c.y+43,1.06,{side:1,arm:1.15});
         if(st.ten>.3){const sag=Math.max(0,(.7-st.ten))*8;K.pa(B_.x+30,(B_.y+c.y)/2+sag,2,2,'#fff4c0',.0);}}},
     hud(t){if(st.ph==='ten'||st.ph==='done'){K.label('TENSION',236,22,'#f4ecd8','r');K.gauge(240,22,60,6,.62/1.15,.84/1.15,st.ten/1.15);}
       else K.label('BELT ON',30,16,'#f4ecd8','l');K.meter(st.ph==='fit'?0:st.ph==='ten'?.5+st.ten*.4:1,st.res.length?M4.avg(st.res):.7);},
@@ -189,7 +194,7 @@ S4.crClamps=(sp,K)=>{const g=K.g,HY=104,HR=13;const CL=[{x:128,tq:0,done:0},{x:2
       const c=CL[Math.min(st.i,CL.length-1)];const gap=Math.round((1-Math.min(1,c.tq))*3),sx=c.x,sy=HY-HR-14+gap;
       K.px(sx-1,sy-24,3,24,CA_P.iron[5]);K.px(sx-1,sy-24,1,24,CA_P.iron[7]);K.px(sx-2,sy-2,5,2,CA_P.iron[3]);
       for(let y=0;y<22;y++){const u=y/22,hw=y<3||y>19?4:5;for(let x=-hw;x<=hw;x++){const s=Math.floor((x+st.turn*3)%4+4)%4;K.px(sx+x,sy-46+y,1,1,crT(CRP.YEL,(s<2?4.2:2.8)-x*.15+(u<.12?1:0)-(u>.88?1:0)));}}
-      K.px(sx-5,sy-47,11,1,CRP.YEL[5]);m4hand(K,sx+9,sy-34);},
+      K.px(sx-5,sy-47,11,1,CRP.YEL[5]);m4grip(K,sx+1,sy-36,-Math.PI/2+Math.sin(st.turn*2)*.15,{side:1,arm:-.9});},
     hud(t){const c=CL[Math.min(st.i,CL.length-1)];K.label('CLAMP '+(Math.min(st.i,CL.length-1)+1)+'/'+CL.length,30,16,'#f4ecd8','l');
       K.meter((st.i+(c.done?1:c.tq*.8))/CL.length,st.res.length?M4.avg(st.res):.7);},
     auto(dt,AP){const a=m4ai(this,AP,dt);const c=CL[st.i];if(c&&!c.done){this._w=(this._w||0)+dt;if(this._w>.4)m4hold(a,c.tq<(LO+HI)/2-.02);}else{this._w=0;m4hold(a,false);}
@@ -227,7 +232,7 @@ S4.crHang=(sp,K)=>{const g=K.g,HX=200,HY=94,SR=13,TR=44;
       M4.rot(g,wheelImg,st.x,st.y,st.ang,48,48);
       // the wheel's bolt holes warm to green as they come round over the studs
       {const near2=Math.hypot(st.x-HX,st.y-HY)<26,w=Math.max(0,1-al/.25);if(near2&&!st.on)for(let i=0;i<5;i++){const an=-Math.PI/2+i*Math.PI*2/5+st.ang;const x=st.x+Math.cos(an)*SR,y=st.y+Math.sin(an)*SR;g.globalAlpha=.3+w*.6;crArc(K,x,y,6,0,Math.PI*2,1,ok?'#9be07a':'#e8c060');g.globalAlpha=1;}}
-      if(!st.on){m4palm(K,st.x-TR+4,st.y-4,true);m4palm(K,st.x+TR-4,st.y-4);}
+      if(!st.on){m4grip(K,st.x-TR+3,st.y-2,Math.PI/2+.2,{side:-1,arm:2.0});m4grip(K,st.x+TR-3,st.y-2,Math.PI/2-.2,{side:1,arm:1.15});}
       if(ok&&!st.on)K.pa(HX-2,HY-2,5,5,'#9be07a',.3+Math.sin(t*10)*.2);},
     hud(t){K.label('LINE UP THE STUDS',30,16,'#f4ecd8','l');K.meter(st.on?1:Math.max(0,1-Math.hypot(st.x-HX,st.y-HY)/140)*.8,st.res.length?M4.avg(st.res):.7);},
     auto(dt,AP){const a=m4ai(this,AP,dt);this._p=(this._p||0)+dt;
@@ -258,7 +263,7 @@ S4.crLugs=(sp,K)=>{const g=K.g,CX=172,CY=94,R=24,ORDER=[0,2,4,1,3];
       if(!st.seq.length&&st.sel<0){const n=NUT[0];K.pa(n.x-6,n.y-6,13,13,'#ffd27a',.18+Math.sin(t*6)*.1);}
       if(st.sel>=0){const n=NUT[st.sel];const a=-.6-n.tq*.5;const ex=n.x+lx+Math.cos(a)*46,ey=n.y+Math.sin(a)*46;
         K.line(n.x+lx,n.y,ex,ey,CA_P.iron[3],4);K.line(n.x+lx,n.y-1,ex,ey-1,CA_P.iron[6],1);const px_=-Math.sin(a)*12,py_=Math.cos(a)*12,mx=n.x+lx+Math.cos(a)*30,my=n.y+Math.sin(a)*30;K.line(mx-px_,my-py_,mx+px_,my+py_,CA_P.iron[3],4);K.line(mx-px_,my-py_-1,mx+px_,my+py_-1,CA_P.iron[6],1);
-        K.px(n.x+lx-5,n.y-5,11,11,CA_P.iron[2]);K.px(n.x+lx-4,n.y-4,9,9,CA_P.iron[4]);K.px(n.x+lx-4,n.y-4,9,1,CA_P.iron[6]);m4hand(K,ex,ey);
+        K.px(n.x+lx-5,n.y-5,11,11,CA_P.iron[2]);K.px(n.x+lx-4,n.y-4,9,9,CA_P.iron[4]);K.px(n.x+lx-4,n.y-4,9,1,CA_P.iron[6]);{const wa=Math.atan2(ey-n.y,ex-n.x);m4grip(K,ex,ey,wa,{side:Math.cos(wa)>=0?1:-1,arm:wa+(Math.sin(wa)<0?-.3:.3)});}
         // the torque arc round the nut: green where it clicks, a tick that sweeps as you pull
         const R=16,cx=n.x+lx,cy=n.y;for(let a=Math.PI*.75;a<=Math.PI*2.25;a+=.035){const u=(a-Math.PI*.75)/(Math.PI*1.5),on=u>=LO/1.2&&u<=HI/1.2;K.px(cx+Math.cos(a)*R-1,cy+Math.sin(a)*R-1,2,2,on?'#7cc04a':'#1a0e06');}
         const ta=Math.PI*.75+Math.min(1.2,n.tq)/1.2*Math.PI*1.5;K.px(cx+Math.cos(ta)*R-2,cy+Math.sin(ta)*R-2,4,4,'#fff4c0');}
@@ -301,7 +306,7 @@ S4.crGlass=(sp,K)=>{const g=K.g;const W0=CR_WIN;
       st.ang+=((st.vx*.0016)-st.ang)*Math.min(1,dt*3);
       // a corner that swings into the frame's edge, moving, chips the glass
       const spd=Math.hypot(st.vx,st.vy);if(st.kc<=0&&spd>55){for(const [x,y] of corners()){const u=(y-44)/76;if(u<-.12||u>1.12)continue;const l=96+(72-96)*u,r=224+(248-224)*u;const out=x<l-2||x>r+2;const inBand=x>l-14&&x<r+14&&y>34&&y<130;
-          if(out&&inBand){st.knock++;st.kc=.5;st.chips.push([x-st.x,y-st.y]);A.tone(1800,.05,'square',.04);A.tone(900,.12,'triangle',.03,{delay:.02});K.shk=.12;K.judge(.1,x,y-12,true);break;}}}
+          if(out&&inBand){st.knock++;st.kc=.5;st.chips.push([x-st.x,y-st.y]);MS.glassKnock();MS.miss();K.shk=.12;K.judge(.1,x,y-12,true);break;}}}
       if(st.held&&(I.released||!I.down)){st.held=0;const d=Math.hypot(st.x-OX,st.y-OY);if(d<6&&Math.abs(st.ang)<.05){const q=d<2.5?1:.8;st.res.push(q);K.judge(q,OX,OY-48,true);MS.thunk();st.end=.001;}}},
     draw(t){crWinFrame(K,t);const c=corners();
       // corner marks where it should sit, brighter as it nears
@@ -309,7 +314,7 @@ S4.crGlass=(sp,K)=>{const g=K.g;const W0=CR_WIN;
       K.pa(st.x-80,st.y+44,160,5,'#000',.25);M4.rot(g,pane,st.x,st.y,st.ang,90,38);
       for(const [cx,cy] of st.chips){const x=st.x+cx*Math.cos(st.ang)-cy*Math.sin(st.ang),y=st.y+cx*Math.sin(st.ang)+cy*Math.cos(st.ang);K.line(x,y,x+5,y-3,'#dff4f4',1);K.line(x,y,x+2,y+4,'#dff4f4',1);}
       // the suction cups, and your hands on them
-      if(!st.end)for(const sx of [-34,34]){const x=st.x+sx*Math.cos(st.ang),y=st.y+sx*Math.sin(st.ang)-6;K.ell(x,y,7,4,CRP.RUB[3]);K.ell(x,y-1,5,2,CRP.RUB[5]);K.px(x-6,y-8,12,3,CA_P.iron[4]);K.px(x-6,y-8,12,1,CA_P.iron[6]);m4hand(K,x,y-6);}},
+      if(!st.end)for(const sx of [-34,34]){const x=st.x+sx*Math.cos(st.ang),y=st.y+sx*Math.sin(st.ang)-6;K.ell(x,y,7,4,CRP.RUB[3]);K.ell(x,y-1,5,2,CRP.RUB[5]);K.px(x-6,y-8,12,3,CA_P.iron[4]);K.px(x-6,y-8,12,1,CA_P.iron[6]);m4grip(K,x,y-8,sx<0?Math.PI+st.ang:st.ang,{side:sx<0?-1:1,arm:sx<0?2.0:1.15});}},
     hud(t){K.label('KNOCKS '+st.knock,30,16,st.knock?'#e8b030':'#f4ecd8','l');K.meter(Math.max(0,1-Math.hypot(st.x-OX,st.y-OY)/120),M4.cl(1-st.knock*.25,0,1));},
     auto(dt,AP){const a=m4ai(this,AP,dt);this._p=(this._p||0)+dt;if(this._p<.4)m4move(a,st.x,st.y);else{m4hold(a,true);const u=Math.min(1,(this._p-.4)/2.2),e=u*u*(3-2*u);m4move(a,248+(OX-248)*e,130+(OY-130)*e);if(u>=1&&Math.abs(st.ang)<.03&&Math.hypot(st.x-OX,st.y-OY)<2)m4hold(a,false);}
       AP.I=a;AP.hand=[a.x+6,a.y+6];AP.press=a.down;},
@@ -334,7 +339,7 @@ S4.crSeal=(sp,K)=>{const g=K.g;const W0=CR_WIN,o=2;
       for(const [x,y] of st.blobs)K.px(x-1,y-1,3,2,'#141416');
       const [sx,sy]=PATH[0];K.pa(sx-3,sy-3,7,7,'#9be07a',.25+Math.sin(t*5)*.15);
       // the caulk gun: a tube, the nozzle at your point
-      const x=st.x,y=st.y;K.line(x,y,x+10,y-10,'#d8d0c0',2);K.px(x+9,y-22,24,12,CA_P.iron[4]);K.px(x+9,y-22,24,1,CA_P.iron[6]);K.px(x+12,y-20,18,8,'#c84a2a');K.px(x+12,y-20,18,1,'#e88060');K.px(x+30,y-12,3,12,CA_P.iron[3]);m4hand(K,x+30,y-2);},
+      const x=st.x,y=st.y;K.line(x,y,x+10,y-10,'#d8d0c0',2);K.px(x+9,y-22,24,12,CA_P.iron[4]);K.px(x+9,y-22,24,1,CA_P.iron[6]);K.px(x+12,y-20,18,8,'#c84a2a');K.px(x+12,y-20,18,1,'#e88060');K.px(x+30,y-12,3,12,CA_P.iron[3]);m4grip(K,x+28,y-6,-.15,{side:1,arm:-.95});},
     hud(t){const cov=seg.filter(v=>v>0).length/N;K.label('SEALED '+Math.round(cov*100)+'%',30,16,'#f4ecd8','l');if(st.smear)K.label('SMEARS '+st.smear,30,26,'#e8b030','l');K.meter(cov,seg.filter(v=>v>0).length?M4.avg(seg.filter(v=>v>0)):.7);},
     auto(dt,AP){const a=m4ai(this,AP,dt);this._s=(this._s||0)+dt*70;const [x,y]=m4at(PATH,Math.min(L,this._s));m4move(a,x,y);m4hold(a,this._s<L+4);AP.I=a;AP.hand=[a.x+30,a.y-2];AP.press=a.down;},
     stop(){}};};
@@ -381,7 +386,7 @@ S4.crBattery=(sp,K)=>{const g=K.g,TX=118,TY=112,img=crBatt34();
       const over=Math.abs(st.x-TX)<46&&st.y<TY+20,floor=over?TY+2:GROUND+2,hgt=Math.max(0,floor-st.y),sw=30+Math.min(30,hgt*.3),sa=Math.max(.12,.5-hgt*.006);
       K.pa(st.x-sw,floor-3,sw*2,6,'#000',sa);if(!st.end&&over)for(let x=TX-36;x<TX+36;x+=4)K.px(x,TY-16,2,1,ok?'#9be07a':'#e8c060');
       M4.rot(g,img,st.x,st.y,st.ang,32,58);
-      if(st.held||!st.end){const [hx,hy]=M4.tr(st.x,st.y,st.ang,0,-58);if(st.held){m4sleeve(K,hx+3,hy-4,hx+30,hy-60);m4hand(K,hx,hy-2);}}},
+      if(st.held||!st.end){const [hx,hy]=M4.tr(st.x,st.y,st.ang,0,-58);if(st.held){m4grip(K,hx,hy-2,st.ang,{side:1,arm:-1.25+st.ang});}}},
     hud(t){K.label('INTO THE TRAY',30,16,'#f4ecd8','l');K.meter(st.end?1:Math.max(0,1-Math.abs(st.x-TX)/150)*.8,M4.cl(1-st.knock*.3,0,1));},
     auto(dt,AP){const a=m4ai(this,AP,dt);this._p=(this._p||0)+dt;if(this._p<.4)m4move(a,st.x,st.y-50);else{m4hold(a,true);const u=Math.min(1,(this._p-.4)/2.4),e=u*u*(3-2*u);m4move(a,262+(TX-262)*e,110+(TY-48-110)*e);if(u>=1&&Math.abs(st.ang)<.03&&Math.abs(st.x-TX)<2)m4hold(a,false);}
       AP.I=a;AP.hand=[a.x+6,a.y+6];AP.press=a.down;},
@@ -413,7 +418,7 @@ S4.crCables=(sp,K)=>{const g=K.g,BX=150,BY=104,img=crBatteryImg(2);
       // each cable sags from where it comes in to its end
       for(const e of ENDS){const mx=(e.ax+e.x)/2,my=Math.max(e.ay,e.y)+(e.done?6:22);let px=e.ax,py=e.ay;for(let i=1;i<=24;i++){const u=i/24,x=(1-u)*(1-u)*e.ax+2*u*(1-u)*mx+u*u*e.x,y=(1-u)*(1-u)*e.ay+2*u*(1-u)*my+u*u*e.y;K.line(px,py,x,y,e.c[1],3);K.line(px,py-1,x,y-1,e.c[2],1);px=x;py=y;}
         if(e.k==='plug'){K.px(e.x-7,e.y-5,14,10,e.c[1]);K.px(e.x-7,e.y-5,14,1,e.c[2]);}else{K.px(e.x-5,e.y-4,10,8,e.c[1]);K.px(e.x-5,e.y-4,10,1,e.c[2]);K.px(e.x-2,e.y-1,4,2,CA_P.iron[1]);}
-        if(st.grab>=0&&ENDS[st.grab]===e)m4hand(K,e.x+4,e.y+6);}
+        if(st.grab>=0&&ENDS[st.grab]===e)m4grip(K,e.x+3,e.y+4,-Math.PI/2+.3,{side:1,kind:'pinch',arm:1.15});}
       if(st.spark>0){for(let i=0;i<5;i++){const a=Math.random()*6.28,r=4+Math.random()*10;K.line(st.sx,st.sy,st.sx+Math.cos(a)*r,st.sy+Math.sin(a)*r,'#fff4c0',1);}K.glow(st.sx,st.sy,30,'200,220,255',.6);}
       if(ENDS.every(e=>e.done))K.glow(T.plug.x,T.plug.y-20,24,'120,255,160',.35);},
     hud(t){K.label('HOOKED UP '+ENDS.filter(e=>e.done).length+'/3',30,16,'#f4ecd8','l');if(st.bad)K.label('SPARKS '+st.bad,30,26,'#e8b030','l');K.meter(ENDS.filter(e=>e.done).length/3,st.res.length?M4.avg(st.res):.7);},
@@ -444,7 +449,7 @@ S4.crFuel=(sp,K)=>{const g=K.g,NX=132,NY=96,LO=.86,HI=.97;
       // the can, tipping about its handle; the stream from the spout when it's tipped far enough
       const PX=NX+34,PY=HOLEY-34,ca=-st.a*.8;M4.rot(g,can,PX,PY,ca,28,24);const [sx,sy]=M4.tr(PX,PY,ca,-28,-14);
       if(st.q>.004){const w=Math.max(1,Math.round(st.q*24));for(let i=0;i<=12;i++){const u=i/12,x=sx+(NX-sx)*u,y=sy+(HOLEY-sy)*u*u+u*2;K.pa(x-w/2,y,w,3,'#e8b040',.8);K.px(x,y,1,2,'#f8e090');}}
-      const [h1x,h1y]=M4.tr(PX,PY,ca,2,-22),[h2x,h2y]=M4.tr(PX,PY,ca,14,14);m4hand(K,h1x,h1y);m4palm(K,h2x,h2y);
+      const [h1x,h1y]=M4.tr(PX,PY,ca,2,-22),[h2x,h2y]=M4.tr(PX,PY,ca,14,14);m4grip(K,h1x,h1y,ca-Math.PI/2,{side:1,arm:-1.2});m4palm(K,h2x,h2y);
       for(const d of st.drops)K.pa(d[0]+d[2]*2,HOLEY+4+d[2]*60,2,3,'#c89a40',1-d[2]/1.4);
       // the fuel gauge, like the one on the dash
       const GX=262,GY=150,GR=26;crDisc(K,GX,GY,GR+3,CA_P.iron,GR);K.ell(GX,GY,GR,GR,'#14141a');for(let i=0;i<=8;i++){const a=Math.PI+i/8*Math.PI;K.px(GX+Math.cos(a)*(GR-3),GY+Math.sin(a)*(GR-3),1,1,'#d8d0c0');}
@@ -499,7 +504,7 @@ S4.crKey=(sp,K)=>{const g=K.g,KX=238,KY=124,TX=132,TY=118,TR=26;
       for(let i=0;i<8;i++){const u=i/8;K.px(KX+(ex-KX)*u-1,KY+(ey-KY)*u-1,3,3,CA_P.brass[i<2?3:5]);}
       for(let y=-6;y<=6;y++)for(let x=-4;x<=4;x++){if((x/4.5)**2+(y/6.5)**2>1)continue;K.px(ex+x,ey+y-5,1,1,crT(CA_P.brass,4.6-(x+y)*.25));}K.px(ex-1,ey-8,2,2,'#2a1a06');
       const fa=st.fob*.25,fx=ex+Math.sin(fa)*2,fy=ey+3;K.px(fx-2,fy,4,1,CA_P.iron[6]);for(let j=0;j<16;j++){const x=fx+Math.sin(fa)*j*.9,y=fy+1+j*.95;K.px(x-2,y,5,1,crT(CA_P.leather,5-j*.15));}
-      m4hand(K,ex+15,ey-2,true);},
+      m4grip(K,ex+13,ey-2,Math.PI+fa*.5,{side:-1,kind:'pinch',arm:.95});},
     hud(t){K.label('TRY '+(st.tries+1),30,16,'#f4ecd8','l');K.label('BATTERY',30,26,st.batt<.6?'#e8b030':'#a89878','l');K.px(70,27,30,3,'#2a2a30');K.px(70,27,Math.round(30*st.batt),3,st.batt<.6?'#e8b030':'#7cc04a');K.meter(st.run?1:Math.min(.9,st.cough/4),[1,.8,.6,.45][Math.min(3,st.tries)]);},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(st.dead>0||st.end){m4hold(a,false);}else{const rel=a.down&&st.rpm>=LO+.02&&st.rpm<=HI-.02;m4hold(a,!rel);}AP.I=a;AP.hand=[KX+16,KY-10];AP.press=a.down;},
     stop(){}};};

@@ -59,7 +59,7 @@ S4.drop=(sp,K)=>{const g=K.g,item=sp.item||'brick',N=sp.n||5;
       if(item==='tool'){g.drawImage(M4.pre('toolboard',200,70,k=>{k.planks(0,0,200,70,CA_P.wood,10,8,true);},true),60,40);for(const s of SL){K.px(s.x-1,s.y-16,3,4,CA_P.iron[4]);}}
       for(const s of SL){if(s.got!=null)drawPiece(s.x+s.got,s.y,s.w,s.h,s.got*.01);else if(s===slot()&&!st.end)g.setLineDash([2,2]),g.strokeStyle='rgba(255,244,192,.6)',g.strokeRect(s.x-s.w/2,s.y-s.h/2,s.w,s.h),g.setLineDash([]);}
       if(st.fall){const f=st.fall;drawPiece(f.x,f.y,slot().w,slot().h,f.ang,f.broken);}
-      else if(!st.end){const s=slot();drawPiece(st.x,HOLD,s.w,s.h,Math.sin(st.t*2)*.05);m4hand(K,st.x-s.w/2-4,HOLD,true);m4hand(K,st.x+s.w/2+4,HOLD);K.pa(st.x-s.w/2,s.y+s.h/2,s.w,2,'#000',.18);}},
+      else if(!st.end){const s=slot();drawPiece(st.x,HOLD,s.w,s.h,Math.sin(st.t*2)*.05);m4grip(K,st.x-s.w/2-3,HOLD,Math.PI-.2,{side:-1,arm:-1.9});m4grip(K,st.x+s.w/2+3,HOLD,.2,{side:1,arm:-1.25});K.pa(st.x-s.w/2,s.y+s.h/2,s.w,2,'#000',.18);}},
     hud(){K.label((item==='brick'?'BRICK ':item==='log'?'LOG ':item==='shingle'?'SHINGLE ':item==='pane'?'PANE ':'TOOL ')+Math.min(N,st.i+1)+'/'+N,30,14,'#f4ecd8','l');K.meter(st.i/N,M4.avg(st.q)||1);},
     auto(dt,AP){const a=m4ai(this,AP,dt);const s=slot();if(!st.fall&&!st.end&&st.t>.6){const tf=Math.sqrt(2*(s.y-24)/520);const lead=st.x;if(Math.abs(st.x-s.x)<1.2)m4tap(a);}AP.hand=[st.x+4,HOLD-20];AP.press=a.down;},
     quiet(){},stop(){}};};
@@ -70,7 +70,7 @@ S4.level=(sp,K)=>{const g=K.g,look=sp.look||'post',DUR=sp.dur||4,BAND=.06;const 
       let u=0;if(I.ax)u=I.ax;else if(I.down)u=M4.cl((I.x-160)/50,-1,1);st.runT+=dt;
       st.nt-=dt;if(st.nt<=0){st.nt=1.1+Math.random()*.8;const k=(Math.random()<.5?-1:1)*(.3+Math.random()*.2);st.w+=k;st.thump=.2;if(look==='post'){A.tone(110,.15,'sine',.25,{slide:60});A.hiss(.1,.2,'lowpass',500);}else if(look==='chimney')MS.tink(.5);else MS.knock();K.shk=.06;}
       if(st.thump>0)st.thump-=dt;st.w+=(Math.sin(st.th)*1.8+u*3-st.w*2)*dt;st.th+=st.w*dt;st.th=M4.cl(st.th,-.6,.6);
-      if(Math.abs(st.th)<=BAND){st.inT+=dt;st.prog+=dt/DUR;}if(st.prog>=1||st.t>(sp.time||12)){st.end=.001;MS.good();}},
+      {const inb=Math.abs(st.th)<=BAND;if(inb!==st.wasIn&&st.t>.3){if(inb)A.tone(1500,.04,'triangle',.03);else A.tone(330,.06,'triangle',.03,{slide:260});}st.wasIn=inb;}if(Math.abs(st.th)<=BAND){st.inT+=dt;st.prog+=dt/DUR;}if(st.prog>=1||st.t>(sp.time||12)){st.end=.001;MS.good();}},
     draw(t){const bx=160,by=look==='chimney'?120:look==='door'?150:look==='anvil'?126:150;
       if(look==='post'){K.ell(bx,by+2,50,8,'#5a4422');K.ell(bx,by,14,4,'#2a1a0c');}
       if(look==='door'){K.px(100,40,8,112,CA_P.wood[3]);K.px(212,40,8,112,CA_P.wood[3]);K.px(100,36,120,8,CA_P.wood[4]);}
@@ -85,7 +85,7 @@ S4.level=(sp,K)=>{const g=K.g,look=sp.look||'post',DUR=sp.dur||4,BAND=.06;const 
       const lw=24,ly=look==='door'?-60:look==='chimney'?-30:look==='anvil'?-62:-60;K.px(-lw/2,ly,lw,5,'#3a6a2a');K.px(-lw/2,ly,lw,1,'#6a9a4a');K.px(-lw/2+2,ly+1,lw-4,3,'#c8e8a8');const bub=M4.cl(-st.th*60,-9,9);K.px(bub-2,ly+1,4,3,'#ffffff');K.px(-1,ly,1,5,'#1a3a1a');K.px(2,ly,1,5,'#1a3a1a');
       g.restore();
       if(look==='post'&&st.thump>0){K.px(bx+18,by-30-st.thump*40,4,30,CA_P.iron[4]);}
-      const hx=bx+Math.sin(st.th)*-70,hy=by-Math.cos(st.th)*70;m4hand(K,hx-10,hy,true);m4hand(K,hx+10,hy);},
+      const hx=bx+Math.sin(st.th)*-70,hy=by-Math.cos(st.th)*70,ca=Math.cos(st.th),sa=Math.sin(st.th);m4grip(K,hx-10*ca,hy-10*sa,Math.PI+st.th,{side:-1,arm:-1.95});m4grip(K,hx+10*ca,hy+10*sa,st.th,{side:1,arm:-1.2});},
     hud(){K.label('PLUMB',286,14,'#f4ecd8');K.gauge(282,24,8,90,.5-BAND/1.2,.5+BAND/1.2,.5+st.th/1.2);K.meter(st.prog,st.runT?st.inT/st.runT:1);},
     auto(dt,AP){const a=m4ai(this,AP,dt);a.ax=M4.cl(-(st.th*12+st.w*2.5),-1,1);AP.hand=[160+a.ax*30,40];AP.press=Math.abs(a.ax)>.3;},
     quiet(){},stop(){}};};
@@ -104,7 +104,7 @@ S4.dig=(sp,K)=>{const g=K.g,N=sp.n||6;const st={d:0,hole:0,q:[],t:0,end:0,lift:0
       for(let y=0;y<18;y++){const w=Math.round(9-Math.max(0,y-12)*.9);K.px(sx-w,sy+y,w*2,1,CA_P.iron[y<2?6:y>15?3:5]);K.px(sx-w,sy+y,1,1,CA_P.iron[7]);K.px(sx+w-1,sy+y,1,1,CA_P.iron[2]);}K.px(sx-9,sy-1,18,2,CA_P.iron[3]);K.px(sx-2,sy-4,4,6,CA_P.iron[4]);
       if(lift>.1){K.ell(sx,sy+4,9,4,'#5a4022');for(let k=0;k<5;k++)K.px(sx-6+k*3,sy+1-(k%2),2,2,'#3a2a14');}
       K.px(sx-1,sy-60,3,58,CA_P.wood[4]);K.px(sx-1,sy-60,1,58,CA_P.wood[6]);K.px(sx-7,sy-66,14,3,CA_P.wood[3]);K.px(sx-7,sy-66,2,7,CA_P.wood[3]);K.px(sx+5,sy-66,2,7,CA_P.wood[3]);
-      K.px(sx+9,sy-6,14,5,'#3a2a1a');K.px(sx+9,sy-6,14,1,'#5a4030');m4hand(K,sx,sy-64);m4hand(K,sx,sy-36,true);if(st.stuck&&Math.floor(t*6)%2)K.label('STUCK: TAP TO WIGGLE',160,30,'#e8542a');},
+      K.px(sx+9,sy-6,14,5,'#3a2a1a');K.px(sx+9,sy-6,14,1,'#5a4030');m4grip(K,sx,sy-65,0,{side:1,arm:-1.15});m4grip(K,sx,sy-36,-Math.PI/2,{side:-1,arm:-2.35});if(st.stuck&&Math.floor(t*6)%2)K.label('STUCK: TAP TO WIGGLE',160,30,'#e8542a');},
     hud(){K.label('DEPTH',286,14,'#f4ecd8');K.gauge(282,24,8,90,.6/1.15,1/1.15,Math.min(1.15,st.stuck?1.12:st.d)/1.15,{zone:'#5a4a1c'});K.meter(Math.min(1,st.hole),M4.avg(st.q)||1);},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(st.stuck)m4tap(a);else if(!st.lift&&st.t>.5)m4hold(a,st.d<.8);AP.hand=[166,50];AP.press=a.down;},
     quiet(){},stop(){}};};
@@ -116,8 +116,8 @@ S4.light=(sp,K)=>{const g=K.g,look=sp.look||'lantern';const st={m:3,lit:0,burn:0
       st.next-=dt;if(st.next<=0){st.gust=1.1+Math.random()*.6;st.next=2+Math.random()*2.2;A.hiss(1.2,.12,'lowpass',500,{slide:900});}if(st.gust>0)st.gust-=dt;
       if(st.burn>0){st.burn-=dt;if(st.burn<=0){st.out=.5;}}
       if(st.out>0){st.out-=dt;return;}
-      if(st.burn<=0){if(I.pressed&&st.m>0){st.m--;st.burn=6;st.catch=0;st.strike=.3;A.hiss(.25,.3,'highpass',2600);A.tone(900,.1,'triangle',.05);}}
-      else if(I.down&&!I.pressed){if(windy()){st.burn=0;st.out=.6;A.hiss(.3,.15,'lowpass',900);MS.miss();K.judge(.15,160,40,true);}else{st.catch+=dt/1.1;if(st.catch>=1){st.lit=1;st.end=.001;MS.good();A.hiss(.4,.1,'bandpass',800);}}}
+      if(st.burn<=0){if(I.pressed&&st.m>0){st.m--;st.burn=6;st.catch=0;st.strike=.3;MS.match();}}
+      else if(I.down&&!I.pressed){if(windy()){st.burn=0;st.out=.6;A.hiss(.3,.15,'lowpass',900);MS.miss();K.judge(.15,160,40,true);}else{st.catch+=dt/1.1;if(st.catch>=1){st.lit=1;st.end=.001;MS.good();MS.flare();}}}
       if(st.strike>0)st.strike-=dt;if(!st.lit&&st.m<=0&&st.burn<=0&&st.out<=0){st.end=.001;}},
     draw(t){const lx=160,ly=92;
       // leaves and dust tell you about the wind
@@ -129,7 +129,7 @@ S4.light=(sp,K)=>{const g=K.g,look=sp.look||'lantern';const st={m:3,lit:0,burn:0
           for(const xx of [9,22,35])k.line(xx,14,xx+(xx-22)*.25,44,I[3],1);k.px(8,44,28,3,B[3]);k.px(8,44,28,1,B[6]);k.px(10,47,24,12,B[4]);k.px(10,47,3,12,B[6]);k.px(31,47,3,12,B[2]);k.px(8,59,28,3,B[3]);k.ball(37,52,3,B,2);k.px(20,36,4,8,'#e8dcc0');},true),lx-22,ly-34);}
       else{K.ball(lx,ly+16,22,CA_P.brass,10);K.px(lx-10,ly-2,20,6,CA_P.brass[5]);K.px(lx-2,ly-6,4,5,'#e8dcc0');}
       if(st.lit){for(let k=0;k<3;k++)K.flame(lx-3,ly-2,.5,t+k);K.glow(lx,ly-4,60,'255,210,120',.45+Math.sin(t*9)*.05);}
-      if(st.burn>0||st.out>0){const lean=windy()?-6:Math.sin(t*3)*1;const mx=lx+8,my=ly-6;K.line(mx,my,mx+26,my-30,'#c8a060',1);K.px(mx-1,my-1,3,3,'#8a2a14');if(st.burn>0){K.flame(mx-3+lean*.5,my-2,.4,t);K.glow(mx,my-4,20,'255,190,90',.4);}else{for(let k=0;k<3;k++)K.pa(mx-2+k*2+lean,my-6-k*4,2,2,'#c8c0b8',.5);}m4hand(K,mx+28,my-32);}
+      if(st.burn>0||st.out>0){const lean=windy()?-6:Math.sin(t*3)*1;const mx=lx+8,my=ly-6;K.line(mx,my,mx+26,my-30,'#c8a060',1);K.px(mx-1,my-1,3,3,'#8a2a14');if(st.burn>0){K.flame(mx-3+lean*.5,my-2,.4,t);K.glow(mx,my-4,20,'255,190,90',.4);}else{for(let k=0;k<3;k++)K.pa(mx-2+k*2+lean,my-6-k*4,2,2,'#c8c0b8',.5);}m4grip(K,mx+24,my-28,-.86,{side:1,kind:'pinch',arm:-1.0});}
       if(st.catch>0&&!st.lit){K.px(lx-10,ly+30,20*st.catch,2,'#ffd27a');}},
     hud(t){K.label('MATCHES '+st.m,30,14,'#f4ecd8','l');K.label(windy()?'GUST!':'STILL',160,14,windy()?'#e8542a':'#9be07a');K.meter(st.lit?1:st.catch);},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(st.burn<=0&&st.out<=0&&st.m>0&&!st.end&&st.t>.5){if(!windy()&&st.next>1.3)m4tap(a);}else if(st.burn>0){m4hold(a,!windy()&&st.next>.15&&st.burn<5.8);}AP.hand=[196,40];AP.press=a.down;},
@@ -138,7 +138,7 @@ S4.light=(sp,K)=>{const g=K.g,look=sp.look||'lantern';const st={m:3,lit:0,burn:0
 S4.smoulder=(sp,K)=>{const g=K.g,LO=.38,HI=.6,DUR=sp.dur||6;const st={air:.8,burn:.7,prog:0,inT:0,runT:0,t:0,end:0,flare:0,cold:0};let roar=null;
   return {title:sp.t||'Keep it smouldering',how:'The clamp wants a slow, smoky burn. Hold to bank earth over the vents (less air), let go to open them. Watch the smoke: thin blue is right, flames mean it’s burning away, no smoke means it’s dying.',hint:'Hold to cover the vents. Keep the burn in the green.',st,
     update(dt,I){st.t+=dt;if(!roar)roar=MS.loop('lowpass',240,.8);if(st.end){st.end+=dt;roar.set(0);if(st.end>.6){st.done=true;st.score=M4.cl(st.inT/Math.max(1,st.runT)*1.12-st.flare*.06,0,1);}return;}
-      st.runT+=dt;st.air+=((I.down?0:1)-st.air)*Math.min(1,dt*1.4);st.burn+=(st.air*.95-st.burn)*dt*.7+Math.sin(st.t*1.3)*.02*dt;roar.set(st.burn*.1,180+st.burn*300);
+      st.runT+=dt;st.air+=((I.down?0:1)-st.air)*Math.min(1,dt*1.4);st.burn+=(st.air*.95-st.burn)*dt*.7+Math.sin(st.t*1.3)*.02*dt;roar.set(st.burn*.1,180+st.burn*300);if(Math.random()<dt*(2+st.burn*14))MS.crackle(st.burn);if(I.pressed)MS.dirt();else if(I.released)A.hiss(.3,.06,'bandpass',600,{slide:1200,q:.8});
       if(st.burn>=LO&&st.burn<=HI){st.inT+=dt;st.prog+=dt/DUR;}if(st.burn>HI+.12&&Math.random()<dt*3){st.flare++;A.hiss(.2,.15,'bandpass',900);}
       const n=st.burn;if(Math.random()<dt*(10+n*24)*Math.max(.3,st.air)){const vx=[-40,0,40][(Math.random()*3)|0];K.emit(160+vx+(Math.random()-.5)*6,(vx?138:110),1,{c:n>HI?['#4a4a4e','#3a3a3e','#2c2c30']:n<LO?['#c8c4bc','#b4b0a8']:['#a4acb8','#8e96a4','#7a8290'],hi:n>HI?'#5c5c60':'#c0c6d0',v:10+n*16,ang:-Math.PI/2,spread:.45,g:-20,drag:.6,life:2.2,sz:2.5+n*2.5,kind:'smoke'});}
       if(st.prog>=1||st.t>(sp.time||15)){st.end=.001;MS.good();}},

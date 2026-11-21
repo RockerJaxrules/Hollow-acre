@@ -25,7 +25,7 @@ Object.assign(ITEMS,{
     const lift=Math.sin(st.ang)*16,hy=34-lift;K.px(cx-2,hy,4,46,O[4]);K.px(cx-2,hy,1,46,O[5]);K.px(cx-7,hy-4,14,5,O[3]);K.px(cx-7,hy-4,14,1,O[5]);
     if(st.spd>9)for(let i=0;i<4;i++)K.px(cx-20+i*12,52-((t*40+i*9)%14),2,2,'#f6f0e2');
     for(let i=0;i<Math.round(f*8);i++)K.px(cx-14+i*4,57+(i%2),3,2,'#f0d470');
-    m4hand(K,cx,hy-2);};
+    m4grip(K,cx,hy-1,0,{side:1,arm:-1.3});};
   return o;};}
 // ---- the recipes, and their games
 const takeP=p=>{for(const [k,n] of Object.entries(p))takeBasket(k,n);};

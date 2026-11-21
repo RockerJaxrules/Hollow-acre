@@ -713,6 +713,14 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Curly quotes need clear 6 and 9 shapes at 3 px tall, or the opening quote reads as a closing one.
 
 ## First-person hands in the minigames (Nov 10: long forearms lost 3 vs floating fists)
+- **[owner, t363]** "the little fist should rotate with the hammer like an actual one would": a hand holding a tool is one rigid grip with it, same pivot, same angle; a hand pasted upright at the grip point reads as a stiff toy. Build the hand in the handle's own frame (handle along +x toward the arm, thumb on one side), turn the frame, and light it in SCREEN space from the top left so the light stays put as it turns; lay it down per 1/64 turn and keep the pictures.
+- **[owner, t363]** "if you changed the hands ... change the hands to look like that in all minigames": one hand drawing for every pose (fist, pinch, open palm, pointing), the same ramp, light, creases, cuff and arm, left and right mirrored; a second hand style anywhere reads as unfinished.
+- [t363 critic 5 vs 3] A forearm that ends in mid-air in a red or pink sleeve reads as a severed stump in this game; never fade an arm out inside the scene. Run it off the frame (widening toward the edge, about twice the fist's width) or in behind the bench or counter so the work surface cuts it off.
+- [t363 critic] Cloth needs cool grey shadows and a soft warm light; a plum shadow ramp (right for skin) turns a white or red sleeve blotchy and raw. No paler band at the cuff: one crease line separates cuff from sleeve.
+- [t363] Route arms to the nearest edge away from the work (up, as if across the bench, or down behind it); two arms of 100+ px crossing the scene are the loudest thing on it.
+- [t363 critic] A swing needs anticipation past the top (head behind the wrist for a beat), an accelerating fall, a 2-3 frame hold on impact with the nail visibly sinking, a small shake, 2 px chips and a dust puff, then a damped bounce; a one-frame hit reads weightless.
+- [t363 critic] Keep the swing's silhouette clear of look-alike props: a raised hammer head over a mallet hung on the wall merges into one shape.
+- [t363] A verdict popped at the tool hides the result of the blow; pop it beside the work, clamped fully on screen by its own width.
 - A forearm of constant width with a dark line every few rows reads as a ladder or a striped pipe; arms that cross the
   scene hide the job (the fire, the cutting line) and become the loudest thing in the frame. Don't extend sleeves to the
   frame edge by default.
