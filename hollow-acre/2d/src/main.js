@@ -253,7 +253,7 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
   if(DK>0)nightMoonAdd(DK);   // (t362) the moonlit grade over what no light reaches
   // vignette + danger pulse + grain
   {const va=S.room&&!isNight()?.36:.55;if(!vig||vig.w!==VW||vig.h!==VH||vig.a!==va)makeVig(va);}ctx2.drawImage(vig.c,0,0);   /* (b47: indoors by day the side walls sank to near-black and a day room read as dusk) a lighter vignette inside by day */
-  if(danger>.3&&!S.bound){ctx2.fillStyle=`rgba(120,0,0,${(danger-.3)*.25*(.6+.4*Math.sin(t*6))})`;ctx2.fillRect(0,0,VW,VH);}
+  if(danger>.3&&!S.bound){ctx2.fillStyle=`rgba(120,0,0,${(danger-.3)*.25*(typeof SET7!=='undefined'&&SET7.lessFlash?.7:(.6+.4*Math.sin(t*6)))})`;ctx2.fillRect(0,0,VW,VH);}
   mindScreen(t);
   nightUIFlush();
 }

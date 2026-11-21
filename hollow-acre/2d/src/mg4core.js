@@ -106,7 +106,7 @@ function mg4Kit(g){const W=320,H=180;const K=caKit(g,W,H);K.g=g;K.W=W;K.H=H;
     K.parts.push({x:x+(Math.random()-.5)*(o.w||0),y:y+(Math.random()-.5)*(o.h||0),vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:0,life:(o.life||.8)*(.6+Math.random()*.6),g:o.g!=null?o.g:220,drag:o.drag||0,
       c:o.c||['#e8c890'],sz:o.sz||1,kind:o.kind||'dot',glow:o.glow,hi:o.hi,rot:Math.random()*6});}};
   K.burst=(x,y,n,c,sp)=>K.emit(x,y,n,{c:[c],v:sp||70});
-  K.judge=(s,x,y,quiet)=>{const J=s>=.95?['PERFECT','#ffd27a']:s>=.6?['GOOD','#9be07a']:s>=.25?['OK','#e8c070']:['MISS','#e8542a'];
+  K.judge=(s,x,y,quiet)=>{if(typeof SET7!=='undefined'&&SET7.assist&&s>0)s=Math.min(1,s*1.3+.12);const J=s>=.95?['PERFECT','#ffd27a']:s>=.6?['GOOD','#9be07a']:s>=.25?['OK','#e8c070']:['MISS','#e8542a'];
     {const nw=(J[0].length+4)*(s>=.95?8:4);for(let k=K.pops.length-1;k>=0;k--){const p=K.pops[k],pw=p.txt.length*(p.big?8:4);if(Math.abs(p.x-x)<(nw+pw)/2+4&&Math.abs(p.y-y)<26)K.pops.splice(k,1);}}   // a new verdict replaces the one still rising there
     if(s>=.6){K.combo++;K.best=Math.max(K.best,K.combo);}else K.combo=0;
     {const txt=J[0]+(K.combo>=3&&s>=.6?' x'+K.combo:''),hw=txt.length*(s>=.95?4:2)+4;K.pops.push({txt,c:J[1],x:Math.max(hw,Math.min(W-hw,x)),y:Math.max(12,y),t:0,big:s>=.95});}
@@ -168,9 +168,9 @@ function mg4Run(def,name,done,icon){if(MG4.closeCur)MG4.closeCur(true);const box
     if(phase==='demo'){phase='your';pt=0;$('mg4H').innerHTML=`<b>Your turn.</b> ${cur.how} ${K.fine?'Click or press Space':'Tap'} to start.`;return;}
     if(phase==='your'){if(pt<.3){I.goQ=true;return;}S.cgTut['v4'+spd().k]=1;mk(false);phase='ready';pt=0;I.goQ=false;hint();return;}
     // (#279) a press made during the count-in is not lost: if it is still held when play starts, it counts as holding
-    if(phase!=='play')return;I.down=true;I.pressed=true;I.fresh=true;};
+    if(phase!=='play')return;if(typeof SET7!=='undefined'&&SET7.holdToggle&&I.down){I.released=true;I.down=false;return;}I.down=true;I.pressed=true;I.fresh=true;};
   // (#279) a quick click can go down and up between two frames; the game must still see it held for one frame and let go the next
-  const lift=()=>{if(I.fresh){I.upQ=true;return;}if(I.down)I.released=true;I.down=false;};
+  const lift=()=>{if(typeof SET7!=='undefined'&&SET7.holdToggle)return;if(I.fresh){I.upQ=true;return;}if(I.down)I.released=true;I.down=false;};
   cv.onpointerdown=e=>{e.preventDefault();try{cv.setPointerCapture&&cv.setPointerCapture(e.pointerId);}catch(_){}[I.x,I.y]=toXY(e);I.px=I.x;I.py=I.y;I.raw=true;press();};
   cv.onpointermove=e=>{const [x,y]=toXY(e);I.x=x;I.y=y;I.ptrT=performance.now();};
   cv.onpointerup=cv.onpointercancel=()=>{I.raw=false;lift();};

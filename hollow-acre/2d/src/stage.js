@@ -79,7 +79,7 @@ function stgUpdate(dt){const st=STG;if(!st||st.ended||st.i<0){if(st)st.t+=dt;ret
     if(who){const id=who==='you'?null:who;cap.querySelector('.nm').textContent=who==='you'?'You':stgName(who);
       const cv=cap.querySelector('canvas');if(id){const ex=b.expr||(typeof emotionOf==='function'?emotionOf(id,b.text):'neutral');const ok=drawPortrait(cv,id,ex);cv.style.display=ok?'':'none';}else cv.style.display='none';}
     SFX.page&&SFX.page();}
-  const plain=b.text;if(st.typed<plain.length){const before=Math.floor(st.typed);st.typed=Math.min(plain.length,st.typed+dt*(b.who?44:38));
+  const plain=b.text;if(st.typed<plain.length){const before=Math.floor(st.typed);st.typed=Math.min(plain.length,st.typed+dt*(b.who?44:38)*(typeof SET7!=='undefined'?(SET7_TS[SET7.textSpeed]||1):1));
     if(Math.floor(st.typed)!==before&&b.who&&Math.floor(st.typed)%3===0&&SFX.blip)SFX.blip();}
   cap.querySelector('.tx').innerHTML=stgSlice(plain,Math.floor(st.typed));
   cap.querySelector('.more').textContent=st.typed>=plain.length?(st.i<def.beats.length-1?'▼':'■'):'';}

@@ -667,7 +667,10 @@ function m6Draw(){const cv=M6.cv;if(!cv||!cv.isConnected)return;const g=M6.g,dp=
     if(it.t==='region'||it.t==='you')continue;
     const icon=it.t==='goal'?'star':it.icon||'shop';const ic=it.head||m6Ic(icon,sc.ic,it.mk?[(MK_SIGNS[it.mk.k]||MK_SIGNS.star).c,'#3a2a4a']:null);const s=ic.width;
     if(it.t==='folk'&&it.f.where!=='here now')g.globalAlpha=.75;g.drawImage(ic,x-(s>>1),y-(s>>1));g.globalAlpha=1;
-    if(it.shop&&M6L.shops){const op=m6Open(it.shop);if(op!=null){const q=sc.ic;g.fillStyle='#24140a';g.fillRect(x+(s>>1)-q*3,y-(s>>1)-q,q*4,q*4);g.fillStyle=op?'#6cc04a':'#c04a3a';g.fillRect(x+(s>>1)-q*2,y-(s>>1),q*2,q*2);}}
+    if(it.shop&&M6L.shops){const op=m6Open(it.shop);if(op!=null){const q=sc.ic;g.fillStyle='#24140a';g.fillRect(x+(s>>1)-q*3,y-(s>>1)-q,q*4,q*4);g.fillStyle=op?'#6cc04a':'#c04a3a';
+      if(typeof SET7!=='undefined'&&SET7.shapes){const bx=x+(s>>1)-q*3,by=y-(s>>1)-q;g.fillStyle='#24140a';g.fillRect(bx-q,by-q,q*6,q*6);g.fillStyle=op?'#6cc04a':'#e04a3a';   // (shapes as well as colours: open a filled square, shut an X)
+        if(op)g.fillRect(bx,by,q*4,q*4);else for(let i=0;i<4;i++){g.fillRect(bx+i*q,by+i*q,q,q);g.fillRect(bx+(3-i)*q,by+i*q,q,q);}}
+      else g.fillRect(x+(s>>1)-q*2,y-(s>>1),q*2,q*2);}}
     if(it.here){g.fillStyle='#ffd27a';const q=sc.ic;g.fillRect(x-(s>>1)-q,y+(s>>1),s+q*2,q);}
     if(it.mk&&S.markGo===it.mk.id){g.fillStyle='#ffd27a';const q=sc.ic;g.fillRect(x-(s>>1),y-(s>>1)-q*2,s,q);}
     if(hov===it.id){const q=Math.max(1,sc.ic>>1);g.fillStyle='#ffd27a';g.fillRect(x-(s>>1)-q*2,y-(s>>1)-q*2,s+q*4,q);g.fillRect(x-(s>>1)-q*2,y+(s>>1)+q,s+q*4,q);g.fillRect(x-(s>>1)-q*2,y-(s>>1)-q*2,q,s+q*4);g.fillRect(x+(s>>1)+q,y-(s>>1)-q*2,q,s+q*4);}
@@ -885,7 +888,8 @@ setInterval(()=>{try{if(M6.on&&(!M6.cv||!M6.cv.isConnected||$('bag').hidden||GM_
 function m6Wire(){const cv=$('mapView'),wrap=$('mapWrap');const pt=e=>{const r=cv.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top];};
   const tap=(sx,sy,e)=>{if(M6.pinMode){M6.pinMode=false;$('m6PinB').classList.remove('on');cv.classList.remove('m6pin');m6PinAt(sx,sy);m6SetHint();return;}
     const it=m6HitAt(sx,sy);if(it){m6Card(it,sx,sy);M6.hover=it;m6Tip(null);}else if(M6.card)m6Card(null);m6Kick();};
-  cv.addEventListener('pointerdown',e=>{if(e.button&&e.button!==0)return;const [x,y]=pt(e);M6.ptr.set(e.pointerId,{x,y,x0:x,y0:y,t0:performance.now()});try{cv.setPointerCapture(e.pointerId);}catch(x){}
+  cv.addEventListener('pointerdown',e=>{if(e.button&&e.button!==0)return;const [x,y]=pt(e);if(e.isPrimary&&M6.ptr.size){M6.ptr.clear();M6.pinch=null;M6.drag=null;}   // (a new touch after every finger was lifted: a pointer the browser never ended is forgotten, so the tap isn't read as a pinch)
+    M6.ptr.set(e.pointerId,{x,y,x0:x,y0:y,t0:performance.now()});try{cv.setPointerCapture(e.pointerId);}catch(x){}
     M6.vel=[0,0];M6.z=null;
     if(M6.ptr.size===1){M6.drag={id:e.pointerId,moved:false,hist:[[performance.now(),x,y]]};
       if(e.pointerType!=='mouse'&&e.pointerId!==GP_PID){clearTimeout(M6.lpT);M6.lpT=setTimeout(()=>{const d=M6.drag;if(d&&!d.moved&&M6.ptr.size===1){d.moved=true;d.long=true;m6PinAt(x,y);navigator.vibrate&&navigator.vibrate(15);}},520);}}

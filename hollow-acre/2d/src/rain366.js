@@ -15,7 +15,7 @@ function r366G(x,z){const key=(Math.round(x*8)+262144)*524288+(Math.round(z*8)+2
 // the frame's drops, once: where each lands on the screen and how far through its fall or splash it is. When frames run long a
 // steady share of the patches go dry (and come back slowly when frames are quick again); a phone starts with fewer
 function r366Frame(t){if(R366.fr===FRAME_NO)return;R366.fr=FRAME_NO;const now=performance.now();if(R366.last){const d=Math.min(100,now-R366.last);R366.ft=R366.ft*.94+d*.06;
-    if(R366.ft>20)R366.dens=Math.max(.3,R366.dens-.01);else if(R366.ft<17.5)R366.dens=Math.min(1,R366.dens+.002);}R366.last=now;
+    if(R366.ft>20)R366.dens=Math.max(.3,R366.dens-.01);else if(R366.ft<17.5)R366.dens=Math.min(R366.cap||1,R366.dens+.002);}R366.last=now;
   const C=R366.C,left=(cam.px-(VW>>1))/PPM,top=(cam.pz-Math.round(VH*.56))/PPM;
   const i0=Math.floor(left/C)-1,i1=Math.floor((left+(VW+R366.W)/PPM)/C)+1,j0=Math.floor(top/C)-1,j1=Math.floor((top+(VH+R366.H)/PPM)/C)+1;let n=0;
   for(let i=i0;i<=i1&&n<R366.max;i++)for(let j=j0;j<=j1&&n<R366.max;j++){if(hash(i*5+1,j*11+7)>R366.dens*R366.k)continue;
