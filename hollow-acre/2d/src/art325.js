@@ -185,7 +185,7 @@ BT3.JOB={
     const paths=sp.paths;paths.forEach((p,pi)=>{if(pi<st.pi)return;const L=m4len(p);for(let s=pi===st.pi?st.s:0;s<L;s+=4){const [x,y]=m4at(p,s);K.px(x,y,2,1,pi===st.pi?'#fff0d0':'#2a0e08');if(pi===st.pi)K.px(x,y+1,2,1,'#2a0e08');}});
     for(const [x,y,pi] of st.cut)if(pi>=lastPi){K.px(x,y,2,1,'#3a0a08');K.px(x,y+1,2,1,'#741e26');}
     if(!st.end&&st.pi<paths.length){const [sx,sy]=paths[st.pi][0];if(st.s<2){K.pa(sx-3,sy-3,7,7,'#ffd27a',.5+Math.sin(t*10)*.3);}}
-    if(!st.end){M4.rot(g,M4S.knife(),st.tx,st.ty,-.5,8,44);const [hx,hy]=M4.tr(st.tx,st.ty,-.5,-.5,-36.5);m4grip(K,hx,hy,-.5-Math.PI/2,{side:1,arm:-1.0});}
+    if(!st.end){const ka=Math.PI-.62;M4.rot(g,M4S.knife(),st.tx,st.ty,ka,8,44);const [hx,hy]=M4.tr(st.tx,st.ty,ka,-.5,-36.5);m4grip(K,hx,hy,ka-Math.PI/2,{side:1});}   /* (t364) the knife's handle toward you */
     if(st.jump>0){const [x,y]=paths[st.pi][0];K.pa(x-3,y-3,7,7,'#ffd27a',.6+Math.sin(t*20)*.3);}};
   o.how='Open each seam with the knife, start to end: '+(K.fine?'hold the mouse button and draw along the dotted line':'drag along the dotted line with your finger')+'. Stay in the seam; when it’s through, the piece comes away.';
   return o;};}
@@ -218,7 +218,7 @@ BT3.cut=(kind,k)=>M4.pre('bt3cut_'+kind+k,20,14,(K,g)=>{const M=BT3.mk(20,14);
     K.px(cx-28,py+2,56,2,PAN[0]);K.px(cx-27,py+4,54,1,PAN[1]);
     // the cuts still to weigh, on the block; your hand takes the next one to the pan while you hold
     const left=Math.max(0,N-shown);for(let k=0;k<left;k++)g.drawImage(BT3.cut(sp.meat,shown+k+1),150+(k%4)*22,128+Math.floor(k/4)*8);
-    const reach=st.flow,hx=cx+40+(1-reach)*24,hy=py-18+(1-reach)*40;if(shown<N+2)g.drawImage(BT3.cut(sp.meat,shown),Math.round(hx-12),Math.round(hy+3));m4grip(K,hx,hy,.15,{side:1,arm:-1.0});};
+    const reach=st.flow,hx=cx+40+(1-reach)*24,hy=py-18+(1-reach)*40;if(shown<N+2)g.drawImage(BT3.cut(sp.meat,shown),Math.round(hx-12),Math.round(hy+3));m4grip(K,hx,hy,.15,{side:1});};
   return o;};}
 // the two recipes use them
 if(typeof MG4R!=='undefined'){for(const [k,m] of [['b_butcher:hen','hen'],['b_butcher:cow','beef']]){const R=MG4R[k];if(!R)continue;const sc=R.steps.find(s=>s.k==='scale');if(sc){sc.meat=m==='beef'?'beef':'hen';sc.t=m==='beef'?'Weigh the cuts':'Weigh the joints';}

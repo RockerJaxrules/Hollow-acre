@@ -28,9 +28,9 @@ const SKIN=['#5a2e1a','#8a4e30','#b8744c','#d89a6e','#eebc90','#f8d8b4'];
 const m4mix=(a,b,u)=>{const h=x=>[1,3,5].map(i=>parseInt(x.slice(i,i+2),16));const A=h(a),B=h(b);return '#'+A.map((v,i)=>Math.round(v+(B[i]-v)*u).toString(16).padStart(2,'0')).join('');};
 let _m4lk=null,_m4lkKey='';
 const m4look=()=>{const L=(typeof S!=='undefined'&&S.look)||{};const sk=/^#[0-9a-f]{6}$/i.test(L.skin||'')?L.skin:'#e8b48c';const o=L.outfit||'shirt';
-  const top=/^#[0-9a-f]{6}$/i.test(L.shirt||'')?L.shirt:'#b8402c',ex=/^#[0-9a-f]{6}$/i.test(L.extra||'')?L.extra:'#6a7a3a';const key=sk+o+top+ex;if(key===_m4lkKey)return _m4lk;
+  const top=/^#[0-9a-f]{6}$/i.test(L.shirt||'')?L.shirt:'#b8402c',ex=/^#[0-9a-f]{6}$/i.test(L.extra||'')?L.extra:'#6a7a3a';const key=sk+o+top+ex+(L.pattern||'');if(key===_m4lkKey)return _m4lk;
   const bare=/^(tee|tank|dress|skirt)$/.test(o),sleeve=/^(jacket|longcoat|cardigan)$/.test(o)?ex:top;
-  _m4lkKey=key;return _m4lk={key:key.replace(/#/g,''),skin:[m4mix(sk,'#000000',.55),m4mix(sk,'#000000',.36),m4mix(sk,'#000000',.2),sk,m4mix(sk,'#ffffff',.2),m4mix(sk,'#ffffff',.38)],bare,sleeve,sleeveHi:m4mix(sleeve,'#ffffff',.25),sleeveDk:m4mix(sleeve,'#000000',.45),plaid:L.pattern==='plaid'&&!bare&&sleeve===top};};
+  _m4lkKey=key;return _m4lk={key:key.replace(/#/g,''),skin:[m4mix(sk,'#000000',.55),m4mix(sk,'#000000',.36),m4mix(sk,'#000000',.2),sk,m4mix(sk,'#ffffff',.2),m4mix(sk,'#ffffff',.38)],bare,sleeve,sleeveHi:m4mix(sleeve,'#ffffff',.25),sleeveDk:m4mix(sleeve,'#000000',.45),plaid:L.pattern==='plaid'&&!bare&&sleeve===top,pat:(!bare&&sleeve===top&&/^(plaid|stripes|dots)$/.test(L.pattern||''))?L.pattern:''};};
 const M4S={
   saw:()=>M4.pre('saw',100,24,K=>{const I=CA_P.iron,O=CA_P.oak;
     for(let x=1;x<=78;x++){const top=Math.round(17-(7+6*x/78));for(let y=top;y<=17;y++){const u=(y-top)/Math.max(1,17-top);let k=u<.14?6:u<.32?5:u<.72?4:3;if(((x*7+y*3)%29)===0)k--;if(y===top+2&&x%9<5)k=6;K.px(x,y,1,1,I[k]);}K.px(x,top,1,1,I[7]);}
@@ -175,33 +175,70 @@ function m4gripImg(ang,side,arm,Lk){const N=M4G.N,qa=((Math.round(ang/(Math.PI*2
 // one cylinder in the sleeve's own ramp, lit from the top left, a little wider as it comes toward you, two soft creases
 const M4A={C:new Map()};
 const m4cuff=(x,y,ang,side,arm)=>{const ca=Math.cos(ang),sa=Math.sin(ang),ly=.5*(side||1);return [x+4.4*ca-ly*sa+Math.cos(arm)*9,y+4.4*sa+ly*ca+Math.sin(arm)*9];};
+// (t364) first person: your forearm runs from the wrist toward you and leaves the picture through its bottom, on its own side
+// (the right arm toward the bottom right, the left toward the bottom left; never down from the top, never across the scene).
+// It points at you, so it is foreshortened: short on screen and widening fast, its radius growing in a straight line from the
+// cuff as a cylinder's does toward the eye. The sleeve's own pattern (plaid, stripes, dots) is laid on that cylinder in
+// perspective: bands round it bowed the way the cuff is, bands along it squeezed toward its silhouette, both growing toward you.
+const M4FP={};
+const M4DY={anvil:15,bellows:0,brush:35,chop:55,cork:45,crBattery:9,crClamps:55,crDents:0,crFuel:60,crGlass:40,crHang:35,crLugs:9,crSeal:35,crack:0,crank:25,dig:0,dip:10,drop:20,f2bob:9,f2carve:45,fillet:25,flail:8,flip:0,grind:30,hammer:51,knot:44,level:59,light:9,links:21,plane:38,pour:60,quench:50,roll:35,saw:47,scale:60,scoop:28,sew:44,sieve:14,stuff:16,trace:45};
+// the way it runs: toward its shoulder, below the picture on its own side. A hand reaching far (high in the picture) has its forearm
+// nearly in line with your view, so it comes up almost straight from the bottom; a hand close to you (low) runs out on a slant
+const m4fpDir=(x,y,s)=>{const D=M4.cl(12+138*(y-30)/110,12,150),Sx=(x+s*D)*.65+(s>0?250:70)*.35;return Math.atan2(300-y,Sx-x);};   /* and each heads a little toward its own shoulder, so two hands close together still part */
 function m4arm(K,X,Y,arm,len,clipY){const Lk=m4look();const AQ=Math.PI*2/160;arm=Math.round(arm/AQ)*AQ;const dx=Math.cos(arm),dy=Math.sin(arm);
-  const IX=Math.floor(X),IY=Math.floor(Y),x0=Math.round((X-IX)*2)/2,y0=Math.round((Y-IY)*2)/2;
-  // going down behind the bench or the counter: it ends just past the edge that hides it
-  if(clipY!=null&&dy>.15&&Y<clipY)len=(clipY+10-Y)/dy;
-  // out to the frame: its far end is off the picture anyway, so round its length up generously and the picture is reused as it moves
-  if(len==null){len=0;while(len<400){const x=X+dx*len,y=Y+dy*len;if(x<-14||x>334||y<-14||y>194)break;len+=4;}len=Math.ceil(len/24)*24;}else len=Math.ceil(len/2)*2;const key=Lk.key+'|'+x0+'|'+y0+'|'+Math.round(arm/AQ)+'|'+len;let e=M4A.C.get(key);
-  if(!e){if(M4A.C.size>160)M4A.C.clear();const r0=5.4,rk=.05,R=Lk.bare?m4gRamp(m4mix(Lk.skin[3],'#6a3a2a',.12)):m4cRamp(Lk.sleeve),L=M4G.L;
-    const rr=t=>Math.min(10.5,r0+t*rk),ex=x0+dx*len,ey=y0+dy*len,pad=14;const bx=Math.floor(Math.min(x0,ex)-pad),by=Math.floor(Math.min(y0,ey)-pad),bw=Math.ceil(Math.abs(ex-x0)+pad*2),bh=Math.ceil(Math.abs(ey-y0)+pad*2);
+  const IX=Math.floor(X),IY=Math.floor(Y),x0=Math.round((X-IX)*2)/2,y0=Math.round((Y-IY)*2)/2;const r0=5.4;
+  // how far it runs to the frame's edge; it swells to three or four wrists wide there (it is that close to your eye): slowly
+  // from the cuff, then fast (a cylinder toward the eye), with the forearm muscle's bulge past halfway and a pinch at the elbow
+  const FB=180-(K.dy||0),FT=-(K.dy||0);let vis=0;while(vis<420){const x=X+dx*vis,y=Y+dy*vis;if(x<0||x>320||y>FB||y<FT)break;vis+=2;}M4G.lastLen=vis;vis=Math.max(20,vis);
+  const rE=M4.cl(r0+vis*.1,9,16.5),KH=.62,HN=1/(1-KH)-1;
+  const rr=t=>{const u=t/vis;if(u>1)return rE*1.04+(u-1)*vis*.12;const h=(1/(1-KH*u)-1)/HN,b=Math.pow(Math.sin(Math.PI*M4.cl((u-.28)/.58,0,1)),1.5)*.11*rE,e=Math.exp(-(((u-.93)/.05)**2))*.05*rE;return r0+(rE-r0)*(.38*u+.62*h)+b-e;};
+  // out to the frame, past the corner of its widest end; rounded up so the picture is reused as it moves
+  if(len==null){len=0;while(len<420){const x=X+dx*len,y=Y+dy*len,r=rr(len)+3;if(x<-r||x>320+r||y>FB+r||y<FT-r)break;len+=2;}len=Math.ceil(len/16)*16;}else len=Math.ceil(len/2)*2;
+  const key=Lk.key+Lk.pat+'|'+x0+'|'+y0+'|'+Math.round(arm/AQ)+'|'+len+'|'+vis;let e=M4A.C.get(key);
+  if(!e){if(M4A.C.size>160)M4A.C.clear();const L=M4G.L,sl=Lk.sleeve;
+    const R=Lk.bare?m4gRamp(m4mix(Lk.skin[3],'#6a3a2a',.12)):m4cRamp(sl);
+    const PB=Lk.pat==='plaid'?[m4cRamp(m4mix(sl,'#141020',.4)),m4cRamp(m4mix(sl,'#141020',.62)),m4cRamp(m4mix(sl,'#f2e6cc',.34)),m4cRamp(m4mix(m4mix(sl,'#141020',.4),'#f2e6cc',.22))]:Lk.pat==='stripes'?[m4cRamp(m4mix(sl,'#f2eadc',.46))]:Lk.pat==='dots'?[m4cRamp(m4mix(sl,'#f8f0e2',.7))]:null;
+    const ex=x0+dx*len,ey=y0+dy*len,pad=Math.ceil(rr(len))+3;const bx=Math.floor(Math.min(x0,ex)-pad),by=Math.floor(Math.min(y0,ey)-pad),bw=Math.ceil(Math.abs(ex-x0)+pad*2),bh=Math.ceil(Math.abs(ey-y0)+pad*2);
     const c=document.createElement('canvas');c.width=bw;c.height=bh;const g=c.getContext('2d'),d=g.createImageData(bw,bh),D=d.data,hx=h=>[1,3,5].map(o=>parseInt(h.slice(o,o+2),16));
     const HC={},put=(i,h)=>{const [r,gg,b]=HC[h]||(HC[h]=hx(h));D[i*4]=r;D[i*4+1]=gg;D[i*4+2]=b;D[i*4+3]=255;};const nx=-dy,ny=dx;
-    const T=new Int8Array(bw*bh).fill(-1);
+    const T=new Int8Array(bw*bh).fill(-1),Pm=new Int8Array(bw*bh);const md=(v,m)=>((v%m)+m)%m;
+    // the cloth's own measure along the sleeve: the pattern's spacing grows with the sleeve's width (perspective)
+    const VT=new Float32Array(len+3);for(let i=0;i<len+2;i++)VT[i+1]=VT[i]+r0/rr(i+.5);const Vat=t=>{const i=Math.max(0,Math.min(len+1,Math.floor(t)));return VT[i]+(VT[i+1]-VT[i])*(t-i);};
     for(let py=0;py<bh;py++)for(let px=0;px<bw;px++){const X=bx+px+.5-x0,Y=by+py+.5-y0,al=X*dx+Y*dy,ac=X*nx+Y*ny;if(al<-1||al>len)continue;const r=rr(Math.max(0,al));if(Math.abs(ac)>r)continue;
       const u=ac/r,nz=Math.sqrt(Math.max(0,1-u*u)),s=(nx*u)*L[0]+(ny*u)*L[1]+nz*L[2];let t=s>.7?4:s>.25?3:s>-.2?2:1;
-      // two soft folds near the cuff, bowed toward you
-      for(const fc of [13,25])if(Math.abs(al-fc-u*u*3)<.7&&Math.abs(u)<.8)t=Math.max(1,t-1);
-      if(Lk.plaid&&((Math.round(al)%7===0)||(Math.round(ac+50)%7===0)))t=Math.max(1,t-1);
-      T[py*bw+px]=t;}
-    for(let i=0;i<bw*bh;i++)if(T[i]>=0)put(i,R[T[i]]);
+      // round the cylinder: a ring at one place along it bows back toward the hand in the middle, as the cuff does
+      const ae=Math.max(0,al-.5*r*u*u);
+      // two soft folds near the cuff, and the creases of the elbow where it leaves the picture
+      for(const fc of [11,21])if(Math.abs(ae-fc)<.6+ae*.02&&Math.abs(u)<.8)t=Math.max(1,t-1);
+      for(const fu of (Lk.bare?[.9]:[.86,.93]))if(Math.abs(ae-fu*vis)<.5+r*.06&&Math.abs(u)<(Lk.bare?.55:.85))t=Math.max(1,t-1);
+      T[py*bw+px]=t;
+      if(PB){// the pattern in the cloth's own measure: A round the sleeve (the visible half is ~17 px at the cuff), V along it
+        const A=Math.asin(M4.cl(u,-1,1))*r0,V=Vat(ae);let p=0;
+        if(Lk.pat==='plaid'){const a=md(A+2.2,7),v=md(V+1,7),ba=a<2.6,bv=v<2.6,ln=Math.abs(u)<.82&&((a>=4.6&&a<5.5)||(v>=4.6&&v<5.5));p=ba&&bv?2:ln?(ba||bv?4:3):ba||bv?1:0;}
+        else if(Lk.pat==='stripes'){p=md(V,7)<2.3?1:0;}
+        else{const row=Math.floor(V/6),a=md(A+(row&1)*3,6)-3,v=md(V,6)-3;p=a*a+v*v<1.7?1:0;}
+        Pm[py*bw+px]=p;}}
+    for(let i=0;i<bw*bh;i++)if(T[i]>=0)put(i,Pm[i]?PB[Pm[i]-1][T[i]]:R[T[i]]);
     for(let py=0;py<bh;py++)for(let px=0;px<bw;px++){const i=py*bw+px;if(T[i]>=0)continue;let lit=0,dk=0;
       for(const [ox,oy,l] of [[1,0,1],[0,1,1],[-1,0,0],[0,-1,0]]){const qx=px+ox,qy=py+oy;if(qx<0||qy<0||qx>=bw||qy>=bh)continue;if(T[qy*bw+qx]>=0){if(l)lit=1;else dk=1;}}
       // no outline across the cuff end (the hand covers it)
       const X=bx+px+.5-x0,Y=by+py+.5-y0;if(X*dx+Y*dy<1)continue;
       if(dk)put(i,m4mix(R[0],'#0c0408',.5));else if(lit)put(i,m4mix(R[0],R[1],.35));}
     g.putImageData(d,0,0);e={c,bx,by};M4A.C.set(key,e);}
-  if(clipY!=null&&dy>.15){K.g.save();K.g.beginPath();K.g.rect(0,0,320,clipY);K.g.clip();K.g.drawImage(e.c,IX+e.bx,IY+e.by);K.g.restore();}else K.g.drawImage(e.c,IX+e.bx,IY+e.by);}
-const m4grip=(K,x,y,ang,o)=>{o=o||{};(M4G.fr||(M4G.fr=[])).push([x,y]);if(window.__handLog)(M4G.seen||(M4G.seen=[])).push([x,y,performance.now()]);const Lk=m4look();const side=o.side||1,arm=o.arm!=null?o.arm:M4G.arm!=null?M4G.arm:ang+.5;M4G.kind=o.kind||'';const c=m4gripImg(ang,side,arm,Lk);M4G.kind='';M4G.arm=null;
-  if(o.armLen!==0){const [cx,cy]=m4cuff(x,y,ang,side,arm);m4arm(K,cx,cy,arm,o.armLen,o.clipY!=null?o.clipY:K.benchY);}
+  K.g.drawImage(e.c,IX+e.bx,IY+e.by);}
+const m4grip=(K,x,y,ang,o)=>{o=o||{};(M4G.fr||(M4G.fr=[])).push([x,y]);const Lk=m4look();const side=o.side||1;let arm=o.arm!=null?o.arm:M4G.arm!=null?M4G.arm:ang+.5;
+  // (t364) which arm: given, or the side the old angle leaned to; then the first-person way it runs, then the wrist's own limit
+  const as=o.armSide||(Math.cos(arm)>=0?1:-1);if(!o.fpOff)arm=m4fpDir(x,y+(K.dy||0),as);
+  // a fist round a handle reads the same held from its other end: when the arm would have to bend back past the wrist's reach,
+  // the hand closes from the other end (turned half round, its thumb on the same side), so the forearm still comes from below
+  let side2=side;{const N=M4G.N,q=v=>((Math.round(v/(Math.PI*2)*N)%N)+N)%N*Math.PI*2/N,bd=(a,s)=>m4gWrap(arm-a)*s;
+    if(!o.fpOff&&(!o.kind||o.kind==='pinch')&&Math.abs(bd(q(ang),side))>1.6&&Math.abs(bd(q(ang+Math.PI),-side))<Math.abs(bd(q(ang),side))){
+      // (a pinch keeps its fingertips on the thing it holds: the hand moves to the other side of it)
+      if(o.kind==='pinch'){x-=Math.cos(ang)*8.6;y-=Math.sin(ang)*8.6;}ang+=Math.PI;side2=-side;}
+    const a=q(ang),bend=Math.max(-1.75,Math.min(1.75,Math.round(bd(a,side2)/.125)*.125));arm=a+bend*side2;}
+  M4G.kind=o.kind||'';const c=m4gripImg(ang,side2,arm,Lk);M4G.kind='';M4G.arm=null;M4G.lastLen=0;
+  if(!(o.fpOff&&o.armLen===0)){const [cx,cy]=m4cuff(x,y,ang,side2,arm);m4arm(K,cx,cy,arm,o.fpOff?o.armLen:null);}
+  if(window.__handLog)(M4G.seen||(M4G.seen=[])).push([x,y,performance.now(),M4G.lastLen,Math.round(arm*100)/100,as]);
   K.g.drawImage(c,Math.round((x-24)*2)/2,Math.round((y-24)*2)/2);};
 // the old calls: a hand with no angle given closes round a level handle (the left one mirrored), its arm toward you
 const m4hand=(K,x,y,flip,ang,o)=>{o=o||{};if(ang==null){ang=flip?Math.PI:0;if(o.side==null)o.side=flip?-1:1;}
@@ -292,7 +329,7 @@ S4.plane=(sp,K)=>{const g=K.g,X0=34,X1=286,TOP=90,FR=102,LO=sp.lo||52,HI=sp.hi||
       if(st.mode==='push'&&st.v>0)K.pa(px_+3,TOP+8,40,2,'#000',.18);
       const tilt=st.mode==='lift'?-.1*Math.sin(Math.PI*Math.min(1,st.lift)):st.mode==='push'?.018*Math.min(1,st.v/HI)+(st.v>HI?(Math.random()-.5)*.03:0):0;M4.rot(g,plane,px_+23,py+23,tilt,23,23);
       if(st.rib>0){const R=Math.min(9,2+st.rib*.04),A=Math.min(12.5,st.rib*.06),mx=px_+15,my=py+5;for(let a=0;a<A;a+=.35){const r=R*(1-a/(A+3));K.px(mx+4+Math.cos(-a*1.1)*r,my-R+Math.sin(-a*1.1)*r,2,2,a%1.4<.7?'#f6dcae':'#e0bc86');}}
-      {const [ax,ay]=M4.tr(px_+23,py+23,tilt,35-23,7-23);m4grip(K,ax,ay,tilt-1.1,{side:1,arm:-1.75+tilt});const [bx,by]=M4.tr(px_+23,py+23,tilt,8-23,9-23);m4grip(K,bx,by,Math.PI+.25+tilt,{side:-1,arm:-1.95});}},
+      {const [ax,ay]=M4.tr(px_+23,py+23,tilt,35-23,7-23);m4grip(K,ax,ay,tilt-1.1,{side:1,armSide:1});const [bx,by]=M4.tr(px_+23,py+23,tilt,8-23,9-23);m4grip(K,bx,by,Math.PI+.25+tilt,{side:-1,armSide:-1});}},
     hud(t){const gx=110,gy=26;K.label('SPEED',gx-4,gy,'#f4ecd8',1,'r');K.gauge(gx,gy,100,6,LO/VMAX,HI/VMAX,st.v/VMAX);
       K.label('PASS '+Math.min((sp.passes||3),st.pass+1)+'/'+(sp.passes||3),250,gy,'#f4ecd8');K.meter(smooth(),M4.avg(st.inb)||1);
       if(st.mode==='wait'&&Math.floor(t*2.5)%2)K.label(st.pass?'HOLD FOR THE NEXT PASS':'HOLD TO PUSH',160,44,'#ffd27a');},
@@ -401,13 +438,14 @@ S4.brush=(sp,K)=>{const g=K.g,BX=50,BY=64,BW=212,BH=44,CS=4,GW=BW/CS,GH=BH/CS,P=
       if(WAX){K.pa(TX-15,TY-1,30,3,'#000',.4);K.ell(TX,TY-4,15,4,'#4a3a2a');K.ell(TX,TY-5,13,3,'#6a5a46');K.px(TX-9,TY-14,18,8,'#c8a858');K.px(TX-9,TY-14,18,2,'#e8cc80');K.px(TX-9,TY-14,1,8,'#dcbc6c');K.px(TX+8,TY-14,1,8,'#a08440');K.px(TX-9,TY-7,18,1,'#8a6e34');K.px(TX-5,TY-13,6,1,'#f8e8b8');}else g.drawImage(tin,TX-15,TY-20);
       const b=st.dip>0?{x:TX,y:TY-12+Math.sin(st.dip*9)*3}:{x:st.bx,y:st.by};K.pa(b.x-6,b.y+2,12,3,'#000',.2);
       if(WAX){M4.rot(g,M4.pre('waxblock',22,14,k=>{k.px(1,1,20,12,'#d8b878');k.px(1,1,20,2,'#f8e8b8');k.px(1,11,20,2,'#a88848');},true),b.x,b.y,st.ang,11,12);}else
-      M4.rot(g,brush,b.x,b.y,st.ang,10,40);const tipC=st.load>.5?COL:st.load>.15?'#9a6a3a':'#c8a878';const [tx_,ty_]=M4.tr(b.x,b.y,st.ang,0,-2);if(!WAX)K.px(tx_-5,ty_-3,11,3,tipC);
-      const [hx,hy]=M4.tr(b.x,b.y,st.ang,WAX?0:.5,WAX?-13:-30);if(WAX)m4grip(K,hx,hy,st.ang,{side:1,arm:-1.15+st.ang*.5});else m4grip(K,hx,hy,st.ang-Math.PI/2,{side:1,arm:-1.15+st.ang*.5});},
+      // (t364) the brush held the way you'd hold it: its handle toward you, so the hand and arm come from below and the bristles lead
+      {const ba=st.ang*.6+Math.PI-.62;M4.rot(g,brush,b.x,b.y,ba,10,40);}const tipC=st.load>.5?COL:st.load>.15?'#9a6a3a':'#c8a878';if(!WAX)K.px(b.x-5,b.y-1,11,3,tipC);
+      if(WAX){const [hx,hy]=M4.tr(b.x,b.y,st.ang,3,5);m4grip(K,hx,hy,st.ang+.9,{side:1});}else{const ba=st.ang*.6+Math.PI-.62,[hx,hy]=M4.tr(b.x,b.y,ba,.5,-30);m4grip(K,hx,hy,ba-Math.PI/2,{side:1});}},
     hud(t){K.meter(covered());K.label(WAX?'WAX':'LOAD',TX,TY+8,'#f4ecd8');K.px(TX-16,TY+15,32,6,'#1a0e06');K.px(TX-15,TY+16,30*st.load,4,st.load<.15?'#d84a2a':st.load<.3?'#e8b030':'#7cc04a');K.px(TX-15,TY+16,30*st.load,1,'#ffffff40');
       if(st.load<.3&&st.dip<=0&&Math.floor(t*3)%2)K.label(st.load<.1?'DIP IT':'RUNNING DRY',TX-10,TY-34,'#ffd27a');},
     auto(dt,AP){this._auto=true;const a=m4ai(this,AP,dt);if(!this._p){this._p=plan();this._i=0;}
       const tg=st.load<.3&&st.dip<=0?{x:TX,y:TY-8,up:false,dip:1}:this._p[this._i%this._p.length];const d=Math.hypot(tg.x-a.x,tg.y-a.y),spd=150*dt;
-      if(d<=spd){m4move(a,tg.x,tg.y);if(!tg.dip)this._i++;}else m4move(a,a.x+(tg.x-a.x)/d*spd,a.y+(tg.y-a.y)/d*spd);m4hold(a,!tg.up);AP.hand=[a.x+4,a.y-36];AP.press=a.down;},
+      if(d<=spd){m4move(a,tg.x,tg.y);if(!tg.dip)this._i++;}else m4move(a,a.x+(tg.x-a.x)/d*spd,a.y+(tg.y-a.y)/d*spd);m4hold(a,!tg.up);AP.hand=[a.x+14,a.y+20];AP.press=a.down;},
     quiet(){this._snd&&this._snd.set(0);},stop(){this._snd&&this._snd.stop();this._snd=null;}};};
 // ---------------------------------------------------------------- CHOP: the hand feeds the knife; chop when the edge reaches the mark for even slices
 const VEG={
@@ -451,10 +489,10 @@ S4.chop=(sp,K)=>{const g=K.g,KX=152,CY=100,BX0=34,BX1=286,BTOP=96,FEEDX=8;const 
         for(let u=Math.ceil(st.cut);u<=v.L;u++){const x=tip+u,r=v.R(u);if(x>330)break;K.px(x,CY-r,1,r*2,v.skin[2]);K.px(x,CY-r,1,Math.max(1,r*.55),v.skin[3]);K.px(x,CY-r,1,1,v.skin[4]);K.px(x,CY+r*.45,1,r*.55,v.skin[1]);K.px(x,CY+r-1,1,1,v.skin[0]);
           if(v.purple&&u>v.L*.45)K.px(x,CY-r,1,r*1.1,u>v.L*.65?v.skin[1]:v.skin[2]);if(v.deco)v.deco(K,x,u,CY,r);}
         const fx=tip+st.cut,fr=v.R(st.cut+.5);K.ell(fx,CY,1,fr,v.flesh[1]);K.px(fx,CY-fr*.4,1,fr*.8,v.flesh[2]);if(v.top)v.top(K,tip+v.L,CY,t);if(v.glow)K.glow(tip+v.L*.6,CY,26,'120,255,220',.25);
-        if(!st.swap){const hx=Math.max(KX+16,tip+st.cut+12),hr=v.R(M4.cl(hx-tip,0,v.L));m4grip(K,hx+2,CY-hr-3,.12,{side:1,arm:.95,clipY:BTOP});}}
+        if(!st.swap){const hx=Math.max(KX+16,tip+st.cut+12),hr=v.R(M4.cl(hx-tip,0,v.L));m4grip(K,hx+2,CY-hr-3,.12,{side:1,armSide:1});}}
       if(v&&!st.swap&&!st.end){const mx=KX-v.w0;K.px(mx-2,BTOP+14,5,1,'#1a0e06');K.px(mx-1,BTOP+15,3,1,'#fff4c0');K.px(mx,BTOP+16,1,3,'#fff4c0');K.px(mx-1,BTOP+19,3,1,'#1a0e06');K.pa(mx,BTOP+1,1,13,'#fff4c0',.45);}
-      const kp=st.kph<0?0:st.kph<.14?Math.pow(st.kph/.14,1.6):st.kph<.32?1:1-Math.pow((st.kph-.32)/.68,.8);const r0=v&&!st.gone?v.R(M4.cl(Math.max(st.cut,uk()),0,v.L)):5;const yUp=CY-r0-52+Math.sin(st.t*3)*1,yDn=CY+r0-44;const ky=Math.round(yUp+(yDn-yUp)*kp);
-      const ka=st.kph<0?0:-.07*Math.sin(Math.PI*Math.min(1,st.kph/.5));M4.rot(g,knife,KX-.5,ky+7,ka,7.5,7);m4grip(K,KX-.5+Math.sin(ka)*-1,ky+7,-Math.PI/2+ka,{side:1,arm:-1.2});},
+      const kp=st.kph<0?0:st.kph<.14?Math.pow(st.kph/.14,1.6):st.kph<.32?1:1-Math.pow((st.kph-.32)/.68,.8);const r0=v&&!st.gone?v.R(M4.cl(Math.max(st.cut,uk()),0,v.L)):5;const yUp=CY-r0-40+Math.sin(st.t*3)*1,yDn=CY+r0-44;const ky=Math.round(yUp+(yDn-yUp)*kp);
+      const ka=st.kph<0?0:-.07*Math.sin(Math.PI*Math.min(1,st.kph/.5));M4.rot(g,knife,KX-.5,ky+7,ka,7.5,7);m4grip(K,KX-.5+Math.sin(ka)*-1,ky+7,-Math.PI/2+ka,{side:1,armSide:-1});},
     hud(){K.meter((st.n)/Math.max(1,total),M4.avg(st.q)||1);},
     auto(dt,AP){const a=m4ai(this,AP,dt);const v=V();if(v&&!st.swap&&st.kph<0&&!st.end){if(this._j==null)this._j=(Math.random()-.5)*.5;const lead=0;if(uk()-st.cut>=v.w0-lead+this._j&&uk()>st.cut){m4tap(a);this._j=null;}}AP.hand=[KX+14,CY-40];AP.press=a.down;},
     quiet(){},stop(){}};};
@@ -493,11 +531,11 @@ S4.simmer=(sp,K)=>{const g=K.g,CX=160,BOT=104,LO=sp.lo||.55,HI=sp.hi||.75,COL=sp
     quiet(){bub&&bub.set(0);fire&&fire.set(0);},stop(){bub&&bub.stop();fire&&fire.stop();bub=fire=null;}};};
 // ---------------------------------------------------------------- POUR: hold to tilt; the fuller the jug, the sooner it pours; stop at the line (it keeps running a moment after)
 S4.pour=(sp,K)=>{const g=K.g,ves=sp.vessel||'jug',img=ves==='ladle'?M4S.ladle():ves==='crucible'?M4S.crucible():M4S.jug(),COL=sp.col||['#f4eee0','#fffaf0'],LT=sp.line||.78,cap=ves==='ladle'?.36:1.5,NB=sp.n||1;
-  const PV=ves==='ladle'?{x:190,y:62,ox:10,oy:18,sx:1,sy:14}:ves==='crucible'?{x:212,y:54,ox:15,oy:18,sx:2,sy:3}:{x:214,y:sp.bowl==='flask'?20:sp.bowl==='font'?40:52,ox:19,oy:20,sx:3,sy:4};
+  const PV=ves==='ladle'?{x:190,y:78,ox:10,oy:18,sx:1,sy:14}:ves==='crucible'?{x:212,y:62,ox:15,oy:18,sx:2,sy:3}:{x:214,y:sp.bowl==='flask'?50:sp.bowl==='font'?58:62,ox:19,oy:20,sx:3,sy:4};
   const bowl=M4S.bowl(sp.bowl||'clay');const st={a:0,V:1,q:0,L:0,bi:0,res:[],t:0,still:0,done2:0,spill:0,dip:0,end:0,slide:0,splash:[]};
   let loop=null;const S=()=>loop||(loop=MS.loop('bandpass',500,6));
   const spout=a=>M4.tr(PV.x,PV.y,-a,PV.sx-PV.ox,PV.sy-PV.oy);
-  const [s1x]=spout(1.05);const BX=Math.round(s1x-10),BY=112,RIM=BY-17;
+  const [s1x]=spout(1.05);const BX=Math.round(s1x-10),BY=sp.bowl==='flask'?130:112,RIM=BY-17;   // (t364) the oil flask stands lower, so the jug over it (and your hand) is lower too
   const a0=()=>ves==='ladle'?.5+(1-st.V)*.7:.42+(1-st.V)*.75;
   const judgeBowl=()=>{const e=Math.abs(st.L-LT);const q=st.L>1.02?.1:e<=.035?1:e<=.075?.8:e<=.13?.55:e<=.2?.3:.1;st.res.push(q);K.judge(q,BX,RIM-30);};
   return {title:sp.t||'Pour it to the line',how:'Hold to tip the '+(ves==='ladle'?'ladle':'jug')+', let go to straighten it. It keeps running a moment after you let go, so stop just before the line.',hint:'Hold to tip. Let go just before the line.',st,
@@ -515,8 +553,8 @@ S4.pour=(sp,K)=>{const g=K.g,ves=sp.vessel||'jug',img=ves==='ladle'?M4S.ladle():
     draw(t){const off=st.slide>0?-st.slide*140:0;const bx=BX+off;
       if(sp.bowl==='tin'){K.ell(bx,BY-2,34,9,CA_P.iron[3]);K.ell(bx,BY-4,32,8,CA_P.iron[5]);K.ell(bx,BY-5,29,7,'#c89a58');K.ell(bx,BY-4,25,5,'#a87438');const lv=Math.min(1.05,st.L);if(lv>.01){K.ell(bx,BY-4-lv*2,24*Math.min(1,.4+lv*.6),5*Math.min(1,.4+lv*.6),COL[0]);K.ell(bx-4,BY-5-lv*2,12*lv,2*lv,COL[1]);}
         g.setLineDash([2,2]);g.strokeStyle='#9be07a';g.beginPath();g.ellipse(bx,BY-4-LT*2,24*(.4+LT*.6),5*(.4+LT*.6),0,Math.PI,Math.PI*2);g.stroke();g.setLineDash([]);if(st.L>1.02)K.px(bx+30,BY-4,3,8,COL[0]);}
-      else if(sp.bowl==='font'||sp.bowl==='flask'){const fl=sp.bowl==='flask';const top=fl?BY-60:BY-34,neck=fl?RIM-10:RIM;
-        const body=M4.pre('vessel'+sp.bowl,64,70,k=>{const G=CA_P.glass;if(fl){for(let y=26;y<68;y++){const r=Math.round(26*Math.sqrt(Math.max(0,1-((y-47)/22)**2)));k.pa(32-r,y,r*2,1,G[4],.35);k.px(32-r,y,1,1,G[5]);k.px(31+r,y,1,1,G[2]);}k.pa(26,4,12,24,G[4],.35);k.px(26,4,1,24,G[5]);k.px(37,4,1,24,G[2]);}
+      else if(sp.bowl==='font'||sp.bowl==='flask'){const fl=sp.bowl==='flask';const top=fl?BY-50:BY-34,neck=fl?RIM-10:RIM;
+        const body=M4.pre('vessel2'+sp.bowl,64,70,k=>{const G=CA_P.glass;if(fl){for(let y=26;y<68;y++){const r=Math.round(26*Math.sqrt(Math.max(0,1-((y-47)/22)**2)));k.pa(32-r,y,r*2,1,G[4],.35);k.px(32-r,y,1,1,G[5]);k.px(31+r,y,1,1,G[2]);}k.pa(26,14,12,14,G[4],.35);k.px(26,14,1,14,G[5]);k.px(37,14,1,14,G[2]);}
           else{for(let y=36;y<68;y++){const r=Math.round(22*Math.sqrt(Math.max(0,1-((y-52)/16)**2)));k.pa(32-r,y,r*2,1,G[4],.4);k.px(32-r,y,1,1,G[5]);}k.px(22,30,20,6,CA_P.brass[4]);k.px(22,30,20,1,CA_P.brass[6]);}},false);
         const fill=Math.min(1.05,st.L),y0=BY-2,h=fl?42:30;g.save();g.beginPath();g.rect(bx-32,y0-h*fill,64,h*fill);g.clip();g.drawImage(M4.pre('vfill'+sp.bowl+COL[0],64,70,k=>{if(fl){for(let y=26;y<68;y++){const r=Math.round(25*Math.sqrt(Math.max(0,1-((y-47)/22)**2)));k.px(32-r+1,y,r*2-2,1,COL[0]);}}else{for(let y=36;y<68;y++){const r=Math.round(21*Math.sqrt(Math.max(0,1-((y-52)/16)**2)));k.px(32-r+1,y,r*2-2,1,COL[0]);}}}),bx-32,BY-68);g.restore();
         if(fill>.01)K.px(bx-18,y0-h*fill,36,1,COL[1]);g.drawImage(body,bx-32,BY-68);const ly=y0-h*LT;for(let x=-20;x<20;x+=3)K.px(bx+x,ly,2,1,'#9be07a');
@@ -534,23 +572,23 @@ S4.pour=(sp,K)=>{const g=K.g,ves=sp.vessel||'jug',img=ves==='ladle'?M4S.ladle():
       if(st.L>1.02){for(let k=0;k<5;k++)K.px(bx-20+k*10,RIM+2+((t*30+k*7)%14),2,3,COL[0]);K.ell(bx,BY+1,30,2,COL[0]);}}
       for(const s of st.splash)K.px(s.x+s.t*30*(s.x>bx?1:-1),s.y-Math.sin(s.t*9)*5,1,1,COL[1]);
       if(ves==='ladle'){const px=262,py=112;g.drawImage(M4S.pot('i'),px-43,py-36);K.ell(px,py-31,34,4,COL[0]);K.ell(px-4,py-32,24,2,COL[1]);if(sp.glow)K.glow(px,py-31,40,'120,255,220',.25);}
-      let ax=PV.x,ay=PV.y,aa=st.a;if(st.dip>0){const u=Math.sin(Math.PI*st.dip);ax+=u*70;ay+=u*16;aa=-u*.3;}
+      let ax=PV.x,ay=PV.y,aa=st.a;if(st.dip>0){const u=Math.sin(Math.PI*st.dip);ax+=u*70;ay+=u*(ves==='ladle'?2:16);aa=-u*.3;}
       M4.rot(g,img,ax,ay,-aa,PV.ox,PV.oy);
       const fullness=st.V;if(ves==='jug'&&aa<.2){K.ell(ax,ay-15,7,1,fullness>.1?COL[0]:'#3a3428');}
-      if(st.q>.004&&!st.dip){const [sx,sy]=M4.tr(ax,ay,-aa,PV.sx-PV.ox,PV.sy-PV.oy);const vx=-(8+st.q*16),sur=sp.bowl==='flask'?BY-72:sp.bowl==='font'?BY-46:sp.bowl==='tin'?BY-6:RIM+2.6*(1-Math.min(1,st.L))-1;let x=sx,y=sy,vy=10;const w=st.q>.5?3:st.q>.15?2:1;
+      if(st.q>.004&&!st.dip){const [sx,sy]=M4.tr(ax,ay,-aa,PV.sx-PV.ox,PV.sy-PV.oy);const vx=-(8+st.q*16),sur=sp.bowl==='flask'?BY-62:sp.bowl==='font'?BY-46:sp.bowl==='tin'?BY-6:RIM+2.6*(1-Math.min(1,st.L))-1;let x=sx,y=sy,vy=10;const w=st.q>.5?3:st.q>.15?2:1;
         for(let k=0;k<60&&y<sur;k++){K.px(x,y,w,2,COL[0]);if(k%3===0)K.px(x,y,1,1,COL[1]);const dtt=.012;x+=vx*dtt;vy+=600*dtt;y+=vy*dtt;}
         K.ell(x,sur,3+w,1,COL[1]);}
-      const [hx,hy]=M4.tr(ax,ay,-aa,ves==='ladle'?54-PV.ox:ves==='crucible'?4-PV.ox:32-PV.ox,ves==='ladle'?3.5-PV.oy:ves==='crucible'?3.5-PV.oy:20-PV.oy);m4grip(K,hx,hy,ves==='ladle'?-.34-aa:ves==='crucible'?Math.PI-aa:Math.PI/2-aa,{side:ves==='jug'?-1:ves==='crucible'?-1:1,arm:-1.0});},
+      const [hx,hy]=M4.tr(ax,ay,-aa,ves==='ladle'?42-PV.ox:ves==='crucible'?4-PV.ox:32-PV.ox,ves==='ladle'?8-PV.oy:ves==='crucible'?3.5-PV.oy:22-PV.oy);m4grip(K,hx,hy,ves==='ladle'?-.34-aa:ves==='crucible'?Math.PI-aa:Math.PI/2-aa,{side:ves==='jug'?-1:ves==='crucible'?-1:1,arm:-1.0});},
     hud(t){const gx=290,gy=40;K.label('FILL',gx+4,gy-9,'#f4ecd8');K.gauge(gx,gy,8,70,(LT-.035)/1.1,(LT+.035)/1.1,Math.min(1.1,st.L)/1.1);K.meter(Math.min(1,st.L/LT));
       if(NB>1)K.label('BOWL '+(st.bi+1)+'/'+NB,30,20,'#f4ecd8','l');if(st.dip>0)K.label('MORE FROM THE POT',160,24,'#ffd27a');},
-    auto(dt,AP){const a=m4ai(this,AP,dt);if(st.slide||st.dip||st.end){m4hold(a,false);}else{const pred=st.L+st.q*(.16+Math.max(0,st.a-a0())/1.9*.6);m4hold(a,pred<LT-.012&&st.t>.4);}AP.hand=[PV.x+12,PV.y-30];AP.press=a.down;},
+    auto(dt,AP){const a=m4ai(this,AP,dt);if(st.slide||st.dip||st.end){m4hold(a,false);}else{const pred=st.L+st.q*(.16+Math.max(0,st.a-a0())/1.9*.6);m4hold(a,pred<LT-.012&&st.t>.4);}AP.hand=[PV.x+16,PV.y-8];AP.press=a.down;},
     quiet(){loop&&loop.set(0);},stop(){loop&&loop.stop();loop=null;}};};
 // ---------------------------------------------------------------- the pan on the stove, shared by the egg and the toss
-const m4pan=(K,cx,ry,t,heat)=>{const I=CA_P.iron,y=96;K.pa(cx-40,y+9,80,4,'#000',.3);K.px(cx+36,y-1,46,4,I[2]);K.px(cx+36,y-1,46,1,I[5]);K.px(cx+60,y-2,24,6,'#2a1a10');K.px(cx+60,y-2,24,1,'#4a2e16');
+const m4pan=(K,cx,ry,t,heat)=>{const I=CA_P.iron,y=96;K.pa(cx-40,y+9,80,4,'#000',.3);/* (t364) the handle angles down toward you, so the hand on it is low */K.line(cx+36,y+1,cx+60,y+12,I[2],4);K.line(cx+36,y,cx+60,y+11,I[5],1);K.line(cx+58,y+12,cx+80,y+23,'#2a1a10',6);K.line(cx+58,y+10,cx+80,y+21,'#4a2e16',1);
   for(let x=-40;x<=40;x++){const h=Math.round(7*Math.sqrt(Math.max(0,1-(x/40)**2)));K.px(cx+x,y,1,h+2,I[x<-20?3:x>25?1:2]);}K.ell(cx,y,40,ry||8,I[4]);K.ell(cx,y,37,(ry||8)-2,I[1]);K.ell(cx-6,y-1,22,(ry||8)-5,I[2]);if(heat)K.glow(cx,y,30,'255,160,80',.08*heat);};
 // ---------------------------------------------------------------- CRACK: the egg sways in your hand; tap to crack it over the butter (and not on the egg already in)
 S4.crack=(sp,K)=>{const g=K.g,CX=150,N=sp.n||2,egg=['#8a8070','#c8bca8','#e8dcc4','#f8f0e0','#ffffff'];
-  const st={i:0,t:0,ph:'sway',hx:CX,hy:68,fall:null,eggs:[],q:[],end:0,back:0,crk:0,shells:[]};let siz=null;
+  const st={i:0,t:0,ph:'sway',hx:CX,hy:78,fall:null,eggs:[],q:[],end:0,back:0,crk:0,shells:[]};let siz=null;   // (t364) cracked just over the pan: your hand low
   const pats=[];for(let i=0;i<N;i++)pats.push({c:CX+(N>1?(i/(N-1)-.5)*34:0),ph:i*2.1});
   const butterOf=(i,t)=>{const p=pats[Math.min(N-1,i)];return {x:p.c+Math.sin(t*.55+p.ph)*9+Math.sin(t*1.4+p.ph)*2.5,y:96+Math.sin(t*1.1+p.ph)*1.2};};const butter=t=>butterOf(st.i,t);
   const sway=t=>CX+Math.sin(t*1.3+.6)*30+Math.sin(t*2.7)*6;
@@ -609,13 +647,13 @@ S4.flip=(sp,K)=>{const g=K.g,item=sp.item||'egg',CK=sp.cook||5,TOSSES=sp.n||1,HO
       else if(st.fell){g.restore();g.save();view(st.fx,106,0,st.dT);}
       else view(st.px+st.rel,94,0,st.dT);
       g.restore();if(st.d>1.3)K.pa(st.px-30,70,60,24,'#3a3430',Math.min(.3,(st.d-1.3)*.6));
-      m4sleeve(K,st.px+86,92+kick,st.px+120,70);m4hand(K,st.px+82,94+kick);},
+      m4grip(K,st.px+76,96+20+kick,.46,{side:1});},
     hud(t){if(st.ph==='cook'){K.label('UNDERSIDE',120,30,'#f4ecd8','r');K.gauge(126,30,90,6,.85/1.6,1.15/1.6,Math.min(1.6,st.d)/1.6,{zone:'#7a5a1c'});if(st.d>1.2&&Math.floor(t*6)%2)K.label('BURNING',160,42,'#e8542a');}
       if(st.ph==='fly'&&Math.floor(t*6)%2)K.label('CATCH IT',160,24,'#ffd27a');if(TOSSES>1)K.label('TOSS '+Math.min(TOSSES,st.k+1)+'/'+TOSSES,30,20,'#f4ecd8','l');K.meter(st.res.length/TOSSES,M4.avg(st.res)||1);},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(st.ph==='cook'&&st.d>=.99)m4tap(a);
       if(st.ph==='fly'){let tx;if(st.cubes){let s=0,n=0;for(const c of st.cubes)if(c.fly===1){const tl=(-c.vy+Math.sqrt(Math.max(0,c.vy*c.vy+2*520*Math.max(0,95-c.y))))/520;s+=c.x+c.vx*tl;n++;}tx=n?s/n:st.px;}
         else{const f=st.fly;const tl=(-f.vy+Math.sqrt(Math.max(0,f.vy*f.vy+2*520*Math.max(0,94-f.y))))/520;tx=f.x+f.vx*tl;}const d=tx-st.px;a.ax=Math.abs(d)>1.5?Math.sign(d):0;}
-      AP.hand=[st.px+86,80];AP.press=a.down;},
+      AP.hand=[st.px+76,112];AP.press=a.down;},
     quiet(){siz&&siz.set(0);},stop(){siz&&siz.stop();siz=null;}};};
 // ---------------------------------------------------------------- FILLET: hold the knife to the backbone and draw it to the tail, steady and not too fast
 S4.fillet=(sp,K)=>{const g=K.g,FX=92,FY=58,XS=FX+30,XE=FX+112,yl=x=>FY+25-Math.sin((x-XS)/(XE-XS)*Math.PI)*4.5,fish=M4S.fish();
@@ -636,9 +674,9 @@ S4.fillet=(sp,K)=>{const g=K.g,FX=92,FY=58,XS=FX+30,XE=FX+112,yl=x=>FY+25-Math.s
       if(st.end){const u=Math.min(1,st.lift),e=u<.5?2*u*u:1-2*(1-u)*(1-u);const fl=M4S.fillet();const cx=FX+70+e*64,cy=FY+18-Math.sin(u*Math.PI)*26+e*20,sy=Math.cos(e*Math.PI);
         K.pa(cx-36,FY+40,72,3,'#000',.18*e);g.save();g.translate(Math.round(cx),Math.round(cy));g.rotate(e*.12);g.scale(1,Math.abs(sy)<.08?.08:Math.abs(sy));g.drawImage(fl,sy>=0?0:90,0,90,18,-45,-9,90,18);g.restore();
         K.px(XS,yl(XS),XE-XS,1,'#8a2a20');}
-      if(!st.end){const kn=M4S.knife();M4.rot(g,kn,st.kx,st.ky,-1.15,8,44);const [hx,hy]=M4.tr(st.kx,st.ky,-1.15,-.5,-36.5);m4grip(K,hx,hy,-1.15-Math.PI/2,{side:-1,arm:-1.05});}},
+      if(!st.end){const kn=M4S.knife(),ka=Math.PI-1.0;M4.rot(g,kn,st.kx,st.ky,ka,8,44);const [hx,hy]=M4.tr(st.kx,st.ky,ka,-.5,-36.5);m4grip(K,hx,hy,ka-Math.PI/2,{side:1});}},   // (t364) the handle toward you, your hand to the lower right of the point
     hud(){K.meter((st.cut-XS)/(XE-XS),M4.avg(st.q)||1);if(st.spd>150)K.label('TOO FAST',160,24,'#e8542a');},
-    auto(dt,AP){const a=m4ai(this,AP,dt);if(st.t<.5){m4move(a,st.kx,st.ky);m4hold(a,false);}else{const nx=Math.min(XE+2,a.x+62*dt);m4move(a,nx,yl(nx)+Math.sin(st.t*3)*.8);m4hold(a,true);}AP.hand=[a.x+8,a.y-46];AP.press=a.down;},
+    auto(dt,AP){const a=m4ai(this,AP,dt);if(st.t<.5){m4move(a,st.kx,st.ky);m4hold(a,false);}else{const nx=Math.min(XE+2,a.x+62*dt);m4move(a,nx,yl(nx)+Math.sin(st.t*3)*.8);m4hold(a,true);}AP.hand=[a.x+22,a.y+22];AP.press=a.down;},
     quiet(){loop&&loop.set(0);},stop(){loop&&loop.stop();loop=null;}};};
 // ---------------------------------------------------------------- the recipes that use them
 const m4spr=(name,sc)=>K=>{const m=SPR[name];if(!m)return;sc=sc||2;K.sprite(name,160-m.fw*sc/2,84-m.fh*sc/2,{scale:sc});};

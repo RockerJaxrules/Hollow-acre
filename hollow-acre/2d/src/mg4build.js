@@ -30,10 +30,12 @@ S4.drop=(sp,K)=>{const g=K.g,item=sp.item||'brick',N=sp.n||5;
   const SL=[];const add=(x,y,w,h)=>SL.push({x,y,w,h,got:null});
   if(item==='brick'){for(let i=0;i<N;i++){const row=Math.floor(i/3),c=i%3;add(124+c*36+(row%2?18:0)-(row%2&&c===2?36*3:0),150-row*12,34,11);}}
   else if(item==='log'){const rows=[3,2,1];let i=0;rows.forEach((n,r)=>{for(let c=0;c<n&&i<N;c++,i++)add(160+(c-(n-1)/2)*31,151-r*13,32,14);});}
-  else if(item==='shingle'){for(let i=0;i<N;i++){const row=Math.floor(i/4),c=i%4;add(104+c*30+(row%2?15:0),60+row*14,30,16);}}
+  else if(item==='shingle'){for(let i=0;i<N;i++){const row=Math.floor(i/4),c=i%4;add(104+c*30+(row%2?15:0),84+row*14,30,16);}}
   else if(item==='pane'){for(let i=0;i<N;i++)add(98+i*62,96,54,42);}
-  else if(item==='tool'){for(let i=0;i<N;i++)add(100+i*40,70,30,40);}
-  const st={i:0,x:120,t:0,end:0,fall:null,q:[],tries:0,spd:sp.speed||1.3};const HOLD=item==='log'?44:24;
+  else if(item==='tool'){for(let i=0;i<N;i++)add(100+i*40,94,30,40);}
+  const st={i:0,x:120,t:0,end:0,fall:null,q:[],tries:0,spd:sp.speed||1.3};
+  // (t364) held only a little over the highest place it goes, so your hands (and the arms up to them) stay low
+  const HOLD=M4.cl(Math.min(...SL.map(q=>q.y-q.h/2))-34,24,70);
   const slot=()=>SL[Math.min(SL.length-1,st.i)];
   const drawPiece=(x,y,w,h,ang,broken)=>{g.save();g.translate(Math.round(x),Math.round(y));if(ang)g.rotate(ang);
     if(item==='brick'){K.bricks(-w/2,-h/2,w,h,CA_P.brick,w,h);K.px(-w/2,-h/2,w,1,CA_P.brick[5]);}
@@ -59,9 +61,9 @@ S4.drop=(sp,K)=>{const g=K.g,item=sp.item||'brick',N=sp.n||5;
       if(item==='tool'){g.drawImage(M4.pre('toolboard',200,70,k=>{k.planks(0,0,200,70,CA_P.wood,10,8,true);},true),60,40);for(const s of SL){K.px(s.x-1,s.y-16,3,4,CA_P.iron[4]);}}
       for(const s of SL){if(s.got!=null)drawPiece(s.x+s.got,s.y,s.w,s.h,s.got*.01);else if(s===slot()&&!st.end)g.setLineDash([2,2]),g.strokeStyle='rgba(255,244,192,.6)',g.strokeRect(s.x-s.w/2,s.y-s.h/2,s.w,s.h),g.setLineDash([]);}
       if(st.fall){const f=st.fall;drawPiece(f.x,f.y,slot().w,slot().h,f.ang,f.broken);}
-      else if(!st.end){const s=slot();drawPiece(st.x,HOLD,s.w,s.h,Math.sin(st.t*2)*.05);m4grip(K,st.x-s.w/2-3,HOLD,Math.PI-.2,{side:-1,arm:-1.9});m4grip(K,st.x+s.w/2+3,HOLD,.2,{side:1,arm:-1.25});K.pa(st.x-s.w/2,s.y+s.h/2,s.w,2,'#000',.18);}},
+      else if(!st.end){const s=slot();drawPiece(st.x,HOLD,s.w,s.h,Math.sin(st.t*2)*.05);m4grip(K,st.x-s.w/2-1,HOLD+s.h*.3,Math.PI-.2,{side:-1,armSide:-1});m4grip(K,st.x+s.w/2+1,HOLD+s.h*.3,.2,{side:1,armSide:1});K.pa(st.x-s.w/2,s.y+s.h/2,s.w,2,'#000',.18);}},
     hud(){K.label((item==='brick'?'BRICK ':item==='log'?'LOG ':item==='shingle'?'SHINGLE ':item==='pane'?'PANE ':'TOOL ')+Math.min(N,st.i+1)+'/'+N,30,14,'#f4ecd8','l');K.meter(st.i/N,M4.avg(st.q)||1);},
-    auto(dt,AP){const a=m4ai(this,AP,dt);const s=slot();if(!st.fall&&!st.end&&st.t>.6){const tf=Math.sqrt(2*(s.y-24)/520);const lead=st.x;if(Math.abs(st.x-s.x)<1.2)m4tap(a);}AP.hand=[st.x+4,HOLD-20];AP.press=a.down;},
+    auto(dt,AP){const a=m4ai(this,AP,dt);const s=slot();if(!st.fall&&!st.end&&st.t>.6){const tf=Math.sqrt(2*(s.y-24)/520);const lead=st.x;if(Math.abs(st.x-s.x)<1.2)m4tap(a);}AP.hand=[st.x+4,HOLD+2];AP.press=a.down;},
     quiet(){},stop(){}};};
 // ---------------------------------------------------------------- LEVEL: hold it upright against the knocks; watch the bubble
 S4.level=(sp,K)=>{const g=K.g,look=sp.look||'post',DUR=sp.dur||4,BAND=.06;const st={th:.12,w:0,prog:0,inT:0,runT:0,t:0,end:0,thump:0,nt:1};
@@ -96,17 +98,19 @@ S4.dig=(sp,K)=>{const g=K.g,N=sp.n||6;const st={d:0,hole:0,q:[],t:0,end:0,lift:0
       if(st.lift>0){st.lift+=dt/.55;if(st.lift>=1)st.lift=0;return;}
       if(st.stuck){if(I.pressed){st.wig++;A.tone(180,.08,'sawtooth',.04,{filter:['lowpass',600]});if(st.wig>=4){st.stuck=0;st.wig=0;st.d=.9;}}return;}
       if(I.down){const res=1+Math.sin(st.t*9)*.5;st.d+=dt*.85*res;if(Math.random()<dt*10)A.hiss(.05,.08,'lowpass',400);if(st.d>=1.12){st.stuck=1;st.q.push(.15);K.judge(.15,160,60,true);MS.miss();A.tone(140,.25,'square',.05,{slide:90});}}
-      else if(st.d>.05){const q=st.d>=.6&&st.d<=1?1:st.d>=.4?.6:.3;st.q.push(q);K.judge(q,160,60,true);st.hole+=st.d/N*1.1;st.pile+=st.d;st.lift=.001;MS.whoosh();A.hiss(.2,.15,'lowpass',700);K.emit(200,90,12,{c:['#5a4022','#7a5a32','#3a2a14'],v:90,ang:-Math.PI*.3,spread:.8,g:400,life:.8});st.d=0;
+      else if(st.d>.05){const q=st.d>=.6&&st.d<=1?1:st.d>=.4?.6:.3;st.q.push(q);K.judge(q,160,60,true);st.hole+=st.d/N*1.1;st.pile+=st.d;st.lift=.001;MS.whoosh();A.hiss(.2,.15,'lowpass',700);K.emit(200,112,12,{c:['#5a4022','#7a5a32','#3a2a14'],v:90,ang:-Math.PI*.3,spread:.8,g:400,life:.8});st.d=0;
         if(st.q.length>=N||st.hole>=1){st.end=.001;MS.good();}}},
-    draw(t){K.ell(150,152,74,14,'#2a1e0e');K.ell(150,150,70,12,'#4a3418');for(let k=0;k<30;k++){const a=k*2.4,r=40+((k*13)%30);K.px(150+Math.cos(a)*r,150+Math.sin(a)*r*.17,2,1,k%2?'#6a4a24':'#3a2a14');}const h=Math.min(1,st.hole);K.ell(150,148,18+h*10,4+h*3,'#1a0e06');K.ell(236,150,10+st.pile*6,3+st.pile*2,'#5a4022');
-      const lift=st.lift>0?Math.sin(st.lift*Math.PI):0;const d=st.stuck?1.12:st.d;const sx=150,sy=150-30+d*18-lift*30;
+    draw(t){K.ell(150,162,74,14,'#2a1e0e');K.ell(150,160,70,12,'#4a3418');for(let k=0;k<30;k++){const a=k*2.4,r=40+((k*13)%30);K.px(150+Math.cos(a)*r,160+Math.sin(a)*r*.17,2,1,k%2?'#6a4a24':'#3a2a14');}const h=Math.min(1,st.hole);K.ell(150,158,18+h*10,4+h*3,'#1a0e06');K.ell(236,160,10+st.pile*6,3+st.pile*2,'#5a4022');
+      // (t364) the spade leans back toward you as you work it, so both hands (the D-grip, low on the shaft) sit low in the picture
+      const lift=st.lift>0?Math.sin(st.lift*Math.PI):0;const d=st.stuck?1.12:st.d;const sx=150,sy=134+d*18-lift*20;const LX=.69;
       // a spade: a dished steel blade with a tread on top, an ash shaft, a D-grip
-      for(let y=0;y<18;y++){const w=Math.round(9-Math.max(0,y-12)*.9);K.px(sx-w,sy+y,w*2,1,CA_P.iron[y<2?6:y>15?3:5]);K.px(sx-w,sy+y,1,1,CA_P.iron[7]);K.px(sx+w-1,sy+y,1,1,CA_P.iron[2]);}K.px(sx-9,sy-1,18,2,CA_P.iron[3]);K.px(sx-2,sy-4,4,6,CA_P.iron[4]);
-      if(lift>.1){K.ell(sx,sy+4,9,4,'#5a4022');for(let k=0;k<5;k++)K.px(sx-6+k*3,sy+1-(k%2),2,2,'#3a2a14');}
-      K.px(sx-1,sy-60,3,58,CA_P.wood[4]);K.px(sx-1,sy-60,1,58,CA_P.wood[6]);K.px(sx-7,sy-66,14,3,CA_P.wood[3]);K.px(sx-7,sy-66,2,7,CA_P.wood[3]);K.px(sx+5,sy-66,2,7,CA_P.wood[3]);
-      K.px(sx+9,sy-6,14,5,'#3a2a1a');K.px(sx+9,sy-6,14,1,'#5a4030');m4grip(K,sx,sy-65,0,{side:1,arm:-1.15});m4grip(K,sx,sy-36,-Math.PI/2,{side:-1,arm:-2.35});if(st.stuck&&Math.floor(t*6)%2)K.label('STUCK: TAP TO WIGGLE',160,30,'#e8542a');},
+      for(let y=0;y<18;y++){const w=Math.round(9-Math.max(0,y-12)*.9),ox=Math.round(-y*LX*.5);K.px(sx+ox-w,sy+y,w*2,1,CA_P.iron[y<2?6:y>15?3:5]);K.px(sx+ox-w,sy+y,1,1,CA_P.iron[7]);K.px(sx+ox+w-1,sy+y,1,1,CA_P.iron[2]);}K.px(sx-9,sy-1,18,2,CA_P.iron[3]);K.px(sx-1,sy-4,4,6,CA_P.iron[4]);
+      if(lift>.1){K.ell(sx-2,sy+4,9,4,'#5a4022');for(let k=0;k<5;k++)K.px(sx-8+k*3,sy+1-(k%2),2,2,'#3a2a14');}
+      const gx=sx+34,gy=sy-50;K.line(sx+1,sy-3,gx,gy,CA_P.wood[3],3);K.line(sx,sy-4,gx-1,gy-1,CA_P.wood[5],1);
+      {const ca=.61,c=Math.cos(ca),n=Math.sin(ca);K.line(gx-c*7,gy-n*7-3,gx+c*7,gy+n*7-3,CA_P.wood[3],3);K.line(gx-c*7,gy-n*7-3,gx-c*5,gy-n*5+2,CA_P.wood[3],2);K.line(gx+c*7,gy+n*7-3,gx+c*5,gy+n*5+2,CA_P.wood[3],2);}
+      K.px(sx+9,sy-6,14,5,'#3a2a1a');K.px(sx+9,sy-6,14,1,'#5a4030');m4grip(K,gx,gy-3,.61,{side:1});m4grip(K,sx+14,sy-23,2.18,{side:1,armSide:-1});if(st.stuck&&Math.floor(t*6)%2)K.label('STUCK: TAP TO WIGGLE',160,30,'#e8542a');},
     hud(){K.label('DEPTH',286,14,'#f4ecd8');K.gauge(282,24,8,90,.6/1.15,1/1.15,Math.min(1.15,st.stuck?1.12:st.d)/1.15,{zone:'#5a4a1c'});K.meter(Math.min(1,st.hole),M4.avg(st.q)||1);},
-    auto(dt,AP){const a=m4ai(this,AP,dt);if(st.stuck)m4tap(a);else if(!st.lift&&st.t>.5)m4hold(a,st.d<.8);AP.hand=[166,50];AP.press=a.down;},
+    auto(dt,AP){const a=m4ai(this,AP,dt);if(st.stuck)m4tap(a);else if(!st.lift&&st.t>.5)m4hold(a,st.d<.8);AP.hand=[184,84];AP.press=a.down;},
     quiet(){},stop(){}};};
 // ---------------------------------------------------------------- LIGHT: strike a match and hold it to the wick, but only between the gusts
 S4.light=(sp,K)=>{const g=K.g,look=sp.look||'lantern';const st={m:3,lit:0,burn:0,catch:0,t:0,end:0,gust:0,next:2.2,strike:0,out:0};

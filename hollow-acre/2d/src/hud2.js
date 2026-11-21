@@ -89,7 +89,7 @@ setInterval(()=>{const e=$('barE'),h=$('barH');if(!e||!h)return;e.style.setPrope
 // only the chips that matter right now
 setInterval(()=>{const inv=$('inv');if(!inv)return;const night=isNight();
   for(const ch of inv.querySelectorAll('.chip')){const t=(ch.getAttribute('title')||'').toLowerCase();let on=false;
-    if(/basket/.test(t))on=S.basket.length>0;else if(/oil/.test(t))on=night||S.fuel<35;else if(/candle/.test(t))on=S.looped&&!S.bound;
+    if(/basket/.test(t))on=S.basket.length>0;else if(/oil|battery/.test(t))on=night||(LI_ON?liLow(35):S.fuel<35);else if(/candle/.test(t))on=S.looped&&!S.bound;
     else if(/diary/.test(t))on=S.pages.length>0&&!S.bound;else if(/car parts/.test(t))on=!!(S.q&&S.q.hollis)&&!S.carFixed;else on=false;
     ch.classList.toggle('off',!on);}},500);
 

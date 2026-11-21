@@ -88,7 +88,9 @@ SFX.swing=SFX.swing||function(){A.hiss(.22,.16,'bandpass',300,{slide:1800,q:.9,a
 // (not where the tool itself is the pointer, the dent hammer's head and the caulk gun's nozzle, and not where one of your hands
 // is already there holding something)
 window.__mg4ptr=(K,I)=>{const fr=M4G.fr||[];if(typeof GP==='undefined'||GP.ctx!=='mg4'||!GP.hand||!GP.hand.on||typeof gpPadMode!=='function'||!gpPadMode())return;
-  const cur=window.__mg4cur;if(cur&&/^(crDents|crSeal)$/.test(cur.__gpk||''))return;if(fr.some(([x,y])=>Math.hypot(x-I.x,y-I.y)<16))return;K.hand(I.x-3,I.y-1,!!I.down);};
+  const cur=window.__mg4cur;if(cur&&/^(crDents|crSeal)$/.test(cur.__gpk||''))return;if(fr.length){// (t364) one of your hands is already in the picture: the cursor is a small ring, not a third arm
+    const g=K.g,x=Math.round(I.x)+.5,y=Math.round(I.y)+.5;g.lineWidth=3;g.strokeStyle='rgba(20,10,4,.75)';g.beginPath();g.arc(x,y,4.5,0,6.29);g.stroke();g.lineWidth=1;g.strokeStyle=I.down?'#ffd27a':'#fff4c0';g.beginPath();g.arc(x,y,4.5,0,6.29);g.stroke();K.px(x-.5,y-.5,1,1,I.down?'#ffd27a':'#fff4c0');return;}
+  K.hand(I.x-3,I.y-1,!!I.down);};
 // a phone on its side: the stage takes the height of the screen on the left, the title, the hint and Skip stand in a column to its
 // right (stacked above and below, they left the stage at 390 px wide on an 844 x 390 phone; side by side it is half as big again)
 {const st=document.createElement('style');st.textContent=`@media (max-height:500px) and (min-aspect-ratio:3/2){

@@ -157,7 +157,7 @@ S4.car=(sp,K,run,def)=>{const g=K.g,W=320,H=180;
       if(!amb)amb=MS.loop('bandpass',mech==='crank'?700:520,2);
       if(st.end){st.end+=dt;amb.set(0);if(st.end>.5)finishStep();return;}
       if(mech==='crank'){
-        let da=0;const ccx=252,ccy=62;
+        let da=0;const ccx=252,ccy=102;
         if(I.key&&I.down)da=dt*6.0;
         else if(I.down){const a=Math.atan2(I.y-ccy,I.x-ccx);if(st.last!=null){let d=a-st.last;if(d>Math.PI)d-=6.283;if(d<-Math.PI)d+=6.283;da=Math.max(0,d);}st.last=a;}
         else st.last=null;
@@ -181,11 +181,11 @@ S4.car=(sp,K,run,def)=>{const g=K.g,W=320,H=180;
       CARV(K,cx,by,s,state,t,{active:sp.fix,p:prog()});
       if(mech==='crank'){
         // the winch/crank handle, top-right, with its rope/cable running to the car's frame
-        const ccx=252,ccy=62,CR=15;
+        const ccx=252,ccy=102,CR=15;
         g.strokeStyle='#5a5048';g.lineWidth=Math.max(1,1.2);g.beginPath();g.moveTo(ccx-6,ccy+2);g.lineTo(cx-40,by-10);g.stroke();
         K.px(ccx-10,ccy-10,20,20,'#20202a');K.px(ccx-10,ccy-10,20,2,'#30303c');
         g.fillStyle='#15151c';g.beginPath();g.arc(ccx,ccy,CR,0,6.29);g.fill();g.fillStyle='#3a3a44';g.beginPath();g.arc(ccx,ccy,CR-3,0,6.29);g.fill();
-        const hx=ccx+Math.cos(st.ang)*CR,hy=ccy+Math.sin(st.ang)*CR;K.line(ccx,ccy,hx,hy,'#8a8490',3);K.px(hx-3,hy-3,6,6,'#b85a2a');m4grip(K,hx,hy,-Math.PI/2,{side:1,arm:.95});
+        const hx=ccx+Math.cos(st.ang)*CR,hy=ccy+Math.sin(st.ang)*CR;K.line(ccx,ccy,hx,hy,'#8a8490',3);K.px(hx-3,hy-3,6,6,'#b85a2a');m4grip(K,hx,hy,-Math.PI/2,{side:1});
         g.strokeStyle='rgba(255,244,192,.25)';g.lineWidth=1;g.beginPath();g.arc(ccx,ccy,CR,0,6.29);g.stroke();
       } else {
         // the strike bar across the bottom
@@ -198,7 +198,7 @@ S4.car=(sp,K,run,def)=>{const g=K.g,W=320,H=180;
     },
     hud(t){if(mech==='crank'){K.label('PACE',150,14,'#f4ecd8','r');K.gauge(156,14,96,6,3.0/12,9.2/12,Math.min(12,st.spd)/12);K.meter(prog(),st.coils.length?st.ok/st.coils.length:1);}
       else {K.label(sp.hudlabel||'FIT',150,14,'#f4ecd8','r');K.meter(prog(),st.hits.length?st.hits.reduce((a,b)=>a+b,0)/st.hits.length:.6);}},
-    auto(dt,AP,t){const a=m4ai(this,AP,dt);if(mech==='crank'){if(this._a==null)this._a=0;this._a+=dt*5.6;m4move(a,252+Math.cos(this._a)*30,62+Math.sin(this._a)*30);m4hold(a,true);}
+    auto(dt,AP,t){const a=m4ai(this,AP,dt);if(mech==='crank'){if(this._a==null)this._a=0;this._a+=dt*5.6;m4move(a,252+Math.cos(this._a)*30,102+Math.sin(this._a)*30);m4hold(a,true);}
       else {const bx=46,bw=228;m4move(a,bx+bw*st.zc,150);m4hold(a,false);if(Math.abs((st._p==null?.5:st._p)-st.zc)<st.zw*.5)AP.press=true;}AP.hand=[a.x+2,a.y-10];},
     stop(){amb&&amb.stop();amb=null;}
   };

@@ -260,7 +260,7 @@ S4.f2carve=(sp,K)=>{const g=K.g,TIME=28,CX=160,CY=94,RX=78,RY=60,CS=2,GW=Math.ce
         K.px(x,y,CS,CS,edge?'#f8c878':fl>.85?'#ffe8a0':'#ffd27a');if(edge)K.px(x,y,CS,1,'#c86818');}
       if(st.carved>20)K.glow(CX,CY,RX,'255,200,100',Math.min(.3,st.carved/2000)*fl);
       for(const c of st.chips)K.px(c.x,c.y,2,2,'#f0a050');
-      if(!st.end){const x=st.lx!=null?st.lx:this._ix||160,y=st.ly!=null?st.ly:this._iy||90;K.px(x,y-14,2,14,'#c8ccd4');K.px(x,y-14,1,14,'#ffffff');K.px(x-1,y-24,4,10,CA_P.wood[4]);m4grip(K,x+1,y-22,-Math.PI/2,{side:1,arm:-1.15});}},
+      if(!st.end){const x=st.lx!=null?st.lx:this._ix||160,y=st.ly!=null?st.ly:this._iy||90;K.line(x,y,x+8,y+10,'#a8acb4',2);K.line(x,y-1,x+8,y+9,'#e8ecf4',1);K.line(x+8,y+10,x+14,y+18,CA_P.wood[3],4);K.line(x+8,y+9,x+14,y+17,CA_P.wood[5],1);m4grip(K,x+12,y+16,.93,{side:-1});}},   // (t364) the knife's handle toward you, your hand below its point
     hud(){K.label('TIME',296,14,'#f4ecd8');K.gauge(292,24,8,90,0,1,Math.max(0,1-st.t/TIME),{zone:'#5a3a1a'});K.meter(Math.min(1,st.t/TIME));},
     auto(dt,AP){const a=m4ai(this,AP,dt);a.k=a.k||{p:0,s:0};const P=AUTO[a.k.p%AUTO.length],q=P[Math.min(P.length-1,Math.floor(a.k.s))],r=P[Math.min(P.length-1,Math.floor(a.k.s)+1)],f=a.k.s%1;
       const x=q[0]+(r[0]-q[0])*f,y=q[1]+(r[1]-q[1])*f;a.k.s+=dt*3;if(a.k.s>=P.length-1){a.k.p++;a.k.s=0;}AP.I={x,y,down:a.k.s>.05,raw:true};AP.hand=[x,y];AP.press=true;},

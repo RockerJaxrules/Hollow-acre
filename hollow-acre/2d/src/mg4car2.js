@@ -192,13 +192,14 @@ S4.crClamps=(sp,K)=>{const g=K.g,HY=104,HR=13;const CL=[{x:128,tq:0,done:0},{x:2
       if(st.spray>0){const c=CL[st.i];K.emit(c.x+4,HY-4,2,{c:['#9ad0b0','#58a090'],v:60,ang:-1.2,spread:1.2,g:200,life:.5});}
       // the screwdriver on the screw being turned, yellow handle stripes rolling as it turns
       const c=CL[Math.min(st.i,CL.length-1)];const gap=Math.round((1-Math.min(1,c.tq))*3),sx=c.x,sy=HY-HR-14+gap;
-      K.px(sx-1,sy-24,3,24,CA_P.iron[5]);K.px(sx-1,sy-24,1,24,CA_P.iron[7]);K.px(sx-2,sy-2,5,2,CA_P.iron[3]);
-      for(let y=0;y<22;y++){const u=y/22,hw=y<3||y>19?4:5;for(let x=-hw;x<=hw;x++){const s=Math.floor((x+st.turn*3)%4+4)%4;K.px(sx+x,sy-46+y,1,1,crT(CRP.YEL,(s<2?4.2:2.8)-x*.15+(u<.12?1:0)-(u>.88?1:0)));}}
-      K.px(sx-5,sy-47,11,1,CRP.YEL[5]);m4grip(K,sx+1,sy-36,-Math.PI/2+Math.sin(st.turn*2)*.15,{side:1,arm:-.9});},
+      // (t364) a stubby driver: your fist on its handle sits lower, so the forearm up from below stays short
+      K.px(sx-1,sy-14,3,14,CA_P.iron[5]);K.px(sx-1,sy-14,1,14,CA_P.iron[7]);K.px(sx-2,sy-2,5,2,CA_P.iron[3]);
+      for(let y=0;y<20;y++){const u=y/20,hw=y<3||y>17?4:5;for(let x=-hw;x<=hw;x++){const s=Math.floor((x+st.turn*3)%4+4)%4;K.px(sx+x,sy-34+y,1,1,crT(CRP.YEL,(s<2?4.2:2.8)-x*.15+(u<.12?1:0)-(u>.88?1:0)));}}
+      K.px(sx-5,sy-35,11,1,CRP.YEL[5]);m4grip(K,sx+1,sy-25,-Math.PI/2+Math.sin(st.turn*2)*.15,{side:1});},
     hud(t){const c=CL[Math.min(st.i,CL.length-1)];K.label('CLAMP '+(Math.min(st.i,CL.length-1)+1)+'/'+CL.length,30,16,'#f4ecd8','l');
       K.meter((st.i+(c.done?1:c.tq*.8))/CL.length,st.res.length?M4.avg(st.res):.7);},
     auto(dt,AP){const a=m4ai(this,AP,dt);const c=CL[st.i];if(c&&!c.done){this._w=(this._w||0)+dt;if(this._w>.4)m4hold(a,c.tq<(LO+HI)/2-.02);}else{this._w=0;m4hold(a,false);}
-      AP.I=a;const k=CL[Math.min(st.i,CL.length-1)];AP.hand=[k.x+4,HY-60];AP.press=a.down;},
+      AP.I=a;const k=CL[Math.min(st.i,CL.length-1)];AP.hand=[k.x+4,HY-52];AP.press=a.down;},
     stop(){}};};
 // ================================================================= THE WHEEL, 1: hang it on the hub with the holes on the studs
 S4.crHang=(sp,K)=>{const g=K.g,HX=200,HY=94,SR=13,TR=44;
@@ -261,9 +262,10 @@ S4.crLugs=(sp,K)=>{const g=K.g,CX=172,CY=94,R=24,ORDER=[0,2,4,1,3];
       for(const n of NUT){const x=n.x+lx,y=n.y;K.pa(x-4,y-3,9,9,'#000',.35);crNut(K,x,y,4,CA_P.iron,n.rot);if(n.done){K.px(x-1,y+5,3,1,n.tq>1.05?'#e8542a':'#9be07a');}}
       // the first nut is yours to pick; after that the card is the only help
       if(!st.seq.length&&st.sel<0){const n=NUT[0];K.pa(n.x-6,n.y-6,13,13,'#ffd27a',.18+Math.sin(t*6)*.1);}
-      if(st.sel>=0){const n=NUT[st.sel];const a=-.6-n.tq*.5;const ex=n.x+lx+Math.cos(a)*46,ey=n.y+Math.sin(a)*46;
+      if(st.sel>=0){const n=NUT[st.sel];const a=.35+n.tq*.5;   // (t364) the wrench's arm out to the lower right, pulled down to tighten: your hand stays low
+        const ex=n.x+lx+Math.cos(a)*46,ey=n.y+Math.sin(a)*46;
         K.line(n.x+lx,n.y,ex,ey,CA_P.iron[3],4);K.line(n.x+lx,n.y-1,ex,ey-1,CA_P.iron[6],1);const px_=-Math.sin(a)*12,py_=Math.cos(a)*12,mx=n.x+lx+Math.cos(a)*30,my=n.y+Math.sin(a)*30;K.line(mx-px_,my-py_,mx+px_,my+py_,CA_P.iron[3],4);K.line(mx-px_,my-py_-1,mx+px_,my+py_-1,CA_P.iron[6],1);
-        K.px(n.x+lx-5,n.y-5,11,11,CA_P.iron[2]);K.px(n.x+lx-4,n.y-4,9,9,CA_P.iron[4]);K.px(n.x+lx-4,n.y-4,9,1,CA_P.iron[6]);{const wa=Math.atan2(ey-n.y,ex-n.x);m4grip(K,ex,ey,wa,{side:Math.cos(wa)>=0?1:-1,arm:wa+(Math.sin(wa)<0?-.3:.3)});}
+        K.px(n.x+lx-5,n.y-5,11,11,CA_P.iron[2]);K.px(n.x+lx-4,n.y-4,9,9,CA_P.iron[4]);K.px(n.x+lx-4,n.y-4,9,1,CA_P.iron[6]);{const wa=Math.atan2(ey-n.y,ex-n.x);m4grip(K,ex,ey,wa,{side:-1});}
         // the torque arc round the nut: green where it clicks, a tick that sweeps as you pull
         const R=16,cx=n.x+lx,cy=n.y;for(let a=Math.PI*.75;a<=Math.PI*2.25;a+=.035){const u=(a-Math.PI*.75)/(Math.PI*1.5),on=u>=LO/1.2&&u<=HI/1.2;K.px(cx+Math.cos(a)*R-1,cy+Math.sin(a)*R-1,2,2,on?'#7cc04a':'#1a0e06');}
         const ta=Math.PI*.75+Math.min(1.2,n.tq)/1.2*Math.PI*1.5;K.px(cx+Math.cos(ta)*R-2,cy+Math.sin(ta)*R-2,4,4,'#fff4c0');}
@@ -339,9 +341,10 @@ S4.crSeal=(sp,K)=>{const g=K.g;const W0=CR_WIN,o=2;
       for(const [x,y] of st.blobs)K.px(x-1,y-1,3,2,'#141416');
       const [sx,sy]=PATH[0];K.pa(sx-3,sy-3,7,7,'#9be07a',.25+Math.sin(t*5)*.15);
       // the caulk gun: a tube, the nozzle at your point
-      const x=st.x,y=st.y;K.line(x,y,x+10,y-10,'#d8d0c0',2);K.px(x+9,y-22,24,12,CA_P.iron[4]);K.px(x+9,y-22,24,1,CA_P.iron[6]);K.px(x+12,y-20,18,8,'#c84a2a');K.px(x+12,y-20,18,1,'#e88060');K.px(x+30,y-12,3,12,CA_P.iron[3]);m4grip(K,x+28,y-6,-.15,{side:1,arm:-.95});},
+      const x=st.x,y=st.y;// (t364) the gun held below the seam, its nozzle reaching up to it: your hand on the grip, under the tube
+      K.line(x,y,x+10,y+10,'#d8d0c0',2);K.px(x+9,y+9,24,12,CA_P.iron[4]);K.px(x+9,y+9,24,1,CA_P.iron[6]);K.px(x+12,y+11,18,8,'#c84a2a');K.px(x+12,y+11,18,1,'#e88060');K.px(x+29,y+20,3,12,CA_P.iron[3]);K.px(x+29,y+20,1,12,CA_P.iron[5]);m4grip(K,x+29,y+25,-.15,{side:1});},
     hud(t){const cov=seg.filter(v=>v>0).length/N;K.label('SEALED '+Math.round(cov*100)+'%',30,16,'#f4ecd8','l');if(st.smear)K.label('SMEARS '+st.smear,30,26,'#e8b030','l');K.meter(cov,seg.filter(v=>v>0).length?M4.avg(seg.filter(v=>v>0)):.7);},
-    auto(dt,AP){const a=m4ai(this,AP,dt);this._s=(this._s||0)+dt*70;const [x,y]=m4at(PATH,Math.min(L,this._s));m4move(a,x,y);m4hold(a,this._s<L+4);AP.I=a;AP.hand=[a.x+30,a.y-2];AP.press=a.down;},
+    auto(dt,AP){const a=m4ai(this,AP,dt);this._s=(this._s||0)+dt*70;const [x,y]=m4at(PATH,Math.min(L,this._s));m4move(a,x,y);m4hold(a,this._s<L+4);AP.I=a;AP.hand=[a.x+28,a.y+24];AP.press=a.down;},
     stop(){}};};
 // ================================================================= THE WIRING, 1: swing the battery into its tray
 const crBatteryImg=sc=>M4.pre('crbatt'+sc,60*sc,44*sc,k=>{const B=CRP.RUB;const W=56*sc,H=34*sc,x0=2*sc,y0=8*sc;
@@ -427,8 +430,8 @@ S4.crCables=(sp,K)=>{const g=K.g,BX=150,BY=104,img=crBatteryImg(2);
       AP.I=a;AP.hand=[a.x+4,a.y+6];AP.press=a.down;},
     stop(){}};};
 // ================================================================= THE ENGINE, 1: pour the gas in to the full mark
-S4.crFuel=(sp,K)=>{const g=K.g,NX=132,NY=96,LO=.86,HI=.97;
-  const side=M4.pre('crquarter2',320,130,k=>{crSheet(k,320,130,CRP.RED,61,true);for(let y=0;y<130;y++)for(let x=0;x<320;x++){const d=Math.hypot((x-NX)/15,(y-(NY-20-40))/13);if(d<1)k.px(x,y,1,1,d>.84?(x-NX+y-(NY-60)<0?CRP.RED[1]:CRP.RED[6]):'#140806');}
+S4.crFuel=(sp,K)=>{const g=K.g,NX=132,NY=118,LO=.86,HI=.97;   // (t364) the filler lower on the quarter panel, so the can and your hands are lower too
+  const side=M4.pre('crquarter3',320,130,k=>{crSheet(k,320,130,CRP.RED,61,true);for(let y=0;y<130;y++)for(let x=0;x<320;x++){const d=Math.hypot((x-NX)/15,(y-(NY-20-40))/13);if(d<1)k.px(x,y,1,1,d>.84?(x-NX+y-(NY-60)<0?CRP.RED[1]:CRP.RED[6]):'#140806');}
       for(let y=0;y<130;y++){k.px(40,y,1,1,CRP.RED[2]);}for(let x=0;x<320;x++)k.px(x,40,1,1,CRP.RED[7]);},false);
   const HOLEY=NY-20;
   const can=M4.pre('crcan2',48,42,k=>{const RC=['#2a0806','#5a120c','#8a1e12','#b8301c','#d84a2a','#f07a50'];for(let y=6;y<40;y++)for(let x=10;x<46;x++){let v=4.2-((y-6)/34)*1.6-((x-10)/36)*.6;if(((x+y)%12===0)&&y>12&&y<34)v-=.7;k.px(x,y,1,1,crT(RC,v));}
@@ -449,14 +452,14 @@ S4.crFuel=(sp,K)=>{const g=K.g,NX=132,NY=96,LO=.86,HI=.97;
       // the can, tipping about its handle; the stream from the spout when it's tipped far enough
       const PX=NX+34,PY=HOLEY-34,ca=-st.a*.8;M4.rot(g,can,PX,PY,ca,28,24);const [sx,sy]=M4.tr(PX,PY,ca,-28,-14);
       if(st.q>.004){const w=Math.max(1,Math.round(st.q*24));for(let i=0;i<=12;i++){const u=i/12,x=sx+(NX-sx)*u,y=sy+(HOLEY-sy)*u*u+u*2;K.pa(x-w/2,y,w,3,'#e8b040',.8);K.px(x,y,1,2,'#f8e090');}}
-      const [h1x,h1y]=M4.tr(PX,PY,ca,2,-22),[h2x,h2y]=M4.tr(PX,PY,ca,14,14);m4grip(K,h1x,h1y,ca-Math.PI/2,{side:1,arm:-1.2});m4palm(K,h2x,h2y);
+      const [h1x,h1y]=M4.tr(PX,PY,ca,2,-22),[h2x,h2y]=M4.tr(PX,PY,ca,14,14);m4grip(K,h1x,h1y,ca-Math.PI/2,{side:1,armSide:-1});m4palm(K,h2x,h2y,false,{armSide:1});   /* (t364) the left hand on the top handle, the right under the can: two arms, each from its own side */
       for(const d of st.drops)K.pa(d[0]+d[2]*2,HOLEY+4+d[2]*60,2,3,'#c89a40',1-d[2]/1.4);
       // the fuel gauge, like the one on the dash
-      const GX=262,GY=150,GR=26;crDisc(K,GX,GY,GR+3,CA_P.iron,GR);K.ell(GX,GY,GR,GR,'#14141a');for(let i=0;i<=8;i++){const a=Math.PI+i/8*Math.PI;K.px(GX+Math.cos(a)*(GR-3),GY+Math.sin(a)*(GR-3),1,1,'#d8d0c0');}
+      const GX=262,GY=150-(K.dy||0),GR=26;   /* (the gauge stays in its corner when the work is lowered) */crDisc(K,GX,GY,GR+3,CA_P.iron,GR);K.ell(GX,GY,GR,GR,'#14141a');for(let i=0;i<=8;i++){const a=Math.PI+i/8*Math.PI;K.px(GX+Math.cos(a)*(GR-3),GY+Math.sin(a)*(GR-3),1,1,'#d8d0c0');}
       for(let a=Math.PI+LO*Math.PI;a<Math.PI+HI*Math.PI;a+=.03)K.px(GX+Math.cos(a)*(GR-6),GY+Math.sin(a)*(GR-6),2,2,'#7cc04a');
       K.text('E',GX-GR+5,GY-6,'#d8d0c0');K.text('F',GX+GR-7,GY-6,'#d8d0c0');const na=Math.PI+Math.min(1.05,st.L)*Math.PI;K.line(GX,GY,GX+Math.cos(na)*(GR-6),GY+Math.sin(na)*(GR-6),'#e8542a',1);K.px(GX-1,GY-1,3,3,CA_P.iron[6]);},
     hud(t){K.label('FUEL',30,16,'#f4ecd8','l');K.meter(Math.min(1,st.L/HI),st.L>1?.2:.8);},
-    auto(dt,AP){const a=m4ai(this,AP,dt);m4hold(a,st.L+st.q*1.2<(LO+HI)/2-.03);AP.I=a;AP.hand=[NX+36,NY-76];AP.press=a.down;},
+    auto(dt,AP){const a=m4ai(this,AP,dt);m4hold(a,st.L+st.q*1.2<(LO+HI)/2-.03);AP.I=a;AP.hand=[NX+36,NY-54];AP.press=a.down;},
     stop(){}};};
 // ================================================================= THE ENGINE, 2: turn the key, and let go when it catches
 S4.crKey=(sp,K)=>{const g=K.g,KX=238,KY=124,TX=132,TY=118,TR=26;

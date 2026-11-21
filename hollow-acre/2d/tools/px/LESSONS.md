@@ -124,6 +124,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   texture.
 
 ## Props (small objects, 20-40 px) [owner: "not good enough"]
+- [t364] A lantern's cage wires drawn darker than its lit glass cut the glow into letters (Walt's read as a W): give the wires a mid
+  brass, the lit glass a warm amber (not cream), the flame a teardrop with its white heart low over the wick.
+- [t364] A held flashlight at character scale: side view = tail in the fist, knurled body, wider chrome bezel, a lens pixel that
+  glows; toward you = just the lens disc under the knuckles; away = the tail cap under the back of the fist.
 - Judge a raised prop (a tarp on a roof, a sign on a wall) in its in-game spot too: the judge read the tarp as a flat ground piece, and the in-game view showed it floating behind the house's ridge (anchor 162 px; the house needed 122). Each roof gets its own entry (tarp, tarp_barn) with its own anchor. (props family r1)
 - Saturated cobalt is the loudest colour in a muted family: weathered grey-blue (#454d59 range) for tarps. (props family r1)
 - To cut a hole in a sprite in the furniture kit, zero all four channels and add the hole to NOOL (the outline pass fills small holes). Zeroing only alpha left the colour behind and the export turned it purple. (props r6)
@@ -713,6 +717,15 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Curly quotes need clear 6 and 9 shapes at 3 px tall, or the opening quote reads as a closing one.
 
 ## First-person hands in the minigames (Nov 10: long forearms lost 3 vs floating fists)
+- [t364, coordinator] A first-person forearm comes from the BOTTOM edge on its own side (left from the bottom left, right from the
+  bottom right), never from the top, never across the scene; it swells to 3-4 wrists wide at the frame edge (slowly from the cuff,
+  then fast, a muscle bulge past halfway, an elbow crease where it leaves), and two hands close together part toward their shoulders.
+- [t364, coordinator] Widening alone doesn't make a high hand's arm short: lower the work (a camera looking a little more down),
+  keep the room as the backdrop, crop stool/stove legs; aim for <= 60-70 px of visible sleeve (of 180). Hold tools the first-person
+  way: handle toward you, the working end up/away (brush, knives, shears, pliers from below, the spade leaning back at you).
+- [t364] A shirt pattern on a sleeve is laid on the cylinder: round it by asin(u)*r0, along it by the integral of r0/r (spacing
+  grows toward you); plaid = crossing dark bands, darker where they cross, a thin pale overcheck that runs through the bands.
+  Darker pixels on a 7 px grid read as graph paper, not plaid.
 - **[owner, t363]** "the little fist should rotate with the hammer like an actual one would": a hand holding a tool is one rigid grip with it, same pivot, same angle; a hand pasted upright at the grip point reads as a stiff toy. Build the hand in the handle's own frame (handle along +x toward the arm, thumb on one side), turn the frame, and light it in SCREEN space from the top left so the light stays put as it turns; lay it down per 1/64 turn and keep the pictures.
 - **[owner, t363]** "if you changed the hands ... change the hands to look like that in all minigames": one hand drawing for every pose (fist, pinch, open palm, pointing), the same ramp, light, creases, cuff and arm, left and right mirrored; a second hand style anywhere reads as unfinished.
 - [t363 critic 5 vs 3] A forearm that ends in mid-air in a red or pink sleeve reads as a severed stump in this game; never fade an arm out inside the scene. Run it off the frame (widening toward the edge, about twice the fist's width) or in behind the bench or counter so the work surface cuts it off.
@@ -1334,6 +1347,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Ramps: shades toward purple, lights toward yellow, no pure colours. About 6 colours per 32x32 area (measured on LPC).
 
 ## Process
+- [repeated, t364 twice] An inline replacement ended with a // comment swallowed the closing braces after it on the same line
+  (the build broke twice). Inline notes are /* */ only; chkbuild.sh runs node --check on every build.
+- [t364] Light shapes drawn as nested wedges at stepped alpha band into visible rays; precompute one texture with a smooth
+  radial x angular falloff and draw it rotated (no per-frame pixel work).
 - [repeated] Never end an inline code replacement with a // comment: everything after it on that line (closing braces) is commented out. Use /* */ or put the comment on its own line, and run node --check on furn_hd.js after every edit. **[repeated, Nov 12, the worst one]** A comment dropped mid-line in land.js commented out landClearArea's bounds check, so clearing the cabin lane hid every stone, weed and stick in Grandpa's field (and every OBJ tree and bush in the world) from the first frame; two more were found in the mine and the map. The build now runs tools/lintcomments.py and stops on any comment that swallows code.
 
 - When a narrow win is re-run with the slots swapped, it often flips (cellar hatch and red drum, Nov 10: new 6 vs 5 from slot a, old 6 vs 4 from slot b). Never install a narrow win without the swapped re-run.

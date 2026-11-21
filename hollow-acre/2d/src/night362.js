@@ -22,7 +22,7 @@ function nightDeep(dt){let k=0;
   dt=Math.min(.1,dt||0);
   // the eyes: how used to the dark they are (0 just out of the light, 1 fully adjusted). A lit room, a lamp or a lit window close by
   // and your own lantern all hold them back; they adjust slowly (a few seconds) and lose it quickly
-  let tg=S.fuel>0?.55:1;const lit=S.room&&S.room!=='mine';
+  let tg=(LI_ON?liPowered():S.fuel>0)?(LI_ON&&liCur()==='flash'?.7:.55):1;   /* (t364) a narrow beam leaves your eyes more used to the dark */const lit=S.room&&S.room!=='mine';
   if(!S.room&&k>0){for(const l of lamps){if(!l.dead&&Math.abs(l.x-P.x)<3.4&&Math.abs(l.z-P.z)<3.4&&Math.hypot(l.x-P.x,l.z-P.z)<3.2){tg=Math.min(tg,.18);break;}}
     if(tg>.3)for(const h of HOUSES){if(h.lit&&Math.abs(h.x-P.x)<(h.w||6)/2+1.5&&P.z>h.z-.5&&P.z<h.z+3){tg=Math.min(tg,.32);break;}}}
   if(lit)tg=0;
@@ -62,7 +62,7 @@ const NIGHT_LCOL=[[0,[255,206,140]],[.13,[255,172,92]],[.38,[255,140,60]],[.7,[2
 const NIGHT_ICOL=[[0,[255,220,170]],[.3,[255,198,134]],[.7,[248,170,104]],[1,[220,140,84]]];                       // an incandescent bulb, warmer than daylight
 const nightColAt=(C,u)=>{let i=1;while(i<C.length-1&&C[i][0]<u)i++;const a=C[i-1],b=C[i],k=clamp((u-a[0])/(b[0]-a[0]),0,1);return [0,1,2].map(j=>Math.round(a[1][j]+(b[1][j]-a[1][j])*k));};
 const NIGHT_GSTOPS={};
-function nightStops(C){const k=C===NIGHT_ICOL?'i':'l';if(NIGHT_GSTOPS[k])return NIGHT_GSTOPS[k];return NIGHT_GSTOPS[k]=NIGHT_FALL.map(([u,f])=>[u,f,nightColAt(C,u)]);}
+function nightStops(C){const k=C===NIGHT_ICOL?'i':C===NIGHT_LCOL?'l':(typeof LI_WCOL!=='undefined'&&C===LI_WCOL)?'w':'f';if(NIGHT_GSTOPS[k])return NIGHT_GSTOPS[k];return NIGHT_GSTOPS[k]=NIGHT_FALL.map(([u,f])=>[u,f,nightColAt(C,u)]);}
 // a pool of light on the ground (an ellipse: the ground is seen at an angle) into the light map or another layer
 function nightPool(g,x,y,r,a,C,squash){if(!(a>0)||!(r>1))return;g.save();g.translate(x,y);g.scale(1,squash||.78);const gr=g.createRadialGradient(0,0,0,0,0,r);
   for(const [u,f,c] of nightStops(C||NIGHT_LCOL))gr.addColorStop(u,`rgba(${c[0]},${c[1]},${c[2]},${Math.min(1,f*a).toFixed(3)})`);
@@ -88,13 +88,13 @@ function nightOccluders(){const now=performance.now();const a=NIGHT.occAt;
 // one shadow quad: from the edge p..q away from the light at (lx,lz), len metres (in screen pixels on the light map)
 function nightQuad(g,lx,lz,ax,az,bx,bz,len){let ux=ax-lx,uz=az-lz,ul=Math.hypot(ux,uz)||1,vx=bx-lx,vz=bz-lz,vl=Math.hypot(vx,vz)||1;
   g.moveTo(sx(ax),sz(az));g.lineTo(sx(bx),sz(bz));g.lineTo(sx(bx+vx/vl*len),sz(bz+vz/vl*len));g.lineTo(sx(ax+ux/ul*len),sz(az+uz/ul*len));g.closePath();}
-function nightLantern(lp,a,fk,DK){if(!(a>0))return;const k=a*DK;
-  const hood=!!S.flashlight,R=(hood?10.4:10)*PPM*(.985+.015*fk),cx=lp.gx+P.fx*.4*PPM,cy=lp.gy+P.fz*.32*PPM;
-  const draw=(gg)=>{nightPool(gg,cx,cy,R,1.15*k,NIGHT_LCOL);if(hood)nightLobe(gg,lp.gx,lp.gy,P.fx,P.fz,k);};
-  NIGHT.bloom={x:cx,y:cy,r:4.2*PPM,k:Math.min(1,k)};
+function nightLantern(lp,a,fk,DK,o){if(!(a>0))return;const k=a*DK;o=o||{};const beam=!!o.beam,walt=!!o.walt;   /* (t364) which light: o.walt (Walt's lantern), o.beam (the flashlight) */
+  const hood=LI_ON?liHoodOn():!!S.flashlight,R=(hood?10.4:10)*(walt?1.16:1)*PPM*(.985+.015*fk),cx=lp.gx+P.fx*.4*PPM,cy=lp.gy+P.fz*.32*PPM;
+  const draw=beam?(gg)=>{liBeamDraw(gg,lp.x,lp.y,P.fx,P.fz,k);}:(gg)=>{nightPool(gg,cx,cy,R,(walt?1.24:1.15)*k,walt?LI_WCOL:NIGHT_LCOL);if(hood)nightLobe(gg,lp.gx,lp.gy,P.fx,P.fz,k);};
+  NIGHT.bloom=beam?null:{x:cx,y:cy,r:(walt?4.6:4.2)*PPM,k:Math.min(1,k)};
   // the shadows: the light is the lantern at your hip, a little off your feet. First what throws one, then (only if anything does)
   // the lantern is drawn on its own layer, within the box it lights, the shadows cut out of it, and added to the light map
-  const h=LANTERN_HIP[P.dir]||LANTERN_HIP.S,lx=P.x+h[0]/PPM,lz=P.z+.05;const occ=nightOccluders();const reach=hood?12:10;
+  const h=LANTERN_HIP[P.dir]||LANTERN_HIP.S,lx=beam?P.x+(lp.x-sx(P.x))/PPM:P.x+h[0]/PPM,lz=beam?P.z+.05+P.fz*.25:P.z+.05;const occ=nightOccluders();const reach=beam?12.5:hood?12:10;   /* the shadows fall from where the light really is: the lantern at your hip, the flashlight in your hand */
   const long=[],low=[],restore=[],cutBox=[];
   for(const q of occ){
     if(q.t==='r'&&q.long){if(lx>q.x0-.1&&lx<q.x1+.1&&lz>q.z0-.1&&lz<q.z1+.1)continue;const cxq=clamp(lx,q.x0,q.x1),czq=clamp(lz,q.z0,q.z1);if(Math.hypot(cxq-lx,czq-lz)>reach)continue;
@@ -108,7 +108,7 @@ function nightLantern(lp,a,fk,DK){if(!(a>0))return;const k=a*DK;
       if(Math.abs(lz-(q.z0+q.z1)/2)>Math.abs(lx-(q.x0+q.x1)/2)){const zz=lz>q.z1?q.z0:q.z1;ax=q.x0;az=zz;bx=q.x1;bz=zz;}else{const xx=lx>q.x1?q.x0:q.x1;ax=xx;az=q.z0;bx=xx;bz=q.z1;}}else continue;
     const mx=(ax+bx)/2,mz=(az+bz)/2,d=Math.hypot(mx-lx,mz-lz);if(d<.35||d>8)continue;low.push([q,ax,az,bx,bz,mx,mz,d]);}
   if(!long.length&&!low.length){draw(lctx);return;}   // nothing near enough to throw a shadow: straight into the light map
-  const RB=hood?12*PPM:R;const x0=Math.max(0,Math.floor(cx-RB)),y0=Math.max(0,Math.floor(cy-RB*.8)),x1=Math.min(VW,Math.ceil(cx+RB)),y1=Math.min(VH,Math.ceil(cy+RB*.8));
+  const RB=beam?12.6*PPM:hood?12*PPM:R;const x0=Math.max(0,Math.floor(cx-RB)),y0=Math.max(0,Math.floor(cy-RB*.8)),x1=Math.min(VW,Math.ceil(cx+RB)),y1=Math.min(VH,Math.ceil(cy+RB*.8));
   if(x1<=x0||y1<=y0)return;
   if(lanternC.width!==VW||lanternC.height!==VH){lanternC.width=VW;lanternC.height=VH;}
   const g=nlx;g.globalCompositeOperation='source-over';g.globalAlpha=1;g.clearRect(x0,y0,x1-x0,y1-y0);draw(g);
@@ -150,8 +150,8 @@ function nightUIFlush(){if(!NIGHT_UIQ.length)return;const q=NIGHT_UIQ.splice(0);
   if(out&&typeof boothPos!=='undefined'){const X=sx(boothPos.x),Y=sz(boothPos.z+.5);if(X>-80&&X<VW+80&&Y>-40&&Y<VH+120){const f=.94+.06*Math.sin(t*31)*Math.sin(t*7);
     glowAt(X,Y-34,40,[196,218,255],.62*L*f);glowAt(X,Y+2,34,[176,200,240],.3*L*f);}}
   // the Hollow, held in your light: the lantern catches all of it, not just the ground at its feet (left in the dark, only its eyes show)
-  if(H.vis&&H.lit&&NIGHT.dk>0&&(out||mine)){const d=Math.hypot(P.x-H.x,P.z-H.z),rg=S.flashlight?11:8.5,k=clamp(1.3-d/rg,.35,1)*NIGHT.dk*H.alpha,X=sx(H.x),Y=sz(H.z)+(1-H.rise)*40;
-    const c=nightLanternCol(NIGHT.dk);glowAt(X,Y-34,46,c,.5*k);glowAt(X,Y-96,62,c,.42*k);}
+  if(H.vis&&H.lit&&NIGHT.dk>0&&(out||mine)){const d=Math.hypot(P.x-H.x,P.z-H.z),rg=LI_ON?liRange():S.flashlight?11:8.5,k=clamp(1.3-d/rg,.35,1)*NIGHT.dk*H.alpha,X=sx(H.x),Y=sz(H.z)+(1-H.rise)*40;
+    const c=LI_ON&&liCur()==='flash'?[214,226,252]:nightLanternCol(NIGHT.dk);glowAt(X,Y-34,46,c,.5*k);glowAt(X,Y-96,62,c,.42*k);}
   // the Tithe House's cold lamp throws its light down the door and onto the trodden ground in front
   if(out&&typeof TITHE!=='undefined'){const X=sx(TITHE.x+.6),Y=sz(TITHE.z-1.5);if(X>-200&&X<VW+200&&Y>-120&&Y<VH+260){glowAt(X+8,Y-30,70,[150,206,250],.3*L);glowAt(X,Y+44,120,[140,190,236],.26*L);}}
   // the car on the drive out: its dash lights and the spill off its own headlights keep its shape in the dark
@@ -170,15 +170,18 @@ function nightUIFlush(){if(!NIGHT_UIQ.length)return;const q=NIGHT_UIQ.splice(0);
   // friends carry lanterns too: the same round pool round each of them, and their flame
   if((out||mine)&&typeof others==='function'&&NIGHT.dk>0){const here=S.room||'';for(const p of others()){const q=p.presence;if(!q||(q.r||'')!==here||q.c==='tractor')continue;
     const rs=typeof PEER_RS!=='undefined'?PEER_RS[p.peer]:null,x=rs?rs.x:q.x,z=rs?rs.z:q.z;const X=sx(x),Y=sz(z);if(X<-320||X>VW+320||Y<-260||Y>VH+300)continue;
-    const fk=lanternFlicker(t+p.peer.length);const h=LANTERN_HIP[q.d]||LANTERN_HIP.S;
-    lanternPool(X,Y-2,8.6*PPM*(.97+.03*fk),nightLanternCol(),.9*L*(.92+.08*fk),NIGHT.dk);glowAt(X+h[0],Y+h[1]+5,18+2*fk,[255,232,170],.9*L);}}
+    const fk=lanternFlicker(t+p.peer.length);const h=LANTERN_HIP[q.d]||LANTERN_HIP.S;const li=String(q.li||'t');if(/0/.test(li))continue;
+    if(li[0]==='f'){const fa=(q.fa!=null&&isFinite(+q.fa)?+q.fa:90)*Math.PI/180,fx=Math.cos(fa),fz=Math.sin(fa),hh=LI_HAND[q.d]||LI_HAND.S;const ox=X+hh[0]+fx*7,oy=Y+hh[1]+fz*3;liBeamDraw(lctx,ox,oy,fx,fz,.85*L*NIGHT.dk);glowAt(ox,oy,7,[236,242,255],.9*L);continue;}
+    const w=li[0]==='w';lanternPool(X,Y-2,8.6*(w?1.1:1)*PPM*(.97+.03*fk*(w?.45:1)),nightLanternCol(),.9*L*(.92+.08*fk)*(w?1.08:1),NIGHT.dk);if(/h/.test(li))nightLobe(lctx,X,Y-2,Math.cos((q.fa!=null&&isFinite(+q.fa)?+q.fa:90)*Math.PI/180),Math.sin((q.fa!=null&&isFinite(+q.fa)?+q.fa:90)*Math.PI/180),.8*L*NIGHT.dk);glowAt(X+h[0],Y+h[1]+5,18+2*fk,[255,232,170],.9*L);}}
   }catch(e){}return r;};}
 // the cast's power gauge and the bite's "!" are the game talking, not the world: drawn over the dark
 {const _fm=fishMeter;fishMeter=function(){const a=arguments,th=this;nightUI(()=>_fm.apply(th,a));};const _fb=fishBang;fishBang=function(){const a=arguments,th=this;nightUI(()=>_fb.apply(th,a));};}
 // friends' lanterns hang at their belt like yours (the copy the valley sends of one of them carries none)
 {const _dp=drawPeer;drawPeer=function(x,z,look,dir,clip,t,label,bubble,alpha){const r=_dp.apply(this,arguments);
-  try{if(alpha==null&&clip!=='tractor'&&nightK>.15&&(!S.room||S.room==='mine')&&typeof lanternCanvas==='function'){const h=LANTERN_HIP[dir]||LANTERN_HIP.S;
-    const cv=lanternCanvas(true,lanternFlicker(performance.now()/1000+String(label||'').length));ctx2.drawImage(cv,Math.round(sx(x)+h[0])-3,Math.round(sz(z)+h[1])-1);}}catch(e){}return r;};}
+  try{if(alpha==null&&clip!=='tractor'&&nightK>.15&&(!S.room||S.room==='mine')&&typeof lanternCanvas==='function'){const li=String(window.__liPeer||'t'),on=!/0/.test(li),d=dir||'S';
+    if(LI_ON&&li[0]==='f'){const f=liFlashCanvas(d,on),hh=LI_HAND[d]||LI_HAND.S;ctx2.drawImage(f.c,Math.round(sx(x)+hh[0]-f.ax),Math.round(sz(z)+hh[1]-f.ay));}
+    else if(LI_ON){const h=LANTERN_HIP[d]||LANTERN_HIP.S,k=li[0]==='w'?'walt':'tin',cv=liLanternCanvas(k,d,/h/.test(li),on,on?lanternFlicker(performance.now()/1000+String(label||'').length):0);ctx2.drawImage(cv,Math.round(sx(x)+h[0])-(cv.width>>1),Math.round(sz(z)+h[1])-1-(k==='walt'?1:0));}
+    else{const h=LANTERN_HIP[dir]||LANTERN_HIP.S;const cv=lanternCanvas(true,lanternFlicker(performance.now()/1000+String(label||'').length));ctx2.drawImage(cv,Math.round(sx(x)+h[0])-3,Math.round(sz(z)+h[1])-1);}}}catch(e){}return r;};}
 // where the car is drawn this frame (the drive out has no light on its body of its own)
 {const _ds=drawSpr;drawSpr=function(name,x,y){if(name==='car_beaten')NIGHT.car={x,y,f:FRAME_NO};return _ds.apply(this,arguments);};}
 // snow in the dark is only seen where a light falls on it (the summer fireflies are their own light, and stay)

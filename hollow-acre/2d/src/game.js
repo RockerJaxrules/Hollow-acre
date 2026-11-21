@@ -50,10 +50,10 @@ let toastT=0;
 function toast(msg,dur,red){const t=ui.toast,s=String(msg),cur=t.textContent;if(cur!==s&&!(typeof u37Curl==='function'&&cur===u37Curl(s)))t.textContent=s;if(!t.classList.contains('show'))t.classList.add('show');if(t.classList.contains('red')!==!!red)t.classList.toggle('red',!!red);toastT=dur||3.2;}   // (#360) written only when it changes
 function fmtTime(h){const hh=Math.floor(h)%24,mm=Math.floor((h%1)*6)*10;const ap=hh>=12?'PM':'AM';const h12=((hh+11)%12)+1;return `${h12}:${mm<10?'0':''}${mm} ${ap}`;}
 let lastHud='';
-function updateHud(){const s=[S.day,fmtTime(S.hour),S.coins,S.seeds.turnip,S.seeds.pumpkin,S.water,S.basket.length,S.candles,Math.ceil(S.fuel),S.flasks,S.pages.length,S.sel,S.waterMax,partsIn(),partsOwned()].join('|');
+function updateHud(){const s=[S.day,fmtTime(S.hour),S.coins,S.seeds.turnip,S.seeds.pumpkin,S.water,S.basket.length,S.candles,Math.ceil(S.fuel),S.flasks,S.pages.length,S.sel,S.waterMax,partsIn(),partsOwned(),LI_ON?liSig():''].join('|');
   if(s!==lastHud){lastHud=s;ui.day.textContent='Day '+S.day;ui.time.textContent=fmtTime(S.hour);ui.coins.textContent=S.coins;ui.turnip.textContent=S.seeds.turnip;ui.pumpkin.textContent=S.seeds.pumpkin;
-    ui.water.textContent=S.water+'/'+S.waterMax;ui.basket.textContent=S.basket.length;ui.candles.textContent=S.candles;ui.oil.textContent=Math.ceil(S.fuel)+'%'+(S.flasks?' +'+S.flasks:'');
-    ui.oilChip.classList.toggle('low',S.fuel<25);ui.pages.textContent=S.pages.length+'/6';ui.parts.textContent=(S.carFixed?'4':Math.max(partsIn(),partsOwned()))+'/4';ui.seed.textContent=SEEDS[S.sel].name;}
+    ui.water.textContent=S.water+'/'+S.waterMax;ui.basket.textContent=S.basket.length;ui.candles.textContent=S.candles;ui.oil.textContent=LI_ON?liHudText():Math.ceil(S.fuel)+'%'+(S.flasks?' +'+S.flasks:'');
+    ui.oilChip.classList.toggle('low',LI_ON?liLow(25):S.fuel<25);ui.pages.textContent=S.pages.length+'/6';ui.parts.textContent=(S.carFixed?'4':Math.max(partsIn(),partsOwned()))+'/4';ui.seed.textContent=SEEDS[S.sel].name;}
   setSty(ui.bar,'width',(clamp((S.hour-6)/20,0,1)*100).toFixed(1)+'%');mindHud();}
 function objective(){const L=lit(),np=S.pages.length;
   if(S.bound)return ['Free play','The field is quiet now. Grow whatever you like.',null];
@@ -109,8 +109,8 @@ function questLine(n){const id=n.def.id,q=S.q;
   if(id==='agnes'){if(S.cat==='carried'){S.cat='home';S.parts.belt=1;cat.vis=true;cat.x=-44.6;cat.z=-8.2;SFX.meow();return 'Whiskers! Oh, you found her. Here. Harold’s fan belt, off his truck. He won’t be driving it. Nobody drives out of here.';}
     if(!q.agnes&&S.cat==='lost'){q.agnes=1;return 'You need a belt? Harold’s truck has one. I’ll trade it, but find my Whiskers first. She ran into the corn by Elias’s farm. She always runs to the corn.';}
     if(S.cat==='lost')return 'Whiskers is in the corn. Please. I can hear her at night, and sometimes I hear something answer.';}
-  if(id==='dunn'){if(!S.flashlight){if(!q.dunn){q.dunn=1;return 'Want something for that dark? I’ll trade my old service flashlight for three fish from the pond. Department budget. Don’t fish after dark.';}
-      if(basketCount('fish')>=3){takeBasket('fish',3);S.flashlight=true;SFX.coin();return 'Here. It throws light farther than that lantern. Wider, too. Use it on whatever needs it.';}return 'Three fish. The pond’s west, past the Abernathy place.';}}
+  if(id==='dunn'){if(!(LI_ON?liOwn('flash'):S.flashlight)){if(!q.dunn){q.dunn=1;return 'Want something for that dark? I’ll trade my old service flashlight for three fish from the pond. Department budget. Don’t fish after dark.';}
+      if(basketCount('fish')>=3){takeBasket('fish',3);if(LI_ON)liGain('flash');else S.flashlight=true;SFX.coin();return 'Here. It throws light a long way, but only where you point it. Batteries are at Coyle’s. Use it on whatever needs it.';}return 'Three fish. The pond’s west, past the Abernathy place.';}}
   if(id==='tobias'){if(!q.tobias){q.tobias=1;return 'Can you bring me a glowcap? The glowing mushrooms in the west woods. Mama won’t let me go past the road.';}
     if(q.tobias===1&&basketCount('mushroom')>=1){takeBasket('mushroom',1);q.tobias=2;S.coins+=12;SFX.coin();return 'Thanks! Here’s twelve coins. Can I tell you a secret? Ruth Abernathy was the Tithe last year. She still comes to your well when the sun goes down. She’s looking for her mama.';}}
   if(id==='hale'&&!q.hale&&S.pages.length>=3){q.hale=1;S.candles++;return 'You’ve been reading his diary. I can see it on you. He left this with me. One Ward Candle. Don’t tell anyone where you got it.';}
@@ -217,7 +217,7 @@ function sleep(){if(S.mode!=='play')return;S.mode='trans';fade(1);if(!S.bound&&i
 function collapse(){if(S.mode!=='play')return;S.mode='trans';fade(1);setTimeout(()=>{const lost=Math.min(S.coins,8);S.coins-=lost;newDay(`You collapsed in the dirt at 2 AM. Something dragged you home by the ankle.${lost?' '+lost+' coins lost.':''}`);fade(0);S.mode='play';},1200);}
 /* ================= the Hollow ================= */
 let sputT=0,sputCD=6,darkT=0;
-const lanternOn=()=>S.fuel>0&&sputT<=0;
+const lanternOn=()=>(LI_ON?liPowered():S.fuel>0)&&sputT<=0;   // (t364: the light you carry: oil for a lantern, the battery for the flashlight)
 function spawnHollow(near,watch){const back=Math.atan2(-P.fz,-P.fx);
   for(let k=0;k<14;k++){const a=back+(rand()-.5)*1.8,d=near?lerp(9,12,rand()):lerp(13,17,rand());const x=P.x+Math.cos(a)*d,z=P.z+Math.sin(a)*d;H.x=clamp(x,B.x0+2,B.x1-2);H.z=clamp(z,B.z0+2,B.z1-2);if(x>B.x0+2&&x<B.x1-2&&z>B.z0+2&&z<B.z1-2)break;}
   collide(H,.4);H.state=watch?'watch':'stalk';H.watchT=watch?9:0;H.burn=0;H.stung=false;H.vis=true;H.alpha=1;H.rise=0;H.crawl=0;}
@@ -228,24 +228,24 @@ function hollowUpdate(dt){H.t+=dt;H.ft+=dt;if(H.grace>0)H.grace-=dt;
   if(H.state==='lunge'){H.lungeT-=dt;H.clip='scream';if(H.lungeT<=0){H.state='flee';H.fleeT=.9;H.grace=3;}return 2;}
   if(H.state==='flee'){H.fleeT-=dt;H.alpha=clamp(H.fleeT/.9,0,1);if(H.fleeT<=0){H.state='gone';H.timer=8+rand()*6;H.vis=false;}return 99;}
   const dx=P.x-H.x,dz=P.z-H.z,d=Math.hypot(dx,dz)||.01;const dot=(-dx*P.fx-dz*P.fz)/d;
-  const range=S.flashlight?11:8.5,cone=S.flashlight?.72:.6;
-  H.lit=lanternOn()&&d<range&&dot>Math.cos(cone);H.rise=Math.min(1,H.rise+dt*1.2);H.dir=dirOf(dx,dz);
+  const LC=LI_ON?liCatch(d,dot):null,range=LC?LC.range:(S.flashlight?11:8.5),cone=S.flashlight?.72:.6;   // (t364) the light you carry: a lantern's round pool, the flashlight's cone
+  H.lit=LC?LC.lit&&!(typeof hzBlocked==='function'&&hzBlocked(H.x,H.z)):lanternOn()&&d<range&&dot>Math.cos(cone);   // (and not behind a house, a wall or a trunk: in the shadow it throws)H.rise=Math.min(1,H.rise+dt*1.2);H.dir=dirOf(dx,dz);
   if(H.state==='watch'){H.watchT-=dt;H.clip=H.lit?'frozen':'idle';
-    if(H.lit&&!H.stung&&d<range){H.stung=true;SFX.stinger();cam.shake=.3;if(!S.first.seen){S.first.seen=true;toast('It is standing there. Turn and hold the lantern toward it. It cannot move while you look at it.',3.6,true);}}
+    if(H.lit&&!H.stung&&d<range){H.stung=true;SFX.stinger();cam.shake=.3;if(!S.first.seen){S.first.seen=true;toast('It is standing there. Keep it in your light. It cannot move while your light is on it.',3.6,true);}}
     if(H.watchT<=0||d<6||(H.stung&&!H.lit&&H.watchT<6)){H.state='stalk';if(!H.lit){H.x=P.x-P.fx*(9+rand()*3);H.z=P.z-P.fz*(9+rand()*3);collide(H,.4);H.rise=.4;}}
-  }else if(H.lit){H.burn+=dt*(S.flashlight?1.3:1);H.crawl=Math.max(0,H.crawl-dt*.6);H.clip='frozen';
-    if(!H.stung&&d<range){H.stung=true;SFX.stinger();cam.shake=.35;if(!S.first.seen){S.first.seen=true;toast('Face it with the lantern. It cannot move while you look at it.',3.2,true);}}
+  }else if(H.lit){H.burn+=dt*(LC?LC.burn:S.flashlight?1.3:1);H.crawl=Math.max(0,H.crawl-dt*.6);H.clip='frozen';
+    if(!H.stung&&d<range){H.stung=true;SFX.stinger();cam.shake=.35;if(!S.first.seen){S.first.seen=true;toast('Keep it in your light. It cannot move while your light is on it.',3.2,true);}}
     if(H.burn>2.2){H.state='flee';H.fleeT=.9;H.clip='scream';H.ft=0;SFX.shriek(0);burst(H.x,H.z,30,'#ff5020',2,.9,4);}
   }else{H.burn=Math.max(0,H.burn-dt*.4);const wantCrawl=(d<8&&S.day>=2)||d>14?1:0;
     if(wantCrawl&&H.crawl<.1&&d<8&&!S.night.crawl){S.night.crawl=1;SFX.shriek(0);toast('It drops onto all fours.',2.2,true);}
     H.crawl=lerp(H.crawl,wantCrawl,dt*2.5);H.clip=H.crawl>.5?'crawl':'walk';
     const lurch=.45+.55*Math.abs(Math.sin(H.t*3.1));let spd=H.spd*(1+H.crawl*.55)*lurch*(d<6?1.25:1);if(d>16)spd*=1.6;if(inCorn(H.x,H.z))spd*=1.15;
-    H.x+=dx/d*spd*dt;H.z+=dz/d*spd*dt;collide(H,.4);
-    H.skipT-=dt;if(H.skipT<=0){H.skipT=4+rand()*4;if(!onScreen(H.x,H.z-1.5,-10)&&d>6&&d<15){H.x+=dx/d*3;H.z+=dz/d*3;collide(H,.4);SFX.breath(0);}}
-    H.stepT-=dt*lurch*(1+H.crawl);if(H.stepT<=0&&d<15){H.stepT=.55;SFX.thud(clamp(-dx/10,-1,1),.06+.25*(1-d/15));}
-    H.whisperT-=dt;if(H.whisperT<=0&&d<14&&dot<.2){SFX.whisper(clamp(-dx/10,-1,1));H.whisperT=4+rand()*4;}
+    H.sneak=false;if(!(LI_ON&&typeof hzSneak==='function'&&hzSneak(dt,d,spd))){H.x+=dx/d*spd*dt;H.z+=dz/d*spd*dt;collide(H,.4);}   // (t364) at night it sneaks: see hollow364.js
+    H.skipT-=dt;if(H.skipT<=0){H.skipT=4+rand()*4;if(!onScreen(H.x,H.z-1.5,-10)&&d>(H.sneak?12:6)&&d<15){H.x+=dx/d*3;H.z+=dz/d*3;collide(H,.4);SFX.breath(0);}}
+    H.stepT-=dt*lurch*(1+H.crawl);if(H.stepT<=0&&d<15&&!(H.sneak&&!H.rush)){H.stepT=.55;SFX.thud(clamp(-dx/10,-1,1),.06+.25*(1-d/15));}
+    H.whisperT-=dt;if(H.whisperT<=0&&d<14&&dot<.2){SFX.whisper(clamp(-dx/10,-1,1));H.whisperT=H.sneak?12+rand()*12:4+rand()*4;}
     H.breathT-=dt;if(H.breathT<=0&&d<5&&dot<0){SFX.breath(0);H.breathT=2.6;}
-    sputCD-=dt;if(sputCD<=0&&d<9&&S.fuel>0){sputCD=10+rand()*8;sputT=1.1+rand()*.6;SFX.sputter();H.ambush=sputT-.15;}
+    sputCD-=dt;if(sputCD<=0&&d<(H.sneak?12.5:9)&&(LI_ON?liPowered():S.fuel>0)){sputCD=10+rand()*8;sputT=1.1+rand()*.6;SFX.sputter();H.ambush=sputT-.15;}
     if(H.ambush>0){H.ambush-=dt;if(H.ambush<=0&&H.grace<=0){H.ambush=0;jumpScare('dark');return 2;}}
     const back=(-dx*P.fx-dz*P.fz)/d<-.5;
     if(P.dir!==lastDir&&d<7&&back===false&&H.grace<=0&&S.day>=1&&!S.night.turn&&dot>.7){S.night.turn=1;jumpScare('turn');return 2;}
@@ -306,7 +306,7 @@ function update(dt){slamUpdate(dt);mindUpdate(dt);lifeUpdate(dt);
   if(S.hour>=26){S.bound?newDay('Day '+(S.day+1)+'. You slept in the dirt, and nothing came.'):collapse();}
   if(!S.foundCabin&&Math.hypot(P.x-doorPos.x,P.z-doorPos.z)<9){S.foundCabin=true;toast('Grandpa’s cabin. The door is shut. There’s a note nailed to it.',3);}
   if(!S.visitedTown&&P.x>30){S.visitedTown=true;toast('Marrow Hollow. Every curtain moves as you pass.',3.2);}
-  if(isNight()&&!S.bound){S.fuel=Math.max(0,S.fuel-dt*1.25);if(S.fuel<=0){darkT+=dt;if(darkT>2.4&&S.flasks>0){S.flasks--;S.fuel=100;darkT=0;SFX.refill();toast('You refill the lantern with shaking hands.',2.2);}
+  if(isNight()&&!S.bound){S.fuel=Math.max(0,S.fuel-dt*1.25*(LI_ON?liFuelRate():1));if(S.fuel<=0){darkT+=dt;if(darkT>2.4&&S.flasks>0){S.flasks--;S.fuel=100;darkT=0;SFX.refill();toast('You refill the lantern with shaking hands.',2.2);}
     else if(darkT>.05&&darkT<.1&&S.flasks===0)toast('Your lantern is dry.',2.4,true);}}
   if(sputT>0)sputT-=dt;
   // movement
@@ -328,8 +328,8 @@ function update(dt){slamUpdate(dt);mindUpdate(dt);lifeUpdate(dt);
   for(const t of tiles){const c=t.crop;if(!c)continue;c.pop=Math.min(1,c.pop+dt*3);if(c.stage>=3||!c.watered)continue;c.growth+=dt*TIME_K();const ns=Math.min(3,Math.floor(c.growth/SEEDS[c.type].grow));
     if(ns!==c.stage){c.stage=ns;c.pop=0;burst(t.x,t.z,5,'#bfe08a',.8,.6,1.5);if(ns===3)c.watered=false;}}
   const d=hollowUpdate(dt);
-  danger=H.state==='stalk'||H.state==='watch'?clamp((11-d)/9,0,1):0;
-  if(d<12&&H.state==='stalk'){heartT-=dt;if(heartT<=0){SFX.heart(.25+danger*.5);heartT=lerp(1.05,.3,danger);}}
+  danger=(H.state==='stalk'||H.state==='watch')&&!(H.sneak&&!H.lit&&d>3.2)?clamp((11-d)/9,0,1):0;   // (t364) sneaking in the dark it gives itself away by sounds only, until it's on you
+  if(d<(H.sneak&&!H.lit?4.5:12)&&H.state==='stalk'){heartT-=dt;if(heartT<=0){SFX.heart(.25+danger*.5);heartT=lerp(1.05,.3,danger);}}
   // people
   const night=S.hour>=20&&!S.bound;
   for(const n of npcs){if(!n.vis)continue;n.t+=dt;const dx=P.x-n.x,dz=P.z-n.z,dd=Math.hypot(dx,dz);let sp=0;

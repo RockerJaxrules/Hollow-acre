@@ -100,11 +100,11 @@ S4.quench=(sp,K)=>{const g=K.g,TX=200,TY=118,TW=96,L=56,TANG=10;const st={d:0,he
       const wl=TY+2;K.px(TX-TW/2,wl,TW,8,'#2a4a6a');for(let x=0;x<TW;x+=3)K.px(TX-TW/2+x,wl+Math.round(Math.sin(x*.4+t*6)*st.boil),2,1,'#4a7aa0');
       const by=wl-L+Math.round(st.d*L*.95)+Math.round(Math.sin(t*40)*st.boil*1.2);for(let i=0;i<L;i++){const y=by+i,w=i>L-10?Math.max(1,6-(i-L+10)*.6):6;if(y>=wl+1){K.pa(TX-3,y,w,1,heatCol(st.heat[i]),.55);continue;}K.px(TX-3,y,w,1,heatCol(st.heat[i]));K.px(TX-3,y,1,1,heatCol(Math.min(1,st.heat[i]+.15)));}
       for(let i=0;i<Math.round(st.boil*14);i++){const bx=TX-14+((i*29+Math.floor(t*20)*7)%28),ph=(t*3+i*.3)%1;K.px(bx,wl+2+ph*6,2,2,'#c8e0f0');}
-      K.px(TX-2,by-18,4,18,I[3]);M4.rot(g,M4F.tongs(),TX,by-18,-Math.PI/2,0,7);m4grip(K,TX,by-58,-Math.PI/2,{side:1,arm:-1.35});
+      K.px(TX-2,by-18,4,18,I[3]);{const ta=.18;M4.rot(g,M4F.tongs(),TX-1,by-16,ta,0,7);const [hx,hy]=M4.tr(TX-1,by-16,ta,55,0);m4grip(K,hx,hy,ta,{side:1});}
       if(st.boil>.15)K.glow(TX,wl,40,'255,255,255',st.boil*.15);},
     hud(t){const hot=hotB();K.label('HISS',286,21,'#f4ecd8');K.gauge(282,30,8,80,0,.18,Math.min(1,st.boil),{zone:'#2c5a1c'});K.meter(1-hot,1-Math.min(1,st.warp*1.6));
       if(st.d>.05&&st.d<.85&&st.warp>.05&&Math.floor(t*5)%2)K.label('ALL THE WAY IN',160,24,'#e8b030');if(st.in&&st.boil<.05&&st.d>.9&&Math.floor(t*3)%2)K.label('QUIET: LIFT IT OUT',160,34,'#9be07a');},
-    auto(dt,AP){const a=m4ai(this,AP,dt);const hot=hotB();m4hold(a,st.t>.5&&(hot>.12||st.boil>.04));AP.hand=[TX+12,40];AP.press=a.down;},
+    auto(dt,AP){const a=m4ai(this,AP,dt);const hot=hotB();m4hold(a,st.t>.5&&(hot>.12||st.boil>.04));AP.hand=[TX+50,72];AP.press=a.down;},
     quiet(){hiss&&hiss.set(0);},stop(){hiss&&hiss.stop();hiss=null;}};};
 // ---------------------------------------------------------------- GRIND: hold the edge to the turning stone at the right angle; the wheel kicks, so keep correcting
 S4.grind=(sp,K)=>{const g=K.g,WX=150,WY=84,R=34,A0=sp.angle||.42,TOL=.11,wheel=M4F.wheel();
@@ -148,7 +148,7 @@ S4.skim=(sp,K)=>{const g=K.g,CX=160,CY=92,RX=70,RY=22,N=sp.n||5,COL=sp.col||['#f
     draw(t){const S=CA_P.stone;K.ell(CX,CY+16,RX+12,RY+8,'#1a1614');for(let y=0;y<26;y++){const w=RX+10-y*.2;K.px(CX-w,CY+y-4,w*2,1,S[y<3?4:y<20?2:1]);}
       K.ell(CX,CY,RX+8,RY+6,S[5]);K.ell(CX,CY,RX+4,RY+3,S[1]);K.ell(CX,CY,RX,RY,COL[0]);for(let k=0;k<14;k++){const a=k*.45+t*.3,r=.3+((k*7)%5)/7;K.ell(CX+Math.cos(a)*RX*r*.8,CY+Math.sin(a)*RY*r*.8,8,2,COL[1]);}K.ell(CX-18,CY-6,24,4,COL[2]);K.glow(CX,CY,90,'255,190,90',.4);
       for(const l of st.lumps){const up=Math.min(1,l.life/.35),sink=Math.max(0,(l.life-(l.max-.6))/.6);const r=l.sz*up*(1-sink*.6);if(r<.5)continue;K.ball(l.x,l.y,Math.max(1,Math.round(r)),['#1a1816','#3a3430','#5a544e','#7a746c'],Math.max(1,Math.round(r*.55)));if(sink>0)K.pa(l.x-r,l.y-1,r*2,2,COL[0],sink);}
-      const sx=st.sk?st.sk.x:(st.px!=null?st.px:CX+RX-16),sy=st.sk?st.sk.y:(st.py!=null?st.py:CY-4);const dip=st.sk?Math.sin(Math.PI*st.sk.t/.35)*4:0;const hx=Math.min(276,sx+42),hy=sy-36;K.line(sx+4,sy-4+dip,hx,hy,'#1a1c22',4);K.line(sx+4,sy-4+dip,hx,hy,CA_P.iron[4],2);K.line(sx+4,sy-5+dip,hx,hy-1,CA_P.iron[6],1);K.ell(sx,sy+dip,7,3,'#1a1c22');K.ell(sx,sy+dip,6,2,CA_P.iron[5]);K.ell(sx,sy-1+dip,4,1,CA_P.iron[3]);{const ha=Math.atan2(hy-(sy-4+dip),hx-(sx+4));m4grip(K,hx,hy,ha,{side:1,arm:ha-.25});}},
+      const sx=st.sk?st.sk.x:(st.px!=null?st.px:CX+RX-16),sy=st.sk?st.sk.y:(st.py!=null?st.py:CY-4);const dip=st.sk?Math.sin(Math.PI*st.sk.t/.35)*4:0;const hx=Math.min(282,sx+40),hy=sy+22;   /* (t364) the skimmer's handle toward you: your hand below the pot's rim, not over it */K.line(sx+4,sy-4+dip,hx,hy,'#1a1c22',4);K.line(sx+4,sy-4+dip,hx,hy,CA_P.iron[4],2);K.line(sx+4,sy-5+dip,hx,hy-1,CA_P.iron[6],1);K.ell(sx,sy+dip,7,3,'#1a1c22');K.ell(sx,sy+dip,6,2,CA_P.iron[5]);K.ell(sx,sy-1+dip,4,1,CA_P.iron[3]);{const ha=Math.atan2(hy-(sy-4+dip),hx-(sx+4));m4grip(K,hx,hy,ha,{side:-1});}},
     hud(){K.label('SLAG '+st.got+'/'+N,30,20,'#f4ecd8','l');K.meter(st.got/N);},
     auto(dt,AP){const a=m4ai(this,AP,dt);const l=st.lumps.filter(l=>l.life>.5).sort((a,b)=>b.life-a.life)[0];if(l&&!st.sk&&!a.down){if(this._w==null)this._w=.2;this._w-=dt;if(this._w<=0){m4move(a,l.x,l.y);m4tap(a);this._w=.25;}}AP.hand=[a.x+3,a.y-12];AP.press=a.down;},
     quiet(){},stop(){}};};
@@ -191,7 +191,7 @@ S4.links=(sp,K)=>{const g=K.g,N=sp.n||8,COLS=8;const st={i:0,ph:0,sp:2.2,done_:[
       for(let i=0;i<Math.min(N,st.done_.length);i++){const [x,y]=ringAt(i);g.strokeStyle=st.done_[i]>.6?CA_P.iron[6]:CA_P.iron[4];g.lineWidth=2;g.beginPath();g.ellipse(x,y,6,5,0,0,6.29);g.stroke();if(st.done_[i]<.6){K.px(x+5,y-1,2,2,'#2a2018');}}
       if(st.i<N){const [x,y]=ringAt(st.i);const gap=st.close>0?(st.gap||0)*(1-st.close):Math.abs(Math.sin(st.ph))*6;g.strokeStyle=CA_P.iron[7];g.lineWidth=2;g.beginPath();g.ellipse(x,y,6,5,0,-Math.PI/2+gap*.09,Math.PI*1.5-gap*.09);g.stroke();
         K.px(x-1-gap*.5,y-7,2,3,CA_P.iron[7]);K.px(x+gap*.5,y-7,2,3,CA_P.iron[5]);
-        for(const s of [-1,1]){const px=x+s*(5+gap*.5),py=y-10;K.line(px,py,px+s*18,py-26,CA_P.iron[3],3);K.px(px+s*18-4,py-34,8,10,'#b8402a');const ha=Math.atan2(-26,s*18);m4grip(K,px+s*18,py-30,ha,{side:s,arm:ha+s*.15});}}},
+        for(const s of [-1,1]){const px=x+s*(1+gap*.5),py=y-6;K.line(px,py,px+s*16,py+30,CA_P.iron[3],3);K.line(px,py,px+s*16,py+30,CA_P.iron[5],1);K.px(px+s*16-4,py+28,8,11,'#b8402a');K.px(px+s*16-4,py+28,8,1,'#d8604a');const ha=Math.atan2(30,s*16);m4grip(K,px+s*16,py+33,ha,{side:-s,armSide:s});}}},
     hud(){K.label('RING '+Math.min(N,st.i+1)+'/'+N,30,20,'#f4ecd8','l');K.meter(st.done_.length/N,st.done_.length?M4.avg(st.done_):1);},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(!st.close&&st.t>.5&&Math.abs(Math.sin(st.ph+st.sp*.03))<.12)m4tap(a);const [x,y]=ringAt(Math.min(N-1,st.i));AP.hand=[x+10,y+14];AP.press=a.down;},
     quiet(){},stop(){}};};

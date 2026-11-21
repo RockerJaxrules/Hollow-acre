@@ -10,7 +10,7 @@ renderShop=function(){_renderShop();const rows=vendors[shopV].rows();const els=[
 vendors.hollis={name:'Pruitt’s Garage',sub:'"I fix things. Sometimes they stay fixed."',rows:()=>{const fr=S.freeUpgrades;return [
   {k:'hoe',name:'Sharpened hoe',desc:S.hoe>1?'Already sharp.':'Tills three tiles in a row with each swing.',price:fr?0:40,can:S.hoe<2,buy(){S.hoe=2;}},
   {k:'spr',name:'Brass sprinkler',desc:S.sprinklers>=4?'Your field has all it can use.':`Waters a patch of field every morning. You have ${S.sprinklers}/4.`,price:fr?0:45,can:S.sprinklers<4,buy(){S.sprinklers++;}},
-  {k:'hood',name:'Lantern hood',desc:S.flashlight?'Your light is already focused.':'A reflector for your lantern. Throws the light much further.',price:fr?0:60,can:!S.flashlight,buy(){S.flashlight=true;}}];}};
+  {k:'hood',name:'Lantern hood',desc:(LI_ON?liOwn('hood'):S.flashlight)?'You already have one.':'A tin reflector for a lantern. Throws its light out ahead of you.',price:fr?0:60,can:!(LI_ON?liOwn('hood'):S.flashlight),buy(){if(LI_ON)liGain('hood');else S.flashlight=true;}}];}};
 vendors.plans={name:'Farm Plans',sub:'Grandpa’s plans, pinned up in his careful block capitals.',rows:()=>[
   {k:'coop',name:'Chicken coop',desc:S.coop?'Built. The hens lay every morning.':'A proper coop for the hens. They’ll lay eggs every morning. Eggs sell for 8.',price:60,can:!S.coop,buy(){S.coop=true;rebuildFarm();toast('You build the coop. The hens go straight in, as if they’d been waiting.',3);}},
   {k:'lamps',name:'Field lanterns',desc:S.fieldLamps?'Lit every night.':'Two lanterns on posts by the field gate. A lit place to stand when it gets dark.',price:45,can:!S.fieldLamps,buy(){S.fieldLamps=true;rebuildFarm();}}]};

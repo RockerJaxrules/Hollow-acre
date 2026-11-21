@@ -44,10 +44,10 @@ const MPV={px:null,pz:null,vx:0,vz:0,sig:'',seq:0,an:null};
 function coopSend(force){const r=CO.room;if(!r||S.mode==='title'||S.mode==='load')return;const now=performance.now();if(!force&&now-CO.last<100)return;
   const vx=+MPV.vx.toFixed(2),vz=+MPV.vz.toFixed(2),moving=Math.abs(vx)+Math.abs(vz)>.15;
   const rf=typeof rodFrame==='function'&&!P.anim?rodFrame():-1;
-  const st={v:2,n:NAME()||'Farmhand',x:+P.x.toFixed(2),z:+P.z.toFixed(2),vx:moving?vx:0,vz:moving?vz:0,d:P.dir,c:(typeof TR!=='undefined'&&TR.ride)?'tractor':P.anim?'work':(moving?'walk':'idle'),r:S.room||'',day:S.day,lk:lookMini(),rf,an:MPV.an,fa:Math.round(Math.atan2(P.fz||0,P.fx||0)*180/Math.PI),pid:typeof myPid==='function'?myPid():''};
+  const st={v:2,n:NAME()||'Farmhand',x:+P.x.toFixed(2),z:+P.z.toFixed(2),vx:moving?vx:0,vz:moving?vz:0,d:P.dir,c:(typeof TR!=='undefined'&&TR.ride)?'tractor':P.anim?'work':(moving?'walk':'idle'),r:S.room||'',day:S.day,lk:lookMini(),rf,an:MPV.an,fa:Math.round(Math.atan2(P.fz||0,P.fx||0)*180/Math.PI),pid:typeof myPid==='function'?myPid():'',li:LI_ON?liCode():''};
   if(CO.me&&CO.me.s)Object.assign(st,{s:CO.me.s,st:CO.me.st});if(CO.me&&CO.me.e)Object.assign(st,{e:CO.me.e,et:CO.me.et});
   // nothing new: only a heartbeat every two seconds
-  const sig=[st.x,st.z,st.vx,st.vz,st.d,st.fa,st.c,st.r,st.rf,st.an&&st.an.s,st.s,st.e,st.day].join('|');if(!force&&sig===MPV.sig&&now-CO.last<2000)return;
+  const sig=[st.x,st.z,st.vx,st.vz,st.d,st.fa,st.c,st.r,st.rf,st.an&&st.an.s,st.s,st.e,st.day,st.li].join('|');if(!force&&sig===MPV.sig&&now-CO.last<2000)return;
   MPV.sig=sig;CO.last=now;r.presence(st).catch(()=>{});}
 // how fast you're really moving, measured frame to frame and smoothed, so friends can carry you forward between messages
 function mpTrack(dt){if(dt<=0)return;if(MPV.px==null||Math.hypot(P.x-MPV.px,P.z-MPV.pz)>3){MPV.px=P.x;MPV.pz=P.z;MPV.vx=MPV.vz=0;return;}
@@ -110,7 +110,7 @@ function drawPeer(x,z,look,dir,clip,t,label,bubble,alpha,rs,rf){dir=dir||'S';con
 {const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld(D,t);const here=S.room||'';const now=Date.now();
   for(const p of others()){const q=p.presence;if((q.r||'')!==here)continue;const rs=PEER_RS[p.peer];const x=rs?rs.x:q.x,z=rs?rs.z:q.z;if(!onScreen(x,z,90))continue;
     const bub=q.s&&now-(q.st||0)<6000?String(q.s).slice(0,120):(q.e&&now-(q.et||0)<2500?({wave:'*waves*',heart:'*smiles*',nod:'*nods*',scared:'*flinches*',laugh:'*laughs*'}[q.e]||''):'');
-    D.push({z,mind:1,draw(){drawPeer(x,z,q.lk,q.d,q.c,t,clean(q.n),bub,null,rs,+q.rf);}});}
+    D.push({z,mind:1,draw(){window.__liPeer=q.li||'';try{drawPeer(x,z,q.lk,q.d,q.c,t,clean(q.n),bub,null,rs,+q.rf);}finally{window.__liPeer='';}}});}
   if(CO.fake&&!S.room){const f=CO.fake;D.push({z:f.z,mind:1,draw(){drawPeer(f.x,f.z,f.look,dirOf(P.x-f.x,P.z-f.z),'idle',0,f.n,null,.9);}});}
   // your own words over your head
   if(CO.me&&CO.me.s&&now-CO.me.st<6000&&CO.room){const s=CO.me.s;D.push({z:P.z+.01,mind:1,draw(){nightUI(()=>{const X=sx(P.x),Y=sz(P.z);ctx2.font='11px monospace';ctx2.textAlign='center';const w=Math.min(200,ctx2.measureText(s).width+12);ctx2.fillStyle='#f4e6c8';ctx2.fillRect(Math.round(X-w/2),Math.round(Y-100),Math.round(w),17);ctx2.fillStyle='#2a1a0e';ctx2.fillText(s.slice(0,30),Math.round(X),Math.round(Y-88));ctx2.textAlign='left';});}});}};}

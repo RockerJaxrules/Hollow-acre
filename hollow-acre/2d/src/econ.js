@@ -90,7 +90,7 @@ vendors.hollis.rows=()=>{const fr=S.freeUpgrades,T=S.tools;
   up('axe',[{d:'Splits stumps in one swing.',p:40,n:{iron:3},b(){T.axe=2;}},
             {d:'Fells a tree in two swings. The wood it cuts is warm.',p:200,n:{gem:2,iron:4},b(){T.axe=3;}}]),
   {k:'spr',name:'Brass sprinkler',desc:S.sprinklers>=4?'Your field has all it can use.':`Waters a patch of field every morning. You have ${S.sprinklers}/4.`,price:fr?0:45,can:S.sprinklers<4,need:{copper:2,iron:1},buy(){S.sprinklers++;}},
-  {k:'hood',name:'Lantern hood',desc:S.flashlight?'Your light is already focused.':'A reflector for your lantern. Throws the light much further.',price:fr?0:60,can:!S.flashlight,need:{iron:2},buy(){S.flashlight=true;}}];};
+  {k:'hood',name:'Lantern hood',desc:(LI_ON?liOwn('hood'):S.flashlight)?'You already have one.':'A tin reflector for a lantern, the tin one or a brass one. Throws its light out ahead of you. No use on a flashlight.',price:fr?0:60,can:!(LI_ON?liOwn('hood'):S.flashlight),need:{iron:2},buy(){if(LI_ON)liGain('hood');else S.flashlight=true;}}];};
 {const _mae=vendors.mae.rows;vendors.mae.rows=()=>{const r=_mae();r.push({k:'bread',name:'Loaf of bread',desc:'+30 energy.',price:10,can:true,buy(){addInv('bread');}},{k:'stew',name:'Bowl of stew',desc:'+50 energy, +15 health. “You look peaky, dear.”',price:25,can:true,buy(){addInv('stew');}},
   {k:'sellgem',name:'Sell Hollow-glass',desc:`Caitlyn buys them without looking at them. You have ${inv('gem')}.`,price:0,can:inv('gem')>0,btn:'Sell 40',buy(){takeInv('gem');S.coins+=40;}});return r;};}
 // ---- cooking at Grandpa's stove

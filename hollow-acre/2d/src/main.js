@@ -233,7 +233,9 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
     if(S.hour>=19.5&&!S.bound)glowAt(sx(crossPos.x+.6)+12,sz(crossPos.z+2.6)-22,46,[110,255,150],.7*L);
     if(phone.ring&&Math.sin(t*20)>0)glowAt(sx(boothPos.x),sz(boothPos.z),60,[200,230,255],.7);
     // the player's lantern: a round, warm pool of light that flickers with the flame (no beam; it's a lantern, not a torch)
-    if(S.mode!=='title'){const on=lanternOn()?1:0;const sput=sputT>0?(Math.random()<.5?.15:.6):1;const fuel=S.fuel<15?(.6+.4*Math.random()):1;const k=L*sput*fuel*(on?1:.12-.09*DK);
+    // (t364) the light you carry, lantern or flashlight, its pool or its beam and its shadows: see lights364.js
+    if(S.mode!=='title'&&LI_ON)liPlayerLight(t,L,DK);
+    else if(S.mode!=='title'){const on=lanternOn()?1:0;const sput=sputT>0?(Math.random()<.5?.15:.6):1;const fuel=S.fuel<15?(.6+.4*Math.random()):1;const k=L*sput*fuel*(on?1:.12-.09*DK);
       const lp=lanternPos();const fk=lanternFlicker(t);const R=(S.flashlight?11:8.5)*PPM*(.97+.03*fk);
       // (t362) in the dark: a flame's falloff, shadows thrown by houses, trees, the car and fences, the hood's long lobe (night362.js)
       if(DK>0)nightLantern(lp,k*(.92+.08*fk),fk,DK);
@@ -244,7 +246,7 @@ function render(dt,now){const t=now/1000;FRAME_NO++;
       // the flame and the glass
       glowAt(lp.x,lp.y,18+2*fk,[255,232,170],.95*k);glowAt(lp.x,lp.y,46,[255,170,80],.55*k*(.85+.15*fk));}
     lifeLight(t,L);if(cine&&cine.light)cine.light(L);interiorLight(L);
-    if(H.vis&&H.dir!=='N'){const cl=H.clip,side=H.dir==='E'?1:H.dir==='W'?-1:0;const eh=cl==='crawl'?(side?46:34):cl==='lunge'?128:146;glowAt(sx(H.x)+side*9,sz(H.z)+(1-H.rise)*40-eh,10,[255,90,20],.9*H.alpha);}   // the eyes of the new, taller Hollow
+    if(H.vis&&H.dir!=='N'&&(typeof hzEyesOn!=='function'||hzEyesOn())){const cl=H.clip,side=H.dir==='E'?1:H.dir==='W'?-1:0;const eh=cl==='crawl'?(side?46:34):cl==='lunge'?128:146;glowAt(sx(H.x)+side*9,sz(H.z)+(1-H.rise)*40-eh,10,[255,90,20],.9*H.alpha);}   // the eyes of the new, taller Hollow
     for(const g of ghosts)if(g.t>0)glowAt(sx(g.x),sz(g.z)-146,8,[255,90,20],g.t*2);}
   if(flashT>0){lctx.globalCompositeOperation='lighter';lctx.fillStyle=`rgba(210,220,255,${clamp(flashT,0,1)})`;lctx.fillRect(0,0,VW,VH);}
   ctx2.globalCompositeOperation='multiply';ctx2.drawImage(lightC,0,0);ctx2.globalCompositeOperation='source-over';

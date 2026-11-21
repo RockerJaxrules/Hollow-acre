@@ -132,7 +132,7 @@ function openGift(n){if(!n)return;const id=n.def.id,P_=PEOPLE[id];const kinds=[.
       const r=P_.loves.includes(k)?'love':P_.likes.includes(k)?'like':P_.hates.includes(k)?'hate':'meh';addFriend(id,{love:80,like:45,hate:-30,meh:20}[r]);SFX[r==='hate'?'deny':'coin']();
       $('talkLine').innerHTML=`<q>${P_.gift[r]}</q>`;row.remove();$('talkGift').hidden=true;updateHud();});row.appendChild(b);}
   acts.before(row);}
-function socialReward(r){if(r==='lantern'){S.flashlight=true;toast('Walt’s lantern: your light reaches further now.',3);}
+function socialReward(r){if(r==='lantern'){if(LI_ON)liGain('walt');else{S.flashlight=true;toast('Walt’s lantern: your light reaches further now.',3);}}
   if(r==='tools'){S.freeUpgrades=true;toast('Hollis will upgrade your tools for free.',3);}
   if(r==='part'){const miss=Object.keys(S.parts).find(k=>!S.parts[k]);if(miss){S.parts[miss]=1;toast('A car part, from the Sheriff’s own cruiser.',3);}}}
 // ---------- discoveries

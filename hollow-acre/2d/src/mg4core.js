@@ -100,7 +100,7 @@ function mg4Kit(g){const W=320,H=180;const K=caKit(g,W,H);K.g=g;K.W=W;K.H=H;
   K.textO=(t,x,y,c,sc)=>{sc=sc||1;for(const [dx,dy] of [[-1,0],[1,0],[0,-1],[0,1],[1,1]]){const u=String(t).toUpperCase(),w=u.length*4*sc;let X=Math.round(x-w/2)+dx*sc;for(const ch of u){const f=PXFONT[ch]||PXFONT[' '];for(let j=0;j<5;j++)for(let i=0;i<3;i++)if(f[j*3+i]==='1')K.px(X+i*sc,y+dy*sc+j*sc,sc,sc,'#1a0c12');X+=4*sc;}}
     const u=String(t).toUpperCase(),w=u.length*4*sc;let X=Math.round(x-w/2);for(const ch of u){const f=PXFONT[ch]||PXFONT[' '];for(let j=0;j<5;j++)for(let i=0;i<3;i++)if(f[j*3+i]==='1')K.px(X+i*sc,y+j*sc,sc,sc,c);X+=4*sc;}};
   // a label that reads on any wall: the same letters on a dark rounded strip
-  K.label=(t,x,y,c,sc,al)=>{if(typeof sc==='string'){al=sc;sc=1;}t=String(t);sc=sc||1;const w=t.length*4*sc,X=Math.round(al==='l'?x:al==='r'?x-w:x-w/2);K.pa(X-3,y-2,w+5,5*sc+4,'#140a04',.62);K.pa(X-2,y-3,w+3,1,'#140a04',.62);K.pa(X-2,y+5*sc+2,w+3,1,'#140a04',.62);K.text(t,x,y,c,sc,al);};
+  K.label=(t,x,y,c,sc,al)=>{if(K.dy&&y<32){const d=K.dy;K.dy=0;K.g.save();K.g.translate(0,-d);try{return K.label(t,x,y,c,sc,al);}finally{K.g.restore();K.dy=d;}}if(typeof sc==='string'){al=sc;sc=1;}t=String(t);sc=sc||1;const w=t.length*4*sc,X=Math.round(al==='l'?x:al==='r'?x-w:x-w/2);K.pa(X-3,y-2,w+5,5*sc+4,'#140a04',.62);K.pa(X-2,y-3,w+3,1,'#140a04',.62);K.pa(X-2,y+5*sc+2,w+3,1,'#140a04',.62);K.text(t,x,y,c,sc,al);};
   // particles: chips, dust, sparks, drops, steam, curls; each with gravity, drag, life and a colour ramp
   K.emit=(x,y,n,o)=>{o=o||{};for(let i=0;i<n;i++){const a=(o.ang!=null?o.ang:-Math.PI/2)+(Math.random()-.5)*(o.spread!=null?o.spread:2.4),v=(o.v||60)*(.4+Math.random()*.8);
     K.parts.push({x:x+(Math.random()-.5)*(o.w||0),y:y+(Math.random()-.5)*(o.h||0),vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:0,life:(o.life||.8)*(.6+Math.random()*.6),g:o.g!=null?o.g:220,drag:o.drag||0,
@@ -112,7 +112,7 @@ function mg4Kit(g){const W=320,H=180;const K=caKit(g,W,H);K.g=g;K.W=W;K.H=H;
     {const txt=J[0]+(K.combo>=3&&s>=.6?' x'+K.combo:''),hw=txt.length*(s>=.95?4:2)+4;K.pops.push({txt,c:J[1],x:Math.max(hw,Math.min(W-hw,x)),y:Math.max(12,y),t:0,big:s>=.95});}
     if(!quiet){if(s>=.95){MS.perfect();K.flash=.3;K.shk=.14;K.emit(x,y,10,{c:['#fff4c0','#ffd27a'],v:90,g:60,life:.6});}else if(s>=.6)MS.good();else if(s<.25)MS.miss();}else if(s>=.95)MS.sparkle();};
   // the bar at the right edge shows the whole recipe: the steps done plus this step's share, with a tick between steps
-  K.meter=(p,acc,x,y,h)=>{const whole=x==null&&K.run&&K.run.n>1;if(x==null&&y==null&&K.text)K.text('WORK',W-3,7,'#e8d8b8',1,'r');x=x==null?W-10:x;y=y==null?16:y;h=h||120;p=Math.max(0,Math.min(1,p||0));if(whole)p=(K.run.i+p)/K.run.n;K.px(x-1,y-1,8,h+2,'#1a0e06');K.px(x,y,6,h,'#2a1608');if(whole)for(let k=1;k<K.run.n;k++)K.px(x-2,y+h-Math.round(h*k/K.run.n),10,1,'#6a4a20');
+  K.meter=(p,acc,x,y,h)=>{if(K.dy&&x==null){const d=K.dy;K.dy=0;K.g.save();K.g.translate(0,-d);try{return K.meter(p,acc,x,y,h);}finally{K.g.restore();K.dy=d;}}const whole=x==null&&K.run&&K.run.n>1;if(x==null&&y==null&&K.text)K.text('WORK',W-3,7,'#e8d8b8',1,'r');x=x==null?W-10:x;y=y==null?16:y;h=h||120;p=Math.max(0,Math.min(1,p||0));if(whole)p=(K.run.i+p)/K.run.n;K.px(x-1,y-1,8,h+2,'#1a0e06');K.px(x,y,6,h,'#2a1608');if(whole)for(let k=1;k<K.run.n;k++)K.px(x-2,y+h-Math.round(h*k/K.run.n),10,1,'#6a4a20');
     const ph=Math.round(p*h),q=acc==null?p:acc;const c=q<.4?'#d84a2a':q<.7?'#e8b030':'#7cc04a';K.px(x+1,y+h-ph,4,ph,c);if(ph)K.px(x+1,y+h-ph,4,1,'#fff4c0');
     if(q>=.7&&ph>2)K.px(x+1+((Math.floor(performance.now()/90))%4),y+h-ph+1,1,1,'#ffffff');};
   // (t363) the beat ring: a ring closes on the mark exactly on the beat; the mark is green for as long as a press still counts as
@@ -123,7 +123,7 @@ function mg4Kit(g){const W=320,H=180;const K=caKit(g,W,H);K.g=g;K.W=W;K.H=H;
     if(late>good){const f=Math.max(0,1-(late-good)/.35);if(f>0){g.strokeStyle=`rgba(232,84,42,${.8*f})`;g.beginPath();g.arc(cx,cy,5+(1-f)*6,0,6.29);g.stroke();}}
     else{g.strokeStyle=`rgba(255,210,122,${.35+.65*(1-left)})`;g.beginPath();g.arc(cx,cy,5+left*18,0,6.29);g.stroke();}};
   // a carved gauge like the fishing one: frame, a track, a zone, a needle
-  K.gauge=(x,y,w,h,zoneLo,zoneHi,val,o)=>{o=o||{};const vert=h>w;K.px(x-2,y-2,w+4,h+4,'#1a0e06');K.px(x-1,y-1,w+2,h+2,'#7a4a20');K.px(x-1,y-1,w+2,1,'#b8823c');K.px(x,y,w,h,o.bg||'#20140a');
+  K.gauge=(x,y,w,h,zoneLo,zoneHi,val,o)=>{if(K.dy){const d=K.dy;K.dy=0;K.g.save();K.g.translate(0,-d);try{return K.gauge(x,y,w,h,zoneLo,zoneHi,val,o);}finally{K.g.restore();K.dy=d;}}o=o||{};const vert=h>w;K.px(x-2,y-2,w+4,h+4,'#1a0e06');K.px(x-1,y-1,w+2,h+2,'#7a4a20');K.px(x-1,y-1,w+2,1,'#b8823c');K.px(x,y,w,h,o.bg||'#20140a');
     if(vert){const z0=y+h*(1-zoneHi),z1=y+h*(1-zoneLo);K.px(x,z0,w,z1-z0,o.zone||'#2c5a1c');K.px(x,z0,w,1,'#9be07a');K.px(x,z1-1,w,1,'#1c3a12');const vy=y+h*(1-Math.max(0,Math.min(1,val)));K.px(x-1,vy-1,w+2,3,'#1a0e06');K.px(x,vy,w,1,o.needle||'#fff4c0');}
     else{const z0=x+w*zoneLo,z1=x+w*zoneHi;K.px(z0,y,z1-z0,h,o.zone||'#2c5a1c');K.px(z0,y,1,h,'#9be07a');const vx=x+w*Math.max(0,Math.min(1,val));K.px(vx-1,y-2,3,h+4,'#1a0e06');K.px(vx,y-1,1,h+2,o.needle||'#fff4c0');}
     for(const [cx,cy] of [[x-2,y-2],[x+w,y-2],[x-2,y+h],[x+w,y+h]]){K.px(cx,cy,2,2,'#e8c060');}};
@@ -183,19 +183,24 @@ function mg4Run(def,name,done,icon){if(MG4.closeCur)MG4.closeCur(true);const box
   const ku=e=>{if(HK[e.code]){held[HK[e.code]]=0;axes();return;}if(e.code==='Space'||e.code==='Enter'||e.code==='KeyC'){I.raw=false;lift();I.key=false;}};addEventListener('keydown',kd,true);addEventListener('keyup',ku,true);
   $('mg4Skip').onclick=()=>{while(run.scores.length<steps.length)run.scores.push(.5);finish();};
   const amb=mg4Ambience(def.scene);MG4.closeCur=close;begin();
+  // (t364) the work sits lower in the picture (a camera looking a little more down at the bench), so your hands are in the lower part of
+  // the frame and your forearms come up a short way from its bottom edge. The room behind stays put; the work, its particles and the
+  // marks beside it move down by the step's own amount, and the pointer is read in the work's coordinates
+  const m4dy=()=>reveal>0||!cur?0:(typeof M4DY!=='undefined'&&M4DY[(spd()||{}).k])||0;
+  const m4upd=(dt,q,t)=>{const dy=m4dy();if(!dy||!q)return cur.update(dt,q,t);const y=q.y;q.y=y-dy;try{return cur.update(dt,q,t);}finally{q.y=y;}};
   const frame=now=>{if(ended)return;const dt=Math.min(.05,(now-last)/1000)*(window.CG2_SPEED||1)*MG4_PACE();last=now;const t=now/1000;pt+=dt;
     window.CG2_NOW=result!==null?'reveal':phase==='play'?spd().k+':'+run.i:phase+':'+run.i;
     I.dx=I.x-(I.lx==null?I.x:I.lx);I.dy=I.y-(I.ly==null?I.y:I.ly);I.lx=I.x;I.ly=I.y;
     if(phase==='title'){if(pt>1.1)afterTitle();}
-    else if(phase==='demo'){I.demo=true;cur.auto(dt,AP,t);cur.update(dt,AP.I||I,t);if(cur.done||pt>8){phase='your';pt=0;$('mg4H').innerHTML=`<b>Your turn.</b> ${cur.how} ${K.fine?'Click or press Space':'Tap'} to start.`;}}
+    else if(phase==='demo'){I.demo=true;cur.auto(dt,AP,t);m4upd(dt,AP.I||I,t);if(cur.done||pt>8){phase='your';pt=0;$('mg4H').innerHTML=`<b>Your turn.</b> ${cur.how} ${K.fine?'Click or press Space':'Tap'} to start.`;}}
     else if(phase==='your'){if(I.goQ&&pt>=.3){I.goQ=false;press();}}
     else if(phase==='ready'){if(pt-dt<=0)MS.ready&&MS.ready();if(pt-dt<.5&&pt>=.5)MS.go&&MS.go();if(pt>.9){phase='play';pt=0;I.pressed=I.released=false;I.fresh=I.upQ=false;I.down=!!I.raw;}}
-    else if(phase==='play'){I.demo=false;if(window.MG4_AUTO){cur.auto(dt,AP,t);cur.update(dt,AP.I||I,t);}
-      else if(window.MG4_SHADOW){cur.auto(dt,AP,t);const q=AP.I||{};const r=cv.getBoundingClientRect(),ex=r.left+(q.x==null?I.x:q.x)/W*r.width,ey=r.top+(q.y==null?I.y:q.y)/H*r.height;   // (tests only: the auto-player's moves sent as real pointer events)
+    else if(phase==='play'){I.demo=false;if(window.MG4_AUTO){cur.auto(dt,AP,t);m4upd(dt,AP.I||I,t);}
+      else if(window.MG4_SHADOW){cur.auto(dt,AP,t);const q=AP.I||{};const r=cv.getBoundingClientRect(),ex=r.left+(q.x==null?I.x:q.x)/W*r.width,ey=r.top+(q.y==null?I.y:q.y+m4dy())/H*r.height;   /* (the auto-player thinks in the work's coordinates; the screen has it lowered) */   // (tests only: the auto-player's moves sent as real pointer events)
         const fire=ty=>cv.dispatchEvent(new PointerEvent(ty,{clientX:ex,clientY:ey,pointerId:7,bubbles:true}));fire('pointermove');if(q.down&&!I.down)fire('pointerdown');else if(!q.down&&I.down)fire('pointerup');
         const kb=(code,on)=>{const k=window.__mg4K||(window.__mg4K={});if(!!k[code]===on)return;k[code]=on;dispatchEvent(new KeyboardEvent(on?'keydown':'keyup',{code,bubbles:true}));};
-        kb('KeyW',(q.ay||0)<-.25);kb('KeyS',(q.ay||0)>.25);kb('KeyA',(q.ax||0)<-.25||q.side<0);kb('KeyD',(q.ax||0)>.25||q.side>0);cur.update(dt,I,t);}
-      else cur.update(dt,I,t);
+        kb('KeyW',(q.ay||0)<-.25);kb('KeyS',(q.ay||0)>.25);kb('KeyA',(q.ax||0)<-.25||q.side<0);kb('KeyD',(q.ax||0)>.25||q.side>0);m4upd(dt,I,t);}
+      else m4upd(dt,I,t);
       if(cur.done){const s=Math.max(0,Math.min(1,cur.score||0));window.__mg4last=+s.toFixed(2);const tr=run.tries[run.i]=(run.tries[run.i]||0)+1;run.best[run.i]=Math.max(s,run.best[run.i]||0);
         if(s<.5&&tr<MG4_TRIES){banner={txt:`Again: ${MG4_TRIES-tr} left`,c:'#e8b030',t:0};phase='retry';pt=0;}
         else{const b=run.best[run.i];run.scores[run.i]=b;banner={txt:b>.9?'Perfect':b>.65?'Good':b>.35?'Rough':'Ruined',c:b>.9?'#ffd27a':b>.65?'#9be07a':b>.35?'#e8c070':'#c04a2a',t:0};
@@ -210,10 +215,12 @@ function mg4Run(def,name,done,icon){if(MG4.closeCur)MG4.closeCur(true);const box
     if(reveal>0){reveal+=dt;MG4ART.scene(K,def.scene,t);MG4ART.light(K,def.scene,t);K.pa(0,0,W,H,'#000',.5);K.glow(160,84,90,'255,220,140',.35+Math.sin(t*4)*.05);
       def.reveal&&def.reveal(K,t);for(let i=0;i<12;i++){const a=t*1.4+i*.52,r2=56+Math.sin(t*3+i)*5;K.px(160+Math.cos(a)*r2,84+Math.sin(a)*r2*.55,2,2,'#fff4c0');}
       const q=result,stars=q>.9?3:q>.6?2:q>.3?1:0;for(let i=0;i<stars;i++)if(!run['st'+i]&&reveal-.3-i*.25>0){run['st'+i]=1;A.tone(880*[1,1.26,1.5][i],.25,'triangle',.07);A.tone(1760*[1,1.26,1.5][i],.15,'sine',.03,{delay:.03});K.emit(128+i*24+6,154,8,{c:['#fff4c0','#ffd27a'],v:50,g:80,life:.5});}K.pa(118,142,84,22,'#140c06',.75);for(let i=0;i<3;i++){const on=i<stars,pop=on?Math.min(1,Math.max(0,(reveal-.3-i*.25)*5)):1;if(on&&pop<=0)continue;cg3Star(K,128+i*24,148+(on?Math.round((1-pop)*-5):0),on);}}
-    else{MG4ART.scene(K,spd().scene||def.scene,t);K.benchY=null;if(typeof M4G!=='undefined')M4G.fr=[];cur.draw(t,phase);if(phase==='demo'||(phase==='play'&&window.MG4_AUTO)){const hp=AP.hand||[150,150],pr=AP.press||AP.hold,fr=(typeof M4G!=='undefined'&&M4G.fr)||[];if(fr.some(([x,y])=>Math.hypot(x-hp[0]-3,y-hp[1]-1)<22)){if(pr){g.strokeStyle='rgba(255,244,192,.9)';g.lineWidth=1;g.beginPath();g.arc(hp[0]+3,hp[1]+1,6,0,Math.PI*2);g.stroke();}}else K.hand(hp[0],hp[1],pr);}if(window.__mg4ptr&&phase==='play')try{window.__mg4ptr(K,I,t);}catch(e){}MG4ART.light(K,spd().scene||def.scene,t);K.run={i:run.i,n:steps.length};cur.hud&&phase!=='title'&&cur.hud(t);}
+    else{MG4ART.scene(K,spd().scene||def.scene,t);K.benchY=null;if(typeof M4G!=='undefined')M4G.fr=[];const DY=m4dy();K.dy=DY;if(DY){g.save();g.translate(0,DY);}cur.draw(t,phase);if(phase==='demo'||(phase==='play'&&window.MG4_AUTO)){const hp=AP.hand||[150,150],pr=AP.press||AP.hold,fr=(typeof M4G!=='undefined'&&M4G.fr)||[];if(fr.length){if(pr){g.strokeStyle='rgba(255,244,192,.9)';g.lineWidth=1;g.beginPath();g.arc(hp[0]+3,hp[1]+1,6,0,Math.PI*2);g.stroke();}}else K.hand(hp[0],hp[1],pr);}if(window.__mg4ptr&&phase==='play')try{window.__mg4ptr(K,DY?Object.assign({},I,{y:I.y-DY}):I,t);}catch(e){}if(DY)g.restore();MG4ART.light(K,spd().scene||def.scene,t);K.run={i:run.i,n:steps.length};if(DY){g.save();g.translate(0,DY);}cur.hud&&phase!=='title'&&cur.hud(t);if(DY)g.restore();}
+    if(K.dy&&reveal===0){g.save();g.translate(0,K.dy);}
     for(let k=K.parts.length-1;k>=0;k--){const p=K.parts[k];p.t+=dt;if(p.t>p.life){K.parts.splice(k,1);continue;}p.vx*=1-p.drag*dt;p.vy=p.vy*(1-p.drag*dt)+p.g*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
       const u=p.t/p.life,c=p.c[Math.min(p.c.length-1,Math.floor(u*p.c.length))];if(p.kind==='smoke'){const z=Math.max(1,p.sz*(.5+Math.sin(u*Math.PI)*.8)),X=Math.round(p.x),Y=Math.round(p.y),zr=Math.round(z);for(let dy=-zr;dy<=zr;dy++){const w=Math.round(Math.sqrt(Math.max(0,z*z-dy*dy)));if(w<1)continue;K.px(X-w,Y+dy,2*w,1,c);if(dy<0&&dy>-zr)K.px(X-w,Y+dy,Math.max(1,w-1),1,p.hi||c);}}else if(p.kind==='steam'){const z=Math.max(1,Math.round(p.sz)),X=Math.round(p.x),Y=Math.round(p.y);g.globalAlpha=.35*(1-u);g.fillStyle=c;g.beginPath();g.rect(X-z+1,Y-z,2*z-2,2*z);g.rect(X-z,Y-z+1,2*z,2*z-2);g.fill('nonzero');g.globalAlpha=1;}else{g.globalAlpha=u>.75?(1-u)*4:1;K.px(p.x,p.y,p.sz,p.sz,c);g.globalAlpha=1;}}
     for(let k=K.pops.length-1;k>=0;k--){const p=K.pops[k];p.t+=dt;if(p.t>1){K.pops.splice(k,1);continue;}const yy=Math.max(24,Math.round(p.y-24-p.t*18-(p.big?Math.sin(Math.min(1,p.t*8)*Math.PI)*4:0)));K.textO(p.txt,p.x,yy,p.t>.7&&Math.floor(p.t*20)%2?'#fff4d8':p.c,p.big?2:1);}
+    if(K.dy&&reveal===0)g.restore();
     if(K.flash>0){K.flash-=dt;K.pa(0,0,W,H,'#fff6d0',Math.max(0,K.flash)*.6);}
     g.setTransform(MG4_S,0,0,MG4_S,0,0);
     if(reveal===0){
