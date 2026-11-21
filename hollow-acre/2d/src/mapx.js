@@ -8,34 +8,62 @@ const REGIONS=[['MARROW HOLLOW',49,16],['HOLLOW ACRE',-2,-15.5],['ROUTE 9',-58,-
 const MAPSIL={};
 function mapSil(im,sx,sy,w,h){const k=im.src+'|'+sx+'|'+sy;if(MAPSIL[k])return MAPSIL[k];const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');
   g.drawImage(im,sx,sy,w,h,0,0,w,h);g.globalCompositeOperation='source-in';g.fillStyle='#2a1808';g.fillRect(0,0,w,h);return MAPSIL[k]=c;}
+// ---- (t366) the ground is sampled once, a slice at a time while you play, and kept: the map is then put together in a moment.
+// The samples (what each spot is: water, stone, dirt, deep woods, grass) are the slow part, a few seconds of the valley's own
+// layer tests; the colours from them are quick. A finished set is also kept in the browser for the next visit (map366.js).
+function mapTerrDims(){const s=MAPX.s,FW=Math.round((B.x1-B.x0)*s),FH=Math.round((B.z1-B.z0)*s);return {FW,FH,W:Math.round(FW/2),H:Math.round(FH/2),s:s/2,key:[FW,FH,s,B.x0,B.z0].join(',')};}
+function mapTerrJob(){const D=mapTerrDims(),N=D.W*D.H;return {D,ph:0,i:0,cls:new Uint8Array(N),water:new Uint8Array(N),dist:null,img:null,done:false};}
+// classes: 0 grass, 1 water, 2 stone, 3 dirt, 4 deep woods
+function mapTerrStep(J,budget){const {W,H,s}=J.D,N=W*H,t0=performance.now(),x0=B.x0,z0=B.z0;
+  if(J.ph===0){const cls=J.cls,water=J.water;let i=J.i;
+    while(i<N){const x=i%W,y=(i/W)|0,wx=x0+(x+.5)/s,wz=z0+(y+.5)/s;
+      if(LAYERS.water(wx,wz)){cls[i]=1;water[i]=1;}else if(LAYERS.stone(wx,wz))cls[i]=2;else if(LAYERS.dirt(wx,wz))cls[i]=3;else if(LAYERS.dark&&LAYERS.dark(wx,wz))cls[i]=4;
+      i++;if((i&63)===0&&performance.now()-t0>budget)break;}
+    J.i=i;if(i<N)return false;J.ph=1;J.i=0;}
+  if(J.ph===1){const water=J.water;
+    // distance to the shore, for depth shading (two passes each way), a band of rows at a time
+    if(!J.dist){J.dist=new Uint8Array(N);J.di=0;J.pass=0;J.row=-1;}const dist=J.dist;
+    while(J.di<N){const e=Math.min(N,J.di+65536);for(let i=J.di;i<e;i++)dist[i]=water[i]?255:0;J.di=e;if(performance.now()-t0>budget)return false;}
+    while(J.pass<4){const fwd=J.pass%2===0;if(J.row<0)J.row=fwd?1:H-2;
+      for(let n=0;n<8;n++){const y=J.row;if(fwd){if(y>=H){J.pass++;J.row=-1;break;}for(let x=1;x<W;x++){const i=y*W+x;if(!water[i])continue;dist[i]=Math.min(dist[i],dist[i-1]+1,dist[i-W]+1);}J.row++;}
+        else{if(y<0){J.pass++;J.row=-1;break;}for(let x=W-2;x>=0;x--){const i=y*W+x;if(!water[i])continue;dist[i]=Math.min(dist[i],dist[i+1]+1,dist[i+W]+1);}J.row--;}}
+      if(performance.now()-t0>budget)return false;}
+    // the broad noises (the grass's tone, the light across the land) vary over paces, not samples: taken every fourth sample
+    // and blended between, so each sample costs one noise instead of four
+    if(!J.gn){const GW=Math.ceil(W/4)+2,GH=Math.ceil(H/4)+2;J.gn={GW,GH,n1:new Float32Array(GW*GH),sh:new Float32Array(GW*GH),gy:0};}
+    {const G=J.gn;while(G.gy<G.GH){const gy=G.gy;for(let gx=0;gx<G.GW;gx++){const wx=x0+(gx*4+.5)/s,wz=z0+(gy*4+.5)/s,k=gy*G.GW+gx;G.n1[k]=fbm(wx*.08,wz*.08);G.sh[k]=(fbm(wx*.12+.7,wz*.12+.7)-fbm(wx*.12,wz*.12))*90;}
+        G.gy++;if(performance.now()-t0>budget)return false;}}
+    J.img=new ImageData(W,H);J.ph=2;J.i=0;if(performance.now()-t0>budget)return false;}
+  if(J.ph===2){const d=J.img.data,cls=J.cls,dist=J.dist;let i=J.i;let r=0,g=0,bl=0;const M=(R,G,B_,t)=>{r+=(R-r)*t;g+=(G-g)*t;bl+=(B_-bl)*t;},C=(R,G,B_)=>{r=R;g=G;bl=B_;};
+    const G=J.gn,GW=G.GW,n1a=G.n1,sha=G.sh;
+    while(i<N){const x=i%W,y=(i/W)|0,wx=x0+(x+.5)/s,wz=z0+(y+.5)/s,o=i*4,k=cls[i];
+      const fx=x/4,fy=y/4,ix=fx|0,iy=fy|0,tx=fx-ix,ty=fy-iy,q=iy*GW+ix;
+      const n1=(n1a[q]*(1-tx)+n1a[q+1]*tx)*(1-ty)+(n1a[q+GW]*(1-tx)+n1a[q+GW+1]*tx)*ty,n2=fbm(wx*.5+11,wz*.5+3),n3=hash(Math.floor(wx*4),Math.floor(wz*4));
+      if(k===1){const dd=Math.min(1,dist[i]/7);C(118,170,196);M(38,72,112,dd);
+        if(dist[i]<1)C(196,222,226);else if(n3>.93&&dd>.3)M(150,196,214,.6);}
+      else if(k===2){C(150,146,138);M(118,114,108,n2);if(n3>.86)C(92,88,84);if(n3<.08)C(190,186,176);}
+      else if(k===3){C(196,160,104);M(168,128,78,n2);if(n3>.92)C(140,104,64);}
+      else if(k===4){C(46,74,40);M(30,52,30,n2);if(n3>.7)M(70,100,52,.6);if(n3<.12)C(22,38,24);}
+      else{C(118,150,72);M(92,128,60,n1);M(150,150,70,Math.max(0,n2-.55));if(n3>.95)M(200,170,90,.5);}
+      if(wx>CORN.x0&&wx<CORN.x1&&wz>CORN.z0&&wz<CORN.z1){C(214,182,86);M(176,140,60,n2);if(Math.floor(wx*2)%2===0)M(150,118,48,.35);}
+      // light from the top left: a soft relief from the noise
+      const sh=(sha[q]*(1-tx)+sha[q+1]*tx)*(1-ty)+(sha[q+GW]*(1-tx)+sha[q+GW+1]*tx)*ty;
+      d[o]=r+sh;d[o+1]=g+sh;d[o+2]=bl+sh;d[o+3]=255;
+      i++;if((i&255)===0&&performance.now()-t0>budget)break;}
+    J.i=i;if(i<N)return false;
+    // the land casts a thin dark line along every shore (a band of rows at a time)
+    const water=J.water;if(J.sy==null)J.sy=1;while(J.sy<H-1){const y=J.sy;for(let x=1;x<W-1;x++){const k=y*W+x;if(water[k])continue;if(water[k+1]||water[k-1]||water[k+W]||water[k-W]){const i=k*4;d[i]=Math.round(d[i]*.62);d[i+1]=Math.round(d[i+1]*.62);d[i+2]=Math.round(d[i+2]*.62);}}
+      J.sy++;if((J.sy&15)===0&&performance.now()-t0>budget)return false;}
+    J.ph=3;J.done=true;}
+  return J.done;}
+// the finished ground for this valley, or (if the slices haven't finished yet) finished now
+function mapTerr(){const D=mapTerrDims();let J=MAPX.terr;if(!J||J.D.key!==D.key){J=MAPX.terr=mapTerrJob();}if(!J.done)mapTerrStep(J,1e9);return J;}
 function mapPaint(){const s=MAPX.s,pad=MAPX.pad,W=Math.round((B.x1-B.x0)*s),H=Math.round((B.z1-B.z0)*s);
   const c=document.createElement('canvas');c.width=W+pad*2;c.height=H+pad*2;const g=c.getContext('2d');
-  // ---- terrain, pixel by pixel
-  const FW=W,FH=H;{const W=Math.round(FW/2),H=Math.round(FH/2),s=MAPX.s/2;
-  const img=g.createImageData(W,H),d=img.data;const water=new Uint8Array(W*H);
-  const at=(x,y)=>[B.x0+x/s,B.z0+y/s];
-  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const [wx,wz]=at(x+.5,y+.5);if(LAYERS.water(wx,wz))water[y*W+x]=1;}
-  // distance to the shore, for depth shading (a few cheap passes)
-  const dist=new Uint8Array(W*H);for(let i=0;i<W*H;i++)dist[i]=water[i]?255:0;
-  for(let pass=0;pass<2;pass++){for(let y=1;y<H;y++)for(let x=1;x<W;x++){const i=y*W+x;if(!water[i])continue;dist[i]=Math.min(dist[i],dist[i-1]+1,dist[i-W]+1);}
-    for(let y=H-2;y>=0;y--)for(let x=W-2;x>=0;x--){const i=y*W+x;if(!water[i])continue;dist[i]=Math.min(dist[i],dist[i+1]+1,dist[i+W]+1);}}
-  const mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
-  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const [wx,wz]=at(x+.5,y+.5);const i=(y*W+x)*4;let col;
-    const n1=fbm(wx*.08,wz*.08),n2=fbm(wx*.5+11,wz*.5+3),n3=hash(Math.floor(wx*4),Math.floor(wz*4));
-    if(water[y*W+x]){const dd=Math.min(1,dist[y*W+x]/7);col=mix([118,170,196],[38,72,112],dd);
-      if(dist[y*W+x]<1)col=[196,222,226];else if(n3>.93&&dd>.3)col=mix(col,[150,196,214],.6);}
-    else if(LAYERS.stone(wx,wz)){col=mix([150,146,138],[118,114,108],n2);if(n3>.86)col=[92,88,84];if(n3<.08)col=[190,186,176];}
-    else if(LAYERS.dirt(wx,wz)){col=mix([196,160,104],[168,128,78],n2);if(n3>.92)col=[140,104,64];}
-    else if(LAYERS.dark&&LAYERS.dark(wx,wz)){col=mix([46,74,40],[30,52,30],n2);if(n3>.7)col=mix(col,[70,100,52],.6);if(n3<.12)col=[22,38,24];}
-    else{col=mix([118,150,72],[92,128,60],n1);col=mix(col,[150,150,70],Math.max(0,n2-.55));if(n3>.95)col=mix(col,[200,170,90],.5);}
-    if(wx>CORN.x0&&wx<CORN.x1&&wz>CORN.z0&&wz<CORN.z1){col=mix([214,182,86],[176,140,60],n2);if(Math.floor(wx*2)%2===0)col=mix(col,[150,118,48],.35);}
-    // light from the top left: a soft relief from the noise
-    const sh=(fbm(wx*.12+.7,wz*.12+.7)-fbm(wx*.12,wz*.12))*90;col=col.map(v=>Math.max(0,Math.min(255,v+sh)));
-    d[i]=col[0];d[i+1]=col[1];d[i+2]=col[2];d[i+3]=255;}
-  // the land casts a thin dark line along every shore
-  for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){const k=y*W+x;if(water[k])continue;if(water[k+1]||water[k-1]||water[k+W]||water[k-W]){const i=k*4;d[i]=Math.round(d[i]*.62);d[i+1]=Math.round(d[i+1]*.62);d[i+2]=Math.round(d[i+2]*.62);}}
-  const tc=document.createElement('canvas');tc.width=W;tc.height=H;tc.getContext('2d').putImageData(img,0,0);g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(tc,pad,pad,FW,FH);
-  MAPX.water={W,H,water,dist};}
+  // ---- terrain, pixel by pixel (sampled ahead of time, see above)
+  const FW=W,FH=H;{const J=mapTerr(),W=J.D.W,H=J.D.H;
+  const tc=document.createElement('canvas');tc.width=W;tc.height=H;tc.getContext('2d').putImageData(J.img,0,0);g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(tc,pad,pad,FW,FH);
+  MAPX.water={W,H,water:J.water,dist:J.dist};}
   const W2=FW,H2=FH;
   g.save();g.translate(pad,pad);const X=x=>(x-B.x0)*s,Y=z=>(z-B.z0)*s;
   // little waves on open water

@@ -33,5 +33,5 @@ const ROUTES={
   'The rite':'Three stones: the west woods, the cornfield south of your farm, and the churchyard behind the church in town.'};
 {const css=document.createElement('style');css.textContent='#objective{pointer-events:auto!important;cursor:pointer}';document.head.appendChild(css);
   $('objective').addEventListener('click',e=>{e.stopPropagation();if(S.mode!=='play'||S.paused)return;const ob=objective();if(!ob)return;const route=ROUTES[ob[0]];const chip=ob[2]?wayChip(ob[2]):'';
-    openNote(`<h3>${ob[0]}</h3><p>${String(ob[1]).replace(/<span class="odir">.*?<\/span>/,'')}</p>${route?`<p><b>How to get there.</b> ${route}</p>`:''}${chip?`<p>${chip}</p>`:''}<p style="font-size:12px;opacity:.75">The map (Menu, then Map) shows a star where you’re headed.</p>`,'Got it');
+    openNote(`<h3>${ob[0]}</h3><p>${String(ob[1]).replace(/<span class="odir">.*?<\/span>/,'')}</p>${route?`<p><b>How to get there.</b> ${route}</p>`:''}${chip?`<p>${chip}</p>`:''}<p style="font-size:12px;opacity:.75">The map shows a star where you’re headed, and the road there: ${typeof m66How==='function'?m66How('map'):'Menu, then Map'}.</p>`,'Got it');
     const nb=document.createElement('button');nb.className='close';nb.textContent='Map';nb.style.marginLeft='8px';nb.onclick=()=>{$('noteClose').click();openBag('map');};$('noteText').appendChild(nb);});}
