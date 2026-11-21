@@ -103,10 +103,8 @@ interact.push({x:0,z:0,r:1,on:()=>S.room==='home_hale',label:()=>'Stove',ok:()=>
   for(let i=0;i<150;i++){const x=(hash(i,1)*VW*1.2+t*30)%(VW*1.2)-VW*.1,y=(hash(i,2)*VH+t*420)%VH;ctx2.moveTo(Math.round(x),Math.round(y));ctx2.lineTo(Math.round(x-1),Math.round(y+5));}ctx2.stroke();
   ctx2.strokeStyle='rgba(205,222,245,.55)';ctx2.beginPath();
   for(let i=0;i<70;i++){const x=(hash(i,3)*VW*1.2+t*60)%(VW*1.2)-VW*.1,y=(hash(i,4)*VH+t*760)%VH;ctx2.moveTo(Math.round(x),Math.round(y));ctx2.lineTo(Math.round(x-3),Math.round(y+12));}ctx2.stroke();
-  // splashes: little rings that open and fade where the drops land
-  ctx2.strokeStyle='rgba(200,215,235,.5)';
-  for(let i=0;i<46;i++){const ph=t*2.6+hash(i,5),c=Math.floor(ph),f=ph-c;const x=hash(i,c*7+1)*VW,y=hash(i,c*7+2)*VH;ctx2.globalAlpha=k*(1-f)*.9;ctx2.beginPath();ctx2.ellipse(Math.round(x),Math.round(y),1+f*4,.5+f*1.6,0,0,6.283);ctx2.stroke();
-    if(f<.25){ctx2.fillStyle='rgba(215,228,245,.7)';ctx2.fillRect(Math.round(x),Math.round(y-2-f*8),1,1);}}
+  // (owner: "rain is making ripple effects on air") the splashes were rings at random places on the screen, so they showed on roofs
+  // and in the sky; they are drawn on the ground now, where the drops land (fixes360.js), under everything that stands on it
   ctx2.restore();};}
 {const _am=ambient;ambient=function(h){const a=_am(h);if(!raining())return a;const k=S.room?.82:.8;return [a[0]*k,a[1]*k,a[2]*(k+.04)];};}
 {let acc=0;const _u=update;update=function(dt){_u(dt);acc+=dt;if(acc<.5||!A||!A.ok||!A.rain)return;acc=0;try{if(raining()&&!isNight())A.rain.gain.setTargetAtTime(S.room?.025:.06,A.ctx.currentTime,1);}catch(e){}};}

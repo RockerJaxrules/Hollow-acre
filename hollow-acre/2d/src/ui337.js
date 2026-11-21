@@ -208,7 +208,7 @@ function u37ChipLabel(c){const v=(c.textContent||'').trim(),t=c.title||c.dataset
   if(/Car/.test(t))return `Car repairs: ${v}`;if(/Coins/.test(t))return `${v} coins`;if(/Water/.test(t))return `Water in the can: ${v}`;return t+(v?': '+v:'');}
 function u37Chips(){for(const c of document.querySelectorAll('.chip')){const t=c.title||c.dataset.u37t;if(!t)continue;const k=U37_CHIP[t];
     if(k&&!c.querySelector('.u37ico')){c.insertAdjacentHTML('afterbegin',U37_ICON[k]);}
-    if(c.title)c.dataset.u37t=c.title;
+    if(c.title&&c.dataset.u37t!==c.title)c.dataset.u37t=c.title;
     if(!c.dataset.u37l){c.dataset.u37l=1;const show=e=>{const tip=$('u37tip')||document.body.appendChild(Object.assign(document.createElement('div'),{id:'u37tip'}));tip.textContent=u37ChipLabel(c);
         const r=c.getBoundingClientRect();tip.style.display='block';tip.style.left=Math.max(4,Math.min(innerWidth-tip.offsetWidth-4,r.left+r.width/2-tip.offsetWidth/2))+'px';tip.style.top=(r.bottom+6)+'px';clearTimeout(U37.tipT);U37.tipT=setTimeout(()=>{tip.style.display='none';},e&&e.type==='mouseenter'?99999:2200);};
       c.addEventListener('mouseenter',show);c.addEventListener('mouseleave',()=>{const tip=$('u37tip');if(tip)tip.style.display='none';});c.addEventListener('click',e=>{e.stopPropagation();show(e);});c.style.cursor='help';}}
@@ -272,10 +272,13 @@ function u37ModalOpen(){for(const e of document.querySelectorAll('[data-modal]')
     if(e.id==='cheatBox'){if(e.classList.contains('on'))return e;continue;}if(pl37Vis(e.id)&&e.getBoundingClientRect().height>8)return e;}return null;}
 {const _b=pl37Busy;pl37Busy=function(){return _b()||!!u37ModalOpen()||!!(typeof MG4!=='undefined'&&MG4.on);};}
 // feedback to a tap shows low, but never on the open panel's text: dock it above the panel, else below, else hold it until the panel closes
-function u37PlaceLow(){const t=ui.toast;if(!t.classList.contains('show')||!t.classList.contains('pl37low'))return;const m=u37ModalOpen()||[...PL37.modal].map(id=>document.getElementById(id)).find(e=>e&&pl37Vis(e.id));if(!m){t.style.removeProperty('top');t.style.removeProperty('bottom');return;}
-  const r=m.getBoundingClientRect(),h=t.offsetHeight||40;t.style.removeProperty('top');t.style.removeProperty('bottom');
-  if(innerHeight-r.bottom>h+16){t.style.setProperty('top',(r.bottom+8)+'px','important');t.style.setProperty('bottom','auto','important');}
-  else if(r.top>h+16){t.style.setProperty('top',Math.max(8,r.top-h-8)+'px','important');t.style.setProperty('bottom','auto','important');}
+// (#360) it is docked by writing its place only when the place changes (it used to take the place away and put it back every 120 ms)
+function u37Dock(t,top){const want=top==null?'':Math.round(top)+'px';if(t.style.top!==want||(want&&t.style.getPropertyPriority('top')!=='important')){if(want)t.style.setProperty('top',want,'important');else t.style.removeProperty('top');}
+  const wb=top==null?'':'auto';if(t.style.bottom!==wb){if(wb)t.style.setProperty('bottom',wb,'important');else t.style.removeProperty('bottom');}}
+function u37PlaceLow(){const t=ui.toast;if(!t.classList.contains('show')||!t.classList.contains('pl37low'))return;const m=u37ModalOpen()||[...PL37.modal].map(id=>document.getElementById(id)).find(e=>e&&pl37Vis(e.id));if(!m){u37Dock(t,null);return;}
+  const r=m.getBoundingClientRect(),h=t.offsetHeight||40;
+  if(innerHeight-r.bottom>h+16)u37Dock(t,r.bottom+8);
+  else if(r.top>h+16)u37Dock(t,Math.max(8,r.top-h-8));
   else u37ToastAside();}
 setInterval(u37PlaceLow,120);
 // ---- 2/8 every book and panel keeps its way out on screen: the page scrolls, the buttons stay, with the "more below" cue

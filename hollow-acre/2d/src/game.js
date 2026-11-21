@@ -47,7 +47,7 @@ function placeNPCs(){const night=S.hour>=20&&!S.bound;for(const n of npcs){const
 const ui={day:$('clock').querySelector('.day'),time:$('clock').querySelector('.time'),bar:$('clock').querySelector('.bar i'),coins:$('iCoins'),turnip:$('iTurnip'),pumpkin:$('iPumpkin'),
   water:$('iWater'),basket:$('iBasket'),candles:$('iCandles'),oil:$('iOil'),oilChip:$('cOil'),pages:$('iPages'),parts:$('iParts'),obj:$('objective'),toast:$('toast'),act:$('btnAct'),seed:$('btnSeed'),arrow:$('arrow'),subs:$('subs')};
 let toastT=0;
-function toast(msg,dur,red){ui.toast.textContent=msg;ui.toast.classList.add('show');ui.toast.classList.toggle('red',!!red);toastT=dur||3.2;}
+function toast(msg,dur,red){const t=ui.toast,s=String(msg),cur=t.textContent;if(cur!==s&&!(typeof u37Curl==='function'&&cur===u37Curl(s)))t.textContent=s;if(!t.classList.contains('show'))t.classList.add('show');if(t.classList.contains('red')!==!!red)t.classList.toggle('red',!!red);toastT=dur||3.2;}   // (#360) written only when it changes
 function fmtTime(h){const hh=Math.floor(h)%24,mm=Math.floor((h%1)*6)*10;const ap=hh>=12?'PM':'AM';const h12=((hh+11)%12)+1;return `${h12}:${mm<10?'0':''}${mm} ${ap}`;}
 let lastHud='';
 function updateHud(){const s=[S.day,fmtTime(S.hour),S.coins,S.seeds.turnip,S.seeds.pumpkin,S.water,S.basket.length,S.candles,Math.ceil(S.fuel),S.flasks,S.pages.length,S.sel,S.waterMax,partsIn(),partsOwned()].join('|');

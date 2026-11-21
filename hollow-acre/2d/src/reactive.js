@@ -77,12 +77,24 @@ const LEAFC=['#c8642a','#d8902e','#a8402a','#e0b040','#8a5a2a'];
     ctx2.globalAlpha=a*(p.blood?.7:p.mud?.55:.3);ctx2.fillStyle=p.blood?'#5e0806':p.mud?'#2a1c10':'#1a2028';
     if(p.dir==='E'||p.dir==='W'){ctx2.fillRect(X-2,Y-1,4,2);ctx2.fillRect(X+(p.dir==='E'?3:-4),Y-1,2,2);}else{ctx2.fillRect(X-1,Y-2,2,4);ctx2.fillRect(X-1,Y+(p.dir==='S'?3:-4),2,2);}}
   ctx2.globalAlpha=1;
-  const fk=rxFrostK();if(fk>0){const c0=Math.floor(cam.x-VW/2/PPM)-1,c1=Math.ceil(cam.x+VW/2/PPM)+1,r0=Math.floor(cam.z-VH*.56/PPM)-1,r1=Math.ceil(cam.z+VH*.44/PPM)+1;
+  const fk=rxFrostK();if(fk>0&&rxFrostChunks(fk)){}else if(fk>0){const c0=Math.floor(cam.x-VW/2/PPM)-1,c1=Math.ceil(cam.x+VW/2/PPM)+1,r0=Math.floor(cam.z-VH*.56/PPM)-1,r1=Math.ceil(cam.z+VH*.44/PPM)+1;
     if(!RX.frostT){RX.frostT=[0,1,2,3].map(v=>{const c=document.createElement('canvas');c.width=c.height=PPM;const g=c.getContext('2d');g.fillStyle='rgba(220,232,248,.34)';g.fillRect(0,0,PPM,PPM);g.fillStyle='rgba(250,252,255,.9)';
       for(let k=0;k<26;k++){const h1=hash(v*31+k,17),h2=hash(v*7+k*3,29);g.fillRect((h1*PPM)|0,(h2*PPM)|0,h1>.8?2:1,1);}return c;});}
     ctx2.globalAlpha=fk;for(let i=c0;i<=c1;i++)for(let j=r0;j<=r1;j++){const tk=i*4096+j;let g=RX.tg.get(tk);if(g===undefined){g=terr(i+.5,j+.5)==='grass'?1:0;if(RX.tg.size>20000)RX.tg.clear();RX.tg.set(tk,g);}if(!g)continue;ctx2.drawImage(RX.frostT[(hash(i,j)*4)|0],sx(i),sz(j));}ctx2.globalAlpha=1;}
   // the green, late on: a ring where the grass has died round the memorial
   if(rotDark()>=5&&typeof GREEN_LOOKS!=='undefined'){const X=Math.round(sx(41.4)),Y=Math.round(sz(2.4));ctx2.strokeStyle='rgba(70,56,40,.4)';ctx2.lineWidth=5;ctx2.beginPath();ctx2.ellipse(X,Y,58,24,0,0,6.283);ctx2.stroke();ctx2.lineWidth=1;}};}
+// (owner: "grass patterns kind of glitched out") the morning frost was laid as whole 32 px squares on every square the old map called
+// grass: hard square steps along every path, field and track, frost over the farm's dirt lanes. It is made from the ground itself now:
+// each ground chunk's own grass pixels, once per chunk, a pale film with a few glints, so it stops exactly where the grass stops.
+function rxFrostOf(c,cx,cz){if(c.frost!==undefined)return c.frost;c.frost=null;try{const d=c.getContext('2d').getImageData(0,0,CH,CH).data;
+    const o=document.createElement('canvas');o.width=o.height=CH;const g=o.getContext('2d'),id=g.createImageData(CH,CH),q=id.data;
+    for(let y=0,p=0;y<CH;y++)for(let x=0;x<CH;x++,p+=4){const r=d[p],gg=d[p+1],b=d[p+2];if(!(gg>=r-2&&gg>b+12&&d[p+3]>200))continue;
+      const h=hash(cx*CH+x,cz*CH+y),gl=h>.988;q[p]=gl?250:222;q[p+1]=gl?252:234;q[p+2]=255;q[p+3]=gl?235:84;}
+    g.putImageData(id,0,0);c.frost=o;}catch(e){c.frost=null;}return c.frost;}
+function rxFrostChunks(fk){if(typeof chunks==='undefined')return false;const left=cam.px-(VW>>1),top=cam.pz-Math.round(VH*.56);
+  const c0=Math.floor(left/CH),c1=Math.floor((left+VW)/CH),r0=Math.floor(top/CH),r1=Math.floor((top+VH)/CH);let made=0;
+  ctx2.globalAlpha=fk;for(let cz=r0;cz<=r1;cz++)for(let cx=c0;cx<=c1;cx++){const c=chunks.get(cx+','+cz);if(!c)continue;if(c.frost===undefined&&made++>8)continue;const f=rxFrostOf(c,cx,cz);if(f)ctx2.drawImage(f,cx*CH-left,cz*CH-top);}
+  ctx2.globalAlpha=1;return true;}
 // ---------- birds that burst out of the trees
 function rxBirds(dt){const night=isNight();
   if(outdoors()&&P.spd>0){for(const o of rxNear(P.x,P.z,'t',3)){if(o.kind!=='tree')continue;const d=Math.hypot(o.x-P.x,(o.z-P.z)*1.3);if(d>(P.spd>=4?2.6:1.5))continue;

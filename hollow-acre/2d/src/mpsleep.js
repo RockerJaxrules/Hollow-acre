@@ -42,7 +42,7 @@ setInterval(()=>{try{if(HOST.role!=='host'||!ZZ.me||S.mode!=='play')return;const
 // the wire: who's in bed, and the host's weather along with the clock
 {const _hw=hostWire;hostWire=function(){for(const f of ZZ.off)try{f();}catch(e){}ZZ.off=[];const r=CO.room;
   if(r&&r.on){const on=(t,f)=>ZZ.off.push(r.on(t,m=>{if(!m||m.isMe)return;try{f(m.data,m.peer);}catch(e){}}));
-    on('zzz',(d,peer)=>{if(HOST.role!=='host'||!d)return;ZZ.asleep[peer]=!!d.on;const n=(HOST.members||{})[peer];if(n&&d.on&&!ZZ.me)toast(`${n} has gone to bed.`,2.4);zzTell();});
+    on('zzz',(d,peer)=>{if(HOST.role!=='host'||!d)return;const was=!!ZZ.asleep[peer];ZZ.asleep[peer]=!!d.on;const n=(HOST.members||{})[peer];if(n&&d.on&&!was&&!ZZ.me)toast(`${n} has gone to bed.`,2.4);zzTell();});
     on('zzs',d=>{if(HOST.role!=='guest'||!d||!Array.isArray(d.asleep)||!Array.isArray(d.awake))return;ZZ.names={asleep:d.asleep.map(clean),awake:d.awake.map(clean)};if(ZZ.me)zzCardShow();
       else if(d.asleep.length&&!ZZ.saidT){ZZ.saidT=1;toast(`${d.asleep.map(clean).join(', ')} ${d.asleep.length>1?'are':'is'} in bed. The night ends when everyone is.`,3);setTimeout(()=>ZZ.saidT=0,20000);}});
     on('wx',d=>{if(HOST.role!=='guest'||!d)return;HOST.hostPeer=HOST.hostPeer||null;

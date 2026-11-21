@@ -282,13 +282,19 @@ function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true
   // the rain is driven sideways, reflector posts flick past in the headlights, a doe watches from the shoulder. A dead deer lies in the
   // lane: the car hits it and throws it. Then the figure in the road: the wheel is wrenched, the back end steps out, the car fishtails,
   // leaves the road and slides into the oak. Hit-stop, a white flash, glass and paint and dirt and leaves, steam, a horn that won't stop.
-  const HIT={x:-60.4,z:.5},LANE=-4.75,V=15,TC=15.2,TH=17.5,DUR=TH-TC,SK=32.5,XC=HIT.x-SK,DEC=2*(V*DUR-SK)/(DUR*DUR);
+  // (owner: "leave the car where it is, as long as the cutscene crashes it into the tree that way") the drive ends exactly where the wreck
+  // lies in the world: REST is the world's wreck (story337 puts its crumpled sedan at -60.9, 2.0 + .32), END is where the moving car stops
+  // (the same sedan picture, anchored 20 px higher), facing east with its nose in the oak; HIT keeps the steam, glass, the one headlight
+  // and the camera where they were on the car
+  const REST={x:-60.9,z:2.32},END={x:REST.x,z:REST.z-20/32},HIT={x:END.x+.506,z:END.z-1.4875},LANE=-4.75,V=15,TC=15.2,TH=17.5,DUR=TH-TC,SK=32.5,XC=END.x-SK,DEC=2*(V*DUR-SK)/(DUR*DUR);
   const YK=[[0,0],[.1,-.45],[.27,.55],[.42,-.25],[.6,.7],[.78,1.2],[.9,1.05],[1,.95]];   // nose left, whip right, back, right, round
-  const STEER=[[0,-.6],[.16,.75],[.38,-.35],[.56,.85],[.72,1.35],[.86,.95]];   // the yanks of the wheel (fraction of the skid, heading it's thrown toward)
+  const STEER=[[0,-.6],[.16,.75],[.38,-.35],[.56,.85],[.72,1.35],[.84,.25]];   // the last yank swings the nose back east, into the oak   // the yanks of the wheel (fraction of the skid, heading it's thrown toward)
   const cl=v=>Math.max(0,Math.min(1,v)),ss=v=>v*v*(3-2*v);
   const yawAt=k=>{for(let i=1;i<YK.length;i++)if(k<=YK[i][0]){const a=YK[i-1],b=YK[i],u=(k-a[0])/(b[0]-a[0]);return a[1]+(b[1]-a[1])*(1-Math.cos(Math.PI*u))/2;}return YK[YK.length-1][1];};
   const carAt=T=>{if(T<TC)return {x:XC-V*(TC-T),z:LANE,yaw:0,v:V};const t=Math.min(DUR,T-TC),k=t/DUR;
-    return {x:XC+V*t-DEC*t*t/2,z:LANE-1.3*Math.sin(Math.PI*cl(k/.35))+(HIT.z-LANE)*ss(cl((k-.3)/.7)),yaw:yawAt(k),v:V-DEC*t};};
+    return {x:XC+V*t-DEC*t*t/2,z:LANE-1.3*Math.sin(Math.PI*cl(k/.35))+(END.z-LANE)*ss(cl((k-.3)/.7)),yaw:yawAt(k),v:V-DEC*t};};
+  // the wreck as the world has it, sorted in front of the oak (the rebound pushes it back off the trunk and lets it drop)
+  const wreckAt=(dx,dz,hop)=>{if(SPR.st37_car_s0f)drawSpr('st37_car_s0f',sx(REST.x+dx),sz(REST.z+dz)+Math.round(hop));else drawSpr('car_wreck',sx(-61.0+dx),sz(1.8+dz)+Math.round(hop));};
   const carFrame=yaw=>{const m=SPR.car_east,n=m&&m.clips&&m.clips.yaw?m.clips.yaw.S[1]:7;return n>=15?Math.max(0,Math.min(14,Math.round((yaw+.6)/.15))):Math.max(0,Math.min(6,Math.round(yaw/.15)));};
   const wreck=OBJ.filter(o=>o.kind==='wreck');for(const o of wreck)o.hide=true;
   for(const n of npcs)n.vis=false;H.vis=false;S.storm=true;S.hour=23.8;S.introDrive=true;fade(1);
@@ -313,7 +319,8 @@ function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true
       if(st.deer&&st.deer.x>st.car.x-40){const d=st.deer;D.push({z:d.z,mind:1,draw(){drawSpr('deer_dead',sx(d.x),sz(d.z)-d.y*PPM,null,null,0,{flip:d.flip});}});}
       if(!st.crashed)D.push({z:st.car.z+.2,mind:1,draw(){const f=carFrame(st.car.yaw);drawSpr('car_east',sx(st.car.x),sz(st.car.z)+st.jolt+Math.round(st.bob),'yaw','S',f);}});
       if(st.crashed&&st.reb>0){const u=1-st.reb/.6,back=.45*Math.sin(Math.PI*Math.min(1,u/.35))*Math.exp(-u*3),hop=u<.22?-7*Math.sin(Math.PI*u/.22):u<.4?-2*Math.sin(Math.PI*(u-.22)/.18):0;   // (owner: "light and floaty") the wreck rebounds off the trunk, hops and slams down
-        D.push({z:1.8,mind:1,draw(){drawSpr('car_wreck',sx(-61.0-.55*back),sz(1.8-.8*back)+Math.round(hop));}});}
+        D.push({z:REST.z,mind:1,draw(){wreckAt(-.55*back,-.8*back,hop);}});}
+      if(st.crashed&&st.reb<=0)D.push({z:REST.z,mind:1,draw(){wreckAt(0,0,0);}});   // it stays in the shot once it has come to rest
       if(st.fig)D.push({z:st.fig.z,mind:1,draw(){drawSpr('hollow',sx(st.fig.x),sz(st.fig.z),'walk',st.fig.dir,0,{alpha:st.fig.a});}});
       // smoke off the tyres, debris and steam: drawn high in the order so they sit over the car
       D.push({z:1e6,mind:1,draw(){
@@ -340,7 +347,7 @@ function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true
       // (owner: "the swerve doesn't feel like it has weight") the wheel is yanked, not eased: the heading chases each new steer on a stiff,
       // underdamped spring, so the car overshoots and settles like something heavy; every yank and bump throws the body onto its springs
       if(T>=TC&&T<TH){const k=(T-TC)/DUR,tg=STEER.reduce((a,s)=>k>=s[0]?s[1]:a,0);if(tg!==st.steer){st.steer=tg;st.bobV+=26;st.kick.x+=(tg-st.yaw)*-.35;st.kick.z+=.25;SFX.thud&&SFX.thud(0,.25);}
-        st.yawV+=(70*(tg-st.yaw)-7.5*st.yawV)*dt;st.yaw+=st.yawV*dt;st.car.yaw=st.yaw;}
+        st.yawV+=(70*(tg-st.yaw)-7.5*st.yawV)*dt;st.yaw+=st.yawV*dt;st.car.yaw=st.yaw*(1-ss(cl((k-.8)/.2)));}   // it meets the trunk square on, as the wreck lies
       st.bobV+=(-140*st.bob-11*st.bobV)*dt;st.bob+=st.bobV*dt;st.kick.x*=Math.pow(.02,dt);st.kick.z*=Math.pow(.02,dt);if(st.reb>0)st.reb-=dt;
       // the camera rides ahead of the car on the straight, closes in during the skid, settles on the oak at the crash
       const tx=(T<TC?st.car.x+6:T<TH?st.car.x+2:HIT.x+.8)+st.kick.x,tz=(T<TC?-6.2:T<TH?st.car.z-.4:HIT.z)+st.kick.z;
@@ -393,7 +400,7 @@ function introCine(){S.mode='cine';$('hud').hidden=true;$('buttons').hidden=true
       if(T>TH+.9&&once('k0'))fade(1);
       if(T>TH+2.2&&once('k')){SFX.heart(.6);}
       if(T>TH+4.7&&once('l')){cine.phase2=true;cine.hidePlayer=false;S.hour=4.6;P.x=-58.6;P.z=-4.2;P.dir='S';P.fx=-.3;P.fz=1;H.vis=true;H.x=carPos.x-.6;H.z=carPos.z+1.6;H.state='cutscene';H.clip='crawl';H.dir='W';H.alpha=1;H.rise=1;H.ft=0;
-        cine.cam={x:-59.5,z:-2.6};const stm=st.steam;cine.drawables=D=>{D.push({z:1e6,mind:1,draw(){for(const s of stm){const a=Math.max(0,s.l/s.L)*.35,r=Math.round(2+(1-s.l/s.L)*8);ctx2.fillStyle=`rgba(200,200,204,${a.toFixed(3)})`;ctx2.fillRect(sx(s.x)-r,sz(s.z)-s.y*PPM-r,r*2,r*2);}}});};
+        cine.cam={x:-59.5,z:-2.6};const stm=st.steam;cine.drawables=D=>{D.push({z:REST.z,mind:1,draw(){wreckAt(0,0,0);}});D.push({z:1e6,mind:1,draw(){for(const s of stm){const a=Math.max(0,s.l/s.L)*.35,r=Math.round(2+(1-s.l/s.L)*8);ctx2.fillStyle=`rgba(200,200,204,${a.toFixed(3)})`;ctx2.fillRect(sx(s.x)-r,sz(s.z)-s.y*PPM-r,r*2,r*2);}}});};
         cine.draw=null;cine.light=()=>{glowAt(sx(carPos.x-.4),sz(carPos.z+1.2)-20,90,[255,200,140],.45);glowAt(VW*.5,VH*.45,Math.max(VW,VH)*.7,[34,40,62],.5);};SFX.breath(0);fade(0);}}};
   function T_brake(){return st.t>TC&&st.t<TH;}
   SFX.engine(true);

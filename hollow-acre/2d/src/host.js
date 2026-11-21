@@ -14,7 +14,7 @@ function putPersonal(o){for(const [k,v] of Object.entries(o))S[k]=v;}
 function newCode(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ';let c='';for(let i=0;i<4;i++)c+=a[Math.floor(Math.random()*a.length)];return c+(10+Math.floor(Math.random()*90));}
 function hostWire(){for(const f of HOST.off)try{f();}catch(e){}HOST.off=[];const r=CO.room;if(!r||!r.on)return;
   const on=(t,f)=>HOST.off.push(r.on(t,m=>{if(!m||m.isMe)return;try{f(m.data,m.peer);}catch(e){}}));
-  on('hello',(d,peer)=>{if(HOST.role!=='host')return;const n=clean(d&&d.n);HOST.members[peer]=n;const hand=(S.farmhands||{})[n]||null;r.emit('snap',{data:saveData(true),host:NAME()||'The host',hand},peer);toast(`${clean(d&&d.n)} has joined your farm as a farmhand.`,3);});
+  on('hello',(d,peer)=>{if(HOST.role!=='host')return;const n=clean(d&&d.n);const known=HOST.members[peer]===n;HOST.members[peer]=n;const hand=(S.farmhands||{})[n]||null;r.emit('snap',{data:saveData(true),host:NAME()||'The host',hand},peer);if(!known)toast(`${n} has joined your farm as a farmhand.`,3);});   // (a farmhand knocks again until the farm arrives: said once)
   on('snap',(d,peer)=>{if(HOST.role!=='guest'||!d||!d.data)return;HOST.hostPeer=peer;HOST.hostName=clean(d.host);
     // (#263) a farm sent again because this game asked for it: if the morning already came, there's nothing to redo
     const same=HOST.joined&&d.data.S&&(d.data.S.day|0)===S.day;if(d.re&&same&&HOST.snapDay===S.day)return;
@@ -28,7 +28,8 @@ function hostWire(){for(const f of HOST.off)try{f();}catch(e){}HOST.off=[];const
   on('coin',d=>{if(!HOST.role||!d||!isFinite(d.d))return;const n=Math.max(-100000,Math.min(100000,d.d|0));S.coins=Math.max(0,S.coins+n);HOST.coins=S.coins;updateHud&&updateHud();});
   on('time',(d,peer)=>{if(HOST.role!=='guest'||!d)return;HOST.hostPeer=peer;wcGuestTime(d);});   // (#263) the host's world clock: see mpsync.js
   on('mine',(d,peer)=>{if(HOST.role!=='host'||!d||!d.p||typeof d.p!=='object')return;const n=clean(d.n);let js='';try{js=JSON.stringify(d.p);}catch(e){return;}if(js.length>200000)return;S.farmhands=S.farmhands||{};S.farmhands[n]=JSON.parse(js);});
-  on('bye',(d,peer)=>{if(HOST.role==='guest'&&peer===HOST.hostPeer){if(d&&d.reload)hostWait();else hostGone();}});}
+  on('bye',(d,peer)=>{if(HOST.role==='guest'&&peer===HOST.hostPeer){if(d&&d.reload)hostWait();else hostGone();}});
+  on('rehost',(d,peer)=>{if(HOST.role!=='guest'||!d||String(d.code||'').toUpperCase()!==HOST.code)return;HOST.hostPeer=peer;HOST.resync=true;try{r.emit('hello',{n:myFarmName(),id:myPid()},peer);}catch(e){}});}
 function applySnap(data,first,hand){const mine=first?(HOST.ownPersonal||hand||takePersonal()):takePersonal();const nerve=M.v,was=S.day,rested=typeof ZZ!=='undefined'&&ZZ.me;
   const quiet=!first&&HOST.quiet,keep=quiet?{x:P.x,z:P.z,dir:P.dir,room:S.room,night:S.night,storm:S.storm,H:Object.assign({},H)}:null;HOST.applying=true;
   try{for(const t of tiles){t.tilled=false;t.crop=null;}loadGame(data);}finally{HOST.applying=false;}
@@ -39,27 +40,51 @@ function applySnap(data,first,hand){const mine=first?(HOST.ownPersonal||hand||ta
   if(!first&&typeof regenPass==='function')regenPass();hostReset();S.mode='play';S.paused=false;$('title').hidden=true;$('hud').hidden=false;$('buttons').hidden=false;ui.obj.hidden=false;
   if(!quiet)toast(first?`You’re on ${HOST.hostName}’s farm. Everything you grow here is shared. Your backpack is still yours.`:`Day ${S.day}. ${HOST.hostName} went to bed, so the night is over for everyone.`,4.2);}
 async function hostStart(){if(!canHost()){toast('Hosting needs an internet connection.',2.6);return;}HOST.role='host';HOST.code=newCode();await coopJoin('host-'+HOST.code.toLowerCase());hostWire();hostReset();
+  mpLastFarm(null);   // hosting your own farm: Continue is this farm, not a friend's
+  // (#360) a farm opened again (Continue, a reload): any farmhand still on it knocks again and takes the whole farm afresh, clock and all
+  try{CO.room.emit('rehost',{code:HOST.code});setTimeout(()=>{try{CO.room.emit('rehost',{code:HOST.code});}catch(e){}},2500);}catch(e){}
   toast(`You’re hosting. Farm code: ${HOST.code}. Friends choose Play with friends, then Join a friend’s world, and type it.`,5);if(GM_TAB==='coop'&&!$('bag').hidden)renderCoop();}
 function hostJoin(code){code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8);if(!code){toast('Type the host’s farm code first.',2.2);return;}
   if(!canHost()){toast('Joining needs an internet connection.',2.6);return;}try{flushSave&&flushSave();sessionStorage.setItem('hollowJoin',code);}catch(e){}S.mode='trans';fade(1);setTimeout(()=>location.reload(),400);}
 async function hostJoinNow(code){HOST.role='guest';HOST.code=code;HOST.joined=false;const own=readSave();HOST.ownPersonal=own?Object.fromEntries(PERSONAL.filter(k=>own.S[k]!==undefined).map(k=>[k,own.S[k]])):null;
   await coopJoin('host-'+code.toLowerCase());hostWire();HOST.helloT=0;toast(`Looking for farm ${code}…`,3);let tries=0;
-  const knock=setInterval(()=>{if(HOST.joined||HOST.role!=='guest'||tries++>15){clearInterval(knock);if(!HOST.joined&&HOST.role==='guest'){toast('Couldn’t find that farm. Check the code, and that the host is playing.',3.6);setTimeout(()=>{HOST.role=null;location.reload();},3600);}return;}
+  const knock=setInterval(()=>{if(HOST.joined||HOST.role!=='guest'||tries++>15){clearInterval(knock);if(!HOST.joined&&HOST.role==='guest'){
+      if(HOST.fromCont){try{sessionStorage.setItem('hollowContOffline',code);}catch(e){}toast(`Farm ${code} isn’t open right now. Going to your own farm instead.`,3.2);setTimeout(()=>{HOST.role=null;location.reload();},2600);return;}
+      toast('Couldn’t find that farm. Check the code, and that the host is playing.',3.6);setTimeout(()=>{HOST.role=null;location.reload();},3600);}return;}
     CO.room.emit('hello',{n:myFarmName(),id:myPid()});},2000);CO.room.emit('hello',{n:myFarmName(),id:myPid()});}
 // the title screen in join mode
-{let jc=null;try{jc=sessionStorage.getItem('hollowJoin');sessionStorage.removeItem('hollowJoin');}catch(e){}
+{let jc=null,jcc=null;try{jc=sessionStorage.getItem('hollowJoin');sessionStorage.removeItem('hollowJoin');jcc=sessionStorage.getItem('hollowContJoin');sessionStorage.removeItem('hollowContJoin');}catch(e){}
+  if(jc&&jcc===jc){HOST.fromCont=true;const go=()=>{const b=[...document.querySelectorAll('#title button')].find(x=>/^Join farm/.test(x.textContent));if($('loadScr')||!b||S.mode!=='title'){setTimeout(go,300);return;}b.click();};setTimeout(go,400);}
   if(jc){const b=document.createElement('button');b.className='begin';b.textContent=`Join farm ${jc}`;b.style.marginBottom='10px';$('begin').before(b);
     const c=$('cont');if(c)c.style.display='none';$('begin').textContent='Cancel';
     $('begin').addEventListener('click',e=>{e.stopImmediatePropagation();e.preventDefault();location.reload();},true);
     b.addEventListener('click',()=>{A.init&&A.init();$('title').hidden=true;finishIntro();S.readLetter=true;S.foundCabin=true;S.mode='paused';   // (the tutorial is each player's own now, #241)
       
       const go=()=>{if(CO.lobby)hostJoinNow(jc);else setTimeout(go,300);};go();});}}
-function hostLeave(quiet){const was=HOST.role;try{CO.room&&CO.room.emit&&CO.room.emit('bye',{});}catch(e){}HOST.role=null;HOST.code='';for(const f of HOST.off)try{f();}catch(e){}HOST.off=[];
+function hostLeave(quiet){const was=HOST.role;if(was==='guest')mpLastFarm(null);try{CO.room&&CO.room.emit&&CO.room.emit('bye',{});}catch(e){}HOST.role=null;HOST.code='';for(const f of HOST.off)try{f();}catch(e){}HOST.off=[];
   if(was==='guest'){guestPersist();if(!quiet){toast('Going home…',1.6);}setTimeout(()=>location.reload(),quiet?50:900);return;}coopJoin('');if(GM_TAB==='coop'&&!$('bag').hidden)renderCoop();}
-function hostGone(){toast(`${HOST.hostName||'The host'} has stopped hosting. You head home.`,3.4);guestPersist();HOST.role=null;setTimeout(()=>location.reload(),2600);}
+function hostGone(){mpLastFarm(null);toast(`${HOST.hostName||'The host'} has stopped hosting. You head home.`,3.4);guestPersist();HOST.role=null;setTimeout(()=>location.reload(),2600);}
 // a farmhand's own things go home with them: their backpack, tools and friendships are written into their own save
 function guestPersist(){try{if(CO.room&&CO.room.emit&&HOST.hostPeer)CO.room.emit('mine',{n:NAME()||'Farmhand',p:takePersonal()},HOST.hostPeer);}catch(e){}try{const own=readSave();if(!own)return;const mine=takePersonal();for(const [k,v] of Object.entries(mine)){if(k==='look')continue;own.S[k]=v;}localStorage.setItem(SAVE_KEY,JSON.stringify(own));}catch(e){}}
-{const _sg=saveGame;saveGame=function(mid){if(HOST.role==='guest'){guestPersist();return true;}return _sg.apply(this,arguments);};}
+{const _sg=saveGame;saveGame=function(mid){if(HOST.role==='guest'||HOST.wasGuest){if(HOST.role==='guest')guestPersist();return true;}return _sg.apply(this,arguments);};}
+// (#360, owner: "Continue still reconnects you to multiplayer but it desyncs the time, and you don't follow the multiplayer rules")
+// The farm a farmhand was last on is remembered; Continue takes them back onto it by the very same road as joining it from the
+// multiplayer menu (the farm code, a knock, the host's whole farm, clock and rules); if it isn't open, they go to their own farm,
+// offline, and are told so. Going home on purpose, or the host closing the farm, forgets it.
+const MP_LAST_KEY=()=>SAVE_KEY+'|lastFarm';
+function mpLastFarm(v){try{if(v===undefined){const d=JSON.parse(localStorage.getItem(MP_LAST_KEY())||'null');return d&&d.code?d:null;}if(v)localStorage.setItem(MP_LAST_KEY(),JSON.stringify(v));else localStorage.removeItem(MP_LAST_KEY());}catch(e){}return null;}
+setTimeout(function mpContBtn(){const c=$('cont');if(!c||$('loadScr')){setTimeout(mpContBtn,300);return;}const lf=mpLastFarm();
+  let off=null;try{off=sessionStorage.getItem('hollowContOffline');sessionStorage.removeItem('hollowContOffline');}catch(e){}
+  if(off){const go=()=>{if($('loadScr')||S.mode!=='title'){setTimeout(go,300);return;}c.click();setTimeout(()=>toast(`Farm ${off} isn’t open, so you’re on your own farm, offline. Continue will try that farm again next time.`,4.4),900);};setTimeout(go,300);return;}
+  if(!lf||c.style.display==='none')return;
+  {const nb=$('begin');if(nb)nb.addEventListener('click',()=>{if(!/^Cancel/.test(nb.textContent))mpLastFarm(null);});}   // a new game of your own: Continue is yours again
+  const own=c.textContent;c.textContent=`Continue · ${lf.host?lf.host+'’s farm':'Farm '+lf.code}`;
+  const ob=document.createElement('button');ob.className='begin second';ob.id='contOwn';ob.textContent=own.replace(/^Continue/,'Your own farm');ob.style.marginBottom='10px';c.after(ob);
+  ob.addEventListener('click',()=>{mpLastFarm(null);c.textContent=own;c.click();});
+  c.addEventListener('click',e=>{if(!e.isTrusted||!mpLastFarm())return;
+    if(!canHost()){c.textContent=own;setTimeout(()=>toast(`No connection, so ${lf.host?lf.host+'’s':'that'} farm can’t be reached. You’re on your own farm, offline.`,4.4),1200);return;}   // offline: your own farm, and said so
+    e.stopImmediatePropagation();e.preventDefault();A.init&&A.init();
+    try{sessionStorage.setItem('hollowContJoin',lf.code);}catch(e){}hostJoin(lf.code);},true);},600);
 // only the host's bed ends the day
 {const _sl=sleep;sleep=function(){if(HOST.role==='guest'){toast(`You get into bed. The day ends when ${HOST.hostName||'the host'} goes to sleep.`,3.2);return;}return _sl.apply(this,arguments);};}
 {const _nd=newDay;newDay=function(msg,pos){if(HOST.role==='guest'&&!HOST.applying){S.hour=Math.min(S.hour,25.9);return;}const r=_nd.apply(this,arguments);

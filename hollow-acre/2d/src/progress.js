@@ -157,9 +157,13 @@ function lessonsUpdate(dt){if(maeT>0){maeT-=dt;if(maeT<=0)$('maecard').style.dis
 // candles cost more: the rite has to be earned
 {const _pr=vendors.peddler.rows;vendors.peddler.rows=()=>_pr().map(r=>r.k==='candle'?Object.assign(r,{price:45}):r);}
 setInterval(()=>{if(S.paused&&$('maecard').style.display!=='none'){$('maecard').style.display='none';maeT=0;}},200);
-setInterval(()=>{const l=$('lesson');if(S.paused||S.mode!=='play'){l.style.display='none';}
-  const on=l.style.display==='flex';const t=$('toast');const want=on?(Math.round(l.getBoundingClientRect().bottom+8)+'px'):'';
-  if(on){t.style.top=want;t.style.transform='translate(-50%,0)';}else if(t.style.top){t.style.top='';t.style.transform='';}},150);
+// (owner: "the perfect bone meal message flickers") this only moves the toast below a lesson card, and only takes back the place
+// it gave: it used to clear any top the toast had, every 150 ms, while the craft panel's docking put it back every 120 ms, so a
+// message shown over a panel jumped between two places. A docked toast (pl37low) is left to the docking; writes only on change.
+{let lsTop='';setInterval(()=>{const l=$('lesson');if(S.paused||S.mode!=='play'){if(l.style.display!=='none')l.style.display='none';}
+  const on=l.style.display==='flex';const t=$('toast');const want=on&&!t.classList.contains('pl37low')?(Math.round(l.getBoundingClientRect().bottom+8)+'px'):'';
+  if(want){if(t.style.top!==want)t.style.top=want;if(t.style.transform!=='translate(-50%, 0px)')t.style.transform='translate(-50%,0)';lsTop=want;}
+  else if(lsTop){if(t.style.top===lsTop)t.style.top='';t.style.transform='';lsTop='';}},150);}
 
 // ---- Mae in person: when she talks you through a lesson she walks over and stands beside you, then heads off again
 const MAEV={on:false,x:0,z:0,tx:0,tz:0,dir:'S',t:0,mv:0,stay:0,room:null,leave:false};

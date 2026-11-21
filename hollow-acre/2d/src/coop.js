@@ -26,9 +26,19 @@ async function coopStart(){let room=null;
 async function coopJoin(code){code=(code||'').toLowerCase().replace(/[^a-z0-9_-]/g,'').slice(0,24);const lob=CO.lobby;if(!lob)return;
   try{if(!lob.net&&CO.room&&CO.room!==lob&&CO.room.leave)await CO.room.leave();}catch(e){}
   try{CO.room=code?await lob.join('farm-'+code):(lob.rejoin&&CO.room?await lob.rejoin():(lob.current||lob));CO.code=code;}catch(e){CO.room=lob.current||lob;CO.code='';toast('Couldn’t open that farm code. You’re in the shared valley.',2.6);}
-  CO.room.onPeers(ch=>{CO.peers=ch.peers;for(const p of ch.joined)if(!p.isMe&&p.presence&&p.presence.n)toast(`${clean(p.presence.n)} has come to the valley.`,2.4);
-    for(const p of ch.left)if(!p.isMe&&p.presence&&p.presence.n)toast(`${clean(p.presence.n)} has gone home.`,2.2);if(GM_TAB==='coop'&&!$('bag').hidden)renderCoop();});
+  CO.room.onPeers(ch=>{CO.peers=ch.peers;for(const p of ch.joined)if(!p.isMe&&p.presence&&p.presence.n&&coSaid(clean(p.presence.n),1))toast(`${clean(p.presence.n)} has come to the valley.`,2.4);
+    for(const p of ch.left)if(!p.isMe&&p.presence&&p.presence.n&&coSaid(clean(p.presence.n),0))toast(`${clean(p.presence.n)} has gone home.`,2.2);if(GM_TAB==='coop'&&!$('bag').hidden)renderCoop();
+    // (#360) the host's game went away without a word (closed, crashed, lost signal): wait for it, knocking, instead of playing on alone
+    // on a farm whose clock has stopped; it comes back with the whole farm, or after a while you go home
+    // (#360) a farmhand who has gone is no longer counted (they were kept, so the night waited for someone who wasn't there)
+    try{if(HOST.role==='host')for(const p of ch.left){if(p&&p.peer&&HOST.members[p.peer]){delete HOST.members[p.peer];if(typeof ZZ!=='undefined'&&ZZ.asleep)delete ZZ.asleep[p.peer];}}}catch(e){}
+    try{if(HOST.role==='guest'&&HOST.joined&&HOST.hostPeer&&!(typeof IDN!=='undefined'&&IDN.wait)&&ch.left.some(p=>p.peer===HOST.hostPeer)){hostWait();
+      const bb=IDN.card&&IDN.card.querySelector('b');if(bb)bb.textContent=`${clean(HOST.hostName||'The host')}’s game has gone quiet.`;}}catch(e){}});
   CO.last=0;coopSend(true);}
+// (owner: "the leaving message also flickers") a connection that drops and comes straight back fired "has gone home" and "has come
+// to the valley" back to back, over and over: each is said once per real change, not again inside a minute, and a blip says nothing
+const CO_SAID={};function coSaid(n,on){const now=performance.now(),r=CO_SAID[n]||(CO_SAID[n]={on:null,t:0,said:{}});const flip=r.on!==null&&r.on!==on&&now-r.t<6000;
+  const prev=r.on;r.on=on;r.t=now;if(prev===on)return false;if(flip)return false;if(now-(r.said[on]||-1e9)<60000)return false;r.said[on]=now;return true;}
 const clean=s=>String(s||'').replace(/[<>&"]/g,'').slice(0,24)||'Farmhand';
 const MPV={px:null,pz:null,vx:0,vz:0,sig:'',seq:0,an:null};
 function coopSend(force){const r=CO.room;if(!r||S.mode==='title'||S.mode==='load')return;const now=performance.now();if(!force&&now-CO.last<100)return;

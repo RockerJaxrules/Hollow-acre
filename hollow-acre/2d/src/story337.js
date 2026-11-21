@@ -940,7 +940,7 @@ setInterval(()=>{try{if(ST37_FP.length&&ST37.fpDay!==S.day){for(const o of ST37_
 // rain on a storm night, drawn after the light so it can be seen: 2 px streaks, many more, splashes, brighter in the lightning
 {const _ms=mindScreen;mindScreen=function(t){try{if(S.storm&&isNight()&&!S.room&&(S.mode==='play'||S.mode==='cine')){const fl=Math.min(1,(typeof flashT!=='undefined'?flashT:0));
       ctx2.fillStyle=`rgba(150,170,205,${(.32+.4*fl).toFixed(3)})`;for(let i=0;i<260;i++){const x=((hash(i,7)*VW*1.2+t*70)%(VW*1.2))-VW*.1,y=(hash(i,8)*VH+t*(560+hash(i,9)*160))%VH;const X=Math.round(x),Y=Math.round(y);for(let k=0;k<8;k++)ctx2.fillRect(X-(k>>2),Y+k,2,1);}
-      ctx2.fillStyle=`rgba(190,205,230,${(.35+.3*fl).toFixed(3)})`;for(let i=0;i<70;i++){const ph=(t*3+hash(i,11))%1;if(ph>.35)continue;const X=Math.round(hash(i,12)*VW),Y=Math.round(hash(i,13)*VH+Math.floor(t*3+hash(i,11))*37)%VH;const w=ph<.15?3:5;ctx2.fillRect(X-(w>>1),Y,w,1);if(ph<.15)ctx2.fillRect(X,Y-1,1,1);}}}catch(e){}return _ms.apply(this,arguments);};}
+      /* (#360) the splashes were dashes at random places on the screen; they land on the ground now (fixes360.js) */}}catch(e){}return _ms.apply(this,arguments);};}
 // the Count's find that lay in the Tithe House's clearing (a child's shoe, which read as a second pair of shoes) is moved out past the ring
 setTimeout(function st37MoveFind(){try{if(typeof RGC==='undefined'||!RGC.length||RGC.some(c=>c.x==null)){setTimeout(st37MoveFind,1000);return;}
   for(const c of RGC){if(Math.hypot(c.x-TITHE.x,c.z-TITHE.z)>10.5)continue;const ox=c.x,oz=c.z;const s=rgcSpot(TITHE.x+11.5,TITHE.z+7.5);c.x=s.x;c.z=s.z;

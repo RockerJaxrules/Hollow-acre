@@ -40,7 +40,13 @@ const selectedItem=()=>itemInfo(S.slots[S.slotSel]);
 hotbarUse=function(k){const i=['hoe','can','pick','axe','seed','food'].indexOf(k);if(i>=0)slotUse(i);};
 addEventListener('keydown',e=>{if(S.mode!=='play'||S.paused)return;const m=/^Digit([0-9])$/.exec(e.code);if(m){const n=+m[1];const i=n===0?9:n-1;if(i>=6){slotUse(i);e.preventDefault();}}
   if(e.code==='Minus')slotUse(10);if(e.code==='Equal')slotUse(11);});
-addEventListener('wheel',e=>{if(S.mode!=='play'||S.paused||!$('hud')||$('hud').hidden)return;const n=slotsVisible();S.slotSel=(S.slotSel+(e.deltaY>0?1:n-1))%n;slotUse(S.slotSel);},{passive:true});
+// (owner, PC: "having your inventory over anything makes you automatically eat it") the wheel set the slot as selected before using it,
+// so landing on food was the "tap again to eat": every scroll over the world, the toolbar or a list ate. Now the wheel only picks a slot
+// (food says "tap again to eat", and only a real second press eats); a scroll over a panel or list scrolls it; one step per notch.
+{let wl=0;addEventListener('wheel',e=>{if(S.mode!=='play'||S.paused||!$('hud')||$('hud').hidden)return;
+  const t=e.target;if(t&&t.closest&&!t.closest('#hotbar')&&t!==view&&t.closest('#bag,#shop,#note,#craft,#talk,.sheet,.panel,#mpScr,#cheatBox'))return;
+  if(Math.abs(e.deltaY)<4)return;const now=performance.now();if(now-wl<110)return;wl=now;
+  const n=slotsVisible(),i=((S.slotSel+(e.deltaY>0?1:n-1))%n+n)%n;S.slotSel=-1;slotUse(i);if(S.slotSel<0)S.slotSel=i;},{passive:true});}
 {const css=document.createElement('style');css.textContent=`
 #hotbar .slot.sel{box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 4px #ffe08a,inset 0 0 0 6px #c88a2a!important;transform:translateY(-3px)}
 #hotbar .slot.empty img{display:none}

@@ -133,8 +133,9 @@ function stgCaitlynGate(done){const d=doorPos;MAEV.on=false;
   const gate={x:d.x-1.3,z:d.z+4.3},mae={x:gate.x,z:gate.z+.42},you0={x:d.x+.05,z:d.z+1.25},youM={x:gate.x+.95,z:gate.z-.55},in1={x:gate.x-.65,z:gate.z-.7};
   let phone=1,open=0;const CAM={x:gate.x+.4,z:d.z+2.95};
   stage({hour:Math.max(9.5,Math.min(S.hour,16)),player:{x:you0.x,z:you0.z,dir:'N'},cast:{mae:{x:mae.x,z:mae.z,dir:'N'}},cam:CAM,
-    props:[{x:gate.x,z:gate.z+.06,draw(X,Y){stgFence(X-170,X+170,Y,X,1);stgFarmGate(X,Y,open);}},
-           {get x(){return npcById('mae').x;},get z(){return npcById('mae').z+.02;},draw(X,Y,t){if(phone<=0)return;const ry=Math.round(-44+(1-phone)*18);   // the phone held up, lit, no bars
+    // (owner: "Caitlyn cutscene spawns in a gate and then the gate is never seen again") the farm moved and its gate with it: there is
+    // no fence or gate in front of the cabin, so none is drawn here either. She waits at the edge of the yard where the path comes in.
+    props:[{get x(){return npcById('mae').x;},get z(){return npcById('mae').z+.02;},draw(X,Y,t){if(phone<=0)return;const ry=Math.round(-44+(1-phone)*18);   // the phone held up, lit, no bars
              ctx2.fillStyle='rgba(150,210,240,.22)';ctx2.fillRect(X+2,Y+ry-4,15,19);ctx2.fillStyle='#120c08';ctx2.fillRect(X+4,Y+ry,10,13);ctx2.fillStyle=(Math.sin(t*2.4)>-.3)?'#b8e8fa':'#88c4e0';ctx2.fillRect(X+5,Y+ry+1,8,10);
              ctx2.fillStyle='#c83a2a';ctx2.fillRect(X+7,Y+ry+3,4,1);ctx2.fillRect(X+8,Y+ry+2,2,3);ctx2.fillStyle='#e8c0a0';ctx2.fillRect(X+4,Y+ry+12,5,2);}}],   // a red cross: no signal
     beats:[
