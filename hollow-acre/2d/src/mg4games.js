@@ -226,7 +226,7 @@ function m4arm(K,X,Y,arm,len,clipY){const Lk=m4look();const AQ=Math.PI*2/160;arm
       if(dk)put(i,m4mix(R[0],'#0c0408',.5));else if(lit)put(i,m4mix(R[0],R[1],.35));}
     g.putImageData(d,0,0);e={c,bx,by};M4A.C.set(key,e);}
   K.g.drawImage(e.c,IX+e.bx,IY+e.by);}
-const m4grip=(K,x,y,ang,o)=>{o=o||{};(M4G.fr||(M4G.fr=[])).push([x,y]);const Lk=m4look();const side=o.side||1;let arm=o.arm!=null?o.arm:M4G.arm!=null?M4G.arm:ang+.5;
+let m4grip=(K,x,y,ang,o)=>{o=o||{};(M4G.fr||(M4G.fr=[])).push([x,y]);const Lk=m4look();const side=o.side||1;let arm=o.arm!=null?o.arm:M4G.arm!=null?M4G.arm:ang+.5;
   // (t364) which arm: given, or the side the old angle leaned to; then the first-person way it runs, then the wrist's own limit
   const as=o.armSide||(Math.cos(arm)>=0?1:-1);if(!o.fpOff)arm=m4fpDir(x,y+(K.dy||0),as);
   // a fist round a handle reads the same held from its other end: when the arm would have to bend back past the wrist's reach,
@@ -368,7 +368,7 @@ S4.hammer=(sp,K,run,def)=>{const WS=(sp.scene||(def&&def.scene))==='workshop';co
       st.wasDown=I.down;},
     draw(t){if(WS&&MG4ART.cache&&MG4ART.cache.workshop)g.drawImage(MG4ART.cache.workshop,112,16,16,30,91,16,16,30);
       // your forearm goes in behind the bench, so the board cuts it off
-      {const n=nails[st.i];const top=n.h>0?nailTop(n)-1:TOP+5;const [pvx,pvy,ex,ey]=this.grip(top);const [hx,hy]=M4.tr(pvx,pvy,st.ang,-5,-.5);const arm=Math.atan2(ey-pvy,ex-pvx);const [cx,cy]=m4cuff(hx,hy,st.ang,1,arm);m4arm(K,cx,cy,arm,Math.max(10,(TOP+13-cy)/Math.max(.25,Math.sin(arm))));}
+      if(typeof HOLD4==='undefined'){const n=nails[st.i];const top=n.h>0?nailTop(n)-1:TOP+5;const [pvx,pvy,ex,ey]=this.grip(top);const [hx,hy]=M4.tr(pvx,pvy,st.ang,-5,-.5);const arm=Math.atan2(ey-pvy,ex-pvx);const [cx,cy]=m4cuff(hx,hy,st.ang,1,arm);m4arm(K,cx,cy,arm,Math.max(10,(TOP+13-cy)/Math.max(.25,Math.sin(arm))));}
       g.drawImage(under,X0+11,TOP+12);g.drawImage(board,X0-1,TOP-1);
       for(const n of nails){const top=nailTop(n);
         if(n.split){let x=n.x,y=TOP+6;const dir=n.x<160?-1:1;K.px(x,y,1,1,'#1a0e06');while(Math.abs(x-n.x)<Math.abs((dir<0?X0:X1)-n.x)){x+=dir*2;y+=(Math.random()<.5?-1:1);y=M4.cl(y,TOP+2,FR+6);K.px(x,y,2,1,'#1a0e06');}}
@@ -380,9 +380,10 @@ S4.hammer=(sp,K,run,def)=>{const WS=(sp.scene||(def&&def.scene))==='workshop';co
         if(n===nails[st.i]&&n.h>0)K.pa(n.x-3,TOP+5,8,3,'#ffd27a',.2+Math.sin(t*6)*.1);}
       const n=nails[st.i];const top=n.h>0?nailTop(n)-1:TOP+5;const [pvx,pvy,ex,ey]=this.grip(top);
       // (t363) a faint smear behind the head on the way down, the hammer, then the fist closed round the handle and turned with it
+      if(typeof HOLD4!=='undefined'&&HOLD4.hammer(K,{st,n,top,TOP,X0,H0})){}else{
       if(st.ph==='swing'&&st.sw>.2){const a1=Math.min(st.from,st.ang+.55);for(let a=st.ang+.06;a<a1;a+=.045){const u=(a-st.ang)/.55;for(const ly of [-8,-3,2,7]){const [sx,sy]=M4.tr(pvx,pvy,a,-40,ly+1);K.pa(sx,sy,2,2,ly<0?'#e8e4dc':'#b8b4b0',.42*(1-u));}}}
       M4.rot(g,ham,pvx,pvy,st.ang,HPX,HPY);const [hx,hy]=M4.tr(pvx,pvy,st.ang,-5,-.5);m4grip(K,hx,hy,st.ang,{side:1,arm:Math.atan2(ey-pvy,ex-pvx),armLen:0});
-      m4palm(K,X0+8,TOP+5,false,{arm:2.15,clipY:TOP+12});},
+      m4palm(K,X0+8,TOP+5,false,{arm:2.15,clipY:TOP+12});}},
     // where the fist is: the swing turns at the wrist and the elbow (the elbow down and back, toward you, takes 2/5 of it),
     // so the hand rises and comes back as the head goes up, and the head still meets the nail square when it lands
     grip(top){const g0x=st.hx+39,g0y=top-HFACE,ex=g0x+24,ey=g0y+20,e=Math.max(-.12,st.ang*.42),ce=Math.cos(e),se=Math.sin(e),rx=g0x-ex,ry=g0y-ey;
