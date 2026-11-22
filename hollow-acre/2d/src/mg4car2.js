@@ -22,8 +22,7 @@ const CRP={RED:['#1c0c0a','#3a1410','#56201a','#6e2c22','#8a3a2c','#a8503c','#c0
 // ---- drawing helpers
 const crT=(P,k)=>P[Math.max(0,Math.min(P.length-1,Math.round(k)))];
 // a painted steel panel: lit along the top, a soft reflection band, darker toward the bottom; a little rust at the lower edge
-function crSheet(k,w,h,P,seed,rust){for(let y=0;y<h;y++){const u=y/Math.max(1,h-1);let base=u<.06?6:u<.16?5.4:u<.3?4.6:u<.42?5.2:u<.75?4:u<.9?3.3:2.6;
-    for(let x=0;x<w;x++){let v=base-(x/w)*.5;if(((x*13+y*7+seed)%97)===0)v-=.6;k.px(x,y,1,1,crT(P,v));}}
+function crSheet(k,w,h,P,seed,rust){for(let y=0;y<h;y++){const u=y/Math.max(1,h-1);k.px(0,y,w,1,crT(P,u<.06?6:u<.16?5:u<.3?4:u<.42?5:u<.75?4:u<.9?3:2.6));}   /* (t370) clean full-width bands: no speckle, no stray block */
   // rust comes in patches along the lower edge, each a dark-cored shape with a lighter crust at its rim, not a speckle
   if(rust)for(let i=0;i<Math.ceil(w/44);i++){const cx=i*44+12+k.H32(i,1,seed)*20,cy=h-4-k.H32(i,2,seed)*Math.min(14,h*.12),rx=5+k.H32(i,3,seed)*11,ry=2.5+k.H32(i,4,seed)*4;
     for(let y=-Math.ceil(ry)-1;y<=ry+1;y++)for(let x=-Math.ceil(rx)-1;x<=rx+1;x++){const wob=1+(k.H32(Math.floor((cx+x)/3),Math.floor((cy+y)/3),seed+7)-.5)*.5;const e=(x/rx)**2+(y/ry)**2;if(e>wob)continue;
@@ -38,7 +37,7 @@ function crRing(K,cx,cy,r0,r1,P){for(let y=-r1;y<=r1;y++)for(let x=-r1;x<=r1;x++
 function crNut(K,cx,cy,r,P,rot){rot=rot||0;for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){const a=Math.atan2(y,x)-rot,d=Math.hypot(x,y);const seg=Math.PI/3,ang=((a%seg)+seg)%seg-seg/2;if(d*Math.cos(ang)>r*.92)continue;
     const face=Math.floor(((a+Math.PI*2)%(Math.PI*2))/seg);const k=[5.6,4.8,3.4,2.4,3.2,4.6][(face+6)%6]-(d<r*.38?1.4:0);K.px(cx+x,cy+y,1,1,crT(P,k));}}
 // the engine bay: dark iron in deep shade at the edges, a ribbed valve cover, a loom of wires and a hose, bolts catching the light
-function crBay(k,w,h,seed,o){o=o||{};const I=CA_P.iron;for(let y=0;y<h;y++)for(let x=0;x<w;x++){const ex=Math.min(x,w-1-x)/w,ey=Math.min(y,h-1-y)/h;let v=2.1-(y/h)*.7+Math.min(.6,Math.min(ex,ey)*3);if(((x*7+y*13+seed)%61)===0)v-=.5;k.px(x,y,1,1,crT(I,v));}
+function crBay(k,w,h,seed,o){o=o||{};const I=CA_P.iron;for(let y=0;y<h;y++)for(let x=0;x<w;x++){const ex=Math.min(x,w-1-x)/w,ey=Math.min(y,h-1-y)/h;let v=2.1-(y/h)*.7+Math.min(.6,Math.min(ex,ey)*3);k.px(x,y,1,1,crT(I,v));}   /* (t370) no speckle */
   if(o.cover){const [cx,cy,cw,ch]=o.cover;for(let y=0;y<ch;y++)for(let x=0;x<cw;x++){const u=y/ch;let v=u<.08?6:u<.5?4.6-u:3.2-u*.8;if(x%8===0&&u>.15&&u<.85)v-=1.2;if(x%8===1&&u>.15&&u<.85)v+=.6;k.px(cx+x,cy+y,1,1,crT(I,v));}
     k.px(cx,cy+ch,cw,2,'#08080a');for(const bx of [cx+6,cx+cw-8]){k.px(bx-1,cy+2,3,3,I[2]);k.px(bx,cy+3,1,1,I[7]);}}
   if(o.loom){const [x0,y0,x1,y1]=o.loom;for(let i=0;i<=60;i++){const u=i/60,x=x0+(x1-x0)*u,y=y0+(y1-y0)*u+Math.sin(u*Math.PI)*10;k.px(x,y,3,3,'#141418');k.px(x,y,2,1,(i%6<3)?'#4a3a28':'#2a2a30');}}
@@ -96,8 +95,12 @@ S4.crDents=(sp,K)=>{const g=K.g,X0=16,X1=298,TOP=30,BOT=148,AX=X0+190,AY=BOT+18,
           if(!d.ding){for(let i=-2;i<=2;i++)K.px(d.x-Math.round(r*.6)+i,d.y-Math.round(ry*.6)-i*.3,1,1,CRP.RED[1]);}
           if(DENTS.indexOf(d)===DENTS.findIndex(q=>q.d>0))K.pa(d.x-1,d.y-1,3,3,'#ffd27a',.2+Math.sin(t*6)*.15);}
         if(d.pop>0){const u=1-d.pop/.35;for(let i=0;i<10;i++){const a=i/10*6.283;K.pa(d.x+Math.cos(a)*(4+u*d.r),d.y+Math.sin(a)*(3+u*d.r*.7),2,2,'#fff4c0',d.pop*2.4);}}}
-      const lock=st.sw>0||st.ck>0||st.hold>0,px=lock?st.hx:st.x,py=lock?st.hy:st.y;const PVX=px+44,PVY=py-1;M4.rot(g,ham,PVX,PVY,st.ang,44,8);
-      const [gx,gy]=M4.tr(PVX,PVY,st.ang,-1.5,-.5);m4grip(K,gx,gy,st.ang,{side:1,arm:.72+st.ang*.4});
+      // (t300, critic) the fist carries the blow: raised high with the head big and close to you, it comes down onto the dent so the
+      // face lands square on it (small and at the panel), rests a beat, and bounces back up; the hammer turns only a little in the hand
+      const lock=st.sw>0||st.ck>0||st.hold>0,r=M4.cl(st.ang/.7,-.15,1.3),sc=1+.28*Math.max(0,r),ra=st.ang*.45;
+      const PVX=(lock?st.hx:st.x)+44+r*6,PVY=(lock?st.hy:st.y)-1-r*22;M4.rot(g,ham,PVX,PVY,ra,44,8,sc,sc);
+      const [gx,gy]=M4.tr(PVX,PVY,ra,-1.5*sc,-.5*sc);m4grip(K,gx,gy,ra,{side:1});
+      if(st.hold>0){const hx_=st.hx,hy_=st.hy;K.px(hx_-7,hy_+5,4,1,'#fff4c0');K.px(hx_+5,hy_+5,4,1,'#fff4c0');K.px(hx_-1,hy_+7,2,2,'#ffd27a');}
       if(st.sw===0&&!st.ck&&!st.hold&&!st.end){K.pa(st.x-1,st.y-5,2,3,'#fff4c0',.6);K.pa(st.x-5,st.y-1,3,2,'#fff4c0',.6);K.pa(st.x+3,st.y-1,3,2,'#fff4c0',.6);K.pa(st.x-1,st.y+3,2,3,'#fff4c0',.6);}},
     hud(t){const n=DENTS.filter(d=>!d.ding).length,left=live().length;K.label('DENTS LEFT '+left,30,16,'#f4ecd8','l');if(st.miss)K.label('NEW DINGS '+st.miss,30,26,'#e8b030','l');
       K.meter(1-left/Math.max(1,DENTS.length),st.res.length?M4.avg(st.res):.7);},
@@ -145,10 +148,14 @@ S4.crBelt=(sp,K)=>{const g=K.g;const A_={x:150,y:130,r:22},B_={x:150,y:62,r:16},
       else{const L={x:st.L.x,y:st.L.y+(st.flap>0?Math.sin(st.flap*40)*3:0),r:0};belt([B_,L,A_],RB);
         // where it goes: a faint ghost of the belt round the small pulley, and a grip mark on the slack
         if(!st.grab){g.globalAlpha=.25+Math.sin(t*5)*.1;crArc(K,c.x,c.y,c.r+2,-Math.PI/2,Math.PI/2,1,'#9be07a');g.globalAlpha=1;}
-        m4grip(K,st.L.x+3,st.L.y+4,-Math.PI/2+.4,{side:1,kind:'pinch',arm:1.1});}
-      if(st.ph==='ten'||st.ph==='done'){// the pry bar against the alternator
-        K.line(c.x+20,c.y+2,c.x+46,c.y+48,CA_P.iron[5],3);K.line(c.x+20,c.y+1,c.x+46,c.y+47,CA_P.iron[7],1);m4grip(K,c.x+42,c.y+43,1.06,{side:1,arm:1.15});
-        if(st.ten>.3){const sag=Math.max(0,(.7-st.ten))*8;K.pa(B_.x+30,(B_.y+c.y)/2+sag,2,2,'#fff4c0',.0);}}},
+        st.lastG=[st.L.x+3,st.L.y+4];m4grip(K,st.L.x+3,st.L.y+4,-Math.PI/2+.4,{side:1,kind:'pinch',arm:1.1});}
+      // (t300, critic) the pry bar is there from the start, leaning in the bay; once the belt is on, your hand goes over to it (it doesn't
+      // jump), sets its bent tip behind the alternator and levers; on release the belt twangs and settles
+      {const sm=v=>v*v*(3-2*v);if(fitted()){st.tt=(st.tt||0)+1/60;}const e=fitted()?sm(Math.min(1,(st.tt||0)/.3)):0;
+        const r0=[[c.x+30,c.y+14],[c.x+58,c.y+56]],r1=[[c.x+18,c.y+1],[c.x+48,c.y+51]],L_=(a,b)=>a+(b-a)*e,ax=L_(r0[0][0],r1[0][0]),ay=L_(r0[0][1],r1[0][1]),bx=L_(r0[1][0],r1[1][0]),by_=L_(r0[1][1],r1[1][1]);
+        K.line(ax,ay,bx,by_,'#0a0a0c',5);K.line(ax,ay,bx,by_,CA_P.iron[4],3);K.line(ax,ay-1,bx-1,by_-1,CA_P.iron[7],1);K.line(ax,ay,ax-5,ay-3,'#0a0a0c',4);K.line(ax,ay,ax-5,ay-3,CA_P.iron[5],2);
+        if(fitted()){const fx=bx-(bx-ax)*.13,fy=by_-(by_-ay)*.13,g0=st.lastG||[fx,fy],m=sm(Math.min(1,(st.tt||0)/.22)),hx_=g0[0]+(fx-g0[0])*m,hy_=g0[1]+(fy-g0[1])*m-Math.sin(m*Math.PI)*10;m4grip(K,hx_,hy_,-Math.PI/2+.4+(1.03+Math.PI/2-.4)*m,{side:1});}
+        if(st.ph==='done'){st.tw=(st.tw||0)+1/60;if(st.tw<.5){const amp=3*Math.exp(-st.tw*7)*Math.sin(st.tw*70);for(let k=1;k<12;k++){const u=k/12,x=B_.x+(c.x-B_.x)*u,y=B_.y-B_.r+(c.y-c.r-B_.y+B_.r)*u+amp*Math.sin(u*Math.PI);K.px(x,y,2,1,CRP.RUB[3]);}}}}},
     hud(t){if(st.ph==='ten'||st.ph==='done'){K.label('TENSION',236,22,'#f4ecd8','r');K.gauge(240,22,60,6,.62/1.15,.84/1.15,st.ten/1.15);}
       else K.label('BELT ON',30,16,'#f4ecd8','l');K.meter(st.ph==='fit'?0:st.ph==='ten'?.5+st.ten*.4:1,st.res.length?M4.avg(st.res):.7);},
     auto(dt,AP){const a=m4ai(this,AP,dt);const c=C();
@@ -171,7 +178,7 @@ S4.crClamps=(sp,K)=>{const g=K.g,HY=104,HR=13;const CL=[{x:128,tq:0,done:0},{x:2
       if(I.released&&c.tq<=.05){st.nudge=1.6;c.tq=0;}
       if(I.down){const rate=c.tq<.5?.7:.42;c.tq=Math.min(1.2,c.tq+dt*rate);st.turn+=dt*9;if(Math.random()<dt*10)A.tone(1400+c.tq*600,.02,'square',.01);if(c.tq>1.02&&!c.cut){c.cut=1;st.spray=.8;A.hiss(.5,.12,'highpass',2400);}}
       else if(c.tq>.05&&!c.done){c.done=1;const mid=(LO+HI)/2;const q=c.cut?.12:c.tq>=LO&&c.tq<=HI?(1-Math.abs(c.tq-mid)/(HI-mid)>.5?1:.75):c.tq<LO?Math.max(.15,c.tq/LO*.5):.4;
-        st.res.push(q);K.judge(q,c.x,HY-44,true);if(q>=.6){MS.good();A.tone(700,.05,'triangle',.05);}else MS.miss();
+        st.res.push(q);K.judge(q,c.x+(c.x>160?-56:56),HY-40,true);if(q>=.6){MS.good();A.tone(700,.05,'triangle',.05);}else MS.miss();
         if(st.i<CL.length-1)setTimeout(()=>{st.i++;},380);else st.end=.001;}},
     draw(t){g.drawImage(bay,0,0);g.drawImage(rad,12,22);hose(K,98,250);
       // the thermostat housing on the engine side
@@ -191,7 +198,8 @@ S4.crClamps=(sp,K)=>{const g=K.g,HY=104,HR=13;const CL=[{x:128,tq:0,done:0},{x:2
       if(st.nudge>0&&!st.end){const c=CL[Math.min(st.i,CL.length-1)];g.globalAlpha=Math.min(1,st.nudge*2);K.label('KEEP HOLDING',c.x,HY+HR+10,'#ffd27a','c');g.globalAlpha=1;}
       if(st.spray>0){const c=CL[st.i];K.emit(c.x+4,HY-4,2,{c:['#9ad0b0','#58a090'],v:60,ang:-1.2,spread:1.2,g:200,life:.5});}
       // the screwdriver on the screw being turned, yellow handle stripes rolling as it turns
-      const c=CL[Math.min(st.i,CL.length-1)];const gap=Math.round((1-Math.min(1,c.tq))*3),sx=c.x,sy=HY-HR-14+gap;
+      // (t300) between clamps the driver is lifted out of the screw, carried over and set down on the next one (it used to jump)
+      const c=CL[Math.min(st.i,CL.length-1)];st.dxv=st.dxv==null?c.x:st.dxv+(c.x-st.dxv)*.24;if(Math.abs(c.x-st.dxv)<.6)st.dxv=c.x;const away=Math.abs(c.x-st.dxv),lift=Math.min(14,away*.5),gap=Math.round((1-Math.min(1,c.tq))*3),sx=Math.round(st.dxv),sy=HY-HR-14+gap-Math.round(lift);
       // (t364) a stubby driver: your fist on its handle sits lower, so the forearm up from below stays short
       K.px(sx-1,sy-14,3,14,CA_P.iron[5]);K.px(sx-1,sy-14,1,14,CA_P.iron[7]);K.px(sx-2,sy-2,5,2,CA_P.iron[3]);
       for(let y=0;y<20;y++){const u=y/20,hw=y<3||y>17?4:5;for(let x=-hw;x<=hw;x++){const s=Math.floor((x+st.turn*3)%4+4)%4;K.px(sx+x,sy-34+y,1,1,crT(CRP.YEL,(s<2?4.2:2.8)-x*.15+(u<.12?1:0)-(u>.88?1:0)));}}
@@ -229,11 +237,14 @@ S4.crHang=(sp,K)=>{const g=K.g,HX=200,HY=94,SR=13,TR=44;
         K.pa(x-1,y-1,5,5,'#000',.45);   // its shadow on the hub, down and right
         for(let j=0;j<5;j++){K.px(x-2,y-4+j,3,1,(j%2)?CA_P.iron[4]:CA_P.iron[5]);K.px(x-2,y-4+j,1,1,CA_P.iron[6]);}   // the threaded post
         K.px(x-2,y-5,3,1,ok?'#9be07a':CA_P.iron[7]);if(ok)K.px(x-2,y-4,1,4,'#9be07a');}
+      // (t300) when it goes on, the wheel drops onto the studs with a clunk: a 2 px drop and a jolt, and your hands let go of the tread
+      const ck=st.on?(st.ckT=(st.ckT||0)+1/60):0,dz=st.on?(ck<.08?Math.round(ck/.08*2):ck<.2?2-Math.round(Math.sin((ck-.08)/.12*Math.PI)):2):0;
       K.pa(st.x-36,Math.min(150,st.y+TR-4),72,6,'#000',.35);
-      M4.rot(g,wheelImg,st.x,st.y,st.ang,48,48);
+      M4.rot(g,wheelImg,st.x,st.y+dz,st.ang,48,48);if(st.on&&ck<.25){K.px(st.x-TR,st.y+TR-2,4,1,'#c8b8a0');K.px(st.x+TR-4,st.y+TR-2,4,1,'#c8b8a0');}
       // the wheel's bolt holes warm to green as they come round over the studs
       {const near2=Math.hypot(st.x-HX,st.y-HY)<26,w=Math.max(0,1-al/.25);if(near2&&!st.on)for(let i=0;i<5;i++){const an=-Math.PI/2+i*Math.PI*2/5+st.ang;const x=st.x+Math.cos(an)*SR,y=st.y+Math.sin(an)*SR;g.globalAlpha=.3+w*.6;crArc(K,x,y,6,0,Math.PI*2,1,ok?'#9be07a':'#e8c060');g.globalAlpha=1;}}
       if(!st.on){m4grip(K,st.x-TR+3,st.y-2,Math.PI/2+.2,{side:-1,arm:2.0});m4grip(K,st.x+TR-3,st.y-2,Math.PI/2-.2,{side:1,arm:1.15});}
+      else if(ck<.5){const o=Math.min(1,ck/.35);m4palm(K,st.x-TR-1-o*8,st.y-2-o*6,false,{});m4palm(K,st.x+TR+1+o*8,st.y-2-o*6,true,{});}
       if(ok&&!st.on)K.pa(HX-2,HY-2,5,5,'#9be07a',.3+Math.sin(t*10)*.2);},
     hud(t){K.label('LINE UP THE STUDS',30,16,'#f4ecd8','l');K.meter(st.on?1:Math.max(0,1-Math.hypot(st.x-HX,st.y-HY)/140)*.8,st.res.length?M4.avg(st.res):.7);},
     auto(dt,AP){const a=m4ai(this,AP,dt);this._p=(this._p||0)+dt;
@@ -256,19 +267,28 @@ S4.crLugs=(sp,K)=>{const g=K.g,CX=172,CY=94,R=24,ORDER=[0,2,4,1,3];
           if(best){st.sel=best.i;const w=want();if(w!=null&&w!==best.i){st.crook++;A.tone(240,.2,'square',.04,{slide:180,filter:['lowpass',1200]});toast&&0;}st.hold=1;}}}
       else{const n=NUT[st.sel];if(I.down&&st.hold){n.tq=Math.min(1.2,n.tq+dt*(n.tq<.5?.8:.5));n.rot+=dt*4*(1.2-n.tq);if(Math.random()<dt*8)A.tone(900+n.tq*500,.02,'square',.012);if(n.tq>=.98&&!n.clk){n.clk=1;A.tone(2200,.03,'square',.03);}}
         else if(n.tq>.05){const mid=(LO+HI)/2;const q=n.tq>1.05?.3:n.tq>=LO&&n.tq<=HI?(1-Math.abs(n.tq-mid)/(HI-mid)>.5?1:.78):n.tq<LO?Math.max(.15,n.tq/LO*.55):.5;
-          n.done=1;st.seq.push(n.i);st.res.push(q);K.judge(q,n.x,n.y-18,true);if(q>=.6){MS.good();MS.knock();}else MS.miss();st.sel=-1;st.hold=0;if(st.seq.length>=5)st.end=.001;}
+          n.done=1;st.seat={i:n.i,t:0};st.seq.push(n.i);st.res.push(q);K.judge(q,n.x,n.y-18,true);if(q>=.6){MS.good();MS.knock();}else MS.miss();st.sel=-1;st.hold=0;if(st.seq.length>=5)st.end=.001;}
         else if(!I.down){st.sel=-1;st.hold=0;}}},
     draw(t){const lx=Math.round(st.lean*40);g.drawImage(wheel,CX-75+lx,CY-75);
-      for(const n of NUT){const x=n.x+lx,y=n.y;K.pa(x-4,y-3,9,9,'#000',.35);crNut(K,x,y,4,CA_P.iron,n.rot);if(n.done){K.px(x-1,y+5,3,1,n.tq>1.05?'#e8542a':'#9be07a');}}
+      // (t300) a nut seats with a small shake and a glint
+      if(st.seat)st.seat.t+=1/60;for(const n of NUT){const sk=st.seat&&st.seat.i===n.i&&st.seat.t<.18?Math.round(Math.sin(st.seat.t*90)):0,x=n.x+lx+sk,y=n.y;K.pa(x-4,y-3,9,9,'#000',.35);crNut(K,x,y,4,CA_P.iron,n.rot);if(n.done){K.px(x-1,y+5,3,1,n.tq>1.05?'#e8542a':'#9be07a');}
+        if(sk||(st.seat&&st.seat.i===n.i&&st.seat.t<.18)){K.px(x-5,y-5,2,1,'#ffffff');K.px(x+4,y-5,2,1,'#ffffff');}}
       // the first nut is yours to pick; after that the card is the only help
       if(!st.seq.length&&st.sel<0){const n=NUT[0];K.pa(n.x-6,n.y-6,13,13,'#ffd27a',.18+Math.sin(t*6)*.1);}
-      if(st.sel>=0){const n=NUT[st.sel];const a=.35+n.tq*.5;   // (t364) the wrench's arm out to the lower right, pulled down to tighten: your hand stays low
-        const ex=n.x+lx+Math.cos(a)*46,ey=n.y+Math.sin(a)*46;
-        K.line(n.x+lx,n.y,ex,ey,CA_P.iron[3],4);K.line(n.x+lx,n.y-1,ex,ey-1,CA_P.iron[6],1);const px_=-Math.sin(a)*12,py_=Math.cos(a)*12,mx=n.x+lx+Math.cos(a)*30,my=n.y+Math.sin(a)*30;K.line(mx-px_,my-py_,mx+px_,my+py_,CA_P.iron[3],4);K.line(mx-px_,my-py_-1,mx+px_,my+py_-1,CA_P.iron[6],1);
-        K.px(n.x+lx-5,n.y-5,11,11,CA_P.iron[2]);K.px(n.x+lx-4,n.y-4,9,9,CA_P.iron[4]);K.px(n.x+lx-4,n.y-4,9,1,CA_P.iron[6]);{const wa=Math.atan2(ey-n.y,ex-n.x);m4grip(K,ex,ey,wa,{side:-1});}
+      // (t300) the wrench never vanishes: between nuts your hand lifts it off the last one and carries it to the next
+      {let tx_,ty_,ta_;if(st.sel>=0){const n=NUT[st.sel];tx_=n.x+lx;ty_=n.y;ta_=.35+n.tq*.5-(n.tq<.1?.14*Math.sin(n.tq/.1*Math.PI):0);}   /* a little wind-up back before the clockwise pull */else{const L=st.seq.length?NUT[st.seq[st.seq.length-1]]:NUT[want()==null?0:want()];tx_=L.x+lx;ty_=L.y-(st.seq.length?9:6);ta_=.3;}
+        if(st.wx==null){st.wx=tx_;st.wy=ty_;st.wa=ta_;}st.wx+=(tx_-st.wx)*.25;st.wy+=(ty_-st.wy)*.25;st.wa+=(ta_-st.wa)*.3;}
+      if(!st.end||st.sel>=0){const n=st.sel>=0?NUT[st.sel]:null,a=st.wa;   // (t364) the wrench's arm out to the lower right, pulled down to tighten: your hand stays low
+        const ex=st.wx+Math.cos(a)*46,ey=st.wy+Math.sin(a)*46;
+        // (t370) the socket sits right over the nut (you see its round back), the arm and the cross bar come off it in lit steel edged dark
+        const cx0=st.wx,cy0=st.wy,px_=-Math.sin(a)*12,py_=Math.cos(a)*12,mx=cx0+Math.cos(a)*30,my=st.wy+Math.sin(a)*30;
+        K.ell(cx0+1,cy0+1,7,7,'#000');crDisc(K,cx0,cy0,6,CA_P.iron);
+        for(const [x0,y0,x1,y1] of [[cx0,cy0,ex,ey],[mx-px_,my-py_,mx+px_,my+py_]]){K.line(x0,y0+1,x1,y1+1,'#08090c',5);K.line(x0,y0,x1,y1,CA_P.iron[5],3);K.line(x0,y0-1,x1,y1-1,CA_P.iron[7],1);}
+        K.px(cx0-2,cy0-2,4,4,CA_P.iron[6]);K.px(cx0-2,cy0-2,4,1,CA_P.iron[7]);
+        {const wa=Math.atan2(ey-cy0,ex-cx0);m4grip(K,ex,ey,wa,{side:-1});}
         // the torque arc round the nut: green where it clicks, a tick that sweeps as you pull
-        const R=16,cx=n.x+lx,cy=n.y;for(let a=Math.PI*.75;a<=Math.PI*2.25;a+=.035){const u=(a-Math.PI*.75)/(Math.PI*1.5),on=u>=LO/1.2&&u<=HI/1.2;K.px(cx+Math.cos(a)*R-1,cy+Math.sin(a)*R-1,2,2,on?'#7cc04a':'#1a0e06');}
-        const ta=Math.PI*.75+Math.min(1.2,n.tq)/1.2*Math.PI*1.5;K.px(cx+Math.cos(ta)*R-2,cy+Math.sin(ta)*R-2,4,4,'#fff4c0');}
+        if(n){const R=16,cx=n.x+lx,cy=n.y;for(let a=Math.PI*.75;a<=Math.PI*2.25;a+=.035){const u=(a-Math.PI*.75)/(Math.PI*1.5),on=u>=LO/1.2&&u<=HI/1.2;K.px(cx+Math.cos(a)*R-1,cy+Math.sin(a)*R-1,2,2,on?'#7cc04a':'#1a0e06');}
+        const ta=Math.PI*.75+Math.min(1.2,n.tq)/1.2*Math.PI*1.5;K.px(cx+Math.cos(ta)*R-2,cy+Math.sin(ta)*R-2,4,4,'#fff4c0');}}
       // the order card: a little star
       K.px(12,30,52,52,'#2a1608');K.px(13,31,50,50,'#e8d8b0');K.px(13,31,50,1,'#fff6dc');
       const P5=[0,1,2,3,4].map(i=>{const an=-Math.PI/2+i*Math.PI*2/5;return [38+Math.cos(an)*18,57+Math.sin(an)*18];});
@@ -282,7 +302,7 @@ S4.crLugs=(sp,K)=>{const g=K.g,CX=172,CY=94,R=24,ORDER=[0,2,4,1,3];
 // the windshield opening, shared by the glass and the seal
 const CR_WIN={tl:[96,44],tr:[224,44],br:[248,120],bl:[72,120]};
 function crWinFrame(K,t,glass){const g=K.g;
-  const body=M4.pre('crwinbody',320,180,k=>{crSheet(k,320,180,CRP.RED,33,false);
+  const body=M4.pre('crwinbody370',320,180,k=>{crSheet(k,320,180,CRP.RED,33,false);
       // the opening, and the cab inside: dark, a dash, the wheel's top, a seat back
       const inside=(x,y)=>{const u=(y-44)/76;if(u<0||u>1)return false;const l=96+(72-96)*u,r=224+(248-224)*u;return x>=l&&x<=r;};
       for(let y=0;y<180;y++)for(let x=0;x<320;x++){if(inside(x,y)){const u=(y-44)/76;k.px(x,y,1,1,u>.72?'#1a1416':u>.7?'#3a2c2a':'#0c0c12');}
@@ -290,7 +310,7 @@ function crWinFrame(K,t,glass){const g=K.g;
       for(let x=140;x<180;x++)for(let y=100;y<112;y++){const d=Math.hypot((x-160)/20,(y-112)/12);if(d>.85&&d<1)k.px(x,y,1,1,'#2a2a30');}
       for(let y=58;y<92;y++)k.px(196,y,10,1,'#141018');
       // the hood below, lit along its leading edge; the roof above
-      for(let x=0;x<320;x++)k.px(x,124,1,1,CRP.RED[7]);for(let x=0;x<320;x++){k.px(x,40,1,1,CRP.RED[2]);}},false);
+      for(let x=0;x<320;x++)k.px(x,124,1,1,CRP.RED[7]);},false);
   g.drawImage(body,0,0);}
 // ================================================================= THE GLASS, 1: carry the new windshield in without knocking it
 S4.crGlass=(sp,K)=>{const g=K.g;const W0=CR_WIN;
@@ -316,7 +336,12 @@ S4.crGlass=(sp,K)=>{const g=K.g;const W0=CR_WIN;
       K.pa(st.x-80,st.y+44,160,5,'#000',.25);M4.rot(g,pane,st.x,st.y,st.ang,90,38);
       for(const [cx,cy] of st.chips){const x=st.x+cx*Math.cos(st.ang)-cy*Math.sin(st.ang),y=st.y+cx*Math.sin(st.ang)+cy*Math.cos(st.ang);K.line(x,y,x+5,y-3,'#dff4f4',1);K.line(x,y,x+2,y+4,'#dff4f4',1);}
       // the suction cups, and your hands on them
-      if(!st.end)for(const sx of [-34,34]){const x=st.x+sx*Math.cos(st.ang),y=st.y+sx*Math.sin(st.ang)-6;K.ell(x,y,7,4,CRP.RUB[3]);K.ell(x,y-1,5,2,CRP.RUB[5]);K.px(x-6,y-8,12,3,CA_P.iron[4]);K.px(x-6,y-8,12,1,CA_P.iron[6]);m4grip(K,x,y-8,sx<0?Math.PI+st.ang:st.ang,{side:sx<0?-1:1,arm:sx<0?2.0:1.15});}},
+      // (t370) a glazier's lifter near each side: two rubber cups pressed on the glass, a steel bar standing over them, your fist round the bar
+      if(!st.end){const c=Math.cos(st.ang),s_=Math.sin(st.ang),P=(lx,ly)=>[st.x+lx*c-ly*s_,st.y+lx*s_+ly*c];
+        for(const sx of [-50,50]){for(const cx of [sx-10,sx+10]){const [x,y]=P(cx,4);K.ell(x,y,6,4,'#0a0a0e');K.ell(x,y,5,3,CRP.RUB[2]);K.px(x-4,y-3,8,1,CRP.RUB[5]);K.px(x-1,y,3,1,CRP.RUB[0]);}
+          const [a0,b0]=P(sx-10,2),[a1,b1]=P(sx+10,2),[u0,v0]=P(sx-12,-5),[u1,v1]=P(sx+12,-5);
+          K.line(a0,b0,u0+2*c,v0+2*s_,CA_P.iron[3],2);K.line(a1,b1,u1-2*c,v1-2*s_,CA_P.iron[3],2);K.line(u0,v0+1,u1,v1+1,'#0a0a0e',4);K.line(u0,v0,u1,v1,CA_P.iron[5],3);K.line(u0,v0-1,u1,v1-1,CA_P.iron[7],1);
+          const [hx,hy]=P(sx,-5);m4grip(K,hx,hy,st.ang,{side:sx<0?-1:1});}}},
     hud(t){K.label('KNOCKS '+st.knock,30,16,st.knock?'#e8b030':'#f4ecd8','l');K.meter(Math.max(0,1-Math.hypot(st.x-OX,st.y-OY)/120),M4.cl(1-st.knock*.25,0,1));},
     auto(dt,AP){const a=m4ai(this,AP,dt);this._p=(this._p||0)+dt;if(this._p<.4)m4move(a,st.x,st.y);else{m4hold(a,true);const u=Math.min(1,(this._p-.4)/2.2),e=u*u*(3-2*u);m4move(a,248+(OX-248)*e,130+(OY-130)*e);if(u>=1&&Math.abs(st.ang)<.03&&Math.hypot(st.x-OX,st.y-OY)<2)m4hold(a,false);}
       AP.I=a;AP.hand=[a.x+6,a.y+6];AP.press=a.down;},
@@ -341,14 +366,14 @@ S4.crSeal=(sp,K)=>{const g=K.g;const W0=CR_WIN,o=2;
       if(seg.filter(v=>v>0).length>=N*.95&&!st.end){st.end=.001;MS.good();}},
     draw(t){crWinFrame(K,t);
       // the glass in place
-      for(let y=46;y<119;y++){const u=(y-44)/76;const l=Math.round(96-24*u)+2,r=Math.round(224+24*u)-2;g.globalAlpha=.55;K.px(l,y,r-l,1,crT(CRP.GL,2.6+((y*3)%40<4?1.4:0)));g.globalAlpha=1;}
+      for(let y=46;y<119;y++){const u=(y-44)/76;const l=Math.round(96-24*u)+2,r=Math.round(224+24*u)-2;g.globalAlpha=.55;K.px(l,y,r-l,1,crT(CRP.GL,2.6));const x0=190-(y-46)*.9;K.px(Math.max(l,x0),y,10,1,CRP.GL[4]);K.px(Math.max(l,x0+16),y,4,1,CRP.GL[3]);g.globalAlpha=1;}   /* (t370) two slanted sheens, not ruled stripes */
       // the seam: dashed where it still needs sealant, a fat black bead where it has it
-      for(let i=0;i<N;i++){const [x,y]=m4at(PATH,(i+.5)/N*L);if(seg[i]){K.px(x-1,y-1,3,3,'#0c0c0e');K.px(x-1,y-1,2,1,'#3a3a44');}else if((i+Math.floor(t*6))%3===0)K.px(x,y,1,1,'#e8c060');}
+      for(let i=0;i<N;i++){const [x,y]=m4at(PATH,(i+.5)/N*L);if(seg[i]){const [x0,y0]=m4at(PATH,i/N*L),[x1,y1]=m4at(PATH,Math.min(L,(i+1.2)/N*L));K.line(x0+1,y0+1,x1+1,y1+1,'#040405',3);K.line(x0,y0,x1,y1,'#24242c',3);K.line(x0-1,y0-1,x1-1,y1-1,'#9a9aa8',1);}   /* (t370) a raised wet bead: lit along its top-left, its shadow down-right */else if((i+Math.floor(t*6))%3===0)K.px(x,y,1,1,'#e8c060');}
       for(const [x,y] of st.blobs)K.px(x-1,y-1,3,2,'#141416');
       const [sx,sy]=PATH[0];K.pa(sx-3,sy-3,7,7,'#9be07a',.25+Math.sin(t*5)*.15);
       // the caulk gun: a tube, the nozzle at your point
       const x=st.x,y=st.y;// (t364) the gun held below the seam, its nozzle reaching up to it: your hand on the grip, under the tube
-      {const th=M4.cl(.35+(122-y)/78*.75,.35,1.1);M4.rot(g,crCaulk(),x,y,th,0,6);const [hx,hy]=M4.tr(x,y,th,31,13);m4grip(K,hx,hy,th+1.25,{side:1});}},   /* (t365) the whole gun turned on the seam: steeper as it reaches up, your hand stays low */
+      {const th=M4.cl(.35+(122-y)/78*.75,.35,1.1);M4.rot(g,crCaulk(),x,y,th,0,6);const [hx,hy]=M4.tr(x,y,th,31,19);m4grip(K,hx,hy,th+Math.PI/2,{side:1});   /* (t370) your fist round the pistol grip, over the trigger */}},   /* (t365) the whole gun turned on the seam: steeper as it reaches up, your hand stays low */
     hud(t){const cov=seg.filter(v=>v>0).length/N;K.label('SEALED '+Math.round(cov*100)+'%',30,16,'#f4ecd8','l');if(st.smear)K.label('SMEARS '+st.smear,30,26,'#e8b030','l');K.meter(cov,seg.filter(v=>v>0).length?M4.avg(seg.filter(v=>v>0)):.7);},
     auto(dt,AP){const a=m4ai(this,AP,dt);this._s=(this._s||0)+dt*70;const [x,y]=m4at(PATH,Math.min(L,this._s));m4move(a,x,y);m4hold(a,this._s<L+4);AP.I=a;AP.hand=[a.x+28,a.y+24];AP.press=a.down;},
     stop(){}};};
@@ -368,16 +393,18 @@ const crBatt34=()=>M4.pre('crbatt34',64,62,k=>{const B=CRP.RUB;
     // the carry strap, arched over the top
     for(let i=0;i<=28;i++){const u=i/28,x=6+u*50,y=8-Math.sin(u*Math.PI)*8;k.px(x,y,2,2,'#2a2014');k.px(x,y,2,1,'#5a4a30');}},true);
 S4.crBattery=(sp,K)=>{const g=K.g,TX=118,TY=182,img=crBatt34();   /* (t365) the tray close at the foot of the picture: the battery is carried low, your hand on its strap stays low */
-  const bay=M4.pre('crbay365',320,180,k=>{crBay(k,320,180,41,{cover:[184,64,124,30],loom:[150,30,316,46],hose:[190,120,316,150],bolts:[[30,40],[30,150],[190,160]]});
+  const bay=M4.pre('crbay370',320,180,k=>{crBay(k,320,180,41,{cover:[184,64,124,30],loom:[150,30,316,46],hose:[190,120,316,150],bolts:[[30,40],[30,150],[190,160]]});
       for(let y=24;y<62;y++)for(let x=8;x<170;x++)k.px(x,y,1,1,crT(CA_P.iron,3.6-(y-24)/24+(y===24?2:0)));
       // the open steel tray in three-quarter view: dark inside with ribs, a lit lip all round, the front wall facing you
-      const L=TX-38,R=TX+38,Tt=TY-26,Bb=TY+8;for(let y=Tt;y<Bb;y++)for(let x=L;x<R;x++){let v=.6+(y-Tt)/40;if((x-L)%9===0)v+=.6;k.px(x,y,1,1,crT(CA_P.iron,v));}
-      for(let x=L-2;x<R+2;x++){k.px(x,Tt-2,1,2,CA_P.iron[x<TX?6:5]);}for(let y=Tt-2;y<Bb;y++){k.px(L-2,y,2,1,CA_P.iron[6]);k.px(R,y,2,1,CA_P.iron[3]);}
-      for(let y=Bb;y<Bb+9;y++)for(let x=L-2;x<R+2;x++)k.px(x,y,1,1,crT(CA_P.iron,y===Bb?6.6:4.2-(y-Bb)*.3-(x-L)/160));k.px(L-2,Bb+9,R-L+4,2,'#08080a');
+      // (t370) the tray whole in three-quarter view above the picture's foot: its back lip, the dark ribbed floor seen from above, the
+      // side walls slanting in; the front wall is drawn separately so the battery sinks behind it as it goes in
+      const L=TX-38,R=TX+38;{const Y0=146,Y1=168;for(let y=Y0;y<Y1;y++){const u=(y-Y0)/(Y1-Y0),l=Math.round(L+5-5*u),r=Math.round(R-5+5*u);for(let x=l;x<r;x++){let v=.7+u*1.1;if(((x-TX)*(1.2-u*.2)+400)%9<1)v+=.7;k.px(x,y,1,1,crT(CA_P.iron,v));}k.px(l-2,y,2,1,CA_P.iron[5]);k.px(r,y,2,1,CA_P.iron[3]);}
+        for(let x=L+3;x<R-3;x++)k.px(x,Y0-2,1,2,CA_P.iron[x<TX?6:5]);}
       // the hold-down bar and its two J-bolts, laid aside on the fender lip; the red cable end waiting at the tray's edge
       for(let x=0;x<52;x++){k.px(TX+46+x,TY+12,1,3,crT(CA_P.iron,x<2?7:5-x/52));}k.px(TX+46,TY+15,52,1,'#08080a');
       for(const by of [TY+20,TY+27]){const bx=TX+48;for(let x=0;x<18;x++)k.px(bx+x,by,1,2,CA_P.iron[x<1?7:5]);k.px(bx+18,by-4,2,6,CA_P.iron[5]);k.px(bx+16,by-5,3,1,CA_P.iron[6]);crNutK(k,bx-2,by+1,2);k.px(bx,by+2,20,1,'#08080a');}
       for(let i=0;i<=20;i++){const u=i/20,x=8+u*(L-14),y=78+Math.sin(u*Math.PI)*6;k.px(x,y,3,3,'#a82c18');k.px(x,y,3,1,'#e05a3a');}k.px(L-14,78,9,6,'#a82c18');k.px(L-14,78,9,1,'#e05a3a');k.px(L-11,80,3,2,CA_P.iron[1]);},false);
+  const trayFront=M4.pre('crtrayfront370',80,12,k=>{for(let y=0;y<10;y++)for(let x=0;x<80;x++)k.px(x,y,1,1,crT(CA_P.iron,y===0?6.6:y===1?5.2:4.2-y*.22-x/200));k.px(0,10,80,2,'#08080a');for(const bx of [6,72]){k.px(bx,4,3,3,CA_P.iron[2]);k.px(bx,4,3,1,CA_P.iron[6]);}},false);
   const st={t:0,x:262,y:184,vx:0,vy:0,ang:0,held:0,res:[],knock:0,end:0,fall:0,lift:0};
   const GROUND=186;
   return {title:sp.t||'Drop the battery in',how:'Grab the battery by its strap and swing it over to the empty tray. It’s heavy: it lags and sways. Let go when it hangs square over the tray. Drop it on the engine and it clanks.',hint:'Heavy. Bring it over the tray, steady, then let go.',st,
@@ -392,9 +419,9 @@ S4.crBattery=(sp,K)=>{const g=K.g,TX=118,TY=182,img=crBatt34();   /* (t365) the 
         else st.fall=GROUND;}},
     draw(t){g.drawImage(bay,0,0);const ok=Math.abs(st.x-TX)<9&&Math.abs(st.ang)<.12&&st.y<TY+2;
       // its shadow: wide and faint when it's high, tight and dark as it comes down over the tray
-      const over=Math.abs(st.x-TX)<46&&st.y<TY+20,floor=over?TY+2:GROUND+2,hgt=Math.max(0,floor-st.y),sw=30+Math.min(30,hgt*.3),sa=Math.max(.12,.5-hgt*.006);
+      const over=Math.abs(st.x-TX)<46&&st.y<TY+20,floor=over?TY-12:GROUND+2,hgt=Math.max(0,floor-st.y),sw=30+Math.min(30,hgt*.3),sa=Math.max(.12,.5-hgt*.006);
       K.pa(st.x-sw,floor-3,sw*2,6,'#000',sa);if(!st.end&&over)for(let x=TX-36;x<TX+36;x+=4)K.px(x,TY-16,2,1,ok?'#9be07a':'#e8c060');
-      M4.rot(g,img,st.x,st.y,st.ang,32,58);
+      M4.rot(g,img,st.x,st.y,st.ang,32,58);g.drawImage(trayFront,TX-40,TY-14);if(!(Math.abs(st.x-TX)<44&&st.y>146&&st.y<=181))M4.rot(g,img,st.x,st.y,st.ang,32,58);   /* in the tray it sinks behind the front wall; anywhere else it is in front */
       if(st.held||!st.end){const [hx,hy]=M4.tr(st.x,st.y,st.ang,0,-58);if(st.held){m4grip(K,hx,hy-2,st.ang,{side:1,arm:-1.25+st.ang});}}},
     hud(t){K.label('INTO THE TRAY',30,16,'#f4ecd8','l');K.meter(st.end?1:Math.max(0,1-Math.abs(st.x-TX)/150)*.8,M4.cl(1-st.knock*.3,0,1));},
     auto(dt,AP){const a=m4ai(this,AP,dt);this._p=(this._p||0)+dt;if(this._p<.4)m4move(a,st.x,st.y-50);else{m4hold(a,true);const u=Math.min(1,(this._p-.4)/2.4),e=u*u*(3-2*u);m4move(a,262+(TX-262)*e,140+(TY-48-140)*e);if(u>=1&&Math.abs(st.ang)<.03&&Math.abs(st.x-TX)<2)m4hold(a,false);}
@@ -402,9 +429,11 @@ S4.crBattery=(sp,K)=>{const g=K.g,TX=118,TY=182,img=crBatt34();   /* (t365) the 
     stop(){}};};
 // ================================================================= THE WIRING, 2: red first, then black, then the loom plug
 S4.crCables=(sp,K)=>{const g=K.g,BX=150,BY=190,img=crBatteryImg(2);   /* (t365) close on the battery's top: its posts and the loom socket low in the picture */
-  const T={red:{x:BX-34,y:BY-72},blk:{x:BX+34,y:BY-72},plug:{x:262,y:120}};
-  const HOME={red:[44,142],blk:[70,156],plug:[98,146]};
-  const ENDS=[{k:'red',x:44,y:142,ax:-10,ay:110,c:['#5a1408','#a82c18','#e05a3a'],done:0},{k:'blk',x:70,y:156,ax:-10,ay:140,c:['#0a0a0c','#26262e','#6a6a78'],done:0},{k:'plug',x:98,y:146,ax:-10,ay:168,c:['#6a5a3a','#c8b48a','#efe2c0'],done:0}];
+  const T={red:{x:BX-30,y:BY-74},blk:{x:BX+34,y:BY-74},plug:{x:262,y:120}};
+  /* (t370) each cable comes from where it would: the red from the starter on the left, the black ground strap from the body on the
+     right, the loom plug from the harness along the inner fender; none of them is laid across the battery's front any more */
+  const HOME={red:[44,142],blk:[226,164],plug:[264,162]};
+  const ENDS=[{k:'red',x:44,y:142,ax:-10,ay:110,c:['#5a1408','#a82c18','#e05a3a'],done:0},{k:'blk',x:226,y:164,ax:330,ay:158,c:['#0a0a0c','#2e2e36','#7a7a88'],done:0},{k:'plug',x:264,y:162,ax:330,ay:136,c:['#6a5a3a','#c8b48a','#efe2c0'],done:0}];
   const st={t:0,grab:-1,res:[],spark:0,sx:0,sy:0,end:0,bad:0};
   const tgt=e=>T[e.k];
   return {title:sp.t||'Hook up the cables',how:'Drag each cable end onto its place: the red clamp on the red post (+), the black on the black (−), the loom plug into its socket. Red first, always: black first and it sparks.',hint:'Red on red, black on black, plug in the socket. Red first.',st,
@@ -413,7 +442,7 @@ S4.crCables=(sp,K)=>{const g=K.g,BX=150,BY=190,img=crBatteryImg(2);   /* (t365) 
       if(st.grab>=0){const e=ENDS[st.grab];if(I.down){e.x+=(I.x-e.x)*Math.min(1,dt*20);e.y+=(I.y-e.y)*Math.min(1,dt*20);}
         else{let hit=null,hd=11;for(const [k,p] of Object.entries(T)){const d=Math.hypot(e.x-p.x,e.y-p.y);if(d<hd&&!ENDS.some(q=>q.done&&q.k===k)){hd=d;hit=k;}}
           if(hit===e.k){const early=e.k==='blk'&&!ENDS[0].done;if(early){st.bad++;st.spark=.35;st.sx=T.blk.x;st.sy=T.blk.y;A.hiss(.12,.2,'highpass',3000);A.tone(2400,.06,'square',.05);K.flash=.15;K.judge(.25,e.x,e.y-16,true);st.res.push(.3);}
-            else{const q=hd<4?1:.8;st.res.push(q);K.judge(q,e.x,e.y-16,true);A.tone(1600,.03,'square',.04);MS.knock();}
+            else{const q=hd<4?1:.8;st.res.push(q);K.judge(q,e.x,e.y-16,true);A.tone(1600,.03,'square',.04);MS.knock();st.cspk={x:T[hit].x,y:T[hit].y,t:0};}
             e.done=1;e.x=T[hit].x;e.y=T[hit].y;if(ENDS.every(q=>q.done))st.end=.001;}
           else if(hit){st.bad++;st.spark=.4;st.sx=T[hit].x;st.sy=T[hit].y;A.hiss(.15,.22,'highpass',2800);A.tone(2600,.05,'square',.05);K.flash=.18;K.shk=.15;K.judge(.1,e.x,e.y-16,true);[e.x,e.y]=HOME[e.k];}
           st.grab=-1;}}},
@@ -425,10 +454,18 @@ S4.crCables=(sp,K)=>{const g=K.g,BX=150,BY=190,img=crBatteryImg(2);   /* (t365) 
       K.px(T.plug.x-10,T.plug.y-8,20,16,'#c8b48a');K.px(T.plug.x-10,T.plug.y-8,20,1,'#efe2c0');for(let i=0;i<3;i++)K.px(T.plug.x-6+i*5,T.plug.y-3,2,6,'#3a3020');
       K.text('+',T.red.x+4,T.red.y-16,'#e8542a');K.text('-',T.blk.x+4,T.blk.y-16,'#d8d8e0');
       // each cable sags from where it comes in to its end
-      for(const e of ENDS){const mx=(e.ax+e.x)/2,my=Math.max(e.ay,e.y)+(e.done?6:22);let px=e.ax,py=e.ay;for(let i=1;i<=24;i++){const u=i/24,x=(1-u)*(1-u)*e.ax+2*u*(1-u)*mx+u*u*e.x,y=(1-u)*(1-u)*e.ay+2*u*(1-u)*my+u*u*e.y;K.line(px,py,x,y,e.c[1],3);K.line(px,py-1,x,y-1,e.c[2],1);px=x;py=y;}
-        if(e.k==='plug'){K.px(e.x-7,e.y-5,14,10,e.c[1]);K.px(e.x-7,e.y-5,14,1,e.c[2]);}else{K.px(e.x-5,e.y-4,10,8,e.c[1]);K.px(e.x-5,e.y-4,10,1,e.c[2]);K.px(e.x-2,e.y-1,4,2,CA_P.iron[1]);}
-        if(st.grab>=0&&ENDS[st.grab]===e)m4grip(K,e.x+3,e.y+4,-Math.PI/2+.3,{side:1,kind:'pinch',arm:1.15});}
+      // each cable sags from where it comes in to its end; a clamp is a lead band round the post with its pinch bolt, held by the cable
+      // just behind it while you carry it (your fist round the cable, turned along it)
+      for(const e of ENDS){const mx=(e.ax+e.x)/2,my=Math.max(e.ay,e.y)+(e.done?14:22);let px=e.ax,py=e.ay;for(let i=1;i<=24;i++){const u=i/24,x=(1-u)*(1-u)*e.ax+2*u*(1-u)*mx+u*u*e.x,y=(1-u)*(1-u)*e.ay+2*u*(1-u)*my+u*u*e.y;K.line(px,py+1,x,y+1,e.c[0],3);K.line(px,py,x,y,e.c[1],3);K.line(px,py-1,x,y-1,e.c[2],1);px=x;py=y;}
+        const ta=Math.atan2(e.y-my,e.x-mx);
+        if(e.k==='plug'){K.px(e.x-7,e.y-5,14,10,e.c[1]);K.px(e.x-7,e.y-5,14,1,e.c[2]);K.px(e.x-7,e.y+4,14,1,e.c[0]);}
+        else if(e.done){K.px(e.x-8,e.y-2,16,6,'#08080a');K.px(e.x-7,e.y-2,14,5,e.c[1]);K.px(e.x-7,e.y-2,14,1,e.c[2]);K.px(e.x-7,e.y+2,14,1,e.c[0]);K.px(e.x+7,e.y-1,3,3,CA_P.iron[5]);K.px(e.x+7,e.y-1,3,1,CA_P.iron[7]);}
+        else{const c=Math.cos(ta),s_=Math.sin(ta);for(let r=-2;r<=6;r++){const x=e.x-c*r,y=e.y-s_*r;K.px(x-3,y-3,6,6,r<0?e.c[2]:e.c[1]);}K.ell(e.x,e.y,2,2,'#08080a');K.px(e.x-1,e.y-1,1,1,CA_P.iron[3]);}
+        if(st.grab>=0&&ENDS[st.grab]===e){const gx=e.x-Math.cos(ta)*(e.k==='plug'?14:13),gy=e.y-Math.sin(ta)*(e.k==='plug'?14:13);m4grip(K,gx,gy,ta,{side:1});st.hpx=gx;st.hpy=gy;}}
       if(st.spark>0){for(let i=0;i<5;i++){const a=Math.random()*6.28,r=4+Math.random()*10;K.line(st.sx,st.sy,st.sx+Math.cos(a)*r,st.sy+Math.sin(a)*r,'#fff4c0',1);}K.glow(st.sx,st.sy,30,'200,220,255',.6);}
+      // (t300) a clamp seating on its post throws one small blue-white spark; your hand lets go of the lead (open) and goes to the next one
+      if(st.cspk&&(st.cspk.t+=1/60)<.2){const q=st.cspk,u=q.t/.2;for(let i=0;i<4;i++){const a=-Math.PI/2+(i-1.5)*.7;K.line(q.x,q.y-3,q.x+Math.cos(a)*(3+u*6),q.y-3+Math.sin(a)*(3+u*6),u<.5?'#ffffff':'#bcd8ff',1);}K.glow(q.x,q.y-3,14,'200,220,255',.5*(1-u));}
+      if(st.grab<0&&!st.end){const nx=ENDS.find(q=>!q.done);const tx_=nx?nx.x+4:(st.hpx||160),ty_=nx?nx.y-10:(st.hpy||120);if(st.hpx==null){st.hpx=tx_;st.hpy=ty_;}st.hpx+=(tx_-st.hpx)*.12;st.hpy+=(ty_-st.hpy)*.12;m4palm(K,st.hpx,st.hpy,true,{});}
       if(ENDS.every(e=>e.done))K.glow(T.plug.x,T.plug.y-20,24,'120,255,160',.35);},
     hud(t){K.label('HOOKED UP '+ENDS.filter(e=>e.done).length+'/3',30,16,'#f4ecd8','l');if(st.bad)K.label('SPARKS '+st.bad,30,26,'#e8b030','l');K.meter(ENDS.filter(e=>e.done).length/3,st.res.length?M4.avg(st.res):.7);},
     auto(dt,AP){const a=m4ai(this,AP,dt);const i=ENDS.findIndex(e=>!e.done);if(i>=0){const e=ENDS[i],p=T[e.k];this._p=(this._p||0)+dt;if(this._i!==i){this._i=i;this._p=0;}
@@ -440,8 +477,18 @@ S4.crFuel=(sp,K)=>{const g=K.g,NX=132,NY=118,LO=.86,HI=.97;   // (t364) the fill
   const side=M4.pre('crquarter3',320,130,k=>{crSheet(k,320,130,CRP.RED,61,true);for(let y=0;y<130;y++)for(let x=0;x<320;x++){const d=Math.hypot((x-NX)/15,(y-(NY-20-40))/13);if(d<1)k.px(x,y,1,1,d>.84?(x-NX+y-(NY-60)<0?CRP.RED[1]:CRP.RED[6]):'#140806');}
       for(let y=0;y<130;y++){k.px(40,y,1,1,CRP.RED[2]);}for(let x=0;x<320;x++)k.px(x,40,1,1,CRP.RED[7]);},false);
   const HOLEY=NY-20;
-  const can=M4.pre('crcan2',48,42,k=>{const RC=['#2a0806','#5a120c','#8a1e12','#b8301c','#d84a2a','#f07a50'];for(let y=6;y<40;y++)for(let x=10;x<46;x++){let v=4.2-((y-6)/34)*1.6-((x-10)/36)*.6;if(((x+y)%12===0)&&y>12&&y<34)v-=.7;k.px(x,y,1,1,crT(RC,v));}
-      k.px(10,6,36,1,RC[5]);k.px(22,1,16,6,RC[1]);k.px(24,2,12,3,'#1a0604');k.px(2,10,9,4,CA_P.iron[4]);k.px(2,10,9,1,CA_P.iron[6]);k.px(0,8,4,7,CA_P.iron[5]);},true);
+  // (t370) the can: an olive-drab steel jerry can (a red one vanished against the red paint), its side pressed with the X, a
+  // three-post carry handle along the top that shows past your fist, the spout out to the left
+  const can=M4.pre('crcan370',48,42,k=>{const O=['#141a0a','#222c12','#323f1c','#455626','#5a6e32','#728842','#90a65a','#b0c27a'];
+      for(let y=6;y<40;y++)for(let x=10;x<46;x++){let v=4.6-((y-6)/34)*1.4-((x-10)/36)*.5;if(x===10||y===6)v=6.4;if(x===45||y===39)v=1.6;k.px(x,y,1,1,crT(O,v));}
+      // the pressed X inside a raised rim: each ridge lit on its upper-left side, shaded on its lower-right
+      for(let x=14;x<42;x++){k.px(x,10,1,1,O[6]);k.px(x,35,1,1,O[2]);}for(let y=10;y<36;y++){k.px(14,y,1,1,O[6]);k.px(41,y,1,1,O[2]);}
+      for(let i=0;i<=24;i++){const u=i/24,ya=11+u*23;const xa=15+u*25,xb=40-u*25;k.px(xa,ya,2,1,O[5]);k.px(xa,ya-1,2,1,O[7]);k.px(xa+1,ya+1,2,1,O[2]);k.px(xb-1,ya,2,1,O[5]);k.px(xb-1,ya-1,2,1,O[7]);k.px(xb-2,ya+1,2,1,O[2]);}
+      // the handle: a bar on three posts, the gaps under it dark
+      k.px(14,0,28,2,O[5]);k.px(14,0,28,1,O[7]);for(const hx of [14,27,40]){k.px(hx,2,2,4,O[4]);k.px(hx,2,1,4,O[6]);}k.px(16,2,11,4,'#0c1006');k.px(29,2,11,4,'#0c1006');
+      // the spout and its cap
+      k.px(2,10,9,4,CA_P.iron[4]);k.px(2,10,9,1,CA_P.iron[6]);k.px(2,13,9,1,CA_P.iron[2]);k.px(0,8,4,7,CA_P.iron[5]);k.px(0,8,1,7,CA_P.iron[7]);},true);
+  const canSh=M4.pre('crcan370sh',48,42,k=>{k.g.drawImage(can,0,0);k.g.globalCompositeOperation='source-in';k.g.fillStyle='#000';k.g.fillRect(0,0,48,42);},false);
   const st={t:0,a:0,L:.12,q:0,res:[],end:0,still:0,spill:0,drops:[]};
   return {title:sp.t||'Pour the gas in',how:'Hold to tip the can. The gauge climbs as it pours, and it keeps running a moment after you let go. Stop on the full mark. Too much and it runs down the paint.',hint:'Hold to tip. Let go just before the full mark.',st,
     update(dt,I){st.t+=dt;if(st.end){st.end+=dt;st.a=Math.max(0,st.a-dt*2);if(st.end>.7){st.done=true;st.score=M4.cl(st.res[0]==null?.4:st.res[0],.05,1);}return;}
@@ -456,9 +503,16 @@ S4.crFuel=(sp,K)=>{const g=K.g,NX=132,NY=118,LO=.86,HI=.97;   // (t364) the fill
       // the fuel door, swung open on its hinge
       for(let y=0;y<26;y++)for(let x=0;x<8;x++)K.px(NX-24+x,HOLEY-13+y,1,1,crT(CRP.RED,x<2?6:x>6?2:4));
       // the can, tipping about its handle; the stream from the spout when it's tipped far enough
-      const PX=NX+34,PY=HOLEY-34,ca=-st.a*.8;M4.rot(g,can,PX,PY,ca,28,24);const [sx,sy]=M4.tr(PX,PY,ca,-28,-14);
-      if(st.q>.004){const w=Math.max(1,Math.round(st.q*24));for(let i=0;i<=12;i++){const u=i/12,x=sx+(NX-sx)*u,y=sy+(HOLEY-sy)*u*u+u*2;K.pa(x-w/2,y,w,3,'#e8b040',.8);K.px(x,y,1,2,'#f8e090');}}
-      const [h1x,h1y]=M4.tr(PX,PY,ca,2,-22),[h2x,h2y]=M4.tr(PX,PY,ca,14,14);m4grip(K,h1x,h1y,ca-Math.PI/2,{side:1,armSide:-1});m4palm(K,h2x,h2y,false,{armSide:1});   /* (t364) the left hand on the top handle, the right under the can: two arms, each from its own side */
+      const PX=NX+34,PY=HOLEY-34,ca=-st.a*.8+(st.q>.004?Math.sin(t*3.2*Math.PI*2)*.03:0);   /* (t300) the can rocks a touch with each glug */g.globalAlpha=.3;M4.rot(g,canSh,PX+3,PY+4,ca,28,24);g.globalAlpha=1;M4.rot(g,can,PX,PY,ca,28,24);const [sx,sy]=M4.tr(PX,PY,ca,-28,-12);
+      // (t370) the stream: one steady arc, leaving the spout along its line and falling into the neck, a lit core and glints running down it
+      if(st.q>.004){const w=1+Math.round(M4.cl(st.q/.3,0,1)*2),dx=-Math.cos(ca),dy_=-Math.sin(ca),E=[NX,HOLEY-1],L0=Math.hypot(E[0]-sx,E[1]-sy),C=[sx+dx*L0*.35,sy+dy_*L0*.35],n=Math.ceil(L0*1.5);
+        const at=u=>[(1-u)*(1-u)*sx+2*u*(1-u)*C[0]+u*u*E[0],(1-u)*(1-u)*sy+2*u*(1-u)*C[1]+u*u*E[1]];
+        for(let i=0;i<=n;i++){const [x,y]=at(i/n);K.px(x-(w+2)/2,y-(w+2)/2,w+2,w+2,'#6a4a10');}for(let i=0;i<=n;i++){const [x,y]=at(i/n);K.px(x-w/2,y-w/2,w,w,'#e0a838');}
+        for(let i=0;i<=n;i++){const [x,y]=at(i/n);K.px(x-w/2,y-w/2,1,1,'#fff0b0');}for(let k=0;k<3;k++){const [x,y]=at(((t*2.2+k/3)%1));K.px(x-1,y-1,2,2,'#fffbe0');}
+        /* (t300) where it lands: a ring at the neck's mouth and a few drops kicking up on each glug */
+        {const gp=(t*3.2)%1;g.globalAlpha=.7*(1-gp);g.strokeStyle='#f0c050';g.lineWidth=1;g.beginPath();g.ellipse(NX,HOLEY-1,3+gp*5,1+gp*1.5,0,0,6.29);g.stroke();g.globalAlpha=1;
+          if(gp<.35)for(let k=0;k<3;k++)K.px(NX-3+k*3,HOLEY-3-Math.sin(gp/.35*Math.PI)*(3+k%2*2),2,2,'#e0a838');}}
+      const [h1x,h1y]=M4.tr(PX,PY,ca,0,-23),[h2x,h2y]=M4.tr(PX,PY,ca,3,7);m4grip(K,h2x,h2y,ca,{kind:'palm'});m4grip(K,h1x,h1y,ca,{side:1});   /* (t370) your fist round the handle bar, tilted with the can; the other hand flat on its side, steadying it */   /* (t364) the left hand on the top handle, the right under the can: two arms, each from its own side */
       for(const d of st.drops)K.pa(d[0]+d[2]*2,HOLEY+4+d[2]*60,2,3,'#c89a40',1-d[2]/1.4);
       // the fuel gauge, like the one on the dash
       const GX=262,GY=150-(K.dy||0),GR=26;   /* (the gauge stays in its corner when the work is lowered) */crDisc(K,GX,GY,GR+3,CA_P.iron,GR);K.ell(GX,GY,GR,GR,'#14141a');for(let i=0;i<=8;i++){const a=Math.PI+i/8*Math.PI;K.px(GX+Math.cos(a)*(GR-3),GY+Math.sin(a)*(GR-3),1,1,'#d8d0c0');}
@@ -468,8 +522,17 @@ S4.crFuel=(sp,K)=>{const g=K.g,NX=132,NY=118,LO=.86,HI=.97;   // (t364) the fill
     auto(dt,AP){const a=m4ai(this,AP,dt);m4hold(a,st.L+st.q*1.2<(LO+HI)/2-.03);AP.I=a;AP.hand=[NX+36,NY-54];AP.press=a.down;},
     stop(){}};};
 // ================================================================= THE ENGINE, 2: turn the key, and let go when it catches
+// (t370) the ignition key seen end-on as you'd see it in the lock: a brass bow with a ring hole and a stamped mark, the collar
+// and the blade's neck going into the barrel (the pivot, 8,26, is where it enters)
+const crKeyImg=()=>M4.pre('crkey370',16,29,k=>{const B=CA_P.brass;
+    for(let y=0;y<29;y++)for(let x=0;x<16;x++){const e=((x-7.5)/7)**2+((y-9)/8.6)**2;let c=null;
+      if(e<=1){const hole=(x-7.5)**2+(y-4.5)**2;if(hole<3)continue;const rim=e>.7,s=(x-7.5)/7+(y-9)/8.6;
+        c=rim?B[s<0?6:2]:B[hole<6.5?(y<4.5?2:6):(s<-.45?5:s>.45?3:4)];if(y>=11&&y<=12&&x>=6&&x<=9)c=B[y===11?2:6];}
+      else if(y>=17&&y<=19&&x>=4&&x<=11)c=B[y===17?6:x<6?5:x>9?2:4];
+      else if(y>=20&&y<=27&&x>=6&&x<=9)c=B[x===6?6:x===9?2:4];
+      if(c)k.px(x,y,1,1,c);}},true);
 S4.crKey=(sp,K)=>{const g=K.g,KX=238,KY=124,TX=132,TY=118,TR=26;
-  const dash=M4.pre('crdash2',320,180,k=>{
+  const dash=M4.pre('crdash3',320,180,k=>{
       // the windscreen: dusk over the road ahead, the hood's red edge along its foot; dark pillars at the sides
       for(let y=0;y<78;y++){const u=y/78;k.px(0,y,320,1,`rgb(${Math.round(46+u*40)},${Math.round(40+u*26)},${Math.round(62+u*10)})`);}
       for(let x=0;x<320;x+=2){const h=8+Math.sin(x*.06)*3+Math.sin(x*.19)*2;k.px(x,60-h,2,h,'#1c2420');}
@@ -477,11 +540,11 @@ S4.crKey=(sp,K)=>{const g=K.g,KX=238,KY=124,TX=132,TY=118,TR=26;
       for(let x=0;x<320;x++){k.px(x,72,1,6,crT(CRP.RED,x<160?5.4-x/200:4.6));}k.px(0,72,320,1,CRP.RED[7]);
       for(let y=0;y<80;y++){const l=Math.round(30-y*.35),r=Math.round(290+y*.35);k.px(0,y,l,1,'#141016');k.px(r,y,320-r,1,'#141016');k.px(l,y,1,1,'#2a2228');}
       // the dashboard: dark vinyl, lit along its padded top edge, a cowl over the gauges
-      for(let y=78;y<180;y++)for(let x=0;x<320;x++){let v=y<82?4.4-(y-78)*.6:2.6-(y-82)/70+((x*5+y*3)%47===0?-.5:0);k.px(x,y,1,1,crT(CRP.RUB,v));}
+      for(let y=78;y<180;y++)for(let x=0;x<320;x++){let v=y<82?4.4-(y-78)*.6:2.6-(y-82)/70;k.px(x,y,1,1,crT(CRP.RUB,v));}
       for(let y=84;y<152;y++)for(let x=88;x<178;x++){const e=((x-133)/45)**2+((y-118)/34)**2;if(e>1)continue;k.px(x,y,1,1,crT(CRP.RUB,e>.86?(y<118?4.6:1):1.4));}
       // the steering column coming up from below, the ignition lock on its side
       for(let y=118;y<180;y++)for(let x=200;x<262;x++){const w=24+(y-118)*.3,c=231;if(Math.abs(x-c)>w)continue;k.px(x,y,1,1,crT(CRP.RUB,3.4-(x-c)/w*1.6));}
-      crDisc(k,KX,KY,13,CA_P.iron,8);crDisc(k,KX,KY,7,CA_P.brass);k.px(KX-1,KY-4,2,8,'#1a1006');
+      crDisc(k,KX,KY,13,CA_P.iron,8);crDisc(k,KX,KY,7,M4.sh(CA_P.iron,-1));   /* (t370) the barrel is steel: the only brass here is the key */
       for(const [a,l] of [[-2.3,0],[-1.6,1],[-.95,2]]){k.px(KX+Math.cos(a)*17-1,KY+Math.sin(a)*17-1,2,2,['#a89878','#d8d0c0','#e8a050'][l]);}
       // the wheel's rim across the left, in front of everything: thick, worn, lit along its top
       for(let a=-1.62;a<-.55;a+=.004){for(let r=-5;r<=5;r++){const R=150+r;const x=Math.round(40+Math.cos(a)*R),y=Math.round(250+Math.sin(a)*R);if(x<0||x>=320||y<0||y>=180)continue;k.px(x,y,1,1,crT(CRP.RUB,r<-3?5:r<0?3.6:r<3?2.4:1));}}},false);
@@ -508,12 +571,16 @@ S4.crKey=(sp,K)=>{const g=K.g,KX=238,KY=124,TX=132,TY=118,TR=26;
       const na=Math.PI*.8+M4.cl(st.rpm,0,1)*Math.PI*1.4;K.line(TX,TY,TX+Math.cos(na)*(TR-5),TY+Math.sin(na)*(TR-5),'#ff6a3a',1);K.px(TX-2,TY-2,4,4,CA_P.iron[6]);K.text('RPM',TX,TY+10,'#a89878');
       // warning lamps beside it: lit while it cranks, the oil lamp out once it runs
       K.px(180,104,6,4,st.run?'#2a1a14':(st.ang>.3?'#e8542a':'#3a2020'));K.px(180,112,6,4,st.run?'#7cc04a':'#203020');
-      // the key: a brass head turned in the lock, a leather fob on a ring swinging under it; the hand pinches it from the right
-      const a=-1.6+st.ang*.7,ex=KX+Math.cos(a)*9,ey=KY+Math.sin(a)*9;
-      for(let i=0;i<8;i++){const u=i/8;K.px(KX+(ex-KX)*u-1,KY+(ey-KY)*u-1,3,3,CA_P.brass[i<2?3:5]);}
-      for(let y=-6;y<=6;y++)for(let x=-4;x<=4;x++){if((x/4.5)**2+(y/6.5)**2>1)continue;K.px(ex+x,ey+y-5,1,1,crT(CA_P.brass,4.6-(x+y)*.25));}K.px(ex-1,ey-8,2,2,'#2a1a06');
-      const fa=st.fob*.25,fx=ex+Math.sin(fa)*2,fy=ey+3;K.px(fx-2,fy,4,1,CA_P.iron[6]);for(let j=0;j<16;j++){const x=fx+Math.sin(fa)*j*.9,y=fy+1+j*.95;K.px(x-2,y,5,1,crT(CA_P.leather,5-j*.15));}
-      m4grip(K,ex+13,ey-2,Math.PI+fa*.5,{side:-1,kind:'pinch',arm:.95});},
+      // (t370) the key, turned in the lock: the barrel's keyway turns with it, the brass bow stands out of the lock toward you and
+      // your fist pinches its right edge and turns with it, about 36 degrees from ON to START, springing back when you let go;
+      // the ring through the bow's hole flops to its left and the leather fob swings from it
+      const a=st.ang*1.0;{const c=Math.cos(a),s_=Math.sin(a);   /* (t300) a plain turn to START (about 50 degrees) that springs back */for(let i=-4;i<=4;i++)K.px(KX+s_*i,KY-c*i,1,1,'#08080c');}
+      M4.rot(g,crKeyImg(),KX,KY,a,8,26);
+      const [hx,hy]=M4.tr(KX,KY,a,-.5,-21.5),fa=st.fob*.25,rx=hx-4,ry=hy+2;
+      for(let i=0;i<14;i++){const an=i/14*Math.PI*2;K.px(rx+Math.cos(an)*3,ry+Math.sin(an)*3,1,1,CA_P.iron[an>Math.PI*.9&&an<Math.PI*1.6?7:4]);}
+      {const fx=rx-2+Math.sin(fa)*1,fy=ry+3;for(let j=0;j<12;j++){const x=fx+Math.sin(fa)*j*.9,y=fy+j*.95;K.px(x-2,y,4,1,crT(CA_P.leather,j===0?6:5-j*.15));K.px(x-2,y,1,1,CA_P.leather[j<2?6:4]);K.px(x+1,y,1,1,CA_P.leather[1]);}
+        const ex=fx+Math.sin(fa)*12*.9,ey=fy+12*.95;K.px(ex-2,ey,4,1,CA_P.leather[0]);K.px(fx-1+Math.sin(fa)*4,fy+4,2,2,CA_P.brass[5]);}
+      {const [fx,fy]=M4.tr(KX,KY,a,9,-15);m4grip(K,fx,fy,a-Math.PI/2,{side:1});}},
     hud(t){K.label('TRY '+(st.tries+1),30,16,'#f4ecd8','l');K.label('BATTERY',30,26,st.batt<.6?'#e8b030':'#a89878','l');K.px(70,27,30,3,'#2a2a30');K.px(70,27,Math.round(30*st.batt),3,st.batt<.6?'#e8b030':'#7cc04a');K.meter(st.run?1:Math.min(.9,st.cough/4),[1,.8,.6,.45][Math.min(3,st.tries)]);},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(st.dead>0||st.end){m4hold(a,false);}else{const rel=a.down&&st.rpm>=LO+.02&&st.rpm<=HI-.02;m4hold(a,!rel);}AP.I=a;AP.hand=[KX+16,KY-10];AP.press=a.down;},
     stop(){}};};

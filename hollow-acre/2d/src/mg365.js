@@ -8,7 +8,7 @@
    the close surfaces it sits on. ================= */
 const M65={dy:{}};
 // how far each game's work sits lower in the picture (the room behind stays put); the trace and drop games work theirs out per piece
-Object.assign(M4DY,{crack:50,fillet:46,scoop:50,cork:70,dip:33,roll:70,bellows:0,flail:30,dig:4,light:22,quench:35,f2carve:44,crDents:58,crSeal:40,crBattery:0,crCables:0,crHang:64,crLugs:40});
+Object.assign(M4DY,{crack:50,fillet:46,scoop:50,cork:70,dip:33,roll:70,bellows:0,flail:30,dig:4,light:22,quench:35,f2carve:44,crDents:58,crSeal:40,crBattery:0,crCables:0,crHang:54,crLugs:40});
 for(const k of ['trace','drop','brush'])Object.defineProperty(M4DY,k,{get(){return M65.dy[k]||0;},set(v){M65.dy[k]=v;},enumerable:true,configurable:true});
 // a close surface drawn under a game's work, in the work's own coordinates (it moves down with it)
 function m65Under(k,paint){const f=S4[k];if(typeof f!=='function')return;S4[k]=function(sp,K){const o=f.apply(this,arguments);if(o&&o.draw){const d=o.draw;o.draw=function(t){paint(K,t,sp);return d.apply(this,arguments);};}return o;};}
