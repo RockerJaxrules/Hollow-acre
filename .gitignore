@@ -17,3 +17,6 @@ hollow-acre/unreal/HollowAcre/Content/HollowAcre/Driver/Built/Driver/Face/
 hollow-acre/unreal/HollowAcre/Content/HollowAcre/Driver/Built/Driver/Grooms/
 hollow-acre/unreal/HollowAcre/Content/HollowAcre/Driver/Built/Driver/Clothing/
 hollow-acre/unreal/HollowAcre/Content/HollowAcre/Driver/Built/Driver/BP_Driver.uasset
+
+# unfinished work kept beside the sources
+hollow-acre/2d/src/*_wip.js
