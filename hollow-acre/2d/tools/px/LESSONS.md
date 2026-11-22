@@ -1837,6 +1837,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - An enlarged 1x texture (hair strands, tone blocks) turns into a checker of big steps beside 1 px detail: shade those areas again as one lit form at the close-up's own pixel size, then draw locks or features over it.
 - Any round thing with a pale ring and a dark centre reads as an EYE or a target (cut limbs, bones with marrow, eyeballs drawn as discs). Cut faces are torn and uneven with the bones off-centre and the marrow a soft pink; real eyeballs are tinted, veined and not perfect discs.
 - Two copies of the same thing side by side (two shoes) read as copy-paste: lean one, lace it differently.
+- [OWNER, t372d, verbatim] "The grounds on the close up images don't match the placing so tweak some of the close up images to match the floor and placing of the actual items or move the small items". Understood: a close-up stands on the ground it really lies on. For things placed at run time, compose it then: the world's own ground chunks under the anchor and the small things lying near it, enlarged to the close-up's scale, the close-up drawn over them.
+- Organs set evenly round a body read as a wreath; insides look pulled out when they come out of the cut as one connected spill (tapered, creased tubes with a blood rim), heaviest at the cut, with drag smears out to anything laid further off.
+- A dead animal lies with its head flat and its big ear on the ground; a raised head reads as resting.
+- F height-field shading in bands reads as a loaf: at close-up size let fur tips of each tone reach over the border into the next (borders wander).
+- Hanging meat is narrow at the hock on the hook and widest low at the ribs, with a foreshank stub; two sides must differ. Drips are one run falling into the pool, not dots.
+- A ribcage reads when the ribs are uneven and each a little steeper than the one above; a mirrored, even copy reads as a tree or a fishbone.
+- Fur scattered as matching tufts in a ring reads as sparkles: gather it into one drift of drawn-out wisps on the side it came from.
 - At 2x, pale ribs hanging from a bar of bone inside a dark red opening read as FANGS. Show the ribs as lit ridges of muscle and let the spine be the only bare bone; break it with blood in places.
 - The read-up view shows a close-up above a ground line about 133 px down on a PC (180 px tall view): crop empty rows, keep it at most 131 tall, and pad a tall narrow one to 100 wide so the view may show it at 1x instead of forcing 2x and cutting its top off.
 - A snag's trunk drawn as a capsule has a rounded top (a tombstone). Cut it off flat at the break and stand tall splinters on it.

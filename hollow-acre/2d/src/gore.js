@@ -91,7 +91,7 @@ const goreToned=()=>!!window.GORE_TONED;
 function goreKillSpot(){const C=[[-38,24,-32,22],[20,80,-52,52],[-60,-20,-40,-14]];for(let i=0;i<60;i++){const B=C[(Math.random()*C.length)|0];const x=B[0]+Math.random()*(B[1]-B[0]),z=B[2]+Math.random()*(B[3]-B[2]);
     if(inTown(x,z,2)||terr(x,z)!=='grass'||Math.hypot(x,z+8)<9)continue;if(typeof FIELD!=='undefined'&&x>FIELD.x0-2&&x<FIELD.x0+FIELD.w+2&&z>FIELD.z0-2&&z<FIELD.z0+FIELD.h+2)continue;
     const p={x,z};collide(p,.6);if(Math.hypot(p.x-x,p.z-z)>.02)continue;if(goreS().kills.some(k=>Math.hypot(k.x-x,k.z-z)<6))continue;return {x,z};}return null;}
-function goreKillShow(k){if(GORE.objs[k.id])return;const K=KILLS[k.kind];if(!K)return;const ton=K.person&&goreToned();k.ton=ton;
+function goreKillShow(k){if(GORE.objs[k.id])return;const K=KILLS[k.kind];if(!K)return;const ton=!!((K.person||K.tmain)&&goreToned());k.ton=ton;
   const os=[obj(ton?K.tmain:K.main,k.x,k.z,K.prop?{kind:'prop',noCol:true}:{kind:'flat',noCol:true})];
   for(const [s,dx,dz] of K.extra)os.push(obj(s,k.x+dx,k.z+dz,{kind:'flat',noCol:true}));GORE.objs[k.id]=os;
   if(!k.night)for(let i=0;i<(K.crows||(k.kind==='rabbit'?2:3));i++){const cx=k.x+(Math.random()-.5)*2.4,cz=k.z+(Math.random()-.5)*1.3;crows.push({x:cx,z:cz,hx:cx,hz:cz,y:0,state:'perch',t:0,vx:0,vz:0,kill:k.id});}}
@@ -114,16 +114,16 @@ setTimeout(()=>{try{for(const k of goreS().kills)goreKillShow(k);}catch(e){}},0)
 function goreCloseImg(name){const n=name+'_cu',m=SPR[n],im=m&&IMG[m.src];if(!im||!im.width||typeof sgtC!=='function')return null;return sgtC('gcu_'+n,m.fw,m.fh,(P,g)=>{g.drawImage(im,0,0);});}
 function goreUp(im){if(im.width>=64||im.height>=34)return im;if(im._up)return im._up;const c=document.createElement('canvas');c.width=im.width*2;c.height=im.height*2;const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(im,0,0,c.width,c.height);return im._up=c;}
 function goreSightP(k,ton,look){if(typeof sgtSprites!=='function'||typeof sgtOpen!=='function'||S.mode!=='play'||S.paused||(typeof H!=='undefined'&&H.state==='chase'))return false;
-  const g=goreS(),K=KILLS[k.kind],sk='sight_'+k.kind+(ton?'_t':'');if(g.seen[sk])return false;let img=goreCloseImg(ton?K.tmain:K.main);try{if(!img){img=sgtSprites('killp_'+k.kind+(ton?'_t':''),[[ton?K.tmain:K.main,0,0]]);if(img)img=goreUp(img);}}catch(e){}if(!img)return false;
+  const g=goreS(),K=KILLS[k.kind],sk='sight_'+k.kind+(ton?'_t':'');if(g.seen[sk])return false;let img=goreCloseImg(ton?K.tmain:K.main,{x:k.x,z:k.z},(GORE.objs[k.id]||[]).slice(0,1));try{if(!img){img=sgtSprites('killp_'+k.kind+(ton?'_t':''),[[ton?K.tmain:K.main,0,0]]);if(img)img=goreUp(img);}}catch(e){}if(!img)return false;
   g.seen[sk]=1;return sgtOpen({x:k.x,z:k.z},img,look,ton?{flies:1}:{flies:5,drip:K.prop?1:0});}
 // walking up on one; and the flies
 {const _u=update;update=function(dt){_u(dt);if(S.mode!=='play'||S.paused)return;const g=goreS();
-  if(goreToned()!==GORE.toned){const was=GORE.toned;GORE.toned=goreToned();if(was!==undefined)for(const k of g.kills)if(KILLS[k.kind]&&KILLS[k.kind].person){goreKillHide(k.id);goreKillShow(k);}}   // the setting changed: swap the people
+  if(goreToned()!==GORE.toned){const was=GORE.toned;GORE.toned=goreToned();if(was!==undefined)for(const k of g.kills)if(KILLS[k.kind]&&(KILLS[k.kind].person||KILLS[k.kind].tmain)){goreKillHide(k.id);goreKillShow(k);}}   // the setting changed: swap the people
   if(S.room)return;
   for(const k of g.kills){if(g.seen[k.id])continue;const K=KILLS[k.kind];if(!K)continue;if(Math.hypot(P.x-k.x,P.z-k.z)<(K.person?3:2.6)){g.seen[k.id]=1;
     if(K.person){const ton=!!k.ton,look=ton?K.tlook:K.look;mindHit&&mindHit(ton?3:5);if(!goreSightP(k,ton,look))toast(look,7,true);
       if(!g.seen['kind_'+k.kind]){g.seen['kind_'+k.kind]=1;addLore(look);if(typeof journalNote==='function')journalNote(ton?K.tjot:K.jot);}continue;}
-    mindHit&&mindHit(2);if(!(typeof goreSight==='function'&&goreSight(k))&&!g.seen['sight_'+k.kind])toast(K.look,4.6,true);if(!g.seen['kind_'+k.kind]){g.seen['kind_'+k.kind]=1;addLore(K.look);}}}
+    mindHit&&mindHit(2);if(!(typeof goreSight==='function'&&goreSight(k))&&!g.seen['sight_'+k.kind])toast((k.ton&&K.tlook)||K.look,4.6,true);if(!g.seen['kind_'+k.kind]){g.seen['kind_'+k.kind]=1;addLore((k.ton&&K.tlook)||K.look);}}}
   // flies: you hear them before you see them
   if(!isNight()&&A.ok){GORE.buzzT=(GORE.buzzT||0)-dt;if(GORE.buzzT<=0){GORE.buzzT=.7+Math.random()*.8;let near=null,nd=4.5;for(const k of g.kills){const d=Math.hypot(P.x-k.x,P.z-k.z);if(d<nd){nd=d;near=k;}}
     if(near){const v=(1-nd/4.5)*(goreToned()?.006:.011),pan=clamp((near.x-P.x)/4,-1,1);A.tone(170+Math.random()*60,.5+Math.random()*.5,'sawtooth',v,{slide:150+Math.random()*90,pan,filter:['bandpass',620+Math.random()*260,5]});}}}
