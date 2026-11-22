@@ -6,7 +6,7 @@ at the close-up's own pixel size, and only the pixels that changed are written o
                    in its socket and maggots in the other, the scalp peeled back; the neck torn to the bone; the shirt torn open and
                    the chest opened (rib ridges, a lung, the liver), the guts pulled out over the side onto the floor of the grave in
                    old dark lengths; the hands gnawed to the finger bones; the soil under him soaked black.
-  g6_drowned_ov    the drowned of Old Wickham: ONLY the two grown men in top hats at either side (the small figure in the green dress
+  g6_drowned_ov    (PARKED after six critic rounds: not shipped; the game keeps it behind window.GX2_DROWNED, off) the drowned of Old Wickham: ONLY the two grown men in top hats at either side (the small figure in the green dress
                    could be a child, so nothing is drawn on or near it, or on the people beside it). The grey-headed man's scalp has
                    split and is peeling, an eel round his neck going in at the collar; the other has the back of his neck eaten to
                    the bone, an eel out of his collar; both hands swollen grey-green with the skin coming off like a glove.
@@ -170,59 +170,68 @@ def yourgrave(path):
         for (x, y) in pts: z.p(x, y, col)
     for (x, y) in ((84, 71), (85, 71), (85, 74), (86, 74)): z.p(x, y, BONE[2])   # bone where the skin has slipped off
     for (x, y) in ((79, 46), (79, 73), (78, 74)): z.p(x, y, MUS[1])               # split at the knuckles
+    # (round 6) the letter: the clean white page outshone everything; it has lain in the grave with him, dulled, a bloody thumbprint on it
+    PAGE = {(242, 234, 210): (176, 164, 130), (200, 192, 168): (140, 128, 100)}
+    for Y in range(52, 64):
+        for X in range(63, 79):
+            q = z.get(X, Y)[:3]
+            if q in PAGE: z.p(X, Y, PAGE[q])
+    for (x, y, c_) in ((65, 60, XB[3]), (66, 60, XB[2]), (65, 61, XB[2]), (66, 61, XB[3]), (75, 54, (120, 100, 76)), (76, 55, (120, 100, 76))): z.p(x, y, c_)
     z.overlay('g6_yourgrave_ov')
     return z
 
 
 def drowned(path):
-    """(round 2) lighter, so it shows against the dark coats (critic r1: dark green eels read as scarves or snakes): their skin
-    swollen grey-white, holes torn in them with pale washed lips, and their guts drifting up out of them the way the hair does"""
+    """(round 6, after five rounds of strips that read as things carried) drowned bodies read through bloat and sloughing, in big simple
+    shapes kept inside their silhouettes: each man's coat split down its back seam over swollen grey-green skin, mottled, with dark
+    marbling; a dark ragged hollow above the collar where the fish have fed, its edges pale; the hands swollen grey-white and puffy,
+    and on one the skin slipped off and hanging from the wrist like a loose wrinkled glove, dark where it came away"""
     z = Z1(path)
-    PALE = [(96, 104, 100), (150, 156, 148), (192, 196, 186), (224, 226, 216)]   # drowned skin: swollen, grey-white
-    GUTP = [(84, 70, 74), (140, 118, 118), (190, 168, 160), (222, 206, 196)]       # drowned gut: washed out to a pale grey-pink
-    MEATW = [(78, 92, 92), (138, 108, 110)]   # (round 3) the meat in the wounds washed out and lifted toward the water's teal, so it shows on a black coat
-    def hole(cx, cy, w):
-        for X in range(cx - w, cx + w + 1):
-            z.p(X, cy - 1, PALE[3] if X < cx else PALE[2]); z.p(X, cy, MEATW[0] if abs(X - cx) < w else PALE[2]); z.p(X, cy + 1, MEATW[1] if abs(X - cx) < w else PALE[1])
-        z.p(cx - w - 1, cy, PALE[2]); z.p(cx + w + 1, cy, PALE[1]); z.p(cx + w, cy + 2, PALE[2])   # the lips torn, uneven
-    def gut(pts, r0=1.45, r1=1.0):
-        xtube(z, pts, r0, r1, R=GUTP + [GUTP[3], (240, 232, 224)], rim=False, seed=int(pts[0][0] * 3))
-    def strips(x0, y0, specs, seed):
-        """(round 4) flesh, not objects: ragged strips of different lengths and widths drifting up and right from the wound, the
-        way the hair drifts, every step a little different (no straight edge, no even spacing)"""
-        for k, (L, w, dx) in enumerate(specs):
-            x, y = x0 + k * .8, y0
-            for i in range(L):
-                j = H(i, k, seed) - .45; X, Y = int(round(x + math.sin(i * .8 + k * 2.1) * (.6 + i * .09))), int(round(y))   # a ribbon in still water, curling more toward its end
-                ww = w if i < L * .6 else 1
-                for u in range(ww): z.p(X + u, Y, GUTP[3] if u == 0 and H(i, k, seed + 1) < .5 else GUTP[2] if u == 0 else GUTP[1])
-                x += dx + j * .9; y -= 1 if H(i, k, seed + 2) < .8 else 0
-            z.p(int(round(x)), int(round(y)), GUTP[1])
-    # the grey-headed man (right): his head swollen grey-white; the back of his coat split over swollen pale flesh, and from it his
-    # insides drifting up in ragged strips
+    PALE = [(96, 104, 100), (150, 156, 148), (192, 196, 186), (224, 226, 216)]   # swollen skin, grey-white
+    BLO = [(62, 78, 66), (92, 110, 92), (128, 142, 118), (162, 172, 146)]       # bloated skin, grey-green
+    VEIN = (58, 52, 72)                                                           # marbling: dark, a little violet
+    HOLLOW = (22, 16, 20)
+    def split(cx, y0, y1, seed):
+        """the coat split along its back seam, wider in the middle, the skin swelling out through it, mottled in patches, veined"""
+        for Y in range(y0, y1 + 1):
+            f = (Y - y0) / max(1, y1 - y0); hw = 0.6 + 1.6 * math.sin(f * math.pi) + (H(Y, 3, seed) - .5) * .5
+            x0, x1 = int(round(cx - hw)), int(round(cx + hw))
+            for X in range(x0 - 1, x1 + 2):
+                if X in (x0 - 1, x1 + 1): z.p(X, Y, (18, 18, 24)); continue   # the coat's torn edge, dark
+                lit = X <= cx - hw * .3 and Y < y0 + (y1 - y0) * .6
+                patch = H(X // 2, Y // 2, seed) 
+                z.p(X, Y, BLO[3] if lit and patch < .6 else BLO[2] if patch < .55 else BLO[1])
+        for (dx, dy, L) in ((0, 2, 3), (-1, 5, 2), (1, 7, 3)):   # marbling: dark veins running in the skin, branching, never dots
+            for i in range(L): z.p(int(round(cx + dx + (i * .5 if dx >= 0 else -i * .5))), y0 + dy + i, VEIN)
+    def bite(x0, x1, y):
+        """above the collar: a dark ragged hollow where they have fed, torn pale only here and there along its edge (a whole pale row
+        over a dark one reads as a mouth), raw dark flesh in its floor"""
+        for X in range(x0, x1 + 1):
+            deep = H(X, y, 5) < .55
+            z.p(X, y, HOLLOW); z.p(X, y + 1, (74, 36, 40) if X not in (x0, x1) else HOLLOW)
+            if deep: z.p(X, y - 1, HOLLOW)
+            if H(X, y, 9) < .3: z.p(X, y - (2 if deep else 1), PALE[2])
+        z.p(x0 - 1, y, PALE[1]); z.p(x1 + 1, y + 1, PALE[2])
+    def hand(hx, hy, glove):
+        """swollen grey-white and puffy; with glove, the skin slipped off and hanging from the wrist, dark where it came away"""
+        for (dx, dy, k) in ((0, 0, 3), (1, 0, 3), (2, 0, 2), (0, 1, 2), (1, 1, 2), (2, 1, 1), (0, 2, 1), (1, 2, 1), (2, 2, 0), (-1, 1, 2)):
+            z.p(hx + dx, hy + dy, PALE[k])
+        if glove:
+            z.p(hx + 1, hy, (74, 36, 40)); z.p(hx + 2, hy, (58, 26, 30)); z.p(hx + 2, hy + 1, (74, 36, 40))   # where the skin came away
+            for (dx, dy, c_) in ((0, 3, PALE[2]), (1, 3, PALE[1]), (0, 4, (70, 72, 70)), (1, 4, PALE[2]), (2, 4, PALE[0]), (0, 5, PALE[1]), (1, 5, (70, 72, 70)), (1, 6, PALE[1])):   # the loose glove, grey, wrinkled, hanging
+                z.p(hx + dx, hy + dy, c_)
+    # the dark-haired man (left)
+    bite(23, 27, 50)
+    split(25.6, 53, 62, 61)
+    hand(31, 60, False)
+    # the grey-headed man (right): his head swollen grey-white as well
     for Y in range(45, 53):
         for X in range(111, 119):
             q = z.get(X, Y)
             if q[3] > 200 and abs(q[0] - q[1]) < 14 and q[0] > 110: l = q[0]; z.p(X, Y, PALE[3] if l > 190 else PALE[2] if l > 150 else PALE[1])
-    for (x, y, c_) in ((114, 57, PALE[3]), (115, 57, PALE[2]), (116, 58, PALE[2]), (114, 58, PALE[2]), (115, 58, MEATW[1]), (115, 59, MEATW[0]), (116, 59, MEATW[1]),
-                       (114, 59, PALE[1]), (117, 59, PALE[1]), (115, 60, PALE[2]), (116, 60, PALE[1]), (113, 58, (20, 18, 22)), (117, 58, (20, 18, 22)), (116, 61, (20, 18, 22))):
-        z.p(x, y, c_)   # the coat split, ragged, over pale swollen flesh
-    strips(115, 57, ((7, 2, .55), (12, 1, .38), (4, 1, .9)), 41)
-    # the dark-haired man (left): the back of his neck torn with pale lips; his forearm opened, and from it ragged strips drifting up
-    hole(25, 50, 2)
-    for (x, y, c_) in ((30, 56, PALE[2]), (31, 56, PALE[3]), (30, 57, MEATW[1]), (31, 57, MEATW[0]), (30, 58, MEATW[0]), (31, 58, MEATW[1]), (32, 58, PALE[2]),
-                       (30, 59, PALE[1]), (31, 59, PALE[2]), (29, 57, PALE[1]), (32, 56, PALE[1])):
-        z.p(x, y, c_)   # the forearm opened, the lips pale
-    strips(31, 56, ((10, 2, .5), (6, 1, .75), (13, 1, .42)), 43)
-    for Y in range(34, 70):   # the gut's own blood coat washes out too (crimson on a black coat vanished in grey)
-        for X in list(range(14, 40)) + list(range(104, 128)):
-            q = z.get(X, Y)
-            if q[:3] in XB: z.p(X, Y, (118, 96, 100) if q[:3] in XB[2:] else (88, 84, 88))
-    # the hands: swollen grey-white, the skin coming off like a glove
-    for (hx, hy) in ((31, 61), (122, 63)):
-        for (dx, dy, k) in ((0, 0, 3), (1, 0, 2), (2, 0, 2), (0, 1, 2), (1, 1, 1), (2, 1, 1), (0, 2, 1), (1, 2, 0)):
-            z.p(hx + dx, hy + dy, PALE[k])
-        z.p(hx, hy + 3, PALE[3]); z.p(hx + 1, hy + 3, PALE[2]); z.p(hx, hy + 4, PALE[2])
+    bite(113, 117, 52)
+    split(115.6, 55, 64, 67)
+    hand(121, 62, True)
     z.overlay('g6_drowned_ov')
     return z
 

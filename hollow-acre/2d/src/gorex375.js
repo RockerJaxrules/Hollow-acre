@@ -110,7 +110,7 @@ function gx2TrailSeg(I,a,p){if(!I.tc)return;const g=I.tc.getContext('2d'),o=x=>M
   // (round 3) wide and splashed where it was first dragged, tapering as it slid, broken into patches where it skipped
   for(let k=0;k<n;k++){const f=k/n,X=Math.round(X0+(X1-X0)*f),Y=Math.round(Y0+(Y1-Y0)*f),L=(I.len=(I.len||0)+1),hh=gxH('tr'+(X>>2)+'_'+(Y>>3));
     const w=Math.max(1,Math.round((L<36?4.6-L/18:2.6)+Math.sin(L*.045)*.9+Math.sin(L*.13)*.4)),e1=gxH('e'+(L>>3))<.35,e2=gxH('f'+(L>>3))<.35;   // ragged edges, in runs
-    g.fillStyle='#2a0306';g.fillRect(X,Y-w-(e1?1:0),1,w*2+1+(e1?1:0)+(e2?1:0));for(let r=-w+1;r<w;r++){const h=gxH('ln'+((L>>3)*7+r*31))*10|0;g.fillStyle=h<3?'#3a0408':h>7?'#7a1418':'#5e0c14';g.fillRect(X,Y+r,1,1);}}}
+    g.fillStyle='#160204';g.fillRect(X,Y-w-(e1?1:0),1,w*2+1+(e1?1:0)+(e2?1:0));for(let r=-w+1;r<w;r++){const h=gxH('ln'+((L>>3)*7+r*31))*10|0;g.fillStyle=h<4?'#220306':h>7?'#4c0a10':'#320408';g.fillRect(X,Y+r,1,1);}}}   // (round 5) dark: at night blood on the road is near black; only the headlights find its red
 function gx2Hood(){if(GX2.hood)return GX2.hood;const cv=document.createElement('canvas');cv.width=78;cv.height=60;const g=cv.getContext('2d');
   // drawn in the car's own frame pixels (it faces right: the hood, its lit front edge at x 168, the grey bumper x 169-172), then the
   // canvas is that frame from (100,56): the front stove in where it hit, the blood thrown from that point (critic r1: streaks along
@@ -119,7 +119,6 @@ function gx2Hood(){if(GX2.hood)return GX2.hood;const cv=document.createElement('
   for(let y=84;y<=97;y++){const k=Math.round(2.2*Math.sin((y-84)/13*Math.PI));if(!k)continue;P(169-k,y,k,1,'#9a9aa2');P(173-k,y,k,1,'#0e0a0c');P(168-k,y,1,1,'#4e1a1c');}   // the bumper bent in
   for(const [x0,y0] of [[166,80],[166,92]]){for(let i=0;i<6;i++){P(x0-i,y0+i,1,1,'#4e1a1c');P(x0-i-1,y0+i,1,1,'#b0504a');}}   // folds in the metal behind it
   for(let y=-5;y<=5;y++)for(let x=-5;x<=3;x++){const d=(x/5)**2+(y/5.5)**2+.2*Math.sin(Math.atan2(y,x)*3+.5);if(d<1)P(167+x,99+y,1,1,d>.7?'#2a0306':(x+y<-3?'#7a1418':'#4c0a10'));}   // where it hit: the grille, between the lamps
-  for(const [x,y0,L] of [[169,86,8],[171,88,6]]){for(let i=0;i<L;i++)P(x,y0+i,1,1,i%3?'#7a1418':'#a02a24');}P(170,86,1,1,'#4c0a10');   // blood run down the lamp glass, the light still showing between
   for(const [x,L,w] of [[165,7,2],[168,11,2],[170,5,1]]){for(let i=0;i<L;i++)P(x,104+i,w,1,i<L-1?'#4c0a10':'#2a0306');P(x,104+L,w+1,1,'#3a0408');}   // down the bumper in runs of different lengths, a bead at each foot
   for(const [x,y,w,h] of [[158,83,3,2],[159,85,2,1],[153,88,2,2],[148,84,2,1],[155,94,2,2],[150,97,1,2]]){P(x,y,w,h,'#4c0a10');P(x,y,1,1,'#7a1418');}   // thrown back over the hood from that point, gathered
   P(164,96,2,1,'#8a6a44');P(165,97,1,1,'#6a4a30');P(164,101,2,1,'#c05a58');P(164,101,1,1,'#e0a090');   // fur and meat in the dent
