@@ -10,3 +10,8 @@ My own sprites that passed the blind critique (7/10+), each with a note on why i
 - `cow_kill_stand.png`, `cow_kill_lie.png` (the cow in the butchering kill, 6/10 vs 3/10, Nov 22): a height field for the volume, then four
   hide tones as clusters with wandering borders and fur tips, a dark-brown outline and a lit top-left edge; standing three-quarter
   (straight back, hips, udder, knees), lying as one barrel with a short neck and the head in profile. Drawn in `kill373/cow_stand.py`, `cow_lie.py` (kit `pxk.py`).
+
+- `crow_frames.png` (the ambient crow, 6/10 vs 1/10 and 6/10 vs 1.5/10 with the slots swapped, Nov 22; frames 1-6: stand, peck, hop,
+  wings up, wings down, landing flare; top row facing right, bottom row mirrored): a near-black bird kept readable by a grey horn
+  beak with a lit ridge, a 1 px pale eye, legs with toes, a 2-row tail wedge past the wing tips and a cool blue sheen in clusters on
+  the crown and shoulder over a plum-indigo ramp. Drawn in `crow/frames.py` (`mkjs.py` writes `src/crowart.js`).

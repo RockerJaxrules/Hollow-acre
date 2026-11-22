@@ -1876,3 +1876,17 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A slit's rim stays dark and uneven (no pale lips), or it reads as a gill or lips. A miss is a slanted glancing tear on the neck with the feathers parted round it, not a dot.
 - Uneven feathers: four even points read as a white glove.
 - The owner's standing rules win over a critic: no arms, and the original hands are never redrawn. When a critic asks for either, use the original fist in a pose that reads, and say why.
+
+## Birds: the ambient crow (Nov 22: 1 -> 6 in round 1, 6 in round 2 with the slots swapped)
+- [open after round 2] A down-stroke wing tucked under the belly reads as a lump or a cape at 1x. It must hang well clear of the body (a gap of background between), spread down and back, with its leading edge lit. Hanging straight down under the belly was still "one dark mass".
+- Wing fingers: equal 1 px points at even spacing read as a comb or a crown (the "four even points read as a white glove" rule again). Make the outer primary the longest, step the others shorter, keep the gaps uneven, and prefer 2 px tips to lone 1 px spikes.
+- A black bird needs a real ladder inside the black: violet-black outline, then plum shade, indigo body, blue-indigo lit and a cool blue sheen. With the middle steps only 10-12 lum apart (#2c2842, #3e3f60), the judge saw one flat dark tone where wing, breast and tail merged. Spread to about 47 / 76 / 123 lum, they separate in grey.
+- Sheen goes in one shaped cluster per surface (the crown, the shoulder). Two or three parallel strokes along the folded wing read as stripes or banding.
+- An inner line where the wing tips lie over the tail (a dark diagonal from the tip down and back) separates the folded wing from the tail. Without it the rear is one wedge.
+- What made it read at 1x: a grey horn beak with a lit 2 px ridge (3 rows at the base, a 1 px tip), a 1 px pale eye as the one key accent, 3 px legs with toes forward, head held up over a short neck, and a 2-row tail wedge past the wing tips. The old 10x7 block with an eye pixel cold-read as beetles or tiles.
+- Size beside the neighbours: about 18x15 standing, next to the 16x16 hen and the 13x11 robin. The judge called it slightly heavy against the hen but never misread it.
+- A hop needs a pose change (legs folded up under the belly, ideally a wing flick). The standing frame lifted 3 px reads as sliding up.
+- Flight is banded if the horizontal body is shaded in three rows (3 over 2 over 1); validate flags banding_rows. Let the light wander as a patch under the wing root.
+- [open] The LPC drop shadow (#322125 at 60%, fading with height) almost disappears on the dark graveyard grass. A flying crow's shadow needs to be darker and crisper to show its height.
+- Mirroring for the left facing moves the light to the top right (judge NOTE). It was kept because the owner asked for a flip, but a drawn left facing would keep the light on the left.
+- Code: every frame drawn once onto a canvas per facing (no per-frame allocation) made the new crow cheaper than the old fillRect brick (about 5.0 vs 6.5 microseconds a call, in game).
