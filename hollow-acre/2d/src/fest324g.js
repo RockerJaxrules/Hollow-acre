@@ -81,7 +81,11 @@ S4.f2toss=(sp,K)=>{const g=K.g,N=5;const st={ring:0,phase:'aim',ax:160,aw:0,pw:0
       if(st.phase==='aim'||st.phase==='power'){const x=st.ax,ty=st.phase==='power'?112-st.pw*48:96;for(let k=0;k<1;k+=.06){const xx=160+(x-160)*k,yy=166+(ty-166)*k-Math.sin(k*Math.PI)*30;if(((k*16)|0)%2===0)K.px(xx,yy,2,2,'#ffd27a');}K.px(x-3,ty,7,1,'#ffd27a');K.px(x,ty-3,1,7,'#ffd27a');}
       if(st.fly){const f=st.fly,u=f.u,x=f.x0+(f.x1-f.x0)*u,y=f.y0+(f.y1-f.y0)*u-Math.sin(u*Math.PI)*(40+(112-f.y1)*.6),s=1.6-u*(1.6-(f.y1<80?.55:f.y1<95?.75:.95));ringAt(x,y,s,RC,.7+Math.sin(t*20)*.3);}
       else if(st.ring<N){ringAt(157,163,1.4,RC);}   // in the fist: the fingers close over its near rim
-      m4grip(K,152,160,0,{side:1,arm:1.35});if(st.msg)K.textO(st.msg.t,st.msg.x,Math.round(st.msg.y-st.msg.u*10),st.msg.c,2);},
+      // (t300) the throw: while you set the power the fist draws back and down a little; on release it pushes forward (up the picture) and
+      // opens, then comes back and closes on the next ring
+      {const pw=st.phase==='power'?st.pw:0,fu=st.fly?st.fly.u:1,push=st.fly?(fu<.25?Math.sin(fu/.25*Math.PI/2):1-(fu-.25)/.75):0,hx=152+(st.fly?(st.fly.x1-160)*.08*push:0),hy=160+pw*4-push*14;
+        if(st.fly&&fu<.8)m4palm(K,hx,hy,false,{});else m4grip(K,hx,hy,0,{side:1});}
+      if(st.msg)K.textO(st.msg.t,st.msg.x,Math.round(st.msg.y-st.msg.u*10),st.msg.c,2);},
     hud(){K.label('POWER',296,14,'#f4ecd8');K.gauge(292,24,8,90,.66,1,st.phase==='power'?st.pw:0);K.label(`RINGS ${N-st.ring}`,40,150,'#f4ecd8','l');K.label(`PEGS ${st.pts}`,40,160,'#ffd27a','l');K.meter(st.ring/N,st.pts/Math.max(1,st.ring*2));},
     auto(dt,AP){const a=m4ai(this,AP,dt);const R=F2PEG[1],tx=R.xs[(st.ring+1)%5];
       if(st.phase==='aim'){a.down=Math.abs(st.ax-tx)<4;a.fresh=a.down;}else if(st.phase==='power'){a.down=!(st.pw>.48&&st.pw<.56&&st.pdir>0);}else a.down=false;
@@ -140,13 +144,16 @@ S4.f2bell=(sp,K)=>{const g=K.g,N=3;const st={sw:0,ph:0,swing:null,puck:null,best
 S4.f2crows=(sp,K)=>{const g=K.g,TIME=24;const st={t:0,end:0,cx:160,cy:90,shots:[],tg:[],pts:0,hits:0,girl:0,spawn:0,shotsLeft:16,look:0,gT:2.5};
   const RAILS=[{y:62,d:1,sp:40},{y:96,d:-1,sp:50},{y:130,d:1,sp:60}];
   // a tin crow cut-out, side on: drawn from a pixel pattern so it reads as a bird at any size; dark edge, lit top, a red-painted eye
-  const CROW2=['..#...###...#.....','..##.#hhh####.....','...##hmmmme##.....','....#mmmmmmbbb#...','...#mmmmmmm###....','..#hmmmmmmmm#.....','.#hmmmmmmmmmm#....','#hmmmmmmmmmmmm#...','#mmmmmmmmmmmmm#...','.#dmmmmmmmmmd#....','..##ddmmmmdd#.....','....##dddd##......','.....#.#.#........','.....#.#.#........'];
-  const CROW=['......###.........','.....#hhh##.......','....#hmmmme##.....','....#mmmmmmbbb#...','...#mmmmmmm###....','..#hmmmmmmmm#.....',
-    '.#hmmmmmmmmmm#....','#hmmmmmmmmmmmm#...','#mmmmmmmmmmmmm#...','.#dmmmmmmmmmd#....','..##ddmmmmdd#.....','....##dddd##......','.....#.#.#........','.....#.#.#........'];
+  // (t300) side on: the head up front with a heavy beak, the back sloping down into a long tail, the folded wing, the legs on the peg
+  // (the old round body with two points on top read as a horned blob or a bat). Pose 2 dips its head to peck
+  const CROW=['..............###.....','.............#hhh#....','............#hhmem#...','............#mmmmm#bbb','...........#hmmmmm#bb.',
+    '..........#hmmmmmm#...','.......###hmmmmmmmm#..','....###hhmmwwwwmmmm#..','#####hmmmwwwwwwmmmd#..','#hhmmmmwwwwwwwmmdd#...','.####ddddwwwwmddd#....','.....####dddddd##.....','..........#..#........','..........#..#........'];
+  const CROW2=['......................','..............###.....','............##hhh#....','.......###.#hhmmem#...','....###hh##hmmmmm#bbb.',
+    '#####hmmmmhmmmmmm#bb..','#hhmmmmwwwhmmmmm#.....','.####mwwwwwwmmmm#.....','.....#dwwwwwwmmd#.....','......#ddwwwmmdd#.....','.......##dddddd#......','.........######.......','..........#..#........','..........#..#........'];
   const crow=(x,y,gold,down,flip,pose)=>{const PAT=pose?CROW2:CROW;const C=gold?F2C.gold:['#121014','#1e1c22','#2c2a32','#3e3c46','#5e5c68','#8a8896','#ffffff'];const H=CROW.length,W=CROW[0].length;
     if(down){K.px(x-8,y-3,16,3,C[1]);K.px(x-8,y-3,16,1,C[3]);K.px(x-1,y,2,4,'#3a2a1a');return;}
-    for(let j=0;j<H;j++)for(let i=0;i<W;i++){const ch=PAT[j][i];if(ch==='.')continue;const xx=flip?x+8-i:x-9+i,yy=y-H+j;
-      K.px(xx,yy,1,1,ch==='#'?'#141418':ch==='h'?C[5]:ch==='m'?C[3]:ch==='d'?C[2]:ch==='b'?(gold?'#8a5a10':'#c88a2a'):ch==='e'?'#c8302a':C[3]);}
+    for(let j=0;j<H;j++)for(let i=0;i<W;i++){const ch=PAT[j][i];if(ch==='.')continue;const xx=flip?x+10-i:x-11+i,yy=y-H+j;
+      K.px(xx,yy,1,1,ch==='#'?'#141418':ch==='h'?C[5]:ch==='m'?C[3]:ch==='w'?C[2]:ch==='d'?C[1]:ch==='b'?(gold?'#8a5a10':'#c88a2a'):ch==='e'?'#c8302a':C[3]);}
     K.px(x-1,y,2,4,'#3a2a1a');};
   const GIRL=['...rr.rr...','....rrr....','..hhhhhhh..','.hhffffffh.','.hfeffeffh.','.hfffffffh.','..hffmffh..','...ffff....','....dd.....','.a.dddd.a..','.a.dddd.a..','..ddddddd..','..ddddddd..','.ddddddddd.','ddddddddddd','...l...l...','...l...l...'];
   const girl=(x,y,down,look)=>{if(down){K.px(x-6,y-3,12,3,'#d8d4cc');K.px(x-1,y,2,4,'#3a2a1a');return;}const H=GIRL.length;
@@ -176,12 +183,29 @@ S4.f2crows=(sp,K)=>{const g=K.g,TIME=24;const st={t:0,end:0,cx:160,cy:90,shots:[
       for(let x=0;x<320;x+=16){K.px(x,22,8,10,F2C.red[3]);K.px(x+8,22,8,10,F2C.cream[4]);K.px(x,31,16,2,'#1a0e08');}for(let x=4;x<320;x+=16)K.px(x,32,8,3,F2C.red[2]);
       for(const R of RAILS){K.px(0,R.y+4,320,3,'#5a4632');K.px(0,R.y+4,320,1,'#a08460');K.px(0,R.y+7,320,1,'#2a1c12');for(let x=20;x<320;x+=60){K.px(x,R.y+7,3,6,'#3a2a1a');K.px(x,R.y+7,1,6,'#6a5034');}
         for(let x=((st.t*R.sp*R.d)%12+12)%12;x<320;x+=12)K.px(x,R.y+5,2,1,'#3a2a1a');}
-      for(const q of st.tg){const R=RAILS[q.r];if(q.kind==='girl')girl(Math.round(q.x),R.y+4,q.down>0,st.look>0?(q.x<st.cx?1:-1):0);else crow(Math.round(q.x),R.y+4,q.kind==='gold',q.down>0,(RAILS[q.r].d<0)!==!!q.flip,q.pose);}
+      // (t300) a hit crow tips back on its peg over a few frames with a tin spark, then lies flat
+      for(const q of st.tg){const R=RAILS[q.r];if(q.kind==='girl'){girl(Math.round(q.x),R.y+4,q.down>0,st.look>0?(q.x<st.cx?1:-1):0);continue;}
+        const fl=(RAILS[q.r].d<0)!==!!q.flip,x=Math.round(q.x),y=R.y+4;
+        if(q.down>0&&q.down<.18){const u=q.down/.18;g.save();g.translate(x,y);g.rotate((fl?1:-1)*u*1.45);g.translate(-x,-y);crow(x,y,q.kind==='gold',false,fl,q.pose);g.restore();
+          if(u<.6){const sx=x,sy=y-9;K.px(sx-4,sy,9,1,'#ffffff');K.px(sx,sy-4,1,9,'#ffffff');K.px(sx-2,sy-2,1,1,'#fff4c0');K.px(sx+2,sy+2,1,1,'#fff4c0');K.glow(sx,sy,10,'255,250,220',.6*(1-u));}}
+        else crow(x,y,q.kind==='gold',q.down>0,fl,q.pose);}
       if(st.look>0){K.pa(0,0,320,180,'#2a0008',Math.min(.35,st.look*.2));}
       K.plank(0,146,320,10,CA_P.wood,7);K.px(0,156,320,24,'#3a2414');
       // the slingshot and the stones in flight
-      K.px(156,156,3,20,CA_P.wood[4]);K.line(150,152,157,162,CA_P.wood[5],2);K.line(166,152,158,162,CA_P.wood[5],2);m4grip(K,157,167,Math.PI/2,{side:1,arm:1.35});
-      for(const s of st.shots){if(s.done)continue;const x=s.x0+(s.x1-s.x0)*s.u,y=s.y0+(s.y1-s.y0)*s.u-Math.sin(s.u*Math.PI)*6;K.px(x-1,y-1,3,3,'#8a8070');}
+      // (t300) the slingshot leans toward the sight; its two rubber bands run back to the leather pouch, drawn back toward you with a stone
+      // in it while you aim; on a shot the pouch snaps forward through the fork, flaps, and is drawn back again. The stone in flight
+      // shrinks as it goes away
+      {const la=M4.cl(Math.atan2(st.cx-158,166-st.cy),-.75,.75),last=st.shots.length?st.shots[st.shots.length-1]:null,su=last?last.u/7*7:9,snap=last?Math.min(1,last.u/1.75):1;
+        const pull=last&&last.u<1.75?(snap<.25?7*(1-snap/.25):snap<.6?-2*Math.sin((snap-.25)/.35*Math.PI):0)+(snap>=.6?7*((snap-.6)/.4):0):7;
+        const P=(lx,ly)=>M4.tr(158,166,la,lx,ly),[t1x,t1y]=P(-8,-14),[t2x,t2y]=P(8,-14),[px_,py_]=P(0,-14+pull+4),W_=CA_P.wood;
+        K.line(t1x,t1y,px_-2,py_,'#3a2a20',1);K.line(t2x,t2y,px_+2,py_,'#3a2a20',1);
+        {const [a0,b0]=P(0,-2),[a1,b1]=P(0,14);K.line(a0,b0,a1,b1,'#1a0e06',5);K.line(a0,b0,a1,b1,W_[4],3);K.line(a0-1,b0,a1-1,b1,W_[6],1);}
+        for(const sd of [-1,1]){const [a0,b0]=P(0,-2),[a1,b1]=P(sd*8,-14);K.line(a0,b0,a1,b1,'#1a0e06',4);K.line(a0,b0,a1,b1,W_[5],2);}
+        K.px(px_-3,py_-1,6,3,'#4a2a18');K.px(px_-3,py_-1,6,1,'#7a4a2a');if(st.shotsLeft>0&&pull>3){K.px(px_-1,py_-2,3,2,'#8a8070');K.px(px_-1,py_-2,1,1,'#c8c0b0');}
+        {const [gx,gy]=P(0,6);m4grip(K,gx,gy,la+Math.PI/2,{side:1});}}
+      for(const s of st.shots){if(s.done)continue;const at=u=>[s.x0+(s.x1-s.x0)*u,s.y0+(s.y1-s.y0)*u-Math.sin(u*Math.PI)*6],z=s.u<.4?4:s.u<.75?3:2;
+        for(let k=3;k>=1;k--){const [tx,ty]=at(Math.max(0,s.u-k*.05));g.globalAlpha=.25*(4-k)/3;K.px(tx-1,ty-1,z-1,z-1,'#c8c0b0');g.globalAlpha=1;}
+        const [x,y]=at(s.u);K.px(x-z/2-.5,y-z/2-.5,z+1,z+1,'#2a2420');K.px(x-z/2,y-z/2,z,z,'#8a8070');K.px(x-z/2,y-z/2,Math.max(1,z-2),1,'#e0d8c8');}   /* (t300) a 3-4 px stone with a short trail, shrinking as it goes */
       const X=Math.round(st.cx),Y=Math.round(st.cy);K.px(X-7,Y,5,1,'#ffd27a');K.px(X+3,Y,5,1,'#ffd27a');K.px(X,Y-7,1,5,'#ffd27a');K.px(X,Y+3,1,5,'#ffd27a');K.px(X,Y,1,1,'#fff4c0');},
     hud(){K.label(`STONES ${st.shotsLeft}`,40,8,'#f4ecd8','l');K.label(`POINTS ${st.pts}`,130,8,'#ffd27a','l');K.label(`${Math.max(0,Math.ceil(TIME-st.t))}`,290,8,'#f4ecd8','r');K.meter(Math.min(1,st.t/TIME),st.hits/Math.max(1,16-st.shotsLeft));},
     auto(dt,AP){const a=m4ai(this,AP,dt);const q=st.tg.find(q=>!q.down&&q.kind!=='girl'&&q.x>60&&q.x<260);if(q){const R=RAILS[q.r];a.x+=(q.x+RAILS[q.r].d*q.sp*.14-a.x)*Math.min(1,dt*10);a.y+=(R.y-8-a.y)*Math.min(1,dt*10);}
@@ -203,7 +227,7 @@ S4.f2bob=(sp,K)=>{const g=K.g,TIME=22,CX=160,CY=96,R=70;const st={t:0,end:0,mx:C
       if(st.under){st.uT+=dt;const T=st.target;if(T&&!st.held){if(Math.hypot(T.x-st.mx,T.y-st.my)>12)st.target=null;else if(st.uT>=.4){st.held=T;A.tone(240,.08,'sine',.1);MS.crunch();}}
         st.breath-=dt*.32;if(st.held){st.held.x=st.mx;st.held.y=st.my;}if(st.breath<=0){st.breath=0;st.under=0;st.cough=1.4;st.held=null;A.tone(200,.3,'sawtooth',.04,{slide:120});K.judge(.1,st.mx,st.my-30,true);}
         if(!I.down){st.under=0;st.cool=.5;MS.plop();st.splash.push({x:st.mx,y:st.my,t:0});if(!st.held&&st.target){K.textO('TOO QUICK',st.mx,st.my-26,'#e8c070',1);st.target=null;}
-          if(st.held){const a=st.held;st.held=null;st.apples.splice(st.apples.indexOf(a),1);
+          if(st.held){const a=st.held;st.held=null;st.apples.splice(st.apples.indexOf(a),1);st.lifted={a,x:st.mx,y:st.my,t:0};
             if(a.c==='k'){st.got=Math.max(0,st.got-1);K.flash=.4;A.tone(110,.6,'sawtooth',.05,{slide:60,filter:['lowpass',500]});K.textO('IT TASTES OF PENNIES',160,40,'#e8542a',1);}
             else{st.got++;K.judge(a.c==='g'?1:.8,160,24);MS.crunch();K.emit(st.mx,st.my,10,{c:['#cfe8f8','#ffffff'],v:60,g:100,life:.5});}
             if(st.apples.filter(q=>q.c!=='k').length<3)for(let i=0;i<3;i++)st.apples.push({x:CX+(Math.random()-.5)*80,y:CY+(Math.random()-.5)*50,vx:(Math.random()-.5)*14,vy:(Math.random()-.5)*10,c:Math.random()<.3?'g':'r',bob:Math.random()*6});}}}
@@ -219,9 +243,21 @@ S4.f2bob=(sp,K)=>{const g=K.g,TIME=22,CX=160,CY=96,R=70;const st={t:0,end:0,mx:C
         for(const rr of [R+5,R+13])for(let a=0;a<6.283;a+=.01){k.px(CX+Math.cos(a)*rr,CY+Math.sin(a)*rr*.72,1,1,CA_P.iron[Math.cos(a+2.3)>0?4:2]);}
         k.ell(CX,CY,R,R*.72,'#24384a');k.ell(CX-6,CY-5,R-12,(R-12)*.72,'#2c4458');
         for(let x=-34;x<20;x++)k.px(CX+x,CY-R*.5+Math.round(Math.sin(x*.12)*1.5),1,1,'#7a9ab0');},false),0,0);
-      for(const s of st.splash){for(let a=0;a<6.28;a+=.4){const r=6+s.t*40;K.pa(s.x+Math.cos(a)*r,s.y+Math.sin(a)*r*.6,2,1,'#cfe8f8',1-s.t/.8);}}
+      // (t300) a splash is a ring spreading on the water and a few drops thrown up and falling back (not a ring of single pixels)
+      for(const s of st.splash){const r=6+s.t*34;g.globalAlpha=Math.max(0,.8*(1-s.t/.8));g.strokeStyle='#cfe8f8';g.lineWidth=1;g.beginPath();g.ellipse(s.x,s.y,r,r*.6,0,0,6.29);g.stroke();g.globalAlpha=1;
+        if(s.t<.4)for(let k=0;k<5;k++){const an=-Math.PI/2+(k-2)*.5,v=s.t/.4,dx=Math.cos(an)*v*14,dy=Math.sin(an)*v*14+v*v*18;K.px(s.x+dx,s.y+dy,2,2,'#e8f4fc');K.px(s.x+dx,s.y+dy+1,2,1,'#7aa8c8');}}
+      // the apple you came up with: lifted out of the tub in your teeth toward you, dripping, then gone
+      if(st.lifted&&(st.lifted.t+=1/60)<.55){const L=st.lifted,u=L.t/.55,ax=Math.round(L.x),ay=Math.round(L.y-u*26),r=Math.round(7+u*3),a=L.a,P=a.c==='g'?['#2a4a14','#3e6a1c','#5a8a2a','#7aaa3a','#a8cc5a']:a.c==='k'?['#060404','#120a0a','#1e1214','#2a1a1c','#3a2628']:['#4a0c08','#7a1810','#a82a1a','#d0482a','#ec7a4a'];
+        g.globalAlpha=u>.75?1-(u-.75)/.25:1;K.ball(ax,ay,r,P,r-1);K.px(ax,ay-r,1,3,'#3a2414');for(let k=0;k<3;k++){const dy=((L.t*90+k*9)%26);K.px(ax-3+k*3,ay+r+dy,1,2,'#cfe8f8');}g.globalAlpha=1;}
       for(const a of st.apples){if(a===st.held&&st.under)continue;const by=Math.round(Math.sin(a.bob)*1.2);const P=a.c==='g'?['#2a4a14','#3e6a1c','#5a8a2a','#7aaa3a','#a8cc5a']:a.c==='k'?['#060404','#120a0a','#1e1214','#2a1a1c','#3a2628']:['#4a0c08','#7a1810','#a82a1a','#d0482a','#ec7a4a'];
-        K.ball(Math.round(a.x),Math.round(a.y)+by,7,P,6);K.px(Math.round(a.x),Math.round(a.y)-7+by,1,3,'#3a2414');K.px(Math.round(a.x)+1,Math.round(a.y)-6+by,3,1,'#4a7a2a');}
+        const ax=Math.round(a.x),ay=Math.round(a.y)+by;K.ball(ax,ay,7,P,6);K.px(ax,ay-7,1,3,'#3a2414');K.px(ax+1,ay-6,3,1,'#4a7a2a');
+        /* (t300) it floats IN the water: its lower part under the surface, seen dim through it, a bright waterline round it and a ring
+           spreading as it bobs (it used to sit on top like a sticker) */
+        const wl=ay+2;for(let y=wl;y<=ay+7;y++){const w=Math.round(Math.sqrt(Math.max(0,49-(y-ay)**2)));if(w>0)K.pa(ax-w,y,w*2,1,'#1e3a4a',.62);}
+        g.globalAlpha=.7;g.strokeStyle='#cfe4ee';g.lineWidth=1;g.beginPath();g.ellipse(ax,wl,8,2,0,0,Math.PI);g.stroke();
+        const rr=((t*.8+a.bob)%1);g.globalAlpha=.4*(1-rr);g.beginPath();g.ellipse(ax,wl,9+rr*9,2.5+rr*2.5,0,0,6.29);g.stroke();g.globalAlpha=1;}
+      // (t300) no hand in this one (it's your face): the face's shadow shows where you are, so the demo's pointer stays away
+      if(typeof M4G!=='undefined')(M4G.fr||(M4G.fr=[])).push([st.mx,st.my]);
       // your face: the shadow on the water, then you going under
       const X=Math.round(st.mx),Y=Math.round(st.my);if(!st.under){g.globalAlpha=.3;K.ell(X+2,Y+2,9,7,'#06101a');g.globalAlpha=1;const r=10+Math.sin(t*4)*1.5;for(let a=0;a<6.28;a+=.25)K.pa(X+Math.cos(a)*r,Y+Math.sin(a)*r*.7,1,1,'#9ab8cc',.7);}
       else{K.pa(0,0,320,180,'#103048',.25);for(let k=0;k<6;k++){const u=(t*1.2+k*.17)%1;K.pa(X-6+k*2,Y-u*30,2,2,'#cfe8f8',1-u);}}
@@ -244,7 +280,7 @@ S4.f2carve=(sp,K)=>{const g=K.g,TIME=28,CX=160,CY=94,RX=66,RY=42,CS=2,   /* (t36
     for(let y=0;y<14;y++)k.px(RX+1+Math.round(Math.sin(y*.4)*1.5),y,6,1,y<2?'#6a8a3a':['#2e3a14','#3e4a1c','#4e5a24'][y%3]);},false);
   const carveAt=(x,y)=>{let n=0;const r=2.6;for(let j=Math.floor((y-CY+RY-r)/CS);j<=Math.ceil((y-CY+RY+r)/CS);j++)for(let i=Math.floor((x-CX+RX-r)/CS);i<=Math.ceil((x-CX+RX+r)/CS);i++){
       if(i<0||j<0||i>=GW||j>=GH||!inFace(i,j))continue;const cx=CX-RX+i*CS+CS/2,cy=CY-RY+j*CS+CS/2;if(Math.hypot(cx-x,cy-y)>r)continue;if(!cut[j*GW+i]){cut[j*GW+i]=1;n++;}}
-    if(n){st.carved+=n;if(Math.random()<.4)st.chips.push({x,y,vx:(Math.random()-.5)*60,vy:-40-Math.random()*40,t:0});if(Math.random()<.25)A.hiss(.05,.08,'bandpass',1800,{q:1.5});}};
+    if(n){st.carved+=n;if(Math.random()<.22)st.chips.push({x,y,vx:(Math.random()-.5)*60,vy:-40-Math.random()*40,t:0});if(Math.random()<.25)A.hiss(.05,.08,'bandpass',1800,{q:1.5});}};
   // the judging: two eyes up top, a wide mouth below, teeth in it, the face even side to side, not hacked to bits
   const judge=()=>{const comps=[];const seen=new Uint8Array(GW*GH);
     for(let j=0;j<GH;j++)for(let i=0;i<GW;i++){if(!cut[j*GW+i]||seen[j*GW+i])continue;const q=[[i,j]];seen[j*GW+i]=1;let n=0,x0=i,x1=i,y0=j,y1=j,sy=0;
@@ -270,8 +306,10 @@ S4.f2carve=(sp,K)=>{const g=K.g,TIME=28,CX=160,CY=94,RX=66,RY=42,CS=2,   /* (t36
       for(let j=0;j<GH;j++)for(let i=0;i<GW;i++){if(!cut[j*GW+i])continue;const x=CX-RX+i*CS,y=CY-RY+j*CS;const edge=(j>0&&!cut[(j-1)*GW+i]);
         K.px(x,y,CS,CS,edge?'#f8c878':fl>.85?'#ffe8a0':'#ffd27a');if(edge)K.px(x,y,CS,1,'#c86818');}
       if(st.carved>20)K.glow(CX,CY,RX,'255,200,100',Math.min(.3,st.carved/2000)*fl);
-      for(const c of st.chips)K.px(c.x,c.y,2,2,'#f0a050');
-      if(!st.end){const x=st.lx!=null?st.lx:this._ix||160,y=st.ly!=null?st.ly:this._iy||90;K.line(x,y,x+8,y+10,'#a8acb4',2);K.line(x,y-1,x+8,y+9,'#e8ecf4',1);K.line(x+8,y+10,x+14,y+18,CA_P.wood[3],4);K.line(x+8,y+9,x+14,y+17,CA_P.wood[5],1);m4grip(K,x+12,y+16,.93,{side:-1});}},   // (t364) the knife's handle toward you, your hand below its point
+      for(const c of st.chips){const x=Math.round(c.x),y=Math.round(c.y);K.px(x-1,y-1,4,3,'#7a3410');K.px(x,y-1,3,2,'#e8a050');K.px(x,y-1,2,1,'#f8d080');K.px(x+2,y+1,1,1,'#c85a1a');}   /* (t300) chunks of flesh with their rind edge, not speckle */
+      if(!st.end){const x=st.lx!=null?st.lx:this._ix||160,y=st.ly!=null?st.ly:this._iy||90;/* (t300) a carving knife you can read: a dark-edged steel blade with a lit spine and a point, a bolster, an outlined wooden handle */
+        K.line(x+1,y+1,x+9,y+11,'#1a1c22',4);K.line(x,y,x+9,y+11,'#8a8e98',2);K.line(x,y-1,x+8,y+10,'#e8ecf4',1);K.px(x-1,y-1,2,2,'#c8ccd4');K.line(x+9,y+11,x+10,y+12,CA_P.brass[4],3);
+        K.line(x+10,y+12,x+16,y+20,'#1a0e06',5);K.line(x+10,y+12,x+16,y+20,CA_P.wood[3],3);K.line(x+10,y+11,x+16,y+19,CA_P.wood[5],1);m4grip(K,x+14,y+18,.93,{side:-1});}},   // (t364) the knife's handle toward you, your hand below its point
     hud(){K.label('TIME',296,14,'#f4ecd8');K.gauge(292,24,8,90,0,1,Math.max(0,1-st.t/TIME),{zone:'#5a3a1a'});K.meter(Math.min(1,st.t/TIME));},
     auto(dt,AP){const a=m4ai(this,AP,dt);a.k=a.k||{p:0,s:0};const P=AUTO[a.k.p%AUTO.length],q=P[Math.min(P.length-1,Math.floor(a.k.s))],r=P[Math.min(P.length-1,Math.floor(a.k.s)+1)],f=a.k.s%1;
       const x=q[0]+(r[0]-q[0])*f,y=q[1]+(r[1]-q[1])*f;a.k.s+=dt*3;if(a.k.s>=P.length-1){a.k.p++;a.k.s=0;}AP.I={x,y,down:a.k.s>.05,raw:true};AP.hand=[x,y];AP.press=true;},
@@ -358,8 +396,8 @@ S4.f2dance=(sp,K)=>{const g=K.g,N=16,BEAT=.66,T0=1.6,RX=64,RY=150;
   return {title:'Keep time',how:K.fine?'Lanterns come down the string to the ring. Click (or press Space) just as each one reaches it.':'Lanterns come down the string to the ring. Tap just as each one reaches it.',hint:'Press as each lantern reaches the ring.',st,
     update(dt,I){st.t+=dt;if(st.end){st.end+=dt;if(st.end>1.2){st.done=true;st.score=st.score/N;F2R.dance={hits:st.score};}return;}
       if(I.pressed){let best=null,bd=.22;for(const n of notes){if(n.hit!==null)continue;const d=Math.abs(n.t-st.t);if(d<bd){bd=d;best=n;}}
-        if(best){best.hit=true;st.score++;st.flash=.6;const q=bd<.07?1:bd<.14?.8:.62;K.judge(q,RX+34,RY-24);A.tone(440+st.score*28,.14,'triangle',.07);if(q>=1)st.hearts.push({x:RX+10,y:RY-10,t:0});}
-        else{A.tone(150,.1,'square',.03);K.judge(.1,RX+34,RY-24,true);}}
+        if(best){best.hit=true;st.score++;st.flash=.6;const q=bd<.07?1:bd<.14?.8:.62;K.judge(q,186,146);A.tone(440+st.score*28,.14,'triangle',.07);if(q>=1)st.hearts.push({x:RX+10,y:RY-10,t:0});}
+        else{A.tone(150,.1,'square',.03);K.judge(.1,186,146,true);}}
       for(const n of notes)if(n.hit===null&&st.t-n.t>.24){n.hit=false;K.combo=0;A.tone(196,.1,'triangle',.035,{slide:150});}
       for(const h of st.hearts)h.t+=dt;st.hearts=st.hearts.filter(h=>h.t<1.4);if(st.flash>0)st.flash-=dt;
       if(st.t>notes[N-1].t+1)st.end=.001;},
