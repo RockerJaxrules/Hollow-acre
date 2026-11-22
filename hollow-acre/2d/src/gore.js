@@ -110,9 +110,11 @@ function gorePersonAdd(x,z,kind){const g=goreS();g.pUsed=g.pUsed||[];let pool=GO
 {const _lg=loadGame;loadGame=function(){const r=_lg.apply(this,arguments);for(const id of Object.keys(GORE.objs))goreKillHide(id);for(const k of goreS().kills)goreKillShow(k);return r;};}
 setTimeout(()=>{try{for(const k of goreS().kills)goreKillShow(k);}catch(e){}},0);
 // the first time you come on each person, you see it close (sights.js draws the close-up), with the line underneath
+// the detailed close-up drawn for this sprite (its name + '_cu'), laid on a sights canvas; null if there is none or it isn't loaded
+function goreCloseImg(name){const n=name+'_cu',m=SPR[n],im=m&&IMG[m.src];if(!im||!im.width||typeof sgtC!=='function')return null;return sgtC('gcu_'+n,m.fw,m.fh,(P,g)=>{g.drawImage(im,0,0);});}
 function goreUp(im){if(im.width>=64||im.height>=34)return im;if(im._up)return im._up;const c=document.createElement('canvas');c.width=im.width*2;c.height=im.height*2;const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(im,0,0,c.width,c.height);return im._up=c;}
 function goreSightP(k,ton,look){if(typeof sgtSprites!=='function'||typeof sgtOpen!=='function'||S.mode!=='play'||S.paused||(typeof H!=='undefined'&&H.state==='chase'))return false;
-  const g=goreS(),K=KILLS[k.kind],sk='sight_'+k.kind+(ton?'_t':'');if(g.seen[sk])return false;let img=null;try{img=sgtSprites('killp_'+k.kind+(ton?'_t':''),[[ton?K.tmain:K.main,0,0]]);}catch(e){}if(!img)return false;img=goreUp(img);
+  const g=goreS(),K=KILLS[k.kind],sk='sight_'+k.kind+(ton?'_t':'');if(g.seen[sk])return false;let img=goreCloseImg(ton?K.tmain:K.main);try{if(!img){img=sgtSprites('killp_'+k.kind+(ton?'_t':''),[[ton?K.tmain:K.main,0,0]]);if(img)img=goreUp(img);}}catch(e){}if(!img)return false;
   g.seen[sk]=1;return sgtOpen({x:k.x,z:k.z},img,look,ton?{flies:1}:{flies:5,drip:K.prop?1:0});}
 // walking up on one; and the flies
 {const _u=update;update=function(dt){_u(dt);if(S.mode!=='play'||S.paused)return;const g=goreS();
