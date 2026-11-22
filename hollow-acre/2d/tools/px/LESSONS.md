@@ -1790,6 +1790,16 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A bird hung by its feet: feet together at the hook, a 1 px gap below it, then a teardrop widest at the thighs and breast, the wings hanging close against the sides (one side darker), a small drooping head. Splayed wings and legs read as a star or a bat at 1x; a spindle pointed at both ends reads as a cocoon. (judge blk1-c1)
 - Turned views of a group of objects: move each piece where the turn puts it (right goes behind, left comes in front), keep every piece's light on its upper left, and keep one size; something tucked behind a round makes it look bigger, so leave a gap. (judge blk1)
 
+## Gore: blood, cut flesh, guts (t371 butchering, Nov 22: 5 vs 3 in round 1)
+- Spatter is speckle: dozens of 1-3 px red dashes spread evenly over pale skin read as noise. Blood on a body is 2-3 gathered runs that start at the cut edge, follow the form downhill and thicken toward their foot (2 px to 4 px), with a lit edge, one wet streak and a dark edge on the shadow side, ending in a pool.
+- Drops in flight drawn as separate dots spaced along an arc read as an ellipsis or a dotted line. Draw a spurt as one stream (each drop joined to the next of its pulse, only while they're close); from a hanging carcass blood pours down, it isn't thrown sideways.
+- Guts drawn as one even-width tube with a continuous highlight read as rope, a hose or sausages. Cut each tube into short lengths so a coil lying over its own loop gets a dark wet crease; taper it and let it swell and narrow; give every tube a rim of its own blood.
+- A round raw face with a pale ring round a dark centre reads as a target or an eye. A neck stump is a ragged face: the bone off to one side as a small pale block with a dark notch, a few darker muscle bands, no concentric rings.
+- A small round pool touching a limb's tip reads as a red mitten. A pool must be fed by something visible (a run, a drip) and lie where blood would collect, away from the tips.
+- A row of identical hooks at even spacing reads as copy-paste: vary the length, turn some, space them unevenly.
+- Wet things: the glint is one warm pixel on the lit side, not a line along the whole length; shadows of blood go to violet-black, its lights to a warm orange-pink.
+- Toned-down gore stays readable with dark low-contrast blood that only wells and pools (no spurts, no guts, no heads); the cuts still show where the knife went.
+
 ## Game UI polish pass (t337 whole-game review, Nov 13: 4 rounds, every screen 6-7.5)
 - Every panel, card and book is one family: the in-game wood frame, parchment only for books, one tab style, square corners; the judge reads three different frame ornaments as unfinished.
 - A tall panel hides the HUD; it never cuts the goal bar or the coin box in half.
