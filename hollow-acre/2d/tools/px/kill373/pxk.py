@@ -17,9 +17,13 @@ MAT = {
     'pink': ['#4a1e30', '#7a3a4c', '#ac6270', '#d4928e', '#f0bcb0'],
     'switch': ['#1e100c', '#341c14', '#52301e', '#704430'],
     'inner': ['#4a1e30', '#7a3a4c', '#a8606a', '#c88888'],
+    'meat': ['#4a0e16', '#7a1c22', '#a43030', '#c64c40'],      # skinned: the muscle under the hide, wet
+    'meatd': ['#360a12', '#5a1418', '#802426', '#a43838'],
+    'fat': ['#8a7458', '#b8a07c', '#dccaa4', '#f0e6cc'],
 }
+REMAP = {}
 LIT = {'hide': '#ecc58a', 'hided': '#c8945c', 'leg': '#a8704a', 'nose': '#f8e0d4', 'horn': '#fff8e8', 'hoof': '#7a6a6e', 'pink': '#f8d0c4',
-       'switch': '#7a5038', 'inner': '#d8a0a0'}
+       'switch': '#7a5038', 'inner': '#d8a0a0', 'meat': '#e8846a', 'meatd': '#c05a4c', 'fat': '#fff8e8'}
 OL = '#2a140c'
 L = np.array([-.55, -.62, .56]); L = L / np.linalg.norm(L)
 
@@ -44,7 +48,7 @@ class Spr:
         Hs[m] = v[m]; Ss[m] = si
 
     def add(s, **o):
-        o.setdefault('mat', 'hide'); o.setdefault('base', 1.6); o.setdefault('gain', 3.0); s.sh.append(o); return len(s.sh) - 1
+        o.setdefault('mat', 'hide'); o['mat'] = REMAP.get(o['mat'], o['mat']); o.setdefault('base', 1.6); o.setdefault('gain', 3.0); s.sh.append(o); return len(s.sh) - 1
 
     def dome(s, cx, cy, rx, ry, z=0, top=None, **o):
         si = s.add(t='dome', **o); top = min(rx, ry) if top is None else top
@@ -227,3 +231,17 @@ def encode(img):
         while j < len(flat) and flat[j] == flat[i]: j += 1
         n = j - i; out.append(flat[i] + (str(n) if n > 1 else '')); i = j
     return w, h, pal, ''.join(out)
+
+
+class SprX(Spr):
+    """a Spr whose shapes are laid out again by a mapping (x, y) -> (x', y') with a scale k: a quarter turn re-drawn, so the light
+    stays at the top left (rx and ry swap)"""
+    def __init__(s, w, h, f, k, seed=1): Spr.__init__(s, w, h, seed); s.f = f; s.k = k
+    def dome(s, cx, cy, rx, ry, z=0, top=None, **o):
+        X, Y = s.f(cx, cy); k = s.k; return Spr.dome(s, X, Y, ry * k, rx * k, z * k, None if top is None else top * k, **o)
+    def tube(s, pts, r0, r1, z=0, z1=None, **o):
+        k = s.k; return Spr.tube(s, [s.f(x, y) for (x, y) in pts], r0 * k, r1 * k, z * k, None if z1 is None else z1 * k, **o)
+    def blob(s, poly, z=0, top=10, R=12, **o):
+        k = s.k; return Spr.blob(s, [s.f(x, y) for (x, y) in poly], z * k, top * k, R * k, **o)
+    def px(s, x, y, w, h, c):
+        return None

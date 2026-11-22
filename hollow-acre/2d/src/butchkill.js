@@ -59,7 +59,7 @@ BK.hen=(w,l,b,hl)=>BG71.spr('bkhen4_'+w+l+b+hl,118,68,(()=>{const W=BG71.WHT,Y=B
   if(w===0)S.push({t:'dome',cx:72,cy:31,rx:21,ry:12,top:6,z:8,P:W,base:3.8,gain:3.6});
   else if(w===1)S.push({t:'tube',pts:[[64,30],[78,18],[90,9]],r0:9,r1:5,z:8,P:W,base:3.8,gain:3.6});
   else S.push({t:'tube',pts:[[62,28],[68,13],[74,1]],r0:9.5,r1:5,z:8,P:W,base:4,gain:3.6});
-  return S;})(),(K)=>{const W=BG71.WHT,B=BG71.BL;if(hl)BK.stump(K);
+  return S;})(),(K)=>{const W=BG71.WHT,B=BG71.BL;if(hl===1)BK.stump(K);else if(hl===2){const T=BG71.BLT;K.px(28,28,4,12,T[2]);K.px(27,30,1,8,T[1]);K.px(29,31,2,5,T[3]);}
     if(!hl){if(b){K.px(3,35,4,1,'#3a1018');K.px(10,31,3,3,'#1a1018');K.px(10,31,1,1,'#f6f1e8');K.px(12,33,1,1,'#c8601e');}else{K.px(10,32,2,2,'#1a1018');K.px(10,32,1,1,'#f6f1e8');K.px(12,32,1,1,'#c8601e');}}
     // the primaries at the wing's tip, three short darker lines, not a fringe
     if(w===0){for(const [x,y] of [[86,34],[89,32],[91,30]])K.px(x,y,3,1,W[2]);}else if(w===1){for(const [x,y] of [[88,6],[91,8],[93,11]])K.px(x,y,1,3,W[2]);}else{for(const [x,y] of [[71,0],[74,1],[77,3]])K.px(x,y,1,3,W[2]);}},'#2a2030');
@@ -181,7 +181,7 @@ BK.drip=(K,px,py,ang,d,P)=>{let ex=0,ey=-1e9;const c=Math.cos(ang),s=Math.sin(an
 const BKH={BX:140,NY:105,HX:110,HY:76};
 BKH.scene=(K,g)=>{const B=BT3.block(236,112);K.pa(46,82,B.width,B.height,'#000',.35);g.drawImage(B,42,74);};
 // the hen at offset dx, her frame, her wounds (painted at her own coordinates so they move with her)
-BKH.drawHen=(K,g,S,dx,f,P)=>{const x=Math.round(BKH.HX+dx),y=BKH.HY;g.drawImage(BK.hen(f.w,f.l,f.b,f.hl?1:0),x,y);
+BKH.drawHen=(K,g,S,dx,f,P)=>{const x=Math.round(BKH.HX+dx),y=BKH.HY;g.drawImage(BK.hen(f.w,f.l,f.b,f.hl===2?2:f.hl?1:0),x,y);
   for(const wd of S.wounds){if(f.hl&&wd.x<34)continue;BK.glance(K,x+wd.x,y+wd.y,P,P===BG71.BL);BK.runs(K,[wd.run],S.t,P,x,y);}};
 // every frame a step can show is drawn when the step begins, so nothing is drawn for the first time mid-swing
 BK.warm=fs=>{try{for(const f of fs)f();}catch(e){}};
@@ -240,7 +240,7 @@ S4.bgChop=(sp,K)=>{const g=K.g,full=BK.full(),P=full?BG71.BL:BG71.BLT,BX=BKH.BX,
           BKH.drawHen(K,g,st,dx+(kick>.1?(h(fr*3)-1)*kick*2:0),f,P);
           // the head off: it tumbles a hand's width away and lies tilted, the beak still opening and shutting
           const open=d>.25&&d<1.9&&Math.floor((d-.25)*(4-d))%2===0,u=Math.min(1,d/.25);M4.rot(g,BK.head(open?1:0),BKH.HX+dx+12-u*9,BKH.HY+34+u*7,-.5*u,14,11);}
-        else{BKH.drawHen(K,g,st,dx,{w:0,l:0,b:0,hl:1},P);g.drawImage(BK.sack(),Math.round(BKH.HX+dx-6),BKH.HY+14);}}
+        else{BK.smear(K,BKH.HX+dx+20,BKH.HY+38);BK.smear(K,BKH.HX+dx+12,BKH.HY+41);BKH.drawHen(K,g,st,dx,{w:0,l:0,b:0,hl:2},P);}}
       else{const f={w:st.thr>0?[2,1,2,1][Math.floor(t*16)%4]:0,l:st.thr>0?[1,2,1,0][Math.floor(t*12)%4]:Math.floor(t*1.6)%2,b:st.thr>0||Math.floor(t*1.1)%4===0?1:0};BKH.drawHen(K,g,st,osc(st.t),f,P);}
       // your other hand flat on her back, fingers along it
       m4grip(K,BKH.HX+(st.dead?st.deadX:osc(st.t))+86,BKH.HY+22,.35,{side:1});
@@ -288,8 +288,8 @@ S4.bgStun=(sp,K)=>{const g=K.g,full=BK.full(),P=full?BG71.BL:BG71.BLT;BK.after.c
       if(!d){K.pa(BKC.TX,BKC.TY-8,1,5,'#fff4c0',.4);K.pa(BKC.TX,BKC.TY+3,1,5,'#fff4c0',.4);}
       // the sledge: a handle about one and a half of her heads long, your fist near its end. Cocked behind her head between blows; down
       // on her brow; then it bounces back off the bone and rests a beat just by the wound before you lift it again
-      const SL=112,u=1-Math.max(0,Math.min(1,st.ang/1.25)),e=st.t-st.hitAt,back=e>.04&&e<2.5?(1-Math.exp(-(e-.04)*14))*.2+Math.sin(Math.min(1,(e-.04)*4.5)*Math.PI)*.07:0,v=u*(1-back);
-      const ph=-1.807+(-2.153+1.807)*v,Fx=240-18*v,Fy=138,Hx=Math.round(Fx+Math.cos(ph)*SL),Hy=Math.round(Fy+Math.sin(ph)*SL);
+      const SL=84,u=1-Math.max(0,Math.min(1,st.ang/1.25)),e=st.t-st.hitAt,back=e>.04&&e<2.5?(1-Math.exp(-(e-.04)*14))*.2+Math.sin(Math.min(1,(e-.04)*4.5)*Math.PI)*.07:0,v=u*(1-back);
+      const ph=-1.668+(-2.152+1.668)*v,Fx=222-16*v,Fy=110+4*v,Hx=Math.round(Fx+Math.cos(ph)*SL),Hy=Math.round(Fy+Math.sin(ph)*SL);
       const dx=Fx-Hx,dy=Fy-Hy,L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L,nx=-uy,ny=ux,WC=['#eed09c','#ae7840','#8e5c30','#4a2e16'],Ex=Fx+ux*7,Ey=Fy+uy*7;
       for(let k=0;k<4;k++){const a=(k-1.5)*.75,b2=(k-1.5)*1.2;K.line(Hx+nx*a,Hy+ny*a,Ex+nx*b2,Ey+ny*b2,WC[k],1);}K.px(Math.round(Ex)-2,Math.round(Ey)-2,4,4,WC[2]);K.px(Math.round(Ex)-2,Math.round(Ey)-2,2,1,WC[0]);
       g.drawImage(BK.sledgeHead(full&&st.hand>0),Hx-10,Hy-8);m4grip(K,Fx,Fy,Math.atan2(dy,dx),{side:1});if(full)BK.hand(K,Fx,Fy,st.hand,P);},
@@ -314,7 +314,7 @@ S4.bgThroat=(sp,K)=>{const g=K.g,full=BK.full(),P=full?BG71.BL:BG71.BLT;BK.warm(
     // a pulse every beat, weaker and further apart as she empties: the stream swells with each, and the bucket runs over
     const per=.55+b*.18;if(b<4.2&&b>=(G.nextP||0)){G.nextP=b+per;G.pulses++;const k=Math.max(.25,1-b/4.4);BK.snd.pulse(k);G.env=k;
       G.level=Math.min(1.6,G.level+.3);if(G.level>1&&!G.over){G.over=G.t;G.pools.push({x:MX,y:BY0+31,sz:27,seed:41,q:.15,tq:1});}}
-    if(b>4.6){G.hoist+=dt/1.1;if(G.hoist>=1){st.done=true;st.score=G.score;BK.after.cow=full?2:1;BK.after.cowWall=G.wall.slice();}}};
+    if(b>5.2&&!st.done){st.done=true;st.score=G.score;BK.after.cow=full?2:1;BK.after.cowWall=G.wall.slice();BK.after.cowPool=G.pools.length?G.pools[0].q:0;}};
   const d0=o.draw;o.draw=function(t){if(G.cutT>0&&!full){g.drawImage(BK.wall(),0,0);return;}
     const b=G.bleed,hy=-Math.round((G.hoist>0?G.hoist*G.hoist:0)*230),kick=b<0?.35:full?Math.max(0,1-b/3.2):Math.max(0,.5-b/3),eye=b<1.3?1:b<2.6?4:5;
     if(G.hoist<.3){g.globalAlpha=.35*(1-G.hoist*3);K.ell(178,150,122,9,'#0a0604');g.globalAlpha=1;}

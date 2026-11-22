@@ -278,7 +278,7 @@ BG71.snd={
     // a seam through: the gush, the bone giving, a pool where it runs off; the belly lets go of what it held
     if(done>G.lastPi){for(let k=G.lastPi;k<done;k++){const PT=PTS[k],e=PT[PT.length-1],m=PT[Math.floor(PT.length/2)];
         pulse(e[0]+ox,e[1]+oy,6,1.2);pulse(e[0]+ox,e[1]+oy,5,1.1);pulse(m[0]+ox,m[1]+oy,4,1);if(full)BG71.snd.spurt(1);setTimeout(()=>{try{BG71.snd.crack();}catch(_){}},60);
-        if(k===GUT&&full){G.gutT=G.t;G.slopAt=G.t+(hen?.3:.57);}
+        if(k===GUT&&full&&!(hen?AF().henGutted:AF().cowGutted)){G.gutT=G.t;G.slopAt=G.t+(hen?.3:.57);}
         }G.lastPi=done;}
     if(G.slopAt>0&&G.t>=G.slopAt){G.slopAt=-1;BG71.snd.slop();if(hen)addPool(98,130,18,.95,11);else{addPool(104,144,20,1,12);K.shk=Math.max(K.shk,.12);G.beads.push({x:96,y:90,gy:132,g:.4,rate:1.1});}}
     // the pieces: the halves of the bird slide apart; the cuts of beef drop onto the block, each into its own blood

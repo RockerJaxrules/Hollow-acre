@@ -1,9 +1,10 @@
-# the cow's pictures into the kill module (python3 mkdata.py <path of the kill module>): BK.IMG holds each as [w,h,palette,runs,x,y]; BK.img(name) paints it once into a canvas
+# the cow's pictures into the kill module: BK.IMG holds each as [w,h,palette,runs,x,y]; BK.img(name) paints it once into a canvas
 import json, sys, re
 sys.path.insert(0, '.')
 from pxk import ALPH
 D = {}
 for f in ('stand.json', 'lie.json'): D.update(json.load(open(f)))
+D = {k: v for k, v in D.items() if k in ('cowF', 'cowChest', 'cowStand', 'cowLie', 'cowLeg0', 'cowLeg1', 'cowLeg2', 'cowLeg3')}
 lines = ['/*@@COWDATA (t373/mkdata.py: the cow drawn in t373/cow_stand.py and cow_lie.py) */', 'BK.AL=' + json.dumps(ALPH) + ';', 'BK.IMG={']
 for k, v in D.items():
     w, h, pal, runs, x, y = v
