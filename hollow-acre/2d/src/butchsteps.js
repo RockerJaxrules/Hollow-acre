@@ -196,20 +196,20 @@ S4.hnGut=(sp,K)=>{const g=K.g,full=BS.full(),P=full?BG71.BL:BG71.BLT;BK.warm([()
   const PATH=[[VENT[0]-10,VENT[1]-1],[VENT[0],VENT[1]+2],[VENT[0]+10,VENT[1]-1]];
   const o=S4.trace(Object.assign({},sp,{surface:'vent',tool:'knife',paths:[PATH.map(p=>p.slice())]}),K);const st=o.st;
   const G={t:0,ph:'feet',fi:0,f0:0,swing:-1,chopU:0,glance:0,nicks:[],off:[],T:BS.tug(),i:0,tears:[],out:[],score:1,cutDone:-1};
-  const PULL=[{at:VENT,to:VENT,name:'guts'},{at:VENT,to:[250,150],name:'giblets'},{at:NECK,to:[66,94],name:'crop'}];
+  const PULL=[{at:VENT,to:VENT,name:'guts'},{at:VENT,to:BK.X()?[244,142]:[250,150],name:'giblets'},{at:NECK,to:[66,94],name:'crop'}];
   const up=o.update;o.update=function(dt,I){G.t+=dt;G.chopU=Math.max(0,G.chopU-dt*4);
     if(G.ph==='feet'){if(G.swing<0&&(I.pressed||(I.down&&!G.wasDown)))G.swing=0;G.wasDown=I.down;
       if(G.swing>=0){G.swing+=dt/.1;if(G.swing>=1){G.swing=-1;G.chopU=1;BK.snd.chop();K.shk=Math.max(K.shk,.08);const r=BS.ring(G.t-G.f0);
           if(r<=5.5){BG71.snd.crack();G.off.push({i:G.fi,t0:G.t});K.judge(1,252,50,true);G.fi++;G.f0=G.t;if(G.fi>=2){G.ph='cut';}}
           else{G.glance++;G.nicks.push(KN[G.fi].slice());K.judge(.2,252,50,true);MS.miss&&MS.miss();}}}return;}
     if(G.ph==='cut'){up.apply(this,arguments);if(st.done){st.done=false;G.cutScore=st.score;G.ph='draw';G.openT=G.t;BG71.snd.squish(1);}return;}
-    if(G.ph==='draw'){const r=BS.tugUp(G.T,dt,I);if(r==='ok'){G.out.push({i:G.i,t0:G.t});BS.snd.tear(.6);if(G.i===0)BG71.snd.slop();G.i++;K.judge(1,252,50,true);if(G.i>=PULL.length){G.ph='end';G.endT=G.t;}}
+    if(G.ph==='draw'){const r=BS.tugUp(G.T,dt,I);if(r==='ok'){G.out.push({i:G.i,t0:G.t});BS.snd.tear(.6);if(G.i===0){BG71.snd.slop();BS.after().henOut=performance.now()/1000;}if(G.i===1)BS.after().gibOut=1;G.i++;K.judge(1,252,50,true);if(G.i>=PULL.length){G.ph='end';G.endT=G.t;}}
       else if(r==='tear'){G.tears.push({i:G.i,t0:G.t});BS.snd.tear(1.2);K.judge(.2,252,50,true);MS.miss&&MS.miss();}else if(r==='back')MS.miss&&MS.miss();}
     if(G.ph==='end'&&G.t-G.endT>.9&&!st.done){st.done=true;st.score=Math.max(.5,(G.cutScore||1)-.12*G.tears.length-.08*G.glance);const af=BS.after();af.henGutted=1;af.henSpoil=G.tears.length;}};
   const piece=(K,i,x,y)=>{x=Math.round(x);y=Math.round(y);if(!full){K.px(x-6,y-3,12,7,P[1]);K.px(x-5,y-2,10,5,P[2]);return;}
     if(i===0)g.drawImage(BS.hguts(),x-40,y-4);else if(i===1){g.drawImage(BS.giz(),x-12,y-5);g.drawImage(BS.liverS(),x+1,y-4);g.drawImage(BS.heartS(),x-4,y+2);}else g.drawImage(BS.cropS(),x-5,y-4);};
   const foot=(k,dx,dy,da)=>{const [kx,ky]=KN[k],s=k?-1:1;M4.rot(g,BS.henFoot(),kx+dx,ky+dy,s*.55+da,8,2);};
-  const d0=o.draw;o.draw=function(t){BKH.scene(K,g);g.drawImage(M4S.bowl(),220,140);
+  const d0=o.draw;o.draw=function(t){BKH.scene(K,g);g.drawImage(M4S.bowl(),BK.X()?214:220,BK.X()?132:140);
     // the blood she still has in her, on the board under the vent, and spreading once she's opened
     const opened=G.ph!=='feet'&&(G.ph!=='cut'||st.end),pq=opened?Math.min(10,4+Math.round((G.t-(G.openT||G.t))*3)):3;
     {const im=BK.flat(71,pq,16,full);g.drawImage(im,Math.round(VENT[0]-im.width/2-6),Math.round(VENT[1]+8-im.height/2));}
@@ -358,28 +358,40 @@ S4.cwSkin=(sp,K)=>{const g=K.g,full=BS.full(),P=full?BG71.BL:BG71.BLT;BK.warm([(
 // both are lit from the top left, the near half a step darker; each its own outline (a dent in one flank, one hock hung longer),
 // three or four ribs each as lit ridges of red at uneven gaps, each steeper than the one above; the backbone dull bone broken by blood
 BC.MX=161;BC.TOP=2;BC.SH=16;
-BS.sideShade=(dark,ribs)=>{const F=BT3.beefField(),f0=BT3.beefShade(),dist=F.dist,M=BT3.MEAT,B=BT3.BONE,BL=BG71.BL;
-  return (x,y,id)=>{const sx=F.left[y]+1,d=dist[y*F.w+x];
-    if(id!==2&&y>40&&y<146&&x<sx+6&&d<8){const l=BT3.lightOf(F,x,y),k=(y*7+((y/9)|0)*5)%13;if(k<2)return BL[2];if(k<3)return BL[3];return bt3pick(B,.8+l*1.6-(x-sx)*.12);}
-    if(id!==2&&y>80&&y<142&&x>=sx+6&&x<F.right[y]-3){const l=BT3.lightOf(F,x,y);for(const [r0,sl] of ribs){const ux=x-(F.left[r0]+8);if(ux<0)continue;const dy=y-(r0+ux*sl);
+BS.sideShade=(dark,ribs,xr,edge,tn)=>{const F=BT3.beefField(),f0=BT3.beefShade(),dist=F.dist,M=BT3.MEAT,B=BT3.BONE,BL=BG71.BL,E=edge||(y=>F.left[y]);
+  return (x,y,id)=>{const sx=E(y)+1,d=dist[y*F.w+x];
+    // the sawn spine down the inner edge: the vertebrae one under another, uneven, dull bone close in value to the meat, mostly under
+    // blood, a broken dark seam between them (no pale strip with even bars: that read as a zip)
+    if(tn&&id!==2&&y>40&&y<146&&x<sx+6&&d<8){const l=BT3.lightOf(F,x,y),k=(y*7+((y/9)|0)*5)%13;if(k<2)return BL[2];if(k<3)return BL[3];return bt3pick(B,.8+l*1.6-(x-sx)*.12);}
+    if(!tn&&id!==2&&y>34&&y<150&&x>=sx-1&&x<sx+7){let sg=0,y0=34,ln=6;while(y0+ln<=y){y0+=ln;sg++;ln=5+((sg*2654435761)>>>0)%5;}const sy=y-y0,hh=((sg*2246822519)>>>0)%101,wv=5+hh%3;
+      if(x<sx+wv){const l=BT3.lightOf(F,x,y),bl=((x*7+y*13+hh)%11)<(hh%2?7:4);
+        if(sy===0&&(x+hh)%3)return BL[2];if(bl)return (x+y+hh)%5===0?BL[4]:BL[3];return bt3pick(B,.2+l*.9-(x-sx)*.12);}}
+    // (Extreme) the inside of the rib cage: each rib a rounded ridge four wide, bowed, lit along its top, the meat between them in its shadow
+    if(xr&&id!==2&&y>78&&y<144&&x>=sx+6&&x<F.right[y]-3){const l=BT3.lightOf(F,x,y);for(const [r0,sl] of ribs){const ux=x-(E(r0)+8);if(ux<0)continue;const W=F.right[r0]-F.left[r0]-12,dy=y-(r0+ux*sl+Math.sin(Math.min(1,ux/Math.max(1,W))*Math.PI)*3);
+        if(dy>=0&&dy<4.6)return dy<1?bt3pick(M,4.9+l*.8):dy<2.6?bt3pick(M,3.9+l*.9):dy<3.6?bt3pick(M,3+l*.6):M[1];}return bt3pick(M,1.9+l*1.8);}
+    if(id!==2&&y>80&&y<142&&x>=F.left[y]+7&&x<F.right[y]-3){const l=BT3.lightOf(F,x,y);for(const [r0,sl] of ribs){const ux=x-(F.left[r0]+8);if(ux<0)continue;const dy=y-(r0+ux*sl);
         if(dy>=0&&dy<2.2)return bt3pick(M,(dy<1?5.2:4.2)+l*.9);if(dy>=2.2&&dy<3.6)return M[1];}return bt3pick(M,2.5+l*2.3);}
-    return f0(x,y,id);};};
-BS.side=mir=>M4.pre('bs_side4_'+(mir?1:0),100,158,(K,g)=>{const lo=BT3.lightOf;
-  BT3.lightOf=(F2,x,y)=>{const H=(X,Y)=>X<0||Y<0||X>=F2.w||Y>=F2.h?0:F2.H[Y*F2.w+X];const nx=(H(x-1,y)-H(x+1,y))*.5,ny=(H(x,y-1)-H(x,y+1))*.5,nz=.16;return (nx*(mir?.55:-.55)+ny*-.62+nz*.56)/Math.hypot(nx,ny,nz)-(mir?0:.14);};
-  try{const M=BT3.beefMask(),M2={w:M.w,h:M.h,m:M.m.slice()},F=BT3.beefField();
+    // no pale lump up by the spine at the top: two of them, one each side, met in the middle as a bow
+    {const c=f0(x,y,id);if(!tn&&y>=26&&y<72&&x<sx+20&&typeof c==='string'&&c[0]==='#'){const v=parseInt(c.substr(1,2),16)+parseInt(c.substr(3,2),16)+parseInt(c.substr(5,2),16);if(v>480)return bt3pick(M,2.6+BT3.lightOf(F,x,y)*1.4);}return c;}};};
+BS.side=mir=>{const xr=typeof BK!=='undefined'&&BK.X&&BK.X(),tn=!!window.GORE_TONED;return M4.pre((tn?'bs_side4_':xr?'bs_side9x_':'bs_side9_')+(mir?1:0),100,158,(K,g)=>{const lo=BT3.lightOf;
+  BT3.lightOf=(F2,x,y)=>{const H=(X,Y)=>{if(X<0||Y<0||X>=F2.w||Y>=F2.h)return 0;if(tn)return F2.H[Y*F2.w+X];const d=((X-50)/22)**2+((Y-44)/22)**2;return F2.H[Y*F2.w+X]-(d<1?3.1*Math.sqrt(1-d):0);};const nx=(H(x-1,y)-H(x+1,y))*.5,ny=(H(x,y-1)-H(x,y+1))*.5,nz=.16;return (nx*(mir?.55:-.55)+ny*-.62+nz*.56)/Math.hypot(nx,ny,nz)-(mir?0:.14);};
+  try{const M=BT3.beefMask(),M2={w:M.w,h:M.h,m:M.m.slice()},F=BT3.beefField(),XS=12,edge=y=>{const l=F.left[y];if(l<0||y<30||y>152)return l;return Math.round(y<48?l+(XS-l)*(y-30)/18:y>136?XS+(l-XS)*(y-136)/16:XS);};
+    if(!tn)for(let y=30;y<=152;y++){const l=F.left[y],e=edge(y);if(l<0)continue;for(let x=Math.min(l,e);x<Math.max(l,e);x++)M2.m[y*M.w+x]=e<l?1:0;}
     if(!mir)for(let y=96;y<114;y++){const cut=Math.round(Math.sin((y-96)/18*Math.PI)*3);for(let k=0;k<cut;k++){const x=F.right[y]-k;if(x>0)M2.m[y*M.w+x]=0;}}
-    const c=BT3.paint(M2,BS.sideShade(mir?0:.14,mir?[[84,.16],[96,.28],[108,.42],[121,.6]]:[[90,.2],[104,.36],[117,.55]]),BT3.MO);
-    if(mir){g.save();g.translate(100,0);g.scale(-1,1);g.drawImage(c,0,2);g.restore();K.px(52,0,3,3,BT3.BONE[2]);K.px(52,0,1,3,BT3.BONE[4]);}else g.drawImage(c,0,0);}finally{BT3.lightOf=lo;}});
+    const c=BT3.paint(M2,BS.sideShade(mir?0:.14,xr?(mir?[[80,.12],[88,.18],[96,.24],[104,.3],[112,.37],[120,.44],[128,.52]]:[[82,.14],[90,.2],[98,.26],[106,.32],[114,.39],[122,.46],[130,.54]]):(mir?[[84,.16],[96,.28],[108,.42],[121,.6]]:[[90,.2],[104,.36],[117,.55]]),xr,tn?null:edge,tn),BT3.MO);
+    if(!tn){const cg=c.getContext('2d');cg.fillStyle='#3a0c10';for(let y=30;y<=152;y++){const e=edge(y);if(e>0)cg.fillRect(e-1,y,1,1);}}
+    if(mir){g.save();g.translate(100,0);g.scale(-1,1);g.drawImage(c,0,2);g.restore();K.px(52,0,3,3,BT3.BONE[2]);K.px(52,0,1,3,BT3.BONE[4]);}else g.drawImage(c,0,0);}finally{BT3.lightOf=lo;}});};
 BS.spine=()=>M4.pre('bs_spine3',60,158,(K,g,w,h)=>{const B=BT3.beef(),d=B.getContext('2d').getImageData(0,0,B.width,B.height).data,M=BT3.MEAT;
   for(let y=18;y<h-4;y++){let xl=-1;for(let x=0;x<B.width;x++)if(d[(y*B.width+x)*4+3]>128){xl=x;break;}const gap=xl-BC.SH;if(xl<0||gap<1||gap>5)continue;
     for(let x=30-gap-1;x<=30+gap;x++)K.px(x,y,1,1,Math.abs(x-29.5)<1?'#3a0c10':M[3]);}});
-BC.carcass=(g,dy,split)=>{const y=BC.TOP+Math.round(dy||0),l=split?split.l:0,r=split?split.r:0,S=BS.spine();
+BC.carcass=(g,dy,split)=>{const y=BC.TOP+Math.round(dy||0),l=split?split.l:0,r=split?split.r:0;
   g.drawImage(BS.side(1),BC.MX+BC.SH-100+Math.round(l),y);g.drawImage(BS.side(0),BC.MX-BC.SH+Math.round(r),y);
-  g.drawImage(S,0,0,30,158,BC.MX-30+Math.round(l),y,30,158);g.drawImage(S,30,0,30,158,BC.MX+Math.round(r),y,30,158);};
+  // (Toned keeps its carcass as it was: the halves joined by the filler down the middle)
+  if(window.GORE_TONED){const S=BS.spine();g.drawImage(S,0,0,30,158,BC.MX-30+Math.round(l),y,30,158);g.drawImage(S,30,0,30,158,BC.MX+Math.round(r),y,30,158);}};
 BC.gambrel=(K,dy)=>{const I=BG71.IRON,y=BC.TOP+Math.round(dy||0);BS.rail(K);K.px(BC.MX,13,1,Math.max(0,y-12),I[3]);K.px(100,y,123,3,I[2]);K.px(100,y,123,1,I[4]);K.px(100,y+2,123,1,I[0]);};
 // the belly wall closing her, built from the carcass's own outline: muscle lit from the left, the line where the two sides meet,
 // lumps of fat at the groin and on the brisket
-BS.bellyWall=()=>M4.pre('bs_belly4',320,180,(K,g,w,h)=>{const T=document.createElement('canvas');T.width=w;T.height=h;BC.carcass(T.getContext('2d'),0);const d=T.getContext('2d').getImageData(0,0,w,h).data,M=BT3.MEAT,F=BT3.FAT;
+BS.bellyWall=()=>M4.pre(window.GORE_TONED?'bs_belly4':'bs_belly5',320,180,(K,g,w,h)=>{const T=document.createElement('canvas');T.width=w;T.height=h;BC.carcass(T.getContext('2d'),0);const d=T.getContext('2d').getImageData(0,0,w,h).data,M=BT3.MEAT,F=BT3.FAT;
   const Hs=(x,y)=>{let v=(x*374761393+y*668265263)|0;v=(v^(v>>>13))*1274126177|0;return((v^(v>>>16))>>>0)/4294967295;};
   for(let y=BC.TOP+24;y<BC.TOP+150;y++){let l=-1,r=-1;for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>128){if(l<0)l=x;r=x;}if(l<0)continue;l+=10;r-=10;if(r-l<10)continue;
     for(let x=l;x<=r;x++){const u=(x-l)/(r-l)+Math.sin(y*.17+x*.03)*.035+Math.sin(y*.06)*.03,k=u<.2?5:u<.46?4:u<.8?3:2;let c=M[k];if(x===l||x===r)c=M[1];K.px(x,y,1,1,c);}
@@ -414,7 +426,7 @@ S4.cwGut=(sp,K)=>{const g=K.g,full=BS.full(),P=full?BG71.BL:BG71.BLT;BK.warm([()
   const jw=f=>{const kj=K.judge;K.judge=function(s2,x,y,q){return kj.call(this,s2,252,88,q);};try{f();}finally{K.judge=kj;}};
   const up=o.update;o.update=function(dt,I){G.t+=dt;if(G.ph==='hoist'){if(G.t>.9){G.ph='cut';}return;}
     if(G.ph==='cut'){jw(()=>up.apply(this,arguments));if(st.done){st.done=false;G.cutScore=st.score;G.ph='open';G.openT=G.t;BG71.snd.squish(1);}return;}
-    if(G.ph==='open'){G.sep=Math.min(1,(G.t-G.openT)*1.6);if(G.sep>=1){G.ph='roll';G.roll=G.t;BG71.snd.slop();K.shk=Math.max(K.shk,.1);}return;}
+    if(G.ph==='open'){G.sep=Math.min(1,(G.t-G.openT)*1.6);if(G.sep>=1){G.ph='roll';G.roll=G.t;BG71.snd.slop();BS.after().rollAt=performance.now()/1000;K.shk=Math.max(K.shk,.1);}return;}
     if(G.ph==='roll'){if(G.t-G.roll>1.1){G.ph='pluck';BS.snd.thump();}return;}
     if(G.ph==='pluck'){const r=BS.tugUp(G.T,dt,I);if(r==='ok'){G.out.push({i:G.i,t0:G.t});BS.snd.tear(.7);K.judge(1,252,88,true);G.i++;if(G.i>=PL.length){G.ph='end';G.endT=G.t;}}
       else if(r==='tear'){G.tears.push({i:G.i});BS.snd.tear(1.2);K.judge(.2,252,88,true);MS.miss&&MS.miss();}else if(r==='back')MS.miss&&MS.miss();}
@@ -442,7 +454,7 @@ S4.cwGut=(sp,K)=>{const g=K.g,full=BS.full(),P=full?BG71.BL:BG71.BLT;BK.warm([()
       if(!st.end){const ka=Math.PI-.62;M4.rot(g,M4S.knife(),st.tx,st.ty,ka,8,44);const [hx,hy2]=M4.tr(st.tx,st.ty,ka,-.5,-36.5);m4grip(K,hx,hy2,ka-Math.PI/2,{side:1});}
       m4grip(K,126,60,1.2,{side:-1});if(!st.end&&st.s<2){const [sx,sy]=PATH[0];K.pa(sx-3,sy-3,7,7,'#ffd27a',.5+Math.sin(t*10)*.3);}}};
   o.title='Gut her';o.how='She goes up on the gambrel by her hocks. Open her belly down the middle with the knife ('+(K.fine?'hold the mouse button and draw down the dotted line':'drag down the dotted line')+'), not too deep, and the paunch and the guts roll out into the tub. Then cut free the liver, the heart and the lungs: hold to pull, let go when it gives.';o.hint='Pull, feel it give, let go.';
-  const au=o.auto;o.auto=function(dt,AP){if(G.ph==='pluck'){const a=BS.tugAuto(this,G.T,AP,dt);AP.hand=PL[G.i].at.slice();AP.press=a.down;return;}if(G.ph!=='cut'){const a=m4ai(this,AP,dt);m4hold(a,false);AP.press=false;return;}return au.apply(this,arguments);};
+  const au=o.auto;o.auto=function(dt,AP){if(G.ph==='pluck'){const a=BS.tugAuto(this,G.T,AP,dt);AP.hand=PL[G.i].at.slice();AP.press=a.down;return;}if(G.ph!=='cut'){const a=m4ai(this,AP,dt);m4hold(a,false);AP.hand=[-40,-40];AP.press=false;return;}return au.apply(this,arguments);};
   const hd=o.hud;o.hud=function(){if(G.ph==='pluck'||G.ph==='end'){K.label('CUT FREE '+Math.min(PL.length,G.i+1)+'/'+PL.length,30,20,'#f4ecd8','l');K.meter(G.i/PL.length,Math.max(.5,(G.cutScore||1)-.12*G.tears.length));return;}if(G.ph==='cut')return hd&&hd.apply(this,arguments);K.meter(0,1);};
   return o;};
 // ---------------------------------------------------------------- split her down the spine with the saw into two sides
@@ -495,7 +507,7 @@ S4.cwWash=(sp,K)=>{const g=K.g,full=BS.full(),P=full?BG71.BL:BG71.BLT;BK.warm([(
 
 // ================================================================ the order, the takings
 // each run starts clean
-BS.reset=()=>{const af=BS.after();for(const k of ['henGutted','henSpoil','feathers','cowHeadOff','cowSkinned','cowGutted','cowSplit','skinQ','cowPool'])delete af[k];};
+BS.reset=()=>{const af=BS.after();for(const k of ['henGutted','henSpoil','feathers','cowHeadOff','cowSkinned','cowGutted','cowSplit','skinQ','cowPool','rollAt','henOut','stunBad','gibOut'])delete af[k];};
 for(const k of ['bgPin','bgStun']){const f=S4[k];if(f)S4[k]=(sp,K)=>{BS.reset();return f(sp,K);};}
 if(typeof MG4R!=='undefined'){const H=MG4R['b_butcher:hen'],C=MG4R['b_butcher:cow'];
   const ins=(R,list)=>{if(!R||R.steps.some(s=>s.k===list[0].k))return;const i=R.steps.findIndex(s=>s.k==='trace');R.steps.splice(i<0?R.steps.length:i,0,...list);};

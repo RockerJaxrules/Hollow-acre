@@ -9,6 +9,7 @@
    sound plays, and there's a short dark smear after: no spurts, kicking or severed head. ================= */
 const BK={after:{}};
 BK.full=()=>!window.GORE_TONED;
+BK.X=()=>typeof BX!=='undefined'&&BX.on();
 // ---------------------------------------------------------------- the sounds (the game's own synth)
 BK.snd={
   shriek(k){k=k||1;A.tone(MSV(1500,.1),.34*k,'sawtooth',.05,{slide:2300,filter:['bandpass',1800,3]});A.tone(MSV(2100,.1),.28*k,'square',.022,{slide:1500,delay:.06,filter:['bandpass',2200,4]});A.hiss(.24*k,.05,'bandpass',2600,{q:3,wobble:1});},
@@ -63,6 +64,36 @@ BK.hen=(w,l,b,hl)=>BG71.spr('bkhen4_'+w+l+b+hl,118,68,(()=>{const W=BG71.WHT,Y=B
     if(!hl){if(b){K.px(3,35,4,1,'#3a1018');K.px(10,31,3,3,'#1a1018');K.px(10,31,1,1,'#f6f1e8');K.px(12,33,1,1,'#c8601e');}else{K.px(10,32,2,2,'#1a1018');K.px(10,32,1,1,'#f6f1e8');K.px(12,32,1,1,'#c8601e');}}
     // the primaries at the wing's tip, three short darker lines, not a fringe
     if(w===0){for(const [x,y] of [[86,34],[89,32],[91,30]])K.px(x,y,3,1,W[2]);}else if(w===1){for(const [x,y] of [[88,6],[91,8],[93,11]])K.px(x,y,1,3,W[2]);}else{for(const [x,y] of [[71,0],[74,1],[77,3]])K.px(x,y,1,3,W[2]);}},'#2a2030');
+// (Extreme) her body without its head, up and running: wings beating up and down, legs going, the stump at the front
+BK.henRun=f=>BG71.spr('bkhenrun5_'+f,88,70,(()=>{const W=BG71.WHT,Y=BG71.BEAK,S=[];
+  // legs, running: one reaching forward, one pushing off behind; the toes spread
+  const LG=f?[[[40,50],[33,58],[27,64]],[[50,50],[57,58],[64,62]]]:[[[40,50],[45,59],[48,66]],[[50,50],[44,57],[36,62]]];
+  LG.forEach((pts,i)=>{S.push({t:'tube',pts,r0:2.6,r1:1.6,z:i?.2:.6,P:Y,base:2.4,gain:3});const e=pts[2],dx=e[0]-pts[1][0],dy=e[1]-pts[1][1],n=Math.hypot(dx,dy)||1,ux=dx/n,uy=dy/n;
+    for(const a of [-.8,0,.8]){const c=Math.cos(a),sn=Math.sin(a);S.push({t:'tube',pts:[e,[e[0]+(ux*c-uy*sn)*5,e[1]+(ux*sn+uy*c)*5]],r0:1,r1:.7,z:i?.2:.6,P:Y,base:2.2,gain:3});}});
+  // the tail up at the back
+  for(const [x0,y0,x,y,r0,r1] of [[64,28,78,8,4.4,1.4],[66,31,84,18,4.2,1.8],[64,34,80,34,3.6,1.6],[62,27,70,10,3,1.3]])S.push({t:'tube',pts:[[x0,y0],[(x0+x)/2+1,(y0+y)/2-1],[x,y]],r0,r1,z:1,P:W,base:3,gain:3.4});
+  // the body and the breast as big as she was lying down; the neck up and forward to its stump, the feathers there soaked red
+  S.push({t:'dome',cx:46,cy:36,rx:27,ry:17,top:12,z:2,P:W,base:3.4,gain:3.6},{t:'dome',cx:26,cy:38,rx:14,ry:13,top:10,z:2.4,P:W,base:3.6,gain:3.6});
+  // the neck, short and thick, ending where the hatchet went through: the feathers there matted red and dark, unevenly
+  S.push({t:'tube',pts:[[25,31],[19,25],[14,20]],r0:7.8,r1:7,z:3,P:W,base:3.6,gain:3.4,fn:(x,y,k)=>{const al=(x-14)*-.707+(y-20)*-.707,ac=(x-14)*.707+(y-20)*-.707,j=((Math.round(ac)*7+3)%5)*.9;
+    return al>-3.5-j?bt3pick(BG71.BL,k+(al>-2?.6:1.4)):al>-8-j&&((x*2+y*5)%7)<2?bt3pick(BG71.BL,k+1.8):null;}});
+  // the near wing beating: up over her back, or down along her side
+  S.push(f?{t:'tube',pts:[[42,24],[36,10],[30,1]],r0:9,r1:3,z:5,P:W,base:3.8,gain:3.4}:{t:'tube',pts:[[40,30],[54,40],[62,46]],r0:9,r1:3,z:5,P:W,base:3.6,gain:3.4});return S;})(),
+  (K)=>{// the cut, ragged: raw meat torn unevenly across the neck, strips of it hanging past the edge, the bone off to one side and
+    // standing proud, the windpipe a dark hole; blood running from it down the white of her breast in runs of unequal length
+    const Rw=BG71.RAW,B=BG71.BL,dx=-.707,dy=-.707,px=.707,py=-.707,cx=14,cy=20,cutAt=ai=>.6+(((ai*5+11)%4)-1.5)*.9+(ai===-1||ai===4?1.4:0);
+    // the round end of the neck taken off flat and ragged where the blade went through
+    for(let y=4;y<34;y++)for(let x=0;x<28;x++){const al=(x+.5-cx)*dx+(y+.5-cy)*dy,ac=(x+.5-cx)*px+(y+.5-cy)*py;if(Math.abs(ac)>8.5)continue;if(al>cutAt(Math.round(ac))+.2)K.g.clearRect(x,y,1,1);}
+    // the face of the cut seen edge on, a band of raw meat across the end: dark at its lip, lit where it faces up
+    for(let y=4;y<34;y++)for(let x=0;x<28;x++){const al=(x+.5-cx)*dx+(y+.5-cy)*dy,ac=(x+.5-cx)*px+(y+.5-cy)*py;if(Math.abs(ac)>7.4)continue;const ai=Math.round(ac),c0=cutAt(ai);
+      if(al>c0+.2||al<c0-3)continue;K.px(x,y,1,1,al>c0-.8?(ac>0?Rw[4]:Rw[3]):(ai*3)%4===0?Rw[0]:Rw[1]);}
+    // the bone off to the back of the cut, standing proud of it; the windpipe toward the front, a pale ring round a dark hole
+    for(let i=0;i<5;i++){const X=Math.round(cx+3.5*px+dx*(i-1)),Y=Math.round(cy+3.5*py+dy*(i-1));K.px(X,Y,2,2,i===4?'#fff4e0':'#e4d8c0');K.px(X+1,Y+1,1,1,'#8a7a64');}
+    {const wx=Math.round(cx-3*px+dx*.4),wy=Math.round(cy-3*py+dy*.4);K.px(wx-1,wy-1,3,3,'#e8c8b8');K.px(wx,wy,1,1,'#1a0408');}
+    // her blood down the white of her breast: three runs of unequal length, wandering, each ending in a bead
+    for(const [x,y,n] of [[12,25,11],[16,28,18],[20,30,7]]){const xx=x;for(let i=0;i<n;i++){const w=i<4?3:2;K.px(xx,y+i,w,1,B[3]);K.px(xx,y+i,1,1,B[4]);K.px(xx+w-1,y+i,1,1,B[2]);}
+      K.px(xx-1,y+n,3,2,B[3]);K.px(xx-1,y+n,1,1,B[5]);K.px(xx+1,y+n+1,1,1,B[1]);}
+},'#2a2030');
 // the severed head, beak shut or open (the stump on its right, the blood soaked up the neck feathers)
 BK.head=open=>BG71.spr('bkhead1_'+open,28,22,[
   {t:'tube',pts:[[15,11],[20,12],[25,12]],r0:5,r1:4.3,P:BG71.WHT,base:3.2,gain:3.4},{t:'dome',cx:10,cy:9,rx:6.5,ry:5.6,top:5,z:1,P:BG71.WHT,base:3.4,gain:3.4},
@@ -94,6 +125,14 @@ BK.cowF=(eye,mouth)=>M4.pre('bkcowf5_'+eye+mouth,76,86,(K,g)=>{g.drawImage(BK.im
 BK.at=(g,n,dx,dy)=>{const d=BK.IMG[n];g.drawImage(BK.img(n),d[4]+Math.round(dx||0),d[5]+Math.round(dy||0));};
 // her eye on the head lying on its cheek: rolled white / half shut / shut
 BK.lieEye=(K,e,oy)=>{const x=95,y=Math.round(104+oy),E=BK.E;K.px(x-1,y,10,1,E[1]);K.px(x,y-1,7,1,E[3]);
+  if(e===6){const I=typeof BX!=='undefined'&&BX.I,px=I?Math.max(0,Math.min(2,Math.round((I.x-x)/50))):0,py=0;
+    // wide open on you: white all round the pupil, the lids pulled back, the rim raw
+    K.px(x-1,y-1,11,1,E[1]);K.px(x,y-2,9,1,E[3]);K.px(x-1,y,1,6,E[1]);K.px(x+9,y,1,6,E[1]);K.px(x,y+6,9,1,'#a83a3a');K.px(x-1,y+6,1,1,E[1]);K.px(x+9,y+6,1,1,E[1]);
+    K.px(x,y,9,6,'#f2eadc');K.px(x,y,1,1,'#c8b8a8');K.px(x+8,y,1,1,'#c8b8a8');K.px(x,y+5,9,1,'#dca094');K.px(x+1,y+4,1,1,'#c85050');K.px(x+7,y+1,1,1,'#c85050');
+    const qx=x+1+px,qy=y+2;K.px(qx,qy,3,3,'#140808');K.px(qx,qy+3,3,1,'#2a120e');K.px(qx+3,qy+1,1,2,'#2a120e');K.px(qx,qy,1,1,'#fffaf0');return;}
+  if(e===7){// rolled up white: the lids half down, only an edge of the eye left under the top lid, the white veined
+    K.px(x-1,y,11,1,E[1]);K.px(x,y+1,9,1,E[2]);K.px(x-1,y+1,1,4,E[1]);K.px(x+9,y+1,1,4,E[1]);K.px(x,y+2,9,3,'#e8dccc');K.px(x+2,y+2,4,1,'#2a120e');K.px(x+3,y+2,2,1,'#140808');
+    K.px(x,y+4,9,1,'#d8968a');K.px(x+1,y+3,1,1,'#c04848');K.px(x+7,y+3,1,1,'#c04848');K.px(x+6,y+4,1,1,'#a83030');K.px(x,y+5,9,1,E[1]);return;}
   if(e===5){K.px(x,y+3,8,1,E[0]);K.px(x+1,y+4,6,1,E[1]);K.px(x,y+1,8,2,E[2]);K.px(x+1,y+2,6,1,E[1]);K.px(x-1,y+4,1,1,E[0]);return;}
   K.px(x,y+1,8,4,'#ece2d6');K.px(x-1,y+2,1,2,E[1]);K.px(x+8,y+2,1,2,E[1]);
   if(e===1){K.px(x+5,y+1,3,3,'#24100e');K.px(x+5,y+1,1,1,'#f4ecd8');K.px(x,y+4,8,1,'#c88a8a');}
@@ -126,7 +165,20 @@ BK.splash=(K,s,t,P)=>{const x=Math.round(s.x),y=Math.round(s.y),a=Math.min(1,Mat
   K.px(x-4,y,9,3,P[3]);K.px(x-3,y-1,6,1,P[3]);K.px(x-5,y+1,1,1,P[2]);K.px(x+5,y+1,1,1,P[2]);K.px(x-3,y,2,1,P[4]);K.px(x-2,y+3,6,1,P[1]);
   for(const [dx,dy] of [[-7,-3],[-6,-5],[6,-3]])K.px(x+dx,y+dy,2,1,P[2]);
   for(const [dx,len,sp] of [[-2,14,10],[1,22,13],[3,9,8]]){const n=Math.min(len,Math.floor(Math.max(0,t-s.t0)*sp));for(let i=0;i<n;i++)K.px(x+dx,y+3+i,i<n*.5?2:1,1,P[3]);if(n>1){K.px(x+dx,y+3+n,2,2,P[3]);K.px(x+dx,y+3+n,1,1,P[5]);}}};
-BK.drawWall=(K,list,t,P,oy)=>{for(const s of list)BK.splash(K,{x:s.x,y:s.y+(oy||0),t0:s.t0},t,P);};
+BK.drawWall=(K,list,t,P,oy)=>{for(const s of list){if(s.X&&BK.X()){BK.XL.drawSplat(K,s.X,99,oy||0);continue;}BK.splash(K,{x:s.x,y:s.y+(oy||0),t0:s.t0},t,P);}};
+// (Extreme) the headless hen's run: the smear she leaves along the block with her bloody footprints in it, the drops that land
+// ahead of her, and the jets out of her neck in the air, each one a joined stream thick at its head and thinning behind
+BK.trail=(K,tr,P)=>{for(let i=1;i<tr.length;i++){const [ax,ay]=tr[i-1],[bx,by]=tr[i],n=Math.max(1,Math.ceil(Math.hypot(bx-ax,by-ay)));if(n>40)continue;
+    for(let j=0;j<=n;j++){const x=Math.round(ax+(bx-ax)*j/n),y=Math.round(ay+(by-ay)*j/n),q=(i*5+j*3)%7,top=q===0?-3:-2,bot=q===3?3:2;
+      K.px(x,y+top,1,1,P[4]);K.px(x,y+top+1,1,bot-top-1,P[3]);K.px(x,y+bot,1,1,P[2]);if((i+j)%6===0)K.px(x,y,1,1,P[2]);}
+    // her feet printing through it, three toes forward
+    const f=i%2?-1:1,d=bx>ax?1:-1;K.px(bx-1,by+f,3,1,P[1]);K.px(bx+d*2,by+f-1,1,1,P[1]);K.px(bx+d*2,by+f+1,1,1,P[1]);K.px(bx+d*2,by+f,2,1,P[1]);}};
+// where a jet comes down: a splash stretched the way it was going, one to each beat
+BK.stain=(K,s,P)=>{const d=s.dx>0?1:-1,x=d>0?Math.max(s.x,s.x2):Math.min(s.x,s.x2),xb=d>0?Math.min(s.x,s.x2):Math.max(s.x,s.x2),y=s.y2;
+  for(let X=xb;X!==x;X+=d)K.px(X,y,1,1,P[3]);K.px(x-1,y-1,3,1,P[3]);K.px(x-2,y,5,2,P[3]);K.px(x-1,y+2,3,1,P[2]);K.px(x-1,y,1,1,P[4]);K.px(x+d*3,y,2,1,P[3]);K.px(x+d*4,y+1,1,1,P[2]);};
+BK.jets=(K,jets,P)=>{for(let i=0;i<jets.length;i++){const p=jets[i],q=jets[i+1],head=i===0||jets[i-1].id!==p.id,x=Math.round(p.x),y=Math.round(p.y);
+    if(q&&q.id===p.id){const n=Math.max(1,Math.ceil(Math.max(Math.abs(q.x-p.x),Math.abs(q.y-p.y))));if(n<12)for(let j=0;j<=n;j++){const X=Math.round(p.x+(q.x-p.x)*j/n),Y=Math.round(p.y+(q.y-p.y)*j/n);K.px(X-1,Y-1,3,3,P[3]);K.px(X-1,Y-1,2,1,P[4]);K.px(X,Y+1,2,1,P[1]);}}
+    if(head){K.px(x-2,y-1,4,4,P[3]);K.px(x-1,y-2,2,1,P[3]);K.px(x-2,y-1,1,1,P[5]);K.px(x,y+2,2,1,P[1]);}}};
 // the bucket: staves (each lit on its left), two iron hoops, the rim round its dark mouth
 BK.bucket=()=>M4.pre('bk_bucket2',34,30,(K)=>{const Wd=CA_P.oak,I=CA_P.iron;
   for(let y=3;y<30;y++){const hw=Math.round(16-(y-3)*.12);for(let x=17-hw;x<17+hw;x++){const s=(x-(17-hw))/(hw*2);let k=s<.2?5:s<.5?4:s<.8?3:2;if((x-(17-hw))%5===0)k=1;K.px(x,y,1,1,Wd[k]);}}
@@ -179,6 +231,7 @@ BK.drip=(K,px,py,ang,d,P)=>{let ex=0,ey=-1e9;const c=Math.cos(ang),s=Math.sin(an
   else{const q=(p-.65)/.35,y=Math.round(ey+3+q*q*(land-ey-3));if(y<land-1){K.px(ex,y,2,3,P[3]);K.px(ex,y,1,1,P[5]);K.px(ex,ey+1,1,1,P[3]);}}};
 // ---------------------------------------------------------------- the hen: pin her, then the hatchet
 const BKH={BX:140,NY:105,HX:110,HY:76};
+BKH.runAt=(r,u)=>{const K=[[0,r.x0,r.y0],[.32,232,82],[.42,222,92],[.74,186,98],[1,212,110]];for(let i=0;i+1<K.length;i++){const [a,ax,ay]=K[i],[b,bx,by]=K[i+1];if(u<=b){const v=(u-a)/(b-a);return [ax+(bx-ax)*v,ay+(by-ay)*v,bx>ax?1:-1];}}return [212,110,1];};
 BKH.scene=(K,g)=>{const B=BT3.block(236,112);K.pa(46,82,B.width,B.height,'#000',.35);g.drawImage(B,42,74);};
 // the hen at offset dx, her frame, her wounds (painted at her own coordinates so they move with her)
 BKH.drawHen=(K,g,S,dx,f,P)=>{const x=Math.round(BKH.HX+dx),y=BKH.HY;g.drawImage(BK.hen(f.w,f.l,f.b,f.hl===2?2:f.hl?1:0),x,y);
@@ -213,11 +266,11 @@ S4.bgChop=(sp,K)=>{const g=K.g,full=BK.full(),P=full?BG71.BL:BG71.BLT,BX=BKH.BX,
   const amp=()=>st.bad>=3?7:13,osc=t=>amp()*Math.sin(t*2.1+Math.sin(t*1.3)*.8)+(st.thr>0?Math.sin(t*23)*3*st.thr:0),neckX=t=>BKH.HX+30+osc(t);
   const strike=()=>{st.strikes++;const off=neckX(st.t)-BX,clean=Math.abs(off)<=5||st.strikes>=5;BK.snd.chop();K.shk=Math.max(K.shk,.14);st.hand=Math.min(2,st.hand+1);
     if(!full)st.cutT=.75;
-    if(clean){st.dead=.001;st.deadX=osc(st.t);K.judge(1-.15*st.bad,252,50,true);
+    if(clean){st.dead=.001;st.deadX=osc(st.t);K.judge(1-.15*st.bad,252,50,true);if(BK.X()){BK.XL.bloody=1;BK.XL.hit(76,40,1.2,Math.PI*1.1);st.run={R:4.2+.9*st.bad,x0:Math.round(BKH.HX+st.deadX+66),y0:BKH.HY+34,hit:0,tr:[],fl:0,sp:0,pid:0,pT:0,jets:[],stains:[]};}
       if(full){const sx=BX,sy=NY+4;for(let k=0;k<6;k++)st.arcs.push({x0:sx,y0:sy,x1:sx+(k%2?-1:1)*(4+k),y1:sy+6+k,h:12-k*1.4,t0:st.t+k*.42,dur:.42,w:3});
         const nx=Math.round(BKH.HX+st.deadX+29);st.flows.push({x0:nx,y0:BKH.HY+40,x1:nx-1,y1:BKH.HY+45,t0:st.t+.3,sz:17,seed:21,left:1});}
       else st.smear=[BX+2,NY+12];}
-    else{st.bad++;st.thr=1;BK.snd.shriek(1.2);BK.snd.flap();K.judge(.15,252,50,true);MS.miss&&MS.miss();const wx=Math.max(27,Math.min(40,Math.round(31-off*.5)));
+    else{st.bad++;st.thr=1;BK.snd.shriek(1.2);BK.snd.flap();K.judge(.15,252,50,true);MS.miss&&MS.miss();if(BK.X()){BK.XL.bloody=1;BK.snd.shriek(1.5+st.bad*.3);}const wx=Math.max(27,Math.min(40,Math.round(31-off*.5)));
       st.ph='recoil';st.rT=0;if(full){st.wounds.push({x:wx,y:31,run:{x:wx+3,y:33,len:6+st.bad*2,t0:st.t,w:2,wob:0}});
         st.flows.push({x0:BX+1,y0:NY+12,x1:BX+3+st.bad*3,y1:NY+26,t0:st.t+.25,sz:5+st.bad*2,seed:30+st.bad});}
       else st.wounds.push({x:wx,y:31,run:{x:wx,y:32,len:0,t0:st.t,w:1}});}};
@@ -225,7 +278,13 @@ S4.bgChop=(sp,K)=>{const g=K.g,full=BK.full(),P=full?BG71.BL:BG71.BLT,BX=BKH.BX,
     update(dt,I){st.t+=dt;st.cutT=Math.max(0,st.cutT-dt);st.thr=Math.max(0,st.thr-dt*1.1);
       if(st.dead){st.dead+=dt;const d=st.dead;if(d>.55)st.ang+=(-.6-st.ang)*Math.min(1,dt*5);
         if(full){if(Math.floor(d*2.6)!==Math.floor((d-dt)*2.6)&&d<2.6){BK.snd.pulse(1-d/3);BK.snd.flap();}if(d>.3&&d<1.7&&Math.floor(d*4)!==Math.floor((d-dt)*4))A.tone(MSV(900,.2),.04,'square',.012,{slide:600});}
-        if(d>(full?3.4:1.4)){st.done=true;st.score=Math.max(.5,1-.15*st.bad);BK.after.hen=full?2:1;BK.after.henWall=st.wall.slice();BK.after.hand=st.hand;}return;}
+        if(st.run&&d>.9){const r=st.run,u=(d-.9)/r.R;if(u<1){const [x,y,dir]=BKH.runAt(r,u),sx=x+dir*34,sy=y-21;r.fl+=dt;if(r.fl>.12){r.fl=0;BK.snd.flap();r.tr.push([Math.round(x),Math.round(y+30)]);}
+            // her heart still going: the neck throws a jet with every beat, out ahead of her
+            r.sp+=dt;if(r.sp>.38){r.sp=0;r.pid++;r.pT=.2;BK.snd.pulse(.8);}
+            if(r.pT>0){r.pT-=dt;const v=1-r.pT/.2;r.jets.push({x:sx,y:sy,vx:dir*(70-v*30),vy:-78+v*30,id:r.pid,gy:y+28+v*4});}
+            if(!r.hit&&u>.32){r.hit=1;BS.snd.thump();BK.snd.thud(1);const W={x:268,y:56,t0:st.t};if(BK.XL.mkSplat)W.X=BK.XL.mkSplat(268,56,1.5,-.5);st.wall.push(W);BK.XL.hit(268,40,1.3);K.shk=Math.max(K.shk,.12);}}
+          for(let i=r.jets.length-1;i>=0;i--){const p=r.jets[i];p.vy+=300*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.vy>0&&p.y>=p.gy){r.jets.splice(i,1);const q=r.stains[r.stains.length-1],X=Math.round(p.x),Y=Math.round(p.gy);if(X<50||X>270){}else if(q&&q.id===p.id&&Math.abs(q.x2-X)<8){q.x2=X;q.y2=Y;}else if(r.stains.length<40)r.stains.push({id:p.id,x:X,y:Y,x2:X,y2:Y,dx:Math.sign(p.vx)});}}}
+        if(d>(st.run?.9+st.run.R+1.8:full?3.4:1.4)){st.done=true;st.score=Math.max(.5,1-.15*st.bad);BK.after.hen=full?2:1;BK.after.henWall=st.wall.slice();BK.after.hand=st.hand;}return;}
       if(st.ph==='ready'){st.ang+=(AR-st.ang)*Math.min(1,dt*10);if(I.pressed||(I.down&&!st.wasDown)){st.ph='swing';st.sw=0;MS.swish&&MS.swish(.8);}}
       if(st.ph==='swing'){st.sw+=dt/.09;st.ang=AR+(AI-AR)*Math.min(1,st.sw)**2;if(st.sw>=1){st.ang=AI;strike();if(st.ph==='swing'){st.ph='hit';st.hitT=.35;}}}
       if(st.ph==='recoil'){st.rT+=dt;st.ang+=(AR*.7-st.ang)*Math.min(1,dt*14);if(st.rT>.4)st.ph='ready';}
@@ -234,16 +293,20 @@ S4.bgChop=(sp,K)=>{const g=K.g,full=BK.full(),P=full?BG71.BL:BG71.BLT,BX=BKH.BX,
     draw(t){if(BK.cut(K,g,st)){return;}BKH.scene(K,g);
       for(const f of st.flows){if(BK.flow(K,f,st.t,P)){f.q=Math.min(1,(f.q||.15)+.02);const q=Math.max(1,Math.round(f.q*10));BK.flatAt(g,BK.flat(f.seed,q,f.sz,full),f.x1,f.y1,f.sz*q/10*(f.left?-1:1));}}
       if(st.smear)BK.smear(K,st.smear[0],st.smear[1]);
-      for(const s of st.wall)BK.splash(K,s,st.t,P);
+      for(const s of st.wall){if(s.X&&BK.X())BK.XL.drawSplat(K,s.X,st.t-s.t0,0);else BK.splash(K,s,st.t,P);}
       if(st.dead){const d=st.dead,dx=st.deadX;
         if(full){const kick=Math.max(0,1-d/3.2),fr=Math.floor(d*(4+9*kick)),h=n=>((n*2654435761)>>>0)%3,f={w:kick>.05?h(fr*7+1):0,l:kick>.05?h(fr*13+5):0,b:0,hl:1};
-          BKH.drawHen(K,g,st,dx+(kick>.1?(h(fr*3)-1)*kick*2:0),f,P);
+          if(st.run&&d>.9){const r=st.run,u=(d-.9)/r.R;BK.trail(K,r.tr,P);for(const s2 of r.stains)BK.stain(K,s2,P);
+            if(u<1){const [x,y,dir]=BKH.runAt(r,u),bob=Math.round(Math.abs(Math.sin(d*18))*3),im=BK.henRun(Math.floor(d*10)%2);g.save();g.translate(Math.round(x),Math.round(y)-bob);if(dir>0)g.scale(-1,1);g.drawImage(im,-44,-36);g.restore();}
+            else{const e=d-.9-r.R,kk=Math.max(0,1-e/1.6),fr2=Math.floor(e*(4+9*kk));BKH.drawHen(K,g,st,34+(kk>.1?(h(fr2*3)-1)*kk*2:0),{w:kk>.05?h(fr2*7+1):0,l:kk>.05?h(fr2*13+5):0,b:0,hl:1},P);}}
+          else BKH.drawHen(K,g,st,dx+(kick>.1?(h(fr*3)-1)*kick*2:0),f,P);
+          if(st.run)BK.jets(K,st.run.jets,P);
           // the head off: it tumbles a hand's width away and lies tilted, the beak still opening and shutting
           const open=d>.25&&d<1.9&&Math.floor((d-.25)*(4-d))%2===0,u=Math.min(1,d/.25);M4.rot(g,BK.head(open?1:0),BKH.HX+dx+12-u*9,BKH.HY+34+u*7,-.5*u,14,11);}
         else{BK.smear(K,BKH.HX+dx+20,BKH.HY+38);BK.smear(K,BKH.HX+dx+12,BKH.HY+41);BKH.drawHen(K,g,st,dx,{w:0,l:0,b:0,hl:2},P);}}
       else{const f={w:st.thr>0?[2,1,2,1][Math.floor(t*16)%4]:0,l:st.thr>0?[1,2,1,0][Math.floor(t*12)%4]:Math.floor(t*1.6)%2,b:st.thr>0||Math.floor(t*1.1)%4===0?1:0};BKH.drawHen(K,g,st,osc(st.t),f,P);}
       // your other hand flat on her back, fingers along it
-      m4grip(K,BKH.HX+(st.dead?st.deadX:osc(st.t))+86,BKH.HY+22,.35,{side:1});
+      if(!(st.run&&st.dead>.9))m4grip(K,BKH.HX+(st.dead?st.deadX:osc(st.t))+86,BKH.HY+22,.35,{side:1});
       // where the blade comes down, marked on the block
       if(!st.dead){K.pa(BX,NY+13,1,15,'#1a0c06',.45);K.pa(BX+1,NY+13,1,15,'#f0d8a0',.14);}
       const raise=st.ph==='ready'&&!st.dead?Math.max(0,(AI-st.ang)/(AI-AR)):0,px=PIV[0],py=PIV[1]-raise*8;
@@ -261,12 +324,13 @@ S4.bgStun=(sp,K)=>{const g=K.g,full=BK.full(),P=full?BG71.BL:BG71.BLT;BK.after.c
   const st={t:0,ph:'ready',bad:0,ang:1.25,sw:0,stag:0,stagS:1,panic:0,dead:0,cutT:0,wounds:[],strikes:0,bawlT:1.2,hand:0,smears:[],hitAt:-9};
   const sway=t=>{const a=st.bad>=3?9:16+st.panic*8,f=st.bad>=3?1.1:1.6+st.panic*.9;return a*Math.sin(t*f+Math.sin(t*.7)*1.2)+st.stag*st.stagS*14;},headX=t=>BKC.TX+sway(t);
   const strike=()=>{st.strikes++;st.hitAt=st.t;const off=headX(st.t)-BKC.TX,clean=Math.abs(off)<=6||st.strikes>=5;BK.snd.thud(clean?1.2:.8);K.shk=Math.max(K.shk,clean?.22:.14);st.hand=1;if(!full)st.cutT=.8;
-    if(clean){st.dead=.001;st.deadX=sway(st.t);K.judge(1-.15*st.bad,252,60,true);setTimeout(()=>{try{BK.snd.drop();}catch(e){}},280);if(full)st.wounds.push({x:38,y:27,run:{x:38,y:29,len:14,t0:st.t,w:2,sp:14,wob:.3}});}
+    if(clean){st.dead=.001;st.deadX=sway(st.t);K.judge(1-.15*st.bad,252,60,true);setTimeout(()=>{try{BK.snd.drop();}catch(e){}},280);if(full)st.wounds.push({x:38,y:27,run:{x:38,y:29,len:14,t0:st.t,w:2,sp:14,wob:.3}});if(BK.X()){BX.bloody=1;}}
     else{st.bad++;st.stag=1;st.stagS=off>0?1:-1;st.panic=1;K.judge(.15,252,60,true);setTimeout(()=>{try{BK.snd.bellow();}catch(e){}},90);MS.miss&&MS.miss();
-      const wx=Math.max(29,Math.min(47,Math.round(38-off*.6))),wy=20+(st.bad%2)*4;if(full)st.wounds.push({x:wx,y:wy,run:{x:wx,y:wy+2,len:22+st.bad*6,t0:st.t,w:2,sp:12,wob:.5}});else st.smears.push([wx,wy]);}};
+      const wx=Math.max(29,Math.min(47,Math.round(38-off*.6))),wy=20+(st.bad%2)*4;if(full)st.wounds.push({x:wx,y:wy,run:{x:wx,y:wy+2,len:22+st.bad*6,t0:st.t,w:2,sp:12,wob:.5}});else st.smears.push([wx,wy]);
+      if(BK.X()){BX.bloody=1;st.stag=1.5;st.wounds.push({x:wx+4,y:wy+3,run:{x:wx+4,y:wy+5,len:30+st.bad*8,t0:st.t,w:3,sp:16,wob:.3}});setTimeout(()=>{try{BK.snd.bellow();BX.snd.gurgle(.6+st.bad*.3);}catch(e){}},650);}}};
   return {title:'Stun her',how:'She won’t keep her head still. '+(K.fine?'Click':'Tap')+' to bring the sledge down when the whorl on her brow is under it. A glancing blow only hurts her, and you have to swing again.',hint:'Swing when the mark on her brow is under the sledge.',st,
     update(dt,I){st.t+=dt;st.cutT=Math.max(0,st.cutT-dt);st.stag=Math.max(0,st.stag-dt*1.4);st.panic=Math.max(0,st.panic-dt*.25);
-      if(st.dead){st.dead+=dt;if(st.dead>.3)st.ang+=(1.05-st.ang)*Math.min(1,dt*5);if(st.dead>(full?1.6:1.2)){st.done=true;st.score=Math.max(.5,1-.15*st.bad);BK.after.cowHand=1;}return;}
+      if(st.dead){st.dead+=dt;if(st.dead>.3)st.ang+=(1.05-st.ang)*Math.min(1,dt*5);if(st.dead>(full?1.6:1.2)){st.done=true;st.score=Math.max(.5,1-.15*st.bad);BK.after.cowHand=1;BK.after.stunBad=st.bad;}return;}
       st.bawlT-=dt;if(st.bawlT<=0){st.bawlT=2.4+Math.random()*1.6;st.bawlOn=.9;BK.snd.bawl(.9);}st.bawlOn=Math.max(0,(st.bawlOn||0)-dt);
       if(st.ph==='ready'){st.ang+=(1.25-st.ang)*Math.min(1,dt*8);if(I.pressed||(I.down&&!st.wasDown)){st.ph='swing';st.sw=0;st.hitAt=-9;MS.swish&&MS.swish(1);}}
       if(st.ph==='swing'){st.sw+=dt/.12;st.ang=1.25*(1-Math.min(1,st.sw)**2);if(st.sw>=1){st.ang=0;strike();st.ph='hit';st.hitT=.6;}}
@@ -280,7 +344,7 @@ S4.bgStun=(sp,K)=>{const g=K.g,full=BK.full(),P=full?BG71.BL:BG71.BLT;BK.after.c
       BK.at(g,'cowStand',sx*.12,Math.round(bb*.3)+dyB);BK.at(g,'cowChest',sx*.45,Math.round(bb*.7)+dyF);
       // the lead rope from the post's ring to the halter's, sagging
       const rx=hx,ry=BKC.TY-28+82+bob,nr=Math.ceil(Math.abs(rx-37))+4;for(let k=0;k<=nr;k++){const u=k/nr,x=Math.round(37+(rx-37)*u),y=Math.round(112+(ry-112)*u+Math.sin(u*Math.PI)*10);K.px(x,y,1,2,'#8a7040');K.px(x,y,1,1,'#b89a5c');K.px(x,y+2,1,1,'#3a2a16');}
-      const hxo=hx-38,hyo=BKC.TY-28+bob;if(tilt){g.save();g.translate(hxo+38,hyo+43);g.rotate(tilt);g.translate(-(hxo+38),-(hyo+43));}g.drawImage(BK.cowF(eye,mouth),hxo,hyo);
+      const hxo=hx-38,hyo=BKC.TY-28+bob;if(tilt){g.save();g.translate(hxo+38,hyo+43);g.rotate(tilt);g.translate(-(hxo+38),-(hyo+43));}g.drawImage(BK.cowF(eye,mouth),hxo,hyo);if(BK.X()&&eye===0&&BX.I){const I=BX.I,dx=Math.max(-1,Math.min(2,Math.round((I.x-hxo-38)/30))),dy=Math.max(0,Math.min(1,Math.round((I.y-hyo-32)/40)));for(const ex of [20,50]){K.px(hxo+ex,hyo+31,6,5,'#ece2d6');K.px(hxo+ex+1+dx,hyo+32+dy,3,3,'#140808');K.px(hxo+ex+1+dx,hyo+32+dy,1,1,'#f4ecd8');}}
       // where it hit: the hide split on the brow, one run down from it
       for(const wd of st.wounds){const X=hxo+wd.x,Y=hyo+wd.y;K.px(X-3,Y,7,1,P[0]);K.px(X-2,Y-1,4,1,P[1]);K.px(X-1,Y,3,1,P[3]);K.px(X+1,Y+1,3,1,P[0]);K.px(X-2,Y-1,1,1,P[4]);BK.runs(K,[wd.run],st.t,P,hxo,hyo);}
       for(const s of st.smears)BK.smear(K,hxo+s[0],hyo+s[1]);if(tilt)g.restore();
@@ -305,39 +369,59 @@ BK.gash=(K,PT,n,op,full,P,oy)=>{const M=BT3.MEAT,E=BK.E,Hs=j=>((j*2654435761)>>>
 BK.stream=(K,pts,w,P)=>{const N=[];for(let k=0;k+1<pts.length;k++){const [ax,ay]=pts[k],[bx,by]=pts[k+1],L=Math.max(1,Math.ceil(Math.hypot(bx-ax,by-ay)));for(let i=0;i<L;i++)N.push([Math.round(ax+(bx-ax)*i/L),Math.round(ay+(by-ay)*i/L)]);}
   for(const [x,y] of N)K.px(x,y,w,w,P[1]);for(const [x,y] of N)K.px(x,y,w-1,w-1,P[3]);for(let i=1;i<Math.min(4,N.length);i++)K.px(N[i][0],N[i][1],1,1,P[4]);};
 // the throat: the knife game's own hand and line (S4.trace) on her; then she bleeds out into the bucket and is hoisted
-BKC.TPATH=[[113,101],[115,115],[118,129]];BKC.BUCK=[86,137];BKC.LY=-10;
+BKC.TPATH=[[113,101],[115,115],[118,129]];BKC.TPATH2=[[119,102],[122,114],[125,127]];BKC.BUCK=[86,137];BKC.LY=-10;
 S4.bgThroat=(sp,K)=>{const g=K.g,full=BK.full(),P=full?BG71.BL:BG71.BLT;BK.warm([()=>{BK.img('cowLie');for(let f=0;f<4;f++)BK.img('cowLeg'+f);BK.bucket();BK.wall();},()=>{for(let q=1;q<=10;q++)BK.flat(41,q,27,full);}]);
   const o=S4.trace(Object.assign({},sp,{surface:'throat',tool:'knife',paths:[BKC.TPATH.map(p=>p.slice())]}),K);const st=o.st,PT=[];{const L=Math.floor(m4len(BKC.TPATH));for(let j=0;j<=L;j++)PT.push(m4at(BKC.TPATH,j));}
   const G={t:0,bleed:-1,score:0,wall:[],level:0,over:0,pools:[],hoist:0,cutT:0,pulses:0,env:0};const [BX0,BY0]=BKC.BUCK,MX=BX0+17,MY=BY0+3;
-  const up=o.update;o.update=function(dt,I){G.t+=dt;G.cutT=Math.max(0,G.cutT-dt);if(G.bleed<0){up.apply(this,arguments);if(st.done){G.score=st.score;st.done=false;G.bleed=0;if(!full)G.cutT=2;BK.snd.chop();setTimeout(()=>{try{BK.snd.bellow();}catch(e){}},100);}return;}
+  const up=o.update;o.update=function(dt,I){G.t+=dt;G.cutT=Math.max(0,G.cutT-dt);if(G.bleed<0){up.apply(this,arguments);if(st.done){G.score=st.score;st.done=false;G.bleed=0;if(!full)G.cutT=2;BK.snd.chop();if(BK.X()){const sb=BK.after.stunBad||0;BX.bloody=1;BX.hit(0,0,1.4);G.X={end:9+2.5*sb,froth:[],brT:.4,rev:sb>0?'wait':null,thr:1};}setTimeout(()=>{try{BK.snd.bellow();}catch(e){}},100);}return;}
     G.bleed+=dt;const b=G.bleed;for(const p of G.pools)p.q+=(p.tq-p.q)*Math.min(1,dt*.8);G.env=Math.max(0,G.env-dt*2.2);
     // a pulse every beat, weaker and further apart as she empties: the stream swells with each, and the bucket runs over
-    const per=.55+b*.18;if(b<4.2&&b>=(G.nextP||0)){G.nextP=b+per;G.pulses++;const k=Math.max(.25,1-b/4.4);BK.snd.pulse(k);G.env=k;
-      G.level=Math.min(1.6,G.level+.3);if(G.level>1&&!G.over){G.over=G.t;G.pools.push({x:MX,y:BY0+31,sz:27,seed:41,q:.15,tq:1});}}
-    if(b>5.2&&!st.done){st.done=true;st.score=G.score;BK.after.cow=full?2:1;BK.after.cowWall=G.wall.slice();BK.after.cowPool=G.pools.length?G.pools[0].q:0;}};
+    if(G.X){const X=G.X;X.thr=X.rev==='cut'?1:Math.max(0,1-b/(X.end*.6));X.brT-=dt;
+      // her breath, bubbling through the cut; she bawls through it
+      if(X.brT<=0&&b<X.end-1){X.brT=1.05+b*.08;BX.snd.gurgle(1);const [fx,fy]=PT[N1];for(let i=0;i<4;i++)X.froth.push({x:fx-3+Math.random()*7,y:fy-8+Math.random()*9,r:1+Math.random()*1.6,t0:G.t+i*.08});if(Math.random()<.45)BX.snd.bawl(.7+X.thr*.5);}
+      // a botched stun: she isn't out. She comes round with her throat open, and you have to finish it
+      if(X.rev==='wait'&&b>2.4){X.rev='cut';X.o2=S4.trace(Object.assign({},sp,{surface:'throat2',tool:'knife',paths:[BKC.TPATH2.map(p=>p.slice())]}),K);BX.snd.bawl(1.6);K.shk=Math.max(K.shk,.16);setTimeout(()=>{try{BK.snd.bellow();BX.snd.gurgle(1.3);}catch(e){}},350);}
+      if(X.rev==='cut'){const o2=X.o2;o2.update.call(o2,dt,I);if(o2.st.done){o2.st.done=false;X.rev='done';BK.snd.chop();BK.snd.pulse(1);BX.hit(0,0,1.5);K.shk=Math.max(K.shk,.12);}}}
+    const lim=G.X?G.X.end-2:4.2,per=.55+b*.18;if(b<lim&&b>=(G.nextP||0)){G.nextP=b+per;G.pulses++;const k=Math.max(.25,1-b/(lim+.2));BK.snd.pulse(k);G.env=k;
+      if(G.X){if(G.pulses===2||(G.pulses===4&&!G.X.rev))BX.hit(0,0,1.2);G.jp=.24;G.jk=k;}
+      G.level=Math.min(1.6,G.level+.3);if(G.level>1&&!G.over){G.over=G.t;G.pools.push({x:MX,y:BY0+31,sz:27,seed:41,q:.15,tq:1});if(G.X)G.pools.push({x:166,y:161,sz:32,seed:44,q:.05,tq:1});}}
+    // (Extreme) each beat throws a jet out of the cut, one joined stream, over the bucket's rim to the boards
+    if(G.X){G.jets=G.jets||[];G.stains=G.stains||[];if(G.jp>0){G.jp-=dt;const v=1-G.jp/.24,k=G.jk||1,[x0,y0]=PT[N1];G.jets.push({x:x0-1,y:y0+1,vx:-(30+30*k)*(1-.3*v),vy:-(26+34*k)+v*22,id:G.pulses,gy:163+((G.pulses*7)%3)*2});}
+      for(let i=G.jets.length-1;i>=0;i--){const p=G.jets[i];p.vy+=300*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.vy>0&&p.y>=p.gy){G.jets.splice(i,1);const q=G.stains[G.stains.length-1],X2=Math.round(p.x),Y2=Math.round(p.gy);
+        if(X2<4){}else if(q&&q.id===p.id&&Math.abs(q.x2-X2)<8){q.x2=X2;q.y2=Y2;}else if(G.stains.length<30)G.stains.push({id:p.id,x:X2,y:Y2,x2:X2,y2:Y2,dx:-1});}}}
+    if(b>(G.X?G.X.end:5.2)&&!st.done&&!(G.X&&G.X.rev==='cut')){st.done=true;st.score=G.score;BK.after.cow=full?2:1;BK.after.cowWall=G.wall.slice();BK.after.cowPool=G.pools.length?G.pools[0].q:0;}};
   const d0=o.draw;o.draw=function(t){if(G.cutT>0&&!full){g.drawImage(BK.wall(),0,0);return;}
-    const b=G.bleed,hy=-Math.round((G.hoist>0?G.hoist*G.hoist:0)*230),kick=b<0?.35:full?Math.max(0,1-b/3.2):Math.max(0,.5-b/3),eye=b<1.3?1:b<2.6?4:5;
+    const b=G.bleed,X=G.X,thr=X&&b>=0?X.thr:0,hy=-Math.round((G.hoist>0?G.hoist*G.hoist:0)*230)+Math.round(Math.sin(t*41)*1.6*thr),kick=X&&b>=0?Math.max(.15,thr):b<0?.35:full?Math.max(0,1-b/3.2):Math.max(0,.5-b/3),eye=X&&b>=1.2?(X.rev==='cut'||b<X.end*.42?6:7):b<1.3?1:b<2.6?4:5;
     if(G.hoist<.3){g.globalAlpha=.35*(1-G.hoist*3);K.ell(178,150,122,9,'#0a0604');g.globalAlpha=1;}
     // the pool on the boards round the bucket's foot
     for(const p of G.pools){const q=Math.max(1,Math.round(p.q*10)),im=BK.flat(p.seed,q,p.sz,full);g.drawImage(im,Math.round(p.x-im.width/2),Math.round(p.y-im.height/2));}
     // the hind legs kick, slower and slower, then lie still; her eye rolls white, then half shuts, then shuts; her tongue comes out
     const lf=kick>.05?[0,1,0,2][Math.floor(t*(3+9*kick))%4]:3;const ly=hy+BKC.LY;BK.at(g,'cowLeg'+lf,0,ly);BK.at(g,'cowLie',0,ly);BK.lieEye(K,eye,ly);if(b>=1.3)BK.tongue(K,ly);
     {const n=b>=0||st.end?PT.length:Math.min(PT.length,Math.floor(st.s)+1),op=b>=0?Math.min(1.6,b*3):0;if(n>0)BK.gash(K,PT,n,op,full,P,hy);if(b>=0&&!full)BK.smear(K,118,136+hy);}
+    if(X){// the second cut, finishing her; the froth of her breath at the cut, gathering
+      if(X.o2){const s2=X.o2.st,n=X.rev==='done'?PT2.length:Math.min(PT2.length,Math.floor(s2.s)+1);if(n>1)BK.gash(K,PT2,n,X.rev==='done'?1.4:.6,full,P,hy);}
+      const [fx,fy]=PT[N1],fc=X.froth.filter(f=>G.t-f.t0>1.2).length;if(fc>2){K.ell(fx+1,fy+hy-2,2+Math.min(5,fc/5),1.5+Math.min(2,fc/10),'#4a0a12');K.ell(fx,fy+hy-3,1+Math.min(4,fc/6),1,'#8a1e22');K.px(fx-1,fy+hy-4,2,1,'#e88a72');}
+      for(let i=X.froth.length-1;i>=0;i--){const f=X.froth[i],a=G.t-f.t0;if(a<0)continue;if(a>1.4){X.froth.splice(i,1);continue;}const r=Math.round(f.r+Math.min(1,a*2.5));if(a>1.2)continue;
+        K.ell(Math.round(f.x),Math.round(f.y+hy),r,r,'#3a0610');K.ell(Math.round(f.x),Math.round(f.y+hy),Math.max(1,r-1),Math.max(1,r-1),'#7a1420');K.px(Math.round(f.x)-1,Math.round(f.y+hy)-1,1,1,'#f0927a');}
+      if(X.rev==='cut'){const s2=X.o2.st;for(let q=s2.s;q<m4len(BKC.TPATH2);q+=4){const [x,y]=m4at(BKC.TPATH2,q);K.px(x,y,2,1,'#fff0d0');K.px(x+2,y,1,1,'#2a0e08');}
+        if(!s2.end){const ka=Math.PI-.62;M4.rot(g,M4S.knife(),s2.tx,s2.ty,ka,8,44);const [hx,hy2]=M4.tr(s2.tx,s2.ty,ka,-.5,-36.5);m4grip(K,hx,hy2,ka-Math.PI/2,{side:1});}
+        if(s2.s<2){const [sx,sy]=BKC.TPATH2[0];K.pa(sx-3,sy-3,7,7,'#ffd27a',.5+Math.sin(t*10)*.3);}}}
     if(G.hoist>0){for(let y=0;y<140+hy;y+=3){K.px(274,y,2,2,CA_P.iron[3]);K.px(274,y,1,1,CA_P.iron[5]);}}
     // the bucket, the blood in it rising
     g.drawImage(BK.bucket(),BX0,BY0);if(G.level>0){const lv=Math.min(1,G.level),sy=Math.round(MY+2-lv*2);K.ell(MX,sy,13*(.8+lv*.2),2,full?P[2]:P[1]);K.ell(MX,sy-1,9,1,full?P[3]:P[2]);if(full)K.px(MX-8,sy-1,3,1,P[4]);}
     // one thick stream out of the foot of the cut, over the rim into it, swelling with each beat
     if(b>=0&&b<4.4&&full&&G.hoist===0){const [x0,y0]=PT[N1];BK.stream(K,[[x0-1,y0+1],[x0-5,y0+2],[x0-9,y0+4],[MX+1,MY+1]],2+Math.round(2*G.env),P);}
+    if(X&&G.jets){for(const s2 of G.stains)BK.stain(K,s2,P);BK.jets(K,G.jets,P);}
     // running over: down the staves to the boards
-    if(G.over&&full){BK.spill(K,BX0+8,MY+3,25,G.over,G.t,14,P);BK.spill(K,BX0+23,MY+4,12,G.over+.5,G.t,9,P);}
+    if(G.over&&full){BK.spill(K,BX0+8,MY+3,25,G.over,G.t,14,P);BK.spill(K,BX0+23,MY+4,12,G.over+.5,G.t,9,P);if(X){BK.spill(K,BX0+3,MY+3,7,G.over+.3,G.t,8,P);BK.spill(K,BX0+15,MY+4,29,G.over+.15,G.t,12,P);BK.spill(K,BX0+29,MY+3,18,G.over+.9,G.t,7,P);}}
     if(b<0){// the knife game's own line, knife and hand (from the trace step), drawn on her
       for(let s2=st.s;s2<m4len(BKC.TPATH);s2+=4){const [x,y]=m4at(BKC.TPATH,s2);K.px(x,y,2,1,'#fff0d0');K.px(x+2,y,1,1,'#2a0e08');}
       if(!st.end){const ka=Math.PI-.62;M4.rot(g,M4S.knife(),st.tx,st.ty,ka,8,44);const [hx,hy2]=M4.tr(st.tx,st.ty,ka,-.5,-36.5);m4grip(K,hx,hy2,ka-Math.PI/2,{side:1});if(full&&BK.after.cowHand)BK.hand(K,hx,hy2,1,P);}
       if(!st.end&&st.s<2){const [sx,sy]=BKC.TPATH[0];K.pa(sx-3,sy-3,7,7,'#ffd27a',.5+Math.sin(t*10)*.3);}}};
-  const N1=PT.length-1;
+  const N1=PT.length-1,PT2=[];{const L=Math.floor(m4len(BKC.TPATH2));for(let j=0;j<=L;j++)PT2.push(m4at(BKC.TPATH2,j));}
   o.title='Cut her throat';o.how='Draw the knife down the dotted line across her throat, start to end: '+(K.fine?'hold the mouse button and draw along it':'drag along it with your finger')+'. One steady stroke.';o.hint='One steady stroke along the line.';
-  const au=o.auto;o.auto=function(dt,AP){if(G.bleed>=0){const a=m4ai(this,AP,dt);m4hold(a,false);AP.hand=[150,120];AP.press=false;return;}return au.apply(this,arguments);};
-  const hd=o.hud;o.hud=function(){if(G.bleed>=0){K.meter(1,G.score||1);return;}return hd&&hd.apply(this,arguments);};
+  const au=o.auto;o.auto=function(dt,AP){if(G.X&&G.X.rev==='cut')return G.X.o2.auto.call(G.X.o2,dt,AP);if(G.bleed>=0){const a=m4ai(this,AP,dt);m4hold(a,false);AP.hand=[-40,-40];AP.press=false;return;}return au.apply(this,arguments);};
+  const hd=o.hud;o.hud=function(){if(G.X&&G.X.rev==='cut'){if(!G.X.o2.st.end)K.label('SHE’S AWAKE. FINISH IT',30,24,'#ffb0a0','l');K.meter(0,G.score||1);return;}if(G.bleed>=0){K.meter(1,G.score||1);return;}return hd&&hd.apply(this,arguments);};
   return o;};
 
 // ---------------------------------------------------------------- the recipes start with the kill

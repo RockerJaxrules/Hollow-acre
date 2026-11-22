@@ -1991,3 +1991,39 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A shot needs a projectile you can see (3-4 px with a short trail) and a target that reacts (tips, sparks); a full-screen flash alone doesn't say what was hit.
 - Smoke drawn too faint reads as smudges, too grey and hard reads as rocks: soft-edged puffs, solid in their first half, fading in their second.
 - A flat hand pressing down onto something points its fingers at it; lying sideways it reads as a bun.
+
+## Butchering at Extreme (t375)
+- [OWNER, verbatim] "an extra opt in option which brings the gore and butchering to the level it's as gruesome disturbing bloody and fleshy and heartless as a pixel game can be" and "to the absolute extreme to the point there is a reason why you have to opt in". This means a separate layer that only runs at Extreme. Full and Toned stay as they are, and nothing is cut away or implied.
+- Suffering shows through time and through the animal itself, not through more red. Examples: the headless hen getting up and running into the wall; the cow's open eye following your pointer; her breath frothing pink at the cut; a botched stun bringing her round so you have to finish it. Each mistake adds seconds and loudness.
+- Extreme has to be plainly past Full in every frame. A layer stamped over Full (the same blot in every scene) reads as a sticker, not as worse.
+- Blood on the lens:
+  - A heavy round bead with thin runs tapering down reads as a balloon or a toffee apple on a stick. Identical copies set in a row read as a pattern.
+  - A blot with runs ending in knobs reads as an animal on stilts.
+  - A splat on glass is a burst: a ragged body with spikes all round its rim, longest the way it was thrown, each spike a run of touching drops getting smaller outward. Then two or three runs of very different lengths leave its lower edge, wide where they leave and gathering into a bead at the foot.
+  - Use one or two to a scene, only on a beat that throws blood (the stick, the neck), and never where the runs fall through a fist.
+  - Small flat splats inside the frame read as stains on the barn wall. Blood on the lens is big and cut off by the frame's corners and edges. Its wet edge is warm orange-pink at the top left and violet-black at the lower right, and it changes shape with every scene. Keep it off the bodies' backs (a run landing there reads as blood spouting from the spine) and off every prompt.
+- A neat red disc on top of an upright white body reads as a comb, so she looks like a live hen walking. A cut neck is short and ends flat and ragged: raw meat torn unevenly, the bone standing proud off-centre, the feathers matted red, and runs down the white breast.
+- Dying harder has to show on the animal: a jet pulsing from the cut, the bucket over-running in unequal runs, the pool spreading under her knees, the eye going from open on you to rolled white. Round pink froth reads as bubblegum; froth at a cut is dark wet red with a light edge.
+- A body has to stay the same size in every state. The running headless hen at 60% of the lying hen read as a smaller, different bird.
+- Things that move:
+  - Jets from a stump are a joined stream, two or three pixels thick and heaviest at the head. Where one comes down it leaves one stretched splash for each beat, not scattered dashes.
+  - A trail behind something running is a smear three or four wide with footprints in it. A one-pixel line reads as a scratch, and blots dropped at each step read as a dotted line.
+- Guts:
+  - Guts at an even width read as worms, and mauve makes it worse. Use warm pink-red; let each length swell and pinch in turn, with a crease at each pinch, lying in a film of fat.
+  - Lengths of about 6 px with deep pinches read as beads or meatballs. Equal links read as a sausage chain. Cut them into uneven lengths (9-17 px), each tapering from where it lies over the last, with a wet crease at each join.
+  - A heap of loops alone reads as a red mat at 1x. Put the organs you'd find in it where they'd be (the liver in two lobes, the heart, the gizzard) until you draw them out.
+  - A spill reads as guts when it is one connected mass: out of the cavity, heaped in the tub, over its near lip and coiled on the boards. Draw the heap, then the tub's front, then what hangs over the lip.
+  - A fat web drawn before the guts that cover it shows as a tan disc. Draw the web only once the guts lie on it.
+- Small cues that misread:
+  - Two dark dots on a pale dome read as a face. Flies belong on the guts, three pixels long with a pale wing.
+  - Steam white on white vanishes; give each wisp a grey edge.
+  - A pale fist with a few red marks reads as a small face. Soak the fist instead by multiplying blood over its own pixels: the fingers dyed through, a few runs up the back, the cuff end clean. It stays the original hand underneath.
+- A hung carcass with two round lit rumps over a V reads as buttocks, and a pale strip with even bars down the middle reads as a zip. Flatten the rumps' light, run the two halves' spine edges straight so they meet on one line, and draw the spine as uneven dull vertebrae, mostly under blood, with a dark cut edge.
+- Identical hand-prints read as stickers. Each print takes differently: how many fingers, how far they dragged, which way the heel smeared.
+- A pupil centred in a white eye reads as a startled cartoon. Set it off-centre, toward the viewer.
+- Thin straight lit lines across meat read as string trussing a roast. Ribs are rounded ridges about four wide, bowed, close together, lit along the top, with the meat between them in shadow.
+- A label and a judge banner both near the top-left collide. Put the step's urgent prompt on the side the banner never uses.
+- Code and tools:
+  - A local name can shadow a shared one: the chopping block's x was called BX in the hen's step, so the Extreme layer (BX) crashed there. Reach shared layers through an object that can't be shadowed (BK.XL).
+  - Anything drawn every frame over the whole scene (the lens) goes into its own layer, redrawn at most ten times a second, so phones stay fast.
+  - Two workers building to the same dev file name in the shared scratch folder overwrite each other mid-test. Name your dev build after your task.
