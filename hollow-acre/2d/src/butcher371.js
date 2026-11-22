@@ -121,25 +121,30 @@ BG71.henHead=()=>BG71.spr('henhead2',28,20,[
     K.px(21,13,3,3,B[3]);K.px(19,14,2,2,B[3]);K.px(22,12,2,1,B[4]);K.px(18,15,1,1,B[2]);K.px(20,16,4,1,B[2]);K.px(22,13,1,1,B[6]);K.px(24,15,1,2,B[1]);
     // the ragged feathers round the stump
     K.px(23,7,2,1,BG71.WHT[4]);K.px(24,6,1,1,BG71.WHT[3]);K.px(23,17,1,1,BG71.WHT[2]);},'#1a1018');
-BG71.cowHead=()=>BG71.spr('cowhead2',34,60,[
-  {t:'tube',pts:[[22,9],[27,14],[30,21]],r0:2.8,r1:1.7,P:BG71.HIDE,base:2.6,gain:3.6,fn:(x,y)=>x>=25&&x<=28&&y>=13&&y<=18&&(x+y)%5!==0?BG71.PINK[1]:null},
-  {t:'tube',pts:[[20,7],[23,4],[26,2.4]],r0:1.9,r1:.9,z:1,P:BG71.HORN,base:2.4,gain:3},
-  {t:'dome',cx:16,cy:11,rx:8,ry:7,top:6,z:2,P:BG71.HIDE,base:3.4,gain:3.6},
-  {t:'tube',pts:[[15,13],[13,25],[11.5,37]],r0:8,r1:6,z:2,P:BG71.HIDE,base:3.2,gain:3.6},
-  {t:'dome',cx:19,cy:25,rx:7,ry:9.5,top:5,z:3,P:BG71.HIDE,base:3,gain:3.6},
-  {t:'dome',cx:11.5,cy:42,rx:6.4,ry:5.4,top:4,z:4.5,P:BG71.PINK,base:2.4,gain:3.2},
-  {t:'tube',pts:[[15,45.5],[17.4,49],[16.4,53],[14,55.5]],r0:2,r1:1.5,z:6,P:BG71.TONG,base:2.4,gain:3,glint:BG71.TONG[4],gl:.9},
-  {t:'dome',cx:25.5,cy:24,rx:3.2,ry:7.4,top:2,z:6,P:BG71.RAW,base:2.4,gain:2.6,fn:(x,y)=>{if(y>=18&&y<=19&&x>=25&&x<=27)return y===18?BG71.HORN[4]:BG71.HORN[2];if(y===20&&x===26)return '#3a0a12';if((y===23||y===27)&&x>=24&&x<=27)return BG71.RAW[1];return null;}}],
-  (K)=>{const B=BG71.BL;
-    // the eye open and dull, a heavy lid, the lashes
-    K.px(11,17,3,2,'#1a0c12');K.px(11,16,4,1,BG71.HIDE[1]);K.px(12,18,1,1,'#5e6a7a');K.px(10,16,1,1,BG71.HIDE[0]);K.px(14,19,1,1,BG71.HIDE[2]);
-    // the nostril and the mouth, the tongue out of it
-    K.px(7,41,2,2,'#2a0e18');K.px(7,40,2,1,BG71.PINK[3]);K.px(12,46,4,1,'#2a0e18');K.px(10,45,2,1,BG71.PINK[1]);
-    // blood: out of the neck and down the jaw, round the nostril, off the tongue
-    for(const [x,y] of [[26,29],[26,30],[25,31],[25,32],[25,33],[24,34],[24,35],[23,36],[23,37]])K.px(x,y,1,1,B[3]);K.px(26,29,1,1,B[4]);K.px(23,38,2,2,B[3]);K.px(23,38,1,1,B[5]);K.px(24,40,1,1,B[2]);
-    K.px(6,43,2,2,B[3]);K.px(6,45,1,2,B[2]);K.px(6,43,1,1,B[5]);K.px(13,56,2,2,B[3]);K.px(13,56,1,1,B[5]);K.px(14,58,1,1,B[2]);
+BG71.NOSE=['#5a3038','#8a5a5e','#b88a86','#dcb4a8','#f2d4c6'];
+BG71.cowHead=()=>BG71.spr('cowhead3',38,58,[
+  {t:'tube',pts:[[10,14],[4,16],[.8,18.6]],r0:3.2,r1:2,P:BG71.HIDE,base:2.8,gain:3.4},{t:'tube',pts:[[28,14],[33,16],[36.6,18.6]],r0:3,r1:1.9,P:BG71.HIDE,base:2.2,gain:3.4},
+  {t:'tube',pts:[[11.5,9],[7.5,6],[5.5,2.4]],r0:2.1,r1:.9,z:3,P:BG71.HORN,base:2.6,gain:3},{t:'tube',pts:[[26.5,9],[30.5,6],[32.5,2.4]],r0:2.1,r1:.9,z:3,P:BG71.HORN,base:2.2,gain:3},
+  {t:'dome',cx:31.5,cy:37,rx:3.6,ry:6.4,top:2,z:.5,P:BG71.RAW,base:2.4,gain:2.4,fn:(x,y)=>x>=33&&x<=34&&y>=34&&y<=35?BG71.HORN[3]:null},
+  {t:'dome',cx:19,cy:14,rx:10.5,ry:8,top:6,z:2,P:BG71.HIDE,base:3.5,gain:3.6},
+  {t:'tube',pts:[[19,16],[19,33]],r0:9.6,r1:8.6,z:2,P:BG71.HIDE,base:3.3,gain:3.6},
+  {t:'dome',cx:12,cy:31,rx:5.4,ry:8.4,top:4,z:1.6,P:BG71.HIDE,base:2.8,gain:3.4},{t:'dome',cx:26,cy:31,rx:5.4,ry:8.4,top:4,z:1.6,P:BG71.HIDE,base:2.5,gain:3.4},
+  {t:'dome',cx:19,cy:40.5,rx:10,ry:7,top:4,z:4.8,P:BG71.NOSE,base:2.6,gain:3,glint:BG71.NOSE[4],gl:.9},
+  {t:'tube',pts:[[14.5,46.5],[13.4,50.5],[14.4,54]],r0:2,r1:1.5,z:6,P:BG71.TONG,base:2.4,gain:3,glint:BG71.TONG[4],gl:.92}],
+  (K)=>{const B=BG71.BL,Hd=BG71.HIDE;
+    // the tuft between the horns, the inside of the ears
+    K.px(17,7,5,1,Hd[5]);K.px(18,6,3,1,Hd[4]);K.px(3,17,3,1,BG71.PINK[1]);K.px(33,17,3,1,BG71.PINK[0]);
+    // the eyes set wide, open and dull, heavy lids
+    K.px(9,20,3,2,'#1a0c12');K.px(9,19,4,1,Hd[1]);K.px(10,21,1,1,'#5e6a7a');K.px(26,20,3,2,'#1a0c12');K.px(25,19,4,1,Hd[1]);K.px(27,21,1,1,'#4e5a68');
+    // the broad nose: two nostrils, the groove between, the mouth, the lip
+    K.px(13,40,2,3,'#3a1420');K.px(13,39,2,1,BG71.NOSE[4]);K.px(23,40,2,3,'#3a1420');K.px(23,39,2,1,BG71.NOSE[3]);K.px(19,41,1,3,BG71.NOSE[1]);
+    K.px(12,46,14,1,'#2a0e18');K.px(15,47,9,1,BG71.NOSE[1]);
+    // blood: from a nostril, from the cut neck down the jaw to the chin, off the tongue
+    K.px(13,43,1,3,B[3]);K.px(13,43,1,1,B[5]);
+    for(const [x,y] of [[32,43],[31,44],[31,45],[30,46],[29,47],[29,48],[28,49],[27,50]])K.px(x,y,1,1,B[3]);K.px(33,43,1,2,B[2]);K.px(31,44,1,1,B[4]);K.px(26,51,2,2,B[3]);K.px(26,51,1,1,B[5]);
+    K.px(13,55,2,2,B[3]);K.px(13,55,1,1,B[5]);
     // the hook through the poll, the wound round it
-    K.px(15,0,2,7,BG71.IRON[3]);K.px(15,0,1,7,BG71.IRON[4]);K.px(14,0,1,6,BG71.IRON[0]);K.px(17,0,1,6,BG71.IRON[1]);K.px(14,6,4,2,B[2]);K.px(15,6,1,1,B[4]);K.px(18,5,2,1,BG71.IRON[2]);K.px(19,4,1,1,BG71.IRON[4]);},'#1a0a10');
+    K.px(18,0,2,9,BG71.IRON[3]);K.px(18,0,1,9,BG71.IRON[4]);K.px(17,0,1,8,BG71.IRON[0]);K.px(20,0,1,8,BG71.IRON[1]);K.px(17,8,4,2,B[2]);K.px(18,8,1,1,B[4]);K.px(21,7,2,1,BG71.IRON[2]);K.px(22,6,1,1,BG71.IRON[4]);},'#1a0a10');
 BG71.hook=(v)=>{v=v||0;const L=[8,5,11][v];return BG71.spr('hook2_'+v,9,L+8,[{t:'tube',pts:[[3.5,.5],[3.5,L],[4,L+3],[6,L+4.6],[7.6,L+3],[7.6,L+1-v*.5]],r0:1.05,r1:.9,P:BG71.IRON,base:3,gain:4}],(K)=>{K.px(7,L,1,1,BG71.IRON[5]);},BG71.IRON[0]);};
 BG71.hookAt=(g,v,x,y,flip)=>{const im=BG71.hook(v);if(!flip){g.drawImage(im,x,y);return;}g.save();g.translate(x+im.width,y);g.scale(-1,1);g.drawImage(im,0,0);g.restore();};
 BG71.henFeet=()=>BG71.spr('henfeet1',14,26,[
@@ -170,11 +175,13 @@ BG71.guts=(key,w,h,T,k,post)=>{const sh=[];T.forEach(([pts,r,P,a,b],i)=>{const f
 BG71.HSP=[[[[76,6],[71,12],[63,16],[53,15],[43,18],[33,22],[24,25],[17,24],[11,27],[8,33],[13,37],[21,35],[22,29],[15,30]],3.3,BG71.GUT,0,5],
   [[[78,4],[80,11],[74,16],[70,10],[75,5]],3,BG71.GUT2,0,2],[[[60,15],[56,22],[49,24],[44,20]],3,BG71.GUT2,2,4],[[[16,25],[9,22],[4,27],[6,34]],2.8,BG71.GUT2,4,6]];
 BG71.henSpill=k=>BG71.guts('henspill3',88,42,BG71.HSP,k);
-BG71.CGT=[[[[6,4],[22,3],[27,9],[12,10],[5,16],[20,18],[27,23],[15,26]],3.8,BG71.GUT,0,2],
-  [[[13,24],[9,38],[12,50],[19,51],[22,38],[24,27]],4,BG71.GUT2,1,3],
-  [[[20,22],[26,40],[26,58],[19,70],[13,80],[10,87],[18,91],[28,89],[33,83],[25,79],[19,85]],4.2,BG71.GUT,2,5],
-  [[[24,26],[29,36],[31,48],[28,56],[22,52],[24,42]],3.6,BG71.GUT2,3,5],[[[6,90],[2,84],[8,80],[14,84]],3.6,BG71.GUT2,4,6]];
-BG71.cowGuts=k=>BG71.guts('cowguts3',50,98,BG71.CGT.concat(k>=5?[]:[]),k,(K)=>{if(k<5)return;});
+BG71.CLOOP=[[[[4,4],[12,1.5],[20,2.5],[24,6.5],[16,8],[8,7.5]],3.6,BG71.GUT,0,2],[[[6,6],[4,15],[6,22],[11,25],[14,19],[13,9]],3.4,BG71.GUT2,1,4],
+  [[[14,7],[18,17],[19,28],[23,33],[27,27],[25,15],[22,7]],3.6,BG71.GUT,2,6]];
+BG71.cowLoops=k=>BG71.guts('cowloops1',32,40,BG71.CLOOP,k);
+BG71.CPILE=[[[[6,24],[14,27],[24,26],[30,21],[22,17],[12,18],[8,13],[16,9],[26,10],[33,14],[40,19],[47,24],[52,20],[46,13],[38,9]],4.2,BG71.GUT,0,1],
+  [[[16,29],[27,30],[37,28],[46,29],[53,26]],3.6,BG71.GUT2,0,1],[[[20,14],[28,16],[34,21]],3.2,BG71.GUT2,0,1]];
+BG71.cowPile=v=>v<2?BG71.guts('cowclump1',34,30,[[[[6,22],[14,25],[24,23],[27,17],[19,13],[10,15],[8,9],[16,5],[25,7]],4.2,BG71.GUT,0,1],[[[12,27],[22,27],[29,24]],3.4,BG71.GUT2,0,1]],1)
+  :BG71.guts('cowpile1',58,34,BG71.CPILE,1,(K)=>{const B=BG71.BL;K.px(3,30,8,1,B[3]);K.px(48,31,6,1,B[3]);K.px(2,31,10,1,B[1]);});
 BG71.paunch=()=>BG71.spr('paunch1',22,16,[{t:'dome',cx:11,cy:8,rx:9.5,ry:6.6,top:5,P:BG71.PAUNCH,base:2.6,gain:3.6,glint:BG71.PAUNCH[5]}],(K)=>{const B=BG71.BL;K.px(4,12,6,1,B[3]);K.px(3,11,2,1,B[2]);K.px(13,13,4,1,B[2]);},'#16040e');
 // blood on the blade, worse with every seam
 BG71.blade=n=>M4.pre('bg71blade_'+n,16,48,(K)=>{if(n<=0)return;const B=BG71.BL,top=44-Math.min(24,4+n*5);const run=[0,3,1,5,2,0,4,1];
@@ -258,7 +265,7 @@ BG71.snd={
     for(const [pc] of PC){let m=G.OM.get(pc);if(!m){m=document.createElement('canvas');m.width=W;m.height=HH;G.OM.set(pc,m);}const mx=m.getContext('2d');
       mx.globalCompositeOperation='source-over';mx.clearRect(0,0,W,HH);mx.drawImage(c,0,0);mx.globalCompositeOperation='destination-in';mx.drawImage(pc,0,0);mx.globalCompositeOperation='source-over';}};
   // ---- the knife's play: time along each seam, the pulses, the sounds, the pieces' fall
-  const up=o.update;o.update=function(dt,I){up.apply(this,arguments);try{G.t+=dt;
+  const up=o.update;o.update=function(dt,I){const kj=K.judge;K.judge=function(s2,x,y,q){return kj.call(this,s2,252,hen?50:60,q);};try{up.apply(this,arguments);}finally{K.judge=kj;}try{G.t+=dt;
     const done=st.end?NP:st.pi;
     for(let pi=0;pi<NP;pi++){const L=PTS[pi].length-1,reach=pi<done?L:pi===st.pi?Math.min(L,Math.floor(st.s)):-1,T=G.sT[pi];while(T.length<=reach)T.push(G.t);}
     const cutting=!st.end&&st.pi===G.prevPi&&st.s>G.prevS+.01;G.prevS=st.s;G.prevPi=st.pi;if(cutting)G.cutT=G.t;const busy=G.t-G.cutT<.15;
@@ -271,9 +278,9 @@ BG71.snd={
     // a seam through: the gush, the bone giving, a pool where it runs off; the belly lets go of what it held
     if(done>G.lastPi){for(let k=G.lastPi;k<done;k++){const PT=PTS[k],e=PT[PT.length-1],m=PT[Math.floor(PT.length/2)];
         pulse(e[0]+ox,e[1]+oy,6,1.2);pulse(e[0]+ox,e[1]+oy,5,1.1);pulse(m[0]+ox,m[1]+oy,4,1);if(full)BG71.snd.spurt(1);setTimeout(()=>{try{BG71.snd.crack();}catch(_){}},60);
-        if(k===GUT&&full){G.gutT=G.t;G.slopAt=G.t+.3;}
+        if(k===GUT&&full){G.gutT=G.t;G.slopAt=G.t+(hen?.3:.57);}
         }G.lastPi=done;}
-    if(G.slopAt>0&&G.t>=G.slopAt){G.slopAt=-1;BG71.snd.slop();if(hen)addPool(98,130,18,.95,11);else addPool(106,145,18,.95,12);}
+    if(G.slopAt>0&&G.t>=G.slopAt){G.slopAt=-1;BG71.snd.slop();if(hen)addPool(98,130,18,.95,11);else{addPool(104,144,20,1,12);K.shk=Math.max(K.shk,.12);G.beads.push({x:96,y:90,gy:132,g:.4,rate:1.1});}}
     // the pieces: the halves of the bird slide apart; the cuts of beef drop onto the block, each into its own blood
     for(const p of J.pieces){if(!(p.free<done))continue;const u=G.u[p.id]||0;if(J.hang){const n=Math.min(1,u+dt*2.2);G.u[p.id]=n;if(u<1&&n>=1&&p.land){const [lx,ly]=p.land;addPool(lx,Math.min(146,ly-6),12,.8);BG71.snd.pat();}}
       else G.u[p.id]=Math.min(1,u+dt*9*((1-u)+.02));}
@@ -292,7 +299,7 @@ BG71.snd={
     for(const p of G.pools)p.q+=(p.tq-p.q)*Math.min(1,dt*.9);
     const tk=Math.floor(G.t*15);if(tk!==G.oT){G.oT=tk;redrawO();}
     if(st.end&&G.loop)G.loop.set(0);}catch(e){console.warn(e);}};
-  if(full){if(hen)G.beads.push({x:125,y:20,gy:40,g:.3,rate:.5});else G.beads.push({x:164,y:61,gy:141,g:0,rate:.8},{x:174,y:43,gy:143,g:.5,rate:.55});}
+  if(full){if(hen)G.beads.push({x:125,y:20,gy:40,g:.3,rate:.5});else G.beads.push({x:161,y:59,gy:141,g:0,rate:.8},{x:173,y:55,gy:143,g:.5,rate:.55});}
   const qq=o.quiet,ss=o.stop;o.quiet=function(){try{G.loop&&G.loop.set(0);}catch(e){}return qq&&qq.apply(this,arguments);};o.stop=function(){try{G.loop&&G.loop.stop();G.loop=null;}catch(e){}return ss&&ss.apply(this,arguments);};
   // ---- what lies on the block (drawn on it, under the carcass)
   const onBlock=()=>{
@@ -303,7 +310,7 @@ BG71.snd={
       if(full){g.drawImage(BG71.pool(3,Math.round(G.pools[0]?G.pools[0].q*10:7),11,true),58,63);g.drawImage(BG71.henHead(),44,54);}}
     else{
       BG71.hookAt(g,2,202,1,true);BG71.hookAt(g,1,244,1);
-      if(full)g.drawImage(BG71.cowHead(),150,3);}
+      if(full)g.drawImage(BG71.cowHead(),147,3);}
     for(const p of G.pools){if(hen&&full&&p===G.pools[0])continue;const q=Math.max(1,Math.round(p.q*10));const im=BG71.pool(p.seed,q,p.sz,full);g.drawImage(im,Math.round(p.x-im.width/2),Math.round(p.y-im.height/2));}
     // the runs off the big pools toward you, along the grain
     for(const p of G.pools){if(p.sz<12||p.q<.55)continue;const n=Math.floor((p.q-.55)*90),x0=Math.round(p.x+((p.seed%5)-2)*2),y0=Math.round(p.y+p.sz*.45);
@@ -311,7 +318,10 @@ BG71.snd={
       if(n>2){K.px(x0,y0+n,2,2,P[3]);if(full)K.px(x0,y0+n,1,1,P[5]);}}
     for(const s of G.splB)BG71.splat(K,s[0],s[1],s[2],s[3],P);
     // the beef's guts hanging out of the opened belly and slumped on the block
-    if(!hen&&full&&G.gutT>=0){const k=Math.max(1,Math.min(6,1+Math.floor((G.t-G.gutT)*6)));if(k>=5)g.drawImage(BG71.paunch(),112,134);g.drawImage(BG71.cowGuts(k),82,59);}
+    if(!hen&&full&&G.gutT>=0){const tt=G.t-G.gutT,k=Math.max(1,Math.min(6,1+Math.floor(tt*10))),fall=tt-.15,LAND=.42;
+      if(fall>LAND){g.drawImage(BG71.paunch(),104,124);g.drawImage(BG71.cowPile(fall<LAND+.12?1:2),fall<LAND+.12?88:74,fall<LAND+.12?120:116);}
+      else if(fall>0)g.drawImage(BG71.cowPile(1),88,Math.round(62+(fall/LAND)**2*58));
+      g.drawImage(BG71.cowLoops(k),84,57);}
     // the hen's insides, seen where she's split
     if(hen&&full&&G.gutT>=0)g.drawImage(BG71.henCav(),143,63);};
   const onPiece=(pc,a,b)=>{const m=G.OM.get(pc);if(m)g.drawImage(m,a,b);};
