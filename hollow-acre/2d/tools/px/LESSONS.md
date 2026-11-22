@@ -1985,3 +1985,9 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Something that grows from a dip (a candle's layer) grows as it comes out of the vat, never in mid-air before it goes in.
 - A thing being cut is moved only by a hand: the steadying hand rides its far end, pushes it up to the blade after each slice and carries the stub away. A vegetable sliding by itself reads as a conveyor.
 - When a game's tolerance is small (a plumb band of 3 degrees), draw the state plainly: upright inside the band, the error drawn larger outside it, so the job reads as done.
+- A tool that moves between targets (a wrench from nut to nut, a driver from screw to screw, a hand from a belt to a bar) is carried there over 2-3 frames, lifted on an arc; a tool that vanishes and reappears reads as broken, and a pointer showing in the gap reads as a second hand.
+- When a hand lets go, show it open (the flat hand) and moving off; when a thing lands, give it a thump: a 2 px drop, a jolt and a puff.
+- A strike seen face-on to a panel: the fist and the head come in from close to the camera (drawn bigger, higher) and land small and square on the target; rotating the head round a fixed fist reads as a clock hand.
+- A shot needs a projectile you can see (3-4 px with a short trail) and a target that reacts (tips, sparks); a full-screen flash alone doesn't say what was hit.
+- Smoke drawn too faint reads as smudges, too grey and hard reads as rocks: soft-edged puffs, solid in their first half, fading in their second.
+- A flat hand pressing down onto something points its fingers at it; lying sideways it reads as a bun.
