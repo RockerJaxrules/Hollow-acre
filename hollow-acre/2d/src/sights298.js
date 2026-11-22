@@ -113,7 +113,8 @@ function s98Raw(at,cw,ch,ax,ay,opt){opt=opt||{};const skip=opt.skip||[],X0=Math.
   for(let kz=Math.floor(Y0/CH);kz<=Math.floor((Y0+ch)/CH);kz++)for(let kx=Math.floor(X0/CH);kx<=Math.floor((X0+cw)/CH);kx++){try{g.drawImage(chunk(kx,kz),kx*CH-X0,kz*CH-Y0);}catch(e){}}
   const L=[];for(const q of OBJ){if(q.room||q.hide||skip.includes(q)||!q.spr)continue;const m=SPR[q.spr];if(!m||!IMG[m.src])continue;const X=q.x*PPM,Y=q.z*PPM;
     if(X-m.ax>X0+cw||X-m.ax+m.fw<X0||Y-m.ay>Y0+ch||Y-m.ay+m.fh<Y0)continue;L.push(q);}
-  L.sort((a,b)=>((a.kind==='flat')-(b.kind==='flat'))*-1e6+(a.z-b.z));for(const q of L){try{drawSpr(q.spr,q.x*PPM-X0,q.z*PPM-Y0,undefined,undefined,0,{ctx:g,flip:q.flip});}catch(e){}}
+  L.sort((a,b)=>((a.kind==='flat')-(b.kind==='flat'))*-1e6+(a.z-b.z));for(const q of L){const m=SPR[q.spr],top=q.z*PPM-m.ay,vis=Math.min(top+m.fh,Y0+ch)-Math.max(top,Y0);if(q.kind!=='flat'&&vis<m.fh*.35)continue;   /* a thing mostly outside the picture is left out, not shown as a sliver */
+    try{drawSpr(q.spr,q.x*PPM-X0,q.z*PPM-Y0,undefined,undefined,0,{ctx:g,flip:q.flip});}catch(e){}}
   return out;}
 
 // ---- Sheriff Dunn's list: the close-up is the list and the photographs pinned to his front door. In the world his door showed
@@ -203,39 +204,42 @@ SGT_ART.p_tithe=function(){try{const cut=s98TitheCut(),h=OBJ.find(o=>o.spr==='h_
 setInterval(()=>{try{s98ListWorld();s98TitheWorld();}catch(e){}},400);
 
 // ---- the coffins: in the world three plain coffins stood against the church's side wall, while the close-up was a crypt of small
-// coffins in rows (lids off, names scratched inside) and one full-sized new one with a brass plate. The world now shows the
-// close-up's own coffins at the world's size, standing against that wall where the three stood, and the close-up shows them on the
-// church's own wall and grass. The coffins are drawn by the close-up's own layout (st37Crypt4); the world's group leaves out the
-// ones the close-up's frame cuts, so it has no half coffins.
-const S98_CRYPT={S:2,ax:88,ay:108};
-function s98Coffins(P,whole,lean){const WW=typeof ST37W!=='undefined'?ST37W:176,HH=typeof ST37H!=='undefined'?ST37H:112;
+// coffins in rows and one full-sized new one with a brass plate. Both pictures now draw one layout: fourteen small coffins in
+// three uneven rows, standing, some with their lids off and leaning beside them (names scratched inside), and the long new one
+// with its brass plate at the front, ELIAS scratched on it. In the world each is drawn at its true size beside the player (a child's
+// coffin about as tall as you, the new one taller); the close-up draws the same coffins one and a half times bigger with the close-up's
+// own coffin drawing (its shape, wood, scratches and the names), on the grass and path where they stand.
+// each: [x, foot y, width, height, wood, open (lid off), name, lean] in world pixels from the group's anchor (its front middle)
+const S98_COF=[[-52,-27,10,27,0,0,'',-1],[-36,-28,11,29,1,1,'RUTH',0],[-20,-26,10,26,2,0,'',1],[-4,-28,11,30,3,0,'',0],[13,-27,10,27,1,1,'DANNY',-1],
+  [-46,-13,11,29,2,0,'',1],[-29,-12,12,31,0,0,'',0],[-12,-14,11,28,3,1,'MOLLY',0],[6,-12,12,30,2,0,'',-1],[24,-13,10,27,0,0,'',1],
+  [-41,1,12,31,1,0,'',0],[-23,0,11,29,3,0,'',-1],[-5,1,12,30,0,1,'ANNIE',1]];
+const S98_COFBIG=[19,2,18,54];
+const S98_CRYPT={S:1.5,ax:108,ay:106};
+function s98Coffins(P,k,world){const W=[['#6a4a30','#5a3e28','#46301e'],['#7a5a3a','#6a4c30','#523a24'],['#5a4434','#4a382a','#3a2c20'],['#6e5a42','#5e4a34','#4a3a28']];
   const shape=(w,h)=>yy=>{const t=yy/h,s=w*.32;return t<.3?Math.round(s+(w/2-s)*(t/.3)):Math.round(w/2-(w/2-s*.75)*((t-.3)/.7));};
-  const W=[['#6a4a30','#5a3e28','#46301e'],['#7a5a3a','#6a4c30','#523a24'],['#5a4434','#4a382a','#3a2c20'],['#6e5a42','#5e4a34','#4a3a28']];
-  const dim=(col,k)=>col.map(h=>{const n=parseInt(h.slice(1),16);return '#'+[n>>16,(n>>8)&255,n&255].map(v=>Math.round(v*k).toString(16).padStart(2,'0')).join('');});
-  const names=['ANNIE','TOMMY','RUTH','DANNY','MOLLY','ALICE','JO','SAM','NELL','BEN','IDA','KIT'];
-  const cof=(x,y,w,h,col,open,nm)=>{if(whole&&(x-Math.ceil(w/2)-1<0||x+Math.ceil(w/2)+(open&&nm?w+4:1)>=WW||y<0||y+h>=HH))return;const sh=shape(w,h);
-    const L=lean?[-2,-1,0,1,2,0,-1][st37H(x,y)%7]:0,P0=P;P=(px,py,pw,ph,c)=>P0(px+Math.round((py-y-h)*L/h),py,pw,ph,c);   /* in the world each one leans a little its own way */
-    for(let yy=0;yy<h;yy++){const hw=sh(yy);for(let xx=-hw;xx<=hw;xx++){let c=Math.abs(xx)===hw||yy===0||yy===h-1?'#0e0b0c':xx<-hw/3?col[0]:xx<hw/3?col[1]:col[2];
-      if(open&&Math.abs(xx)<hw-1&&yy>0&&yy<h-1)c=yy<3?'#1a1210':'#0a0808';P(x+xx,y+yy,1,1,c);}}
-    if(!open&&h>12){for(let k=0;k<3;k++){const sy=y+4+k*3+(st37H(x,k)%2),sx0=x-2+(st37H(k,x)%2);P(sx0,sy,2+(st37H(x+k,y)%2),1,'#1e140c');P(sx0+1,sy+1,1,1,col[0]);}}
-    if(open&&nm){const lx=x+Math.ceil(w/2)+2,ly=y-3;for(let yy=0;yy<h;yy++){const hw=sh(yy);for(let xx=-hw;xx<=hw;xx++)P(lx+xx+Math.round(yy*.15),ly+yy,1,1,Math.abs(xx)===hw||yy===0||yy===h-1?'#0e0b0c':'#9a7a58');}
-      for(let i=0;i<nm.length&&i<4;i++){const f=(typeof PXFONT!=='undefined'&&PXFONT[nm[i]])||null;if(!f)continue;for(let j=0;j<5;j++)for(let k=0;k<3;k++)if(f[j*3+k]==='1')P(lx-1+k+Math.round((3+i*5)*.15),ly+3+i*5+j,1,1,'#3a2414');}}
-    P=P0;};
-  const rows=[[-6,6,13,10,.45],[8,7,15,12,.6],[26,8,18,13,.78],[48,9,20,15,.92],[72,10,22,16,1]];let n=0;
-  rows.forEach(([y0,w0,h0,sp,k],r)=>{for(let x=-10+(r%2)*(sp>>1);x<WW+12;x+=sp){if(y0+h0>34&&x>132)continue;const i=Math.round(x/sp);const w=w0+st37H(i,r)%3,h=h0+st37H(r,i)%4;const open=(i+r*2)%3===1&&k>.7;
-    cof(x,y0+st37H(i,r+7)%3,w,h,dim(W[((i+r)%4+4)%4],k),open,open?names[(n++)%names.length]:'');}});
-  const bx=156,by=40;lean=0;cof(bx,by,26,66,['#8a6440','#765434','#5c4026'],false,'');for(let yy=by+6;yy<by+62;yy+=9)P(bx-7,yy,14,1,'#6a4a2c');
-  const pw=20;P(bx-Math.ceil(pw/2)-1,by+27,pw+2,10,'#0e0b0c');P(bx-Math.ceil(pw/2),by+28,pw,8,'#c8a048');P(bx-Math.ceil(pw/2),by+28,pw,1,'#f0d888');
-  for(let y=0;y<7;y++)for(let x=0;x<pw;x++)if(st37H(x,y*3)%5<2)P(bx-Math.ceil(pw/2)+x,by+29+y,1,1,y%2?'#e8cc78':'#a88038');
-  if(typeof st37ScratchName==='function')st37ScratchName(P,bx-12,by+15,'#1e1006','#c8a070',.72);}
-// whole: the world's group, every coffin of every row drawn whole on a canvas with a margin (16 px each side, 8 on top), leaning
-function s98CoffinCanvas(whole){const k=whole?'cofW':'cofA';if(S98[k])return S98[k];const mx=whole?16:0,my=whole?8:0,c=document.createElement('canvas');c.width=(typeof ST37W!=='undefined'?ST37W:176)+mx*2;c.height=(typeof ST37H!=='undefined'?ST37H:112)+my;
-  const g=c.getContext('2d');const P=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(Math.round(x)+mx,Math.round(y)+my,w||1,h||1);};s98Coffins(P,false,whole);return S98[k]=c;}
+  const cof=(cx,foot,w,h,col,open,nm,L)=>{const sh=shape(w,h),y=foot-h,Q=(px,py,c)=>P(px+Math.round((py-foot)*L/h),py,1,1,c);
+    P(cx-Math.round(w*.5),foot-1,w+3,2,'rgba(30,20,24,.45)');   /* its foot on the ground, a little shadow down and right */
+    for(let yy=0;yy<h;yy++){const hw=sh(yy);for(let xx=-hw;xx<=hw;xx++){let c=Math.abs(xx)===hw||yy===0||yy===h-1?'#0e0b0c':yy===1?sgtShade(col[0],1.32):xx<-hw/3?sgtShade(col[0],1.12):xx<hw/3?col[1]:sgtShade(col[2],.78);   /* a lit top edge, the left side lit, the right in shade */
+      if(open&&Math.abs(xx)<hw-1&&yy>0&&yy<h-1)c=yy<Math.max(3,h*.16)?'#5a4030':xx<-hw+2?'#4a3426':xx>hw-3?'#1e140e':'#2e2018';Q(cx+xx,y+yy,c);}}   /* inside, a dim lining: the far end's wall lit, the near side in shadow */
+    if(!open&&h>12){const n=world?2:3;for(let i=0;i<n;i++){const sy=y+Math.round(h*(.18+i*.12))+(st37H(cx,i)%2),sx0=cx-Math.round(w*.2)+(st37H(i,cx)%2);for(let q=0;q<Math.max(2,Math.round(w*.25))+(st37H(cx+i,y)%2);q++)Q(sx0+q,sy,'#1e140c');}}   /* a name scratched on the lid */
+    if(open){const lx=cx+Math.ceil(w/2)+2,ly=y-Math.round(h*.08);for(let yy=0;yy<h;yy++){const hw=sh(yy);for(let xx=-hw;xx<=hw;xx++)Q(lx+xx+Math.round(yy*.15),ly+yy,Math.abs(xx)===hw||yy===0||yy===h-1?'#0e0b0c':'#9a7a58');}   /* the lid, leaning beside it, its inside out */
+      if(!world&&nm)for(let i=0;i<nm.length&&i<4;i++){const f=(typeof PXFONT!=='undefined'&&PXFONT[nm[i]])||null;if(!f)continue;for(let j=0;j<5;j++)for(let q=0;q<3;q++)if(f[j*3+q]==='1')Q(lx-1+q+Math.round((3+i*6)*.15),ly+4+i*6+j,'#3a2414');}
+      else for(let i=0;i<3;i++)Q(lx-1+(i%2),ly+3+i*3,'#5a3e24');}};
+  for(const [x,f,w,h,wi,op,nm,L] of S98_COF)cof(k.x+x*k.s,k.y+f*k.s,Math.round(w*k.s),Math.round(h*k.s),W[wi],!!op,nm,world?L:Math.round(L*k.s));
+  const [bx,bf,bw,bh]=S98_COFBIG,cx=k.x+bx*k.s,foot=k.y+bf*k.s,w=Math.round(bw*k.s),h=Math.round(bh*k.s),y=foot-h;cof(cx,foot,w,h,['#8a6440','#765434','#5c4026'],false,'',0);
+  for(let yy=y+Math.round(h*.1);yy<foot-Math.round(h*.06);yy+=Math.max(4,Math.round(h*.14)))P(cx-Math.round(w*.3),yy,Math.round(w*.6),1,'#6a4a2c');   /* new planks, still pale */
+  const pw=Math.round(w*.75),ph=Math.max(3,Math.round(h*.15)),py=y+Math.round(h*.42);P(cx-Math.ceil(pw/2)-1,py-1,pw+2,ph+2,'#0e0b0c');P(cx-Math.ceil(pw/2),py,pw,ph,'#c8a048');P(cx-Math.ceil(pw/2),py,pw,1,'#f0d888');   /* the brass plate */
+  if(!world&&typeof st37ScratchName==='function')st37ScratchName(P,cx-12,y+Math.round(h*.22),'#1e1006','#c8a070',.72);
+  else if(world)P(cx-3,y+Math.round(h*.25),6,1,'#2a1a0c');}
+function s98CoffinCanvas(world){const k=world?'cofW':'cofA';if(S98[k])return S98[k];const c=document.createElement('canvas');
+  if(world){c.width=96;c.height=64;}else{c.width=typeof ST37W!=='undefined'?ST37W:176;c.height=typeof ST37H!=='undefined'?ST37H:112;}
+  const g=c.getContext('2d'),P=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),w||1,h||1);};
+  s98Coffins(P,world?{x:60,y:60,s:1}:{x:S98_CRYPT.ax,y:S98_CRYPT.ay,s:S98_CRYPT.S},world);return S98[k]=c;}
 const s98CryptArt=SGT_ART.crypt;
 SGT_ART.crypt=function(){try{const o=s98Beat('crypt'),cut=s98CoffinCanvas(false);if(o&&o._s98&&cut){const d=S98_CRYPT;
     const im=s98OnGround('s98g_crypt_'+Math.round(o.x*10)+'_'+Math.round(o.z*10),cut,{x:o.x,z:o.z},d.S,d.ax,d.ay,[o]);if(im)return im;}}catch(e){}
   return s98CryptArt.apply(this,arguments);};
-{const _sp=sgProps;sgProps=function(){const r=_sp.apply(this,arguments);try{const o=s98Beat('crypt');if(o&&!o._s98){const c=s98Shrink(s98CoffinCanvas(true),S98_CRYPT.S);o.spr=s98Spr('coffins',c,(S98_CRYPT.ax+16)/S98_CRYPT.S,(S98_CRYPT.ay+8)/S98_CRYPT.S);o._s98=1;}}catch(e){}return r;};}
+{const _sp=sgProps;sgProps=function(){const r=_sp.apply(this,arguments);try{const o=s98Beat('crypt');if(o&&!o._s98){o.spr=s98Spr('coffins',s98CoffinCanvas(true),60,60);o._s98=1;}}catch(e){}return r;};}
 
 // ---- the rehearsal: the dummy sat on three bare stone steps against a black wall. The church it happens in has a white-clothed
 // altar table under the big wooden cross, a wood wainscot, a plastered wall and grey flagstones; the dummy, its blood and the two
@@ -247,24 +251,85 @@ SGT_ART.rehearsal=function(){try{const c=s98RehArt&&s98RehArt();if(c&&c.width===
     for(let y=0;y<30;y++)for(let x=0;x<150;x++){const n=f98N(x/9,y/6,41);P(x,y,1,1,n>.66?'#625a52':n<.3?'#4e4842':'#58504a');}   // the plastered wall, dim
     for(const [x0,y0,len] of [[16,6,9],[128,12,7]])for(let i=0;i<len;i++)P(x0+i,y0+Math.round(Math.sin(i*.9)*1.2)+(i>>2),1,1,'#3e3832');   // two old cracks
     // the big cross behind it, its arms showing either side of the sack head
-    P(73,0,9,31,'#281916');P(74,0,7,31,'#4e3220');P(74,0,2,31,'#66442d');P(52,10,51,8,'#281916');P(53,11,49,6,'#4e3220');P(53,11,49,2,'#7e583c');P(53,16,49,1,'#3a2618');P(76,12,3,3,'#a87e34');P(76,12,1,1,'#e0bc70');
+    P(104,0,9,31,'#281916');P(105,0,7,31,'#4e3220');P(105,0,2,31,'#66442d');P(83,10,51,8,'#281916');P(84,11,49,6,'#4e3220');P(84,11,49,2,'#7e583c');P(84,16,49,1,'#3a2618');P(107,12,3,3,'#a87e34');P(107,12,1,1,'#e0bc70');
     for(let y=22;y<36;y++)for(let x=0;x<150;x++){const px=(x+6)%25;P(x,y,1,1,y<24?'#5a3e24':y===24?'#1e140c':px===0?'#1e140c':px===1?'#4a3220':y===35?'#24180e':'#3a2616');}   // the wood wainscot
-    for(let y=36;y<104;y++){const r=Math.floor((y-36)/10),off=(r*11)%17;for(let x=0;x<150;x++){const w=15+(r%3)*4,j=(x+off)%w===0||(y-36)%10===0;const n=sgtH(Math.floor((x+off)/w),r);P(x,y,1,1,j?'#2a2a30':n%3===0?'#46464c':n%3===1?'#4c4c52':'#424248');}}   // grey flagstones
+    for(let y=36;y<104;y++)for(let x=0;x<150;x++){const tx=Math.floor((x+4)/20),ty=Math.floor((y-36)/20),j=(x+4)%20===0||(y-36)%20===0,lip=(x+4)%20===1||(y-36)%20===1,n=sgtH(tx,ty)%3;P(x,y,1,1,j?'#4e4e54':lip?'#86868a':n===0?'#6e6e72':n===1?'#747478':'#6a6a6e');}   // the church's pale grey square tiles
     // the altar: a table under a white cloth that hangs to the floor in broad folds at uneven spacing; the dummy stands on the floor in front of it
-    P(22,33,107,32,'#140e11');P(23,34,105,4,'#d0c8ae');P(23,34,105,1,'#e8e2ce');P(23,38,105,1,'#8e8470');
-    const folds=[31,44,58,93,107,119];for(let y=39;y<63;y++)for(let x=23;x<128;x++){let c='#ccc4aa';for(const f of folds){const dx=x-f-Math.round((y-39)*.06*(f<75?-1:1));if(dx===0)c='#e8e2ce';else if(dx===1||dx===2)c=dx===1?'#b4aa90':'#c0b69c';}if(y>60)c='#b4aa90';P(x,y,1,1,c);}
-    for(let x=23;x<128;x++)P(x,63,1,1+((x>>3)%2),'#8e8470');P(23,65,105,2,'rgba(10,6,8,.45)');
-    for(const cx of [30,120]){P(cx-3,14,7,21,'#140e11');P(cx-2,16,5,18,'#e8e0cc');P(cx-2,16,1,18,'#ffffff');P(cx+2,16,1,18,'#c8c0a8');P(cx-3,33,7,2,'#5a4a30');P(cx,12,1,4,'#ffd27a');P(cx-1,10,3,3,'#fff4c0');}   // the altar's two candles, standing on it
+    P(53,33,107,32,'#140e11');P(54,34,105,4,'#d0c8ae');P(54,34,105,1,'#e8e2ce');P(54,38,105,1,'#8e8470');
+    const folds=[62,75,89,124,138,150];for(let y=39;y<63;y++)for(let x=54;x<159;x++){let c='#ccc4aa';for(const f of folds){const dx=x-f-Math.round((y-39)*.06*(f<106?-1:1));if(dx===0)c='#e8e2ce';else if(dx===1||dx===2)c=dx===1?'#b4aa90':'#c0b69c';}if(y>60)c='#b4aa90';P(x,y,1,1,c);}
+    for(let x=54;x<159;x++)P(x,63,1,1+((x>>3)%2),'#8e8470');P(54,65,105,2,'rgba(10,6,8,.45)');
+    for(const cx of [61]){P(cx-3,14,7,21,'#140e11');P(cx-2,16,5,18,'#e8e0cc');P(cx-2,16,1,18,'#ffffff');P(cx+2,16,1,18,'#c8c0a8');P(cx-3,33,7,2,'#5a4a30');P(cx,12,1,4,'#ffd27a');P(cx-1,10,3,3,'#fff4c0');}   // the altar's two candles, standing on it
     for(let x=-14;x<=14;x++){const w=Math.round(2.4*Math.sqrt(Math.max(0,1-(x/15)**2)));if(w>0)P(75+x+2,65,1,w,'rgba(8,4,8,.5)');}   // the dummy's shadow at its feet
     for(let y=0;y<104;y++)for(let x=0;x<150;x++){const d=Math.hypot((x-75)/80,(y-50)/70);if(d>.8)P(x,y,1,1,`rgba(8,4,10,${Math.min(.5,(d-.8)*1.4)})`);}   // only the candles light it: the corners fall dark
-    g.drawImage(s98Cut(s98Cut(c,['#16121a','#1e1820','#2a2630','#4a4650','#7a7680','#1a181e']),['#e8e0cc','#ffffff','#ffd27a','#fff4c0'],(x,y)=>!((x>=26&&x<=35)||(x>=116&&x<=125))),0,0);/* the old candles on the steps go: the altar's own stand on it */});}}catch(e){}
+    g.drawImage(s98RehCut(),0,0);/* the old candles on the steps go: the altar's own stand on it */});}}catch(e){}
   return s98RehArt.apply(this,arguments);};
 // the dummy in the church itself: from the night of the rehearsal until the drawing it stands where the close-up shows it, on the
-// floor in front of the altar, its blood on the stones; the same drawing as the close-up's, at the world's size (1.3 apart)
+// floor before the altar's left end (Hale keeps to its middle), its blood on the stones; the same drawing as the close-up's, at the world's size (1.3 apart)
 function s98RehCut(){if(S98.rehCut)return S98.rehCut;const c=s98RehArt&&s98RehArt();if(!c||c.width!==150)return null;
-  return S98.rehCut=s98Cut(s98Cut(c,['#16121a','#1e1820','#2a2630','#4a4650','#7a7680','#1a181e']),['#e8e0cc','#ffffff','#ffd27a','#fff4c0'],(x,y)=>!((x>=26&&x<=35)||(x>=116&&x<=125)));}
+  const o=s98Cut(s98Cut(s98Cut(c,['#16121a','#1e1820','#2a2630','#4a4650','#7a7680','#1a181e']),['#e8e0cc','#ffffff','#ffd27a','#fff4c0'],(x,y)=>!((x>=26&&x<=35)||(x>=116&&x<=125))),['#5a0a06','#7a1008','#4a0806'],(x,y)=>y<64);   /* the old run below the feet and the two bars go */
+  const g=o.getContext('2d'),P=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h);};
+  for(let y=63;y<74;y++)for(let x=56;x<104;x++){const dx=(x-76)/(20+3*Math.sin(y*1.3)),dy=(y-67)/(4.6+Math.sin(x*.7)*.8);const e=dx*dx+dy*dy+(sgtH(x>>1,y)%7)*.02;if(e>1)continue;P(x,y,1,1,e>.78?'#3a0604':y<65&&x<80?'#8a1810':'#5a0a06');}   /* one ragged pool at its feet, fed by the run down its legs */
+  P(74,62,4,3,'#5a0a06');P(70,66,3,1,'#9a2418');return S98.rehCut=o;}
 function s98RehWorld(){if(typeof ROOMS==='undefined'||!ROOMS.church)return;let o=S98.rehObj;if(o&&!OBJ.includes(o))o=S98.rehObj=null;
   if(!o){const cut=s98RehCut();if(!cut)return;const p=document.createElement('canvas');p.width=54;p.height=92;p.getContext('2d').drawImage(cut,49,2,54,92,0,0,54,92);
-    const sm=s98Shrink(p,1.3);const n=s98Spr('dummy',sm,(75-49)/1.3,(65-2)/1.3);const R=ROOMS.church;o=S98.rehObj=obj(n,R.ox+5,R.oz+2.15,{kind:'furn',room:'church',noCol:true});}
+    const sm=s98Shrink(p,1.3);const n=s98Spr('dummy',sm,(75-49)/1.3,(65-2)/1.3);const R=ROOMS.church;o=S98.rehObj=obj(n,R.ox+5-1.05,R.oz+2.2,{kind:'furn',room:'church',noCol:true});}   // before the altar's left end, clear of Hale behind its middle
   let on=false;try{const st=S.st||{};const b=sgCurrent();on=!!((S.saga&&S.saga.done&&S.saga.done.rehearsal)||(b&&b.id==='rehearsal'))&&!st.done&&!STG;}catch(e){on=false;}o.hide=!on;}
 setInterval(()=>{try{s98RehWorld();}catch(e){}},400);
+
+// ======== (B3) the region beats and the chapter-two places
+// ---- Wickham's noticeboard: its close-up board stood in the dark. It stands in Wickham's square, before the stone wall, on cobbles:
+// the close-up's board is kept and the square goes behind it. In the world, Wickham's board now carries the same notice, big in
+// the middle over the older ones, the red ring at its foot, as the close-up shows it (only this board: the town's own is unchanged).
+const S98_WICK={S:2.8,ax:80,ay:106};const s98WickArt=SGT_ART.p_wick;
+function s98WickBoard(){const o=OBJ.find(q=>q.spr==='board'&&Math.abs(q.x-120)<1.5&&Math.abs(q.z-48.6)<1.5);return o||OBJ.find(q=>q.spr==='s98_wickboard');}
+function s98WickWorld(){if(S98.wickDone)return;const o=s98WickBoard(),m=SPR.board,im=m&&IMG[m.src];if(!o||!im||!im.width)return;
+  const c=document.createElement('canvas');c.width=m.fw;c.height=m.fh;const g=c.getContext('2d'),P=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h);};g.drawImage(im,0,0,m.fw,m.fh,0,0,m.fw,m.fh);
+  for(const [x,y,w,h,col] of [[9,15,13,15,'#a89868'],[42,14,13,14,'#9a8a5a'],[11,30,11,9,'#b8a878'],[43,29,12,10,'#8a7a50']]){P(x,y,w,h,'#2a2014');P(x+1,y+1,w-2,h-2,col);P(x+2,y+4,w-4,1,sgtShade(col,.7));P(x+2,y+7,w-5,1,sgtShade(col,.7));}   /* the older notices, yellowed */
+  P(21,12,22,29,'#140c06');P(22,13,20,27,'#efe8d8');P(22,13,20,1,'#ffffff');for(let k=0;k<6;k++)P(25,16+k*3,14-(k%2)*3,1,'#5a4a3a');P(26,34,12,4,'#a02818');P(27,35,10,2,'#efe8d8');P(29,35,5,1,'#5a4a3a');P(31,12,2,2,'#a02818');   /* this year's notice, its red ring */
+  for(const [x,y] of [[10,40],[44,40]])P(x,y,8,3,'#c8b890');   /* H HALE, on the corners */
+  o.spr=s98Spr('wickboard',c,m.ax,m.ay);S98.wickDone=1;}
+SGT_ART.p_wick=function(){try{const c=s98WickArt&&s98WickArt(),o=s98WickBoard();if(c&&o&&S98.wickDone){const d=S98_WICK;
+    return sgtC('s98g_wick_'+Math.round(o.x*10),c.width,c.height,(P,g)=>{g.drawImage(f98Ground({x:o.x,z:o.z},c.width,c.height,d.S,d.ax,d.ay,{skip:[o],frontZ:o.z}),0,0);g.drawImage(s98Cut(c,['#181c20','#1e2226','#3a3a3a','#4a4a48']),0,0);});}}catch(e){}
+  return s98WickArt.apply(this,arguments);};
+
+// ---- the Marsh place: in the world it is a blue clapboard house with a green door; its close-up was a brown plank cabin. The
+// close-up is now that house's own front (the door, its window, the porch, the lower window), drawn again at twice the size, and the
+// three things the story says are there are put on the house itself, so the world shows them too: the note on the door, the crack
+// across the window shaped like a river, and the porch board that sticks up.
+const S98_MARSH={S:2,cx:102,cy:195,w:220,h:110};const s98MarshArt=SGT_ART.p_marsh;
+function s98MarshWorld(){if(S98.marshDone)return;const m=SPR.h_marsh,im=m&&IMG[m.src];if(!im||!im.width)return;
+  const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const g=c.getContext('2d'),P=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h);};g.drawImage(im,0,0);
+  P(110,192,13,10,'#1a120a');P(111,193,11,8,'#e8dcb8');P(111,193,11,1,'#f8f0d8');P(112,195,5,1,'#5a4a3a');P(112,197,7,1,'#5a4a3a');P(116,199,5,1,'#7a6a52');P(116,191,1,2,'#8a8a92');   /* the note, nailed to the door */
+  for(const [x,y] of [[51,168],[53,170],[54,171],[56,173],[57,175],[59,176],[61,178],[62,180],[64,181],[66,183],[67,185],[69,186],[70,188],[72,190],[55,177],[54,179],[64,176],[66,175]])P(x,y,1,1,'#c8d4dc');   /* the crack across the glass, branching like a river */
+  P(111,221,14,1,'#c8a878');P(111,222,14,1,'#3a2414');   /* the porch board that sticks */
+  IMG[m.src]=c;S98.marshDone=1;}
+SGT_ART.p_marsh=function(){try{const h=OBJ.find(o=>o.spr==='h_marsh'),m=SPR.h_marsh;if(h&&m&&S98.marshDone){const d=S98_MARSH,ax=d.w/2+(m.ax-d.cx)*d.S,ay=d.h/2+(m.ay-d.cy)*d.S;
+    return sgtC('s98g_marsh_'+Math.round(h.x*10),d.w,d.h,(P,g)=>{g.drawImage(f98Ground({x:h.x,z:h.z},d.w,d.h,d.S,ax,ay,{}),0,0);{const id=g.getImageData(0,0,d.w,d.h),q=id.data;for(let i=0;i<q.length;i+=4){q[i]*=.93;q[i+1]*=.98;q[i+2]*=.72;}g.putImageData(id,0,0);}   /* in the colours the house shows in the world there: its blue siding reads muted sage under the fen's light */
+      
+      const nx=d.w/2+(110-d.cx)*d.S,ny=d.h/2+(192-d.cy)*d.S;P(nx,ny,26,20,'#1a120a');P(nx+1,ny+1,24,18,'#e8dcb8');P(nx+1,ny+1,24,1,'#f8f0d8');   /* the note, close: FOR YOU in Grandpa's hand, a scrawl, a nail */
+      sgtT(P,'FOR',nx+3,ny+3,'#3a2a1a');sgtT(P,'YOU',nx+3,ny+9,'#3a2a1a');for(let i=0;i<14;i++)P(nx+5+i,ny+16-Math.round(Math.sin(i*.9)*1.2),1,1,'#5a4a3a');P(nx+12,ny-2,2,4,'#8a8a92');P(nx+12,ny-2,1,1,'#d0d0d8');});}}catch(e){}
+  return s98MarshArt.apply(this,arguments);};
+setInterval(()=>{try{s98WickWorld();s98MarshWorld();}catch(e){}},400);
+
+// ---- the hollow tree: in the world it was the plain dark dead tree that grows all over the valley; its close-up is a pale grey trunk
+// split open like a door ajar, dark inside at the top, the wood below carved over and over, three candle stubs at its foot. The
+// tree that stands there is now that tree (pale bark, the split, the carved wood, the candles); the close-up stands on its ground.
+const S98_TREE={S:8};const s98TreeArt=SGT_ART.p_tree;
+function s98TreeObj(){return OBJ.find(o=>(o.spr==='deadtree'||o.spr==='s98_hollowtree')&&Math.abs(o.x-HOLLOW_TREE.x)<.6&&Math.abs(o.z-HOLLOW_TREE.z)<.6);}
+function s98TreeWorld(){if(S98.treeDone)return;const o=s98TreeObj(),m=SPR.deadtree,im=m&&IMG[m.src];if(!o||!im||!im.width)return;
+  const c=document.createElement('canvas');c.width=m.fw;c.height=m.fh;const g=c.getContext('2d');g.drawImage(im,0,0,m.fw,m.fh,0,0,m.fw,m.fh);const id=g.getImageData(0,0,m.fw,m.fh),d=id.data;
+  const R=['#2e2c2a','#5a5a54','#6e6e68','#8a8a84','#a4a29a','#b8b6ae'].map(s98Hex);
+  for(let i=0;i<d.length;i+=4){if(d[i+3]<200)continue;const L=d[i]*.3+d[i+1]*.59+d[i+2]*.11,k=L<16?0:L<40?1:L<62?2:L<80?3:L<100?4:5,v=R[k];d[i]=v[0];d[i+1]=v[1];d[i+2]=v[2];}   /* the bark gone pale grey, as in the close-up */
+  g.putImageData(id,0,0);const P=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h);};
+  for(let y=48;y<80;y++){const l=27-(y>70?1:0),r=35+(y>66?1:0);P(l-1,y,1,1,'#4a3420');P(l,y,r-l,1,y<63?'#0a0705':(sgtH(l,y)<10?'#c8a878':'#d8bc8a'));}   /* the split: dark inside at the top, the carved wood below */
+  for(const [x,y] of [[28,66],[31,66],[29,69],[32,69],[28,72],[31,72],[30,75]])P(x,y,2,1,'#6a5030');   /* the carving */
+  for(const x of [28,31,34]){P(x,80,1,2,'#e8dcc0');P(x,79,1,1,'#ffb040');}   /* three candle stubs at its foot */
+  o.spr=s98Spr('hollowtree',c,m.ax,m.ay);S98.treeDone=1;}
+// the carving's second "SUN IS IN" lost the foot of its I under the third go's fresh-cut wood, so it read SUN TS IN: cut it again on top
+function s98TreeText(c){if(!c||c._s98txt)return;c._s98txt=1;const g=c.getContext('2d'),P=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),w||1,h||1);};
+  const L=y=>58-Math.round(Math.sin(y*.21)*2+Math.sin(y*.07)*3+(y>40?(y-40)*.05:0)),y=61,x=L(y)+4+4;let X=x+1;
+  for(const [i,ch] of [...'SUN IS IN'].entries()){const jy=y+6+((sgtH(i+9,y)%3)-1);sgtT(P,ch,X,jy+1,'#f6e2b8');sgtT(P,ch,X,jy,'#2e1c0c');X+=4+(sgtH(y,i+5)%2);}}
+SGT_ART.p_tree=function(){try{const c=s98TreeArt&&s98TreeArt(),o=s98TreeObj(),m=SPR.deadtree;s98TreeText(c);if(c&&o&&S98.treeDone&&m){const S=S98_TREE.S,ax=80+(m.ax-30.5)*S,ay=92+(m.ay-80)*S;
+    return sgtC('s98g_tree',c.width,c.height,(P,g)=>{g.drawImage(f98Ground({x:o.x,z:o.z},c.width,c.height,S,ax,ay,{skip:[o]}),0,0);g.drawImage(s98Cut(c,['#141a14','#0e130f','#3a2e1c','#2a2214']),0,0);});}}catch(e){}
+  return s98TreeArt.apply(this,arguments);};
+setInterval(()=>{try{s98TreeWorld();}catch(e){}},400);
