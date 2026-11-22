@@ -304,8 +304,10 @@ def ribs(S, toned):
 def hooks(S, toned):
     r_ = lambda a, b=None, st=1: range(int(round(a))) if b is None else range(int(round(a)), int(round(b)), max(1, int(round(st))))
     W, Hh = 64, 84; z = Z(W, Hh, S); c = z.c; gy = 80
-    if not toned: blood_pool(c, 32 * S, (gy + 1) * S, 22 * S, 2.6 * S, 1.9)
-    else: blood_pool(c, 32 * S, (gy + 1) * S, 18 * S, 2.2 * S, 1.9, dry=True, glint=False)
+    # (t375, hard limit) the third shape is Ruth, a child: no blood on, from or under it at any level. The pool lies under the
+    # two carcasses only and ends well short of the bundle's column (x 41-53)
+    if not toned: blood_pool(c, 24.5 * S, (gy + 1) * S, 13 * S, 2.4 * S, 1.9, lobes=(.12, .07))
+    else: blood_pool(c, 24.5 * S, (gy + 1) * S, 11 * S, 2.1 * S, 1.9, dry=True, glint=False, lobes=(.12, .07))
     ground_shadow(c, 32 * S, (gy + 1) * S, 26 * S, 2.4 * S)
     f = z.F()
     for px_ in (5, 57):   # the posts and the beam
@@ -353,17 +355,14 @@ def hooks(S, toned):
                 curve(c, [((hx + 2) * S, 27 * S), ((hx + 3) * S, 40 * S)], lambda x, y, i, n: c.p(x, y, SACK[4]))   # a fold catching the light
             if not toned or hx != 47:
                 pass
-            if not toned:   # soaked through low down; the bare feet out of the bottom, chibi-small, the toes
-                for y in r_(44 * S, 53 * S):
-                    for x in r_((hx - 5) * S, (hx + 5) * S):
-                        if c.px[x, y][3] > 200 and y > (47 - math.sin(x / S * 1.1)) * S: c.p(x, y, BLOOD[1] if (x + y) % 4 else BLOOD[0])
+            if not toned:   # the bare feet out of the bottom, chibi-small, the toes (t375: no soak, no blood: this is a child)
                 for fx_ in (hx - 1.6, hx + 1.4):
                     for y in r_(53 * S, 57 * S):
                         for u in r_(int(1.6 * S)): c.p(fx_ * S + u, y, SKIN[3] if u < S * .6 else SKIN[2])
                     for u in r_(int(1.6 * S)): c.p(fx_ * S + u, 57 * S, SKIN[1])
                     if S > 1:
                         for t_ in r_(3): c.p(fx_ * S + t_, 57 * S + 1, SKIN[2])   # the toes
-            else:   # toned: the sacking dark where it soaked, nothing showing
+            elif hx != 47:   # toned: the sacking dark where it soaked, nothing showing (never on the third, the child)
                 for y in r_(42 * S, 53 * S):
                     for x in r_((hx - 5) * S, (hx + 5) * S):
                         if c.px[x, y][3] > 200 and y > (46 - math.sin(x / S * 1.1)) * S: c.p(x, y, (84, 52, 40) if (x + y) % 5 else (66, 40, 32))
@@ -372,6 +371,9 @@ def hooks(S, toned):
     done('g_hooks' + ('_t' if toned else ''), c, 32 * S, 80 * S, foot=(-0.95, -0.3, 0.95, 0))
 
 
+import sys as _sys
+_pick = _sys.argv[1:]   # (t375) e.g. `gore4.py hooks` redraws only the rack
 for fn, S in ((deer, 2), (rabbit, 4), (ribs, 3), (hooks, 1.5)):
+    if _pick and fn.__name__ not in _pick: continue
     for toned in (False, True): fn(1, toned); fn(S, toned)
 d = json.load(open('spr/lpc/objects.json')); d.update(SPR); json.dump(d, open('spr/lpc/objects.json', 'w')); print('ok', list(SPR))

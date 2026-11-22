@@ -407,6 +407,10 @@ def finish(z, name, meta=None):
                     q = px[X, Y]
                     if q[3] > 120 and sum(px[X + a, Y + b][3] > 120 for a in (-1, 0, 1) for b in (-1, 0, 1) if a or b) <= 1: gone.append((X, Y))
             for q in gone: px[q] = (0, 0, 0, 0)
+    if getattr(z, 'keep', None):   # (t375) a region that must stay exactly as Full (a child's shape): restored from the Full picture
+        x0, y0, x1, y1 = z.keep
+        for Y in range(max(0, int(z.Y(y0))), min(c.H, int(math.ceil(z.Y(y1))))):
+            for X in range(max(0, int(z.X(x0))), min(c.W, int(math.ceil(z.X(x1))))): px[X, Y] = snap[X, Y]
     new = lambda X, Y: 0 <= X < c.W and 0 <= Y < c.H and px[X, Y][3] > 200 and snap[X, Y][3] < 120
     pts = []
     for Y in range(c.H):
@@ -955,23 +959,24 @@ def ribs_x(z, day):
 
 
 def hooks_x(z, day):
-    """the cold house's rack; at Extreme the sacking on the third shape is slit and has fallen open down one side: a person under
-    it, skinned, the ribs and the arm's muscle bare, and under the rack the guts in a heap where they slid out on to the floor"""
-    xpool(z, 32, 81, 25, 2.8, 1.4, clots=5, tongues=0)
+    """the cold house's rack at Extreme. (t375, hard limit) The third shape is Ruth, a child: it stays exactly as Full at every level,
+    with nothing on it, from it or under it (z.keep restores its column from the Full picture after everything is drawn). Extreme is
+    on the two animal carcasses only: the long-legged one opened down the belly, its gut bag sagging out and one length stretched
+    down to a heap on the floor, the liver and a kidney in the pool, the pours thick and clotted; the pool lies under them only."""
+    xpool(z, 24.5, 81, 11.5, 2.5, 1.4, clots=4, tongues=0)   # lobes reach 1.38x: ends by x 40.4, short of the bundle
     z.lay_base(); S = z.S
-    xflay(z, [(42.6, 25), (46.6, 23.6), (47.2, 33), (46.4, 44.2), (43.4, 48.4), (42.2, 38)], 1.45, seed=3)
-    for (sy, ey) in ((28, 29.6), (31.4, 33.2), (34.8, 36.2)): ridge(z, [(45.8, sy), (44.4, (sy + ey) / 2 + .3), (43.2, ey)])
-    f = z.F(); f.poly([(z.X(42.4), z.Y(24.6)), (z.X(46.4), z.Y(23.4)), (z.X(41.4), z.Y(36)), (z.X(40), z.Y(33))], 'sack', base=1.6 * S, hs=.4); f.render(z.c, {'sack': SACK})   # the slit flap hanging
-    for (pts, r0, r1, R, sd) in (([(44, 74), (41, 76.4), (43, 79), (47.6, 79.4), (50.6, 77), (48, 75), (45.2, 76.6), (47.4, 78.4)], 1, .9, GUTX, 2),
-                                 ([(46.4, 57.6), (46, 64), (45, 70), (44.4, 74)], .5, .8, GUTX2, 3)):
-        xtube(z, pts, r0, r1, R=R, seed=sd)
-    xrun(z, 44, 48.4, 6, 1, 2)
-    meta = dict(mag=[[44.6, 36, 1.6, 4], [46, 77, 3, 1.4]] if day else [], drip=[[44.4, 55], [17, 60], [32, 62]], nerve=[[43, 30, 2, -1]], crow=[])
+    xcavity(z, 29.2, 45.4, 1.7, 6.6, 7, rot=.1)                                                                         # the belly, slit
+    xtube(z, [(29.4, 47.4), (27.2, 50.6), (27.8, 54.2), (30.2, 55.4), (31.4, 52.8)], .9, 1.05, R=GUTX, seed=4)          # the gut bag, sagging out
+    xtube(z, [(30.6, 55.2), (30.2, 61), (30.8, 67.6), (31.2, 73.4), (31.8, 76.8)], .5, .75, R=GUTX2, seed=5)            # one length, down to the floor
+    xtube(z, [(31.8, 76.8), (28.6, 78.4), (29.4, 80.4), (33.4, 80.8), (36.2, 79.2), (34, 77.4), (31.6, 78.8), (33.2, 80)], .95, .9, R=GUTX, seed=6)   # the heap
+    xorgans(z, [('liver', 23.6, 79.6, 2.4, 1.4, -.12), ('kidney', 36.6, 81.4, 1, .7, .4)])
+    xrun(z, 16.2, 54.2, 9, 1.5, 2); xrun(z, 18.2, 53.4, 5, 1, 3); xrun(z, 33.4, 56.2, 7, 1.2, 5)                          # the pours, thick
+    meta = dict(mag=[[31.6, 78.8, 3, 1.2], [29.2, 46, 1, 3.4]] if day else [], drip=[[16.6, 63.2], [33.8, 63.2]], nerve=[], crow=[])
     if day:
-        decay(z, [(44.6, 36, 3, 13)], seed=18)
+        decay(z, [(29.6, 46, 3, 9)], seed=18)
         for m in meta['mag']: maggots(z, *m, seed=int(m[0] * 7 + 320))
+    z.keep = (40.2, 8, 55, 62)   # the bundle's column: the Full picture, untouched
     return meta
-
 
 
 # ================================================================ (t374b, all levels) the people read as grown men (hard limit: the chibi model reads young; the
