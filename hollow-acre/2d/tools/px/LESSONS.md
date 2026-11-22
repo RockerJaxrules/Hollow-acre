@@ -1894,3 +1894,16 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A slit's rim stays dark and uneven (no pale lips), or it reads as a gill or lips. A miss is a slanted glancing tear on the neck with the feathers parted round it, not a dot.
 - Uneven feathers: four even points read as a white glove.
 - The owner's standing rules win over a critic: no arms, and the original hands are never redrawn. When a critic asks for either, use the original fist in a pose that reads, and say why.
+
+## A world thing and its close-up are one thing (t298, Nov 22: story sights 2-3 -> 5-6 in four rounds)
+- [OWNER, t298, verbatim] "adjust the icons the non detailed ones ... to look like the detailed images" and "The grounds on the close up images don't match the placing". Understood: the small world thing is redrawn from its close-up's own layout (count, colours, facing), and the close-up stands on the world's own ground at that spot, redrawn at the close-up's pixel size.
+- A close-up's background drawn as a flat backdrop (black sky, olive blotches, a dark pantry) is the first thing a judge names: key the backdrop colours out of the close-up and lay it on the world's own ground and props (f98Ground in found298c.js). The object picture stays.
+- Shrinking a close-up to world size by "the colour covering most of each pixel" keeps layout and count; then redraw what shrinks into letters (a FOR LATER label becomes two strokes, a name becomes uneven dashes, never evenly spaced bars).
+- Anything cut by a close-up's frame edge reads as a glitch (a cross stalk under a mound, a gravestone sliver): leave out props with under ~35% showing, and leave out a front prop whose foot is below the frame.
+- The world's lighting grades colours by place (the Marsh's blue siding shows sage): grade the close-up's ground the same way, or the judge calls it a different house.
+- Count must match. A close-up with 70 coffins against 3 in the world, or 8 scarecrows against 6, loses whatever the drawing quality; a world thing at the wrong scale (8 px coffins beside a 43 px player) reads as a barcode. Draw both pictures from one layout list.
+- The read-up view shows at most 131 px of height (ground line at y 133 of 180 on a PC): a 160 px world sprite cannot stand whole in a close-up at its own size; frame a head-and-shoulders close-up instead, and say so.
+- A close-up made by copying the world at 1:1 adds no detail and the owner wants detailed pictures: draw at 2x and hand-finish there (dolls with cords, faces, dresses; a readable label; a shirt's checks only on the shirt).
+- Two figures in the same column at 1:1 read as one stacked totem (a stand-in in front of the ring's back scarecrow, a dummy under Hale's face): move one aside.
+- A see-through square particle reads as a missing piece of the picture (the lake mist): fog is a low flat bank with stepped edges.
+- Code: a // comment added at the end of a replaced span swallowed the rest of the line twice in one task (a sprite assignment, then closing braces). Use /* */ for every inline note.
