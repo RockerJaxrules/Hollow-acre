@@ -280,10 +280,11 @@ S4.saw=(sp,K)=>{const g=K.g,X0=44,X1=292,TOP=96,FR=106,BOT=114,CX=sp.cx||232,N=s
       else{const f=st.fall;g.save();g.translate(Math.round(f.x),Math.round(f.y+18));g.rotate(f.a);g.drawImage(off,0,-19);g.restore();}
       for(let y=TOP+1;y<BOT;y+=2)K.px(CX,y,1,1,'#2a2a34');
       if(st.n>0){K.px(kx-1,TOP,2,FR-TOP,'#1a0e06');for(let y=FR;y<FR+d*8;y++){const x=CX+st.drift*((y-FR)/8)*d;K.px(x-1,y,2,1,'#1a0e06');K.px(x+1,y,1,1,'#3a2410');}}
+      if(typeof HOLD4!=='undefined'&&HOLD4.saw&&HOLD4.saw(K,{st,kx,cy:FR+d*8-1,FR,TOP,CX,X0,d})){}else{
       m4palm(K,X0+46,TOP+3,false,{arm:2.15,clipY:TOP+10});
       if(!st.fall){const s=st.sp<0?0:Math.sin(Math.PI*Math.min(1,st.sp));const dTip=20+40*s;const ang=-.55-.06*s+(st.sp>=0&&st.sp<.5?.025:0)+(st.bind>0?(Math.random()-.5)*.08:0);
         const cy=FR+d*8-1;g.save();g.beginPath();g.rect(0,0,320,FR);g.rect(kx-2,FR,4,d*8+1);g.clip();M4.rot(g,saw,kx,cy,ang,dTip,18);g.restore();
-        const [hx,hy]=M4.tr(kx,cy,ang,94.5-dTip,11.5-18);m4grip(K,hx,hy,ang+1.35,{side:-1,arm:ang-.25});}},
+        const [hx,hy]=M4.tr(kx,cy,ang,94.5-dTip,11.5-18);m4grip(K,hx,hy,ang+1.35,{side:-1,arm:ang-.25});}}},
     hud(t){if(st.fall)return;const cx=CX+st.drift*st.d,cy=TOP+5;const left=st.n===0?((t*1.4)%1):M4.cl((st.next-st.t)/TEMPO,0,1);const r=5+left*18;   // (t337) the beat ring sits on the cut, where the teeth bite
       if(st.n===0){K.g.strokeStyle='rgba(20,10,4,.8)';K.g.lineWidth=3;K.g.beginPath();K.g.arc(cx,cy,5,0,6.29);K.g.stroke();K.g.strokeStyle='#fff4c0';K.g.lineWidth=1;K.g.beginPath();K.g.arc(cx,cy,5,0,6.29);K.g.stroke();K.g.strokeStyle=`rgba(255,210,122,${.35+.65*(1-left)})`;K.g.beginPath();K.g.arc(cx,cy,r,0,6.29);K.g.stroke();}
       else K.beat(cx,cy,st.t,st.next,TEMPO,.1,.2);

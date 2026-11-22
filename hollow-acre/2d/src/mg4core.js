@@ -137,7 +137,7 @@ function mg4Kit(g){const W=320,H=180;const K=caKit(g,W,H);K.g=g;K.W=W;K.H=H;
     for(let x=2;x<w;x+=5)K.px(bx+x,y,1,bh,'#6a3e1a');K.px(bx,y,w,1,'#b8823c');K.px(bx,y+bh-1,w,1,'#4a2a10');for(const [cx,cy] of [[bx+2,y+2],[bx+w-4,y+2],[bx+2,y+bh-4],[bx+w-4,y+bh-4]]){K.px(cx,cy,2,2,'#e8c060');K.px(cx,cy,1,1,'#fff2c8');}
     K.px(bx+6,y+4,w-12,bh-8,'#2a1608');K.text(txt,160,y+Math.round((bh-5*sc)/2),col,sc);};
   // the hand of the demo
-  K.hand=(x,y,pressed)=>{if(typeof m4grip==='function'){const tx=x+3,ty=y+1,A=.82,ca=Math.cos(A),sa=Math.sin(A),lx=-14,ly=3.1,d=pressed?2:0;
+  K.hand=(x,y,pressed)=>{if(typeof m4grip==='function'&&!window.HANDS_ORIG){const tx=x+3,ty=y+1,A=.82,ca=Math.cos(A),sa=Math.sin(A),lx=-14,ly=3.1,d=pressed?2:0;
       const cx=tx-(lx*ca-ly*sa)-ca*d,cy=ty-(lx*sa+ly*ca)-sa*d;m4grip(K,cx,cy,A,{side:-1,kind:'point',arm:A});
       if(pressed){g.strokeStyle='rgba(255,244,192,.9)';g.lineWidth=1;g.beginPath();g.arc(tx,ty,6,0,Math.PI*2);g.stroke();}return;}const P=['..##....','.#..#...','.#..#...','.#..###.','##..#..#','#.#....#','#......#','.#.....#','..#...#.','...###..'];const dy=pressed?2:0;
     P.forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]==='#')K.px(x+i,y+j+dy,1,1,'#1a0e06');else if(j>0&&j<9&&i>0&&i<7&&r.slice(0,i).includes('#')&&r.slice(i).includes('#'))K.px(x+i,y+j+dy,1,1,'#f4e6c8');});

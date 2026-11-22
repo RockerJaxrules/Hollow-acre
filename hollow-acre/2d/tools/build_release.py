@@ -2,7 +2,7 @@ import os
 LATE365 = ['art365.js', 'pad365.js', 'mg365.js', 'lights365.js']   # t365: the steps, the controllers, the re-staged minigames, the lights
 LATE366 = ['menu366.js', 'mapterr366.js', 'map366.js', 'rain366.js', 'weather366.js']   # t366: the menu per device, the map redrawn and cached
 LATE367 = ['settings367.js', 'deck367.js', 'osk367.js']   # t367: the settings menu, the Steam Deck, the on-screen keyboard
-LATE368 = ['hotfix368.js', 'arms369.js']   # t368: the character creator keeps its screen (no stray close button)
+LATE368 = ['hotfix368.js', 'hands370.js']   # t368: the character creator keeps its screen (no stray close button)
 import subprocess as _sp, sys as _sys
 if _sp.call([_sys.executable,'lintcomments.py'])!=0: raise SystemExit('fix the swallowed code above first')
 import json, os, re
