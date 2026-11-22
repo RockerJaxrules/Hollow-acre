@@ -41,7 +41,7 @@ function f98Up(D,cw,ch,L,ww,hh,ox,oy,S,flat){const N=ww*hh,sol=new Uint8Array(N)
         for(const [ax_,ay_,pos] of [[1,0,x-px_],[0,1,y-py_]]){const a=pix(px_-ax_,py_-ay_),b=pix(px_+ax_,py_+ay_);if(a<0||b<0||!sol[a]||!sol[b])continue;
           const da=f98Lum(L,a)-f98Lum(L,bi),db=f98Lum(L,b)-f98Lum(L,bi);   // (a light line, such as pale mortar, too)
           if(S>=1.5&&Math.abs(da)>28&&Math.abs(db)>28&&da*db>0){col=pos<-.01?[L[bi*4],L[bi*4+1],L[bi*4+2]]:[L[b*4],L[b*4+1],L[b*4+2]];break;}}}}
-    let bev=0;if(!col&&!flat&&!rim&&S>=1.5){const bi=pix(Math.round(x),Math.round(y));if(bi>=0&&sol[bi]&&!edge[bi]){const px_=bi%ww,py_=(bi/ww)|0,up=pix(px_,py_-1),dn=pix(px_,py_+1),same=(i,j)=>L[i*4]===L[j*4]&&L[i*4+1]===L[j*4+1]&&L[i*4+2]===L[j*4+2];
+    let bev=0;if(!col&&!flat&&!rim&&S>=1.5&&!f98Up.plain){const bi=pix(Math.round(x),Math.round(y));if(bi>=0&&sol[bi]&&!edge[bi]){const px_=bi%ww,py_=(bi/ww)|0,up=pix(px_,py_-1),dn=pix(px_,py_+1),same=(i,j)=>L[i*4]===L[j*4]&&L[i*4+1]===L[j*4+1]&&L[i*4+2]===L[j*4+2];
       // each patch of one colour at least two world pixels tall gets a 1 px lit top and a 1 px shaded foot at this size (a brick, a stone, a board)
       if(y-py_<-.5+1/S&&up>=0&&sol[up]&&!same(up,bi)&&Math.abs(f98Lum(L,up)-f98Lum(L,bi))>12&&dn>=0&&same(dn,bi))bev=1;
       else if(y-py_>.5-1/S&&dn>=0&&sol[dn]&&!same(dn,bi)&&Math.abs(f98Lum(L,dn)-f98Lum(L,bi))>12&&up>=0&&same(up,bi))bev=-1;}}
@@ -51,7 +51,7 @@ function f98Up(D,cw,ch,L,ww,hh,ox,oy,S,flat){const N=ww*hh,sol=new Uint8Array(N)
     if(!col)continue;if(bev)col=f98Sd(col,bev>0?1.1:.86);D[o]=col[0];D[o+1]=col[1];D[o+2]=col[2];D[o+3]=255;}}
 // f98Ground(at, cw, ch, S, ax, ay, opt): a cw x ch picture of the world round the point at={x,z} (metres) at S times the world, at
 // landing on (ax,ay). opt.skip: objects left out (the thing the close-up shows); opt.skipRe: sprite names left out; opt.noProps.
-function f98Ground(at,cw,ch,S,ax,ay,opt){opt=opt||{};const skip=opt.skip||[],sre=opt.skipRe||/^(f98_|rem_)/;
+function f98Ground(at,cw,ch,S,ax,ay,opt){opt=opt||{};f98Up.plain=!!opt.plain;const skip=opt.skip||[],sre=opt.skipRe||/^(f98_|rem_)/;
   const W0=at.x*PPM-ax/S,H0=at.z*PPM-ay/S,ww=Math.ceil(cw/S)+3,hh=Math.ceil(ch/S)+3,bx=Math.floor(W0)-1,by=Math.floor(H0)-1,ox=W0-bx,oy=H0-by;
   const src=document.createElement('canvas');src.width=ww;src.height=hh;const sg=src.getContext('2d');sg.imageSmoothingEnabled=false;
   for(let cy=Math.floor(by/CH);cy<=Math.floor((by+hh)/CH);cy++)for(let cx=Math.floor(bx/CH);cx<=Math.floor((bx+ww)/CH);cx++){try{sg.drawImage(chunk(cx,cy),cx*CH-bx,cy*CH-by);}catch(e){}}
@@ -74,7 +74,7 @@ function f98Ground(at,cw,ch,S,ax,ay,opt){opt=opt||{};const skip=opt.skip||[],sre
     else if(K===1||K===2){const inCl=f98N(u/9,v/7,c*5+1)>.6;   // dirt and stone: specks gathered in a few clusters, a pebble lit on top
       if(inCl&&hash(u>>2,(v>>2)*5+c)<.45){const px_=u&3,py_=v&3;if(px_<2&&py_<2)col=py_===0?f98Sd(A,K===2?1.25:1.18):f98Sd(A,.76);}
       else if(hash(u,v*3+c)<.012)col=f98Sd(A,.82);}
-    else if(K===3){if(hash(u>>2,v)<.06&&(v%3===0))col=f98Sd(A,1.25);}   // ripples
+    else if(K===3){if(!opt.still&&hash(u>>2,v)<.06&&(v%3===0))col=f98Sd(A,1.25);}   // ripples (none on still water)
     else if(K===5){if(f98N(u/5,v/4,c*3+7)>.7)col=f98Sd(A,1.07);else if(f98N(u/6,v/3,c*3+9)>.74)col=f98Sd(A,.92);}   // tarmac: worn flat patches in two close tones
     if(v>0){const up=CL[(v-1)*cw+u];if(up!==c&&(K===1||K===2)&&F98_GK[up]===0)col=f98Sd(A,.74);}   // dirt sinks a little under the grass's edge
     D[o]=col[0];D[o+1]=col[1];D[o+2]=col[2];D[o+3]=255;}
