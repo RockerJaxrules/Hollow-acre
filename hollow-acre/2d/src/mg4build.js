@@ -82,7 +82,7 @@ S4.level=(sp,K)=>{const g=K.g,look=sp.look||'post',DUR=sp.dur||4,BAND=.06;const 
       st.nt-=dt;if(st.nt<=0){st.nt=1.1+Math.random()*.8;const k=(Math.random()<.5?-1:1)*(.3+Math.random()*.2);st.w+=k;st.thump=.2;if(look==='post'){A.tone(110,.15,'sine',.25,{slide:60});A.hiss(.1,.2,'lowpass',500);}else if(look==='chimney')MS.tink(.5);else MS.knock();K.shk=.06;}
       if(st.thump>0)st.thump-=dt;st.w+=(Math.sin(st.th)*1.8+u*3-st.w*2)*dt;st.th+=st.w*dt;st.th=M4.cl(st.th,-.6,.6);
       {const inb=Math.abs(st.th)<=BAND;if(inb!==st.wasIn&&st.t>.3){if(inb)A.tone(1500,.04,'triangle',.03);else A.tone(330,.06,'triangle',.03,{slide:260});}st.wasIn=inb;}if(Math.abs(st.th)<=BAND){st.inT+=dt;st.prog+=dt/DUR;}if(st.prog>=1||st.t>(sp.time||12)){st.end=.001;MS.good();}},
-    draw(t){/* (round 5) the lean is shown plainly: inside the green band the work stands upright, outside it the lean is drawn larger, so you see it come upright as you work it */const TD=Math.sign(st.th)*Math.max(0,Math.abs(st.th)-BAND*.7)*1.8;const bx=160,by=look==='chimney'?120:look==='door'?150:look==='anvil'?126:150;
+    draw(t){/* (round 5) the lean is shown plainly: inside the green band the work stands upright, outside it the lean is drawn larger, so you see it come upright as you work it */const TD=Math.sign(st.th)*Math.max(0,Math.abs(st.th)-BAND*.7)*2.6;const bx=160,by=look==='chimney'?120:look==='door'?150:look==='anvil'?126:150;
       if(look==='post'){K.ell(bx,by+2,50,8,'#5a4422');K.ell(bx,by,14,4,'#2a1a0c');}
       if(look==='door'){K.px(100,40,8,112,CA_P.wood[3]);K.px(212,40,8,112,CA_P.wood[3]);K.px(100,36,120,8,CA_P.wood[4]);}
       // (round 3) the lamp the glass sits on: the brass burner with its pierced gallery, then the round brass font below, outlined and lit
@@ -136,7 +136,7 @@ S4.dig=(sp,K)=>{const g=K.g,N=sp.n||6;const st={d:0,hole:0,q:[],t:0,end:0,lift:0
       const GL=GY-1;for(let y=0;y<18;y++){if(sy+y>GL)break;const w=Math.round(9-Math.max(0,y-12)*.9),ox=Math.round(-y*LX*.5);K.px(sx+ox-w,sy+y,w*2,1,CA_P.iron[y<2?6:y>15?3:5]);K.px(sx+ox-w,sy+y,1,1,CA_P.iron[7]);K.px(sx+ox+w-1,sy+y,1,1,CA_P.iron[2]);}K.px(sx-9,sy-1,18,2,CA_P.iron[3]);K.px(sx-1,sy-4,4,6,CA_P.iron[4]);
       if(sy+18>GL){const ox=Math.round(-(GL-sy)*LX*.5);K.px(sx+ox-11,GL,22,2,'#2a1a0c');K.px(sx+ox-9,GL-1,4,1,'#6a4a24');K.px(sx+ox+4,GL-1,5,1,'#5a4022');}
       if(u>0&&u<.28&&lev>.3){K.ell(sx-2,GY-2,10,2+lev*2,'#5a4022');K.px(sx-9,GY-3-Math.round(lev*2),4,2,'#6a4a24');K.px(sx+4,GY-3-Math.round(lev*3),3,2,'#3a2a14');}   /* the earth heaves as you lever */
-      if(u>=.28&&u<.62){K.ell(sx-2,sy+4,9,4,'#5a4022');K.ell(sx-3,sy+3,7,3,'#6a4a24');for(let k=0;k<5;k++)K.px(sx-8+k*3,sy+1-(k%2),2,2,'#3a2a14');
+      if(u>=.28&&u<.62){/* (closing pass) a clear brown clod heaped on the blade, lit on top, crumbs on its edge */K.ell(sx-3,sy+3,11,5,'#2a1a0c');K.ell(sx-3,sy+2,10,4,'#6a4a24');K.ell(sx-5,sy,7,3,'#8a6a3a');K.px(sx-8,sy-2,4,1,'#a88450');for(let k=0;k<5;k++)K.px(sx-11+k*4,sy+5-(k%2),2,2,k%2?'#3a2a14':'#7a5a32');
         if(Math.random()<.5){const cx_=sx-9+Math.random()*16;K.emit(cx_,sy+7,1,{c:['#5a4022','#3a2a14'],v:10,ang:Math.PI/2,spread:.6,g:300,life:.5,sz:2});}}
       if(u>=.62){const v=(u-.62)/.38,cx_=sx-2+(236-sx+2)*v,cy_=sy+4+(GY-3-sy-4)*v-Math.sin(v*Math.PI)*18;if(v<.92){K.ell(cx_,cy_,7,3,'#5a4022');K.ell(cx_-1,cy_-1,5,2,'#6a4a24');}
         if(v>.85&&!st.pf){st.pf=1;K.emit(236,GY-2,8,{c:['#7a5a32','#5a4022'],v:40,ang:-Math.PI/2,spread:2.4,g:120,life:.5,sz:2});}}else st.pf=0;
@@ -195,7 +195,9 @@ S4.smoulder=(sp,K)=>{const g=K.g,LO=.38,HI=.6,DUR=sp.dur||6;const st={air:.8,bur
       for(const q of st.sm||[]){const u=q.t/q.life,r=q.r+u*8,a=q.a*(u<.5?1:1-(u-.5)/.5)*Math.min(1,q.t*5);g.globalAlpha=a;K.ell(q.x+1,q.y+1,r,r*.85,'#2a2a30');K.ell(q.x,q.y,r,r*.85,q.c);g.globalAlpha=a*.7;K.ell(q.x-r*.3,q.y-r*.3,r*.5,r*.45,'#e8ecf0');g.globalAlpha=1;}   /* solid puffs, fading only in their last half */
       // (t300) while you hold, your flat hand banks earth over the vents in turn, patting each one down; let go and it lifts away
       {st.hp=(st.hp||0)+((st.hd?1:0)-(st.hp||0))*.15;const VX=[-40,0,40],vi=Math.floor(st.t*1.6)%3,tx=cx+VX[vi],ty=(VX[vi]?140:112)-5;st.vi=vi;st.hx=st.hx==null?tx:st.hx+(tx-st.hx)*.2;st.hy=st.hy==null?ty:st.hy+(ty-st.hy)*.2;
-        if(st.hp>.05){const pat=Math.abs(Math.sin(st.t*Math.PI*3.2))*4,up=(1-st.hp)*18;K.ell(st.hx+2,st.hy+6,8,2.5,'#4a3820');K.ell(st.hx+1,st.hy+5,6,1.5,'#6a5030');g.globalAlpha=Math.min(1,st.hp*1.5);m4palm(K,st.hx,st.hy-pat-up,false,{});g.globalAlpha=1;}}
+        if(st.hp>.05){const pat=Math.abs(Math.sin(st.t*Math.PI*3.2))*4,up=(1-st.hp)*18;K.ell(st.hx+2,st.hy+6,8,2.5,'#4a3820');K.ell(st.hx+1,st.hy+5,6,1.5,'#6a5030');
+          if(pat<1.5&&st.hp>.6){g.globalAlpha=.35;K.ell(st.hx,st.hy+5,9,2,'#140a04');g.globalAlpha=1;}   /* (closing pass) the hand's press shadow while it's down on the vent */
+          g.globalAlpha=Math.min(1,st.hp*1.5);m4grip(K,st.hx,st.hy-6-pat-up,-Math.PI/2+.01,{kind:'palm'});g.globalAlpha=1;}}   /* fingers pointing down onto the vent */
       K.glow(cx,132,44,'255,120,40',Math.max(0,st.burn-.3)*.4);},
     hud(t){K.label('BURN',248,22,'#f4ecd8');K.gauge(244,34,8,70,LO,HI,st.burn,{zone:'#3a6a2a'});K.meter(st.prog,st.runT?st.inT/st.runT:1);if(st.burn>HI+.1&&Math.floor(t*5)%2)K.label('FLAMES: COVER IT',160,24,'#e8542a');if(st.burn<LO-.1&&Math.floor(t*5)%2)K.label('DYING: GIVE IT AIR',160,24,'#e8b030');},
     auto(dt,AP){const a=m4ai(this,AP,dt);m4hold(a,st.burn+(st.air*.95-st.burn)*.6>(LO+HI)/2);AP.hand=[214,112];AP.press=a.down;},

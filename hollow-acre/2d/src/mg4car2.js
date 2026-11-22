@@ -105,7 +105,7 @@ S4.crDents=(sp,K)=>{const g=K.g,X0=16,X1=298,TOP=30,BOT=148,AX=X0+190,AY=BOT+18,
     hud(t){const n=DENTS.filter(d=>!d.ding).length,left=live().length;K.label('DENTS LEFT '+left,30,16,'#f4ecd8','l');if(st.miss)K.label('NEW DINGS '+st.miss,30,26,'#e8b030','l');
       K.meter(1-left/Math.max(1,DENTS.length),st.res.length?M4.avg(st.res):.7);},
     auto(dt,AP){const a=m4ai(this,AP,dt);const d=live()[0];if(d){m4move(a,d.x+(Math.random()-.5)*2,d.y+(Math.random()-.5)*2);this._w=(this._w||0)-dt;if(this._w<=0&&st.sw===0&&Math.hypot(st.x-d.x,st.y-d.y)<3){m4tap(a);this._w=.45;}}
-      AP.I=a;AP.hand=[a.x+6,a.y+6];AP.press=a.down;},
+      AP.I=a;AP.hand=[a.x,a.y];AP.press=a.down;},   /* (t300) the demo's ring sits on the dent it aims at */
     stop(){}};};
 // ================================================================= THE RADIATOR, 1: the fan belt over the pulleys, then tension
 S4.crBelt=(sp,K)=>{const g=K.g;const A_={x:150,y:130,r:22},B_={x:150,y:62,r:16},C0={x:230,y:90,r:11};
