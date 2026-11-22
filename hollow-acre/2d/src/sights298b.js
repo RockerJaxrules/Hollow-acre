@@ -155,3 +155,34 @@ SGT_ART.corn=function(){try{s98CornRing();s98CornWorld();const o=S98.cornObj;if(
       for(const [u,v] of [[2,27],[40,27],[2,31],[40,31]])for(let i=0;i<4;i++)Q(u+(i%2),v+i,1,2,i%2?'#c8a050':'#9a7a30');});}}catch(e){}
   return s98CornArt2.apply(this,arguments);};
 setInterval(()=>{try{s98CornRing();}catch(e){}},700);
+
+// ======== (B4) the readable things. Reading a grave cross showed a name plank on its arms and a metal plate with the year on its
+// post, though the crosses in the world had plain arms; and the Greyfield crosses read up in grey wood though they are brown. The
+// crosses in the world now carry the plank and the plate, and they read up in their own brown. The county line's board read up as
+// LEAVING MARROW COUNTY with three bullet holes, while in the world it said LEAVING MARROW COUNTY LINE with none: it now says the
+// same in both, holes and all.
+function s98CrossWorld(name){const k='cross_'+name;if(S98[k])return;const m=SPR[name],im=m&&IMG[m.src];if(!im||!im.width)return;
+  const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const g=c.getContext('2d');g.drawImage(im,0,0);
+  const d=g.getImageData(0,0,m.fw,m.fh).data,op=(x,y)=>d[(y*m.fw+x)*4+3]>128,lit=(x,y)=>{const i=(y*m.fw+x)*4;return d[i+3]>128&&d[i]+d[i+1]+d[i+2]>=150;};
+  const wid=[];for(let y=0;y<m.fh;y++){let n=0;for(let x=0;x<m.fw;x++)if(op(x,y))n++;wid.push(n);}
+  let top=-1,best=0;for(let y=0;y<m.fh*.55;y++)if(wid[y]>best){best=wid[y];top=y;}if(top<0){S98[k]=1;return;}
+  const rows=[];for(let y=0;y<m.fh*.55;y++)if(wid[y]>=best-1)rows.push(y);const y0=Math.min(...rows),y1=Math.max(...rows);
+  let x0=m.fw,x1=0;for(const y of rows)for(let x=0;x<m.fw;x++)if(lit(x,y)){x0=Math.min(x0,x);x1=Math.max(x1,x);}
+  const P=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h);};
+  for(let fx=0;fx+m.fw<=im.width;fx+=m.fw){P(fx+x0,y0,x1-x0+1,y1-y0+1,'#b08454');P(fx+x0,y0,x1-x0+1,1,'#c89c68');P(fx+x0,y1,x1-x0+1,1,'#7a5430');   /* the name plank across the arms */
+    {const my=Math.round((y0+y1)/2);let x=x0+2;while(x<x1-1){const w=1+((x*7)%3>0?1:0);P(fx+x,my,Math.min(w,x1-1-x),1,'#4a2e18');x+=w+1+((x*5)%2);}}   /* the name, as uneven short strokes along the plank */
+    let ux=-1;for(let x=0;x<m.fw;x++)if(lit(x,y1+4)){ux=x;break;}if(ux>=0){P(fx+ux-1,y1+3,5,6,'#2a2a30');P(fx+ux,y1+4,3,4,'#8a8a92');P(fx+ux,y1+4,1,4,'#b4b4bc');P(fx+ux+1,y1+5,1,2,'#4a4a52');}}   /* the year plate on the post */
+  IMG[m.src]=c;S98[k]=1;}
+{const _rs=ruSpec;ruSpec=function(o,cap){const s=_rs.apply(this,arguments);try{if(s&&s.kind==='cross')s.grey=false;}catch(e){}return s;};}   /* the crosses read up in their own brown */
+function s98CountyWorld(){if(S98.countyDone)return;const m=SPR.rg_countysign,im=m&&IMG[m.src];if(!im||!im.width)return;
+  const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const g=c.getContext('2d');g.drawImage(im,0,0);const id=g.getImageData(0,0,m.fw,m.fh),d=id.data,at=(x,y)=>(y*m.fw+x)*4;
+  const isG=(x,y)=>{const i=at(x,y);return d[i+3]>200&&d[i+1]>d[i]+12&&d[i+1]>d[i+2]&&d[i+1]<140;};
+  let bx0=m.fw,bx1=0,by0=m.fh,by1=0;for(let y=0;y<m.fh*.6;y++)for(let x=0;x<m.fw;x++)if(isG(x,y)){bx0=Math.min(bx0,x);bx1=Math.max(bx1,x);by0=Math.min(by0,y);by1=Math.max(by1,y);}
+  if(bx1<=bx0){S98.countyDone=1;return;}const gc=[0,0,0];let gn=0;for(let y=by0;y<=by1;y++)for(let x=bx0;x<=bx1;x++)if(isG(x,y)){const i=at(x,y);gc[0]+=d[i];gc[1]+=d[i+1];gc[2]+=d[i+2];gn++;}const G=gc.map(v=>Math.round(v/gn));
+  const tr=[];for(let y=by0;y<=by1;y++){let n=0;for(let x=bx0;x<=bx1;x++){const i=at(x,y);if(d[i]+d[i+1]+d[i+2]>480)n++;}tr.push(n>0);}
+  const lines=[];for(let y=0;y<tr.length;y++){if(tr[y]&&(y===0||!tr[y-1]))lines.push([y,y]);if(tr[y])lines[lines.length-1][1]=y;}
+  if(lines.length>=3){const [a,b]=lines[2];for(let y=by0+a-1;y<=by0+b+1;y++)for(let x=bx0+2;x<=bx1-2;x++){const i=at(x,y);if(isG(x,y))continue;if(d[i+3]>200){d[i]=G[0];d[i+1]=G[1];d[i+2]=G[2];}}}   /* LINE goes: the board reads LEAVING MARROW COUNTY */
+  g.putImageData(id,0,0);const P=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h);},bw=bx1-bx0,bh=by1-by0;
+  for(const [fx,fy] of [[.19,.71],[.81,.26],[.69,.8]]){const x=Math.round(bx0+bw*fx),y=Math.round(by0+bh*fy);P(x,y,2,2,'#05080a');P(x+1,y+2,1,2,'#6a3a1a');}   /* the three bullet holes, rust running from them */
+  IMG[m.src]=c;S98.countyDone=1;}
+setInterval(()=>{try{for(const n of ['grave_2','rg_marker_0','rg_marker_1'])s98CrossWorld(n);s98CountyWorld();}catch(e){}},500);
