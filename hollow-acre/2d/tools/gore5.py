@@ -118,9 +118,9 @@ def xpool(z, x, y, rx, ry, seed, clots=3, tongues=2, glint=True):
         a = H(k, seed, 7) * 6.28; rr = H(k, seed, 8) * .6
         ox_, oy_ = x + math.cos(a) * rx * rr, y + math.sin(a) * ry * rr; cr = (.7 + H(k, seed, 9) * .7)
         clot(z, ox_, oy_, cr, cr * .62, seed + k)
-    for k in range(int(6 + RX / max(1, S) * .6)):   # clotted edges: lumps standing on the rim
+    for k in range(int(3 + RX / max(1, S) * .25)):   # clotted edges: lumps standing just inside the rim
         a = H(k, seed, 12) * 6.28; w = 1 + .2 * math.sin(a * 3 + seed) + .12 * math.sin(a * 5 + seed * 2.3)
-        clot(z, x + math.cos(a) * rx * w * .92, y + math.sin(a) * ry * w * .92, .45 + H(k, seed, 13) * .4, .32 + H(k, seed, 14) * .2, seed + k * 3)
+        clot(z, x + math.cos(a) * rx * w * .78, y + math.sin(a) * ry * w * .78, .6 + H(k, seed, 13) * .5, .42 + H(k, seed, 14) * .25, seed + k * 3)
     if glint:   # the wet lights: a warm orange-pink run along the lit crescent, and a glint
         n = int(max(3, RX * .5))
         for k in range(n):
@@ -586,12 +586,12 @@ def hiker_x(z, day):
     xpool(z, 34, 31.8, 17.5, 5.4, 1.3, clots=4, tongues=0); xpool(z, 15, 31, 8, 3, 2.7, clots=1, tongues=0); xpool(z, 33, 9.6, 8, 2.6, .4, clots=1, tongues=0)
     z.lay_base()
     if z.S > 1: crown_split(z)
-    D_ = [(28, 16.6), (39.4, 16.6), (39.2, 19.4), (38, 22.2), (36.2, 24.6), (34, 25.8), (31.8, 25.2), (30, 23.4), (28.8, 20.6)]
+    D_ = [(27.2, 16.4), (39.6, 16.4), (39.4, 19.4), (38.2, 22.4), (36.2, 24.8), (33.8, 26), (31.4, 25.4), (29.2, 23.4), (27.6, 20.4)]
     hole(z, D_, 1.1)   # a D-shaped tear: the spine along its straight lip, the other lip ragged
     S = z.S
     for k in range(int(10.8 * S)):   # the spine, bared along the straight lip: one bar of bone, two knuckles, blood over a long part of it
-        x = 28.6 + k / S; bl = 31.4 < x < 34 or 36.6 < x < 37.8; kn = abs(x - 30.4) < .5 or abs(x - 35.6) < .5
-        for v in range(-(1 if kn and S > 1 else 0), max(1, int(.7 * S))): z.c.p(z.X(x), z.Y(17.2) + v, (XB[2] if v > 0 else XB[3]) if bl else BONE[3] if v <= 0 else BONE[1])
+        x = 28.6 + k / S; bl = 31.4 < x < 35.2; kn = abs(x - 30.4) < .5 or abs(x - 36.4) < .5
+        for v in range(-(1 if kn and S > 1 else 0), max(1, int(.7 * S))): z.c.p(z.X(x), z.Y(17.2) + v, (XB[2] if v > 0 else XB[3]) if bl else BONE[2] if v <= 0 else BONE[0])
     for (x0, L, bend) in ((30.4, 5, 1.1), (33.6, 2.8, 1.4), (37, 5.6, 2.2)):   # three ribs: smooth arcs off the spine at uneven gaps, one snapped short
         pts = [(x0 - bend * math.sin(math.pi * t * .9) - t * .4, 18 + (L + 1.6) * t) for t in [i / 8 for i in range(9)]]
         ridge(z, pts, seed=x0)
@@ -657,8 +657,8 @@ def rib(z, pts, seed=0):
     for k, (x, y) in enumerate(path):
         X, Y = z.X(x), z.Y(y)
         for u in range(w): z.c.p(X + u, Y, BONE[4] if u == 0 and k < N * .7 else BONE[3] if k < N - S else BONE[2])
-        if H(k // max(1, S), seed, 1) < .7: z.c.p(X + w, Y + (1 if S > 1 else 0), MUS[1] if k % 3 else XB[2])
-        if S >= 2 and k < N * .5 and H(k // S, seed, 2) < .5: z.c.p(X - 1, Y, MUS[2])
+        if k < N * .8: z.c.p(X + w, Y + (1 if S > 1 else 0), MUS[3] if k < N * .4 else MUS[2])   # the meat along it, one lit ridge
+        if S >= 2 and k < N * .8: z.c.p(X + w, Y + 2, MUS[1])
     x, y = path[-1]; z.c.p(z.X(x), z.Y(y), BONE[5] if len(BONE) > 5 else BONE[4])
 
 
@@ -688,7 +688,7 @@ def lantern_x(z, day):
     xpool(z, -4, 16.6, 10, 2.6, 1.7, clots=3, tongues=0); xpool(z, 5, 15.8, 4, 1.6, 3.1, clots=1, tongues=0)
     z.lay_base()
     strand(z, [(-7.4, 14.6), (-9.2, 16.8), (-11.6, 17.2)])
-    xbone(z, -6, 12.6, -10.4, 12, .6, .55, seed=2); xbone(z, -6.2, 14.4, -10.6, 15.6, .55, .5, seed=5)
+    xbone(z, -6.2, 13.4, -8.6, 13.6, .62, .56, seed=2, meat=.5)   # the bone, short, out of the torn end
     S = z.S; f = z.F()
     f.cap(z.X(-6.6), z.Y(13.4), z.X(-1.4), z.Y(12.8), 2.3 * S, 2.1 * S, 'dead', base=.6 * S)
     f.cap(z.X(-1.2), z.Y(12.8), z.X(7.8), z.Y(12.2), 1.75 * S, 1.45 * S, 'mus', base=.9 * S)
@@ -888,15 +888,15 @@ def ribs_x(z, day):
     for Y in range(int(z.Y(3)), int(z.Y(33))):   # the Full ribs off (they were one mirrored fishbone); the spine stays
         for X in range(z.c.W):
             q = z.c.px[X, Y]
-            if q[3] > 120 and abs(X - z.X(22.2)) > 1.9 * S and (q[:3] in BONE or (lumi(q) > 150 and q[0] > q[2])): z.c.px[X, Y] = (0, 0, 0, 0)
-    RIBS = {-1: [(11.6, 5.6, .9), (14.2, 7.6, 1.8), (16.8, 8.8, 3), (19.6, 8.2, 4.4), (22.4, 7.4, 5.4), (25.2, 5.8, 6.2)],
-            1: [(12.4, 5.2, 1.2), (15.4, 7.8, 2.2), (17.8, 9.2, 3.4), (20.8, 7.6, 4.8), (23.6, 6.2, 5.6)]}
+            if q[3] > 120 and abs(X - z.X(22.2)) > 1.9 * S and Y < z.Y(29.6) and (q[:3] in BONE or (lumi(q) > 150 and q[0] > q[2]) or is_blood(q) or q[0] > 2 * q[1]): z.c.px[X, Y] = (0, 0, 0, 0)
+    RIBS = {-1: [(11.2, 6, .8), (14, 8.2, 2.2), (17.8, 9.2, 3.9), (22.2, 7.2, 5.4)],   # one side: four left, far apart where some were taken; each steeper than the one above
+            1: [(12.6, 4.6, 1.2), (15.2, 7, 2.4), (17.8, 8.6, 3.6), (20.8, 8.4, 4.6), (23.8, 6, 4.8)]}
     for side, L_ in RIBS.items():
         for k, (y0, L, drop) in enumerate(L_):
             x0 = 22.2 + side * 1.4; pts = [(x0, y0), (x0 + side * L * .55, y0 - .6 + drop * .2), (x0 + side * L * .9, y0 + drop * .65), (x0 + side * L, y0 + drop)]
-            if (side, k) in ((-1, 2), (1, 3)): pts = pts[:3]   # broken short
+            if (side, k) in ((-1, 1), (1, 2), (1, 4)): pts = pts[:3]   # broken short
             rib(z, pts, seed=k * 5 + side)
-    TAT = [(-1, 2, .3, 5.2, 1.6), (-1, 3, .25, 3.4, 1.3), (1, 1, .55, 1.6, .7)]
+    TAT = []
     for side, k, t, ln, wd in TAT:   # rags of meat still on the ribs: each a torn strip, wide at the rib and ragged at its foot
         hy, L, drop = RB[side][k]; x, y = pt(side, hy, L, drop, t); S = z.S
         for j in range(int(ln * S)):
@@ -907,16 +907,9 @@ def ribs_x(z, day):
                 if f_ > .75: col = XB[2] if u else XB[3]
                 z.c.p(z.X(x) + u + side * f_ * .6 * S, z.Y(y) + 1 + j, col)
         if S >= 2: z.c.p(z.X(x) - 1, z.Y(y) + 2, MUS[5])
-    for side, k, t, ln in ((-1, 2, .55, 3), (1, 4, .6, 2.6), (-1, 5, .3, 1.8), (1, 1, .7, 3.4)):
-        hy, L, drop = RB[side][k]; x, y = pt(side, hy, L, drop, t); strand(z, [(x, y), (x + side * .5, y + ln * .5), (x + side * .2, y + ln)], w=.5)
+    for (x, y, ln) in ((16.4, 12.6, 2.6), (27.2, 19.4, 2)):   # two strings of tendon hanging, no more
+        strand(z, [(x, y), (x + .3, y + ln * .5), (x + .1, y + ln)], w=.5)
     S = z.S
-    for side, k, t in ((-1, 1, .62), (1, 3, .5), (-1, 4, .78)):   # broken ribs: a piece gone, the ends splintered
-        hy, L, drop = RB[side][k]; x, y = pt(side, hy, L, drop, t)
-        for Y in range(int(z.Y(y - 1)), int(z.Y(y + 1.2))):
-            for X in range(int(z.X(x - .7)), int(z.X(x + .7)) + 1):
-                q = z.c.px[X, Y]
-                if q[3] > 200 and q[:3] in BONE: z.c.px[X, Y] = (0, 0, 0, 0)
-        for e in (-1, 1): z.c.p(z.X(x + e * .8), z.Y(y) - 1, BONE[4])
     for Y in range(int(z.Y(9)), int(z.Y(13.4))):   # the spine's top snapped off and gnawed: ragged, the marrow showing
         for X in range(int(z.X(20.2)), int(z.X(24.4))):
             q = z.c.px[X, Y]
@@ -1052,7 +1045,41 @@ def hiker_adult(z, day=0):
         for X in range(int(z.X(3)), cut + 3 * S):
             q = px[X, Y]
             if hair(q) and px[X - 1, Y][3] < 120: c.p(X, Y, (20, 14, 12))
-    hiker_head(z, full=True); beard_hiker(z); legs(z); return {}
+    hiker_head(z, full=True); crop_hair(z); beard_hiker(z); broad_back(z); legs(z)
+    for v in range(max(1, int(S * .8))): c.p(z.X(38.2), z.Y(12.6) + v, (226, 190, 84) if v < S * .5 else (176, 132, 52))   # a wedding ring on the hand
+    return {}
+
+
+def crop_hair(z):
+    """a middle-aged man from behind: the hair cropped short to the shape of the skull (the head smaller), the crown bald, grey
+    at the temples (critic: long hair and a big head read young)"""
+    c, S = z.c, z.S; px = c.px
+    hairq = lambda q: q[3] > 200 and lumi(q) < 80 and not is_blood(q) and q[1] <= q[0] + 6 and q[:3] not in XB
+    for Y in range(int(z.Y(10)), int(z.Y(31))):   # outside the skull's shape the hair goes
+        for X in range(int(z.X(3)), int(z.X(24))):
+            x, y = X / S - z.pad, Y / S - z.pad
+            if hairq(px[X, Y]) and ((x - 17.6) / 9.4) ** 2 + ((y - 21.2) / 7.2) ** 2 > 1: px[X, Y] = (0, 0, 0, 0)
+    for Y in range(1, c.H - 1):   # its new edge, dark
+        for X in range(int(z.X(3)), int(z.X(24))):
+            if hairq(px[X, Y]) and any(px[X + a, Y + b][3] < 120 for a, b in ((1, 0), (-1, 0), (0, 1), (0, -1))): c.p(X, Y, (20, 14, 12))
+    f = z.F(); f.blob(z.X(11.4), z.Y(20.6), 3.4 * S, 3.6 * S, 'sc', base=1 * S, hs=.8); f.render(c, {'sc': SKN})   # the bald crown, lit
+    for k in range(int(20 * S)):   # a fringe of thin hair round it
+        a = k / (20 * S) * 6.28; X = z.X(11.4) + math.cos(a) * 3.5 * S; Y = z.Y(20.6) + math.sin(a) * 3.7 * S
+        if 0 <= X < c.W and 0 <= Y < c.H and px[int(X), int(Y)][3] > 200: c.p(X, Y, (64, 52, 44))
+    for Y in range(int(z.Y(13)), int(z.Y(29))):   # grey at the temples: the hair next to the face, a solid band
+        for X in range(int(z.X(10)), int(z.X(24))):
+            q = px[X, Y]
+            if not hairq(q): continue
+            near = any(0 <= X + a < c.W and px[X + a, Y][3] > 200 and lumi(px[X + a, Y]) > 120 and px[X + a, Y][0] > px[X + a, Y][2] + 20 for a in range(1, 2 * S + 2))
+            if near: c.p(X, Y, (132, 126, 120) if lumi(q) > 30 else (104, 100, 96))
+
+
+def broad_back(z):
+    """a heavier, broader man: the shoulders and the back a step wider, the jacket out past the chibi's"""
+    S = z.S; f = z.F()
+    for (x, y) in ((29.6, 11.6), (29.6, 28.6)): f.blob(z.X(x), z.Y(y), 2.8 * S, 1.5 * S, 'jk', base=.6 * S)
+    f.cap(z.X(31.6), z.Y(12.2), z.X(38.4), z.Y(12.6), 1.1 * S, 1 * S, 'jk', base=.4 * S); f.cap(z.X(31.6), z.Y(28.2), z.X(38.4), z.Y(27.8), 1.1 * S, 1 * S, 'jk', base=.4 * S)
+    f.render(z.c, {'jk': JACKET})
 
 
 def beard_hiker(z):
@@ -1061,7 +1088,7 @@ def beard_hiker(z):
     for Y in range(int(z.Y(20)), int(z.Y(31))):
         for X in range(int(z.X(18)), int(z.X(28.4))):
             q = px[X, Y]; x, y = X / S - z.pad, Y / S - z.pad
-            if q[3] > 200 and lumi(q) > 95 and q[0] > q[2] + 10 and (x - 18.6) + (y - 21.6) * 1.15 > 8.2: M.append((X, Y))
+            if q[3] > 200 and lumi(q) > 90 and q[0] > q[2] + 10 and (x - 18.6) + (y - 21.6) * 1.15 > 5.6: M.append((X, Y))
     Ms = set(M)
     for (X, Y) in M:
         top = (X, Y - 1) not in Ms and (X - 1, Y) not in Ms
