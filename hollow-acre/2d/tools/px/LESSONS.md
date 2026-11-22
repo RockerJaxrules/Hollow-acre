@@ -264,6 +264,20 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Fine texture (herringbone, tweed) at this size reads as fur. Two smooth tones and two or three short bands of pattern.
 - One sprite reused across several sights reads as a kit: vary the pose (standing, grazing, tipped over with a broken leg), not just the colour.
 
+- [#302, the drowned base redrawn, 5.5 vs 2.5] Floating hair on a 7 px head: anything narrower than the head that leaves its top reads as a stalk (a sprout, a branch, a rifle, a raised hand). The hair must swallow the head first (a round mass a pixel or two wider than it) and taper away from there, like a comet.
+- Locks that fan apart at the tip read as the fingers of a hand; evenly spaced parallel locks read as a broom or a sheaf. Locks bundled almost parallel, waving in step and ending at staggered lengths read as one head of hair.
+- A tall column of hair straight up, nearly the figure's height, reads as a feather duster or a torch; a third of the height, drifting at a slant, reads as hair lifting in water. Give every head in one current the same slant (the critic's first fix), and vary length and curl instead.
+- No strand under 2 px and no dark tip on floating hair: a dark 1 px line off a head reads as a cane or a stick. End a lock while it is still 2 px wide, in its base or lit tone.
+- Slanted 1 px streak lines inside a hair mass step into stair dashes and read as feather barbs; let the texture come from the lit and dark edges of overlapping locks instead.
+- Big lit-left, dark-right zones on a hair mass make it a body (a bird, a fish, a hood). Masses that end in one point still lean toward a flame or a hood (main's note): rounder, wider tips with two or three lock ends.
+- Hair under a hat: a bun at the nape with short loose locks reads as hair; locks rising up one side of the hat read as a hand on the brim; hair floating up behind the crown shows only as thin sticks.
+- Two dark strand marks inside a pale head seen from behind read as eyes. One strand line off-centre, a dark row under the hat brim and a ragged nape keep grey hair reading as the back of a head.
+- A near-white 2 px row at the hip (a hand's lit top) reads as a stray bubble or a button at 1x: a hand on the shadow side is mid-tone.
+- What made the street read as underwater (critic: "caustics, bubble columns, green murk, drifting hair, and no rain cue"): a broken net of light (Worley cell edges, warped, a soft glow round each line) on the street, the walls, the roofs and the tops of the hats and shoulders (on the people it reads as light, not cracks); bubbles from the faces that swell as they rise (2x2 at least); haze stronger toward the back; silt on every ledge and hat brim; weed all leaning one way; motes and short flecks lying along the current, never down it.
+- Caustic cells sized per row (x divided by a size that changes with y) shear into long diagonal streaks that read as rain. Keep the cell width constant and foreshorten only in y.
+- Even light on every square of a floor reads as a pattern; gather caustics into pools.
+- Figures in a murky scene: coats at least 20 levels above the ground in greyscale, plus a contact shadow, or they sink however well they are drawn.
+
 ## Judging (Nov 9)
 - Blind judges vary by about a point between rounds and lean toward whichever image is in slot b: in tree round 4 the
   same pair scored new 6 / old 5 with new as b and old 6 / new 5 with old as b. For a close call, judge both orders
@@ -1959,6 +1973,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Steam drawn as grey outlined balls reads as rocks: light, low-alpha puffs that fade as they rise.
 - Falling feathers as dozens of 1-2 px dashes read as speckle: a few larger feathers in the air at once, the rest gathered into one heap on the boards.
 - Keep the score text clear of hooks and gauges, and keep a gauge's label short: a five-letter label at the right edge was clipped.
+
+- [#302] Two round lit tops over a V under the hook kept reading as buttocks through three shading passes. Changing the outline fixed it: each side cut square under its hock (a nearly flat top to a squared shoulder), a dull sawn bone edge with dark cut meat under it, the V closed to a narrow slot.
+- When the shape comes from a height field, a squared silhouette still shades as a dome if the field keeps its dome (Toned paints the raw field): cut the dome in the field too.
+- To change one shape everywhere it is painted without touching the shared code, swap the shared field for a modified copy around the one painter call (BT3._bf) and restore it after.
 
 ## Holding and swinging tools in the making games (t300, Nov 22: wave 1 5.5 vs 4 in round 1)
 - A knife seen from the front must lie side-on, edge down over the cut, the tip on the board beyond it and the fist on the handle at the far end; a knife pointing up and away from a fist on the vegetable reads as held backwards, whatever the 3/4 logic says.
