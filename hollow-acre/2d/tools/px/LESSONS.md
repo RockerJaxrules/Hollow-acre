@@ -1856,3 +1856,23 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Olive and waxed-cotton cloth sinks into grass in greyscale: step the top pixel of every run two ramp steps up (lit_rim in gore3.py).
 - Blood over cloth keeps the cloth's light: map each cloth tone to a blood tone of the same rank (a flat red patch reads as a red shirt).
 - A height field (every body part a dome, one light over the surface, a dark crease where a higher part overlaps) gives bodies their volume in one pass; draw the gore over it by hand.
+
+## Live animals and the kill (t373, Nov 22: 3.5 vs 6 in round 1, 5 in round 3, 6 vs 3 in round 4)
+- Big animal bodies drawn as smooth shaded capsules read as balloon animals or a bean bag (rounds 1-3). What worked (round 4): volume from a height field (domes, tubes, a rounded outline for a straight back), then the hand finish: four hide tones with a slow wobble on the light (period 9-10 px, about a fifth of a tone) so the borders wander, every cluster under 10 px melted, fur tips 2-4 px reaching across each tone border, a dark-brown outline, a pale lit edge on top and left edges only (runs of 2+). Set each part's base mid-band so a flat interior can't flip between two tones; a base on a threshold gives blotches. Code: tools/px/kill373/pxk.py, cow_stand.py, cow_lie.py (mkdata.py writes them into butchkill.js).
+- A lit edge applied to every edge pixel leaves stair-step dots along the bottom and right; light only edges facing the light.
+- A standing cow reads with her head front-on and her body turned away (a three-quarter view): the straight back, the hip points, the udder, the tail and four legs with knees all show. A pure front view hides them and reads as a sack on a puddle.
+- A cow's face: short and broad, a big pale nose with nostrils (about a third of the head), short horns, ears set wide, a heavy jaw. A long shallow face with a small muzzle reads as a horse, deer or llama.
+- A lying animal is one barrel when the neck is short and slopes down from the withers to the head on the boards. A neck that carries the back line on to the head reads as a long capsule. Lay the head in profile on its cheek (one eye, the ear flat back along the neck); a front-view head turned a quarter stacks the eyes and points the horns up and down.
+- A big flat flank needs landmarks: a lit hip point at the rump, the shoulder blade's back edge, 2-3 uneven rib shadows, each a soft 2 px groove with a lit front edge. 1 px dark lines read as scratches or stitching.
+- A state has to show on the animal itself: dazed = squint and an open mouth, a run from the brow; dying = the eye rolled white, then half shut, then shut, the tongue out, the legs kicking slower and then still. Frames that repeat read as a loop, not a death.
+- When the blow drops her, keep her in view: the front buckles first and the head rolls. Dropping her out of the frame reads as falling into a hole.
+- A tool must be sized to its user: a sledge handle about 1.5 head lengths, the fist near its end at mid height. Cocked just behind the target between blows, resting beside the wound after the hit, so tool, wound and dazed eyes make one moment. A handle taller than the cow with the fist at floor level reads as a lamp post or a pike.
+- A strike frame puts the edge into the flesh, not above it, and holds 2-3 frames before the bounce.
+- Keep a fist clear of pale shapes behind it: a fist with two red marks in front of a raised white wing reads as a face under a chef's hat.
+- Blood spilling over a rim: 2-3 runs of different lengths, thin at the lip and thickening down into the pool. Even runs of equal length read as red staves.
+- A pool is one flat ragged shape fed where the blood comes out (the stump, the bucket's foot). A 16 px run 4 px wide down the block reads as a red post; separately shaded lobes read as round lumps.
+- A streak on the wall above a hand reads as a red stick rising from it. Hang the blood from the blade's lowest edge and let one drop at a time fall.
+- A dotted guide line under a neck reads as drips: mark the target as one scored groove.
+- A slit's rim stays dark and uneven (no pale lips), or it reads as a gill or lips. A miss is a slanted glancing tear on the neck with the feathers parted round it, not a dot.
+- Uneven feathers: four even points read as a white glove.
+- The owner's standing rules win over a critic: no arms, and the original hands are never redrawn. When a critic asks for either, use the original fist in a pose that reads, and say why.

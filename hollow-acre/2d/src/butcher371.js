@@ -302,7 +302,8 @@ BG71.snd={
   if(full){if(hen)G.beads.push({x:125,y:20,gy:40,g:.3,rate:.5});else G.beads.push({x:161,y:59,gy:141,g:0,rate:.8},{x:173,y:55,gy:143,g:.5,rate:.55});}
   const qq=o.quiet,ss=o.stop;o.quiet=function(){try{G.loop&&G.loop.set(0);}catch(e){}return qq&&qq.apply(this,arguments);};o.stop=function(){try{G.loop&&G.loop.stop();G.loop=null;}catch(e){}return ss&&ss.apply(this,arguments);};
   // ---- what lies on the block (drawn on it, under the carcass)
-  const onBlock=()=>{
+  const AF=()=>typeof BK!=='undefined'&&BK.after?BK.after:{};
+  const onBlock=()=>{const af=AF(),wl=hen?af.henWall:af.cowWall;if(wl&&wl.length&&(hen?af.hen:af.cow)&&full)BK.drawWall(K,wl,99,P,-(K.dy||0));
     if(hen){
       // the rail of hooks on the wall behind the block; the hen's feet tied on one of them
       K.px(66,-10,196,3,BG71.IRON[2]);K.px(66,-10,196,1,BG71.IRON[4]);K.px(66,-8,196,1,BG71.IRON[0]);for(const x of [66,259]){K.px(x,-13,3,9,BG71.IRON[1]);K.px(x,-13,1,9,BG71.IRON[3]);}
@@ -331,6 +332,8 @@ BG71.snd={
     try{
       // the loop of gut sliding out of her over the thigh
       if(hen&&full&&G.gutT>=0&&G.t-G.gutT>.35){const k=Math.max(1,Math.min(6,Math.floor((G.t-G.gutT-.35)*6)));g.drawImage(BG71.henSpill(k),84,103);}
+      // the hand that did the killing is still bloody
+      {const af=AF();if(!st.end&&(hen?af.hen:af.cow)&&full){const [hx,hy]=M4.tr(st.tx,st.ty,Math.PI-.62,-.5,-36.5);BK.hand(K,hx,hy,2,P);}}
       // the blade, bloodier with every seam
       if(!st.end&&full){const n=Math.min(4,G.lastPi+(st.s>4?1:0));if(n>0)M4.rot(g,BG71.blade(n),st.tx,st.ty,Math.PI-.62,8,44);}
       // drops in the air
