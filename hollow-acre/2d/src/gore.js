@@ -59,33 +59,108 @@ function goreSplat(n,big){for(let i=0;i<n;i++){const edge=Math.random()<.5;GORE.
 if(typeof dkTear==='function'){const _dt=dkTear;dkTear=function(i){_dt(i);try{const R=ROOMS.undercroft;goreDecal(R.ox+DK_ROOTS[i][0],R.oz+DK_ROOTS[i][1]-.4,.12,3);}catch(e){}};}
 
 // ---------- the night's kills, found in the morning
-const KILLS={rabbit:{main:'g_rabbit',extra:[['g_spatter',.6,.2]],look:'A rabbit, opened like a purse. The fur is everywhere, as if it burst. Nothing has been eaten. It was killed and then left, neatly, where you would walk.'},
-  deer:{main:'g_deer_open',extra:[['g_spatter',-1.4,.4]],look:'A deer laid on its side with its insides arranged round it in a ring. Twelve pieces. The heart at the top. It is the same every time. It is telling the time.'},
-  ribs:{main:'g_ribs',prop:1,extra:[['g_drag',-2.6,.1],['g_spatter',.8,.3]],look:'A ribcage standing on its spine at the end of a long red drag, picked almost clean. Whatever did this carried the rest of it somewhere. The crows won’t go near the drag mark.'}};
+// (t372) and the people. The Hollow doesn't only take deer. Strangers come into the valley the way Joseph Cade did, off Route 9,
+// off the county bus, sent by the county; some of them are found in the morning, out by the Marsh place, arranged. They start
+// after the first few days and come more often as the story darkens. Each is a stranger or someone passing through, never
+// anyone the story needs. With the gore setting "Toned down" each is swapped for what is left once the body has gone.
+const KILLS={rabbit:{main:'g_rabbit',extra:[['g_spatter',.6,.2]],pool:[.05,.12,.75],look:'A rabbit, opened like a purse. The fur is everywhere, as if it burst. Nothing has been eaten. It was killed and then left, neatly, where you would walk.'},
+  deer:{main:'g_deer_open',extra:[['g_spatter',-1.4,.4]],pool:[.1,.22,1.3],look:'A deer laid on its side with its insides arranged round it in a ring. Twelve pieces. The heart at the top. It is the same every time. It is telling the time.'},
+  ribs:{main:'g_ribs',prop:1,extra:[['g_drag',-2.6,.1],['g_spatter',.8,.3]],pool:[0,.1,.9],look:'A ribcage standing on its spine at the end of a long red drag, picked almost clean. Whatever did this carried the rest of it somewhere. The crows won’t go near the drag mark.'},
+  hiker:{person:1,main:'g_p_hiker',tmain:'g_p_hiker_t',extra:[['g_drag',-2.7,-.03]],pool:[.15,.25,1.35],crows:4,
+    look:'A stranger face-down in the grass, a rucksack torn off one arm. Opened along the spine from collar to belt, the back folded out both ways like a coat coming off. The smear behind goes back toward Route 9. They crawled all this way.',
+    tlook:'A long smear through the grass from the direction of Route 9, ending in a dark patch the size of a person. A rucksack lies beside it, torn off at the strap. Nobody has come for it.',
+    jot:'A stranger in the grass by the farm, opened along the spine. They had crawled all the way from Route 9.',tjot:'A blood trail through the grass from Route 9, and a stranger’s rucksack.'},
+  lantern:{person:1,main:'g_p_lantern',tmain:'g_p_lantern_t',extra:[['g_spatter',.9,.3]],pool:[.55,.05,.8],crows:3,glow:[-.3,-.1],
+    look:'A storm lantern on its side in the grass, still lit, and a hand still holding it, off at the wrist. The knuckles are white round the wire. Whoever it was held on to the light right to the end. You’d have to break the fingers to take it.',
+    tlook:'A storm lantern on its side in the grass, still lit. The wire handle is sticky. Whoever was holding it held on for as long as they could.',
+    jot:'A hand in the grass, off at the wrist, still holding a lit lantern. The light didn’t help them.',tjot:'A lantern in the grass, still lit, the handle sticky with blood.'},
+  boots:{person:1,main:'g_p_boots',tmain:'g_p_boots_t',prop:1,extra:[],pool:[-.06,.04,.95],crows:3,
+    look:'A pair of work boots standing side by side in the grass, laced to the top. The feet are still in them, cut through just above the socks. Beside them a surveyor’s stake, and the tape run out to nowhere. The county sent someone to measure the valley.',
+    tlook:'One work boot lying in the grass, still laced. Beside it a surveyor’s stake with a pink flag, and the tape run out to nowhere. The county sent someone to measure the valley.',
+    jot:'A surveyor’s boots, standing in the grass with the feet still in them.',tjot:'A surveyor’s stake in the grass, and one boot, still laced.'},
+  coat:{person:1,main:'g_p_coat',tmain:'g_p_coat_t',prop:1,extra:[['g_spatter',.7,.25]],pool:[0,.03,.75],crows:4,
+    look:'A long coat hung on a fence post by its collar, buttoned to the chin. It is full. Whatever is in it was folded small to fit, and it has soaked through at every seam. Fingertips at one cuff. In the pocket, a bus ticket: Route 9, one way.',
+    tlook:'A long coat hung on a fence post by its collar, torn open down the back and stiff with something dark. In the pocket, a bus ticket: Route 9, one way.',
+    jot:'A coat on a fence post with someone folded up inside it. A bus ticket in the pocket: Route 9, one way.',tjot:'A torn coat on a fence post, stiff with blood. A bus ticket: Route 9, one way.'},
+  tree:{person:1,main:'g_p_tree',tmain:'g_p_tree_t',prop:1,extra:[['g_spatter',-1,.35]],pool:[.03,.1,1.1],crows:4,
+    look:'A hunter sat against a dead tree, his rifle across his knees, every round still in it. His face has been taken off to the teeth, neatly, like the label off a jar. His eyes are in his lap, side by side, looking up at you.',
+    tlook:'A rifle and an orange cap at the foot of a dead tree. The bark is dark from head height to the roots, as if someone sat there a long time and bled the whole while.',
+    jot:'A hunter against a dead tree. It took his face. It left his eyes in his lap, looking up.',tjot:'A hunter’s rifle and cap under a dead tree, the bark dark with blood.'}};
+const GORE_PEOPLE=Object.keys(KILLS).filter(k=>KILLS[k].person);
+const goreToned=()=>!!window.GORE_TONED;
 function goreKillSpot(){const C=[[-38,24,-32,22],[20,80,-52,52],[-60,-20,-40,-14]];for(let i=0;i<60;i++){const B=C[(Math.random()*C.length)|0];const x=B[0]+Math.random()*(B[1]-B[0]),z=B[2]+Math.random()*(B[3]-B[2]);
     if(inTown(x,z,2)||terr(x,z)!=='grass'||Math.hypot(x,z+8)<9)continue;if(typeof FIELD!=='undefined'&&x>FIELD.x0-2&&x<FIELD.x0+FIELD.w+2&&z>FIELD.z0-2&&z<FIELD.z0+FIELD.h+2)continue;
     const p={x,z};collide(p,.6);if(Math.hypot(p.x-x,p.z-z)>.02)continue;if(goreS().kills.some(k=>Math.hypot(k.x-x,k.z-z)<6))continue;return {x,z};}return null;}
-function goreKillShow(k){if(GORE.objs[k.id])return;const K=KILLS[k.kind];if(!K)return;const os=[obj(K.main,k.x,k.z,K.prop?{kind:'prop',noCol:true}:{kind:'flat',noCol:true})];
+function goreKillShow(k){if(GORE.objs[k.id])return;const K=KILLS[k.kind];if(!K)return;const ton=K.person&&goreToned();k.ton=ton;
+  const os=[obj(ton?K.tmain:K.main,k.x,k.z,K.prop?{kind:'prop',noCol:true}:{kind:'flat',noCol:true})];
   for(const [s,dx,dz] of K.extra)os.push(obj(s,k.x+dx,k.z+dz,{kind:'flat',noCol:true}));GORE.objs[k.id]=os;
-  if(!k.night)for(let i=0;i<(k.kind==='rabbit'?2:3);i++){const cx=k.x+(Math.random()-.5)*2.2,cz=k.z+(Math.random()-.5)*1.2;crows.push({x:cx,z:cz,hx:cx,hz:cz,y:0,state:'perch',t:0,vx:0,vz:0,kill:k.id});}}
+  if(!k.night)for(let i=0;i<(K.crows||(k.kind==='rabbit'?2:3));i++){const cx=k.x+(Math.random()-.5)*2.4,cz=k.z+(Math.random()-.5)*1.3;crows.push({x:cx,z:cz,hx:cx,hz:cz,y:0,state:'perch',t:0,vx:0,vz:0,kill:k.id});}}
 function goreKillHide(id){for(const o of GORE.objs[id]||[])o.hide=true;delete GORE.objs[id];for(let i=crows.length-1;i>=0;i--)if(crows[i].kill===id)crows.splice(i,1);}
 function goreKillAdd(x,z,kind,night){const g=goreS();const k={id:'k'+S.day+'_'+((Math.random()*1e5)|0),x,z,kind,day:S.day,night:!!night};g.kills.push(k);goreKillShow(k);return k;}
+// how likely a person is found on a given morning: none in the first days, then more as the chapters darken
+function gorePersonChance(){if(S.day<4)return 0;const ch=(S.saga&&S.saga.ch)||0,tier=typeof rotTier==='function'?rotTier():0;return Math.min(.5,.1+ch*.09+tier*.02+(S.bound?.06:0));}
+function gorePersonAdd(x,z,kind){const g=goreS();g.pUsed=g.pUsed||[];let pool=GORE_PEOPLE.filter(k=>!g.pUsed.includes(k));if(!pool.length){g.pUsed=[];pool=GORE_PEOPLE.slice();}
+  kind=kind||pool[(Math.random()*pool.length)|0];if(x==null){const p=goreKillSpot();if(!p)return null;x=p.x;z=p.z;}g.pUsed.push(kind);g.lastP=S.day;return goreKillAdd(x,z,kind);}
 {const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);const g=goreS();
   for(const k of g.kills.slice())if(k.day<S.day-1){goreKillHide(k.id);g.kills.splice(g.kills.indexOf(k),1);}
   for(const k of g.kills)if(k.night){k.night=false;goreKillHide(k.id);goreKillShow(k);}   // last night's kills have their crows by morning
   if(S.day>=2&&g.kills.length<4&&Math.random()<(S.bound?.75:.5)){const p=goreKillSpot();if(p){const r_=Math.random();goreKillAdd(p.x,p.z,r_<.5?'rabbit':r_<.8?'deer':'ribs');}}
+  if(S.day-(g.lastP==null?-99:g.lastP)>=2&&Math.random()<gorePersonChance())gorePersonAdd();
   GORE.dec.length=0;return r;};}
 {const _lg=loadGame;loadGame=function(){const r=_lg.apply(this,arguments);for(const id of Object.keys(GORE.objs))goreKillHide(id);for(const k of goreS().kills)goreKillShow(k);return r;};}
 setTimeout(()=>{try{for(const k of goreS().kills)goreKillShow(k);}catch(e){}},0);
+// the first time you come on each person, you see it close (sights.js draws the close-up), with the line underneath
+function goreSightP(k,ton,look){if(typeof sgtSprites!=='function'||typeof sgtOpen!=='function'||S.mode!=='play'||S.paused||(typeof H!=='undefined'&&H.state==='chase'))return false;
+  const g=goreS(),K=KILLS[k.kind],sk='sight_'+k.kind+(ton?'_t':'');if(g.seen[sk])return false;let img=null;try{img=sgtSprites('killp_'+k.kind+(ton?'_t':''),[[ton?K.tmain:K.main,0,0]]);}catch(e){}if(!img)return false;
+  g.seen[sk]=1;return sgtOpen({x:k.x,z:k.z},img,look,ton?{flies:1}:{flies:5,drip:K.prop?1:0});}
 // walking up on one; and the flies
-{const _u=update;update=function(dt){_u(dt);if(S.mode!=='play'||S.paused||S.room)return;const g=goreS();
-  for(const k of g.kills){if(g.seen[k.id])continue;if(Math.hypot(P.x-k.x,P.z-k.z)<2.6){g.seen[k.id]=1;mindHit&&mindHit(2);if(!(typeof goreSight==='function'&&goreSight(k))&&!g.seen['sight_'+k.kind])toast(KILLS[k.kind].look,4.6,true);if(!g.seen['kind_'+k.kind]){g.seen['kind_'+k.kind]=1;addLore(KILLS[k.kind].look);}}}
+{const _u=update;update=function(dt){_u(dt);if(S.mode!=='play'||S.paused)return;const g=goreS();
+  if(goreToned()!==GORE.toned){const was=GORE.toned;GORE.toned=goreToned();if(was!==undefined)for(const k of g.kills)if(KILLS[k.kind]&&KILLS[k.kind].person){goreKillHide(k.id);goreKillShow(k);}}   // the setting changed: swap the people
+  if(S.room)return;
+  for(const k of g.kills){if(g.seen[k.id])continue;const K=KILLS[k.kind];if(!K)continue;if(Math.hypot(P.x-k.x,P.z-k.z)<(K.person?3:2.6)){g.seen[k.id]=1;
+    if(K.person){const ton=!!k.ton,look=ton?K.tlook:K.look;mindHit&&mindHit(ton?3:5);if(!goreSightP(k,ton,look))toast(look,7,true);
+      if(!g.seen['kind_'+k.kind]){g.seen['kind_'+k.kind]=1;addLore(look);if(typeof journalNote==='function')journalNote(ton?K.tjot:K.jot);}continue;}
+    mindHit&&mindHit(2);if(!(typeof goreSight==='function'&&goreSight(k))&&!g.seen['sight_'+k.kind])toast(K.look,4.6,true);if(!g.seen['kind_'+k.kind]){g.seen['kind_'+k.kind]=1;addLore(K.look);}}}
+  // flies: you hear them before you see them
+  if(!isNight()&&A.ok){GORE.buzzT=(GORE.buzzT||0)-dt;if(GORE.buzzT<=0){GORE.buzzT=.7+Math.random()*.8;let near=null,nd=4.5;for(const k of g.kills){const d=Math.hypot(P.x-k.x,P.z-k.z);if(d<nd){nd=d;near=k;}}
+    if(near){const v=(1-nd/4.5)*(goreToned()?.006:.011),pan=clamp((near.x-P.x)/4,-1,1);A.tone(170+Math.random()*60,.5+Math.random()*.5,'sawtooth',v,{slide:150+Math.random()*90,pan,filter:['bandpass',620+Math.random()*260,5]});}}}
   // it hunts at night: anything it gets near stops
   if(isNight()&&H.vis&&H.state!=='gone'){GORE.huntT-=dt;if(GORE.huntT<=0){GORE.huntT=14+Math.random()*12;const a=typeof WILD!=='undefined'&&WILD.find(w=>(w.kind==='rabbit'||w.kind==='deer')&&w.st!=='gone'&&Math.hypot(w.x-H.x,w.z-H.z)<8);
     if(a){a.st='gone';const k=goreKillAdd(a.x,a.z,a.kind==='deer'?'deer':'rabbit',true);goreDecal(a.x,a.z,.2,6);const d=Math.hypot(a.x-P.x,a.z-P.z);
       if(d<26&&A.ok){const pan=clamp((a.x-P.x)/12,-1,1);A.tone(a.kind==='deer'?620:1300,.5,'sawtooth',.06*(1-d/26),{slide:a.kind==='deer'?300:700,pan,filter:['bandpass',1400,2],verb:true});A.hiss(.25,.08*(1-d/26),'lowpass',500,{delay:.45,pan});
         if(d<16)toast(a.kind==='deer'?'Somewhere close, a deer screams. Then something wet. Then nothing.':'Something small screams in the grass, very close, and then stops all at once.',3.8,true);}}}}};}
-{const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld(D,t);if(S.room||isNight())return;for(const k of goreS().kills){if(!onScreen(k.x,k.z,80))continue;
-  D.push({z:k.z+.3,mind:1,draw(){for(let i=0;i<5;i++){const a=t*(5+i)+i*2.1;ctx2.fillStyle='#0c0c0c';ctx2.fillRect(Math.round(sx(k.x)+Math.cos(a)*(6+i*2)),Math.round(sz(k.z)-6-Math.abs(Math.sin(a*1.3))*8),1,1);}}});}};}
+// ---------- (t372) full gore: under every kill the blood keeps coming out after you find it. The pool spreads through the
+// morning and dries from red to brown by evening; yesterday's is a brown crust. Drawn once per size and dryness, then reused.
+const GORE_POOLS={};
+function gorePoolImg(seed,sc,st,dr){const key=seed+'|'+sc+'|'+st+'|'+dr;let o=GORE_POOLS[key];if(o)return o;
+  const rx=Math.round((7+st*5.4)*sc*PPM/32),ry=Math.max(2,Math.round(rx*.42)),W=rx*2+10,Hh=ry*2+10,cv=document.createElement('canvas');cv.width=W;cv.height=Hh;const g=cv.getContext('2d'),im=g.createImageData(W,Hh),D=im.data;
+  const f=dr/3,mix=(a,b)=>a.map((v,i)=>Math.round(v+(b[i]-v)*f));
+  const rim=mix([48,0,18],[34,12,14]),body=mix([102,7,22],[70,26,22]),deep=mix([75,0,20],[52,18,16]),crust=[30,12,12];
+  const cx=W/2,cy=Hh/2,s1=hash(seed,1)*6,s2=hash(seed,2)*6;
+  const put=(x,y,c,a)=>{if(x<0||y<0||x>=W||y>=Hh)return;const i=(y*W+x)*4;D[i]=c[0];D[i+1]=c[1];D[i+2]=c[2];D[i+3]=a;};
+  for(let y=0;y<Hh;y++)for(let x=0;x<W;x++){const dx=(x+.5-cx)/rx,dy=(y+.5-cy)/ry,an=Math.atan2(dy,dx),w=1+.2*Math.sin(an*3+s1)+.12*Math.sin(an*5+s2),d=(dx*dx+dy*dy)/(w*w);
+    if(d<1)put(x,y,d>.8?(dr>=2&&d>.9?crust:rim):d>.3?body:deep,dr>=3?205:235);}
+  for(let i=0;i<4+st;i++){const an=hash(seed,i+5)*6.283,rr=1.12+hash(seed,i+9)*.45,x=Math.round(cx+Math.cos(an)*rx*rr),y=Math.round(cy+Math.sin(an)*ry*rr);put(x,y,rim,220);if(hash(i,seed)<.5)put(x+1,y,rim,220);}
+  if(dr<2){const gx=Math.round(cx-rx*.38),gy=Math.round(cy-ry*.35);put(gx,gy,dr?[176,96,90]:[226,150,132],230);put(gx+1,gy,dr?[120,40,44]:[172,70,70],230);}
+  g.putImageData(im,0,0);o={cv,ax:Math.round(cx),ay:Math.round(cy)};GORE_POOLS[key]=o;return o;}
+function gorePoolStage(k){if(k.day<S.day)return [3,3];const h=clamp(S.hour-6,0,15);return [Math.min(3,Math.floor(h/3.4)),Math.min(3,Math.floor(h/3.8))];}
+{const _mg=mindGround;mindGround=function(){_mg();if(S.room||goreToned())return;for(const k of goreS().kills){const K=KILLS[k.kind];if(!K||!K.pool||k.night)continue;
+  const px=k.x+K.pool[0],pz=k.z+K.pool[1];if(!onScreen(px,pz,90))continue;const [st,dr]=gorePoolStage(k);const o=gorePoolImg((k.id.length*31+(k.x*7|0))&1023,K.pool[2],st,dr);
+  ctx2.drawImage(o.cv,Math.round(sx(px))-o.ax,Math.round(sz(pz))-o.ay);}};}
+// the flies: a cloud over each kill by day, more the longer it lies there, and some of them down on it, walking about
+let GORE_GLOW=null;
+{const _ld=lifeDrawables;lifeDrawables=function(D,t){_ld(D,t);if(S.room)return;const night=isNight(),ton=goreToned();for(const k of goreS().kills){if(!onScreen(k.x,k.z,80))continue;const K=KILLS[k.kind]||{};
+  if(K.glow){const gx=k.x+K.glow[0],gz=k.z+K.glow[1];D.push({z:k.z+.31,mind:1,draw(){if(!GORE_GLOW){const cv=document.createElement('canvas');cv.width=cv.height=40;const g=cv.getContext('2d'),gr=g.createRadialGradient(20,20,1,20,20,20);gr.addColorStop(0,'rgba(255,200,110,.55)');gr.addColorStop(.35,'rgba(240,150,60,.22)');gr.addColorStop(1,'rgba(240,120,40,0)');g.fillStyle=gr;g.fillRect(0,0,40,40);GORE_GLOW=cv;}
+    ctx2.globalAlpha=(night?1:.55)*(.85+.15*Math.sin(t*9.1)*Math.sin(t*3.7));ctx2.drawImage(GORE_GLOW,Math.round(sx(gx))-20,Math.round(sz(gz))-20);ctx2.globalAlpha=1;}});}
+  if(night)continue;const n=ton?5:(K.person?11:7)+(k.day<S.day?5:0),land=ton?0:Math.round(n*.45),sd=k.id.length*13+(k.x*3|0);
+  D.push({z:k.z+.3,mind:1,draw(){const X=sx(k.x),Y=sz(k.z);
+    for(let i=0;i<n-land;i++){const a=t*(5+i*.7)+i*2.1,r=6+(i%5)*2.4,fx=Math.round(X+Math.cos(a)*r),fy=Math.round(Y-6-Math.abs(Math.sin(a*1.3+i))*9);ctx2.fillStyle='#0c0a0a';ctx2.fillRect(fx,fy,1,1);
+      if(((t*24+i)|0)%2){ctx2.fillStyle='rgba(170,170,180,.7)';ctx2.fillRect(fx-1,fy-1,1,1);ctx2.fillRect(fx+1,fy-1,1,1);}}
+    for(let i=0;i<land;i++){const slot=Math.floor(t*.6+hash(i,sd)*3),hx=hash(i*7+slot,sd),hy=hash(slot,i*3+sd);ctx2.fillStyle='#0a0808';ctx2.fillRect(Math.round(X+(hx-.5)*18),Math.round(Y-2+(hy-.5)*8),1,1);}}});}};}
 // ---------- people notice
 if(typeof RX_SAY!=='undefined')RX_SAY.hurt=['You’re bleeding all over the step.','Good Lord. Sit down before you fall down.','(They look at the blood on you, then at your face, and smile.) It likes that, you know. When we bleed a bit.','Go and see Della. Go now. Don’t drip on the flowers.','You want to get that looked at. Before it gets the smell of you.'];
+// (t372) and when someone has been found out by the Marsh place, the town talks about it the way it talks about weather
+if(typeof RX_SAY!=='undefined'){RX_SAY.found=['Leave it be. Hale’s men will see to it. They always do.','Not one of ours. (They look relieved, then ashamed of it, then just relieved.)','Did you touch it? Don’t touch it.','No use telephoning the county. The county doesn’t come out this far.','Poor soul. Still. Better a stranger.','It never used to leave them where we’d find them.','They will keep getting off that bus.','(They’re scrubbing their front step, hard, though there’s nothing on it.)','Don’t look at the face. Whatever’s left of it.'];
+  RX_SAY.foundPair=['…another one, out by the Marsh place.','…nobody we know. Nobody anyone knows.','…right out in the open. Like it’s proud of it.','…Hale says it’s a good sign. Hale would.','…burn the coat. Don’t ask me why, just burn it.'];
+  if(typeof rxOverheard==='function'){const _ro=rxOverheard;rxOverheard=function(dt){const g=goreS();if(!(g.kills.some(k=>KILLS[k.kind]&&KILLS[k.kind].person&&k.day>=S.day-1)&&Math.random()<.5))return _ro.apply(this,arguments);
+    const a=RX_SAY.any,p=RX_SAY.pair;RX_SAY.any=RX_SAY.found;RX_SAY.pair=RX_SAY.foundPair;try{return _ro.apply(this,arguments);}finally{RX_SAY.any=a;RX_SAY.pair=p;}};}}

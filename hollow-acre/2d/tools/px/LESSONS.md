@@ -1813,3 +1813,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Quote marks from a <q> come from the element, not the text: style q::before and q::after.
 - A text check on an element you've decorated must skip your own decoration ("+1" inside the flask span made the older check remove the flask every tick).
 - A pixel font's glyphs are only clean at its native sizes; at other sizes thin glyphs (quotes) break into loose ticks.
+
+## Bodies and wounds (t372, the people found in the morning: 5/10 in round 1)
+- Any lens-shaped opening with a pale row down its middle reads as a MOUTH FULL OF TEETH, whatever it is meant to be (a spine knuckle row, a fishbone of ribs, a zipper of alternating pale pixels). A wound is a ragged, asymmetric tear: dark inside, the bone along one lip, 3-4 pale arcs at uneven gaps; never a row of evenly spaced pale pixels.
+- A pink band round a wound (lit flap undersides, a pale cut edge on both lips) makes lips. Keep the rim dark, lit only a little on the near side.
+- A head seen from behind at 1x is a ball unless skin shows: turn it on its cheek (ear, cheek, jaw, neck), and keep the hair a value step away from anything it touches (here the satchel); leave a gap between them.
+- A severed hand drawn with fingers hanging down and the wrist up reads as a small animal (legs and a head). Lay it palm-down on what it grips: knuckles in a row along the handle, the thumb round the near side, the wrist running away to a flat cut face.
+- Cage wires across a lit lantern globe: two, mid brass, never three dark bars (they spell letters: HII, W).
+- Olive and waxed-cotton cloth sinks into grass in greyscale: step the top pixel of every run two ramp steps up (lit_rim in gore3.py).
+- Blood over cloth keeps the cloth's light: map each cloth tone to a blood tone of the same rank (a flat red patch reads as a red shirt).
+- A height field (every body part a dome, one light over the surface, a dark crease where a higher part overlaps) gives bodies their volume in one pass; draw the gore over it by hand.
