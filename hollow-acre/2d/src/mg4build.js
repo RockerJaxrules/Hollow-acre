@@ -69,25 +69,40 @@ S4.drop=(sp,K)=>{const g=K.g,item=sp.item||'brick',N=sp.n||5;
 S4.level=(sp,K)=>{const g=K.g,look=sp.look||'post',DUR=sp.dur||4,BAND=.06;const st={th:.12,w:0,prog:0,inT:0,runT:0,t:0,end:0,thump:0,nt:1};
   return {title:sp.t||'Hold it plumb',how:K.fine?'It leans and gets knocked. Push it back upright: move the mouse to the side you want it to go while holding (or use A / D). Keep the bubble in the middle.':'It leans and gets knocked. Push it back upright by dragging toward the side you want it to go. Keep the bubble in the middle.',hint:'Keep the bubble centred.',st,
     update(dt,I){st.t+=dt;if(st.end){st.end+=dt;if(st.end>.6){st.done=true;st.score=M4.cl(st.inT/Math.max(1,st.runT)*1.15,0,1);}return;}
-      let u=0;if(I.ax)u=I.ax;else if(I.down)u=M4.cl((I.x-160)/50,-1,1);st.runT+=dt;
+      let u=0;if(I.ax)u=I.ax;else if(I.down)u=M4.cl((I.x-160)/50,-1,1);st.runT+=dt;st.push=(st.push||0)+(u-(st.push||0))*Math.min(1,dt*10);
       st.nt-=dt;if(st.nt<=0){st.nt=1.1+Math.random()*.8;const k=(Math.random()<.5?-1:1)*(.3+Math.random()*.2);st.w+=k;st.thump=.2;if(look==='post'){A.tone(110,.15,'sine',.25,{slide:60});A.hiss(.1,.2,'lowpass',500);}else if(look==='chimney')MS.tink(.5);else MS.knock();K.shk=.06;}
       if(st.thump>0)st.thump-=dt;st.w+=(Math.sin(st.th)*1.8+u*3-st.w*2)*dt;st.th+=st.w*dt;st.th=M4.cl(st.th,-.6,.6);
       {const inb=Math.abs(st.th)<=BAND;if(inb!==st.wasIn&&st.t>.3){if(inb)A.tone(1500,.04,'triangle',.03);else A.tone(330,.06,'triangle',.03,{slide:260});}st.wasIn=inb;}if(Math.abs(st.th)<=BAND){st.inT+=dt;st.prog+=dt/DUR;}if(st.prog>=1||st.t>(sp.time||12)){st.end=.001;MS.good();}},
-    draw(t){const bx=160,by=look==='chimney'?120:look==='door'?150:look==='anvil'?126:150;
+    draw(t){/* (round 5) the lean is shown plainly: inside the green band the work stands upright, outside it the lean is drawn larger, so you see it come upright as you work it */const TD=Math.sign(st.th)*Math.max(0,Math.abs(st.th)-BAND*.7)*1.8;const bx=160,by=look==='chimney'?120:look==='door'?150:look==='anvil'?126:150;
       if(look==='post'){K.ell(bx,by+2,50,8,'#5a4422');K.ell(bx,by,14,4,'#2a1a0c');}
       if(look==='door'){K.px(100,40,8,112,CA_P.wood[3]);K.px(212,40,8,112,CA_P.wood[3]);K.px(100,36,120,8,CA_P.wood[4]);}
-      if(look==='chimney'){K.ball(bx,by+16,22,CA_P.brass,10);K.px(bx-10,by-2,20,6,CA_P.brass[5]);}
+      // (round 3) the lamp the glass sits on: the brass burner with its pierced gallery, then the round brass font below, outlined and lit
+      if(look==='chimney'){const B=CA_P.brass;K.ell(bx,by+24,27,20,'#1a0e06');K.ell(bx,by+24,26,19,B[2]);K.ell(bx-4,by+20,20,14,B[3]);K.ell(bx-8,by+15,11,6,B[4]);K.ell(bx-11,by+12,4,2,B[6]);
+        K.px(bx-26,by+12,52,3,B[1]);K.px(bx-26,by+12,52,1,B[4]);
+        K.px(bx-15,by-2,30,9,'#1a0e06');K.px(bx-14,by-1,28,7,B[3]);K.px(bx-14,by-1,28,1,B[5]);K.px(bx-14,by+5,28,1,B[1]);for(let i=0;i<6;i++)K.px(bx-12+i*5,by+1,2,3,B[0]);}
       if(look==='anvil'){K.plank(bx-30,by+8,60,24,CA_P.oak,4,true);K.line(bx-90,by+30,bx+60,by-6,CA_P.wood[4],4);}
-      g.save();g.translate(bx,by);g.rotate(st.th);
+      g.save();g.translate(bx,by);g.rotate(TD);
       if(look==='post'){K.plank(-6,-90,12,92,CA_P.wood,6,true);K.px(-6,-90,12,2,CA_P.wood[6]);}
       else if(look==='door'){g.drawImage(M4.pre('coopdoor',90,106,k=>{k.planks(0,0,90,106,CA_P.wood,10,4,true);k.line(4,100,86,6,CA_P.wood[2],3);k.metal(0,14,90,4,CA_P.iron);k.metal(0,86,90,4,CA_P.iron);},true),-45,-108);}
-      else if(look==='chimney'){g.drawImage(M4.pre('chimney',26,56,k=>{for(let y=0;y<56;y++){const w=Math.round(8+Math.sin(y/56*Math.PI)*5);k.pa(13-w,y,w*2,1,'#d8eef8',.45);k.px(13-w,y,1,1,'#ffffff');k.pa(12+w,y,1,1,'#8ab0c8',.8);}},false),-13,-56);}
+      else if(look==='chimney'){g.drawImage(M4.pre('chimney2',30,56,k=>{for(let y=0;y<56;y++){const w=Math.round(8+Math.sin(y/56*Math.PI)*5);k.px(14-w,y,1,1,'#2a3a48');k.px(15+w,y,1,1,'#2a3a48');k.pa(15-w,y,w*2,1,'#d8eef8',.5);k.px(15-w,y,1,1,'#ffffff');k.pa(14+w,y,1,1,'#8ab0c8',.9);if(y>6&&y<46)k.pa(18-w,y,2,1,'#ffffff',.55);}k.px(4,0,22,1,'#2a3a48');},false),-15,-56);}
       else if(look==='anvil'){g.drawImage(M4F.anvil(),-56,-58);}
-      // the level on it
-      const lw=24,ly=look==='door'?-60:look==='chimney'?-30:look==='anvil'?-62:-60;K.px(-lw/2,ly,lw,5,'#3a6a2a');K.px(-lw/2,ly,lw,1,'#6a9a4a');K.px(-lw/2+2,ly+1,lw-4,3,'#c8e8a8');const bub=M4.cl(-st.th*60,-9,9);K.px(bub-2,ly+1,4,3,'#ffffff');K.px(-1,ly,1,5,'#1a3a1a');K.px(2,ly,1,5,'#1a3a1a');
+      // (t300) the level: on the anvil's face it lies flat on top; for plumb it stands upright pressed against the work's side, a
+      // wooden stock with brass ends and its vial across the middle, the bubble running along the vial as the work leans
+      const bub=M4.cl(-TD*60,-9,9);
+      if(look==='anvil'){const lw=24,ly=-62;K.px(-lw/2,ly,lw,5,'#3a6a2a');K.px(-lw/2,ly,lw,1,'#6a9a4a');K.px(-lw/2+2,ly+1,lw-4,3,'#c8e8a8');K.px(bub-2,ly+1,4,3,'#ffffff');K.px(-1,ly,1,5,'#1a3a1a');K.px(2,ly,1,5,'#1a3a1a');}
+      else{const lx=look==='post'?6:look==='door'?-34:14,y0=look==='post'?-88:look==='door'?-98:-58,LH=look==='chimney'?40:56,LW=13,W=CA_P.wood;   /* (round 5) a wide stock, its vial set inside it */
+        K.px(lx,y0,LW,LH,'#1a0e06');K.px(lx+1,y0+1,LW-2,LH-2,W[4]);K.px(lx+1,y0+1,2,LH-2,W[6]);K.px(lx+LW-3,y0+1,2,LH-2,W[2]);for(const yy of [y0+1,y0+LH-5])K.px(lx+1,yy,LW-2,4,CA_P.brass[4]),K.px(lx+1,yy,LW-2,1,CA_P.brass[6]);
+        const vy=y0+12;K.px(lx+1,vy,LW-2,8,'#102410');K.px(lx+2,vy+1,LW-4,6,'#9cd07c');K.px(lx+2,vy+1,LW-4,2,'#d8f4c0');K.px(lx+2,vy+5,LW-4,1,'#5a9a4a');const bx_=lx+Math.round(LW/2)+Math.round(bub*.4);K.px(bx_-2,vy+2,4,3,'#ffffff');K.px(bx_-1,vy+2,2,1,'#f8fff0');K.px(lx+4,vy,1,8,'#102410');K.px(lx+LW-5,vy,1,8,'#102410');}
       g.restore();
-      if(look==='post'&&st.thump>0){K.px(bx+18,by-30-st.thump*40,4,30,CA_P.iron[4]);}
-      const hx=bx+Math.sin(st.th)*-70,hy=by-Math.cos(st.th)*70,ca=Math.cos(st.th),sa=Math.sin(st.th);m4grip(K,hx-10*ca,hy-10*sa,Math.PI+st.th,{side:-1,arm:-1.95});m4grip(K,hx+10*ca,hy+10*sa,st.th,{side:1,arm:-1.2});},
+      // (t300) your hands are on the thing itself, turning with it: both fists round the post (one above the other), round the door's
+      // two edges and the anvil's horn and heel; the glass chimney is steadied between two flat hands. A knock jolts them with it
+      {const ca=Math.cos(TD),sa=Math.sin(TD),P=(lx,ly)=>[bx+lx*ca-ly*sa,by+lx*sa+ly*ca],up=TD-Math.PI/2,j=(st.thump>0?Math.sin(st.thump/.2*Math.PI)*1.5:0)+(st.push||0)*2;
+        if(look==='post'){const [x1,y1]=P(-1,-80),[x2,y2]=P(1,-44);m4grip(K,x1+j,y1,up,{side:-1});m4grip(K,x2+j,y2,up,{side:1});}
+        else if(look==='door'){const [x1,y1]=P(-46,-66),[x2,y2]=P(46,-66);m4grip(K,x1+j,y1,up,{side:-1});m4grip(K,x2+j,y2,up,{side:1});}
+        else if(look==='chimney'){const [x1,y1]=P(-16,-14),[x2,y2]=P(20,-26);m4grip(K,x1+j,y1,up,{side:-1,kind:'palm'});m4grip(K,x2+j,y2,up,{side:1});}   /* (round 5) the left hand flat on the glass, the right fist round the level */
+        else{const [x1,y1]=P(-52,-50),[x2,y2]=P(50,-53);m4grip(K,x1+j,y1,TD,{side:-1});m4grip(K,x2+j,y2,TD,{side:1});}
+        // the verdict beside the level: PLUMB while it's true
+        if(Math.abs(st.th)<=BAND&&st.t>.3){const [vx,vy]=P(look==='anvil'?0:look==='door'?-28:look==='post'?10:18,look==='anvil'?-76:look==='door'?-104:look==='post'?-96:-60);K.label(look==='anvil'?'LEVEL':'PLUMB',vx+(look==='anvil'?0:30),vy,'#9be07a');}}},
     hud(){K.label('PLUMB',286,14,'#f4ecd8');K.gauge(282,24,8,90,.5-BAND/1.2,.5+BAND/1.2,.5+st.th/1.2);K.meter(st.prog,st.runT?st.inT/st.runT:1);},
     auto(dt,AP){const a=m4ai(this,AP,dt);a.ax=M4.cl(-(st.th*12+st.w*2.5),-1,1);AP.hand=[160+a.ax*30,40];AP.press=Math.abs(a.ax)>.3;},
     quiet(){},stop(){}};};

@@ -94,7 +94,8 @@ S4.f2bell=(sp,K)=>{const g=K.g,N=3;const st={sw:0,ph:0,swing:null,puck:null,best
   return {title:'Ring the bell',how:K.fine?'The needle swings across the gauge. Click (or press Space) as it reaches the top, by the bell, and bring the mallet down. Three swings: your best counts.':'The needle swings across the gauge. Tap as it reaches the top and bring the mallet down. Three swings: your best counts.',hint:'Swing when the needle is at the top.',st,
     update(dt,I){st.t+=dt;if(st.end){st.end+=dt;if(st.end>1.2){st.done=true;st.score=M4.cl(st.best,0,1);F2R.bell={best:st.best};}return;}
       if(!st.swing&&!st.puck){st.ph+=dt*(2.3+st.tries.length*.5);const v=(Math.sin(st.ph)+1)/2;st.needle=v;
-        if(I.pressed){const p=M4.cl(1-Math.abs(1-v)*1.25,0,1)*(v>.985?1:.97);st.swing={u:0,p};MS.whoosh();}}
+        if(I.pressed){const p=M4.cl(1-Math.abs(1-v)*1.25,0,1)*(v>.985?1:.97);st.swing={u:0,p};MS.whoosh();st.go=1;}}
+      m3blow(st.vis||(st.vis={}),dt,st.go,1/4.2,.14,1,.55);st.go=0;
       if(st.swing){st.swing.u+=dt*4.2;if(st.swing.u>=1){const p=st.swing.p;st.swing=null;st.puck={y:0,v:Math.sqrt(p)*3.2,top:p,u:0};MS.thunk();K.shk=.12;K.emit(150,150,8,{c:['#c8a878','#8a6a3a'],v:60});}}
       if(st.puck){const q=st.puck;q.u+=dt;q.y+=q.v*dt*.62;q.v-=dt*3.4;if(q.y>=q.top&&q.v>0){q.y=q.top;q.v=0;}
         if(q.y>=.95&&!q.rang){q.rang=1;st.ding=1;MS.anvil(1.6);A.tone(1320,1.4,'sine',.08,{verb:1});K.flash=.4;K.judge(1,TX,TOP+20);for(let i=0;i<5;i++)st.crows.push({x:TX+(Math.random()-.5)*10,y:TOP,vx:(Math.random()-.5)*120,vy:-40-Math.random()*40,t:0});}
@@ -110,17 +111,27 @@ S4.f2bell=(sp,K)=>{const g=K.g,N=3;const st={sw:0,ph:0,swing:null,puck:null,best
       K.px(TX+sw-10,TOP-2,21,1,BG[0]);K.px(TX+sw-7,TOP-2,15,1,'#1e120e');K.px(TX+sw-3,TOP-11,1,2,BG[5]);K.px(TX+sw-4,TOP-9,1,2,BG[5]);K.px(TX+sw,TOP-1,1,2,BG[1]);
       if(st.ding>0)K.glow(TX,TOP-6,40,'255,230,140',st.ding*.6);
       K.px(TX-26,BOT+2,52,10,'#4a2c18');K.px(TX-22,BOT-2,44,6,'#c84a34');K.px(TX-22,BOT-2,44,1,'#e8806a');
-      {const k=st.swing&&st.swing.u>.9?2:0;K.px(TX-16,BOT-8,6,8,'#3a2414');K.line(TX-40,BOT-10+k,TX-4,BOT-6-k,CA_P.wood[4],3);K.px(TX-44,BOT-14+k,14,5,'#a83226');K.px(TX-44,BOT-14+k,14,1,'#e06a4a');K.px(TX-44,BOT-10+k,14,1,'#5a1410');}
+      // (round 5) the striking pad on the lever's end, made plain: a red-and-white plate on a post, lit on top, its shadow on the grass
+      {const k=m3onWork(st.vis)||st.swing&&st.swing.u>.9?2:0;K.px(TX-16,BOT-8,6,8,'#3a2414');K.line(TX-40,BOT-10+k,TX-4,BOT-6-k,CA_P.wood[4],3);
+        K.pa(TX-48,BOT-3,24,3,'#000',.35);K.px(TX-39,BOT-9+k,4,8-k,'#3a2414');K.px(TX-47,BOT-15+k,22,7,'#1a0806');K.px(TX-46,BOT-14+k,20,5,'#a83226');K.px(TX-40,BOT-14+k,8,5,'#f0e6d0');K.px(TX-46,BOT-14+k,20,1,'#e06a4a');K.px(TX-40,BOT-14+k,8,1,'#ffffff');K.px(TX-46,BOT-10+k,20,1,'#5a1410');}
       // the puck
       const py=hY(st.puck?st.puck.y:0)+4;K.px(TX-5,py-4,10,7,F2C.tin[5]);K.px(TX-5,py-4,10,1,F2C.tin[6]);K.px(TX-5,py+2,10,1,F2C.tin[2]);
+      // the record board (drawn before the mallet, so the raised mallet passes in front of it)
+      K.px(26,30,70,40,'#2a2a2a');K.px(24,28,74,2,CA_P.wood[5]);K.px(24,70,74,2,CA_P.wood[3]);K.text('RECORDS',61,34,'#f4e6c8');K.text('GIDEON 96',61,46,'#d8d0c0');K.text('MAUD 88',61,55,'#d8d0c0');K.text(`YOU ${Math.round(st.best*100)}`,61,64,'#ffd27a');
       // the mallet and your hands: raised, then down on the pad
-      const u=st.swing?st.swing.u:0,a=-1.9+u*1.75;const hx=124,hy=128;g.save();g.translate(hx,hy);g.rotate(a);const W_=CA_P.wood;
+      // (t300) a heavy two-handed mallet: it waits raised behind you, comes over your head faster and faster, its face lands flat on
+      // the red pad and stays there a beat, then is hauled back up slowly. Both fists on the handle near its end, turning with it
+      // (round 3) the fists carry the blow: raised high with the head cocked back over your shoulder, they come forward and down on an
+      // arc that speeds up while the head sweeps over the top, and end just above the pad, higher than the head on it
+      const L=st.vis&&st.vis.L!=null?st.vis.L:1,e=M4.cl(1-L,-.15,1.1),a=-2.85+e*3.06;const hx=98+e*10+Math.sin(Math.PI*M4.cl(e,0,1))*12,hy=54+e*62;g.save();g.translate(hx,hy);g.rotate(a);const W_=CA_P.wood;
       K.px(-2,-3,64,1,W_[3]);K.px(-2,-2,64,1,W_[6]);K.px(-2,-1,64,1,W_[5]);K.px(-2,0,64,1,W_[4]);K.px(-2,1,64,1,W_[2]);
       for(let y=-10;y<10;y++){const v=y/10;K.px(54,y,18,1,W_[v<-.6?6:v<-.1?5:v<.5?4:3]);}K.px(54,-10,18,1,W_[7]);K.px(54,9,18,1,W_[1]);K.px(57,-10,2,20,CA_P.iron[3]);K.px(67,-10,2,20,CA_P.iron[3]);K.px(57,-10,1,20,CA_P.iron[5]);g.restore();
-      m4grip(K,hx-6,hy-2,Math.PI/2+.25,{side:-1,arm:1.95});m4grip(K,hx+6,hy-4,Math.PI/2-.25,{side:1,arm:1.2});
-      for(const c of st.crows){const f=Math.sin(c.t*24)>0;K.px(c.x-3,c.y,7,2,'#1a1418');K.px(c.x-(f?5:3),c.y-(f?2:-1),3,2,'#1a1418');K.px(c.x+(f?3:1),c.y-(f?2:-1),3,2,'#1a1418');}
-      // the record board
-      K.px(26,30,70,40,'#2a2a2a');K.px(24,28,74,2,CA_P.wood[5]);K.px(24,70,74,2,CA_P.wood[3]);K.text('RECORDS',61,34,'#f4e6c8');K.text('GIDEON 96',61,46,'#d8d0c0');K.text('MAUD 88',61,55,'#d8d0c0');K.text(`YOU ${Math.round(st.best*100)}`,61,64,'#ffd27a');},
+      {const [x1,y1]=M4.tr(hx,hy,a,3,0),[x2,y2]=M4.tr(hx,hy,a,16,0);m4grip(K,x1,y1,a,{side:-1});m4grip(K,x2,y2,a,{side:1});}
+      // a dust puff off the pad: it spreads and fades in a few frames, and a few grits fly
+      if(m3onWork(st.vis)&&!st.vis.puff){st.vis.puff=1;st.dust=0;K.emit(169,137,5,{c:['#c8a878','#8a6a3a'],v:70,spread:2.4,g:300,life:.4});}
+      if(!m3onWork(st.vis)&&st.vis)st.vis.puff=0;
+      if(st.dust!=null&&st.dust<.4){st.dust+=1/60;const u=st.dust/.4,r=6+u*20;g.globalAlpha=.62*(1-u*u);K.ell(169,135-u*3,r,r*.32,'#d8c8a0');K.ell(169-r*.4,133-u*5,r*.45,r*.22,'#e8dcc0');K.ell(169+r*.45,134-u*4,r*.4,r*.2,'#c8b890');g.globalAlpha=1;}
+      for(const c of st.crows){const f=Math.sin(c.t*24)>0;K.px(c.x-3,c.y,7,2,'#1a1418');K.px(c.x-(f?5:3),c.y-(f?2:-1),3,2,'#1a1418');K.px(c.x+(f?3:1),c.y-(f?2:-1),3,2,'#1a1418');}},
     hud(){K.label('SWING',40,84,'#f4ecd8');K.gauge(36,94,8,60,.9,1,st.needle||0);K.meter(st.tries.length/N,st.best);
       for(let i=0;i<N;i++){const v=st.tries[i];K.px(54+i*10,148,7,7,'#1a0e06');K.px(55+i*10,149,5,5,v==null?'#3a2010':v>=.95?'#ffd27a':v>.6?'#9be07a':'#c84a3a');}},
     auto(dt,AP){const a=m4ai(this,AP,dt);const d=!st.swing&&!st.puck&&(st.needle||0)>.93&&Math.cos(st.ph)<0;AP.I={x:160,y:90,down:d,pressed:d&&!AP._d,released:!d&&AP._d,raw:d};AP._d=d;AP.hand=[40,140];AP.press=d;},

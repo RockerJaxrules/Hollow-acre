@@ -46,7 +46,7 @@ function CARV(K,cx,by,s,state,t,opt){opt=opt||{};const g=K.g;
   // ground shadow
   g.globalAlpha=.38;K.ell(cx+2*s,by+1*s,52*s,7*s,'#0a0608');g.globalAlpha=1;
   // oak trunk the nose is folded into (right side, behind) or the jack under the front (once off)
-  if(!state.winched){px(50,-30,13,34,'#281d18');px(50,-30,13,2,'#36271f');px(52,-30,2,34,'#1c140f');}
+  if(!state.winched){const ol=-(opt.lu||0)/s;px(50+ol,-30,13,34,'#281d18');px(50+ol,-30,13,2,'#36271f');px(52+ol,-30,2,34,'#1c140f');}   /* (t300) the oak stays put while the car is winched */
   else {px(FW-4,-3,8,4,'#30303a');px(FW-3,-6,6,4,'#3a3a46');px(FW-1,1,4,3,'#1c1c22');}// floor jack
   // --- wheels (drawn first; the body covers their top half)
   const wheel=(wx,wy)=>{const X=cx+wx*s,Y=by+wy*s,arc=(r,c)=>{g.fillStyle=c;g.beginPath();g.arc(X,Y,r*s,0,6.29);g.fill();};
@@ -136,7 +136,7 @@ function CARV(K,cx,by,s,state,t,opt){opt=opt||{};const g=K.g;
 // ---- the flexible car-repair step. one of two mechanics, the car drawn in the given state.
 S4.car=(sp,K,run,def)=>{const g=K.g,W=320,H=180;
   const state=sp.state||{},N=sp.n|| (sp.mech==='crank'?7:5);
-  const cx=168,by=118,s=sp.s||1.45;
+  const cx=sp.mech==='crank'?146:168,by=118,s=sp.s||1.45;   /* (t300) the winch stands off from the car, so its wire shows */
   const st={t:0,done:false,score:0, ang:0,last:null,spd:0,coils:[],ok:0,end:0, pos:40,dir:1,vel:(sp.fast||110),zc:.5,zw:.16,hits:[],reps:0,miss:0,flash:0,snap:0};
   let amb=null;
   const mech=sp.mech;
@@ -178,15 +178,35 @@ S4.car=(sp,K,run,def)=>{const g=K.g,W=320,H=180;
     },
     draw(t,phase){
       // draw the car in its state so far, with the active part animating toward done
-      CARV(K,cx,by,s,state,t,{active:sp.fix,p:prog()});
+      // (t300) as you wind, the car is drawn toward the winch a little, and lurches on each turn of the drum
+      const lu=mech==='crank'?Math.round(st.coils.length*2.5+((st.ang/6.283)%1)*2.5+(st.snap>0?Math.sin(st.snap/.25*Math.PI)*3:0)):0;
+      CARV(K,cx+lu,by,s,state,t,{active:sp.fix,p:prog(),lu});
       if(mech==='crank'){
         // the winch/crank handle, top-right, with its rope/cable running to the car's frame
-        const ccx=252,ccy=102,CR=15;
-        g.strokeStyle='#5a5048';g.lineWidth=Math.max(1,1.2);g.beginPath();g.moveTo(ccx-6,ccy+2);g.lineTo(cx-40,by-10);g.stroke();
-        K.px(ccx-10,ccy-10,20,20,'#20202a');K.px(ccx-10,ccy-10,20,2,'#30303c');
-        g.fillStyle='#15151c';g.beginPath();g.arc(ccx,ccy,CR,0,6.29);g.fill();g.fillStyle='#3a3a44';g.beginPath();g.arc(ccx,ccy,CR-3,0,6.29);g.fill();
-        const hx=ccx+Math.cos(st.ang)*CR,hy=ccy+Math.sin(st.ang)*CR;K.line(ccx,ccy,hx,hy,'#8a8490',3);K.px(hx-3,hy-3,6,6,'#b85a2a');m4grip(K,hx,hy,-Math.PI/2,{side:1});
-        g.strokeStyle='rgba(255,244,192,.25)';g.lineWidth=1;g.beginPath();g.arc(ccx,ccy,CR,0,6.29);g.stroke();
+        // (t300) a hand winch seen end-on, on its iron stand staked into the verge: the side plate, the wire wound on the drum (it
+        // grows a layer as you wind and its lay turns with the drum), the ratchet and its pawl clicking over the teeth, the crank arm
+        // and its wooden grip with your fist round it. The wire runs short and taut to the tow eye under the car's back end
+        const ccx=252,ccy=102,CR=15,I=CA_P.iron,a=st.ang,GY=121;
+        // (round 5) galvanised steel, lit, so the winch reads as a machine (dark legs under a dark drum read as a figure in a coat)
+        for(const sd of [-1,1]){K.line(ccx,ccy,ccx+sd*12,GY,'#0c0c10',5);K.line(ccx,ccy,ccx+sd*12,GY,I[5],3);K.line(ccx-1,ccy,ccx+sd*12-1,GY,I[7],1);K.px(ccx+sd*12-4,GY,9,3,I[3]);K.px(ccx+sd*12-4,GY,9,1,I[6]);}
+        K.line(ccx-8,GY-6,ccx+8,GY-6,'#0c0c10',3);K.line(ccx-8,GY-6,ccx+8,GY-6,I[4],1);
+        K.pa(ccx-16,GY+2,32,2,'#000',.35);
+        const rc=6+Math.min(1,st.coils.length/N)*3+((a/6.283)%1)*.4,jit=(st.spd>1?Math.sin(st.t*55)*.6:0)+(st.snap>0?Math.sin(st.snap/.25*Math.PI)*-2.5:0);
+        K.ell(ccx,ccy,13,13,'#0c0c10');K.ell(ccx,ccy,12,12,I[4]);for(let k=0;k<40;k++){const b=k/40*6.283,l=-(Math.cos(b)+Math.sin(b))*.7;K.px(ccx+Math.cos(b)*11,ccy+Math.sin(b)*11,1,1,l>.35?I[7]:l<-.35?I[2]:I[5]);}   /* a lit steel flange, its rim catching the light top left */
+        K.ell(ccx,ccy,9.5,9.5,I[3]);
+        K.ell(ccx,ccy,rc,rc,'#4a4a54');for(let r=4;r<rc;r+=1.5){g.strokeStyle=r%3<1.5?'#2a2a32':'#6a6a76';g.lineWidth=1;g.beginPath();g.arc(ccx,ccy,r,a,a+4.6);g.stroke();}
+        for(let k=0;k<8;k++){const b=a+k*.785;K.px(ccx+Math.cos(b)*4-1,ccy+Math.sin(b)*4-1,2,2,I[4]);}K.ell(ccx,ccy,3,3,I[1]);K.px(ccx-1,ccy-1,2,2,I[5]);
+        for(const b of [.8,2.4,3.9,5.5])K.px(ccx+Math.cos(b)*8.5-1,ccy+Math.sin(b)*8.5-1,2,2,I[1]);
+        {const tick=Math.max(0,1-((a/.785)%1)*4);K.line(ccx+9,ccy-9,ccx+3,ccy-5-tick*2,'#0c0c10',3);K.line(ccx+9,ccy-9,ccx+3,ccy-5-tick*2,I[5],1);}
+        // the wire: off the top of the drum, out over the car's roof to the tow hook on its far end, taut, shivering as you wind
+        // the wire: off the bottom of the drum, short and taut to the tow hook on the car's near bumper
+        {const hk=[cx+lu+68,by-8],x0=ccx-rc*.75,y0=ccy+rc*.66;K.line(x0,y0+1,hk[0],hk[1]+1+jit,'#0c0c10',3);K.line(x0,y0,hk[0],hk[1]+jit,'#c8c8d4',1);
+          K.px(hk[0]-3,hk[1]-2,4,5,'#0c0c10');K.px(hk[0]-2,hk[1]-2,3,4,I[3]);K.px(hk[0]-2,hk[1]-2,3,1,I[6]);}
+        const hx=ccx+Math.cos(a)*CR,hy=ccy+Math.sin(a)*CR;K.line(ccx,ccy,hx,hy,'#0c0c10',5);K.line(ccx,ccy,hx,hy,I[6],3);K.line(ccx,ccy-1,hx,hy-1,I[7],1);K.ell(ccx,ccy,3,3,'#0c0c10');K.ell(ccx,ccy,2,2,I[6]);   /* a bright crank arm off the hub */
+        // the grip: a wooden handle standing out toward you, its shadow on the plate behind, a lit brass cap on its end, your fist round it
+        g.globalAlpha=.45;K.ell(hx+2,hy+2,4,3,'#000');g.globalAlpha=1;
+        m4grip(K,hx,hy+1,-Math.PI/2+Math.sin(a)*.12,{side:1});
+        K.ell(hx,hy,3,3,'#1a0e06');K.ell(hx,hy,2,2,CA_P.brass[3]);K.px(hx-1,hy-1,2,1,CA_P.brass[6]);   /* the grip's lit cap standing out of your fist toward you */
       } else {
         // the strike bar across the bottom
         const bx=46,bw=228,byb=150;
