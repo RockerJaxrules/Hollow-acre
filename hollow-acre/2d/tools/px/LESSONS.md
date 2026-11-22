@@ -1803,6 +1803,28 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 ## Extreme gore (t374, the opt-in level over Full: round 1 4.5/10 vs Full 5.5)
 - [hard limit, t375, top] Read the beat's own story text for WHO it is before drawing any gore on it. Wave 1 slit open the cold-house bundle at Extreme; the story says it is Ruth, "the size of a nine-year-old". The small graves' sheet, Ida's jars ("a jar of every drawn child"), the quarry's pink nails (a girl's), the crypt's coffins, the fen, the corn and the birches are children too. They are listed in GORE_CHILD (gorex374.js, frozen): no blood on, from or under them at ANY level, no red story flash on their beats; a pool beside one ends short of it and a drip never falls from it. Grim is the story; gore is not.
 - A whole-rack Extreme is still possible with a child's shape on it: draw the Extreme on the animal carcasses only and restore the child's column from the Full picture after everything else (gore5.py z.keep).
+- (t375 wave 2, round 1 4.5 vs 3.5) Gore under water must be LIGHTER than the clothes: dark olive eels the value of the coats vanished at 1x and read as scarves or snakes. Drowned flesh is swollen grey-white, wounds have pale washed lips, guts wash out to a pale grey-pink and drift up the way the hair does.
+- A round dark hole in a checked shirt reads as a burn in a blanket. An opened chest seen from the front is a D-shaped tear: the breastbone as the straight lip (dull bone broken by blood), the ragged lip curving over one side, 3-4 lit red rib ridges from it, each steeper.
+- Two hands of bone drawn the same read as forks: one curled shut, the other splayed at different lengths with a finger gone.
+- Mauve-magenta guts read as worms: guts are a warm pink-red ramp with red-brown (not violet) shadows, creased at every length.
+- At night only what is in the headlights exists. A deer hit by a car must stay in the beam (thrown ahead, caught on the bumper and pushed along); the splash starts at the point of impact (the bumper), not as streaks along the hood (a speed trail); dark blood on a dark red car does not show at all.
+- A drag smear drawn as dots at each frame's position reads as a dashed line, and one whose width swells and narrows on a sine reads as a braid or a rope: draw it unbroken, a little uneven, streaked in lanes along its length.
+- A lock of hair drawn as one solid band reads as a pipe or a sausage; single strands of 2-3 tones, each its own wave, gathered at a thread and fanning out from it, read as hair.
+- (round 2, 5.5 vs 3) A wound in a red shirt that is red and dark like the shirt reads as a burn hole however it is shaped: give it a different VALUE. Tear the shirt back so dead grey-yellow skin rings the opening, dull and darken the check round it, keep the inside near black, and check the torso in greyscale at 1x.
+- A straight pale tube with even red bands reads as a rifle or a guitar neck; what floats out of a body is ragged strips of different lengths, each its own wave, thinning to a torn end.
+- A pale head seen from behind with a dark slit down it reads as a face. Change the silhouette instead (a flap lifting off the edge).
+- A clean bleached skull beside fresh guts is two states of decay, and a pale ring round a skull reads as a halo: break the ring, keep the scalp only where it still holds, and put the same wet red flesh on the jaw and cheek as on the rest of him.
+- An animal small at 1x needs its marks drawn bold or it is a dog: a big leaf-shaped ear laid back, a longer neck, thin legs with hooves.
+- Gaps in a drag smear at a regular step read as a dashed line; let the gaps come only where the body really left the ground, and break the edges in runs instead.
+- (round 3, 5 vs 3) A deer made by tearing open a chunky whole-deer sprite read cold as a fox or a dog: draw the road kill new at the scene's own pixel size with the deer's marks bold: grey-brown with a pale belly, a long neck laid flat, a deep blunt muzzle with a dark nose, a big leaf ear, long thin legs with dark hooves, a short white flag tail (not a white tip).
+- Blood laid over a headlamp reads as a red indicator light: put the splash on the grille between the lamps and let only thin runs cross the lamp glass with the light showing between.
+- Pale strips drifting from small dark figures read as things they carry (a rifle, a scroll) unless they start at a visible wound and curl like the hair round them; even bands and straight edges make them objects.
+- A shrunken close-up keeps rings as rings: a chest tear shrunk to world size became a target. Hand-draw the world-size wound as its own small D-tear.
+- Bone in a fresh scene is stained yellow-grey with flesh still at the brow and jaw, never bleached clean; hands keep their skin as a slack grey-yellow glove with the bone showing only where it has slipped.
+- (round 4, 5 vs 2; the deer reads as a deer "only just") A round dark hole with a pale rim beside a skull reads as a second head or a catcher's mask: an opened chest must be unmistakably D-shaped (straight breastbone edge, ragged far edge), not a rounded pale-rimmed hole.
+- Strips drifting from a figure at hand height read as a carried thing (fishbone, quill, rifle) when they are one pale band with red ticks: open the wound in the coat front where it can be seen and let several strips of different lengths rise from it.
+- A lying animal with its head raised and ear up reads as a hare: lay the head and the long neck flat, the ear back along the neck.
+- At night a bright red smear that shows outside the headlights is wrong: blood outside the beam is near black.
 - [OWNER, verbatim] "to the absolute extreme to the point there is a reason why you have to opt in" and "The extreme includes the bodies and normal gore as well". Understood: Extreme is a clear step past Full on every piece of gore, opt-in behind a plain warning; Full and Toned never change.
 - [hard limit] The chibi body reads young: the critic's cold read called the face-down hiker "a boy". Every human victim needs adult cues at both sizes: stubble at the jaw, grey at the temples, a wedding ring, cigarettes, work clothes. No children, nothing sexual, at any level.
 - One even tube with one highlight along its length reads as a sausage, a worm or a spring; an even zigzag over a wire reads as a spring or "WW". Cut guts into short lengths that swell and narrow, each lit on its own upper side, with a dark wet crease at each join and a darker rim where a coil lies over one already down.
@@ -1942,3 +1964,20 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Every fist goes ON the thing: two fists floating on a handle that isn't drawn read as broken. A post or a door edge is a vertical handle (the fist turned with it); glass is steadied between two flat hands.
 - A winch reads only with its parts: a stand staked into the ground, the wire visible from the drum to the load, the crank grip a lit cap standing out toward you with its shadow, the fist on that grip.
 - A critic can't play a video: send a frame strip per game (anticipation, contact, settle) as a PNG.
+- A raised tool must stay whole and readable in the waiting pose: a mallet raised behind a sign reads as a stub. Draw the sign behind it.
+- Strips for a critic must start before the blow they show: a verdict left over from the previous swing reads as the bell ringing before the strike.
+- Plumb is checked with an upright level pressed against the work's side (its vial across the middle); a level lying across an upright post or glass checks nothing.
+- A hot piece glows on the dark: a warm halo round the part still out of the water, or it reads as a dark stick.
+- A two-handed swing is carried by the hands, not pivoted round them: the fists travel a big arc (high over the shoulder to just above the target) while the head sweeps over the top; a fixed pivot reads as a clock hand.
+- A puff of dust spreads and fades over 2-3 frames; two pale lumps that sit still read as stones.
+- Contact needs its own effect: a steam burst when hot iron meets water, a flare in the fire on a bellows push, a splash and ring where something drops into a pot.
+- Critic sheets: crop each frame to the tool, hand and target (about 190x114) at 2x, sheets no wider than 2000 px; a 4500 px sheet shrinks the fists to nothing.
+- A spirit level reads by its vial set INSIDE the stock; a vial wider than the stick reads as a first-aid cross at 1x. Put a fist on the level itself.
+- A dark tripod under a dark drum with a pale fist on top reads as a little man in a coat: light the machine's steel (flanges, arm, legs) so it reads as a machine.
+- A thing dropped into a pot is held first (by a hand that's free: the stirring hand lets go of the spoon), let go, and falls faster and faster (about 6, 14, 24 px a beat), then a crown of drops and a spreading ring. A HUD label over the drop hides it: move the label aside.
+- Flare in a fire: ragged tongues of different heights; evenly spaced vertical spikes read as a heater's bars.
+- The work must change on contact, every time: a mark that stays (a flute, a dent), a part that gives (a waist pinching, a side bulging), a puff of flour or dust. A fist that moves while the work stays the same reads as miming.
+- A handful of straw drawn as lines streaming from a fist reads as speed lines or arrows: draw a wad in the fist with a few ends poking out.
+- Something that grows from a dip (a candle's layer) grows as it comes out of the vat, never in mid-air before it goes in.
+- A thing being cut is moved only by a hand: the steadying hand rides its far end, pushes it up to the blade after each slice and carries the stub away. A vegetable sliding by itself reads as a conveyor.
+- When a game's tolerance is small (a plumb band of 3 degrees), draw the state plainly: upright inside the band, the error drawn larger outside it, so the job reads as done.
