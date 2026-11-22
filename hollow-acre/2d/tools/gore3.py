@@ -164,7 +164,7 @@ def flame(c, x, y, h=4):
 
 SPR_OUT = {}
 def done(name, c, ax, ay, foot=(0, 0, 0, 0)):
-    if name.endswith('_cu'):   # a close-up fits the read-up view (about 133 px above its ground line on a PC): empty rows off the
+    if name.endswith('_cu') and not os.environ.get('NOCROP'):   # a close-up fits the read-up view (about 133 px above its ground line on a PC): empty rows off the
         bb = c.im.getbbox()    # top; a tall narrow one padded to 100 wide so the view may show it at 1x instead of forcing 2x
         top = max(0, bb[1] - 2); im = c.im.crop((0, top, c.W, min(c.H, bb[3] + 1, top + 131))); ay -= top   # at most 131 tall (the last rows are shadow)
         if im.height > 64 and im.width < 100:
@@ -900,7 +900,7 @@ def snag2(c, GY, CX, TOP, r0=22, r1=18):
                 c.p(X, Y, FAT[3] if Y < yt + 1.4 else FAT[2] if Y < yt + 2.6 else FAT[0] if Y < yt + 4 else BARK[3] if u < .3 else BARK[2] if u < .7 else BARK[1])
     for a, b in zs[1:-1]:
         if b < -6: c.p(CX + a, TOP + b, FAT[4])
-def tree_cu(toned=False):
+def tree_cu_old(toned=False):
     W, Hh, gy, cx = 50, 74, 68, 24; c = C(W * 2, Hh * 2); GY, CX = 2 * gy, 2 * cx
     if not toned: blood_pool(c, CX + 2, GY + 2, 28, 4.4, 1.2)
     ground_shadow(c, CX + 4, GY + 2, 30, 4.4, a=80)
@@ -990,6 +990,135 @@ def tree_cu(toned=False):
         for j, (dx, dy) in enumerate(((6, 3), (7, 4), (7, 5), (8, 6), (9, 6))): c.p(LX + dx, LY + dy, MEAT[2] if j < 2 else MEAT[1] if j < 4 else BLOOD[1])   # the nerve trailing
     rifle2(c, CX - 26, FY1 + 37, .08)
     U.finish('g_p_tree_cu', CX, GY, sh=70)
+def cap_finish(c, U):
+    HU = dict(cap=CR('#d8641e'))
+    """the orange cap: its panels stitched up to a button on the crown, a stitched line round the brim"""
+    cap = [(X, Y) for (X, Y) in U.own if U.inside(X, Y) and U.mat(X, Y, HU['cap']) is not None]
+    if not cap: return
+    xs = [X for X, _ in cap]; ys = [Y for _, Y in cap]; x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys); mx = (x0 + x1) / 2; cs = set(cap)
+    for f_ in (-.55, 0, .55):   # the panel seams
+        curve(c, [(mx + f_ * (x1 - x0) * .5, y1 - 3), (mx + f_ * (x1 - x0) * .32, (y0 + y1) / 2), (mx, y0 + 1)], lambda x, y, i, n: step(c, x, y, HU['cap'], -1) if (x, y) in cs else None)
+    c.p(mx, y0, HU['cap'][4]); c.p(mx + 1, y0, HU['cap'][3]); c.p(mx, y0 + 1, HU['cap'][2])   # the button
+    for X in range(x0 + 1, x1):   # the brim's stitching, one row up from its edge
+        Yb = max((Y for (XX, Y) in cap if XX == X), default=None)
+        if Yb is not None and (X, Yb - 2) in cs and X % 3: step(c, X, Yb - 2, HU['cap'], 1)
+def jacket_finish(c, U):
+    """the hunter's jacket: creases at the elbows, a flap on each chest pocket with its button, the collar's edge lit"""
+    HU = dict(jk=CR('#545a3a'))
+    jk = [(X, Y) for (X, Y) in U.own if U.inside(X, Y) and U.mat(X, Y, HU['jk']) is not None]
+    if not jk: return
+    js = set(jk); xs = [X for X, _ in jk]; ys = [Y for _, Y in jk]; x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
+    for sx, d in ((x0 + 3, 1), (x1 - 3, -1)):   # elbow creases
+        for k_ in range(3):
+            curve(c, [(sx + d * (k_ * 2 - 1), y0 + 9 + k_ * 3), (sx + d * (k_ * 2 + 2), y0 + 11 + k_ * 3)], lambda x, y, i, n: step(c, x, y, HU['jk'], -1) if (x, y) in js else None)
+    mx = (x0 + x1) / 2
+    for px_ in (mx - 8, mx + 7):   # chest pockets
+        curve(c, [(px_ - 3, y0 + 5), (px_ + 3, y0 + 5)], lambda x, y, i, n: step(c, x, y, HU['jk'], -1) if (x, y) in js else None)
+        curve(c, [(px_ - 3, y0 + 4), (px_ + 3, y0 + 4)], lambda x, y, i, n: step(c, x, y, HU['jk'], 1) if (x, y) in js else None)
+        if (int(px_), y0 + 6) in js: c.p(px_, y0 + 6, BRASS[3])
+    for (X, Y) in jk:   # the collar's lit edge
+        if Y < y0 + 3 and (X, Y - 1) not in js and X < mx: step(c, X, Y, HU['jk'], 1)
+def rifle_finish(c, X0, Y0, slope):
+    """the rifle: the grain running along the stock, a lit line down the barrel, the front sight, a band round the fore-end"""
+    curve(c, [(X0 + 2, Y0 + 1), (X0 + 9, Y0 + 1.6), (X0 + 18, Y0 + 1 + 18 * slope)], lambda x, y, i, n: c.p(x, y, WOOD[2]) if i % 5 != 4 else None)
+    curve(c, [(X0 + 5, Y0 + 2), (X0 + 14, Y0 + 2.4)], lambda x, y, i, n: c.p(x, y, WOOD[1]))
+    for k in range(31, 53): c.p(X0 + k, Y0 + k * slope, IRON[5] if k % 7 else IRON[4])
+    c.p(X0 + 52, Y0 + 52 * slope - 1, IRON[3])   # the front sight
+    for r in range(3): c.p(X0 + 36, Y0 + 36 * slope + r - 1, BRASS[2] if r else BRASS[3])   # a barrel band
+def tree_cu(toned=False):
+    W, Hh, gy, cx = 50, 74, 68, 24; c = C(W * 2, Hh * 2); GY, CX = 2 * gy, 2 * cx
+    if not toned: blood_pool(c, CX + 2, GY + 2, 28, 4.4, 1.2)
+    ground_shadow(c, CX + 4, GY + 2, 30, 4.4, a=80)
+    snag2(c, GY, CX, 34)
+    t = C(W, Hh); B = Body(t)
+    if toned:
+        def stain(X, Y):
+            if not (0 <= X < c.W and 0 <= Y < c.H) or c.px[X, Y][3] < 200: return
+            l = lum(c.px[X, Y]); c.p(X, Y, (96, 34, 38) if l > 120 else (72, 24, 30) if l > 85 else (48, 16, 22))
+        for Y in range(68, 112):
+            w = 12 + math.sin(Y * .35) * 1.8 - max(0, Y - 100) * .6; o = math.sin(Y * .15) * 1.2
+            for X in range(int(CX + o - w), int(CX + o + w) + 1): stain(X, Y)
+        for X0_, L in ((CX - 8, 24), (CX - 3, 28), (CX + 1, 18), (CX + 4, 22), (CX + 10, 26)):
+            for k in range(L): stain(X0_ + int(math.sin(k * .2 + X0_) * 1.2), 108 + k)
+        rifle2(c, CX - 28, GY + 4, -.05, ground=True); rifle_finish(c, CX - 28, GY + 4, -.05)
+        cap = frame('hunter_cap', 'idleW'); bb = cap.getbbox(); B.paste(cap, W - 2 - (bb[2] - bb[0]), gy + 2 - (bb[3] - bb[1]), box=bb); U = UpS(c, B, 2); cap_finish(c, U)
+        for X in range(c.W):   # the stitched seam over his cap's crown
+            for Y in range(c.H):
+                pass
+        U.finish('g_p_tree_t_cu', CX, GY, sh=70); return
+    fx, fy = cx - 24, gy - 61; B.paste(frame('hunter', 'sitS'), fx, fy); U = UpS(c, B, 2); cap_finish(c, U); jacket_finish(c, U)
+    sk = frame('hunter', 'sitS').load(); face = set()
+    for y in range(28, 42):
+        for x in range(8, 41):
+            p_ = sk[x, y]
+            if p_[3] < 200: continue
+            r_, g_, b_ = p_[:3]
+            if (r_ > 150 and r_ > b_ + 20) or (b_ > r_ and b_ > 90) or (r_ > 225 and g_ > 220): face.add((fx + x, fy + y))
+    eyes = [(x, y, sk[x - fx, y - fy][:3]) for (x, y) in sorted(face) if sk[x - fx, y - fy][2] > sk[x - fx, y - fy][0] and sk[x - fx, y - fy][2] > 90]
+    xs = [q[0] for q in face]; ys = [q[1] for q in face]; fx0, fx1, fy0, fy1 = min(xs), max(xs), min(ys), max(ys)
+    face2 = {(X, Y) for (X, Y) in U.own if (X // 2, Y // 2) in face}
+    FX0, FX1, FY0, FY1 = 2 * fx0, 2 * fx1 + 1, 2 * fy0, 2 * fy1 + 1; MX = (FX0 + FX1) // 2
+    ex = sorted(set(q[0] for q in eyes)); ey = min(q[1] for q in eyes); EY = 2 * ey
+    for (X, Y) in face2:   # the face taken off to the muscle; a ragged rim of skin left round the cheeks and the jaw
+        edge = sum((X + dx, Y + dy) not in face2 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1), (2, 0), (-2, 0), (0, 2)))
+        u = (X - FX0) / max(1, FX1 - FX0); v = (Y - FY0) / max(1, FY1 - FY0)
+        c.p(X, Y, MEAT[2] if u + v < .55 else MEAT[1] if u + v < 1.25 else MEAT[0])
+    for X in range(FX0 + 3, FX1 - 2):   # under the cap's shadow, the brow bone bared over each socket
+        if (X, FY0) in face2: c.p(X, FY0, BLOOD[0])
+        if (X, FY0 + 1) in face2 and abs(X - MX) > 2 and abs(X - MX) < 11: c.p(X, FY0 + 1, BONE[1] if X > MX else BONE[2])
+    for k_, (ax_, ay_, bx_, by_) in enumerate(((FX0 + 2, FY0 + 4, FX0 + 6, FY1 - 1), (FX0 + 5, FY0 + 3, FX0 + 8, FY1 - 3), (FX1 - 2, FY0 + 4, FX1 - 6, FY1 - 1), (FX1 - 5, FY0 + 3, FX1 - 8, FY1 - 3))):
+        curve(c, [(ax_, ay_), ((ax_ + bx_) / 2 + (1 if k_ < 2 else -1), (ay_ + by_) / 2), (bx_, by_)], lambda x, y, i, n, k_=k_: c.p(x, y, MEAT[3] if k_ % 2 == 0 and i < n * .6 else MEAT[0]) if (x, y) in face2 else None)   # sinew
+    for sx0 in (FX0 + 3, FX1 - 4):   # the muscle in strands from the cheekbones down to the jaw
+        for k in range(7): c.p(sx0 + (k // 3) * (1 if sx0 < MX else -1), EY + 5 + k, MEAT[0])
+    for k in range(5): c.p(MX - 6 + k, EY + 9 - k // 2, MEAT[0]); c.p(MX + 7 - k, EY + 9 - k // 2, MEAT[0])
+    for X0_ in sorted(set(2 * x for x in ex))[::2] if len(ex) > 2 else [2 * x for x in ex]:
+        pass
+    groups = []
+    for x in ex:
+        if groups and x - groups[-1][-1] <= 1: groups[-1].append(x)
+        else: groups.append([x])
+    for g_ in groups:   # the sockets where his big eyes were: deep, a wet lower lid
+        a0, a1 = 2 * g_[0] - 2, 2 * g_[-1] + 3; am = (a0 + a1) / 2; aw = (a1 - a0) / 2 + .5
+        for X in range(a0, a1 + 1):
+            for Y in range(EY - 3, EY + 5):
+                d = ((X - am) / aw) ** 2 + ((Y - EY - .5) / 4) ** 2
+                if d < 1 and (X, Y) in face2: c.p(X, Y, BLOOD[0] if d > .62 else OUT)
+        c.p(int(am) - 1, EY + 4, MEAT[4]); c.p(int(am), EY + 4, MEAT[3])
+    for X, Y, col in ((MX, EY + 5, OUT), (MX + 1, EY + 5, OUT), (MX - 1, EY + 5, BONE[1]), (MX + 2, EY + 5, BONE[1]), (MX, EY + 6, OUT), (MX + 1, EY + 6, BLOOD[0]), (MX, EY + 4, BONE[2]), (MX + 1, EY + 4, BONE[1])): c.p(X, Y, col)   # the nose a hole
+    TW = [2, 2, 3, 2, 2, 2]; X = MX - 7   # the teeth, every one, two rows, the gums gone back from them
+    for k, w in enumerate(TW):
+        for u in range(w):
+            for Y, col in ((EY + 9, BONE[4] if X + u < MX else BONE[3]), (EY + 10, BONE[3] if X + u < MX else BONE[2]), (EY + 12, BONE[2]), (EY + 13, BONE[1])):
+                c.p(X + u, Y, col)
+        c.p(X + w, EY + 9, BONE[0]); c.p(X + w, EY + 10, BONE[0]); c.p(X + w, EY + 12, BONE[0]); c.p(X + w, EY + 13, BONE[0])
+        X += w + 1
+    for X in range(MX - 8, MX + 10): c.p(X, EY + 11, OUT); c.p(X, EY + 8, MEAT[2] if X < MX else MEAT[1]); c.p(X, EY + 14, MEAT[0])
+    c.p(FX0 + 4, FY0 + 3, MEAT[4]); c.p(FX1 - 6, EY + 6, MEAT[5]); c.p(MX - 9, EY + 10, BLOOD[4])   # wet
+    for Y in range(FY1 + 1, FY1 + 24):   # it all ran down his front, the shirt soaked, keeping its folds
+        for X in range(MX - 12, MX + 14):
+            if U.inside(X, Y) and (lum(c.px[X, Y]) > 105 or (Y < FY1 + 5 and abs(X - MX) < 8)): soak(c, X, Y, 1 if Y < FY1 + 8 else 0)
+    run2(c, U, MX - 9, FY1 + 5, 10); run2(c, U, MX + 10, FY1 + 3, 14); run2(c, U, MX + 4, FY1 + 16, 8, w=1)
+    iris = eyes[0][2] if eyes else (58, 90, 122); IR = [tuple(int(v * k) for v in iris) for k in (.5, .8, 1, 1.3)]
+    for Y in range(FY1 + 26, FY1 + 36):   # his lap, wet where they lie
+        for X in range(MX - 10, MX + 14):
+            if U.inside(X, Y) and lum(c.px[X, Y]) < 105: soak(c, X, Y, -1 if Y > FY1 + 31 else 0)
+    for k, (LX, LY, look) in enumerate(((MX - 8, FY1 + 27, (0, 0)), (MX + 3, FY1 + 28, (1, -1)))):   # his eyes in his lap: wet balls, not discs
+        for dy in range(6):
+            for dx in range(7):
+                d = ((dx - 3) / 3.4) ** 2 + ((dy - 2.5) / 3) ** 2
+                if d > 1: continue
+                l = -(dx - 3) * .45 - (dy - 2.5) * .6
+                c.p(LX + dx, LY + dy, (150, 104, 104) if d > .8 and l < 0 else (236, 226, 216) if l > 1.1 else (218, 202, 194) if l > -.5 else (190, 166, 162))
+                U.rim.discard((LX + dx, LY + dy))
+        ix, iy = LX + 3 + look[0], LY + 2 + look[1] * .5   # the iris looking up at you (the second a little off), its dark ring, the pupil
+        for dx, dy, col in ((-1, 0, IR[0]), (0, -1, IR[1]), (1, 0, IR[1]), (0, 1, IR[0]), (0, 0, (14, 16, 22)), (-1, -1, IR[2]), (1, -1, IR[2]), (-1, 1, IR[1]), (1, 1, IR[0])):
+            c.p(ix + dx, iy + dy, col)
+        c.p(ix - 1, iy - 1, (255, 255, 255))
+        for vx, vy in ((LX + 6, LY + 3), (LX + 5, LY + 4)): c.p(vx, vy, (176, 74, 76))   # a vein
+        nerve = [(LX + 6, LY + 4), (LX + 8, LY + 5), (LX + 9, LY + 7), (LX + 8, LY + 9)] if k == 0 else [(LX + 6, LY + 3), (LX + 8, LY + 3), (LX + 10, LY + 5)]
+        curve(c, nerve, lambda x, y, i, n: (c.p(x, y, MEAT[2] if i < n - 2 else BLOOD[1]), c.p(x, y + 1, MEAT[0]) if i < n - 2 else None))   # the nerve, torn off
+    rifle2(c, CX - 26, FY1 + 37, .08); rifle_finish(c, CX - 26, FY1 + 37, .08)
+    U.finish('g_p_tree_cu', CX, GY, sh=70)
 def rifle2(c, X0, Y0, slope, ground=False):
     """the rifle at 2x: a stock with its grain and butt plate, the action, the bolt, the trigger guard, the barrel lit along the top"""
     for k in range(54):
@@ -1006,6 +1135,579 @@ def rifle2(c, X0, Y0, slope, ground=False):
     c.p(X0 + 24, Y0 + 24 * slope - 1, IRON[4]); c.p(X0 + 25, Y0 + 24 * slope - 2, IRON[3]); c.p(X0 + 26, Y0 + 24 * slope - 2, IRON[2])   # the bolt
     for dx, dy in ((22, 3), (22, 4), (23, 5), (24, 5), (25, 5), (26, 4)): c.p(X0 + dx, Y0 + 22 * slope + dy, IRON[1])   # the trigger guard
     c.p(X0 + 24, Y0 + 24 * slope + 3, IRON[3])
+
+
+# ============================== the hand finish (owner via main: "high detailed images", hand-drawn at close-up size): each close-up
+# at the scale its view shows best (the hiker and the coat 3x, the lantern and the shoes 4x, the hunter 2x for his height),
+# the chibi body enlarged (Scale2x/Scale3x) and then finished by hand in its own ramps: hair in strands, cloth with seams and
+# folds, laces and eyelets, fingers and nails, the cut faces in rings of skin, fat, muscle and bone.
+def scale3x(im):
+    WW, HH = im.size; a = im.load(); out = Image.new('RGBA', (WW * 3, HH * 3), (0, 0, 0, 0)); o = out.load(); Z = (0, 0, 0, 0)
+    def g(x, y):
+        if 0 <= x < WW and 0 <= y < HH:
+            p_ = a[x, y]; return p_ if p_[3] > 127 else Z
+        return Z
+    for y in range(HH):
+        for x in range(WW):
+            A_, B_, C_ = g(x - 1, y - 1), g(x, y - 1), g(x + 1, y - 1)
+            D_, E_, F_ = g(x - 1, y), g(x, y), g(x + 1, y)
+            G_, H_, I_ = g(x - 1, y + 1), g(x, y + 1), g(x + 1, y + 1)
+            e = [E_] * 9
+            if B_ != H_ and D_ != F_:
+                e[0] = D_ if D_ == B_ else E_
+                e[1] = B_ if (D_ == B_ and E_ != C_) or (B_ == F_ and E_ != A_) else E_
+                e[2] = F_ if B_ == F_ else E_
+                e[3] = D_ if (D_ == B_ and E_ != G_) or (D_ == H_ and E_ != A_) else E_
+                e[5] = F_ if (B_ == F_ and E_ != I_) or (H_ == F_ and E_ != C_) else E_
+                e[6] = D_ if D_ == H_ else E_
+                e[7] = H_ if (D_ == H_ and E_ != I_) or (H_ == F_ and E_ != G_) else E_
+                e[8] = F_ if H_ == F_ else E_
+            for k in range(9): o[3 * x + k % 3, 3 * y + k // 3] = e[k]
+    return out
+def upscale(im, S): return scale2x(im) if S == 2 else scale3x(im) if S == 3 else scale2x(scale2x(im))
+class UpS:
+    """a body built at world size, enlarged S times onto the close-up: own, rim (the outline thinned to one pixel), and the
+    1x colour under every pixel so a pass can tell hair from cloth from skin"""
+    def __init__(s, c, B, S):
+        big = upscale(B.c.im, S); bp = big.load(); s.c, s.S, s.B = c, S, B; s.own = set(); s.rim = set()
+        for Y in range(big.height):
+            for X in range(big.width):
+                if bp[X, Y][3] > 127:
+                    s.own.add((X, Y))
+                    if (X // S, Y // S) in B.rim: s.rim.add((X, Y))
+        for _ in range(S - 1):
+            for (X, Y) in sorted(s.rim):
+                for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    if (X + dx, Y + dy) not in s.own and (X - dx, Y - dy) in s.rim:
+                        bp[X, Y] = (0, 0, 0, 0); s.own.discard((X, Y)); s.rim.discard((X, Y)); break
+        for _ in range(2):
+            for (X, Y) in sorted(s.rim):
+                if sum((X + dx, Y + dy) in s.own for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))) <= 1:
+                    bp[X, Y] = (0, 0, 0, 0); s.own.discard((X, Y)); s.rim.discard((X, Y))
+        for (X, Y) in list(s.own):
+            if lum(bp[X, Y]) < 70 and any((X + dx, Y + dy) not in s.own for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))): s.rim.add((X, Y))
+        for (X, Y) in s.own:
+            if 0 <= X < c.W and 0 <= Y < c.H: c.px[X, Y] = bp[X, Y][:3] + (255,)
+    def inside(s, X, Y): return (X, Y) in s.own and (X, Y) not in s.rim
+    def src(s, X, Y):
+        p_ = s.B.c.px[X // s.S, Y // s.S] if 0 <= X // s.S < s.B.c.W and 0 <= Y // s.S < s.B.c.H else (0, 0, 0, 0)
+        return p_[:3]
+    def mat(s, X, Y, R):   # the index of the 1x colour under this pixel in ramp R (or None)
+        p_ = s.src(X, Y)
+        return R.index(p_) if p_ in R else None
+    def finish(s, name, ax, ay, sh=90):
+        drop_shadow(s.c, s.S, s.S, sh); outline2(s.c, lit=True, skip=s.rim); done(name, s.c, ax, ay)
+# the chibi model's five-step ramps (chibi3.js rampRGB), so the finish uses each stranger's own colours
+def _rgb2hsv(c):
+    r, g, b = c[0] / 255, c[1] / 255, c[2] / 255; mx, mn = max(r, g, b), min(r, g, b); d = mx - mn; h = 0
+    if d:
+        if mx == r: h = ((g - b) / d) % 6
+        elif mx == g: h = (b - r) / d + 2
+        else: h = (r - g) / d + 4
+        h *= 60
+        if h < 0: h += 360
+    return h, (d / mx if mx else 0), mx
+def _hsv2rgb(h, s, v):
+    c = v * s; x = c * (1 - abs((h / 60) % 2 - 1)); m = v - c
+    r, g, b = (c, x, 0) if h < 60 else (x, c, 0) if h < 120 else (0, c, x) if h < 180 else (0, x, c) if h < 240 else (x, 0, c) if h < 300 else (c, 0, x)
+    rnd = lambda u: int(math.floor(u * 255 + .5))
+    return (rnd(r + m), rnd(g + m), rnd(b + m))
+def _toward(h, t, a):
+    d = ((t - h + 540) % 360) - 180
+    return t if abs(d) < a else (h + (1 if d > 0 else -1) * a + 360) % 360
+def CR(hexc):
+    c = tuple(int(hexc[i:i + 2], 16) for i in (1, 3, 5)); h, s_, v = _rgb2hsv(c); cl = lambda u: max(0, min(1, u))
+    mk = lambda tgt, amt, ks, kv, add: _hsv2rgb(_toward(h, tgt, amt), cl(s_ * ks + (.04 if ks > 1 else 0)), cl(v * kv + add))
+    return [mk(265, 26, 1.22, .3, 0), mk(265, 16, 1.14, .56, 0), mk(265, 7, 1.06, .79, 0), c, mk(55, 12, .78, 1.1, .07)]
+def step(c, X, Y, R, d):
+    """move the pixel one step along its own ramp (lighter d>0, darker d<0); pixels not in the ramp are left alone"""
+    p_ = c.px[X, Y][:3] if 0 <= X < c.W and 0 <= Y < c.H else None
+    if p_ in R: c.p(X, Y, R[max(0, min(4, R.index(p_) + d))])
+def curve(c, pts, col_fn, n=None):
+    """a hand line along a polyline, one pixel wide, coloured per step"""
+    seg = list(zip(pts, pts[1:])); out = []
+    for (ax, ay), (bx, by) in seg:
+        k = max(1, int(max(abs(bx - ax), abs(by - ay)) * 1.5))
+        for i in range(k): t = i / k; out.append((int(round(ax + (bx - ax) * t)), int(round(ay + (by - ay) * t))))
+    out.append((int(round(pts[-1][0])), int(round(pts[-1][1]))))
+    seen = []
+    for q in out:
+        if not seen or seen[-1] != q: seen.append(q)
+    for i, (x, y) in enumerate(seen): col_fn(x, y, i, len(seen))
+    return seen
+def runS(c, U, X, Y0, L, w, lit=True):
+    """a blood run at close-up size: w wide at the top narrowing to one pixel, the cloth's light kept, a lit left edge, a bead at its end"""
+    for k in range(L):
+        ww = max(1, int(round(w * (1 - k / L) + .4)))
+        for u in range(ww):
+            if U.inside(X + u, Y0 + k): soak(c, X + u, Y0 + k, 1 if k < L * .35 else 0)
+        if lit and k < L * .6 and U.inside(X, Y0 + k): c.p(X, Y0 + k, BLOOD[3] if k < 2 else BLOOD[2])
+    for u in range(max(1, w - 1)):
+        if U.inside(X + u, Y0 + L): c.p(X + u, Y0 + L, BLOOD[2])
+    if U.inside(X, Y0 + L + 1): c.p(X, Y0 + L + 1, BLOOD[1])
+def cut_torn(c, cx, cy, rx, ry, bones, seed, own=None):
+    """a limb cut through, end on, but torn, not a target: a ragged rim (skin lit at the top, a broken thread of fat), the flesh in
+    uneven patches, the bones off-centre; one wet light"""
+    pts = {}
+    for Y in range(int(cy - ry * 1.3) - 1, int(cy + ry * 1.3) + 2):
+        for X in range(int(cx - rx * 1.3) - 1, int(cx + rx * 1.3) + 2):
+            a = math.atan2((Y + .5 - cy) / ry, (X + .5 - cx) / rx); w = 1 + .16 * math.sin(a * 3 + seed) + .1 * math.sin(a * 7 + seed * 2.3) + .06 * math.sin(a * 11 + seed)
+            d = ((X + .5 - cx) / (rx * w)) ** 2 + ((Y + .5 - cy) / (ry * w)) ** 2
+            if d <= 1: pts[(X, Y)] = d
+    for (X, Y), d in pts.items():
+        top = Y < cy - ry * .2
+        if d > .74: col = (DEAD[3] if top else DEAD[1]) if H(X, Y, seed) < .8 else MEAT[0]
+        elif d > .6: col = FAT[2] if H(X, Y, seed + 1) < .6 else MEAT[1]
+        else:
+            n_ = H(X // 2, Y // 2, seed + 2); col = MEAT[2] if n_ < .3 and top else MEAT[1] if n_ < .7 else MEAT[0]
+        c.p(X, Y, col)
+        if own is not None: own.add((X, Y))
+    for bx, by, br in bones:
+        for Y in range(int(by - br) - 1, int(by + br) + 2):
+            for X in range(int(bx - br * 1.2) - 1, int(bx + br * 1.2) + 2):
+                d = ((X + .5 - bx) / (br * 1.2)) ** 2 + ((Y + .5 - by) / br) ** 2
+                if d > 1: continue
+                c.p(X, Y, (184, 128, 116) if d < .2 and X > bx else BONE[4] if (Y < by and X < bx) else BONE[3] if d < .7 else BONE[1])   # the marrow a soft pink, off to one side (a dark dot made an eye)
+    c.p(cx - rx * .5, cy + ry * .3, MEAT[5]); c.p(cx - rx * .5 + 1, cy + ry * .3, MEAT[4])
+def cut_face(c, cx, cy, rx, ry, bones, own=None):
+    """a limb cut through, seen end on: a ring of skin lit at the top, a thin ring of fat, the muscle in fibres, the bones with marrow"""
+    for Y in range(int(cy - ry) - 1, int(cy + ry) + 2):
+        for X in range(int(cx - rx) - 1, int(cx + rx) + 2):
+            d = ((X + .5 - cx) / rx) ** 2 + ((Y + .5 - cy) / ry) ** 2
+            if d > 1: continue
+            top = Y < cy
+            col = (DEAD[3] if top else DEAD[1]) if d > .78 else FAT[2] if d > .62 else (MEAT[2] if (X + Y) % 3 == 0 and top else MEAT[1] if top else MEAT[0] if (X - Y) % 4 == 0 else MEAT[1])
+            c.p(X, Y, col)
+            if own is not None: own.add((X, Y))
+    for bx, by, br in bones:
+        for Y in range(int(by - br) - 1, int(by + br) + 2):
+            for X in range(int(bx - br) - 1, int(bx + br) + 2):
+                d = ((X + .5 - bx) / br) ** 2 + ((Y + .5 - by) / br) ** 2
+                if d > 1: continue
+                c.p(X, Y, (120, 44, 48) if d < .3 else BONE[4] if (Y < by and X < bx) else BONE[3] if d < .7 else BONE[2])
+    c.p(cx - rx * .4, cy - ry * .5, MEAT[5])
+
+
+# ---- the hitchhiker at 3x
+HK = dict(hair=CR('#2e2218'), jk=CR('#5c5a3c'), pants=CR('#3e4a66'), skin=CR('#dcbca6'), shoes=CR('#4a3020'))
+def rucksackS(c, x0, y0, k):
+    """the rucksack at k times its 2x drawing: canvas body, the flap with its stitched edge, two straps with buckles, a side pocket,
+    a D-ring, and the torn shoulder strap"""
+    f = F(c.W, c.H); P_ = lambda pts: [(x0 + a * k, y0 + b * k) for a, b in pts]
+    f.poly(P_([(0, 1.2), (18, 0), (20, 4.4), (19.2, 13.6), (1.6, 14.8), (-.8, 9.2)]), 'canvas', base=.4 * k, hs=1)
+    f.poly(P_([(0, .4), (18, -.6), (18.8, 4), (9.2, 6.4), (.8, 4.8)]), 'canvasL', base=3 * k, hs=.6)
+    f.poly(P_([(13, 7.6), (18.6, 7), (18.4, 12.4), (13.4, 12.8)]), 'canvas', base=2.6 * k, hs=.5)
+    f.render(c, {'canvas': CANVAS, 'canvasL': [CANVAS[1], CANVAS[2], CANVAS[3], CANVAS[4], CANVAS[5], CANVAS[5]]})
+    curve(c, P_([(.8, 4.4), (9.2, 5.9), (18.2, 3.6)]), lambda x, y, i, n: c.p(x, y, CANVAS[2] if i % 2 else CANVAS[1]))   # the flap's stitched edge
+    curve(c, P_([(13.2, 8.4), (18.4, 7.8)]), lambda x, y, i, n: c.p(x, y, CANVAS[1]))   # the pocket's flap
+    for sx in (5.4, 11.6):   # two straps down the flap, a buckle on each
+        for y in range(int(y0 + 5.6 * k), int(y0 + 13.6 * k)):
+            for u in range(int(1.6 * k)): c.p(x0 + sx * k + u, y, LEATHER[3] if u == 0 else LEATHER[2] if u < 1.6 * k - 1 else LEATHER[1])
+        by = y0 + 8 * k
+        for u in range(int(2.4 * k)):
+            c.p(x0 + (sx - .4) * k + u, by, BRASS[4] if u < 2 else BRASS[3]); c.p(x0 + (sx - .4) * k + u, by + 1.6 * k, BRASS[1])
+        for v in range(int(1.6 * k)): c.p(x0 + (sx - .4) * k, by + v, BRASS[3]); c.p(x0 + (sx + 2) * k, by + v, BRASS[1])
+        c.p(x0 + (sx + .8) * k, by + .8 * k, BRASS[4])
+    for u in range(int(2 * k)): c.p(x0 + (19 + u * .2) * k / 1, y0 + 6 * k + u, IRON[3] if u < k else IRON[1])   # the D-ring
+    curve(c, P_([(1.6, 14.2), (19, 13.2)]), lambda x, y, i, n: c.p(x, y, CANVAS[1]))
+def hiker_cu(toned=False):
+    S = 3; W, Hh, cy = 80, 42, 21; ox, oy = -12, cy - 24; c = C(W * S, Hh * S)
+    mirrored(c, lambda t: smear(t, S * (W - 1 - 74), S * (W - 1 - 47), S * (cy + 1), .8 * S, 2.7 * S, 2.1))
+    if toned:
+        blood_pool(c, 28 * S, (cy + 1) * S, 21 * S, 6.4 * S, 3.3, lobes=(.12, .08), glint=False)
+        dry_blood(c); rucksackS(c, 36 * S, 29 * S, S / 2); outline2(c, lit=True); drop_shadow(c, S, S, 90)
+        done('g_p_hiker_t_cu', c, 30 * S, (cy + 2) * S); return
+    blood_pool(c, 33 * S, (cy + 7) * S, 15 * S, 5.6 * S, 1.7)
+    rucksackS(c, 41 * S, 3 * S, S / 2)
+    curve(c, [(40.6 * S, 9.6 * S), (38.4 * S, 11 * S), (36 * S, 12.6 * S), (35 * S, 13.6 * S)], lambda x, y, i, n: (c.p(x, y, LEATHER[2]), c.p(x, y + 1, LEATHER[1])))   # the strap, torn through
+    for j, (dx, dy) in enumerate(((-1, 2), (0, 3), (1, 2))): curve(c, [(35 * S, 13.8 * S), (35 * S + dx * 2, 13.8 * S + dy)], lambda x, y, i, n: c.p(x, y, LEATHER[1] if j != 1 else LEATHER[2]))   # frayed
+    t = C(W, Hh); B = Body(t); hiker_body(B, ox, oy); U = UpS(c, B, S)
+    R = HK
+    # hair in locks, flowing from the crown (left) back to the nape and down over the ear: a dark parting line between locks and a
+    # lit line along the top of each, brighter on the lit side; nothing near the crown where they'd crowd into a checker
+    cx_, cy_ = 5 * S, 19.5 * S
+    hair = [(X, Y) for (X, Y) in U.own if U.inside(X, Y) and U.mat(X, Y, R['hair']) is not None and X < 30 * S]
+    if hair:   # first the enlarged 1x strand texture goes (it turns to a checker); the hair is shaded as one mass lit from the top left
+        hx0 = min(X for X, _ in hair); hx1 = max(X for X, _ in hair); hy0 = min(Y for _, Y in hair); hy1 = max(Y for _, Y in hair)
+        mx_, my_ = (hx0 + hx1) / 2, (hy0 + hy1) / 2; rr = max(hx1 - hx0, hy1 - hy0) / 2
+        for (X, Y) in hair:
+            l = -((X - mx_) * .55 + (Y - my_) * .7) / rr
+            c.p(X, Y, R['hair'][3] if l > .45 else R['hair'][2] if l > -.15 else R['hair'][1] if l > -.6 else R['hair'][0])
+    for k, ang in enumerate([-58, -40, -24, -9, 6, 21, 37, 52]):
+        a = math.radians(ang); r0 = 4.5 * S + (k % 2) * 2; L = (16 + (k * 5) % 7) * S; bend = .3 if ang < 0 else .22
+        pts = [(cx_ + math.cos(a) * r0, cy_ + math.sin(a) * r0), (cx_ + math.cos(a + bend * .5) * (r0 + L * .5), cy_ + math.sin(a + bend * .5) * (r0 + L * .5)),
+               (cx_ + math.cos(a + bend) * (r0 + L), cy_ + math.sin(a + bend) * (r0 + L))]
+        def part(x, y, i, n):
+            if U.inside(x, y) and U.mat(x, y, R['hair']) is not None: step(c, x, y, R['hair'], -1)
+        def lit(x, y, i, n, k=k, ang=ang):
+            if i < n * .7 and U.inside(x, y) and U.mat(x, y, R['hair']) is not None: step(c, x, y, R['hair'], 2 if ang < -20 and i < n * .4 else 1)
+        line = curve(c, pts, part)
+        curve(c, [(x_ + math.cos(a + 1.57) * -1.6, y_ + math.sin(a + 1.57) * -1.6) for x_, y_ in pts], lit)
+    # the cheek on the grass: a little stubble along the jaw (one soft shade, never dots), the mouth bleeding into the grass
+    jaw = [(X, Y) for (X, Y) in U.own if U.mat(X, Y, R['skin']) is not None and X < 28 * S and Y > 21 * S and ((X + 1, Y) not in U.own or U.mat(X + 1, Y, R['skin']) is None) ]
+    for (X, Y) in jaw:
+        for u in range(S):
+            if U.inside(X - u, Y) and U.mat(X - u, Y, R['skin']) is not None: c.p(X - u, Y, (164, 140, 130) if u < S - 1 else (182, 158, 146))
+    mouth = [(X, Y) for (X, Y) in U.own if U.src(X, Y) in ((70, 26, 30),)]
+    if mouth:
+        mx_, my_ = max(mouth, key=lambda q: q[1])
+        curve(c, [(mx_, my_ + 1), (mx_ + 1, my_ + 4), (mx_, my_ + 7)], lambda x, y, i, n: c.p(x, y, BLOOD[2] if i < n - 2 else BLOOD[1]))
+        for u in range(-2, 3): c.p(mx_ + u, my_ + 8, BLOOD[1])
+    # the jacket: a seam where each sleeve meets the back, folds across the sleeves, the cuffs, the collar
+    for X in range(28 * S, 39 * S):
+        for Y in range(9 * S, 31 * S):
+            if not U.inside(X, Y) or U.mat(X, Y, R['jk']) is None: continue
+            if U.mat(X, Y - 1, R['jk']) is None and U.inside(X, Y - 1) and Y > 12 * S: c.p(X, Y, R['jk'][1])   # seams under the dark edge
+    for fx_, up in ((30.4, 1), (33.6, 1), (36.8, 1), (31.2, 0), (34.4, 0), (37.4, 0)):   # folds on the sleeves: a crease and its lit side
+        X0 = int(fx_ * S); rows = range(9 * S + 2, 13 * S) if up else range(27 * S, 30 * S + 1)
+        for j, Y in enumerate(rows):
+            X = X0 + (j // 3) * (1 if up else -1)
+            if U.inside(X, Y) and U.mat(X, Y, R['jk']) is not None: step(c, X, Y, R['jk'], -1)
+            if U.inside(X - 1, Y) and U.mat(X - 1, Y, R['jk']) is not None: step(c, X - 1, Y, R['jk'], 1)
+    for Y in range(9 * S, 31 * S):   # the cuffs, a darker band where each sleeve ends
+        for X in (38 * S + 1, 38 * S + 2):
+            if U.inside(X, Y) and U.mat(X, Y, R['jk']) is not None and (Y < 14 * S or Y > 26 * S): step(c, X, Y, R['jk'], -1)
+    # the jeans: the outer seams lit, a back pocket stitched on the seat
+    for X in range(39 * S, 47 * S):
+        for Y in (16 * S, 25 * S):
+            if U.inside(X, Y) and U.mat(X, Y, R['pants']) is not None: step(c, X, Y, R['pants'], 1)
+    for X, Y in [(40 * S + u, 18 * S) for u in range(6)] + [(40 * S, 18 * S + v) for v in range(5)] + [(40 * S + 5, 18 * S + v) for v in range(5)]:
+        if U.inside(X, Y) and U.mat(X, Y, R['pants']) is not None: step(c, X, Y, R['pants'], 1)
+    # the back torn open from the collar to the belt: a D, its straight side the spine, the other side ragged; dark under the spine,
+    # the muscle in uneven patches, three ribs of different lengths arcing down from it, blood pooled low and running off downhill
+    X0w, X1w = 28 * S + 1, 39 * S - 2; SB = [(214, 182, 166), (186, 146, 134), (150, 104, 100), (112, 66, 70)]
+    topY, depth = {}, {}
+    for X in range(X0w, X1w + 1):
+        t_ = (X - X0w) / (X1w - X0w); s_ = math.sin(math.pi * t_)
+        topY[X] = (cy - 3) * S + int(round((1 - s_ ** .35) * 6)) + (1 if H(X, 1, 4) < .25 else 0)
+        depth[X] = int(2 + 20 * s_ ** .8 + (H(X // 2, 2, 4) * 4 - 1.5) * s_)
+    hole = {(X, Y) for X in topY for Y in range(topY[X], topY[X] + depth[X] + 1) if U.inside(X, Y)}
+    for X in range(X1w + 1, X1w + 8): topY[X] = topY[X1w]; depth[X] = 0
+    for X, Y in hole:
+        d = (Y - topY[X]) / max(1, depth[X]); n_ = H(X // 3, Y // 2, 6)
+        c.p(X, Y, OUT if d < .16 else BLOOD[0] if d < .32 else (MEAT[0] if n_ < .45 else MEAT[1]) if d < .66 else (MEAT[1] if n_ < .55 else MEAT[2]) if d < .86 else BLOOD[1] if d < .95 else BLOOD[2])
+    for X in range(X0w, X1w + 1):   # the spine along the straight side, its knobs uneven, blood across it in two places
+        for r, col in ((-2, SB[1]), (-1, SB[2]), (0, SB[3])):
+            if U.inside(X, topY[X] + r) or (X, topY[X] + r) in hole: c.p(X, topY[X] + r, col)
+    for X in (X0w + 2, X0w + 9, X0w + 15, X0w + 22, X0w + 27):
+        if X + 2 > X1w: continue
+        for u in range(3): c.p(X + u, topY[X + u] - 2, SB[0])   # each vertebra's knob, a light on the bar (nothing stands up off it)
+        c.p(X + 4, topY[X + 4] - 1, BLOOD[0]); c.p(X + 4, topY[X + 4], BLOOD[0])
+    for X in (X0w + 12, X0w + 19):
+        for u in range(2):
+            for r in range(-2, 2): c.p(X + u, topY[X + u] + r, BLOOD[1] if r < 1 else BLOOD[0])
+    for X0r, L, bend in ((X0w + 6, 10, .14), (X0w + 13, 15, .08), (X0w + 21, 8, .2)):   # three ribs, uneven
+        for j_ in range(L):
+            Y = topY[X0r] + 1 + j_; X = X0r + int(round(j_ * j_ * bend))
+            if (X, Y) not in hole: continue
+            c.p(X, Y, MEAT[3] if j_ < L - 2 else MEAT[2])
+            if (X + 1, Y) in hole: c.p(X + 1, Y, MEAT[0])
+            if (X - 1, Y) in hole and j_ > 2: c.p(X - 1, Y, MEAT[2])
+    for X in range(X0w, X1w + 1):   # the torn side: the jacket turned out and soaked, a broken thread of fat inside it, the skin's edge in places
+        b_ = topY[X] + depth[X]
+        if (X, b_) in hole and H(X, 8, 3) < .55: c.p(X, b_, FAT[1])
+        for r in (1, 2, 3):
+            if U.inside(X, b_ + r): soak(c, X, b_ + r, -1 if r == 1 else 0)
+        if U.inside(X, b_ + 1) and H(X, 11, 1) < .3: c.p(X, b_ + 1, R['skin'][1])
+    for X, Y in ((X0w + 9, topY[X0w + 9] + depth[X0w + 9] - 4), (X0w + 17, topY[X0w + 17] + depth[X0w + 17] - 2), (X0w + 4, topY[X0w + 4] + 6)): c.p(X, Y, MEAT[5]); c.p(X + 1, Y, MEAT[4])   # wet
+    c.p(X0w + 15, topY[X0w + 15] + depth[X0w + 15] - 1, (255, 236, 226))
+    for X in (X0w + 8, X0w + 16, X0w + 23):   # running off downhill, over the arm, into the pool
+        runS(c, U, X, topY[X] + depth[X] + 3, (cy + 9) * S - (topY[X] + depth[X] + 3), 3)
+    # the face cleaned to the close-up's pixel size: the skin shaded again as one lit form (the enlarged 1x tone blocks go),
+    # the features kept
+    face = [(X, Y) for (X, Y) in U.own if U.inside(X, Y) and X < 30 * S and U.mat(X, Y, R['skin']) is not None and U.mat(X, Y, R['skin']) >= 2]
+    if face:
+        fx0 = min(X for X, _ in face); fx1 = max(X for X, _ in face); fy0 = min(Y for _, Y in face); fy1 = max(Y for _, Y in face)
+        mx2, my2 = (fx0 + fx1) / 2, (fy0 + fy1) / 2; rr2 = max(fx1 - fx0, fy1 - fy0) / 2
+        for (X, Y) in face:
+            l = -((X - mx2) * .5 + (Y - my2) * .75) / rr2
+            c.p(X, Y, R['skin'][4] if l > .55 else R['skin'][3] if l > -.05 else R['skin'][2] if l > -.55 else R['skin'][1])
+    for X in range(28 * S - 2, 28 * S + 2):   # the collar soaked dark
+        for Y in range((cy - 3) * S, (cy + 3) * S):
+            if U.inside(X, Y): soak(c, X, Y)
+    U.finish('g_p_hiker_cu', 33 * S, (cy + 3) * S)
+
+
+# ---- the lantern and the fist at 4x
+LT = dict(skin=CR('#dcbca6'))
+def lantern_bodyS(c, Y0, k):
+    """the storm lantern at 2k times the world: tank, globe, cap and chimney; two brass guards; rings top and bottom of the glass;
+    the cap's vents; the burner and wick with the flame on it; the glass catching the light; the bail"""
+    P_ = lambda x, y: (x * k, Y0 + y * k)
+    f = F(c.W, c.H)
+    f.blob(66 * k, Y0, 7.2 * k, 9.2 * k, 'tin', hs=.9)
+    f.cap(45.2 * k, Y0, 57.2 * k, Y0, 8 * k, 8 * k, 'glow', hs=.8)
+    f.blob(40.8 * k, Y0, 4 * k, 7.2 * k, 'tin', base=1.2 * k)
+    f.cap(33.6 * k, Y0, 36.8 * k, Y0, 2.8 * k, 2.6 * k, 'tin', base=.8 * k)
+    f.blob(70 * k, Y0 - 6.4 * k, 1.6 * k, 1.2 * k, 'tin', base=6 * k)
+    f.render(c, {'tin': TIN, 'glow': GLOW})
+    for xr in (44.2, 58.4):   # the rings that hold the glass
+        for Y in range(int(Y0 - 8 * k), int(Y0 + 8 * k) + 1):
+            for u in range(int(k)): c.p(xr * k + u, Y, TIN[4] if Y < Y0 - 2 * k else TIN[2] if Y < Y0 + 3 * k else TIN[1])
+            c.p(xr * k + k, Y, TIN[0])
+    for xg in (48, 54):   # the guard wires: two, mid brass, lit above the middle
+        for Y in range(int(Y0 - 7.6 * k), int(Y0 + 7.6 * k)):
+            c.p(xg * k, Y, BRASS[3] if Y < Y0 - 2 * k else BRASS[2] if Y < Y0 + 3 * k else BRASS[1]); c.p(xg * k + 1, Y, BRASS[1] if Y > Y0 else BRASS[2])
+    for Y in range(int(Y0 - 5 * k), int(Y0 + 6 * k), int(3 * k)):   # the vents, short slots in the cap
+        for u in range(int(1.4 * k)): c.p(40 * k, Y + u, TIN[0]); c.p(40 * k + 1, Y + u, TIN[1])
+    for Y in range(int(Y0 - 8 * k), int(Y0 + 8 * k)): c.p(74.6 * k, Y, TIN[1]) if abs(Y - Y0) < 7 * k else None   # the tank's seam
+    for u in range(int(2 * k)): c.p(71 * k + u, Y0 - 7.6 * k, TIN[5] if u < k else TIN[4])   # the filler cap's lit edge
+    # the burner and the wick, the flame on it bending up: white heart, yellow, an orange tip, a blue foot
+    for Y in range(int(Y0 - 2 * k), int(Y0 + 3 * k)): c.p(56.6 * k, Y, TIN[1]); c.p(56.6 * k + 1, Y, TIN[2])
+    FX, FY = 55 * k, Y0   # the flame: its foot on the wick, blue; a white heart; yellow; the orange tip bent up; a dark ring round it
+    fl = set()
+    for Y in range(int(FY - 16 * k / 2), int(FY + 4 * k / 2) + 1):
+        for X in range(int(FX - 13 * k / 2), int(FX + 1)):
+            u = (FX - X) / (13 * k / 2); v = (Y - FY) / (4 * k / 2)
+            yc = -u * u * 3.2; d = ((v - yc) / (1.15 - u * .6)) ** 2 + (u - .42) ** 2 / .3
+            if d > 1: continue
+            fl.add((X, Y)); c.p(X, Y, (255, 255, 248) if d < .22 and u < .65 else GLOW[5] if d < .5 else GLOW[4] if u < .75 else GLOW[3])
+    for X, Y in list(fl):
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            if (X + dx, Y + dy) not in fl: c.p(X + dx, Y + dy, (186, 96, 30))
+    for dy in (-1, 0, 1): c.p(FX + 1, FY + dy, (70, 100, 200)); c.p(FX + 2, FY + dy, TIN[1])
+    curve(c, [P_(44.8, -6.4), P_(45.6, -6.8), P_(47, -6.9)], lambda x, y, i, n: c.p(x, y, (255, 252, 236)))   # the glass shine, top left
+    curve(c, [P_(45.2, -3.2), P_(45.4, -2)], lambda x, y, i, n: c.p(x, y, (255, 246, 214)))
+    curve(c, [P_(56, 6.4), P_(50, 7)], lambda x, y, i, n: c.p(x, y, GLOW[1]))   # the glass darker where it curves away below
+    pts = [P_(62.8, -9.2), P_(52, -12.8), P_(38, -12), P_(28, -6.8), P_(25.2, 0), P_(28, 6.8), P_(38, 10.8)]
+    curve(c, pts, lambda x, y, i, n: (c.p(x, y, IRON[3] if y < Y0 else IRON[2]), c.p(x, y + 1, IRON[1])))
+def lantern_cu(toned=False):
+    S = 4; W, Hh, cy = 42, 24, 12; c = C(W * S, Hh * S); Y0 = cy * S; k = S / 2
+    if toned: blood_pool(c, 11 * S, 18 * S, 2.4 * S, 1 * S, 2.2, glint=False)   # where the handle dripped: one small patch
+    else: blood_pool(c, 4.6 * S, (cy + 4.6) * S, 4.4 * S, 1.8 * S, 4.1)
+    ground_shadow(c, 26 * S, (cy + 4.6) * S, 10 * S, 2.2 * S)
+    lantern_bodyS(c, Y0, k)
+    if toned:
+        curve(c, [(53, Y0 - 13), (52, Y0 - 6), (51, Y0 + 4), (48, Y0 + 14), (46, 18 * S - 2)], lambda x, y, i, n: (c.p(x, y, BLOOD[2] if i < n * .6 else BLOOD[1]), c.p(x + 1, y, BLOOD[0]) if i < n * .5 else None))   # the handle sticky, one run down it to the grass
+        drop_shadow(c, S, S, 80); outline2(c, lit=True); done('g_p_lantern_t_cu', c, 25 * S, (cy + 4) * S); return
+    SK = LT['skin']; SKN = (236, 204, 192); own = set()
+    def put(X, Y, col): c.p(X, Y, col); own.add((int(round(X)), int(round(Y))))
+    # the forearm, the same width as the chibi arm, lit along its top, a tendon running down it
+    for X in range(33, 47):
+        for Y in range(Y0 - 5, Y0 + 6):
+            v = (Y - Y0 + 5) / 10
+            put(X, Y, SK[4] if v < .15 else SK[3] if v < .55 else SK[2] if v < .82 else SK[1])
+    curve(c, [(38, Y0 - 1), (46, Y0)], lambda x, y, i, n: c.p(x, y, SK[2]))
+    # the fist closed round the wire: the back of the hand, four fingers curled over the bail, their knuckles white, the nails
+    # showing where the tips come round; the thumb along the near side
+    for X in range(46, 57):
+        for Y in range(Y0 - 7, Y0 + 8):
+            if (X - 46) ** 2 / 121 + (Y - Y0) ** 2 / 64 > 1.15 and X < 50: continue
+            v = (Y - Y0 + 7) / 14; u = (X - 46) / 10
+            put(X, Y, SK[4] if v + u * .3 < .3 else SK[3] if v < .6 else SK[2] if v < .85 else SK[1])
+    for j, Yf in enumerate((Y0 - 7, Y0 - 3, Y0 + 1, Y0 + 5)):   # the fingers, rounded, a crease between each
+        for X in range(55, 63):
+            for dy in range(3):
+                Y = Yf + dy
+                if X > 60 and dy == 0 and j == 0: continue
+                put(X, Y, SK[4] if dy == 0 and X < 58 else SK[3] if dy < 2 else SK[2])
+        for X in range(54, 63): c.p(X, Yf + 3, SK[0] if X > 55 else SK[1])
+        put(56, Yf, SK[4]); put(57, Yf, (250, 236, 222))   # the knuckle catching the light
+        put(61, Yf + 1, SKN); put(62, Yf + 1, SKN); put(61, Yf + 2, (214, 176, 166)); put(62, Yf + 2, SK[2])   # the nail
+    for X in range(48, 58):   # the thumb along the near side, its nail at the tip
+        for dy in range(3): put(X, Y0 + 8 + dy, SK[3] if dy == 0 else SK[2] if dy == 1 else SK[1])
+    put(56, Y0 + 8, SKN); put(57, Y0 + 8, SKN); put(57, Y0 + 9, (214, 176, 166))
+    for X in range(48, 58): c.p(X, Y0 + 7, SK[1])
+    for Y in list(range(Y0 - 14, Y0 - 7)) + list(range(Y0 + 11, Y0 + 16)): c.p(58 - (abs(Y - Y0) > 12), Y, IRON[3] if Y < Y0 else IRON[2]); c.p(59 - (abs(Y - Y0) > 12), Y, IRON[1])   # the wire in through the grip
+    # the stump: the arm cut through, end on: skin, fat, muscle, the two bones of the forearm with their marrow
+    cut_torn(c, 31.5, Y0 + .5, 3.4, 6.4, [(32.4, Y0 - 1.4, 1.5), (31, Y0 + 3.4, 1.1)], 3.1, own)
+    for X, Y in ((30, Y0 + 7), (29, Y0 + 8), (28, Y0 + 9), (28, Y0 + 10), (27, Y0 + 11)): c.p(X, Y, BLOOD[2])   # a trickle into the pool
+    drop_shadow(c, S, S, 80); outline2(c, lit=True); done('g_p_lantern_cu', c, 25 * S, (cy + 4) * S)
+
+
+# ---- the shoes at 4x
+SV = dict(skin=CR('#dcbca6'), shoes=CR('#7e5232'), sock=CR('#8a8276'), pants=CR('#7a6a48'))
+def stakeS(c, X, GY, k, h=34):
+    """the survey stake: its grain, a sawn top, the pink flag knotted round it with two tails"""
+    hh = int(h * k); w = int(5 * k)
+    for Y in range(GY - hh, GY + 2):
+        for u in range(w): c.p(X + u, Y, WOOD[4] if u < w * .2 else WOOD[3] if u < w * .55 else WOOD[2] if u < w * .8 else WOOD[1])
+    for Y0_, u, L in ((GY - hh + 10 * k, 2, 6 * k), (GY - hh + 18 * k, 3.5, 8 * k), (GY - 9 * k, 2.5, 6 * k)):
+        curve(c, [(X + u * k, Y0_), (X + u * k + 1, Y0_ + L)], lambda x, y, i, n: c.p(x, y, WOOD[1]))
+    for u in range(w): c.p(X + u, GY - hh - 1, WOOD[5] if u < w * .6 else WOOD[4])
+    for Y in range(int(GY - hh + 2 * k), int(GY - hh + 6 * k)):
+        for u in range(w): c.p(X + u, Y, FLAG[4] if u < w * .4 else FLAG[3] if u < w * .8 else FLAG[2])
+    c.p(X + w * .3, GY - hh + 3 * k, FLAG[5]); c.p(X + w * .3 + 1, GY - hh + 3 * k, FLAG[5])
+    for tail, (dy, L) in enumerate(((0, 14), (4, 10))):
+        for kk in range(int(L * k)):
+            XX = X + w + kk; Y = GY - hh + (3 + dy) * k + math.sin(kk / k * .45 + tail) * 2.2 * k + kk * .35
+            for r in range(int(k)): c.p(XX, Y + r, FLAG[4] if r == 0 and kk < L * k / 2 else FLAG[3] if r < k - 1 else FLAG[2])
+def boots_cu(toned=False):
+    S = 4; W, Hh, gy = 46, 26, 21; c = C(W * S, Hh * S); GY = gy * S
+    for X in range(26 * S, 43 * S):   # the tape: run out across the grass, marked every inch and every foot, curled at the end
+        Y = GY + S + math.sin(X / S * .3) * .6 * S
+        for r in range(S - 1): c.p(X, Y + r, TAPE[3] if r == 0 else TAPE[2])
+        if X % 4 == 0: c.p(X, Y, TAPE[0] if X % 16 == 0 else TAPE[1]); c.p(X, Y + 1, TAPE[0]) if X % 16 == 0 else None
+    for a in range(0, 330, 15):
+        r = 1.6 * S; c.p(43.6 * S + math.cos(math.radians(a)) * r, GY + math.sin(math.radians(a)) * r, TAPE[2]); c.p(43.6 * S + math.cos(math.radians(a)) * (r - 1), GY + math.sin(math.radians(a)) * (r - 1), TAPE[3])
+    if not toned: blood_pool(c, 12 * S, (gy + 1) * S, 10 * S, 2.8 * S, 2.4)
+    ground_shadow(c, 12 * S, (gy + 1) * S, 8 * S, 2 * S)
+    stakeS(c, 24 * S, GY, S / 2)
+    t = C(W, Hh); B = Body(t); R = SV
+    def shoe_finish(U, side=False):
+        sh = [(X, Y) for (X, Y) in U.own if U.inside(X, Y) and U.mat(X, Y, R['shoes']) is not None]
+        if not sh: return
+        bottom = {}
+        for X, Y in sh: bottom[X] = max(bottom.get(X, 0), Y)
+        for X, Yb in bottom.items():   # the sole: dark rubber, the welt a light line above it
+            for r in range(2): c.p(X, Yb - r, (44, 30, 24) if r == 0 else (62, 44, 34))
+            if U.inside(X, Yb - 2): c.p(X, Yb - 2, R['shoes'][4])
+        return sh
+    if toned:
+        sx, sy = 4, gy - 6; boot_t_body(B, sx, sy); U = UpS(c, B, S); sh = shoe_finish(U, True)
+        xs = [X for X, _ in sh]; ys = [Y for _, Y in sh]; x0, x1, y0 = min(xs), max(xs), min(ys)
+        for j in range(4):   # eyelets along the top, the lace through them, left loose
+            X = x0 + 8 + j * 5
+            if U.inside(X, y0 + 2): c.p(X, y0 + 2, (24, 16, 12)); c.p(X + 1, y0 + 2, R['shoes'][1])
+            curve(c, [(X, y0 + 1), (X + 3, y0 + 3)], lambda x, y, i, n: c.p(x, y, CLOTH[3]) if U.inside(x, y) else None)
+        curve(c, [(x0 + 24, y0 + 1), (x0 + 29, y0 - 3), (x0 + 33, y0 - 1)], lambda x, y, i, n: c.p(x, y, CLOTH[3]))   # a lace end
+        curve(c, [(x0 + 3, y0 + 9), (x0 + 12, y0 + 11)], lambda x, y, i, n: c.p(x, y, R['shoes'][1]) if U.inside(x, y) else None)   # the toe cap's seam
+        sock = [(X, Y) for (X, Y) in U.own if U.inside(X, Y) and U.mat(X, Y, R['sock']) is not None]
+        for X, Y in sock: c.p(X, Y, R['sock'][3] if (X // 2) % 2 else R['sock'][2])   # the sock's cuff, ribbed
+        if sock:
+            sx0 = min(X for X, _ in sock); sx1 = max(X for X, _ in sock); sy0 = min(Y for _, Y in sock)
+            for X in range(sx0 + 2, sx1 - 1):
+                for Y in range(sy0 + 1, sy0 + 4):
+                    if U.inside(X, Y): c.p(X, Y, (22, 14, 12) if Y > sy0 + 1 else (40, 28, 26))   # the dark opening
+        for X, Y in ((x1 + 3, GY + 6), (x1 + 6, GY + 7)): blood_pool(c, X, Y, 2, 1.2, X, glint=False)
+        U.finish('g_p_boots_t_cu', 16 * S, GY, sh=80); return
+    x0, y0 = 1, gy - 8; boots_body(B, x0, y0); U = UpS(c, B, S); shoe_finish(U)
+    shoe_rows = sorted({Y for (X, Y) in U.own if U.inside(X, Y) and U.mat(X, Y, R['shoes']) is not None})
+    st = shoe_rows[0] if shoe_rows else (y0 + 6) * S
+    for a0, a1 in (((x0 + 2) * S + 2, (x0 + 7) * S + 1), ((x0 + 8) * S + 2, (x0 + 13) * S + 1)):   # the tongue, two eyelets a side, the lace crossed twice
+        m = (a0 + a1) // 2
+        for Y in range(st, st + 7):
+            for X in range(m - 2, m + 3):
+                if U.inside(X, Y) and U.mat(X, Y, R['shoes']) is not None: c.p(X, Y, R['shoes'][4] if X < m else R['shoes'][3])
+        right = m > (x0 + 8) * S
+        for j, Y in enumerate((st + 1, st + 4)):
+            for X in (m - 4, m + 4):
+                if U.inside(X, Y): c.p(X, Y, (24, 16, 12))
+            if right and j == 1: continue   # the right one half-laced
+            curve(c, [(m - 3, Y), (m + 3, Y + 3)], lambda x, y, i, n: c.p(x, y, CLOTH[4]) if U.inside(x, y) else None)
+            curve(c, [(m + 3, Y), (m - 3, Y + 3)], lambda x, y, i, n: c.p(x, y, CLOTH[2]) if U.inside(x, y) and i not in (n // 2,) else None)
+        if right:   # its lace loose, one end trailing out onto the grass
+            curve(c, [(m + 3, st + 4), (m + 7, st + 6), (m + 9, st + 10), (m + 13, st + 12)], lambda x, y, i, n: c.p(x, y, CLOTH[3] if i % 4 else CLOTH[2]))
+    sock = [(X, Y) for (X, Y) in U.own if U.inside(X, Y) and U.mat(X, Y, R['sock']) is not None]
+    for X, Y in sock: c.p(X, Y, R['sock'][3] if (X // 2) % 2 else R['sock'][2])   # the socks' cuffs, ribbed
+    # the right leg leans out: its shin shifted over a little more each row toward the cut
+    L0, L1 = (x0 + 8) * S, (x0 + 14) * S + 1
+    for r, Y in enumerate(range(y0 * S - 2, (y0 + 4) * S)):
+        sh_ = int(round((1 - r / (4 * S + 2)) * 3))
+        if sh_ <= 0: continue
+        row = [(c.px[X, Y], (X, Y) in U.own, (X, Y) in U.rim) for X in range(L0, L1 + 1)]
+        for X in range(L0, L1 + 4): c.px[X, Y] = (0, 0, 0, 0); U.own.discard((X, Y)); U.rim.discard((X, Y))
+        for i, (p_, o_, r_) in enumerate(row):
+            if o_:
+                c.px[L0 + i + sh_, Y] = p_; U.own.add((L0 + i + sh_, Y))
+                if r_: U.rim.add((L0 + i + sh_, Y))
+    for k, (a0, a1, seed, lean) in enumerate((((x0 + 2) * S + 2, (x0 + 7) * S + 1, 1.3, 0), ((x0 + 8) * S + 2, (x0 + 13) * S + 1, 4.7, 3))):   # each leg cut through, torn
+        m = (a0 + a1) / 2 + lean; rx = (a1 - a0) / 2 + .5
+        cut_torn(c, m, y0 * S + 1, rx, 4.6, [(m - rx * (.35 if k else .05), y0 * S + (0 if k else .6), 2.3 if k else 2.6), (m + rx * (.5 if k else .62), y0 * S + 1.6, 1.1)], seed, U.own)
+        runS(c, U, int(a0 + 3 + lean), y0 * S + 6, 18 if k == 0 else 12, 3); runS(c, U, int(a1 - 4 + lean), y0 * S + 6, 9 if k == 0 else 15, 2)
+    U.finish('g_p_boots_cu', 16 * S, GY, sh=80)
+
+
+# ---- the coat at 3x
+CT = dict(coat=CR('#9a845a'), skin=CR('#dcbca6'))
+def coat_cu(toned=False):
+    S = 3; W, Hh, gy, px0, x0, y0 = 30, 42, 37, 13, 2, 8; c = C(W * S, Hh * S); GY = gy * S; PX = px0 * S; R = CT
+    if not toned: blood_pool(c, 15 * S, (gy + 1) * S, 8 * S, 2.4 * S, 6.2)
+    ground_shadow(c, 16 * S, (gy + 1) * S, 6 * S, 1.8 * S)
+    def post_rows(Y0_, Y1_):
+        for Y in range(Y0_, Y1_):
+            for u in range(4 * S): c.p(PX + u, Y, WOOD[4] if u < S else WOOD[3] if u < 2 * S else WOOD[2] if u < 3 * S else WOOD[1])
+    post_rows(3 * S, GY + S)
+    for Yg, u, L in ((7 * S, 5, 8), (17 * S, 7, 10), (30 * S, 4, 9)): curve(c, [(PX + u, Yg), (PX + u + 1, Yg + L)], lambda x, y, i, n: c.p(x, y, WOOD[1]))   # grain
+    t = C(W, Hh); B = Body(t); coat_body(B, x0, y0, toned); U = UpS(c, B, S)
+    post_rows((y0 - 5) * S, (y0 + 1) * S + 2)
+    for (X, Y) in [(X, Y) for X in range(PX, PX + 4 * S) for Y in range((y0 - 5) * S, (y0 + 1) * S + 2)]: U.own.discard((X, Y)); U.rim.discard((X, Y))
+    for u in range(4 * S): c.p(PX + u, (y0 - 5) * S + u * .4, WOOD[5] if u < 2 * S else WOOD[4])   # the slanted top
+    for u in range(-2, 4 * S + 2):   # the collar turned up round the post: a lit edge, its shadow under it
+        for r, col in ((0, R['coat'][4]), (1, R['coat'][3]), (2, R['coat'][1])):
+            X, Y = PX + u, (y0 + 1) * S + 1 + r
+            if U.inside(X, Y) or abs(u - 2 * S) > 2 * S - 1: c.p(X, Y, col); U.own.add((X, Y))
+    coat_px = [(X, Y) for (X, Y) in U.own if U.inside(X, Y) and U.mat(X, Y, R['coat']) is not None]
+    def seam(pts, d=-1):
+        curve(c, pts, lambda x, y, i, n: step(c, x, y, R['coat'], d) if U.inside(x, y) else None)
+    cx0 = (x0 + 13) * S + 1   # the front edge
+    if not toned:
+        seam([(cx0 + 3, (y0 + 2) * S), (cx0 + 3, (y0 + 18) * S)])   # the placket's edge
+        for k_ in range(4):   # round brass buttons, a shadow under each, the cloth pulled between them
+            BX, BY = cx0, (y0 + 3) * S + k_ * 3 * S + 1
+            for dx, dy, col in ((0, 0, BRASS[3]), (1, 0, BRASS[4]), (2, 0, BRASS[3]), (0, 1, BRASS[2]), (1, 1, BRASS[3]), (2, 1, BRASS[2]), (0, 2, BRASS[1]), (1, 2, BRASS[1]), (2, 2, BRASS[0])):
+                c.p(BX + dx, BY + dy, col)
+            c.p(BX + 1, BY, (255, 240, 180)); c.p(BX + 1, BY + 3, R['coat'][1]); c.p(BX + 2, BY + 3, R['coat'][1])
+            if k_: seam([(BX - 3, BY - 4), (BX - 1, BY - 1)], -1); seam([(BX + 5, BY - 4), (BX + 3, BY - 1)], -1)
+        for side in (-1, 1):   # the pocket flaps at the hips
+            px_ = cx0 + side * 9
+            seam([(px_ - 4, (y0 + 12) * S), (px_ + 4, (y0 + 12) * S + side)], -1)
+            seam([(px_ - 4, (y0 + 12) * S - 1), (px_ + 4, (y0 + 12) * S - 1 + side)], 1)
+    else:
+        seam([((x0 + 4) * S, (y0 + 3) * S), ((x0 + 22) * S, (y0 + 3) * S)])   # the yoke across the shoulders
+        seam([((x0 + 4) * S, (y0 + 3) * S + 1), ((x0 + 22) * S, (y0 + 3) * S + 1)], 1)
+        for X in range((x0 + 8) * S, (x0 + 18) * S):   # the half-belt at the back, two buttons
+            for r, col in ((0, R['coat'][4]), (1, R['coat'][3]), (2, R['coat'][3]), (3, R['coat'][1])):
+                if U.inside(X, (y0 + 11) * S + r): c.p(X, (y0 + 11) * S + r, col)
+        for BX in ((x0 + 9) * S, (x0 + 17) * S - 2): c.p(BX, (y0 + 11) * S + 1, BRASS[4]); c.p(BX + 1, (y0 + 11) * S + 1, BRASS[2]); c.p(BX, (y0 + 11) * S + 2, BRASS[1])
+    for sx in ((x0 + 6) * S + 1, (x0 + 20) * S - 1):   # the seams where the sleeves meet the body, and the cuffs
+        seam([(sx, (y0 + 1) * S + 3), (sx + (1 if sx < cx0 else -1), (y0 + 13) * S)], -1)
+    for Y in range((y0 + 11) * S, (y0 + 13) * S):
+        for X in list(range(x0 * S, (x0 + 6) * S + 2)) + list(range((x0 + 20) * S - 2, (x0 + 27) * S)):
+            if U.inside(X, Y) and U.mat(X, Y, R['coat']) is not None: step(c, X, Y, R['coat'], -1 if Y < (y0 + 12) * S + 1 else 1)
+    # the soaking, spreading out from the seams: dark at the seam, a tide line where it stops; the hem heavy with it
+    def stain(X, Y, w):
+        if U.inside(X, Y) and (X, Y) in set(coat_px): soak(c, X, Y, w)
+    if not toned:
+        for bx, by, rx, ry in (((x0 + 7) * S, (y0 + 4) * S, 5, 9), ((x0 + 19) * S, (y0 + 5) * S, 6, 12), ((x0 + 8) * S, (y0 + 11) * S, 3.5, 7), ((x0 + 18) * S + 2, (y0 + 13) * S, 4, 8)):
+            for Y in range(int(by - ry) - 1, int(by + ry) + 2):   # wet patches spreading from the armpits down the side seams
+                for X in range(int(bx - rx) - 1, int(bx + rx) + 2):
+                    a = math.atan2(Y - by, X - bx); w = 1 + .18 * math.sin(a * 3 + bx) + .1 * math.sin(a * 5 + by)
+                    d = ((X - bx) / (rx * w)) ** 2 + ((Y - by) / (ry * w)) ** 2
+                    if d > 1 or not U.inside(X, Y) or U.mat(X, Y, R['coat']) is None: continue
+                    if d > .82: c.p(X, Y, BLOOD[0])   # the tide line
+                    else: soak(c, X, Y, -2 if d > .4 else -1)
+        for X in range(x0 * S, (x0 + 27) * S):   # the hem
+            top = (y0 + 15) * S + math.sin(X * .25) * 2 + H(X, 1, 3) * 2
+            for Y in range(int(top), (y0 + 19) * S):
+                if not U.inside(X, Y): continue
+                c.p(X, Y, BLOOD[0]) if Y == int(top) else soak(c, X, Y, -1 if Y > (y0 + 17) * S else 0)
+        # the fingertips at the left cuff: four, hanging, rounded, the nails pale
+        hand = [(X, Y) for (X, Y) in U.own if X < (x0 + 7) * S and Y > (y0 + 8) * S and skin(c.px[X, Y])]
+        if hand:
+            hx0 = min(X for X, _ in hand); hx1 = max(X for X, _ in hand); hy0 = min(Y for _, Y in hand); hy1 = max(Y for _, Y in hand)
+            for (X, Y) in hand: c.p(X, Y, R['skin'][3] if X < (hx0 + hx1) / 2 else R['skin'][2])
+            fw = max(2, (hx1 - hx0 + 1) // 4)
+            for j in range(4):
+                X = hx0 + j * fw
+                for Y in range(hy1 - 2, hy1 + 3):
+                    for u in range(fw - 1): c.p(X + u, Y, R['skin'][3] if u == 0 else R['skin'][2]); U.own.add((X + u, Y))
+                c.p(X, hy1 + 2, (236, 214, 200)); c.p(X + fw - 1, hy1 - 2, R['skin'][0])
+            for Y in range(hy0, hy0 + 2):
+                for X in range(hx0 - 1, hx1 + 2): c.p(X, Y, R['coat'][0]) if U.inside(X, Y) else None   # the cuff's shadow on the fingers
+        for X in range((x0 + 20) * S, (x0 + 26) * S):   # the empty right cuff, dark inside
+            for Y in range((y0 + 11) * S + 2, (y0 + 13) * S + 1):
+                if U.inside(X, Y) and abs(X - (x0 + 23) * S) < 7: c.p(X, Y, (22, 14, 12))
+        for X, Y, L in (((x0 + 22) * S, (y0 + 14) * S, 7), ((x0 + 22) * S, (y0 + 18) * S, 3), ((x0 + 14) * S, (y0 + 20) * S, 6), ((x0 + 9) * S, (y0 + 23) * S, 3)):
+            for j in range(L): c.p(X, Y + j, BLOOD[1] if j < L - 1 else BLOOD[2])
+            c.p(X + 1, Y + L - 1, BLOOD[1])
+    else:
+        mid = (x0 + 13) * S + 2
+        for Y in range((y0 + 2) * S, (y0 + 17) * S):   # torn down the back: a ragged split, the pale lining inside, threads across it
+            w = 2.2 + math.sin(Y * .35) * 1.2 + (Y - y0 * S) * .05; xc = mid + math.sin(Y * .18) * 2
+            for X in range(int(xc - w), int(xc + w) + 1):
+                if U.inside(X, Y): c.p(X, Y, SACK[1] if abs(X - xc) < w - 1.2 else SACK[0] if abs(X - xc) < w - .5 else R['coat'][0])
+        for Y in ((y0 + 6) * S, (y0 + 10) * S + 1, (y0 + 13) * S):
+            curve(c, [(mid - 3, Y), (mid + 3, Y + 1)], lambda x, y, i, n: c.p(x, y, R['coat'][2]))
+        for X in range(x0 * S, (x0 + 27) * S):   # stiff and dark at the hem, a tide line
+            top = (y0 + 13) * S + math.sin(X * .3) * 3
+            for Y in range(int(top), (y0 + 19) * S):
+                if U.inside(X, Y): c.p(X, Y, BLOOD[0]) if Y == int(top) else soak(c, X, Y, -1)
+        for X0_ in ((x0 + 1) * S, (x0 + 21) * S):   # the empty cuffs
+            for Y in range((y0 + 11) * S + 2, (y0 + 13) * S):
+                for u in range(2 * S):
+                    if U.inside(X0_ + u, Y): c.p(X0_ + u, Y, (22, 14, 12))
+    U.finish('g_p_coat_t_cu' if toned else 'g_p_coat_cu', 15 * S, GY, sh=70)
 
 
 def closeups():
