@@ -31,7 +31,7 @@ BRUISE = ramp('#5c4a6a', spread=.8)      # marbling, violet
 SLIP = ramp('#b4a690', spread=.4)        # slipped skin
 TEND = [(150, 130, 110), (210, 196, 170), (236, 228, 208)]
 META = {}
-GUTX = ramp('#9a5262', spread=.7); GUTX2 = ramp('#84485a', spread=.75); LUNGX = ramp('#8e4656', spread=.8)
+GUTX = ramp('#c05a58', spread=.75); GUTX2 = ramp('#a8484c', spread=.8); LUNGX = ramp('#8e4656', spread=.8)
 
 
 def w0(name):
@@ -43,19 +43,21 @@ def w0(name):
 class XC:
     """an Extreme canvas over a Full sprite: world coordinates in (the world sprite's own pixels), canvas pixels out"""
     def __init__(s, name, S, pad=8, cu=False):
+        """the description is always in the ORIGINAL world sprite's frame (before the adult pass moved its anchor): the Full picture
+        under it is placed by its own anchor so the two line up"""
         s.name, s.S, s.pad, s.cu = name, S, pad, cu
-        w = OBJ[name]; s.fw, s.fh, s.ax, s.ay = w['fw'], w['fh'], w['ax'], w['ay']
+        A = w0(name); w = OBJ[name]; s.fw, s.fh, s.ax, s.ay = max(A['fw'], w['fw']) + 6, max(A['fh'], w['fh']) + 6, A['ax'], A['ay']
         m = OBJ[name + '_cu'] if cu else w
-        ox, oy = (m['ax'] - w['ax'] * S, m['ay'] - w['ay'] * S) if cu else (0, 0)
-        s.W, s.H = int(math.ceil((s.fw + 2 * pad) * S)), int(math.ceil((s.fh + 2 * pad) * S))
-        s.c = C(s.W, s.H)
         src = m['src']; s.orig = os.path.join('spr/lpc/obj/g3', os.path.basename(src))
         if getattr(XC, 'from_orig', False):   # the adult pass starts from the gore3 original every time (never from its own output)
             if not os.path.exists(s.orig): os.makedirs('spr/lpc/obj/g3', exist_ok=True); Image.open(src).save(s.orig); json.dump(m, open(s.orig + '.json', 'w'))
             m = json.load(open(s.orig + '.json')); src = s.orig
-            if cu: ox, oy = m['ax'] - w0(name)['ax'] * S, m['ay'] - w0(name)['ay'] * S
-            s.ax, s.ay = (w0(name)['ax'], w0(name)['ay'])
-        s.base = Image.open(src).convert('RGBA'); s.bx, s.by = int(round(pad * S - ox)), int(round(pad * S - oy))
+        s.W, s.H = int(math.ceil((s.fw + 2 * pad) * S)), int(math.ceil((s.fh + 2 * pad) * S))
+        s.c = C(s.W, s.H)
+        s.base = Image.open(src).convert('RGBA')
+        s.bx, s.by = int(round((s.ax + pad) * S - m['ax'])), int(round((s.ay + pad) * S - m['ay']))
+        M0 = w0(name + '_cu') if cu else A   # where the ORIGINAL close-up's pixel (0, 0) falls (hand-placed points use that frame)
+        s.obx, s.oby = int(round((s.ax + pad) * S - M0['ax'])), int(round((s.ay + pad) * S - M0['ay']))
         s.snap = None
     # world -> canvas
     shift = None   # a smooth horizontal stretch of the description (the hiker's longer body): world x -> x + shift(x)
@@ -70,7 +72,7 @@ class XC:
             for v in range(im.height):
                 for u in range(im.width):
                     q = px[u, v]
-                    if q[3] > 120 and is_blood(q): px[u, v] = deepen(q) + (q[3],)
+                    if q[3] > 120 and is_blood(q) and lumi(q) < 40: px[u, v] = deepen(q) + (q[3],)
         s.c.im.alpha_composite(im, (s.bx, s.by)); s.c.px = s.c.im.load()
         s.snap = s.c.im.copy()
     def F(s): return F(s.W, s.H)
@@ -180,7 +182,7 @@ def xtube(z, pts, r0, r1, R=None, rim=True, seed=0, wet=True):
                     if d > 1: continue
                     l = -(dx * .6 + dy * .8) / (r + .01); q = (int(round(X + dx)), int(round(Y + dy)))
                     edge = d > .62
-                    col = R[4] if (l > .55 and hi and .2 < f < .75) else R[3] if l > .05 else R[2] if l > -.55 else R[1]
+                    col = R[3] if l > .05 else R[2] if l > -.55 else R[1]
                     if edge and l < 0: col = R[1] if d < .85 else R[0]
                     coat = H(int(q[0] / max(2, 2 * S)), int(q[1] / max(2, 2 * S)), seed + 31) < .3 and l < .3
                     if coat: col = XB[3] if l > -.3 else XB[2]
@@ -188,6 +190,10 @@ def xtube(z, pts, r0, r1, R=None, rim=True, seed=0, wet=True):
         for q, (col, d) in cur.items():
             if d > .55 and q in under and q not in cur: pass
             c.p(q[0], q[1], col)
+        mk = path[(k0 + k1) // 2]; mr = max(.5, r0 * S * sw * .55)   # one wet light on this length, on its lit upper side
+        gx_, gy_ = z.X(mk[0]) - mr * .5, z.Y(mk[1]) - mr * .7
+        cur[(int(round(gx_)), int(round(gy_)))] = (R[5] if S > 1 else R[4], 0)
+        if S > 1: cur[(int(round(gx_)) + 1, int(round(gy_)))] = (R[4], 0)
         for q, (col, d) in cur.items():   # where this length lies on gut already down, its edge goes dark and wet
             if d > .55 and any((q[0] + a_, q[1] + b_) in under for a_, b_ in ((1, 0), (-1, 0), (0, 1), (0, -1))): c.p(q[0], q[1], R[0])
         if si:   # the crease between this length and the last
@@ -206,9 +212,8 @@ def xorgans(z, items, mats=None):
     for (mat, x, y, rx, ry, rot) in items:
         f = z.F(); X, Y = z.X(x), z.Y(y); cr, sr = math.cos(rot), math.sin(rot)
         P = lambda u, v: (X + (u * cr - v * sr) * S, Y + (u * sr + v * cr) * S)
-        if mat == 'liver':
-            f.blob(*P(-rx * .35, 0), rx * .72 * S, ry * S, 'liver', base=1.3 * S, hs=.85, rot=rot - .2)
-            f.blob(*P(rx * .45, ry * .15), rx * .5 * S, ry * .8 * S, 'liver', base=1.1 * S, hs=.85, rot=rot + .3)
+        if mat == 'liver':   # a wedge: the big lobe and the small one, a sharp thin lower edge, a notch between
+            f.poly([P(-rx, -.1 * ry), P(-.7 * rx, -.9 * ry), P(-.1 * rx, -ry), P(.15 * rx, -.6 * ry), P(.45 * rx, -.95 * ry), P(rx, -.4 * ry), P(.85 * rx, .3 * ry), P(.2 * rx, .75 * ry), P(-.6 * rx, .55 * ry)], 'liver', base=.9 * S, hs=.9)
         elif mat == 'kidney':
             f.blob(*P(0, 0), rx * S, ry * S, 'kidney', base=1.2 * S, hs=.9, rot=rot)
         elif mat == 'heart':
@@ -482,7 +487,7 @@ def hiker_head(z, full=False):
                 q = c.px[X, Y]
                 if q[3] > 200 and lumi(q) > 110 and q[0] > q[2] and (x - 19) + (y - 22) * 1.1 > 9.5: c.p(X, Y, (150, 128, 116) if lumi(q) > 160 else (124, 106, 98))
         return
-    ox, oy = z.bx, z.by; X0, X1, Y0, Y1 = ox + 14, ox + 84, oy + 26, oy + 86
+    ox, oy = z.obx, z.oby; X0, X1, Y0, Y1 = ox + 14, ox + 84, oy + 26, oy + 86
     skin = set(); hair = set()
     for Y in range(Y0, Y1):
         for X in range(X0, X1):
@@ -547,7 +552,7 @@ def hiker_head(z, full=False):
 
 def crown_split(z):
     """(Extreme) one ragged split across the crown, dark inside, the bone's lip on the near side, blood out of it into the hair"""
-    c = z.c; ox, oy = z.bx, z.by
+    c = z.c; ox, oy = z.obx, z.oby
     split = [(ox + 23, oy + 45, 1), (ox + 27, oy + 42, 2), (ox + 31, oy + 42, 3), (ox + 35, oy + 40, 3), (ox + 39, oy + 41, 2), (ox + 43, oy + 39, 1)]   # one ragged split across the crown
     for (x0, y0, w0), (x1, y1, w1) in zip(split, split[1:]):
         for t in range(9):
@@ -581,15 +586,15 @@ def hiker_x(z, day):
     xpool(z, 34, 31.8, 17.5, 5.4, 1.3, clots=4, tongues=0); xpool(z, 15, 31, 8, 3, 2.7, clots=1, tongues=0); xpool(z, 33, 9.6, 8, 2.6, .4, clots=1, tongues=0)
     z.lay_base()
     if z.S > 1: crown_split(z)
-    D_ = [(28.2, 19.2), (39.4, 19.2), (39.8, 21.8), (38.8, 24.8), (36.6, 26.4), (34.8, 26), (33.2, 27.4), (30.8, 26.6), (29.4, 25.4), (28.2, 22.4)]
+    D_ = [(28, 16.6), (39.4, 16.6), (39.2, 19.4), (38, 22.2), (36.2, 24.6), (34, 25.8), (31.8, 25.2), (30, 23.4), (28.8, 20.6)]
     hole(z, D_, 1.1)   # a D-shaped tear: the spine along its straight lip, the other lip ragged
     S = z.S
-    for k in range(int(10.8 * S)):   # the spine, bared along the straight lip, broken by blood in places
-        x = 28.6 + k / S; bl = H(int(x * 1.3), 4, 5) < .32
-        for v in range(max(1, int(.7 * S))): z.c.p(z.X(x), z.Y(19.6) + v, XB[2] if bl else BONE[3] if v == 0 else BONE[1])
-        if not bl and int(x * 10) % 23 < 3: z.c.p(z.X(x), z.Y(19.6) + max(1, int(.7 * S)), BONE[0])
-    for (x0, L, bend) in ((30.2, 4.8, .9), (33.8, 2.6, 1.5), (37.4, 5.4, 2)):   # three ribs at uneven gaps, curved, one snapped short, blood over parts
-        ridge(z, [(x0, 20.4), (x0 - bend, 20.4 + L * .55), (x0 - bend * .5, 20.4 + L)], seed=x0)
+    for k in range(int(10.8 * S)):   # the spine, bared along the straight lip: one bar of bone, two knuckles, blood over a long part of it
+        x = 28.6 + k / S; bl = 31.4 < x < 34 or 36.6 < x < 37.8; kn = abs(x - 30.4) < .5 or abs(x - 35.6) < .5
+        for v in range(-(1 if kn and S > 1 else 0), max(1, int(.7 * S))): z.c.p(z.X(x), z.Y(17.2) + v, (XB[2] if v > 0 else XB[3]) if bl else BONE[3] if v <= 0 else BONE[1])
+    for (x0, L, bend) in ((30.4, 5, 1.1), (33.6, 2.8, 1.4), (37, 5.6, 2.2)):   # three ribs: smooth arcs off the spine at uneven gaps, one snapped short
+        pts = [(x0 - bend * math.sin(math.pi * t * .9) - t * .4, 18 + (L + 1.6) * t) for t in [i / 8 for i in range(9)]]
+        ridge(z, pts, seed=x0)
     for (x, y, r) in ((31.6, 23.6, .9), (36, 24.6, 1.1), (34.4, 21.6, .7)): clot(z, x, y, r, r * .7, int(x * 3))
     for (x, y) in ((29.8, 25.8), (31.6, 27), (33.8, 26.4), (36.2, 26.8), (38.4, 25.2)):   # tatters of the jacket over the ragged lip
         f = z.F(); f.blob(z.X(x), z.Y(y + .4), .9 * S, .6 * S, 'jk', base=1.2 * S); f.render(z.c, {'jk': JACKET})
@@ -696,7 +701,6 @@ def lantern_x(z, day):
         if x > 3: z.c.p(z.X(x), z.Y(11.9 - x * .06 + (x - 3) * .12), TEND[2] if k % 4 else TEND[1]); z.c.p(z.X(x), z.Y(13.3 - x * .06 - (x - 3) * .1), TEND[1])
     for k in range(int(4.6 * S)): z.c.p(z.X(-.4), z.Y(10.6) + k, FATX[2] if k % 3 else FATX[1])   # the rolled skin's fat edge
     xcavity(z, -6.9, 13.4, 1.2, 2.2, 4.1)
-    ring(z, 13.4, 12.2)
     for k in range(7 if z.S > 1 else 0):   # the hair on the back of the forearm, in short dark strokes along it
         x = -5.4 + k * .7; y = 11.6 + (k % 3) * .5
         for j in range(int(.8 * z.S)): z.c.p(z.X(x) + j, z.Y(y) + j * .3, (84, 62, 50))
@@ -715,10 +719,10 @@ def boots_x(z, day):
     measurement; his cigarettes dropped in the grass"""
     xpool(z, 9.6, 22, 10, 2.8, 2.2, clots=3, tongues=0); xpool(z, 35, 23.4, 11, 1.8, 3.3, clots=2, tongues=0)
     z.lay_base()
-    for (cx_, top, sd) in ((6.2, 9.6, 1), (12.4, 10.6, 4)):   # the legs cut through just above the boots: ragged meat, the bone short and off-centre
-        f = z.F(); f.cap(z.X(cx_), z.Y(12.2), z.X(cx_ + (sd - 2.5) * .15), z.Y(top), 2.3 * z.S, 1.9 * z.S, 'mus', base=.8 * z.S); f.render(z.c, OM)
-        xcavity(z, cx_ + .2, top + .4, 1.7, .8, sd)
-        xbone(z, cx_ + .6, top + 1, cx_ + .9 + (sd - 2.5) * .2, top - .9, .55, .5, seed=sd)
+    for (cx_, top, sd) in ((6.2, 10.4, 1), (12.4, 11.2, 4)):   # the legs cut through just above the boots: a low ragged stump of meat, the bone short and off-centre
+        f = z.F(); f.poly([(z.X(cx_ - 2.4), z.Y(12.6)), (z.X(cx_ + 2.4), z.Y(12.6)), (z.X(cx_ + 2.2), z.Y(top + .7)), (z.X(cx_ + 1), z.Y(top)), (z.X(cx_ - .4), z.Y(top + .6)), (z.X(cx_ - 1.6), z.Y(top + .1)), (z.X(cx_ - 2.3), z.Y(top + .8))], 'mus', base=.6 * z.S, hs=.6); f.render(z.c, OM)
+        xcavity(z, cx_ + .3, top + .7, 1.6, .55, sd)
+        xbone(z, cx_ + .7, top + .9, cx_ + .9 + (sd - 2.5) * .15, top - .3, .5, .45, seed=sd)
     for (x0, x1, L0) in ((3.6, 8.8, 2.2), (9.6, 14.8, 1.1)):   # the skin peeled down over the boot top: a pale ragged band, its fat underside
         for k in range(int((x1 - x0) * z.S)):
             X = z.X(x0) + k; L = (L0 * .5 + L0 * H(k // max(1, z.S), int(x0), 2)) * z.S
@@ -748,7 +752,7 @@ def coat_x(z, day):
             x = 16.8 + k / z.S; y = wy + sag * math.sin(math.pi * (x - 16.8) / 27)
             z.c.p(z.X(x), z.Y(y), IRON[3] if k % (3 * z.S) else IRON[1])
             if z.S >= 2: z.c.p(z.X(x), z.Y(y) + 1, IRON[0])
-    xtube(z, [(18.6, 25.6), (19.4, 28.2), (20.6, 29.4), (21.8, 31.2), (23.6, 32), (25, 30.6), (26.2, 29.4), (27.6, 31.8), (28.8, 34.6), (30.8, 36.2), (33, 35.6), (34.4, 33), (35.4, 29.8), (36.6, 31.6), (36.2, 35.2), (35.2, 37.4)], .82, .62, R=GUTX, seed=4)
+    xtube(z, [(18.6, 25.6), (19.2, 28.4), (20.4, 29.6), (21.8, 32.4), (23.8, 35.2), (26.6, 36.8), (29.6, 36.6), (31.8, 34.4), (32.8, 31.6), (33.6, 29.6), (34.8, 30.4), (35.4, 33.6), (35, 36.6)], 1.05, .75, R=GUTX, seed=4)
     xtube(z, [(11.6, 25.8), (10.6, 28.4), (12.2, 30.2), (14, 28.6), (13.4, 26.6)], .85, .8, R=GUTX2, seed=5)
     xtube(z, [(12.4, 36.4), (10.4, 37.4), (11.2, 38.8), (13.8, 38.8), (15, 37.4), (13.4, 36.6)], .9, .8, R=GUTX, seed=9)   # a heap at the foot of the post
     f = z.F()
@@ -827,13 +831,12 @@ def rabbit_x(z, day):
     xpool(z, 20.6, 17.8, 10.4, 3.2, .9, clots=3, tongues=0); xpool(z, 27.4, 18.6, 4, 1.5, 2.2, clots=1, tongues=0)
     z.lay_base()
     xcavity(z, 23.4, 14.8, 1.6, 1.3, 2.7, rot=.5)            # the throat torn out under the jaw
-    xbone(z, 22.6, 14.2, 24.2, 15.6, .4, .35, seed=6)
     xcavity(z, 26.4, 12, .6, .55, 3.9)                         # the eye taken
     xrun(z, 26.4, 12.6, 1.6, .5, 2, bead=False)
     xtube(z, [(17.4, 16.8), (15.4, 18.8), (13.2, 20), (11.6, 18.8), (12.8, 17.8), (14.4, 19.4), (12.2, 21.2), (9.8, 20.6)], .64, .5, R=GUTX, seed=2)
     xtube(z, [(20.4, 17.2), (21.8, 19.4), (24.4, 20), (25.8, 19)], .62, .52, R=GUTX2, seed=3)
     xflay(z, [(16.6, 15.6), (12.6, 17), (11.4, 18.8), (15.8, 17.8)], .4, seed=4)
-    xbone(z, 15.2, 16.6, 10.6, 18.6, .45, .4, seed=7)
+    xbone(z, 12.8, 17.6, 11.2, 18.4, .42, .38, seed=7, meat=.5)   # only the end of the bone shows, red
     meta = dict(mag=[[19, 15.6, 2.4, 1], [23.4, 14.8, 1.2, 1], [26.4, 12, .6, .5]] if day else [], drip=[[23.6, 16.2]], nerve=[[24, 15, 1.4, 1]], crow=[[19, 16], [8, 20]])
     if day:
         decay(z, [], bloat=[(18.6, 13.4, 7.2, 4.4, .6)], seed=12)
@@ -1015,8 +1018,9 @@ def hunter_adult(z, day=0):
         for X in range(int(z.X(17)), int(z.X(32))):
             q = px[X, Y]
             if q[3] > 200 and lumi(q) > 150 and H((X - int(z.X(17))) // max(1, S + 1), 4, 9) < .2: c.p(X, Y, (40, 12, 16))
-    for (X, Y), q in keep.items():
-        if q[3] > 200: px[X, Y] = q
+    for (X, Y), q in keep.items():   # where the neat pair lay: the lap, wet
+        if q[3] > 200 and (lumi(q) > 115 or (q[2] > q[0] + 15 and q[2] > 70)): c.p(X, Y, (92, 22, 30) if (X + Y) % 3 else (70, 16, 26))
+    eyeball(z, 20.8, 69.4, .2, 1.4, 1, 'L'); eyeball(z, 28.6, 68.8, -.5, 1.25, 0, 'R')   # his eyes, loose on his thighs, each lying its own way
     for (x0, x1) in ((14, 17.6), (31.4, 35)):   # his beard left along the jaw either side, and the jaw's hard edge under it
         for Y in range(int(z.Y(41)), int(z.Y(47))):
             for X in range(int(z.X(x0)), int(z.X(x1))):
@@ -1066,6 +1070,71 @@ def beard_hiker(z):
         c.p(X, Y, col)
 
 
+EYEW = [(150, 140, 136), (190, 182, 176), (218, 212, 204), (236, 232, 226), (248, 246, 240)]
+def eyeball(z, x, y, ang, r, turned, seed):
+    """a loose eyeball: a wet white ball lit on top, its iris (off-centre when it has rolled), a red thread of the optic nerve
+    trailing from the back, a glint"""
+    c, S = z.c, z.S; X0, Y0, R = z.X(x), z.Y(y), max(1.1, r * S)
+    for k in range(int(2.6 * S) + 1):   # the nerve, out of the back of it
+        t = k / max(1, 2.6 * S); c.p(X0 - math.cos(ang) * (R + k * .8), Y0 - math.sin(ang) * (R + k * .8) + math.sin(t * 3) * .6 * S, (150, 50, 60) if k % 3 else (110, 30, 44))
+    for Yy in range(int(Y0 - R) - 1, int(Y0 + R) + 2):
+        for Xx in range(int(X0 - R) - 1, int(X0 + R) + 2):
+            dx, dy = (Xx + .5 - X0) / R, (Yy + .5 - Y0) / R; d = dx * dx + dy * dy
+            if d > 1: continue
+            l = -(dx * .55 + dy * .7) + (1 - d) * .5
+            c.p(Xx, Yy, EYEW[4] if l > .6 else EYEW[3] if l > .2 else EYEW[2] if l > -.2 else EYEW[1] if d < .8 else EYEW[0])
+    ix, iy = X0 + math.cos(ang) * R * (.55 if turned else .15), Y0 + math.sin(ang) * R * (.55 if turned else .15) + (R * .2 if turned else 0)
+    ir = max(.6, R * .45)
+    for Yy in range(int(iy - ir) - 1, int(iy + ir) + 2):
+        for Xx in range(int(ix - ir * (.6 if turned else 1)) - 1, int(ix + ir) + 2):
+            dx, dy = (Xx + .5 - ix) / (ir * (.6 if turned else 1)), (Yy + .5 - iy) / ir
+            if dx * dx + dy * dy <= 1 and (Xx - X0) ** 2 + (Yy - Y0) ** 2 <= R * R: c.p(Xx, Yy, (58, 92, 124) if dx * dx + dy * dy > .3 else (16, 20, 28))
+    c.p(X0 - R * .45, Y0 - R * .5, (255, 255, 255))
+    if S > 1: c.p(X0 + R * .5, Y0 + R * .3, (170, 60, 66)); c.p(X0 + R * .6, Y0 + R * .1, (190, 90, 92))   # a red vein
+
+
+def lantern_adult(z, day=0):
+    """the hand on the lantern, plainly a grown man's (critic: a small smooth cream fist could be a child's or a doll's): bigger, a
+    thick wrist going into a work-shirt cuff cut through, knuckle ridges, nails, dark hair on the back of the hand and the wrist, a
+    wedding ring; still gripping the bail"""
+    z.lay_base(recolor=False); c, S = z.c, z.S; px = c.px
+    for Y in range(int(z.Y(8.6)), int(z.Y(15.2))):   # the old small fist goes (the lantern and its wire stay)
+        for X in range(int(z.X(4.6)), int(z.X(14.6))):
+            q = px[X, Y]
+            if q[3] > 120 and not (abs(q[0] - q[1]) < 14 and abs(q[1] - q[2]) < 14 and lumi(q) > 40) and (Y < z.Y(13.9) or not is_blood(q)): px[X, Y] = (0, 0, 0, 0)
+    HS = [(104, 66, 56), (146, 100, 82), (182, 134, 110), (208, 164, 138), (228, 192, 166), (242, 214, 192)]
+    FL = [(54, 22, 20), (84, 34, 28), (118, 48, 36), (150, 66, 46), (176, 92, 64), (196, 118, 86)]
+    f = z.F()
+    f.poly([(z.X(2.6), z.Y(9.6)), (z.X(6.6), z.Y(9.2)), (z.X(6.9), z.Y(14.6)), (z.X(2.8), z.Y(14.8))], 'flan', base=.8 * S, hs=.6)   # the work shirt's cuff
+    f.cap(z.X(6.2), z.Y(11.9), z.X(9), z.Y(11.8), 2.05 * S, 2.1 * S, 'sk', base=.6 * S)       # the wrist, thick
+    f.blob(z.X(10.8), z.Y(11.5), 2.9 * S, 2.5 * S, 'sk', base=.9 * S)                          # the back of the hand
+    for k in range(4):   # the fingers, round the bail, each a little different
+        y0 = 9.7 + k * 1.3 + (.15 if k == 2 else 0); L = (2.2, 2.4, 2.3, 1.9)[k]
+        f.cap(z.X(12.8), z.Y(y0), z.X(12.8 + L), z.Y(y0 + .25), .78 * S, .62 * S, 'sk', base=1.3 * S)
+    f.cap(z.X(9.4), z.Y(13.8), z.X(13.4), z.Y(14.3), .85 * S, .65 * S, 'sk', base=1.1 * S)      # the thumb, on the near side
+    f.render(c, {'flan': FL, 'sk': HS})
+    for k in range(int(4.2 * S)):   # the flannel's check, and its cuff edge lit
+        Y = z.Y(9.6) + k
+        if (k // max(1, S)) % 2 == 0:
+            for X in range(int(z.X(2.8)), int(z.X(6.6))): c.p(X, Y, FL[1] if c.px[X, Y][3] > 200 else (0, 0, 0, 0)) if c.px[X, Y][3] > 200 else None
+    for k in range(int(5 * S)): c.p(z.X(6.7), z.Y(9.4) + k, FL[4])
+    for k in range(4):   # knuckle ridges, the finger joints, nails at the tips
+        y0 = 9.7 + k * 1.3 + (.15 if k == 2 else 0); L = (2.2, 2.4, 2.3, 1.9)[k]
+        c.p(z.X(12.6), z.Y(y0) - (1 if S > 1 else 0), HS[5]); c.p(z.X(12.6) + 1, z.Y(y0) - (1 if S > 1 else 0), HS[4]) if S > 1 else None
+        if S > 1:
+            c.p(z.X(12.8 + L * .55), z.Y(y0), HS[1])
+            for v in range(max(1, S // 2)): c.p(z.X(12.8 + L) + 1, z.Y(y0) - 1 + v, (226, 186, 176)); c.p(z.X(12.8 + L) + 2, z.Y(y0) - 1 + v, (196, 150, 142))
+        c.p(z.X(12.8 + L) - (0 if S > 1 else 1) + (1 if S > 1 else 0), z.Y(y0 + .8), HS[0]) if k < 3 else None
+    for v in range(max(1, int(S * .9))): c.p(z.X(13.3), z.Y(12.3) + v, (226, 190, 84) if v < S * .5 else (176, 132, 52))   # the wedding ring
+    hair = [(8, 10.6), (8.6, 10.2), (9.8, 10.4), (10.6, 10), (7.2, 11.2)] if S > 1 else [(8, 10.6)]
+    for (x, y) in hair:   # the hair on the back of the hand and the wrist: short dark strokes, gathered
+        for j in range(max(1, int(.9 * S))): c.p(z.X(x) + j, z.Y(y) + j * .4, (78, 56, 46))
+    if S == 1: c.p(z.X(9), z.Y(10.6), (78, 56, 46))
+    xcavity(z, 2.8, 12.1, .9, 2.4, 3.3)   # the cut through the cuff: meat, the two bones off-centre
+    for (y, r) in ((11.4, .5), (12.9, .45)): xbone(z, 3.6, y, 2.6, y + .1, r, r * .9, seed=int(y * 7))
+    return {}
+
+
 def tree_toned_cap(z, day=0):
     """(toned) his cap at the foot of the tree, the same folded watch cap he wears in Full"""
     z.lay_base(recolor=False); c, S = z.c, z.S; px = c.px
@@ -1086,7 +1155,7 @@ def tree_toned_cap(z, day=0):
 
 def adult_pass():
     XC.from_orig = True; out = {}
-    for name, S, fn in (('g_p_tree', 2, hunter_adult), ('g_p_hiker', 3, hiker_adult), ('g_p_tree_t', 2, tree_toned_cap)):
+    for name, S, fn in (('g_p_tree', 2, hunter_adult), ('g_p_hiker', 3, hiker_adult), ('g_p_tree_t', 2, tree_toned_cap), ('g_p_lantern', 4, lantern_adult)):
         for cu in (False, True):
             z = XC(name, S if cu else 1, 8, cu); fn(z); finish(z, name)
             nm = name + ('_cu' if cu else ''); out[nm] = dict(SPR[nm], foot=OBJ[nm].get('foot', [0, 0, 0, 0]))
