@@ -28,17 +28,18 @@ const M4F={
 const m4tongs=(K,jx,jy,ang,o)=>{o=o||{};M4.rot(K.g,M4F.tongs(),jx,jy,ang,54,7,-1,1);if(o.hand===false)return null;const p=M4.tr(jx,jy,ang,o.at||45,0);m4grip(K,p[0],p[1],ang,{side:o.side||-1});return p;};
 // ---------------------------------------------------------------- BELLOWS: each pump feeds the fire; the bag needs a moment to fill again; hold the metal at its colour
 S4.bellows=(sp,K)=>{const g=K.g,LO=(sp.band||[.6,.82])[0],HI=(sp.band||[.6,.82])[1],DUR=sp.dur||6,item=sp.item||'bar';const bel=M4F.bellows();
-  const st={H:.25,fill:1,pump:0,prog:0,inT:0,runT:0,burn:0,t:0,end:0,puffs:[]};let roar=null;
-  const pumpNow=()=>{const p=st.fill;st.fill=0;st.pump=.001;st.flare=.25+p*.75;st.H=Math.min(1.15,st.H+.095*(.25+.75*p));A.hiss(.32,.18*(.4+.6*p),'lowpass',380,{slide:900});A.tone(90,.18,'sine',.08*(p+.3),{slide:60});
+  const st={H:.25,fill:1,pump:0,prog:0,inT:0,runT:0,burn:0,t:0,end:0,puffs:[]};let roar=null,crk=null;
+  const pumpNow=()=>{const p=st.fill;st.fill=0;st.pump=.001;st.flare=.25+p*.75;st.H=Math.min(1.15,st.H+.095*(.25+.75*p));/* (t376) the stroke: the bag's air rushing out, then its breath back in; the fire flares */if(item==='pump')MSX.play('pump',null,{g:1.9+1.2*p});else{MSX.play('bellows',p>.8?2:p>.45?1:0,{g:.55+.5*p});MSX.play('bellowsIn',null,{dl:MSX.rt(.15),g:.35+.4*p,pri:0});}st.fl6=.4+.6*p;
     K.emit(100,100,6,{c:['#fff4d0','#ffd27a','#f08a1c'],v:60+p*60,ang:-Math.PI*.85,spread:1,g:-40,life:.6});(st.ash=st.ash||[]).push(...Array.from({length:2+Math.round(p*3)},()=>({x:94,y:93,vx:-(30+Math.random()*40*p),vy:-8-Math.random()*16,t:0,life:.45+Math.random()*.25,r:1.5+Math.random()})));if(p<.45)K.judge(.25,140,70,true);};
   return {title:sp.t||'Pump the bellows',how:item==='pump'?'Tap to pump. Each stroke builds pressure, but the pump needs a moment to refill. Keep the needle in the green.':'Tap to pump. Each pump feeds the fire, but the bellows need a moment to fill again. Keep the metal glowing in the green.',hint:'Tap to pump. Hold the glow in the green.',st,
-    update(dt,I){st.t+=dt;if(!roar)roar=MS.loop('lowpass',300,.8);roar.set(.03+st.H*.12,180+st.H*500);
+    update(dt,I){st.t+=dt;if(!roar){roar=item==='pump'?MSX.loop('spray',{type:'highpass',f:2400}):MSX.loop('roar',{type:'lowpass',f:500});crk=item==='pump'?null:MSX.loop('crackle',{type:'highpass',f:800});}
+      /* (t376) the fire roars and crackles with its heat and leaps on each stroke; the sprayer hisses with its pressure */st.fl6=Math.max(0,(st.fl6||0)-dt*2.2);{const fl6=st.fl6;if(item==='pump')roar.set(st.H*.42,.9+st.H*.3,1800+st.H*1600);else{roar.set(.06+st.H*.2+fl6*.18,.85+st.H*.25+fl6*.15,300+st.H*700+fl6*600);crk.set(.02+st.H*.12+fl6*.08,.9+st.H*.2);}}
       if(st.end){st.end+=dt;if(st.end>.7){st.done=true;st.score=M4.cl(st.inT/Math.max(1,st.runT)*1.12-st.burn*.25,0,1);}return;}
       st.runT+=dt;st.fill=Math.min(1,st.fill+dt/.5);if(st.pump>0){st.pump+=dt/.3;if(st.pump>=1)st.pump=0;}
       st.H-=.085*(st.H-.12)*dt*1.4;if(I.pressed)pumpNow();
       if(st.H>=LO&&st.H<=HI){st.inT+=dt;st.prog+=dt/DUR;}else if(st.H>HI){st.burn+=dt;if(item!=='pump'&&Math.random()<dt*20)K.emit(70,96,1,{c:['#ffffff','#fff4d0'],v:90,spread:2,g:120,life:.5});}
       if(item!=='pump'&&Math.random()<dt*(4+st.H*30))K.emit(36+Math.random()*48,96,1,{c:['#ffd27a','#f06a1c','#c83a14'],v:30+st.H*60,spread:.8,g:-30,life:.9+st.H});
-      if(item!=='pump'&&Math.random()<dt*st.H*6)A.tone(1800+Math.random()*1800,.02,'square',.012);if(item==='pump'&&roar)roar.set(st.H*.08,1800+st.H*1200);
+      
       if(st.prog>=1||st.runT>(sp.time||16)){st.end=.001;MS.good();}},
     draw(t){const H=st.H;
       // coals: a heap of lumps whose cracks glow with the heat
@@ -76,27 +77,28 @@ S4.bellows=(sp,K)=>{const g=K.g,LO=(sp.band||[.6,.82])[0],HI=(sp.band||[.6,.82])
       K.label('BELLOWS',150,52,st.fill<.95?'#e8b030':'#9be07a');K.px(132,60,36,3,'#1a0e06');K.px(133,61,34*st.fill,1,st.fill<.95?'#e8b030':'#9be07a');
       if(st.H>HI&&Math.floor(t*6)%2)K.label('TOO HOT: IT’LL BURN',160,24,'#e8542a');},
     auto(dt,AP){const a=m4ai(this,AP,dt);const mid=(LO+HI)/2;if(st.H<mid-.02&&st.fill>.9&&st.t>.4)m4tap(a);AP.hand=[item==='pump'?150:136,item==='pump'?120:112];AP.press=a.down;},
-    quiet(){roar&&roar.set(0);},stop(){roar&&roar.stop();roar=null;}};};
+    quiet(){roar&&roar.set(0);crk&&crk.set(0);},stop(){roar&&roar.stop();crk&&crk.stop();roar=crk=null;}};};
 // ---------------------------------------------------------------- ANVIL: the metal is thickest where it glows above the outline; strike there while it's hot
 S4.anvil=(sp,K)=>{const g=K.g,AX=90,AY=108,X0=130,N=48,shape=sp.shape||'blade',an=M4F.anvil(),stump=M4F.stump(),ham=M4F.shammer();
   const tgt=new Array(N),h=new Array(N);for(let i=0;i<N;i++){const u=i/(N-1);h[i]=8+(Math.random()-.5)*.6;
     tgt[i]=shape==='blade'?(u<.3?7:7-(u-.3)/.7*5):shape==='point'?(u<.55?6:6-(u-.55)/.45*5):shape==='curve'?6.5-Math.sin(u*Math.PI)*1.5-(u>.75?(u-.75)*12:0):5;}
   const st={hx:X0+30,heat:1,strikes:0,swing:-1,t:0,end:0,reheat:0,errs:[],cold:0};
   const err=()=>{let e=0;for(let i=0;i<N;i++)e+=Math.max(0,h[i]-tgt[i])+Math.max(0,tgt[i]-h[i])*1.6;return e/N;};const e0=err();
-  const strike=x=>{const ci=Math.round((x-X0)/2);const hot=st.heat;if(hot<.25){st.cold++;MS.anvil(1.3);K.judge(.15,x,AY-40,true);MS.miss();K.emit(x,AY-8,4,{c:['#c8c0b0'],v:60,g:200,life:.3});return;}
+  const strike=x=>{const ci=Math.round((x-X0)/2);const hot=st.heat;if(hot<.25){st.cold++;K.judge(.15,x,AY-40,true);MS.miss();K.emit(x,AY-8,4,{c:['#c8c0b0'],v:60,g:200,life:.3});return;}
     // the blow flattens most under the hammer and spreads to either side; metal already at its line barely moves, except right under the face
     let before=0,after=0;for(let i=Math.max(0,ci-5);i<=Math.min(N-1,ci+5);i++){const w=Math.exp(-((i-ci)**2)/8),d=Math.min(h[i]-1,(.9+hot*.9)*w,Math.max(0,h[i]-tgt[i])+(i===ci?.5:0));before+=Math.abs(h[i]-tgt[i]);h[i]-=Math.max(0,d);after+=Math.abs(h[i]-tgt[i]);}
     const gain=before-after;const q=gain>1.2?1:gain>.4?.75:gain>-.3?.45:.15;K.judge(q,Math.max(60,x-52),AY-40,true);   /* (t300) beside the work, clear of the raised hammer */if(q<.3)MS.miss();
-    st.heat=Math.max(0,st.heat-.05);st.strikes++;MS.anvil(.75+(1-hot)*.45);MS.thunk();K.shk=.12;K.emit(x,AY-6,10+hot*12,{c:['#fff4d0','#ffd27a','#f08a1c'],v:110,spread:2.6,g:260,life:.5});K.emit(x,AY-6,3,{c:['#3a3430'],v:50,spread:2,g:300,life:.6});};
+    st.heat=Math.max(0,st.heat-.05);st.strikes++;K.shk=.12;K.emit(x,AY-6,10+hot*12,{c:['#fff4d0','#ffd27a','#f08a1c'],v:110,spread:2.6,g:260,life:.5});K.emit(x,AY-6,3,{c:['#3a3430'],v:50,spread:2,g:300,life:.6});};
   return {title:sp.t||'Shape it on the anvil',how:'Tap the metal where it bulges above the outline to hammer it down. It cools as you work: strike while it glows. Too many blows in one place and it goes too thin.',hint:'Tap the thick parts above the outline. Work it while it glows.',st,
     update(dt,I){st.t+=dt;if(st.end){st.end+=dt;if(st.end>.8){st.done=true;st.score=M4.cl(1-err()/Math.max(.6,e0)*.9-st.cold*.05,0,1);}return;}
-      if(st.reheat>0){st.reheat+=dt/1.3;if(st.reheat>=1){st.reheat=0;st.heat=1;MS.whoosh();}return;}
-      st.heat=Math.max(0,st.heat-dt*(sp.cool||.1));if(st.heat<=.06){st.reheat=.001;A.hiss(.4,.1,'lowpass',500);}
+      if(st.reheat>0){const r0=st.reheat;st.reheat+=dt/1.3;if(r0<.5&&st.reheat>=.5)MSX.play('coals','in');if(st.reheat>=1){st.reheat=0;st.heat=1;MSX.play('setbar');}return;}
+      st.heat=Math.max(0,st.heat-dt*(sp.cool||.1));if(st.heat<=.06){st.reheat=.001;MSX.play('tongs');}
       const kx=I.key||I.demo&&this._k;if(I.ax)st.hx=M4.cl(st.hx+I.ax*140*dt,X0,X0+N*2);
       if(st.swing>=0){st.swing+=dt/.16;if(st.swing>=.5&&!st.hit){st.hit=1;strike(st.sx);}if(st.swing>=1)st.swing=-1;}
       else if(I.pressed){st.sx=I.key?st.hx:M4.cl(I.x,X0,X0+N*2);st.hx=st.sx;st.swing=0;st.hit=0;st.go=1;}
       /* (t300) the hammer's picture: it travels over to where you struck while it falls (no jump), lands, rests a beat, bounces back up */
       st.vx=st.vx==null?st.hx:st.vx+(st.hx-st.vx)*Math.min(1,dt*30);m3blow(st.vis||(st.vis={}),dt,st.go,.08,.075,1,.6);st.go=0;if(m3onWork(st.vis))st.vx=st.hx;
+      /* (t376) the blow rings out on the frame the face meets the bar: heavy and warm on glowing iron, brighter as it cools, a clang when cold */if(st.vis.land)MSX.play('anvil','h'+(st.heat>.7?0:st.heat>.45?1:st.heat>=.25?2:3));
       if(err()<.35||st.strikes>=(sp.max||32)||st.t>(sp.time||28)){st.end=.001;MS.good();}},
     draw(t){g.drawImage(stump,AX+13,AY+40);g.drawImage(an,AX-6,AY-8);
       const rh=st.reheat>0?Math.sin(Math.PI*st.reheat):0,off=-rh*90;
@@ -120,15 +122,15 @@ S4.anvil=(sp,K)=>{const g=K.g,AX=90,AY=108,X0=130,N=48,shape=sp.shape||'blade',a
     auto(dt,AP){const a=m4ai(this,AP,dt);if(st.swing<0&&!st.reheat&&st.t>.5){if(this._w==null)this._w=.35;this._w-=dt;if(this._w<=0){let bi=0,bv=-9;for(let i=0;i<N;i++){let s=0;for(let j=Math.max(0,i-3);j<=Math.min(N-1,i+3);j++)s+=h[j]-tgt[j];if(s>bv){bv=s;bi=i;}}m4move(a,X0+bi*2,AY-10);m4tap(a);this._w=.38;}}AP.hand=[a.x+4,AY-30];AP.press=a.down;},
     quiet(){},stop(){}};};
 // ---------------------------------------------------------------- QUENCH: plunge it in fast and all the way, hold it still till the hissing stops, then lift it out
-S4.quench=(sp,K)=>{const g=K.g,TX=200,TY=118,TW=96,L=56,TANG=10;const st={d:0,heat:Array.from({length:L},(_,i)=>i<TANG?.25:1),warp:0,in:0,t:0,end:0,out:0,boil:0,lifted:0};let hiss=null;
+S4.quench=(sp,K)=>{const g=K.g,TX=200,TY=118,TW=96,L=56,TANG=10;const st={d:0,heat:Array.from({length:L},(_,i)=>i<TANG?.25:1),warp:0,in:0,t:0,end:0,out:0,boil:0,lifted:0};let hiss=null,bub=null;
   const hotB=()=>{let m=0;for(let i=TANG;i<L;i++)m=Math.max(m,st.heat[i]);return m;};
   return {title:sp.t||'Quench it',how:'Hold to lower the hot blade into the water, all the way in one go. Keep holding until the hissing stops, then let go to lift it out.',hint:'Hold: plunge it fully, wait for quiet, let go.',st,
-    update(dt,I){st.t+=dt;if(!hiss)hiss=MS.loop('highpass',2600,.6);
-      if(st.end){st.end+=dt;hiss.set(0);if(st.end>.7){const hot=hotB();st.done=true;st.score=M4.cl((1-Math.min(1,st.warp*1.6))*.6+(hot<.18?.4:hot<.35?.25:.08),0,1);}return;}
+    update(dt,I){st.t+=dt;if(!hiss){hiss=MSX.loop('steam',{type:'highpass',f:2400});bub=MSX.loop('boil',{type:'lowpass',f:900});}
+      if(st.end){st.end+=dt;hiss.set(0);bub.set(0);if(st.end<.6&&Math.random()<dt*9)MSX.play('drip',null,{g:.5,pri:0});if(st.end>.7){const hot=hotB();st.done=true;st.score=M4.cl((1-Math.min(1,st.warp*1.6))*.6+(hot<.18?.4:hot<.35?.25:.08),0,1);}return;}
       st.d=M4.cl(st.d+(I.down?1.3:-1.6)*dt,0,1);const sub=Math.round(st.d*L*.95);let boil=0;
       for(let i=0;i<L;i++){if(L-1-i<sub){const c=st.heat[i];st.heat[i]=Math.max(0,c-dt*1.1);if(i>=TANG)boil+=c;}}boil/=(L-TANG)*.5;st.boil+=(boil-st.boil)*Math.min(1,dt*8);
       if(st.d>.05&&st.d<.9){let top=0;for(let i=TANG;i<L;i++){if(!(L-1-i<sub))top+=st.heat[i];}st.warp+=dt*Math.min(1,top/(L-TANG))*.55;}
-      if(st.d>.05)st.in=1;hiss.set(Math.min(.3,st.boil*.35),2200+st.boil*2000);
+      if(st.d>.05)st.in=1;/* (t376) the steam film tearing off the steel, the water boiling round it; water runs off the blade as it comes up */hiss.set(Math.min(.34,st.boil*.4),.9+st.boil*.2,1800+st.boil*2600);bub.set(Math.min(.32,st.boil*.45),.75+st.boil*.5,500+st.boil*1500);if(st.d<(st.d6||0)-.001&&st.d>.02&&st.d<.97&&Math.random()<dt*16)MSX.play('drip',null,{g:.55,pri:0});st.d6=st.d;
       /* (t300, critic) the steam: a few light puffs at a time, each swelling, drifting and fading as it rises (grey balls read as rocks) */
       st.pf=st.pf||[];if(st.d>.02&&!st.inW){st.inW=1;for(let k=0;k<9;k++)st.pf.push({x:TX+(Math.random()-.5)*16,y:TY-2,vx:(Math.random()-.5)*40,vy:-30-Math.random()*40,t:0,life:.7+Math.random()*.5,r:2.5+Math.random()*2});K.emit(TX,TY,8,{c:['#c8e0f0','#ffffff'],v:70,ang:-Math.PI/2,spread:1.4,g:300,life:.45});}if(st.d<.01)st.inW=0;
       if(st.boil>.05&&Math.random()<dt*st.boil*14)st.pf.push({x:TX+(Math.random()-.5)*12,y:TY-2,vx:(Math.random()-.5)*10,vy:-22-Math.random()*14,t:0,life:1.1+Math.random()*.5,r:2+Math.random()*1.5});
@@ -140,6 +142,7 @@ S4.quench=(sp,K)=>{const g=K.g,TX=200,TY=118,TW=96,L=56,TANG=10;const st={d:0,he
       // with a lit spine, a darker edge and a point. It sinks behind the trough's front: dim through the water, gone below it
       st.dv=st.dv==null?st.d:st.dv;st.dvv=st.dvv||0;st.dvv+=(380*(st.d-st.dv)-26*st.dvv)/60;st.dv+=st.dvv/60;const dv=M4.cl(st.dv,0,1.03);   /* (round 5) the plunge eases in and settles */
       const by=wl-L+Math.round(dv*L*.95)+Math.round(Math.sin(t*40)*st.boil*1.2),FR=wl+8;
+      /* (t376) the slap and the violent hiss start on the frame the tip is seen to go under */{const sub=Math.round(dv*L*.95);if(sub>=1&&!st.in6){st.in6=1;if(!st.end)MSX.play('quench',null,{g:.35+.8*hotB()});}else if(sub<1)st.in6=0;}
       for(let i=0;i<L;i++){const y=by+i;if(y>=FR)break;const tang=i<TANG,w=tang?3:i>L-12?Math.max(1,Math.round(7-(i-L+12)*.55)):7,x0=tang?TX-2:TX-3,c=st.heat[i]*(.8+.12*i/L);
         const C=tang?I[3]:heatCol(c),L_=tang?I[5]:heatCol(Math.min(1,c+.12)),D=tang?I[2]:heatCol(Math.max(0,c-.14)),B=heatCol(Math.min(1,c+.2));
         if(y>=wl){K.pa(x0,y,w,1,C,.45);continue;}K.px(x0-1,y,w+2,1,'#1a0e08');K.px(x0,y,w,1,C);K.px(x0,y,1,1,L_);if(!tang&&w>4){K.px(x0+w-3,y,1,1,B);K.px(x0+w-2,y,2,1,D);}else if(w>2)K.px(x0+w-1,y,1,1,D);}
@@ -155,19 +158,19 @@ S4.quench=(sp,K)=>{const g=K.g,TX=200,TY=118,TW=96,L=56,TANG=10;const st={d:0,he
     hud(t){const hot=hotB();K.label('HISS',286,21,'#f4ecd8');K.gauge(282,30,8,80,0,.18,Math.min(1,st.boil),{zone:'#2c5a1c'});K.meter(1-hot,1-Math.min(1,st.warp*1.6));
       if(st.d>.05&&st.d<.85&&st.warp>.05&&Math.floor(t*5)%2)K.label('ALL THE WAY IN',160,24,'#e8b030');if(st.in&&st.boil<.05&&st.d>.9&&Math.floor(t*3)%2)K.label('QUIET: LIFT IT OUT',160,34,'#9be07a');},
     auto(dt,AP){const a=m4ai(this,AP,dt);const hot=hotB();m4hold(a,st.t>.5&&(hot>.12||st.boil>.04));AP.hand=[TX+50,72];AP.press=a.down;},
-    quiet(){hiss&&hiss.set(0);},stop(){hiss&&hiss.stop();hiss=null;}};};
+    quiet(){hiss&&hiss.set(0);bub&&bub.set(0);},stop(){hiss&&hiss.stop();bub&&bub.stop();hiss=bub=null;}};};
 // ---------------------------------------------------------------- GRIND: hold the edge to the turning stone at the right angle; the wheel kicks, so keep correcting
 S4.grind=(sp,K)=>{const g=K.g,WX=150,WY=84,R=34,A0=sp.angle||.42,TOL=.11,wheel=M4F.wheel();
-  const st={a:A0+.25,prog:0,inT:0,runT:0,t:0,end:0,kick:0,spin:0,tread:0};let grind=null;
+  const st={a:A0+.25,prog:0,inT:0,runT:0,t:0,end:0,kick:0,spin:0,tread:0};let grind=null,chat=null,whl=null;
   return {title:sp.t||'Sharpen it on the stone',how:'Hold the blade to the turning stone at the right angle: '+(K.fine?'move the mouse up and down (or W/S)':'drag up and down')+'. The wheel kicks the blade, so keep correcting. Hold to press it to the stone.',hint:'Keep the angle in the green while you hold.',st,
-    update(dt,I){st.t+=dt;if(!grind)grind=MS.loop('bandpass',2600,1.5);st.spin+=dt*7;st.tread+=dt*3;
-      if(st.end){st.end+=dt;grind.set(0);if(st.end>.6){st.done=true;st.score=M4.cl(st.inT/Math.max(1,st.runT)*1.15,0,1);}return;}
+    update(dt,I){st.t+=dt;if(!grind){grind=MSX.loop('grit',{type:'bandpass',f:3600,q:.8});chat=MSX.loop('chatter');whl=MSX.loop('wheel');}whl.set(.16,1);st.spin+=dt*7;st.tread+=dt*3;
+      if(st.end){st.end+=dt;grind.set(0);chat.set(0);if(st.end>.6){st.done=true;st.score=M4.cl(st.inT/Math.max(1,st.runT)*1.15,0,1);}return;}
       st.kick+=(Math.sin(st.t*1.7)*.35+Math.sin(st.t*4.3)*.2+(Math.random()-.5)*1.5-st.kick)*dt*2;st.a+=st.kick*dt*.9;
       if(I.key||I.ay)st.a+=I.ay*.9*dt;else if(!I.demo||this._ai)st.a=M4.cl(st.a+(I.dy||0)*-.012,0,1.2);st.a=M4.cl(st.a,0,1.2);
       const on=I.down;if(on){st.runT+=dt;}const inb=Math.abs(st.a-A0)<=TOL;
       if(on&&inb){st.inT+=dt;st.prog+=dt/(sp.dur||5);if(Math.random()<dt*60)K.emit(WX-R*.97+1,WY-R*.25+1,1,{c:['#fff4d0','#ffd27a','#f8a83c'],v:120+Math.random()*80,ang:Math.PI*.6,spread:.5,g:240,life:.5});}
       else if(on&&Math.random()<dt*12)K.emit(WX-R*.97+1,WY-R*.25+1,1,{c:['#c8a060'],v:80,ang:Math.PI*.62,spread:1,g:240,life:.4});
-      grind.set(on?(inb?.14:.07):0,inb?2600:1500,inb?1.5:4);
+      /* (t376) steel on the wet stone: an even gritty hiss at the right angle; off it the edge skips and chatters */{const off=Math.abs(st.a-A0);grind.set(on?(inb?.26:.08):0,1+Math.min(.15,Math.abs(st.kick)*.1),inb?3600:2600,.8);chat.set(on&&!inb?Math.min(.22,.08+off*.5):0,.85+Math.min(.4,off));}
       if(st.prog>=1||st.t>(sp.time||15)){st.end=.001;MS.good();}},
     draw(t){const W=CA_P.wood;K.px(WX-44,WY+30,88,6,W[3]);K.px(WX-44,WY+30,88,1,W[5]);K.px(WX-44,WY+35,88,1,W[1]);
       for(const px_ of [WX-40,WX+36]){K.px(px_-1,WY-3,6,67,W[0]);K.px(px_,WY-2,4,66,W[4]);K.px(px_,WY-2,1,66,W[6]);K.px(px_+3,WY-2,1,66,W[2]);K.px(px_,WY-2,4,1,W[6]);}
@@ -183,18 +186,18 @@ S4.grind=(sp,K)=>{const g=K.g,WX=150,WY=84,R=34,A0=sp.angle||.42,TOL=.11,wheel=M
       if(Math.abs(st.a-A0)<=TOL)K.glow(cx,cy,14,'255,220,140',.3);},
     hud(t){K.label('ANGLE',286,21,'#f4ecd8');K.gauge(282,30,8,80,(A0-TOL)/1.2,(A0+TOL)/1.2,st.a/1.2);K.meter(st.prog,st.runT?st.inT/st.runT:1);},
     auto(dt,AP){const a=m4ai(this,AP,dt);m4hold(a,st.t>.4);a.ay=M4.cl((A0-st.a)*8,-1,1);AP.hand=[90,120];AP.press=a.down;},
-    quiet(){grind&&grind.set(0);},stop(){grind&&grind.stop();grind=null;}};};
+    quiet(){grind&&grind.set(0);chat&&chat.set(0);whl&&whl.set(0);},stop(){grind&&grind.stop();chat&&chat.stop();whl&&whl.stop();grind=chat=whl=null;}};};
 // ---------------------------------------------------------------- SKIM: dross floats up through the melt; scoop each lump off before it sinks back, and don't waste good metal
 S4.skim=(sp,K)=>{const g=K.g,CX=160,CY=92,RX=70,RY=22,N=sp.n||5,COL=sp.col||['#ff9a3a','#ffd27a','#fff4d0'];
   const st={lumps:[],made:0,got:0,lost:0,waste:0,t:0,end:0,sk:null,next:.8};
   const spawn=()=>{const a=Math.random()*6.28,r=Math.random()*.7;st.lumps.push({x:CX+Math.cos(a)*RX*r,y:CY+Math.sin(a)*RY*r,life:0,max:3.6+Math.random()*1.4,sz:3+Math.random()*3,vx:(Math.random()-.5)*8,vy:(Math.random()-.5)*3});st.made++;};
   const scoop=(x,y)=>{st.sk={x,y,t:0};let best=null,bd=1e9;for(const l of st.lumps){const d=Math.hypot(l.x-x,(l.y-y)*1.6);if(d<bd){bd=d;best=l;}}
-    if(best&&bd<14&&best.life>.35){st.lumps.splice(st.lumps.indexOf(best),1);st.got++;st.sk.got=best.sz;MS.plop();A.tone(300,.1,'sine',.08,{slide:200});K.judge(best.life<best.max*.6?1:.75,x,y-20,true);K.emit(x,y,6,{c:['#3a3430','#6a6460'],v:50,g:200,life:.5});}
-    else{st.waste++;A.hiss(.2,.12,'lowpass',900);K.judge(.15,x,y-20,true);MS.miss();K.emit(x,y,6,{c:COL,v:50,g:200,life:.4});}};
+    if(best&&bd<14&&best.life>.35){st.lumps.splice(st.lumps.indexOf(best),1);st.got++;st.sk.got=best.sz;MSX.play('skim','got');K.judge(best.life<best.max*.6?1:.75,x,y-20,true);K.emit(x,y,6,{c:['#3a3430','#6a6460'],v:50,g:200,life:.5});}
+    else{st.waste++;MSX.play('skim','waste');K.judge(.15,x,y-20,true);MS.miss();K.emit(x,y,6,{c:COL,v:50,g:200,life:.4});}};
   return {title:sp.t||'Skim off the slag',how:'Grey slag floats up through the molten metal. Tap each lump to scoop it off before it sinks back in. Tapping clean metal wastes it.',hint:'Tap the grey lumps. Leave the bright metal.',st,
     update(dt,I){st.t+=dt;if(st.end){st.end+=dt;if(st.end>.6){st.done=true;st.score=M4.cl(st.got/N-st.waste*.08,0,1);}return;}
-      st.next-=dt;if(st.made<N&&st.next<=0){spawn();st.next=.9+Math.random()*.9;}
-      for(let k=st.lumps.length-1;k>=0;k--){const l=st.lumps[k];l.life+=dt;l.x+=l.vx*dt;l.y+=l.vy*dt;if(((l.x-CX)/RX)**2+((l.y-CY)/RY)**2>.8){l.vx*=-1;l.vy*=-1;}if(l.life>l.max){st.lumps.splice(k,1);st.lost++;K.judge(.15,l.x,l.y-16,true);MS.miss();}}
+      st.next-=dt;if(Math.random()<dt*.7)MSX.play('skim','sink',{g:.18,pri:0});if(st.made<N&&st.next<=0){spawn();st.next=.9+Math.random()*.9;}
+      for(let k=st.lumps.length-1;k>=0;k--){const l=st.lumps[k];l.life+=dt;l.x+=l.vx*dt;l.y+=l.vy*dt;if(((l.x-CX)/RX)**2+((l.y-CY)/RY)**2>.8){l.vx*=-1;l.vy*=-1;}if(l.life>l.max){st.lumps.splice(k,1);st.lost++;MSX.play('skim','sink',{g:.6});K.judge(.15,l.x,l.y-16,true);MS.miss();}}
       if(I.pressed){if(I.key){const l=st.lumps.filter(l=>l.life>.35).sort((a,b)=>a.life-b.life).pop();if(l)scoop(l.x,l.y);else scoop(CX,CY);}else scoop(I.x,I.y);}
       if(st.sk){st.sk.t+=dt;if(st.sk.t>.35)st.sk=null;}if(I.x!=null){const dx=(I.x-CX)/RX,dy=(I.y-CY)/RY,d=Math.hypot(dx,dy);const k=d>.85?.85/d:1;st.px=CX+dx*k*RX;st.py=CY+dy*k*RY;}
       if(st.made>=N&&!st.lumps.length){st.end=.001;MS.good();}},
@@ -217,12 +220,12 @@ S4.skim=(sp,K)=>{const g=K.g,CX=160,CY=92,RX=70,RY=22,N=sp.n||5,COL=sp.col||['#f
     quiet(){},stop(){}};};
 // ---------------------------------------------------------------- CRANK: wind the wire round the rod in even turns: steady circles, not too fast
 S4.crank=(sp,K)=>{const g=K.g,RX=128,RY=100,RL=112,CXk=262,CYk=100,CR=16,N=sp.n||18;
-  const st={ang:0,turns:0,coils:[],last:null,spd:0,t:0,end:0,spds:[],ok:0};let wind=null;
+  const st={ang:0,turns:0,coils:[],last:null,spd:0,t:0,end:0,spds:[],ok:0};let wind=null,wet=null;
   return {title:sp.t||'Wind the wire into a coil',how:sp.look==='mortar'?'Grind in circles with the pestle: draw circles'+(K.fine?' with the mouse (or hold Space)':' with your finger')+' at an even, steady pace.':sp.look==='straw'?'Twist the straw: draw circles'+(K.fine?' with the mouse (or hold Space)':' with your finger')+' at an even, steady pace.':sp.look==='rug'?'Coil the braid round into a rug: draw circles'+(K.fine?' with the mouse (or hold Space)':' with your finger')+' at an even, steady pace.':K.fine?'Turn the crank in circles with the mouse (or hold Space). Keep an even, steady pace so the coils sit tight.':'Turn the crank by drawing circles with your finger. Keep an even, steady pace so the coils sit tight.',hint:'Steady circles: not too fast, not too slow.',st,
-    update(dt,I){st.t+=dt;if(!wind)wind=MS.loop('bandpass',900,3);if(st.end){st.end+=dt;wind.set(0);if(st.end>.6){st.done=true;st.score=M4.cl(st.ok/Math.max(1,st.coils.length),0,1);}return;}
+    update(dt,I){st.t+=dt;if(!wind){/* (t376) what is being turned decides the sound: wire on the rod, a pestle in the mortar, a quern, straw, a braid on the floor, cream in a churn, a press */const L6=sp.look;wind=L6==='mortar'?MSX.loop('pestle',{type:'lowpass',f:2400}):L6==='quern'?MSX.loop('quern'):L6==='straw'?MSX.loop('straw'):L6==='rug'?MSX.loop('cloth'):L6==='churn'?MSX.loop('slosh'):L6==='press'?MSX.fric({f:110,bp:520,q:3,g:1.2,wob:.12}):MSX.loop('wire',{type:'bandpass',f:3200,q:1.2});if(L6==='press')wet=MSX.loop('trickle');}if(st.end){st.end+=dt;wind.set(0);wet&&wet.set(0);if(st.end>.6){st.done=true;st.score=M4.cl(st.ok/Math.max(1,st.coils.length),0,1);}return;}
       let da=0;const ccx=sp.look?160:CXk,ccy=sp.look?96:CYk;if(I.key&&I.down)da=dt*6.2;else if(I.down){const a=Math.atan2(I.y-ccy,I.x-ccx);if(st.last!=null){let d=a-st.last;if(d>Math.PI)d-=Math.PI*2;if(d<-Math.PI)d+=Math.PI*2;da=Math.max(0,d);}st.last=a;}else st.last=null;
-      {const q0=Math.floor(st.ang/(Math.PI/2));st.ang+=da;if(Math.floor(st.ang/(Math.PI/2))!==q0&&!sp.look)MS.ratchet();}st.spd+=(da/dt-st.spd)*Math.min(1,dt*5);wind.set(da>0?Math.min(.1,st.spd*.012):0,500+st.spd*80,3);
-      while(st.ang>=Math.PI*2){st.ang-=Math.PI*2;const s=st.spd;const ok=s>3.2&&s<9.5;st.coils.push(ok?1:s>=9.5?2:0);if(ok)st.ok++;A.tone(ok?900:600,.04,'triangle',.05);if(!ok)K.judge(.25,RX+st.coils.length*6,RY-24,true);else if(st.coils.length%4===0)K.judge(1,RX+st.coils.length*6,RY-24,true);}
+      {const q0=Math.floor(st.ang/(Math.PI/2));st.ang+=da;const q1=Math.floor(st.ang/(Math.PI/2));if(q1!==q0){if(!sp.look)MSX.play('ratchet',null,{g:.7});else if(sp.look==='quern'&&q1%2===0)MSX.play('knock','oak',{g:.5});}}st.spd+=(da/dt-st.spd)*Math.min(1,dt*5);{const v6=da>0?Math.min(1.2,st.spd/7):0,L6=sp.look,pr=Math.min(1,st.coils.length/N);if(L6==='press'){wind.set(v6*.9,pr);wet.set((.24+1.4*pr)*(v6>0?1:.4),1);}else wind.set(v6*(L6==='churn'?2:L6==='rug'?.53:L6==='straw'?.86:L6==='mortar'?.87:L6==='quern'?1.04:.115),.65+v6*.5,L6==='mortar'?1400+v6*1600:L6?0:2600+v6*1200);}
+      while(st.ang>=Math.PI*2){st.ang-=Math.PI*2;const s=st.spd;const ok=s>3.2&&s<9.5;st.coils.push(ok?1:s>=9.5?2:0);if(ok)st.ok++;{const L6=sp.look;if(!L6)MSX.play('coil',null,{r:ok?1:.8});else if(L6==='mortar')MSX.play('crush');else if(L6==='churn')MSX.play('pat',null,{g:.8});else if(L6==='rug')MSX.play('pat',null,{g:.5});else if(L6==='press')MSX.play('creak',null,{g:.7});}if(!ok)K.judge(.25,RX+st.coils.length*6,RY-24,true);else if(st.coils.length%4===0)K.judge(1,RX+st.coils.length*6,RY-24,true);}
       if(st.coils.length>=N){st.end=.001;MS.good();}},
     draw(t){const I=CA_P.iron,look=sp.look;
       if(look){const n=st.coils.length,cx=160,cy=96;
@@ -246,14 +249,14 @@ S4.crank=(sp,K)=>{const g=K.g,RX=128,RY=100,RL=112,CXk=262,CYk=100,CR=16,N=sp.n|
       g.strokeStyle='rgba(255,244,192,.25)';g.lineWidth=1;g.beginPath();g.arc(CXk,CYk,CR,0,6.29);g.stroke();},
     hud(t){K.label('PACE',156,24,'#f4ecd8','r');K.gauge(162,24,90,6,3.2/12,9.5/12,Math.min(12,st.spd)/12);K.meter(st.coils.length/N,st.coils.length?st.ok/st.coils.length:1);},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(this._a==null)this._a=0;if(st.t>.4){this._a+=dt*6.2;const ccx=sp.look?160:CXk,ccy=sp.look?96:CYk;m4move(a,ccx+Math.cos(this._a)*CR*2,ccy+Math.sin(this._a)*CR*2);m4hold(a,true);}AP.hand=[a.x+2,a.y-10];AP.press=a.down;},
-    quiet(){wind&&wind.set(0);},stop(){wind&&wind.stop();wind=null;}};};
+    quiet(){wind&&wind.set(0);wet&&wet.set(0);},stop(){wind&&wind.stop();wet&&wet.stop();wind=wet=null;}};};
 // ---------------------------------------------------------------- LINKS: the pliers squeeze each open ring shut; tap when the two ends meet for a closed, seamless link
 S4.links=(sp,K)=>{const g=K.g,N=sp.n||8,COLS=8;const st={i:0,ph:0,sp:2.2,done_:[],t:0,end:0,close:0};
   const ringAt=i=>{const r=(i/COLS)|0,c=i%COLS;return [128+c*12+(r%2)*6,92+r*10];};
   return {title:sp.t||'Close the rings',how:'Each new ring hangs open while the pliers wobble its ends together and apart. Tap when the ends meet to close it seamlessly.',hint:'Tap when the two ends touch.',st,
     update(dt,I){st.t+=dt;if(st.end){st.end+=dt;if(st.end>.6){st.done=true;st.score=M4.avg(st.done_);}return;}
-      if(st.close>0){st.close+=dt/.25;if(st.close>=1){st.close=0;st.i++;st.ph=Math.random()*6;st.sp=2.2+st.i*.18;if(st.i>=N){st.end=.001;MS.good();}}return;}
-      st.ph+=dt*st.sp;if(I.pressed){const gap=Math.abs(Math.sin(st.ph))*6;const q=M4.q(gap,.9,2,3.4);st.done_.push(q);st.gap=gap;st.close=.001;K.judge(q,ringAt(st.i)[0],ringAt(st.i)[1]-18,true);if(q<.3)MS.miss();MS.tink(.7);A.tone(2200,.04,'square',.02);}},
+      if(st.close>0){st.close+=dt/.25;if(st.close>=1){st.close=0;MSX.play('pliers');MSX.play('mail',null,{dl:.05,g:.7,pri:0});st.i++;st.ph=Math.random()*6;st.sp=2.2+st.i*.18;if(st.i>=N){st.end=.001;MS.good();}}return;}
+      st.ph+=dt*st.sp;if(I.pressed){const gap=Math.abs(Math.sin(st.ph))*6;const q=M4.q(gap,.9,2,3.4);st.done_.push(q);st.gap=gap;st.close=.001;K.judge(q,ringAt(st.i)[0],ringAt(st.i)[1]-18,true);if(q<.3)MS.miss();MSX.play('grip');}},
     draw(t){const Lt=CA_P.leather,O=CA_P.oak;K.px(100,128,170,12,O[3]);K.px(100,128,170,2,O[5]);K.px(100,139,170,1,O[1]);
       K.px(111,79,148,52,'#140a04');K.px(112,80,146,50,Lt[2]);K.px(112,80,146,1,Lt[4]);K.px(112,80,1,50,Lt[3]);K.px(112,129,146,1,Lt[1]);K.px(257,80,1,50,Lt[1]);
       for(let x=116;x<254;x+=5){K.px(x,83,2,1,Lt[4]);K.px(x,126,2,1,Lt[1]);}for(let y=86;y<125;y+=5){K.px(115,y,1,2,Lt[4]);K.px(254,y,1,2,Lt[1]);}

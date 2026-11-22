@@ -26,12 +26,12 @@ const m4tap=a=>{if(a.down)return;a.down=true;a.pressed=true;a.tapT=.09;};
    it falls faster and faster and lands on the work at hitT, stays on it a beat (hold), then bounces up off it and settles back to
    its raised rest with a small overshoot (rk < 1: a heavy tool comes back up slower). Returns how far up the tool is: 1 raised at
    rest, 0 on the work. go = a blow starts now */
-const m3blow=(o,dt,go,hitT,hold,rest,rk)=>{rest=rest==null?1:rest;rk=rk||1;if(o.L==null){o.L=rest;o.p=-1;o.t=0;}o.t+=dt;
-  if(go){o.p=0;o.L0=Math.max(o.L,.35);}
+const m3blow=(o,dt,go,hitT,hold,rest,rk)=>{rest=rest==null?1:rest;rk=rk||1;if(o.L==null){o.L=rest;o.p=-1;o.t=0;}o.t+=dt;o.land=0;
+  if(go){o.p=0;o.L0=Math.max(o.L,.35);o.lnd=0;}
   if(o.p>=0){o.p+=dt;const p=o.p;
     if(p<hitT){const u=p/hitT;o.L=o.L0*(1-Math.pow(u,2.2))+(u<.35?.06*Math.sin(u/.35*Math.PI):0);}
-    else if(p<hitT+hold)o.L=0;
-    else{const v=(p-hitT-hold)*rk;o.L=rest-rest*Math.exp(-v*7)*Math.cos(v*11);if(v>.7){o.p=-1;o.L=rest;}}}
+    else if(p<hitT+hold){o.L=0;if(!o.lnd)o.lnd=o.land=1;}
+    else{if(!o.lnd)o.lnd=o.land=1;const v=(p-hitT-hold)*rk;o.L=rest-rest*Math.exp(-v*7)*Math.cos(v*11);if(v>.7){o.p=-1;o.L=rest;}}}
   else o.L=rest+Math.sin(o.t*3.2)*.025;
   return o.L;};
 /* (t300) 1 on the frames a blow rests on the work (for a squash, a shake, a flash), else 0 */
@@ -269,20 +269,21 @@ S4.saw=(sp,K)=>{const g=K.g,X0=44,X1=292,TOP=96,FR=106,BOT=114,CX=sp.cx||232,N=s
   const st={d:0,n:0,q:[],drift:0,sp:-1,last:-9,next:1e9,bind:0,t:0,fall:null,dust:0,end:0,bounces:0,idle:0};
   const sound={rasp:null};
   const stroke=()=>{if(st.fall)return;const iv=st.t-st.last;let q;
-    if(st.n===0)q=1;else if(iv<TEMPO*.5){q=.1;st.bind=.28;K.shk=.12;A.tone(1700,.14,'sawtooth',.035,{slide:1250,filter:['bandpass',1800,6]});}
+    if(st.n===0)q=1;else if(iv<TEMPO*.5){q=.1;st.bind=.28;K.shk=.12;MSX.play('bind');}
     else q=M4.q(Math.abs(iv-TEMPO),.1,.2,.32);
-    st.last=st.t;st.next=st.t+TEMPO;st.sp=0;MS.saw(1,q<.3?.6:1);st.idle=0;
+    st.last=st.t;st.next=st.t+TEMPO;st.sp=0;st.sq6=q<.3?.6:1;st.idle=0;
     if(st.n>0){st.q.push(q);K.judge(q,CX,TOP-48,true);if(q>=.95)K.emit(CX,TOP-26,5,{c:['#fff4c0','#ffd27a'],v:50,g:40,life:.45});else if(q<.3)MS.miss();}
     st.n++;st.d=Math.min(1,st.d+(st.n===1?.55:q>=.95?1.15:q>=.6?1:q>=.3?.78:.4)/N);
     if(q<.6&&st.n>1)st.drift+=(Math.random()<.5?-1:1)*(.85-q)*1.3;else st.drift*=.8;
     const kx=CX+st.drift*st.d;K.emit(kx,FR+st.d*8,7,{c:['#f6e2b4','#e8c890','#c8a070'],v:36,ang:Math.PI/2,spread:1.6,g:340,life:.9});st.dust+=3;
-    if(st.d>=1){st.fall={x:CX,y:TOP,vx:18,vy:-24,a:0,va:2.1};MS.crunch();setTimeout(()=>MS.crunch(),60);}};
+    if(st.d>=1){st.fall={x:CX,y:TOP,vx:18,vy:-24,a:0,va:2.1};MSX.play('splinter');MSX.play('splinter',null,{dl:.06,g:.7});}};
   return {title:sp.t||'Saw it to length',how:'Tap in time with the ring: one smooth stroke per beat. Rushing binds the saw.',hint:'Tap when the ring closes. Steady strokes cut straight.',st,
     update(dt,I){st.t+=dt;st.idle+=dt;if(st.bind>0)st.bind-=dt;
-      if(st.sp>=0){const p=st.sp;st.sp+=dt/(TEMPO*.68);if(p<.5&&st.sp>=.5)MS.saw(-1,.55);if(st.sp>=1)st.sp=-1;}
+      if(st.sp>=0){st.sp+=dt/(TEMPO*.68);if(st.sp>=1)st.sp=-1;}
+      /* (t376) one rasp that follows the blade's speed through the stroke (the push bites harder than the return), duller as the cut deepens */{if(!st.r6)st.r6=MSX.loop('rasp',{type:'lowpass',f:5200});const u=st.sp,vb=u>=0&&!st.fall?Math.abs(Math.cos(Math.PI*Math.min(1,u))):0,push=u>=0&&u<.5;st.r6.set(vb*(push?.85:.5)*(st.sq6||1)*(st.bind>0?1.3:1),.62+vb*.55,5400-st.d*2600-(push?0:900));}
       if(st.fall){const f=st.fall;f.vy+=620*dt;f.x+=f.vx*dt;f.y+=f.vy*dt;f.a+=f.va*dt;const low=f.y+Math.sin(Math.abs(f.a))*(X1-CX)+18;
-        if(low>176&&f.vy>0){f.y-=low-176;if(st.bounces<1){f.vy*=-.3;f.va=-2.4;f.vx*=.5;st.bounces++;MS.thunk();K.emit(f.x+30,176,10,{c:['#c8a070','#8a6a48'],v:50,spread:2.6,g:200,life:.6});K.shk=.12;}else{f.vy=0;f.vx=0;}}
-        if(st.bounces>=1&&!f.flat){if(f.a<=.02){f.a=0;f.va=0;f.flat=1;f.y=176-18;MS.thunk();A.hiss(.12,.2,'lowpass',500);K.emit(f.x+30,176,12,{c:['#d8b888','#a88858'],v:60,spread:2.8,g:200,life:.6});K.shk=.15;}}
+        if(low>176&&f.vy>0){f.y-=low-176;if(st.bounces<1){f.vy*=-.3;f.va=-2.4;f.vx*=.5;st.bounces++;MSX.play('block','drop',{g:.45});K.emit(f.x+30,176,10,{c:['#c8a070','#8a6a48'],v:50,spread:2.6,g:200,life:.6});K.shk=.12;}else{f.vy=0;f.vx=0;}}
+        if(st.bounces>=1&&!f.flat){if(f.a<=.02){f.a=0;f.va=0;f.flat=1;f.y=176-18;MSX.play('block','flat',{g:.45});K.emit(f.x+30,176,12,{c:['#d8b888','#a88858'],v:60,spread:2.8,g:200,life:.6});K.shk=.15;}}
         if(f.flat){f.a=0;f.va=0;f.y=176-18;}
         st.end+=dt;if(st.end>1.3){st.done=true;st.score=.72*M4.avg(st.q)+.28*(1-Math.min(1,Math.abs(st.drift)/5));}return;}
       if(I.pressed)stroke();},
@@ -304,7 +305,7 @@ S4.saw=(sp,K)=>{const g=K.g,X0=44,X1=292,TOP=96,FR=106,BOT=114,CX=sp.cx||232,N=s
       if(st.n===0)K.label('TAP',cx,cy-3,'#ffd27a');K.meter(st.d,M4.avg(st.q)||1);
       if(st.idle>2.2&&st.n>0&&Math.floor(t*3)%2)K.label('KEEP SAWING',160,24,'#ffd27a');},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(!st.fall&&((st.n===0&&st.t>.6)||(st.n>0&&st.t>=st.next-.012)))m4tap(a);AP.hand=[CX+6,TOP+2];AP.press=a.down;},
-    quiet(){},stop(){}};};
+    quiet(){st.r6&&st.r6.set(0);},stop(){st.r6&&st.r6.stop();st.r6=null;}};};
 // ---------------------------------------------------------------- PLANE: hold to push; keep the speed even and the shaving comes off in one long curl
 S4.plane=(sp,K)=>{const g=K.g,X0=34,X1=286,TOP=90,FR=102,LO=sp.lo||52,HI=sp.hi||94,VMAX=160,CELL=2,NC=(X1-X0)/CELL,P=sp.wood||CA_P.oak;
   const board=m4board(X1-X0,12,8,P,sp.seed||7),plane=M4S.plane();
@@ -316,9 +317,9 @@ S4.plane=(sp,K)=>{const g=K.g,X0=34,X1=286,TOP=90,FR=102,LO=sp.lo||52,HI=sp.hi||
     if(lv===0){k.pa(0,0,W_,12,'#ffe8b8',.2);k.pa(0,1,W_,1,'#fff8e8',.4);k.pa(0,2,W_,1,'#fff6e0',.3);k.pa(0,7,W_,1,'#fff6e0',.12);}
     if(lv==='T'){k.pa(0,0,W_,12,'#2e2a2c',.4);for(let i=0;i<W_/4;i++){const x=(H(i,7,8)*W_)|0,y=2+((H(i,8,8)*9)|0),l=3+((H(i,9,8)*5)|0);k.pa(x,y,Math.min(l,W_-x),1,'#1a0e06',.62);k.pa(x+1,y-1,Math.max(1,Math.min(l-2,W_-x-1)),1,'#e8d4b0',.4);}}});
   const st={x:X0-28,v:0,pass:0,mode:'wait',lift:0,r:new Array(NC).fill(sp.rough||2),torn:new Array(NC).fill(0),inb:[],ok:0,cnt:0,rib:0,curls:[],chat:0,t:0,end:0,bx:-1};
-  let loop=null;const L=()=>loop||(loop=MS.loop('bandpass',3000,.9));
+  let loop=null;const L=()=>loop||(loop=MSX.loop('shave',{type:'bandpass',f:4200,q:.6}));
   const smooth=()=>M4.avg(st.r.map((r,i)=>st.torn[i]?.3:r===0?1:r===1?.5:0));
-  const breakRib=(x,y)=>{if(st.rib>6)st.curls.push({x,y,r:Math.min(8,2+st.rib*.03),vy:-30,vx:-20+Math.random()*30,a:0,rest:false,land:112+Math.random()*4});st.rib=0;};
+  const breakRib=(x,y)=>{if(st.rib>6)MSX.play('curl',null,{g:.6,pri:0});if(st.rib>6)st.curls.push({x,y,r:Math.min(8,2+st.rib*.03),vy:-30,vx:-20+Math.random()*30,a:0,rest:false,land:112+Math.random()*4});st.rib=0;};
   return {title:sp.t||'Plane it smooth',how:'Hold to push the plane along the board. Keep the speed in the green: too fast and it chatters and tears the wood.',hint:'Hold to push. Keep the needle in the green.',st,
     update(dt,I){st.t+=dt;const bx=st.x+20;
       if(st.mode==='wait'){if(I.down){st.mode='push';st.cnt=0;st.ok=0;}}
@@ -328,12 +329,12 @@ S4.plane=(sp,K)=>{const g=K.g,X0=34,X1=286,TOP=90,FR=102,LO=sp.lo||52,HI=sp.hi||
           if(inb){st.r[c]=Math.max(0,st.r[c]-1);st.torn[c]=0;st.ok++;st.rib+=CELL;}
           else if(fast){st.torn[c]=1;st.r[c]=Math.max(0,st.r[c]-1);if(st.rib)breakRib(nb,TOP);if(Math.random()<.5)K.emit(nb,TOP+4,2,{c:['#e8c890','#b48a5a'],v:70,ang:-Math.PI*.7,spread:1,g:300,life:.5});}
           else if(st.v>4&&st.rib)breakRib(nb,TOP);}
-        if(fast){st.chat+=dt;if(st.chat>.05){st.chat=0;MS.knock();}}
-        L().set(st.v>3&&nb>X0&&nb<X1?(.05+.11*Math.min(1,st.v/HI))*(fast?1.2:1):0,2400+st.v*14,fast?4:.9);
-        if(nb>=X1+2){if(st.rib)breakRib(X1,TOP);st.inb.push(st.cnt?st.ok/st.cnt:0);st.pass++;st.mode='lift';st.lift=0;st.lx=st.x;MS.whoosh();L().set(0);
+        if(fast){st.chat+=dt;if(st.chat>.05){st.chat=0;MSX.play('chatter');}}
+        /* (t376) the iron lifting a shaving: louder, faster and brighter with the plane's speed */L().set(st.v>3&&nb>X0&&nb<X1?(.06+.2*Math.min(1,st.v/HI))*(fast?1.15:1):0,.7+.5*Math.min(1.3,st.v/HI),2600+st.v*20,fast?1.6:.6);
+        if(nb>=X1+2){if(st.rib)breakRib(X1,TOP);st.inb.push(st.cnt?st.ok/st.cnt:0);st.pass++;st.mode='lift';st.lift=0;st.lx=st.x;L().set(0);
           const p=st.inb[st.inb.length-1];K.judge(p>.9?1:p>.7?.75:p>.4?.45:.15,X1-30,TOP-26);}}
       else if(loop)loop.set(0);
-      if(st.mode==='lift'){st.lift+=dt/.8;st.x=st.lx+(X0-28-st.lx)*Math.min(1,st.lift);st.v=0;if(st.lift>=1){st.mode=(st.pass>=(sp.passes||3)||smooth()>.98)?'end':'wait';}}
+      if(st.mode==='lift'){st.lift+=dt/.8;st.x=st.lx+(X0-28-st.lx)*Math.min(1,st.lift);st.v=0;if(st.lift>=1){MSX.play('setdown');st.mode=(st.pass>=(sp.passes||3)||smooth()>.98)?'end':'wait';}}
       if(st.mode==='end'){st.end+=dt;if(st.end>.5){st.done=true;st.score=.65*smooth()+.35*M4.avg(st.inb);}}
       for(const c of st.curls){if(c.rest)continue;c.vy+=400*dt;c.x+=c.vx*dt;c.y+=c.vy*dt;c.a+=dt*8;if(c.y>c.land){c.y=c.land;c.rest=true;}}},
     draw(t){g.drawImage(board,X0-1,TOP-1);
@@ -357,15 +358,16 @@ S4.hammer=(sp,K,run,def)=>{const WS=(sp.scene||(def&&def.scene))==='workshop';co
   const nails=[];for(let i=0;i<N;i++){const x=Math.round(X0+18+(X1-X0-36)*(N>1?i/(N-1):.5));const edge=sp.edge&&(i===0||i===N-1);nails.push({x,h:H0,vh:H0,bent:0,sc:1,hits:0,split:0,edge,lo:edge?.34:.55,hi:edge?.58:.82});}
   const st={i:0,p:0,ph:'ready',sw:0,from:0,hx:nails[0].x,t:0,end:0,ang:.25,av:0,kick:0,rk:4,move:0,straight:0};
   const nailTop=n=>TOP+6-n.vh;const HPX=47,HPY=12,HFACE=11;
+  /* (t376) what the hammer meets decides the blow: a nail (higher as less of it stands free), a flush head on the wood, a rivet */const hit6=pw=>{const n=nails[st.i];if(RIV)MSX.play('rivet',MP?(sp.metal==='brass'?'brass':'iron'):'leather',{g:(.6+.6*pw)*(MP?(sp.metal==='brass'?.52:.7):3.2)});else MSX.play('nail','d'+Math.min(3,Math.floor((1-n.h/H0)*4)),{g:.55+.6*pw});};
   const strike=()=>{const n=nails[st.i],p=st.p,mid=(n.lo+n.hi)/2,half=(n.hi-n.lo)/2;let q,sink;n.hits++;
-    if(p<n.lo){sink=H0*(.1+.12*p/n.lo);q=p<n.lo-.2?.15:.45;MS.hammer(RIV?(MP?'metal':'leather'):'wood',.25,q);st.rk=2.6;}
-    else if(p<=n.hi){const c=1-Math.abs(p-mid)/half;sink=H0*(.46+.16*c);q=c>.55?1:.75;MS.hammer(RIV?(MP?'metal':'leather'):'wood',.6+p*.4,q);st.rk=4.2;K.emit(n.x,nailTop(n)-1,4,{c:['#fff4c0','#ffd27a'],v:60,g:150,life:.3});}
-    else if(n.edge){n.split=1;sink=H0*.6;q=.15;MS.hammer('wood',1,.1);MS.split();K.shk=.2;st.rk=5.5;}
-    else{n.bent=1;sink=H0*.15;q=.15;MS.hammer(RIV?(MP?'metal':'leather'):'wood',1,.1);MS.bend();st.straight=.6;st.rk=6.5;}
+    if(p<n.lo){sink=H0*(.1+.12*p/n.lo);q=p<n.lo-.2?.15:.45;st.pw6=.25;st.rk=2.6;}
+    else if(p<=n.hi){const c=1-Math.abs(p-mid)/half;sink=H0*(.46+.16*c);q=c>.55?1:.75;st.pw6=.6+p*.4;st.rk=4.2;K.emit(n.x,nailTop(n)-1,4,{c:['#fff4c0','#ffd27a'],v:60,g:150,life:.3});}
+    else if(n.edge){n.split=1;sink=H0*.6;q=.15;st.pw6=1;MSX.play('split');K.shk=.2;st.rk=5.5;}
+    else{n.bent=1;sink=H0*.15;q=.15;st.pw6=1;MSX.play('bend');st.straight=.6;st.rk=6.5;}
     st.showP=p;st.showT=.7;st.showQ=q;n.h=Math.max(0,n.h-sink);st.hold=.16;n.sc=Math.max(0,n.sc-(q>=.95?0:q>=.6?.06:q>=.3?.16:.3));K.judge(q,n.x-48,TOP-36,true);if(q>=.95)K.flash=.12;if(q<.3)MS.miss();K.shk=Math.max(K.shk,.1);
     // chips that read as chips: little 2 px splinters kicked off to both sides, and a puff of dust
     K.emit(n.x,TOP+5,RIV?3:5,{c:RIV&&MP?['#fff4c0','#ffd27a']:['#e8c890','#c8a070','#8a6a48'],v:55,ang:-Math.PI/2,spread:2.6,g:320,life:.45,sz:2});K.emit(n.x,TOP+6,3,{c:['#6a5a48','#4a3e32'],v:14,g:-20,life:.6,sz:3,kind:'smoke'});
-    if(n.h<=.6){n.h=0;MS.seat();K.emit(n.x,TOP+6,8,{c:['#d8b888','#a88858'],v:45,spread:3,g:220,life:.5});if(st.i<N-1){st.move=.001;}else st.ph='end';}};
+    if(n.h>.6)hit6(st.pw6);if(n.h<=.6){n.h=0;if(RIV)hit6(st.pw6*.8);else MSX.play('seat',null,{g:.7+.4*st.pw6});K.emit(n.x,TOP+6,8,{c:['#d8b888','#a88858'],v:45,spread:3,g:220,life:.5});if(st.i<N-1){st.move=.001;}else st.ph='end';}};
   return {title:sp.t||(RIV?'Set the rivets':'Nail it together'),how:'Hold to raise the hammer, let go to strike. Stop in the green: too hard bends the nail, and near the edge it splits the wood.',hint:'Hold, then let go in the green. Edge nails want less.',st,
     update(dt,I){st.t+=dt;const n=nails[st.i];
       // (t363) a damped spring: the hammer lags a touch behind your hold, overshoots a little and settles, never snaps
@@ -373,12 +375,12 @@ S4.hammer=(sp,K,run,def)=>{const WS=(sp.scene||(def&&def.scene))==='workshop';co
       if(st.kick>0)st.kick=Math.max(0,st.kick-dt*7);for(const q of nails)q.vh+=(q.h-q.vh)*Math.min(1,dt*28);
       const rest=()=>{st.hold-=dt;st.ang=0;st.av=0;if(st.hold<=0)st.av=st.rk;};
       if(st.move>0){if(st.hold>0){rest();return;}st.move+=dt/.4;const nx=nails[Math.min(N-1,st.i+1)].x;st.hx+=(nx-st.hx)*Math.min(1,dt*10);spring(.4,300,.75);if(st.move>=1){st.i++;st.move=0;st.hx=nails[st.i].x;st.ph='ready';}return;}
-      if(st.straight>0){if(st.hold>0){rest();return;}st.straight-=dt;spring(.25,500,.5);if(st.straight<=0){n.bent=0;MS.unbend();}return;}
+      if(st.straight>0){if(st.hold>0){rest();return;}st.straight-=dt;spring(.25,500,.5);if(st.straight<=0){n.bent=0;MSX.play('tap2');}return;}
       if(st.ph==='end'){st.end+=dt;if(st.hold>0)rest();else spring(.25,500,.5);if(st.end>.7){st.done=true;st.score=M4.avg(nails.map(n=>n.sc));}return;}
       if(st.ph==='ready'){if(st.hold>0){st.hold-=dt;st.ang=0;st.av=0;if(st.hold<=0)st.av=st.rk;}else spring(.25,500,.5);if(I.pressed||(I.down&&!st.wasDown)){st.ph='raise';st.p=0;if(st.hold>0){st.hold=0;st.av=st.rk*.5;}}}
-      if(st.ph==='raise'){if(I.down){st.p=Math.min(1,st.p+dt/.85);const e=1-(1-st.p)*(1-st.p);spring(.25+e*1.25+(st.p>=1?Math.sin(st.t*40)*.03:0),900,.85);if(st.p>=1&&!st.full){st.full=1;MS.creak();}}
+      if(st.ph==='raise'){if(I.down){st.p=Math.min(1,st.p+dt/.85);const e=1-(1-st.p)*(1-st.p);spring(.25+e*1.25+(st.p>=1?Math.sin(st.t*40)*.03:0),900,.85);if(st.p>=1&&!st.full){st.full=1;}}
         else{st.ph='cock';st.ck=0;st.from=Math.max(st.ang,.32);st.full=0;}}
-      if(st.ph==='cock'){st.ck+=dt/.075;const u=Math.min(1,st.ck);st.ang=st.from+(.3+.3*st.p)*(1-(1-u)*(1-u));st.av=0;if(st.ck>=1){st.ph='swing';st.sw=0;st.from=st.ang;MS.swish(st.p);}}
+      if(st.ph==='cock'){st.ck+=dt/.075;const u=Math.min(1,st.ck);st.ang=st.from+(.3+.3*st.p)*(1-(1-u)*(1-u));st.av=0;if(st.ck>=1){st.ph='swing';st.sw=0;st.from=st.ang;MSX.play('swish',st.p>.7?2:st.p>.4?1:0,{g:.7,pri:0});}}
       if(st.ph==='swing'){st.sw+=dt/.085;const u=Math.min(1,st.sw);st.ang=st.from*(1-u*u);st.av=0;if(st.sw>=1){st.ang=0;strike();st.av=st.rk;st.kick=1;if(st.ph==='swing')st.ph='ready';}}
       st.wasDown=I.down;},
     draw(t){if(WS&&MG4ART.cache&&MG4ART.cache.workshop)g.drawImage(MG4ART.cache.workshop,112,16,16,30,91,16,16,30);
@@ -418,6 +420,7 @@ S4.brush=(sp,K)=>{const g=K.g,BX=50,BY=64,BW=212,BH=44,CS=4,GW=BW/CS,GH=BH/CS,P=
   const stain=document.createElement('canvas');stain.width=BW;stain.height=BH;const sg=stain.getContext('2d');
   const cov=new Float32Array(GW*GH),cross=new Uint8Array(GW*GH),brush=M4S.brush(),tin=M4S.tin();const TX=284,TY=116;const BR=[.2,.9,.5,1,.3,.8,.6,.1,.95,.4,.7,.25,.85,.55,.15,.65];
   const st={bx:200,by:BY+20,lx:200,ly:BY+20,load:1,still:0,pools:0,t:0,end:0,wet:[],dip:0,path:null,pi:0,ang:0,sc:stain,cov,seedK:0};
+  const dip6=()=>{st.dip=.35;MSX.play(WAX?'waxload':'dip');};
   const covered=()=>{let n=0;for(let i=0;i<cov.length;i++)if(cov[i]>=.6)n++;return n/cov.length;};
   const stamp=(x,y,horiz)=>{const lx=x-BX,ly=y-BY;if(lx<-2||ly<-7||lx>BW+2||ly>BH+7)return;const L=st.load;if(L<=.02)return;
     const fw=4,fh=14;sg.fillStyle=COL;const y0=Math.round(ly-fh/2),x0=Math.round(lx-fw/2);
@@ -430,19 +433,19 @@ S4.brush=(sp,K)=>{const g=K.g,BX=50,BY=64,BW=212,BH=44,CS=4,GW=BW/CS,GH=BH/CS,P=
   const plan=()=>{const P_=[];for(let r=0;r<4;r++){const y=BY+6+r*10.7;const L2R=r%2===0;P_.push({x:L2R?BX-4:BX+BW+4,y,up:true},{x:L2R?BX+BW+4:BX-4,y,up:false});}return P_;};
   return {title:sp.t||'Brush on the finish',how:WAX?'Rub the wax along the weave (side to side) to cover the canvas. Rub it on the cake again when it wears thin, and keep it moving.':'Drag the brush along the grain (side to side) to cover the wood. Dip it in the tin when it runs dry, and keep it moving or it pools.',hint:'Drag along the grain. Dip when dry. Keep moving.',st,
     update(dt,I,t){st.t+=dt;const auto=I.key||I.demo&&this._auto;
-      if(st.dip>0){st.dip-=dt;if(st.dip<=0){st.load=1;MS.drip();setTimeout(()=>MS.drip(),90);}}
+      if(st.dip>0){st.dip-=dt;if(st.dip<=0){st.load=1;if(!WAX){MSX.play('drip',null,{g:.4});MSX.play('drip',null,{dl:.09,g:.3});}}}
       let tx=I.x,ty=I.y,down=I.down;
       if(I.key){if(!st.path){st.path=plan();st.pi=0;}down=false;if(I.down){const tg=st.load<.3&&st.dip<=0?{x:TX,y:TY-10,up:true,dip:1}:st.path[st.pi%st.path.length];const d=Math.hypot(tg.x-st.bx,tg.y-st.by),spd=150*dt;
-          if(d<=spd){st.bx=tg.x;st.by=tg.y;if(tg.dip){st.dip=.35;}else st.pi++;}else{st.bx+=(tg.x-st.bx)/d*spd;st.by+=(tg.y-st.by)/d*spd;}down=!tg.up&&!tg.dip;tx=st.bx;ty=st.by;}else{tx=st.bx;ty=st.by;}}
+          if(d<=spd){st.bx=tg.x;st.by=tg.y;if(tg.dip){dip6();}else st.pi++;}else{st.bx+=(tg.x-st.bx)/d*spd;st.by+=(tg.y-st.by)/d*spd;}down=!tg.up&&!tg.dip;tx=st.bx;ty=st.by;}else{tx=st.bx;ty=st.by;}}
       else{st.bx+=(tx-st.bx)*Math.min(1,dt*22);st.by+=(ty-st.by)*Math.min(1,dt*22);}
       const dx=st.bx-st.lx,dy=st.by-st.ly,dist=Math.hypot(dx,dy);st.ang+=((M4.cl(dx*.25,-.5,.5))-st.ang)*Math.min(1,dt*10);
-      if(down&&Math.hypot(st.bx-TX,st.by-(TY-8))<16&&st.dip<=0&&st.load<.95){st.dip=.35;}
+      if(down&&Math.hypot(st.bx-TX,st.by-(TY-8))<16&&st.dip<=0&&st.load<.95){dip6();}
       const onB=st.bx>BX-3&&st.bx<BX+BW+3&&st.by>BY-4&&st.by<BY+BH+4;
       if(down&&!st.wasD)st.seedK=(Math.random()*16)|0;st.wasD=down;
       if(down&&onB&&st.dip<=0){const n=Math.max(1,Math.ceil(dist/2));const horiz=Math.abs(dx)>=Math.abs(dy)*.8||dist<.5;for(let k=1;k<=n;k++)stamp(st.lx+dx*k/n,st.ly+dy*k/n,horiz);
-        if(dist/dt<10&&st.load>.25){st.still+=dt;if(st.still>.65){st.pools++;st.still=-.5;sg.globalAlpha=.55;sg.fillStyle=COL;sg.beginPath();sg.ellipse(st.bx-BX,st.by-BY+3,5,3,0,0,6.29);sg.fill();sg.globalAlpha=1;MS.drip();K.judge(.1,st.bx,st.by-16,true);}}else st.still=Math.max(0,st.still-dt);
+        if(dist/dt<10&&st.load>.25){st.still+=dt;if(st.still>.65){st.pools++;st.still=-.5;sg.globalAlpha=.55;sg.fillStyle=COL;sg.beginPath();sg.ellipse(st.bx-BX,st.by-BY+3,5,3,0,0,6.29);sg.fill();sg.globalAlpha=1;MSX.play('drip',null,{g:.5,r:.8});K.judge(.1,st.bx,st.by-16,true);}}else st.still=Math.max(0,st.still-dt);
 }
-      if(!this._snd)this._snd=MS.loop('bandpass',1700,.8);this._snd.set(down&&onB&&st.dip<=0?Math.min(.16,dist/dt/900)*(.4+st.load*.6):0,1300+Math.min(900,dist/dt*4));
+      /* (t376) the bristles on the wood (drier = scratchier and brighter) or the wax dragging on the weave, with the stroke's speed */if(!this._snd)this._snd=WAX?MSX.loop('wax',{type:'lowpass',f:3000}):MSX.loop('bristle',{type:'lowpass',f:4000});{const sp6=Math.min(1.4,dist/Math.max(dt,1e-3)/220),on6=down&&onB&&st.dip<=0;this._snd.set(on6?Math.min(.5,sp6*.24*(WAX?1.6:1))*(WAX?1:.55+.45*(1-st.load*.5)):0,.7+sp6*.4,WAX?2200+sp6*1200:2000+(1-st.load)*3200+sp6*800);}
       st.lx=st.bx;st.ly=st.by;for(let k=st.wet.length-1;k>=0;k--){st.wet[k].t+=dt;if(st.wet[k].t>1.2)st.wet.splice(k,1);}
       const c=covered();if((c>=.97||st.t>(sp.time||20))&&!st.end){st.end=.001;MS.good();}
       if(st.end){st.end+=dt;if(st.end>.6){let m=0,v=0,n=0,xs=0;for(let i=0;i<cov.length;i++){const x=Math.min(2,cov[i]);if(cov[i]>=.6){m+=x;n++;xs+=cross[i];}}m/=Math.max(1,n);for(let i=0;i<cov.length;i++)if(cov[i]>=.6)v+=(Math.min(2,cov[i])-m)**2;v=Math.sqrt(v/Math.max(1,n));
@@ -484,14 +487,15 @@ S4.chop=(sp,K)=>{const g=K.g,KX=152,CY=100,BX0=34,BX1=286,BTOP=96,FEEDX=8;const 
   const st={vi:0,fed:0,cut:3,slices:[],kph:-1,t:0,q:[],n:0,end:0,swap:0,ph:Math.random()*6,wait:0,pile:0};
   const V=()=>list[st.vi];const uk=()=>st.fed-FEEDX;
   const total=list.reduce((a,v)=>a+Math.max(1,Math.floor((v.L-3-v.w0*1.3)/v.w0)),0);
-  const chopNow=()=>{const v=V();if(!v||st.swap)return;const u=st.pu!=null?Math.min(uk(),st.pu):uk();st.pu=null;if(u<=st.cut+.6){MS.knock();return;}const w=u-st.cut;const e=Math.abs(w-v.w0)/v.w0;const q=w<v.w0*.4?.15:M4.q(e,.16,.32,.55);
+  /* (t376) the edge bites into the vegetable (its own crunch) on its way down, and knocks the board on the frame it lands */const bite6=()=>{const v=V();if(!v||st.swap)return;const u=st.pu!=null?Math.min(uk(),st.pu):uk();if(u<=st.cut+.6)return;MSX.play('bite',(sp.veg||['carrot'])[st.vi]);};
+  const chopNow=()=>{const v=V();if(!v||st.swap)return;const u=st.pu!=null?Math.min(uk(),st.pu):uk();st.pu=null;if(u<=st.cut+.6){MSX.play('board','empty');return;}const w=u-st.cut;const e=Math.abs(w-v.w0)/v.w0;const q=w<v.w0*.4?.15:M4.q(e,.16,.32,.55);
     const r=v.R((st.cut+u)/2);st.slices.push({w,r,v,a:0,x:KX-w/2,y:CY,tx:BX0+22+(st.pile%10)*10.5+(Math.random()-.5)*2,ty:CY+3-Math.floor(st.pile/10)*3+(Math.random()-.5),t:0});st.pile++;
-    st.cut=u;st.q.push(q);st.n++;MS.chop();if(v.crunch)MS.crunch();K.judge(q,KX-56,CY-34,true);if(q>=.95)K.emit(KX,CY-6,5,{c:['#fff4c0','#ffd27a'],v:40,g:40,life:.4});else if(q<.3)MS.miss();
+    st.cut=u;st.q.push(q);st.n++;MSX.play('board');K.judge(q,KX-56,CY-34,true);if(q>=.95)K.emit(KX,CY-6,5,{c:['#fff4c0','#ffd27a'],v:40,g:40,life:.4});else if(q<.3)MS.miss();
     K.emit(KX,CY,5,{c:v.flesh,v:46,g:300,life:.5,spread:2.4});
     if(v.L-st.cut<v.w0*1.3){st.swap=.001;}};
   return {title:sp.t||'Chop it evenly',how:'The hand feeds the knife. Tap to chop each time the cut edge reaches the mark, for even slices.',hint:'Chop as the edge meets the mark.',st,
     update(dt,I){st.t+=dt;const v=V();
-      if(st.kph>=0){const p=st.kph;st.kph+=dt/.3;if(p<.14&&st.kph>=.14)chopNow();if(st.kph>=1)st.kph=-1;}
+      if(st.kph>=0){const p=st.kph;st.kph+=dt/.3;if(p<.07&&st.kph>=.07)bite6();if(p<.14&&st.kph>=.14)chopNow();if(st.kph>=1)st.kph=-1;}
       if(st.swap){st.swap+=dt;if(st.swap>.45){st.swap=0;if(st.vi<list.length-1){st.vi++;st.fed=-46;st.cut=3;}else{st.gone=1;st.end=.001;}}}
       else if(v&&!st.end){const base=v.w0/.6;const spd=base*(1+.26*Math.sin(st.t*1.6+st.ph)+.1*Math.sin(st.t*3.4+st.ph*2));if(uk()<st.cut-.5)st.fed+=Math.min(st.cut-uk()+.01,140*dt);else if(uk()-st.cut<v.w0*2.6)st.fed+=Math.max(2,spd)*dt;}
       if(I.pressed&&st.kph<0&&!st.end){st.kph=0;st.pu=uk();}
@@ -532,17 +536,17 @@ S4.chop=(sp,K)=>{const g=K.g,KX=152,CY=100,BX0=34,BX1=286,BTOP=96,FEEDX=8;const 
 // ---------------------------------------------------------------- SIMMER: hold to turn up the fire; the pot answers slowly; keep it in the band, and mind the cold things going in
 S4.simmer=(sp,K)=>{const g=K.g,CX=160,BOT=104,LO=sp.lo||.55,HI=sp.hi||.75,COL=sp.col||['#c8a040','#e8c868'],DUR=sp.dur||7,pot=M4S.pot('i');
   const adds=(sp.adds||[{at:2.6,icon:'turnip'},{at:6,icon:'turnip'}]).map(a=>Object.assign({fall:-1},a));
-  const st={T:.3,f:0,prog:0,inT:0,runT:0,foam:0,overs:0,t:0,end:0,stir:0};let bub=null,fire=null;
-  const L=()=>{if(!bub){bub=MS.loop('lowpass',520,1.2);fire=MS.loop('bandpass',260,.7);}};
+  const st={T:.3,f:0,prog:0,inT:0,runT:0,foam:0,overs:0,t:0,end:0,stir:0};let bub=null,fire=null,boil6=null,stir6=null;
+  const L=()=>{if(!bub){bub=MSX.loop('simmer',{type:'lowpass',f:900});boil6=MSX.loop('boil',{type:'lowpass',f:1200});fire=MSX.loop('hearth',{type:'lowpass',f:900});stir6=MSX.loop('stir');}};
   return {title:sp.t||'Keep it on a simmer',how:'Hold to turn up the fire, let go to ease it. The pot is slow to answer, so think ahead. Keep the heat in the green until it’s cooked.',hint:'Hold for more fire. Keep the heat in the green.',st,
-    update(dt,I){st.t+=dt;L();if(st.end){st.end+=dt;bub.set(.04);fire.set(0);if(st.end>.8){st.done=true;st.score=M4.cl(st.inT/Math.max(1,st.runT)*1.08-st.overs*.18,0,1);}return;}
-      st.runT+=dt;st.f+=((I.down?1:0)-st.f)*Math.min(1,dt*2.6);st.T+=(.4*st.f-.24*(st.T-.12))*dt*(sp.slow||1);
-      for(const a of adds){if(a.fall<0&&st.t>=a.at-.6){a.fall=0;}if(a.fall>=0&&a.fall<1){a.fall+=dt/.6;if(a.fall>=1){st.T-=sp.chill||.14;MS.plop();setTimeout(()=>MS.plop(),70);K.emit(CX-18,74,14,{c:COL,v:80,ang:-Math.PI/2,spread:1.6,g:300,life:.6});}}}
+    update(dt,I){st.t+=dt;L();if(st.end){st.end+=dt;bub.set(.06);boil6.set(0);fire.set(.03);stir6.set(0);if(st.end>.8){st.done=true;st.score=M4.cl(st.inT/Math.max(1,st.runT)*1.08-st.overs*.18,0,1);}return;}
+      st.runT+=dt;if(I.pressed||I.released)MSX.play('damper',null,{g:.6});st.f+=((I.down?1:0)-st.f)*Math.min(1,dt*2.6);st.T+=(.4*st.f-.24*(st.T-.12))*dt*(sp.slow||1);
+      for(const a of adds){if(a.fall<0&&st.t>=a.at-.6){a.fall=0;}if(a.fall>=0&&a.fall<1){a.fall+=dt/.6;if(a.fall>=1){st.T-=sp.chill||.14;MSX.play('plunk',{turnip:'big',pumpkin:'big',fish:'big',corn:'mid',mushroom:'mid',coal:'mid',grapes:'small',hops:'small',barley:'small',tallow:'soft'}[a.icon]||'mid');K.emit(CX-18,74,14,{c:COL,v:80,ang:-Math.PI/2,spread:1.6,g:300,life:.6});}}}
       const inb=st.T>=LO&&st.T<=HI;if(inb){st.inT+=dt;st.prog+=dt/DUR;}else if(st.T>HI)st.prog+=dt/(DUR*2.2);
       if(st.T>HI+.08)st.foam+=(st.T-HI-.04)*2.2*dt;else st.foam=Math.max(0,st.foam-dt*.5);
-      if(st.foam>=1){st.foam=0;st.overs++;st.T-=.18;MS.sizzleHit();MS.steam();K.shk=.25;K.emit(CX,72,24,{c:['#ffffff','#f0e8d8',COL[1]],v:80,spread:3,g:260,life:.9});K.judge(.1,CX,52,true);MS.miss();}
-      st.stir+=dt*(1.5+st.T*2);bub.set(Math.max(0,st.T-.35)*.28,300+st.T*500);fire.set(st.f*.07,200+st.f*200);
-      if(st.T>.42&&Math.random()<dt*(st.T*9)){A.tone(180+Math.random()*260,.06,'sine',.03+st.T*.03,{slide:90});}
+      if(st.foam>=1){st.foam=0;st.overs++;st.T-=.18;MSX.play('boilover');K.shk=.25;K.emit(CX,72,24,{c:['#ffffff','#f0e8d8',COL[1]],v:80,spread:3,g:260,life:.9});K.judge(.1,CX,52,true);MS.miss();}
+      {const s0=st.stir;st.stir+=dt*(1.5+st.T*2);const T=st.T;/* (t376) a few slow blubs at a simmer, a rolling boil above it; the fire roars as the damper opens; the spoon swishes round and knocks the pot once a turn */bub.set(M4.cl((T-.3)*1.2,0,.3)*(T>.8?.5:1),.8+T*.3,500+T*600);boil6.set(M4.cl((T-.6)*.9,0,.32),.8+T*.3,700+T*800);fire.set(.05+st.f*.2,.85+st.f*.3,400+st.f*700);stir6.set(.03+Math.min(.06,T*.06),.7+T*.5);if(Math.floor(st.stir/6.283)!==Math.floor(s0/6.283))MSX.play('spoon',null,{g:.35,pri:0});if(sp.look==='still'&&T>.5&&Math.random()<dt*T*2)MSX.play('drip',null,{g:.4,pri:0,r:1.3});}
+      
       if(st.T>.4&&Math.random()<dt*st.T*14)K.emit(CX-28+Math.random()*56,74,1,{c:['#efe8dc'],v:14,g:-30,life:1.4,sz:3,kind:'steam'});
       if(st.prog>=1||st.runT>(sp.time||17)){st.end=.001;MS.good();}},
     draw(t){const f=st.f,T=st.T;
@@ -572,27 +576,28 @@ S4.simmer=(sp,K)=>{const g=K.g,CX=160,BOT=104,LO=sp.lo||.55,HI=sp.hi||.75,COL=sp
       if(st.T>HI+.08&&Math.floor(t*6)%2)K.label('BOILING OVER',160,24,'#e8542a');K.meter(st.prog,st.runT?st.inT/st.runT:1);
       for(const a of adds)if(a.fall>=0&&a.fall<1)K.label('IN IT GOES',236,44,'#ffd27a');},   /* (round 5) the label stands aside, clear of what drops */
     auto(dt,AP){const a=m4ai(this,AP,dt);const Tp=st.T+(.4*st.f-.24*(st.T-.12))*.75;m4hold(a,Tp<(LO+HI)/2-.02);AP.hand=[124,118];AP.press=a.down;},
-    quiet(){bub&&bub.set(0);fire&&fire.set(0);},stop(){bub&&bub.stop();fire&&fire.stop();bub=fire=null;}};};
+    quiet(){bub&&bub.set(0);fire&&fire.set(0);boil6&&boil6.set(0);stir6&&stir6.set(0);},stop(){bub&&bub.stop();fire&&fire.stop();boil6&&boil6.stop();stir6&&stir6.stop();bub=fire=boil6=stir6=null;}};};
 // ---------------------------------------------------------------- POUR: hold to tilt; the fuller the jug, the sooner it pours; stop at the line (it keeps running a moment after)
 S4.pour=(sp,K)=>{const g=K.g,ves=sp.vessel||'jug',img=ves==='ladle'?M4S.ladle():ves==='crucible'?M4S.crucible():M4S.jug(),COL=sp.col||['#f4eee0','#fffaf0'],LT=sp.line||.78,cap=ves==='ladle'?.36:1.5,NB=sp.n||1;
   const PV=ves==='ladle'?{x:190,y:78,ox:10,oy:18,sx:1,sy:14}:ves==='crucible'?{x:212,y:62,ox:15,oy:18,sx:2,sy:3}:{x:214,y:sp.bowl==='flask'?50:sp.bowl==='font'?58:62,ox:19,oy:20,sx:3,sy:4};
   const bowl=M4S.bowl(sp.bowl||'clay');const st={a:0,V:1,q:0,L:0,bi:0,res:[],t:0,still:0,done2:0,spill:0,dip:0,end:0,slide:0,splash:[]};
-  let loop=null;const S=()=>loop||(loop=MS.loop('bandpass',500,6));
+  /* (t376) the stream (water, a thick soup, or molten metal) and the ring of the air over the liquid, climbing as it fills */let loop=null,ring6=null;const S=()=>loop||(loop=ves==='crucible'?MSX.loop('molten',{type:'lowpass',f:1400}):MSX.loop(ves==='ladle'?'soup':'stream',{type:'lowpass',f:3000}));
+  const R6=()=>ring6||(ring6=ves==='crucible'?{set(){},stop(){}}:MSX.loop(ves==='ladle'?'soup':'stream',{type:'bandpass',f:600,q:7}));
   const spout=a=>M4.tr(PV.x,PV.y,-a,PV.sx-PV.ox,PV.sy-PV.oy);
   const [s1x]=spout(1.05);const BX=Math.round(s1x-10),BY=sp.bowl==='flask'?130:112,RIM=BY-17;   // (t364) the oil flask stands lower, so the jug over it (and your hand) is lower too
   const a0=()=>ves==='ladle'?.5+(1-st.V)*.7:.42+(1-st.V)*.75;
   const judgeBowl=()=>{const e=Math.abs(st.L-LT);const q=st.L>1.02?.1:e<=.035?1:e<=.075?.8:e<=.13?.55:e<=.2?.3:.1;st.res.push(q);K.judge(q,BX,RIM-30);};
   return {title:sp.t||'Pour it to the line',how:'Hold to tip the '+(ves==='ladle'?'ladle':'jug')+', let go to straighten it. It keeps running a moment after you let go, so stop just before the line.',hint:'Hold to tip. Let go just before the line.',st,
-    update(dt,I){st.t+=dt;if(st.end){st.end+=dt;S().set(0);if(st.end>.6){st.done=true;st.score=M4.avg(st.res);}return;}
-      if(st.slide>0){st.slide+=dt/.7;if(st.slide>=1){st.slide=0;st.bi++;st.L=0;st.still=0;st.done2=0;}S().set(0);return;}
-      if(st.dip>0){st.dip+=dt/.9;st.a=Math.max(0,st.a-dt*3);if(st.dip>=1){st.dip=0;st.V=1;st.still=0;MS.plop();}S().set(0);return;}
+    update(dt,I){st.t+=dt;if(st.end){st.end+=dt;S().set(0);R6().set(0);if(st.end>.6){st.done=true;st.score=M4.avg(st.res);}return;}
+      if(st.slide>0){st.slide+=dt/.7;if(st.slide>=1){st.slide=0;st.bi++;st.L=0;st.still=0;st.done2=0;}S().set(0);R6().set(0);return;}
+      if(st.dip>0){const d6=st.dip;st.dip+=dt/.9;if(d6<.45&&st.dip>=.45)MSX.play('dunk');st.a=Math.max(0,st.a-dt*3);if(st.dip>=1){st.dip=0;st.V=1;st.still=0;}S().set(0);R6().set(0);return;}
       st.a+=(I.down?1.15:-1.9)*dt;st.a=M4.cl(st.a,0,1.75);const Q=st.V>0?1.1*Math.pow(Math.max(0,st.a-a0()),1.4):0;st.q+=(Q-st.q)*Math.min(1,dt/.14);if(st.V<=0)st.q=Math.max(0,st.q-dt*3);
-      const fl=st.q*dt;if(fl>0&&Math.random()<dt*st.q*9)MS.glug();if(fl>0){st.L+=fl;st.V=Math.max(0,st.V-fl/cap);if(Math.random()<st.q*1.2)st.splash.push({x:BX+(Math.random()-.5)*6,y:RIM+2+(1-Math.min(1,st.L))*12,t:0});}
-      if(st.L>1.02&&!st.spill){st.spill=1;MS.sizzleHit&&A.hiss(.4,.12,'lowpass',800);}
-      S().set(Math.min(.22,st.q*.35),350+Math.min(1.1,st.L)*1500,6);
+      const fl=st.q*dt;if(fl>0&&ves==='jug'&&Math.random()<dt*st.q*9)MSX.play('glug',Math.min(3,Math.floor((1-st.V)*4)),{g:.8,pri:0});if(fl>0){st.L+=fl;st.V=Math.max(0,st.V-fl/cap);if(Math.random()<st.q*1.2)st.splash.push({x:BX+(Math.random()-.5)*6,y:RIM+2+(1-Math.min(1,st.L))*12,t:0});}
+      if(st.L>1.02&&!st.spill){st.spill=1;MSX.play(ves==='crucible'?'skim':'spill',ves==='crucible'?'waste':null);}
+      {const fq=Math.min(1,st.q*1.6),H6={flask:.15,font:.07,tin:.035,wood:.07,clay:.06,mould:0}[sp.bowl||'clay'],h6=H6==null?.06:H6,La=h6*(1-.9*Math.min(1,st.L))+.012;S().set(fq*(ves==='crucible'?.65:ves==='ladle'?.5:.3),ves==='ladle'?.8+fq*.3:.85+fq*.35,ves==='crucible'?900+fq*700:2200+fq*1600);R6().set(h6?fq*.22:0,1,Math.min(7000,343/(4*La)),7);}
       if(st.q>.01)st.still=0;else if(st.L>.2){st.still+=dt;}
-      if(ves==='ladle'&&st.V<.03&&st.q<.05&&st.L<LT-.02&&!st.dip){st.dip=.001;MS.plop();}   // empty: back to the pot for more, whatever your hand is doing
-      if(st.still>(st.L>=LT-.12?.7:2.4)||(st.L>1.1&&st.q<.02)){judgeBowl();if(st.bi<NB-1){st.slide=.001;}else st.end=.001;}
+      if(ves==='ladle'&&st.V<.03&&st.q<.05&&st.L<LT-.02&&!st.dip){st.dip=.001;}   // empty: back to the pot for more, whatever your hand is doing
+      if(st.still>(st.L>=LT-.12?.7:2.4)||(st.L>1.1&&st.q<.02)){judgeBowl();if(st.bi<NB-1){st.slide=.001;MSX.play('slide',sp.bowl==='wood'?'wood':null,{g:.8});}else st.end=.001;}
       for(let k=st.splash.length-1;k>=0;k--){st.splash[k].t+=dt;if(st.splash[k].t>.35)st.splash.splice(k,1);}},
     draw(t){const off=st.slide>0?-st.slide*140:0;const bx=BX+off;
       if(sp.bowl==='tin'){K.ell(bx,BY-2,34,9,CA_P.iron[3]);K.ell(bx,BY-4,32,8,CA_P.iron[5]);K.ell(bx,BY-5,29,7,'#c89a58');K.ell(bx,BY-4,25,5,'#a87438');const lv=Math.min(1.05,st.L);if(lv>.01){K.ell(bx,BY-4-lv*2,24*Math.min(1,.4+lv*.6),5*Math.min(1,.4+lv*.6),COL[0]);K.ell(bx-4,BY-5-lv*2,12*lv,2*lv,COL[1]);}
@@ -627,7 +632,7 @@ S4.pour=(sp,K)=>{const g=K.g,ves=sp.vessel||'jug',img=ves==='ladle'?M4S.ladle():
     hud(t){const gx=290,gy=40;K.label('FILL',gx+4,gy-9,'#f4ecd8');K.gauge(gx,gy,8,70,(LT-.035)/1.1,(LT+.035)/1.1,Math.min(1.1,st.L)/1.1);K.meter(Math.min(1,st.L/LT));
       if(NB>1)K.label('BOWL '+(st.bi+1)+'/'+NB,30,20,'#f4ecd8','l');if(st.dip>0)K.label('MORE FROM THE POT',160,24,'#ffd27a');},
     auto(dt,AP){const a=m4ai(this,AP,dt);if(st.slide||st.dip||st.end){m4hold(a,false);}else{const pred=st.L+st.q*(.16+Math.max(0,st.a-a0())/1.9*.6);m4hold(a,pred<LT-.012&&st.t>.4);}AP.hand=[PV.x+16,PV.y-8];AP.press=a.down;},
-    quiet(){loop&&loop.set(0);},stop(){loop&&loop.stop();loop=null;}};};
+    quiet(){loop&&loop.set(0);ring6&&ring6.set(0);},stop(){loop&&loop.stop();ring6&&ring6.stop();loop=ring6=null;}};};
 // ---------------------------------------------------------------- the pan on the stove, shared by the egg and the toss
 const m4pan=(K,cx,ry,t,heat)=>{const I=CA_P.iron,y=96;K.pa(cx-40,y+9,80,4,'#000',.3);/* (t364) the handle angles down toward you, so the hand on it is low */K.line(cx+36,y+1,cx+60,y+12,I[2],4);K.line(cx+36,y,cx+60,y+11,I[5],1);K.line(cx+58,y+12,cx+80,y+23,'#2a1a10',6);K.line(cx+58,y+10,cx+80,y+21,'#4a2e16',1);
   for(let x=-40;x<=40;x++){const h=Math.round(7*Math.sqrt(Math.max(0,1-(x/40)**2)));K.px(cx+x,y,1,h+2,I[x<-20?3:x>25?1:2]);}K.ell(cx,y,40,ry||8,I[4]);K.ell(cx,y,37,(ry||8)-2,I[1]);K.ell(cx-6,y-1,22,(ry||8)-5,I[2]);if(heat)K.glow(cx,y,30,'255,160,80',.08*heat);};
@@ -640,12 +645,12 @@ S4.crack=(sp,K)=>{const g=K.g,CX=150,N=sp.n||2,egg=['#8a8070','#c8bca8','#e8dcc4
   const butterOf=(i,t)=>{const p=pats[Math.min(N-1,i)];return {x:p.c+Math.sin(t*.55+p.ph)*9+Math.sin(t*1.4+p.ph)*2.5,y:96+Math.sin(t*1.1+p.ph)*1.2};};const butter=t=>butterOf(st.i,t);
   const sway=t=>CX+Math.sin(t*1.3+.6)*30+Math.sin(t*2.7)*6;
   return {title:sp.t||'Crack them into the butter',how:'Your hand sways over the pan. Tap to crack the egg when it’s right over the butter, and keep clear of the egg already in.',hint:'Tap over the butter. Leave room for the next.',st,
-    update(dt,I){st.t+=dt;const b=butter(st.t);if(siz)siz.set(.04+st.eggs.length*.02,3200);
-      if(st.ph==='sway'){const nx=sway(st.t);st.vx=(nx-st.hx)/dt;st.hx=nx;if(I.pressed){st.ph='crack';st.crk=0;MS.crunch();A.tone(2400,.03,'square',.03);}}
-      else if(st.ph==='crack'){st.crk+=dt;if(st.crk>.1){st.ph='fall';st.fall={x:st.hx,y:st.hy+8,vx:0,vy:20};}}
+    update(dt,I){st.t+=dt;const b=butter(st.t);/* (t376) the butter sizzles from the start, more with each egg in */if(!siz)siz=MSX.loop('sizzle',{type:'highpass',f:2600});siz.set(.05+st.eggs.filter(e=>e.on).length*.07,1,2600+st.eggs.length*300);
+      if(st.ph==='sway'){const nx=sway(st.t);st.vx=(nx-st.hx)/dt;st.hx=nx;if(I.pressed){st.ph='crack';st.crk=0;}}
+      else if(st.ph==='crack'){const c6=st.crk;st.crk+=dt;if(c6<.05&&st.crk>=.05)MSX.play('eggCrack');if(st.crk>.1){st.ph='fall';st.fall={x:st.hx,y:st.hy+8,vx:0,vy:20};}}
       else if(st.ph==='fall'){const f=st.fall;f.vy+=700*dt;f.x+=f.vx*dt;f.y+=f.vy*dt;if(f.y>=96){const inPan=Math.abs(f.x-CX)<32;const d=Math.abs(f.x-b.x);let q=inPan?M4.q(d,3.5,7.5,12):.1;
           for(const e of st.eggs)if(Math.abs(e.x-f.x)<15)q=Math.max(.1,q-.35);st.eggs.push({x:f.x,y:96,t:0,on:inPan});st.q.push(q);K.judge(q,f.x,70);
-          if(inPan){MS.sizzleHit();if(!siz)siz=MS.loop('highpass',3000,.7);}else{MS.thunk();MS.miss();}K.emit(f.x,95,8,{c:['#fffaf0','#f8f0e0'],v:40,g:200,life:.4});st.fall=null;st.ph='wait';st.back=0;}}
+          if(inPan){MSX.play('eggLand');}else{MSX.play('eggLand','stove');MS.miss();}K.emit(f.x,95,8,{c:['#fffaf0','#f8f0e0'],v:40,g:200,life:.4});st.fall=null;st.ph='wait';st.back=0;}}
       else if(st.ph==='wait'){st.back+=dt;if(st.back>.8){st.i++;if(st.i>=N){st.ph='end';}else{st.ph='sway';}}}
       if(st.ph==='end'){st.end+=dt;if(st.end>.8){st.done=true;st.score=M4.avg(st.q);}}
       for(const e of st.eggs)e.t+=dt;for(const s of st.shells){s.vy+=500*dt;s.x+=s.vx*dt;s.y+=s.vy*dt;}},
@@ -672,7 +677,7 @@ S4.flip=(sp,K)=>{const g=K.g,item=sp.item||'egg',CK=sp.cook||5,TOSSES=sp.n||1,HO
   if(item==='hash'){st.cubes=[];for(let i=0;i<26;i++){const u=(Math.random()+Math.random()+Math.random())/3-.5;st.cubes.push({rx:u*56,y:95,x:0,vx:0,vy:0,a:0,va:0,on:1,fly:0,shown:0,lay:Math.random()});}}
   const EG=['#fffaf0','#fbf0d8','#f0d898','#c88a48','#5a3418'],FI=['#f4d4c8','#ecc4a8','#e0a868','#b0642a','#4a2a14'],HA=['#f0dca0','#e8c878','#d8a048','#a8642a','#4a2a14'];
   const color=(d,P)=>d<.45?P[0]:d<.85?P[1]:d<1.2?P[2]:d<1.5?P[3]:P[4];
-  const toss=()=>{st.ph='fly';st.dT=st.d;MS.whoosh();A.tone(140,.08,'sine',.12,{slide:80});const dq=st.d>1.5?.1:M4.q(Math.abs(st.d-1),.12,.25,.42);st.dq=dq;K.judge(dq,st.px,52,true);if(dq<.3)MS.miss();st.kick=.15;
+  const toss=()=>{st.ph='fly';st.dT=st.d;MSX.play('toss');const dq=st.d>1.5?.1:M4.q(Math.abs(st.d-1),.12,.25,.42);st.dq=dq;K.judge(dq,st.px,52,true);if(dq<.3)MS.miss();st.kick=.15;
     if(st.cubes){for(const c of st.cubes)if(c.on){c.x=st.px+c.rx;c.fly=1;c.vx=(Math.random()-.5)*80+(Math.random()<.5?-1:1)*10;c.vy=-200-Math.random()*60;c.va=(Math.random()-.5)*24;}st.fly={t:0};}
     else st.fly={x:st.px+st.rel,y:94,vx:(Math.random()<.5?-1:1)*(18+Math.random()*22),vy:-232,a:0,va:Math.PI/.9,t:0};};
   const yolk=(x,y,h)=>m4yolk(K,x,y,h);
@@ -685,16 +690,16 @@ S4.flip=(sp,K)=>{const g=K.g,item=sp.item||'egg',CK=sp.cook||5,TOSSES=sp.n||1,HO
         yolk(x-1+yo,y-1,Math.round(2*Math.abs(s)));}
       else{K.ell(x,y,rx,ry,color(cooked,EG));K.ell(x-1,y-1,4,Math.max(1,ry*.5),'#f8ecc8');K.px(x-3,y-ry*.5,3,1,'#fffaf0');}}};
   return {title:sp.t||'Flip it when it’s golden',how:'Watch the underside go golden, then tap to toss it. While it’s in the air, slide the pan under it ('+(K.fine?'move the mouse, or A/D':'drag')+') to catch it.',hint:'Tap when golden, then catch it with the pan.',st,
-    update(dt,I){st.t+=dt;if(!siz)siz=MS.loop('highpass',2600,.7);siz.set(st.ph==='fly'?.015:.05+Math.min(1,st.d)*.04,2400+Math.min(1.6,st.d)*1400);if(st.kick>0)st.kick-=dt;
+    update(dt,I){st.t+=dt;if(!siz)siz=MSX.loop('sizzle',{type:'highpass',f:2400});siz.set(st.ph==='fly'?.03:(.07+Math.min(1.3,st.d)*.09)*(item==='fish'?1.2:item==='hash'?1.4:1),item==='hash'?1.08:1,2200+Math.min(1.6,st.d)*1600);if(st.kick>0)st.kick-=dt;
       if(st.ph==='fly'){const mv=(I.pressed?0:M4.cl(I.dx||0,-30,30))+(I.ax||0)*200*dt;st.px=M4.cl(st.px+mv,108,204);}else st.px+=(HOME-st.px)*Math.min(1,dt*4);
       if(st.ph==='cook'){st.d+=dt/CK;if(st.d<=1.3&&Math.random()<dt*(1.5+st.d*3))K.emit(st.px+(Math.random()-.5)*24,88,1,{c:['#e8e4dc'],v:6,g:-26,life:1.1,sz:2,kind:'steam'});if(st.d>1.3&&Math.random()<dt*7)K.emit(st.px,90,1,{c:['#6a6058'],v:10,g:-40,life:1.4,sz:3,kind:'steam'});if(I.pressed)toss();else if(st.d>1.95)toss();}
       else if(st.ph==='fly'){const f=st.fly;f.t+=dt;
         if(st.cubes){let air=0;for(const c of st.cubes){if(c.fly!==1&&c.fly!==2)continue;c.vy+=520*dt;c.x+=c.vx*dt;c.y+=c.vy*dt;c.a+=c.va*dt;
-            if(c.fly===1&&c.vy>0&&c.y>=95){if(Math.abs(c.x-st.px)<34){c.fly=0;c.y=95;c.rx=M4.cl(c.x-st.px,-30,30);c.shown=st.dT;if(Math.random()<.35)A.tone(500+Math.random()*300,.04,'sine',.03);}else c.fly=2;}
-            if(c.fly===2&&c.y>=106){c.fly=3;c.on=0;MS.knock();}if(c.fly===1||c.fly===2)air++;}
-          if(!air){const got=st.cubes.filter(c=>c.on).length,cq=got/st.cubes.length;const q2=cq>.92?1:cq>.75?.75:cq>.5?.45:.15;K.judge(q2,st.px,62,true);if(q2<.3)MS.miss();st.res.push(.5*st.dq+.5*q2);MS.sizzleHit();st.k++;st.d=0;st.side=1;st.after=0;st.ph=st.k>=TOSSES?'after':'cook';}}
+            if(c.fly===1&&c.vy>0&&c.y>=95){if(Math.abs(c.x-st.px)<34){c.fly=0;c.y=95;c.rx=M4.cl(c.x-st.px,-30,30);c.shown=st.dT;if(Math.random()<.4)MSX.play('dice',null,{g:.5,pri:0,r:1.3});}else c.fly=2;}
+            if(c.fly===2&&c.y>=106){c.fly=3;c.on=0;MSX.play('dice',null,{g:.7,pri:0});}if(c.fly===1||c.fly===2)air++;}
+          if(!air){const got=st.cubes.filter(c=>c.on).length,cq=got/st.cubes.length;const q2=cq>.92?1:cq>.75?.75:cq>.5?.45:.15;K.judge(q2,st.px,62,true);if(q2<.3)MS.miss();st.res.push(.5*st.dq+.5*q2);MSX.play('catch','hash');st.k++;st.d=0;st.side=1;st.after=0;st.ph=st.k>=TOSSES?'after':'cook';}}
         else{f.vy+=520*dt;f.x+=f.vx*dt;f.y+=f.vy*dt;f.a+=f.va*dt;if(f.vy>0&&f.y>=94){const off=Math.abs(f.x-st.px);const cq=off>30?.05:M4.q(off,5,11,19);
-            if(off>30){st.fell=1;st.fx=f.x;MS.thunk();MS.miss();}else{st.rel=M4.cl(f.x-st.px,-24,24);MS.sizzleHit();K.emit(f.x,93,8,{c:['#fff6d0','#f0d898'],v:45,g:240,life:.4});}
+            if(off>30){st.fell=1;st.fx=f.x;MSX.play('catch','stove');MS.miss();}else{st.rel=M4.cl(f.x-st.px,-24,24);MSX.play('catch',item==='fish'?'fish':'egg');K.emit(f.x,93,8,{c:['#fff6d0','#f0d898'],v:45,g:240,life:.4});}
             K.judge(cq,f.x,62,true);st.res.push(.55*st.dq+.45*cq);st.k++;st.side=1;st.d=0;st.ph='after';st.after=0;}}}
       else if(st.ph==='after'){st.after+=dt;st.d+=dt/CK;if(st.fell&&st.after>.7){st.fell=0;st.rel=0;}if(st.after>1.3)st.ph='end';}
       if(st.ph==='end'){st.end+=dt;if(st.end>.3){st.done=true;st.score=M4.avg(st.res);}}},
@@ -715,16 +720,16 @@ S4.flip=(sp,K)=>{const g=K.g,item=sp.item||'egg',CK=sp.cook||5,TOSSES=sp.n||1,HO
 // ---------------------------------------------------------------- FILLET: hold the knife to the backbone and draw it to the tail, steady and not too fast
 S4.fillet=(sp,K)=>{const g=K.g,FX=92,FY=58,XS=FX+30,XE=FX+112,yl=x=>FY+25-Math.sin((x-XS)/(XE-XS)*Math.PI)*4.5,fish=M4S.fish();
   const board=M4.pre('fboard',262,22,k=>{k.plank(1,1,260,14,['#4a2e16','#6c4422','#8e5c30','#b07a44','#c89456','#ddb276','#ecc890','#f6dcae'],23);k.plank(1,15,260,5,CA_P.oak,5);},true);
-  const st={kx:XS-6,ky:yl(XS),cut:XS,path:[],q:[],seg:[],t:0,end:0,lift:0,spd:0,wob:Math.random()*6};let loop=null;const S=()=>loop||(loop=MS.loop('bandpass',3600,1.2));
+  const st={kx:XS-6,ky:yl(XS),cut:XS,path:[],q:[],seg:[],t:0,end:0,lift:0,spd:0,wob:Math.random()*6};let loop=null;const S=()=>loop||(loop=MSX.loop('slice',{type:'lowpass',f:4000}));
   return {title:sp.t||'Fillet along the backbone',how:'Drag the knife along the dotted line from head to tail. Stay on the line and don’t rush it.'+(K.fine?' (Keys: hold Space to cut, W/S to steer.)':''),hint:'Follow the dotted line. Steady, not fast.',st,
     update(dt,I){st.t+=dt;if(st.end){st.lift+=dt/.9;S().set(0);if(st.lift>=1.2){st.done=true;st.score=M4.avg(st.q);}return;}
       let tx=st.kx,ty=st.ky;if(I.key){if(I.down){tx=st.kx+60*dt;ty=st.ky+(I.ay*38+Math.sin(st.t*2.2+st.wob)*12+Math.sin(st.t*5.3)*5)*dt;}}else if(I.down){tx=I.x;ty=I.y;}
       const dx=tx-st.kx,dy=ty-st.ky,d=Math.hypot(dx,dy),mx=230*dt;if(d>mx){tx=st.kx+dx/d*mx;ty=st.ky+dy/d*mx;}const ox=st.kx;st.kx=tx;st.ky=ty;
       st.spd+=((Math.max(0,st.kx-ox)/Math.max(dt,1e-3))-st.spd)*Math.min(1,dt*8);
-      if(I.down&&st.kx>st.cut&&Math.abs(st.ky-yl(st.kx))<14){const fast=st.spd>150;while(st.cut<st.kx&&st.cut<XE){st.cut+=1;const yy=st.ky+(fast?(Math.random()-.5)*3:0);const e=Math.abs(yy-yl(st.cut))+(fast?1.6:0);const q=M4.q(e,1.6,3.2,5.5);st.path.push([st.cut,yy,fast]);st.q.push(q);st.seg.push(q);
+      if(I.down&&st.kx>st.cut&&Math.abs(st.ky-yl(st.kx))<14){const fast=st.spd>150;while(st.cut<st.kx&&st.cut<XE){st.cut+=1;if(((st.cut-XS)|0)%7===0)MSX.play('rib',null,{g:fast?.9:.6,pri:0});const yy=st.ky+(fast?(Math.random()-.5)*3:0);const e=Math.abs(yy-yl(st.cut))+(fast?1.6:0);const q=M4.q(e,1.6,3.2,5.5);st.path.push([st.cut,yy,fast]);st.q.push(q);st.seg.push(q);
           if(st.seg.length>=22){const m=M4.avg(st.seg);K.judge(m>.9?1:m>.7?.75:m>.4?.45:.15,st.cut,st.ky-22,true);if(m<.4)MS.miss();st.seg=[];}}
-        S().set(.04+Math.min(.12,st.spd/900),3000+st.spd*6,1.2);}else S().set(0);
-      if(st.cut>=XE){st.end=.001;MS.shave();MS.good();}},
+        /* (t376) the edge through the flesh, louder and rougher the faster it goes; each rib ticks under it */S().set(.05+Math.min(.22,st.spd/500),.75+Math.min(.6,st.spd/250),2400+st.spd*10);}else S().set(0);
+      if(st.cut>=XE){st.end=.001;MSX.play('peel');MS.good();}},
     draw(t){g.drawImage(board,30,FY+32);g.drawImage(fish,FX,FY);
       if(!st.end)for(let x=XS;x<=XE;x+=4)if(x>st.cut)K.px(x,yl(x),2,1,'#fff4c0');
       for(const [x,y,f] of st.path){K.px(x,y,1,1,f?'#5a1a14':'#8a2a20');K.px(x,y+1,1,2,f?'#c87060':'#f0a898');}
