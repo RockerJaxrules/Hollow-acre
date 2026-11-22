@@ -1817,6 +1817,14 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Stubble drawn as a stepped row of single darker pixels reads as teeth; at 1x a beard is a solid darker cluster with a lit edge.
 - A straight-sided red cavity with level white bars reads as a crate of sausages or a radiator; a lens with pale stubs reads as a mouth. An opened back is a D-shaped tear: the spine along the straight lip, the other lip ragged, 3-4 rib ridges at uneven gaps each steeper than the last, the guts leaving as one spill.
 - A small round organ at the end of a thin smear reads as a lollipop; small white-and-red packets read as cigarette butts. Carry the adult cues on the bodies and clothes, not on props.
+- [hard limit, round 4] A small smooth cream fist with no knuckles, nails, hair or ring reads as a child's or a doll's hand. A grown man's severed hand: bigger against what it holds, a thick wrist going into a work-shirt cuff, knuckle ridges, nails, dark hair gathered on the back of the hand, a wedding ring.
+- Two eyes set side by side at a belt line read as a second face. Loose eyeballs lie each their own way, one rolled so its iris is off to the side, the nerve trailing, a wet glint.
+- One flat purple-mauve tone on every gut reads as worms or yarn: guts are a warm pink-red ramp, one wet light per length (never a streak), and a gut over a wire hangs in one heavy sagging loop, never an even wave.
+- A redraw over a sprite whose anchor moved (a cropped adult pass) must keep the original frame: place the new picture by its own anchor under the old coordinates, or every hand-placed point lands six pixels off.
+- [hard limit, round 5] Seen from behind and small, a chibi man with a full head of long hair reads young even with a beard in the close-up. What made him a balding middle-aged man at 1x: hair cropped short to the skull (the head smaller), a bald crown lit as skin with a thin fringe, a solid band of grey at the temples, a 2-3 px beard along the jaw with a lit edge, a broader back and shoulders, a wedding ring.
+- Speckle creeps in from rim clots set on the edge, meat flecks along bones and the old sprite's leftovers: a final pass that drops any blood pixel with at most one neighbour keeps every Extreme sprite free of loose dots.
+- Organs laid in a dark cavity melt into one red mass at 1x: draw them a shade lighter than what they lie on, each with its own dark edge on its lower and right sides.
+- Redrawing part of a sprite (a ribcage) means taking all of the old part off first, its outline and shadow too, or the old shapes show as ghost lines beside the new.
 
 ## Game UI polish pass (t337 whole-game review, Nov 13: 4 rounds, every screen 6-7.5)
 - Every panel, card and book is one family: the in-game wood frame, parchment only for books, one tab style, square corners; the judge reads three different frame ornaments as unfinished.

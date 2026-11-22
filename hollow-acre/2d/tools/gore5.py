@@ -112,7 +112,7 @@ def xpool(z, x, y, rx, ry, seed, clots=3, tongues=2, glint=True):
                 if q not in pts: pts[q] = (.9, 0, 0)
     for (X, Y), (d, dx, dy) in pts.items():
         sheen = dx < .1 and dy < .05 and .22 < d < .74 and H(X // max(1, S * 2), Y // max(1, S), seed) < .9
-        col = XB[1] if d > .8 else (XB[4] if d < .45 and dx < -.3 else XB[3]) if sheen else XB[2] if d > .3 else XB[1]
+        col = XB[2] if d > .8 else (XB[4] if d < .5 and dx < -.25 else XB[3]) if sheen else XB[3] if d > .55 else XB[2]
         c.p(X, Y, col)
     for k in range(clots):   # clots: dark jelly lumps, lit on their upper left
         a = H(k, seed, 7) * 6.28; rr = H(k, seed, 8) * .6
@@ -167,10 +167,10 @@ def xtube(z, pts, r0, r1, R=None, rim=True, seed=0, wet=True):
     path.append(pts[-1]); N = len(path)
     segs = []; k = 0; j = 0   # short lengths of uneven size
     while k < N - 1:
-        L = max(2, int((1.4 + H(j, seed, 21) * 2.2) * S * 1.6)); segs.append((k, min(N - 1, k + L))); k += L; j += 1
+        L = max(2, int((1.1 + H(j, seed, 21) * 1.8) * S * 1.6)); segs.append((k, min(N - 1, k + L))); k += L; j += 1
     mine = set(); under = {q for q in getattr(z, 'gutpx', set())}
     for si, (k0, k1) in enumerate(segs):
-        sw = .72 + H(si, seed, 22) * .55; hi = H(si, seed, 23) < .6
+        sw = .6 + H(si, seed, 22) * .8; hi = H(si, seed, 23) < .6
         cur = {}
         for k in range(k0, k1 + 1):
             x, y = path[k]; f = (k - k0) / max(1, k1 - k0); r = max(.5, (r0 + (r1 - r0) * k / N) * S * sw * (.82 + .3 * math.sin(math.pi * f)))
@@ -205,7 +205,7 @@ def xtube(z, pts, r0, r1, R=None, rim=True, seed=0, wet=True):
     return path
 
 
-def xorgans(z, items, mats=None):
+def xorgans(z, items, mats=None, light=False):
     """organs with their own shapes (critic: perfect balls): a liver in two lobes with a notch, a kidney bean with its dent and
     vessel, a heart tapering to its point with the vessels standing out of its top and a band of fat, a lung's spongy lobe"""
     S = z.S
@@ -224,9 +224,13 @@ def xorgans(z, items, mats=None):
             f.blob(*P(0, 0), rx * S, ry * S, mat, base=1.2 * S, hs=.75, rot=rot)
             f.blob(*P(rx * .55, -ry * .3), rx * .5 * S, ry * .6 * S, mat, base=1.1 * S, hs=.75, rot=rot)
         else: f.blob(X, Y, rx * S, ry * S, mat, base=1.5 * S, hs=.9, rot=rot)
-        f.render(z.c, dict(OM, vessel=[(120, 60, 70), (150, 84, 92), (180, 116, 120), (206, 150, 150), (226, 180, 176), (240, 210, 200)],
+        OMl = {k: (v[1:] + v[-1:]) if light and isinstance(v, list) else v for k, v in OM.items()}
+        f.render(z.c, dict(OMl, vessel=[(120, 60, 70), (150, 84, 92), (180, 116, 120), (206, 150, 150), (226, 180, 176), (240, 210, 200)],
                            vessel2=[(60, 20, 40), (84, 30, 52), (110, 44, 66), (136, 62, 82), (160, 86, 100), (190, 120, 130)]))
         c = z.c
+        own = {(X_, Y_) for Y_ in range(f.H) for X_ in range(f.W) if f.m[Y_][X_] is not None}
+        for (X_, Y_) in own:   # its own dark edge, so it never melts into the dark it lies on
+            if any((X_ + a, Y_ + b) not in own for a, b in ((1, 0), (-1, 0), (0, 1), (0, -1))) and (Y_ > Y or X_ > X): c.p(X_, Y_, OM.get(mat, LIVER)[0])
         if mat == 'kidney':   # the dent, with its vessel
             dx_, dy_ = P(0, -ry * .85)
             for k in range(max(1, int(S * .8))): c.p(dx_ + k * sr, dy_ + k * cr, KIDNEY[0])
@@ -395,6 +399,14 @@ def decay(z, regions, bloat=(), seed=0):
 def finish(z, name, meta=None):
     """an outline round only what was added outside the Full sprite (never a second one round its own), a shadow under it, save"""
     c = z.c; px = c.px; snap = z.snap.load()
+    if not getattr(XC, 'from_orig', False):
+        for _ in range(2):   # no loose blood dots (critic: speckle): one with at most one neighbour goes
+            gone = []
+            for Y in range(1, c.H - 1):
+                for X in range(1, c.W - 1):
+                    q = px[X, Y]
+                    if q[3] > 120 and sum(px[X + a, Y + b][3] > 120 for a in (-1, 0, 1) for b in (-1, 0, 1) if a or b) <= 1: gone.append((X, Y))
+            for q in gone: px[q] = (0, 0, 0, 0)
     new = lambda X, Y: 0 <= X < c.W and 0 <= Y < c.H and px[X, Y][3] > 200 and snap[X, Y][3] < 120
     pts = []
     for Y in range(c.H):
@@ -545,8 +557,8 @@ def hiker_head(z, full=False):
     for (x0, y0, w0), (x1, y1, w1) in zip(split, split[1:]):
         for t in range(9):
             x = x0 + (x1 - x0) * t / 9; y = y0 + (y1 - y0) * t / 9; w = w0 + (w1 - w0) * t / 9 + (H(int(x), 2, 7) - .5)
-            for u in range(-int(w) - 1, int(w) + 2): c.p(x, y + u, XB[0] if abs(u) < w else XB[2])
-            if x < ox + 37: c.p(x, y + w + 2, BONE[3] if t % 9 else BONE[2])   # the bone's lip, on the near side only, in one length
+            for u in range(-int(w) - 2, int(w) + 3): c.p(x, y + u, XB[0] if abs(u) < w - .5 else MUS[2] if abs(u) < w + 1 else XB[3])   # dark inside, red raw edges
+            if x < ox + 37: c.p(x, y + w + 3, BONE[3] if t % 9 else BONE[2])   # the bone's lip, on the near side only, in one length
     for k in range(7): c.p(ox + 33 + k * .2, oy + 46 + k, XB[2]); c.p(ox + 34 + k * .2, oy + 46 + k, XB[1])   # blood out of it, into the hair
 
 
@@ -557,8 +569,8 @@ def crown_split(z):
     for (x0, y0, w0), (x1, y1, w1) in zip(split, split[1:]):
         for t in range(9):
             x = x0 + (x1 - x0) * t / 9; y = y0 + (y1 - y0) * t / 9; w = w0 + (w1 - w0) * t / 9 + (H(int(x), 2, 7) - .5)
-            for u in range(-int(w) - 1, int(w) + 2): c.p(x, y + u, XB[0] if abs(u) < w else XB[2])
-            if x < ox + 37: c.p(x, y + w + 2, BONE[3] if t % 9 else BONE[2])   # the bone's lip, on the near side only, in one length
+            for u in range(-int(w) - 2, int(w) + 3): c.p(x, y + u, XB[0] if abs(u) < w - .5 else MUS[2] if abs(u) < w + 1 else XB[3])   # dark inside, red raw edges
+            if x < ox + 37: c.p(x, y + w + 3, BONE[3] if t % 9 else BONE[2])   # the bone's lip, on the near side only, in one length
     for k in range(7): c.p(ox + 33 + k * .2, oy + 46 + k, XB[2]); c.p(ox + 34 + k * .2, oy + 46 + k, XB[1])
 
 
@@ -643,8 +655,8 @@ def ridge(z, pts, seed=0):
     path.append(pts[-1]); w = max(1, int(round(.6 * S)))
     for k, (x, y) in enumerate(path):
         X, Y = z.X(x), z.Y(y)
-        for u in range(w): z.c.p(X + u, Y, MUS[4] if u == 0 else MUS[3])
-        z.c.p(X + w, Y, MUS[1]); z.c.p(X + w + 1, Y, XB[1])
+        for u in range(w): z.c.p(X + u, Y, MUS[2] if u == 0 else MUS[1])
+        z.c.p(X + w, Y, XB[2]); z.c.p(X + w + 1, Y, XB[1])
 
 
 def rib(z, pts, seed=0):
@@ -733,8 +745,7 @@ def boots_x(z, day):
             if H(int(x * 2), v, 5) < .25: continue
             z.c.p(z.X(x), z.Y(21.4 + math.sin(x * .6) * .3) + v, XB[2] if abs(v) < w * z.S * .5 else XB[1])
     xtube(z, [(26, 21.4), (28.4, 21.9), (30.4, 20.8), (29.2, 19.6), (27.8, 20.6), (30.8, 21.8), (34.4, 21.3), (37.6, 21.9), (40.6, 21.2), (43.6, 21.5)], .9, .45, R=GUTX, seed=3)
-    for (x, y, rx) in ((30.6, 17.6, 1.6), (37, 18.4, 2.6)): xpool(z, x + .3, y + 1.2, rx, .7, x, clots=0, tongues=0, glint=False)
-    xorgans(z, [('kidney', 30.6, 17.4, 1.5, 1, .3), ('liver', 37, 18, 2.4, 1.3, -.1)])
+    xorgans(z, [('kidney', 30.6, 18.6, 2, 1, .15), ('liver', 37, 18.8, 3.2, 1.3, -.05)], light=True)
     meta = dict(mag=[[6, 11, 1.8, 1.2], [12.4, 11.2, 1.8, 1.2], [36, 18.6, 1.8, 1]] if day else [], drip=[[5.6, 13.6]], nerve=[[12.6, 9.4, 2, -1]], crow=[[34, 22], [9, 21]])
     if day:
         decay(z, [(9, 12, 7, 3)], bloat=[], seed=6)
@@ -746,7 +757,7 @@ def coat_x(z, day):
     """the long coat on the fence post, full; at Extreme the hem has burst and the guts hang out of it and are strung along the
     fence wire in loops, the whole hand hangs out of one cuff with the nails gone, and it pours from the hem into the grass"""
     xpool(z, 15, 38.8, 11, 2.6, 1.1, clots=3, tongues=0); xpool(z, 32, 37.4, 6, 1.6, 2.4, clots=1, tongues=0)
-    z.lay_base()
+    z.lay_base(recolor=False)
     for wy, sag in ((29.4, .8), (34.2, .6)):   # the fence wire, sagging between the post and the next one
         for k in range(int(27 * z.S)):
             x = 16.8 + k / z.S; y = wy + sag * math.sin(math.pi * (x - 16.8) / 27)
@@ -786,7 +797,7 @@ def tree_x(z, day):
     xcavity(z, 24.2, 52.6, 3.6, 4.4, 3.3)
     for k in range(int(8 * S)): c.p(z.X(24.2) + math.sin(k / S * 1.3) * .5 * S, z.Y(48.4) + k, XB[0])   # the breastbone split down its middle
     ridge(z, [(22.4, 50.2), (21.4, 51.6), (21, 53.6)], seed=1); ridge(z, [(26.4, 51), (27.6, 52.8)], seed=2)
-    xorgans(z, [('heart', 24.4, 58.6, 1.7, 1.5, .2), ('liver', 18.6, 58.8, 2.4, 1.3, -.3), ('lungx', 30, 58.6, 2.2, 1.4, .3)])
+    xorgans(z, [('heart', 24.4, 58.4, 1.8, 1.6, .2), ('liver', 18.4, 59, 2.8, 1.5, -.3), ('lungx', 30.4, 58.6, 2.4, 1.5, .3)], light=True)
     xtube(z, [(20.8, 64.6), (18.4, 63.8), (17.6, 61.8), (19.4, 60.8)], .7, .6, R=GUTX, seed=7)
     xtube(z, [(28.4, 64.4), (31, 63.6), (31.6, 61.6), (29.8, 60.8)], .7, .6, R=GUTX2, seed=8)
     xrun(z, 18.2, 36.4, 7, .9, 1); xrun(z, 30.6, 37.4, 4.6, .8, 2); xrun(z, 24.6, 56.4, 1.6, 1.1, 3)
@@ -830,14 +841,23 @@ def rabbit_x(z, day):
     S = z.S; c = z.c
     xpool(z, 20.6, 17.8, 10.4, 3.2, .9, clots=3, tongues=0); xpool(z, 27.4, 18.6, 4, 1.5, 2.2, clots=1, tongues=0)
     z.lay_base()
-    xcavity(z, 23.4, 14.8, 1.6, 1.3, 2.7, rot=.5)            # the throat torn out under the jaw
-    xcavity(z, 26.4, 12, .6, .55, 3.9)                         # the eye taken
-    xrun(z, 26.4, 12.6, 1.6, .5, 2, bead=False)
+    px = c.px   # the head down flat on its cheek, the ear laid back along the grass, the eye shut (head up and ear up read alive)
+    for Y in range(0, int(z.Y(15.8))):
+        for X in range(int(z.X(21.4)), c.W):
+            if px[X, Y][3] > 0 and (Y < z.Y(11.2) or X > z.X(22.8)): px[X, Y] = (0, 0, 0, 0)
+    z.snap = c.im.copy()
+    f = z.F(); f.blob(z.X(26.2), z.Y(14.2), 3 * S, 2 * S, 'fur', base=.8 * S, rot=.15); f.cap(z.X(28.6), z.Y(14.8), z.X(29.8), z.Y(15.2), 1.1 * S, .8 * S, 'fur', base=.8 * S)
+    f.cap(z.X(24.6), z.Y(12.8), z.X(19.4), z.Y(12.2), 1 * S, .7 * S, 'fur', base=1.4 * S)   # the ear, flat back over the shoulder
+    f.render(c, {'fur': RABF})
+    for k in range(int(4 * S)): c.p(z.X(24) - k, z.Y(12.8) + (1 if S > 1 else 0), EARP if k % 3 else (170, 110, 110))   # its pink inside
+    for k in range(max(2, int(1.4 * S))): c.p(z.X(26.6) + k, z.Y(13.6) + (k % 2 if S > 1 else 0), (30, 20, 22))   # the eye, shut
+    c.p(z.X(29.8), z.Y(15), (150, 90, 96))   # the nose
+    xcavity(z, 23.6, 15.4, 1.6, 1.2, 2.7, rot=.5)            # the throat torn out under the jaw
     xtube(z, [(17.4, 16.8), (15.4, 18.8), (13.2, 20), (11.6, 18.8), (12.8, 17.8), (14.4, 19.4), (12.2, 21.2), (9.8, 20.6)], .64, .5, R=GUTX, seed=2)
     xtube(z, [(20.4, 17.2), (21.8, 19.4), (24.4, 20), (25.8, 19)], .62, .52, R=GUTX2, seed=3)
     xflay(z, [(16.6, 15.6), (12.6, 17), (11.4, 18.8), (15.8, 17.8)], .4, seed=4)
     xbone(z, 12.8, 17.6, 11.2, 18.4, .42, .38, seed=7, meat=.5)   # only the end of the bone shows, red
-    meta = dict(mag=[[19, 15.6, 2.4, 1], [23.4, 14.8, 1.2, 1], [26.4, 12, .6, .5]] if day else [], drip=[[23.6, 16.2]], nerve=[[24, 15, 1.4, 1]], crow=[[19, 16], [8, 20]])
+    meta = dict(mag=[[19, 15.6, 2.4, 1], [23.6, 15.4, 1.2, 1], [26.8, 13.8, .6, .5]] if day else [], drip=[[23.6, 16.2]], nerve=[[24, 15, 1.4, 1]], crow=[[19, 16], [8, 20]])
     if day:
         decay(z, [], bloat=[(18.6, 13.4, 7.2, 4.4, .6)], seed=12)
         for m in meta['mag']: maggots(z, *m, seed=int(m[0] * 7 + 200))
@@ -885,17 +905,25 @@ def ribs_x(z, day):
           1: ((20.4, 5.6, 1.6), (17.6, 8.2, 3), (14.6, 6.2, 4.8), (11.8, 9.6, 6.6), (9.2, 8.8, 8.4), (6.4, 7, 9.8))}
     pt = lambda side, hy, L, drop, t: (cx + side * (1 + L * math.sin(t * 1.5)), gy - hy - 1.4 * math.sin(t * 2.4) + drop * t * t)
     S = z.S
-    for Y in range(int(z.Y(3)), int(z.Y(33))):   # the Full ribs off (they were one mirrored fishbone); the spine stays
+    px = z.c.px; DULL = {BONE[i]: BONE[max(0, i - 1)] for i in range(len(BONE))}
+    for Y in range(int(z.Y(3)), int(z.Y(30))):   # Full's ribs kept (they read as ribs), the bone dulled and broken by blood along them
         for X in range(z.c.W):
-            q = z.c.px[X, Y]
-            if q[3] > 120 and abs(X - z.X(22.2)) > 1.9 * S and Y < z.Y(29.6) and (q[:3] in BONE or (lumi(q) > 150 and q[0] > q[2]) or is_blood(q) or q[0] > 2 * q[1]): z.c.px[X, Y] = (0, 0, 0, 0)
-    RIBS = {-1: [(11.2, 6, .8), (14, 8.2, 2.2), (17.8, 9.2, 3.9), (22.2, 7.2, 5.4)],   # one side: four left, far apart where some were taken; each steeper than the one above
-            1: [(12.6, 4.6, 1.2), (15.2, 7, 2.4), (17.8, 8.6, 3.6), (20.8, 8.4, 4.6), (23.8, 6, 4.8)]}
-    for side, L_ in RIBS.items():
-        for k, (y0, L, drop) in enumerate(L_):
-            x0 = 22.2 + side * 1.4; pts = [(x0, y0), (x0 + side * L * .55, y0 - .6 + drop * .2), (x0 + side * L * .9, y0 + drop * .65), (x0 + side * L, y0 + drop)]
-            if (side, k) in ((-1, 1), (1, 2), (1, 4)): pts = pts[:3]   # broken short
-            rib(z, pts, seed=k * 5 + side)
+            q = px[X, Y]
+            if q[3] < 200 or abs(X - z.X(22.2)) <= 2 * S: continue
+            if q[:3] in DULL:
+                x, y = X / S - z.pad, Y / S - z.pad
+                c_ = H(int(x / 1.6), int(y / 1.4), 5)
+                px[X, Y] = (XB[2] if c_ < .2 else XB[3] if c_ < .3 else DULL[q[:3]]) + (255,)
+    for side, k, t in ((-1, 1, .62), (1, 3, .55)):   # two snapped: a piece gone, the ends splintered
+        hy, L, drop = RB[side][k]; x, y = pt(side, hy, L, drop, t)
+        for Y in range(int(z.Y(y - 1)), int(z.Y(y + 1.4))):
+            for X in range(int(z.X(x - .8)), int(z.X(x + .8)) + 1):
+                if px[X, Y][3] > 0: px[X, Y] = (0, 0, 0, 0)
+    for (side, k, t, rx, ry) in ((-1, 2, .35, 1.5, 1), (-1, 3, .55, 1.1, .8), (1, 1, .4, 1.3, .9), (1, 4, .3, 1.6, 1.1), (-1, 4, .7, .9, .7)):   # meat left on them in clumps
+        hy, L, drop = RB[side][k]; x, y = pt(side, hy, L, drop, t)
+        f = z.F(); f.blob(z.X(x), z.Y(y + .5), rx * S, ry * S, 'mus', base=1.4 * S, hs=.8, rot=side * .4); f.render(z.c, OM)
+        z.c.p(z.X(x - rx * .3), z.Y(y + .2), MUS[5]) if S > 1 else None
+        xrun(z, x + .2, y + ry + .4, 1 + k * .3, .6, k + side, bead=False)
     TAT = []
     for side, k, t, ln, wd in TAT:   # rags of meat still on the ribs: each a torn strip, wide at the rib and ragged at its foot
         hy, L, drop = RB[side][k]; x, y = pt(side, hy, L, drop, t); S = z.S
