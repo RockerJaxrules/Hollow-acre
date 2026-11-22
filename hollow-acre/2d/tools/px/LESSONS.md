@@ -1933,3 +1933,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Steam drawn as grey outlined balls reads as rocks: light, low-alpha puffs that fade as they rise.
 - Falling feathers as dozens of 1-2 px dashes read as speckle: a few larger feathers in the air at once, the rest gathered into one heap on the boards.
 - Keep the score text clear of hooks and gauges, and keep a gauge's label short: a five-letter label at the right edge was clipped.
+
+## Holding and swinging tools in the making games (t300, Nov 22: wave 1 5.5 vs 4 in round 1)
+- A knife seen from the front must lie side-on, edge down over the cut, the tip on the board beyond it and the fist on the handle at the far end; a knife pointing up and away from a fist on the vegetable reads as held backwards, whatever the 3/4 logic says.
+- A blow with weight, as a picture only (the game's hit time unchanged): the tool waits raised, falls faster and faster from wherever it is, rests on the work a beat, bounces up off it and settles with a small overshoot; a heavy tool comes back up slower. A linear 0.16 s up-down reads weightless.
+- A tool that has to cross to where you tapped travels there while it falls; snapping it sideways on the press reads as a teleport.
+- A two-handed long tool (a mallet) is never dead level at the blow: the hands sit a little higher than the head on the target, both fists on the handle near its end, one above the other, turned with it. Give the blow a cue: a dust puff off the pad.
+- Every fist goes ON the thing: two fists floating on a handle that isn't drawn read as broken. A post or a door edge is a vertical handle (the fist turned with it); glass is steadied between two flat hands.
+- A winch reads only with its parts: a stand staked into the ground, the wire visible from the drum to the load, the crank grip a lit cap standing out toward you with its shadow, the fist on that grip.
+- A critic can't play a video: send a frame strip per game (anticipation, contact, settle) as a PNG.
