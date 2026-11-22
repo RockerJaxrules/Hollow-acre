@@ -58,7 +58,8 @@ class XC:
         s.base = Image.open(src).convert('RGBA'); s.bx, s.by = int(round(pad * S - ox)), int(round(pad * S - oy))
         s.snap = None
     # world -> canvas
-    def X(s, x): return (x + s.pad) * s.S
+    shift = None   # a smooth horizontal stretch of the description (the hiker's longer body): world x -> x + shift(x)
+    def X(s, x): return (x + (s.shift(x) if s.shift else 0) + s.pad) * s.S
     def Y(s, y): return (y + s.pad) * s.S
     def r(s, v): return v * s.S
     def p(s, x, y, col, a=255): s.c.p(s.X(x), s.Y(y), col, a)
@@ -576,6 +577,7 @@ def hiker_x(z, day):
     """face-down, opened along the spine; at Extreme the back is cut free both sides and folded out on to the grass like a coat
     coming off, raw side up, the ribs bare as red ridges either side of the broken spine, the guts pulled out of the hole and laid
     in loops toward where he crawled from, the liver beside his face, the heart put in his own hand, a bite out of the thigh"""
+    z.shift = HIKER_SHIFT
     xpool(z, 34, 31.8, 17.5, 5.4, 1.3, clots=4, tongues=0); xpool(z, 15, 31, 8, 3, 2.7, clots=1, tongues=0); xpool(z, 33, 9.6, 8, 2.6, .4, clots=1, tongues=0)
     z.lay_base()
     if z.S > 1: crown_split(z)
@@ -586,8 +588,9 @@ def hiker_x(z, day):
         x = 28.6 + k / S; bl = H(int(x * 1.3), 4, 5) < .32
         for v in range(max(1, int(.7 * S))): z.c.p(z.X(x), z.Y(19.6) + v, XB[2] if bl else BONE[3] if v == 0 else BONE[1])
         if not bl and int(x * 10) % 23 < 3: z.c.p(z.X(x), z.Y(19.6) + max(1, int(.7 * S)), BONE[0])
-    for (x0, L, dr) in ((30, 3.2, 5.2), (32.8, 3, 6), (35.4, 2.6, 6.2), (37.6, 2, 5.4)):   # the ribs: red ridges at uneven gaps, each steeper than the last
-        ridge(z, [(x0, 20.4), (x0 - L * .45, 20.4 + dr * .45), (x0 - L * .7, 20.4 + dr * .8)], seed=x0)
+    for (x0, L, bend) in ((30.2, 4.8, .9), (33.8, 2.6, 1.5), (37.4, 5.4, 2)):   # three ribs at uneven gaps, curved, one snapped short, blood over parts
+        ridge(z, [(x0, 20.4), (x0 - bend, 20.4 + L * .55), (x0 - bend * .5, 20.4 + L)], seed=x0)
+    for (x, y, r) in ((31.6, 23.6, .9), (36, 24.6, 1.1), (34.4, 21.6, .7)): clot(z, x, y, r, r * .7, int(x * 3))
     for (x, y) in ((29.8, 25.8), (31.6, 27), (33.8, 26.4), (36.2, 26.8), (38.4, 25.2)):   # tatters of the jacket over the ragged lip
         f = z.F(); f.blob(z.X(x), z.Y(y + .4), .9 * S, .6 * S, 'jk', base=1.2 * S); f.render(z.c, {'jk': JACKET})
     for pts, r0, r1, R, sd in (([(36.4, 27.4), (37.8, 29.6), (36, 31.4), (33.8, 30), (35.4, 28.4)], .9, .8, GUTX2, 6),
@@ -599,7 +602,7 @@ def hiker_x(z, day):
     xorgans(z, [('liver', 22.6, 34.6, 3.2, 1.6, -.15), ('heart', 40.2, 30.2, 1.6, 1.5, .3)])
     xrun(z, 29, 31.6, 1.6, 1, 1); xrun(z, 38.4, 32, 1.4, 1, 2)
     meta = dict(mag=[[33.6, 22.4, 3, 1.8], [13, 26.4, 1.8, 1.1], [33, 30.6, 2.4, 1.2]] if day else [],
-                drip=[[40.6, 31.8]], nerve=[[36.8, 21, 2, -1]], twitch=[38.6, 28.4], fog=[16.6, 27.4], crow=[[31, 12], [44, 33], [24, 34]])
+                drip=[[40.6, 31.8]], nerve=[[36.8, 21, 2, -1]], twitch=[38.6, 28.4], fog=[16.6, 27.4], crow=[[31, 12], [47, 33], [24, 34]])
     if z.S == 1: pass
     if day:
         decay(z, [(17, 21, 11, 10), (39, 12, 3, 2), (39, 28.5, 3, 2)], bloat=[(42, 21, 5, 8, 1)], seed=2)
@@ -1025,10 +1028,42 @@ def hunter_adult(z, day=0):
     return {}
 
 
+HIKER_SHIFT = lambda x: 3 * min(1., max(0., (x - 41) / 3))
 def hiker_adult(z, day=0):
-    """the hiker: his face one lit form with a soft shaded jaw and a stubble shadow (never dotted: dots read as teeth), his legs at
-    full length in work trousers, his boots soles-up"""
-    z.lay_base(recolor=False); hiker_head(z, full=True); legs(z); return {}
+    """the hiker, a grown man: the torso three pixels longer (the 'tall' build), the hair trimmed so the head is smaller, his face
+    one lit form with a short beard along the jaw and chin (solid, with a lit edge: dots read as teeth), his legs at full length in
+    work trousers, his boots soles-up"""
+    S = z.S; u0 = int(round(z.X(42) - z.bx)); n = 3 * S   # the body made longer: a slice of the thighs repeated, everything past it moved along
+    b = z.base; nb = Image.new('RGBA', (b.width + n, b.height), (0, 0, 0, 0)); v0 = max(0, int(round(z.Y(11.6) - z.by)))   # below the rucksack only
+    nb.paste(b.crop((0, 0, b.width, v0)), (0, 0)); nb.paste(b.crop((0, v0, u0 + n, b.height)), (0, v0)); nb.paste(b.crop((u0, v0, b.width, b.height)), (u0 + n, v0))
+    z.base = nb; z.W += n; z.c = C(z.W, z.H); z.shift = HIKER_SHIFT
+    z.lay_base(recolor=False); c = z.c; px = c.px
+    hair = lambda q: q[3] > 200 and lumi(q) < 72 and not is_blood(q) and q[1] <= q[0] + 4
+    cut = int(z.X(6.6 if S == 1 else 7))   # the hair trimmed back off the crown: the head a size smaller
+    for Y in range(c.H):
+        for X in range(int(z.X(3)), cut + (1 if S == 1 else 2 * S)):
+            q = px[X, Y]
+            if hair(q) and X < cut + (H(Y // max(1, S), 3, 3) * 2 * S if S > 1 else 0): px[X, Y] = (0, 0, 0, 0)
+    for Y in range(1, c.H - 1):   # the new edge of the hair gets its dark rim
+        for X in range(int(z.X(3)), cut + 3 * S):
+            q = px[X, Y]
+            if hair(q) and px[X - 1, Y][3] < 120: c.p(X, Y, (20, 14, 12))
+    hiker_head(z, full=True); beard_hiker(z); legs(z); return {}
+
+
+def beard_hiker(z):
+    """a short beard along his jaw and chin: one solid darker shape, lit along its upper edge, combed at the close-up's size"""
+    c, S = z.c, z.S; px = c.px; M = []
+    for Y in range(int(z.Y(20)), int(z.Y(31))):
+        for X in range(int(z.X(18)), int(z.X(28.4))):
+            q = px[X, Y]; x, y = X / S - z.pad, Y / S - z.pad
+            if q[3] > 200 and lumi(q) > 95 and q[0] > q[2] + 10 and (x - 18.6) + (y - 21.6) * 1.15 > 8.2: M.append((X, Y))
+    Ms = set(M)
+    for (X, Y) in M:
+        top = (X, Y - 1) not in Ms and (X - 1, Y) not in Ms
+        col = BEARD[3] if top else BEARD[2] if S > 1 and H(X // 2, Y, 13) < .35 else BEARD[1]
+        if S > 1 and (X + Y * 2) % 5 == 0 and not top: col = BEARD[0]   # combed strands
+        c.p(X, Y, col)
 
 
 def tree_toned_cap(z, day=0):
