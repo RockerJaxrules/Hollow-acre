@@ -186,3 +186,26 @@ function s98CountyWorld(){if(S98.countyDone)return;const m=SPR.rg_countysign,im=
   for(const [fx,fy] of [[.19,.71],[.81,.26],[.69,.8]]){const x=Math.round(bx0+bw*fx),y=Math.round(by0+bh*fy);P(x,y,2,2,'#05080a');P(x+1,y+2,1,2,'#6a3a1a');}   /* the three bullet holes, rust running from them */
   IMG[m.src]=c;S98.countyDone=1;}
 setInterval(()=>{try{for(const n of ['grave_2','rg_marker_0','rg_marker_1'])s98CrossWorld(n);s98CountyWorld();}catch(e){}},500);
+
+// ---- the war memorial on the green: a tall narrow pillar with a small plaque in the world, a wide stone on two steps with a big
+// bronze plaque, verdigris runs and four candles at its foot when you read it. The world's memorial is now the read-up's own
+// drawing (its shape, stone, plaque, steps and candles) at the world's size, the plaque's lines as fine marks; its footing on the
+// green widens to the new base, which keeps clear of the stalls and the milestone round it.
+const S98_MEM={S:2.5};
+function s98MemorialWorld(){if(S98.memDone)return;const m=SPR.memorial,o=OBJ.find(q=>q.spr==='memorial');if(!m||!o||typeof ruDraw!=='function'||typeof ruSpec!=='function')return;
+  const W=320,H=180,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+  const spec=ruSpec(o,'');if(!spec)return;spec.gy=133;const og=ruGround;ruGround=function(){};try{ruDraw(g,W,H,spec);}finally{ruGround=og;}   /* the stone without the read-up's own patch of paving */
+  const id=g.getImageData(0,0,W,H).data;let x0=W,x1=0,y0=H,y1=0;for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(id[(y*W+x)*4+3]>128){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}
+  if(x1<=x0)return;const cw=x1-x0+1,ch=y1-y0+1,crop=document.createElement('canvas');crop.width=cw;crop.height=ch;crop.getContext('2d').drawImage(c,x0,y0,cw,ch,0,0,cw,ch);
+  const sm=s98Shrink(crop,S98_MEM.S),out=document.createElement('canvas');out.width=sm.width;out.height=sm.height+3;const og2=out.getContext('2d');
+  for(let x=-2;x<sm.width+2;x++){const t=(x-sm.width/2)/(sm.width/2+2),hh=Math.round(2.2*Math.sqrt(Math.max(0,1-t*t)));if(hh>0){og2.fillStyle='rgba(50,33,37,.55)';og2.fillRect(x+2,sm.height-1,1,hh);}}   /* its drop shadow on the grass, down and right */
+  og2.drawImage(sm,0,0);
+  {const S=S98_MEM.S,top=Math.max(4,spec.gy-176),sh=spec.gy-14-top,ph=Math.min(92,sh-26),px=Math.round(((W>>1)-50-x0)/S),py=Math.round((top+4-y0)/S),pw=Math.round(100/S),phh=Math.round(ph/S),P=(x,y,w,h,col)=>{og2.fillStyle=col;og2.fillRect(x,y,w,h);};
+    P(px+2,py+2,pw-4,phh-4,'#8e6026');let y=py+3;   /* the plaque's lines as raised strokes at this size, not letters */
+    for(const t of spec.lines||[]){if(t==='—'){P(px+Math.round(pw*.3),y,Math.round(pw*.4),1,'#3a220a');y+=2;continue;}const w=Math.max(2,Math.min(pw-6,Math.round(t.length*5/S)));const x=px+Math.round((pw-w)/2);
+      if(/^[. ]+$/.test(t)){for(let i=0;i<3;i++)P(px+Math.round(pw/2)-3+i*3,y,1,1,'#d8a050');y+=2;continue;}{let xx=x;for(const word of t.split(' ')){if(!word){xx+=2;continue;}const ww=Math.max(1,Math.round(word.length*5/S));P(xx,y,Math.min(ww,x+w-xx),1,'#d8a050');P(xx,y+1,Math.min(ww,x+w-xx),1,'#5a3a14');xx+=ww+1;}}y+=3;}}   /* a stroke a word, a gap between */
+  IMG['s98:memorial']=out;
+  const ax=Math.round(((W>>1)-x0)/S98_MEM.S),ay=sm.height-1;Object.assign(m,{src:'s98:memorial',fw:out.width,fh:out.height,ax,ay});
+  const hw=Math.max(.7,(sm.width/2-1)/PPM);if(typeof addRect==='function')addRect(o.x-hw,o.z-.5,o.x+hw,o.z);   /* the base's footing */
+  S98.memDone=1;}
+setInterval(()=>{try{s98MemorialWorld();}catch(e){}},500);
