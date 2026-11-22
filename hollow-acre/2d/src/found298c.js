@@ -29,7 +29,7 @@ function f98Up(D,cw,ch,L,ww,hh,ox,oy,S,flat){const N=ww*hh,sol=new Uint8Array(N)
     if(a>=.5)IN[v*cw+u]=1;}
   // see-through pixels (drop shadows, glass, smoke) stay see-through: laid over what is under them, crisp edged
   for(let v=0;v<ch;v++)for(let u=0;u<cw;u++){if(IN[v*cw+u])continue;const [x,y]=at(u,v),i=pix(Math.round(x),Math.round(y));if(i<0||sol[i])continue;const al=L[i*4+3]/255;if(al<.04)continue;
-    const o=(v*cw+u)*4;for(let k=0;k<3;k++)D[o+k]=Math.round(D[o+k]*(1-al)+L[i*4+k]*al);}
+    const o=(v*cw+u)*4;if(!D[o+3]){for(let k=0;k<3;k++)D[o+k]=L[i*4+k];D[o+3]=Math.round(al*255);}else for(let k=0;k<3;k++)D[o+k]=Math.round(D[o+k]*(1-al)+L[i*4+k]*al);}
   if(!any)return;
   for(let v=0;v<ch;v++)for(let u=0;u<cw;u++){if(!IN[v*cw+u])continue;const [x,y,xi,yi,fx,fy]=at(u,v),o=(v*cw+u)*4;
     const rim=!flat&&((u>0&&!IN[v*cw+u-1])||(u<cw-1&&!IN[v*cw+u+1])||(v>0&&!IN[(v-1)*cw+u])||(v<ch-1&&!IN[(v+1)*cw+u]));
@@ -39,11 +39,16 @@ function f98Up(D,cw,ch,L,ww,hh,ox,oy,S,flat){const N=ww*hh,sol=new Uint8Array(N)
     if(!col&&!flat){let bi=-1,bw=0;for(const [dx,dy,ww_] of [[0,0,(1-fx)*(1-fy)],[1,0,fx*(1-fy)],[0,1,(1-fx)*fy],[1,1,fx*fy]]){const i=pix(xi+dx,yi+dy);if(i>=0&&ww_>bw){bw=ww_;bi=i;}}
       if(bi>=0&&sol[bi]&&!edge[bi]){const px_=bi%ww,py_=(bi/ww)|0;   // a dark line one world pixel wide (mortar, a seam) stays one pixel wide
         for(const [ax_,ay_,pos] of [[1,0,x-px_],[0,1,y-py_]]){const a=pix(px_-ax_,py_-ay_),b=pix(px_+ax_,py_+ay_);if(a<0||b<0||!sol[a]||!sol[b])continue;
-          if(f98Lum(L,a)-f98Lum(L,bi)>28&&f98Lum(L,b)-f98Lum(L,bi)>28&&S>=1.5){col=pos<-.01?[L[bi*4],L[bi*4+1],L[bi*4+2]]:[L[b*4],L[b*4+1],L[b*4+2]];break;}}}}
+          const da=f98Lum(L,a)-f98Lum(L,bi),db=f98Lum(L,b)-f98Lum(L,bi);   // (a light line, such as pale mortar, too)
+          if(S>=1.5&&Math.abs(da)>28&&Math.abs(db)>28&&da*db>0){col=pos<-.01?[L[bi*4],L[bi*4+1],L[bi*4+2]]:[L[b*4],L[b*4+1],L[b*4+2]];break;}}}}
+    let bev=0;if(!col&&!flat&&!rim&&S>=1.5){const bi=pix(Math.round(x),Math.round(y));if(bi>=0&&sol[bi]&&!edge[bi]){const px_=bi%ww,py_=(bi/ww)|0,up=pix(px_,py_-1),dn=pix(px_,py_+1),same=(i,j)=>L[i*4]===L[j*4]&&L[i*4+1]===L[j*4+1]&&L[i*4+2]===L[j*4+2];
+      // each patch of one colour at least two world pixels tall gets a 1 px lit top and a 1 px shaded foot at this size (a brick, a stone, a board)
+      if(y-py_<-.5+1/S&&up>=0&&sol[up]&&!same(up,bi)&&Math.abs(f98Lum(L,up)-f98Lum(L,bi))>12&&dn>=0&&same(dn,bi))bev=1;
+      else if(y-py_>.5-1/S&&dn>=0&&sol[dn]&&!same(dn,bi)&&Math.abs(f98Lum(L,dn)-f98Lum(L,bi))>12&&up>=0&&same(up,bi))bev=-1;}}
     if(!col){let r=0,g=0,b=0,w=0;for(const [dx,dy,ww_] of [[0,0,(1-fx)*(1-fy)],[1,0,fx*(1-fy)],[0,1,(1-fx)*fy],[1,1,fx*fy]]){const i=pix(xi+dx,yi+dy);if(i<0||!sol[i]||(edge[i]&&!flat)||ww_<=0)continue;r+=L[i*4]*ww_;g+=L[i*4+1]*ww_;b+=L[i*4+2]*ww_;w+=ww_;}
       if(w>0&&pal.length)col=near(r/w,g/w,b/w);
       else{const i=pix(Math.round(x),Math.round(y));if(i>=0&&sol[i])col=[L[i*4],L[i*4+1],L[i*4+2]];}}   // a part too thin to have an inside keeps its own pixel
-    if(!col)continue;D[o]=col[0];D[o+1]=col[1];D[o+2]=col[2];D[o+3]=255;}}
+    if(!col)continue;if(bev)col=f98Sd(col,bev>0?1.1:.86);D[o]=col[0];D[o+1]=col[1];D[o+2]=col[2];D[o+3]=255;}}
 // f98Ground(at, cw, ch, S, ax, ay, opt): a cw x ch picture of the world round the point at={x,z} (metres) at S times the world, at
 // landing on (ax,ay). opt.skip: objects left out (the thing the close-up shows); opt.skipRe: sprite names left out; opt.noProps.
 function f98Ground(at,cw,ch,S,ax,ay,opt){opt=opt||{};const skip=opt.skip||[],sre=opt.skipRe||/^(f98_|rem_)/;
@@ -74,12 +79,19 @@ function f98Ground(at,cw,ch,S,ax,ay,opt){opt=opt||{};const skip=opt.skip||[],sre
     if(v>0){const up=CL[(v-1)*cw+u];if(up!==c&&(K===1||K===2)&&F98_GK[up]===0)col=f98Sd(A,.74);}   // dirt sinks a little under the grass's edge
     D[o]=col[0];D[o+1]=col[1];D[o+2]=col[2];D[o+3]=255;}
   if(!opt.noProps){const L=[];for(const q of OBJ){if(q.room||q.hide||skip.includes(q)||!q.spr||sre.test(q.spr))continue;const m=SPR[q.spr];if(!m||!IMG[m.src])continue;const X=q.x*PPM,Y=q.z*PPM;
-      if(X-m.ax>bx+ww||X-m.ax+m.fw<bx||Y-m.ay>by+hh||Y-m.ay+m.fh<by)continue;L.push(q);}
+      if(X-m.ax>bx+ww||X-m.ax+m.fw<bx||Y-m.ay>by+hh||Y-m.ay+m.fh<by)continue;
+      const vis=Math.min(X-m.ax+m.fw,W0+cw/S)-Math.max(X-m.ax,W0);if(q.kind!=='flat'&&vis<Math.min(12,m.fw*.35))continue;   // a sliver of something cut off at the edge reads as a glitch: leave it out
+      if(opt.frontZ!=null&&q.kind!=='flat'&&q.z>opt.frontZ&&Y>H0+ch/S+2)continue;   // so does the top of a thing whose foot is below the picture, laid over the find
+      L.push(q);}
     let PZ=[];try{const os=typeof onScreen==='function'?onScreen:null;if(os)onScreen=()=>true;PORCH.frame=-1;try{PZ=porchZones().slice();}finally{if(os)onScreen=os;PORCH.frame=-1;}}catch(e){PZ=[];}   // every porch's steps, not only those on screen now
     try{for(const q of PZ){const m=SPR[q.spr];if(!m||!IMG[m.src])continue;const X=q.x*PPM,Y=q.z1*PPM;if(X-m.ax>bx+ww||X-m.ax+m.fw<bx||Y-m.ay>by+hh||Y-m.ay+m.fh<by)continue;L.push({spr:q.spr,x:q.x,z:q.z1,sz:q.z0+.05});}}catch(e){}
     L.sort((a,b)=>((a.kind==='flat')-(b.kind==='flat'))*-1e6+((a.sz!=null?a.sz:a.z)-(b.sz!=null?b.sz:b.z)));
     const lc=document.createElement('canvas');lc.width=ww;lc.height=hh;const lg=lc.getContext('2d');lg.imageSmoothingEnabled=false;
-    for(const q of L){try{lg.clearRect(0,0,ww,hh);drawSpr(q.spr,q.x*PPM-bx,q.z*PPM-by,undefined,undefined,0,{ctx:lg,flip:q.flip});f98Up(D,cw,ch,lg.getImageData(0,0,ww,hh).data,ww,hh,ox,oy,S,q.kind==='flat');}catch(e){}}}
+    // with opt.frontZ, what stands in front of the thing (nearer the viewer than frontZ) goes on a layer of its own, out.front,
+    // to be laid over the thing as it is in the world
+    const fid=opt.frontZ!=null?g.createImageData(cw,ch):null;
+    for(const q of L){const fr=fid&&q.kind!=='flat'&&(q.sz!=null?q.sz:q.z)>opt.frontZ;try{lg.clearRect(0,0,ww,hh);drawSpr(q.spr,q.x*PPM-bx,q.z*PPM-by,undefined,undefined,0,{ctx:lg,flip:q.flip});f98Up(fr?fid.data:D,cw,ch,lg.getImageData(0,0,ww,hh).data,ww,hh,ox,oy,S,q.kind==='flat');}catch(e){}}
+    if(fid){const f=document.createElement('canvas');f.width=cw;f.height=ch;f.getContext('2d').putImageData(fid,0,0);out.front=f;}}
   g.putImageData(id,0,0);return out;}
 // the world round a find, drawn again at the close-up's size; the find's middle lands at (cx,cy) of a cw x ch picture
 function f98Backdrop(id,cw,ch,cx,cy){const o=RGC_OBJ[id],d=F98_FIND[id];if(!o)return null;const lift=(d&&d.lift)||0,up=d?((d.gy||d.y+5)-d.y):5;
