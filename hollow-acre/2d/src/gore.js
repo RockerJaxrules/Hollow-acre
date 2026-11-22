@@ -66,23 +66,23 @@ if(typeof dkTear==='function'){const _dt=dkTear;dkTear=function(i){_dt(i);try{co
 const KILLS={rabbit:{main:'g_rabbit',extra:[['g_spatter',.6,.2]],pool:[.05,.12,.75],look:'A rabbit, opened like a purse. The fur is everywhere, as if it burst. Nothing has been eaten. It was killed and then left, neatly, where you would walk.'},
   deer:{main:'g_deer_open',extra:[['g_spatter',-1.4,.4]],pool:[.1,.22,1.3],look:'A deer laid on its side with its insides arranged round it in a ring. Twelve pieces. The heart at the top. It is the same every time. It is telling the time.'},
   ribs:{main:'g_ribs',prop:1,extra:[['g_drag',-2.6,.1],['g_spatter',.8,.3]],pool:[0,.1,.9],look:'A ribcage standing on its spine at the end of a long red drag, picked almost clean. Whatever did this carried the rest of it somewhere. The crows won’t go near the drag mark.'},
-  hiker:{person:1,main:'g_p_hiker',tmain:'g_p_hiker_t',extra:[['g_drag',-2.7,-.03]],pool:[.15,.25,1.35],crows:4,
+  hiker:{person:1,main:'g_p_hiker',tmain:'g_p_hiker_t',extra:[['g_p_drag',2.34,-.06]],pool:[0,.12,1],crows:4,
     look:'A stranger face-down in the grass, a rucksack torn off one arm. Opened along the spine from collar to belt, the back folded out both ways like a coat coming off. The smear behind goes back toward Route 9. They crawled all this way.',
     tlook:'A long smear through the grass from the direction of Route 9, ending in a dark patch the size of a person. A rucksack lies beside it, torn off at the strap. Nobody has come for it.',
     jot:'A stranger in the grass by the farm, opened along the spine. They had crawled all the way from Route 9.',tjot:'A blood trail through the grass from Route 9, and a stranger’s rucksack.'},
-  lantern:{person:1,main:'g_p_lantern',tmain:'g_p_lantern_t',extra:[['g_spatter',.9,.3]],pool:[.55,.05,.8],crows:3,glow:[-.3,-.1],
+  lantern:{person:1,main:'g_p_lantern',tmain:'g_p_lantern_t',extra:[['g_spatter',-.9,.3]],pool:[-.6,.02,.6],crows:3,glow:[.02,-.17],
     look:'A storm lantern on its side in the grass, still lit, and a hand still holding it, off at the wrist. The knuckles are white round the wire. Whoever it was held on to the light right to the end. You’d have to break the fingers to take it.',
     tlook:'A storm lantern on its side in the grass, still lit. The wire handle is sticky. Whoever was holding it held on for as long as they could.',
     jot:'A hand in the grass, off at the wrist, still holding a lit lantern. The light didn’t help them.',tjot:'A lantern in the grass, still lit, the handle sticky with blood.'},
-  boots:{person:1,main:'g_p_boots',tmain:'g_p_boots_t',prop:1,extra:[],pool:[-.06,.04,.95],crows:3,
+  boots:{person:1,main:'g_p_boots',tmain:'g_p_boots_t',prop:1,extra:[],pool:[-.22,.03,.6],crows:3,
     look:'A pair of work boots standing side by side in the grass, laced to the top. The feet are still in them, cut through just above the socks. Beside them a surveyor’s stake, and the tape run out to nowhere. The county sent someone to measure the valley.',
     tlook:'One work boot lying in the grass, still laced. Beside it a surveyor’s stake with a pink flag, and the tape run out to nowhere. The county sent someone to measure the valley.',
     jot:'A surveyor’s boots, standing in the grass with the feet still in them.',tjot:'A surveyor’s stake in the grass, and one boot, still laced.'},
-  coat:{person:1,main:'g_p_coat',tmain:'g_p_coat_t',prop:1,extra:[['g_spatter',.7,.25]],pool:[0,.03,.75],crows:4,
+  coat:{person:1,main:'g_p_coat',tmain:'g_p_coat_t',prop:1,extra:[['g_spatter',.7,.25]],pool:[0,.03,.55],crows:4,
     look:'A long coat hung on a fence post by its collar, buttoned to the chin. It is full. Whatever is in it was folded small to fit, and it has soaked through at every seam. Fingertips at one cuff. In the pocket, a bus ticket: Route 9, one way.',
     tlook:'A long coat hung on a fence post by its collar, torn open down the back and stiff with something dark. In the pocket, a bus ticket: Route 9, one way.',
     jot:'A coat on a fence post with someone folded up inside it. A bus ticket in the pocket: Route 9, one way.',tjot:'A torn coat on a fence post, stiff with blood. A bus ticket: Route 9, one way.'},
-  tree:{person:1,main:'g_p_tree',tmain:'g_p_tree_t',prop:1,extra:[['g_spatter',-1,.35]],pool:[.03,.1,1.1],crows:4,
+  tree:{person:1,main:'g_p_tree',tmain:'g_p_tree_t',prop:1,extra:[['g_spatter',-1,.35]],pool:[.03,.08,.9],crows:4,
     look:'A hunter sat against a dead tree, his rifle across his knees, every round still in it. His face has been taken off to the teeth, neatly, like the label off a jar. His eyes are in his lap, side by side, looking up at you.',
     tlook:'A rifle and an orange cap at the foot of a dead tree. The bark is dark from head height to the roots, as if someone sat there a long time and bled the whole while.',
     jot:'A hunter against a dead tree. It took his face. It left his eyes in his lap, looking up.',tjot:'A hunter’s rifle and cap under a dead tree, the bark dark with blood.'}};
@@ -110,8 +110,9 @@ function gorePersonAdd(x,z,kind){const g=goreS();g.pUsed=g.pUsed||[];let pool=GO
 {const _lg=loadGame;loadGame=function(){const r=_lg.apply(this,arguments);for(const id of Object.keys(GORE.objs))goreKillHide(id);for(const k of goreS().kills)goreKillShow(k);return r;};}
 setTimeout(()=>{try{for(const k of goreS().kills)goreKillShow(k);}catch(e){}},0);
 // the first time you come on each person, you see it close (sights.js draws the close-up), with the line underneath
+function goreUp(im){if(im.width>=64||im.height>=34)return im;if(im._up)return im._up;const c=document.createElement('canvas');c.width=im.width*2;c.height=im.height*2;const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(im,0,0,c.width,c.height);return im._up=c;}
 function goreSightP(k,ton,look){if(typeof sgtSprites!=='function'||typeof sgtOpen!=='function'||S.mode!=='play'||S.paused||(typeof H!=='undefined'&&H.state==='chase'))return false;
-  const g=goreS(),K=KILLS[k.kind],sk='sight_'+k.kind+(ton?'_t':'');if(g.seen[sk])return false;let img=null;try{img=sgtSprites('killp_'+k.kind+(ton?'_t':''),[[ton?K.tmain:K.main,0,0]]);}catch(e){}if(!img)return false;
+  const g=goreS(),K=KILLS[k.kind],sk='sight_'+k.kind+(ton?'_t':'');if(g.seen[sk])return false;let img=null;try{img=sgtSprites('killp_'+k.kind+(ton?'_t':''),[[ton?K.tmain:K.main,0,0]]);}catch(e){}if(!img)return false;img=goreUp(img);
   g.seen[sk]=1;return sgtOpen({x:k.x,z:k.z},img,look,ton?{flies:1}:{flies:5,drip:K.prop?1:0});}
 // walking up on one; and the flies
 {const _u=update;update=function(dt){_u(dt);if(S.mode!=='play'||S.paused)return;const g=goreS();

@@ -1825,6 +1825,14 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A pixel font's glyphs are only clean at its native sizes; at other sizes thin glyphs (quotes) break into loose ticks.
 
 ## Bodies and wounds (t372, the people found in the morning: 5/10 in round 1)
+- [OWNER, t372b, verbatim] "The bodies need to match the shape of the bodies the town people and player models are made of". Understood: any person in the world, alive or dead, is the chibi model (chibi3.js): render a stranger with the generator (px/strangers3.py through run.py) and lay its frames out, never hand-draw a body with other proportions. Test every body beside a standing townsperson at 1x.
+- A frame laid flat must keep its light: transpose it (a quarter turn and a mirror together) so the top-left light stays top-left; a plain quarter turn moves the light to the top-right. Choose which way the body lies from that, and mirror the props around it.
+- A chibi body face-down: the back frame's head is a ball of hair. Put the side frame's head (eyes shut) on the laid back frame so the cheek, ear and jaw show, and make the hair a value step off the clothes.
+- A wound on a 12 px chibi torso: a D-shaped tear (one lip flat with the spine along it, the other ragged and deep) reads as torn; a lens with pale pixels reads as a mouth. Two ribs are enough at that size.
+- Chibi pixels carry their own outline: when compositing frames with drawn props, skip the frame's own rim in the outline pass, or every body gets a doubled 2 px outline.
+- A chibi hand is 3x3: a severed fist needs hand-placed knuckle bumps on its end, the wire showing above and below it, and a cut face of its own (rim, flesh, bone) with the pool kept off it, or it reads as a red blob.
+- Toned-down blood is a stain: dark, dull browns low against the grass, never a bright saturated smear.
+- A snag's trunk drawn as a capsule has a rounded top (a tombstone). Cut it off flat at the break and stand tall splinters on it.
 - Any lens-shaped opening with a pale row down its middle reads as a MOUTH FULL OF TEETH, whatever it is meant to be (a spine knuckle row, a fishbone of ribs, a zipper of alternating pale pixels). A wound is a ragged, asymmetric tear: dark inside, the bone along one lip, 3-4 pale arcs at uneven gaps; never a row of evenly spaced pale pixels.
 - A pink band round a wound (lit flap undersides, a pale cut edge on both lips) makes lips. Keep the rim dark, lit only a little on the near side.
 - A head seen from behind at 1x is a ball unless skin shows: turn it on its cheek (ear, cheek, jaw, neck), and keep the hair a value step away from anything it touches (here the satchel); leave a gap between them.
