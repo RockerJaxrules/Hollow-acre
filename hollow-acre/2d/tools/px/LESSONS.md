@@ -168,6 +168,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   the drawn buildings win on. Organic, soft forms (trees, bushes, rocks) are where the 3D method clearly wins.
 
 ## People (48x64) [owner: "look very bad so far"]
+- [wardrobe hair r1, 5.5] A new hairstyle must differ from every existing one in SILHOUETTE at 1x, not in inner locks: shaved skin at the sides, a level rim, a lift above the crown, a bun's size and place, length front vs back. Nine look-alikes were cut; a smaller set of distinct styles beats a padded one.
+- [wardrobe hair r1] One style, one length in every view: check the front, side and back silhouettes against each other (front sides to the jaw = back to the collar).
+- [wardrobe hair r1] From behind, a shaved or short back must stay short dark hair; a bare skin patch on the back of the head reads as a blank face.
+- [wardrobe hair r1] Long hair in a side view hangs straight down (no cape-like taper) and its lower rows stay where they are when the body leans; the near arm, and arms raised seen from behind, are drawn over hair, hats and glasses.
+- [wardrobe hair r1] Locs and braids from behind: ropes of uneven spacing, length and tone, alternate ropes a step darker; equal columns read as a grille. A braid over hair needs a value step (lighter) and chevron stitches with a deep line each side, or it reads as a headband.
+- [wardrobe hair r1] A flat-topped tall shape reads as a hat: round the top corners, rag the top edge, and texture with a few curl clusters instead of a grid.
 - A new cast drawn beside existing townsfolk must match their measured figure box first (bbox of a front frame: townsfolk 41 px tall, 24 wide; the player 45): a 37 px figure reads as a child next to them, whatever its detail.
 - Side-view legs drawn as shifted columns overlap into one block at a 3 px stride; draw each leg as a limb from a fixed hip point to the foot (4 px wide) and stride 4 px, the far leg one ramp step darker.
 - Give each person one silhouette mark that survives 1x: a flat cap with a brim, a wide straw brim, a bowler's dome, a red kerchief, braids past the shoulders, a bun. Colour alone (the old recoloured shirts) does not tell people apart.
