@@ -1,7 +1,7 @@
 # Builds Hollow Acre as real apps on every change: Windows (installer + portable .exe), macOS (.dmg), Linux (AppImage + .deb)
 # Android (.apk) and the web version (upload to itch.io or any website). Download them from the run's "Artifacts" section.
-# When the workflow is run by hand (Actions, Hollow Acre apps, Run workflow), the "release" job publishes the Windows and Linux apps
-# as the release desktop-v<version> (the version in hollow-acre/desktop/package.json), the stable download page
+# When hollow-acre/desktop/package.json names a desktop version that has no GitHub Release yet (or when the workflow is run by
+# hand), the "release" job publishes the Windows and Linux apps as the release desktop-v<version>, the stable download page
 # https://github.com/RockerJaxrules/Hollow-acre/releases/latest, with the update files the installed apps update themselves from.
 name: Hollow Acre apps
 on:
@@ -41,6 +41,10 @@ jobs:
         with: {node-version: 20}
       - run: npm install
       - run: npm run dist
+      # the files made and the update files' text, in the log (the artifacts are zips)
+      - name: What was built
+        shell: bash
+        run: ls -l dist; for f in dist/latest*.yml; do [ -e "$f" ] || continue; echo "== $f"; cat "$f"; done
       - uses: actions/upload-artifact@v4
         with:
           name: HollowAcre-${{ matrix.name }}
@@ -81,9 +85,10 @@ jobs:
           path: hollow-acre/mobile/HollowAcre-android.apk
           if-no-files-found: error
   release:
-    # publishes the desktop apps when the workflow is run by hand (a run for a version that is already out refreshes its files)
+    # publishes the desktop apps once per version: a new version in hollow-acre/desktop/package.json, pushed to the game's branch
+    # or to main, or a run started by hand (which also refreshes the files of a release that already exists)
     needs: desktop
-    if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' }}
+    if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/claude/3d-horror-stardew-game-3p7bhh' || github.ref == 'refs/heads/main') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
