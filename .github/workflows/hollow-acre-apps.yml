@@ -1,5 +1,8 @@
 # Builds Hollow Acre as real apps on every change: Windows (installer + portable .exe), macOS (.dmg), Linux (AppImage + .deb)
 # Android (.apk) and the web version (upload to itch.io or any website). Download them from the run's "Artifacts" section.
+# When the workflow is run by hand (Actions, Hollow Acre apps, Run workflow), the "release" job publishes the Windows and Linux apps
+# as the release desktop-v<version> (the version in hollow-acre/desktop/package.json), the stable download page
+# https://github.com/RockerJaxrules/Hollow-acre/releases/latest, with the update files the installed apps update themselves from.
 name: Hollow Acre apps
 on:
   push:
@@ -43,6 +46,15 @@ jobs:
           name: HollowAcre-${{ matrix.name }}
           path: ${{ matrix.files }}
           if-no-files-found: error
+      # what electron-updater reads (latest.yml, latest-linux.yml) and the block maps for smaller updates: a few KB, for the release
+      - if: matrix.name != 'mac'
+        uses: actions/upload-artifact@v4
+        with:
+          name: HollowAcre-${{ matrix.name }}-update
+          path: |
+            hollow-acre/desktop/dist/latest*.yml
+            hollow-acre/desktop/dist/*.blockmap
+          if-no-files-found: error
   android:
     runs-on: ubuntu-latest
     defaults: {run: {working-directory: hollow-acre/mobile}}
@@ -68,3 +80,57 @@ jobs:
           name: HollowAcre-android
           path: hollow-acre/mobile/HollowAcre-android.apk
           if-no-files-found: error
+  release:
+    # publishes the desktop apps when the workflow is run by hand (a run for a version that is already out refreshes its files)
+    needs: desktop
+    if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency: {group: desktop-release, cancel-in-progress: false}
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        name: Is this version released yet?
+        run: |
+          v=$(node -p "require('./hollow-acre/desktop/package.json').version")
+          echo "version=$v" >> "$GITHUB_OUTPUT"; echo "tag=desktop-v$v" >> "$GITHUB_OUTPUT"
+          if gh release view "desktop-v$v" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.v.outputs.exists == 'false' || github.event_name == 'workflow_dispatch'
+        id: go
+        run: echo "go=true" >> "$GITHUB_OUTPUT"
+      - if: steps.go.outputs.go == 'true'
+        uses: actions/download-artifact@v4
+        with: {name: HollowAcre-windows, path: rel}
+      - if: steps.go.outputs.go == 'true'
+        uses: actions/download-artifact@v4
+        with: {name: HollowAcre-windows-update, path: rel}
+      - if: steps.go.outputs.go == 'true'
+        uses: actions/download-artifact@v4
+        with: {name: HollowAcre-linux, path: rel}
+      - if: steps.go.outputs.go == 'true'
+        uses: actions/download-artifact@v4
+        with: {name: HollowAcre-linux-update, path: rel}
+      - if: steps.go.outputs.go == 'true'
+        name: Publish the release
+        env: {V: '${{ steps.v.outputs.version }}', TAG: '${{ steps.v.outputs.tag }}', EXISTS: '${{ steps.v.outputs.exists }}'}
+        run: |
+          cd rel && ls -la
+          # every file the release promises, and update files that name this version
+          for f in "HollowAcre-Setup-$V.exe" "HollowAcre-Portable-$V.exe" HollowAcre-x86_64.AppImage "HollowAcre_${V}_amd64.deb" latest.yml latest-linux.yml; do test -s "$f" || { echo "missing $f"; exit 1; }; done
+          grep -q "^version: $V$" latest.yml && grep -q "^version: $V$" latest-linux.yml
+          cat > ../notes.md <<EOF
+          **Windows:** download \`HollowAcre-Setup-$V.exe\` and run it (it updates itself), or \`HollowAcre-Portable-$V.exe\` to play without installing.
+          Windows may say "Windows protected your PC" because the app isn't signed: click **More info**, then **Run anyway**.
+
+          **Steam Deck and Linux:** download \`HollowAcre-x86_64.AppImage\` (it updates itself), make it executable, and add it to Steam as a Non-Steam Game.
+          On Ubuntu or Debian you can install \`HollowAcre_${V}_amd64.deb\` instead.
+
+          The app always plays the newest version of the game from the website, and keeps a copy for playing offline.
+          Step-by-step instructions: https://github.com/RockerJaxrules/Hollow-acre/blob/${GITHUB_SHA}/hollow-acre/desktop/README.md
+          EOF
+          sed -i 's/^          //' ../notes.md
+          if [ "$EXISTS" = true ]; then gh release upload "$TAG" ./* --clobber --repo "$GITHUB_REPOSITORY"
+          else gh release create "$TAG" ./* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Hollow Acre $V (Windows, Linux, Steam Deck)" --notes-file ../notes.md --latest; fi

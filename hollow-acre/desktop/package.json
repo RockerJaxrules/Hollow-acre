@@ -1,7 +1,7 @@
 {
   "name": "hollow-acre",
   "productName": "Hollow Acre",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "A psychological-horror farming game.",
   "author": {
     "name": "Hollow Acre",
@@ -17,6 +17,9 @@
     "dist:mac": "node copy-game.js && electron-builder --mac --publish never",
     "dist:linux": "node copy-game.js && electron-builder --linux --publish never"
   },
+  "dependencies": {
+    "electron-updater": "6.3.9"
+  },
   "devDependencies": {
     "electron": "33.2.1",
     "electron-builder": "25.1.8"
@@ -24,9 +27,11 @@
   "build": {
     "appId": "com.hollowacre.game",
     "productName": "Hollow Acre",
+    "copyright": "Hollow Acre",
     "files": [
       "main.js",
       "preload.js",
+      "shell/**/*",
       "game/**/*"
     ],
     "directories": {
@@ -34,16 +39,32 @@
       "output": "dist"
     },
     "icon": "build/icon.png",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "RockerJaxrules",
+        "repo": "Hollow-acre",
+        "releaseType": "release"
+      }
+    ],
     "win": {
       "target": [
         "nsis",
         "portable"
-      ]
+      ],
+      "icon": "build/icon.png"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "shortcutName": "Hollow Acre"
+      "shortcutName": "Hollow Acre",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "artifactName": "HollowAcre-Setup-${version}.${ext}",
+      "deleteAppDataOnUninstall": false
+    },
+    "portable": {
+      "artifactName": "HollowAcre-Portable-${version}.${ext}"
     },
     "mac": {
       "target": [
@@ -57,8 +78,15 @@
         "deb"
       ],
       "category": "Game",
-      "maintainer": "Hollow Acre"
+      "maintainer": "Hollow Acre",
+      "synopsis": "A psychological-horror farming game.",
+      "executableName": "hollow-acre"
     },
-    "publish": null
+    "appImage": {
+      "artifactName": "HollowAcre-${arch}.AppImage"
+    },
+    "deb": {
+      "artifactName": "HollowAcre_${version}_${arch}.deb"
+    }
   }
 }
