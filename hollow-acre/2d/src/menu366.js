@@ -2,7 +2,7 @@
    be reworked to be more convenient and different depending if your using mobile controls mouse and keyboard or controller").
    - The game follows what you last touched (the pad, the keys and mouse, or a finger) and changes its hints and the menu's
      layout to match, the moment you switch; nothing on the page is written unless something changed.
-   - Phone: a Menu button and a Map button, one over the other at the left thumb; the panel has a big X to close, its tabs are
+   - Phone: a Menu button at the left thumb (t307: the Map button over it is gone; the map is a tab in the menu); the panel has a big X to close, its tabs are
      44 px tall and change with a swipe across the panel; a swipe down on its title closes it.
    - Keyboard and mouse: E or I items, M map, J journal, Esc opens and closes the menu, Tab and Shift+Tab turn the tabs (each
      tab shows its key), the number keys still pick from the toolbar; every tab and HUD button says what it does on hover.
@@ -26,7 +26,7 @@ if(typeof U37_WORDS!=='undefined')for(const w of U37_WORDS){if(w[1]==='Tap'||w[1
 function m66Key(k){return `<span class="m66key">${k}</span>`;}
 function m66How(what){const m=m66Mode();
   if(m==='pad')return gpFmt({menu:'press {START}',map:'press {BACK}',journal:'press {LT}',tabs:'{LB} {RB} change tab'}[what]||'');
-  if(m==='touch')return {menu:'tap <b>Menu</b>',map:'tap <b>Map</b>',journal:'open the menu and tap <b>Journal</b>',tabs:'swipe across it to change tab'}[what]||'';
+  if(m==='touch')return {menu:'tap <b>Menu</b>',map:'open the menu and tap <b>Map</b>',journal:'open the menu and tap <b>Journal</b>',tabs:'swipe across it to change tab'}[what]||'';
   return {menu:`press ${m66Key('E')} or ${m66Key('Esc')}`,map:`press ${m66Key('M')}`,journal:`press ${m66Key('J')}`,tabs:`${m66Key('Tab')} changes tab`}[what]||'';}
 
 // ================================================================ the look
@@ -53,30 +53,16 @@ body.in-pad .tabs .m66pb{display:inline-flex}
 .m66ctl{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px 16px;margin:6px 0}.m66ctl div{display:flex;gap:10px;align-items:center;min-height:26px;font-size:13px}
 .m66ctl .k{min-width:110px;display:inline-flex;gap:3px;justify-content:flex-end;flex-wrap:wrap;color:#ffd27a}
 .m66sec{margin:12px 0 4px;color:#e0b070;font-size:13px;letter-spacing:.06em;text-transform:uppercase}.m66sec.on::after{content:' · what you’re using';color:#9fc07a;text-transform:none;letter-spacing:0}
-#btnMap{position:fixed!important;left:var(--gl)!important;right:auto!important;top:auto!important;bottom:calc(var(--gb) + var(--btn) + 8px)!important;width:var(--btn)!important;height:var(--btn)!important;padding:0!important;zoom:var(--u)!important;
-  display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px!important;z-index:7}
-#btnMap[hidden]{display:none!important}#btnMap .ico{width:22px;height:11px;image-rendering:pixelated}
-@media (orientation:portrait) and (max-width:699px){#btnMap{bottom:calc(var(--gb) + var(--slot) + 12px + var(--btn) + 8px)!important}}
-body:has(#bag:not([hidden])) #btnMap,body:has(#shop:not([hidden])) #btnMap,body:has(#note:not([hidden])) #btnMap,body:has(#craft:not([hidden])) #btnMap{visibility:hidden!important}
 .m66kb{display:none;position:absolute;right:3px;top:3px;min-width:12px;padding:0 2px;font-size:10px;line-height:12px;color:#2a1608;background:#ecdcb2;box-shadow:0 0 0 1px #1a0e06;pointer-events:none}
 body.in-kb .m66kb{display:block}
 `;document.head.appendChild(css);}
 
-// ================================================================ the HUD: Menu, and a Map button over it
-{const bb=$('btnBag');if(bb){const m=document.createElement('button');m.className='btn';m.id='btnMap';m.setAttribute('aria-label','Map');
-  // a folded paper map, three panels, a road and a red mark: drawn here pixel by pixel
-  const G=['.kkkkkkkkkkkkkkkkkkkk.','kppPPpkkppppykkPPpppk.','kpPPPpkkpppyykkPPPpPk.','kpyyPPkkpyyyykkyyyPPk.','kPPyyykkyyppkkkPPyyPk.','kPPPyykkyppPPkkPPPyyk.','kppPPpkkpprrPkkPPPPpk.',
-    'kpppPpkkprrrPkkpPPPPk.','kPPpppkkpprkPkkppPPpk.','kPPPppkkppppPkkpppPPk.','.kkkkkkkkkkkkkkkkkkkk.'];
-  const pal={k:'#24140a',p:'#e8d4a4',P:'#c8a868',y:'#a87838',r:'#d8382a'};let svg='';G.forEach((row,y)=>{for(let x=0;x<row.length;x++){const c=pal[row[x]];if(c)svg+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${c}"/>`;}});
-  m.innerHTML=`<svg class="ico" viewBox="0 0 22 11" shape-rendering="crispEdges" aria-hidden="true">${svg}</svg><span>Map</span><span class="m66kb">M</span>`;
-  m.title='Map (M)';m.addEventListener('click',e=>{e.stopPropagation();if(S.mode==='play'&&!S.paused)openBag('map');});bb.after(m);
+// ================================================================ the HUD: Menu. (t307, owner on a Steam Deck: "the map icon should not exist or if it
+// should it's way too big". The Map button that stood over Menu is gone; the map is the Map tab in the menu, M, or View on a pad.)
+{const bb=$('btnBag');if(bb){
   bb.title='Menu (E or Esc)';if(!bb.querySelector('.m66kb'))bb.insertAdjacentHTML('beforeend','<span class="m66kb">E</span>');}}
-// the Map button stands and hides with the Menu button
-setInterval(()=>{const bb=$('btnBag'),m=$('btnMap');if(!bb||!m)return;const want=bb.hidden||getComputedStyle(bb).display==='none';if(m.hidden!==want)m.hidden=want;
-  const iv=bb.style.visibility||'';if(m.style.visibility!==iv)m.style.visibility=iv;},300);
-if(typeof bmHud==='function'){const _bh=bmHud;bmHud=function(hide){const r=_bh.apply(this,arguments);const m=$('btnMap');if(m)m.style.visibility=hide?'hidden':'';return r;};}
-// the pad's picture on each: Menu or Options on the menu, View or Create on the map
-{const _b=gpBadges;gpBadges=function(){_b.apply(this,arguments);for(const [id,k] of [['btnBag','start'],['btnMap','back']]){const b=$(id);if(!b)continue;let g=b.querySelector('.gpbadge');const want=gpGlyph(k);
+// the pad's picture on the Menu button: Menu or Options
+{const _b=gpBadges;gpBadges=function(){_b.apply(this,arguments);for(const [id,k] of [['btnBag','start']]){const b=$(id);if(!b)continue;let g=b.querySelector('.gpbadge');const want=gpGlyph(k);
     if(!g){g=document.createElement('span');g.className='gpbadge';g.setAttribute('aria-hidden','true');b.appendChild(g);}if(g._k!==want){g._k=want;g.innerHTML=want;}}};}
 try{gpBadges();}catch(e){}
 
@@ -117,7 +103,7 @@ function m66Settings(){const B=$('bagBody');$('bag').classList.add('m66set');$('
 const M66_CTL={kb:[['WASD, the arrows','Walk (Shift runs)'],['Left-click','Use your tool'],['Right-click, X','Talk, open, pick up'],['1-9, 0, -, =','Pick from the toolbar'],['Mouse wheel','Step along the toolbar'],
     ['E or I','Items'],['M','The map'],['J','The journal'],['Esc','Open or close the menu'],['Tab, Shift+Tab','Change tab'],['F','Full screen'],
     ['On the map','Drag or WASD to look, the wheel zooms at the pointer, click a place, right-click to pin']],
-  touch:[['Drag anywhere','Walk; drag further to run'],['Tap','Use your tool, talk, open, pick up'],['Use (bottom right)','Use what you hold'],['Menu','The menu'],['Map','The map'],
+  touch:[['Drag anywhere','Walk; drag further to run'],['Tap','Use your tool, talk, open, pick up'],['Use (bottom right)','Use what you hold'],['Menu','The menu, and the map in it'],
     ['In the menu','Swipe across to change tab; swipe the title down or tap ✕ to close'],['On the map','Drag to look, pinch to zoom, tap a place, hold to drop a pin']],
   pad:[['{LS} {DP}','Walk'],['{START}','The menu'],['{BACK}','The map'],['{LT}','The journal'],['{LB} {RB}','Pick a tool; in the menu, change tab'],['{A}','Choose'],['{B}','Back'],
     ['On the map','{LS} {RS} move it, {LT} {RT} zoom, {A} opens the place under the cross, {X} drops a pin, {Y} finds you']]};
@@ -193,15 +179,15 @@ function m66ModeChanged(){try{const bag=$('bag');if(bag&&!bag.hidden){m66DressTa
 // ---- the tutorial's lessons about the menu, the map and the journal, in the words of the hand in use
 {const T=(id,f)=>{const st=typeof TUT!=='undefined'&&TUT.find(s=>s.id===id);if(st)st.text=f;};
   T('menu',()=>{const m=m66Mode();if(m==='pad')return gpFmt('Open the menu with {START} to see your backpack. {BACK} opens the map, {LT} the journal.');
-    if(m==='touch')return 'Tap <b>Menu</b> (bottom left) to see your backpack. The <b>Map</b> button over it opens the map.';
+    if(m==='touch')return 'Tap <b>Menu</b> (bottom left) to see your backpack. The <b>Map</b> is a tab in it.';
     return `Open the menu to see your backpack: ${m66Key('E')} or ${m66Key('Esc')}. ${m66Key('M')} opens the map, ${m66Key('J')} the journal, ${m66Key('Tab')} changes tab.`;});
   T('drag',()=>{const m=m66Mode();if(m==='pad')return gpFmt('The top row is your toolbar. {A} lifts an item and {A} again sets it down; set it on the bin to throw it away. {LB} {RB} change tab, {B} closes the menu.');
     if(m==='touch')return 'The top row is your toolbar. Drag an item to move it; drop it on the bin to throw it away. Swipe across the menu to change tab; tap ✕ to close it.';
     return `The top row is your toolbar. Drag an item to move it; drop it on the bin to throw it away. ${m66Key('Tab')} changes tab, ${m66Key('Esc')} closes the menu.`;});
   T('map',()=>{const m=m66Mode();if(m==='pad')return gpFmt('The map shows the whole valley and where you are. Press {BACK}. {A} on a place tells you about it.');
-    if(m==='touch')return 'The <b>Map</b> button (over Menu) shows the whole valley and where you are. Tap a place to learn about it.';
-    return `The map shows the whole valley and where you are. Press ${m66Key('M')}, or click <b>Map</b>. Click a place to learn about it.`;});}
+    if(m==='touch')return 'Open the menu and tap the <b>Map</b> tab: the whole valley and where you are. Tap a place to learn about it.';
+    return `The map shows the whole valley and where you are. Press ${m66Key('M')}, or open the menu and click the <b>Map</b> tab. Click a place to learn about it.`;});}
 // Caitlyn's lesson about the map and journal says how, for the hand in use
 try{if(typeof LESSONS!=='undefined'){const L=LESSONS.find(q=>q.id==='map');if(L)Object.defineProperty(L,'say',{configurable:true,get:()=>{const m=m66Mode();
-  const how=m==='pad'?'Press View for the map and LT for the journal':m==='touch'?'Tap Map for the map; the Journal is a tab in the menu':'Press M for the map and J for the journal';
+  const how=m==='pad'?'Press View for the map and LT for the journal':m==='touch'?'The map and the journal are tabs in the menu':'Press M for the map and J for the journal';
   return `${how}. The map shows the whole valley; the journal keeps what you learn. Check both.`;}});}}catch(e){}
