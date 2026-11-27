@@ -1,7 +1,7 @@
 {
   "name": "hollow-acre",
   "productName": "Hollow Acre",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A psychological-horror farming game.",
   "author": {
     "name": "Hollow Acre",
@@ -68,9 +68,25 @@
     },
     "mac": {
       "target": [
-        "dmg"
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
       ],
-      "category": "public.app-category.games"
+      "category": "public.app-category.games",
+      "icon": "build/icon.png",
+      "identity": null,
+      "artifactName": "HollowAcre-${version}-mac-${arch}.${ext}"
     },
     "linux": {
       "target": [
@@ -87,6 +103,11 @@
     },
     "deb": {
       "artifactName": "HollowAcre_${version}_${arch}.deb"
+    },
+    "afterPack": "build/adhoc-sign.js",
+    "dmg": {
+      "title": "Hollow Acre",
+      "artifactName": "HollowAcre-${version}-mac-${arch}.${ext}"
     }
   }
 }

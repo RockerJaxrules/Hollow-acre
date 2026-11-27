@@ -1,4 +1,4 @@
-# Hollow Acre: desktop app (Windows, Linux, Steam Deck)
+# Hollow Acre: desktop app (Windows, Mac, Linux, Steam Deck)
 
 Download: **https://github.com/RockerJaxrules/Hollow-acre/releases/latest**
 
@@ -6,6 +6,9 @@ Download: **https://github.com/RockerJaxrules/Hollow-acre/releases/latest**
 | --- | --- |
 | `HollowAcre-Setup-<version>.exe` | Windows: installs the game, with Start menu and desktop shortcuts. Updates itself. |
 | `HollowAcre-Portable-<version>.exe` | Windows: plays without installing. It tells you when a new version is out. |
+| `HollowAcre-<version>-mac-arm64.dmg` | Mac with Apple silicon (M1, M2, M3, M4 and newer). It tells you when a new version is out. |
+| `HollowAcre-<version>-mac-x64.dmg` | Mac with an Intel processor. It tells you when a new version is out. |
+| `HollowAcre-<version>-mac-arm64.zip`, `...-mac-x64.zip` | The same Mac apps in a .zip, if you'd rather not use the .dmg. |
 | `HollowAcre-x86_64.AppImage` | Steam Deck and most Linux computers. Updates itself. |
 | `HollowAcre_<version>_amd64.deb` | Ubuntu and Debian. It tells you when a new version is out. |
 
@@ -17,6 +20,26 @@ Download: **https://github.com/RockerJaxrules/Hollow-acre/releases/latest**
 3. Choose where to install it and click **Install**. Start the game from the desktop or the Start menu.
 
 The portable `.exe` needs no install: put it anywhere and double-click it (the same **More info**, **Run anyway** applies).
+
+## Mac
+
+1. Find out which Mac you have: Apple menu > **About This Mac**. **Chip: Apple M1** (or M2, M3...) means Apple silicon;
+   **Processor: ... Intel** means Intel.
+2. From the page above, download `HollowAcre-<version>-mac-arm64.dmg` for Apple silicon, or `HollowAcre-<version>-mac-x64.dmg`
+   for Intel.
+3. Open the `.dmg` and drag **Hollow Acre** onto the **Applications** folder next to it.
+4. The app isn't signed with an Apple Developer certificate, so the first time, macOS asks before it opens it:
+   - **macOS 14 Sonoma and earlier:** in **Applications**, right-click (or Control-click) **Hollow Acre**, choose **Open**, then
+     **Open** again in the box that appears.
+   - **macOS 15 Sequoia and later:** double-click **Hollow Acre**. macOS says it can't check it; click **Done**. Open
+     **System Settings** > **Privacy & Security**, scroll down to the line about Hollow Acre and click **Open Anyway**. Enter your
+     password, then click **Open Anyway** once more.
+   After that it opens normally, from Launchpad, the Dock or Applications.
+5. If macOS ever says the app "is damaged and can't be opened", the download was changed on its way. Download it again. If it
+   still says so, open **Terminal** and run `xattr -cr "/Applications/Hollow Acre.app"`, then open it as in step 4.
+
+The Mac keys are the usual ones: **Cmd+Q** quits (the game saves first), **Cmd+H** hides it, **Ctrl+Cmd+F** is full screen, and
+**Cmd+C** / **Cmd+V** work in the game's text boxes (your login, a farm code).
 
 ## Steam Deck
 
@@ -43,11 +66,15 @@ If the sticks move a mouse pointer instead, open the game's **Controller setting
   quietly and show **"Update ready, restart to apply"**. Choose **Restart now** or **Later**. It never restarts by itself
   mid-game, and if you choose Later the update goes in when you next quit. The portable `.exe` and the `.deb` show
   a notice with a link to the download page.
+- **On a Mac** the app can't replace itself, because it isn't signed by Apple. It asks GitHub for the newest version instead, and
+  when there is one it shows **"A new version is ready"** with a **Download** button, which downloads the right `.dmg` for your Mac.
+  Open it and drag Hollow Acre into **Applications**, choosing **Replace**. Your saves stay. A new version of the app is rare;
+  the game inside it updates every time it starts, as on Windows and Linux.
 
 ## Saves
 
-Your saves stay on your computer, in the app's own data folder: `%APPDATA%\Hollow Acre` on Windows and `~/.config/Hollow Acre`
-on Linux and the Deck. They are kept when the app updates, and when you uninstall it on Windows.
+Your saves stay on your computer, in the app's own data folder: `%APPDATA%\Hollow Acre` on Windows,
+`~/Library/Application Support/Hollow Acre` on a Mac, and `~/.config/Hollow Acre` on Linux and the Deck. They are kept when the app updates, and when you uninstall it on Windows.
 If you used version 0.2 of the app, your saves are moved over the first time 1.0 starts. A copy of them is also kept in
 `saves-from-old-app.json` in that folder.
 The same folder has `desktop.log`, which says what the app did, in case something goes wrong.
@@ -71,7 +98,7 @@ The controls are the same in the browser and the desktop app. A controller works
 - **J:** journal
 - **Q:** next seed
 - **Esc:** close a panel
-- **F or F11:** full screen
+- **F or F11:** full screen (on a Mac, **F** or **Ctrl+Cmd+F**)
 
 In the game, **Display** (on the title screen, or the monitor icon in the HUD corner) shows your screen's real resolution.
 It lets you pick a resolution (which sizes the window), Window or Full screen, the interface size and the world zoom.
@@ -81,9 +108,13 @@ It lets you pick a resolution (which sizes the window), Window or Full screen, t
 - `npm install`, then `npm start` runs the app from this folder. `npm run dist` builds the apps for this computer's system.
   Both copy the game from `../2d` into `game/` first (`copy-game.js`).
 - GitHub Actions (`.github/workflows/hollow-acre-apps.yml`) builds Windows, Linux and macOS on every push.
-  Run it by hand (**Actions**, **Hollow Acre apps**, **Run workflow**) to publish the release `desktop-v<version>`, using the
-  `version` in `package.json`. The release has the Windows and Linux files and the update files (`latest.yml`, `latest-linux.yml`).
-  To ship a new app version, raise the version, push, and run it.
+  A push that raises the `version` in `package.json` publishes the release `desktop-v<version>` by itself; running it by hand
+  (**Actions**, **Hollow Acre apps**, **Run workflow**) publishes it too, or refreshes the files of a release that exists.
+  The release has the Windows, Mac and Linux files and the update files (`latest.yml`, `latest-linux.yml`).
+- The Mac apps (Apple silicon and Intel, `.dmg` and `.zip`) are built on a `macos-latest` runner. There is no Apple Developer
+  certificate, so electron-builder's signing is off (`"identity": null`) and `build/adhoc-sign.js` gives each app an ad-hoc
+  signature (`codesign --sign -`), which Apple silicon needs to open it at all. The run's log shows each app's signature and processor.
+  With a Developer ID certificate and notarization later, the Mac app could update itself like the Windows one.
   The game itself needs no release, because the app plays it from the website.
 - How it works (`main.js`, `preload.js`):
   - The window loads `https://rockerjaxrules.github.io/Hollow-acre/hollow-acre/2d/`, and the site's service worker keeps it

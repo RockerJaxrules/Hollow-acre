@@ -1,8 +1,10 @@
-# Builds Hollow Acre as real apps on every change: Windows (installer + portable .exe), macOS (.dmg), Linux (AppImage + .deb)
-# Android (.apk) and the web version (upload to itch.io or any website). Download them from the run's "Artifacts" section.
+# Builds Hollow Acre as real apps on every change: Windows (installer + portable .exe), macOS (.dmg and .zip, for Apple silicon
+# and for Intel), Linux (AppImage + .deb), Android (.apk) and the web version (upload to itch.io or any website). Download them
+# from the run's "Artifacts" section.
 # When hollow-acre/desktop/package.json names a desktop version that has no GitHub Release yet (or when the workflow is run by
-# hand), the "release" job publishes the Windows and Linux apps as the release desktop-v<version>, the stable download page
+# hand), the "release" job publishes the Windows, Mac and Linux apps as the release desktop-v<version>, the stable download page
 # https://github.com/RockerJaxrules/Hollow-acre/releases/latest, with the update files the installed apps update themselves from.
+# (The Mac app has no Apple certificate: it is ad-hoc signed, can't update itself, and points the player to the newest .dmg.)
 name: Hollow Acre apps
 on:
   push:
@@ -28,7 +30,7 @@ jobs:
       matrix:
         include:
           - {os: windows-latest, name: windows, files: "hollow-acre/desktop/dist/*.exe"}
-          - {os: macos-latest, name: mac, files: "hollow-acre/desktop/dist/*.dmg"}
+          - {os: macos-latest, name: mac, files: "hollow-acre/desktop/dist/*.dmg\nhollow-acre/desktop/dist/*-mac-*.zip"}
           - {os: ubuntu-latest, name: linux, files: "hollow-acre/desktop/dist/*.AppImage\nhollow-acre/desktop/dist/*.deb"}
     runs-on: ${{ matrix.os }}
     defaults: {run: {working-directory: hollow-acre/desktop}}
@@ -45,6 +47,11 @@ jobs:
       - name: What was built
         shell: bash
         run: ls -l dist; for f in dist/latest*.yml; do [ -e "$f" ] || continue; echo "== $f"; cat "$f"; done
+      # each Mac app's signature (ad-hoc, made by build/adhoc-sign.js) and the processor it is for
+      - if: matrix.name == 'mac'
+        name: The Mac apps
+        run: |
+          for a in dist/mac*/*.app; do echo "== $a"; codesign -dv "$a" 2>&1 | grep -E 'Identifier|Format|Signature|TeamIdentifier'; codesign --verify --deep --strict "$a" && echo "signature ok"; lipo -archs "$a/Contents/MacOS/Hollow Acre"; done
       - uses: actions/upload-artifact@v4
         with:
           name: HollowAcre-${{ matrix.name }}
@@ -114,6 +121,9 @@ jobs:
         with: {name: HollowAcre-windows-update, path: rel}
       - if: steps.go.outputs.go == 'true'
         uses: actions/download-artifact@v4
+        with: {name: HollowAcre-mac, path: rel}
+      - if: steps.go.outputs.go == 'true'
+        uses: actions/download-artifact@v4
         with: {name: HollowAcre-linux, path: rel}
       - if: steps.go.outputs.go == 'true'
         uses: actions/download-artifact@v4
@@ -124,11 +134,16 @@ jobs:
         run: |
           cd rel && ls -la
           # every file the release promises, and update files that name this version
-          for f in "HollowAcre-Setup-$V.exe" "HollowAcre-Portable-$V.exe" HollowAcre-x86_64.AppImage "HollowAcre_${V}_amd64.deb" latest.yml latest-linux.yml; do test -s "$f" || { echo "missing $f"; exit 1; }; done
+          for f in "HollowAcre-Setup-$V.exe" "HollowAcre-Portable-$V.exe" "HollowAcre-$V-mac-arm64.dmg" "HollowAcre-$V-mac-x64.dmg" "HollowAcre-$V-mac-arm64.zip" "HollowAcre-$V-mac-x64.zip" HollowAcre-x86_64.AppImage "HollowAcre_${V}_amd64.deb" latest.yml latest-linux.yml; do test -s "$f" || { echo "missing $f"; exit 1; }; done
           grep -q "^version: $V$" latest.yml && grep -q "^version: $V$" latest-linux.yml
           cat > ../notes.md <<EOF
           **Windows:** download \`HollowAcre-Setup-$V.exe\` and run it (it updates itself), or \`HollowAcre-Portable-$V.exe\` to play without installing.
           Windows may say "Windows protected your PC" because the app isn't signed: click **More info**, then **Run anyway**.
+
+          **Mac:** download \`HollowAcre-$V-mac-arm64.dmg\` for a Mac with Apple silicon (M1 or newer), or \`HollowAcre-$V-mac-x64.dmg\` for an Intel Mac
+          (Apple menu > **About This Mac** says which). Open it and drag Hollow Acre into **Applications**. The app isn't signed by Apple, so the first time,
+          right-click it and choose **Open** (on macOS 15 and later: try to open it once, then **System Settings** > **Privacy & Security** > **Open Anyway**).
+          It tells you when a new version is out. The \`.zip\` files hold the same apps.
 
           **Steam Deck and Linux:** download \`HollowAcre-x86_64.AppImage\` (it updates itself), make it executable, and add it to Steam as a Non-Steam Game.
           On Ubuntu or Debian you can install \`HollowAcre_${V}_amd64.deb\` instead.
@@ -138,4 +153,4 @@ jobs:
           EOF
           sed -i 's/^          //' ../notes.md
           if [ "$EXISTS" = true ]; then gh release upload "$TAG" ./* --clobber --repo "$GITHUB_REPOSITORY"
-          else gh release create "$TAG" ./* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Hollow Acre $V (Windows, Linux, Steam Deck)" --notes-file ../notes.md --latest; fi
+          else gh release create "$TAG" ./* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Hollow Acre $V (Windows, Mac, Linux, Steam Deck)" --notes-file ../notes.md --latest; fi

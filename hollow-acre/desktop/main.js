@@ -5,6 +5,8 @@
 // of the game that ships inside it, served under the website's own address, so the save is the same one either way.
 // The app itself (this shell) updates itself from GitHub Releases: the Windows installer and the Linux AppImage download a new
 // version quietly, say "Update ready, restart to apply", and install it when the player restarts or quits. Never mid-game.
+// The Mac app has no Apple certificate, so it can't replace itself: it asks GitHub Releases for the newest version and says
+// "A new version is ready" with a Download button. The game inside it updates live on every computer, the Mac included.
 const {app,BrowserWindow,Menu,ipcMain,screen,session,shell,net}=require('electron');const path=require('path');const fs=require('fs');
 app.setName('Hollow Acre');
 // sound starts without a click or a key first, so a game played only on a controller has its sound from the title screen
@@ -56,7 +58,7 @@ function create(){const wa=screen.getPrimaryDisplay().workArea,saved=loadWin();
     icon:path.join(__dirname,'shell','icon.png'),
     webPreferences:{preload:path.join(__dirname,'preload.js'),contextIsolation:true,nodeIntegration:false,sandbox:true,webviewTag:false,spellcheck:false,
       backgroundThrottling:false}});   // (the game keeps its music and its clock going when the window is behind another)
-  Menu.setApplicationMenu(null);
+  Menu.setApplicationMenu(process.platform==='darwin'?macMenu():null);
   w.webContents.on('before-input-event',(e,i)=>{if(i.key==='F11'&&i.type==='keyDown'){w.setFullScreen(!w.isFullScreen());e.preventDefault();}});
   let t=null;const later=()=>{if(!w.isFullScreen())w._lastBounds=w.getBounds();clearTimeout(t);t=setTimeout(()=>saveWin(w),600);};
   w.on('resize',later);w.on('move',later);w.on('enter-full-screen',later);w.on('leave-full-screen',later);
@@ -68,6 +70,13 @@ function create(){const wa=screen.getPrimaryDisplay().workArea,saved=loadWin();
   w.webContents.on('did-start-navigation',d=>{if(d.isMainFrame&&!d.isSameDocument)LOADED=false;});
   let crashes=0;w.webContents.on('render-process-gone',(e,d)=>{log('renderer gone',d.reason);if(d.reason!=='clean-exit'&&++crashes<=3)w.reload();});
   w.loadURL(GAME_URL);}
+// a Mac app needs its menu bar for the keys every Mac app has: Cmd+Q to quit (the game autosaves first, as when the window
+// closes), Cmd+H to hide, Cmd+M to minimise, Ctrl+Cmd+F for full screen, and Cmd+C / Cmd+V in the game's text boxes
+function macMenu(){return Menu.buildFromTemplate([
+  {label:app.name,submenu:[{role:'about'},{type:'separator'},{role:'hide'},{role:'hideOthers'},{role:'unhide'},{type:'separator'},{role:'quit'}]},
+  {label:'Edit',submenu:[{role:'undo'},{role:'redo'},{type:'separator'},{role:'cut'},{role:'copy'},{role:'paste'},{role:'selectAll'}]},
+  {label:'View',submenu:[{role:'togglefullscreen'}]},
+  {label:'Window',submenu:[{role:'minimize'},{role:'zoom'},{type:'separator'},{role:'close'}]}]);}
 const autosave=w=>w.webContents.executeJavaScript("try{dispatchEvent(new Event('pagehide'))}catch(e){}").catch(()=>{});
 
 // ---------------------------------------------------------------- the copy inside the app. Every request for the game's address
@@ -145,14 +154,14 @@ ipcMain.handle('hd:setWindow',(e,pw,ph)=>{if(!fromGame(e))return false;const w=w
   w.setContentSize(Math.max(960,cw),Math.max(600,ch));const nb=w.getBounds();w.setPosition(wa.x+Math.max(0,Math.round((wa.width-nb.width)/2)),wa.y+Math.max(0,Math.round((wa.height-nb.height)/2)));return true;});
 ipcMain.handle('hd:full',(e,on)=>{if(!fromGame(e))return false;const w=winOf(e);if(w)w.setFullScreen(!!on);return true;});
 ipcMain.handle('hd:notice',(e,act)=>{if(!fromGame(e))return false;
-  if(act==='restart')restartToUpdate();else if(act==='page')shell.openExternal(RELEASES);
+  if(act==='restart')restartToUpdate();else if(act==='page')shell.openExternal(UPD.url||RELEASES);
   else if(act==='close'){if(UPD.ready)UPD.ready.shown=true;if(UPD.out)UPD.out.shown=true;}return true;});
 function notice(n){if(!n||n.shown||!WIN||WIN.isDestroyed()||!LOADED)return;try{WIN.webContents.send('hd:notice',n);}catch(e){}}
 
 // ---------------------------------------------------------------- the app's own updates (GitHub Releases, through electron-updater).
 // The Windows installer and the AppImage download the new version in the background and install it when you restart from the
 // notice, or the next time you quit. The portable .exe and the .deb can't replace themselves: they say a new version is out.
-const UPD={ready:null,out:null,au:null};
+const UPD={ready:null,out:null,au:null,url:null};
 function initUpdater(){if(!app.isPackaged||process.platform==='darwin'||process.env.HOLLOW_NO_UPDATES)return;
   let au;try{au=require('electron-updater').autoUpdater;}catch(e){log('updater missing',e&&e.message);return;}
   UPD.au=au;const canInstall=(process.platform==='win32'&&!process.env.PORTABLE_EXECUTABLE_DIR)||(process.platform==='linux'&&!!process.env.APPIMAGE);
@@ -162,6 +171,26 @@ function initUpdater(){if(!app.isPackaged||process.platform==='darwin'||process.
   au.on('update-downloaded',i=>{UPD.ready={id:'upd',text:'Update ready, restart to apply',btn:[['Restart now','restart'],['Later','close']],ms:25000,v:i.version};notice(UPD.ready);});
   au.on('error',e=>log('update failed:',e&&e.message));
   const check=()=>au.checkForUpdates().catch(e=>log('update check failed:',e&&e.message));
+  setTimeout(check,+process.env.HOLLOW_UPDATE_DELAY||12000);setInterval(check,4*3600*1000);}
+// ---- the Mac: an unsigned app can't install its own update, so it only looks for one. It asks GitHub for the newest release a
+// few seconds after it starts (and every four hours), and if that is a newer version it says so once, with a Download button
+// that opens the right .dmg for this Mac (Apple silicon or Intel) in the browser. Dragging the new app into Applications
+// replaces the old one; the saves are kept, because they are in ~/Library/Application Support/Hollow Acre, not in the app.
+const LATEST_API='https://api.github.com/repos/RockerJaxrules/Hollow-acre/releases/latest';
+const verNum=v=>String(v||'').replace(/^[^0-9]*/,'').split(/[.+-]/).slice(0,3).map(x=>parseInt(x,10)||0);
+const newer=(a,b)=>{const x=verNum(a),y=verNum(b);for(let i=0;i<3;i++){if(x[i]!==y[i])return x[i]>y[i];}return false;};
+function initMacCheck(){if(!app.isPackaged||process.platform!=='darwin'||process.env.HOLLOW_NO_UPDATES)return;let told=null;
+  const check=async()=>{try{const r=await net.fetch(LATEST_API,{headers:{accept:'application/vnd.github+json','user-agent':'HollowAcre-desktop'}});
+      if(!r.ok){log('update check: GitHub answered',r.status);return;}const j=await r.json();const v=String(j.tag_name||'').replace(/^desktop-v/,'');
+      if(!newer(v,app.getVersion())){log('update check: up to date',app.getVersion(),'(newest',v+')');return;}
+      if(told===v)return;told=v;
+      // (an Intel copy running on Apple silicon through Rosetta is offered the Apple silicon one)
+      const arch=process.arch==='arm64'||app.runningUnderARM64Translation?'arm64':'x64';
+      const a=(j.assets||[]).find(x=>new RegExp('-mac-'+arch+'\\.dmg$').test(x.name||''));
+      UPD.url=(a&&a.browser_download_url)||j.html_url||RELEASES;log('update check:',v,'is out; download',UPD.url);
+      UPD.out={id:'upd',text:'A new version is ready',sub:`Hollow Acre ${v}. Download it, open it and drag it into Applications to replace this one. Your saves stay.`,
+        btn:[['Download','page'],['Later','close']],ms:30000};notice(UPD.out);
+    }catch(e){log('update check failed:',e&&e.message);}};
   setTimeout(check,+process.env.HOLLOW_UPDATE_DELAY||12000);setInterval(check,4*3600*1000);}
 function restartToUpdate(){if(!UPD.au||!UPD.ready)return;const w=WIN;log('restarting to update');
   const go=()=>{if(w&&!w.isDestroyed()){saveWin(w);w._saved=true;}app.releaseSingleInstanceLock();UPD.au.quitAndInstall(true,true);};
@@ -181,5 +210,5 @@ app.whenReady().then(async()=>{if(!PRIMARY)return;const ses=session.defaultSessi
   ses.setPermissionRequestHandler((wc,p,cb,d)=>cb(PERMS.has(p)&&trusted((d&&d.requestingUrl)||wc.getURL())));
   ses.setPermissionCheckHandler((wc,p,origin)=>{try{return PERMS.has(p)&&new URL(origin).origin===SITE;}catch(e){return false;}});
   DECK=deckWhy();log('Hollow Acre',app.getVersion(),process.platform,process.arch,'electron',process.versions.electron,DECK?'Steam Deck ('+DECK+')':'');
-  await readOldSaves();create();initUpdater();});
+  await readOldSaves();create();initUpdater();initMacCheck();});
 app.on('window-all-closed',()=>{if(WIN)app.quit();});   // (not the hidden window that reads the old saves)
