@@ -213,7 +213,7 @@ function rl80Sync(){for(const o of R80W.objs){o.hide=true;const i=OBJ.indexOf(o)
   const circ=(x,z,r)=>{const q={x,z,r};circles.push(q);R80W.circs.push(q);};
   rl80Clear();
   const p=R80_STA.plat;{const r=t41Platform(p.x1-p.x0,p.z1-p.z0,'e');add(t41Spr('r80_plat',()=>r.c,r.ax,r.gy),(p.x0+p.x1)/2,p.z1+.28,'flat',{});}
-  {const bk=t41Spr('r80_board',()=>t41NameBoard('CROSSROADS').c,c=>c.width/2,48);add(bk,R80_STA.board[0],R80_STA.board[1],'prop',{label:'CROSSROADS',t41sh:{sil:1}});circ(R80_STA.board[0]-.6,R80_STA.board[1]-.05,.12);circ(R80_STA.board[0]+.6,R80_STA.board[1]-.05,.12);}
+  {const bk=t41Spr('r80_halt',()=>t41NameBoard('MARROW HALT').c,c=>c.width/2,48);add(bk,R80_STA.board[0],R80_STA.board[1],'prop',{label:'MARROW HALT',t41sh:{sil:1}});circ(R80_STA.board[0]-.6,R80_STA.board[1]-.05,.12);circ(R80_STA.board[0]+.6,R80_STA.board[1]-.05,.12);}
   {const nk=t41Spr('r80_notice',()=>t41NameBoard('LINE CLOSED').c,c=>c.width/2,48);add(nk,R80_STA.notice[0],R80_STA.notice[1],'prop',{label:'LINE CLOSED',t41sh:{sil:1}});circ(R80_STA.notice[0],R80_STA.notice[1]-.05,.3);}
   {const bk=t41BenchKey('E');add(bk,R80_STA.bench[0],R80_STA.bench[1],'prop',{t41sh:{sil:1}});circ(R80_STA.bench[0],R80_STA.bench[1]-.15,.3);}
   // the buffer stop at the end of the line, and the crossing signs
