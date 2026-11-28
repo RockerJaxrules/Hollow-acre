@@ -67,8 +67,8 @@ function wduEnsure(){const t=WDU_ANIM[WDU.anim][1];const need=wdNeed(S.look.w,t?
 .wdTurn{display:flex;gap:6px;justify-content:center}.wdTurn button{min-width:44px}#creator #cAnim{min-width:76px!important;width:auto!important}
 .wdLf #cName{font:15px var(--font-body);width:100%;box-sizing:border-box;padding:7px 9px;background:#2a1a0e;color:#f4e6c8;border:0;box-shadow:inset 0 0 0 2px #1a0e06,inset 0 0 0 3px #b8521c}
 .wdActs{display:grid;grid-template-columns:1fr 1fr;gap:6px}.wdS{display:none}
-#creator .wdr #cTabs{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-start}
-#creator .wdr #cTabs button{flex:1 1 auto;padding:5px 8px!important;min-height:34px}
+#creator .wdr #cTabs{display:flex;flex-wrap:nowrap;gap:4px;justify-content:flex-start;overflow-x:auto;overscroll-behavior:contain;scrollbar-width:none;padding-bottom:2px}#creator .wdr #cTabs::-webkit-scrollbar{display:none}
+#creator .wdr #cTabs button{flex:1 0 auto;padding:5px 7px!important;min-height:34px}
 .wdPanel{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:2px 8px 12px 2px;scrollbar-color:#8a5426 #1e1208}
 .wdSec{margin:2px 0 14px}.wdSec>h3{display:flex;align-items:center;gap:8px;margin:0 0 6px;font:13px var(--font-body);color:var(--ember);letter-spacing:.06em;text-transform:uppercase}
 .wdSec>h3 .wdN{color:var(--dim);text-transform:none;letter-spacing:0}.wdSec>h3 .wdSp{flex:1}.wdSec>h3 button{min-height:30px;padding:3px 8px;font-size:12px;text-transform:none;letter-spacing:0}
