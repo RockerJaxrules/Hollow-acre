@@ -7,7 +7,7 @@
    - for the 2 a.m. wait: you can crawl under the platform's south end. Hidden there you see the planks over you, moonlight in the
      gaps, and if something walks the platform its feet darken the gaps above you.
    All of it waits until the railway's platform is in the world. Anchors: the platform hide at (13.45, 16.6) (outdoors), the cellar
-   'w79_lamproom' (its trapdoor at (13.9, 7.5)), the Looks: lamp (13.55, 2.1), lever (12.4, 1.2), the stationmaster (room-local 4.6, 2.2). ================= */
+   'w79_lamproom' (its trapdoor at (13.9, 7.5)), the Looks: lamp (13.55, 2.95), lever (12.4, 1.2), the stationmaster (room-local 4.6, 2.2). ================= */
 const W79S={};
 // ---- small things drawn by hand in code
 function w79sCv(w,h,fn){const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');fn((x,y,ww,hh,col)=>{g.fillStyle=col;g.fillRect(x,y,ww||1,hh||1);},g);return c;}
@@ -45,10 +45,10 @@ w79sArt();
 // ---- in the world: the house, the lamp, the lever; nothing on the line, nothing on TRANSIT's bench or boards
 function w79sWorld(){if(W79S.world||typeof OBJ==='undefined'||OBJ.length<1000||!OBJ.some(o=>o.spr==='r80_plat'))return;W79S.world=1;   /* only once the railway's platform is there */
   obj('in_trapdoor',13.9,7.5,{kind:'prop',noCol:true});   /* (a prop, so the platform's own deck, a flat drawn after it, does not cover it) */
-  obj('w79s_lamp',13.55,1.75,{kind:'prop',noCol:true});addCircle(13.55,1.65,.15);
+  obj('w79s_lamp',13.55,2.55,{kind:'prop',noCol:true});addCircle(13.55,2.45,.15);   /* clear of the MARROW HALT board's legs */
   obj('w79s_lever',12.4,1.0,{kind:'prop',noCol:true});addRect(11.95,.6,12.9,1.0);
   interact.push({x:13.9,z:7.55,r:.8,on:()=>!S.room&&!W79H.hid,label:()=>'Go down',ok:()=>true,act(){SFX.thud&&SFX.thud(0,.3);enterRoom('w79_lamproom');}});
-  interact.push({x:13.55,z:2.15,r:.9,on:()=>!S.room,label:()=>'Look',ok:()=>true,act(){SFX.page&&SFX.page();toast('The flag lamp on the platform post, its red glass smashed out from the inside of the frame. Whoever broke it wanted the train to see nothing here, and go by.',5.2,true);}});
+  interact.push({x:13.55,z:2.95,r:.9,on:()=>!S.room,label:()=>'Look',ok:()=>true,act(){SFX.page&&SFX.page();toast('The flag lamp on the platform post, its red glass smashed out from the inside of the frame. Whoever broke it wanted the train to see nothing here, and go by.',5.2,true);}});
   interact.push({x:12.4,z:1.35,r:.9,on:()=>!S.room,label:()=>'Look',ok:()=>true,act(){SFX.page&&SFX.page();toast('The signal lever, thrown to STOP and rusted there. It would take two people and a bar to free it. Someone has wired the handle to the frame as well.',5.2);}});
   W79H.hideAt(13.45,16.6,'Crawl under the platform','You crawl in under the platform boards, into the smell of creosote and old rain.','planks');}
 setInterval(()=>{try{w79sWorld();}catch(e){}},1200);
