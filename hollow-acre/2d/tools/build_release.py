@@ -2,7 +2,7 @@ import os
 LATE365 = ['art365.js', 'pad365.js', 'mg365.js', 'lights365.js']   # t365: the steps, the controllers, the re-staged minigames, the lights
 LATE366 = ['menu366.js', 'mapterr366.js', 'map366.js', 'rain366.js', 'weather366.js']   # t366: the menu per device, the map redrawn and cached
 LATE367 = ['settings367.js', 'deck367.js', 'osk367.js']   # t367: the settings menu, the Steam Deck, the on-screen keyboard
-LATE368 = ['hotfix368.js', 'hands370.js']   # t368: the character creator keeps its screen (no stray close button)
+LATE368 = ['hotfix368.js', 'hands370.js', 'butcher371.js', 'butchkill.js', 'butchsteps.js', 'butchx.js', 'carcass302.js', 'found298.js', 'found298b.js', 'found298c.js', 'gore372.js', 'sights298.js', 'doubt373.js', 'sights298b.js', 'gorex374.js', 'drowned302.js', 'gorex375.js', 'mgfit377.js', 'padsnd307.js', 'world379.js', 'wardrobe378.js', 'wardui378.js', 'face378.js', 'wardrobe_art378.js', 'goodend.js', 'savekeep.js', 'shoptut.js', 'deerfix.js', 'nopop.js', 'eyes.js', 'demo381.js', 'leads.js', 'audit.js', 'crows.js', 'ringscare.js', 'world379b.js', 'transit380.js', 'world379c.js', 'world379d.js', 'world379e.js', 'mappop.js']   # t368: the character creator keeps its screen (no stray close button)
 import subprocess as _sp, sys as _sys
 if _sp.call([_sys.executable,'lintcomments.py'])!=0: raise SystemExit('fix the swallowed code above first')
 import json, os, re
