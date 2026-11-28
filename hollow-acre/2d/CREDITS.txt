@@ -19,3 +19,6 @@ Road texture: procedural, made in Blender for this game.
 Buildings, fences and props (houses, cabin, store, garage, church, fences, lamps, well, phone booth, notice board, gas pump, signpost, barrel, crate, hay, sacks, cart): drawn for this game in LibreSprite (https://github.com/LibreSprite/LibreSprite). Layered .ase sources are in tools/px.
 
 Multiplayer networking: Trystero by Dan Motzenbecker (MIT License), bundled in index.html. See vendor/TRYSTERO_LICENSE.txt.
+
+Face finding for "Make me from a photo": pico.js and its face cascade by Nenad Markus (MIT License), in vendor/pico, loaded only when
+that button is used. The photo is read on the device and thrown away; it is never sent or saved. See vendor/pico/LICENSE.txt.

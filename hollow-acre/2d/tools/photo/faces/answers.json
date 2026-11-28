@@ -1,0 +1,138 @@
+{
+ "t01": {
+  "skin": "light",
+  "hair": "brown",
+  "style": "short",
+  "beard": false,
+  "glasses": false,
+  "eye": "blue",
+  "_geo": {
+   "cx": 363,
+   "cy": 459,
+   "fw": 250,
+   "fh": 330,
+   "eye_y": 439,
+   "eye_dx": 50,
+   "mouth_y": 555
+  }
+ },
+ "t02": {
+  "skin": "dark",
+  "hair": "black",
+  "style": "curly",
+  "beard": true,
+  "glasses": false,
+  "eye": "brown",
+  "_geo": {
+   "cx": 391,
+   "cy": 442,
+   "fw": 250,
+   "fh": 330,
+   "eye_y": 422,
+   "eye_dx": 50,
+   "mouth_y": 538
+  }
+ },
+ "t03": {
+  "skin": "pale",
+  "hair": "red",
+  "style": "long",
+  "beard": false,
+  "glasses": true,
+  "eye": "green",
+  "_geo": {
+   "cx": 363,
+   "cy": 469,
+   "fw": 250,
+   "fh": 330,
+   "eye_y": 449,
+   "eye_dx": 50,
+   "mouth_y": 565
+  }
+ },
+ "t04": {
+  "skin": "tan",
+  "hair": "darkbrown",
+  "style": "medium",
+  "beard": false,
+  "glasses": false,
+  "eye": "brown",
+  "_geo": {
+   "cx": 399,
+   "cy": 459,
+   "fw": 250,
+   "fh": 330,
+   "eye_y": 439,
+   "eye_dx": 50,
+   "mouth_y": 555
+  }
+ },
+ "t05": {
+  "skin": "olive",
+  "hair": "black",
+  "style": "short",
+  "beard": true,
+  "glasses": true,
+  "eye": "brown",
+  "_geo": {
+   "cx": 355,
+   "cy": 442,
+   "fw": 250,
+   "fh": 330,
+   "eye_y": 422,
+   "eye_dx": 50,
+   "mouth_y": 538
+  }
+ },
+ "t06": {
+  "skin": "light",
+  "hair": "blonde",
+  "style": "long",
+  "beard": false,
+  "glasses": false,
+  "eye": "blue",
+  "_geo": {
+   "cx": 410,
+   "cy": 467,
+   "fw": 250,
+   "fh": 330,
+   "eye_y": 447,
+   "eye_dx": 50,
+   "mouth_y": 563
+  }
+ },
+ "t07": {
+  "skin": "brown",
+  "hair": "black",
+  "style": "bald",
+  "beard": true,
+  "glasses": false,
+  "eye": "brown",
+  "_geo": {
+   "cx": 399,
+   "cy": 460,
+   "fw": 250,
+   "fh": 330,
+   "eye_y": 440,
+   "eye_dx": 50,
+   "mouth_y": 556
+  }
+ },
+ "t08": {
+  "skin": "pale",
+  "hair": "grey",
+  "style": "short",
+  "beard": true,
+  "glasses": true,
+  "eye": "grey",
+  "_geo": {
+   "cx": 369,
+   "cy": 469,
+   "fw": 250,
+   "fh": 330,
+   "eye_y": 449,
+   "eye_dx": 50,
+   "mouth_y": 565
+  }
+ }
+}

@@ -1,0 +1,104 @@
+{
+ "h01": {
+  "skin": "tan",
+  "hair": "black",
+  "style": "long",
+  "beard": false,
+  "glasses": false,
+  "eye": "brown",
+  "_geo": {
+   "cx": 533,
+   "cy": 346,
+   "fw": 200,
+   "fh": 264,
+   "eye_y": 330,
+   "eye_dx": 40,
+   "mouth_y": 423
+  }
+ },
+ "h02": {
+  "skin": "pale",
+  "hair": "blonde",
+  "style": "short",
+  "beard": true,
+  "glasses": false,
+  "eye": "blue",
+  "_geo": {
+   "cx": 394,
+   "cy": 448,
+   "fw": 287,
+   "fh": 379,
+   "eye_y": 425,
+   "eye_dx": 57,
+   "mouth_y": 558
+  }
+ },
+ "h03": {
+  "skin": "brown",
+  "hair": "darkbrown",
+  "style": "medium",
+  "beard": false,
+  "glasses": true,
+  "eye": "brown",
+  "_geo": {
+   "cx": 386,
+   "cy": 453,
+   "fw": 225,
+   "fh": 297,
+   "eye_y": 435,
+   "eye_dx": 45,
+   "mouth_y": 539
+  }
+ },
+ "h04": {
+  "skin": "light",
+  "hair": "red",
+  "style": "short",
+  "beard": true,
+  "glasses": false,
+  "eye": "green",
+  "_geo": {
+   "cx": 430,
+   "cy": 385,
+   "fw": 250,
+   "fh": 330,
+   "eye_y": 365,
+   "eye_dx": 50,
+   "mouth_y": 481
+  }
+ },
+ "h05": {
+  "skin": "dark",
+  "hair": "grey",
+  "style": "bald",
+  "beard": true,
+  "glasses": true,
+  "eye": "brown",
+  "_geo": {
+   "cx": 383,
+   "cy": 466,
+   "fw": 237,
+   "fh": 313,
+   "eye_y": 447,
+   "eye_dx": 47,
+   "mouth_y": 557
+  }
+ },
+ "h06": {
+  "skin": "olive",
+  "hair": "brown",
+  "style": "curly",
+  "beard": false,
+  "glasses": false,
+  "eye": "green",
+  "_geo": {
+   "cx": 363,
+   "cy": 446,
+   "fw": 212,
+   "fh": 280,
+   "eye_y": 429,
+   "eye_dx": 42,
+   "mouth_y": 527
+  }
+ }
+}
