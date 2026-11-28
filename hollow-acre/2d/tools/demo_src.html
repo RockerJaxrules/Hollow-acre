@@ -1,0 +1,243 @@
+<meta charset="utf-8">
+<!-- Hollow Acre: the demo (owner: "Make me demo layout with different link gives you 1 hour and a half and than asks your to give it
+     a star rating and feedback"). Built by tools/mkdemo.py from tools/demo_src.html; don't edit the built page by hand.
+     - It plays the same game as the full link, fetched fresh each time, so it is always the newest version.
+     - Its saves, profiles and settings are its own: everything the game keeps in this browser is kept under "hollowDemo:", so the
+       demo never touches the full game's save, and the full game never sees the demo's.
+     - 90 minutes of real play (src/demo381.js counts them), then this page shows the thank-you screen: a 1-5 star rating, a box
+       for words, Send, and the way to the full game. From then on this browser opens the thank-you screen, not the game.
+     - The rating goes to the maker over the same public Nostr relays the game's accounts use, encrypted so only the maker can
+       read it (the owner's Demo feedback page in the full game). -->
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#07070a">
+<title>Hollow Acre (demo)</title>
+<link rel="icon" href="/*@@ICON@@*/">
+<style>
+/*@@FONT@@*/
+html,body{margin:0;height:100%;background:#07070a;color:#e8dcc0;overflow:hidden}
+body{font-family:"Hollow Pixel",ui-monospace,monospace;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+#dmScr{position:fixed;inset:0;background:#07070a;overflow:hidden}
+#dmCv{position:absolute;left:0;top:0;image-rendering:pixelated;image-rendering:crisp-edges}
+#dmScr::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 38%,rgba(4,4,10,0) 36%,rgba(4,4,10,.55) 100%)}
+#dmWrap{position:absolute;inset:0;z-index:2;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;align-items:center;
+  padding:max(28px,env(safe-area-inset-top)) 16px calc(var(--lfy,72px) + 34px);box-sizing:border-box}   /* (the last line stays above the lanterns on the fence) */
+.dmLogo{margin:0;font-weight:400;font-size:var(--lz,80px);line-height:1;color:#e8923f;white-space:nowrap;letter-spacing:0;
+  --p:calc(var(--lz,80px)/20);text-shadow:var(--p) 0 0 #140a04,calc(-1*var(--p)) 0 0 #140a04,0 var(--p) 0 #140a04,0 calc(-1*var(--p)) 0 #140a04,calc(2*var(--p)) calc(2*var(--p)) 0 rgba(0,0,0,.6)}
+.dmLogo span{display:inline-block}.dmLogo .sp{width:.4em}
+.dmKick{margin-top:8px;font-size:18px;letter-spacing:.32em;text-transform:uppercase;color:#b8a888;text-shadow:2px 2px 0 #000;text-align:center}
+#dmLoad{margin-top:auto;margin-bottom:96px;font-size:16px;letter-spacing:.14em;text-transform:uppercase;color:#8a7c64;text-shadow:1px 1px 0 #000;text-align:center}
+#dmLoad button{margin-top:14px}
+#dmEnd{display:flex;flex-direction:column;align-items:center;width:min(560px,100%);margin-top:14px}
+.dmThanks{margin:0;font-size:28px;color:#f0a040;text-shadow:2px 2px 0 #000,-1px -1px 0 #000;text-align:center}
+.dmSub{margin:8px 0 0;font-size:18px;line-height:1.45;color:#e8dcc0;text-shadow:2px 2px 0 #000,-1px -1px 0 #000;text-align:center}
+.dmPanel{margin-top:14px;width:100%;box-sizing:border-box;padding:18px 20px 16px;background:rgba(14,10,8,.94);
+  box-shadow:inset 0 0 0 2px #0c0603,inset 0 0 0 4px #b8742c,inset 0 0 0 6px #2a1608,6px 6px 0 rgba(0,0,0,.45)}
+.dmQ{font-size:22px;color:#ffd27a;text-align:center;text-shadow:2px 2px 0 #000}
+#dmStars{display:flex;justify-content:center;gap:6px;margin:12px 0 4px}
+#dmStars button{background:none;border:0;padding:4px;cursor:pointer;line-height:0;outline:none}
+#dmStars svg{width:52px;height:48px;display:block}
+#dmStars button:focus-visible,#dmStars button.pf{background:rgba(240,160,64,.16);box-shadow:inset 0 0 0 2px #f0a040}
+#dmSay{min-height:24px;font-size:18px;color:#cdbf9f;text-align:center}
+.dmLab{display:block;margin-top:14px;font-size:17px;color:#e8dcc0}
+#dmText{display:block;width:100%;box-sizing:border-box;margin-top:6px;min-height:88px;resize:vertical;font:inherit;font-size:17px;line-height:1.4;color:#f4e6c8;
+  background:#1c120a;border:0;padding:10px 12px;box-shadow:inset 0 0 0 2px #0c0603,inset 0 0 0 4px #4a3018;outline:none;border-radius:0}
+#dmText:focus,#dmText.pf{box-shadow:inset 0 0 0 2px #0c0603,inset 0 0 0 4px #f0a040}
+#dmText::placeholder{color:#8a7c64}
+.dmCount{text-align:right;font-size:14px;color:#8a7c64;margin-top:4px}
+.dmRow{display:flex;justify-content:center;margin-top:12px}
+.dmBtn{position:relative;display:inline-block;box-sizing:border-box;min-width:220px;min-height:48px;padding:12px 30px;font:inherit;font-size:22px;letter-spacing:.06em;
+  text-align:center;text-decoration:none;cursor:pointer;border:0;border-radius:0;color:#f0dcb8;text-shadow:2px 2px 0 #000;background:#2a1a0e url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAQCAYAAACm53kpAAAA1klEQVR4AexUwQrDMAh1rgS6Q3ffJ+z/v2yXQtjoyMEixdBoDSltAw+DGH2+mOD7NUxnBsbvDyTAzpbE0cOHobuDBKiw+nADK56PDrZC6hM1fVrJU40xTtASxINblQBW8rygdu8x5pRDqj0LQEEaa50IzTlpbK0+UQAis/a+pKLWidCc46SJq6fFUjKcSKt9KVdN3PwEWjXVuu7uBfiMERJqCZUVQPMZ8lhPoqnxoQ+Q4JmX58oKIH16JT6efOu+ZuPELSsABRzdXgIc/YbX+jvdBCwF+QMAAP//DDmBHQAAAAZJREFUAwCyv21/3/ItFQAAAABJRU5ErkJggg==) repeat;
+  background-size:128px 32px;image-rendering:pixelated;
+  box-shadow:inset 0 0 0 2px #0c0603,inset 0 4px 0 0 #5a3a1e,inset 0 -2px 0 2px #0c0603,inset 0 -6px 0 0 #170d06,4px 4px 0 rgba(0,0,0,.45)}
+.dmBtn.prim{background:#a8502a;color:#fff2d8;box-shadow:inset 0 0 0 2px #2a0e04,inset 0 4px 0 0 #f0a050,inset 0 -2px 0 2px #2a0e04,inset 0 -6px 0 0 #6a2a10,4px 4px 0 rgba(0,0,0,.45),0 0 18px rgba(240,160,64,.25)}
+.dmBtn:hover,.dmBtn:focus-visible,.dmBtn.pf{filter:brightness(1.16);outline:none}
+.dmBtn:active{transform:translateY(2px)}
+.dmBtn[disabled]{filter:grayscale(.6) brightness(.8);cursor:default}
+#dmMsg{min-height:24px;margin-top:10px;font-size:17px;color:#cdbf9f;text-align:center}
+#dmMsg.ok{color:#b8e07a}#dmMsg.bad{color:#f08a60}
+.dmNote{margin:10px 0 0;font-size:15px;line-height:1.4;color:#9a8c70;text-align:center}
+.dmDone{text-align:center;font-size:19px;line-height:1.45;color:#e8dcc0}
+.dmDone b{color:#b8e07a;font-weight:400}
+.dmLink{background:none;border:0;font:inherit;font-size:16px;text-align:center;color:#d8a060;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px}
+.dmLink:focus-visible,.dmLink.pf{outline:2px solid #f0a040}
+.dmFull{margin-top:20px;display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
+.dmFull .dmBtn{min-width:min(340px,100%)}
+.dmFullSub{font-size:16px;color:#cdbf9f;text-shadow:2px 2px 0 #000;text-align:center}
+.dmFull a.dmLink{color:#e8b070}
+@media (max-width:560px){.dmPanel{padding:14px 14px 12px}#dmStars{gap:2px}#dmStars svg{width:46px;height:42px}.dmThanks{font-size:24px}.dmSub{font-size:17px}.dmBtn{font-size:20px}}
+/* a short screen (a phone on its side, a small frame): the same screen, tighter */
+@media (max-height:600px){#dmWrap{padding-top:max(14px,env(safe-area-inset-top))}.dmKick{display:none}#dmEnd{margin-top:6px}
+  .dmThanks{font-size:22px}.dmSub{font-size:15px;margin-top:4px}.dmPanel{margin-top:10px;padding:10px 14px}.dmQ{font-size:18px}#dmStars{margin:6px 0 2px}
+  #dmStars svg{width:42px;height:38px}#dmSay{font-size:16px}.dmLab{margin-top:8px;font-size:15px}#dmText{min-height:60px;font-size:16px}.dmRow{margin-top:8px}
+  .dmBtn{min-height:44px;padding:8px 24px;font-size:19px}.dmNote{margin-top:6px;font-size:13px}.dmFull{margin-top:12px;gap:4px}#dmMsg{margin-top:6px;min-height:20px}}
+@media (prefers-reduced-motion:reduce){.dmBtn:active{transform:none}}
+</style>
+<div id="dmScr">
+  <canvas id="dmCv" width="320" height="180" aria-hidden="true"></canvas>
+  <div id="dmWrap">
+    <h1 class="dmLogo" aria-label="Hollow Acre"><span>H</span><span>o</span><span>l</span><span>l</span><span>o</span><span>w</span><span class="sp"> </span><span>A</span><span>c</span><span>r</span><span>e</span></h1>
+    <div class="dmKick">The demo</div>
+    <div id="dmLoad" role="status">Opening the valley…</div>
+    <section id="dmEnd" hidden>
+      <p class="dmThanks">Thanks for playing!</p>
+      <p class="dmSub">Your hour and a half on Hollow Acre is up. That’s the end of the demo.</p>
+      <div class="dmPanel" id="dmForm">
+        <div class="dmQ" id="dmQ">How was it?</div>
+        <div id="dmStars" role="radiogroup" aria-labelledby="dmQ"></div>
+        <div id="dmSay" aria-live="polite">Pick from 1 to 5 stars</div>
+        <label class="dmLab" for="dmText">Anything you want to tell the maker? (you don’t have to)</label>
+        <textarea id="dmText" maxlength="1000" placeholder="What you liked, what scared you, what went wrong…"></textarea>
+        <div class="dmCount" id="dmCount">0 / 1000</div>
+        <div class="dmRow"><button class="dmBtn prim" id="dmSend" type="button">Send</button></div>
+        <div id="dmMsg" role="status"></div>
+        <p class="dmNote">Only the maker can read what you send. Please don’t write your name, email or where you live.</p>
+      </div>
+      <div class="dmPanel" id="dmThanksBox" hidden>
+        <div class="dmDone" id="dmDoneTxt"></div>
+        <div class="dmRow"><button class="dmLink" id="dmAgain" type="button">Change my answer</button></div>
+      </div>
+      <div class="dmFull">
+        <a class="dmBtn prim" id="dmFullA" href="#">Play the full game</a>
+        <div class="dmFullSub">The whole story, free in your browser.</div>
+        <a class="dmLink" id="dmApps" href="#">Or get the app for Windows, Mac, Linux or the Steam Deck</a>
+      </div>
+    </section>
+  </div>
+</div>
+<script>
+/*@@CFG@@*/
+// ---------------------------------------------------------------- the demo's own corner of this browser's storage. Every key the game
+// reads or writes gets "hollowDemo:" in front, before the game's own scripts run, so the demo and the full game (same website)
+// never share a save, a profile or a setting.
+(function(){const P='hollowDemo:',SP=Storage.prototype;if(SP.__hollowDemo)return;SP.__hollowDemo=1;
+  const g=SP.getItem,s=SP.setItem,r=SP.removeItem,k=SP.key,len=Object.getOwnPropertyDescriptor(SP,'length').get;
+  const own=st=>{const o=[];for(let i=0,n=len.call(st);i<n;i++){const x=k.call(st,i);if(x&&x.indexOf(P)===0)o.push(x);}return o;};
+  SP.getItem=function(x){return g.call(this,P+x);};SP.setItem=function(x,v){return s.call(this,P+x,v);};SP.removeItem=function(x){return r.call(this,P+x);};
+  SP.key=function(i){const m=own(this)[i];return m==null?null:m.slice(P.length);};SP.clear=function(){for(const x of own(this))r.call(this,x);};
+  Object.defineProperty(SP,'length',{configurable:true,enumerable:true,get(){return own(this).length;}});})();
+const dmLS=(key,v)=>{try{if(v===undefined)return localStorage.getItem(key);if(v===null)localStorage.removeItem(key);else localStorage.setItem(key,String(v));}catch(e){}return null;};
+// 90 minutes of play (a test can ask for less before the page loads: window.HOLLOW_DEMO_TEST={limit:seconds}; never for more)
+const DM_LIMIT=(()=>{const t=window.HOLLOW_DEMO_TEST&&+window.HOLLOW_DEMO_TEST.limit;return t>0&&t<5400?t:5400;})();
+window.HOLLOW_DEMO={limit:DM_LIMIT,where:DM_CFG.where,full:DM_CFG.full,apps:DM_CFG.apps,newTab:DM_CFG.newTab};
+const dmOver=()=>!!dmLS('hollowDemoEnd')||(+dmLS('hollowDemoPlayed')||0)>=DM_LIMIT;
+
+/*@@SCENE@@*/
+
+// ---------------------------------------------------------------- the night behind the title (the loading screen's own scene)
+const dmScr=document.getElementById('dmScr');let dmPct=0;
+// (the logo as big as the title screen's, smaller where the thank-you screen needs the room)
+let dmEnding=false;function dmLogoSize(){const w=innerWidth,h=innerHeight;const z=Math.max(36,Math.min(80,Math.floor(Math.min(w/7.4,h/(dmEnding?12:8.5))/4)*4));dmScr.style.setProperty('--lz',z+'px');}
+dmLogoSize();addEventListener('resize',dmLogoSize);
+HAScene(document.getElementById('dmCv'),{host:dmScr,pct:()=>dmPct,alive:()=>!!document.getElementById('dmCv'),paused:()=>document.hidden});
+
+// ---------------------------------------------------------------- the game: the same page as the full link, fetched fresh, written into
+// this one under the full game's address for its pictures (<base>). The first part (its loading screen) is written first so it
+// shows while the browser reads the game's code.
+function dmPlay(){const el=document.getElementById('dmLoad');
+  fetch(DM_CFG.game,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(html=>{
+    const i=html.lastIndexOf('<script>');if(i<0||!/BUILD_ID=/.test(html.slice(i,i+400)))throw new Error('not the game');
+    const pre=(DM_CFG.base?'<base href="'+DM_CFG.base+'">':'')+html.slice(0,i),post=html.slice(i);
+    document.open();document.write(pre);setTimeout(()=>{document.write(post);document.close();},60);
+  }).catch(e=>{el.textContent='The valley couldn’t be reached. Check your connection.';const b=document.createElement('button');b.className='dmBtn';b.textContent='Try again';
+    b.onclick=()=>location.reload();el.appendChild(document.createElement('br'));el.appendChild(b);});}
+
+// ---------------------------------------------------------------- the feedback: a Nostr event (NIP-78 app data, kind 30078) signed by a key this
+// browser makes for itself, its words sealed with AES-GCM under a key shared only with the maker (ECDH on secp256k1 with the
+// maker's public key). Sending again replaces this browser's earlier answer.
+const FB={owner:'2ea2ab1c683d6fd21fdcfb9a40563d4d53dc827cd5c402cb7ab931af1fb76be1',d:'hollow-acre/demo-feedback',tag:'hollow-acre-demo-feedback',
+  relays:Array.isArray(window.HOLLOW_RELAYS)?window.HOLLOW_RELAYS:['wss://relay.damus.io','wss://nos.lol','wss://relay.primal.net','wss://nostr.mom','wss://relay.nostr.band','wss://offchain.pub']};
+const K1={p:0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2fn,n:0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141n,
+  G:[0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798n,0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8n]};
+const kMod=(a,m=K1.p)=>{const r=a%m;return r>=0n?r:r+m;};
+function kInv(a,m=K1.p){let [lo,hi]=[kMod(a,m),m],[x0,x1]=[1n,0n];while(lo>1n){const q=hi/lo;[x0,x1]=[x1-q*x0,x0];[lo,hi]=[hi-q*lo,lo];}return kMod(x0,m);}
+function kDbl(P){const [X,Y,Z]=P;if(!Y)return [0n,1n,0n];const p=K1.p;const S=kMod(4n*X*Y*Y,p),M=kMod(3n*X*X,p);const X3=kMod(M*M-2n*S,p);return [X3,kMod(M*(S-X3)-8n*Y*Y*Y*Y,p),kMod(2n*Y*Z,p)];}
+function kAdd(P,Q){if(!P[2])return Q;if(!Q[2])return P;const p=K1.p;const [X1,Y1,Z1]=P,[X2,Y2,Z2]=Q;const Z1Z1=kMod(Z1*Z1,p),Z2Z2=kMod(Z2*Z2,p);
+  const U1=kMod(X1*Z2Z2,p),U2=kMod(X2*Z1Z1,p),S1=kMod(Y1*Z2*Z2Z2,p),S2=kMod(Y2*Z1*Z1Z1,p);if(U1===U2)return S1===S2?kDbl(P):[0n,1n,0n];
+  const H=U2-U1,R=S2-S1,H2=kMod(H*H,p),H3=kMod(H*H2,p);const X3=kMod(R*R-H3-2n*U1*H2,p);return [X3,kMod(R*(U1*H2-X3)-S1*H3,p),kMod(H*Z1*Z2,p)];}
+function kMul(k,B){let R=[0n,1n,0n],A=[B[0],B[1],1n];while(k>0n){if(k&1n)R=kAdd(R,A);A=kDbl(A);k>>=1n;}const zi=kInv(R[2]);return [kMod(R[0]*zi*zi),kMod(R[1]*zi*zi*zi)];}
+function kPow(b,e,m){let r=1n;b%=m;while(e>0n){if(e&1n)r=r*b%m;b=b*b%m;e>>=1n;}return r;}
+function kLift(xh){const x=BigInt('0x'+xh);const c=kMod(x*x*x+7n);let y=kPow(c,(K1.p+1n)/4n,K1.p);if(kMod(y*y)!==c)return null;if(y&1n)y=K1.p-y;return [x,y];}
+const kB2n=b=>BigInt('0x'+([...b].map(x=>x.toString(16).padStart(2,'0')).join('')||'0'));
+const kN2b=n=>{const h=n.toString(16).padStart(64,'0');return Uint8Array.from(h.match(/../g).map(x=>parseInt(x,16)));};
+const kHex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('');
+const kUnhex=h=>Uint8Array.from((h.match(/../g)||[]).map(x=>parseInt(x,16)));
+const kCat=(...a)=>{const o=new Uint8Array(a.reduce((s,x)=>s+x.length,0));let i=0;for(const x of a){o.set(x,i);i+=x.length;}return o;};
+const kB64=b=>{let s='';for(let i=0;i<b.length;i+=0x8000)s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(s);};
+async function kSha(b){return new Uint8Array(await crypto.subtle.digest('SHA-256',b));}
+async function kTagged(tag,...m){const t=await kSha(new TextEncoder().encode(tag));return kSha(kCat(t,t,...m));}
+async function kSign(msg,d){d=kMod(d,K1.n);const P=kMul(d,K1.G);if(P[1]&1n)d=K1.n-d;const px=kN2b(P[0]);const aux=crypto.getRandomValues(new Uint8Array(32));
+  const t=kN2b(d^kB2n(await kTagged('BIP0340/aux',aux)));let k=kMod(kB2n(await kTagged('BIP0340/nonce',t,px,msg)),K1.n);if(!k)throw new Error('bad nonce');
+  const R=kMul(k,K1.G);if(R[1]&1n)k=K1.n-k;const rx=kN2b(R[0]);const e=kMod(kB2n(await kTagged('BIP0340/challenge',rx,px,msg)),K1.n);return kCat(rx,kN2b(kMod(k+e*d,K1.n)));}
+function fbMyKey(){let h=dmLS('hollowDemoFbKey');if(!h||!/^[0-9a-f]{64}$/.test(h)||!kMod(BigInt('0x'+h),K1.n)){h=kHex(crypto.getRandomValues(new Uint8Array(32)));dmLS('hollowDemoFbKey',h);}return BigInt('0x'+h);}
+async function fbEvent(obj){const d=fbMyKey(),pub=kHex(kN2b(kMul(d,K1.G)[0]));
+  const shared=kMul(d,kLift(FB.owner))[0];const key=await crypto.subtle.importKey('raw',await kSha(kCat(kN2b(shared),new TextEncoder().encode('hollow-acre/demo-feedback/v1'))),'AES-GCM',false,['encrypt']);
+  const iv=crypto.getRandomValues(new Uint8Array(12));const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(JSON.stringify(obj))));
+  const ev={pubkey:pub,created_at:Math.floor(Date.now()/1000),kind:30078,tags:[['d',FB.d],['t',FB.tag],['alt','Hollow Acre demo feedback (encrypted for the game’s maker)']],content:'v1:'+kB64(kCat(iv,ct))};
+  const id=await kSha(new TextEncoder().encode(JSON.stringify([0,ev.pubkey,ev.created_at,ev.kind,ev.tags,ev.content])));ev.id=kHex(id);ev.sig=kHex(await kSign(id,d));return ev;}
+// each relay: open, send, wait for its OK (or give up after 9 s); the answer counts when at least one relay keeps it
+function fbRelay(url,ev){return new Promise(res=>{let ws,done=false;const end=v=>{if(done)return;done=true;clearTimeout(to);try{ws&&ws.close();}catch(e){}res(v);};
+  const to=setTimeout(()=>end(false),9000);try{ws=new WebSocket(url);}catch(e){return end(false);}
+  ws.onopen=()=>{try{ws.send(JSON.stringify(['EVENT',ev]));}catch(e){end(false);}};
+  ws.onmessage=m=>{let x;try{x=JSON.parse(m.data);}catch(e){return;}if(x[0]==='OK'&&x[1]===ev.id)end(!!x[2]);};ws.onerror=()=>end(false);ws.onclose=()=>end(false);});}
+async function fbSend(obj){const ev=await fbEvent(obj);const ok=await Promise.all(FB.relays.map(u=>fbRelay(u,ev)));return ok.filter(Boolean).length;}
+
+// ---------------------------------------------------------------- the thank-you screen
+const SAY=['Pick from 1 to 5 stars','1 star: not for me','2 stars: it was okay','3 stars: good','4 stars: really good','5 stars: loved it'];
+const STAR=['......#......','.....###.....','.....###.....','....#####....','#############','.###########.','..#########..','...#######...','...#######...','..####.####..','..###...###..','.##.......##.'];
+function starSvg(on){const W=15,H=14,cell=(x,y)=>STAR[y]&&STAR[y][x]==='#';let r='';
+  const fill=on?['#f0a040','#ffd27a','#b8742c']:['#2a1a0e','#3c2614','#1c120a'],line=on?'#2a0e04':'#6a4a2a';
+  for(let y=-1;y<=STAR.length;y++)for(let x=-1;x<=13;x++){if(cell(x,y))continue;let n=false;for(const [a,b] of [[1,0],[-1,0],[0,1],[0,-1]])if(cell(x+a,y+b))n=true;if(n)r+=`<rect x="${x+1}" y="${y+1}" width="1" height="1" fill="${line}"/>`;}
+  for(let y=0;y<STAR.length;y++)for(let x=0;x<13;x++){if(!cell(x,y))continue;const top=!cell(x,y-1)||!cell(x-1,y),low=!cell(x,y+1)||!cell(x+1,y);
+    r+=`<rect x="${x+1}" y="${y+1}" width="1" height="1" fill="${top?fill[1]:low?fill[2]:fill[0]}"/>`;}
+  return `<svg viewBox="0 0 ${W} ${H}" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;}
+const SV=[starSvg(false),starSvg(true)];
+let dmStars=0,dmHover=0;
+function dmEnd(){const $=id=>document.getElementById(id);document.getElementById('dmLoad').hidden=true;$('dmEnd').hidden=false;dmPct=100;dmEnding=true;dmLogoSize();
+  document.querySelector('.dmKick').textContent='The demo';
+  const out=DM_CFG.newTab?{target:'_blank',rel:'noopener'}:{};for(const [id,u] of [['dmFullA',DM_CFG.full],['dmApps',DM_CFG.apps]]){const a=$(id);a.href=u;Object.assign(a,out);}
+  const msg=(t,c)=>{const m=$('dmMsg');m.textContent=t;m.className=c||'';};
+  const box=$('dmStars');box.innerHTML=[1,2,3,4,5].map(i=>`<button type="button" role="radio" aria-checked="false" aria-label="${i} star${i>1?'s':''}" data-s="${i}" tabindex="${i===1?0:-1}">${SV[0]}</button>`).join('');
+  const paint=()=>{const v=dmHover||dmStars;box.querySelectorAll('button').forEach(b=>{const i=+b.dataset.s,on=i<=v;if(b._on!==on){b._on=on;b.innerHTML=SV[on?1:0];}
+      const c=String(i===dmStars);if(b.getAttribute('aria-checked')!==c)b.setAttribute('aria-checked',c);b.tabIndex=i===(dmStars||1)?0:-1;});
+    const s=SAY[v];if($('dmSay').textContent!==s)$('dmSay').textContent=s;};
+  const pick=i=>{dmStars=Math.max(1,Math.min(5,i));dmHover=0;paint();if($('dmMsg').textContent)msg('');};
+  box.addEventListener('click',e=>{const b=e.target.closest('button');if(b)pick(+b.dataset.s);});
+  box.addEventListener('pointerover',e=>{const b=e.target.closest('button');if(b&&e.pointerType==='mouse'){dmHover=+b.dataset.s;paint();}});
+  box.addEventListener('pointerleave',()=>{dmHover=0;paint();});
+  box.addEventListener('keydown',e=>{const d={ArrowRight:1,ArrowUp:1,ArrowLeft:-1,ArrowDown:-1}[e.key];if(!d)return;e.preventDefault();pick((dmStars||0)+d);box.querySelector(`[data-s="${dmStars}"]`).focus();});
+  const tx=$('dmText');tx.addEventListener('input',()=>{const s=tx.value.length+' / 1000';if($('dmCount').textContent!==s)$('dmCount').textContent=s;});
+  const thanks=o=>{$('dmForm').hidden=true;$('dmThanksBox').hidden=false;
+    $('dmDoneTxt').innerHTML=`<b>Sent. Thank you!</b><br>You gave Hollow Acre ${o.stars} star${o.stars>1?'s':''}${o.text?' and a note':''}. The maker reads every one.`;};
+  $('dmAgain').addEventListener('click',()=>{$('dmThanksBox').hidden=true;$('dmForm').hidden=false;msg('');$('dmSend').disabled=false;$('dmSend').textContent='Send';});
+  const send=async again=>{if(!dmStars){msg('Pick 1 to 5 stars first.','bad');box.querySelector('button').focus();return;}
+    const o={v:1,stars:dmStars,text:tx.value.trim().slice(0,1000),mins:Math.round((+dmLS('hollowDemoPlayed')||0)/60),build:dmLS('hollowDemoBuild')||'',
+      where:DM_CFG.where,dev:matchMedia('(pointer:coarse)').matches?'touch':'computer',lang:(navigator.language||'').slice(0,12)};
+    dmLS('hollowDemoFbPending',JSON.stringify(o));$('dmSend').disabled=true;$('dmSend').textContent='Sending…';msg('');
+    let n=0;try{n=await fbSend(o);}catch(e){console.warn(e);}
+    $('dmSend').disabled=false;$('dmSend').textContent='Send';
+    if(n>0){dmLS('hollowDemoFbPending',null);dmLS('hollowDemoFbSent',JSON.stringify({stars:o.stars,text:o.text,t:Date.now()}));thanks(o);}
+    else msg('It couldn’t be sent just now. It will try again the next time you open this page.','bad');};
+  $('dmSend').addEventListener('click',()=>send());
+  // what was sent before (shown as sent), or an answer that couldn't be sent last time (sent again now)
+  let sent=null,pend=null;try{sent=JSON.parse(dmLS('hollowDemoFbSent')||'null');pend=JSON.parse(dmLS('hollowDemoFbPending')||'null');}catch(e){}
+  if(pend&&pend.stars){dmStars=pend.stars;tx.value=pend.text||'';tx.dispatchEvent(new Event('input'));paint();send();}
+  else if(sent&&sent.stars){dmStars=sent.stars;tx.value=sent.text||'';tx.dispatchEvent(new Event('input'));paint();thanks(sent);}
+  else paint();
+  dmPad();}
+// a controller: up and down move between the stars, the box, Send and the links; left and right give stars; A chooses
+function dmPad(){const order=()=>[...document.querySelectorAll('#dmStars button[tabindex="0"],#dmText,#dmSend,#dmAgain,#dmFullA,#dmApps')].filter(e=>e.offsetParent);
+  let cur=null,prev={},rep=0;const mark=e=>{if(cur)cur.classList.remove('pf');cur=e;if(e){e.classList.add('pf');e.focus({preventScroll:false});e.scrollIntoView({block:'nearest'});}};
+  setInterval(()=>{let p=null;try{p=[...(navigator.getGamepads?navigator.getGamepads():[])].find(x=>x&&x.connected);}catch(e){}if(!p)return;
+    const b=i=>!!(p.buttons[i]&&p.buttons[i].pressed),ax=p.axes||[];
+    const st={u:b(12)||ax[1]<-.5,d:b(13)||ax[1]>.5,l:b(14)||ax[0]<-.5,r:b(15)||ax[0]>.5,a:b(0)};
+    const edge=k=>st[k]&&!prev[k];prev=st;
+    if(!cur&&(edge('u')||edge('d')||edge('l')||edge('r')||edge('a'))){mark(order()[0]);return;}
+    if(!cur)return;
+    if(edge('d')||edge('u')){const L=order();let i=L.indexOf(cur);if(i<0)i=0;mark(L[Math.max(0,Math.min(L.length-1,i+(edge('d')?1:-1)))]);}
+    if((edge('l')||edge('r'))&&cur.closest&&cur.closest('#dmStars')){const v=Math.max(1,Math.min(5,(dmStars||0)+(edge('r')?1:-1)));
+      const nb=document.querySelector(`#dmStars [data-s="${v}"]`);if(nb){nb.click();mark(nb);}}
+    if(edge('a')&&cur.id!=='dmText')cur.click();},100);}
+
+if(dmOver())dmEnd();else dmPlay();
+</script>
