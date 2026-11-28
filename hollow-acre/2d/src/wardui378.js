@@ -7,7 +7,7 @@ const WDU_DIRS=['N','W','S','E'];
 // the tabs: each section is an item grid (pos), a pattern grid (pat) or colours only; tag/notag split one position across two tabs
 const WDU_ALWAYS={hair:1,face:1,tops:1,bottoms:1,outer:1,shoes:1,head:1,eyewear:1,jewel:1,acc:1,colours:1};
 const WDU_TABS=[
-  ['hair','Hair',[{pos:'hair',t:'Hairstyle',cols:['hair'],req:1},{pos:'dye',t:'Two-tone',cols:['hair2'],none:'One colour'},{pos:'beard',t:'Facial hair',cols:['beard'],none:'None'}]],
+  ['hair','Hair',[{pos:'hair',t:'Hairstyle',cols:['hair','headacc'],req:1},{pos:'dye',t:'Two-tone',cols:['hair2'],none:'One colour'},{pos:'beard',t:'Facial hair',cols:['beard'],none:'None'}]],
   ['face','Face',[{t:'Skin',cols:['skin']},{pos:'eyes',t:'Eyes',cols:['eye','eye2'],none:'Natural'},{pos:'brows',t:'Eyebrows',cols:['brow'],none:'Natural'},{pos:'freckles',t:'Freckles',cols:['mark'],none:'None'},
     {pos:'mole',t:'Beauty marks',cols:['mark'],none:'None'},{pos:'scar',t:'Scars',cols:[],none:'None'},{pos:'pnose',t:'Nose piercing',cols:['pierce'],none:'None'},{pos:'pbrow',t:'Brow piercing',cols:['pierce'],none:'None'},{pos:'plip',t:'Lip piercing',cols:['pierce'],none:'None'}]],
   ['makeup','Makeup',[{pos:'lips',t:'Lipstick',cols:['lip'],none:'None'},{pos:'liner',t:'Eyeliner',cols:['liner'],none:'None'},{pos:'shadow',t:'Eyeshadow',cols:['shadow'],none:'None'},{pos:'blush',t:'Blush',cols:['blush'],none:'None'},
@@ -16,8 +16,8 @@ const WDU_TABS=[
   ['bottoms','Bottoms',[{pos:'bottom',t:'Bottoms',cols:['bottom','bottom2'],req:1},{pat:'bottom',t:'Pattern',cols:['botpat']}]],
   ['outer','Outerwear',[{pos:'outer',t:'Outerwear',cols:['outer','outer2'],none:'None'},{pat:'outer',t:'Pattern',cols:['outpat']}]],
   ['shoes','Shoes',[{pos:'shoes',t:'Shoes',cols:['shoes','shoes2'],req:1},{pos:'socks',t:'Socks',cols:['socks'],none:'None'}]],
-  ['head','Headwear',[{pos:'hat',t:'Hats',cols:['hat','hat2'],none:'None'},{pos:'headacc',t:'In your hair',cols:['headacc','headacc2'],none:'None'}]],
-  ['eyewear','Eyewear',[{pos:'glasses',t:'Glasses',cols:['frame','lens'],none:'None'}]],
+  ['head','Headwear',[{pos:'hat',t:'Hats',cols:['hat','hat2','metal'],none:'None'},{pos:'headacc',notag:'mask',t:'On your head',cols:['headacc','headacc2'],none:'None'},{pos:'headacc',tag:'mask',t:'Masks',cols:['headacc','headacc2','gem'],none:'None'}]],
+  ['eyewear','Eyewear',[{pos:'glasses',t:'Glasses',cols:['frame','lens','metal'],none:'None'}]],
   ['jewel','Jewellery',[{pos:'ear',t:'Earrings',cols:['ear','gem'],none:'None'},{pos:'neck',tag:'jewel',t:'Necklaces',cols:['neck','gem'],none:'None'},{pos:'wrist',t:'Wrists',cols:['wrist'],none:'None'},{t:'Metal & stones',cols:['metal','gem']}]],
   ['acc','Accessories',[{pos:'neck',notag:'jewel',t:'Neckwear',cols:['neck','neck2'],none:'None'},{pos:'waist',t:'Belts',cols:['waist','waist2'],none:'None'},{pos:'back',t:'Bags',cols:['back','back2'],none:'None'},{pos:'hand',t:'Gloves',cols:['hand'],none:'None'}]],
   ['colours','Colours',[{t:'Skin, eyes and hair',cols:['skin','eye','eye2','brow','hair','hair2','beard']},{t:'Clothes',cols:['top','top2','toppat','bottom','bottom2','botpat','outer','outer2','outpat','shoes','shoes2','socks']},
@@ -25,7 +25,7 @@ const WDU_TABS=[
     {t:'Makeup and marks',cols:['lip','liner','shadow','blush','paint','paint2','tattoo','mark']}]]];
 // the part of the 48x64 frame each kind of thumbnail shows
 const WDU_CROP={hair:[0,4,48,40],dye:[0,4,48,40],beard:[12,22,24,20],hat:[0,0,48,40],headacc:[0,4,48,40],glasses:[12,24,24,14],ear:[4,22,40,20],
-  top:[8,24,32,38],bottom:[4,36,40,28],outer:[8,24,32,38],shoes:[8,48,32,16],socks:[8,44,32,20],neck:[8,26,32,24],waist:[4,40,40,20],back:[0,20,48,40],wrist:[0,36,48,24],hand:[0,36,48,24],
+  top:[8,24,32,38],bottom:[4,40,40,24],outer:[8,24,32,38],shoes:[8,52,32,12],socks:[8,46,32,18],neck:[8,26,32,24],waist:[4,40,40,20],back:[0,20,48,40],wrist:[0,36,48,24],hand:[0,36,48,24],
   brows:[14,24,20,10],eyes:[14,26,20,10],lips:[16,32,16,10],liner:[14,26,20,10],shadow:[14,24,20,12],blush:[12,28,24,12],freckles:[12,28,24,12],mole:[12,24,24,20],scar:[12,22,24,20],
   paint:[8,18,32,26],tattoo:[4,20,40,34],pnose:[16,28,16,10],pbrow:[14,22,20,12],plip:[16,32,16,10],pat:[4,36,40,24]};
 const wduEsc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
@@ -145,7 +145,7 @@ const WDU_THG={hair:'hair',beard:'beard',hat:'hat',glasses:'glasses',top:'top',b
 // the 0-byte recolours need the new base body (its hands and shins are drawn in their own colours); on an old one-piece outfit socks show only on bare legs
 function wduItems(sec){const w=S.look.w,lb=wdLegacyBody(w),t=lb&&wdGet(w,'top'),bare=!!(t&&t.tags.includes('skirt'));
   return (WD.cats[sec.pos]||[]).filter(e=>(!sec.tag||e.tags.includes(sec.tag))&&(!sec.notag||!e.tags.includes(sec.notag))&&
-    !(lb&&(e.flags.includes('recolourHand')||e.flags.includes('recolourWrist')))&&!(lb&&e.cat==='socks'&&!bare));}
+    !(lb&&(e.flags.includes('recolourHand')||e.flags.includes('recolourWrist')))&&!(lb&&e.cat==='socks'&&!bare)&&!(e.flags.includes('legacyBody')&&(!SPR[e.layer]||(WD.cats.base||[]).length)));}
 // a colour row belongs on a tab when something you wear uses it (the colours tab shows them all)
 function wduRel(k){const w=S.look.w,g=p=>wdGet(w,p),has=(p,s)=>{const e=g(p);return !!(e&&e.slots.includes(s));},lb=wdLegacyBody(w),t=g('top');
   switch(k){case 'hair2':return !!(w.it.dye&&wdItem('dye',w.it.dye));case 'beard':return !!g('beard');
@@ -155,7 +155,7 @@ function wduRel(k){const w=S.look.w,g=p=>wdGet(w,p),has=(p,s)=>{const e=g(p);ret
     case 'shoes2':return has('shoes','shoes2');case 'socks':return !!g('socks');case 'hat':return !!g('hat');case 'hat2':return has('hat','hat2');
     case 'frame':return has('glasses','frame');case 'lens':return has('glasses','lens');case 'ear':return !!g('ear');
     case 'gem':return WD_POS.some(p=>has(p,'gem'));case 'metal':return WD_POS.some(p=>has(p,'metal'))||(lb&&has('top','metal'));
-    case 'neck':return !!g('neck');case 'neck2':return has('neck','neck2');case 'headacc':return !!g('headacc');case 'headacc2':return has('headacc','headacc2');
+    case 'neck':return !!g('neck');case 'neck2':return has('neck','neck2');case 'headacc':return !!g('headacc')||has('hair','headacc')||has('beard','headacc');case 'headacc2':return has('headacc','headacc2');
     case 'waist':return !!g('waist');case 'waist2':return has('waist','waist2');case 'back':return !!g('back');case 'back2':return has('back','back2');
     case 'wrist':return !!g('wrist');case 'hand':return !!g('hand');case 'lip':return !!g('lips');case 'liner':return !!g('liner');case 'shadow':return !!g('shadow');
     case 'blush':return !!g('blush');case 'paint':return !!g('paint');case 'paint2':return has('paint','paint2');case 'tattoo':return !!g('tattoo');
@@ -182,10 +182,10 @@ function wduSecHtml(sec,si,all){const w=S.look.w,lb=wdLegacyBody(w);let grid='',
     if(items.length)grid=`<div class="wdG">${!sec.req&&sec.none?wduCell(sec.pos,null,sec.none):''}${items.map(e=>wduCell(sec.pos,e,e.label)).join('')}</div>`;
     const cur=wdItem(sec.pos,w.it[sec.pos]);
     head=`<span class="wdN">${n?n+(n===1?' choice':' choices'):''}</span><span class="wdSp"></span>${items.length?`<button data-fav="${cur?sec.pos+':'+cur.id:''}"${cur?'':' hidden'}>${cur&&wduFav().includes(sec.pos+':'+cur.id)?'Unfavourite':'Favourite'}</button><button data-rnd="${sec.pos}">Random</button>`:''}`;}
-  else if(sec.pat){const t=wdGet(w,'top');const ok=sec.pat==='top'&&(lb?!!(t&&t.slots.includes('toppat')):!!(t&&t.flags.includes('pattern')));
-    if(!ok&&!all)return '';const ids=Object.keys(WD_PAT);n=ids.length;
-    grid=ok?`<div class="wdG">${ids.map(id=>{const on=(w.pat[sec.pat]||'')===id,c=WDU_CROP.pat;return `<button class="wdi${on?' on':''}" data-pat="${sec.pat}" data-id="${id}" aria-pressed="${on}"><span class="wdT"><canvas data-th="pat:${sec.pat}:${id}" width="${c[2]}" height="${c[3]}"></canvas></span><span class="wdLb">${WD_PAT_LABEL[id]||id}</span></button>`;}).join('')}</div>`:'';
-    head=`<span class="wdN">${ok?n+' choices':''}</span><span class="wdSp"></span>`;}
+  else if(sec.pat){const g=sec.pat,it=wdGet(w,g),lbT=g==='top'&&lb;const ok=lbT?!!(it&&it.slots.includes('toppat')):!!(it&&!it.flags.includes('legacyBody')&&it.flags.includes('pattern'));
+    if(!ok&&!all)return '';const ids=lbT?Object.keys(WD_PAT):[''].concat(Object.keys(WD_TILE));n=ids.length;const lab=id=>id?(lbT?WD_PAT_LABEL[id]:WD_TILE[id]&&WD_TILE[id].label)||id:'Plain';
+    grid=ok&&n>1?`<div class="wdG">${ids.map(id=>{const on=(w.pat[g]||'')===id,c=WDU_CROP.pat;return `<button class="wdi${on?' on':''}" data-pat="${g}" data-id="${id}" aria-pressed="${on}"><span class="wdT"><canvas data-th="pat:${g}:${id}" width="${c[2]}" height="${c[3]}"></canvas></span><span class="wdLb">${wduEsc(lab(id))}</span></button>`;}).join('')}</div>`:'';
+    head=`<span class="wdN">${ok&&n>1?n+' choices':''}</span><span class="wdSp"></span>`;}
   else head='<span class="wdSp"></span>';
   return `<div class="wdSec" data-si="${si}"><h3>${wduEsc(sec.t)}${head}</h3>${note?`<div class="wdNote">${wduEsc(note)}</div>`:''}${grid}<div class="wdCols" data-si="${si}">${wduColsOf(sec,all)}</div></div>`;}
 const wduTab=()=>WDU_TABS.find(t=>t[0]===WDU.tab)||WDU_TABS[0];
@@ -218,7 +218,7 @@ function wduAtlas(pos,layer){const g=WDU_THG[pos]||(WD_ACC.includes(pos)?'acc':n
   const im=IMG[m.src];if(!im||!im.width){if(WDU.atl[m.src]===2)return null;if(!WDU.atl[m.src]){WDU.atl[m.src]=1;loadImages([m.src]).then(()=>{if(!(IMG[m.src]&&IMG[m.src].width))WDU.atl[m.src]=2;wduThumbsAll();});}return 0;}const c=m.cols||16;return {im,sx:(i%c)*WD_FW,sy:Math.floor(i/c)*WD_FH};}
 function wduThumb(cv){const t=cv.dataset.th;if(!t)return true;const P=t.split(':'),w0=S.look.w,w={v:1,it:Object.assign({},w0.it),pat:Object.assign({},w0.pat),c:Object.assign({},w0.c)};let crop,src={};
   if(P[0]==='pat'){w.pat[P[1]]=P[2];if(!P[2])delete w.pat[P[1]];crop=WDU_CROP.pat;}
-  else{const pos=P[0],id=P[1],e=id?wdItem(pos,id):null;if(id)w.it[pos]=id;else delete w.it[pos];if(e&&e.def)for(const k in e.def)w.c[k]=e.def[k];crop=WDU_CROP[pos]||WDU_CROP.hair;
+  else{const pos=P[0],id=P[1],e=id?wdItem(pos,id):null;if(id)w.it[pos]=id;else delete w.it[pos];if(pos==='socks'&&!wdLegacyBody(w)&&wdItem('bottom','shorts'))w.it.bottom='shorts';if(e&&e.def)for(const k in e.def)w.c[k]=e.def[k];crop=WDU_CROP[pos]||WDU_CROP.hair;
     if(e&&e.layer){const m=SPR[e.layer];if(!(m&&IMG[m.src]&&IMG[m.src].width)){const a=wduAtlas(pos,e.layer);if(!a){if(a===null&&m)wduLoadLayer(m.src);return false;}src[e.layer]=a;}}}
   const d=wdFrame(w,'',10,0,src);const g=cv.getContext('2d');g.clearRect(0,0,cv.width,cv.height);g.putImageData(d,-crop[0],-crop[1],crop[0],crop[1],crop[2],crop[3]);
   const s=Math.max(1,Math.floor(Math.min(96/crop[2],80/crop[3])));const ws=crop[2]*s+'px',hs=crop[3]*s+'px';if(cv.dataset.ws!==ws){cv.dataset.ws=ws;cv.style.setProperty('width',ws,'important');cv.style.setProperty('height',hs,'important');}cv.dataset.ok=wduSig();return true;}

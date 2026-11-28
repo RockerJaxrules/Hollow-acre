@@ -18,7 +18,7 @@ const WD_KEYS=[
   ['frame','Frames','eyewear','metal','#403a46'],['lens','Lens tint','eyewear','lens',null],
   ['metal','Metal','jewel','metal','#c8a040'],['gem','Stones','jewel','gem','#c83a4a'],['ear','Earrings','jewel','metal','#c8a040'],
   ['neck','Neckwear','acc','cloth','#c83a5a'],['neck2','Neckwear trim','acc','cloth','#e8e0d0'],
-  ['headacc','Hair piece','acc','cloth','#c83a5a'],['headacc2','Hair piece trim','acc','cloth','#e8e0d0'],
+  ['headacc','Head piece','acc','cloth','#c83a5a'],['headacc2','Head piece trim','acc','cloth','#e8e0d0'],
   ['waist','Belt','acc','leather','#4a3020'],['waist2','Belt trim','acc','leather','#c8a040'],
   ['back','Bag','acc','leather','#6a4a2a'],['back2','Bag trim','acc','leather','#3a2618'],
   ['wrist','Watch & bracelet','acc','leather','#3a2618'],['hand','Gloves','acc','leather','#4a3a2e'],
@@ -48,8 +48,8 @@ const WD_Z={_u:0,base:10,legacy:10,socks:18,shoes:20,bottom:30,top:40,waist:45,o
 const WD_REQ={top:1,bottom:1};
 const wdPos=e=>e.cat==='acc'?(e.depth||'neck'):e.cat;
 function wdAdd(list){for(const r of [].concat(list||[])){if(!r||!r.id||!r.cat)continue;const e=Object.assign({slots:[],tags:[],flags:[]},r);
-    e.id=String(e.id).toLowerCase().replace(/[^a-z0-9_]/g,'');e.pos=wdPos(e);if(!WD_POS.includes(e.pos))continue;
-    if(e.layer===undefined)e.layer=e.v==='none'?null:'pl_'+e.cat+'_'+e.id;if(!e.v)e.v=/^(hair|beard|hat|glasses|acc)$/.test(e.cat)&&!/^(waist|back|wrist|hand)$/.test(e.pos)?'head':'body';
+    e.id=String(e.id).toLowerCase().replace(/[^a-z0-9_]/g,'');e.pos=wdPos(e);if(!WD_POS.includes(e.pos)&&e.pos!=='base')continue;
+    if(e.layer===undefined)e.layer=e.v==='none'?null:e.cat==='base'?'pl_base':'pl_'+e.cat+'_'+e.id;if(!e.v)e.v=/^(hair|beard|hat|glasses|acc)$/.test(e.cat)&&!/^(waist|back|wrist|hand)$/.test(e.pos)?'head':'body';
     if(e.z===undefined)e.z=WD_Z[e.pos]!=null?WD_Z[e.pos]:60;e.label=String(e.label||e.id).slice(0,16);
     const k=e.pos+':'+e.id,old=WD.by[k],C=WD.cats[e.pos]||(WD.cats[e.pos]=[]);if(old){WD.reg[WD.reg.indexOf(old)]=e;C[C.indexOf(old)]=e;}else{WD.reg.push(e);C.push(e);}WD.by[k]=e;}
   WD.ver++;}
@@ -84,7 +84,7 @@ const WD_FIX={
   straw:[['hat','#e8cc76',[[[110,80,30],0],[[160,124,52],1],[[204,168,82],2],[[232,204,118],3],[[248,230,160],4]]]],
   earrings:[['ear','#e6be46',[[[230,190,70],3],[[255,236,150],4]]]],
   necklace:[['gem','#ffffff',[[[255,255,255],4]]]]};
-const wdFixFor=e=>!e?null:e.flags.includes('legacyBody')?WD_FIX.body:e.cat==='glasses'?(e.id==='shades'?WD_FIX.shades:e.id==='monocle'?WD_FIX.monocle:WD_FIX.glasses):
+const wdFixFor=e=>!e?null:(e.flags.includes('legacyBody')||/^(top|bottom|outer)$/.test(e.cat))?WD_FIX.body:e.cat==='glasses'?(e.id==='shades'?WD_FIX.shades:e.id==='monocle'?WD_FIX.monocle:WD_FIX.glasses):
   e.cat==='hat'?WD_FIX[e.id]||null:e.cat==='acc'?WD_FIX[e.id]||null:null;
 // the dye modes for a second hair colour, and the 0-byte recolours (gloves on the hands, socks on the legs)
 wdAdd([{cat:'dye',id:'tips',label:'Tips',v:'none',layer:null,slots:['hair2']},{cat:'dye',id:'ombre',label:'Ombré',v:'none',layer:null,slots:['hair2']},
@@ -97,8 +97,19 @@ wdAdd([{cat:'dye',id:'tips',label:'Tips',v:'none',layer:null,slots:['hair2']},{c
   {cat:'acc',depth:'wrist',id:'cuff',label:'Wrist cuff',v:'none',layer:null,slots:['wrist'],flags:['recolourWrist'],tags:['jewel']}]);
 // the art's own entries (wardrobe_art378.js), whenever they load
 function wdArt(){const A=window.WARDROBE_ART;if(!Array.isArray(A)||A.length===WD.art)return;WD.art=A.length;
-  wdAdd(A.map(r=>Object.assign({},r,{flags:[].concat(r.flags||[]),tags:[].concat(r.tags||[]),slots:[].concat(r.slots||[]).map(s=>({pants:'bottom',extra:'outer',hatColor:'hat',shirt:'top'})[s]||s)})));}
+  // the art names the bases it is drawn in; the wardrobe shows them as the colours they become where the item is worn
+  const key=(r,s)=>{const dep=r.cat==='acc'?(r.depth||'neck'):null;if(s==='pants')return 'bottom';if(s==='extra')return 'outer';if(s==='hatColor')return 'hat';if(s==='shirt')return 'top';
+    if(s==='hair'&&r.cat==='beard')return 'beard';if(s==='acc')return dep||(/^(hair|beard)$/.test(r.cat)?'headacc':r.cat==='hat'?'hat2':'neck');if(s==='acc2')return dep?(dep==='ear'?'gem':dep+'2'):'neck2';
+    if(s==='hand'||s==='wrist'||s==='ankle'||s==='shin'||s==='knee')return 'skin';return s;};
+  wdAdd(A.map(r=>Object.assign({},r,{flags:[].concat(r.flags||[]),tags:[].concat(r.tags||[]),slots:[...new Set([].concat(r.slots||[]).map(s=>key(r,s)))],
+    def:r.def&&typeof r.def==='object'?Object.fromEntries(Object.entries(r.def).map(([k,v])=>[key(r,k),v])):r.def})));}
 wdArt();
+// pattern tiles for the new garments (16x16; '.' the garment, '+' a step lighter, '-' a step darker, '2' the pattern colour, '3' it a step darker)
+const WD_TILE={};
+function wdTiles(){const T=window.WARDROBE_PAT;if(!Array.isArray(T))return;for(const t of T){if(!t||!t.id||!Array.isArray(t.rows)||t.rows.length!==16||t.rows.some(r=>typeof r!=='string'||r.length!==16))continue;WD_TILE[String(t.id)]={label:String(t.label||t.id).slice(0,16),rows:t.rows};}}
+// the old patterns as tiles too, so the new tops (drawn in one plain ramp) can wear them: a phase that went a step darker is the pattern colour
+for(const id in WD_PAT){if(!id)continue;const P=WD_PAT[id],rows=[];for(let y=0;y<16;y++){let r='';for(let x=0;x<16;x++){const sft=P[(y%4)*2+(x%4===1?1:0)];r+=sft===0?'.':sft===1?'2':sft>=2?'3':'+';}rows.push(r);}WD_TILE[id]={label:WD_PAT_LABEL[id]||id,rows};}
+wdTiles();
 // ---- the look you wear. S.look keeps the old keys (older builds and other code read them); S.look.w holds every choice:
 // it: one item per position, pat: a pattern per garment, c: the colours you have set (a slot left unset follows another or keeps the art's own colour)
 const WD_HEX=/^#[0-9a-f]{6}$/i;
@@ -119,7 +130,7 @@ function wdMigrate(L){const w=wdBlank(),it=w.it,c=w.c;L=L||{};const hx=v=>typeof
   return w;}
 // a look that comes in (a save, a friend, a preset) is tidied: only known kinds of values, unknown ids kept (a newer build may know them)
 function wdClean(w){const o=wdBlank();if(!w||typeof w!=='object')return o;const id=v=>typeof v==='string'&&/^[a-z0-9_]{0,24}$/.test(v)?v:'';
-  for(const p of WD_POS){const v=id(w.it&&w.it[p]);if(v)o.it[p]=v;}for(const g of ['top','bottom','outer']){const v=w.pat&&w.pat[g];if(typeof v==='string'&&WD_PAT[v])o.pat[g]=v;}
+  for(const p of WD_POS){const v=id(w.it&&w.it[p]);if(v)o.it[p]=v;}for(const g of ['top','bottom','outer']){const v=w.pat&&w.pat[g];if(typeof v==='string'&&/^[a-z0-9_]{1,24}$/.test(v))o.pat[g]=v;}
   for(const k in WD_K){const v=w.c&&w.c[k];if(typeof v==='string'&&WD_HEX.test(v))o.c[k]=v.toLowerCase();}
   if(!o.it.hair)o.it.hair='short';if(!o.it.top)o.it.top='shirt';return o;}
 // what an item resolves to right now (an id this build doesn't have counts as nothing; a required one falls back)
@@ -134,7 +145,20 @@ function wdLegacy(w){const o={},leg=(pos,k,d)=>{const e=wdGet(w,pos);const v=e&&
   for(const [k,n] of [['skin','skin'],['hair','hair'],['eye','eye'],['shirt','top'],['pants','bottom'],['shoes','shoes'],['extra','outer']])o[k]=wdColD(w,n);
   o.hatColor=o.hat==='straw'?(wdCol(w,'hat2')||LOOK_BASE.hatColor):wdColD(w,'hat');o.acc=wdCol(w,accPos||'neck')||LOOK_BASE.acc;
   for(const k of ['skin','hair','eye','shirt','pants','shoes','extra','hatColor','acc'])if(!WD_HEX.test(o[k]||''))o[k]=LOOK_BASE[k];return o;}
-function wdSync(){const L=S.look;if(!L.w)L.w=wdMigrate(L);Object.assign(L,wdLegacy(L.w));}
+// once the body is split into a base and garments, an old one-piece outfit becomes its parts (the art's map: outfit -> top, bottom, outer, shoes)
+function wdSplit(w){const MP=window.WARDROBE_OUTFIT_MAP||{};let t=wdItem('top',w.it.top);
+  // an old outfit whose one-piece sheet has gone becomes its parts
+  if(t&&t.flags.includes('legacyBody')&&(!SPR[t.layer]||(WD.cats.base||[]).length)){const m=MP[t.id];if(!m)return w;const c=w.c,old=t.id;
+    for(const p of ['top','bottom','outer','shoes'])if(m[p])w.it[p]=m[p];else if(p!=='top')delete w.it[p];
+    // where a colour lived in the old one-piece and where it lives now: the open shirt is now the outerwear over a tee, the overalls' bib and legs are outerwear
+    if(old==='openshirt'){const a=c.top,b=c.outer;if(a)c.outer=a;if(b)c.top=b;if(w.pat.top){w.pat.outer=w.pat.top;delete w.pat.top;}}
+    else if(old==='overalls'){if(c.bottom)c.outer=c.bottom;}
+    t=wdItem('top',w.it.top);}
+  if(!t||t.flags.includes('legacyBody'))return w;const m=MP[w.it.top];
+  if(m&&!w.it.bottom&&!t.flags.includes('onepiece')){for(const p of ['top','bottom','outer','shoes'])if(m[p]!==undefined&&(p==='top'||!w.it[p])){if(m[p])w.it[p]=m[p];else delete w.it[p];}}
+  if(!w.it.bottom&&!t.flags.includes('onepiece')){const b=(WD.cats.bottom||[]).find(e=>!e.flags.includes('legacyBody'));if(b)w.it.bottom=b.id;}
+  if(!w.it.shoes){const sh=(WD.cats.shoes||[]).find(e=>!e.flags.includes('legacyBody'));if(sh)w.it.shoes=sh.id;}return w;}
+function wdSync(){const L=S.look;if(!L.w)L.w=wdMigrate(L);wdSplit(L.w);Object.assign(L,wdLegacy(L.w));}
 function wdSave(){wdSync();try{localStorage.setItem('hollowLook'+ACCT_SUFFIX,JSON.stringify(S.look));}catch(e){}}
 // the compact form a friend's game is sent: "1|items|colours|patterns", only what's set. The codes never change once given (new ones go at the end)
 const WD_IC={hair:'h',dye:'d',beard:'b',top:'t',bottom:'o',outer:'u',shoes:'s',socks:'x',hat:'a',glasses:'g',neck:'n',ear:'e',headacc:'c',waist:'w',back:'k',wrist:'r',hand:'p',
@@ -176,10 +200,15 @@ const WD_TOOLS=['','_hoe','_can','_pick','_axe','_rod'];
 function wdLayers(w,tool){const out=[];const add=(e,name,z,kind)=>{const m=SPR[name];if(m)out.push({e,name,z,kind:kind||e.pos,m});};
   const vr=(base,e)=>{if(!tool)return base;if(e.v==='head'&&(tool==='_hoe'||tool==='_rod'))return base;return SPR[base+tool]?base+tool:base;};
   const legacy=wdLegacyBody(w);
-  if(!legacy){const b=wdItem('base','base')||wdItem('base','default');if(b&&b.layer)add(b,vr(b.layer,b),WD_Z.base,'base');}
+  if(!legacy){const b=wdItem('base','base')||wdItem('base','default')||(WD.cats.base||[])[0];if(b&&b.layer)add(b,vr(b.layer,b),WD_Z.base,'base');}
   for(const p of WD_POS){const e=wdGet(w,p);if(!e||!e.layer)continue;if(legacy&&(p==='bottom'||p==='outer'||p==='shoes'))continue;
     if(!legacy&&e.flags.includes('legacyBody'))continue;
-    if(e.flags.includes('under'))add(e,vr(e.layer+'_u',e),WD_Z._u,'under');add(e,vr(e.layer,e),e.z,e.flags.includes('legacyBody')?'base':p);}
+    if(e.flags.includes('under'))add(e,vr(e.layer+'_u',e),WD_Z._u,'under');
+    // in the rows facing away (N) a piece can change sides with the hair: earrings flagged underHairN go under it, and bags
+    // (and anything flagged overHairN) over it, so long hair doesn't hide them; the other rows keep the piece's own depth
+    const nz=e.flags.includes('underHairN')&&e.z>WD_Z.hair?WD_Z.hair-1:(p==='back'||e.flags.includes('overHairN'))&&e.z<WD_Z.hair?WD_Z.hair+1:null;
+    if(nz!==null){const n=out.length;add(e,vr(e.layer,e),e.z,p);if(out.length>n){out[n].rows=0;out.push(Object.assign({},out[n],{z:nz,rows:1}));}}
+    else add(e,vr(e.layer,e),e.z,e.flags.includes('legacyBody')?'base':p);}
   out.sort((a,b)=>a.z-b.z);
   if(tool&&SPR['pl_toolf'+tool])out.push({e:null,name:'pl_toolf'+tool,z:99,kind:'toolf',m:SPR['pl_toolf'+tool]});
   return out;}
@@ -193,7 +222,7 @@ function wdMaps(w,L){const e=L.e,pos=L.kind,cs=[];const accK=WD_ACC.includes(pos
   const C={skin:wdColD(w,'skin'),hair:wdColD(w,hairK),eye:wdColD(w,'eye'),pants:wdColD(w,'bottom'),shoes:wdColD(w,'shoes'),extra:wdColD(w,'outer'),
     hatColor:wdColD(w,e&&e.bk&&e.bk.hatColor||(e&&e.id==='straw'&&e.cat==='hat'?'hat2':'hat')),acc:wdColD(w,accK)};
   const sig=[pos,e&&e.cat,e&&e.id,C.skin,C.hair,C.eye,C.pants,C.shoes,C.extra,C.hatColor,C.acc,w.pat.top||'',wdCol(w,'toppat'),wdColD(w,'top'),
-    WD_KEYS.map(K=>wdCol(w,K[0])).join(),gl,cu,sb,w.it.dye||'',WD.legacyRamp?1:0].join('|');
+    WD_KEYS.map(K=>wdCol(w,K[0])).join(),gl,cu,sb,w.it.dye||'',w.pat.bottom||'',w.pat.outer||'',WD.legacyRamp?1:0].join('|');
   const ck=WD.maps||(WD.maps=new Map());let r=ck.get(sig);if(r)return r;
   const M=new Map(),D=new Map();
   // the old order, so an old look recolours exactly as it did
@@ -210,6 +239,10 @@ function wdMaps(w,L){const e=L.e,pos=L.kind,cs=[];const accK=WD_ACC.includes(pos
     for(const [rgb,i] of list){if(how==='collar'){D.set(wdKey(rgb),['collar',R[i],rgb]);D.set(wdKey(outlineRGB(rgb)),['collar',outlineRGB(R[i]),outlineRGB(rgb)]);}else wdPut(M,rgb,R[i]);}}
   // the dynamic ones: the second hair colour, the second eye
   if(pos==='hair'&&w.it.dye&&wdItem('dye',w.it.dye)){const A=lookRamp(LOOK_BASE.hair),H=wdRamp(C.hair),H2=wdRamp(wdColD(w,'hair2'));for(let i=0;i<5;i++)D.set(wdKey(A[i]),['dye',i,H[i],H2[i]]);}
+  // a new garment with a pattern: every pixel of its own colour takes the tile's shade (the tile hangs on the torso anchor, so it never swims)
+  const pg={top:'top',bottom:'bottom',outer:'outer'}[pos],tile=pg&&e&&e.flags.includes('pattern')&&w.pat[pg]&&WD_TILE[w.pat[pg]];
+  if(tile){const gk=pg==='top'?'top':pg==='bottom'?'bottom':'outer',R=wdRamp(wdColD(w,gk)),pk=wdCol(w,pg==='top'?'toppat':pg==='bottom'?'botpat':'outpat'),PR=pk?wdRamp(pk):shiftRamp(R,2);
+    const bases=pg==='top'?SHIRT_BASES:[pg==='bottom'?LOOK_BASE.pants:LOOK_BASE.extra];for(const b of bases){const A=lookRamp(b);for(let i=0;i<5;i++)D.set(wdKey(A[i]),['tile',i,R,PR,tile.rows]);}}
   if(base){const e2=wdCol(w,'eye2');if(e2&&e2!==C.eye){const A=lookRamp(LOOK_BASE.eye),E1=wdRamp(C.eye),E2=wdRamp(e2);for(let i=0;i<5;i++)D.set(wdKey(A[i]),['eye2',E1[i],E2[i]]);}}
   r={M,D};if(ck.size>200)ck.clear();ck.set(sig,r);return r;}
 // ---- the composer. A layer's rows are read once into a pixel buffer, recoloured and laid over the ones below; the fists over a tool's
@@ -245,7 +278,11 @@ function wdComposeRows(w,tool,r0,r1,out,fo,o){o=o||{};const W=o.w||432,X0=o.x0||
         for(let y=0;y<H;y++){const band=(y/WD_FH)|0;for(let x=0;x<W;x++){const i=band*W+x;if(hatTop[i]<0&&a[(y*W+x)*4+3])hatTop[i]=y;}}}
       else{for(let i=0;i<a.length;i+=4)if(a[i+3]&&a[i]===255&&a[i+1]===0&&a[i+2]===255){if(!cut)cut=new Uint8Array(W*H);cut[i>>2]=1;}}}}
   const dyeMode=w.it.dye&&wdItem('dye',w.it.dye)?w.it.dye:'';
-  for(const L of layers){const im=IMG[L.m.src],ov=OV[L.name];if(!ov&&(!im||!im.width))continue;const a=wdRaw(im,X0,y0,W,H,ov);if(!a)continue;const {M,D}=wdMaps(w,L);
+  for(const L of layers){const im=IMG[L.m.src],ov=OV[L.name];if(!ov&&(!im||!im.width))continue;let a=wdRaw(im,X0,y0,W,H,ov);if(!a)continue;
+    // a piece split by facing (underHairN) keeps only its own rows here: 1 the rows facing N, 0 the rest
+    if(L.rows!==undefined){const keep=[];let any=0,all=1;for(let r=r0;r<r1;r++){const k=(WD_ROWDIR[r]==='N')===(L.rows===1);keep.push(k);if(k)any=1;else all=0;}
+      if(!any)continue;if(!all){a=a.slice();for(let b=0;b<keep.length;b++)if(!keep[b])a.fill(0,b*WD_FH*W*4,(b+1)*WD_FH*W*4);}}
+    const {M,D}=wdMaps(w,L);
     const isHair=L.kind==='hair',isBeard=L.kind==='beard',dst=L.kind==='toolf'?fo:out;if(!dst)continue;
     // the hair's extent per column of every frame, for the dye modes
     let ext=null;if(isHair&&dyeMode){ext=new Int16Array(W*(r1-r0)*2).fill(-1);const HB=new Set(lookRamp(LOOK_BASE.hair).map(wdKey));
@@ -259,7 +296,9 @@ function wdComposeRows(w,tool,r0,r1,out,fo,o){o=o||{};const W=o.w||432,X0=o.x0||
         if(d[0]==='dye'){const j=(((y/WD_FH)|0)*W+x)*2;const up4=HL>=0&&i>=W*4&&a[i-W*4+3]&&((a[i-W*4]<<16)|(a[i-W*4+1]<<8)|a[i-W*4+2])===HL;
           c=wdDye(dyeMode,d[1],fx,fy,A,dir,ext[j],ext[j+1],up4)?d[3]:d[2];}
         else if(d[0]==='eye2'){const A2=A||[23,30,0];c=(dir==='S'&&fx>A2[0])||dir==='W'?d[2]:d[1];}
-        else if(d[0]==='collar'){c=A&&fy>A[1]+9?d[1]:d[2];}}
+        else if(d[0]==='collar'){c=A&&fy>A[1]+9?d[1]:d[2];}
+        else if(d[0]==='tile'){const ux=A?A[0]:23,tp=A?A[3]:39,ch=d[4][((fy-tp)%16+16)%16][((fx-ux)%16+16)%16],k=d[1],R=d[2],P=d[3];
+          c=ch==='+'?R[Math.min(4,k+1)]:ch==='-'?R[Math.max(0,k-1)]:ch==='2'?P[k]:ch==='3'?P[Math.max(0,k-1)]:R[k];}}
       else c=M.size?M.get(key):null;
       const r=c?c[0]:a[i],gg=c?c[1]:a[i+1],bb=c?c[2]:a[i+2],sa=a[i+3];
       if(sa===255){dst[i]=r;dst[i+1]=gg;dst[i+2]=bb;dst[i+3]=255;}
@@ -283,7 +322,8 @@ function wdSheets(w,tools,o){const W=432,HF=WD_FH*29;const res={};const base=wdC
 // one frame of a look (the wardrobe's preview and thumbnails), with any layer read from somewhere else (a thumbnail atlas)
 function wdFrame(w,tool,row,col,src,o){const d=new ImageData(WD_FW,WD_FH);wdComposeRows(w,tool,row,row+1,d.data,null,Object.assign({x0:col*WD_FW,w:WD_FW,src},o||{}));return d;}
 // ---- your sheets: built when the look changes (each look's set is kept, the last two of them, so undo and back costs nothing)
-WD.tried=new Set();
+// a layer that failed to load is left out for a while (a slow or lost connection), then asked for again
+WD.tried={m:new Map(),add(s){this.m.set(s,performance.now());},has(s){const t=this.m.get(s);if(t==null)return false;if(performance.now()-t>12000){this.m.delete(s);return false;}return true;}};
 WD.legacy={applyLook,composeSheet,lookMap,layersFor,lookMini,peerSprite};
 const wdSig=w=>wdEnc(w)+(WD.legacyRamp?'L':'');
 function wdInstall(set,tools){for(const t of tools){const tm=SPR['farmer'+t],s=set[t];if(!tm||!s)continue;if(!LOOK_ORIG[tm.src])LOOK_ORIG[tm.src]=IMG[tm.src];IMG[tm.src]=s.c;if(t&&s.f)FISTS['farmer'+t]=s.f;}
@@ -293,7 +333,7 @@ function wdBuild(w,tools){const sig=wdSig(w);let set=WD.sheets.get(sig);const mi
   else{WD.sheets.delete(sig);WD.sheets.set(sig,set);}return set;}
 // the layers load only when a look needs them: the first build waits for its files, the old sheets show meanwhile
 applyLook=function(only){wdArt();if(!S.look.w)S.look.w=wdMigrate(S.look);wdSync();const tools=only||WD_TOOLS,w=S.look.w;
-  const need=wdNeed(w,tools);if(need.length){const tok=WD.pend={};loadImages(need).then(()=>{for(const s of need)if(!(IMG[s]&&IMG[s].width))WD.tried.add(s);if(WD.pend===tok)applyLook(only);});return;}
+  const need=wdNeed(w,tools);if(need.length){const tok=WD.pend={};loadImages(need).then(()=>{let miss=0;for(const s of need)if(!(IMG[s]&&IMG[s].width)){WD.tried.add(s);miss++;}if(WD.pend===tok){applyLook(only);if(miss)setTimeout(()=>{if(WD.pend===tok)applyLook(only);},13000);}});return;}
   try{wdInstall(wdBuild(w,tools),tools);}catch(e){console.error&&console.error('wardrobe',e);}};
 // the old entry point (another look into the shared farmer sheets), kept for anything that still calls it
 composeSheet=function(look,tool){const w=look===S.look?S.look.w:wdFromLook(look);const s=wdSheets(w,[tool||'']);const tm=SPR['farmer'+(tool||'')];if(!tm||!s[tool||''])return;
@@ -301,7 +341,7 @@ composeSheet=function(look,tool){const w=look===S.look?S.look.w:wdFromLook(look)
 // ---- friends: the old keys (older builds draw the nearest look they know) and the full look in one short string
 lookMini=function(){wdSync();const o={};for(const [k,v] of Object.entries(S.look))if(k!=='name'&&(typeof v==='string'||typeof v==='number'))o[k]=v;o.w=wdEnc(S.look.w);return o;};
 peerSprite=async function(look){if(!look||typeof look!=='object')return null;const key=lookKey(look);if(CO.sprites[key])return CO.sprites[key];CO.sprites[key]='pending';
-  try{wdArt();const w=wdFromLook(look);const need=wdNeed(w,PEER_TOOLS);if(need.length)await loadImages(need);
+  try{wdArt();const w=wdSplit(wdFromLook(look));const need=wdNeed(w,PEER_TOOLS);if(need.length)await loadImages(need);
     const name='peer'+Object.keys(CO.sprites).length,set=wdSheets(w,PEER_TOOLS);
     for(const tl of PEER_TOOLS){const base=SPR['farmer'+tl],s=set[tl];if(!base||!s)continue;SPR[name+tl]=Object.assign({},base,{src:'mem:'+name+tl});IMG['mem:'+name+tl]=s.c;if(tl&&s.f)FISTS[name+tl]=s.f;}
     if(typeof SILF!=='undefined')for(const k in SILF)if(k.startsWith('peer'))delete SILF[k];
@@ -325,5 +365,5 @@ if(typeof dyeClothes==='function')dyeClothes=function(){const w=S.look.w;const r
   openNote(h,'Done');$('noteText').querySelectorAll('button[data-g]').forEach(b=>b.onclick=()=>{const c=b.dataset.c,g=b.dataset.g;if(inv('dye_'+c)<1)return;takeInv('dye_'+c,1);S.look.w.c[g]=DYE[c].col[1];
     wdSave();applyLook();SFX.page&&SFX.page();toast(`Dyed ${DYE[c].name.toLowerCase()}.`,1.4);dyeClothes();});};
 // the art can load after this file: pick its entries up once everything has loaded
-setTimeout(()=>{const n=WD.art;wdArt();if(WD.art!==n&&S.mode!=='title')applyLook();},0);
+setTimeout(()=>{const n=WD.art;wdArt();wdTiles();if(WD.art!==n&&S.mode!=='title')applyLook();},0);
 window.WD=WD;
