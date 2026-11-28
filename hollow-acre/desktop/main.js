@@ -63,12 +63,13 @@ function create(){const wa=screen.getPrimaryDisplay().workArea,saved=loadWin();
   let t=null;const later=()=>{if(!w.isFullScreen())w._lastBounds=w.getBounds();clearTimeout(t);t=setTimeout(()=>saveWin(w),600);};
   w.on('resize',later);w.on('move',later);w.on('enter-full-screen',later);w.on('leave-full-screen',later);
   // closing the window lets the game write its last autosave first
-  w.on('close',e=>{saveWin(w);if(w._saved)return;e.preventDefault();autosave(w).finally(()=>{w._saved=true;w.close();});});
+  w.on('close',e=>{saveWin(w);if(w._saved){flushNow('close');return;}e.preventDefault();saveAndFlush(w,'close').finally(()=>{w._saved=true;w.close();});});
+  w.on('session-end',()=>flushNow('session end'));   // (Windows: shutting down or logging off)
   // no connection and nothing cached (or the site answers with an error): play the copy inside the app, at the same address
   w.webContents.on('did-fail-load',(e,code,desc,url,main)=>{if(!main||code===-3||!trusted(url))return;log('load failed',code,desc,url);useBundled(w,desc);});
   w.webContents.on('did-navigate',(e,url,status)=>{if(trusted(url)&&(status===404||status>=500)){log('site answered',status);useBundled(w,'HTTP '+status);}});
   w.webContents.on('did-start-navigation',d=>{if(d.isMainFrame&&!d.isSameDocument)LOADED=false;});
-  let crashes=0;w.webContents.on('render-process-gone',(e,d)=>{log('renderer gone',d.reason);if(d.reason!=='clean-exit'&&++crashes<=3)w.reload();});
+  let crashes=0;w.webContents.on('render-process-gone',(e,d)=>{log('renderer gone',d.reason);flushNow();if(d.reason!=='clean-exit'&&++crashes<=3)w.reload();});
   w.loadURL(GAME_URL);}
 // a Mac app needs its menu bar for the keys every Mac app has: Cmd+Q to quit (the game autosaves first, as when the window
 // closes), Cmd+H to hide, Cmd+M to minimise, Ctrl+Cmd+F for full screen, and Cmd+C / Cmd+V in the game's text boxes
@@ -78,6 +79,23 @@ function macMenu(){return Menu.buildFromTemplate([
   {label:'View',submenu:[{role:'togglefullscreen'}]},
   {label:'Window',submenu:[{role:'minimize'},{role:'zoom'},{type:'separator'},{role:'close'}]}]);}
 const autosave=w=>w.webContents.executeJavaScript("try{dispatchEvent(new Event('pagehide'))}catch(e){}").catch(()=>{});
+// ---------------------------------------------------------------- the save on disk. The window's storage (where the game keeps its
+// save) is written to disk only now and then, so a save made a minute before Steam ends the app ("Exit game"), or the computer
+// stops it, could still be only in memory and be lost: Continue then opened on that morning. The game asks for a write after
+// each save (hd:flush); it is also done every 20 seconds, when the window closes, when the app quits, and when the system asks
+// the app to stop (SIGTERM from Steam, SIGINT, SIGHUP): the game is asked to save first, then it all goes to disk.
+let FLUSHED=0;
+function flushNow(why){try{session.defaultSession.flushStorageData();FLUSHED=Date.now();if(why)log('storage written to disk:',why);}catch(e){log('could not write the storage',e&&e.message);}}
+ipcMain.on('hd:flush',e=>{if(!fromGame(e))return;const gap=Date.now()-FLUSHED;if(gap>=800)flushNow();else{clearTimeout(flushNow.t);flushNow.t=setTimeout(()=>flushNow(),800-gap);}});
+setInterval(()=>flushNow(),20000);
+// the game saves, then the storage goes to disk; at most 2.5 seconds, so a stuck page never holds up closing
+function saveAndFlush(w,why){const done=()=>flushNow(why);if(!w||w.isDestroyed()){done();return Promise.resolve();}
+  return Promise.race([autosave(w),new Promise(r=>setTimeout(r,2500))]).finally(done);}
+let STOPPING=false;
+for(const sig of ['SIGTERM','SIGINT','SIGHUP'])process.on(sig,()=>{log('asked to stop:',sig);if(STOPPING)return;STOPPING=true;const w=WIN;
+  setTimeout(()=>{flushNow('stop (late)');app.exit(0);},4000);   // whatever happens, out within 4 seconds, its storage written
+  saveAndFlush(w,sig).finally(()=>{if(w&&!w.isDestroyed())w._saved=true;app.quit();});});
+app.on('before-quit',()=>flushNow());app.on('will-quit',()=>flushNow('quit'));
 
 // ---------------------------------------------------------------- the copy inside the app. Every request for the game's address
 // still tries the internet first; only when that fails does the shipped file answer. Art asked for under another build's name
@@ -194,7 +212,7 @@ function initMacCheck(){if(!app.isPackaged||process.platform!=='darwin'||process
   setTimeout(check,+process.env.HOLLOW_UPDATE_DELAY||12000);setInterval(check,4*3600*1000);}
 function restartToUpdate(){if(!UPD.au||!UPD.ready)return;const w=WIN;log('restarting to update');
   const go=()=>{if(w&&!w.isDestroyed()){saveWin(w);w._saved=true;}app.releaseSingleInstanceLock();UPD.au.quitAndInstall(true,true);};
-  if(w&&!w.isDestroyed())autosave(w).finally(go);else go();}
+  saveAndFlush(w,'restart to update').finally(go);}
 
 // ---------------------------------------------------------------- security: the game's pages are the only thing the window shows.
 // Links anywhere else open in the system browser; no new windows, no webviews; only the permissions the game uses.

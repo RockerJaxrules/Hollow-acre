@@ -14,7 +14,8 @@ if(location.origin===SITE&&location.pathname.startsWith(SITE_PATH)){
   contextBridge.exposeInMainWorld('hollowDesktop',{
     info:()=>ipcRenderer.invoke('hd:info'),                  // {w,h,sf,deck,app,offline}: the screen in physical pixels, Windows/Mac scaling, a Steam Deck?
     setWindow:(w,h)=>ipcRenderer.invoke('hd:setWindow',+w,+h), // a window of w x h physical pixels (kept inside the screen)
-    setFullScreen:on=>ipcRenderer.invoke('hd:full',!!on)
+    setFullScreen:on=>ipcRenderer.invoke('hd:full',!!on),
+    flush:()=>ipcRenderer.send('hd:flush')                     // put the window's storage (the save) on disk now
   });
 
   // ---- the notice: a small bar at the top of the screen, in the game's own letters, over everything and catching its own clicks

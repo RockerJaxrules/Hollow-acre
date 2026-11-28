@@ -140,6 +140,14 @@ function cloudShow(view){const box=$('acctPanel').querySelector('.box');$('acctP
     for(const p of ACCT.list){if(!p.cloud)continue;const row=box.querySelector(`.row[data-id="${p.id}"] .who b`);if(row)row.insertAdjacentHTML('afterend',' <span class="acl" title="Saved to an account">☁</span>');}}catch(e){}};}
 // a newer save from another device: on opening the game, if this profile's account has a newer farm, it's brought down first
 {const K=cloudK();if(K&&navigator.onLine)setTimeout(async()=>{try{if(S.mode!=='title')return;const f=await cloudFetch(K);if(!f||f.partial||!f.data||!f.data.save)return;
-    const local=readSave();const lt=local&&local.t||0;let rt=0;try{rt=JSON.parse(f.data.save).t||0;}catch(e){}if(rt<=lt+1000)return;
-    const k=acctKeys(ACCT.cur);localStorage.setItem(k.save,f.data.save);if(f.data.morning)localStorage.setItem(k.morning,f.data.morning);if(f.data.look)localStorage.setItem(k.look,f.data.look);
-    toast('Your farm was saved more recently on another device. That save is loaded here now.',4);setTimeout(()=>location.reload(),1600);}catch(e){}},1500);}
+    const local=readSave();const lt=local&&local.t||0;let rt=0,rem=null;try{rem=JSON.parse(f.data.save);rt=rem.t||0;}catch(e){}if(rt<=lt+1000)return;
+    const k=acctKeys(ACCT.cur);const take=()=>{localStorage.setItem(k.save,f.data.save);if(f.data.morning)localStorage.setItem(k.morning,f.data.morning);if(f.data.look)localStorage.setItem(k.look,f.data.look);};
+    // (#BUGS) the account's copy was saved later, but this device's farm is further on (a window on another device left open on
+    // an older day, then closed, saves that older day last): never swap it without asking
+    const prog=d=>d&&d.S?(d.S.day|0)*30+(d.mid&&isFinite(d.mid.hour)?+d.mid.hour:6):-1,day=d=>d&&d.S?`Day ${d.S.day}${d.mid?', '+fmtTime(d.mid.hour):''}`:'?';
+    if(local&&rem&&prog(rem)<prog(local)-.25){if(S.mode!=='title')return;
+      openNote(`<h3>Two saves of this farm</h3><p>Your account has <b>${day(rem)}</b>, saved more recently on another device (${new Date(rt).toLocaleString()}).</p><p>This device has <b>${day(local)}</b>, which is further on.</p>
+        <p><button id="clKeepHere" class="begin" style="margin:4px 8px 4px 0">Keep ${day(local)}</button><button id="clTakeAcct" class="begin" style="margin:4px 0">Use ${day(rem)}</button></p>`,'Decide later');
+      const n=$('noteText');n.querySelector('#clKeepHere').onclick=()=>{$('noteClose').click();try{cloudSoon();}catch(e){}toast('Kept this device’s farm. Your account gets it in a few seconds.',3.2);};
+      n.querySelector('#clTakeAcct').onclick=()=>{$('noteClose').click();take();toast('Loading the account’s save…',2);setTimeout(()=>location.reload(),900);};return;}
+    take();toast('Your farm was saved more recently on another device. That save is loaded here now.',4);setTimeout(()=>location.reload(),1600);}catch(e){}},1500);}
