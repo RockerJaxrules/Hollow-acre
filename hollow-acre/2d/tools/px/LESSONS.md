@@ -258,6 +258,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   enlarged crop of the changed part beside the 1x sheet.
 
 ## Story sights: pictures that carry a caption's facts (Nov 12: regions 5.5 -> 6, places 5.5 -> 6.5)
+- [W4 ch1, Nov 28: board 5.5 -> ok, door 6, window 6.5] A doll sitting up on a pillow reads as a child in the bed at close-up size; a kept room (and anything tied to the missing) shows only things. A slumped cloth rabbit with one long ear up reads as a toy.
+- Posters for the missing are text only (owner's rule via main: the missing stay offscreen). One template repeated reads as a stamp: mix sheet kinds (printed bill, typed sheet with a rule, hand-lettered HELP, index cards), sizes and line counts, and keep one blank sheet as the quiet one.
+- A photo scratched out with many crossing 1 px lines reads as dither: a flat grey with one darker step and two or three broad strokes.
+- A child's room in this palette: pull sunny paper and quilts two steps toward violet-brown; window light on a floor shows its glazing bars.
+- Ruled horizontal lines at night read as water: a ploughed field is rows converging on the far side in perspective, each ridge lit on the moon's side, with stubble in them. A row of identical roofs reads as a stamp: gables, hips, a gambrel barn, a flat store, a two-storey, chimneys on some.
+- A night view through glass must not get the close-up player's night tint and lantern pool (rebuild RU.objC without them, w4Unlit); patches laid over a tinted layer show as bright squares.
 - [audit, Nov 28: 3.5-5.5 -> approved] A story object in a close-up must be drawn LARGE and whole, with its own outline and a 3-4 step ramp: a 3-4 px glint, a flat slab or a speck reads as a placeholder (a star became a tin star 11x10 with an outline; a sheet became a folded sheet with a crease, a second fold and two layers on its near edge).
 - A garment laid out flat reads as a garment only upright (collar at the top, V lapels, sleeves angled out, buttons down the middle). Lying sideways, its buttons and pocket read as a face, and the whole thing as a crab or a fish.
 - A keepsake hanging beside meat needs its own value: a dark desaturated wool coat on a hanger with a turned-down collar separates from red carcasses; a red coat merges with them at 1x. A saturated blue accent breaks a muted palette; use dusty blue.
@@ -887,6 +893,15 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [t382] Copper on a broad body reads as a terracotta flower pot unless it has metal contrast: a hard vertical highlight streak left of centre and dark reflections where the surface faces down or away. The tall onion pot got away without it; the wide kettle did not.
 - [t382] Identical small jars side by side on a shelf read as letters (F F F L) at 1x. Leave the wall plain rather than line up copies.
 - [t382] Every liquid goes into something that holds liquid: a run-off or strain lands in an oak tub, a crock or a jug, never a wicker basket.
+- [t382 critic, still 5.5 vs 3.5] A drip from a tap must read at 1x: a pale 2x3 px drop over light oak staves vanishes. Give it a dark rim, a bead swelling at the spout, a splash where it lands, and a dark (wet) backing on the wood under the tap; a boiling run is a 3 px stream, not a 1 px line.
+- [t382 critic] A thing dropped in must be drawn, not a shrunken item icon: a glowcap is a 10 px teal cap on a pale stem, held clear of the frame's edge (on top of the fist), let go, arcing into the opening it goes into.
+- [t382 critic] Filtering needs its source and its bed: something pouring onto the bed from above, a cloth you can see sag under it, and the run coming out of the cloth's low point. Drips off the underside of a shaken tray read as shaking, not filtering.
+- [t382 critic] A word on the screen with nothing to tell it apart is unexplained: name all the stages as a scale beside the vessel (heads, hearts, tails at their heights) and light the one going in.
+- [t382 critic, kettle/press 6 vs 4] A catching tub must hold liquid in every frame (a third full from the start); a vessel that reads empty in one frame and full in another disagrees with itself. A run is a 2 px stream that splashes, not 1 px dashes.
+- [t382 critic] A fist on a short peg covers the whole peg and reads as gripping nothing: the peg must show above and below the fist (36 px, a knob on top).
+- [t382 critic] A boil and a warm mash must not look the same: the boil heaves in the middle and rolls foam outward under a steam column; a mash is paler, lumpy, with fat bubbles that swell and burst.
+- [t382 critic] A riddle's 1 px mesh reads as a checker at 1x: cover it with what's on it (a grain bed, a cloth).
+- [t382 critic] The demo ring shows where to draw the circles: centre the crank's circles on the part you see turning and put the ring on the fist, or the hand and the ring disagree.
 - A liquid seen in an open vessel: a thin lip, a FLAT surface in two tones, one 3-4 px sheen line at the top left, foam only as a thin broken line hugging the back rim. A broad pale rim round a dark centre reads as a pie crust; specks on it read as stew or porridge.
 - What makes a pot a brewer's and not a cook's: a tap on the belly (4 px spout + key, not a 2 px blob), no handle lugs, hop cones on the tun. At 1x the tun and hops carry the trade.
 - A slatted basket of fruit: show the fruit as 2 px berries with a lit pixel heaped above the rim and bulging through the gaps; evenly alternating dark slat / colour stripe reads as a barcode.

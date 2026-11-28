@@ -104,10 +104,14 @@ const ALC={};
       k.px(cx-23,top-1,6,1,O[6]);
       M4.outline(k.g.canvas,O[0]);
       // the tap: a copper collar, a short spout bent down, a brass key on top
-      k.px(cx-5,32,8,4,C[2]);k.px(cx-5,32,8,1,C[5]);k.px(cx-5,35,8,1,C[1]);k.px(cx-2,35,3,6,C[3]);k.px(cx-2,35,1,6,C[5]);k.px(cx-2,40,3,1,C[1]);
-      k.px(cx-4,29,7,2,BR[5]);k.px(cx-4,29,7,1,BR[7]);k.px(cx-1,30,1,2,BR[3]);});
+      for(let y=31;y<77;y++){const w=y<40?3:y<60?5:6;for(let x=-w;x<w;x++)k.px(cx-1+x,y,1,1,x===-w||x===w-1?O[1]:k.H32(x,y>>2,9)>.8?O[2]:'#2a1a0e');}
+      k.px(cx-5,24,8,4,C[2]);k.px(cx-5,24,8,1,C[5]);k.px(cx-5,27,8,1,C[1]);k.px(cx-2,27,3,6,C[3]);k.px(cx-2,27,1,6,C[5]);k.px(cx-2,32,3,1,C[1]);
+      k.px(cx-4,21,7,2,BR[5]);k.px(cx-4,21,7,1,BR[7]);k.px(cx-1,22,1,2,BR[3]);});
   // a mason jar on the floor catching the run: dark glass, pale edges, one glint, the spirit a bright line over a step-paler fill
-  ALC.jar=(K,x,base,lv,col,glow,cloud)=>{const g=K.g,w=16,h=20,top=base-h;K.pa(x-w/2-1,base,w+4,2,'#000',.4);K.pa(x-w/2,top+3,w,h-3,'#0c1418',.42);
+  ALC.cap=(K,x,y,r)=>{const g=K.g,T=['#0a2e2c','#145a56','#228c84','#46c2b2','#a4f0e0'];K.glow(x,y-1,10,'90,230,200',.3);g.save();g.translate(Math.round(x),Math.round(y));if(r)g.rotate(r);
+    K.px(-2,-1,4,7,'#2a2418');K.px(-1,-1,2,6,'#e4dcc4');K.px(-1,-1,1,6,'#f6f0e0');K.px(0,4,1,1,'#b0a68c');
+    K.px(-5,-4,10,4,T[0]);K.px(-4,-5,8,1,T[0]);K.px(-4,-4,8,3,T[2]);K.px(-3,-5,6,1,T[3]);K.px(-3,-4,3,1,T[4]);K.px(-4,-2,8,1,T[1]);K.px(1,-3,1,1,T[4]);K.px(-2,-3,1,1,T[3]);g.restore();};
+  ALC.jar=(K,x,base,lv,col,glow,cloud)=>{const g=K.g,w=20,h=26,top=base-h;K.pa(x-w/2-1,base,w+4,2,'#000',.4);K.pa(x-w/2,top+3,w,h-3,'#0c1418',.42);
     const fh=Math.round((h-5)*cl(lv,0,1));if(fh>0){K.px(x-w/2+1,base-fh,w-2,fh,col[0]);K.px(x-w/2+1,base-fh,w-2,1,col[1]);if(cloud>0)K.pa(x-w/2+1,base-fh,w-2,fh,'#e8e0c8',cloud*.55);if(glow)K.glow(x,base-fh/2,14,glow,.35);}
     K.px(x-w/2,top+3,1,h-3,G[4]);K.px(x+w/2-1,top+3,1,h-3,G[1]);K.px(x-w/2,base-1,w,1,G[2]);K.px(x-w/2+1,top+2,w-2,1,G[3]);
     K.px(x-w/2+2,top,w-4,3,G[2]);K.px(x-w/2+2,top,w-4,1,G[4]);K.px(x-w/2+2,top+2,w-4,1,G[1]);K.px(x-w/2+2,top+5,2,8,G[5]);K.px(x-w/2+2,top+14,1,2,G[4]);};
@@ -134,9 +138,18 @@ const ALC={};
   const scuttle=k=>{for(let y=0;y<16;y++){const w=12-Math.round(y*.15);for(let x=-w;x<=w;x++)k.px(14+x,6+y,1,1,I[cl(Math.round(1.6+Math.max(0,-x/w*.8+.4)*3)-(y>12?1:0),0,6)]);}k.px(2,6,25,2,I[5]);k.px(2,6,25,1,I[6]);
     for(let i=0;i<9;i++){const x=4+i*2.4,y=2+(i%3);k.px(x,y,4,4,'#141416');k.px(x,y,2,1,'#4a4c56');}};
   const crate=k=>{const W=CA_P.wood;for(let y=0;y<17;y++)for(let x=0;x<30;x++){let kk=y<4?(x<2?6:5):(x<2?4:3);if(y===4||y===10)kk=2;if(x===0||x===29||y===16)kk=1;if(y>4&&(x===9||x===20))kk=2;k.px(x,y,1,1,W[kk]);}k.px(0,0,30,1,W[7]);k.px(3,6,1,1,W[1]);k.px(26,12,1,1,W[1]);};
+  ALC.boards=(K,x0,y0,w,h,P,vert,seed)=>{const L=vert?w:h,D=vert?h:w;let a=0,i=0;const R=(q,k)=>K.H32(i,q,seed+k);
+    const box=(u,v,uw,vh,c)=>vert?K.px(x0+u,y0+v,uw,vh,c):K.px(x0+v,y0+u,vh,uw,c);
+    while(a<L){const bw=Math.min(L-a,(vert?11:6)+Math.floor(R(1,1)*(vert?10:5))),d=R(2,2)>.72?1:R(2,3)<.26?-1:0,b=3+d;
+      box(a,0,bw,D,P[b]);box(a,0,1,D,P[b+1]);box(a+bw-1,0,1,D,P[0]);if(bw>4)box(a+bw-2,0,1,D,P[b-1]);
+      for(let k=0;k<3;k++){const u=a+2+Math.floor(R(10+k,4)*(bw-4)),v=Math.floor(R(20+k,5)*D),l=8+Math.floor(R(30+k,6)*28);box(u,v,1,Math.min(l,D-v),P[b-1]);}
+      if(R(3,7)>.55){const u=a+2+Math.floor(R(4,8)*(bw-5)),v=6+Math.floor(R(5,9)*(D-12));box(u,v,3,2,P[b-2]);box(u,v,1,1,P[b+1]);}
+      if(R(6,10)>.45){const v=10+Math.floor(R(7,11)*(D-20));box(a,v,bw-1,1,P[0]);box(a,v+1,bw-1,1,P[b+1]);}
+      for(const v of vert?[11,Math.min(D-6,64)]:[3]){box(a+2,v,1,1,P[1]);if(bw>8)box(a+bw-4,v,1,1,P[1]);}
+      a+=bw;i++;}};
   // the still house: dark boards, a small window with the moon in it, a beam, flagstones lit by the fire, the lantern
   ALC.room=(K,win,lamp)=>{const W=['#0e0806','#180e08','#22140c','#2c1a10','#362114','#40281a','#4a2f1e'],F=['#141210','#1e1b18','#282420','#322d28','#3c362f','#463f36'];
-    K.planks(0,0,320,120,W,15,31,true);for(let y=0;y<50;y++)K.pa(0,y,320,1,'#040202',.5-y/110);
+    ALC.boards(K,0,0,320,120,W,true,31);for(let y=0;y<50;y++)K.pa(0,y,320,1,'#040202',.5-y/110);
     K.px(0,0,320,8,W[2]);K.px(0,7,320,1,W[0]);K.px(0,0,320,1,W[4]);for(let x=0;x<320;x+=37)K.px(x,1,1,6,W[1]);
     {const [wx,wy]=win;K.px(wx-3,wy-3,46,38,W[1]);for(let y=0;y<32;y++){const u=y/32;K.px(wx,wy+y,40,1,`rgb(${30+u*26|0},${38+u*30|0},${58+u*26|0})`);}
       K.ell(wx+28,wy+9,5,5,'#dfe6e8');K.ell(wx+30,wy+8,4.4,4.6,`rgb(${36|0},${44|0},${64|0})`);for(let x=0;x<40;x++){const h=4+Math.round(Math.sin(x*.27)*2+Math.sin(x*.71)*1.2+(x%11===5?3:0));K.px(wx+x,wy+32-h,1,h,'#0c0e10');}
@@ -158,7 +171,7 @@ const ALC={};
   MG4ART.paint.stillbench=K=>{ALC.room(K,[232,20]);const g=K.g;
     g.drawImage(ALC.tub(),-16,78);ALC.arm(K,[[64,40],[48,36],[30,35],[18,38],[11,46],[10,60],[11,84]],5,3);g.drawImage(ALC.pot(),32,60);g.drawImage(ALC.head(),59,29);K.line(79,55,84,55,BR[3],2);ALC.dial(K,89,55,.6,.55,.66);
     // the bench: a lit top edge, the front in dark boards
-    const O2=['#140c06','#24160c','#342012','#442a18','#54361e','#644226','#744e2e','#845a36'];K.plank(0,112,320,8,M4.sh(O2,1),5);K.px(0,112,320,1,O2[7]);K.planks(0,120,320,60,O2,8,13);K.px(0,120,320,1,O2[0]);K.pa(0,121,320,4,'#000',.45);
+    const O2=['#140c06','#24160c','#342012','#442a18','#54361e','#644226','#744e2e','#845a36'];K.plank(0,112,320,8,M4.sh(O2,1),5);K.px(0,112,320,1,O2[7]);ALC.boards(K,0,120,320,60,O2,false,13);K.px(0,120,320,1,O2[0]);K.pa(0,121,320,4,'#000',.45);
     for(let y=160;y<180;y++)K.pa(0,y,320,1,'#000',(y-160)/60);
     K.line(100,8,100,14,'#2a2a2c',1);K.px(95,14,11,3,I[4]);K.px(96,17,9,13,'#2a1a0a');K.px(97,18,7,11,'#e8a040');K.px(98,19,2,9,'#fce07c');K.px(95,30,11,2,I[3]);K.px(96,17,1,13,I[5]);K.px(104,17,1,13,I[2]);};
   MG4ART.anim.stillbench=(K,t)=>{const f=.5+Math.sin(t*6.3)*.1+Math.sin(t*13.1)*.06;K.glow(100,23,44,'255,190,110',.15+f*.06);K.glow(56,114,30,'255,120,50',.12+f*.08);};
@@ -184,10 +197,10 @@ const ALC={};
     if(T>HI+.03){s2.stT-=dt;if(s2.stT<=0){s2.stT=1.3;MS.steam();}}else s2.stT=Math.min(s2.stT,.25);
     for(const a of adds){if(a.fall==null&&st.t>=a.at-.6)a.fall=0;if(a.fall!=null&&a.fall<1)a.fall=Math.min(1,a.fall+dt/.6);}
     return r;};
-  const TAP=[249,120],JAR=[249,151];s2.surf=()=>JAR[1]-1-Math.round(15*Math.min(1,.06+st.prog*.94))-TAP[1];
+  const TAP=[249,111],JAR=[249,151],JH=21;s2.surf=()=>JAR[1]-1-Math.round(JH*Math.min(1,.12+st.prog*.88))-TAP[1];
   const h0=o.hud;o.hud=function(){const lb=K.label;K.label=function(t,x,y){if(t==='IN IT GOES'){x=92;y=66;}return lb.apply(this,[t,x,y].concat([].slice.call(arguments,3)));};try{return h0.apply(this,arguments);}finally{K.label=lb;}};
   const a0=o.auto;o.auto=function(dt,AP){const r=a0.apply(this,arguments);AP.hand=[128,132];return r;};
-  o.draw=function(t){const f=st.f,T=st.T,lv=Math.min(1,.06+st.prog*.94);
+  o.draw=function(t){const f=st.f,T=st.T,lv=Math.min(1,.12+st.prog*.88);
     // the fire in the mouth: it grows as the draught opens; its light on the bricks and the floor
     MG4ART.fire(K,142,151,36,24,.28+f*.72+(T>HI?.08:0),t,[142,124,36,28]);K.glow(160,142,30+f*26,'255,140,60',.1+f*.2);K.glow(160,96,46,'255,120,50',.05+f*.07+Math.max(0,T-.3)*.08);
     // the head, chattering when too hot; the dial on it
@@ -195,17 +208,22 @@ const ALC={};
     // steam spitting at the seam
     if(T>HI){const k=Math.min(1,(T-HI)/.12);for(let i=0;i<3;i++){const ph=(t*1.8+i/3)%1,sx=i===1?175:145,dir=i===1?1:-1;g.globalAlpha=k*.7*(1-ph);K.ell(sx+dir*ph*14,62-ph*12,2+ph*5,1.5+ph*4,'#e8e4dc');g.globalAlpha=1;}}
     // the run from the tap: hanging drops, falling drops, a thin stream when it boils (cloudy when it puked)
-    const [tx,ty]=TAP,surf=JAR[1]-1-Math.round(15*lv),cloud=Math.max(s2.cloud,s2.flow>.3?.5:0);
+    const [tx,ty]=TAP,surf=JAR[1]-1-Math.round(JH*lv),cloud=Math.max(s2.cloud,s2.flow>.3?.5:0);
     ALC.jar(K,JAR[0],JAR[1],lv,sp.spirit||SPC,sp.glow?'120,255,220':null,cloud);
-    for(const r of s2.rip){const u=r/.4;g.globalAlpha=.7*(1-u);K.px(JAR[0]-2-u*4,surf,5+u*8,1,SPC[1]);g.globalAlpha=1;}
-    for(const d of s2.drops){if(d.hang>0){const s=1-d.hang/.16;K.px(tx-1,ty+1,2,1+Math.round(s*2),SPC[1]);K.px(tx-1,ty+1,1,1,'#ffffff');}else{K.px(tx-1,ty+1+d.y,2,3,SPC[1]);K.px(tx-1,ty+1+d.y,1,1,'#ffffff');}}
-    if(s2.flow>.05){g.globalAlpha=Math.min(1,s2.flow*1.4);for(let y=ty+1;y<surf;y++){K.px(tx-1+(y%5===0?1:0),y,2,1,cloud>.2?'#e4dcc4':SPC[1]);}K.px(tx-2,surf,5,1,'#ffffff');g.globalAlpha=1;}
+    const SC=sp.spirit||SPC,DK='#101c20';
+    for(const r of s2.rip){const u=r/.4;g.globalAlpha=.8*(1-u);K.px(JAR[0]-3-u*5,surf,7+u*10,1,'#ffffff');g.globalAlpha=1;if(u<.5){const h=Math.round(Math.sin(u/.5*Math.PI)*4);K.px(tx-3,surf-h,1,1,SC[1]);K.px(tx+2,surf-h,1,1,SC[1]);K.px(tx-1,surf-h-2,1,1,'#ffffff');}}
+    {const bead=s2.flow<.3&&(T>=LO-.07&&T<=HI)?Math.min(1,s2.acc*1.3):0;if(bead>.15){const r=1+Math.round(bead*1.5);K.px(tx-r-1,ty+1,r*2+1,r+1,DK);K.px(tx-r,ty+1,r*2-1,r,SC[1]);K.px(tx-r,ty+1,1,1,'#ffffff');}}
+    for(const d of s2.drops){if(d.hang>0){const s=1-d.hang/.16,r=1+Math.round(s*1.5);K.px(tx-r-1,ty+1,r*2+1,r+2,DK);K.px(tx-r,ty+1,r*2-1,r+1,SC[1]);K.px(tx-r,ty+1,1,1,'#ffffff');}
+      else{const y=ty+2+d.y,L=3+Math.min(3,Math.round(d.v/90));K.px(tx-2,y-1,4,L+2,DK);K.px(tx-1,y,2,L,SC[1]);K.px(tx-1,y,1,1,'#ffffff');}}
+    if(s2.flow>.05){const cw=cloud>.2;g.globalAlpha=Math.min(1,s2.flow*1.4);for(let y=ty+1;y<surf;y++){const wob=(y+Math.floor(t*30))%6===0?1:0;K.px(tx-2+wob,y,1,1,DK);K.px(tx-1+wob,y,2,1,cw?'#ece4cc':SC[1]);K.px(tx+1+wob,y,1,1,DK);}
+      K.px(tx-4,surf-1,9,2,cw?'#f4eedc':'#ffffff');for(let k=0;k<3;k++){const ph=(t*4+k/3)%1;K.px(tx-4+k*4,surf-2-Math.round(Math.sin(ph*Math.PI)*4),1,1,'#ffffff');}g.globalAlpha=1;}
     // the draught lever on the ash pit: your right fist turns it up as you hold
     const kx=128,ky=136,ka=-2.6+f*1.9,ex=kx+Math.cos(ka)*11,ey=ky+Math.sin(ka)*11;K.ball(kx,ky,4,CA_P.brass);K.line(kx,ky,ex,ey,'#1a0e06',4);K.line(kx,ky,ex,ey,CA_P.brass[3],2);K.line(kx,ky-1,ex,ey-1,CA_P.brass[5],1);K.px(kx-1,ky-1,2,2,CA_P.brass[6]);
     m4grip(K,kx+Math.cos(ka)*9,ky+Math.sin(ka)*9,ka,{side:1});
     // what goes in (the glowcaps for the gin): held over the filling port in your left fist, the plug out, let go, falling in
-    for(const a of adds)if(a.fall!=null&&a.fall<1){const u=a.fall,PX=141,PY=74,Y0=30,d=u<.5?0:Math.pow((u-.5)/.5,2),y=Y0+d*(PY-Y0);K.px(PX-3,PY-2,6,2,'#120604');K.px(146,76,5,2,CA_P.brass[4]);K.px(146,76,5,1,CA_P.brass[6]);
-      g.save();g.translate(PX,y);g.rotate(d*2);K.icon(a.icon,-7,-7,.45);g.restore();if(u<.5)m4grip(K,PX,Y0-10+Math.sin(u*20)*.5,0,{side:-1});else{const q=Math.min(1,(u-.5)/.25);g.globalAlpha=1-q;m4grip(K,PX-q*6,Y0-10-q*10,0,{side:-1,kind:'palm'});g.globalAlpha=1;}}};
+    for(const a of adds)if(a.fall!=null&&a.fall<1){const u=a.fall,PX=141,PY=72,X0=124,Y0=42,d=u<.45?0:Math.pow((u-.45)/.55,2),x=X0+(PX-X0)*Math.sin(Math.min(1,u<.45?0:(u-.45)/.55)*Math.PI/2),y=Y0+d*(PY-Y0);
+      K.px(PX-3,PY-2,7,3,'#120604');K.px(PX-2,PY-2,5,1,'#2a1006');K.px(147,76,5,2,CA_P.brass[4]);K.px(147,76,5,1,CA_P.brass[6]);
+      ALC.cap(K,x,y,d*1.2);if(u<.45)m4grip(K,X0,Y0+9+Math.sin(u*20)*.5,0,{side:-1});else{const q=Math.min(1,(u-.45)/.25);g.globalAlpha=1-q;m4grip(K,X0-q*4,Y0+9+q*2,0,{side:-1,kind:'palm'});g.globalAlpha=1;}}};
   return o;};}
 // ---- (t382) the bench steps: lifted to stand on the bench (they were lowered for long arms that are gone), each told by what you see
 const alcFocus=(o,key,r)=>{try{if(typeof MF_FOCUS!=='undefined'&&!MF_FOCUS[key])MF_FOCUS[key]={r,nh:1};Object.defineProperty(o,'__mfk',{get:()=>key,set(){},configurable:true});}catch(e){}};
@@ -220,7 +238,11 @@ const alcFocus=(o,key,r)=>{try{if(typeof MF_FOCUS!=='undefined'&&!MF_FOCUS[key])
         if(Lr<.12)K.pa(bx-r+1,y,r*2-2,1,'#c4d0e8',.28);else if(Lr>LT+.02)K.pa(bx-r+1,y,r*2-2,1,'#d8b870',.5);}
       const yl=Math.round(y0-h*L);if(L>.12&&L<=LT+.02){K.px(bx-8,yl+2,2,6,'#ffffff');}}
     // the name of the cut, by the flask, while it runs
-    if(st.q>.01||(st.L>.02&&st.still<.6&&!st.end)){const c=L<.12?['HEADS','#c8d8f0']:L<=LT+.035?['HEARTS','#9be07a']:['TAILS','#e8a040'];K.label(c[0],bx-46,Math.round(y0-h*Math.max(.1,L))-2,c[1]);}
+    // the three cuts as a scale beside the flask, each at its height (heads at the bottom, hearts up to the line, tails above it);
+    // the one going in now is lit, the others dim, and a pointer at the level shows where the spirit is
+    {const cur=L<.12?0:L<=LT+.035?1:2,ys=[y0-h*.05,y0-h*(.12+LT)/2,y0-h*(LT+.13)],N=['HEADS','HEARTS','TAILS'],CC=['#c8d8f0','#9be07a','#e8a040'],lx=bx-30;
+      for(let k=0;k<3;k++){const on=k===cur&&st.L>.01;K.label(N[k],lx-14,Math.round(ys[k])-2,on?CC[k]:'#7a7468');K.px(lx-2,Math.round(ys[k]),5,1,on?CC[k]:'#5a554c');}
+      K.px(lx+1,Math.round(y0-h*LT),4,1,'#9be07a');if(st.L>.01){const yl=Math.round(y0-h*L);K.px(lx+1,yl-1,3,3,CC[cur]);K.px(lx+2,yl,1,1,'#ffffff');}}
     g.restore();};
   return o;};}
 // corking: the flask stands on the same bench
@@ -239,23 +261,42 @@ const alcFocus=(o,key,r)=>{try{if(typeof MF_FOCUS!=='undefined'&&!MF_FOCUS[key])
       k.ell(56,6,49,6,O[2]);k.ell(56,6,47,5,O[5]);k.ell(56,6.5,44,4,'#1a0e06');M4.outline(k.g.canvas,O[0]);});
   const VX=160,VY=126;   // the vessel's mouth (it sits on the floor in front of you)
   const u0=o.update;o.update=function(dt,I){const n0=K.parts.length,r=u0.apply(this,arguments);for(let i=K.parts.length-1;i>=n0;i--){const p=K.parts[i];if(Math.abs(p.y-88)<.01&&p.g<0)K.parts.splice(i,1);else p.c=[LQ[0],LQ[1],LQ[2]];}return r;};
-  o.draw=function(t){const cx=160+st.x,inb=st.rate>=LO&&st.rate<=HI,slow=st.rate>0&&st.rate<LO,wild=st.rate>HI;
+  const cask=()=>M4.pre('alc_scask',40,30,k=>{const O=CA_P.oak,I=CA_P.iron;for(let y=0;y<20;y++){const r=y/19,yy=2+y;for(let x=0;x<34;x++){const bul=Math.round(2*Math.sin(Math.PI*x/33));if(y<2-bul||y>17+bul)continue;
+        const d=Math.max(0,.9-Math.abs(r-.3)*1.4);let kk=Math.round(1.4+d*4);if(y%5===4)kk=1;k.px(3+x,yy,1,1,O[Math.max(1,Math.min(6,kk))]);}}
+      for(const hx of [9,30])for(let y=0;y<22;y++){k.px(3+hx,1+y,2,1,I[y<6?5:y<14?4:2]);}
+      k.px(0,24,40,3,'#2a1a0c');k.px(0,24,40,1,O[5]);k.px(4,20,4,5,'#2a1a0c');k.px(32,20,4,5,'#2a1a0c');
+      k.px(18,22,5,3,CA_P.brass[4]);k.px(18,22,5,1,CA_P.brass[6]);k.px(19,25,3,3,CA_P.brass[3]);M4.outline(k.g.canvas,O[0]);});
+  o.draw=function(t){const cx=160+st.x,inb=st.rate>=LO&&st.rate<=HI,slow=st.rate>0&&st.rate<LO,wild=st.rate>HI,p=Math.min(1,st.prog);
+    // the charcoal's source: a small cask on a bracket over the riddle, its tap running onto the bed
+    if(LK==='charcoal'){K.px(132,46,56,3,'#3a2414');K.px(132,46,56,1,'#5a3a20');for(const bx of [136,182])K.line(bx,49,bx-4,58,'#2a1a0c',2);g.drawImage(cask(),140,20);
+      for(let y=48;y<91;y++){const wob=(y+Math.floor(t*40))%7===0?1:0;K.px(160+wob-1,y,1,1,'#14262c');K.px(160+wob,y,1,1,LQ[2]);}}
+    // the vessel: a third full from the start, filling as the run goes: two flat tones, a sheen at the back, foam hugging the back rim
     K.pa(VX-54,VY+36,108,3,'#000',.45);g.drawImage(vessel,VX-56,VY-6);
-    // the liquid in it rises as the run goes; rings where the run lands
-    const lv=Math.min(1,st.prog),ly=VY+Math.round(3-lv*3);if(lv>.02){K.ell(VX,ly,Math.round(30+lv*13),Math.round(2+lv*2),LQ[1]);K.ell(VX-6,ly-.5,Math.round(14+lv*10),1,LQ[2]);}
-    if(inb||slow)for(let k=0;k<2;k++){const rr=((t*1.3+k*.5)%1);g.strokeStyle=`rgba(255,250,230,${.35*(1-rr)})`;g.lineWidth=1;g.beginPath();g.ellipse(cx+(k?14:-10),ly,3+rr*9,1+rr*2,0,0,6.29);g.stroke();}
-    // the run: steady threads when the pace is right, a few drops when it's slow
-    const yb=110,yt=ly;if(inb)for(let i=0;i<5;i++){const sx=Math.round(cx-28+i*14+Math.sin(i*2.1)*3);if(sx<VX-42||sx>VX+42)continue;for(let y=yb;y<yt;y+=2){const ph=((y+Math.floor(t*70)+i*5)%10);K.px(sx,y,1,2,ph<6?LQ[1]:LQ[2]);}}
-    else if(slow||(st.prog>0&&st.rate===0))for(let i=0;i<4;i++){const ph=(t*1.1+i*.27)%1,sx=Math.round(cx-24+i*16);K.px(sx,yb+ph*(yt-yb),1,2,LQ[2]);}
-    // the riddle rocks as you shake it, what's on it rocking with it; your fists round the rim's sides
+    const lv=.35+.6*p,ly=VY+1+Math.round((1-lv)*2);g.save();g.beginPath();g.ellipse(VX,VY+.5,43,3.8,0,0,6.29);g.clip();
+    K.px(VX-46,ly-5,92,12,LQ[1]);K.ell(VX-8,ly-.5,24,1.6,LQ[2]);K.px(VX-30,ly-3,10,1,'#fff4e0');if(LK!=='charcoal')for(let x=-40;x<=40;x+=3)if(Math.sin(x*.8+t*1.5)>-.2)K.px(VX+x,ly-3+Math.round(Math.abs(x)/40),2,1,LK==='lauter'?'#e8d0a0':'#c890c0');g.restore();
+    // the bed on the riddle hides its mesh: a cloth for the skins and the charcoal (sagging under it, wet where it drips), the grain itself for the run-off
     const vx=(st.x-(st.px0==null?st.x:st.px0))*60;st.px0=st.x;st.tl=(st.tl||0)+(M4.cl(vx*.0012,-.07,.07)-(st.tl||0))*.35;const tl=st.tl;
+    const [bx,by]=[cx-Math.sin(tl)*2,111+Math.round(tl*0)];const wetc=LK==='charcoal'?'#6a6a62':LK==='skins'?'#6a3a62':'#8a6a3a';
+    if(cloth){for(let x=-26;x<=26;x++){const sag=Math.round(7*Math.sqrt(1-(x/27)**2));K.px(bx+x,by-2,1,sag+2,Math.abs(x)<10?wetc:'#a49a84');K.px(bx+x,by+sag,1,1,'#5a5446');}K.px(bx-3,by+5,7,2,wetc);}
+    // the run: 2 px streams that splash where they land (from the cloth's low point, or through the grain), drops when it's slow
+    const yt=ly-1,sp2=(sx,y0)=>{for(let y=y0;y<yt;y++){K.px(sx-1,y,1,1,'#14100c');K.px(sx,y,2,1,(y+Math.floor(t*50))%5?LQ[1]:LQ[2]);K.px(sx+2,y,1,1,'#14100c');}K.px(sx-2,yt-1,6,1,LQ[2]);for(let k=0;k<2;k++){const ph=(t*3+k*.5)%1;K.px(sx-2+k*5,yt-2-Math.round(Math.sin(ph*Math.PI)*3),1,1,LQ[2]);}};
+    const outs=cloth?[[bx,by+7]]:[[cx-24,111],[cx+2,112],[cx+24,111]];
+    if(inb)for(const [sx,y0] of outs){if(sx>VX-40&&sx<VX+40)sp2(Math.round(sx),y0);}
+    else if(slow||(st.prog>0&&st.rate===0))for(const [sx,y0] of outs){const ph=(t*1.4+sx*.01)%1;K.px(Math.round(sx)-1,y0+ph*(yt-y0),3,3,'#14100c');K.px(Math.round(sx),y0+ph*(yt-y0),1,2,LQ[2]);}
+    if(inb||slow){const rr=(t*1.3)%1;g.strokeStyle=`rgba(255,250,230,${.4*(1-rr)})`;g.lineWidth=1;g.beginPath();g.ellipse(Math.round(outs[0][0]),ly,3+rr*10,1+rr*2,0,0,6.29);g.stroke();}
+    // the riddle rocks as you shake it, what's on it rocking with it; your fists round the rim's sides
     K.pa(cx-62,110,124,3,'#000',.3);M4.rot(g,m4riddle(),cx,95,tl,70,17);
-    if(cloth){g.save();g.translate(cx,93);g.rotate(tl);const cc=['#8a8070','#b0a690','#cfc6ae'];K.ell(0,0,50,8,cc[0]);K.ell(-1,-.5,48,6.6,cc[1]);K.ell(-5,-1.5,30,3.5,cc[2]);for(const [dx,dy] of [[-30,1],[8,-2],[26,2]])K.line(dx,dy,dx+10,dy+1,cc[0],1);g.restore();}
-    const wet=1-Math.min(1,st.prog)*.6;
-    for(const [bx0,by0,i] of bits){const jx=Math.round(Math.sin(t*22+i)*.6),x=cx+Math.round(bx0)+jx,y=93+Math.round(by0+bx0*tl);
+    g.save();g.translate(cx,93);g.rotate(tl);
+    if(cloth){const cc=['#8a8070','#b0a690','#cfc6ae'];K.ell(0,0,61,11,cc[0]);K.ell(-1,-.5,59,9.6,cc[1]);K.ell(-8,-2,34,4.5,cc[2]);for(const [dx,dy] of [[-40,2],[8,-4],[30,3]])K.line(dx,dy,dx+12,dy+1,cc[0],1);}
+    else{K.ell(0,0,61,11,M4KE[1]);K.ell(-2,-.5,58,9.6,M4KE[2]);K.ell(-10,-2,32,4.5,M4KE[3]);}
+    if(LK==='charcoal'){const r=8+p*34;K.ell(160-cx,-1,r,Math.max(1.5,r*.17),'#4a4c4a');}
+    g.restore();
+    const wet=1-p*.6;
+    for(const [bx0,by0,i] of bits){const jx=Math.round(Math.sin(t*22+i)*.6),x=cx+Math.round(bx0*1.15)+jx,y=93+Math.round(by0*1.3+bx0*tl);
       if(LK==='lauter'){K.px(x,y,3,1,i%3?M4KE[4]:M4KE[3]);K.px(x,y+1,2,1,M4KE[1]);if(i%7===0)K.px(x,y,1,1,'#f8e6a4');}
       else if(LK==='skins'){if(i%5===0){K.px(x,y,1,2,'#4a6a2a');continue;}K.px(x-1,y,4,2,i%3?'#4a1450':'#2a0c2a');K.px(x,y,2,1,i%2?'#8a4a9a':'#6a2a72');if(i%6===1&&wet>.5)K.px(x,y,1,1,'#c8a0d0');}
       else{K.px(x-1,y-1,4,3,'#141416');K.px(x-1,y-1,3,1,i%3?'#3a3c44':'#4e525e');K.px(x+2,y,1,2,'#08080a');if(i%9===2)K.px(x,y-1,1,1,'#8a90a0');}}
+    if(LK==='charcoal'){const sx=160,sy=93+Math.round((160-cx)*tl);K.px(sx-3,sy-1,7,2,LQ[2]);for(let k=0;k<3;k++){const ph=(t*3+k/3)%1;K.px(sx-3+k*3,sy-2-Math.round(Math.sin(ph*Math.PI)*3),1,1,'#ffffff');}}
     if(wild&&Math.floor(t*8)%2)for(let k=0;k<3;k++)K.px(cx+(st.dir>0?60:-62)+k*2*(st.dir>0?1:-1),100+k*3,2,2,LQ[1]);
     m4grip(K,cx-67,94-67*tl,Math.PI/2+tl-.25,{side:-1});m4grip(K,cx+67,94+67*tl,-Math.PI/2+tl+.25,{side:1});};
   if(LK==='charcoal')o.how='Shake the riddle to keep the spirit running through the charcoal: '+(K.fine?'move the mouse left and right while holding, or tap A and D in turn.':'drag left and right.')+' A steady pace runs it clean; too wild and it slops over.';
@@ -267,9 +308,12 @@ const cl0=k=>Math.max(0,Math.min(5,k));
 {const _ck=S4.crank;S4.crank=(sp,K)=>{const o=_ck(sp,K);if(sp.look!=='quern')return o;const st=o.st,g=K.g,N=sp.n||14,GR=sp.grain||['#b08a40','#d8b468','#f0d890'],S=CA_P.stone;
   o.how='Turn the quern by its handle: draw circles'+(K.fine?' with the mouse (or hold Space)':' with your finger')+' at an even, steady pace. Too fast and the grain flies.';
   try{if(typeof MF_FOCUS!=='undefined'&&!MF_FOCUS.alcQuern)MF_FOCUS.alcQuern={r:[92,40,228,124],nh:1};Object.defineProperty(o,'__mfk',{get:()=>'alcQuern',set(){},configurable:true});}catch(e){}
-  const u0=o.update;let first=true,half=0;o.update=function(dt,I){let r;if(first){first=false;const L=MS.loop;MS.loop=()=>L('lowpass',520,1.2);try{r=u0.apply(this,arguments);}finally{MS.loop=L;}}else r=u0.apply(this,arguments);
+  // you turn it round the runner you see: the circles are taken round the runner's centre (the crank's own sum is round a point 26 px lower)
+  const DYC=26,shift=I=>{const J=Object.create(I);J.y=I.y+DYC;return J;};
+  const u0=o.update;let first=true,half=0;o.update=function(dt,I){let r;const J=shift(I);if(first){first=false;const L=MS.loop;MS.loop=()=>L('lowpass',520,1.2);try{r=u0.call(this,dt,J);}finally{MS.loop=L;}}else r=u0.call(this,dt,J);
     const h=Math.floor(st.ang/Math.PI);if(h!==half){half=h;if(st.spd>1.5&&!st.end)MS.crunch();}return r;};
   const cx=160,BY=78,RY=70;   // the bedstone's top, the runner's top (the step is drawn 25 px lower on the stage)
+  const a0=o.auto;o.auto=function(dt,AP){const r=a0.apply(this,arguments);if(AP.I)AP.I.y-=DYC;AP.hand=[cx+Math.cos(st.ang)*29-3,RY+Math.sin(st.ang)*5-27];return r;};
   const cyl=(k,x0,top,rx,ry,hh,P)=>{for(let y=0;y<hh;y++)for(let x=-rx;x<=rx;x++){const s=x/rx,yb=Math.round(ry*Math.sqrt(1-s*s));const d=Math.max(0,-s*.6+Math.sqrt(1-s*s)*.62);k.px(x0+x,top+yb+y,1,1,P[Math.max(1,Math.min(5,Math.round(1.3+d*3.4)-(y===hh-1?1:0)))]);}
     k.ell(x0,top,rx,ry,P[4]);k.ell(x0-2,top-.5,rx-4,ry-1.4,P[5]);};
   const bed=()=>M4.pre('alc_qbed2',90,26,k=>{cyl(k,45,8,41,7,9,S);M4.outline(k.g.canvas,S[0]);});
@@ -286,8 +330,9 @@ const cl0=k=>Math.max(0,Math.min(5,k));
     for(let k=0;k<6;k++){const a=st.ang+k*Math.PI/3;for(let r=9;r<32;r+=1.5){const x=cx+Math.cos(a)*r,y=RY+Math.sin(a)*r*.17;K.px(x,y,1,1,S[2]);K.px(x-1,y-1,1,1,S[6]);}}
     K.ell(cx,RY,7,2.4,'#1a1612');const left=Math.max(0,1-n/N);for(let i=0;i<Math.round(6+left*22);i++){const a=i*2.4,r=Math.sqrt(i/28)*6;const x=cx+Math.cos(a)*r,y=RY-1+Math.sin(a)*r*.3-left*2*(1-r/5);K.px(x,y,2,1,i%3?GR[1]:GR[2]);K.px(x,y+1,1,1,GR[0]);}
     // the handle: an upright peg near the runner's rim; your fist round it
-    const hx=cx+Math.cos(st.ang)*29,hy=RY+Math.sin(st.ang)*5;K.px(hx-2,hy-17,5,18,'#24140a');K.px(hx-1,hy-16,3,17,CA_P.wood[5]);K.px(hx-1,hy-16,1,17,CA_P.wood[7]);K.px(hx+1,hy-16,1,17,CA_P.wood[3]);K.px(hx-2,hy-18,5,2,CA_P.wood[6]);
-    m4grip(K,hx,hy-11,-Math.PI/2,{side:1});};
+    const hx=Math.round(cx+Math.cos(st.ang)*29),hy=Math.round(RY+Math.sin(st.ang)*5),W=CA_P.wood;K.pa(hx-1,hy,6,2,'#000',.45);K.px(hx-3,hy-33,7,34,'#1c1008');K.px(hx-2,hy-32,5,33,W[4]);K.px(hx-2,hy-32,1,33,W[6]);K.px(hx+1,hy-32,1,33,W[2]);
+    for(const gy of [hy-30,hy-8,hy-5])K.px(hx-1,gy,2,1,W[3]);K.px(hx-3,hy-36,7,4,'#1c1008');K.px(hx-2,hy-36,5,3,W[5]);K.px(hx-2,hy-36,3,1,W[7]);
+    m4grip(K,hx,hy-18,-Math.PI/2,{side:1});};
   return o;};}
 // ---- (t382) the brew kettle, drawn as the station: an open copper kettle on a stone firebox, the mash tun beside it with its paddle,
 // hops hung from the beam. The simmer game as it was; the wort rolls and foams when it boils, the mash sits thick and steams when it's
@@ -334,13 +379,13 @@ const cl0=k=>Math.max(0,Math.min(5,k));
   MG4ART.anim.brewhouse=(K,t)=>{};
   MG4ART.paint.brewbench=K=>{ALC.room(K,[232,20]);const g=K.g;ALC.hops(K,150,4);
     g.drawImage(ALC.tun(),-14,94);g.drawImage(ALC.kettle(),24,60);K.ell(74,71.5,36,4.4,'#5a2c0c');K.ell(70,71,22,2,'#8a4c16');g.drawImage(ALC.kettleLip(),24,60);
-    const O2=['#140c06','#24160c','#342012','#442a18','#54361e','#644226','#744e2e','#845a36'];K.plank(0,112,320,8,M4.sh(O2,1),5);K.px(0,112,320,1,O2[7]);K.planks(0,120,320,60,O2,8,13);K.px(0,120,320,1,O2[0]);K.pa(0,121,320,4,'#000',.45);
+    const O2=['#140c06','#24160c','#342012','#442a18','#54361e','#644226','#744e2e','#845a36'];K.plank(0,112,320,8,M4.sh(O2,1),5);K.px(0,112,320,1,O2[7]);ALC.boards(K,0,120,320,60,O2,false,13);K.px(0,120,320,1,O2[0]);K.pa(0,121,320,4,'#000',.45);
     for(let y=160;y<180;y++)K.pa(0,y,320,1,'#000',(y-160)/60);
     K.line(100,8,100,14,'#2a2a2c',1);K.px(95,14,11,3,I[4]);K.px(96,17,9,13,'#2a1a0a');K.px(97,18,7,11,'#e8a040');K.px(98,19,2,9,'#fce07c');K.px(95,30,11,2,I[3]);K.px(96,17,1,13,I[5]);K.px(104,17,1,13,I[2]);};
   MG4ART.anim.brewbench=(K,t)=>{const f=.5+Math.sin(t*6.3)*.1+Math.sin(t*13.1)*.06;K.glow(100,23,44,'255,190,110',.15+f*.06);K.glow(70,114,30,'255,120,50',.1+f*.08);
 };
 }
-{const _sm=S4.simmer;S4.simmer=(sp,K)=>{const o=_sm(sp,K);if(sp.look!=='kettle')return o;const st=o.st,g=K.g,CX=160,LO=sp.lo||.55,HI=sp.hi||.75,COL=sp.col||['#c8a040','#e8c868'],boil=LO>=.6;
+{const _sm=S4.simmer;S4.simmer=(sp,K)=>{const o=_sm(sp,K);if(sp.look!=='kettle')return o;const st=o.st,g=K.g,CX=160,LO=sp.lo||.55,HI=sp.hi||.75,COL=sp.col||['#c8a040','#e8c868'],boil=LO>=.6,thick=!!sp.thick;
   const adds=(sp.adds||[{at:2.6,icon:'turnip'},{at:6,icon:'turnip'}]).map(a=>Object.assign({fall:-1},a));const SY=73;
   const bits=[];for(let i=0;i<22;i++)bits.push({r:.25+((i*37)%70)/100,a:i*2.39,c:(sp.bits||[COL[1]])[i%((sp.bits||[1]).length)],w:i%3?3:2});
   const roll=[];for(let i=0;i<14;i++)roll.push({a:i*2.1,ph:(i*.37)%1});
@@ -354,17 +399,28 @@ const cl0=k=>Math.max(0,Math.min(5,k));
   o.draw=function(t){const f=st.f,T=st.T;
     MG4ART.fire(K,142,151,36,24,.28+f*.72,t,[142,124,36,28]);K.glow(160,142,30+f*26,'255,140,60',.1+f*.2);
     // the liquid: two flat tones, a sheen at the back left, the foam hugging the back rim; bubbles, a rolling boil, the grain or hops going round
-    g.save();g.beginPath();g.ellipse(CX,71,38,5.4,0,0,6.29);g.clip();K.px(CX-40,64,80,14,COL[0]);K.ell(CX-6,SY-1,26,3,COL[1]);K.px(CX-30,SY-3,8,1,'#fff4d0');
+    const C0=thick?m4mix(COL[0],'#f2e6c8',.32):COL[0],C1=thick?m4mix(COL[1],'#fff6de',.4):COL[1],C2=thick?m4mix(COL[0],'#3a2410',.25):COL[0];
+    g.save();g.beginPath();g.ellipse(CX,71,38,5.4,0,0,6.29);g.clip();K.px(CX-40,64,80,14,C0);K.ell(CX-6,SY-1,26,3,C1);K.px(CX-30,SY-3,8,1,'#fff4d0');
     const hot=M4.cl((T-.35)/.6,0,1),fm=boil?['#f4ecd4','#d8c8a0']:['#efe4c4','#c8b488'];
+    // a thick mash: heaped and lumpy, turning slowly with the spoon; fat bubbles swell, dome and burst, leaving a crater
+    if(thick){for(let i=0;i<9;i++){const a=i*.7+st.stir*.35,r=.25+((i*37)%60)/100,x=CX+Math.cos(a)*r*30,y=SY+Math.sin(a)*r*4;K.ell(x,y,5,1.4,C1);K.px(x-3,y-1,4,1,'#fff6de');K.px(x-2,y+1,5,1,C2);}
+      for(let i=0;i<3;i++){const P=1.4+i*.3,ph=((t+i*.47)/P)%1,a=i*2.1+Math.floor((t+i*.47)/P)*2.6,x=Math.round(CX+Math.cos(a)*(10+i*7)),y=Math.round(SY+Math.sin(a)*2.5);
+        if(ph<.75){const r=1+Math.round(ph/.75*2.5);K.px(x-r,y-r+1,r*2,r,C1);K.px(x-r+1,y-r,r*2-2,1,'#fff6de');K.px(x-r,y,r*2,1,C2);}else{const q=(ph-.75)/.25;g.strokeStyle=C2;g.lineWidth=1;g.beginPath();g.ellipse(x,y,2+q*4,1+q,0,0,6.29);g.stroke();K.px(x-1,y-2-Math.round(q*3),1,1,C1);K.px(x+1,y-3-Math.round(q*2),1,1,C1);}}}
     for(let x=-36;x<=36;x+=2){const yb=SY-4.2*Math.sqrt(Math.max(0,1-(x/38)**2));if(Math.sin(x*.9+t*2)>.2-hot*.6)K.px(CX+x,yb,2,1+(hot>.5&&x%4===0?1:0),x%6?fm[0]:fm[1]);}
-    if(boil&&T>LO-.08){const k=M4.cl((T-LO+.08)/.3,0,1);K.ell(CX+Math.sin(t*5)*2,SY,8+k*6,1.6+k,COL[1]);for(const r of roll){const u=(r.ph+t*(.5+k*.7))%1,rr=u*34,x=CX+Math.cos(r.a)*rr,y=SY+Math.sin(r.a)*rr*.15;if(u<.9){K.px(x,y,3,1,fm[0]);K.px(x+1,y+1,2,1,fm[1]);}}}
-    for(const b of bits){const a=b.a+st.stir*.6,x=CX+Math.cos(a)*b.r*32,y=SY+Math.sin(a)*b.r*4.6;K.px(x,y,b.w,1,b.c);K.px(x,y+1,b.w-1,1,COL[0]);}
-    const nb=T<.42?0:T<LO?3:T<=HI?7:12;for(let i=0;i<nb;i++){const ph=(t*(1+T*3)+i*.37)%1,ang=i*2.3+Math.floor(t*(1+T*3)+i*.37)*1.7,rr=.2+((i*29)%60)/100,bx=CX+Math.cos(ang)*rr*33,by=SY+Math.sin(ang)*rr*4.5;
+    // a rolling boil: the wort heaves up in the middle and rolls out to the sides in rings of foam
+    if(boil&&T>LO-.1){const k=M4.cl((T-LO+.1)/.3,0,1),hv=Math.sin(t*6)*.5+.5;K.ell(CX+Math.sin(t*3.1)*3,SY-hv*k,10+k*8,2+k*1.4,C1);K.ell(CX-3+Math.sin(t*3.1)*3,SY-1-hv*k,6+k*4,1,'#f6ead0');
+      for(const r of roll){const u=(r.ph+t*(.45+k*.6))%1,rr=6+u*30,x=CX+Math.cos(r.a)*rr,y=SY+Math.sin(r.a)*rr*.14;if(u<.92){const w=u<.4?4:3;K.px(x,y,w,2,fm[0]);K.px(x+1,y+1,w-1,1,fm[1]);K.px(x,y,1,1,'#ffffff');}}
+      for(let i=0;i<5;i++){const ph=(t*2.2+i*.31)%1,a=i*1.9+Math.floor(t*2.2+i*.31)*1.3,x=CX+Math.cos(a)*(8+(i*7)%22),y=SY+Math.sin(a)*2;if(ph<.5)K.px(x-1,y-1-Math.round(ph*4),3,2,fm[0]);}}
+    if(!thick)for(const b of bits){const a=b.a+st.stir*.6,x=CX+Math.cos(a)*b.r*32,y=SY+Math.sin(a)*b.r*4.6;K.px(x,y,b.w,1,b.c);K.px(x,y+1,b.w-1,1,COL[0]);}
+    else for(const b of bits){const a=b.a+st.stir*.35,x=CX+Math.cos(a)*b.r*32,y=SY+Math.sin(a)*b.r*4.6;K.px(x,y,3,2,b.c);K.px(x,y,1,1,'#fff6de');K.px(x+1,y+2,2,1,C2);}
+    const nb=thick?0:T<.42?0:T<LO?3:T<=HI?7:12;for(let i=0;i<nb;i++){const ph=(t*(1+T*3)+i*.37)%1,ang=i*2.3+Math.floor(t*(1+T*3)+i*.37)*1.7,rr=.2+((i*29)%60)/100,bx=CX+Math.cos(ang)*rr*33,by=SY+Math.sin(ang)*rr*4.5;
       if(ph<.7){K.px(bx,by-1,2,1,fm[0]);K.px(bx,by,2,1,COL[0]);}else{const q=(ph-.7)/.3;K.px(bx-1-q*2,by,1,1,fm[0]);K.px(bx+2+q*2,by,1,1,fm[0]);}}
     g.restore();g.drawImage(ALC.kettleLip(),CX-50,60);
     // too hot: foam climbs the rim and over the lip
     if(st.foam>0){const fh=st.foam*9;for(let x=-38;x<=38;x+=2){const h=fh*(.7+.3*Math.sin(x*.7+t*6)),yb=SY-4.2*Math.sqrt(Math.max(0,1-(x/40)**2));K.px(CX+x,yb-h,2,h+1,x%4?fm[0]:fm[1]);}}
-    if(st.T>.4){for(let i=0;i<2+Math.round(hot*3);i++){const ph=(t*.45+i/5)%1;g.globalAlpha=(.18+hot*.25)*Math.sin(Math.PI*ph);K.ell(CX-24+i*12+Math.sin(t*1.3+i)*4,SY-6-ph*30,3+ph*8,2+ph*5,'#e8e2d8');g.globalAlpha=1;}}
+    // steam: a few soft wisps off the warm mash; a thick column off the boil
+    if(st.T>.45){const n=thick?2:3+Math.round(hot*3),A=thick?.08+hot*.08:.12+hot*.14;for(let i=0;i<n;i++){const ph=(t*(thick?.3:.5)+i/n)%1,x=CX-22+(i*37)%44+Math.sin(t*1.3+i)*4+ph*8,y=SY-5-ph*(thick?20:36),fade=ph<.45?1:1-(ph-.45)/.55;
+      g.globalAlpha=A*fade;K.ell(x,y,4+ph*(thick?7:12),2.5+ph*(thick?4:8),'#f2eee6');g.globalAlpha=A*.8*fade;K.ell(x-1,y-1,2+ph*5,1.5+ph*3,'#ffffff');g.globalAlpha=1;}}
     // your left hand stirs: the spoon's bowl goes round in the kettle, the handle leans with it, the fist round its top
     const ang=st.stir;const sx=CX+Math.cos(ang)*18,syy=SY-Math.abs(Math.sin(ang))*1,tx=CX+8+Math.cos(ang)*7,ty=SY-33+Math.sin(ang)*1.5;
     K.line(sx,syy,tx,ty,'#2a1808',4);K.line(sx,syy,tx,ty,CA_P.wood[4],2);K.line(sx-1,syy,tx-1,ty,CA_P.wood[6],1);K.px(sx-2,syy-1,5,2,CA_P.wood[3]);
@@ -384,7 +440,10 @@ const cl0=k=>Math.max(0,Math.min(5,k));
   const GP=['#24081e','#3e1236','#5a1a50','#7a3a88','#a070b0'];
   o.how='Turn the press bar round: draw circles'+(K.fine?' with the mouse (or hold Space)':' with your finger')+' at an even, steady pace. Too fast and the basket splits.';
   try{if(typeof MF_FOCUS!=='undefined'&&!MF_FOCUS.alcPress)MF_FOCUS.alcPress={r:[96,12,256,134],nh:1};Object.defineProperty(o,'__mfk',{get:()=>'alcPress',set(){},configurable:true});}catch(e){}
-  const u0=o.update;let first=true,q4=0;o.update=function(dt,I){const jj=K.judge;K.judge=(s,x,y,q)=>jj(s,58,40,q);let r;try{if(first){first=false;const L=MS.loop;MS.loop=()=>L('lowpass',380,1.2);try{r=u0.apply(this,arguments);}finally{MS.loop=L;}}else r=u0.apply(this,arguments);}finally{K.judge=jj;}
+  // you turn the bar you see: the circles are taken round the screw's head (the crank's own sum is round a point 80 px lower)
+  const DYC=80,shift=I=>{const J=Object.create(I);J.y=I.y+DYC;return J;};let fist=[cx,16];
+  const a0=o.auto;o.auto=function(dt,AP){const r=a0.apply(this,arguments);if(AP.I)AP.I.y-=DYC;AP.hand=[fist[0]-3,fist[1]-4];return r;};
+  const u0=o.update;let first=true,q4=0;o.update=function(dt,I){const jj=K.judge;K.judge=(s,x,y,q)=>jj(s,58,40,q);let r;const J=shift(I);try{if(first){first=false;const L=MS.loop;MS.loop=()=>L('lowpass',380,1.2);try{r=u0.call(this,dt,J);}finally{MS.loop=L;}}else r=u0.call(this,dt,J);}finally{K.judge=jj;}
     const q=Math.floor(st.ang/(Math.PI/2));if(q!==q4){q4=q;if(st.spd>1.5&&!st.end){MS.creak();if(q%2===0&&st.coils.length<N)MS.squish();}}return r;};
   const frame=()=>M4.pre('alc_pframe',140,104,k=>{// posts, the beam, the base the tray sits on (drawn at cx-70, 16)
       for(const x of [8,124]){k.px(x,6,9,96,O[3]);k.px(x,6,2,96,O[5]);k.px(x+7,6,2,96,O[1]);for(let y=14;y<96;y+=19)k.px(x+3,y,3,1,O[2]);}
@@ -395,7 +454,7 @@ const cl0=k=>Math.max(0,Math.min(5,k));
     const yb=7+f*11,yt=46+f*22,rim=60,trayY=104;
     g.drawImage(frame(),cx-70,27);
     // the tray, the must pooling on it, its lip spout to the right
-    K.pa(cx-72,trayY+12,150,3,'#000',.45);K.px(cx-66,trayY,132,10,O[3]);K.px(cx-66,trayY,132,2,O[5]);K.px(cx-66,trayY+9,132,1,O[1]);K.px(cx+66,trayY+2,12,4,O[4]);K.px(cx+66,trayY+2,12,1,O[6]);K.px(cx+76,trayY+3,3,2,O[2]);
+    K.pa(cx-72,trayY+12,150,3,'#000',.45);K.px(cx-66,trayY,132,10,O[3]);K.px(cx-66,trayY,132,2,O[5]);K.px(cx-66,trayY+9,132,1,O[1]);K.px(cx+66,trayY+2,15,4,O[4]);K.px(cx+66,trayY+2,15,1,O[6]);K.px(cx+66,trayY+5,15,1,O[1]);if(f>.03)K.px(cx+66,trayY+3,14,1,GP[2]);
     const pool=Math.min(1,f*1.6);if(pool>.02){K.px(cx-60*pool,trayY+1,120*pool,2,GP[2]);K.px(cx-40*pool,trayY+1,50*pool,1,GP[3]);}
     // the basket: oak slats with grapes bulging through the gaps, two iron hoops; the grapes inside go down with the board
     const bw=44,top=Math.max(rim,yt+5);K.px(cx-bw,rim,bw*2,trayY-rim,'#14060f');for(let x=-bw;x<bw;x+=9){const lit=x<-10;K.px(cx+x,rim,6,trayY-rim,O[lit?4:3]);K.px(cx+x,rim,1,trayY-rim,O[lit?6:5]);K.px(cx+x+5,rim,1,trayY-rim,O[1]);
@@ -411,12 +470,14 @@ const cl0=k=>Math.max(0,Math.min(5,k));
     const sTop=yb+4;K.px(cx-4,sTop,8,yt-6-sTop,I[3]);K.px(cx-4,sTop,2,yt-6-sTop,I[5]);K.px(cx+3,sTop,1,yt-6-sTop,I[1]);const ph=((st.ang/(Math.PI*2))*4)%1;for(let y=sTop+ph*4;y<yt-6;y+=4){K.px(cx-4,y,8,1,I[1]);K.px(cx-3,y+1,6,1,I[6]);}
     K.px(cx-7,27,14,11,O[4]);K.px(cx-7,27,14,2,O[6]);K.px(cx-4,29,8,8,I[2]);K.px(cx-4,29+((ph*4)|0)%4,8,1,I[6]);
     // the must runs off the lip into the jug while the screw is turning
-    const flow=turning&&n<N?Math.min(1,st.spd/6)*Math.min(1,f*4):0;const jx=cx+77,jy=trayY+14;K.pa(jx-16,jy+33,36,3,'#000',.45);g.drawImage(M4S.jug(),jx-19,jy-5);
-    if(flow>.05){for(let y=trayY+5;y<jy;y++)K.px(jx-1,y,2,1,y%3?GP[2]:GP[3]);K.px(jx-3,jy,6,1,GP[4]);}
-    const lv=Math.min(1,f);K.ell(jx,jy,6,1,lv>.1?GP[2]:'#3a3428');if(lv>.1)K.px(jx-4,jy,3,1,GP[3]);
+    const flow=turning&&n<N?Math.min(1,st.spd/6)*Math.min(1,f*4):0;const jx=cx+86,jy=trayY+16;K.pa(jx-16,jy+33,36,3,'#000',.45);g.drawImage(M4S.jug(),jx-19,jy-5);
+    // the jug's mouth, open, the must in it rising; the stream arcs off the lip and splashes in
+    K.ell(jx,jy,6,1.8,'#1a0e10');const lv=Math.min(1,f);if(lv>.05){K.ell(jx,jy+.4,5,1.2,GP[2]);K.px(jx-4,jy,3,1,GP[3]);}
+    if(flow>.05){const x0=cx+80,y0s=trayY+4;for(let k=0;k<=16;k++){const u=k/16,x=x0+(jx-x0)*u,y=y0s+(jy-y0s)*u*u;K.px(x-1,y-1,3,3,'#1a0612');K.px(x,y-1,2,2,k%4?GP[2]:GP[3]);}
+      for(let k=0;k<3;k++){const ph=(t*4+k/3)%1;K.px(jx-3+k*3,jy-1-Math.round(Math.sin(ph*Math.PI)*4),1,1,GP[4]);}}
     // the bar across the screw's head, seen turning; your fist round its near end
     const bx=Math.cos(st.ang)*44,by=Math.sin(st.ang)*6,y0=yb+4;K.line(cx-bx,y0-by,cx+bx,y0+by,'#141418',5);K.line(cx-bx,y0-by,cx+bx,y0+by,I[4],3);K.line(cx-bx,y0-by-1,cx+bx,y0+by-1,I[6],1);
-    K.ball(cx,y0,4,I);m4grip(K,cx+bx*.9,y0+by*.9,Math.atan2(by,bx),{side:1});};
+    K.ball(cx,y0,4,I);fist=[cx+bx*.9,y0+by*.9];m4grip(K,fist[0],fist[1],Math.atan2(by,bx),{side:1});};
   return o;};}
 // (t382) the new rooms' light (the fire in the firebox door; the lantern over the bench) and their sound (the forge's fire, the barn's boards)
 Object.assign(MG4ART.LIGHT,{stillhouse:{x:160,y:136,r:250,c:'255,140,60',a:.34},brewhouse:{x:160,y:136,r:250,c:'255,140,60',a:.34},
@@ -429,10 +490,10 @@ if(typeof MAMB!=='undefined')Object.assign(MAMB,{stillhouse:MAMB.forge,brewhouse
 const BG=(scene,steps,icon)=>({scene,reveal:m4ico(icon),steps});
 const SPIRC=['#3e525c','#d8eef4'],WORT=['#6e3810','#a8641e'],CORNC=['#c89e3c','#e6c260'],POTC=['#c4b892','#e2d8b6'],GRAPEC=['#4a1a52','#7a3a88'],CLEARC=['#c8d8dc','#eef6f6'];
 Object.assign(MG4R,{
-  'b_brew:wort_ale':BG('brewbench',[{k:'crank',t:'Crack the barley in the quern',look:'quern',n:10},{k:'simmer',t:'Hold the mash warm, not hot',scene:'brewhouse',look:'kettle',col:CORNC,lo:.42,hi:.6,adds:[{at:2.6,icon:'barley'},{at:6,icon:'barley'}],bits:['#e6c87a','#c8a050']},{k:'sieve',t:'Run the wort off the grain',look:'lauter'},{k:'simmer',t:'Boil it hard and drop in the hops',scene:'brewhouse',look:'kettle',col:WORT,lo:.66,hi:.86,adds:[{at:2.6,icon:'hops'}],bits:['#e8d8a8','#7aa040']}],'wort_ale'),
+  'b_brew:wort_ale':BG('brewbench',[{k:'crank',t:'Crack the barley in the quern',look:'quern',n:10},{k:'simmer',t:'Hold the mash warm, not hot',scene:'brewhouse',look:'kettle',thick:1,col:CORNC,lo:.42,hi:.6,adds:[{at:2.6,icon:'barley'},{at:6,icon:'barley'}],bits:['#e6c87a','#c8a050']},{k:'sieve',t:'Run the wort off the grain',look:'lauter'},{k:'simmer',t:'Boil it hard and drop in the hops',scene:'brewhouse',look:'kettle',col:WORT,lo:.66,hi:.86,adds:[{at:2.6,icon:'hops'}],bits:['#e8d8a8','#7aa040']}],'wort_ale'),
   'b_brew:wort_pump':BG('brewbench',[{k:'scoop',t:'Scoop out the pumpkin',n:20},{k:'crank',t:'Crack the barley in the quern',look:'quern',n:8},{k:'simmer',t:'Boil it with the hops',scene:'brewhouse',look:'kettle',col:['#a8501a','#d87a2a'],lo:.62,hi:.84,adds:[{at:2.2,icon:'pumpkin'},{at:4.8,icon:'hops'}],bits:['#f0c070','#7aa040']}],'wort_pump'),
-  'b_brew:mash_corn':BG('brewbench',[{k:'crank',t:'Grind the corn in the quern',look:'quern',n:12,grain:['#b08a2c','#e6c260','#f6dc84']},{k:'simmer',t:'Cook the mash low and slow',scene:'brewhouse',look:'kettle',col:CORNC,lo:.5,hi:.7,slow:.8,adds:[{at:3,icon:'barley'}],bits:['#f4dc84','#b08a40']}],'mash_corn'),
-  'b_brew:mash_potato':BG('brewbench',[{k:'chop',t:'Chop the potatoes',veg:['potato','potato','potato']},{k:'simmer',t:'Cook them to a paste',scene:'brewhouse',look:'kettle',col:POTC,lo:.5,hi:.7,slow:.8,adds:[{at:3,icon:'barley'}],bits:['#f2ecd4','#a89a74']}],'mash_potato'),
+  'b_brew:mash_corn':BG('brewbench',[{k:'crank',t:'Grind the corn in the quern',look:'quern',n:12,grain:['#b08a2c','#e6c260','#f6dc84']},{k:'simmer',t:'Cook the mash low and slow',scene:'brewhouse',look:'kettle',thick:1,col:CORNC,lo:.5,hi:.7,slow:.8,adds:[{at:3,icon:'barley'}],bits:['#f4dc84','#b08a40']}],'mash_corn'),
+  'b_brew:mash_potato':BG('brewbench',[{k:'chop',t:'Chop the potatoes',veg:['potato','potato','potato']},{k:'simmer',t:'Cook them to a paste',scene:'brewhouse',look:'kettle',thick:1,col:POTC,lo:.5,hi:.7,slow:.8,adds:[{at:3,icon:'barley'}],bits:['#f2ecd4','#a89a74']}],'mash_potato'),
   'b_press:must_grape':BG('barn',[{k:'crank',t:'Turn the press screw down',look:'press',n:14},{k:'sieve',t:'Strain out the skins',look:'skins'},{k:'pour',t:'Pour the must into the crock, to the line',col:GRAPEC,bowl:'crock',line:.75}],'must_grape'),
   'b_still:white_dog':BG('stillbench',[{k:'simmer',t:'Keep the still just under the boil',scene:'stillhouse',look:'still',col:CORNC,lo:.6,hi:.72,adds:[],bits:['#f4dc84']},{k:'pour',t:'Catch the hearts in the flask, stop at the line',col:SPIRC,bowl:'flask',line:.75,look:'bottle'},{k:'cork',t:'Cork it',col:SPIRC,look:'bench'}],'white_dog'),
   'b_still:vodka':BG('stillbench',[{k:'simmer',t:'Keep the still just under the boil',scene:'stillhouse',look:'still',col:POTC,lo:.6,hi:.72,adds:[],bits:['#f2ecd4']},{k:'sieve',t:'Filter it through the charcoal',look:'charcoal'},{k:'pour',t:'Bottle it to the line',col:SPIRC,bowl:'flask',line:.8,look:'bottle'},{k:'cork',t:'Cork it',col:SPIRC,look:'bench'}],'vodka'),
