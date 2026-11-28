@@ -64,7 +64,7 @@ function nearLeaf(){const a=Math.random()*6.283,r=6+Math.random()*7;return {x:ca
   const F=NEAR.flock;if(F){F.x+=F.dir*7*dt;const sun=sunState&&sunState();
     for(const b of F.birds){b.ph+=dt*9;const bx=F.x+b.dx,bz=F.z+b.dz;
       if(sun){const X=sx(bx+sun.sx*4),Y=sz(bz+4.2);ctx2.fillStyle=`rgba(8,10,14,${(.22*day).toFixed(2)})`;ctx2.fillRect(Math.round(X-5),Math.round(Y),10,2);ctx2.fillRect(Math.round(X-1),Math.round(Y-1),3,4);}
-      const [fx,fy]=toS(bx,bz);const up=Math.sin(b.ph)>0;ctx2.fillStyle=`rgba(14,12,14,${(.9*day).toFixed(2)})`;
+      const [fx,fy]=toS(bx,bz);if(typeof crwDraw==='function'){crwDraw(fx,fy+9,['fly0','fly1','fly2','fly1'][Math.floor(b.ph/1.6)&3],F.dir,0,.9*day,false);continue;}const up=Math.sin(b.ph)>0;ctx2.fillStyle=`rgba(14,12,14,${(.9*day).toFixed(2)})`;
       ctx2.fillRect(Math.round(fx-1),Math.round(fy),3,2);
       if(up){ctx2.fillRect(Math.round(fx-6),Math.round(fy-3),5,2);ctx2.fillRect(Math.round(fx+2),Math.round(fy-3),5,2);}else{ctx2.fillRect(Math.round(fx-6),Math.round(fy+1),5,2);ctx2.fillRect(Math.round(fx+2),Math.round(fy+1),5,2);}}
     if(Math.abs(F.x-cam.x)>34)NEAR.flock=null;}};}

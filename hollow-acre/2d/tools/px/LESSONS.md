@@ -1469,6 +1469,16 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - (round 8 judge) Frame every shot on the building or person it is meant to show, then check the saved image: a versus shot that missed the building scored 2 for the camera, not the art.
 - (round 8 judge) Work loops read as busy only with four or more distinct poses; two or three repeat as a twitch at 1x.
 
+## Scarecrows and crows (Nov 28: ring scarecrows 4 -> 5.5 in round 1)
+- Hat, clothes and post of one hue family merge into one column at 1x: give each its own value (a charcoal hat, a pale shirt, mid dungarees, the post below them).
+- Dungarees read as dungarees only with a bib, two straps over the shoulders and a pale shirt under them whose sleeves are the arms; one brown shirt with a belt reads as a coat.
+- A set of figures with the same carving, hands and shadow reads as a kit: give each its own face.
+- A carved pumpkin matches the field scarecrow's when its carving is lit from inside (glow, falloff, cut edge); dark holes read as a different, older head.
+- A face painted over a pumpkin hides the pumpkin, and the dark under its chin reads as a beard: leave a bright burnt-orange ribbed rim below the paint, a value apart from the hair, and the stem up through the hair.
+- Hard bars of shadow under a post read as plinths: a soft oval of #322125 at about 60%, pushed down and right.
+- Near-white on a small label is the loudest thing in a set: yellow it like old paper. 1 px white buttons and collar points read as speckle at 1x.
+- A small bird reads as a crow from its silhouette, not its fill: a body tapering to a tail, a separate head with a thick pale beak, one eye pixel catching the light, legs. A box body with a box head reads as a beetle or a brick. In flight, wings seen a little from above: broad blades from the shoulder with the leading edge lit and two finger pixels at the tip; the far wing a step darker.
+
 ## Outlines, light, colour
 
 - Outline round the whole object once, a darker version of its own colour, lighter on the lit top-left; never an outline
