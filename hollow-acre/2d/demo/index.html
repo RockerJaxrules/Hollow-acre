@@ -200,7 +200,7 @@ window.HAScene=function(cv,opt){const scr=opt.host;if(!cv||!scr)return;const g=c
     for(const [cx,cy,r] of [[-3,-2,2],[4,3,3],[-4,5,1],[2,-6,1]])disc(mx+cx,my+cy,r,'#a89e7e');
     // crows cross now and then
     crowT-=dt;if(crowT<=0){crowT=5+rnd()*6;const n=3+(rnd()*4|0);for(let i=0;i<n;i++)crows.push({x:-10-i*9-rnd()*6,y:crowsY[0]+rnd()*(crowsY[1]-crowsY[0])+i*2,v:22+rnd()*8,p:rnd()*6});}
-    crows=crows.filter(c=>c.x<W+12);for(const c of crows){c.x+=c.v*dt;const f=Math.sin(t*14+c.p)>0;px(c.x,c.y,3,1,'#06070b');const o=f?-1:1;px(c.x-2,c.y+o,2,1,'#06070b');px(c.x+3,c.y+o,2,1,'#06070b');}
+    crows=crows.filter(c=>c.x<W+12);for(const c of crows){c.x+=c.v*dt;const f=Math.sin(t*14+c.p)>0;const K='#06070b';px(c.x,c.y,4,1,K);px(c.x+4,c.y-1,1,1,K);px(c.x-1,c.y+1,1,1,K);if(f){px(c.x,c.y-1,1,1,K);px(c.x-1,c.y-2,1,1,K);px(c.x+2,c.y-1,1,1,K);px(c.x+3,c.y-2,1,1,K);}else{px(c.x,c.y+1,1,1,K);px(c.x-1,c.y+2,1,1,K);px(c.x+2,c.y+1,1,1,K);px(c.x+3,c.y+2,1,1,K);}}
     g.drawImage(landC,0,0);
     // the wind pump on the skyline, turning slowly
     {const m=L.mill,top=HZ-30,C='#0a0c13';for(let k=0;k<=30;k++){const w=Math.round(6*(k/30));px(m-w,top+k,1,1,C);px(m+w,top+k,1,1,C);if(k%7===3)px(m-w,top+k,w*2+1,1,C);}
@@ -265,15 +265,15 @@ window.HAScene=function(cv,opt){const scr=opt.host;if(!cv||!scr)return;const g=c
     {const tx=sx(hb)+1,ty=base-hb;P(D,tx-1,ty-3,3,5);P('#6a6448',tx,ty-3,1,4);
       for(const [dir,len] of [[-1,6],[1,7],[-1,4],[1,4],[0,3]])for(let i=0;i<=len;i++){const xx=tx+dir*i,yy=ty-3-(dir?Math.round(Math.sin(i/len*2.2)*2.4)-Math.round((i/len)**2*3):i)+(len<5?2:0);P(i%3===2?'#4a4636':'#8a8460',xx,yy,1,1);}}
     return c;}
-  // the scarecrow on its post: a sack head under a hat, a coat with ragged sleeves on the crossbar, lit along its right side
+  // the scarecrow on its post: a carved pumpkin for a head (the field scarecrow's), a coat with ragged sleeves on the crossbar, lit along its right side
   // by the moon. It sways a little more than the wind does. Now and then its eyes are lit.
   function scare(){const sx=L.scx,sy=L.scy,s2=Math.round(Math.sin(t*.9)*1.4),C='#040505',R='#3c4866';
     px(sx,sy-36,2,36,C);px(sx-13,sy-33,28,2,C);px(sx-11+s2,sy-34,24,4,C);
     for(const [ox,len] of [[-12,3],[-10,5],[-8,2],[11,2],[13,5],[15,3]])px(sx+ox+s2,sy-31,1,len+(Math.sin(t*2+ox)>.6?1:0),C);px(sx-15+s2,sy-33,2,1,C);px(sx+16+s2,sy-33,2,1,C);
     px(sx-4+s2,sy-33,10,12,C);for(let k=0;k<5;k++)px(sx-4+k*2+s2,sy-21,1,2+(k%2)*2,C);
-    disc(sx+1+s2,sy-39,4,C);px(sx-6+s2,sy-43,15,2,C);px(sx-2+s2,sy-48,7,5,C);
-    px(sx+4+s2,sy-48,1,5,R);px(sx+8+s2,sy-43,1,1,R);px(sx+5+s2,sy-41,1,4,R);px(sx+6+s2,sy-34,7,1,R);px(sx+5+s2,sy-30,1,9,R);px(sx+1,sy-21,1,21,'#1a2030');
-    blink-=1/30;if(blink<-6)blink=.9;if(blink>0){px(sx-1+s2,sy-40,1,1,'#ff3a24');px(sx+3+s2,sy-40,1,1,'#ff3a24');}}
+    px(sx-4+s2,sy-44,11,8,C);px(sx-5+s2,sy-42,13,4,C);px(sx-3+s2,sy-45,9,1,C);px(sx-2+s2,sy-37,7,1,C);px(sx+1+s2,sy-47,2,2,C);px(sx+2+s2,sy-48,2,1,C);
+    px(sx+7+s2,sy-43,1,4,R);px(sx+6+s2,sy-44,1,1,R);px(sx+3+s2,sy-48,1,1,R);px(sx+5+s2,sy-41,1,4,R);px(sx+6+s2,sy-34,7,1,R);px(sx+5+s2,sy-30,1,9,R);px(sx+1,sy-21,1,21,'#1a2030');
+    blink-=1/30;if(blink<-6)blink=.9;if(blink>0){const G='#f0a040';px(sx-2+s2,sy-41,2,1,G);px(sx-1+s2,sy-42,1,1,G);px(sx+3+s2,sy-41,2,1,G);px(sx+3+s2,sy-42,1,1,G);px(sx-1+s2,sy-39,5,1,G);}}
   requestAnimationFrame(frame);};
 
 // ---------------------------------------------------------------- the night behind the title (the loading screen's own scene)
