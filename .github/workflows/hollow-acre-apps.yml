@@ -1,6 +1,6 @@
 # Builds Hollow Acre as real apps on every change: Windows (installer + portable .exe), macOS (.dmg and .zip, for Apple silicon
-# and for Intel), Linux (AppImage + .deb), Android (.apk) and the web version (upload to itch.io or any website). Download them
-# from the run's "Artifacts" section.
+# and for Intel), Linux (AppImage + .deb), Android (.apk), the web version (upload to itch.io or any website) and the demo for
+# Game Jolt. Download them from the run's "Artifacts" section.
 # When hollow-acre/desktop/package.json names a desktop version that has no GitHub Release yet (or when the workflow is run by
 # hand), the "release" job publishes the Windows, Mac and Linux apps as the release desktop-v<version>, the stable download page
 # https://github.com/RockerJaxrules/Hollow-acre/releases/latest, with the update files the installed apps update themselves from.
@@ -23,6 +23,14 @@ jobs:
         with:
           name: HollowAcre-web
           path: web
+          if-no-files-found: error
+      # the Game Jolt browser build: the demo (2d/demo) with the game in it, every path relative (hollow-acre/gamejolt/PAGE.md)
+      - name: The Game Jolt build
+        run: python3 hollow-acre/2d/tools/mkdemo.py --gamejolt HollowAcre-demo-gamejolt.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HollowAcre-gamejolt-demo
+          path: HollowAcre-demo-gamejolt.zip
           if-no-files-found: error
   desktop:
     strategy:
