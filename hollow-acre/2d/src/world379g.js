@@ -16,7 +16,9 @@ const W79H={spots:[],esc:[],hid:null,th:null};
 W79H.hideSpot=function(room,x,z,label,text){const s={room,x,z,label,text};W79H.spots.push(s);
   interact.push({get x(){return ROOMS[room]?ROOMS[room].ox+x:0;},get z(){return ROOMS[room]?ROOMS[room].oz+z:0;},r:.95,on:()=>S.room===room&&!W79H.hid,label:()=>label,ok:()=>true,
     act(){W79H.hide(s);}});return s;};
-W79H.hide=function(s){W79H.hid=s;W79H.hidAt={x:P.x,z:P.z};SFX.thud&&SFX.thud(0,.18);if(s.text)toast(s.text,2.6);};
+// the way out, said the way you play: the stick on a pad, a drag on a touch screen, a move key on a keyboard (or Use, anywhere)
+const w79hHow=()=>{try{if(typeof GP!=='undefined'&&GP.mode==='pad')return 'Push the stick to come out.';if(matchMedia('(pointer:coarse)').matches)return 'Drag to come out.';}catch(e){}return 'Press a move key to come out.';};
+W79H.hide=function(s){W79H.hid=s;W79H.hidAt={x:P.x,z:P.z};SFX.thud&&SFX.thud(0,.18);toast((s.text?s.text+' ':'')+w79hHow(),3.4);};
 W79H.unhide=function(){if(!W79H.hid)return;W79H.hid=null;SFX.thud&&SFX.thud(0,.15);};
 // you stay put while hidden; any move key brings you out (unless something is on the other side of the door)
 {const _u=update;update=function(dt){_u(dt);try{W79H.tick(dt);}catch(e){}};}
@@ -27,14 +29,37 @@ W79H.tick=function(dt){if(W79H.hid){if(S.room!==W79H.hid.room){W79H.hid=null;}el
     if(T.phase==='seen'){SFX.stinger&&SFX.stinger();if(typeof mindHit==='function')mindHit(12);toast(T.caught,4,true);setTimeout(()=>{if(S.room===T.room){P.fz=1;leaveRoom(true);}},1400);W79H.th=null;return;}
     SFX.thud&&SFX.thud(0,.35);toast(T.inside,3.4,true);}
   if(T.phase==='in'){if(Math.floor(T.t*1.25)!==Math.floor((T.t-dt)*1.25)&&T.t<5)SFX.thud&&SFX.thud(0,.1);   /* its steps, crossing the room */
-    if(T.t>=6.5){toast(T.pass,3.2);T.phase='done';W79H.th=null;if(typeof mindHit==='function')mindHit(4);}}};
+    if(T.t>=6.5){toast(T.pass,3.2);T.phase='leave';T.t=0;if(typeof mindHit==='function')mindHit(4);}}
+  if(T.phase==='leave'){if(Math.floor(T.t*1.25)!==Math.floor((T.t-dt)*1.25))SFX.thud&&SFX.thud(0,.08);if(T.t>=1.7){T.phase='done';W79H.th=null;}}};
 W79H.threat=function(room,o){if(W79H.th||S.room!==room)return false;o=o||{};W79H.th={room,t:0,phase:'warn',secs:o.secs||5,inside:o.inside||'It comes in. You hear it breathing on the other side of the door.',
   pass:o.pass||'It stands outside the door a long time. Then it goes.',caught:o.caught||'It sees you.'};
   SFX.thud&&SFX.thud(0,.22);setTimeout(()=>SFX.thud&&SFX.thud(0,.22),350);toast(o.warn||'The door handle turns.',3,true);return true;};
-// the dark you see while hidden: everything black but a strip of light under the door
-{const _do=depthOver;depthOver=function(t){const r=_do.apply(this,arguments);try{if(W79H.hid){ctx2.fillStyle='#000';ctx2.fillRect(0,0,VW,VH);const w=Math.round(VW*.34),x=Math.round(VW/2-w/2),y=Math.round(VH*.58);
-      const th=W79H.th,flick=th&&th.phase==='in'&&Math.sin(th.t*3.1)>.2;ctx2.fillStyle=flick?'#3a2a18':'#a8884c';ctx2.fillRect(x,y,w,2);ctx2.fillStyle=flick?'#1a120a':'#4a3a20';ctx2.fillRect(x,y+2,w,1);
-      if(flick){ctx2.fillStyle='#000';ctx2.fillRect(x+Math.round(w*.3+Math.sin(th.t)*w*.2),y,Math.round(w*.18),2);}}}catch(e){}return r;};}
+// ---- what you see while hidden: the back of the door in the dark. Light leaks faintly round its edges, a warmer strip shows under it
+// with dust drifting in it; when something is in the room the shadows of its feet cross the strip, stop in front of you and stay,
+// the light dimming as it leans in; when it goes, they move away. Drawn on its own layer over the world (after the room's lighting,
+// which would otherwise swallow it); the layer is only shown, and only drawn, while you are hidden.
+W79H.cv=null;
+function w79hLayer(){if(W79H.cv)return W79H.cv;const v=document.getElementById('view');if(!v)return null;const c=document.createElement('canvas');c.id='w79hide';
+  c.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none;image-rendering:pixelated;image-rendering:crisp-edges;display:none';v.insertAdjacentElement('afterend',c);return W79H.cv=c;}
+function w79hDraw(){const c=w79hLayer();if(!c)return;if(c.width!==VW||c.height!==VH){c.width=VW;c.height=VH;}const g=c.getContext('2d'),t=performance.now()/1000,th=W79H.th;
+  const R=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)));};
+  R(0,0,VW,VH,'#020103');
+  const dw=Math.round(Math.min(VW*.24,VH*.42)),dh=Math.round(VH*.64),x0=Math.round(VW/2-dw/2),y1=Math.round(VH*.76),y0=y1-dh;
+  let dim=1;if(th&&th.phase==='in'&&th.t>2.6)dim=.6+.07*Math.sin(th.t*1.3);
+  for(let y=y0;y<y1;y++){const a=(.04+.2*Math.pow((y-y0)/dh,2.2))*dim;R(x0-1,y,1,1,`rgba(196,150,84,${a.toFixed(3)})`);R(x0+dw,y,1,1,`rgba(196,150,84,${(a*.8).toFixed(3)})`);}   /* round the two sides */
+  R(x0,y0-1,dw,1,`rgba(196,150,84,${(.06*dim).toFixed(3)})`);   /* and faintly along the top */
+  R(x0,y1,dw,3,`rgba(236,192,112,${(.92*dim).toFixed(3)})`);R(x0,y1+3,dw,1,`rgba(196,140,72,${(.5*dim).toFixed(3)})`);   /* the strip under the door, warm and wider */
+  for(let k=1;k<=7;k++)R(x0-k*3,y1+3+k,dw+k*6,1,`rgba(150,100,52,${((.12-k*.015)*dim).toFixed(3)})`);   /* its light on the floor at your feet */
+  for(let i=0;i<6;i++){const u=(t*(.025+i*.006)+i*.37)%1,mx=x0+dw*(.12+.76*((i*.29+.05*Math.sin(t*.5+i*1.7)+1)%1)),my=y1+4+u*9;R(mx,my,1,1,`rgba(244,214,150,${((1-u)*.55*dim).toFixed(3)})`);}   /* dust */
+  if(th&&(th.phase==='in'||th.phase==='leave')){const walk=th.phase==='in'?Math.min(1,th.t/2.6):1-Math.min(1,th.t/1.6),off=(th.phase==='in'?-1:1)*dw*.95*(1-walk),moving=walk<1;
+    const fw=Math.max(3,Math.round(dw*.1)),gap=Math.round(dw*.06),cx=x0+dw/2+off;
+    for(const sd of [-1,1]){const step=moving?Math.sin(th.t*7+(sd>0?Math.PI:0))*dw*.025:0;let fx=cx+sd*(gap/2+fw/2)-fw/2+step;const l=Math.max(x0,fx),r=Math.min(x0+dw,fx+fw);if(r<=l)continue;
+      R(l,y1,r-l,3,'#050304');R(l-1,y1+3,r-l+2,4,'rgba(2,1,3,.75)');}}
+}
+function w79hFrame(){const c=w79hLayer();if(!c)return;const on=!!W79H.hid&&S.room===(W79H.hid&&W79H.hid.room);if(on!==W79H.on){W79H.on=on;c.style.display=on?'block':'none';}if(on)w79hDraw();}
+{const loop=()=>{try{w79hFrame();}catch(e){}requestAnimationFrame(loop);};requestAnimationFrame(loop);}
+// Use brings you out too (not while it stands at the door)
+interact.push({get x(){return P.x;},get z(){return P.z;},r:5,on:()=>!!W79H.hid&&!(W79H.th&&(W79H.th.phase==='in'||W79H.th.phase==='leave')),label:()=>'Move to come out',ok:()=>true,act(){W79H.unhide();}});
 // ---- escapes: a way out that isn't the door
 W79H.escape=function(room,x,z,label,to,text){const e={room,x,z,label,to,text};W79H.esc.push(e);
   interact.push({get x(){return ROOMS[room]?ROOMS[room].ox+x:0;},get z(){return ROOMS[room]?ROOMS[room].oz+z:0;},r:.95,on:()=>S.room===room&&!W79H.hid,label:()=>label,ok:()=>true,act(){
