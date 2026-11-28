@@ -54,7 +54,7 @@ function w79sWorld(){if(W79S.world||typeof OBJ==='undefined'||OBJ.length<1000||!
 setInterval(()=>{try{w79sWorld();}catch(e){}},1200);
 if(ROOMS.w79_lamproom){
   interact.push({get x(){return ROOMS.w79_lamproom.ox+4.6;},get z(){return ROOMS.w79_lamproom.oz+2.25;},r:1.05,on:()=>S.room==='w79_lamproom',label:()=>'Look',ok:()=>true,act(){SFX.page&&SFX.page();
-    toast('The last stationmaster, in his chair among the lamps, his cap on, his coat buttoned to the throat. He has been dead a very long time. His own lamp is at his feet, trimmed and full, as if he meant to go up and light the platform and never did.',6,true);if(typeof mindHit==='function')mindHit(5);}});}
+    toast('The last stationmaster, in his chair among the lamps, his cap on, his coat buttoned to the throat. He has been dead a very long time. His own lamp is at his feet, trimmed and full, as if he meant to go up and light the platform and never did.',6,true);w79Fear(5,'look');}});}
 // ---- the platform hide: under its south end; the hidden view is the planks over you
 W79H.hideAt=function(x,z,label,text,view){const s={room:null,x,z,label,text,view};W79H.spots.push(s);
   interact.push({x,z,r:1,on:()=>!S.room&&!W79H.hid,label:()=>label,ok:()=>true,act(){W79H.hide(s);}});return s;};

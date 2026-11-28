@@ -12,6 +12,14 @@
    W79H.hideSpot(room,x,z,label,text), W79H.escape(room,x,z,label,to), W79H.threat(room,{warn,secs,pass,caught}).
    Anchors for the story: room 'rg_room6' (entered by its door at the Pine Rest), 'w79_crawl6' (from under Room 6's bed). ================= */
 const W79H={spots:[],esc:[],hid:null,th:null};
+// fear (W3, fear378.js): every moment goes through fearAdd with its reason once the Fear bar is in the build; until then mindHit
+const w79Fear=(n,why)=>{try{if(typeof fearAdd==='function')return fearAdd(n,why);if(typeof mindHit==='function')mindHit(n);}catch(e){}};
+const w79Rate=(k,ps,on)=>{try{if(typeof fearRate==='function')fearRate(k,ps,!!on);}catch(e){}};
+// read-only, for the Fear bar and the face: hiding, what is at the door, whether something hunts you
+window.__w79={hidden:()=>!!W79H.hid,threat:()=>W79H.th?W79H.th.phase:null,hunted:()=>!!(typeof W79G!=='undefined'&&W79G.r&&W79G.r.mode==='hunt'&&S.room==='w79_boiler')};
+// the dark cellars: too frightened and without a light, you stop at the top and won't go down
+const W79H_DARK=new Set(['w79_crawl6','w79_boiler','w79_lamproom']);
+{const _er=enterRoom;enterRoom=function(k){try{if(W79H_DARK.has(k)&&typeof fearDarkRefuse==='function'&&fearDarkRefuse()){if(typeof fearBalk==='function')fearBalk();return;}}catch(e){}return _er.apply(this,arguments);};}
 // ---- hiding: you are shut in somewhere; the world goes dark but for a line of light, and nothing that hunts by sight finds you
 W79H.hideSpot=function(room,x,z,label,text){const s={room,x,z,label,text};W79H.spots.push(s);
   interact.push({get x(){return ROOMS[room]?ROOMS[room].ox+x:0;},get z(){return ROOMS[room]?ROOMS[room].oz+z:0;},r:.95,on:()=>S.room===room&&!W79H.hid,label:()=>label,ok:()=>true,
@@ -21,17 +29,17 @@ const w79hHow=()=>{try{if(typeof GP!=='undefined'&&GP.mode==='pad')return 'Push 
 W79H.hide=function(s){W79H.hid=s;W79H.hidAt={x:P.x,z:P.z};SFX.thud&&SFX.thud(0,.18);toast((s.text?s.text+' ':'')+w79hHow(),3.4);};
 W79H.unhide=function(){if(!W79H.hid)return;W79H.hid=null;SFX.thud&&SFX.thud(0,.15);};
 // you stay put while hidden; any move key brings you out (unless something is on the other side of the door)
-{const _u=update;update=function(dt){_u(dt);try{W79H.tick(dt);}catch(e){}};}
+{const _u=update;update=function(dt){_u(dt);try{W79H.tick(dt);w79Rate('held',1.5,W79H.hid&&W79H.th&&W79H.th.phase==='in');}catch(e){}};}
 W79H.tick=function(dt){if(W79H.hid){if(S.room!==W79H.hid.room){W79H.hid=null;}else{const a=W79H.hidAt;const moved=Math.hypot(P.x-a.x,P.z-a.z)>.05;
       if(moved){if(W79H.th&&W79H.th.phase==='in'){P.x=a.x;P.z=a.z;}else W79H.unhide();}}}
   const T=W79H.th;if(!T)return;if(S.room!==T.room&&T.phase!=='done'){W79H.th=null;return;}T.t+=dt;
   if(T.phase==='warn'&&T.t>=T.secs){T.phase=W79H.hid?'in':'seen';T.t=0;
-    if(T.phase==='seen'){SFX.stinger&&SFX.stinger();if(typeof mindHit==='function')mindHit(12);toast(T.caught,4,true);setTimeout(()=>{if(S.room===T.room){P.fz=1;leaveRoom(true);}},1400);W79H.th=null;return;}
+    if(T.phase==='seen'){SFX.stinger&&SFX.stinger();w79Fear(12,'seen');toast(T.caught,4,true);setTimeout(()=>{if(S.room===T.room){P.fz=1;leaveRoom(true);}},1400);W79H.th=null;return;}
     SFX.thud&&SFX.thud(0,.35);toast(T.inside,3.4,true);}
   if(T.phase==='in'){if(Math.floor(T.t*1.25)!==Math.floor((T.t-dt)*1.25)&&T.t<5)SFX.thud&&SFX.thud(0,.1);   /* its steps, crossing the room */
-    if(T.t>=6.5){toast(T.pass,3.2);T.phase='leave';T.t=0;if(typeof mindHit==='function')mindHit(4);}}
+    if(T.t>=6.5){toast(T.pass,3.2);T.phase='leave';T.t=0;w79Fear(4,'passed');}}
   if(T.phase==='leave'){if(Math.floor(T.t*1.25)!==Math.floor((T.t-dt)*1.25))SFX.thud&&SFX.thud(0,.08);if(T.t>=1.7){T.phase='done';W79H.th=null;}}};
-W79H.threat=function(room,o){if(W79H.th||S.room!==room)return false;o=o||{};W79H.th={room,t:0,phase:'warn',secs:o.secs||5,inside:o.inside||'It comes in. You hear it breathing on the other side of the door.',
+W79H.threat=function(room,o){if(W79H.th||S.room!==room)return false;o=o||{};W79H.th={room,t:0,phase:'warn',secs:(o.secs||5)*(typeof fearTier==='function'&&fearTier()>=4?.8:1),inside:o.inside||'It comes in. You hear it breathing on the other side of the door.',
   pass:o.pass||'It stands outside the door a long time. Then it goes.',caught:o.caught||'It sees you.'};
   SFX.thud&&SFX.thud(0,.22);setTimeout(()=>SFX.thud&&SFX.thud(0,.22),350);toast(o.warn||'The door handle turns.',3,true);return true;};
 // ---- what you see while hidden: the back of the door in the dark. Light leaks faintly round its edges, a warmer strip shows under it
@@ -81,7 +89,7 @@ W79H.escape=function(room,x,z,label,to,text){const e={room,x,z,label,to,text};W7
   interact.push({get x(){return ROOMS.rg_room6.ox+1.25;},get z(){return ROOMS.rg_room6.oz+3.3;},r:.85,on:()=>S.room==='rg_room6'&&!W79H.hid,label:()=>'Look under the bed',ok:()=>true,act(){
     const C=ROOMS.w79_crawl6,R=ROOMS.rg_room6;C.from='rg_room6';C.out={x:R.ox+1.25,z:R.oz+3.75};SFX.thud&&SFX.thud(0,.2);enterRoom('w79_crawl6');}});
   interact.push({get x(){return ROOMS.w79_crawl6.ox+3.7;},get z(){return ROOMS.w79_crawl6.oz+1.9;},r:1.1,on:()=>S.room==='w79_crawl6',label:()=>'Look',ok:()=>true,act(){SFX.page&&SFX.page();
-    toast('A bag for every year, pushed in under the floor in rows: a doctor’s bag, a satchel, a trunk with a woman’s initials. Every tag reads ROOM 6. The newest is still dry. The writing on its tag is yours.',6,true);if(typeof mindHit==='function')mindHit(3);}});
+    toast('A bag for every year, pushed in under the floor in rows: a doctor’s bag, a satchel, a trunk with a woman’s initials. Every tag reads ROOM 6. The newest is still dry. The writing on its tag is yours.',6,true);w79Fear(3,'look');}});
   // out through the front window onto the walkway, beside the door
   W79H.escape('rg_room6',5.9,4.55,'Climb out of the window',()=>({x:RGP.motel.x+5.4,z:RGP.motel.z+.95}),'You drop onto the walkway and don’t look back at the window.');
   // at night the handle turns, once a night at most, a little while after you come in

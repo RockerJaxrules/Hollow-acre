@@ -59,17 +59,17 @@ function w79gRindReg(){for(const f of [0,1]){const k='w79_rind'+f;if(SPR[k])cont
 const W79G_PATH=[[2.2,1.4],[5.2,1.7],[3.6,2.6],[6.6,2.9],[1.6,2.2]];
 function w79gRind(dt){const B=ROOMS.w79_boiler;if(!B||!B.w)return;
   if(!W79G.r){w79gRindReg();W79G.r={o:obj('w79_rind0',B.ox+2.2,B.oz+1.4,{kind:'prop',noCol:true,room:'w79_boiler'}),i:0,t:0,mode:'drift',lx:P.x,lz:P.z,pk:0};}
-  const R=W79G.r,o=R.o;if(S.room!=='w79_boiler'||S.mode!=='play'||S.paused){R.lx=P.x;R.lz=P.z;return;}
+  const R=W79G.r,o=R.o;w79Rate('chase',2,S.room==='w79_boiler'&&R.mode==='hunt'&&!W79H.hid&&Math.hypot(P.x-o.x,P.z-o.z)<6);if(S.room!=='w79_boiler'||S.mode!=='play'||S.paused){R.lx=P.x;R.lz=P.z;return;}
   const sp=Math.hypot(P.x-R.lx,P.z-R.lz)/Math.max(.001,dt);R.lx=P.x;R.lz=P.z;const d=Math.hypot(P.x-o.x,P.z-o.z);
   const face=d>.01?((o.x-P.x)*(P.fx||0)+(o.z-P.z)*(P.fz||0))/d:0,lit=typeof lanternOn==='function'&&lanternOn()&&!W79H.hid&&d<2.4&&face>.7;   /* your lantern turned on it */
   // it hears you: running anywhere near, or walking right by it; hidden, you are silent
-  if(!W79H.hid&&((sp>2.4&&d<6.5)||(sp>.4&&d<2.2))){if(R.mode!=='hunt'){R.mode='hunt';SFX.breath&&SFX.breath(0);}R.lost=0;}
+  const fr=typeof fearTier==='function'?(fearTier()>=3?1.25:1):1;if(!W79H.hid&&((sp>2.4&&d<6.5*fr)||(sp>.4&&d<2.2*fr))){if(R.mode!=='hunt'){R.mode='hunt';SFX.breath&&SFX.breath(0);}R.lost=0;}
   if(R.mode==='hunt'&&(W79H.hid||d>8)){R.lost=(R.lost||0)+dt;if(R.lost>1.6){R.mode='drift';R.lost=0;}}
   let tx,tz,v=.45;if(lit){tx=o.x+(o.x-P.x);tz=o.z+(o.z-P.z);v=1.3;}else if(R.mode==='hunt'){tx=P.x;tz=P.z;v=1.05;}else{const p=W79G_PATH[R.i];tx=B.ox+p[0];tz=B.oz+p[1];if(Math.hypot(tx-o.x,tz-o.z)<.15)R.i=(R.i+1)%W79G_PATH.length;}
   const dx=tx-o.x,dz=tz-o.z,L=Math.hypot(dx,dz);if(L>.02){const st=Math.min(L,v*dt);o.x=clamp(o.x+dx/L*st,B.ox+.5,B.ox+B.w-.5);o.z=clamp(o.z+dz/L*st,B.oz+.6,B.oz+B.d-.3);if(Math.abs(dx)>.05)o.flip=dx<0;}
   R.t+=dt*(v>.5?1.6:1);const f=Math.floor(R.t*2.2)%2;o.spr='w79_rind'+f;
   // it reaches you: shoved back up the hatch, heart going (no wounds here)
-  if(!W79H.hid&&!lit&&d<.55&&R.mode==='hunt'){R.mode='drift';R.i=0;o.x=B.ox+6.6;o.z=B.oz+2.9;if(typeof mindHit==='function')mindHit(10);SFX.stinger&&SFX.stinger();
+  if(!W79H.hid&&!lit&&d<.55&&R.mode==='hunt'){R.mode='drift';R.i=0;o.x=B.ox+6.6;o.z=B.oz+2.9;w79Fear(10,'caught');SFX.stinger&&SFX.stinger();
     toast('Its hands find your face, cold as roots, and read it. Then it shoves you, hard, back up through the hatch.',4,true);P.fz=1;setTimeout(()=>{if(S.room==='w79_boiler')leaveRoom(true);},700);}}
 {const _u=update;update=function(dt){_u(dt);try{w79gRind(dt);}catch(e){}};}
 // the town's first-visit line ("Marrow Hollow. Every curtain moves as you pass.") is said when you first stand east of the farm; every
