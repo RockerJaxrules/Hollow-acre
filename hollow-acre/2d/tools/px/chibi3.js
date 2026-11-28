@@ -268,6 +268,55 @@ const HS={
   curlylong:{vol:2.5,crown:3,K:5,part:0,fr:[-3,-2,2],side:[3,12],back:9,tip:2,tex:'curl'},
   halfup:  {vol:1.5,crown:2,K:5,part:.5,fr:[-5,-1,2],side:[2,13],back:10,tip:2,knot:1},
 };
+// ---- wardrobe hairstyles (new): under = [top patch half-width, patch depth from the crown, shaved side (-1 the wearer's right), side-view front limit, side-view back keep];
+// lift = [rows, half-width, centre] raises the crown over the forehead; flat squares the crown; recede = [depth, half-width, side-view reach]; jag = ragged ends
+Object.assign(HS,{
+  undercut: {vol:1,  crown:3,K:5,part:-3,fr:[-6,-2,2],side:[1,1],back:-4,tip:1,sweep:1,under:[5,4],underS:{side:[0,0],back:-3},shave:'skin',quiet:1},
+  fade: {vol:1,  crown:3,K:6,part:0, fr:[-5,-4,1],side:[1,-1],back:-6,tip:1,under:[6,4],underS:{side:[0,0],back:-3},shave:'fade'},
+  quiff: {vol:1,  crown:2,K:5,part:-1,fr:[-6,-3,1],side:[1,0],back:-5,tip:1,sweep:1,lift:[7,5,-1,2],under:[5,6],shave:'fade',underS:{side:[0,0],back:-3},quiffcurl:1,quiet:1},
+  pompadour: {vol:1.5,crown:2,K:5,part:0, fr:[-7,-4,1],side:[1,0],back:-4,tip:1,lift:[6,6,0],quiet:1},
+  flattop:  {vol:.5, crown:5,K:8,part:0, fr:[-5,-4,0],side:[1,-1],back:-6,tip:0,flat:1,under:[6,6],underS:{side:[0,-3]}},
+  hightop: {vol:1.5,crown:6,K:7,part:0, fr:[-5,-4,0],side:[1,-1],back:-6,tip:0,flat:2,spikes:1,under:[8,8],underS:{side:[0,0],back:-3},shave:'fade',quiet:1},
+  caesar:   {vol:.5, crown:2,K:7,part:0, fr:[-4,-4,0],side:[1,-1],back:-6,tip:0},
+  curtains: {vol:1.5,crown:2,K:6,part:0, fr:[-6,1,2],side:[2,4],back:-2,tip:1},
+  bedhead:  {vol:2,  crown:2,K:7,part:1, fr:[-3,-1,3],side:[2,2],back:-3,tip:2,spikes:3,jag:1},
+  fauxhawk: {vol:.5, crown:2,K:6,part:0, fr:[-5,-4,1],side:[1,-1],back:-5,tip:1,lift:[4,2.5,0],spikes:2,under:[4,4],quiet:1},
+  combover: {vol:.6, crown:1,K:6,part:-6,fr:[-5,-4,0],side:[1,0],back:-5,tip:0,sweep:1},
+  receding: {vol:.8, crown:1,K:5,part:0, fr:[-5,-4,1],side:[1,1],back:-4,tip:1,recede:[6,6,4],quiet:1},
+  cornrows: {vol:.3, crown:1,K:7,part:0, fr:[-5,-4,0],side:[0,-2],back:-4,tip:0,tex:'rows'},
+  twists:   {vol:2.5,crown:3,K:5,part:0, fr:[-3,-2,2],side:[2,3],back:-1,tip:1,tex:'twist'},
+  bowl: {vol:2,  crown:2,K:9,part:0, fr:[-2,-2,0],side:[2,1],back:-2,tip:0,level:1,quiet:1},
+  widowpeak: {vol:.6, crown:2,K:7,part:0, fr:[-2,-7,0],side:[1,6],back:3,tip:1,frS:-5},
+  tousled:  {vol:1.5,crown:2,K:6,part:-2,fr:[-4,0,3],side:[2,2],back:-2,tip:2,sweep:1,jag:1},
+  wolf: {vol:3,  crown:2,K:8,part:-1,fr:[-3,0,3],side:[3,8],back:7,tip:3,spikes:3,jag:3,flare:2},
+  sideshave: {vol:1.5,crown:2,K:5,part:-4,fr:[-5,-1,2],side:[2,14],back:10,tip:2,sweep:1,under:[2,5,-1,3,-7,3.5,6],shave:'skin',fall:1,quiet:1,level2:1},
+  fingerwave:{vol:.8,crown:2,K:6,part:-3,fr:[-5,-2,0],side:[1,4],back:-2,tip:0,tex:'fwave',sweep:1},
+  victory: {vol:1.5,crown:2,K:5,part:0, fr:[-7,-5,0],side:[2,6],back:3,tip:0,rolls2:1},
+  emo: {vol:1.5,crown:2,K:6,part:-4,fr:[-5,6,2],side:[2,6],back:0,tip:2,sweep:1,deep:1,spikes:2,jag:1},
+  abob: {vol:2,  crown:2,K:6,part:-2,fr:[-4,-1,2],side:[2,13],back:-5,tip:1,slant:1},
+  shag:     {vol:2,  crown:2,K:6,part:0, fr:[-4,1,2],side:[2,9],back:5,tip:2,jag:1},
+  curlybob: {vol:2,  crown:3,K:5,part:0, fr:[-3,-2,2],side:[3,8],back:1,tip:1,tex:'curl2',flare:3},
+  shortlocs:{vol:1.5,crown:2,K:6,part:0, fr:[-3,-1,2],side:[2,1],back:-3,tip:1,ropes:{len:7,w:2}},
+  waist: {vol:1.5,crown:2,K:6,part:.5,fr:[-5,-1,2],side:[2,21],back:17,tip:2,jag:2,quiet:1,level2:1},
+  longfringe: {vol:1, crown:2,K:8,part:0,fr:[-1,-1,0],side:[2,16],back:12,tip:0},
+  beachwaves:{vol:2, crown:2,K:5,part:-2,fr:[-5,-1,2],side:[2,15],back:11,tip:2,tex:'wave',sweep:1},
+  bigcurls: {vol:3.5,crown:4,K:5,part:0, fr:[-3,-2,2],side:[3,14],back:10,tip:2,tex:'curl2'},
+  lank: {vol:.3, crown:2,K:8,part:-1.5,fr:[-6,10,3],side:[2,20],back:16,tip:3,jag:2,deep:1,sweep:1,quiet:1,level2:1},
+  sidetail: {vol:1,  crown:2,K:5,part:-2,fr:[-4,-2,2],side:[1,1],back:-4,tip:1,sidetail:1,sweep:1,quiet:1},
+  lowtail: {vol:1,  crown:2,K:5,part:0, fr:[-5,-2,1],side:[1,1],back:-3,tip:1,lowtail:1,quiet:1},
+  hightail: {vol:.8, crown:2,K:6,part:0, fr:[-6,-3,1],side:[1,0],back:-5,tip:0,hightail:1},
+  plait: {vol:1,  crown:2,K:5,part:.5,fr:[-5,-2,1],side:[1,1],back:-3,tip:1,plait:1,quiet:1},
+  plaits2:  {vol:1,  crown:2,K:5,part:.5,fr:[-5,-2,1],side:[1,1],back:-3,tip:1,plaits2:1},
+  crownbraid:{vol:1, crown:2,K:5,part:0, fr:[-5,-3,1],side:[1,0],back:-4,tip:0,crownbraid:1},
+  boxbraids:{vol:1.5,crown:2,K:6,part:0, fr:[-4,-2,1],side:[2,1],back:-3,tip:1,ropes:{len:20,w:3,mode:'braid'}},
+  locs:     {vol:1.5,crown:2,K:6,part:0, fr:[-4,-1,2],side:[2,1],back:-3,tip:1,ropes:{len:19,w:3}},
+  lowbun:   {vol:1,  crown:2,K:5,part:.5,fr:[-5,-2,1],side:[1,1],back:-3,tip:1,lowbun:1},
+  messybun: {vol:1.5,crown:2,K:6,part:0, fr:[-4,0,3],side:[1,1],back:-4,tip:2,messybun:1,jag:1},
+  gibson: {vol:3.5,crown:5,K:6,part:0, fr:[-7,-3,1],side:[3,1],back:-3,tip:1,bigbun:1,quiet:1},
+  puffs:    {vol:.8, crown:2,K:6,part:0, fr:[-6,-4,0],side:[1,0],back:-5,tip:0,puffs:1},
+  ringlets: {vol:1.5,crown:2,K:5,part:0, fr:[-4,-1,1],side:[1,1],back:-2,tip:1,ringlets:1},
+  braidbun: {vol:1,  crown:2,K:5,part:0, fr:[-5,-3,1],side:[1,0],back:-4,tip:0,braidbun:1},
+});
 function hairFor(st){if(!st||st==='bald')return null;const S=Object.assign({},HS[st]||HS.short);if(C.hairLen){S.side=[S.side[0],C.hairLen];S.back=Math.max(S.back,C.hairLen-4);}return S;}
 // shade one hair pixel: global light from the upper left, the lock's lit and dark edges, a streak near the top
 function hairTone(S,su,y,hw,cyc,ry,f,edgeL,below){let light=y<=cyc?-.55*(su/hw)-.75*((y-cyc)/(ry+1)):-.5*(su/hw)-.15-(y-cyc)*.02;
@@ -277,59 +326,116 @@ function hairTone(S,su,y,hw,cyc,ry,f,edgeL,below){let light=y<=cyc?-.55*(su/hw)-
   if(y<cyc-2&&f>.2&&f<.42&&light>.05)k=4;
   if(below)k=Math.max(1,k-1);
   return k;}
-function hairFront(cx,hy,back,st,pose){const S=hairFor(st);if(!S)return null;const chin=hy+9,top=chin-HEADH+1;
-  const hw=8+S.vol,topY=top-S.crown,cyc=hy-1,ry=cyc-topY;
-  const ox=cx+.5+(back?0:S.part),oy=topY-3;const ang=(x,y)=>Math.atan2(x+.5-ox,y+.5-oy);
-  const A0=ang(cx-hw-2,hy+4),A1=ang(cx+hw+2,hy+4),K=back?S.K+1:S.K;const lockF=(x,y)=>{let a=(ang(x,y)-A0)/(A1-A0)*K;if(S.tex==='wave')a+=Math.sin(y*.7)*.25;return a;};
+// the geometry of a style seen from the front or the back: its silhouette (inside), its locks (lockF) and its extent
+const BUZZ={vol:0,crown:1,K:10,part:0,fr:[-5,-4,0],side:[0,-2],back:-6,tip:0,tex:'buzz'};
+function hairGeoF(cx,hy,back,S){const chin=hy+9,top=chin-HEADH+1;
+  const hw=8+S.vol,topY=top-S.crown,cyc=hy-1,ry=cyc-topY,LIFT=S.lift?Math.round(S.lift[0]*(back?.6:1)):0;
+  const EX=S.flat?(S.flat===2?3.6:5):2.6,EY=S.flat?(S.flat===2?5:8):3;   // a flat top: a squarer crown (2: softer corners)
+  const ryAt=su=>LIFT?ry+LIFT*Math.sqrt(Math.max(0,1-Math.pow((su-(back?0:(S.lift[2]||0)))/S.lift[1],2))):ry;   // a quiff or pompadour: the crown raised over the forehead
+  const ox=cx+.5+(back?0:S.part),oy=topY-3-LIFT;const ang=(x,y)=>Math.atan2(x+.5-ox,y+.5-oy);
+  const A0=ang(cx-hw-2,hy+4),A1=ang(cx+hw+2,hy+4),K=back?S.K+1:S.K;const lockF=(x,y)=>{let a=(ang(x,y)-A0)/(A1-A0)*K;if(S.tex==='wave')a+=Math.sin(y*.7)*.25;else if(S.tex==='fwave')a+=Math.sin(y*.9)*.5;return a;};
   const sideBot=hy+S.side[1],backBot=chin+S.back,faceHalf=7.5;
-  const tipAt=(x,y,d)=>{const f=((lockF(x,y)%1)+1)%1;return Math.round(d*(1-Math.abs(2*f-1)));};
+  const tipAt=(x,y,d)=>{const lf=lockF(x,y),f=((lf%1)+1)%1;return Math.round(d*(1-Math.abs(2*f-1)))+(S.jag&&y>hy?Math.round(hsh(Math.floor(lf)+40,7,3)*S.jag):0);};
   const fringeY=su=>{const t=S.sweep?clamp((su+7)/14,0,1):Math.min(1,Math.abs(su-(back?0:S.part))/7);return hy+S.fr[0]+(S.fr[1]-S.fr[0])*t;};
   const inside=(x,y)=>{const u=x-cx,su=u-.5,a=Math.abs(su);
-    const bump=S.tex==='curl'?1+.09*Math.sin(Math.atan2(cyc-y,su)*9):1;
-    const crownIn=y<=cyc&&Math.pow(a/((hw+.5)*bump),2.6)+Math.pow((cyc-y)/((ry+.5)*bump),3)<=1;
-    let topOK=crownIn;if(S.spikes&&y<topY+S.spikes&&!crownIn){const tip=tipAt(x,y,S.spikes);topOK=a<hw-1&&Math.pow(a/(hw+.5),2.6)+Math.pow((cyc-y-tip)/(ry+.5),3)<=1;}
+    const bump=S.tex==='curl'?1+.09*Math.sin(Math.atan2(cyc-y,su)*9):1;const ryE=ryAt(su);
+    const crownIn=y<=cyc&&Math.pow(a/((hw+.5)*bump),EX)+Math.pow((cyc-y)/((ryE+.5)*bump),EY)<=1;
+    let topOK=crownIn;if(S.spikes&&y<topY+S.spikes&&!crownIn){const tip=tipAt(x,y,S.spikes);topOK=a<hw-1&&Math.pow(a/(hw+.5),EX)+Math.pow((cyc-y-tip)/(ryE+.5),EY)<=1;}
     if(back){if(topOK)return true;if(y<=cyc)return false;const taper=y>chin+1?Math.min(3,(y-chin-1)*.3):0;return a<=hw+.5-taper&&y<=backBot+tipAt(x,y,S.tip);}
-    if(a<faceHalf){return (topOK||(y>cyc&&false))&&y<fringeY(su)+tipAt(x,y,S.fr[2]);}
+    if(a<faceHalf){return (topOK||(S.deep&&y>cyc&&a<hw))&&y<fringeY(su)+tipAt(x,y,S.fr[2]);}
     if(topOK)return true;if(y<=cyc)return false;
-    // beside the face, and for long hair, over the shoulders
-    const outer=y>chin+1?hw+.5-Math.min(3,(y-chin-1)*.25):hw+.5;if(a>outer)return false;if(a<faceHalf+(y>chin?-1.5:0)&&y>chin)return a>=faceHalf-1.5&&y<=sideBot+tipAt(x,y,S.tip);
+    const outer=(y>chin+1?hw+.5-Math.min(3,(y-chin-1)*.25):hw+.5)+(S.flare?S.flare*clamp((y-hy+2)/8,0,1):0);if(a>outer)return false;if(a<faceHalf+(y>chin?-1.5:0)&&y>chin)return a>=faceHalf-1.5&&y<=sideBot+tipAt(x,y,S.tip);
     return a>=faceHalf&&y<=sideBot+tipAt(x,y,S.tip)&&(S.side[0]>0||y<=hy+1);};
-  const minY=topY-(S.spikes||0)-1,maxY=Math.max(back?backBot:sideBot,hy)+S.tip+2;
-  for(let y=minY;y<=maxY;y++)for(let u=-Math.ceil(hw)-1;u<=Math.ceil(hw)+2;u++){const x=cx+u;if(!inside(x,y))continue;const su=u-.5;
+  const minY=topY-(S.spikes||0)-1-LIFT,maxY=Math.max(back?backBot:sideBot,hy)+S.tip+2+(S.jag||0);
+  return {inside,lockF,hw,topY,cyc,ry,ox,oy,minY,maxY,chin,top};}
+// which zone a pixel is in: 1 the style's hair, 2 a shaved (undercut / fade / side shave) zone, 0 none
+function hairZoneF(cx,back,S,Gm,GB){const U=S.under;return (x,y)=>{const su=x-cx-.5,a=Math.abs(su);let z=Gm.inside(x,y)?1:0;
+    if(U){const sd=U[2]||0,sideOK=!sd||(back?su*sd<0:su*sd>0),patch=(back&&!sd?y<=Gm.topY+U[1]+2+Math.round(hsh(x,3,13)*2):(a<=U[0]||y<=Gm.topY+U[1]))||(back&&U[5]!=null&&(a<=U[5]||y>Gm.cyc+U[6]));
+      if(z&&sideOK&&!patch)z=0;if(!z&&sideOK&&!patch&&GB.inside(x,y))z=2;}
+    if(z===1&&S.recede){const [rh,rw]=S.recede;if(back?(a<rw-2.5&&y<Gm.topY+rh-3):(a<rw&&y<Gm.topY+rh))z=0;}
+    return z;};}
+// strand textures: locs and box braids hang in round ropes with a dark gap between; cornrows part the scalp in lines
+function strandTone(S,lf,f,x,y,k,cyc){if(S.tex==='rows'){if(f>.82)return -2;return f<.35?Math.min(4,k+1):f>.65?Math.max(1,k-1):k;}
+  if(y<cyc-3&&S.tex!=='box')return k;
+  let t=f<.3?Math.min(4,k+1):f>.72?1:k;if(S.tex==='box'&&f>=.3&&f<=.72&&((y+(Math.floor(lf)&1))%3===0))t=Math.max(1,t-1);return t;}
+// a shaved zone: 'skin' shows the scalp under the top's shadow, 'fade' steps from hair down to skin, otherwise short dark hair
+function shaveTone(S,zone,x,y,xs,cyc,ry,back){let d=0;while(d<12&&zone(x,y-d-1)===2)d++;let h=0;while(h<12&&zone(x,y+h+1)===2)h++;const under=zone(x,y-1)===1;
+  const light=-.5*xs-.6*((y-cyc)/(ry+1));let k=light>.25?2:1;
+  const run=hsh(x,Math.floor((y+Math.floor(hsh(x,3,9)*3))/3),23);if(run<.28)k=Math.max(0,k-1);else if(run>.8)k=Math.min(2,k+1);   /* uneven vertical runs */
+  if(under&&hsh(x,y,31)>.25)k=0;   /* the longer hair above throws a ragged shadow */
+  const fade=S.shave==='fade'?[.85,.55,.2]:[.6,.2,0],ch=hsh(x,7,41);
+  if(h<3&&!under&&ch<fade[h])return p(x,y,h===0?SK[2]:SK[1]);   /* skin shows on a wandering edge at the bottom */
+  p(x,y,HR[k]);}
+// cornrows: a 2-px braid then a 1-px parting of scalp, the braid lit on its left with a notch every other row
+function rowTone(f,y,k,alt){if(f>=.67)return -2;if(alt)k=Math.max(1,k-1);const lit=f<.33;let t=lit?Math.min(4,k+1):k;if(!lit&&(y&1))t=Math.max(1,t-1);return t;}
+// clustered curls (bigcurls, curly bob, high top): a short lit arc and a dark crescent in about half the cells, the rest quiet
+function curl2Tone(x,y,k){const cy=Math.floor(y/4),sx=x+(cy&1)*2,cc=Math.floor(sx/5);if(hsh(cc,cy,17)<.45)return k;const ox=((sx%5)+5)%5,oy=((y%4)+4)%4;
+  if(oy===0&&(ox===1||ox===2))return Math.min(4,k+1);if((oy===1&&ox===3)||(oy===2&&(ox===2||ox===3)))return Math.max(1,k-1);return k;}
+// tight twists: short coils stacked in staggered columns, lit at the top left, a dark notch under each
+function twistTone(x,y,k){const col=Math.floor(x/3),ly=(((y+(col&1)*2)%4)+4)%4,lx=((x%3)+3)%3;if(ly===0&&lx<2)return Math.min(4,k+1);if(ly===3&&lx>0)return Math.max(1,k-2);if(lx===2)return Math.max(1,k-1);return k;}
+function hairFront(cx,hy,back,st,pose){const S=hairFor(st);if(!S)return null;
+  const Gm=hairGeoF(cx,hy,back,S),{lockF,hw,topY,cyc,ry,ox,oy,minY,maxY}=Gm;
+  const GB=S.under?hairGeoF(cx,hy,back,Object.assign({},BUZZ,S.underS||{})):null;const zone=hairZoneF(cx,back,S,Gm,GB),inside=(x,y)=>zone(x,y)===1;
+  for(let y=minY;y<=maxY;y++)for(let u=-Math.ceil(hw)-1;u<=Math.ceil(hw)+2;u++){const x=cx+u;const z=zone(x,y);if(!z)continue;const su=u-.5;
+    if(z===2){shaveTone(S,zone,x,y,su/8,cyc,ry,back);continue;}
     const lf=lockF(x,y),f=((lf%1)+1)%1;const below=!inside(x,y+1);
     let k=hairTone(S,su,y,hw,cyc,ry,f,false,below);
     // lock borders: dark where the next pixel along belongs to another lock
-    if(S.tex!=='buzz'&&S.tex!=='curl'&&Math.hypot(x+.5-ox,y+.5-oy)>6&&Math.floor(lockF(x+1,y))!==Math.floor(lf)&&inside(x+1,y)&&inside(x,y-1))k=y>cyc-3?1:Math.min(k,2);
+    if(S.tex!=='buzz'&&S.tex!=='curl'&&S.tex!=='curl2'&&Math.hypot(x+.5-ox,y+.5-oy)>6&&Math.floor(lockF(x+1,y))!==Math.floor(lf)&&inside(x+1,y)&&inside(x,y-1)&&(!S.quiet||!inside(x-3,y)||!inside(x+3,y)||!inside(x,y+3)))k=y>cyc-3?1:Math.min(k,2);
     if(S.tex==='curl')k=curlTone(x,y,k);
+    if(S.tex==='twist')k=twistTone(x,y,k);
+    if(S.tex==='curl2')k=curl2Tone(x,y,k);
+    if(S.tex==='locs'||S.tex==='box')k=strandTone(S,lf,f,x,y,k,cyc);
+    if(S.tex==='rows'){const rv=back?Math.atan2(x-cx-.5,(hy+16)-y)*9.5/Math.PI*2:(x-cx+.5)/3;k=rowTone((rv%1+1)%1,y,k,Math.floor(rv)&1);}
     if(S.crest&&Math.abs(su)>2.6)k=-1;
-    p(x,y,k<0?(((x+y)&1)?HR[1]:SK[2]):HR[k]);}
+    p(x,y,k===-2?SK[1]:k<0?(CFG.hang?(hsh(x,Math.floor((y+Math.floor(hsh(x,5,3)*3))/3),29)<.35?HR[1]:SK[1]):(((x+y)&1)?HR[1]:SK[2])):HR[k]);}
   // the fringe throws a shadow on the forehead
   if(!back)for(let u=-6;u<=7;u++){const x=cx+u;for(let y=minY;y<hy+2;y++)if(inside(x,y)&&!inside(x,y+1)){const c=G(LY.body,x,y+1);if(c&&!g(x,y+1))p(x,y+1,SK[2]);break;}}
   hairExtras(cx,hy,back?'N':'S',S,1);
   return {top:topY,hw};}
-function hairSide(cx,hy,fl,st,pose){const S=hairFor(st);if(!S)return null;const chin=hy+9,top=chin-HEADH+1;
-  const hw=8+S.vol,topY=top-S.crown,cyc=hy-1,ry=cyc-topY;const ccx=cx-fl*1;
-  const ox=cx+.5+fl*3,oy=topY-3;const ang=(x,y)=>Math.atan2((x+.5-ox)*-fl,y+.5-oy);const A0=ang(cx+fl*(hw+2),hy),A1=ang(cx-fl*(hw+3),hy+8);const K=S.K;
-  const lockF=(x,y)=>{let a=(ang(x,y)-A0)/(A1-A0)*K;if(S.tex==='wave')a+=Math.sin(y*.7)*.25;return a;};
-  const tipAt=(x,y,d)=>{const f=((lockF(x,y)%1)+1)%1;return Math.round(d*(1-Math.abs(2*f-1)));};
+function hairGeoS(cx,hy,fl,S){const chin=hy+9,top=chin-HEADH+1;
+  const hw=8+S.vol,topY=top-S.crown,cyc=hy-1,ry=cyc-topY;const ccx=cx-fl*1,LIFT=S.lift?S.lift[0]:0;
+  const EX=S.flat?(S.flat===2?3.6:5):2.6,EY=S.flat?(S.flat===2?5:8):3;
+  const ryAt=a=>LIFT?ry+LIFT*Math.sqrt(Math.max(0,1-Math.pow((a-hw*.3-(S.lift[3]||0))/(S.lift[1]+1),2))):ry;
+  const ox=cx+.5+fl*3,oy=topY-3-LIFT;const ang=(x,y)=>Math.atan2((x+.5-ox)*-fl,y+.5-oy);const A0=ang(cx+fl*(hw+2),hy),A1=ang(cx-fl*(hw+3),hy+8);const K=S.K;
+  const lockF=(x,y)=>{let a=(ang(x,y)-A0)/(A1-A0)*K;if(S.tex==='wave')a+=Math.sin(y*.7)*.25;else if(S.tex==='fwave')a+=Math.sin(y*.9)*.5;return a;};
+  const tipAt=(x,y,d)=>{const lf=lockF(x,y),f=((lf%1)+1)%1;return Math.round(d*(1-Math.abs(2*f-1)))+(S.jag&&y>hy?Math.round(hsh(Math.floor(lf)+40,7,3)*S.jag):0);};
   const sideBot=hy+S.side[1],backBot=chin+S.back;
   const inside=(x,y)=>{const uf=(x-cx)*fl,a=(x-ccx)*fl;   // uf: forward of the axis; a: from the crown's centre
-    const crownIn=y<=cyc&&Math.pow(Math.abs(a+.5*fl*0)/(hw+.5),2.6)+Math.pow((cyc-y)/(ry+.5),3)<=1;
-    let topOK=crownIn;if(S.spikes&&y<topY+S.spikes&&!crownIn){const tip=tipAt(x,y,S.spikes);topOK=Math.abs(a)<hw-1&&Math.pow(Math.abs(a)/(hw+.5),2.6)+Math.pow((cyc-y-tip)/(ry+.5),3)<=1;}
+    const ryE=ryAt(a);const crownIn=y<=cyc&&Math.pow(Math.abs(a+.5*fl*0)/(hw+.5),EX)+Math.pow((cyc-y)/(ryE+.5),EY)<=1;
+    let topOK=crownIn;if(S.spikes&&y<topY+S.spikes&&!crownIn){const tip=tipAt(x,y,S.spikes);topOK=Math.abs(a)<hw-1&&Math.pow(Math.abs(a)/(hw+.5),EX)+Math.pow((cyc-y-tip)/(ryE+.5),EY)<=1;}
     // the forehead and face stay clear in front of the ear
-    if(uf>=1){const fy=hy+S.fr[0]+(uf>=5?-1:0)+Math.min(2,(7-uf)*.3);return topOK&&y<fy+tipAt(x,y,Math.min(2,S.fr[2]));}
+    if(uf>=1){const fy=S.level?hy+S.fr[0]+1:hy+(S.frS!=null?S.frS:S.fr[0])+(uf>=5?-1:0)+Math.min(2,(7-uf)*.3);return topOK&&y<fy+tipAt(x,y,Math.min(2,S.fr[2]));}
     if(topOK)return true;if(y<=cyc)return false;
     if(uf>=-3&&uf<=-1&&y>=hy&&y<=hy+3&&S.side[1]<4)return false;           // the ear shows under short hair
     if(uf>=-1)return y<=sideBot+tipAt(x,y,S.tip)&&S.side[0]>0;           // the sideburn
-    const outer=-(hw+.5)+(y>chin+1?Math.min(3,(y-chin-1)*.25):0);return uf>=outer-1&&y<=Math.max(backBot,sideBot)+tipAt(x,y,S.tip);};
-  const minY=topY-(S.spikes||0)-1,maxY=Math.max(backBot,sideBot,hy)+S.tip+2;
-  for(let y=minY;y<=maxY;y++)for(let u=-Math.ceil(hw)-3;u<=Math.ceil(hw)+2;u++){const x=cx+u;if(!inside(x,y))continue;const su=(x-ccx)*fl-.5;
+    const outer=-(hw+.5)+(y>chin+1?Math.min(HANGTAPER,(y-chin-1)*.25):0);
+    if(S.slant&&uf<-1){const t=clamp((-uf-1)/(hw-1),0,1);return uf>=outer-1&&y<=Math.round(sideBot+(backBot-sideBot)*t)+tipAt(x,y,S.tip);}
+    const bot=Math.max(backBot,sideBot);return uf>=outer-1&&y<=bot+(S.level2&&bot>chin+4?Math.min(1,tipAt(x,y,S.tip)):tipAt(x,y,S.tip));};
+  const minY=topY-(S.spikes||0)-1-LIFT,maxY=Math.max(backBot,sideBot,hy)+S.tip+2+(S.jag||0);
+  return {inside,lockF,hw,topY,cyc,ry,ox,oy,minY,maxY,ccx,chin,top};}
+function hairZoneS(cx,fl,S,Gm,GB){const U=S.under;return (x,y)=>{const uf=(x-cx)*fl;let z=Gm.inside(x,y)?1:0;
+    if(U){const sd=U[2]||0,sideOK=!sd||(sd<0?fl>0:fl<0),patch=y<=Gm.topY+U[1]||uf>=(U[3]!=null?U[3]:-2)||(U[4]!=null&&uf<=U[4]);
+      if(z&&sideOK&&!patch)z=0;if(!z&&sideOK&&!patch&&GB.inside(x,y))z=2;}
+    if(z===1&&S.recede){const [rh,,rb]=S.recede;if(uf>-(rb||3)&&y<Gm.topY+rh)z=0;}
+    return z;};}
+function hairSide(cx,hy,fl,st,pose){const S=hairFor(st);if(!S)return null;
+  const Gm=hairGeoS(cx,hy,fl,S),{lockF,hw,topY,cyc,ry,ox,oy,minY,maxY,ccx}=Gm;
+  const GB=S.under?hairGeoS(cx,hy,fl,Object.assign({},BUZZ,S.underS||{})):null;const zone=hairZoneS(cx,fl,S,Gm,GB),inside=(x,y)=>zone(x,y)===1;
+  for(let y=minY;y<=maxY;y++)for(let u=-Math.ceil(hw)-3;u<=Math.ceil(hw)+2;u++){const x=cx+u;const z=zone(x,y);if(!z)continue;const su=(x-ccx)*fl-.5;
+    if(z===2){shaveTone(S,zone,x,y,-su/8,cyc,ry);continue;}
     const lf=lockF(x,y),f=((lf%1)+1)%1;const below=!inside(x,y+1);let k=hairTone(S,-su,y,hw,cyc,ry,f,false,below);
-    if(S.tex!=='buzz'&&S.tex!=='curl'&&Math.hypot(x+.5-ox,y+.5-oy)>6&&Math.floor(lockF(x-fl,y))!==Math.floor(lf)&&inside(x-fl,y)&&inside(x,y-1))k=y>cyc-3?1:Math.min(k,2);
+    if(S.tex!=='buzz'&&S.tex!=='curl'&&S.tex!=='curl2'&&Math.hypot(x+.5-ox,y+.5-oy)>6&&Math.floor(lockF(x-fl,y))!==Math.floor(lf)&&inside(x-fl,y)&&inside(x,y-1)&&(!S.quiet||!inside(x-3,y)||!inside(x+3,y)||!inside(x,y+3)))k=y>cyc-3?1:Math.min(k,2);
     if(S.tex==='curl')k=curlTone(x,y,k);
+    if(S.tex==='twist')k=twistTone(x,y,k);
+    if(S.tex==='curl2')k=curl2Tone(x,y,k);
+    if(S.tex==='locs'||S.tex==='box')k=strandTone(S,lf,f,x,y,k,cyc);
+    if(S.tex==='rows'){const ex_=(x-ccx)*fl/(hw+.5),ey_=(cyc+2-y)/(ry+3),r_=Math.hypot(ex_,ey_);k=rowTone((r_*5.2%1+1)%1,y,k);}
     if(S.crest&&Math.abs((x-cx)*fl+1)>2.6)k=-1;
-    p(x,y,k<0?(((x+y)&1)?HR[1]:SK[2]):HR[k]);}
-  hairExtras(cx,hy,fl>0?'E':'W',S,fl);return {top:topY,hw};}
+    p(x,y,k===-2?SK[1]:k<0?(CFG.hang?(hsh(x,Math.floor((y+Math.floor(hsh(x,5,3)*3))/3),29)<.35?HR[1]:SK[1]):(((x+y)&1)?HR[1]:SK[2])):HR[k]);}
+  hairExtras(cx,hy,fl>0?'E':'W',S,fl);
+  if(CFG.hang&&HAIRLEAN){const L=LY[CUR],ch=hy+9;const T=new Uint8ClampedArray(L.d);for(let y=ch+1;y<FH;y++){const s=-Math.round(HAIRLEAN*.5*Math.min(1,(y-ch)/10));if(!s)continue;for(let x=0;x<FW;x++){const i=(y*FW+x)*4;L.d[i+3]=0;}for(let x=0;x<FW;x++){const sx=x-s;if(sx<0||sx>=FW)continue;const j=(y*FW+sx)*4,i=(y*FW+x)*4;if(T[j+3]){for(let c=0;c<4;c++)L.d[i+c]=T[j+c];}}}}
+  return {top:topY,hw};}
 // a curl every few pixels, staggered row to row: lit at its top left, a dark crescent under it
 function curlTone(x,y,k){const row=Math.floor(y/3),lx=((x+(row&1)*2)%4+4)%4,ly=((y%3)+3)%3;if(lx===0&&ly===0)return Math.min(4,k+1);if(lx===1&&ly===0)return Math.min(4,k+1);if((lx===2||lx===3)&&ly===2)return Math.max(1,k-2);if(lx===3&&ly===1)return Math.max(1,k-1);return k;}
 // ponytails, buns, braids and crests: small shaded shapes, each with its own locks
@@ -344,9 +450,155 @@ function hairExtras(cx,hy,view,S,fl){const chin=hy+9,top=chin-HEADH+1,topY=top-S
   if(S.braids&&!side&&view==='S'){for(const s of [-1,1]){const x0=s<0?cx-8:cx+8;for(let y=hy+3;y<chin+9;y++){const ph=(y>>1)&1;for(let i=0;i<3;i++)p(x0+i-1,y,R[(i+ph)%3===0?4:(i+ph)%3===1?2:1]);}p(x0,chin+9,ACCR[2]);p(x0-1,chin+9,ACCR[3]);}}
   if(S.braids&&view==='N'){for(const s of [-1,1]){const x0=s<0?cx-6:cx+7;for(let y=hy+1;y<chin+7;y++){const ph=(y>>1)&1;for(let i=0;i<3;i++)p(x0+i-1,y,R[(i+ph)%3===0?4:(i+ph)%3===1?2:1]);}}}
   if(S.braids&&side){const x0=cx-fl*5;for(let y=hy+2;y<chin+6;y++){const ph=(y>>1)&1;for(let i=0;i<3;i++)p(x0-fl*i,y,R[(i+ph)%3===0?4:2]);}}
-  if(S.pigs){for(const s of [-1,1]){if(side&&s*fl>0)continue;const bx=side?cx-fl*7:cx+.5+s*10;for(let j=0;j<8;j++){const w=j<2?2:j<6?2:1;for(let i=-w;i<=w;i++)p(bx+i+(side?0:s*Math.round(j*.3)),hy+1+j,R[i<0?4:i>0?2:3]);}p(bx-1,hy,ACCR[3]);p(bx,hy,ACCR[2]);p(bx+1,hy,ACCR[3]);}}}
+  if(S.pigs){for(const s of [-1,1]){if(side&&s*fl>0)continue;const bx=side?cx-fl*7:cx+.5+s*10;for(let j=0;j<8;j++){const w=j<2?2:j<6?2:1;for(let i=-w;i<=w;i++)p(bx+i+(side?0:s*Math.round(j*.3)),hy+1+j,R[i<0?4:i>0?2:3]);}p(bx-1,hy,ACCR[3]);p(bx,hy,ACCR[2]);p(bx+1,hy,ACCR[3]);}}
+  hairExtras2(cx,hy,view,S,fl);}
+// ---- wardrobe hair extras (new styles): ropes, plaits, tails, buns, puffs, rolls and ringlets
+// a pixel of hair's deepest step along the edge of a strand, wherever something (body or hair) lies under it, so a tail reads over a shirt
+const hairEdge=(x,y)=>{x=Math.round(x);y=Math.round(y);if(g(x,y))return;if(G(LY.body,x,y))p(x,y,HR[0]);};
+// a hanging strand along a path of points, one row at a time; w(y,t,seg) gives its width.
+// mode 'braid' (lobes alternating left and right), 'rope' (lit left, dark right, a lock line), 'ring' (a corkscrew curl), 'loc' (a round rope, a soft segment line)
+function strandPath(pts,wAt,R,mode,noEdge){const rows=[];for(let s=0;s<pts.length-1;s++){const [x0,y0]=pts[s],[x1,y1]=pts[s+1];const n=Math.max(1,Math.abs(y1-y0));
+    for(let j=(s?1:0);j<=n;j++){const t=j/n,x=x0+(x1-x0)*t,y=Math.round(y0+(y1-y0)*t);const w=wAt(y,t,s);rows.push([Math.round(x-(w-1)/2),y,w]);}}
+  rows.forEach(([xl,y,w],ri)=>{
+    for(let i=0;i<w;i++){let k;
+      if(mode==='braid'){const q=((y%4)+4)%4,L=q<2;// a lobe on the left for two rows, then one on the right
+        if(w>=4){const lob=L?[3,4,2,1]:[1,2,4,2];const lob2=L?[2,3,2,1]:[1,2,3,1];k=(q&1?lob2:lob)[Math.min(3,Math.round(i*3/(w-1)))];}
+        else if(w===3)k=L?[4,2,1][i]:[1,3,2][i];else k=L?[3,1][i]:[2,2][i];}
+      else if(mode==='ring'){const q=(((y>>1)+(ri>>3))&1);k=i===w-1?1:q?(i===0?4:3):(i===0?2:2);}
+      else if(mode==='loc'){k=i===0?3:i===w-1?1:2;if(((y+ri)%5)===0&&i<w-1)k=Math.max(1,k-1);}
+      else k=i===0?(w>2?3:4):i===w-1?1:(i===1&&w>3?4:(w>3&&i===w-2)?2:3);
+      p(xl+i,y,R[k]);}
+    if(!noEdge){hairEdge(xl-1,y);hairEdge(xl+w,y);}});
+  if(!noEdge&&rows.length){const [xl,y,w]=rows[rows.length-1];for(let i=0;i<w;i++)hairEdge(xl+i,y+1);}}
+// a braid lying across the head (a crown braid): rows y(x) from x0 to x1, h rows thick, a deep line above and below so it reads over the hair
+const BRAIDTILE=[[3,1,3,4],[4,3,1,3],[4,3,1,3],[2,1,2,3]];
+function braidAcross(x0,x1,yAt,h,R){for(let x=x0;x<=x1;x++){const y0=Math.round(yAt(x)),q=((x%4)+4)%4;
+    p(x,y0-1,R[0]);for(let j=0;j<h;j++)p(x,y0+j,R[BRAIDTILE[Math.min(3,j)][q]]);p(x,y0+h,R[0]);}}
+function tieAt(x,y,w){for(let i=0;i<w;i++)p(x+i,y,ACCR[i===0?3:i===w-1?1:2]);}
+// a deep ring round a blob that sits over hair, so a bun or puff stands off the head
+function blobRing(cx,cy,rx,ry){for(let y=-ry-1;y<=ry+1;y++)for(let x=-rx-1;x<=rx+1;x++){const d=x*x/((rx+.5)*(rx+.5))+y*y/((ry+.5)*(ry+.5)),d2=x*x/((rx+1.5)*(rx+1.5))+y*y/((ry+1.5)*(ry+1.5));if(d>1&&d2<=1&&(y>0||x>0)){const X=Math.round(cx+x),Y=Math.round(cy+y);if(g(X,Y))p(X,Y,HR[0]);}}}
+// a blob with the curl texture (puffs)
+function curlBlob(cx,cy,rx,ry,R){for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){const d=x*x/(rx*rx+.01)+y*y/(ry*ry+.01);const bump=1+.1*Math.sin(Math.atan2(y,x)*7);if(d>bump*bump)continue;
+    const l=-x/(rx+.01)*.5-y/(ry+.01)*.7;let k=l>.45?4:l>0?3:l>-.4?2:1;if(d>.7&&(x>0||y>0))k=Math.max(1,k-1);k=curlTone(Math.round(cx+x),Math.round(cy+y),k);p(cx+x,cy+y,R[k]);}}
+// a roll seen end-on: a lit ring around a dark core
+function rollEnd(cx,cy,r,R){for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){const d=Math.hypot(x,y);if(d>r+.3)continue;const l=-x*.5-y*.7;let k=d<r*.45?1:l>.8?4:l>-.6?3:2;if(d>r-.7&&(x>0||y>0))k=Math.max(1,k-1);p(cx+x,cy+y,R[k]);}}
+// locs and box braids: separate ropes hanging from under the hair
+function ropesView(cx,hy,view,fl,S,R){const chin=hy+9,L=S.ropes,len=L.len,mode=L.mode||'loc',w=L.w||2;const hs=(i)=>hsh(i+3,11,5),R2=dk(R,1);
+  const rope=(x0,y0,x1,y1,ww,RR,sw)=>strandPath([[x0,y0],[(x0+x1)/2+sw,(y0+y1)/2],[x1,y1]],(y)=>y>y1-2&&ww>2?ww-1:ww,RR,mode);
+  if(view==='S'){for(const s of [-1,1])for(let i=0;i<3;i++){const x=cx+.5+s*(7.5+i*1.35+(hs(i+7)-.5)*.6),y0=hy-2+i,y1=hy+len-i*2-Math.round(hs(i+(s>0?5:0))*6);rope(x,y0,x+s*.8,y1,w,(i+(s>0?1:0))%2?R2:R,s*(hs(i+40)-.5));}}
+  else if(view==='N'){for(let y=hy-2;y<=chin+len-12;y++){const w=Math.round(8.5-Math.max(0,y-chin-2)*.15);for(let x=-w+1;x<=w;x++)p(cx+x,y,R[y>chin+len-14?0:1]);}const xs=[-7.2,-4.6,-1.5,1.2,4.4,7.3],ws=[w,w+1,w,w+1,w,w];const ord=[0,2,4,5,3,1];for(const i of ord){const x=cx+.5+xs[i]+(hs(i+20)-.5)*1.2,y1=chin+len-6-Math.round(hs(i)*8)-(i===0||i===5?2:0);rope(x,hy-3,x+(x-cx)*.1,y1,ws[i],i%2?R2:R,(hs(i+50)-.5)*1.6);}}
+  else{for(let y=hy;y<=hy+len-8;y++)for(let u=-9;u<=-1;u++)p(cx+u*fl,y,R[1]);for(let i=3;i>=0;i--){const x=cx-fl*(1+i*2.5+(hs(i+30)-.5)*.8),y1=hy+len-1-(i===0?3:0)-Math.round(hs(i+9)*7);rope(x,hy-1,x-fl*.9,y1,i===1?w+1:w,i%2?R2:R,-fl*(hs(i+60)-.3));}}}
+function hairExtras2(cx,hy,view,S,fl){const chin=hy+9,top=chin-HEADH+1,topY=top-S.crown;const R=HR;const side=view==='E'||view==='W';
+  if(S.ropes)ropesView(cx,hy,view,fl,S,R);
+  if(S.lowtail){if(view==='N'){tieAt(cx-1,hy+6,4);strandPath([[cx+.5,hy+7],[cx+.5,chin+4],[cx+1,chin+11]],y=>y<chin+4?5:y<chin+8?4:3,R,'rope');}
+    else if(side){tieAt(cx-fl*7-(fl>0?1:0),hy+5,2);strandPath([[cx-fl*7.5,hy+6],[cx-fl*8,chin+2],[cx-fl*7,chin+10]],y=>y<chin+4?4:3,R,'rope');}}
+  if(S.hightail){if(view==='N'){strandPath([[cx+.5,topY+6],[cx+.5,hy+4],[cx+1,chin+2],[cx+.5,chin+7]],y=>y<hy+5?5:y<chin+3?4:3,R,'rope');lockBlob(cx+.5,topY+3,2,2,R);tieAt(cx-1,topY+5,4);}
+    else if(side){strandPath([[cx-fl*5,topY+1],[cx-fl*9,topY+3],[cx-fl*11,hy],[cx-fl*11,hy+6],[cx-fl*10,chin+4]],(y,t,s)=>s<2?5:s<3?4:3,R,'rope');tieAt(cx-fl*5-(fl>0?1:0),topY+1,2);}
+    else lockBlob(cx+.5,topY,3,1,R);}
+  if(S.sidetail){// tied low on the left side and brought forward over the left shoulder (screen right from the front)
+    if(view==='S'){strandPath([[cx+8.5,hy+4],[cx+9,chin],[cx+7.5,chin+5],[cx+7,chin+11]],y=>y<hy+7?3:y<chin+6?4:y<chin+9?3:2,R,'rope');tieAt(cx+7,hy+3,3);}
+    else if(view==='N'){strandPath([[cx-8,hy+4],[cx-9,chin+1]],y=>4,R,'rope');tieAt(cx-9,hy+3,3);}
+    else if(view==='W'){strandPath([[cx+3.5,hy+5],[cx+3,chin+2],[cx+1,chin+11]],y=>y<hy+8?3:y<chin+7?4:y<chin+9?3:2,R,'rope');tieAt(cx+2,hy+4,3);}}
+  if(S.plait){if(view==='N'){strandPath([[cx+.5,hy+4],[cx+.5,chin+6],[cx+1,chin+14]],y=>y<chin+10?4:3,R,'braid');tieAt(cx,chin+15,2);}
+    else if(side){strandPath([[cx-fl*7.5,hy+4],[cx-fl*8,chin+5],[cx-fl*7,chin+12]],y=>y<chin+8?4:3,R,'braid');tieAt(cx-fl*7-1,chin+13,2);}}
+  if(S.plaits2){// two long plaits behind the shoulders
+    if(view==='N'){for(const s of [-1,1])strandPath([[cx+.5+s*4,hy+4],[cx+.5+s*5,chin+6],[cx+.5+s*5,chin+13]],y=>y<chin+9?4:3,R,'braid');tieAt(cx-6,chin+14,2);tieAt(cx+5,chin+14,2);}
+    else if(side){strandPath([[cx-fl*6.5,hy+4],[cx-fl*7.5,chin+5],[cx-fl*7,chin+12]],y=>y<chin+8?4:3,R,'braid');tieAt(cx-fl*7-1,chin+13,2);}
+    else{for(const s of [-1,1])strandPath([[cx+.5+s*8.5,hy+2],[cx+.5+s*9,chin+2]],y=>3,R,'braid');}}
+  if(S.crownbraid){if(view==='S')braidAcross(cx-8,cx+9,x=>topY+2+Math.pow(Math.abs(x-cx-.5)/8.5,2)*5,4,R);
+    else if(view==='N')braidAcross(cx-8,cx+9,x=>topY+4+Math.pow(Math.abs(x-cx-.5)/8.5,2)*4,4,R);
+    else{for(let j=-1;j<=11;j++){const t=j/10,x=Math.round(cx+fl*(5-t*10)),y=Math.round(topY+1+Math.pow(Math.max(0,t),1.6)*9);const q=((j%4)+4)%4;
+      p(x,y-1,R[0]);for(let i=0;i<4;i++)p(x,y+i,R[BRAIDTILE[i][q]]);p(x,y+4,R[0]);}}}
+  if(S.lowbun){if(view==='N'){lockBlob(cx+.5,chin-3,4,3,R);blobRing(cx+.5,chin-3,4,3);}else if(side)lockBlob(cx-fl*8,hy+5,3,3,R);}
+  if(S.messybun){if(view==='S'){lockBlob(cx+3.5,topY-2,5,4,R);for(const [x0,y0,y1] of [[cx-7,hy-2,hy+7],[cx+8,hy-1,hy+5]])for(let y=y0;y<=y1;y++)p(x0+(y>y0+4?(x0<cx?-1:1):0),y,R[y===y1?1:2]);}
+    else if(view==='N'){lockBlob(cx-2.5,topY+1,5,4,R);blobRing(cx-2.5,topY+1,5,4);}else lockBlob(cx-fl*2,topY-2,4,4,R);}
+  if(S.bigbun){if(view==='N'){for(let x=-7;x<=8;x++){const y0=hy+2-Math.round(Math.pow(Math.abs(x-.5)/7.5,2)*2);p(cx+x,y0-1,R[0]);p(cx+x,y0,R[x<-2?4:3]);p(cx+x,y0+1,R[3]);p(cx+x,y0+2,R[1]);}for(let y=topY+5;y<=hy;y++)p(cx+1,y,R[1]);}
+    if(view==='S')lockBlob(cx+.5,topY-1,3,2,R);else if(view==='N'){lockBlob(cx+.5,topY+2,4,3,R);blobRing(cx+.5,topY+2,4,3);}else lockBlob(cx-fl*4,topY,3,3,R);}
+  if(S.braidbun){const B=(bx,by,r)=>{for(let y=-r;y<=r;y++)for(let x=-r;x<=r;x++){const d=Math.hypot(x,y);if(d>r+.3)continue;const ang=Math.atan2(y,x),sp=((d*1.4+ang*.95)%3+3)%3;let k=sp<1?4:sp<2?2:1;if(d>r-.8&&(x>0||y>0))k=Math.max(1,Math.min(k,2));p(bx+x,by+y,R[k]);}blobRing(bx,by,r,r);};
+    if(view==='N')B(cx+.5,hy-5,5);else if(side)B(cx-fl*7,hy-4,4);else{const L=LY[CUR],keep=new Uint8ClampedArray(L.d);B(cx+.5,topY,5);for(let i=0;i<FW*FH;i++)if(keep[i*4+3]){for(let c=0;c<4;c++)L.d[i*4+c]=keep[i*4+c];}}}
+  if(S.puffs){for(const s of [-1,1]){if(side&&s*fl>0)continue;const bx=side?cx-fl*2:cx+.5+s*8,by=topY+(side?0:3)+(s>0&&!side?1:0);curlBlob(bx,by,5,5,R);}}
+  if(S.bangroll){// a victory roll: one fat roll across the forehead, its ends seen as curls at the temples
+    if(view==='S'){for(let x=cx-6;x<=cx+7;x++){const y0=topY+5-Math.round(Math.cos((x-cx-.5)/7.5*1.4)*2);const T=[2,3,4,3,2,1];for(let j=0;j<6;j++)p(x,y0+j,R[T[j]]);p(x,y0+6,R[0]);}rollEnd(cx-6.5,topY+7,3,R);rollEnd(cx+7.5,topY+7,3,R);}
+    else if(side)rollEnd(cx+fl*4,topY+5,3,R);}
+  if(S.rolls2){if(view==='S'||view==='N'){const m=view==='S'?1:-1;rollEnd(cx+.5-m*3,topY+2,3.6,R);rollEnd(cx+.5+m*3.5,topY+3,3,R);}else{for(let y=-3;y<=3;y++)for(let x=-6;x<=5;x++){if(x*x/40+y*y/10>1)continue;const l=-y*.6-x*.06;p(cx+fl*(x+1),topY+1+y,R[l>.8?4:l>-.3?3:y>1?1:2]);}rollEnd(cx+fl*6,topY+1,3,R);}}
+  if(S.ringlets){const RL=(x,y0,len)=>strandPath([[x,y0],[x,y0+len]],y=>3,R,'ring');
+    if(view==='S'){for(const s of [-1,1]){RL(cx+.5+s*8.5,hy,chin+4-hy);RL(cx+.5+s*10.5,hy+2,chin+7-hy);}}
+    else if(view==='N'){for(const dx of [-7,-3.5,0,3.5,7])RL(cx+.5+dx,chin-3,9+((dx*2)&3));}
+    else{RL(cx-fl*1,hy+1,chin+4-hy);RL(cx-fl*5,hy+2,chin+6-hy);RL(cx-fl*8,hy+1,chin+8-hy);}}
+  if(S.quiffcurl){if(view==='S'){strandPath([[cx-1,topY-1],[cx-2,topY+3],[cx-1,hy-3]],y=>y<topY+3?3:2,R,'rope',true);}else if(side){const rows=[[-3,3,6],[-2,4,8],[-1,5,9],[0,6,9],[1,6,9],[2,7,8]];for(const [dy,u0,u1] of rows)for(let u=u0;u<=u1;u++)p(cx+u*fl,topY+dy,R[dy<=-2?4:u===u1?1:dy>=1?2:3]);}}
+  if(S.fall){const F=(pts,wd,bot)=>{strandPath(pts,y=>y<bot-6?wd:y<bot-3?wd-1:wd-2,R,'rope');const [xe,ye]=pts[pts.length-1];p(Math.round(xe)-1,ye+1,R[2]);p(Math.round(xe)+1,ye+2,R[1]);};
+    if(view==='S'){F([[cx+6.5,hy-5],[cx+9,hy+1],[cx+9.5,chin+3],[cx+8.5,chin+9]],6,chin+9);for(let y=hy+2;y<chin+6;y++)if(g(cx+9,y))p(cx+9,y,R[(y>>2)&1?1:2]);}
+    else if(view==='W'){F([[cx+1,hy-4],[cx+3,hy+2],[cx+3,chin+3],[cx+2,chin+9]],5,chin+9);}}
+  if(S.rowtails){if(view==='N'){for(const dx of [-3,1,4])strandPath([[cx+dx,chin-5],[cx+dx,chin+3]],y=>2,R,'braid');}else if(side)strandPath([[cx-fl*7,hy+5],[cx-fl*7,chin+3]],y=>2,R,'braid');}}
 // ---------------------------------------------------------------- facial hair, glasses, hats, accessories
-function beard(cx,hy,view,fl,bt){if(!bt||view==='N')return;const R=HR,chin=hy+9;const side=view!=='S';
+// ---- wardrobe facial hair (new): drawn in the hair ramp, lit from the upper left, a deep lower edge
+function beard2(cx,hy,view,fl,bt){const R=HR,chin=hy+9,side=view!=='S';const put=(u,y,k)=>p(side?cx+u*fl:cx+u,y,R[clamp(k,0,4)]);
+  const faceHW=y=>{const b=chin-y;return b===0?4:b===1?6:b===2?7:8;};   // the face's half-width on a row (front view): x from cx-hw+1 to cx+hw
+  const mst=(w,thick)=>{if(side){for(let u=4;u<=7;u++){put(u,hy+5,u===7?2:3);if(thick)put(u,hy+6,1);}}else{for(let u=-w+1;u<=w;u++){put(u,hy+5,u<0?4:3);if(thick)put(u,hy+6,u===-w+1||u===w?1:2);}}};
+  switch(bt){
+  case 'chinstrap':if(side){/* down in front of the ear, then along the lower edge of the jaw to the chin */for(let y=hy+3;y<=chin-1;y++){put(0,y,3);put(1,y,2);}for(let u=0;u<=5;u++){put(u,chin-1,u<2?2:3);put(u,chin,1);}}else{for(let y=hy+3;y<=chin;y++){const w=faceHW(y);put(-w+1,y,3);put(w,y,2);}for(let u=-3;u<=4;u++)put(u,chin+1,u<0?2:1);}return true;
+  case 'mutton':if(side){for(let y=hy-3;y<=hy+7;y++){const u1=y<hy+1?1:y<hy+3?2:y<hy+6?4:3;for(let u=-1;u<=u1;u++)put(u,y,y===hy+7||u===u1?1:(u===-1||y<hy?4:(y>hy+4&&u>1?2:3)));}}else{for(let y=hy+1;y<=hy+7;y++){const w=faceHW(y),t=y<hy+3?2:y<hy+6?4:3;for(let i=0;i<t;i++){put(-w+1+i,y,y===hy+7?1:i===0?3:4);put(w-i,y,y===hy+7?1:i===0?1:2);}}}return true;
+  case 'handlebar':mst(3,true);if(side){put(8,hy+5,2);put(9,hy+4,3);put(9,hy+3,2);}else{put(-3,hy+5,4);put(-4,hy+4,4);put(-4,hy+3,3);put(4,hy+5,2);put(5,hy+4,2);put(5,hy+3,1);}return true;
+  case 'walrus':if(side){for(let y=hy+5;y<=hy+7;y++)for(let u=4;u<=8;u++){if(y===hy+7&&(u&1))continue;put(u,y,y===hy+7?1:u>6?2:3);}}else{for(let y=hy+5;y<=hy+7;y++)for(let u=-3;u<=4;u++){if(y===hy+7&&((u+10)%2===0))continue;put(u,y,y===hy+5?(u<0?4:3):y===hy+7?1:(u<0?3:2));}}return true;
+  case 'horseshoe':mst(3,true);if(side){for(let y=hy+6;y<=chin;y++)put(5,y,y===chin?1:2);}else{for(let y=hy+6;y<=chin;y++){put(-3,y,y===chin?1:3);put(4,y,y===chin?1:2);}}return true;
+  case 'pencil':if(side){for(let u=5;u<=7;u++)put(u,hy+5,2);}else{for(const u of [-2,-1,2,3])put(u,hy+5,u<0?3:2);}return true;
+  case 'soulpatch':if(side){put(6,hy+7,2);put(6,hy+8,1);}else{put(0,hy+7,3);put(1,hy+7,2);put(0,hy+8,2);put(1,hy+8,1);}return true;
+  case 'vandyke':if(side){for(let u=4;u<=7;u++)put(u,hy+5,u===7?2:3);for(let y=chin-2;y<=chin+2;y++)for(let u=4;u<=(y>chin?5:6);u++)put(u,y,y>=chin+1?1:u===4?3:2);}
+    else{for(const u of [-2,-1,2,3])put(u,hy+5,u<0?4:3);for(const u of [-3,4])put(u,hy+6,1);for(let y=chin-2;y<=chin+2;y++){const w=y<=chin?2:y===chin+1?1:0;for(let u=-w+1;u<=w;u++)put(u,y,y>=chin+1?1:u<1?3:2);}}return true;
+  case 'long':case 'braided':case 'scruffy':{const L=bt==='long'?8:bt==='scruffy'?3:3;
+    if(side){for(let y=hy+3;y<=chin+L;y++){const t=Math.max(0,y-chin);let u0=y<hy+5?-1:0,u1=y<hy+5?1:Math.min(8,7-Math.round(t*.5));if(y>chin){u0=1+Math.round(t*.3);}
+        for(let u=u0;u<=u1;u++){if(y<hy+7&&u>3&&y>hy+4&&u<8&&!(y===hy+5))continue;const jag=bt==='scruffy'&&y===chin+L&&((u+20)%2===0);if(jag)continue;put(u,y,y>=chin+L-1?1:(u===u0?4:u<3?3:2));}}mst(0,true);}
+    else{for(let y=hy+3;y<=chin+L;y++){const t=Math.max(0,y-chin);let w=y<=chin?(y<=hy+4?8:faceHW(y)+(y>chin-3?1:0)):Math.max(1,Math.round(6-t*(bt==='long'?.6:1.2)));
+        for(let u=-w+1;u<=w;u++){const su=u-.5;if(y<chin-2&&Math.abs(su)<5.5&&y<hy+5)continue;if(y===hy+6&&Math.abs(su)<1.6)continue;if(y<=hy+5&&Math.abs(su)<4.5)continue;
+          if(bt==='scruffy'&&y===chin+L&&((u+20)%3!==0))continue;const cl=y>chin-1&&(Math.abs(su-(bt==='scruffy'?-2.5:-1.5))<.6||(bt==='scruffy'&&Math.abs(su-2.5)<.6&&y>chin+1));put(u,y,y>=chin+L?1:cl?2:(su<-3?4:su>3?2:3));}}mst(3,true);}
+    if(bt==='braided'){const bx=side?cx+fl*4:cx+.5,y0=chin+L,RL=R.map((c,i)=>R[Math.min(4,i+1)]);for(let y=y0;y<=y0+6;y++){const q=((y-y0)%4+4)%4;for(let i=0;i<3;i++)p(Math.round(bx)-1+i,y,RL[BRAIDTILE[q][i+1]]);p(Math.round(bx)-2,y,R[0]);p(Math.round(bx)+2,y,R[0]);}for(let i=-1;i<=1;i++)p(Math.round(bx)+i,y0+7,ACCR[i?2:3]);}
+    return true;}
+  case 'sideburns':if(side){for(let y=hy-1;y<=hy+5;y++){put(0,y,y===hy+5?1:3);put(1,y,y===hy+5?1:2);}}else{for(let y=hy-1;y<=hy+5;y++){const w=8;put(-w+1,y,y===hy+5?1:3);put(-w+2,y,y===hy+5?1:4);put(w,y,y===hy+5?1:2);put(w-1,y,y===hy+5?1:2);}}return true;}
+  return false;}
+// ---- wardrobe eyewear (new): frames in the frame colour, lenses in the lens colour, wire in metal
+function glasses2(cx,hy,view,fl,gt){const F=ramp(C.frame||'#535163'),L=ramp(C.lens||'#6a8a9a'),M=ramp(C.metal||'#b89a4a'),side=view!=='S'&&view!=='N',N=view==='N';const GL=[214,220,230];
+  const lensA=(x,y,c,a)=>P(LY[CUR],x,y,c,a);   // a see-through lens
+  const strapN=(y,R,h)=>{for(let x=-9;x<=10;x++)for(let j=0;j<(h||1);j++)p(cx+x,y+j,R[j===(h||1)-1?1:(x<0?3:2)]);};
+  // a lens box per eye in the front view: x0 = its left column, w x h
+  const eyeBox=(fn)=>{for(const s of [-1,1]){const x0=s<0?cx-6:cx+3;fn(s,x0);}};
+  if(N){if(gt==='goggles'||gt==='welding')strapN(hy,F,2);else if(gt==='eyepatch'){for(let x=-9;x<=10;x++)p(cx+x,hy-3+Math.round((x+9)*.2),F[2]);}else if(gt==='blindfold'){strapN(hy-1,F,3);lockBlob(cx+.5,hy,2,1,F);for(const s of [-1,1])for(let j=0;j<5;j++)p(cx+.5+s*(1+j*.4)-(s<0?1:0),hy+2+j,F[j===4?1:2]);}return true;}
+  if(!side){switch(gt){
+    case 'aviator':eyeBox((s,x0)=>{const rows=[[0,4],[0,4],[0,4],[1,4],[1,3],[2,3]].map(r=>s<0?r:[4-r[1],4-r[0]]);rows.forEach(([a,b],j)=>{for(let i=a;i<=b;i++){const edge=i===a||i===b||j===0||j===5;if(edge)p(x0+i,hy-1+j,M[j===0?3:1]);else lensA(x0+i,hy-1+j,L[j<2?1:2],175);}});p(x0+(s<0?1:3),hy,GL);});
+      p(cx,hy-1,M[3]);p(cx+1,hy-1,M[3]);p(cx,hy+1,M[2]);p(cx+1,hy+1,M[2]);p(cx-7,hy,M[2]);p(cx+8,hy,M[2]);return true;
+    case 'cateye':eyeBox((s,x0)=>{for(let i=0;i<5;i++){p(x0+i,hy-1,F[3]);p(x0+i,hy+3,F[1]);}for(let j=0;j<3;j++){p(x0,hy+j,F[2]);p(x0+4,hy+j,F[1]);}const ox=s<0?x0-1:x0+5;p(ox,hy-1,F[3]);p(ox+(s<0?-1:1),hy-2,F[4]);p(ox,hy-2,F[3]);p(x0+(s<0?1:3),hy,GL);});p(cx,hy,F[2]);p(cx+1,hy,F[2]);p(cx-7,hy,F[2]);p(cx+8,hy,F[2]);return true;
+    case 'browline':eyeBox((s,x0)=>{for(let i=0;i<5;i++){p(x0+i,hy-1,F[i<2?3:2]);p(x0+i,hy-2,F[3]);}for(let i=1;i<4;i++)p(x0+i,hy+3,M[2]);for(let j=0;j<3;j++){p(x0,hy+j,M[3]);p(x0+4,hy+j,M[1]);}p(x0+1,hy,GL);});p(cx,hy,M[3]);p(cx+1,hy,M[3]);p(cx-7,hy-1,F[2]);p(cx+8,hy-1,F[2]);return true;
+    case 'wire':eyeBox((s,x0)=>{const a=x0+(s<0?1:0);for(let i=1;i<3;i++){p(a+i,hy-1,M[3]);p(a+i,hy+3,M[1]);}for(let j=0;j<3;j++){p(a,hy+j,M[3]);p(a+3,hy+j,M[1]);}p(a+1,hy,GL);});p(cx,hy,M[3]);p(cx+1,hy,M[3]);for(let i=0;i<2;i++){p(cx-7+i,hy,M[2]);p(cx+7+i,hy,M[2]);}return true;
+    case 'owl':for(const s of [-1,1]){const xc=s<0?cx-3.5:cx+4.5;K_ell(xc,hy+1,3.6,3.6,(x,y,xx,yy)=>{const d=Math.hypot(xx,yy);if(d>.66)p(x,y,F[yy<-.3?(xx<0?4:3):xx>.3?1:2]);else if(xx<-.1&&yy<-.1&&d>.35)p(x,y,GL);});}p(cx,hy,F[2]);p(cx+1,hy,F[2]);return true;
+    case 'pincenez':eyeBox((s,x0)=>{const a=x0+(s<0?1:0);for(let i=1;i<3;i++){p(a+i,hy-1,M[3]);p(a+i,hy+3,M[1]);}for(let j=0;j<3;j++){p(a,hy+j,M[3]);p(a+3,hy+j,M[1]);}p(a+1,hy,GL);});p(cx,hy+1,M[3]);p(cx+1,hy+1,M[3]);
+      for(let j=0;j<10;j++){const x=Math.round(cx+7+Math.sin(j*.35)*1.2),y=hy+2+j;p(x,y,M[(j&1)?2:3]);}return true;
+    case 'goggles':case 'welding':{const W2=gt==='welding';eyeBox((s,x0)=>{for(let j=-1;j<=4;j++)for(let i=-1;i<=5;i++){const edge=j===-1||j===4||i===-1||i===5;const corner=(j===-1||j===4)&&(i===-1||i===5);if(corner)continue;
+        if(edge||(W2&&(j===0||j===3||i===0||i===4)))p(x0+i,hy+j,(W2?M:F)[j<=0?3:i>=4?1:2]);else if(W2)p(x0+i,hy+j,[24,22,28]);else lensA(x0+i,hy+j,L[j<1?4:3],150);}if(W2)p(x0+1,hy+1,[90,96,110]);else p(x0+1,hy,GL);});
+      for(const x of [cx-8,cx-9,cx+9,cx+10]){p(x,hy,F[2]);p(x,hy+1,F[1]);}p(cx,hy+1,F[1]);p(cx+1,hy+1,F[1]);return true;}
+    case 'eyepatch':{const x0=cx+3;for(let j=-1;j<=3;j++)for(let i=0;i<=4;i++){if((j===-1||j===3)&&(i===0||i===4))continue;p(x0+i,hy+j,F[j===-1?3:j===3?0:i===0?2:1]);}
+      for(let x=-8;x<=2;x++)p(cx+x,hy-1-Math.round((x+8)*.35),F[2]);p(cx+8,hy-1,F[2]);p(cx+9,hy-2,F[2]);return true;}
+    case 'halfmoon':eyeBox((s,x0)=>{for(let i=0;i<5;i++){p(x0+i,hy+2,F[2]);p(x0+i,hy+4,F[1]);}p(x0,hy+3,F[2]);p(x0+4,hy+3,F[1]);p(x0+1,hy+3,GL);});p(cx,hy+3,F[2]);p(cx+1,hy+3,F[2]);p(cx-7,hy+1,F[2]);p(cx+8,hy+1,F[2]);return true;
+    case 'thickframe':eyeBox((s,x0)=>{for(let i=0;i<5;i++){p(x0+i,hy-2,F[i<2?3:2]);p(x0+i,hy-1,F[2]);p(x0+i,hy+3,F[0]);}for(let j=0;j<3;j++){p(x0,hy+j,F[2]);p(x0+4,hy+j,F[1]);}p(x0+1,hy,GL);});for(let y=hy-1;y<=hy;y++){p(cx,y,F[2]);p(cx+1,y,F[2]);}p(cx-7,hy-1,F[2]);p(cx+8,hy-1,F[2]);return true;
+    case 'mirror':eyeBox((s,x0)=>{for(let i=0;i<5;i++){p(x0+i,hy-1,F[2]);p(x0+i,hy+3,F[0]);}for(let j=0;j<3;j++){p(x0,hy+j,F[2]);p(x0+4,hy+j,F[1]);for(let i=1;i<4;i++){const band=(i+j)===2||(i+j)===3;p(x0+i,hy+j,band?L[4]:L[1]);}}});p(cx,hy,F[2]);p(cx+1,hy,F[2]);p(cx-7,hy,F[2]);p(cx+8,hy,F[2]);return true;
+    case 'cracked':eyeBox((s,x0)=>{for(let i=1;i<4;i++){p(x0+i,hy-1,F[3]);p(x0+i,hy+3,F[1]);}for(let j=0;j<3;j++){p(x0,hy+j,F[2]);p(x0+4,hy+j,F[1]);}if(s<0)p(x0+1,hy,GL);else{p(x0+1,hy,[200,206,214]);p(x0+2,hy+1,[200,206,214]);p(x0+3,hy+1,[236,240,246]);p(x0+2,hy+2,[200,206,214]);p(x0+1,hy+2,[236,240,246]);}});p(cx,hy,F[2]);p(cx+1,hy,F[2]);p(cx-7,hy,F[2]);p(cx+8,hy,F[2]);return true;
+    case 'blindfold':for(let y=hy-1;y<=hy+2;y++)for(let x=-8;x<=9;x++)p(cx+x,y,F[y===hy-1?3:y===hy+2?1:(x<-3?3:x>4?1:2)]);for(let x=-7;x<=8;x+=5)p(cx+x,hy+1,F[1]);return true;}}
+  else{const x0=cx+fl*3,box=(w,top,bot,fn)=>{for(let j=top;j<=bot;j++)for(let i=0;i<w;i++)fn(x0+fl*i,hy+j,i,j);},arm=(y,R)=>{for(let i=1;i<=5;i++)p(x0-fl*i,y,R[2]);};
+    switch(gt){
+    case 'aviator':box(4,-1,4,(x,y,i,j)=>{if(j===4&&i===0)return;const edge=i===0||i===3||j===-1||j===4||(j===3&&i===0);if(edge)p(x,y,M[j<=-1?3:1]);else lensA(x,y,L[j<1?1:2],175);});arm(hy,M);return true;
+    case 'cateye':box(4,-1,3,(x,y,i,j)=>{const edge=i===0||i===3||j===-1||j===3;if(edge)p(x,y,F[j===-1?3:1]);});p(x0+fl*3,hy-2,F[4]);arm(hy,F);p(x0+fl,hy,GL);return true;
+    case 'browline':box(4,-2,3,(x,y,i,j)=>{if(j<=-1)p(x,y,F[3]);else if(i===0||i===3||j===3)p(x,y,M[2]);});arm(hy-1,F);return true;
+    case 'wire':box(3,-1,3,(x,y,i,j)=>{if(i===0||i===2||j===-1||j===3)p(x,y,M[j<0?3:2]);});arm(hy,M);return true;
+    case 'owl':K_ell(cx+.5+fl*4.5,hy+1,3,3.6,(x,y,xx,yy)=>{if(Math.hypot(xx,yy)>.62)p(x,y,F[yy<0?3:1]);});arm(hy,F);return true;
+    case 'pincenez':box(3,-1,3,(x,y,i,j)=>{if(i===0||i===2||j===-1||j===3)p(x,y,M[2]);});for(let j=0;j<9;j++)p(x0-fl*Math.round(1+Math.sin(j*.4)),hy+3+j,M[(j&1)?2:3]);return true;
+    case 'goggles':case 'welding':{const W2=gt==='welding';box(4,-1,4,(x,y,i,j)=>{const edge=i===0||i===3||j===-1||j===4;if(edge)p(x,y,(W2?M:F)[j<0?3:1]);else if(W2)p(x,y,[24,22,28]);else lensA(x,y,L[3],150);});for(let i=1;i<=9;i++){p(x0-fl*i,hy,F[2]);p(x0-fl*i,hy+1,F[1]);}return true;}
+    case 'eyepatch':if(fl<0){box(4,-1,3,(x,y,i,j)=>p(x,y,F[j===-1?3:j===3?0:2]));}for(let i=1;i<=9;i++)p(x0-fl*i,hy-1-Math.round(i*.25),F[2]);return true;
+    case 'halfmoon':box(4,2,4,(x,y,i,j)=>{if(i===0||i===3||j===2||j===4)p(x,y,F[j===2?2:1]);});arm(hy+1,F);return true;
+    case 'thickframe':box(4,-2,3,(x,y,i,j)=>{if(j<=-1||i===0||i===3||j===3)p(x,y,F[j<=-1?3:1]);});p(x0+fl,hy,GL);arm(hy-1,F);return true;
+    case 'mirror':box(4,-1,3,(x,y,i,j)=>{const edge=i===0||i===3||j===-1||j===3;p(x,y,edge?F[j<0?2:0]:((i+j)===2?L[4]:L[1]));});arm(hy,F);return true;
+    case 'cracked':box(4,-1,3,(x,y,i,j)=>{if(i===0||i===3||j===-1||j===3)p(x,y,F[j<0?3:1]);});if(fl>0){p(x0+fl,hy+1,[236,240,246]);p(x0+fl*2,hy,[200,206,214]);}else p(x0+fl,hy,GL);arm(hy,F);return true;
+    case 'blindfold':for(let y=hy-1;y<=hy+2;y++)for(let u=-8;u<=8;u++)p(cx+u*fl,y,F[y===hy-1?3:y===hy+2?1:2]);lockBlob(cx-fl*8,hy,1,1,F);for(let j=0;j<5;j++)p(cx-fl*(9+(j>>1)),hy+1+j,F[2]);return true;}}
+  return false;}
+function K_ell(xc,yc,rx,ry,fn){for(let y=Math.floor(yc-ry);y<=Math.ceil(yc+ry);y++)for(let x=Math.floor(xc-rx);x<=Math.ceil(xc+rx);x++){const xx=(x+.5-xc)/(rx+.01),yy=(y+.5-yc)/(ry+.01);if(xx*xx+yy*yy<=1)fn(x,y,xx,yy);}}
+function beard(cx,hy,view,fl,bt){if(!bt||view==='N')return;if(beard2(cx,hy,view,fl,bt))return;const R=HR,chin=hy+9;const side=view!=='S';
   const put=(u,y,k)=>p(side?cx+u*fl:cx+u,y,R[k]);
   if(bt==='stubble'){   /* (judge townsfolk: "beards as shapes, not speckle") stubble as one soft shadow along the jaw and chin in a hair-and-skin mix, no checker */
     const mix=(a,b,t)=>a.map((v,i)=>Math.round(v*(1-t)+b[i]*t)),S1=mix(SK[2],HR[1],.45),S2=mix(SK[1],HR[0],.5);
@@ -359,7 +611,7 @@ function beard(cx,hy,view,fl,bt){if(!bt||view==='N')return;const R=HR,chin=hy+9;
   for(let y=hy+3;y<=chin+2;y++){const hw=y<=hy+4?8:y<chin-1?8:y===chin-1?7:y===chin?6:y===chin+1?5:3;for(let u=(side?-1:-hw+1);u<=(side?7-(y>chin?2:0):hw);u++){const su=side?u:u-.5;
       if(!side&&y<chin-2&&Math.abs(su)<5.5&&y<hy+5)continue;if(!side&&y===hy+6&&Math.abs(su)<1.6)continue;if(side&&y<hy+5&&u>1)continue;put(u,y,y>=chin+1?1:(side?(u>4?3:2):(su<-3?4:su>3?2:3)));}}
   mst();}
-function glasses(cx,hy,view,fl,gt){if(view==='N')return;
+function glasses(cx,hy,view,fl,gt){if(glasses2(cx,hy,view,fl,gt))return;if(view==='N')return;
   if(gt==='monocle'){const G=[[150,118,52],[214,176,82]],GLs=[200,214,226];const x0=view==='S'?cx+3:cx+fl*3;
     for(const [dx,dy] of [[1,-1],[2,-1],[3,-1],[0,0],[4,0],[0,1],[4,1],[0,2],[4,2],[1,3],[2,3],[3,3]])p(x0+(view==='S'?dx:fl*dx),hy+dy,G[dy<1?1:0]);
     p(x0+(view==='S'?1:fl),hy,GLs);for(let i=1;i<6;i++)p(x0+(view==='S'?4:fl*4),hy+3+i,G[i%2]);return;}gt=gt===true?'round':gt;const F=gt==='shades'?[[20,16,22],[34,30,38]]:[[40,34,44],[64,58,70]],GL=[196,212,224];
@@ -370,7 +622,287 @@ function glasses(cx,hy,view,fl,gt){if(view==='N')return;
   else{const x0=cx+fl*3;for(let i=0;i<4;i++){p(x0+fl*i,hy-1,F[1]);p(x0+fl*i,hy+3,F[0]);}for(let j=0;j<3;j++){p(x0,hy+j,F[1]);p(x0+fl*3,hy+j,F[0]);}if(gt==='shades')for(let j=0;j<3;j++)for(let i=1;i<3;i++)p(x0+fl*i,hy+j,F[0]);
     if(gt==='tint'){for(let j=0;j<3;j++)for(let i=1;i<3;i++)p(x0+fl*i,hy+j,j===0?[150,142,150]:[128,120,130]);p(x0+fl*1,hy+1,[34,26,34]);p(x0+fl*2,hy,[214,220,230]);}
     for(let i=1;i<=5;i++)p(x0-fl*i,hy,F[1]);}}
-function hat(cx,hy,view,fl,h,hairTop){if(!h)return;const H=HAT,side=view!=='S'&&view!=='N',chin=hy+9,top=chin-HEADH+1;const T0=Math.min(top-2,hairTop!=null?hairTop+1:top-2);
+// ---- wardrobe hats (new). Each is drawn per view (S front, N back, E/W side). cut marks the hair (and beard) a hat hides: the sheet carries it as
+// #ff00ff wherever the hat itself has no pixel, and the game clears hair and beard there. Colours: hat (main), hat2 (band, trim, veil), metal, lens.
+const H2R=ramp(C.hat2||'#b84a8a'),MTR=ramp(C.metal||'#b89a4a'),LNR=ramp(C.lens||'#6a8a9a'),STRAW=[[110,80,30],[160,124,52],[204,168,82],[232,204,118],[248,230,160]];
+const LAMP=[[200,140,60],[240,200,110],[255,238,170],[255,250,224]];
+const SHADE_A=[22,12,26];
+function hatKit(cx,hy,view,fl){const side=view==='E'||view==='W',S=view==='S',N=view==='N',chin=hy+9,top=chin-HEADH+1,sh=side?-fl:0,hx=cx+.5+sh;
+  const K={side,S,N,fl,cx,hy,chin,top,sh,hx,
+    X:u=>side?Math.round(cx+.5+u*fl-.5*fl):Math.round(cx+u),   // side views: u forward of the axis; front/back: u across
+    put:(x,y,R,k)=>p(x,y,R[clamp(Math.round(k),0,4)]),
+    lit:(xx,yy,b)=>{const l=-xx*.55-yy*.5+(b||0);return l>.6?4:l>.1?3:l>-.4?2:1;},
+    // a half-ellipse crown standing on row b
+    dome:(t,b,rx,R,shift,kf)=>{const ry=Math.max(1,b-t);for(let y=t;y<=b;y++)for(let x=-Math.ceil(rx)-1;x<=Math.ceil(rx)+1;x++){const xx=(x-.5)/(rx+.5),yy=(y-b)/ry;if(xx*xx+yy*yy>1)continue;let k=K.lit(xx,yy);if(kf)k=kf(x,y,k,xx,yy);if(k<0)continue;p(cx+x+(shift||0),y,R[clamp(k,0,4)]);}},
+    // any ellipse (centre xc,yc): fn(x,y,xx,yy) draws each pixel
+    ell:(xc,yc,rx,ry,fn)=>{for(let y=Math.floor(yc-ry);y<=Math.ceil(yc+ry);y++)for(let x=Math.floor(xc-rx);x<=Math.ceil(xc+rx);x++){const xx=(x+.5-xc)/(rx+.01),yy=(y+.5-yc)/(ry+.01);if(xx*xx+yy*yy<=1)fn(x,y,xx,yy);}},
+    // a brim seen nearly edge-on: a lit top row and a dark lip; end(x) lifts (-) or droops (+) the ends
+    brim:(y,rx,R,end,rows)=>{rows=rows||2;for(let x=-Math.ceil(rx);x<=Math.ceil(rx)+1;x++){const xx=(x-.5)/(rx+.5);if(Math.abs(xx)>1)continue;const dy=end?end(x,xx):0;
+        p(cx+x+sh,y+dy,R[xx<-.45?4:xx>.5?1:3]);for(let r=1;r<rows;r++)p(cx+x+sh,y+dy+r,R[r===rows-1?0:(xx>.5?1:2)]);}},
+    // a wide brim seen from above: the top surface as an ellipse ring, its far edge lit, the near lip dark, the underside one row deeper
+    ebrim:(yc,rx,ry,R,droop)=>{const pts=[];K.ell(hx,yc,rx,ry,(x,y,xx,yy)=>{const d=droop?droop(xx):0;pts.push([x,y+d,xx,yy]);});
+      const low={};for(const [x,y] of pts)low[x]=Math.max(low[x]==null?-1e9:low[x],y);
+      for(const [x,y,xx,yy] of pts){let k=yy<-.3?(xx<.2?4:3):yy<.5?(xx<-.3?3:xx>.5?1:2):(xx<-.4?2:1);if(Math.hypot(xx,yy)>.82&&yy<0&&xx>.3)k=Math.min(k,2);p(x,y,R[k]);}
+      for(const x in low){p(+x,low[x],R[1]);p(+x,low[x]+1,R[0]);}},
+    band:(y0,y1,rx,R,shift)=>{for(let y=y0;y<=y1;y++)for(let x=-Math.ceil(rx);x<=Math.ceil(rx)+1;x++){const xx=(x-.5)/(rx+.5);if(Math.abs(xx)>1)continue;p(cx+x+sh+(shift||0),y,R[y===y1?1:xx<-.4?3:xx>.5?1:2]);}},
+    cut:(x,y)=>{x=Math.round(x);y=Math.round(y);if(LY.cut)P(LY.cut,x,y,[255,0,255]);},
+    cutBox:(x0,x1,y0,y1)=>{for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)K.cut(x,y);},
+    cutAbove:(y,rx)=>{rx=rx||17;K.cutBox(cx-rx,cx+rx+1,0,y-1);},
+    cutEll:(xc,yc,rx,ry,keep)=>K.ell(xc,yc,rx,ry,(x,y,xx,yy)=>{if(!keep||!keep(x,y))K.cut(x,y);}),
+    shade:(x,y,a)=>{x=Math.round(x);y=Math.round(y);if(g(x,y)||!G(LY.body,x,y))return;P(LY[CUR],x,y,SHADE_A,a||80);},
+    vis:(x,y,R,k)=>{if(!g(x,y))p(x,y,R[k]);},
+    bow:(x,y,R)=>{for(const s of [-1,1])for(let j=-1;j<=1;j++)for(let i=1;i<=2;i++){if(Math.abs(j)>2-i+0)continue;p(x+s*i,y+j,R[s<0?(j<0?4:3):(j<0?2:1)]);}p(x,y,R[1]);p(x+1,y,R[0]);}};
+  return K;}
+const HATDEF={
+ trucker(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT;K.cutAbove(hy-4);
+   K.dome(hy-14,hy-4,9,H,sh,(x,y,k)=>{const uf=side?x*-1:0;if(N||(side&&(x*fl<-1)))return k;if(S&&Math.abs(x-.5)<5&&y<hy-5)return Math.min(4,k+1);return k;});
+   if(N||side){const M=H2R;for(let y=hy-13;y<hy-4;y++)for(let x=-10;x<=11;x++){const X=cx+x+sh;if(!g(X,y))continue;if(side&&x*fl>-1)continue;const c=g(X,y);const k=H.findIndex(r=>r[0]===c[0]&&r[1]===c[1]&&r[2]===c[2]);if(k<0)continue;p(X,y,M[((y&1)&&hsh(Math.floor((x+(y>>1))/3),y,5)<.6)?Math.max(1,k-1):k]);}}
+   for(let x=-9;x<=10;x++)p(cx+x+sh,hy-4,H[1]);p(cx+sh,hy-14,H2R[3]);p(cx+1+sh,hy-14,H2R[2]);
+   if(S){for(let x=-6;x<=7;x++){p(cx+x,hy-3,H[x<-3?3:2]);p(cx+x,hy-2,H[0]);}for(let x=-6;x<=7;x++)K.shade(cx+x,hy-1,60);}
+   else if(side){for(let i=0;i<8;i++){p(cx+fl*(6+i),hy-4,H[i<6?3:2]);p(cx+fl*(6+i),hy-3,H[0]);}}
+   else{for(let x=-2;x<=3;x++){p(cx+x,hy-6,H2R[0]);}for(let x=-2;x<=3;x++)p(cx+x,hy-5,H[1]);p(cx,hy-5,MTR[3]);}},
+ backcap(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT;K.cutAbove(hy-4);
+   K.dome(hy-13,hy-4,9,H,sh);for(let x=-9;x<=10;x++)p(cx+x+sh,hy-4,H[1]);p(cx+sh,hy-13,H[4]);p(cx+1+sh,hy-13,H[3]);
+   if(S){/* the strap opening at the front shows the hair through it */for(let y=hy-7;y<=hy-5;y++)for(let x=-2;x<=3;x++){if(y===hy-7&&(x===-2||x===3))continue;const i=(y*FW+cx+x)*4;LY.hat.d[i+3]=0;LY.cut.d[i+3]=0;}
+     for(const x of [-3,4])for(let y=hy-7;y<=hy-5;y++)p(cx+x,y,H[0]);for(let x=-2;x<=3;x++)p(cx+x,hy-8,H[0]);for(let x=-3;x<=4;x++)p(cx+x,hy-4,H[0]);p(cx,hy-4,MTR[3]);p(cx+1,hy-4,MTR[2]);}
+   else if(N){for(let x=-6;x<=7;x++){p(cx+x,hy-3,H[x<-3?3:2]);p(cx+x,hy-2,H[0]);}}
+   else{for(let i=0;i<8;i++){p(cx-fl*(7+i),hy-4,H[i<6?2:1]);p(cx-fl*(7+i),hy-3,H[0]);}}},
+ sunhat(K){const {S,N,side,fl,cx,hy,sh,hx}=K,H=HAT;K.cutAbove(hy-5);K.cutEll(hx,hy-6,15,3);
+   K.ebrim(hy-6,15,3.2,H,xx=>Math.abs(xx)>.7?Math.round((Math.abs(xx)-.7)*6):0);
+   K.dome(hy-13,hy-7,7,H,sh);K.band(hy-8,hy-7,7.5,H2R);
+   if(S)K.bow(cx+6,hy-8,H2R);else if(N)K.bow(cx-5,hy-8,H2R);else K.bow(cx-fl*6,hy-8,H2R);
+   if(S)for(let x=-8;x<=9;x++)K.shade(cx+x,hy-2,70);},
+ bonnet(K){const {S,N,side,fl,cx,hy,chin,sh,hx}=K,H=HAT;
+   if(S){K.cutBox(cx-17,cx+18,0,hy+4);K.ell(hx,hy+1,11,13,(x,y,xx,yy)=>{if(y>hy+5)return;const ix=(x+.5-hx)/7.5,iy=(y+.5-(hy+2.5))/9.5;if(ix*ix+iy*iy<1)return;const inner=ix*ix+iy*iy<1.35;
+       p(x,y,H[inner?1:K.lit(xx,yy)]);});
+     // the hair at the parting shows inside the opening
+     K.ell(hx,hy+2.5,7.5,9.5,(x,y)=>{if(y>=hy-6){const i=(y*FW+x)*4;if(LY.cut.d[i+3]&&y>=hy-7)LY.cut.d[i+3]=0;}});
+     for(const s of [-1,1]){const x0=s<0?cx-8:cx+9;for(let y=hy+6;y<=chin;y++)p(x0+s*-Math.round((y-hy-6)*.6),y,H2R[s<0?3:2]);}K.bow(cx,chin+1,H2R);}
+   else if(N){K.cutBox(cx-17,cx+18,0,hy+5);K.ell(hx,hy-2,10.5,10.5,(x,y,xx,yy)=>p(x,y,H[K.lit(xx,yy)]));K.ell(hx,hy-1,3.5,3.5,(x,y,xx,yy)=>{const d=Math.hypot(xx,yy);if(d>.65)p(x,y,H[1]);});
+     for(let y=hy+5;y<=hy+10;y++)for(let x=-10;x<=11;x++){const xx=(x-.5)/10.5;p(cx+x,y,H[y===hy+10?1:((x+40)%3===0?1:xx<-.3?3:2)]);}}
+   else{K.cutBox(cx-17,cx+18,0,hy+4);/* side on: the bonnet's crown over the back of the head, its stiff brim standing up beside the face and jutting over the brow */
+     K.ell(cx+.5-fl*3,hy-2,8.5,10.5,(x,y,xx,yy)=>{const uf=(x-cx)*fl;if(uf>3||y>hy+5)return;p(x,y,H[K.lit(xx*fl,yy)]);});
+     for(let y=hy-13;y<=hy+5;y++){const t=(y-hy+13)/18,u0=Math.round(4.5-t*2.2+(y<hy-10?-(hy-10-y)*.7:0));for(let i=0;i<3;i++)p(cx+(u0+i)*fl,y,H[i===0?4:i===1?3:1]);}
+     for(let y=hy+5;y<=hy+10;y++)for(let u=-10;u<=2;u++)p(cx+u*fl,y,H[y===hy+10?1:((u+40)%3===0?1:2)]);
+     for(let y=hy+6;y<=chin+1;y++)p(cx+fl*(3+((y-hy-6)>>2)),y,H2R[2]);
+     K.ell(cx+.5,hy+2,9,9,(x,y)=>{const uf=(x-cx)*fl;if(uf>=4&&y>=hy-8){const i=(y*FW+x)*4;LY.cut.d[i+3]=0;}});}},
+ headscarf(K){const {S,N,side,fl,cx,hy,chin,sh,hx}=K,H=HAT;
+   if(S){K.cutBox(cx-17,cx+18,0,chin);K.ell(hx,hy+3,7,8.5,(x,y)=>{if(y>=hy-4){const i=(y*FW+x)*4;LY.cut.d[i+3]=0;}});
+     K.ell(hx,hy-1,10,13.5,(x,y,xx,yy)=>{if(y>chin)return;const ix=(x+.5-hx)/7,iy=(y+.5-(hy+3))/8.5;const d=ix*ix+iy*iy;if(d<1)return;p(x,y,d<1.3?H[1]:H[K.lit(xx,yy)]);});
+     for(let x=-1;x<=2;x++){p(cx+x,chin,H[x<1?3:2]);p(cx+x,chin+1,H[x<1?2:1]);}p(cx-2,chin+2,H[2]);p(cx-3,chin+3,H[1]);p(cx+3,chin+2,H[1]);p(cx+4,chin+3,H[1]);}
+   else if(N){K.cutBox(cx-17,cx+18,0,chin);K.ell(hx,hy-1,10,13.5,(x,y,xx,yy)=>{if(y>hy+5)return;p(x,y,H[K.lit(xx,yy)]);});
+     for(let y=hy+5;y<=chin+5;y++){const w=Math.round(10*(1-(y-hy-5)/11));for(let x=-w+1;x<=w;x++)p(cx+x,y,H[x===w?1:x<-w+3?3:((x-y+60)%4===0?1:2)]);}}
+   else{K.cutBox(cx-17,cx+18,0,chin);K.ell(cx+.5-fl*1.5,hy-1,10,13.5,(x,y,xx,yy)=>{const uf=(x-cx)*fl;if(y>chin||uf>5)return;if(uf>=3&&y>hy-5&&y<hy+7)return;p(x,y,(uf>=2&&y>=hy-5)?H[1]:H[K.lit(xx*fl,yy)]);});
+     for(let y=hy+5;y<=chin+1;y++)for(let u=3;u<=6;u++)if(y>=hy+7||u<=4)p(cx+u*fl,y,H[u===6?1:2]);
+     for(let y=hy+5;y<=chin+4;y++){const w=Math.max(1,4-((y-hy-5)>>1));for(let i=0;i<w;i++)p(cx-fl*(9-i+Math.round((y-hy-5)*.3)),y,H[i===0?1:2]);}}},
+ headwrap(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT;K.cutAbove(hy-4);
+   K.dome(hy-17,hy-4,10,H,sh+(side?-fl:0),(x,y,k)=>((x*2+y+40)%6===0)?Math.max(1,k-1):k);
+   for(let x=-9;x<=10;x++){p(cx+x+sh,hy-5,H[x<-4?3:2]);p(cx+x+sh,hy-4,H[1]);}
+   if(S){lockBlob(cx+.5,hy-15,3,2,H2R);}else if(side)lockBlob(cx+fl*3,hy-15,2,2,H2R);},
+ bandanna(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT;K.cutAbove(hy-5);
+   K.dome(hy-13,hy-5,9,H,sh);for(let x=-9;x<=10;x++){p(cx+x+sh,hy-5,H2R[x<-4?3:2]);}
+   if(N){lockBlob(cx+.5,hy-4,2,1,H);for(const s of [-1,1])for(let j=0;j<6;j++)p(cx+.5+s*(1+j*.5)-(s<0?1:0),hy-2+j,H[j===5?1:2]);}
+   else if(side){lockBlob(cx-fl*8,hy-5,1,1,H);for(let j=0;j<6;j++)p(cx-fl*(9+(j>>1)),hy-4+j,H[2]);}},
+ hardhat(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT;K.cutAbove(hy-4);
+   K.dome(hy-14,hy-5,9,H,sh,(x,y,k)=>{if(side)return k;if(x===0||x===1)return Math.min(4,k+1);if(x===2)return Math.max(1,k-1);return k;});
+   if(side)for(let y=hy-14;y<hy-5;y++){const u=Math.round(Math.sqrt(Math.max(0,1-Math.pow((y-hy+5)/9,2)))*9);}
+   K.brim(hy-4,11,H);
+   if(S)for(let x=-5;x<=6;x++)p(cx+x,hy-2,H[0]);else if(side){for(let i=10;i<=13;i++){p(cx+fl*i,hy-4,H[2]);p(cx+fl*i,hy-3,H[0]);}}
+   if(S)for(let x=-7;x<=8;x++)K.shade(cx+x,hy-1,60);},
+ boater(K){const {S,N,side,fl,cx,hy,sh,hx}=K,H=HAT;K.cutAbove(hy-6);K.cutEll(hx,hy-5,13,2);
+   K.ebrim(hy-5,13,2.2,H);
+   for(let y=hy-11;y<=hy-6;y++)for(let x=-6;x<=7;x++){const xx=(x-.5)/6.5;p(cx+x+sh,y,H[xx<-.5?4:xx>.55?1:xx>.2?2:3]);}
+   for(let x=-6;x<=7;x++){const xx=(x-.5)/6.5;p(cx+x+sh,hy-12,H[xx<.3?4:3]);p(cx+x+sh,hy-13,H[xx<-.6||xx>.6?3:4]);}
+   K.band(hy-8,hy-7,6.5,H2R);if(S)for(let x=-8;x<=9;x++)K.shade(cx+x,hy-2,55);},
+ boonie(K){const {S,N,side,fl,cx,hy,chin,sh,hx}=K,H=HAT;K.cutAbove(hy-5);K.cutEll(hx,hy-5,13,3);
+   K.ebrim(hy-5,13,3,H,xx=>Math.abs(xx)>.6?Math.round((Math.abs(xx)-.6)*5):0);
+   K.dome(hy-13,hy-6,8,H,sh,(x,y,k)=>((x+40)%5===0&&y<hy-8)?Math.max(1,k-1):k);K.band(hy-8,hy-7,8.5,H2R);
+   if(S){for(let y=hy-2;y<=chin;y++){const t=(y-hy+2)/(chin-hy+2);p(Math.round(cx-8+t*5),y,H[1]);p(Math.round(cx+9-t*5),y,H[1]);}for(let x=-3;x<=4;x++)p(cx+x,chin+1,H[1]);
+     for(let x=-8;x<=9;x++)K.shade(cx+x,hy-1,60);}
+   else if(side){for(let y=hy-2;y<=chin;y++)p(cx+fl*Math.round(1+(y-hy+2)*.25),y,H[1]);}},
+ newsboy(K){const {S,N,side,fl,cx,hy,sh,hx}=K,H=HAT;K.cutAbove(hy-4);
+   K.ell(hx+(side?-fl:0),hy-9,11,4.6,(x,y,xx,yy)=>{let k=K.lit(xx,yy);if(yy>.55)k=Math.max(1,k-1);p(x,y,H[k]);});
+   for(const a of [-.7,-.25,.25,.7]){for(let j=1;j<6;j++){const x=Math.round(hx+(side?-fl:0)+a*j*1.9),y=hy-13+j;if(g(x,y))p(x,y,H[1]);}}
+   p(Math.round(hx-.5),hy-14,H[4]);p(Math.round(hx+.5),hy-14,H[2]);
+   if(S){for(let x=-6;x<=7;x++){p(cx+x,hy-4,H[x<-2?3:2]);p(cx+x,hy-3,H[0]);}}else if(side){for(let i=0;i<5;i++){p(cx+fl*(8+i),hy-5,H[2]);p(cx+fl*(8+i),hy-4,H[0]);}}
+   else for(let x=-8;x<=9;x++)p(cx+x,hy-5,H[1]);},
+ deerstalker(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT;K.cutAbove(hy-4);
+   K.dome(hy-14,hy-4,9,H,sh,(x,y,k)=>(x===0&&y>hy-13)?Math.max(1,k-1):k);for(let x=-9;x<=10;x++)p(cx+x+sh,hy-4,H[1]);
+   if(S||N){for(let x=-6;x<=7;x++){p(cx+x,hy-3,H[x<-3?3:2]);p(cx+x,hy-2,H[0]);}
+     for(const s of [-1,1]){const x0=s<0?cx-7:cx+8;for(let j=0;j<4;j++)for(let i=0;i<3-(j>>1);i++)p(x0-s*i,hy-11+j,H[s<0?(i===0?3:2):(i===0?1:2)]);}p(cx,hy-14,H2R[3]);p(cx+1,hy-14,H2R[2]);p(cx,hy-15,H2R[2]);}
+   else{for(let i=0;i<6;i++){p(cx+fl*(7+i),hy-4,H[i<4?3:2]);p(cx+fl*(7+i),hy-3,H[0]);p(cx-fl*(8+i),hy-4,H[2]);p(cx-fl*(8+i),hy-3,H[0]);}
+     for(let j=0;j<4;j++)for(let i=0;i<3;i++)p(cx-fl*(1+i),hy-11+j,H[i===2?1:2]);p(cx-fl,hy-14,H2R[3]);}},
+ trapper(K){const {S,N,side,fl,cx,hy,chin,sh}=K,H=HAT,F=H2R;K.cutAbove(hy-4);
+   K.dome(hy-14,hy-6,9,H,sh);
+   const fur=(x,y,k)=>p(x,y,F[clamp(k,1,4)]);
+   if(S||N){for(let y=hy-8;y<=hy-4;y++)for(let x=-9;x<=10;x++){if(y===hy-8&&((x+40)%3===0))continue;const xx=(x-.5)/9.5;fur(cx+x,y,y===hy-4?1:xx<-.4?4:xx>.5?2:3);}
+     if(N){K.cutBox(cx-10,cx+11,hy-4,hy+4);for(let y=hy-4;y<=hy+3;y++)for(let x=-9;x<=10;x++){if(y===hy+3&&(x+40)%3===0)continue;const xx=(x-.5)/9.5;fur(cx+x,y,y===hy+3?1:xx<-.5?3:xx>.5?2:((x+y+40)%5===0?2:3));}}
+     for(const s of [-1,1]){const x0=s<0?cx-10:cx+8;K.cutBox(x0,x0+3,hy-4,hy+6);for(let y=hy-4;y<=hy+6;y++)for(let i=0;i<4;i++){if(y===hy+6&&(i===0||i===3))continue;fur(x0+i,y,(s<0?i===0:i===3)?1:(s<0?(i===1?4:3):(i===2?2:3)));}}}
+   else{for(let y=hy-8;y<=hy-4;y++)for(let u=-10;u<=9;u++){if(u<-1&&y>hy-8)continue;if(y===hy-8&&((u+40)%3===0))continue;fur(cx+u*fl,y,y===hy-4?1:3);}
+     K.cutBox(Math.min(cx-fl*4,cx),Math.max(cx-fl*4,cx),hy-4,hy+6);for(let y=hy-4;y<=hy+6;y++)for(let u=-5;u<=-1;u++){if(y===hy+6&&(u===-5||u===-1))continue;fur(cx+u*fl,y,u===-5?1:u===-1?4:3);}}},
+ ushanka(K){const {S,N,side,fl,cx,hy,sh,hx}=K,H=HAT,F=H2R;K.cutAbove(hy-4);
+   const fur=(x,y,xx,yy)=>{let k=K.lit(xx,yy);if(((x*2+y+60)%5)===0)k=Math.max(1,k-1);p(x,y,F[k]);};
+   K.ell(hx,hy-8,10.5,7.5,(x,y,xx,yy)=>{if(y>hy-4)return;fur(x,y,xx,yy);});
+   K.dome(hy-15,hy-10,7,H,sh);
+   for(let x=-10;x<=11;x++){const b=((x+40)%3===0);p(cx+x+sh,hy-4,F[1]);if(!b)p(cx+x+sh,hy-11+(Math.abs(x-.5)>7?2:0),F[4]);}
+   if(!N){for(let x=-1;x<=2;x++)p(cx+x+sh+(side?fl*6:0),hy-15,H[0]);}},
+ slouch(K){const {S,N,side,fl,cx,hy,sh,hx}=K,H=HAT;K.cutAbove(hy-3);
+   const rib=(x,y,k)=>(y<hy-5&&((x+40)%2===0))?Math.max(1,k-1):k;
+   if(N)K.ell(hx,hy-6,10,8,(x,y,xx,yy)=>p(x,y,H[rib(x,y,K.lit(xx,yy))]));
+   if(side)K.ell(cx+.5-fl*5,hy-7,7,6,(x,y,xx,yy)=>p(x,y,H[rib(x,y,K.lit(xx*fl,yy))]));
+   K.dome(hy-15,hy-4,9,H,sh,rib);
+   for(let x=-9;x<=10;x++){p(cx+x+sh,hy-4,H[(x&1)?2:3]);p(cx+x+sh,hy-3,H[(x&1)?1:2]);}},
+ watchcap(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT;K.cutAbove(hy-5);
+   K.dome(hy-14,hy-8,9,H,sh);
+   for(let y=hy-8;y<=hy-5;y++)for(let x=-9;x<=10;x++){const xx=(x-.5)/9.5;let k=xx<-.4?4:xx>.5?2:3;if([-7,-4,-2,1,3,6,8].includes(x))k--;if(y===hy-8)k=Math.min(4,k+1);if(y===hy-5)k=1;p(cx+x+sh,y,H[clamp(k,0,4)]);}},
+ earmuffs(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT,B=H2R;
+   const muff=(xc,yc,r)=>K.ell(xc,yc,r,r+.4,(x,y,xx,yy)=>{const d=Math.hypot(xx,yy);let k=K.lit(xx,yy);if(d>.86&&(x+y+40)%3===0)return;p(x,y,H[k]);});
+   if(S||N){for(let a=0;a<=40;a++){const t=Math.PI*(a/40),x=Math.round(cx+.5-Math.cos(t)*9.6-.5),y=Math.round(hy-1-Math.sin(t)*12.5);p(x,y,B[a<20?3:2]);p(x,y+1,B[1]);}
+     muff(cx-8.5,hy+1.5,3);muff(cx+9.5,hy+1.5,3);}
+   else{for(let y=hy-11;y<=hy-2;y++){const x=Math.round(cx+.5-fl*2-.5*fl);p(x,y,B[2]);p(x-fl,y,B[1]);}muff(cx+.5-fl*2.5,hy+1.5,3.4);}},
+ hood(K){const {S,N,side,fl,cx,hy,chin,sh,hx}=K,H=HAT;
+   if(S){K.cutBox(cx-17,cx+18,0,chin+5);
+     K.ell(hx,hy-1,12,14.5,(x,y,xx,yy)=>{if(y>hy+5)return;const ix=(x+.5-hx)/7,iy=(y+.5-(hy+3.2))/9;const d=ix*ix+iy*iy;if(d<1){if(y<=hy-3)p(x,y,H[0]);else{const i=(y*FW+x)*4;LY.cut.d[i+3]=0;}return;}p(x,y,H[d<1.12?4:d<1.3?2:Math.min(4,K.lit(xx,yy)+(xx<-.2&&yy<-.2?1:0))]);});
+     for(let y=hy+5;y<=chin+4;y++){const w=Math.round(10+(y-hy-5)*.35);for(let x=-w+1;x<=w;x++){if(Math.abs(x-.5)<4.5-(y-hy-5)*.5&&y<chin)continue;const xx=(x-.5)/w;p(cx+x,y,H[y===chin+4?1:((x+40)%5===0?1:xx<-.4?3:xx>.5?1:2)]);}}}
+   else if(N){K.cutBox(cx-17,cx+18,0,chin+5);K.ell(hx,hy-2,12,13,(x,y,xx,yy)=>p(x,y,H[K.lit(xx,yy)]));p(cx,hy-16,H[3]);p(cx+1,hy-16,H[2]);
+     for(let y=hy-14;y<=hy+8;y++)if(g(cx+1,y))p(cx+1,y,H[1]);
+     for(let y=hy+9;y<=chin+4;y++){const w=Math.round(11+(y-hy-9)*.35);for(let x=-w+1;x<=w;x++)p(cx+x,y,H[y===chin+4?1:((x+40)%5===0?1:(x-.5)/w<-.4?3:2)]);}}
+   else{K.cutBox(cx-17,cx+18,0,chin+5);
+     K.ell(cx+.5-fl*2.5,hy-1,11,14,(x,y,xx,yy)=>{const uf=(x-cx)*fl;if(y>hy+6)return;if(uf>=4&&y>=hy-4)return;if(uf>=5&&y>=hy-6){const i=(y*FW+x)*4;LY.cut.d[i+3]=0;return;}p(x,y,H[uf>=3&&y>=hy-6?1:K.lit(xx*fl,yy)]);});
+     for(let y=hy-6;y<=hy+6;y++){const u=4+Math.round((y-hy+6)*-.15);p(cx+u*fl,y,H[0]);}
+     for(let y=hy+6;y<=chin+4;y++)for(let u=-12;u<=3;u++)p(cx+u*fl,y,H[y===chin+4?1:((u+40)%5===0?1:2)]);
+     K.ell(cx+.5-fl*2.5,hy-1,11,14,(x,y)=>{const uf=(x-cx)*fl;if(uf<5||y<hy-6){}else{const i=(y*FW+x)*4;LY.cut.d[i+3]=0;}});}},
+ sackhood(K){const {S,N,side,fl,cx,hy,chin,sh,hx}=K,H=HAT;K.cutBox(cx-20,cx+21,0,63);
+   const weave=(x,y,k)=>(((y+40)%3===0)&&k>=3&&hsh(Math.floor(x/4),y,23)<.5)?k-1:k;
+   const body=(xc)=>K.ell(xc,hy-1,10,11.5,(x,y,xx,yy)=>p(x,y,H[weave(x,y,K.lit(xx*(side?fl:1),yy))]));
+   body(hx+(side?-fl*.5:0));
+   for(let y=hy+9;y<=chin+1;y++){const w=y<=hy+10?7:6;for(let x=-w+1;x<=w;x++)p(cx+x+sh,y,H[weave(cx+x,y,(x-.5)/w<-.4?3:2)]);}
+   for(let x=-6;x<=7;x++){p(cx+x+sh,chin,H2R[x<0?3:2]);p(cx+x+sh,chin+1,H2R[1]);}
+   for(let y=chin+2;y<=chin+4;y++){const w=7+(y-chin-2);for(let x=-w+1;x<=w;x++)p(cx+x+sh,y,H[y===chin+4?1:((x+40)%3===0?1:2)]);}
+   if(!N){lockBlob(side?cx-fl*6:cx+7.5,hy-12,3,2,H);}else lockBlob(cx-6.5,hy-12,3,2,H);
+   const hole=(x0)=>{for(let j=-1;j<=3;j++)for(let i=-1;i<=2;i++){const edge=j===-1||j===3||i===-1||i===2;const X=x0+i,Y=hy+j;if(edge){if((i+j+40)%3!==0||j===3)p(X,Y,H[0]);}else{const k=(Y*FW+X)*4;LY.hat.d[k+3]=0;}}};
+   if(S){hole(cx-4);hole(cx+4);for(let x=-2;x<=3;x++){p(cx+x,hy+6,H[0]);if((x&1)===0){p(cx+x,hy+5,H[1]);p(cx+x,hy+7,H[1]);}}}
+   else if(side){hole(cx+fl*4+(fl<0?-1:0));for(let u=5;u<=7;u++){p(cx+u*fl,hy+6,H[0]);}p(cx+fl*6,hy+5,H[1]);p(cx+fl*6,hy+7,H[1]);}
+   else{for(let j=0;j<4;j++){p(cx-1,chin+2+j,H2R[2]);p(cx+2,chin+2+j,H2R[2]);}}},
+ veil(K){const {S,N,side,fl,cx,hy,chin,sh,hx}=K,H=HAT,V=H2R;
+   const ox=side?-fl*1:2;K.cutBox(Math.round(hx+ox-6),Math.round(hx+ox+6),hy-16,hy-11);
+   for(let y=hy-15;y<=hy-11;y++)for(let x=-5;x<=6;x++){const xx=(x-.5)/5.5;p(Math.round(cx+x+ox+sh),y,H[y===hy-15?(xx<.3?4:3):y===hy-11?1:xx<-.4?3:xx>.5?1:2]);}
+   lockBlob(Math.round(cx+ox+sh)-4,hy-13,1,1,V);
+   /* the net: a scalloped lace hem at the chin and three fine strands from the hat, nothing over the face's colour */
+   const hem=(x,y)=>{if(!g(x,y))p(x,y,V[1]);},strand=(x,y)=>{if(!g(x,y))P(LY[CUR],x,y,V[2],200);};
+   if(S||N){for(let x=-9;x<=10;x++){const y=chin-1-((x+40)%3===0?0:1);hem(cx+x,y);if((x+40)%3===0)hem(cx+x,y+1);}for(const x of [-8,-3,4,9])for(let y=hy-10;y<chin-2;y++)if((y+x+40)%2===0||Math.abs(x)>7)strand(cx+x,y);}
+   else{for(let u=-9;u<=9;u++){const y=chin-1-((u+40)%3===0?0:1)-(u<-4?2:0);hem(cx+u*fl,y);}for(const u of [-8,-2,8])for(let y=hy-10;y<chin-3;y++)strand(cx+u*fl,y);}},
+ fedora(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT;K.cutAbove(hy-5);
+   for(let y=hy-13;y<=hy-6;y++)for(let x=-6;x<=7;x++){const xx=(x-.5)/6.5;if(y===hy-13&&(Math.abs(xx)>.75||(!side&&Math.abs(x-.5)<2)))continue;if(y===hy-12&&Math.abs(xx)>.9)continue;
+       let k=xx<-.45?4:xx>.55?1:xx>.15?2:3;if(y<=hy-12)k=Math.min(4,k+1);if(!side&&!N&&y===hy-11&&(x===-3||x===4))k=1;if(!side&&Math.abs(x-.5)<1&&y<=hy-11)k=Math.max(1,k-1);p(cx+x+sh,y,H[k]);}
+   K.band(hy-8,hy-6,6.5,H2R);
+   K.brim(hy-5,12,H,(x,xx)=>N?(Math.abs(xx)<.5?-1:0):0);
+   if(S){for(let x=-4;x<=5;x++)p(cx+x,hy-3,H[1]);for(let x=-7;x<=8;x++)K.shade(cx+x,hy-2,60);}else if(side){p(cx+fl*13,hy-4,H[1]);p(cx+fl*12,hy-3,H[0]);}},
+ bowler(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT;K.cutAbove(hy-5);
+   K.dome(hy-14,hy-6,7.5,H,sh,(x,y,k,xx,yy)=>(xx<-.2&&yy<-.5)?Math.min(4,k+1):k);K.band(hy-7,hy-6,7.5,H2R);
+   K.brim(hy-5,10,H,(x,xx)=>Math.abs(xx)>.82?-1:0);},
+ tricorn(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT,T=MTR;K.cutAbove(hy-4);
+   K.dome(hy-15,hy-8,7.5,H,sh);
+   if(S){for(let x=-11;x<=12;x++){const a=Math.abs(x-.5);const yb=Math.round(hy-3-a*.33),yt=Math.round(hy-7-a*.22)-(a>9?0:0);for(let y=yt;y<=yb;y++)p(cx+x,y,H[y===yb?0:y===yb-1?1:(x<-1?3:x>2?2:3)]);if(a<10.5)p(cx+x,yt-1,T[x<0?3:2]);}}
+   else if(N){for(let x=-11;x<=12;x++){const a=Math.abs(x-.5);const yt=Math.round(hy-9-(a>8?(a-8)*.5:0)),yb=hy-5;for(let y=yt;y<=yb;y++)p(cx+x,y,H[y===yb?0:y===yt?3:2]);if(a<10.5)p(cx+x,yt-1,T[2]);}}
+   else{for(let u=-11;u<=11;u++){const a=Math.abs(u);const yt=Math.round(hy-8-(a>6?(a-6)*.45:0)),yb=Math.round(hy-4-(u>0?u*.15:0));for(let y=yt;y<=yb;y++)p(cx+u*fl,y,H[y===yb?0:y===yt?3:u>0?3:2]);p(cx+u*fl,yt-1,T[2]);}}},
+ porkpie(K){const {S,N,side,fl,cx,hy,sh,hx}=K,H=HAT;K.cutAbove(hy-5);
+   for(let y=hy-10;y<=hy-6;y++)for(let x=-6;x<=7;x++){const xx=(x-.5)/6.5;p(cx+x+sh,y,H[xx<-.45?4:xx>.55?1:xx>.15?2:3]);}
+   for(let x=-6;x<=7;x++){const xx=(x-.5)/6.5;p(cx+x+sh,hy-11,H[Math.abs(xx)<.65?2:4]);p(cx+x+sh,hy-12,H[Math.abs(xx)>.85?3:4]);}
+   K.band(hy-7,hy-6,6.5,H2R);K.brim(hy-5,10,H,(x,xx)=>Math.abs(xx)>.75?-1:0);},
+ panama(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT;K.cutAbove(hy-5);
+   for(let y=hy-13;y<=hy-6;y++)for(let x=-6;x<=7;x++){const xx=(x-.5)/6.5;if(y===hy-13&&(Math.abs(xx)>.75||(!side&&Math.abs(x-.5)<2)))continue;if(y===hy-12&&Math.abs(xx)>.9)continue;
+       let k=xx<-.45?4:xx>.55?2:3;if((y+40)%2===0&&k>2)k--;p(cx+x+sh,y,H[k]);}
+   K.band(hy-8,hy-6,6.5,H2R);K.brim(hy-5,13,H,(x,xx)=>N?(Math.abs(xx)<.5?-1:0):0);
+   if(S){for(let x=-5;x<=6;x++)p(cx+x,hy-3,H[1]);for(let x=-8;x<=9;x++)K.shade(cx+x,hy-2,55);}},
+ cloche(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT;K.cutAbove(hy-3);K.cutBox(cx-11,cx-6,hy-3,hy);K.cutBox(cx+7,cx+12,hy-3,hy);
+   K.dome(hy-14,hy-3,9.5,H,sh);K.band(hy-5,hy-4,9.5,H2R);
+   for(let x=-10;x<=11;x++){const a=Math.abs(x-.5);const dn=a>8?Math.round(a-8):0;p(cx+x+sh,hy-3+dn,H[x<-4?2:1]);p(cx+x+sh,hy-2+dn,H[0]);}
+   if(S)lockBlob(cx+6.5,hy-5,2,2,H2R);else if(side)lockBlob(cx-fl*3,hy-5,2,2,H2R);},
+ mobcap(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT;K.cutAbove(hy-4);
+   K.dome(hy-15,hy-5,10.5,H,sh,(x,y,k)=>((x+40)%3===0&&y>hy-13)?Math.max(1,k-1):k);
+   for(let x=-11;x<=12;x++){const b=((x+40)%3===0);p(cx+x+sh,hy-5,H[b?2:3]);p(cx+x+sh,hy-4,H[b?3:2]);if(!b)p(cx+x+sh,hy-3,H[1]);}
+   K.band(hy-7,hy-7,10,H2R);if(S)K.bow(cx-6,hy-7,H2R);else if(side)K.bow(cx-fl*7,hy-7,H2R);},
+ nightcap(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT;K.cutAbove(hy-4);
+   const dir=S?1:N?-1:-fl;   /* a long soft cone that flops over to one side and hangs beside the head, a pom at its end */
+   const P=[[0,-6],[0,-11],[1.5,-15],[5,-16.5],[8.5,-15],[10,-11],[10.5,-6],[10.5,-2]];
+   for(let j=0;j<P.length-1;j++){const [u0,v0]=P[j],[u1,v1]=P[j+1];const n=Math.max(1,Math.ceil(Math.hypot(u1-u0,v1-v0)*2));
+     for(let i=0;i<=n;i++){const t=(j+i/n)/(P.length-1),u=u0+(u1-u0)*i/n,v=v0+(v1-v0)*i/n,r=Math.max(1.2,8.5*(1-t*.86));
+       K.ell(cx+.5+sh+dir*u,hy+v,r,Math.min(r,2.2),(x,y,xx,yy)=>{if(g(x,y)&&yy>-.2)return;p(x,y,H[yy<-.3?(xx*dir<0?4:3):yy<.4?(xx*dir<.3?3:2):1]);});}}
+   lockBlob(Math.round(cx+sh+dir*10.5),hy,2,2,H2R);
+   for(let x=-9;x<=10;x++){p(cx+x+sh,hy-6,H2R[x<-4?4:3]);p(cx+x+sh,hy-5,H2R[x<-4?3:2]);p(cx+x+sh,hy-4,H2R[1]);}},
+ minerhat(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT;K.cutAbove(hy-4);
+   K.dome(hy-14,hy-5,9,H,sh);K.brim(hy-4,10.5,H);
+   const lamp=(x0)=>{for(let j=0;j<4;j++)for(let i=0;i<4;i++)p(x0+i,hy-11+j,MTR[i===0?3:i===3?1:2]);p(x0+1,hy-10,LAMP[3]);p(x0+2,hy-10,LAMP[2]);p(x0+1,hy-9,LAMP[2]);p(x0+2,hy-9,LAMP[1]);};
+   if(S)lamp(cx-1);else if(side){for(let j=0;j<4;j++)for(let i=0;i<2;i++)p(cx+fl*(8+i),hy-11+j,MTR[i?1:3]);p(cx+fl*10,hy-10,LAMP[3]);p(cx+fl*10,hy-9,LAMP[2]);}
+   else{for(let y=hy-3;y<=hy+5;y++)p(cx+1,y,H2R[y&1?1:2]);}},
+ beekeeper(K){const {S,N,side,fl,cx,hy,chin,sh,hx}=K,H=HAT,V=H2R;K.cutAbove(hy-6);
+   /* the net hangs from the brim to the collar: its two edges, a gathered hem and two fine strands, the face left on its own skin */
+   const line=(x,y,a)=>{if(!g(x,y))P(LY[CUR],x,y,V[2],a||220);};
+   for(let y=hy-5;y<=chin+2;y++){const w=Math.round(12-(y-hy+5)*.12);line(cx-w+1+sh,y);line(cx+w+sh,y);if(!side){if((y&1)===0){line(cx-4+sh,y,170);line(cx+5+sh,y,170);}}}
+   for(let x=-10;x<=11;x++){p(cx+x+sh,chin+3,V[x&1?1:2]);}
+   K.ebrim(hy-6,13,2.4,H);K.dome(hy-13,hy-7,7,H,sh);K.band(hy-8,hy-7,7.5,H2R);},
+ toque(K){const {S,N,side,fl,cx,hy,sh,hx}=K,H=HAT;K.cutAbove(hy-4);
+   K.ell(hx,hy-14,10,6.5,(x,y,xx,yy)=>{let k=K.lit(xx,yy);if([-7,-4,-2,2,5,8].includes(Math.round(x-hx+.5))&&yy>-.6)k=Math.max(1,k-1);p(x,y,H[k]);});
+   for(let y=hy-9;y<=hy-4;y++)for(let x=-8;x<=9;x++){const xx=(x-.5)/8.5;p(cx+x+sh,y,H[y===hy-4?1:y===hy-9?2:xx<-.4?4:xx>.5?2:3]);}},
+ peaked(K){const {S,N,side,fl,cx,hy,sh,hx}=K,H=HAT,B=H2R;K.cutAbove(hy-4);
+   for(let y=hy-10;y<=hy-6;y++){const w=Math.round(10-(y-hy+10)*.45);for(let x=-w+1;x<=w;x++){const xx=(x-.5)/w;p(cx+x+sh,y,H[xx<-.4?3:xx>.5?1:2]);}}
+   K.ell(hx,hy-11,10,2.2,(x,y,xx,yy)=>p(x,y,H[yy<0?4:xx>.5?2:3]));
+   K.band(hy-7,hy-5,8.5,B);
+   if(S){p(cx,hy-9,MTR[4]);p(cx+1,hy-9,MTR[2]);p(cx,hy-8,MTR[2]);p(cx+1,hy-8,MTR[1]);for(let x=-6;x<=7;x++){p(cx+x,hy-4,B[x<-2?3:1]);p(cx+x,hy-3,B[0]);}p(cx-3,hy-4,B[4]);for(let x=-6;x<=7;x++)K.shade(cx+x,hy-2,60);}
+   else if(side){for(let i=0;i<5;i++){p(cx+fl*(8+i),hy-5,B[i<2?3:1]);p(cx+fl*(8+i),hy-4,B[0]);}}},
+ kepi(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT;K.cutAbove(hy-4);
+   for(let y=hy-13;y<=hy-5;y++)for(let x=-7;x<=8;x++){const xx=(x-.5)/7.5;if(side){const u=x*fl;if(y<hy-13+Math.round((u+7)*.2))continue;}p(cx+x+sh,y,H[y<=hy-12?4:xx<-.45?3:xx>.55?1:2]);}
+   K.band(hy-6,hy-5,7.5,H2R);
+   if(S){for(let x=-6;x<=7;x++){p(cx+x,hy-4,H[0]);p(cx+x,hy-3,H[0]);}p(cx-3,hy-4,H[2]);}else if(side){for(let i=0;i<5;i++){p(cx+fl*(8+i),hy-5,H[1]);p(cx+fl*(8+i),hy-4,H[0]);}}},
+ balaclava(K){const {S,N,side,fl,cx,hy,chin,sh,hx}=K,H=HAT;K.cutBox(cx-20,cx+21,0,63);
+   const rib=(x,y,k)=>((x===-5||x===6)&&y>hy+4)?Math.max(1,k-1):k;
+   K.ell(hx,hy-1,9.5,11.5,(x,y,xx,yy)=>{if(y>chin)return;p(x,y,H[rib(x,y,K.lit(side?xx*fl:xx,yy))]);});
+   for(let y=chin-1;y<=chin+3;y++)for(let x=-6;x<=7;x++)p(cx+x+sh,y,H[rib(cx+x,y,(x-.5)/6.5<-.4?3:y===chin+3?1:2)]);
+   const slot=(x0,x1)=>{for(let y=hy-1;y<=hy+3;y++)for(let x=x0;x<=x1;x++){const edge=y===hy-1||y===hy+3||x===x0||x===x1;if(edge)p(x,y,H[1]);else{const i=(y*FW+x)*4;LY.hat.d[i+3]=0;}}};
+   if(S)slot(cx-7,cx+8);else if(side){const a=cx+fl*2,b=cx+fl*9;slot(Math.min(a,b),Math.max(a,b));}},
+ souwester(K){const {S,N,side,fl,cx,hy,chin,sh,hx}=K,H=HAT;K.cutAbove(hy-5);K.cutEll(hx,hy-5,12,3);
+   const gloss=(x,y,k,xx,yy)=>(xx<-.3&&xx>-.55&&yy<-.2)?4:k;
+   if(N){K.cutBox(cx-13,cx+14,hy-5,hy+2);for(let y=hy-5;y<=hy+2;y++){const w=Math.round(10+(y-hy+5)*.4);for(let x=-w+1;x<=w;x++){const xx=(x-.5)/w;p(cx+x,y,H[y===hy+2?0:y===hy+1?1:xx<-.5?4:xx>.5?2:3]);}}}
+   K.ebrim(hy-5,12,2.6,H,xx=>Math.round(Math.abs(xx)*1.5));
+   K.dome(hy-13,hy-6,8,H,sh,gloss);
+   if(side){K.cutBox(Math.min(cx-fl*4,cx-fl*13),Math.max(cx-fl*4,cx-fl*13),hy-5,hy+2);for(let u=-12;u<=-4;u++){const yb=hy-4+Math.round((-4-u)*.75);for(let y=hy-4;y<=yb;y++)p(cx+u*fl,y,H[y===yb?0:2]);}}
+   if(S){for(let y=hy-2;y<=chin;y++){const t=(y-hy+2)/(chin-hy+2);p(Math.round(cx-8+t*5),y,H[1]);p(Math.round(cx+9-t*5),y,H[1]);}for(let x=-8;x<=9;x++)K.shade(cx+x,hy-2,60);}},
+ visor(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT;
+   for(let x=-9;x<=10;x++){if(S||N||x*fl<6){p(cx+x+sh,hy-7,H[x<-4?3:2]);p(cx+x+sh,hy-6,H[1]);}}
+   if(S){for(let x=-7;x<=8;x++){p(cx+x,hy-5,H[x<-3?3:2]);p(cx+x,hy-4,H[0]);}for(let x=-7;x<=8;x++)K.shade(cx+x,hy-3,55);}
+   else if(side){for(let i=0;i<9;i++){p(cx+fl*(6+i),hy-6,H[i<6?3:2]);p(cx+fl*(6+i),hy-5,H[0]);}}
+   else{p(cx,hy-7,MTR[3]);p(cx+1,hy-7,MTR[2]);}},
+ scarecrow(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT;K.cutAbove(hy-5);
+   for(let y=hy-15;y<=hy-6;y++){const t=(hy-6-y)/9,w=Math.round(6.5-t*1.5+(y===hy-11?1:0)),bend=t>.6?Math.round((t-.6)*9)*(S?-1:N?1:fl):0;for(let x=-w+1;x<=w;x++){const xx=(x-.5)/w;p(cx+x+sh+bend,y,H[xx<-.4?3:xx>.45?1:2]);}}
+   if(!N)for(let j=0;j<3;j++)for(let i=0;i<3;i++)p(cx+(side?-fl*2:1)+sh+i,hy-10+j,H2R[j===0?3:2]);if(!N){p(cx+(side?-fl*2:1)+sh-1,hy-11,H[0]);p(cx+(side?-fl*2:1)+sh+3,hy-8,H[0]);}
+   for(let x=-6;x<=7;x++)p(cx+x+sh,hy-7,H[(x&1)?0:1]);
+   for(let x=-13;x<=14;x++){if(x===-11||x===9||x===12)continue;const dn=(x>8?1:0);p(cx+x+sh,hy-6+dn,H[x<-5?3:x>6?1:2]);p(cx+x+sh,hy-5+dn,H[0]);}
+   for(const [x0,d] of [[-8,-1],[-9,-1],[9,1],[10,1]])for(let j=0;j<3+((x0+40)%2);j++)p(cx+x0+sh+d*(j>>1),hy-4+j,STRAW[j===0?3:2]);},
+ aviator(K){const {S,N,side,fl,cx,hy,chin,sh,hx}=K,H=HAT;
+   if(S||N){K.cutBox(cx-17,cx+18,0,hy+6);if(S)K.ell(hx,hy+3,6.5,8.5,(x,y)=>{if(y>=hy-4){const i=(y*FW+x)*4;LY.cut.d[i+3]=0;}});
+     K.ell(hx,hy-1,9.5,12.5,(x,y,xx,yy)=>{if(y>hy+7)return;if(S){const ix=(x+.5-hx)/6.5,iy=(y+.5-(hy+3))/8.5;if(ix*ix+iy*iy<1)return;}p(x,y,H[K.lit(xx,yy)]);});
+     if(S){for(let x=-5;x<=6;x++)p(cx+x,chin,H[1]);p(cx+4,chin,MTR[3]);
+       for(const s of [-1,1]){const xc=cx+.5+s*3.5;K.ell(xc,hy-7,2.2,1.8,(x,y,xx,yy)=>{const d=Math.hypot(xx,yy);p(x,y,d>.62?MTR[yy<0?3:1]:LNR[yy<0?4:2]);});}p(cx,hy-7,MTR[2]);p(cx+1,hy-7,MTR[2]);}
+     else{for(let x=-9;x<=10;x++)p(cx+x,hy-7,H2R[2]);}}
+   else{K.cutBox(cx-17,cx+18,0,hy+6);K.ell(cx+.5-fl*1.5,hy-1,9.5,12.5,(x,y,xx,yy)=>{const uf=(x-cx)*fl;if(y>hy+7)return;if(uf>=2&&y>=hy-4){if(uf<4&&y<hy+7)p(x,y,H[1]);else{const i=(y*FW+x)*4;LY.cut.d[i+3]=0;}return;}p(x,y,H[K.lit(xx*fl,yy)]);});
+     K.ell(cx+.5+fl*5.5,hy-7,1.8,1.8,(x,y,xx,yy)=>{const d=Math.hypot(xx,yy);p(x,y,d>.6?MTR[2]:LNR[3]);});for(let u=-8;u<=4;u++)p(cx+u*fl,hy-7,H2R[2]);}},
+ alpine(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT;K.cutAbove(hy-5);
+   for(let y=hy-14;y<=hy-6;y++){const t=(hy-6-y)/8,w=Math.round(6.5-t*2.2);for(let x=-w+1;x<=w;x++){const xx=(x-.5)/w;let k=xx<-.4?4:xx>.5?1:xx>.1?2:3;if(!side&&Math.abs(x-.5)<1&&y<hy-10)k=1;p(cx+x+sh,y,H[k]);}}
+   for(let x=-6;x<=7;x++){p(cx+x+sh,hy-7,H[0]);p(cx+x+sh,hy-6,H2R[(x&1)?2:3]);}
+   K.brim(hy-5,10,H,(x,xx)=>N?-1:(Math.abs(xx)>.8?-1:0));
+   /* a feather tucked in the band: a quill and a soft vane swept back */
+   const d=S?1:N?-1:-fl,fx=S?cx+5:N?cx-4:cx-fl*4;
+   if(!N)for(let j=0;j<7;j++){const x=Math.round(fx+d*j*.7),y=hy-7-Math.round(j*.9);p(x,y,H2R[j<3?2:j<6?3:4]);if(j>1&&j<8){p(x+d,y,H2R[j<5?2:3]);p(x+d,y+1,H2R[1]);}}},
+ furhat(K){const {S,N,side,fl,cx,hy,sh}=K,H=HAT;K.cutAbove(hy-4);
+   for(let y=hy-16;y<=hy-4;y++)for(let x=-10;x<=11;x++){const xx=(x-.5)/9.5;const bump=((x+y*2+60)%3===0)?1:0;if(Math.abs(xx)>1+bump*.06)continue;if(y===hy-16)continue;
+     let k=xx<-.5?4:xx>.55?2:3;if(hsh(x,Math.floor((y+Math.floor(hsh(x,2,7)*3))/3),19)<.22)k=Math.max(1,k-1);if(y===hy-4)k=1;if(y<=hy-15)k=Math.min(4,k+1);p(cx+x+sh,y,H[k]);}},
+};
+const LITTOP={backcap:1,minerhat:1,hood:1,balaclava:1,hardhat:1,peaked:1,bowler:1,furhat:1};
+function hatNew(cx,hy,view,fl,h){const D=HATDEF[h];if(!D)return false;D(hatKit(cx,hy,view,fl));
+  if(LITTOP[h]){const L=LY.hat,mid=cx+.5+(view==='E'||view==='W'?-fl:0);for(let x=0;x<FW;x++)for(let y=0;y<FH;y++){const i=(y*FW+x)*4;if(!L.d[i+3])continue;if(L.d[i+3]<250)break;p(x,y,HAT[x<mid+1?4:3]);break;}}
+  return true;}
+function hat(cx,hy,view,fl,h,hairTop){if(!h)return;if(hatNew(cx,hy,view,fl,h))return;const H=HAT,side=view!=='S'&&view!=='N',chin=hy+9,top=chin-HEADH+1;const T0=Math.min(top-2,hairTop!=null?hairTop+1:top-2);
   const dome=(t,b,rx,R2,shift)=>{const ry=b-t;for(let y=t;y<=b;y++)for(let x=-rx;x<=rx+1;x++){const yy=(y-b)/ry,xx=(x-.5)/(rx+.5);if(xx*xx+yy*yy>1)continue;const l=-xx*.55-yy*.5;p(cx+x+(shift||0),y,R2[l>.6?4:l>.1?3:l>-.4?2:1]);}};
   const sh=side?-fl:0;
   if(h==='cap'){dome(T0,hy-4,9,H,sh);for(let x=-9;x<=10;x++)p(cx+x+sh,hy-4,H[1]);if(view==='S'){for(let x=-6;x<=7;x++){p(cx+x,hy-3,H[x<-3?3:2]);p(cx+x,hy-2,H[0]);}p(cx,T0+2,H[4]);}
@@ -441,7 +973,7 @@ function toolHands(kind,dir,f){const [gx,gy,ang,k]=toolEntry(kind,dir,f);const a
 // ---------------------------------------------------------------- one figure
 // pose: crouch, bob, lean (side), sway (front), legs:{L,R} foot offsets, hands:[left/far, right/near] absolute offsets from the shoulders,
 // nod, blink, reach (back view: hands hidden in front of the body), tool (callback)
-let SIT=false;
+let SIT=false;let ANCREC=null;let HANDS_OVER=false;let HAIRLEAN=0,HANGTAPER=3;const ANCH={},ANCT={};
 function human(dir,pose){SIT=!!pose.sit;const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1,back=dir==='N';
   const crouch=pose.crouch||0,bob=pose.bob||0,lean=side?Math.round((pose.lean||0)*fl):0,breath=pose.breath||0;
   const cx=CX+(side?0:(pose.sway||0));const hip=HIP0+crouch+bob,top=TOP0+crouch+bob+breath,ux=cx+lean,hy=top-9-(ALL?1:0)+(STOOP?2:0);
@@ -449,12 +981,13 @@ function human(dir,pose){SIT=!!pose.sit;const side=dir==='E'||dir==='W',fl=dir==
   const def=side?[[0,KID?8:10],[0,KID?8:10]]:[[0,KID?8:10],[0,KID?8:10]];const hands=pose.hands||def;
   HANDS_REC=[[shL[0]+hands[0][0],shL[1]+hands[0][1]],[shR[0]+hands[1][0],shR[1]+hands[1][1]]];   // where the hands are, for the game to put things in them
   const H={cx:ux,hy,top0:top};let hairInfo=null;
+  ANCREC={cx:ux,hy:hy+(pose.nod?1:0)-((EXPR==='scared'||EXPR==='surprised')&&!pose.blink?1:0),top,fl:((pose.blink||EXPR==='wince')?1:0)|(back?2:0),side,fl0:fl};   /* per-frame anchors for the wardrobe: the head (eye top row as drawn, after a nod) and the torso */
   into('body',()=>{
     if(side){// far arm and leg first, then the body, then the near leg and arm
       const L=pose.legs||[[-1,0],[1,0]];const sideArm=(sh,hd,el,far,inn)=>{if(el){armTo(sh[0],sh[1],sh[0]+el[0]*fl,sh[1]+el[1],far,inn,true);armTo(sh[0]+el[0]*fl,sh[1]+el[1],sh[0]+hd[0]*(pose.elbows?fl:1),sh[1]+hd[1],far,inn,!!pose.noHands);}else armTo(sh[0],sh[1],sh[0]+hd[0]*(pose.noHands&&pose.hands?fl:1),sh[1]+hd[1],far,inn,!!pose.noHands);};sideArm(shL,hands[0],pose.elbows&&pose.elbows[0],true,fl>0?1:-1);   // standing side-on: the far leg a pixel back, so two legs read, not one peg
       legSide(cx+Math.round(lean/2),hip,L[0][0],L[0][1],fl,true,crouch);legSide(cx+Math.round(lean/2),hip,L[1][0],L[1][1],fl,false,crouch);
       skirtSide(ux,hip,fl);torsoSide(ux,top,hip,fl);headSide(ux+(STOOP?2*fl:0),hy,fl,pose);
-      sideArm(shR,hands[1],pose.elbows&&pose.elbows[1],false,fl>0?-1:1);}
+      sideArm(shR,hands[1],pose.elbows&&pose.elbows[1],false,fl>0?-1:1);into('arms',()=>sideArm(shR,hands[1],pose.elbows&&pose.elbows[1],false,fl>0?-1:1));}
     else{const L=pose.legs||[0,0];
       if(back&&pose.reach){armTo(shL[0],shL[1],shL[0]+hands[0][0],shL[1]+hands[0][1],false,1);armTo(shR[0],shR[1],shR[0]+hands[1][0],shR[1]+hands[1][1],false,-1);}
       legsFront(cx,hip,L[0],L[1],back,pose.squat||0);skirtFront(ux,hip,back);torsoFront(ux,top,hip,back);
@@ -464,10 +997,14 @@ function human(dir,pose){SIT=!!pose.sit;const side=dir==='E'||dir==='W',fl=dir==
           else if(hands[i][1]<-4){const el=[sh[0]+(i?2:-2),sh[1]-5];armTo(sh[0],sh[1],el[0],el[1],false,i?-1:1,true);armTo(el[0],el[1],h[0],h[1],false,i?-1:1);}
           else armTo(sh[0],sh[1],h[0],h[1],false,i?-1:1,!!pose.noHands);}};
       if(pose.guard!=null){arms(1-pose.guard);headFront(ux,hy,back,pose);arms(pose.guard);}
-      else{if(up&&!(back&&pose.reach))arms();
+      else{/* raised arms pass behind the head; where they stand clear of it (hands above the crown, forearms at the sides) they show over hair, hats and glasses (wardrobe renders) */
+      if(up&&!(back&&pose.reach)){arms();if(CFG.hang&&!back){into('arms',()=>arms());into('headfp',()=>headFront(ux,hy,back,pose));for(let i=0;i<FW*FH;i++)if(LY.headfp.d[i*4+3])LY.arms.d[i*4+3]=0;
+        /* winding up seen from behind, the hands come back over the crown: a pale knot over the hair */
+        if(back&&HANDS_OVER)for(const i of [0,1]){const h=[shL,shR][i],hx=h[0]+hands[i][0],hyy=h[1]+hands[i][1];for(let j=0;j<3;j++)for(let k=-1;k<=1;k++)P(LY.arms,hx+k,hyy+1+j,[255,255,255]);}}}
       headFront(ux,hy,back,pose);
       if(!up&&!(back&&pose.reach))arms();}}});
   into('beard',()=>beard(ux,hy+(pose.nod?1:0),side?(fl>0?'E':'W'):dir,fl,C.beard===true?'full':C.beard));
+  HAIRLEAN=side?lean:0;HANGTAPER=CFG.hang?2:3;
   into('hair',()=>{const hy2=hy+(pose.hairLag||0);TIPY=hy2+(C.tipDy||6);hairInfo=side?hairSide(ux,hy2,fl,C.hairStyle||'short',pose):hairFront(ux,hy2,back,C.hairStyle||'short',pose);});
   const hairTop=hairInfo?hairInfo.top:null;
   const hyL=hy+(pose.hairLag||0);   // what sits on the hair moves with the hair
@@ -476,7 +1013,9 @@ function human(dir,pose){SIT=!!pose.sit;const side=dir==='E'||dir==='W',fl=dir==
   into('hat',()=>hat(ux,hyL,side?(fl>0?'E':'W'):dir,fl,C.hat,hairTop));
   // under a hat, the hair above the brim is hidden by the hat (it used to peek round the crown)
   if(C.hat){const L=LY.hair,by=hy-4+(pose.nod?1:0);for(let y=0;y<by;y++)for(let x=0;x<L.w;x++){const i=(y*L.w+x)*4;if(L.d[i+3]){const hl=LY.hat;if(!(hl.d[i+3])||y<by-1)L.d[i+3]=0;}}}
-  into('toolf',()=>{if(pose.tool)pose.tool(ux,top);});}
+  into('toolf',()=>{if(pose.tool)pose.tool(ux,top);});
+  /* the near arm (side on) and arms raised seen from behind are nearer than the head: they show over hair, beard, hats, glasses and accessories */
+  if(CFG.hang)for(let i=0;i<FW*FH;i++){if(!LY.arms.d[i*4+3])continue;for(const k of ['hair','beard','hat','glasses','acc']){if(k==='hat'&&C.hat==='sackhood')continue;LY[k].d[i*4+3]=0;}if(LY.cut)LY.cut.d[i*4+3]=0;}}
 // ---------------------------------------------------------------- poses per clip
 // the walk: Stardew's four beats (contact, pass, contact, pass) spread over our eight frames
 // the run (owner, Nov 10: "I miss the old one. The arm swing is good but the tilting and legs look weird"): the old run's
@@ -554,7 +1093,7 @@ function stance(pose,side,dir,fl){const ST=C.stance;if(!ST||KID||dir==='N')retur
 // ---------------------------------------------------------------- render
 if(CFG.portraits){console.log('portraits are drawn by portrait3.js now');}
 ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
-  LY={};for(const k of PARTS)LY[k]=layer(k,FW,FH);CUR='body';
+  LY={};for(const k of PARTS)LY[k]=layer(k,FW,FH);LY.cut=layer('cut',FW,FH);LY.arms=layer('arms',FW,FH);LY.headfp=layer('headfp',FW,FH);CUR='body';
   const side=dir==='E'||dir==='W',fl=dir==='W'?-1:1;let pose={};
   if(clip==='walk')pose=walkPose(f,dir,false);
   if(clip==='run')pose=walkPose(f===0?1:f,dir,true);
@@ -603,7 +1142,10 @@ ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
      moves only the chest, shoulders and head (hands stay on the lap) */
   if(clip==='sit'){pose.sit=true;const br=[0,1,1,0][f];pose.breath=br;pose.crouch=side?2:1;
     pose.hands=side?[[fl*5,9-br],[fl*6,9-br]]:[[4+WIDE,11-br],[-4-WIDE,11-br]];pose.blink=f===3;}   /* the last frame is the blink; the game shows it one loop in three */   /* hands resting on the thigh / the knees; a breath */
+  HANDS_OVER=false;   /* the hands sit inside the head's outline in these poses: showing them over the hair revealed the skull, so they stay behind it */
   const EX0=EXPR;if(pose.expr)EXPR=pose.expr;human(dir,pose);EXPR=EX0;
+  if(!(ANCREC.fl&3)){const ex=ANCREC.side&&ANCREC.fl0>0?ANCREC.cx+4:ANCREC.cx-4,ec=G(LY.body,ex,ANCREC.hy);if(!ec||ec[0]!==LASH[0]||ec[1]!==LASH[1]||ec[2]!==LASH[2])ANCREC.fl|=4;}   /* bit 2: an arm is in front of the eyes */
+  ((ANCH[clip]=ANCH[clip]||{})[dir]=ANCH[clip][dir]||[])[f]=[ANCREC.cx,ANCREC.hy,ANCREC.fl];((ANCT[clip]=ANCT[clip]||{})[dir]=ANCT[clip][dir]||[])[f]=[ANCREC.cx,ANCREC.top];
   if(clip==='slash'&&HANDS_REC)HANDMETA[dir][f]=HANDS_REC.map(h=>h.map(Math.round));
   if(clip==='spellcast'&&f===0&&HANDS_REC)HANDMETA[dir][6]=HANDS_REC.map(h=>h.map(Math.round));   // the carry pose
   // outline the whole figure; each outline pixel goes to the part whose pixel it borders
@@ -612,7 +1154,8 @@ ROWS.forEach(([clip,dir,nf],r)=>{for(let f=0;f<nf;f++){
     for(const [ddx,ddy] of [[0,1],[0,-1],[1,0],[-1,0]]){const c=G(comp,x+ddx,y+ddy);if(c&&c[3]>200){n=c;for(let i=PARTS.length-1;i>=0;i--)if(G(LY[PARTS[i]],x+ddx,y+ddy)){ow=PARTS[i];break;}break;}}
     if(n)P(LY[ow],x,y,outlineRGB(n));}
   const src=PART==='all'?flatten(PARTS.map(k=>LY[k]),FW,FH):LY[PART];
-  for(let y=0;y<FH;y++)for(let x=0;x<FW;x++){const c=G(src,x,y);if(c)P(SHEET,f*FW+x,r*FH+y,c,c[3]);}}});
+  for(let y=0;y<FH;y++)for(let x=0;x<FW;x++){const c=G(src,x,y);if(c)P(SHEET,f*FW+x,r*FH+y,c,c[3]);else if(PART==='hat'&&G(LY.cut,x,y))P(SHEET,f*FW+x,r*FH+y,[255,0,255],255);}}});
 emit([SHEET],CFG.out);
 const clips={};let rr=0;for(const [n,ds,nf] of CLIPS){clips[n]={};for(const d of ds)clips[n][d]=[rr++,nf];}
 console.log('META '+JSON.stringify(Object.assign({fw:FW,fh:FH,ax:FW/2,ay:FH-4,clips},TOOL?{tool:TOOLMETA,toolKind:TOOL}:{hands:HANDMETA})));
+if(CFG.anchors)console.log('ANCH '+JSON.stringify({head:ANCH,anc:ANCT}));

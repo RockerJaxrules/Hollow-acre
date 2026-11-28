@@ -177,6 +177,10 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - [wardrobe hair r2, 5] Shaved or faded hair is SHORT DARK HAIR, not skin: 2-3 tones in uneven vertical runs, skin only on a wandering lower edge at the ear and nape. A hard skin rectangle or stacked value bands (hair, dark, tan, skin) read as a striped cap.
 - [wardrobe hair r2] Arms raised in front of the head (seen from behind) pass BEHIND the head: show them only where they stand clear of its outline. Drawn across the back of the head they read as a strap or a sideways swing.
 - [wardrobe hair r2] A short back (bowl, crop) must reach the nape: a band of bare skull between the hair and the collar reads as a blank face.
+- [wardrobe hats r1-r2] Every worn item needs its own VALUE apart from the hair and the skin under it: a hat in the hair's brown reads as hair, pale flaps as bandages or a blank face. Pick default colours by value first, hue second.
+- [wardrobe hats r1] Two items that differ only in colour are one item: keep one of each pair (bucket/bush hat, fedora/panama).
+- [wardrobe face r1] At 48x64 anything 1-2 px wide at the mouth or eyes (pencil moustache, wire rims, see-through lenses) vanishes or reads as noise at 1x: cut it or make it a solid shape.
+- [wardrobe r1-r4] When a wave stalls at 5-5.5, cut to the items that read at 1x and ship them; a dozen clean pieces beat forty look-alikes.
 - A new cast drawn beside existing townsfolk must match their measured figure box first (bbox of a front frame: townsfolk 41 px tall, 24 wide; the player 45): a 37 px figure reads as a child next to them, whatever its detail.
 - Side-view legs drawn as shifted columns overlap into one block at a 3 px stride; draw each leg as a limb from a fixed hip point to the foot (4 px wide) and stride 4 px, the far leg one ramp step darker.
 - Give each person one silhouette mark that survives 1x: a flat cap with a brim, a wide straw brim, a bowler's dome, a red kerchief, braids past the shoulders, a bun. Colour alone (the old recoloured shirts) does not tell people apart.
