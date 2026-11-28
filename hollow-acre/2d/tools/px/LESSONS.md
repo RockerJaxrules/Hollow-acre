@@ -1671,6 +1671,17 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Never shorten a label by taking its first word ("An advert in the Courier" became "an"). Keep a short label for every long name.
 
 ## Vehicles and things the player rides (#255 tractor, Nov 12)
+- [t380 bus r1 4.5, r2 5.5] "Way smaller" means SHORTER, not lower: keep a vehicle's walls a head over the farmer and its door taller than him (bus walls 58 px, door 50, sills at his head height for a 44 px farmer). A door shorter than the people reads as a toy.
+- [t380 bus] Every top at 0.75 of its depth in every view (side, end, diagonal). Full-depth roofs make end views into tall grey slabs ("silos", "tombstones").
+- [t380 bus] Views must agree: if the roof is rounded across, round it along at the ends too (step the crown down over the last few px), or the ends read square side-on and round end-on.
+- [t380 bus r2] Light a roof from the upper left and a little BEHIND: palest far-left, darker toward the near edge and the right end, a dark gutter at its foot. Palest on the near edge reads as a tray rim. Hatches need a lit lid, a dark face and a shadow down-right, or they read as stickers.
+- [t380 bus] Mud is a crescent of spray hugging the back of the arch. Bars at hub height read as sticks through the wheel; 1 px dashes read as twigs.
+- [t380 bus] A box that sticks out past an end (a bumper) shows its top face as a pole side-on: paint bumpers on the end faces and wrap a short stub round the corners.
+- [t380 train r1 5.5, scale 7] An underframe sells weight: bogie frame plates, axleboxes with leaf springs, buffers and a coupling at each end, the cylinder and piston rod over the leading bogie. A box on bare half-wheels under a straight sill reads as a toy (see also Minigame vehicles).
+- [t380 train] Side-on, draw only the near buffer: in this camera the far one peeks over it and the pair reads as stacked knobs.
+- [t380 train] Coal is lumps: offset 5x4 cells, a lit 3x2 cluster on a few, a dark seam on the rest, a ragged top line. Hash-per-pixel coal is speckle (owner rule) however dark it is.
+- [t380 train] A round boiler looks taller side-on than wide end-on in this camera (you see its top). Make it slightly oval (wider than tall) so the views agree.
+- [t380 train] Roofs must not be the brightest thing on screen: a step darker than the body's light, sooted toward the engine, with an eave shadow on the band under them; three varied vents, not a row of identical rings ("buttons").
 - [r1 5.5] Size a vehicle against the farmer before drawing a pixel: a rear wheel's top at the seated driver's shoulder (about 40 px for a 64 px farmer). The first tractor was drawn at 'looks good alone' size and came out twice his height.
 - Every view of one object must share one scale (the rear tyre's height in the side view equals its height from the front and from behind). Otherwise it grows when it turns.
 - To draw a smaller view without redrawing it, draw through a scaled canvas (coordinates times k) and run the outline pass on the real pixels afterwards: outlines stay one pixel wide.
@@ -2068,3 +2079,12 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   - A local name can shadow a shared one: the chopping block's x was called BX in the hen's step, so the Extreme layer (BX) crashed there. Reach shared layers through an object that can't be shadowed (BK.XL).
   - Anything drawn every frame over the whole scene (the lens) goes into its own layer, redrawn at most ten times a second, so phones stay fast.
   - Two workers building to the same dev file name in the shared scratch folder overwrite each other mid-test. Name your dev build after your task.
+
+## Fences (#379, Nov 28: the rail fence, new 5 vs old 4 in round 1, one fix round shipped)
+- [OWNER, Nov 27, verbatim] "Fences texture could be fixed". Understood: the town's split-rail fence (fence_h / fence_v, 657 tiles of each) needed its wood redrawn and its runs going away from the camera rebuilt.
+- A run going away from the camera reads as a stick lying in the grass unless it stands up: each side post clearly wider than the rail (9 px vs 4), its sawn top a full step paler than its face, and a broken shadow down-right of the rail and of each post foot.
+- Side runs with a post every pace read as a striped pole or a pipe with joints; a post every second pace (and always one at the far end) reads as a fence. The side post must be as tall as the across-the-screen post (the old one was twice the height).
+- A rail seen from above is lit on its left and shaded on its right; a dark streak down its middle reads as a split cane or a doubled line.
+- A contact shadow drawn as one hard straight bar with grass between it and the rail reads as a third rail; a dark band at a post's foot reads as a plinth. Draw both as soft, broken runs (#322125 at 60%).
+- A knot or a mark on a fence tile repeats on every tile: keep it one or two pixels. Lean the shade steps toward violet.
+- Speckled dark dots as wood texture read as grit: a few long grain streaks and a worn break in the lit edge do it.
