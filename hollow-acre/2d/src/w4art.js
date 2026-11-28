@@ -182,3 +182,55 @@ function w4Night(allDark){const wins=[];const c=st37Cv(176,112,(P,g)=>{
   P(87,WY0,3,WY1-WY0,F);P(87,WY0,1,WY1-WY0,FL);P(WX0,30,WX1-WX0,3,F);P(WX0,30,WX1-WX0,1,FL);P(WX0,32,WX1-WX0,1,FD);
   P(WX0-10,WY1+8,WX1-WX0+20,4,'#4a3020');P(WX0-10,WY1+8,WX1-WX0+20,1,'#6a4630');   /* the sill */
 });c.w4wins=wins;return c;}
+
+// ---- Grandpa's album (Chapter Two): six photographs of places with nobody in them, in photo corners on a black album page.
+// Each is where one page of his diary lies: his own fence where it meets the road, the town hall clock, the churchyard wall,
+// the crossroads, a row of corn, the scarecrow's post with nothing on it.
+function w4Album(){return st37Cv(176,112,(P,g)=>{
+  P(0,0,176,112,'#16181a');for(let y=0;y<112;y+=2)P(0,y,176,1,'#191b1c');   /* the black album card */
+  P(0,0,9,112,'#2a2320');P(8,0,1,112,'#0e0c0c');for(let y=8;y<112;y+=24){P(3,y,3,3,'#0e0c0c');P(4,y+1,1,1,'#4a3e36');}   /* the spine, its cord holes */
+  const S5=['#2a2622','#4a443c','#6e665a','#948a78','#b8ae98','#d4cab2'];
+  const SLOT=[[14,10],[69,10],[124,10],[14,61],[69,61],[124,61]];
+  const scene=[
+    (X,Y)=>{ /* his fence where it meets the road: rails running off to the right, a hay bale against them, the road */
+      P(X,Y,44,13,S5[4]);P(X,Y+13,44,10,S5[2]);P(X,Y+23,44,7,S5[3]);P(X,Y+23,44,1,S5[4]);
+      for(let i=0;i<5;i++){const px=X+3+i*9,h=13-i*2;P(px,Y+22-h,2,h+1,S5[0]);P(px,Y+22-h,1,h+1,S5[1]);}
+      for(let i=0;i<40;i++){const x=X+3+i,y1=Y+12+Math.round(i*.12),y2=Y+16+Math.round(i*.08);if(x<X+44){P(x,y1,1,1,S5[1]);P(x,y2,1,1,S5[1]);}}
+      P(X+24,Y+16,11,7,S5[3]);P(X+24,Y+16,11,1,S5[4]);P(X+25,Y+18,9,1,S5[2]);P(X+25,Y+20,9,1,S5[2]);P(X+24,Y+23,11,1,S5[0]);},
+    (X,Y)=>{ /* the town hall: a gable front, the clock in it at quarter to nine, two dark windows */
+      P(X,Y,44,30,S5[4]);for(let i=0;i<22;i++){P(X+22-i,Y+4+Math.round(i*.55),i*2,1,S5[2]);}P(X+3,Y+16,38,14,S5[2]);P(X+3,Y+16,38,1,S5[3]);
+      const cx=X+22,cy=Y+12;for(let a=0;a<24;a++){const t=a/24*6.283;P(cx+Math.round(Math.cos(t)*5),cy+Math.round(Math.sin(t)*5),1,1,S5[0]);}
+      for(let r=0;r<4;r++)for(let c=-4;c<=4;c++)if(c*c+r*r<17){P(cx+c,cy+r,1,1,S5[5]);P(cx+c,cy-r,1,1,S5[5]);}
+      P(cx,cy-4,1,4,S5[0]);P(cx-3,cy,3,1,S5[0]);P(cx,cy,1,1,S5[0]);   /* quarter to nine */
+      P(X+8,Y+20,6,8,S5[0]);P(X+30,Y+20,6,8,S5[0]);P(X+19,Y+21,6,9,S5[1]);P(X,Y+29,44,1,S5[1]);},
+    (X,Y)=>{ /* the churchyard wall: dressed stones in courses, a pine behind, the tops of two graves showing over it */
+      P(X,Y,44,30,S5[4]);for(let t=0;t<3;t++)for(let r=0;r<7;r++){const w=1+r*2-t;P(X+34-(w>>1),Y+1+t*5+r,w,1,r===6?S5[0]:S5[1]);}P(X+33,Y+17,2,3,S5[0]);
+      P(X+6,Y+11,6,8,S5[3]);P(X+7,Y+10,4,1,S5[3]);P(X+15,Y+13,5,6,S5[3]);P(X+16,Y+12,3,1,S5[3]);P(X+11,Y+11,1,8,S5[2]);
+      P(X,Y+18,44,12,S5[2]);for(let r=0;r<3;r++){P(X,Y+18+r*4,44,1,S5[1]);for(let c=(r%2)*4;c<44;c+=8)P(X+c,Y+18+r*4,1,4,S5[1]);}P(X,Y+18,44,1,S5[3]);},
+    (X,Y)=>{ /* the crossroads: two roads crossing, a lamp post on the corner, hedges, a signpost with its boards blank */
+      P(X,Y,44,10,S5[4]);P(X,Y+10,44,20,S5[2]);P(X,Y+10,44,3,S5[1]);
+      for(let y=0;y<17;y++){const w=4+y*2;P(X+22-w/2,Y+13+y,w,1,S5[3]);}P(X,Y+19,44,4,S5[3]);
+      P(X+31,Y+3,2,17,S5[0]);P(X+29,Y+2,6,3,S5[1]);P(X+30,Y+3,4,1,S5[5]);   /* the lamp */
+      P(X+9,Y+8,1,12,S5[0]);P(X+5,Y+8,9,2,S5[3]);P(X+5,Y+8,9,1,S5[4]);P(X+8,Y+11,7,2,S5[3]);   /* the signpost, blank boards */
+      P(X,Y+12,8,6,S5[1]);P(X+36,Y+12,8,6,S5[1]);},
+    (X,Y)=>{ /* a row of corn, taller than a man, running away */
+      P(X,Y,44,8,S5[4]);P(X,Y+8,44,22,S5[1]);
+      for(let i=0;i<9;i++){const x=X+2+i*5,h=20-Math.abs(i-4)*1;P(x,Y+28-h,1,h,S5[3]);P(x-1,Y+30-h,1,2,S5[2]);P(x+1,Y+28-h+4,2,1,S5[3]);P(x-2,Y+28-h+8,2,1,S5[3]);P(x+1,Y+28-h+12,2,1,S5[2]);}
+      for(let y=Y+22;y<Y+30;y++)P(X+20-(y-Y-22),y,(y-Y-22)*2+4,1,S5[2]);},
+    (X,Y)=>{ /* the scarecrow's post in the field, its crossbar empty; the cabin far off */
+      P(X,Y,44,15,S5[4]);P(X,Y+15,44,15,S5[2]);for(let r=0;r<4;r++)P(X,Y+18+r*3,44,1,S5[1]);P(X,Y+15,44,1,S5[3]);
+      P(X+33,Y+10,7,5,S5[1]);for(let i=0;i<4;i++)P(X+33+i,Y+10-i,7-i*2,1,S5[1]);P(X+35,Y+12,2,3,S5[0]);
+      P(X+16,Y+5,2,23,S5[0]);P(X+17,Y+5,1,23,S5[1]);P(X+5,Y+10,24,2,S5[0]);P(X+13,Y+28,10,1,S5[1]);   /* the post and its bar */
+      /* an empty shirt hung on it: sleeves along the bar with their cuffs hanging, the body hanging limp under it, a ragged hem */
+      P(X+6,Y+10,22,3,S5[3]);P(X+6,Y+10,22,1,S5[4]);P(X+5,Y+12,3,4,S5[3]);P(X+5,Y+16,1,1,S5[3]);P(X+7,Y+16,1,1,S5[3]);P(X+26,Y+12,3,4,S5[2]);P(X+26,Y+16,1,1,S5[2]);P(X+28,Y+16,1,1,S5[2]);
+      P(X+12,Y+12,11,8,S5[3]);P(X+13,Y+20,9,2,S5[3]);P(X+19,Y+12,4,10,S5[2]);P(X+13,Y+22,2,1,S5[3]);P(X+17,Y+22,2,1,S5[2]);P(X+20,Y+22,2,1,S5[2]);
+      P(X+16,Y+12,1,3,S5[1]);P(X+15,Y+12,1,1,S5[1]);P(X+17,Y+12,1,1,S5[1]);P(X+16,Y+16,1,1,S5[1]);P(X+16,Y+18,1,1,S5[1]);   /* the open collar, two buttons */
+      /* the sack at the top, empty and slumped to one side, tied off at the neck */
+      P(X+14,Y+3,6,6,S5[3]);P(X+13,Y+5,1,3,S5[3]);P(X+20,Y+4,2,3,S5[3]);P(X+15,Y+2,3,1,S5[3]);P(X+18,Y+4,3,4,S5[2]);P(X+14,Y+9,6,1,S5[1]);
+    }];
+  SLOT.forEach(([x,y],i)=>{const tilt=[0,1,-1,0,1,0][i];
+    g.globalAlpha=.5;P(x+2,y+2,48,36,'#050606');g.globalAlpha=1;
+    P(x,y,48,36,'#cfc6b0');P(x+1,y+1,46,34,'#e2d9c2');scene[i](x+2,y+2);P(x+2,y+32,44,2,'#e2d9c2');
+    for(const [cx,cy,dx,dy] of [[x-2,y-2,1,1],[x+48,y-2,-1,1],[x-2,y+36,1,-1],[x+48,y+36,-1,-1]]){for(let k=0;k<5;k++)P(cx+(dx>0?0:-k),cy+(dy>0?k:-k),k+1,1,'#2e2c28');for(let k=0;k<5;k++)P(cx+(dx>0?0:-k),cy+(dy>0?k:-k),1,1,'#4a4640');}
+    if(tilt)P(x+46,y+1,1,1,'#b8ae98');});
+},null);}
