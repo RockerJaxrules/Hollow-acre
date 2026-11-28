@@ -2088,3 +2088,15 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A contact shadow drawn as one hard straight bar with grass between it and the rail reads as a third rail; a dark band at a post's foot reads as a plinth. Draw both as soft, broken runs (#322125 at 60%).
 - A knot or a mark on a fence tile repeats on every tile: keep it one or two pixels. Lean the shade steps toward violet.
 - Speckled dark dots as wood texture read as grit: a few long grain streaks and a worn break in the lit edge do it.
+
+## Faces and makeup on a 48x64 walker (wardrobe #378, Nov 28: r1 5/10, r2 4.5/10, the survivors shipped)
+- A mark on a face must keep about 2 value steps of contrast on BOTH light and dark skin. A fixed colour that reads on pale skin vanishes on dark skin (brows, shadow, ink) and a pale one vanishes on light skin (scars, metal). Push each pixel's brightness away from the skin pixel it lands on: dark marks always darker, scars always lighter, never flip a dark mark to grey.
+- Blush on dark skin as a red pixel reads as a cut. Mix the blush half into the skin's own colour so it warms the cheek.
+- Single pixels on a face read as dirt, pox, flies or snot: freckles, a nose ring under the nostril, a labret or snake bites (fangs), a lip ring (a drip). One deliberate dot works only high on the cheek, off the mouth line (a beauty mark beside the lip reads as a smirk).
+- Metal at this scale needs a lit pixel, a shaded pixel and a dark contact pixel on the skin under it; a lone near-white pixel reads as a glint, a fang or snot.
+- At 48x64 many variants collapse into one: Straight/Thin brows, Gloss/Ombré/Pout lipstick (and a pink centre reads as a tongue on dark skin), Lashes/Cat eyes, Smoky/Bruised. Keep only shapes that differ in silhouette.
+- Eyeliner side on: one flick up behind the eye. A line along the lash plus a wing plus the brow reads as an X across the eye (a dead-eye read).
+- A painted face must not change when the eyes shut: give the sockets a rounded ring with a clear bridge, and paint the closed lid the socket colour. Paint keeps the head's light: a cool grey step on the shaded right side, under the brows and at the chin.
+- Hard rectangles of paint run into the hair side on and look see-through on dark skin: keep paint on skin only, start it in front of the ear, and rough up its edges.
+- Even repeated bands read as clothing (a striped shirt, cuffs, a choker): a tattoo band needs a different second band or none.
+- Blood on dark skin reads by being brighter red, not darker. Runs of different lengths that thicken at their ends read as running; even bars read as whiskers.
