@@ -300,7 +300,9 @@ def ribs(S, toned):
     done('g_ribs' + ('_cu' if S > 1 else ''), c, 22 * S, 31 * S)
 
 
-# ============================== the cold house: a timber rack of hooks, two skinned carcasses and a third shape in sacking
+# ============================== the cold house: a timber rack of hooks, two skinned carcasses, and on the third hook a child's coat
+# (audit, STORY_PLAN 8.3: no child is ever shown hurt) a small wool coat on a wooden hanger, Agnes's blue ribbon tied on the hook
+COAT = ramp('#4e5a4c', spread=.75); RIBN = ramp('#5c6a84', spread=.45)   # a dark, faded green wool apart from the meat; a dusty blue
 def hooks(S, toned):
     r_ = lambda a, b=None, st=1: range(int(round(a))) if b is None else range(int(round(a)), int(round(b)), max(1, int(round(st))))
     W, Hh = 64, 84; z = Z(W, Hh, S); c = z.c; gy = 80
@@ -317,8 +319,8 @@ def hooks(S, toned):
     for x in r_(3 * S, 61 * S): c.p(x, 3 * S, WOOD[4]); c.p(x, 7 * S - 1, WOOD[1])
     if S > 1:
         for x0, L in ((9, 10), (24, 14), (44, 9)): curve(c, [(x0 * S, 5 * S), ((x0 + L) * S, 5 * S + 1)], lambda x, y, i, n: c.p(x, y, WOOD[1]))   # grain
-    f = z.F(); shapes = [(17, 'meat'), (32, 'meat'), (47, 'sack' if not toned else 'sack')]
-    if toned: shapes = [(17, 'sack'), (32, 'sack'), (47, 'sack')]
+    f = z.F(); shapes = [(17, 'meat'), (32, 'meat'), (47, 'coat')]
+    if toned: shapes = [(17, 'sack'), (32, 'sack'), (47, 'coat')]
     for hx, kind in shapes:
         if kind == 'meat':   # a side hung by the hind leg: narrow at the hock on the hook, the haunch, widest low at the ribs, the foreshank out to one side
             v = 0 if hx < 25 else 1; w = (1, .86)[v]; sg = (-1, 1)[v]; L = (0, 2.4)[v]
@@ -326,10 +328,14 @@ def hooks(S, toned):
                   (hx - 2.4 * w, 54 + L), (hx - 5.4 * w, 49 + L), (hx - 6.2 * w, 40 + L), (hx - 4.6 * w, 30), (hx - 2.4 * w, 21)]
             f.poly([(x * S, y * S) for x, y in P_], 'meat', base=.5 * S, hs=1.1)
             f.cap((hx + sg * 3.6) * S, (50.4 + L) * S, (hx + sg * 7) * S, (56 + L) * S, 1.6 * S, 1.1 * S, 'meat', base=1.4 * S)   # the foreshank stub
-        else:   # wrapped in sacking and tied, the shape of a person; bare feet out of the bottom
+        elif kind == 'coat':   # a small coat hung on a hanger: shoulders, a little flare to the hem, the sleeves hanging at its sides
+            P_ = [(hx - 1.8, 16.6), (hx + 1.8, 16.6), (hx + 4.6, 18), (hx + 5, 24), (hx + 5.8, 35.4), (hx - 5.8, 35.4), (hx - 5, 24), (hx - 4.6, 18)]
+            f.poly([(x * S, y * S) for x, y in P_], 'coat', base=.6 * S, hs=.9)
+            for sg in (-1, 1): f.cap((hx + sg * 4.6) * S, 18.6 * S, (hx + sg * 5.9) * S, 30.6 * S, 1.5 * S, 1.3 * S, 'coat', base=1 * S)
+        else:   # wrapped in sacking and tied (toned: the carcasses under sacking)
             f.blob(hx * S, 36 * S, 5.4 * S, 17 * S, 'sack', hs=.8)
             f.blob(hx * S, 21 * S, 4.4 * S, 4 * S, 'sack', base=1 * S)
-    f.render(c, {'meat': [MEAT[0], MEAT[1], MEAT[2], MEAT[3], FAT[2], FAT[4]], 'sack': SACK})
+    f.render(c, {'meat': [MEAT[0], MEAT[1], MEAT[2], MEAT[3], FAT[2], FAT[4]], 'sack': SACK, 'coat': COAT})
     for hx, kind in shapes:
         for y in r_(7 * S, 13 * S): c.p(hx * S, y, IRON[3]); c.p(hx * S + 1, y, IRON[1]) if S > 1 else None   # the hook's shank
         curve(c, [(hx * S, 12 * S), ((hx + 1.4) * S, 13.6 * S), (hx * S, 15 * S)], lambda x, y, i, n: c.p(x, y, IRON[4] if i < 2 else IRON[2]))
@@ -347,6 +353,20 @@ def hooks(S, toned):
                 c.p((hx - 2) * S, 40 * S, MEAT[5]); c.p((hx + 2) * S, 27 * S, MEAT[5])   # wet
             curve(c, [(hx * S, (54.6 + L) * S), ((hx + .2) * S, (62 + L) * S), ((hx - .2) * S, 72 * S), (hx * S, 79.4 * S)],   # one run from it down into the pool
                   lambda x, y, i, n: c.p(x, y, BLOOD[2] if i % 9 else BLOOD[1]) if not (n * .55 < i < n * .55 + 2 * S) else None)
+        elif kind == 'coat':
+            curve(c, [((hx - 6.4) * S, 17.2 * S), (hx * S, 15.8 * S), ((hx + 6.4) * S, 17.2 * S)], lambda x, y, i, n: (c.p(x, y, WOOD[4] if i < n * .5 else WOOD[3]), c.p(x, y + 1, WOOD[1])))   # the hanger's wooden bar, showing past the shoulders
+            for sg in (-1, 1):   # the collar, turned down: a lighter wedge each side of the neck with a dark edge
+                for k in range(3):
+                    for u in range(3 - k): c.p((hx + sg * (1 + u)) * S, (16.9 + k * .7) * S, COAT[4] if u < 2 - k else COAT[1])
+            if S > 1:
+                for k in range(4):   # its buttons, two pixels, a lit top
+                    bx_, by_ = int(hx * S) - 1, int((20.5 + k * 3.6) * S)
+                    c.p(bx_, by_, (232, 220, 186)); c.p(bx_ + 1, by_, (200, 184, 146)); c.p(bx_, by_ + 1, (176, 160, 122)); c.p(bx_ + 1, by_ + 1, (120, 104, 78))
+            else:
+                for k in range(3): c.p(hx * S, (21 + k * 4.4) * S, (190, 176, 140))
+                curve(c, [((hx - 2) * S, 22 * S), ((hx - 2.6) * S, 34 * S)], lambda x, y, i, n: c.p(x, y, COAT[1]) if c.px[x, y][3] > 200 else None)   # a fold
+            for dx, dy, k in ((-2, 9, 3), (-1, 9, 4), (1, 9, 3), (2, 9, 2), (-2, 10, 2), (-1, 10, 1), (0, 9.5, 1), (1, 10, 2), (2, 10, 1), (-1, 11.4, 2), (-1.6, 12.6, 1), (1, 11.4, 2), (1.8, 12.6, 1)):
+                c.p((hx + dx) * S, dy * S, RIBN[k])   # the blue ribbon tied in a bow round the hook's shank, its tails hanging
         else:
             for y in (24, 33, 44, 52):   # tied round with cord
                 curve(c, [((hx - 5) * S, y * S), (hx * S, (y + .8) * S), ((hx + 5) * S, y * S)], lambda x, y_, i, n: c.p(x, y_, SACK[0] if S == 1 else (SACK[1] if i % 3 else SACK[0])) if c.px[x, y_][3] > 200 else None)

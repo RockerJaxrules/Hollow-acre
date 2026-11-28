@@ -1,6 +1,6 @@
 /* ================= (#302) The drowned of Old Wickham, the close-up redrawn (the same picture at every gore level).
    The old street under the reservoir, seen down through the water: the far side of the street with its roofs and walls going into
-   a green-teal murk, the lamp post, the bicycle on its side, the cobbles. Six of the drowned stand in the street with their backs to
+   a green-teal murk, the lamp post, the bicycle on its side, the cobbles. Five of the drowned stand in the street with their backs to
    you, all turned up and to the left (north-west, toward your farm): two men in top hats, women in their Sunday dresses, one with a
    hat, and a small girl in green. Each one's hair lifts off the back of the head as one soft tapering mass with loose strands
    waving off it, every head of hair its own length, curl and drift. What says water: the light from the surface lies on the
@@ -74,7 +74,14 @@ function drw302Paint(P){
   {const LP=ramp('#2c4a46'),t=.24;const s=(x,y,c)=>set(x,y,haze(c,y,t));for(let y=23;y<68;y++){s(101,y,LP[1]);s(102,y,LP[3]);s(103,y,LP[2]);s(104,y,LP[0]);}
     for(let x=99;x<107;x++){s(x,17,x<101?SILT:LP[3]);s(x,22,LP[0]);}for(let y=18;y<22;y++){s(99,y,LP[1]);s(106,y,LP[0]);for(let x=100;x<106;x++)s(x,y,x<102?[74,118,104]:[52,92,82]);}
     s(100,18,[110,150,130]);for(let x=99;x<107;x++)s(x,16,(x%3)?SILT:LP[2]);for(let x=99;x<107;x++){s(x,68,LP[0]);s(x,69,[14,30,28]);}s(100,67,LP[2]);s(105,67,LP[1]);
-    for(let j=0;j<9;j++)s(100+Math.round(Math.sin(j*.6)*1+j*.2),66-j,j<4?[34,72,50]:[48,96,62]);}
+    for(let j=0;j<9;j++)s(100+Math.round(Math.sin(j*.6)*1+j*.2),66-j,j<4?[34,72,50]:[48,96,62]);
+    // (audit, STORY_PLAN 8.3) her hair ribbon, knotted round the post high up, clear of everyone's hats: dusty rose (no weed is
+    // that colour), the band wrapped round the post, a small knot on its left, two short tails drifting up-left with the current
+    {const RB=[[70,34,46],[132,70,84],[176,104,114],[214,148,150]];const k=(x,y,c)=>s(x,y,RB[c]);const Y=29;
+      for(let x=100;x<106;x++){k(x,Y-1,0);k(x,Y,x<102?3:x<104?2:1);k(x,Y+1,x<103?2:1);k(x,Y+2,0);}   // the band round the post, outlined, lit left
+      k(98,Y-1,0);k(99,Y-1,0);k(97,Y,0);k(98,Y,3);k(99,Y,2);k(97,Y+1,0);k(98,Y+1,2);k(99,Y+1,1);k(98,Y+2,0);k(99,Y+2,0);   // the knot
+      const tail=(x0,y0,n,dy)=>{for(let i=0;i<n;i++){const x=x0-i,y=y0-Math.round(i*dy);k(x,y-1,0);k(x,y,i===n-1?2:3);k(x,y+1,i===n-1?0:2);k(x,y+2,0);}};
+      tail(96,Y-1,6,1.1);tail(96,Y+2,5,.75);}}
   // ---------------------------------------------------------------- a low bank of stirred silt over the street, stepped edges
   for(let y=74;y<92;y++)for(let x=0;x<W;x++){const top=78+Math.round(vn(x/14,1,61)*6),bot=86+Math.round(vn(x/12,2,62)*5);if(y<top||y>bot)continue;
     const e=Math.min(y-top,bot-y);tint(x,y,[74,116,102],e<1?.1:e<2?.17:.23);}
@@ -102,9 +109,6 @@ function drw302Paint(P){
     {id:4,x:116,y:74,c:'#4a4a5a',hair:'#4a4c50',hat:'#22222c',bub:[[-8,-26],14],
      hr:[{rib:1,sx:-3.4,sy:3.5,a:-68,L:5.5,w:2.8,b:12,A:12,f:1,t:3,tp:1},{rib:1,sx:-3,sy:6,a:-96,L:5,w:2.6,b:15,A:12,f:1,ph:1.5,t:2,tp:1},
          {rib:1,sx:-1.2,sy:7.5,a:-124,L:3,w:2,b:20,ph:3,t:2,tp:1},{rib:1,sx:3,sy:5,a:76,L:3,w:2,b:-16,t:2,tp:1}]},
-    {id:5,x:64,y:92,c:'#3a4c38',hair:'#ac9a6c',dress:1,s:.8,child:1,
-     hr:[{rib:1,sx:3,sy:3,a:42,L:5,w:3.4,b:-10,A:34,f:1.4,ph:0,t:1},{rib:1,sx:1,sy:1,a:22,L:7,w:3.6,b:-4,A:36,f:1.3,ph:1.3,t:2},
-         {rib:1,sx:-1.2,sy:1,a:4,L:7,w:3.6,b:3,A:36,f:1.3,ph:2.4,t:2},{rib:1,sx:-3,sy:3,a:-14,L:5,w:3.2,b:8,A:34,f:1.4,ph:3.4,t:3}]},
     {id:6,x:92,y:98,c:'#543a46',hair:'#3e2a20',dress:1,bub:[[3,-31],30],
      hr:[{cap:1,sx:0,sy:5.5,a:-26,L:10,w:9,g:0,tp:.5,b:-.6,A:5,f:.3,wo:.9,wf:1.4},
          {rib:1,noTip:1,sx:2.2,sy:4,a:-24,L:14,w:3.2,b:-.5,A:6,f:.3,ph:.3,t:2,tp:.8},{rib:1,noTip:1,sx:0,sy:2.5,a:-27,L:17,w:3.4,b:-.6,A:6,f:.3,ph:0,t:3,tp:.8},
