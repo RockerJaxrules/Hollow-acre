@@ -128,7 +128,7 @@ function goreSightP(k,ton,look){if(typeof sgtSprites!=='function'||typeof sgtOpe
   if(!isNight()&&A.ok){GORE.buzzT=(GORE.buzzT||0)-dt;if(GORE.buzzT<=0){GORE.buzzT=.7+Math.random()*.8;let near=null,nd=4.5;for(const k of g.kills){const d=Math.hypot(P.x-k.x,P.z-k.z);if(d<nd){nd=d;near=k;}}
     if(near){const v=(1-nd/4.5)*(goreToned()?.006:.011),pan=clamp((near.x-P.x)/4,-1,1);A.tone(170+Math.random()*60,.5+Math.random()*.5,'sawtooth',v,{slide:150+Math.random()*90,pan,filter:['bandpass',620+Math.random()*260,5]});}}}
   // it hunts at night: anything it gets near stops
-  if(isNight()&&H.vis&&H.state!=='gone'){GORE.huntT-=dt;if(GORE.huntT<=0){GORE.huntT=14+Math.random()*12;const a=typeof WILD!=='undefined'&&WILD.find(w=>(w.kind==='rabbit'||w.kind==='deer')&&w.st!=='gone'&&Math.hypot(w.x-H.x,w.z-H.z)<8);
+  if(isNight()&&H.vis&&H.state!=='gone'){GORE.huntT-=dt;if(GORE.huntT<=0){GORE.huntT=14+Math.random()*12;const a=typeof WILD!=='undefined'&&WILD.find(w=>(w.kind==='rabbit'||w.kind==='deer')&&w.st!=='gone'&&Math.hypot(w.x-H.x,w.z-H.z)<8&&!(typeof npSeen==='function'&&npSeen(w.x,w.z)));
     if(a){a.st='gone';const k=goreKillAdd(a.x,a.z,a.kind==='deer'?'deer':'rabbit',true);goreDecal(a.x,a.z,.2,6);const d=Math.hypot(a.x-P.x,a.z-P.z);
       if(d<26&&A.ok){const pan=clamp((a.x-P.x)/12,-1,1);A.tone(a.kind==='deer'?620:1300,.5,'sawtooth',.06*(1-d/26),{slide:a.kind==='deer'?300:700,pan,filter:['bandpass',1400,2],verb:true});A.hiss(.25,.08*(1-d/26),'lowpass',500,{delay:.45,pan});
         if(d<16)toast(a.kind==='deer'?'Somewhere close, a deer screams. Then something wet. Then nothing.':'Something small screams in the grass, very close, and then stops all at once.',3.8,true);}}}}};}
