@@ -245,12 +245,12 @@ function rl80Board(dest){if(R80J.open&&typeof R80J.start==='function')return R80
   const standing=rl80Live().some(r=>rl80Phase(r,S.hour).at==='platform');
   toast(standing?'The carriage door is locked. In the second coach somebody draws the blind.':'The line is closed. Nobody is selling tickets.',3);return false;}
 function rl80Station(){const standing=rl80Live().find(r=>rl80Phase(r,S.hour).at==='platform');
-  let h=`<h3>Station · Crossroads</h3><p class="t41svc">THE MARROW VALLEY LINE · for Hollow Acre and Marrow Hollow</p>
+  let h=`<h3>Station · Marrow Halt</h3><p class="t41svc">THE MARROW VALLEY LINE · for Hollow Acre and Marrow Hollow</p>
     <p><b>NOTICE.</b> Passenger services on this line are suspended until further notice. By order of the Company.</p>`;
   h+=standing?`<p>The train at the platform has steam up, but every door is locked and there’s nobody in the cab. It goes back down the line at ${t41TimeStr(standing.t0+.08+r80LegT(R80.sSid-R80.sPlat)+standing.stand)}.</p><p style="text-align:center;margin-top:8px"><button class="btn" id="r80Door">Try a carriage door</button></p>`
     :`<p>The rails run south down Mill Road, past the Deep Corn, and on out of the valley. Now and then a train still comes up, stands a while, and goes back.</p>`;
   openNote(h,'Not now',()=>{});try{t41Modal();}catch(e){}const b=$('r80Door');if(b)b.addEventListener('click',()=>{$('note').hidden=true;S.paused=false;rl80Board(null);},{once:true});}
-{const p=R80_STA.plat;interact.push({x:(p.x0+p.x1)/2,z:(p.z0+p.z1)/2,r:(p.z1-p.z0)/2+.6,on:()=>!S.room,label:()=>'Station · Crossroads',ok:()=>true,act(){rl80Station();}});}
+{const p=R80_STA.plat;interact.push({x:(p.x0+p.x1)/2,z:(p.z0+p.z1)/2,r:(p.z1-p.z0)/2+.6,on:()=>!S.room,label:()=>'Station · Marrow Halt',ok:()=>true,act(){rl80Station();}});}
 // ---- the world map: the line, the station, the train when it's out
 if(typeof m6Transit==='function'){const _m6=m6Transit;m6Transit=function(){const o=_m6.apply(this,arguments);try{if(o&&typeof M6L!=='undefined'&&M6L.transit){const p=R80_STA.plat;
     o.stations.push({id:'s:xr',sid:'xr',t:'station',name:'Crossroads station',x:(p.x0+p.x1)/2,z:(p.z0+p.z1)/2,icon:'train',note:'The line is closed to passengers'});o.rails=[rl80Path()];
