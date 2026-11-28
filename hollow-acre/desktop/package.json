@@ -106,7 +106,6 @@
     },
     "afterPack": "build/adhoc-sign.js",
     "dmg": {
-      "title": "Hollow Acre",
       "artifactName": "HollowAcre-${version}-mac-${arch}.${ext}"
     }
   }
