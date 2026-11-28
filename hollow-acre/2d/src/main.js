@@ -470,7 +470,7 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/
 /* ================= boot ================= */
 function boot(){resize();addEventListener('resize',()=>{resize();vig=null;});makeFog();setupTouch();
   press($('btnAct'),onAct);press($('btnSeed'),()=>onSeed());$('btnTurn').hidden=true;
-  const list=[...new Set(Object.values(SPR).map(m=>m.src))].concat(Object.values(TS).map(t=>t[0]));
+  const list=[...new Set(Object.values(SPR).filter(m=>!m.lazy).map(m=>m.src))].concat(Object.values(TS).map(t=>t[0]));
   const lb=$('loadBar'),lt=$('loadTxt');
   loadImages([...new Set(list)],(d,n)=>{lb.style.width=(d/n*100)+'%';lt.textContent='Loading the valley… '+d+' / '+n;}).then(()=>{
     {const st=document.getElementById('buildStamp');if(st){const d=new Date(+BUILD_ID*1000);st.textContent='Build '+d.toLocaleDateString(undefined,{day:'numeric',month:'short'})+' '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})+(PACKINFO.on?' · art '+PACKINFO.ok+'/'+PACKINFO.total+(PACKINFO.ok<PACKINFO.total?' (some art failed to load: reload the page)':''):'');}}
