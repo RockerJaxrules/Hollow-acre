@@ -234,3 +234,50 @@ function w4Album(){return st37Cv(176,112,(P,g)=>{
     for(const [cx,cy,dx,dy] of [[x-2,y-2,1,1],[x+48,y-2,-1,1],[x-2,y+36,1,-1],[x+48,y+36,-1,-1]]){for(let k=0;k<5;k++)P(cx+(dx>0?0:-k),cy+(dy>0?k:-k),k+1,1,'#2e2c28');for(let k=0;k<5;k++)P(cx+(dx>0?0:-k),cy+(dy>0?k:-k),1,1,'#4a4640');}
     if(tilt)P(x+46,y+1,1,1,'#b8ae98');});
 },null);}
+
+// ---- June's mail (Chapter Three): an envelope on the post office counter, typed THE TITHE, HOLLOW ACRE; a stamp with a wheat
+// sheaf, a postmark ring over it; no return address. An object only.
+Object.assign(W4F,{W:['#...#','#...#','#.#.#','##.##','#...#'],K:['#..#','#.#.','##..','#.#.','#..#'],D:['##.','#.#','#.#','#.#','##.']});
+function w4Mail(){return st37Cv(176,112,(P,g)=>{
+  for(let y=0;y<112;y++){const r=Math.floor(y/11),c=y%11;P(0,y,176,1,c===0?'#2a1a10':c===1?'#7a5032':r%2?'#5e3c24':'#66422a');}   /* the counter top */
+  for(let r=0;r<11;r++){const x=(r*61)%150+12;P(x,r*11+1,1,10,'#4a2e1a');}
+  const EX=26,EY=22,EW=124,EH=70;g.globalAlpha=.5;P(EX+3,EY+EH,EW-2,3,'#1a0e08');P(EX+EW,EY+3,3,EH,'#1a0e08');g.globalAlpha=1;
+  P(EX,EY,EW,EH,'#b8ac90');P(EX+1,EY+1,EW-2,EH-2,'#e4dac2');P(EX+1,EY+EH-4,EW-2,3,'#d0c6ac');P(EX+EW-3,EY+1,2,EH-2,'#d0c6ac');P(EX+1,EY+1,EW-2,1,'#f2ead6');
+  for(let i=0;i<20;i++){P(EX+2+i,EY+EH-2-Math.floor(i/3),1,1,'#d0c6ac');}   /* a soft crease across the corner */
+  // the stamp: a perforated edge, a wheat sheaf engraved in dull red, and the postmark ring and cancel waves over its edge
+  const SX=EX+EW-24,SY=EY+5;P(SX,SY,18,21,'#ece4d0');for(let i=0;i<18;i+=2){P(SX+i,SY,1,1,'#e4dac2');P(SX+i,SY+20,1,1,'#e4dac2');}for(let i=0;i<21;i+=2){P(SX,SY+i,1,1,'#e4dac2');P(SX+17,SY+i,1,1,'#e4dac2');}
+  P(SX+2,SY+2,14,17,'#a8584a');P(SX+3,SY+3,12,15,'#c4806e');
+  {const K='#7a3028';for(const [ex,ey] of [[5,4],[8,3],[11,4]]){P(SX+ex,SY+ey,2,4,K);P(SX+ex+1,SY+ey-1,1,1,K);}   /* three ears of grain */
+   for(const [x0,x1] of [[6,8],[9,9],[12,10]])for(let i=0;i<5;i++)P(SX+Math.round(x0+(x1-x0)*i/4),SY+8+i,1,1,K);P(SX+7,SY+12,5,1,K);   /* stalks drawn to a tie */
+   for(const [x1] of [[6],[9],[12]])for(let i=0;i<4;i++)P(SX+Math.round(9+(x1-9)*i/3),SY+13+i,1,1,K);}   /* splayed below */
+  const PX=SX-6,PY=SY+12;for(let a=0;a<40;a++){const t=a/40*6.283;P(PX+Math.round(Math.cos(t)*9),PY+Math.round(Math.sin(t)*9),1,1,'#4a4250');}
+  for(let k=0;k<3;k++)for(let x=0;x<20;x++)P(PX+10+x,PY-3+k*3+Math.round(Math.sin(x/2.5)),1,1,'#4a4250');
+  P(PX-5,PY-1,10,1,'#4a4250');P(PX-4,PY+2,8,1,'#4a4250');   /* the ring's town and date, too smudged to read */
+  // the address, typed: big THE TITHE, then HOLLOW ACRE and MARROW HOLLOW
+  const ink='#2a2228';const big=(x,y,s)=>{for(const ch of s){const gl=W4F[ch];if(!gl){x+=6;continue;}for(let r=0;r<5;r++)for(let c=0;c<gl[r].length;c++)if(gl[r][c]==='#')P(x+c*2,y+r*2,2,2,ink);x+=gl[0].length*2+2;}};
+  big(EX+20,EY+30,'THE TITHE');w4Text(P,EX+20,EY+46,'HOLLOW ACRE',ink);w4Text(P,EX+20,EY+54,'MARROW HOLLOW',ink);
+  P(EX+19,EY+42,64,1,'#bcb298');
+},null);}
+
+// ---- Dr Ashby's waiting room (Chapter Three): a framed photograph on the wall, the Ashby lumber mill at Charrow, a brass
+// plate CHARROW 1909. Buildings, timber and smoke only.
+function w4AshbyPhoto(){return st37Cv(176,112,(P,g)=>{
+  P(0,0,176,112,'#4a5a52');for(let x=0;x<176;x+=7)P(x,0,1,78,'#46564e');P(0,78,176,4,'#6a5038');P(0,78,176,1,'#8a6c4c');P(0,82,176,30,'#5a4030');for(let x=3;x<176;x+=22)P(x,84,18,24,'#523a2a');   /* painted wall, rail, wainscot */
+  const FX=30,FY=8,FW=116,FH=80;g.globalAlpha=.45;P(FX+4,FY+4,FW,FH,'#1a1410');g.globalAlpha=1;
+  P(FX,FY,FW,FH,'#3a2616');P(FX,FY,FW,2,'#6a4a2c');P(FX,FY,2,FH,'#5a3e24');P(FX+FW-2,FY,2,FH,'#24160c');P(FX,FY+FH-2,FW,2,'#24160c');   /* the frame */
+  P(FX+5,FY+5,FW-10,FH-10,'#d8ceb6');P(FX+5,FY+5,FW-10,1,'#c4baa2');   /* the mount */
+  const X=FX+12,Y=FY+11,W=FW-24,H=48,S6=['#2e2822','#4c4238','#6c6052','#8e806c','#b0a28a','#cec2a8'];
+  P(X-1,Y-1,W+2,H+2,'#3a3028');P(X,Y,W,H,S6[4]);P(X,Y,W,8,S6[5]);   /* sky */
+  for(let i=0;i<W;i++){const h=Math.round(6+3*Math.sin(i/5)+2*Math.sin(i/2.3));P(X+i,Y+18-h,1,h,S6[2]);if(i%4===0)P(X+i,Y+18-h-2,1,2,S6[2]);}   /* pines on the hill behind */
+  P(X,Y+18,W,30,S6[3]);P(X,Y+38,W,10,S6[2]);   /* the yard */
+  P(X+52,Y+2,6,24,S6[1]);P(X+52,Y+2,2,24,S6[2]);P(X+51,Y+1,8,2,S6[0]);   /* the chimney */
+  for(let k=0;k<6;k++){const sx=X+50-k*5,sy=Y-1-k;P(sx,sy,6+k,2,S6[k<3?3:4]);}   /* its smoke, drifting west */
+  P(X+8,Y+20,60,18,S6[2]);for(let i=0;i<60;i+=12){for(let j=0;j<6;j++)P(X+8+i+j*2,Y+20-j,2,j+1,S6[1]);P(X+8+i+11,Y+14,1,6,S6[0]);}   /* the long shed, its sawtooth roof */
+  P(X+8,Y+20,60,1,S6[3]);for(let i=0;i<5;i++)P(X+14+i*11,Y+29,6,8,S6[0]);   /* its open bays, dark */
+  P(X+23,Y+21,28,7,S6[5]);P(X+23,Y+21,28,1,S6[4]);P(X+23,Y+27,28,1,S6[1]);
+  w4Text(P,X+27,Y+22,'ASHBY',S6[0]);   /* the sign board */
+  for(let r=0;r<3;r++)for(let c=0;c<5-r;c++){const lx=X+72+c*4+r*2,ly=Y+40-r*3;P(lx,ly,4,3,S6[2]);P(lx+1,ly+1,2,1,S6[4]);P(lx,ly+2,4,1,S6[1]);}   /* the log stack, ends to you */
+  P(X+2,Y+42,30,2,S6[1]);for(let i=0;i<30;i+=6)P(X+2+i,Y+40,2,2,S6[1]);   /* a rail track out of the yard */
+  // the brass plate on the mount
+  P(FX+32,FY+FH-16,52,8,'#8a6a2c');P(FX+32,FY+FH-16,52,1,'#c8a456');P(FX+32,FY+FH-9,52,1,'#5a4418');w4Text(P,FX+35,FY+FH-14,'CHARROW 1909','#3a2a10');
+},null);}
