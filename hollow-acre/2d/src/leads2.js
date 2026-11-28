@@ -56,6 +56,9 @@ const LD2_STONE={dock:[['otto','corwin','nan'],(n,id)=>id==='otto'?`Otto looks a
 S.leads2=S.leads2||{};
 const ld2Has=k=>!!(S.leads2&&S.leads2[k]);
 const ld2Beat=t=>{try{return SAGA.find(b=>!sgDone(b.id)&&LD2_ASK[b.id]&&sgVal(b.name)===t)||null;}catch(e){return null;}};
+// a teller who isn't in the valley (gone, or not here at all) hands the telling on: if none of a beat's tellers are here, anyone tells
+const ld2Here=id=>{try{const n=npcById(id);return !!(n&&!n.gone&&!n.dead);}catch(e){return false;}};
+const ld2Tells=(list,id)=>list==='any'||list.includes(id)||!list.some(ld2Here);
 const ld2Places=()=>{try{return ST_PLACES.filter(p=>!S.st.seen[p.k]);}catch(e){return [];}};
 const ld2Stones=()=>{try{return ['dock','tree','bed'].filter(k=>!S.st.got[k]);}catch(e){return [];}};
 let LD2_IN=false;const ld2Base=()=>{LD2_IN=true;try{return objective();}finally{LD2_IN=false;}};
@@ -78,14 +81,18 @@ function ld2Goal(r){if(!r||!Array.isArray(r)||typeof ldOld!=='function'||ldOld()
   return r;}
 
 // ---- asking
-{const _t=talk;talk=function(n){const r=_t.apply(this,arguments);try{ld2OnTalk(n);}catch(e){console.warn('leads2',e);}return r;};}
+let LD2_CALM=null;
+{const _t=talk;talk=function(n){LD2_CALM=null;const r=_t.apply(this,arguments);try{ld2OnTalk(n);}catch(e){console.warn('leads2',e);}
+  try{const l=$('talkLine');if(l&&l.querySelector('.ldsay'))LD2_CALM=n;}catch(e){}return r;};}
+// the late-story "wrong" face (portraits.js) reads as a glitch when it lands on someone telling you where to go: keep it off then
+if(typeof emotionOf==='function'){const _e=emotionOf;emotionOf=function(){const e=_e.apply(this,arguments);try{if(e==='wrong'&&LD2_CALM&&typeof talkWho!=='undefined'&&LD2_CALM===talkWho)return 'neutral';}catch(x){}return e;};}
 function ld2OnTalk(n){if(typeof ldOld!=='function'||ldOld()||!n||!n.def||isNight())return;const box=$('talk'),line=$('talkLine');if(!box||box.hidden||!line)return;
   const id=n.def.id,nm=typeof ldName==='function'?ldName(n):n.def.name.split(' ')[0];let base;try{base=ld2Base();}catch(e){return;}if(!base)return;const t=base[0];
   const say=(k,txt,tell)=>{S.leads2[k]={d:S.day,n:nm};line.insertAdjacentHTML('beforeend',`<br><span class="ldsay">${txt}</span>`);if(tell)ldTell(tell);SFX.page&&SFX.page();};
-  const b=ld2Beat(t);if(b&&!ld2Has('beat_'+b.id)){const w=LD2_ASK[b.id][0];if(w!=='any'&&!w.includes(id))return;let at=null;try{at=b.npc?npcById(typeof b.npc==='function'?b.npc():b.npc):(b.at&&b.at());}catch(e){}
+  const b=ld2Beat(t);if(b&&!ld2Has('beat_'+b.id)){if(!ld2Tells(LD2_ASK[b.id][0],id))return;let at=null;try{at=b.npc?npcById(typeof b.npc==='function'?b.npc():b.npc):(b.at&&b.at());}catch(e){}
     say('beat_'+b.id,LD2_ASK[b.id][2](nm),at);return;}
   if(t==='The Tithe'){const left=ld2Places().filter(p=>!ld2Has('place_'+p.k));if(left.length){const p=left[0];say('place_'+p.k,LD2_PLACE[p.k](nm),{x:p.x,z:p.z});}return;}
-  if(t==='Three stones'){const k=ld2Stones().find(k=>!ld2Has('stone_'+k)&&LD2_STONE[k][0].includes(id));if(k){const at={dock:()=>({x:LAKE.x,z:LAKE.z-LAKE.rz+2.6}),tree:()=>HOLLOW_TREE,bed:()=>doorPos}[k];let pt=null;try{pt=at();}catch(e){}say('stone_'+k,LD2_STONE[k][1](nm,id),pt);}}}
+  if(t==='Three stones'){const k=ld2Stones().find(k=>!ld2Has('stone_'+k)&&ld2Tells(LD2_STONE[k][0],id));if(k){const at={dock:()=>({x:LAKE.x,z:LAKE.z-LAKE.rz+2.6}),tree:()=>HOLLOW_TREE,bed:()=>doorPos}[k];let pt=null;try{pt=at();}catch(e){}say('stone_'+k,LD2_STONE[k][1](nm,id),pt);}}}
 
 // ---- the Leads tab: what people told you after Chapter One
 // the open question (nobody has told you yet) heads the Leads tab
@@ -103,4 +110,4 @@ if(typeof leadsHtml==='function'){const _lh=leadsHtml;leadsHtml=function(){let h
     if(rows.length)h=h.replace('<h4>To follow</h4>','<h4>To follow</h4>'+rows.reverse().join(''));
     if(fin.length)h=h.includes('<h4>Followed</h4>')?h.replace('<h4>Followed</h4>','<h4>Followed</h4>'+fin.reverse().join('')):h+'<h4>Followed</h4>'+fin.reverse().join('');}catch(e){}return h;};}
 {const c=document.createElement('style');c.textContent='#noteText .ldq{font-style:italic}';document.head.appendChild(c);}
-window.__leads2={has:ld2Has,goal:ld2Goal,question:ld2Question};
+window.__leads2={has:ld2Has,goal:ld2Goal,question:ld2Question,here:ld2Here,calm:()=>LD2_CALM};
