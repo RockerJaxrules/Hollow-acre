@@ -170,7 +170,7 @@ function nightUIFlush(){if(!NIGHT_UIQ.length)return;const q=NIGHT_UIQ.splice(0);
   if(out&&typeof ruth!=='undefined'&&ruth.vis)glowAt(sx(ruth.x),sz(ruth.z)-22,30,[176,190,214],.42*L);
   // the townsfolk who stand and watch after the bell: their eyes catch your light, and burn
   if(out&&S.day>=2&&nightK>.5)for(const n of npcs){if(!n.vis||n.clip!=='stand')continue;const X=Math.round(sx(n.x)),Y=Math.round(sz(n.z)-35);if(X<-20||X>VW+20||Y<-20||Y>VH+20)continue;
-    glowAt(X-2.5,Y+.5,3,[255,60,30],.9*L);glowAt(X+2.5,Y+.5,3,[255,60,30],.9*L);}
+    if(typeof npcEyeGlow==='function')npcEyeGlow(n,L);else{glowAt(X-2.5,Y+.5,3,[255,60,30],.9*L);glowAt(X+2.5,Y+.5,3,[255,60,30],.9*L);}}
   // friends carry lanterns too: the same round pool round each of them, and their flame
   if((out||mine)&&typeof others==='function'&&NIGHT.dk>0){const here=S.room||'';for(const p of others()){const q=p.presence;if(!q||(q.r||'')!==here||q.c==='tractor')continue;
     const rs=typeof PEER_RS!=='undefined'?PEER_RS[p.peer]:null,x=rs?rs.x:q.x,z=rs?rs.z:q.z;const X=sx(x),Y=sz(z);if(X<-320||X>VW+320||Y<-260||Y>VH+300)continue;
