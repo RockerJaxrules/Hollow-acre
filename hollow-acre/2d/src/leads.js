@@ -91,7 +91,7 @@ function ldGoal(r){if(!r||!Array.isArray(r))return r;const t=r[0];
     if(t==='Candles'&&ldAsked('candles')&&!S.c37hale&&(S.candles||0)+lit()===0){const h=npcById('hale');return ['Candles','Ask Pastor Hale what Grandpa was doing. The church is at the top of town.',h&&h.vis?h:CHURCH_STEP];}}
   if(r[2]&&!ldKnown(r[2]))return [t,ldStrip(r[1])+' <span class="ldask">Ask someone the way.</span>',null];
   return r;}
-{const c=document.createElement('style');c.textContent='.ldask{display:inline-block;margin-left:.35em;opacity:.8;font-style:italic}';document.head.appendChild(c);}
+{const c=document.createElement('style');c.textContent='.ldask{display:inline-block;margin-left:.35em;opacity:.8;font-style:italic}#talkLine .ldsay{display:inline-block;margin-top:.35em}';document.head.appendChild(c);}
 
 // ---- asking: whoever you talk to answers the goal's question, or points you the way
 // how people are named when they answer: "Sheriff Dunn", "Pastor Hale", but "Caitlyn", "Otto"
@@ -103,12 +103,12 @@ function ldOnTalk(n){if(ldOld()||!n||!n.def||isNight())return;const box=$('talk'
   const id=n.def.id,nm=ldName(n);S.leads=S.leads||{};
   const k=ldPending();
   if(k){const a=LD_ASK[k];const ok=a.who==='any'||(a.who==='nothale'&&id!=='hale')||(Array.isArray(a.who)&&a.who.includes(id));if(!ok)return;
-    S.leads['ask_'+k]={d:S.day,n:nm,txt:a.lead(nm)};line.insertAdjacentHTML('beforeend',`<br><q>${a.line(nm)}</q>`);
+    S.leads['ask_'+k]={d:S.day,n:nm,txt:a.lead(nm)};line.insertAdjacentHTML('beforeend',`<br><span class="ldsay">${a.line(nm)}</span>`);
     if(k==='agnes')ldTell(npcById('agnes'));if(k==='candles'){ldTell(npcById('hale'));ldTell(CHURCH_STEP);}
     if(k==='motel'&&typeof RGP!=='undefined'&&RGP.motel)ldTell({x:RGP.motel.x,z:RGP.motel.z+.7});SFX.page&&SFX.page();return;}
   const o=objective();if(!o||o[2])return;let base;try{base=ldBase();}catch(e){return;}const tg=base&&base[2];if(!tg||ldKnown(tg))return;
   const p=tg.def?tg:(typeof outsidePoint==='function'?outsidePoint(tg):tg);if(!p)return;const dir=ldDir(n.x,n.z,p.x,p.z);
-  line.insertAdjacentHTML('beforeend',`<br><q>“${base[0]}? You want to go ${dir} from here.”</q> ${nm} points.`);
+  line.insertAdjacentHTML('beforeend',`<br><span class="ldsay">“${base[0]}? You want to go ${dir} from here.” ${nm} points.</span>`);
   ldTell(tg);S.leads['way_'+S.day+'_'+id]={d:S.day,n:nm,g:base[0],txt:`Pointed me ${dir}, for ${base[0].replace(/<[^>]+>/g,'').replace(/^The /,'the ')}.`};}
 
 // ---- the first odd things: noticed, not told
