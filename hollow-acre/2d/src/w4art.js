@@ -281,3 +281,29 @@ function w4AshbyPhoto(){return st37Cv(176,112,(P,g)=>{
   // the brass plate on the mount
   P(FX+32,FY+FH-16,52,8,'#8a6a2c');P(FX+32,FY+FH-16,52,1,'#c8a456');P(FX+32,FY+FH-9,52,1,'#5a4418');w4Text(P,FX+35,FY+FH-14,'CHARROW 1909','#3a2a10');
 },null);}
+
+// ---- Hale's church book (Chapter Three): an open ledger on the lectern, NAME FAMILY YEAR, one line every October back to 1871
+// in the same brown ink. Near the end: ABERNATHY 1987, COYLE 1999. The last line is yours: MARSH, the year struck through, and
+// beside it in Grandpa's blue-black hand, LATE. Text and ink only.
+Object.assign(W4F,{F:['###','#..','##.','#..','#..']});
+function w4Book(){return st37Cv(176,112,(P,g)=>{
+  P(0,0,176,112,'#2a1c14');for(let y=0;y<112;y+=6)P(0,y,176,1,'#24180f');   /* the lectern's wood in the dim */
+  g.globalAlpha=.5;P(10,98,158,6,'#0e0806');g.globalAlpha=1;
+  const L=12,R=164,T=8,B=100,M=74;P(L-2,T-2,R-L+4,B-T+4,'#4a2a1c');P(L-2,B,R-L+4,3,'#3a2014');   /* the boards */
+  for(const [x0,x1] of [[L,M-1],[M+1,R]]){P(x0,T,x1-x0,B-T,'#ddd0b0');P(x0,T,x1-x0,2,'#cfc2a2');}   /* the two pages */
+  P(M-1,T,2,B-T,'#a89a7a');P(M-3,T,2,B-T,'#cfc2a2');P(M+1,T,2,B-T,'#cfc2a2');   /* the gutter */
+  for(let i=0;i<6;i++){P(L+1+i,B-1-i,1,1,'#c8bb9b');P(R-2-i,B-1-i,1,1,'#c8bb9b');}   /* thumb-worn lower corners */
+  const ink='#6a3a22',inkL='#8a5a3a',rule='#b8a888',old='#9a7a62';
+  const stroke=(x,y,ws,col)=>{let xx=x;for(const w of ws){P(xx,y+1,w,1,col);P(xx+1,y,Math.max(1,w-2),1,col);xx+=w+2;}};
+  const page=(x0,x1,last)=>{const c1=x0+20,c2=x1-16;   /* columns: name, family to c2, year */
+    if(last){w4Text(P,x0,T+4,'NAME',ink);w4Text(P,c1,T+4,'FAMILY',ink);w4Text(P,c2,T+4,'YEAR',ink);}P(x0,T+11,x1-x0,1,ink);   /* the left page carries on from the one before: no heading */P(c1-2,T+3,1,B-T-6,rule);P(c2-2,T+3,1,B-T-6,rule);
+    const n=last?8:12;for(let i=0;i<n;i++){const y=T+14+i*6;P(x0,y+4,x1-x0,1,rule);const col=last?ink:(i<5?old:inkL);
+      stroke(x0,y+1,[[5,4],[3,6],[6,3],[4,5]][i%4],col);stroke(c1,y+1,[[9],[6,3],[11],[4,5]][i%4],col);stroke(c2,y+1,[[4,6],[5,5],[6,4]][i%3],col);}
+    if(!last)return;
+    const rows=[T+62,T+70,T+78];for(const y of rows)P(x0,y+6,x1-x0,1,rule);
+    stroke(x0,rows[0]+1,[4,6],ink);w4Text(P,c1,rows[0],'ABERNATHY',ink);w4Text(P,c2,rows[0],'1987',ink);
+    stroke(x0,rows[1]+1,[6,4],ink);w4Text(P,c1,rows[1],'COYLE',ink);w4Text(P,c2,rows[1],'1999',ink);
+    stroke(x0,rows[2]+1,[5,3,4],ink);w4Text(P,c1,rows[2],'MARSH',ink);stroke(c2,rows[2]+1,[6,5],ink);P(c2-1,rows[2]+2,14,1,'#2a1a12');   /* your year, struck through */
+    w4Text(P,c2,rows[2]+7,'LATE','#26324a');};   /* and under it, in his ink */
+  page(L+3,M-4,false);page(M+4,R-3,true);
+},null);}

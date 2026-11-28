@@ -81,8 +81,11 @@ function ld2Goal(r){if(!r||!Array.isArray(r)||typeof ldOld!=='function'||ldOld()
   return r;}
 
 // ---- asking
-let LD2_CALM=null;
-{const _t=talk;talk=function(n){LD2_CALM=null;const r=_t.apply(this,arguments);try{ld2OnTalk(n);}catch(e){console.warn('leads2',e);}
+let LD2_CALM=null,LD2_KEEP='';
+// a talk line swapped for another after it opened (the horror director's lies) keeps what you were just told, under it
+try{new MutationObserver(()=>{try{const l=$('talkLine');if(!l||$('talk').hidden){LD2_KEEP='';return;}const sp=[...l.querySelectorAll('.ldsay')];
+  if(sp.length){LD2_KEEP=sp.map(e=>'<br>'+e.outerHTML).join('');return;}if(LD2_KEEP){const k=LD2_KEEP;LD2_KEEP='';l.insertAdjacentHTML('beforeend',k);}}catch(e){}}).observe($('talkLine'),{childList:true,subtree:true,characterData:true});}catch(e){}
+{const _t=talk;talk=function(n){LD2_CALM=null;LD2_KEEP='';const r=_t.apply(this,arguments);try{ld2OnTalk(n);}catch(e){console.warn('leads2',e);}
   try{const l=$('talkLine');if(l&&l.querySelector('.ldsay'))LD2_CALM=n;}catch(e){}return r;};}
 // the late-story "wrong" face (portraits.js) reads as a glitch when it lands on someone telling you where to go: keep it off then
 if(typeof emotionOf==='function'){const _e=emotionOf;emotionOf=function(){const e=_e.apply(this,arguments);try{if(e==='wrong'&&LD2_CALM&&typeof talkWho!=='undefined'&&LD2_CALM===talkWho)return 'neutral';}catch(x){}return e;};}
