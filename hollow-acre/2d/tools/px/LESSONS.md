@@ -882,6 +882,11 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   vertical strokes counted 1/0.45 as much). Run the full auto-player play-through after any restage, not only the arm measure.
 
 ## Brewery stations and drink icons (Nov 12)
+- [t382 alcohol games] A station's minigame shows the station's own parts as its world sprite has them (the still: brick firebox, onion pot, ball head, swan neck, worm tub, the jar under the tap; the kettle: copper on a stone firebox, the mash tun, hops; the press: frame, T-bar screw, hooped basket, the jug). A kitchen range with a copper blob painted over its pot reads as a cook's stew.
+- [t382] A closed vessel is never stirred. A still's feedback is the fire in its door (answering the draught), the seam (steam spitting, the head chattering when too hot) and what comes out of the worm (no drip cold, drips faster as it heats, a cloudy stream when it boils).
+- [t382] Copper on a broad body reads as a terracotta flower pot unless it has metal contrast: a hard vertical highlight streak left of centre and dark reflections where the surface faces down or away. The tall onion pot got away without it; the wide kettle did not.
+- [t382] Identical small jars side by side on a shelf read as letters (F F F L) at 1x. Leave the wall plain rather than line up copies.
+- [t382] Every liquid goes into something that holds liquid: a run-off or strain lands in an oak tub, a crock or a jug, never a wicker basket.
 - A liquid seen in an open vessel: a thin lip, a FLAT surface in two tones, one 3-4 px sheen line at the top left, foam only as a thin broken line hugging the back rim. A broad pale rim round a dark centre reads as a pie crust; specks on it read as stew or porridge.
 - What makes a pot a brewer's and not a cook's: a tap on the belly (4 px spout + key, not a 2 px blob), no handle lugs, hop cones on the tun. At 1x the tun and hops carry the trade.
 - A slatted basket of fruit: show the fruit as 2 px berries with a lit pixel heaped above the rim and bulging through the gaps; evenly alternating dark slat / colour stripe reads as a barcode.
@@ -1728,6 +1733,7 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - A checkbox is the whole row, not the 20 px box: 44 px tall strip, hover and press steps like the wood buttons, a bigger box on phones. Native browser checkboxes don't match the pixel panels; draw the box (lit top edge, dark bottom edge, chunky pixel tick).
 
 ## Minigames that show the job (#266 car repair, Nov 12)
+- [t382] On a phone (mgfit377) the stage is zoomed to cover the screen and the hint plate takes the bottom, so a step has about 127 stage px of height in view. Give a re-staged step its own MF_FOCUS box no taller than ~115 px holding the hand, the work and its feedback (raise a jar onto a crate, a fire door up the firebox), or the plate hides them.
 - **[owner]** "Better car minigames that actually have you doing the stuff it says you're doing": one tap-the-marker bar dressed up for every step is not a game of that step. Each step gets its own close-up of the actual part and the actual motion (hammer the dent, loop the belt, carry the wheel onto the studs, pour to the mark, turn the key).
 - A green zone floating beside the object is the old bar in disguise: put the zone ON the object (a dial painted round the clamp screw, a torque arc round the nut, the green arc on the tachometer).
 - A scene has to say where you are: a tach in a void isn't "the driver's seat"; give it the windscreen, the dash, the wheel's rim, the column, and keep the key visible (the hand pinches it from the side).
