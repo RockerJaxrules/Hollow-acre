@@ -1,0 +1,68 @@
+# Hand-placed leaf clumps for the autumn broadleaf trees. Digits are ramp steps (1 darkest .. 7 brightest); 'o' is the
+# darkest edge used under a clump where it overlaps what's behind. Light comes from the top-left: lobes lit on their
+# upper-left, a darker crescent under each lobe, the clump's underside darkest. Each is drawn whole, pixel by pixel.
+
+# a big clump: three lobes over two
+module clumpA
+.......55.........
+....5566655..55...
+...566666654566...
+..56666666545665..
+..5666656544565544
+.566665544445544.4
+.55665544444444443
+.5554444444443443.
+.4444443433333332.
+..4443333332233322
+..334333322222221.
+...3223222211111..
+....2111.1111oo...
+end
+
+# a smaller round clump
+module clumpB
+.....55..5....
+...5566556655.
+..566666556665
+.5666665455654
+.56665544445443
+55654444444433
+.4544444443332
+.44443333333321
+..333332223221.
+...2222211111..
+....1o1..1o...
+end
+
+# a long low clump for the lower edge of the crown
+module clumpC
+....55.....55.......
+..55665..55665.55...
+.5666665566666566...
+.56666654666654665..
+5666544444554444543.
+.55444444444444443332
+.444433344433333332.
+..33332223322222221.
+...2211..112111111..
+.....oo...ooo.......
+end
+
+# loose leaves at the crown's edge, so the silhouette breaks up the way a real crown does
+module tipA
+.55.
+5665
+.54.
+..3.
+end
+module tipB
+5.5
+656
+.4.
+end
+module tipC
+.5.
+564
+453
+.3.
+end

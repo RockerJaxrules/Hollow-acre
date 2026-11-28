@@ -1,0 +1,10 @@
+const {chromium}=require('playwright');
+(async()=>{for(const [w,h,tag] of [[1000,700,'pc'],[390,844,'phone']]){const b=await chromium.launch();const pg=await b.newPage({viewport:{width:w,height:h}});const errs=[];pg.on('pageerror',e=>errs.push('ERR '+e.message));await pg.route('**/fonts.googleapis.com/**',r=>r.abort());
+ await pg.goto('http://localhost:8766/test2d.html');await pg.waitForFunction(()=>!document.getElementById('loadScr'),null,{timeout:90000});await pg.evaluate(()=>localStorage.clear());
+ await pg.evaluate(()=>{document.getElementById('begin').click();document.getElementById('cGo').click();});await pg.waitForTimeout(300);await pg.evaluate(()=>__game.skip());await pg.waitForTimeout(800);
+ const ev=c=>pg.evaluate(c=>__game.ev(c),c);await ev("S.tut.off=true;S.room=null;S.hour=12;P.x=40;P.z=-6;");
+ await ev("openBag('map')");await pg.waitForTimeout(1200);await pg.screenshot({path:`MAP3_${tag}.png`});
+ console.log(tag,await ev("(()=>{const L=[...document.querySelectorAll('#mapInner .plq,#mapInner .rgn')];const vis=L.filter(e=>e.style.display!=='none');const r=vis.map(e=>e.getBoundingClientRect());let ov=0;for(let i=0;i<r.length;i++)for(let j=i+1;j<r.length;j++){const a=r[i],b=r[j];if(a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top)ov++;}return vis.length+'/'+L.length+' labels shown, overlaps '+ov;})()"));
+ await ev("$('mzIn').click()");await pg.waitForTimeout(900);await pg.screenshot({path:`MAP3_${tag}_z.png`});
+ console.log(tag,'zoomed',await ev("(()=>{const L=[...document.querySelectorAll('#mapInner .plq,#mapInner .rgn')];const vis=L.filter(e=>e.style.display!=='none');const r=vis.map(e=>e.getBoundingClientRect());let ov=0;for(let i=0;i<r.length;i++)for(let j=i+1;j<r.length;j++){const a=r[i],b=r[j];if(a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top)ov++;}return vis.length+'/'+L.length+' labels shown, overlaps '+ov;})()"));
+ console.log(tag,errs.slice(0,3).join('\n')||'no errors');await b.close();}})();

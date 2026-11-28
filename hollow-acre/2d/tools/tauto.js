@@ -1,0 +1,13 @@
+const {chromium,devices}=require('playwright');
+(async()=>{const b=await chromium.launch();const ctx=await b.newContext({...devices['iPhone 13']});let pg=await ctx.newPage();const errs=[];
+ const boot=async()=>{pg.on('pageerror',e=>errs.push('ERR '+e.message));await pg.route('**/fonts.googleapis.com/**',r=>r.abort());await pg.goto('http://localhost:8766/test2d.html');await pg.waitForFunction(()=>!document.getElementById('loadScr'),null,{timeout:90000});};
+ await boot();await pg.evaluate(()=>localStorage.clear());await boot();
+ const ev=c=>pg.evaluate(c=>__game.ev(c),c);
+ await pg.evaluate(()=>{document.getElementById('begin').click();document.getElementById('cGo').click();});await pg.waitForTimeout(300);await pg.evaluate(()=>__game.skip());await pg.waitForTimeout(400);
+ await ev("S.tut.off=true;S.readLetter=true;S.foundCabin=true;S.hour=14.5;S.coins=321;P.x=30;P.z=-6;addInv('wood',7)");await pg.waitForTimeout(400);
+ await ev("autoT=0.01");await pg.waitForTimeout(500);console.log('timer save',await pg.evaluate(()=>{const d=JSON.parse(localStorage.getItem('hollowSave1'));return d.mid.hour.toFixed(2)+' @'+d.mid.x.toFixed(1)+','+d.mid.z.toFixed(1)+' coins '+d.S.coins;}));
+ await ev("S.coins=555;P.x=40");await pg.close();pg=await ctx.newPage();await boot();
+ console.log('after close',await pg.evaluate(()=>{const d=JSON.parse(localStorage.getItem('hollowSave1'));return 'coins '+d.S.coins+' x '+d.mid.x.toFixed(1);}),'button',await pg.evaluate(()=>document.getElementById('cont').textContent));
+ await pg.click('#cont');await pg.waitForTimeout(800);console.log('resumed',await ev("S.day+' '+fmtTime(S.hour)+' @'+P.x.toFixed(1)+','+P.z.toFixed(1)+' coins '+S.coins+' wood '+inv('wood')"));
+ await ev("enterRoom('store')");await pg.waitForTimeout(1500);console.log('room save',await pg.evaluate(()=>JSON.parse(localStorage.getItem('hollowSave1')).mid.room));
+ console.log(errs.slice(0,5).join('\n'));await b.close();})();

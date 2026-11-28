@@ -1,0 +1,70 @@
+/* ================= #379j W5, the rest: everyone's habit, and the ways the story darkens that are things done rather than places
+   (story plan 6.5). Talk to someone and, now and then, you catch them at their habit (Caitlyn counting the till twice, Hollis wiping
+   his hands on the same rag, Moss reading tracks aloud). From the chapter the plan names, what has gone wrong with them shows in
+   what they are doing when you come up to them: Caitlyn restacking the same tin, Gideon's nails all coming out bent, Corwin's radio
+   playing your voice. Shown in what they do, never explained; the plan's chapter numbers as in the weekly routines. ================= */
+const W79J_HAB={mae:'(She counts the till, then counts it again, lips moving, as if the second count might come out different.)',
+ tobias:'(He is singing the tall-man rhyme under his breath. He stops just before the last line, the way he always does.)',
+ pip:'(He writes something down in his notebook before he answers you. He angles it so you can’t see.)',
+ hale:'(A chessboard is set up on the bench beside him, a game half played against nobody.)',
+ ida:'(She is humming the Tithe hymn without seeming to know she is.)',
+ hollis:'(He wipes his hands on the same oily rag while he talks, over and over, long after they are clean.)',
+ june:'(She is turning an envelope over in her hands, reading the front and the back. She never opens one.)',
+ wes:'(There is a bag at his feet, packed, the straps done up.)',
+ dunn:'(He touches the brim of his hat to you before he speaks.)',
+ agnes:'(Behind her, her porch light is on, in broad daylight.)',
+ silas:'(His eyes go over you from your shoes to the top of your head, measuring.)',
+ otto:'(He gives you this morning’s weather rhyme before anything else. It rhymes “red” with “dead”.)',
+ cora:'(She is counting something under her breath. She finishes the count before she looks at you.)',
+ gideon:'(He is talking to a horseshoe on the anvil. He stops when he sees you, not embarrassed.)',
+ nell:'(There is sawdust in her hair and a pencil behind her ear.)',
+ ezra:'(He is talking to one of the animals in a low voice, and it is listening.)',
+ orla:'(She makes a joke about dying, and laughs at it herself.)',
+ bram:'(There is a drawing of the valley seen from the top of the big tree sticking out of his pocket.)',
+ abel:'(He weighs a sack in his hands before he trusts the scale with it.)',
+ della:'(She tells you, unasked, whose birthday it is today.)',
+ maud:'(She knocks on a block of stone with her knuckles and listens, before she says anything.)',
+ corwin:'(Behind him the radio is playing, a song from 1979, as it always is. He looks as if he hasn’t slept.)',
+ tess:'(She is talking quietly to the guest book on the desk.)',
+ hob:'(There is a bowl of food set out beside him, for a guest nobody else can see.)',
+ lyle:'(He listens a moment before he speaks, his head on one side.)',
+ vera:'(Her suitcase is at her feet. It always is.)',
+ quinn:'(His sleeves are wet to the elbow. He has blessed the river this morning.)',
+ nan:'(She tells you she never poles anyone back. Not once. You didn’t ask.)',
+ finn:'(He skims a stone and counts the bounces out loud: four, five, six.)',
+ iris:'(She is sewing as she talks, her eyes half closed.)',
+ moss:'(He reads the tracks at his feet aloud, as if they were writing.)',
+ ada:'(She tells you who is standing behind you. Nobody is standing behind you.)'};
+// from the chapter named, a thing done (id, plan chapter, line)
+const W79J_DARK=[['mae',9,'(She is restacking the same tin on the shelf. She takes it down and puts it back, again and again, and doesn’t stop while you talk.)'],
+ ['tobias',9,'(He has drawn a door on his slate. On every slate in his bag, a door.)'],
+ ['pip',6,'(He is counting the cans aloud, and loses count at 31. He starts again.)'],['pip',9,'(Every page of his notebook says October 31, over and over.)'],
+ ['ida',6,'(Through her kitchen window, earlier, you saw her stirring an empty pot on a cold stove.)'],
+ ['hollis',6,'(The garage door is shut behind him. You heard him hammering one panel for hours.)'],
+ ['wes',6,'(Through his window at dawn you saw him unpacking the bag he packed last night.)'],
+ ['dunn',12,'(There is ash on his cuffs. He has been burning paper in his yard.)'],
+ ['agnes',6,'(She is talking to the empty chair beside her on the porch, and pauses for it to answer.)'],
+ ['otto',9,'(Every line on his rods has been cut.)'],['otto',12,'(His barometer lies on the dock beside him, smashed.)'],
+ ['cora',9,'(The school’s windows are chalked full of numbers, inside and out.)'],['cora',12,'(The number on her board is a countdown now.)'],
+ ['gideon',6,'(You heard him at the forge last night, after the bell.)'],['gideon',9,'(Every nail in the box beside him has come out bent.)'],['gideon',12,'(He puts a bent nail in your hand without a word.)'],
+ ['nell',6,'(You heard the saw going at night.)'],['nell',12,'(The box in her workshop is finished. It is your size.)'],
+ ['ezra',6,'(At dusk, every animal in his pens stands facing your farm.)'],['ezra',9,'(The cows won’t let him near. He keeps his hands in his pockets.)'],
+ ['orla',12,'(She has counted every tree in the orchard. The count is one short.)'],
+ ['abel',9,'(He weighs himself on the sack scale while you talk. He does it every hour.)'],['abel',12,'(This year’s line in his ledger is still blank.)'],
+ ['della',6,'(She asks you what hour you were born. She writes it down.)'],
+ ['maud',9,'(There is a person-shaped hollow half cut in the face behind her, and her chisel in her hand.)'],
+ ['corwin',6,'(His radio is playing your voice.)'],['corwin',9,'(The date on his price sign has flipped from 1979 to this year.)'],
+ ['tess',6,'(A table is laid for a guest nobody sees.)'],['tess',9,'(She is reading the guest book aloud, every name.)'],['tess',12,'(Every room in the inn is made up and turned down.)'],
+ ['hob',9,'(There is a sack at his feet he won’t open.)'],
+ ['lyle',6,'(He listens to your chest without asking, and goes pale.)'],['lyle',9,'(The photos in his waiting room have been turned face down.)'],['lyle',12,'(He presses a bottle of tonic into your hand. He does it every morning now.)'],
+ ['quinn',6,'(He is preaching to the river.)'],
+ ['nan',9,'(Her jar of names is full to the lid.)'],
+ ['finn',9,'(He has stopped skimming stones. He just holds them.)'],
+ ['iris',6,'(On her dummy, a dress. It is your size.)'],['iris',12,'(She tells you the Tithe’s clothes have been delivered to your door, folded.)'],
+ ['moss',6,'(He is reading tracks that shouldn’t be there.)'],
+ ['ada',6,'(She names someone standing behind you. You don’t know the name. Nobody is there.)']];
+// when you talk to them: what has gone wrong first (the latest step their chapter has reached), else, now and then, their habit
+{const _t=talk;talk=function(n){_t.apply(this,arguments);try{if(!n||!n.def)return;const id=n.def.id,el=$('talkLine');if(!el)return;const ch=typeof wk79Ch==='function'?wk79Ch():1;
+  let line=null;for(const d of W79J_DARK)if(d[0]===id&&ch>=d[1])line=d[2];
+  if(!line&&W79J_HAB[id]){S.w79j=S.w79j||{};const k=id+':'+S.day;if(!S.w79j[k]&&((S.day*7+id.length*13)%3===0||rand()<.25)){S.w79j[k]=1;line=W79J_HAB[id];}}
+  if(line){const cur=el.innerHTML||'';if(!cur.includes(line))el.innerHTML=cur+(cur?'<br>':'')+`<span class="w79j">${line}</span>`;}}catch(e){}};}

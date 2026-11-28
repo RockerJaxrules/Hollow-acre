@@ -1,0 +1,22 @@
+﻿# Unreal Part 2: generated folders
+hollow-acre/unreal/HollowAcre/Binaries/
+hollow-acre/unreal/HollowAcre/Intermediate/
+hollow-acre/unreal/HollowAcre/Saved/
+hollow-acre/unreal/HollowAcre/DerivedDataCache/
+hollow-acre/unreal/HollowAcre/.vs/
+hollow-acre/unreal/HollowAcre/*.sln
+hollow-acre/unreal/HollowAcre/*.slnx
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# MetaHuman pieces the game does not use (rebuilt by Scripts/build_driver_metahuman.py)
+hollow-acre/unreal/HollowAcre/Content/HollowAcre/Driver/MHC_*.uasset
+hollow-acre/unreal/HollowAcre/Content/HollowAcre/Driver/Built/Driver/Face/
+hollow-acre/unreal/HollowAcre/Content/HollowAcre/Driver/Built/Driver/Grooms/
+hollow-acre/unreal/HollowAcre/Content/HollowAcre/Driver/Built/Driver/Clothing/
+hollow-acre/unreal/HollowAcre/Content/HollowAcre/Driver/Built/Driver/BP_Driver.uasset
+
+# unfinished work kept beside the sources
+hollow-acre/2d/src/*_wip.js
