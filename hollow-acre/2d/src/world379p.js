@@ -59,3 +59,43 @@ interact.push({get x(){return ROOMS.cabin?ROOMS.cabin.ox+Math.max(.8,ROOMS.cabin
 interact.push({get x(){return ROOMS.cabin?ROOMS.cabin.ox+ROOMS.cabin.door:0;},get z(){return ROOMS.cabin?ROOMS.cabin.oz+ROOMS.cabin.d-.45:0;},r:.95,
   on:()=>!!W79P.on&&S.room==='cabin',label:()=>'Open the door',ok:()=>true,act(){const D=W79P.on;W79P.on=null;SFX.thud&&SFX.thud(0,.3);w79Fear(D&&D.looked?4:12,'door');w79pPrints();
     toast('Nobody. The yard is empty to the fence. On the boards, wet prints come in past your feet and go across the room to the bed.',5.4,true);}});
+
+/* ---------------------------------------------------------------- stage B (plan 6.3: "from chapter 6: the knock comes while you sleep and
+   wakes you. The window shows nothing. Open the door: nothing. Turn round: it is in the mirror behind you, for half a second").
+   From the story's sixth chapter (the last part of Chapter Two on today's three), at most once a week (one week's knock is A or B),
+   alone (not in a shared game): you go to bed and three knocks wake you at one in the morning. The window shows the yard, empty; the
+   door opens on nothing. Then, behind you, the mirror: for half a second it is in the room with you, standing at your back. Then it
+   is only you, and the room. Fear +15 through the Fear bar ('door'). */
+function w79pMirrorArt(){return sgtC('w79p_mirror',96,124,(P)=>{
+  const Gd=['#3a2a0c','#6a4c18','#9a7428','#c8a040','#e8c868'],R=['#06070a','#0c0e14','#141822','#1e2430'];
+  for(let y=0;y<124;y++)for(let x=0;x<96;x++){const e=((x-48)/44)**2+((y-62)/58)**2;if(e>1)continue;P(x,y,1,1,e>.9?Gd[(x+y)%3===0?3:2]:e>.84?Gd[1]:R[y<50?1:y<90?2:1]);}   /* the oval glass in its gilt frame */
+  for(let y=6;y<118;y++)for(let x=6;x<90;x++){const e=((x-48)/44)**2+((y-62)/58)**2;if(e>.84||e<.8)continue;if(x<48&&y<62)P(x,y,1,1,Gd[4]);}   /* the lit rim, upper left */
+  // the room behind you in the glass: the dark bed, the window's grey square
+  P(14,64,26,14,R[3]);P(14,64,26,2,'#2c3442');P(60,34,16,14,'#28303c');P(67,34,1,14,R[1]);P(60,40,16,1,R[1]);
+  // it: standing at your back, much taller than you, the carved head bent under the ceiling, the embers in its eyes, straw at the collar
+  for(let y=22;y<118;y++){const w=y<44?0:Math.round(9+Math.min(9,(y-44)*.2));for(let x=48-w;x<=48+w;x++)if(w)P(x,y,1,1,(x+y*2)%9===0?'#0a0b0e':'#030304');}
+  for(let y=14;y<44;y++)for(let x=34;x<62;x++){const e=((x-48)/14)**2+((y-29)/15)**2;if(e<1)P(x,y,1,1,e>.8?'#1a0c06':e>.5?'#3a1e0c':'#5a2e12');}
+  for(const ex of [41,53]){P(ex,25,4,3,'#c84a10');P(ex+1,25,2,1,'#ffd070');}
+  for(let x=39;x<58;x+=2){P(x,35,1,3,'#d8ccb0');}P(39,34,19,1,'#1e0804');
+  for(let i=0;i<14;i++){const x=36+i*2,h=5+(i*7)%5;for(let k=0;k<h;k++)P(x+Math.round(k*((i%3)-1)*.3),44+k,1,1,k%3?'#9a7a34':'#c8a050');}
+  // you, small in the front of the glass, from behind: dark hair, the shoulders of your coat
+  for(let y=78;y<118;y++){const w=y<88?6:Math.round(8+(y-88)*.35);for(let x=48-w;x<=48+w;x++)P(x,y,1,1,y<88?'#2a1c14':'#3a2a22');}});}
+function w79pBOk(){try{if(typeof mpOn==='function'&&mpOn())return false;const ch=typeof wk79Ch==='function'?wk79Ch():1;S.w79p=S.w79p||{};
+  return ch>=6&&S.room==='cabin'&&(S.day-(S.w79p.a==null?-99:S.w79p.a))>=7&&rand()<.5;}catch(e){return false;}}
+function w79pMirrorFlash(){const v=document.getElementById('view');if(!v)return;const c=document.createElement('canvas');const im=w79pMirrorArt();c.width=VW;c.height=VH;
+  c.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none;image-rendering:pixelated;image-rendering:crisp-edges';v.insertAdjacentElement('afterend',c);
+  const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.fillStyle='#000';g.fillRect(0,0,VW,VH);const k=Math.max(1,Math.floor(Math.min(VW*.7/im.width,VH*.82/im.height)));
+  g.drawImage(im,Math.round(VW/2-im.width*k/2),Math.round(VH/2-im.height*k/2),im.width*k,im.height*k);SFX.stinger&&SFX.stinger();w79Fear(15,'door');
+  setTimeout(()=>{c.remove();toast('When you look again there is only you in the glass, and the room behind you.',4,true);},520);}
+function w79pB(){S.w79p.a=S.day;S.mode='trans';fade(1);setTimeout(()=>{const R=ROOMS.cabin,bed=OBJ.find(o=>o.room==='cabin'&&!o.hide&&/^in_bed/.test(o.spr));
+    S.hour=Math.max(S.hour,25);   /* one in the morning (at two you would fall asleep where you stand) */if(bed){P.x=bed.x+.9;P.z=bed.z+.5;}P.dir='S';S.mode='play';fade(0);W79P.b={t:0,done:false};
+    for(const dl of [200,650,1100])setTimeout(()=>{try{SFX.thud&&SFX.thud(0,.6);if(typeof cam!=='undefined')cam.shake=Math.max(cam.shake||0,.1);}catch(e){}},dl);
+    setTimeout(()=>toast('Three knocks wake you. It is one in the morning.',3.4,true),1300);},700);}
+{const _sl=sleep;sleep=function(){try{if(S.mode==='play'&&!W79P.b&&w79pBOk()){w79pB();return;}}catch(e){}return _sl.apply(this,arguments);};}
+// awake: the window, the door, and then the mirror (after the door, or if you do nothing for a while)
+setInterval(()=>{try{const b=W79P.b;if(!b)return;if(S.room!=='cabin'){W79P.b=null;return;}b.t+=1;if(!b.done&&b.t>=25){b.done=true;setTimeout(()=>{w79pMirrorFlash();W79P.b=null;},400);}}catch(e){}},1000);
+interact.push({get x(){return ROOMS.cabin?ROOMS.cabin.ox+Math.max(.8,ROOMS.cabin.door-1.6):0;},get z(){return ROOMS.cabin?ROOMS.cabin.oz+ROOMS.cabin.d-.45:0;},r:1,
+  on:()=>!!W79P.b&&!W79P.b.done&&S.room==='cabin'&&!W79P.b.looked,label:()=>'Look through the window',ok:()=>true,act(){W79P.b.looked=true;w79Fear(3,'look');toast('Only the yard, white with frost, and the dark line of the corn. Nothing is there.',3.6);}});
+interact.push({get x(){return ROOMS.cabin?ROOMS.cabin.ox+ROOMS.cabin.door:0;},get z(){return ROOMS.cabin?ROOMS.cabin.oz+ROOMS.cabin.d-.45:0;},r:.95,
+  on:()=>!!W79P.b&&!W79P.b.done&&S.room==='cabin',label:()=>'Open the door',ok:()=>true,act(){const b=W79P.b;b.done=true;SFX.thud&&SFX.thud(0,.3);
+    toast('Nothing. Nobody. The cold comes in round your feet. You shut the door and turn round.',3.2,true);setTimeout(()=>{w79pMirrorFlash();W79P.b=null;},2600);}});
