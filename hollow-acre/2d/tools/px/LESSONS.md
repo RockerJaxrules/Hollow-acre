@@ -255,6 +255,13 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
   enlarged crop of the changed part beside the 1x sheet.
 
 ## Story sights: pictures that carry a caption's facts (Nov 12: regions 5.5 -> 6, places 5.5 -> 6.5)
+- [audit, Nov 28: 3.5-5.5 -> approved] A story object in a close-up must be drawn LARGE and whole, with its own outline and a 3-4 step ramp: a 3-4 px glint, a flat slab or a speck reads as a placeholder (a star became a tin star 11x10 with an outline; a sheet became a folded sheet with a crease, a second fold and two layers on its near edge).
+- A garment laid out flat reads as a garment only upright (collar at the top, V lapels, sleeves angled out, buttons down the middle). Lying sideways, its buttons and pocket read as a face, and the whole thing as a crab or a fish.
+- A keepsake hanging beside meat needs its own value: a dark desaturated wool coat on a hanger with a turned-down collar separates from red carcasses; a red coat merges with them at 1x. A saturated blue accent breaks a muted palette; use dusty blue.
+- Shadows in a close-up that is cut out of its background and laid over the world's ground must be painted translucent over the ground at composite time (#322125 at 60%, down and right); drawn into the cut they bake solid and read as black pits.
+- A ribbon on a post reads as a ribbon only when knotted round it with outlined tails lifting with the current and 3+ px of clear background; one that sticks out sideways and touches a hat reads as a fish, a feather or a sign. In a green scene, a dusty rose (no weed is that colour) keeps it apart from the weed.
+- A quarry face is worked stone in courses: uneven blocks lit along the top, dark bedding lines, vertical joints, drill-hole half-pipes, a few long cracks. Voronoi cells read as crazy paving.
+- An open pit drawn as a clean rectangle reads as a framed tray: break its lips with clods and bites of turned earth.
 - A sight is judged on one thing first: does the picture SHOW the caption's key fact. The drowned scored 5 because the people faced the viewer when the caption says they face away; nothing else mattered until that was fixed.
 - "Facing away" needs the back of the head to be ALL hair: a skin pixel on the side plus a highlight reads as a face.
 - A body folded at the knee is a "<": the thigh goes forward to the knee, the shin angles back down to the foot. Thigh and shin drawn parallel read as stacked logs.
@@ -1478,6 +1485,16 @@ Each line is something an attempt taught. Newest and repeated mistakes go to the
 - Hard bars of shadow under a post read as plinths: a soft oval of #322125 at about 60%, pushed down and right.
 - Near-white on a small label is the loudest thing in a set: yellow it like old paper. 1 px white buttons and collar points read as speckle at 1x.
 - A small bird reads as a crow from its silhouette, not its fill: a body tapering to a tail, a separate head with a thick pale beak, one eye pixel catching the light, legs. A box body with a box head reads as a beetle or a brick. In flight, wings seen a little from above: broad blades from the shoulder with the leading edge lit and two finger pixels at the tip; the far wing a step darker.
+
+## Blood as liquid (Nov 28: 3 -> 5 in round 1)
+- An even tube of blood with a lit line along it reads as a worm or a sausage: a drag starts at a heavy lobed head and tapers fast into two or three beads, each smaller; put the heavy end at the body it came from.
+- A near-perfect oval pool with a rim and a lit dome reads as a jelly bean or raw meat: give it two or three uneven lobes and one tongue running downhill, and keep it flat (light it only round the glint).
+- Drops: round (2 px at least) with a tail back toward where they came from. A rotated square reads as a gem, a plus as a cross, a lone pixel as speckle: remove any blood pixel with at most one neighbour.
+- Runs on glass sway and jog where they catch, thin as they go and end in a round bead centred on the run (a bead offset to one side reads as a "?").
+- Three straight parallel claw marks down the whole screen read as ruled lines and hide the player: curve them, vary their lengths, keep them to one side.
+- A heavy pour is a thick ragged band along the top with a few fat runs, not many equal thin strings (a bead curtain).
+- Blood's shadows go violet-black and its lights warm orange-pink; flat crimson reads as paint.
+- Screen blood must fade properly: full only for the first moment, then down to nothing by the end of its life.
 
 ## Outlines, light, colour
 
